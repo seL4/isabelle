@@ -1,6 +1,6 @@
 (*  Title:      HOL/Bali/WellForm.thy
     ID:         $Id$
-    Author:     David von Oheimb
+    Author:     David von Oheimb and Norbert Schirmer
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
@@ -31,8 +31,8 @@ simplifications:
 *}
 
 section "well-formed field declarations"
-  (* well-formed field declaration (common part for classes and interfaces),
-     cf. 8.3 and (9.3) *)
+text  {* well-formed field declaration (common part for classes and interfaces),
+        cf. 8.3 and (9.3) *}
 
 constdefs
   wf_fdecl :: "prog \<Rightarrow> pname \<Rightarrow> fdecl \<Rightarrow> bool"
@@ -98,7 +98,7 @@ constdefs
                         VNam v 
                         \<Rightarrow>(table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v
                       | Res \<Rightarrow> Some (resTy m))
-	        | This \<Rightarrow> if static m then None else Some (Class C))
+	        | This \<Rightarrow> if is_static m then None else Some (Class C))
           \<rparr>\<turnstile>(stmt (mbody m))\<Colon>\<surd>"
 
 lemma wf_mheadI: 
@@ -122,7 +122,7 @@ lemma wf_mdeclI: "\<lbrakk>
                 VNam v 
                 \<Rightarrow> (table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v
               | Res \<Rightarrow> Some (resTy m))
-        | This \<Rightarrow> if static m then None else Some (Class C))
+        | This \<Rightarrow> if is_static m then None else Some (Class C))
   \<rparr>\<turnstile>(stmt (mbody m))\<Colon>\<surd>
   \<rbrakk> \<Longrightarrow>  
   wf_mdecl G C (sig,m)"
@@ -149,7 +149,7 @@ lemma wf_mdecl_bodyD:
             \<Rightarrow> (case e of 
                 VNam v \<Rightarrow> (table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v
                 | Res  \<Rightarrow> Some (resTy m))
-          | This \<Rightarrow> if static m then None else Some (Class C))
+          | This \<Rightarrow> if is_static m then None else Some (Class C))
        \<rparr>\<turnstile>Body C (stmt (mbody m))\<Colon>-T \<and> G\<turnstile>T\<preceq>(resTy m))"
 apply (unfold wf_mdecl_def)
 apply clarify
@@ -1291,12 +1291,6 @@ proof -
   qed
 qed
 
-declare split_paired_All [simp del] split_paired_Ex [simp del]
-ML_setup {*
-simpset_ref() := simpset() delloop "split_all_tac";
-claset_ref () := claset () delSWrapper "split_all_tac"
-*}
-
 lemma declclass_widen[rule_format]: 
  "wf_prog G 
  \<longrightarrow> (\<forall>c m. class G C = Some c \<longrightarrow> methd G C sig = Some m 
@@ -1326,8 +1320,9 @@ proof (rule class_rec.induct,intro allI impI)
       moreover
       from wf cls_C False obtain sup where "class G (super c) = Some sup"
 	by (blast dest: wf_prog_cdecl wf_cdecl_supD is_acc_class_is_class)
-      moreover note wf False cls_C Hyp 
-      ultimately have "G\<turnstile>super c \<preceq>\<^sub>C declclass m"  by auto
+      moreover note wf False cls_C  
+      ultimately have "G\<turnstile>super c \<preceq>\<^sub>C declclass m"  
+	by (auto intro: Hyp [rule_format])
       moreover from cls_C False have  "G\<turnstile>C \<prec>\<^sub>C\<^sub>1 super c" by (rule subcls1I)
       ultimately show ?thesis by - (rule rtrancl_into_rtrancl2)
     next
@@ -1337,103 +1332,9 @@ proof (rule class_rec.induct,intro allI impI)
   qed
 qed
 
-(*
-lemma declclass_widen[rule_format]: 
- "wf_prog G 
- \<longrightarrow> (\<forall>c m. class G C = Some c \<longrightarrow> methd G C sig = Some m 
- \<longrightarrow> G\<turnstile>C \<preceq>\<^sub>C declclass m)" (is "?P G C")
-apply (rule class_rec.induct)
-apply (rule impI)+
-apply (case_tac "C=Object")
-apply   (force simp add: methd_Object_SomeD)
-
-apply   (rule allI)+
-apply   (rule impI)
-apply   (simp (no_asm_simp) add: methd_rec)
-apply   (case_tac "table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig")
-apply    (simp add: override_def)
-apply    (frule (1) subcls1I)
-apply    (drule (1) wf_prog_cdecl)
-apply    (drule (1) wf_cdecl_supD)
-apply    clarify
-apply    (drule is_acc_class_is_class)
-apply    clarify
-apply    (blast dest: rtrancl_into_rtrancl2)
-
-apply    auto
-done
-*)
-
-(*
-lemma accessible_public_inheritance_lemma1:
-  "\<lbrakk>wf_prog G; class G C = Some c; C \<noteq> Object; accmodi m = Public;
-    G\<turnstile>m accessible_through_inheritance_in (super c)\<rbrakk> 
-   \<Longrightarrow> G\<turnstile>m accessible_through_inheritance_in C"
-apply   (frule (1) subcls1I)
-apply   (rule accessible_through_inheritance.Indirect)
-apply     (blast)
-apply     (erule accessible_through_inheritance_subclsD)
-apply     (blast dest: wf_prog_acc_superD is_acc_classD)
-apply     assumption
-apply     (force dest: wf_prog_acc_superD is_acc_classD
-                 simp add: accessible_for_inheritance_in_def)
-done
-
-lemma accessible_public_inheritance_lemma[rule_format]:
-  "\<lbrakk>wf_prog G;C \<noteq> Object; class G C = Some c; 
-    accmodi m = Public
-   \<rbrakk> \<Longrightarrow> methd G (super c) sig = Some m 
-        \<longrightarrow> G\<turnstile>m accessible_through_inheritance_in C" 
-apply (frule (2) wf_prog_acc_superD [THEN is_acc_classD])
-apply (erule conjE)
-apply (simp only: not_None_eq)
-apply (erule exE)
-apply (case_tac "(super c) = Object")
-apply   (rule impI)
-apply   (rule accessible_through_inheritance.Direct)
-apply     force
-apply     (force simp add: accessible_for_inheritance_in_def)
-
-apply   (frule wf_ws_prog) 
-apply   (simp add: methd_rec)
-apply   (case_tac "table_of (map (\<lambda>(s, m). (s, super c, m)) (methods y)) sig")
-apply     simp
-apply     (clarify)
-apply     (rule_tac D="super c" in accessible_through_inheritance.Indirect)
-apply       (blast dest: subcls1I)
-apply       (blast)
-apply       simp
-apply       assumption
-apply       (simp add: accessible_for_inheritance_in_def)
-
-apply     clarsimp
-apply     (rule accessible_through_inheritance.Direct)
-apply     (auto dest: subcls1I simp add: accessible_for_inheritance_in_def)
-done
-
-lemma accessible_public_inheritance:
-  "\<lbrakk>wf_prog G; class G D = Some d; G\<turnstile>C \<prec>\<^sub>C D; methd G D sig = Some m; 
-    accmodi m = Public\<rbrakk> 
-   \<Longrightarrow> G \<turnstile> m accessible_through_inheritance_in C"
-apply (erule converse_trancl_induct)
-apply  (blast dest: subcls1D intro: accessible_public_inheritance_lemma)
-
-apply  (frule subcls1D)
-apply  clarify
-apply  (frule  (2) wf_prog_acc_superD [THEN is_acc_classD])
-apply  clarify
-apply  (rule_tac D="super c" in accessible_through_inheritance.Indirect)
-apply   (auto intro:trancl_into_trancl2 
-                    accessible_through_inheritance_subclsD
-              simp add: accessible_for_inheritance_in_def)
-done
-*)
-
-
 lemma declclass_methd_Object: 
  "\<lbrakk>wf_prog G; methd G Object sig = Some m\<rbrakk> \<Longrightarrow> declclass m = Object"
 by auto
-
 
 lemma methd_declaredD: 
  "\<lbrakk>wf_prog G; is_class G C;methd G C sig = Some m\<rbrakk> 
@@ -1470,7 +1371,6 @@ proof -
     qed
   qed
 qed
-
 
 lemma methd_rec_Some_cases [consumes 4, case_names NewMethod InheritedMethod]:
 (assumes methd_C: "methd G C sig = Some m" and
@@ -1757,9 +1657,8 @@ lemma inheritable_instance_methd_cases [consumes 6
  ) "P"
 proof -
 from subclseq_C_D is_cls_D wf old accmodi_old not_static_old 
-     inheritance overriding
 show ?thesis
-  by (auto dest: inheritable_instance_methd)
+  by (auto dest: inheritable_instance_methd intro: inheritance overriding)
 qed
 
 lemma inheritable_instance_methd_props: 
@@ -1978,12 +1877,6 @@ apply (drule (3) r_into_rtrancl [THEN inheritable_instance_methd_props,
 apply auto 
 done
 
-
-declare split_paired_All [simp] split_paired_Ex [simp]
-ML_setup {*
-claset_ref()  := claset() addSbefore ("split_all_tac", split_all_tac);
-simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
-*}
 lemma mheadsD [rule_format (no_asm)]: 
 "emh \<in> mheads G S t sig \<longrightarrow> wf_prog G \<longrightarrow>
  (\<exists>C D m. t = ClassT C \<and> declrefT emh = ClassT D \<and> 
@@ -2168,14 +2061,14 @@ isn't enough to describe the valid lookup classes, since we must cope the
 special cases of arrays and interfaces,too. If we statically expect an array or
 inteface we may lookup a field or a method in Object which isn't covered in 
 the widening relation.
-\begin{verbatim}
+
 statT      field         instance method       static (class) method
 ------------------------------------------------------------------------
  NullT      /                  /                   /
  Iface      /                dynC                Object
  Class    dynC               dynC                 dynC
  Array      /                Object              Object
-\end{verbatim}
+
 In most cases we con lookup the member in the dynamic class. But as an
 interface can't declare new static methods, nor an array can define new
 methods at all, we have to lookup methods in the base class Object.
@@ -2189,14 +2082,13 @@ have no fields at all and a field access would be senseless. (In Java
 interfaces are allowed to declare new fields but in current Bali not!).
 So there is no principal reason why we should not allow Objects to declare
 non private fields. Then we would get the following column:
-\begin{verbatim}
+       
  statT    field
 ----------------- 
  NullT      /  
  Iface    Object 
  Class    dynC 
  Array    Object
-\end{verbatim}
 *}
 consts valid_lookup_cls:: "prog \<Rightarrow> ref_ty \<Rightarrow> qtname \<Rightarrow> bool \<Rightarrow> bool"
                         ("_,_ \<turnstile> _ valid'_lookup'_cls'_for _" [61,61,61,61] 60)
@@ -2237,7 +2129,6 @@ ML_setup {*
 simpset_ref() := simpset() delloop "split_all_tac";
 claset_ref () := claset () delSWrapper "split_all_tac"
 *}
-
 lemma dynamic_mheadsD:   
 "\<lbrakk>emh \<in> mheads G S statT sig;    
   G,statT \<turnstile> dynC valid_lookup_cls_for (is_static emh);
@@ -2270,7 +2161,7 @@ proof -
       "dynmethd G statC dynC sig = Some dm"
       "is_static dm = is_static sm" 
       "G\<turnstile>resTy dm\<preceq>resTy sm"  
-      by (auto dest!: ws_dynmethd accmethd_SomeD)
+      by (force dest!: ws_dynmethd accmethd_SomeD)
     with dynlookup eq_mheads 
     show ?thesis 
       by (cases emh type: *) (auto)
@@ -2293,7 +2184,7 @@ proof -
       "methd G dynC sig = Some dm"
       "is_static dm = is_static im" 
       "G\<turnstile>resTy (mthd dm)\<preceq>resTy (mthd im)" 
-      by (auto dest: implmt_methd)
+      by (force dest: implmt_methd)
     with dynlookup eq_mheads
     show ?thesis 
       by (cases emh type: *) (auto)
@@ -2319,7 +2210,7 @@ proof -
 	 "is_static dm = is_static sm" 
 	 "G\<turnstile>resTy (mthd dm)\<preceq>resTy (mthd sm)"  
 	 by (auto dest!: ws_dynmethd accmethd_SomeD 
-                  intro: class_Object [OF wf])
+                  intro: class_Object [OF wf] intro: that)
        with dynlookup eq_mheads
        show ?thesis 
 	 by (cases emh type: *) (auto)
@@ -2364,6 +2255,11 @@ proof -
       by (cases emh type: *) (auto dest: accmethd_SomeD)
   qed
 qed
+declare split_paired_All [simp] split_paired_Ex [simp]
+ML_setup {*
+claset_ref()  := claset() addSbefore ("split_all_tac", split_all_tac);
+simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
+*}
 
 (* Tactical version *)
 (*
@@ -2431,7 +2327,7 @@ apply    (force dest: accmethd_SomeD simp add: dynmethd_def)
 done
 *)
 
-(* ### auf ws_class_induct umstellen *)
+(* FIXME occasionally convert to ws_class_induct*) 
 lemma methd_declclass:
 "\<lbrakk>class G C = Some c; wf_prog G; methd G C sig = Some m\<rbrakk> 
  \<Longrightarrow> methd G (declclass m) sig = Some m"
@@ -2465,8 +2361,8 @@ proof -
 	moreover
 	from wf cls_C False obtain sup where "class G (super c) = Some sup"
 	  by (blast dest: wf_prog_cdecl wf_cdecl_supD is_acc_class_is_class)
-	moreover note wf False cls_C hyp
-	ultimately show ?thesis by auto
+	moreover note wf False cls_C 
+	ultimately show ?thesis by (auto intro: hyp [rule_format])
       next
 	case Some
 	from this methd_C m show ?thesis by auto 
@@ -2504,12 +2400,12 @@ proof -
                  dest: methd_Object_SomeD)
 qed   
   
+
 declare split_paired_All [simp del] split_paired_Ex [simp del]
 ML_setup {*
 simpset_ref() := simpset() delloop "split_all_tac";
 claset_ref () := claset () delSWrapper "split_all_tac"
 *}
-
 lemma wt_is_type: "E,dt\<Turnstile>v\<Colon>T \<Longrightarrow>  wf_prog (prg E) \<longrightarrow> 
   dt=empty_dt \<longrightarrow> (case T of 
                      Inl T \<Rightarrow> is_type (prg E) T 
@@ -2598,7 +2494,7 @@ lemma mheads_type_accessible:
 by (erule mheads_cases)
    (auto dest: accmethd_SomeD accessible_from_commonD accimethdsD)
 
-lemma static_to_dynamic_accessible_from:
+lemma static_to_dynamic_accessible_from_aux:
 "\<lbrakk>G\<turnstile>m of C accessible_from accC;wf_prog G\<rbrakk> 
  \<Longrightarrow> G\<turnstile>m in C dyn_accessible_from accC"
 proof (induct rule: accessible_fromR.induct)
@@ -2615,20 +2511,34 @@ proof -
   from stat_acc subclseq 
   show ?thesis (is "?Dyn_accessible m")
   proof (induct rule: accessible_fromR.induct)
-    case (immediate statC m)
+    case (Immediate statC m)
     then show "?Dyn_accessible m"
-      by (blast intro: dyn_accessible_fromR.immediate
+      by (blast intro: dyn_accessible_fromR.Immediate
                        member_inI
                        permits_acc_inheritance)
   next
-    case (overriding _ _ m)
+    case (Overriding _ _ m)
     with wf show "?Dyn_accessible m"
-      by (blast intro: dyn_accessible_fromR.overriding
+      by (blast intro: dyn_accessible_fromR.Overriding
                        member_inI
                        static_to_dynamic_overriding  
                        rtrancl_trancl_trancl 
-                       static_to_dynamic_accessible_from)
+                       static_to_dynamic_accessible_from_aux)
   qed
+qed
+
+lemma static_to_dynamic_accessible_from_static:
+ (assumes stat_acc: "G\<turnstile>m of statC accessible_from accC" and
+            static: "is_static m" and
+                wf: "wf_prog G"
+ ) "G\<turnstile>m in (declclass m) dyn_accessible_from accC"
+proof -
+  from stat_acc wf 
+  have "G\<turnstile>m in statC dyn_accessible_from accC"
+    by (auto intro: static_to_dynamic_accessible_from)
+  from this static
+  show ?thesis
+    by (rule dyn_accessible_from_static_declC)
 qed
 
 lemma dynmethd_member_in:
@@ -2723,7 +2633,7 @@ proof -
     moreover
     note override eq_dynM_newM
     ultimately show ?thesis
-      by (cases dynM,cases statM) (auto intro: dyn_accessible_fromR.overriding)
+      by (cases dynM,cases statM) (auto intro: dyn_accessible_fromR.Overriding)
   qed
 qed
 
@@ -2749,7 +2659,7 @@ proof -
     by (blast dest: implmt_methd)
   with iscls_dynC wf
   have "G\<turnstile>Methd sig dynM in dynC dyn_accessible_from accC"
-    by (auto intro!: dyn_accessible_fromR.immediate 
+    by (auto intro!: dyn_accessible_fromR.Immediate 
               intro: methd_member_of member_of_to_member_in
                      simp add: permits_acc_def)
   with dynM    
@@ -2972,14 +2882,14 @@ proof -
             \<Longrightarrow> pid accC = pid (declclass m)"
     (is "?Pack m \<Longrightarrow> ?P m")
   proof (induct rule: dyn_accessible_fromR.induct)
-    case (immediate C m)
+    case (Immediate C m)
     assume "G\<turnstile>m member_in C"
            "G \<turnstile> m in C permits_acc_to accC"
            "accmodi m = Package"      
     then show "?P m"
       by (auto simp add: permits_acc_def)
   next
-    case (overriding declC C new newm old Sup)
+    case (Overriding declC C new newm old Sup)
     assume member_new: "G \<turnstile> new member_in C" and
                   new: "new = (declC, mdecl newm)" and
              override: "G \<turnstile> (declC, newm) overrides old" and
@@ -2998,6 +2908,66 @@ proof -
       by (auto dest: dyn_override_Package)
     with eq_pid_new_old P_sup show "?P new"
       by auto
+  qed
+qed
+
+
+text {* @{text dyn_accessible_instance_field_Protected} only works for fields
+since methods can break the package bounds due to overriding
+*}
+lemma dyn_accessible_instance_field_Protected:
+ (assumes dyn_acc: "G \<turnstile> f in C dyn_accessible_from accC" and
+             prot: "accmodi f = Protected" and
+            field: "is_field f" and
+   instance_field: "\<not> is_static f" and
+          outside: "pid (declclass f) \<noteq> pid accC"
+ ) "G\<turnstile> C \<preceq>\<^sub>C accC"
+proof -
+  from dyn_acc prot field instance_field outside
+  show ?thesis
+  proof (induct)
+    case (Immediate C f)
+    have "G \<turnstile> f in C permits_acc_to accC" .
+    moreover 
+    assume "accmodi f = Protected" and  "is_field f" and "\<not> is_static f" and
+           "pid (declclass f) \<noteq> pid accC"
+    ultimately 
+    show "G\<turnstile> C \<preceq>\<^sub>C accC"
+      by (auto simp add: permits_acc_def)
+  next
+    case Overriding
+    then show ?case by (simp add: is_field_def)
+  qed
+qed
+   
+lemma dyn_accessible_static_field_Protected:
+ (assumes dyn_acc: "G \<turnstile> f in C dyn_accessible_from accC" and
+             prot: "accmodi f = Protected" and
+            field: "is_field f" and
+     static_field: "is_static f" and
+          outside: "pid (declclass f) \<noteq> pid accC"
+ ) "G\<turnstile> accC \<preceq>\<^sub>C declclass f  \<and> G\<turnstile>C \<preceq>\<^sub>C declclass f"
+proof -
+  from dyn_acc prot field static_field outside
+  show ?thesis
+  proof (induct)
+    case (Immediate C f)
+    assume "accmodi f = Protected" and  "is_field f" and "is_static f" and
+           "pid (declclass f) \<noteq> pid accC"
+    moreover 
+    have "G \<turnstile> f in C permits_acc_to accC" .
+    ultimately
+    have "G\<turnstile> accC \<preceq>\<^sub>C declclass f"
+      by (auto simp add: permits_acc_def)
+    moreover
+    have "G \<turnstile> f member_in C" .
+    then have "G\<turnstile>C \<preceq>\<^sub>C declclass f"
+      by (rule member_in_class_relation)
+    ultimately show ?case
+      by blast
+  next
+    case Overriding
+    then show ?case by (simp add: is_field_def)
   qed
 qed
 

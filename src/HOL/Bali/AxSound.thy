@@ -185,18 +185,18 @@ lemma Call_sound:
    init_lvars G declC \<lparr>name=mn,parTs=pTs\<rparr> mode a vs) \<and>.  
    (\<lambda>s. normal s \<longrightarrow> G\<turnstile>mode\<rightarrow>invC\<preceq>statT)}  
    Methd declC \<lparr>name=mn,parTs=pTs\<rparr>-\<succ> {set_lvars l .; S}}\<rbrakk> \<Longrightarrow>  
-  G,A|\<Turnstile>\<Colon>{ {Normal P} {statT,mode}e\<cdot>mn({pTs}ps)-\<succ> {S}}"
+  G,A|\<Turnstile>\<Colon>{ {Normal P} {accC,statT,mode}e\<cdot>mn({pTs}ps)-\<succ> {S}}"
 apply (tactic "EVERY'[sound_prepare_tac, sound_elim_tac, sound_valid2_tac] 1")
 apply (rename_tac x1 s1 x2 s2 ab bb v vs m pTsa statDeclC)
 apply (tactic "smp_tac 6 1")
 apply (tactic "sound_forw_hyp_tac 1")
 apply (tactic "sound_forw_hyp_tac 1")
 apply (drule max_spec2mheads)
-apply (drule evaln_eval, drule (3) eval_ts)
-apply (drule evaln_eval, frule (3) evals_ts)
+apply (drule (3) evaln_eval, drule (3) eval_ts)
+apply (drule (3) evaln_eval, frule (3) evals_ts)
 apply (drule spec,erule impE,rule exI, blast)
 (* apply (drule spec,drule spec,drule spec,erule impE,rule exI,blast) *)
-apply (case_tac "if static m then x2 else (np a') x2")
+apply (case_tac "if is_static m then x2 else (np a') x2")
 defer 1
 apply  (rename_tac x, subgoal_tac "(Some x, s2)\<Colon>\<preceq>(G, L)" (* used two times *))
 prefer 2 
@@ -246,6 +246,19 @@ apply (force dest!: evaln_eval eval_gext' elim: conforms_return
              del: impCE simp add: init_lvars_def2)
 done
 
+corollary evaln_type_sound:
+      (assumes evaln: "G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)" and
+                  wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and
+             conf_s0: "s0\<Colon>\<preceq>(G,L)" and
+                  wf: "wf_prog G"                         
+      ) "s1\<Colon>\<preceq>(G,L) \<and>  (normal s1 \<longrightarrow> G,L,store s1\<turnstile>t\<succ>v\<Colon>\<preceq>T) \<and> 
+         (error_free s0 = error_free s1)"
+proof -
+  from evaln wt conf_s0 wf
+  show ?thesis
+    by (blast dest: evaln_eval eval_type_sound)
+qed
+
 lemma Init_sound: "\<lbrakk>wf_prog G; the (class G C) = c;  
       G,A|\<Turnstile>\<Colon>{ {Normal ((P \<and>. Not \<circ> initd C) ;. supd (init_class_obj G C))}  
              .(if C = Object then Skip else Init (super c)). {Q}};  
@@ -260,7 +273,7 @@ apply  (erule_tac V = "All ?P" in thin_rl, fast)
 apply clarsimp
 apply (tactic "smp_tac 2 1", drule spec, erule impE, 
        erule (3) conforms_init_class_obj)
-apply (drule (1) wf_prog_cdecl)
+apply (frule (1) wf_prog_cdecl)
 apply (erule impE, rule exI,erule_tac V = "All ?P" in thin_rl,
        force dest: wf_cdecl_supD split add: split_if simp add: is_acc_class_def)
 apply clarify
@@ -272,9 +285,25 @@ apply ( fast)
 apply (simp (no_asm_use) del: empty_def2)
 apply (tactic "smp_tac 2 1")
 apply (drule spec, erule impE, erule conforms_set_locals, rule lconf_empty)
-apply (erule impE,rule impI,rule exI, erule wf_cdecl_wt_init)
+apply (erule impE,rule impI,rule exI,erule wf_cdecl_wt_init)
 apply clarsimp
-apply (erule (1) conforms_return, force dest: evaln_eval eval_gext')
+apply (erule (1) conforms_return)
+apply (frule wf_cdecl_wt_init)
+apply (subgoal_tac "(a, set_locals empty b)\<Colon>\<preceq>(G, empty)")
+apply   (frule (3) evaln_eval)
+apply   (drule eval_gext') 
+apply   force
+
+        (* refer to case Init in eval_type_sound proof, to see whats going on*)
+apply   (subgoal_tac "(a,b)\<Colon>\<preceq>(G, L)")
+apply     (blast intro: conforms_set_locals)
+
+apply     (drule evaln_type_sound)
+apply       (cases "C=Object") 
+apply         force 
+apply         (force dest: wf_cdecl_supD is_acc_classD)
+apply     (erule (4) conforms_init_class_obj)
+apply     blast
 done
 
 lemma all_conjunct2: "\<forall>l. P' l \<and> P l \<Longrightarrow> \<forall>l. P l"
@@ -301,10 +330,10 @@ apply        fast (* insert *)
 apply       fast (* asm *)
 (*apply    fast *) (* cut *)
 apply     fast (* weaken *)
-apply    (tactic "smp_tac 3 1", clarify, tactic "smp_tac 1 1", frule evaln_eval,
-(* conseq *)case_tac"fst s",clarsimp simp add: eval_type_sound [THEN conjunct1],
-clarsimp)
-apply   (simp (no_asm_use) add: type_ok_def, drule evaln_eval,fast) (* hazard *)
+apply    (tactic "smp_tac 3 1", clarify, tactic "smp_tac 1 1",
+          case_tac"fst s",clarsimp,erule (3) evaln_type_sound [THEN conjunct1],
+          clarsimp) (* conseq *)
+apply   (simp (no_asm_use) add: type_ok_def,fast)(* hazard *)
 apply  force (* Abrupt *)
 
 (* 25 subgoals *)
@@ -359,17 +388,17 @@ apply (tactic "sound_forw_hyp_tac 1")
 apply (case_tac "aa")
 prefer 2
 apply  clarsimp
-apply (drule evaln_eval)+
-apply (frule (3) eval_ts)
+apply (drule (3) evaln_type_sound)
+apply (drule (3) evaln_eval)
+apply (frule (3) eval_type_sound)
 apply clarsimp
-apply (frule (3) evar_ts [THEN conjunct2])
 apply (frule wf_ws_prog)
 apply (drule (2) conf_widen)
 apply (drule_tac "s1.0" = b in eval_gext')
 apply (clarsimp simp add: assign_conforms_def)
 
-(* Cond *)
 
+(* Cond *)
 apply (tactic "smp_tac 3 1") apply (tactic "smp_tac 2 1") 
 apply (tactic "smp_tac 1 1") apply (erule impE) 
 apply (rule impI,rule exI) 
@@ -391,7 +420,7 @@ apply (tactic "sound_forw_hyp_tac 1")
 apply (force split add: split_if)
 
 (* Throw *)
-apply (drule evaln_eval, drule (3) eval_ts)
+apply (drule (3) evaln_type_sound)
 apply clarsimp
 apply (drule (3) Throw_lemma)
 apply clarsimp
@@ -416,7 +445,7 @@ apply (fast elim!: conforms_deallocL)
 apply (tactic "sound_forw_hyp_tac 1")
 apply (case_tac "x1", force)
 apply clarsimp
-apply (drule evaln_eval, drule (4) Fin_lemma)
+apply (drule (3) evaln_eval, drule (4) Fin_lemma)
 done
 
 

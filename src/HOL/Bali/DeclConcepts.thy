@@ -1,3 +1,8 @@
+(*  Title:      HOL/Bali/DeclConcepts.thy
+    ID:         $Id$
+    Author:     Norbert Schirmer
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
+*)
 header {* Advanced concepts on Java declarations like overriding, inheritance,
 dynamic method lookup*}
 
@@ -57,7 +62,7 @@ lemma is_acc_ifaceD:
 by (simp add: is_acc_iface_def)
 
 lemma is_acc_typeD:
- "is_acc_type  G P T \<equiv> is_type G T  \<and> G\<turnstile>T accessible_in P"
+ "is_acc_type  G P T \<Longrightarrow> is_type G T  \<and> G\<turnstile>T accessible_in P"
 by (simp add: is_acc_type_def)
 
 lemma is_acc_reftypeD:
@@ -815,7 +820,8 @@ permits_acc::
      | Package   \<Rightarrow> (pid (declclass membr) = pid accclass)
      | Protected \<Rightarrow> (pid (declclass membr) = pid accclass)
                     \<or>
-                    (G\<turnstile>accclass \<prec>\<^sub>C declclass membr \<and> G\<turnstile>class \<preceq>\<^sub>C accclass) 
+                    (G\<turnstile>accclass \<prec>\<^sub>C declclass membr 
+                     \<and> (G\<turnstile>class \<preceq>\<^sub>C accclass \<or> is_static membr)) 
      | Public    \<Rightarrow> True)"
 text {*
 The subcondition of the @{term "Protected"} case: 
@@ -881,12 +887,12 @@ translations
  \<rightleftharpoons> "G\<turnstile>(fieldm fn f) of C accessible_from accclass" 
 
 inductive "accessible_fromR G accclass" intros
-immediate:  "\<lbrakk>G\<turnstile>membr member_of class;
+Immediate:  "\<lbrakk>G\<turnstile>membr member_of class;
               G\<turnstile>(Class class) accessible_in (pid accclass);
               G\<turnstile>membr in class permits_acc_to accclass 
              \<rbrakk> \<Longrightarrow> G\<turnstile>membr of class accessible_from accclass"
 
-overriding: "\<lbrakk>G\<turnstile>membr member_of class;
+Overriding: "\<lbrakk>G\<turnstile>membr member_of class;
               G\<turnstile>(Class class) accessible_in (pid accclass);
               membr=(C,mdecl new);
               G\<turnstile>(C,new) overrides\<^sub>S old; 
@@ -934,16 +940,12 @@ translations
 "G\<turnstile>Field fn f in dynC dyn_accessible_from accC"  
  \<rightleftharpoons> "G\<turnstile>(fieldm fn f) in dynC dyn_accessible_from accC"
   
-(* #### Testet JVM noch über den Bytecodeverifier hinaus ob der
- statische Typ accessible ist bevor es den Zugriff erlaubt 
- \<longrightarrow> Test mit Reflektion\<dots>
-*)
 inductive "dyn_accessible_fromR G accclass" intros
-immediate:  "\<lbrakk>G\<turnstile>membr member_in class;
+Immediate:  "\<lbrakk>G\<turnstile>membr member_in class;
               G\<turnstile>membr in class permits_acc_to accclass 
              \<rbrakk> \<Longrightarrow> G\<turnstile>membr in class dyn_accessible_from accclass"
 
-overriding: "\<lbrakk>G\<turnstile>membr member_in class;
+Overriding: "\<lbrakk>G\<turnstile>membr member_in class;
               membr=(C,mdecl new);
               G\<turnstile>(C,new) overrides old; 
               G\<turnstile>class \<prec>\<^sub>C sup;
@@ -955,8 +957,20 @@ lemma accessible_from_commonD: "G\<turnstile>m of C accessible_from S
  \<Longrightarrow> G\<turnstile>m member_of C \<and> G\<turnstile>(Class C) accessible_in (pid S)"
 by (auto elim: accessible_fromR.induct)
 
+lemma unique_declaration: 
+ "\<lbrakk>G\<turnstile>m declared_in C;  G\<turnstile>n declared_in C; memberid m = memberid n \<rbrakk> 
+  \<Longrightarrow> m = n"
+apply (cases m)
+apply (cases n,
+        auto simp add: declared_in_def cdeclaredmethd_def cdeclaredfield_def)+
+done
+
 lemma declared_not_undeclared:
   "G\<turnstile>m declared_in C \<Longrightarrow> \<not> G\<turnstile> memberid m undeclared_in C"
+by (cases m) (auto simp add: declared_in_def undeclared_in_def)
+
+lemma undeclared_not_declared:
+ "G\<turnstile> memberid m undeclared_in C \<Longrightarrow> \<not> G\<turnstile> m declared_in C" 
 by (cases m) (auto simp add: declared_in_def undeclared_in_def)
 
 lemma not_undeclared_declared:
@@ -1115,86 +1129,30 @@ proof -
   qed
 qed
 
+lemma member_in_declC: "G\<turnstile>m member_in C\<Longrightarrow> G\<turnstile>m member_in (declclass m)"
+proof -
+  assume member_in_C:  "G\<turnstile>m member_in C"
+  from member_in_C
+  obtain provC where
+    subclseq_C_provC: "G\<turnstile> C \<preceq>\<^sub>C provC" and
+     member_of_provC: "G \<turnstile> m member_of provC"
+    by (auto simp add: member_in_def)
+  from member_of_provC
+  have "G \<turnstile> m member_of declclass m"
+    by (rule member_of_member_of_declC)
+  moreover
+  from member_in_C
+  have "G\<turnstile>C \<preceq>\<^sub>C declclass m"
+    by (rule member_in_class_relation)
+  ultimately
+  show ?thesis
+    by (auto simp add: member_in_def)
+qed
+
 lemma dyn_accessible_from_commonD: "G\<turnstile>m in C dyn_accessible_from S
  \<Longrightarrow> G\<turnstile>m member_in C"
 by (auto elim: dyn_accessible_fromR.induct)
 
-(* ### Gilt nicht für wf_progs!dynmaisches Override, 
-  da die accmodi Bedingung nur für stat override gilt! *)
-(*
-lemma override_Package:
- "\<lbrakk>G\<turnstile>new overrides old; 
-  \<And> new old. G\<turnstile>new overrides old \<Longrightarrow> accmodi old \<le> accmodi new;
-  accmodi old = Package; accmodi new = Package\<rbrakk>
-  \<Longrightarrow> pid (declclass old) = pid (declclass new)"
-proof - 
-  assume wf: "\<And> new old. G\<turnstile>new overrides old \<Longrightarrow> accmodi old \<le> accmodi new"
-  assume ovverride: "G\<turnstile>new overrides old"
-  then show "\<lbrakk>accmodi old = Package;accmodi new = Package\<rbrakk> \<Longrightarrow> ?thesis"
-    (is "?Pack old \<Longrightarrow> ?Pack new \<Longrightarrow> ?EqPid old new")
-  proof (induct rule: overridesR.induct)
-    case Direct
-    fix new old
-    assume "accmodi old = Package"
-           "G \<turnstile> methdMembr old inheritable_in pid (declclass new)"
-    then show "pid (declclass old) =  pid (declclass new)"
-      by (auto simp add: inheritable_in_def)
-  next
-    case (Indirect inter new old)
-    assume accmodi_old: "accmodi old = Package" and
-           accmodi_new: "accmodi new = Package" 
-    assume "G \<turnstile> new overrides inter"
-    with wf have le_inter_new: "accmodi inter \<le> accmodi new"
-      by blast
-    assume "G \<turnstile> inter overrides old"
-    with wf have le_old_inter: "accmodi old \<le> accmodi inter"
-      by blast
-    from accmodi_old accmodi_new le_inter_new le_old_inter
-    have "accmodi inter = Package"
-      by(auto simp add: le_acc_def less_acc_def)
-    with Indirect accmodi_old accmodi_new
-    show "?EqPid old new"
-      by auto
-  qed
-qed
-
-lemma stat_override_Package:
- "\<lbrakk>G\<turnstile>new overrides\<^sub>S old; 
-  \<And> new old. G\<turnstile>new overrides\<^sub>S old \<Longrightarrow> accmodi old \<le> accmodi new;
-  accmodi old = Package; accmodi new = Package\<rbrakk>
-  \<Longrightarrow> pid (declclass old) = pid (declclass new)"
-proof - 
-  assume wf: "\<And> new old. G\<turnstile>new overrides\<^sub>S old \<Longrightarrow> accmodi old \<le> accmodi new"
-  assume ovverride: "G\<turnstile>new overrides\<^sub>S old"
-  then show "\<lbrakk>accmodi old = Package;accmodi new = Package\<rbrakk> \<Longrightarrow> ?thesis"
-    (is "?Pack old \<Longrightarrow> ?Pack new \<Longrightarrow> ?EqPid old new")
-  proof (induct rule: stat_overridesR.induct)
-    case Direct
-    fix new old
-    assume "accmodi old = Package"
-           "G \<turnstile> methdMembr old inheritable_in pid (declclass new)"
-    then show "pid (declclass old) =  pid (declclass new)"
-      by (auto simp add: inheritable_in_def)
-  next
-    case (Indirect inter new old)
-    assume accmodi_old: "accmodi old = Package" and
-           accmodi_new: "accmodi new = Package" 
-    assume "G \<turnstile> new overrides\<^sub>S inter"
-    with wf have le_inter_new: "accmodi inter \<le> accmodi new"
-      by blast
-    assume "G \<turnstile> inter overrides\<^sub>S old"
-    with wf have le_old_inter: "accmodi old \<le> accmodi inter"
-      by blast
-    from accmodi_old accmodi_new le_inter_new le_old_inter
-    have "accmodi inter = Package"
-      by(auto simp add: le_acc_def less_acc_def)
-    with Indirect accmodi_old accmodi_new
-    show "?EqPid old new"
-      by auto
-  qed
-qed
-
-*)
 lemma no_Private_stat_override: 
  "\<lbrakk>G\<turnstile>new overrides\<^sub>S old\<rbrakk> \<Longrightarrow> accmodi old \<noteq> Private"
 by (induct set:  stat_overridesR) (auto simp add: inheritable_in_def)
@@ -1208,6 +1166,34 @@ lemma permits_acc_inheritance:
 by (cases "accmodi m")
    (auto simp add: permits_acc_def
             intro: subclseq_trans) 
+
+lemma permits_acc_static_declC:
+ "\<lbrakk>G\<turnstile>m in C permits_acc_to accC; G\<turnstile>m member_in C; is_static m
+  \<rbrakk> \<Longrightarrow> G\<turnstile>m in (declclass m) permits_acc_to accC"
+by (cases "accmodi m") (auto simp add: permits_acc_def)
+
+lemma dyn_accessible_from_static_declC: 
+  (assumes  acc_C: "G\<turnstile>m in C dyn_accessible_from accC" and
+           static: "is_static m"
+  ) "G\<turnstile>m in (declclass m) dyn_accessible_from accC"
+proof -
+  from acc_C static
+  show "G\<turnstile>m in (declclass m) dyn_accessible_from accC"
+  proof (induct)
+    case (Immediate C m)
+    then show ?case 
+      by (auto intro!: dyn_accessible_fromR.Immediate
+                 dest: member_in_declC permits_acc_static_declC) 
+  next 
+    case (Overriding declCNew C m new old sup)
+    then have "\<not> is_static m"
+      by (auto dest: overrides_commonD)
+    moreover
+    assume "is_static m"
+    ultimately show ?case 
+      by contradiction
+  qed
+qed
 
 lemma field_accessible_fromD:
  "\<lbrakk>G\<turnstile>membr of C accessible_from accC;is_field membr\<rbrakk> 
@@ -1445,7 +1431,7 @@ proof -
   from stat_acc is_field subclseq 
   show ?thesis
     by (auto dest: accessible_fieldD 
-            intro: dyn_accessible_fromR.immediate 
+            intro: dyn_accessible_fromR.Immediate 
                    member_inI 
                    permits_acc_inheritance)
 qed
@@ -1463,15 +1449,15 @@ proof -
   from stat_acc
   show ?thesis
   proof (cases)
-    case immediate
+    case Immediate
     with member_dynC member_statC subclseq dynC_acc
     show ?thesis
-      by (auto intro: accessible_fromR.immediate permits_acc_inheritance)
+      by (auto intro: accessible_fromR.Immediate permits_acc_inheritance)
   next
-    case overriding
+    case Overriding
     with member_dynC subclseq dynC_acc
     show ?thesis
-      by (auto intro: accessible_fromR.overriding rtrancl_trancl_trancl)
+      by (auto intro: accessible_fromR.Overriding rtrancl_trancl_trancl)
   qed
 qed
 

@@ -1,6 +1,6 @@
 (*  Title:      HOL/Bali/Decl.thy
     ID:         $Id$
-    Author:     David von Oheimb
+    Author:     David von Oheimb and Norbert Schirmer
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 header {* Field, method, interface, and class declarations, whole Java programs

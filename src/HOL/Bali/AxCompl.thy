@@ -16,6 +16,9 @@ design issues:
 \item proof structured by Most General Formulas (-> Thomas Kleymann)
 \end{itemize}
 *}
+
+
+
 section "set of not yet initialzed classes"
 
 constdefs
@@ -155,10 +158,13 @@ defs
   "{=:n} t\<succ> {G\<rightarrow>} \<equiv> {\<doteq> \<and>. G\<turnstile>init\<le>n} t\<succ> {G\<rightarrow>}"
 
 (* unused *)
-lemma MGF_valid: "G,{}\<Turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}"
+
+lemma MGF_valid: "wf_prog G \<Longrightarrow> G,{}\<Turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}"
 apply (unfold MGF_def)
-apply (force dest!: evaln_eval simp add: ax_valids_def triple_valid_def2)
+apply (simp add:  ax_valids_def triple_valid_def2)
+apply (auto elim: evaln_eval)
 done
+
 
 lemma MGF_res_eq_lemma [simp]: 
   "(\<forall>Y' Y s. Y = Y' \<and> P s \<longrightarrow> Q s) = (\<forall>s. P s \<longrightarrow> Q s)"
@@ -228,6 +234,25 @@ apply (rule ax_free_wt)
 apply (auto elim: conseq12 simp add: MGFn_def MGF_def)
 done
 
+lemma MGFn_free_wt_NormalConformI: 
+"(\<forall> T L C. \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T 
+  \<longrightarrow> G,(A::state triple set)
+      \<turnstile>{Normal((\<lambda>Y' s' s. s'=s \<and> normal s) \<and>. G\<turnstile>init\<le>n) \<and>. (\<lambda> s. s\<Colon>\<preceq>(G, L))}
+      t\<succ> 
+      {\<lambda>Y s' s. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (Y,s')}) 
+ \<Longrightarrow> G,A\<turnstile>{=:n}t\<succ>{G\<rightarrow>}"
+apply (rule MGFn_NormalI)
+apply (rule ax_no_hazard)
+apply (rule ax_escape)
+apply (intro strip)
+apply (simp only: type_ok_def peek_and_def)
+apply (erule conjE)+
+apply (erule exE,erule exE, erule exE,erule conjE,drule (1) mp)
+apply (drule spec,drule spec, drule spec, drule (1) mp)
+apply (erule conseq12)
+apply blast
+done
+
 
 section "main lemmas"
 
@@ -250,6 +275,9 @@ val wt_prepare_tac = EVERY'[
     rtac (thm "MGFn_free_wt"),
     clarsimp_tac (claset() addSEs (thms "wt_elim_cases"), simpset())]
 val compl_prepare_tac = EVERY'[rtac (thm "MGFn_NormalI"), Simp_tac]
+val wt_conf_prepare_tac = EVERY'[
+    rtac (thm "MGFn_free_wt_NormalConformI"),
+    clarsimp_tac (claset() addSEs (thms "wt_elim_cases"), simpset())]
 val forw_hyp_tac = EVERY'[etac (thm "MGFnD'" RS thm "conseq12"), Clarsimp_tac]
 val forw_hyp_eval_Force_tac = 
          EVERY'[TRY o rtac allI, forw_hyp_tac, eval_Force_tac]
@@ -290,22 +318,64 @@ apply (rule eval_Init, force+)
 done
 lemmas MGFn_InitD = MGFn_Init [THEN MGFnD, THEN ax_NormalD]
 
+text {* For @{text MGFn_Call} we need the wellformedness of the program to
+switch from the evaln-semantics to the eval-semantics *}
 lemma MGFn_Call: 
 "\<lbrakk>\<forall>C sig. G,(A::state triple set)\<turnstile>{=:n} In1l (Methd C sig)\<succ> {G\<rightarrow>};  
-  G,A\<turnstile>{=:n} In1l e\<succ> {G\<rightarrow>}; G,A\<turnstile>{=:n} In3 ps\<succ> {G\<rightarrow>}\<rbrakk> \<Longrightarrow>  
-  G,A\<turnstile>{=:n} In1l ({statT,mode}e\<cdot>mn({pTs'}ps))\<succ> {G\<rightarrow>}"
-apply (tactic "wt_prepare_tac 1") (* required for equating mode = invmode m e *)
-apply (tactic "compl_prepare_tac 1")
-apply (rule_tac R = "\<lambda>a'. (\<lambda>Y (x2,s2) (x,s) . x = None \<and> (\<exists>s1 pvs. G\<turnstile>Norm s \<midarrow>e-\<succ>a'\<rightarrow> s1 \<and> Y = In3 pvs \<and> G\<turnstile>s1 \<midarrow>ps\<doteq>\<succ>pvs\<rightarrow> (x2,s2))) \<and>. G\<turnstile>init\<le>n" in ax_derivs.Call)
-apply  (erule MGFnD [THEN ax_NormalD])
-apply safe
-apply  (erule_tac V = "All ?P" in thin_rl, tactic "forw_hyp_eval_Force_tac 1")
+  G,A\<turnstile>{=:n} In1l e\<succ> {G\<rightarrow>}; G,A\<turnstile>{=:n} In3 ps\<succ> {G\<rightarrow>};wf_prog G\<rbrakk> \<Longrightarrow>  
+  G,A\<turnstile>{=:n} In1l ({accC,statT,mode}e\<cdot>mn({pTs'}ps))\<succ> {G\<rightarrow>}"
+apply (tactic "wt_conf_prepare_tac 1")
+apply (rule_tac  
+  Q="(\<lambda>Y s1 (x,s) . x = None \<and> 
+        (\<exists>a. G\<turnstile>Norm s \<midarrow>e-\<succ>a\<rightarrow> s1 \<and> (normal s1 \<longrightarrow> G, store s1\<turnstile>a\<Colon>\<preceq>RefT statT)
+         \<and> Y = In1 a)) 
+    \<and>. G\<turnstile>init\<le>n \<and>. (\<lambda> s. s\<Colon>\<preceq>(G, L))" and 
+ R = "\<lambda>a'. (\<lambda>Y (x2,s2) (x,s) . x = None \<and> 
+             (\<exists>s1 pvs. G\<turnstile>Norm s \<midarrow>e-\<succ>a'\<rightarrow> s1 \<and> 
+                       (normal s1 \<longrightarrow> G, store s1\<turnstile>a'\<Colon>\<preceq>RefT statT)\<and> 
+                       Y = In3 pvs \<and> G\<turnstile>s1 \<midarrow>ps\<doteq>\<succ>pvs\<rightarrow> (x2,s2))) 
+            \<and>. G\<turnstile>init\<le>n \<and>. (\<lambda> s. s\<Colon>\<preceq>(G, L))" in ax_derivs.Call)
+apply   (tactic "forw_hyp_tac 1")
+apply   (tactic "clarsimp_tac eval_css 1")
+apply   (frule (3) eval_type_sound)
+apply   force
+
+apply   safe
+apply   (tactic "forw_hyp_tac 1")
+apply   (tactic "clarsimp_tac eval_css 1")
+apply   (frule (3) eval_type_sound)
+apply     (rule conjI)
+apply       (rule exI,rule conjI)
+apply         (assumption)
+
+apply         (rule conjI)
+apply           simp
+apply           assumption
+apply      blast
+
 apply (drule spec, drule spec)
 apply (erule MGFnD' [THEN conseq12])
 apply (tactic "clarsimp_tac eval_css 1")
 apply (erule (1) eval_Call)
-apply   (rule HOL.refl)
-apply  (simp (no_asm_simp))+
+apply   (rule HOL.refl)+
+apply   (subgoal_tac "check_method_access G C statT (invmode m e)
+             \<lparr>name = mn, parTs = pTs'\<rparr> a
+             (init_lvars G
+               (invocation_declclass G (invmode m e) (snd (ab, ba)) a statT
+                 \<lparr>name = mn, parTs = pTs'\<rparr>)
+               \<lparr>name = mn, parTs = pTs'\<rparr> (invmode m e) a vs
+               (ab,
+                ba)) = (init_lvars G
+               (invocation_declclass G (invmode m e) (snd (ab, ba)) a statT
+                 \<lparr>name = mn, parTs = pTs'\<rparr>)
+               \<lparr>name = mn, parTs = pTs'\<rparr> (invmode m e) a vs
+               (ab,
+                ba))")
+apply    simp
+defer 
+apply simp
+apply (erule (3) error_free_call_access) (* now showing the subgoal *)
+apply auto
 done
 
 lemma MGF_altern: "G,A\<turnstile>{Normal (\<doteq> \<and>. p)} t\<succ> {G\<rightarrow>} =  
@@ -356,9 +426,54 @@ apply (rule conjI, (tactic {* force_tac (claset() addSDs [thm "eval.Loop"],
   simpset() addsimps [split_paired_all] addsimprocs [eval_stmt_proc]) 1*})+)
 done
 
+text {* For @{text MGFn_FVar} we need the wellformedness of the program to
+switch from the evaln-semantics to the eval-semantics *}
+lemma MGFn_FVar:
+ "\<lbrakk>G,A\<turnstile>{=:n} In1r (Init statDeclC)\<succ> {G\<rightarrow>}; G,A\<turnstile>{=:n} In1l e\<succ> {G\<rightarrow>}; wf_prog G\<rbrakk>
+   \<Longrightarrow> G,(A\<Colon>state triple set)\<turnstile>{=:n} In2 ({accC,statDeclC,stat}e..fn)\<succ> {G\<rightarrow>}"
+apply (tactic "wt_conf_prepare_tac 1")
+apply (rule_tac  
+  Q="(\<lambda>Y s1 (x,s) . x = None \<and> 
+        (G\<turnstile>Norm s \<midarrow>Init statDeclC\<rightarrow> s1 
+         )) \<and>. G\<turnstile>init\<le>n \<and>. (\<lambda> s. s\<Colon>\<preceq>(G, L))"  
+ in ax_derivs.FVar)
+apply (tactic "forw_hyp_tac 1")
+apply (tactic "clarsimp_tac eval_css 1")
+apply (subgoal_tac "is_class G statDeclC")
+apply   (force dest: eval_type_sound)
+apply   (force dest: ty_expr_is_type [THEN type_is_class] 
+                      accfield_fields [THEN fields_declC])
+apply (tactic "forw_hyp_tac 1")
+apply (tactic "clarsimp_tac eval_css 1")
+apply (subgoal_tac "(\<exists> v' s2' s3.   
+        ( fvar statDeclC (is_static f) fn v (aa, ba) = (v',s2') ) \<and>
+            (s3  = check_field_access G C statDeclC fn (is_static f) v s2') \<and>
+            (s3 = s2'))")
+apply   (erule exE)+
+apply   (erule conjE)+
+apply   (erule (1) eval.FVar)
+apply     simp
+apply     simp
+
+apply   (case_tac "fvar statDeclC (is_static f) fn v (aa, ba)")
+apply   (rule exI)+
+apply   (rule context_conjI)
+apply      force
+
+apply   (rule context_conjI)
+apply     simp
+
+apply     (erule (3) error_free_field_access)
+apply       (auto dest: eval_type_sound)
+done
+
+text {* For @{text MGFn_lemma} we need the wellformedness of the program to
+switch from the evaln-semantics to the eval-semantics cf. @{text MGFn_call}, 
+@{text MGFn_FVar}*}
 lemma MGFn_lemma [rule_format (no_asm)]: 
- "\<forall>n C sig. G,(A::state triple set)\<turnstile>{=:n} In1l (Methd C sig)\<succ> {G\<rightarrow>} \<Longrightarrow>  
-  \<forall>t. G,A\<turnstile>{=:n} t\<succ> {G\<rightarrow>}"
+ "\<lbrakk>\<forall>n C sig. G,(A::state triple set)\<turnstile>{=:n} In1l (Methd C sig)\<succ> {G\<rightarrow>};
+   wf_prog G\<rbrakk> 
+  \<Longrightarrow>  \<forall>t. G,A\<turnstile>{=:n} t\<succ> {G\<rightarrow>}"
 apply (rule full_nat_induct)
 apply (rule allI)
 apply (drule_tac x = n in spec)
@@ -371,17 +486,14 @@ apply     fast+
 apply (rule var_expr_stmt.induct)
 (* 28 subgoals *)
 prefer 14 apply fast (* Methd *)
-prefer 13 apply (erule (2) MGFn_Call)
+prefer 13 apply (erule (3) MGFn_Call)
+prefer 2  apply (drule MGFn_Init,erule (2) MGFn_FVar)
 apply (erule_tac [!] V = "All ?P" in thin_rl) (* assumptions on Methd *)
-apply (erule_tac [24] MGFn_Init)
-prefer 19 apply (erule (1) MGFn_Loop)
+apply (erule_tac [23] MGFn_Init)
+prefer 18 apply (erule (1) MGFn_Loop)
 apply (tactic "ALLGOALS compl_prepare_tac")
 
 apply (rule ax_derivs.LVar [THEN conseq1], tactic "eval_Force_tac 1")
-
-apply (rule ax_derivs.FVar)
-apply  (erule MGFn_InitD)
-apply (tactic "forw_hyp_eval_Force_tac 1")
 
 apply (rule ax_derivs.AVar)
 apply  (erule MGFnD [THEN ax_NormalD])
@@ -480,14 +592,16 @@ apply  (erule MGFnD [THEN ax_NormalD])
 apply (tactic "forw_hyp_eval_Force_tac 1")
 done
 
-lemma MGF_asm: "\<forall>C sig. is_methd G C sig \<longrightarrow> G,A\<turnstile>{\<doteq>} In1l (Methd C sig)\<succ> {G\<rightarrow>} \<Longrightarrow>
-  G,(A::state triple set)\<turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}"
+lemma MGF_asm: 
+"\<lbrakk>\<forall>C sig. is_methd G C sig \<longrightarrow> G,A\<turnstile>{\<doteq>} In1l (Methd C sig)\<succ> {G\<rightarrow>}; wf_prog G\<rbrakk>
+ \<Longrightarrow> G,(A::state triple set)\<turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}"
 apply (simp (no_asm_use) add: MGF_MGFn_iff)
 apply (rule allI)
 apply (rule MGFn_lemma)
 apply (intro strip)
 apply (rule MGFn_free_wt)
 apply (force dest: wt_Methd_is_methd)
+apply assumption (* wf_prog G *)
 done
 
 declare splitI2 [intro!]
@@ -563,7 +677,7 @@ apply clarsimp
 apply (erule MethdI)
 done
 
-lemma MGF_deriv: "ws_prog G \<Longrightarrow> G,({}::state triple set)\<turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}"
+lemma MGF_deriv: "wf_prog G \<Longrightarrow> G,({}::state triple set)\<turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}"
 apply (rule MGFNormalI)
 apply (rule_tac mgf = "\<lambda>t. {Normal \<doteq>} t\<succ> {G\<rightarrow>}" and 
                 bdy = "\<lambda> (C,sig) .{In1l (body G C sig) }" and 
@@ -571,11 +685,9 @@ apply (rule_tac mgf = "\<lambda>t. {Normal \<doteq>} t\<succ> {G\<rightarrow>}" 
 apply    (erule ax_derivs.asm)
 apply   (clarsimp simp add: split_tupled_all)
 apply   (erule MGF_nested_Methd)
-apply  (erule_tac [2] finite_is_methd)
+apply  (erule_tac [2] finite_is_methd [OF wf_ws_prog])
 apply (rule MGF_asm [THEN MGFNormalD])
-apply clarify
-apply (rule MGFNormalI)
-apply force
+apply (auto intro: MGFNormalI)
 done
 
 
@@ -598,10 +710,10 @@ apply clarsimp
 apply (erule eval_Methd)
 done
 
-lemma MGF_simult_Methd: "ws_prog G \<Longrightarrow> 
+lemma MGF_simult_Methd: "wf_prog G \<Longrightarrow> 
    G,({}::state triple set)|\<turnstile>(\<lambda>(C,sig). {Normal \<doteq>} In1l (Methd C sig)\<succ> {G\<rightarrow>}) 
    ` Collect (split (is_methd G)) "
-apply (frule finite_is_methd)
+apply (frule finite_is_methd [OF wf_ws_prog])
 apply (rule MGF_simult_Methd_lemma)
 apply  assumption
 apply (erule ax_finite_pointwise)
@@ -610,36 +722,42 @@ apply  (rule ax_derivs.asm)
 apply  blast
 apply clarsimp
 apply (rule MGF_asm [THEN MGFNormalD])
-apply clarify
-apply (rule MGFNormalI)
-apply force
+apply   (auto intro: MGFNormalI)
 done
 
-lemma MGF_deriv: "ws_prog G \<Longrightarrow> G,({}::state triple set)\<turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}"
+lemma MGF_deriv: "wf_prog G \<Longrightarrow> G,({}::state triple set)\<turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}"
 apply (rule MGF_asm)
 apply (intro strip)
 apply (rule MGFNormalI)
 apply (rule ax_derivs.weaken)
 apply  (erule MGF_simult_Methd)
-apply force
+apply auto
 done
 
 
 section "corollaries"
 
-lemma MGF_complete: "G,{}\<Turnstile>{P} t\<succ> {Q} \<Longrightarrow> G,({}::state triple set)\<turnstile>{\<doteq>} t\<succ> {G\<rightarrow>} \<Longrightarrow>
-  G,({}::state triple set)\<turnstile>{P::state assn} t\<succ> {Q}"
+lemma eval_to_evaln: "\<lbrakk>G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (Y', s');type_ok G t s; wf_prog G\<rbrakk>
+ \<Longrightarrow>   \<exists>n. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y', s')"
+apply (cases "normal s")
+apply   (force simp add: type_ok_def intro: eval_evaln)
+apply   (force intro: evaln.Abrupt)
+done
+
+lemma MGF_complete: 
+ "\<lbrakk>G,{}\<Turnstile>{P} t\<succ> {Q}; G,({}::state triple set)\<turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}; wf_prog G\<rbrakk> 
+  \<Longrightarrow> G,({}::state triple set)\<turnstile>{P::state assn} t\<succ> {Q}"
 apply (rule ax_no_hazard)
 apply (unfold MGF_def)
 apply (erule conseq12)
 apply (simp (no_asm_use) add: ax_valids_def triple_valid_def)
-apply (fast dest!: eval_evaln)
+apply (blast dest: eval_to_evaln)
 done
 
-theorem ax_complete: "ws_prog G \<Longrightarrow>  
+theorem ax_complete: "wf_prog G \<Longrightarrow>  
   G,{}\<Turnstile>{P::state assn} t\<succ> {Q} \<Longrightarrow> G,({}::state triple set)\<turnstile>{P} t\<succ> {Q}"
 apply (erule MGF_complete)
-apply (erule MGF_deriv)
+apply (erule (1) MGF_deriv)
 done
 
 end

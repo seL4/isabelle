@@ -153,28 +153,30 @@ constdefs
  "empty_dt \<equiv> \<lambda>a. None"
 
   invmode :: "('a::type)member_scheme \<Rightarrow> expr \<Rightarrow> inv_mode"
-"invmode m e \<equiv> if static m then Static else if e=Super then SuperM else IntVir"
+"invmode m e \<equiv> if is_static m 
+                  then Static 
+                  else if e=Super then SuperM else IntVir"
 
 lemma invmode_nonstatic [simp]: 
   "invmode \<lparr>access=a,static=False,\<dots>=x\<rparr> (Acc (LVar e)) = IntVir"
 apply (unfold invmode_def)
-apply (simp (no_asm))
+apply (simp (no_asm) add: member_is_static_simp)
 done
 
 
-lemma invmode_Static_eq [simp]: "(invmode m e = Static) = static m"
+lemma invmode_Static_eq [simp]: "(invmode m e = Static) = is_static m"
 apply (unfold invmode_def)
 apply (simp (no_asm))
 done
 
 
-lemma invmode_IntVir_eq: "(invmode m e = IntVir) = (\<not>(static m) \<and> e\<noteq>Super)"
+lemma invmode_IntVir_eq: "(invmode m e = IntVir) = (\<not>(is_static m) \<and> e\<noteq>Super)"
 apply (unfold invmode_def)
 apply (simp (no_asm))
 done
 
 lemma Null_staticD: 
-  "a'=Null \<longrightarrow> (static m) \<Longrightarrow> invmode m e = IntVir \<longrightarrow> a' \<noteq> Null"
+  "a'=Null \<longrightarrow> (is_static m) \<Longrightarrow> invmode m e = IntVir \<longrightarrow> a' \<noteq> Null"
 apply (clarsimp simp add: invmode_IntVir_eq)
 done
 
@@ -337,7 +339,7 @@ inductive wt intros
 	  max_spec (prg E) (cls E) statT \<lparr>name=mn,parTs=pTs\<rparr> 
             = {((statDeclT,m),pTs')}
          \<rbrakk> \<Longrightarrow>
-		   E,dt\<Turnstile>{statT,invmode m e}e\<cdot>mn({pTs'}ps)\<Colon>-(resTy m)"
+		   E,dt\<Turnstile>{cls E,statT,invmode m e}e\<cdot>mn({pTs'}ps)\<Colon>-(resTy m)"
 
   Methd: "\<lbrakk>is_class (prg E) C;
 	  methd (prg E) C sig = Some m;
@@ -367,8 +369,8 @@ inductive wt intros
 					 E,dt\<Turnstile>LVar vn\<Colon>=T"
   (* cf. 15.10.1 *)
   FVar:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-Class C; 
-	  accfield (prg E) (cls E) C fn = Some (fd,f)\<rbrakk> \<Longrightarrow>
-			                 E,dt\<Turnstile>{fd,static f}e..fn\<Colon>=(type f)"
+	  accfield (prg E) (cls E) C fn = Some (statDeclC,f)\<rbrakk> \<Longrightarrow>
+			 E,dt\<Turnstile>{cls E,statDeclC,is_static f}e..fn\<Colon>=(type f)"
   (* cf. 15.12 *)
   AVar:	"\<lbrakk>E,dt\<Turnstile>e\<Colon>-T.[]; 
 	  E,dt\<Turnstile>i\<Colon>-PrimT Integer\<rbrakk> \<Longrightarrow>
@@ -395,7 +397,7 @@ simpset_ref() := simpset() delloop "split_all_tac"
 inductive_cases wt_stmt_cases: "E,dt\<Turnstile>c\<Colon>\<surd>"
 inductive_cases wt_elim_cases:
 	"E,dt\<Turnstile>In2  (LVar vn)               \<Colon>T"
-	"E,dt\<Turnstile>In2  ({fd,s}e..fn)           \<Colon>T"
+	"E,dt\<Turnstile>In2  ({accC,statDeclC,s}e..fn)\<Colon>T"
 	"E,dt\<Turnstile>In2  (e.[i])                 \<Colon>T"
 	"E,dt\<Turnstile>In1l (NewC C)                \<Colon>T"
 	"E,dt\<Turnstile>In1l (New T'[i])             \<Colon>T"
@@ -406,7 +408,7 @@ inductive_cases wt_elim_cases:
 	"E,dt\<Turnstile>In1l (Acc va)                \<Colon>T"
 	"E,dt\<Turnstile>In1l (Ass va v)              \<Colon>T"
 	"E,dt\<Turnstile>In1l (e0 ? e1 : e2)          \<Colon>T"
-	"E,dt\<Turnstile>In1l ({statT,mode}e\<cdot>mn({pT'}p))\<Colon>T"
+	"E,dt\<Turnstile>In1l ({accC,statT,mode}e\<cdot>mn({pT'}p))\<Colon>T"
 	"E,dt\<Turnstile>In1l (Methd C sig)           \<Colon>T"
 	"E,dt\<Turnstile>In1l (Body D blk)            \<Colon>T"
 	"E,dt\<Turnstile>In3  ([])                    \<Colon>Ts"
@@ -463,13 +465,13 @@ lemma wt_Super:
  \<Longrightarrow> E,dt\<Turnstile>Super\<Colon>-Class D"
 by (auto elim: wt.Super)
  
+
 lemma wt_Call: 
 "\<lbrakk>E,dt\<Turnstile>e\<Colon>-RefT statT; E,dt\<Turnstile>ps\<Colon>\<doteq>pTs;  
   max_spec (prg E) (cls E) statT \<lparr>name=mn,parTs=pTs\<rparr> 
-    = {((statDeclC,m),pTs')};rT=(resTy m);   
- mode = invmode m e\<rbrakk> \<Longrightarrow> E,dt\<Turnstile>{statT,mode}e\<cdot>mn({pTs'}ps)\<Colon>-rT"
+    = {((statDeclC,m),pTs')};rT=(resTy m);accC=cls E;
+ mode = invmode m e\<rbrakk> \<Longrightarrow> E,dt\<Turnstile>{accC,statT,mode}e\<cdot>mn({pTs'}ps)\<Colon>-rT"
 by (auto elim: wt.Call)
-
 
 
 lemma invocationTypeExpr_noClassD: 
@@ -493,11 +495,12 @@ lemma wt_Super:
 \<Longrightarrow> E,dt\<Turnstile>Super\<Colon>-Class D"
 by (auto elim: wt.Super)
 
-
 lemma wt_FVar:	
-"\<lbrakk>E,dt\<Turnstile>e\<Colon>-Class C; accfield (prg E) (cls E) C fn = Some (fd,f);
-  sf=static f; fT=(type f)\<rbrakk> \<Longrightarrow> E,dt\<Turnstile>{fd,sf}e..fn\<Colon>=fT"
-by (auto elim: wt.FVar)
+"\<lbrakk>E,dt\<Turnstile>e\<Colon>-Class C; accfield (prg E) (cls E) C fn = Some (statDeclC,f);
+  sf=is_static f; fT=(type f); accC=cls E\<rbrakk> 
+\<Longrightarrow> E,dt\<Turnstile>{accC,statDeclC,sf}e..fn\<Colon>=fT"
+by (auto dest: wt.FVar)
+
 
 lemma wt_init [iff]: "E,dt\<Turnstile>Init C\<Colon>\<surd> = is_class (prg E) C"
 by (auto elim: wt_elim_cases intro: "wt.Init")

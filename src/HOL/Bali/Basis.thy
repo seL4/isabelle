@@ -51,7 +51,7 @@ apply fast+
 done
 
 syntax
-  "3" :: nat   ("3")
+  "3" :: nat   ("3") 
   "4" :: nat   ("4")
 translations
  "3" == "Suc 2"
@@ -75,7 +75,7 @@ lemma trancl_rtrancl_trancl:
 by (auto dest: tranclD rtrancl_trans rtrancl_into_trancl2)
 
 lemma rtrancl_into_trancl3:
-"\<lbrakk>(a,b)\<in>r^*; a\<noteq>b\<rbrakk> \<Longrightarrow> (a,b)\<in>r^+"
+"\<lbrakk>(a,b)\<in>r^*; a\<noteq>b\<rbrakk> \<Longrightarrow> (a,b)\<in>r^+" 
 apply (drule rtranclD)
 apply auto
 done

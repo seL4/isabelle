@@ -23,10 +23,18 @@ types	env_ = "prog \<times> (lname, ty) table" (* same as env of WellType.thy *)
 
 section "extension of global store"
 
+
 constdefs
 
   gext    :: "st \<Rightarrow> st \<Rightarrow> bool"                ("_\<le>|_"       [71,71]   70)
    "s\<le>|s' \<equiv> \<forall>r. \<forall>obj\<in>globs s r: \<exists>obj'\<in>globs s' r: tag obj'= tag obj"
+
+text {* For the the proof of type soundness we will need the 
+property that during execution, objects are not lost and moreover retain the 
+values of their tags. So the object store grows conservatively. Note that if 
+we considered garbage collection, we would have to restrict this property to 
+accessible objects.
+*}
 
 lemma gext_objD: 
 "\<lbrakk>s\<le>|s'; globs s r = Some obj\<rbrakk> 
@@ -348,14 +356,20 @@ lemma conforms_StdXcpt [iff]:
   "((Some (Xcpt (Std xn)), s)\<Colon>\<preceq>(G, L)) = (Norm s\<Colon>\<preceq>(G, L))"
 by (auto simp: conforms_def)
 
+lemma conforms_Err [iff]:
+   "((Some (Error e), s)\<Colon>\<preceq>(G, L)) = (Norm s\<Colon>\<preceq>(G, L))"
+  by (auto simp: conforms_def)  
+
 lemma conforms_raise_if [iff]: 
   "((raise_if c xn x, s)\<Colon>\<preceq>(G, L)) = ((x, s)\<Colon>\<preceq>(G, L))"
 by (auto simp: abrupt_if_def)
 
+lemma conforms_error_if [iff]: 
+  "((error_if c err x, s)\<Colon>\<preceq>(G, L)) = ((x, s)\<Colon>\<preceq>(G, L))"
+by (auto simp: abrupt_if_def split: split_if)
 
 lemma conforms_NormI: "(x, s)\<Colon>\<preceq>(G, L) \<Longrightarrow> Norm s\<Colon>\<preceq>(G, L)"
 by (auto simp: conforms_def Let_def)
-
 
 lemma conforms_absorb [rule_format]:
   "(a, b)\<Colon>\<preceq>(G, L) \<longrightarrow> (absorb j a, b)\<Colon>\<preceq>(G, L)"
@@ -436,6 +450,11 @@ apply (auto intro!: conformsI dest: conforms_globsD
             elim!: conforms_XcptLocD simp add: oconf_def)
 done
 
+lemma conforms_locals [rule_format]: 
+  "(a,b)\<Colon>\<preceq>(G, L) \<longrightarrow> L x = Some T \<longrightarrow> G,b\<turnstile>the (locals b x)\<Colon>\<preceq>T"
+apply (force simp: conforms_def Let_def lconf_def)
+done
+
 lemma conforms_return: "\<And>s'. \<lbrakk>(x,s)\<Colon>\<preceq>(G, L); (x',s')\<Colon>\<preceq>(G, L'); s\<le>|s'\<rbrakk> \<Longrightarrow>  
   (x',set_locals (locals s) s')\<Colon>\<preceq>(G, L)"
 apply (rule conforms_xconf)
@@ -443,5 +462,6 @@ prefer 2 apply (force dest: conforms_XcptLocD)
 apply (erule conforms_gext)
 apply (force dest: conforms_globsD)+
 done
+
 
 end

@@ -31,7 +31,6 @@ design issues:
 \end{itemize}
 *}
 
-
 types ('a, 'b) table    (* table with key type 'a and contents type 'b *)
       = "'a \<leadsto> 'b"
       ('a, 'b) tables   (* non-unique table with key 'a and contents 'b *)
@@ -148,6 +147,10 @@ lemma filter_tab_all_True_Some:
  "\<lbrakk>\<forall> k y. t k = Some y \<longrightarrow> p k y; t k = Some v\<rbrakk> \<Longrightarrow> filter_tab p t k = Some v"
 by (auto simp add: filter_tab_def expand_fun_eq)
 
+lemma filter_tab_all_False: 
+ "\<forall> k y. t k = Some y \<longrightarrow> \<not> p k y \<Longrightarrow>filter_tab p t = empty"
+by (auto simp add: filter_tab_def expand_fun_eq)
+
 lemma filter_tab_None: "t k = None \<Longrightarrow> filter_tab p t k = None"
 apply (simp add: filter_tab_def expand_fun_eq)
 done
@@ -179,6 +182,7 @@ lemma cond_override_filter:
     cond_override overC (filter_tab filterC t) (filter_tab filterC s) 
     = filter_tab filterC (cond_override overC t s)"
 by (auto simp add: expand_fun_eq cond_override_def filter_tab_def )
+
 
 section {* Misc. *}
 

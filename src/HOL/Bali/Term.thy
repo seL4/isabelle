@@ -78,7 +78,8 @@ datatype jump
 
 datatype var
 	= LVar                  lname(* local variable (incl. parameters) *)
-        | FVar qtname bool expr vname(*class field*)("{_,_}_.._"[10,10,85,99]90)
+        | FVar qtname qtname bool expr vname
+                                (*class field*)("{_,_,_}_.._"[10,10,10,85,99]90)
 	| AVar        expr expr      (* array component *) ("_.[_]"[90,10   ]90)
 
 and expr
@@ -91,8 +92,8 @@ and expr
 	| Acc  var                 (* variable access *)
 	| Ass  var expr            (* variable assign *) ("_:=_"   [90,85   ]85)
 	| Cond expr expr expr      (* conditional *)  ("_ ? _ : _" [85,85,80]80)
-        | Call ref_ty inv_mode expr mname "(ty list)" (* method call *)
-                  "(expr list)" ("{_,_}_\<cdot>_'( {_}_')"[10,10,85,99,10,10]85)
+        | Call qtname ref_ty inv_mode expr mname "(ty list)" (* method call *)
+                  "(expr list)" ("{_,_,_}_\<cdot>_'( {_}_')"[10,10,10,85,99,10,10]85)
         | Methd qtname sig          (*   (folded) method (see below) *)
         | Body qtname stmt          (* (unfolded) method body *)
 and  stmt
@@ -157,75 +158,4 @@ bind_thms ("is_stmt_rews", sum3_instantiate (thm "is_stmt_def"));
 *}
 
 declare is_stmt_rews [simp]
-
-
-(* ############# Just testing syntax *)
-(** unfortunately cannot simply instantiate tnam **)
-(*
-datatype tnam_  = HasFoo_ | Base_ | Ext_
-datatype vnam_  = arr_ | vee_ | z_ | e_
-datatype label_ = lab1_
-
-consts
-
-  tnam_ :: "tnam_  \<Rightarrow> tnam"
-  vnam_ :: "vnam_  \<Rightarrow> vname"
-  label_:: "label_ \<Rightarrow> label"
-axioms  
-
-  inj_tnam_  [simp]: "(tnam_  x = tnam_  y) = (x = y)"
-  inj_vnam_  [simp]: "(vnam_  x = vnam_  y) = (x = y)"
-  inj_label_ [simp]: "(label_ x = label_ y) = (x = y)"
-  
-  
-  surj_tnam_:  "\<exists>m. n = tnam_  m"
-  surj_vnam_:  "\<exists>m. n = vnam_  m"
-  surj_label_:" \<exists>m. n = label_ m"
-
-syntax
-
-  HasFoo :: qtname
-  Base   :: qtname
-  Ext    :: qtname
-  arr :: ename
-  vee :: ename
-  z   :: ename
-  e   :: ename
-  lab1:: label
-
-consts
-  
-  foo    :: mname
-translations
-
-  "HasFoo" == "\<lparr>pid=java_lang,tid=TName (tnam_ HasFoo_)\<rparr>"
-  "Base"   == "\<lparr>pid=java_lang,tid=TName (tnam_ Base_)\<rparr>"
-  "Ext"    == "\<lparr>pid=java_lang,tid=TName (tnam_ Ext_)\<rparr>"
-  "arr"    ==        "(vnam_ arr_)"
-  "vee"    ==        "(vnam_ vee_)"
-  "z"      ==        "(vnam_ z_)"
-  "e"      ==        "(vnam_ e_)"
-  "lab1"   ==        "label_ lab1_"
-
-constdefs test::stmt
-"test \<equiv>
-(lab1@ While(Acc  
-      (Acc ({Base,True}StatRef (ClassT Object).arr).[Lit (Intg #2)])) Skip)"
-
-consts
- pTs :: "ty list"
-   
-constdefs 
-
-test1::stmt
-"test1 \<equiv> 
-  Expr({ClassT Base,IntVir}!!e\<cdot>foo({pTs}[Lit Null]))"
-
-
-
-constdefs test::stmt
-"test \<equiv>
-(lab1\<cdot> While(Acc 
-      (Acc ({Base,True}StatRef (ClassT Object)..arr).[Lit (Intg #2)])) Skip)"
-*)
 end

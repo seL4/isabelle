@@ -7,7 +7,6 @@ header {* Example Bali program *}
 
 theory Example = Eval + WellForm:
 
-
 text {*
 The following example Bali program includes:
 \begin{itemize}
@@ -43,7 +42,7 @@ public class Ext extends Base {
   }
 }
 
-public class Example {
+public class Main {
   public static void main(String args[]) throws Throwable {
     Base e = new Ext();
     try {e.foo(null); }
@@ -54,7 +53,6 @@ public class Example {
 }
 \end{verbatim}
 *}
-
 declare widen.null [intro]
 
 lemma wf_fdecl_def2: "\<And>fd. wf_fdecl G P fd = is_acc_type G P (type (snd fd))"
@@ -68,7 +66,7 @@ declare wf_fdecl_def2 [iff]
 section "type and expression names"
 
 (** unfortunately cannot simply instantiate tnam **)
-datatype tnam_  = HasFoo_ | Base_ | Ext_
+datatype tnam_  = HasFoo_ | Base_ | Ext_ | Main_
 datatype vnam_  = arr_ | vee_ | z_ | e_
 datatype label_ = lab1_
 
@@ -94,6 +92,7 @@ syntax
   HasFoo :: qtname
   Base   :: qtname
   Ext    :: qtname
+  Main   :: qtname
   arr :: ename
   vee :: ename
   z   :: ename
@@ -104,6 +103,7 @@ translations
   "HasFoo" == "\<lparr>pid=java_lang,tid=TName (tnam_ HasFoo_)\<rparr>"
   "Base"   == "\<lparr>pid=java_lang,tid=TName (tnam_ Base_)\<rparr>"
   "Ext"    == "\<lparr>pid=java_lang,tid=TName (tnam_ Ext_)\<rparr>"
+  "Main"   == "\<lparr>pid=java_lang,tid=TName (tnam_ Main_)\<rparr>"
   "arr"    ==        "(vnam_ arr_)"
   "vee"    ==        "(vnam_ vee_)"
   "z"      ==        "(vnam_ z_)"
@@ -117,10 +117,16 @@ by (simp add: Object_def)
 lemma neq_Ext_Object [simp]: "Ext\<noteq>Object"
 by (simp add: Object_def)
 
+lemma neq_Main_Object [simp]: "Main\<noteq>Object"
+by (simp add: Object_def)
+
 lemma neq_Base_SXcpt [simp]: "Base\<noteq>SXcpt xn"
 by (simp add: SXcpt_def)
 
 lemma neq_Ext_SXcpt [simp]: "Ext\<noteq>SXcpt xn"
+by (simp add: SXcpt_def)
+
+lemma neq_Main_Object [simp]: "Main\<noteq>SXcpt xn"
 by (simp add: SXcpt_def)
 
 section "classes and interfaces"
@@ -147,26 +153,28 @@ constdefs
   Base_foo :: mdecl
  "Base_foo \<equiv> (foo_sig, \<lparr>access=Public,static=False,pars=[z],resT=Class Base,
                         mbody=\<lparr>lcls=[],stmt=Return (!!z)\<rparr>\<rparr>)"
-  
+
+constdefs
   Ext_foo  :: mdecl
  "Ext_foo  \<equiv> (foo_sig, 
               \<lparr>access=Public,static=False,pars=[z],resT=Class Ext,
 	       mbody=\<lparr>lcls=[]
-                     ,stmt=Expr({Ext,False}Cast (Class Ext) (!!z)..vee := 
+                     ,stmt=Expr({Ext,Ext,False}Cast (Class Ext) (!!z)..vee := 
        	                                                     Lit (Intg 1))\<rparr>
 	      \<rparr>)"
 
 constdefs
   
-arr_viewed_from :: "qtname \<Rightarrow> var"
-"arr_viewed_from C \<equiv> {Base,True}StatRef (ClassT C)..arr"
+arr_viewed_from :: "qtname \<Rightarrow> qtname \<Rightarrow> var"
+"arr_viewed_from accC C \<equiv> {accC,Base,True}StatRef (ClassT C)..arr"
 
 BaseCl :: class
 "BaseCl \<equiv> \<lparr>access=Public,
            cfields=[(arr, \<lparr>access=Public,static=True ,type=PrimT Boolean.[]\<rparr>),
 	            (vee, \<lparr>access=Public,static=False,type=Iface HasFoo    \<rparr>)],
            methods=[Base_foo],
-           init=Expr(arr_viewed_from Base :=New (PrimT Boolean)[Lit (Intg 2)]),
+           init=Expr(arr_viewed_from Base Base 
+                     :=New (PrimT Boolean)[Lit (Intg 2)]),
            super=Object,
            superIfs=[HasFoo]\<rparr>"
   
@@ -178,6 +186,15 @@ ExtCl  :: class
            super=Base,
            superIfs=[]\<rparr>"
 
+MainCl :: class
+"MainCl \<equiv> \<lparr>access=Public,
+           cfields=[], 
+           methods=[], 
+           init=Skip,
+           super=Object,
+           superIfs=[]\<rparr>"
+(* The "main" method is modeled seperately (see tprg) *)
+
 constdefs
   
   HasFooInt :: iface
@@ -187,7 +204,7 @@ constdefs
  "Ifaces \<equiv> [(HasFoo,HasFooInt)]"
 
  "Classes" ::"cdecl list"
- "Classes \<equiv> [(Base,BaseCl),(Ext,ExtCl)]@standard_classes"
+ "Classes \<equiv> [(Base,BaseCl),(Ext,ExtCl),(Main,MainCl)]@standard_classes"
 
 lemmas table_classes_defs = 
      Classes_def standard_classes_def ObjectC_def SXcptC_def
@@ -231,6 +248,10 @@ apply (unfold table_classes_defs )
 apply (simp (no_asm) add: Object_def SXcpt_def)
 done
 
+lemma table_classes_Main [simp]: "table_of Classes Main = Some MainCl"
+apply (unfold table_classes_defs )
+apply (simp (no_asm) add: Object_def SXcpt_def)
+done
 
 section "program"
 
@@ -243,9 +264,10 @@ translations
 constdefs
   test    :: "(ty)list \<Rightarrow> stmt"
  "test pTs \<equiv> e:==NewC Ext;; 
-           \<spacespace> Try Expr({ClassT Base,IntVir}!!e\<cdot>foo({pTs}[Lit Null]))
+           \<spacespace> Try Expr({Main,ClassT Base,IntVir}!!e\<cdot>foo({pTs}[Lit Null]))
            \<spacespace> Catch((SXcpt NullPointer) z)
-           (lab1\<bullet> While(Acc (Acc (arr_viewed_from Ext).[Lit (Intg 2)])) Skip)"
+           (lab1\<bullet> While(Acc 
+                        (Acc (arr_viewed_from Main Ext).[Lit (Intg 2)])) Skip)"
 
 
 section "well-structuredness"
@@ -278,7 +300,7 @@ apply (rule_tac n1 = "tn" in surj_tnam_ [THEN exE])
 apply (erule ssubst)
 apply (rule tnam_.induct)
 apply  safe
-apply (auto dest!: tranclD subcls1D simp add: BaseCl_def ExtCl_def)
+apply (auto dest!: tranclD subcls1D simp add: BaseCl_def ExtCl_def MainCl_def)
 apply (drule rtranclD)
 apply auto
 done
@@ -314,8 +336,13 @@ apply (unfold ws_cdecl_def)
 apply auto
 done
 
+lemma ws_cdecl_Main: "ws_cdecl tprg Main Object"
+apply (unfold ws_cdecl_def)
+apply auto
+done
+
 lemmas ws_cdecls = ws_cdecl_SXcpt ws_cdecl_Object ws_cdecl_Throwable
-                   ws_cdecl_Base ws_cdecl_Ext
+                   ws_cdecl_Base ws_cdecl_Ext ws_cdecl_Main
 
 declare not_Object_subcls_any [rule del]
           not_Throwable_subcls_SXcpt [rule del] 
@@ -329,7 +356,7 @@ apply (auto intro!: ws_idecl_HasFoo)
 done
 
 lemma ws_cdecl_all: "G=tprg \<Longrightarrow> (\<forall>(C,c)\<in>set Classes. ws_cdecl G C (super c))"
-apply (simp (no_asm) add: Classes_def BaseCl_def ExtCl_def)
+apply (simp (no_asm) add: Classes_def BaseCl_def ExtCl_def MainCl_def)
 apply (auto intro!: ws_cdecls simp add: standard_classes_def ObjectC_def 
         SXcptC_def)
 done
@@ -438,12 +465,6 @@ apply (rule methd_rec_)
 apply   (auto simp add: BaseCl_def)
 done
 
-(* ### To Table *)
-lemma filter_tab_all_False: 
- "\<forall> k y. t k = Some y \<longrightarrow> \<not> p k y \<Longrightarrow>filter_tab p t = empty"
-by (auto simp add: filter_tab_def expand_fun_eq)
-
-
 lemma memberid_Base_foo_simp [simp]:
  "memberid (mdecl Base_foo) = mid foo_sig"
 by (simp add: Base_foo_def)
@@ -504,7 +525,7 @@ section "accessibility"
 lemma classesDefined: 
  "\<lbrakk>class tprg C = Some c; C\<noteq>Object\<rbrakk> \<Longrightarrow> \<exists> sc. class tprg (super c) = Some sc"
 apply (auto simp add: Classes_def standard_classes_def 
-                      BaseCl_def ExtCl_def
+                      BaseCl_def ExtCl_def MainCl_def
                       SXcptC_def ObjectC_def) 
 done
 
@@ -520,6 +541,13 @@ proof -
   have ws: "ws_prog tprg" by (rule ws_tprg)
   then show ?thesis
     by (auto simp add: superclasses_rec  ExtCl_def BaseCl_def)
+qed
+
+lemma superclassesMain [simp]: "superclasses tprg Main={Object}"
+proof -
+  have ws: "ws_prog tprg" by (rule ws_tprg)
+  then show ?thesis
+    by (auto simp add: superclasses_rec  MainCl_def)
 qed
 
 lemma HasFoo_accessible[simp]:"tprg\<turnstile>(Iface HasFoo) accessible_in P" 
@@ -563,12 +591,6 @@ by (cases x) (auto)
 lemma foo_sig_undeclared_in_Object:
   "tprg\<turnstile>mid foo_sig undeclared_in Object"
 by (auto simp add: undeclared_in_def cdeclaredmethd_def Object_mdecls_def)
-
-(* ### To DeclConcepts *)
-lemma undeclared_not_declared:
- "G\<turnstile> memberid m undeclared_in C \<Longrightarrow> \<not> G\<turnstile> m declared_in C" 
-by (cases m) (auto simp add: declared_in_def undeclared_in_def)
-
 
 lemma unique_sig_Base_foo:
  "tprg\<turnstile> mdecl (sig, snd Base_foo) declared_in Base \<Longrightarrow> sig=foo_sig"
@@ -617,16 +639,6 @@ lemma unique_sig_Ext_foo:
 by (auto simp add: declared_in_def cdeclaredmethd_def 
                    Ext_foo_def ExtCl_def)
 
-(* ### To DeclConcepts *)
-lemma unique_declaration: 
- "\<lbrakk>G\<turnstile>m declared_in C;  G\<turnstile>n declared_in C; memberid m = memberid n \<rbrakk> 
-  \<Longrightarrow> m = n"
-apply (cases m)
-apply (cases n,
-        auto simp add: declared_in_def cdeclaredmethd_def cdeclaredfield_def)+
-done
-
-
 lemma Ext_foo_override:
  "tprg,sig\<turnstile>(Ext,(snd Ext_foo)) overrides old 
   \<Longrightarrow> old = (Base,(snd Base_foo))"
@@ -667,15 +679,25 @@ apply (auto simp add: ExtCl_def Ext_foo_def
            dest: declared_not_undeclared unique_declaration)
 done
 
-(*### weiter hoch *)
 lemma Base_foo_member_of_Base: 
   "tprg\<turnstile>(Base,mdecl Base_foo) member_of Base"
 by (auto intro!: members.Immediate Base_declares_foo)
 
-(*### weiter hoch *)
+lemma Base_foo_member_in_Base: 
+  "tprg\<turnstile>(Base,mdecl Base_foo) member_in Base"
+by (rule member_of_to_member_in [OF Base_foo_member_of_Base])
+
+lemma Base_foo_member_of_Base: 
+  "tprg\<turnstile>(Base,mdecl Base_foo) member_of Base"
+by (auto intro!: members.Immediate Base_declares_foo)
+
 lemma Ext_foo_member_of_Ext: 
   "tprg\<turnstile>(Ext,mdecl Ext_foo) member_of Ext"
 by (auto intro!: members.Immediate Ext_declares_foo)
+
+lemma Ext_foo_member_in_Ext: 
+  "tprg\<turnstile>(Ext,mdecl Ext_foo) member_in Ext"
+by (rule member_of_to_member_in [OF Ext_foo_member_of_Ext])
 
 lemma Base_foo_permits_acc:
  "tprg \<turnstile> (Base, mdecl Base_foo) in Base permits_acc_to S"
@@ -683,8 +705,15 @@ by ( simp add: permits_acc_def Base_foo_def)
 
 lemma Base_foo_accessible [simp]:
  "tprg\<turnstile>(Base,mdecl Base_foo) of Base accessible_from S"
-by (auto intro: accessible_fromR.immediate 
+by (auto intro: accessible_fromR.Immediate 
                 Base_foo_member_of_Base Base_foo_permits_acc)
+
+lemma Base_foo_dyn_accessible [simp]:
+ "tprg\<turnstile>(Base,mdecl Base_foo) in Base dyn_accessible_from S"
+apply (rule dyn_accessible_fromR.Immediate)
+apply   (rule Base_foo_member_in_Base)
+apply   (rule Base_foo_permits_acc)
+done
 
 lemma accmethd_Base [simp]: 
   "accmethd tprg S Base = methd tprg Base"
@@ -699,17 +728,15 @@ by ( simp add: permits_acc_def Ext_foo_def)
 
 lemma Ext_foo_accessible [simp]:
  "tprg\<turnstile>(Ext,mdecl Ext_foo) of Ext accessible_from S"
-by (auto intro: accessible_fromR.immediate 
+by (auto intro: accessible_fromR.Immediate 
                 Ext_foo_member_of_Ext Ext_foo_permits_acc)
 
-(*
-lemma Base_foo_accessible_through_inheritance_in_Ext [simp]:
- "tprg\<turnstile>(Base,snd Base_foo) accessible_through_inheritance_in Ext"
-apply (rule accessible_through_inheritance.Direct)
-apply   simp
-apply   (simp add: accessible_for_inheritance_in_def Base_foo_def)
+lemma Ext_foo_dyn_accessible [simp]:
+ "tprg\<turnstile>(Ext,mdecl Ext_foo) in Ext dyn_accessible_from S"
+apply (rule dyn_accessible_fromR.Immediate) 
+apply   (rule Ext_foo_member_in_Ext)
+apply   (rule Ext_foo_permits_acc)
 done
-*)
 
 lemma Ext_foo_overrides_Base_foo:
  "tprg\<turnstile>(Ext,Ext_foo) overrides (Base,Base_foo)"
@@ -732,29 +759,6 @@ proof (rule overridesR.Direct, simp_all)
     by (simp add: Ext_foo_def Base_foo_def mhead_resTy_simp)
 qed
 
-(*
-lemma Base_foo_of_Ext_accessible[simp]:
- "tprg\<turnstile>(Base, mdecl Base_foo) of Ext accessible_from S"
-apply (auto intro: accessible_fromR.immediate 
-                Base_foo_member_of_Base Base_foo_permits_acc)
-apply (rule accessible_fromR.immediate)
-apply (rule_tac "old"="(Base,Base_foo)" and  sup="Base" 
-       in accessible_fromR.overriding)
-apply (auto intro!: Ext_foo_overrides_Base_foo)
-apply (auto 
-apply (insert Ext_foo_overrides_Base_foo)
-apply (rule accessible_fromR.overriding, simp_all)
-apply (auto intro!: Ext_foo_overrides_Base_foo)
-apply (auto intro!: accessible_fromR.overriding
-             intro:   Ext_foo_overrides_Base_foo)
-by
-                Ext_foo_member_of_Ext Ext_foo_permits_acc)
-apply (auto intro!: accessible 
-apply (auto simp add: method_accessible_from_def accessible_from_def) 
-apply (simp add: Base_foo_def)
-done 
-*)
-
 lemma accmethd_Ext [simp]: 
   "accmethd tprg S Ext = methd tprg Ext"
 apply (simp add: accmethd_def)
@@ -762,7 +766,6 @@ apply (rule filter_tab_all_True)
 apply (auto simp add: snd_special_simp fst_special_simp)
 done
 
-(* ### Weiter hoch *)
 lemma cls_Ext: "class tprg Ext = Some ExtCl"
 by simp
 lemma dynmethd_Ext_foo:
@@ -790,7 +793,7 @@ apply (auto simp add: accfield_def expand_fun_eq Let_def
                       declared_in_def 
                       cdeclaredfield_def
                intro!: filter_tab_all_True_Some filter_tab_None
-                       accessible_fromR.immediate
+                       accessible_fromR.Immediate
                intro: members.Immediate)
 done
 
@@ -802,6 +805,12 @@ lemma arr_member_of_Base:
 by (auto intro: members.Immediate 
        simp add: declared_in_def cdeclaredfield_def BaseCl_def)
  
+lemma arr_member_in_Base:
+  "tprg\<turnstile>(Base, fdecl (arr, 
+                 \<lparr>access = Public, static = True, type = PrimT Boolean.[]\<rparr>))
+          member_in Base"
+by (rule member_of_to_member_in [OF arr_member_of_Base])
+
 lemma arr_member_of_Ext:
   "tprg\<turnstile>(Base, fdecl (arr, 
                     \<lparr>access = Public, static = True, type = PrimT Boolean.[]\<rparr>))
@@ -811,6 +820,12 @@ apply   (simp add: inheritable_in_def)
 apply   (simp add: undeclared_in_def cdeclaredfield_def ExtCl_def)
 apply   (auto intro: arr_member_of_Base simp add: subcls1_def ExtCl_def)
 done
+
+lemma arr_member_in_Ext:
+  "tprg\<turnstile>(Base, fdecl (arr, 
+                 \<lparr>access = Public, static = True, type = PrimT Boolean.[]\<rparr>))
+          member_in Ext"
+by (rule member_of_to_member_in [OF arr_member_of_Ext])
 
 lemma Ext_fields_accessible[simp]:
 "accfield tprg S Ext 
@@ -822,9 +837,25 @@ apply (auto simp add: accfield_def expand_fun_eq Let_def
                       ExtCl_def
                       permits_acc_def
                intro!: filter_tab_all_True_Some filter_tab_None
-                       accessible_fromR.immediate)
+                       accessible_fromR.Immediate)
 apply (auto intro: members.Immediate arr_member_of_Ext
             simp add: declared_in_def cdeclaredfield_def ExtCl_def)
+done
+
+lemma arr_Base_dyn_accessible [simp]:
+"tprg\<turnstile>(Base, fdecl (arr, \<lparr>access=Public,static=True ,type=PrimT Boolean.[]\<rparr>)) 
+       in Base dyn_accessible_from S"
+apply (rule dyn_accessible_fromR.Immediate)
+apply   (rule arr_member_in_Base)
+apply   (simp add: permits_acc_def)
+done
+
+lemma arr_Ext_dyn_accessible[simp]:
+"tprg\<turnstile>(Base, fdecl (arr, \<lparr>access=Public,static=True ,type=PrimT Boolean.[]\<rparr>)) 
+       in Ext dyn_accessible_from S"
+apply (rule dyn_accessible_fromR.Immediate)
+apply   (rule arr_member_in_Ext)
+apply   (simp add: permits_acc_def)
 done
 
 lemma array_of_PrimT_acc [simp]:
@@ -853,6 +884,8 @@ apply (auto intro!: wf_mheadI ws_idecl_HasFoo
                       member_is_static_simp )
 done
 
+
+declare member_is_static_simp [simp]
 declare wt.Skip [rule del] wt.Init [rule del]
 lemmas Base_foo_defs = Base_foo_def foo_sig_def foo_mhead_def
 lemmas Ext_foo_defs  = Ext_foo_def  foo_sig_def
@@ -903,6 +936,11 @@ apply  (simp_all add: qmdecl_def)
 apply  blast+
 done
 
+lemma wf_MainC: "wf_cdecl tprg (Main,MainCl)"
+apply (unfold wf_cdecl_def MainCl_def)
+apply (auto intro: ws_cdecl_Main)
+done
+
 lemma wf_idecl_all: "p=tprg \<Longrightarrow> Ball (set Ifaces) (wf_idecl p)"
 apply (simp (no_asm) add: Ifaces_def)
 apply (simp (no_asm_simp))
@@ -922,8 +960,9 @@ done
 lemma wf_cdecl_all: "p=tprg \<Longrightarrow> Ball (set Classes) (wf_cdecl p)"
 apply (simp (no_asm) add: Classes_def)
 apply (simp (no_asm_simp))
-apply   (rule wf_BaseC [THEN conjI])
-apply  (rule wf_ExtC [THEN conjI])
+apply    (rule wf_BaseC [THEN conjI])
+apply   (rule wf_ExtC [THEN conjI])
+apply  (rule wf_MainC [THEN conjI])
 apply (rule wf_cdecl_all_standard_classes)
 done
 
@@ -966,7 +1005,7 @@ done
 
 section "well-typedness"
 
-lemma wt_test: "\<lparr>prg=tprg,cls=S,lcl=empty(VName e\<mapsto>Class Base)\<rparr>\<turnstile>test ?pTs\<Colon>\<surd>"
+lemma wt_test: "\<lparr>prg=tprg,cls=Main,lcl=empty(VName e\<mapsto>Class Base)\<rparr>\<turnstile>test ?pTs\<Colon>\<surd>"
 apply (unfold test_def arr_viewed_from_def)
 (* ?pTs = [Class Base] *)
 apply (rule wtIs (* ;; *))
@@ -999,6 +1038,7 @@ apply    (simp)
 apply   (simp)
 apply  (simp)
 apply  (simp)
+apply  (simp)
 apply (rule wtIs (* While *))
 apply  (rule wtIs (* Acc *))
 apply   (rule wtIs (* AVar *))
@@ -1008,6 +1048,7 @@ apply    (rule wtIs (* StatRef *))
 apply    (simp)
 apply   (simp)
 apply   (simp )
+apply   (simp)
 apply   (simp)
 apply  (rule wtIs (* LVar *))
 apply  (simp)
@@ -1165,9 +1206,10 @@ apply   (rule conjI, rule_tac [2] HOL.refl)
 apply   (rule eval_Is (* Expr *))
 apply   (rule eval_Is (* Ass *))
 apply    (rule eval_Is (* FVar *))
-apply      (rule init_done, simp)
-apply     (rule eval_Is (* StatRef *))
-apply    (simp)
+apply         (rule init_done, simp)
+apply        (rule eval_Is (* StatRef *))
+apply       (simp)
+apply     (simp add: check_field_access_def Let_def) 
 apply   (rule eval_Is (* NewA *))
 apply     (simp)
 apply    (rule eval_Is (* Lit *))
@@ -1201,7 +1243,12 @@ apply     (rule eval_Is (* Cons *))
 apply      (rule eval_Is (* Lit *))
 apply     (rule eval_Is (* Nil *))
 apply    (simp)
-apply   (simp)
+apply    (simp)
+apply    (subgoal_tac
+             "tprg\<turnstile>(Ext,mdecl Ext_foo) in Ext dyn_accessible_from Main")
+apply      (simp add: check_method_access_def Let_def
+                      invocation_declclass_def dynlookup_def dynmethd_Ext_foo)
+apply      (rule Ext_foo_dyn_accessible)
 apply   (rule eval_Is (* Methd *))
 apply   (simp add: body_def Let_def)
 apply   (rule eval_Is (* Body *))
@@ -1216,7 +1263,8 @@ apply      (rule eval_Is (* Cast *))
 apply       (rule eval_Is (* Acc *))
 apply       (rule eval_Is (* LVar *))
 apply      (simp)
-apply     (simp split del: split_if)
+apply      (simp split del: split_if)
+apply      (simp add: check_field_access_def Let_def)
 apply    (rule eval_Is (* XcptE *))
 apply   (simp)
       (* end method call *)
@@ -1239,6 +1287,7 @@ apply    (rule eval_Is (* FVar *))
 apply      (rule init_done, simp)
 apply     (rule eval_Is (* StatRef *))
 apply    (simp)
+apply    (simp add: check_field_access_def Let_def)
 apply   (rule eval_Is (* Lit *))
 apply  (simp (no_asm_simp))
 apply (auto simp add: in_bounds_def)

@@ -370,7 +370,14 @@ constdefs
 	          n = Inl (fn,C); 
                   f = (\<lambda>v. supd (upd_gobj oref n v)) 
       in ((the (values (the (globs (store s) oref)) n),f),abupd xf s)"
-
+(*
+ "fvar C stat fn a' s 
+    \<equiv> let (oref,xf) = if stat then (Stat C,id)
+                              else (Heap (the_Addr a'),np a');
+	          n = Inl (fn,C); 
+                  f = (\<lambda>v. supd (upd_gobj oref n v)) 
+      in ((the (values (the (globs (store s) oref)) n),f),abupd xf s)"
+*)
   avar :: "prog \<Rightarrow> val \<Rightarrow> val \<Rightarrow> state \<Rightarrow> vvar \<times> state"
  "avar G i' a' s 
     \<equiv> let   oref = Heap (the_Addr a'); 
@@ -412,7 +419,32 @@ apply (unfold avar_def)
 apply (simp (no_asm) add: Let_def split_beta)
 done
 
+constdefs
+check_field_access::
+"prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> vname \<Rightarrow> bool \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state"
+"check_field_access G accC statDeclC fn stat a' s
+ \<equiv> let oref = if stat then Stat statDeclC
+                      else Heap (the_Addr a');
+       dynC = case oref of
+                   Heap a \<Rightarrow> obj_class (the (globs (store s) oref))
+                 | Stat C \<Rightarrow> C;
+       f    = (the (table_of (DeclConcepts.fields G dynC) (fn,statDeclC)))
+   in abupd 
+        (error_if (\<not> G\<turnstile>Field fn (statDeclC,f) in dynC dyn_accessible_from accC)
+                  AccessViolation)
+        s"
 
+constdefs
+check_method_access:: 
+  "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> inv_mode \<Rightarrow>  sig \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state"
+"check_method_access G accC statT mode sig  a' s
+ \<equiv> let invC = invocation_class mode (store s) a' statT;
+       dynM = the (dynlookup G statT invC sig)
+   in abupd 
+        (error_if (\<not> G\<turnstile>Methd sig dynM in invC dyn_accessible_from accC)
+                  AccessViolation)
+        s"
+       
 section "evaluation judgments"
 
 consts
@@ -552,7 +584,27 @@ inductive "eval G" intros
 	       G\<turnstile>set_lvars empty s1 \<midarrow>init c\<rightarrow> s2 \<and> s3 = restore_lvars s1 s2)\<rbrakk> 
               \<Longrightarrow>
 		 G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s3"
-
+   (* This class initialisation rule is a little bit inaccurate. Look at the
+      exact sequence:
+      1. The current class object (the static fields) are initialised
+         (init_class_obj)
+      2. Then the superclasses are initialised
+      3. The static initialiser of the current class is invoked
+      More precisely we should expect another ordering, namely 2 1 3.
+      But we can't just naively toggle 1 and 2. By calling init_class_obj 
+      before initialising the superclasses we also implicitly record that
+      we have started to initialise the current class (by setting an 
+      value for the class object). This becomes 
+      crucial for the completeness proof of the axiomatic semantics 
+      (AxCompl.thy). Static initialisation requires an induction on the number 
+      of classes not yet initialised (or to be more precise, classes where the
+      initialisation has not yet begun). 
+      So we could first assign a dummy value to the class before
+      superclass initialisation and afterwards set the correct values.
+      But as long as we don't take memory overflow into account 
+      when allocating class objects, and don't model definite assignment in
+      the static initialisers, we can leave things as they are for convenience. 
+   *)
 (* evaluation of expressions *)
 
   (* cf. 15.8.1, 12.4.1 *)
@@ -602,10 +654,15 @@ inductive "eval G" intros
   Call:	
   "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<rightarrow> s1; G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<rightarrow> s2;
     D = invocation_declclass G mode (store s2) a' statT \<lparr>name=mn,parTs=pTs\<rparr>;
-    G\<turnstile>init_lvars G D \<lparr>name=mn,parTs=pTs\<rparr> mode a' vs s2 
-         \<midarrow>Methd D \<lparr>name=mn,parTs=pTs\<rparr>-\<succ>v\<rightarrow> s3\<rbrakk>
+    s3=init_lvars G D \<lparr>name=mn,parTs=pTs\<rparr> mode a' vs s2;
+    s3' = check_method_access G accC statT mode \<lparr>name=mn,parTs=pTs\<rparr> a' s3;
+    G\<turnstile>s3' \<midarrow>Methd D \<lparr>name=mn,parTs=pTs\<rparr>-\<succ>v\<rightarrow> s4\<rbrakk>
    \<Longrightarrow>
-       G\<turnstile>Norm s0 \<midarrow>{statT,mode}e\<cdot>mn({pTs}args)-\<succ>v\<rightarrow> (restore_lvars s2 s3)"
+       G\<turnstile>Norm s0 \<midarrow>{accC,statT,mode}e\<cdot>mn({pTs}args)-\<succ>v\<rightarrow> (restore_lvars s2 s4)"
+(* The accessibility check is after init_lvars, to keep it simple. Init_lvars 
+   already tests for the absence of a null-pointer reference in case of an
+   instance method invocation
+*)
 
   Methd:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>body G D sig-\<succ>v\<rightarrow> s1\<rbrakk> \<Longrightarrow>
 				G\<turnstile>Norm s0 \<midarrow>Methd D sig-\<succ>v\<rightarrow> s1"
@@ -620,9 +677,14 @@ inductive "eval G" intros
   LVar:	"G\<turnstile>Norm s \<midarrow>LVar vn=\<succ>lvar vn s\<rightarrow> Norm s"
 
   (* cf. 15.10.1, 12.4.1 *)
-  FVar:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init C\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e-\<succ>a\<rightarrow> s2;
-	  (v,s2') = fvar C stat fn a s2\<rbrakk> \<Longrightarrow>
-	  G\<turnstile>Norm s0 \<midarrow>{C,stat}e..fn=\<succ>v\<rightarrow> s2'"
+  FVar:	"\<lbrakk>G\<turnstile>Norm s0 \<midarrow>Init statDeclC\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e-\<succ>a\<rightarrow> s2;
+	  (v,s2') = fvar statDeclC stat fn a s2;
+          s3 = check_field_access G accC statDeclC fn stat a s2' \<rbrakk> \<Longrightarrow>
+	  G\<turnstile>Norm s0 \<midarrow>{accC,statDeclC,stat}e..fn=\<succ>v\<rightarrow> s3"
+ (* The accessibility check is after fvar, to keep it simple. Fvar already
+    tests for the absence of a null-pointer reference in case of an instance
+    field
+  *)
 
   (* cf. 15.12.1, 15.25.1 *)
   AVar:	"\<lbrakk>G\<turnstile> Norm s0 \<midarrow>e1-\<succ>a\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e2-\<succ>i\<rightarrow> s2;
@@ -688,35 +750,35 @@ simpset_ref() := simpset() delloop "split_all_tac"
 inductive_cases eval_cases: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> vs'"
 
 inductive_cases eval_elim_cases:
-        "G\<turnstile>(Some xc,s) \<midarrow>t                         \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1r Skip                      \<succ>\<rightarrow> xs'"
-        "G\<turnstile>Norm s \<midarrow>In1r (Do j)                    \<succ>\<rightarrow> xs'"
-        "G\<turnstile>Norm s \<midarrow>In1r (l\<bullet> c)                    \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In3  ([])                      \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In3  (e#es)                    \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Lit w)                   \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In2  (LVar vn)                 \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Cast T e)                \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (e InstOf T)              \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Super)                   \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Acc va)                  \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (Expr e)                  \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (c1;; c2)                 \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Methd C sig)             \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Body D c)                \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (e0 ? e1 : e2)            \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (If(e) c1 Else c2)        \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (l\<bullet> While(e) c)           \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (c1 Finally c2)           \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (Throw e)                 \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (NewC C)                  \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (New T[e])                \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l (Ass va e)                \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (Try c1 Catch(tn vn) c2)  \<succ>\<rightarrow> xs'"
-	"G\<turnstile>Norm s \<midarrow>In2  ({C,stat}e..fn)           \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In2  (e1.[e2])                 \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1l ({statT,mode}e\<cdot>mn({pT}p)) \<succ>\<rightarrow> vs'"
-	"G\<turnstile>Norm s \<midarrow>In1r (Init C)                  \<succ>\<rightarrow> xs'"
+        "G\<turnstile>(Some xc,s) \<midarrow>t                              \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1r Skip                           \<succ>\<rightarrow> xs'"
+        "G\<turnstile>Norm s \<midarrow>In1r (Do j)                         \<succ>\<rightarrow> xs'"
+        "G\<turnstile>Norm s \<midarrow>In1r (l\<bullet> c)                         \<succ>\<rightarrow> xs'"
+	"G\<turnstile>Norm s \<midarrow>In3  ([])                           \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In3  (e#es)                         \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (Lit w)                        \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In2  (LVar vn)                      \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (Cast T e)                     \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (e InstOf T)                   \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (Super)                        \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (Acc va)                       \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1r (Expr e)                       \<succ>\<rightarrow> xs'"
+	"G\<turnstile>Norm s \<midarrow>In1r (c1;; c2)                      \<succ>\<rightarrow> xs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (Methd C sig)                  \<succ>\<rightarrow> xs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (Body D c)                     \<succ>\<rightarrow> xs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (e0 ? e1 : e2)                 \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1r (If(e) c1 Else c2)             \<succ>\<rightarrow> xs'"
+	"G\<turnstile>Norm s \<midarrow>In1r (l\<bullet> While(e) c)                \<succ>\<rightarrow> xs'"
+	"G\<turnstile>Norm s \<midarrow>In1r (c1 Finally c2)                \<succ>\<rightarrow> xs'"
+	"G\<turnstile>Norm s \<midarrow>In1r (Throw e)                      \<succ>\<rightarrow> xs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (NewC C)                       \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (New T[e])                     \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1l (Ass va e)                     \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1r (Try c1 Catch(tn vn) c2)       \<succ>\<rightarrow> xs'"
+	"G\<turnstile>Norm s \<midarrow>In2  ({accC,statDeclC,stat}e..fn)   \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In2  (e1.[e2])                      \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1l ({accC,statT,mode}e\<cdot>mn({pT}p)) \<succ>\<rightarrow> vs'"
+	"G\<turnstile>Norm s \<midarrow>In1r (Init C)                       \<succ>\<rightarrow> xs'"
 declare not_None_eq [simp]  (* IntDef.Zero_def [simp] *)
 declare split_paired_All [simp] split_paired_Ex [simp]
 ML_setup {*
@@ -851,12 +913,14 @@ lemma MethdI: "G\<turnstile>s \<midarrow>body G C sig-\<succ>v\<rightarrow> s' \
 apply (case_tac "s", case_tac "a = None")
 by (auto intro!: eval.Methd)
 
-lemma eval_Call: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<rightarrow> s1; G\<turnstile>s1 \<midarrow>ps\<doteq>\<succ>pvs\<rightarrow> s2;  
-       D = invocation_declclass G mode (store s2) a' statT \<lparr>name=mn,parTs=pTs\<rparr>; 
-       G\<turnstile>init_lvars G D \<lparr>name=mn,parTs=pTs\<rparr> mode a' pvs s2 
-        \<midarrow>Methd D \<lparr>name=mn,parTs=pTs\<rparr>-\<succ> v\<rightarrow> s3; 
-       s3' = restore_lvars s2 s3\<rbrakk> \<Longrightarrow>  
-       G\<turnstile>Norm s0 \<midarrow>{statT,mode}e\<cdot>mn({pTs}ps)-\<succ>v\<rightarrow> s3'"
+lemma eval_Call: 
+   "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<rightarrow> s1; G\<turnstile>s1 \<midarrow>ps\<doteq>\<succ>pvs\<rightarrow> s2;  
+     D = invocation_declclass G mode (store s2) a' statT \<lparr>name=mn,parTs=pTs\<rparr>;
+     s3 = init_lvars G D \<lparr>name=mn,parTs=pTs\<rparr> mode a' pvs s2;
+     s3' = check_method_access G accC statT mode \<lparr>name=mn,parTs=pTs\<rparr> a' s3;
+     G\<turnstile>s3'\<midarrow>Methd D \<lparr>name=mn,parTs=pTs\<rparr>-\<succ> v\<rightarrow> s4; 
+       s4' = restore_lvars s2 s4\<rbrakk> \<Longrightarrow>  
+       G\<turnstile>Norm s0 \<midarrow>{accC,statT,mode}e\<cdot>mn({pTs}ps)-\<succ>v\<rightarrow> s4'"
 apply (drule eval.Call, assumption)
 apply (rule HOL.refl)
 apply simp+

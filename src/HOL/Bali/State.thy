@@ -22,8 +22,10 @@ section "objects"
 datatype  obj_tag =     (* tag for generic object   *)
 	  CInst qtname   (* class instance           *)
 	| Arr  ty int   (* array with component type and length *)
-     (* | CStat            the tag is irrelevant for a class object,
-			   i.e. the static fields of a class *)
+     (* | CStat qtname     the tag is irrelevant for a class object,
+			   i.e. the static fields of a class,
+                           since its type is given already by the reference to 
+                           it (see below) *)
 
 types	vn   = "fspec + int"                    (* variable name      *)
 record	obj  = 
@@ -489,9 +491,14 @@ datatype xcpt        (* exception *)
 	= Loc loc    (* location of allocated execption object *)
 	| Std xname  (* intermediate standard exception, see Eval.thy *)
 
+datatype error
+       = AccessViolation (* Access to a member that isn't permitted *)
+
 datatype abrupt      (* abrupt completion *) 
         = Xcpt xcpt  (* exception *)
         | Jump jump  (* break, continue, return *)
+        | Error error (* runtime errors, we wan't to detect and proof absent
+                         in welltyped programms *)
 consts
 
   the_Xcpt :: "abrupt \<Rightarrow> xcpt"
@@ -542,12 +549,14 @@ syntax
   raise_if :: "bool \<Rightarrow> xname \<Rightarrow> abopt \<Rightarrow> abopt"
   np       :: "val  \<spacespace>        \<Rightarrow> abopt \<Rightarrow> abopt"
   check_neg:: "val  \<spacespace>        \<Rightarrow> abopt \<Rightarrow> abopt"
+  error_if :: "bool \<Rightarrow> error \<Rightarrow> abopt \<Rightarrow> abopt"
   
 translations
 
  "raise_if c xn" == "abrupt_if c (Some (Xcpt (Std xn)))"
  "np v"          == "raise_if (v = Null)      NullPointer"
  "check_neg i'"  == "raise_if (the_Intg i'<0) NegArrSize"
+ "error_if c e"  == "abrupt_if c (Some (Error e))"
 
 lemma raise_if_None [simp]: "(raise_if c x y = None) = (\<not>c \<and> y = None)"
 apply (simp add: abrupt_if_def)
@@ -562,6 +571,26 @@ done
 
 lemma raise_if_SomeD [dest!]:
   "raise_if c x y = Some z \<Longrightarrow> c \<and> z=(Xcpt (Std x)) \<and> y=None \<or> (y=Some z)"
+apply (case_tac y)
+apply (case_tac c)
+apply (simp add: abrupt_if_def)
+apply (simp add: abrupt_if_def)
+apply auto
+done
+
+lemma error_if_None [simp]: "(error_if c e y = None) = (\<not>c \<and> y = None)"
+apply (simp add: abrupt_if_def)
+by auto
+declare error_if_None [THEN iffD1, dest!]
+
+lemma if_error_if_None [simp]: 
+  "((if b then y else error_if c e y) = None) = ((c \<longrightarrow> b) \<and> y = None)"
+apply (simp add: abrupt_if_def)
+apply auto
+done
+
+lemma raise_if_SomeD [dest!]:
+  "error_if c e y = Some z \<Longrightarrow> c \<and> z=(Error e) \<and> y=None \<or> (y=Some z)"
 apply (case_tac y)
 apply (case_tac c)
 apply (simp add: abrupt_if_def)
@@ -733,7 +762,97 @@ apply (unfold initd_def)
 apply (simp (no_asm))
 done
 
+section {* @{text error_free} *}
+constdefs error_free:: "state \<Rightarrow> bool"
+"error_free s \<equiv> \<not> (\<exists> err. abrupt s = Some (Error err))"
 
+lemma error_free_Norm [simp,intro]: "error_free (Norm s)"
+by (simp add: error_free_def)
+
+lemma error_free_normal [simp,intro]: "normal s \<Longrightarrow> error_free s"
+by (simp add: error_free_def)
+
+lemma error_free_Xcpt [simp]: "error_free (Some (Xcpt x),s)"
+by (simp add: error_free_def)
+
+lemma error_free_Jump [simp,intro]: "error_free (Some (Jump j),s)"
+by (simp add: error_free_def)
+
+lemma error_free_Error [simp]: "error_free (Some (Error e),s) = False"
+by (simp add: error_free_def)  
+
+lemma error_free_Some [simp,intro]: 
+ "\<not> (\<exists> err. x=Error err) \<Longrightarrow> error_free ((Some x),s)"
+by (auto simp add: error_free_def)
+
+lemma error_free_absorb [simp,intro]: 
+ "error_free s \<Longrightarrow> error_free (abupd (absorb j) s)"
+by (cases s) 
+   (auto simp add: error_free_def absorb_def
+         split: split_if_asm)
+
+lemma error_free_absorb [simp,intro]: 
+ "error_free (a,s) \<Longrightarrow> error_free (absorb j a, s)"
+by (auto simp add: error_free_def absorb_def
+            split: split_if_asm)
+
+lemma error_free_abrupt_if [simp,intro]:
+"\<lbrakk>error_free s; \<not> (\<exists> err. x=Error err)\<rbrakk>
+ \<Longrightarrow> error_free (abupd (abrupt_if p (Some x)) s)"
+by (cases s)
+   (auto simp add: abrupt_if_def
+            split: split_if)
+
+lemma error_free_abrupt_if1 [simp,intro]:
+"\<lbrakk>error_free (a,s); \<not> (\<exists> err. x=Error err)\<rbrakk>
+ \<Longrightarrow> error_free (abrupt_if p (Some x) a, s)"
+by  (auto simp add: abrupt_if_def
+            split: split_if)
+
+lemma error_free_abrupt_if_Xcpt [simp,intro]:
+ "error_free s 
+  \<Longrightarrow> error_free (abupd (abrupt_if p (Some (Xcpt x))) s)"
+by simp 
+
+lemma error_free_abrupt_if_Xcpt1 [simp,intro]:
+ "error_free (a,s) 
+  \<Longrightarrow> error_free (abrupt_if p (Some (Xcpt x)) a, s)" 
+by simp 
+
+lemma error_free_abrupt_if_Jump [simp,intro]:
+ "error_free s 
+  \<Longrightarrow> error_free (abupd (abrupt_if p (Some (Jump j))) s)" 
+by simp
+
+lemma error_free_abrupt_if_Jump1 [simp,intro]:
+ "error_free (a,s) 
+  \<Longrightarrow> error_free (abrupt_if p (Some (Jump j)) a, s)" 
+by simp
+
+lemma error_free_raise_if [simp,intro]:
+ "error_free s \<Longrightarrow> error_free (abupd (raise_if p x) s)"
+by simp 
+
+lemma error_free_raise_if1 [simp,intro]:
+ "error_free (a,s) \<Longrightarrow> error_free ((raise_if p x a), s)"
+by simp 
+
+lemma error_free_supd [simp,intro]:
+ "error_free s \<Longrightarrow> error_free (supd f s)"
+by (cases s) (simp add: error_free_def)
+
+lemma error_free_supd1 [simp,intro]:
+ "error_free (a,s) \<Longrightarrow> error_free (a,f s)"
+by (simp add: error_free_def)
+
+lemma error_free_set_lvars [simp,intro]:
+"error_free s \<Longrightarrow> error_free ((set_lvars l) s)"
+by (cases s) simp
+
+lemma error_free_set_locals [simp,intro]: 
+"error_free (x, s)
+       \<Longrightarrow> error_free (x, set_locals l s')"
+by (simp add: error_free_def)
 
 end
 

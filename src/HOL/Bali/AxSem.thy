@@ -39,8 +39,6 @@ restrictions:
 \end{itemize}
 *}
 
-
-
 types  res = vals (* result entry *)
 syntax
   Val  :: "val      \<Rightarrow> res"
@@ -514,7 +512,7 @@ inductive "ax_derivs G" intros
 
   FVar: "\<lbrakk>G,A\<turnstile>{Normal P} .Init C. {Q};
           G,A\<turnstile>{Q} e-\<succ> {\<lambda>Val:a:. fvar C stat fn a ..; R}\<rbrakk> \<Longrightarrow>
-                                 G,A\<turnstile>{Normal P} {C,stat}e..fn=\<succ> {R}"
+                                 G,A\<turnstile>{Normal P} {accC,C,stat}e..fn=\<succ> {R}"
 
   AVar:  "\<lbrakk>G,A\<turnstile>{Normal P} e1-\<succ> {Q};
           \<forall>a. G,A\<turnstile>{Q\<leftarrow>Val a} e2-\<succ> {\<lambda>Val:i:. avar G i a ..; R}\<rbrakk> \<Longrightarrow>
@@ -560,7 +558,7 @@ inductive "ax_derivs G" intros
       init_lvars G declC \<lparr>name=mn,parTs=pTs\<rparr> mode a vs) \<and>.
       (\<lambda>s. normal s \<longrightarrow> G\<turnstile>mode\<rightarrow>invC\<preceq>statT)}
  Methd declC \<lparr>name=mn,parTs=pTs\<rparr>-\<succ> {set_lvars l .; S}\<rbrakk> \<Longrightarrow>
-         G,A\<turnstile>{Normal P} {statT,mode}e\<cdot>mn({pTs}args)-\<succ> {S}"
+         G,A\<turnstile>{Normal P} {accC,statT,mode}e\<cdot>mn({pTs}args)-\<succ> {S}"
 
   Methd:"\<lbrakk>G,A\<union> {{P} Methd-\<succ> {Q} | ms} |\<turnstile> {{P} body G-\<succ> {Q} | ms}\<rbrakk> \<Longrightarrow>
                                  G,A|\<turnstile>{{P} Methd-\<succ>  {Q} | ms}"
@@ -1044,7 +1042,7 @@ lemma ax_Call_known_DynT:
                      C = invocation_declclass 
                             G IntVir (store s) a statT \<lparr>name=mn,parTs=pTs\<rparr> )};  
        G,(A::'a triple set)\<turnstile>{Normal P} e-\<succ> {Q::'a assn}\<rbrakk>  
-   \<Longrightarrow> G,A\<turnstile>{Normal P} {statT,IntVir}e\<cdot>mn({pTs}args)-\<succ> {S}"
+   \<Longrightarrow> G,A\<turnstile>{Normal P} {accC,statT,IntVir}e\<cdot>mn({pTs}args)-\<succ> {S}"
 apply (erule ax_derivs.Call)
 apply  safe
 apply  (erule spec)
@@ -1062,7 +1060,7 @@ lemma ax_Call_Static:
   \<forall> a. G,(A::'a triple set)\<turnstile>{Q\<leftarrow>Val a} args\<doteq>\<succ> {(R::val \<Rightarrow> 'a assn)  a 
   \<and>. (\<lambda> s. C=invocation_declclass 
                 G Static (store s) a statT \<lparr>name=mn,parTs=pTs\<rparr>)}
-\<rbrakk>  \<Longrightarrow>  G,A\<turnstile>{Normal P} {statT,Static}e\<cdot>mn({pTs}args)-\<succ> {S}"
+\<rbrakk>  \<Longrightarrow>  G,A\<turnstile>{Normal P} {accC,statT,Static}e\<cdot>mn({pTs}args)-\<succ> {S}"
 apply (erule ax_derivs.Call)
 apply  safe
 apply  (erule spec)
