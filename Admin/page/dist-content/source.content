@@ -2,7 +2,9 @@
 Isabelle Source Distribution
 
 %body%
-This is the complete source distribution of <!-- _GP_ distname -->.
+This is the pure source distribution of <!-- _GP_ distname -->.  Note
+that the <a href="binary.html">binary distribution</a> includes all
+Isabelle sources as well.
 
 <p>
 
@@ -19,10 +21,10 @@ This is the complete source distribution of <!-- _GP_ distname -->.
 
 <p>
 
-Please see the Isabelle <!-- _GP_ href(distname . "/README.html",
-"README") --> and <!-- _GP_ href(distname . "/INSTALL", "INSTALL") -->
-files for more information.  See the <!-- _GP_ href(distname
-. "/NEWS", "NEWS") --> file for a history user-relevant changes.
+See the Isabelle <!-- _GP_ href(distname . "/README.html", "README")
+--> and <!-- _GP_ href(distname . "/INSTALL", "INSTALL") --> files for
+more information.  See the <!-- _GP_ href(distname . "/NEWS", "NEWS")
+--> file for a history user-relevant changes.
 
 <p>
 
