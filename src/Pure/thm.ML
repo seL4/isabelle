@@ -884,14 +884,13 @@ fun trace_term a sg t = if !trace_simp then prtm a sg t else ();
 fun trace_thm a (Thm{sign,prop,...}) = trace_term a sign prop;
 
 fun check_conv(thm as Thm{sign,hyps,prop,...}, prop0) =
-  let fun err() = (trace_term "Proved wrong thm" sign prop;
-                   error "Check your prover")
+  let fun err() = (trace_thm "Proved wrong thm (Check subgoaler?)" thm; None)
       val (lhs0,_) = Logic.dest_equals(Logic.strip_imp_concl prop0)
   in case prop of
        Const("==",_) $ lhs $ rhs =>
          if (lhs = lhs0) orelse
             (lhs aconv (Envir.norm_term (Envir.empty 0) lhs0))
-         then (trace_thm "SUCCEEDED" thm; ((sign,hyps),rhs))
+         then (trace_thm "SUCCEEDED" thm; Some((sign,hyps),rhs))
          else err()
      | _ => err()
   end;
@@ -912,7 +911,7 @@ fun rewritec prover (mss as Mss{net,...}) (sghyt as (sgt,hypst),t) =
            else (trace_thm "Trying to rewrite:" thm';
                  case prover mss thm' of
                    None       => (trace_thm "FAILED" thm'; None)
-                 | Some(thm2) => Some(check_conv(thm2,prop')))
+                 | Some(thm2) => check_conv(thm2,prop'))
         end
 
       fun rewl [] = None
@@ -936,10 +935,12 @@ fun congc prover {thm=cong,lhs=lhs} (sghyt as (sgt,hypst),t) =
       val thm' = Thm{sign=sign', hyps=hyps union hypst,
                      prop=prop', maxidx=maxidx}
       val unit = trace_thm "Applying congruence rule" thm';
+      fun err() = error("Failed congruence proof!")
 
   in case prover thm' of
-       None => error("Failed congruence proof!")
-     | Some(thm2) => check_conv(thm2,prop')
+       None => err()
+     | Some(thm2) => (case check_conv(thm2,prop') of
+                        None => err() | Some(x) => x)
   end;
 
 
