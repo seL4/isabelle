@@ -231,3 +231,12 @@ qed_goal "Image_subset" thy "!!A B r. r <= A Times B ==> r^^C <= B"
 goal thy "r^^B = (UN y: B. r^^{y})";
 by (Blast_tac 1);
 qed "Image_eq_UN";
+
+
+section "Univalent";
+
+qed_goalw "UnivalentI" Relation.thy [Univalent_def] 
+   "!!r. !x y. (x,y):r --> (!z. (x,z):r --> y=z) ==> Univalent r" (K [atac 1]);
+
+qed_goalw "UnivalentD" Relation.thy [Univalent_def] 
+	"!!r. [| Univalent r; (x,y):r; (x,z):r|] ==> y=z" (K [Auto_tac]);
