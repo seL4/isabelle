@@ -1,68 +1,63 @@
-#!/bin/bash
+#!/bin/bash -norc
 #
 # $Id$
 #
 # SML/NJ startup script (for 1.06 or later).
 #
-# Global vars: INFILE OUTFILE COPYDB MLTEXT OPTIONS TERMINATE,
+# Global vars: INFILE OUTFILE COPYDB MLTEXT TERMINATE,
 # and from settings
 
 
 ## diagnostics
 
-function fail()
+function fail_out()
 {
-  echo "$1"
+  echo "Unable to create output heap file: \"$OUTFILE\"" >&2
   exit 2
 }
 
 
-## locations and settings
-
-SML="$ML_HOME/bin/sml"
-
-
 ## prepare databases
 
-function fail_out()
-{
-  fail "Unable to create output heap file: \"$OUTFILE\""
-}
-
-if [ -z "$OUTFILE" ]; then
-  DB="$INFILE"
-  COMMIT='fun commit() = (output (std_out, "Error - Database is not opened for writing.\n"); false);'
-elif [ -n "$INFILE" -a "$INFILE" != "$OUTFILE" ]; then           # FIXME ! -ef !?
-  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out }
-  cp "$INFILE" "$OUTFILE" || fail_out
-  chmod +w "$OUTFILE"
-  DB="$INFILE"
-  COMMIT="fun commit() = not (exportML\"$OUTFILE\");"
-else
-  DB="$INFILE"
-  COMMIT="fun commit() = not (exportML\"$OUTFILE\");"
+EXIT=""
+if [ -z "$INFILE" ]; then
+  case "$ML_SYSTEM" in
+    smlnj-1.0[678])
+      EXIT="val exit = System.Unix.exit;"
+      ;;
+    smlnj-1.09*)
+      EXIT="fun exit 0 = OS.Process.exit OS.Process.success | exit _ = OS.Process.exit OS.Process.failure;"
+    ;;
+  esac
 fi
 
-[ -n "$DB" ] && DB="@SMLload=$DB"
-MLTEXT="$COMMIT $MLTEXT"
+DB="$INFILE"
+[ -n "$DB" ] && DB="@SMLload=$INFILE"
+
+COMMIT="fun commit () = not (exportML\"$OUTFILE\");"
+
+if [ -z "$OUTFILE" ]; then
+  COMMIT='fun commit () = (output (std_err, "Error - Database is not opened for writing.\n"); false);'
+elif [ -n "$INFILE" -a ! "$INFILE" -ef "$OUTFILE" ]; then
+  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out }
+  cp "$INFILE" "$OUTFILE" || fail_out
+  chmod +w "$OUTFILE" || fail_out
+fi
+
+MLTEXT="$EXIT $COMMIT $MLTEXT"
+MLEXIT="commit();"
 
 
 ## run it!
 
-START_SML="$SML $ML_OPTIONS $OPTIONS $DB"
+START_SML="$ML_HOME/bin/sml $ML_OPTIONS $DB"
 
 if [ -n "$TERMINATE" ]; then
-  echo "$MLTEXT" | $START_SML
-  RC=$?
-elif [ -z "$MLTEXT" ]; then
-  $START_SML
+  { echo "$MLTEXT"; echo "$MLEXIT" } | $START_SML
   RC=$?
 else
-  TMP_FILE=/tmp/mltext-$$
-  echo "$MLTEXT" >$TMP_FILE
-  $ISABELLE_HOME/lib/scripts/ucat $TMP_FILE - | $START_SML
+  { echo "$MLTEXT"; $ISABELLE_HOME/lib/scripts/ucat; echo "$MLEXIT" } | $START_SML
   RC=$?
-  rm $TMP_FILE
 fi
 
 exit $RC

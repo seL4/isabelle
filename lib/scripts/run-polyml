@@ -1,88 +1,77 @@
-#!/bin/bash
+#!/bin/bash -norc
 #
 # $Id$
 #
 # Poly/ML startup script.
 #
-# Global vars: INFILE OUTFILE COPYDB MLTEXT OPTIONS TERMINATE,
+# Global vars: INFILE OUTFILE COPYDB MLTEXT TERMINATE,
 # and from settings
 
 
 ## diagnostics
 
-function fail()
+function fail_out()
 {
-  echo "$1"
+  echo "Unable to create output heap file: \"$OUTFILE\"" >&2
   exit 2
 }
 
 
-
 ## locations and settings
 
-ML_QUIT=";PolyML.quit();"
 ML_DBASE=$ML_HOME/ML_dbase
 POLY=$ML_HOME/poly
 DISCGARB=$ML_HOME/discgarb
 
 case "$ML_SYSTEM" in
-  polyml-3.1)
+  polyml-3.*)
     DISCGARB="$DISCGARB -c"
-    export LM_LICENSE_FILE=$ML_HOME/license.dat
     ;;
 esac
 
 
-
 ## prepare databases
+
+MLINIT=""
 
 if [ -z "$INFILE" ]; then
   INFILE="$ML_DBASE"
-  MLTEXT="val use = PolyML.use; val exit = PolyML.exit; $MLTEXT"
+  MLINIT="val use = PolyML.use; val exit = PolyML.exit; fun init_database () = ();"
 fi
-
-function fail_out()
-{
-  fail "Unable to create output heap file: \"$OUTFILE\""
-}
 
 if [ -z "$OUTFILE" ]; then
   DB="$INFILE"
-  OPTS="-r"  
-elif [ "$INFILE" = "$OUTFILE" ]; then           # FIXME -ef !?
+  ML_OPTIONS="-r $ML_OPTIONS"  
+elif [ "$INFILE" -ef "$OUTFILE" ]; then
   DB="$INFILE"
-  OPTS=""
 elif [ -n "$COPYDB" ]; then
   cp "$INFILE" "$OUTFILE" || fail_out
-  chmod +w "$OUTFILE"
+  chmod +w "$OUTFILE" || fail_out
   DB="$OUTFILE"
-  OPTS=""
 else
   [ -f "$OUTFILE" ] && { rm "$OUTFILE" || fail_out }
-  echo "PolyML.make_database \"$OUTFILE\"; $ML_QUIT" | $POLY -r "$INFILE"
+  echo "PolyML.make_database \"$OUTFILE\"; PolyML.quit();" | $POLY -r "$INFILE"
   [ -f "$OUTFILE" ] || fail_out
   DB="$OUTFILE"
-  OPTS=""
+  MLINIT="$MLINIT init_database ();"
 fi
-
 
 
 ## run it!
 
-START_POLY="$POLY $OPTS $ML_OPTIONS $OPTIONS $DB"
+START_POLY="$POLY $ML_OPTIONS $DB"
+
+[ -n "$MLINIT" ] && MLTEXT="$MLINIT $MLTEXT"
 
 if [ -n "$TERMINATE" ]; then
-  echo "$MLTEXT" "$ML_QUIT" | $START_POLY
+  echo "$MLTEXT" | $START_POLY
   RC=$?
 elif [ -z "$MLTEXT" ]; then
   $START_POLY
   RC=$?
 else
-  TMP_FILE=/tmp/mltext-$$
-  echo "$MLTEXT" >$TMP_FILE
-  $ISABELLE_HOME/lib/scripts/ucat $TMP_FILE - | $START_POLY
+  { echo "$MLTEXT"; $ISABELLE_HOME/lib/scripts/ucat } | $START_POLY
   RC=$?
-  rm $TMP_FILE
 fi
 
 [ $RC -eq 0 -a -n "$OUTFILE" ] && $DISCGARB "$OUTFILE"
