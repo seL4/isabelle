@@ -33,7 +33,7 @@ BASH=/bin/bash
 # Perl path and name for interpreter
 # should be a perl 4.x
 #PERL=/usr/bin/perl
-PERL=/usr/local/dist/DIR/perl4/bin/perl
+PERL=/usr/local/dist/bin/perl
 
 # use LaTeX2e instead of LaTeX 2.09
 # this flag is currently only sensible for perl script gen-isadoc

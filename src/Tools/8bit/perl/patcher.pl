@@ -1,12 +1,16 @@
-#!/usr/local/dist/DIR/perl4/bin/perl
+#!/usr/local/dist/bin/perl
 'di';
 'ig00';
 #
 # $Header$
 #
 # $Log$
-# Revision 1.1  1996/06/25 15:44:59  oheimb
-# Initial revision
+# Revision 1.2  1997/03/17 11:25:53  wenzelm
+# fixed perl path;
+#
+# Revision 1.1.1.1  1996/06/25  15:44:59  oheimb
+# Graphical 8bit Font Packet, see isabelle/Tools/8bit/doc/manual.dvi
+# Author: Franz Regensburger; improvements by David von Oheimb
 #
 # Revision 1.1.1.1  1996/06/25  13:58:24  oheimb
 # Graphical 8bit Font Package imported, second attempt

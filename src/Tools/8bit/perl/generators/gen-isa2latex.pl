@@ -1,4 +1,4 @@
-#!/usr/local/dist/DIR/perl4/bin/perl
+#!/usr/local/dist/bin/perl
 'di';
 'ig00';
 ###############################################

@@ -1,4 +1,4 @@
-#!/usr/local/dist/DIR/perl4/bin/perl
+#!/usr/local/dist/bin/perl
 #
 # gen-isa_gnu_emacs
 # Franz Regensburger <regensbu@informatik.tu-muenchen.de>
