@@ -111,14 +111,17 @@ mkdir -p "$LOGDIR"
 
 SECONDS=0
 
+PARENT=$(basename "$LOGIC")
+
 if [ -n "$BUILD" ]; then
   ITEM="$SESSION"
   echo -n "Building $ITEM ... "
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
-    -e "Session.use_dir $RESET $INFO \"$SESSION\";" \
+    -e "Session.use_dir $RESET $INFO \"$PARENT\" \"$SESSION\";" \
     -q -w $LOGIC $NAME > $LOG 2>&1
+  RC=$?
 else
   ITEM=$(basename $LOGIC)-"$SESSION"
   echo -n "Running $ITEM ... "
@@ -126,12 +129,11 @@ else
 
   cd "$NAME"
   $ISABELLE \
-    -e "Session.use_dir $RESET $INFO \"$SESSION\"; quit();" \
+    -e "Session.use_dir $RESET $INFO \"$PARENT\" \"$SESSION\"; quit();" \
     -r -q $LOGIC > $LOG 2>&1
+  RC=$?
   cd ..
 fi
-
-RC=$?
 
 ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
 
