@@ -45,6 +45,7 @@ sig
   val chunks: T list -> T
   val indent: int -> T -> T
   val string_of: T -> string
+  val output: T -> string
   val writeln: T -> unit
   val writelns: T list -> unit
   val str_of: T -> string
@@ -54,7 +55,6 @@ sig
   val setmp_margin: int -> ('a -> 'b) -> 'a -> 'b
   type pp
   val pp: (term -> T) * (typ -> T) * (sort -> T) * (class list -> T) * (arity -> T) -> pp
-  val pp_undef: pp
   val term: pp -> term -> T
   val typ: pp -> typ -> T
   val sort: pp -> sort -> T
@@ -240,10 +240,10 @@ fun pruning dp (Block(bes,indent,wd)) =
 
 fun prune dp e = if dp > 0 then pruning dp e else e;
 
-fun string_of e =
-  Buffer.content (#tx (format ([prune (! depth) e], (Buffer.empty, 0), 0) empty))
-  |> Output.raw;
+fun output e =
+  Buffer.content (#tx (format ([prune (! depth) e], (Buffer.empty, 0), 0) empty));
 
+val string_of = Output.raw o output;
 val writeln = writeln o string_of;
 fun writelns [] = () | writelns es = writeln (chunks es);
 
@@ -292,9 +292,5 @@ val string_of_typ      = string_of oo typ;
 val string_of_sort     = string_of oo sort;
 val string_of_classrel = string_of oo classrel;
 val string_of_arity    = string_of oo arity;
-
-fun undef kind _ = str ("*** UNABLE TO PRINT " ^ kind ^ " ***");
-val pp_undef =
-  pp (undef "term", undef "typ", undef "sort", undef "classrel", undef "arity");
 
 end;
