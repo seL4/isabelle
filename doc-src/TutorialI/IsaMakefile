@@ -15,7 +15,7 @@ all: default
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
-USEDIR = @$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL
+USEDIR = @$(ISATOOL) usedir -m brackets -i true -d dvi -D document $(OUT)/HOL
 
 ## HOL
 
