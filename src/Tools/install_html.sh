@@ -7,7 +7,7 @@
 
 if ( "$*" == "" ) then
   rsh www4 "rm -r .html-data/isabelle/*; mkdir .html-data/isabelle/Tools; \
-            chmod o-w Tools"
+            chmod og-w .html-data/isabelle/Tools"
 endif
 
 rcp index.html www4:.html-data/isabelle
@@ -19,6 +19,4 @@ if ( "$*" == "" ) then
 else
   rcp -r $* www4:.html-data/isabelle
 endif
-rsh www4 "chgrp -R isabelle .html-data/isabelle/*; \
-          chmod -R g+w .html-data/isabelle/*"
-
+rsh www4 "chgrp -R isabelle .html-data/isabelle/*;                                       chmod -R g+w .html-data/isabelle/*"
