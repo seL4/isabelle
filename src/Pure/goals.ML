@@ -279,10 +279,10 @@ val current_goals_markers = ref ("", "", "");
 
 fun print_current_goals_default n max th =
   let val ref (begin_state, end_state, begin_goal) = current_goals_markers in
-    writeln begin_state;
+    if begin_state = "" then () else writeln begin_state;
     writeln ("Level " ^ string_of_int n);
     Locale.print_goals_marker begin_goal max th;
-    writeln end_state
+    if end_state = "" then () else writeln end_state
   end;
 
 val print_current_goals_fn = ref print_current_goals_default;
