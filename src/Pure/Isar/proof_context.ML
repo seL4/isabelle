@@ -175,7 +175,7 @@ val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
 (* local theorems *)
 
 fun pretty_thms (Context {thms, ...}) =
-  pretty_items pretty_thm "local theorems:" (mapfilter smash_option (Symtab.dest thms));
+  pretty_items pretty_thm "facts:" (mapfilter smash_option (Symtab.dest thms));
 
 val print_thms = Pretty.writeln o Pretty.chunks o pretty_thms;
 
