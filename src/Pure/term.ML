@@ -1,6 +1,6 @@
-(*  Title: 	Pure/term.ML
+(*  Title:      Pure/term.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   Cambridge University 1992
 
 Simply typed lambda-calculus: types, terms, and basic operations
@@ -26,7 +26,7 @@ type sort  = class list;
 (* The sorts attached to TFrees and TVars specify the sort of that variable *)
 datatype typ = Type  of string * typ list
              | TFree of string * sort
-	     | TVar  of indexname * sort;
+             | TVar  of indexname * sort;
 
 fun S --> T = Type("fun",[S,T]);
 
@@ -120,19 +120,19 @@ fun strip_type T : typ list * typ =
 fun type_of1 (Ts, Const (_,T)) = T
   | type_of1 (Ts, Free  (_,T)) = T
   | type_of1 (Ts, Bound i) = (nth_elem (i,Ts)  
-  	handle LIST _ => raise TYPE("type_of: bound variable", [], [Bound i]))
+        handle LIST _ => raise TYPE("type_of: bound variable", [], [Bound i]))
   | type_of1 (Ts, Var (_,T)) = T
   | type_of1 (Ts, Abs (_,T,body)) = T --> type_of1(T::Ts, body)
   | type_of1 (Ts, f$u) = 
       let val U = type_of1(Ts,u)
           and T = type_of1(Ts,f)
       in case T of
-	    Type("fun",[T1,T2]) =>
-	      if T1=U then T2  else raise TYPE
-	            ("type_of: type mismatch in application", [T1,U], [f$u])
-	  | _ => raise TYPE 
-		    ("type_of: function type is expected in application",
-		     [T,U], [f$u])
+            Type("fun",[T1,T2]) =>
+              if T1=U then T2  else raise TYPE
+                    ("type_of: type mismatch in application", [T1,U], [f$u])
+          | _ => raise TYPE 
+                    ("type_of: function type is expected in application",
+                     [T,U], [f$u])
       end;
 
 fun type_of t : typ = type_of1 ([],t);
@@ -140,12 +140,12 @@ fun type_of t : typ = type_of1 ([],t);
 (*Determines the type of a term, with minimal checking*)
 fun fastype_of1 (Ts, f$u) = 
     (case fastype_of1 (Ts,f) of
-	Type("fun",[_,T]) => T
-	| _ => raise TERM("fastype_of: expected function type", [f$u]))
+        Type("fun",[_,T]) => T
+        | _ => raise TERM("fastype_of: expected function type", [f$u]))
   | fastype_of1 (_, Const (_,T)) = T
   | fastype_of1 (_, Free (_,T)) = T
   | fastype_of1 (Ts, Bound i) = (nth_elem(i,Ts)
-  	 handle LIST _ => raise TERM("fastype_of: Bound", [Bound i]))
+         handle LIST _ => raise TERM("fastype_of: Bound", [Bound i]))
   | fastype_of1 (_, Var (_,T)) = T 
   | fastype_of1 (Ts, Abs (_,T,u)) = T --> fastype_of1 (T::Ts, u);
 
@@ -247,7 +247,7 @@ fun strip_all_body (Const("all",_)$Abs(_,_,t))  =  strip_all_body t
 
 (* maps  !!x1...xn. t   to   [x1, ..., xn]  *)
 fun strip_all_vars (Const("all",_)$Abs(a,T,t))  =
-		(a,T) :: strip_all_vars t 
+                (a,T) :: strip_all_vars t 
   | strip_all_vars t  =  [] : (string*typ) list;
 
 (*increments a term's non-local bound variables
@@ -256,7 +256,7 @@ fun strip_all_vars (Const("all",_)$Abs(a,T,t))  =
      lev is  level at which a bound variable is considered 'loose'*)
 fun incr_bv (inc, lev, u as Bound i) = if i>=lev then Bound(i+inc) else u 
   | incr_bv (inc, lev, Abs(a,T,body)) =
-	Abs(a, T, incr_bv(inc,lev+1,body))
+        Abs(a, T, incr_bv(inc,lev+1,body))
   | incr_bv (inc, lev, f$t) = 
       incr_bv(inc,lev,f) $ incr_bv(inc,lev,t)
   | incr_bv (inc, lev, u) = u;
@@ -268,10 +268,10 @@ fun incr_boundvars  0  t = t
 (*Accumulate all 'loose' bound vars referring to level 'lev' or beyond.
    (Bound 0) is loose at level 0 *)
 fun add_loose_bnos (Bound i, lev, js) = 
-	if i<lev then js  else  (i-lev) ins js
+        if i<lev then js  else  (i-lev) ins js
   | add_loose_bnos (Abs (_,_,t), lev, js) = add_loose_bnos (t, lev+1, js)
   | add_loose_bnos (f$t, lev, js) =
-	add_loose_bnos (f, lev, add_loose_bnos (t, lev, js)) 
+        add_loose_bnos (f, lev, add_loose_bnos (t, lev, js)) 
   | add_loose_bnos (_, _, js) = js;
 
 fun loose_bnos t = add_loose_bnos (t, 0, []);
@@ -287,20 +287,20 @@ fun loose_bvar(Bound i,k) = i >= k
 (*Substitute arguments for loose bound variables.
   Beta-reduction of arg(n-1)...arg0 into t replacing (Bound i) with (argi).
   Note that for ((x,y)c)(a,b), the bound vars in c are x=1 and y=0
-	and the appropriate call is  subst_bounds([b,a], c) .
+        and the appropriate call is  subst_bounds([b,a], c) .
   Loose bound variables >=n are reduced by "n" to
      compensate for the disappearance of lambdas.
 *)
 fun subst_bounds (args: term list, t) : term = 
   let val n = length args;
       fun subst (t as Bound i, lev) =
- 	    if i<lev then  t    (*var is locally bound*)
-	    else  (case (drop (i-lev,args)) of
-		  []     => Bound(i-n)  (*loose: change it*)
-	        | arg::_ => incr_boundvars lev arg)
-	| subst (Abs(a,T,body), lev) = Abs(a, T,  subst(body,lev+1))
-	| subst (f$t, lev) =  subst(f,lev)  $  subst(t,lev)
-	| subst (t,lev) = t
+            if i<lev then  t    (*var is locally bound*)
+            else  (case (drop (i-lev,args)) of
+                  []     => Bound(i-n)  (*loose: change it*)
+                | arg::_ => incr_boundvars lev arg)
+        | subst (Abs(a,T,body), lev) = Abs(a, T,  subst(body,lev+1))
+        | subst (f$t, lev) =  subst(f,lev)  $  subst(t,lev)
+        | subst (t,lev) = t
   in   case args of [] => t  | _ => subst (t,0)  end;
 
 (*beta-reduce if possible, else form application*)
@@ -326,9 +326,9 @@ fun aconvs ([],[]) = true
   Terms must be NORMAL.  Treats all Vars as distinct. *)
 fun could_unify (t,u) =
   let fun matchrands (f$t, g$u) = could_unify(t,u) andalso  matchrands(f,g)
-	| matchrands _ = true
+        | matchrands _ = true
   in case (head_of t , head_of u) of
-	(_, Var _) => true
+        (_, Var _) => true
       | (Var _, _) => true
       | (Const(a,_), Const(b,_)) =>  a=b andalso matchrands(t,u)
       | (Free(a,_), Free(b,_)) =>  a=b andalso matchrands(t,u)
@@ -342,11 +342,11 @@ fun could_unify (t,u) =
 fun subst_free [] = (fn t=>t)
   | subst_free pairs =
       let fun substf u = 
-	    case gen_assoc (op aconv) (pairs, u) of
-		Some u' => u'
-	      | None => (case u of Abs(a,T,t) => Abs(a, T, substf t)
-				 | t$u' => substf t $ substf u'
-				 | _ => u)
+            case gen_assoc (op aconv) (pairs, u) of
+                Some u' => u'
+              | None => (case u of Abs(a,T,t) => Abs(a, T, substf t)
+                                 | t$u' => substf t $ substf u'
+                                 | _ => u)
       in  substf  end;
 
 (*a total, irreflexive ordering on index names*)
@@ -360,8 +360,8 @@ fun abstract_over (v,body) =
   let fun abst (lev,u) = if (v aconv u) then (Bound lev) else
       (case u of
           Abs(a,T,t) => Abs(a, T, abst(lev+1, t))
-	| f$rand => abst(lev,f) $ abst(lev,rand)
-	| _ => u)
+        | f$rand => abst(lev,f) $ abst(lev,rand)
+        | _ => u)
   in  abst(0,body)  end;
 
 
@@ -388,16 +388,16 @@ fun list_all ([], t) = t
 fun subst_atomic [] t = t : term
   | subst_atomic (instl: (term*term) list) t =
       let fun subst (Abs(a,T,body)) = Abs(a, T, subst body)
-	    | subst (f$t') = subst f $ subst t'
-	    | subst t = (case assoc(instl,t) of
-		           Some u => u  |  None => t)
+            | subst (f$t') = subst f $ subst t'
+            | subst t = (case assoc(instl,t) of
+                           Some u => u  |  None => t)
       in  subst t  end;
 
 (*Substitute for type Vars in a type*)
 fun typ_subst_TVars iTs T = if null iTs then T else
   let fun subst(Type(a,Ts)) = Type(a, map subst Ts)
-	| subst(T as TFree _) = T
-	| subst(T as TVar(ixn,_)) =
+        | subst(T as TFree _) = T
+        | subst(T as TVar(ixn,_)) =
             (case assoc(iTs,ixn) of None => T | Some(U) => U)
   in subst T end;
 
@@ -428,7 +428,7 @@ fun subst_vars(iTs,itms) = if null iTs then subst_Vars itms else
 
 (*Computing the maximum index of a typ*)
 fun maxidx_of_typ(Type(_,Ts)) =
-	if Ts=[] then ~1 else max(map maxidx_of_typ Ts)
+        if Ts=[] then ~1 else max(map maxidx_of_typ Ts)
   | maxidx_of_typ(TFree _) = ~1
   | maxidx_of_typ(TVar((_,i),_)) = i;
 
@@ -457,10 +457,10 @@ fun scan_radixint (radix: int, cs) : int * string list =
   let val zero = ord"0"
       val limit = zero+radix
       fun scan (num,[]) = (num,[])
-	| scan (num, c::cs) =
-	      if  zero <= ord c  andalso  ord c < limit
-	      then scan(radix*num + ord c - zero, cs)
-	      else (num, c::cs)
+        | scan (num, c::cs) =
+              if  zero <= ord c  andalso  ord c < limit
+              then scan(radix*num + ord c - zero, cs)
+              else (num, c::cs)
   in  scan(0,cs)  end;
 
 fun scan_int cs = scan_radixint(10,cs);
@@ -556,9 +556,9 @@ fun atless (Const (a,_), Const (b,_))  =  a<b
 fun insert_aterm (t,us) =
   let fun inserta [] = [t]
         | inserta (us as u::us') = 
-	      if atless(t,u) then t::us
-	      else if t=u then us (*duplicate*)
-	      else u :: inserta(us')
+              if atless(t,u) then t::us
+              else if t=u then us (*duplicate*)
+              else u :: inserta(us')
   in  inserta us  end;
 
 (*Accumulates the Vars in the term, suppressing duplicates*)
@@ -588,7 +588,7 @@ fun variant_abs (a,T,P) =
 (* renames and reverses the strings in vars away from names *)
 fun rename_aTs names vars : (string*typ)list =
   let fun rename_aT (vars,(a,T)) =
-		(variant (map #1 vars @ names) a, T) :: vars
+                (variant (map #1 vars @ names) a, T) :: vars
   in foldl rename_aT ([],vars) end;
 
 fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
@@ -618,18 +618,18 @@ fun find_type (T, []: typ list) = None
 fun compress_type T =
   let val tag = type_tag T
       val tylist = the (Symtab.lookup (!memo_types, tag))
-	           handle _ => []
+                   handle _ => []
   in  
       case find_type (T,tylist) of
-	Some T' => T'
+        Some T' => T'
       | None => 
-	    let val T' =
-		case T of
-		    Type (a,Ts) => Type (a, map compress_type Ts)
-		  | _ => T
-	    in  memo_types := Symtab.update ((tag, T'::tylist), !memo_types);
-		T
-	    end
+            let val T' =
+                case T of
+                    Type (a,Ts) => Type (a, map compress_type Ts)
+                  | _ => T
+            in  memo_types := Symtab.update ((tag, T'::tylist), !memo_types);
+                T
+            end
   end
   handle Match =>
       let val Type (a,Ts) = T
@@ -653,13 +653,13 @@ fun share_term (t $ u) = share_term t $ share_term u
   | share_term (Abs (a,T,u)) = Abs (a, T, share_term u)
   | share_term t =
       let val tag = const_tag t
-	  val ts = the (Symtab.lookup (!memo_terms, tag))
-	               handle _ => []
+          val ts = the (Symtab.lookup (!memo_terms, tag))
+                       handle _ => []
       in 
-	  case find_term (t,ts) of
-	      Some t' => t'
-	    | None => (memo_terms := Symtab.update ((tag, t::ts), !memo_terms);
-		       t)
+          case find_term (t,ts) of
+              Some t' => t'
+            | None => (memo_terms := Symtab.update ((tag, t::ts), !memo_terms);
+                       t)
       end;
 
 val compress_term = share_term o map_term_types compress_type;

@@ -219,7 +219,7 @@ fun read_def_cterm (sign, types, sorts) used freeze (a, T) =
           Sign.infer_types sign types sorts used freeze (ts, T');
     val ct = cterm_of sign t'
       handle TYPE arg => error (Sign.exn_type_msg sign arg)
-	   | TERM (msg, _) => error msg;
+           | TERM (msg, _) => error msg;
   in (ct, tye) end;
 
 fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None) [] true;
@@ -231,14 +231,14 @@ fun read_cterms sign (bs, Ts) =
   let
     val {tsig, syn, ...} = Sign.rep_sg sign
     fun read (b,T) =
-	case Syntax.read syn T b of
-	    [t] => t
-	  | _   => error("Error or ambiguity in parsing of " ^ b)
+        case Syntax.read syn T b of
+            [t] => t
+          | _   => error("Error or ambiguity in parsing of " ^ b)
     val (us,_) = Type.infer_types(tsig, Sign.const_type sign, 
-				  K None, K None, 
-				  [], true, 
-				  map (Sign.certify_typ sign) Ts, 
-				  map read (bs~~Ts))
+                                  K None, K None, 
+                                  [], true, 
+                                  map (Sign.certify_typ sign) Ts, 
+                                  map read (bs~~Ts))
   in  map (cterm_of sign) us  end
   handle TYPE arg => error (Sign.exn_type_msg sign arg)
        | TERM (msg, _) => error msg;
@@ -248,11 +248,11 @@ fun read_cterms sign (bs, Ts) =
 (*** Meta theorems ***)
 
 datatype thm = Thm of
-  {sign: Sign.sg,		(*signature for hyps and prop*)
-   maxidx: int,			(*maximum index of any Var or TVar*)
-   shyps: sort list,		(* FIXME comment *)
-   hyps: term list,		(*hypotheses*)
-   prop: term};			(*conclusion*)
+  {sign: Sign.sg,               (*signature for hyps and prop*)
+   maxidx: int,                 (*maximum index of any Var or TVar*)
+   shyps: sort list,            (* FIXME comment *)
+   hyps: term list,             (*hypotheses*)
+   prop: term};                 (*conclusion*)
 
 fun rep_thm (Thm args) = args;
 
@@ -335,10 +335,10 @@ fun extra_shyps (th as Thm {shyps, ...}) =
   as it could be slow.*)
 fun compress (Thm {sign, maxidx, shyps, hyps, prop}) = 
     Thm {sign = sign, 
-	 maxidx = maxidx,
-	 shyps = shyps, 
-	 hyps = map Term.compress_term hyps, 
-	 prop = Term.compress_term prop};
+         maxidx = maxidx,
+         shyps = shyps, 
+         hyps = map Term.compress_term hyps, 
+         prop = Term.compress_term prop};
 
 
 (* fix_shyps *)
@@ -518,7 +518,7 @@ fun cert_axm sg (name, raw_tm) =
   let
     val Cterm {t, T, ...} = cterm_of sg raw_tm
       handle TYPE arg => error (Sign.exn_type_msg sg arg)
-	   | TERM (msg, _) => error msg;
+           | TERM (msg, _) => error msg;
   in
     assert (T = propT) "Term not of type prop";
     (name, no_vars t)
@@ -542,8 +542,8 @@ fun ext_axms prep_axm axms (thy as Theory {sign, ...}) =
   let
     val sign1 = Sign.make_draft sign;
     val axioms = map (apsnd (Term.compress_term o Logic.varify) o 
-		      prep_axm sign) 
-	         axms;
+                      prep_axm sign) 
+                 axms;
   in
     ext_thy thy sign1 axioms
   end;

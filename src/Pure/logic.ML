@@ -1,6 +1,6 @@
-(*  Title: 	Pure/logic.ML
+(*  Title:      Pure/logic.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   Cambridge University 1992
 
 Supporting code for defining the abstract type "thm"
@@ -10,43 +10,43 @@ infix occs;
 
 signature LOGIC = 
   sig
-  val assum_pairs	: term -> (term*term)list
-  val auto_rename	: bool ref   
-  val close_form	: term -> term   
-  val count_prems	: term * int -> int
-  val dest_equals	: term -> term * term
-  val dest_flexpair	: term -> term * term
-  val dest_implies	: term -> term * term
-  val dest_inclass	: term -> typ * class
-  val dest_type		: term -> typ
-  val flatten_params	: int -> term -> term
-  val freeze_vars	: term -> term
-  val incr_indexes	: typ list * int -> term -> term
-  val lift_fns		: term * int -> (term -> term) * (term -> term)
-  val list_flexpairs	: (term*term)list * term -> term
-  val list_implies	: term list * term -> term
+  val assum_pairs       : term -> (term*term)list
+  val auto_rename       : bool ref   
+  val close_form        : term -> term   
+  val count_prems       : term * int -> int
+  val dest_equals       : term -> term * term
+  val dest_flexpair     : term -> term * term
+  val dest_implies      : term -> term * term
+  val dest_inclass      : term -> typ * class
+  val dest_type         : term -> typ
+  val flatten_params    : int -> term -> term
+  val freeze_vars       : term -> term
+  val incr_indexes      : typ list * int -> term -> term
+  val lift_fns          : term * int -> (term -> term) * (term -> term)
+  val list_flexpairs    : (term*term)list * term -> term
+  val list_implies      : term list * term -> term
   val list_rename_params: string list * term -> term
   val is_equals         : term -> bool
-  val mk_equals		: term * term -> term
-  val mk_flexpair	: term * term -> term
-  val mk_implies	: term * term -> term
-  val mk_inclass	: typ * class -> term
-  val mk_type		: typ -> term
-  val occs		: term * term -> bool
-  val rule_of		: (term*term)list * term list * term -> term
-  val set_rename_prefix	: string -> unit   
-  val skip_flexpairs	: term -> term
+  val mk_equals         : term * term -> term
+  val mk_flexpair       : term * term -> term
+  val mk_implies        : term * term -> term
+  val mk_inclass        : typ * class -> term
+  val mk_type           : typ -> term
+  val occs              : term * term -> bool
+  val rule_of           : (term*term)list * term list * term -> term
+  val set_rename_prefix : string -> unit   
+  val skip_flexpairs    : term -> term
   val strip_assums_concl: term -> term
-  val strip_assums_hyp	: term -> term list
-  val strip_flexpairs	: term -> (term*term)list * term
-  val strip_horn	: term -> (term*term)list * term list * term
-  val strip_imp_concl	: term -> term
-  val strip_imp_prems	: term -> term list
-  val strip_params	: term -> (string * typ) list
-  val strip_prems	: int * term list * term -> term list * term
-  val thaw_vars		: term -> term
-  val unvarify		: term -> term  
-  val varify		: term -> term  
+  val strip_assums_hyp  : term -> term list
+  val strip_flexpairs   : term -> (term*term)list * term
+  val strip_horn        : term -> (term*term)list * term list * term
+  val strip_imp_concl   : term -> term
+  val strip_imp_prems   : term -> term list
+  val strip_params      : term -> (string * typ) list
+  val strip_prems       : int * term list * term -> term list * term
+  val thaw_vars         : term -> term
+  val unvarify          : term -> term  
+  val varify            : term -> term  
   end;
 
 functor LogicFun (structure Unify: UNIFY and Net:NET): LOGIC =
@@ -91,11 +91,11 @@ fun strip_imp_concl (Const("==>", _) $ A $ B) = strip_imp_concl B
   | strip_imp_concl A = A : term;
 
 (*Strip and return premises: (i, [], A1==>...Ai==>B)
-    goes to   ([Ai, A(i-1),...,A1] , B) 	(REVERSED) 
+    goes to   ([Ai, A(i-1),...,A1] , B)         (REVERSED) 
   if  i<0 or else i too big then raises  TERM*)
 fun strip_prems (0, As, B) = (As, B) 
   | strip_prems (i, As, Const("==>", _) $ A $ B) = 
-	strip_prems (i-1, A::As, B)
+        strip_prems (i-1, A::As, B)
   | strip_prems (_, As, A) = raise TERM("strip_prems", A::As);
 
 (*Count premises -- quicker than (length ostrip_prems) *)
@@ -114,13 +114,13 @@ fun dest_flexpair (Const("=?=",_) $ t $ u)  =  (t,u)
     goes to (a1=?=b1) ==>...(an=?=bn)==>C *)
 fun list_flexpairs ([], A) = A
   | list_flexpairs ((t,u)::pairs, A) =
-	implies $ (mk_flexpair(t,u)) $ list_flexpairs(pairs,A);
+        implies $ (mk_flexpair(t,u)) $ list_flexpairs(pairs,A);
 
 (*Make the object-rule tpairs==>As==>B   *)
 fun rule_of (tpairs, As, B) = list_flexpairs(tpairs, list_implies(As, B));
 
 (*Remove and return flexflex pairs: 
-    (a1=?=b1)==>...(an=?=bn)==>C  to  ( [(a1,b1),...,(an,bn)] , C )	
+    (a1=?=b1)==>...(an=?=bn)==>C  to  ( [(a1,b1),...,(an,bn)] , C )     
   [Tail recursive in order to return a pair of results] *)
 fun strip_flex_aux (pairs, Const("==>", _) $ (Const("=?=",_)$t$u) $ C) =
         strip_flex_aux ((t,u)::pairs, C)
@@ -130,7 +130,7 @@ fun strip_flexpairs A = strip_flex_aux([], A);
 
 (*Discard flexflex pairs*)
 fun skip_flexpairs (Const("==>", _) $ (Const("=?=",_)$_$_) $ C) =
-	skip_flexpairs C
+        skip_flexpairs C
   | skip_flexpairs C = C;
 
 (*strip a proof state (Horn clause): 
@@ -165,13 +165,13 @@ fun dest_inclass (t as Const (c_class, _) $ ty) =
 fun t occs u = (t aconv u) orelse 
       (case u of
           Abs(_,_,body) => t occs body
-	| f$t' => t occs f  orelse  t occs t'
-	| _ => false);
+        | f$t' => t occs f  orelse  t occs t'
+        | _ => false);
 
 (*Close up a formula over all free variables by quantification*)
 fun close_form A =
     list_all_free (map dest_Free (sort atless (term_frees A)),   
-		   A);
+                   A);
 
 
 (*Freeze all (T)Vars by turning them into (T)Frees*)
@@ -188,9 +188,9 @@ fun thaw_vars(Const(a,T)) = Const(a,Type.thaw_vars T)
   | thaw_vars(Free(a,T))  =
       let val T' = Type.thaw_vars T
       in case explode a of
-	   "?"::vn => let val (ixn,_) = Syntax.scan_varname vn
+           "?"::vn => let val (ixn,_) = Syntax.scan_varname vn
                       in Var(ixn,T') end
-	 | _       => Free(a,T')
+         | _       => Free(a,T')
       end
   | thaw_vars(Abs(a,T,t)) = Abs(a,Type.thaw_vars T, thaw_vars t)
   | thaw_vars(s$t)        = thaw_vars s $ thaw_vars t
@@ -203,14 +203,14 @@ fun thaw_vars(Const(a,T)) = Const(a,Type.thaw_vars T)
     result is ?Gidx(B.(lev+n-1),...,B.lev) where lev is abstraction level *)
 fun incr_indexes (Us: typ list, inc:int) t = 
   let fun incr (Var ((a,i), T), lev) = 
-		Unify.combound (Var((a, i+inc), Us---> incr_tvar inc T),
-				lev, length Us)
-	| incr (Abs (a,T,body), lev) =
-		Abs (a, incr_tvar inc T, incr(body,lev+1))
-	| incr (Const(a,T),_) = Const(a, incr_tvar inc T)
-	| incr (Free(a,T),_) = Free(a, incr_tvar inc T)
-	| incr (f$t, lev) = incr(f,lev) $ incr(t,lev)
-	| incr (t,lev) = t
+                Unify.combound (Var((a, i+inc), Us---> incr_tvar inc T),
+                                lev, length Us)
+        | incr (Abs (a,T,body), lev) =
+                Abs (a, incr_tvar inc T, incr(body,lev+1))
+        | incr (Const(a,T),_) = Const(a, incr_tvar inc T)
+        | incr (Free(a,T),_) = Free(a, incr_tvar inc T)
+        | incr (f$t, lev) = incr(f,lev) $ incr(t,lev)
+        | incr (t,lev) = t
   in  incr(t,0)  end;
 
 (*Make lifting functions from subgoal and increment.
@@ -218,14 +218,14 @@ fun incr_indexes (Us: typ list, inc:int) t =
     lift_all operates on propositions     *)
 fun lift_fns (B,inc) =
   let fun lift_abs (Us, Const("==>", _) $ _ $ B) u = lift_abs (Us,B) u
-	| lift_abs (Us, Const("all",_)$Abs(a,T,t)) u =
-	      Abs(a, T, lift_abs (T::Us, t) u)
-	| lift_abs (Us, _) u = incr_indexes(rev Us, inc) u
+        | lift_abs (Us, Const("all",_)$Abs(a,T,t)) u =
+              Abs(a, T, lift_abs (T::Us, t) u)
+        | lift_abs (Us, _) u = incr_indexes(rev Us, inc) u
       fun lift_all (Us, Const("==>", _) $ A $ B) u =
-	      implies $ A $ lift_all (Us,B) u
-	| lift_all (Us, Const("all",_)$Abs(a,T,t)) u = 
-	      all T $ Abs(a, T, lift_all (T::Us,t) u)
-	| lift_all (Us, _) u = incr_indexes(rev Us, inc) u;
+              implies $ A $ lift_all (Us,B) u
+        | lift_all (Us, Const("all",_)$Abs(a,T,t)) u = 
+              all T $ Abs(a, T, lift_all (T::Us,t) u)
+        | lift_all (Us, _) u = incr_indexes(rev Us, inc) u;
   in  (lift_abs([],B), lift_all([],B))  end;
 
 (*Strips assumptions in goal, yielding list of hypotheses.   *)
@@ -250,8 +250,8 @@ fun remove_params j n A =
     if j=0 andalso n<=0 then A  (*nothing left to do...*)
     else case A of
         Const("==>", _) $ H $ B => 
-	  if n=1 then                           (remove_params j (n-1) B)
-	  else implies $ (incr_boundvars j H) $ (remove_params j (n-1) B)
+          if n=1 then                           (remove_params j (n-1) B)
+          else implies $ (incr_boundvars j H) $ (remove_params j (n-1) B)
       | Const("all",_)$Abs(a,T,t) => remove_params (j-1) n t
       | _ => if n>0 then raise TERM("remove_params", [A])
              else A;
@@ -278,9 +278,9 @@ fun rename_vars (a, []) = []
   if n>0 then deletes assumption n. *)
 fun flatten_params n A =
     let val params = strip_params A;
-	val vars = if !auto_rename 
-		   then rename_vars (!rename_prefix, params)
-		   else variantlist(map #1 params,[]) ~~ map #2 params
+        val vars = if !auto_rename 
+                   then rename_vars (!rename_prefix, params)
+                   else variantlist(map #1 params,[]) ~~ map #2 params
     in  list_all (vars, remove_params (length vars) n A)
     end;
 
@@ -294,9 +294,9 @@ fun list_rename_params (cs, Const("==>", _) $ A $ B) =
 (*Strips assumptions in goal yielding  ( [Hn,...,H1], [xm,...,x1], B )
   where H1,...,Hn are the hypotheses and x1...xm are the parameters.   *)
 fun strip_assums_aux (Hs, params, Const("==>", _) $ H $ B) = 
-	strip_assums_aux (H::Hs, params, B)
+        strip_assums_aux (H::Hs, params, B)
   | strip_assums_aux (Hs, params, Const("all",_)$Abs(a,T,t)) =
-	strip_assums_aux (Hs, (a,T)::params, t)
+        strip_assums_aux (Hs, (a,T)::params, t)
   | strip_assums_aux (Hs, params, B) = (Hs, params, B);
 
 fun strip_assums A = strip_assums_aux ([],[],A);
@@ -310,7 +310,7 @@ fun assum_pairs A =
       val D = Unify.rlist_abs(params, B)
       fun pairrev ([],pairs) = pairs  
         | pairrev (H::Hs,pairs) = 
-	    pairrev(Hs, (Unify.rlist_abs(params,H), D) :: pairs)
+            pairrev(Hs, (Unify.rlist_abs(params,H), D) :: pairs)
   in  pairrev (Hs,[])   (*WAS:  map pair (rev Hs)  *)
   end;
 

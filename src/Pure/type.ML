@@ -904,7 +904,7 @@ fun infer tsig =
                 val (T, tyeT) = inf(Ts, f, tyeU);
                 fun err s =
                   raise TYPE(s, [inst_typ tyeT T, inst_typ tyeT U], [f$u])
-		val msg = "function type is incompatible with argument type"
+                val msg = "function type is incompatible with argument type"
             in case T of
                  Type("fun", [T1, T2]) =>
                    ( (T2, unify1 tsig ((T1, U), tyeT))
@@ -1049,7 +1049,7 @@ fun restrict maxidx1 tye =
 
 
 (*Infer types for terms.  Given Ts=[T1,...,Tn] and ts=[t1,...,tn], ensure that
-	the type of ti unifies with Ti (i=1,...,n).
+        the type of ti unifies with Ti (i=1,...,n).
   types is a partial map from indexnames to types (constrains Free, Var).
   sorts is a partial map from indexnames to sorts (constrains TFree, TVar).
   used is the list of already used type variables.
