@@ -1,0 +1,31 @@
+
+% $Id$
+
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym,pdfsetup}
+
+\isabellestyle{it}
+\renewcommand{\isamarkupsubsubsection}[1]{\subsubsection*{#1}}
+
+\begin{document}
+
+\title{Fundamental Properties of Lambda-calculus}
+\author{Tobias Nipkow \\ Stefan Berghofer}
+\maketitle
+
+\tableofcontents
+\newpage
+
+\parindent 0pt \parskip 0.5ex
+
+\input{Lambda}
+\input{Commutation}
+\input{ParRed}
+\input{Eta}
+\input{ListApplication}
+\input{ListOrder}
+\input{ListBeta}
+\input{InductTermi}
+\input{Type}
+
+\end{document}
