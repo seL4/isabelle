@@ -1,0 +1,83 @@
+#!/bin/bash -norc
+#
+# $Id$
+#
+# DESCRIPTION: build object-logic or run examples
+
+
+## diagnostics
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG LOGIC NAME"
+  echo
+  echo "  Options are:"
+  echo "    -b           build mode (output heap image, use dir \".\")"
+  echo "    -c           force copying of heap file (for Poly/ML)"
+  echo "    -s NAME      override session NAME"
+  echo
+  echo "  Build object-logic or run examples. Also creates browsing"
+  echo "  information (HTML etc.) according to settings."
+  echo
+  exit 1
+}
+
+
+## process command line
+
+# options
+
+BUILD=""
+COPYDB=""
+SESSION=""
+
+while getopts "bc" OPT
+do
+  case "$OPT" in
+    b)
+      BUILD=true
+      ;;
+    c)
+      COPYDB="-c"
+      ;;
+    s)
+      SESSION="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ $# -ne 2 ] && usage
+
+LOGIC="$1"; shift
+NAME="$1"; shift
+
+
+
+## main
+
+[ -z "$SESSION" ] && SESSION=$(basename $NAME)
+
+if [ -n "$BUILD" ]; then
+  exec $ISABELLE \
+    -e "make_html := $ISABELLE_HTML;" \
+    -e "set_session\"$SESSION\";" \
+    -e "exit_use_dir\".\";" \
+    -q $COPYDB $LOGIC $NAME
+else
+  exec $ISABELLE \
+    -e "make_html := $ISABELLE_HTML;" \
+    -e "set_session\"$SESSION\";" \
+    -e "exit_use_dir\"$NAME\";" \
+    -r -q $LOGIC
+fi
