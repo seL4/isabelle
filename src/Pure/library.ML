@@ -71,6 +71,7 @@ sig
   val toggle: bool ref -> bool
   val change: 'a ref -> ('a -> 'a) -> unit
   val setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c
+  val conditional: bool -> (unit -> unit) -> unit
 
   (*lists*)
   exception LIST of string
@@ -154,6 +155,7 @@ sig
   val cat_lines: string list -> string
   val space_explode: string -> string -> string list
   val std_output: string -> unit
+  val std_error: string -> unit
   val prefix_lines: string -> string -> string
   val split_lines: string -> string list
   val untabify: string list -> string list
@@ -423,6 +425,11 @@ fun setmp flag value f x =
     flag := value;
     return (f x handle exn => (return (); raise exn))
   end;
+
+
+(* conditional execution *)
+
+fun conditional b f = if b then f () else ();
 
 
 
@@ -1145,8 +1152,8 @@ fun unique_strings ([]: string list) = []
 val cd = OS.FileSys.chDir;
 val pwd = OS.FileSys.getDir;
 
-fun std_output s =
-  (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
+fun std_output s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
+fun std_error s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
 
 fun prefix_lines prfx txt =
   txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;
