@@ -150,20 +150,20 @@ writeln"Problems requiring quantifier duplication";
 
 (*Needs multiple instantiation of ALL.*)
 goal FOL.thy "(ALL x. P(x)-->P(f(x)))  &  P(d)-->P(f(f(f(d))))";
-by (deepen_tac FOL_cs 1 1);
+by (deepen_tac FOL_cs 0 1);
 result();
 
 (*Needs double instantiation of the quantifier*)
 goal FOL.thy "EX x. P(x) --> P(a) & P(b)";
-by (deepen_tac FOL_cs 1 1);
+by (deepen_tac FOL_cs 0 1);
 result();
 
 goal FOL.thy "EX z. P(z) --> (ALL x. P(x))";
-by (deepen_tac FOL_cs 1 1);
+by (deepen_tac FOL_cs 0 1);
 result();
 
 goal FOL.thy "EX x. (EX y. P(y)) --> P(x)";
-by (deepen_tac FOL_cs 1 1);
+by (deepen_tac FOL_cs 0 1);
 result();
 
 (*V. Lifschitz, What Is the Inverse Method?, JAR 5 (1989), 1--23.  NOT PROVED*)
@@ -176,12 +176,12 @@ writeln"Hard examples with quantifiers";
 
 writeln"Problem 18";
 goal FOL.thy "EX y. ALL x. P(y)-->P(x)";
-by (deepen_tac FOL_cs 1 1);
+by (deepen_tac FOL_cs 0 1);
 result(); 
 
 writeln"Problem 19";
 goal FOL.thy "EX x. ALL y z. (P(y)-->Q(z)) --> (P(x)-->Q(x))";
-by (deepen_tac FOL_cs 1 1);
+by (deepen_tac FOL_cs 0 1);
 result();
 
 writeln"Problem 20";
@@ -192,7 +192,7 @@ result();
 
 writeln"Problem 21";
 goal FOL.thy "(EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> (EX x. P<->Q(x))";
-by (deepen_tac FOL_cs 1 1);
+by (deepen_tac FOL_cs 0 1);
 result();
 
 writeln"Problem 22";
@@ -287,13 +287,13 @@ goal FOL.thy "((EX x. ALL y. p(x) <-> p(y))  <->		\
 \              ((EX x. q(x)) <-> (ALL y. p(y))))     <->	\
 \             ((EX x. ALL y. q(x) <-> q(y))  <->		\
 \              ((EX x. p(x)) <-> (ALL y. q(y))))";
-by (deepen_tac FOL_cs 3 1);
-(*slower with smaller bounds*)
+by (deepen_tac FOL_cs 0 1);
 result();
 
 writeln"Problem 35";
 goal FOL.thy "EX x y. P(x,y) -->  (ALL u v. P(u,v))";
-by (MINI (fast_tac FOL_cs) 1);
+by (mini_tac 1);
+by (fast_tac FOL_cs 1);
 (*Without miniscope, would have to use deepen_tac; would be slower*)
 result();
 
@@ -345,14 +345,17 @@ result();
 
 writeln"Problem 42";
 goal FOL.thy "~ (EX y. ALL x. p(x,y) <-> ~ (EX z. p(x,z) & p(z,x)))";
-by (deepen_tac FOL_cs 3 1);
+by (deepen_tac FOL_cs 0 1);
 result();
 
-writeln"Problem 43!!";
+writeln"Problem 43";
 goal FOL.thy "(ALL x. ALL y. q(x,y) <-> (ALL z. p(z,x) <-> p(z,y)))	\
 \         --> (ALL x. ALL y. q(x,y) <-> q(y,x))";
-by (MINI (deepen_tac FOL_cs 5) 1);
-(*Very slow if bound is too small*)
+by (mini_tac 1);
+by (deepen_tac FOL_cs 5 1);
+(*Faster alternative proof!
+	by (asm_simp_tac FOL_ss 1); by (fast_tac FOL_cs 1);	
+*)
 result();
 
 writeln"Problem 44";
@@ -397,8 +400,8 @@ result();
 writeln"Problem 50";  
 (*What has this to do with equality?*)
 goal FOL.thy "(ALL x. P(a,x) | (ALL y.P(x,y))) --> (EX x. ALL y.P(x,y))";
-by (MINI (deepen_tac FOL_cs 1) 1);
-(*Slow*)
+by (mini_tac 1);
+by (deepen_tac FOL_cs 0 1);
 result();
 
 writeln"Problem 51";
@@ -471,13 +474,12 @@ result();
 
 writeln"Problem 58  NOT PROVED AUTOMATICALLY";
 goal FOL.thy "(ALL x y. f(x)=g(y)) --> (ALL x y. f(f(x))=f(g(y)))";
-by (fast_tac (FOL_cs addEs [subst_context]) 1);
+by (slow_tac (FOL_cs addEs [subst_context]) 1);
 result();
 
 writeln"Problem 59";
 goal FOL.thy "(ALL x. P(x) <-> ~P(f(x))) --> (EX x. P(x) & ~P(f(x)))";
-by (deepen_tac FOL_cs 1 1);
-(*slow*)
+by (deepen_tac FOL_cs 0 1);
 result();
 
 writeln"Problem 60";
@@ -489,4 +491,8 @@ result();
 
 writeln"Reached end of file.";
 
-(*Thu Jul 23 1992: loaded in 467.1s using iffE*)
+(*Thu Jul 23 1992: loaded in 467s using iffE [on SPARC2] *)
+(*Mon Nov 14 1994: loaded in 144s [on SPARC10, with deepen_tac] *)
+(*Wed Nov 16 1994: loaded in 138s [after addition of norm_term_skip] *)
+(*Mon Nov 21 1994: loaded in 131s [DEPTH_FIRST suppressing repetitions] *)
+
