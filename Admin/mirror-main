@@ -6,7 +6,7 @@
 HOST=$(hostname)
 
 case ${HOST} in
-  sunbroy30)
+  sunbroy51)
     DEST=/home/html/isabelle/html-data
     ;;
   *.cl.cam.ac.uk)
