@@ -21,6 +21,9 @@ sig
   val extract : thm list -> theory -> theory
   val nullT : typ
   val nullt : term
+  val mk_typ : typ -> term
+  val etype_of : theory -> string list -> typ list -> term -> typ
+  val realizes_of: theory -> string list -> term -> term -> term
   val parsers: OuterSyntax.parser list
   val setup: (theory -> theory) list
 end;
@@ -95,13 +98,14 @@ fun condrew sign rules procs =
         fun ren t = if_none (Term.rename_abs tm1 tm t) t;
         val inc = Logic.incr_indexes ([], maxidx_of_term tm + 1);
         val env as (Tenv, tenv) = Pattern.match tsig (inc tm1, tm);
-        val prems' = map (pairself (rew o subst_vars env o inc o ren)) prems;
+        val prems' = map (pairself (subst_vars env o inc o ren)) prems;
         val env' = Envir.Envir
           {maxidx = foldl Int.max
             (~1, map (Int.max o pairself maxidx_of_term) prems'),
-           iTs = Vartab.make Tenv, asol = Vartab.make tenv}
-      in Some (Envir.norm_term
-        (Pattern.unify (sign, env', prems')) (inc (ren tm2)))
+           iTs = Vartab.make Tenv, asol = Vartab.make tenv};
+        val env'' = foldl (fn (env, p) =>
+          Pattern.unify (sign, env, [pairself rew p])) (env', prems')
+      in Some (Envir.norm_term env'' (inc (ren tm2)))
       end handle Pattern.MATCH => None | Pattern.Unif => None)
         (sort (int_ord o pairself fst)
           (Net.match_term rules (Pattern.eta_contract tm)));
@@ -315,6 +319,20 @@ fun prep_realizer thy =
 val add_realizers_i = gen_add_realizers
   (fn _ => fn (name, (vs, t, prf)) => (name, (vs, (t, prf))));
 val add_realizers = gen_add_realizers prep_realizer;
+
+fun realizes_of thy vs t prop =
+  let
+    val thy' = add_syntax thy;
+    val sign = sign_of thy';
+    val {realizes_eqns, typeof_eqns, defs, ...} =
+      ExtractionData.get thy';
+    val eqns = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
+    val prop' = Pattern.rewrite_term (Sign.tsig_of sign)
+      (map (Logic.dest_equals o prop_of) defs) [] prop;
+  in freeze_thaw
+    (condrew sign eqns [typeof_proc (Sign.defaultS sign) vs, rlz_proc])
+      (Const ("realizes", fastype_of t --> propT --> propT) $ t $ prop')
+  end;
 
 (** expanding theorems / definitions **)
 
@@ -709,6 +727,8 @@ val setup =
      [("extraction_expand",
        (Attrib.no_args add_expand_thm, K Attrib.undef_local_attribute),
        "specify theorems / definitions to be expanded during extraction")]];
+
+val etype_of = etype_of o sign_of o add_syntax;
 
 end;
 
