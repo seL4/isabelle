@@ -1176,7 +1176,8 @@ val setup_methods = Method.add_methods
   ("elim", Method.thms_ctxt_args elim, "repeatedly apply elimination rules"),
   ("clarify", cla_method' clarify_tac, "repeatedly apply safe steps"),
   ("fast", cla_method' fast_tac, "classical prover (depth-first)"),
-  ("best", cla_method' best_tac, "classical prover (best-first)")];
+  ("best", cla_method' best_tac, "classical prover (best-first)"),
+  ("safe", cla_method safe_tac, "classical prover (apply safe rules)")];
 
 
 
