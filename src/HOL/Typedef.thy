@@ -5,8 +5,10 @@
 
 header {* HOL type definitions *}
 
-theory Typedef = Set
-files ("Tools/typedef_package.ML"):
+theory Typedef
+import Set
+files ("Tools/typedef_package.ML")
+begin
 
 locale type_definition =
   fixes Rep and Abs and A

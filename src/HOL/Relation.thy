@@ -6,7 +6,9 @@
 
 header {* Relations *}
 
-theory Relation = Product_Type:
+theory Relation
+import Product_Type
+begin
 
 subsection {* Definitions *}
 

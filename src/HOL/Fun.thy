@@ -6,7 +6,9 @@
 Notions about functions.
 *)
 
-theory Fun = Typedef:
+theory Fun 
+import Typedef
+begin
 
 instance set :: (type) order
   by (intro_classes,

@@ -12,7 +12,9 @@ This means that it may be necessary to attach explicit type constraints.
 Examples: range(f^n) = A and Range(R^n) = B need constraints.
 *)
 
-theory Relation_Power = Nat:
+theory Relation_Power
+import Nat
+begin
 
 instance
   set :: (type) power ..  (* only ('a * 'a) set should be in power! *)

@@ -6,7 +6,9 @@
 
 header{*Limits, Continuity and Differentiation for Complex Functions*}
 
-theory CLim = CSeries:
+theory CLim
+import CSeries
+begin
 
 (*not in simpset?*)
 declare hypreal_epsilon_not_zero [simp]

@@ -4,7 +4,9 @@
 
 header {* Permutations *}
 
-theory Permutation = Multiset:
+theory Permutation
+import Multiset
+begin
 
 consts
   perm :: "('a list * 'a list) set"

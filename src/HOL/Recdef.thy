@@ -5,7 +5,8 @@
 
 header {* TFL: recursive function definitions *}
 
-theory Recdef = Wellfounded_Relations + Datatype
+theory Recdef
+import Wellfounded_Relations Datatype
 files
   ("../TFL/utils.ML")
   ("../TFL/usyntax.ML")
@@ -15,7 +16,8 @@ files
   ("../TFL/thry.ML")
   ("../TFL/tfl.ML")
   ("../TFL/post.ML")
-  ("Tools/recdef_package.ML"):
+  ("Tools/recdef_package.ML")
+begin
 
 lemma tfl_eq_True: "(x = True) --> x"
   by blast

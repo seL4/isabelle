@@ -3,8 +3,10 @@
     Author:     Wolfgang Naraschewski, Norbert Schirmer  and Markus Wenzel, TU Muenchen
 *)
 
-theory Record = Product_Type
-files ("Tools/record_package.ML"):
+theory Record
+import Product_Type
+files ("Tools/record_package.ML")
+begin
 
 ML {*
 val [h1, h2] = Goal "PROP Goal (\<And>x. PROP P x) \<Longrightarrow> (PROP P x \<Longrightarrow> PROP Q) \<Longrightarrow> PROP Q";

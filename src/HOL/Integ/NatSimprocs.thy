@@ -5,8 +5,10 @@
 
 header {*Simprocs for the Naturals*}
 
-theory NatSimprocs = NatBin
-files "int_factor_simprocs.ML" "nat_simprocs.ML":
+theory NatSimprocs
+import NatBin
+files "int_factor_simprocs.ML" "nat_simprocs.ML"
+begin
 
 setup nat_simprocs_setup
 

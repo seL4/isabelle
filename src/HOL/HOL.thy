@@ -5,9 +5,10 @@
 
 header {* The basis of Higher-Order Logic *}
 
-theory HOL = CPure
-files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML"):
-
+theory HOL
+import CPure
+files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
+begin
 
 subsection {* Primitive logic *}
 

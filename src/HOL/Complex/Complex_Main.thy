@@ -6,6 +6,8 @@
 
 header{*Comprehensive Complex Theory*}
 
-theory Complex_Main = CLim:
+theory Complex_Main
+import CLim
+begin
 
 end

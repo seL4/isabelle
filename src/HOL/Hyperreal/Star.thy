@@ -6,7 +6,9 @@
 
 header{*Star-Transforms in Non-Standard Analysis*}
 
-theory Star = NSA:
+theory Star
+import NSA
+begin
 
 constdefs
     (* nonstandard extension of sets *)

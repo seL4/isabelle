@@ -5,7 +5,9 @@
 
 header {* Pi and Function Sets *}
 
-theory FuncSet = Main:
+theory FuncSet
+import Main
+begin
 
 constdefs
   Pi :: "['a set, 'a => 'b set] => ('a => 'b) set"

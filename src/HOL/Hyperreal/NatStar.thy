@@ -7,8 +7,9 @@ Converted to Isar and polished by lcp
 
 header{*Star-transforms for the Hypernaturals*}
 
-theory NatStar = "../Real/RealPow" + HyperPow:
-
+theory NatStar
+import "../Real/RealPow" HyperPow
+begin
 
 text{*Extends sets of nats, and functions from the nats to nats or reals*}
 

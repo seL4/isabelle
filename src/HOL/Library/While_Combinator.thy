@@ -6,7 +6,9 @@
 
 header {* A general ``while'' combinator *}
 
-theory While_Combinator = Main:
+theory While_Combinator
+import Main
+begin
 
 text {*
  We define a while-combinator @{term while} and prove: (a) an

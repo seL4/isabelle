@@ -6,8 +6,10 @@
 
 header {* Cartesian products *}
 
-theory Product_Type = Fun
-files ("Tools/split_rule.ML"):
+theory Product_Type
+import Fun
+files ("Tools/split_rule.ML")
+begin
 
 subsection {* Unit *}
 

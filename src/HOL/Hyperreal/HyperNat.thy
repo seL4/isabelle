@@ -7,7 +7,9 @@ Converted to Isar and polished by lcp
 
 header{*Construction of Hypernaturals using Ultrafilters*}
 
-theory HyperNat = Star:
+theory HyperNat
+import Star
+begin
 
 constdefs
     hypnatrel :: "((nat=>nat)*(nat=>nat)) set"

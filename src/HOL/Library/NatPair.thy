@@ -6,7 +6,9 @@
 
 header {* Pairs of Natural Numbers *}
 
-theory NatPair = Main:
+theory NatPair
+import Main
+begin
 
 text{*
   An injective function from @{text "\<nat>\<twosuperior>"} to @{text

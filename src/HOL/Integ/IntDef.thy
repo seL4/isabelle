@@ -7,7 +7,9 @@
 
 header{*The Integers as Equivalence Classes over Pairs of Natural Numbers*}
 
-theory IntDef = Equiv + NatArith:
+theory IntDef
+import Equiv NatArith
+begin
 
 constdefs
   intrel :: "((nat * nat) * (nat * nat)) set"

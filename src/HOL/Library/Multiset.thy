@@ -5,7 +5,9 @@
 
 header {* Multisets *}
 
-theory Multiset = Accessible_Part:
+theory Multiset
+import Accessible_Part
+begin
 
 subsection {* The type of multisets *}
 

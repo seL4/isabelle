@@ -8,7 +8,9 @@ and * (for div, mod and dvd, see theory Divides).
 
 header {* Natural numbers *}
 
-theory Nat = Wellfounded_Recursion + Ring_and_Field:
+theory Nat
+import Wellfounded_Recursion Ring_and_Field
+begin
 
 subsection {* Type @{text ind} *}
 

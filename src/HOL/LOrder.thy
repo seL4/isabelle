@@ -5,7 +5,9 @@
 
 header {* Lattice Orders *}
 
-theory LOrder = HOL:
+theory LOrder
+import HOL
+begin
 
 text {*
   The theory of lattices developed here is taken from the book:

@@ -8,7 +8,9 @@ Converted to Isar and polished by lcp
 
 header{*Completeness of the Reals; Floor and Ceiling Functions*}
 
-theory RComplete = Lubs + RealDef:
+theory RComplete
+import Lubs RealDef
+begin
 
 lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"
 by simp

@@ -5,7 +5,10 @@
 
 header {* Binary Words *}
 
-theory Word = Main files "word_setup.ML":
+theory Word
+import Main
+files "word_setup.ML"
+begin
 
 subsection {* Auxilary Lemmas *}
 

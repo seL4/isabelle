@@ -7,6 +7,8 @@ Construction of the Hyperreals by the Ultrapower Construction
 and mechanization of Nonstandard Real Analysis
 *)
 
-theory Hyperreal = Poly + MacLaurin + HLog:
+theory Hyperreal
+import Poly MacLaurin HLog
+begin
 
 end

@@ -7,7 +7,9 @@
 
 header{*Nonstandard Complex Numbers*}
 
-theory NSComplex = Complex:
+theory NSComplex
+import Complex
+begin
 
 constdefs
     hcomplexrel :: "((nat=>complex)*(nat=>complex)) set"

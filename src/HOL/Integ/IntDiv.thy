@@ -31,8 +31,10 @@ Here is the division algorithm in ML:
 *)
 
 
-theory IntDiv = IntArith + Recdef
-  files ("IntDiv_setup.ML"):
+theory IntDiv
+import IntArith Recdef
+files ("IntDiv_setup.ML")
+begin
 
 declare zless_nat_conj [simp]
 

@@ -5,8 +5,10 @@
 
 header {* Integer arithmetic *}
 
-theory IntArith = Numeral
-files ("int_arith1.ML"):
+theory IntArith
+import Numeral
+files ("int_arith1.ML")
+begin
 
 text{*Duplicate: can't understand why it's necessary*}
 declare numeral_0_eq_0 [simp]

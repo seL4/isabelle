@@ -5,7 +5,9 @@
 
 header {* Natural numbers with infinity *}
 
-theory Nat_Infinity = Main:
+theory Nat_Infinity
+import Main
+begin
 
 subsection "Definitions"
 

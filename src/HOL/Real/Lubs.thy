@@ -6,7 +6,9 @@
 
 header{*Definitions of Upper Bounds and Least Upper Bounds*}
 
-theory Lubs = Main:
+theory Lubs
+import Main
+begin
 
 text{*Thanks to suggestions by James Margetson*}
 

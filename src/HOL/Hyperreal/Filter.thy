@@ -7,7 +7,9 @@
 
 header{*Filters and Ultrafilters*}
 
-theory Filter = Zorn:
+theory Filter
+import Zorn
+begin
 
 constdefs
 

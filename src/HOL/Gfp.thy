@@ -6,7 +6,9 @@
 Greatest fixed points (requires Lfp too!)
 *)
 
-theory Gfp = Lfp:
+theory Gfp 
+import Lfp
+begin
 
 constdefs
   gfp :: "['a set=>'a set] => 'a set"

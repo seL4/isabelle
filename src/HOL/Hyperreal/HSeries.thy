@@ -7,7 +7,9 @@ Converted to Isar and polished by lcp
 
 header{*Finite Summation and Infinite Series for Hyperreals*}
 
-theory HSeries = Series:
+theory HSeries
+import Series
+begin
 
 constdefs 
   sumhr :: "(hypnat * hypnat * (nat=>real)) => hypreal"

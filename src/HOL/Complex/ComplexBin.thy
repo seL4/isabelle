@@ -5,5 +5,9 @@
                 This case is reduced to that for the reals.
 *)
 
-theory ComplexBin = Complex:
+theory ComplexBin
+import Complex
+begin
+
+end
 

@@ -6,8 +6,9 @@
 
 header {* The accessible part of a relation *}
 
-theory Accessible_Part = Main:
-
+theory Accessible_Part
+import Main
+begin
 
 subsection {* Inductive definition *}
 

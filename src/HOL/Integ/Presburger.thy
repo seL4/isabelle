@@ -6,14 +6,12 @@ File containing necessary theorems for the proof
 generation for Cooper Algorithm  
 *)
 
-header {* Presburger Arithmetic: Cooper Algorithm *}
+header {* Presburger Arithmetic: Cooper's Algorithm *}
 
-theory Presburger = NatSimprocs + SetInterval
-files
-  ("cooper_dec.ML")
-  ("cooper_proof.ML")
-  ("qelim.ML")
-  ("presburger.ML"):
+theory Presburger
+import NatSimprocs SetInterval
+files ("cooper_dec.ML") ("cooper_proof.ML") ("qelim.ML") ("presburger.ML")
+begin
 
 text {* Theorem for unitifying the coeffitients of @{text x} in an existential formula*}
 

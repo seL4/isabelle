@@ -7,8 +7,10 @@
 
 header{*Defining the Reals from the Positive Reals*}
 
-theory RealDef = PReal
-files ("real_arith.ML"):
+theory RealDef
+import PReal
+files ("real_arith.ML")
+begin
 
 constdefs
   realrel   ::  "((preal * preal) * (preal * preal)) set"

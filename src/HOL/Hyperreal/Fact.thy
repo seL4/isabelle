@@ -6,7 +6,9 @@
 
 header{*Factorial Function*}
 
-theory Fact = Real:
+theory Fact
+import Real
+begin
 
 consts fact :: "nat => nat"
 primrec

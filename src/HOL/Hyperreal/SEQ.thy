@@ -5,7 +5,9 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-theory SEQ = NatStar + HyperPow:
+theory SEQ
+import NatStar HyperPow
+begin
 
 constdefs
 

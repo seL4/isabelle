@@ -6,9 +6,10 @@
 
 header {* Reflexive and Transitive closure of a relation *}
 
-theory Transitive_Closure = Inductive
-
-files ("../Provers/trancl.ML"):
+theory Transitive_Closure
+import Inductive
+files ("../Provers/trancl.ML")
+begin
 
 text {*
   @{text rtrancl} is reflexive/transitive closure,

@@ -8,12 +8,13 @@ Basic setup and documentation for the 'refute' (and 'refute_params') command.
 
 header {* Refute *}
 
-theory Refute = Map
-
+theory Refute
+import Map
 files "Tools/prop_logic.ML"
       "Tools/sat_solver.ML"
       "Tools/refute.ML"
-      "Tools/refute_isar.ML":
+      "Tools/refute_isar.ML"
+begin
 
 setup Refute.setup
 

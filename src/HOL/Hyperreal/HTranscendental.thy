@@ -7,7 +7,9 @@ Converted to Isar and polished by lcp
 
 header{*Nonstandard Extensions of Transcendental Functions*}
 
-theory HTranscendental = Transcendental + Integration:
+theory HTranscendental
+import Transcendental Integration
+begin
 
 text{*really belongs in Transcendental*}
 lemma sqrt_divide_self_eq:

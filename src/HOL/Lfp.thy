@@ -6,7 +6,9 @@
 The Knaster-Tarski Theorem
 *)
 
-theory Lfp = Product_Type:
+theory Lfp
+import Product_Type
+begin
 
 constdefs
   lfp :: "['a set \<Rightarrow> 'a set] \<Rightarrow> 'a set"

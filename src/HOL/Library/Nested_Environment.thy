@@ -5,7 +5,9 @@
 
 header {* Nested environments *}
 
-theory Nested_Environment = Main:
+theory Nested_Environment
+import Main
+begin
 
 text {*
   Consider a partial function @{term [source] "e :: 'a => 'b option"};

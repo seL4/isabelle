@@ -5,7 +5,9 @@
 
 header {* Main HOL *}
 
-theory Main = Map + Infinite_Set + Extraction + Refute:
+theory Main
+import Map Infinite_Set Extraction Refute
+begin
 
 text {*
   Theory @{text Main} includes everything.  Note that theory @{text

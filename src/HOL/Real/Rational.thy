@@ -5,8 +5,10 @@
 
 header {* Rational numbers *}
 
-theory Rational = Quotient + Main
-files ("rat_arith.ML"):
+theory Rational
+import Quotient
+files ("rat_arith.ML")
+begin
 
 subsection {* Fractions *}
 

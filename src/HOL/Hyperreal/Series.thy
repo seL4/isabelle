@@ -7,7 +7,9 @@ Converted to Isar and polished by lcp
 
 header{*Finite Summation and Infinite Series*}
 
-theory Series = SEQ + Lim:
+theory Series
+import SEQ Lim
+begin
 
 syntax sumr :: "[nat,nat,(nat=>real)] => real"
 translations

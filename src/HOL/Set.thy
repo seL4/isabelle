@@ -5,7 +5,9 @@
 
 header {* Set theory for higher-order logic *}
 
-theory Set = HOL:
+theory Set
+import HOL
+begin
 
 text {* A set in HOL is simply a predicate. *}
 

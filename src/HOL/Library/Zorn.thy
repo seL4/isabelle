@@ -6,7 +6,9 @@
 
 header {* Zorn's Lemma *}
 
-theory Zorn = Main:
+theory Zorn
+import Main
+begin
 
 text{*
   The lemma and section numbers refer to an unpublished article

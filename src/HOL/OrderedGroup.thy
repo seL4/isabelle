@@ -5,8 +5,10 @@
 
 header {* Ordered Groups *}
 
-theory OrderedGroup = Inductive + LOrder
-  files "../Provers/Arith/abel_cancel.ML":
+theory OrderedGroup
+import Inductive LOrder
+files "../Provers/Arith/abel_cancel.ML"
+begin
 
 text {*
   The theory of partially ordered groups is taken from the books:

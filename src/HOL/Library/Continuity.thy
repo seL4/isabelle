@@ -5,7 +5,9 @@
 
 header {* Continuity and iterations (of set transformers) *}
 
-theory Continuity = Main:
+theory Continuity
+import Main
+begin
 
 subsection "Chains"
 

@@ -5,7 +5,9 @@
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)
 
-theory MacLaurin = Log:
+theory MacLaurin
+import Log
+begin
 
 lemma sumr_offset: "sumr 0 n (%m. f (m+k)) = sumr 0 (n+k) f - sumr 0 k f"
 by (induct_tac "n", auto)

@@ -8,8 +8,9 @@
 
 header{*Univariate Real Polynomials*}
 
-theory Poly = Transcendental:
-
+theory Poly
+import Transcendental
+begin
 
 text{*Application of polynomial as a real function.*}
 

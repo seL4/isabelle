@@ -5,7 +5,9 @@
 
 header {* Datatypes *}
 
-theory Datatype = Datatype_Universe:
+theory Datatype
+import Datatype_Universe
+begin
 
 subsection {* Representing primitive types *}
 

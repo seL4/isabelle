@@ -6,8 +6,10 @@
 
 header{*Arithmetic on Binary Integers*}
 
-theory Numeral = IntDef
-files "Tools/numeral_syntax.ML":
+theory Numeral
+import IntDef
+files "Tools/numeral_syntax.ML"
+begin
 
 text{* The file @{text numeral_syntax.ML} hides the constructors Pls and Min.
    Only qualified access Numeral.Pls and Numeral.Min is allowed.

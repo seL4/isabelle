@@ -6,7 +6,9 @@
 
 header{*Existence of Nth Root*}
 
-theory NthRoot = SEQ + HSeries:
+theory NthRoot
+import SEQ HSeries
+begin
 
 text {*
   Various lemmas needed for this result. We follow the proof given by

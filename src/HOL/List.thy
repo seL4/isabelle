@@ -5,7 +5,9 @@
 
 header {* The datatype of finite lists *}
 
-theory List = PreList:
+theory List
+import PreList
+begin
 
 datatype 'a list =
     Nil    ("[]")

@@ -5,7 +5,9 @@
 
 header {* (Ordered) Rings and Fields *}
 
-theory Ring_and_Field = OrderedGroup:
+theory Ring_and_Field 
+import OrderedGroup
+begin
 
 text {*
   The theory of partially ordered rings is taken from the books:

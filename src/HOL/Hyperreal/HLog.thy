@@ -5,7 +5,9 @@
 
 header{*Logarithms: Non-Standard Version*}
 
-theory HLog = Log + HTranscendental: 
+theory HLog
+import Log HTranscendental
+begin
 
 
 (* should be in NSA.ML *)

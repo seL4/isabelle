@@ -5,8 +5,10 @@
 
 header {* More arithmetic on natural numbers *}
 
-theory NatArith = Nat
-files "arith_data.ML":
+theory NatArith
+import Nat
+files "arith_data.ML"
+begin
 
 setup arith_setup
 

@@ -6,8 +6,9 @@
 
 header{*A Basis for Building the Theory of Lists*}
 
-theory PreList =
-    Wellfounded_Relations + Presburger + Recdef + Relation_Power + Parity:
+theory PreList
+import Wellfounded_Relations Presburger Recdef Relation_Power Parity
+begin
 
 text {*
   Is defined separately to serve as a basis for theory ToyList in the

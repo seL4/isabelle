@@ -6,7 +6,9 @@
 
 header {* The Greatest Common Divisor and Euclid's algorithm *}
 
-theory Primes = Main:
+theory Primes
+import Main
+begin
 
 text {*
   See \cite{davenport92}.

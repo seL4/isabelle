@@ -7,7 +7,9 @@
 
 header{*Power Series, Transcendental Functions etc.*}
 
-theory Transcendental = NthRoot + Fact + HSeries + EvenOdd + Lim:
+theory Transcendental
+import NthRoot Fact HSeries EvenOdd Lim
+begin
 
 constdefs
     root :: "[nat,real] => real"

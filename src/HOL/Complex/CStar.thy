@@ -6,7 +6,9 @@
 header{*Star-transforms in NSA, Extending Sets of Complex Numbers
       and Complex Functions*}
 
-theory CStar = NSCA:
+theory CStar
+import NSCA
+begin
 
 constdefs
 

@@ -6,7 +6,9 @@
 
 header {* Finite sets *}
 
-theory Finite_Set = Divides + Power + Inductive:
+theory Finite_Set
+import Divides Power Inductive
+begin
 
 subsection {* Collection of finite sets *}
 

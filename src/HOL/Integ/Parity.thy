@@ -5,7 +5,9 @@
 
 header {* Parity: Even and Odd for ints and nats*}
 
-theory Parity = Divides + IntDiv + NatSimprocs:
+theory Parity
+import Divides IntDiv NatSimprocs
+begin
 
 axclass even_odd < type
 

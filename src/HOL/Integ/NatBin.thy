@@ -6,7 +6,9 @@
 
 header {* Binary arithmetic for the natural numbers *}
 
-theory NatBin = IntDiv:
+theory NatBin
+import IntDiv
+begin
 
 text {*
   Arithmetic for naturals is reduced to that for the non-negative integers.

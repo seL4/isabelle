@@ -6,7 +6,9 @@
 
 *)
 
-theory RealPow = RealDef:
+theory RealPow
+import RealDef
+begin
 
 declare abs_mult_self [simp]
 

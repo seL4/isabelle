@@ -5,9 +5,10 @@
 
 header {* Program extraction for HOL *}
 
-theory Extraction = Datatype
-files
-  "Tools/rewrite_hol_proof.ML":
+theory Extraction
+import Datatype
+files "Tools/rewrite_hol_proof.ML"
+begin
 
 subsection {* Setup *}
 

@@ -5,7 +5,8 @@
 
 header {* Support for inductive sets and types *}
 
-theory Inductive = Gfp + Sum_Type + Relation + Record
+theory Inductive 
+import Gfp Sum_Type Relation Record
 files
   ("Tools/inductive_package.ML")
   ("Tools/inductive_realizer.ML")
@@ -18,8 +19,8 @@ files
   ("Tools/datatype_package.ML")
   ("Tools/datatype_codegen.ML")
   ("Tools/recfun_codegen.ML")
-  ("Tools/primrec_package.ML"):
-
+  ("Tools/primrec_package.ML")
+begin
 
 subsection {* Inductive sets *}
 

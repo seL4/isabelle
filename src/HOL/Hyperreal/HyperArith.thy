@@ -6,9 +6,10 @@
 
 header{*Binary arithmetic and Simplification for the Hyperreals*}
 
-theory HyperArith = HyperDef
-files ("hypreal_arith.ML"):
-
+theory HyperArith
+import HyperDef
+files ("hypreal_arith.ML")
+begin
 
 subsection{*Numerals and Arithmetic*}
 

@@ -9,7 +9,9 @@ lessThan, greaterThan, atLeast, atMost and two-sided intervals
 
 header {* Set intervals *}
 
-theory SetInterval = IntArith:
+theory SetInterval
+import IntArith
+begin
 
 constdefs
   lessThan    :: "('a::ord) => 'a set"	("(1{..<_})")

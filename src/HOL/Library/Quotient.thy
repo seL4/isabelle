@@ -5,7 +5,9 @@
 
 header {* Quotient types *}
 
-theory Quotient = Main:
+theory Quotient
+import Main
+begin
 
 text {*
  We introduce the notion of quotient types over equivalence relations

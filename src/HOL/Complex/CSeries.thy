@@ -5,7 +5,9 @@
 
 header{*Finite Summation and Infinite Series for Complex Numbers*}
 
-theory CSeries = CStar:
+theory CSeries
+import CStar
+begin
 
 consts sumc :: "[nat,nat,(nat=>complex)] => complex"
 primrec
