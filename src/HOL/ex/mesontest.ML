@@ -508,11 +508,11 @@ result();
 
 (*The Los problem?  Circulated by John Harrison*)
 goal HOL.thy "(! x y z. P x y & P y z --> P x z) &      \
-\      (! x y z. Q x y & Q y z --> Q x z) &     \
-\      (! x y. P x y --> P y x) &       \
-\      (! (x::'a) y. P x y | Q x y)     \
+\      (! x y z. Q x y & Q y z --> Q x z) &             \
+\      (! x y. P x y --> P y x) &                       \
+\      (! x y. P x y | Q x y)                           \
 \      --> (! x y. P x y) | (! x y. Q x y)";
-by (safe_best_meson_tac 1);     (*3 secs; iter. deepening is VERY slow*)
+by (safe_best_meson_tac 1);     (*2.3 secs; iter. deepening is VERY slow*)
 result();
 
 (*A similar example, suggested by Johannes Schumann and credited to Pelletier*)
