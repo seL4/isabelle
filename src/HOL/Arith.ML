@@ -566,6 +566,15 @@ by (asm_full_simp_tac (simpset() addsimps [mult_commute]) 1);
 qed "mult_less_cancel1";
 Addsimps [mult_less_cancel1, mult_less_cancel2];
 
+Goal "0<k ==> (m*k <= n*k) = (m<=n)";
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+qed "mult_le_cancel2";
+
+Goal "0<k ==> (k*m <= k*n) = (m<=n)";
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
+qed "mult_le_cancel1";
+Addsimps [mult_le_cancel1, mult_le_cancel2];
+
 Goal "(Suc k * m < Suc k * n) = (m < n)";
 by (rtac mult_less_cancel1 1);
 by (Simp_tac 1);
