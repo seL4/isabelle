@@ -268,9 +268,10 @@ $(LOG)/HOL-MiniML.gz: $(OUT)/HOL MiniML/Generalize.ML \
   MiniML/ROOT.ML MiniML/Type.ML MiniML/Type.thy MiniML/W.ML MiniML/W.thy
 	@$(ISATOOL) usedir $(OUT)/HOL MiniML
 
+
 ## HOL-BCV
 
-HOL-BCV:HOL $(LOG)/HOL-BCV.gz
+HOL-BCV: HOL $(LOG)/HOL-BCV.gz
 
 $(LOG)/HOL-BCV.gz: $(OUT)/HOL BCV/DFAandWTI.ML \
   BCV/DFAandWTI.thy BCV/DFAimpl.ML BCV/DFAimpl.thy \
@@ -433,5 +434,5 @@ clean:
 	  $(LOG)/HOL-AxClasses-Tutorial.gz $(LOG)/HOL-Quot.gz \
 	  $(LOG)/HOL-ex.gz $(LOG)/HOL-Isar_examples.gz $(OUT)/TLA \
 	  $(LOG)/TLA.gz $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz \
-	  $(LOG)/TLA-Memory.gz $(LOG)/HOL-Real-ex.gz \
+	  $(LOG)/TLA-Memory.gz $(LOG)/HOL-Real.gz $(LOG)/HOL-Real-ex.gz \
 	  $(LOG)/HOL-Real-HahnBanach.gz
