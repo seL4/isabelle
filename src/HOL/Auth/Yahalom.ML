@@ -20,7 +20,7 @@ Pretty.setdepth 25;
 (*A "possibility property": there are traces that reach the end*)
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
-\        ==> EX X NB K. EX evs: yahalom.     \
+\        ==> EX X NB K. EX evs: yahalom.          \
 \               Says A B {|X, Crypt K (Nonce NB)|} : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
 by (rtac (yahalom.Nil RS yahalom.YM1 RS yahalom.YM2 RS yahalom.YM3 RS 
@@ -124,15 +124,13 @@ by (etac rev_mp 1);
 by (etac yahalom.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
-qed "Says_Server_message_form";
+qed "Says_Server_not_range";
+
+Addsimps [Says_Server_not_range];
 
 
 (*For proofs involving analz.*)
-val analz_spies_tac = 
-    forward_tac [YM4_analz_spies] 6 THEN
-    forward_tac [Says_Server_message_form] 7 THEN
-    assume_tac 7 THEN REPEAT ((etac exE ORELSE' hyp_subst_tac) 7);
-
+val analz_spies_tac = forward_tac [YM4_analz_spies] 6;
 
 (****
  The following is to prove theorems of the form
@@ -146,23 +144,24 @@ val analz_spies_tac =
 (** Session keys are not used to encrypt other session keys **)
 
 goal thy  
- "!!evs. evs : yahalom ==>                                 \
-\  ALL K KK. KK <= Compl (range shrK) -->                       \
+ "!!evs. evs : yahalom ==>                              \
+\  ALL K KK. KK <= Compl (range shrK) -->               \
 \            (Key K : analz (Key``KK Un (spies evs))) = \
 \            (K : KK | Key K : analz (spies evs))";
 by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (REPEAT_FIRST (resolve_tac [allI, impI]));
 by (REPEAT_FIRST (rtac analz_image_freshK_lemma));
-by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
+by (ALLGOALS (asm_simp_tac
+	      (analz_image_freshK_ss addsimps [Says_Server_not_range])));
 (*Fake*) 
 by (spy_analz_tac 1);
 qed_spec_mp "analz_image_freshK";
 
 goal thy
- "!!evs. [| evs : yahalom;  KAB ~: range shrK |] ==>             \
-\        Key K : analz (insert (Key KAB) (spies evs)) =       \
-\        (K = KAB | Key K : analz (spies evs))";
+ "!!evs. [| evs : yahalom;  KAB ~: range shrK |]              \
+\         ==> Key K : analz (insert (Key KAB) (spies evs)) =  \
+\             (K = KAB | Key K : analz (spies evs))";
 by (asm_simp_tac (analz_image_freshK_ss addsimps [analz_image_freshK]) 1);
 qed "analz_insert_freshK";
 
@@ -171,9 +170,9 @@ qed "analz_insert_freshK";
 
 goal thy 
  "!!evs. evs : yahalom ==>                                     \
-\      EX A' B' na' nb' X'. ALL A B na nb X.                        \
-\          Says Server A                                            \
-\           {|Crypt (shrK A) {|Agent B, Key K, na, nb|}, X|}        \
+\      EX A' B' na' nb' X'. ALL A B na nb X.                   \
+\          Says Server A                                       \
+\           {|Crypt (shrK A) {|Agent B, Key K, na, nb|}, X|}   \
 \          : set evs --> A=A' & B=B' & na=na' & nb=nb' & X=X'";
 by (etac yahalom.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
@@ -235,7 +234,6 @@ goal thy
 \           Notes Spy {|na, nb, Key K|} ~: set evs;               \
 \           A ~: bad;  B ~: bad;  evs : yahalom |]                \
 \        ==> Key K ~: analz (spies evs)";
-by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
 by (blast_tac (claset() addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 
@@ -382,13 +380,13 @@ by (REPEAT_FIRST (rtac Nonce_secrecy_lemma));
 (*For Oops, simplification proves NBa~=NB.  By Says_Server_KeyWithNonce,
   we get (~ KeyWithNonce K NB evsa); then simplification can apply the
   induction hypothesis with KK = {K}.*)
-by (ALLGOALS  (*12 seconds*)
+by (ALLGOALS  (*4 seconds*)
     (asm_simp_tac 
      (analz_image_freshK_ss 
        addsimps split_ifs
        addsimps [all_conj_distrib, analz_image_freshK,
 		 KeyWithNonce_Says, KeyWithNonce_Notes,
-		 fresh_not_KeyWithNonce, 
+		 fresh_not_KeyWithNonce, Says_Server_not_range,
 		 imp_disj_not1,		     (*Moves NBa~=NB to the front*)
 		 Says_Server_KeyWithNonce])));
 (*Fake*) 
@@ -462,8 +460,8 @@ qed "Says_unique_NB";
 (** A nonce value is never used both as NA and as NB **)
 
 goal thy 
- "!!evs. [| B ~: bad;  evs : yahalom  |]          \
-\ ==> Nonce NB ~: analz (spies evs) -->           \
+ "!!evs. evs : yahalom                     \
+\ ==> Nonce NB ~: analz (spies evs) -->    \
 \     Crypt (shrK B') {|Agent A', Nonce NB, nb'|} : parts(spies evs) --> \
 \     Crypt (shrK B)  {|Agent A, na, Nonce NB|} ~: parts(spies evs)";
 by (parts_induct_tac 1);
@@ -524,13 +522,12 @@ by (ALLGOALS Clarify_tac);
 (*YM4: key K is visible to Spy, contradicting session key secrecy theorem*) 
 by (not_bad_tac "Aa" 1);
 by (dtac (Says_imp_spies RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1);
-by (forward_tac [Says_Server_message_form] 3);
-by (forward_tac [Says_Server_imp_YM2] 4);
+by (forward_tac [Says_Server_imp_YM2] 3);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, bexE, exE, disjE]));
 (*  use Says_unique_NB to identify message components: Aa=A, Ba=B, NAa=NA *)
 by (blast_tac (claset() addDs [Says_unique_NB, Spy_not_see_encrypted_key,
 			       impOfSubs Fake_analz_insert]) 1);
-(** LEVEL 14 **)
+(** LEVEL 13 **)
 (*Oops case: if the nonce is betrayed now, show that the Oops event is 
   covered by the quantified Oops assumption.*)
 by (full_simp_tac (simpset() addsimps [all_conj_distrib]) 1);
