@@ -217,21 +217,23 @@ fun dest_abs (Cterm {sign, T as Type("fun",[_,S]), maxidx, t=Abs(x,ty,M)}) =
       end
   | dest_abs _ = raise CTERM "dest_abs";
 
-fun adjust_maxidx (Cterm {sign, T, t, ...}) =
-  Cterm {sign = sign, T = T, maxidx = maxidx_of_term t, t = t}
+(*Makes maxidx precise: it is often too big*)
+fun adjust_maxidx (ct as Cterm {sign, T, t, maxidx, ...}) =
+  if maxidx = ~1 then ct 
+  else  Cterm {sign = sign, T = T, maxidx = maxidx_of_term t, t = t};
 
 (*Form cterm out of a function and an argument*)
 fun capply (Cterm {t=f, sign=sign1, T=Type("fun",[dty,rty]), maxidx=maxidx1})
            (Cterm {t=x, sign=sign2, T, maxidx=maxidx2}) =
       if T = dty then Cterm{t=f$x, sign=Sign.merge(sign1,sign2), T=rty,
-                            maxidx=max[maxidx1, maxidx2]}
+                            maxidx=Int.max(maxidx1, maxidx2)}
       else raise CTERM "capply: types don't agree"
   | capply _ _ = raise CTERM "capply: first arg is not a function"
 
 fun cabs (Cterm {t=Free(a,ty), sign=sign1, T=T1, maxidx=maxidx1})
          (Cterm {t=t2, sign=sign2, T=T2, maxidx=maxidx2}) =
       Cterm {t=absfree(a,ty,t2), sign=Sign.merge(sign1,sign2),
-             T = ty --> T2, maxidx=max[maxidx1, maxidx2]}
+             T = ty --> T2, maxidx=Int.max(maxidx1, maxidx2)}
   | cabs _ _ = raise CTERM "cabs: first arg is not a free variable";
 
 (** read cterms **)   (*exception ERROR*)
@@ -571,9 +573,18 @@ fun compress (Thm {sign, der, maxidx, shyps, hyps, prop}) =
 
 (*** Meta rules ***)
 
-(* check that term does not contain same var with different typing/sorting *)
-fun nodup_Vars(thm as Thm{prop,...}) s =
-  Sign.nodup_Vars prop handle TYPE(msg,_,_) => raise THM(s^": "^msg,0,[thm]);
+(*Check that term does not contain same var with different typing/sorting.
+  If this check must be made, recalculate maxidx in hope of preventing its
+  recurrence.*)
+fun nodup_Vars (thm as Thm{sign, der, maxidx, shyps, hyps, prop}) s =
+  (Sign.nodup_Vars prop; 
+   Thm {sign = sign, 
+	 der = der,	
+	 maxidx = maxidx_of_term prop,
+	 shyps = shyps, 
+	 hyps = hyps, 
+	 prop = prop})
+  handle TYPE(msg,Ts,ts) => raise TYPE(s^": "^msg,Ts,ts);
 
 (** 'primitive' rules **)
 
@@ -608,7 +619,7 @@ fun implies_intr cA (thB as Thm{sign,der,maxidx,hyps,prop,...}) : thm =
       else fix_shyps [thB] []
         (Thm{sign = Sign.merge (sign,signA),  
 	     der = infer_derivs (Implies_intr cA, [der]),
-	     maxidx = max[maxidxA, maxidx],
+	     maxidx = Int.max(maxidxA, maxidx),
 	     shyps = [],
 	     hyps = disch(hyps,A),
 	     prop = implies$A$prop})
@@ -632,7 +643,7 @@ fun implies_elim thAB thA : thm =
                 then fix_shyps [thAB, thA] []
                        (Thm{sign= merge_thm_sgs(thAB,thA),
 			    der = infer_derivs (Implies_elim, [der,derA]),
-			    maxidx = max[maxA,maxidx],
+			    maxidx = Int.max(maxA,maxidx),
 			    shyps = [],
 			    hyps = hypsA union hyps,  (*dups suppressed*)
 			    prop = B})
@@ -671,22 +682,21 @@ fun forall_intr cx (th as Thm{sign,der,maxidx,hyps,prop,...}) =
 fun forall_elim ct (th as Thm{sign,der,maxidx,hyps,prop,...}) : thm =
   let val {sign=signt, t, T, maxidx=maxt} = rep_cterm ct
   in  case prop of
-          Const("all",Type("fun",[Type("fun",[qary,_]),_])) $ A =>
-            if T<>qary then
-                raise THM("forall_elim: type mismatch", 0, [th])
-            else let val thm = fix_shyps [th] []
-                      (Thm{sign= Sign.merge(sign,signt),
-			   der = infer_derivs (Forall_elim ct, [der]),
-                           maxidx = max[maxidx, maxt],
-                           shyps = [],
-			   hyps = hyps,  
-			   prop = betapply(A,t)})
-                 in if maxt >= 0 andalso maxidx >= 0
-		    then nodup_Vars thm "forall_elim" 
-		    else () (*no new Vars: no expensive check!*) ; 
-                    thm 
-                 end
-        | _ => raise THM("forall_elim: not quantified", 0, [th])
+	Const("all",Type("fun",[Type("fun",[qary,_]),_])) $ A =>
+	  if T<>qary then
+	      raise THM("forall_elim: type mismatch", 0, [th])
+	  else let val thm = fix_shyps [th] []
+		    (Thm{sign= Sign.merge(sign,signt),
+			 der = infer_derivs (Forall_elim ct, [der]),
+			 maxidx = Int.max(maxidx, maxt),
+			 shyps = [],
+			 hyps = hyps,  
+			 prop = betapply(A,t)})
+	       in if maxt >= 0 andalso maxidx >= 0
+		  then nodup_Vars thm "forall_elim" 
+		  else thm (*no new Vars: no expensive check!*)
+	       end
+      | _ => raise THM("forall_elim: not quantified", 0, [th])
   end
   handle TERM _ =>
          raise THM("forall_elim: incompatible signatures", 0, [th]);
@@ -749,14 +759,13 @@ fun transitive th1 th2 =
               fix_shyps [th1, th2] []
                 (Thm{sign= merge_thm_sgs(th1,th2), 
 		     der = infer_derivs (Transitive, [der1, der2]),
-		     maxidx = max[max1,max2], 
+                     maxidx = Int.max(max1,max2), 
 		     shyps = [],
 		     hyps = hyps1 union hyps2,
 		     prop = eq$t1$t2})
                  in if max1 >= 0 andalso max2 >= 0
-		    then nodup_Vars thm "transitive" 
-		    else () (*no new Vars: no expensive check!*) ; 
-                    thm 
+                    then nodup_Vars thm "transitive" 
+                    else thm (*no new Vars: no expensive check!*)
                  end
      | _ =>  err"premises"
   end;
@@ -768,7 +777,7 @@ fun beta_conversion ct =
           Abs(_,_,bodt) $ u => fix_shyps [] []
             (Thm{sign = sign,  
 		 der = infer_derivs (Beta_conversion ct, []),
-		 maxidx = maxidx_of_term t,
+		 maxidx = maxidx,
 		 shyps = [],
 		 hyps = [],
 		 prop = Logic.mk_equals(t, subst_bounds([u],bodt))})
@@ -855,14 +864,13 @@ fun combination th1 th2 =
 	      val thm = (*no fix_shyps*)
 			Thm{sign = merge_thm_sgs(th1,th2), 
 			    der = infer_derivs (Combination, [der1, der2]),
-			    maxidx = max[max1,max2], 
+			    maxidx = Int.max(max1,max2), 
 			    shyps = shyps1 union shyps2,
 			    hyps = hyps1 union hyps2,
 			    prop = Logic.mk_equals(f$t, g$u)}
           in if max1 >= 0 andalso max2 >= 0
              then nodup_Vars thm "combination" 
-	     else () (*no new Vars: no expensive check!*) ; 
-	     thm 
+	     else thm (*no new Vars: no expensive check!*)  
           end
      | _ =>  raise THM("combination: premises", 0, [th1,th2])
   end;
@@ -886,7 +894,7 @@ fun equal_intr th1 th2 =
 	    (*no fix_shyps*)
 	      Thm{sign = merge_thm_sgs(th1,th2),
 		  der = infer_derivs (Equal_intr, [der1, der2]),
-		  maxidx = max[max1,max2],
+		  maxidx = Int.max(max1,max2),
 		  shyps = shyps1 union shyps2,
 		  hyps = hyps1 union hyps2,
 		  prop = Logic.mk_equals(A,B)}
@@ -910,7 +918,7 @@ fun equal_elim th1 th2 =
             fix_shyps [th1, th2] []
               (Thm{sign= merge_thm_sgs(th1,th2), 
 		   der = infer_derivs (Equal_elim, [der1, der2]),
-		   maxidx = max[max1,max2],
+		   maxidx = Int.max(max1,max2),
 		   shyps = [],
 		   hyps = hyps1 union hyps2,
 		   prop = B})
@@ -1003,8 +1011,7 @@ fun instantiate ([], []) th = th
       then raise THM("instantiate: variables not distinct", 0, [th])
       else if not(null(findrep(map #1 vTs)))
       then raise THM("instantiate: type variables not distinct", 0, [th])
-      else nodup_Vars newth "instantiate";
-      newth
+      else nodup_Vars newth "instantiate"
   end
   handle TERM _ =>
            raise THM("instantiate: incompatible signatures",0,[th])
@@ -1048,11 +1055,11 @@ fun varifyT(Thm{sign,der,maxidx,shyps,hyps,prop}) =
   in let val thm = (*no fix_shyps*)
     Thm{sign = sign, 
 	der = infer_derivs (VarifyT, [der]), 
-	maxidx = max[0,maxidx], 
+	maxidx = Int.max(0,maxidx), 
 	shyps = shyps, 
 	hyps = hyps,
         prop = Type.varify(prop,tfrees)}
-     in nodup_Vars thm "varifyT"; thm end
+     in nodup_Vars thm "varifyT" end
 (* this nodup_Vars check can be removed if thms are guaranteed not to contain
 duplicate TVars with differnt sorts *)
   end;
@@ -1278,7 +1285,7 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
              if Envir.is_empty env then (tpairs, Bs @ As, C)
              else
              let val ntps = map (pairself normt) tpairs
-             in if the (Envir.minidx env) > smax then
+             in if Envir.above (smax, env) then
                   (*no assignments in state; normalize the rule only*)
                   if lifted
                   then (ntps, Bs @ map (norm_term_skip env nlift) As, C)
@@ -1308,7 +1315,7 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
           handle TERM _ =>
           raise THM("bicompose: 1st premise", 0, [orule])
        end;
-     val env = Envir.empty(max[rmax,smax]);
+     val env = Envir.empty(Int.max(rmax,smax));
      val BBi = if lifted then strip_assums2(B,Bi) else (B,Bi);
      val dpairs = BBi :: (rtpairs@stpairs);
      (*elim-resolution: try each assumption in turn.  Initially n=1*)
@@ -1581,16 +1588,16 @@ fun add_insts_sorts ((iTs, is), Ss) =
 
 (*Conversion to apply the meta simpset to a term*)
 fun rewritec (prover,signt) (mss as Mss{net,...}) 
-             (shypst,hypst,maxidxt,t,ders) =
+             (shypst,hypst,maxt,t,ders) =
   let val etat = Pattern.eta_contract t;
       fun rew {thm as Thm{sign,der,maxidx,shyps,hyps,prop,...}, lhs, perm} =
         let val unit = if Sign.subsig(sign,signt) then ()
                   else (trace_thm_warning "rewrite rule from different theory"
                           thm;
                         raise Pattern.MATCH)
-            val rprop = if maxidxt = ~1 then prop
-                        else Logic.incr_indexes([],maxidxt+1) prop;
-            val rlhs = if maxidxt = ~1 then lhs
+            val rprop = if maxt = ~1 then prop
+                        else Logic.incr_indexes([],maxt+1) prop;
+            val rlhs = if maxt = ~1 then lhs
                        else fst(Logic.dest_equals(Logic.strip_imp_concl rprop))
             val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (rlhs,etat)
             val prop' = ren_inst(insts,rprop,rlhs,t);
@@ -1634,21 +1641,21 @@ fun rewritec (prover,signt) (mss as Mss{net,...})
       in sort rrs ([],[]) 
       end
   in case etat of
-       Abs(_,_,body) $ u => Some(shypst, hypst, maxidxt, 
+       Abs(_,_,body) $ u => Some(shypst, hypst, maxt, 
 				 subst_bounds([u], body),
 				 ders)
      | _                 => rews (sort_rrules (Net.match_term net etat))
   end;
 
 (*Conversion to apply a congruence rule to a term*)
-fun congc (prover,signt) {thm=cong,lhs=lhs} (shypst,hypst,maxidxt,t,ders) =
+fun congc (prover,signt) {thm=cong,lhs=lhs} (shypst,hypst,maxt,t,ders) =
   let val Thm{sign,der,shyps,hyps,maxidx,prop,...} = cong
       val unit = if Sign.subsig(sign,signt) then ()
                  else error("Congruence rule from different theory")
       val tsig = #tsig(Sign.rep_sg signt)
-      val rprop = if maxidxt = ~1 then prop
-                  else Logic.incr_indexes([],maxidxt+1) prop;
-      val rlhs = if maxidxt = ~1 then lhs
+      val rprop = if maxt = ~1 then prop
+                  else Logic.incr_indexes([],maxt+1) prop;
+      val rlhs = if maxt = ~1 then lhs
                  else fst(Logic.dest_equals(Logic.strip_imp_concl rprop))
       val insts = Pattern.match tsig (rlhs,t)
       (* Pattern.match can raise Pattern.MATCH;
@@ -1723,15 +1730,15 @@ fun bottomc ((simprem,useprem),prover,sign) =
 			Some(shyps1,hyps1,maxidx1,t1,ders1) =>
 			  (case botc true mss (shyps1,hyps1,maxidx,u,ders1) of
 			     Some(shyps2,hyps2,maxidx2,u1,ders2) =>
-			       Some(shyps2, hyps2, max[maxidx1,maxidx2],
+			       Some(shyps2, hyps2, Int.max(maxidx1,maxidx2),
 				    t1$u1, ders2)
 			   | None =>
-			       Some(shyps1, hyps1, max[maxidx1,maxidx], t1$u,
+			       Some(shyps1, hyps1, Int.max(maxidx1,maxidx), t1$u,
 				    ders1))
 		      | None =>
 			  (case botc true mss (shyps,hyps,maxidx,u,ders) of
 			     Some(shyps1,hyps1,maxidx1,u1,ders1) =>
-			       Some(shyps1, hyps1, max[maxidx,maxidx1], 
+			       Some(shyps1, hyps1, Int.max(maxidx,maxidx1), 
 				    t$u1, ders1)
 			   | None => None))
 		   val (h,ts) = strip_comb t
@@ -1758,7 +1765,7 @@ fun bottomc ((simprem,useprem),prover,sign) =
 	   val (shyps2,hyps2,maxidx2,u1,ders2) = 
 	       try_botc mss1 (shyps1,hyps1,maxidx,u,ders1)
 	   val hyps3 = if s1 mem hyps1 then hyps2 else hyps2\s1
-       in (shyps2, hyps3, max[maxidx1,maxidx2], 
+       in (shyps2, hyps3, Int.max(maxidx1,maxidx2), 
 	   Logic.mk_implies(s1,u1), ders2) 
        end
 
@@ -1774,14 +1781,14 @@ fun bottomc ((simprem,useprem),prover,sign) =
 (*** FIXME: check that #bounds(mss) does not "occur" in ct alread ***)
 fun rewrite_cterm mode mss prover ct =
   let val {sign, t, T, maxidx} = rep_cterm ct;
-      val (shyps,hyps,maxidxu,u,ders) =
+      val (shyps,hyps,maxu,u,ders) =
         bottomc (mode,prover,sign) mss 
 	        (add_term_sorts(t,[]), [], maxidx, t, []);
       val prop = Logic.mk_equals(t,u)
   in
       Thm{sign = sign, 
 	  der = infer_derivs (Rewrite_cterm ct, ders),
-	  maxidx = max[maxidx,maxidxu],
+	  maxidx = Int.max (maxidx,maxu),
 	  shyps = shyps, 
 	  hyps = hyps, 
           prop = prop}
