@@ -228,7 +228,7 @@ val diff_self_eq_0 = prove_goal Arith.thy
 (*Addition is the inverse of subtraction*)
 goal Arith.thy "!!m n. [| n le m;  m:nat |] ==> n #+ (m#-n) = m";
 by (forward_tac [lt_nat_in_nat] 1);
-be nat_succI 1;
+by (etac nat_succI 1);
 by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS (asm_simp_tac arith_ss));
@@ -334,7 +334,7 @@ val add_le_self2 = result();
 (*strict, in 1st argument*)
 goal Arith.thy "!!i j k. [| i<j; j:nat; k:nat |] ==> i#+k < j#+k";
 by (forward_tac [lt_nat_in_nat] 1);
-ba 1;
+by (assume_tac 1);
 by (etac succ_lt_induct 1);
 by (ALLGOALS (asm_simp_tac (arith_ss addsimps [leI])));
 val add_lt_mono1 = result();
