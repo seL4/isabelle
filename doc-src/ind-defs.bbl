@@ -45,6 +45,11 @@ Farmer, W.~M., Guttman, J.~D., Thayer, F.~J.,
 \newblock {IMPS}: An interactive mathematical proof system,
 \newblock {\em J. Auto. Reas. {\bf 11}}, 2 (1993), 213--248
 
+\bibitem{frost95}
+Frost, J.,
+\newblock A case study of co-induction in {Isabelle},
+\newblock Tech. Rep. 359, Comp. Lab., Univ. Cambridge, Feb. 1995
+
 \bibitem{hennessy90}
 Hennessy, M.,
 \newblock {\em The Semantics of Programming Languages: An Elementary
@@ -74,10 +79,20 @@ Milner, R.,
 \newblock {\em Communication and Concurrency},
 \newblock Prentice-Hall, 1989
 
+\bibitem{milner-coind}
+Milner, R., Tofte, M.,
+\newblock Co-induction in relational semantics,
+\newblock {\em Theoretical Comput. Sci. {\bf 87}\/} (1991), 209--220
+
 \bibitem{monahan84}
 Monahan, B.~Q.,
 \newblock {\em Data Type Proofs using Edinburgh {LCF}},
 \newblock PhD thesis, University of Edinburgh, 1984
+
+\bibitem{nipkow-CR}
+Nipkow, T.,
+\newblock More {Church-Rosser} proofs (in {Isabelle/HOL}),
+\newblock Tech. rep., T. U. Munich, 1996
 
 \bibitem{paulin92}
 Paulin-Mohring, C.,
@@ -89,18 +104,6 @@ Paulin-Mohring, C.,
 Paulson, L.~C.,
 \newblock {\em Logic and Computation: Interactive proof with Cambridge LCF},
 \newblock Cambridge Univ. Press, 1987
-
-\bibitem{paulson91}
-Paulson, L.~C.,
-\newblock {\em {ML} for the Working Programmer},
-\newblock Cambridge Univ. Press, 1991
-
-\bibitem{paulson-coind}
-Paulson, L.~C.,
-\newblock Co-induction and co-recursion in higher-order logic,
-\newblock Tech. Rep. 304, Comp. Lab., Univ. Cambridge, July 1993,
-\newblock To appear in the Festscrift for Alonzo Church, edited by A. Anderson
-  and M. Zeleny
 
 \bibitem{isabelle-intro}
 Paulson, L.~C.,
@@ -117,6 +120,12 @@ Paulson, L.~C.,
 \newblock Set theory for verification: {II}. {Induction} and recursion,
 \newblock {\em J. Auto. Reas. {\bf 15}}, 2 (1995), 167--215
 
+\bibitem{paulson-coind}
+Paulson, L.~C.,
+\newblock Mechanizing coinduction and corecursion in higher-order logic,
+\newblock {\em J. Logic and Comput.\/} (1996),
+\newblock In press
+
 \bibitem{paulson-final}
 Paulson, L.~C.,
 \newblock A concrete final coalgebra theorem for {ZF} set theory,
@@ -124,10 +133,23 @@ Paulson, L.~C.,
   '94}\/} (published 1995), P.~Dybjer, B.~Nordstr{\"om},, J.~Smith, Eds., LNCS
   996, Springer, pp.~120--139
 
+\bibitem{paulson-gr}
+Paulson, L.~C., Gr\c{a}bczewski, K.,
+\newblock Mechanizing set theory: Cardinal arithmetic and the axiom of choice,
+\newblock {\em J. Auto. Reas.\/} (1996),
+\newblock In press
+
 \bibitem{pitts94}
 Pitts, A.~M.,
 \newblock A co-induction principle for recursively defined domains,
 \newblock {\em Theoretical Comput. Sci. {\bf 124}\/} (1994), 195--219
+
+\bibitem{rasmussen95}
+Rasmussen, O.,
+\newblock The {Church-Rosser} theorem in {Isabelle}: A proof porting
+  experiment,
+\newblock Tech. Rep. 364, Computer Laboratory, University of Cambridge, May
+  1995
 
 \bibitem{saaltink-fme}
 Saaltink, M., Kromodimoeljo, S., Pase, B., Craigen, D., Meisels, I.,
@@ -135,11 +157,28 @@ Saaltink, M., Kromodimoeljo, S., Pase, B., Craigen, D., Meisels, I.,
 \newblock In {\em FME '93: Industrial-Strength Formal Methods\/} (1993),
   J.~C.~P. Woodcock, P.~G. Larsen, Eds., LNCS 670, Springer, pp.~578--596
 
+\bibitem{slind-tfl}
+Slind, K.,
+\newblock Function definition in higher-order logic,
+\newblock Tech. rep., T. U. Munich, 1996
+
 \bibitem{szasz93}
 Szasz, N.,
 \newblock A machine checked proof that {Ackermann's} function is not primitive
   recursive,
 \newblock In {\em Logical Environments}, G.~Huet, G.~Plotkin, Eds. Cambridge
   Univ. Press, 1993, pp.~317--338
+
+\bibitem{voelker95}
+V\"olker, N.,
+\newblock On the representation of datatypes in {Isabelle/HOL},
+\newblock In {\em Proceedings of the First Isabelle Users Workshop\/} (Sept.
+  1995), L.~C. Paulson, Ed., Technical Report 379, Comp. Lab., Univ. Cambridge,
+  pp.~206--218
+
+\bibitem{winskel93}
+Winskel, G.,
+\newblock {\em The Formal Semantics of Programming Languages},
+\newblock MIT Press, 1993
 
 \end{thebibliography}
