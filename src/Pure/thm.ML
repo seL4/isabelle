@@ -6,8 +6,6 @@
 The abstract types "theory" and "thm".
 Also "cterm" / "ctyp" (certified terms / typs under a signature).
 
-TODO:
-  NO REP_CTERM!!
 *)
 
 signature THM =
