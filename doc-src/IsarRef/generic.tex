@@ -27,6 +27,7 @@ Isabelle documentation.
 \end{rail}
 
 \begin{descr}
+  
 \item [$\AXCLASS~c \subseteq \vec c~~axms$] defines an axiomatic type class as
   the intersection of existing classes, with additional axioms holding.  Class
   axioms may not contain more than one type variable.  The class axioms (with
@@ -51,6 +52,7 @@ Isabelle documentation.
   as it is already included in the default proof step (of $\PROOFNAME$,
   $\BYNAME$, etc.).  In particular, instantiation of trivial (syntactic)
   classes may be performed by a single ``$\DDOT$'' proof step.
+
 \end{descr}
 
 
@@ -153,8 +155,8 @@ proof, too (e.g.\ local $simp$ rules).
     
   \item [$\FIXES{~x::\tau~(mx)}$] declares a local parameter of type $\tau$
     and mixfix annotation $mx$ (both are optional).  The special syntax
-    declaration $(structure)$ means that $x$ may be referenced
-    implicitly in this context. %see also FIXME
+    declaration ``$(structure)$'' means that $x$ may be referenced
+    implicitly in this context.
     
   \item [$\ASSUMES{a}{\vec\phi}$] introduces local premises, similar to
     $\ASSUMENAME$ within a proof (cf.\ \S\ref{sec:proof-context}).
@@ -343,6 +345,7 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   single-step elimination proof, such as ``$\ASSUME{}{x = y}~\HENCE{}{y =
     x}~\DDOT$''.  Note that the very same rules known to $symmetric$ are
   declared as $elim$ at the same time.
+
 \end{descr}
 
 
@@ -404,7 +407,7 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \indexisaratt{tagged}\indexisaratt{untagged}
 \indexisaratt{THEN}\indexisaratt{COMP}
 \indexisaratt{where}\indexisaratt{unfolded}\indexisaratt{folded}
-\indexisaratt{standard}\indexisaratt{elim-format}
+\indexisaratt{standard}\indexisarattof{Pure}{elim-format}
 \indexisaratt{no-vars}
 \begin{matharray}{rcl}
   tagged & : & \isaratt \\
@@ -433,27 +436,39 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \end{rail}
 
 \begin{descr}
+  
 \item [$tagged~name~args$ and $untagged~name$] add and remove $tags$ of some
   theorem.  Tags may be any list of strings that serve as comment for some
   tools (e.g.\ $\LEMMANAME$ causes the tag ``$lemma$'' to be added to the
   result).  The first string is considered the tag name, the rest its
   arguments.  Note that untag removes any tags of the same name.
+  
 \item [$THEN~n~a$ and $COMP~n~a$] compose rules.  $THEN$ resolves with the
   $n$-th premise of $a$; the $COMP$ version skips the automatic lifting
   process that is normally intended (cf.\ \texttt{RS} and \texttt{COMP} in
   \cite[\S5]{isabelle-ref}).
+  
 \item [$where~\vec x = \vec t$] perform named instantiation of schematic
   variables occurring in a theorem.  Unlike instantiation tactics such as
   $rule_tac$ (see \S\ref{sec:tactic-commands}), actual schematic variables
   have to be specified (e.g.\ $\Var{x@3}$).
+  
 \item [$unfolded~\vec a$ and $folded~\vec a$] expand and fold back again the
   given meta-level definitions throughout a rule.
+  
 \item [$standard$] puts a theorem into the standard form of object-rules, just
   as the ML function \texttt{standard} (see \cite[\S5]{isabelle-ref}).
-\item [$elim_format$] turns a destruction rule into elimination rule format;
-  see also the ML function \texttt{make\_elim} (see \cite{isabelle-ref}).
+  
+\item [$elim_format$] turns a destruction rule into elimination rule format,
+  by resolving with the rule $\PROP A \Imp (\PROP A \Imp \PROP B) \Imp \PROP
+  B$.
+  
+  Note that the Classical Reasoner (\S\ref{sec:classical-att}) provides its
+  own version of this operation.
+  
 \item [$no_vars$] replaces schematic variables by free ones; this is mainly
   for tuning output of pretty printed theorems.
+
 \end{descr}
 
 
@@ -538,30 +553,37 @@ named $foo_tac$.
 \end{rail}
 
 \begin{descr}
+  
 \item [$rule_tac$ etc.] do resolution of rules with explicit instantiation.
   This works the same way as the ML tactics \texttt{res_inst_tac} etc. (see
   \cite[\S3]{isabelle-ref}).
-
+  
   Note that multiple rules may be only given there is no instantiation.  Then
   $rule_tac$ is the same as \texttt{resolve_tac} in ML (see
   \cite[\S3]{isabelle-ref}).
+  
 \item [$cut_tac$] inserts facts into the proof state as assumption of a
   subgoal, see also \texttt{cut_facts_tac} in \cite[\S3]{isabelle-ref}.  Note
-  that the scope of schematic variables is spread over the main goal statement.
-  Instantiations may be given as well, see also ML tactic
+  that the scope of schematic variables is spread over the main goal
+  statement.  Instantiations may be given as well, see also ML tactic
   \texttt{cut_inst_tac} in \cite[\S3]{isabelle-ref}.
+  
 \item [$thin_tac~\phi$] deletes the specified assumption from a subgoal; note
   that $\phi$ may contain schematic variables.  See also \texttt{thin_tac} in
   \cite[\S3]{isabelle-ref}.
+  
 \item [$subgoal_tac~\phi$] adds $\phi$ as an assumption to a subgoal.  See
   also \texttt{subgoal_tac} and \texttt{subgoals_tac} in
   \cite[\S3]{isabelle-ref}.
+  
 \item [$rename_tac~\vec x$] renames parameters of a goal according to the list
   $\vec x$, which refers to the \emph{suffix} of variables.
+  
 \item [$rotate_tac~n$] rotates the assumptions of a goal by $n$ positions:
   from right to left if $n$ is positive, and from left to right if $n$ is
   negative; the default value is $1$.  See also \texttt{rotate_tac} in
   \cite[\S3]{isabelle-ref}.
+  
 \item [$tactic~text$] produces a proof method from any ML text of type
   \texttt{tactic}.  Apart from the usual ML environment and the current
   implicit theory context, the ML code may refer to the following locally
@@ -604,7 +626,7 @@ val thms  : string -> thm list
 
 \indexouternonterm{simpmod}
 \begin{rail}
-  ('simp' | simpall) ('!' ?) opt? (simpmod * )
+  ('simp' | simpall) ('!' ?) opt? (simpmod *)
   ;
 
   opt: '(' (noasm | noasmsimp | noasmuse) ')'
@@ -822,9 +844,9 @@ way for automated normalization (see \S\ref{sec:simplifier}).
 
 \indexouternonterm{clamod}
 \begin{rail}
-  'blast' ('!' ?) nat? (clamod * )
+  'blast' ('!' ?) nat? (clamod *)
   ;
-  ('fast' | 'slow' | 'best' | 'safe' | 'clarify') ('!' ?) (clamod * )
+  ('fast' | 'slow' | 'best' | 'safe' | 'clarify') ('!' ?) (clamod *)
   ;
 
   clamod: (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' thmrefs
@@ -866,9 +888,9 @@ This is slightly less hazardous than for the Simplifier (see
 
 \indexouternonterm{clasimpmod}
 \begin{rail}
-  'auto' '!'? (nat nat)? (clasimpmod * )
+  'auto' '!'? (nat nat)? (clasimpmod *)
   ;
-  ('force' | 'clarsimp' | 'fastsimp' | 'slowsimp' | 'bestsimp') '!'? (clasimpmod * )
+  ('force' | 'clarsimp' | 'fastsimp' | 'slowsimp' | 'bestsimp') '!'? (clasimpmod *)
   ;
 
   clasimpmod: ('simp' (() | 'add' | 'del' | 'only') |
@@ -945,6 +967,29 @@ This is slightly less hazardous than for the Simplifier (see
 \end{descr}
 
 
+\subsubsection{Classical operations}\label{sec:classical-att}
+
+\indexisaratt{elim-format}\indexisaratt{swapped}
+
+\begin{matharray}{rcl}
+  elim_format & : & \isaratt \\
+  swapped & : & \isaratt \\
+\end{matharray}
+
+\begin{descr}
+  
+\item [$elim_format$] turns a destruction rule into elimination rule format;
+  this operation is similar to the the intuitionistic version
+  (\S\ref{sec:misc-meth-att}), but each premise of the resulting rule acquires
+  an additional local fact of the negated main thesis -- according to the
+  classical principle $(\neg A \Imp A) \Imp A$.
+  
+\item [$swapped$] turns an introduction rule into an elimination, by resolving
+  with the classical swap principle $(\neg B \Imp A) \Imp (\neg A \Imp B)$.
+
+\end{descr}
+
+
 \subsection{Proof by cases and induction}\label{sec:cases-induct}
 
 \subsubsection{Rule contexts}\label{sec:rule-cases}
@@ -970,19 +1015,21 @@ inductive sets and types.
 The $\CASENAME$ command provides a shorthand to refer to certain parts of
 logical context symbolically.  Proof methods may provide an environment of
 named ``cases'' of the form $c\colon \vec x, \vec \phi$.  Then the effect of
-$\CASE{c}$ is exactly the same as $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
+``$\CASE{c}$'' is that of ``$\FIX{\vec x}~\ASSUME{c}{\vec\phi}$''; term
+bindings may be covered as well, such as $\Var{case}$.
 
-FIXME
-
-It is important to note that $\CASENAME$ does \emph{not} provide any means to
-peek at the current goal state, which is treated as strictly non-observable in
-Isar!  Instead, the cases considered here usually emerge in a canonical way
-from certain pieces of specification that appear in the theory somewhere else
-(e.g.\ in an inductive definition, or recursive function).
-
-FIXME
+Normally the ``terminology'' of a case value (i.e.\ the parameters $\vec x$)
+are marked as hidden.  Using the alternative form ``$(\CASE{c}~\vec x)$''
+enables proof writers to choose their own naming for the subsequent proof
+text.
 
 \medskip
+
+It is important to note that $\CASENAME$ does \emph{not} provide direct means
+to peek at the current goal state, which is generally considered
+non-observable in Isar.  The text of the cases basically emerge from standard
+elimination or induction rules, which in turn are derived from previous theory
+specifications in a canonical way (say via $\isarkeyword{inductive}$).
 
 Named cases may be exhibited in the current proof context only if both the
 proof method and the rules involved support this.  Case names and parameters
@@ -999,32 +1046,36 @@ may be used in advanced case analysis later.
   caseref: nameref attributes?
   ;
 
-  casenames (name + )
+  casenames (name +)
   ;
-  'params' ((name * ) + 'and')
+  'params' ((name *) + 'and')
   ;
   'consumes' nat?
   ;
 \end{rail}
-%FIXME bug in rail
 
 \begin{descr}
+  
 \item [$\CASE{c}$] invokes a named local context $c\colon \vec x, \vec \phi$,
   as provided by an appropriate proof method (such as $cases$ and $induct$,
   see \S\ref{sec:cases-induct-meth}).  The command $\CASE{c}$ abbreviates
   $\FIX{\vec x}~\ASSUME{c}{\vec\phi}$.
+  
 \item [$\isarkeyword{print_cases}$] prints all local contexts of the current
   state, using Isar proof language notation.  This is a diagnostic command;
   $undo$ does not apply.
+  
 \item [$case_names~\vec c$] declares names for the local contexts of premises
   of some theorem; $\vec c$ refers to the \emph{suffix} of the list of
   premises.
+  
 \item [$params~\vec p@1 \dots \vec p@n$] renames the innermost parameters of
   premises $1, \dots, n$ of some theorem.  An empty list of names may be given
   to skip positions, leaving the present parameters unchanged.
   
   Note that the default usage of case rules does \emph{not} directly expose
   parameters to the proof context (see also \S\ref{sec:cases-induct-meth}).
+  
 \item [$consumes~n$] declares the number of ``major premises'' of a rule,
   i.e.\ the number of facts to be consumed when it is applied by an
   appropriate proof method (cf.\ \S\ref{sec:cases-induct-meth}).  The default
@@ -1036,6 +1087,7 @@ may be used in advanced case analysis later.
   Note that explicit $consumes$ declarations are only rarely needed; this is
   already taken care of automatically by the higher-level $cases$ and $induct$
   declarations, see also \S\ref{sec:cases-induct-att}.
+
 \end{descr}
 
 
@@ -1079,6 +1131,7 @@ packages (see especially \S\ref{sec:hol-datatype} and
 \end{rail}
 
 \begin{descr}
+  
 \item [$cases~insts~R~ps$] applies method $rule$ with an appropriate case
   distinction theorem, instantiated to the subjects $insts$.  Symbolic case
   names are bound according to the rule's local contexts.
@@ -1131,6 +1184,7 @@ packages (see especially \S\ref{sec:hol-datatype} and
   
   Additional parameters (including the $open$ option) may be given in the same
   way as for $cases$, see above.
+
 \end{descr}
 
 Above methods produce named local contexts (cf.\ \S\ref{sec:rule-cases}), as
@@ -1204,7 +1258,7 @@ instead, one would have to specify this explicitly, e.g.\ by appending
   
 \item [$\isarkeyword{print_induct_rules}$] prints cases and induct rules for
   sets and types of the current context.
-
+  
 \item [$cases$ and $induct$] (as attributes) augment the corresponding context
   of rules for reasoning about inductive sets and types, using the
   corresponding methods of the same name.  Certain definitional packages of

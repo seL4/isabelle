@@ -146,10 +146,9 @@ $\isarkeyword{datatype}$ (see \S\ref{sec:hol-datatype}).
 
 \railalias{splitformat}{split\_format}
 \railterm{splitformat}
-\railterm{complete}
 
 \begin{rail}
-  splitformat (((name *) + 'and') | ('(' complete ')'))
+  splitformat (((name *) + 'and') | ('(' 'complete' ')'))
   ;
 \end{rail}
 
@@ -433,7 +432,6 @@ parameters).
   \isarcmd{primrec} & : & \isartrans{theory}{theory} \\
   \isarcmd{recdef} & : & \isartrans{theory}{theory} \\
   \isarcmd{recdef_tc}^* & : & \isartrans{theory}{proof(prove)} \\
-%  \isarcmd{defer_recdef} & : & \isartrans{theory}{theory} \\  %FIXME
 \end{matharray}
 
 \railalias{recdefsimp}{recdef\_simp}
@@ -642,6 +640,48 @@ Isar.  These should be never used in proper proof texts!
   elimination rules, $\isarkeyword{inductive_cases}$ provides case split
   theorems at the theory level for later use,
 \end{descr}
+
+
+\subsection{Generating executable code}
+
+Isabelle/Pure provides a generic infrastructure to support code generation
+from executable specifications, both functional and relational programs.
+Isabelle/HOL instantiates these mechanisms in a way that is amenable to
+end-user applications.  See \cite{isabelle-HOL} for further information (this
+actually covers the new-style theory format).
+
+\indexisarcmd{generate-code}\indexisarcmd{consts-code}\indexisarcmd{types-code}
+\indexisaratt{code}
+
+\begin{matharray}{rcl}
+  \isarcmd{generate_code} & : & \isartrans{theory}{theory} \\
+  \isarcmd{consts_code} & : & \isartrans{theory}{theory} \\
+  \isarcmd{types_code} & : & \isartrans{theory}{theory} \\  
+  code & : & \isaratt \\
+\end{matharray}
+
+\railalias{generatecode}{generate\_code}
+\railterm{generatecode}
+
+\railalias{constscode}{consts\_code}
+\railterm{constscode}
+
+\railalias{typescode}{types\_code}
+\railterm{typescode}
+
+\begin{rail}
+  generatecode ( () | '(' name ')') ((name '=' term) +)
+  ;
+  constscode (name ('::' type)? template +)
+  ;
+  typescode (name template +)
+  ;
+  template: '(' string ')'
+  ;
+
+  'code' (name)?
+  ;
+\end{rail}
 
 
 \section{HOLCF}
