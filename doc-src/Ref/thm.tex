@@ -604,22 +604,30 @@ variable by an unknown having subscript~$k$.
 applies {\tt forall_elim_var} repeatedly, for every element of the list~$ks$.
 \end{ttdescription}
 
+
 \subsection{Instantiation of unknowns}
 \index{instantiation}
 \begin{ttbox} 
 instantiate: (indexname * ctyp){\thinspace}list * (cterm * cterm){\thinspace}list -> thm -> thm
 \end{ttbox}
+There are two versions of this rule.  The primitive one is
+\ttindexbold{Thm.instantiate}, which merely performs the instantiation and can
+produce a conclusion not in normal form.  A derived version is  
+\ttindexbold{Drule.instantiate}, which normalizes its conclusion.
+
 \begin{ttdescription}
 \item[\ttindexbold{instantiate} ($tyinsts$, $insts$) $thm$] 
 simultaneously substitutes types for type unknowns (the
 $tyinsts$) and terms for term unknowns (the $insts$).  Instantiations are
 given as $(v,t)$ pairs, where $v$ is an unknown and $t$ is a term (of the
 same type as $v$) or a type (of the same sort as~$v$).  All the unknowns
-must be distinct.  The rule normalizes its conclusion.
+must be distinct.  
 
-Note that \ttindex{instantiate'} (see \S\ref{sec:instantiate})
+In some cases, \ttindex{instantiate'} (see \S\ref{sec:instantiate})
 provides a more convenient interface to this rule.
 \end{ttdescription}
+
+
 
 
 \subsection{Freezing/thawing type unknowns}
