@@ -13,7 +13,7 @@ signature DERIV =
 		 | Asm of int
 		 | Res of deriv
 		 | Equal of deriv
-		 | Thm   of theory * string
+		 | Thm   of string
 		 | Other of deriv;
 
   val size : deriv -> int
@@ -31,7 +31,7 @@ fun size (Join(Theorem _, _)) = 1
 (*Conversion to linear format.  Children of a node are the LIST of inferences
   justifying ONE of the premises*)
 fun rev_deriv (Join (rl, [])) 	= [Join(rl,[])]
-  | rev_deriv (Join (Theorem arg, _)) 	= [Join(Theorem arg, [])]
+  | rev_deriv (Join (Theorem name, _)) 	= [Join(Theorem name, [])]
   | rev_deriv (Join (Assumption arg, [der])) = 
               Join(Assumption arg,[]) :: rev_deriv der
   | rev_deriv (Join (Bicompose arg, [rder, sder])) =
@@ -49,7 +49,7 @@ datatype orule = Subgoal of cterm
 	       | Asm of int
                | Res of deriv
                | Equal of deriv
-               | Thm   of theory * string
+               | Thm   of string
                | Other of deriv;
 
 (*At position i, splice in value x, removing ngoal elements*)
@@ -64,7 +64,7 @@ fun simp_deriv (Join (Equal_elim, [Join (Rewrite_cterm _, []), der])) =
       simp_deriv der
   | simp_deriv (Join (Equal_elim, [Join (Reflexive _, []), der])) =
       simp_deriv der
-  | simp_deriv (Join (rule as Theorem arg, [_])) = Join (rule, [])
+  | simp_deriv (Join (rule as Theorem name, [_])) = Join (rule, [])
   | simp_deriv (Join (rule, ders)) = Join (rule, map simp_deriv ders);
 
 (*Proof term is an equality: first premise of equal_elim.
@@ -132,7 +132,7 @@ fun tree_aux (Join (Trivial ct, []), prfs) = Join(Subgoal ct, prfs)
 		       [rder, sder]), prfs) =
 		(*resolution with basic rule/assumption -- we hope!*)
       tree_aux (sder, splice (i, Res (simp_deriv rder), ngoal, prfs))
-  | tree_aux (Join (Theorem arg, _), prfs)	= Join(Thm arg, prfs)
+  | tree_aux (Join (Theorem name, _), prfs)	= Join(Thm name, prfs)
   | tree_aux (Join (_, [der]), prfs)	= tree_aux (der,prfs)
   | tree_aux (der, prfs) = Join(Other (simp_deriv der), prfs);
 
