@@ -4,6 +4,8 @@
     Copyright:  TU Muenchen
 *)
 
+header {* Summation Operator *}
+
 theory Summation = Group:
 
 (* Instantiation of LC from Finite_Set.thy is not possible,
@@ -54,7 +56,7 @@ next
   then show ?case ..
 qed
 
-subsubsection {* Left-commutative operations *}
+subsection {* Left-commutative operations *}
 
 locale LCD =
   fixes B :: "'b set"
@@ -235,7 +237,7 @@ declare foldSetD_imp_finite [simp del]
 declare (in LCD)
   foldSetD_closed [rule del]
 
-subsubsection {* Commutative monoids *}
+subsection {* Commutative monoids *}
 
 text {*
   We enter a more restrictive context, with @{text "f :: 'a => 'a => 'a"}
@@ -547,7 +549,7 @@ lemma (in agroup_with_sum) setSum_cong1 [cong]:
 
 text {*Usually, if this rule causes a failed congruence proof error,
    the reason is that the premise @{text "g : B -> carrier G"} cannot be shown.
-   Adding Pi_def to the simpset is often useful. *}
+   Adding @{thm [source] Pi_def} to the simpset is often useful. *}
 
 declare funcsetI [rule del]
   funcset_mem [rule del]
