@@ -63,7 +63,7 @@ constdefs
  "wf_mhead G P \<equiv> \<lambda> sig mh. length (parTs sig) = length (pars mh) \<and>
 			    \<spacespace> ( \<forall>T\<in>set (parTs sig). is_acc_type G P T) \<and> 
                             is_acc_type G P (resTy mh) \<and>
-			    \<spacespace> nodups (pars mh)"
+			    \<spacespace> distinct (pars mh)"
 
 
 text {*
@@ -103,7 +103,7 @@ constdefs
 
 lemma wf_mheadI: 
 "\<lbrakk>length (parTs sig) = length (pars m); \<forall>T\<in>set (parTs sig). is_acc_type G P T;
-  is_acc_type G P (resTy m); nodups (pars m)\<rbrakk> \<Longrightarrow>  
+  is_acc_type G P (resTy m); distinct (pars m)\<rbrakk> \<Longrightarrow>  
   wf_mhead G P sig m"
 apply (unfold wf_mhead_def)
 apply (simp (no_asm_simp))

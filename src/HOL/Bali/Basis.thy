@@ -280,7 +280,7 @@ section "unique association lists"
 
 constdefs
   unique   :: "('a \<times> 'b) list \<Rightarrow> bool"
- "unique \<equiv> nodups \<circ> map fst"
+ "unique \<equiv> distinct \<circ> map fst"
 
 lemma uniqueD [rule_format (no_asm)]: 
 "unique l--> (!x y. (x,y):set l --> (!x' y'. (x',y'):set l --> x=x'-->  y=y'))"

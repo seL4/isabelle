@@ -205,7 +205,7 @@ done
 
 lemma lconf_ext_list [rule_format (no_asm)]: "
  \<And>X. \<lbrakk>G,s\<turnstile>l[\<Colon>\<preceq>]L\<rbrakk> \<Longrightarrow> 
-      \<forall>vs Ts. nodups vns \<longrightarrow> length Ts = length vns 
+      \<forall>vs Ts. distinct vns \<longrightarrow> length Ts = length vns 
       \<longrightarrow> list_all2 (conf G s) vs Ts \<longrightarrow> G,s\<turnstile>l(vns[\<mapsto>]vs)[\<Colon>\<preceq>]L(vns[\<mapsto>]Ts)"
 apply (unfold lconf_def)
 apply (induct_tac "vns")
