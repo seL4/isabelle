@@ -668,7 +668,7 @@ lemma Getfield_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>;
   fst (exec_instr (ins!pc) G hp stk loc C sig pc frs) = None \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs2 map_eq_Cons wt_jvm_prog_def 
+apply (clarsimp simp add: defs2 map_eq_Cons wt_jvm_prog_def split_beta
                 split: option.split split_if_asm)
 apply (frule conf_widen)
 apply assumption+

@@ -281,7 +281,7 @@ proof -
       by (clarsimp simp add: app_def)
 
     with eff stk loc pc'
-    have "check_instr (ins!pc) G hp stk loc C sig pc (length ins) frs'"
+    have "check_instr (ins!pc) G hp stk loc C sig pc frs'"
     proof (cases "ins!pc")
       case (Getfield F C) 
       with app stk loc phi obtain v vT stk' where
