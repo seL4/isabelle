@@ -62,6 +62,7 @@ sig
        size : thm list,
        simps : thm list}
   val get_datatypes : theory -> DatatypeAux.datatype_info Symtab.table
+  val print_datatypes : theory -> unit
   val datatype_info_sg : Sign.sg -> string -> DatatypeAux.datatype_info
   val datatype_info : theory -> string -> DatatypeAux.datatype_info
   val constrs_of : theory -> string -> term list option
@@ -97,6 +98,7 @@ structure DatatypesData = TheoryDataFun(DatatypesArgs);
 val get_datatypes_sg = DatatypesData.get_sg;
 val get_datatypes = DatatypesData.get;
 val put_datatypes = DatatypesData.put;
+val print_datatypes = DatatypesData.print;
 
 
 (** theory information about datatypes **)
