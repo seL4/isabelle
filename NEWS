@@ -241,12 +241,15 @@ instead of "inverse";
 
 *** Internal programming interfaces ***
 
-* removed global_names compatibility flag -- all theory declarations
-are qualified by default;
+* Pure: several new basic modules made available for general use, see
+also src/Pure/README;
 
 * improved the theory data mechanism to support encapsulation (data
 kind name replaced by private Object.kind, acting as authorization
 key); new type-safe user interface via functor TheoryDataFun;
+
+* removed global_names compatibility flag -- all theory declarations
+are qualified by default;
 
 * module Pure/Syntax now offers quote / antiquote translation
 functions (useful for Hoare logic etc. with implicit dependencies);
@@ -254,11 +257,10 @@ functions (useful for Hoare logic etc. with implicit dependencies);
 * Simplifier now offers conversions (asm_)(full_)rewrite: simpset ->
 cterm -> thm;
 
-* Pure: several new basic modules made available for general use, see
-also src/Pure/README;
-
 * new tactical CHANGED_GOAL for checking that a tactic modifies a
 subgoal;
+
+* Display.print_goals function moved to Locale.print_goals;
 
 
 
