@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
@@ -74,6 +73,10 @@ logics (again);
 
 
 *** HOL ***
+
+* HOL/simplifier: added infix function `addsplits':
+  instead of `<simpset> setloop (split_tac <thms>)'
+  you can simply write `<simpset> adsplits <thms>'
 
 * HOL/simplifier: terms of the form
   `? x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x)' (or t=x)
