@@ -1,4 +1,3 @@
-
 structure HOL =
 struct
   val thy = the_context ();
