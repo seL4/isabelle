@@ -60,7 +60,7 @@ sig
   val single: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val bulk: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   type lexicon
-  val dest_lexicon: lexicon -> string list list
+  val dest_lexicon: lexicon -> string list
   val make_lexicon: string list list -> lexicon
   val empty_lexicon: lexicon
   val extend_lexicon: lexicon -> string list list -> lexicon
@@ -240,11 +240,13 @@ val no_literal = [];
 
 (* dest_lexicon *)
 
-fun dest_lexicon Empty = []
-  | dest_lexicon (Branch (_, [], lt, eq, gt)) =
-      dest_lexicon lt @ dest_lexicon eq @ dest_lexicon gt
-  | dest_lexicon (Branch (_, cs, lt, eq, gt)) =
-      dest_lexicon lt @ [cs] @ dest_lexicon eq @ dest_lexicon gt;
+fun dest_lex Empty = []
+  | dest_lex (Branch (_, [], lt, eq, gt)) =
+      dest_lex lt @ dest_lex eq @ dest_lex gt
+  | dest_lex (Branch (_, cs, lt, eq, gt)) =
+      dest_lex lt @ [cs] @ dest_lex eq @ dest_lex gt;
+
+val dest_lexicon = map implode o dest_lex;
 
 
 (* empty, extend, make, merge lexicons *)
@@ -265,14 +267,14 @@ fun extend_lexicon lexicon chrss =
 	      Branch (c, no_literal, Empty, add Empty cs, Empty)
 	  | add lex [] = lex;
       in add lex chrs end;
-  in foldl ext (lexicon, chrss \\ dest_lexicon lexicon) end;
+  in foldl ext (lexicon, chrss \\ dest_lex lexicon) end;
 
 val make_lexicon = extend_lexicon empty_lexicon;
 
 fun merge_lexicons lex1 lex2 =
   let
-    val chss1 = dest_lexicon lex1;
-    val chss2 = dest_lexicon lex2;
+    val chss1 = dest_lex lex1;
+    val chss2 = dest_lex lex2;
   in
     if chss2 subset chss1 then lex1
     else if chss1 subset chss2 then lex2

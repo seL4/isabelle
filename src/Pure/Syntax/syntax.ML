@@ -281,7 +281,7 @@ fun print_gram (Syntax tabs) =
     val {lexicon, logtypes, prmodes, gram, prtabs, ...} = tabs;
     val prmodes' = sort_strings (filter_out (equal "") prmodes);
   in
-    Pretty.writeln (pretty_strs_qs "lexicon:" (map implode (Scan.dest_lexicon lexicon)));
+    Pretty.writeln (pretty_strs_qs "lexicon:" (Scan.dest_lexicon lexicon));
     Pretty.writeln (Pretty.strs ("logtypes:" :: logtypes));
     Pretty.writeln (Pretty.big_list "prods:" (Parser.pretty_gram gram));
     Pretty.writeln (pretty_strs_qs "print modes:" prmodes')
