@@ -292,9 +292,9 @@ and cases(binders,env as (iTs,itms),pat,obj) =
 
 fun match tsg = (tsgr := tsg;
                  fn (pat,obj) => 
-                   let val pT = fastype_of([],pat)
-                       and oT = fastype_of([],obj)
-                       val iTs = typ_match([],(pT,oT))
+                   let val pT = fastype_of pat
+                       and oT = fastype_of obj
+                       val iTs = typ_match ([],(pT,oT))
                    in mtch([], (iTs,[]), pat, eta_contract obj)
                       handle Pattern => raise MATCH
                    end)
@@ -317,7 +317,7 @@ fun match tsig (pat,obj) =
 	(Var(ixn,T), t)  =>
 	  if null (loose_bnos t)
 	  then case assoc(insts,ixn) of
-		  None => (typ_match (tyinsts, (T,fastype_of([],t))), 
+		  None => (typ_match (tyinsts, (T, fastype_of t)), 
 			   (ixn,t)::insts)
 		| Some u => if t aconv u then (tyinsts,insts) else raise MATCH
 	  else raise MATCH
