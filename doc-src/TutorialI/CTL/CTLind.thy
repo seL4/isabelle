@@ -16,7 +16,7 @@ that if no infinite path from some state @{term s} is @{term A}-avoiding,
 then @{prop"s \<in> lfp(af A)"}. We prove this by inductively defining the set
 @{term"Avoid s A"} of states reachable from @{term s} by a finite @{term
 A}-avoiding path:
-% Second proof of opposite direction, directly by wellfounded induction
+% Second proof of opposite direction, directly by well-founded induction
 % on the initial segment of M that avoids A.
 *}
 
@@ -66,14 +66,14 @@ lemma Avoid_in_lfp[rule_format(no_asm)]:
   "\<forall>p\<in>Paths s. \<exists>i. p i \<in> A \<Longrightarrow> t \<in> Avoid s A \<longrightarrow> t \<in> lfp(af A)";
 txt{*\noindent
 The trick is not to induct on @{prop"t \<in> Avoid s A"}, as already the base
-case would be a problem, but to proceed by wellfounded induction @{term
+case would be a problem, but to proceed by well-founded induction @{term
 t}. Hence @{prop"t \<in> Avoid s A"} needs to be brought into the conclusion as
 well, which the directive @{text rule_format} undoes at the end (see below).
-But induction with respect to which wellfounded relation? The restriction
+But induction with respect to which well-founded relation? The restriction
 of @{term M} to @{term"Avoid s A"}:
 @{term[display]"{(y,x). (x,y) \<in> M \<and> x \<in> Avoid s A \<and> y \<in> Avoid s A \<and> x \<notin> A}"}
 As we shall see in a moment, the absence of infinite @{term A}-avoiding paths
-starting from @{term s} implies wellfoundedness of this relation. For the
+starting from @{term s} implies well-foundedness of this relation. For the
 moment we assume this and proceed with the induction:
 *}
 
@@ -100,8 +100,8 @@ hence, by the induction hypothesis, all successors of @{term t} are indeed in
 
 txt{*
 Having proved the main goal we return to the proof obligation that the above
-relation is indeed wellfounded. This is proved by contraposition: we assume
-the relation is not wellfounded. Thus there exists an infinite @{term
+relation is indeed well-founded. This is proved by contraposition: we assume
+the relation is not well-founded. Thus there exists an infinite @{term
 A}-avoiding path all in @{term"Avoid s A"}, by theorem
 @{thm[source]wf_iff_no_infinite_down_chain}:
 @{thm[display]wf_iff_no_infinite_down_chain[no_vars]}

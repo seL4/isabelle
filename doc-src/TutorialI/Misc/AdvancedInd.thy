@@ -290,16 +290,16 @@ by(insert induct_lem, blast);
 text{*
 
 Finally we should mention that HOL already provides the mother of all
-inductions, \textbf{wellfounded
-induction}\indexbold{induction!wellfounded}\index{wellfounded
-induction|see{induction, wellfounded}} (@{thm[source]wf_induct}):
+inductions, \textbf{well-founded
+induction}\indexbold{induction!well-founded}\index{well-founded
+induction|see{induction, well-founded}} (@{thm[source]wf_induct}):
 @{thm[display]wf_induct[no_vars]}
-where @{term"wf r"} means that the relation @{term r} is wellfounded
-(see \S\ref{sec:wellfounded}).
+where @{term"wf r"} means that the relation @{term r} is well-founded
+(see \S\ref{sec:well-founded}).
 For example, theorem @{thm[source]nat_less_induct} can be viewed (and
 derived) as a special case of @{thm[source]wf_induct} where 
 @{term r} is @{text"<"} on @{typ nat}. The details can be found in the HOL library.
-For a mathematical account of wellfounded induction see, for example, \cite{Baader-Nipkow}.
+For a mathematical account of well-founded induction see, for example, \cite{Baader-Nipkow}.
 *};
 
 (*<*)

@@ -23,30 +23,30 @@ third equation) or its first component stays the same and the second
 component decreases (as in the inner call in the third equation).
 
 In general, \isacommand{recdef} supports termination proofs based on
-arbitrary \emph{wellfounded relations}, i.e.\ \emph{wellfounded
-recursion}\indexbold{recursion!wellfounded}\index{wellfounded
-recursion|see{recursion, wellfounded}}.  A relation $<$ is
-\bfindex{wellfounded} if it has no infinite descending chain $\cdots <
+arbitrary \emph{well-founded relations}, i.e.\ \emph{well-founded
+recursion}\indexbold{recursion!well-founded}\index{well-founded
+recursion|see{recursion, well-founded}}.  A relation $<$ is
+\bfindex{well-founded} if it has no infinite descending chain $\cdots <
 a@2 < a@1 < a@0$. Clearly, a function definition is total iff the set
 of all pairs $(r,l)$, where $l$ is the argument on the left-hand side
 of an equation and $r$ the argument of some recursive call on the
-corresponding right-hand side, induces a wellfounded relation.  For a
-systematic account of termination proofs via wellfounded relations
+corresponding right-hand side, induces a well-founded relation.  For a
+systematic account of termination proofs via well-founded relations
 see, for example, \cite{Baader-Nipkow}. The HOL library formalizes
-some of the theory of wellfounded relations. For example
+some of the theory of well-founded relations. For example
 \isa{wf\ r}\index{*wf|bold} means that relation \isa{r{\isasymColon}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set} is
-wellfounded.
+well-founded.
 
 Each \isacommand{recdef} definition should be accompanied (after the
-name of the function) by a wellfounded relation on the argument type
+name of the function) by a well-founded relation on the argument type
 of the function. For example, \isaindexbold{measure} is defined by
 \begin{isabelle}%
 \ \ \ \ \ measure\ f\ {\isasymequiv}\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}{\isachardot}\ f\ y\ {\isacharless}\ f\ x{\isacharbraceright}%
 \end{isabelle}
-and it has been proved that \isa{measure\ f} is always wellfounded.
+and it has been proved that \isa{measure\ f} is always well-founded.
 
 In addition to \isa{measure}, the library provides
-a number of further constructions for obtaining wellfounded relations.
+a number of further constructions for obtaining well-founded relations.
 Above we have already met \isa{{\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}} of type
 \begin{isabelle}%
 \ \ \ \ \ {\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ {\isasymtimes}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}{\isacharparenright}set{\isachardoublequote}%
@@ -64,7 +64,7 @@ function definition:%
 \begin{isamarkuptext}%
 Lexicographic products of measure functions already go a long way. A
 further useful construction is the embedding of some type in an
-existing wellfounded relation via the inverse image of a function:
+existing well-founded relation via the inverse image of a function:
 \begin{isabelle}%
 \ \ \ \ \ inv{\isacharunderscore}image\ {\isacharparenleft}r{\isasymColon}{\isacharparenleft}{\isacharprime}b\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set{\isacharparenright}\ {\isacharparenleft}f{\isasymColon}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymequiv}\isanewline
 \ \ \ \ \ {\isacharbraceleft}{\isacharparenleft}x{\isasymColon}{\isacharprime}a{\isacharcomma}\ y{\isasymColon}{\isacharprime}a{\isacharparenright}{\isachardot}\ {\isacharparenleft}f\ x{\isacharcomma}\ f\ y{\isacharparenright}\ {\isasymin}\ r{\isacharbraceright}%
@@ -79,13 +79,13 @@ For example, \isa{measure} is actually defined as \isa{inv{\isacharunderscore}ma
 %Finally there is also {finite_psubset} the proper subset relation on finite sets
 
 All the above constructions are known to \isacommand{recdef}. Thus you
-will never have to prove wellfoundedness of any relation composed
+will never have to prove well-foundedness of any relation composed
 solely of these building blocks. But of course the proof of
 termination of your function definition, i.e.\ that the arguments
 decrease with every recursive call, may still require you to provide
 additional lemmas.
 
-It is also possible to use your own wellfounded relations with \isacommand{recdef}.
+It is also possible to use your own well-founded relations with \isacommand{recdef}.
 Here is a simplistic example:%
 \end{isamarkuptext}%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
@@ -95,7 +95,7 @@ Here is a simplistic example:%
 \begin{isamarkuptext}%
 Since \isacommand{recdef} is not prepared for \isa{id}, the identity
 function, this leads to the complaint that it could not prove
-\isa{wf\ {\isacharparenleft}id\ less{\isacharunderscore}than{\isacharparenright}}, the wellfoundedness of \isa{id\ less{\isacharunderscore}than}. We should first have proved that \isa{id} preserves wellfoundedness%
+\isa{wf\ {\isacharparenleft}id\ less{\isacharunderscore}than{\isacharparenright}}, the well-foundedness of \isa{id\ less{\isacharunderscore}than}. We should first have proved that \isa{id} preserves well-foundedness%
 \end{isamarkuptext}%
 \isacommand{lemma}\ wf{\isacharunderscore}id{\isacharcolon}\ {\isachardoublequote}wf\ r\ {\isasymLongrightarrow}\ wf{\isacharparenleft}id\ r{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{by}\ simp%

@@ -21,28 +21,28 @@ third equation) or its first component stays the same and the second
 component decreases (as in the inner call in the third equation).
 
 In general, \isacommand{recdef} supports termination proofs based on
-arbitrary \emph{wellfounded relations}, i.e.\ \emph{wellfounded
-recursion}\indexbold{recursion!wellfounded}\index{wellfounded
-recursion|see{recursion, wellfounded}}.  A relation $<$ is
-\bfindex{wellfounded} if it has no infinite descending chain $\cdots <
+arbitrary \emph{well-founded relations}, i.e.\ \emph{well-founded
+recursion}\indexbold{recursion!well-founded}\index{well-founded
+recursion|see{recursion, well-founded}}.  A relation $<$ is
+\bfindex{well-founded} if it has no infinite descending chain $\cdots <
 a@2 < a@1 < a@0$. Clearly, a function definition is total iff the set
 of all pairs $(r,l)$, where $l$ is the argument on the left-hand side
 of an equation and $r$ the argument of some recursive call on the
-corresponding right-hand side, induces a wellfounded relation.  For a
-systematic account of termination proofs via wellfounded relations
+corresponding right-hand side, induces a well-founded relation.  For a
+systematic account of termination proofs via well-founded relations
 see, for example, \cite{Baader-Nipkow}. The HOL library formalizes
-some of the theory of wellfounded relations. For example
+some of the theory of well-founded relations. For example
 @{prop"wf r"}\index{*wf|bold} means that relation @{term[show_types]"r::('a*'a)set"} is
-wellfounded.
+well-founded.
 
 Each \isacommand{recdef} definition should be accompanied (after the
-name of the function) by a wellfounded relation on the argument type
+name of the function) by a well-founded relation on the argument type
 of the function. For example, \isaindexbold{measure} is defined by
 @{prop[display]"measure(f::'a \<Rightarrow> nat) \<equiv> {(y,x). f y < f x}"}
-and it has been proved that @{term"measure f"} is always wellfounded.
+and it has been proved that @{term"measure f"} is always well-founded.
 
 In addition to @{term measure}, the library provides
-a number of further constructions for obtaining wellfounded relations.
+a number of further constructions for obtaining well-founded relations.
 Above we have already met @{text"<*lex*>"} of type
 @{typ[display,source]"('a \<times> 'a)set \<Rightarrow> ('b \<times> 'b)set \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b))set"}
 Of course the lexicographic product can also be interated, as in the following
@@ -60,7 +60,7 @@ recdef contrived
 text{*
 Lexicographic products of measure functions already go a long way. A
 further useful construction is the embedding of some type in an
-existing wellfounded relation via the inverse image of a function:
+existing well-founded relation via the inverse image of a function:
 @{thm[display,show_types]inv_image_def[no_vars]}
 \begin{sloppypar}
 \noindent
@@ -72,13 +72,13 @@ For example, @{term measure} is actually defined as @{term"inv_mage less_than"},
 %Finally there is also {finite_psubset} the proper subset relation on finite sets
 
 All the above constructions are known to \isacommand{recdef}. Thus you
-will never have to prove wellfoundedness of any relation composed
+will never have to prove well-foundedness of any relation composed
 solely of these building blocks. But of course the proof of
 termination of your function definition, i.e.\ that the arguments
 decrease with every recursive call, may still require you to provide
 additional lemmas.
 
-It is also possible to use your own wellfounded relations with \isacommand{recdef}.
+It is also possible to use your own well-founded relations with \isacommand{recdef}.
 Here is a simplistic example:
 *}
 
@@ -90,8 +90,8 @@ recdef f "id(less_than)"
 text{*
 Since \isacommand{recdef} is not prepared for @{term id}, the identity
 function, this leads to the complaint that it could not prove
-@{prop"wf (id less_than)"}, the wellfoundedness of @{term"id
-less_than"}. We should first have proved that @{term id} preserves wellfoundedness
+@{prop"wf (id less_than)"}, the well-foundedness of @{term"id
+less_than"}. We should first have proved that @{term id} preserves well-foundedness
 *}
 
 lemma wf_id: "wf r \<Longrightarrow> wf(id r)"
