@@ -11,8 +11,8 @@ local
     HTML.setup @
     ProofContext.setup @
     Attrib.setup @
-    Method.setup @
     InductAttrib.setup @
+    Method.setup @
     Calculation.setup @
     SkipProof.setup @
     AxClass.setup @
