@@ -9,7 +9,7 @@ export ISABELLE_HOME
 
 set -o allexport
 
-#users tend to put strange things in here
+#users tend to put strange things in here ...
 unset ENV
 unset BASH_ENV
 
@@ -18,6 +18,7 @@ unset HOSTTYPE
 unset OSTYPE
 PLATFORM=$(bash -norc -c 'echo $HOSTTYPE-$OSTYPE')
 
+#get actual settings
 . $ISABELLE_HOME/etc/settings || exit 2
 [ -f $ISABELLE_HOME_USER/etc/settings ] && . $ISABELLE_HOME_USER/etc/settings
 
