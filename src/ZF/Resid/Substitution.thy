@@ -1,4 +1,4 @@
-(*  Title:      Substitution.thy
+(*  Title:      ZF/Resid/Substitution.thy
     ID:         $Id$
     Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
@@ -42,10 +42,10 @@ primrec
      (lam r:redexes. lam k:nat. if k<i then Var(i #- 1) 
 				else if k=i then r else Var(i))"
   "subst_aux(Fun(t)) =
-     (lam r:redexes. lam k:nat. Fun(subst_rec(lift(r), t, succ(k))))"
+     (lam r:redexes. lam k:nat. Fun(subst_aux(t) ` lift(r) ` succ(k)))"
 
   "subst_aux(App(b,f,a)) = 
-     (lam r:redexes. lam k:nat. App(b, subst_rec(r,f,k), subst_rec(r,a,k)))"
+     (lam r:redexes. lam k:nat. App(b, subst_aux(f)`r`k, subst_aux(a)`r`k))"
 
 end
 

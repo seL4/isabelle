@@ -1,4 +1,4 @@
-(*  Title:      Redex.thy
+(*  Title:      ZF/Resid/Redex.thy
     ID:         $Id$
     Author:     Ole Rasmussen
     Copyright   1995  University of Cambridge
@@ -22,27 +22,28 @@ consts
   union_aux        :: i=>i
   regular          :: i=>o
   
+translations
+  "a<==b"        == "<a,b>:Ssub"
+  "a ~ b"        == "<a,b>:Scomp"
+  "regular(a)"   == "a:Sreg"
+
+
 primrec (*explicit lambda is required because both arguments of "un" vary*)
   "union_aux(Var(n)) =
      (lam t:redexes. redexes_case(%j. Var(n), %x. 0, %b x y.0, t))"
 
   "union_aux(Fun(u)) =
-     (lam t:redexes. redexes_case(%j. 0, %y. Fun(u un y),
+     (lam t:redexes. redexes_case(%j. 0, %y. Fun(union_aux(u)`y),
 	 			  %b y z. 0, t))"
 
   "union_aux(App(b,f,a)) =
      (lam t:redexes.
         redexes_case(%j. 0, %y. 0,
-		     %c z u. App(b or c, f un z, a un u), t))"
+		     %c z u. App(b or c, union_aux(f)`z, union_aux(a)`u), t))"
 
 defs
   union_def  "u un v == union_aux(u)`v"
 
-
-translations
-  "a<==b"        == "<a,b>:Ssub"
-  "a ~ b"        == "<a,b>:Scomp"
-  "regular(a)"   == "a:Sreg"
 
 inductive
   domains       "Ssub" <= "redexes*redexes"
