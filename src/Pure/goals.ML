@@ -142,7 +142,7 @@ fun prepare_proof rths chorn =
             val th = implies_intr_list cAs state
             val {hyps,prop,sign=sign',...} = rep_thm th
         in  if not check then standard th
-	    else if not (eq_sg(sign,sign')) then result_error state
+	    else if not (Sign.eq_sg(sign,sign')) then result_error state
 		("Signature of proof state has changed!" ^
 		 sign_error (sign,sign'))
             else if ngoals>0 then result_error state
@@ -156,7 +156,7 @@ fun prepare_proof rths chorn =
 	    else  result_error state "proved a different theorem"
         end
   in  
-     if eq_sg(sign, #sign(rep_thm st0)) 
+     if Sign.eq_sg(sign, #sign(rep_thm st0)) 
      then (prems, st0, mkresult)
      else error ("Definitions would change the proof state's signature" ^
 		 sign_error (sign, #sign(rep_thm st0)))
