@@ -1,11 +1,12 @@
+%% $Id$
 
 \chapter{Presenting theories}
 
-\section{Generating HTML documents} \label{sec:html}
-\index{HTML|bold} 
+\section{Generating theory browsing information} \label{sec:info}
+\index{theory browsing information|bold} 
 
-Isabelle is able to make HTML documents that show a theory's
-definition, the theorems proved in its ML file and the relationship
+Isabelle is able to generate theory browsing information, such as HTML documents
+that show a theory's definition, the theorems proved in its ML file and the relationship
 with its ancestors and descendants. HTML is the hypertext markup
 language used on the World Wide Web to represent text containing
 images and links to other documents.  These documents may be viewed
@@ -17,17 +18,29 @@ links to all theories in an index file. These indexes are themself
 linked with other indexes to represent the hierarchic structure of
 Isabelle's logics.
 
-\medskip To make HTML files for logics that are part of the Isabelle
-distribution, simply append ``\texttt{-h true}'' to the
-\texttt{ISABELLE_USEDIR_OPTIONS} setting before making a logic.  For
-example, to generate HTML files for {\FOL}, first add something like
+In addition to the HTML files also {\tt *.graph} files representing the theory
+hierarchy graph of a logic are generated. These graphs can be comfortably
+displayed by a graph browser applet embedded in the generated HTML pages. There
+is also a stand-alone version of the graph browser which allows browsing theory
+graphs without having to start a Web browser first. This version also includes
+features such as generating {\sc PostScript} files, which are not available in the
+applet version. The graph browser will be described later in this chapter.
+
+\medskip To generate theory browsing information for logics that are part of the Isabelle
+distribution, simply append ``\texttt{-i true}'' to the
+\settdx{ISABELLE_USEDIR_OPTIONS} setting before making a logic.  For
+example, to generate browsing information for {\FOL}, first add something like
 this to your \texttt{\~\relax/isabelle/etc/settings} file:
 \begin{ttbox}
-ISABELLE_USEDIR_OPTIONS="-h true"
+ISABELLE_USEDIR_OPTIONS="-i true"
 \end{ttbox}
 Then \texttt{cd} into the \texttt{src/FOL} directory of the Isabelle
 distribution and do an \texttt{isatool make} (or even \texttt{isatool
-  make test}).
+  make test}).\\
+
+The directory in which to store theory browsing information is determined 
+by the \settdx{ISABELLE_BROWSER_INFO} variable in your \texttt{\~\relax/isabelle/etc/settings}
+file.
 
 \medskip As some of Isabelle's logics are based on others (e.g. {\tt
   ZF} on {\tt FOL}) and because the HTML files list a theory's
@@ -36,84 +49,32 @@ files for the base logic do not exist. Otherwise some of the hypertext
 links might point to non-existing documents.
 
 The entry point to all logics is the {\tt index.html} file located in
-Isabelle's main directory.
+the directory denoted by \texttt{ISABELLE_BROWSER_INFO}.
 
 A complete HTML version of all distributed Isabelle object-logics and
 examples may be accessed on the WWW at:
 \begin{ttbox}
-http://www4.informatik.tu-muenchen.de/~nipkow/isabelle/
+http://www4.informatik.tu-muenchen.de/~isabelle/library/
 \end{ttbox}
 Note that this is not necessarily consistent with your local sources!
 
+To present your own theories on the WWW, simply copy the whole
+\texttt{ISABELLE_BROWSER_INFO} directory to your WWW server.
 
-\section*{*HTML generation internals}
-
-The generation of HTML files is controlled by the following {\ML}
-commands and reference variables:
-\begin{ttbox}
-init_html   : unit -> unit
-make_html   : bool ref
-finish_html : unit -> unit
-\end{ttbox}
-
-\begin{ttdescription}
-\item[\ttindexbold{init_html}]
-activates the HTML facility. It stores the current working directory
-as the place where the {\tt index.html} file for all theories loaded
-afterwards will be stored.
-
-\item[\ttindexbold{make_html}]
-is a boolean reference variable read by {\tt use_thy} and other
-functions to decide whether HTML files should be made. After you have
-used {\tt init_html} you can manually change {\tt make_html}'s value
-to temporarily disable HTML generation.
-
-\item[\ttindexbold{finish_html}]
-has to be called after all theories have been read that should be
-listed in the current {\tt index.html} file. It reads a temporary
-file with information about the theories read since the last use of
-{\tt init_html} and makes the {\tt index.html} file. If {\tt
-make_html} is {\tt false} nothing is done.
-
-The indexes made by this function also contain a link to the
-\texttt{README.html} or \texttt{README} file if there exists one in
-the directory where the index is stored. If there's a {\tt
-  README.html} file it is used instead of {\tt README}.
-
-\end{ttdescription}
-
-The above functions could be used in the following way:
-
-\begin{ttbox}
-init_html();
-{\out Setting path for index.html to "/home/me/Isabelle-dist/src/HOL"}
-use_thy "List";
-\dots
-finish_html();
-\end{ttbox}
-
-Please note that HTML files are made only for those theories that are
-read while \texttt{make_html} is \texttt{true}. These files may
-contain links to theories that were read with a \texttt{make_html} set
-to \texttt{false} and therefore point to non-existing files.
-
-
-\section*{Extending or adding a logic}
+\section{Extending or adding a logic}
 
 If you add a new subdirectory to Isabelle's logics (or add a
-completely new logic), you would have to call {\tt init_html} at the
-start of every directory's {\tt ROOT.ML} file and {\tt finish_html} at
-the end of it. This is automatically done if you use
+completely new logic), provide a {\tt ROOT.ML} file which reads in the
+theory files. The {\tt ROOT.ML} file will then be processed via the function
 
 \begin{ttbox}\index{*use_dir}
 use_dir : string -> unit
 \end{ttbox}
 
-This function takes a path as its parameter, changes the working
-directory, calls {\tt init_html} if {\tt make_html} is {\tt true},
-executes {\tt ROOT.ML}, and calls {\tt finish_html}. The {\tt
-index.html} file written in this directory will be automatically
-linked to the first index found in the (recursively searched)
+which takes a path as its parameter, changes the working
+directory, executes {\tt ROOT.ML}, and makes sure that theory browsing information
+is generated properly. The {\tt index.html} file written in this directory will
+be automatically linked to the first index found in the (recursively searched)
 super directories.
 
 The \texttt{usedir} utility (see also \S\ref{sec:tool-usedir}) will
@@ -135,40 +96,145 @@ heading and inserts it before the next theorem proved or stored with
 one of the above functions.
 
 
-\section*{*Using someone else's database}
+%\section*{*Using someone else's database}
+%
+%To make them independent from their storage place, the HTML files only
+%contain relative paths which are derived from absolute ones like the
+%current working directory, {\tt gif_path} or {\tt base_path}. The
+%latter two are reference variables which are initialized at the time
+%when the {\tt Pure} database is made. Because you need write access
+%for the current directory to make HTML files and therefore (probably)
+%generate them in your home directory, the absolute {\tt base_path} is
+%not correct if you use someone else's database or a database derived
+%from it.
+%
+%In that case you first should set {\tt base_path} to the value of {\em
+%your} Isabelle main directory, i.e. the directory that contains the
+%subdirectories where standard logics like {\tt FOL} and {\tt HOL} or
+%your own logics are stored. If you do not do this, the generated HTML
+%files will still be usable but may contain incomplete titles and lack
+%some hypertext links.
+%
+%It's also a good idea to set {\tt gif_path} which points to the
+%directory containing two GIF images used in the HTML documents.
+%Normally this is the \texttt{src/Tools} subdirectory of Isabelle's
+%main directory. While its value in general is still valid, your HTML
+%files would depend on files not owned by you. This prevents you from
+%changing the location of the HTML files (as they contain relative
+%paths) and also causes trouble if the database's maker (re)moves the
+%GIFs.
+%
+%Here's what you should do before invoking {\tt init_html} using
+%someone else's \ML{} database:
+%
+%\begin{ttbox}
+%base_path := "/home/someone/Isabelle-dist/src";
+%gif_path := "/home/someone/Isabelle-dist/src/Tools";
+%init_html();
+%\dots
+%\end{ttbox}
 
-To make them independent from their storage place, the HTML files only
-contain relative paths which are derived from absolute ones like the
-current working directory, {\tt gif_path} or {\tt base_path}. The
-latter two are reference variables which are initialized at the time
-when the {\tt Pure} database is made. Because you need write access
-for the current directory to make HTML files and therefore (probably)
-generate them in your home directory, the absolute {\tt base_path} is
-not correct if you use someone else's database or a database derived
-from it.
 
-In that case you first should set {\tt base_path} to the value of {\em
-your} Isabelle main directory, i.e. the directory that contains the
-subdirectories where standard logics like {\tt FOL} and {\tt HOL} or
-your own logics are stored. If you do not do this, the generated HTML
-files will still be usable but may contain incomplete titles and lack
-some hypertext links.
+\section{Browsing theory graphs} \label{sec:browse}
+\index{theory graph browser|bold} 
 
-It's also a good idea to set {\tt gif_path} which points to the
-directory containing two GIF images used in the HTML documents.
-Normally this is the \texttt{src/Tools} subdirectory of Isabelle's
-main directory. While its value in general is still valid, your HTML
-files would depend on files not owned by you. This prevents you from
-changing the location of the HTML files (as they contain relative
-paths) and also causes trouble if the database's maker (re)moves the
-GIFs.
+The graph browser is a tool for visualizing
+dependency graphs of Isabelle theories. Certain nodes of
+the graph (i.e.~theories) can be grouped together in "directories",
+whose contents may be hidden, thus enabling the user to filter out
+irrelevant information. Because it is written in Java, the browser
+can be used both as a stand-alone application and as an applet.
 
-Here's what you should do before invoking {\tt init_html} using
-someone else's \ML{} database:
-
+\subsection{Invoking the graph browser}
+The stand-alone version of the browser can be invoked by the command
 \begin{ttbox}
-base_path := "/home/someone/Isabelle-dist/src";
-gif_path := "/home/someone/Isabelle-dist/src/Tools";
-init_html();
-\dots
+isatool browser [filename]
 \end{ttbox}
+When no filename is specified, the browser automatically changes to the directory
+\texttt{ISABELLE_BROWSER_INFO/graph/data}.\\
+
+The applet version of the browser can be invoked by opening the {\tt index.html} file
+in the directory \texttt{ISABELLE_BROWSER_INFO} from your Web browser and selecting
+"version for Java capable browsers". Besides, there's a link to the corresponding theory graph
+in every logic's {\tt index.html} file.
+
+\subsection{Using the graph browser}
+The browser's main window, which is shown in figure \ref{browserwindow},
+consists of two subwindows: In the left subwindow, the directory tree
+is displayed. The graph itself is displayed in the right subwindow.
+\begin{figure}[h]
+\setlength{\epsfxsize}{\textwidth}
+\epsffile{browser_screenshot.eps}
+\caption{\label{browserwindow} Browser main window}
+\end{figure}
+
+\subsubsection*{The directory tree window}
+This section describes the usage of the directory browser and the
+meaning of the different items in the browser window.
+\begin{itemize}
+\item A red arrow before a directory name indicates that the directory is
+currently "folded", i.e.~the nodes in this directory
+are collapsed to one single node. In the right subwindow, the names of
+nodes corresponding to folded directories are enclosed in square brackets
+and displayed in red colour.
+\item A green downward arrow before a directory name indicates that the
+directory is currently "unfolded". It can be folded by clicking on the
+directory name.
+Clicking on the name for a second time unfolds the directory again.
+Alternatively, a directory can also be unfolded by clicking on the
+corresponding node in the right subwindow.
+\item Blue arrows stand before ordinary node (i.e.~theory) names. When
+clicking on such a name, the graph display window focuses to the
+corresponding node. Double clicking invokes a text viewer window in
+which the contents of the theory file are displayed.
+\end{itemize}
+
+\subsubsection*{The graph display window}
+When pointing on an ordinary node, an upward and a downward arrow is shown.
+Initially, both of these arrows are coloured green. Clicking on the
+upward or downward arrow collapses all predecessor or successor nodes,
+respectively. The arrow's colour then changes to red, indicating that
+the predecessor or successor nodes are currently collapsed. The node
+corresponding to the collapsed nodes has the name "{\tt [....]}". To
+uncollapse the nodes again, simply click on the red arrow or on the node
+with the name "{\tt [....]}". Similar to the directory browser, the contents
+of theory files can be displayed by double clicking on the corresponding
+node. 
+
+\subsubsection*{The "File" menu}
+Please note that, due to security restrictions, this menu is not available
+in the applet version. The meaning of the menu items is as follows:
+\begin{description}
+\item[Open$\ldots$] Open a new graph file.
+\item[Export to PostScript] Outputs the current graph in {\sc PostScript}
+format, appropriately scaled to fit on one single sheet of paper.
+The resulting file can be sent directly to a {\sc PostScript} capable printer.
+\item[Export to EPS] Outputs the current graph in Encapsulated {\sc PostScript}
+format. The resulting file can be included in other documents (e.g.~by using
+the \LaTeX \ package "epsf").
+\item[Quit] Quit the graph browser.
+\end{description}
+
+\subsection*{*Syntax of graph definition files}
+A graph definition file has the following syntax:
+\begin{eqnarray*}
+\mbox{\it graph} & = & \{ \: \mbox{\it vertex \tt ;} \: \} ^ + \\
+vertex & = & \mbox{\it vertexname} \: \mbox{\it vertexID} \: \mbox{\it dirname} \: [ \mbox{\tt +} ]
+\: \mbox{\it path} \: [ \mbox{\tt <} | \mbox{\tt >} ] \: \{ \: \mbox{\it vertexID} \: \} ^ *
+\end{eqnarray*}
+The meaning of the items in a vertex description is as follows:
+\begin{description}
+\item[vertexname] The name of the vertex.
+\item[vertexID] The vertex identifier. Note that there may be two vertices with equal names,
+whereas identifiers must be unique.
+\item[dirname] The name of the "directory" the vertex should be placed in.
+A "{\tt +}" sign after {\it dirname} indicates that the nodes in the directory
+are initially visible. Directories are initially invisible by default.
+\item[path] The path of the corresponding theory file. This is specified
+relatively to the path of the graph definition file.
+\item[List of successor/predecessor nodes] A "{\tt <}" sign before the list
+means that successor nodes are listed, a "{\tt >}" sign means that predecessor
+nodes are listed. If neither "{\tt <}" nor "{\tt >}" is found, the browser
+assumes that successor nodes are listed.
+\end{description}
+All names should be put in quotation marks.
