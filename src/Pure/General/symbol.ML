@@ -43,7 +43,7 @@ val enc_end = 255;
 val enc_vector =
 [
 (* GENERATED TEXT FOLLOWS - Do not edit! *)
-  "\\<space2>",
+  "\\<spacespace>",
   "\\<Gamma>",
   "\\<Delta>",
   "\\<Theta>",
@@ -194,7 +194,7 @@ fun is_quasi_letter "_" = true
 
 val is_blank =
   fn " " => true | "\t" => true | "\n" => true | "\^L" => true
-    | "\160" => true | "\\<space2>" => true
+    | "\160" => true | "\\<spacespace>" => true
     | _ => false;
 
 val is_letdig = is_quasi_letter orf is_digit;
@@ -262,7 +262,11 @@ fun input str =
     else implode (map symbol' chs)
   end;
 
-val output = implode o map char o sym_explode;
+fun char' s = if size s > 1 then "\\" ^ s else s;
+fun output s = let val chr = (* if "isabelle_font" mem_string !print_mode *)
+(* FIXME: does not work yet, because of static calls to output in printer.ML *)
+			     (* then *) char (* else char'*)
+		in (implode o map chr o sym_explode) s end;
 
 
 (*final declarations of this structure!*)
