@@ -22,6 +22,11 @@ result_error_fn;
 * deleted the obsolete tactical STATE, which was declared by
     fun STATE tacfun st = tacfun st st;
 
+* no longer handles consts "" -- use syntax instead;
+
+* pretty printer: changed order of mixfix annotation preference
+(again!);
+
 
 *** Classical Reasoner ***
 
