@@ -177,7 +177,7 @@ theorem (in lbvs) wtl_sound_strong:
   assumes "wtl ins c 0 s0 \<noteq> \<top>" 
   assumes "s0 \<in> A" 
   assumes "0 < length ins"
-  shows "\<exists>ts. wt_step r \<top> step ts \<and> s0 <=_r ts!0"
+  shows "\<exists>ts. wt_step r \<top> step ts \<and> s0 <=_r ts!0 \<and> size ts = size ins"
 proof -  
   have "wt_step r \<top> step \<phi>"
   proof (unfold wt_step_def, intro strip conjI)
@@ -188,6 +188,8 @@ proof -
   qed
   moreover
   have "s0 <=_r \<phi>!0" by (rule phi0)
+  moreover
+  have "size \<phi> = size ins" by simp
   ultimately
   show ?thesis by fast
 qed
