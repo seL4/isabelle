@@ -4,8 +4,6 @@
     Copyright   1996  University of Cambridge
 *)
 
-open Relation;
-
 (** Identity relation **)
 
 Goalw [Id_def] "(a,a) : Id";  
@@ -200,6 +198,18 @@ Goal "(diag A) ^-1 = diag A";
 by (Blast_tac 1);
 qed "converse_diag";
 Addsimps [converse_diag];
+
+Goalw [refl_def] "refl A r ==> refl A (converse r)";
+by (Blast_tac 1);
+qed "refl_converse";
+
+Goalw [antisym_def] "antisym (converse r) = antisym r";
+by (Blast_tac 1);
+qed "antisym_converse";
+
+Goalw [trans_def] "trans (converse r) = trans r";
+by (Blast_tac 1);
+qed "trans_converse";
 
 (** Domain **)
 
