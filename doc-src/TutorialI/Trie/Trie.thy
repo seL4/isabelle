@@ -109,11 +109,11 @@ apply(induct_tac as, auto);
 
 txt{*\noindent
 Unfortunately, this time we are left with three intimidating looking subgoals:
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs\isanewline
 ~2.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs\isanewline
 ~3.~\dots~{\isasymLongrightarrow}~lookup~\dots~bs~=~lookup~t~bs%
-\end{isabellepar}%
+\end{isabelle}
 Clearly, if we want to make headway we have to instantiate \isa{bs} as
 well now. It turns out that instead of induction, case distinction
 suffices:

@@ -9,9 +9,9 @@ distinction on the condition of the \isa{if}. For example the goal%
 \begin{isamarkuptxt}%
 \noindent
 can be split into
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~{\isasymforall}xs.~(xs~=~[]~{\isasymlongrightarrow}~rev~xs~=~[])~{\isasymand}~(xs~{\isasymnoteq}~[]~{\isasymlongrightarrow}~rev~xs~{\isasymnoteq}~[])%
-\end{isabellepar}%
+\end{isabelle}
 by a degenerate form of simplification%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}\ split{\isacharunderscore}if{\isacharparenright}%
@@ -30,10 +30,10 @@ This splitting idea generalizes from \isa{if} to \isaindex{case}:%
 \begin{isamarkuptxt}%
 \noindent
 becomes
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~(xs~=~[]~{\isasymlongrightarrow}~zs~=~xs~@~zs)~{\isasymand}\isanewline
 ~~~~({\isasymforall}a~list.~xs~=~a~\#~list~{\isasymlongrightarrow}~a~\#~list~@~zs~=~xs~@~zs)%
-\end{isabellepar}%
+\end{isabelle}
 by typing%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%

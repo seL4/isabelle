@@ -137,24 +137,24 @@ simplification will replace occurrences of \isa{rev(rev xs)} by
 The name and the simplification attribute are optional.
 \end{itemize}
 Isabelle's response is to print
-\begin{isabellepar}%
+\begin{isabelle}
 proof(prove):~step~0\isanewline
 \isanewline
 goal~(theorem~rev\_rev):\isanewline
 rev~(rev~xs)~=~xs\isanewline
 ~1.~rev~(rev~xs)~=~xs
-\end{isabellepar}%
+\end{isabelle}
 The first three lines tell us that we are 0 steps into the proof of
 theorem \isa{rev_rev}; for compactness reasons we rarely show these
 initial lines in this tutorial. The remaining lines display the current
 proof state.
 Until we have finished a proof, the proof state always looks like this:
-\begin{isabellepar}%
+\begin{isabelle}
 $G$\isanewline
 ~1.~$G\sb{1}$\isanewline
 ~~\vdots~~\isanewline
 ~$n$.~$G\sb{n}$
-\end{isabellepar}%
+\end{isabelle}
 where $G$
 is the overall goal that we are trying to prove, and the numbered lines
 contain the subgoals $G\sb{1}$, \dots, $G\sb{n}$ that we need to prove to
@@ -175,15 +175,15 @@ This tells Isabelle to perform induction on variable \isa{xs}. The suffix
 By default, induction acts on the first subgoal. The new proof state contains
 two subgoals, namely the base case (\isa{Nil}) and the induction step
 (\isa{Cons}):
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~rev~(rev~[])~=~[]\isanewline
 ~2.~{\isasymAnd}a~list.~rev(rev~list)~=~list~{\isasymLongrightarrow}~rev(rev(a~\#~list))~=~a~\#~list%
-\end{isabellepar}%
+\end{isabelle}
 
 The induction step is an example of the general format of a subgoal:
-\begin{isabellepar}%
+\begin{isabelle}
 ~$i$.~{\indexboldpos{\isasymAnd}{$IsaAnd}}$x\sb{1}$~\dots~$x\sb{n}$.~{\it assumptions}~{\isasymLongrightarrow}~{\it conclusion}
-\end{isabellepar}%
+\end{isabelle}
 The prefix of bound variables \isasymAnd$x\sb{1}$~\dots~$x\sb{n}$ can be
 ignored most of the time, or simply treated as a list of variables local to
 this subgoal. Their deeper significance is explained in \S\ref{sec:PCproofs}.
@@ -208,18 +208,18 @@ This command tells Isabelle to apply a proof strategy called
 ``simplify'' the subgoals.  In our case, subgoal~1 is solved completely (thanks
 to the equation \isa{rev [] = []}) and disappears; the simplified version
 of subgoal~2 becomes the new subgoal~1:
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~\dots~rev(rev~list)~=~list~{\isasymLongrightarrow}~rev(rev~list~@~a~\#~[])~=~a~\#~list
-\end{isabellepar}%
+\end{isabelle}
 In order to simplify this subgoal further, a lemma suggests itself.
 *}
 (*<*)
 oops
 (*>*)
 
-text{*
-\subsubsection*{First lemma: \texttt{rev(xs \at~ys) = (rev ys) \at~(rev xs)}}
+subsubsection{*First lemma: \texttt{rev(xs \at~ys) = (rev ys) \at~(rev xs)}*}
 
+text{*
 After abandoning the above proof attempt\indexbold{abandon
 proof}\indexbold{proof!abandon} (at the shell level type
 \isacommand{oops}\indexbold{*oops}) we start a new proof:
@@ -247,10 +247,10 @@ This time not even the base case is solved automatically:
 apply(auto);
 
 txt{*
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~rev~ys~=~rev~ys~@~[]\isanewline
 ~2. \dots
-\end{isabellepar}%
+\end{isabelle}
 Again, we need to abandon this proof attempt and prove another simple lemma first.
 In the future the step of abandoning an incomplete proof before embarking on
 the proof of a lemma usually remains implicit.
@@ -259,9 +259,9 @@ the proof of a lemma usually remains implicit.
 oops
 (*>*)
 
-text{*
-\subsubsection*{Second lemma: \texttt{xs \at~[] = xs}}
+subsubsection{*Second lemma: \texttt{xs \at~[] = xs}*}
 
+text{*
 This time the canonical proof procedure
 *}
 
@@ -272,10 +272,10 @@ apply(auto);
 txt{*
 \noindent
 leads to the desired message \isa{No subgoals!}:
-\begin{isabellepar}%
+\begin{isabelle}
 xs~@~[]~=~xs\isanewline
 No~subgoals!
-\end{isabellepar}%
+\end{isabelle}
 
 We still need to confirm that the proof is now finished:
 *}
@@ -302,28 +302,26 @@ txt{*
 \noindent
 we find that this time \isa{auto} solves the base case, but the
 induction step merely simplifies to
-\begin{isabellepar}
+\begin{isabelle}
 ~1.~{\isasymAnd}a~list.\isanewline
 ~~~~~~~rev~(list~@~ys)~=~rev~ys~@~rev~list~{\isasymLongrightarrow}\isanewline
 ~~~~~~~(rev~ys~@~rev~list)~@~a~\#~[]~=~rev~ys~@~rev~list~@~a~\#~[]
-\end{isabellepar}%
+\end{isabelle}
 Now we need to remember that \isa{\at} associates to the right, and that
 \isa{\#} and \isa{\at} have the same priority (namely the \isa{65}
 in their \isacommand{infixr} annotation). Thus the conclusion really is
-\begin{isabellepar}%
+\begin{isabelle}
 ~~~~~(rev~ys~@~rev~list)~@~(a~\#~[])~=~rev~ys~@~(rev~list~@~(a~\#~[]))%
-\end{isabellepar}%
+\end{isabelle}
 and the missing lemma is associativity of \isa{\at}.
+*}
+(*<*)oops(*>*)
 
-\subsubsection*{Third lemma: \texttt{(xs \at~ys) \at~zs = xs \at~(ys \at~zs)}}
+subsubsection{*Third lemma: \texttt{(xs \at~ys) \at~zs = xs \at~(ys \at~zs)}*}
 
+text{*
 Abandoning the previous proof, the canonical proof procedure
 *}
-
-
-txt_raw{*\begin{comment}*}
-oops
-text_raw{*\end{comment}*}
 
 lemma app_assoc [simp]: "(xs @ ys) @ zs = xs @ (ys @ zs)";
 apply(induct_tac xs);
@@ -332,7 +330,6 @@ by(auto);
 text{*
 \noindent
 succeeds without further ado.
-
 Now we can go back and prove the first lemma
 *}
 

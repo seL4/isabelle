@@ -28,13 +28,13 @@ produces the warning
 Induction variable occurs also among premises!
 \end{quote}
 and leads to the base case
-\begin{isabellepar}%
+\begin{isabelle}
 \ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
-\end{isabellepar}%
+\end{isabelle}
 which, after simplification, becomes
-\begin{isabellepar}%
+\begin{isabelle}
 \ 1.\ xs\ {\isasymnoteq}\ []\ {\isasymLongrightarrow}\ hd\ []\ =\ last\ []
-\end{isabellepar}%
+\end{isabelle}
 We cannot prove this equality because we do not know what \isa{hd} and
 \isa{last} return when applied to \isa{[]}.
 
@@ -56,9 +56,9 @@ by(induct_tac xs, auto);
 
 text{*\noindent
 This time, induction leaves us with the following base case
-\begin{isabellepar}%
+\begin{isabelle}
 \ 1.\ []\ {\isasymnoteq}\ []\ {\isasymlongrightarrow}\ hd\ (rev\ [])\ =\ last\ []
-\end{isabellepar}%
+\end{isabelle}
 which is trivial, and \isa{auto} finishes the whole proof.
 
 If \isa{hd\_rev} is meant to be a simplification rule, you are done. But if you
@@ -169,18 +169,18 @@ apply(case_tac i);
 (*>*)
 txt{*\noindent
 which leaves us with the following proof state:
-\begin{isabellepar}%
+\begin{isabelle}
 \ 1.\ {\isasymAnd}\mbox{n}.\ {\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ ({\isasymforall}\mbox{i}.\ \mbox{m}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i})\isanewline
 \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymforall}\mbox{i}.\ \mbox{n}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i}
-\end{isabellepar}%
+\end{isabelle}
 After stripping the \isa{\isasymforall i}, the proof continues with a case
 distinction on \isa{i}. The case \isa{i = 0} is trivial and we focus on the
 other case:
-\begin{isabellepar}%
+\begin{isabelle}
 \ 1.\ {\isasymAnd}\mbox{n}\ \mbox{i}\ \mbox{nat}.\isanewline
 \ \ \ \ \ \ \ {\isasymlbrakk}{\isasymforall}\mbox{m}.\ \mbox{m}\ <\ \mbox{n}\ {\isasymlongrightarrow}\ ({\isasymforall}\mbox{i}.\ \mbox{m}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i});\ \mbox{i}\ =\ Suc\ \mbox{nat}{\isasymrbrakk}\isanewline
 \ \ \ \ \ \ \ {\isasymLongrightarrow}\ \mbox{n}\ =\ f\ \mbox{i}\ {\isasymlongrightarrow}\ \mbox{i}\ {\isasymle}\ f\ \mbox{i}
-\end{isabellepar}%
+\end{isabelle}
 *};
 
 by(blast intro!: f_ax Suc_leI intro:le_less_trans);

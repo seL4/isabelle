@@ -41,12 +41,12 @@ by(induct_tac "T", simp_all)
 text{*\noindent
 but it is worth taking a look at the proof state after the induction step
 to understand what the presence of the function type entails:
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~map\_bt~g~(map\_bt~f~Tip)~=~map\_bt~(g~{\isasymcirc}~f)~Tip\isanewline
 ~2.~{\isasymAnd}a~F.\isanewline
 ~~~~~~{\isasymforall}x.~map\_bt~g~(map\_bt~f~(F~x))~=~map\_bt~(g~{\isasymcirc}~f)~(F~x)~{\isasymLongrightarrow}\isanewline
 ~~~~~~map\_bt~g~(map\_bt~f~(Branch~a~F))~=~map\_bt~(g~{\isasymcirc}~f)~(Branch~a~F)%
-\end{isabellepar}%
+\end{isabelle}
 *}
 (*<*)
 end

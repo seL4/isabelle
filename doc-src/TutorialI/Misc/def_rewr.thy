@@ -28,9 +28,9 @@ apply(simp only:exor_def);
 
 txt{*\noindent
 In this particular case, the resulting goal
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~A~{\isasymand}~{\isasymnot}~{\isasymnot}~A~{\isasymor}~{\isasymnot}~A~{\isasymand}~{\isasymnot}~A%
-\end{isabellepar}%
+\end{isabelle}
 can be proved by simplification. Thus we could have proved the lemma outright
 *}(*<*)oops;lemma "exor A (\\<not>A)";(*>*)
 by(simp add: exor_def)

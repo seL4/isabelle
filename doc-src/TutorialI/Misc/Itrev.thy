@@ -32,9 +32,9 @@ apply(induct_tac xs, simp_all);
 
 txt{*\noindent
 Unfortunately, this is not a complete success:
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~\dots~itrev~list~[]~=~rev~list~{\isasymLongrightarrow}~itrev~list~[a]~=~rev~list~@~[a]%
-\end{isabellepar}%
+\end{isabelle}
 Just as predicted above, the overall goal, and hence the induction
 hypothesis, is too weak to solve the induction step because of the fixed
 \isa{[]}. The corresponding heuristic:
@@ -59,11 +59,11 @@ the main source of complications in inductive proofs.
 Although we now have two variables, only \isa{xs} is suitable for
 induction, and we repeat our above proof attempt. Unfortunately, we are still
 not there:
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~{\isasymAnd}a~list.\isanewline
 ~~~~~~~itrev~list~ys~=~rev~list~@~ys~{\isasymLongrightarrow}\isanewline
 ~~~~~~~itrev~list~(a~\#~ys)~=~rev~list~@~a~\#~ys%
-\end{isabellepar}%
+\end{isabelle}
 The induction hypothesis is still too weak, but this time it takes no
 intuition to generalize: the problem is that \isa{ys} is fixed throughout
 the subgoal, but the induction hypothesis needs to be applied with

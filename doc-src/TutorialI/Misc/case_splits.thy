@@ -11,9 +11,9 @@ lemma "\\<forall>xs. if xs = [] then rev xs = [] else rev xs \\<noteq> []";
 
 txt{*\noindent
 can be split into
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~{\isasymforall}xs.~(xs~=~[]~{\isasymlongrightarrow}~rev~xs~=~[])~{\isasymand}~(xs~{\isasymnoteq}~[]~{\isasymlongrightarrow}~rev~xs~{\isasymnoteq}~[])%
-\end{isabellepar}%
+\end{isabelle}
 by a degenerate form of simplification
 *}
 
@@ -34,10 +34,10 @@ This splitting idea generalizes from \isa{if} to \isaindex{case}:
 lemma "(case xs of [] \\<Rightarrow> zs | y#ys \\<Rightarrow> y#(ys@zs)) = xs@zs";
 txt{*\noindent
 becomes
-\begin{isabellepar}%
+\begin{isabelle}
 ~1.~(xs~=~[]~{\isasymlongrightarrow}~zs~=~xs~@~zs)~{\isasymand}\isanewline
 ~~~~({\isasymforall}a~list.~xs~=~a~\#~list~{\isasymlongrightarrow}~a~\#~list~@~zs~=~xs~@~zs)%
-\end{isabellepar}%
+\end{isabelle}
 by typing
 *}
 
