@@ -14,10 +14,10 @@ open Eta;
 Addsimps eta.intrs;
 
 val eta_cases = map (eta.mk_cases dB.simps)
-    ["Abs s -e> z","s @ t -e> u","Var i -e> t"];
+    ["Abs s -e> z","s $ t -e> u","Var i -e> t"];
 
 val beta_cases = map (beta.mk_cases dB.simps)
-    ["s @ t -> u","Var i -> t"];
+    ["s $ t -> u","Var i -> t"];
 
 AddIs eta.intrs;
 AddSEs (beta_cases@eta_cases);
@@ -94,17 +94,17 @@ by (etac rtrancl_induct 1);
 by (ALLGOALS(blast_tac (claset() addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_Abs";
 
-Goal "s -e>> s' ==> s @ t -e>> s' @ t";
+Goal "s -e>> s' ==> s $ t -e>> s' $ t";
 by (etac rtrancl_induct 1);
 by (ALLGOALS(blast_tac (claset() addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_AppL";
 
-Goal "t -e>> t' ==> s @ t -e>> s @ t'";
+Goal "t -e>> t' ==> s $ t -e>> s $ t'";
 by (etac rtrancl_induct 1);
 by (ALLGOALS(blast_tac (claset() addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_AppR";
 
-Goal "[| s -e>> s'; t -e>> t' |] ==> s @ t -e>> s' @ t'";
+Goal "[| s -e>> s'; t -e>> t' |] ==> s $ t -e>> s' $ t'";
 by (blast_tac (claset() addSIs [rtrancl_eta_AppL, rtrancl_eta_AppR]
                        addIs [rtrancl_trans]) 1);
 qed "rtrancl_eta_App";
@@ -163,7 +163,7 @@ by (REPEAT(ares_tac [square_rtrancl_reflcl_commute,confluent_Un,
                     beta_confluent,eta_confluent,square_beta_eta] 1));
 qed "confluent_beta_eta";
 
-section "Implicit definition of -e>: Abs(lift s 0 @ Var 0) -e> s";
+section "Implicit definition of -e>: Abs(lift s 0 $ Var 0) -e> s";
 
 Goal "!i. (~free s i) = (? t. s = lift t i)";
 by (dB.induct_tac "s" 1);
@@ -189,7 +189,7 @@ by (dB.induct_tac "s" 1);
  by (rtac iffI 1);
   by (REPEAT(eresolve_tac [conjE,exE] 1));
   by (rename_tac "u1 u2" 1);
-  by (res_inst_tac [("x","u1@u2")] exI 1);
+  by (res_inst_tac [("x","u1$u2")] exI 1);
   by (Asm_simp_tac 1);
  by (etac exE 1);
  by (etac rev_mp 1);
@@ -214,7 +214,7 @@ by (Simp_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "not_free_iff_lifted";
 
-Goal "(!s u. (~free s 0) --> R(Abs(s @ Var 0))(s[u/0])) = \
-\     (!s. R(Abs(lift s 0 @ Var 0))(s))";
+Goal "(!s u. (~free s 0) --> R(Abs(s $ Var 0))(s[u/0])) = \
+\     (!s. R(Abs(lift s 0 $ Var 0))(s))";
 by (fast_tac (HOL_cs addss (simpset() addsimps [not_free_iff_lifted])) 1);
 qed "explicit_is_implicit";

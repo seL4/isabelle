@@ -27,17 +27,17 @@ by (ALLGOALS (blast_tac (claset() addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_Abs";
 AddSIs [rtrancl_beta_Abs];
 
-Goal "s ->> s' ==> s @ t ->> s' @ t";
+Goal "s ->> s' ==> s $ t ->> s' $ t";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppL";
 
-Goal "t ->> t' ==> s @ t ->> s @ t'";
+Goal "t ->> t' ==> s $ t ->> s $ t'";
 by (etac rtrancl_induct 1);
 by (ALLGOALS (blast_tac (claset() addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppR";
 
-Goal "[| s ->> s'; t ->> t' |] ==> s @ t ->> s' @ t'";
+Goal "[| s ->> s'; t ->> t' |] ==> s $ t ->> s' $ t'";
 by (blast_tac (claset() addSIs [rtrancl_beta_AppL, rtrancl_beta_AppR]
                        addIs  [rtrancl_trans]) 1);
 qed "rtrancl_beta_App";

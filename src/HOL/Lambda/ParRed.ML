@@ -13,7 +13,7 @@ Addsimps par_beta.intrs;
 
 val par_beta_cases = map (par_beta.mk_cases dB.simps)
     ["Var n => t", "Abs s => Abs t",
-     "(Abs s) @ t => u", "s @ t => u", "Abs s => t"];
+     "(Abs s) $ t => u", "s $ t => u", "Abs s => t"];
 
 AddSIs par_beta.intrs;
 AddSEs par_beta_cases;

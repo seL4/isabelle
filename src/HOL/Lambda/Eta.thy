@@ -21,14 +21,14 @@ translations
 
 primrec free Lambda.dB
   "free (Var j) i = (j=i)"
-  "free (s @ t) i = (free s i | free t i)"
+  "free (s $ t) i = (free s i | free t i)"
   "free (Abs s) i = free s (Suc i)"
 
 inductive eta
 intrs
-   eta  "~free s 0 ==> Abs(s @ Var 0) -e> s[dummy/0]"
-   appL  "s -e> t ==> s@u -e> t@u"
-   appR  "s -e> t ==> u@s -e> u@t"
+   eta  "~free s 0 ==> Abs(s $ Var 0) -e> s[dummy/0]"
+   appL  "s -e> t ==> s$u -e> t$u"
+   appR  "s -e> t ==> u$s -e> u$t"
    abs   "s -e> t ==> Abs s -e> Abs t"
 end
 
