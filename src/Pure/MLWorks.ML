@@ -14,14 +14,14 @@ NB: There is still no easy way of building Isabelle under MLWorks.  This file
 (*** Poly/ML emulation ***)
 
 (**
-require "system.__os";
-require "basis.__timer";
-require "system.__time";
-require "unix.__os_file_sys";
-require "basis.__list";
-require "basis.__char";
-require "basis.__string";
-require "basis.__text_io";
+Shell.File.loadSource "system.__os";
+Shell.File.loadSource "basis.__timer";
+Shell.File.loadSource "system.__time";
+Shell.File.loadSource "unix.__os_file_sys";
+Shell.File.loadSource "basis.__list";
+Shell.File.loadSource "basis.__char";
+Shell.File.loadSource "basis.__string";
+Shell.File.loadSource "basis.__text_io";
 **)
 
 
@@ -33,8 +33,8 @@ fun quit () = exit 0;
 (*To limit the printing depth [divided by 2 for comparibility with Poly/ML]*)
 fun print_depth n = ();
 
-(*Interface for toplevel pretty printers, see also Pure/install_pp.ML*)
-
+(*Interface for toplevel pretty printers, see also Pure/install_pp.ML
+  CURRENTLY UNAVAILABLE*)
 fun make_pp path pprint = ();
 fun install_pp _ = ();
 
@@ -108,3 +108,8 @@ fun execute command =
 
 (*Don't know what the boolean is for*)
 fun xML filename = Shell.saveImage (filename, false);
+
+
+(*Non-printing and 8-bit chars are forbidden in string constants*)
+val needs_filtered_use = true;
+
