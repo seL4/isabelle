@@ -45,7 +45,9 @@ fun thm_of_proof thy prf =
             val thm = lookup name;
             val {prop, ...} = rep_thm thm;
             val _ = if prop=prop' then () else
-              error ("Duplicate use of theorem name " ^ quote name);
+              error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
+                Sign.string_of_term sg prop ^ "\n\n" ^
+                Sign.string_of_term sg prop');
             val tvars = term_tvars prop;
             val ctye = map fst tvars ~~ map (Thm.ctyp_of sg) Ts
           in
