@@ -9,7 +9,7 @@ signature RECDEF_PACKAGE =
 sig
   val quiet_mode: bool ref
   val print_recdefs: theory -> unit
-  val get_recdef: theory -> string -> {rules: thm list, induct: thm, tcs: term list}
+  val get_recdef: theory -> string -> {rules: thm list, induct: thm, tcs: term list} option
   val add_recdef: xstring -> string -> string list -> simpset option
     -> (xstring * Args.src list) list -> theory
     -> theory * {rules: thm list, induct: thm, tcs: term list}
@@ -58,10 +58,7 @@ val print_recdefs = RecdefData.print;
 
 (* get and put data *)
 
-fun get_recdef thy name =
-  (case Symtab.lookup (RecdefData.get thy, name) of
-    Some info => info
-  | None => error ("Unknown recursive function " ^ quote name));
+fun get_recdef thy name = Symtab.lookup (RecdefData.get thy, name);
 
 fun put_recdef name info thy =
   let
