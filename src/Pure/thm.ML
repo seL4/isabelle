@@ -110,6 +110,7 @@ end;
 signature THM =
 sig
   include BASIC_THM
+  val dest_ctyp         : ctyp -> ctyp list
   val dest_comb         : cterm -> cterm * cterm
   val dest_abs          : string option -> cterm -> cterm * cterm
   val capply            : cterm -> cterm -> cterm
@@ -152,6 +153,10 @@ fun ctyp_of sign T =
 
 fun read_ctyp sign s =
   Ctyp {sign_ref = Sign.self_ref sign, T = Sign.read_typ (sign, K None) s};
+
+fun dest_ctyp (Ctyp {sign_ref, T = Type (s, Ts)}) =
+      map (fn T => Ctyp {sign_ref = sign_ref, T = T}) Ts
+  | dest_ctyp ct = [ct];
 
 
 
@@ -214,7 +219,9 @@ fun adjust_maxidx (ct as Cterm {sign_ref, T, t, maxidx, ...}) =
 fun capply (Cterm {t=f, sign_ref=sign_ref1, T=Type("fun",[dty,rty]), maxidx=maxidx1})
            (Cterm {t=x, sign_ref=sign_ref2, T, maxidx=maxidx2}) =
       if T = dty then
-        Cterm{t=Sign.nodup_vars (f$x), sign_ref=Sign.merge_refs(sign_ref1,sign_ref2), T=rty,
+        Cterm{t = if maxidx1 >= 0 andalso maxidx2 >= 0 then Sign.nodup_vars (f $ x)
+            else f $ x,  (*no new Vars: no expensive check!*)
+          sign_ref=Sign.merge_refs(sign_ref1,sign_ref2), T=rty,
           maxidx=Int.max(maxidx1, maxidx2)}
       else raise CTERM "capply: types don't agree"
   | capply _ _ = raise CTERM "capply: first arg is not a function"
