@@ -1,4 +1,5 @@
-header{*Separation for Facts About Recursion*}
+
+header {*Separation for Facts About Recursion*}
 
 theory Rec_Separation = Separation + Datatype_absolute:
 
@@ -198,17 +199,12 @@ done
 
 subsubsection{*Instantiating the locale @{text M_trancl}*}
 
-theorem M_trancl_axioms_L: "M_trancl_axioms(L)"
+theorem M_trancl_L: "PROP M_trancl(L)"
+  apply (rule M_trancl.intro)
+    apply (rule M_axioms.axioms [OF M_axioms_L])+
   apply (rule M_trancl_axioms.intro)
    apply (assumption | rule
      rtrancl_separation wellfounded_trancl_separation)+
-  done
-
-theorem M_trancl_L: "PROP M_trancl(L)"
-  apply (rule M_trancl.intro)
-    apply (rule M_triv_axioms_L)
-   apply (rule M_axioms_axioms_L)
-  apply (rule M_trancl_axioms_L)
   done
 
 lemmas iterates_abs = M_trancl.iterates_abs [OF M_trancl_L]
@@ -438,18 +434,12 @@ done
 
 subsubsection{*Instantiating the locale @{text M_wfrank}*}
 
-theorem M_wfrank_axioms_L: "M_wfrank_axioms(L)"
-  apply (rule M_wfrank_axioms.intro)
-  apply (assumption | rule
-    wfrank_separation wfrank_strong_replacement Ord_wfrank_separation)+
-  done
-
 theorem M_wfrank_L: "PROP M_wfrank(L)"
   apply (rule M_wfrank.intro)
-     apply (rule M_triv_axioms_L)
-    apply (rule M_axioms_axioms_L)
-   apply (rule M_trancl_axioms_L)
-  apply (rule M_wfrank_axioms_L)
+     apply (rule M_trancl.axioms [OF M_trancl_L])+
+  apply (rule M_wfrank_axioms.intro)
+   apply (assumption | rule
+     wfrank_separation wfrank_strong_replacement Ord_wfrank_separation)+
   done
 
 lemmas iterates_closed = M_wfrank.iterates_closed [OF M_wfrank_L]
@@ -1224,21 +1214,14 @@ done
 
 subsubsection{*Instantiating the locale @{text M_datatypes}*}
 
-theorem M_datatypes_axioms_L: "M_datatypes_axioms(L)"
+theorem M_datatypes_L: "PROP M_datatypes(L)"
+  apply (rule M_datatypes.intro)
+      apply (rule M_wfrank.axioms [OF M_wfrank_L])+
   apply (rule M_datatypes_axioms.intro)
       apply (assumption | rule
         list_replacement1 list_replacement2
         formula_replacement1 formula_replacement2
         nth_replacement)+
-  done
-
-theorem M_datatypes_L: "PROP M_datatypes(L)"
-  apply (rule M_datatypes.intro)
-      apply (rule M_triv_axioms_L)
-     apply (rule M_axioms_axioms_L)
-    apply (rule M_trancl_axioms_L)
-   apply (rule M_wfrank_axioms_L)
-  apply (rule M_datatypes_axioms_L)
   done
 
 lemmas list_closed = M_datatypes.list_closed [OF M_datatypes_L]
@@ -1338,19 +1321,11 @@ done
 
 subsubsection{*Instantiating the locale @{text M_eclose}*}
 
-theorem M_eclose_axioms_L: "M_eclose_axioms(L)"
-  apply (rule M_eclose_axioms.intro)
-   apply (assumption | rule eclose_replacement1 eclose_replacement2)+
-  done
-
 theorem M_eclose_L: "PROP M_eclose(L)"
   apply (rule M_eclose.intro)
-       apply (rule M_triv_axioms_L)
-      apply (rule M_axioms_axioms_L)
-     apply (rule M_trancl_axioms_L)
-    apply (rule M_wfrank_axioms_L)
-   apply (rule M_datatypes_axioms_L)
-  apply (rule M_eclose_axioms_L)
+       apply (rule M_datatypes.axioms [OF M_datatypes_L])+
+  apply (rule M_eclose_axioms.intro)
+   apply (assumption | rule eclose_replacement1 eclose_replacement2)+
   done
 
 lemmas eclose_closed [intro, simp] = M_eclose.eclose_closed [OF M_eclose_L]

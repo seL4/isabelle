@@ -448,7 +448,9 @@ subsection{*Instantiating the locale @{text M_axioms}*}
 text{*Separation (and Strong Replacement) for basic set-theoretic constructions
 such as intersection, Cartesian Product and image.*}
 
-theorem M_axioms_axioms_L: "M_axioms_axioms(L)"
+theorem M_axioms_L: "PROP M_axioms(L)"
+  apply (rule M_axioms.intro)
+   apply (rule M_triv_axioms_L)
   apply (rule M_axioms_axioms.intro)
                apply (assumption | rule
                  Inter_separation cartprod_separation image_separation
@@ -457,12 +459,6 @@ theorem M_axioms_axioms_L: "M_axioms_axioms(L)"
                  funspace_succ_replacement well_ord_iso_separation
                  obase_separation obase_equals_separation
                  omap_replacement is_recfun_separation)+
-  done
-  
-theorem M_axioms_L: "PROP M_axioms(L)"
-  apply (rule M_axioms.intro)
-   apply (rule M_triv_axioms_L)
-  apply (rule M_axioms_axioms_L)
   done
 
 lemmas cartprod_iff = M_axioms.cartprod_iff [OF M_axioms_L]
@@ -570,35 +566,34 @@ lemmas pred_closed = M_axioms.pred_closed [OF M_axioms_L]
   and relativized_imp_well_ord = M_axioms.relativized_imp_well_ord [OF M_axioms_L]
   and well_ord_abs = M_axioms.well_ord_abs [OF M_axioms_L]
 
-
-declare cartprod_closed [intro,simp]
-declare sum_closed [intro,simp]
-declare converse_closed [intro,simp]
+declare cartprod_closed [intro, simp]
+declare sum_closed [intro, simp]
+declare converse_closed [intro, simp]
 declare converse_abs [simp]
-declare image_closed [intro,simp]
+declare image_closed [intro, simp]
 declare vimage_abs [simp]
-declare vimage_closed [intro,simp]
+declare vimage_closed [intro, simp]
 declare domain_abs [simp]
-declare domain_closed [intro,simp]
+declare domain_closed [intro, simp]
 declare range_abs [simp]
-declare range_closed [intro,simp]
+declare range_closed [intro, simp]
 declare field_abs [simp]
-declare field_closed [intro,simp]
+declare field_closed [intro, simp]
 declare relation_abs [simp]
 declare function_abs [simp]
-declare apply_closed [intro,simp]
+declare apply_closed [intro, simp]
 declare typed_function_abs [simp]
 declare injection_abs [simp]
 declare surjection_abs [simp]
 declare bijection_abs [simp]
-declare comp_closed [intro,simp]
+declare comp_closed [intro, simp]
 declare composition_abs [simp]
 declare restriction_abs [simp]
-declare restrict_closed [intro,simp]
+declare restrict_closed [intro, simp]
 declare Inter_abs [simp]
-declare Inter_closed [intro,simp]
-declare Int_closed [intro,simp]
+declare Inter_closed [intro, simp]
+declare Int_closed [intro, simp]
 declare is_funspace_abs [simp]
-declare finite_funspace_closed [intro,simp]
+declare finite_funspace_closed [intro, simp]
 
 end
