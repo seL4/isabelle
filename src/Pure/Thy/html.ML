@@ -22,12 +22,13 @@ sig
   val para: text -> text
   val preform: text -> text
   val verbatim: string -> text
-  val begin_index: Url.T * string -> Url.T * string -> Url.T option -> Url.T -> text
+  val begin_index: Url.T * string -> Url.T * string -> Url.T option
+    -> Url.T option -> Url.T -> text
   val end_index: text
   val applet_pages: string -> Url.T -> Url.T * string -> bool -> (string * string) list
   val theory_entry: Url.T * string -> text
   val session_entries: (Url.T * string) list -> text
-  val source: (string, 'a) Source.source -> text
+  val verbatim_source: string list -> text
   val begin_theory: Url.T * string -> string -> (Url.T option * string) list ->
     (Url.T option * Url.T * bool option) list -> text -> text
   val end_theory: text
@@ -153,10 +154,11 @@ val back_link = gen_link "Back";
 
 (* session index *)
 
-fun begin_index up (index_path, session) opt_readme graph =
+fun begin_index up (index_path, session) opt_readme opt_doc graph =
   begin_document ("Index of " ^ session) ^ up_link up ^
   para ("View " ^ href_path graph "theory dependencies" ^
-    (case opt_readme of None => "" | Some p => "<br>\nView " ^ href_path p "README")) ^
+    (case opt_readme of None => "" | Some p => "<br>\nView " ^ href_path p "README") ^
+    (case opt_doc of None => "" | Some p => "<br>\nView " ^ href_path p "document")) ^
   "\n<hr>\n\n<h2>Theories</h2>\n<ul>\n";
 
 val end_index = end_document;
@@ -211,8 +213,7 @@ fun session_entries [] = "</ul>"
 
 (* theory *)
 
-fun output_source src = implode (output_symbols (Source.exhaust (Symbol.source false src)));
-fun source src = "\n<hr>\n<pre>" ^ output_source src ^ "</pre>\n<hr>\n";
+fun verbatim_source ss = "\n<hr>\n<pre>" ^ implode (output_symbols ss)  ^ "</pre>\n<hr>\n";
 
 
 local
