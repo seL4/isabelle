@@ -94,18 +94,16 @@ fun tell_file msg path = writeln ("Proof General, " ^ msg ^ " " ^ quote (File.sy
 
 fun print_current_goals n max th = plain_writeln (Goals.print_current_goals_default n max) th;
 
-fun setup_state isar =
-  (current_goals_markers :=
+fun setup_state () =
+ (current_goals_markers :=
     let
       val begin_state = oct_char "366";
       val end_state= oct_char "367";
       val begin_goal = oct_char "370";
     in (begin_state, end_state, begin_goal) end;
-  if isar then
-   (Toplevel.print_state_fn := plain_writeln Toplevel.print_state_default;
-    Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default))
-  else ();
-  Goals.print_current_goals_fn := print_current_goals);  (*isar: avoids verbose responses*)
+  Toplevel.print_state_fn := plain_writeln Toplevel.print_state_default;
+  Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default);
+  Goals.print_current_goals_fn := print_current_goals);
 
 
 (* theory loader actions *)
@@ -162,7 +160,7 @@ local
 
 fun restart isar =
  (ThyInfo.touch_all_thys ();
-  if isar then () else (ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373"); kill_goal ());
+  if isar then tell_clear_goals () else kill_goal ();
   tell_clear_response ();
   writeln (Session.welcome ()));
 
@@ -204,11 +202,12 @@ end;
 
 fun init isar =
  (setup_messages ();
-  setup_state isar;
+  setup_state ();
   setup_thy_loader ();
   print_mode := [proof_generalN];
   set quick_and_dirty;
   if isar then init_outer_syntax () else ();
+  ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
   if isar then Isar.sync_main () else isa_restart ());
 
 
