@@ -285,6 +285,15 @@ fun mk_case_names_exhausts descr new =
 
 end;
 
+fun add_rules simps case_thms size_thms rec_thms inject distinct
+                  weak_case_congs cong_att =
+  (#1 o PureThy.add_thmss [(("simps", simps), []),
+    (("", flat case_thms @ size_thms @ 
+          flat distinct  @ rec_thms), [Simplifier.simp_add_global]),
+    (("", flat inject),               [iff_add_global]),
+    (("", flat distinct RL [notE]),   [Classical.safe_elim_global]),
+    (("", weak_case_congs),           [cong_att])]);
+
 
 (* add_cases_induct *)
 
@@ -570,10 +579,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
     val thy12 = thy11 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      (#1 o PureThy.add_thmss [(("simps", simps), []),
-        (("", flat case_thms @ size_thms @ rec_thms), [Simplifier.simp_add_global]),
-        (("", flat (inject @ distinct)), [iff_add_global]),
-        (("", weak_case_congs), [Simplifier.cong_add_global])]) |>
+      add_rules simps case_thms size_thms rec_thms inject distinct
+                weak_case_congs Simplifier.cong_add_global |> 
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
       Theory.parent_path |>
@@ -628,10 +635,8 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
 
     val thy12 = thy11 |>
       Theory.add_path (space_implode "_" new_type_names) |>
-      (#1 o PureThy.add_thmss [(("simps", simps), []),
-        (("", flat case_thms @ size_thms @ rec_thms), [Simplifier.simp_add_global]),
-        (("", flat (inject @ distinct)), [iff_add_global]),
-        (("", weak_case_congs), [Simplifier.change_global_ss (op addcongs)])]) |>
+      add_rules simps case_thms size_thms rec_thms inject distinct
+                weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
       Theory.parent_path |>
@@ -734,10 +739,8 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
     val thy11 = thy10 |>
-      (#1 o PureThy.add_thmss [(("simps", simps), []),
-        (("", flat case_thms @ size_thms @ rec_thms), [Simplifier.simp_add_global]),
-        (("", flat (inject @ distinct)), [iff_add_global]),
-        (("", weak_case_congs), [Simplifier.change_global_ss (op addcongs)])]) |>
+      add_rules simps case_thms size_thms rec_thms inject distinct
+                weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
       Theory.parent_path |>
