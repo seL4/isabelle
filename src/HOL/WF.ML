@@ -13,7 +13,7 @@ val H_cong1 = refl RS H_cong;
 
 (*Restriction to domain A.  If r is well-founded over A then wf(r)*)
 val [prem1,prem2] = goalw WF.thy [wf_def]
- "[| r <= Sigma A (%u.A);  \
+ "[| r <= A Times A;  \
 \    !!x P. [| ! x. (! y. (y,x) : r --> P(y)) --> P(x);  x:A |] ==> P(x) |]  \
 \ ==>  wf(r)";
 by (strip_tac 1);

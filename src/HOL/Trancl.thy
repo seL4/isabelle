@@ -5,9 +5,9 @@
 
 Relfexive and Transitive closure of a relation
 
-rtrancl is refl&transitive closure;
-trancl is transitive closure
-reflcl is reflexive closure
+rtrancl is reflexive/transitive closure;
+trancl  is transitive closure
+reflcl  is reflexive closure
 *)
 
 Trancl = Lfp + Relation + 

@@ -62,8 +62,8 @@ by (fast_tac comp_cs 1);
 qed "comp_mono";
 
 goal Relation.thy
-    "!!r s. [| s <= Sigma A (%x.B);  r <= Sigma B (%x.C) |] ==> \
-\           (r O s) <= Sigma A (%x.C)";
+    "!!r s. [| s <= A Times B;  r <= B Times C |] ==> \
+\           (r O s) <= A Times C";
 by (fast_tac comp_cs 1);
 qed "comp_subset_Sigma";
 
@@ -161,7 +161,7 @@ qed_goalw "ImageE" Relation.thy [Image_def]
     (REPEAT (etac bexE 1 ORELSE ares_tac prems 1)) ]);
 
 qed_goal "Image_subset" Relation.thy
-    "!!A B r. r <= Sigma A (%x.B) ==> r^^C <= B"
+    "!!A B r. r <= A Times B ==> r^^C <= B"
  (fn _ =>
   [ (rtac subsetI 1),
     (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ]);

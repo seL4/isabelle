@@ -112,26 +112,24 @@ by (asm_simp_tac (!simpset addsimps [below_Suc]) 1);
 by (fast_tac set_cs 1);
 qed "below_less_iff";
 
-goal thy
-    "Sigma (below (Suc A)) B = (Sigma {A} (%x. B(A))) Un Sigma (below A) B";
+goal thy "(below (Suc n)) Times B = ({n} Times B) Un ((below n) Times B)";
 by (simp_tac (!simpset addsimps [below_Suc]) 1);
 by (fast_tac (prod_cs addIs [equalityI]) 1);
 qed "Sigma_Suc1";
 
-goal thy
-    "Sigma A (%x. below (Suc B)) = Sigma A (%x.{B}) Un Sigma A (%x.below B)";
+goal thy "A Times (below (Suc n)) = (A Times {n}) Un (A Times (below n))";
 by (simp_tac (!simpset addsimps [below_Suc]) 1);
 by (fast_tac (prod_cs addIs [equalityI]) 1);
 qed "Sigma_Suc2";
 
-goal thy "Sigma {i} (%x. below (n + n)) : tiling domino";
+goal thy "{i} Times (below (n + n)) : tiling domino";
 by (nat_ind_tac "n" 1);
 by (simp_tac (!simpset addsimps tiling.intrs) 1);
 by (asm_simp_tac (!simpset addsimps [Un_assoc RS sym, Sigma_Suc2]) 1);
 by (resolve_tac tiling.intrs 1);
 by (assume_tac 2);
 by (subgoal_tac    (*seems the easiest way of turning one to the other*)
-    "Sigma {i} (%x. {Suc(n1+n1)}) Un Sigma {i} (%x. {n1+n1}) = \
+    "({i} Times {Suc(n1+n1)}) Un ({i} Times {n1+n1}) = \
 \    {(i, n1+n1), (i, Suc(n1+n1))}" 1);
 by (fast_tac (prod_cs addIs [equalityI]) 2);
 by (asm_simp_tac (!simpset addsimps [domino.horiz]) 1);
@@ -139,7 +137,7 @@ by (fast_tac (prod_cs addIs [equalityI, lessI] addEs [less_irrefl, less_asym]
                       addDs [below_less_iff RS iffD1]) 1);
 qed "dominoes_tile_row";
 
-goal thy "Sigma (below m) (%x. below (n + n)) : tiling domino";
+goal thy "(below m) Times (below (n + n)) : tiling domino";
 by (nat_ind_tac "m" 1);
 by (simp_tac (!simpset addsimps (below_0::tiling.intrs)) 1);
 by (asm_simp_tac (!simpset addsimps [Sigma_Suc1]) 1);
@@ -148,8 +146,8 @@ by (fast_tac (prod_cs addIs [equalityI, tiling_UnI, dominoes_tile_row]
 qed "dominoes_tile_matrix";
 
 
-goal thy "!!m n. [| t = Sigma (below (Suc m + Suc m))\
-\                             (%x. below (Suc n + Suc n));          \
+goal thy "!!m n. [| t = (below (Suc m + Suc m))  Times              \
+\                       (below (Suc n + Suc n));                    \
 \                   t' = t - {(0,0)} - {(Suc(m+m), Suc(n+n))}       \
 \                |] ==> t' ~: tiling domino";
 by (rtac notI 1);

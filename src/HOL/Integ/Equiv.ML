@@ -82,7 +82,7 @@ by (fast_tac rel_cs 1);
 qed "equiv_class_nondisjoint";
 
 val [major] = goalw Equiv.thy [equiv_def,refl_def]
-    "equiv A r ==> r <= Sigma A (%x.A)";
+    "equiv A r ==> r <= A Times A";
 by (rtac (major RS conjunct1 RS conjunct1) 1);
 qed "equiv_type";
 

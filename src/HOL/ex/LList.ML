@@ -133,7 +133,7 @@ qed "LList_corec_type";
 (*Lemma for the proof of llist_corec*)
 goal LList.thy
    "LList_corec a (%z.sum_case Inl (split(%v w.Inr((Leaf(v),w)))) (f z)) : \
-\   llist(range(Leaf))";
+\   llist(range Leaf)";
 by (res_inst_tac [("X", "range(%x.LList_corec x ?g)")] llist_coinduct 1);
 by (rtac rangeI 1);
 by (safe_tac set_cs);
@@ -350,7 +350,7 @@ by (rtac inj_inverseI 1);
 by (rtac Rep_llist_inverse 1);
 qed "inj_Rep_llist";
 
-goal LList.thy "inj_onto Abs_llist (llist(range(Leaf)))";
+goal LList.thy "inj_onto Abs_llist (llist(range Leaf))";
 by (rtac inj_onto_inverseI 1);
 by (etac Abs_llist_inverse 1);
 qed "inj_onto_Abs_llist";
@@ -605,8 +605,8 @@ qed "def_llist_corec";
 (*** Deriving llist_equalityI -- llist equality is a bisimulation ***)
 
 goalw LList.thy [LListD_Fun_def]
-    "!!r A. r <= Sigma (llist A) (%x.llist(A)) ==> \
-\           LListD_Fun (diag A) r <= Sigma (llist A) (%x.llist(A))";
+    "!!r A. r <= (llist A) Times (llist A) ==> \
+\           LListD_Fun (diag A) r <= (llist A) Times (llist A)";
 by (stac llist_unfold 1);
 by (simp_tac (!simpset addsimps [NIL_def, CONS_def]) 1);
 by (fast_tac univ_cs 1);
@@ -614,12 +614,12 @@ qed "LListD_Fun_subset_Sigma_llist";
 
 goal LList.thy
     "prod_fun Rep_llist Rep_llist `` r <= \
-\    Sigma (llist(range(Leaf))) (%x.llist(range(Leaf)))";
+\    (llist(range Leaf)) Times (llist(range Leaf))";
 by (fast_tac (prod_cs addIs [Rep_llist]) 1);
 qed "subset_Sigma_llist";
 
 val [prem] = goal LList.thy
-    "r <= Sigma (llist(range Leaf)) (%x.llist(range Leaf)) ==> \
+    "r <= (llist(range Leaf)) Times (llist(range Leaf)) ==> \
 \    prod_fun (Rep_llist o Abs_llist) (Rep_llist o Abs_llist) `` r <= r";
 by (safe_tac prod_cs);
 by (rtac (prem RS subsetD RS SigmaE2) 1);
@@ -629,7 +629,7 @@ qed "prod_fun_lemma";
 
 goal LList.thy
     "prod_fun Rep_llist  Rep_llist `` range(%x. (x, x)) = \
-\    diag(llist(range(Leaf)))";
+\    diag(llist(range Leaf))";
 by (rtac equalityI 1);
 by (fast_tac (univ_cs addIs [Rep_llist]) 1);
 by (fast_tac (univ_cs addSEs [Abs_llist_inverse RS subst]) 1);

@@ -59,7 +59,7 @@ qed "Scons_D";
 
 (** Introduction rules for 'pred_sexp' **)
 
-goalw Sexp.thy [pred_sexp_def] "pred_sexp <= Sigma sexp (%u.sexp)";
+goalw Sexp.thy [pred_sexp_def] "pred_sexp <= sexp Times sexp";
 by (fast_tac sexp_cs 1);
 qed "pred_sexp_subset_Sigma";
 

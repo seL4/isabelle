@@ -225,7 +225,7 @@ qed_goal "SigmaE2" Prod.thy
     (rtac (major RS SigmaD2) 1) ]);
 
 val prems = goal Prod.thy
-    "[| A<=C;  !!x. x:A ==> B<=D |] ==> Sigma A (%x.B) <= Sigma C (%x.D)";
+    "[| A<=C;  !!x. x:A ==> B x <= D x |] ==> Sigma A B <= Sigma C D";
 by (cut_facts_tac prems 1);
 by (fast_tac (set_cs addIs (prems RL [subsetD]) 
                      addSIs [SigmaI] 
@@ -235,7 +235,7 @@ qed "Sigma_mono";
 qed_goal "Sigma_empty1" Prod.thy "Sigma {} B = {}"
  (fn _ => [ (fast_tac (eq_cs addSEs [SigmaE]) 1) ]);
 
-qed_goal "Sigma_empty2" Prod.thy "Sigma A (%x.{}) = {}"
+qed_goal "Sigma_empty2" Prod.thy "A Times {} = {}"
  (fn _ => [ (fast_tac (eq_cs addSEs [SigmaE]) 1) ]);
 
 Addsimps [Sigma_empty1,Sigma_empty2]; 

@@ -18,7 +18,7 @@ consts
     congruent2  ::      "[('a*'a) set,['a,'a]=>'b]=>bool"
 
 defs
-    refl_def      "refl A r == r <= Sigma A (%x.A) & (ALL x: A. (x,x) : r)"
+    refl_def      "refl A r == r <= A Times A & (ALL x: A. (x,x) : r)"
     sym_def       "sym(r)    == ALL x y. (x,y): r --> (y,x): r"
     equiv_def     "equiv A r == refl A r & sym(r) & trans(r)"
     quotient_def  "A/r == UN x:A. {r^^{x}}"  

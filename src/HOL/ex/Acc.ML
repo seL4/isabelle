@@ -37,7 +37,7 @@ by (etac (Int_lower1 RS Pow_mono RS subsetD) 1);
 qed "acc_induct";
 
 
-val [major] = goal Acc.thy "r <= Sigma (acc r) (%u. acc(r)) ==> wf(r)";
+val [major] = goal Acc.thy "r <= (acc r) Times (acc r) ==> wf(r)";
 by (rtac (major RS wfI) 1);
 by (etac acc.induct 1);
 by (rewtac pred_def);
@@ -51,13 +51,13 @@ by (rtac accI 1);
 by (fast_tac set_cs 1);
 qed "acc_wfD_lemma";
 
-val [major] = goal Acc.thy "wf(r) ==> r <= Sigma (acc r) (%u. acc(r))";
+val [major] = goal Acc.thy "wf(r) ==> r <= (acc r) Times (acc r)";
 by (rtac subsetI 1);
 by (res_inst_tac [("p", "x")] PairE 1);
 by (fast_tac (set_cs addSIs [SigmaI,
                              major RS acc_wfD_lemma RS spec RS mp]) 1);
 qed "acc_wfD";
 
-goal Acc.thy "wf(r)  =  (r <= Sigma (acc r) (%u. acc(r)))";
+goal Acc.thy "wf(r)  =  (r <= (acc r) Times (acc r))";
 by (EVERY1 [rtac iffI, etac acc_wfD, etac acc_wfI]);
 qed "wf_acc_iff";

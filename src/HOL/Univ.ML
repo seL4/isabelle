@@ -525,11 +525,11 @@ qed "dsum_mono";
 
 (*** Bounding theorems ***)
 
-goal Univ.thy "diag(A) <= Sigma A (%x.A)";
+goal Univ.thy "diag(A) <= A Times A";
 by (fast_tac univ_cs 1);
 qed "diag_subset_Sigma";
 
-goal Univ.thy "(Sigma A (%x.B) <**> Sigma C (%x.D)) <= Sigma (A<*>C) (%z. B<*>D)";
+goal Univ.thy "((A Times B) <**> (C Times D)) <= (A<*>C) Times (B<*>D)";
 by (fast_tac univ_cs 1);
 qed "dprod_Sigma";
 
@@ -543,7 +543,7 @@ by (stac Split 1);
 by (fast_tac univ_cs 1);
 qed "dprod_subset_Sigma2";
 
-goal Univ.thy "(Sigma A (%x.B) <++> Sigma C (%x.D)) <= Sigma (A<+>C) (%z. B<+>D)";
+goal Univ.thy "(A Times B <++> C Times D) <= (A<+>C) Times (B<+>D)";
 by (fast_tac univ_cs 1);
 qed "dsum_Sigma";
 
