@@ -49,12 +49,22 @@ val fun_weaken_type = result();
 
 (*Empty function spaces*)
 goalw ZF.thy [Pi_def] "Pi(0,A) = {0}";
-by (fast_tac (ZF_cs addIs [equalityI]) 1);
+by (fast_tac eq_cs 1);
 val Pi_empty1 = result();
 
 goalw ZF.thy [Pi_def] "!!A a. a:A ==> A->0 = 0";
-by (fast_tac (ZF_cs addIs [equalityI]) 1);
+by (fast_tac eq_cs 1);
 val Pi_empty2 = result();
+
+(*The empty function*)
+goal ZF.thy "0: 0->A";
+by (fast_tac (ZF_cs addIs [PiI]) 1);
+val empty_fun = result();
+
+(*The singleton function*)
+goalw ZF.thy [Pi_def] "{<a,b>} : {a} -> {b}";
+by (fast_tac eq_cs 1);
+val single_fun = result();
 
 (*** Function Application ***)
 
@@ -357,17 +367,11 @@ val range_of_fun = result();
 
 (*** Extensions of functions ***)
 
-(*Singleton function -- in the underlying form of singletons*)
-goal ZF.thy "Upair(<a,b>,<a,b>) : Upair(a,a) -> Upair(b,b)";
-by (fast_tac (ZF_cs addIs [PiI]) 1);
-val fun_single_lemma = result();
-
-goalw ZF.thy [cons_def]
+goal ZF.thy
     "!!f A B. [| f: A->B;  c~:A |] ==> cons(<c,b>,f) : cons(c,A) -> cons(b,B)";
-by (rtac (fun_single_lemma RS fun_disjoint_Un) 1);
-by (assume_tac 1);
-by (rtac equals0I 1);
-by (fast_tac ZF_cs 1);
+by (forward_tac [single_fun RS fun_disjoint_Un] 1);
+by (asm_full_simp_tac (FOL_ss addsimps [cons_eq]) 2);
+by (fast_tac eq_cs 1);
 val fun_extend = result();
 
 goal ZF.thy "!!f A B. [| f: A->B;  a:A;  c~:A |] ==> cons(<c,b>,f)`a = f`a";
@@ -381,16 +385,6 @@ by (rtac (consI1 RS apply_equality) 1);
 by (rtac fun_extend 1);
 by (REPEAT (assume_tac 1));
 val fun_extend_apply2 = result();
-
-(*The empty function*)
-goal ZF.thy "0: 0->A";
-by (fast_tac (ZF_cs addIs [PiI]) 1);
-val fun_empty = result();
-
-(*The singleton function*)
-goal ZF.thy "{<a,b>} : {a} -> cons(b,C)";
-by (REPEAT (ares_tac [fun_extend,fun_empty,notI] 1 ORELSE etac emptyE 1));
-val fun_single = result();
 
 goal ZF.thy
     "!!c. c ~: A ==> cons(c,A) -> B = (UN f: A->B. UN b:B. {cons(<c,b>, f)})";
