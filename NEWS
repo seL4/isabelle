@@ -32,6 +32,12 @@ into document output unless you really know what you are doing!
 
 *** Isar ***
 
+* Pure: Isar now suffers initial goal statements to contain unbound
+schematic variables (this does not conform to actual readable proof
+documents, due to unpredictable outcome and non-compositional proof
+checking); users who know what they are doing may use schematic goals
+for Prolog-style synthesis of proven results;
+
 * Pure: assumption method (an implicit finishing) now handles actual
 rules as well;
 
@@ -48,6 +54,10 @@ statements as well;
 
 * HOL: improved method 'induct' --- now handles non-atomic goals
 (potential INCOMPATIBILITY); tuned error handling;
+
+* HOL: cases and induct rules may now provide explicit hint about the
+number of facts to be consumed (0 for "type" and 1 for "set" rules);
+any remaining facts are inserted into the goal verbatim;
 
 
 *** HOL ***
@@ -67,13 +77,19 @@ HOL/subset.thy);
 
 *** CTT ***
 
-* CTT: x-symbol support for Pi, Sigma, -->, : (membership)
-  note that "lam" is displayed as TWO lambda-symbols
+* CTT: x-symbol support for Pi, Sigma, -->, : (membership); note that
+"lam" is displayed as TWO lambda-symbols
 
-* CTT: theory Main now available, containing everything
-(that is, Bool and Arith) 
+* CTT: theory Main now available, containing everything (that is, Bool
+and Arith);
+
 
 *** General ***
+
+* Pure: the Simplifier has been implemented properly as a derived rule
+outside of the actual kernel (at last!); the overall performance
+penalty in practical applications is about 50%, while reliability of
+the Isabelle inference kernel has been greatly improved;
 
 * Provers: fast_tac (and friends) now handle actual object-logic rules
 as assumptions as well;
