@@ -2,12 +2,18 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Proof by cases and induction on types (intro) and sets (elim).
+Proof by cases and induction on types and sets.
 *)
 
 signature INDUCT_METHOD =
 sig
+  val dest_global_rules: theory ->
+    {type_cases: (string * thm) list, set_cases: (string * thm) list,
+      type_induct: (string * thm) list, set_induct: (string * thm) list}
   val print_global_rules: theory -> unit
+  val dest_local_rules: Proof.context ->
+    {type_cases: (string * thm) list, set_cases: (string * thm) list,
+      type_induct: (string * thm) list, set_induct: (string * thm) list}
   val print_local_rules: Proof.context -> unit
   val cases_type_global: string -> theory attribute
   val cases_set_global: string -> theory attribute
@@ -64,10 +70,17 @@ struct
       print_rules "set cases:" casesS;
       print_rules "type induct:" inductT;
       print_rules "set induct:" inductS);
+
+  fun dest ((casesT, casesS), (inductT, inductS)) =
+    {type_cases = NetRules.rules casesT,
+     set_cases = NetRules.rules casesS,
+     type_induct = NetRules.rules inductT,
+     set_induct = NetRules.rules inductS};
 end;
 
 structure GlobalInduct = TheoryDataFun(GlobalInductArgs);
 val print_global_rules = GlobalInduct.print;
+val dest_global_rules = GlobalInductArgs.dest o GlobalInduct.get;
 
 
 (* proof data kind 'HOL/induct_method' *)
@@ -83,6 +96,7 @@ end;
 
 structure LocalInduct = ProofDataFun(LocalInductArgs);
 val print_local_rules = LocalInduct.print;
+val dest_local_rules = GlobalInductArgs.dest o LocalInduct.get;
 
 
 (* access rules *)
@@ -168,8 +182,8 @@ end;
 (*
   rule selection:
         cases         - classical case split
-  <x:A> cases         - set elimination
-  ...   cases t       - datatype exhaustion
+        cases t       - datatype exhaustion
+  <x:A> cases ...     - set elimination
   ...   cases ... r   - explicit rule
 *)
 
@@ -191,29 +205,36 @@ fun cases_tac (ctxt, (simplified, args)) facts =
     fun inst_rule t thm =
       Drule.cterm_instantiate [(cert (cases_var thm), cert t)] thm;
 
-    val raw_thms =
+    val cond_simp = if simplified then simplify_cases ctxt else I;
+
+    fun find_cases th =
+      NetRules.may_unify (#2 (get_cases ctxt))
+        (Logic.strip_assums_concl (#prop (Thm.rep_thm th)));
+
+    val rules =
       (case (args, facts) of
-        ((None, None), []) => [case_split_thm]
-      | ((None, None), th :: _) =>
-          NetRules.may_unify (#2 (get_cases ctxt))
-            (Logic.strip_assums_concl (#prop (Thm.rep_thm th)))
-          |> map #2
-      | ((Some t, None), _) =>
+        ((None, None), []) => [RuleCases.none case_split_thm]
+      | ((Some t, None), []) =>
           let val name = type_name t in
             (case lookup_casesT ctxt name of
               None => error ("No cases rule for type: " ^ quote name)
-            | Some thm => [inst_rule t thm])
+            | Some thm => [(inst_rule t thm, RuleCases.get thm)])
           end
-      | ((None, Some thm), _) => [thm]
-      | ((Some t, Some thm), _) => [inst_rule t thm]);
-    val thms = raw_thms
-      |> Method.multi_resolves facts
-      |> (if simplified then Seq.map (simplify_cases ctxt) else I);
-  in Method.resolveq_tac thms end;
+      | ((None, None), th :: _) => map (RuleCases.add o #2) (find_cases th)
+      | ((Some t, None), th :: _) =>
+          (case find_cases th of	(*may instantiate first rule only!*)
+            (_, thm) :: _ => [(inst_rule t thm, RuleCases.get thm)]
+          | [] => [])
+      | ((None, Some thm), _) => [RuleCases.add thm]
+      | ((Some t, Some thm), _) => [(inst_rule t thm, RuleCases.get thm)]);
+
+    fun prep_rule (thm, cases) =
+      Seq.map (rpair cases o cond_simp) (Method.multi_resolves facts [thm]);
+  in Method.resolveq_cases_tac (Seq.flat (Seq.map prep_rule (Seq.of_list rules))) end;
 
 in
 
-val cases_meth = Method.METHOD o (FINDGOAL oo cases_tac);
+val cases_meth = Method.METHOD_CASES o (FINDGOAL oo cases_tac);
 
 end;
 
@@ -224,12 +245,19 @@ end;
 (*
   rule selection:
         induct         - mathematical induction
-  <x:A> induct         - set induction
-  ...   induct x       - datatype induction
+        induct x       - datatype induction
+  <x:A> induct ...     - set induction
   ...   induct ... r   - explicit rule
 *)
 
 local
+
+infix 1 THEN_ALL_NEW_CASES;
+
+fun (tac1 THEN_ALL_NEW_CASES tac2) i st =
+  st |> Seq.THEN (tac1 i, (fn (st', cases) =>
+    Seq.map (rpair cases) (ALLGOALS_RANGE tac2 i (i + nprems_of st' - nprems_of st) st')));
+
 
 fun induct_rule ctxt t =
   let val name = type_name t in
@@ -260,6 +288,7 @@ fun join_rules [(_, thm)] = thm
         | bads => error ("Incompatible rules for " ^ commas_quote (map #1 bads)))
       end;
 
+
 fun induct_tac (ctxt, (stripped, args)) facts =
   let
     val sg = ProofContext.sign_of ctxt;
@@ -275,26 +304,35 @@ fun induct_tac (ctxt, (stripped, args)) facts =
       Drule.cterm_instantiate (flat (map2 prep_inst
         (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of thm)), insts))) thm;
 
-    val thms =
+    fun find_induct th =
+      NetRules.may_unify (#2 (get_induct ctxt))
+        (Logic.strip_assums_concl (#prop (Thm.rep_thm th)));
+
+    val rules =
       (case (args, facts) of
-        (([], None), []) => [nat_induct]
-      | (([], None), th :: _) =>
-          NetRules.may_unify (#2 (get_induct ctxt))
-            (Logic.strip_assums_concl (#prop (Thm.rep_thm th)))
-          |> map #2
-      | ((insts, None), _) =>
-          [inst_rule insts (join_rules (map (induct_rule ctxt o last_elem) insts))]
-      | (([], Some thm), _) => [thm]
-      | ((insts, Some thm), _) => [inst_rule insts thm]);
+        (([], None), []) => [RuleCases.none nat_induct]		(* FIXME add cases!? *)
+      | ((insts, None), []) =>
+          let val thms = map (induct_rule ctxt o last_elem) insts
+          in [(inst_rule insts (join_rules thms), RuleCases.get (#2 (hd thms)))] end
+      | (([], None), th :: _) => map (RuleCases.add o #2) (find_induct th)
+      | ((insts, None), th :: _) =>
+          (case find_induct th of	(*may instantiate first rule only!*)
+	    (_, thm) :: _ => [(inst_rule insts thm, RuleCases.get thm)]
+          | [] => [])
+      | (([], Some thm), _) => [RuleCases.add thm]
+      | ((insts, Some thm), _) => [(inst_rule insts thm, RuleCases.get thm)]);
+
+    fun prep_rule (thm, cases) =
+      Seq.map (rpair cases) (Method.multi_resolves facts [thm]);
+    val tac = Method.resolveq_cases_tac (Seq.flat (Seq.map prep_rule (Seq.of_list rules)));
   in
-    if stripped then
-      Method.rule_tac thms facts THEN_ALL_NEW (REPEAT o resolve_tac [impI, allI, ballI])
-    else Method.rule_tac thms facts
+    if stripped then tac THEN_ALL_NEW_CASES (REPEAT o resolve_tac [impI, allI, ballI])
+    else tac
   end;
 
 in
 
-val induct_meth = Method.METHOD o (FINDGOAL oo induct_tac);
+val induct_meth = Method.METHOD_CASES o (FINDGOAL oo induct_tac);
 
 end;
 
