@@ -4,7 +4,12 @@
 # getsettings - bash source script to augment current env.
 #
 
+if [ -z "$ISABELLE_SETTINGS_PRESENT" ]
+then
+
 set -o allexport
+
+ISABELLE_SETTINGS_PRESENT=true
 
 #normalize ISABELLE_HOME as passed by caller
 ISABELLE_HOME=$(cd $ISABELLE_HOME; echo $PWD)
@@ -32,3 +37,5 @@ ISABELLE_PATH=$(for DIR in $(echo $ISABELLE_PATH | tr : " "); do echo $DIR/$ML_I
 ISABELLE_PATH=$(echo $ISABELLE_PATH | tr " " :)
 
 set +o allexport
+
+fi
