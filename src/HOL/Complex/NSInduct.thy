@@ -35,7 +35,7 @@ lemma hypnat_induct_obj:
     "(( *pNat* P) 0 &
             (\<forall>n. ( *pNat* P)(n) --> ( *pNat* P)(n + 1)))
        --> ( *pNat* P)(n)"
-apply (rule eq_Abs_hypnat [of n])
+apply (cases n)
 apply (auto simp add: hypnat_zero_def hypnat_one_def starPNat, ultra)
 apply (erule nat_induct)
 apply (drule_tac x = "hypnat_of_nat n" in spec)

@@ -724,8 +724,7 @@ done
 
 lemma hcomplex_of_hypreal_capprox_iff [simp]:
      "(hcomplex_of_hypreal x @c= hcomplex_of_hypreal z) = (x @= z)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of z])
+apply (cases x, cases z)
 apply (simp add: hcomplex_of_hypreal capprox_approx_iff)
 done
 
@@ -1133,13 +1132,13 @@ by (blast intro: stc_CFinite stc_capprox_self capprox_stc_eq)
 
 lemma CFinite_HFinite_hcomplex_of_hypreal:
      "z \<in> HFinite ==> hcomplex_of_hypreal z \<in> CFinite"
-apply (rule eq_Abs_hypreal [of z])
+apply (cases z)
 apply (simp add: hcomplex_of_hypreal CFinite_HFinite_iff hypreal_zero_def [symmetric])
 done
 
 lemma SComplex_SReal_hcomplex_of_hypreal:
      "x \<in> Reals ==>  hcomplex_of_hypreal x \<in> SComplex"
-apply (rule eq_Abs_hypreal [of x])
+apply (cases x)
 apply (simp add: hcomplex_of_hypreal SComplex_SReal_iff hypreal_zero_def [symmetric])
 done
 
@@ -1178,32 +1177,28 @@ text{*These theorems should probably be deleted*}
 lemma hcomplex_split_CInfinitesimal_iff:
      "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> CInfinitesimal) =  
       (x \<in> Infinitesimal & y \<in> Infinitesimal)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
+apply (cases x, cases y)
 apply (simp add: iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal CInfinitesimal_Infinitesimal_iff)
 done
 
 lemma hcomplex_split_CFinite_iff:
      "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> CFinite) =  
       (x \<in> HFinite & y \<in> HFinite)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
+apply (cases x, cases y)
 apply (simp add: iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal CFinite_HFinite_iff)
 done
 
 lemma hcomplex_split_SComplex_iff:
      "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> SComplex) =  
       (x \<in> Reals & y \<in> Reals)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
+apply (cases x, cases y)
 apply (simp add: iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal SComplex_SReal_iff)
 done
 
 lemma hcomplex_split_CInfinite_iff:
      "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y \<in> CInfinite) =  
       (x \<in> HInfinite | y \<in> HInfinite)"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
+apply (cases x, cases y)
 apply (simp add: iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal CInfinite_HInfinite_iff)
 done
 
@@ -1211,10 +1206,7 @@ lemma hcomplex_split_capprox_iff:
      "(hcomplex_of_hypreal x + iii * hcomplex_of_hypreal y @c=  
        hcomplex_of_hypreal x' + iii * hcomplex_of_hypreal y') =  
       (x @= x' & y @= y')"
-apply (rule eq_Abs_hypreal [of x])
-apply (rule eq_Abs_hypreal [of y])
-apply (rule eq_Abs_hypreal [of x'])
-apply (rule eq_Abs_hypreal [of y'])
+apply (cases x, cases y, cases x', cases y')
 apply (simp add: iii_def hcomplex_add hcomplex_mult hcomplex_of_hypreal capprox_approx_iff)
 done
 

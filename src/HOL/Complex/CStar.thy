@@ -242,7 +242,7 @@ declare starfunC_mult [symmetric, simp]
 
 lemma starfunRC_mult:
     "( *fRc* f) z * ( *fRc* g) z = ( *fRc* (%x. f x * g x)) z"
-apply (rule eq_Abs_hypreal [of z])
+apply (cases z)
 apply (simp add: starfunRC hcomplex_mult)
 done
 declare starfunRC_mult [symmetric, simp]
@@ -263,7 +263,7 @@ done
 declare starfunC_add [symmetric, simp]
 
 lemma starfunRC_add: "( *fRc* f) z + ( *fRc* g) z = ( *fRc* (%x. f x + g x)) z"
-apply (rule eq_Abs_hypreal [of z])
+apply (cases z)
 apply (simp add: starfunRC hcomplex_add)
 done
 declare starfunRC_add [symmetric, simp]
@@ -281,7 +281,7 @@ apply (simp add: starfunC hcomplex_minus)
 done
 
 lemma starfunRC_minus [simp]: "( *fRc* (%x. - f x)) x = - ( *fRc* f) x"
-apply (rule eq_Abs_hypreal [of x])
+apply (cases x)
 apply (simp add: starfunRC hcomplex_minus)
 done
 
@@ -338,36 +338,36 @@ lemma starfun_starfunCR_o: "( *f* f) o ( *fcR* g) = ( *fcR* (f o g))"
 by (simp add: o_def starfun_starfunCR_o2)
 
 lemma starfunC_const_fun [simp]: "( *fc* (%x. k)) z = hcomplex_of_complex k"
-apply (rule eq_Abs_hcomplex [of z])
+apply (cases z)
 apply (simp add: starfunC hcomplex_of_complex_def)
 done
 
 lemma starfunRC_const_fun [simp]: "( *fRc* (%x. k)) z = hcomplex_of_complex k"
-apply (rule eq_Abs_hypreal [of z])
+apply (cases z)
 apply (simp add: starfunRC hcomplex_of_complex_def)
 done
 
 lemma starfunCR_const_fun [simp]: "( *fcR* (%x. k)) z = hypreal_of_real k"
-apply (rule eq_Abs_hcomplex [of z])
+apply (cases z)
 apply (simp add: starfunCR hypreal_of_real_def)
 done
 
 lemma starfunC_inverse: "inverse (( *fc* f) x) = ( *fc* (%x. inverse (f x))) x"
-apply (rule eq_Abs_hcomplex [of x])
+apply (cases x)
 apply (simp add: starfunC hcomplex_inverse)
 done
 declare starfunC_inverse [symmetric, simp]
 
 lemma starfunRC_inverse:
     "inverse (( *fRc* f) x) = ( *fRc* (%x. inverse (f x))) x"
-apply (rule eq_Abs_hypreal [of x])
+apply (cases x)
 apply (simp add: starfunRC hcomplex_inverse)
 done
 declare starfunRC_inverse [symmetric, simp]
 
 lemma starfunCR_inverse:
     "inverse (( *fcR* f) x) = ( *fcR* (%x. inverse (f x))) x"
-apply (rule eq_Abs_hcomplex [of x])
+apply (cases x)
 apply (simp add: starfunCR hypreal_inverse)
 done
 declare starfunCR_inverse [symmetric, simp]
@@ -401,43 +401,43 @@ Goal "( *fcNat* (%n. z ^ n)) N = (hcomplex_of_complex z) hcpow N"
 *)
 
 lemma starfunC_hcpow: "( *fc* (%z. z ^ n)) Z = Z hcpow hypnat_of_nat n"
-apply (rule eq_Abs_hcomplex [of Z])
+apply (cases Z)
 apply (simp add: hcpow starfunC hypnat_of_nat_eq)
 done
 
 lemma starfunC_lambda_cancel:
     "( *fc* (%h. f (x + h))) y  = ( *fc* f) (hcomplex_of_complex  x + y)"
-apply (rule eq_Abs_hcomplex [of y])
+apply (cases y)
 apply (simp add: starfunC hcomplex_of_complex_def hcomplex_add)
 done
 
 lemma starfunCR_lambda_cancel:
     "( *fcR* (%h. f (x + h))) y  = ( *fcR* f) (hcomplex_of_complex  x + y)"
-apply (rule eq_Abs_hcomplex [of y])
+apply (cases y)
 apply (simp add: starfunCR hcomplex_of_complex_def hcomplex_add)
 done
 
 lemma starfunRC_lambda_cancel:
     "( *fRc* (%h. f (x + h))) y  = ( *fRc* f) (hypreal_of_real x + y)"
-apply (rule eq_Abs_hypreal [of y])
+apply (cases y)
 apply (simp add: starfunRC hypreal_of_real_def hypreal_add)
 done
 
 lemma starfunC_lambda_cancel2:
     "( *fc* (%h. f(g(x + h)))) y = ( *fc* (f o g)) (hcomplex_of_complex x + y)"
-apply (rule eq_Abs_hcomplex [of y])
+apply (cases y)
 apply (simp add: starfunC hcomplex_of_complex_def hcomplex_add)
 done
 
 lemma starfunCR_lambda_cancel2:
     "( *fcR* (%h. f(g(x + h)))) y = ( *fcR* (f o g)) (hcomplex_of_complex x + y)"
-apply (rule eq_Abs_hcomplex [of y])
+apply (cases y)
 apply (simp add: starfunCR hcomplex_of_complex_def hcomplex_add)
 done
 
 lemma starfunRC_lambda_cancel2:
     "( *fRc* (%h. f(g(x + h)))) y = ( *fRc* (f o g)) (hypreal_of_real x + y)"
-apply (rule eq_Abs_hypreal [of y])
+apply (cases y)
 apply (simp add: starfunRC hypreal_of_real_def hypreal_add)
 done
 
@@ -484,7 +484,7 @@ apply (simp add: starfunCR hcmod)
 done
 
 lemma starfunC_inverse_inverse: "( *fc* inverse) x = inverse(x)"
-apply (rule eq_Abs_hcomplex [of x])
+apply (cases x)
 apply (simp add: starfunC hcomplex_inverse)
 done
 
@@ -521,7 +521,7 @@ done
 
 lemma starfunC_n_mult:
     "( *fcn* f) z * ( *fcn* g) z = ( *fcn* (% i x. f i x * g i x)) z"
-apply (rule eq_Abs_hcomplex [of z])
+apply (cases z)
 apply (simp add: starfunC_n hcomplex_mult)
 done
 
@@ -529,14 +529,14 @@ done
 
 lemma starfunC_n_add:
     "( *fcn* f) z + ( *fcn* g) z = ( *fcn* (%i x. f i x + g i x)) z"
-apply (rule eq_Abs_hcomplex [of z])
+apply (cases z)
 apply (simp add: starfunC_n hcomplex_add)
 done
 
 (** uminus **)
 
 lemma starfunC_n_minus: "- ( *fcn* g) z = ( *fcn* (%i x. - g i x)) z"
-apply (rule eq_Abs_hcomplex [of z])
+apply (cases z)
 apply (simp add: starfunC_n hcomplex_minus)
 done
 
@@ -550,7 +550,7 @@ by (simp add: diff_minus  starfunC_n_add starfunC_n_minus)
 
 lemma starfunC_n_const_fun [simp]:
      "( *fcn* (%i x. k)) z = hcomplex_of_complex  k"
-apply (rule eq_Abs_hcomplex [of z])
+apply (cases z)
 apply (simp add: starfunC_n hcomplex_of_complex_def)
 done
 
@@ -582,27 +582,25 @@ done
 lemma starfunC_eq_Re_Im_iff:
     "(( *fc* f) x = z) = ((( *fcR* (%x. Re(f x))) x = hRe (z)) &
                           (( *fcR* (%x. Im(f x))) x = hIm (z)))"
-apply (rule eq_Abs_hcomplex [of x])
-apply (rule eq_Abs_hcomplex [of z])
+apply (cases x, cases z)
 apply (auto simp add: starfunCR starfunC hIm hRe complex_Re_Im_cancel_iff, ultra+)
 done
 
 lemma starfunC_approx_Re_Im_iff:
     "(( *fc* f) x @c= z) = ((( *fcR* (%x. Re(f x))) x @= hRe (z)) &
                             (( *fcR* (%x. Im(f x))) x @= hIm (z)))"
-apply (rule eq_Abs_hcomplex [of x])
-apply (rule eq_Abs_hcomplex [of z])
+apply (cases x, cases z)
 apply (simp add: starfunCR starfunC hIm hRe capprox_approx_iff)
 done
 
 lemma starfunC_Idfun_capprox:
     "x @c= hcomplex_of_complex a ==> ( *fc* (%x. x)) x @c= hcomplex_of_complex  a"
-apply (rule eq_Abs_hcomplex [of x])
+apply (cases x)
 apply (simp add: starfunC)
 done
 
 lemma starfunC_Id [simp]: "( *fc* (%x. x)) x = x"
-apply (rule eq_Abs_hcomplex [of x])
+apply (cases x)
 apply (simp add: starfunC)
 done
 
