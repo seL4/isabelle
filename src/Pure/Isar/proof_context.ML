@@ -392,7 +392,7 @@ val string_of_term = Pretty.string_of oo pretty_term;
 
 fun pretty_thm ctxt thm =
   if ! Display.show_hyps then
-    Display.pretty_thm_aux (pretty_sort ctxt, pretty_term ctxt) false thm
+    Display.pretty_thm_aux (pp ctxt) false thm
   else pretty_term ctxt (Thm.prop_of thm);
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th

@@ -28,8 +28,8 @@ end;
 signature DISPLAY =
 sig
   include BASIC_DISPLAY
-  val pretty_flexpair: (term -> Pretty.T) -> term * term -> Pretty.T
-  val pretty_thm_aux: (sort -> Pretty.T) * (term -> Pretty.T) -> bool -> thm -> Pretty.T
+  val pretty_flexpair: Pretty.pp -> term * term -> Pretty.T
+  val pretty_thm_aux: Pretty.pp -> bool -> thm -> Pretty.T
   val pretty_thm_no_quote: thm -> Pretty.T
   val pretty_thm: thm -> Pretty.T
   val pretty_thms: thm list -> Pretty.T
@@ -44,8 +44,7 @@ sig
   val pprint_theory: theory -> pprint_args -> unit
   val pretty_full_theory: theory -> Pretty.T list
   val pretty_name_space: string * NameSpace.T -> Pretty.T
-  val pretty_goals_aux: (sort -> Pretty.T) * (typ -> Pretty.T) * (term -> Pretty.T)
-    -> string -> bool * bool -> int -> thm -> Pretty.T list
+  val pretty_goals_aux: Pretty.pp -> string -> bool * bool -> int -> thm -> Pretty.T list
   val pretty_goals: int -> thm -> Pretty.T list
   val print_goals: int -> thm -> unit
   val current_goals_markers: (string * string * string) ref
@@ -67,25 +66,25 @@ val show_tags = ref false;      (*false: suppress tags*)
 fun pretty_tag (name, args) = Pretty.strs (name :: map Library.quote args);
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
-fun pretty_flexpair pretty_term (t, u) = Pretty.block
-  [pretty_term t, Pretty.str " =?=", Pretty.brk 1, pretty_term u];
+fun pretty_flexpair pp (t, u) = Pretty.block
+  [Pretty.term pp t, Pretty.str " =?=", Pretty.brk 1, Pretty.term pp u];
 
-fun pretty_thm_aux (pretty_sort, pretty_term) quote th =
+fun pretty_thm_aux pp quote th =
   let
     val {hyps, tpairs, prop, der = (ora, _), ...} = rep_thm th;
     val xshyps = Thm.extra_shyps th;
     val (_, tags) = Thm.get_name_tags th;
 
     val q = if quote then Pretty.quote else I;
-    val prt_term = q o pretty_term;
+    val prt_term = q o (Pretty.term pp);
 
     val hlen = length xshyps + length hyps + length tpairs;
     val hsymbs =
       if hlen = 0 andalso not ora then []
       else if ! show_hyps then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (q o pretty_flexpair pretty_term) tpairs @ map prt_term hyps @
-           map pretty_sort xshyps @
+          (map (q o pretty_flexpair pp) tpairs @ map prt_term hyps @
+           map (Pretty.sort pp) xshyps @
             (if ora then [Pretty.str "!"] else []))]
       else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^
         (if ora then "!" else "") ^ "]")];
@@ -95,8 +94,7 @@ fun pretty_thm_aux (pretty_sort, pretty_term) quote th =
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
 fun gen_pretty_thm quote th =
-  let val sg = Thm.sign_of_thm th
-  in pretty_thm_aux (Sign.pretty_sort sg, Sign.pretty_term sg) quote th end;
+  pretty_thm_aux (Sign.pp (Thm.sign_of_thm th)) quote th;
 
 val pretty_thm = gen_pretty_thm true;
 val pretty_thm_no_quote = gen_pretty_thm false;
@@ -296,31 +294,31 @@ fun varsT_of t = rev (sort_idxs (it_term_types add_varsT (t, [])));
 
 in
 
-fun pretty_goals_aux (prt_sort, prt_typ, prt_term) begin_goal (msg, main) maxgoals state =
+fun pretty_goals_aux pp begin_goal (msg, main) maxgoals state =
   let
     fun prt_atoms prt prtT (X, xs) = Pretty.block
       [Pretty.block (Pretty.commas (map prt xs)), Pretty.str " ::",
         Pretty.brk 1, prtT X];
 
-    fun prt_var (x, ~1) = prt_term (Syntax.free x)
-      | prt_var xi = prt_term (Syntax.var xi);
+    fun prt_var (x, ~1) = Pretty.term pp (Syntax.free x)
+      | prt_var xi = Pretty.term pp (Syntax.var xi);
 
-    fun prt_varT (x, ~1) = prt_typ (TFree (x, []))
-      | prt_varT xi = prt_typ (TVar (xi, []));
+    fun prt_varT (x, ~1) = Pretty.typ pp (TFree (x, []))
+      | prt_varT xi = Pretty.typ pp (TVar (xi, []));
 
-    val prt_consts = prt_atoms (prt_term o Const) prt_typ;
-    val prt_vars = prt_atoms prt_var prt_typ;
-    val prt_varsT = prt_atoms prt_varT prt_sort;
+    val prt_consts = prt_atoms (Pretty.term pp o Const) (Pretty.typ pp);
+    val prt_vars = prt_atoms prt_var (Pretty.typ pp);
+    val prt_varsT = prt_atoms prt_varT (Pretty.sort pp);
 
 
     fun pretty_list _ _ [] = []
       | pretty_list name prt lst = [Pretty.big_list name (map prt lst)];
 
-    fun pretty_subgoal (n, A) =
-      Pretty.blk (0, [Pretty.str (begin_goal ^ " " ^ string_of_int n ^ ". "), prt_term A]);
+    fun pretty_subgoal (n, A) = Pretty.blk (0,
+     [Pretty.str (begin_goal ^ " " ^ string_of_int n ^ ". "), Pretty.term pp A]);
     fun pretty_subgoals As = map pretty_subgoal (1 upto length As ~~ As);
 
-    val pretty_ffpairs = pretty_list "flex-flex pairs:" (pretty_flexpair prt_term);
+    val pretty_ffpairs = pretty_list "flex-flex pairs:" (pretty_flexpair pp);
 
     val pretty_consts = pretty_list "constants:" prt_consts o consts_of;
     val pretty_vars = pretty_list "variables:" prt_vars o vars_of;
@@ -332,7 +330,7 @@ fun pretty_goals_aux (prt_sort, prt_typ, prt_term) begin_goal (msg, main) maxgoa
     val ngoals = length As;
 
     fun pretty_gs (types, sorts) =
-      (if main then [prt_term B] else []) @
+      (if main then [Pretty.term pp B] else []) @
        (if ngoals = 0 then [Pretty.str "No subgoals!"]
         else if ngoals > maxgoals then
           pretty_subgoals (take (maxgoals, As)) @
@@ -351,10 +349,7 @@ fun pretty_goals_aux (prt_sort, prt_typ, prt_term) begin_goal (msg, main) maxgoa
   end;
 
 fun pretty_goals_marker bg n th =
-  let val sg = Thm.sign_of_thm th in
-    pretty_goals_aux (Sign.pretty_sort sg, Sign.pretty_typ sg, Sign.pretty_term sg)
-      bg (true, true) n th
-  end;
+  pretty_goals_aux (Sign.pp (Thm.sign_of_thm th)) bg (true, true) n th;
 
 val pretty_goals = pretty_goals_marker "";
 val print_goals = (Pretty.writeln o Pretty.chunks) oo pretty_goals_marker "";

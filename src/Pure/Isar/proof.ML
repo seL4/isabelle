@@ -329,8 +329,7 @@ val show_main_goal = ref false;
 
 val verbose = ProofContext.verbose;
 
-fun pretty_goals_local ctxt = Display.pretty_goals_aux
-  (ProofContext.pretty_sort ctxt, ProofContext.pretty_typ ctxt, ProofContext.pretty_term ctxt);
+val pretty_goals_local = Display.pretty_goals_aux o ProofContext.pp;
 
 fun pretty_facts _ _ None = []
   | pretty_facts s ctxt (Some ths) =
