@@ -2,8 +2,6 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
-
-First-Order Logic.
 *)
 
 val banner = "First-Order Logic with Natural Deduction";
@@ -17,6 +15,7 @@ use "~~/src/Provers/splitter.ML";
 use "~~/src/Provers/ind.ML";
 use "~~/src/Provers/hypsubst.ML";
 use "~~/src/Provers/rulify.ML";
+use "~~/src/Provers/induct_method.ML";
 use "~~/src/Provers/make_elim.ML";
 use "~~/src/Provers/classical.ML";
 use "~~/src/Provers/blast.ML";
