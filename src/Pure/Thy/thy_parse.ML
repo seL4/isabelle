@@ -415,7 +415,7 @@ val instance_decl =
 
 (* global *)
 
-val global_decl = empty >> K "\"/\"";
+fun global_decl x = (empty >> K "\"/\"") x;
 
 
 
