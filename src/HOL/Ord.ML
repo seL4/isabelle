@@ -25,6 +25,8 @@ qed "monoD";
 
 section "Orders";
 
+(** Reflexivity **)
+
 Addsimps [order_refl];
 
 (*This form is useful with the classical reasoner*)
@@ -43,6 +45,35 @@ by (simp_tac (simpset() addsimps [order_less_le]) 1);
    (*NOT suitable for AddIffs, since it can cause PROOF FAILED*)
 by (blast_tac (claset() addSIs [order_refl]) 1);
 qed "order_le_less";
+
+(** Asymmetry **)
+
+Goal "(x::'a::order) < y ==> ~ (y<x)";
+by (asm_full_simp_tac (simpset() addsimps [order_less_le, order_antisym]) 1);
+qed "order_less_not_sym";
+
+(* [| n<m;  ~P ==> m<n |] ==> P *)
+bind_thm ("order_less_asym", order_less_not_sym RS swap);
+
+
+(** Useful for simplification, but too risky to include by default. **)
+
+Goal "(x::'a::order) < y ==>  (~ y < x) = True";
+by (blast_tac (claset() addEs [order_less_asym]) 1);
+qed "order_less_imp_not_less";
+
+Goal "(x::'a::order) < y ==>  (y < x --> P) = True";
+by (blast_tac (claset() addEs [order_less_asym]) 1);
+qed "order_less_imp_triv";
+
+Goal "(x::'a::order) < y ==>  (x = y) = False";
+by Auto_tac;
+qed "order_less_imp_not_eq";
+
+Goal "(x::'a::order) < y ==>  (y = x) = False";
+by Auto_tac;
+qed "order_less_imp_not_eq2";
+
 
 (** min **)
 
