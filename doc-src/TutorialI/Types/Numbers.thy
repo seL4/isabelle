@@ -2,7 +2,7 @@
 theory Numbers = Real:
 
 ML "Pretty.setmargin 64"
-
+ML "IsarOutput.indent := 0"  (*we don't want 5 for listing theorems*)
 
 text{*
 
@@ -198,7 +198,8 @@ text {*REALS
 
 This last NOT a simprule
 
-real_add_divide_distrib
+@{thm[display] real_add_divide_distrib[no_vars]}
+\rulename{real_add_divide_distrib}
 *}
 
 end
