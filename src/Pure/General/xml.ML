@@ -9,6 +9,7 @@ signature XML =
 sig
   val header: string
   val text: string -> string
+  val text_charref: string -> string
   val cdata: string -> string
   val element: string -> (string * string) list -> string list -> string
   datatype tree =
@@ -46,7 +47,11 @@ fun encode "<" = "&lt;"
   | encode "\"" = "&quot;"
   | encode c = c;
 
-val text = Library.translate_string encode;
+fun encode_charref c = "&#"^Int.toString (Char.ord c)^ ";"
+
+val text = Library.translate_string encode
+
+val text_charref = implode o (map encode_charref) o String.explode
 
 val cdata = enclose "<![CDATA[" "]]>\n"
 
