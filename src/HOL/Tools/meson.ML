@@ -197,6 +197,17 @@ fun sort_clauses ths = sort (make_ord fewerlits) (List.filter (not o is_taut) th
 (*Convert all suitable free variables to schematic variables*)
 fun generalize th = forall_elim_vars 0 (forall_intr_frees th);
 
+(*True if the given type contains bool anywhere*)
+fun has_bool (Type("bool",_)) = true
+  | has_bool (Type(_, Ts)) = exists has_bool Ts
+  | has_bool _ = false;
+  
+(*Raises an exception if any Vars in the theorem mention type bool. That would mean
+  they are higher-order, and in addition, they could cause make_horn to loop!*)
+fun check_no_bool th =
+  if exists (has_bool o fastype_of) (term_vars (#prop (rep_thm th)))
+  then raise THM ("check_no_bool", 0, [th]) else th;
+
 (*Create a meta-level Horn clause*)
 fun make_horn crules th = make_horn crules (tryres(th,crules))
 			  handle THM _ => th;
@@ -206,7 +217,7 @@ fun add_contras crules (th,hcs) =
   let fun rots (0,th) = hcs
 	| rots (k,th) = zero_var_indexes (make_horn crules th) ::
 			rots(k-1, assoc_right (th RS disj_comm))
-  in case nliterals(prop_of th) of
+  in case nliterals(prop_of (check_no_bool th)) of
 	1 => th::hcs
       | n => rots(n, assoc_right th)
   end;
@@ -273,11 +284,14 @@ fun size_of_subgoals st = foldr addconcl 0 (prems_of st);
 (*Negation Normal Form*)
 val nnf_rls = [imp_to_disjD, iff_to_disjD, not_conjD, not_disjD,
                not_impD, not_iffD, not_allD, not_exD, not_notD];
-fun make_nnf th = make_nnf (tryres(th, nnf_rls))
+
+fun make_nnf1 th = make_nnf1 (tryres(th, nnf_rls))
     handle THM _ =>
-        forward_res make_nnf
+        forward_res make_nnf1
            (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
     handle THM _ => th;
+
+fun make_nnf th = make_nnf1 (check_no_bool th);
 
 (*Pull existential quantifiers (Skolemization)*)
 fun skolemize th =
@@ -388,7 +402,8 @@ fun negated_asm_of_head th =
     th RS notEfalse handle THM _ => th RS notEfalse';
 
 (*Converting one clause*)
-fun make_meta_clause th = negated_asm_of_head (make_horn resolution_clause_rules th);
+fun make_meta_clause th = 
+	negated_asm_of_head (make_horn resolution_clause_rules (check_no_bool th));
 
 fun make_meta_clauses ths =
     name_thms "MClause#"
