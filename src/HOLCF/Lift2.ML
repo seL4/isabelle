@@ -58,8 +58,8 @@ qed"notUndef_I";
 goal Lift2.thy
 "!!Y. [|? j.~Y(j)=Undef;is_chain(Y::nat=>('a)lift)|] \
 \ ==> ? j.!i.j<i-->~Y(i)=Undef";
-by (safe_tac HOL_cs);
-by (step_tac HOL_cs 1);
+by Safe_tac;
+by (Step_tac 1);
 by (strip_tac 1);
 by (rtac notUndef_I 1);
 by (atac 2);
@@ -85,7 +85,7 @@ by (etac spec 1);
 by (subgoal_tac "!x y.x<<(y::('a)lift) --> x=Undef | x=y" 1);
 by (simp_tac (!simpset addsimps [inst_lift_po]) 2);
 by (rtac (chain_mono2_po RS exE) 1); 
-by (fast_tac HOL_cs 1); 
+by (Fast_tac 1); 
 by (atac 1); 
 by (res_inst_tac [("x","Suc(x)")] exI 1); 
 by (strip_tac 1); 
@@ -112,9 +112,9 @@ qed"flat_imp_chain_finite_poo";
 goal Lift2.thy  
   "!!Y. is_chain(Y::nat=>('a)lift) ==> ? x.range(Y) <<|x";
 by (cut_inst_tac [] flat_imp_chain_finite_poo 1);
-by (step_tac HOL_cs 1);
-by (safe_tac HOL_cs);
-by (step_tac HOL_cs 1); 
+by (Step_tac 1);
+by Safe_tac;
+by (Step_tac 1); 
 by (rtac exI 1);
 by (rtac lub_finch1 1);
 by (atac 1);

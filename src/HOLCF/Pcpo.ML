@@ -121,7 +121,7 @@ qed_goal "lub_mono2" thy
         (case_tac "x<i" 1),
         (res_inst_tac [("s","Y(i)"),("t","X(i)")] subst 1),
         (rtac sym 1),
-        (fast_tac HOL_cs 1),
+        (Fast_tac 1),
         (rtac is_ub_thelub 1),
         (resolve_tac prems 1),
         (res_inst_tac [("y","X(Suc(x))")] trans_less 1),
@@ -146,11 +146,11 @@ qed_goal "lub_equal2" thy
         (REPEAT (resolve_tac prems 1)),
         (cut_facts_tac prems 1),
         (rtac lub_mono2 1),
-        (safe_tac HOL_cs),
-        (step_tac HOL_cs 1),
-        (safe_tac HOL_cs),
+        Safe_tac,
+        (Step_tac 1),
+        Safe_tac,
         (rtac sym 1),
-        (fast_tac HOL_cs 1)
+        (Fast_tac 1)
         ]);
 
 qed_goal "lub_mono3" thy "[|is_chain(Y::nat=>'a::cpo);is_chain(X);\
@@ -175,7 +175,7 @@ qed_goal "lub_mono3" thy "[|is_chain(Y::nat=>'a::cpo);is_chain(X);\
 (* ------------------------------------------------------------------------ *)
 
 val eq_UU_sym = prove_goal thy "(UU = x) = (x = UU)" (fn _ => [
-        fast_tac HOL_cs 1]);
+        Fast_tac 1]);
 
 qed_goal "eq_UU_iff" thy "(x=UU)=(x<<UU)"
  (fn prems =>
@@ -261,8 +261,8 @@ qed_goal "chain_mono2" thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (safe_tac HOL_cs),
-        (step_tac HOL_cs 1),
+        Safe_tac,
+        (Step_tac 1),
         (strip_tac 1),
         (rtac notUU_I 1),
         (atac 2),
@@ -292,9 +292,9 @@ qed_goalw "flat_imp_chain_finite" thy [max_in_chain_def]
         (strip_tac 1),
         (dres_inst_tac [("x","i"),("y","j")] chain_mono 1),
         (etac (le_imp_less_or_eq RS disjE) 1),
-	(safe_tac HOL_cs),
+	Safe_tac,
 	(dtac (ax_flat RS spec RS spec RS mp) 1),
-	(fast_tac HOL_cs 1)
+	(Fast_tac 1)
         ]);
 
 (* flat subclass of chfin --> adm_flat not needed *)
