@@ -19,7 +19,7 @@ sig
   type state
   exception STATE of string * state
   val check_result: string -> state -> 'a Seq.seq -> 'a Seq.seq
-  val init_state: theory -> string option -> state
+  val init_state: theory -> state
   val context_of: state -> context
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
@@ -79,10 +79,10 @@ sig
   val def: string -> context attribute list -> string *  (string * string list) -> state -> state
   val def_i: string -> context attribute list -> string * (term * term list) -> state -> state
   val invoke_case: string * string option list * context attribute list -> state -> state
-  val theorem: string -> string option -> bstring -> theory attribute list
-    -> string * (string list * string list) -> theory -> state
-  val theorem_i: string -> string option -> bstring -> theory attribute list
-    -> term * (term list * term list) -> theory -> state
+  val theorem: string -> xstring option -> context attribute Locale.element list -> bstring
+    -> theory attribute list -> string * (string list * string list) -> theory -> state
+  val theorem_i: string -> string option -> context attribute Locale.element_i list -> bstring
+    -> theory attribute list -> term * (term list * term list) -> theory -> state
   val chain: state -> state
   val from_facts: thm list -> state -> state
   val show: (bool -> state -> state) -> (state -> state Seq.seq) -> string
@@ -174,6 +174,9 @@ fun check_result msg state sq =
 
 fun map_current f (State (Node {context, facts, mode, goal}, nodes)) =
   State (make_node (f (context, facts, mode, goal)), nodes);
+
+fun init_state thy =
+  State (make_node (ProofContext.init thy, None, Forward, None), []);
 
 
 
@@ -300,13 +303,6 @@ fun new_block state =
 
 fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
   | close_block state = raise STATE ("Unbalanced block parentheses", state);
-
-
-(* init_state *)
-
-fun init_state thy locale =  (* FIXME locale unused *)
-  State (make_node (ProofContext.init thy, None, Forward, None), [])
-  |> open_block |> open_block;
 
 
 
@@ -624,12 +620,18 @@ fun setup_goal opt_block prepp autofix kind after_qed name raw_propp state =
   end;
 
 (*global goals*)
-fun global_goal prepp kind locale name atts x thy =
-  setup_goal I prepp (ProofContext.fix_frees o single) (Theorem (kind, locale, atts))
-    Seq.single name x (init_state thy locale);
+fun global_goal prepp act_locale act_elems kind locale elems name atts x thy =
+  thy |> init_state
+  |> open_block |> (case locale of Some loc => map_context (act_locale loc) | None => I)
+  |> open_block |> map_context (act_elems elems)
+  |> setup_goal I prepp (ProofContext.fix_frees o single) (Theorem (kind, locale, atts))
+    Seq.single name x;
 
-val theorem = global_goal ProofContext.bind_propp_schematic;
-val theorem_i = global_goal ProofContext.bind_propp_schematic_i;
+val theorem = global_goal ProofContext.bind_propp_schematic
+  Locale.activate_locale Locale.activate_elements;
+
+val theorem_i = global_goal ProofContext.bind_propp_schematic_i
+  Locale.activate_locale_i Locale.activate_elements_i;
 
 
 (*local goals*)
