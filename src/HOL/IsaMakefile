@@ -318,7 +318,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/BT.ML ex/BT.thy ex/Fib.ML ex/Fib.thy \
   ex/Lagrange.thy ex/Ring.ML ex/Ring.thy ex/StringEx.ML \
   ex/StringEx.thy ex/BinEx.ML ex/BinEx.thy ex/MonoidGroup.thy \
   ex/PiSets.thy ex/PiSets.ML ex/LocaleGroup.thy ex/LocaleGroup.ML \
-  ex/Antiquote.thy ex/Antiquote.ML ex/Points.thy ex/Points.ML
+  ex/Antiquote.thy ex/Antiquote.ML ex/Points.thy
 	@$(ISATOOL) usedir $(OUT)/HOL ex
 
 
