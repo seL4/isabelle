@@ -6,7 +6,9 @@
 
 header{*The Nonstandard Primes as an Extension of the Prime Numbers*}
 
-theory NSPrimes = "~~/src/HOL/NumberTheory/Factorization" + Complex_Main:
+theory NSPrimes
+imports "~~/src/HOL/NumberTheory/Factorization" Complex_Main
+begin
 
 text{*These can be used to derive an alternative proof of the infinitude of
 primes by considering a property of nonstandard sets.*}

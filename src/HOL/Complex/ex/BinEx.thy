@@ -6,7 +6,9 @@
 
 header {* Binary arithmetic examples *}
 
-theory BinEx = Complex_Main:
+theory BinEx
+imports Complex_Main
+begin
 
 text {*
   Examples of performing binary arithmetic by simplification.  This time

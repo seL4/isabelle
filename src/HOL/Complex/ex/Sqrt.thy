@@ -6,7 +6,9 @@
 
 header {*  Square roots of primes are irrational *}
 
-theory Sqrt = Primes + Complex_Main:
+theory Sqrt
+imports Primes Complex_Main
+begin
 
 subsection {* Preliminaries *}
 
