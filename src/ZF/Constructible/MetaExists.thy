@@ -13,20 +13,15 @@ syntax (xsymbols)
   "?? "        :: "[idts, o] => o"             ("(3\<Or>_./ _)" [0, 0] 0)
 
 lemma meta_exI: "PROP P(x) ==> (?? x. PROP P(x))"
-proof -
+proof (unfold ex_def)
   assume P: "PROP P(x)"
-  show "?? x. PROP P(x)"
-  apply (unfold ex_def)
-  proof -
-    fix Q
-    assume PQ: "\<And>x. PROP P(x) \<Longrightarrow> PROP Q"
-    from P show "PROP Q" by (rule PQ)
-  qed
+  fix Q
+  assume PQ: "\<And>x. PROP P(x) \<Longrightarrow> PROP Q"
+  from P show "PROP Q" by (rule PQ)
 qed 
 
 lemma meta_exE: "[| ?? x. PROP P(x);  !!x. PROP P(x) ==> PROP R |] ==> PROP R"
-apply (unfold ex_def)
-proof -
+proof (unfold ex_def)
   assume QPQ: "\<And>Q. (\<And>x. PROP P(x) \<Longrightarrow> PROP Q) \<Longrightarrow> PROP Q"
   assume PR: "\<And>x. PROP P(x) \<Longrightarrow> PROP R"
   from PR show "PROP R" by (rule QPQ)
