@@ -1,0 +1,30 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Plus}%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Define the following addition function%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{consts}\ plus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{primrec}\isanewline
+{\isachardoublequote}plus\ m\ {\isadigit{0}}\ {\isacharequal}\ m{\isachardoublequote}\isanewline
+{\isachardoublequote}plus\ m\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ plus\ {\isacharparenleft}Suc\ m{\isacharparenright}\ n{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent and prove%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}plus\ m\ n\ {\isacharequal}\ m{\isacharplus}n{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

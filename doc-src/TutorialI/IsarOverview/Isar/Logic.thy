@@ -471,4 +471,114 @@ qed
 
 text{*\noindent You may need to resort to this technique if an automatic step
 fails to prove the desired proposition. *}
+
+section{*Induction*}
+
+lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)"
+by (induct n, simp_all)
+
+lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)" (is "?P n")
+proof (induct n)
+  show "?P 0" by simp
+next
+  fix n assume "?P n"
+  thus "?P(Suc n)" by simp
+qed
+
+(* Could refine further, but not necessary *)
+
+lemma "2 * (\<Sum>i<n+1. i) = n*(n+1)"
+proof (induct n)
+  case 0 show ?case by simp
+next
+  case Suc thus ?case by simp
+qed
+
+
+
+
+consts itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
+primrec
+"itrev []     ys = ys"
+"itrev (x#xs) ys = itrev xs (x#ys)"
+
+lemma "\<And>ys. itrev xs ys = rev xs @ ys"
+by (induct xs, simp_all)
+
+(* The !! just disappears. Even more pronounced for \<Longrightarrow> *)
+
+lemma r: assumes A: "(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n)"
+  shows "\<And>m. m < n \<Longrightarrow> P(m::nat)"
+proof (induct n)
+  case 0 hence False by simp thus ?case ..
+next
+  case (Suc n m)
+  show ?case
+  proof (cases)
+    assume eq: "m = n"
+    have "P n" sorry
+    with eq show "P m" by simp
+  next
+    assume neq: "m \<noteq> n"
+    with Suc have "m < n" by simp
+    with Suc show "P m" by blast
+  qed
+  
+
+
+thm r
+thm r[of _ n "Suc n", simplified]
+
+lemma "(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n) \<Longrightarrow> P n"
+
+lemma assumes P0: "P 0" and P1: "P(Suc 0)"
+      and P2: "\<And>k. P k \<Longrightarrow> P(Suc (Suc k))" shows "P n"
+proof (induct n rule: nat_less_induct)
+thm nat_less_induct
+  fix n assume "\<forall>m. m < n \<longrightarrow> P m"
+  show "P n"
+  proof (cases n)
+    assume "n=0" thus "P n" by simp
+  next
+    fix m assume n: "n = Suc m"
+    show "P n"
+    proof (cases m)
+      assume "m=0" with n show "P n" by simp
+    next
+      fix l assume "m = Suc l"
+      with  n show "P n" apply simp
+
+by (case_tac "n" 1);
+by (case_tac "nat" 2);
+by (ALLGOALS (blast_tac (claset() addIs prems@[less_trans])));
+qed "nat_induct2";
+
+consts rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
+inductive "r*"
+intros
+rtc_refl[iff]:  "(x,x) \<in> r*"
+rtc_step:       "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
+
+lemma [intro]: "(x,y) : r \<Longrightarrow> (x,y) \<in> r*"
+by(blast intro: rtc_step);
+
+lemma assumes A:"(x,y) \<in> r*" and B:"(y,z) \<in> r*" shows "(x,z) \<in> r*"
+proof -
+  from A B show ?thesis
+  proof (induct)
+    fix x assume "(x,z) \<in> r*" thus "(x,z) \<in> r*" .
+  next
+    fix x y 
+qed
+
+text{*
+\begin{exercise}
+Show that the converse of @{thm[source]rtc_step} also holds:
+@{prop[display]"[| (x,y) : r*; (y,z) : r |] ==> (x,z) : r*"}
+\end{exercise}*}
+
+
+
+text{*As always, the different cases can be tackled in any order.*}
+
 (*<*)end(*>*)

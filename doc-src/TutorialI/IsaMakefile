@@ -168,8 +168,8 @@ $(LOG)/HOL-Real-Types.gz: $(OUT)/HOL-Real Types/ROOT.ML \
 HOL-Misc: HOL $(LOG)/HOL-Misc.gz
 
 $(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy \
-  Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy Misc/Option2.thy \
-  Misc/types.thy Misc/prime_def.thy Misc/case_exprs.thy \
+  Misc/Plus.thy Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy \
+  Misc/Option2.thy Misc/types.thy Misc/prime_def.thy Misc/case_exprs.thy \
   Misc/simp.thy Misc/Itrev.thy Misc/AdvancedInd.thy Misc/appendix.thy
 	$(USEDIR) Misc
 	@rm -f tutorial.dvi

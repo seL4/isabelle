@@ -8,7 +8,7 @@ text{*\noindent In Exercise~\ref{ex:Tree} we defined a function
 quadratic. A linear time version of @{term"flatten"} again reqires an extra
 argument, the accumulator: *}
 
-consts flatten2 :: "'a tree => 'a list => 'a list"
+consts flatten2 :: "'a tree \<Rightarrow> 'a list \<Rightarrow> 'a list"
 (*<*)
 primrec
 "flatten2 Tip xs = xs"

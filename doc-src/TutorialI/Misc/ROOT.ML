@@ -1,6 +1,7 @@
 use "../settings.ML";
 use_thy "Tree";
 use_thy "Tree2";
+use_thy "Plus";
 use_thy "case_exprs";
 use_thy "fakenat";
 use_thy "natsum";

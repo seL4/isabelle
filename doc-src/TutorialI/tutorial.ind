@@ -137,7 +137,7 @@
 
   \indexspace
 
-  \item \isacommand {datatype} (command), 9, 38--43
+  \item \isacommand {datatype} (command), 9, 38--44
   \item datatypes, 17--22
     \subitem and nested recursion, 40, 44
     \subitem mutually recursive, 38
@@ -226,7 +226,7 @@
   \item function types, 5
   \item functions, 109--111
     \subitem partial, 182
-    \subitem total, 11, 46--52
+    \subitem total, 11, 47--52
     \subitem underdefined, 183
 
   \indexspace
@@ -246,7 +246,7 @@
   \item \isacommand {header} (command), 59
   \item Hilbert's $\varepsilon$-operator, 86
   \item \isacommand {hints} (command), 49, 180, 182
-  \item HOLCF, 43
+  \item HOLCF, 44
   \item Hopcroft, J. E., 145
   \item \isa {hypreal} (type), 155
 
@@ -260,7 +260,7 @@
   \item identity relation, \bold{112}
   \item \isa {if} expressions, 5, 6
     \subitem simplification of, 33
-    \subitem splitting of, 31, 49
+    \subitem splitting of, 31, 50
   \item if-and-only-if, 6
   \item \isa {iff} (attribute), 90, 102, 130
   \item \isa {iffD1} (theorem), \bold{94}
@@ -330,7 +330,7 @@
   \indexspace
 
   \item $\lambda$ expressions, 5
-  \item LCF, 43
+  \item LCF, 44
   \item \isa {LEAST} (symbol), 23, 85
   \item least number operator, \see{\protect\isa{LEAST}}{85}
   \item Leibniz, Gottfried Wilhelm, 53
@@ -423,7 +423,7 @@
   \item pairs and tuples, 24, 155--158
   \item parent theories, \bold{4}
   \item pattern matching
-    \subitem and \isacommand{recdef}, 47
+    \subitem and \isacommand{recdef}, 48
   \item patterns
     \subitem higher-order, \bold{177}
   \item PDL, 118--120
@@ -431,7 +431,7 @@
   \item \isacommand {prefer} (command), 16, 100
   \item prefix annotation, 55
   \item primitive recursion, \see{recursion, primitive}{1}
-  \item \isacommand {primrec} (command), 10, 18, 38--43
+  \item \isacommand {primrec} (command), 10, 18, 38--44
   \item print mode, \bold{55}
   \item product type, \see{pairs and tuples}{1}
   \item Proof General, \bold{7}
@@ -463,7 +463,7 @@
   \item \isa {Real} (theory), 155
   \item \isa {real} (type), 154--155
   \item real numbers, 154--155
-  \item \isacommand {recdef} (command), 46--52, 114, 178--186
+  \item \isacommand {recdef} (command), 47--52, 114, 178--186
     \subitem and numeric literals, 150
   \item \isa {recdef_cong} (attribute), 182
   \item \isa {recdef_simp} (attribute), 49
@@ -597,7 +597,7 @@
   \item \isa {trancl_trans} (theorem), \bold{113}
   \item transition systems, 117
   \item \isacommand {translations} (command), 56
-  \item tries, 44--46
+  \item tries, 44--47
   \item \isa {True} (constant), 5
   \item \isa {truncate} (constant), 163
   \item tuples, \see{pairs and tuples}{1}
