@@ -32,6 +32,25 @@ consts
   input_enabled	 ::"('a,'s)ioa => bool"
   IOA	         ::"('a,'s)ioa => bool"
 
+  (* constraints for fair IOA *)
+
+  fairIOA        ::"('a,'s)ioa => bool"
+  input_resistant::"('a,'s)ioa => bool"
+
+  (* enabledness of actions and action sets *)
+
+  enabled        ::"('a,'s)ioa => 'a => 's => bool"
+  Enabled    ::"('a,'s)ioa => 'a set => 's => bool"
+
+  (* action set keeps enabled until probably disabled by itself *) 
+
+  en_persistent  :: "('a,'s)ioa => 'a set => bool"
+
+ (* post_conditions for actions and action sets *)
+
+  was_enabled        ::"('a,'s)ioa => 'a => 's => bool"
+  set_was_enabled    ::"('a,'s)ioa => 'a set => 's => bool"
+
   (* reachability and invariants *)
   reachable     :: "('a,'s)ioa => 's set"
   invariant     :: "[('a,'s)ioa, 's=>bool] => bool"
@@ -208,6 +227,35 @@ rename_def
         ? x. Some(x) = ren(a) & (s,x,t):trans_of ioa},
    {rename_set s ren | s. s: wfair_of ioa},
    {rename_set s ren | s. s: sfair_of ioa})"
+
+(* ------------------------- fairness ----------------------------- *)
+
+fairIOA_def
+  "fairIOA A == (! S : wfair_of A. S<= local A) & 
+                (! S : sfair_of A. S<= local A)"
+
+input_resistant_def
+  "input_resistant A == ! W : sfair_of A. ! s a t. 
+                        reachable A s & reachable A t & a:inp A &
+                        Enabled A W s & s -a--A-> t
+                        --> Enabled A W t"
+
+enabled_def
+  "enabled A a s == ? t. s-a--A-> t"
+
+Enabled_def
+  "Enabled A W s == ? w:W. enabled A w s"
+
+en_persistent_def
+  "en_persistent A W == ! s a t. Enabled A W s & 
+                                 a ~:W & 
+                                 s -a--A-> t 
+                                 --> Enabled A W t"
+was_enabled_def
+  "was_enabled A a t == ? s. s-a--A-> t"
+
+set_was_enabled_def
+  "set_was_enabled A W t == ? w:W. was_enabled A w t"
 
 
 end

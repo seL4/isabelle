@@ -248,6 +248,97 @@ goalw thy [traces_def]
 qed"trace_inclusion"; 
 
 
+(* -------------------------------------------------------------------------------- *)
+
+section "Corollary:  F A I R  T R A C E - I N C L U S I O N";
+
+(* -------------------------------------------------------------------------------- *)
+
+
+goalw thy [fin_often_def] "(~inf_often P s) = fin_often P s";
+auto();
+qed"fininf";
+
+
+goal thy 
+"is_wfair A W (s,ex) = \
+\ (fin_often (%x. ~Enabled A W (snd x)) ex --> inf_often (%x. fst x :W) ex)";
+by (asm_full_simp_tac (simpset() addsimps [is_wfair_def,fin_often_def])1);
+auto();
+qed"WF_alt";
+
+goal thy  
+"!! ex. [|is_wfair A W (s,ex); inf_often (%x. Enabled A W (snd x)) ex; \
+\         en_persistent A W|] \
+\   ==> inf_often (%x. fst x :W) ex";
+bd persistent 1;
+ba 1;
+by (asm_full_simp_tac (simpset() addsimps [WF_alt])1);
+auto();
+qed"WF_persistent";
+
+
+goal thy "!! C A. \
+\         [| is_ref_map f C A; ext C = ext A; \
+\         !! ex. [| ex:executions C; fair_ex C ex|] ==> fair_ex A (corresp_ex A f ex) |] \
+\         ==> fairtraces C <= fairtraces A";
+by (simp_tac (simpset() addsimps [fairtraces_def,
+   fairexecutions_def]) 1);
+by (safe_tac set_cs);
+by (res_inst_tac[("x","corresp_ex A f ex")] exI 1);
+by (safe_tac set_cs);
+
+  (* Traces coincide, Lemma 1 *)
+  by (pair_tac "ex" 1);
+  by (etac (lemma_1 RS spec RS mp) 1);
+  by (REPEAT (atac 1));
+  by (asm_full_simp_tac (simpset() addsimps [executions_def,reachable.reachable_0]) 1);
+ 
+  (* corresp_ex is execution, Lemma 2 *)
+  by (pair_tac "ex" 1);
+  by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
+  (* start state *) 
+  by (rtac conjI 1);
+  by (asm_full_simp_tac (simpset() addsimps [is_ref_map_def,corresp_ex_def]) 1);
+  (* is-execution-fragment *)
+  by (etac (lemma_2 RS spec RS mp) 1);
+  by (asm_full_simp_tac (simpset() addsimps [reachable.reachable_0]) 1);
+
+ (* Fairness *)
+auto();
+qed"fair_trace_inclusion";
+
+goal thy "!! C A. \
+\         [| inp(C) = inp(A); out(C)=out(A); \
+\            is_fair_ref_map f C A |] \
+\         ==> fair_implements C A";
+by (asm_full_simp_tac (simpset() addsimps [is_fair_ref_map_def, fair_implements_def,
+    fairtraces_def, fairexecutions_def]) 1);
+by (safe_tac set_cs);
+by (res_inst_tac[("x","corresp_ex A f ex")] exI 1);
+by (safe_tac set_cs);
+  (* Traces coincide, Lemma 1 *)
+  by (pair_tac "ex" 1);
+  by (etac (lemma_1 RS spec RS mp) 1);
+  by (simp_tac (simpset() addsimps [externals_def])1);
+  by (SELECT_GOAL (auto_tac (claset(),simpset()))1);
+  by (asm_full_simp_tac (simpset() addsimps [executions_def,reachable.reachable_0]) 1);
+ 
+  (* corresp_ex is execution, Lemma 2 *)
+  by (pair_tac "ex" 1);
+  by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
+  (* start state *) 
+  by (rtac conjI 1);
+  by (asm_full_simp_tac (simpset() addsimps [is_ref_map_def,corresp_ex_def]) 1);
+  (* is-execution-fragment *)
+  by (etac (lemma_2 RS spec RS mp) 1);
+  by (asm_full_simp_tac (simpset() addsimps [reachable.reachable_0]) 1);
+
+ (* Fairness *)
+auto();
+qed"fair_trace_inclusion2";
+
+
 
 
 

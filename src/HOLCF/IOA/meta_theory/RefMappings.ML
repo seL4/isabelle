@@ -8,33 +8,6 @@ Refinement Mappings in HOLCF/IOA
 
 
 
-(* ---------------------------------------------------------------------------- *)
-                           section "laststate";
-(* ---------------------------------------------------------------------------- *)
-
-goal thy "laststate (s,UU) = s";
-by (simp_tac (simpset() addsimps [laststate_def]) 1); 
-qed"laststate_UU";
-
-goal thy "laststate (s,nil) = s";
-by (simp_tac (simpset() addsimps [laststate_def]) 1);
-qed"laststate_nil";
-
-goal thy "!! ex. Finite ex ==> laststate (s,at>>ex) = laststate (snd at,ex)";
-by (simp_tac (simpset() addsimps [laststate_def]) 1);
-by (case_tac "ex=nil" 1);
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
-by (dtac (Finite_Last1 RS mp) 1);
-by (assume_tac 1);
-by (def_tac 1);
-qed"laststate_cons";
-
-Addsimps [laststate_UU,laststate_nil,laststate_cons];
-
-goal thy "!!ex. Finite ex ==> (! s. ? u. laststate (s,ex)=u)";
-by (Seq_Finite_induct_tac 1);
-qed"exists_laststate";
 
 
 (* ---------------------------------------------------------------------------- *)

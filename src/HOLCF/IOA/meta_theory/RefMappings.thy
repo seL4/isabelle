@@ -11,17 +11,14 @@ RefMappings = Traces  +
 default term
 
 consts
-  laststate    ::"('a,'s)execution => 's"
+
   move         ::"[('a,'s)ioa,('a,'s)pairs,'s,'a,'s] => bool"
   is_ref_map   ::"[('s1=>'s2),('a,'s1)ioa,('a,'s2)ioa] => bool"
   is_weak_ref_map ::"[('s1=>'s2),('a,'s1)ioa,('a,'s2)ioa] => bool"
  
+
 defs
 
-laststate_def
-  "laststate ex == case Last`(snd ex) of
-                      Undef  => fst ex
-                    | Def at => snd at"
 
 move_def
   "move ioa ex s a t ==    
@@ -44,5 +41,6 @@ is_weak_ref_map_def
             --> (if a:ext(C) 
                  then (f s) -a--A-> (f t)
                  else (f s)=(f t)))" 
+
 
 end

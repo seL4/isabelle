@@ -29,7 +29,7 @@ consts
 
 syntax
 
- "@Cons"     ::"'a => 'a Seq => 'a Seq"       ("(_>>_)"  [66,65] 65)
+ "@Cons"     ::"'a => 'a Seq => 'a Seq"       ("(_/>>_)"  [66,65] 65)
  (* list Enumeration *)
   "_totlist"      :: args => 'a Seq                          ("[(_)!]")
   "_partlist"     :: args => 'a Seq                          ("[(_)?]")

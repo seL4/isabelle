@@ -37,8 +37,29 @@ consts
   traces        :: "('a,'s)ioa => 'a trace set"
   mk_trace      :: "('a,'s)ioa => ('a,'s)pairs -> 'a trace"
 
-  (* Notion of implementation *)
+  laststate    ::"('a,'s)execution => 's"
+
+  (* A predicate holds infinitely (finitely) often in a sequence *)
+
+  inf_often      ::"('a => bool) => 'a Seq => bool"
+  fin_often      ::"('a => bool) => 'a Seq => bool"
+
+  (* fairness of executions *)
+
+  wfair_ex       ::"('a,'s)ioa => ('a,'s)execution => bool"
+  sfair_ex       ::"('a,'s)ioa => ('a,'s)execution => bool"
+  is_wfair       ::"('a,'s)ioa => 'a set => ('a,'s)execution => bool"
+  is_sfair       ::"('a,'s)ioa => 'a set => ('a,'s)execution => bool"
+  fair_ex        ::"('a,'s)ioa => ('a,'s)execution => bool"
+
+  (* fair behavior sets *)
+ 
+  fairexecutions ::"('a,'s)ioa => ('a,'s)execution set"
+  fairtraces     ::"('a,'s)ioa => 'a trace set"
+
+  (* Notions of implementation *)
   "=<|" :: "[('a,'s1)ioa, ('a,'s2)ioa] => bool"   (infixr 12) 
+  fair_implements  :: "('a,'s1)ioa => ('a,'s2)ioa => bool"
 
   (* Execution, schedule and trace modules *)
   Execs         ::  "('a,'s)ioa => ('a,'s)execution_module"
@@ -97,7 +118,7 @@ schedules_def
 has_trace_def
   "has_trace ioa tr ==                                               
      (? sch:schedules ioa. tr = Filter (%a. a:ext(ioa))`sch)"
-
+ 
 traces_def
   "traces ioa == {tr. has_trace ioa tr}"
 
@@ -107,6 +128,53 @@ mk_trace_def
      Filter (%a. a:ext(ioa))`(filter_act`tr)"
 
 
+(*  ------------------- Fair Traces ------------------------------ *)
+
+laststate_def
+  "laststate ex == case Last`(snd ex) of
+                      Undef  => fst ex
+                    | Def at => snd at"
+
+inf_often_def
+  "inf_often P s == Infinite (Filter P`s)"
+
+(*  filtering P yields a finite or partial sequence *)
+fin_often_def
+  "fin_often P s == ~inf_often P s"
+
+(* Note that partial execs cannot be wfair as the inf_often predicate in the 
+   else branch prohibits it. However they can be sfair in the case when all W 
+   are only finitely often enabled: FIX Is this the right model? *)
+wfair_ex_def
+  "wfair_ex A ex == ! W : wfair_of A.  
+                      if   Finite (snd ex) 
+                      then ~Enabled A W (laststate ex)
+                      else is_wfair A W ex"
+
+is_wfair_def
+  "is_wfair A W ex == (inf_often (%x. fst x:W) (snd ex)
+                     | inf_often (%x.~Enabled A W (snd x)) (snd ex))"
+
+sfair_ex_def
+  "sfair_ex A ex == ! W : sfair_of A.
+                      if   Finite (snd ex) 
+                      then ~Enabled A W (laststate ex)
+                      else is_sfair A W ex"
+
+is_sfair_def
+  "is_sfair A W ex ==  (inf_often (%x. fst x:W) (snd ex)
+                      | fin_often (%x. Enabled A W (snd x)) (snd ex))"
+
+fair_ex_def
+  "fair_ex A ex == wfair_ex A ex & sfair_ex A ex"
+
+fairexecutions_def
+  "fairexecutions A == {ex. ex:executions A & fair_ex A ex}"
+
+fairtraces_def
+  "fairtraces A == {mk_trace A`(snd ex) | ex. ex:fairexecutions A}"
+
+
 (*  ------------------- Implementation ------------------------------ *)
 
 ioa_implements_def
@@ -114,6 +182,10 @@ ioa_implements_def
     (((inputs(asig_of(ioa1)) = inputs(asig_of(ioa2))) &   
      (outputs(asig_of(ioa1)) = outputs(asig_of(ioa2)))) &
       traces(ioa1) <= traces(ioa2))"
+
+fair_implements_def
+  "fair_implements C A == inp(C) = inp(A) &  out(C)=out(A) &
+                          fairtraces(C) <= fairtraces(A)"
 
 (*  ------------------- Modules ------------------------------ *)
 
