@@ -288,36 +288,34 @@ fun list_rename_params (cs, Const("==>", _) $ A $ B) =
       all T $ Abs(c, T, list_rename_params (cs, t))
   | list_rename_params (cs, B) = B;
 
-(*Strips assumptions in goal yielding  ( [HPn,...,HP1], [xm,...,x1], B ).
-  Where HPi has the form (Hi,nparams_i) and x1...xm are the parameters.
-  We need nparams_i only when the parameters aren't flattened; then we
-    must call incr_boundvars to make up the difference.  See assum_pairs.
-  Without this refinement we can get the wrong answer, e.g. by
-        Goal "!!f. EX B. Q(f,B) ==> (!!y. P(f,y))";
-        by (etac exE 1);
- *)
-fun strip_assums_aux (HPs, params, Const("==>", _) $ H $ B) =
-        strip_assums_aux ((H,length params)::HPs, params, B)
-  | strip_assums_aux (HPs, params, Const("all",_)$Abs(a,T,t)) =
-        strip_assums_aux (HPs, (a,T)::params, t)
-  | strip_assums_aux (HPs, params, B) = (HPs, params, B);
+(*** Treatmsent of "assume", "erule", etc. ***)
 
-fun strip_assums A = strip_assums_aux ([],[],A);
+(*Strips assumptions in goal yielding  
+   HS = [Hn,...,H1],   params = [xm,...,x1], and B,
+  where x1...xm are the parameters. This version (21.1.2005) REQUIRES 
+  the the parameters to be flattened, but it allows erule to work on 
+  assumptions of the form !!x. phi. Any !! after the outermost string
+  will be regarded as belonging to the conclusion, and left untouched.
+  Used ONLY by assum_pairs. *)
+fun strip_assums_imp (Hs, Const("==>", _) $ H $ B) = strip_assums_imp (H::Hs, B)
+  | strip_assums_imp (Hs, B) = (Hs, B);
 
+(*Strips OUTER parameters only, unlike similar legacy versions.*)
+fun strip_assums_all (params, Const("all",_)$Abs(a,T,t)) =
+      strip_assums_all ((a,T)::params, t)
+  | strip_assums_all (params, B) = (params, B);
 
 (*Produces disagreement pairs, one for each assumption proof, in order.
   A is the first premise of the lifted rule, and thus has the form
     H1 ==> ... Hk ==> B   and the pairs are (H1,B),...,(Hk,B) *)
 fun assum_pairs A =
-  let val (HPs, params, B) = strip_assums A
-      val nparams = length params
-      val D = Unify.rlist_abs(params, B)
-      fun incr_hyp(H,np) =
-          Unify.rlist_abs(params, incr_boundvars (nparams-np) H)
-      fun pairrev ([],pairs) = pairs
-        | pairrev ((H,np)::HPs, pairs) =
-            pairrev(HPs,  (incr_hyp(H,np),D) :: pairs)
-  in  pairrev (HPs,[])
+  let val (params, A') = strip_assums_all ([],A)
+      val (Hs,B) = strip_assums_imp ([],A')
+      fun abspar t = Unify.rlist_abs(params, t)
+      val D = abspar B
+      fun pairrev ([], pairs) = pairs
+        | pairrev (H::Hs, pairs) = pairrev(Hs,  (abspar H, D) :: pairs)
+  in  pairrev (Hs,[])
   end;
 
 (*Converts Frees to Vars and TFrees to TVars so that axioms can be written
