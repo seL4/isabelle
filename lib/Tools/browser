@@ -2,7 +2,7 @@
 #
 # $Id$
 #
-# DESCRIPTION: Isabelle theory graph browser
+# DESCRIPTION: Isabelle graph browser
 
 
 PRG=$(basename $0)
@@ -12,17 +12,44 @@ function usage()
   echo
   echo "Usage: $PRG [GRAPHFILE]"
   echo
+  echo "  Options are:"
+  echo "    -d           delete file after use"
+  echo
   exit 1
 }
+
+## process command line
+
+# options
+
+DELETE=""
+
+while getopts "d" OPT
+do
+  case "$OPT" in
+    d)
+      DELETE=true
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+GRAPHFILE=""
+[ $# -gt 0 ] && { GRAPHFILE="$1"; shift; }
+[ $# -ne 0 ] && usage
 
 
 ## main
 
-[ "$1" = "-?" -o $# -gt 1 ] && usage
-
 export CLASSPATH=$ISABELLE_HOME/lib/browser
+[ -z "$GRAPHFILE" ] && cd $ISABELLE_BROWSER_INFO/graph/data
 
-[ $# -ne 1 ] && cd $ISABELLE_BROWSER_INFO/graph/data
-
-java GraphBrowser.GraphBrowser $1
-
+java GraphBrowser.GraphBrowser $GRAPHFILE
+[ -n "$GRAPHFILE" -a -n "$DELETE" ] && rm -f "$GRAPHFILE"
