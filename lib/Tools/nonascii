@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# $Id$
+#
+# DESCRIPTION: check files for non-ASCII characters
+
+
+## diagnostics
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [FILES|DIRS...]"
+  echo
+  echo "  Recursively find .thy/.ML files and check for non-ASCII characters."
+  echo
+  exit 1
+}
+
+
+## process command line
+
+[ $# -eq 0 -o "$1" = "-?" ] && usage
+
+SPECS="$@"; shift $#
+
+
+## main
+
+PERL=$(type -path perl)
+if [ -z $PERL ]; then
+  echo "$PRG fatal error: no perl!?"
+else
+  find $SPECS \( -name \*.ML -o -name \*.thy \) -print | \
+    xargs $PERL -e \
+      'while(<ARGV>) { if (m/[\x80-\xff]/) { print "$ARGV: $_"; }}'
+fi
