@@ -18,17 +18,15 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-THYS = HOL.thy Ord.thy Set.thy Fun.thy subset.thy \
-       equalities.thy Prod.thy Trancl.thy Sum.thy WF.thy \
-       mono.thy Lfp.thy Gfp.thy Nat.thy Inductive.thy \
-       Finite.thy Arith.thy Sexp.thy Univ.thy List.thy 
+NAMES = HOL Ord Set Fun subset equalities Prod Trancl Sum WF \
+       mono Lfp Gfp Nat Inductive Finite Arith Sexp Univ List 
 
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML\
 	ind_syntax.ML indrule.ML intr_elim.ML simpdata.ML\
 	subtype.ML thy_syntax.ML ../Pure/section_utils.ML\
 	../Provers/hypsubst.ML ../Provers/classical.ML\
         ../Provers/simplifier.ML ../Provers/splitter.ML\
-        $(THYS) $(THYS:.thy=.ML)
+ 	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
 $(BIN)/CHOL:   $(BIN)/Pure  $(FILES) 
 	if [ -d $${ISABELLEBIN:?}/Pure ];\
@@ -59,51 +57,46 @@ LOGIC:sh=case $ISABELLECOMP in \
 	esac
 
 ##IMP-semantics example
-IMP_THYS = IMP/Com.thy IMP/Denotation.thy IMP/Equiv.thy IMP/Properties.thy
-IMP_FILES = IMP/ROOT.ML $(IMP_THYS) $(IMP_THYS:.thy=.ML)
+IMP_NAMES = Com Denotation Equiv Properties
+IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP:    $(BIN)/CHOL  $(IMP_FILES)
 	echo 'exit_use"IMP/ROOT.ML";quit();' | $(LOGIC)
 
 ##The integers in CHOL
-INTEG_THYS = Integ/Relation.thy Integ/Equiv.thy Integ/Integ.thy 
+INTEG_NAMES = Relation Equiv Integ 
 
-INTEG_FILES = Integ/ROOT.ML $(INTEG_THYS) $(INTEG_THYS:.thy=.ML)
+INTEG_FILES = Integ/ROOT.ML \
+              $(INTEG_NAMES:%=Integ/%.thy) $(INTEG_NAMES:%=Integ/%.ML)
 
 Integ:  $(BIN)/CHOL  $(INTEG_FILES)
 	echo 'exit_use"Integ/ROOT.ML";quit();' | $(LOGIC)
 
 ##I/O Automata
-IOA_THYS = IOA/example/Action.thy IOA/example/Channels.thy\
-	   IOA/example/Correctness.thy IOA/example/Impl.thy \
-	   IOA/example/Lemmas.thy IOA/example/Multiset.thy \
-	   IOA/example/Receiver.thy IOA/example/Sender.thy \
-	   IOA/meta_theory/Asig.thy IOA/meta_theory/IOA.thy \
-	   IOA/meta_theory/Option.thy IOA/meta_theory/Solve.thy
+IOA_EX_NAMES = Action Channels Correctness Impl Lemmas Multiset Receiver Sender
+IOA_MT_NAMES = Asig IOA Option Solve
 
 IOA_FILES = IOA/ROOT.ML IOA/example/Packet.thy IOA/example/Spec.thy\
-	    $(IOA_THYS) $(IOA_THYS:.thy=.ML)
+ $(IOA_EX_NAMES:%=IOA/example/%.thy) $(IOA_EX_NAMES:%=IOA/example/%.ML)\
+ $(IOA_MT_NAMES:%=IOA/meta_theory/%.thy) $(IOA_MT_NAMES:%=IOA/meta_theory/%.ML)
 
 IOA:    $(BIN)/CHOL  $(IOA_FILES)
 	echo 'exit_use"IOA/ROOT.ML";quit();' | $(LOGIC)
 
 ##Properties of substitutions
-SUBST_THYS = Subst/AList.thy Subst/Setplus.thy\
-	     Subst/Subst.thy Subst/Unifier.thy\
-	     Subst/UTerm.thy Subst/UTLemmas.thy
+SUBST_NAMES = AList Setplus Subst Unifier UTerm UTLemmas
 
-SUBST_FILES = Subst/ROOT.ML $(SUBST_THYS) $(SUBST_THYS:.thy=.ML)
+SUBST_FILES = Subst/ROOT.ML \
+              $(SUBST_NAMES:%=Subst/%.thy) $(SUBST_NAMES:%=Subst/%.ML)
 
 Subst:  $(BIN)/CHOL  $(SUBST_FILES)
 	echo 'exit_use"Subst/ROOT.ML";quit();' | $(LOGIC)
 
 ##Miscellaneous examples
-EX_THYS = ex/LexProd.thy ex/MT.thy ex/Acc.thy \
-	  ex/PropLog.thy ex/Puzzle.thy ex/Qsort.thy ex/LList.thy \
-	  ex/Rec.thy ex/Simult.thy ex/Term.thy ex/String.thy 
+EX_NAMES = LexProd MT Acc PropLog Puzzle Qsort LList Rec Simult Term String 
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
-           ex/set.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
+           ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
 ex:     $(BIN)/CHOL  $(EX_FILES)
 	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
