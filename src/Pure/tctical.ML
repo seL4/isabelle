@@ -198,7 +198,7 @@ val print_tac =
 
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =  
-  (writeln "** Press RETURN to continue: ";
+  (writeln "** Press RETURN to continue:";
    if TextIO.inputLine TextIO.stdIn = "\n" then Seq.single st
    else (writeln "Goodbye";  Seq.empty));
 
@@ -232,7 +232,7 @@ fun exec_trace_command flag (tac, st) =
 fun tracify flag tac st =
   if !flag andalso not (!suppress_tracing)
            then (print_goals (!goals_limit) st;
-                 writeln "** Press RETURN to continue: ";
+                 writeln "** Press RETURN to continue:";
                  exec_trace_command flag (tac,st))
   else tac st;
 
