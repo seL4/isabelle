@@ -343,24 +343,36 @@ end;
 
 local
 
-val indent_prop = Scan.one T.is_indent -- Scan.one T.is_proper;
-val improp = Scan.unless indent_prop (Scan.one (not o T.is_proper));
-val improper_keep_indent = Scan.repeat improp;
+val is_improper = not o (T.is_proper orf T.is_begin_ignore orf T.is_end_ignore);
+val improper = Scan.any is_improper;
 
-val improper = Scan.any (not o T.is_proper);
+val improper_keep_indent = Scan.repeat
+  (Scan.unless (Scan.one T.is_indent -- Scan.one T.is_proper) (Scan.one is_improper));
 
 val improper_end =
   (improper -- semicolon) |-- improper_keep_indent ||
   improper_keep_indent;
 
+
+val ignore =
+  Scan.depend (fn d => Scan.one T.is_begin_ignore >> pair (d + 1)) ||
+  Scan.depend (fn 0 => Scan.fail | d => Scan.one T.is_end_ignore >> pair (d - 1)) ||
+  Scan.lift (Scan.one (OuterLex.not_eof andf (not o OuterLex.is_end_ignore)));
+
+val ignore_stuff =
+  Scan.one T.is_begin_ignore |--
+    P.!!!! (Scan.pass 0 (Scan.repeat ignore) -- Scan.one T.is_end_ignore);
+
 val markup = Scan.one (T.is_kind T.Command andf is_markup o T.val_of) >> T.val_of;
 val verbatim = Scan.one (T.is_kind T.Command andf is_verbatim o T.val_of);
 
 val present_token =
-  improper |-- markup -- (improper |-- P.text --| improper_end) >> Present.markup_token ||
-  (P.$$$ "--" >> K "cmt") -- (improper |-- P.text) >> Present.markup_token ||
-  (improper -- verbatim -- improper) |-- P.text --| improper_end >> Present.verbatim_token ||
-  Scan.one T.not_eof >> Present.basic_token;
+  ignore_stuff >> K None ||
+  (improper |-- markup -- P.!!!! (improper |-- P.text --| improper_end) >> Present.markup_token ||
+    (P.$$$ "--" >> K "cmt") -- P.!!!! (improper |-- P.text) >> Present.markup_token ||
+    (improper -- verbatim) |-- P.!!!! (improper |-- P.text --| improper_end)
+      >> Present.verbatim_token ||
+    Scan.one T.not_eof >> Present.basic_token) >> Some;
 
 in
 
@@ -368,7 +380,8 @@ in
 
 fun present_toks text pos () =
   token_source (Source.of_list (Library.untabify text), pos)
-  |> Source.source T.stopper (Scan.bulk present_token) None
+  |> Source.source T.stopper (Scan.bulk (Scan.error present_token)) None
+  |> Source.mapfilter I
   |> Source.exhaust;
 
 fun present_text text () =
