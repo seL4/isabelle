@@ -10,6 +10,7 @@ imports
   NatPair
   Nat_Infinity
   Nested_Environment
+  OptionalSugar
   Permutation
   Primes
   Quotient
