@@ -223,7 +223,7 @@ instead of "inverse";
 
 * calling (stac rew i) now fails if "rew" has no effect on the goal
   [previously, this check worked only if the rewrite rule was unconditional]
-
+  Now rew can involve either definitions or equalities (either == or =).
 
 *** ZF ***
 
@@ -242,6 +242,7 @@ instead of "inverse";
 
 * calling (stac rew i) now fails if "rew" has no effect on the goal
   [previously, this check worked only if the rewrite rule was unconditional]
+  Now rew can involve either definitions or equalities (either == or =).
 
 * case_tac provided for compatibility with HOL
     (like the old excluded_middle_tac, but with subgoals swapped)
