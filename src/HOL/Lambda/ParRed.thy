@@ -4,6 +4,11 @@
     Copyright   1995 TU Muenchen
 
 Parallel reduction and a complete developments function "cd".
+Follows the first two pages of
+
+@article{Takahashi-IC-95,author="Masako Takahashi",
+title="Parallel Reductions in $\lambda$-Calculus",
+journal=IC,year=1995,volume=118,pages="120--127"}
 *)
 
 ParRed = Lambda + Confluence +
@@ -20,7 +25,7 @@ inductive "par_beta"
     var   "Var n => Var n"
     abs   "s => t ==> Fun s => Fun t"
     app   "[| s => s'; t => t' |] ==> s @ t => s' @ t'"
-    beta  "[| s => s'; t => t' |] ==> (Fun s) @ t => subst t' s' 0"
+    beta  "[| s => s'; t => t' |] ==> (Fun s) @ t => s'[t'/0]"
 
 consts
   cd  :: "db => db"
@@ -31,7 +36,7 @@ primrec cd db
   cd_App "cd(s @ t) = (case s of
             Var n => s @ (cd t) |
             s1 @ s2 => (cd s) @ (cd t) |
-            Fun u => subst (cd t) (deFun(cd s)) 0)"
+            Fun u => deFun(cd s)[cd t/0])"
   cd_Fun "cd(Fun s) = Fun(cd s)"
 
 primrec deFun db

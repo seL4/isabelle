@@ -12,14 +12,14 @@ Lambda = Arith +
 datatype db = Var nat | "@" db db (infixl 200) | Fun db
 
 consts
-  subst  :: "[db,db,nat]=>db"
+  subst  :: "[db,db,nat]=>db" ("_[_'/_]" [300,0,0] 300)
   lift   :: "[db,nat] => db"
 
 primrec subst db
-  subst_Var "subst s (Var i) n = (if n < i then Var(pred i)
-                                  else if i = n then s else Var i)"
-  subst_App "subst s (t @ u) n = (subst s t n) @ (subst s u n)"
-  subst_Fun "subst s (Fun t) n = Fun (subst (lift s 0) t (Suc n))"
+  subst_Var "(Var i)[s/n] = (if n < i then Var(pred i)
+                            else if i = n then s else Var i)"
+  subst_App "(t @ u)[s/n] = t[s/n] @ u[s/n]"
+  subst_Fun "(Fun t)[s/n] = Fun (t[lift s 0 / Suc n])"
 
 primrec lift db
   lift_Var "lift (Var i) n = (if i < n then Var i else Var(Suc i))"
@@ -36,7 +36,7 @@ translations
 
 inductive "beta"
 intrs
-   beta  "(Fun s) @ t -> subst t s 0"
+   beta  "(Fun s) @ t -> s[t/0]"
    appL  "s -> t ==> s@u -> t@u"
    appR  "s -> t ==> u@s -> u@t"
    abs   "s -> t ==> Fun s -> Fun t"
