@@ -59,10 +59,10 @@ fun dis_name  con = "is_"^ (extern_name con);
 fun dis_name_ con = "is_"^ (strip_esc   con);
 
 (* make distinct names out of the type list, 
-   forbidding "o", "x..","f..","P.." as names *)
+   forbidding "o","n..","x..","f..","P.." as names *)
 (* a number string is added if necessary *)
 fun mk_var_names ids : string list = let
-    fun nonreserved s = if s mem ["x","f","P"] then s^"'" else s;
+    fun nonreserved s = if s mem ["n","x","f","P"] then s^"'" else s;
     fun index_vnames(vn::vns,occupied) =
           (case assoc(occupied,vn) of
              None => if vn mem vns
