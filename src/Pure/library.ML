@@ -271,7 +271,7 @@ sig
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val transitive_closure: (string * string list) list -> (string * string list) list
-  val init_gensym: unit -> unit
+  val init_gensym: unit -> unit    (* FIXME !!??! *)
   val gensym: string -> string
   val bump_int_list: string list -> string list
   val bump_list: string list * string -> string list
@@ -1344,7 +1344,7 @@ val seedr = ref 0;
 
 in
 
-fun init_gensym() = (seedr := 0);
+fun init_gensym() = (seedr := 0);    (* FIXME !!??! *)
 
 fun gensym pre = pre ^ (#1(newid (!seedr), inc seedr));
 end;

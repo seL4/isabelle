@@ -11,7 +11,7 @@ proof texts.
 
   {
     fix thesis
-    assume that: "!!x. P x ==> thesis"
+    assume that [intro]: "!!x. P x ==> thesis"
     <chain_facts> have thesis <proof (insert that)>
   }
   fix x assm (obtained) "P x"
