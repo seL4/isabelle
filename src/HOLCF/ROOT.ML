@@ -7,6 +7,8 @@ ROOT file for the conservative extension of HOL by the LCF logic.
 Should be executed in subdirectory HOLCF.
 *)
 
+HOL_build_completed;    (* Cause HOLCF to fail if HOL did *)
+
 val banner = "HOLCF";
 writeln banner;
 
