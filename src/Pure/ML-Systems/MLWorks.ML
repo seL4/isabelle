@@ -25,6 +25,8 @@ Shell.File.loadSource "basis.__text_io";
 **)
 
 
+structure Option = General;
+
 (*To exit the system with an exit code -- an alternative to ^D *)
 fun exit 0 = OS.Process.exit OS.Process.success
   | exit _ = OS.Process.exit OS.Process.failure;
