@@ -91,9 +91,11 @@ sig
     -> ProofHistory.T -> ProofHistory.T
   val invoke_case_i: (string * string option list * Proof.context attribute list) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val theorem: string -> ((bstring * Args.src list) * (string * (string list * string list)))
+  val theorem: string -> string option ->
+    ((bstring * Args.src list) * (string * (string list * string list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
-  val theorem_i: string -> ((bstring * theory attribute list) * (term * (term list * term list)))
+  val theorem_i: string -> string option ->
+    ((bstring * theory attribute list) * (term * (term list * term list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
   val assume: (((string * Args.src list) * (string * (string list * string list)) list)
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
@@ -420,12 +422,12 @@ fun multi_statement_i f args = ProofHistory.apply (f args);
 
 in
 
-fun theorem k (((name, src), s), comment_ignore) int thy =
+fun theorem k loc (((name, src), s), comment_ignore) int thy =
   ProofHistory.init (Toplevel.undo_limit int)
-    (Proof.theorem k name (map (Attrib.global_attribute thy) src) s thy);
+    (Proof.theorem k loc name (map (Attrib.global_attribute thy) src) s thy);
 
-fun theorem_i k (((name, atts), t), comment_ignore) int thy =
-  ProofHistory.init (Toplevel.undo_limit int) (Proof.theorem_i k name atts t thy);
+fun theorem_i k loc (((name, atts), t), comment_ignore) int thy =
+  ProofHistory.init (Toplevel.undo_limit int) (Proof.theorem_i k loc name atts t thy);
 
 val assume      = multi_statement Proof.assume o map Comment.ignore;
 val assume_i    = multi_statement_i Proof.assume_i o map Comment.ignore;

@@ -284,35 +284,39 @@ val oracleP =
 
 (* statements *)
 
-fun statement f = P.opt_thm_name ":" -- P.propp -- P.marg_comment >> f;
+val locale = Scan.option (P.$$$ "(" |-- P.!!! (P.$$$ "in" |-- P.xname --| P.$$$ ")"));
+val statement = P.opt_thm_name ":" -- P.propp -- P.marg_comment;
 
 val theoremP =
   OuterSyntax.command "theorem" "state theorem" K.thy_goal
-    (statement (IsarThy.theorem Drule.theoremK) >> (Toplevel.print oo Toplevel.theory_to_proof));
+    (locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
+      uncurry (IsarThy.theorem Drule.theoremK)));
 
 val lemmaP =
   OuterSyntax.command "lemma" "state lemma" K.thy_goal
-    (statement (IsarThy.theorem Drule.lemmaK) >> (Toplevel.print oo Toplevel.theory_to_proof));
+    (locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
+      uncurry (IsarThy.theorem Drule.lemmaK)));
 
 val corollaryP =
   OuterSyntax.command "corollary" "state corollary" K.thy_goal
-    (statement (IsarThy.theorem Drule.corollaryK) >> (Toplevel.print oo Toplevel.theory_to_proof));
+    (locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
+      uncurry (IsarThy.theorem Drule.corollaryK)));
 
 val showP =
   OuterSyntax.command "show" "state local goal, solving current obligation" K.prf_goal
-    (statement IsarThy.show >> (fn f => Toplevel.print o Toplevel.proof' f));
+    (statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.show));
 
 val haveP =
   OuterSyntax.command "have" "state local goal" K.prf_goal
-    (statement IsarThy.have >> (fn f => Toplevel.print o Toplevel.proof f));
+    (statement >> ((Toplevel.print oo Toplevel.proof) o  IsarThy.have));
 
 val thusP =
   OuterSyntax.command "thus" "abbreviates \"then show\"" K.prf_goal
-    (statement IsarThy.thus >> (fn f => Toplevel.print o Toplevel.proof' f));
+    (statement >> ((Toplevel.print oo Toplevel.proof') o IsarThy.thus));
 
 val henceP =
   OuterSyntax.command "hence" "abbreviates \"then have\"" K.prf_goal
-    (statement IsarThy.hence >> (fn f => Toplevel.print o Toplevel.proof f));
+    (statement >> ((Toplevel.print oo Toplevel.proof) o IsarThy.hence));
 
 
 (* facts *)
