@@ -253,7 +253,6 @@ fun ctyp_of (sign as Sg{tsig,...}) T =
           [] => Ctyp{sign= sign,T= T}
         | errs =>  error (cat_lines ("Error in type:" :: errs));
 
-(*The only use is a horrible hack in the simplifier!*)
 fun read_typ(Sg{tsig,syn,...}, defS) s =
     let val term = Syntax.read syn Syntax.typeT s;
         val S0 = Type.defaultS tsig;
@@ -295,6 +294,7 @@ fun cterm_of sign t =
       [] => Cterm{sign=sign, t=t, T= type_of t, maxidx= maxidx_of_term t}
     | errs => raise TERM(cat_lines("Term not in signature"::errs), [t]);
 
+(*The only use is a horrible hack in the simplifier!*)
 fun fake_cterm_of sign t =
   Cterm{sign=sign, t=t, T= fastype_of t, maxidx= maxidx_of_term t}
 
