@@ -197,8 +197,8 @@ ex:	$(OUT)/HOL $(EX_FILES)
 
 ## Full test
 
-test:	$(OUT)/HOL TFL IMP Hoare Lex Integ Auth Subst Lambda W0 MiniML \
-	IOA AxClasses ex
+test:	$(OUT)/HOL \
+	TFL IMP Hoare Lex Integ Auth Subst Lambda W0 MiniML IOA AxClasses ex
 	echo 'Test examples ran successfully' > test
 
 
