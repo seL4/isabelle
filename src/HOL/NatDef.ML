@@ -383,10 +383,6 @@ Goal "(Suc m <= n) = (m < n)";
 by (blast_tac (claset() addIs [Suc_leI, Suc_le_lessD]) 1);
 qed "Suc_le_eq";
 
-(*For instance, (Suc m < Suc n)  =   (Suc m <= n)  =  (m<n) *)
-val le_simps = [less_Suc_eq_le, Suc_le_eq];
-
-
 Goalw [le_def] "m <= n ==> m <= Suc n";
 by (blast_tac (claset() addDs [Suc_lessD]) 1);
 qed "le_SucI";
@@ -397,6 +393,9 @@ bind_thm ("le_Suc", not_Suc_n_less_n RS leI);
 Goalw [le_def] "m < n ==> m <= (n::nat)";
 by (blast_tac (claset() addEs [less_asym]) 1);
 qed "less_imp_le";
+
+(*For instance, (Suc m < Suc n)  =   (Suc m <= n)  =  (m<n) *)
+val le_simps = [less_imp_le, less_Suc_eq_le, Suc_le_eq];
 
 
 (** Equivalence of m<=n and  m<n | m=n **)
@@ -421,11 +420,8 @@ bind_thm ("eq_imp_le", disjI2 RS less_or_eq_imp_le);
 Goal "n <= (n::nat)";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
 qed "le_refl";
-AddSIs [le_refl];
 
-(*Obvious ways of proving m<=n; 
-  adding these rules to claset might be risky*)
-Addsimps [le_refl, less_imp_le];
+AddIffs [le_refl];
 
 
 Goal "[| i <= j; j < k |] ==> i < (k::nat)";

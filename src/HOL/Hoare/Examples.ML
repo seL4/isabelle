@@ -40,7 +40,7 @@ by Auto_tac;
 by (etac gcd_nnn 4);
 by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, gcd_diff_l]) 3);
 by (force_tac (claset(),
-	       simpset() addsimps [not_less_iff_le, le_eq_less_or_eq]) 2);
+	       simpset() addsimps [not_less_iff_le, order_le_less]) 2);
 by (asm_simp_tac (simpset() addsimps [less_imp_le, gcd_diff_r]) 1);
 qed "Euclid_GCD";
 

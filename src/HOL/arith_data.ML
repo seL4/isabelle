@@ -230,5 +230,5 @@ by (etac less_SucE 1);
 by (Clarify_tac 2);
 by (asm_simp_tac (simpset() addsimps [Suc_le_eq]) 2);
 by (asm_simp_tac (simpset() addsimps [diff_Suc_le_Suc_diff RS le_less_trans,
-				      Suc_diff_le]) 1);
+				      Suc_diff_le, less_imp_le]) 1);
 qed_spec_mp "diff_less_mono2";
