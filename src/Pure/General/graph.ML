@@ -18,7 +18,7 @@ sig
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
   val map_nodes: ('a -> 'b) -> 'a T -> 'b T
-  val get_node: 'a T -> key -> 'a
+  val get_node: 'a T -> key -> 'a (* UNDEF *)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
   val imm_preds: 'a T -> key -> key list
   val imm_succs: 'a T -> key -> key list
@@ -26,7 +26,7 @@ sig
   val all_succs: 'a T -> key list -> key list
   val strong_conn: 'a T -> key list list
   val find_paths: 'a T -> key * key -> key list list
-  val new_node: key * 'a -> 'a T -> 'a T
+  val new_node: key * 'a -> 'a T -> 'a T (* DUP *)
   val del_nodes: key list -> 'a T -> 'a T
   val is_edge: 'a T -> key * key -> bool
   val add_edge: key * key -> 'a T -> 'a T

@@ -26,6 +26,7 @@ sig
   val dest: 'a table -> (key * 'a) list
   val keys: 'a table -> key list
   val min_key: 'a table -> key option
+  val max_key: 'a table -> key option
   val exists: (key * 'a -> bool) -> 'a table -> bool
   val lookup: 'a table * key -> 'a option
   val update: (key * 'a) * 'a table -> 'a table
@@ -92,6 +93,9 @@ fun min_key Empty = None
   | min_key (Branch2 (left, (k, _), _)) = Some (if_none (min_key left) k)
   | min_key (Branch3 (left, (k, _), _, _, _)) = Some (if_none (min_key left) k);
 
+fun max_key Empty = None
+  | max_key (Branch2 (_, (k, _), right)) = Some (if_none (max_key right) k)
+  | max_key (Branch3 (_, _, _, (k,_), right)) = Some (if_none (max_key right) k);
 
 (* lookup *)
 
