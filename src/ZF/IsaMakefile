@@ -121,9 +121,11 @@ $(LOG)/ZF-UNITY.gz: $(OUT)/ZF UNITY/ROOT.ML \
   UNITY/SubstAx.ML UNITY/SubstAx.thy UNITY/UNITY.ML UNITY/UNITY.thy \
   UNITY/UNITYMisc.ML UNITY/UNITYMisc.thy UNITY/Union.ML UNITY/Union.thy \
   UNITY/AllocBase.ML UNITY/AllocBase.thy\
+  UNITY/ClientImpl.ML UNITY/ClientImpl.thy\
   UNITY/Distributor.ML UNITY/Distributor.thy\
   UNITY/Follows.ML UNITY/Follows.thy\
   UNITY/Increasing.ML UNITY/Increasing.thy\
+  UNITY/Merge.ML UNITY/Merge.thy\
   UNITY/Monotonicity.ML UNITY/Monotonicity.thy\
   UNITY/MultisetSum.ML UNITY/MultisetSum.thy\
   UNITY/WFair.ML UNITY/WFair.thy

@@ -8,6 +8,10 @@ The Follows relation of Charpentier and Sivilotte
  
 (*Does this hold for "invariant"?*)
 
+val prems =
+Goal "[|A=A'; r=r'; !!x. x:state ==> f(x)=f'(x); !!x. x:state ==> g(x)=g'(x)|] ==> Follows(A, r, f, g) = Follows(A', r', f', g')";
+by (asm_full_simp_tac (simpset() addsimps [Increasing_def,Follows_def]@prems) 1);
+qed "Follows_cong";
 
 Goalw [mono1_def, comp_def] 
 "[| mono1(A, r, B, s, h); ALL x:state. f(x):A & g(x):A |] ==> \

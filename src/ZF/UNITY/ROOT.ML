@@ -18,4 +18,5 @@ time_use_thy "Guar";
 time_use_thy "GenPrefix";
 
 time_use_thy "Distributor";
-
+time_use_thy "Merge";
+time_use_thy "ClientImpl";

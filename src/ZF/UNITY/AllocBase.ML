@@ -42,7 +42,7 @@ Goal "n:nat ==> \
 \     (ALL i:nat. i<n --> f(i) $<= g(i)) --> \
 \     setsum(f, n) $<= setsum(g,n)";
 by (induct_tac "n" 1);
-by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [])));
+by (ALLGOALS Asm_full_simp_tac);
 by (subgoal_tac "succ(x)=cons(x, x) & Finite(x) & x~:x" 1);
 by (Clarify_tac 1);
 by (Asm_simp_tac 1);
@@ -54,8 +54,7 @@ by (thin_tac "succ(x)=cons(x, x)" 1);
 by (Clarify_tac 1);
 by (dtac leI 1);
 by (Asm_simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [nat_into_Finite,
-                                      mem_not_refl, succ_def]) 1);
+by (asm_simp_tac (simpset() addsimps [nat_into_Finite, mem_not_refl, succ_def]) 1);
 qed_spec_mp "setsum_fun_mono";
 
 Goal "l:list(A) ==> tokens(l):nat";
@@ -218,7 +217,7 @@ Goal
 by (subgoal_tac
       "B Int C Int length(l) = \
 \      (B Int length(l)) Int (C Int length(l))" 1);
-by (blast_tac (claset() addIs []) 2);
+by (Blast_tac 2);
 by (asm_simp_tac (simpset() addsimps [bag_of_sublist, 
                                       Int_Un_distrib2, msetsum_Un_Int]) 1); 
 by (resolve_tac [msetsum_Un_Int] 1);
@@ -314,7 +313,8 @@ bind_thm("Follows_state_ofD1", Follows_state_of_eq RS equalityD1 RS subsetD);
 bind_thm("Follows_state_ofD2", Follows_state_of_eq RS equalityD2 RS subsetD);
 
 (*Splits up conjunctions & intersections: like CONJUNCTS in the HOL system*)
-fun list_of_Int th = 
+fun list_of_Int th = list_of_Int_aux (Drule.freeze_all th)
+and list_of_Int_aux th =
     (list_of_Int (th RS conjunct1) @ list_of_Int (th RS conjunct2))
     handle THM _ => (list_of_Int (th RS IntD1) @ list_of_Int (th RS IntD2))
     handle THM _ => (list_of_Int (th RS InterD))

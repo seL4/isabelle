@@ -544,7 +544,7 @@ by (rtac equalityI 1);
 by (auto_tac (claset(), simpset() addsimps [measure_def]));
 by (blast_tac (claset() addIs [ltD]) 1); 
 by (rtac vimageI 1); 
-by (blast_tac (claset() addIs []) 2); 
+by (Blast_tac 2); 
 by (asm_full_simp_tac (simpset() addsimps [lt_Ord, lt_Ord2, Ord_mem_iff_lt]) 1); 
 by (blast_tac (claset() addIs [lt_trans]) 1); 
 qed "Image_inverse_lessThan";

@@ -74,7 +74,7 @@ by (cut_facts_tac [D_in_program, distrib] 1);
 by (full_simp_tac (simpset() addsimps [distr_spec_def, distr_follows_def]) 1); 
 by (auto_tac (claset() addSIs [guaranteesI]  addIs [Follows_imp_Increasing_left]
                         addSDs [guaranteesD], 
-               simpset() addsimps []));
+               simpset()));
 qed "distr_Increasing_Out";
 
 val state_AlwaysI2 = state_AlwaysI RS Always_weaken;
@@ -116,13 +116,6 @@ by (blast_tac (claset() addDs [ltD]) 1);
 by (blast_tac (claset() addIs [lt_trans]) 1);
 qed "distr_bag_Follows_lemma";
 
-
-val prems =
-Goal "[|A=A'; r=r'; !!x. x:state ==> f(x)=f'(x); !!x. x:state ==> g(x)=g'(x)|] ==> Follows(A, r, f, g) = Follows(A', r', f', g')";
-by (asm_full_simp_tac (simpset() addsimps [Increasing_def,Follows_def]@prems) 1);
-qed "Follows_cong";
-(*????????????????*)
-
 Goal
  "D : ((lift(In) IncreasingWrt prefix(A)/list(A)) Int \
 \      (lift(iIn) IncreasingWrt prefix(nat)/list(nat)) Int  \
@@ -150,8 +143,8 @@ by (resolve_tac [conjI] 5);
 by (resolve_tac [inst "A" "A" bag_of_multiset RS conjunct1] 5);
 by (resolve_tac [inst "A" "A" bag_of_multiset RS conjunct2] 6);
 by (Clarify_tac 4);
-by (asm_full_simp_tac (simpset() addsimps []) 3);
-by (asm_full_simp_tac (simpset() addsimps []) 3);
+by (Asm_full_simp_tac 3);
+by (Asm_full_simp_tac 3);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [nat_into_Finite])));
 by (rotate_tac 2 1);
 by (asm_full_simp_tac (simpset() addsimps [D_ok_iff]) 1);
@@ -159,8 +152,8 @@ by (auto_tac (claset(),
               simpset() addsimps [distr_spec_def, distr_follows_def]));
 by (dtac guaranteesD 1); 
 by (assume_tac 1);
-by (force_tac (claset(), simpset() addsimps []) 1); 
-by (force_tac (claset(), simpset() addsimps []) 1); 
+by (Force_tac 1); 
+by (Force_tac 1); 
 by (asm_full_simp_tac
     (simpset() addsimps [rewrite_rule [comp_def] (mono_bag_of RS subset_Follows_comp RS subsetD), 
              refl_prefix, trans_on_MultLe] 
