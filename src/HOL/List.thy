@@ -140,7 +140,7 @@ primrec
   "dropWhile P (x#xs) = (if P x then dropWhile P xs else x#xs)"
 primrec
   "zip xs []     = []"
-  "zip xs (y#ys) = (hd xs,y)#zip (tl xs) ys"
+  "zip xs (y#ys) = (case xs of [] => [] | z#zs => (z,y)#zip zs ys)"
 primrec
   "[i..0(] = []"
   "[i..(Suc j)(] = (if i <= j then [i..j(] @ [j] else [])"

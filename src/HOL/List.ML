@@ -837,9 +837,21 @@ by (induct_tac "xs" 1);
 by Auto_tac;
 qed_spec_mp"set_take_whileD";
 
-qed_goal "zip_Nil_Nil"   thy "zip []     []     = []" (K [Simp_tac 1]);
-qed_goal "zip_Cons_Cons" thy "zip (x#xs) (y#ys) = (x,y)#zip xs ys" 
-						      (K [Simp_tac 1]);
+(** zip **)
+section "zip";
+
+Goal "zip [] ys = []";
+by(induct_tac "ys" 1);
+by Auto_tac;
+qed "zip_Nil";
+Addsimps [zip_Nil];
+
+Goal "zip (x#xs) (y#ys) = (x,y)#zip xs ys";
+by(Simp_tac 1);
+qed "zip_Cons_Cons";
+Addsimps [zip_Cons_Cons];
+
+Delsimps(tl (thms"zip.simps"));
 
 
 (** foldl **)
