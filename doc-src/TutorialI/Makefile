@@ -28,7 +28,7 @@ FILES = tutorial.tex basics.tex fp.tex appendix.tex \
 
 dvi: $(NAME).dvi
 
-$(NAME).dvi: $(FILES) isabelle_hol.eps
+$(NAME).dvi: $(FILES) isabelle_hol.eps Types/typedef.eps
 	@ln -sf Types/typedef.eps .
 	$(LATEX) $(NAME)
 	$(BIBTEX) $(NAME)
@@ -39,7 +39,7 @@ $(NAME).dvi: $(FILES) isabelle_hol.eps
 
 pdf: $(NAME).pdf
 
-$(NAME).pdf: $(FILES) isabelle_hol.pdf
+$(NAME).pdf: $(FILES) isabelle_hol.pdf Types/typedef.pdf
 	@ln -sf Types/typedef.pdf .
 	$(PDFLATEX) $(NAME)
 	$(BIBTEX) $(NAME)
