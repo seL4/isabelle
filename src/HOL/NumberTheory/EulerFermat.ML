@@ -43,9 +43,7 @@ by Auto_tac;
 qed_spec_mp "Bnor_mem_zle"; 
 
 Goal "a<b ==> b~:BnorRset(a,m)";
-by (res_inst_tac [("Pa","b<=a")] swap 1);
-by (rtac Bnor_mem_zle 2);
-by Auto_tac;
+by (auto_tac (claset() addDs [Bnor_mem_zle], simpset()));  
 qed "Bnor_mem_zle_swap";
 
 Goal "b:BnorRset(a,m) --> #0<b";

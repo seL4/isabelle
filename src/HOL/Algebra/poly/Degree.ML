@@ -30,7 +30,7 @@ by (Fast_tac 1);
 qed "deg_aboveI";
 
 Goalw [coeff_def, deg_def]
-  "!! p. (n ~= 0 --> coeff n p ~= <0>) ==> n <= deg p";
+  "(n ~= 0 --> coeff n p ~= <0>) ==> n <= deg p";
 by (case_tac "n = 0" 1);
 (* Case n=0 *)
 by (Asm_simp_tac 1);
@@ -43,7 +43,7 @@ by (rtac Least_is_bound 1);
 qed "deg_belowI";
 
 Goalw [coeff_def, deg_def]
-  "!! p. deg p < m ==> coeff m p = <0>";
+  "deg p < m ==> coeff m p = <0>";
 by (rtac exE 1); (* create !! x. *)
 by (rtac boundD 2);
 by (assume_tac 3);
@@ -54,13 +54,13 @@ by (rtac (rewrite_rule [UP_def] Rep_UP) 1);
 qed "deg_aboveD";
 
 Goalw [deg_def]
-  "!! p. deg p = Suc y ==> ~ bound y (Rep_UP p)";
+  "deg p = Suc y ==> ~ bound y (Rep_UP p)";
 by (rtac not_less_Least 1);
 by (Asm_simp_tac 1);
 val lemma1 = result();
 
 Goalw [deg_def, coeff_def]
-  "!! p. deg p = Suc y ==> coeff (deg p) p ~= <0>";
+  "deg p = Suc y ==> coeff (deg p) p ~= <0>";
 by (rtac classical 1);
 by (dtac notnotD 1);
 by (cut_inst_tac [("p", "p")] Least_is_bound 1);
@@ -85,8 +85,7 @@ by (etac notE 1);
 by (assume_tac 1);
 val lemma2 = result();
 
-Goal
-  "!! p. deg p ~= 0 ==> coeff (deg p) p ~= <0>";
+Goal "deg p ~= 0 ==> coeff (deg p) p ~= <0>";
 by (rtac lemma2 1);
 by (Full_simp_tac 1);
 by (dtac Suc_pred 1);
@@ -94,8 +93,7 @@ by (rtac sym 1);
 by (Asm_simp_tac 1);
 qed "deg_lcoeff";
 
-Goal
-  "!! p. p ~= <0> ==> coeff (deg p) p ~= <0>";
+Goal "p ~= <0> ==> coeff (deg p) p ~= <0>";
 by (etac contrapos 1);
 by (ftac contrapos2 1);
 by (rtac deg_lcoeff 1);

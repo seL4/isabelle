@@ -54,9 +54,7 @@ by Auto_tac;
 qed_spec_mp "d22set_le";
 
 Goal "a<b ==> b~:(d22set a)";
-by (res_inst_tac [("Pa","b<=a")] swap 1);
-by (rtac d22set_le 2); 
-by Auto_tac;
+by (auto_tac (claset() addDs [d22set_le], simpset()));  
 qed "d22set_le_swap";
 
 Goal "#1<b --> b<=a --> b:(d22set a)";

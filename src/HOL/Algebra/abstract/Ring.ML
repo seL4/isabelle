@@ -140,19 +140,15 @@ by (Asm_simp_tac 1);
 qed "uminus_monom";
 
 Goal "!!a::'a::ring. a ~= <0> ==> -a ~= <0>";
-by (etac contrapos 1);
-by (rtac uminus_monom 1);
-by (assume_tac 1);
+by (blast_tac (claset() addIs [uminus_monom]) 1); 
 qed "uminus_monom_neq";
 
 Goal "!!a::'a::ring. a * b ~= <0> ==> a ~= <0>";
-by (etac contrapos 1);
-by (Asm_simp_tac 1);
+by Auto_tac;  
 qed "l_nullD";
 
 Goal "!!a::'a::ring. a * b ~= <0> ==> b ~= <0>";
-by (etac contrapos 1);
-by (Asm_simp_tac 1);
+by Auto_tac;  
 qed "r_nullD";
 
 (* reflection between a = b and a -- b = <0> *)

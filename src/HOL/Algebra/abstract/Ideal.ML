@@ -166,10 +166,8 @@ qed "psubideal_not_dvd";
 
 Goal "[| b dvd a; ~ (a dvd b) |] ==> ideal_of {a::'a::ring} < ideal_of {b}";
 by (rtac psubsetI 1);
-by (rtac dvd_imp_subideal 1 THEN atac 1);
-by (rtac contrapos 1); by (assume_tac 1);
-by (rtac subideal_imp_dvd 1);
-by (Asm_simp_tac 1);
+by (etac dvd_imp_subideal 1);
+by (blast_tac (claset() addIs [dvd_imp_subideal, subideal_imp_dvd]) 1); 
 qed "not_dvd_psubideal";
 
 Goal "(ideal_of {a::'a::ring} < ideal_of {b}) = (b dvd a & ~ (a dvd b))";

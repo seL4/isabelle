@@ -58,12 +58,12 @@ qed "";
 
 Goal "~ (EX f:: 'a=>'a set. ALL S. EX x. f(x) = S)";
 (*requires best-first search because it is undirectional*)
-by (best_tac (claset() addSEs [equalityCE]) 1);
+by (Best_tac 1);
 qed "cantor1";
 
 (*This form displays the diagonal term*)
 Goal "ALL f:: 'a=>'a set. ALL x. f(x) ~= ?S(f)";
-by (best_tac (claset() addSEs [equalityCE]) 1);
+by (Best_tac 1);
 uresult();
 
 (*This form exploits the set constructs*)
@@ -77,7 +77,7 @@ by (swap_res_tac [CollectI] 1);
 by (assume_tac 1);
 
 choplev 0;
-by (best_tac (claset() addSEs [equalityCE]) 1);
+by (Best_tac 1);
 qed "";
 
 

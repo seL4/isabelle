@@ -11,6 +11,8 @@ Goal "UU = Isinl UU";
 by (simp_tac (HOL_ss addsimps [UU_def,UU_ssum_def]) 1);
 qed "inst_ssum_pcpo";
 
+Addsimps [inst_ssum_pcpo RS sym];
+
 (* ------------------------------------------------------------------------ *)
 (* continuity for Isinl and Isinr                                           *)
 (* ------------------------------------------------------------------------ *)
@@ -218,19 +220,12 @@ by (atac 1);
 by (rtac trans 1);
 by (rtac cfun_arg_cong 1);
 by (rtac Iwhen2 1);
-by (res_inst_tac [("Pa","Y(i)=UU")] swap 1);
-by (fast_tac HOL_cs 1);
-by (stac inst_ssum_pcpo 1);
+by (Force_tac 1); 
 by (res_inst_tac [("t","Y(i)")] ssubst 1);
 by (atac 1);
-by (fast_tac HOL_cs 1);
+by Auto_tac;  
 by (stac Iwhen2 1);
-by (res_inst_tac [("Pa","Y(i)=UU")] swap 1);
-by (fast_tac HOL_cs 1);
-by (stac inst_ssum_pcpo 1);
-by (res_inst_tac [("t","Y(i)")] ssubst 1);
-by (atac 1);
-by (fast_tac HOL_cs 1);
+by (Force_tac 1); 
 by (simp_tac (simpset_of Cfun3.thy) 1);
 by (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 1);
 by (etac (monofun_Iwhen3 RS ch2ch_monofun) 1);
@@ -274,23 +269,13 @@ by (atac 1);
 by (rtac trans 1);
 by (rtac cfun_arg_cong 1);
 by (rtac Iwhen3 1);
-by (res_inst_tac [("Pa","Y(i)=UU")] swap 1);
-by (fast_tac HOL_cs 1);
-by (dtac notnotD 1);
-by (stac inst_ssum_pcpo 1);
-by (stac strict_IsinlIsinr 1);
+by (Force_tac 1); 
 by (res_inst_tac [("t","Y(i)")] ssubst 1);
 by (atac 1);
-by (fast_tac HOL_cs 1);
 by (stac Iwhen3 1);
-by (res_inst_tac [("Pa","Y(i)=UU")] swap 1);
-by (fast_tac HOL_cs 1);
-by (dtac notnotD 1);
-by (stac inst_ssum_pcpo 1);
-by (stac strict_IsinlIsinr 1);
+by (Force_tac 1); 
 by (res_inst_tac [("t","Y(i)")] ssubst 1);
 by (atac 1);
-by (fast_tac HOL_cs 1);
 by (simp_tac (simpset_of Cfun3.thy) 1);
 by (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 1);
 by (etac (monofun_Iwhen3 RS ch2ch_monofun) 1);

@@ -146,12 +146,7 @@ by (asm_full_simp_tac (simpset() addsimps [zmod_zdiv_equality RS sym]) 1);
 qed "zdvd_zmod_imp_zdvd";
 
 Goalw [dvd_def] "(k dvd n) = (n mod (k::int) = #0)";
-by (zdiv_undefined_case_tac "k=#0" 1);
-by Safe_tac;
-by (res_inst_tac [("x","n div k")] exI 2);
-by (rtac trans 2);
-by (res_inst_tac [("b","k")] zmod_zdiv_equality 2);
-by (ALLGOALS Asm_simp_tac);
+by (auto_tac (claset(), simpset() addsimps [zmod_zmult_self2]));  
 qed "zdvd_iff_zmod_eq_0";
 
 Goal "[| ~k<#0; k~=#0 |] ==> #0<(k::int)";
@@ -549,12 +544,8 @@ qed "zcong_zless_imp_eq";
 
 Goal "[| p:zprime; #0<a; a<p; [a*a = #1](mod p) |] ==> a = #1 | a = p-#1";
 by (cut_inst_tac [("p","p"),("a","a")] zcong_square 1);
-by Safe_tac;
-by (res_inst_tac [("Pa","a=p-#1")] swap 2);
-by (rtac zcong_zless_imp_eq 1);
-by (rtac zcong_zless_imp_eq 7);
-by (rewtac zprime_def);
-by Auto_tac;
+by (full_simp_tac (simpset() addsimps [zprime_def]) 1); 
+by (auto_tac (claset() addIs [zcong_zless_imp_eq], simpset())); 
 qed "zcong_square_zless";
 
 Goalw [zcong_def] "[| #0<a; a<m; #0<b; b<a |] ==> ~[a = b] (mod m) ";
