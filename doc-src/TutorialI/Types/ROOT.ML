@@ -1,4 +1,6 @@
+(* ID:         $Id$ *)
 use "../settings.ML";
+use_thy "Numbers";
 use_thy "Pairs";
 use_thy "Typedef";
 use_thy "Overloading0";
