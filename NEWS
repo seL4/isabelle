@@ -21,8 +21,8 @@ MAY FAIL;
   relations has too general a domain, namely ('a * 'b)set and 'a => 'b.
   This means that it may be necessary to attach explicit type constraints.
 
-* HOL records: fix problem with user translations by making field
-names appear as syntactic conststants;
+* HOL: syntax translations now work properly with numerals and records
+expressions;
 
 * HOL/GroupTheory: group theory examples including Sylow's theorem, by
 Florian Kammüller;
