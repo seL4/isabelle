@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -9,6 +8,13 @@ New in this Isabelle version
 
 * HOL: Removed the obsolete syntax "Compl A"; use -A for set complement
 
+*** Proof tools ***
+
+* Provers/Arith/fast_lin_arith.ML contains a functor for creating a decision
+procedure for linear arithmetic. Currently it is used only for type `nat' in
+HOL (see below) but can, should and will be instantiated for other types and
+logics as well.
+
 *** General ***
 
 * in locales, the "assumes" and "defines" parts may be omitted if empty;
@@ -16,6 +22,17 @@ New in this Isabelle version
 * new print_mode "xsymbols" for extended symbol support 
   (e.g. genuiely long arrows)
 
+*** HOL ***
+
+* There are now two decision procedures for linear arithmetic over nat:
+1. nat_arith_tac copes with arbitrary propositional formulae (quantified
+formulae are treated as atomic) involving `=', `<', `<=', 0, Suc, `+' and `-'
+(other operators are treated as atomic). It has to be invoked by hand and is
+a little bit slow.
+2. fast_nat_arith_tac is a cut-down version of nat_arith_tac: it does not do
+much propositional reasoning (hence the premises and the conclusion should be
+as atomic as possible) and does not know about `-' either. It is fast and is
+used automatically by the simplifier.
 
 *** Internal programming interfaces ***
 
