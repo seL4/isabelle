@@ -117,7 +117,7 @@ val proofstack = ref([]: proof list);
 (*reset all refs*)
 fun reset_goals () =
   (curr_prems := []; curr_mkresult := init_mkresult;
-    undo_list := [[(dummy, Seq.empty)]]; proofstack := []);
+    undo_list := [[(dummy, Seq.empty)]]);
 
 
 (*** Setting up goal-directed proof ***)
