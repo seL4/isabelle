@@ -70,11 +70,10 @@ proof -
   thus ?thesis by rules
 qed
 
-ML_setup {*
-  bind_thm ("rtrancl_induct2", split_rule
-    (read_instantiate [("a","(ax,ay)"), ("b","(bx,by)")] (thm "rtrancl_induct")));
-*}
-
+lemmas rtrancl_induct2 =
+  rtrancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
+                 consumes 1, case_names refl step]
+ 
 lemma trans_rtrancl: "trans(r^*)"
   -- {* transitivity of transitive closure!! -- by induction *}
 proof (rule transI)
@@ -165,7 +164,7 @@ qed
 lemma rtrancl_converse: "(r^-1)^* = (r^*)^-1"
   by (fast dest!: rtrancl_converseD intro!: rtrancl_converseI)
 
-theorem converse_rtrancl_induct:
+theorem converse_rtrancl_induct[consumes 1]:
   assumes major: "(a, b) : r^*"
     and cases: "P b" "!!y z. [| (y, z) : r; (z, b) : r^*; P z |] ==> P y"
   shows "P a"
@@ -175,10 +174,9 @@ proof -
     by induct (rules intro: cases dest!: converseD rtrancl_converseD)+
 qed
 
-ML_setup {*
-  bind_thm ("converse_rtrancl_induct2", split_rule
-    (read_instantiate [("a","(ax,ay)"),("b","(bx,by)")] (thm "converse_rtrancl_induct")));
-*}
+lemmas converse_rtrancl_induct2 =
+  converse_rtrancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
+                 consumes 1, case_names refl step]
 
 lemma converse_rtranclE:
   "[| (x,z):r^*;

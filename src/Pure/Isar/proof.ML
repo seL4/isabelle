@@ -690,7 +690,7 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
       (after_qed o map_context gen_binds, pr)))
     |> map_context (ProofContext.add_cases
      (if length props = 1 then
-      RuleCases.make None None (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
+      RuleCases.make true None (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
       else [(rule_contextN, RuleCases.empty)]))
     |> auto_bind_goal props
     |> (if is_chain state then use_facts else reset_facts)
