@@ -6,7 +6,7 @@ begin
 
 section "Introduction"
 
-text{* This document is for those Isabelle users that have mastered
+text{* This document is for those Isabelle users who have mastered
 the art of mixing \LaTeX\ text and Isabelle theories and never want to
 typeset a theorem by hand anymore because they have experienced the
 bliss of writing \verb!@!\verb!{thm[display]setsum_cartesian_product[no_vars]}!
@@ -77,7 +77,7 @@ If you prefer more space around the $\cdot$ you have to redefine
 \verb!\renewcommand{\isasymcdot}{\isamath{\,\cdot\,}}!
 
 \item @{term"length xs"} instead of @{text"length xs"}.
-\item @{term"nth xs n"} instead of @{text"nth xs i"},
+\item @{term"nth xs n"} instead of @{text"nth xs n"},
       the $n$th element of @{text xs}.
 
 \item The @{text"@"} operation associates implicitly to the right,
