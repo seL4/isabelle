@@ -4,6 +4,8 @@
 #
 # configure - adapt Isabelle distribution to system environment
 
+## patch scripts
+
 if bash -norc -c ""
 then
   bash lib/scripts/patch-scripts.bash
@@ -11,3 +13,14 @@ else
   echo "FATAL ERROR: bash not found!"
   exit 2
 fi
+
+
+## manual steps
+
+PWD=`pwd`
+echo
+echo "***********************************************************"
+echo "* Please check the ML compiler settings in ./etc/settings *"
+echo "* before compiling Isabelle.                              *"
+echo "***********************************************************"
+echo
