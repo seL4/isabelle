@@ -508,9 +508,10 @@ fun read_raw_typ syn tsig spaces def_sort str =
       handle ERROR => err_in_type str);
   
 (*read and certify typ wrt a signature*)
-fun read_typ (Sg {tsig, syn, spaces, ...}, def_sort) str =
-  Type.cert_typ tsig (read_raw_typ syn tsig spaces def_sort str)
-    handle TYPE (msg, _, _) => (error_msg msg; err_in_type str);
+fun read_typ (sg as Sg {tsig, syn, spaces, ...}, def_sort) str =
+  (check_stale sg;
+    Type.cert_typ tsig (read_raw_typ syn tsig spaces def_sort str)
+      handle TYPE (msg, _, _) => (error_msg msg; err_in_type str));
 
 
 
@@ -565,6 +566,8 @@ fun mapfilt_atoms f (Abs (_, _, t)) = mapfilt_atoms f t
 
 fun certify_term (sg as Sg {tsig, ...}) tm =
   let
+    val _ = check_stale sg;
+
     fun valid_const a T =
       (case const_type sg a of
         Some U => Type.typ_instance (tsig, T, U)
