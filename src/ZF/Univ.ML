@@ -576,15 +576,6 @@ goalw Univ.thy [univ_def] "univ(A)*univ(A) <= univ(A)";
 by (rtac (Limit_nat RS product_VLimit) 1);
 val product_univ = result();
 
-val Sigma_subset_univ = 
-    [Sigma_mono, product_univ] MRS subset_trans |> standard;
-
-goalw Univ.thy [univ_def]
-    "!!a b.[| <a,b> <= univ(A);  Transset(A) |] ==> <a,b> : univ(A)";
-by (etac Transset_Pair_subset_VLimit 1);
-by (REPEAT (ares_tac [Ord_nat,Limit_nat] 1));
-val Transset_Pair_subset_univ = result();
-
 
 (** The natural numbers **)
 
