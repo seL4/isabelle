@@ -1079,7 +1079,7 @@ Using the simplifier effectively may take a bit of experimentation.  Set the
 \ttbreak
 set trace_simp;
 by(Simp_tac 1);
-\ttbreak\makeatother
+\ttbreak
 \Out{ Applying instance of rewrite rule:}
 \Out{ rev (?x # ?xs) == rev ?xs @ [?x]}
 \Out{ Rewriting:}
@@ -1089,7 +1089,7 @@ by(Simp_tac 1);
 \Out{ rev [] == []}
 \Out{ Rewriting:}
 \Out{ rev [] == []}
-\ttbreak\makeatother
+\ttbreak
 \Out{ Applying instance of rewrite rule:}
 \Out{ [] @ ?y == ?y}
 \Out{ Rewriting:}
@@ -1158,8 +1158,8 @@ provided the second one is empty:
 \begin{ttbox}
 \input{Misc/itrev1.ML}\end{ttbox}
 There is no choice as to the induction variable, and we immediately simplify:
-\begin{ttbox}
-\input{Misc/induct_auto.ML}\ttbreak\makeatother
+\begin{ttbox}\makeatother
+\input{Misc/induct_auto.ML}\ttbreak
 \Out{ 1. !!a list. itrev list [] = rev list\(\;\)==> itrev list [a] = rev list @ [a]}
 \end{ttbox}
 Just as predicted above, the overall goal, and hence the induction
