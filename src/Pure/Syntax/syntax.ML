@@ -5,10 +5,8 @@
 Root of Isabelle's syntax module.
 
 TODO:
-  extend_tables (requires extend_gram) (roots!)
-  replace add_synrules by extend_tables
-  extend, merge: make roots handling more robust
-  extend: use extend_tables
+  fix empty_tables, extend_tables, mk_tables (requires empty_gram, extend_gram)
+  fix extend (requires extend_tables)
 *)
 
 signature SYNTAX =
@@ -22,7 +20,7 @@ sig
   type syntax
   val type_syn: syntax
   val extend: syntax -> (string -> typ) -> string list * string list * sext -> syntax
-  val merge: syntax * syntax -> syntax
+  val merge: string list -> syntax -> syntax -> syntax
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
@@ -70,7 +68,7 @@ datatype tables =
 
 datatype gramgraph =
   EmptyGG |
-  ExtGG of gramgraph ref * (ext * synrules) |
+  ExtGG of gramgraph ref * ext |
   MergeGG of gramgraph ref * gramgraph ref;
 
 datatype syntax = Syntax of gramgraph ref * tables;
@@ -107,8 +105,62 @@ fun extend_ruletab tab rules =
   mk_ruletab (flat (map #2 (Symtab.alist_of tab)) @ rules);
 
 
+
+(** tables **)
+
+(* empty_tables *)
+
+val empty_tables =
+  Tabs {
+    lexicon = empty_lexicon,
+    roots = [],
+    (* gram = empty_gram, *)    (* FIXME *)
+    gram = mk_gram [] [],       (* FIXME *)
+    consts = [],
+    parse_ast_trtab = Symtab.null,
+    parse_ruletab = Symtab.null,
+    parse_trtab = Symtab.null,
+    print_trtab = Symtab.null,
+    print_ruletab = Symtab.null,
+    prtab = empty_prtab};
+
+
+(* extend_tables *)
+
+fun extend_tables (Tabs tabs) (XGram xgram) =
+  let
+    val {lexicon, roots = roots1, gram, consts = consts1, parse_ast_trtab,
+      parse_ruletab, parse_trtab, print_trtab, print_ruletab, prtab} = tabs;
+    val {roots = roots2, prods, consts = consts2, parse_ast_translation,
+      parse_rules, parse_translation, print_translation, print_rules,
+      print_ast_translation} = xgram;
+  in
+    (* FIXME *)
+    if not (null prods) then
+      error "extend_tables: called with non-empty prods"
+    else
+
+    Tabs {
+      lexicon = extend_lexicon lexicon (literals_of prods),
+      roots = roots2 union roots1,
+      (* gram = extend_gram gram roots2 prods, *)  (* FIXME *)
+      gram = gram,                                 (* FIXME *)
+      consts = consts2 union consts1,
+      parse_ast_trtab =
+        extend_trtab parse_ast_trtab parse_ast_translation "parse ast translation",
+      parse_ruletab = extend_ruletab parse_ruletab parse_rules,
+      parse_trtab = extend_trtab parse_trtab parse_translation "parse translation",
+      print_trtab = extend_trtab print_trtab print_translation "print translation",
+      print_ruletab = extend_ruletab print_ruletab print_rules,
+      prtab = extend_prtab prtab prods print_ast_translation}
+  end;
+
+
 (* mk_tables *)
 
+val mk_tables = extend_tables empty_tables;
+
+(* FIXME *)
 fun mk_tables (XGram xgram) =
   let
     val {roots, prods, consts, parse_ast_translation, parse_rules,
@@ -126,25 +178,6 @@ fun mk_tables (XGram xgram) =
       print_trtab = mk_trtab print_translation "print translation",
       print_ruletab = mk_ruletab print_rules,
       prtab = mk_prtab prods print_ast_translation}
-  end;
-
-
-(* add_synrules *)
-
-fun add_synrules (Tabs tabs) (SynRules rules) =
-  let
-    val {lexicon, roots, gram, consts, parse_ast_trtab, parse_ruletab,
-      parse_trtab, print_trtab, print_ruletab, prtab} = tabs;
-    val {parse_rules, print_rules} = rules;
-  in
-    Tabs {
-      lexicon = lexicon, roots = roots, gram = gram, consts = consts,
-      parse_ast_trtab = parse_ast_trtab,
-      parse_ruletab = extend_ruletab parse_ruletab parse_rules,
-      parse_trtab = parse_trtab,
-      print_trtab = print_trtab,
-      print_ruletab = extend_ruletab print_ruletab print_rules,
-      prtab = prtab}
   end;
 
 
@@ -168,9 +201,9 @@ fun ggr_to_xgram ggr =
   end;
 
 
-(* make_syntax *)
+(* mk_syntax *)
 
-fun make_syntax ggr = Syntax (ggr, mk_tables (ggr_to_xgram ggr));
+fun mk_syntax ggr = Syntax (ggr, mk_tables (ggr_to_xgram ggr));
 
 
 
@@ -390,32 +423,59 @@ fun string_of_typ syn ty = Pretty.string_of (pretty_typ syn ty);
 
 (* type_syn *)
 
-val type_syn = make_syntax (ref (ExtGG (ref EmptyGG, (type_ext, empty_synrules))));
+val type_syn = mk_syntax (ref (ExtGG (ref EmptyGG, type_ext)));
 
 
-(** extend **)
+(* extend *)  (* FIXME *)
 
-fun extend (old_syn as Syntax (ggr, _)) read_ty (roots, xconsts, sext) =
+fun old_extend syn read_ty (roots, xconsts, sext) =
   let
-    val ext = ext_of_sext roots xconsts read_ty sext;
+    val Syntax (ggr0, Tabs {roots = roots0, ...}) = syn;
 
-    val (tmp_syn as Syntax (_, tmp_tabs)) =
-      make_syntax (ref (ExtGG (ggr, (ext, empty_synrules))));
+    val ext1 = ext_of_sext ((distinct roots) \\ roots0) xconsts read_ty sext;
+    val (syn1 as Syntax (ggr1, tabs1)) = mk_syntax (ref (ExtGG (ggr0, ext1)));
 
-    val (parse_rules, print_rules) = read_xrules tmp_syn (xrules_of sext);
-    val rules =
-      SynRules {
-        parse_rules = parse_rules,
-        print_rules = print_rules};
+    val (parse_rules, print_rules) = read_xrules syn1 (xrules_of sext);
+    val ext2 = ExtRules {parse_rules = parse_rules, print_rules = print_rules};
   in
-    Syntax (ref (ExtGG (ggr, (ext, rules))), add_synrules tmp_tabs rules)
+    Syntax (ref (ExtGG (ggr1, ext2)), extend_tables tabs1 (mk_xgram ext2))
   end;
+
+
+fun new_extend syn read_ty (roots, xconsts, sext) =
+  let
+    val Syntax (ggr0, tabs0 as Tabs {roots = roots0, ...}) = syn;
+
+    val ext1 = ext_of_sext ((distinct roots) \\ roots0) xconsts read_ty sext;
+    val (syn1 as Syntax (ggr1, tabs1)) =
+      Syntax (ref (ExtGG (ggr0, ext1)), extend_tables tabs0 (mk_xgram ext1));
+
+    val (parse_rules, print_rules) = read_xrules syn1 (xrules_of sext);
+    val ext2 = ExtRules {parse_rules = parse_rules, print_rules = print_rules};
+  in
+    Syntax (ref (ExtGG (ggr1, ext2)), extend_tables tabs1 (mk_xgram ext2))
+  end;
+
+
+fun extend syn read_ty (ex as (_, _, sext)) =
+  (case sext of
+    Sext {mixfix = [], ...} => new_extend
+  | NewSext {mixfix = [], ...} => new_extend
+  | _ => old_extend) syn read_ty ex;
 
 
 (* merge *)
 
-fun merge (Syntax (ggr1, _), Syntax (ggr2, _)) =
-  make_syntax (ref (MergeGG (ggr1, ggr2)));
+fun merge roots syn1 syn2 =
+  let
+    val Syntax (ggr1, Tabs {roots = roots1, ...}) = syn1;
+    val Syntax (ggr2, Tabs {roots = roots2, ...}) = syn2;
+    val mggr = ref (MergeGG (ggr1, ggr2));
+  in
+    (case ((distinct roots) \\ roots1) \\ roots2 of
+      [] => mk_syntax mggr
+    | new_roots => mk_syntax (ref (ExtGG (mggr, ExtRoots new_roots))))
+  end;
 
 
 end;
