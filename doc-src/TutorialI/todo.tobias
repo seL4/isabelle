@@ -1,0 +1,298 @@
+General questions
+=================
+
+Here is an initial list:
+clarify, clarsimp, hyp_subst_tac, rename_tac, rotate_tac, split
+single step tactics: (e/d/f)rule, insert
+with instantiation: (e/d/f)rule_tac, insert_tac
+
+Hide global names like Node.
+Why is comp needed in addition to op O?
+Explain in syntax section!
+
+Implementation
+==============
+
+swap in classical.ML has ugly name Pa in it. Rename.
+
+list of ^*/^+ intro rules. Incl transitivity?
+
+Induction rules for int: int_le/ge_induct?
+Needed for ifak example. But is that example worth it?
+
+Add map_cong?? (upto 10% slower)
+But we should install UN_cong and INT_cong too.
+
+recdef: funny behaviour with map (see email to Konrad.Slind, Recdef/Nested1)
+
+defs with = and pattern matching
+
+Why can't I declare trev at the end of Recdef/Nested0 and define it in
+Recdef/Nested1??
+
+use arith_tac in recdef to solve termination conditions?
+-> new example in Recdef/termination
+
+a tactic for replacing a specific occurrence:
+apply(substitute [2] thm)
+
+Minor fixes in the tutorial
+===========================
+
+replace simp only split by split_tac.
+
+get rid of use_thy?
+
+Explain typographic conventions?
+
+how the simplifier works
+
+an example of induction: !y. A --> B --> C ??
+
+Advanced Ind expects rulify, mp and spec. How much really?
+
+recdef: subsection Beyond Measure on lex, finite_psubset, ...
+incl Ackermann, which is now at the end of Recdef/termination.thy.
+-> Advanced.
+Sentence at the end:
+If you feel that the definition of recursive functions is overly and maybe
+unnecessarily complicated by the requirement of totality you should ponder
+the alternative, a logic of partial functions, where recursive definitions
+are always wellformed. For a start, there are many
+such logics, and no clear winner has emerged. And in all of these logics you
+are (more or less frequently) required to reason about the definedness of
+terms explicitly. Thus one shifts definedness arguments from definition to
+proof time. In HOL you may have to work hard to define a function, but proofs
+can then proceed unencumbered by worries about undefinedness.
+
+Appendix: Lexical: long ids.
+
+Warning: infixes automatically become reserved words!
+
+Forward ref from blast proof of Puzzle (AdvancedInd) to Isar proof?
+
+mention split_split in advanced pair section.
+
+Advanced:
+rule induction where premise not atomic (x1...xn) : R.
+
+recdef with nested recursion: either an example or at least a pointer to the
+literature. In Recdef/termination.thy, at the end.
+%FIXME, with one exception: nested recursion.
+
+Sets: rels and ^*
+
+
+Minor additions to the tutorial, unclear where
+==============================================
+
+insert: lcp?
+
+Tacticals: , ? +
+
+print_simpset (-> print_simps?)
+(Another subsection Useful theorems, methods, and commands?)
+
+Mention that simp etc (big step tactics) insist on change?
+
+Explain what "by" and "." really do, and introduce "done".
+
+A list of further useful commands (rules? tricks?)
+prefer, defer
+
+An overview of the automatic methods: simp, auto, fast, blast, force,
+clarify, clarsimp (intro, elim?)
+
+explain rulify before induction section?
+
+demonstrate x : set xs in Sets. Or Tricks chapter?
+
+Table with symbols \<forall> etc. Apendix?
+Appendix with HOL keywords. Say something about other keywords.
+
+
+Possible exercises
+==================
+
+Exercises
+%\begin{exercise}
+%Extend expressions by conditional expressions.
+braucht wfrec!
+%\end{exercise}
+
+Nested inductive datatypes: another example/exercise:
+ size(t) <= size(subst s t)?
+
+Add Until to CTL.
+
+insertion sort: primrec, later recdef
+
+OTree:
+ first version only for non-empty trees:
+ Tip 'a | Node tree tree
+ Then real version?
+ First primrec, then recdef?
+
+Ind. sets: define ABC inductively and prove
+ABC = {rep A n @ rep B n @ rep C n. True}
+
+Possible examples/case studies
+==============================
+
+Trie: Define functional version
+datatype ('a,'b)trie = Trie ('b option) ('a => ('a,'b)trie option)
+lookup t [] = value t
+lookup t (a#as) = case tries t a of None => None | Some s => lookup s as
+Maybe as an exercise?
+
+Trie: function for partial matches (prefixes). Needs sets for spec/proof.
+
+Sets via ordered list of intervals. (Isa/Interval(2))
+
+Sets: PDL and CTL
+
+Ind. defs: Grammar (for same number of as and bs),
+propositional logic (soundness and completeness?),
+predicate logic (soundness?),
+CTL proof.
+
+Tautology checker. Based on Ifexpr or prop.logic?
+Include forward reference in relevant section.
+
+Sorting with comp-parameter and with type class (<)
+
+New book by Bird?
+
+Steps Towards Mechanizing Program Transformations Using PVS by N. Shankar,
+      Science of Computer Programming, 26(1-3):33-57, 1996. 
+You can get it from http://www.csl.sri.com/scp95.html
+
+J Moore article Towards a ...
+Mergesort, JVM
+
+
+Additional topics
+=================
+
+Beef up recdef (see below).
+Nested recursion? Mutual recursion?
+
+Nested inductive datatypes: better recursion and induction
+(see below)
+
+Extensionality: applications in
+- boolean expressions: valif o bool2if = value
+- Advanced datatypes exercise subst (f o g) = subst f o subst g
+
+A look at the library?
+Functions. Relations. Lfp/Gfp. Map.
+If WF is discussed, make a link to it from AdvancedInd.
+
+Prototyping?
+
+
+Isabelle
+========
+
+Get rid of function name in recdef header
+
+More predefined functions for datatypes: map?
+
+1 and 2 on nat?
+
+
+==============================================================
+Nested inductive datatypes: better recursion and induction
+
+Show how to derive simpler primrec functions using eg map. Text:
+
+Returning to the definition of \texttt{subst}, we have to admit that it does
+not really need the auxiliary \texttt{substs} function. The \texttt{App}-case
+can directly be expressed as
+\begin{ttbox}
+\input{Datatype/appmap}\end{ttbox}
+Although Isabelle insists on the more verbose version, we can easily {\em
+  prove} that the \texttt{map}-equation holds: simply by induction on
+\texttt{ts} followed by \texttt{Auto_tac}.
+lemma "subst s (App f ts) = App f (map (subst s) ts)";
+by(induct_tac ts, auto);
+
+Now explain how to remove old eqns from simpset by naming them.
+But: the new eqn only helps if the induction schema is also modified
+accordingly:
+
+val prems =
+Goal "[| !!v. P(Var v); !!f ts. (!!t. t : set ts ==> P t) ==> P(App f ts) |] \
+\     ==> P t & (!t: set ts. P t)";
+by(induct_tac "t ts" 1);
+brs prems 1;
+brs prems 1;
+by(Blast_tac 1);
+by(Simp_tac 1);
+by(Asm_simp_tac 1);
+
+Now the following exercise has an easy proof:
+
+\begin{exercise}
+  Define a function \texttt{rev_term} of type \texttt{term -> term} that
+  recursively reverses the order of arguments of all function symbols in a
+  term. Prove that \texttt{rev_term(rev_term t) = t}.
+\end{exercise}
+
+==============================================================
+Recdef:
+
+nested recursion
+more example proofs:
+ if-normalization with measure function,
+ nested if-normalization,
+ quicksort
+ Trie?
+a case study?
+
+A separate subsection on recdef beyond measure, eg <*lex*> and psubset.
+Example: some finite fixpoint computation? MC, Grammar?
+How to modify wf-prover?
+
+----------
+
+Partial rekursive functions / Nontermination
+
+What appears to be the problem:
+axiom f n = f n + 1
+lemma False
+apply(cut_facts_tac axiom, simp).
+
+1. Guarded recursion
+
+Scheme:
+f x = if $x \in dom(f)$ then ... else arbitrary
+
+Example: sum/fact: int -> int (for no good reason because we have nat)
+
+Exercise: ?! f. !i. f i = if i=0 then 1 else i*f(i-1)
+(What about sum? Is there one, a unique one?)
+
+[Alternative: include argument that is counted down
+ f x n = if n=0 then None else ...
+Refer to Boyer and Moore]
+
+More complex: same_fst
+
+chase(f,x) = if wf{(f x,x) . f x ~= x}
+             then if f x = x then x else chase(f,f x)
+             else arb
+
+Prove wf ==> f(chase(f,x)) = chase(f,x)
+
+2. While / Tail recursion
+
+chase f x = fst(while (%(x,fx). x=fx) (%(x,fx). (fx,f fx)) (x,f x))
+
+==> unfold eqn for chase? Prove fixpoint property?
+
+Better(?) sum i = fst(while (%(s,i). i=0) (%(s,i). (s+i,i-1)) (0,i))
+Prove 0 <= i ==> sum i = i*(i+1) via while-rule
+
+Mention prototyping?
+==============================================================
