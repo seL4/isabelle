@@ -30,7 +30,6 @@ use "skip_proof.ML";
 (*outer syntax*)
 (*use "outer_lex.ML";*)   (*see ../Thy/ROOT.ML*)
 use "antiquote.ML";
-use "comment.ML";
 use "outer_parse.ML";
 
 (*toplevel environment*)
@@ -67,7 +66,6 @@ struct
   structure SkipProof = SkipProof;
   structure OuterLex = OuterLex;
   structure Antiquote = Antiquote;
-  structure Comment = Comment;
   structure OuterParse = OuterParse;
   structure Toplevel = Toplevel;
   structure Session = Session;
