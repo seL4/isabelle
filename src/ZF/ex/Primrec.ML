@@ -283,7 +283,7 @@ by (tc_tac []);
 qed "COMP_map_lemma";
 
 goalw Primrec.thy [COMP_def]
- "!!g. [| g: primrec;  kg: nat;                                 \
+ "!!g. [| kg: nat;                                 \
 \         ALL l:list(nat). g`l < ack(kg, list_add(l));          \
 \         fs : list({f: primrec .                               \
 \                    EX kf:nat. ALL l:list(nat).                \
@@ -319,7 +319,7 @@ by (DO_GOAL [Asm_simp_tac, rtac lt_trans, etac bspec,
              assume_tac, rtac (add_le_self RS ack_lt_mono1),
              REPEAT o ares_tac (ack_typechecks)] 1);
 (*ind step*)
-by (asm_simp_tac (!simpset addsimps [add_succ_right]) 1);
+by (Asm_simp_tac 1);
 by (rtac (succ_leI RS lt_trans1) 1);
 by (res_inst_tac [("j", "g ` ?ll #+ ?mm")] lt_trans1 1);
 by (etac bspec 2);
