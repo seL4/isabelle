@@ -8,6 +8,8 @@ Equivalence of Natural and Transition semantics
 
 open Transition;
 
+section "Winskel's Proof";
+
 val relpow_cs = rel_cs addSEs [rel_pow_0_E];
 
 val evalc1_elim_cases = map (evalc1.mk_cases com.simps)
@@ -121,3 +123,96 @@ qed_spec_mp "evalc1_impl_evalc";
 goal Transition.thy "((c, s) -*-> (SKIP, t)) = (<c,s> -c-> t)";
 by (fast_tac (HOL_cs addSEs [evalc1_impl_evalc,evalc_impl_evalc1]) 1);
 qed "evalc1_eq_evalc";
+
+
+section "A Proof Without -n->";
+
+goal Transition.thy
+ "!!c1. (c1,s1) -*-> (SKIP,s2) ==> \
+\ (c2,s2) -*-> (c3,s3) --> (c1;c2,s1) -*-> (c3,s3)";
+be converse_rtrancl_induct2 1;
+by(fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
+by(fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
+qed_spec_mp "my_lemma1";
+
+
+goal Transition.thy "!c s s1. <c,s> -c-> s1 --> (c,s) -*-> (SKIP,s1)";
+br evalc.mutual_induct 1;
+
+(* SKIP *)
+br rtrancl_refl 1;
+
+(* ASSIGN *)
+by (fast_tac (evalc1_cs addSIs [r_into_rtrancl]) 1);
+
+(* SEMI *)
+by (fast_tac (HOL_cs addIs [my_lemma1]) 1);
+
+(* IF *)
+by (fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
+by (fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
+
+(* WHILE *)
+by (fast_tac (evalc1_cs addSIs [r_into_rtrancl]) 1);
+by (fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2,my_lemma1]) 1);
+
+qed_spec_mp "evalc_impl_evalc1";
+
+(* The opposite direction is based on a Coq proof done by Ranan Fraer and
+   Yves Bertot. The following sketch is from an email by Ranan Fraer.
+*)
+(*
+First we've broke it into 2 lemmas:
+
+Lemma 1
+((c,s) --> (SKIP,t)) => (<c,s> -c-> t)
+
+This is a quick one, dealing with the cases skip, assignment
+and while_false.
+
+Lemma 2
+((c,s) -*-> (c',s')) /\ <c',s'> -c'-> t
+  => 
+<c,s> -c-> t
+
+This is proved by rule induction on the  -*-> relation
+and the induction step makes use of a third lemma: 
+
+Lemma 3
+((c,s) --> (c',s')) /\ <c',s'> -c'-> t
+  => 
+<c,s> -c-> t
+
+This captures the essence of the proof, as it shows that <c',s'> 
+behaves as the continuation of <c,s> with respect to the natural
+semantics.
+The proof of Lemma 3 goes by rule induction on the --> relation,
+dealing with the cases sequence1, sequence2, if_true, if_false and
+while_true. In particular in the case (sequence1) we make use again
+of Lemma 1.
+*)
+
+
+goal Transition.thy "!cs c' s'. (cs -1-> (c',s')) --> (!c s. cs = (c,s) \
+\                     --> (!t. <c',s'> -c-> t --> <c,s> -c-> t))";
+br evalc1.mutual_induct 1;
+by(ALLGOALS(fast_tac (evalc1_cs addEs (evalc_elim_cases@evalc1_elim_cases)
+                                addss !simpset)));
+val lemma = result();
+
+val prems = goal Transition.thy
+ "[| ((c,s) -1-> (c',s')); <c',s'> -c-> t |] ==> <c,s> -c-> t";
+by(cut_facts_tac (lemma::prems) 1);
+by(fast_tac HOL_cs 1);
+qed "FB_lemma3";
+
+val [major] = goal Transition.thy
+  "(c,s) -*-> (c',s') ==> <c',s'> -c-> t --> <c,s> -c-> t";
+br (major RS rtrancl_induct2) 1;
+by(fast_tac prod_cs 1);
+by(fast_tac (prod_cs addIs [FB_lemma3] addbefore (split_all_tac 1)) 1);
+qed_spec_mp "FB_lemma2";
+
+goal Transition.thy "!!c. (c,s) -*-> (SKIP,t) ==> <c,s> -c-> t";
+by (fast_tac (evalc1_cs addEs [FB_lemma2]) 1);
+qed "evalc1_impl_evalc";
