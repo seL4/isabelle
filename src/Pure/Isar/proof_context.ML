@@ -28,6 +28,7 @@ sig
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
   val read_term: context -> string -> term
   val read_prop: context -> string -> term
+  val read_prop_schematic: context -> string -> term
   val read_terms: context -> string list -> term list
   val read_termT_pats: context -> (string * typ) list -> term list
   val read_term_pats: typ -> context -> string list -> term list
@@ -82,14 +83,15 @@ sig
   val export_def: exporter
   val assume: exporter
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
-    -> context -> context * ((string * thm list) list * thm list)
+    -> context -> context * (string * thm list) list
   val assume_i: exporter
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
-    -> context -> context * ((string * thm list) list * thm list)
+    -> context -> context * (string * thm list) list
   val read_vars: context * (string list * string option) -> context * (string list * typ option)
   val cert_vars: context * (string list * typ option) -> context * (string list * typ option)
   val fix: (string list * string option) list -> context -> context
   val fix_i: (string list * typ option) list -> context -> context
+  val fix_direct: (string list * typ option) list -> context -> context
   val bind_skolem: context -> string list -> term -> term
   val get_case: context -> string -> string option list -> RuleCases.T
   val add_cases: (string * RuleCases.T) list -> context -> context
@@ -155,7 +157,6 @@ fun theory_of (Context {thy, ...}) = thy;
 val sign_of = Theory.sign_of o theory_of;
 
 fun prems_of (Context {asms = ((_, asms), _), ...}) = flat (map #2 asms);
-
 
 
 (** user data **)
@@ -288,9 +289,9 @@ fun cert_typ_aux cert ctxt raw_T =
 
 in
 
-val read_typ         = read_typ_aux Sign.read_typ;
+val read_typ = read_typ_aux Sign.read_typ;
 val read_typ_no_norm = read_typ_aux Sign.read_typ_no_norm;
-val cert_typ         = cert_typ_aux Sign.certify_typ;
+val cert_typ = cert_typ_aux Sign.certify_typ;
 val cert_typ_no_norm = cert_typ_aux Sign.certify_typ_no_norm;
 
 end;
@@ -435,6 +436,7 @@ val read_prop_pats = read_term_pats propT;
 
 val read_term = gen_read (read_term_sg true) I false false;
 val read_prop = gen_read (read_prop_sg true) I false false;
+val read_prop_schematic = gen_read (read_prop_sg true) I false true;
 val read_terms = gen_read (read_terms_sg true) map false false;
 val read_props = gen_read (read_props_sg true) map false;
 
@@ -762,14 +764,14 @@ fun gen_bind_propp prepp (ctxt, raw_args) =
 
 in
 
-val read_propp           = prep_propp false read_props read_prop_pats;
-val cert_propp           = prep_propp false cert_props cert_prop_pats;
+val read_propp = prep_propp false read_props read_prop_pats;
+val cert_propp = prep_propp false cert_props cert_prop_pats;
 val read_propp_schematic = prep_propp true read_props read_prop_pats;
 val cert_propp_schematic = prep_propp true cert_props cert_prop_pats;
 
-val bind_propp             = gen_bind_propp read_propp;
-val bind_propp_i           = gen_bind_propp cert_propp;
-val bind_propp_schematic   = gen_bind_propp read_propp_schematic;
+val bind_propp = gen_bind_propp read_propp;
+val bind_propp_i = gen_bind_propp cert_propp;
+val bind_propp_schematic = gen_bind_propp read_propp_schematic;
 val bind_propp_schematic_i = gen_bind_propp cert_propp_schematic;
 
 end;
@@ -886,7 +888,8 @@ fun gen_assms prepp exp args ctxt =
       |> map_context (fn (thy, data, ((asms_ct, asms_th), fixes), binds, thms, cases, defs) =>
         (thy, data, ((asms_ct @ [(cprops, exp)], asms_th @ asmss), fixes), binds, thms,
           cases, defs));
-  in (warn_extra_tfrees ctxt ctxt3, (thmss, prems_of ctxt3)) end;
+    val ctxt4 = ctxt3 |> put_thms ("prems", prems_of ctxt3);
+  in (warn_extra_tfrees ctxt ctxt4, thmss) end;
 
 in
 
@@ -900,9 +903,9 @@ end;
 
 local
 
-fun prep_vars prep_typ (ctxt, (xs, raw_T)) =
+fun prep_vars prep_typ no_internal (ctxt, (xs, raw_T)) =
   let
-    val _ = (case filter (not o Syntax.is_identifier) (map (no_skolem false ctxt) xs) of
+    val _ = (case filter (not o Syntax.is_identifier) (map (no_skolem no_internal ctxt) xs) of
       [] => () | bads => raise CONTEXT ("Bad variable name(s): " ^ commas_quote bads, ctxt));
 
     val opt_T = apsome (prep_typ ctxt) raw_T;
@@ -912,8 +915,8 @@ fun prep_vars prep_typ (ctxt, (xs, raw_T)) =
 
 in
 
-val read_vars = prep_vars read_typ;
-val cert_vars = prep_vars cert_typ;
+val read_vars = prep_vars read_typ true;
+val cert_vars = prep_vars cert_typ false;
 
 end;
 
@@ -922,31 +925,37 @@ end;
 
 local
 
-fun add_vars xs (fixes, names) =
-  let
-    val xs' = variantlist (xs, names);
-    val fixes' = (xs ~~ map Syntax.skolem xs') @ fixes;
-    val names' = xs' @ names;
-  in (fixes', names') end;
-
 fun map_vars f = map_context (fn (thy, data, (assumes, vars), binds, thms, cases, defs) =>
   (thy, data, (assumes, f vars), binds, thms, cases, defs));
 
-fun gen_fix prep raw_vars ctxt =
+fun err_dups ctxt xs = raise CONTEXT ("Duplicate variable(s): " ^ commas_quote xs, ctxt);
+
+fun add_vars _ xs (fixes, used) =
+  let
+    val xs' = variantlist (xs, used);
+    val fixes' = (xs ~~ map Syntax.skolem xs') @ fixes;
+    val used' = xs' @ used;
+  in (fixes', used') end;
+
+fun add_vars_direct ctxt xs (fixes, used) =
+  (case xs inter_string map #1 fixes of
+    [] => ((xs ~~ xs) @ fixes, xs @ used)
+  | dups => err_dups ctxt dups);
+
+fun gen_fix prep add raw_vars ctxt =
   let
     val (ctxt', varss) = foldl_map prep (ctxt, raw_vars);
     val xs = flat (map fst varss);
   in
-    (case Library.duplicates xs of
-      [] => ()
-    | dups => raise CONTEXT ("Duplicate variable name(s): " ^ commas_quote dups, ctxt));
-    ctxt' |> map_vars (add_vars xs)
+    (case Library.duplicates xs of [] => () | dups => err_dups ctxt dups);
+    ctxt' |> map_vars (add ctxt xs)
   end;
 
 in
 
-val fix = gen_fix read_vars;
-val fix_i = gen_fix cert_vars;
+val fix = gen_fix read_vars add_vars;
+val fix_i = gen_fix cert_vars add_vars;
+val fix_direct = gen_fix cert_vars add_vars_direct;
 
 end;
 
