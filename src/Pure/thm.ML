@@ -1441,7 +1441,7 @@ fun del_simp(mss as Mss{net,congs,bounds,prems,mk_rews},
     None => mss
   | Some(rrule as {lhs,...}) =>
       Mss{net = (Net.delete_term((lhs,rrule),net,eq)
-                handle Net.INSERT =>
+                handle Net.DELETE =>
                  (prtm_warning "rewrite rule not in simpset" sign prop;
                   net)),
              congs=congs, bounds=bounds, prems=prems,mk_rews=mk_rews}
