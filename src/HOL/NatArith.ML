@@ -133,3 +133,56 @@ qed "diff_Suc_diff_eq2";
 Addsimps [diff_diff_left, diff_diff_right, diff_add_assoc2 RS sym, 
 	  diff_add_assoc RS sym, diff_Suc_diff_eq1, diff_Suc_diff_eq2];
 
+
+
+(** GREATEST theorems for type "nat": not dual to LEAST, since there is
+    no greatest natural number.  [The LEAST proofs are in Nat.ML, but the
+    GREATEST proofs require more infrastructure.] **)
+
+Goal "[|P k;  ALL x. P x --> (EX y. P y & ~ ((m y::nat) <= m x))|] \
+\     ==> EX y. P y & ~ (m y < m k + n)";
+by (induct_tac "n" 1);
+by (Force_tac 1); 
+(*ind step*)
+by (force_tac (claset(), simpset() addsimps [le_Suc_eq]) 1); 
+qed "ex_has_greatest_nat_lemma";
+
+Goal "[|P k;  ! y. P y --> m y < b|] \
+\     ==> ? x. P x & (! y. P y --> (m y::nat) <= m x)";
+by (rtac ccontr 1); 
+by (cut_inst_tac [("P","P"),("n","b - m k")] ex_has_greatest_nat_lemma 1);
+by (subgoal_tac "m k <= b" 3);
+by Auto_tac;  
+qed "ex_has_greatest_nat";
+
+Goalw [GreatestM_def]
+     "[|P k;  ! y. P y --> m y < b|] \
+\     ==> P (GreatestM m P) & (!y. P y --> (m y::nat) <= m (GreatestM m P))";
+by (rtac someI_ex 1);
+by (etac ex_has_greatest_nat 1);
+by (assume_tac 1); 
+qed "GreatestM_nat_lemma";
+
+bind_thm ("GreatestM_natI", GreatestM_nat_lemma RS conjunct1);
+
+Goal "[|P x;  ! y. P y --> m y < b|] \
+\     ==> (m x::nat) <= m (GreatestM m P)";
+by (blast_tac (claset() addDs [GreatestM_nat_lemma RS conjunct2 RS spec]) 1);
+qed "GreatestM_nat_le";
+
+(** Specialization to GREATEST **)
+
+Goalw [Greatest_def]
+     "[|P (k::nat);  ! y. P y --> y < b|] ==> P (GREATEST x. P x)";
+by (rtac GreatestM_natI 1); 
+by Auto_tac;  
+qed "GreatestI";
+
+Goalw [Greatest_def]
+     "[|P x;  ! y. P y --> y < b|] ==> (x::nat) <= (GREATEST x. P x)";
+by (rtac GreatestM_nat_le 1); 
+by Auto_tac;  
+qed "GreatestM_nat_le";
+
+(*No analogue of not_less_Least or Least_Suc yet, since it isn't used much*)
+

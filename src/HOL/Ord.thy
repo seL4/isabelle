@@ -75,6 +75,9 @@ lemma max_of_mono:
 apply (simp add: max_def)
 done
 
+
+(** Least value operator **)
+
 constdefs
   LeastM   :: "['a => 'b::ord, 'a => bool] => 'a"
               "LeastM m P == @x. P x & (!y. P y --> m x <= m y)"
@@ -90,6 +93,34 @@ lemma LeastMI2: "[| P x; !!y. P y ==> m x <= m y;
  !!x. [| P x; \<forall>y. P y --> m x \<le> m y |] ==> Q x
 		 |] ==> Q (LeastM m P)";
 apply (unfold LeastM_def)
+apply (rule someI2_ex)
+apply  blast
+apply blast
+done
+
+
+(** Greatest value operator **)
+
+constdefs
+  GreatestM   :: "['a => 'b::ord, 'a => bool] => 'a"
+              "GreatestM m P == @x. P x & (!y. P y --> m y <= m x)"
+  
+  Greatest    :: "('a::ord => bool) => 'a"         (binder "GREATEST " 10)
+              "Greatest     == GreatestM (%x. x)"
+
+syntax
+ "@GreatestM" :: "[pttrn, 'a=>'b::ord, bool] => 'a"
+                                        ("GREATEST _ WRT _. _" [0,4,10]10)
+
+translations
+              "GREATEST x WRT m. P" == "GreatestM m (%x. P)"
+
+lemma GreatestMI2:
+     "[| P x;
+	 !!y. P y ==> m y <= m x;
+         !!x. [| P x; \<forall>y. P y --> m y \<le> m x |] ==> Q x |]
+      ==> Q (GreatestM m P)";
+apply (unfold GreatestM_def)
 apply (rule someI2_ex)
 apply  blast
 apply blast
@@ -198,6 +229,22 @@ lemma Least_equality:
   "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k";
 apply (unfold Least_def)
 apply (erule LeastM_equality)
+apply blast
+done
+
+lemma GreatestM_equality:
+ "[| P k;  !!x. P x ==> m x <= m k |]
+  ==> m (GREATEST x WRT m. P x) = (m k::'a::order)";
+apply (rule_tac m=m in GreatestMI2)
+apply   assumption
+apply  blast
+apply (blast intro!: order_antisym) 
+done
+
+lemma Greatest_equality:
+  "[| P (k::'a::order); !!x. P x ==> x <= k |] ==> (GREATEST x. P x) = k";
+apply (unfold Greatest_def)
+apply (erule GreatestM_equality)
 apply blast
 done
 
@@ -367,6 +414,11 @@ val LeastMI2 = thm "LeastMI2";
 val LeastM_equality = thm "LeastM_equality";
 val Least_def = thm "Least_def";
 val Least_equality = thm "Least_equality";
+val GreatestM_def = thm "GreatestM_def";
+val GreatestMI2 = thm "GreatestMI2";
+val GreatestM_equality = thm "GreatestM_equality";
+val Greatest_def = thm "Greatest_def";
+val Greatest_equality = thm "Greatest_equality";
 val min_leastR = thm "min_leastR";
 val max_leastR = thm "max_leastR";
 val order_eq_refl = thm "order_eq_refl";
