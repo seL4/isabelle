@@ -100,6 +100,12 @@ New in Isabelle2004 (April 2004)
 
 *** HOL ***
 
+* Proof import: new image HOL4 contains the imported library from
+  the HOL4 system with about 2500 theorems. It is imported by
+  replaying proof terms produced by HOL4 in Isabelle. The HOL4 image
+  can be used like any other Isabelle image.  See
+  HOL/Import/HOL/README for more information.
+
 * Simplifier:
   - Much improved handling of linear and partial orders.
     Reasoners for linear and partial orders are set up for type classes

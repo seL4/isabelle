@@ -8,6 +8,9 @@ Isabelle2003.  The most prominent highlights of Isabelle2004 are as follows
 (see the NEWS of the distribution for more details):
 
 
+* New image HOL4 with imported library from HOL4 system on top of
+  HOL-Complex (about 2500 additional theorems). 
+
 * New theory Ring_and_Field with over 250 basic numerical laws, 
   all proved in axiomatic type classes for semirings, rings and fields.
 

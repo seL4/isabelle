@@ -38,6 +38,9 @@ workshops and courses.
 <h2><!-- _GP_ distname --></h2>
 New features in <strong><!-- _GP_ distname --></strong> include
 <ul>
+<li>New image HOL4 with imported library from HOL4 system on top of
+  HOL-Complex (about 2500 additional theorems).</li>
+
 <li>New theory Ring_and_Field with over 250 basic numerical laws, 
   all proved in axiomatic type classes for semirings, rings and fields.</li>
 
