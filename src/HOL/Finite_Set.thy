@@ -2112,10 +2112,7 @@ by(blast intro: antisym sup_ge2 sup_greatest refl)
 lemma (in Lattice) inf_absorb: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
 by(blast intro: antisym inf_le1 inf_least refl)
 
-text{* Distributive lattices: *}
-
-locale DistribLattice = Lattice +
-  assumes sup_inf_distrib1: "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
+text{* Towards distributivity: if you have one of them, you have them all. *}
 
 lemma (in Lattice) distrib_imp1:
 assumes D: "!!x y z. x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
@@ -2140,12 +2137,6 @@ proof-
   also have "\<dots> = (x \<sqinter> y) \<squnion> (x \<sqinter> z)" by(simp add:D)
   finally show ?thesis .
 qed
-
-
-lemma (in DistribLattice) inf_sup_distrib1:
- "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
-by(rule distrib_imp2[OF sup_inf_distrib1])
-
 
 text{* Lattices are semilattices *}
 
@@ -2191,7 +2182,29 @@ apply(erule subst)
 apply(rule sup_ge2)
 done
 
-text{* Fold laws in lattices *}
+text{* A package of rewrite rules for deciding equivalence wrt ACI: *}
+
+lemmas (in Lattice) ACI = ACIf.ACI[OF ACIf_inf] ACIf.ACI[OF ACIf_sup]
+
+subsubsection{* Distributive lattices *}
+
+locale DistribLattice = Lattice +
+  assumes sup_inf_distrib1: "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"
+
+lemma (in DistribLattice) sup_inf_distrib2: "(y \<sqinter> z) \<squnion> x = (y \<squnion> x) \<sqinter> (z \<squnion> x)"
+by(simp add:ACI sup_inf_distrib1)
+
+lemma (in DistribLattice) inf_sup_distrib1: "x \<sqinter> (y \<squnion> z) = (x \<sqinter> y) \<squnion> (x \<sqinter> z)"
+by(rule distrib_imp2[OF sup_inf_distrib1])
+
+lemma (in DistribLattice) inf_sup_distrib2: "(y \<squnion> z) \<sqinter> x = (y \<sqinter> x) \<squnion> (z \<sqinter> x)"
+by(simp add:ACI inf_sup_distrib1)
+
+lemmas (in DistribLattice) distrib =
+  sup_inf_distrib1 sup_inf_distrib2 inf_sup_distrib1 inf_sup_distrib2
+
+
+subsubsection{* Fold laws in lattices *}
 
 lemma (in Lattice) Inf_le_Sup: "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter>A \<sqsubseteq> \<Squnion>A"
 apply(unfold Sup_def Inf_def)
@@ -2235,7 +2248,6 @@ next
   finally show ?case .
 qed
 
-(* FIXME
 lemma (in DistribLattice) sup_Inf2_distrib:
 assumes A: "finite A" "A \<noteq> {}" and B: "finite B" "B \<noteq> {}"
 shows "(\<Sqinter>A \<squnion> \<Sqinter>B) = \<Sqinter>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
@@ -2267,7 +2279,6 @@ next
     by blast
   finally show ?case .
 qed
-*)
 
 
 subsection{*Min and Max*}
