@@ -371,55 +371,6 @@ see the sources of one of the major object-logics (e.g.\ \ZF).
 
 
 \section{Basic operations on theories}\label{BasicOperationsOnTheories}
-\subsection{Retrieving axioms and theorems}
-\index{theories!axioms of}\index{axioms!extracting}
-\index{theories!theorems of}\index{theorems!extracting}
-\begin{ttbox}
-get_axiom : theory -> xstring -> thm
-get_thm   : theory -> xstring -> thm
-get_thms  : theory -> xstring -> thm list
-axioms_of : theory -> (string * thm) list
-thms_of   : theory -> (string * thm) list
-assume_ax : theory -> string -> thm
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{get_axiom} $thy$ $name$] returns an axiom with the
-  given $name$ from $thy$ or any of its ancestors, raising exception
-  \xdx{THEORY} if none exists.  Merging theories can cause several
-  axioms to have the same name; {\tt get_axiom} returns an arbitrary
-  one.  Usually, axioms are also stored as theorems and may be
-  retrieved via \texttt{get_thm} as well.
-  
-\item[\ttindexbold{get_thm} $thy$ $name$] is analogous to {\tt
-    get_axiom}, but looks for a theorem stored in the theory's
-  database.  Like {\tt get_axiom} it searches all parents of a theory
-  if the theorem is not found directly in $thy$.
-  
-\item[\ttindexbold{get_thms} $thy$ $name$] is like \texttt{get_thm}
-  for retrieving theorem lists stored within the theory.  It returns a
-  singleton list if $name$ actually refers to a theorem rather than a
-  theorem list.
-  
-\item[\ttindexbold{axioms_of} $thy$] returns the axioms of this theory
-  node, not including the ones of its ancestors.
-  
-\item[\ttindexbold{thms_of} $thy$] returns all theorems stored within
-  the database of this theory node, not including the ones of its
-  ancestors.
-  
-\item[\ttindexbold{assume_ax} $thy$ $formula$] reads the {\it formula}
-  using the syntax of $thy$, following the same conventions as axioms
-  in a theory definition.  You can thus pretend that {\it formula} is
-  an axiom and use the resulting theorem like an axiom.  Actually {\tt
-    assume_ax} returns an assumption; \ttindex{qed} and
-  \ttindex{result} complain about additional assumptions, but
-  \ttindex{uresult} does not.
-
-For example, if {\it formula} is
-\hbox{\tt a=b ==> b=a} then the resulting theorem has the form
-\hbox{\verb'?a=?b ==> ?b=?a  [!!a b. a=b ==> b=a]'}
-\end{ttdescription}
-
 
 \subsection{*Theory inclusion}
 \begin{ttbox}
