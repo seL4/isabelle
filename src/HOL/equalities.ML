@@ -425,6 +425,16 @@ qed "Compl_empty_eq";
 
 Addsimps [Compl_UNIV_eq, Compl_empty_eq];
 
+Goal "(-A <= -B) = (B <= (A::'a set))";
+by(Blast_tac 1);
+qed "Compl_subset_Compl_iff";
+AddIffs [Compl_subset_Compl_iff];
+
+Goal "(-A = -B) = (A = (B::'a set))";
+by(Blast_tac 1);
+qed "Compl_eq_Compl_iff";
+AddIffs [Compl_eq_Compl_iff];
+
 
 section "Union";
 

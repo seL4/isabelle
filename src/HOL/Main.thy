@@ -1,1 +1,1 @@
-Main = Map + String             (*theory Main includes everything*)
+Main = While + Map + String             (*theory Main includes everything*)
