@@ -228,7 +228,7 @@ fun pretty prtab trf type_mode ast0 p0 =
       | synT (_ :: _, []) = sys_error "synT"
 
     and parT (pr, args, p, p': int) =
-      if p > p' orelse !show_brackets then
+      if p > p' orelse (!show_brackets andalso p' <> max_pri) then
         #1 (synT ([Block (1, String "(" :: pr @ [String ")"])], args))
       else #1 (synT (pr, args))
 
