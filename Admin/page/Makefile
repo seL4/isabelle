@@ -49,8 +49,10 @@ dist:
 	@env DISTNAME=`cat DISTNAME` \
 	  $(GENPAGE) -t $(DIST_LAYOUT)/$(TEMPLATE_NAME) -c $(DIST_CONTENT) -o $(DIST_TARGET)
 
-install: dist
+install: main dist
 	@cp -R dist/. ..
+	@mkdir -p ../../main-`cat DISTNAME`/.
+	@cp -R main/. ../../main-`cat DISTNAME`/.
 
 weblint:
 	-weblint -x netscape $(MAIN_TARGET)
