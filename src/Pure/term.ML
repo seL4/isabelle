@@ -36,6 +36,7 @@ sig
     Abs of string * typ * term |
     $ of term * term
   structure Vartab : TABLE
+  structure Typtab : TABLE
   structure Termtab : TABLE
   exception TYPE of string * typ list * term list
   exception TERM of string * term list
@@ -215,16 +216,16 @@ datatype typ = Type  of string * typ list
 (*Terms.  Bound variables are indicated by depth number.
   Free variables, (scheme) variables and constants have names.
   An term is "closed" if every bound variable of level "lev"
-  is enclosed by at least "lev" abstractions. 
+  is enclosed by at least "lev" abstractions.
 
   It is possible to create meaningless terms containing loose bound vars
   or type mismatches.  But such terms are not allowed in rules. *)
 
 
 
-datatype term = 
+datatype term =
     Const of string * typ
-  | Free  of string * typ 
+  | Free  of string * typ
   | Var   of indexname * typ
   | Bound of int
   | Abs   of string*typ*term
@@ -310,18 +311,18 @@ fun strip_type T : typ list * typ =
   Ts = [T0,T1,...] holds types of bound variables 0, 1, ...*)
 fun type_of1 (Ts, Const (_,T)) = T
   | type_of1 (Ts, Free  (_,T)) = T
-  | type_of1 (Ts, Bound i) = (nth_elem (i,Ts)  
+  | type_of1 (Ts, Bound i) = (nth_elem (i,Ts)
         handle LIST _ => raise TYPE("type_of: bound variable", [], [Bound i]))
   | type_of1 (Ts, Var (_,T)) = T
   | type_of1 (Ts, Abs (_,T,body)) = T --> type_of1(T::Ts, body)
-  | type_of1 (Ts, f$u) = 
+  | type_of1 (Ts, f$u) =
       let val U = type_of1(Ts,u)
           and T = type_of1(Ts,f)
       in case T of
             Type("fun",[T1,T2]) =>
               if T1=U then T2  else raise TYPE
                     ("type_of: type mismatch in application", [T1,U], [f$u])
-          | _ => raise TYPE 
+          | _ => raise TYPE
                     ("type_of: function type is expected in application",
                      [T,U], [f$u])
       end;
@@ -329,7 +330,7 @@ fun type_of1 (Ts, Const (_,T)) = T
 fun type_of t : typ = type_of1 ([],t);
 
 (*Determines the type of a term, with minimal checking*)
-fun fastype_of1 (Ts, f$u) = 
+fun fastype_of1 (Ts, f$u) =
     (case fastype_of1 (Ts,f) of
         Type("fun",[_,T]) => T
         | _ => raise TERM("fastype_of: expected function type", [f$u]))
@@ -337,7 +338,7 @@ fun fastype_of1 (Ts, f$u) =
   | fastype_of1 (_, Free (_,T)) = T
   | fastype_of1 (Ts, Bound i) = (nth_elem(i,Ts)
          handle LIST _ => raise TERM("fastype_of: Bound", [Bound i]))
-  | fastype_of1 (_, Var (_,T)) = T 
+  | fastype_of1 (_, Var (_,T)) = T
   | fastype_of1 (Ts, Abs (_,T,u)) = T --> fastype_of1 (T::Ts, u);
 
 fun fastype_of t : typ = fastype_of1 ([],t);
@@ -346,11 +347,11 @@ fun fastype_of t : typ = fastype_of1 ([],t);
 val list_abs = foldr (fn ((x, T), t) => Abs (x, T, t));
 
 (* maps  (x1,...,xn)t   to   t  *)
-fun strip_abs_body (Abs(_,_,t))  =  strip_abs_body t  
+fun strip_abs_body (Abs(_,_,t))  =  strip_abs_body t
   | strip_abs_body u  =  u;
 
 (* maps  (x1,...,xn)t   to   [x1, ..., xn]  *)
-fun strip_abs_vars (Abs(a,T,t))  =  (a,T) :: strip_abs_vars t 
+fun strip_abs_vars (Abs(a,T,t))  =  (a,T) :: strip_abs_vars t
   | strip_abs_vars u  =  [] : (string*typ) list;
 
 
@@ -370,9 +371,9 @@ val list_comb : term * term list -> term = foldl (op $);
 
 
 (* maps   f(t1,...,tn)  to  (f, [t1,...,tn]) ; naturally tail-recursive*)
-fun strip_comb u : term * term list = 
+fun strip_comb u : term * term list =
     let fun stripc (f$t, ts) = stripc (f, t::ts)
-        |   stripc  x =  x 
+        |   stripc  x =  x
     in  stripc(u,[])  end;
 
 
@@ -434,22 +435,22 @@ fun equals T = Const("==", T-->T-->propT);
 fun flexpair T = Const("=?=", T-->T-->propT);
 
 (* maps  !!x1...xn. t   to   t  *)
-fun strip_all_body (Const("all",_)$Abs(_,_,t))  =  strip_all_body t  
+fun strip_all_body (Const("all",_)$Abs(_,_,t))  =  strip_all_body t
   | strip_all_body t  =  t;
 
 (* maps  !!x1...xn. t   to   [x1, ..., xn]  *)
 fun strip_all_vars (Const("all",_)$Abs(a,T,t))  =
-                (a,T) :: strip_all_vars t 
+                (a,T) :: strip_all_vars t
   | strip_all_vars t  =  [] : (string*typ) list;
 
 (*increments a term's non-local bound variables
   required when moving a term within abstractions
      inc is  increment for bound variables
      lev is  level at which a bound variable is considered 'loose'*)
-fun incr_bv (inc, lev, u as Bound i) = if i>=lev then Bound(i+inc) else u 
+fun incr_bv (inc, lev, u as Bound i) = if i>=lev then Bound(i+inc) else u
   | incr_bv (inc, lev, Abs(a,T,body)) =
         Abs(a, T, incr_bv(inc,lev+1,body))
-  | incr_bv (inc, lev, f$t) = 
+  | incr_bv (inc, lev, f$t) =
       incr_bv(inc,lev,f) $ incr_bv(inc,lev,t)
   | incr_bv (inc, lev, u) = u;
 
@@ -478,11 +479,11 @@ fun rename_abs pat obj t =
 
 (*Accumulate all 'loose' bound vars referring to level 'lev' or beyond.
    (Bound 0) is loose at level 0 *)
-fun add_loose_bnos (Bound i, lev, js) = 
+fun add_loose_bnos (Bound i, lev, js) =
         if i<lev then js  else  (i-lev) ins_int js
   | add_loose_bnos (Abs (_,_,t), lev, js) = add_loose_bnos (t, lev+1, js)
   | add_loose_bnos (f$t, lev, js) =
-        add_loose_bnos (f, lev, add_loose_bnos (t, lev, js)) 
+        add_loose_bnos (f, lev, add_loose_bnos (t, lev, js))
   | add_loose_bnos (_, _, js) = js;
 
 fun loose_bnos t = add_loose_bnos (t, 0, []);
@@ -506,7 +507,7 @@ fun loose_bvar1(Bound i,k) = i = k
   Loose bound variables >=n are reduced by "n" to
      compensate for the disappearance of lambdas.
 *)
-fun subst_bounds (args: term list, t) : term = 
+fun subst_bounds (args: term list, t) : term =
   let val n = length args;
       fun subst (t as Bound i, lev) =
            (if i<lev then  t    (*var is locally bound*)
@@ -518,7 +519,7 @@ fun subst_bounds (args: term list, t) : term =
   in   case args of [] => t  | _ => subst (t,0)  end;
 
 (*Special case: one argument*)
-fun subst_bound (arg, t) : term = 
+fun subst_bound (arg, t) : term =
   let fun subst (t as Bound i, lev) =
             if i<lev then  t    (*var is locally bound*)
             else  if i=lev then incr_boundvars lev arg
@@ -603,7 +604,7 @@ fun aconvs ([],[]) = true
   | aconvs (t::ts, u::us) = t aconv u andalso aconvs(ts,us)
   | aconvs _ = false;
 
-(*A fast unification filter: true unless the two terms cannot be unified. 
+(*A fast unification filter: true unless the two terms cannot be unified.
   Terms must be NORMAL.  Treats all Vars as distinct. *)
 fun could_unify (t,u) =
   let fun matchrands (f$t, g$u) = could_unify(t,u) andalso  matchrands(f,g)
@@ -622,7 +623,7 @@ fun could_unify (t,u) =
 (*Substitute new for free occurrences of old in a term*)
 fun subst_free [] = (fn t=>t)
   | subst_free pairs =
-      let fun substf u = 
+      let fun substf u =
             case gen_assoc (op aconv) (pairs, u) of
                 Some u' => u'
               | None => (case u of Abs(a,T,t) => Abs(a, T, substf t)
@@ -634,7 +635,7 @@ fun subst_free [] = (fn t=>t)
 fun xless ((a,i), (b,j): indexname) = i<j  orelse  (i=j andalso a<b);
 
 
-(*Abstraction of the term "body" over its occurrences of v, 
+(*Abstraction of the term "body" over its occurrences of v,
     which must contain no loose bound variables.
   The resulting term is ready to become the body of an Abs.*)
 fun abstract_over (v,body) =
@@ -654,20 +655,20 @@ fun absfree (a,T,body) = Abs(a, T, abstract_over (Free(a,T), body));
 
 (*Abstraction over a list of free variables*)
 fun list_abs_free ([ ] ,     t) = t
-  | list_abs_free ((a,T)::vars, t) = 
+  | list_abs_free ((a,T)::vars, t) =
       absfree(a, T, list_abs_free(vars,t));
 
 (*Quantification over a list of free variables*)
 fun list_all_free ([], t: term) = t
-  | list_all_free ((a,T)::vars, t) = 
+  | list_all_free ((a,T)::vars, t) =
         (all T) $ (absfree(a, T, list_all_free(vars,t)));
 
 (*Quantification over a list of variables (already bound in body) *)
 fun list_all ([], t) = t
-  | list_all ((a,T)::vars, t) = 
+  | list_all ((a,T)::vars, t) =
         (all T) $ (Abs(a, T, list_all(vars,t)));
 
-(*Replace the ATOMIC term ti by ui;    instl = [(t1,u1), ..., (tn,un)]. 
+(*Replace the ATOMIC term ti by ui;    instl = [(t1,u1), ..., (tn,un)].
   A simultaneous substitution:  [ (a,b), (b,a) ] swaps a and b.  *)
 fun subst_atomic [] t = t : term
   | subst_atomic (instl: (term*term) list) t =
@@ -765,7 +766,7 @@ fun variant bs name =
 
 (*Create variants of the list of names, with priority to the first ones*)
 fun variantlist ([], used) = []
-  | variantlist(b::bs, used) = 
+  | variantlist(b::bs, used) =
       let val b' = variant used b
       in  b' :: variantlist (bs, b'::used)  end;
 
@@ -876,7 +877,7 @@ fun term_tvars t = add_term_tvars(t,[]);
 (*special code to enforce left-to-right collection of TVar-indexnames*)
 
 fun add_typ_ixns(ixns,Type(_,Ts)) = foldl add_typ_ixns (ixns,Ts)
-  | add_typ_ixns(ixns,TVar(ixn,_)) = if mem_ix (ixn, ixns) then ixns 
+  | add_typ_ixns(ixns,TVar(ixn,_)) = if mem_ix (ixn, ixns) then ixns
                                      else ixns@[ixn]
   | add_typ_ixns(ixns,TFree(_)) = ixns;
 
@@ -901,7 +902,7 @@ fun atless (Const (a,_), Const (b,_))  =  a<b
 (*insert atomic term into partially sorted list, suppressing duplicates (?)*)
 fun insert_aterm (t,us) =
   let fun inserta [] = [t]
-        | inserta (us as u::us') = 
+        | inserta (us as u::us') =
               if atless(t,u) then t::us
               else if t=u then us (*duplicate*)
               else u :: inserta(us')
@@ -981,19 +982,19 @@ val add_frees = foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs);
 fun indexname_ord ((x, i), (y, j)) =
   (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
 
+val sort_ord = list_ord string_ord;
+
 
 (* typ_ord *)
 
-(*assumes that TFrees / TVars with the same name have same sorts*)
-fun typ_ord (Type (a, Ts), Type (b, Us)) =
-      (case string_ord (a, b) of EQUAL => typs_ord (Ts, Us) | ord => ord)
+fun typ_ord (Type x, Type y) = prod_ord string_ord typs_ord (x, y)
   | typ_ord (Type _, _) = GREATER
   | typ_ord (TFree _, Type _) = LESS
-  | typ_ord (TFree (a, _), TFree (b, _)) = string_ord (a, b)
+  | typ_ord (TFree x, TFree y) = prod_ord string_ord sort_ord (x, y)
   | typ_ord (TFree _, TVar _) = GREATER
   | typ_ord (TVar _, Type _) = LESS
   | typ_ord (TVar _, TFree _) = LESS
-  | typ_ord (TVar (xi, _), TVar (yj, _)) = indexname_ord (xi, yj)
+  | typ_ord (TVar x, TVar y) = prod_ord indexname_ord sort_ord (x, y)
 and typs_ord Ts_Us = list_ord typ_ord Ts_Us;
 
 
@@ -1027,6 +1028,7 @@ and terms_ord (ts, us) = list_ord term_ord (ts, us);
 fun termless tu = (term_ord tu = LESS);
 
 structure Vartab = TableFun(type key = indexname val ord = indexname_ord);
+structure Typtab = TableFun(type key = typ val ord = typ_ord);
 structure Termtab = TableFun(type key = term val ord = term_ord);
 
 (*Substitute for type Vars in a type, version using Vartab*)
@@ -1041,72 +1043,33 @@ fun typ_subst_TVars_Vartab iTs T = if Vartab.is_empty iTs then T else
 val subst_TVars_Vartab = map_term_types o typ_subst_TVars_Vartab;
 
 
-(*** Compression of terms and types by sharing common subtrees.  
-     Saves 50-75% on storage requirements.  As it is fairly slow, 
-     it is called only for axioms, stored theorems, etc. ***)
+(*** Compression of terms and types by sharing common subtrees.
+     Saves 50-75% on storage requirements.  As it is a bit slow,
+     it should be called only for axioms, stored theorems, etc.
+     Recorded term and type fragments are never disposed. ***)
 
 (** Sharing of types **)
 
-fun atomic_tag (Type (a,_)) = if a<>"fun" then a else raise Match
-  | atomic_tag (TFree (a,_)) = a
-  | atomic_tag (TVar ((a,_),_)) = a;
-
-fun type_tag (Type("fun",[S,T])) = atomic_tag S ^ type_tag T
-  | type_tag T = atomic_tag T;
-
-val memo_types = ref (Symtab.empty : typ list Symtab.table);
-
-(* special case of library/find_first *)
-fun find_type (T, []: typ list) = None
-  | find_type (T, T'::Ts) =
-       if T=T' then Some T'
-       else find_type (T, Ts);
+val memo_types = ref (Typtab.empty: typ Typtab.table);
 
 fun compress_type T =
-  let val tag = type_tag T
-      val tylist = Symtab.lookup_multi (!memo_types, tag)
-  in  
-      case find_type (T,tylist) of
-        Some T' => T'
-      | None => 
-            let val T' =
-                case T of
-                    Type (a,Ts) => Type (a, map compress_type Ts)
-                  | _ => T
-            in  memo_types := Symtab.update ((tag, T'::tylist), !memo_types);
-                T
-            end
-  end
-  handle Match =>
-      let val Type (a,Ts) = T
-      in  Type (a, map compress_type Ts)  end;
+  (case Typtab.lookup (! memo_types, T) of
+    Some T' => T'
+  | None =>
+      let val T' = (case T of Type (a, Ts) => Type (a, map compress_type Ts) | _ => T)
+      in memo_types := Typtab.update ((T', T'), ! memo_types); T' end);
+
 
 (** Sharing of atomic terms **)
 
-val memo_terms = ref (Symtab.empty : term list Symtab.table);
-
-(* special case of library/find_first *)
-fun find_term (t, []: term list) = None
-  | find_term (t, t'::ts) =
-       if t=t' then Some t'
-       else find_term (t, ts);
-
-fun const_tag (Const (a,_)) = a
-  | const_tag (Free (a,_))  = a
-  | const_tag (Var ((a,i),_)) = a
-  | const_tag (t as Bound _)  = ".B.";
+val memo_terms = ref (Termtab.empty : term Termtab.table);
 
 fun share_term (t $ u) = share_term t $ share_term u
-  | share_term (Abs (a,T,u)) = Abs (a, T, share_term u)
+  | share_term (Abs (a, T, u)) = Abs (a, T, share_term u)
   | share_term t =
-      let val tag = const_tag t
-          val ts = Symtab.lookup_multi (!memo_terms, tag)
-      in 
-          case find_term (t,ts) of
-              Some t' => t'
-            | None => (memo_terms := Symtab.update ((tag, t::ts), !memo_terms);
-                       t)
-      end;
+      (case Termtab.lookup (! memo_terms, t) of
+        Some t' => t'
+      | None => (memo_terms := Termtab.update ((t, t), ! memo_terms); t));
 
 val compress_term = share_term o map_term_types compress_type;
 
