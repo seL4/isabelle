@@ -12,6 +12,7 @@ FILES =  logics.tex intro.tex FOL.tex ZF.tex HOL.tex LK.tex CTT.tex\
 logics.dvi.gz:   $(FILES) 
 	-rm logics.dvi.gz
 	latex209 logics
+	rail logics
 	bibtex logics
 	latex209 logics
 	latex209 logics
