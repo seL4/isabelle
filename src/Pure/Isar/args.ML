@@ -12,6 +12,7 @@ sig
   val val_of: T -> string
   val pos_of: T -> Position.T
   val str_of: T -> string
+  val string_of: T -> string
   val ident: string * Position.T -> T
   val string: string * Position.T -> T
   val keyword: string * Position.T -> T
@@ -66,6 +67,11 @@ fun str_of (Arg (Ident, (x, _))) = enclose "'" "'" x
   | str_of (Arg (String, (x, _))) = quote x
   | str_of (Arg (Keyword, (x, _))) = x
   | str_of (Arg (EOF, _)) = "end-of-text";
+
+fun string_of (Arg (Ident, (x, _))) = x
+  | string_of (Arg (String, (x, _))) = quote x
+  | string_of (Arg (Keyword, (x, _))) = x
+  | string_of (Arg (EOF, _)) = "";
 
 fun arg kind x_pos = Arg (kind, x_pos);
 val ident = arg Ident;
