@@ -25,26 +25,7 @@ qed "mono2D";
 
 (** Monotonicity of take **)
 
-Goal "xs:list(A) ==> ALL i:nat. i < length(xs) --> \
-\   take(succ(i), xs) = take(i,xs) @ [nth(i, xs)]";
-by (induct_tac "xs" 1);
-by (Asm_full_simp_tac 1);
-by (Clarify_tac 1);
-by (Asm_full_simp_tac 1);
-by (etac natE 1);
-by Auto_tac;
-qed_spec_mp "take_succ";
-
-
-Goal "[|xs:list(A); j:nat|] ==> ALL i:nat.  i #+ j le length(xs) --> \
-\   take(i #+ j, xs) = take(i,xs) @ take(j, drop(i,xs))";
-by (induct_tac "xs" 1);
-by (ALLGOALS(Asm_full_simp_tac));
-by (Clarify_tac 1); 
-by (eres_inst_tac [("n","i")] natE 1); 
-by (ALLGOALS(Asm_full_simp_tac));
-qed_spec_mp "take_add";
-
+(*????premises too strong*)
 Goal "[| i le j; xs:list(A); i:nat; j:nat |] ==> <take(i, xs), take(j, xs)>:prefix(A)";
 by (case_tac "length(xs) le i" 1);
 by (subgoal_tac "length(xs) le j" 1);

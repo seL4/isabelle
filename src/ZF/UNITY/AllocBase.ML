@@ -90,6 +90,7 @@ by Auto_tac;
 qed "tokens_append";
 Addsimps [tokens_append];
 
+(*????????????????List.thy*)
 Goal "l\\<in>list(A) ==> \\<forall>n\\<in>nat. length(take(n, l))=min(n, length(l))";
 by (induct_tac "l" 1);
 by Safe_tac;
