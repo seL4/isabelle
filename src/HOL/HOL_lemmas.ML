@@ -264,7 +264,7 @@ qed_goalw "classical" (the_context ()) [not_def]  "(~P ==> P) ==> P"
     rtac (impI RS prem RS eqTrueI) 1,
     etac subst 1,  assume_tac 1]);
 
-val ccontr = FalseE RS classical;
+bind_thm ("ccontr", FalseE RS classical);
 
 (*Double negation law*)
 Goal "~~P ==> P";
