@@ -162,51 +162,6 @@ lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"
 lemma quotE [elim]: "R \<in> quot ==> (!!a. R = {x. a \<sim> x} ==> C) ==> C"
   by (unfold quot_def) blast
 
-
-text {*
- \medskip Standard properties of type-definitions.\footnote{(FIXME)
- Better incorporate these into the typedef package?}
-*}
-
-theorem Rep_quot_inject: "(Rep_quot x = Rep_quot y) = (x = y)"
-proof
-  assume "Rep_quot x = Rep_quot y"
-  hence "Abs_quot (Rep_quot x) = Abs_quot (Rep_quot y)" by (simp only:)
-  thus "x = y" by (simp only: Rep_quot_inverse)
-next
-  assume "x = y"
-  thus "Rep_quot x = Rep_quot y" by simp
-qed
-
-theorem Abs_quot_inject:
-  "x \<in> quot ==> y \<in> quot ==> (Abs_quot x = Abs_quot y) = (x = y)"
-proof
-  assume "Abs_quot x = Abs_quot y"
-  hence "Rep_quot (Abs_quot x) = Rep_quot (Abs_quot y)" by simp
-  also assume "x \<in> quot" hence "Rep_quot (Abs_quot x) = x" by (rule Abs_quot_inverse)
-  also assume "y \<in> quot" hence "Rep_quot (Abs_quot y) = y" by (rule Abs_quot_inverse)
-  finally show "x = y" .
-next
-  assume "x = y"
-  thus "Abs_quot x = Abs_quot y" by simp
-qed
-
-theorem Rep_quot_induct: "y \<in> quot ==> (!!x. P (Rep_quot x)) ==> P y"
-proof -
-  assume "!!x. P (Rep_quot x)" hence "P (Rep_quot (Abs_quot y))" .
-  also assume "y \<in> quot" hence "Rep_quot (Abs_quot y) = y" by (rule Abs_quot_inverse)
-  finally show "P y" .
-qed
-
-theorem Abs_quot_induct: "(!!y. y \<in> quot ==> P (Abs_quot y)) ==> P x"
-proof -
-  assume r: "!!y. y \<in> quot ==> P (Abs_quot y)"
-  have "Rep_quot x \<in> quot" by (rule Rep_quot)
-  hence "P (Abs_quot (Rep_quot x))" by (rule r)
-  also have "Abs_quot (Rep_quot x) = x" by (rule Rep_quot_inverse)
-  finally show "P x" .
-qed
-
 text {*
  \medskip Abstracted equivalence classes are the canonical
  representation of elements of a quotient type.
@@ -217,13 +172,11 @@ constdefs
   "\<lfloor>a\<rfloor> == Abs_quot {x. a \<sim> x}"
 
 theorem quot_rep: "\<exists>a. A = \<lfloor>a\<rfloor>"
-proof (unfold eqv_class_def)
-  show "\<exists>a. A = Abs_quot {x. a \<sim> x}"
-  proof (induct A rule: Abs_quot_induct)
-    fix R assume "R \<in> quot"
-    hence "\<exists>a. R = {x. a \<sim> x}" by blast
-    thus "\<exists>a. Abs_quot R = Abs_quot {x. a \<sim> x}" by blast
-  qed
+proof (cases A)
+  fix R assume R: "A = Abs_quot R"
+  assume "R \<in> quot" hence "\<exists>a. R = {x. a \<sim> x}" by blast
+  with R have "\<exists>a. A = Abs_quot {x. a \<sim> x}" by blast
+  thus ?thesis by (unfold eqv_class_def)
 qed
 
 lemma quot_cases [case_names rep, cases type: quot]:
@@ -302,10 +255,10 @@ proof (rule pick_eqv')
   show "a \<in> domain" ..
 qed
 
-theorem pick_inverse: "\<lfloor>pick A\<rfloor> = (A::'a::equiv quot)"   (* FIXME tune proof *)
+theorem pick_inverse: "\<lfloor>pick A\<rfloor> = (A::'a::equiv quot)"
 proof (cases A)
   fix a assume a: "A = \<lfloor>a\<rfloor>"
-  hence "pick A \<sim> a" by (simp only: pick_eqv)
+  hence "pick A \<sim> a" by simp
   hence "\<lfloor>pick A\<rfloor> = \<lfloor>a\<rfloor>" by simp
   with a show ?thesis by simp
 qed
