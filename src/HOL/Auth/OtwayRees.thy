@@ -21,12 +21,12 @@ inductive otway
          (*The enemy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-    Fake "[| evs: otway;  B ~= Enemy;  X: synth (analz (sees Enemy evs))
-          |] ==> Says Enemy B X  # evs : otway"
+    Fake "[| evs: otway;  B ~= Enemy;  X: synth (analz (sees Enemy evs)) |]
+          ==> Says Enemy B X  # evs : otway"
 
          (*Alice initiates a protocol run*)
-    OR1  "[| evs: otway;  A ~= B
-          |] ==> Says A B {|Nonce (newN evs), Agent A, Agent B, 
+    OR1  "[| evs: otway;  A ~= B |]
+          ==> Says A B {|Nonce (newN evs), Agent A, Agent B, 
                             Crypt {|Nonce (newN evs), Agent A, Agent B|} 
                                   (shrK A) |} 
                  # evs : otway"
@@ -35,8 +35,8 @@ inductive otway
 	   the sender is, hence the A' in the sender field.
            We modify the published protocol by NOT encrypting NB.*)
     OR2  "[| evs: otway;  B ~= Server;
-             Says A' B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs
-          |] ==> Says B Server 
+             Says A' B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs |]
+          ==> Says B Server 
                   {|Nonce NA, Agent A, Agent B, X, Nonce (newN evs), 
                     Crypt {|Nonce NA, Agent A, Agent B|} (shrK B)|}
                  # evs : otway"
@@ -50,8 +50,8 @@ inductive otway
                     Crypt {|Nonce NA, Agent A, Agent B|} (shrK A), 
                     Nonce NB, 
                     Crypt {|Nonce NA, Agent A, Agent B|} (shrK B)|}
-               : set_of_list evs
-          |] ==> Says Server B 
+               : set_of_list evs |]
+          ==> Says Server B 
                   {|Nonce NA, 
                     Crypt {|Nonce NA, Key (newK evs)|} (shrK A),
                     Crypt {|Nonce NB, Key (newK evs)|} (shrK B)|}
@@ -63,15 +63,15 @@ inductive otway
              Says S B {|Nonce NA, X, Crypt {|Nonce NB, Key K|} (shrK B)|}
                : set_of_list evs;
              Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB, X''|}
-               : set_of_list evs
-          |] ==> (Says B A {|Nonce NA, X|}) # evs : otway"
+               : set_of_list evs |]
+          ==> (Says B A {|Nonce NA, X|}) # evs : otway"
 
          (*Alice checks her Nonce, then sends a dummy message to Bob,
            using the new session key.*)
     OR5  "[| evs: otway;  
              Says B' A {|Nonce NA, Crypt {|Nonce NA, Key K|} (shrK A)|}
                : set_of_list evs;
-             Says A  B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs
-          |] ==> Says A B (Crypt (Agent A) K)  # evs : otway"
+             Says A  B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs |]
+          ==> Says A B (Crypt (Agent A) K)  # evs : otway"
 
 end
