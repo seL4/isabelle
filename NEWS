@@ -178,6 +178,9 @@ New in this Isabelle release
 
 *** Isar ***
 
+* Debugging: new reference Toplevel.debug; default false.
+  Set to make printing of exceptions THM, TERM, TYPE and THEORY more verbose.
+  
 * Locales:
   - "includes" disallowed in declaration of named locales (command "locale").
   - Fixed parameter management in theorem generation for goals with "includes".
