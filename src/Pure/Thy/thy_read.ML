@@ -664,8 +664,7 @@ fun use_thy name =
      end
   in if thy_uptodate andalso ml_uptodate then ()
      else
-      (cur_thyname := tname;
-       if thy_file = "" then ()
+      (if thy_file = "" then ()
        else if thy_uptodate then
          simpset := let val ThyInfo {thy_ss, ...} = the (get_thyinfo tname);
                     in the thy_ss end
@@ -694,7 +693,7 @@ fun use_thy name =
           if not (!make_html) then ()
           else thyfile2html abs_path tname
          );
-
+       
        set_info tname (Some (file_info thy_file)) None;
                                        (*mark thy_file as successfully loaded*)
 
@@ -876,7 +875,8 @@ fun mk_base bases child mk_draft =
 
       val base_thy = (writeln ("Loading theory " ^ (quote child));
                       merge_thy_list mk_draft (map theory_of mergelist));
- in simpset := foldr merge_ss (mapfilter get_simpset mergelist, empty_ss);
+ in cur_thyname := child;
+    simpset := foldr merge_ss (mapfilter get_simpset mergelist, empty_ss);
     base_thy
  end;
 
