@@ -185,6 +185,9 @@ if [ -n "$DOCUMENT" ]; then
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym,pdfsetup}
 
+\renewcommand{\isamarkupheader}[1]{\section{#1}}
+\parindent 0pt \parskip 0.5ex
+
 \begin{document}
 \input{session}
 \end{document}
