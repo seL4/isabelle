@@ -64,8 +64,7 @@ apply (rule ReflectsE [OF reflection], assumption)
 apply (drule subset_Lset_ltD, assumption)
 apply (erule reflection_imp_L_separation)
   apply (simp_all add: lt_Ord2, clarify)
-apply (rule collI)
-apply assumption
+apply (rule collI, assumption)
 done
 
 text{*As above, but typically @{term u} is a finite enumeration such as
