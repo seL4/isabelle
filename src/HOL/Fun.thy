@@ -6,7 +6,7 @@
 Notions about functions.
 *)
 
-Fun = Vimage + SetInterval + 
+Fun = Vimage + equalities + 
 
 instance set :: (term) order
                        (subset_refl,subset_trans,subset_antisym,psubset_eq)
