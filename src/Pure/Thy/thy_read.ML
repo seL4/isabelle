@@ -1045,17 +1045,12 @@ fun init_html () =
       val theory_list = close_out (open_out ".theory_list.txt");
 
       val rel_gif_path = relative_path cwd (!gif_path);
-      val package = relative_path (!base_path) cwd;
-
-      val dummy = if (explode (!base_path)) prefix (explode cwd) then ()
-        else error "The current working directory seems to be no \
-                   \subdirectory of\nIsabelle's main directory. \
-                   \Please ensure that base_path's value is correct.";
 
       (*Make new HTML files for Pure and CPure*)
       fun init_pure_html () =
         let val pure_out = open_out ".Pure_sub.html";
             val cpure_out = open_out ".CPure_sub.html";
+            val package = relative_path (!base_path) cwd;
         in mk_charthead pure_out "Pure" "Children" false rel_gif_path ""
                         package;
            mk_charthead cpure_out "CPure" "Children" false rel_gif_path ""
@@ -1068,6 +1063,17 @@ fun init_html () =
         end;
   in make_html := true;
      index_path := cwd;
+
+     (*Make sure that base_path contains the physical path and no
+       symbolic links*)
+     cd (!base_path);
+     base_path := pwd();
+     cd cwd;
+
+     if (explode (!base_path)) prefix (explode cwd) then ()
+     else error "The current working directory seems to be no \
+                \subdirectory of\nIsabelle's main directory. \
+                \Please ensure that base_path's value is correct.";
 
      writeln ("Setting path for index.html to " ^ quote cwd ^
               "\nGIF path has been set to " ^ quote (!gif_path));
