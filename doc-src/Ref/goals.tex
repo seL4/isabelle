@@ -134,11 +134,13 @@ tactics})}.
 \label{ExtractingAndStoringTheProvedTheorem}
 \index{theorems!extracting proved}
 \begin{ttbox} 
-qed       : string -> unit
-result    : unit -> thm
-uresult   : unit -> thm
-bind_thm  : string * thm -> unit
-store_thm : string * thm -> thm
+qed        : string -> unit
+result     : unit -> thm
+uresult    : unit -> thm
+bind_thm   : string * thm -> unit
+bind_thms  : string * thm list -> unit
+store_thm  : string * thm -> thm
+store_thms : string * thm list -> thm list
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{qed} $name$;] is the usual way of ending a proof.
@@ -177,6 +179,10 @@ store_thm : string * thm -> thm
 \item[\ttindexbold{store_thm} ($name$, $thm$)]\index{theorems!storing}
   stores $thm$ in the theorem database associated with its theory and
   returns that theorem.
+  
+\item[\ttindexbold{bind_thms} and \ttindexbold{store_thms}] are similar to
+  \texttt{bind_thm} and \texttt{store_thm}, but store lists of theorems.
+
 \end{ttdescription}
 
 
