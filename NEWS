@@ -60,6 +60,8 @@ New in this Isabelle release
 
 * SET-Protocol: formalization and verification of the SET protocol suite;
 
+* HOL-ex: InductiveInvariant_examples illustrates advanced recursive function
+ defintions, thanks to Sava Krsti\'{c} and John Matthews.
 
 New in Isabelle2003 (May 2003)
 --------------------------------
