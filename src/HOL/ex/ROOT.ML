@@ -32,4 +32,11 @@ time_use_thy "IntRing";
 time_use     "set.ML";
 time_use_thy "MT";
 
+time_use_thy "StringEx";
+time_use_thy "BinEx";
+
+(*Monoids and Groups as predicates over record schemes*)
+time_use_thy "MonoidGroup";
+
+
 writeln "END: Root file for HOL examples";

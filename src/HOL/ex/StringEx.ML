@@ -1,3 +1,4 @@
+
 Goal "hd(''ABCD'') = CHR ''A''";
 by (Simp_tac 1);
 result();

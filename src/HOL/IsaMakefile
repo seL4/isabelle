@@ -47,7 +47,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/cancel_sums.ML \
   Nat.thy NatDef.ML NatDef.thy Option.ML Option.thy Ord.ML Ord.thy \
   Power.ML Power.thy Prod.ML Prod.thy ROOT.ML Recdef.thy Record.thy RelPow.ML \
   RelPow.thy Relation.ML Relation.thy Set.ML Set.thy Sexp.ML Sexp.thy \
-  String.ML String.thy Sum.ML Sum.thy \
+  String.thy Sum.ML Sum.thy \
   Tools/datatype_aux.ML Tools/datatype_abs_proofs.ML Tools/datatype_package.ML \
   Tools/datatype_prop.ML Tools/datatype_rep_proofs.ML \
   Tools/inductive_package.ML Tools/primrec_package.ML Tools/record_package.ML \
@@ -283,13 +283,13 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/BT.ML ex/BT.thy ex/Fib.ML ex/Fib.thy \
   ex/InSort.ML ex/InSort.thy ex/MT.ML ex/MT.thy ex/NatSum.ML \
-  ex/NatSum.thy ex/Primes.ML ex/Primes.thy ex/Primrec.ML ex/Primrec.thy \
-  ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy ex/ROOT.ML \
-  ex/Recdefs.ML ex/Recdefs.thy ex/cla.ML \
-  ex/meson.ML ex/mesontest.ML ex/set.ML \
-  ex/Group.ML ex/Group.thy  ex/IntRing.ML ex/IntRing.thy \
-  ex/IntRingDefs.ML ex/IntRingDefs.thy \
-  ex/Lagrange.ML ex/Lagrange.thy ex/Ring.ML ex/Ring.thy
+  ex/NatSum.thy ex/Primes.ML ex/Primes.thy ex/Primrec.ML \
+  ex/Primrec.thy ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy \
+  ex/ROOT.ML ex/Recdefs.ML ex/Recdefs.thy ex/cla.ML ex/meson.ML \
+  ex/mesontest.ML ex/set.ML ex/Group.ML ex/Group.thy ex/IntRing.ML \
+  ex/IntRing.thy ex/IntRingDefs.ML ex/IntRingDefs.thy ex/Lagrange.ML \
+  ex/Lagrange.thy ex/Ring.ML ex/Ring.thy ex/StringEx.ML \
+  ex/StringEx.thy ex/BinEx.ML ex/BinEx.thy ex/MonoidGroup.thy
 	@$(ISATOOL) usedir $(OUT)/HOL ex
 
 
