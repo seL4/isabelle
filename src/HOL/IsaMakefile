@@ -391,9 +391,8 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML \
   UNITY/Comp/Alloc.ML UNITY/Comp/Alloc.thy \
   UNITY/Comp/AllocBase.thy \
   UNITY/Comp/Client.ML UNITY/Comp/Client.thy \
-  UNITY/Comp/Counter.ML UNITY/Comp/Counter.thy \
-  UNITY/Comp/Counterc.ML UNITY/Comp/Counterc.thy UNITY/Comp/Handshake.thy \
-  UNITY/Comp/PriorityAux.ML UNITY/Comp/PriorityAux.thy \
+  UNITY/Comp/Counter.thy UNITY/Comp/Counterc.thy UNITY/Comp/Handshake.thy \
+  UNITY/Comp/PriorityAux.thy \
   UNITY/Comp/Priority.thy UNITY/Comp/Progress.thy \
   UNITY/Comp/TimerArray.thy
 	@$(ISATOOL) usedir $(OUT)/HOL UNITY

@@ -2,8 +2,6 @@
     ID:         $Id$
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
-
-
 *)
 
 header{*The priority system*}
@@ -128,17 +126,16 @@ by (simp add: system_def Component_def mk_total_program_def totalize_JN, constra
 (* property 14: the 'above set' of a Component that hasn't got 
       priority doesn't increase *)
 lemma above_not_increase: 
-     "\<forall>j. system \<in> -Highest i Int {s. j\<notin>above i s} co {s. j\<notin>above i s}"
-apply clarify
-apply (cut_tac i = j in reach_lemma)
+     "system \<in> -Highest i Int {s. j\<notin>above i s} co {s. j\<notin>above i s}"
+apply (insert reach_lemma [of concl: j])
 apply (simp add: system_def Component_def mk_total_program_def totalize_JN, 
        constrains)
-apply (auto simp add: trancl_converse)
+apply (simp add: trancl_converse, blast) 
 done
 
 lemma above_not_increase':
      "system \<in> -Highest i Int {s. above i s = x} co {s. above i s <= x}"
-apply (cut_tac i = i in above_not_increase)
+apply (insert above_not_increase [of i])
 apply (simp add: trancl_converse constrains_def, blast)
 done
 
@@ -174,8 +171,7 @@ done
 
 (* property 17: original one is an invariant *)
 lemma Acyclic_Maximal_stable: "system \<in> stable (Acyclic Int Maximal)"
-apply (simp add: Acyclic_subset_Maximal [THEN Int_absorb2] Acyclic_stable)
-done
+by (simp add: Acyclic_subset_Maximal [THEN Int_absorb2] Acyclic_stable)
 
 
 (* propert 5: existential property *)
@@ -216,7 +212,7 @@ lemma above_decreases:
 apply (rule leadsTo_UN)
 apply (rule single_leadsTo_I, clarify)
 apply (rule_tac x2 = "above i x" in above_decreases_lemma)
-apply (simp_all (no_asm_use) del: Highest_def add: Highest_iff_above0)
+apply (simp_all (no_asm_use) add: Highest_iff_above0)
 apply blast+
 done
 
@@ -249,7 +245,7 @@ lemmas finite_psubset_induct = wf_finite_psubset [THEN leadsTo_wf_induct]
 
 lemma Progress: "system \<in> Acyclic leadsTo Highest i"
 apply (rule_tac f = "%s. above i s" in finite_psubset_induct)
-apply (simp del: Highest_def above_def
+apply (simp del: above_def
             add: Highest_iff_above0 vimage_def finite_psubset_def, clarify)
 apply (case_tac "m={}")
 apply (rule Int_lower2 [THEN [2] leadsTo_weaken_L])
