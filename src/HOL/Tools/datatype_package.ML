@@ -201,6 +201,16 @@ fun case_tac aterm i state =
   end;
 
 
+(** Isar tactic emulations **)
+
+fun tactic_syntax tac = #2 oo Method.syntax (Args.goal_spec HEADGOAL -- Scan.lift Args.name >>
+  (fn (quant, s) => Method.METHOD (fn facts => quant (Method.insert_tac facts THEN' tac s))));
+
+val tactic_emulations =
+ [("induct_tac", tactic_syntax induct_tac, "induct_tac emulation (dynamic instantiation!)"),
+  ("case_tac", tactic_syntax case_tac, "case_tac emulation (dynamic instantiation!)")];
+
+
 
 (** induct method setup **)
 
@@ -774,7 +784,7 @@ val add_datatype = gen_add_datatype read_typ;
 
 (* setup theory *)
 
-val setup = [DatatypesData.init] @ simproc_setup;
+val setup = [DatatypesData.init, Method.add_methods tactic_emulations] @ simproc_setup;
 
 
 (* outer syntax *)
