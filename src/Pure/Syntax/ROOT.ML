@@ -5,8 +5,6 @@
 This file builds the syntax module.
 *)
 
-use "lib.ML";   (* FIXME *)
-
 use "pretty.ML";
 
 use "ast.ML";

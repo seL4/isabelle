@@ -446,7 +446,7 @@ val pure_sext =
       Mixfix   ("_/ _",       "[idt, idts] => idts",           "_idts", [1, 0], 0),
       Delimfix ("_",          "id => aprop",                   ""),
       Delimfix ("_",          "var => aprop",                  ""),
-      Mixfix   ("_'(_')",     "[('b => 'a), " ^ args ^ "] => aprop", applC, [max_pri, 0], 0),
+      Mixfix   ("_/(1'(_'))", "[('b => 'a), " ^ args ^ "] => aprop", applC, [max_pri, 0], 0),
       Delimfix ("PROP _",     "aprop => prop",                 "_aprop"),
       Delimfix ("_",          "prop => asms",                  ""),
       Delimfix ("_;/ _",      "[prop, asms] => asms",          "_asms"),

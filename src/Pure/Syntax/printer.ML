@@ -59,33 +59,6 @@ fun apply_trans name a f args =
 
 fun ast_of_term trf show_types show_sorts tm =
   let
-(*(* FIXME old - remove *)
-    fun fix_aprop tys (Abs (x, ty, t)) = Abs (x, ty, fix_aprop (ty :: tys) t)
-      | fix_aprop tys t =
-          let
-            val (f, args) = strip_comb t;
-            val t' = list_comb (f, map (fix_aprop tys) args);
-          in
-            if not (is_Const f) andalso fastype_of (tys, t) = propT
-            then Const (apropC, dummyT) $ t' else t'
-          end;
-
-    val aprop_const = Const (apropC, dummyT);
-
-    fun fix_aprop (tm as Const _) = tm
-      | fix_aprop (tm as Free (x, ty)) =
-          if ty = propT then aprop_const $ Free (x, dummyT) else tm
-      | fix_aprop (tm as Var (xi, ty)) =
-          if ty = propT then aprop_const $ Var (xi, dummyT) else tm
-      | fix_aprop (tm as Bound _) = tm
-      | fix_aprop (Abs (x, ty, t)) = Abs (x, ty, fix_aprop t)
-      | fix_aprop (t1 $ t2) = fix_aprop t1 $ fix_aprop t2;
-
-    val fix_aprop = fn _ => fn tm => fix_aprop tm;
-*)
-
-    (* FIXME check *)
-
     fun aprop t = Const (apropC, dummyT) $ t;
 
     fun is_prop tys tm =
