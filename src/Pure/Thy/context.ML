@@ -7,16 +7,10 @@ Global contexts: session and theory.
 
 signature BASIC_CONTEXT =
 sig
-  val get_session: unit -> string list
-  val add_session: string -> unit
-  val reset_session: unit -> unit
-  val get_context: unit -> theory option
-  val set_context: theory option -> unit
-  val the_context: unit -> theory
   val context: theory -> unit
-  val reset_context: unit -> unit
-  val thm: xstring -> thm
-  val thms: xstring -> thm list
+  val Thy: unit -> theory
+  val Thm: xstring -> thm
+  val Thms: xstring -> thm list
   val Goal: string -> thm list
   val Goalw: thm list -> string -> thm list
 end;
@@ -24,7 +18,14 @@ end;
 signature CONTEXT =
 sig
   include BASIC_CONTEXT
+  val get_session: unit -> string list
+  val add_session: string -> unit
+  val reset_session: unit -> unit
   val welcome: unit -> string
+  val get_context: unit -> theory option
+  val set_context: theory option -> unit
+  val the_context: unit -> theory
+  val reset_context: unit -> unit
   val >> : (theory -> theory) -> unit
 end;
 
@@ -61,6 +62,8 @@ fun the_context () =
     Some thy => thy
   | _ => error "Unknown theory context");
 
+val Thy = the_context;
+
 fun context thy = set_context (Some thy);
 fun reset_context () = set_context None;
 
@@ -73,8 +76,8 @@ fun >> f = set_context (Some (f (the_context ())));
 
 (* retrieve thms *)
 
-fun thm name = PureThy.get_thm (the_context ()) name;
-fun thms name = PureThy.get_thms (the_context ()) name;
+fun Thm name = PureThy.get_thm (the_context ()) name;
+fun Thms name = PureThy.get_thms (the_context ()) name;
 
 
 (* shortcut goal commands *)
