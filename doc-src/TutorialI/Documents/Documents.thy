@@ -737,7 +737,7 @@ text {*
   comments \verb,(,\verb,*,\verb,<,\verb,*,\verb,), and
   \verb,(,\verb,*,\verb,>,\verb,*,\verb,), tells the document
   preparation system to suppress these parts; the formal checking of
-  the theory is unchanged.
+  the theory is unchanged, of course.
 
   In this example, we hide a theory's \isakeyword{theory} and
   \isakeyword{end} brackets:
