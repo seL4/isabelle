@@ -26,6 +26,38 @@ qed "pair_in_Id_conv";
 Addsimps [pair_in_Id_conv];
 
 
+(** Diagonal relation: indentity restricted to some set **)
+
+(*** Equality : the diagonal relation ***)
+
+Goalw [diag_def] "[| a=b;  a:A |] ==> (a,b) : diag(A)";
+by (Blast_tac 1);
+qed "diag_eqI";
+
+val diagI = refl RS diag_eqI |> standard;
+
+(*The general elimination rule*)
+val major::prems = Goalw [diag_def]
+    "[| c : diag(A);  \
+\       !!x y. [| x:A;  c = (x,x) |] ==> P \
+\    |] ==> P";
+by (rtac (major RS UN_E) 1);
+by (REPEAT (eresolve_tac [asm_rl,singletonE] 1 ORELSE resolve_tac prems 1));
+qed "diagE";
+
+AddSIs [diagI];
+AddSEs [diagE];
+
+Goal "((x,y) : diag A) = (x=y & x : A)";
+by (Blast_tac 1);
+qed "diag_iff";
+
+Goal "diag(A) <= A Times A";
+by (Blast_tac 1);
+qed "diag_subset_Sigma";
+
+
+
 (** Composition of two relations **)
 
 Goalw [comp_def]
@@ -151,6 +183,11 @@ Goal "Domain Id = UNIV";
 by (Blast_tac 1);
 qed "Domain_Id";
 Addsimps [Domain_Id];
+
+Goal "Domain (diag A) = A";
+by Auto_tac;
+qed "Domain_diag";
+Addsimps [Domain_diag];
 
 Goal "Domain(A Un B) = Domain(A) Un Domain(B)";
 by (Blast_tac 1);

@@ -465,23 +465,6 @@ by (rtac Scons_UN1_y 1);
 qed "In1_UN1";
 
 
-(*** Equality : the diagonal relation ***)
-
-Goalw [diag_def] "[| a=b;  a:A |] ==> (a,b) : diag(A)";
-by (Blast_tac 1);
-qed "diag_eqI";
-
-val diagI = refl RS diag_eqI |> standard;
-
-(*The general elimination rule*)
-val major::prems = Goalw [diag_def]
-    "[| c : diag(A);  \
-\       !!x y. [| x:A;  c = (x,x) |] ==> P \
-\    |] ==> P";
-by (rtac (major RS UN_E) 1);
-by (REPEAT (eresolve_tac [asm_rl,singletonE] 1 ORELSE resolve_tac prems 1));
-qed "diagE";
-
 (*** Equality for Cartesian Product ***)
 
 Goalw [dprod_def]
@@ -520,10 +503,10 @@ by (REPEAT_FIRST (eresolve_tac [asm_rl, UN_E, UnE, mem_splitE, singletonE]));
 by (DEPTH_SOLVE (ares_tac prems 1 ORELSE hyp_subst_tac 1));
 qed "dsumE";
 
-
-AddSIs [diagI, uprodI, dprodI];
+AddSIs [uprodI, dprodI];
 AddIs  [usum_In0I, usum_In1I, dsum_In0I, dsum_In1I];
-AddSEs [diagE, uprodE, dprodE, usumE, dsumE];
+AddSEs [uprodE, dprodE, usumE, dsumE];
+
 
 (*** Monotonicity ***)
 
@@ -537,10 +520,6 @@ qed "dsum_mono";
 
 
 (*** Bounding theorems ***)
-
-Goal "diag(A) <= A Times A";
-by (Blast_tac 1);
-qed "diag_subset_Sigma";
 
 Goal "((A Times B) <**> (C Times D)) <= (A<*>C) Times (B<*>D)";
 by (Blast_tac 1);
@@ -564,10 +543,6 @@ val dsum_subset_Sigma = [dsum_mono, dsum_Sigma] MRS subset_trans |> standard;
 
 (*** Domain ***)
 
-Goal "Domain (diag A) = A";
-by Auto_tac;
-qed "Domain_diag";
-
 Goal "Domain (r<**>s) = (Domain r) <*> (Domain s)";
 by Auto_tac;
 qed "Domain_dprod";
@@ -576,4 +551,4 @@ Goal "Domain (r<++>s) = (Domain r) <+> (Domain s)";
 by Auto_tac;
 qed "Domain_dsum";
 
-Addsimps [Domain_diag, Domain_dprod, Domain_dsum];
+Addsimps [Domain_dprod, Domain_dsum];

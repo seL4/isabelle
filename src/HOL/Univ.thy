@@ -42,7 +42,6 @@ consts
   Split  :: [['a item, 'a item]=>'b, 'a item] => 'b
   Case   :: [['a item]=>'b, ['a item]=>'b, 'a item] => 'b
 
-  diag   :: "'a set => ('a * 'a)set"
   "<**>" :: "[('a item * 'a item)set, ('a item * 'a item)set] 
            => ('a item * 'a item)set" (infixr 80)
   "<++>" :: "[('a item * 'a item)set, ('a item * 'a item)set] 
@@ -88,13 +87,11 @@ defs
                               | (? y . M = In1(y) & u = d(y))"
 
 
-  (** diagonal sets and equality for the "universe" **)
-
-  diag_def   "diag(A) == UN x:A. {(x,x)}"
+  (** equality for the "universe" **)
 
   dprod_def  "r<**>s == UN (x,x'):r. UN (y,y'):s. {(Scons x y, Scons x' y')}"
 
   dsum_def   "r<++>s == (UN (x,x'):r. {(In0(x),In0(x'))}) Un 
-                       (UN (y,y'):s. {(In1(y),In1(y'))})"
+                        (UN (y,y'):s. {(In1(y),In1(y'))})"
 
 end
