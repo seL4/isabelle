@@ -11,9 +11,7 @@ Courtesy John Harrison
 (*All but the fastest are ignored to reduce build time*)
 val even_hard_ones = false;
 
-(*Product_Type.thy instead of HOL.thy regards arguments as tuples.
-  But Main.thy would allow clashes with many other constants*)
-fun prove (s,tac) = prove_goal Product_Type.thy s (fn [] => [tac]);
+fun prove (s,tac) = prove_goal (the_context ()) s (fn [] => [tac]);
 
 fun prove_hard arg = if even_hard_ones then prove arg else TrueI;
 
