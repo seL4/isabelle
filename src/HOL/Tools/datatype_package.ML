@@ -559,6 +559,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
           nchotomys ~~ case_congs);
 
     val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
+    val split_thms = split ~~ split_asm;
 
     val thy12 = thy11 |>
       Theory.add_path (space_implode "_" new_type_names) |>
@@ -568,8 +569,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
         (("", weak_case_congs), [cong_add_global])]) |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
-      Theory.parent_path;
-
+      Theory.parent_path |>
+      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms));
   in
     (thy12,
      {distinct = distinct,
@@ -577,7 +578,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       exhaustion = exhaustion,
       rec_thms = rec_thms,
       case_thms = case_thms,
-      split_thms = split ~~ split_asm,
+      split_thms = split_thms,
       induction = induct,
       size = size_thms,
       simps = simps})
@@ -626,8 +627,8 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
         (("", weak_case_congs), [Simplifier.change_global_ss (op addcongs)])]) |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
-      Theory.parent_path;
-
+      Theory.parent_path |>
+      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms));
   in
     (thy12,
      {distinct = distinct,
@@ -732,7 +733,8 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
         (("", weak_case_congs), [Simplifier.change_global_ss (op addcongs)])]) |>
       put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos |>
-      Theory.parent_path;
+      Theory.parent_path |>
+      (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms));
   in
     (thy11,
      {distinct = distinct,
