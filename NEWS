@@ -2,8 +2,8 @@
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
-New in Isabelle94-8 (April 1997)
---------------------------------
+New in Isabelle94-8 (May 1997)
+------------------------------
 
 *** General Changes ***
 
@@ -12,12 +12,14 @@ still somewhat experimental); old Makefiles etc. still functional;
 
 * INSTALL text, together with ./configure and ./build scripts;
 
-* reimplemented type inference for greater efficiency;
+* reimplemented type inference for greater efficiency, better error
+messages and clean internal interface;
 
 * prlim command for dealing with lots of subgoals (an easier way of
 setting goals_limit);
 
-*** Syntax
+
+*** Syntax ***
 
 * Pure, FOL, ZF, HOL, HOLCF now support symbolic input and output; to
 be used in conjunction with the Isabelle symbol font; uses the
@@ -28,7 +30,8 @@ arbitrary ways, dependent on their type (free, bound, tfree, ...) and
 the current print_mode);
 
 * token translations for modes "xterm" and "xterm_color" that display
-names in bold, underline etc. or colors;
+names in bold, underline etc. or colors (which requires a color
+version of xterm);
 
 * now supports alternative (named) syntax tables (parser and pretty
 printer); internal interface is provided by add_modesyntax(_i);
@@ -37,6 +40,7 @@ printer); internal interface is provided by add_modesyntax(_i);
 
 * added typed_print_translation (like print_translation, but may
 access type of constant);
+
 
 *** Classical Reasoner ***
 
@@ -63,7 +67,14 @@ more complete, as multiple instantiation of unknowns (with slow_tac).
 COULD MAKE EXISTING PROOFS FAIL; in case of problems with
 old proofs, use unsafe_addss and unsafe_auto_tac
 
+
 *** Simplifier ***
+
+* added interface for simplification procedures (functions that
+produce *proven* rewrite rules on the fly, depending on current
+redex);
+
+* ordering on terms as parameter (used for ordered rewriting);
 
 * new functions delcongs, deleqcongs, and Delcongs. richer rep_ss.
 
@@ -72,9 +83,6 @@ This should be invisible for the normal user, except that the
 functions setsolver and addsolver have been renamed to setSolver and
 addSolver.  added safe_asm_full_simp_tac.
 
-* ordering on terms as parameter (used for ordered rewriting);
-added interface for simplification procedures (functions that produce *proven*
-rewrite rules on the fly, depending on current redex);
 
 *** HOL ***
 
@@ -104,6 +112,7 @@ problems in commutative rings, using axiomatic type classes for + and *;
   + use unit lift and bool lift (with translations) instead of one and tr
   + eliminated blift from Lift3.thy (use Def instead of blift)
   all eliminated rules are derived as theorems --> no visible changes 
+
 
 *** ZF ***
 
