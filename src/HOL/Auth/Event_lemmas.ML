@@ -88,15 +88,15 @@ by (Simp_tac 1);
 qed "knows_Gets";
 
 
-Goal "knows A evs <= knows A (Says A B X # evs)";
+Goal "knows A evs <= knows A (Says A' B X # evs)";
 by (simp_tac (simpset() addsimps [subset_insertI]) 1);
 qed "knows_subset_knows_Says";
 
-Goal "knows A evs <= knows A (Notes A X # evs)";
+Goal "knows A evs <= knows A (Notes A' X # evs)";
 by (simp_tac (simpset() addsimps [subset_insertI]) 1);
 qed "knows_subset_knows_Notes";
 
-Goal "knows A evs <= knows A (Gets A X # evs)";
+Goal "knows A evs <= knows A (Gets A' X # evs)";
 by (simp_tac (simpset() addsimps [subset_insertI]) 1);
 qed "knows_subset_knows_Gets";
 

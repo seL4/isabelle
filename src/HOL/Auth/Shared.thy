@@ -57,4 +57,7 @@ method_setup possibility = {*
             gen_possibility_tac (Simplifier.get_local_simpset ctxt))) *}
     "for proving possibility theorems"
 
+lemma knows_subset_knows_Cons: "knows A evs <= knows A (e # evs)"
+by (induct e, auto simp: knows_Cons)
+
 end
