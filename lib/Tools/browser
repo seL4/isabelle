@@ -62,7 +62,7 @@ GRAPHFILE=""
 
 ## main
 
-export CLASSPATH="$ISABELLE_HOME/lib/browser"
+export CLASSPATH="$ISABELLE_HOME/lib/browser/GraphBrowser.jar"
 if [ -z "$GRAPHFILE" ]; then
   cd "$ISABELLE_BROWSER_INFO"
   exec java GraphBrowser.GraphBrowser
