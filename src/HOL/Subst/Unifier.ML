@@ -23,8 +23,8 @@ qed "Unifier_Comb";
 AddIffs [Unifier_Comb];
 
 Goal
-  "!!v. [| v ~: vars_of t; v ~: vars_of u; Unifier s t u |] ==> \
-\       Unifier ((v,r)#s) t u";
+  "[| v ~: vars_of t; v ~: vars_of u; Unifier s t u |] ==> \
+\  Unifier ((v,r)#s) t u";
 by (asm_full_simp_tac (simpset() addsimps [Unifier_def, repl_invariance]) 1);
 qed "Cons_Unifier";
 
@@ -52,7 +52,7 @@ qed "MGU_iff";
 
 
 Goal
-     "!!v. ~ Var v <: t ==> MGUnifier [(v,t)] (Var v) t";
+     "~ Var v <: t ==> MGUnifier [(v,t)] (Var v) t";
 by (simp_tac(simpset() addsimps [MGU_iff, Unifier_def, MoreGeneral_def]
 	              delsimps [subst_Var]) 1);
 by Safe_tac;
@@ -88,8 +88,8 @@ qed_spec_mp "Var_Idem";
 AddSIs [Var_Idem];
 
 Goalw [Idem_def]
-  "!!r. [| Idem(r); Unifier s (t<|r) (u<|r) |]       \
-\       ==> Unifier (r <> s) (t <| r) (u <| r)";
+  "[| Idem(r); Unifier s (t<|r) (u<|r) |] \
+\  ==> Unifier (r <> s) (t <| r) (u <| r)";
 by (asm_full_simp_tac (simpset() addsimps [Unifier_def, comp_subst_subst]) 1);
 qed "Unifier_Idem_subst";
 

@@ -70,8 +70,8 @@ qed "trans_unifyRel";
  * about term structure.
  *---------------------------------------------------------------------------*)
 Goalw [unifyRel_def,lex_prod_def, inv_image_def]
-     "!!x. ((X,Y), (Comb A (Comb B C), Comb D (Comb E F))) : unifyRel  ==> \
-    \      ((X,Y), (Comb (Comb A B) C, Comb (Comb D E) F)) : unifyRel";
+  "((X,Y), (Comb A (Comb B C), Comb D (Comb E F))) : unifyRel  ==> \
+\  ((X,Y), (Comb (Comb A B) C, Comb (Comb D E) F)) : unifyRel";
 by (asm_full_simp_tac (simpset() addsimps [measure_def, 
                           less_eq, inv_image_def,add_assoc]) 1);
 by (subgoal_tac "(vars_of A Un vars_of B Un vars_of C Un \
@@ -88,7 +88,7 @@ qed "Rassoc";
  * 3, 4, and 6. 
  *---------------------------------------------------------------------------*)
 Goal
- "!!x. ~(Var x <: M) ==>        \
+ "~(Var x <: M) ==> \
 \   ((N1 <| [(x,M)], N2 <| [(x,M)]), (Comb M N1, Comb(Var x) N2)) : unifyRel \
 \ & ((N1 <| [(x,M)], N2 <| [(x,M)]), (Comb(Var x) N1, Comb M N2)) : unifyRel";
 by (case_tac "Var x = M" 1);

@@ -120,8 +120,8 @@ Goal "(q <> r) <> s =$= q <> (r <> s)";
 by (simp_tac (simpset() addsimps [subst_eq_iff]) 1);
 qed "comp_assoc";
 
-Goal "!!s. [| theta =$= theta1; sigma =$= sigma1|] ==> \
-             \       (theta <> sigma) =$= (theta1 <> sigma1)";
+Goal "[| theta =$= theta1; sigma =$= sigma1|] ==> \
+\     (theta <> sigma) =$= (theta1 <> sigma1)";
 by (asm_full_simp_tac (simpset() addsimps [subst_eq_def]) 1);
 qed "subst_cong";
 
@@ -134,7 +134,7 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "Cons_trivial";
 
 
-Goal "!!s. q <> r =$= s ==>  t <| q <| r = t <| s";
+Goal "q <> r =$= s ==>  t <| q <| r = t <| s";
 by (asm_full_simp_tac (simpset() addsimps [subst_eq_iff]) 1);
 qed "comp_subst_subst";
 
@@ -172,7 +172,7 @@ by (ALLGOALS Blast_tac);
 qed_spec_mp "Var_in_srange";
 
 Goal 
-     "!!v. [| v : sdom(s); v ~: srange(s) |] ==>  v ~: vars_of(t <| s)";
+     "[| v : sdom(s); v ~: srange(s) |] ==>  v ~: vars_of(t <| s)";
 by (blast_tac (claset() addIs [Var_in_srange]) 1);
 qed "Var_elim";
 
@@ -195,7 +195,7 @@ by (simp_tac (simpset() addsimps [empty_iff_all_not]) 1);
 by (fast_tac (claset() addIs [Var_in_srange] addDs [srangeD]) 1);
 qed "dom_range_disjoint";
 
-Goal "!!u. ~ u <| s = u ==> (? x. x : sdom(s))";
+Goal "~ u <| s = u ==> (? x. x : sdom(s))";
 by (full_simp_tac (simpset() addsimps [empty_iff_all_not, invariance]) 1);
 by (Blast_tac 1);
 qed "subst_not_empty";
