@@ -4,11 +4,7 @@
     Copyright   1993  University of Cambridge
 
 Root file for Pure Isabelle: all modules in proper order for loading.
-Loads pure Isabelle into an empty database (see also Makefile).
-
-TO DO:
-instantiation of theorems can lead to inconsistent sorting of type vars if
-'a::S is already present and 'a::T is introduced.
+Loads Pure Isabelle into an empty ML database (see also IsaMakefile).
 *)
 
 val banner = "Pure Isabelle";
@@ -26,6 +22,7 @@ cd "Syntax";
 use "ROOT.ML";
 cd "..";
 
+(*Core system*)
 use "sorts.ML";
 use "type_infer.ML";
 use "type.ML";
@@ -55,5 +52,14 @@ use "ROOT.ML";
 cd "..";
 
 use "install_pp.ML";
+
+(*several object-logics declare theories named List or Option, hiding
+  the eponymous basis library structures*)
+structure BasisLibrary =
+struct
+  structure List = List and Option = Option;
+end;
+
+open Use;
 
 print_depth 8;
