@@ -18,12 +18,12 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES =  ROOT.ML ifol.thy ifol.ML fol.thy fol.ML intprover.ML simpdata.ML \
+FILES =  ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
 	../Provers/classical.ML ../Provers/simplifier.ML ../Provers/ind.ML
 
-EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/if.ML ex/if.thy ex/int.ML\
-	   ex/intro.ML ex/list.ML ex/list.thy ex/nat.ML ex/nat.thy\
-	   ex/nat2.ML ex/nat2.thy ex/prolog.ML ex/prolog.thy ex/prop.ML\
+EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML\
+	   ex/intro.ML ex/List.ML ex/List.thy ex/Nat.ML ex/Nat.thy\
+	   ex/Nat2.ML ex/Nat2.thy ex/Prolog.ML ex/Prolog.thy ex/prop.ML\
 	   ex/quant.ML
 
 $(BIN)/FOL:   $(BIN)/Pure  $(FILES) 
