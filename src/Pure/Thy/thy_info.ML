@@ -39,7 +39,7 @@ sig
   val touch_all_thys: unit -> unit
   val load_file: bool -> Path.T -> unit
   val use: string -> unit
-  val quiet_update_thy: string -> unit
+  val quiet_update_thy: bool -> string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory
   val begin_update_theory: string -> string list -> (Path.T * bool) list -> theory
   val end_theory: theory -> theory
@@ -84,12 +84,14 @@ fun add_deps name parents G =
   foldl (fn (H, parent) => Graph.add_edge_acyclic (parent, name) H) (G, parents)
     handle Graph.CYCLES namess => error (cat_lines (map (cycle_msg name) namess));
 
-fun del_deps name G =
-  foldl (fn (H, parent) => Graph.del_edge (parent, name) H) (G, Graph.imm_preds G name);
+fun upd_deps name entry G =
+  foldl (fn (H, parent) => Graph.del_edge (parent, name) H) (G, Graph.imm_preds G name)
+  |> Graph.map_node name (K entry);
 
 fun update_node name parents entry G =
-  add_deps name parents
-    (if can (Graph.get_node G) name then del_deps name G else Graph.new_node (name, entry) G);
+  (if can (Graph.get_node G) name then upd_deps name entry G else Graph.new_node (name, entry) G)
+  |> add_deps name parents;
+   
 
 
 (* thy database *)
@@ -310,7 +312,8 @@ fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
     val name = Path.pack (Path.base path);
   in
     if name mem_string initiators then error (cycle_msg name initiators) else ();
-    if name mem_string visited then (visited, (true, name))
+    if known_thy name andalso is_finished name orelse name mem_string visited then
+      (visited, (true, name))
     else
       let
         val dir = Path.append prfx (Path.dir path);
@@ -341,8 +344,8 @@ fun warn_finished f name = (check_unfinished warning name; f name);
 
 in
 
-val weak_use_thy     = gen_use_thy (require_thy true false false false);
-val quiet_update_thy = gen_use_thy (require_thy true false true true);
+val weak_use_thy        = gen_use_thy (require_thy true false false false);
+fun quiet_update_thy ml = gen_use_thy (require_thy ml false true true);
 
 val use_thy          = warn_finished (gen_use_thy (require_thy true false true false));
 val time_use_thy     = warn_finished (gen_use_thy (require_thy true true true false));
@@ -372,12 +375,15 @@ fun gen_begin_theory assert_thy name parents paths =
     val _ = check_unfinished error name;
     val _ = (map Path.basic parents; seq assert_thy parents);
     val theory = PureThy.begin_theory name (map get_theory parents);
-    val _ = change_thys (update_node name parents (init_deps None [], Some theory));
+    val deps =
+      if known_thy name then get_deps name
+      else (init_deps None (map #1 paths));   (*records additional ML files only!*)
+    val _ = change_thys (update_node name parents (deps, Some theory));
     val use_paths = mapfilter (fn (x, true) => Some x | _ => None) paths;
   in Context.setmp (Some theory) (seq (load_file false)) use_paths; theory end;
 
 val begin_theory = gen_begin_theory weak_use_thy;
-val begin_update_theory = gen_begin_theory quiet_update_thy;
+val begin_update_theory = gen_begin_theory (quiet_update_thy true);
 
 fun end_theory theory =
   let
