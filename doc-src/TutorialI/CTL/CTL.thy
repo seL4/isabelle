@@ -386,7 +386,7 @@ Prove the equivalence between semantics and model checking, i.e.\ that
 %{text[display]"| EU formula formula    E[_ U _]"}
 %which enables you to read and write {text"E[f U g]"} instead of {term"EU f g"}.
 \end{exercise}
-For more CTL exercises see, for example \cite{Huth-Ryan-book,Clarke-as-well?}.
+For more CTL exercises see, for example \cite{Huth-Ryan-book}.
 \bigskip
 
 Let us close this section with a few words about the executability of our model checkers.
