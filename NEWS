@@ -107,6 +107,12 @@ NB: At the moment, these decision procedures do not cope with mixed
 nat/int formulae where the two parts interact, such as `m < n ==>
 int(m) < int(n)'.
 
+* An interface to the Stanford Validity Checker (SVC) is available through 
+  the tactic svc_tac.  Propositional tautologies and theorems of linear
+  arithmetic are proved automatically.  Numeric variables may have types nat, 
+  int or real.  SVC must be installed separately, and 
+  its results must be TAKEN ON TRUST (Isabelle does not check the proofs).
+
 * Integer division and remainder can now be performed on constant arguments.  
 
 * Many properties of integer multiplication, division and remainder are now
