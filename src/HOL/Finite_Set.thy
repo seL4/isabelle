@@ -997,6 +997,11 @@ lemma setsum_diff1: "finite A \<Longrightarrow>
   (if a:A then setsum f A - f a else setsum f A)"
   by (erule finite_induct) (auto simp add: insert_Diff_if)
 
+lemma setsum_diff1'[rule_format]: "finite A \<Longrightarrow> a \<in> A \<longrightarrow> (\<Sum> x \<in> A. f x) = f a + (\<Sum> x \<in> (A - {a}). f x)"
+  apply (erule finite_induct[where F=A and P="% A. (a \<in> A \<longrightarrow> (\<Sum> x \<in> A. f x) = f a + (\<Sum> x \<in> (A - {a}). f x))"])
+  apply (auto simp add: insert_Diff_if add_ac)
+  done
+
 (* By Jeremy Siek: *)
 
 lemma setsum_diff_nat: 
