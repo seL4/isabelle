@@ -3,26 +3,26 @@
     Author:     Markus Wenzel
 *)
 
-header {* Summing natural numbers *};
+header {* Summing natural numbers *}
 
-theory Summation = Main:;
+theory Summation = Main:
 
 text_raw {*
  \footnote{This example is somewhat reminiscent of the
  \url{http://isabelle.in.tum.de/library/HOL/ex/NatSum.html}, which is
  discussed in \cite{isabelle-ref} in the context of permutative
  rewrite rules and ordered rewriting.}
-*};
+*}
 
 text {*
  Subsequently, we prove some summation laws of natural numbers
  (including odds, squares, and cubes).  These examples demonstrate how
  plain natural deduction (including induction) may be combined with
  calculational proof.
-*};
+*}
 
 
-subsection {* A summation operator *};
+subsection {* A summation operator *}
 
 text {*
   The binder operator $\idt{sum} :: (\idt{nat} \To \idt{nat}) \To
@@ -31,42 +31,42 @@ text {*
  \[
  \sum\limits_{i < k} f(i) = \idt{sum} \ap (\lam i f \ap i) \ap k
  \]
-*};
+*}
 
 consts
-  sum :: "(nat => nat) => nat => nat";
+  sum :: "(nat => nat) => nat => nat"
 
 primrec
   "sum f 0 = 0"
-  "sum f (Suc n) = f n + sum f n";
+  "sum f (Suc n) = f n + sum f n"
 
 syntax
   "_SUM" :: "idt => nat => nat => nat"
-    ("SUM _ < _. _" [0, 0, 10] 10);
+    ("SUM _ < _. _" [0, 0, 10] 10)
 translations
-  "SUM i < k. b" == "sum (\\<lambda>i. b) k";
+  "SUM i < k. b" == "sum (\<lambda>i. b) k"
 
 
-subsection {* Summation laws *};
+subsection {* Summation laws *}
 
 text {*
  The sum of natural numbers $0 + \cdots + n$ equals $n \times (n +
  1)/2$.  Avoiding formal reasoning about division we prove this
  equation multiplied by $2$.
-*};
+*}
 
 theorem sum_of_naturals:
   "2 * (SUM i < n + 1. i) = n * (n + 1)"
-  (is "?P n" is "?S n = _");
-proof (induct n);
-  show "?P 0"; by simp;
+  (is "?P n" is "?S n = _")
+proof (induct n)
+  show "?P 0" by simp
 
-  fix n;
-  have "?S (n + 1) = ?S n + 2 * (n + 1)"; by simp;
-  also; assume "?S n = n * (n + 1)";
-  also; have "... + 2 * (n + 1) = (n + 1) * (n + 2)"; by simp;
-  finally; show "?P (Suc n)"; by simp;
-qed;
+  fix n
+  have "?S (n + 1) = ?S n + 2 * (n + 1)" by simp
+  also assume "?S n = n * (n + 1)"
+  also have "... + 2 * (n + 1) = (n + 1) * (n + 2)" by simp
+  finally show "?P (Suc n)" by simp
+qed
 
 text {*
  The above proof is a typical instance of mathematical induction.  The
@@ -103,63 +103,63 @@ text {*
  context elements of the form $x:A$ instead.
 
  \end{enumerate}
-*};
+*}
 
 text {*
  \medskip We derive further summation laws for odds, squares, and
  cubes as follows.  The basic technique of induction plus calculation
  is the same as before.
-*};
+*}
 
 theorem sum_of_odds:
   "(SUM i < n. 2 * i + 1) = n^2"
-  (is "?P n" is "?S n = _");
-proof (induct n);
-  show "?P 0"; by simp;
+  (is "?P n" is "?S n = _")
+proof (induct n)
+  show "?P 0" by simp
 
-  fix n;
-  have "?S (n + 1) = ?S n + 2 * n + 1"; by simp;
-  also; assume "?S n = n^2";
-  also; have "... + 2 * n + 1 = (n + 1)^2"; by simp;
-  finally; show "?P (Suc n)"; by simp;
-qed;
+  fix n
+  have "?S (n + 1) = ?S n + 2 * n + 1" by simp
+  also assume "?S n = n^2"
+  also have "... + 2 * n + 1 = (n + 1)^2" by simp
+  finally show "?P (Suc n)" by simp
+qed
 
 text {*
  Subsequently we require some additional tweaking of Isabelle built-in
  arithmetic simplifications, such as bringing in distributivity by
  hand.
-*};
+*}
 
-lemmas distrib = add_mult_distrib add_mult_distrib2;
+lemmas distrib = add_mult_distrib add_mult_distrib2
 
 theorem sum_of_squares:
   "#6 * (SUM i < n + 1. i^2) = n * (n + 1) * (2 * n + 1)"
-  (is "?P n" is "?S n = _");
-proof (induct n);
-  show "?P 0"; by simp;
+  (is "?P n" is "?S n = _")
+proof (induct n)
+  show "?P 0" by simp
 
-  fix n;
-  have "?S (n + 1) = ?S n + #6 * (n + 1)^2"; by (simp add: distrib);
-  also; assume "?S n = n * (n + 1) * (2 * n + 1)";
-  also; have "... + #6 * (n + 1)^2 =
-    (n + 1) * (n + 2) * (2 * (n + 1) + 1)"; by (simp add: distrib);
-  finally; show "?P (Suc n)"; by simp;
-qed;
+  fix n
+  have "?S (n + 1) = ?S n + #6 * (n + 1)^2" by (simp add: distrib)
+  also assume "?S n = n * (n + 1) * (2 * n + 1)"
+  also have "... + #6 * (n + 1)^2 =
+    (n + 1) * (n + 2) * (2 * (n + 1) + 1)" by (simp add: distrib)
+  finally show "?P (Suc n)" by simp
+qed
 
 theorem sum_of_cubes:
   "#4 * (SUM i < n + 1. i^#3) = (n * (n + 1))^2"
-  (is "?P n" is "?S n = _");
-proof (induct n);
-  show "?P 0"; by (simp add: power_eq_if);
+  (is "?P n" is "?S n = _")
+proof (induct n)
+  show "?P 0" by (simp add: power_eq_if)
 
-  fix n;
-  have "?S (n + 1) = ?S n + #4 * (n + 1)^#3";
-    by (simp add: power_eq_if distrib);
-  also; assume "?S n = (n * (n + 1))^2";
-  also; have "... + #4 * (n + 1)^#3 = ((n + 1) * ((n + 1) + 1))^2";
-    by (simp add: power_eq_if distrib);
-  finally; show "?P (Suc n)"; by simp;
-qed;
+  fix n
+  have "?S (n + 1) = ?S n + #4 * (n + 1)^#3"
+    by (simp add: power_eq_if distrib)
+  also assume "?S n = (n * (n + 1))^2"
+  also have "... + #4 * (n + 1)^#3 = ((n + 1) * ((n + 1) + 1))^2"
+    by (simp add: power_eq_if distrib)
+  finally show "?P (Suc n)" by simp
+qed
 
 text {*
  Comparing these examples with the tactic script version
@@ -180,6 +180,6 @@ text {*
  such as $\idt{simp}$ or $\idt{auto}$ should normally be never used as
  initial proof methods, but only as terminal ones, solving certain
  goals completely.
-*};
+*}
 
-end;
+end

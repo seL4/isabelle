@@ -3,14 +3,14 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Cantor's Theorem *};
+header {* Cantor's Theorem *}
 
-theory Cantor = Main:;
+theory Cantor = Main:
 
 text_raw {*
  \footnote{This is an Isar version of the final example of the
  Isabelle/HOL manual \cite{isabelle-HOL}.}
-*};
+*}
 
 text {*
  Cantor's Theorem states that every set has more subsets than it has
@@ -28,33 +28,33 @@ text {*
   
  \bigskip We first consider a slightly awkward version of the proof,
  with the innermost reasoning expressed quite naively.
-*};
+*}
 
-theorem "EX S. S ~: range (f :: 'a => 'a set)";
-proof;
-  let ?S = "{x. x ~: f x}";
-  show "?S ~: range f";
-  proof;
-    assume "?S : range f";
-    thus False;
-    proof;
-      fix y; 
-      assume "?S = f y";
-      thus ?thesis;
-      proof (rule equalityCE);
-        assume in_S: "y : ?S";
-        assume in_fy: "y : f y";
-        from in_S; have notin_fy: "y ~: f y"; ..;
-        from notin_fy in_fy; show ?thesis; by contradiction;
-      next;
-        assume notin_S: "y ~: ?S";
-        assume notin_fy: "y ~: f y";
-        from notin_S; have in_fy: "y : f y"; ..;
-        from notin_fy in_fy; show ?thesis; by contradiction;
-      qed;
-    qed;
-  qed;
-qed;
+theorem "EX S. S ~: range (f :: 'a => 'a set)"
+proof
+  let ?S = "{x. x ~: f x}"
+  show "?S ~: range f"
+  proof
+    assume "?S : range f"
+    thus False
+    proof
+      fix y 
+      assume "?S = f y"
+      thus ?thesis
+      proof (rule equalityCE)
+        assume in_S: "y : ?S"
+        assume in_fy: "y : f y"
+        from in_S have notin_fy: "y ~: f y" ..
+        from notin_fy in_fy show ?thesis by contradiction
+      next
+        assume notin_S: "y ~: ?S"
+        assume notin_fy: "y ~: f y"
+        from notin_S have in_fy: "y : f y" ..
+        from notin_fy in_fy show ?thesis by contradiction
+      qed
+    qed
+  qed
+qed
 
 text {*
  The following version of the proof essentially does the same
@@ -67,31 +67,31 @@ text {*
  basic logical structure has to be left intact, though.  In
  particular, assumptions ``belonging'' to some goal have to be
  introduced \emph{before} its corresponding \isacommand{show}.}
-*};
+*}
 
-theorem "EX S. S ~: range (f :: 'a => 'a set)";
-proof;
-  let ?S = "{x. x ~: f x}";
-  show "?S ~: range f";
-  proof;
-    assume "?S : range f";
-    thus False;
-    proof;
-      fix y; 
-      assume "?S = f y";
-      thus ?thesis;
-      proof (rule equalityCE);
-        assume "y : f y";
-        assume "y : ?S"; hence "y ~: f y"; ..;
-        thus ?thesis; by contradiction;
-      next;
-        assume "y ~: f y";
-        assume "y ~: ?S"; hence "y : f y"; ..;
-        thus ?thesis; by contradiction;
-      qed;
-    qed;
-  qed;
-qed;
+theorem "EX S. S ~: range (f :: 'a => 'a set)"
+proof
+  let ?S = "{x. x ~: f x}"
+  show "?S ~: range f"
+  proof
+    assume "?S : range f"
+    thus False
+    proof
+      fix y 
+      assume "?S = f y"
+      thus ?thesis
+      proof (rule equalityCE)
+        assume "y : f y"
+        assume "y : ?S" hence "y ~: f y" ..
+        thus ?thesis by contradiction
+      next
+        assume "y ~: f y"
+        assume "y ~: ?S" hence "y : f y" ..
+        thus ?thesis by contradiction
+      qed
+    qed
+  qed
+qed
 
 text {*
  How much creativity is required?  As it happens, Isabelle can prove
@@ -100,10 +100,10 @@ text {*
  through the large search space.  The context of Isabelle's classical
  prover contains rules for the relevant constructs of HOL's set
  theory.
-*};
+*}
 
-theorem "EX S. S ~: range (f :: 'a => 'a set)";
-  by best;
+theorem "EX S. S ~: range (f :: 'a => 'a set)"
+  by best
 
 text {*
  While this establishes the same theorem internally, we do not get any
@@ -111,6 +111,6 @@ text {*
  transform internal system-level representations of Isabelle proofs
  back into Isar text.  Writing intelligible proof documents
  really is a creative process, after all.
-*};
+*}
 
-end;
+end

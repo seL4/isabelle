@@ -3,9 +3,9 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-header {* Peirce's Law *};
+header {* Peirce's Law *}
 
-theory Peirce = Main:;
+theory Peirce = Main:
 
 text {*
  We consider Peirce's Law: $((A \impl B) \impl A) \impl A$.  This is
@@ -17,22 +17,22 @@ text {*
  the negated goal may be introduced as additional assumption.  This
  eventually leads to a contradiction.\footnote{The rule involved there
  is negation elimination; it holds in intuitionistic logic as well.}
-*};
+*}
 
-theorem "((A --> B) --> A) --> A";
-proof;
-  assume aba: "(A --> B) --> A";
-  show A;
-  proof (rule classical);
-    assume "~ A";
-    have "A --> B";
-    proof;
-      assume A;
-      thus B; by contradiction;
-    qed;
-    with aba; show A; ..;
-  qed;
-qed;
+theorem "((A --> B) --> A) --> A"
+proof
+  assume aba: "(A --> B) --> A"
+  show A
+  proof (rule classical)
+    assume "~ A"
+    have "A --> B"
+    proof
+      assume A
+      thus B by contradiction
+    qed
+    with aba show A ..
+  qed
+qed
 
 text {*
  In the subsequent version the reasoning is rearranged by means of
@@ -48,24 +48,24 @@ text {*
  give rise to new subgoals, which may be established separately.  In
  contrast, strong assumptions (as introduced by \isacommand{assume})
  are solved immediately.
-*};
+*}
 
-theorem "((A --> B) --> A) --> A";
-proof;
-  assume aba: "(A --> B) --> A";
-  show A;
-  proof (rule classical);
-    presume "A --> B";
-    with aba; show A; ..;
-  next;
-    assume "~ A";
-    show "A --> B";
-    proof;
-      assume A;
-      thus B; by contradiction;
-    qed;
-  qed;
-qed;
+theorem "((A --> B) --> A) --> A"
+proof
+  assume aba: "(A --> B) --> A"
+  show A
+  proof (rule classical)
+    presume "A --> B"
+    with aba show A ..
+  next
+    assume "~ A"
+    show "A --> B"
+    proof
+      assume A
+      thus B by contradiction
+    qed
+  qed
+qed
 
 text {*
  Note that the goals stemming from weak assumptions may be even left
@@ -84,6 +84,6 @@ text {*
  assumptions these may be still solved in any order in a predictable
  way, while weak ones would quickly lead to great confusion,
  eventually demanding even some backtracking.
-*};
+*}
 
-end;
+end

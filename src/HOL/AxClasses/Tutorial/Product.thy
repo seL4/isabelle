@@ -3,16 +3,16 @@
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-theory Product = Main:;
+theory Product = Main:
 
 axclass
-  product < "term";
+  product < "term"
 consts
-  product :: "'a::product => 'a => 'a"    (infixl "[*]" 70);
+  product :: "'a::product => 'a => 'a"    (infixl "[*]" 70)
 
-instance bool :: product;
-  by intro_classes;
+instance bool :: product
+  by intro_classes
 defs (overloaded)
-  product_bool_def: "x [*] y == x & y";
+  product_bool_def: "x [*] y == x & y"
 
-end;
+end
