@@ -53,13 +53,15 @@ local
     val dnames = map fst dtnvs;
     val num = length dnames;
     val comp_dname = implode (separate "_" dnames);
-    val conss' = map (fn (dname,cons'') =>
-      let
-	fun sel n m = upd_second (fn None   => dname^"_sel_"^(string_of_int n)^
-							 "_"^(string_of_int m)
-				  |  Some s => s)
-	fun fill_sels n con = upd_third (mapn (sel n) 1) con;
-      in mapn fill_sels 1 cons'' end) (dnames~~(map snd eqs''));
+    val conss' = ListPair.map 
+	(fn (dname,cons'') =>
+	  let fun sel n m = upd_second 
+			      (fn None   => dname^"_sel_"^(string_of_int n)^
+						 "_"^(string_of_int m)
+				| Some s => s)
+	      fun fill_sels n con = upd_third (mapn (sel n) 1) con;
+	  in mapn fill_sels 1 cons'' end)
+	(dnames, map #2 eqs'');
     val eqs' = dtnvs~~conss';
 
 (* ----- string for calling add_domain -------------------------------------- *)

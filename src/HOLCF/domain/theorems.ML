@@ -275,9 +275,10 @@ val distincts_le = let
                       @map(case_UU_tac (con_stricts @ dis_rews)1)(nonlazy args2)
                       @[asm_simp_tac (HOLCF_ss addsimps dis_rews) 1]);
     fun distinct (con1,args1) (con2,args2) =
-        let val arg1 = (con1, args1);
-            val arg2 = (con2, (map (fn (arg,vn) => upd_vname (K vn) arg)
-                        (args2~~variantlist(map vname args2,map vname args1))));
+        let val arg1 = (con1, args1)
+            val arg2 = (con2,
+			ListPair.map (fn (arg,vn) => upd_vname (K vn) arg)
+                        (args2, variantlist(map vname args2,map vname args1)))
         in [dist arg1 arg2, dist arg2 arg1] end;
     fun distincts []      = []
     |   distincts (c::cs) = (map (distinct c) cs) :: distincts cs;
@@ -291,8 +292,9 @@ val dists_eq = let
         if nonlazy args2 = [] then [eq2, eq2 RS not_sym] else
                                         [eq1, eq2] end;
     fun distincts []      = []
-    |   distincts ((c,leqs)::cs) = flat(map (distinct c) ((map fst cs)~~leqs)) @
-                                   distincts cs;
+    |   distincts ((c,leqs)::cs) = List_.concat
+	            (ListPair.map (distinct c) ((map #1 cs),leqs)) @
+		    distincts cs;
     in distincts (cons~~distincts_le) end;
 
 local 
@@ -302,7 +304,8 @@ local
                 in pg [] (mk_trp (rel(con_app con largs,con_app con rargs)) ===>
                       lift_defined % ((nonlazy largs),lift_defined % ((nonlazy rargs),
                             mk_trp (foldr' mk_conj 
-                                (map rel (map %# largs ~~ map %# rargs)))))) end;
+                                (ListPair.map rel
+				 (map %# largs, map %# rargs)))))) end;
   val cons' = filter (fn (_,args) => args<>[]) cons;
 in
 val inverts = map (fn (con,args) => 
