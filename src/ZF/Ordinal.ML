@@ -436,6 +436,7 @@ goal Ordinal.thy "!!i j. [| Ord(i);  Ord(j) |] ==> ~ i le j <-> j<i";
 by (asm_simp_tac (ZF_ss addsimps [not_lt_iff_le RS iff_sym]) 1);
 qed "not_le_iff_lt";
 
+(*This is identical to 0<succ(i) *)
 goal Ordinal.thy "!!i. Ord(i) ==> 0 le i";
 by (etac (not_lt_iff_le RS iffD1) 1);
 by (REPEAT (resolve_tac [Ord_0, not_lt0] 1));

@@ -459,6 +459,9 @@ qed "invertible_imp_bijective";
 
 (** Unions of functions -- cf similar theorems on func.ML **)
 
+(*For proof of analogous theorem for injections, see 
+   AC/Cardinal_aux/Un_lepoll_Un*)
+
 goalw Perm.thy [surj_def]
     "!!f g. [| f: surj(A,B);  g: surj(C,D);  A Int C = 0 |] ==> \
 \           (f Un g) : surj(A Un C, B Un D)";

@@ -74,10 +74,11 @@ by (nat_ind_tac "n" prems 1);
 by (REPEAT (ares_tac [Ord_0, Ord_succ] 1));
 qed "nat_into_Ord";
 
-(* i: nat ==> 0 le i *)
-val nat_0_le = nat_into_Ord RS Ord_0_le;
+(* i: nat ==> 0 le i; same thing as 0<succ(i)  *)
+bind_thm ("nat_0_le", nat_into_Ord RS Ord_0_le);
 
-val nat_le_refl = nat_into_Ord RS le_refl;
+(* i: nat ==> i le i; same thing as i<succ(i)  *)
+bind_thm ("nat_le_refl", nat_into_Ord RS le_refl);
 
 goal Nat.thy "Ord(nat)";
 by (rtac OrdI 1);
