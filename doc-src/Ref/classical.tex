@@ -266,20 +266,53 @@ operations) for simulating the classical sequent calculus.
 
 \subsection{The automatic tactics}
 \begin{ttbox} 
-fast_tac : claset -> int -> tactic
-best_tac : claset -> int -> tactic
+fast_tac      : claset -> int -> tactic
+best_tac      : claset -> int -> tactic
+slow_tac      : claset -> int -> tactic
+slow_best_tac : claset -> int -> tactic
 \end{ttbox}
-Both of these tactics work by applying {\tt step_tac} repeatedly.  Their
-effect is restricted (by {\tt SELECT_GOAL}) to one subgoal; they either
-solve this subgoal or fail.
+These tactics work by applying {\tt step_tac} or {\tt slow_step_tac}
+repeatedly.  Their effect is restricted (by {\tt SELECT_GOAL}) to one subgoal;
+they either solve this subgoal or fail.  The {\tt slow_} versions are more
+powerful but can be much slower.  
+
+The best-first tactics are guided by a heuristic function: typically, the
+total size of the proof state.  This function is supplied in the functor call
+that sets up the classical reasoner.
 \begin{ttdescription}
 \item[\ttindexbold{fast_tac} $cs$ $i$] applies {\tt step_tac} using
 depth-first search, to solve subgoal~$i$.
 
 \item[\ttindexbold{best_tac} $cs$ $i$] applies {\tt step_tac} using
-best-first search, to solve subgoal~$i$.  A heuristic function ---
-typically, the total size of the proof state --- guides the search.  This
-function is supplied when the classical reasoner is set up.
+best-first search, to solve subgoal~$i$.
+
+\item[\ttindexbold{slow_tac} $cs$ $i$] applies {\tt slow_step_tac} using
+depth-first search, to solve subgoal~$i$.
+
+\item[\ttindexbold{slow_best_tac} $cs$ $i$] applies {\tt slow_step_tac} using
+best-first search, to solve subgoal~$i$.
+\end{ttdescription}
+
+
+\subsection{Depth-limited tactics}
+\begin{ttbox} 
+depth_tac  : claset -> int -> int -> tactic
+deepen_tac : claset -> int -> int -> tactic
+\end{ttbox}
+These work by exhaustive search up to a specified depth.  Unsafe rules are
+modified to preserve the formula they act on, so that it be used repeatedly.
+They can prove more goals than {\tt fast_tac}, etc., can.  They are much
+slower, for example if the assumptions have many universal quantifiers.
+
+The depth limits the number of unsafe steps.  If you can estimate the minimum
+number of unsafe steps needed, supply this value as~$m$ to save time.
+\begin{ttdescription}
+\item[\ttindexbold{depth_tac} $cs$ $m$ $i$] 
+tries to solve subgoal~$i$ by exhaustive search up to depth~$m$.
+
+\item[\ttindexbold{deepen_tac} $cs$ $m$ $i$] 
+tries to solve subgoal~$i$ by iterative deepening.  It calls {\tt depth_tac}
+repeatedly with increasing depths, starting with~$m$.
 \end{ttdescription}
 
 
@@ -313,9 +346,7 @@ This is the basic step of the proof procedure.
 \item[\ttindexbold{slow_step_tac}] 
   resembles {\tt step_tac}, but allows backtracking between using safe
   rules with instantiation ({\tt inst_step_tac}) and using unsafe rules.
-  The resulting search space is too large for use in the standard proof
-  procedures, but {\tt slow_step_tac} is worth considering in special
-  situations.
+  The resulting search space is larger.
 \end{ttdescription}
 
 
