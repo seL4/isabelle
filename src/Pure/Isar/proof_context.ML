@@ -1029,7 +1029,7 @@ fun pretty_cases (ctxt as Context {cases, ...}) =
   let
     val prt_term = Sign.pretty_term (sign_of ctxt);
     fun prt_let (xi, t) = Pretty.block
-      [prt_term (Var (xi, Term.fastype_of t)), Pretty.str " =", Pretty.brk 1,
+      [Pretty.quote (prt_term (Var (xi, Term.fastype_of t))), Pretty.str " =", Pretty.brk 1,
         Pretty.quote (prt_term t)];
 
     fun prt_sect _ _ _ [] = []
