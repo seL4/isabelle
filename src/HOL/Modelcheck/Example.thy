@@ -4,7 +4,7 @@
     Copyright   1997  TU Muenchen
 *)
 
-Example = MCSyn + 
+Example = CTL + MCSyn + 
 
 
 types

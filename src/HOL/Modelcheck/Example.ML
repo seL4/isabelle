@@ -18,7 +18,11 @@ setmp print_mode ["Eindhoven"] pr ();
 
 (* by (mc_tac 1); *)
 
-(*qed "reach_ex_thm1";*)
+(*qed "reach_ex_thm";*)
 
 
 
+(* just to make a proof in this file :-) *)
+goalw thy [INIT_def] "INIT (a,b,c) = (~a & ~b &~c)";
+by (Simp_tac 1);
+qed"init_state";
