@@ -129,7 +129,7 @@ proof
   also have "?a \<sqsubseteq> f ?a"
   proof
     from ge have "f (f ?a) \<sqsubseteq> f ?a" by (rule mono)
-    thus "f ?a : ?H" ..
+    thus "f ?a \<in> ?H" ..
   qed
   finally show "f ?a = ?a" .
 qed

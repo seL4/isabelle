@@ -272,7 +272,7 @@ fun gen_some_rule_tac tac arg_rules ctxt facts = SUBGOAL (fn (goal, i) =>
   let
     val rules =
       if not (null arg_rules) then arg_rules
-      else flat (ContextRules.find_rules ctxt facts goal)
+      else flat (ContextRules.find_rules false facts goal ctxt)
   in trace ctxt rules; tac rules facts i end);
 
 fun meth tac x = METHOD (HEADGOAL o tac x);

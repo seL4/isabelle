@@ -14,7 +14,8 @@ sig
   val netpair_bang: Proof.context -> netpair
   val netpair: Proof.context -> netpair
   val orderlist: ((int * int) * 'a) list -> 'a list
-  val find_rules: Proof.context -> thm list -> term -> thm list list
+  val find_rules_netpair: bool -> thm list -> term -> netpair -> thm list
+  val find_rules: bool -> thm list -> term -> Proof.context -> thm list list
   val print_global_rules: theory -> unit
   val print_local_rules: Proof.context -> unit
   val addSWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
@@ -166,6 +167,8 @@ val netpair_bang = hd o netpairs;
 val netpair = hd o tl o netpairs;
 
 
+(* retrieving rules *)
+
 fun untaglist [] = []
   | untaglist [(k : int * int, x)] = [x]
   | untaglist ((k, x) :: (rest as (k', x') :: _)) =
@@ -174,15 +177,21 @@ fun untaglist [] = []
 
 fun orderlist brls = untaglist (sort (prod_ord int_ord int_ord o pairself fst) brls);
 fun orderlist_no_weight brls = untaglist (sort (int_ord o pairself (snd o fst)) brls);
-fun may_unify t net = map snd (orderlist_no_weight (Net.unify_term net t));
 
-fun find_erules [] = K []
-  | find_erules (fact :: _) = may_unify (Logic.strip_assums_concl (#prop (Thm.rep_thm fact)));
-fun find_irules goal = may_unify (Logic.strip_assums_concl goal);
+fun may_unify weighted t net =
+  map snd ((if weighted then orderlist else orderlist_no_weight) (Net.unify_term net t));
 
-fun find_rules ctxt facts goal =
-  map (fn (inet, enet) => find_erules facts enet @ find_irules goal inet) (netpairs ctxt);
+fun find_erules _ [] = K []
+  | find_erules w (fact :: _) = may_unify w (Logic.strip_assums_concl (#prop (Thm.rep_thm fact)));
+fun find_irules w goal = may_unify w (Logic.strip_assums_concl goal);
 
+fun find_rules_netpair weighted facts goal (inet, enet) =
+  find_erules weighted facts enet @ find_irules weighted goal inet;
+
+fun find_rules weighted facts goals = map (find_rules_netpair weighted facts goals) o netpairs;
+
+
+(* wrappers *)
 
 fun gen_add_wrapper upd w = GlobalRules.map (fn (rs as Rules {next, rules, netpairs, wrappers}) =>
   make_rules next rules netpairs (upd (fn ws => (w, stamp ()) :: ws) wrappers));

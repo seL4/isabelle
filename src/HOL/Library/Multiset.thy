@@ -1,8 +1,7 @@
 (*  Title:      HOL/Library/Multiset.thy
     ID:         $Id$
-    Author:     Tobias Nipkow, TU Muenchen
-    Author:     Markus Wenzel, TU Muenchen
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Tobias Nipkow, Markus Wenzel, and Lawrence C Paulson
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {*
@@ -482,7 +481,7 @@ proof
   {
     fix M M0 a
     assume M0: "M0 \<in> ?W"
-      and wf_hyp: "\<forall>b. (b, a) \<in> r --> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
+      and wf_hyp: "!!b. (b, a) \<in> r ==> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
       and acc_hyp: "\<forall>M. (M, M0) \<in> ?R --> M + {#a#} \<in> ?W"
     have "M0 + {#a#} \<in> ?W"
     proof (rule accI [of "M0 + {#a#}"])
@@ -538,7 +537,7 @@ proof
     from wf have "\<forall>M \<in> ?W. M + {#a#} \<in> ?W"
     proof induct
       fix a
-      assume "\<forall>b. (b, a) \<in> r --> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
+      assume "!!b. (b, a) \<in> r ==> (\<forall>M \<in> ?W. M + {#b#} \<in> ?W)"
       show "\<forall>M \<in> ?W. M + {#a#} \<in> ?W"
       proof
         fix M assume "M \<in> ?W"
