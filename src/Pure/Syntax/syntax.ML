@@ -353,10 +353,11 @@ fun read_asts (Syntax tabs) xids root str =
     val pts = Parser.parse gram root' (Lexicon.tokenize lexicon xids chars);
 
     fun show_pt pt =
-      warning (Pretty.string_of (Ast.pretty_ast (SynTrans.pt_to_ast (K None) pt)));
+      warning (Symbol.output (Pretty.string_of 
+		(Ast.pretty_ast (SynTrans.pt_to_ast (K None) pt))));
   in
     if length pts > ! ambiguity_level then
-      (warning ("Ambiguous input " ^ quote str);
+      (warning ("Ambiguous input " ^ quote (Symbol.output str));
        warning "produces the following parse trees:";
        seq show_pt pts)
     else ();
@@ -446,13 +447,14 @@ fun prep_rules rd_pat raw_rules =
 
 (** pretty terms, typs, sorts **)
 
+val print_mode = print_mode;
 fun pretty_t t_to_ast prt_t (syn as Syntax tabs) curried t =
   let
     val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
     val ast = t_to_ast (lookup_tr' print_trtab) t;
   in
     prt_t curried prtabs (lookup_tr' print_ast_trtab)
-      (lookup_tokentr tokentrtab (! Printer.print_mode))
+      (lookup_tokentr tokentrtab (! print_mode))
       (Ast.normalize_ast (lookup_ruletab print_ruletab) ast)
   end;
 
