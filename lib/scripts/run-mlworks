@@ -5,9 +5,8 @@
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # MLWorks startup script (for 1.0r2 or later).
-#
-# Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_TMP,
-# and from settings
+
+export -n INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP
 
 
 ## diagnostics

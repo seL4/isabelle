@@ -5,9 +5,8 @@
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # SML/NJ startup script (for 0.93).
-#
-# Global vars: INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_TMP,
-# and from settings
+
+export -n INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP
 
 
 ## diagnostics

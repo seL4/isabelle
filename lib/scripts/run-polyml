@@ -5,9 +5,8 @@
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # Poly/ML startup script.
-#
-# Global vars: INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP,
-# and from settings
+
+export -n INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP
 
 
 ## diagnostics
