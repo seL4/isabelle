@@ -1,6 +1,6 @@
 (*  Title:      HOL/PreList.thy
     ID:         $Id$
-    Author:     Tobias Nipkow
+    Author:     Tobias Nipkow and Markus Wenzel
     Copyright   2000 TU Muenchen
 
 A basis for building theory List on. Is defined separately to serve as a
@@ -19,6 +19,7 @@ declare wf_induct [induct set: wf]
 
 (*belongs to theory Datatype_Universe; hides popular names *)
 hide const Node Atom Leaf Numb Lim Funs Split Case
+hide type node item
 
 
 (* generic summation indexed over nat *)
