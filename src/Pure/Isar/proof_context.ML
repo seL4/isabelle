@@ -1153,5 +1153,4 @@ fun pretty_context (ctxt as Context {asms = (_, (fixes, _)), cases,
 
 val setup = [ProofDataData.init];
 
-
 end;
