@@ -84,7 +84,7 @@ text{*
 
 
 lemma "(n - 1) * (n + 1) = n * n - (1::nat)"
-apply (clarsimp split: nat_diff_split)
+apply (clarsimp split: nat_diff_split iff del: less_Suc0)
  --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (subgoal_tac "n=0", force, arith)
 done
