@@ -83,7 +83,9 @@ fun string_of_mixfix NoSyn = ""
   | string_of_mixfix (InfixrName (sy, p)) = parens (spaces ["infixl", quote sy, string_of_int p])
   | string_of_mixfix (Infix p) = parens (spaces ["infix", string_of_int p])
   | string_of_mixfix (Infixl p) = parens (spaces ["infixl", string_of_int p])
-  | string_of_mixfix (Infixr p) = parens (spaces ["infixr", string_of_int p]);
+  | string_of_mixfix (Infixr p) = parens (spaces ["infixr", string_of_int p])
+  | string_of_mixfix (Binder (sy, p1, p2)) =
+      parens (spaces ["binder", brackets (string_of_int p1), string_of_int p2]);
 
 
 (* type / const names *)
