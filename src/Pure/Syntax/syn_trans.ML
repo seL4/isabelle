@@ -302,6 +302,17 @@ fun impl_ast_tr' (*"==>"*) asts =
     | _ => raise Match);
 
 
+(* meta conjunction *)
+
+fun meta_conjunction_tr' (*"all"*)
+      [Abs (_, _, Const ("==>", _) $
+        (Const ("==>", _) $ A $ (Const ("==>", _) $ B $ (Const ("_aprop", _) $ Bound 0))) $
+        (Const ("_aprop", _) $ Bound 0))] =
+      if 0 mem_int Term.loose_bnos A orelse 0 mem_int Term.loose_bnos B then raise Match
+      else Lexicon.const "_meta_conjunction" $ A $ B
+  | meta_conjunction_tr' (*"all"*) ts = raise Match;
+
+
 (* type reflection *)
 
 fun type_tr' show_sorts (*"TYPE"*) (Type ("itself", [T])) ts =
@@ -354,7 +365,7 @@ val pure_trfuns =
    ("_indexvar", indexvar_ast_tr)],
   [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
    ("_TYPE", type_tr), ("_DDDOT", dddot_tr), ("_K", k_tr)],
-  []: (string * (term list -> term)) list,
+  [("all", meta_conjunction_tr')],
   [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
    ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr')]);
 
