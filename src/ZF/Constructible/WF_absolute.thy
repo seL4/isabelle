@@ -303,8 +303,7 @@ apply (rule strong_replacement_closed)
  apply (rule univalent_is_recfun)
    apply (blast intro: wellfounded_trancl)
   apply (rule trans_trancl)
- apply (simp add: trancl_subset_times)
-apply blast
+ apply (simp add: trancl_subset_times, blast)
 done
 
 lemma (in M_recursion) Ord_wfrank_range [rule_format]:
@@ -312,9 +311,8 @@ lemma (in M_recursion) Ord_wfrank_range [rule_format]:
      ==> \<forall>f. M(f) --> is_recfun(r^+, a, %x f. range(f), f) --> Ord(range(f))"
 apply (drule wellfounded_trancl, assumption)
 apply (rule wellfounded_induct, assumption+)
-  apply (simp add:);
- apply (blast intro: Ord_wfrank_separation);
-apply (clarify)
+  apply simp
+ apply (blast intro: Ord_wfrank_separation, clarify)
 txt{*The reasoning in both cases is that we get @{term y} such that
    @{term "\<langle>y, x\<rangle> \<in> r^+"}.  We find that
    @{term "f`y = restrict(f, r^+ -`` {y})"}. *}
@@ -487,5 +485,143 @@ by (blast intro: wellfounded_imp_wf wf_imp_relativized)
 theorem (in M_recursion) wf_on_abs [simp]:
      "[|relation(r); M(r); M(A)|] ==> wellfounded_on(M,A,r) <-> wf[A](r)"
 by (blast intro: wellfounded_on_imp_wf_on wf_on_imp_relativized)
+
+
+text{*absoluteness for wfrec-defined functions.*}
+
+(*first use is_recfun, then M_is_recfun*)
+
+lemma (in M_trancl) wfrec_relativize:
+  "[|wf(r); M(a); M(r);  
+     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+          pair(M,x,y,z) & 
+          is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), g) & 
+          y = H(x, restrict(g, r -`` {x}))); 
+     \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
+   ==> wfrec(r,a,H) = z <-> 
+       (\<exists>f. M(f) & is_recfun(r^+, a, \<lambda>x f. H(x, restrict(f, r -`` {x})), f) & 
+            z = H(a,restrict(f,r-``{a})))"
+apply (frule wf_trancl) 
+apply (simp add: wftrec_def wfrec_def, safe)
+ apply (frule wf_exists_is_recfun 
+              [of concl: "r^+" a "\<lambda>x f. H(x, restrict(f, r -`` {x}))"]) 
+      apply (simp_all add: trans_trancl function_restrictI trancl_subset_times)
+ apply (clarify, rule_tac x=f in exI) 
+ apply (simp_all add: the_recfun_eq trans_trancl trancl_subset_times)
+done
+
+
+text{*Assuming @{term r} is transitive simplifies the occurrences of @{text H}.
+      The premise @{term "relation(r)"} is necessary 
+      before we can replace @{term "r^+"} by @{term r}. *}
+theorem (in M_trancl) trans_wfrec_relativize:
+  "[|wf(r);  trans(r);  relation(r);  M(r);  M(a);
+     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+                pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+     \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
+   ==> wfrec(r,a,H) = z <-> (\<exists>f. M(f) & is_recfun(r,a,H,f) & z = H(a,f))" 
+by (simp cong: is_recfun_cong
+         add: wfrec_relativize trancl_eq_r
+               is_recfun_restrict_idem domain_restrict_idem)
+
+
+lemma (in M_trancl) trans_eq_pair_wfrec_iff:
+  "[|wf(r);  trans(r); relation(r); M(r);  M(y); 
+     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+                pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+     \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
+   ==> y = <x, wfrec(r, x, H)> <-> 
+       (\<exists>f. M(f) & is_recfun(r,x,H,f) & y = <x, H(x,f)>)"
+apply safe  
+ apply (simp add: trans_wfrec_relativize [THEN iff_sym]) 
+txt{*converse direction*}
+apply (rule sym)
+apply (simp add: trans_wfrec_relativize, blast) 
+done
+
+
+subsection{*M is closed under well-founded recursion*}
+
+text{*Lemma with the awkward premise mentioning @{text wfrec}.*}
+lemma (in M_recursion) wfrec_closed_lemma [rule_format]:
+     "[|wf(r); M(r); 
+        strong_replacement(M, \<lambda>x y. y = \<langle>x, wfrec(r, x, H)\<rangle>);
+        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
+      ==> M(a) --> M(wfrec(r,a,H))"
+apply (rule_tac a=a in wf_induct, assumption+)
+apply (subst wfrec, assumption, clarify)
+apply (drule_tac x1=x and x="\<lambda>x\<in>r -`` {x}. wfrec(r, x, H)" 
+       in rspec [THEN rspec]) 
+apply (simp_all add: function_lam) 
+apply (blast intro: dest: pair_components_in_M ) 
+done
+
+text{*Eliminates one instance of replacement.*}
+lemma (in M_recursion) wfrec_replacement_iff:
+     "strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+                pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)) <->
+      strong_replacement(M, 
+           \<lambda>x y. \<exists>f. M(f) & is_recfun(r,x,H,f) & y = <x, H(x,f)>)"
+apply simp 
+apply (rule strong_replacement_cong, blast) 
+done
+
+text{*Useful version for transitive relations*}
+theorem (in M_recursion) trans_wfrec_closed:
+     "[|wf(r); trans(r); relation(r); M(r); M(a);
+        strong_replacement(M, 
+             \<lambda>x z. \<exists>y g. M(y) & M(g) &
+                    pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
+        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
+      ==> M(wfrec(r,a,H))"
+apply (frule wfrec_replacement_iff [THEN iffD1]) 
+apply (rule wfrec_closed_lemma, assumption+) 
+apply (simp_all add: wfrec_replacement_iff trans_eq_pair_wfrec_iff) 
+done
+
+section{*Absoluteness without assuming transitivity*}
+lemma (in M_trancl) eq_pair_wfrec_iff:
+  "[|wf(r);  M(r);  M(y); 
+     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+          pair(M,x,y,z) & 
+          is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), g) & 
+          y = H(x, restrict(g, r -`` {x}))); 
+     \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
+   ==> y = <x, wfrec(r, x, H)> <-> 
+       (\<exists>f. M(f) & is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), f) & 
+            y = <x, H(x,restrict(f,r-``{x}))>)"
+apply safe  
+ apply (simp add: wfrec_relativize [THEN iff_sym]) 
+txt{*converse direction*}
+apply (rule sym)
+apply (simp add: wfrec_relativize, blast) 
+done
+
+lemma (in M_recursion) wfrec_closed_lemma [rule_format]:
+     "[|wf(r); M(r); 
+        strong_replacement(M, \<lambda>x y. y = \<langle>x, wfrec(r, x, H)\<rangle>);
+        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
+      ==> M(a) --> M(wfrec(r,a,H))"
+apply (rule_tac a=a in wf_induct, assumption+)
+apply (subst wfrec, assumption, clarify)
+apply (drule_tac x1=x and x="\<lambda>x\<in>r -`` {x}. wfrec(r, x, H)" 
+       in rspec [THEN rspec]) 
+apply (simp_all add: function_lam) 
+apply (blast intro: dest: pair_components_in_M ) 
+done
+
+text{*Full version not assuming transitivity, but maybe not very useful.*}
+theorem (in M_recursion) wfrec_closed:
+     "[|wf(r); M(r); M(a);
+     strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
+          pair(M,x,y,z) & 
+          is_recfun(r^+, x, \<lambda>x f. H(x, restrict(f, r -`` {x})), g) & 
+          y = H(x, restrict(g, r -`` {x}))); 
+        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
+      ==> M(wfrec(r,a,H))"
+apply (frule wfrec_replacement_iff [THEN iffD1]) 
+apply (rule wfrec_closed_lemma, assumption+) 
+apply (simp_all add: eq_pair_wfrec_iff) 
+done
 
 end

@@ -1,7 +1,7 @@
 theory WFrec = Wellorderings:
 
 
-(*FIXME: could move these to WF.thy*)
+(*Many of these might be useful in WF.thy*)
 
 lemma is_recfunI:
      "f = (lam x: r-``{a}. H(x, restrict(f, r-``{x}))) ==> is_recfun(r,a,H,f)"
@@ -37,16 +37,40 @@ apply (frule apply_recfun)
 apply (simp add: function_apply_equality [OF _ is_recfun_imp_function])
 done
 
-(*????GET RID OF [simp]*)
-lemma trans_Int_eq [simp]:
-      "[| trans(r); <y,x> \<in> r |] 
-       ==> r -`` {y} \<inter> r -`` {x} = r -`` {y}"
+lemma trans_Int_eq:
+      "[| trans(r); <y,x> \<in> r |] ==> r -`` {x} \<inter> r -`` {y} = r -`` {y}"
 by (blast intro: transD) 
 
-lemma trans_Int_eq2 [simp]:
-      "[| trans(r); <y,x> \<in> r |] 
-       ==> r -`` {x} \<inter> r -`` {y} = r -`` {y}"
-by (blast intro: transD) 
+lemma is_recfun_restrict_idem:
+     "is_recfun(r,a,H,f) ==> restrict(f, r -`` {a}) = f"
+apply (drule is_recfun_type)
+apply (auto simp add: Pi_iff subset_Sigma_imp_relation restrict_idem)  
+done
+
+lemma is_recfun_cong_lemma:
+  "[| is_recfun(r,a,H,f); r = r'; a = a'; f = f'; 
+      !!x g. [| <x,a'> \<in> r'; relation(g); domain(g) <= r' -``{x} |] 
+             ==> H(x,g) = H'(x,g) |]
+   ==> is_recfun(r',a',H',f')"
+apply (simp add: is_recfun_def) 
+apply (erule trans) 
+apply (rule lam_cong) 
+apply (simp_all add: vimage_singleton_iff Int_lower2)  
+done
+
+text{*For @{text is_recfun} we need only pay attention to functions
+      whose domains are initial segments of @{term r}.*}
+lemma is_recfun_cong:
+  "[| r = r'; a = a'; f = f'; 
+      !!x g. [| <x,a'> \<in> r'; relation(g); domain(g) <= r' -``{x} |] 
+             ==> H(x,g) = H'(x,g) |]
+   ==> is_recfun(r,a,H,f) <-> is_recfun(r',a',H',f')"
+apply (rule iffI)
+txt{*Messy: fast and blast don't work for some reason*}
+apply (erule is_recfun_cong_lemma, auto) 
+apply (erule is_recfun_cong_lemma)
+apply (blast intro: sym)+
+done
 
 
 text{*Stated using @{term "trans(r)"} rather than
@@ -64,12 +88,11 @@ lemma (in M_axioms) is_recfun_equal [rule_format]:
 apply (frule_tac f="f" in is_recfun_type) 
 apply (frule_tac f="g" in is_recfun_type) 
 apply (simp add: is_recfun_def)
-apply (erule_tac a=x in wellfounded_induct) 
-apply assumption+
+apply (erule_tac a=x in wellfounded_induct, assumption+)
 txt{*Separation to justify the induction*}
  apply (force intro: is_recfun_separation)
 txt{*Now the inductive argument itself*}
-apply (clarify ); 
+apply clarify 
 apply (erule ssubst)+
 apply (simp (no_asm_simp) add: vimage_singleton_iff restrict_def)
 apply (rename_tac x1)
@@ -100,29 +123,28 @@ lemma (in M_axioms) is_recfun_functional:
 apply (rule fun_extension)
 apply (erule is_recfun_type)+
 apply (blast intro!: is_recfun_equal dest: transM) 
-done
+done 
 
 text{*Tells us that is_recfun can (in principle) be relativized.*}
 lemma (in M_axioms) is_recfun_relativize:
-  "[| M(r); M(f); \<forall>x g. M(x) & M(g) & function(g) --> M(H(x,g)) |] 
+  "[| M(r); M(f); \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
    ==> is_recfun(r,a,H,f) <->
-       (\<forall>z. z \<in> f <-> (\<exists>x y. M(x) & M(y) & z=<x,y> & <x,a> \<in> r & 
-                              y = H(x, restrict(f, r-``{x}))))";
-apply (simp add: is_recfun_def vimage_closed restrict_closed lam_def)
+       (\<forall>z[M]. z \<in> f <-> 
+        (\<exists>x[M]. <x,a> \<in> r & z = <x, H(x, restrict(f, r-``{x}))>))";
+apply (simp add: is_recfun_def lam_def)
 apply (safe intro!: equalityI) 
-  apply (drule equalityD1 [THEN subsetD], assumption) 
-  apply clarify 
-  apply (rule_tac x=x in exI) 
-  apply (blast dest: pair_components_in_M) 
- apply (blast elim!: equalityE dest: pair_components_in_M)
+   apply (drule equalityD1 [THEN subsetD], assumption) 
+   apply (blast dest: pair_components_in_M) 
+  apply (blast elim!: equalityE dest: pair_components_in_M)
+ apply (frule transM, assumption, rotate_tac -1) 
  apply simp  
  apply blast
- apply simp 
-apply (subgoal_tac "function(f)")  
- prefer 2
- apply (simp add: function_def) 
+apply (subgoal_tac "is_function(M,f)")
+ txt{*We use @{term "is_function"} rather than @{term "function"} because
+      the subgoal's easier to prove with relativized quantifiers!*}
+ prefer 2 apply (simp add: is_function_def) 
 apply (frule pair_components_in_M, assumption) 
-  apply (simp add: is_recfun_imp_function function_restrictI) 
+apply (simp add: is_recfun_imp_function function_restrictI) 
 done
 
 (* ideas for further weaking the H-closure premise:
@@ -142,10 +164,11 @@ prefer 4;apply blast
 lemma (in M_axioms) is_recfun_restrict:
      "[| wellfounded(M,r); trans(r); is_recfun(r,x,H,f); \<langle>y,x\<rangle> \<in> r; 
        M(r); M(f); 
-       \<forall>x g. M(x) & M(g) & function(g) --> M(H(x,g)) |]
+       \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |]
        ==> is_recfun(r, y, H, restrict(f, r -`` {y}))"
 apply (frule pair_components_in_M, assumption, clarify) 
-apply (simp (no_asm_simp) add: is_recfun_relativize restrict_iff)
+apply (simp (no_asm_simp) add: is_recfun_relativize restrict_iff
+           trans_Int_eq)
 apply safe
   apply (simp_all add: vimage_singleton_iff is_recfun_type [THEN apply_iff]) 
   apply (frule_tac x=xa in pair_components_in_M, assumption)
@@ -157,7 +180,7 @@ done
  
 lemma (in M_axioms) restrict_Y_lemma:
    "[| wellfounded(M,r); trans(r); M(r);
-       \<forall>x g. M(x) \<and> M(g) & function(g) --> M(H(x,g));  M(Y);
+       \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));  M(Y);
        \<forall>b. M(b) -->
 	   b \<in> Y <->
 	   (\<exists>x\<in>r -`` {a1}.
@@ -167,6 +190,7 @@ lemma (in M_axioms) restrict_Y_lemma:
        ==> restrict(Y, r -`` {x}) = f"
 apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y <-> <y,z>:f") 
  apply (simp (no_asm_simp) add: restrict_def) 
+ apply (thin_tac "rall(M,?P)")+  --{*essential for efficiency*}
  apply (thin_tac "All(?P)")+  --{*essential for efficiency*}
  apply (frule is_recfun_type [THEN fun_is_rel], blast)
 apply (frule pair_components_in_M, assumption, clarify) 
@@ -201,7 +225,7 @@ lemma (in M_axioms) exists_is_recfun_indstep:
        wellfounded(M,r); trans(r); M(r); M(a1);
        strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
                    pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
-       \<forall>x g. M(x) & M(g) & function(g) --> M(H(x,g))|]   
+       \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|]   
       ==> \<exists>f. M(f) & is_recfun(r,a1,H,f)"
 apply (drule_tac A="r-``{a1}" in strong_replacementD)
   apply blast 
@@ -210,23 +234,16 @@ apply (drule_tac A="r-``{a1}" in strong_replacementD)
 txt{*Show that the constructed object satisfies @{text is_recfun}*} 
 apply clarify 
 apply (rule_tac x=Y in exI)  
-apply (simp (no_asm_simp) add: is_recfun_relativize) 
-(*Tried using is_recfun_iff2 here.  Much more simplification takes place
-  because an assumption can kick in.  Not sure how to relate the new 
-  proof state to the current one.*)
-apply safe
- txt{*Show that elements of @{term Y} are in the right relationship.*}
- apply (frule_tac x=z and P="%b. M(b) --> ?Q(b)" in spec)
- apply (erule impE, blast intro: transM)
- txt{*We have an element of  @{term Y}, so we have x, y, z*} 
- apply (frule_tac y=z in transM, assumption, clarify)
- apply (simp add: restrict_Y_lemma [of r H]) 
+txt{*Unfold only the top-level occurrence of @{term is_recfun}*}
+apply (simp (no_asm_simp) add: is_recfun_relativize [of concl: _ a1])
+txt{*The big iff-formula defininng @{term Y} is now redundant*}
+apply safe 
+ apply (simp add: vimage_singleton_iff restrict_Y_lemma [of r H]) 
 txt{*one more case*}
-apply (simp)
-apply (rule_tac x=x in bexI) 
- prefer 2 apply blast 
+apply (simp (no_asm_simp) add: Bex_def vimage_singleton_iff)
+apply (rename_tac x) 
+apply (rule_tac x=x in exI, simp) 
 apply (rule_tac x="H(x, restrict(Y, r -`` {x}))" in exI) 
-apply (simp)
 apply (drule_tac x1=x in spec [THEN mp], assumption, clarify) 
 apply (rule_tac x=f in exI) 
 apply (simp add: restrict_Y_lemma [of r H]) 
@@ -240,7 +257,7 @@ lemma (in M_axioms) wellfounded_exists_is_recfun:
        strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
                    pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
        M(r);  M(a);  
-       \<forall>x g. M(x) & M(g) & function(g) --> M(H(x,g)) |]   
+       \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |]   
       ==> \<exists>f. M(f) & is_recfun(r,a,H,f)"
 apply (rule wellfounded_induct, assumption+, clarify)
 apply (rule exists_is_recfun_indstep, assumption+)
@@ -251,7 +268,7 @@ lemma (in M_axioms) wf_exists_is_recfun [rule_format]:
        strong_replacement(M, \<lambda>x z. \<exists>y g. M(y) & M(g) &
                    pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
         M(r);  
-       \<forall>x g. M(x) & M(g) & function(g) --> M(H(x,g)) |]   
+       \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |]   
       ==> M(a) --> (\<exists>f. M(f) & is_recfun(r,a,H,f))"
 apply (rule wf_induct, assumption+)
 apply (frule wf_imp_relativized)
@@ -261,24 +278,21 @@ apply (rule exists_is_recfun_indstep)
 done
 
 constdefs
-   M_is_recfun :: "[i=>o, i, i, [i=>o,i,i,i]=>o, i] => o"
-     "M_is_recfun(M,r,a,MH,f) == 
-      \<forall>z. M(z) -->
-          (z \<in> f <-> 
-           (\<exists>x y xa sx r_sx f_r_sx. 
-              M(x) & M(y) & M(xa) & M(sx) & M(r_sx) & M(f_r_sx) &
-	      pair(M,x,y,z) & pair(M,x,a,xa) & upair(M,x,x,sx) &
-              pre_image(M,r,sx,r_sx) & restriction(M,f,r_sx,f_r_sx) &
-              xa \<in> r & MH(M, x, f_r_sx, y)))"
+ M_is_recfun :: "[i=>o, i, i, [i=>o,i,i,i]=>o, i] => o"
+   "M_is_recfun(M,r,a,MH,f) == 
+     \<forall>z[M]. z \<in> f <-> 
+            (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M]. 
+	       pair(M,x,y,z) & pair(M,x,a,xa) & upair(M,x,x,sx) &
+               pre_image(M,r,sx,r_sx) & restriction(M,f,r_sx,f_r_sx) &
+               xa \<in> r & MH(M, x, f_r_sx, y))"
 
 lemma (in M_axioms) is_recfun_iff_M:
-     "[| M(r); M(a); M(f); \<forall>x g. M(x) & M(g) & function(g) --> M(H(x,g));
+     "[| M(r); M(a); M(f); \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));
        \<forall>x g y. M(x) --> M(g) --> M(y) --> MH(M,x,g,y) <-> y = H(x,g) |] ==>
        is_recfun(r,a,H,f) <-> M_is_recfun(M,r,a,MH,f)"
-apply (simp add: vimage_closed restrict_closed M_is_recfun_def is_recfun_relativize)
-apply (rule all_cong, safe)
- apply (thin_tac "\<forall>x. ?P(x)")+
- apply (blast dest: transM)  (*or del: allE*)
+apply (simp add: M_is_recfun_def is_recfun_relativize)
+apply (rule rall_cong)
+apply (blast dest: transM)
 done
 
 lemma M_is_recfun_cong [cong]:
@@ -379,7 +393,7 @@ lemma (in M_recursion) exists_oadd:
     "[| Ord(j);  M(i);  M(j) |]
      ==> \<exists>f. M(f) & is_recfun(Memrel(succ(j)), j, %x g. i Un g``x, f)"
 apply (rule wf_exists_is_recfun [OF wf_Memrel trans_Memrel])
-    apply (simp add: ); 
+    apply simp 
    apply (blast intro: oadd_strong_replacement') 
   apply (simp_all add: Memrel_type Memrel_closed Un_closed image_closed)
 done
@@ -491,7 +505,7 @@ lemma (in M_recursion) exists_omult:
     "[| Ord(j);  M(i);  M(j) |]
      ==> \<exists>f. M(f) & is_recfun(Memrel(succ(j)), j, %x g. THE z. omult_eqns(i,x,g,z), f)"
 apply (rule wf_exists_is_recfun [OF wf_Memrel trans_Memrel])
-    apply (simp add: );
+    apply simp
    apply (blast intro: omult_strong_replacement') 
   apply (simp_all add: Memrel_type Memrel_closed Un_closed image_closed)
 apply (blast intro: the_omult_eqns_closed) 

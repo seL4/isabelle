@@ -6,7 +6,7 @@ subsection{* Relativized versions of standard set-theoretic concepts *}
 
 constdefs
   empty :: "[i=>o,i] => o"
-    "empty(M,z) == \<forall>x. M(x) --> x \<notin> z"
+    "empty(M,z) == \<forall>x[M]. x \<notin> z"
 
   subset :: "[i=>o,i,i] => o"
     "subset(M,A,B) == \<forall>x\<in>A. M(x) --> x \<in> B"
@@ -15,42 +15,42 @@ constdefs
     "upair(M,a,b,z) == a \<in> z & b \<in> z & (\<forall>x\<in>z. M(x) --> x = a | x = b)"
 
   pair :: "[i=>o,i,i,i] => o"
-    "pair(M,a,b,z) == \<exists>x. M(x) & upair(M,a,a,x) & 
-                          (\<exists>y. M(y) & upair(M,a,b,y) & upair(M,x,y,z))"
+    "pair(M,a,b,z) == \<exists>x[M]. upair(M,a,a,x) & 
+                          (\<exists>y[M]. upair(M,a,b,y) & upair(M,x,y,z))"
 
   union :: "[i=>o,i,i,i] => o"
-    "union(M,a,b,z) == \<forall>x. M(x) --> (x \<in> z <-> x \<in> a | x \<in> b)"
+    "union(M,a,b,z) == \<forall>x[M]. x \<in> z <-> x \<in> a | x \<in> b"
 
   successor :: "[i=>o,i,i] => o"
-    "successor(M,a,z) == \<exists>x. M(x) & upair(M,a,a,x) & union(M,x,a,z)"
+    "successor(M,a,z) == \<exists>x[M]. upair(M,a,a,x) & union(M,x,a,z)"
 
   powerset :: "[i=>o,i,i] => o"
-    "powerset(M,A,z) == \<forall>x. M(x) --> (x \<in> z <-> subset(M,x,A))"
+    "powerset(M,A,z) == \<forall>x[M]. x \<in> z <-> subset(M,x,A)"
 
   inter :: "[i=>o,i,i,i] => o"
-    "inter(M,a,b,z) == \<forall>x. M(x) --> (x \<in> z <-> x \<in> a & x \<in> b)"
+    "inter(M,a,b,z) == \<forall>x[M]. x \<in> z <-> x \<in> a & x \<in> b"
 
   setdiff :: "[i=>o,i,i,i] => o"
-    "setdiff(M,a,b,z) == \<forall>x. M(x) --> (x \<in> z <-> x \<in> a & x \<notin> b)"
+    "setdiff(M,a,b,z) == \<forall>x[M]. x \<in> z <-> x \<in> a & x \<notin> b"
 
   big_union :: "[i=>o,i,i] => o"
-    "big_union(M,A,z) == \<forall>x. M(x) --> (x \<in> z <-> (\<exists>y\<in>A. M(y) & x \<in> y))"
+    "big_union(M,A,z) == \<forall>x[M]. x \<in> z <-> (\<exists>y\<in>A. M(y) & x \<in> y)"
 
   big_inter :: "[i=>o,i,i] => o"
     "big_inter(M,A,z) == 
              (A=0 --> z=0) &
-	     (A\<noteq>0 --> (\<forall>x. M(x) --> (x \<in> z <-> (\<forall>y\<in>A. M(y) --> x \<in> y))))"
+	     (A\<noteq>0 --> (\<forall>x[M]. x \<in> z <-> (\<forall>y\<in>A. M(y) --> x \<in> y)))"
 
   cartprod :: "[i=>o,i,i,i] => o"
     "cartprod(M,A,B,z) == 
-	\<forall>u. M(u) --> (u \<in> z <-> (\<exists>x\<in>A. M(x) & (\<exists>y\<in>B. M(y) & pair(M,x,y,u))))"
+	\<forall>u[M]. u \<in> z <-> (\<exists>x\<in>A. M(x) & (\<exists>y\<in>B. M(y) & pair(M,x,y,u)))"
 
   is_converse :: "[i=>o,i,i] => o"
     "is_converse(M,r,z) == 
 	\<forall>x. M(x) --> 
             (x \<in> z <-> 
              (\<exists>w\<in>r. M(w) & 
-              (\<exists>u v. M(u) & M(v) & pair(M,u,v,w) & pair(M,v,u,x))))"
+              (\<exists>u[M]. \<exists>v[M]. pair(M,u,v,w) & pair(M,v,u,x))))"
 
   pre_image :: "[i=>o,i,i,i] => o"
     "pre_image(M,r,A,z) == 
@@ -224,17 +224,17 @@ lemma univ0_Bex_abs [simp]:
 by (blast intro: univ0_downwards_mem) 
 
 text{*Congruence rule for separation: can assume the variable is in @{text M}*}
-lemma [cong]:
+lemma separation_cong [cong]:
      "(!!x. M(x) ==> P(x) <-> P'(x)) ==> separation(M,P) <-> separation(M,P')"
 by (simp add: separation_def) 
 
 text{*Congruence rules for replacement*}
-lemma [cong]:
+lemma univalent_cong [cong]:
      "[| A=A'; !!x y. [| x\<in>A; M(x); M(y) |] ==> P(x,y) <-> P'(x,y) |] 
       ==> univalent(M,A,P) <-> univalent(M,A',P')"
 by (simp add: univalent_def) 
 
-lemma [cong]:
+lemma strong_replacement_cong [cong]:
      "[| !!x y. [| M(x); M(y) |] ==> P(x,y) <-> P'(x,y) |] 
       ==> strong_replacement(M,P) <-> strong_replacement(M,P')" 
 by (simp add: strong_replacement_def) 
@@ -398,8 +398,8 @@ locale M_axioms =
      "[| M(A); M(r) |] 
       ==> separation(M, \<lambda>x. \<exists>p\<in>r. M(p) & (\<exists>y\<in>A. M(x) & pair(M,x,y,p)))"
   and converse_separation:
-     "M(r) ==> separation(M, \<lambda>z. \<exists>p\<in>r. M(p) & (\<exists>x y. M(x) & M(y) & 
-				     pair(M,x,y,p) & pair(M,y,x,z)))"
+     "M(r) ==> separation(M, \<lambda>z. \<exists>p\<in>r. 
+                    M(p) & (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,p) & pair(M,y,x,z)))"
   and restrict_separation:
      "M(A) 
       ==> separation(M, \<lambda>z. \<exists>x\<in>A. M(x) & (\<exists>y. M(y) & pair(M,x,y,z)))"
@@ -507,7 +507,7 @@ lemma (in M_axioms) cartprod_abs [simp]:
      "[| M(A); M(B); M(z) |] ==> cartprod(M,A,B,z) <-> z = A*B"
 apply (simp add: cartprod_def)
 apply (rule iffI) 
-apply (blast intro!: equalityI intro: transM dest!: spec) 
+ apply (blast intro!: equalityI intro: transM dest!: rspec) 
 apply (blast dest: transM) 
 done
 
@@ -616,15 +616,6 @@ lemma (in M_axioms) lam_closed [intro,simp]:
       ==> M(\<lambda>x\<in>A. b(x))"
 by (simp add: lam_def, blast dest: transM) 
 
-lemma (in M_axioms) converse_abs [simp]: 
-     "[| M(r); M(z) |] ==> is_converse(M,r,z) <-> z = converse(r)"
-apply (simp add: is_converse_def)
-apply (rule iffI)
- apply (rule equalityI) 
-  apply (blast dest: transM) 
- apply (clarify, frule transM, assumption, simp, blast) 
-done
-
 lemma (in M_axioms) image_abs [simp]: 
      "[| M(r); M(A); M(z) |] ==> image(M,r,A,z) <-> z = r``A"
 apply (simp add: image_def)
@@ -648,11 +639,14 @@ apply (blast dest: transM)
 done
 
 lemma (in M_axioms) cartprod_iff_lemma:
-     "[| M(C); \<forall>u. M(u) --> u \<in> C <-> (\<exists>x\<in>A. \<exists>y\<in>B. u = {{x}, {x,y}}); 
-       powerset(M, A \<union> B, p1); powerset(M, p1, p2); M(p2) |]
+     "[| M(C);  \<forall>u[M]. u \<in> C <-> (\<exists>x\<in>A. \<exists>y\<in>B. u = {{x}, {x,y}}); 
+         powerset(M, A \<union> B, p1); powerset(M, p1, p2);  M(p2) |]
        ==> C = {u \<in> p2 . \<exists>x\<in>A. \<exists>y\<in>B. u = {{x}, {x,y}}}"
 apply (simp add: powerset_def) 
-apply (rule equalityI, clarify, simp) 
+apply (rule equalityI, clarify, simp)
+
+ apply (frule transM, assumption) 
+
  apply (frule transM, assumption, simp) 
  apply blast 
 apply clarify
@@ -751,14 +745,23 @@ by (simp add: domain_closed range_closed Un_closed field_def)
 lemma (in M_axioms) M_converse_iff:
      "M(r) ==> 
       converse(r) = 
-      {z \<in> range(r) * domain(r). 
-        \<exists>p\<in>r. \<exists>x. M(x) & (\<exists>y. M(y) & p = \<langle>x,y\<rangle> & z = \<langle>y,x\<rangle>)}"
+      {z \<in> range(r) * domain(r). \<exists>p\<in>r. \<exists>x[M]. \<exists>y[M]. p = \<langle>x,y\<rangle> & z = \<langle>y,x\<rangle>}"
 by (blast dest: transM)
 
 lemma (in M_axioms) converse_closed [intro,simp]: 
      "M(r) ==> M(converse(r))"
 apply (simp add: M_converse_iff)
 apply (insert converse_separation [of r], simp)
+done
+
+lemma (in M_axioms) converse_abs [simp]: 
+     "[| M(r); M(z) |] ==> is_converse(M,r,z) <-> z = converse(r)"
+apply (simp add: is_converse_def)
+apply (rule iffI)
+ prefer 2 apply (blast intro: elim:); 
+apply (rule M_equalityI)
+  apply (simp add: )
+  apply (blast dest: transM)+
 done
 
 lemma (in M_axioms) relation_abs [simp]: 
