@@ -69,7 +69,7 @@ qed_goalw "refl_less_cprod" Cprod1.thy [less_cprod_def] "less_cprod(p,p)"
 	[
 	(res_inst_tac [("p","p")] PairE 1),
 	(hyp_subst_tac 1),
-	(simp_tac pair_ss 1),
+	(simp_tac prod_ss 1),
 	(simp_tac Cfun_ss 1)
 	]);
 
@@ -105,7 +105,7 @@ qed_goal "trans_less_cprod" Cprod1.thy
 	(dtac less_cprod2c 1),
 	(dtac less_cprod2c 1),
 	(rtac (less_cprod1b RS ssubst) 1),
-	(simp_tac pair_ss 1),
+	(simp_tac prod_ss 1),
 	(etac conjE 1),
 	(etac conjE 1),
 	(rtac conjI 1),

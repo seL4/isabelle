@@ -16,7 +16,7 @@ qed_goal "less_cprod3a" Cprod2.thy
 	(rtac (inst_cprod_po RS ssubst) 1),
 	(rtac (less_cprod1b RS ssubst) 1),
 	(hyp_subst_tac 1),
-	(asm_simp_tac pair_ss  1),
+	(asm_simp_tac prod_ss  1),
 	(rtac conjI 1),
 	(rtac minimal 1),
 	(rtac minimal 1)
@@ -80,7 +80,7 @@ qed_goalw "monofun_pair1" Cprod2.thy [monofun] "monofun(Pair)"
 	(rtac (less_fun RS iffD2) 1),
 	(strip_tac 1),
 	(rtac (less_cprod3b RS iffD2) 1),
-	(simp_tac pair_ss 1),
+	(simp_tac prod_ss 1),
 	(asm_simp_tac Cfun_ss 1)
 	]);
 
@@ -89,7 +89,7 @@ qed_goalw "monofun_pair2" Cprod2.thy [monofun] "monofun(Pair(x))"
 	[
 	(strip_tac 1),
 	(rtac (less_cprod3b RS iffD2) 1),
-	(simp_tac pair_ss 1),
+	(simp_tac prod_ss 1),
 	(asm_simp_tac Cfun_ss 1)
 	]);
 
@@ -118,7 +118,7 @@ qed_goalw "monofun_fst" Cprod2.thy [monofun] "monofun(fst)"
 	(hyp_subst_tac 1),
 	(res_inst_tac [("p","y")] PairE 1),
 	(hyp_subst_tac 1),
-	(asm_simp_tac pair_ss  1),
+	(asm_simp_tac prod_ss  1),
 	(etac (less_cprod4c RS conjunct1) 1)
 	]);
 
@@ -130,7 +130,7 @@ qed_goalw "monofun_snd" Cprod2.thy [monofun] "monofun(snd)"
 	(hyp_subst_tac 1),
 	(res_inst_tac [("p","y")] PairE 1),
 	(hyp_subst_tac 1),
-	(asm_simp_tac pair_ss  1),
+	(asm_simp_tac prod_ss  1),
 	(etac (less_cprod4c RS conjunct2) 1)
 	]);
 
