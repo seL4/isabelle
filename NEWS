@@ -9,6 +9,10 @@ New in Isabelle???? (DATE ????)
 
 * removed obsolete init_pps and init_database;
 
+* defs may now be conditional;
+
+* improved output of warnings / errors;
+
 
 New in Isabelle94-8 (May 1997)
 ------------------------------
