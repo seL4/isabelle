@@ -1,0 +1,26 @@
+#!/bin/bash
+#
+# $Id$
+
+find . \( -name \*.ML -o -name \*.sml -o -name \*.sig \) -print | \
+  etags \
+    --language=none \
+    --regex='/[ \t]*structure +\([A-Za-z_0-9]+\)/\1/' \
+    --regex='/[ \t]*functor +\([A-Za-z_0-9]+\)/\1/' \
+    --regex='/[ \t]*signature +\([A-Za-z_0-9]+\)/\1/' \
+    --regex='/[ \t]*fun +\([A-Za-z_0-9]+\)/\1/' \
+    --regex='/[ \t]*val +\([A-Za-z_0-9]+\)/\1/' \
+    --regex='/[ \t]*and +\([A-Za-z_0-9]+\)/\1/' \
+    --regex='/[ \t]*exception +\([A-Za-z_0-9]+\)/\1/' \
+    --regex='/[ \t]*type +\([A-Za-z_0-9]+\)/\1/' \
+    --regex='/[ \t]*datatype +\([A-Za-z_0-9]+\)/\1/' \
+    --regex='/[ \t]*= +\([A-Z_]+\)/\1/' \
+    --regex='/[ \t]*| +\([A-Z_]+\)/\1/' \
+    -
+
+find . -type f -print | \
+  fgrep -v .ML | \
+  fgrep -v .sml | \
+  fgrep -v .sig | \
+  fgrep -v TAGS | \
+  etags --language=none --append -
