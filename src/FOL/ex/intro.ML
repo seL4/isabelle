@@ -12,9 +12,11 @@ To generate similar output to manual, execute these commands:
 *)
 
 
+context FOL.thy;
+
 (**** Some simple backward proofs ****)
 
-goal FOL.thy "P|P --> P";
+Goal "P|P --> P";
 by (rtac impI 1);
 by (rtac disjE 1);
 by (assume_tac 3);
@@ -22,7 +24,7 @@ by (assume_tac 2);
 by (assume_tac 1);
 qed "mythm";
 
-goal FOL.thy "(P & Q) | R  --> (P | R)";
+Goal "(P & Q) | R  --> (P | R)";
 by (rtac impI 1);
 by (etac disjE 1);
 by (dtac conjunct1 1);
@@ -32,7 +34,7 @@ by (REPEAT (assume_tac 1));
 result();
 
 (*Correct version, delaying use of "spec" until last*)
-goal FOL.thy "(ALL x y. P(x,y))  -->  (ALL z w. P(w,z))";
+Goal "(ALL x y. P(x,y))  -->  (ALL z w. P(w,z))";
 by (rtac impI 1);
 by (rtac allI 1);
 by (rtac allI 1);
@@ -44,12 +46,12 @@ result();
 
 (**** Demonstration of Fast_tac ****)
 
-goal FOL.thy "(EX y. ALL x. J(y,x) <-> ~J(x,x))  \
+Goal "(EX y. ALL x. J(y,x) <-> ~J(x,x))  \
 \       -->  ~ (ALL x. EX y. ALL z. J(z,y) <-> ~ J(z,x))";
 by (Fast_tac 1);
 result();
 
-goal FOL.thy "ALL x. P(x,f(x)) <-> \
+Goal "ALL x. P(x,f(x)) <-> \
 \       (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))";
 by (Fast_tac 1);
 result();
@@ -57,7 +59,7 @@ result();
 
 (**** Derivation of conjunction elimination rule ****)
 
-val [major,minor] = goal FOL.thy "[| P&Q;  [| P; Q |] ==> R |] ==> R";
+val [major,minor] = Goal "[| P&Q;  [| P; Q |] ==> R |] ==> R";
 by (rtac minor 1);
 by (resolve_tac [major RS conjunct1] 1);
 by (resolve_tac [major RS conjunct2] 1);
@@ -69,7 +71,7 @@ result();
 
 (** Derivation of negation introduction **)
 
-val prems = goal FOL.thy "(P ==> False) ==> ~P";
+val prems = Goal "(P ==> False) ==> ~P";
 by (rewtac not_def);
 by (rtac impI 1);
 by (resolve_tac prems 1);
@@ -83,7 +85,7 @@ by (resolve_tac [rewrite_rule [not_def] major] 1);
 by (rtac minor 1);
 result();
 
-(*Alternative proof of above result*)
+(*Alternative proof of the result above*)
 val [major,minor] = goalw FOL.thy [not_def]
     "[| ~P;  P |] ==> R";
 by (resolve_tac [minor RS (major RS mp RS FalseE)] 1);

@@ -58,8 +58,9 @@ by (res_inst_tac [("n","m")] induct 1);
 by (ALLGOALS (Asm_simp_tac));
 qed "add_Suc_right";
 
-val prems = goal Nat.thy "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
+(*Example used in Reference Manual, Doc/Ref/simplifier.tex*)
+val [prem] = Goal "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i+j) = i+f(j)";
 by (res_inst_tac [("n","i")] induct 1);
 by (Simp_tac 1);
-by (asm_simp_tac (simpset() addsimps prems) 1);
+by (asm_simp_tac (simpset() addsimps [prem]) 1);
 result();
