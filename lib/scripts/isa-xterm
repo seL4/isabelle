@@ -17,6 +17,7 @@ function usage()
   echo "  Options are:"
   echo "    -g GEOM      main window geometry (default 80x60)"
   echo "    -h MODE      highlight mode, may be false, bold (default), color"
+  echo "    -m MODE      pass print mode"
   echo "    -p TEXT      pass text (options etc.) to isabelle session"
   echo "    -s BOOL      symbolic font output? (default true)"
   echo "    -x PRG       executable program (default xterm)"
@@ -41,13 +42,14 @@ function fail()
 MAINGEOM="80x60"
 HILITE=bold
 PASS=""
+PASS_MODE=""
 SYMBOLS="true"
 XTERM="xterm"
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "g:h:p:s:x:" OPT
+  while getopts "g:h:m:p:s:x:" OPT
   do
     case "$OPT" in
       g)
@@ -55,6 +57,9 @@ function getoptions()
         ;;
       h)
         HILITE="$OPTARG"
+        ;;
+      m)
+        PASS_MODE="$PASS_MODE -m $OPTARG"
         ;;
       p)
         PASS="$PASS $OPTARG"
@@ -87,6 +92,8 @@ elif [ "$HILITE" = color ]; then
 elif [ -n "$HILITE" -a "$HILITE" != false ]; then
   echo "WARNING: unknown highlight mode '$HILITE'" >&2
 fi
+
+PASS="$PASS_MODE $PASS"
 
 if [ -z "$SYMBOLS" -o "$SYMBOLS" = false ]; then
   exec $XTERM -T Isabelle -n Isabelle -geometry "$MAINGEOM" -e $ISABELLE $PASS "$@"
