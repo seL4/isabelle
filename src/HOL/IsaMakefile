@@ -7,6 +7,7 @@
 ## targets
 
 default: HOL
+generate: HOL-Complex-Generate-HOL
 images: HOL HOL-Algebra HOL-Complex TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library)
