@@ -17,17 +17,17 @@ text {* locations, i.e.\ abstract references to objects *}
 typedecl loc 
 
 datatype val
-  = Null        (* null reference *)
-  | Addr loc    (* address, i.e. location of object *)
+  = Null        --{* null reference *}
+  | Addr loc    --{* address, i.e. location of object *}
 
 types	fields
-	= "(vnam \<leadsto> val)"
+	= "(fname \<leadsto> val)"
 
         obj = "cname \<times> fields"
 
 translations
 
-  "fields" \<leftharpoondown> (type)"vnam \<Rightarrow> val option"
+  "fields" \<leftharpoondown> (type)"fname => val option"
   "obj"    \<leftharpoondown> (type)"cname \<times> fields"
 
 constdefs
@@ -67,35 +67,33 @@ constdefs
   get_local     :: "state => vname => val" ("_<_>" [99,0] 99)
  "get_local s x  \<equiv> the (locals s x)"
 
-(* local function: *)
+--{* local function: *}
   get_obj       :: "state => loc => obj"
  "get_obj s a \<equiv> the (heap s a)"
 
   obj_class     :: "state => loc => cname"
  "obj_class s a \<equiv> fst (get_obj s a)"
 
-  get_field     :: "state => loc => vnam => val"
+  get_field     :: "state => loc => fname => val"
  "get_field s a f \<equiv> the (snd (get_obj s a) f)"
 
-constdefs
-
-(* local function: *)
-  hupd       :: "loc \<Rightarrow> obj \<Rightarrow> state \<Rightarrow> state"   ("hupd'(_|->_')" [10,10] 1000)
+--{* local function: *}
+  hupd       :: "loc => obj => state => state"   ("hupd'(_|->_')" [10,10] 1000)
  "hupd a obj s \<equiv> s (| heap   := ((heap   s)(a\<mapsto>obj))|)"
 
-  lupd       :: "vname \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state" ("lupd'(_|->_')" [10,10] 1000)
+  lupd       :: "vname => val => state => state" ("lupd'(_|->_')" [10,10] 1000)
  "lupd x v s   \<equiv> s (| locals := ((locals s)(x\<mapsto>v  ))|)"
 
 syntax (xsymbols)
-  hupd       :: "loc \<Rightarrow> obj \<Rightarrow> state \<Rightarrow> state"   ("hupd'(_\<mapsto>_')" [10,10] 1000)
-  lupd       :: "vname \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state" ("lupd'(_\<mapsto>_')" [10,10] 1000)
+  hupd       :: "loc => obj => state => state"   ("hupd'(_\<mapsto>_')" [10,10] 1000)
+  lupd       :: "vname => val => state => state" ("lupd'(_\<mapsto>_')" [10,10] 1000)
 
 constdefs
 
-  new_obj    :: "loc \<Rightarrow> cname \<Rightarrow> state \<Rightarrow> state"
+  new_obj    :: "loc => cname => state => state"
  "new_obj a C   \<equiv> hupd(a\<mapsto>(C,init_vars (field C)))"
 
-  upd_obj    :: "loc \<Rightarrow> vnam \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state"
+  upd_obj    :: "loc => fname => val => state => state"
  "upd_obj a f v s \<equiv> let (C,fs) = the (heap s a) in hupd(a\<mapsto>(C,fs(f\<mapsto>v))) s"
 
   new_Addr	:: "state => val"

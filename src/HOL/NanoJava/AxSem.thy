@@ -38,7 +38,7 @@ syntax
 translations "A |\<turnstile> C"        \<rightleftharpoons> "(A,C) \<in> hoare"
              "A  \<turnstile> {P}c{Q}"  \<rightleftharpoons> "A |\<turnstile> {(P,c,Q)}"
              "A |\<turnstile>\<^sub>e t"       \<rightleftharpoons> "(A,t) \<in> ehoare"
-             "A |\<turnstile>\<^sub>e (P,e,Q)" \<rightleftharpoons> "(A,P,e,Q) \<in> ehoare" (** shouldn't be necess.**)
+             "A |\<turnstile>\<^sub>e (P,e,Q)" \<rightleftharpoons> "(A,P,e,Q) \<in> ehoare" (* shouldn't be necessary *)
              "A  \<turnstile>\<^sub>e {P}e{Q}" \<rightleftharpoons> "A |\<turnstile>\<^sub>e (P,e,Q)"
 
 
@@ -77,7 +77,7 @@ intros
 
   Call: "[| A |-e {P} e1 {Q}; \<forall>a. A |-e {Q a} e2 {R a};
     \<forall>a p l. A |- {\<lambda>s'. \<exists>s. R a p s \<and> l = s \<and> 
-                    s' = lupd(This\<mapsto>a)(lupd(Param\<mapsto>p)(reset_locs s))}
+                    s' = lupd(This\<mapsto>a)(lupd(Par\<mapsto>p)(reset_locs s))}
                   Meth (C,m) {\<lambda>s. S (s<Res>) (set_locs l s)} |] ==>
              A |-e {P} {C}e1..m(e2) {S}"
 
@@ -86,13 +86,13 @@ intros
                   Impl (D,m) {Q} ==>
              A |- {P} Meth (C,m) {Q}"
 
-  (*\<Union>z instead of \<forall>z in the conclusion and
-      z restricted to type state due to limitations of the inductive package *)
+  --{*\<Union>z instead of \<forall>z in the conclusion and
+      z restricted to type state due to limitations of the inductive package *}
   Impl: "\<forall>z::state. A\<union> (\<Union>z. (\<lambda>Cm. (P z Cm, Impl Cm, Q z Cm))`Ms) ||- 
                             (\<lambda>Cm. (P z Cm, body Cm, Q z Cm))`Ms ==>
                       A ||- (\<lambda>Cm. (P z Cm, Impl Cm, Q z Cm))`Ms"
 
-(* structural rules *)
+--{* structural rules *}
 
   Asm:  "   a \<in> A ==> A ||- {a}"
 
@@ -104,7 +104,7 @@ intros
              \<forall>s t. (\<forall>z. P' z s --> Q' z t) --> (P s --> Q t) |] ==>
             A |- {P} c {Q }"
 
-  (* z restricted to type state due to limitations of the inductive package *)
+  --{* z restricted to type state due to limitations of the inductive package *}
  eConseq:"[| \<forall>z::state. A |-e {P' z} c {Q' z};
              \<forall>s v t. (\<forall>z. P' z s --> Q' z v t) --> (P s --> Q v t) |] ==>
             A |-e {P} c {Q }"

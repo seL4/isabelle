@@ -54,7 +54,7 @@ inductive exec eval intros
             s -Cast C e>v-n-> s'"
 
   Call: "[| s0 -e1>a-n-> s1; s1 -e2>p-n-> s2; 
-            lupd(This\<mapsto>a)(lupd(Param\<mapsto>p)(reset_locs s2)) -Meth (C,m)-n-> s3
+            lupd(This\<mapsto>a)(lupd(Par\<mapsto>p)(reset_locs s2)) -Meth (C,m)-n-> s3
      |] ==> s0 -{C}e1..m(e2)>s3<Res>-n-> set_locs s2 s3"
 
   Meth: "[| s<This> = Addr a; D = obj_class s a; D\<preceq>C C;

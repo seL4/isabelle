@@ -9,34 +9,37 @@ header "Types, class Declarations, and whole programs"
 theory Decl = Term:
 
 datatype ty
-  = NT           (* null type  *)
-  | Class cname  (* class type *)
+  = NT           --{* null type  *}
+  | Class cname  --{* class type *}
 
-types	fdecl		(* field declaration *)
-	= "vnam \<times> ty"
+text{* field declaration *}
+types	fdecl		
+	= "fname \<times> ty"
 
-record  methd		(* method declaration *)
+record  methd		
 	= par :: ty 
           res :: ty 
           lcl ::"(vname \<times> ty) list"
           bdy :: stmt
 
-types	mdecl    	(* method declaration *)
+text{* method declaration *}
+types	mdecl
         = "mname \<times> methd"
 
-record	class		(* class *)
+record	class
 	= super   :: cname
           fields  ::"fdecl list"
           methods ::"mdecl list"
 
-types	cdecl		(* class declaration *)
+text{* class declaration *}
+types	cdecl
 	= "cname \<times> class"
 
 types   prog
         = "cdecl list"
 
 translations
-  "fdecl" \<leftharpoondown> (type)"vname \<times> ty"
+  "fdecl" \<leftharpoondown> (type)"fname \<times> ty"
   "mdecl" \<leftharpoondown> (type)"mname \<times> ty \<times> ty \<times> stmt"
   "class" \<leftharpoondown> (type)"cname \<times> fdecl list \<times> mdecl list"
   "cdecl" \<leftharpoondown> (type)"cname \<times> class"
@@ -44,8 +47,8 @@ translations
 
 consts
 
-  Prog    :: prog	(* program as a global value *)
-  Object  :: cname	(* name of root class *)
+  Prog    :: prog	--{* program as a global value *}
+  Object  :: cname	--{* name of root class *}
 
 
 constdefs

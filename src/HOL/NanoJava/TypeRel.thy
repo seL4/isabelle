@@ -9,8 +9,8 @@ header "Type relations"
 theory TypeRel = Decl:
 
 consts
-  widen   :: "(ty    \<times> ty   ) set"  (* widening *)
-  subcls1 :: "(cname \<times> cname) set"  (* subclass *)
+  widen   :: "(ty    \<times> ty   ) set"  --{* widening *}
+  subcls1 :: "(cname \<times> cname) set"  --{* subclass *}
 
 syntax (xsymbols)
   widen   :: "[ty   , ty   ] => bool" ("_ \<preceq> _"    [71,71] 70)
@@ -28,17 +28,17 @@ translations
 
 consts
   method :: "cname => (mname \<leadsto> methd)"
-  field  :: "cname => (vnam  \<leadsto> ty)"
+  field  :: "cname => (fname \<leadsto> ty)"
 
 
 text {* The rest of this theory is not actually used. *}
 
+text{* direct subclass relation *}
 defs
-  (* direct subclass relation *)
  subcls1_def: "subcls1 \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c. class C = Some c \<and> super c=D)}"
-  
-inductive widen intros (*widening, viz. method invocation conversion,
-			           i.e. sort of syntactic subtyping *)
+
+text{* widening, viz. method invocation conversion *}
+inductive widen intros 
   refl   [intro!, simp]:           "T \<preceq> T"
   subcls         : "C\<preceq>C D \<Longrightarrow> Class C \<preceq> Class D"
   null   [intro!]:                "NT \<preceq> R"
@@ -121,7 +121,7 @@ apply  assumption
 apply simp
 done
 
-(* methods of a class, with inheritance and hiding *)
+--{* methods of a class, with inheritance and hiding *}
 defs method_def: "method C \<equiv> class_rec C methods"
 
 lemma method_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
@@ -132,7 +132,7 @@ apply simp
 done
 
 
-(* fields of a class, with inheritance and hiding *)
+--{* fields of a class, with inheritance and hiding *}
 defs field_def: "field C \<equiv> class_rec C fields"
 
 lemma fields_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
