@@ -15,10 +15,12 @@ inductive "Fin(A)"
     emptyI  "{} : Fin(A)"
     insertI "[| a: A;  b: Fin(A) |] ==> insert a b : Fin(A)"
 
-consts finite :: 'a set => bool
-defs finite_def "finite A == A : Fin(UNIV)"
+constdefs
 
-consts card :: 'a set => nat
-defs card_def "card A == LEAST n. ? f. A = {f i |i. i<n}"
+  finite :: 'a set => bool
+  "finite A == A : Fin(UNIV)"
+
+  card :: 'a set => nat
+  "card A == LEAST n. ? f. A = {f i |i. i<n}"
 
 end
