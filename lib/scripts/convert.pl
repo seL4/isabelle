@@ -48,6 +48,7 @@ sub decl {
 }
 
 sub process_tac {
+  $prefer = "";
   my $lead = shift;
   my $t = shift;
   my $simpmodmod = ($t =~ m/auto_tac|force_tac|clarsimp_tac/) ? "simp " : "";
@@ -61,25 +62,35 @@ sub process_tac {
   s/\(\)([^ ])/\(\) $1/g; # possibly add space after empty tuples
 
   s/Blast_tac 1/blast/g;
+  s/^Blast_tac (\d+)/{$prefer="prefer $1 "; "blast"}/e;
   s/Fast_tac 1/fast/g;
+  s/^Fast_tac (\d+)/{$prefer="prefer $1 "; "fast"}/e;
   s/Slow_tac 1/slow/g;
+  s/^Slow_tac (\d+)/{$prefer="prefer $1 "; "slow"}/e;
   s/Best_tac 1/best/g;
+  s/^Best_tac (\d+)/{$prefer="prefer $1 "; "best"}/e;
   s/Safe_tac/safe/g;
   s/Clarify_tac 1/clarify/g;
 
   s/blast_tac \(claset\(\) (.*?)\) 1/blast $1/g;
+  s/^blast_tac \(claset\(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "blast $1"}/e;
   s/fast_tac \(claset\(\) (.*?)\) 1/fast $1/g;
+  s/^fast_tac \(claset\(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "fast $1"}/e;
   s/slow_tac \(claset\(\) (.*?)\) 1/slow $1/g;
+  s/^slow_tac \(claset\(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "slow $1"}/e;
   s/best_tac \(claset\(\) (.*?)\) 1/best $1/g;
+  s/^best_tac \(claset\(\) (.*?)\) (\d+)/{$prefer="prefer $2 "; "best $1"}/e;
   s/safe_tac \(claset\(\) (.*?)\)/safe $1/g;
   s/clarify_tac \(claset\(\) (.*?)\) 1/clarify $1/g;
 
   s/Auto_tac/auto/g;
   s/Force_tac 1/force/g;
+  s/^Force_tac (\d+)/{$prefer="prefer $1 "; "force"}/e;
   s/Clarsimp_tac 1/clarsimp/g;
 
   s/auto_tac \(claset\(\) (.*?), *simpset\(\) (.*?)\)/auto $1 $2/g;
   s/force_tac \(claset\(\) (.*?), *simpset\(\) (.*?)\) 1/force $1 $2/g;
+  s/^force_tac \(claset\(\) (.*?), *simpset\(\) (.*?)\) (\d+)/{$prefer="prefer $3 "; "force $1 $2"}/e;
   s/clarsimp_tac \(claset\(*\) (.*?), *simpset\(\) (.*?)\) 1/clarsimp $1 $2/g;
 
   s/Asm_full_simp_tac 1/simp/g;
@@ -100,8 +111,8 @@ sub process_tac {
   s/ALLGOALS \(asm_simp_tac \(simpset\(\) (.*?)\)\)/simp_all (no_asm_simp) $1/g;
   s/ALLGOALS \(simp_tac \(simpset\(\) (.*?)\)\)/simp_all (no_asm) $1/g;
 
-  s/a((ssume_)?)tac 1/assumption/g;
-  s/a((ssume_)?)tac (\d+)/tactic \"assume_tac $1\"/g;
+  s/a(ssume_)?tac 1/assumption/g;
+  s/^a(ssume_)?tac (\d+)/{$prefer="prefer $2 "; "assumption"}/e;
   s/\bmp_tac 1/erule (1) notE impE/g;
   s/\bmp_tac (\d+)/erule_tac [$1] notE impE, tactic \"assume_tac $1\"/g;
 
@@ -172,20 +183,23 @@ sub process_tac {
   s/\( /\(/; s/ \)/\)/g;  # remove leading and trailing space inside parentheses
   s/^ *(.*?) *$/$1/s;             # remove enclosing whitespace
   s/^([a-zA-Z])/ $1/ if (!($lead =~ m/[\s\(]$/)); # add space if required
-  $_;
+  $prefer."apply".$lead.$_;
 }
 
-sub thmname { "@@" . ++$thmcount . "@@"; }
+sub lemmaname { 
+  $lemmanames[++$lemmacount] = "??unknown??"; 
+  "@@" . $lemmacount . "@@"; 
+}
 
-sub backpatch_thmnames {
+sub backpatch_lemmanames {
   if($currfile ne "") {
     select(STDOUT);
     close(ARGVOUT);
     open(TMPW, '>'.$finalfile);
     open TMPR,$tmpfile or die "Can't find tmp file $tmp: $!\n";
     while(<TMPR>) {
-      s/@@(\d+)@@/$thmnames[$1]/eg;
-      print TMPW $_;
+      s/@@(\d+)@@/$lemmanames[$1]/eg;
+      print TMPW;
     }
     system("mv $currfile $currfile~0~") if($currfile ne $default);
     system("rm $tmpfile");
@@ -195,18 +209,17 @@ sub backpatch_thmnames {
 sub done {
   my $name = shift;
   my $attr = shift;
-  $thmnames[$thmcount] = $name.$attr;
+  $lemmanames[$lemmacount] = $name.$attr;
   "done";
 }
 
 $currfile = "";
-$next = "nonempty";
 $default = "convert_default_stdout";
 while (<>) { # main loop
   if ($ARGV ne $currfile) {
-    $x=$_; backpatch_thmnames; $_=$x;
+    $x=$_; backpatch_lemmanames; $_=$x;
     $currfile = ($ARGV eq "-" ? $default : $ARGV);
-    $thmcount=0;
+    $lemmacount=0;
     $finalfile = "$currfile.thy";
     $tmpfile   = "$finalfile.~0~";
     open(ARGVOUT, '>'.$tmpfile);
@@ -214,52 +227,53 @@ while (<>) { # main loop
   }
 
  nl:
-  if(!(s/;\s*?(\n?)$/$1/s)) {# no end_of_ML_command marker
-    $next = <>; $_ = $_ . $next;
-    if($next) { goto nl; }
+  if(!s/;(\s*?(\n?$|\(\*))/$1/s && !eof()) {# no end_of_ML_command marker
+    $_ = $_ . <>;
+    goto nl;
   }
   s/\\(\s*\n\s*)\\/ $1 /g; # remove backslashes escaping newlines
  nlc:
   m/^(\s*)(.*?)(\s*)$/s;
   $head=$1; $line=$2; $tail=$3;
   $tail =~ s/\s+\n/\n/sg;  # remove trailing whitespace at end of lines
-  print $head; $_=$2.$tail;
+  print $head; $_=$line.$tail;
   if ($line =~ m/^\(\*/) { # start comment
-    while (($i = index $_,"*)") == -1) { # no end comment
-      print $_;
+    while (($i = index $_,"*)") == -1 && !eof()) { # no end comment
+      print;
       $_ = <>;
     }
+    if ($i == -1) { print; last; } 
     print substr $_,0,$i+2;
     $_ = substr $_,$i+2;
     goto nlc;
   }
   $_=$line;
   s/^Goalw *(\[[\w\'\.\s,]*\]|[\w\'\. \[,\]]+) *(.+)/
-    "lemma ".thmname().": $2$head"."apply (unfold ".thmlist($1).")"/se;
-  s/^Goal *(.+)/"lemma ".thmname().": $1"/se;
-  s/\bgoal/"(*".thmname()."*)goal"/se; # ugly old-style goals
+    "lemma ".lemmaname().": $2$head"."apply (unfold ".thmlist($1).")"/se;
+  s/^Goal *(.+)/"lemma ".lemmaname().": $1"/se;
+  s/\bgoal/"(*".lemmaname()."*)goal"/se; # ugly old-style goals
   s/^qed_spec_mp *\"(.*?)\"/done($1," [rule_format (no_asm)]")/se;
   s/^qed *\"(.*?)\"/done($1,"")/se;
   s/^val *(\w+) *= *result *\( *\) *$/done($1,"")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(result *\( *\) *?) *\) *$/done($1,"")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?result *\( *\).*?) *\) *$/done($1,"[?? $2 ??] ")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?) *\) *$/"lemmas $1 = ".subst_RS_fun($2)/se;
-  s/^by(\s*\(?\s*)(.*?)\s*(\)?)\s*$/"apply".$1.process_tac($1,$2).$3/se;
+  s/^by(\s*\(?\s*)(.*?)\s*(\)?)\s*$/process_tac($1,$2).$3/se;
   s/^(apply +)\( *([\w\'\.]+)\s*\)\s*$/$1$2/;
                              # remove outermost parentheses if around atoms
-  s/^Addsimps\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"simp")/seg;
-  s/^Delsimps\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"simp del")/seg;
-  s/^Addsplits\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"split")/seg;
-  s/^Delsplits\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"split del")/seg;
-  s/^AddIs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"intro")/seg;
-  s/^AddSIs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"intro!")/seg;
-  s/^AddEs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"elim")/seg;
-  s/^AddSEs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"elim!")/seg;
-  s/^AddDs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"dest")/seg;
-  s/^AddSDs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"dest!")/seg;
-  s/^AddIffs\s*\[\s*([\w\'\. \[,\]]*)\s*\]/decl($1,"iff")/seg;
+  s/^Addsimps\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"simp")/seg;
+  s/^Delsimps\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"simp del")/seg;
+  s/^Addsplits\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"split")/seg;
+  s/^Delsplits\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"split del")/seg;
+  s/^AddIs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"intro")/seg;
+  s/^AddSIs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"intro!")/seg;
+  s/^AddEs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"elim")/seg;
+  s/^AddSEs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"elim!")/seg;
+  s/^AddDs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"dest")/seg;
+  s/^AddSDs\s*\[?\s*([\w\'\. ,]*)\s*\]?/decl($1,"dest!")/seg;
+  s/^AddIffs\s*\[?\s*([\w\'\. ,]*)\s*\]?</decl($1,"iff")/seg;
   print "$_$tail";
-  if(!$next) { last; } # prevents reading finally from stdin (thru <>)!
+  if(eof()) { last; } # prevents reading finally from stdin (thru <>)!
 }
-backpatch_thmnames;
+backpatch_lemmanames;
 select(STDOUT);
