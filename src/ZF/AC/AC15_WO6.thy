@@ -40,10 +40,9 @@ done
 lemma cons_times_nat_not_Finite:
      "0\<notin>A ==> \<forall>B \<in> {cons(0,x*nat). x \<in> A}. ~Finite(B)"
 apply clarify 
-apply (drule subset_consI [THEN subset_imp_lepoll, THEN lepoll_Finite])
 apply (rule nat_not_Finite [THEN notE] )
 apply (subgoal_tac "x ~= 0")
-apply (blast intro: lepoll_Sigma [THEN lepoll_Finite], blast) 
+ apply (blast intro: lepoll_Sigma [THEN lepoll_Finite])+
 done
 
 lemma lemma1: "[| Union(C)=A; a \<in> A |] ==> \<exists>B \<in> C. a \<in> B & B \<subseteq> A"

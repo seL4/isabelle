@@ -18,14 +18,14 @@ constdefs
     "pair(M,a,b,z) == \<exists>x. M(x) & upair(M,a,a,x) & 
                           (\<exists>y. M(y) & upair(M,a,b,y) & upair(M,x,y,z))"
 
+  union :: "[i=>o,i,i,i] => o"
+    "union(M,a,b,z) == \<forall>x. M(x) --> (x \<in> z <-> x \<in> a | x \<in> b)"
+
   successor :: "[i=>o,i,i] => o"
     "successor(M,a,z) == \<exists>x. M(x) & upair(M,a,a,x) & union(M,x,a,z)"
 
   powerset :: "[i=>o,i,i] => o"
     "powerset(M,A,z) == \<forall>x. M(x) --> (x \<in> z <-> subset(M,x,A))"
-
-  union :: "[i=>o,i,i,i] => o"
-    "union(M,a,b,z) == \<forall>x. M(x) --> (x \<in> z <-> x \<in> a | x \<in> b)"
 
   inter :: "[i=>o,i,i,i] => o"
     "inter(M,a,b,z) == \<forall>x. M(x) --> (x \<in> z <-> x \<in> a & x \<in> b)"
@@ -72,6 +72,11 @@ constdefs
     "is_range(M,r,z) == 
 	\<forall>y. M(y) --> (y \<in> z <-> (\<exists>w\<in>r. M(w) & (\<exists>x. M(x) & pair(M,x,y,w))))"
 
+  is_field :: "[i=>o,i,i] => o"
+    "is_field(M,r,z) == 
+	\<exists>dr. M(dr) & is_domain(M,r,dr) & 
+            (\<exists>rr. M(rr) & is_range(M,r,rr) & union(M,dr,rr,z))"
+
   is_relation :: "[i=>o,i] => o"
     "is_relation(M,r) == 
         (\<forall>z\<in>r. M(z) --> (\<exists>x y. M(x) & M(y) & pair(M,x,y,z)))"
@@ -90,6 +95,13 @@ constdefs
     "typed_function(M,A,B,r) == 
         is_function(M,r) & is_relation(M,r) & is_domain(M,r,A) &
         (\<forall>u\<in>r. M(u) --> (\<forall>x y. M(x) & M(y) & pair(M,x,y,u) --> y\<in>B))"
+
+  composition :: "[i=>o,i,i,i] => o"
+    "composition(M,r,s,t) == 
+        \<forall>p. M(p) --> (p \<in> t <-> 
+                      (\<exists>x. M(x) & (\<exists>y. M(y) & (\<exists>z. M(z) & 
+                           p = \<langle>x,z\<rangle> & \<langle>x,y\<rangle> \<in> s & \<langle>y,z\<rangle> \<in> r))))"
+
 
   injection :: "[i=>o,i,i,i] => o"
     "injection(M,A,B,f) == 
@@ -373,6 +385,7 @@ locale M_axioms =
       and Union_ax:	    "Union_ax(M)"
       and power_ax:         "power_ax(M)"
       and replacement:      "replacement(M,P)"
+      and M_nat:            "M(nat)"   (*i.e. the axiom of infinity*)
   and Inter_separation:
      "M(A) ==> separation(M, \<lambda>x. \<forall>y\<in>A. M(y) --> x\<in>y)"
   and cartprod_separation:
@@ -398,7 +411,7 @@ locale M_axioms =
   and pred_separation:
      "[| M(r); M(x) |] ==> separation(M, \<lambda>y. \<exists>p\<in>r. M(p) & pair(M,y,x,p))"
   and Memrel_separation:
-     "separation(M, \<lambda>z. \<exists>x y. M(x) & M(y) & pair(M,x,y,z) \<and> x \<in> y)"
+     "separation(M, \<lambda>z. \<exists>x y. M(x) & M(y) & pair(M,x,y,z) & x \<in> y)"
   and obase_separation:
      --{*part of the order type formalization*}
      "[| M(A); M(r) |] 
@@ -407,8 +420,8 @@ locale M_axioms =
 	     order_isomorphism(M,par,r,x,mx,g))"
   and well_ord_iso_separation:
      "[| M(A); M(f); M(r) |] 
-      ==> separation (M, \<lambda>x. x\<in>A --> (\<exists>y. M(y) \<and> (\<exists>p. M(p) \<and> 
-		     fun_apply(M,f,x,y) \<and> pair(M,y,x,p) \<and> p \<in> r)))"
+      ==> separation (M, \<lambda>x. x\<in>A --> (\<exists>y. M(y) & (\<exists>p. M(p) & 
+		     fun_apply(M,f,x,y) & pair(M,y,x,p) & p \<in> r)))"
   and obase_equals_separation:
      "[| M(A); M(r) |] 
       ==> separation
@@ -419,7 +432,7 @@ locale M_axioms =
   and is_recfun_separation:
      --{*for well-founded recursion.  NEEDS RELATIVIZATION*}
      "[| M(A); M(f); M(g); M(a); M(b) |] 
-     ==> separation(M, \<lambda>x. x \<in> A --> \<langle>x,a\<rangle> \<in> r \<and> \<langle>x,b\<rangle> \<in> r \<and> f`x \<noteq> g`x)"
+     ==> separation(M, \<lambda>x. x \<in> A --> \<langle>x,a\<rangle> \<in> r & \<langle>x,b\<rangle> \<in> r & f`x \<noteq> g`x)"
   and omap_replacement:
      "[| M(A); M(r) |] 
       ==> strong_replacement(M,
@@ -439,6 +452,12 @@ lemma (in M_axioms) Ball_iff_equiv:
      "M(A) ==> (\<forall>x. M(x) --> (x\<in>A <-> P(x))) <-> 
                (\<forall>x\<in>A. P(x)) & (\<forall>x. P(x) --> M(x) --> x\<in>A)" 
 by (blast intro: transM)
+
+text{*Simplifies proofs of equalities when there's an iff-equality
+      available for rewriting, universally quantified over M. *}
+lemma (in M_axioms) M_equalityI: 
+     "[| !!x. M(x) ==> x\<in>A <-> x\<in>B; M(A); M(B) |] ==> A=B"
+by (blast intro!: equalityI dest: transM) 
 
 lemma (in M_axioms) empty_abs [simp]: 
      "M(z) ==> empty(M,z) <-> z=0"
@@ -516,15 +535,15 @@ apply (simp add: big_union_def)
 apply (blast intro!: equalityI dest: transM) 
 done
 
-lemma (in M_axioms) Union_closed [intro]:
+lemma (in M_axioms) Union_closed [intro,simp]:
      "M(A) ==> M(Union(A))"
 by (insert Union_ax, simp add: Union_ax_def) 
 
-lemma (in M_axioms) Un_closed [intro]:
+lemma (in M_axioms) Un_closed [intro,simp]:
      "[| M(A); M(B) |] ==> M(A Un B)"
 by (simp only: Un_eq_Union, blast) 
 
-lemma (in M_axioms) cons_closed [intro]:
+lemma (in M_axioms) cons_closed [intro,simp]:
      "[| M(a); M(A) |] ==> M(cons(a,A))"
 by (subst cons_eq [symmetric], blast) 
 
@@ -538,7 +557,7 @@ apply (simp add: succ_def)
 apply (blast intro: transM) 
 done
 
-lemma (in M_axioms) separation_closed [intro]:
+lemma (in M_axioms) separation_closed [intro,simp]:
      "[| separation(M,P); M(A) |] ==> M(Collect(A,P))"
 apply (insert separation, simp add: separation_def) 
 apply (drule spec [THEN mp], assumption, clarify) 
@@ -565,7 +584,7 @@ done
 
 
 (*The last premise expresses that P takes M to M*)
-lemma (in M_axioms) strong_replacement_closed [intro]:
+lemma (in M_axioms) strong_replacement_closed [intro,simp]:
      "[| strong_replacement(M,P); M(A); univalent(M,A,P); 
        !!x y. [| P(x,y); M(x) |] ==> M(y) |] ==> M(Replace(A,P))"
 apply (simp add: strong_replacement_def) 
@@ -589,7 +608,7 @@ done
   nonconstructible set.  So we cannot assume that M(X) implies M(RepFun(X,f))
   even for f : M -> M.
 *)
-lemma (in M_axioms) RepFun_closed [intro]:
+lemma (in M_axioms) RepFun_closed [intro,simp]:
      "[| strong_replacement(M, \<lambda>x y. y = f(x)); M(A); \<forall>x. M(x) --> M(f(x)) |]
       ==> M(RepFun(A,f))"
 apply (simp add: RepFun_def) 
@@ -669,20 +688,20 @@ apply (intro exI conjI)
 prefer 6 apply (rule refl) 
 prefer 4 apply assumption
 prefer 4 apply assumption
-apply (insert cartprod_separation [of A B], simp, blast+)
+apply (insert cartprod_separation [of A B], auto)
 done
 
 
 text{*All the lemmas above are necessary because Powerset is not absolute.
       I should have used Replacement instead!*}
-lemma (in M_axioms) cartprod_closed [intro]: 
+lemma (in M_axioms) cartprod_closed [intro,simp]: 
      "[| M(A); M(B) |] ==> M(A*B)"
 by (frule cartprod_closed_lemma, assumption, force)
 
-lemma (in M_axioms) image_closed [intro]: 
+lemma (in M_axioms) image_closed [intro,simp]: 
      "[| M(A); M(r) |] ==> M(r``A)"
 apply (simp add: image_iff_Collect)
-apply (insert image_separation [of A r], simp, blast) 
+apply (insert image_separation [of A r], simp) 
 done
 
 lemma (in M_axioms) vimage_abs [simp]: 
@@ -692,10 +711,10 @@ apply (rule iffI)
  apply (blast intro!: equalityI dest: transM, blast) 
 done
 
-lemma (in M_axioms) vimage_closed [intro]: 
+lemma (in M_axioms) vimage_closed [intro,simp]: 
      "[| M(A); M(r) |] ==> M(r-``A)"
 apply (simp add: vimage_iff_Collect)
-apply (insert vimage_separation [of A r], simp, blast) 
+apply (insert vimage_separation [of A r], simp) 
 done
 
 lemma (in M_axioms) domain_abs [simp]: 
@@ -704,10 +723,9 @@ apply (simp add: is_domain_def)
 apply (blast intro!: equalityI dest: transM) 
 done
 
-lemma (in M_axioms) domain_closed [intro]: 
+lemma (in M_axioms) domain_closed [intro,simp]: 
      "M(r) ==> M(domain(r))"
 apply (simp add: domain_eq_vimage)
-apply (blast intro: vimage_closed) 
 done
 
 lemma (in M_axioms) range_abs [simp]: 
@@ -716,24 +734,31 @@ apply (simp add: is_range_def)
 apply (blast intro!: equalityI dest: transM)
 done
 
-lemma (in M_axioms) range_closed [intro]: 
+lemma (in M_axioms) range_closed [intro,simp]: 
      "M(r) ==> M(range(r))"
 apply (simp add: range_eq_image)
-apply (blast intro: image_closed) 
 done
+
+lemma (in M_axioms) field_abs [simp]: 
+     "[| M(r); M(z) |] ==> is_field(M,r,z) <-> z = field(r)"
+by (simp add: domain_closed range_closed is_field_def field_def)
+
+lemma (in M_axioms) field_closed [intro,simp]: 
+     "M(r) ==> M(field(r))"
+by (simp add: domain_closed range_closed Un_closed field_def) 
+
 
 lemma (in M_axioms) M_converse_iff:
      "M(r) ==> 
       converse(r) = 
       {z \<in> range(r) * domain(r). 
-        \<exists>p\<in>r. \<exists>x. M(x) \<and> (\<exists>y. M(y) \<and> p = \<langle>x,y\<rangle> \<and> z = \<langle>y,x\<rangle>)}"
+        \<exists>p\<in>r. \<exists>x. M(x) & (\<exists>y. M(y) & p = \<langle>x,y\<rangle> & z = \<langle>y,x\<rangle>)}"
 by (blast dest: transM)
 
-lemma (in M_axioms) converse_closed [intro]: 
+lemma (in M_axioms) converse_closed [intro,simp]: 
      "M(r) ==> M(converse(r))"
 apply (simp add: M_converse_iff)
-apply (insert converse_separation [of r], simp) 
-apply (blast intro: image_closed) 
+apply (insert converse_separation [of r], simp)
 done
 
 lemma (in M_axioms) relation_abs [simp]: 
@@ -749,10 +774,9 @@ apply (simp add: is_function_def function_def, safe)
   apply (blast dest: pair_components_in_M)+
 done
 
-lemma (in M_axioms) apply_closed [intro]: 
+lemma (in M_axioms) apply_closed [intro,simp]: 
      "[|M(f); M(a)|] ==> M(f`a)"
-apply (simp add: apply_def) 
-apply (blast intro: elim:); 
+apply (simp add: apply_def)
 done
 
 lemma (in M_axioms) apply_abs: 
@@ -808,19 +832,18 @@ lemma (in M_axioms) M_restrict_iff:
      "M(r) ==> restrict(r,A) = {z \<in> r . \<exists>x\<in>A. \<exists>y. M(y) & z = \<langle>x, y\<rangle>}"
 by (simp add: restrict_def, blast dest: transM)
 
-lemma (in M_axioms) restrict_closed [intro]: 
+lemma (in M_axioms) restrict_closed [intro,simp]: 
      "[| M(A); M(r) |] ==> M(restrict(r,A))"
 apply (simp add: M_restrict_iff)
-apply (insert restrict_separation [of A], simp, blast) 
+apply (insert restrict_separation [of A], simp) 
 done
-
 
 lemma (in M_axioms) M_comp_iff:
      "[| M(r); M(s) |] 
       ==> r O s = 
           {xz \<in> domain(s) * range(r).  
-            \<exists>x. M(x) \<and> (\<exists>y. M(y) \<and> (\<exists>z. M(z) \<and> 
-                xz = \<langle>x,z\<rangle> \<and> \<langle>x,y\<rangle> \<in> s \<and> \<langle>y,z\<rangle> \<in> r))}"
+            \<exists>x. M(x) & (\<exists>y. M(y) & (\<exists>z. M(z) & 
+                xz = \<langle>x,z\<rangle> & \<langle>x,y\<rangle> \<in> s & \<langle>y,z\<rangle> \<in> r))}"
 apply (simp add: comp_def)
 apply (rule equalityI) 
  apply (clarify ); 
@@ -828,10 +851,24 @@ apply (rule equalityI)
  apply  (blast dest:  transM)+
 done
 
-lemma (in M_axioms) comp_closed [intro]: 
+lemma (in M_axioms) comp_closed [intro,simp]: 
      "[| M(r); M(s) |] ==> M(r O s)"
 apply (simp add: M_comp_iff)
-apply (insert comp_separation [of r s], simp, blast) 
+apply (insert comp_separation [of r s], simp) 
+done
+
+lemma (in M_axioms) composition_abs [simp]: 
+     "[| M(r); M(s); M(t) |] 
+      ==> composition(M,r,s,t) <-> t = r O s"
+apply safe;
+ txt{*Proving @{term "composition(M, r, s, r O s)"}*}
+ prefer 2 
+ apply (simp add: composition_def comp_def)
+ apply (blast dest: transM) 
+txt{*Opposite implication*}
+apply (rule M_equalityI)
+  apply (simp add: composition_def comp_def)
+  apply (blast del: allE dest: transM)+
 done
 
 lemma (in M_axioms) nat_into_M [intro]:
@@ -852,15 +889,33 @@ apply (simp add: big_inter_def Inter_def)
 apply (blast intro!: equalityI dest: transM) 
 done
 
-lemma (in M_axioms) Inter_closed [intro]:
+lemma (in M_axioms) Inter_closed [intro,simp]:
      "M(A) ==> M(Inter(A))"
-by (insert Inter_separation, simp add: Inter_def, blast)
+by (insert Inter_separation, simp add: Inter_def)
 
-lemma (in M_axioms) Int_closed [intro]:
+lemma (in M_axioms) Int_closed [intro,simp]:
      "[| M(A); M(B) |] ==> M(A Int B)"
 apply (subgoal_tac "M({A,B})")
 apply (frule Inter_closed, force+); 
 done
+
+text{*M contains all finite functions*}
+lemma (in M_axioms) finite_fun_closed_lemma [rule_format]: 
+     "[| n \<in> nat; M(A) |] ==> \<forall>f \<in> n -> A. M(f)"
+apply (induct_tac n, simp)
+apply (rule ballI)  
+apply (simp add: succ_def) 
+apply (frule fun_cons_restrict_eq)
+apply (erule ssubst) 
+apply (subgoal_tac "M(f`x) & restrict(f,x) \<in> x -> A") 
+ apply (simp add: cons_closed nat_into_M apply_closed) 
+apply (blast intro: apply_funtype transM restrict_type2) 
+done
+
+lemma (in M_axioms) finite_fun_closed [rule_format]: 
+     "[| f \<in> n -> A; n \<in> nat; M(A) |] ==> M(f)"
+by (blast intro: finite_fun_closed_lemma) 
+
 
 subsection{*Absoluteness for ordinals*}
 text{*These results constitute Theorem IV 5.1 of Kunen (page 126).*}

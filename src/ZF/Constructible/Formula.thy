@@ -22,54 +22,7 @@ by (simp add: bool_of_o_def)
 lemma [simp]: "(bool_of_o(P) = 0) <-> ~P"
 by (simp add: bool_of_o_def) 
 
-(*????????????????Cardinal.ML*)
-lemma Finite_cons_iff [iff]:  "Finite(cons(y,x)) <-> Finite(x)"
-by (blast intro: Finite_cons subset_Finite)
-
-lemma Finite_succ_iff [iff]:  "Finite(succ(x)) <-> Finite(x)"
-by (simp add: succ_def)
-
-declare Finite_0 [simp]
-
-lemma Finite_RepFun: "Finite(A) ==> Finite(RepFun(A,f))"
-by (erule Finite_induct, simp_all)
-
-lemma Finite_RepFun_lemma [rule_format]:
-     "[|Finite(x); !!x y. f(x)=f(y) ==> x=y|] 
-      ==> \<forall>A. x = RepFun(A,f) --> Finite(A)" 
-apply (erule Finite_induct)
- apply clarify 
- apply (case_tac "A=0", simp)
- apply (blast del: allE, clarify) 
-apply (subgoal_tac "\<exists>z\<in>A. x = f(z)") 
- prefer 2 apply (blast del: allE elim: equalityE, clarify) 
-apply (subgoal_tac "B = {f(u) . u \<in> A - {z}}")
- apply (blast intro: Diff_sing_Finite) 
-apply (thin_tac "\<forall>A. ?P(A) --> Finite(A)") 
-apply (rule equalityI) 
- apply (blast intro: elim: equalityE) 
-apply (blast intro: elim: equalityCE) 
-done
-
-text{*I don't know why, but if the premise is expressed using meta-connectives
-then  the simplifier cannot prove it automatically in conditional rewriting.*}
-lemma Finite_RepFun_iff:
-     "(\<forall>x y. f(x)=f(y) --> x=y) ==> Finite(RepFun(A,f)) <-> Finite(A)"
-by (blast intro: Finite_RepFun Finite_RepFun_lemma [of _ f]) 
-
-lemma Finite_Pow: "Finite(A) ==> Finite(Pow(A))"
-apply (erule Finite_induct) 
-apply (simp_all add: Pow_insert Finite_Un Finite_RepFun) 
-done
-
-lemma Finite_Pow_imp_Finite: "Finite(Pow(A)) ==> Finite(A)"
-apply (subgoal_tac "Finite({{x} . x \<in> A})")
- apply (simp add: Finite_RepFun_iff ) 
-apply (blast intro: subset_Finite) 
-done
-
-lemma Finite_Pow_iff [iff]: "Finite(Pow(A)) <-> Finite(A)"
-by (blast intro: Finite_Pow Finite_Pow_imp_Finite)
+(*????????????????CardinalArith *)
 
 lemma Finite_Vset: "i \<in> nat ==> Finite(Vset(i))";
 apply (erule nat_induct)
@@ -922,6 +875,10 @@ apply (insert notin_Lset [of i])
 apply (blast intro!: le_imp_subset Lset_mono [THEN subsetD]) 
 done
 
+
+lemma Ord_in_L: "Ord(i) ==> L(i)"
+by (blast intro: Ord_in_Lset L_I)
+
 text{*This is lrank(lrank(a)) = lrank(a) *}
 declare Ord_lrank [THEN lrank_of_Ord, simp]
 
@@ -963,13 +920,13 @@ done
 
 subsection{*For L to satisfy the ZF axioms*}
 
-lemma Union_in_L: "L(X) ==> L(Union(X))"
+theorem Union_in_L: "L(X) ==> L(Union(X))"
 apply (simp add: L_def, clarify) 
 apply (drule Ord_imp_greater_Limit) 
 apply (blast intro: lt_LsetI Union_in_LLimit Limit_is_Ord) 
 done
 
-lemma doubleton_in_L: "[| L(a); L(b) |] ==> L({a, b})"
+theorem doubleton_in_L: "[| L(a); L(b) |] ==> L({a, b})"
 apply (simp add: L_def, clarify) 
 apply (drule Ord2_imp_greater_Limit, assumption) 
 apply (blast intro: lt_LsetI doubleton_in_LLimit Limit_is_Ord) 
@@ -1000,7 +957,7 @@ apply (simp add: Transset_UN [OF Transset_Lset] list.Cons [OF LPow_env_typing])
 apply (auto intro: L_I iff: Lset_succ_lrank_iff) 
 done
 
-lemma LPow_in_L: "L(X) ==> L({y \<in> Pow(X). L(y)})"
+theorem LPow_in_L: "L(X) ==> L({y \<in> Pow(X). L(y)})"
 by (blast intro: L_I dest: L_D LPow_in_Lset)
 
 end

@@ -144,10 +144,10 @@ apply (simp add: pred_set_def Order.pred_def)
 apply (blast dest: transM) 
 done
 
-lemma (in M_axioms) pred_closed [intro]: 
+lemma (in M_axioms) pred_closed [intro,simp]: 
      "[| M(A); M(r); M(x) |] ==> M(Order.pred(A,x,r))"
 apply (simp add: Order.pred_def) 
-apply (insert pred_separation [of r x], simp, blast) 
+apply (insert pred_separation [of r x], simp) 
 done
 
 lemma (in M_axioms) membership_abs [simp]: 
@@ -170,10 +170,10 @@ apply (simp add: Memrel_def)
 apply (blast dest: transM)
 done 
 
-lemma (in M_axioms) Memrel_closed [intro]: 
+lemma (in M_axioms) Memrel_closed [intro,simp]: 
      "M(A) ==> M(Memrel(A))"
 apply (simp add: M_Memrel_iff) 
-apply (insert Memrel_separation, simp, blast)
+apply (insert Memrel_separation, simp)
 done
 
 

@@ -1,7 +1,7 @@
 theory WFrec = Wellorderings:
 
 
-(*WF.thy??*)
+(*FIXME: could move these to WF.thy*)
 
 lemma is_recfunI:
      "f = (lam x: r-``{a}. H(x, restrict(f, r-``{x}))) ==> is_recfun(r,a,H,f)"
@@ -27,6 +27,16 @@ apply (rule fun_extension)
  apply (fast intro: lam_type, simp) 
 done
 
+lemma is_recfun_imp_in_r: "[|is_recfun(r,a,H,f); \<langle>x,i\<rangle> \<in> f|] ==> \<langle>x, a\<rangle> \<in> r"
+by (blast dest:  is_recfun_type fun_is_rel)
+
+lemma apply_recfun2:
+    "[| is_recfun(r,a,H,f); <x,i>:f |] ==> i = H(x, restrict(f,r-``{x}))"
+apply (frule apply_recfun) 
+ apply (blast dest: is_recfun_type fun_is_rel) 
+apply (simp add: function_apply_equality [OF _ is_recfun_imp_function])
+done
+
 lemma trans_on_Int_eq [simp]:
       "[| trans[A](r); <y,x> \<in> r;  r \<subseteq> A*A |] 
        ==> r -`` {y} \<inter> r -`` {x} = r -`` {y}"
@@ -36,11 +46,6 @@ lemma trans_on_Int_eq2 [simp]:
       "[| trans[A](r); <y,x> \<in> r;  r \<subseteq> A*A |] 
        ==> r -`` {x} \<inter> r -`` {y} = r -`` {y}"
 by (blast intro: trans_onD) 
-
-
-constdefs
-   M_the_recfun :: "[i=>o, i, i, [i,i]=>i] => i"
-     "M_the_recfun(M,r,a,H) == (THE f. M(f) & is_recfun(r,a,H,f))"
 
 
 text{*Stated using @{term "trans[A](r)"} rather than
@@ -178,6 +183,16 @@ apply (simp add: vimage_closed restrict_closed is_recfun_restrict
                  apply_recfun is_recfun_type [THEN apply_iff]) 
 done
 
+(*FIXME: use this lemma just below*)
+text{*For typical applications of Replacement for recursive definitions*}
+lemma (in M_axioms) univalent_is_recfun:
+     "[|wellfounded_on(M,A,r); trans[A](r); r \<subseteq> A*A; M(r); M(A)|]
+      ==> univalent (M, A, \<lambda>x p. \<exists>y. M(y) &
+                    (\<exists>f. M(f) & p = \<langle>x, y\<rangle> & is_recfun(r,x,H,f) & y = H(x,f)))"
+apply (simp add: univalent_def) 
+apply (blast dest: is_recfun_functional) 
+done
+
 text{*Proof of the inductive step for @{text exists_is_recfun}, since
       we must prove two versions.*}
 lemma (in M_axioms) exists_is_recfun_indstep:
@@ -240,23 +255,28 @@ lemma (in M_axioms) wf_exists_is_recfun:
                    pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
        M(A);  M(r);  r \<subseteq> A*A;  
        \<forall>x g. M(x) & M(g) & function(g) --> M(H(x,g)) |]   
-      ==> \<exists>f. M(f) & is_recfun(r,a,H,f)"
+      ==> \<exists>f. M(f) & is_recfun(r,a,H,f)"        
 apply (rule wf_on_induct2, assumption+)
 apply (frule wf_on_imp_relativized)  
 apply (rule exists_is_recfun_indstep, assumption+)
 done
 
-(*If some f satisfies is_recfun(r,a,H,-) then so does M_the_recfun(M,r,a,H) *)
-lemma (in M_axioms) M_is_the_recfun: 
-    "[|is_recfun(r,a,H,f);  
-       wellfounded_on(M,A,r); trans[A](r); 
-       M(A); M(f); M(a); r \<subseteq> A*A |]   
-     ==> M(M_the_recfun(M,r,a,H)) & 
-         is_recfun(r, a, H, M_the_recfun(M,r,a,H))"
-apply (unfold M_the_recfun_def)
-apply (rule ex1I [THEN theI2], fast)
-apply (blast intro: is_recfun_functional, blast) 
-done
+    (*????????????????NOT USED????????????????*)
+    constdefs
+      M_the_recfun :: "[i=>o, i, i, [i,i]=>i] => i"
+      "M_the_recfun(M,r,a,H) == (THE f. M(f) & is_recfun(r,a,H,f))"
+    
+    (*If some f satisfies is_recfun(r,a,H,-) then so does M_the_recfun(M,r,a,H) *)
+    lemma (in M_axioms) M_is_the_recfun: 
+      "[|is_recfun(r,a,H,f);  
+      wellfounded_on(M,A,r); trans[A](r); 
+      M(A); M(f); M(a); r \<subseteq> A*A |]   
+      ==> M(M_the_recfun(M,r,a,H)) & 
+      is_recfun(r, a, H, M_the_recfun(M,r,a,H))"    
+    apply (unfold M_the_recfun_def)
+    apply (rule ex1I [THEN theI2], fast)
+    apply (blast intro: is_recfun_functional, blast) 
+    done
 
 constdefs
    M_is_recfun :: "[i=>o, i, i, [i=>o,i,i,i]=>o, i] => o"
@@ -432,7 +452,7 @@ apply (case_tac "Ord(i) & Ord(j)")
 apply (auto simp add: is_oadd_def oadd_eq_if_raw_oadd)
 done
 
-lemma (in M_recursion) oadd_closed [intro]:
+lemma (in M_recursion) oadd_closed [intro,simp]:
     "[| M(i); M(j) |] ==> M(i++j)"
 apply (simp add: oadd_eq_if_raw_oadd, clarify) 
 apply (simp add: raw_oadd_eq_oadd) 
@@ -485,7 +505,6 @@ apply (erule Ord_cases)
   apply (simp add: omult_eqns_0)
  apply (simp add: omult_eqns_succ apply_closed oadd_closed) 
 apply (simp add: omult_eqns_Limit) 
-apply (simp add: Union_closed image_closed) 
 done
 
 lemma (in M_recursion) exists_omult:
