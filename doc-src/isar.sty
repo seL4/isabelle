@@ -18,6 +18,10 @@
 \newcommand{\indexisarcase}[1]{\index{#1 (case)|bold}\index{Cases!#1|bold}}
 \newcommand{\indexisarant}[1]{\index{#1 (antiquotation)|bold}\index{Antiquotations!#1|bold}}
 
+\newcommand{\indexisarcmdof}[2]{\index{#2 (#1 command)|bold}\index{Commands!#2 (#1)|bold}}
+\newcommand{\indexisarmethof}[2]{\index{#2 (#1 method)|bold}\index{Methods!#2 (#1)|bold}}
+\newcommand{\indexisarattof}[2]{\index{#2 (#1 attribute)|bold}\index{Attributes!#2 (#1)|bold}}
+
 \newcommand{\isarcmd}[1]{\isarkeyword{#1}}
 \newcommand{\isartrans}[2]{#1 \mathbin{\,\to\,} #2}
 \newcommand{\isarkeep}[1]{#1 \mathbin{\,\to\,} #1}
@@ -29,6 +33,7 @@
 \newcommand{\I@optmeth}[1]{\ifthenelse{\equal{}{#1}}{}{~(#1)}}
 
 \newcommand{\AND}{\isarkeyword{and}}
+\newcommand{\COROLLARYNAME}{\isarkeyword{corollary}}
 \newcommand{\LEMMANAME}{\isarkeyword{lemma}}
 \newcommand{\THEOREMNAME}{\isarkeyword{theorem}}
 \newcommand{\NOTENAME}{\isarkeyword{note}}
@@ -77,6 +82,7 @@
 \newcommand{\SHOW}[2]{\isarkeyword{show}\I@optname{#1}~#2}
 \newcommand{\HENCE}[2]{\isarkeyword{hence}\I@optname{#1}~#2}
 \newcommand{\THUS}[2]{\isarkeyword{thus}\I@optname{#1}~#2}
+\newcommand{\COROLLARY}[2]{\COROLLARYNAME\I@optname{#1}~#2}
 \newcommand{\LEMMA}[2]{\LEMMANAME\I@optname{#1}~#2}
 \newcommand{\THEOREM}[2]{\THEOREMNAME\I@optname{#1}~#2}
 \newcommand{\PROOF}[1]{\PROOFNAME\I@optmeth{#1}}
