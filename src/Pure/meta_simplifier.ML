@@ -651,9 +651,10 @@ fun rewritec (prover, signt, maxt)
       | proc_rews ({name, proc, lhs, ...} :: ps) =
           if Pattern.matches tsigt (term_of lhs, term_of t) then
             (debug_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
-             case proc signt prems eta_t of
-               None => (debug false "FAILED"; proc_rews ps)
-             | Some raw_thm =>
+             case try (fn () => proc signt prems eta_t) () of
+               None => (debug true "EXCEPTION in simproc"; proc_rews ps)
+             | Some None => (debug false "FAILED"; proc_rews ps)
+             | Some (Some raw_thm) =>
                  (trace_thm false ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
                   (case rews (mk_procrule raw_thm) of
                     None => (trace_cterm false "IGNORED - does not match" t; proc_rews ps)
