@@ -566,7 +566,7 @@ fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
 (*Calling this will generate the warning "Same as previous level" since
   it affects nothing but the names of bound variables!*)
 fun rename_params_tac xs i =
-  case Library.find_first (not o Symbol.is_identifier) xs of
+  case Library.find_first (not o Syntax.is_identifier) xs of
       Some x => error ("Not an identifier: " ^ x)
     | None => 
        (if !Logic.auto_rename

@@ -227,7 +227,7 @@ fun dest_TFree (TFree (n, _)) = n;
 fun name_of_typ (Type (s, Ts)) =
       let val s' = Sign.base_name s
       in space_implode "_" (filter (not o equal "") (map name_of_typ Ts) @
-        [if Symbol.is_identifier s' then s' else "x"])
+        [if Syntax.is_identifier s' then s' else "x"])
       end
   | name_of_typ _ = "";
 

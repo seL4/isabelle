@@ -170,10 +170,13 @@ fun print_exn e =
 
 (* Compatibility. *)
 
-fun mk_syn c = if Symbol.is_identifier c then NoSyn else Syntax.literal c
+(* FIXME lookup inner syntax!? *)
+fun mk_syn c = if Syntax.is_identifier c then NoSyn else Syntax.literal c
 
+(* FIXME lookup outer syntax!? *)
 val keywords = ["open"]
-fun quotename c = if Symbol.is_identifier c andalso not (c mem keywords) then c else quote c
+fun quotename c =
+  if Syntax.is_identifier c andalso not (c mem_string keywords) then c else quote c
 
 fun smart_string_of_cterm ct =
     let
