@@ -186,26 +186,24 @@ fun pretty_full_theory thy =
     fun prt_typ_no_tvars ty = Pretty.quote (Sign.pretty_typ sg (#1 (Type.freeze_thaw_type ty)));
     fun prt_term t = Pretty.quote (Sign.pretty_term sg t);
 
-    fun pretty_classes cs = Pretty.block
-      (Pretty.breaks (Pretty.str "classes:" :: map prt_cls cs));
-
-    fun pretty_classrel (c, cs) = Pretty.block
-      (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 ::
-        Pretty.commas (map prt_cls cs));
+    fun pretty_classrel (c, []) = prt_cls c
+      | pretty_classrel (c, cs) = Pretty.block
+          (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 ::
+            Pretty.commas (map prt_cls cs));
 
     fun pretty_default S = Pretty.block
-      [Pretty.str "default:", Pretty.brk 1, prt_sort S];
+      [Pretty.str "default sort:", Pretty.brk 1, prt_sort S];
 
     fun pretty_ty (t, n) = Pretty.block
       [Pretty.str t, Pretty.brk 1, Pretty.str (string_of_int n)];
 
-    fun pretty_log_types ts = Pretty.block
-      (Pretty.breaks (Pretty.str "logical types:" :: map Pretty.str ts));
-
     fun pretty_witness None = Pretty.str "universal non-emptiness witness: --"
       | pretty_witness (Some (T, S)) = Pretty.block
-          [Pretty.str "universal non-emptiness witness:", Pretty.brk 1, prt_typ_no_tvars T,
-            Pretty.brk 1, prt_sort S];
+          [Pretty.str "universal non-emptiness witness:", Pretty.brk 1,
+            prt_typ_no_tvars T, Pretty.str " ::", Pretty.brk 1, prt_sort S];
+
+    fun pretty_nonterminals ts = Pretty.block
+      (Pretty.breaks (Pretty.str "syntactic types:" :: map Pretty.str ts));
 
     fun pretty_abbr (t, (vs, rhs)) = Pretty.block
       [prt_typ_no_tvars (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
@@ -218,20 +216,23 @@ fun pretty_full_theory thy =
          (if null tys then [Pretty.str "<all instances>"]
 	  else Pretty.commas (map prt_typ_no_tvars tys)));
 
-    fun pretty_const (c, ty) = Pretty.block
+    fun pretty_const (c, (ty, _)) = Pretty.block
       [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
 
     fun prt_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term t];
 
 
-    val {self = _, tsig, const_tab, path, spaces, data} = Sign.rep_sg sg;
+    val {self = _, tsig, consts, path, spaces, data} = Sign.rep_sg sg;
     val {axioms, oracles, ...} = Theory.rep_theory thy;
     val spaces' = Library.sort_wrt fst spaces;
-    val {classes, classrel, default, tycons = type_tab, log_types, univ_witness, abbrs, arities} =
-      Type.rep_tsig tsig;
-    val finals = Symtab.dest (#final_consts (rep_theory thy));
-    val tycons = Sign.cond_extern_table sg Sign.typeK type_tab;
-    val consts = Sign.cond_extern_table sg Sign.constK const_tab;
+    val {classes, default, types, arities, log_types = _, witness} = Type.rep_tsig tsig;
+    val tdecls = Symtab.dest types |>
+      map (fn (t, (decl, _)) => (Sign.cond_extern sg Sign.typeK t, decl));
+    val tycons = mapfilter (fn (t, Type.LogicalType n) => Some (t, n) | _ => None) tdecls;
+    val abbrs = mapfilter (fn (t, Type.Abbreviation u) => Some (t, u) | _ => None) tdecls;
+    val nonterminals = mapfilter (fn (t, Type.Nonterminal) => Some t | _ => None) tdecls;
+    val finals = Symtab.dest (#final_consts (Theory.rep_theory thy));
+    val cnsts = Sign.cond_extern_table sg Sign.constK consts;
     val axms = Sign.cond_extern_table sg Theory.axiomK axioms;
     val oras = Sign.cond_extern_table sg Theory.oracleK oracles;
   in
@@ -239,15 +240,14 @@ fun pretty_full_theory thy =
       Pretty.strs ("data:" :: Sign.data_kinds data),
       Pretty.strs ["name prefix:", NameSpace.pack (if_none path ["-"])],
       Pretty.big_list "name spaces:" (map pretty_name_space spaces'),
-      pretty_classes classes,
-      Pretty.big_list "class relation:" (map pretty_classrel (Symtab.dest classrel)),
+      Pretty.big_list "classes:" (map pretty_classrel (Graph.dest classes)),
       pretty_default default,
-      pretty_log_types log_types,
-      pretty_witness univ_witness,
-      Pretty.big_list "type constructors:" (map pretty_ty tycons),
-      Pretty.big_list "type abbreviations:" (map pretty_abbr (Symtab.dest abbrs)),
+      pretty_witness witness,
+      Pretty.big_list "logical type constructors:" (map pretty_ty tycons),
+      Pretty.big_list "type abbreviations:" (map pretty_abbr abbrs),
+      pretty_nonterminals nonterminals,
       Pretty.big_list "type arities:" (flat (map pretty_arities (Symtab.dest arities))),
-      Pretty.big_list "consts:" (map pretty_const consts),
+      Pretty.big_list "consts:" (map pretty_const cnsts),
       Pretty.big_list "finals:" (map pretty_final finals),
       Pretty.big_list "axioms:" (map prt_axm axms),
       Pretty.strs ("oracles:" :: (map #1 oras))]
