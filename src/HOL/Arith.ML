@@ -1034,7 +1034,7 @@ fun arith_tac i =
 (* proof method setup *)
 
 fun arith_method prems =
-  Method.METHOD (fn facts => FIRSTGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac));
+  Method.METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac));
 
 val arith_setup =
  [Method.add_methods
