@@ -418,8 +418,9 @@ to "split_conv" (old name still available for compatibility);
 * HOL: improved concrete syntax for strings (e.g. allows translation
 rules with string literals);
 
-* HOL-Hyperreal: a new target, extending HOL-Real with the hyperreals
-and Fleuriot's mechanization of analysis;
+* HOL-Real-Hyperreal: this extends HOL-Real with the hyperreals
+ and Fleuriot's mechanization of analysis, including the transcendental
+ functions for the reals;
 
 * HOL/Real, HOL/Hyperreal: improved arithmetic simplification;
 
