@@ -28,9 +28,11 @@ sub unsymbolize {
     s/\\?\\<lparr> ?/(| /g;
     s/\\?\\ ?<rparr>/ |)/g;
     # HOL
+    s/\\?\\<longleftrightarrow>/<->/g;
     s/\\?\\<longrightarrow>/-->/g;
     s/\\?\\<midarrow>\\?\\<rightarrow>/-->/g;
     s/\\?\\<rightarrow>/->/g;
+    s/\\?\\<not>/~/g;
     s/\\?\\<epsilon> ?/SOME /g;
     # outer syntax
     s/\\?\\<rightleftharpoons>/==/g;
