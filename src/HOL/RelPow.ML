@@ -105,12 +105,12 @@ by (blast_tac (claset() addIs [rtrancl_imp_UN_rel_pow, rel_pow_imp_rtrancl]) 1);
 qed "rtrancl_is_UN_rel_pow";
 
 
-Goal "!!r::('a * 'a)set. Univalent r ==> Univalent (r^n)";
-by (rtac UnivalentI 1);
+Goal "!!r::('a * 'a)set. univalent r ==> univalent (r^n)";
+by (rtac univalentI 1);
 by (induct_tac "n" 1);
  by (Simp_tac 1);
-by (fast_tac (claset() addDs [UnivalentD] addEs [rel_pow_Suc_E]) 1);
-qed_spec_mp "Univalent_rel_pow";
+by (fast_tac (claset() addDs [univalentD] addEs [rel_pow_Suc_E]) 1);
+qed_spec_mp "univalent_rel_pow";
 
 
 

@@ -398,17 +398,17 @@ Goal "(r^^A <= B) = (A <= - ((r^-1) ^^ (-B)))";
 by (Blast_tac 1);
 qed "Image_subset_eq";
 
-section "Univalent";
+section "univalent";
 
-Goalw [Univalent_def]
-     "!x y. (x,y):r --> (!z. (x,z):r --> y=z) ==> Univalent r";
+Goalw [univalent_def]
+     "!x y. (x,y):r --> (!z. (x,z):r --> y=z) ==> univalent r";
 by (assume_tac 1);
-qed "UnivalentI";
+qed "univalentI";
 
-Goalw [Univalent_def]
-     "[| Univalent r;  (x,y):r;  (x,z):r|] ==> y=z";
+Goalw [univalent_def]
+     "[| univalent r;  (x,y):r;  (x,z):r|] ==> y=z";
 by Auto_tac;
-qed "UnivalentD";
+qed "univalentD";
 
 
 (** Graphs of partial functions **)

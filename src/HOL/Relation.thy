@@ -40,8 +40,8 @@ constdefs
   trans  :: "('a * 'a)set => bool"          (*transitivity predicate*)
     "trans(r) == (!x y z. (x,y):r --> (y,z):r --> (x,z):r)"
 
-  Univalent :: "('a * 'b)set => bool"
-    "Univalent r == !x y. (x,y):r --> (!z. (x,z):r --> y=z)"
+  univalent :: "('a * 'b)set => bool"
+    "univalent r == !x y. (x,y):r --> (!z. (x,z):r --> y=z)"
 
   fun_rel_comp :: "['a => 'b, ('b * 'c) set] => ('a => 'c) set"
     "fun_rel_comp f R == {g. !x. (f x, g x) : R}"
