@@ -255,6 +255,14 @@ by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 qed "A_trusts_YM3";
 
+(*The obvious combination of A_trusts_YM3 with Spy_not_see_encrypted_key*)
+goal thy
+ "!!evs. [| Crypt (shrK A) {|Agent B, Key K, na, nb|} : parts (spies evs); \
+\           Notes Spy {|na, nb, Key K|} ~: set evs;               \
+\           A ~: bad;  B ~: bad;  evs : yahalom |]                \
+\        ==> Key K ~: analz (spies evs)";
+by (blast_tac (claset() addSDs [A_trusts_YM3, Spy_not_see_encrypted_key]) 1);
+qed "A_gets_good_key";
 
 (** Security Guarantees for B upon receiving YM4 **)
 
@@ -541,11 +549,11 @@ bind_thm ("Spy_not_see_NB", result() RSN(2,rev_mp) RSN(2,rev_mp));
   If this run is broken and the spy substitutes a certificate containing an
   old key, B has no means of telling.*)
 goal thy 
- "!!evs. [| Says B Server                                                   \
+ "!!evs. [| Says A' B {|Crypt (shrK B) {|Agent A, Key K|},                  \
+\                       Crypt K (Nonce NB)|} : set evs;                     \
+\           Says B Server                                                   \
 \             {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}   \
 \             : set evs;                                                    \
-\           Says A' B {|Crypt (shrK B) {|Agent A, Key K|},                  \
-\                       Crypt K (Nonce NB)|} : set evs;                     \
 \           ALL k. Notes Spy {|Nonce NA, Nonce NB, k|} ~: set evs;          \
 \           A ~: bad;  B ~: bad;  evs : yahalom |]       \
 \         ==> Says Server A                                                 \
@@ -563,6 +571,19 @@ by (dtac unique_session_keys 1 THEN REPEAT (assume_tac 1));
 by (blast_tac (claset() addDs [Says_unique_NB]) 1);
 qed "B_trusts_YM4";
 
+
+(*The obvious combination of B_trusts_YM4 with Spy_not_see_encrypted_key*)
+goal thy 
+ "!!evs. [| Says A' B {|Crypt (shrK B) {|Agent A, Key K|},                  \
+\                       Crypt K (Nonce NB)|} : set evs;                     \
+\           Says B Server                                                   \
+\             {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}   \
+\             : set evs;                                                    \
+\           ALL k. Notes Spy {|Nonce NA, Nonce NB, k|} ~: set evs;          \
+\           A ~: bad;  B ~: bad;  evs : yahalom |]                \
+\        ==> Key K ~: analz (spies evs)";
+by (blast_tac (claset() addSDs [B_trusts_YM4, Spy_not_see_encrypted_key]) 1);
+qed "B_gets_good_key";
 
 
 (*** Authenticating B to A ***)
@@ -638,15 +659,15 @@ val lemma = normalize_thm [RSspec, RSmp] (result()) |> standard;
   Moreover, A associates K with NB (thus is talking about the same run).
   Other premises guarantee secrecy of K.*)
 goal thy 
- "!!evs. [| Says B Server                                                   \
+ "!!evs. [| Says A' B {|Crypt (shrK B) {|Agent A, Key K|},                  \
+\                       Crypt K (Nonce NB)|} : set evs;                     \
+\           Says B Server                                                   \
 \             {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}   \
 \             : set evs;                                                    \
-\           Says A' B {|Crypt (shrK B) {|Agent A, Key K|},                  \
-\                       Crypt K (Nonce NB)|} : set evs;                     \
 \           (ALL NA k. Notes Spy {|Nonce NA, Nonce NB, k|} ~: set evs);     \
 \           A ~: bad;  B ~: bad;  evs : yahalom |]       \
 \        ==> EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs";
-by (dtac B_trusts_YM4 1);
+by (forward_tac [B_trusts_YM4] 1);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, spec]));
 by (etac (Says_imp_spies RS parts.Inj RS MPair_parts) 1);
 by (rtac lemma 1);

@@ -266,8 +266,8 @@ qed_spec_mp "Crypt_imp_OR1";
 (*Only it is FALSE.  Somebody could make a fake message to Server
           substituting some other nonce NA' for NB.*)
 goal thy 
- "!!evs. [| A ~: bad;  A ~= Spy;  evs : otway |]                    \
-\        ==> Crypt (shrK A) {|NA, Key K|} : parts (spies evs) --> \
+ "!!evs. [| A ~: bad;  evs : otway |]                                \
+\        ==> Crypt (shrK A) {|NA, Key K|} : parts (spies evs) -->    \
 \            Says A B {|NA, Agent A, Agent B,                        \
 \                       Crypt (shrK A) {|NA, Agent A, Agent B|}|}    \
 \             : set evs -->                                          \

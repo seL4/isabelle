@@ -261,6 +261,15 @@ by (Fake_parts_insert_tac 1);
 by (Blast_tac 1);
 qed "A_trusts_YM3";
 
+(*The obvious combination of A_trusts_YM3 with Spy_not_see_encrypted_key*)
+goal thy
+ "!!evs. [| Crypt (shrK A) {|Agent B, Key K, na|} : parts (spies evs); \
+\           ALL nb. Notes Spy {|na, nb, Key K|} ~: set evs;            \
+\           A ~: bad;  B ~: bad;  evs : yahalom |]                     \
+\        ==> Key K ~: analz (spies evs)";
+by (blast_tac (claset() addSDs [A_trusts_YM3, Spy_not_see_encrypted_key]) 1);
+qed "A_gets_good_key";
+
 
 (** Security Guarantee for B upon receiving YM4 **)
 
@@ -301,6 +310,17 @@ by (blast_tac (claset() addSDs [B_trusts_YM4_shrK]) 1);
 qed "B_trusts_YM4";
 
 
+(*The obvious combination of B_trusts_YM4 with Spy_not_see_encrypted_key*)
+goal thy 
+ "!!evs. [| Says A' B {|Crypt (shrK B) {|Nonce NB, Key K, Agent A|}, X|} \
+\             : set evs;                                                 \
+\           ALL na. Notes Spy {|na, Nonce NB, Key K|} ~: set evs;        \
+\           A ~: bad;  B ~: bad;  evs : yahalom |]                \
+\        ==> Key K ~: analz (spies evs)";
+by (blast_tac (claset() addSDs [B_trusts_YM4, Spy_not_see_encrypted_key]) 1);
+qed "B_gets_good_key";
+
+
 
 (*** Authenticating B to A ***)
 
@@ -317,6 +337,7 @@ by (Fake_parts_insert_tac 1);
 (*YM2*)
 by (Blast_tac 1);
 bind_thm ("B_Said_YM2", result() RSN (2, rev_mp) RS mp);
+
 
 (*If the server sends YM3 then B sent YM2, perhaps with a different NB*)
 goal thy 

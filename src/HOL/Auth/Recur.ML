@@ -22,7 +22,7 @@ Pretty.setdepth 30;
 (*Simplest case: Alice goes directly to the server*)
 goal thy
  "!!A. A ~= Server                                                      \
-\ ==> EX K NA. EX evs: recur.                                      \
+\ ==> EX K NA. EX evs: recur.                                           \
 \     Says Server A {|Crypt (shrK A) {|Key K, Agent Server, Nonce NA|}, \
 \                     Agent Server|}  : set evs";
 by (REPEAT (resolve_tac [exI,bexI] 1));
@@ -35,7 +35,7 @@ result();
 (*Case two: Alice, Bob and the server*)
 goal thy
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]                 \
-\ ==> EX K. EX NA. EX evs: recur.                          \
+\ ==> EX K. EX NA. EX evs: recur.                               \
 \       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|}, \
 \                  Agent Server|}  : set evs";
 by (cut_facts_tac [Nonce_supply2, Key_supply2] 1);
@@ -54,7 +54,7 @@ result();
   TOO SLOW to run every time!
 goal thy
  "!!A B. [| A ~= B; B ~= C; A ~= Server; B ~= Server; C ~= Server |]   \
-\ ==> EX K. EX NA. EX evs: recur.                                 \
+\ ==> EX K. EX NA. EX evs: recur.                                      \
 \       Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},        \
 \                  Agent Server|}  : set evs";
 by (cut_facts_tac [Nonce_supply3, Key_supply3] 1);
@@ -223,8 +223,8 @@ qed "resp_analz_image_freshK_lemma";
 
 (*Version for the protocol.  Proof is almost trivial, thanks to the lemma.*)
 goal thy  
- "!!evs. evs : recur ==>                                    \
-\  ALL K KK. KK <= Compl (range shrK) -->                   \
+ "!!evs. evs : recur ==>                                 \
+\  ALL K KK. KK <= Compl (range shrK) -->                \
 \            (Key K : analz (Key``KK Un (spies evs))) =  \
 \            (K : KK | Key K : analz (spies evs))";
 by (etac recur.induct 1);
@@ -251,7 +251,7 @@ bind_thm ("resp_analz_image_freshK",
             (2, resp_analz_image_freshK_lemma) RS spec RS spec RS mp);
 
 goal thy
- "!!evs. [| evs : recur;  KAB ~: range shrK |] ==>              \
+ "!!evs. [| evs : recur;  KAB ~: range shrK |] ==>           \
 \        Key K : analz (insert (Key KAB) (spies evs)) =      \
 \        (K = KAB | Key K : analz (spies evs))";
 by (asm_simp_tac (analz_image_freshK_ss addsimps [analz_image_freshK]) 1);
@@ -260,7 +260,7 @@ qed "analz_insert_freshK";
 
 (*Everything that's hashed is already in past traffic. *)
 goal thy "!!evs. [| Hash {|Key(shrK A), X|} : parts (spies evs);  \
-\                   evs : recur;  A ~: bad |]                       \
+\                   evs : recur;  A ~: bad |]                     \
 \                ==> X : parts (spies evs)";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
@@ -296,9 +296,9 @@ by (REPEAT (blast_tac (claset() addSDs [Hash_imp_body]
 val lemma = result();
 
 goalw thy [HPair_def]
- "!!A.[| Hash[Key(shrK A)] {|Agent A, B,NA,P|}   : parts(spies evs); \
-\        Hash[Key(shrK A)] {|Agent A, B',NA,P'|} : parts(spies evs); \
-\        evs : recur;  A ~: bad |]                                     \
+ "!!A.[| Hash[Key(shrK A)] {|Agent A, B,NA,P|}   : parts (spies evs); \
+\        Hash[Key(shrK A)] {|Agent A, B',NA,P'|} : parts (spies evs); \
+\        evs : recur;  A ~: bad |]                                    \
 \      ==> B=B' & P=P'";
 by (REPEAT (eresolve_tac partsEs 1));
 by (prove_unique_tac lemma 1);
@@ -357,7 +357,7 @@ AddSEs [Says_Server_not RSN (2,rev_notE)];
 (*The last key returned by respond indeed appears in a certificate*)
 goal thy 
  "!!K. (Hash[Key(shrK A)] {|Agent A, B, NA, P|}, RA, K) : respond evs \
-\ ==> Crypt (shrK A) {|Key K, B, NA|} : parts {RA}";
+\      ==> Crypt (shrK A) {|Key K, B, NA|} : parts {RA}";
 by (etac respond.elim 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "respond_certificate";
@@ -376,8 +376,8 @@ by Safe_tac;
 by (expand_case_tac "K = KBC" 1);
 by (dtac respond_Key_in_parts 1);
 by (blast_tac (claset() addSIs [exI]
-                       addSEs partsEs
-                       addDs [Key_in_parts_respond]) 1);
+                        addSEs partsEs
+                        addDs [Key_in_parts_respond]) 1);
 by (expand_case_tac "K = KAB" 1);
 by (REPEAT (ares_tac [exI] 2));
 by (ex_strip_tac 1);
@@ -400,7 +400,7 @@ qed "unique_session_keys";
 
 goal thy 
  "!!evs. [| (PB,RB,KAB) : respond evs;  evs : recur |]              \
-\        ==> ALL A A' N. A ~: bad & A' ~: bad -->                 \
+\        ==> ALL A A' N. A ~: bad & A' ~: bad -->                   \
 \            Crypt (shrK A) {|Key K, Agent A', N|} : parts{RB} -->  \
 \            Key K ~: analz (insert RB (spies evs))";
 by (etac respond.induct 1);
@@ -495,8 +495,8 @@ qed_spec_mp "Hash_auth_sender";
 (*Certificates can only originate with the Server.*)
 goal thy 
  "!!evs. [| Crypt (shrK A) Y : parts (spies evs);    \
-\           A ~: bad;  A ~= Spy;  evs : recur |]       \
-\        ==> EX C RC. Says Server C RC : set evs  &     \
+\           A ~: bad;  evs : recur |]                \
+\        ==> EX C RC. Says Server C RC : set evs  &  \
 \                     Crypt (shrK A) Y : parts {RC}";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);

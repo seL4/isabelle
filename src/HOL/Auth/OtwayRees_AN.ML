@@ -1,11 +1,11 @@
-(*  Title:      HOL/Auth/OtwayRees
+(*  Title:      HOL/Auth/OtwayRees_AN
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
 Inductive relation "otway" for the Otway-Rees protocol.
 
-Simplified version with minimal encryption but explicit messages
+Abadi-Needham version: minimal encryption, explicit messages
 
 From page 11 of
   Abadi and Needham.  Prudent Engineering Practice for Cryptographic Protocols.
@@ -147,8 +147,8 @@ val analz_spies_tac =
 
 (*The equality makes the induction hypothesis easier to apply*)
 goal thy  
- "!!evs. evs : otway ==>                                    \
-\  ALL K KK. KK <= Compl (range shrK) -->                   \
+ "!!evs. evs : otway ==>                                 \
+\  ALL K KK. KK <= Compl (range shrK) -->                \
 \            (Key K : analz (Key``KK Un (spies evs))) =  \
 \            (K : KK | Key K : analz (spies evs))";
 by (etac otway.induct 1);
@@ -162,7 +162,7 @@ qed_spec_mp "analz_image_freshK";
 
 
 goal thy
- "!!evs. [| evs : otway;  KAB ~: range shrK |] ==>          \
+ "!!evs. [| evs : otway;  KAB ~: range shrK |] ==>       \
 \        Key K : analz (insert (Key KAB) (spies evs)) =  \
 \        (K = KAB | Key K : analz (spies evs))";
 by (asm_simp_tac (analz_image_freshK_ss addsimps [analz_image_freshK]) 1);
@@ -280,6 +280,18 @@ by (blast_tac (claset() addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 
 
+(*A's guarantee.  The Oops premise quantifies over NB because A cannot know
+  what it is.*)
+goal thy 
+ "!!evs. [| Says B' A (Crypt (shrK A) {|NA, Agent A, Agent B, Key K|})  \
+\            : set evs;                                                 \
+\           ALL NB. Notes Spy {|NA, NB, Key K|} ~: set evs;         \
+\           A ~: bad;  B ~: bad;  evs : otway |]                    \
+\        ==> Key K ~: analz (spies evs)";
+by (blast_tac (claset() addSDs [A_trusts_OR4, Spy_not_see_encrypted_key]) 1);
+qed "A_gets_good_key";
+
+
 (**** Authenticity properties relating to NB ****)
 
 (*If the encrypted message appears then it originated with the Server!*)
@@ -301,12 +313,23 @@ qed_spec_mp "NB_Crypt_imp_Server_msg";
 (*Guarantee for B: if it gets a well-formed certificate then the Server
   has sent the correct message in round 3.*)
 goal thy 
- "!!evs. [| B ~: bad;  evs : otway;                                        \
-\           Says S' B {|X, Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
-\            : set evs |]                                                   \
+ "!!evs. [| Says S' B {|X, Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
+\             : set evs;                                                    \
+\           B ~: bad;  evs : otway |]                                       \
 \        ==> EX NA. Says Server B                                           \
 \                     {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
 \                       Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}    \
 \                     : set evs";
 by (blast_tac (claset() addSIs [NB_Crypt_imp_Server_msg]) 1);
 qed "B_trusts_OR3";
+
+
+(*The obvious combination of B_trusts_OR3 with Spy_not_see_encrypted_key*)
+goal thy 
+ "!!evs. [| Says S' B {|X, Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
+\            : set evs;                                            \
+\           ALL NA. Notes Spy {|NA, NB, Key K|} ~: set evs;                \
+\           A ~: bad;  B ~: bad;  evs : otway |]                   \
+\        ==> Key K ~: analz (spies evs)";
+by (blast_tac (claset() addDs [B_trusts_OR3, Spy_not_see_encrypted_key]) 1);
+qed "B_gets_good_key";
