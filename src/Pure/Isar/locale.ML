@@ -75,8 +75,6 @@ datatype ('typ, 'term, 'fact, 'att) elem =
   Defines of ((string * 'att list) * ('term * 'term list)) list |
   Notes of ((string * 'att list) * ('fact * 'att list) list) list;
 
-datatype fact_kind = Assume | Define | Note;
-
 datatype expr =
   Locale of string |
   Rename of expr * string option list |
@@ -409,21 +407,16 @@ end;
 
 local
 
-fun activate_elem (ctxt, Fixes fixes) =
-      (ctxt |> ProofContext.add_fixes fixes, [])
+fun activate_elem (ctxt, Fixes fixes) = (ctxt |> ProofContext.add_fixes fixes, [])
   | activate_elem (ctxt, Assumes asms) =
       ctxt |> ProofContext.fix_frees (flat (map (map #1 o #2) asms))
       |> ProofContext.assume_i ProofContext.export_assume asms
-      |> apsnd (map (pair Assume))
   | activate_elem (ctxt, Defines defs) =
       ctxt |> ProofContext.assume_i ProofContext.export_def
         (map (fn ((name, atts), (t, ps)) =>
           let val (c, t') = ProofContext.cert_def ctxt t
           in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end) defs)
-      |> apsnd (map (pair Define))
-  | activate_elem (ctxt, Notes facts) =
-      ctxt |> ProofContext.have_thmss_i facts
-      |> apsnd (map (pair Note));
+  | activate_elem (ctxt, Notes facts) = ctxt |> ProofContext.have_thmss_i facts;
 
 fun activate_elems ((name, ps), elems) = ProofContext.qualified_result (fn ctxt =>
   foldl_map activate_elem (ctxt, elems) handle ProofContext.CONTEXT (msg, ctxt) =>
@@ -444,7 +437,7 @@ fun activate_facts prep_facts ctxt_elemss =
 
 fun apply_facts name (ctxt, facts) =
   let val (ctxt', (_, facts')) = activate_facts (K I) (ctxt, [((name, []), [Notes facts])])
-  in (ctxt', map (#2 o #2) facts') end;
+  in (ctxt', map #2 facts') end;
 
 end;
 
@@ -713,7 +706,7 @@ val gen_context_i = prep_context_statement (K I) cert_elemss get_facts_i;
 fun gen_facts prep_locale thy name =
   let val ((((_, (_, facts)), _), _), _) = thy |> ProofContext.init
     |> gen_context_i false [] (Locale (prep_locale (Theory.sign_of thy) name)) [] [];
-  in flat (map (#2 o #2) facts) end;
+  in flat (map #2 facts) end;
 
 fun gen_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
   let
@@ -790,48 +783,6 @@ fun print_locale thy import body =
 
 (** define locales **)
 
-(* add_locale(_i) *)
-
-local
-
-fun gen_add_locale prep_ctxt prep_expr bname raw_import raw_body thy =
-  let
-    val sign = Theory.sign_of thy;
-    val name = Sign.full_name sign bname;
-    val _ = conditional (is_some (get_locale thy name)) (fn () =>
-      error ("Duplicate definition of locale " ^ quote name));
-
-    val thy_ctxt = ProofContext.init thy;
-    val (((import_ctxt, (import_elemss, _)), (body_ctxt, (body_elemss, _))),
-        (int_ext_text, ext_text)) = prep_ctxt raw_import raw_body thy_ctxt;
-
-    val import_parms = params_of import_elemss;
-    val body_parms = params_of body_elemss;
-    val all_parms = import_parms @ body_parms;
-
-    (* FIXME *)
-    val ((_, spec), defs) = int_ext_text;
-    val ((xs, _), _) = int_ext_text;
-    val xs' = all_parms |> mapfilter (fn (p, _) =>
-      (case assoc_string (xs, p) of None => None | Some T => Some (p, T)));
-
-    val import = prep_expr sign raw_import;
-    val elems = flat (map snd body_elemss);
-  in
-    thy
-    |> declare_locale name
-    |> put_locale name (make_locale import (map (fn e => (e, stamp ())) elems)
-        ((xs', spec), defs) (all_parms, map fst body_parms))
-  end;
-
-in
-
-val add_locale = gen_add_locale read_context intern_expr;
-val add_locale_i = gen_add_locale cert_context (K I);
-
-end;
-
-
 (* store results *)
 
 local
@@ -888,6 +839,48 @@ fun add_thmss loc args (ctxt, thy) =
     val args' = map (fn ((a, ths), atts) => ((a, atts), [(ths, [])])) args;
     val (ctxt', facts') = apply_facts loc (ctxt, args');
   in ((ctxt', thy |> put_facts loc args'), facts') end;
+
+end;
+
+
+(* add_locale(_i) *)
+
+local
+
+fun gen_add_locale prep_ctxt prep_expr bname raw_import raw_body thy =
+  let
+    val sign = Theory.sign_of thy;
+    val name = Sign.full_name sign bname;
+    val _ = conditional (is_some (get_locale thy name)) (fn () =>
+      error ("Duplicate definition of locale " ^ quote name));
+
+    val thy_ctxt = ProofContext.init thy;
+    val (((import_ctxt, (import_elemss, _)), (body_ctxt, (body_elemss, _))),
+        (int_ext_text, ext_text)) = prep_ctxt raw_import raw_body thy_ctxt;
+
+    val import_parms = params_of import_elemss;
+    val body_parms = params_of body_elemss;
+    val all_parms = import_parms @ body_parms;
+
+    (* FIXME *)
+    val ((_, spec), defs) = int_ext_text;
+    val ((xs, _), _) = int_ext_text;
+    val xs' = all_parms |> mapfilter (fn (p, _) =>
+      (case assoc_string (xs, p) of None => None | Some T => Some (p, T)));
+
+    val import = prep_expr sign raw_import;
+    val elems = flat (map snd body_elemss);
+  in
+    thy
+    |> declare_locale name
+    |> put_locale name (make_locale import (map (fn e => (e, stamp ())) elems)
+        ((xs', spec), defs) (all_parms, map fst body_parms))
+  end;
+
+in
+
+val add_locale = gen_add_locale read_context intern_expr;
+val add_locale_i = gen_add_locale cert_context (K I);
 
 end;
 
