@@ -1,32 +1,28 @@
-#  $Id$
-#########################################################################
-#									#
-#	Makefile for the report "Introduction to Isabelle"		#
-#									#
-#########################################################################
+#
+# $Id$
+#
+
+## targets
+
+default: dvi
+dist: dvi
 
 
-FILES =  intro.tex foundations.tex getting.tex advanced.tex \
-	 ../proof.sty ../iman.sty ../extra.sty
+## dependencies
 
-intro.dvi.gz:   $(FILES)
-	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
-	-rm intro.dvi*
-	latex intro
-	bibtex intro
-	latex intro
-	latex intro
-	../sedindex intro
-	latex intro
-	gzip -f intro.dvi
+include ../Makefile.in
 
-dist:   $(FILES)
-	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
-	-rm intro.dvi*
-	latex intro
-	latex intro
-	../sedindex intro
-	latex intro
+NAME = intro
+FILES = intro.tex foundations.tex getting.tex advanced.tex \
+	../proof.sty ../iman.sty ../extra.sty
 
-clean:
-	@rm *.aux *.log *.toc *.idx
+dvi: $(NAME).dvi
+
+$(NAME).dvi: $(FILES) isabelle.eps
+	touch $(NAME).ind
+	$(LATEX) $(NAME)
+	$(BIBTEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(SEDINDEX) $(NAME)
+	$(LATEX) $(NAME)

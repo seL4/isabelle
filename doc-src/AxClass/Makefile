@@ -1,23 +1,22 @@
-#  $Id$
-#########################################################################
-#									#
-#	Makefile for the report "Introduction to Isabelle"		#
-#									#
-#########################################################################
+#
+# $Id$
+#
+
+## targets
+
+default: dvi
+dist: dvi
 
 
-FILES =  axclass.tex style.tex
+## dependencies
 
-axclass.dvi.gz:   $(FILES)
-	-rm axclass.dvi*
-	latex axclass
-	latex axclass
-	gzip -f axclass.dvi
+include ../Makefile.in
 
-dist:   $(FILES)
-	-rm axclass.dvi*
-	latex axclass
-	latex axclass
+NAME = axclass
+FILES = axclass.tex style.tex
 
-clean:
-	@rm *.aux *.log
+dvi: $(NAME).dvi
+
+$(NAME).dvi: $(FILES)
+	$(LATEX) $(NAME)
+	$(LATEX) $(NAME)
