@@ -134,7 +134,7 @@ by (etac finite_induct 1);
 by (Clarify_tac 1);
 by (subgoal_tac "EX y:A. f y = x & F = f``(A-{y})" 1);
  by (Clarify_tac 1);
- by (full_simp_tac (simpset() addsimps [inj_on_def]delsimps[inj_eq]) 1);
+ by (full_simp_tac (simpset() addsimps [inj_on_def]) 1);
  by (Blast_tac 1);
 by (thin_tac "ALL A. ?PP(A)" 1);
 by (forward_tac [[equalityD2, insertI1] MRS subsetD] 1);
@@ -822,7 +822,7 @@ by (rtac funcsetI 3);
 by (rtac funcsetI 1);
 (* arity *)
 by (auto_tac (claset() addSEs [equalityE], 
-	      simpset() addsimps [inj_on_def, restrict_def]delsimps[inj_eq]));
+	      simpset() addsimps [inj_on_def, restrict_def]));
 by (stac Diff_insert0 1);
 by Auto_tac;
 qed "constr_bij";
