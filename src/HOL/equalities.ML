@@ -87,7 +87,7 @@ qed_goal "ball_image" Set.thy "(!y:F``S. P y) = (!x:S. P (F x))"
  (fn _ => [Fast_tac 1]);
 
 goalw Set.thy [image_def]
-"(%x. if P x then f x else g x) `` S			\
+"(%x. if P x then f x else g x) `` S                    \
 \ = (f `` ({x.x:S & P x})) Un (g `` ({x.x:S & ~(P x)}))";
 by(split_tac [expand_if] 1);
 by(Fast_tac 1);
@@ -102,8 +102,8 @@ qed_goal "ball_range" Set.thy "(!y:range f. P y) = (!x. P (f x))"
 
 qed_goalw "image_range" Set.thy [image_def, range_def]
  "f``range g = range (%x. f (g x))" (fn _ => [
-	rtac Collect_cong 1,
-	Fast_tac 1]);
+        rtac Collect_cong 1,
+        Fast_tac 1]);
 
 section "Int";
 
