@@ -58,12 +58,13 @@ sig
   val pure_sections:
     (string * (token list -> (string * string) * token list)) list
   (*items for building strings*)
-  val parens: string -> string   
-  val brackets: string -> string   
-  val mk_list: string list -> string   
-  val mk_big_list: string list -> string   
-  val mk_pair: string * string -> string   
-  val mk_triple: string * string * string -> string   
+  val parens: string -> string
+  val brackets: string -> string
+  val mk_list: string list -> string
+  val mk_big_list: string list -> string
+  val mk_pair: string * string -> string
+  val mk_triple: string * string * string -> string
+  val strip_quotes: string -> string
 end;
 
 functor ThyParseFun(structure Symtab: SYMTAB and ThyScan: THY_SCAN): THY_PARSE =
