@@ -37,9 +37,7 @@ inductive "elt CC F"
 
     Trans  "[| (A,B) : elt CC F;  (B,C) : elt CC F |] ==> (A,C) : elt CC F"
 
-    Union  "{(A,B) | A. A: S} : Pow (elt CC F) ==> (Union S, B) : elt CC F"
-
-  monos Pow_mono
+    Union  "ALL A: S. (A,B) : elt CC F ==> (Union S, B) : elt CC F"
 
 
 constdefs
