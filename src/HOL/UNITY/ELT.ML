@@ -71,7 +71,8 @@ qed "givenBy_o_subset";
 
 (** Standard leadsTo rules **)
 
-Goalw [leadsETo_def] "[| F: A ensures B;  A-B: CC |] ==> F : A leadsTo[CC] B";
+Goalw [leadsETo_def]
+     "[| F: A ensures B;  A-B: insert {} CC |] ==> F : A leadsTo[CC] B";
 by (blast_tac (claset() addIs [elt.Basis]) 1);
 qed "leadsETo_Basis";
 
@@ -105,7 +106,7 @@ qed "leadsETo_UN";
 (*The INDUCTION rule as we should have liked to state it*)
 val major::prems = Goalw [leadsETo_def]
   "[| F : za leadsTo[CC] zb;  \
-\     !!A B. [| F : A ensures B;  A-B : CC |] ==> P A B; \
+\     !!A B. [| F : A ensures B;  A-B : insert {} CC |] ==> P A B; \
 \     !!A B C. [| F : A leadsTo[CC] B; P A B; F : B leadsTo[CC] C; P B C |] \
 \              ==> P A C; \
 \     !!B S. ALL A:S. F : A leadsTo[CC] B & P A B ==> P (Union S) B \
@@ -144,7 +145,7 @@ by (blast_tac (claset() addIs prems) 1);
 qed "single_leadsETo_I";
 
 
-Goal "[| A<=B;  {}:CC |]  ==> F : A leadsTo[CC] B";
+Goal "A<=B ==> F : A leadsTo[CC] B";
 by (asm_simp_tac (simpset() addsimps [subset_imp_ensures RS leadsETo_Basis,
 				      Diff_eq_empty_iff RS iffD2]) 1);
 qed "subset_imp_leadsETo";
@@ -153,33 +154,32 @@ bind_thm ("empty_leadsETo", empty_subsetI RS subset_imp_leadsETo);
 Addsimps [empty_leadsETo];
 
 
-(** Weakening laws all require {}:CC **)
+(** Weakening laws **)
 
-Goal "[| F : A leadsTo[CC] A';  A'<=B';  {}:CC |] ==> F : A leadsTo[CC] B'";
+Goal "[| F : A leadsTo[CC] A';  A'<=B' |] ==> F : A leadsTo[CC] B'";
 by (blast_tac (claset() addIs [subset_imp_leadsETo, leadsETo_Trans]) 1);
 qed "leadsETo_weaken_R";
 
-Goal "[| F : A leadsTo[CC] A'; B<=A;  {}:CC |] ==> F : B leadsTo[CC] A'";
+Goal "[| F : A leadsTo[CC] A'; B<=A |] ==> F : B leadsTo[CC] A'";
 by (blast_tac (claset() addIs [leadsETo_Trans, subset_imp_leadsETo]) 1);
 qed_spec_mp "leadsETo_weaken_L";
 
 (*Distributes over binary unions*)
-Goal "{} : CC ==> \
-\ F : (A Un B) leadsTo[CC] C  =  (F : A leadsTo[CC] C & F : B leadsTo[CC] C)";
+Goal "F : (A Un B) leadsTo[CC] C  =  \
+\     (F : A leadsTo[CC] C & F : B leadsTo[CC] C)";
 by (blast_tac (claset() addIs [leadsETo_Un, leadsETo_weaken_L]) 1);
 qed "leadsETo_Un_distrib";
 
-Goal "{} : CC ==> \
-\   F : (UN i:I. A i) leadsTo[CC] B  =  (ALL i : I. F : (A i) leadsTo[CC] B)";
+Goal "F : (UN i:I. A i) leadsTo[CC] B  =  \
+\     (ALL i : I. F : (A i) leadsTo[CC] B)";
 by (blast_tac (claset() addIs [leadsETo_UN, leadsETo_weaken_L]) 1);
 qed "leadsETo_UN_distrib";
 
-Goal "{} : CC \
-\     ==> F : (Union S) leadsTo[CC] B  =  (ALL A : S. F : A leadsTo[CC] B)";
+Goal "F : (Union S) leadsTo[CC] B  =  (ALL A : S. F : A leadsTo[CC] B)";
 by (blast_tac (claset() addIs [leadsETo_Union, leadsETo_weaken_L]) 1);
 qed "leadsETo_Union_distrib";
 
-Goal "[| F : A leadsTo[CC'] A'; B<=A; A'<=B';  CC' <= CC;  {}:CC |] \
+Goal "[| F : A leadsTo[CC'] A'; B<=A; A'<=B';  CC' <= CC |] \
 \     ==> F : B leadsTo[CC] B'";
 by (dtac (impOfSubs leadsETo_mono) 1);
 by (assume_tac 1);
@@ -194,7 +194,7 @@ qed "leadsETo_givenBy";
 
 
 (*Set difference*)
-Goal "[| F : (A-B) leadsTo[CC] C; F : B leadsTo[CC] C;  {}:CC |] \
+Goal "[| F : (A-B) leadsTo[CC] C; F : B leadsTo[CC] C |] \
 \     ==> F : A leadsTo[CC] C";
 by (blast_tac (claset() addIs [leadsETo_Un, leadsETo_weaken]) 1);
 qed "leadsETo_Diff";
@@ -204,7 +204,7 @@ qed "leadsETo_Diff";
     see ball_constrains_UN in UNITY.ML***)
 
 val prems = goal thy
-   "[| !! i. i:I ==> F : (A i) leadsTo[CC] (A' i);  {}:CC |] \
+   "[| !! i. i:I ==> F : (A i) leadsTo[CC] (A' i) |] \
 \   ==> F : (UN i:I. A i) leadsTo[CC] (UN i:I. A' i)";
 by (simp_tac (HOL_ss addsimps [Union_image_eq RS sym]) 1);
 by (blast_tac (claset() addIs [leadsETo_Union, leadsETo_weaken_R] 
@@ -212,7 +212,7 @@ by (blast_tac (claset() addIs [leadsETo_Union, leadsETo_weaken_R]
 qed "leadsETo_UN_UN";
 
 (*Binary union version*)
-Goal "[| F : A leadsTo[CC] A';  F : B leadsTo[CC] B';  {}:CC |] \
+Goal "[| F : A leadsTo[CC] A';  F : B leadsTo[CC] B' |] \
 \     ==> F : (A Un B) leadsTo[CC] (A' Un B')";
 by (blast_tac (claset() addIs [leadsETo_Un, 
 			       leadsETo_weaken_R]) 1);
@@ -221,26 +221,26 @@ qed "leadsETo_Un_Un";
 
 (** The cancellation law **)
 
-Goal "[| F : A leadsTo[CC] (A' Un B); F : B leadsTo[CC] B';  {}:CC |] \
+Goal "[| F : A leadsTo[CC] (A' Un B); F : B leadsTo[CC] B' |] \
 \     ==> F : A leadsTo[CC] (A' Un B')";
 by (blast_tac (claset() addIs [leadsETo_Un_Un, 
 			       subset_imp_leadsETo, leadsETo_Trans]) 1);
 qed "leadsETo_cancel2";
 
-Goal "[| F : A leadsTo[CC] (A' Un B); F : (B-A') leadsTo[CC] B';  {}:CC |] \
+Goal "[| F : A leadsTo[CC] (A' Un B); F : (B-A') leadsTo[CC] B' |] \
 \     ==> F : A leadsTo[CC] (A' Un B')";
 by (rtac leadsETo_cancel2 1);
 by (assume_tac 2);
 by (ALLGOALS Asm_simp_tac);
 qed "leadsETo_cancel_Diff2";
 
-Goal "[| F : A leadsTo[CC] (B Un A'); F : B leadsTo[CC] B';  {}:CC |] \
+Goal "[| F : A leadsTo[CC] (B Un A'); F : B leadsTo[CC] B' |] \
 \   ==> F : A leadsTo[CC] (B' Un A')";
 by (asm_full_simp_tac (simpset() addsimps [Un_commute]) 1);
 by (blast_tac (claset() addSIs [leadsETo_cancel2]) 1);
 qed "leadsETo_cancel1";
 
-Goal "[| F : A leadsTo[CC] (B Un A'); F : (B-A') leadsTo[CC] B';  {}:CC |] \
+Goal "[| F : A leadsTo[CC] (B Un A'); F : (B-A') leadsTo[CC] B' |] \
 \   ==> F : A leadsTo[CC] (B' Un A')";
 by (rtac leadsETo_cancel1 1);
 by (assume_tac 2);
@@ -272,10 +272,11 @@ by (etac leadsETo_induct 1);
 by (blast_tac (claset() addIs [leadsETo_Union_Int]) 3);
 by (blast_tac (claset() addIs [leadsETo_Trans]) 2);
 by (rtac leadsETo_Basis 1);
+by (force_tac (claset(),
+	       simpset() addsimps [Diff_Int_distrib2 RS sym]) 2);
 by (asm_full_simp_tac
     (simpset() addsimps [ensures_def, 
 			 Diff_Int_distrib2 RS sym, Int_Un_distrib2 RS sym]) 1);
-by (asm_simp_tac (simpset() addsimps [Diff_Int_distrib2 RS sym]) 2);
 by (blast_tac (claset() addIs [transient_strengthen, constrains_Int]) 1);
 qed "e_psp_stable";
 
@@ -285,14 +286,13 @@ by (asm_simp_tac (simpset() addsimps e_psp_stable::Int_ac) 1);
 qed "e_psp_stable2";
 
 Goal "[| F : A leadsTo[CC] A'; F : B co B';  \
-\        ALL C:CC. C Int B Int B' : CC;  {}:CC |] \
+\        ALL C:CC. C Int B Int B' : CC |] \
 \     ==> F : (A Int B') leadsTo[CC] ((A' Int B) Un (B' - B))";
 by (etac leadsETo_induct 1);
 by (blast_tac (claset() addIs [leadsETo_Union_Int]) 3);
 (*Transitivity case has a delicate argument involving "cancellation"*)
 by (rtac leadsETo_Un_duplicate2 2);
 by (etac leadsETo_cancel_Diff1 2);
-by (assume_tac 3);
 by (asm_full_simp_tac (simpset() addsimps [Int_Diff, Diff_triv]) 2);
 by (blast_tac (claset() addIs [leadsETo_weaken_L] 
                         addDs [constrains_imp_subset]) 2);
@@ -304,7 +304,7 @@ by Auto_tac;
 qed "e_psp";
 
 Goal "[| F : A leadsTo[CC] A'; F : B co B';  \
-\        ALL C:CC. C Int B Int B' : CC;  {}:CC |] \
+\        ALL C:CC. C Int B Int B' : CC |] \
 \     ==> F : (B' Int A) leadsTo[CC] ((B Int A') Un (B' - B))";
 by (asm_full_simp_tac (simpset() addsimps e_psp::Int_ac) 1);
 qed "e_psp2";
@@ -323,7 +323,8 @@ by (blast_tac (claset() addIs [e_psp_stable2 RS leadsETo_weaken_L,
 			       leadsETo_Trans]) 2);
 by (rtac leadsETo_Basis 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [Int_Diff, ensures_def,
+	      simpset() addsimps [Diff_eq_empty_iff RS iffD2,
+				  Int_Diff, ensures_def,
 				  givenBy_eq_Collect, Join_stable,
 				  Join_constrains, Join_transient]));
 by (blast_tac (claset() addIs [transient_strengthen]) 3);
@@ -345,14 +346,13 @@ by (rtac leadsETo_Basis 1);
 by (case_tac "A <= B" 1);
 by (etac subset_imp_ensures 1);
 by (auto_tac (claset() addIs [constrains_weaken],
-	      simpset() addsimps [stable_def, ensures_def, 
-				  Join_constrains, Join_transient]));
+              simpset() addsimps [stable_def, ensures_def, 
+                                  Join_constrains, Join_transient]));
 by (REPEAT (thin_tac "?F : ?A co ?B" 1));
 by (etac transientE 1);
 by (rewtac constrains_def);
 by (blast_tac (claset() addSDs [bspec]) 1);
 qed "Join_leadsETo_stable_imp_leadsETo";
-
 
 (**** Relationship with traditional "leadsTo", strong & weak ****)
 
@@ -376,7 +376,74 @@ by (blast_tac (claset() addIs [leadsETo_Trans]) 2);
 by (blast_tac (claset() addIs [leadsETo_Basis]) 1);
 qed "leadsETo_UNIV_eq_leadsTo";
 
-(** weak **)
+(**** weak ****)
+
+Goalw [LeadsETo_def]
+     "A LeadsTo[CC] B = \
+\       {F. F : (reachable F Int A) leadsTo[(%C. reachable F Int C) `` CC] \
+\       (reachable F Int B)}";
+by (blast_tac (claset() addDs [e_psp_stable2] addIs [leadsETo_weaken]) 1);
+qed "LeadsETo_eq_leadsETo";
+
+(*** Introduction rules: Basis, Trans, Union ***)
+
+Goal "[| F : A LeadsTo[CC] B;  F : B LeadsTo[CC] C |] \
+\     ==> F : A LeadsTo[CC] C";
+by (asm_full_simp_tac (simpset() addsimps [LeadsETo_eq_leadsETo]) 1);
+by (blast_tac (claset() addIs [leadsETo_Trans]) 1);
+qed "LeadsETo_Trans";
+
+val prems = Goalw [LeadsETo_def]
+     "(!!A. A : S ==> F : A LeadsTo[CC] B) ==> F : (Union S) LeadsTo[CC] B";
+by (Simp_tac 1);
+by (stac Int_Union 1);
+by (blast_tac (claset() addIs [leadsETo_UN] addDs prems) 1);
+qed "LeadsETo_Union";
+
+val prems = 
+Goal "(!!i. i : I ==> F : (A i) LeadsTo[CC] B) \
+\     ==> F : (UN i:I. A i) LeadsTo[CC] B";
+by (simp_tac (HOL_ss addsimps [Union_image_eq RS sym]) 1);
+by (blast_tac (claset() addIs (LeadsETo_Union::prems)) 1);
+qed "LeadsETo_UN";
+
+(*Binary union introduction rule*)
+Goal "[| F : A LeadsTo[CC] C; F : B LeadsTo[CC] C |] \
+\     ==> F : (A Un B) LeadsTo[CC] C";
+by (stac Un_eq_Union 1);
+by (blast_tac (claset() addIs [LeadsETo_Union]) 1);
+qed "LeadsETo_Un";
+
+(*Lets us look at the starting state*)
+val prems = 
+Goal "(!!s. s : A ==> F : {s} LeadsTo[CC] B) ==> F : A LeadsTo[CC] B";
+by (stac (UN_singleton RS sym) 1 THEN rtac LeadsETo_UN 1);
+by (blast_tac (claset() addIs prems) 1);
+qed "single_LeadsETo_I";
+
+Goal "A <= B ==> F : A LeadsTo[CC] B";
+by (simp_tac (simpset() addsimps [LeadsETo_def]) 1);
+by (blast_tac (claset() addIs [subset_imp_leadsETo]) 1);
+qed "subset_imp_LeadsETo";
+
+bind_thm ("empty_LeadsETo", empty_subsetI RS subset_imp_LeadsETo);
+
+Goal "[| F : A LeadsTo[CC] A';  A' <= B' |] ==> F : A LeadsTo[CC] B'";
+by (full_simp_tac (simpset() addsimps [LeadsETo_def]) 1);
+by (blast_tac (claset() addIs [leadsETo_weaken_R]) 1);
+qed_spec_mp "LeadsETo_weaken_R";
+
+Goal "[| F : A LeadsTo[CC] A';  B <= A |] ==> F : B LeadsTo[CC] A'";
+by (full_simp_tac (simpset() addsimps [LeadsETo_def]) 1);
+by (blast_tac (claset() addIs [leadsETo_weaken_L]) 1);
+qed_spec_mp "LeadsETo_weaken_L";
+
+Goal "[| F : A LeadsTo[CC'] A';   \
+\        B <= A;  A' <= B';  CC' <= CC |] \
+\     ==> F : B LeadsTo[CC] B'";
+by (full_simp_tac (simpset() addsimps [LeadsETo_def]) 1);
+by (blast_tac (claset() addIs [leadsETo_weaken]) 1);
+qed "LeadsETo_weaken";
 
 Goalw [LeadsETo_def, LeadsTo_def] "(A LeadsTo[CC] B) <= (A LeadsTo B)";
 by (blast_tac (claset() addIs [impOfSubs leadsETo_subset_leadsTo]) 1);
@@ -432,8 +499,9 @@ Goal "F : A leadsTo[CC] B \
 by (etac leadsETo_induct 1);
 by (asm_simp_tac (simpset() addsimps [leadsETo_UN, extend_set_Union]) 3);
 by (blast_tac (claset() addIs [leadsETo_Trans]) 2);
-by (asm_simp_tac (simpset() addsimps [leadsETo_Basis, extend_ensures,
-				      extend_set_Diff_distrib RS sym]) 1);
+by (force_tac (claset() addIs [leadsETo_Basis, subset_imp_ensures],
+	       simpset() addsimps [extend_ensures,
+				   extend_set_Diff_distrib RS sym]) 1);
 qed "leadsETo_imp_extend_leadsETo";
 
 (*MOVE to Extend.ML?*)
@@ -502,9 +570,10 @@ by (asm_simp_tac (simpset() delsimps UN_simps
 		  addsimps [Int_UN_distrib, leadsETo_UN, extend_set_Union]) 3);
 by (blast_tac (claset() addIs [e_psp_stable2 RS leadsETo_weaken_L, 
 			       leadsETo_Trans]) 2);
-by (Clarify_tac 1);
+auto();
+by (force_tac (claset() addIs [leadsETo_Basis, subset_imp_ensures],
+	       simpset()) 1);
 by (rtac leadsETo_Basis 1);
-by (etac rev_image_eqI 2);
 by (asm_simp_tac (simpset() addsimps [Int_Diff, Int_extend_set_lemma,
 				      extend_set_Diff_distrib RS sym]) 2);
 by (rtac Join_project_ensures_strong 1);

@@ -17,7 +17,7 @@ consts
 inductive "elt CC F"
   intrs 
 
-    Basis  "[| F : A ensures B;  A-B : CC |] ==> (A,B) : elt CC F"
+    Basis  "[| F : A ensures B;  A-B : (insert {} CC) |] ==> (A,B) : elt CC F"
 
     Trans  "[| (A,B) : elt CC F;  (B,C) : elt CC F |] ==> (A,C) : elt CC F"
 
