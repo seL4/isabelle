@@ -19,6 +19,10 @@ val mem_simps = map prove_fun
    "<a,b>: Sigma(A,B) <-> a:A & b:B(a)",
    "a : Collect(A,P)  <-> a:A & P(a)" ];
 
+goal ZF.thy "{x.x:A} = A";
+by (fast_tac eq_cs 1);
+val triv_RepFun = result();
+
 (*INCLUDED: should be??*)
 val bquant_simps = map prove_fun
  [ "(ALL x:0.P(x)) <-> True",
@@ -90,7 +94,8 @@ fun atomize th =
   end;
 
 val ZF_simps = [empty_subsetI, consI1, succI1, ball_simp, if_true, if_false, 
-		beta, eta, restrict, fst_conv, snd_conv, split, Pair_iff];
+		beta, eta, restrict, fst_conv, snd_conv, split, Pair_iff,
+		triv_RepFun];
 
 (*Sigma_cong, Pi_cong NOT included by default since they cause
   flex-flex pairs and the "Check your prover" error -- because most

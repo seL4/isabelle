@@ -8,6 +8,27 @@ Cardinal arithmetic -- WITHOUT the Axiom of Choice
 
 open CardinalArith;
 
+goalw CardinalArith.thy [jump_cardinal_def]
+    "Ord(jump_cardinal(K))";
+by (rtac (Ord_is_Transset RSN (2,OrdI)) 1);
+by (safe_tac (ZF_cs addSIs [Ord_ordertype]));
+
+bw Transset_def;
+by (safe_tac (ZF_cs addSIs [Ord_ordertype]));
+br (ordertype_subset RS exE) 1;
+ba 1;
+ba 1;
+by (safe_tac (ZF_cs addSIs [Ord_ordertype]));
+fr UN_I;
+br ReplaceI 2;
+by (fast_tac ZF_cs 4);
+by (fast_tac ZF_cs 1);
+
+(****************************************************************)
+
+
+
+
 (*Use AC to discharge first premise*)
 goal CardinalArith.thy
     "!!A B. [| well_ord(B,r);  A lepoll B |] ==> |A| le |B|";
@@ -341,7 +362,7 @@ goalw Cardinal.thy [eqpoll_def]
     "!!A. [| well_ord(A,r);  x:A |] ==> ordermap(A,r)`x eqpoll pred(A,x,r)";
 by (rtac exI 1);
 by (asm_simp_tac (ZF_ss addsimps [ordermap_eq_image, well_ord_is_wf]) 1);
-by (etac (ordertype_bij RS bij_is_inj RS restrict_bij RS bij_converse_bij) 1);
+by (etac (ordermap_bij RS bij_is_inj RS restrict_bij RS bij_converse_bij) 1);
 by (rtac pred_subset 1);
 val ordermap_eqpoll_pred = result();
 
@@ -420,7 +441,7 @@ by (subgoals_tac ["z<k", "well_ord(k*k, csquare_rel(k))"] 1);
 by (etac (InfCard_is_Card RS Card_is_Ord RS well_ord_csquare) 2);
 by (fast_tac (ZF_cs addSIs [Un_least_lt, InfCard_is_Limit, Limit_has_succ]) 2);
 by (rtac (OrdmemD RS subset_imp_lepoll) 1);
-by (res_inst_tac [("z1","z")] (csquare_ltI RS less_imp_ordermap_in) 1);
+by (res_inst_tac [("z1","z")] (csquare_ltI RS ordermap_mono) 1);
 by (etac well_ord_is_wf 4);
 by (ALLGOALS 
     (fast_tac (ZF_cs addSIs [Un_upper1_le, Un_upper2_le, Ord_ordermap] 
@@ -487,7 +508,7 @@ goalw CardinalArith.thy [cmult_def]
 by (rtac cardinal_cong 1);
 by (rewtac eqpoll_def);
 by (rtac exI 1);
-by (etac (well_ord_csquare RS ordertype_bij) 1);
+by (etac (well_ord_csquare RS ordermap_bij) 1);
 val csquare_eq_ordertype = result();
 
 (*Main result: Kunen's Theorem 10.12*)

@@ -181,7 +181,7 @@ goalw Cardinal.thy [eqpoll_def, cardinal_def]
 by (rtac LeastI 1);
 by (etac Ord_ordertype 2);
 by (rtac exI 1);
-by (etac (ordertype_bij RS bij_converse_bij) 1);
+by (etac (ordermap_bij RS bij_converse_bij) 1);
 val well_ord_cardinal_eqpoll = result();
 
 val Ord_cardinal_eqpoll = well_ord_Memrel RS well_ord_cardinal_eqpoll 

@@ -164,6 +164,11 @@ goalw Order.thy [well_ord_def]
 by (safe_tac ZF_cs);
 val well_ord_is_wf = result();
 
+goalw Order.thy [well_ord_def, tot_ord_def, part_ord_def]
+    "!!r. well_ord(A,r) ==> trans[A](r)";
+by (safe_tac ZF_cs);
+val well_ord_is_trans_on = result();
+
 
 (*** Derived rules for pred(A,x,r) ***)
 
@@ -180,3 +185,12 @@ val pred_subset_under = result();
 goalw Order.thy [pred_def] "pred(A,x,r) <= A";
 by (fast_tac ZF_cs 1);
 val pred_subset = result();
+
+goalw Order.thy [pred_def] "y : pred(A,x,r) <-> <y,x>:r & y:A";
+by (fast_tac ZF_cs 1);
+val pred_iff = result();
+
+goalw Order.thy [pred_def]
+    "pred(pred(A,x,r), y, r) = pred(A,x,r) Int pred(A,y,r)";
+by (fast_tac eq_cs 1);
+val pred_pred_eq = result();

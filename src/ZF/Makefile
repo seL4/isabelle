@@ -24,7 +24,7 @@ FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
 	ind_syntax.ML intr_elim.ML indrule.ML inductive.ML coinductive.ML \
 	equalities.ML Perm.thy Perm.ML Rel.thy Rel.ML Trancl.thy Trancl.ML \
 	WF.thy WF.ML Order.thy Order.ML Ordinal.thy Ordinal.ML \
-	OrderType.thy OrderType.ML OrderArith.thy OrderArith.ML \
+	OrderArith.thy OrderArith.ML OrderType.thy OrderType.ML \
 	Cardinal.thy Cardinal.ML CardinalArith.thy CardinalArith.ML \
 	Nat.thy Nat.ML \
 	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
