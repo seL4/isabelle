@@ -40,14 +40,18 @@ New in Isabelle??? (FIXME)
 
 * added disj_not1 = "(~P | Q) = (P --> Q)" to the default simpset
 
-* HOL/Arithmetic: removed 'pred' (predecessor) function; and generalized
-  some theorems about n-1
+* HOL/Arithmetic
+  
+  - removed 'pred' (predecessor) function
+
+  - generalized some theorems about n-1
+
+  - Many new laws about "div" and "mod"
+
+  - New laws about greatest common divisors (see theory ex/Primes)
 
 * HOL/Relation: renamed the relational operatotr r^-1 "converse" instead of
   "inverse"
-
-* HOL/equalities: added many new laws involving unions, intersectinos,
-  difference, etc.
 
 * recdef can now declare non-recursive functions, with {} supplied as the 
   well-founded relation
@@ -74,7 +78,7 @@ New in Isabelle??? (FIXME)
 
 * new theory Vimage (inverse image of a function, syntax f-``B);
 
-* many new identities for unions, intersections, etc.;
+* many new identities for unions, intersections, set difference, etc.;
 
 
 New in Isabelle98 (January 1998)
