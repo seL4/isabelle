@@ -3,8 +3,29 @@
 
 \chapter{Miscellaneous tools} \label{ch:tools}
 
-Subsequently we describe various Isabelle related utilities --- in
+Subsequently we describe various Isabelle related utilities, given in
 alphabetical order.
+
+
+\section{Converting legacy ML scripts --- \texttt{isatool convert}}
+
+The \tooldx{convert} utility assists in converting legacy ML proof scripts
+into the new-style format of Isabelle/Isar:
+\begin{ttbox}
+Usage: convert [FILES|DIRS...]
+
+  Recursively find .ML files, converting legacy tactic scripts to
+  Isabelle/Isar tactic emulation.
+  Note: conversion is only approximated, based on some heuristics.
+
+  Renames old versions of FILES by appending "~0~".
+  Creates new versions of FILES by appending ".thy".
+\end{ttbox}
+The resulting theory text uses the tactic emulation facilities of
+Isabelle/Isar (see also \cite{isabelle-ref}, especially the ``Conversion
+guide'' in the appendix).  Usually there is some manual tuning required to get
+an automatically converted script work again --- the success rate may be
+around 99\% for common ML scripts.
 
 
 \section{Viewing documentation --- \texttt{isatool doc}} \label{sec:tool-doc}
