@@ -362,9 +362,15 @@ fun read_const syn tsig (c, ty_src, mx) =
   (c, read_raw_typ syn tsig (K None) ty_src, mx)
     handle ERROR => err_in_const (const_name c mx);
 
+(* FIXME move *)
+fun no_tvars ty =
+  if null (typ_tvars ty) then ty
+  else raise_type "Illegal schematic type variable(s)" [ty] [];
+
 fun ext_cnsts rd_const syn_only (syn, tsig, ctab) raw_consts =
   let
-    fun prep_const (c, ty, mx) = (c, cert_typ tsig (varify_typ ty), mx)
+    (* FIXME clean *)
+    fun prep_const (c, ty, mx) = (c, varify_typ (cert_typ tsig (no_tvars ty)), mx)
       handle TYPE (msg, _, _) => (writeln msg; err_in_const (const_name c mx));
 
     val consts = map (prep_const o rd_const syn tsig) raw_consts;
