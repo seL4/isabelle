@@ -2,8 +2,25 @@
 \begin{isabellebody}%
 \def\isabellecontext{Advanced}%
 \isanewline
-\isacommand{theory}\ Advanced\ {\isacharequal}\ Main{\isacharcolon}\isanewline
+\isacommand{theory}\ Advanced\ {\isacharequal}\ Even{\isacharcolon}%
+\begin{isamarkuptext}%
+We completely forgot about "rule inversion", or whatever we may want
+to call it. Just as a demo I include the two forms that Markus has made available. First the one for binding the result to a name%
+\end{isamarkuptext}%
+\isacommand{inductive{\isacharunderscore}cases}\ even{\isacharunderscore}cases\ {\isacharbrackleft}elim{\isacharbang}{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequote}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequote}\isanewline
 \isanewline
+\isacommand{thm}\ even{\isacharunderscore}cases%
+\begin{isamarkuptext}%
+and now the one for local usage:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ n\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\isacommand{by}{\isacharparenleft}ind{\isacharunderscore}cases\ {\isachardoublequote}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequote}{\isacharparenright}%
+\begin{isamarkuptext}%
+Both forms accept lists of strings.
+
+Hope you can find some more exciting examples, although these may do%
+\end{isamarkuptext}%
 \isacommand{datatype}\ {\isacharprime}f\ {\isachardoublequote}term{\isachardoublequote}\ {\isacharequal}\ Apply\ {\isacharprime}f\ {\isachardoublequote}{\isacharprime}f\ term\ list{\isachardoublequote}\isanewline
 \isanewline
 \isacommand{consts}\ terms\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}f\ set\ {\isasymRightarrow}\ {\isacharprime}f\ term\ set{\isachardoublequote}\isanewline
