@@ -29,10 +29,6 @@ struct
 
 local open Data in
 
-fun REPEATN 0 tac = all_tac
-  | REPEATN n tac = Tactic(fn state =>
-                           tapply(tac THEN REPEATN (n-1) tac,  state));
-
 exception EQ_VAR;
 
 fun loose (i,t) = 0 mem add_loose_bnos(t,i,[]);
@@ -73,11 +69,11 @@ fun gen_hyp_subst_tac bnd i = DETERM (STATE(fn state =>
 	  val n = length(Logic.strip_assums_hyp Bi) - 1
 	  val (k,symopt) = eq_var bnd Bi
       in 
-	 EVERY [REPEATN k (etac rev_mp i),
+	 EVERY [REPEAT_DETERM_N k (etac rev_mp i),
 		etac revcut_rl i,
-		REPEATN (n-k) (etac rev_mp i),
+		REPEAT_DETERM_N (n-k) (etac rev_mp i),
 		etac (symopt RS subst) i,
-		REPEATN n (rtac imp_intr i)]
+		REPEAT_DETERM_N n (rtac imp_intr i)]
       end
       handle THM _ => no_tac | EQ_VAR => no_tac));
 
