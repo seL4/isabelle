@@ -1,3 +1,8 @@
+(*  Title:      HOL/Import/HOL4Setup.thy
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 theory HOL4Setup = MakeEqual
   files ("proof_kernel.ML") ("replay.ML") ("hol4rews.ML") ("import_package.ML"):
 

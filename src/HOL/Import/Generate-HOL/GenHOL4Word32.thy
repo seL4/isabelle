@@ -1,3 +1,8 @@
+(*  Title:      HOL/Import/Generate-HOL/GenHOL4Word32.thy
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 theory GenHOL4Word32 = GenHOL4Base:;
 
 import_segment "hol4";

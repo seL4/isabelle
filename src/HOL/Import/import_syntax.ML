@@ -1,3 +1,8 @@
+(*  Title:      HOL/Import/import_syntax.ML
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 signature HOL4_IMPORT_SYNTAX =
 sig
     type token = OuterSyntax.token
@@ -150,14 +155,26 @@ fun import_thy s =
 	apply (set_replaying_thy s::Theory.add_path s::(fst (importP token_list)))
     end
 
+fun create_int_thms thyname thy =
+    case ImportData.get thy of
+	None => ImportData.put (Some (fst (Replay.setup_int_thms thyname thy))) thy
+      | Some _ => error "Import data not closed - forgotten an end_setup, mayhap?"
+
+fun clear_int_thms thy =
+    case ImportData.get thy of
+	None => error "Import data already cleared - forgotten a setup_theory?"
+      | Some _ => ImportData.put None thy
+
 val setup_theory = P.name
 		       >>
 		       (fn thyname =>
 			fn thy =>
-			   case HOL4DefThy.get thy of
-			       NoImport => thy |> import_thy thyname
-			     | Generating _ => error "Currently generating a theory!"
-			     | Replaying _ => thy |> clear_import_thy |> import_thy thyname)
+			   (case HOL4DefThy.get thy of
+				NoImport => thy
+			      | Generating _ => error "Currently generating a theory!"
+			      | Replaying _ => thy |> clear_import_thy)
+			       |> import_thy thyname
+			       |> create_int_thms thyname)
 
 fun end_setup toks =
     Scan.succeed
@@ -168,6 +185,7 @@ fun end_setup toks =
 	    in
 		thy |> set_segment thyname segname
 		    |> clear_import_thy
+		    |> clear_int_thms
 		    |> Theory.parent_path
 	    end) toks
 

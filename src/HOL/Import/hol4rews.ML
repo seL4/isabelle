@@ -1,3 +1,8 @@
+(*  Title:      HOL/Import/hol4rews.ML
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 structure StringPair = TableFun(type key = string * string val ord = prod_ord string_ord string_ord);
 
 type holthm = (term * term) list * thm
@@ -24,7 +29,7 @@ structure HOL4DefThy = TheoryDataFun(HOL4DefThyArgs);
 
 structure ImportSegmentArgs: THEORY_DATA_ARGS =
 struct
-val name = "HOL4/import"
+val name = "HOL4/import_segment"
 type T = string
 val empty = ""
 val copy = I

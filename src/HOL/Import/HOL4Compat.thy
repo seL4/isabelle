@@ -1,3 +1,8 @@
+(*  Title:      HOL/Import/HOL4Compat.thy
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 theory HOL4Compat = HOL4Setup + Divides + Primes + Real:
 
 lemma EXISTS_UNIQUE_DEF: "(Ex1 P) = (Ex P & (ALL x y. P x & P y --> (x = y)))"

@@ -1,3 +1,8 @@
+(*  Title:      HOL/Import/replay.ML
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 structure Replay =
 struct
 
@@ -268,7 +273,11 @@ fun replay_proof int_thms thyname thmname prf thy =
 
 fun setup_int_thms thyname thy =
     let
-	val is = TextIO.openIn(P.get_proof_dir thyname thy ^"/facts.lst")
+	val fname =
+	    case P.get_proof_dir thyname thy of
+		Some p => OS.Path.joinDirFile {dir=p,file=OS.Path.joinBaseExt{base = "facts",ext=SOME "lst"}}
+	      | None => error "Cannot find proof files"
+	val is = TextIO.openIn fname
 	val (num_int_thms,facts) =
 	    let
 		fun get_facts facts =

@@ -1,3 +1,8 @@
+(*  Title:      HOL/Import/proof_kernel.ML
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 signature ProofKernel =
 sig
     type hol_type
@@ -47,7 +52,7 @@ sig
 
     exception PK of string * string
 
-    val get_proof_dir: string -> theory -> string
+    val get_proof_dir: string -> theory -> string option
     val debug : bool ref
     val disk_info_of : proof -> (string * string) option
     val set_disk_info_of : proof -> string -> string -> unit
@@ -165,16 +170,10 @@ fun print_exn e =
 
 (* Compatibility. *)
 
-fun quote s = "\"" ^ s ^ "\""
-
-fun alphanum str = case String.explode str of
-		       first::rest => Char.isAlpha first andalso forall (fn c => Char.isAlphaNum c orelse c = #"_") rest
-		     | _ => error "ProofKernel.alphanum: Empty constname??"
-
-fun mk_syn c = if alphanum c then NoSyn else Syntax.literal c
+fun mk_syn c = if Symbol.is_identifier c then NoSyn else Syntax.literal c
 
 val keywords = ["open"]
-fun quotename c = if alphanum c andalso not (c mem keywords) then c else quote c
+fun quotename c = if Symbol.is_identifier c andalso not (c mem keywords) then c else quote c
 
 fun smart_string_of_cterm ct =
     let
@@ -321,6 +320,7 @@ local
 	    || scan_string "quot;" #"\""
 	    || scan_string "gt;" #">"
 	    || scan_string "lt;" #"<"
+            || scan_string "apos;" #"'"
 in
 fun scan_nonquote toks =
     case LazySeq.getItem toks of
@@ -566,29 +566,29 @@ fun get_proof_dir (thyname:string) thy =
 	    case get_segment2 thyname thy of
 		Some seg => seg
 	      | None => get_import_segment thy
-	val defpath = [(getenv "ISABELLE_HOME_USER") ^ "/proofs"]
-	val path =
-	    case getenv "PROOF_DIRS" of
-		"" => defpath
-	      | path => (space_explode ":" path) @ defpath
-	fun find [] = error ("Unable to find import segment " ^ import_segment)
-	  | find (p::ps) = (let
-				val dir = p ^ "/" ^ import_segment
-			    in
-				if OS.FileSys.isDir dir
-				then dir
-				else find ps
-			    end) handle OS.SysErr _ => find ps
+	val defpath = [OS.Path.joinDirFile {dir=getenv "ISABELLE_HOME_USER",file="proofs"}]
+	val path = space_explode ":" (getenv "PROOF_DIRS") @ defpath
+	fun find [] = None
+	  | find (p::ps) =
+	    (let
+		 val dir = OS.Path.joinDirFile {dir = p,file=import_segment}
+	     in
+		 if OS.FileSys.isDir dir
+		 then Some dir
+		 else find ps
+	     end) handle OS.SysErr _ => find ps
     in
-	find path ^ "/" ^ thyname
+	apsome (fn p => OS.Path.joinDirFile {dir = p, file = thyname}) (find path)
     end
 			   
 fun proof_file_name thyname thmname thy =
     let
-	val path = get_proof_dir thyname thy
+	val path = case get_proof_dir thyname thy of
+		       Some p => p
+		     | None => error "Cannot find proof files"
 	val _ = OS.FileSys.mkDir path handle OS.SysErr _ => ()
     in
-	String.concat[path,"/",thmname,".prf"]
+	OS.Path.joinDirFile {dir = path, file = OS.Path.joinBaseExt {base = thmname, ext = SOME "prf"}}
     end
 	
 fun xml_to_proof thyname types terms prf thy =

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/specification_package.ML
     ID:         $Id$
     Author:     Sebastian Skalberg, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Package for defining constants by specification.
 *)

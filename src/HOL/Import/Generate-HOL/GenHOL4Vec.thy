@@ -1,3 +1,8 @@
+(*  Title:      HOL/Import/Generate-HOL/GenHOL4Vec.thy
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 theory GenHOL4Vec = GenHOL4Base:
 
 import_segment "hol4";

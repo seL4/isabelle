@@ -1,3 +1,8 @@
+(*  Title:      HOL/Import/Generate-HOL/GenHOL4Real.thy
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 theory GenHOL4Real = GenHOL4Base:
 
 import_segment "hol4";

@@ -1,9 +1,28 @@
+(*  Title:      HOL/Import/import_package.ML
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 signature IMPORT_PACKAGE =
 sig
     val import_meth: Args.src -> Proof.context -> Proof.method
     val setup      : (theory -> theory) list
     val debug      : bool ref
 end
+
+structure ImportDataArgs: THEORY_DATA_ARGS =
+struct
+val name = "HOL4/import_data"
+type T = ProofKernel.thm option array option
+val empty = None
+val copy = I
+val prep_ext = I
+fun merge _ = None
+fun print sg import_segment =
+    Pretty.writeln (Pretty.str ("Pretty printing of importer data not implemented"))
+end
+
+structure ImportData = TheoryDataFun(ImportDataArgs)
 
 structure ImportPackage :> IMPORT_PACKAGE =
 struct
@@ -24,7 +43,9 @@ fun import_tac (thyname,thmname) =
 	    val sg = sign_of_thm th
 	    val prem = hd (prems_of th)
 	    val _ = message ("Import trying to prove " ^ (string_of_cterm (cterm_of sg prem)))
-	    val int_thms = fst (Replay.setup_int_thms thyname thy)
+	    val int_thms = case ImportData.get thy of
+			       None => fst (Replay.setup_int_thms thyname thy)
+			     | Some a => a
 	    val proof = snd (ProofKernel.import_proof thyname thmname thy) thy
 	    val hol4thm = snd (Replay.replay_proof int_thms thyname thmname proof thy)
 	    val thm = snd (ProofKernel.to_isa_thm hol4thm)
@@ -57,5 +78,5 @@ val import_meth = Method.simple_args (Args.name -- Args.name)
 			  Method.SIMPLE_METHOD (import_tac arg thy)
 		      end)
 
-val setup = [Method.add_method("import",import_meth,"Import HOL4 theorem")]
+val setup = [Method.add_method("import",import_meth,"Import HOL4 theorem"),ImportData.init]
 end

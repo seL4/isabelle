@@ -1,7 +1,6 @@
-(*  Title:      Provers/shuffler.ML
+(*  Title:      HOL/Import/shuffler.ML
     ID:         $Id$
     Author:     Sebastian Skalberg, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Package for proving two terms equal by normalizing (hence the
 "shuffler" name).  Uses the simplifier for the normalization.

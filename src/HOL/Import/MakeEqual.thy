@@ -1,3 +1,8 @@
+(*  Title:      HOL/Import/MakeEqual.thy
+    ID:         $Id$
+    Author:     Sebastian Skalberg (TU Muenchen)
+*)
+
 theory MakeEqual = Main
   files "shuffler.ML":
 
