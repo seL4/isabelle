@@ -71,6 +71,17 @@ val setup = [Theory.add_tokentrfuns proof_general_trans];
 
 (** run-time operations **)
 
+(* symbol output *)
+
+fun xsymbols_output s =
+  if not (exists_string (equal "\\") s) then (s, real (size s))
+  else
+    let val syms = Symbol.explode s
+    in (implode (map (fn "\\" => "\\\\" | c => c) syms), real (Symbol.length syms)) end;
+
+fun setup_xsymbols_output () = Symbol.add_mode "xsymbols" xsymbols_output;
+
+
 (* messages *)
 
 val plain_output = std_output o suffix "\n";
@@ -229,7 +240,8 @@ end;
 (* init *)
 
 fun init isar =
- (setup_messages ();
+ (setup_xsymbols_output ();
+  setup_messages ();
   setup_state ();
   setup_thy_loader ();
   print_mode := [proof_generalN];
