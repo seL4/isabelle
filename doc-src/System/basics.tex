@@ -4,7 +4,7 @@
 \chapter{The Isabelle system environment}
 
 This manual describes Isabelle together with related tools and user interfaces
-as seen from an outside, system oriented view.  See also the \emph{Isabelle
+as seen from an outside (system oriented) view.  See also the \emph{Isabelle
   Reference Manual}~\cite{isabelle-ref} and the \emph{Isabelle Isar Reference
   Manual}~\cite{isabelle-isar-ref} for the actual Isabelle commands and
 related functions.
@@ -48,17 +48,17 @@ user-friendly than plain shell environment variables.
 
 In particular, we avoid the typical situation where prospective users of a
 software package are told to put several things into their shell startup
-scripts, before being able to actually run it. Isabelle requires none such
-administrative chores of its end-users --- the executables can be invoked
-straight away.  Occasionally, users would still want to put the Isabelle
-\texttt{bin} directory into their shell's search path, but this is not
-required.
+scripts, before being able to actually run the program. Isabelle requires none
+such administrative chores of its end-users --- the executables can be invoked
+straight away.\footnote{Occasionally, users would still want to put the
+  Isabelle \texttt{bin} directory into their shell's search path, but this is
+  not required.}
 
 
 \subsection{Creating the environment}
 
 Whenever any of the Isabelle executables is run, their settings environment is
-built as follows:
+built as follows.
 
 \begin{enumerate}
 \item The special variable \settdx{ISABELLE_HOME} is determined automatically
@@ -66,7 +66,7 @@ built as follows:
   
   You should not try to set \texttt{ISABELLE_HOME} manually. Also note that
   the Isabelle executables either have to be run from their original location
-  in the distribution directory, or via the executable objects created via the
+  in the distribution directory, or via the executable objects created by the
   \texttt{install} utility (see \S\ref{sec:tool-install}).  Just doing a plain
   copy of the \texttt{bin} files will not work!
   
@@ -95,11 +95,10 @@ built as follows:
 \end{enumerate}
 
 Note that settings files are actually full GNU bash scripts. So one may use
-complex shell commands, such as \texttt{if} or \texttt{case} statements, to
-set variables depending on the system architecture or other environment
-variables.  Such advanced features should be added only with great care,
-though. In particular, external environment references should be kept at a
-minimum.
+complex shell commands, such as \texttt{if} or \texttt{case} statements to set
+variables depending on the system architecture or other environment variables.
+Such advanced features should be added only with great care, though. In
+particular, external environment references should be kept at a minimum.
 
 \medskip A few variables are somewhat special:
 \begin{itemize}
@@ -108,7 +107,7 @@ minimum.
   \texttt{isatool} executables, respectively.
   
 \item \settdx{ISABELLE_PATH} and \settdx{ISABELLE_OUTPUT} will have the {\ML}
-  system identifier (according to \texttt{ML_IDENTIFIER} automatically
+  system identifier (according to \texttt{ML_IDENTIFIER}) automatically
   appended to their values.
 \end{itemize}
 
@@ -224,8 +223,8 @@ Usage: isabelle [OPTIONS] [INPUT] [OUTPUT]
     -w           reset write permissions on OUTPUT
 
   INPUT (default "\$ISABELLE_LOGIC") and OUTPUT specify in/out heaps.
-  These are either names to be searched in the Isabelle path, or actual
-  file names (containing at least one /).
+  These are either names to be searched in the Isabelle path, or
+  actual file names (containing at least one /).
   If INPUT is "RAW_ML_SYSTEM", just start the bare bones ML system.
 \end{ttbox}
 Input files without path specifications are looked up in the
@@ -361,8 +360,8 @@ are available:
 \item \texttt{none} is just a pass-through to plain \texttt{isabelle}. Thus
   \texttt{Isabelle} basically becomes an alias for \texttt{isabelle}.
   
-\item \texttt{xterm} refers to a simple xterm based interface which is part of
-  the Isabelle distribution.
+\item \texttt{xterm} refers to a simple \textsl{xterm} based interface which
+  is part of the Isabelle distribution.
   
 \item \texttt{emacs} refers to David Aspinall's \emph{Isamode}\index{user
     interface!Isamode} for emacs.  Isabelle just provides a wrapper for this,

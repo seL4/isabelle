@@ -324,7 +324,7 @@ This is known to work with recent versions of the \textsl{teTeX} distribution.
 
 
 
-\section{Managing logic sessions --- \texttt{isatool usedir}} \label{sec:tool-usedir}
+\section{Managing Isabelle logic sessions --- \texttt{isatool usedir}} \label{sec:tool-usedir}
 
 The \tooldx{usedir} utility builds object-logic images, or runs example
 sessions based on existing logics. Its usage is:
@@ -332,7 +332,6 @@ sessions based on existing logics. Its usage is:
 Usage: usedir LOGIC NAME
 
   Options are:
-    -B           build mode with THIS_IS_ISABELLE_BUILD indication
     -P PATH      set path for remote theory browsing information
     -b           build mode (output heap image, using current dir)
     -d FORMAT    build document as FORMAT (default false)
@@ -364,11 +363,7 @@ Calling \texttt{usedir} with \texttt{-b} runs \texttt{isabelle} with input
 image \texttt{LOGIC} and output to \texttt{NAME}, as provided on the command
 line. This will be a batch session, running \texttt{ROOT.ML} from the current
 directory and then quitting.  It is assumed that \texttt{ROOT.ML} contains all
-{\ML} commands required to build the logic.  The \texttt{-B} option is like
-\texttt{-b}, but also indicates \texttt{THIS_IS_ISABELLE_BUILD=true} via the
-process environment.  This usually causes the \texttt{ISABELLE\_OUTPUT} and
-\texttt{ISABELLE_BROWSER_INFO} settings to refer to some location within the
-Isabelle distribution directory, rather than the user's home directory.
+{\ML} commands required to build the logic.
 
 In example mode, \texttt{usedir} runs a read-only session of \texttt{LOGIC}
 and automatically runs \texttt{ROOT.ML} from within directory \texttt{NAME}.
@@ -404,7 +399,6 @@ example mode). This may be overridden explicitly via the \texttt{-s} option.
 Refer to the \texttt{IsaMakefile}s of the Isabelle distribution's
 object-logics as a model for your own developments.  For example, see
 \texttt{src/FOL/IsaMakefile}.
-
 
 %%% Local Variables: 
 %%% mode: latex
