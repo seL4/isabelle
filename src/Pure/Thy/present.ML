@@ -324,13 +324,14 @@ fun write_tex_index tex_index path =
 
 
 fun isatool_document doc_format path =
-  let val s = "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^
-    File.quote_sysify_path path ^ " 2>&1"
+  let
+    val s = "\"$ISATOOL\" document -c -o '" ^ doc_format ^ "' " ^
+      File.quote_sysify_path path ^ " 2>&1";
   in
     writeln s;
-    if system s <> 0 orelse not (File.exists (Path.ext doc_format path)) then
-      error "Failed to build document"
-    else ()
+    writeln (Output.raw (execute s));
+    if File.exists (Path.ext doc_format path) then ()
+    else error "Failed to build document"
   end;
 
 fun isatool_browser graph =
@@ -342,8 +343,8 @@ fun isatool_browser graph =
       File.quote_sysify_path gpath;
   in
     write_graph graph gpath;
-    if system s <> 0 orelse not (File.exists epspath) orelse not (File.exists pdfpath) then
-      error "Failed to prepare dependency graph"
+    if system s <> 0 orelse not (File.exists epspath) orelse not (File.exists pdfpath)
+    then error "Failed to prepare dependency graph"
     else
       let val pdf = File.read pdfpath and eps = File.read epspath
       in File.rm pdfpath; File.rm epspath; File.rm gpath; (pdf, eps) end
@@ -535,9 +536,7 @@ fun drafts doc_format src_paths =
 
 val setup = [BrowserInfoData.init];
 
-
 end;
-
 
 structure BasicPresent: BASIC_PRESENT = Present;
 open BasicPresent;
