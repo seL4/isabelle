@@ -85,6 +85,14 @@ by (simp add: cl_def, blast)
 lemma subset_cl: "r \<subseteq> cl L r"
 by (simp add: cl_def, blast)
 
+text{*A reformulation of @{thm subset_cl}*}
+lemma clI: "x \<in> r ==> x \<in> cl L r"
+by (simp add: cl_def, blast)
+
+text{*A reformulation of @{thm cl_least}*}
+lemma clD: "[|c \<in> cl L r; B \<in> L; r \<subseteq> B|] ==> c \<in> B"
+by (force simp add: cl_def)
+
 lemma cl_UN_subset: "(\<Union>i\<in>I. cl L (r i)) \<subseteq> cl L (\<Union>i\<in>I. r i)"
 by (simp add: cl_def, blast)
 
@@ -105,11 +113,20 @@ apply (rule cl_least)
 apply (blast intro: subset_cl [THEN subsetD])  
 done
 
+lemma cl_Int_subset: "cl L (r\<inter>s) \<subseteq> cl L r \<inter> cl L s"
+by (simp add: cl_def, blast)
+
 lemma cl_idem [simp]: "cl L (cl L r) = cl L r"
 by (simp add: cl_def, blast)
 
 lemma cl_ident: "r\<in>L ==> cl L r = r" 
 by (force simp add: cl_def)
+
+lemma cl_empty [simp]: "lattice L ==> cl L {} = {}"
+by (simp add: cl_ident empty_in_lattice)
+
+lemma cl_UNIV [simp]: "lattice L ==> cl L UNIV = UNIV"
+by (simp add: cl_ident UNIV_in_lattice)
 
 text{*Assertion (4.62)*}
 lemma cl_ident_iff: "lattice L ==> (cl L r = r) = (r\<in>L)" 
@@ -158,7 +175,7 @@ apply (rule INT_in_lattice [OF latt])
 apply (erule closedD [OF clos]) 
 apply (simp add: subset_trans [OF BsubX Un_upper1]) 
 apply (subgoal_tac "T \<inter> (X \<union> cl C (T\<inter>r)) = (T\<inter>X) \<union> cl C (T\<inter>r)")
- prefer 2 apply (blast intro: TC rev_subsetD [OF _ cl_least]) 
+ prefer 2 apply (blast intro: TC clD) 
 apply (erule ssubst) 
 apply (blast intro: Un_in_lattice latt cl_in_lattice TXC) 
 done
@@ -277,12 +294,12 @@ by (simp add: progress_set_def closed_def closed_mono [OF BB']
                  subset_trans [OF BB']) 
 
 theorem progress_set_Union:
-  assumes prog: "C \<in> progress_set F T B"
+  assumes leadsTo: "F \<in> A leadsTo B'"
+      and prog: "C \<in> progress_set F T B"
       and Fstable: "F \<in> stable T"
       and BB':  "B \<subseteq> B'"
       and B'C:  "B' \<in> C"
       and Gco: "!!X. X\<in>C ==> G \<in> X-B co X"
-      and leadsTo: "F \<in> A leadsTo B'"
   shows "F\<squnion>G \<in> T\<inter>A leadsTo B'"
 apply (insert prog Fstable) 
 apply (rule leadsTo_Join [OF leadsTo]) 
@@ -298,5 +315,193 @@ subsection {*Some Progress Sets*}
 
 lemma UNIV_in_progress_set: "UNIV \<in> progress_set F T B"
 by (simp add: progress_set_def lattice_def closed_def)
+
+
+
+subsubsection {*Derived Relation from a Lattice*}
+text{*From Meier's thesis, section 4.5.3*}
+
+constdefs
+  relcl :: "'a set set => ('a * 'a) set"
+    "relcl L == {(x,y). y \<in> cl L {x}}"
+
+lemma relcl_refl: "(a,a) \<in> relcl L"
+by (simp add: relcl_def subset_cl [THEN subsetD])
+
+lemma relcl_trans:
+     "[| (a,b) \<in> relcl L; (b,c) \<in> relcl L; lattice L |] ==> (a,c) \<in> relcl L"
+apply (simp add: relcl_def)
+apply (blast intro: clD cl_in_lattice)
+done
+
+lemma refl_relcl: "lattice L ==> refl UNIV (relcl L)"
+by (simp add: reflI relcl_def subset_cl [THEN subsetD])
+
+lemma trans_relcl: "lattice L ==> trans (relcl L)"
+by (blast intro: relcl_trans transI)
+
+text{*Related to equation (4.71) of Meier's thesis*}
+lemma cl_eq_Collect_relcl:
+     "lattice L ==> cl L X = {t. \<exists>s. s\<in>X & (s,t) \<in> relcl L}" 
+apply (cut_tac UN_singleton [of X, symmetric]) 
+apply (erule ssubst) 
+apply (force simp only: relcl_def cl_UN)
+done
+
+
+subsubsection {*Decoupling Theorems*}
+
+constdefs
+  decoupled :: "['a program, 'a program] => bool"
+   "decoupled F G ==
+	\<forall>act \<in> Acts F. \<forall>B. G \<in> stable B --> G \<in> stable (wp act B)"
+
+
+text{*Rao's Decoupling Theorem*}
+lemma stableco: "F \<in> stable A ==> F \<in> A-B co A"
+by (simp add: stable_def constrains_def, blast) 
+
+theorem decoupling:
+  assumes leadsTo: "F \<in> A leadsTo B"
+      and Gstable: "G \<in> stable B"
+      and dec:     "decoupled F G"
+  shows "F\<squnion>G \<in> A leadsTo B"
+proof -
+  have prog: "{X. G \<in> stable X} \<in> progress_set F UNIV B"
+    by (simp add: progress_set_def lattice_stable Gstable closed_def
+                  stable_Un [OF Gstable] dec [unfolded decoupled_def]) 
+  have "F\<squnion>G \<in> (UNIV\<inter>A) leadsTo B" 
+    by (rule progress_set_Union [OF leadsTo prog],
+        simp_all add: Gstable stableco)
+  thus ?thesis by simp
+qed
+
+
+text{*Rao's Weak Decoupling Theorem*}
+theorem weak_decoupling:
+  assumes leadsTo: "F \<in> A leadsTo B"
+      and stable: "F\<squnion>G \<in> stable B"
+      and dec:     "decoupled F (F\<squnion>G)"
+  shows "F\<squnion>G \<in> A leadsTo B"
+proof -
+  have prog: "{X. F\<squnion>G \<in> stable X} \<in> progress_set F UNIV B" 
+    by (simp del: Join_stable
+             add: progress_set_def lattice_stable stable closed_def
+                  stable_Un [OF stable] dec [unfolded decoupled_def])
+  have "F\<squnion>G \<in> (UNIV\<inter>A) leadsTo B" 
+    by (rule progress_set_Union [OF leadsTo prog],
+        simp_all del: Join_stable add: stable,
+        simp add: stableco) 
+  thus ?thesis by simp
+qed
+
+text{*The ``Decoupling via @{term G'} Union Theorem''*}
+theorem decoupling_via_aux:
+  assumes leadsTo: "F \<in> A leadsTo B"
+      and prog: "{X. G' \<in> stable X} \<in> progress_set F UNIV B"
+      and GG':  "G \<le> G'"  
+               --{*Beware!  This is the converse of the refinement relation!*}
+  shows "F\<squnion>G \<in> A leadsTo B"
+proof -
+  from prog have stable: "G' \<in> stable B"
+    by (simp add: progress_set_def)
+  have "F\<squnion>G \<in> (UNIV\<inter>A) leadsTo B" 
+    by (rule progress_set_Union [OF leadsTo prog],
+        simp_all add: stable stableco component_stable [OF GG'])
+  thus ?thesis by simp
+qed
+
+
+subsection{*Composition Theorems Based on Monotonicity and Commutativity*}
+
+constdefs 
+  commutes :: "['a program, 'a set, 'a set,  'a set set] => bool"
+   "commutes F T B L ==
+       \<forall>M. \<forall>act \<in> Acts F. B \<subseteq> M --> 
+           cl L (T \<inter> wp act M) \<subseteq> T \<inter> (B \<union> wp act (cl L (T\<inter>M)))"
+
+
+lemma commutativity1:
+  assumes commutes: "commutes F T B L" 
+      and lattice:  "lattice L"
+      and BL: "B \<in> L"
+      and TL: "T \<in> L"
+  shows "closed F T B L"
+apply (simp add: closed_def, clarify)
+apply (rule ProgressSets.cl_subset_in_lattice [OF _ lattice])  
+apply (simp add: Int_Un_distrib cl_Un [OF lattice] Un_subset_iff
+                 cl_ident Int_in_lattice [OF TL BL lattice] Un_upper1)
+apply (subgoal_tac "cl L (T \<inter> wp act M) \<subseteq> T \<inter> (B \<union> wp act (cl L (T \<inter> M)))") 
+ prefer 2 
+ apply (simp add: commutes [unfolded commutes_def]) 
+apply (erule subset_trans) 
+apply (simp add: cl_ident)
+apply (blast intro: rev_subsetD [OF _ wp_mono]) 
+done
+
+text{*Possibly move to Relation.thy, after @{term single_valued}*}
+constdefs
+  funof :: "[('a*'b)set, 'a] => 'b"
+   "funof r == (\<lambda>x. THE y. (x,y) \<in> r)"
+
+lemma funof_eq: "[|single_valued r; (x,y) \<in> r|] ==> funof r x = y"
+by (simp add: funof_def single_valued_def, blast)
+
+lemma funof_Pair_in:
+     "[|single_valued r; x \<in> Domain r|] ==> (x, funof r x) \<in> r"
+by (force simp add: funof_eq) 
+
+lemma funof_in:
+     "[|r``{x} \<subseteq> A; single_valued r; x \<in> Domain r|] ==> funof r x \<in> A" 
+by (force simp add: funof_eq)
+ 
+lemma funof_imp_wp: "[|funof act t \<in> A; single_valued act|] ==> t \<in> wp act A"
+by (force simp add: in_wp_iff funof_eq)
+
+
+subsubsection{*Commutativity of Functions and Relation*}
+text{*Thesis, page 109*}
+
+(*FIXME: this proof is an unGodly mess*)
+lemma commutativity2:
+  assumes dcommutes: 
+        "\<forall>act \<in> Acts F. 
+         \<forall>s \<in> T. \<forall>t. (s,t) \<in> relcl L --> 
+                      s \<in> B | t \<in> B | (funof act s, funof act t) \<in> relcl L"
+      and determ: "!!act. act \<in> Acts F ==> single_valued act"
+      and total: "!!act. act \<in> Acts F ==> Domain act = UNIV"
+      and lattice:  "lattice L"
+      and BL: "B \<in> L"
+      and TL: "T \<in> L"
+      and Fstable: "F \<in> stable T"
+  shows  "commutes F T B L"
+apply (simp add: commutes_def, clarify)  
+apply (rename_tac t)
+apply (subgoal_tac "\<exists>s. (s,t) \<in> relcl L & s \<in> T \<inter> wp act M") 
+ prefer 2 apply (force simp add: cl_eq_Collect_relcl [OF lattice], simp) 
+apply clarify 
+apply (subgoal_tac "\<forall>u\<in>L. s \<in> u --> t \<in> u") 
+ prefer 2 
+ apply (intro ballI impI) 
+ apply (subst cl_ident [symmetric], assumption)
+ apply (simp add: relcl_def)  
+ apply (blast intro: cl_mono [THEN [2] rev_subsetD])  
+apply (subgoal_tac "funof act s \<in> T\<inter>M") 
+ prefer 2 
+ apply (cut_tac Fstable) 
+ apply (force intro!: funof_in 
+              simp add: wp_def stable_def constrains_def determ total) 
+apply (subgoal_tac "s \<in> B | t \<in> B | (funof act s, funof act t) \<in> relcl L")
+ prefer 2
+ apply (rule dcommutes [rule_format], assumption+) 
+apply (subgoal_tac "t \<in> B | funof act t \<in> cl L (T\<inter>M)")
+ prefer 2 
+ apply (simp add: relcl_def)
+ apply (blast intro: BL cl_mono [THEN [2] rev_subsetD])  
+apply (subgoal_tac "t \<in> B | t \<in> wp act (cl L (T\<inter>M))")
+ prefer 2
+ apply (blast intro: funof_imp_wp determ) 
+apply (blast intro: TL cl_mono [THEN [2] rev_subsetD])  
+done
 
 end

@@ -110,6 +110,9 @@ by (simp add: component_eq_subset, blast)
 lemma component_constrains: "[| F \<le> G; G \<in> A co B |] ==> F \<in> A co B"
 by (auto simp add: constrains_def component_eq_subset)
 
+lemma component_stable: "[| F \<le> G; G \<in> stable A |] ==> F \<in> stable A"
+by (auto simp add: stable_def component_constrains)
+
 (*Used in Guar.thy to show that programs are partially ordered*)
 lemmas program_less_le = strict_component_def [THEN meta_eq_to_obj_eq]
 

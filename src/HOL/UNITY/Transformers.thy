@@ -38,6 +38,10 @@ text{*The fundamental theorem for wp*}
 theorem wp_iff: "(A <= wp act B) = (act `` A <= B)"
 by (force simp add: wp_def) 
 
+text{*This lemma is a good deal more intuitive than the definition!*}
+lemma in_wp_iff: "(a \<in> wp act B) = (\<forall>x. (a,x) \<in> act --> x \<in> B)"
+by (simp add: wp_def, blast)
+
 lemma Compl_Domain_subset_wp: "- (Domain act) \<subseteq> wp act B"
 by (force simp add: wp_def) 
 
@@ -69,6 +73,9 @@ lemma stable_imp_awp_ident: "F \<in> stable A ==> awp F A = A"
 apply (rule equalityI [OF awp_subset]) 
 apply (simp add: awp_iff_stable) 
 done
+
+lemma wp_mono: "(A \<subseteq> B) ==> wp act A \<subseteq> wp act B"
+by (simp add: wp_def, blast)
 
 lemma awp_mono: "(A \<subseteq> B) ==> awp F A \<subseteq> awp F B"
 by (simp add: awp_def wp_def, blast)
