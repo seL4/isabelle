@@ -55,6 +55,8 @@ cd "..";
 
 use "install_pp.ML";
 
+val quick_and_dirty = ref false;
+
 (*several object-logics declare theories named List or Option, hiding
   the eponymous basis library structures*)
 structure BasisLibrary =
