@@ -31,6 +31,7 @@ signature THM =
   val dest_comb         : cterm -> cterm * cterm
   val dest_abs          : cterm -> cterm * cterm
   val capply            : cterm -> cterm -> cterm
+  val cabs              : cterm -> cterm -> cterm
   val read_def_cterm    :
     Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> string * typ -> cterm * (indexname * typ) list
@@ -40,6 +41,8 @@ signature THM =
   exception THM of string * int * thm list
   val rep_thm           : thm -> {sign: Sign.sg, maxidx: int,
     shyps: sort list, hyps: term list, prop: term}
+  val crep_thm          : thm -> {sign: Sign.sg, maxidx: int,
+    shyps: sort list, hyps: cterm list, prop: cterm}
   val stamps_of_thm     : thm -> string ref list
   val tpairs_of         : thm -> (term * term) list
   val prems_of          : thm -> term list
@@ -227,6 +230,11 @@ fun capply (Cterm {t=f, sign=sign1, T=Type("fun",[dty,rty]), maxidx=maxidx1})
       else raise CTERM "capply: types don't agree"
   | capply _ _ = raise CTERM "capply: first arg is not a function"
 
+fun cabs (Cterm {t=Free(a,ty), sign=sign1, T=T1, maxidx=maxidx1})
+         (Cterm {t=t2, sign=sign2, T=T2, maxidx=maxidx2}) =
+      Cterm {t=absfree(a,ty,t2), sign=Sign.merge(sign1,sign2),
+             T = ty --> T2, maxidx=max[maxidx1, maxidx2]}
+  | cabs _ _ = raise CTERM "cabs: first arg is not a free variable";
 
 (** read cterms **)   (*exception ERROR*)
 
@@ -276,6 +284,12 @@ datatype thm = Thm of
    prop: term};			(*conclusion*)
 
 fun rep_thm (Thm args) = args;
+
+fun crep_thm (Thm {sign, maxidx, shyps, hyps, prop}) =
+  let fun cterm_of t = Cterm{sign=sign, t=t, T=fastype_of t, maxidx=maxidx};
+  in {sign=sign, maxidx=maxidx, shyps=shyps,
+      hyps=map cterm_of hyps, prop=cterm_of prop}
+  end;
 
 (*errors involving theorems*)
 exception THM of string * int * thm list;
