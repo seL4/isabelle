@@ -33,14 +33,14 @@ syntax (symbols)
 defs
 
 (* class definitions *)
-is_ub           "S  <| x == ! y. y:S --> y<<x"
-is_lub          "S <<| x == S <| x & (! u. S <| u  --> x << u)"
+is_ub_def       "S  <| x == ! y. y:S --> y<<x"
+is_lub_def      "S <<| x == S <| x & (!u. S <| u  --> x << u)"
 
 (* Arbitrary chains are total orders    *)                  
-tord         "tord S == ! x y. x:S & y:S --> (x<<y | y<<x)"
+tord_def     "tord S == !x y. x:S & y:S --> (x<<y | y<<x)"
 
 (* Here we use countable chains and I prefer to code them as functions! *)
-chain        "chain F == (! i. F(i) << F(Suc(i)))"
+chain_def        "chain F == !i. F i << F (Suc i)"
 
 (* finite chains, needed for monotony of continouous functions *)
 max_in_chain_def "max_in_chain i C == ! j. i <= j --> C(i) = C(j)" 

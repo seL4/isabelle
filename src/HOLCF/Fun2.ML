@@ -40,7 +40,7 @@ qed "less_fun";
 (* chains of functions yield chains in the po range                         *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [chain] "chain(S::nat=>('a=>'b::po)) ==> chain(% i. S(i)(x))";
+Goalw [chain_def] "chain (S::nat=>('a=>'b::po)) ==> chain (%i. S i x)";
 by (asm_full_simp_tac (simpset() addsimps [less_fun]) 1);
 qed "ch2ch_fun";
 

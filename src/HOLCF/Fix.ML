@@ -20,7 +20,7 @@ qed "iterate_Suc2";
 (* This property is essential since monotonicity of iterate makes no sense  *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [chain]  "x << F$x ==> chain (%i. iterate i F x)";
+Goalw [chain_def]  "x << F$x ==> chain (%i. iterate i F x)";
 by (strip_tac 1);
 by (induct_tac "i" 1);
 by Auto_tac;  
@@ -28,7 +28,7 @@ by (etac monofun_cfun_arg 1);
 qed "chain_iterate2";
 
 
-Goal   "chain (%i. iterate i F UU)";
+Goal "chain (%i. iterate i F UU)";
 by (rtac chain_iterate2 1);
 by (rtac minimal 1);
 qed "chain_iterate";
@@ -350,9 +350,14 @@ qed "fix_def2";
 (* ------------------------------------------------------------------------ *)
 
 val prems = Goalw [adm_def]
-   "(!!Y. [| chain(Y); !i. P(Y(i)) |] ==> P(lub(range(Y)))) ==> adm(P)";
+   "(!!Y. [| chain Y; !i. P (Y i) |] ==> P (lub (range Y))) ==> adm P";
 by (blast_tac (claset() addIs prems) 1);
 qed "admI";
+
+Goal "!x. P x ==> adm P";
+by (rtac admI 1);
+by (etac spec 1);
+qed "triv_admI";
 
 Goalw [adm_def] "[| adm(P); chain(Y); !i. P(Y(i)) |] ==> P(lub(range(Y)))";
 by (Blast_tac 1);
@@ -558,7 +563,7 @@ Goal "[| adm(Q); ? X. chain(X) & (!n. Q(X(n))) &\
 by (force_tac (claset() addEs [admD], simpset()) 1);
 qed "adm_disj_lemma2";
 
-Goalw [chain] "chain(Y) ==> chain(%m. if m < Suc i then Y(Suc i) else Y m)";
+Goalw [chain_def]"chain Y ==> chain (%m. if m < Suc i then Y (Suc i) else Y m)";
 by (Asm_simp_tac 1);
 by (safe_tac HOL_cs);
 by (subgoal_tac "ia = i" 1);
@@ -722,7 +727,7 @@ by (etac adm_disj 1);
 by (atac 1);
 qed "adm_not_conj";
 
-bind_thms ("adm_lemmas", [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
-        adm_all2,adm_not_less,adm_not_conj,adm_iff]);
+bind_thms ("adm_lemmas", [adm_not_free,adm_imp,adm_disj,adm_eq,adm_not_UU,
+        adm_UU_not_less,adm_all2,adm_not_less,adm_not_conj,adm_iff]);
 
 Addsimps adm_lemmas;
