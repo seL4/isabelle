@@ -96,9 +96,9 @@ sig
   val get_name_tags : term -> proof -> string * (string * string list) list
 
   (** rewriting on proof terms **)
-  val add_prf_rrules : theory -> (proof * proof) list -> unit
-  val add_prf_rprocs : theory ->
-    (string * (Term.typ list -> proof -> proof option)) list -> unit
+  val add_prf_rrules : (proof * proof) list -> theory -> theory
+  val add_prf_rprocs : (string * (Term.typ list -> proof -> proof option)) list ->
+    theory -> theory
   val rewrite_proof : Type.type_sig -> (proof * proof) list *
     (string * (typ list -> proof -> proof option)) list -> proof -> proof
   val rewrite_proof_notypes : (proof * proof) list *
@@ -821,6 +821,8 @@ and shrink' ls lev ts prfs (prf as prf1 %% prf2) =
       in (is, ch orelse ch', ts', if ch orelse ch' then prf' % t' else prf) end
   | shrink' ls lev ts prfs (prf as PBound i) =
       (if exists (fn Some (Bound j) => lev-j <= nth_elem (i, ls) | _ => true) ts
+         orelse not (null (duplicates
+           (foldl (fn (js, Some (Bound j)) => j :: js | (js, _) => js) ([], ts))))
          orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
   | shrink' ls lev ts prfs (prf as Hyp _) = ([], false, map (pair false) ts, prf)
   | shrink' ls lev ts prfs (prf as MinProof _) =
@@ -998,13 +1000,13 @@ structure ProofArgs =
 struct
   val name = "Pure/proof";
   type T = ((proof * proof) list *
-    (string * (typ list -> proof -> proof option)) list) ref;
+    (string * (typ list -> proof -> proof option)) list);
 
-  val empty = (ref ([], [])): T;
-  fun copy (ref rews) = (ref rews): T;            (*create new reference!*)
+  val empty = ([], []);
+  val copy = I;
   val finish = I;
-  val prep_ext = copy;
-  fun merge (ref (rules1, procs1), ref (rules2, procs2)) = ref
+  val prep_ext = I;
+  fun merge ((rules1, procs1), (rules2, procs2)) =
     (merge_lists rules1 rules2,
      generic_merge (uncurry equal o pairself fst) I I procs1 procs2);
   fun print _ _ = ();
@@ -1014,13 +1016,13 @@ structure ProofData = TheoryDataFun(ProofArgs);
 
 val init = ProofData.init;
 
-fun add_prf_rrules thy rs =
+fun add_prf_rrules rs thy =
   let val r = ProofData.get thy
-  in r := (rs @ fst (!r), snd (!r)) end;
+  in ProofData.put (rs @ fst r, snd r) thy end;
 
-fun add_prf_rprocs thy ps =
+fun add_prf_rprocs ps thy =
   let val r = ProofData.get thy
-  in r := (fst (!r), ps @ snd (!r)) end;
+  in ProofData.put (fst r, ps @ snd r) thy end;
 
 fun thm_proof sign (name, tags) hyps prop prf =
   let
@@ -1031,10 +1033,10 @@ fun thm_proof sign (name, tags) hyps prop prf =
         if ixn mem nvs then Some v else None) (vars_of prop) @
       map Some (sort (make_ord atless) (term_frees prop));
     val opt_prf = if ! proofs = 2 then
-        #4 (shrink [] 0 (rewrite_prf fst (!(ProofData.get_sg sign))
+        #4 (shrink [] 0 (rewrite_prf fst (ProofData.get_sg sign)
           (foldr (uncurry implies_intr_proof) (hyps', prf))))
       else MinProof (mk_min_proof ([], prf));
-    val head = (case strip_combt (fst (strip_combP opt_prf)) of
+    val head = (case strip_combt (fst (strip_combP prf)) of
         (PThm ((old_name, _), prf', prop', None), args') =>
           if (old_name="" orelse old_name=name) andalso
              prop = prop' andalso args = args' then
