@@ -13,10 +13,6 @@ signature BASIC_SYNTAX =
   include SYN_TRANS0
   include MIXFIX0
   include PRINTER0
-  datatype 'a trrule =
-    op |-> of 'a * 'a |
-    op <-| of 'a * 'a |
-    op <-> of 'a * 'a
   end;
 
 signature SYNTAX =
