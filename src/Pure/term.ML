@@ -51,6 +51,7 @@ sig
   val type_of1: typ list * term -> typ
   val fastype_of: term -> typ
   val fastype_of1: typ list * term -> typ
+  val list_abs: (string * typ) list * term -> term
   val strip_abs_body: term -> term
   val strip_abs_vars: term -> (string * typ) list
   val strip_qnt_body: string -> term -> term
@@ -332,10 +333,11 @@ fun fastype_of1 (Ts, f$u) =
 fun fastype_of t : typ = fastype_of1 ([],t);
 
 
+val list_abs = foldr (fn ((x, T), t) => Abs (x, T, t));
+
 (* maps  (x1,...,xn)t   to   t  *)
 fun strip_abs_body (Abs(_,_,t))  =  strip_abs_body t  
   | strip_abs_body u  =  u;
-
 
 (* maps  (x1,...,xn)t   to   [x1, ..., xn]  *)
 fun strip_abs_vars (Abs(a,T,t))  =  (a,T) :: strip_abs_vars t 
