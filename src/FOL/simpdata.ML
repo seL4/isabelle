@@ -125,7 +125,7 @@ fun int_prove nm thm  = qed_goal nm IFOL.thy thm
     (fn prems => [ (cut_facts_tac prems 1), 
                    (IntPr.fast_tac 1) ]);
 
-fun prove nm thm  = qed_goal nm FOL.thy thm (fn _ => [fast_tac FOL_cs 1]);
+fun prove nm thm  = qed_goal nm FOL.thy thm (fn _ => [Blast_tac 1]);
 
 int_prove "conj_commute" "P&Q <-> Q&P";
 int_prove "conj_left_commute" "P&(Q&R) <-> Q&(P&R)";
@@ -144,6 +144,9 @@ int_prove "disj_conj_distribR" "(P&Q)|R <-> (P|R) & (Q|R)";
 int_prove "imp_conj_distrib" "(P --> (Q&R)) <-> (P-->Q) & (P-->R)";
 int_prove "imp_conj"         "((P&Q)-->R)   <-> (P --> (Q --> R))";
 int_prove "imp_disj"         "(P|Q --> R)   <-> (P-->R) & (Q-->R)";
+
+prove "imp_disj1" "(P-->Q) | R <-> (P-->Q | R)";
+prove "imp_disj2" "Q | (P-->R) <-> (P-->Q | R)";
 
 int_prove "de_Morgan_disj" "(~(P | Q)) <-> (~P & ~Q)";
 prove     "de_Morgan_conj" "(~(P & Q)) <-> (~P | ~Q)";
@@ -210,22 +213,26 @@ fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls@prems),
 fun   safe_solver prems = FIRST'[match_tac (triv_rls@prems),
 				 eq_assume_tac, ematch_tac [FalseE]];
 
+(*No simprules, but basic infastructure for simplification*)
 val FOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
 			    setSSolver   safe_solver
 			    setSolver  unsafe_solver
 			    setmksimps (map mk_meta_eq o atomize o gen_all);
 
+(*intuitionistic simprules only*)
 val IFOL_ss = FOL_basic_ss addsimps IFOL_simps
 			   addcongs [imp_cong];
 
 val cla_simps = 
-    [de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp] @
+    [de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2,
+     not_all, not_ex, cases_simp] @
     map prove_fun
      ["~(P&Q)  <-> ~P | ~Q",
       "P | ~P",             "~P | P",
       "~ ~ P <-> P",        "(~P --> P) <-> P",
       "(~P <-> ~Q) <-> (P<->Q)"];
 
+(*classical simprules too*)
 val FOL_ss = IFOL_ss addsimps (cla_simps @ ex_simps @ all_simps);
 
 
