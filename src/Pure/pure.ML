@@ -21,7 +21,6 @@ local
     AxClass.setup @
     Latex.setup @
     Present.setup @
-    Isamode.setup @
     ProofGeneral.setup @
     Codegen.setup @
     Goals.setup;
