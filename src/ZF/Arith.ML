@@ -246,8 +246,8 @@ by (ALLGOALS Asm_simp_tac);
 qed "diff_cancel";
 
 Goal "[| k:nat; m: nat; n: nat |] ==> (m#+k) #- (n#+k) = m #- n";
-val add_commute_k = read_instantiate [("n","k")] add_commute;
-by (asm_simp_tac (simpset() addsimps [add_commute_k, diff_cancel]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [inst "n" "k" add_commute, diff_cancel]) 1);
 qed "diff_cancel2";
 
 Goal "[| m:nat;  n:nat |] ==> n #- (n#+m) = 0";
@@ -263,9 +263,8 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_cancel])));
 qed "diff_mult_distrib" ;
 
 Goal "[| m:nat; n: nat; k:nat |] ==> k #* (m #- n) = (k #* m) #- (k #* n)";
-val mult_commute_k = read_instantiate [("m","k")] mult_commute;
-by (asm_simp_tac (simpset() addsimps 
-                  [mult_commute_k, diff_mult_distrib]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [inst "m" "k" mult_commute, diff_mult_distrib]) 1);
 qed "diff_mult_distrib2" ;
 
 (*** Remainder ***)

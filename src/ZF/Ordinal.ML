@@ -573,8 +573,7 @@ qed "Un_least_lt_iff";
 
 val [ordi,ordj,ordk] = goal Ordinal.thy
     "[| Ord(i); Ord(j); Ord(k) |] ==> i Un j : k  <->  i:k & j:k";
-by (cut_facts_tac [[ordi,ordj] MRS 
-                   read_instantiate [("k","k")] Un_least_lt_iff] 1);
+by (cut_inst_tac [("k","k")] ([ordi,ordj] MRS Un_least_lt_iff) 1);
 by (asm_full_simp_tac (simpset() addsimps [lt_def,ordi,ordj,ordk]) 1);
 qed "Un_least_mem_iff";
 

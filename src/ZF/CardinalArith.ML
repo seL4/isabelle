@@ -291,7 +291,7 @@ qed "nat_cmult_eq_mult";
 Goal "Card(n) ==> 2 |*| n = n |+| n";
 by (asm_simp_tac 
     (simpset() addsimps [cmult_succ_lemma, Card_is_Ord,
-			 read_instantiate [("j","0")] cadd_commute]) 1);
+			 inst "j" "0" cadd_commute]) 1);
 qed "cmult_2";
 
 

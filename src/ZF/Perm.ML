@@ -245,7 +245,7 @@ qed "compE";
 bind_thm ("compEpair", 
     rule_by_tactic (REPEAT_FIRST (etac Pair_inject ORELSE' bound_hyp_subst_tac)
                     THEN prune_params_tac)
-        (read_instantiate [("xz","<a,c>")] compE));
+        (inst "xz" "<a,c>" compE));
 
 AddSIs [idI];
 AddIs  [compI];

@@ -113,11 +113,10 @@ by (res_inst_tac [("Q","%z. P(z, LEAST b. P(z, b))")] LeastI2 1);
 by (REPEAT (fast_tac (claset() addSEs [LeastI]) 1));
 qed "nested_LeastI";
 
-val nested_Least_instance = 
-   standard
-     (read_instantiate 
-        [("P","%g d. domain(uu(f,b,g,d)) ~= 0 &  \
-\               domain(uu(f,b,g,d)) lepoll m")] nested_LeastI);
+bind_thm ("nested_Least_instance",
+	  inst "P" 
+               "%g d. domain(uu(f,b,g,d)) ~= 0 & domain(uu(f,b,g,d)) lepoll m" 
+	  nested_LeastI);
 
 Goalw [gg1_def]
     "!!a. [| Ord(a);  m:nat;  \

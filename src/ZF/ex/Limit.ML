@@ -1782,8 +1782,9 @@ by Safe_tac;
 by (etac leE 1);
 by (asm_simp_tac(simpset() addsimps[e_less_eq,e_gr_eq]) 2);
 (* Must control rewriting by instantiating a variable. *)
-by (asm_full_simp_tac(simpset() addsimps
-     [read_instantiate [("i1","n")] (nat_into_Ord RS not_le_iff_lt RS iff_sym),
+by (asm_full_simp_tac
+    (simpset() addsimps
+     [inst "i1" "n" (nat_into_Ord RS not_le_iff_lt RS iff_sym),
       add_le_self]) 1);
 qed "eps_e_gr_add";
 
@@ -2488,8 +2489,9 @@ by (etac subst 2);
 by (res_inst_tac[("b","t")](lub_const RS subst) 2);
 by (stac comp_lubs 4);
 by (asm_simp_tac (simpset() addsimps [comp_assoc, 
-			   read_instantiate [("f","f")] mediating_eq]) 9);
-brr[cont_fun, emb_cont, mediating_emb, cont_cf, cpo_cf, chain_const, commute_chain,emb_chain_cpo] 1;
+				      inst "f" "f" mediating_eq]) 9);
+brr[cont_fun, emb_cont, mediating_emb, cont_cf, cpo_cf, chain_const, 
+    commute_chain,emb_chain_cpo] 1;
 qed "lub_universal_unique";
 
 (*---------------------------------------------------------------------*)

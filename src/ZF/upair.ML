@@ -272,11 +272,11 @@ qed_goal "split_if" thy
 	addsplits[split_if]
 **)
 
-bind_thm ("split_if_eq1", read_instantiate [("P", "%x. x = ?b")] split_if);
-bind_thm ("split_if_eq2", read_instantiate [("P", "%x. ?a = x")] split_if);
+bind_thm ("split_if_eq1", inst "P" "%x. x = ?b" split_if);
+bind_thm ("split_if_eq2", inst "P" "%x. ?a = x" split_if);
 
-bind_thm ("split_if_mem1", read_instantiate [("P", "%x. x : ?b")] split_if);
-bind_thm ("split_if_mem2", read_instantiate [("P", "%x. ?a : x")] split_if);
+bind_thm ("split_if_mem1", inst "P" "%x. x : ?b" split_if);
+bind_thm ("split_if_mem2", inst "P" "%x. ?a : x" split_if);
 
 val split_ifs = [split_if_eq1, split_if_eq2,
 		 split_if_mem1, split_if_mem2];

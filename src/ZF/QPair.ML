@@ -67,7 +67,7 @@ qed_goalw "QSigmaE" thy [QSigma_def]
 val QSigmaE2 = 
   rule_by_tactic (REPEAT_FIRST (etac QPair_inject ORELSE' bound_hyp_subst_tac)
                   THEN prune_params_tac)
-      (read_instantiate [("c","<a;b>")] QSigmaE);  
+      (inst "c" "<a;b>" QSigmaE);  
 
 qed_goal "QSigmaD1" thy "<a;b> : QSigma(A,B) ==> a : A"
  (fn [major]=>
