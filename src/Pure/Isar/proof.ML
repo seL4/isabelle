@@ -282,12 +282,12 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
   in
     writeln ("Nesting level: " ^ string_of_int (length nodes div 1));	(* FIXME *)
     writeln "";
+    writeln (mode_name mode ^ " mode");
+    writeln "";
     ProofContext.print_context context;
     writeln "";
     print_facts facts;
-    print_goal (find_goal 0 state);
-    writeln "";
-    writeln (mode_name mode ^ " mode")
+    print_goal (find_goal 0 state)
   end;
 
 
@@ -406,7 +406,7 @@ fun final_result state pre_thm =
 fun solve_goal rule state =
   let
     val (_, (result, (facts, thm))) = find_goal 0 state;
-    val thms' = FIRSTGOAL (solve_tac [rule]) thm;
+    val thms' = FIRSTGOAL (rtac rule THEN_ALL_NEW (TRY o assume_tac)) thm;
   in Seq.map (fn thm' => map_goal (K (result, (facts, thm'))) state) thms' end;
 
 
