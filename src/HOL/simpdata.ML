@@ -124,6 +124,11 @@ in
 fun split_tac splits = mktac (map mk_meta_eq splits)
 end;
 
+local val mktac = mk_case_split_inside_tac (meta_eq_to_obj_eq RS iffD2)
+in
+fun split_inside_tac splits = mktac (map mk_meta_eq splits)
+end;
+
 
 (* eliminiation of existential quantifiers in assumptions *)
 

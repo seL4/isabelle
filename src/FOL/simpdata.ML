@@ -144,3 +144,10 @@ local val mktac = mk_case_split_tac meta_iffD
 in
 fun split_tac splits = mktac (map mk_meta_eq splits)
 end;
+
+local val mktac = mk_case_split_inside_tac meta_iffD
+in
+fun split_inside_tac splits = mktac (map mk_meta_eq splits)
+end;
+
+
