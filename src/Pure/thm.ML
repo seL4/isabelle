@@ -288,31 +288,6 @@ fun read_def_cterm args used freeze aT =
 
 fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None) [] true;
 
-(*read a list of terms, matching them against a list of expected types.
-  NO disambiguation of alternative parses via type-checking -- it is just
-  not practical.
-
-Why not? In any case, this function is not used at all.
-
-fun read_cterms sg (bs, Ts) =
-  let
-    val {tsig, syn, ...} = Sign.rep_sg sg;
-    fun read (b, T) =
-      (case Syntax.read syn T b of
-        [t] => t
-      | _  => error ("Error or ambiguity in parsing of " ^ b));
-
-    val prt = setmp Syntax.show_brackets true (Sign.pretty_term sg);
-    val prT = Sign.pretty_typ sg;
-    val (us, _) =
-      (* FIXME Sign.infer_types!? *)
-      Type.infer_types prt prT tsig (Sign.const_type sg) (K None) (K None)
-        (Sign.intern_const sg) (Sign.intern_tycons sg) (Sign.intern_sort sg)
-        [] true (map (Sign.certify_typ sg) Ts) (ListPair.map read (bs, Ts));
-  in map (cterm_of sg) us end
-  handle TYPE (msg, _, _) => error msg
-       | TERM (msg, _) => error msg;
-*)
 
 
 (*** Derivations ***)
