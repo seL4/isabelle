@@ -319,16 +319,26 @@ preceding the actual theory definition.
 
 \subsection{Name spaces}
 
-\indexisarcmd{global}\indexisarcmd{local}
+\indexisarcmd{global}\indexisarcmd{local}\indexisarcmd{hide}
 \begin{matharray}{rcl}
   \isarcmd{global} & : & \isartrans{theory}{theory} \\
   \isarcmd{local} & : & \isartrans{theory}{theory} \\
+  \isarcmd{hide} & : & \isartrans{theory}{theory} \\
 \end{matharray}
+
+\begin{rail}
+  'global' comment?
+  ;
+  'local' comment?
+  ;
+  'hide' name (nameref + ) comment?
+  ;
+\end{rail}
 
 Isabelle organizes any kind of name declarations (of types, constants,
 theorems etc.) by separate hierarchically structured name spaces.  Normally
-the user never has to control the behavior of name space entry by hand, yet
-the following commands provide some way to do so.
+the user does not have to control the behavior of name spaces by hand, yet the
+following commands provide some way to do so.
 
 \begin{descr}
 \item [$\isarkeyword{global}$ and $\isarkeyword{local}$] change the current
@@ -336,6 +346,17 @@ the following commands provide some way to do so.
   mode, causing all names to be automatically qualified by the theory name.
   Changing this to $\isarkeyword{global}$ causes all names to be declared
   without the theory prefix, until $\isarkeyword{local}$ is declared again.
+  
+  Note that global names are prone to get hidden accidently later, when
+  qualified names of the same base name are introduced.
+  
+\item [$\isarkeyword{hide}~space~names$] removes declarations from a given
+  name space (which may be $class$, $type$, or $const$).  Hidden objects
+  remain valid within the logic, but are inaccessible from user input.  In
+  output, the special qualifier ``$\mathord?\mathord?$'' is prefixed to the
+  full internal name.
+  
+  Unqualified (global) names may not be hidden deliberately.
 \end{descr}
 
 
