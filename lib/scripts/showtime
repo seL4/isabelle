@@ -7,7 +7,11 @@
 TIME=$1
 
 SECS=$[ $TIME % 60 ]
+[ $SECS -lt 10 ] && SECS=0$SECS
+
 MINUTES=$[ ($TIME / 60) % 60 ]
+[ $MINUTES -lt 10 ] && MINUTES=0$MINUTES
+
 HOURS=$[ $TIME / 3600 ]
 
 echo "${HOURS}:${MINUTES}:${SECS}"
