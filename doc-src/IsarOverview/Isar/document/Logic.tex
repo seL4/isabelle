@@ -1,0 +1,1098 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Logic}%
+\isamarkupfalse%
+%
+\isamarkupsection{Logic \label{sec:Logic}%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Propositional logic%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Introduction rules%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We start with a really trivial toy proof to introduce the basic
+features of structured proofs.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharparenleft}rule\ impI{\isacharparenright}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ a{\isacharcolon}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{by}{\isacharparenleft}rule\ a{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+The operational reading: the \isakeyword{assume}-\isakeyword{show}
+block proves \isa{A\ {\isasymLongrightarrow}\ A} (\isa{a} is a degenerate rule (no
+assumptions) that proves \isa{A} outright), which rule
+\isa{impI} (\isa{{\isacharparenleft}{\isacharquery}P\ {\isasymLongrightarrow}\ {\isacharquery}Q{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isasymlongrightarrow}\ {\isacharquery}Q}) turns into the desired \isa{A\ {\isasymlongrightarrow}\ A}.  However, this text is much too detailed for comfort. Therefore
+Isar implements the following principle: \begin{quote}\em Command
+\isakeyword{proof} automatically tries to select an introduction rule
+based on the goal and a predefined list of rules.  \end{quote} Here
+\isa{impI} is applied automatically:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ a{\isacharcolon}\ A\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ A\ \isamarkupfalse%
+\isacommand{by}{\isacharparenleft}rule\ a{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Single-identifier formulae such as \isa{A} need not
+be enclosed in double quotes. However, we will continue to do so for
+uniformity.
+
+Trivial proofs, in particular those by assumption, should be trivial
+to perform. Proof ``.'' does just that (and a bit more). Thus
+naming of assumptions is often superfluous:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+To hide proofs by assumption further, \isakeyword{by}\isa{{\isacharparenleft}method{\isacharparenright}}
+first applies \isa{method} and then tries to solve all remaining subgoals
+by assumption:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}A\ {\isasymand}\ A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{by}{\isacharparenleft}rule\ conjI{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Rule \isa{conjI} is of course \isa{{\isasymlbrakk}{\isacharquery}P{\isacharsemicolon}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}P\ {\isasymand}\ {\isacharquery}Q}.
+A drawback of implicit proofs by assumption is that it
+is no longer obvious where an assumption is used.
+
+Proofs of the form \isakeyword{by}\isa{{\isacharparenleft}rule}~\emph{name}\isa{{\isacharparenright}}
+can be abbreviated to ``..''  if \emph{name} refers to one of the
+predefined introduction rules (or elimination rules, see below):%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ A\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}A\ {\isasymand}\ A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+This is what happens: first the matching introduction rule \isa{conjI}
+is applied (first ``.''), then the two subgoals are solved by assumption
+(second ``.'').%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Elimination rules%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A typical elimination rule is \isa{conjE}, $\land$-elimination:
+\begin{isabelle}%
+\ \ \ \ \ {\isasymlbrakk}{\isacharquery}P\ {\isasymand}\ {\isacharquery}Q{\isacharsemicolon}\ {\isasymlbrakk}{\isacharquery}P{\isacharsemicolon}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}R{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}R%
+\end{isabelle}  In the following proof it is applied
+by hand, after its first (\emph{major}) premise has been eliminated via
+\isa{{\isacharbrackleft}OF\ AB{\isacharbrackright}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ AB{\isacharcolon}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\ {\isacharparenleft}rule\ conjE{\isacharbrackleft}OF\ AB{\isacharbrackright}{\isacharparenright}\ \ %
+\isamarkupcmt{\isa{conjE{\isacharbrackleft}OF\ AB{\isacharbrackright}}: \isa{{\isacharparenleft}{\isasymlbrakk}A{\isacharsemicolon}\ B{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}R{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharquery}R}%
+}
+\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\ {\isachardoublequote}B{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Note that the term \isa{{\isacharquery}thesis} always stands for the
+``current goal'', i.e.\ the enclosing \isakeyword{show} (or
+\isakeyword{have}) statement.
+
+This is too much proof text. Elimination rules should be selected
+automatically based on their major premise, the formula or rather connective
+to be eliminated. In Isar they are triggered by facts being fed
+\emph{into} a proof. Syntax:
+\begin{center}
+\isakeyword{from} \emph{fact} \isakeyword{show} \emph{proposition} \emph{proof}
+\end{center}
+where \emph{fact} stands for the name of a previously proved
+proposition, e.g.\ an assumption, an intermediate result or some global
+theorem, which may also be modified with \isa{OF} etc.
+The \emph{fact} is ``piped'' into the \emph{proof}, which can deal with it
+how it chooses. If the \emph{proof} starts with a plain \isakeyword{proof},
+an elimination rule (from a predefined list) is applied
+whose first premise is solved by the \emph{fact}. Thus the proof above
+is equivalent to the following one:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ AB{\isacharcolon}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ AB\ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\ {\isachardoublequote}B{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Now we come to a second important principle:
+\begin{quote}\em
+Try to arrange the sequence of propositions in a UNIX-like pipe,
+such that the proof of each proposition builds on the previous proposition.
+\end{quote}
+The previous proposition can be referred to via the fact \isa{this}.
+This greatly reduces the need for explicit naming of propositions:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ this\ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\ {\isachardoublequote}B{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Because of the frequency of \isakeyword{from}~\isa{this}, Isar provides two abbreviations:
+\begin{center}
+\begin{tabular}{r@ {\quad=\quad}l}
+\isakeyword{then} & \isakeyword{from} \isa{this} \\
+\isakeyword{thus} & \isakeyword{then} \isakeyword{show}
+\end{tabular}
+\end{center}
+
+Here is an alternative proof that operates purely by forward reasoning:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ ab{\isacharcolon}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ ab\ \isamarkupfalse%
+\isacommand{have}\ a{\isacharcolon}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ ab\ \isamarkupfalse%
+\isacommand{have}\ b{\isacharcolon}\ {\isachardoublequote}B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ b\ a\ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}B\ {\isasymand}\ A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent It is worth examining this text in detail because it
+exhibits a number of new concepts.  For a start, it is the first time
+we have proved intermediate propositions (\isakeyword{have}) on the
+way to the final \isakeyword{show}. This is the norm in nontrivial
+proofs where one cannot bridge the gap between the assumptions and the
+conclusion in one step. To understand how the proof works we need to
+explain more Isar details.
+
+Method \isa{rule} can be given a list of rules, in which case
+\isa{{\isacharparenleft}rule}~\textit{rules}\isa{{\isacharparenright}} applies the first matching
+rule in the list \textit{rules}. Command \isakeyword{from} can be
+followed by any number of facts.  Given \isakeyword{from}~\isa{f}$_1$~\dots~\isa{f}$_n$, the proof step
+\isa{{\isacharparenleft}rule}~\textit{rules}\isa{{\isacharparenright}} following a \isakeyword{have}
+or \isakeyword{show} searches \textit{rules} for a rule whose first
+$n$ premises can be proved by \isa{f}$_1$~\dots~\isa{f}$_n$ in the
+given order. Finally one needs to know that ``..'' is short for
+\isa{by{\isacharparenleft}rule}~\textit{elim-rules intro-rules}\isa{{\isacharparenright}} (or
+\isa{by{\isacharparenleft}rule}~\textit{intro-rules}\isa{{\isacharparenright}} if there are no facts
+fed into the proof), i.e.\ elimination rules are tried before
+introduction rules.
+
+Thus in the above proof both \isakeyword{have}s are proved via
+\isa{conjE} triggered by \isakeyword{from}~\isa{ab} whereas
+in the \isakeyword{show} step no elimination rule is applicable and
+the proof succeeds with \isa{conjI}. The latter would fail had
+we written \isakeyword{from}~\isa{a\ b} instead of
+\isakeyword{from}~\isa{b\ a}.
+
+Proofs starting with a plain \isa{proof} behave the same because the
+latter is short for \isa{proof\ {\isacharparenleft}rule}~\textit{elim-rules
+intro-rules}\isa{{\isacharparenright}} (or \isa{proof\ {\isacharparenleft}rule}~\textit{intro-rules}\isa{{\isacharparenright}} if there are no facts fed into
+the proof).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{More constructs%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In the previous proof of \isa{A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A} we needed to feed
+more than one fact into a proof step, a frequent situation. Then the
+UNIX-pipe model appears to break down and we need to name the different
+facts to refer to them. But this can be avoided:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymlongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ ab{\isacharcolon}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ ab\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{moreover}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ ab\ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{ultimately}\ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}B\ {\isasymand}\ A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent You can combine any number of facts \isa{A{\isadigit{1}}} \dots\ \isa{An} into a sequence by separating their proofs with
+\isakeyword{moreover}. After the final fact, \isakeyword{ultimately} stands
+for \isakeyword{from}~\isa{A{\isadigit{1}}}~\dots~\isa{An}.  This avoids having to
+introduce names for all of the sequence elements.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Although we have only seen a few introduction and elimination rules so
+far, Isar's predefined rules include all the usual natural deduction
+rules. We conclude our exposition of propositional logic with an extended
+example --- which rules are used implicitly where?%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ {\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ {\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ n{\isacharcolon}\ {\isachardoublequote}{\isasymnot}\ {\isacharparenleft}A\ {\isasymand}\ B{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\ {\isacharparenleft}rule\ ccontr{\isacharparenright}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ nn{\isacharcolon}\ {\isachardoublequote}{\isasymnot}\ {\isacharparenleft}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymnot}\ A{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymnot}\ B{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}B{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \ \ \ \ \ \ \isamarkupfalse%
+\isacommand{with}\ n\ \isamarkupfalse%
+\isacommand{show}\ False\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{hence}\ {\isachardoublequote}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{with}\ nn\ \isamarkupfalse%
+\isacommand{show}\ False\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{hence}\ {\isachardoublequote}{\isasymnot}\ A\ {\isasymor}\ {\isasymnot}\ B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{with}\ nn\ \isamarkupfalse%
+\isacommand{show}\ False\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+Rule \isa{ccontr} (``classical contradiction'') is
+\isa{{\isacharparenleft}{\isasymnot}\ P\ {\isasymLongrightarrow}\ False{\isacharparenright}\ {\isasymLongrightarrow}\ P}.
+Apart from demonstrating the strangeness of classical
+arguments by contradiction, this example also introduces two new
+abbreviations:
+\begin{center}
+\begin{tabular}{l@ {\quad=\quad}l}
+\isakeyword{hence} & \isakeyword{then} \isakeyword{have} \\
+\isakeyword{with}~\emph{facts} &
+\isakeyword{from}~\emph{facts} \isa{this}
+\end{tabular}
+\end{center}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Avoiding duplication%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+So far our examples have been a bit unnatural: normally we want to
+prove rules expressed with \isa{{\isasymLongrightarrow}}, not \isa{{\isasymlongrightarrow}}. Here is an example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{thus}\ {\isachardoublequote}B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{next}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{thus}\ {\isachardoublequote}A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent The \isakeyword{proof} always works on the conclusion,
+\isa{B\ {\isasymand}\ A} in our case, thus selecting $\land$-introduction. Hence
+we must show \isa{B} and \isa{A}; both are proved by
+$\land$-elimination and the proofs are separated by \isakeyword{next}:
+\begin{description}
+\item[\isakeyword{next}] deals with multiple subgoals. For example,
+when showing \isa{A\ {\isasymand}\ B} we need to show both \isa{A} and \isa{B}.  Each subgoal is proved separately, in \emph{any} order. The
+individual proofs are separated by \isakeyword{next}.  \footnote{Each
+\isakeyword{show} must prove one of the pending subgoals.  If a
+\isakeyword{show} matches multiple subgoals, e.g.\ if the subgoals
+contain ?-variables, the first one is proved. Thus the order in which
+the subgoals are proved can matter --- see
+\S\ref{sec:CaseDistinction} for an example.}
+
+Strictly speaking \isakeyword{next} is only required if the subgoals
+are proved in different assumption contexts which need to be
+separated, which is not the case above. For clarity we
+have employed \isakeyword{next} anyway and will continue to do so.
+\end{description}
+
+This is all very well as long as formulae are small. Let us now look at some
+devices to avoid repeating (possibly large) formulae. A very general method
+is pattern matching:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}large{\isacharunderscore}A\ {\isasymand}\ large{\isacharunderscore}B\ {\isasymLongrightarrow}\ large{\isacharunderscore}B\ {\isasymand}\ large{\isacharunderscore}A{\isachardoublequote}\isanewline
+\ \ \ \ \ \ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequote}{\isacharquery}AB\ {\isasymLongrightarrow}\ {\isacharquery}B\ {\isasymand}\ {\isacharquery}A{\isachardoublequote}{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}{\isacharquery}AB{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{thus}\ {\isachardoublequote}{\isacharquery}B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{next}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}{\isacharquery}AB{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{thus}\ {\isachardoublequote}{\isacharquery}A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Any formula may be followed by
+\isa{{\isacharparenleft}}\isakeyword{is}~\emph{pattern}\isa{{\isacharparenright}} which causes the pattern
+to be matched against the formula, instantiating the \isa{{\isacharquery}}-variables in
+the pattern. Subsequent uses of these variables in other terms causes
+them to be replaced by the terms they stand for.
+
+We can simplify things even more by stating the theorem by means of the
+\isakeyword{assumes} and \isakeyword{shows} elements which allow direct
+naming of assumptions:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ \isakeyword{assumes}\ AB{\isacharcolon}\ {\isachardoublequote}large{\isacharunderscore}A\ {\isasymand}\ large{\isacharunderscore}B{\isachardoublequote}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequote}large{\isacharunderscore}B\ {\isasymand}\ large{\isacharunderscore}A{\isachardoublequote}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequote}{\isacharquery}B\ {\isasymand}\ {\isacharquery}A{\isachardoublequote}{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ AB\ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}{\isacharquery}B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{next}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ AB\ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}{\isacharquery}A{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Note the difference between \isa{{\isacharquery}AB}, a term, and
+\isa{AB}, a fact.
+
+Finally we want to start the proof with $\land$-elimination so we
+don't have to perform it twice, as above. Here is a slick way to
+achieve this:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ \isakeyword{assumes}\ AB{\isacharcolon}\ {\isachardoublequote}large{\isacharunderscore}A\ {\isasymand}\ large{\isacharunderscore}B{\isachardoublequote}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequote}large{\isacharunderscore}B\ {\isasymand}\ large{\isacharunderscore}A{\isachardoublequote}\ {\isacharparenleft}\isakeyword{is}\ {\isachardoublequote}{\isacharquery}B\ {\isasymand}\ {\isacharquery}A{\isachardoublequote}{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{using}\ AB\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}{\isacharquery}A{\isachardoublequote}\ {\isachardoublequote}{\isacharquery}B{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Command \isakeyword{using} can appear before a proof
+and adds further facts to those piped into the proof. Here \isa{AB}
+is the only such fact and it triggers $\land$-elimination. Another
+frequent idiom is as follows:
+\begin{center}
+\isakeyword{from} \emph{major-facts}~
+\isakeyword{show} \emph{proposition}~
+\isakeyword{using} \emph{minor-facts}~
+\emph{proof}
+\end{center}
+
+Sometimes it is necessary to suppress the implicit application of rules in a
+\isakeyword{proof}. For example \isakeyword{show}~\isa{A\ {\isasymor}\ B} would
+trigger $\lor$-introduction, requiring us to prove \isa{A}. A simple
+``\isa{{\isacharminus}}'' prevents this \emph{faux pas}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ \isakeyword{assumes}\ AB{\isacharcolon}\ {\isachardoublequote}A\ {\isasymor}\ B{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}B\ {\isasymor}\ A{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ AB\ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ A\ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{next}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ B\ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\isamarkupsubsection{Predicate calculus%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Command \isakeyword{fix} introduces new local variables into a
+proof. The pair \isakeyword{fix}-\isakeyword{show} corresponds to \isa{{\isasymAnd}}
+(the universal quantifier at the
+meta-level) just like \isakeyword{assume}-\isakeyword{show} corresponds to
+\isa{{\isasymLongrightarrow}}. Here is a sample proof, annotated with the rules that are
+applied implicitly:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ \isakeyword{assumes}\ P{\isacharcolon}\ {\isachardoublequote}{\isasymforall}x{\isachardot}\ P\ x{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isasymforall}x{\isachardot}\ P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ %
+\isamarkupcmt{\isa{allI}: \isa{{\isacharparenleft}{\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}x{\isachardot}\ {\isacharquery}P\ x}%
+}
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{fix}\ a\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ P\ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}P{\isacharparenleft}f\ a{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\ \ %
+\isamarkupcmt{\isa{allE}: \isa{{\isasymlbrakk}{\isasymforall}x{\isachardot}\ {\isacharquery}P\ x{\isacharsemicolon}\ {\isacharquery}P\ {\isacharquery}x\ {\isasymLongrightarrow}\ {\isacharquery}R{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}R}%
+}
+\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Note that in the proof we have chosen to call the bound
+variable \isa{a} instead of \isa{x} merely to show that the choice of
+local names is irrelevant.
+
+Next we look at \isa{{\isasymexists}} which is a bit more tricky.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ \isakeyword{assumes}\ Pf{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isasymexists}y{\isachardot}\ P\ y{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ Pf\ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\ \ \ \ \ \ \ \ \ \ \ \ \ \ %
+\isamarkupcmt{\isa{exE}: \isa{{\isasymlbrakk}{\isasymexists}x{\isachardot}\ {\isacharquery}P\ x{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ {\isacharquery}P\ x\ {\isasymLongrightarrow}\ {\isacharquery}Q{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}Q}%
+}
+\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{fix}\ x\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\ \ %
+\isamarkupcmt{\isa{exI}: \isa{{\isacharquery}P\ {\isacharquery}x\ {\isasymLongrightarrow}\ {\isasymexists}x{\isachardot}\ {\isacharquery}P\ x}%
+}
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Explicit $\exists$-elimination as seen above can become
+cumbersome in practice.  The derived Isar language element
+\isakeyword{obtain} provides a more appealing form of generalised
+existence reasoning:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ \isakeyword{assumes}\ Pf{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isasymexists}y{\isachardot}\ P\ y{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ Pf\ \isamarkupfalse%
+\isacommand{obtain}\ x\ \isakeyword{where}\ {\isachardoublequote}P{\isacharparenleft}f\ x{\isacharparenright}{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{thus}\ {\isachardoublequote}{\isasymexists}y{\isachardot}\ P\ y{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Note how the proof text follows the usual mathematical style
+of concluding $P(x)$ from $\exists x. P(x)$, while carefully introducing $x$
+as a new local variable.  Technically, \isakeyword{obtain} is similar to
+\isakeyword{fix} and \isakeyword{assume} together with a soundness proof of
+the elimination involved.
+
+Here is a proof of a well known tautology.
+Which rule is used where?%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ \isakeyword{assumes}\ ex{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ {\isasymforall}y{\isachardot}\ P\ x\ y{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isasymforall}y{\isachardot}\ {\isasymexists}x{\isachardot}\ P\ x\ y{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{fix}\ y\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ ex\ \isamarkupfalse%
+\isacommand{obtain}\ x\ \isakeyword{where}\ {\isachardoublequote}{\isasymforall}y{\isachardot}\ P\ x\ y{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{hence}\ {\isachardoublequote}P\ x\ y{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{thus}\ {\isachardoublequote}{\isasymexists}x{\isachardot}\ P\ x\ y{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\isamarkupsubsection{Making bigger steps%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+So far we have confined ourselves to single step proofs. Of course
+powerful automatic methods can be used just as well. Here is an example,
+Cantor's theorem that there is no surjective function from a set to its
+powerset:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{let}\ {\isacharquery}S\ {\isacharequal}\ {\isachardoublequote}{\isacharbraceleft}x{\isachardot}\ x\ {\isasymnotin}\ f\ x{\isacharbraceright}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}{\isacharquery}S\ {\isasymnotin}\ range\ f{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}{\isacharquery}S\ {\isasymin}\ range\ f{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{obtain}\ y\ \isakeyword{where}\ fy{\isacharcolon}\ {\isachardoublequote}{\isacharquery}S\ {\isacharequal}\ f\ y{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ False\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{proof}\ cases\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{with}\ fy\ \isamarkupfalse%
+\isacommand{show}\ False\ \isamarkupfalse%
+\isacommand{by}\ blast\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{next}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{with}\ fy\ \isamarkupfalse%
+\isacommand{show}\ False\ \isamarkupfalse%
+\isacommand{by}\ blast\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+For a start, the example demonstrates two new constructs:
+\begin{itemize}
+\item \isakeyword{let} introduces an abbreviation for a term, in our case
+the witness for the claim.
+\item Proof by \isa{cases} starts a proof by cases. Note that it remains
+implicit what the two cases are: it is merely expected that the two subproofs
+prove \isa{P\ {\isasymLongrightarrow}\ {\isacharquery}thesis} and \isa{{\isasymnot}P\ {\isasymLongrightarrow}\ {\isacharquery}thesis} (in that order)
+for some \isa{P}.
+\end{itemize}
+If you wonder how to \isakeyword{obtain} \isa{y}:
+via the predefined elimination rule \isa{{\isasymlbrakk}b\ {\isasymin}\ range\ f{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ b\ {\isacharequal}\ f\ x\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P}.
+
+Method \isa{blast} is used because the contradiction does not follow easily
+by just a single rule. If you find the proof too cryptic for human
+consumption, here is a more detailed version; the beginning up to
+\isakeyword{obtain} stays unchanged.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{let}\ {\isacharquery}S\ {\isacharequal}\ {\isachardoublequote}{\isacharbraceleft}x{\isachardot}\ x\ {\isasymnotin}\ f\ x{\isacharbraceright}{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}{\isacharquery}S\ {\isasymnotin}\ range\ f{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}{\isacharquery}S\ {\isasymin}\ range\ f{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{then}\ \isamarkupfalse%
+\isacommand{obtain}\ y\ \isakeyword{where}\ fy{\isacharcolon}\ {\isachardoublequote}{\isacharquery}S\ {\isacharequal}\ f\ y{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{{\isachardot}{\isachardot}}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ False\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{proof}\ cases\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{hence}\ {\isachardoublequote}y\ {\isasymnotin}\ f\ y{\isachardoublequote}\ \ \ \isamarkupfalse%
+\isacommand{by}\ simp\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{hence}\ {\isachardoublequote}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequote}\ \ \ \ \isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}fy{\isacharparenright}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{thus}\ False\ \ \ \ \ \ \ \ \ \isamarkupfalse%
+\isacommand{by}\ contradiction\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{next}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}y\ {\isasymnotin}\ {\isacharquery}S{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{hence}\ {\isachardoublequote}y\ {\isasymin}\ f\ y{\isachardoublequote}\ \ \ \isamarkupfalse%
+\isacommand{by}\ simp\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{hence}\ {\isachardoublequote}y\ {\isasymin}\ {\isacharquery}S{\isachardoublequote}\ \ \ \ \isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}fy{\isacharparenright}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{thus}\ False\ \ \ \ \ \ \ \ \ \isamarkupfalse%
+\isacommand{by}\ contradiction\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Method \isa{contradiction} succeeds if both $P$ and
+$\neg P$ are among the assumptions and the facts fed into that step, in any order.
+
+As it happens, Cantor's theorem can be proved automatically by best-first
+search. Depth-first search would diverge, but best-first search successfully
+navigates through the large search space:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isacharparenright}{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{by}\ best\isamarkupfalse%
+%
+\isamarkupsubsection{Raw proof blocks%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Although we have shown how to employ powerful automatic methods like
+\isa{blast} to achieve bigger proof steps, there may still be the
+tendency to use the default introduction and elimination rules to
+decompose goals and facts. This can lead to very tedious proofs:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}x\ y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{fix}\ x\ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}{\isasymforall}y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{fix}\ y\ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A\ x\ y\ {\isasymand}\ B\ x\ y{\isachardoublequote}\isanewline
+\ \ \ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}C\ x\ y{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent Since we are only interested in the decomposition and not the
+actual proof, the latter has been replaced by
+\isakeyword{sorry}. Command \isakeyword{sorry} proves anything but is
+only allowed in quick and dirty mode, the default interactive mode. It
+is very convenient for top down proof development.
+
+Luckily we can avoid this step by step decomposition very easily:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}x\ y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}{\isasymAnd}x\ y{\isachardot}\ {\isasymlbrakk}\ A\ x\ y{\isacharsemicolon}\ B\ x\ y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{fix}\ x\ y\ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A\ x\ y{\isachardoublequote}\ {\isachardoublequote}B\ x\ y{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}C\ x\ y{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{qed}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{thus}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{by}\ blast\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+This can be simplified further by \emph{raw proof blocks}, i.e.\
+proofs enclosed in braces:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymforall}x\ y{\isachardot}\ A\ x\ y\ {\isasymand}\ B\ x\ y\ {\isasymlongrightarrow}\ C\ x\ y{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{fix}\ x\ y\ \isamarkupfalse%
+\isacommand{assume}\ {\isachardoublequote}A\ x\ y{\isachardoublequote}\ {\isachardoublequote}B\ x\ y{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}C\ x\ y{\isachardoublequote}\ \isamarkupfalse%
+\isacommand{sorry}\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{thus}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{by}\ blast\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent The result of the raw proof block is the same theorem
+as above, namely \isa{{\isasymAnd}x\ y{\isachardot}\ {\isasymlbrakk}A\ x\ y{\isacharsemicolon}\ B\ x\ y{\isasymrbrakk}\ {\isasymLongrightarrow}\ C\ x\ y}.  Raw
+proof blocks are like ordinary proofs except that they do not prove
+some explicitly stated property but that the property emerges directly
+out of the \isakeyword{fixe}s, \isakeyword{assume}s and
+\isakeyword{have} in the block. Thus they again serve to avoid
+duplication. Note that the conclusion of a raw proof block is stated with
+\isakeyword{have} rather than \isakeyword{show} because it is not the
+conclusion of some pending goal but some independent claim.
+
+The general idea demonstrated in this subsection is very
+important in Isar and distinguishes it from tactic-style proofs:
+\begin{quote}\em
+Do not manipulate the proof state into a particular form by applying
+tactics but state the desired form explicitly and let the tactic verify
+that from this form the original goal follows.
+\end{quote}
+This yields more readable and also more robust proofs.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Further refinements%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+This subsection discusses some further tricks that can make
+life easier although they are not essential.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{\isakeyword{and}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Propositions (following \isakeyword{assume} etc) may but need not be
+separated by \isakeyword{and}. This is not just for readability
+(\isakeyword{from} \isa{A} \isakeyword{and} \isa{B} looks nicer than
+\isakeyword{from} \isa{A} \isa{B}) but for structuring lists of propositions
+into possibly named blocks. In
+\begin{center}
+\isakeyword{assume} \isa{A:} $A_1$ $A_2$ \isakeyword{and} \isa{B:} $A_3$
+\isakeyword{and} $A_4$
+\end{center}
+label \isa{A} refers to the list of propositions $A_1$ $A_2$ and
+label \isa{B} to $A_3$.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{\isakeyword{note}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+If you want to remember intermediate fact(s) that cannot be
+named directly, use \isakeyword{note}. For example the result of raw
+proof block can be named by following it with
+\isakeyword{note}~\isa{some{\isacharunderscore}name\ {\isacharequal}\ this}.  As a side effect,
+\isa{this} is set to the list of facts on the right-hand side. You
+can also say \isa{note\ some{\isacharunderscore}fact}, which simply sets \isa{this},
+i.e.\ recalls \isa{some{\isacharunderscore}fact}, e.g.\ in a \isakeyword{moreover} sequence.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{\isakeyword{fixes}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Sometimes it is necessary to decorate a proposition with type
+constraints, as in Cantor's theorem above. These type constraints tend
+to make the theorem less readable. The situation can be improved a
+little by combining the type constraint with an outer \isa{{\isasymAnd}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ {\isachardoublequote}{\isasymAnd}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isachardot}\ {\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ f{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent However, now \isa{f} is bound and we need a
+\isakeyword{fix}~\isa{f} in the proof before we can refer to \isa{f}.
+This is avoided by \isakeyword{fixes}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\ \isakeyword{fixes}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}{\isasymexists}S{\isachardot}\ S\ {\isasymnotin}\ range\ f{\isachardoublequote}\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+Even better, \isakeyword{fixes} allows to introduce concrete syntax locally:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ comm{\isacharunderscore}mono{\isacharcolon}\isanewline
+\ \ \isakeyword{fixes}\ r\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequote}\ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequote}{\isachargreater}{\isachardoublequote}\ {\isadigit{6}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequote}{\isacharplus}{\isacharplus}{\isachardoublequote}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ comm{\isacharcolon}\ {\isachardoublequote}{\isasymAnd}x\ y{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isachardot}\ x\ {\isacharplus}{\isacharplus}\ y\ {\isacharequal}\ y\ {\isacharplus}{\isacharplus}\ x{\isachardoublequote}\ \isakeyword{and}\isanewline
+\ \ \ \ \ \ \ \ \ \ mono{\isacharcolon}\ {\isachardoublequote}{\isasymAnd}x\ y\ z{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isachardot}\ x\ {\isachargreater}\ y\ {\isasymLongrightarrow}\ x\ {\isacharplus}{\isacharplus}\ z\ {\isachargreater}\ y\ {\isacharplus}{\isacharplus}\ z{\isachardoublequote}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequote}x\ {\isachargreater}\ y\ {\isasymLongrightarrow}\ z\ {\isacharplus}{\isacharplus}\ x\ {\isachargreater}\ z\ {\isacharplus}{\isacharplus}\ y{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ comm\ mono{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent The concrete syntax is dropped at the end of the proof and the
+theorem becomes \begin{isabelle}%
+{\isasymlbrakk}{\isasymAnd}x\ y{\isachardot}\ {\isacharquery}f\ x\ y\ {\isacharequal}\ {\isacharquery}f\ y\ x{\isacharsemicolon}\isanewline
+\isaindent{\ \ \ }{\isasymAnd}x\ y\ z{\isachardot}\ {\isacharquery}r\ x\ y\ {\isasymLongrightarrow}\ {\isacharquery}r\ {\isacharparenleft}{\isacharquery}f\ x\ z{\isacharparenright}\ {\isacharparenleft}{\isacharquery}f\ y\ z{\isacharparenright}{\isacharsemicolon}\ {\isacharquery}r\ {\isacharquery}x\ {\isacharquery}y{\isasymrbrakk}\isanewline
+{\isasymLongrightarrow}\ {\isacharquery}r\ {\isacharparenleft}{\isacharquery}f\ {\isacharquery}z\ {\isacharquery}x{\isacharparenright}\ {\isacharparenleft}{\isacharquery}f\ {\isacharquery}z\ {\isacharquery}y{\isacharparenright}%
+\end{isabelle}
+\tweakskip%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{\isakeyword{obtain}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \isakeyword{obtain} construct can introduce multiple
+witnesses and propositions as in the following proof fragment:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ \isakeyword{assumes}\ A{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x\ y{\isachardot}\ P\ x\ y\ {\isasymand}\ Q\ x\ y{\isachardoublequote}\ \isakeyword{shows}\ {\isachardoublequote}R{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{from}\ A\ \isamarkupfalse%
+\isacommand{obtain}\ x\ y\ \isakeyword{where}\ P{\isacharcolon}\ {\isachardoublequote}P\ x\ y{\isachardoublequote}\ \isakeyword{and}\ Q{\isacharcolon}\ {\isachardoublequote}Q\ x\ y{\isachardoublequote}\ \ \isamarkupfalse%
+\isacommand{by}\ blast\isamarkupfalse%
+\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Remember also that one does not even need to start with a formula
+containing \isa{{\isasymexists}} as we saw in the proof of Cantor's theorem.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Combining proof styles%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Finally, whole ``scripts'' (tactic-based proofs in the style of
+\cite{LNCS2283}) may appear in the leaves of the proof tree, although this is
+best avoided.  Here is a contrived example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymlongrightarrow}\ {\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}\ {\isasymlongrightarrow}\ B{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{proof}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{assume}\ a{\isacharcolon}\ {\isachardoublequote}A{\isachardoublequote}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{show}\ {\isachardoublequote}{\isacharparenleft}A\ {\isasymlongrightarrow}B{\isacharparenright}\ {\isasymlongrightarrow}\ B{\isachardoublequote}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}rule\ impI{\isacharparenright}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}erule\ impE{\isacharparenright}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}rule\ a{\isacharparenright}\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{apply}\ assumption\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{done}\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent You may need to resort to this technique if an
+automatic step fails to prove the desired proposition.
+
+When converting a proof from tactic-style into Isar you can proceed
+in a top-down manner: parts of the proof can be left in script form
+while the outer structure is already expressed in Isar.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
