@@ -125,11 +125,10 @@ datatype kind =
   Show of context attribute list |               (*intermediate result, solving subgoal*)
   Have of context attribute list;                (*intermediate result*)
 
-val kind_name =
-  fn Theorem (s, None, _) => s
-   | Theorem (s, Some loc, _) => s ^ " (in " ^ loc ^ ")"    (* FIXME cond_extern *)
-   | Show _ => "show"
-   | Have _ => "have";
+fun kind_name _ (Theorem (s, None, _)) = s
+  | kind_name sg (Theorem (s, Some loc, _)) = s ^ " (in " ^ Locale.cond_extern sg loc ^ ")"
+  | kind_name _ (Show _) = "show"
+  | kind_name _ (Have _) = "have";
 
 type goal =
  (kind *        (*result kind*)
@@ -341,7 +340,7 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
     fun pretty_goal (_, (i, (((kind, name, _), (goal_facts, thm)), _))) =
       pretty_facts "using "
         (if mode <> Backward orelse null goal_facts then None else Some goal_facts) @
-      [Pretty.str ("goal (" ^ kind_name kind ^
+      [Pretty.str ("goal (" ^ kind_name (sign_of state) kind ^
           (if name = "" then "" else " " ^ name) ^
             levels_up (i div 2) ^ subgoals (Thm.nprems_of thm) ^ "):")] @
       Display.pretty_goals_marker begin_goal (! goals_limit) thm;
@@ -624,13 +623,9 @@ fun setup_goal opt_block prepp autofix kind after_qed name raw_propp state =
     |> enter_backward
   end;
 
-fun autofix_frees t =
-  let val frees = foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs) ([], t)
-  in ProofContext.fix_direct (map (fn (x, T) => ([x], Some T)) frees) end;
-
 (*global goals*)
 fun global_goal prepp kind locale name atts x thy =
-  setup_goal I prepp autofix_frees (Theorem (kind, locale, atts))
+  setup_goal I prepp (ProofContext.fix_frees o single) (Theorem (kind, locale, atts))
     Seq.single name x (init_state thy locale);
 
 val theorem = global_goal ProofContext.bind_propp_schematic;
@@ -703,7 +698,7 @@ fun finish_local (print_result, print_rule) state =
       | Have atts => (atts, Seq.single)
       | _ => err_malformed "finish_local" state);
   in
-    print_result {kind = kind_name kind, name = name, thm = result};
+    print_result {kind = kind_name (sign_of state) kind, name = name, thm = result};
     outer_state
     |> auto_bind_facts name [ProofContext.generalize goal_ctxt outer_ctxt t]
     |> (fn st => Seq.map (fn res =>
@@ -740,7 +735,7 @@ fun finish_global state =
   in
     resultq |> Seq.map (fn res =>
       let val (thy', res') = PureThy.store_thm ((name, res), atts) thy
-      in (thy', {kind = kind_name kind, name = name, thm = res'}) end)
+      in (thy', {kind = kind_name (sign_of state) kind, name = name, thm = res'}) end)
   end;
 
 (*note: clients should inspect first result only, as backtracking may destroy theory*)
