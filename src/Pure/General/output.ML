@@ -3,7 +3,7 @@
     Author:     Makarius, Hagia Maria Sion Abbey (Jerusalem)
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Output channels and diagnostics messages.
+Output channels and diagnostic messages.
 *)
 
 signature BASIC_OUTPUT =
@@ -110,6 +110,7 @@ fun warning s = ! warning_fn (output s);
 fun error_msg s = ! error_fn (output s);
 fun panic_msg s = ! panic_fn (output s);
 
+
 (* add_mode *)
 
 fun add_mode name m =
@@ -118,7 +119,7 @@ fun add_mode name m =
   modes := Symtab.update ((name, m), ! modes));
 
 
-(* output error message and abort to top level, or panic & exit *)
+(* produce errors *)
 
 fun error s = (error_msg s; raise ERROR);
 fun sys_error msg = error ("## SYSTEM ERROR ##\n" ^ msg);
@@ -192,7 +193,7 @@ fun cond_timeit flag f =
   if flag then
     let val start = startTiming()
         val result = f ()
-    in warning (endTiming start);  result end
+    in warning (endTiming start); result end
   else f ();
 
 (*unconditional timing function*)
