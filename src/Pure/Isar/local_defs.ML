@@ -22,19 +22,19 @@ val refl_tac = Tactic.rtac (Drule.standard (Drule.reflexive_thm RS Drule.triv_go
 fun gen_def fix prep_term prep_pats raw_name atts ((x, raw_T), (raw_rhs, raw_pats)) state =
   let
     val _ = Proof.assert_forward state;
+    val ctxt = Proof.context_of state;
 
     (*rhs*)
-    val ctxt = Proof.context_of state;
     val name = if raw_name = "" then Thm.def_name x else raw_name;
     val rhs = prep_term ctxt raw_rhs;
     val T = Term.fastype_of rhs;
     val pats = prep_pats T (ProofContext.declare_term rhs ctxt) raw_pats;
 
     (*lhs*)
-    val state' = fix [([x], raw_T)] state;
-    val lhs = ProofContext.intern_skolem (Proof.context_of state') (Free (x, T));
+    val lhs = ProofContext.bind_skolem ctxt [x] (Free (x, T));
   in
-    state'
+    state
+    |> fix [([x], raw_T)]
     |> Proof.match_bind_i [(pats, rhs)]
     |> Proof.assm_i (refl_tac, refl_tac) [(name, atts, [(Logic.mk_equals (lhs, rhs), ([], []))])]
   end;
