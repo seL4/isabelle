@@ -239,7 +239,7 @@ fun gen_typedef_proof prep_term ((name, typ, set), comment) int thy =
     val goal_pat = Thm.term_of (goal_nonempty true cset_pat);
   in
     thy
-    |> IsarThy.theorem_i (("", [typedef_attribute cset do_typedef],
+    |> IsarThy.theorem_i ((("", [typedef_attribute cset do_typedef]),
       (goal, ([goal_pat], []))), comment) int
   end;
 
