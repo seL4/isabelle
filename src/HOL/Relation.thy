@@ -162,7 +162,10 @@ lemma antisymD: "antisym r ==> (a, b) : r ==> (b, a) : r ==> a = b"
   by (unfold antisym_def) rules
 
 
-subsection {* Transitivity *}
+subsection {* Symmetry and Transitivity *}
+
+lemma symD: "sym r ==> (a, b) : r ==> (b, a) : r"
+  by (unfold sym_def, blast)
 
 lemma transI:
   "(!!x y z. (x, y) : r ==> (y, z) : r ==> (x, z) : r) ==> trans r"
