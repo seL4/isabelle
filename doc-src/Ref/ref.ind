@@ -347,7 +347,7 @@
   \item {\tt inst_step_tac}, \bold{130}
   \item {\tt instance} section, 53
   \item {\tt instantiate}, \bold{46}
-  \item {\tt instantiate'}, \bold{39}
+  \item {\tt instantiate'}, \bold{39}, 46
   \item instantiation, 18, 39, 46
   \item {\tt INTLEAVE}, \bold{29}, 31
   \item {\tt INTLEAVE'}, 36
@@ -381,7 +381,7 @@
 
   \item macros, 86--92
   \item {\tt make_elim}, \bold{40}, 125
-  \item {\tt Match} exception, 93, 99
+  \item {\tt Match} exception, 94, 99
   \item {\tt match_tac}, \bold{18}, 124
   \item {\tt max_pri}, 66, \bold{72}
   \item {\tt merge_ss}, 107
@@ -601,7 +601,7 @@
   \item {\tt show_brackets}, \bold{4}
   \item {\tt show_consts}, \bold{4}
   \item {\tt show_hyps}, \bold{4}
-  \item {\tt show_sorts}, \bold{4}, 85
+  \item {\tt show_sorts}, \bold{4}, 85, 93
   \item {\tt show_types}, \bold{4}, 85, 88, 95
   \item {\tt Sign.sg} ML type, 51
   \item {\tt Sign.stamp_names_of}, \bold{59}
@@ -799,6 +799,7 @@
   \item type unknowns, \bold{62}, 68
     \subitem freezing/thawing of, 46
   \item type variables, \bold{62}
+  \item {\tt typed_print_translation}, 93
   \item types, \bold{62}
     \subitem certified, \bold{62}
     \subitem printing of, 4, 15, 62

@@ -132,13 +132,13 @@ serves little purpose in forward proof.
 \end{ttdescription}
 
 
-\subsection{Instantiating a theorem} \label{sec:instantiate}
+\subsection{Instantiating unknowns in a theorem} \label{sec:instantiate}
 \index{instantiation}
 \begin{ttbox}
-read_instantiate    :                (string * string) list -> thm -> thm
-read_instantiate_sg :     Sign.sg -> (string * string) list -> thm -> thm
-cterm_instantiate   :                  (cterm * cterm) list -> thm -> thm
-instantiate'        : ctyp option list -> cterm option list -> thm -> thm
+read_instantiate    :                (string*string) list -> thm -> thm
+read_instantiate_sg :     Sign.sg -> (string*string) list -> thm -> thm
+cterm_instantiate   :                  (cterm*cterm) list -> thm -> thm
+instantiate'      : ctyp option list -> cterm option list -> thm -> thm
 \end{ttbox}
 These meta-rules instantiate type and term unknowns in a theorem.  They are
 occasionally useful.  They can prevent difficulties with higher-order
@@ -223,7 +223,7 @@ concl_of      : thm -> term
 prems_of      : thm -> term list
 cprems_of     : thm -> cterm list
 nprems_of     : thm -> int
-tpairs_of     : thm -> (term * term) list
+tpairs_of     : thm -> (term*term) list
 sign_of_thm   : thm -> Sign.sg
 theory_of_thm : thm -> theory
 dest_state    : thm * int -> (term * term) list * term list * term * term
