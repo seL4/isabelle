@@ -113,7 +113,7 @@ translations
 
 
 syntax (symbols)
-  not           :: bool => bool                     ("\\<not> _" [40] 40)
+  Not           :: bool => bool                     ("\\<not> _" [40] 40)
   "op &"        :: [bool, bool] => bool             (infixr "\\<and>" 35)
   "op |"        :: [bool, bool] => bool             (infixr "\\<or>" 30)
   "op -->"      :: [bool, bool] => bool             (infixr "\\<midarrow>\\<rightarrow>" 25)
