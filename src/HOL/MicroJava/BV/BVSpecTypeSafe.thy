@@ -25,6 +25,8 @@ apply simp
 apply (blast intro: wt_jvm_prog_impl_wt_instr)
 done
 
+section {* Single Instructions *}
+
 lemmas [iff] = not_Err_eq
 
 lemma Load_correct:
@@ -71,22 +73,6 @@ apply (clarsimp simp add: defs1 approx_val_def sup_PTS_eq map_eq_Cons)
 apply (blast dest: conf_litval intro: conf_widen approx_stk_imp_approx_stk_sup 
                     approx_loc_imp_approx_loc_sup)
 done
-
-
-lemma NT_subtype_conv:
-  "G \<turnstile> NT \<preceq> T = (T=NT \<or> (\<exists>C. T = Class C))"
-proof -
-  have "!!T T'. G \<turnstile> T' \<preceq> T ==> T' = NT --> (T=NT | (\<exists>C. T = Class C))"
-    apply (erule widen.induct)
-    apply auto
-    apply (case_tac R)
-    apply auto
-    done
-  note l = this
-
-  show ?thesis 
-    by (force dest: l)
-qed
 
 
 lemma Cast_conf2:
@@ -157,18 +143,13 @@ apply (drule conf_RefTD)
 apply clarsimp
 apply (blast 
        intro: 
-         sup_heap_update_value approx_stk_imp_approx_stk_sup_heap
+         hext_upd_obj approx_stk_imp_approx_stk_sup_heap
          approx_stk_imp_approx_stk_sup approx_loc_imp_approx_loc_sup_heap 
          approx_loc_imp_approx_loc_sup hconf_imp_hconf_field_update
          correct_frames_imp_correct_frames_field_update conf_widen 
        dest: 
          widen_cfs_fields)
 done
-
-lemma collapse_paired_All:
-  "(\<forall>x y. P(x,y)) = (\<forall>z. P z)"
-  by fast
-
 
 lemma New_correct:
 "[| wf_prog wt G;
@@ -233,7 +214,7 @@ proof -
             auto simp add: oconf_def dest: fields_is_type)
     moreover
     from hp
-    have sup: "hp \<le>| ?hp'" by (rule sup_heap_newref)
+    have sup: "hp \<le>| ?hp'" by (rule hext_new)
     from hp frame less suc_pc wf
     have "correct_frame G ?hp' (ST', LT') maxl ins ?f"
       apply (unfold correct_frame_def sup_state_conv)
@@ -255,8 +236,7 @@ proof -
   ultimately
   show ?thesis by auto
 qed
-  
-(****** Method Invocation ******)
+
 
 lemmas [simp del] = split_paired_Ex
 
@@ -638,8 +618,6 @@ apply (blast intro: approx_stk_imp_approx_stk_sup
 done
 
 
-(** instr correct **)
-
 lemma instr_correct:
 "[| wt_jvm_prog G phi;
   method (G,C) sig = Some (C,rT,maxs,maxl,ins); 
@@ -673,8 +651,7 @@ apply (rule Ifcmpeq_correct, assumption+)
 done
 
 
-
-(** Main **)
+section {* Main *}
 
 lemma correct_state_impl_Some_method:
   "G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd> 

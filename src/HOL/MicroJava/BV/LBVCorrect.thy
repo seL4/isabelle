@@ -282,8 +282,7 @@ qed
 
 theorem wtl_correct:
   "wtl_jvm_prog G cert ==> \<exists> Phi. wt_jvm_prog G Phi"
-proof -
-  
+proof -  
   assume wtl: "wtl_jvm_prog G cert"
 
   let ?Phi = "\<lambda>C sig. let (C,rT,(maxs,maxl,ins)) = the (method (G,C) sig) in 

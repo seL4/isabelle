@@ -137,8 +137,7 @@ proof (unfold Opt.esl_def Err.sl_def, simp add: split_tupled_all)
     assume x: "x : ?A" 
     assume y: "y : ?A" 
 
-    {
-      fix a b
+    { fix a b
       assume ab: "x = OK a" "y = OK b"
       
       with x 
@@ -180,97 +179,32 @@ proof (unfold Opt.esl_def Err.sl_def, simp add: split_tupled_all)
     
   moreover
 
-  have "\<forall>x\<in>?A. \<forall>y\<in>?A. x <=_?r x +_?f y"
-  proof (intro strip)
-    fix x y
-    assume x: "x : ?A"
-    assume y: "y : ?A"
-
-    show "x <=_?r x +_?f y"
-    proof -
-      from ord 
-      have order_r: "order r" by simp
-
-      { fix a b 
-        assume ok: "x = OK a" "y = OK b"
-        
-        { fix c d 
-          assume some: "a = Some c" "b = Some d"
-
-          with x y ok
-          obtain "c:A" "d:A" by simp
-          then
-          obtain "OK c : err A" "OK d : err A" by simp
-          with ub1
-          have OK: "OK c <=_(Err.le r) (OK c) +_(lift2 f) (OK d)"
-            by blast        
-          
-          { fix e assume  "f c d = OK e"
-            with OK
-            have "c <=_r e"
-              by (simp add: lesub_def Err.le_def plussub_def lift2_def)
-          }
-          with ok some
-          have ?thesis
-            by (simp add: plussub_def sup_def lesub_def le_def lift2_def Err.le_def 
-                     split: err.split)
-        } note this [intro!]
-
-        from ok
-        have ?thesis
-          by - (cases a, simp, cases b, simp add: order_r, blast)
-      }
-      thus ?thesis
-        by - (cases x, simp, cases y, simp+)
-    qed
-  qed
-
-  moreover
-
-  have "\<forall>x\<in>?A. \<forall>y\<in>?A. y <=_?r x +_?f y" 
-  proof (intro strip)
-    fix x y
-    assume x: "x : ?A"
-    assume y: "y : ?A"
-
-    show "y <=_?r x +_?f y"
-    proof -
-      from ord 
-      have order_r: "order r" by simp
-
-      { fix a b 
-        assume ok: "x = OK a" "y = OK b"
-        
-        { fix c d 
-          assume some: "a = Some c" "b = Some d"
-
-          with x y ok
-          obtain "c:A" "d:A" by simp
-          then
-          obtain "OK c : err A" "OK d : err A" by simp
-          with ub2
-          have OK: "OK d <=_(Err.le r) (OK c) +_(lift2 f) (OK d)"
-            by blast        
-          
-          { fix e assume  "f c d = OK e"
-            with OK
-            have "d <=_r e"
-              by (simp add: lesub_def Err.le_def plussub_def lift2_def)
-          }
-          with ok some
-          have ?thesis
-            by (simp add: plussub_def sup_def lesub_def le_def lift2_def Err.le_def 
-                     split: err.split)
-        } note this [intro!]
-
-        from ok
-        have ?thesis
-          by - (cases a, simp add: order_r, cases b, simp, blast)
-      }
-      thus ?thesis
-        by - (cases x, simp, cases y, simp+)
-    qed
-  qed
+  { fix a b c 
+    assume "a \<in> opt A" "b \<in> opt A" "a +_(sup f) b = OK c" 
+    moreover
+    from ord have "order r" by simp
+    moreover
+    { fix x y z
+      assume "x \<in> A" "y \<in> A" 
+      hence "OK x \<in> err A \<and> OK y \<in> err A" by simp
+      with ub1 ub2
+      have "(OK x) <=_(Err.le r) (OK x) +_(lift2 f) (OK y) \<and>
+            (OK y) <=_(Err.le r) (OK x) +_(lift2 f) (OK y)"
+        by blast
+      moreover
+      assume "x +_f y = OK z"
+      ultimately
+      have "x <=_r z \<and> y <=_r z"
+        by (auto simp add: plussub_def lift2_def Err.le_def lesub_def)
+    }
+    ultimately
+    have "a <=_(le r) c \<and> b <=_(le r) c"
+      by (auto simp add: sup_def le_def lesub_def plussub_def 
+               dest: order_refl split: option.splits err.splits)
+  }
+     
+  hence "(\<forall>x\<in>?A. \<forall>y\<in>?A. x <=_?r x +_?f y) \<and> (\<forall>x\<in>?A. \<forall>y\<in>?A. y <=_?r x +_?f y)"
+    by (auto simp add: lesub_def plussub_def Err.le_def lift2_def split: err.split)
 
   moreover
 

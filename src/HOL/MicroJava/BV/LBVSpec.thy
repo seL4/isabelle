@@ -72,10 +72,6 @@ lemma wtl_inst_OK:
  (if pc+1 \<in> set (succs i pc) then s' = step i G s else s' = cert!(pc+1)))"
   by (auto simp add: wtl_inst_def check_cert_def set_mem_eq)
 
-lemma strict_Some [simp]: 
-"(strict f x = OK y) = (\<exists> z. x = OK z \<and> f z = OK y)"
-  by (cases x, auto)
-
 lemma wtl_Cons:
   "wtl_inst_list (i#is) G rT cert maxs max_pc pc s \<noteq> Err = 
   (\<exists>s'. wtl_cert i G rT s cert maxs max_pc pc = OK s' \<and> 

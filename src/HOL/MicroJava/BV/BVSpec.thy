@@ -58,9 +58,6 @@ lemma
  (app i G mxs rT (phi!pc) \<and> pc+1 < max_pc \<and> (G \<turnstile> step i G (phi!pc) <=' phi!(pc+1)))"
 by (simp add: wt_instr_def) 
 
-
-
-
 end
 
 

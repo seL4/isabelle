@@ -33,7 +33,6 @@ constdefs
   "make_Cert G Phi ==  \<lambda> C sig. let (C,rT,(maxs,maxl,b)) = the (method (G,C) sig)
                                 in make_cert b (Phi C sig)"
   
-
 lemmas [simp del] = split_paired_Ex
 
 lemma make_cert_target:
@@ -47,8 +46,7 @@ lemma make_cert_approx:
 
 lemma make_cert_contains_targets:
   "pc < length ins ==> contains_targets ins (make_cert ins phi) phi pc"
-proof (unfold contains_targets_def, intro strip, elim conjE)
- 
+proof (unfold contains_targets_def, intro strip, elim conjE) 
   fix pc'
   assume "pc < length ins" 
          "pc' \<in> set (succs (ins ! pc) pc)" 
@@ -67,7 +65,6 @@ theorem fits_make_cert:
   "fits ins (make_cert ins phi) phi"
   by (auto dest: make_cert_approx simp add: fits_def make_cert_contains_targets)
 
-
 lemma fitsD: 
   "[| fits ins cert phi; pc' \<in> set (succs (ins!pc) pc); 
       pc' \<noteq> Suc pc; pc < length ins; pc' < length ins |]
@@ -79,7 +76,6 @@ lemma fitsD2:
   ==> cert!pc = phi!pc"
   by (auto simp add: fits_def)
                            
-
 lemma wtl_inst_mono:
   "[| wtl_inst i G rT s1 cert mxs mpc pc = OK s1'; fits ins cert phi; 
       pc < length ins;  G \<turnstile> s2 <=' s1; i = ins!pc |] ==>
@@ -311,7 +307,6 @@ proof -
   ultimately
   show ?thesis by blast
 qed
-
 
 text {*
   \medskip

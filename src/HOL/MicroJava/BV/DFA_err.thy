@@ -3,7 +3,6 @@
     Author:     Gerwin Klein
     Copyright   2000 TUM
 
-static and dynamic welltyping 
 *)
 
 header "Static and Dynamic Welltyping"

@@ -2,13 +2,15 @@
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TUM
-
-The relationship between dataflow analysis and a welltyped-insruction predicate.
 *)
 
 header "Dataflow Analysis Framework"
 
 theory DFA_Framework = Listn:
+
+text {* 
+  The relationship between dataflow analysis and a welltyped-insruction predicate. 
+*}
 
 constdefs
  bounded :: "(nat => nat list) => nat => bool"

@@ -15,12 +15,10 @@ datatype 'a err = Err | OK 'a
 types 'a ebinop = "'a => 'a => 'a err"
       'a esl =    "'a set * 'a ord * 'a ebinop"
 
-
 consts
   ok_val :: "'a err => 'a"
 primrec
   "ok_val (OK x) = x"
-
 
 constdefs
  lift :: "('a => 'b err) => ('a err => 'b err)"
@@ -60,6 +58,9 @@ primrec
   "strict f Err    = Err"
   "strict f (OK x) = f x"
 
+lemma strict_Some [simp]: 
+  "(strict f x = OK y) = (\<exists> z. x = OK z \<and> f z = OK y)"
+  by (cases x, auto)
 
 lemma not_Err_eq:
   "(x \<noteq> Err) = (\<exists>a. x = OK a)" 
@@ -68,8 +69,6 @@ lemma not_Err_eq:
 lemma not_OK_eq:
   "(\<forall>y. x \<noteq> OK y) = (x = Err)"
   by (cases x) auto  
-
-
 
 lemma unfold_lesub_err:
   "e1 <=_(le r) e2 == le r e1 e2"
@@ -168,7 +167,7 @@ lemma Err_in_err [iff]: "Err : err A"
 lemma Ok_in_err [iff]: "(OK x : err A) = (x:A)"
   by (auto simp add: err_def)
 
-(** lift **)
+section {* lift *}
 
 lemma lift_in_errI:
   "[| e : err S; !x:S. e = OK x --> f x : err S |] ==> lift f e : err S"
@@ -176,8 +175,6 @@ apply (unfold lift_def)
 apply (simp split: err.split)
 apply blast
 done 
-
-(** lift2 **)
 
 lemma Err_lift2 [simp]: 
   "Err +_(lift2 f) x = Err"
@@ -191,7 +188,8 @@ lemma OK_lift2_OK [simp]:
   "OK x +_(lift2 f) OK y = x +_f y"
   by (simp add: lift2_def plussub_def split: err.split)
 
-(** sup **)
+
+section {* sup *}
 
 lemma Err_sup_Err [simp]:
   "Err +_(Err.sup f) x = Err"
@@ -220,7 +218,7 @@ apply (unfold Err.sup_def lift2_def plussub_def)
 apply (simp split: err.split)
 done 
 
-(*** semilat (err A) (le r) f ***)
+section {* semilat (err A) (le r) f *}
 
 lemma semilat_le_err_Err_plus [simp]:
   "[| x: err A; semilat(err A, le r, f) |] ==> Err +_f x = Err"
@@ -285,7 +283,7 @@ proof -
   done 
 qed
 
-(*** semilat (err(Union AS)) ***)
+section {* semilat (err(Union AS)) *}
 
 (* FIXME? *)
 lemma all_bex_swap_lemma [iff]:
@@ -303,9 +301,11 @@ apply simp
 apply fast
 done 
 
-(* If AS = {} the thm collapses to
-   order r & closed {Err} f & Err +_f Err = Err
-   which may not hold *)
+text {* 
+  If @{term "AS = {}"} the thm collapses to
+  @{prop "order r & closed {Err} f & Err +_f Err = Err"}
+  which may not hold 
+*}
 lemma err_semilat_UnionI:
   "[| !A:AS. err_semilat(A, r, f); AS ~= {}; 
       !A:AS.!B:AS. A~=B --> (!a:A.!b:B. ~ a <=_r b & a +_f b = Err) |] 

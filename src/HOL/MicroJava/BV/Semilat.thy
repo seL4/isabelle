@@ -152,7 +152,6 @@ apply (erule subst)
 apply simp
 done 
 
-(*** closed ***)
 
 lemma closedD:
   "[| closed A f; x:A; y:A |] ==> x +_f y : A"
@@ -163,7 +162,6 @@ done
 lemma closed_UNIV [simp]: "closed UNIV f"
   by (simp add: closed_def)
 
-(*** lub ***)
 
 lemma is_lubD:
   "is_lub r x y u ==> is_ub r x y u & (!z. is_ub r x y z --> (u,z):r)"
@@ -184,13 +182,11 @@ apply (unfold is_lub_def is_ub_def)
 apply blast
 done
 
-
 lemma is_lub_bigger2 [iff]:
   "is_lub (r^* ) x y x = ((y,x):r^* )"
 apply (unfold is_lub_def is_ub_def)
 apply blast 
 done 
-
 
 lemma extend_lub:
   "[| single_valued r; is_lub (r^* ) x y u; (x',x) : r |] 

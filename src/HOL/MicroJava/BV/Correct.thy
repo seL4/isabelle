@@ -76,23 +76,7 @@ syntax (HTML)
  correct_state :: "[jvm_prog,prog_type,jvm_state] => bool"
                   ("_,_ |-JVM _ [ok]"  [51,51] 50)
 
-lemma sup_heap_newref:
-  "hp oref = None ==> hp \<le>| hp(oref \<mapsto> obj)"
-proof (unfold hext_def, intro strip)
-  fix a C fs  
-  assume "hp oref = None" and hp: "hp a = Some (C, fs)"
-  hence "a \<noteq> oref" by auto 
-  hence "(hp (oref\<mapsto>obj)) a = hp a" by (rule fun_upd_other)
-  with hp
-  show "\<exists>fs'. (hp(oref\<mapsto>obj)) a = Some (C, fs')" by auto
-qed
-
-lemma sup_heap_update_value:
-  "hp a = Some (C,od') ==> hp \<le>| hp (a \<mapsto> (C,od))"
-by (simp add: hext_def)
-
-
-(** approx_val **)
+section {* approx-val *}
 
 lemma approx_val_Err:
   "approx_val G hp x Err"
@@ -136,7 +120,7 @@ apply (auto intro: approx_val_imp_approx_val_sup
 done
 
 
-(** approx_loc **)
+section {* approx-loc *}
 
 lemma approx_loc_Cons [iff]:
   "approx_loc G hp (s#xs) (l#ls) = 
@@ -196,7 +180,7 @@ done
 lemmas [cong del] = conj_cong
 
 
-(** approx_stk **)
+section {* approx-stk *}
 
 lemma approx_stk_rev_lem:
   "approx_stk G hp (rev s) (rev t) = approx_stk G hp s t"
@@ -240,7 +224,7 @@ lemma approx_stk_append_lemma:
 by (simp add: list_all2_append2 approx_stk_def approx_loc_def)
 
 
-(** oconf **)
+section {* oconf *}
 
 lemma correct_init_obj:
   "[|is_class G C; wf_prog wt G|] ==> 
@@ -260,7 +244,7 @@ lemma oconf_imp_oconf_heap_newref [rule_format]:
 "hp oref = None --> G,hp\<turnstile>obj\<surd> --> G,hp\<turnstile>obj'\<surd> --> G,(hp(oref\<mapsto>obj'))\<turnstile>obj\<surd>"
 apply (unfold oconf_def lconf_def)
 apply simp
-apply (fast intro: conf_hext sup_heap_newref)
+apply (fast intro: conf_hext hext_new)
 done
 
 lemma oconf_imp_oconf_heap_update [rule_format]:
@@ -272,7 +256,7 @@ apply (force intro: approx_val_imp_approx_val_heap_update)
 done
 
 
-(** hconf **)
+section {* hconf *}
 
 lemma hconf_imp_hconf_newref [rule_format]:
   "hp oref = None --> G\<turnstile>h hp\<surd> --> G,hp\<turnstile>obj\<surd> --> G\<turnstile>h hp(oref\<mapsto>obj)\<surd>"
@@ -288,7 +272,7 @@ apply (force intro: oconf_imp_oconf_heap_update oconf_imp_oconf_field_update
              simp add: obj_ty_def)
 done
 
-(** correct_frames **)
+section {* correct-frames *}
 
 lemmas [simp del] = fun_upd_apply
 
@@ -312,11 +296,11 @@ apply (intro exI conjI)
   apply simp
  apply (rule approx_stk_imp_approx_stk_sup_heap)
   apply simp
- apply (rule sup_heap_update_value)
+ apply (rule hext_upd_obj)
  apply simp
 apply (rule approx_loc_imp_approx_loc_sup_heap)
  apply simp
-apply (rule sup_heap_update_value)
+apply (rule hext_upd_obj)
 apply simp
 done
 
@@ -333,11 +317,11 @@ apply (intro exI conjI)
   apply simp
  apply (rule approx_stk_imp_approx_stk_sup_heap)
   apply simp
- apply (rule sup_heap_newref)
+ apply (rule hext_new)
  apply simp
 apply (rule approx_loc_imp_approx_loc_sup_heap)
  apply simp
-apply (rule sup_heap_newref)
+apply (rule hext_new)
 apply simp
 done
 
