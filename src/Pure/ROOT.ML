@@ -13,6 +13,7 @@ val version = "Isabelle-94 revision 8: May 1997";
 print_depth 1;
 
 use "library.ML";
+use "seq.ML";
 use "symtab.ML";
 use "name_space.ML";
 use "term.ML";
@@ -27,7 +28,6 @@ use "sorts.ML";
 use "type_infer.ML";
 use "type.ML";
 use "sign.ML";
-use "seq.ML";
 use "envir.ML";
 use "pattern.ML";
 use "unify.ML";
