@@ -55,10 +55,11 @@ sig
   val mk_base        : basetype list -> string -> bool -> theory
   val store_theory   : theory * string -> unit
 
+  val theory_of      : string -> theory
   val theory_of_sign : Sign.sg -> theory
   val theory_of_thm  : thm -> theory
   val children_of    : string -> string list
-  val parents_of     : string -> string list
+  val parents_of_name: string -> string list
 
   val store_thm: string * thm -> thm
   val bind_thm: string * thm -> unit
@@ -212,7 +213,7 @@ fun children_of t =
                       | _ => [];
 
 (*Get all direct ancestors of a theory*)
-fun parents_of t =
+fun parents_of_name t =
   case get_thyinfo t of Some (ThyInfo {parents, ...}) => parents
                       | _ => [];
 
@@ -472,7 +473,8 @@ fun thyfile2html tpath tname =
               val path = if is_pure then (the (!pure_subchart))
                          else path_of t;
               val rel_path = relative_path tpath path;
-              val repeated = t mem (!listed) andalso not (null (parents_of t));
+              val repeated = t mem (!listed) andalso
+                             not (null (parents_of_name t));
 
               fun mk_offset [] cur =
                     if level < cur then error "Error in mk_offset"
@@ -503,7 +505,7 @@ fun thyfile2html tpath tname =
             end;
 
         val relatives =
-          filter (fn s => s mem wanted_theories) (parents_of tname);
+          filter (fn s => s mem wanted_theories) (parents_of_name tname);
       in mk_entry relatives end;
   in if is_some (!cur_htmlfile) then
        error "thyfile2html: Last theory's HTML file has not been closed."
@@ -545,7 +547,7 @@ fun use_thy name =
     val (abs_path, _) = if thy_file = "" then split_filename ml_file
                         else split_filename thy_file;
     val (thy_uptodate, ml_uptodate) = thy_unchanged tname thy_file ml_file;
-    val old_parents = parents_of tname;
+    val old_parents = parents_of_name tname;
 
     (*Set absolute path for loaded theory *)
     fun set_path () =
@@ -630,7 +632,7 @@ fun use_thy name =
    (*Add theory to file listing all loaded theories (for index.html)
      and to the sub-charts of its parents*)
    fun mk_html () =
-     let val new_parents = parents_of tname \\ old_parents;
+     let val new_parents = parents_of_name tname \\ old_parents;
 
          (*Add child to parents' sub-theory charts*)
          fun add_to_parents t =
@@ -678,7 +680,7 @@ fun use_thy name =
 
           (*Store axioms of theory
             (but only if it's not a copy of an older theory)*)
-          let val parents = parents_of tname;
+          let val parents = parents_of_name tname;
               val this_thy = theory_of tname;
               val axioms =
                 if length parents = 1
@@ -1023,7 +1025,7 @@ fun get_thm thy name =
         | get (t::ts) ng searched =
             (case Symtab.lookup (thmtab_of_name t, name) of
                  Some thm => thm
-               | None => get ts (ng union (parents_of t)) (t::searched));
+               | None => get ts (ng union (parents_of_name t)) (t::searched));
 
       val (tname, _) = thyinfo_of_sign (sign_of thy);
   in get [tname] [] [] end;
