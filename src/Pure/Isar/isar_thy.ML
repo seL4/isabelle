@@ -59,16 +59,27 @@ sig
     -> theory -> theory
   val add_constdefs_i: (((bstring * typ * mixfix) * Comment.text) * (term * Comment.text)) list
     -> theory -> theory
-  val apply_theorems: (xstring * Args.src list) list -> theory -> theory * thm list
-  val apply_theorems_i: (thm * theory attribute list) list -> theory -> theory * thm list
-  val declare_theorems: (xstring * Args.src list) list * Comment.text -> theory -> theory
-  val declare_theorems_i: (thm * theory attribute list) list * Comment.text -> theory -> theory
-  val have_theorems: string ->
+  val theorems: string ->
     (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
+    -> theory -> theory * (string * thm list) list
+  val theorems_i: string ->
+    (((bstring * theory attribute list)
+      * (thm list * theory attribute list) list) * Comment.text) list
+    -> theory -> theory * (string * thm list) list
+  val locale_theorems: string -> xstring ->
+    (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
+    -> theory -> theory * (bstring * thm list) list
+  val locale_theorems_i: string -> string ->
+    (((bstring * Proof.context attribute list)
+      * (thm list * Proof.context attribute list) list) * Comment.text) list
+    -> theory -> theory * (string * thm list) list
+  val smart_theorems: string -> xstring option ->
+    (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
+    -> theory -> theory * (string * thm list) list
+  val declare_theorems: xstring option -> (xstring * Args.src list) list * Comment.text
     -> theory -> theory
-  val have_theorems_i:  string ->
-    (((bstring * theory attribute list) * (thm * theory attribute list) list)
-    * Comment.text) list -> theory -> theory
+  val apply_theorems: (xstring * Args.src list) list -> theory -> theory * thm list
+  val apply_theorems_i: (thm list * theory attribute list) list -> theory -> theory * thm list
   val have_facts: (((string * Args.src list) * (string * Args.src list) list) * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
   val have_facts_i: (((string * Proof.context attribute list) *
@@ -316,66 +327,76 @@ fun add_constdefs args = gen_add_constdefs Theory.add_consts add_defs args;
 fun add_constdefs_i args = gen_add_constdefs Theory.add_consts_i add_defs_i args;
 
 
-(* theorems *)
+(* attributes *)
 
 local
 
-fun prep_thmss get attrib = map (fn ((name, more_srcs), th_srcs) =>
-  ((name, map attrib more_srcs), map (fn (s, srcs) => (get s, map attrib srcs)) th_srcs));
-
-fun flat_unnamed (x, ys) = (x, flat (map snd ys));
-fun cond_kind k = if k = "" then [] else [Drule.kind k];
+fun prep_attribs f = map (fn ((name, more_srcs), th_srcs) =>
+  ((name, map f more_srcs), map (apsnd (map f)) th_srcs));
 
 in
 
-fun global_have_thmss kind f args thy =
-  let
-    val args' = prep_thmss (PureThy.get_thms thy) (Attrib.global_attribute thy) args
-    val (thy', named_thmss) = f (cond_kind kind) args' thy;
-    fun present (name, thms) = Present.results (kind ^ "s") name thms;
-  in
-    if kind = "" orelse kind = Drule.internalK then ()
-    else Context.setmp (Some thy') (fn () => seq present named_thmss) ();
-    (thy', named_thmss)
-  end;
-
-fun local_have_thmss f args state =
-  let
-    val args' = prep_thmss (ProofContext.get_thms (Proof.context_of state))
-      (Attrib.local_attribute (Proof.theory_of state)) args;
-  in f args' state end;
-
-fun gen_have_thmss_i f args = f (map (fn ((name, more_atts), th_atts) =>
-  ((name, more_atts), map (apfst single) th_atts)) args);
-
-fun apply_theorems th_srcs =
-  flat_unnamed o global_have_thmss "" PureThy.have_thmss [(("", []), th_srcs)];
-fun apply_theorems_i th_srcs =
-  flat_unnamed o gen_have_thmss_i (PureThy.have_thmss []) [(("", []), th_srcs)];
-
-val declare_theorems = #1 oo (apply_theorems o Comment.ignore);
-val declare_theorems_i = #1 oo (apply_theorems_i o Comment.ignore);
-
-fun have_theorems kind =
-  #1 oo (global_have_thmss kind PureThy.have_thmss o map Comment.ignore);
-fun have_theorems_i kind =
-  #1 oo (gen_have_thmss_i (PureThy.have_thmss (cond_kind kind)) o map Comment.ignore);
-
-val have_facts = ProofHistory.apply o local_have_thmss Proof.have_thmss o map Comment.ignore;
-val have_facts_i = ProofHistory.apply o gen_have_thmss_i Proof.have_thmss o map Comment.ignore;
+fun global_attribs thy = prep_attribs (Attrib.global_attribute thy);
+fun local_attribs thy = prep_attribs (Attrib.local_attribute thy);
 
 end;
 
 
-(* forward chaining *)
+(* theorems *)
 
-fun gen_from_facts f args = ProofHistory.apply (Proof.chain o f (map (pair ("", [])) args));
+local
 
-val from_facts = gen_from_facts (local_have_thmss Proof.have_thmss) o map Comment.ignore;
-val from_facts_i = gen_from_facts (gen_have_thmss_i Proof.have_thmss) o map Comment.ignore;
-val with_facts = gen_from_facts (local_have_thmss Proof.with_thmss) o map Comment.ignore;
-val with_facts_i = gen_from_facts (gen_have_thmss_i Proof.with_thmss) o map Comment.ignore;
+fun present_thmss kind (thy, named_thmss) =
+  let fun present (name, thms) = Present.results (kind ^ "s") name thms in
+    if kind = "" orelse kind = Drule.internalK then ()
+    else Context.setmp (Some thy) (fn () => seq present named_thmss) ();
+    (thy, named_thmss)
+  end;
 
+in
+
+fun theorems_i k = (present_thmss k oo PureThy.have_thmss_i (Drule.kind k)) o map Comment.ignore;
+fun locale_theorems_i k loc = (present_thmss k oo Locale.have_thmss_i k loc) o map Comment.ignore;
+
+fun theorems k args thy = thy
+  |> PureThy.have_thmss (Drule.kind k) (global_attribs thy (map Comment.ignore args))
+  |> present_thmss k;
+
+fun locale_theorems k loc args thy = thy
+  |> Locale.have_thmss k loc (local_attribs thy (map Comment.ignore args))
+  |> present_thmss k;
+
+fun smart_theorems k opt_loc args thy = thy
+  |> (case opt_loc of
+    None => PureThy.have_thmss (Drule.kind k) (global_attribs thy (map Comment.ignore args))
+  | Some loc => Locale.have_thmss k loc (local_attribs thy (map Comment.ignore args)))
+  |> present_thmss k;
+
+fun declare_theorems opt_loc (args, comment) =
+  #1 o smart_theorems "" opt_loc [((("", []), args), comment)];
+
+fun apply_theorems args =
+  apsnd (flat o map snd) o theorems "" [((("", []), args), Comment.none)];
+fun apply_theorems_i args =
+  apsnd (flat o map snd) o theorems_i "" [((("", []), args), Comment.none)];
+
+end;
+
+
+(* facts and forward chaining *)
+
+fun local_thmss f args state = f (local_attribs (Proof.theory_of state) args) state;
+fun local_thmss_i f args = f (map (fn ((name, more_atts), th_atts) =>
+  ((name, more_atts), map (apfst single) th_atts)) args);
+
+fun chain_thmss f args = ProofHistory.apply (Proof.chain o f (map (pair ("", [])) args));
+
+val have_facts = ProofHistory.apply o local_thmss Proof.have_thmss o map Comment.ignore;
+val have_facts_i = ProofHistory.apply o local_thmss_i Proof.have_thmss_i o map Comment.ignore;
+val from_facts = chain_thmss (local_thmss Proof.have_thmss) o map Comment.ignore;
+val from_facts_i = chain_thmss (local_thmss_i Proof.have_thmss_i) o map Comment.ignore;
+val with_facts = chain_thmss (local_thmss Proof.with_thmss) o map Comment.ignore;
+val with_facts_i = chain_thmss (local_thmss_i Proof.with_thmss_i) o map Comment.ignore;
 fun chain comment_ignore = ProofHistory.apply Proof.chain;
 
 
@@ -612,7 +633,7 @@ fun gen_calc get f (args, _) prt state =
 
 in
 
-fun get_thmss srcs = Proof.the_facts o local_have_thmss Proof.have_thmss [(("", []), srcs)];
+fun get_thmss srcs = Proof.the_facts o local_thmss Proof.have_thmss [(("", []), srcs)];
 fun get_thmss_i thms _ = thms;
 
 fun also x = proof''' (ProofHistory.applys o gen_calc get_thmss Calculation.also x);
