@@ -283,9 +283,11 @@ fun adjustcoeff x l fm =
 fun unitycoeff x fm = 
   let val l = formlcm x fm 
       val fm' = adjustcoeff x l fm in
-     if l = 1 then fm' else 
+      if l = 1 then fm' 
+	 else 
      let val xp = (HOLogic.mk_binop "op +"  
-     		((HOLogic.mk_binop "op *" ((mk_numeral 1), x )), zero)) in 
+     		((HOLogic.mk_binop "op *" ((mk_numeral 1), x )), zero))
+	in 
       HOLogic.conj $(HOLogic.mk_binrel "Divides.op dvd" ((mk_numeral l) , xp )) $ (adjustcoeff x l fm) 
       end 
   end; 
@@ -414,7 +416,7 @@ fun linrep vars x t fm = case fm of
   |(Const ("Not", _) $ p) => HOLogic.Not $ (linrep vars x t p) 
   |(Const ("op &",_) $ p $ q) => HOLogic.conj $ (linrep vars x t p) $ (linrep vars x t q) 
   |(Const ("op |",_) $ p $ q) => HOLogic.disj $ (linrep vars x t p) $ (linrep vars x t q) 
-  |_ => fm; 
+  |_ => fm;
  
 (* ------------------------------------------------------------------------- *) 
 (* Evaluation of constant expressions.                                       *) 
@@ -594,7 +596,7 @@ fun psimpl fm = case fm of
   | Const("op &",_) $ p $ q => psimpl1 (HOLogic.mk_conj (psimpl p,psimpl q)) 
   | Const("op |",_) $ p $ q => psimpl1 (HOLogic.mk_disj (psimpl p,psimpl q)) 
   | Const("op -->",_) $ p $ q => psimpl1 (HOLogic.mk_imp(psimpl p,psimpl q)) 
-  | Const("op =", Type ("fun",[Type ("bool", []),_])) $ p $ q => psimpl1 (HOLogic.mk_eq(psimpl p,psimpl q)) 
+  | Const("op =", Type ("fun",[Type ("bool", []),_])) $ p $ q => psimpl1 (HOLogic.mk_eq(psimpl p,psimpl q))
   | _ => fm; 
  
  
@@ -608,7 +610,7 @@ fun simpl1 fm  =
     				else (update_bounds p 0) 
   | Const("Ex",_) $ Abs (x,_,p) => if has_bound fm then fm  
     				else (update_bounds p 0) 
-  | _ => psimpl1 fm; 
+  | _ => psimpl fm; 
  
 fun simpl fm = case fm of 
     Const ("Not",_) $ p => simpl1 (HOLogic.Not $(simpl p))  
@@ -748,6 +750,9 @@ fun withness d b st vars x p = case (inf_w b d vars x p) of
 
 
 (*Cooper main procedure*) 
+
+exception STAGE_TRUE;
+
   
 fun cooper vars1 fm =
   case fm of
@@ -761,12 +766,24 @@ fun cooper vars1 fm =
     val bst = bset x p
     val js = 1 upto divlcm x p
     val (p_inf,f,S ) = 
-    if (length bst) < (length ast) 
-     then (minusinf x p,linear_add,bst)
-     else (plusinf x p, linear_sub,ast)
+    if (length bst) <= (length ast) 
+     then (simpl (minusinf x p),linear_add,bst)
+     else (simpl (plusinf x p), linear_sub,ast)
     fun p_element j a = linrep vars x (f vars a (mk_numeral j)) p
     fun stage j = list_disj (linrep vars x (mk_numeral j) p_inf :: map (p_element j) S)
-   in (list_disj (map stage js))
+    fun stageh n = ((if n = 0 then []
+	else 
+	let 
+	val nth_stage = simpl (evalc (stage n))
+	in 
+	if (nth_stage = HOLogic.true_const) 
+	  then raise STAGE_TRUE 
+	  else if (nth_stage = HOLogic.false_const) then stageh (n-1)
+	    else nth_stage::(stageh (n-1))
+	end )
+        handle STAGE_TRUE => [HOLogic.true_const])
+    val slist = stageh (divlcm x p)
+   in (list_disj slist)
    end
   | _ => error "cooper: not an existential formula";
 
@@ -833,7 +850,7 @@ fun conjuncts fm = case fm of
 (* ------------------------------------------------------------------------- *) 
 (* Lift procedure given literal modifier, formula normalizer & basic quelim. *) 
 (* ------------------------------------------------------------------------- *)
-(*
+
 fun lift_qelim afn nfn qfn isat = 
 let 
 fun qelift vars fm = if (isat fm) then afn vars fm 
@@ -850,9 +867,9 @@ case fm of
  
 in (fn fm => qelift (fv fm) fm)
 end; 
-*)
+
  
-   
+(*   
 fun lift_qelim afn nfn qfn isat = 
  let   fun qelim x vars p = 
   let val cjs = conjuncts p 
@@ -879,7 +896,7 @@ fun lift_qelim afn nfn qfn isat =
  
   in (fn fm => simpl(qelift (fv fm) fm)) 
   end; 
-
+*)
  
 (* ------------------------------------------------------------------------- *) 
 (* Cleverer (proposisional) NNF with conditional and literal modification.   *) 
@@ -922,6 +939,8 @@ in cnnfh
 (*
 val integer_qelim = simpl o evalc o (lift_qelim linform (simpl o (cnnf posineq o evalc)) cooper is_arith_rel) ; 
 *)
+
+
 val integer_qelim = simpl o evalc o (lift_qelim linform (cnnf posineq o evalc) cooper is_arith_rel) ; 
 
 fun mk_presburger_oracle (sg,COOPER_ORACLE t) = 
@@ -930,5 +949,3 @@ fun mk_presburger_oracle (sg,COOPER_ORACLE t) =
     else raise COOPER_ORACLE t
     |mk_presburger_oracle (sg,_) = error "Oops";
 end;
-
-
