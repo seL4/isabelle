@@ -45,6 +45,8 @@ sig
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val markup_command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
+  val markup_env_command: string -> string -> string ->
+    (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val verbatim_command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val improper_command: string -> string -> string ->
@@ -104,8 +106,10 @@ end;
 type token = T.token;
 type parser_fn = token list -> (Toplevel.transition -> Toplevel.transition) * token list;
 
+datatype markup_kind = Markup | MarkupEnv | Verbatim;
+
 datatype parser =
-  Parser of string * (string * string * bool option) * bool * parser_fn;
+  Parser of string * (string * string * markup_kind option) * bool * parser_fn;
 
 fun parser int_only markup name comment kind parse =
   Parser (name, (comment, kind, markup), int_only, parse);
@@ -143,8 +147,8 @@ local
 
 val global_lexicons = ref (Scan.empty_lexicon, Scan.empty_lexicon);
 val global_parsers =
-  ref (Symtab.empty: (((string * string) * (bool * parser_fn)) * bool option) Symtab.table);
-val global_markups = ref ([]: (string * bool) list);
+  ref (Symtab.empty: (((string * string) * (bool * parser_fn)) * markup_kind option) Symtab.table);
+val global_markups = ref ([]: (string * markup_kind) list);
 
 fun change_lexicons f =
   let val lexs = f (! global_lexicons) in
@@ -172,8 +176,7 @@ fun get_parsers () = ! global_parsers;
 fun get_parser () = apsome (#2 o #1) o curry Symtab.lookup (! global_parsers);
 
 fun lookup_markup name = assoc (! global_markups, name);
-fun is_markup name = if_none (lookup_markup name) false;
-fun is_verbatim name = if_none (apsome not (lookup_markup name)) false;
+fun is_markup kind name = (case lookup_markup name of Some k => k = kind | None => false);
 
 
 (* augment syntax *)
@@ -365,12 +368,16 @@ val ignore_stuff =
   opt_newline -- Scan.one T.is_begin_ignore --
     P.!!!! (Scan.pass 0 (Scan.repeat ignore) -- Scan.one T.is_end_ignore -- opt_newline);
 
-val markup = Scan.one (T.is_kind T.Command andf is_markup o T.val_of) >> T.val_of;
-val verbatim = Scan.one (T.is_kind T.Command andf is_verbatim o T.val_of);
+fun markup_kind k = Scan.one (T.is_kind T.Command andf is_markup k o T.val_of);
+
+val markup = markup_kind Markup >> T.val_of;
+val markup_env = markup_kind MarkupEnv >> T.val_of;
+val verbatim = markup_kind Verbatim;
 
 val present_token =
   ignore_stuff >> K None ||
   (improper |-- markup -- P.!!!! (improper |-- P.text --| improper_end) >> Present.markup_token ||
+    improper |-- markup_env -- P.!!!! (improper |-- P.text --| improper_end) >> Present.markup_env_token ||
     (P.$$$ "--" >> K "cmt") -- P.!!!! (improper |-- P.text) >> Present.markup_token ||
     (improper -- verbatim) |-- P.!!!! (improper |-- P.text --| improper_end)
       >> Present.verbatim_token ||
@@ -482,8 +489,9 @@ fun help () =
 
 (*final declarations of this structure!*)
 val command = parser false None;
-val markup_command = parser false (Some true);
-val verbatim_command = parser false (Some false);
+val markup_command = parser false (Some Markup);
+val markup_env_command = parser false (Some MarkupEnv);
+val verbatim_command = parser false (Some Verbatim);
 val improper_command = parser true None;
 
 

@@ -20,6 +20,7 @@ sig
   type token
   val basic_token: OuterLex.token -> token
   val markup_token: string * string -> token
+  val markup_env_token: string * string -> token
   val verbatim_token: string -> token
   val old_symbol_source: string -> (unit -> Symbol.symbol list) -> unit
   val token_source: string -> (unit -> token list) -> unit
@@ -375,6 +376,7 @@ fun verbatim_source name mk_text =
 type token = Latex.token;
 val basic_token = Latex.Basic;
 val markup_token = Latex.Markup;
+val markup_env_token = Latex.MarkupEnv;
 val verbatim_token = Latex.Verbatim;
 
 fun old_symbol_source name mk_text =
