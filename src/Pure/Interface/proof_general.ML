@@ -28,7 +28,7 @@ fun defconst name strs =
   "\n  '(" ^ space_implode "\n    " (map (quote o regexp_quote) strs) ^ "))\n";
 
 fun make_elisp_commands commands kind =
-  defconst kind (mapfilter (fn (c, k) => if k = kind then Some c else None) commands);
+  defconst kind (mapfilter (fn (c, _, k, _) => if k = kind then Some c else None) commands);
 
 fun make_elisp_syntax (keywords, commands) =
   ";;\n\
@@ -37,7 +37,7 @@ fun make_elisp_syntax (keywords, commands) =
   \;;\n\
   \;; $" ^ "Id$\n\
   \;;\n" ^
-  defconst "minor" (filter Syntax.is_identifier (keywords \\ map #1 commands)) ^
+  defconst "minor" (filter Syntax.is_identifier keywords) ^
   implode (map (make_elisp_commands commands) OuterSyntax.Keyword.kinds) ^
   "\n(provide 'isar-keywords)\n";
 
@@ -46,7 +46,8 @@ val keywords_file = "isar-keywords.el";
 in
 
 fun write_keywords () =
-  File.write (Path.unpack keywords_file) (make_elisp_syntax (OuterSyntax.dest_syntax ()));
+  File.write (Path.unpack keywords_file)
+    (make_elisp_syntax (OuterSyntax.dest_keywords (), OuterSyntax.dest_parsers ()));
 
 end;
 
