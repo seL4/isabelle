@@ -23,10 +23,13 @@ val theoryP =
   OuterSyntax.command "theory" "begin theory"
     (OuterSyntax.theory_header >> (Toplevel.print oo IsarThy.theory));
 
-(*end current theory / sub-proof / excursion*)
-val endP =
-  OuterSyntax.command "end" "end current block / theory / excursion"
-    (Scan.succeed (Toplevel.print o Toplevel.exit o Toplevel.proof IsarThy.end_block));
+val end_excursionP =
+  OuterSyntax.command "end" "end current excursion"
+    (Scan.succeed (Toplevel.print o Toplevel.exit));
+
+val kill_excursionP =
+  OuterSyntax.command "kill" "kill current excursion"
+    (Scan.succeed (Toplevel.print o Toplevel.kill));
 
 val contextP =
   OuterSyntax.improper_command "context" "switch theory context"
@@ -298,18 +301,22 @@ val letP =
 (* proof structure *)
 
 val beginP =
-  OuterSyntax.command "begin" "begin block"
+  OuterSyntax.command "{{" "begin explicit proof block"
     (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.begin_block));
 
+val endP =
+  OuterSyntax.command "}}" "end explicit proof block"
+    (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.end_block));
+
 val nextP =
-  OuterSyntax.command "next" "enter next block"
+  OuterSyntax.command "next" "enter next proof block"
     (Scan.succeed (Toplevel.print o Toplevel.proof IsarThy.next_block));
 
 
 (* end proof *)
 
 val kill_proofP =
-  OuterSyntax.improper_command "kill" "abort current proof"
+  OuterSyntax.improper_command "kill_proof" "abort current proof"
     (Scan.succeed (Toplevel.print o Toplevel.proof_to_theory IsarThy.kill_proof));
 
 val qed_withP =
@@ -352,24 +359,20 @@ val proofP =
 (* proof history *)
 
 val clear_undoP =
-  OuterSyntax.improper_command "clear_undo" "clear proof command undo information"
-    (Scan.succeed (Toplevel.print o Toplevel.proof ProofHistory.clear));
+  OuterSyntax.improper_command "clear_undo" "clear undo information"
+    (Scan.succeed (Toplevel.print o IsarCmd.clear_undo));
 
 val undoP =
-  OuterSyntax.improper_command "undo" "undo proof command"
-    (Scan.succeed (Toplevel.print o Toplevel.proof ProofHistory.undo));
+  OuterSyntax.improper_command "undo" "undo last command"
+    (Scan.succeed (Toplevel.print o IsarCmd.undo));
 
 val redoP =
-  OuterSyntax.improper_command "redo" "redo proof command"
-    (Scan.succeed (Toplevel.print o Toplevel.proof ProofHistory.redo));
+  OuterSyntax.improper_command "redo" "redo last command"
+    (Scan.succeed (Toplevel.print o IsarCmd.redo));
 
 val undosP =
-  OuterSyntax.improper_command "undos" "undo proof commands"
-    (nat >> (fn n => Toplevel.print o Toplevel.proof (ProofHistory.undos n)));
-
-val redosP =
-  OuterSyntax.improper_command "redos" "redo proof commands"
-    (nat >> (fn n => Toplevel.print o Toplevel.proof (ProofHistory.redos n)));
+  OuterSyntax.improper_command "undos" "undo last commands"
+    (nat >> (fn n => Toplevel.print o IsarCmd.undos n));
 
 val backP =
   OuterSyntax.improper_command "back" "backtracking of proof command"
@@ -435,7 +438,7 @@ val print_termP =
     (term >> IsarCmd.print_term);
 
 val print_typeP =
-  OuterSyntax.improper_command "type" "read and print type"
+  OuterSyntax.improper_command "typ" "read and print type"
     (typ >> IsarCmd.print_type);
 
 
@@ -499,7 +502,7 @@ val keywords =
 
 val parsers = [
   (*theory structure*)
-  theoryP, endP, contextP, update_contextP,
+  theoryP, end_excursionP, kill_excursionP, contextP, update_contextP,
   (*theory sections*)
   textP, titleP, chapterP, sectionP, subsectionP, subsubsectionP,
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
@@ -510,10 +513,10 @@ val parsers = [
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, fixP, letP,
-  thenP, fromP, factsP, beginP, nextP, kill_proofP, qed_withP, qedP,
-  terminal_proofP, immediate_proofP, default_proofP, refineP,
-  then_refineP, proofP, clear_undoP, undoP, redoP, undosP, redosP,
-  backP, prevP, upP, topP,
+  thenP, fromP, factsP, beginP, endP, nextP, kill_proofP, qed_withP,
+  qedP, terminal_proofP, immediate_proofP, default_proofP, refineP,
+  then_refineP, proofP, clear_undoP, undoP, redoP, undosP, backP,
+  prevP, upP, topP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
