@@ -417,9 +417,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL  ex/AVL.ML ex/AVL.thy ex/BT.ML ex/BT.thy \
   ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy \
   ex/ROOT.ML ex/Recdefs.ML ex/Recdefs.thy ex/cla.ML ex/meson.ML \
   ex/mesontest.ML ex/mesontest2.ML ex/set.ML \
-  ex/Group.ML ex/Group.thy ex/IntRing.ML \
-  ex/IntRing.thy ex/IntRingDefs.ML ex/IntRingDefs.thy ex/Lagrange.ML \
-  ex/Lagrange.thy ex/Ring.ML ex/Ring.thy ex/StringEx.ML \
+  ex/Group.ML ex/Group.thy ex/IntRing.ML ex/IntRing.thy \
+  ex/Lagrange.ML ex/Lagrange.thy ex/Ring.ML ex/Ring.thy ex/StringEx.ML \
   ex/StringEx.thy ex/Tarski.ML ex/Tarski.thy \
   ex/BinEx.ML ex/BinEx.thy ex/svc_test.thy ex/svc_test.ML ex/MonoidGroup.thy \
   ex/PiSets.thy ex/PiSets.ML ex/LocaleGroup.thy ex/LocaleGroup.ML \
