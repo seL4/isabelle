@@ -204,7 +204,8 @@ fun thms_containing thy consts =
 
 (* naming *)
 
-val default_name = fn "" => "it" | name => name;
+val defaultN = "it";
+val default_name = fn "" => defaultN | name => name;
 
 fun gen_names len name =
   map (fn i => name ^ "_" ^ string_of_int i) (1 upto len);
@@ -215,11 +216,13 @@ fun name_multi name xs = gen_names (length xs) (default_name name) ~~ xs;
 
 (* enter_tthmx *)
 
+fun cond_warning name msg = if Sign.base_name name = defaultN then () else warning msg;
+
 fun warn_overwrite name =
-  warning ("Replaced old copy of theorems " ^ quote name);
+  cond_warning name ("Replaced old copy of theorems " ^ quote name);
 
 fun warn_same name =
-  warning ("Theorem database already contains a copy of " ^ quote name);
+  cond_warning name ("Theorem database already contains a copy of " ^ quote name);
 
 fun enter_tthmx sg app_name (bname, tthmx) =
   let
