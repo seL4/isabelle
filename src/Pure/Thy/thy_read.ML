@@ -201,6 +201,11 @@ fun read_thy tname thy_file =
 
 fun file_exists file = (file_info file <> "");
 
+(*Get last directory in path (e.g. /usr/proj/isabelle -> isabelle) *)
+fun last_path s = case space_explode "/" s of
+                      [] => ""
+                    | ds => last_elem ds;
+
 (*Get thy_info for a loaded theory *)
 fun get_thyinfo tname = Symtab.lookup (!loaded_thys, tname);
 
@@ -402,8 +407,7 @@ fun thyfile2html tpath tname =
               \'make_html := true'"
       else if (!index_path) subdir_of (!base_path) then
         relative_path (!base_path) (!index_path)
-      else
-        last_elem (space_explode "/" (!index_path));
+      else last_path (!index_path);
     val rel_index_path = relative_path tpath (!index_path);
 
     (*Make list of all theories and all theories that own a .thy file*)
@@ -684,7 +688,14 @@ fun use_thy name =
             end;
  
           val theory_list =
-            open_append (tack_on (!index_path) ".theory_list.txt");
+            open_append (tack_on (!index_path) ".theory_list.txt")
+              handle _ => (make_html := false;
+                           writeln ("Warning: Cannot write to " ^
+                                  (!index_path) ^ " while making HTML files.\n\
+                                  \HTML generation has been switched off.\n\
+                                  \Call init_html() from within a \
+                                  \writeable directory to reactivate it.");
+                           raise MK_HTML)
       in output (theory_list, tname ^ " " ^ abs_path ^ "\n");
          close_out theory_list;
  
@@ -751,7 +762,8 @@ fun use_thy name =
          and add it to its parents' sub-charts*)
        if !make_html then
          let val path = path_of tname;
-         in if path = "" then mk_html ()    (*first time theory has been read*)
+         in if path = "" then               (*first time theory has been read*)
+              (mk_html()  handle MK_HTML => ())
             else ()
          end
        else ();
@@ -1144,8 +1156,7 @@ fun init_html () =
             val package =
               if cwd subdir_of (!base_path) then
                 relative_path (!base_path) cwd
-              else
-                last_elem (space_explode "/" cwd);
+              else last_path cwd;
         in mk_charthead pure_out "Pure" "Children" false rel_gif_path ""
                         package;
            mk_charthead cpure_out "CPure" "Children" false rel_gif_path ""
@@ -1210,7 +1221,7 @@ fun finish_html () = if not (!make_html) then () else
       val inside_isabelle = (!index_path) subdir_of (!base_path);
       val subdir =
         if inside_isabelle then relative_path (!base_path) (!index_path)
-        else last_elem (space_explode "/" (!index_path));
+        else last_path (!index_path);
       val subdirs = space_explode "/" subdir;
 
       (*Look for index.html in superdirectories; stop when Isabelle's
