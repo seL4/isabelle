@@ -17,7 +17,7 @@ record 'a ring = "'a monoid" +
 text {* Derived operations. *}
 
 constdefs (structure R)
-  a_inv :: "[_, 'a ] => 'a" ("\<ominus>\<index> _" [81] 80)
+  a_inv :: "[('a, 'm) ring_scheme, 'a ] => 'a" ("\<ominus>\<index> _" [81] 80)
   "a_inv R == m_inv (| carrier = carrier R, mult = add R, one = zero R |)"
 
   minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (infixl "\<ominus>\<index>" 65)
@@ -40,29 +40,31 @@ locale abelian_group = abelian_monoid +
 subsection {* Basic Properties *}
 
 lemma abelian_monoidI:
+  includes struct R
   assumes a_closed:
-      "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> add R x y \<in> carrier R"
-    and zero_closed: "zero R \<in> carrier R"
+      "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> x \<oplus> y \<in> carrier R"
+    and zero_closed: "\<zero> \<in> carrier R"
     and a_assoc:
       "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |] ==>
-      add R (add R x y) z = add R x (add R y z)"
-    and l_zero: "!!x. x \<in> carrier R ==> add R (zero R) x = x"
+      (x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
+    and l_zero: "!!x. x \<in> carrier R ==> \<zero> \<oplus> x = x"
     and a_comm:
-      "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> add R x y = add R y x"
+      "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> x \<oplus> y = y \<oplus> x"
   shows "abelian_monoid R"
   by (auto intro!: abelian_monoid.intro comm_monoidI intro: prems)
 
 lemma abelian_groupI:
+  includes struct R
   assumes a_closed:
-      "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> add R x y \<in> carrier R"
+      "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> x \<oplus> y \<in> carrier R"
     and zero_closed: "zero R \<in> carrier R"
     and a_assoc:
       "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |] ==>
-      add R (add R x y) z = add R x (add R y z)"
+      (x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
     and a_comm:
-      "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> add R x y = add R y x"
-    and l_zero: "!!x. x \<in> carrier R ==> add R (zero R) x = x"
-    and l_inv_ex: "!!x. x \<in> carrier R ==> EX y : carrier R. add R y x = zero R"
+      "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==> x \<oplus> y = y \<oplus> x"
+    and l_zero: "!!x. x \<in> carrier R ==> \<zero> \<oplus> x = x"
+    and l_inv_ex: "!!x. x \<in> carrier R ==> EX y : carrier R. y \<oplus> x = \<zero>"
   shows "abelian_group R"
   by (auto intro!: abelian_group.intro abelian_monoidI
       abelian_group_axioms.intro comm_monoidI comm_groupI
@@ -169,7 +171,7 @@ text {*
 *}
 
 constdefs
-  finsum :: "[_, 'a => 'b, 'a set] => 'b"
+  finsum :: "[('b, 'm) ring_scheme, 'a => 'b, 'a set] => 'b"
   "finsum G f A == finprod (| carrier = carrier G,
      mult = add G, one = zero G |) f A"
 
@@ -183,7 +185,8 @@ syntax (HTML output)
   "_finsum" :: "index => idt => 'a set => 'b => 'b"
       ("(3\<Oplus>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
-  "\<Oplus>\<index>i:A. b" == "finsum \<struct>\<index> (%i. b) A"  -- {* Beware of argument permutation! *}
+  "\<Oplus>\<index>i:A. b" == "finsum \<struct>\<index> (%i. b) A"
+  -- {* Beware of argument permutation! *}
 
 (*
   lemmas (in abelian_monoid) finsum_empty [simp] =
@@ -194,10 +197,10 @@ translations
   lemmas (in abelian_monoid) finsum_empty [simp] =
     abelian_monoid.finprod_empty [OF a_abelian_monoid, folded finsum_def,
       simplified monoid_record_simps]
-makes the locale slow, because proofs are repeated for every
-"lemma (in abelian_monoid)" command.
-When lemma is used time in UnivPoly.thy from beginning to UP_cring goes down
-from 110 secs to 60 secs.
+  makes the locale slow, because proofs are repeated for every
+  "lemma (in abelian_monoid)" command.
+  When lemma is used time in UnivPoly.thy from beginning to UP_cring goes down
+  from 110 secs to 60 secs.
 *)
 
 lemma (in abelian_monoid) finsum_empty [simp]:
@@ -212,7 +215,7 @@ lemma (in abelian_monoid) finsum_insert [simp]:
     folded finsum_def, simplified monoid_record_simps])
 
 lemma (in abelian_monoid) finsum_zero [simp]:
-  "finite A ==> (\<Oplus>i: A. \<zero>) = \<zero>"
+  "finite A ==> (\<Oplus>i\<in>A. \<zero>) = \<zero>"
   by (rule comm_monoid.finprod_one [OF a_comm_monoid, folded finsum_def,
     simplified monoid_record_simps])
 
@@ -310,7 +313,7 @@ lemma ringI:
   assumes abelian_group: "abelian_group R"
     and monoid: "monoid R"
     and l_distr: "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
-      ==> mult R (add R x y) z = add R (mult R x z) (mult R y z)"
+      ==> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
     and r_distr: "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
       ==> z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y"
   shows "ring R"
@@ -330,7 +333,7 @@ lemma cringI:
   assumes abelian_group: "abelian_group R"
     and comm_monoid: "comm_monoid R"
     and l_distr: "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
-      ==> mult R (add R x y) z = add R (mult R x z) (mult R y z)"
+      ==> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
   shows "cring R"
   proof (rule cring.intro)
     show "ring_axioms R"
@@ -457,7 +460,7 @@ text {* Two examples for use of method algebra *}
 lemma
   includes ring R + cring S
   shows "[| a \<in> carrier R; b \<in> carrier R; c \<in> carrier S; d \<in> carrier S |] ==> 
-  a \<oplus> \<ominus> (a \<oplus> \<ominus> b) = b & c \<otimes>\<^sub>2 d = d \<otimes>\<^sub>2 c"
+  a \<oplus> \<ominus> (a \<oplus> \<ominus> b) = b & c \<otimes>\<^bsub>S\<^esub> d = d \<otimes>\<^bsub>S\<^esub> c"
   by algebra
 
 lemma
@@ -528,21 +531,21 @@ qed
 
 subsection {* Morphisms *}
 
-constdefs
+constdefs (structure R S)
   ring_hom :: "[('a, 'm) ring_scheme, ('b, 'n) ring_scheme] => ('a => 'b) set"
   "ring_hom R S == {h. h \<in> carrier R -> carrier S &
       (ALL x y. x \<in> carrier R & y \<in> carrier R -->
-        h (mult R x y) = mult S (h x) (h y) &
-        h (add R x y) = add S (h x) (h y)) &
-      h (one R) = one S}"
+        h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y & h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y) &
+      h \<one> = \<one>\<^bsub>S\<^esub>}"
 
 lemma ring_hom_memI:
+  includes struct R + struct S
   assumes hom_closed: "!!x. x \<in> carrier R ==> h x \<in> carrier S"
     and hom_mult: "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==>
-      h (mult R x y) = mult S (h x) (h y)"
+      h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
     and hom_add: "!!x y. [| x \<in> carrier R; y \<in> carrier R |] ==>
-      h (add R x y) = add S (h x) (h y)"
-    and hom_one: "h (one R) = one S"
+      h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y"
+    and hom_one: "h \<one> = \<one>\<^bsub>S\<^esub>"
   shows "h \<in> ring_hom R S"
   by (auto simp add: ring_hom_def prems Pi_def)
 
@@ -551,17 +554,22 @@ lemma ring_hom_closed:
   by (auto simp add: ring_hom_def funcset_mem)
 
 lemma ring_hom_mult:
-  "[| h \<in> ring_hom R S; x \<in> carrier R; y \<in> carrier R |] ==>
-  h (mult R x y) = mult S (h x) (h y)"
-  by (simp add: ring_hom_def)
+  includes struct R + struct S
+  shows
+    "[| h \<in> ring_hom R S; x \<in> carrier R; y \<in> carrier R |] ==>
+    h (x \<otimes> y) = h x \<otimes>\<^bsub>S\<^esub> h y"
+    by (simp add: ring_hom_def)
 
 lemma ring_hom_add:
-  "[| h \<in> ring_hom R S; x \<in> carrier R; y \<in> carrier R |] ==>
-  h (add R x y) = add S (h x) (h y)"
-  by (simp add: ring_hom_def)
+  includes struct R + struct S
+  shows
+    "[| h \<in> ring_hom R S; x \<in> carrier R; y \<in> carrier R |] ==>
+    h (x \<oplus> y) = h x \<oplus>\<^bsub>S\<^esub> h y"
+    by (simp add: ring_hom_def)
 
 lemma ring_hom_one:
-  "h \<in> ring_hom R S ==> h (one R) = one S"
+  includes struct R + struct S
+  shows "h \<in> ring_hom R S ==> h \<one> = \<one>\<^bsub>S\<^esub>"
   by (simp add: ring_hom_def)
 
 locale ring_hom_cring = cring R + cring S + var h +
@@ -572,18 +580,18 @@ locale ring_hom_cring = cring R + cring S + var h +
     and hom_one [simp] = ring_hom_one [OF homh]
 
 lemma (in ring_hom_cring) hom_zero [simp]:
-  "h \<zero> = \<zero>\<^sub>2"
+  "h \<zero> = \<zero>\<^bsub>S\<^esub>"
 proof -
-  have "h \<zero> \<oplus>\<^sub>2 h \<zero> = h \<zero> \<oplus>\<^sub>2 \<zero>\<^sub>2"
+  have "h \<zero> \<oplus>\<^bsub>S\<^esub> h \<zero> = h \<zero> \<oplus>\<^bsub>S\<^esub> \<zero>\<^bsub>S\<^esub>"
     by (simp add: hom_add [symmetric] del: hom_add)
   then show ?thesis by (simp del: S.r_zero)
 qed
 
 lemma (in ring_hom_cring) hom_a_inv [simp]:
-  "x \<in> carrier R ==> h (\<ominus> x) = \<ominus>\<^sub>2 h x"
+  "x \<in> carrier R ==> h (\<ominus> x) = \<ominus>\<^bsub>S\<^esub> h x"
 proof -
   assume R: "x \<in> carrier R"
-  then have "h x \<oplus>\<^sub>2 h (\<ominus> x) = h x \<oplus>\<^sub>2 (\<ominus>\<^sub>2 h x)"
+  then have "h x \<oplus>\<^bsub>S\<^esub> h (\<ominus> x) = h x \<oplus>\<^bsub>S\<^esub> (\<ominus>\<^bsub>S\<^esub> h x)"
     by (simp add: hom_add [symmetric] R.r_neg S.r_neg del: hom_add)
   with R show ?thesis by simp
 qed

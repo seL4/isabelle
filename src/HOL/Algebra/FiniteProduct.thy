@@ -283,7 +283,7 @@ lemma (in ACeD) foldD_Un_disjoint:
 subsection {* Products over Finite Sets *}
 
 constdefs (structure G)
-  finprod :: "[_, 'a => 'b, 'a set] => 'b"
+  finprod :: "[('b, 'm) monoid_scheme, 'a => 'b, 'a set] => 'b"
   "finprod G f A == if finite A
       then foldD (carrier G) (mult G o f) \<one> A
       else arbitrary"
@@ -298,7 +298,8 @@ syntax (HTML output)
   "_finprod" :: "index => idt => 'a set => 'b => 'b"
       ("(3\<Otimes>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
-  "\<Otimes>\<index>i:A. b" == "finprod \<struct>\<index> (%i. b) A"  -- {* Beware of argument permutation! *}
+  "\<Otimes>\<index>i:A. b" == "finprod \<struct>\<index> (%i. b) A"
+  -- {* Beware of argument permutation! *}
 
 ML_setup {* 
   simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
@@ -402,9 +403,8 @@ next
   from insert have ga: "g a \<in> carrier G" by fast
   from insert have fgA: "(%x. f x \<otimes> g x) \<in> A -> carrier G"
     by (simp add: Pi_def)
-  show ?case  (* check if all simps are really necessary *)
-    by (simp add: insert fA fa gA ga fgA m_ac Int_insert_left insert_absorb
-      Int_mono2 Un_subset_iff)
+  show ?case
+    by (simp add: insert fA fa gA ga fgA m_ac)
 qed
 
 lemma (in comm_monoid) finprod_cong':

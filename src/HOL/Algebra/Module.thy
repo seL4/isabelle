@@ -13,41 +13,41 @@ record ('a, 'b) module = "'b ring" +
 
 locale module = cring R + abelian_group M +
   assumes smult_closed [simp, intro]:
-      "[| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^sub>2 x \<in> carrier M"
+      "[| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^bsub>M\<^esub> x \<in> carrier M"
     and smult_l_distr:
       "[| a \<in> carrier R; b \<in> carrier R; x \<in> carrier M |] ==>
-      (a \<oplus> b) \<odot>\<^sub>2 x = a \<odot>\<^sub>2 x \<oplus>\<^sub>2 b \<odot>\<^sub>2 x"
+      (a \<oplus> b) \<odot>\<^bsub>M\<^esub> x = a \<odot>\<^bsub>M\<^esub> x \<oplus>\<^bsub>M\<^esub> b \<odot>\<^bsub>M\<^esub> x"
     and smult_r_distr:
       "[| a \<in> carrier R; x \<in> carrier M; y \<in> carrier M |] ==>
-      a \<odot>\<^sub>2 (x \<oplus>\<^sub>2 y) = a \<odot>\<^sub>2 x \<oplus>\<^sub>2 a \<odot>\<^sub>2 y"
+      a \<odot>\<^bsub>M\<^esub> (x \<oplus>\<^bsub>M\<^esub> y) = a \<odot>\<^bsub>M\<^esub> x \<oplus>\<^bsub>M\<^esub> a \<odot>\<^bsub>M\<^esub> y"
     and smult_assoc1:
       "[| a \<in> carrier R; b \<in> carrier R; x \<in> carrier M |] ==>
-      (a \<otimes> b) \<odot>\<^sub>2 x = a \<odot>\<^sub>2 (b \<odot>\<^sub>2 x)"
+      (a \<otimes> b) \<odot>\<^bsub>M\<^esub> x = a \<odot>\<^bsub>M\<^esub> (b \<odot>\<^bsub>M\<^esub> x)"
     and smult_one [simp]:
-      "x \<in> carrier M ==> \<one> \<odot>\<^sub>2 x = x"
+      "x \<in> carrier M ==> \<one> \<odot>\<^bsub>M\<^esub> x = x"
 
 locale algebra = module R M + cring M +
   assumes smult_assoc2:
       "[| a \<in> carrier R; x \<in> carrier M; y \<in> carrier M |] ==>
-      (a \<odot>\<^sub>2 x) \<otimes>\<^sub>2 y = a \<odot>\<^sub>2 (x \<otimes>\<^sub>2 y)"
+      (a \<odot>\<^bsub>M\<^esub> x) \<otimes>\<^bsub>M\<^esub> y = a \<odot>\<^bsub>M\<^esub> (x \<otimes>\<^bsub>M\<^esub> y)"
 
 lemma moduleI:
   includes struct R + struct M
   assumes cring: "cring R"
     and abelian_group: "abelian_group M"
     and smult_closed:
-      "!!a x. [| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^sub>2 x \<in> carrier M"
+      "!!a x. [| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^bsub>M\<^esub> x \<in> carrier M"
     and smult_l_distr:
       "!!a b x. [| a \<in> carrier R; b \<in> carrier R; x \<in> carrier M |] ==>
-      (a \<oplus> b) \<odot>\<^sub>2 x = (a \<odot>\<^sub>2 x) \<oplus>\<^sub>2 (b \<odot>\<^sub>2 x)"
+      (a \<oplus> b) \<odot>\<^bsub>M\<^esub> x = (a \<odot>\<^bsub>M\<^esub> x) \<oplus>\<^bsub>M\<^esub> (b \<odot>\<^bsub>M\<^esub> x)"
     and smult_r_distr:
       "!!a x y. [| a \<in> carrier R; x \<in> carrier M; y \<in> carrier M |] ==>
-      a \<odot>\<^sub>2 (x \<oplus>\<^sub>2 y) = (a \<odot>\<^sub>2 x) \<oplus>\<^sub>2 (a \<odot>\<^sub>2 y)"
+      a \<odot>\<^bsub>M\<^esub> (x \<oplus>\<^bsub>M\<^esub> y) = (a \<odot>\<^bsub>M\<^esub> x) \<oplus>\<^bsub>M\<^esub> (a \<odot>\<^bsub>M\<^esub> y)"
     and smult_assoc1:
       "!!a b x. [| a \<in> carrier R; b \<in> carrier R; x \<in> carrier M |] ==>
-      (a \<otimes> b) \<odot>\<^sub>2 x = a \<odot>\<^sub>2 (b \<odot>\<^sub>2 x)"
+      (a \<otimes> b) \<odot>\<^bsub>M\<^esub> x = a \<odot>\<^bsub>M\<^esub> (b \<odot>\<^bsub>M\<^esub> x)"
     and smult_one:
-      "!!x. x \<in> carrier M ==> \<one> \<odot>\<^sub>2 x = x"
+      "!!x. x \<in> carrier M ==> \<one> \<odot>\<^bsub>M\<^esub> x = x"
   shows "module R M"
   by (auto intro: module.intro cring.axioms abelian_group.axioms
     module_axioms.intro prems)
@@ -57,21 +57,21 @@ lemma algebraI:
   assumes R_cring: "cring R"
     and M_cring: "cring M"
     and smult_closed:
-      "!!a x. [| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^sub>2 x \<in> carrier M"
+      "!!a x. [| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^bsub>M\<^esub> x \<in> carrier M"
     and smult_l_distr:
       "!!a b x. [| a \<in> carrier R; b \<in> carrier R; x \<in> carrier M |] ==>
-      (a \<oplus> b) \<odot>\<^sub>2 x = (a \<odot>\<^sub>2 x) \<oplus>\<^sub>2 (b \<odot>\<^sub>2 x)"
+      (a \<oplus> b) \<odot>\<^bsub>M\<^esub> x = (a \<odot>\<^bsub>M\<^esub> x) \<oplus>\<^bsub>M\<^esub> (b \<odot>\<^bsub>M\<^esub> x)"
     and smult_r_distr:
       "!!a x y. [| a \<in> carrier R; x \<in> carrier M; y \<in> carrier M |] ==>
-      a \<odot>\<^sub>2 (x \<oplus>\<^sub>2 y) = (a \<odot>\<^sub>2 x) \<oplus>\<^sub>2 (a \<odot>\<^sub>2 y)"
+      a \<odot>\<^bsub>M\<^esub> (x \<oplus>\<^bsub>M\<^esub> y) = (a \<odot>\<^bsub>M\<^esub> x) \<oplus>\<^bsub>M\<^esub> (a \<odot>\<^bsub>M\<^esub> y)"
     and smult_assoc1:
       "!!a b x. [| a \<in> carrier R; b \<in> carrier R; x \<in> carrier M |] ==>
-      (a \<otimes> b) \<odot>\<^sub>2 x = a \<odot>\<^sub>2 (b \<odot>\<^sub>2 x)"
+      (a \<otimes> b) \<odot>\<^bsub>M\<^esub> x = a \<odot>\<^bsub>M\<^esub> (b \<odot>\<^bsub>M\<^esub> x)"
     and smult_one:
-      "!!x. x \<in> carrier M ==> (one R) \<odot>\<^sub>2 x = x"
+      "!!x. x \<in> carrier M ==> (one R) \<odot>\<^bsub>M\<^esub> x = x"
     and smult_assoc2:
       "!!a x y. [| a \<in> carrier R; x \<in> carrier M; y \<in> carrier M |] ==>
-      (a \<odot>\<^sub>2 x) \<otimes>\<^sub>2 y = a \<odot>\<^sub>2 (x \<otimes>\<^sub>2 y)"
+      (a \<odot>\<^bsub>M\<^esub> x) \<otimes>\<^bsub>M\<^esub> y = a \<odot>\<^bsub>M\<^esub> (x \<otimes>\<^bsub>M\<^esub> y)"
   shows "algebra R M"
   by (auto intro!: algebra.intro algebra_axioms.intro cring.axioms 
     module_axioms.intro prems)
@@ -93,52 +93,53 @@ lemma (in algebra) module:
 subsection {* Basic Properties of Algebras *}
 
 lemma (in algebra) smult_l_null [simp]:
-  "x \<in> carrier M ==> \<zero> \<odot>\<^sub>2 x = \<zero>\<^sub>2"
+  "x \<in> carrier M ==> \<zero> \<odot>\<^bsub>M\<^esub> x = \<zero>\<^bsub>M\<^esub>"
 proof -
   assume M: "x \<in> carrier M"
   note facts = M smult_closed
-  from facts have "\<zero> \<odot>\<^sub>2 x = (\<zero> \<odot>\<^sub>2 x \<oplus>\<^sub>2 \<zero> \<odot>\<^sub>2 x) \<oplus>\<^sub>2 \<ominus>\<^sub>2 (\<zero> \<odot>\<^sub>2 x)" by algebra
-  also from M have "... = (\<zero> \<oplus> \<zero>) \<odot>\<^sub>2 x \<oplus>\<^sub>2 \<ominus>\<^sub>2 (\<zero> \<odot>\<^sub>2 x)"
+  from facts have "\<zero> \<odot>\<^bsub>M\<^esub> x = (\<zero> \<odot>\<^bsub>M\<^esub> x \<oplus>\<^bsub>M\<^esub> \<zero> \<odot>\<^bsub>M\<^esub> x) \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub> (\<zero> \<odot>\<^bsub>M\<^esub> x)" by algebra
+  also from M have "... = (\<zero> \<oplus> \<zero>) \<odot>\<^bsub>M\<^esub> x \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub> (\<zero> \<odot>\<^bsub>M\<^esub> x)"
     by (simp add: smult_l_distr del: R.l_zero R.r_zero)
-  also from facts have "... = \<zero>\<^sub>2" by algebra
+  also from facts have "... = \<zero>\<^bsub>M\<^esub>" by algebra
   finally show ?thesis .
 qed
 
 lemma (in algebra) smult_r_null [simp]:
-  "a \<in> carrier R ==> a \<odot>\<^sub>2 \<zero>\<^sub>2 = \<zero>\<^sub>2";
+  "a \<in> carrier R ==> a \<odot>\<^bsub>M\<^esub> \<zero>\<^bsub>M\<^esub> = \<zero>\<^bsub>M\<^esub>";
 proof -
   assume R: "a \<in> carrier R"
   note facts = R smult_closed
-  from facts have "a \<odot>\<^sub>2 \<zero>\<^sub>2 = (a \<odot>\<^sub>2 \<zero>\<^sub>2 \<oplus>\<^sub>2 a \<odot>\<^sub>2 \<zero>\<^sub>2) \<oplus>\<^sub>2 \<ominus>\<^sub>2 (a \<odot>\<^sub>2 \<zero>\<^sub>2)"
+  from facts have "a \<odot>\<^bsub>M\<^esub> \<zero>\<^bsub>M\<^esub> = (a \<odot>\<^bsub>M\<^esub> \<zero>\<^bsub>M\<^esub> \<oplus>\<^bsub>M\<^esub> a \<odot>\<^bsub>M\<^esub> \<zero>\<^bsub>M\<^esub>) \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub> (a \<odot>\<^bsub>M\<^esub> \<zero>\<^bsub>M\<^esub>)"
     by algebra
-  also from R have "... = a \<odot>\<^sub>2 (\<zero>\<^sub>2 \<oplus>\<^sub>2 \<zero>\<^sub>2) \<oplus>\<^sub>2 \<ominus>\<^sub>2 (a \<odot>\<^sub>2 \<zero>\<^sub>2)"
+  also from R have "... = a \<odot>\<^bsub>M\<^esub> (\<zero>\<^bsub>M\<^esub> \<oplus>\<^bsub>M\<^esub> \<zero>\<^bsub>M\<^esub>) \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub> (a \<odot>\<^bsub>M\<^esub> \<zero>\<^bsub>M\<^esub>)"
     by (simp add: smult_r_distr del: M.l_zero M.r_zero)
-  also from facts have "... = \<zero>\<^sub>2" by algebra
+  also from facts have "... = \<zero>\<^bsub>M\<^esub>" by algebra
   finally show ?thesis .
 qed
 
 lemma (in algebra) smult_l_minus:
-  "[| a \<in> carrier R; x \<in> carrier M |] ==> (\<ominus>a) \<odot>\<^sub>2 x = \<ominus>\<^sub>2 (a \<odot>\<^sub>2 x)"
+  "[| a \<in> carrier R; x \<in> carrier M |] ==> (\<ominus>a) \<odot>\<^bsub>M\<^esub> x = \<ominus>\<^bsub>M\<^esub> (a \<odot>\<^bsub>M\<^esub> x)"
 proof -
   assume RM: "a \<in> carrier R" "x \<in> carrier M"
   note facts = RM smult_closed
-  from facts have "(\<ominus>a) \<odot>\<^sub>2 x = (\<ominus>a \<odot>\<^sub>2 x \<oplus>\<^sub>2 a \<odot>\<^sub>2 x) \<oplus>\<^sub>2 \<ominus>\<^sub>2(a \<odot>\<^sub>2 x)" by algebra
-  also from RM have "... = (\<ominus>a \<oplus> a) \<odot>\<^sub>2 x \<oplus>\<^sub>2 \<ominus>\<^sub>2(a \<odot>\<^sub>2 x)"
+  from facts have "(\<ominus>a) \<odot>\<^bsub>M\<^esub> x = (\<ominus>a \<odot>\<^bsub>M\<^esub> x \<oplus>\<^bsub>M\<^esub> a \<odot>\<^bsub>M\<^esub> x) \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub>(a \<odot>\<^bsub>M\<^esub> x)"
+    by algebra
+  also from RM have "... = (\<ominus>a \<oplus> a) \<odot>\<^bsub>M\<^esub> x \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub>(a \<odot>\<^bsub>M\<^esub> x)"
     by (simp add: smult_l_distr)
-  also from facts smult_l_null have "... = \<ominus>\<^sub>2(a \<odot>\<^sub>2 x)" by algebra
+  also from facts smult_l_null have "... = \<ominus>\<^bsub>M\<^esub>(a \<odot>\<^bsub>M\<^esub> x)" by algebra
   finally show ?thesis .
 qed
 
 lemma (in algebra) smult_r_minus:
-  "[| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^sub>2 (\<ominus>\<^sub>2x) = \<ominus>\<^sub>2 (a \<odot>\<^sub>2 x)"
+  "[| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^bsub>M\<^esub> (\<ominus>\<^bsub>M\<^esub>x) = \<ominus>\<^bsub>M\<^esub> (a \<odot>\<^bsub>M\<^esub> x)"
 proof -
   assume RM: "a \<in> carrier R" "x \<in> carrier M"
   note facts = RM smult_closed
-  from facts have "a \<odot>\<^sub>2 (\<ominus>\<^sub>2x) = (a \<odot>\<^sub>2 \<ominus>\<^sub>2x \<oplus>\<^sub>2 a \<odot>\<^sub>2 x) \<oplus>\<^sub>2 \<ominus>\<^sub>2(a \<odot>\<^sub>2 x)"
+  from facts have "a \<odot>\<^bsub>M\<^esub> (\<ominus>\<^bsub>M\<^esub>x) = (a \<odot>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub>x \<oplus>\<^bsub>M\<^esub> a \<odot>\<^bsub>M\<^esub> x) \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub>(a \<odot>\<^bsub>M\<^esub> x)"
     by algebra
-  also from RM have "... = a \<odot>\<^sub>2 (\<ominus>\<^sub>2x \<oplus>\<^sub>2 x) \<oplus>\<^sub>2 \<ominus>\<^sub>2(a \<odot>\<^sub>2 x)"
+  also from RM have "... = a \<odot>\<^bsub>M\<^esub> (\<ominus>\<^bsub>M\<^esub>x \<oplus>\<^bsub>M\<^esub> x) \<oplus>\<^bsub>M\<^esub> \<ominus>\<^bsub>M\<^esub>(a \<odot>\<^bsub>M\<^esub> x)"
     by (simp add: smult_r_distr)
-  also from facts smult_r_null have "... = \<ominus>\<^sub>2(a \<odot>\<^sub>2 x)" by algebra
+  also from facts smult_r_null have "... = \<ominus>\<^bsub>M\<^esub>(a \<odot>\<^bsub>M\<^esub> x)" by algebra
   finally show ?thesis .
 qed
 
