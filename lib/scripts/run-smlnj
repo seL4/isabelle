@@ -16,6 +16,25 @@ function fail_out()
   exit 2
 }
 
+function check_mlhome_file()
+{
+  if [ ! -f "$1" ]; then
+    echo "Unable to locate $1" >&2
+    echo "Please check your ML_HOME setting!" >&2
+    exit 2
+  fi
+}
+
+
+## compiler binaries
+
+SML="$ML_HOME/sml"
+ARCH_N_OPSYS="$ML_HOME/.arch-n-opsys"
+
+check_mlhome_file "$SML"
+check_mlhome_file "$ARCH_N_OPSYS"
+
+
 
 ## prepare databases
 
@@ -47,14 +66,14 @@ else
 fi
 
 $ISABELLE_HOME/lib/scripts/feeder -p -h "$MLTEXT" -t "$MLEXIT" $FEEDER_OPTS | \
-  { read FPID; $ML_HOME/sml $ML_OPTIONS $DB; RC=$?; kill -HUP $FPID; exit $RC; }
+  { read FPID; $SML $ML_OPTIONS $DB; RC=$?; kill -HUP $FPID; exit $RC; }
 RC=$?
 
 
 ## fix heap file name and permissions
 
 if [ -n "$OUTFILE" ]; then
-  eval $($ML_HOME/.arch-n-opsys)
+  eval $($ARCH_N_OPSYS)
   SUFFIX=".$ARCH-$OPSYS"
   if [ -f "$OUTFILE$SUFFIX" ]; then
     mv "$OUTFILE$SUFFIX" "$OUTFILE"

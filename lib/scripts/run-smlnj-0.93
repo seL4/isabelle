@@ -16,11 +16,21 @@ function fail_out()
   exit 2
 }
 
+function check_mlhome_file()
+{
+  if [ ! -f "$1" ]; then
+    echo "Unable to locate $1" >&2
+    echo "Please check your ML_HOME setting!" >&2
+    exit 2
+  fi
+}
+
 
 ## prepare databases
 
 if [ -z "$INFILE" ]; then
   INFILE="$ML_HOME/sml"
+  check_mlhome_file "$INFILE"
   EXIT="val exit: int -> unit = System.Unsafe.CInterface.exit;"
 else
   EXIT=""

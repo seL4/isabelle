@@ -16,11 +16,23 @@ function fail_out()
   exit 2
 }
 
+function check_mlhome_file()
+{
+  if [ ! -f "$1" ]; then
+    echo "Unable to locate $1" >&2
+    echo "Please check your ML_HOME setting!" >&2
+    exit 2
+  fi
+}
+
 
 ## Poly/ML programs
 
 POLY=$ML_HOME/poly
 DISCGARB=$ML_HOME/discgarb
+
+check_mlhome_file "$POLY"
+check_mlhome_file "$DISCGARB"
 
 case "$ML_SYSTEM" in
   polyml-3.*)
@@ -35,6 +47,7 @@ COPYDB=true
 
 if [ -z "$INFILE" ]; then
   INFILE="$ML_HOME/ML_dbase"
+  check_mlhome_file "$INFILE"
   MLTEXT="val use = PolyML.use; val exit = PolyML.exit; $MLTEXT"
   COPYDB=""
 fi
