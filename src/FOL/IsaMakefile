@@ -28,11 +28,11 @@ Pure:
 
 $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML	$(SRC)/Provers/make_elim.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
-  $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/ind.ML $(SRC)/Provers/rulify.ML \
-  $(SRC)/Provers/simplifier.ML $(SRC)/Provers/splitter.ML FOL.ML \
-  FOL.thy FOL_lemmas1.ML FOL_lemmas2.ML IFOL.ML IFOL.thy \
-  IFOL_lemmas.ML ROOT.ML blastdata.ML cladata.ML fologic.ML \
-  hypsubstdata.ML intprover.ML simpdata.ML
+  $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/ind.ML $(SRC)/Provers/induct_method.ML \
+  $(SRC)/Provers/rulify.ML $(SRC)/Provers/simplifier.ML $(SRC)/Provers/splitter.ML \
+  FOL.ML FOL.thy FOL_lemmas1.ML FOL_lemmas2.ML IFOL.ML IFOL.thy \
+  IFOL_lemmas.ML ROOT.ML blastdata.ML cladata.ML document/root.tex \
+  fologic.ML hypsubstdata.ML intprover.ML simpdata.ML
 	@$(ISATOOL) usedir -b $(OUT)/Pure FOL
 
 
@@ -42,8 +42,9 @@ FOL-ex: FOL $(LOG)/FOL-ex.gz
 
 $(LOG)/FOL-ex.gz: $(OUT)/FOL ex/If.ML ex/If.thy ex/IffOracle.ML \
   ex/IffOracle.thy ex/List.ML ex/List.thy ex/Nat.ML ex/Nat.thy \
-  ex/Nat2.ML ex/Nat2.thy ex/Prolog.ML ex/Prolog.thy ex/ROOT.ML ex/cla.ML \
-  ex/foundn.ML ex/int.ML ex/int.thy ex/intro.ML ex/prop.ML ex/quant.ML
+  ex/Nat2.ML ex/Nat2.thy ex/Natural_Numbers.thy ex/Prolog.ML \
+  ex/Prolog.thy ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/int.ML \
+  ex/int.thy ex/intro.ML ex/prop.ML ex/quant.ML
 	@$(ISATOOL) usedir $(OUT)/FOL ex
 
 
