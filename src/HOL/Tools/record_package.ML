@@ -256,7 +256,7 @@ type parent_info =
   simps: tthm list};
 
 
-(* data kind '"HOL/records' *)
+(* data kind 'HOL/records' *)
 
 structure RecordsArgs =
 struct
