@@ -126,7 +126,8 @@ by (asm_full_simp_tac
 		     InfCard_is_Card, Card_cardinal]) 1);
 qed "cardinal_UN_lt_csucc";
 
-(*The same again, for a union of ordinals*)
+(*The same again, for a union of ordinals.  In use, j(i) is a bit like rank(i),
+  the least ordinal j such that i:Vfrom(A,j). *)
 goal Cardinal_AC.thy
     "!!K. [| InfCard(K);  ALL i:K. j(i) < csucc(K) |] ==> \
 \         (UN i:K. j(i)) < csucc(K)";
@@ -138,33 +139,42 @@ by (eresolve_tac [InfCard_is_Card RS Card_is_Ord RS Card_csucc] 1);
 qed "cardinal_UN_Ord_lt_csucc";
 
 
+(** Main result for infinite-branching datatypes.  As above, but the index
+    set need not be a cardinal.  Surprisingly complicated proof!
+**)
+
 (*Saves checking Ord(j) below*)
 goal Ordinal.thy "!!i j. [| i <= j;  j<k;  Ord(i) |] ==> i<k";
 by (resolve_tac [subset_imp_le RS lt_trans1] 1);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 qed "lt_subset_trans";
 
-(*The same yet again, but the index set need not be a cardinal.  
-  Surprisingly complicated proof!*)
+(*Work backwards along the injection from W into K, given that W~=0.*)
+goal Perm.thy 
+    "!!A. [| f: inj(A,B);  a:A |] ==>		\
+\         (UN x:A. C(x)) <= (UN y:B. C(if(y: range(f), converse(f)`y, a)))";
+by (resolve_tac [UN_least] 1);
+by (res_inst_tac [("x1", "f`x")] (UN_upper RSN (2,subset_trans)) 1);
+by (eresolve_tac [inj_is_fun RS apply_type] 2 THEN assume_tac 2);
+by (asm_simp_tac 
+    (ZF_ss addsimps [inj_is_fun RS apply_rangeI, left_inverse]) 1);
+val inj_UN_subset = result();
+
+(*Simpler to require |W|=K; we'd have a bijection; but the theorem would
+  be weaker.*)
 goal Cardinal_AC.thy
     "!!K. [| InfCard(K);  |W| le K;  ALL w:W. j(w) < csucc(K) |] ==> \
 \         (UN w:W. j(w)) < csucc(K)";
 by (excluded_middle_tac "W=0" 1);
-by (asm_simp_tac
+by (asm_simp_tac	(*solve the easy 0 case*)
     (ZF_ss addsimps [UN_0, InfCard_is_Card, Card_is_Ord RS Card_csucc, 
 		     Card_is_Ord, Ord_0_lt_csucc]) 2);
 by (asm_full_simp_tac
     (ZF_ss addsimps [InfCard_is_Card, le_Card_iff, lepoll_def]) 1);
 by (safe_tac eq_cs);
-by (eresolve_tac [notE] 1);
-by (res_inst_tac [("j1", "%i. j(if(i: range(f), converse(f)`i, x))")]
-    (cardinal_UN_Ord_lt_csucc RSN (2,lt_subset_trans)) 1);
-by (assume_tac 2);
-by (resolve_tac [UN_least] 1);
-by (res_inst_tac [("x1", "f`xa")] (UN_upper RSN (2,subset_trans)) 1);
-by (eresolve_tac [inj_is_fun RS apply_type] 2 THEN assume_tac 2);
-by (asm_simp_tac 
-    (ZF_ss addsimps [inj_is_fun RS apply_rangeI, left_inverse]) 1);
+by (swap_res_tac [[inj_UN_subset, cardinal_UN_Ord_lt_csucc] 
+		  MRS lt_subset_trans] 1);
+by (REPEAT (assume_tac 1));
 by (fast_tac (ZF_cs addSIs [Ord_UN] addEs [ltE]) 2);
 by (asm_simp_tac (ZF_ss addsimps [inj_converse_fun RS apply_type]
 		        setloop split_tac [expand_if]) 1);
