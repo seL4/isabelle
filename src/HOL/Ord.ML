@@ -121,4 +121,10 @@ by (cut_facts_tac [linorder_linear] 1);
 by (blast_tac (claset() addIs [order_trans]) 1);
 qed "min_le_iff_disj";
 
+Goal "!!x::'a::linorder. (x ~= y) = (x<y | y<x)";
+by (cut_inst_tac [("x","x"),("y","y")] linorder_less_linear 1);
+by Auto_tac;
+qed "linorder_neq_iff";
 
+(*** eliminates ~= in premises ***)
+bind_thm("linorder_neqE", linorder_neq_iff RS iffD1 RS disjE);

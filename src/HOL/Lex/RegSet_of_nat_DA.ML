@@ -131,7 +131,7 @@ qed_spec_mp "deltas_concat";
 Addsimps [deltas_concat];
 
 goal Nat.thy "!!n. [| n < Suc k; n ~= k |] ==> n < k";
-by (etac nat_neqE 1);
+by (etac linorder_neqE 1);
 by (ALLGOALS trans_tac);
 val lemma = result();
 

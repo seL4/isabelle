@@ -33,7 +33,7 @@ by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 1);
 by Safe_tac;
 by (auto_tac (claset() addDs [minSet_eq_SomeD], 
-	      simpset() addsimps [le_def, nat_neq_iff]));
+	      simpset() addsimps [le_def, linorder_neq_iff]));
 qed "minSet_greaterThan";
 
 

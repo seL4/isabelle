@@ -56,10 +56,10 @@ by (auto_tac (claset(),
 by (subgoal_tac "(j + N - i) = Suc (j + N - Suc i)" 1);
 by (asm_simp_tac (simpset() addsimps [Suc_diff_Suc, Suc_leI, less_imp_le,
                                       diff_add_assoc]) 2);
-by (full_simp_tac (simpset() addsimps [nat_neq_iff]) 1);
+by (full_simp_tac (simpset() addsimps [linorder_neq_iff]) 1);
 by (asm_full_simp_tac (simpset() addsimps [less_Suc_eq, mod_Suc]) 1);
 by (auto_tac (claset(), 
-              simpset() addsimps [diff_add_assoc2, nat_neq_iff, 
+              simpset() addsimps [diff_add_assoc2, linorder_neq_iff, 
                                   Suc_le_eq, Suc_diff_Suc, less_imp_diff_less, 
                                   add_diff_less, mod_less, mod_geq]));
 by (etac subst 1);
