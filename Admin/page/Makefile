@@ -55,8 +55,8 @@ install: main dist
 	@cp -R main/. ../../main-`cat DISTNAME`/.
 
 weblint:
-	-weblint -x netscape $(MAIN_TARGET)
-	-weblint -x netscape $(DIST_TARGET)
+	-weblint -x netscape -d extension-attribute -e img-size $(MAIN_TARGET)
+	-weblint -x netscape -d extension-attribute -e img-size $(DIST_TARGET)
 
 clean: 
 	@rm -rf $(MAIN_TARGET)

@@ -57,21 +57,21 @@ Isabelle FAQ
     <table class="question" width="100%">
         <tr>
           <td>There are lots of arrows in Isabelle. What's the
-          difference between <tt>-></tt>, <tt>=></tt>, <tt>--></tt>,
-          and <tt>==></tt> ?</td>
+          difference between <tt>-&gt;</tt>, <tt>=&gt;</tt>, <tt>--&gt;</tt>,
+          and <tt>==&gt;</tt> ?</td>
         </tr>
     </table>
     <table class="answer" width="100%">
-        <tr><td>Isabelle uses the <tt>=></tt> arrow for the function
+        <tr><td>Isabelle uses the <tt>=&gt;</tt> arrow for the function
         type (contrary to most functional languages which use
-        <tt>-></tt>). So <tt>a => b</tt> is the type of a function
+        <tt>-&gt;</tt>). So <tt>a =&gt; b</tt> is the type of a function
         that takes an element of <tt>a</tt> as input and gives you an
-        element of <tt>b</tt> as output. The long arrow <tt>--></tt>
-        and <tt>==></tt> are object and meta level
+        element of <tt>b</tt> as output. The long arrow <tt>--&gt;</tt>
+        and <tt>==&gt;</tt> are object and meta level
         implication. Roughly speaking, the meta level implication
         should only be used when stating theorems where it separates
         the assumptions from the conclusion. Whenever you need an
-        implication inside a HOL formula, use <code>--></code>.
+        implication inside a HOL formula, use <code>--&gt;</code>.
         </td></tr>
     </table>
 
@@ -153,7 +153,7 @@ Isabelle FAQ
     Most commonly this is a typing problem. The rule you want to apply
     may require a more special (or just plain different) type from
     what you have in the current goal. Use the ProofGeneral menu
-    <tt>Isabelle/Isar -> Settings -> Show Types</tt> and the
+    <tt>Isabelle/Isar -&gt; Settings -&gt; Show Types</tt> and the
     <tt>thm</tt> command on the rule you want to apply to find out if
     the types are what you expect them to be (also take a look at the
     types in your goal). <tt>Show Sorts</tt>, <tt>Show Constants</tt>,
@@ -198,7 +198,7 @@ Isabelle FAQ
     and instantiate (some) variables with concrete values. You may
     also need additional assumptions about these values.  For example,
     <tt>True & False ~= True | False</tt> is a counterexample of <tt>A
-    & B = A | B</tt>, and <tt>A = ~B ==> A & B ~= A | B</tt> is
+    & B = A | B</tt>, and <tt>A = ~B ==&gt; A & B ~= A | B</tt> is
     another one. Sometimes Isabelle can help you to find the
     counterexample: just negate the proposition and do <tt>auto</tt>
     or <tt>simp</tt>.  If lucky, you are left with the assumptions you
@@ -216,8 +216,8 @@ Isabelle FAQ
     work is: it's not switched on yet. Assuming you are using
     ProofGeneral and have installed the X-Symbol package, you still
     need to turn X-Symbol on in ProofGeneral: select the menu items
-    <tt>Proof-General -> Options -> X-Symbol</tt> and (if you want to
-    save the setting for future sessions) select <tt>Options -> Save
+    <tt>Proof-General -&gt; Options -&gt; X-Symbol</tt> and (if you want to
+    save the setting for future sessions) select <tt>Options -&gt; Save
     Options</tt> in XEmacs.</td></tr></table>
 
     <table class="question" width="100%"><tr><td>How do I input those X-Symbols anyway?</td></tr></table>
@@ -228,9 +228,9 @@ Isabelle FAQ
     type <tt>\&lt;and&gt;</tt>). For common symbols you can try to "paint
     them in ASCII" and if the xsymbol package recognizes them it will
     automatically convert them into their graphical
-    representation. Examples: <tt>--></tt> is converted into the long
+    representation. Examples: <tt>--&gt;</tt> is converted into the long
     single arrow, <tt>/\</tt> is converted into the 'and' symbol, the
-    sequence <tt>=_</tt> into the equivalence sign, <tt><_</tt> into
+    sequence <tt>=_</tt> into the equivalence sign, <tt>&lt;_</tt> into
     less-or-equal, <tt>[|</tt> into opening semantic brackets, and so
     on. For greek characters, the <code>rotate</code> command works well:
     to input &alpha; type <code>a</code> and then <code>C-.</code>

@@ -46,11 +46,7 @@ New features in <strong><!-- _GP_ distname --></strong> include
 <li>Type <code>rat</code> of the rational numbers available in HOL-Complex.</li>
 
 <li>Improved locales (named proof contexts), instantiation of locales.</li>
-<!--
-<li>Improved calculational reasoning chains.</li>
 
-<li>Improved records handling.</li>
-//-->
 <li>Improved handling of linear and partial orders in simplifier.</li>
  
 <li>New <code>specification</code> command for definition by specification.</li>  
