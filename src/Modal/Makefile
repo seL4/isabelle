@@ -18,7 +18,7 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES = ROOT.ML modal0.thy prover.ML T.thy S4.thy S43.thy
+FILES = ROOT.ML modal0.thy prover.ML t.thy s4.thy s43.thy
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/Modal:   $(BIN)/LK  $(FILES) 
