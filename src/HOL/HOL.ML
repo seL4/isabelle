@@ -387,6 +387,20 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
 val HOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I]
                      addSEs [exE,ex1E] addEs [allE];
 
+exception CS_DATA of claset;
+
+let fun merge [] = CS_DATA empty_cs
+      | merge cs = let val cs = map (fn CS_DATA x => x) cs;
+                   in CS_DATA (foldl merge_cs (hd cs, tl cs)) end;
+
+    fun put (CS_DATA cs) = claset := cs;
+
+    fun get () = CS_DATA (!claset);
+in add_thydata "HOL"
+     ("claset", ThyMethods {merge = merge, put = put, get = get})
+end;
+
+claset := HOL_cs;
 
 section "Simplifier";
 
@@ -407,7 +421,6 @@ let fun merge [] = SS_DATA empty_ss
 in add_thydata "HOL"
      ("simpset", ThyMethods {merge = merge, put = put, get = get})
 end;
-
 
 type dtype_info = {case_const:term, case_rewrites:thm list,
                    constructors:term list, nchotomy:thm, case_cong:thm};
