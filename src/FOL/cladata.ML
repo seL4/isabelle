@@ -20,8 +20,8 @@ structure Classical_Data =
   end;
 
 structure Cla = ClassicalFun(Classical_Data);
-structure BasicClassical: BASIC_CLASSICAL = Cla;
-open BasicClassical;
+structure BasicClassical: BASIC_CLASSICAL = Cla; open BasicClassical;
+structure Obtain = ObtainFun(val that_atts = [Simplifier.simp_add_local, Cla.haz_intro_local]);
 
 
 (*Better for fast_tac: needs no quantifier duplication!*)
