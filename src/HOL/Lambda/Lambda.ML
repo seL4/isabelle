@@ -14,13 +14,13 @@ some compatibility lemmas.
 goal Nat.thy "!!i. [| i < Suc j; j < k |] ==> i < k";
 by (rtac le_less_trans 1);
 by (assume_tac 2);
-by(asm_full_simp_tac (!simpset addsimps [le_def]) 1);
+by(asm_full_simp_tac (!simpset addsimps [le_def, less_Suc_eq]) 1);
 by(fast_tac (HOL_cs addEs [less_asym,less_irrefl]) 1);
 qed "lt_trans1";
 
 goal Nat.thy "!!i. [| i < j; j < Suc(k) |] ==> i < k";
 by (etac less_le_trans 1);
-by(asm_full_simp_tac (!simpset addsimps [le_def]) 1);
+by(asm_full_simp_tac (!simpset addsimps [le_def, less_Suc_eq]) 1);
 by(fast_tac (HOL_cs addEs [less_asym,less_irrefl]) 1);
 qed "lt_trans2";
 
@@ -47,7 +47,7 @@ qed "gt_pred";
 
 open Lambda;
 
-Delsimps [less_Suc_eq, subst_Var];
+Delsimps [(*less_Suc_eq, *)subst_Var];
 Addsimps ([if_not_P, not_less_eq] @ beta.intrs);
 
 (* don't add r_into_rtrancl! *)

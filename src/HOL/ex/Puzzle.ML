@@ -36,7 +36,7 @@ qed "lemma2";
 val prems = goal Puzzle.thy "(!!n.f(n) <= f(Suc(n))) ==> m<n --> f(m) <= f(n)";
 by (res_inst_tac[("n","n")]nat_induct 1);
 by (Simp_tac 1);
-by (Simp_tac 1);
+by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (fast_tac (HOL_cs addIs (le_trans::prems)) 1);
 bind_thm("mono_lemma1", result() RS mp);
 

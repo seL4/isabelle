@@ -164,7 +164,7 @@ qed "zero_eq";
 
 goal Arith.thy "x < Suc(y) --> x<=y";
   by (nat_ind_tac "n" 1);
-  by (Asm_simp_tac 1);
+  by (asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
   by (safe_tac HOL_cs);
   by (etac less_imp_le 1);
 qed "less_suc_imp_leq";

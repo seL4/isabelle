@@ -163,7 +163,7 @@ by (asm_simp_tac (!simpset addsimps [ntrunc_0]) 1);
 by (rename_tac "n'" 1);
 by (res_inst_tac [("n", "n'")] natE 1);
 by (asm_simp_tac (!simpset addsimps [CONS_def, ntrunc_one_In1]) 1);
-by (asm_simp_tac (!simpset addsimps [CONS_def, ntrunc_In1, ntrunc_Scons]) 1);
+by (asm_simp_tac (!simpset addsimps [CONS_def, ntrunc_In1, ntrunc_Scons, less_Suc_eq]) 1);
 qed "LListD_implies_ntrunc_equality";
 
 (*The domain of the LListD relation*)
@@ -307,7 +307,7 @@ by (strip_tac 1);
 by (res_inst_tac [("n", "n")] natE 1);
 by (res_inst_tac [("n", "xb")] natE 2);
 by (ALLGOALS(asm_simp_tac(!simpset addsimps
-            [ntrunc_0,ntrunc_one_CONS,ntrunc_CONS])));
+            [ntrunc_0,ntrunc_one_CONS,ntrunc_CONS, less_Suc_eq])));
 result();
 
 

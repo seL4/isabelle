@@ -79,7 +79,8 @@ qed "raw_Idem_iff";
 
 goal Unifier.thy "Idem(s) = (sdom(s) Int srange(s) = {})";
 by (simp_tac (subst_ss addsimps [raw_Idem_iff,subst_eq_iff,subst_comp,
-                                invariance,dom_range_disjoint])1);
+                                invariance,dom_range_disjoint]
+		       delsimps (empty_iff::mem_simps)) 1);
 qed "Idem_iff";
 
 goal Unifier.thy "Idem([])";

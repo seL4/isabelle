@@ -32,14 +32,14 @@ Addsimps [less_not_sym RS True_eq];
 
 goal Arith.thy "i < j --> pred i < j";
 by(nat_ind_tac "j" 1);
-by(ALLGOALS(asm_simp_tac(simpset_of "Arith")));
+by(ALLGOALS(asm_simp_tac(simpset_of "Arith" addsimps [less_Suc_eq])));
 by(nat_ind_tac "j1" 1);
 by(ALLGOALS(asm_simp_tac(simpset_of "Arith")));
 qed_spec_mp "less_imp_pred_less";
 
 goal Arith.thy "i<j --> ~ pred j < i";
 by(nat_ind_tac "j" 1);
-by(ALLGOALS(asm_simp_tac(simpset_of "Arith")));
+by(ALLGOALS(asm_simp_tac(simpset_of "Arith" addsimps [less_Suc_eq])));
 by(fast_tac (HOL_cs addDs [less_imp_pred_less]) 1);
 qed_spec_mp "less_imp_not_pred_less";
 Addsimps [less_imp_not_pred_less];
@@ -47,6 +47,7 @@ Addsimps [less_imp_not_pred_less];
 goal Nat.thy "i < j --> j < Suc(Suc i) --> j = Suc i";
 by(nat_ind_tac "j" 1);
 by(ALLGOALS(simp_tac(simpset_of "Nat")));
+by(simp_tac(simpset_of "Nat" addsimps [less_Suc_eq])1);
 by(fast_tac (HOL_cs addDs [less_not_sym]) 1);
 qed_spec_mp "less_interval1";
 
@@ -179,8 +180,7 @@ Addsimps [decr_Fun];
 
 goal Eta.thy "!i. ~free t (Suc i) --> decr t i = decr t (Suc i)";
 by(db.induct_tac "t" 1);
-by(ALLGOALS(asm_simp_tac (addsplit (!simpset) addsimps [le_def])));
-by(fast_tac (HOL_cs addDs [less_interval1]) 1);
+by(ALLGOALS(asm_simp_tac (addsplit (!simpset) addsimps [le_def, less_Suc_eq])));
 by(fast_tac HOL_cs 1);
 qed "decr_not_free";
 Addsimps [decr_not_free];

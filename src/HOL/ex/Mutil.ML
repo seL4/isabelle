@@ -108,7 +108,7 @@ goal thy "(i: below k) = (i<k)";
 by (res_inst_tac [("x", "i")] spec 1);
 by (nat_ind_tac "k" 1);
 by (Simp_tac 1);
-by (asm_simp_tac (!simpset addsimps [below_Suc]) 1);
+by (asm_simp_tac (!simpset addsimps [below_Suc, less_Suc_eq]) 1);
 by (fast_tac set_cs 1);
 qed "below_less_iff";
 
