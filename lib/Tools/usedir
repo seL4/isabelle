@@ -20,6 +20,7 @@ function usage()
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -i BOOL      generate theory browsing information,"
   echo "                 i.e. HTML / graph data (default false)"
+  echo "    -m BOOL      multi line output (default false)"
   echo "    -r           reset session path"
   echo "    -s NAME      override session NAME"
   echo
@@ -36,6 +37,7 @@ function usage()
 
 BUILD=""
 INFO=false
+MULTI=false
 RESET=false
 SESSION=""
 RPATH=""
@@ -43,7 +45,7 @@ RPATH=""
 function getoptions()
 {
   OPTIND=1
-  while getopts "BP:bi:rs:" OPT
+  while getopts "BP:bi:m:rs:" OPT
   do
     case "$OPT" in
       B)
@@ -55,6 +57,9 @@ function getoptions()
         ;;
       i)
         INFO="$OPTARG"
+        ;;
+      m)
+        MULTI="$OPTARG"
         ;;
       r)
         RESET=true
@@ -121,9 +126,12 @@ SECONDS=0
 
 PARENT=$(basename "$LOGIC")
 
+ECHO_LINE="echo -n"
+[ "$MULTI" = "true" ] && ECHO_LINE="echo"
+
 if [ -n "$BUILD" ]; then
   ITEM="$SESSION"
-  echo -n "Building $ITEM ... "
+  $ECHO_LINE "Building $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
@@ -132,7 +140,7 @@ if [ -n "$BUILD" ]; then
   RC=$?
 else
   ITEM=$(basename $LOGIC)-"$SESSION"
-  echo -n "Running $ITEM ... "
+  $ECHO_LINE "Running $ITEM ..."
   LOG="$LOGDIR/$ITEM"
 
   cd "$NAME"
@@ -148,11 +156,14 @@ ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
 
 # exit status
 
+TELL_ITEM=""
+[ "$MULTI" = "true" ] && TELL_ITEM="$ITEM"
+
 if [ $RC -eq 0 ]; then
-  echo "OK  ($ELAPSED elapsed time)"
+  echo "$TELL_ITEM OK  ($ELAPSED elapsed time)"
   gzip --force "$LOG"
 else
-  echo "FAILED"
+  echo "$TELL_ITEM FAILED"
   echo "(see also $LOG)"
   echo; tail $LOG; echo
 fi

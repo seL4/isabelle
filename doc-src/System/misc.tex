@@ -223,6 +223,7 @@ Usage: usedir LOGIC NAME
     -b           build mode (output heap image, using current dir)
     -i BOOL      generate theory browsing information,
                  i.e. HTML / graph data (default false)
+    -m BOOL      multi line output (default false)
     -r           reset session path
     -s NAME      override session NAME
 
@@ -267,6 +268,11 @@ the command line wins.  The \texttt{-P} option specifies a path (or actual
 URL) to be prefixed to any \emph{non-local} reference of existing theories.
 Thus user sessions may easily link to existing Isabelle libraries already
 present on the WWW.
+
+\medskip Option \texttt{-m} controls multi-line mode of messages output as
+\texttt{usedir} proceeds.  By default, start and end of operation are printed
+on a single line.  One may specify \texttt{-m true} in case that printing of
+partial lines causes any problems, e.g.\ when doing parallel make.
 
 \medskip Any \texttt{usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend
