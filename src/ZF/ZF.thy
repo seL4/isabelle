@@ -62,6 +62,7 @@ consts
   range       :: "i => i"
   field       :: "i => i"
   converse    :: "i => i"
+  function    :: "i => o"	    	(*is a relation a function?*)
   Lambda      :: "[i, i => i] => i"
   restrict    :: "[i, i] => i"
 
@@ -122,13 +123,16 @@ translations
   "EX x:A. P"   == "Bex(A, %x. P)"
 
 
-rules
+defs
 
   (* Bounded Quantifiers *)
-
   Ball_def      "Ball(A, P) == ALL x. x:A --> P(x)"
   Bex_def       "Bex(A, P) == EX x. x:A & P(x)"
+
   subset_def    "A <= B == ALL x:A. x:B"
+  succ_def      "succ(i) == cons(i, i)"
+
+rules
 
   (* ZF axioms -- see Suppes p.238
      Axioms for Union, Pow and Replace state existence only,
@@ -137,7 +141,6 @@ rules
   extension     "A = B <-> A <= B & B <= A"
   Union_iff     "A : Union(C) <-> (EX B:C. A:B)"
   Pow_iff       "A : Pow(B) <-> A <= B"
-  succ_def      "succ(i) == cons(i, i)"
 
   (*We may name this set, though it is not uniquely defined.*)
   infinity      "0:Inf & (ALL y:Inf. succ(y): Inf)"
@@ -148,6 +151,8 @@ rules
   (*Schema axiom since predicate P is a higher-order variable*)
   replacement   "(ALL x:A. ALL y z. P(x,y) & P(x,z) --> y=z) ==> \
                 \        b : PrimReplace(A,P) <-> (EX x:A. P(x,b))"
+
+defs
 
   (* Derived form of replacement, restricting P to its functional part.
      The resulting set (for functional P) is the same as with
@@ -200,6 +205,8 @@ rules
   domain_def    "domain(r) == {x. w:r, EX y. w=<x,y>}"
   range_def     "range(r) == domain(converse(r))"
   field_def     "field(r) == domain(r) Un range(r)"
+  function_def	"function(r) == ALL x y. <x,y>:r -->   \
+\		                (ALL y'. <x,y'>:r --> y=y')"
   image_def     "r `` A  == {y : range(r) . EX x:A. <x,y> : r}"
   vimage_def    "r -`` A == converse(r)``A"
 
@@ -207,7 +214,7 @@ rules
 
   lam_def       "Lambda(A,b) == {<x,b(x)> . x:A}"
   apply_def     "f`a == THE y. <a,y> : f"
-  Pi_def        "Pi(A,B)  == {f: Pow(Sigma(A,B)). ALL x:A. EX! y. <x,y>: f}"
+  Pi_def        "Pi(A,B)  == {f: Pow(Sigma(A,B)). A<=domain(f) & function(f)}"
 
   (* Restrict the function f to the domain A *)
   restrict_def  "restrict(f,A) == lam x:A.f`x"
