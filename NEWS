@@ -151,6 +151,11 @@ New in this Isabelle release
  
 *** HOL ***
 
+* Datatype induction via method `induct' now preserves the name of the
+  induction variable. For example, when proving P(xs::'a list) by induction
+  on xs, the induction step is now P(xs) ==> P(a#xs) rather than
+  P(list) ==> P(a#list) as previously.
+
 * HOL/record: reimplementation of records. Improved scalability for
   records with many fields, avoiding performance problems for type
   inference. Records are no longer composed of nested field types, but
