@@ -9,7 +9,7 @@ header {* \isaheader{Correctness of the LBV} *}
 theory LBVCorrect = LBVSpec + Typing_Framework:
 
 locale (open) lbvs = lbv +
-  fixes s0  :: 'a
+  fixes s0  :: 'a ("s\<^sub>0")
   fixes c   :: "'a list"
   fixes ins :: "'b list"
   fixes phi :: "'a list" ("\<phi>")
@@ -36,9 +36,9 @@ lemma (in lbvs) phi_len [simp]:
 
 
 lemma (in lbvs) wtl_suc_pc:
-  assumes all: "wtl ins c 0 s0 \<noteq> \<top>" 
+  assumes all: "wtl ins c 0 s\<^sub>0 \<noteq> \<top>" 
   assumes pc:  "pc+1 < length ins"
-  shows "wtl (take (pc+1) ins) c 0 s0 <=_r \<phi>!(pc+1)"
+  shows "wtl (take (pc+1) ins) c 0 s0 \<le>\<^sub>r \<phi>!(pc+1)"
 proof -
   from all pc
   have "wtc c (pc+1) (wtl (take (pc+1) ins) c 0 s0) \<noteq> T" by (rule wtl_all)

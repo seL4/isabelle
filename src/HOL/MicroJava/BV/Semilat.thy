@@ -24,10 +24,19 @@ defs
 lesub_def:   "x <=_r y == r x y"
 lesssub_def: "x <_r y  == x <=_r y & x ~= y"
 
+syntax (xsymbols)
+ "@lesub" :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool" ("(_ /\<le>\<^sub>_ _)" [50, 1000, 51] 50)
+
 consts
  "@plussub" :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c" ("(_ /+'__ _)" [65, 1000, 66] 65)
 defs
 plussub_def: "x +_f y == f x y"
+
+syntax (xsymbols)
+ "@plussub" :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c" ("(_ /+\<^sub>_ _)" [65, 1000, 66] 65)
+
+syntax (xsymbols)
+ "@plussub" :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c" ("(_ /\<squnion>\<^sub>_ _)" [65, 1000, 66] 65)
 
 
 constdefs
