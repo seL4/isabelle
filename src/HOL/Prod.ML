@@ -466,6 +466,19 @@ Goal "Sigma (Union X) B = (UN A:X. Sigma A B)";
 by (Blast_tac 1);
 qed "Sigma_Union";
 
+(*Non-dependent versions are needed to avoid the need for higher-order
+  matching, especially when the rules are re-oriented*)
+Goal "(A Un B) Times C = (A Times C) Un (B Times C)";
+by (Blast_tac 1);
+qed "Times_Un_distrib1"; 
+
+Goal "(A Int B) Times C = (A Times C) Int (B Times C)";
+by (Blast_tac 1);
+qed "Times_Int_distrib1"; 
+
+Goal "(A - B) Times C = (A Times C) - (B Times C)";
+by (Blast_tac 1);
+qed "Times_Diff_distrib1"; 
 
 (** Exhaustion rule for unit -- a degenerate form of induction **)
 
