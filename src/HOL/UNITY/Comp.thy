@@ -26,8 +26,4 @@ constdefs
   funPair      :: "['a => 'b, 'a => 'c, 'a] => 'b * 'c"
     "funPair f g == %x. (f x, g x)"
 
-  (*the set of all sets determined by f alone*)
-  givenBy :: "['a => 'b] => 'a set set"
-    "givenBy f == range (%B. f-`` B)"
-
 end

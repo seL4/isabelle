@@ -22,7 +22,6 @@ by (etac LeadsTo_weaken 1);
 by (ALLGOALS (blast_tac (claset() addIs [monoD, order_trans])));
 qed "mono_LeadsTo_o";
 
-(*NOT PROVABLE USING leadsETo because givenBy f <= givenBy (h o f) fails*)
 Goalw [Follows_def] "mono h ==> f Fols g <= (h o f) Fols (h o g)";
 by (Clarify_tac 1);
 by (asm_full_simp_tac
@@ -31,33 +30,16 @@ by (asm_full_simp_tac
 			 impOfSubs mono_LeadsTo_o RS INT_D]) 1);
 qed "mono_Follows_o";
 
-(*NOT PROVABLE USING leadsETo since it needs the previous thm*)
 Goal "mono h ==> f Fols g <= (%x. h (f x)) Fols (%x. h (g x))";
 by (dtac mono_Follows_o 1);
 by (force_tac (claset(), simpset() addsimps [o_def]) 1);
 qed "mono_Follows_apply";
 
-(*NOT PROVABLE USING leadsETo since givenBy g doesn't imply givenBy f*)
 Goalw [Follows_def]
      "[| F : f Fols g;  F: g Fols h |] ==> F : f Fols h";
 by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
 by (blast_tac (claset() addIs [order_trans, LeadsTo_Trans]) 1);
 qed "Follows_trans";
-
-(*
-try:
-by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
-by Auto_tac;
-by (blast_tac (claset() addIs [order_trans, LeadsETo_Trans]) 1);
-by (rtac LeadsETo_Trans 1);
-by (Blast_tac 2);
-by (dtac spec 1);
-by (etac LeadsETo_weaken 1);
-by Auto_tac;
-by (thin_tac "All ?P" 1);
-by (full_simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
-by Safe_tac;
-**)
 
 
 (** Destructiom rules **)
@@ -81,6 +63,24 @@ Goalw [Follows_def]
      "F : f Fols g ==> F : {s. k <= g s} LeadsTo {s. k <= f s}";
 by (Blast_tac 1);
 qed "Follows_LeadsTo";
+
+Goal "F : f Fols g ==> F : {s. k pfixLe g s} LeadsTo {s. k pfixLe f s}";
+by (rtac single_LeadsTo_I 1);
+by (Clarify_tac 1);
+by (dtac Follows_LeadsTo 1);
+by (etac LeadsTo_weaken 1);
+by (blast_tac set_cs 1);
+by (blast_tac (claset() addIs [pfixLe_trans, prefix_imp_pfixLe]) 1);
+qed "Follows_LeadsTo_pfixLe";
+
+Goal "F : f Fols g ==> F : {s. k pfixGe g s} LeadsTo {s. k pfixGe f s}";
+by (rtac single_LeadsTo_I 1);
+by (Clarify_tac 1);
+by (dtac Follows_LeadsTo 1);
+by (etac LeadsTo_weaken 1);
+by (blast_tac set_cs 1);
+by (blast_tac (claset() addIs [pfixGe_trans, prefix_imp_pfixGe]) 1);
+qed "Follows_LeadsTo_pfixGe";
 
 
 (*Can replace "Un" by any sup.  But existing max only works for linorders.*)

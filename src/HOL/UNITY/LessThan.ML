@@ -50,17 +50,6 @@ Goalw [Restrict_def, image_def]
 by Auto_tac;
 qed "Restrict_imageI";
 
-Goal "(Restrict A `` (Restrict A `` r - s)) = (Restrict A `` r - s)";
-by Auto_tac;
-by (rewrite_goals_tac [image_def, Restrict_def]);
-by (Blast_tac 1);
-qed "Restrict_image_Diff";
-
-(*Nothing to do with Restrict, but to specialized for Fun.ML?*)
-Goal "f``(g``A - B) = (UN x: (A - g-`` B). {f(g(x))})";
-by (Blast_tac 1);
-qed "image_Diff_image_eq";
-
 Goal "Domain (Restrict A r) = A Int Domain r";
 by (Blast_tac 1);
 qed "Domain_Restrict";

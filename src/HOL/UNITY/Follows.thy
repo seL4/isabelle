@@ -3,13 +3,10 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-The Follows relation of Charpentier and Sivilotte
-
-The safety conditions ensures that "givenBy f" is implementable in the
-  progress part: g cannot do anything silly.
+The "Follows" relation of Charpentier and Sivilotte
 *)
 
-Follows = Project +
+Follows = SubstAx +
 
 constdefs
 

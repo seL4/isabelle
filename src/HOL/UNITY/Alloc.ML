@@ -380,8 +380,7 @@ by (auto_tac (claset() addIs [tokens_mono_prefix],
 qed "Always_tokens_allocRel_le_rel";
 
 (*safety (1), step 4 (final result!) *)
-Goal "System : Always {s. sum (%i. (tokens o giv o sub i o client)s) Nclients \
-\              <= NbT + sum (%i. (tokens o rel o sub i o client)s) Nclients}";
+Goalw [system_safety_def] "System : system_safety";
 by (rtac (Always_Int_rule [System_sum_bounded, Always_tokens_giv_le_allocGiv, 
 			   Always_tokens_allocRel_le_rel] RS Always_weaken) 1);
 by Auto_tac;
@@ -391,7 +390,6 @@ by (rtac ([order_refl, sum_mono] MRS add_le_mono) 2);
 by (assume_tac 3);
 by Auto_tac;
 qed "System_safety";
-
 
 
 (*** Proof of the progress property (2) ***)
@@ -422,7 +420,7 @@ val UNIV_guar_Always =
 Goal "i < Nclients \
 \     ==> System : Always \
 \                   {s. ALL elt : set ((ask o sub i o client) s). elt <= NbT}";
-br Always_weaken 1;
+by (rtac Always_weaken 1);
 by (rtac ([guarantees_PLam_I RS client_export UNIV_guar_Always,
 	   Client_component_System] MRS component_guaranteesD) 1);
 by (rtac Client_i_Bounded 1);
@@ -463,11 +461,11 @@ Goalw [preserves_def, o_def, stable_def, constrains_def, sub_def]
 \               (reachable (lift_prog i Client Join G) Int      \
 \                {s. h <= (giv o sub i) s & h pfixGe (ask o sub i) s} -      \
 \                {s. tokens h <= tokens ((rel o sub i) s)})";
-auto();
+by Auto_tac;
 by (REPEAT (dres_inst_tac [("x", "rel (xa i)")] spec 2));
 by (REPEAT (dres_inst_tac [("x", "ask (xa i)")] spec 1));
 by (REPEAT_FIRST ball_tac);
-auto();
+by Auto_tac;
 qed "G_stable_lift_prog";
 
 Goal "lift_prog i Client \
@@ -477,12 +475,12 @@ Goal "lift_prog i Client \
 \                             h pfixGe (ask o sub i) s}  \
 \                  Ensures {s. tokens h <= (tokens o rel o sub i) s})";
 by (rtac (Client_Progress RS drop_prog_guarantees_raw) 1);
-br (lift_export (subset_refl RS project_Increasing_I)) 1;
+by (rtac (lift_export project_Increasing_I) 1);
 by (full_simp_tac (simpset() addsimps [fold_o_sub, lift_prog_correct]) 1);
-br INT_I 1;
+by (rtac INT_I 1);
 by (simp_tac (simpset() addsimps [o_apply]) 1);
 by (REPEAT (stac (lift_export Collect_eq_extend_set) 1));
-br (lift_export project_Ensures_D) 1;
+by (rtac (lift_export project_Ensures_D) 1);
 by (asm_full_simp_tac (simpset() addsimps [o_apply, lift_prog_correct, 
 					   drop_prog_correct]) 1);
 by (asm_full_simp_tac
@@ -492,7 +490,7 @@ by (asm_full_simp_tac
 			 Collect_eq_lift_set RS sym,
 			 lift_prog_correct RS sym]) 1);
 by (Clarify_tac 1);
-bd G_stable_lift_prog 1;
+by (dtac G_stable_lift_prog 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [o_apply]));
 qed "Client_i_Progress";
@@ -505,7 +503,7 @@ Goal "i < Nclients \
 \                             h pfixGe (ask o sub i) s}  \
 \                  Ensures {s. tokens h <= (tokens o rel o sub i) s})";
 by (rtac guarantees_PLam_I 1);
-br Client_i_Progress 1;
+by (rtac Client_i_Progress 1);
 by Auto_tac;
 val lemma2 = result();
 
@@ -523,11 +521,11 @@ Goalw [preserves_def, o_def, stable_def, constrains_def, sub_def]
 \           {s. h <= (giv o sub i o client) s & \
 \               h pfixGe (ask o sub i o client) s} - \
 \           {s. tokens h <= tokens ((rel o sub i o client) s)})";
-auto();
+by Auto_tac;
 by (REPEAT (dres_inst_tac [("x", "rel (client xa i)")] spec 2));
 by (REPEAT (dres_inst_tac [("x", "ask (client xa i)")] spec 1));
 by (REPEAT_FIRST ball_tac);
-auto();
+by Auto_tac;
 qed "G_stable_sysOfClient";
 
 Goal "i < Nclients \
@@ -538,20 +536,20 @@ Goal "i < Nclients \
 \                            h pfixGe (ask o sub i o client) s}  \
 \                 Ensures {s. tokens h <= (tokens o rel o sub i o client) s})";
 by (rtac (lemma2 RS client_export project_guarantees_raw) 1);
-ba 1;
-br (client_export (subset_refl RS project_Increasing_I)) 1;
+by (assume_tac 1);
+by (rtac (client_export project_Increasing_I) 1);
 by (Simp_tac 1);
-br INT_I 1;
+by (rtac INT_I 1);
 by (simp_tac (simpset() addsimps [o_apply]) 1);
 by (REPEAT (stac (client_export Collect_eq_extend_set) 1));
-br (client_export project_Ensures_D) 1;
+by (rtac (client_export project_Ensures_D) 1);
 by (asm_full_simp_tac (simpset() addsimps [o_apply]) 1);
 by (asm_full_simp_tac
     (simpset() addsimps [all_conj_distrib,
 			 Increasing_def, Stable_eq_stable, Join_stable,
 			 Collect_eq_extend_set RS sym]) 1);
 by (Clarify_tac 1);
-bd G_stable_sysOfClient 1;
+by (dtac G_stable_sysOfClient 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [o_apply,
 				client_export Collect_eq_extend_set RS sym]));
@@ -570,7 +568,7 @@ by (rtac ([sysOfClient_i_Progress,
 	   Client_component_System] MRS component_guaranteesD) 1);
 by (asm_full_simp_tac
     (simpset() addsimps [System_Increasing_giv]) 2);
-auto();
+by Auto_tac;
 qed "System_Client_Progress";
 
 val lemma =
@@ -627,50 +625,24 @@ by (auto_tac (claset(),
 	      simpset() addsimps [System_Increasing_allocRel,
 				  System_Increasing_allocAsk]));
 by (rtac System_Bounded_allocAsk 1);
-by (etac System_Alloc_Progress 1);
+by (etac System_Alloc_Client_Progress 1);
 qed "System_Alloc_Progress";
 
+
+(*progress (2), step 10 (final result!) *)
+Goalw [system_progress_def] "System : system_progress";
+by (Clarify_tac 1);
+by (rtac LeadsTo_Trans 1);
+by (etac (System_Follows_allocGiv RS Follows_LeadsTo_pfixLe) 2);
+by (rtac LeadsTo_Trans 1);
+by (cut_facts_tac [System_Alloc_Progress] 2);
+by (Blast_tac 2);
+by (etac (System_Follows_ask RS Follows_LeadsTo) 1);
+qed "System_Progress";
 
 
 (*Ultimate goal*)
-Goal "System : system_spec";
-
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-
-
-(*progress (2), step 10*)
-Goal
- "System : (INT i : lessThan Nclients. \
-\           INT h. {s. h <= (ask o sub i o client) s}  \
-\                  LeadsTo {s. h pfixLe (giv o sub i o client) s})";
-by (Clarify_tac 1);
-by (rtac LeadsTo_Trans 1);
-by (dtac (System_Follows_allocGiv RS Follows_LeadsTo) 2);
-by (blast_tac (claset() addIs [prefix_imp_pfixLe, LeadsTo_weaken_R]) 2);
-
-prefix_imp_pfixLe
-
-
-System_Follows_ask
-
-by (dtac (System_Follows_rel RS impOfSubs (mono_tokens RS mono_Follows_o) RS 
-	  Follows_LeadsTo) 2);
-
-by (asm_full_simp_tac (simpset() addsimps [o_assoc]) 2);
-by (rtac LeadsTo_Trans 1);
-by (cut_facts_tac [System_Client_Progress] 2);
-by (blast_tac (claset() addIs [LeadsTo_Basis]) 2);
-by (etac lemma3 1);
-
-by (rtac ([Alloc_Progress, Alloc_component_System] 
-	  MRS component_guaranteesD) 1);
-(*preserves*)
-by (asm_full_simp_tac (simpset() addsimps [o_def]) 2);
-(*the guarantees precondition*)
-by (auto_tac (claset(), 
-	      simpset() addsimps [System_Increasing_allocRel,
-				  System_Increasing_allocAsk]));
-by (rtac System_Bounded_allocAsk 1);
-by (etac System_Alloc_Progress 1);
-qed "System_Alloc_Progress";
+Goalw [system_spec_def] "System : system_spec";
+by (blast_tac (claset() addIs [System_safety, System_Progress]) 1);
+qed "System_correct";
 

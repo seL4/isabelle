@@ -43,6 +43,10 @@ inductive "elt CC F"
 
 
 constdefs
+  
+  (*the set of all sets determined by f alone*)
+  givenBy :: "['a => 'b] => 'a set set"
+    "givenBy f == range (%B. f-`` B)"
 
   (*visible version of the LEADS-TO relation*)
   leadsETo :: "['a set, 'a set set, 'a set] => 'a program set"

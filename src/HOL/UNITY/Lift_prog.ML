@@ -211,26 +211,10 @@ by Auto_tac;
 qed "drop_set_INT";
 
 Goal "lift_set i UNIV = UNIV";
-by (simp_tac
-    (simpset() addsimps [lift_set_correct, lift_export0 extend_set_UNIV_eq]) 1);
+by (simp_tac (simpset() addsimps [lift_set_correct, 
+				  lift_export0 extend_set_UNIV_eq]) 1);
 qed "lift_set_UNIV_eq";
 Addsimps [lift_set_UNIV_eq];
-
-(*
-Goal "Domain act <= drop_set i C ==> drop_act i (Restrict C (lift_act i act)) = act";
-by (asm_full_simp_tac
-    (simpset() addsimps [drop_set_correct, drop_act_correct, 
-			 lift_act_correct, lift_export0 extend_act_inverse]) 1);
-qed "lift_act_inverse";
-Addsimps [lift_act_inverse];
-*)
-
-Goal "UNIV <= drop_set i C ==> drop_prog i C (lift_prog i F) = F";
-by (asm_full_simp_tac
-    (simpset() addsimps [drop_set_correct, drop_prog_correct, 
-			 lift_prog_correct, lift_export0 extend_inverse]) 1);
-qed "lift_prog_inverse";
-Addsimps [lift_prog_inverse];
 
 Goal "inj (lift_prog i)";
 by (simp_tac
@@ -291,8 +275,8 @@ qed "constrains_imp_lift_prog_constrains";
 Goal "(drop_prog i C F : A co B)  =  \
 \     (F : (C Int lift_set i A) co (lift_set i B) & A <= B)";
 by (simp_tac
-    (simpset() addsimps [drop_prog_correct, 
-			 lift_set_correct, lift_export0 project_constrains]) 1);
+    (simpset() addsimps [drop_prog_correct, lift_set_correct, 
+			 lift_export0 project_constrains]) 1);
 qed "drop_prog_constrains";
 
 Goal "(drop_prog i UNIV F : stable A)  =  (F : stable (lift_set i A))";
@@ -321,8 +305,7 @@ Goal "(lift_prog i F : Stable (lift_set i A)) = (F : Stable A)";
 by (simp_tac (simpset() addsimps [Stable_def, lift_prog_Constrains]) 1);
 qed "lift_prog_Stable";
 
-Goal "[| reachable (lift_prog i F Join G) <= C;    \
-\        F Join drop_prog i C G : A Co B |] \
+Goal "F Join drop_prog i (reachable (lift_prog i F Join G)) G : A Co B  \
 \     ==> lift_prog i F Join G : (lift_set i A) Co (lift_set i B)";
 by (asm_full_simp_tac
     (simpset() addsimps [lift_prog_correct, drop_prog_correct, 
@@ -330,14 +313,12 @@ by (asm_full_simp_tac
 qed "drop_prog_Constrains_D";
 
 Goalw [Stable_def]
-     "[| reachable (lift_prog i F Join G) <= C;    \
-\        F Join drop_prog i C G : Stable A |]  \
+     "F Join drop_prog i (reachable (lift_prog i F Join G)) G : Stable A  \
 \     ==> lift_prog i F Join G : Stable (lift_set i A)";
 by (asm_simp_tac (simpset() addsimps [drop_prog_Constrains_D]) 1);
 qed "drop_prog_Stable_D";
 
-Goal "[| reachable (lift_prog i F Join G) <= C;  \
-\        F Join drop_prog i C G : Always A |]   \
+Goal "F Join drop_prog i (reachable (lift_prog i F Join G)) G : Always A  \
 \     ==> lift_prog i F Join G : Always (lift_set i A)";
 by (asm_full_simp_tac
     (simpset() addsimps [lift_prog_correct, drop_prog_correct, 
@@ -345,22 +326,12 @@ by (asm_full_simp_tac
 qed "drop_prog_Always_D";
 
 Goalw [Increasing_def]
-     "[| reachable (lift_prog i F Join G) <= C;  \
-\        F Join drop_prog i C G : Increasing func |] \
-\     ==> lift_prog i F Join G : Increasing (func o (sub i))";
+ "F Join drop_prog i (reachable (lift_prog i F Join G)) G : Increasing func \
+\ ==> lift_prog i F Join G : Increasing (func o (sub i))";
 by Auto_tac;
 by (stac Collect_eq_lift_set 1);
 by (asm_simp_tac (simpset() addsimps [drop_prog_Stable_D]) 1); 
 qed "project_Increasing_D";
-
-
-(*UNUSED*)
-Goal "UNIV <= drop_set i C \
-\     ==> drop_prog i C ((lift_prog i F) Join G) = F Join (drop_prog i C G)";
-by (asm_full_simp_tac
-    (simpset() addsimps [lift_prog_correct, drop_prog_correct, 
-		     drop_set_correct, lift_export0 project_extend_Join]) 1);
-qed "drop_prog_lift_prog_Join";
 
 
 (*** Progress: transient, ensures ***)

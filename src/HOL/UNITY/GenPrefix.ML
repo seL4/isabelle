@@ -313,8 +313,16 @@ by (asm_full_simp_tac (simpset() delsimps [append_assoc]
 by (Force_tac 1);
 qed "prefix_append_iff";
 
+Goal "r<=s ==> genPrefix r <= genPrefix s";
+by (Clarify_tac 1);
+by (etac genPrefix.induct 1);
+by (auto_tac (claset() addIs [genPrefix.append], simpset()));
+qed "genPrefix_mono";
+
 
 (*** pfixLe, pfixGe: properties inherited from the translations ***)
+
+(** pfixLe **)
 
 Goalw [refl_def, Le_def] "reflexive Le";
 by Auto_tac;
@@ -330,6 +338,23 @@ qed "trans_Le";
 
 AddIffs [reflexive_Le, antisym_Le, trans_Le];
 
+Goal "x pfixLe x";
+by (Simp_tac 1);
+qed "pfixLe_refl";
+AddIffs[pfixLe_refl];
+
+Goal "[| x pfixLe y; y pfixLe z |] ==> x pfixLe z";
+by (blast_tac (claset() addIs [genPrefix_trans]) 1);
+qed "pfixLe_trans";
+
+Goal "[| x pfixLe y; y pfixLe x |] ==> x = y";
+by (blast_tac (claset() addIs [genPrefix_antisym]) 1);
+qed "pfixLe_antisym";
+
+Goalw [prefix_def, Le_def] "xs<=ys ==> xs pfixLe ys";
+by (blast_tac (claset() addIs [impOfSubs genPrefix_mono]) 1);
+qed "prefix_imp_pfixLe";
+
 Goalw [refl_def, Ge_def] "reflexive Ge";
 by Auto_tac;
 qed "reflexive_Ge";
@@ -344,15 +369,18 @@ qed "trans_Ge";
 
 AddIffs [reflexive_Ge, antisym_Ge, trans_Ge];
 
-Goal "r<=s ==> genPrefix r <= genPrefix s";
-by (Clarify_tac 1);
-by (etac genPrefix.induct 1);
-by (auto_tac (claset() addIs [genPrefix.append], simpset()));
-qed "genPrefix_mono";
+Goal "x pfixGe x";
+by (Simp_tac 1);
+qed "pfixGe_refl";
+AddIffs[pfixGe_refl];
 
-Goalw [prefix_def, Le_def] "xs<=ys ==> xs pfixLe ys";
-by (blast_tac (claset() addIs [impOfSubs genPrefix_mono]) 1);
-qed "prefix_imp_pfixLe";
+Goal "[| x pfixGe y; y pfixGe z |] ==> x pfixGe z";
+by (blast_tac (claset() addIs [genPrefix_trans]) 1);
+qed "pfixGe_trans";
+
+Goal "[| x pfixGe y; y pfixGe x |] ==> x = y";
+by (blast_tac (claset() addIs [genPrefix_antisym]) 1);
+qed "pfixGe_antisym";
 
 Goalw [prefix_def, Ge_def] "xs<=ys ==> xs pfixGe ys";
 by (blast_tac (claset() addIs [impOfSubs genPrefix_mono]) 1);

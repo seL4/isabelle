@@ -569,24 +569,6 @@ by (simp_tac
 qed "extend_LeadsTo";
 
 
-(*** givenBy: USEFUL??? ***)
-
-Goal "givenBy (v o f) = extend_set h `` (givenBy v)";
-by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
-by (Deepen_tac 0 1);
-qed "givenBy_o_eq_extend_set";
-
-Goal "givenBy f = range (extend_set h)";
-by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
-by (Deepen_tac 0 1);
-qed "givenBy_eq_extend_set";
-
-Goal "D : givenBy v ==> extend_set h D : givenBy (v o f)";
-by (full_simp_tac (simpset() addsimps [givenBy_eq_all]) 1);
-by (Blast_tac 1);
-qed "extend_set_givenBy_I";
-
-
 Close_locale "Extend";
 
 (*Close_locale should do this!

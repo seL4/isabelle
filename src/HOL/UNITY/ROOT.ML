@@ -28,7 +28,7 @@ time_use_thy "Client";
 time_use_thy "Extend";
 time_use_thy "PPROD";
 time_use_thy "TimerArray";
-time_use_thy "Follows";
+time_use_thy "Alloc";
 
 add_path "../Auth";	(*to find Public.thy*)
 use_thy"NSP_Bad";
