@@ -45,9 +45,9 @@ let fun drep st = if p st then Sequence.single st
 in drep end;
 val UNTIL_SOLVED = REPEAT_DETERM_UNTIL (has_fewer_prems 1);
 
-local val trueI2 = prove_goal HOL.thy"f~=x ==> True"(fn prems=>[rtac TrueI 1])in
+local val trueI2 = prove_goal HOL.thy"f~=x ==> True"(fn _ => [rtac TrueI 1]) in
 val kill_neq_tac = dtac trueI2 end;
-fun case_UU_tac rews i v =	res_inst_tac [("Q",v^"=UU")] classical2 i THEN
+fun case_UU_tac rews i v =	case_tac (v^"=UU") i THEN
 				asm_simp_tac (HOLCF_ss addsimps rews) i;
 
 val chain_tac = REPEAT_DETERM o resolve_tac 

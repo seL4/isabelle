@@ -77,11 +77,6 @@ defs
   Least_def     "Least(P) == @k. P(k) & (ALL j. j<k --> ~P(j))"
 
 (* start 8bit 1 *)
-syntax
-  "Gmu"	:: (nat => bool) => nat				(binder "´" 10)
-
-translations
-  "´x.P"	== "LEAST x. P"
 (* end 8bit 1 *)
 
 end
