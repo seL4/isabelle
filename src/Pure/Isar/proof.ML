@@ -72,8 +72,8 @@ sig
   val at_bottom: state -> bool
   val local_qed: (state -> state Seq.seq) -> ({kind: string, name: string, thm: thm} -> unit)
     -> state -> state Seq.seq
-  val global_qed: (state -> state Seq.seq) -> bstring option -> theory attribute list option
-    -> state -> (theory * {kind: string, name: string, thm: thm}) Seq.seq
+  val global_qed: (state -> state Seq.seq) -> state
+    -> (theory * {kind: string, name: string, thm: thm}) Seq.seq
   val begin_block: state -> state
   val end_block: state -> state Seq.seq
   val next_block: state -> state
@@ -395,10 +395,10 @@ end;
 fun RANGE [] _ = all_tac
   | RANGE (tac :: tacs) i = RANGE tacs (i + 1) THEN tac i;
 
-fun export_goal raw_rule inner_state state =
+fun export_goal raw_rule inner state =
   let
     val (outer, (_, (result, (facts, thm)))) = find_goal 0 state;
-    val (exp, tacs) = export_wrt (context_of inner_state) (Some outer);
+    val (exp, tacs) = export_wrt inner (Some outer);
     val rule = exp raw_rule;
     val thmq = FIRSTGOAL (Tactic.rtac rule THEN' RANGE (map #1 tacs)) thm;
   in Seq.map (fn th => map_goal (K (result, (facts, th))) state) thmq end;
@@ -575,7 +575,7 @@ fun setup_goal opt_block prepp kind name atts raw_propp state =
     val casms = map #1 (assumptions state');
 
     val revcut_rl = Drule.incr_indexes_wrt [] [] (cprop :: casms) [] Drule.revcut_rl;
-    fun cut_asm (casm, thm) = (Thm.assume casm COMP revcut_rl) RS thm;
+    fun cut_asm (casm, thm) = Thm.rotate_rule ~1 1 ((Thm.assume casm COMP revcut_rl) RS thm);
     val goal = foldr cut_asm (casms, Drule.mk_triv_goal cprop);
   in
     state'
@@ -612,7 +612,7 @@ val have_i = local_goal ProofContext.bind_propp_i Aux;
 
 (* current goal *)
 
-fun current_goal (State ({goal = Some goal, ...}, _)) = goal
+fun current_goal (State ({context, goal = Some goal, ...}, _)) = (context, goal)
   | current_goal state = raise STATE ("No current goal!", state);
 
 fun assert_current_goal true (state as State ({goal = None, ...}, _)) =
@@ -641,11 +641,11 @@ fun end_proof bot state =
 
 fun finish_local print_result state =
   let
-    val ((kind, name, t), (_, raw_thm)) = current_goal state;
+    val (ctxt, ((kind, name, t), (_, raw_thm))) = current_goal state;
     val result = prep_result state t raw_thm;
     val (atts, opt_solve) =
       (case kind of
-        Goal atts => (atts, export_goal result state)
+        Goal atts => (atts, export_goal result ctxt)
       | Aux atts => (atts, Seq.single)
       | _ => err_malformed "finish_local" state);
   in
@@ -666,27 +666,26 @@ fun local_qed finalize print_result state =
 
 (* global_qed *)
 
-fun finish_global alt_name alt_atts state =
+fun finish_global state =
   let
-    val ((kind, def_name, t), (_, raw_thm)) = current_goal state;
+    val (_, ((kind, name, t), (_, raw_thm))) = current_goal state;
     val result = final_result state (prep_result state t raw_thm);
 
-    val name = if_none alt_name def_name;
     val atts =
       (case kind of
-        Theorem atts => if_none alt_atts atts
-      | Lemma atts => (if_none alt_atts atts) @ [Drule.tag_lemma]
+        Theorem atts => atts
+      | Lemma atts => atts @ [Drule.tag_lemma]
       | _ => err_malformed "finish_global" state);
 
     val (thy', result') = PureThy.store_thm ((name, result), atts) (theory_of state);
   in (thy', {kind = kind_name kind, name = name, thm = result'}) end;
 
 (*Note: should inspect first result only, backtracking may destroy theory*)
-fun global_qed finalize alt_name alt_atts state =
+fun global_qed finalize state =
   state
   |> end_proof true
   |> finalize
-  |> Seq.map (finish_global alt_name alt_atts);
+  |> Seq.map finish_global;
 
 
 
