@@ -30,7 +30,7 @@ locale groups =
     e        :: "'a"
     binop    :: "'a => 'a => 'a" 	(infixr "#" 80)
 	(*INV renamed from inv temporarily to avoid clash with Fun.inv*)
-    INV      :: "'a => 'a"              ("_ -|"      [90]91)
+    INV      :: "'a => 'a"              ("i'(_')")
   assumes
     Group_G   "G: Group"
   defines

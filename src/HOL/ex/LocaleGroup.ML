@@ -37,7 +37,7 @@ Goal "INV : carrier G -> carrier G";
 by (asm_simp_tac (simpset() addsimps [thm "inv_def"]) 1);
 qed "inv_funcset";
 
-Goal "x: carrier G ==> x -| : carrier G";
+Goal "x: carrier G ==> i(x) : carrier G";
 by (asm_simp_tac (simpset() addsimps [inv_funcset RS funcset_mem]) 1);
 qed "inv_closed"; 
 
@@ -45,7 +45,7 @@ Goal "x: carrier G ==> e # x = x";
 by (asm_simp_tac (simpset() addsimps [thm "e_def", thm "binop_def"]) 1);
 qed "e_ax1";
 
-Goal "x: carrier G ==> (x -|) # x = e";
+Goal "x: carrier G ==> i(x) # x = e";
 by (asm_simp_tac
     (simpset() addsimps [thm "binop_def", thm "inv_def", thm "e_def"]) 1);
 qed "inv_ax2";
@@ -96,10 +96,10 @@ by (etac left_cancellation 2);
 by Auto_tac;
 qed "idempotent_e";
 
-Goal  "x: carrier G ==> x # (x -|) = e";
+Goal  "x: carrier G ==> x # i(x) = e";
 by (rtac idempotent_e 1);
 by (Asm_simp_tac 1);
-by (subgoal_tac "(x # x -|) # x # x -| = x # (x -| # x) # x -|" 1);
+by (subgoal_tac "(x # i(x)) # x # i(x) = x # (i(x) # x) # i(x)" 1);
 by (asm_simp_tac (simpset() delsimps [inv_ax2]
 			    addsimps [binop_assoc]) 2);
 by Auto_tac;
@@ -107,21 +107,21 @@ qed "inv_ax1";
 
 Addsimps [inv_ax1];
 
-Goal "[| x # y = e; x: carrier G; y: carrier G |] ==> y = x -|";
+Goal "[| x # y = e; x: carrier G; y: carrier G |] ==> y = i(x)";
 by (res_inst_tac [("x","x")] left_cancellation 1);
 by Auto_tac;
 qed "inv_unique";
 
-Goal "x : carrier G ==> x -| -| = x";
-by (res_inst_tac [("x","x -|")] left_cancellation 1);
+Goal "x : carrier G ==> i(i(x)) = x";
+by (res_inst_tac [("x","i(x)")] left_cancellation 1);
 by Auto_tac;
 qed "inv_inv";
 
 Addsimps [inv_inv];
 
-Goal "[| x : carrier G; y : carrier G |] ==> (x # y) -| = y -| # x -|";
+Goal "[| x : carrier G; y : carrier G |] ==> i(x # y) = i(y) # i(x)";
 by (rtac (inv_unique RS sym) 1);
-by (subgoal_tac "(x # y) # y -| # x -| = x # (y # y -|) # x -|" 1);
+by (subgoal_tac "(x # y) # i(y) # i(x) = x # (y # i(y)) # i(x)" 1);
 by (asm_simp_tac (simpset() delsimps [inv_ax1, inv_ax2]
 			    addsimps [binop_assoc]) 2);
 by Auto_tac;
