@@ -1,4 +1,4 @@
-(*  Title: 	logic
+(*  Title: 	Pure/logic.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   Cambridge University 1992
@@ -17,6 +17,8 @@ signature LOGIC =
   val dest_equals: term -> term * term
   val dest_flexpair: term -> term * term
   val dest_implies: term -> term * term
+  val dest_inclass: term -> typ * class
+  val dest_type: term -> typ
   val flatten_params: int -> term -> term
   val freeze_vars: term -> term
   val incr_indexes: typ list * int -> term -> term
@@ -27,6 +29,8 @@ signature LOGIC =
   val mk_equals: term * term -> term
   val mk_flexpair: term * term -> term
   val mk_implies: term * term -> term
+  val mk_inclass: typ * class -> term
+  val mk_type: typ -> term
   val occs: term * term -> bool
   val rule_of: (term*term)list * term list * term -> term
   val set_rename_prefix: string -> unit   
@@ -43,9 +47,11 @@ signature LOGIC =
   val varify: term -> term  
   end;
 
-functor LogicFun (structure Unify: UNIFY and Net:NET)(* : LOGIC *) =  (* FIXME *)
+functor LogicFun (structure Unify: UNIFY and Net:NET): LOGIC =
 struct
-structure Type = Unify.Sign.Type;
+
+structure Sign = Unify.Sign;
+structure Type = Sign.Type;
 
 (*** Abstract syntax operations on the meta-connectives ***)
 
@@ -127,6 +133,23 @@ fun skip_flexpairs (Const("==>", _) $ (Const("=?=",_)$_$_) $ C) =
 fun strip_horn A =
   let val (tpairs,horn) = strip_flexpairs A 
   in  (tpairs, strip_imp_prems horn, strip_imp_concl horn)   end;
+
+(** types as terms **)
+
+fun mk_type ty = Const ("TYPE", itselfT ty);
+
+fun dest_type (Const ("TYPE", Type ("itself", [ty]))) = ty
+  | dest_type t = raise TERM ("dest_type", [t]);
+
+(* class constraints: (| ty : c_class |) *)
+
+fun mk_inclass (ty, c) =
+  Const (Sign.const_of_class c, itselfT ty --> propT) $ mk_type ty;
+
+fun dest_inclass (t as Const (c_class, _) $ ty) =
+      ((dest_type ty, Sign.class_of_const c_class)
+        handle TERM _ => raise TERM ("dest_inclass", [t]))
+  | dest_inclass t = raise TERM ("dest_inclass", [t]);
 
 
 (*** Low-level term operations ***)
