@@ -94,7 +94,7 @@ The following trivial proof illustrates this point.
 \begin{isabelle}
 \isacommand{lemma}\ conj_rule:\ "{\isasymlbrakk}P;\
 Q\isasymrbrakk\ \isasymLongrightarrow\ P\ \isasymand\
-(Q\ \isasymand\ P){"}\isanewline
+(Q\ \isasymand\ P)"\isanewline
 \isacommand{apply}\ (rule\ conjI)\isanewline
 \ \isacommand{apply}\ assumption\isanewline
 \isacommand{apply}\ (rule\ conjI)\isanewline
@@ -172,7 +172,7 @@ When we use this sort of elimination rule backwards, it produces
 a case split.  (We have this before, in proofs by induction.)  The following  proof
 illustrates the use of disjunction elimination.  
 \begin{isabelle}
-\isacommand{lemma}\ disj_swap:\ {"}P\ \isasymor\ Q\ 
+\isacommand{lemma}\ disj_swap:\ "P\ \isasymor\ Q\ 
 \isasymLongrightarrow\ Q\ \isasymor\ P"\isanewline
 \isacommand{apply}\ (erule\ disjE)\isanewline
 \ \isacommand{apply}\ (rule\ disjI2)\isanewline
@@ -223,7 +223,7 @@ by a one of the form $P\disj Q$.
 
 Now let us examine the analogous proof for conjunction. 
 \begin{isabelle}
-\isacommand{lemma}\ conj_swap:\ {"}P\ \isasymand\ Q\ \isasymLongrightarrow\ Q\ \isasymand\ P"\isanewline
+\isacommand{lemma}\ conj_swap:\ "P\ \isasymand\ Q\ \isasymLongrightarrow\ Q\ \isasymand\ P"\isanewline
 \isacommand{apply}\ (rule\ conjI)\isanewline
 \ \isacommand{apply}\ (drule\ conjunct2)\isanewline
 \ \isacommand{apply}\ assumption\isanewline
@@ -234,7 +234,7 @@ Recall that the conjunction elimination rules --- whose Isabelle names are
 \isa{conjunct1} and \isa{conjunct2} --- simply return the first or second half
 of a conjunction.  Rules of this sort (where the conclusion is a subformula of a
 premise) are called \textbf{destruction} rules, by analogy with the destructor
-functions of functional pr§gramming.%
+functions of functional programming.%
 \footnote{This Isabelle terminology has no counterpart in standard logic texts, 
 although the distinction between the two forms of elimination rule is well known. 
 Girard \cite[page 74]{girard89}, for example, writes ``The elimination rules are very
@@ -307,7 +307,7 @@ lemma performs a sort of uncurrying, replacing the two antecedents
 of a nested implication by a conjunction. 
 \begin{isabelle}
 \isacommand{lemma}\ imp_uncurry:\
-{"}P\ \isasymlongrightarrow\ (Q\
+"P\ \isasymlongrightarrow\ (Q\
 \isasymlongrightarrow\ R)\ \isasymLongrightarrow\ P\
 \isasymand\ Q\ \isasymlongrightarrow\
 R"\isanewline
@@ -369,10 +369,6 @@ complicated induction formula, typically involving
 derive the desired theorem , typically involving
 \isa{\isasymLongrightarrow}.  We shall see an example below,
 \S\ref{sec:proving-euclid}.
-
-
-
-\remark{negation: notI, notE, ccontr, swap, contrapos?}
 
 
 \section{Unification and substitution}\label{sec:unification}
@@ -548,7 +544,7 @@ Also available are {\isa{drule\_tac}}  and \isa{erule\_tac}.  Here we need
 \begin{isabelle}
 \isacommand{lemma}\ "{\isasymlbrakk}\ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\ \isasymrbrakk\ \isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
 \isacommand{apply}\ (erule_tac\
-P={"}{\isasymlambda}u.\ triple\ u\
+P="{\isasymlambda}u.\ triple\ u\
 u\ x"\ \isakeyword{in}\
 ssubst)\isanewline
 \isacommand{apply}\ assumption\isanewline
@@ -695,7 +691,7 @@ combination
 \ \ \ \ \ (erule\ contrapos_np,\ rule\ conjI)
 \end{isabelle}
 is robust: the \isa{conjI} forces the \isa{erule} to select a
-conjunction.  The two subgoals are the ones we would expect from appling
+conjunction.  The two subgoals are the ones we would expect from applying
 conjunction introduction to
 \isa{Q\
 \isasymand\ R}:  
@@ -782,7 +778,7 @@ bound variable capture.  Here is the isabelle proof in full:
 \begin{isabelle}
 \isacommand{lemma}\ "({\isasymforall}x.\ P\
 \isasymlongrightarrow\ Q\ x)\ \isasymLongrightarrow\ P\
-\isasymlongrightarrow\ ({\isasymforall}x.\ Q\ x){"}\isanewline
+\isasymlongrightarrow\ ({\isasymforall}x.\ Q\ x)"\isanewline
 \isacommand{apply}\ (rule\ impI)\isanewline
 \isacommand{apply}\ (rule\ allI)\isanewline
 \isacommand{apply}\ (drule\ spec)\isanewline
@@ -911,7 +907,7 @@ existential destruction rule:
 This rule is seldom used, for it can cause exponential blow-up.  The
 main use of $\epsilon x. P(x)$ is in definitions when $P(x)$ characterizes $x$
 uniquely.  For instance, we can define the cardinality of a finite set~$A$ to be that
-$n$ such that $A$ is in one-to-one correspondance with $\{1,\ldots,n\}$.  We can then
+$n$ such that $A$ is in one-to-one correspondence with $\{1,\ldots,n\}$.  We can then
 prove that the cardinality of the empty set is zero (since $n=0$ satisfies the
 description) and proceed to prove other facts.\remark{SOME theorems
 and example}
@@ -1058,20 +1054,20 @@ a fraction  of a second.
 \isacommand{lemma}\
 "(({\isasymexists}x.\
 {\isasymforall}y.\
-p(x){=}p(y){)}\
+p(x){=}p(y))\
 =\
 (({\isasymexists}x.\
-q(x){)}=({\isasymforall}y.\
-p(y){)}){)}\
+q(x))=({\isasymforall}y.\
+p(y))))\
 \ \ =\ \ \ \ \isanewline
 \ \ \ \ \ \ \ \
 (({\isasymexists}x.\
 {\isasymforall}y.\
-q(x){=}q(y){)}\
+q(x){=}q(y))\
 =\
 (({\isasymexists}x.\
-p(x){)}=({\isasymforall}y.\
-q(y){)}){)}"\isanewline
+p(x))=({\isasymforall}y.\
+q(y))))"\isanewline
 \isacommand{apply}\ blast\isanewline
 \isacommand{done}
 \end{isabelle}
@@ -1085,30 +1081,30 @@ can be proved.
 "({\isasymforall}x.\
 honest(x)\ \isasymand\
 industrious(x)\ \isasymlongrightarrow\
-healthy(x){)}\
+healthy(x))\
 \isasymand\ \ \isanewline
 \ \ \ \ \ \ \ \ \isasymnot\ ({\isasymexists}x.\
 grocer(x)\ \isasymand\
-healthy(x){)}\
+healthy(x))\
 \isasymand\ \isanewline
 \ \ \ \ \ \ \ \ ({\isasymforall}x.\
 industrious(x)\ \isasymand\
 grocer(x)\ \isasymlongrightarrow\
-honest(x){)}\
+honest(x))\
 \isasymand\ \isanewline
 \ \ \ \ \ \ \ \ ({\isasymforall}x.\
 cyclist(x)\ \isasymlongrightarrow\
-industrious(x){)}\
+industrious(x))\
 \isasymand\ \isanewline
 \ \ \ \ \ \ \ \ ({\isasymforall}x.\
 {\isasymnot}healthy(x)\ \isasymand\
 cyclist(x)\ \isasymlongrightarrow\
-{\isasymnot}honest(x){)}\
+{\isasymnot}honest(x))\
 \ \isanewline
 \ \ \ \ \ \ \ \ \isasymlongrightarrow\
 ({\isasymforall}x.\
 grocer(x)\ \isasymlongrightarrow\
-{\isasymnot}cyclist(x){)}"\isanewline
+{\isasymnot}cyclist(x))"\isanewline
 \isacommand{apply}\ blast\isanewline
 \isacommand{done}
 \end{isabelle}
@@ -1116,8 +1112,8 @@ The {\isa{blast}} method is also effective for set theory, which is
 described in the next chapter.  This formula below may look horrible, but
 the \isa{blast} method proves it easily. 
 \begin{isabelle}
-\isacommand{lemma}\ "({\isasymUnion}i{\isasymin}I.\ A(i){)}\ \isasyminter\ ({\isasymUnion}j{\isasymin}J.\ B(j){)}\ =\isanewline
-\ \ \ \ \ \ \ \ ({\isasymUnion}i{\isasymin}I.\ {\isasymUnion}j{\isasymin}J.\ A(i)\ \isasyminter\ B(j){)}"\isanewline
+\isacommand{lemma}\ "({\isasymUnion}i{\isasymin}I.\ A(i))\ \isasyminter\ ({\isasymUnion}j{\isasymin}J.\ B(j))\ =\isanewline
+\ \ \ \ \ \ \ \ ({\isasymUnion}i{\isasymin}I.\ {\isasymUnion}j{\isasymin}J.\ A(i)\ \isasyminter\ B(j))"\isanewline
 \isacommand{apply}\ blast\isanewline
 \isacommand{done}
 \end{isabelle}
@@ -1149,12 +1145,12 @@ the {\isa{iff}} attribute. Once we have proved the lemma, Isabelle
 will make it known to the classical reasoner (and to the simplifier). 
 \begin{isabelle}
 \isacommand{lemma}\
-[iff]{:}\
+[iff]:\
 "(xs{\isacharat}ys\ =\
 \isacharbrackleft{]})\ =\
 (xs=[]\
 \isacharampersand\
-ys=[]{)}"\isanewline
+ys=[])"\isanewline
 \isacommand{apply}\ (induct_tac\
 xs)\isanewline
 \isacommand{apply}\ (simp_all)
@@ -1192,9 +1188,13 @@ A brief development will illustrate advanced use of
 \isa{blast}.  In \S\ref{sec:recdef-simplification}, we declared the
 recursive function {\isa{gcd}}:
 \begin{isabelle}
-\isacommand{consts}\ gcd\ :{:}\ {"}nat{\isacharasterisk}nat={\isachargreater}nat"\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isanewline
-\isacommand{recdef}\ gcd\ {"}measure\ ((\isasymlambda(m{,}n){.}n)\ :{:}nat{\isacharasterisk}nat={\isachargreater}nat){"}\isanewline
-\ \ \ \ {"}gcd\ (m,\ n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n){)}"%
+\isacommand{consts}\ gcd\ ::\ "nat{\isacharasterisk}nat\ \isasymRightarrow\ nat"\
+\
+\
+\ \ \ \ \ \ \ \ \ \ \ \ \isanewline
+\isacommand{recdef}\ gcd\ "measure\ ((\isasymlambda(m,n).n)\
+::nat{\isacharasterisk}nat\ \isasymRightarrow\ nat)"\isanewline
+\ \ \ \ "gcd\ (m,n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n))"
 \end{isabelle}
 Let us prove that it computes the greatest common
 divisor of its two arguments.  
@@ -1205,13 +1205,13 @@ divisor of its two arguments.
 %and {\isa{gcd}} calls.  To prevent this, we prove separate simplification rules
 %for $n=0$\ldots
 %\begin{isabelle}
-%\isacommand{lemma}\ gcd_0\ [simp]{:}\ {"}gcd(m,0)\ =\ m"\isanewline
+%\isacommand{lemma}\ gcd_0\ [simp]:\ "gcd(m,0)\ =\ m"\isanewline
 %\isacommand{apply}\ (simp)\isanewline
 %\isacommand{done}
 %\end{isabelle}
 %\ldots{} and for $n>0$:
 %\begin{isabelle}
-%\isacommand{lemma}\ gcd_non_0:\ "0{\isacharless}n\ \isasymLongrightarrow\ gcd(m{,}n)\ =\ gcd\ (n,\ m\ mod\ n){"}\isanewline
+%\isacommand{lemma}\ gcd_non_0:\ "0{\isacharless}n\ \isasymLongrightarrow\ gcd(m,n)\ =\ gcd\ (n,\ m\ mod\ n)"\isanewline
 %\isacommand{apply}\ (simp)\isanewline
 %\isacommand{done}
 %\end{isabelle}
@@ -1221,7 +1221,7 @@ divisor of its two arguments.
 %Armed with our two new simplification rules, we now delete the 
 %original {\isa{gcd}} recursion equation. 
 %\begin{isabelle}
-%\isacommand{declare}\ gcd{.}simps\ [simp\ del]
+%\isacommand{declare}\ gcd.simps\ [simp\ del]
 %\end{isabelle}
 %
 %Now we can prove  some interesting facts about the {\isa{gcd}} function,
@@ -1239,9 +1239,9 @@ induction rule returned by \isa{recdef}.  The proof relies on the simplification
 rules proved in \S\ref{sec:recdef-simplification}, since rewriting by the
 definition of \isa{gcd} can cause looping.
 \begin{isabelle}
-\isacommand{lemma}\ gcd_dvd_both:\ "(gcd(m{,}n)\ dvd\ m)\ \isasymand\ (gcd(m{,}n)\ dvd\ n){"}\isanewline
-\isacommand{apply}\ (induct_tac\ m\ n\ rule:\ gcd{.}induct)\isanewline
-\isacommand{apply}\ (case_tac\ "n=0"{)}\isanewline
+\isacommand{lemma}\ gcd_dvd_both:\ "(gcd(m,n)\ dvd\ m)\ \isasymand\ (gcd(m,n)\ dvd\ n)"\isanewline
+\isacommand{apply}\ (induct_tac\ m\ n\ rule:\ gcd.induct)\isanewline
+\isacommand{apply}\ (case_tac\ "n=0")\isanewline
 \isacommand{apply}\ (simp_all)\isanewline
 \isacommand{apply}\ (blast\ dest:\ dvd_mod_imp_dvd)\isanewline
 \isacommand{done}%
@@ -1273,7 +1273,7 @@ would cause backward chaining from  the conclusion (namely
 \isa{?k\ dvd\ ?m}) to the two premises, which 
 also involve the divides relation. This process does not look promising
 and could easily loop.  More sensible is  to apply the rule in the forward
-direction; each step would eliminate  the \isa{mod} symboi from an
+direction; each step would eliminate  the \isa{mod} symbol from an
 assumption, so the process must terminate.  
 
 So the final proof step applies the \isa{blast} method.
@@ -1318,14 +1318,14 @@ prove that it returns the greatest of all the common divisors
 of its arguments.  The proof is by induction and simplification.
 \begin{isabelle}
 \isacommand{lemma}\ gcd_greatest\
-[rule_format]{:}\isanewline
+[rule_format]:\isanewline
 \ \ \ \ \ \ \ "(k\ dvd\
 m)\ \isasymlongrightarrow\ (k\ dvd\
 n)\ \isasymlongrightarrow\ k\ dvd\
-gcd(m{,}n)"\isanewline
+gcd(m,n)"\isanewline
 \isacommand{apply}\ (induct_tac\ m\ n\
-rule:\ gcd{.}induct)\isanewline
-\isacommand{apply}\ (case_tac\ "n=0"{)}\isanewline
+rule:\ gcd.induct)\isanewline
+\isacommand{apply}\ (case_tac\ "n=0")\isanewline
 \isacommand{apply}\ (simp_all\ add:\ gcd_non_0\ dvd_mod)\isanewline
 \isacommand{done}
 \end{isabelle}
@@ -1342,9 +1342,9 @@ The facts proved above can be summarized as a single logical
 equivalence.  This step gives us a chance to see another application
 of \isa{blast}, and it is worth doing for sound logical reasons.
 \begin{isabelle}
-\isacommand{theorem}\ gcd_greatest_iff\ [iff]{:}\isanewline
-\ \ \ \ \ \ \ \ \ "k\ dvd\ gcd(m{,}n)\ =\ (k\ dvd\ m\ \isasymand\ k\ dvd\ n)"\isanewline
-\isacommand{apply}\ (blast\ intro!{:}\ gcd_greatest\ intro:\ dvd_trans)\isanewline
+\isacommand{theorem}\ gcd_greatest_iff\ [iff]:\isanewline
+\ \ \ \ \ \ \ \ \ "k\ dvd\ gcd(m,n)\ =\ (k\ dvd\ m\ \isasymand\ k\ dvd\ n)"\isanewline
+\isacommand{apply}\ (blast\ intro!:\ gcd_greatest\ intro:\ dvd_trans)\isanewline
 \isacommand{done}
 \end{isabelle}
 This theorem concisely expresses the correctness of the {\isa{gcd}} 
@@ -1495,7 +1495,7 @@ Forward proof means deriving new facts from old ones.  It is  the
 most fundamental type of proof.  Backward proof, by working  from goals to
 subgoals, can help us find a difficult proof.  But it is
 not always the best way of presenting the proof so found.  Forward
-proof is particuarly good for reasoning from the general
+proof is particularly good for reasoning from the general
 to the specific.  For example, consider the following distributive law for
 the 
 \isa{gcd} function:
@@ -1610,11 +1610,11 @@ is to state the new lemma explicitly and to prove it using a single
 \isa{rule} method whose operand is expressed using forward reasoning:
 \begin{isabelle}
 \isacommand{lemma}\ gcd_mult\
-[simp]{:}\
+[simp]:\
 "gcd(k,\
 k{\isacharasterisk}n)\ =\
 k"\isanewline
-\isacommand{apply}\ (rule\ gcd_mult_distrib2\ [of\ k\ 1,\ simplified,\ THEN\ sym]{)}\isanewline
+\isacommand{apply}\ (rule\ gcd_mult_distrib2\ [of\ k\ 1,\ simplified,\ THEN\ sym])\isanewline
 \isacommand{done}
 \end{isabelle}
 Compared with the previous proof of \isa{gcd_mult}, this
@@ -1625,11 +1625,8 @@ variables: the resulting theorem will have {\isa{?k}} instead of {\isa{k}}.
 At the start  of this section, we also saw a proof of $\gcd(k,k)=k$.  Here
 is the Isabelle version: 
 \begin{isabelle}
-\isacommand{lemma}\ gcd_self\
-[simp]{:}\
-"gcd(k{,}k)\
-=\ k"\isanewline
-\isacommand{apply}\ (rule\ gcd_mult\ [of\ k\ 1,\ simplified]{)}\isanewline
+\isacommand{lemma}\ gcd_self\ [simp]:\ "gcd(k,k)\ =\ k"\isanewline
+\isacommand{apply}\ (rule\ gcd_mult\ [of\ k\ 1,\ simplified])\isanewline
 \isacommand{done}
 \end{isabelle}
 
@@ -1646,7 +1643,7 @@ First, we
 prove an instance of its first premise:
 \begin{isabelle}
 \isacommand{lemma}\ relprime_20_81:\ "gcd(\#20,\#81)\ =\ 1"\isanewline
-\isacommand{apply}\ (simp\ add:\ gcd{.}simps)\isanewline
+\isacommand{apply}\ (simp\ add:\ gcd.simps)\isanewline
 \isacommand{done}%
 \end{isabelle}
 We have evaluated an application of the \isa{gcd} function by
@@ -1779,13 +1776,13 @@ Division  and remainder obey a well-known law:
 We refer to this law explicitly in the following proof: 
 \begin{isabelle}
 \isacommand{lemma}\ div_mult_self_is_m:\ \isanewline
-\ \ \ \ \ \ "0{\isacharless}n\ \isasymLongrightarrow\ (m{\isacharasterisk}n)\ div\ n\ =\ (m:{:}nat)"\isanewline
-\isacommand{apply}\ (insert\ mod_div_equality\ [of\ "m{\isacharasterisk}n"\ n]{)}\isanewline
+\ \ \ \ \ \ "0{\isacharless}n\ \isasymLongrightarrow\ (m{\isacharasterisk}n)\ div\ n\ =\ (m::nat)"\isanewline
+\isacommand{apply}\ (insert\ mod_div_equality\ [of\ "m{\isacharasterisk}n"\ n])\isanewline
 \isacommand{apply}\ (simp)\isanewline
 \isacommand{done}
 \end{isabelle}
 The first step inserts the law, specifying \isa{m*n} and
-\isa{n} for its variables.  Notice that nontrivial expressions must be
+\isa{n} for its variables.  Notice that non-trivial expressions must be
 enclosed in quotation marks.  Here is the resulting 
 subgoal, with its new assumption: 
 \begin{isabelle}
