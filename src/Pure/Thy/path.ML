@@ -3,9 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Abstract algebra of file paths.  External representation Unix-style.
-
-TODO:
-  - support variables and  eval:(string->T)->T->T (!?)
 *)
 
 signature PATH =
@@ -16,9 +13,13 @@ sig
   val current: T
   val parent: T
   val root: T
+  val variable: string -> T
   val absolute: T -> bool
   val base: T -> string
   val append: T -> T -> T
+  val evaluate: (string -> T) -> T -> T
+  val expand: (string -> string) -> string -> string
+  val base_name: string -> string
 end;
 
 structure Path: PATH =
@@ -39,6 +40,9 @@ fun base (Path []) = ""
   | base (Path ["/"]) = ""
   | base (Path xs) = snd (split_last xs);
 
+fun variable name = Path ["$" ^ name];
+fun is_variable elem = ord elem = ord "$";
+
 
 (* append and norm *)
 
@@ -46,10 +50,10 @@ fun base (Path []) = ""
 fun rev_app xs [] = rev xs
   | rev_app _ ("/" :: ys) = rev_app ["/"] ys
   | rev_app xs ("." :: ys) = rev_app xs ys
-  | rev_app [] (".." :: ys) = rev_app [".."] ys
-  | rev_app (xs as ".." :: _) (".." :: ys) = rev_app (".." :: xs) ys
-  | rev_app (xs as "/" :: _) (".." :: ys) = rev_app xs ys
-  | rev_app (_ :: xs) (".." :: ys) = rev_app xs ys
+  | rev_app (x :: xs) (".." :: ys) =
+      if x = ".." orelse is_variable x then rev_app (".." :: x :: xs) ys
+      else if x = "/" then rev_app (x :: xs) ys
+      else rev_app xs ys
   | rev_app xs (y :: ys) = rev_app (y :: xs) ys;
 
 fun norm path = rev_app [] path;
@@ -64,11 +68,33 @@ fun pack (Path []) = "."
   | pack (Path xs) = space_implode "/" xs;
 
 fun unpack str =
-  Path (norm
-    (case space_explode "/" str of
-      [""] => []
-    | "" :: xs => "/" :: filter (not_equal "") xs
-    | xs => filter (not_equal "") xs));
+  (case space_explode "/" str of
+    [""] => []
+  | "" :: xs => "/" :: filter (not_equal "") xs
+  | xs => filter (not_equal "") xs)
+    |> map (fn "~" => "$HOME" | x => x)
+    |> norm
+    |> Path;
+
+
+(* eval variables *)
+
+fun eval env x =
+  if is_variable x then
+    let val Path ys = env (implode (tl (explode x)))
+    in ys end
+  else [x];
+
+fun evaluate env (Path xs) =
+  Path (norm (flat (map (eval env) xs)));
+
+
+(* operations on packed paths *)
+
+fun expand env str =
+  pack (evaluate (unpack o env) (unpack str));
+
+val base_name = base o unpack;
 
 
 end;
