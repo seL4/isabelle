@@ -692,6 +692,8 @@ fun time_use fname = timeit (fn () =>
   (writeln ("\n**** Starting " ^ fname ^ " ****"); use fname;
    writeln ("\n**** Finished " ^ fname ^ " ****")));
 
+(*For Makefiles: use the file, but exit with error code if errors found.*)
+fun exit_use fname = use fname handle _ => exit 1;
 
 
 (** filenames **)
