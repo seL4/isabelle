@@ -1,21 +1,21 @@
-(*  Title:      HOL/IOA/ABP/Abschannels.thy
+(*  Title:      HOL/IOA/example/Abschannels.thy
     ID:         $Id$
     Author:     Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Copyright   1994  TU Muenchen
 
 The transmission channel 
 *)
 
 Abschannel = IOA + Action + Lemmas + List +
- 
+
+
 datatype ('a)act =   S('a) | R('a)
+
 
 consts
  
 ch_asig  :: "'a act signature"
-
 ch_trans :: "('a act, 'a list)transition set"
-
 ch_ioa   :: "('a act, 'a list)ioa"
 
 rsch_actions  :: "'m action => bool act option"
@@ -42,7 +42,11 @@ rsch_trans_def "rsch_trans == trans_of(rsch_ioa)"
 srch_ioa_def "srch_ioa == rename ch_ioa srch_actions"
 rsch_ioa_def "rsch_ioa == rename ch_ioa rsch_actions"
 
-
+  
+(**********************************************************
+       G e n e r i c   C h a n n e l
+ *********************************************************)
+  
 ch_asig_def "ch_asig == (UN b. {S(b)}, UN b. {R(b)}, {})"
 
 ch_trans_def "ch_trans ==                                       \
@@ -57,6 +61,10 @@ ch_trans_def "ch_trans ==                                       \
   
 ch_ioa_def "ch_ioa == (ch_asig, {[]}, ch_trans)"
 
+(**********************************************************
+  C o n c r e t e  C h a n n e l s  b y   R e n a m i n g 
+ *********************************************************)
+  
 rsch_actions_def "rsch_actions (akt) ==                      \
 \	    case akt of   \
 \           Next    =>  None |          \

@@ -1,7 +1,7 @@
-(*  Title:      HOL/IOA/ABP/Action.ML
+(*  Title:      HOL/IOA/example/Action.ML
     ID:         $Id$
-    Author:     Tobias Nipkow & Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Tobias Nipkow & Konrad Slind
+    Copyright   1994  TU Muenchen
 
 Derived rules for actions
 *)

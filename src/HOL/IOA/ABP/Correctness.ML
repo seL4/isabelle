@@ -1,11 +1,12 @@
- (*  Title:      HOL/IOA/ABP/Correctness.ML
+ (*  Title:      HOL/IOA/example/Correctness.ML
     ID:         $Id$
-    Author:     Tobias Nipkow & Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Tobias Nipkow & Konrad Slind
+    Copyright   1994  TU Muenchen
 
 *)
 
 open Correctness; open Abschannel; open Abschannel_finite;
+open Impl; open Impl_finite;
 
 goal Abschannel.thy "(? x.x=P & Q(x)) = Q(P)";
 by (fast_tac HOL_cs 1);
@@ -37,6 +38,8 @@ val hom_ss = (impl_ss addsimps hom_ioas);
 
 val red_ss = impl_ss addsimps [reduce_Nil,reduce_Cons];
 val red_ss_ch = merge_ss(abschannel_fin_ss,red_ss);
+
+
 
 
 (* auxiliary function *)
@@ -168,31 +171,34 @@ by (simp_tac (red_ss addsimps [and_de_morgan_and_absorbe]) 2);
 by (ALLGOALS (EVERY'[rtac impI,etac conjE,cut_inst_tac [("l","xs")] cons_not_nil,asm_full_simp_tac red_ss]));
 by (REPEAT (etac exE 1));
 by (REPEAT (etac exE 2));
-by (hyp_subst_tac 2);
+by (REPEAT(hyp_subst_tac 2));
 by (ALLGOALS (asm_full_simp_tac red_ss));
 val reduce_tl =result();
 
 
+(*******************************************************************
+          C h a n n e l   A b s t r a c t i o n
+ *******************************************************************)
 
 goal Correctness.thy 
       "is_weak_pmap reduce ch_ioa ch_fin_ioa";
 by (simp_tac (red_ss addsimps [Solve.is_weak_pmap_def]) 1);
 by (rtac conjI 1);
-(* start states *)
+(* --------------  start states ----------------- *)
 by (simp_tac red_ss_ch 1);
 br ballI 1;
 by (asm_full_simp_tac red_ss_ch 1);
-(* main-part *)
+(* ---------------- main-part ------------------- *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
 by (act.induct_tac "a" 1);
-(* 2 cases *)
+(* ----------------- 2 cases ---------------------*)
 by (ALLGOALS (simp_tac (red_ss_ch addsimps [externals_def])));
-(* fst case *)
+(* fst case --------------------------------------*)
  by (rtac impI 1);
  by (rtac disjI2 1);
 by (rtac reduce_hd 1);
-(* snd case *)
+(* snd case --------------------------------------*)
  by (rtac impI 1);
  by (REPEAT (etac conjE 1));
  by (etac disjE 1);
@@ -240,7 +246,7 @@ goal Correctness.thy
       "is_weak_pmap (%id.id) receiver_ioa receiver_ioa";
 by (simp_tac (red_ss addsimps [Solve.is_weak_pmap_def]) 1);
 by (rtac conjI 1);
-(* start states *)
+ (* start states *)
 br ballI 1;
 by (simp_tac red_ss_ch 1);
 (* main-part *)
@@ -355,17 +361,82 @@ goal Correctness.thy
 by (simp_tac (red_ss_ch addsimps [externals_def]) 1);
 val ext_single_ch = result();
 
-goal Correctness.thy "is_weak_pmap                                       \
-\   (%p.(fst(p),(fst(snd(p)),(fst(snd(snd(p))),                          \
-\      (reduce(fst(snd(snd(snd(p))))),reduce(snd(snd(snd(snd(p)))))))))) \
-\    (env_ioa || impl_ioa) (env_ioa || impl_fin_ioa)";
-by (simp_tac (impl_ss addsimps [Impl.impl_def,Impl_finite.impl_fin_def]) 1);
-by(REPEAT(EVERY[rtac fxg_is_weak_pmap_of_product_IOA 1, 
-                simp_tac (red_ss addsimps [env_unchanged,sender_unchanged,
-          receiver_unchanged,sender_abstraction,receiver_abstraction]) 1,
-                rtac conjI 1]));
-by (ALLGOALS(simp_tac (list_ss addsimps [externals_of_par,ext_single_ch,
-             compat_single_ch,compat_single_fin_ch,compat_rec,compat_rec_fin,
-             compat_sen,compat_sen_fin,compat_env,compat_env_fin]))); 
+
+
+
+
+val ext_ss = [externals_of_par,ext_single_ch];
+val compat_ss = [compat_single_ch,compat_single_fin_ch,compat_rec,
+         compat_rec_fin,compat_sen,compat_sen_fin,compat_env,compat_env_fin];
+val abstractions = [env_unchanged,sender_unchanged,
+          receiver_unchanged,sender_abstraction,receiver_abstraction];
+val impl_ss = impl_ss addsimps [impl_def,impl_fin_def,sys_IOA, sys_fin_IOA];
+val sys_ss = impl_ss addsimps [system_def, system_fin_def, abs_def];
+
+
+
+(************************************************************************
+            S o u n d n e s s   o f   A b s t r a c t i o n        
+*************************************************************************)
+
+
+goal Correctness.thy 
+     "is_weak_pmap  abs  system_ioa  system_fin_ioa";
+
+by (simp_tac sys_ss 1);
+
+by (REPEAT (EVERY[rtac fxg_is_weak_pmap_of_product_IOA 1, 
+                  simp_tac (red_ss addsimps abstractions) 1,
+                  rtac conjI 1]));
+
+by (ALLGOALS (simp_tac (red_ss addsimps ext_ss @ compat_ss))); 
+
 qed "system_refinement";
 
+
+
+(************************************************************************
+              I n t e r a c t i v e   A b s t r a c t i o n 
+*************************************************************************)
+
+goal Correctness.thy
+   "ioa_implements system_ioa system_fin_ioa"; 
+
+(* ------------------- Rewriting ----------------------------*)
+by (simp_tac (impl_ss addsimps [ioa_implements_def]) 1);
+by (rtac conjI 1);
+by (simp_tac (sys_ss addsimps ext_ss) 1);
+
+(* ------------------- Lemmata ------------------------------*)
+by (rtac trace_inclusion 1); 
+by (rtac system_refinement 4);
+
+(* -------------------- Rewriting ---------------------------*)
+by (ALLGOALS (simp_tac impl_ss));
+by (simp_tac (sys_ss addsimps ext_ss) 1);
+
+qed"interactive_abstraction";
+
+
+
+
+
+(***********************************************************************
+                   Illustrative ISABELLE Examples
+************************************************************************)
+ 
+(*** Cantor's Theorem: There is no surjection from a set to its powerset. ***)
+
+goal Set.thy 
+          "~ (? f:: 'a=>'a set. ! S. ? x. f(x) = S)";
+
+by (best_tac (set_cs addSEs [equalityCE]) 1);
+qed "cantor1";
+
+(***** Theorem 2   *)
+val prems = goalw Lfp.thy [image_def] "inj(f) ==> Inv(f)``(f``X) = X";
+by (cut_facts_tac prems 1);
+by (rtac equalityI 1);
+by (fast_tac (set_cs addEs [Inv_f_f RS ssubst]) 1);
+by (fast_tac (set_cs addEs [Inv_f_f RS ssubst]) 1);
+qed "inv_image_comp";

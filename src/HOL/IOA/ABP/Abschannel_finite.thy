@@ -1,7 +1,7 @@
-(*  Title:      HOL/IOA/ABP/Abschannel_finite.thy
+(*  Title:      HOL/IOA/example/Abschannels.thy
     ID:         $Id$
     Author:     Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Copyright   1994  TU Muenchen
 
 The transmission channel -- finite version
 *)
