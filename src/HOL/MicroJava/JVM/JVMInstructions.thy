@@ -8,6 +8,7 @@ Instructions of the JVM
 
 JVMInstructions = JVMState +
 
+
 datatype 
   instr = Load nat                  (* load from local variable *)
         | Store nat                 (* store into local variable *)
@@ -17,7 +18,7 @@ datatype
         | Getfield vname cname	  	(* Fetch field from object *)
         | Putfield vname cname		  (* Set field in object     *)
         | Checkcast cname	          (* Check whether object is of given type *)
-        | Invoke mname "(ty list)"  (* inv. instance meth of an object *)
+        | Invoke cname mname "(ty list)"  (* inv. instance meth of an object *)
         | Return
         | Pop
         | Dup

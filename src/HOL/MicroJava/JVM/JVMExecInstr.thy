@@ -56,7 +56,7 @@ primrec
 	 in
       (xp', hp, (stk', vars, Cl, sig, pc+1)#frs))"
 
- "exec_instr (Invoke mn ps) G hp stk vars Cl sig pc frs =
+ "exec_instr (Invoke C mn ps) G hp stk vars Cl sig pc frs =
 	(let n		= length ps;
 	     argsoref	= take (n+1) stk;
 	     oref	= last argsoref;
