@@ -45,7 +45,7 @@ defs
 
 unlift_def
   "unlift x == (case x of 
-                 Undef   => arbitrary
+                 UU   => arbitrary
                | Def y   => y)"
 
 (* this means that for nil and UU the effect is unpredictable *)

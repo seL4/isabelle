@@ -26,27 +26,27 @@ bind_thm ("mkex2_unfold", fix_prover2 thy mkex2_def
 \      nil => nil \
 \   | x##xs => \
 \     (case x of  \
-\       Undef => UU   \
+\       UU => UU   \
 \     | Def y =>  \
 \        (if y:act A then \
 \            (if y:act B then \
 \               (case HD$exA of \
-\                  Undef => UU \
+\                  UU => UU \
 \                | Def a => (case HD$exB of \
-\                             Undef => UU \
+\                             UU => UU \
 \                           | Def b => \
 \                  (y,(snd a,snd b))>>  \
 \                    (mkex2 A B$xs$(TL$exA)$(TL$exB)) (snd a) (snd b)))  \
 \             else   \
 \               (case HD$exA of   \
-\                  Undef => UU  \
+\                  UU => UU  \
 \                | Def a => \
 \                  (y,(snd a,t))>>(mkex2 A B$xs$(TL$exA)$exB) (snd a) t)  \
 \             )  \       
 \         else   \
 \            (if y:act B then \
 \               (case HD$exB of  \
-\                  Undef => UU  \
+\                  UU => UU  \
 \                | Def b =>  \
 \                  (y,(s,snd b))>>(mkex2 A B$xs$exA$(TL$exB)) s (snd b))  \
 \            else  \

@@ -28,7 +28,7 @@ bind_thm ("oraclebuild_unfold", fix_prover2 thy oraclebuild_def
 \       nil => nil\
 \    | x##xs => \
 \      (case x of\ 
-\        Undef => UU\
+\        UU => UU\
 \      | Def y => (Takewhile (%a.~ P a)$s)\
 \                  @@ (y>>(oraclebuild P$(TL$(Dropwhile (%a.~ P a)$s))$xs))\
 \      )\

@@ -38,7 +38,7 @@ oraclebuild_def
        nil => nil
     | x##xs => 
       (case x of 
-        Undef => UU
+        UU => UU
       | Def y => (Takewhile (%x.~P x)$s)
                   @@ (y>>(h$(TL$(Dropwhile (%x.~ P x)$s))$xs))
       )

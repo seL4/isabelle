@@ -151,9 +151,9 @@ Goal "Zip = (LAM t1 t2. case t1 of \
 \             | x##xs => (case t2 of \ 
 \                          nil => UU  \
 \                        | y##ys => (case x of \
-\                                      Undef  => UU \
+\                                      UU  => UU \
 \                                    | Def a => (case y of \
-\                                                  Undef => UU \
+\                                                  UU => UU \
 \                                                | Def b => Def (a,b)##(Zip$xs$ys)))))";
 by (rtac trans 1);
 by (rtac fix_eq2 1);

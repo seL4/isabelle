@@ -21,7 +21,7 @@ mksch_def
        nil => nil
     | x##xs => 
       (case x of 
-        Undef => UU
+        UU => UU
       | Def y => 
          (if y:act A then 
              (if y:act B then 

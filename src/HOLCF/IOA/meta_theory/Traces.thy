@@ -125,7 +125,7 @@ mk_trace_def
 
 laststate_def
   "laststate ex == case Last$(snd ex) of
-                      Undef  => fst ex
+                      UU  => fst ex
                     | Def at => snd at"
 
 inf_often_def

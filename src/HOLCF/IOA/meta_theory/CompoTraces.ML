@@ -12,15 +12,12 @@ simpset_ref () := simpset() setmksym (K None);
                    section "mksch rewrite rules";
 (* ---------------------------------------------------------------- *)
 
-
-
-
 bind_thm ("mksch_unfold", fix_prover2 thy mksch_def 
 "mksch A B = (LAM tr schA schB. case tr of \
 \       nil => nil\
 \    | x##xs => \
 \      (case x of  \ 
-\        Undef => UU  \
+\        UU => UU  \
 \      | Def y => \
 \         (if y:act A then \
 \             (if y:act B then \ 

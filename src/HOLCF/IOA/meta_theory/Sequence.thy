@@ -73,14 +73,14 @@ Zip_def
              | x##xs => (case t2 of 
                           nil => UU 
                         | y##ys => (case x of 
-                                      Undef  => UU
+                                      UU  => UU
                                     | Def a => (case y of 
-                                                  Undef => UU
+                                                  UU => UU
                                                 | Def b => Def (a,b)##(h$xs$ys))))))"
 
 Filter2_def    "Filter2 P == (fix$(LAM h t. case t of 
             nil => nil
-	  | x##xs => (case x of Undef => UU | Def y => (if P y                                 
+	  | x##xs => (case x of UU => UU | Def y => (if P y                                 
                      then x##(h$xs)
                      else     h$xs))))" 
 
