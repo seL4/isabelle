@@ -108,8 +108,8 @@ AddSIs [wf_empty];
 
 goal WF.thy "wf(insert (y,x) r) = (wf(r) & (x,y) ~: r^*)";
 by (rtac iffI 1);
- by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl] addIs
-      [rtrancl_into_trancl1,wf_subset,impOfSubs rtrancl_mono]) 1);
+ by (blast_tac (claset() addEs [wf_trancl RS wf_irrefl] 
+	addIs [rtrancl_into_trancl1,wf_subset,impOfSubs rtrancl_mono]) 1);
 by (asm_full_simp_tac (simpset() addsimps [wf_eq_minimal]) 1);
 by Safe_tac;
 by (EVERY1[rtac allE, atac, etac impE, Blast_tac]);
@@ -124,7 +124,8 @@ by (case_tac "y:Q" 1);
 by (res_inst_tac [("x","{z. z:Q & (z,y) : r^*}")] allE 1);
  by (assume_tac 1);
 by (thin_tac "! Q. (? x. x : Q) --> ?P Q" 1);	(*essential for speed*)
-by (blast_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
+(*Blast_tac with new substOccur fails*)
+by (best_tac (claset() addIs [rtrancl_into_rtrancl2]) 1);
 qed "wf_insert";
 AddIffs [wf_insert];
 
