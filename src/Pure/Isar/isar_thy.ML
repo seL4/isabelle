@@ -63,15 +63,11 @@ sig
   val apply_theorems_i: (thm * theory attribute list) list -> theory -> theory * thm list
   val declare_theorems: (xstring * Args.src list) list * Comment.text -> theory -> theory
   val declare_theorems_i: (thm * theory attribute list) list * Comment.text -> theory -> theory
-  val have_theorems:
+  val have_theorems: string ->
     (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
     -> theory -> theory
-  val have_theorems_i: (((bstring * theory attribute list) * (thm * theory attribute list) list)
-    * Comment.text) list -> theory -> theory
-  val have_lemmas:
-    (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
-    -> theory -> theory
-  val have_lemmas_i: (((bstring * theory attribute list) * (thm * theory attribute list) list)
+  val have_theorems_i:  string ->
+    (((bstring * theory attribute list) * (thm * theory attribute list) list)
     * Comment.text) list -> theory -> theory
   val have_facts: (((string * Args.src list) * (string * Args.src list) list) * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
@@ -94,13 +90,9 @@ sig
   val invoke_case: (string * Args.src list) * Comment.text -> ProofHistory.T -> ProofHistory.T
   val invoke_case_i: (string * Proof.context attribute list) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val theorem: ((bstring * Args.src list) * (string * (string list * string list)))
+  val theorem: string -> ((bstring * Args.src list) * (string * (string list * string list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
-  val theorem_i: ((bstring * theory attribute list) * (term * (term list * term list)))
-    * Comment.text -> bool -> theory -> ProofHistory.T
-  val lemma: ((bstring * Args.src list) * (string * (string list * string list)))
-    * Comment.text -> bool -> theory -> ProofHistory.T
-  val lemma_i: ((bstring * theory attribute list) * (term * (term list * term list)))
+  val theorem_i: string -> ((bstring * theory attribute list) * (term * (term list * term list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
   val assume: (((string * Args.src list) * (string * (string list * string list)) list)
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
@@ -292,14 +284,15 @@ fun prep_thmss get attrib = map (fn ((name, more_srcs), th_srcs) =>
   ((name, map attrib more_srcs), map (fn (s, srcs) => (get s, map attrib srcs)) th_srcs));
 
 fun flat_unnamed (x, ys) = (x, flat (map snd ys));
+fun cond_kind k = if k = "" then [] else [Drule.kind k];
 
 fun global_have_thmss kind f args thy =
   let
     val args' = prep_thmss (PureThy.get_thms thy) (Attrib.global_attribute thy) args
-    val (thy', named_thmss) = f args' thy;
-    fun present (name, thms) = Present.results kind name thms;
+    val (thy', named_thmss) = f (cond_kind kind) args' thy;
+    fun present (name, thms) = Present.results (kind ^ "s") name thms;
   in
-    if kind = "" then ()
+    if kind = "" orelse kind = Drule.internalK then ()
     else Context.setmp (Some thy') (fn () => seq present named_thmss) ();
     (thy', named_thmss)
   end;
@@ -314,22 +307,17 @@ fun gen_have_thmss_i f args = f (map (fn ((name, more_atts), th_atts) =>
   ((name, more_atts), map (apfst single) th_atts)) args);
 
 fun apply_theorems th_srcs =
-  flat_unnamed o global_have_thmss "" (PureThy.have_thmss []) [(("", []), th_srcs)];
+  flat_unnamed o global_have_thmss "" PureThy.have_thmss [(("", []), th_srcs)];
 fun apply_theorems_i th_srcs =
   flat_unnamed o gen_have_thmss_i (PureThy.have_thmss []) [(("", []), th_srcs)];
 
 val declare_theorems = #1 oo (apply_theorems o Comment.ignore);
 val declare_theorems_i = #1 oo (apply_theorems_i o Comment.ignore);
 
-val have_theorems =
-  #1 oo (global_have_thmss "theorems" (PureThy.have_thmss []) o map Comment.ignore);
-val have_theorems_i =
-  #1 oo (gen_have_thmss_i (PureThy.have_thmss []) o map Comment.ignore);
-
-val have_lemmas =
-  #1 oo (global_have_thmss "lemmas" (PureThy.have_thmss [Drule.tag_lemma]) o map Comment.ignore);
-val have_lemmas_i =
-  #1 oo (gen_have_thmss_i (PureThy.have_thmss [Drule.tag_lemma]) o map Comment.ignore);
+fun have_theorems kind =
+  #1 oo (global_have_thmss kind PureThy.have_thmss o map Comment.ignore);
+fun have_theorems_i kind =
+  #1 oo (gen_have_thmss_i (PureThy.have_thmss (cond_kind kind)) o map Comment.ignore);
 
 val have_facts = ProofHistory.apply o local_have_thmss Proof.have_thmss o map Comment.ignore;
 val have_facts_i = ProofHistory.apply o gen_have_thmss_i Proof.have_thmss o map Comment.ignore;
@@ -405,13 +393,6 @@ end;
 
 local
 
-fun global_statement f ((name, src), s) int thy =
-  ProofHistory.init (Toplevel.undo_limit int)
-    (f name (map (Attrib.global_attribute thy) src) s thy);
-
-fun global_statement_i f ((name, atts), t) int thy =
-  ProofHistory.init (Toplevel.undo_limit int) (f name atts t thy);
-
 fun local_statement' f g ((name, src), s) int = ProofHistory.apply (fn state =>
   f name (map (Attrib.local_attribute (Proof.theory_of state)) src) s int (g state));
 
@@ -431,10 +412,13 @@ fun multi_statement_i f args = ProofHistory.apply (f args);
 
 in
 
-val theorem     = global_statement Proof.theorem o Comment.ignore;
-val theorem_i   = global_statement_i Proof.theorem_i o Comment.ignore;
-val lemma       = global_statement Proof.lemma o Comment.ignore;
-val lemma_i     = global_statement_i Proof.lemma_i o Comment.ignore;
+fun theorem k (((name, src), s), comment_ignore) int thy =
+  ProofHistory.init (Toplevel.undo_limit int)
+    (Proof.theorem k name (map (Attrib.global_attribute thy) src) s thy);
+
+fun theorem_i k (((name, atts), t), comment_ignore) int thy =
+  ProofHistory.init (Toplevel.undo_limit int) (Proof.theorem_i k name atts t thy);
+
 val assume      = multi_statement Proof.assume o map Comment.ignore;
 val assume_i    = multi_statement_i Proof.assume_i o map Comment.ignore;
 val presume     = multi_statement Proof.presume o map Comment.ignore;
@@ -503,7 +487,11 @@ fun global_result finish = Toplevel.proof_to_theory (fn prf =>
     val state = ProofHistory.current prf;
     val _ = if Proof.at_bottom state then () else raise Toplevel.UNDEF;
     val (thy, res as {kind, name, thm}) = finish state;
-  in print_result res; Context.setmp (Some thy) (Present.result kind name) thm; thy end);
+  in
+    if kind = "" orelse kind = Drule.internalK then ()
+    else (print_result res; Context.setmp (Some thy) (Present.result kind name) thm);
+    thy
+  end);
 
 val global_qed = global_result o Method.global_qed true o apsome Comment.ignore_interest;
 val global_terminal_proof = global_result o Method.global_terminal_proof o ignore_interests;

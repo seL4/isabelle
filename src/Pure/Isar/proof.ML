@@ -81,13 +81,9 @@ sig
   val presume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
   val invoke_case: string * context attribute list -> state -> state
-  val theorem: bstring -> theory attribute list -> string * (string list * string list)
+  val theorem: string -> bstring -> theory attribute list -> string * (string list * string list)
     -> theory -> state
-  val theorem_i: bstring -> theory attribute list -> term * (term list * term list)
-    -> theory -> state
-  val lemma: bstring -> theory attribute list -> string * (string list * string list)
-    -> theory -> state
-  val lemma_i: bstring -> theory attribute list -> term * (term list * term list)
+  val theorem_i: string -> bstring -> theory attribute list -> term * (term list * term list)
     -> theory -> state
   val chain: state -> state
   val from_facts: thm list -> state -> state
@@ -127,13 +123,11 @@ type context = ProofContext.context;
 (* type goal *)
 
 datatype kind =
-  Theorem of theory attribute list |    (*top-level theorem*)
-  Lemma of theory attribute list |      (*top-level lemma*)
-  Show of context attribute list |      (*intermediate result, solving subgoal*)
-  Have of context attribute list ;      (*intermediate result*)
+  Theorem of string * theory attribute list |    (*top-level theorem*)
+  Show of context attribute list |               (*intermediate result, solving subgoal*)
+  Have of context attribute list ;               (*intermediate result*)
 
-val kind_name =
-  fn Theorem _ => "theorem" | Lemma _ => "lemma" | Show _ => "show" | Have _ => "have";
+val kind_name = fn Theorem (s, _) => s | Show _ => "show" | Have _ => "have";
 
 type goal =
  (kind *        (*result kind*)
@@ -619,12 +613,10 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
 
 (*global goals*)
 fun global_goal prepp kind name atts x thy =
-  setup_goal I prepp kind Seq.single name atts x (init_state thy);
+  setup_goal I prepp (curry Theorem kind) Seq.single name atts x (init_state thy);
 
-val theorem = global_goal ProofContext.bind_propp_schematic Theorem;
-val theorem_i = global_goal ProofContext.bind_propp_schematic_i Theorem;
-val lemma = global_goal ProofContext.bind_propp_schematic Lemma;
-val lemma_i = global_goal ProofContext.bind_propp_schematic_i Lemma;
+val theorem = global_goal ProofContext.bind_propp_schematic;
+val theorem_i = global_goal ProofContext.bind_propp_schematic_i;
 
 
 (*local goals*)
@@ -720,9 +712,7 @@ fun finish_global state =
       |> curry Thm.name_thm full_name;
 
     val atts =
-      (case kind of
-        Theorem atts => atts
-      | Lemma atts => atts @ [Drule.tag_lemma]
+      (case kind of Theorem (s, atts) => atts @ [Drule.kind s]
       | _ => err_malformed "finish_global" state);
 
     val (thy', result') = PureThy.store_thm ((name, result), atts) (theory_of state);

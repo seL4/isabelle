@@ -191,11 +191,11 @@ val name_facts = P.and_list1 (P.opt_thm_name "=" -- P.xthms1 -- P.marg_comment);
 
 val theoremsP =
   OuterSyntax.command "theorems" "define theorems" K.thy_decl
-    (name_facts >> (Toplevel.theory o IsarThy.have_theorems));
+    (name_facts >> (Toplevel.theory o IsarThy.have_theorems Drule.theoremK));
 
 val lemmasP =
   OuterSyntax.command "lemmas" "define lemmas" K.thy_decl
-    (name_facts >> (Toplevel.theory o IsarThy.have_lemmas));
+    (name_facts >> (Toplevel.theory o IsarThy.have_theorems Drule.lemmaK));
 
 val declareP =
   OuterSyntax.command "declare" "declare theorems (improper)" K.thy_script
@@ -288,11 +288,15 @@ fun statement f = P.opt_thm_name ":" -- P.propp -- P.marg_comment >> f;
 
 val theoremP =
   OuterSyntax.command "theorem" "state theorem" K.thy_goal
-    (statement IsarThy.theorem >> (fn f => Toplevel.print o Toplevel.theory_to_proof f));
+    (statement (IsarThy.theorem Drule.theoremK) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val lemmaP =
   OuterSyntax.command "lemma" "state lemma" K.thy_goal
-    (statement IsarThy.lemma >> (fn f => Toplevel.print o Toplevel.theory_to_proof f));
+    (statement (IsarThy.theorem Drule.lemmaK) >> (Toplevel.print oo Toplevel.theory_to_proof));
+
+val corollaryP =
+  OuterSyntax.command "corollary" "state corollary" K.thy_goal
+    (statement (IsarThy.theorem Drule.corollaryK) >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val showP =
   OuterSyntax.command "show" "state local goal, solving current obligation" K.prf_goal
@@ -699,12 +703,13 @@ val parsers = [
   typed_print_translationP, print_ast_translationP,
   token_translationP, oracleP,
   (*proof commands*)
-  theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
-  defP, fixP, letP, caseP, thenP, fromP, withP, noteP, beginP, endP,
-  nextP, qedP, terminal_proofP, default_proofP, immediate_proofP,
-  done_proofP, skip_proofP, forget_proofP, deferP, preferP, applyP,
-  apply_endP, proofP, alsoP, finallyP, moreoverP, ultimatelyP, backP,
-  cannot_undoP, clear_undosP, redoP, undos_proofP, undoP, killP,
+  theoremP, lemmaP, corollaryP, showP, haveP, thusP, henceP, assumeP,
+  presumeP, defP, fixP, letP, caseP, thenP, fromP, withP, noteP,
+  beginP, endP, nextP, qedP, terminal_proofP, default_proofP,
+  immediate_proofP, done_proofP, skip_proofP, forget_proofP, deferP,
+  preferP, applyP, apply_endP, proofP, alsoP, finallyP, moreoverP,
+  ultimatelyP, backP, cannot_undoP, clear_undosP, redoP, undos_proofP,
+  undoP, killP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP,
