@@ -133,15 +133,18 @@ text{*\noindent Note that the term @{text"?thesis"} always stands for the
 This is too much proof text. Elimination rules should be selected
 automatically based on their major premise, the formula or rather connective
 to be eliminated. In Isar they are triggered by propositions being fed
-\emph{into} a proof block. Syntax:
+\emph{into} a proof. Syntax:
 \begin{center}
-\isakeyword{from} \emph{fact} \isakeyword{show} \emph{proposition}
+\isakeyword{from} \emph{fact} \isakeyword{show} \emph{proposition} \emph{proof}
 \end{center}
 where \emph{fact} stands for the name of a previously proved
 proposition, e.g.\ an assumption, an intermediate result or some global
-theorem. The fact may also be modified with @{text of}, @{text OF} etc.
-This command applies an elimination rule (from a predefined list)
-whose first premise is solved by the fact. Thus: *}
+theorem, which may also be modified with @{text of}, @{text OF} etc.
+The \emph{fact} is ``piped'' into the \emph{proof}, which can deal with it
+how it choses. If the \emph{proof} starts with a plain \isakeyword{proof},
+an elimination rule (from a predefined list) is applied
+whose first premise is solved by the \emph{fact}. Thus the proof above
+is equivalent to the following one: *}
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
@@ -210,7 +213,7 @@ by the given facts in the given order.
 again using the facts to prove the premises.
 \end{itemize}
 In this case, the proof succeeds with @{thm[source]conjI}. Note that the proof
-would fail if we had written \isakeyword{from}~@{text"a b"}
+would fail had we written \isakeyword{from}~@{text"a b"}
 instead of \isakeyword{from}~@{text"b a"}.
 
 This treatment of facts fed into a proof is not restricted to implicit
@@ -477,8 +480,9 @@ by best
 text{*\noindent Of course this only works in the context of HOL's carefully
 constructed introduction and elimination rules for set theory.
 
-Finally, whole scripts may appear in the leaves of the proof tree, although
-this is best avoided.  Here is a contrived example: *}
+Finally, whole ``scripts'' (unstructured proofs in the style of
+\cite{LNCS2283}) may appear in the leaves of the proof tree, although this is
+best avoided.  Here is a contrived example: *}
 
 lemma "A \<longrightarrow> (A \<longrightarrow> B) \<longrightarrow> B"
 proof
