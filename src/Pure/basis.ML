@@ -75,6 +75,24 @@ structure List =
     | mapPartial f (x::xs) = 
          (case f x of General.NONE   => mapPartial f xs
                     | General.SOME y => y :: mapPartial f xs);
+
+  fun find _ []        = General.NONE
+    | find p (x :: xs) = if p x then General.SOME x else find p xs;
+
+
+  (*copy the list preserving elements that satisfy the predicate*)
+  fun filter p [] = []
+    | filter p (x :: xs) = if p x then x :: filter p xs else filter p xs;
+
+  (*Partition list into elements that satisfy predicate and those that don't.
+    Preserves order of elements in both lists.*)
+  fun partition (p: 'a->bool) (ys: 'a list) : ('a list * 'a list) =
+      let fun part ([], answer) = answer
+	    | part (x::xs, (ys, ns)) = if p(x)
+	      then  part (xs, (x::ys, ns))
+	      else  part (xs, (ys, x::ns))
+      in  part (rev ys, ([], []))  end;
+
   end;
 
 
@@ -91,14 +109,14 @@ structure ListPair =
   fun map f ([], [])      = []
     | map f (x::xs,y::ys) = f(x,y) :: map f (xs,ys);
 
-  fun exists pred =
+  fun exists p =
     let fun boolf ([], [])      = false
-	  | boolf (x::xs,y::ys) = pred(x,y) orelse boolf (xs,ys)
+	  | boolf (x::xs,y::ys) = p(x,y) orelse boolf (xs,ys)
     in boolf end;
 
-  fun all pred =
+  fun all p =
     let fun boolf ([], [])      = true
-	  | boolf (x::xs,y::ys) = pred(x,y) andalso boolf (xs,ys)
+	  | boolf (x::xs,y::ys) = p(x,y) andalso boolf (xs,ys)
     in boolf end;
   end;
 
