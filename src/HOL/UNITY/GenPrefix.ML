@@ -278,6 +278,15 @@ Goalw [prefix_def] "xs <= ys ==> length xs <= length ys";
 by (etac genPrefix_length_le 1);
 qed "prefix_length_le";
 
+Goalw [prefix_def] "xs<=ys ==> xs~=ys --> length xs < length ys";
+by (etac genPrefix.induct 1);
+by Auto_tac;
+val lemma = result();
+
+Goalw [strict_prefix_def] "xs < ys ==> length xs < length ys";
+by (blast_tac (claset() addIs [lemma RS mp]) 1);
+qed "strict_prefix_length_less";
+
 Goal "mono length";
 by (blast_tac (claset() addIs [monoI, prefix_length_le]) 1);
 qed "mono_length";
@@ -312,6 +321,13 @@ by (asm_full_simp_tac (simpset() delsimps [append_assoc]
                                  addsimps [append_assoc RS sym])1);
 by (Force_tac 1);
 qed "prefix_append_iff";
+
+(*Although the prefix ordering is not linear, the prefixes of a list
+  are linearly ordered.*)
+Goal "!!zs::'a list. xs <= zs --> ys <= zs --> xs <= ys | ys <= xs";
+by (rev_induct_tac "zs" 1);
+by Auto_tac;
+qed_spec_mp "common_prefix_linear";
 
 Goal "r<=s ==> genPrefix r <= genPrefix s";
 by (Clarify_tac 1);

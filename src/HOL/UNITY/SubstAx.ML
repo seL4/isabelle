@@ -129,7 +129,7 @@ qed "Always_LeadsTo_weaken";
 
 (** Two theorems for "proof lattices" **)
 
-Goal "[| F : A LeadsTo B |] ==> F : (A Un B) LeadsTo B";
+Goal "F : A LeadsTo B ==> F : (A Un B) LeadsTo B";
 by (blast_tac (claset() addIs [LeadsTo_Un, subset_imp_LeadsTo]) 1);
 qed "LeadsTo_Un_post";
 
@@ -334,11 +334,11 @@ by (blast_tac (claset() addIs [subset_imp_LeadsTo]) 1);
 qed "Bounded_induct";
 
 
-Goal "[| ALL m. F : (A Int f-``{m}) LeadsTo                     \
-\                           ((A Int f-``(lessThan m)) Un B) |] \
+val prems = 
+Goal "(!! m. F : (A Int f-``{m}) LeadsTo ((A Int f-``(lessThan m)) Un B)) \
 \     ==> F : A LeadsTo B";
 by (rtac (wf_less_than RS LeadsTo_wf_induct) 1);
-by (Asm_simp_tac 1);
+by (auto_tac (claset() addIs prems, simpset()));
 qed "LessThan_induct";
 
 (*Integer version.  Could generalize from #0 to any lower bound*)
@@ -347,7 +347,7 @@ Goal "[| F : Always {s. (#0::int) <= f s};  \
 \        !! z. F : (A Int {s. f s = z}) LeadsTo                     \
 \                           ((A Int {s. f s < z}) Un B) |] \
 \     ==> F : A LeadsTo B";
-by (res_inst_tac [("f", "nat o f")] (allI RS LessThan_induct) 1);
+by (res_inst_tac [("f", "nat o f")] LessThan_induct 1);
 by (simp_tac (simpset() addsimps [vimage_def]) 1);
 by (rtac ([reach, prem] MRS Always_LeadsTo_weaken) 1);
 by (auto_tac (claset(), simpset() addsimps [nat_eq_iff, nat_less_iff]));

@@ -203,6 +203,9 @@ qed "extend_set_subset_Compl_eq";
 
 (*** extend_act ***)
 
+(*Can't strengthen it to
+  ((h(s,y), h(s',y')) : extend_act h act) = ((s, s') : act & y=y')
+  because h doesn't have to be injective in the 2nd argument*)
 Goalw [extend_act_def]
      "((h(s,y), h(s',y)) : extend_act h act) = ((s, s') : act)";
 by Auto_tac;

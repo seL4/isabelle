@@ -306,17 +306,23 @@ qed "invariant_Int";
 
 (*** increasing ***)
 
+Goalw [increasing_def]
+     "F : increasing f ==> F : stable {s. z <= f s}";
+by (Blast_tac 1);
+qed "increasingD";
+
 Goalw [increasing_def, stable_def, constrains_def]
      "mono g ==> increasing f <= increasing (g o f)";
 by Auto_tac;
 by (blast_tac (claset() addIs [monoD, order_trans]) 1);
 qed "mono_increasing_o";
 
+(*Holds by the theorem (Suc m <= n) = (m < n) *)
 Goalw [increasing_def]
-     "increasing f <= {F. ALL z::nat. F: stable {s. z < f s}}";
+     "!!z::nat. F : increasing f ==> F: stable {s. z < f s}";
 by (simp_tac (simpset() addsimps [Suc_le_eq RS sym]) 1);
 by (Blast_tac 1);
-qed "increasing_stable_less";
+qed "strict_increasingD";
 
 
 (** The Elimination Theorem.  The "free" m has become universally quantified!

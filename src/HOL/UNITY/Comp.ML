@@ -132,6 +132,12 @@ by (subgoal_tac "v s = v s'" 1);
 by (ALLGOALS Force_tac);
 qed "preserves_subset_stable";
 
+Goal "preserves v <= increasing v";
+by (auto_tac (claset(),
+	      simpset() addsimps [impOfSubs preserves_subset_stable, 
+				  increasing_def]));
+qed "preserves_subset_increasing";
+
 Goal "preserves id <= stable A";
 by (force_tac (claset(), 
 	   simpset() addsimps [preserves_def, stable_def, constrains_def]) 1);

@@ -110,11 +110,6 @@ by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
 by (Blast_tac 1);
 qed "Always_Un";
 
-Goalw [Increasing_def]
-     "F : Increasing f ==> F : Stable {s. x <= f s}";
-by (Blast_tac 1);
-qed "IncreasingD";
-
 (*Lemma to re-use the argument that one variable increases (progress)
   while the other variable doesn't decrease (safety)*)
 Goal "[| F : Increasing f; F : Increasing g; \

@@ -250,6 +250,14 @@ by (auto_tac (claset(),
 				  Join_def]));
 qed "Join_transient";
 
+Goal "F : transient A ==> F Join G : transient A";
+by (asm_simp_tac (simpset() addsimps [Join_transient]) 1);
+qed "Join_transient_I1";
+
+Goal "G : transient A ==> F Join G : transient A";
+by (asm_simp_tac (simpset() addsimps [Join_transient]) 1);
+qed "Join_transient_I2";
+
 Goal "i : I ==> \
 \     (JN i:I. F i) : A ensures B = \
 \     ((ALL i:I. F i : (A-B) co (A Un B)) & \
@@ -279,7 +287,13 @@ Goal "[| F : stable A;  G : invariant A |] ==> F Join G : Always A";
 by (full_simp_tac (simpset() addsimps [Always_def, invariant_def, 
 				       Stable_eq_stable, Join_stable]) 1);
 by (force_tac(claset() addIs [stable_Int], simpset()) 1);
-qed "stable_Join_Always";
+qed "stable_Join_Always1";
+
+(*As above, but exchanging the roles of F and G*)
+Goal "[| F : invariant A;  G : stable A |] ==> F Join G : Always A";
+by (stac Join_commute 1);
+by (blast_tac (claset() addIs [stable_Join_Always1]) 1);
+qed "stable_Join_Always2";
 
 Goal "[| F : stable A;  G : A ensures B |] ==> F Join G : A ensures B";
 by (asm_simp_tac (simpset() addsimps [Join_ensures]) 1);

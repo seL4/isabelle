@@ -203,6 +203,11 @@ qed "Stable_reachable";
 
 (*** Increasing ***)
 
+Goalw [Increasing_def]
+     "F : Increasing f ==> F : Stable {s. x <= f s}";
+by (Blast_tac 1);
+qed "IncreasingD";
+
 Goalw [Increasing_def, Stable_def, Constrains_def, stable_def, constrains_def]
      "mono g ==> Increasing f <= Increasing (g o f)";
 by Auto_tac;
@@ -210,10 +215,10 @@ by (blast_tac (claset() addIs [monoD, order_trans]) 1);
 qed "mono_Increasing_o";
 
 Goalw [Increasing_def]
-     "Increasing f <= {F. ALL z::nat. F: Stable {s. z < f s}}";
+     "!!z::nat. F : Increasing f ==> F: Stable {s. z < f s}";
 by (simp_tac (simpset() addsimps [Suc_le_eq RS sym]) 1);
 by (Blast_tac 1);
-qed "Increasing_Stable_less";
+qed "strict_IncreasingD";
 
 Goalw [increasing_def, Increasing_def]
      "F : increasing f ==> F : Increasing f";

@@ -6,10 +6,10 @@
 Distributed Resource Management System: the Client
 *)
 
-Client = Guar + 
+Client = Extend + 
 
 consts
-  Max :: nat       (*Maximum number of tokens*)
+  NbT :: nat       (*Maximum number of tokens*)
 
 types
   tokbag = nat	   (*tokbags could be multisets...or any ordered type?*)
@@ -40,19 +40,21 @@ constdefs
       of the action to be ignored **)
 
   tok_act :: "(state*state) set"
-    "tok_act == {(s,s'). s'=s | (EX t: atMost Max. s' = s (|tok := t|))}"
+    "tok_act == {(s,s'). s'=s | (EX t: atMost NbT. s' = s (|tok := t|))}"
 
+  (*
+      "tok_act == {(s,s'). s'=s | s' = s (|tok := Suc (tok s mod NbT) |)}"
+  *)
+
+  
   ask_act :: "(state*state) set"
     "ask_act == {(s,s'). s'=s |
-		         (s' = s (|ask := ask s @ [tok s]|) &
-		          size (ask s) = size (rel s))}"
+		         (s' = s (|ask := ask s @ [tok s]|))}"
 
-  Cli_prg :: state program
-    "Cli_prg == mk_program ({s. tok s : atMost Max &
-			        giv s = [] &
-			        ask s = [] &
-			        rel s = []},
-			    {rel_act, tok_act, ask_act})"
+  Client :: state program
+    "Client == mk_program ({s. tok s : atMost NbT &
+		               giv s = [] & ask s = [] & rel s = []},
+			   {rel_act, tok_act, ask_act})"
 
   giv_meets_ask :: state set
     "giv_meets_ask ==

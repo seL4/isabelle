@@ -122,7 +122,7 @@ qed "good_map_lift_map";
 
 fun lift_export0 th = 
     good_map_lift_map RS export th 
-       |> simplify (simpset() addsimps [fold_o_sub]);;
+       |> simplify (simpset() addsimps [fold_o_sub]);
 
 Goal "fst (inv (lift_map i) g) = g i";
 by (rtac (good_map_lift_map RS good_map_is_surj RS fst_inv_equalityI) 1);
