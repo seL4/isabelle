@@ -66,6 +66,8 @@ by (auto_tac (claset() addIs [Id_in_Acts RSN (2,image_eqI)], simpset()));
 qed "Acts_drop_prog";
 Addsimps [Acts_drop_prog];
 
+(** These monotonicity results look natural but are UNUSED **)
+
 Goal "F component G ==> lift_prog i F component lift_prog i G";
 by (full_simp_tac (simpset() addsimps [component_eq_subset]) 1);
 by Auto_tac;
@@ -177,16 +179,16 @@ by (auto_tac (claset(),
 	      simpset() addsimps [constrains_def]));
 by (Blast_tac 2);
 by (Force_tac 1);
-qed "lift_prog_constrains_eq";
+qed "lift_prog_constrains";
 
 Goal "(lift_prog i F : stable (lift_set i A)) = (F : stable A)";
-by (simp_tac (simpset() addsimps [stable_def, lift_prog_constrains_eq]) 1);
-qed "lift_prog_stable_eq";
+by (simp_tac (simpset() addsimps [stable_def, lift_prog_constrains]) 1);
+qed "lift_prog_stable";
 
 Goal "(lift_prog i F : invariant (lift_set i A)) = (F : invariant A)";
 by (auto_tac (claset(),
-	      simpset() addsimps [invariant_def, lift_prog_stable_eq]));
-qed "lift_prog_invariant_eq";
+	      simpset() addsimps [invariant_def, lift_prog_stable]));
+qed "lift_prog_invariant";
 
 (*This one looks strange!  Proof probably is by case analysis on i=j.
   If i~=j then lift_prog j (F j) does nothing to lift_set i, and the 
@@ -207,14 +209,14 @@ by Auto_tac;
 by (force_tac (claset(), 
 	       simpset() addsimps [drop_act_def]) 2);
 by (blast_tac (claset() addIs [drop_act_I]) 1);
-qed "drop_prog_constrains_eq";
+qed "drop_prog_constrains";
 
 Goal "(drop_prog i F : stable A)  =  (F : stable (lift_set i A))";
-by (simp_tac (simpset() addsimps [stable_def, drop_prog_constrains_eq]) 1);
-qed "drop_prog_stable_eq";
+by (simp_tac (simpset() addsimps [stable_def, drop_prog_constrains]) 1);
+qed "drop_prog_stable";
 
 
-(** Diff, needed for localTo **)
+(*** Diff, needed for localTo ***)
 
 Goal "Diff G (lift_act i `` Acts F) : (lift_set i A) co (lift_set i B)  \
 \     ==> Diff (drop_prog i G) (Acts F) : A co B";
@@ -232,12 +234,12 @@ Goalw [stable_def]
 by (etac Diff_drop_prog_co 1);
 qed "Diff_drop_prog_stable";
 
-Goal "Diff G (Acts F) : A co B  \
+Goalw [constrains_def, Diff_def]
+     "Diff G (Acts F) : A co B  \
 \     ==> Diff (lift_prog i G) (lift_act i `` Acts F) \
 \         : (lift_set i A) co (lift_set i B)";
-by (auto_tac (claset(), 
-	      simpset() addsimps [constrains_def, Diff_def]));
-by (auto_tac (claset(), simpset() addsimps [drop_act_def]));
+by Auto_tac;
+by (Blast_tac 1);
 qed "Diff_lift_prog_co";
 
 Goalw [stable_def]
@@ -247,7 +249,7 @@ by (etac Diff_lift_prog_co 1);
 qed "Diff_lift_prog_stable";
 
 
-(*** Weak versions: Co, Stable ***)
+(*** Weak safety primitives: Co, Stable ***)
 
 (** Reachability **)
 
@@ -276,12 +278,12 @@ Goal "(lift_prog i F : (lift_set i A) Co (lift_set i B))  =  \
 \     (F : A Co B)";
 by (simp_tac (simpset() addsimps [Constrains_def, reachable_lift_prog,
 				  lift_set_Int RS sym,
-				  lift_prog_constrains_eq]) 1);
-qed "lift_prog_Constrains_eq";
+				  lift_prog_constrains]) 1);
+qed "lift_prog_Constrains";
 
 Goal "(lift_prog i F : Stable (lift_set i A)) = (F : Stable A)";
-by (simp_tac (simpset() addsimps [Stable_def, lift_prog_Constrains_eq]) 1);
-qed "lift_prog_Stable_eq";
+by (simp_tac (simpset() addsimps [Stable_def, lift_prog_Constrains]) 1);
+qed "lift_prog_Stable";
 
 (** Reachability and drop_prog **)
 
@@ -298,7 +300,7 @@ qed "reachable_imp_reachable_drop_prog";
 *)
 Goalw [Constrains_def]
      "drop_prog i F : A Co B ==> F : (lift_set i A) Co (lift_set i B)";
-by (full_simp_tac (simpset() addsimps [drop_prog_constrains_eq]) 1);
+by (full_simp_tac (simpset() addsimps [drop_prog_constrains]) 1);
 by (etac constrains_weaken_L 1);
 by Auto_tac;
 by (etac reachable_imp_reachable_drop_prog 1);
@@ -353,19 +355,20 @@ by (subgoal_tac
 \    co lift_set i A" 1);
 by (asm_full_simp_tac 
     (simpset() addsimps [lift_set_Int RS sym,
-			 lift_prog_constrains_eq,
-			 drop_prog_constrains_eq RS sym,
+			 lift_prog_constrains,
+			 drop_prog_constrains RS sym,
 			 drop_prog_lift_prog_Join]) 2);
 by (blast_tac (claset() addIs [constrains_weaken, 
 			       reachable_lift_prog_Join_D]) 1);
-qed "lift_prog_Join_Stable_eq";
+qed "lift_prog_Join_Stable";
 
 
 (*** guarantees properties ***)
 
 (** It seems that neither of these can be proved from the other. **)
 
-(*Strong precondition and postcondition; doesn't seem very useful*)
+(*Strong precondition and postcondition; doesn't seem very useful.
+  Probably can be strengthened to an equivalance.*)
 Goal "F : X guar Y \
 \     ==> lift_prog i F : (lift_prog i `` X) guar (lift_prog i `` Y)";
 by (rtac guaranteesI 1);
@@ -373,15 +376,15 @@ by Auto_tac;
 by (blast_tac (claset() addDs [lift_prog_Join_eq_lift_prog_D, guaranteesD]) 1);
 qed "lift_prog_guarantees";
 
-(*Weak precondition and postcondition; doesn't seem very useful*)
-Goal "[| F : X guar Y;  drop_prog i `` XX <= X;  \
-\        ALL G. F Join drop_prog i G : Y --> lift_prog i F Join G : YY |] \
+(*Weak precondition and postcondition; this is the good one!*)
+val [xguary,drop_prog,lift_prog] =
+Goal "[| F : X guar Y;  \
+\        !!H. H : XX ==> drop_prog i H : X;  \
+\        !!G. F Join drop_prog i G : Y ==> lift_prog i F Join G : YY |] \
 \     ==> lift_prog i F : XX guar YY";
-by (rtac guaranteesI 1);
-by (dtac guaranteesD 1);
-by (etac subsetD 1);
-by (rtac image_eqI 1);
-by (auto_tac (claset(), simpset() addsimps [drop_prog_lift_prog_Join]));
+by (rtac (xguary RS guaranteesD RS lift_prog RS guaranteesI) 1);
+by (dtac drop_prog 1);
+by (full_simp_tac (simpset() addsimps [drop_prog_lift_prog_Join]) 1);
 qed "drop_prog_guarantees";
 
 
@@ -405,7 +408,7 @@ qed "Collect_eq_lift_set";
 Goal "lift_prog i `` Stable {s. P (f s)} <= Stable {s. P (f (s i))}";
 by Auto_tac;
 by (stac Collect_eq_lift_set 1); 
-by (asm_simp_tac (simpset() addsimps [lift_prog_Stable_eq]) 1);
+by (asm_simp_tac (simpset() addsimps [lift_prog_Stable]) 1);
 qed "image_lift_prog_Stable";
 
 Goal "lift_prog i `` Increasing f <= Increasing (f o sub i)";
@@ -424,7 +427,7 @@ by (etac drop_prog_guarantees 1);
 by Auto_tac;
 by (stac Collect_eq_lift_set 1); 
 by (asm_full_simp_tac
-    (simpset() addsimps [lift_prog_stable_eq, drop_prog_stable_eq, 
+    (simpset() addsimps [lift_prog_stable, drop_prog_stable, 
 			 stable_Join]) 1);
 qed "lift_prog_guar_increasing";
 
@@ -434,7 +437,7 @@ Goalw [Increasing_def]
 by (etac drop_prog_guarantees 1);
 by Auto_tac;
 by (stac Collect_eq_lift_set 1); 
-by (asm_simp_tac (simpset() addsimps [lift_prog_Join_Stable_eq]) 1);
+by (asm_simp_tac (simpset() addsimps [lift_prog_Join_Stable]) 1);
 qed "lift_prog_guar_Increasing";
 
 Goalw [localTo_def, increasing_def]
@@ -446,13 +449,13 @@ by Auto_tac;
 by (stac Collect_eq_lift_set 2); 
 (*the "increasing" guarantee*)
 by (asm_full_simp_tac
-    (simpset() addsimps [lift_prog_stable_eq, drop_prog_stable_eq, 
+    (simpset() addsimps [lift_prog_stable, drop_prog_stable, 
 			 stable_Join]) 2);
 (*the "localTo" requirement*)
 by (asm_simp_tac
     (simpset() addsimps [Diff_drop_prog_stable, 
 			 Collect_eq_lift_set RS sym]) 1); 
-qed "lift_prog_guar_increasing2";
+qed "lift_prog_localTo_guar_increasing";
 
 Goalw [localTo_def, Increasing_def]
      "F : (f localTo F) guar Increasing f  \
@@ -462,12 +465,12 @@ by (etac drop_prog_guarantees 1);
 by Auto_tac;
 by (stac Collect_eq_lift_set 2); 
 (*the "Increasing" guarantee*)
-by (asm_simp_tac (simpset() addsimps [lift_prog_Join_Stable_eq]) 2);
+by (asm_simp_tac (simpset() addsimps [lift_prog_Join_Stable]) 2);
 (*the "localTo" requirement*)
 by (asm_simp_tac
     (simpset() addsimps [Diff_drop_prog_stable, 
 			 Collect_eq_lift_set RS sym]) 1); 
-qed "lift_prog_guar_Increasing2";
+qed "lift_prog_localTo_guar_Increasing";
 
 (*Converse fails.  Useful?*)
 Goal "lift_prog i `` (f localTo F) <= (f o sub i) localTo (lift_prog i F)";
