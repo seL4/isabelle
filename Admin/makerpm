@@ -200,6 +200,9 @@ $ISABELLE_HOME/heaps/${COMPILER}/HOL-Real
 $ISABELLE_HOME/heaps/${COMPILER}/ZF
 
 %files
+%dir $ISABELLE_HOME
+%dir $ISABELLE_HOME/heaps
+%dir $ISABELLE_HOME/heaps/${COMPILER}
 EOF
 
 for F in $(ls -1 | grep -v heaps | grep -v browser_info)
