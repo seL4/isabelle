@@ -627,7 +627,7 @@ fun traceTerm sign t =
   end;
 
 
-val prs = std_output;
+val prs = std_output o Output.output;
 
 (*Print tracing information at each iteration of prover*)
 fun tracing sign brs = 
