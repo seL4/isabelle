@@ -38,6 +38,7 @@ sig
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
+  val print_thms_containing: xstring list -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_thms: (string * Args.src list) list -> Toplevel.transition -> Toplevel.transition
@@ -96,11 +97,11 @@ fun use name = Toplevel.keep (fn state =>
   Context.setmp (try Toplevel.theory_of state) ThyInfo.use name);
 
 (*passes changes of theory context*)
-val use_mltext_theory = Toplevel.theory o IsarThy.use_mltext_theory;
+val use_mltext_theory = Toplevel.theory' o IsarThy.use_mltext_theory;
 
 (*ignore result theory context*)
-fun use_mltext txt = Toplevel.keep (fn state =>
-  (IsarThy.use_mltext txt (try Toplevel.theory_of state); ()));
+fun use_mltext txt = Toplevel.keep' (fn verb => fn state =>
+  (IsarThy.use_mltext txt verb (try Toplevel.theory_of state)));
 
 (*Note: commit is dynamically bound*)
 val use_commit = use_mltext "commit();";
@@ -136,6 +137,9 @@ val print_syntax = Toplevel.keep (Display.print_syntax o Toplevel.theory_of);
 val print_theorems = Toplevel.keep (PureThy.print_theorems o Toplevel.theory_of);
 val print_attributes = Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
 val print_methods = Toplevel.keep (Method.print_methods o Toplevel.theory_of);
+
+fun print_thms_containing cs = Toplevel.keep (fn state =>
+  ThmDatabase.print_thms_containing (Toplevel.theory_of state) cs);
 
 
 (* print proof context contents *)
