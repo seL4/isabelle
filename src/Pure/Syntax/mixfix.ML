@@ -24,6 +24,7 @@ end;
 signature MIXFIX1 =
 sig
   include MIXFIX0
+  val literal: string -> mixfix
   val no_syn: 'a * 'b -> 'a * 'b * mixfix
   val string_of_mixfix: mixfix -> string
   val type_name: string -> mixfix -> string
@@ -65,6 +66,8 @@ datatype mixfix =
   Infixl of int |
   Infixr of int |
   Binder of string * int * int;
+
+val literal = Delimfix o SynExt.escape_mfix;
 
 fun no_syn (x, y) = (x, y, NoSyn);
 
