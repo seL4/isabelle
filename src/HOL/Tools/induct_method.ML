@@ -16,6 +16,7 @@ sig
       type_induct: (string * thm) list, set_induct: (string * thm) list}
   val print_local_rules: Proof.context -> unit
   val vars_of: term -> term list
+  val concls_of: thm -> term list
   val cases_type_global: string -> theory attribute
   val cases_set_global: string -> theory attribute
   val cases_type_local: string -> Proof.context attribute
@@ -141,7 +142,9 @@ end;
 
 (** misc utils **)
 
-(* terms *)
+(* thms and terms *)
+
+val concls_of = HOLogic.dest_conj o HOLogic.dest_Trueprop o Thm.concl_of;
 
 fun vars_of tm =        (*ordered left-to-right, preferring right!*)
   Term.foldl_aterms (fn (ts, t as Var _) => t :: ts | (ts, _) => ts) ([], tm)
@@ -295,15 +298,21 @@ fun induct_tac (ctxt, (stripped, args)) facts =
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
 
+    fun prep_var (x, Some t) = Some (cert x, cert t)
+      | prep_var (_, None) = None;
+
     fun prep_inst (concl, ts) =
       let val xs = vars_of concl; val n = length xs - length ts in
-        if n < 0 then error "More arguments given than in induction rule"
-        else map cert (Library.drop (n, xs)) ~~ map cert ts
+        if n < 0 then error "More variables than given than in induction rule"
+        else mapfilter prep_var (Library.drop (n, xs) ~~ ts)
       end;
 
     fun inst_rule insts thm =
-      Drule.cterm_instantiate (flat (map2 prep_inst
-        (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of thm)), insts))) thm;
+      let val concls = concls_of thm in
+        if length concls < length insts then
+          error "More arguments than given than in induction rule"
+        else Drule.cterm_instantiate (flat (map prep_inst (concls ~~ insts))) thm
+      end;
 
     fun find_induct th =
       NetRules.may_unify (#2 (get_induct ctxt))
@@ -313,7 +322,8 @@ fun induct_tac (ctxt, (stripped, args)) facts =
       (case (args, facts) of
         (([], None), []) => []
       | ((insts, None), []) =>
-          let val thms = map (induct_rule ctxt o last_elem) insts
+          let val thms = map (induct_rule ctxt o last_elem o mapfilter I) insts
+            handle Library.LIST _ => error "Unable to figure out type induction rule"
           in [(inst_rule insts (join_rules thms), RuleCases.get (#2 (hd thms)))] end
       | (([], None), th :: _) => map (RuleCases.add o #2) (find_induct th)
       | ((insts, None), th :: _) =>
@@ -392,16 +402,17 @@ val induct_rule = rule lookup_inductT lookup_inductS;
 
 val kind = (Args.$$$ typeN || Args.$$$ setN || Args.$$$ ruleN) -- Args.$$$ ":";
 val term = Scan.unless (Scan.lift kind) Args.local_term;
+val term_dummy = Scan.unless (Scan.lift kind)
+  (Scan.lift (Args.$$$ "_") >> K None || Args.local_term >> Some);
 
 fun mode name =
   Scan.lift (Scan.optional (Args.$$$ name -- Args.$$$ ":" >> K true) false);
 
 in
 
-val cases_args =
-  Method.syntax (mode simplifiedN -- (Scan.option term -- Scan.option cases_rule));
-val induct_args =
-  Method.syntax (mode strippedN -- (Args.and_list (Scan.repeat1 term) -- Scan.option induct_rule));
+val cases_args = Method.syntax (mode simplifiedN -- (Scan.option term -- Scan.option cases_rule));
+val induct_args = Method.syntax
+  (mode strippedN -- (Args.and_list (Scan.repeat term_dummy) -- Scan.option induct_rule));
 
 end;
 
