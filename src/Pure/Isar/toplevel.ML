@@ -385,7 +385,7 @@ fun exn_message TERMINATE = "Exit."
   | exn_message (ProofHistory.FAIL msg) = msg
   | exn_message (Attrib.ATTRIB_FAIL info) = fail_message "attribute" info
   | exn_message (Method.METHOD_FAIL info) = fail_message "method" info
-  | exn_message (Comment.OUTPUT_FAIL info) = fail_message "antiquotation" info
+  | exn_message (Antiquote.ANTIQUOTE_FAIL info) = fail_message "antiquotation" info
   | exn_message (Syntax.AST (msg, _)) = raised_msg "AST" msg
   | exn_message (TYPE (msg, _, _)) = raised_msg "TYPE" msg
   | exn_message (TERM (msg, _)) = raised_msg "TERM" msg
@@ -471,9 +471,9 @@ fun exn () = snd (! global_state);
 
 type isar =
   (transition, (transition option,
-    (OuterLex.token, (OuterLex.token,
+    (OuterLex.token, (OuterLex.token option, (OuterLex.token, (OuterLex.token,
       Position.T * (Symbol.symbol, (string, unit) Source.source) Source.source)
-          Source.source) Source.source) Source.source) Source.source;
+          Source.source) Source.source) Source.source) Source.source) Source.source) Source.source;
 
 
 (* apply transformers to global state *)

@@ -63,7 +63,7 @@ fun command src =
   let val ((name, _), pos) = Args.dest_src src in
     (case Symtab.lookup (! global_commands, name) of
       None => error ("Unknown antiquotation command: " ^ quote name ^ Position.str_of pos)
-    | Some f => transform_failure (curry Comment.OUTPUT_FAIL (name, pos)) (f src))
+    | Some f => transform_failure (curry Antiquote.ANTIQUOTE_FAIL (name, pos)) (f src))
   end;
 
 fun option (name, s) f () =

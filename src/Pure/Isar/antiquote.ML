@@ -8,6 +8,7 @@ Text with antiquotations of inner items (terms, types etc.).
 
 signature ANTIQUOTE =
 sig
+  exception ANTIQUOTE_FAIL of (string * Position.T) * exn
   datatype antiquote = Text of string | Antiq of string * Position.T
   val is_antiq: antiquote -> bool
   val antiquotes_of: string * Position.T -> antiquote list
@@ -17,6 +18,8 @@ structure Antiquote: ANTIQUOTE =
 struct
 
 (* datatype antiquote *)
+
+exception ANTIQUOTE_FAIL of (string * Position.T) * exn;
 
 datatype antiquote =
   Text of string |
