@@ -26,22 +26,14 @@ use     "ind_syntax";
 use     "Tools/cartprod";
 use_thy "Fixedpt";
 use     "Tools/inductive_package";
-use_thy "Inductive";
 use     "Tools/induct_tacs";
 use     "Tools/primrec_package";
+use_thy "Inductive";
 use_thy "QUniv";
 use     "Tools/datatype_package";
-use_thy "Datatype";
-use_thy "InfDatatype";
-use_thy "List";
-
-(*Integers & binary integer arithmetic*)
-cd "Integ";
-use_thy "Bin";
-cd "..";
 
 (*the all-in-one theory*)
-use_thy "Main";
+with_path "Integ" use_thy "Main";
 
 simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all);
 
