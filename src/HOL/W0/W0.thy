@@ -426,7 +426,7 @@ proof -
 qed
 
 
-section {* Correctness and completeness of the type inference algorithm @{text \<W>} *}
+section {* Correctness and completeness of the type inference algorithm W *}
 
 consts
   W :: "expr \<Rightarrow> typ list \<Rightarrow> nat \<Rightarrow> (subst \<times> typ \<times> nat) maybe"  ("\<W>")
@@ -785,7 +785,7 @@ lemma W_complete: "[] |- e :: t' ==>
   done
 
 
-section {* Equivalence of @{text \<W>} and @{text \<I>} *}
+section {* Equivalence of W and I *}
 
 text {*
   Recursive definition of type inference algorithm @{text \<I>} for
