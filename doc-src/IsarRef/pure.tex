@@ -714,9 +714,9 @@ come in handy for exploring and debugging.
 
 \begin{descr}
 \item [$\isarkeyword{apply}~(m)$] applies proof method $m$ in the
-  plain-old-tactic sense.  Facts for forward chaining are ignored.
+  plain-old-tactic sense.  Facts for forward chaining are reset.
 \item [$\isarkeyword{then_apply}~(m)$] is similar to $\isarkeyword{apply}$,
-  but observes the goal's facts.
+  but keeps the goal's facts.
 \item [$\isarkeyword{back}$] does back-tracking over the result sequence of
   the latest proof command.\footnote{Unlike the ML function \texttt{back}
     \cite{isabelle-ref}, the Isar command does not search upwards for further
