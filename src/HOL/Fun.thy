@@ -28,6 +28,13 @@ translations
 defs
   fun_upd_def "f(a:=b) == % x. if x=a then b else f x"
 
+(* Hint: to define the sum of two functions (or maps), use sum_case.
+         A nice infix syntax could be defined (in Datatype.thy or below) by
+consts
+  fun_sum :: "('a => 'c) => ('b => 'c) => (('a+'b) => 'c)" (infixr "'(+')"80)
+translations
+ "fun_sum" == "sum_case"
+*)
   
 constdefs
   id ::  'a => 'a
