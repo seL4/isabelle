@@ -60,6 +60,7 @@ qed "keysFor_insert_MPair";
 goalw thy [keysFor_def]
     "keysFor (insert (Crypt X K) H) = insert (invKey K) (keysFor H)";
 by (Auto_tac());
+by (Fast_tac 1);
 qed "keysFor_insert_Crypt";
 
 Addsimps [keysFor_empty, keysFor_Un, keysFor_UN, 

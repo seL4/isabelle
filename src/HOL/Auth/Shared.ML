@@ -20,6 +20,12 @@ val subset_range_iff = result();
 
 open Shared;
 
+(*Holds because Friend is injective: thus cannot prove for all f*)
+goal thy "(Friend x : Friend``A) = (x:A)";
+by (Auto_tac());
+qed "Friend_image_eq";
+Addsimps [Friend_image_eq];
+
 Addsimps [Un_insert_left, Un_insert_right];
 
 (*By default only o_apply is built-in.  But in the presence of eta-expansion
@@ -96,19 +102,20 @@ qed "shrK_notin_image_newK";
 Addsimps [shrK_notin_image_newK];
 
 
-(*Agents see their own shrKs!*)
-goal thy "Key (shrK A) : analz (sees A evs)";
+(*Agents see their own shared keys!*)
+goal thy "Key (shrK A) : sees A evs";
 by (list.induct_tac "evs" 1);
-by (asm_simp_tac (!simpset addsimps [impOfSubs(Un_upper2 RS analz_mono)]) 2);
 by (agent.induct_tac "A" 1);
-by (auto_tac (!claset addIs [range_eqI], !simpset));
-qed "analz_own_shrK";
+by (Auto_tac ());
+qed "sees_own_shrK";
 
-bind_thm ("parts_own_shrK",
-	  [analz_subset_parts, analz_own_shrK] MRS subsetD);
+(*Enemy sees leaked shrKs!*)
+goal thy "!!i. i: leaked ==> Key (shrK (Friend i)) : sees Enemy evs";
+by (list.induct_tac "evs" 1);
+by (Auto_tac ());
+qed "Enemy_sees_leaked";
 
-Addsimps [analz_own_shrK, parts_own_shrK];
-
+AddSIs [sees_own_shrK, Enemy_sees_leaked];
 
 
 (** Specialized rewrite rules for (sees A (Says...#evs)) **)
