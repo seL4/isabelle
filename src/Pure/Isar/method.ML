@@ -19,6 +19,7 @@ sig
   val fail: Proof.method
   val succeed: Proof.method
   val insert_tac: thm list -> int -> tactic
+  val insert: thm list -> Proof.method
   val insert_facts: Proof.method
   val fold: thm list -> Proof.method
   val unfold: thm list -> Proof.method
@@ -110,6 +111,7 @@ fun insert_tac [] i = all_tac
   | insert_tac facts i = EVERY (map (fn th => cut_rule_tac th i) facts);
 
 val insert_facts = METHOD (ALLGOALS o insert_tac);
+fun insert thms = METHOD (fn facts => ALLGOALS (insert_tac (thms @ facts)));
 
 end;
 
@@ -378,7 +380,8 @@ val global_default_proof = global_terminal_proof (default_text, None);
 val pure_methods =
  [("fail", no_args fail, "force failure"),
   ("succeed", no_args succeed, "succeed"),
-  ("-", no_args insert_facts, "insert facts"),
+  ("-", no_args insert_facts, "do nothing, inserting current facts only"),
+  ("insert", thms_args insert, "insert facts (improper!)"),
   ("fold", thms_args fold, "fold definitions, ignoring facts"),
   ("unfold", thms_args unfold, "unfold definitions, ignoring facts"),
   ("rule", thms_args rule, "apply some rule"),
