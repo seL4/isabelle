@@ -19,7 +19,8 @@
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 FILES =  ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
-	../Provers/classical.ML ../Provers/simplifier.ML ../Provers/ind.ML
+	../Provers/hypsubst.ML ../Provers/classical.ML \
+        ../Provers/simplifier.ML ../Provers/splitter.ML ../Provers/ind.ML
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML\
 	   ex/intro.ML ex/List.ML ex/List.thy ex/Nat.ML ex/Nat.thy\
