@@ -861,99 +861,6 @@ apply (erule formula.cases)
    apply (simp_all add: Relativize1_def Relativize2_def) 
 done
 
-
-subsubsection{*@{term quasiformula}: For Case-Splitting with @{term formula_case'}*}
-
-constdefs
-
-  quasiformula :: "i => o"
-    "quasiformula(p) == 
-	(\<exists>x y. p = Member(x,y)) |
-	(\<exists>x y. p = Equal(x,y)) |
-	(\<exists>x y. p = Nand(x,y)) |
-	(\<exists>x. p = Forall(x))"
-
-  is_quasiformula :: "[i=>o,i] => o"
-    "is_quasiformula(M,p) == 
-	(\<exists>x[M]. \<exists>y[M]. is_Member(M,x,y,p)) |
-	(\<exists>x[M]. \<exists>y[M]. is_Equal(M,x,y,p)) |
-	(\<exists>x[M]. \<exists>y[M]. is_Nand(M,x,y,p)) |
-	(\<exists>x[M]. is_Forall(M,x,p))"
-
-lemma [iff]: "quasiformula(Member(x,y))"
-by (simp add: quasiformula_def)
-
-lemma [iff]: "quasiformula(Equal(x,y))"
-by (simp add: quasiformula_def)
-
-lemma [iff]: "quasiformula(Nand(x,y))"
-by (simp add: quasiformula_def)
-
-lemma [iff]: "quasiformula(Forall(x))"
-by (simp add: quasiformula_def)
-
-lemma formula_imp_quasiformula: "p \<in> formula ==> quasiformula(p)"
-by (erule formula.cases, simp_all)
-
-lemma (in M_triv_axioms) quasiformula_abs [simp]: 
-     "M(z) ==> is_quasiformula(M,z) <-> quasiformula(z)"
-by (auto simp add: is_quasiformula_def quasiformula_def)
-
-constdefs
-
-  formula_case' :: "[[i,i]=>i, [i,i]=>i, [i,i]=>i, i=>i, i] => i"
-    --{*A version of @{term formula_case} that's always defined.*}
-    "formula_case'(a,b,c,d,p) == 
-       if quasiformula(p) then formula_case(a,b,c,d,p) else 0"  
-
-  is_formula_case' :: 
-      "[i=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i,i]=>o, [i,i]=>o, i, i] => o"
-    --{*Returns 0 for non-formulas*}
-    "is_formula_case'(M, is_a, is_b, is_c, is_d, p, z) == 
-	(\<forall>x[M]. \<forall>y[M]. is_Member(M,x,y,p) --> is_a(x,y,z)) &
-	(\<forall>x[M]. \<forall>y[M]. is_Equal(M,x,y,p) --> is_b(x,y,z)) &
-	(\<forall>x[M]. \<forall>y[M]. is_Nand(M,x,y,p) --> is_c(x,y,z)) &
-	(\<forall>x[M]. is_Forall(M,x,p) --> is_d(x,z)) &
-        (is_quasiformula(M,p) | empty(M,z))"
-
-subsubsection{*@{term formula_case'}, the Modified Version of @{term formula_case}*}
-
-lemma formula_case'_Member [simp]:
-     "formula_case'(a,b,c,d,Member(x,y)) = a(x,y)"
-by (simp add: formula_case'_def)
-
-lemma formula_case'_Equal [simp]:
-     "formula_case'(a,b,c,d,Equal(x,y)) = b(x,y)"
-by (simp add: formula_case'_def)
-
-lemma formula_case'_Nand [simp]:
-     "formula_case'(a,b,c,d,Nand(x,y)) = c(x,y)"
-by (simp add: formula_case'_def)
-
-lemma formula_case'_Forall [simp]:
-     "formula_case'(a,b,c,d,Forall(x)) = d(x)"
-by (simp add: formula_case'_def)
-
-lemma non_formula_case: "~ quasiformula(x) ==> formula_case'(a,b,c,d,x) = 0" 
-by (simp add: quasiformula_def formula_case'_def) 
-
-lemma formula_case'_eq_formula_case [simp]:
-     "p \<in> formula ==>formula_case'(a,b,c,d,p) = formula_case(a,b,c,d,p)"
-by (erule formula.cases, simp_all)
-
-lemma (in M_axioms) formula_case'_closed [intro,simp]:
-  "[|M(p); \<forall>x[M]. \<forall>y[M]. M(a(x,y)); 
-           \<forall>x[M]. \<forall>y[M]. M(b(x,y)); 
-           \<forall>x[M]. \<forall>y[M]. M(c(x,y)); 
-           \<forall>x[M]. M(d(x))|] ==> M(formula_case'(a,b,c,d,p))"
-apply (case_tac "quasiformula(p)") 
- apply (simp add: quasiformula_def, force) 
-apply (simp add: non_formula_case) 
-done
-
-text{*Compared with @{text formula_case_closed'}, the premise on @{term p} is
-      stronger while the other premises are weaker, incorporating typing 
-      information.*}
 lemma (in M_datatypes) formula_case_closed [intro,simp]:
   "[|p \<in> formula; 
      \<forall>x[M]. \<forall>y[M]. x\<in>nat --> y\<in>nat --> M(a(x,y)); 
@@ -961,46 +868,6 @@ lemma (in M_datatypes) formula_case_closed [intro,simp]:
      \<forall>x[M]. \<forall>y[M]. x\<in>formula --> y\<in>formula --> M(c(x,y)); 
      \<forall>x[M]. x\<in>formula --> M(d(x))|] ==> M(formula_case(a,b,c,d,p))"
 by (erule formula.cases, simp_all) 
-
-lemma (in M_triv_axioms) formula_case'_abs [simp]: 
-     "[| relativize2(M,is_a,a); relativize2(M,is_b,b); 
-         relativize2(M,is_c,c); relativize1(M,is_d,d); M(p); M(z) |] 
-      ==> is_formula_case'(M,is_a,is_b,is_c,is_d,p,z) <-> 
-          z = formula_case'(a,b,c,d,p)"
-apply (case_tac "quasiformula(p)") 
- prefer 2 
- apply (simp add: is_formula_case'_def non_formula_case) 
- apply (force simp add: quasiformula_def) 
-apply (simp add: quasiformula_def is_formula_case'_def)
-apply (elim disjE exE) 
- apply (simp_all add: relativize1_def relativize2_def) 
-done
-
-
-text{*Express @{term formula_rec} without using @{term rank} or @{term Vset},
-neither of which is absolute.*}
-lemma (in M_triv_axioms) formula_rec_eq:
-  "p \<in> formula ==>
-   formula_rec(a,b,c,d,p) = 
-   transrec (succ(depth(p)),
-      \<lambda>x h. Lambda (formula,
-             formula_case' (a, b,
-                \<lambda>u v. c(u, v, h ` succ(depth(u)) ` u, 
-                              h ` succ(depth(v)) ` v),
-                \<lambda>u. d(u, h ` succ(depth(u)) ` u)))) 
-   ` p"
-apply (induct_tac p)
-   txt{*Base case for @{term Member}*}
-   apply (subst transrec, simp add: formula.intros) 
-  txt{*Base case for @{term Equal}*}
-  apply (subst transrec, simp add: formula.intros)
- txt{*Inductive step for @{term Nand}*}
- apply (subst transrec) 
- apply (simp add: succ_Un_distrib formula.intros)
-txt{*Inductive step for @{term Forall}*}
-apply (subst transrec) 
-apply (simp add: formula_imp_formula_N formula.intros) 
-done
 
 
 subsection{*Absoluteness for the Formula Operator @{term depth}*}
@@ -1026,6 +893,136 @@ text{*Proof is trivial since @{term depth} returns natural numbers.*}
 lemma (in M_triv_axioms) depth_closed [intro,simp]:
      "p \<in> formula ==> M(depth(p))"
 by (simp add: nat_into_M) 
+
+
+subsection {*Absoluteness for @{term formula_rec}*}
+
+constdefs
+
+  formula_rec_case :: "[[i,i]=>i, [i,i]=>i, [i,i,i,i]=>i, [i,i]=>i, i, i] => i"
+    --{* the instance of @{term formula_case} in @{term formula_rec}*}
+   "formula_rec_case(a,b,c,d,h) ==
+        formula_case (a, b,
+                \<lambda>u v. c(u, v, h ` succ(depth(u)) ` u, 
+                              h ` succ(depth(v)) ` v),
+                \<lambda>u. d(u, h ` succ(depth(u)) ` u))"
+
+  is_formula_rec :: "[i=>o, [i,i,i]=>o, i, i] => o"
+    --{* predicate to relativize the functional @{term formula_rec}*}
+   "is_formula_rec(M,MH,p,z)  ==
+      \<exists>dp[M]. \<exists>i[M]. \<exists>f[M]. finite_ordinal(M,dp) & is_depth(M,p,dp) & 
+             successor(M,dp,i) & fun_apply(M,f,p,z) & is_transrec(M,MH,i,f)"
+
+text{*Unfold @{term formula_rec} to @{term formula_rec_case}.
+     Express @{term formula_rec} without using @{term rank} or @{term Vset},
+neither of which is absolute.*}
+lemma (in M_triv_axioms) formula_rec_eq:
+  "p \<in> formula ==>
+   formula_rec(a,b,c,d,p) = 
+   transrec (succ(depth(p)),
+             \<lambda>x h. Lambda (formula, formula_rec_case(a,b,c,d,h))) ` p"
+apply (simp add: formula_rec_case_def)
+apply (induct_tac p)
+   txt{*Base case for @{term Member}*}
+   apply (subst transrec, simp add: formula.intros) 
+  txt{*Base case for @{term Equal}*}
+  apply (subst transrec, simp add: formula.intros)
+ txt{*Inductive step for @{term Nand}*}
+ apply (subst transrec) 
+ apply (simp add: succ_Un_distrib formula.intros)
+txt{*Inductive step for @{term Forall}*}
+apply (subst transrec) 
+apply (simp add: formula_imp_formula_N formula.intros) 
+done
+
+
+text{*Sufficient conditions to relative the instance of @{term formula_case}
+      in @{term formula_rec}*}
+lemma (in M_datatypes) Relativize1_formula_rec_case:
+     "[|Relativize2(M, nat, nat, is_a, a);
+        Relativize2(M, nat, nat, is_b, b);
+        Relativize2 (M, formula, formula, 
+           is_c, \<lambda>u v. c(u, v, h`succ(depth(u))`u, h`succ(depth(v))`v));
+        Relativize1(M, formula, 
+           is_d, \<lambda>u. d(u, h ` succ(depth(u)) ` u));
+ 	M(h) |] 
+      ==> Relativize1(M, formula,
+                         is_formula_case (M, is_a, is_b, is_c, is_d),
+                         formula_rec_case(a, b, c, d, h))"
+apply (simp (no_asm) add: formula_rec_case_def Relativize1_def) 
+apply (simp add: formula_case_abs) 
+done
+
+
+text{*This locale packages the premises of the following theorems,
+      which is the normal purpose of locales.  It doesn't accumulate
+      constraints on the class @{term M}, as in most of this deveopment.*}
+locale Formula_Rec = M_eclose +
+  fixes a and is_a and b and is_b and c and is_c and d and is_d and MH
+  defines
+      "MH(u::i,f,z) ==
+	\<forall>fml[M]. is_formula(M,fml) -->
+             is_lambda
+	 (M, fml, is_formula_case (M, is_a, is_b, is_c(f), is_d(f)), z)"
+
+  assumes a_closed: "[|x\<in>nat; y\<in>nat|] ==> M(a(x,y))"
+      and a_rel:    "Relativize2(M, nat, nat, is_a, a)"
+      and b_closed: "[|x\<in>nat; y\<in>nat|] ==> M(b(x,y))"
+      and b_rel:    "Relativize2(M, nat, nat, is_b, b)"
+      and c_closed: "[|x \<in> formula; y \<in> formula; M(gx); M(gy)|]
+                     ==> M(c(x, y, gx, gy))"
+      and c_rel:
+         "M(f) ==> 
+          Relativize2 (M, formula, formula, is_c(f),
+             \<lambda>u v. c(u, v, f ` succ(depth(u)) ` u, f ` succ(depth(v)) ` v))"
+      and d_closed: "[|x \<in> formula; M(gx)|] ==> M(d(x, gx))"
+      and d_rel:
+         "M(f) ==> 
+          Relativize1(M, formula, is_d(f), \<lambda>u. d(u, f ` succ(depth(u)) ` u))"
+      and fr_replace: "n \<in> nat ==> transrec_replacement(M,MH,n)"
+      and fr_lam_replace:
+           "M(g) ==>
+            strong_replacement
+	      (M, \<lambda>x y. x \<in> formula &
+		  y = \<langle>x, formula_rec_case(a,b,c,d,g,x)\<rangle>)";
+
+lemma (in Formula_Rec) formula_rec_case_closed:
+    "[|M(g); p \<in> formula|] ==> M(formula_rec_case(a, b, c, d, g, p))"
+by (simp add: formula_rec_case_def a_closed b_closed c_closed d_closed) 
+
+lemma (in Formula_Rec) formula_rec_lam_closed:
+    "M(g) ==> M(Lambda (formula, formula_rec_case(a,b,c,d,g)))"
+by (simp add: lam_closed2 fr_lam_replace formula_rec_case_closed)
+
+lemma (in Formula_Rec) MH_rel2:
+     "relativize2 (M, MH,
+             \<lambda>x h. Lambda (formula, formula_rec_case(a,b,c,d,h)))"
+apply (simp add: relativize2_def MH_def, clarify) 
+apply (rule lambda_abs2) 
+apply (rule fr_lam_replace, assumption)
+apply (rule Relativize1_formula_rec_case)  
+apply (simp_all add: a_rel b_rel c_rel d_rel formula_rec_case_closed) 
+done
+
+lemma (in Formula_Rec) fr_transrec_closed:
+    "n \<in> nat
+     ==> M(transrec
+          (n, \<lambda>x h. Lambda(formula, formula_rec_case(a, b, c, d, h))))"
+by (simp add: transrec_closed [OF fr_replace MH_rel2]  
+              nat_into_M formula_rec_lam_closed) 
+
+text{*The main two results: @{term formula_rec} is absolute for @{term M}.*}
+theorem (in Formula_Rec) formula_rec_closed:
+    "p \<in> formula ==> M(formula_rec(a,b,c,d,p))"
+by (simp add: formula_rec_eq fr_transrec_closed 
+              transM [OF _ formula_closed])
+
+theorem (in Formula_Rec) formula_rec_abs:
+  "[| p \<in> formula; M(z)|] 
+   ==> is_formula_rec(M,MH,p,z) <-> z = formula_rec(a,b,c,d,p)" 
+by (simp add: is_formula_rec_def formula_rec_eq transM [OF _ formula_closed]
+              transrec_abs [OF fr_replace MH_rel2] depth_type
+              fr_transrec_closed formula_rec_lam_closed eq_commute)
 
 
 end
