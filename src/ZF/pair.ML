@@ -154,3 +154,30 @@ val pair_cs = upair_cs
     addSEs [SigmaE2, SigmaE, Pair_inject, make_elim succ_inject,
 	    Pair_neq_0, sym RS Pair_neq_0, succ_neq_0, sym RS succ_neq_0];
 
+
+(*** Basic simplification for ZF; see simpdata.ML for full version ***)
+
+fun prove_fun s = 
+    (writeln s;  prove_goal ZF.thy s
+       (fn prems => [ (cut_facts_tac prems 1), (fast_tac pair_cs 1) ]));
+
+(*INCLUDED IN ZF_ss*)
+val mem_simps = map prove_fun
+ [ "a : 0             <-> False",
+   "a : A Un B        <-> a:A | a:B",
+   "a : A Int B       <-> a:A & a:B",
+   "a : A-B           <-> a:A & ~a:B",
+   "<a,b>: Sigma(A,B) <-> a:A & b:B(a)",
+   "a : Collect(A,P)  <-> a:A & P(a)" ];
+
+goal ZF.thy "{x.x:A} = A";
+by (fast_tac (pair_cs addSIs [equalityI]) 1);
+val triv_RepFun = result();
+
+(*INCLUDED: should be??*)
+val bquant_simps = map prove_fun
+ [ "(ALL x:0.P(x)) <-> True",
+   "(EX  x:0.P(x)) <-> False",
+   "(ALL x:succ(i).P(x)) <-> P(i) & (ALL x:i.P(x))",
+   "(EX  x:succ(i).P(x)) <-> P(i) | (EX  x:i.P(x))" ];
+

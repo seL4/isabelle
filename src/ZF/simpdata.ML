@@ -6,30 +6,6 @@
 Rewriting for ZF set theory -- based on FOL rewriting
 *)
 
-fun prove_fun s = 
-    (writeln s;  prove_goal ZF.thy s
-       (fn prems => [ (cut_facts_tac prems 1), (fast_tac ZF_cs 1) ]));
-
-(*INCLUDED IN ZF_ss*)
-val mem_simps = map prove_fun
- [ "a : 0             <-> False",
-   "a : A Un B        <-> a:A | a:B",
-   "a : A Int B       <-> a:A & a:B",
-   "a : A-B           <-> a:A & ~a:B",
-   "<a,b>: Sigma(A,B) <-> a:A & b:B(a)",
-   "a : Collect(A,P)  <-> a:A & P(a)" ];
-
-goal ZF.thy "{x.x:A} = A";
-by (fast_tac eq_cs 1);
-val triv_RepFun = result();
-
-(*INCLUDED: should be??*)
-val bquant_simps = map prove_fun
- [ "(ALL x:0.P(x)) <-> True",
-   "(EX  x:0.P(x)) <-> False",
-   "(ALL x:succ(i).P(x)) <-> P(i) & (ALL x:i.P(x))",
-   "(EX  x:succ(i).P(x)) <-> P(i) | (EX  x:i.P(x))" ];
-
 (** Tactics for type checking -- from CTT **)
 
 fun is_rigid_elem (Const("Trueprop",_) $ (Const("op :",_) $ a $ _)) = 
