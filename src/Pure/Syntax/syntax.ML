@@ -48,13 +48,11 @@ sig
   val print_syntax: syntax -> unit
   val test_read: syntax -> string -> string -> unit
   val read: syntax -> typ -> string -> term list
-  val read_typ: syntax -> (sort * sort -> bool)
-    -> ((indexname * sort) list -> indexname -> sort) -> string -> typ
+  val read_typ: syntax -> ((indexname * sort) list -> indexname -> sort) -> string -> typ
   val simple_read_typ: string -> typ
-  val pretty_term: bool -> syntax -> term -> Pretty.T
+  val pretty_term: syntax -> bool -> term -> Pretty.T
   val pretty_typ: syntax -> typ -> Pretty.T
-  val string_of_term: bool -> syntax -> term -> string
-  val string_of_typ: syntax -> typ -> string
+  val pretty_sort: syntax -> sort -> Pretty.T
   val simple_string_of_typ: typ -> string
   val simple_pprint_typ: typ -> pprint_args -> unit
   val ambiguity_level: int ref
@@ -379,14 +377,14 @@ fun read (syn as Syntax tabs) ty str =
 
 (* read types *)
 
-fun read_typ syn eq_sort get_sort str =
+fun read_typ syn get_sort str =
   (case read syn typeT str of
-    [t] => typ_of_term (get_sort (raw_term_sorts eq_sort t)) t
+    [t] => typ_of_term (get_sort (raw_term_sorts t)) t
   | _ => error "read_typ: ambiguous type syntax");
 
 fun simple_read_typ str =
   let fun get_sort env xi = if_none (assoc (env, xi)) [] in
-    read_typ type_syn eq_set_string get_sort str
+    read_typ type_syn get_sort str
   end;
 
 
@@ -444,9 +442,9 @@ fun prep_rules rd_pat raw_rules =
 
 
 
-(** pretty terms or typs **)
+(** pretty terms, typs, sorts **)
 
-fun pretty_t t_to_ast prt_t curried (syn as Syntax tabs) t =
+fun pretty_t t_to_ast prt_t (syn as Syntax tabs) curried t =
   let
     val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
     val ast = t_to_ast (lookup_trtab print_trtab) t;
@@ -457,13 +455,10 @@ fun pretty_t t_to_ast prt_t curried (syn as Syntax tabs) t =
   end;
 
 val pretty_term = pretty_t term_to_ast pretty_term_ast;
-val pretty_typ = pretty_t typ_to_ast pretty_typ_ast false;
+fun pretty_typ syn = pretty_t typ_to_ast pretty_typ_ast syn false;
+fun pretty_sort syn = pretty_t sort_to_ast pretty_typ_ast syn false;
 
-fun string_of_term curried syn t =
-  Pretty.string_of (pretty_term curried syn t);
-fun string_of_typ syn ty = Pretty.string_of (pretty_typ syn ty);
-
-val simple_string_of_typ = string_of_typ type_syn;
+val simple_string_of_typ = Pretty.string_of o (pretty_typ type_syn);
 val simple_pprint_typ = Pretty.pprint o Pretty.quote o (pretty_typ type_syn);
 
 
