@@ -98,7 +98,7 @@ by (etac impE 1);
 by (mp_tac 1);
 by (REPEAT (eresolve_tac [exE,conjE] 1));
 by (REPEAT(EVERY1
-     [asm_full_simp_tac (!simpset addsimps [subst_comp_tel,subst_comp_te]),
+     [asm_full_simp_tac (!simpset addsimps [subst_comp_tel,subst_comp_te,o_def]),
       REPEAT o etac conjE, hyp_subst_tac]));
 (** LEVEL 70 **)
 by (subgoal_tac "new_tv n2 s & new_tv n2 r & new_tv n2 ra" 1);
@@ -139,6 +139,8 @@ Wait until simplification of thms is possible.
 
 val lemma = I_correct_wrt_W COMP swap_prems_rl;
 
+Addsimps [split_paired_Ex];
+
 goal I.thy "!a m s. \
 \  new_tv m a & new_tv m s --> I e a m s = Fail --> W e ($s a) m = Fail";
 by (expr.induct_tac "e" 1);
@@ -146,35 +148,28 @@ by (expr.induct_tac "e" 1);
                         setloop (split_tac [expand_if])) 1);
  by (Simp_tac 1);
  by (strip_tac 1);
- by (rtac conjI 1);
-  by (strip_tac 1);
-  by (subgoal_tac "TVar m # $ s a = $s(TVar m # a)" 1);
-   by (asm_simp_tac (HOL_ss addsimps
+ by (subgoal_tac "TVar m # $ s a = $s(TVar m # a)" 1);
+  by (asm_simp_tac (HOL_ss addsimps
         [new_tv_Suc_list, lessI RS less_imp_le RS new_tv_subst_le]) 1);
-  by (etac conjE 1);
-  by (dtac (new_tv_not_free_tv RS not_free_impl_id) 1);
-  by (Asm_simp_tac 1);
- by (strip_tac 1);
- by (etac exE 1);
- by (split_all_tac 1);
- by (Full_simp_tac 1);
-(** LEVEL 15 **)
+ by (etac conjE 1);
+ by (dtac (new_tv_not_free_tv RS not_free_impl_id) 1);
+ by (Asm_simp_tac 1);
+(** LEVEL 9 **)
 by (Asm_simp_tac 1);
 by (strip_tac 1);
-by (etac exE 1);
+by (REPEAT(etac exE 1));
 by (REPEAT(etac conjE 1));
-by (split_all_tac 1);
-by (Full_simp_tac 1);
 by (dtac lemma 1);
  by (fast_tac HOL_cs 1);
-(** LEVEL 23 **)
+(** LEVEL 15 **)
 by (etac exE 1);
 by (etac conjE 1);
 by (hyp_subst_tac 1);
 by (Asm_simp_tac 1);
+by (REPEAT(resolve_tac [exI,conjI,refl] 1));
 by (etac disjE 1);
  by (rtac disjI1 1);
-(** LEVEL 29 **)
+(** LEVEL 22 **)
  by (full_simp_tac (!simpset addsimps [o_def,subst_comp_tel]) 1);
  by (EVERY[etac allE 1, etac allE 1, etac allE 1,
           etac impE 1, etac impE 2, atac 2, atac 2]);
@@ -184,21 +179,19 @@ by (etac disjE 1);
   by (fast_tac (HOL_cs addIs [W_var_ge RS new_tv_subst_le]) 1);
  by (fast_tac (HOL_cs addSIs [new_tv_subst_tel]addIs[new_tv_W RS conjunct1])1);
 by (rtac disjI2 1);
-by (etac exE 1);
-by (split_all_tac 1);
+by (REPEAT(etac exE 1));
 by (etac conjE 1);
-(** LEVEL 40 **)
-by (Full_simp_tac 1);
+(** LEVEL 32 **)
 by (dtac lemma 1);
  by (rtac conjI 1);
   by (fast_tac (HOL_cs addIs [W_var_ge RS new_tv_list_le]) 1);
  by (rtac new_tv_subst_comp_1 1);
-   by (fast_tac (HOL_cs addIs [W_var_ge RS new_tv_subst_le]) 1);
+  by (fast_tac (HOL_cs addIs [W_var_ge RS new_tv_subst_le]) 1);
  by (fast_tac (HOL_cs addSIs [new_tv_subst_tel]addIs[new_tv_W RS conjunct1])1);
 by (etac exE 1);
 by (etac conjE 1);
 by (hyp_subst_tac 1);
-(** LEVEL 50 **)
+(** LEVEL 41 **)
 by (asm_full_simp_tac (!simpset addsimps
      [o_def,subst_comp_te RS sym,subst_comp_tel RS sym]) 1);
 qed_spec_mp "I_complete_wrt_W";

@@ -230,9 +230,6 @@ by (simp_tac (!simpset addcongs [conj_cong]
               setloop (split_tac [expand_if])) 1);
 by (eresolve_tac has_type_casesE 1); 
 by (asm_full_simp_tac (!simpset addsimps [eq_sym_conv,app_subst_list]) 1);
-by (res_inst_tac [("x","id_subst")] exI 1);
-by (res_inst_tac [("x","nth nat a")] exI 1);
-by (Simp_tac 1);
 by (res_inst_tac [("x","s'")] exI 1);
 by (Asm_simp_tac 1);
 
@@ -337,9 +334,6 @@ by (asm_simp_tac (!simpset setloop (split_tac [expand_bind])) 1);
 by (safe_tac HOL_cs);
 by (dtac mgu_Ok 1);
 by ( fast_tac (HOL_cs addss !simpset) 1);
-by (REPEAT (resolve_tac [exI,conjI] 1));
-by (fast_tac HOL_cs 1);
-by (fast_tac HOL_cs 1);
 by ((dtac mgu_mg 1) THEN (atac 1));
 by (etac exE 1);
 by (res_inst_tac [("x","rb")] exI 1);
