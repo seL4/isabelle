@@ -54,7 +54,13 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val dummy = (*has essential ancestors?*)
     Theory.requires thy "Datatype" "(co)datatype definitions";
 
-  val rec_names = map (#1 o dest_Const o head_of) rec_tms
+  val rec_hds = map head_of rec_tms;
+
+  val dummy = assert_all is_Const rec_hds
+          (fn t => "Datatype set not previously declared as constant: " ^
+                   Sign.string_of_term (sign_of thy) t);
+
+  val rec_names = map (#1 o dest_Const) rec_hds
   val rec_base_names = map Sign.base_name rec_names
   val big_rec_base_name = space_implode "_" rec_base_names
 
