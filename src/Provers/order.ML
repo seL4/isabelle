@@ -38,10 +38,10 @@ sig
   val eqI: thm (* [| x <= y; y <= x |] ==> x = y *)
   val eqD1: thm (* x = y ==> x <= y *)
   val eqD2: thm (* x = y ==> y <= x *)
-  val less_trans: thm  (* [| x <= y; y <= z |] ==> x <= z *)
-  val less_le_trans: thm  (* [| x <= y; y < z |] ==> x < z *)
-  val le_less_trans: thm  (* [| x < y; y <= z |] ==> x < z *)
-  val le_trans: thm  (* [| x < y; y < z |] ==> x < z *)
+  val less_trans: thm  (* [| x < y; y < z |] ==> x < z *)
+  val less_le_trans: thm  (* [| x < y; y <= z |] ==> x < z *)
+  val le_less_trans: thm  (* [| x <= y; y < z |] ==> x < z *)
+  val le_trans: thm  (* [| x <= y; y <= z |] ==> x <= z *)
   val le_neq_trans : thm (* [| x <= y ; x ~= y |] ==> x < y *)
   val neq_le_trans : thm (* [| x ~= y ; x <= y |] ==> x < y *)
 
@@ -56,7 +56,8 @@ sig
   val eq_neq_eq_imp_neq : thm (* [| x = u ; u ~= v ; v = z|] ==> x ~= z *)
 
   (* Analysis of premises and conclusion *)
-  (* decomp_x (`x Rel y') should yield (x, Rel, y)
+  (* decomp_part is for partial_tac, decomp_lin is for linear_tac;
+     decomp_x (`x Rel y') should yield (x, Rel, y)
        where Rel is one of "<", "<=", "~<", "~<=", "=" and "~=",
        other relation symbols cause an error message *)
   val decomp_part: Sign.sg -> term -> (term * string * term) option

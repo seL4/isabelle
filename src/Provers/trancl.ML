@@ -1,8 +1,31 @@
 (*
-  Title:	Transitivity reasoner for partial and linear orders
+  Title:	Transitivity reasoner for transitive closures of relations
   Id:		$Id$
   Author:	Oliver Kutter
   Copyright:	TU Muenchen
+*)
+
+(*
+
+The packages provides tactics trancl_tac and rtrancl_tac that prove
+goals of the form
+
+   (x,y) : r^+     and     (x,y) : r^* (rtrancl_tac only)
+
+from premises of the form
+
+   (x,y) : r,     (x,y) : r^+     and     (x,y) : r^* (rtrancl_tac only)
+
+by reflexivity and transitivity.  The relation r is determined by inspecting
+the conclusion.
+
+The package is implemented as an ML functor and thus not limited to
+particular constructs for transitive and reflexive-transitive
+closures, neither need relations be represented as sets of pairs.  In
+order to instantiate the package for transitive closure only, supply
+dummy theorems to the additional rules for reflexive-transitive
+closures, and don't use rtrancl_tac!
+
 *)
 
 signature TRANCL_ARITH = 
@@ -30,6 +53,20 @@ sig
   val rtrancl_trans : thm
       (* [| (a,b) : r^* ; (b,c) : r^* |] ==> (a,c) : r^* *)
 
+  (* decomp: decompose a premise or conclusion
+
+     Returns one of the following:
+
+     None if not an instance of a relation,
+     Some (x, y, r, s) if instance of a relation, where
+       x: left hand side argument, y: right hand side argument,
+       r: the relation,
+       s: the kind of closure, one of
+            "r":   the relation itself,
+            "r^+": transitive closure of the relation,
+            "r^*": reflexive-transitive closure of the relation
+  *)  
+
   val decomp: term ->  (term * term * term * string) option 
 
 end;
@@ -48,7 +85,7 @@ struct
   = Asm of int 
   | Thm of proof list * thm; 
 
- exception Cannot;
+ exception Cannot; (* internal exception: raised if no proof can be found *)
 
  fun prove asms = 
   let fun pr (Asm i) = nth_elem (i, asms)
@@ -58,23 +95,30 @@ struct
   
 (* Internal datatype for inequalities *)
 datatype rel 
-   = R      of term * term * proof  (* just a unknown relation R *)
-   | Trans  of term * term * proof  (* R^+ *)
+   = Trans  of term * term * proof  (* R^+ *)
    | RTrans of term * term * proof; (* R^* *)
    
  (* Misc functions for datatype rel *)
-fun lower (R (x, _, _)) = x
-  | lower (Trans (x, _, _)) = x
+fun lower (Trans (x, _, _)) = x
   | lower (RTrans (x,_,_)) = x;
 
-fun upper (R (_, y, _)) = y
-  | upper (Trans (_, y, _)) = y
+fun upper (Trans (_, y, _)) = y
   | upper (RTrans (_,y,_)) = y;
 
-fun getprf   (R (_, _, p)) = p
-|   getprf   (Trans   (_, _, p)) = p
+fun getprf   (Trans   (_, _, p)) = p
 |   getprf   (RTrans (_,_, p)) = p; 
  
+(* ************************************************************************ *)
+(*                                                                          *)
+(*  mkasm_trancl Rel (t,n): term -> (term , int) -> rel list                *)
+(*                                                                          *)
+(*  Analyse assumption t with index n with respect to relation Rel:         *)
+(*  If t is of the form "(x, y) : Rel" (or Rel^+), translate to             *)
+(*  an object (singleton list) of internal datatype rel.                    *)
+(*  Otherwise return empty list.                                            *)
+(*                                                                          *)
+(* ************************************************************************ *)
+
 fun mkasm_trancl  Rel  (t, n) =
   case Cls.decomp t of
     Some (x, y, rel,r) => if rel aconv Rel then  
@@ -87,6 +131,17 @@ fun mkasm_trancl  Rel  (t, n) =
     else [] 
   | None => [];
   
+(* ************************************************************************ *)
+(*                                                                          *)
+(*  mkasm_rtrancl Rel (t,n): term -> (term , int) -> rel list               *)
+(*                                                                          *)
+(*  Analyse assumption t with index n with respect to relation Rel:         *)
+(*  If t is of the form "(x, y) : Rel" (or Rel^+ or Rel^* ), translate to   *)
+(*  an object (singleton list) of internal datatype rel.                    *)
+(*  Otherwise return empty list.                                            *)
+(*                                                                          *)
+(* ************************************************************************ *)
+
 fun mkasm_rtrancl Rel (t, n) =
   case Cls.decomp t of
    Some (x, y, rel, r) => if rel aconv Rel then
@@ -97,6 +152,19 @@ fun mkasm_rtrancl Rel (t, n) =
     | _     => error ("rtrancl_tac: unknown relation symbol" ))
    else [] 
   | None => [];
+
+(* ************************************************************************ *)
+(*                                                                          *)
+(*  mkconcl_trancl t: term -> (term, rel, proof)                            *)
+(*  mkconcl_rtrancl t: term -> (term, rel, proof)                           *)
+(*                                                                          *)
+(*  Analyse conclusion t:                                                   *)
+(*    - must be of form "(x, y) : r^+ (or r^* for rtrancl)                  *)
+(*    - returns r                                                           *)
+(*    - conclusion in internal form                                         *)
+(*    - proof object                                                        *)
+(*                                                                          *)
+(* ************************************************************************ *)
 
 fun mkconcl_trancl  t =
   case Cls.decomp t of
@@ -113,13 +181,25 @@ fun mkconcl_rtrancl  t =
     | _     => raise Cannot)
   | None => raise Cannot;
 
-(* trans. cls. rules *)
+(* ************************************************************************ *)
+(*                                                                          *)
+(*  makeStep (r1, r2): rel * rel -> rel                                     *)
+(*                                                                          *)
+(*  Apply transitivity to r1 and r2, obtaining a new element of r^+ or r^*, *)
+(*  according the following rules:                                          *)
+(*                                                                          *)
+(* ( (a, b) : r^+ , (b,c) : r^+ ) --> (a,c) : r^+                           *)
+(* ( (a, b) : r^* , (b,c) : r^+ ) --> (a,c) : r^+                           *)
+(* ( (a, b) : r^+ , (b,c) : r^* ) --> (a,c) : r^+                           *)
+(* ( (a, b) : r^* , (b,c) : r^* ) --> (a,c) : r^*                           *)
+(*                                                                          *)
+(* ************************************************************************ *)
+
 fun makeStep (Trans (a,_,p), Trans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.trancl_trans))
 (* refl. + trans. cls. rules *)
 |   makeStep (RTrans (a,_,p), Trans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.rtrancl_trancl_trancl))
 |   makeStep (Trans (a,_,p), RTrans(_,c,q))  = Trans (a,c, Thm ([p,q], Cls.trancl_rtrancl_trancl))   
-|   makeStep (RTrans (a,_,p), RTrans(_,c,q))  = RTrans (a,c, Thm ([p,q], Cls.rtrancl_trans))  
-|   makeStep (a,b) = error ("trancl_tac: internal error in makeStep: undefined case");
+|   makeStep (RTrans (a,_,p), RTrans(_,c,q))  = RTrans (a,c, Thm ([p,q], Cls.rtrancl_trans));
 
 (* ******************************************************************* *)
 (*                                                                     *)
@@ -150,6 +230,7 @@ fun addEdge (v,d,[]) = [(v,d)]
 (* ********************************************************************** *)
 (*                                                                        *)
 (* mkGraph constructs from a list of objects of type rel  a graph g       *)
+(* and a list of all edges with label r+.                                 *)
 (*                                                                        *)
 (* ********************************************************************** *)
 
@@ -295,7 +376,7 @@ fun dfs_term_reachable g u = dfs_reachable (op aconv) g u;
 (*                  (bool, rel list)                                        *)
 (*                                                                          *)
 (*  Searches a path from vertex x to vertex y in Graph g, returns true and  *)
-(*  the list of edges of edges if path is found, otherwise false and nil.   *)
+(*  the list of edges if path is found, otherwise false and nil.            *)
 (*                                                                          *)
 (* ************************************************************************ *) 
  
@@ -330,9 +411,16 @@ fun findPath x y g =
 
    end;
 
+(* ************************************************************************ *)
+(*                                                                          *)
+(* findRtranclProof g tranclEdges subgoal:                                  *)
+(* (Term.term * (Term.term * rel list) list) -> rel -> proof list           *)
+(*                                                                          *)
+(* Searches in graph g a proof for subgoal.                                 *)
+(*                                                                          *)
+(* ************************************************************************ *)
 
 fun findRtranclProof g tranclEdges subgoal = 
-   (* simple case first *)
    case subgoal of (RTrans (x,y,_)) => if x aconv y then [Thm ([], Cls.rtrancl_refl)] else (
      let val (found, path) = findPath (lower subgoal) (upper subgoal) g
      in 
@@ -424,16 +512,11 @@ fun solveTrancl (asms, concl) =
   let val (_, subgoal, _) = mkconcl_trancl concl
       val (found, path) = findPath (lower subgoal) (upper subgoal) g
   in
-
-   
     if found then  [getprf (transPath (tl path, hd path))]
     else raise Cannot 
-   
   end
  end;
   
-
- 
 fun solveRtrancl (asms, concl) = 
  let val (g,tranclEdges) = mkGraph asms
      val (_, subgoal, _) = mkconcl_rtrancl concl
@@ -475,4 +558,3 @@ val rtrancl_tac =   SUBGOAL (fn (A, n) =>
 handle  Cannot  => no_tac);
 
 end;
-
