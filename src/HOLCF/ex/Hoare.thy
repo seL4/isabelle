@@ -21,7 +21,7 @@ signature of this example
 
 *)
 
-Hoare = HOLCF +
+Hoare = HOLCF + 
 
 consts
         b1:: "'a -> tr"
