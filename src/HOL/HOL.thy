@@ -512,6 +512,9 @@ setup Simplifier.setup
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
 
+lemma ex1_eq[iff]: "EX! x. x = t" "EX! x. t = x"
+by blast+
+
 theorem choice_eq: "(ALL x. EX! y. P x y) = (EX! f. ALL x. P x (f x))"
   apply (rule iffI)
   apply (rule_tac a = "%x. THE y. P x y" in ex1I)

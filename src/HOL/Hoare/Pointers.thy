@@ -87,6 +87,8 @@ by(induct as, simp, simp add:eq_sym_conv)
 
 subsection "Lists on the heap"
 
+subsubsection "Relational abstraction"
+
 constdefs
  list :: "('a \<leadsto> 'a) \<Rightarrow> 'a option \<Rightarrow> 'a list \<Rightarrow> bool"
 "list h x as == path h x as Null"
@@ -100,7 +102,7 @@ by(simp add:list_def)
 lemma [simp]: "list h Null as = (as = [])"
 by(case_tac as, simp_all)
 
-lemma [simp]: "list h (Ref a) as = (\<exists>bs. as = a#bs \<and> list h (h a) bs)"
+lemma list_Ref[simp]: "list h (Ref a) as = (\<exists>bs. as = a#bs \<and> list h (h a) bs)"
 by(case_tac as, simp_all, fast)
 
 
@@ -109,13 +111,16 @@ declare fun_upd_apply[simp del]fun_upd_same[simp] fun_upd_other[simp]
 lemma list_unique: "\<And>x bs. list h x as \<Longrightarrow> list h x bs \<Longrightarrow> as = bs"
 by(induct as, simp, clarsimp)
 
+lemma list_unique1: "list h p as \<Longrightarrow> \<exists>!as. list h p as"
+by(blast intro:list_unique)
+
 lemma list_app: "\<And>x. list h x (as@bs) = (\<exists>y. path h x as y \<and> list h y bs)"
 by(induct as, simp, clarsimp)
 
 lemma list_hd_not_in_tl[simp]: "list h (h a) as \<Longrightarrow> a \<notin> set as"
 apply (clarsimp simp add:in_set_conv_decomp)
 apply(frule list_app[THEN iffD1])
-apply(fastsimp dest:list_app[THEN iffD1] list_unique)
+apply(fastsimp dest: list_unique)
 done
 
 lemma list_distinct[simp]: "\<And>x. list h x as \<Longrightarrow> distinct as"
@@ -123,20 +128,66 @@ apply(induct as, simp)
 apply(fastsimp dest:list_hd_not_in_tl)
 done
 
-theorem notin_list_update[rule_format,simp]:
- "\<forall>x. a \<notin> set as \<longrightarrow> list (h(a := y)) x as = list h x as"
-apply(induct_tac as)
+theorem notin_list_update[simp]:
+ "\<And>x. a \<notin> set as \<Longrightarrow> list (h(a := y)) x as = list h x as"
+apply(induct as)
 apply simp
-apply(simp add:fun_upd_apply)
+apply(clarsimp simp add:fun_upd_apply)
 done
 
-lemma [simp]: "list h (h a) as \<Longrightarrow> list (h(a := y)) (h a) as"
-by(simp add:list_hd_not_in_tl)
-(* Note that the opposite direction does NOT hold:
-   If    h = (a \<mapsto> Ref a)
-   then  list (h(a := Null)) (h a) [a]
-   but   not list h (h a) [] (because h is cyclic)
-*)
+subsection "Functional abstraction"
+
+constdefs
+ islist :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> bool"
+"islist h p == \<exists>as. list h p as"
+ mklist :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list"
+"mklist h p == SOME as. list h p as"
+
+lemma list_conv_islist_mklist: "list h p as = (islist h p \<and> as = mklist h p)"
+apply(simp add:islist_def mklist_def)
+apply(rule iffI)
+apply(rule conjI)
+apply blast
+apply(subst some1_equality)
+  apply(erule list_unique1)
+ apply assumption
+apply(rule refl)
+apply simp
+apply(rule someI_ex)
+apply fast
+done
+
+lemma [simp]: "islist h None"
+by(simp add:islist_def)
+
+lemma [simp]: "islist h (Some a) = islist h (h a)"
+by(simp add:islist_def)
+
+lemma [simp]: "mklist h None = []"
+by(simp add:mklist_def)
+
+lemma [simp]: "islist h (h a) \<Longrightarrow> mklist h (Some a) = a # mklist h (h a)"
+apply(insert list_Ref[of h])
+apply(fastsimp simp:list_conv_islist_mklist)
+done
+
+lemma [simp]: "islist h (h a) \<Longrightarrow> a \<notin> set(mklist h (h a))"
+apply(insert list_hd_not_in_tl[of h])
+apply(simp add:list_conv_islist_mklist)
+done
+
+lemma [simp]:
+ "islist h p \<Longrightarrow> y \<notin> set(mklist h p) \<Longrightarrow> mklist (h(y := q)) p = mklist h p"
+apply(drule notin_list_update[of _ _ h q p])
+apply(simp add:list_conv_islist_mklist)
+done
+
+lemma [simp]:
+ "islist h p \<Longrightarrow> y \<notin> set(mklist h p) \<Longrightarrow> islist (h(y := q)) p"
+apply(frule notin_list_update[of _ _ h q p])
+apply(simp add:list_conv_islist_mklist)
+done
+
 
 section "Verifications"
 
@@ -202,6 +253,24 @@ next
                    rev ps @ qs = rev Ps @ Qs) \<and> \<not> p \<noteq> Null"
   thus "list tl q (rev Ps @ Qs)" by fastsimp
 qed
+
+
+text{* Finaly, the functional version. A bit more verbose, but automatic! *}
+
+lemma "|- VARS tl p q r.
+  {islist tl p \<and> islist tl q \<and>
+   Ps = mklist tl p \<and> Qs = mklist tl q \<and> set Ps \<inter> set Qs = {}}
+  WHILE p \<noteq> Null
+  INV {islist tl p \<and> islist tl q \<and>
+       set(mklist tl p) \<inter> set(mklist tl q) = {} \<and>
+       rev(mklist tl p) @ (mklist tl q) = rev Ps @ Qs}
+  DO r := p; p := p^.tl; r^.tl := q; q := r OD
+  {islist tl q \<and> mklist tl q = rev Ps @ Qs}"
+apply vcg_simp
+  apply clarsimp
+ apply clarsimp
+apply clarsimp
+done
 
 
 subsection "Searching in a list"
@@ -380,5 +449,7 @@ apply fast
 
 apply(clarsimp simp add:list_app)
 done
+
+(* TODO: functional version of merging *)
 
 end
