@@ -18,6 +18,7 @@ sig
   val of_list: 'a list -> ('a, 'a list) source
   val of_string: string -> (string, string list) source
   val of_file: string -> (string, string list) source
+  val wakeup: string ref
   val of_stream: TextIO.instream -> TextIO.outstream -> (string, unit) source
   val tty: (string, unit) source
   val source': 'a -> 'b * ('b -> bool) -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
@@ -112,8 +113,10 @@ val of_file = of_string o File.read;
 
 (* stream source *)
 
+val wakeup = ref "";
+
 fun drain_stream instream outstream prompt () =
-  (TextIO.output (outstream, prompt);
+  (TextIO.output (outstream, ! wakeup ^ prompt);
     TextIO.flushOut outstream;
     (explode (TextIO.inputLine instream), ()));
 
