@@ -425,6 +425,10 @@ qed_goal "nat_rec_weak_cong" Nat.thy
   "m=n ==> nat_rec a f m = nat_rec a f n"
   (fn [prem] => [rtac (prem RS arg_cong) 1]);
 
+qed_goal "expand_nat_case" Nat.thy
+  "P(nat_case z s n) = ((n=0 --> P z) & (!m. n = Suc m --> P(s m)))"
+  (fn _ => [nat_ind_tac "n" 1, ALLGOALS Asm_simp_tac]);
+
 val prems = goalw Nat.thy [le_def] "~n<m ==> m<=(n::nat)";
 by (resolve_tac prems 1);
 qed "leI";

@@ -11,11 +11,16 @@ open Arith;
 
 (*** Basic rewrite rules for the arithmetic operators ***)
 
-val [pred_0, pred_Suc] = nat_recs pred_def;
+goalw Arith.thy [pred_def] "pred 0 = 0";
+by(Simp_tac 1);
+qed "pred_0";
+
+goalw Arith.thy [pred_def] "pred(Suc n) = n";
+by(Simp_tac 1);
+qed "pred_Suc";
+
 val [add_0,add_Suc] = nat_recs add_def; 
 val [mult_0,mult_Suc] = nat_recs mult_def;
-store_thm("pred_0",pred_0);
-store_thm("pred_Suc",pred_Suc);
 store_thm("add_0",add_0);
 store_thm("add_Suc",add_Suc);
 store_thm("mult_0",mult_0);

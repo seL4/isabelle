@@ -16,7 +16,7 @@ consts
   div, mod  :: [nat, nat] => nat  (infixl 70)
 
 defs
-  pred_def  "pred(m) == nat_rec 0 (%n r.n) m"
+  pred_def  "pred(m) == case m of 0 => 0 | Suc n => n"
   add_def   "m+n == nat_rec n (%u v. Suc(v)) m"
   diff_def  "m-n == nat_rec m (%u v. pred(v)) n"
   mult_def  "m*n == nat_rec 0 (%u v. n + v) m"
