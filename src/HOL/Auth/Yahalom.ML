@@ -16,7 +16,7 @@ proof_timing:=true;
 HOL_quantifiers := false;
 
 
-(** Weak liveness: there are traces that reach the end **)
+(*Weak liveness: there are traces that reach the end*)
 
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
@@ -26,7 +26,7 @@ by (REPEAT (resolve_tac [exI,bexI] 1));
 br (yahalom.Nil RS yahalom.YM1 RS yahalom.YM2 RS yahalom.YM3 RS yahalom.YM4) 2;
 by (ALLGOALS (simp_tac (!simpset setsolver safe_solver)));
 by (ALLGOALS Fast_tac);
-qed "weak_liveness";
+result();
 
 
 (**** Inductive proofs about yahalom ****)
@@ -49,13 +49,6 @@ qed_spec_mp "not_Says_to_self";
 Addsimps [not_Says_to_self];
 AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
-goal thy "!!evs. evs : yahalom ==> Notes A X ~: set_of_list evs";
-be yahalom.induct 1;
-by (Auto_tac());
-qed "not_Notes";
-Addsimps [not_Notes];
-AddSEs   [not_Notes RSN (2, rev_notE)];
-
 
 (** For reasoning about the encrypted portion of messages **)
 
@@ -74,7 +67,8 @@ qed "YM4_parts_sees_Enemy";
 
 
 
-(*** Shared keys are not betrayed ***)
+(** Theorems of the form X ~: parts (sees Enemy evs) imply that NOBODY
+    sends messages containing X! **)
 
 (*Enemy never sees another agent's shared key! (unless it is leaked at start)*)
 goal thy 
@@ -148,8 +142,9 @@ goal thy
 \           evs : yahalom                 \
 \        |] ==> length evt < length evs";
 br ccontr 1;
+bd leI 1;
 by (fast_tac (!claset addSDs [new_keys_not_seen, Says_imp_sees_Enemy]
-	              addIs [impOfSubs parts_mono, leI]) 1);
+                      addIs  [impOfSubs parts_mono]) 1);
 qed "Says_imp_old_keys";
 
 
@@ -302,71 +297,83 @@ by (Fast_tac 1);
 qed "analz_insert_Key_newK";
 
 
-(*Describes the form *and age* of K when the following message is sent*)
+(*Describes the form of K when the Server sends this message.*)
 goal thy 
  "!!evs. [| Says Server A                                           \
 \            {|Crypt {|Agent B, K, NA, NB|} (shrK A),               \
 \              Crypt {|Agent A, K|} (shrK B)|} : set_of_list evs;   \
 \           evs : yahalom |]                                        \
-\        ==> (EX evt:yahalom. K = Key(newK evt) &                   \
-\                           length evt < length evs)";
+\        ==> (EX evt:yahalom. K = Key(newK evt))";
 be rev_mp 1;
 be yahalom.induct 1;
-by (ALLGOALS (fast_tac (!claset addIs [less_SucI] addss (!simpset))));
+by (ALLGOALS (fast_tac (!claset addss (!simpset))));
 qed "Says_Server_message_form";
 
 
-(*Crucial secrecy property: Enemy does not see the keys sent in msg YM3
-  As with Otway-Rees, proof does not need uniqueness of session keys.*)
+(** Crucial secrecy property: Enemy does not see the keys sent in msg YM3
+    As with Otway-Rees, proof does not need uniqueness of session keys. **)
+
 goal thy 
- "!!evs. [| Says Server A \
-\            {|Crypt {|Agent B, K, NA, NB|} (shrK A),                   \
-\              Crypt {|Agent A, K|} (shrK B)|} : set_of_list evs;       \
-\           A ~: bad;  B ~: bad;  evs : yahalom |] ==>                  \
-\     K ~: analz (sees Enemy evs)";
-be rev_mp 1;
+ "!!evs. [| A ~: bad;  B ~: bad;  evs : yahalom;  evt : yahalom |]        \
+\        ==> Says Server A                                                \
+\              {|Crypt {|Agent B, Key(newK evt), NA, NB|} (shrK A),       \
+\                Crypt {|Agent A, Key(newK evt)|} (shrK B)|}              \
+\             : set_of_list evs -->    \
+\            Key(newK evt) ~: analz (sees Enemy evs)";
 be yahalom.induct 1;
 bd YM4_analz_sees_Enemy 6;
-by (ALLGOALS Asm_simp_tac);
-(*Next 3 steps infer that K has the form "Key (newK evs'" ... *)
-by (REPEAT_FIRST (resolve_tac [conjI, impI]));
-by (TRYALL (forward_tac [Says_Server_message_form] THEN' assume_tac));
-by (REPEAT_FIRST (eresolve_tac [bexE, exE, conjE] ORELSE' hyp_subst_tac));
 by (ALLGOALS
-    (asm_full_simp_tac 
+    (asm_simp_tac 
      (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
 			  analz_insert_Key_newK] @ pushes)
                setloop split_tac [expand_if])));
 (*YM4*)
 by (enemy_analz_tac 3);
 (*YM3*)
-by (fast_tac (!claset addSEs [less_irrefl]) 2);
+by (fast_tac (!claset addIs [parts_insertI]
+		      addEs [Says_imp_old_keys RS less_irrefl]
+	              addss (!simpset)) 2);
 (*Fake*) (** LEVEL 10 **)
 by (enemy_analz_tac 1);
+val lemma = result() RS mp RSN(2,rev_notE);
+
+
+(*Final version: Server's message in the most abstract form*)
+goal thy 
+ "!!evs. [| Says Server A \
+\            {|Crypt {|Agent B, K, NA, NB|} (shrK A),                   \
+\              Crypt {|Agent A, K|} (shrK B)|} : set_of_list evs;       \
+\           A ~: bad;  B ~: bad;  evs : yahalom |] ==>                  \
+\     K ~: analz (sees Enemy evs)";
+by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
+by (fast_tac (!claset addSEs [lemma]) 1);
 qed "Enemy_not_see_encrypted_key";
 
 
+(** Towards proofs of stronger authenticity properties **)
+
 goal thy 
- "!!evs. [| Crypt {|Agent A, Key K|} (shrK B) : analz (sees Enemy evs); \
+ "!!evs. [| Crypt {|Agent A, Key K|} (shrK B) : parts (sees Enemy evs); \
 \           B ~: bad;  evs : yahalom |]                                 \
 \        ==> EX NA NB. Says Server A                                    \
-\                     {|Crypt {|Agent B, Key K,                         \
-\                               Nonce NA, Nonce NB|} (shrK A),          \
-\                       Crypt {|Agent A, Key K|} (shrK B)|}             \
-\                   : set_of_list evs";
+\                        {|Crypt {|Agent B, Key K,                      \
+\                                  Nonce NA, Nonce NB|} (shrK A),       \
+\                          Crypt {|Agent A, Key K|} (shrK B)|}          \
+\                       : set_of_list evs";
 be rev_mp 1;
 be yahalom.induct 1;
-by (forward_tac [YM4_analz_sees_Enemy] 6);
-by (ALLGOALS (asm_simp_tac (!simpset setloop split_tac [expand_if])));
-(*YM4*)
-by (enemy_analz_tac 4);
+bd (YM4_analz_sees_Enemy RS synth.Inj) 6;
+by (ALLGOALS Asm_simp_tac);
 (*YM3*)
 by (Fast_tac 3);
-(*Fake*)
-by (enemy_analz_tac 2);
 (*Base case*)
 by (fast_tac (!claset addss (!simpset)) 1);
-qed "Enemy_analz_Server_msg";
+(*Prepare YM4*)
+by (stac insert_commute 2 THEN Simp_tac 2);
+(*Fake and YM4 are similar*)
+by (ALLGOALS (best_tac (!claset addSDs [impOfSubs analz_subset_parts,
+					impOfSubs Fake_parts_insert])));
+qed "Crypt_imp_Server_msg";
 
 
 (*What can B deduce from receipt of YM4?  
@@ -383,14 +390,10 @@ goal thy
 \                   : set_of_list evs";
 be rev_mp 1;
 be yahalom.induct 1;
-by (forward_tac [YM4_analz_sees_Enemy] 6);
+by (dresolve_tac [YM4_analz_sees_Enemy] 6);
 by (ALLGOALS Asm_simp_tac);
-(*YM4*)
-by (fast_tac (!claset addSDs [Enemy_analz_Server_msg]) 3);
-(*YM3*)
-by (Fast_tac 2);
-(*Fake*)
-by (fast_tac (!claset addSDs [Enemy_analz_Server_msg]) 1);
+by (ALLGOALS (fast_tac (!claset addSDs [impOfSubs analz_subset_parts RS
+					Crypt_imp_Server_msg])));
 qed "YM4_imp_Says_Server_A";
 
 
