@@ -1,0 +1,25 @@
+\begin{thebibliography}{1}
+
+\bibitem{Bird-Wadler}
+Richard Bird and Philip Wadler.
+\newblock {\em Introduction to Functional Programming}.
+\newblock Prentice-Hall, 1988.
+
+\bibitem{Isa-Ref-Man}
+Lawrence~C. Paulson.
+\newblock {\em The Isabelle Reference Manual}.
+\newblock University of Cambridge, Computer Laboratory.
+\newblock \verb$http://www.in.tum.de/~isabelle/dist/$.
+
+\bibitem{Isa-Logics-Man}
+Lawrence~C. Paulson.
+\newblock {\em Isabelle's Object-Logics}.
+\newblock University of Cambridge, Computer Laboratory.
+\newblock \verb$http://www.in.tum.de/~isabelle/dist/$.
+
+\bibitem{Paulson-ML}
+Lawrence~C. Paulson.
+\newblock {\em ML for the Working Programmer}.
+\newblock Cambridge University Press, 2nd edition, 1996.
+
+\end{thebibliography}
