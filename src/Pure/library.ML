@@ -9,8 +9,8 @@ input / output, timing, filenames, misc functions.
 *)
 
 infix |> ~~ \ \\ orelf ins ins_string ins_int orf andf prefix upto downto
-      mem mem_int mem_string union union_string union_int inter inter_int
-      inter_string subset subset_int subset_string subdir_of;
+      mem mem_int mem_string union union_int union_string  
+      inter inter_int inter_string subset subset_int subset_string subdir_of;
 
 
 structure Library =
@@ -28,7 +28,7 @@ fun K x y = x;
 fun (x |> f) = f x;
 
 (*combine two functions forming the union of their domains*)
-fun f orelf g = fn x => f x handle Match => g x;
+fun (f orelf g) = fn x => f x handle Match => g x;
 
 (*application of (infix) operator to its left or right argument*)
 fun apl (x, f) y = f (x, y);
@@ -97,9 +97,9 @@ fun not_equal x y = x <> y;
 
 (* operators for combining predicates *)
 
-fun p orf q = fn x => p x orelse q x;
+fun (p orf q) = fn x => p x orelse q x;
 
-fun p andf q = fn x => p x andalso q x;
+fun (p andf q) = fn x => p x andalso q x;
 
 fun notf p x = not (p x);
 
@@ -318,11 +318,11 @@ fun dec i = i := ! i - 1;
 (* lists of integers *)
 
 (*make the list [from, from + 1, ..., to]*)
-fun from upto to =
+fun (from upto to) =
   if from > to then [] else from :: ((from + 1) upto to);
 
 (*make the list [from, from - 1, ..., to]*)
-fun from downto to =
+fun (from downto to) =
   if from < to then [] else from :: ((from - 1) downto to);
 
 (*predicate: downto0 (is, n) <=> is = [n, n - 1, ..., 0]*)
@@ -417,11 +417,11 @@ fun space_explode sep s =
 fun x mem [] = false
   | x mem (y :: ys) = x = y orelse x mem ys;
 
-(*membership in a list, optimized version for int lists*)
+(*membership in a list, optimized version for ints*)
 fun (x:int) mem_int [] = false
   | x mem_int (y :: ys) = x = y orelse x mem_int ys;
 
-(*membership in a list, optimized version for string lists*)
+(*membership in a list, optimized version for strings*)
 fun (x:string) mem_string [] = false
   | x mem_string (y :: ys) = x = y orelse x mem_string ys;
 
@@ -431,13 +431,13 @@ fun gen_mem eq (x, []) = false
 
 
 (*insertion into list if not already there*)
-fun x ins xs = if x mem xs then xs else x :: xs;
+fun (x ins xs) = if x mem xs then xs else x :: xs;
 
-(*insertion into list if not already there, optimized version for int lists*)
-fun (x:int) ins_int xs = if x mem_int xs then xs else x :: xs;
+(*insertion into list, optimized version for ints*)
+fun (x ins_int xs) = if x mem_int xs then xs else x :: xs;
 
-(*insertion into list if not already there, optimized version for string lists*)
-fun (x:string) ins_string xs = if x mem_string xs then xs else x :: xs;
+(*insertion into list, optimized version for strings*)
+fun (x ins_string xs) = if x mem_string xs then xs else x :: xs;
 
 (*generalized insertion*)
 fun gen_ins eq (x, xs) = if gen_mem eq (x, xs) then xs else x :: xs;
@@ -448,12 +448,12 @@ fun xs union [] = xs
   | [] union ys = ys
   | (x :: xs) union ys = xs union (x ins ys);
 
-(*union of sets represented as lists: no repetitions, optimized version for int lists*)
+(*union of sets, optimized version for ints*)
 fun (xs:int list) union_int [] = xs
   | [] union_int ys = ys
   | (x :: xs) union_int ys = xs union_int (x ins_int ys);
 
-(*union of sets represented as lists: no repetitions, optimized version for string lists*)
+(*union of sets, optimized version for strings*)
 fun (xs:string list) union_string [] = xs
   | [] union_string ys = ys
   | (x :: xs) union_string ys = xs union_string (x ins_string ys);
@@ -469,12 +469,12 @@ fun [] inter ys = []
   | (x :: xs) inter ys =
       if x mem ys then x :: (xs inter ys) else xs inter ys;
 
-(*intersection, optimized version for int lists*)
+(*intersection, optimized version for ints*)
 fun ([]:int list) inter_int ys = []
   | (x :: xs) inter_int ys =
       if x mem_int ys then x :: (xs inter_int ys) else xs inter_int ys;
 
-(*intersection, optimized version for string lists *)
+(*intersection, optimized version for strings *)
 fun ([]:string list) inter_string ys = []
   | (x :: xs) inter_string ys =
       if x mem_string ys then x :: (xs inter_string ys) else xs inter_string ys;
@@ -484,11 +484,11 @@ fun ([]:string list) inter_string ys = []
 fun [] subset ys = true
   | (x :: xs) subset ys = x mem ys andalso xs subset ys;
 
-(*subset, optimized version for int lists*)
+(*subset, optimized version for ints*)
 fun ([]:int list) subset_int ys = true
   | (x :: xs) subset_int ys = x mem_int ys andalso xs subset_int ys;
 
-(*subset, optimized version for string lists*)
+(*subset, optimized version for strings*)
 fun ([]:string list) subset_string ys = true
   | (x :: xs) subset_string ys = x mem_string ys andalso xs subset_string ys;
 
@@ -500,12 +500,12 @@ fun gen_subset eq (xs, ys) = forall (fn x => gen_mem eq (x, ys)) xs;
 fun eq_set (xs, ys) =
   xs = ys orelse (xs subset ys andalso ys subset xs);
 
-(*eq_set, optimized version for int lists*)
+(*eq_set, optimized version for ints*)
 
 fun eq_set_int ((xs:int list), ys) =
   xs = ys orelse (xs subset_int ys andalso ys subset_int xs);
 
-(*eq_set, optimized version for string lists*)
+(*eq_set, optimized version for strings*)
 
 fun eq_set_string ((xs:string list), ys) =
   xs = ys orelse (xs subset_string ys andalso ys subset_string xs);
@@ -571,17 +571,17 @@ fun assoc ([], key) = None
   | assoc ((keyi, xi) :: pairs, key) =
       if key = keyi then Some xi else assoc (pairs, key);
 
-(*association list lookup, optimized version for int lists*)
+(*association list lookup, optimized version for ints*)
 fun assoc_int ([], (key:int)) = None
   | assoc_int ((keyi, xi) :: pairs, key) =
       if key = keyi then Some xi else assoc_int (pairs, key);
 
-(*association list lookup, optimized version for string lists*)
+(*association list lookup, optimized version for strings*)
 fun assoc_string ([], (key:string)) = None
   | assoc_string ((keyi, xi) :: pairs, key) =
       if key = keyi then Some xi else assoc_string (pairs, key);
 
-(*association list lookup, optimized version for string*int lists*)
+(*association list lookup, optimized version for string*ints*)
 fun assoc_string_int ([], (key:string*int)) = None
   | assoc_string_int ((keyi, xi) :: pairs, key) =
       if key = keyi then Some xi else assoc_string_int (pairs, key);
