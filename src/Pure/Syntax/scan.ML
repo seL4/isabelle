@@ -5,7 +5,7 @@
 Generic scanners (for potentially infinite input).
 *)
 
-infix 5 -- |-- --| ^^;
+infix 5 -- :-- |-- --| ^^;
 infix 3 >>;
 infix 0 ||;
 
@@ -15,6 +15,7 @@ sig
   val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
   val || : ('a -> 'b) * ('a -> 'b) -> 'a -> 'b
   val -- : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> ('b * 'd) * 'e
+  val :-- : ('a -> 'b * 'c) * ('b -> 'c -> 'd * 'e) -> 'a -> ('b * 'd) * 'e
   val |-- : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> 'd * 'e
   val --| : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> 'b * 'e
   val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
@@ -75,12 +76,14 @@ fun (scan >> f) xs = apfst f (scan xs);
 
 fun (scan1 || scan2) xs = scan1 xs handle FAIL _ => scan2 xs;
 
-fun (scan1 -- scan2) xs =
+(*dependent pair*)
+fun (scan1 :-- scan2) xs =
   let
     val (x, ys) = scan1 xs;
-    val (y, zs) = scan2 ys;
+    val (y, zs) = scan2 x ys;
   in ((x, y), zs) end;
 
+fun (scan1 -- scan2) = scan1 :-- (fn _ => scan2);
 fun (scan1 |-- scan2) = scan1 -- scan2 >> #2;
 fun (scan1 --| scan2) = scan1 -- scan2 >> #1;
 
