@@ -235,14 +235,16 @@ Only the first argument is simplified; the others remain unchanged.
 This can make simplification much faster, but may require an extra case split
 to prove the goal.  
 
-Congruence rules are added using \ttindexbold{addeqcongs}.  Their conclusion
-must be a meta-equality, as in the examples above.  It is more
+Congruence rules are added/deleted using 
+\ttindexbold{addeqcongs}/\ttindex{deleqcongs}.  
+Their conclusion must be a meta-equality, as in the examples above.  It is more
 natural to derive the rules with object-logic equality, for example
 \[ \List{\Var{P@1} \bimp \Var{Q@1};\; \Var{Q@1} \Imp \Var{P@2} \bimp \Var{Q@2}}
    \Imp (\Var{P@1} \imp \Var{P@2}) \bimp (\Var{Q@1} \imp \Var{Q@2}),
 \]
-Each object-logic should define an operator called \ttindex{addcongs} that
-expects object-equalities and translates them into meta-equalities.
+Each object-logic should define operators called \ttindex{addcongs} and 
+\ttindex{delcongs} that expects object-equalities and translates them into 
+meta-equalities.
 
 \subsection{*The subgoaler}
 The subgoaler is the tactic used to solve subgoals arising out of
@@ -264,18 +266,31 @@ simplification only if that fails; here {\tt prems_of_ss} extracts the
 current premises from a simpset.
 
 \subsection{*The solver}\label{sec:simp-solver}
-The solver is a tactic that attempts to solve a subgoal after
+The solver is a pair of tactics that attempt to solve a subgoal after
 simplification.  Typically it just proves trivial subgoals such as {\tt
   True} and $t=t$.  It could use sophisticated means such as {\tt
-  fast_tac}, though that could make simplification expensive.  The solver
-is set using \ttindex{setsolver}. Additional solvers, which are tried after
-the already set solver, may be added with \ttindex{addsolver}.
+  fast_tac}, though that could make simplification expensive. 
 
 Rewriting does not instantiate unknowns.  For example, rewriting cannot
 prove $a\in \Var{A}$ since this requires instantiating~$\Var{A}$.  The
 solver, however, is an arbitrary tactic and may instantiate unknowns as it
 pleases.  This is the only way the simplifier can handle a conditional
-rewrite rule whose condition contains extra variables.
+rewrite rule whose condition contains extra variables. When a simplification 
+tactic is to be combined with other provers, especially with the classical 
+reasoner, it is important whether it can be considered safe or not. Therefore,
+solver is split into a safe and anunsafe part. Both parts of the solver,
+which are stored within the simpset, can be set independently using 
+\ttindex{setSSolver} (with a safe tactic as argument) and \ttindex{setSolver}
+(with an unsafe tactic) . Additional solvers, which are tried after the already
+set solvers, may be added using \ttindex{addSSolver} and \ttindex{addSolver}. 
+
+The standard simplification procedures uses solely the unsafe solver, which is
+appropriate in most cases. But for special applications, where the simplification
+process is not allowed to instantiate unknowns within the goal, the tactic 
+\ttindexbold{safe_asm_full_simp_tac} is provided. Like {\tt asm_full_simp_tac}, 
+it uses the unsafe solver for any embedded simplification steps 
+(i.e. for solving subgoals created by the subgoaler), 
+but for the current subgoal, it applies the safe solver.
 
 \index{assumptions!in simplification}
 The tactic is presented with the full goal, including the asssumptions.
@@ -324,13 +339,16 @@ looper, may be added with \ttindex{addloop}.
 \index{*prems_of_ss}
 \index{*setloop}
 \index{*addloop}
-\index{*setsolver}
-\index{*addsolver}
+\index{*setSSolver}
+\index{*addSSolver}
+\index{*setSolver}
+\index{*addSolver}
 \index{*setsubgoaler}
 \index{*setmksimps}
 \index{*addsimps}
 \index{*delsimps}
 \index{*addeqcongs}
+\index{*deleqcongs}
 \index{*merge_ss}
 \index{*simpset}
 \index{*Addsimps}
@@ -339,43 +357,56 @@ looper, may be added with \ttindex{addloop}.
 \index{*asm_simp_tac}
 \index{*full_simp_tac}
 \index{*asm_full_simp_tac}
+\index{*safe_asm_full_simp_tac}
 \index{*Simp_tac}
 \index{*Asm_simp_tac}
 \index{*Full_simp_tac}
 \index{*Asm_full_simp_tac}
 
 \begin{ttbox}
-infix 4 setloop addloop setsolver addsolver 
-        setsubgoaler setmksimps
-        addsimps addeqcongs delsimps;
+infix 4 setsubgoaler setloop addloop setSSolver addSSolver setSolver addSolver 
+        setmksimps addsimps delsimps addeqcongs deleqcongs;
 
 signature SIMPLIFIER =
 sig
+  type simproc
+  val mk_simproc: string -> cterm list -> (Sign.sg -> term -> thm option) -> simproc
+  val name_of_simproc: simproc -> string
+  val conv_prover: (term * term -> term) -> thm -> (thm -> thm)
+    -> tactic -> (int -> tactic) -> Sign.sg -> term -> term -> thm      (* FIXME move?, rename? *)
   type simpset
   val empty_ss: simpset
-  val rep_ss: simpset -> {simps: thm list, congs: thm list}
+  val rep_ss: simpset -> {simps: thm list, procs: string list, congs: thm list,
+                          subgoal_tac:        simpset -> int -> tactic,
+                          loop_tac:                      int -> tactic,
+                                 finish_tac: thm list -> int -> tactic,
+                          unsafe_finish_tac: thm list -> int -> tactic}
+  val setsubgoaler: simpset *  (simpset -> int -> tactic) -> simpset
+  val setloop:      simpset *             (int -> tactic) -> simpset
+  val addloop:      simpset *             (int -> tactic) -> simpset
+  val setSSolver:   simpset * (thm list -> int -> tactic) -> simpset
+  val addSSolver:   simpset * (thm list -> int -> tactic) -> simpset
+  val setSolver:    simpset * (thm list -> int -> tactic) -> simpset
+  val addSolver:    simpset * (thm list -> int -> tactic) -> simpset
+  val setmksimps:  simpset * (thm -> thm list) -> simpset
+  val addsimps:    simpset * thm list -> simpset
+  val delsimps:    simpset * thm list -> simpset
+  val addeqcongs:  simpset * thm list -> simpset
+  val deleqcongs:  simpset * thm list -> simpset
+  val merge_ss:    simpset * simpset -> simpset
   val prems_of_ss: simpset -> thm list
-  val setloop: simpset * (int -> tactic) -> simpset
-  val addloop: simpset * (int -> tactic) -> simpset
-  val setsolver: simpset * (thm list -> int -> tactic) -> simpset
-  val addsolver: simpset * (thm list -> int -> tactic) -> simpset
-  val setsubgoaler: simpset * (simpset -> int -> tactic) -> simpset
-  val setmksimps: simpset * (thm -> thm list) -> simpset
-  val addsimps: simpset * thm list -> simpset
-  val delsimps: simpset * thm list -> simpset
-  val addeqcongs: simpset * thm list -> simpset
-  val merge_ss: simpset * simpset -> simpset
-  val simpset: simpset ref
+  val simpset:     simpset ref
   val Addsimps: thm list -> unit
   val Delsimps: thm list -> unit
-  val          simp_tac: simpset -> int -> tactic
-  val      asm_simp_tac: simpset -> int -> tactic
-  val     full_simp_tac: simpset -> int -> tactic
-  val asm_full_simp_tac: simpset -> int -> tactic
-  val          Simp_tac: int -> tactic
-  val      Asm_simp_tac: int -> tactic
-  val     Full_simp_tac: int -> tactic
-  val Asm_full_simp_tac: int -> tactic
+  val               simp_tac: simpset -> int -> tactic
+  val           asm_simp_tac: simpset -> int -> tactic
+  val          full_simp_tac: simpset -> int -> tactic
+  val      asm_full_simp_tac: simpset -> int -> tactic
+  val safe_asm_full_simp_tac: simpset -> int -> tactic
+  val               Simp_tac:            int -> tactic
+  val           Asm_simp_tac:            int -> tactic
+  val          Full_simp_tac:            int -> tactic
+  val      Asm_full_simp_tac:            int -> tactic
 end;
 \end{ttbox}
 \caption{The simplifier primitives} \label{SIMPLIFIER}
@@ -943,18 +974,19 @@ conditional rewrites.  It takes {\tt IFOL_rews} as rewrite rules.
 Other simpsets built from {\tt IFOL_ss} will inherit these items.
 In particular, {\tt FOL_ss} extends {\tt IFOL_ss} with classical rewrite
 rules such as $\neg\neg P\bimp P$.
-\index{*setmksimps}\index{*setsolver}\index{*setsubgoaler}
+\index{*setmksimps}\index{*setSSolver}\index{*setSolver}\index{*setsubgoaler}
 \index{*addsimps}\index{*addcongs}
 \begin{ttbox}
-val IFOL_ss = 
-  empty_ss 
-  setmksimps (map mk_meta_eq o atomize o gen_all)
-  setsolver  (fn prems => resolve_tac (triv_rls \at prems)
-                          ORELSE' assume_tac
-                          ORELSE' etac FalseE)
-  setsubgoaler asm_simp_tac
-  addsimps IFOL_rews
-  addcongs [imp_cong];
+fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls@prems),
+                                 atac, etac FalseE];
+fun   safe_solver prems = FIRST'[match_tac (triv_rls@prems),
+                                 eq_assume_tac, ematch_tac [FalseE]];
+val IFOL_ss = empty_ss setsubgoaler asm_simp_tac
+                       setSSolver   safe_solver
+                       setSolver  unsafe_solver
+                       setmksimps (map mk_meta_eq o atomize o gen_all)
+                       addsimps IFOL_simps
+                       addcongs [imp_cong];
 \end{ttbox}
 This simpset takes {\tt imp_cong} as a congruence rule in order to use
 contextual information to simplify the conclusions of implications:
