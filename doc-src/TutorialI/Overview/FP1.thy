@@ -123,7 +123,7 @@ lemma "\<forall>xs. if xs = [] then A else B";
 apply simp
 oops
 
-lemma "case xs @ [] of [] \<Rightarrow> A | y#ys \<Rightarrow> B";
+lemma "case xs @ [] of [] \<Rightarrow> P | y#ys \<Rightarrow> Q ys y";
 apply simp
 apply(simp split: list.split)
 oops
