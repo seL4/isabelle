@@ -36,7 +36,7 @@ sig
     Var of indexname * typ |
     Bound of int |
     Abs of string * typ * term |
-    $ of term * term
+    op $ of term * term
   structure Vartab : TABLE
   structure Typtab : TABLE
   structure Termtab : TABLE

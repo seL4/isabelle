@@ -15,8 +15,8 @@ sig
      PBound of int
    | Abst of string * typ option * proof
    | AbsP of string * term option * proof
-   | % of proof * term option
-   | %% of proof * proof
+   | op % of proof * term option
+   | op %% of proof * proof
    | Hyp of term
    | PThm of (string * (string * string list) list) * proof * term * typ list option
    | PAxm of string * term * typ list option

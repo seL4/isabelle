@@ -34,7 +34,7 @@ sig
   type LeafT (* type for other leaf types in term sturcture *)
 
   (* the type to be encoded into *)
-  datatype TermT = $ of TermT * TermT
+  datatype TermT = op $ of TermT * TermT
     | Abs of string * TypeT * TermT
     | lf of LeafT
 
