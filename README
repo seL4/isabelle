@@ -1,8 +1,13 @@
-		     ISABELLE-93 DISTRIBUTION DIRECTORY
+		     ISABELLE-94 DISTRIBUTION DIRECTORY
 
 ------------------------------------------------------------------------------
-ISABELLE-93 IS INCOMPATIBLE WITH EARLIER VERSIONS.  PLEASE CONSULT THE
-DOCUMENTATION.
+ISABELLE-94 IS INCOMPATIBLE WITH EARLIER VERSIONS.  PLEASE CONSULT THE
+DOCUMENTATION.  
+
+In particular, theory files are no longer forced into lower case, but must
+be identical to the actual theory name.  The command
+	conv-theory-files.pl | grep mv
+generates commands to rename all theory files in a directory hierarchy.  
 ------------------------------------------------------------------------------
 
 This directory contains the complete Isabelle system.  To build and test the
@@ -61,10 +66,14 @@ Other important files include...
   Pure			directory of source files for Pure Isabelle
   Provers		directory of generic theorem provers
 
-xlisten sets up a window running Isabelle, with a separate small "listener"
-window, which keeps a log of all input lines.  This log is a useful record
-of a session.  If you are not running X windows, teeinput can still be used at
-least to record (if not to display) the log.
+David Aspinall has written a user interface for Isabelle.  It runs under
+GNU Emacs.  It's useful to both novices and experts.  You can get it by ftp
+from ftp.dcs.ed.ac.uk, file /pub/da/Isamode.tar.gz.
+
+A *very* primitive alternative, xlisten sets up a window running Isabelle,
+with a separate small "listener" window, which keeps a log of all input
+lines.  If you are not running the X Window System, teeinput can still be
+used to record the log.
 
 The following subdirectories contain object-logics:
   FOL 	  Natural deduction First-Order Logic (intuitionistic and classical)
@@ -122,9 +131,9 @@ Cambridge CB2 3QG
 England
 
 Tobias Nipkow			E-mail: nipkow@informatik.tu-muenchen.de
-Institut fuer Informatik	Phone: +49-89-2105-2690
-T. U. Muenchen			Fax:   +49-89-2105-8183
-D-80290 Muenchen
+Institut für Informatik		Phone: +49-89-2105-2690
+T. U. München			Fax:   +49-89-2105-8183
+D-80290 München
 Germany
 
-Last updated 20 May 1994
+$Id$
