@@ -131,20 +131,17 @@ AddIffs [finite_Diff_singleton];
 goal Finite.thy "!!A. finite B ==> !A. f``A = B --> inj_onto f A --> finite A";
 by (etac finite_induct 1);
  by (ALLGOALS Asm_simp_tac);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (subgoal_tac "EX y:A. f y = x & F = f``(A-{y})" 1);
- by (Step_tac 1);
+ by (Clarify_tac 1);
  by (rewtac inj_onto_def);
  by (Blast_tac 1);
 by (thin_tac "ALL A. ?PP(A)" 1);
 by (forward_tac [[equalityD2, insertI1] MRS subsetD] 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (res_inst_tac [("x","xa")] bexI 1);
 by (ALLGOALS Asm_simp_tac);
-by (etac equalityE 1);
-by (rtac equalityI 1);
-by (Blast_tac 2);
-by (Best_tac 1);
+by (blast_tac (!claset addEs [equalityE]) 1);
 val lemma = result();
 
 goal Finite.thy "!!A. [| finite(f``A);  inj_onto f A |] ==> finite A";
@@ -318,7 +315,7 @@ Addsimps [card_insert_disjoint];
 goal Finite.thy  "!!A. finite A ==> !B. B <= A --> card(B) <= card(A)";
 by (etac finite_induct 1);
 by (Simp_tac 1);
-by (strip_tac 1);
+by (Clarify_tac 1);
 by (case_tac "x:B" 1);
  by (dres_inst_tac [("A","B")] mk_disjoint_insert 1);
  by (SELECT_GOAL(safe_tac (!claset))1);
@@ -409,8 +406,7 @@ goalw Finite.thy [psubset_def]
 by (etac finite_induct 1);
 by (Simp_tac 1);
 by (Blast_tac 1);
-by (strip_tac 1);
-by (etac conjE 1);
+by (Clarify_tac 1);
 by (case_tac "x:A" 1);
 (*1*)
 by (dres_inst_tac [("A","A")]mk_disjoint_insert 1);
@@ -419,14 +415,13 @@ by (etac conjE 1);
 by (hyp_subst_tac 1);
 by (rotate_tac ~1 1);
 by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
-by (dtac insert_lim 1);
-by (Asm_full_simp_tac 1);
+by (Blast_tac 1);
 (*2*)
 by (rotate_tac ~1 1);
+by (eres_inst_tac [("P","?a<?b")] notE 1);
 by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
 by (case_tac "A=F" 1);
-by (Asm_simp_tac 1);
-by (Asm_simp_tac 1);
+by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "psubset_card" ;
 
 
@@ -438,16 +433,14 @@ goal thy "!!C. finite C ==> finite (Union C) --> \
 \          --> k dvd card(Union C)";
 by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
-by (strip_tac 1);
-by (REPEAT (etac conjE 1));
+by (Clarify_tac 1);
 by (stac card_Un_disjoint 1);
 by (ALLGOALS
     (asm_full_simp_tac (!simpset
 			 addsimps [dvd_add, disjoint_eq_subset_Compl])));
-by (thin_tac "?PP-->?QQ" 1);
 by (thin_tac "!c:F. ?PP(c)" 1);
 by (thin_tac "!c:F. ?PP(c) & ?QQ(c)" 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (ball_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "dvd_partition";

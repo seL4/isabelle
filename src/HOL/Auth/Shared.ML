@@ -125,7 +125,7 @@ qed "Nonce_supply1";
 goal thy "EX N N'. Nonce N ~: used evs & Nonce N' ~: used evs' & N ~= N'";
 by (cut_inst_tac [("evs","evs")] lemma 1);
 by (cut_inst_tac [("evs","evs'")] lemma 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (res_inst_tac [("x","N")] exI 1);
 by (res_inst_tac [("x","Suc (N+Na)")] exI 1);
 by (asm_simp_tac (!simpset addsimps [less_not_refl2 RS not_sym, 
@@ -138,7 +138,7 @@ goal thy "EX N N' N''. Nonce N ~: used evs & Nonce N' ~: used evs' & \
 by (cut_inst_tac [("evs","evs")] lemma 1);
 by (cut_inst_tac [("evs","evs'")] lemma 1);
 by (cut_inst_tac [("evs","evs''")] lemma 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (res_inst_tac [("x","N")] exI 1);
 by (res_inst_tac [("x","Suc (N+Na)")] exI 1);
 by (res_inst_tac [("x","Suc (Suc (N+Na+Nb))")] exI 1);
@@ -181,7 +181,7 @@ by (cut_inst_tac [("evs","evs'")]
 by (etac exE 1);
 by (cut_inst_tac [("evs","evs''")] 
     (Finites.emptyI RS Finites.insertI RS Finites.insertI RS Key_supply_ax) 1);
-by (Step_tac 1);
+by (Clarify_tac 1);
 by (Full_simp_tac 1);
 by (fast_tac (!claset addSEs [allE]) 1);
 qed "Key_supply3";

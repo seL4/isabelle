@@ -190,7 +190,7 @@ goal thy
 \          : set evs --> A=A' & B=B' & na=na' & nb=nb' & X=X'";
 by (etac yahalom.induct 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [all_conj_distrib])));
-by (Step_tac 1);
+by (ALLGOALS Clarify_tac);
 by (ex_strip_tac 2);
 by (Blast_tac 2);
 (*Remaining case: YM3*)
@@ -198,7 +198,7 @@ by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 (*...we assume X is a recent message and handle this case by contradiction*)
 by (blast_tac (!claset addSEs spies_partsEs
-                      delrules [conjI]    (*no split-up to 4 subgoals*)) 1);
+                       delrules [conjI]    (*no split-up to 4 subgoals*)) 1);
 val lemma = result();
 
 goal thy 
@@ -301,11 +301,11 @@ goal thy
 \                          Crypt (shrK B) {|Agent A, Key K|}|}     \
 \                       : set evs)";
 by (parts_induct_tac 1);
+by (ALLGOALS Clarify_tac);
 (*YM3 & Fake*)
 by (Blast_tac 2);
 by (Fake_parts_insert_tac 1);
 (*YM4*)
-by (Step_tac 1);
 (*A is uncompromised because NB is secure*)
 by (not_bad_tac "A" 1);
 (*A's certificate guarantees the existence of the Server message*)
@@ -515,8 +515,8 @@ by (blast_tac (!claset addSIs [parts_insertI]
 (*Fake*)
 by (spy_analz_tac 1);
 (** LEVEL 7: YM4 and Oops remain **)
+by (ALLGOALS Clarify_tac);
 (*YM4: key K is visible to Spy, contradicting session key secrecy theorem*) 
-by (REPEAT (Safe_step_tac 1));
 by (not_bad_tac "Aa" 1);
 by (dtac (Says_imp_spies RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1);
 by (forward_tac [Says_Server_message_form] 3);
@@ -529,7 +529,6 @@ by (blast_tac (!claset addDs [Says_unique_NB, Spy_not_see_encrypted_key,
 (*Oops case: if the nonce is betrayed now, show that the Oops event is 
   covered by the quantified Oops assumption.*)
 by (full_simp_tac (!simpset addsimps [all_conj_distrib]) 1);
-by (step_tac (!claset delrules [disjE, conjI]) 1);
 by (forward_tac [Says_Server_imp_YM2] 1 THEN assume_tac 1 THEN etac exE 1);
 by (expand_case_tac "NB = NBa" 1);
 (*If NB=NBa then all other components of the Oops message agree*)

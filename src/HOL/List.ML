@@ -6,6 +6,8 @@
 List lemmas
 *)
 
+open List;
+
 goal thy "!x. xs ~= x#xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -128,7 +130,7 @@ AddIffs [append1_eq_conv];
 goal thy "!ys zs. (ys @ xs = zs @ xs) = (ys=zs)";
 by (induct_tac "xs" 1);
 by (Simp_tac 1);
-by (strip_tac 1);
+by (Clarify_tac 1);
 by (subgoal_tac "((ys @ [a]) @ list = (zs @ [a]) @ list) = (ys=zs)" 1);
 by (Asm_full_simp_tac 1);
 by (Blast_tac 1);
@@ -560,7 +562,7 @@ qed_spec_mp "drop_map";
 goal thy "!n i. i < n --> nth i (take n xs) = nth i xs";
 by (induct_tac "xs" 1);
  by (ALLGOALS Asm_simp_tac);
-by (strip_tac 1);
+by (Clarify_tac 1);
 by (exhaust_tac "n" 1);
  by (Blast_tac 1);
 by (exhaust_tac "i" 1);

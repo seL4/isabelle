@@ -16,7 +16,7 @@ val [prem1,prem2] = goalw WF.thy [wf_def]
  "[| r <= A Times A;  \
 \    !!x P. [| ! x. (! y. (y,x) : r --> P(y)) --> P(x);  x:A |] ==> P(x) |]  \
 \ ==>  wf(r)";
-by (strip_tac 1);
+by (Clarify_tac 1);
 by (rtac allE 1);
 by (assume_tac 1);
 by (best_tac (!claset addSEs [prem1 RS subsetD RS SigmaE2] addIs [prem2]) 1);
@@ -51,7 +51,7 @@ qed "wf_irrefl";
 (*transitive closure of a wf relation is wf! *)
 val [prem] = goal WF.thy "wf(r) ==> wf(r^+)";
 by (rewtac wf_def);
-by (strip_tac 1);
+by (Clarify_tac 1);
 (*must retain the universal formula for later use!*)
 by (rtac allE 1 THEN assume_tac 1);
 by (etac mp 1);
@@ -75,7 +75,7 @@ val lemma1 = result();
 
 goalw WF.thy [wf_def]
     "!!r. (! Q x. x:Q --> (? z:Q. ! y. (y,z):r --> y~:Q)) ==> wf r";
-by (strip_tac 1);
+by (Clarify_tac 1);
 by (dres_inst_tac [("x", "{x. ~ P x}")] spec 1);
 by (Blast_tac 1);
 val lemma2 = result();
@@ -243,7 +243,7 @@ by (res_inst_tac [("f", "cut (%y. wftrec r H y) r a1")] is_the_recfun 1);
 by (rewrite_goals_tac [is_recfun_def, wftrec_def]);
 by (stac cuts_eq 1);
 (*Applying the substitution: must keep the quantified assumption!!*)
-by (EVERY1 [strip_tac, rtac H_cong1, rtac allE, atac,
+by (EVERY1 [Clarify_tac, rtac H_cong1, rtac allE, atac,
             etac (mp RS ssubst), atac]); 
 by (fold_tac [is_recfun_def]);
 by (asm_simp_tac (wf_super_ss addsimps[cut_apply,is_recfun_cut,cuts_eq]) 1);
@@ -270,7 +270,7 @@ by (asm_simp_tac (HOL_ss addsimps [cut_apply]) 1);
 by (rtac H_cong 1);    (*expose the equality of cuts*)
 by (rtac refl 2);
 by (simp_tac (HOL_ss addsimps [cuts_eq, cut_apply, r_into_trancl]) 1);
-by (strip_tac 1);
+by (Clarify_tac 1);
 by (res_inst_tac [("r","r^+")] is_recfun_equal 1);
 by (atac 1);
 by (rtac trans_trancl 1);
@@ -313,22 +313,19 @@ qed "def_wfrec";
 
 goal WF.thy
     "!R. wf R --> (!P. (!x. (!y. (y,x):R --> P y) --> P x) --> (!x. P x))";
-by (strip_tac 1);
+by (Clarify_tac 1);
 by (res_inst_tac [("r","R"),("P","P"), ("a","x")] wf_induct 1);
 by (assume_tac 1);
 by (Blast_tac 1);
 qed"tfl_wf_induct";
 
 goal WF.thy "!f R. (x,a):R --> (cut f R a)(x) = f(x)";
-by (strip_tac 1);
+by (Clarify_tac 1);
 by (rtac cut_apply 1);
 by (assume_tac 1);
 qed"tfl_cut_apply";
 
 goal WF.thy "!M R f. (f=wfrec R M) --> wf R --> (!x. f x = M (cut f R x) x)";
-by (strip_tac 1);
-by (res_inst_tac [("r","R"), ("H","M"),
-                  ("a","x"), ("f","f")] (eq_reflection RS def_wfrec) 1);
-by (assume_tac 1);
-by (assume_tac 1);
+by (Clarify_tac 1);
+be wfrec 1;
 qed "tfl_wfrec";
