@@ -27,18 +27,6 @@ fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in Abst (a, Some T, Proofterm.prf_abstract_over t prf) end;
 
-fun prove_goal' sg p f =
-  let
-    val (As, B) = Logic.strip_horn p;
-    val cAs = map (cterm_of sg) As;
-    val asms = map (norm_hhf_rule o assume) cAs;
-    fun check thm = if nprems_of thm > 0 then
-      error "prove_goal': unsolved goals" else thm
-  in
-    standard (implies_intr_list cAs
-      (check (Seq.hd (EVERY (f asms) (trivial (cterm_of sg B))))))
-  end;
-
 fun prf_of thm =
   let val {sign, prop, der = (_, prf), ...} = rep_thm thm
   in Reconstruct.reconstruct_proof sign prop prf end;
@@ -129,7 +117,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
     val inst = map (pairself cert) (map head_of (HOLogic.dest_conj
       (HOLogic.dest_Trueprop (concl_of induction))) ~~ ps);
 
-    val thm = prove_goal' sg (Logic.list_implies (prems, concl))
+    val thm = simple_prove_goal_cterm (cert (Logic.list_implies (prems, concl)))
       (fn prems =>
          [rewrite_goals_tac (map mk_meta_eq [fst_conv, snd_conv]),
           rtac (cterm_instantiate inst induction) 1,
