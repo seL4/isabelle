@@ -169,7 +169,7 @@ fun no_vars tm =
 fun cert_axm sg (name, raw_tm) =
   let
     val (t, T, _) = Sign.certify_term sg raw_tm
-      handle TYPE arg => error (Sign.exn_type_msg sg arg)
+      handle TYPE (msg, _, _) => error msg
 	   | TERM (msg, _) => error msg;
   in
     assert (T = propT) "Term not of type prop";

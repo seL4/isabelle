@@ -65,8 +65,9 @@ sig
   val get_sort: type_sig -> (indexname -> sort option) -> (indexname * sort) list
     -> indexname -> sort
   val constrain: term -> typ -> term
-  val infer_types: type_sig * (string -> typ option) * (indexname -> typ option)
-    * (indexname -> sort option) * string list * bool * typ list * term list
+  val infer_types: (term -> Pretty.T) -> (typ -> Pretty.T)
+    -> type_sig -> (string -> typ option) -> (indexname -> typ option)
+    -> (indexname -> sort option) -> string list -> bool -> typ list -> term list
     -> term list * (indexname * typ) list
 end;
 
@@ -871,14 +872,14 @@ fun q_is_param (x, _) =
     "?" :: _ => true
   | _ => false);
 
-fun infer_types (tsig, const_type, def_type, def_sort, used, freeze, pat_Ts, raw_ts) =
+fun infer_types prt prT tsig const_type def_type def_sort used freeze pat_Ts raw_ts =
   let
     val TySg {classrel, arities, ...} = tsig;
     val pat_Ts' = map (cert_typ tsig) pat_Ts;
     val raw_ts' =
       map (decode_types tsig (is_some o const_type) def_type def_sort) raw_ts;
     val (ts, Ts, unifier) =
-      TypeInfer.infer_types const_type classrel arities used freeze
+      TypeInfer.infer_types prt prT const_type classrel arities used freeze
         q_is_param raw_ts' pat_Ts';
   in
     (ts, unifier)

@@ -7,7 +7,8 @@ Type inference.
 
 signature TYPE_INFER =
 sig
-  val infer_types: (string -> typ option) -> Sorts.classrel -> Sorts.arities
+  val infer_types: (term -> Pretty.T) -> (typ -> Pretty.T)
+    -> (string -> typ option) -> Sorts.classrel -> Sorts.arities
     -> string list -> bool -> (indexname -> bool) -> term list -> typ list
     -> term list * typ list * (indexname * typ) list
 end;
@@ -257,7 +258,7 @@ fun unify classrel arities =
 
     fun not_in_sort x S' S =
       "Type variable " ^ x ^ "::" ^ Sorts.str_of_sort S' ^ " not in sort " ^
-        Sorts.str_of_sort S;
+        Sorts.str_of_sort S ^ ".";
 
     fun meet _ [] = ()
       | meet (Link (r as (ref (Param S')))) S =
@@ -298,9 +299,10 @@ fun unify classrel arities =
       | unif (Link (ref T)) U = unif T U
       | unif T (Link (ref U)) = unif T U
       | unif (PType (a, Ts)) (PType (b, Us)) =
-          if a <> b then raise NO_UNIFIER ("Clash of " ^ a ^ ", " ^ b ^ "!")
+          if a <> b then
+            raise NO_UNIFIER ("Clash of types " ^ quote a ^ " and " ^ quote b ^ ".")
           else seq2 unif Ts Us
-      | unif T U = if T = U then () else raise NO_UNIFIER "Unification failed!";
+      | unif T U = if T = U then () else raise NO_UNIFIER "";
 
   in unif end;
 
@@ -310,26 +312,63 @@ fun unify classrel arities =
 
 (* infer *)                                     (*DESTRUCTIVE*)
 
-fun infer classrel arities =
+fun infer prt prT classrel arities =
   let
-    val unif = unify classrel arities;
+    (* errors *)
 
-    fun err msg1 msg2 bs ts Ts =
+    fun unif_failed msg =
+      "Type unification failed" ^ (if msg = "" then "." else ": " ^ msg) ^ "\n";
+
+    val str_of = Pretty.string_of;
+
+    fun prep_output bs ts Ts =
       let
         val (Ts_bTs', ts') = typs_terms_of [] PTFree "??" (Ts @ map snd bs, ts);
         val len = length Ts;
         val Ts' = take (len, Ts_bTs');
         val xs = map Free (map fst bs ~~ drop (len, Ts_bTs'));
         val ts'' = map (fn t => subst_bounds (xs, t)) ts';
-      in
-        raise_type (msg1 ^ " " ^ msg2) Ts' ts''
-      end;
+      in (ts'', Ts') end;
+
+    fun err_loose i =
+      raise_type ("Loose bound variable: B." ^ string_of_int i) [] [];
+
+    fun err_appl msg bs t T U_to_V u U =
+      let
+        val ([t', u'], [T', U_to_V', U']) = prep_output bs [t, u] [T, U_to_V, U];
+        val text = cat_lines
+         [unif_failed msg,
+          "Type error in application:",
+          "",
+          str_of (Pretty.block [Pretty.str "operator:     ", Pretty.brk 1, prt t',
+            Pretty.str " :: ", prT T']),
+          str_of (Pretty.block [Pretty.str "expected type:", Pretty.brk 1, prT U_to_V']),
+          "",
+          str_of (Pretty.block [Pretty.str "operand:      ", Pretty.brk 1, prt u',
+            Pretty.str " :: ", prT U']), ""];
+      in raise_type text [T', U_to_V', U'] [t', u'] end;
+
+    fun err_constraint msg bs t T U =
+      let
+        val ([t'], [T', U']) = prep_output bs [t] [T, U];
+        val text = cat_lines
+         [unif_failed msg,
+          "Cannot meet type constraint:",
+          "",
+          str_of (Pretty.block [Pretty.str "term:          ", Pretty.brk 1, prt t',
+            Pretty.str " :: ", prT T']),
+          str_of (Pretty.block [Pretty.str "expected type: ", Pretty.brk 1, prT U']), ""];
+      in raise_type text [T', U'] [t'] end;
+
+
+    (* main *)
+
+    val unif = unify classrel arities;
 
     fun inf _ (PConst (_, T)) = T
       | inf _ (PFree (_, T)) = T
       | inf _ (PVar (_, T)) = T
-      | inf bs (PBound i) = snd (nth_elem (i, bs)
-          handle LIST _ => raise_type "Loose bound variable" [] [Bound i])
+      | inf bs (PBound i) = snd (nth_elem (i, bs) handle LIST _ => err_loose i)
       | inf bs (PAbs (x, T, t)) = PType ("fun", [T, inf ((x, T) :: bs) t])
       | inf bs (PAppl (t, u)) =
           let
@@ -338,12 +377,11 @@ fun infer classrel arities =
             val V = mk_param [];
             val U_to_V = PType ("fun", [U, V]);
             val _ = unif U_to_V T handle NO_UNIFIER msg =>
-              err msg "Bad function application." bs [PAppl (t, u)] [U_to_V, U];
+              err_appl msg bs t T U_to_V u U;
           in V end
       | inf bs (Constraint (t, U)) =
           let val T = inf bs t in
-            unif T U handle NO_UNIFIER msg =>
-              err msg "Cannot meet type constraint." bs [t] [T, U];
+            unif T U handle NO_UNIFIER msg => err_constraint msg bs t T U;
             T
           end;
 
@@ -352,7 +390,7 @@ fun infer classrel arities =
 
 (* infer_types *)
 
-fun infer_types const_type classrel arities used freeze is_param ts Ts =
+fun infer_types prt prT const_type classrel arities used freeze is_param ts Ts =
   let
     (*convert to preterms/typs*)
     val (Tps, Ts') = pretyps_of (K true) ([], Ts);
@@ -360,7 +398,7 @@ fun infer_types const_type classrel arities used freeze is_param ts Ts =
 
     (*run type inference*)
     val tTs' = ListPair.map Constraint (ts', Ts');
-    val _ = seq (fn t => (infer classrel arities t; ())) tTs';
+    val _ = seq (fn t => (infer prt prT classrel arities t; ())) tTs';
 
     (*collect result unifier*)
     fun ch_var (xi, Link (r as ref (Param S))) = (r := PTVar (xi, S); None)

@@ -260,7 +260,7 @@ fun read_def_cterm (sign, types, sorts) used freeze (a, T) =
     val (_, t', tye) =
           Sign.infer_types sign types sorts used freeze (ts, T');
     val ct = cterm_of sign t'
-      handle TYPE arg => error (Sign.exn_type_msg sign arg)
+      handle TYPE (msg, _, _) => error msg
            | TERM (msg, _) => error msg;
   in (ct, tye) end;
 
@@ -271,18 +271,20 @@ fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None) [] true;
   not practical.*)
 fun read_cterms sign (bs, Ts) =
   let
-    val {tsig, syn, ...} = Sign.rep_sg sign
-    fun read (b,T) =
-        case Syntax.read syn T b of
-            [t] => t
-          | _   => error("Error or ambiguity in parsing of " ^ b)
-    val (us,_) = Type.infer_types(tsig, Sign.const_type sign, 
-                                  K None, K None, 
-                                  [], true, 
-                                  map (Sign.certify_typ sign) Ts, 
-                                  ListPair.map read (bs,Ts))
-  in  map (cterm_of sign) us  end
-  handle TYPE arg => error (Sign.exn_type_msg sign arg)
+    val {tsig, syn, ...} = Sign.rep_sg sign;
+    fun read (b, T) =
+      (case Syntax.read syn T b of
+        [t] => t
+      | _  => error ("Error or ambiguity in parsing of " ^ b));
+
+    val prt = setmp Syntax.show_brackets true (Sign.pretty_term sign);
+    val prT = Sign.pretty_typ sign;
+    val (us, _) =
+      Type.infer_types prt prT tsig (Sign.const_type sign)
+        (K None) (K None) [] true (map (Sign.certify_typ sign) Ts)
+        (ListPair.map read (bs, Ts));
+  in map (cterm_of sign) us end
+  handle TYPE (msg, _, _) => error msg
        | TERM (msg, _) => error msg;
 
 

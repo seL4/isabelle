@@ -36,7 +36,6 @@ signature SIGN =
   val certify_typ: sg -> typ -> typ
   val certify_term: sg -> term -> term * typ * int
   val read_typ: sg * (indexname -> sort option) -> string -> typ
-  val exn_type_msg: sg -> string * typ list * term list -> string
   val infer_types: sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> term list * typ -> int * term * (indexname * typ) list
@@ -77,6 +76,7 @@ signature SIGN =
 structure Sign : SIGN =
 struct
 
+
 (** datatype sg **)
 
 (*the "ref" in stamps ensures that no two signatures are identical -- it is
@@ -93,9 +93,8 @@ fun rep_sg (Sg args) = args;
 val tsig_of = #tsig o rep_sg;
 
 
-(* stamps *)
+(* inclusion and equality *)
 
-(*inclusion, equality*)
 local
   (*avoiding polymorphic equality: factor 10 speedup*)
   fun mem_stamp (_:string ref, []) = false
@@ -136,8 +135,7 @@ fun is_draft (Sg {stamps = ref "#" :: _, ...}) = true
 
 (* consts *)
 
-fun const_type (Sg {const_tab, ...}) c =
-  Symtab.lookup (const_tab, c);
+fun const_type (Sg {const_tab, ...}) c = Symtab.lookup (const_tab, c);
 
 
 (* classes and sorts *)
@@ -148,6 +146,7 @@ val subsort = Type.subsort o tsig_of;
 val norm_sort = Type.norm_sort o tsig_of;
 val nonempty_sort = Type.nonempty_sort o tsig_of;
 
+(* FIXME move to Sorts? *)
 fun pretty_sort [c] = Pretty.str c
   | pretty_sort cs = Pretty.str_list "{" "}" cs;
 
@@ -193,15 +192,14 @@ fun print_sg sg =
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names stamps));
     Pretty.writeln (Pretty.strs ("classes:" :: classes));
-    Pretty.writeln (Pretty.big_list "classrel:"
-                      (map pretty_classrel classrel));
+    Pretty.writeln (Pretty.big_list "classrel:" (map pretty_classrel classrel));
     Pretty.writeln (pretty_default default);
     Pretty.writeln (Pretty.big_list "types:" (map pretty_ty tycons));
     Pretty.writeln (Pretty.big_list "abbrs:" (map (pretty_abbr syn) abbrs));
     Pretty.writeln (Pretty.big_list "arities:"
-                      (List.concat (map pretty_arities arities)));
+      (List.concat (map pretty_arities arities)));
     Pretty.writeln (Pretty.big_list "consts:"
-                      (map (pretty_const syn) (Symtab.dest const_tab)))
+      (map (pretty_const syn) (Symtab.dest const_tab)))
   end;
 
 
@@ -251,43 +249,50 @@ fun read_typ (Sg {tsig, syn, ...}, sort_of) str =
 
 fun certify_typ (Sg {tsig, ...}) ty = Type.cert_typ tsig ty;
 
-(* check for duplicate TVars with distinct sorts *)
-fun nodup_TVars(tvars,T) = (case T of
-      Type(_,Ts) => nodup_TVars_list (tvars,Ts)
-    | TFree _ => tvars
-    | TVar(v as (a,S)) =>
-        (case assoc_string_int(tvars,a) of
-           Some(S') => if S=S' then tvars
-                       else raise_type
-                            ("Type variable "^Syntax.string_of_vname a^
-                             " has two distinct sorts") [TVar(a,S'),T] []
-         | None => v::tvars))
-and (*equivalent to foldl nodup_TVars_list, but 3X faster under Poly/ML*)
-    nodup_TVars_list (tvars,[]) = tvars
-  | nodup_TVars_list (tvars,T::Ts) = nodup_TVars_list(nodup_TVars(tvars,T), 
-						      Ts);
+(*check for duplicate TVars with distinct sorts*)
+fun nodup_TVars (tvars, T) =
+  (case T of
+    Type (_, Ts) => nodup_TVars_list (tvars, Ts)
+  | TFree _ => tvars
+  | TVar (v as (a, S)) =>
+      (case assoc_string_int (tvars, a) of
+        Some S' =>
+          if S = S' then tvars
+          else raise_type ("Type variable " ^ Syntax.string_of_vname a ^
+            " has two distinct sorts") [TVar (a, S'), T] []
+      | None => v :: tvars))
+(*equivalent to foldl nodup_TVars_list, but 3X faster under Poly/ML*)
+and nodup_TVars_list (tvars, []) = tvars
+  | nodup_TVars_list (tvars, T :: Ts) =
+      nodup_TVars_list (nodup_TVars (tvars, T), Ts);
 
-(* check for duplicate Vars with distinct types *)
+(*check for duplicate Vars with distinct types*)
 fun nodup_Vars tm =
-let fun nodups vars tvars tm = (case tm of
-          Const(c,T) => (vars, nodup_TVars(tvars,T))
-        | Free(a,T) => (vars, nodup_TVars(tvars,T))
-        | Var(v as (ixn,T)) =>
-            (case assoc_string_int(vars,ixn) of
-               Some(T') => if T=T' then (vars,nodup_TVars(tvars,T))
-                           else raise_type
-                             ("Variable "^Syntax.string_of_vname ixn^
-                              " has two distinct types") [T',T] []
-             | None => (v::vars,tvars))
-        | Bound _ => (vars,tvars)
-        | Abs(_,T,t) => nodups vars (nodup_TVars(tvars,T)) t
-        | s$t => let val (vars',tvars') = nodups vars tvars s
-                 in nodups vars' tvars' t end);
-in nodups [] [] tm; () end;
+  let
+    fun nodups vars tvars tm =
+      (case tm of
+        Const (c, T) => (vars, nodup_TVars (tvars, T))
+      | Free (a, T) => (vars, nodup_TVars (tvars, T))
+      | Var (v as (ixn, T)) =>
+          (case assoc_string_int (vars, ixn) of
+            Some T' =>
+              if T = T' then (vars, nodup_TVars (tvars, T))
+              else raise_type ("Variable " ^ Syntax.string_of_vname ixn ^
+                " has two distinct types") [T', T] []
+          | None => (v :: vars, tvars))
+      | Bound _ => (vars, tvars)
+      | Abs(_, T, t) => nodups vars (nodup_TVars (tvars, T)) t
+      | s $ t =>
+          let val (vars',tvars') = nodups vars tvars s in
+            nodups vars' tvars' t
+          end);
+  in nodups [] [] tm; () end;
+
 
 fun mapfilt_atoms f (Abs (_, _, t)) = mapfilt_atoms f t
   | mapfilt_atoms f (t $ u) = mapfilt_atoms f t @ mapfilt_atoms f u
   | mapfilt_atoms f a = (case f a of Some y => [y] | None => []);
+
 
 fun certify_term (sg as Sg {tsig, ...}) tm =
   let
@@ -316,80 +321,65 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
   end;
 
 
-(*package error messages from type checking*)
-fun exn_type_msg sg (msg, Ts, ts) =
-  let
-    val show_typ = string_of_typ sg;
-    val show_term = set_ap Syntax.show_brackets true (string_of_term sg);
-
-    fun term_err [] = ""
-      | term_err [t] = "\n\nInvolving this term:\n" ^ show_term t
-      | term_err ts =
-          "\n\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
-  in
-    "\nType checking error: " ^ msg ^ "\n" ^
-      cat_lines (map show_typ Ts) ^ term_err ts ^ "\n"
-  end;
-
-
 
 (** infer_types **)         (*exception ERROR*)
 
-(*ts is the list of alternative parses; only one is hoped to be type-correct.
-  T is the expected type for the correct term.
-  Other standard arguments:
-    types is a partial map from indexnames to types (constrains Free, Var).
-    sorts is a partial map from indexnames to sorts (constrains TFree, TVar).
-    used is the list of already used type variables.
-    If freeze then internal TVars are turned into TFrees, else TVars.*)
-fun infer_types sg types sorts used freeze (ts, T) =
+(*
+  ts: list of alternative parses (hopefully only one is type-correct)
+  T: expected type
+
+  def_type: partial map from indexnames to types (constrains Frees, Vars)
+  def_sort: partial map from indexnames to sorts (constrains TFrees, TVars)
+  used: list of already used type variables
+  freeze: if true then generated parameters are turned into TFrees, else TVars
+*)
+
+fun infer_types sg def_type def_sort used freeze (ts, T) =
   let
     val Sg {tsig, ...} = sg;
+    val prt = setmp Syntax.show_brackets true (pretty_term sg);
+    val prT = pretty_typ sg;
+    val infer = Type.infer_types prt prT tsig (const_type sg)
+      def_type def_sort used freeze;
 
-    val T' = certify_typ sg T handle TYPE arg => error (exn_type_msg sg arg);
+    val T' = certify_typ sg T handle TYPE (msg, _, _) => error msg;
 
-    val ct = const_type sg;
-
-    fun warn() =
-      if length ts > 1 andalso length ts <= !Syntax.ambiguity_level
+    fun warn () =
+      if length ts > 1 andalso length ts <= ! Syntax.ambiguity_level
       then (*no warning shown yet*)
-           warning "Currently parsed input \
-                   \produces more than one parse tree.\n\
-                   \For more information lower Syntax.ambiguity_level."
+        warning "Currently parsed input \
+          \produces more than one parse tree.\n\
+          \For more information lower Syntax.ambiguity_level."
       else ();
 
-    datatype result = One of int * term * (indexname * typ) list
-                    | Errs of (string * typ list * term list)list
-                    | Ambigs of term list;
+    datatype result =
+      One of int * term * (indexname * typ) list |
+      Errs of string list |
+      Ambigs of term list;
 
-    fun process_term(res,(t,i)) =
-       let val ([u],tye) = 
-	       Type.infer_types(tsig,ct,types,sorts,used,freeze,[T'],[t])
-       in case res of
-            One(_,t0,_) => Ambigs([u,t0])
-          | Errs _ => One(i,u,tye)
-          | Ambigs(us) => Ambigs(u::us)
-       end
-       handle TYPE arg => (case res of Errs(errs) => Errs(arg::errs)
-                                     | _ => res);
-
-  in case foldl process_term (Errs[], ts ~~ (0 upto (length ts - 1))) of
-       One(res) =>
-         (if length ts > !Syntax.ambiguity_level
-          then writeln "Fortunately, only one parse tree is type correct.\n\
+    fun process_term (res, (t, i)) =
+      let val ([u], tye) = infer [T'] [t] in
+        (case res of
+          One (_, t0, _) => Ambigs ([u, t0])
+        | Errs _ => One (i, u, tye)
+        | Ambigs us => Ambigs (u :: us))
+      end handle TYPE (msg, _, _) =>
+        (case res of
+          Errs errs => Errs (msg :: errs)
+        | _ => res);
+  in
+    (case foldl process_term (Errs [], ts ~~ (0 upto (length ts - 1))) of
+      One res =>
+       (if length ts > ! Syntax.ambiguity_level then
+          writeln "Fortunately, only one parse tree is type correct.\n\
             \It helps (speed!) if you disambiguate your grammar or your input."
-          else ();
-          res)
-     | Errs(errs) => (warn(); error(cat_lines(map (exn_type_msg sg) errs)))
-     | Ambigs(us) =>
-         (warn();
-          let val old_show_brackets = !show_brackets
-              val dummy = show_brackets := true;
-              val errs = cat_lines(map (string_of_term sg) us)
-          in show_brackets := old_show_brackets;
-             error("Error: More than one term is type correct:\n" ^ errs)
-          end)
+        else (); res)
+    | Errs errs => (warn (); error (cat_lines errs))
+    | Ambigs us =>
+        (warn (); error ("Error: More than one term is type correct:\n" ^
+          (cat_lines (map (Pretty.string_of o prt) us)))))
   end;
+
 
 
 (** extend signature **)    (*exception ERROR*)
@@ -461,7 +451,7 @@ fun read_const syn tsig (c, ty_src, mx) =
 
 fun ext_cnsts rd_const syn_only prmode (syn, tsig, ctab) raw_consts =
   let
-    fun prep_const (c, ty, mx) = 
+    fun prep_const (c, ty, mx) =
      (c, compress_type (Type.varifyT (Type.cert_typ tsig (Type.no_tvars ty))), mx)
        handle TYPE (msg, _, _)
          => (writeln msg; err_in_const (Syntax.const_name c mx));
