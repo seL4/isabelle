@@ -19,9 +19,10 @@ sig
   val ml_path: string -> Path.T
   val check_file: Path.T -> (Path.T * File.info) option
   val load_file: Path.T -> (Path.T * File.info)
-  val check_thy: string -> bool -> (Path.T * File.info) list
-  val deps_thy: string -> bool -> (Path.T * File.info) list * (string list * Path.T list)
-  val load_thy: string -> bool -> bool -> (Path.T * File.info) list
+  val check_thy: Path.T option -> string -> bool -> (Path.T * File.info) list
+  val deps_thy: Path.T option -> string -> bool ->
+    (Path.T * File.info) list * (string list * Path.T list)
+  val load_thy: Path.T option -> string -> bool -> bool -> (Path.T * File.info) list
 end;
 
 (*backdoor sealed later*)
@@ -42,7 +43,7 @@ val load_path = ref [Path.current];
 fun change_path f = load_path := f (! load_path);
 
 fun show_path () = map Path.pack (! load_path);
-fun add_path s = change_path (fn path => path @ [Path.unpack s]);
+fun add_path s = change_path (cons (Path.unpack s));
 fun del_path s = change_path (filter_out (equal (Path.unpack s)));
 fun reset_path () = load_path := [Path.current];
 
@@ -79,13 +80,19 @@ fun load_file raw_path =
 
 (* check_thy *)
 
-fun check_thy name ml =
+fun tmp_path None f x = f x
+  | tmp_path (Some path) f x = Library.setmp load_path [path] f x;
+
+fun check_thy_aux name ml =
   (case check_file (thy_path name) of
-    None => error ("Could not find theory file for " ^ quote name)
+    None => error ("Could not find theory file for " ^ quote name ^ " in dir(s) " ^
+      commas_quote (show_path ()))
   | Some thy_info => thy_info ::
       (case if ml then check_file (ml_path name) else None of
         None => []
       | Some info => [info]));
+
+fun check_thy dir name ml = tmp_path dir (check_thy_aux name) ml;
 
 
 (* process theory files *)
@@ -95,12 +102,12 @@ fun undefined _ = raise Match;
 val deps_thy_fn = ref (undefined: string -> bool -> Path.T -> string list * Path.T list);
 val load_thy_fn = ref (undefined: string -> bool -> bool -> Path.T -> unit);
 
-fun process_thy f name ml =
-  let val master = check_thy name ml
+fun process_thy dir f name ml =
+  let val master = check_thy dir name ml
   in (master, f (#1 (hd master))) end;
 
-fun deps_thy name ml = process_thy (! deps_thy_fn name ml) name ml;
-fun load_thy name ml time = #1 (process_thy (! load_thy_fn name ml time) name ml);
+fun deps_thy dir name ml = process_thy dir (! deps_thy_fn name ml) name ml;
+fun load_thy dir name ml time = #1 (process_thy dir (! load_thy_fn name ml time) name ml);
 
 
 end;
