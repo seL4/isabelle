@@ -310,7 +310,7 @@ val hcomplex_minus_simps = NCons_simps @
 
 (*To let us treat subtraction as addition*)
 val diff_simps = [hcomplex_diff_def, hcomplex_minus_add_distrib, 
-                  hcomplex_minus_minus];
+                  minus_minus];
 
 (*push the unary minus down: - x * y = x * - y *)
 val hcomplex_minus_mult_eq_1_to_2 = 
@@ -319,7 +319,7 @@ val hcomplex_minus_mult_eq_1_to_2 =
 
 (*to extract again any uncancelled minuses*)
 val hcomplex_minus_from_mult_simps = 
-    [hcomplex_minus_minus, hcomplex_minus_mult_eq1 RS sym, 
+    [minus_minus, hcomplex_minus_mult_eq1 RS sym, 
      hcomplex_minus_mult_eq2 RS sym];
 
 (*combine unary minus with numeric literals, however nested within a product*)

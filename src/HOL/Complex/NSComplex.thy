@@ -6,6 +6,12 @@
 
 theory NSComplex = NSInduct:
 
+(* Move to one of the hyperreal theories *)
+lemma hypreal_of_nat: "hypreal_of_nat m = Abs_hypreal(hyprel `` {%n. real m})"
+apply (induct_tac "m")
+apply (auto simp add: hypreal_zero_def hypreal_of_nat_Suc hypreal_zero_num hypreal_one_num hypreal_add real_of_nat_Suc)
+done
+
 constdefs
     hcomplexrel :: "((nat=>complex)*(nat=>complex)) set"
     "hcomplexrel == {p. EX X Y. p = ((X::nat=>complex),Y) &
@@ -358,143 +364,11 @@ apply (rule_tac f = "Abs_hcomplex" in arg_cong)
 apply (auto , ultra)
 done
 
-lemma hcomplex_minus_minus: "- (- z) = (z::hcomplex)"
-apply (rule_tac z = "z" in eq_Abs_hcomplex)
-apply (simp (no_asm_simp) add: hcomplex_minus)
-done
-declare hcomplex_minus_minus [simp]
-
-lemma inj_hcomplex_minus: "inj(%z::hcomplex. -z)"
-apply (rule inj_onI)
-apply (drule_tac f = "uminus" in arg_cong)
-apply simp
-done
-
-lemma hcomplex_minus_zero: "- 0 = (0::hcomplex)"
-apply (unfold hcomplex_zero_def)
-apply (simp (no_asm) add: hcomplex_minus)
-done
-declare hcomplex_minus_zero [simp]
-
-lemma hcomplex_minus_zero_iff: "(-x = 0) = (x = (0::hcomplex))"
-apply (rule_tac z = "x" in eq_Abs_hcomplex)
-apply (auto simp add: hcomplex_zero_def hcomplex_minus)
-done
-declare hcomplex_minus_zero_iff [simp]
-
-lemma hcomplex_minus_zero_iff2: "(0 = -x) = (x = (0::hcomplex))"
-apply (auto dest: sym)
-done
-declare hcomplex_minus_zero_iff2 [simp]
-
-lemma hcomplex_minus_not_zero_iff: "(-x ~= 0) = (x ~= (0::hcomplex))"
-apply auto
-done
-
-lemma hcomplex_add_minus_right: "z + - z = (0::hcomplex)"
-apply (rule_tac z = "z" in eq_Abs_hcomplex)
-apply (auto simp add: hcomplex_add hcomplex_minus hcomplex_zero_def)
-done
-declare hcomplex_add_minus_right [simp]
-
 lemma hcomplex_add_minus_left: "-z + z = (0::hcomplex)"
 apply (rule_tac z = "z" in eq_Abs_hcomplex)
 apply (auto simp add: hcomplex_add hcomplex_minus hcomplex_zero_def)
 done
 declare hcomplex_add_minus_left [simp]
-
-lemma hcomplex_add_minus_cancel: "z + (- z + w) = (w::hcomplex)"
-apply (simp (no_asm) add: hcomplex_add_assoc [symmetric])
-done
-
-lemma hcomplex_minus_add_cancel: "(-z) + (z + w) = (w::hcomplex)"
-apply (simp (no_asm) add: hcomplex_add_assoc [symmetric])
-done
-
-lemma hRe_minus: "hRe(-z) = - hRe(z)"
-apply (rule_tac z = "z" in eq_Abs_hcomplex)
-apply (auto simp add: hRe hcomplex_minus hypreal_minus complex_Re_minus)
-done
-
-lemma hIm_minus: "hIm(-z) = - hIm(z)"
-apply (rule_tac z = "z" in eq_Abs_hcomplex)
-apply (auto simp add: hIm hcomplex_minus hypreal_minus complex_Im_minus)
-done
-
-lemma hcomplex_add_minus_eq_minus:
-      "x + y = (0::hcomplex) ==> x = -y"
-apply (unfold hcomplex_zero_def)
-apply (rule_tac z = "x" in eq_Abs_hcomplex)
-apply (rule_tac z = "y" in eq_Abs_hcomplex)
-apply (auto simp add: hcomplex_add hcomplex_minus)
-apply ultra
-done
-
-lemma hcomplex_minus_add_distrib: "-(x + y) = -x + -(y::hcomplex)"
-apply (rule_tac z = "x" in eq_Abs_hcomplex)
-apply (rule_tac z = "y" in eq_Abs_hcomplex)
-apply (auto simp add: hcomplex_add hcomplex_minus)
-done
-declare hcomplex_minus_add_distrib [simp]
-
-lemma hcomplex_add_left_cancel: "((x::hcomplex) + y = x + z) = (y = z)"
-apply (rule_tac z = "x" in eq_Abs_hcomplex)
-apply (rule_tac z = "y" in eq_Abs_hcomplex)
-apply (rule_tac z = "z" in eq_Abs_hcomplex)
-apply (auto simp add: hcomplex_add)
-done
-declare hcomplex_add_left_cancel [iff]
-
-lemma hcomplex_add_right_cancel: "(y + (x::hcomplex)= z + x) = (y = z)"
-apply (simp (no_asm) add: hcomplex_add_commute)
-done
-declare hcomplex_add_right_cancel [iff]
-
-lemma hcomplex_eq_minus_iff: "((x::hcomplex) = y) = ((0::hcomplex) = x + - y)"
-apply (safe)
-apply (rule_tac [2] x1 = "-y" in hcomplex_add_right_cancel [THEN iffD1])
-apply auto
-done
-
-lemma hcomplex_eq_minus_iff2: "((x::hcomplex) = y) = (x + - y = (0::hcomplex))"
-apply (safe)
-apply (rule_tac [2] x1 = "-y" in hcomplex_add_right_cancel [THEN iffD1])
-apply auto
-done
-
-subsection{*Subraction for Nonstandard Complex Numbers*}
-
-lemma hcomplex_diff:
-  "Abs_hcomplex(hcomplexrel``{%n. X n}) - Abs_hcomplex(hcomplexrel``{%n. Y n}) =
-   Abs_hcomplex(hcomplexrel``{%n. X n - Y n})"
-
-apply (unfold hcomplex_diff_def)
-apply (auto simp add: hcomplex_minus hcomplex_add complex_diff_def)
-done
-
-lemma hcomplex_diff_zero: "(z::hcomplex) - z = (0::hcomplex)"
-apply (unfold hcomplex_diff_def)
-apply (simp (no_asm))
-done
-declare hcomplex_diff_zero [simp]
-
-lemma hcomplex_diff_0: "(0::hcomplex) - x = -x"
-apply (simp (no_asm) add: hcomplex_diff_def)
-done
-
-lemma hcomplex_diff_0_right: "x - (0::hcomplex) = x"
-apply (simp (no_asm) add: hcomplex_diff_def)
-done
-
-lemma hcomplex_diff_self: "x - x = (0::hcomplex)"
-apply (simp (no_asm) add: hcomplex_diff_def)
-done
-
-declare hcomplex_diff_0 [simp] hcomplex_diff_0_right [simp] hcomplex_diff_self [simp]
-
-lemma hcomplex_diff_eq_eq: "((x::hcomplex) - y = z) = (x = z + y)"
-apply (auto simp add: hcomplex_diff_def hcomplex_add_assoc)
-done
 
 subsection{*Multiplication for Nonstandard Complex Numbers*}
 
@@ -520,27 +394,12 @@ apply (rule_tac z = "w" in eq_Abs_hcomplex)
 apply (auto simp add: hcomplex_mult complex_mult_assoc)
 done
 
-lemma hcomplex_mult_left_commute: "(x::hcomplex) * (y * z) = y * (x * z)"
-apply (rule_tac z = "x" in eq_Abs_hcomplex)
-apply (rule_tac z = "y" in eq_Abs_hcomplex)
-apply (rule_tac z = "z" in eq_Abs_hcomplex)
-apply (auto simp add: hcomplex_mult complex_mult_left_commute)
-done
-
-lemmas hcomplex_mult_ac = hcomplex_mult_assoc hcomplex_mult_commute
-                        hcomplex_mult_left_commute
-
 lemma hcomplex_mult_one_left: "(1::hcomplex) * z = z"
 apply (unfold hcomplex_one_def)
 apply (rule_tac z = "z" in eq_Abs_hcomplex)
 apply (auto simp add: hcomplex_mult)
 done
 declare hcomplex_mult_one_left [simp]
-
-lemma hcomplex_mult_one_right: "z * (1::hcomplex) = z"
-apply (simp (no_asm) add: hcomplex_mult_commute)
-done
-declare hcomplex_mult_one_right [simp]
 
 lemma hcomplex_mult_zero_left: "(0::hcomplex) * z = 0"
 apply (unfold hcomplex_zero_def)
@@ -549,56 +408,11 @@ apply (auto simp add: hcomplex_mult)
 done
 declare hcomplex_mult_zero_left [simp]
 
-lemma hcomplex_mult_zero_right: "z * (0::hcomplex) = 0"
-apply (simp (no_asm) add: hcomplex_mult_commute)
-done
-declare hcomplex_mult_zero_right [simp]
-
-lemma hcomplex_minus_mult_eq1: "-(x * y) = -x * (y::hcomplex)"
-apply (rule_tac z = "x" in eq_Abs_hcomplex)
-apply (rule_tac z = "y" in eq_Abs_hcomplex)
-apply (auto simp add: hcomplex_mult hcomplex_minus)
-done
-
-lemma hcomplex_minus_mult_eq2: "-(x * y) = x * -(y::hcomplex)"
-apply (rule_tac z = "x" in eq_Abs_hcomplex)
-apply (rule_tac z = "y" in eq_Abs_hcomplex)
-apply (auto simp add: hcomplex_mult hcomplex_minus)
-done
-
-declare hcomplex_minus_mult_eq1 [symmetric, simp] hcomplex_minus_mult_eq2 [symmetric, simp]
-
-lemma hcomplex_mult_minus_one: "- 1 * (z::hcomplex) = -z"
-apply (simp (no_asm))
-done
-declare hcomplex_mult_minus_one [simp]
-
-lemma hcomplex_mult_minus_one_right: "(z::hcomplex) * - 1 = -z"
-apply (subst hcomplex_mult_commute)
-apply (simp (no_asm))
-done
-declare hcomplex_mult_minus_one_right [simp]
-
-lemma hcomplex_minus_mult_cancel: "-x * -y = x * (y::hcomplex)"
-apply auto
-done
-declare hcomplex_minus_mult_cancel [simp]
-
-lemma hcomplex_minus_mult_commute: "-x * y = x * -(y::hcomplex)"
-apply auto
-done
-
 lemma hcomplex_add_mult_distrib: "((z1::hcomplex) + z2) * w = (z1 * w) + (z2 * w)"
 apply (rule_tac z = "z1" in eq_Abs_hcomplex)
 apply (rule_tac z = "z2" in eq_Abs_hcomplex)
 apply (rule_tac z = "w" in eq_Abs_hcomplex)
 apply (auto simp add: hcomplex_mult hcomplex_add complex_add_mult_distrib)
-done
-
-lemma hcomplex_add_mult_distrib2: "(w::hcomplex) * (z1 + z2) = (w * z1) + (w * z2)"
-apply (rule_tac z1 = "z1 + z2" in hcomplex_mult_commute [THEN ssubst])
-apply (simp (no_asm) add: hcomplex_add_mult_distrib)
-apply (simp (no_asm) add: hcomplex_mult_commute)
 done
 
 lemma hcomplex_zero_not_eq_one: "(0::hcomplex) ~= (1::hcomplex)"
@@ -619,15 +433,6 @@ apply (rule_tac f = "Abs_hcomplex" in arg_cong)
 apply (auto , ultra)
 done
 
-lemma HCOMPLEX_INVERSE_ZERO: "inverse (0::hcomplex) = 0"
-apply (unfold hcomplex_zero_def)
-apply (auto simp add: hcomplex_inverse)
-done
-
-lemma HCOMPLEX_DIVISION_BY_ZERO: "a / (0::hcomplex) = 0"
-apply (simp (no_asm) add: hcomplex_divide_def HCOMPLEX_INVERSE_ZERO)
-done
-
 lemma hcomplex_mult_inv_left:
       "z ~= (0::hcomplex) ==> inverse(z) * z = (1::hcomplex)"
 apply (unfold hcomplex_zero_def hcomplex_one_def)
@@ -640,105 +445,173 @@ apply auto
 done
 declare hcomplex_mult_inv_left [simp]
 
-lemma hcomplex_mult_inv_right: "z ~= (0::hcomplex) ==> z * inverse(z) = (1::hcomplex)"
-apply (auto intro: hcomplex_mult_commute [THEN subst])
+subsection {* The Field of Nonstandard Complex Numbers *}
+
+instance hcomplex :: field
+proof
+  fix z u v w :: hcomplex
+  show "(u + v) + w = u + (v + w)"
+    by (simp add: hcomplex_add_assoc)
+  show "z + w = w + z"
+    by (simp add: hcomplex_add_commute)
+  show "0 + z = z"
+    by (simp)
+  show "-z + z = 0"
+    by (simp)
+  show "z - w = z + -w"
+    by (simp add: hcomplex_diff_def)
+  show "(u * v) * w = u * (v * w)"
+    by (simp add: hcomplex_mult_assoc)
+  show "z * w = w * z"
+    by (simp add: hcomplex_mult_commute)
+  show "1 * z = z"
+    by (simp)
+  show "0 \<noteq> (1::hcomplex)"
+    by (rule hcomplex_zero_not_eq_one)
+  show "(u + v) * w = u * w + v * w"
+    by (simp add: hcomplex_add_mult_distrib)
+  assume neq: "w \<noteq> 0"
+  thus "z / w = z * inverse w"
+    by (simp add: hcomplex_divide_def)
+  show "inverse w * w = 1"
+    by (rule hcomplex_mult_inv_left)
+qed
+
+lemma HCOMPLEX_INVERSE_ZERO: "inverse (0::hcomplex) = 0"
+apply (unfold hcomplex_zero_def)
+apply (auto simp add: hcomplex_inverse)
 done
-declare hcomplex_mult_inv_right [simp]
+
+lemma HCOMPLEX_DIVISION_BY_ZERO: "a / (0::hcomplex) = 0"
+apply (simp (no_asm) add: hcomplex_divide_def HCOMPLEX_INVERSE_ZERO)
+done
+
+instance hcomplex :: division_by_zero
+proof
+  fix x :: hcomplex
+  show "inverse 0 = (0::hcomplex)" by (rule HCOMPLEX_INVERSE_ZERO)
+  show "x/0 = 0" by (rule HCOMPLEX_DIVISION_BY_ZERO) 
+qed
 
 lemma hcomplex_mult_left_cancel: "(c::hcomplex) ~= (0::hcomplex) ==> (c*a=c*b) = (a=b)"
-apply auto
-apply (drule_tac f = "%x. x*inverse c" in arg_cong)
-apply (simp add: hcomplex_mult_ac)
+by (simp add: field_mult_cancel_left) 
+
+subsection{*More Minus Laws*}
+
+lemma inj_hcomplex_minus: "inj(%z::hcomplex. -z)"
+apply (rule inj_onI)
+apply (drule_tac f = "uminus" in arg_cong)
+apply simp
+done
+
+lemma hRe_minus: "hRe(-z) = - hRe(z)"
+apply (rule_tac z = "z" in eq_Abs_hcomplex)
+apply (auto simp add: hRe hcomplex_minus hypreal_minus complex_Re_minus)
+done
+
+lemma hIm_minus: "hIm(-z) = - hIm(z)"
+apply (rule_tac z = "z" in eq_Abs_hcomplex)
+apply (auto simp add: hIm hcomplex_minus hypreal_minus complex_Im_minus)
+done
+
+lemma hcomplex_add_minus_eq_minus:
+      "x + y = (0::hcomplex) ==> x = -y"
+apply (drule Ring_and_Field.equals_zero_I) 
+apply (simp add: minus_equation_iff [of x y]) 
+done
+
+lemma hcomplex_minus_add_distrib: "-(x + y) = -x + -(y::hcomplex)"
+apply (rule Ring_and_Field.minus_add_distrib) 
+done
+
+lemma hcomplex_add_left_cancel: "((x::hcomplex) + y = x + z) = (y = z)"
+apply (rule Ring_and_Field.add_left_cancel) 
+done
+declare hcomplex_add_left_cancel [iff]
+
+lemma hcomplex_add_right_cancel: "(y + (x::hcomplex)= z + x) = (y = z)"
+apply (rule Ring_and_Field.add_right_cancel)
+done
+declare hcomplex_add_right_cancel [iff]
+
+subsection{*More Multiplication Laws*}
+
+lemma hcomplex_mult_left_commute: "(x::hcomplex) * (y * z) = y * (x * z)"
+apply (rule Ring_and_Field.mult_left_commute)
+done
+
+lemmas hcomplex_mult_ac = hcomplex_mult_assoc hcomplex_mult_commute
+                          hcomplex_mult_left_commute
+
+lemma hcomplex_mult_one_right: "z * (1::hcomplex) = z"
+apply (rule Ring_and_Field.mult_1_right)
+done
+
+lemma hcomplex_mult_zero_right: "z * (0::hcomplex) = 0"
+apply (rule Ring_and_Field.mult_right_zero)
+done
+
+lemma hcomplex_minus_mult_eq1: "-(x * y) = -x * (y::hcomplex)"
+apply (rule Ring_and_Field.minus_mult_left)
+done
+
+declare hcomplex_minus_mult_eq1 [symmetric, simp] 
+
+lemma hcomplex_minus_mult_eq2: "-(x * y) = x * -(y::hcomplex)"
+apply (rule Ring_and_Field.minus_mult_right)
+done
+
+declare hcomplex_minus_mult_eq2 [symmetric, simp]
+
+lemma hcomplex_mult_minus_one: "- 1 * (z::hcomplex) = -z"
+apply (simp (no_asm))
+done
+declare hcomplex_mult_minus_one [simp]
+
+lemma hcomplex_mult_minus_one_right: "(z::hcomplex) * - 1 = -z"
+apply (subst hcomplex_mult_commute)
+apply (simp (no_asm))
+done
+declare hcomplex_mult_minus_one_right [simp]
+
+lemma hcomplex_add_mult_distrib2: "(w::hcomplex) * (z1 + z2) = (w * z1) + (w * z2)"
+apply (rule Ring_and_Field.right_distrib)
 done
 
 lemma hcomplex_mult_right_cancel: "(c::hcomplex) ~= (0::hcomplex) ==> (a*c=b*c) = (a=b)"
-apply (safe)
-apply (drule_tac f = "%x. x*inverse c" in arg_cong)
-apply (simp add: hcomplex_mult_ac)
+apply (simp add: Ring_and_Field.field_mult_cancel_right); 
 done
 
 lemma hcomplex_inverse_not_zero: "z ~= (0::hcomplex) ==> inverse(z) ~= 0"
-apply (safe)
-apply (frule hcomplex_mult_right_cancel [THEN iffD2])
-apply (erule_tac [2] V = "inverse z = 0" in thin_rl)
-apply (assumption , auto)
+apply (simp add: ); 
 done
-declare hcomplex_inverse_not_zero [simp]
 
 lemma hcomplex_mult_not_zero: "[| x ~= (0::hcomplex); y ~= 0 |] ==> x * y ~= 0"
-apply (safe)
-apply (drule_tac f = "%z. inverse x*z" in arg_cong)
-apply (simp add: hcomplex_mult_assoc [symmetric])
+apply (simp add: Ring_and_Field.field_mult_eq_0_iff); 
 done
 
 lemmas hcomplex_mult_not_zeroE = hcomplex_mult_not_zero [THEN notE, standard]
 
-lemma hcomplex_inverse_inverse: "inverse(inverse x) = (x::hcomplex)"
-apply (case_tac "x = 0", simp add: HCOMPLEX_INVERSE_ZERO)
-apply (rule_tac c1 = "inverse x" in hcomplex_mult_right_cancel [THEN iffD1])
-apply (erule hcomplex_inverse_not_zero)
-apply (auto dest: hcomplex_inverse_not_zero)
-done
-declare hcomplex_inverse_inverse [simp]
-
-lemma hcomplex_inverse_one: "inverse((1::hcomplex)) = 1"
-apply (unfold hcomplex_one_def)
-apply (simp (no_asm) add: hcomplex_inverse)
-done
-declare hcomplex_inverse_one [simp]
-
 lemma hcomplex_minus_inverse: "inverse(-x) = -inverse(x::hcomplex)"
-apply (case_tac "x = 0", simp add: HCOMPLEX_INVERSE_ZERO)
-apply (rule_tac c1 = "-x" in hcomplex_mult_right_cancel [THEN iffD1])
-apply (force ); 
-apply (subst hcomplex_mult_inv_left)
-apply auto
+apply (rule Ring_and_Field.inverse_minus_eq) 
 done
 
-lemma hcomplex_inverse_distrib: "inverse(x*y) = inverse x * inverse (y::hcomplex)"
-apply (case_tac "x = 0", simp add: HCOMPLEX_INVERSE_ZERO)
-apply (case_tac "y = 0", simp add: HCOMPLEX_INVERSE_ZERO)
-apply (rule_tac c1 = "x*y" in hcomplex_mult_left_cancel [THEN iffD1])
-apply (auto simp add: hcomplex_mult_not_zero hcomplex_mult_ac)
-apply (auto simp add: hcomplex_mult_not_zero hcomplex_mult_assoc [symmetric])
+
+subsection{*Subraction and Division*}
+
+lemma hcomplex_diff:
+ "Abs_hcomplex(hcomplexrel``{%n. X n}) - Abs_hcomplex(hcomplexrel``{%n. Y n}) =
+  Abs_hcomplex(hcomplexrel``{%n. X n - Y n})"
+apply (unfold hcomplex_diff_def)
+apply (auto simp add: hcomplex_minus hcomplex_add complex_diff_def)
 done
 
-subsection{*Division*}
-
-lemma hcomplex_times_divide1_eq: "(x::hcomplex) * (y/z) = (x*y)/z"
-apply (simp (no_asm) add: hcomplex_divide_def hcomplex_mult_assoc)
+lemma hcomplex_diff_eq_eq: "((x::hcomplex) - y = z) = (x = z + y)"
+apply (rule Ring_and_Field.diff_eq_eq) 
 done
-
-lemma hcomplex_times_divide2_eq: "(y/z) * (x::hcomplex) = (y*x)/z"
-apply (simp (no_asm) add: hcomplex_divide_def hcomplex_mult_ac)
-done
-
-declare hcomplex_times_divide1_eq [simp] hcomplex_times_divide2_eq [simp]
-
-lemma hcomplex_divide_divide1_eq: "(x::hcomplex) / (y/z) = (x*z)/y"
-apply (simp (no_asm) add: hcomplex_divide_def hcomplex_inverse_distrib hcomplex_mult_ac)
-done
-
-lemma hcomplex_divide_divide2_eq: "((x::hcomplex) / y) / z = x/(y*z)"
-apply (simp (no_asm) add: hcomplex_divide_def hcomplex_inverse_distrib hcomplex_mult_assoc)
-done
-
-declare hcomplex_divide_divide1_eq [simp] hcomplex_divide_divide2_eq [simp]
-
-(** As with multiplication, pull minus signs OUT of the / operator **)
-
-lemma hcomplex_minus_divide_eq: "(-x) / (y::hcomplex) = - (x/y)"
-apply (simp (no_asm) add: hcomplex_divide_def)
-done
-declare hcomplex_minus_divide_eq [simp]
-
-lemma hcomplex_divide_minus_eq: "(x / -(y::hcomplex)) = - (x/y)"
-apply (simp (no_asm) add: hcomplex_divide_def hcomplex_minus_inverse)
-done
-declare hcomplex_divide_minus_eq [simp]
 
 lemma hcomplex_add_divide_distrib: "(x+y)/(z::hcomplex) = x/z + y/z"
-apply (simp (no_asm) add: hcomplex_divide_def hcomplex_add_mult_distrib)
+apply (rule Ring_and_Field.add_divide_distrib) 
 done
 
 
@@ -840,9 +713,8 @@ apply (auto simp add: hcomplex_of_hypreal epsilon_def hcomplex_zero_def)
 done
 declare hcomplex_of_hypreal_epsilon_not_zero [simp]
 
-(*---------------------------------------------------------------------------*)
-(*  Modulus (absolute value) of nonstandard complex number                   *)
-(*---------------------------------------------------------------------------*)
+
+subsection{*Modulus (Absolute Value) of Nonstandard Complex Number*}
 
 lemma hcmod:
   "hcmod (Abs_hcomplex(hcomplexrel `` {%n. X n})) =
@@ -882,8 +754,7 @@ subsection{*Conjugation*}
 
 lemma hcnj:
   "hcnj (Abs_hcomplex(hcomplexrel `` {%n. X n})) =
-      Abs_hcomplex(hcomplexrel `` {%n. cnj(X n)})"
-
+   Abs_hcomplex(hcomplexrel `` {%n. cnj(X n)})"
 apply (unfold hcnj_def)
 apply (rule_tac f = "Abs_hcomplex" in arg_cong)
 apply (auto , ultra)
@@ -1252,7 +1123,7 @@ done
 lemma hcomplex_inverse_divide:
       "inverse(x/y) = y/(x::hcomplex)"
 apply (unfold hcomplex_divide_def)
-apply (auto simp add: hcomplex_inverse_distrib hcomplex_mult_commute)
+apply (auto simp add: inverse_mult_distrib hcomplex_mult_commute)
 done
 declare hcomplex_inverse_divide [simp]
 
@@ -1720,7 +1591,6 @@ declare hcmod_hrcis [simp]
 (*---------------------------------------------------------------------------*)
 
 lemma hcis_hrcis_eq: "hcis a = hrcis 1 a"
-
 apply (unfold hrcis_def)
 apply (simp (no_asm))
 done
@@ -1774,12 +1644,6 @@ lemma hcomplex_i_mult_minus2: "iii * iii * x = - x"
 apply (simp (no_asm))
 done
 declare hcomplex_i_mult_minus2 [simp]
-
-(* Move to one of the hyperreal theories *)
-lemma hypreal_of_nat: "hypreal_of_nat m = Abs_hypreal(hyprel `` {%n. real m})"
-apply (induct_tac "m")
-apply (auto simp add: hypreal_zero_def hypreal_of_nat_Suc hypreal_zero_num hypreal_one_num hypreal_add real_of_nat_Suc)
-done
 
 lemma hcis_hypreal_of_nat_Suc_mult:
    "hcis (hypreal_of_nat (Suc n) * a) = hcis a * hcis (hypreal_of_nat n * a)"
@@ -1991,29 +1855,15 @@ val hRe_add = thm"hRe_add";
 val hIm_add = thm"hIm_add";
 val hcomplex_minus_congruent = thm"hcomplex_minus_congruent";
 val hcomplex_minus = thm"hcomplex_minus";
-val hcomplex_minus_minus = thm"hcomplex_minus_minus";
 val inj_hcomplex_minus = thm"inj_hcomplex_minus";
-val hcomplex_minus_zero = thm"hcomplex_minus_zero";
-val hcomplex_minus_zero_iff = thm"hcomplex_minus_zero_iff";
-val hcomplex_minus_zero_iff2 = thm"hcomplex_minus_zero_iff2";
-val hcomplex_minus_not_zero_iff = thm"hcomplex_minus_not_zero_iff";
-val hcomplex_add_minus_right = thm"hcomplex_add_minus_right";
 val hcomplex_add_minus_left = thm"hcomplex_add_minus_left";
-val hcomplex_add_minus_cancel = thm"hcomplex_add_minus_cancel";
-val hcomplex_minus_add_cancel = thm"hcomplex_minus_add_cancel";
 val hRe_minus = thm"hRe_minus";
 val hIm_minus = thm"hIm_minus";
 val hcomplex_add_minus_eq_minus = thm"hcomplex_add_minus_eq_minus";
 val hcomplex_minus_add_distrib = thm"hcomplex_minus_add_distrib";
 val hcomplex_add_left_cancel = thm"hcomplex_add_left_cancel";
 val hcomplex_add_right_cancel = thm"hcomplex_add_right_cancel";
-val hcomplex_eq_minus_iff = thm"hcomplex_eq_minus_iff";
-val hcomplex_eq_minus_iff2 = thm"hcomplex_eq_minus_iff2";
 val hcomplex_diff = thm"hcomplex_diff";
-val hcomplex_diff_zero = thm"hcomplex_diff_zero";
-val hcomplex_diff_0 = thm"hcomplex_diff_0";
-val hcomplex_diff_0_right = thm"hcomplex_diff_0_right";
-val hcomplex_diff_self = thm"hcomplex_diff_self";
 val hcomplex_diff_eq_eq = thm"hcomplex_diff_eq_eq";
 val hcomplex_mult = thm"hcomplex_mult";
 val hcomplex_mult_commute = thm"hcomplex_mult_commute";
@@ -2027,8 +1877,6 @@ val hcomplex_minus_mult_eq1 = thm"hcomplex_minus_mult_eq1";
 val hcomplex_minus_mult_eq2 = thm"hcomplex_minus_mult_eq2";
 val hcomplex_mult_minus_one = thm"hcomplex_mult_minus_one";
 val hcomplex_mult_minus_one_right = thm"hcomplex_mult_minus_one_right";
-val hcomplex_minus_mult_cancel = thm"hcomplex_minus_mult_cancel";
-val hcomplex_minus_mult_commute = thm"hcomplex_minus_mult_commute";
 val hcomplex_add_mult_distrib = thm"hcomplex_add_mult_distrib";
 val hcomplex_add_mult_distrib2 = thm"hcomplex_add_mult_distrib2";
 val hcomplex_zero_not_eq_one = thm"hcomplex_zero_not_eq_one";
@@ -2036,22 +1884,12 @@ val hcomplex_inverse = thm"hcomplex_inverse";
 val HCOMPLEX_INVERSE_ZERO = thm"HCOMPLEX_INVERSE_ZERO";
 val HCOMPLEX_DIVISION_BY_ZERO = thm"HCOMPLEX_DIVISION_BY_ZERO";
 val hcomplex_mult_inv_left = thm"hcomplex_mult_inv_left";
-val hcomplex_mult_inv_right = thm"hcomplex_mult_inv_right";
 val hcomplex_mult_left_cancel = thm"hcomplex_mult_left_cancel";
 val hcomplex_mult_right_cancel = thm"hcomplex_mult_right_cancel";
 val hcomplex_inverse_not_zero = thm"hcomplex_inverse_not_zero";
 val hcomplex_mult_not_zero = thm"hcomplex_mult_not_zero";
 val hcomplex_mult_not_zeroE = thm"hcomplex_mult_not_zeroE";
-val hcomplex_inverse_inverse = thm"hcomplex_inverse_inverse";
-val hcomplex_inverse_one = thm"hcomplex_inverse_one";
 val hcomplex_minus_inverse = thm"hcomplex_minus_inverse";
-val hcomplex_inverse_distrib = thm"hcomplex_inverse_distrib";
-val hcomplex_times_divide1_eq = thm"hcomplex_times_divide1_eq";
-val hcomplex_times_divide2_eq = thm"hcomplex_times_divide2_eq";
-val hcomplex_divide_divide1_eq = thm"hcomplex_divide_divide1_eq";
-val hcomplex_divide_divide2_eq = thm"hcomplex_divide_divide2_eq";
-val hcomplex_minus_divide_eq = thm"hcomplex_minus_divide_eq";
-val hcomplex_divide_minus_eq = thm"hcomplex_divide_minus_eq";
 val hcomplex_add_divide_distrib = thm"hcomplex_add_divide_distrib";
 val hcomplex_of_hypreal = thm"hcomplex_of_hypreal";
 val inj_hcomplex_of_hypreal = thm"inj_hcomplex_of_hypreal";

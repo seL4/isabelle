@@ -29,9 +29,7 @@ by (simp_tac (simpset() addsimps [hcomplex_divide_def]) 1);
 qed "hcomplex_inverse_eq_divide";
 
 Goal "(inverse(x::hcomplex) = 0) = (x = 0)";
-by (auto_tac (claset(), 
-              simpset() addsimps [HCOMPLEX_INVERSE_ZERO]));  
-by (blast_tac (claset() addIs [ccontr] addDs [hcomplex_inverse_not_zero]) 1); 
+by (Simp_tac 1);
 qed "hcomplex_inverse_zero_iff";
 Addsimps [hcomplex_inverse_zero_iff];
 
@@ -60,7 +58,7 @@ qed "hcomplex_mult_eq_cancel2";
 
 Goal "!!k::hcomplex. k~=0 ==> (k*m) / (k*n) = (m/n)";
 by (asm_simp_tac
-    (simpset() addsimps [hcomplex_divide_def, hcomplex_inverse_distrib]) 1); 
+    (simpset() addsimps [hcomplex_divide_def, inverse_mult_distrib]) 1); 
 by (subgoal_tac "k * m * (inverse k * inverse n) = \
 \                (k * inverse k) * (m * inverse n)" 1);
 by (Asm_full_simp_tac 1);
@@ -295,7 +293,6 @@ Addsimps [hcomplex_add_minus_iff];
 
 Goal "(-b = -a) = (b = (a::hcomplex))";
 by Auto_tac;
-by (etac ( inj_hcomplex_minus RS injD) 1);
 qed "hcomplex_minus_eq_cancel";
 Addsimps [hcomplex_minus_eq_cancel];
 
@@ -324,7 +321,7 @@ Addsimps [inst "x" "number_of ?w" hcomplex_inverse_eq_divide];
 
 Goal "[|(x::hcomplex) ~= 0;  y ~= 0 |]  \
 \     ==> inverse(x) + inverse(y) = (x + y)*inverse(x*y)";
-by (asm_full_simp_tac (simpset() addsimps [hcomplex_inverse_distrib,
+by (asm_full_simp_tac (simpset() addsimps [inverse_mult_distrib,
                     hcomplex_add_mult_distrib,hcomplex_mult_assoc RS sym]) 1);
 qed "hcomplex_inverse_add";
 

@@ -826,8 +826,8 @@ by (auto_tac (claset(),
 by (simp_tac (simpset() addsimps [hcomplex_add_divide_distrib]) 1); 
 by (REPEAT(dtac (bex_CInfinitesimal_iff2 RS iffD2) 1));
 by (auto_tac (claset(),
-        simpset() delsimps [hcomplex_times_divide1_eq]
-		  addsimps [hcomplex_times_divide1_eq RS sym]));
+        simpset() delsimps [times_divide_eq_right]
+		  addsimps [times_divide_eq_right RS sym]));
 by (rewtac hcomplex_diff_def);
 by (dres_inst_tac [("D","Db")] lemma_nscderiv2 1);
 by (dtac (capprox_minus_iff RS iffD2 RS (bex_CInfinitesimal_iff2 RS iffD2)) 4);
@@ -1050,14 +1050,6 @@ Goal "[| h: CInfinitesimal; x ~= 0 |] ==> hcomplex_of_complex x + h ~= 0";
 by Auto_tac;  
 qed "CInfinitesimal_add_not_zero";
 
-(***
-Goal "[|(x::hcomplex) ~= 0;  y ~= 0 |]  \
-\     ==> inverse(x) + inverse(y) = (x + y)*inverse(x*y)";
-by (asm_full_simp_tac (simpset() addsimps [hcomplex_inverse_distrib,
-                    hcomplex_add_mult_distrib,hcomplex_mult_assoc RS sym]) 1);
-qed "hcomplex_inverse_add";
-***)
-
 (*Can't get rid of x ~= 0 because it isn't continuous at zero*)
 
 Goalw [nscderiv_def]
@@ -1071,9 +1063,10 @@ by (auto_tac (claset(),
                          hcomplex_minus_mult_eq2 RS sym]));
 by (asm_simp_tac
      (simpset() addsimps [hcomplex_inverse_add,
-          hcomplex_inverse_distrib RS sym, hcomplex_minus_inverse RS sym] 
+          inverse_mult_distrib RS sym, hcomplex_minus_inverse RS sym] 
           @ hcomplex_add_ac @ hcomplex_mult_ac 
-       delsimps [hcomplex_minus_mult_eq1 RS sym,
+       delsimps [thm"Ring_and_Field.inverse_minus_eq",
+		 inverse_mult_distrib, hcomplex_minus_mult_eq1 RS sym,
                  hcomplex_minus_mult_eq2 RS sym] ) 1);
 by (asm_simp_tac (simpset() addsimps [hcomplex_mult_assoc RS sym,
                                       hcomplex_add_mult_distrib2] 

@@ -1311,7 +1311,7 @@ by (res_inst_tac [("c1","stc x")] (hcomplex_mult_left_cancel RS iffD1) 1);
 by (auto_tac (claset(),
        simpset() addsimps [stc_mult RS sym, stc_not_CInfinitesimal,
                            CFinite_inverse]));
-by (stac hcomplex_mult_inv_right 1); 
+by (stac right_inverse 1); 
 by Auto_tac;  
 qed "stc_inverse";
 
