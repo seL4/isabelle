@@ -6,8 +6,13 @@
 #
 # DESCRIPTION: Build distribution and run isatest-make for lots of platforms.
 
+# source bashrc, we're called by cron
+. ~/.bashrc
+
+
 ## global settings
 LOGPREFIX=~/log
+MASTERLOG=$LOGPREFIX/isatest.log
 DISTPREFIX=~/isadist
 MAKEDIST=~/bin/makedist
 MAKEALL=~/bin/isatest-makeall
@@ -50,12 +55,17 @@ echo ------------------- preparing test release --- `date` --- $HOSTNAME > $DIST
 echo "### cleaning up old dist directory"  >> $DISTLOG 2>&1
 rm -rf $DISTPREFIX >> $DISTLOG 2>&1
 
+echo "### cleaning up old isabelle-* directories" >> $DISTLOG 2>&1
+rm -rf ~/isabelle-*
+
 echo "### building distribution"  >> $DISTLOG 2>&1
 $MAKEDIST - >> $DISTLOG 2>&1
 
 if [ $? -ne 0 ]
 then
     echo ------------------- DIST BUILD FAILED --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
+    ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
+    echo "$(date) $HOSTNAME $PRG: dist build FAILED, elapsed time $ELAPSED." >> $MASTERLOG
     # more action here
     exit 1
 fi
@@ -64,6 +74,11 @@ cd $DISTPREFIX >> $DISTLOG 2>&1
 $TAR xvzf `cat $DISTPREFIX/ISABELLE_DIST` >> $DISTLOG 2>&1
 
 echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
+gzip -f $DISTLOG
+
+ELAPSED=$("$HOME/bin/showtime" "$SECONDS")
+echo "$(date) $HOSTNAME $PRG: dist build successful, elapsed time $ELAPSED." >> $MASTERLOG
+
 
 ## spawn test runs
 
