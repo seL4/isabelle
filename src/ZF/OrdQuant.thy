@@ -334,9 +334,10 @@ by blast
 subsubsection{*Sets as Classes*}
 
 constdefs setclass :: "[i,i] => o"       ("**_" [40] 40)
-   "setclass(A,x) == x : A"
+   "setclass(A) == %x. x : A"
 
-declare setclass_def [simp]
+lemma setclass_iff [simp]: "setclass(A,x) <-> x : A"
+by (simp add: setclass_def)
 
 lemma rall_setclass_is_ball [simp]: "(\<forall>x[**A]. P(x)) <-> (\<forall>x\<in>A. P(x))"
 by auto
