@@ -61,11 +61,13 @@ sig
   val simple_string_of_typ: typ -> string
   val simple_pprint_typ: typ -> pprint_args -> unit
   val ambiguity_level: int ref
+  val ambiguity_is_error: bool ref
 end;
 
 structure Syntax: SYNTAX =
 struct
 
+val ambiguity_is_error = ref false
 
 (** tables of translation functions **)
 
@@ -350,9 +352,12 @@ fun read_asts (Syntax tabs) xids root str =
       warning (Pretty.string_of (Ast.pretty_ast (SynTrans.pt_to_ast (K None) pt)));
   in
     if length pts > ! ambiguity_level then
-      (warning ("Ambiguous input " ^ quote str);
-       warning "produces the following parse trees:";
-       seq show_pt pts)
+	if ! ambiguity_is_error then
+	    error ("Ambiguous input " ^ quote str)
+	else
+	    (warning ("Ambiguous input " ^ quote str);
+	     warning "produces the following parse trees:";
+	     seq show_pt pts)
     else ();
     map (SynTrans.pt_to_ast (lookup_tr parse_ast_trtab)) pts
   end;
