@@ -81,7 +81,7 @@ by (best_tac (claset() addSEs [equalityCE]) 1);
 qed "";
 
 
-(*** The Schroder-Berstein Theorem ***)
+(*** The Schroeder-Berstein Theorem ***)
 
 Goal "[| -(f``X) = g``(-X);  f(a)=g(b);  a:X |] ==> b:X";
 by (Blast_tac 1);
