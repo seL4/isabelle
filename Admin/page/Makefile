@@ -37,7 +37,7 @@ DOC_CONTENTS_DIST = docu-contents.dist
 # ---
 # --- begin rules
 
-all: clean main dist
+all: clean main dist install
 	@echo "###"
 	@echo "### Finished.  See main/ and dist/ for the resulting pages."
 	@echo "###"
@@ -51,6 +51,9 @@ dist:
 	@$(MKCONTENT) -p `cat DISTNAME`/doc/ $(DOC_CONTENT_FILE) $(DOC_CONTENTS_DIST)
 	@env DISTNAME=`cat DISTNAME` \
 	  $(GENPAGE) -t $(DIST_LAYOUT)/$(TEMPLATE_NAME) -c $(DIST_CONTENT) -o $(DIST_TARGET)
+
+install: dist
+	@cp -R dist/. ..
 
 clean: 
 	@rm -rf $(MAIN_TARGET)
