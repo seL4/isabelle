@@ -321,7 +321,7 @@ fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
 
 (** pretty_state **)
 
-val show_main_goal = ref true;
+val show_main_goal = ref false;
 
 val verbose = ProofContext.verbose;
 
