@@ -423,7 +423,7 @@ writeln"Problem 52";
 goal FOL.thy
     "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
 \    (EX w. ALL y. EX z. (ALL x. P(x,y) <-> x=z) <-> y=w)";
-by (Blast_tac 1);
+by (Fast_tac 1);	(*nearly 10 times faster than Blast_tac*)
 result();
 
 writeln"Problem 55";
