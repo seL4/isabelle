@@ -100,7 +100,7 @@ struct
 
 	(* 'a tree * 'b tree -> ('a * 'b) tree *)
 
-	fun tree_pair (t1,t2) =
+	fun tree_pair (t1, t2) =
 		case t1 of
 		  Leaf x =>
 			(case t2 of
@@ -240,7 +240,7 @@ struct
 			if null typs then
 				"empty universe (no type variables in term)\n"
 			else
-				"Size of types: " ^ commas (map (fn (T,i) => Sign.string_of_typ (sign_of thy) T ^ ": " ^ string_of_int i) typs) ^ "\n"
+				"Size of types: " ^ commas (map (fn (T, i) => Sign.string_of_typ (sign_of thy) T ^ ": " ^ string_of_int i) typs) ^ "\n"
 		val show_consts_msg =
 			if not (!show_consts) andalso Library.exists (is_Const o fst) terms then
 				"set \"show_consts\" to show the interpretation of constants\n"
@@ -250,7 +250,7 @@ struct
 			if null terms then
 				"empty interpretation (no free variables in term)\n"
 			else
-				space_implode "\n" (List.mapPartial (fn (t,intr) =>
+				space_implode "\n" (List.mapPartial (fn (t, intr) =>
 					(* print constants only if 'show_consts' is true *)
 					if (!show_consts) orelse not (is_Const t) then
 						SOME (Sign.string_of_term (sign_of thy) t ^ ": " ^ Sign.string_of_term (sign_of thy) (print thy model t intr assignment))
@@ -1055,7 +1055,7 @@ struct
 		val vars = sort_wrt (fst o fst) (map dest_Var (term_vars t))
 		(* Term.term *)
 		val ex_closure = Library.foldl
-			(fn (t', ((x,i),T)) => (HOLogic.exists_const T) $ Abs (x, T, abstract_over (Var((x,i),T), t')))
+			(fn (t', ((x, i), T)) => (HOLogic.exists_const T) $ Abs (x, T, abstract_over (Var ((x, i), T), t')))
 			(t, vars)
 		(* If 't' is of type 'propT' (rather than 'boolT'), applying  *)
 		(* 'HOLogic.exists_const' is not type-correct.  However, this *)
@@ -1117,7 +1117,7 @@ struct
 			map (fn x => [x]) xs
 		  | pick_all n xs =
 			let val rec_pick = pick_all (n-1) xs in
-				Library.foldl (fn (acc,x) => (cons_list x rec_pick) @ acc) ([],xs)
+				Library.foldl (fn (acc, x) => (cons_list x rec_pick) @ acc) ([], xs)
 			end
 	in
 		case intr of
@@ -1134,11 +1134,11 @@ struct
 
 	fun size_of_type intr =
 	let
-		(* power(a,b) computes a^b, for a>=0, b>=0 *)
+		(* power (a, b) computes a^b, for a>=0, b>=0 *)
 		(* int * int -> int *)
-		fun power (a,0) = 1
-		  | power (a,1) = a
-		  | power (a,b) = let val ab = power(a, b div 2) in ab * ab * power(a, b mod 2) end
+		fun power (a, 0) = 1
+		  | power (a, 1) = a
+		  | power (a, b) = let val ab = power(a, b div 2) in ab * ab * power(a, b mod 2) end
 	in
 		case intr of
 		  Leaf xs => length xs
@@ -1270,7 +1270,7 @@ struct
 			map (fn x => [x]) xs
 		  | pick_all (xs::xss) =
 			let val rec_pick = pick_all xss in
-				Library.foldl (fn (acc,x) => (cons_list x rec_pick) @ acc) ([],xs)
+				Library.foldl (fn (acc, x) => (cons_list x rec_pick) @ acc) ([], xs)
 			end
 		  | pick_all _ =
 			raise REFUTE ("interpretation_apply", "empty list (in pick_all)")
@@ -1307,7 +1307,7 @@ struct
 
 	(* int list -> int *)
 
-	fun sum xs = Library.foldl op+ (0, xs);
+	fun sum xs = foldl op+ 0 xs;
 
 (* ------------------------------------------------------------------------- *)
 (* product: returns the product of a list 'xs' of integers                   *)
@@ -1315,7 +1315,7 @@ struct
 
 	(* int list -> int *)
 
-	fun product xs = Library.foldl op* (1, xs);
+	fun product xs = foldl op* 1 xs;
 
 (* ------------------------------------------------------------------------- *)
 (* size_of_dtyp: the size of (an initial fragment of) an inductive data type *)
@@ -1750,6 +1750,7 @@ struct
 									(* int option -- only recursive IDTs have an associated depth *)
 									val depth = assoc (typs, Type (s', Ts'))
 									val typs' = (case depth of NONE => typs | SOME n => overwrite (typs, (Type (s', Ts'), n-1)))
+									(* returns an interpretation where everything is mapped to "undefined" *)
 									(* DatatypeAux.dtyp list -> interpretation *)
 									fun make_undef [] =
 										Leaf (replicate total False)
@@ -1782,14 +1783,14 @@ struct
 													raise REFUTE ("IDT_constructor_interpreter", "current size is less than old size")
 												else
 													()
-											(* elements that exist at the previous depth are mapped to a defined *)
-											(* value, while new elements are mapped to "undefined" by the        *)
-											(* recursive constructor                                             *)
 											(* int * interpretation list *)
 											val (new_offset, intrs) = foldl_map make_constr (offset, replicate size' ds)
 											(* interpretation list *)
 											val undefs              = replicate (size - size') (make_undef ds)
 										in
+											(* elements that exist at the previous depth are mapped to a defined *)
+											(* value, while new elements are mapped to "undefined" by the        *)
+											(* recursive constructor                                             *)
 											(new_offset, Node (intrs @ undefs))
 										end
 									(* extends the interpretation for a constructor (both recursive *)
@@ -1799,7 +1800,7 @@ struct
 										let
 											(* returns the k-th unit vector of length n *)
 											(* int * int -> interpretation *)
-											fun unit_vector (k,n) =
+											fun unit_vector (k, n) =
 												Leaf ((replicate (k-1) False) @ (True :: (replicate (n-k) False)))
 											(* int *)
 											val k = find_index_eq True xs
@@ -1812,7 +1813,7 @@ struct
 											else
 												(* if the element was already mapped to a defined value, map it *)
 												(* to the same value again, just extend the length of the leaf, *)
-												(* do not increment offset                                      *)
+												(* do not increment the 'offset'                                *)
 												(offset, unit_vector (k+1, total))
 										end
 									  | extend_constr (_, [], Node _) =
@@ -1842,14 +1843,8 @@ struct
 									(* DatatypeAux.dtyp list -> bool *)
 									fun is_rec_constr ds =
 										Library.exists DatatypeAux.is_rec_type ds
-									(* constructors before 'Const (s, T)' generate elements of the datatype, *)
-									(* and if the constructor is recursive, then non-recursive constructors  *)
-									(* after it generate further elements                                    *)
-									val offset = size_of_dtyp thy typs' descr typ_assoc constrs1 +
-										(if is_rec_constr ctypes then
-											size_of_dtyp thy typs' descr typ_assoc (List.filter (not o is_rec_constr o snd) cs)
-										else
-											0)
+									(* constructors before 'Const (s, T)' generate elements of the datatype *)
+									val offset = size_of_dtyp thy typs' descr typ_assoc constrs1
 								in
 									case depth of
 									  NONE =>  (* equivalent to a depth of 1 *)
@@ -2011,7 +2006,6 @@ struct
 									fun toList arr =
 										Array.foldr op:: [] arr
 								in
-									(* TODO writeln ("REC-OP: " ^ makestring (Node (toList INTRS))); *)
 									SOME (Node (toList INTRS), model', args')
 								end
 						end
@@ -2343,9 +2337,7 @@ struct
 						fun get_constr_args (cname, cargs) =
 							let
 								val cTerm      = Const (cname, (map (typ_of_dtyp descr typ_assoc) cargs) ---> Type (s, Ts))
-								(*TODO val _          = writeln ("cTerm: " ^ makestring cTerm) *)
 								val (iC, _, _) = interpret thy (typs, []) {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} cTerm
-								(*TODO val _          = writeln ("iC: " ^ makestring iC) *)
 								(* interpretation -> int list option *)
 								fun get_args (Leaf xs) =
 									if find_index_eq True xs = element then
