@@ -141,6 +141,8 @@ by (simp add: cl_ident_iff [symmetric] equalityI subset_cl)
 
 
 subsection {*Progress Sets and the Main Lemma*}
+text{*A progress set satisfies certain closure conditions and is a 
+simple way of including the set @{term "wens_set F B"}.*}
 
 constdefs 
   closed :: "['a program, 'a set, 'a set,  'a set set] => bool"
@@ -249,7 +251,9 @@ proof -
     by (rule cl_subset_in_lattice [OF cl_subset latt]) 
 qed
 
-text{*The Lemma proved on page 96*}
+text{*Proved on page 96 of Meier's thesis.  The special case when
+   @{term "T=UNIV"} states that every progress set for the program @{term F}
+   and set @{term B} includes the set @{term "wens_set F B"}.*}
 lemma progress_set_lemma:
      "[|C \<in> progress_set F T B; r \<in> wens_set F B; F \<in> stable T|] ==> T\<inter>r \<in> C"
 apply (simp add: progress_set_def, clarify) 
@@ -465,6 +469,7 @@ qed
 
 subsection{*Composition Theorems Based on Monotonicity and Commutativity*}
 
+subsubsection{*Commutativity of @{term "cl L"} and assignment.*}
 constdefs 
   commutes :: "['a program, 'a set, 'a set,  'a set set] => bool"
    "commutes F T B L ==
@@ -472,6 +477,7 @@ constdefs
            cl L (T \<inter> wp act M) \<subseteq> T \<inter> (B \<union> wp act (cl L (T\<inter>M)))"
 
 
+text{*From Meier's thesis, section 4.5.6*}
 lemma commutativity1_lemma:
   assumes commutes: "commutes F T B L" 
       and lattice:  "lattice L"
@@ -490,6 +496,7 @@ apply (simp add: cl_ident)
 apply (blast intro: rev_subsetD [OF _ wp_mono]) 
 done
 
+text{*Version packaged with @{thm progress_set_Union}*}
 lemma commutativity1:
   assumes leadsTo: "F \<in> A leadsTo B"
       and lattice:  "lattice L"
@@ -528,6 +535,7 @@ subsubsection{*Commutativity of Functions and Relation*}
 text{*Thesis, page 109*}
 
 (*FIXME: this proof is an ungodly mess*)
+text{*From Meier's thesis, section 4.5.6*}
 lemma commutativity2_lemma:
   assumes dcommutes: 
         "\<forall>act \<in> Acts F. 
@@ -570,6 +578,7 @@ apply (blast intro: TL cl_mono [THEN [2] rev_subsetD])
 done
 
 
+text{*Version packaged with @{thm progress_set_Union}*}
 lemma commutativity2:
   assumes leadsTo: "F \<in> A leadsTo B"
       and dcommutes: 
@@ -589,5 +598,8 @@ apply (simp_all add: Gco commutativity2_lemma dcommutes determ total
                      lattice BL TL Fstable)
 done
 
+
+subsection {*Monotonicity*}
+(*to be continued?*)
 
 end
