@@ -1,9 +1,9 @@
 (*  Title:      HOL/Typedef.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Munich
-
-Misc set-theory lemmas and HOL type definitions.
 *)
+
+header {* Set-theory lemmas and HOL type definitions *}
 
 theory Typedef = Set
 files "subset.ML" "equalities.ML" "mono.ML" ("Tools/typedef_package.ML"):
@@ -24,7 +24,7 @@ lemma Least_mono:
 setup Rulify.setup
 
 
-section {* HOL type definitions *}
+subsection {* HOL type definitions *}
 
 constdefs
   type_definition :: "('a => 'b) => ('b => 'a) => 'b set => bool"
