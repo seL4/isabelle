@@ -15,6 +15,8 @@
 
 (* --------------------------- automatic prover --------------------------- *)
 
+Delcongs [if_weak_cong];
+
 val MI_css = (claset(), simpset());
 
 (* A more aggressive variant that tries to solve subgoals by assumption
