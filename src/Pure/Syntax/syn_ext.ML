@@ -28,7 +28,7 @@ sig
   datatype xprod = XProd of string * xsymb list * string * int
   val max_pri: int
   val chain_pri: int
-  val delims_of: xprod list -> string list
+  val delims_of: xprod list -> string list list
   datatype mfix = Mfix of string * typ * string * int list * int
   datatype syn_ext =
     SynExt of {
@@ -137,7 +137,7 @@ fun delims_of xprods =
     fun dels_of (XProd (_, xsymbs, _, _)) =
       mapfilter del_of xsymbs;
   in
-    distinct (flat (map dels_of xprods))
+    map Symbol.explode (distinct (flat (map dels_of xprods)))
   end;
 
 
@@ -166,38 +166,36 @@ val typ_to_nonterm = typ_to_nt any;
 val typ_to_nonterm1 = typ_to_nt logic;
 
 
-(* scan_mixfix, mixfix_args *)
+(* read_mixfix, mfix_args *)
 
 local
   fun is_meta c = c mem ["(", ")", "/", "_"];
 
-  fun scan_delim_char ("'" :: c :: cs) =
-        if is_blank c then raise LEXICAL_ERROR else (c, cs)
-    | scan_delim_char ["'"] = error "Trailing escape character"
-    | scan_delim_char (chs as c :: cs) =
-        if is_blank c orelse is_meta c then raise LEXICAL_ERROR else (c, cs)
-    | scan_delim_char [] = raise LEXICAL_ERROR;
+  val scan_delim_char =
+    $$ "'" |-- Scan.one ((not o Symbol.is_blank) andf Symbol.not_eof) ||
+    Scan.one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof);
 
   val scan_sym =
     $$ "_" >> K (Argument ("", 0)) ||
-    $$ "(" -- Term.scan_int >> (Bg o #2) ||
+    $$ "(" |-- Scan.any Symbol.is_digit >> (Bg o #1 o Term.read_int) ||
     $$ ")" >> K En ||
     $$ "/" -- $$ "/" >> K (Brk ~1) ||
-    $$ "/" -- scan_any is_blank >> (Brk o length o #2) ||
-    scan_any1 is_blank >> (Space o implode) ||
-    repeat1 scan_delim_char >> (Delim o implode);
+    $$ "/" |-- Scan.any Symbol.is_blank >> (Brk o length) ||
+    Scan.any1 Symbol.is_blank >> (Space o implode) ||
+    Scan.repeat1 scan_delim_char >> (Delim o implode);
 
   val scan_symb =
     scan_sym >> Some ||
-    $$ "'" -- scan_one is_blank >> K None;
+    $$ "'" -- Scan.one Symbol.is_blank >> K None;
 
-  val scan_symbs = mapfilter I o #1 o repeat scan_symb;
+  val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (Scan.one (not_equal "'"));
+  val read_symbs = mapfilter I o #1 o Scan.error (Scan.finite Symbol.eof scan_symbs);
 in
-  val scan_mixfix = scan_symbs o SymbolFont.read_charnames o explode;
+  val read_mixfix = read_symbs o Symbol.explode;
 end;
 
 fun mfix_args sy =
-  foldl (fn (i, Argument _) => i + 1 | (i, _) => i) (0, scan_mixfix sy);
+  foldl (fn (i, Argument _) => i + 1 | (i, _) => i) (0, read_mixfix sy);
 
 
 (* mfix_to_xprod *)
@@ -255,7 +253,7 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
       | logify_types _ a = a;
 
 
-    val raw_symbs = scan_mixfix sy handle ERROR => err "";
+    val raw_symbs = read_mixfix sy handle ERROR => err "";
     val (symbs, lhs) = add_args raw_symbs typ pris;
     val copy_prod =
       lhs mem ["prop", "logic"]
