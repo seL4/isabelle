@@ -155,6 +155,10 @@ fun restricted_dest_Sucs_sum t =
     else raise TERM("Nat_Numeral_Simprocs.restricted_dest_Sucs_sum", [t]);
 
 
+(*Like HOL_ss but with an ordering that brings numerals to the front
+  under AC-rewriting.*)
+val num_ss = Int_Numeral_Simprocs.num_ss;
+
 (*** Applying CancelNumeralsFun ***)
 
 structure CancelNumeralsCommon =
@@ -166,10 +170,10 @@ structure CancelNumeralsCommon =
   val find_first_coeff  = find_first_coeff []
   val trans_tac          = trans_tac
   val norm_tac = ALLGOALS
-                   (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
-                                [Suc_eq_add_numeral_1] @ add_ac))
+                   (simp_tac (num_ss addsimps numeral_syms@add_0s@mult_1s@
+                                [Suc_eq_add_numeral_1_left] @ add_ac))
                  THEN ALLGOALS (simp_tac
-                                (HOL_ss addsimps bin_simps@add_ac@mult_ac))
+                                (num_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS
                 (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -250,10 +254,10 @@ structure CombineNumeralsData =
   val prove_conv        = Bin_Simprocs.prove_conv_nohyps
   val trans_tac          = trans_tac
   val norm_tac = ALLGOALS
-                   (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
+                   (simp_tac (num_ss addsimps numeral_syms@add_0s@mult_1s@
                               [Suc_eq_add_numeral_1] @ add_ac))
                  THEN ALLGOALS (simp_tac
-                                (HOL_ss addsimps bin_simps@add_ac@mult_ac))
+                                (num_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS
                 (simp_tac (HOL_ss addsimps add_0s@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -273,9 +277,10 @@ structure CancelNumeralFactorCommon =
   val dest_coeff        = dest_coeff
   val trans_tac         = trans_tac
   val norm_tac = ALLGOALS
-                    (simp_tac (HOL_ss addsimps [Suc_eq_add_numeral_1]@mult_1s))
-                 THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps))
-                 THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac))
+                   (simp_tac (num_ss addsimps numeral_syms@add_0s@mult_1s@
+                                [Suc_eq_add_numeral_1_left] @ add_ac))
+                 THEN ALLGOALS (simp_tac
+                                (num_ss addsimps bin_simps@add_ac@mult_ac))
   val numeral_simp_tac  = ALLGOALS (simp_tac (HOL_ss addsimps bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
   end
@@ -458,6 +463,15 @@ test "2*y + 3*z + 6*w + 2*y + 3*z + 2*u = Suc (u)";
 test "2*y + 3*z + 6*w + 2*y + 3*z + 2*u = 2*y' + 3*z' + 6*w' + 2*y' + 3*z' + u + (vv::nat)";
 test "6 + 2*y + 3*z + 4*u = Suc (vv + 2*u + z)";
 test "(2*n*m) < (3*(m*n)) + (u::nat)";
+
+test "(Suc (Suc (Suc (Suc (Suc (Suc (case length (f c) of 0 => 0 | Suc k => k)))))) <= Suc 0)";
+ 
+test "Suc (Suc (Suc (Suc (Suc (Suc (length l1 + length l2)))))) <= length l1";
+
+test "( (Suc (Suc (Suc (Suc (Suc (length (compT P E A ST mxr e) + length l3)))))) <= length (compT P E A ST mxr e))";
+
+test "( (Suc (Suc (Suc (Suc (Suc (length (compT P E A ST mxr e) + length (compT P E (A Un \<A> e) ST mxr c))))))) <= length (compT P E A ST mxr e))";
+
 
 (*negative numerals: FAIL*)
 test "(i + j + -23 + (k::nat)) < u + 15 + y";

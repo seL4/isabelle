@@ -157,7 +157,43 @@ struct
   isn't complicated by the abstract 0 and 1.*)
 val numeral_syms = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym];
 
-(*Utilities*)
+(** New term ordering so that AC-rewriting brings numerals to the front **)
+
+(*Order integers by absolute value and then by sign. The standard integer
+  ordering is not well-founded.*)
+fun num_ord (i,j) =
+      (case Int.compare (abs i, abs j) of
+            EQUAL => Int.compare (Int.sign i, Int.sign j) 
+          | ord => ord);
+
+(*This resembles Term.term_ord, but it puts binary numerals before other
+  non-atomic terms.*)
+local open Term 
+in 
+fun numterm_ord (Abs (_, T, t), Abs(_, U, u)) =
+      (case numterm_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
+  | numterm_ord
+     (Const("Numeral.number_of", _) $ v, Const("Numeral.number_of", _) $ w) =
+     num_ord (HOLogic.dest_binum v, HOLogic.dest_binum w)
+  | numterm_ord (Const("Numeral.number_of", _) $ _, _) = LESS
+  | numterm_ord (_, Const("Numeral.number_of", _) $ _) = GREATER
+  | numterm_ord (t, u) =
+      (case Int.compare (size_of_term t, size_of_term u) of
+        EQUAL =>
+          let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
+            (case hd_ord (f, g) of EQUAL => numterms_ord (ts, us) | ord => ord)
+          end
+      | ord => ord)
+and numterms_ord (ts, us) = list_ord numterm_ord (ts, us)
+end;
+
+fun numtermless tu = (numterm_ord tu = LESS);
+
+(*Defined in this file, but perhaps needed only for simprocs of type nat.*)
+val num_ss = HOL_ss settermless numtermless;
+
+
+(** Utilities **)
 
 fun mk_numeral T n = HOLogic.number_of_const T $ HOLogic.mk_bin n;
 
