@@ -57,7 +57,7 @@ by (etac (nat_0_le RS subst) 1);
 by (Simp_tac 1);
 qed "nat_less_iff";
 
-Goal "(int m = z) = (m = nat z & #0 \\<le> z)";
+Goal "(int m = z) = (m = nat z & #0 <= z)";
 by (auto_tac (claset(), simpset() addsimps [nat_eq_iff2]));  
 qed "int_eq_iff";
 

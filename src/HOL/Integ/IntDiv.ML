@@ -329,7 +329,7 @@ by (auto_tac
 val lemma = result();
 
 Goal "b ~= (#0::int) \
-\     \\<Longrightarrow> (-a) div b = \
+\     ==> (-a) div b = \
 \         (if a mod b = #0 then - (a div b) else  - (a div b) - #1)";
 by (blast_tac (claset() addIs [quorem_div_mod RS lemma RS quorem_div]) 1);
 qed "zdiv_zminus1_eq_if";
@@ -350,7 +350,7 @@ by Auto_tac;
 qed "zmod_zminus2";
 
 Goal "b ~= (#0::int) \
-\     \\<Longrightarrow> a div (-b) = \
+\     ==> a div (-b) = \
 \         (if a mod b = #0 then - (a div b) else  - (a div b) - #1)";
 by (asm_simp_tac (simpset() addsimps [zdiv_zminus1_eq_if, zdiv_zminus2]) 1); 
 qed "zdiv_zminus2_eq_if";
