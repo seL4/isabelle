@@ -13,14 +13,3 @@ else
   echo "FATAL ERROR: bash not found!"
   exit 2
 fi
-
-
-## manual steps
-
-PWD=`pwd`
-echo
-echo "***********************************************************"
-echo "* Please check the ML compiler settings in ./etc/settings *"
-echo "* before compiling Isabelle.                              *"
-echo "***********************************************************"
-echo
