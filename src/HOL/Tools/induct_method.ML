@@ -42,7 +42,8 @@ fun align_right msg xs ys =
 
 (* thms and terms *)
 
-val concls_of = HOLogic.dest_conj o HOLogic.dest_Trueprop o Thm.concl_of;
+fun imp_concl_of t = imp_concl_of (#2 (HOLogic.dest_imp t)) handle TERM _ => t;
+val concls_of = map imp_concl_of o HOLogic.dest_conj o HOLogic.dest_Trueprop o Thm.concl_of;
 
 fun vars_of tm =        (*ordered left-to-right, preferring right!*)
   Term.foldl_aterms (fn (ts, t as Var _) => t :: ts | (ts, _) => ts) ([], tm)
@@ -157,7 +158,7 @@ fun cases_tac (ctxt, ((simplified, open_parms), args)) facts =
         (Logic.strip_assums_concl (#prop (Thm.rep_thm th)));
 
     val rules =
-      (case (args, facts) of
+      (case (fst args, facts) of
         (([], None), []) => [RuleCases.add case_split]
       | ((insts, None), []) =>
           let
@@ -174,7 +175,8 @@ fun cases_tac (ctxt, ((simplified, open_parms), args)) facts =
             (_, thm) :: _ => [(inst_rule insts thm, RuleCases.get thm)]
           | [] => [])
       | (([], Some thm), _) => [RuleCases.add thm]
-      | ((insts, Some thm), _) => [(inst_rule insts thm, RuleCases.get thm)]);
+      | ((insts, Some thm), _) => [(inst_rule insts thm, RuleCases.get thm)])
+      |> map (Library.apfst (Attrib.read_inst' (snd args) ctxt));
 
     val cond_simp = if simplified then simplified_cases ctxt else rpair;
 
@@ -204,24 +206,21 @@ end;
 
 local
 
-fun drop_Trueprop ct =
-  let
-    fun drop (Abs (x, T, t)) = Abs (x, T, drop t)
-      | drop t = HOLogic.dest_Trueprop t;
-    val {sign, t, ...} = Thm.rep_cterm ct;
-  in Thm.cterm_of sign (drop t) handle TERM _ => ct end;
-
-val atomize_cterm = drop_Trueprop o rewrite_cterm inductive_atomize;
+val atomize_cterm = Thm.cterm_fun AutoBind.drop_judgment o rewrite_cterm inductive_atomize;
 val atomize_tac = Tactic.rewrite_goal_tac inductive_atomize;
 val rulify_cterm = rewrite_cterm inductive_rulify2 o rewrite_cterm inductive_rulify1;
 
 val rulify_tac =
   Tactic.rewrite_goal_tac inductive_rulify1 THEN'
   Tactic.rewrite_goal_tac inductive_rulify2 THEN'
-  Proof.norm_hhf_tac;
+  Tactic.norm_hhf_tac;
 
 fun rulify_cases cert =
-  map (apsnd (apsnd (map (Thm.term_of o rulify_cterm o cert)))) ooo RuleCases.make;
+  let
+    val ruly = Thm.term_of o rulify_cterm o cert;
+    fun ruly_case {fixes, assumes, binds} =
+      {fixes = fixes, assumes = map ruly assumes, binds = map (apsnd (apsome ruly)) binds};
+  in map (apsnd ruly_case) ooo RuleCases.make end;
 
 val weak_strip_tac = REPEAT o Tactic.match_tac [impI, allI, ballI];
 
@@ -278,7 +277,7 @@ fun induct_tac (ctxt, ((stripped, open_parms), args)) facts =
         (Logic.strip_assums_concl (#prop (Thm.rep_thm th)));
 
     val rules =
-      (case (args, facts) of
+      (case (fst args, facts) of
         (([], None), []) => []
       | ((insts, None), []) =>
           let val thms = map (induct_rule ctxt o last_elem o mapfilter I) insts
@@ -290,7 +289,8 @@ fun induct_tac (ctxt, ((stripped, open_parms), args)) facts =
             (_, thm) :: _ => [(inst_rule insts thm, RuleCases.get thm)]
           | [] => [])
       | (([], Some thm), _) => [RuleCases.add thm]
-      | ((insts, Some thm), _) => [(inst_rule insts thm, RuleCases.get thm)]);
+      | ((insts, Some thm), _) => [(inst_rule insts thm, RuleCases.get thm)])
+      |> map (Library.apfst (Attrib.read_inst' (snd args) ctxt));
 
     fun prep_rule (thm, (cases, n)) =
       Seq.map (rpair (cases, drop (n, facts))) (Method.multi_resolves (take (n, facts)) [thm]);
@@ -314,6 +314,7 @@ val simplifiedN = "simplified";
 val strippedN = "stripped";
 val openN = "open";
 val ruleN = "rule";
+val ofN = "of";
 
 local
 
@@ -334,21 +335,26 @@ fun rule get_type get_set =
 val cases_rule = rule InductAttrib.lookup_casesT InductAttrib.lookup_casesS;
 val induct_rule = rule InductAttrib.lookup_inductT InductAttrib.lookup_inductS;
 
-val kind =
-  (Args.$$$ InductAttrib.typeN || Args.$$$ InductAttrib.setN || Args.$$$ ruleN) -- Args.colon;
-val term = Scan.unless (Scan.lift kind) Args.local_term;
-val term_dummy = Scan.unless (Scan.lift kind)
+val kind_inst =
+  (Args.$$$ InductAttrib.typeN || Args.$$$ InductAttrib.setN || Args.$$$ ruleN || Args.$$$ ofN)
+    -- Args.colon;
+val term = Scan.unless (Scan.lift kind_inst) Args.local_term;
+val term_dummy = Scan.unless (Scan.lift kind_inst)
   (Scan.lift (Args.$$$ "_") >> K None || Args.local_term >> Some);
 
 val instss = Args.and_list (Scan.repeat1 term_dummy);
 
+(* FIXME Attrib.insts': better use actual term args *)
+val rule_insts =
+  Scan.lift (Scan.optional ((Args.$$$ ofN -- Args.colon) |-- Args.!!! Attrib.insts') ([], []));
+
 in
 
 val cases_args = Method.syntax
-  (Args.mode simplifiedN -- Args.mode openN -- (instss -- Scan.option cases_rule));
+  (Args.mode simplifiedN -- Args.mode openN -- (instss -- Scan.option cases_rule -- rule_insts));
 
 val induct_args = Method.syntax
-  (Args.mode strippedN -- Args.mode openN -- (instss -- Scan.option induct_rule));
+  (Args.mode strippedN -- Args.mode openN -- (instss -- Scan.option induct_rule -- rule_insts));
 
 end;
 
