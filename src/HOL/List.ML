@@ -37,6 +37,7 @@ val list_ss = arith_ss addsimps list.simps @
    flat_Nil, flat_Cons,
    list_all_Nil, list_all_Cons,
    filter_Nil, filter_Cons,
+   foldl_Nil, foldl_Cons,
    length_Nil, length_Cons];
 
 
