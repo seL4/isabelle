@@ -159,6 +159,10 @@ New in this Isabelle release
   highly recommended.  See "HOL/Refute.thy" for details.
 
 
+*** HOLCF ***
+
+* Streams now come with concatenation and are part of the HOLCF image
+
 New in Isabelle2003 (May 2003)
 --------------------------------
 
