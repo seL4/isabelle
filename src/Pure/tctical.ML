@@ -6,7 +6,7 @@
 Tacticals
 *)
 
-infix 1 THEN THEN' THEN_BEST_FIRST;
+infix 1 THEN THEN';
 infix 0 ORELSE APPEND INTLEAVE ORELSE' APPEND' INTLEAVE';
 
 infix 0 THEN_ELSE;
@@ -19,13 +19,8 @@ signature TACTICAL =
   val ALLGOALS		: (int -> tactic) -> tactic   
   val APPEND		: tactic * tactic -> tactic
   val APPEND'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val BEST_FIRST	: (thm -> bool) * (thm -> int) -> tactic -> tactic
-  val BREADTH_FIRST	: (thm -> bool) -> tactic -> tactic
   val CHANGED		: tactic -> tactic
   val COND		: (thm -> bool) -> tactic -> tactic -> tactic   
-  val DEPTH_FIRST	: (thm -> bool) -> tactic -> tactic
-  val DEPTH_SOLVE	: tactic -> tactic
-  val DEPTH_SOLVE_1	: tactic -> tactic
   val DETERM		: tactic -> tactic
   val EVERY		: tactic list -> tactic   
   val EVERY'		: ('a -> tactic) list -> 'a -> tactic
@@ -36,8 +31,6 @@ signature TACTICAL =
   val FIRST1		: (int -> tactic) list -> tactic
   val FIRSTGOAL		: (int -> tactic) -> tactic
   val goals_limit	: int ref
-  val has_fewer_prems	: int -> thm -> bool   
-  val IF_UNSOLVED	: tactic -> tactic
   val INTLEAVE		: tactic * tactic -> tactic
   val INTLEAVE'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val METAHYPS		: (thm list -> tactic) -> int -> tactic
@@ -63,13 +56,9 @@ signature TACTICAL =
   val suppress_tracing	: bool ref
   val THEN		: tactic * tactic -> tactic
   val THEN'		: ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
-  val THEN_BEST_FIRST	: tactic * ((thm->bool) * (thm->int) * tactic) 
-			  -> tactic
   val THEN_ELSE		: tactic * (tactic*tactic) -> tactic
   val traced_tac	: (thm -> (thm * thm Sequence.seq) option) -> tactic
   val tracify		: bool ref -> tactic -> thm -> thm Sequence.seq
-  val trace_BEST_FIRST	: bool ref
-  val trace_DEPTH_FIRST	: bool ref
   val trace_REPEAT	: bool ref
   val TRY		: tactic -> tactic
   val TRYALL		: (int -> tactic) -> tactic   
@@ -201,8 +190,6 @@ and TRACE_QUIT;
 
 (*Tracing flags*)
 val trace_REPEAT= ref false
-and trace_DEPTH_FIRST = ref false
-and trace_BEST_FIRST = ref false
 and suppress_tracing = ref false;
 
 (*Handle all tracing commands for current state and tactic *)
@@ -270,95 +257,6 @@ fun REPEAT tac =
 (*Repeat 1 or more times*)
 fun REPEAT_DETERM1 tac = DETERM tac THEN REPEAT_DETERM tac;
 fun REPEAT1 tac = tac THEN REPEAT tac;
-
-
-(** Search tacticals **)
-
-(*Searches until "satp" reports proof tree as satisfied.
-  Suppresses duplicate solutions to minimize search space.*)
-fun DEPTH_FIRST satp tac = 
- let val tac = tracify trace_DEPTH_FIRST tac
-     fun depth used [] = None
-       | depth used (q::qs) =
-	  case Sequence.pull q of
-	      None         => depth used qs
-	    | Some(st,stq) => 
-		if satp st andalso not (gen_mem eq_thm (st, used))
-		then Some(st, Sequence.seqof
-			         (fn()=> depth (st::used) (stq::qs)))
-		else depth used (tac st :: stq :: qs)
-  in  traced_tac (fn st => depth [] ([Sequence.single st]))  end;
-
-
-
-(*Predicate: Does the rule have fewer than n premises?*)
-fun has_fewer_prems n rule = (nprems_of rule < n);
-
-(*Apply a tactic if subgoals remain, else do nothing.*)
-val IF_UNSOLVED = COND (has_fewer_prems 1) all_tac;
-
-(*Tactical to reduce the number of premises by 1.
-  If no subgoals then it must fail! *)
-fun DEPTH_SOLVE_1 tac = STATE
- (fn st => 
-    (case nprems_of st of
-	0 => no_tac
-      | n => DEPTH_FIRST (has_fewer_prems n) tac));
-
-(*Uses depth-first search to solve ALL subgoals*)
-val DEPTH_SOLVE = DEPTH_FIRST (has_fewer_prems 1);
-
-(*** Best-first search ***)
-
-(*Insertion into priority queue of states *)
-fun insert (nth: int*thm, []) = [nth]
-  | insert ((m,th), (n,th')::nths) = 
-      if  n<m then (n,th') :: insert ((m,th), nths)
-      else if  n=m andalso eq_thm(th,th')
-              then (n,th')::nths
-              else (m,th)::(n,th')::nths;
-
-(*For creating output sequence*)
-fun some_of_list []     = None
-  | some_of_list (x::l) = Some (x, Sequence.seqof (fn () => some_of_list l));
-
-
-(* Best-first search for a state that satisfies satp (incl initial state)
-  Function sizef estimates size of problem remaining (smaller means better).
-  tactic tac0 sets up the initial priority queue, which is searched by tac. *)
-fun tac0 THEN_BEST_FIRST (satp, sizef, tac1) = 
-  let val tac = tracify trace_BEST_FIRST tac1
-      fun pairsize th = (sizef th, th);
-      fun bfs (news,nprfs) =
-	   (case  partition satp news  of
-		([],nonsats) => next(foldr insert
-					(map pairsize nonsats, nprfs)) 
-	      | (sats,_)  => some_of_list sats)
-      and next [] = None
-        | next ((n,prf)::nprfs) =
-	    (if !trace_BEST_FIRST 
-	       then writeln("state size = " ^ string_of_int n ^ 
-		         "  queue length =" ^ string_of_int (length nprfs))  
-               else ();
-	     bfs (Sequence.list_of_s (tac prf), nprfs))
-      fun btac st = bfs (Sequence.list_of_s (tac0 st),  [])
-  in traced_tac btac end;
-
-(*Ordinary best-first search, with no initial tactic*)
-fun BEST_FIRST (satp,sizef) tac = all_tac THEN_BEST_FIRST (satp,sizef,tac);
-
-(*Breadth-first search to satisfy satpred (including initial state) 
-  SLOW -- SHOULD NOT USE APPEND!*)
-fun BREADTH_FIRST satpred tac = 
-  let val tacf = Sequence.list_of_s o tac;
-      fun bfs prfs =
-	 (case  partition satpred prfs  of
-	      ([],[]) => []
-	    | ([],nonsats) => 
-		  (prs("breadth=" ^ string_of_int(length nonsats) ^ "\n");
-		   bfs (flat (map tacf nonsats)))
-	    | (sats,_)  => sats)
-  in (fn st => Sequence.s_of_list (bfs [st])) end;
 
 
 (** Filtering tacticals **)
