@@ -363,7 +363,7 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
   MicroJava/JVM/Store.thy MicroJava/JVM/Store.ML \
   MicroJava/BV/BVSpec.thy MicroJava/BV/Step.thy\
   MicroJava/BV/BVSpecTypeSafe.thy MicroJava/BV/BVSpecTypeSafe.ML \
-  MicroJava/BV/Convert.thy MicroJava/BV/Convert.ML \
+  MicroJava/BV/Convert.thy MicroJava/BV/StepMono.thy \
   MicroJava/BV/Correct.thy MicroJava/BV/Correct.ML \
   MicroJava/BV/LBVSpec.thy MicroJava/BV/LBVCorrect.thy \
   MicroJava/BV/LBVComplete.thy \
