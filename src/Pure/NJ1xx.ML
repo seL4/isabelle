@@ -59,19 +59,21 @@ val implode = String.concat;
 
 (*** Timing functions ***)
 
+val CPUtimer = Timer.totalCPUTimer();
+
 (*A conditional timing function: applies f to () and, if the flag is true,
   prints its runtime. *)
 fun cond_timeit flag f =
   if flag then
-    let fun string_of_time t = Time.toString(t)
+    let open Time;
         open Timer;
-	open Time;
-        val start = startCPUTimer()
+        val {gc=gct1,sys=syst1,usr=usrt1} = checkCPUTimer(CPUtimer);
         val result = f();
-        val {gc=gct,sys=syst,usr=usrt} = checkCPUTimer(start)
-    in  print("Non GC " ^ string_of_time usrt ^
-               "   GC " ^ string_of_time gct ^
-               "  both+sys "^ string_of_time (syst+usrt+gct) ^ " secs\n");
+        val {gc=gct2,sys=syst2,usr=usrt2} = checkCPUTimer(CPUtimer)
+    in  print("Non GC " ^ toString (usrt2-usrt1) ^
+              "   GC " ^ toString (gct2-gct1) ^
+              "  both+sys "^ toString (syst2-syst1 + usrt2-usrt1 + gct2-gct1) ^
+              " secs\n");
         result
     end
   else f();
