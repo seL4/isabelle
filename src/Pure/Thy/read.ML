@@ -144,9 +144,13 @@ fun get_filenames path name =
             val ml_file = if thy_file = "" then make_absolute found
                           else if file_exists (tack_on thy_path (thyl ^ ".ML"))
                           then tack_on thy_path (thyl ^ ".ML")
-                          else ""
+                          else "";
+            val searched_dirs = if path = "" then (!loadpath) else [path]
         in if thy_file = "" andalso ml_file = "" then
-             error ("Could find no .thy or .ML file for theory " ^ name)
+             error ("Could not find file \"" ^ (to_lower name) ^ ".thy\" or \""
+                    ^ (to_lower name) ^ ".ML\" for theory \"" ^ name ^ "\"\n"
+                    ^ "in the following directories: \"" ^
+                    (space_implode "\", \"" searched_dirs) ^ "\"")
            else ();
            (thy_file, ml_file) 
         end;
