@@ -975,6 +975,35 @@ fun prf_subst (pinst, (tyinsts, insts)) =
       | subst _ _ t = t
   in subst 0 0 end;
 
+(*A fast unification filter: true unless the two terms cannot be unified. 
+  Terms must be NORMAL.  Treats all Vars as distinct. *)
+fun could_unify prf1 prf2 =
+  let
+    fun matchrands (prf1 %% prf2) (prf1' %% prf2') =
+          could_unify prf2 prf2' andalso matchrands prf1 prf1'
+      | matchrands (prf % Some t) (prf' % Some t') =
+          Term.could_unify (t, t') andalso matchrands prf prf'
+      | matchrands (prf % _) (prf' % _) = matchrands prf prf'
+      | matchrands _ _ = true
+
+    fun head_of (prf %% _) = head_of prf
+      | head_of (prf % _) = head_of prf
+      | head_of prf = prf
+
+  in case (head_of prf1, head_of prf2) of
+        (_, Hyp (Var _)) => true
+      | (Hyp (Var _), _) => true
+      | (PThm ((a, _), _, propa, _), PThm ((b, _), _, propb, _)) =>
+          a = b andalso propa = propb andalso matchrands prf1 prf2
+      | (PAxm (a, _, _), PAxm (b, _, _)) => a = b andalso matchrands prf1 prf2
+      | (PBound i, PBound j) =>  i = j andalso matchrands prf1 prf2
+      | (AbsP _, _) =>  true   (*because of possible eta equality*)
+      | (Abst _, _) =>  true
+      | (_, AbsP _) =>  true
+      | (_, Abst _) =>  true
+      | _ => false
+  end;
+
 (**** rewriting on proof terms ****)
 
 fun rewrite_prf tymatch (rules, procs) prf =
@@ -985,7 +1014,7 @@ fun rewrite_prf tymatch (rules, procs) prf =
           Some prf' => Some prf'
         | None => get_first (fn (prf1, prf2) => Some (prf_subst
             (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2)
-               handle PMatch => None) rules);
+               handle PMatch => None) (filter (could_unify prf o fst) rules));
 
     fun rew0 Ts (prf as AbsP (_, _, prf' %% PBound 0)) =
           if prf_loose_Pbvar1 prf' 0 then rew Ts prf
