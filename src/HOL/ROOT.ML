@@ -35,6 +35,7 @@ use "~~/src/Provers/Arith/cancel_numerals.ML";
 use "~~/src/Provers/Arith/combine_numerals.ML";
 
 with_path "Integ" use_thy "Main";
+
 path_add "~~/src/HOL/Library";
 
 print_depth 8;
