@@ -9,7 +9,7 @@
 
 LOGICS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents TFL Tools ZF"
 
-CVSROOT=/isabelle/archive
+CVSROOT=/usr/proj/isabelle-repository/archive
 DISTBASE=~/tmp/isadist
 
 
