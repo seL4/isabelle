@@ -30,9 +30,6 @@ fun Raise (e as ERR sss) = (TextIO.output(TextIO.stdOut, ERR_string sss);
 
 fun C f x y = f y x
 
-val concat = curry (op ^)
-fun quote s = "\""^s^"\"";
-
 fun itlist f L base_value =
    let fun it [] = base_value
          | it (a::rst) = f a (it rst)

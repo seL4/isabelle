@@ -28,11 +28,8 @@ sig
     val dest_pair : cterm -> cterm * cterm
     val dest_select : cterm -> cterm * cterm
     val dest_var : cterm -> {Name:string, Ty:typ}
-    val is_abs : cterm -> bool
-    val is_comb : cterm -> bool
     val is_conj : cterm -> bool
     val is_cons : cterm -> bool
-    val is_const : cterm -> bool
     val is_disj : cterm -> bool
     val is_eq : cterm -> bool
     val is_exists : cterm -> bool
@@ -42,7 +39,6 @@ sig
     val is_neg : cterm -> bool
     val is_pair : cterm -> bool
     val is_select : cterm -> bool
-    val is_var : cterm -> bool
     val list_mk_abs : cterm list -> cterm -> cterm
     val list_mk_exists : cterm list * cterm -> cterm
     val list_mk_forall : cterm list * cterm -> cterm
@@ -66,7 +62,6 @@ fun ERR func mesg = Utils.ERR{module = "Dcterm", func = func, mesg = mesg};
  * General support routines
  *---------------------------------------------------------------------------*)
 val can = Utils.can;
-val quote = Utils.quote;
 fun swap (x,y) = (y,x);
 
 fun itlist f L base_value =
@@ -171,10 +166,6 @@ val dest_forall = dest_binder "All"
 
 (* Query routines *)
 
-val is_var    = can dest_var
-val is_const  = can dest_const
-val is_comb   = can dest_comb
-val is_abs    = can dest_abs
 val is_eq     = can dest_eq
 val is_imp    = can dest_imp
 val is_select = can dest_select

@@ -61,7 +61,6 @@ sig
   val mk_pabs   :{varstruct : term, body : term} -> term
 
   (* Destruction routines *)
-  val dest_var  : term -> {Name : string, Ty : typ}
   val dest_const: term -> {Name : string, Ty : typ}
   val dest_comb : term -> {Rator : term, Rand : term}
   val dest_abs  : term -> {Bvar : term, Body : term}
@@ -85,10 +84,6 @@ sig
   
 
   (* Query routines *)
-  val is_var  : term -> bool
-  val is_const: term -> bool
-  val is_comb : term -> bool
-  val is_abs  : term -> bool
   val is_eq     : term -> bool
   val is_imp    : term -> bool
   val is_forall : term -> bool 
@@ -125,7 +120,4 @@ sig
   val dest_relation : term -> term * term * term
   val is_WFR : term -> bool
   val ARB : typ -> term
-
-  (* Prettyprinting *)
-  val Term_to_string : cterm -> string
 end;

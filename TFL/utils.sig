@@ -31,8 +31,6 @@ sig
   val zip3 : 'a list -> 'b list -> 'c list -> ('a*'b*'c) list
   val take  : ('a -> 'b) -> int * 'a list -> 'b list
   val sort  : ('a -> 'a -> bool) -> 'a list -> 'a list
-  val concat : string -> string -> string
-  val quote : string -> string
 
 end;
 

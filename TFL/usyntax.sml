@@ -212,10 +212,6 @@ fun dest_term(Var((s,i),ty)) = VAR{Name = s, Ty = ty}
                                end
   | dest_term(Bound _)       = raise ERR{func = "dest_term",mesg = "Bound"};
 
-fun dest_var(Var((s,i),ty)) = {Name = s, Ty = ty}
-  | dest_var(Free(s,ty))    = {Name = s, Ty = ty}
-  | dest_var _ = raise ERR{func = "dest_var", mesg = "not a variable"};
-
 fun dest_const(Const(s,ty)) = {Name = s, Ty = ty}
   | dest_const _ = raise ERR{func = "dest_const", mesg = "not a constant"};
 
@@ -290,8 +286,6 @@ val body  = #Body o dest_abs
   
 
 (* Query routines *)
-val is_var    = can dest_var
-val is_const  = can dest_const
 val is_comb   = can dest_comb
 val is_abs    = can dest_abs
 val is_eq     = can dest_eq
@@ -432,8 +426,6 @@ fun find_terms p =
    in accum []
    end;
 
-
-val Term_to_string = string_of_cterm;
 
 fun dest_relation tm =
    if (type_of tm = HOLogic.boolT)
