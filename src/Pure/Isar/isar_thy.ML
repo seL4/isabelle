@@ -155,6 +155,7 @@ sig
   val add_oracle: (bstring * string) * Comment.text -> theory -> theory
   val begin_theory: string -> string list -> (string * bool) list -> theory
   val end_theory: theory -> theory
+  val kill_theory: string -> unit
   val theory: string * string list * (string * bool) list
     -> Toplevel.transition -> Toplevel.transition
   val context: string -> Toplevel.transition -> Toplevel.transition
@@ -518,16 +519,11 @@ fun gen_begin_theory bg name parents files =
 val begin_theory = gen_begin_theory ThyInfo.begin_theory;
 val begin_update_theory = gen_begin_theory ThyInfo.begin_update_theory;
 
-fun check_known_thy name =
-  ThyInfo.known_thy name orelse (warning ("Lost theory " ^ quote name); false);
-
 fun end_theory thy =
-  if check_known_thy (PureThy.get_name thy) then ThyInfo.end_theory thy
+  if ThyInfo.check_known_thy (PureThy.get_name thy) then ThyInfo.end_theory thy
   else thy;
 
-fun kill_theory thy =
-  let val name = PureThy.get_name thy
-  in if check_known_thy name then ThyInfo.remove_thy name else () end;
+val kill_theory = ThyInfo.if_known_thy ThyInfo.remove_thy;
 
 
 fun bg_theory (name, parents, files) int =
@@ -535,7 +531,7 @@ fun bg_theory (name, parents, files) int =
 
 fun en_theory thy = (end_theory thy; ());
 
-fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory kill_theory;
+fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory (kill_theory o PureThy.get_name);
 
 
 (* context switch *)
