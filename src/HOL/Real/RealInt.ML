@@ -7,7 +7,7 @@
 
 
 Goalw [congruent_def]
-  "congruent intrel (%p. split (%i j. realrel ^^ \
+  "congruent intrel (%p. (%(i,j). realrel ^^ \
 \  {(preal_of_prat (prat_of_pnat (pnat_of_nat i)), \
 \    preal_of_prat (prat_of_pnat (pnat_of_nat j)))}) p)";
 by (auto_tac (claset(),

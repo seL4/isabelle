@@ -209,7 +209,7 @@ qed "UN_equiv_class_type2";
 (*Allows a natural expression of binary operators, without explicit calls
   to "split"*)
 Goal "(UN (x1,x2):X. UN (y1,y2):Y. A x1 x2 y1 y2) = \
-\     (UN x:X. UN y:Y. split(%x1 x2. split(%y1 y2. A x1 x2 y1 y2) y) x)";
+\     (UN x:X. UN y:Y. (%(x1, x2). (%(y1, y2). A x1 x2 y1 y2) y) x)";
 by Auto_tac;
 qed "UN_UN_split_split_eq";
 

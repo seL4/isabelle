@@ -55,11 +55,11 @@ defs
 
   real_add_def  
   "P + Q == Abs_real(UN p1:Rep_real(P). UN p2:Rep_real(Q).
-                split(%x1 y1. split(%x2 y2. realrel^^{(x1+x2, y1+y2)}) p2) p1)"
+                (%(x1,y1). (%(x2,y2). realrel^^{(x1+x2, y1+y2)}) p2) p1)"
   
   real_mult_def  
   "P * Q == Abs_real(UN p1:Rep_real(P). UN p2:Rep_real(Q).
-                split(%x1 y1. split(%x2 y2. realrel^^{(x1*x2+y1*y2,x1*y2+x2*y1)}) p2) p1)"
+                (%(x1,y1). (%(x2,y2). realrel^^{(x1*x2+y1*y2,x1*y2+x2*y1)}) p2) p1)"
 
   real_less_def
   "P < Q == EX x1 y1 x2 y2. x1 + y2 < x2 + y1 & 
