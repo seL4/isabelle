@@ -12,17 +12,9 @@ $< is a linear ordering
 $+ and $* are monotonic wrt $<
 *)
 
-val add_cong = 
-    read_instantiate_sg (sign_of Arith.thy) [("t","op #+")] subst_context2;
-
-
 open Integ;
 
 (*** Proving that intrel is an equivalence relation ***)
-
-val add_kill = (refl RS add_cong);
-
-val add_left_commute_kill = add_kill RSN (3, add_left_commute RS trans);
 
 (*By luck, requires no typing premises for y1, y2,y3*)
 val eqa::eqb::prems = goal Arith.thy 
@@ -263,6 +255,15 @@ by (REPEAT (eresolve_tac [quotientE, SigmaE, ssubst] 1));
 by (asm_simp_tac (arith_ss addsimps [zadd, add_assoc]) 1);
 qed "zadd_assoc";
 
+(*For AC rewriting*)
+qed_goal "zadd_left_commute" Integ.thy
+    "!!z1 z2 z3. [| z1:integ;  z2:integ;  z3: integ |] ==> \
+\                z1$+(z2$+z3) = z2$+(z1$+z3)"
+ (fn _ => [asm_simp_tac (ZF_ss addsimps [zadd_assoc RS sym, zadd_commute]) 1]);
+
+(*Integer addition is an AC operator*)
+val zadd_ac = [zadd_assoc, zadd_commute, zadd_left_commute];
+
 goalw Integ.thy [znat_def]
     "!!m n. [| m: nat;  n: nat |] ==> $# (m #+ n) = ($#m) $+ ($#n)";
 by (asm_simp_tac (arith_ss addsimps [zadd]) 1);
@@ -364,6 +365,16 @@ by (asm_simp_tac
 			  add_mult_distrib] @ add_ac @ mult_ac)) 1);
 qed "zmult_assoc";
 
+(*For AC rewriting*)
+qed_goal "zmult_left_commute" Integ.thy
+    "!!z1 z2 z3. [| z1:integ;  z2:integ;  z3: integ |] ==> \
+\                z1$*(z2$*z3) = z2$*(z1$*z3)"
+ (fn _ => [asm_simp_tac (ZF_ss addsimps [zmult_assoc RS sym, 
+					 zmult_commute]) 1]);
+
+(*Integer multiplication is an AC operator*)
+val zmult_ac = [zmult_assoc, zmult_commute, zmult_left_commute];
+
 goalw Integ.thy [integ_def]
     "!!z1 z2 z3. [| z1: integ;  z2: integ;  w: integ |] ==> \
 \                (z1 $+ z2) $* w = (z1 $* w) $+ (z2 $* w)";
@@ -376,6 +387,14 @@ qed "zadd_zmult_distrib";
 val integ_typechecks =
     [znat_type, zminus_type, zmagnitude_type, zadd_type, zmult_type];
 
+val zadd_simps = 
+    [zadd_0, zadd_0_right, zadd_zminus_inverse, zadd_zminus_inverse2];
+
+val zminus_simps = [zminus_zminus, zminus_0];
+
+val zmult_simps = [zmult_0, zmult_1, zmult_zminus];
+
 val integ_ss =
-    arith_ss addsimps ([zminus_zminus, zmagnitude_znat, 
-			zmagnitude_zminus_znat, zadd_0] @ integ_typechecks);
+    arith_ss addsimps (zadd_simps @ zminus_simps @ zmult_simps @ 
+		       [zmagnitude_znat, zmagnitude_zminus_znat] @ 
+		       integ_typechecks);
