@@ -64,7 +64,7 @@ datatype T = Arg of kind * (string * Position.T);
 fun val_of (Arg (_, (x, _))) = x;
 fun pos_of (Arg (_, (_, pos))) = pos;
 
-fun str_of (Arg (Ident, (x, _))) = enclose "'" "'" x
+fun str_of (Arg (Ident, (x, _))) = x
   | str_of (Arg (String, (x, _))) = quote x
   | str_of (Arg (Keyword, (x, _))) = x
   | str_of (Arg (EOF, _)) = "end-of-text";
@@ -214,10 +214,9 @@ fun err_in_src kind msg (Src ((s, args), pos)) =
 (* argument syntax *)
 
 fun syntax kind scan (src as Src ((s, args), pos)) st =
-  (case handle_error (Scan.error (Scan.finite' stopper (Scan.option scan))) (st, args) of
-    OK (Some x, (st', [])) => (st', x)
-  | OK (_, (_, args')) => err_in_src kind "bad arguments" (Src ((s, args'), pos))
-  | Error msg => err_in_src kind ("\n" ^ msg) src);
+  (case Scan.error (Scan.finite' stopper (Scan.option scan)) (st, args) of
+    (Some x, (st', [])) => (st', x)
+  | (_, (_, args')) => err_in_src kind "bad arguments" (Src ((s, args'), pos)));
 
 
 (* attribs *)
