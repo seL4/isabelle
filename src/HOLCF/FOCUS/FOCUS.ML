@@ -4,8 +4,6 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-open FOCUS;
-
 val ex_eqI = prove_goal thy "? xx. x = xx" (K [Auto_tac]);
 val ex2_eqI = prove_goal thy "? xx yy. x = xx & y = yy" (K [Auto_tac]);
 val eq_UU_symf = prove_goal thy "(UU = f x) = (f x = UU)" (K [Auto_tac]);
