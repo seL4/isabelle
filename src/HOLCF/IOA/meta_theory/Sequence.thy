@@ -13,7 +13,7 @@ default term
 
 types 'a Seq = ('a::term lift)seq
 
-ops curried
+consts
 
   Cons             ::"'a            => 'a Seq -> 'a Seq"
   Filter           ::"('a => bool)  => 'a Seq -> 'a Seq"
