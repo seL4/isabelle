@@ -76,7 +76,7 @@ if [ $# -eq 0 -o "$1" = "-norpm" ]; then
 fi
 
 if [ $# -eq 0 -o "$1" = "-rpm" ]; then
-  RPM_SML_SIZE=$[ $(wc -c < rpm/smlnj-110.0-3.i386.rpm) / 1024 ]
+  RPM_SML_SIZE=$[ $(wc -c < rpm/polyml-3X-1.i386.rpm) / 1024 ]
   RPM_BASE_SIZE=$[ $(wc -c < rpm/isabelle.rpm) / 1024 ]
   RPM_HOL_SIZE=$[ $(wc -c < rpm/isabelle-HOL.i386.rpm) / 1024 ]
   RPM_REAL_SIZE=$[ $(wc -c < rpm/isabelle-HOL-Real.i386.rpm) / 1024 ]
