@@ -93,7 +93,7 @@ by (etac conjE 1);
  by (dtac sym 1);
 by (Asm_full_simp_tac 1);
 by (REPEAT (hyp_subst_tac 1));
-by (forward_tac  [reachable_rename] 1);
+by (ftac reachable_rename 1);
 by (Asm_full_simp_tac 1);
 (* x is output *)
  by (etac exE 1);
@@ -102,10 +102,10 @@ by (etac conjE 1);
  by (dtac sym 1);
 by (Asm_full_simp_tac 1);
 by (REPEAT (hyp_subst_tac 1));
-by (forward_tac  [reachable_rename] 1);
+by (ftac reachable_rename 1);
 by (Asm_full_simp_tac 1);
 (* x is internal *)
-by (forward_tac  [reachable_rename] 1);
+by (ftac reachable_rename 1);
 by Auto_tac;
 qed"rename_through_pmap";
 Addsplits [split_if]; Addcongs [if_weak_cong];

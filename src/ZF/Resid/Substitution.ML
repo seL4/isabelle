@@ -131,7 +131,7 @@ by (etac redexes.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by Safe_tac;
 by (case_tac "n < xa" 1);
-by ((forward_tac [lt_trans2] 1) THEN (assume_tac 1));
+by ((ftac lt_trans2 1) THEN (assume_tac 1));
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [lift_rec_Var, leI])));
 qed "lift_lift_rec";
 
@@ -176,7 +176,7 @@ by Safe_tac;
 by (excluded_middle_tac "n < x" 1);
 by (Asm_full_simp_tac 1);
 by (eres_inst_tac [("i","x")] leE 1);
-by (forward_tac  [lt_trans1] 1 THEN assume_tac 1);
+by (ftac lt_trans1 1 THEN assume_tac 1);
 by (ALLGOALS(asm_simp_tac 
              (simpset() addsimps [succ_pred,leI,gt_pred])));
 by (asm_full_simp_tac (simpset() addsimps [leI]) 1);
@@ -218,7 +218,7 @@ by (Asm_full_simp_tac 1);
 by (eres_inst_tac [("j","n")] leE 1);
 by (asm_simp_tac (simpset() addsimps [gt_pred]) 1);
 by (asm_simp_tac (simpset() addsimps [subst_rec_lift_rec]) 1);
-by (forward_tac [lt_trans2] 1 THEN assume_tac 1);
+by (ftac lt_trans2 1 THEN assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [gt_pred]) 1);
 qed "subst_rec_subst_rec";
 

@@ -29,7 +29,7 @@ Goalw [is_weak_pmap_def,traces_def]
    by (asm_simp_tac (simpset() addsimps [mk_trace_def,filter_oseq_idemp])1);
 
   (* Use lemma *)
-  by (forward_tac [states_of_exec_reachable] 1);
+  by (ftac states_of_exec_reachable 1);
 
   (* Now show that it's an execution *)
   by (asm_full_simp_tac(simpset() addsimps [executions_def]) 1);

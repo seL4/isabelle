@@ -51,7 +51,7 @@ val lemma = result();
 Goal "!!y::nat. F : (UNIV-{{}}) leadsTo {s. y ~: s}";
 by (rtac (lemma RS leadsTo_weaken_R) 1);
 by (Clarify_tac 1);
-by (forward_tac [minSet_nonempty] 1);
+by (ftac minSet_nonempty 1);
 by (auto_tac (claset() addDs [Suc_le_lessD, not_less_Least], 
 	      simpset()));
 qed "Channel_progress";

@@ -307,7 +307,7 @@ by (induct_tac "n" 1);
  by (rtac ext 1);
  by (Force_tac 1);
 by (Clarify_tac 1);
-by (forward_tac [setsum_SucD] 1);
+by (ftac setsum_SucD 1);
  by (assume_tac 1);
 by (Clarify_tac 1);
 by (rename_tac "a" 1);

@@ -438,14 +438,14 @@ qed "dvd_mult2";
 AddIffs [dvd_refl RS dvd_mult, dvd_refl RS dvd_mult2];
 
 Goal "k dvd (n + k) = k dvd (n::nat)";
-br iffI 1;
-be  dvd_add 2;
-br  dvd_refl 2;
+by (rtac iffI 1);
+by (etac dvd_add 2);
+by (rtac dvd_refl 2);
 by (subgoal_tac "n = (n+k)-k" 1);
 by  (Simp_tac 2);
-be ssubst 1;
-be dvd_diff 1;
-br dvd_refl 1;
+by (etac ssubst 1);
+by (etac dvd_diff 1);
+by (rtac dvd_refl 1);
 qed "dvd_reduce";
 
 Goalw [dvd_def] "[| f dvd m; f dvd n; 0<n |] ==> f dvd (m mod n)";

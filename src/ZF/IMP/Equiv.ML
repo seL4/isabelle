@@ -79,7 +79,7 @@ by (best_tac (claset() addss (simpset())) 1);
 (* while *)
 by Safe_tac;
 by (ALLGOALS Asm_full_simp_tac);
-by (EVERY1 [forward_tac [Gamma_bnd_mono], etac induct, atac]);
+by (EVERY1 [ftac Gamma_bnd_mono , etac induct, atac]);
 by (rewtac Gamma_def);  
 by Safe_tac;
 by (EVERY1 [dtac bspec, atac]);

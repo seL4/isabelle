@@ -79,19 +79,19 @@ by (rtac imp_conj_lemma 1);   (* from lemmas.ML *)
 
 by (induct_tac "a"  1);
 by (ALLGOALS (asm_simp_tac ss'));
-by (forward_tac [inv4] 1);
+by (ftac inv4 1);
 by (Force_tac 1);
 
-by (forward_tac [inv4] 1);
-by (forward_tac [inv2] 1);
+by (ftac inv4 1);
+by (ftac inv2 1);
 by (etac disjE 1);
 by (Asm_simp_tac 1);
 by (Force_tac 1);
 
-by (forward_tac [inv2] 1);
+by (ftac inv2 1);
 by (etac disjE 1);
 
-by (forward_tac [inv3] 1);
+by (ftac inv3 1);
 by (case_tac "sq(sen(s))=[]" 1);
 
 by (asm_full_simp_tac ss' 1);

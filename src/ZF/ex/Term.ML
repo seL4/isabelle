@@ -93,7 +93,7 @@ val major::prems = Goal
 \                 ==> d(x, zs, r): C(Apply(x,zs))       \
 \    |] ==> term_rec(t,d) : C(t)";
 by (rtac (major RS term.induct) 1);
-by (forward_tac [list_CollectD] 1);
+by (ftac list_CollectD 1);
 by (stac term_rec 1);
 by (REPEAT (ares_tac prems 1));
 by (etac list.induct 1);

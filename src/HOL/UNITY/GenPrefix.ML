@@ -136,7 +136,7 @@ qed "genPrefix_Cons";
 Goal "[| reflexive r;  (xs,ys) : genPrefix r |] \
 \     ==>  (xs@zs, take (length xs) ys @ zs) : genPrefix r";
 by (etac genPrefix.induct 1);
-by (forward_tac [genPrefix_length_le] 3);
+by (ftac genPrefix_length_le 3);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_is_0_eq RS iffD2])));
 qed "genPrefix_take_append";
 

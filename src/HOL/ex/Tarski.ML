@@ -486,7 +486,7 @@ Goal "[| H = {x. (x, f x) : r & x : A};  x: P |] ==> x: H";
 by (etac ssubst 1);
 by (Simp_tac 1);
 by (rtac conjI 1);
-by (forward_tac [fixfE2] 1);
+by (ftac fixfE2 1);
 by (etac ssubst 1);
 by (rtac reflE 1);
 by (rtac CompleteLatticeE11 1);

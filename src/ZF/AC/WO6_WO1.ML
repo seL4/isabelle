@@ -453,7 +453,7 @@ by (etac exE 1);
 by (dtac WO6_imp_NN_not_empty 1);
 by (eresolve_tac [Un_subset_iff RS iffD1 RS conjE] 1);
 by (eres_inst_tac [("A","NN(y)")] not_emptyE 1);
-by (forward_tac [y_well_ord] 1);
+by (ftac y_well_ord 1);
 by (fast_tac (claset() addEs [well_ord_subset]) 2);
 by (fast_tac (claset() addSIs [lemma3] addSDs [NN_y_0] addSEs [not_emptyE]) 1);
 qed "WO6_imp_WO1";

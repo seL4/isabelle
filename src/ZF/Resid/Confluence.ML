@@ -38,7 +38,7 @@ qed "strip_lemma_l";
 
 Goalw [confluence_def] "confluence(Spar_red1)";
 by (Clarify_tac 1);
-by (forward_tac [simulation] 1);
+by (ftac simulation 1);
 by (forw_inst_tac [("n","z")] simulation 1);
 by (Clarify_tac 1);
 by (forw_inst_tac [("v","va")] paving 1);

@@ -50,8 +50,8 @@ qed "Oops_parts_spies";
 fun parts_induct_tac i = 
   EVERY [etac ns_shared.induct i,
 	 REPEAT (FIRSTGOAL analz_mono_contra_tac),
-	 forward_tac [Oops_parts_spies] (i+7),
-	 forward_tac [NS3_msg_in_parts_spies] (i+4),
+	 ftac Oops_parts_spies (i+7),
+	 ftac NS3_msg_in_parts_spies (i+4),
 	 prove_simple_subgoals_tac i];
 
 
@@ -140,8 +140,8 @@ qed "Says_S_message_form";
 
 (*For proofs involving analz.*)
 val analz_spies_tac = 
-    forward_tac [Says_Server_message_form] 8 THEN
-    forward_tac [Says_S_message_form] 5 THEN 
+    ftac Says_Server_message_form 8 THEN
+    ftac Says_S_message_form 5 THEN 
     REPEAT_FIRST (eresolve_tac [asm_rl, conjE, disjE] ORELSE' hyp_subst_tac);
 
 
@@ -263,7 +263,7 @@ Goal "[| Says Server A                                        \
 \           ALL NB. Notes Spy {|NA, NB, Key K|} ~: set evs;      \
 \           A ~: bad;  B ~: bad;  evs : ns_shared                \
 \        |] ==> Key K ~: analz (spies evs)";
-by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
+by (ftac Says_Server_message_form 1 THEN assume_tac 1);
 by (blast_tac (claset() delrules [notI]
 			addIs [lemma2]) 1);
 qed "Spy_not_see_encrypted_key";

@@ -28,7 +28,7 @@ by (rtac conjI 1);
 by (blast_tac (claset() addDs [bspec, real_gt_zero_preal_Ex RS iffD1]) 1);
 by Auto_tac;
 by (dtac bspec 1 THEN assume_tac 1);
-by (forward_tac [bspec] 1  THEN assume_tac 1);
+by (ftac bspec 1  THEN assume_tac 1);
 by (dtac real_less_trans 1 THEN assume_tac 1);
 by (dtac (real_gt_zero_preal_Ex RS iffD1) 1 THEN etac exE 1);
 by (res_inst_tac [("x","ya")] exI 1);
@@ -49,22 +49,22 @@ Goal "[| ! x:P. 0r < x; ? x. x: P; ? y. !x: P. x < y |] \
 by (res_inst_tac 
    [("x","real_of_preal (psup({w. real_of_preal w : P}))")] exI 1);
 by Auto_tac;
-by (forward_tac [real_sup_lemma2] 1 THEN Auto_tac);
+by (ftac real_sup_lemma2 1 THEN Auto_tac);
 by (case_tac "0r < ya" 1);
 by (dtac (real_gt_zero_preal_Ex RS iffD1) 1);
 by (dtac real_less_all_real2 2);
 by Auto_tac;
 by (rtac (preal_complete RS spec RS iffD1) 1);
 by Auto_tac;
-by (forward_tac [real_gt_preal_preal_Ex] 1);
+by (ftac real_gt_preal_preal_Ex 1);
 by Auto_tac;
 (* second part *)
 by (rtac (real_sup_lemma1 RS iffD2) 1 THEN assume_tac 1);
 by (case_tac "0r < ya" 1);
 by (auto_tac (claset() addSDs [real_less_all_real2,
 			       real_gt_zero_preal_Ex RS iffD1],simpset()));
-by (forward_tac [real_sup_lemma2] 2 THEN Auto_tac);
-by (forward_tac [real_sup_lemma2] 1 THEN Auto_tac);
+by (ftac real_sup_lemma2 2 THEN Auto_tac);
+by (ftac real_sup_lemma2 1 THEN Auto_tac);
 by (rtac (preal_complete RS spec RS iffD2 RS bexE) 1);
 by (Blast_tac 3);
 by (Blast_tac 1);
@@ -77,7 +77,7 @@ qed "posreal_complete";
  -------------------------------------------------------*)
 
 Goal "[| isLub R S x; isLub R S y |] ==> x = (y::real)";
-by (forward_tac [isLub_isUb] 1);
+by (ftac isLub_isUb 1);
 by (forw_inst_tac [("x","y")] isLub_isUb 1);
 by (blast_tac (claset() addSIs [real_le_anti_sym]
                         addSDs [isLub_le_isUb]) 1);
@@ -105,12 +105,12 @@ by (dtac (real_gt_zero_preal_Ex RS iffD1) 1);
 by (auto_tac (claset(), simpset() addsimps [real_of_preal_le_iff]));
 by (rtac preal_psup_leI2a 1);
 by (forw_inst_tac [("y","real_of_preal ya")] setleD 1 THEN assume_tac 1);
-by (forward_tac  [real_ge_preal_preal_Ex] 1);
+by (ftac real_ge_preal_preal_Ex 1);
 by (Step_tac 1);
 by (res_inst_tac [("x","y")] exI 1);
 by (blast_tac (claset() addSDs [setleD] addIs [real_of_preal_le_iff RS iffD1]) 1);
 by (forw_inst_tac [("x","x")] bspec 1 THEN assume_tac 1);
-by (forward_tac [isUbD2] 1);
+by (ftac isUbD2 1);
 by (dtac (real_gt_zero_preal_Ex RS iffD1) 1);
 by (auto_tac (claset() addSDs [isUbD, real_ge_preal_preal_Ex],
 	      simpset() addsimps [real_of_preal_le_iff]));
@@ -188,12 +188,12 @@ by (rtac (setleI RS isUbI) 1);
 by (Step_tac 1);
 by (res_inst_tac [("R1.0","x"),("R2.0","y")] real_linear_less2 1);
 by (stac lemma_le_swap2 1);
-by (forward_tac [isLubD2] 1 THEN assume_tac 2);
+by (ftac isLubD2 1 THEN assume_tac 2);
 by (Step_tac 1);
 by (Blast_tac 1);
 by (dtac lemma_real_complete1 1 THEN REPEAT(assume_tac 1));
 by (stac lemma_le_swap2 1);
-by (forward_tac [isLubD2] 1 THEN assume_tac 2);
+by (ftac isLubD2 1 THEN assume_tac 2);
 by (Blast_tac 1);
 by (rtac lemma_real_complete2b 1);
 by (etac real_less_imp_le 2);

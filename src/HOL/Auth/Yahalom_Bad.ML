@@ -35,7 +35,7 @@ qed"Gets_imp_knows_Spy";
 AddDs [Gets_imp_knows_Spy RS parts.Inj];
 
 fun g_not_bad_tac s = 
-  forward_tac [Gets_imp_Says] THEN' assume_tac THEN' not_bad_tac s;
+  ftac Gets_imp_Says THEN' assume_tac THEN' not_bad_tac s;
 
 
 (**** Inductive proofs about yahalom ****)
@@ -55,7 +55,7 @@ bind_thm ("YM4_parts_knows_Spy",
 (*For proving the easier theorems about X ~: parts (knows Spy evs).*)
 fun parts_knows_Spy_tac i = 
   EVERY
-   [forward_tac [YM4_parts_knows_Spy] (i+6), assume_tac (i+6),
+   [ftac YM4_parts_knows_Spy (i+6), assume_tac (i+6),
     prove_simple_subgoals_tac i];
 
 (*Induction for regularity theorems.  If induction formula has the form
@@ -107,7 +107,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 
 (*For proofs involving analz.*)
 val analz_knows_Spy_tac = 
-    forward_tac [YM4_analz_knows_Spy] 7 THEN assume_tac 7;
+    ftac YM4_analz_knows_Spy 7 THEN assume_tac 7;
 
 (****
  The following is to prove theorems of the form
@@ -291,7 +291,7 @@ by (etac (Gets_imp_knows_Spy RS parts.Inj RS MPair_parts) 1 THEN
 by (dtac B_trusts_YM4_newK 3);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, exE]));
 by (etac Spy_not_see_encrypted_key 1 THEN REPEAT (assume_tac 1));
-by (forward_tac [unique_session_keys] 1 THEN REPEAT (assume_tac 1));
+by (ftac unique_session_keys 1 THEN REPEAT (assume_tac 1));
 by (blast_tac (claset() addDs []) 1);
 qed "B_trusts_YM4";
 
@@ -348,7 +348,7 @@ Goal "[| Gets B {|Crypt (shrK B) {|Agent A, Key K|},                   \
 \          : set evs;                                                  \
 \        A ~: bad;  B ~: bad;  evs : yahalom |]       \
 \     ==> EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs";
-by (forward_tac [B_trusts_YM4] 1);
+by (ftac B_trusts_YM4 1);
 by (REPEAT_FIRST assume_tac);
 by (etac (Gets_imp_knows_Spy RS parts.Inj RS MPair_parts) 1 THEN assume_tac 1);
 by (Clarify_tac 1);

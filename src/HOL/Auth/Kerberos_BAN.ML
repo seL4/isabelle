@@ -53,8 +53,8 @@ qed "Oops_parts_spies";
 (*For proving the easier theorems about X ~: parts (spies evs).*)
 fun parts_induct_tac i = 
     etac kerberos_ban.induct i  THEN 
-    forward_tac [Oops_parts_spies] (i+6)  THEN
-    forward_tac [Kb3_msg_in_parts_spies] (i+4)     THEN
+    ftac Oops_parts_spies (i+6)  THEN
+    ftac Kb3_msg_in_parts_spies (i+4)     THEN
     prove_simple_subgoals_tac i;
 
 
@@ -160,8 +160,8 @@ qed "Says_S_message_form";
 
 (*For proofs involving analz.*)
 val analz_spies_tac = 
-    forward_tac [Says_Server_message_form] 7 THEN
-    forward_tac [Says_S_message_form] 5 THEN 
+    ftac Says_Server_message_form 7 THEN
+    ftac Says_S_message_form 5 THEN 
     REPEAT_FIRST (eresolve_tac [asm_rl, conjE, disjE] ORELSE' hyp_subst_tac);
 
 
@@ -266,7 +266,7 @@ Goal "[| Says Server A                                           \
 \        ~ Expired T evs;                                        \
 \        A ~: bad;  B ~: bad;  evs : kerberos_ban                \
 \     |] ==> Key K ~: analz (spies evs)";
-by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
+by (ftac Says_Server_message_form 1 THEN assume_tac 1);
 by (blast_tac (claset() addIs [lemma2]) 1);
 qed "Confidentiality_S";
 
@@ -304,9 +304,9 @@ Goal "[| B ~: bad;  evs : kerberos_ban |]                        \
 \         Crypt K (Number Ta) : parts (spies evs) -->        \
 \         Says B A (Crypt K (Number Ta)) : set evs";
 by (etac kerberos_ban.induct 1);
-by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
+by (ftac Says_S_message_form 5 THEN assume_tac 5);     
 by (dtac Kb3_msg_in_parts_spies 5);
-by (forward_tac [Oops_parts_spies] 7);
+by (ftac Oops_parts_spies 7);
 by (REPEAT (FIRSTGOAL analz_mono_contra_tac));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 (**LEVEL 6**)
@@ -349,9 +349,9 @@ Goal "[| A ~: bad; B ~: bad; evs : kerberos_ban |]      ==>         \
 \        Says A B {|X, Crypt K {|Agent A, Number Ta|}|}  \
 \            : set evs";
 by (etac kerberos_ban.induct 1);
-by (forward_tac [Says_S_message_form] 5 THEN assume_tac 5);     
-by (forward_tac [Kb3_msg_in_parts_spies] 5);
-by (forward_tac [Oops_parts_spies] 7);
+by (ftac Says_S_message_form 5 THEN assume_tac 5);     
+by (ftac Kb3_msg_in_parts_spies 5);
+by (ftac Oops_parts_spies 7);
 by (REPEAT (FIRSTGOAL analz_mono_contra_tac));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 (**LEVEL 6**)

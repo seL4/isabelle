@@ -404,7 +404,7 @@ by (resolve_tac [succ_lepoll_imp_not_empty RS not_emptyE] 1
         THEN (assume_tac 1));
 by (forward_tac [subsetD RS Diff_sing_lepoll] 1
         THEN REPEAT (assume_tac 1));
-by (forward_tac [lepoll_Diff_sing] 1);
+by (ftac lepoll_Diff_sing 1);
 by (REPEAT (eresolve_tac [allE, impE] 1));
 by (rtac conjI 1);
 by (Fast_tac 2);
@@ -443,7 +443,7 @@ Goal "[| recfunAC16(f, fa, y, a) <= {X: Pow(A) . X eqpoll succ(k #+ m)};  \
 by (eresolve_tac [dbl_Diff_eqpoll RS ex_subset_eqpoll RS bexE] 1
         THEN REPEAT (assume_tac 1));
 by (etac Card_is_Ord 1);
-by (forward_tac [Un_in_Collect] 2 THEN REPEAT (assume_tac 2));
+by (ftac Un_in_Collect 2 THEN REPEAT (assume_tac 2));
 by (etac CollectE 4);
 by (rtac bexI 4);
 by (rtac CollectI 5);
@@ -521,7 +521,7 @@ Goal "[| b < a; f : bij(a, {Y: Pow(A) . Y eqpoll succ(k #+ m)});  \
 \       (ALL x<a. x < b | (EX Y:recfunAC16(f, fa, b, a). fa ` x <= Y) -->  \
 \       (EX! Y. Y:recfunAC16(f, fa, b, a) & fa ` x <= Y))";
 by (etac lt_induct 1);
-by (forward_tac [lt_Ord] 1);
+by (ftac lt_Ord 1);
 by (etac Ord_cases 1);
 (* case 0 *)
 by (asm_simp_tac (simpset() addsimps [recfunAC16_0]) 1);
@@ -568,7 +568,7 @@ by (rtac ballI 1);
 by (etac imageE 1);
 by (dresolve_tac [prem3 RS Limit_is_Ord RSN (2, ltI) RS
         (prem3 RS Limit_has_succ)] 1);
-by (forward_tac [prem1] 1);
+by (ftac prem1 1);
 by (etac conjE 1);
 (** LEVEL 10 **)
 by (dresolve_tac [leI RS succ_leE RSN (2, ospec)] 1 THEN (assume_tac 1));
@@ -585,8 +585,8 @@ by (eresolve_tac [lt_Ord RSN (2, lt_Ord RS Ord_linear_le)] 1
 by (dresolve_tac [prem4 RS subsetD] 2 THEN (assume_tac 2));
 (** LEVEL 20 **)
 by (fast_tac FOL_cs 2);
-by (forward_tac [prem1] 1);
-by (forward_tac [succ_leE] 1);
+by (ftac prem1 1);
+by (ftac succ_leE 1);
 by (dresolve_tac [prem4 RS subsetD] 1 THEN (assume_tac 1));
 by (etac conjE 1);
 (** LEVEL 25 **)
@@ -604,11 +604,11 @@ qed "lemma_simp_induct";
 Goalw [AC16_def] "[| WO2; 0<m; k:nat; m:nat |] ==> AC16(k #+ m,k)";
 by (rtac allI 1);
 by (rtac impI 1);
-by (forward_tac [WO2_infinite_subsets_eqpoll_X] 1 
+by (ftac WO2_infinite_subsets_eqpoll_X 1 
     THEN (REPEAT (assume_tac 1)));
 by (forw_inst_tac [("n","k #+ m")] (WO2_infinite_subsets_eqpoll_X) 1
         THEN (REPEAT (ares_tac [add_type] 1)));
-by (forward_tac [WO2_imp_ex_Card] 1);
+by (ftac WO2_imp_ex_Card 1);
 by (REPEAT (eresolve_tac [exE,conjE] 1));
 by (dresolve_tac [eqpoll_trans RS eqpoll_sym RS (eqpoll_def RS
         def_imp_iff RS iffD1)] 1 THEN (assume_tac 1));

@@ -24,7 +24,7 @@ val [prem] = goal thy "ALL x:Pow(A)-{0}. f`x~=0 & f`x<=x & f`x lepoll m ==>  \
 \       ALL x<LEAST x. HH(f,A,x)={A}. HH(f,A,x) lepoll m";
 by (rtac oallI 1);
 by (dresolve_tac [ltD RS less_Least_subset_x] 1);
-by (forward_tac [HH_subset_imp_eq] 1);
+by (ftac HH_subset_imp_eq 1);
 by (etac ssubst 1);
 by (fast_tac (claset() addIs [prem RS ballE]
                 addSDs [HH_subset_x_imp_subset_Diff_UN RS not_emptyI2]) 1);

@@ -186,7 +186,7 @@ qed "HH_subset_imp_eq";
 Goal "[| f : (Pow(x)-{0}) -> {{z}. z:x};  \
 \       a:(LEAST i. HH(f,x,i)={x}) |] ==> EX z:x. HH(f,x,a) = {z}";
 by (dtac less_Least_subset_x 1);
-by (forward_tac [HH_subset_imp_eq] 1);
+by (ftac HH_subset_imp_eq 1);
 by (dtac apply_type 1);
 by (resolve_tac [Diff_subset RS PowI RS DiffI] 1);
 by (fast_tac 

@@ -1096,7 +1096,7 @@ by (Step_tac 2);
 by (dtac (hypreal_minus_zero_less_iff RS iffD2) 2);
 by (dres_inst_tac [("R2.0","-x")] hypreal_less_trans 2);
 by (Auto_tac );
-by (forward_tac [hypreal_add_order] 1 THEN assume_tac 1);
+by (ftac hypreal_add_order 1 THEN assume_tac 1);
 by (dres_inst_tac [("C","-x"),("B","x + x")] hypreal_add_less_mono1 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_add_assoc]));
 qed "hypreal_gt_zero_iff";
@@ -1318,7 +1318,7 @@ by (auto_tac (claset() addIs [hypreal_zero_less_one RS hypreal_less_asym],
 qed "hypreal_hrinv_gt_zero";
 
 Goal "x < 0hr ==> hrinv x < 0hr";
-by (forward_tac [hypreal_not_refl2] 1);
+by (ftac hypreal_not_refl2 1);
 by (dtac (hypreal_minus_zero_less_iff RS iffD2) 1);
 by (rtac (hypreal_minus_zero_less_iff RS iffD1) 1);
 by (dtac (hypreal_minus_hrinv RS sym) 1);
@@ -1394,13 +1394,13 @@ qed "hypreal_half_gt_zero";
 
 (* TODO: remove redundant  0hr < x *)
 Goal "[| 0hr < r; 0hr < x; r < x |] ==> hrinv x < hrinv r";
-by (forward_tac [hypreal_hrinv_gt_zero] 1);
+by (ftac hypreal_hrinv_gt_zero 1);
 by (forw_inst_tac [("x","x")] hypreal_hrinv_gt_zero 1);
 by (forw_inst_tac [("x","r"),("z","hrinv r")] hypreal_mult_less_mono1 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_not_refl2 RS 
          not_sym RS hypreal_mult_hrinv]) 1);
-by (forward_tac [hypreal_hrinv_gt_zero] 1);
+by (ftac hypreal_hrinv_gt_zero 1);
 by (forw_inst_tac [("x","1hr"),("z","hrinv x")] hypreal_mult_less_mono2 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_not_refl2 RS 

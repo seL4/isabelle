@@ -374,8 +374,8 @@ qed "well_ord_iso_predE";
 (*Simple consequence of Lemma 6.1*)
 Goal "[| well_ord(A,r);  f : ord_iso(pred(A,a,r), r, pred(A,c,r), r);  \
 \        a:A;  c:A |] ==> a=c";
-by (forward_tac [well_ord_is_trans_on] 1);
-by (forward_tac [well_ord_is_linear] 1);
+by (ftac well_ord_is_trans_on 1);
+by (ftac well_ord_is_linear 1);
 by (linear_case_tac 1);
 by (dtac ord_iso_sym 1);
 (*two symmetric cases*)
@@ -422,7 +422,7 @@ by (subgoal_tac "b = g`a" 1);
 by (Asm_simp_tac 1);
 by (rtac well_ord_iso_pred_eq 1);
 by (REPEAT_SOME assume_tac);
-by (forward_tac [ord_iso_restrict_pred] 1  THEN
+by (ftac ord_iso_restrict_pred 1  THEN
     REPEAT1 (eresolve_tac [asm_rl, predI] 1));
 by (asm_full_simp_tac
     (simpset() addsimps [well_ord_is_trans_on, trans_pred_pred_eq]) 1);
@@ -437,11 +437,11 @@ val  bij_apply_cs = claset() addSIs [bij_converse_bij]
 Goal "[| well_ord(A,r);  \
 \            f: ord_iso(A,r, B,s);  g: ord_iso(A,r, B,s);  y: A |] \
 \         ==> ~ <g`y, f`y> : s";
-by (forward_tac [well_ord_iso_subset_lemma] 1);
+by (ftac well_ord_iso_subset_lemma 1);
 by (res_inst_tac [("f","converse(f)"), ("g","g")] ord_iso_trans 1);
 by (REPEAT_FIRST (ares_tac [subset_refl, ord_iso_sym]));
 by Safe_tac;
-by (forward_tac [ord_iso_converse] 1);
+by (ftac ord_iso_converse 1);
 by (EVERY (map (blast_tac bij_apply_cs) [1,1,1]));
 by (asm_full_simp_tac bij_inverse_ss 1);
 qed "well_ord_iso_unique_lemma";
@@ -535,7 +535,7 @@ by (Blast_tac 2);
 (*Harder case: <a, xa>: r*)
 by (forward_tac [ord_iso_is_bij RS bij_is_fun RS apply_type] 1  THEN
     REPEAT1 (eresolve_tac [asm_rl, predI, predE] 1));
-by (forward_tac [ord_iso_restrict_pred] 1  THEN
+by (ftac ord_iso_restrict_pred 1  THEN
     REPEAT1 (eresolve_tac [asm_rl, predI] 1));
 by (asm_full_simp_tac
     (simpset() addsimps [well_ord_is_trans_on, trans_pred_pred_eq]) 1);
@@ -546,7 +546,7 @@ qed "domain_ord_iso_map_subset";
 Goal "[| well_ord(A,r);  well_ord(B,s) |] ==> \
 \       domain(ord_iso_map(A,r,B,s)) = A |      \
 \       (EX x:A. domain(ord_iso_map(A,r,B,s)) = pred(A,x,r))";
-by (forward_tac [well_ord_is_wf] 1);
+by (ftac well_ord_is_wf 1);
 by (rewrite_goals_tac [wf_on_def, wf_def]);
 by (dres_inst_tac [("x", "A-domain(ord_iso_map(A,r,B,s))")] spec 1);
 by Safe_tac;

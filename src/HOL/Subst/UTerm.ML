@@ -39,7 +39,7 @@ val monotone_vars_of = result();
 Goal "finite(vars_of M)";
 by (induct_tac"M" 1);
 by (ALLGOALS Simp_tac);
-by (forward_tac [finite_UnI] 1);
+by (ftac finite_UnI 1);
 by (assume_tac 1);
 by (Asm_simp_tac 1);
 val finite_vars_of = result();

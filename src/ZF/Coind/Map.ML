@@ -134,7 +134,7 @@ qed "tmap_appI";
 
 Goalw [PMap_def]
   "[| m:PMap(A,B); a:domain(m) |] ==> map_app(m,a):B";
-by (forward_tac [tmap_app_notempty] 1); 
+by (ftac tmap_app_notempty 1); 
 by (assume_tac 1);
 by (dtac tmap_appI 1); 
 by (assume_tac 1);

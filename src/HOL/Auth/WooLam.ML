@@ -39,7 +39,7 @@ bind_thm ("WL4_parts_spies",
 (*For proving the easier theorems about X ~: parts (spies evs) *)
 fun parts_induct_tac i = 
     etac woolam.induct i  THEN 
-    forward_tac [WL4_parts_spies] (i+5)  THEN
+    ftac WL4_parts_spies (i+5)  THEN
     prove_simple_subgoals_tac 1;
 
 

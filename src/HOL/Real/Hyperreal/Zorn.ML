@@ -177,7 +177,7 @@ qed "select_not_equals";
 
 Goal "c: chain S - maxchain S ==> \
 \                         succ S c ~= c";
-by (forward_tac [succI3] 1);
+by (ftac succI3 1);
 by (Asm_simp_tac 1);
 by (rtac select_not_equals 1);
 by (assume_tac 1);

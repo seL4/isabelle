@@ -38,7 +38,7 @@ qed"Gets_imp_knows_Spy";
 AddDs [Gets_imp_knows_Spy RS parts.Inj];
 
 fun g_not_bad_tac s = 
-  forward_tac [Gets_imp_Says] THEN' assume_tac THEN' not_bad_tac s;
+  ftac Gets_imp_Says THEN' assume_tac THEN' not_bad_tac s;
 
 
 (**** Inductive proofs about yahalom ****)
@@ -65,8 +65,8 @@ qed "YM4_Key_parts_knows_Spy";
 (*For proving the easier theorems about X ~: parts (knows Spy evs).*)
 fun parts_knows_Spy_tac i = 
   EVERY
-   [forward_tac [YM4_Key_parts_knows_Spy] (i+7),
-    forward_tac [YM4_parts_knows_Spy] (i+6), assume_tac (i+6),
+   [ftac YM4_Key_parts_knows_Spy (i+7),
+    ftac YM4_parts_knows_Spy (i+6), assume_tac (i+6),
     prove_simple_subgoals_tac i];
 
 (*Induction for regularity theorems.  If induction formula has the form
@@ -132,7 +132,7 @@ Addsimps [Says_Server_not_range];
 
 (*For proofs involving analz.*)
 val analz_knows_Spy_tac = 
-    forward_tac [YM4_analz_knows_Spy] 7 THEN assume_tac 7;
+    ftac YM4_analz_knows_Spy 7 THEN assume_tac 7;
 
 (****
  The following is to prove theorems of the form
@@ -512,7 +512,7 @@ by (ALLGOALS (Clarify_tac THEN'
 by (g_not_bad_tac "Aa" 1);
 by (dtac (Gets_imp_knows_Spy RS parts.Inj RS parts.Fst RS A_trusts_YM3) 1
     THEN assume_tac 1);
-by (forward_tac [Says_Server_imp_YM2] 3);
+by (ftac Says_Server_imp_YM2 3);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, exE]));
 (*  use Says_unique_NB to identify message components: Aa=A, Ba=B*)
 by (blast_tac (claset() addDs [Says_unique_NB, 
@@ -520,7 +520,7 @@ by (blast_tac (claset() addDs [Says_unique_NB,
 (** LEVEL 13 **)
 (*Oops case: if the nonce is betrayed now, show that the Oops event is 
   covered by the quantified Oops assumption.*)
-by (forward_tac [Says_Server_imp_YM2] 1 THEN assume_tac 1);
+by (ftac Says_Server_imp_YM2 1 THEN assume_tac 1);
 by (expand_case_tac "NB = NBa" 1);
 (*If NB=NBa then all other components of the Oops message agree*)
 by (blast_tac (claset() addDs [Says_unique_NB]) 1);
@@ -550,12 +550,12 @@ Goal "[| Gets B {|Crypt (shrK B) {|Agent A, Key K|},                  \
 \                            Nonce NA, Nonce NB|},                       \
 \                    Crypt (shrK B) {|Agent A, Key K|}|}                 \
 \            : set evs";
-by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
+by (ftac Spy_not_see_NB 1 THEN REPEAT (assume_tac 1));
 by (etac (Gets_imp_knows_Spy RS parts.Inj RS MPair_parts) 1 THEN
     assume_tac 1 THEN dtac B_trusts_YM4_shrK 1);
 by (dtac B_trusts_YM4_newK 3);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, exE]));
-by (forward_tac [Says_Server_imp_YM2] 1 THEN assume_tac 1);
+by (ftac Says_Server_imp_YM2 1 THEN assume_tac 1);
 by (dtac unique_session_keys 1 THEN REPEAT (assume_tac 1));
 by (blast_tac (claset() addDs [Says_unique_NB]) 1);
 qed "B_trusts_YM4";
@@ -650,7 +650,7 @@ Goal "[| Gets B {|Crypt (shrK B) {|Agent A, Key K|},                  \
 \        (ALL NA k. Notes Spy {|Nonce NA, Nonce NB, k|} ~: set evs);     \
 \        A ~: bad;  B ~: bad;  evs : yahalom |]       \
 \     ==> EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs";
-by (forward_tac [B_trusts_YM4] 1);
+by (ftac B_trusts_YM4 1);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, spec]));
 by (etac (Gets_imp_knows_Spy RS parts.Inj RS MPair_parts) 1 THEN assume_tac 1);
 by (rtac A_Said_YM3_lemma 1);

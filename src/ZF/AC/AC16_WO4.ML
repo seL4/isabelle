@@ -394,7 +394,7 @@ by (REPEAT (resolve_tac [ballI, impI] 1));
 by (resolve_tac [w_Int_eqpoll_m RS eqpoll_m_not_empty RS not_emptyE] 1);
 by (EVERY (map Blast_tac [4,3,2,1]));
 by (dresolve_tac [equalityD1 RS subsetD] 1 THEN (assume_tac 1));
-by (forward_tac [cons_cons_in] 1 THEN REPEAT (assume_tac 1));
+by (ftac cons_cons_in 1 THEN REPEAT (assume_tac 1));
 by (etac ex1_two_eq 1);
 by (REPEAT (blast_tac
 	    (claset() addDs [s_subset RS subsetD, in_s_imp_u_in]) 1));
@@ -481,8 +481,8 @@ by (fast_tac (claset() addSDs [unique_superset1, includes RS subsetD]) 1);
 qed "the_in_MM_subset";
 
 Goalw [GG_def] "v : LL ==> GG ` v <= x";
-by (forward_tac [the_in_MM_subset] 1);
-by (forward_tac [in_LL_eq_Int] 1); 
+by (ftac the_in_MM_subset 1);
+by (ftac in_LL_eq_Int 1); 
 by (force_tac (claset() addEs [equalityE], simpset()) 1);
 qed "GG_subset";
 
@@ -612,7 +612,7 @@ by (rtac lemma1 1 THEN REPEAT (assume_tac 1));
 by (cut_facts_tac [lemma2] 1);
 by (REPEAT (eresolve_tac [exE, conjE] 1));
 by (eres_inst_tac [("x","A Un y")] allE 1);
-by (forward_tac [infinite_Un] 1 THEN (mp_tac 1));
+by (ftac infinite_Un 1 THEN (mp_tac 1));
 by (etac zero_lt_natE 1); by (assume_tac 1);
 by (Clarify_tac 1);
 by (DEPTH_SOLVE (ares_tac [export conclusion] 1));

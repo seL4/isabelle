@@ -36,8 +36,8 @@ qed "images_eq";
 goal Cardinal.thy
      "!!m A B. [| A lepoll succ(m); B<=A; B~=0 |] ==> A-B lepoll m";
 by (rtac not_emptyE 1 THEN (assume_tac 1));
-by (forward_tac [singleton_subsetI] 1);
-by (forward_tac [subsetD] 1 THEN (assume_tac 1));
+by (ftac singleton_subsetI 1);
+by (ftac subsetD 1 THEN (assume_tac 1));
 by (res_inst_tac [("A2","A")] 
      (Diff_sing_lepoll RSN (2, subset_imp_lepoll RS lepoll_trans)) 1 
     THEN (REPEAT (assume_tac 2)));

@@ -200,7 +200,7 @@ qed "diff_self_eq_0";
 
 (*Addition is the inverse of subtraction*)
 Goal "[| n le m;  m:nat |] ==> n #+ (m#-n) = m";
-by (forward_tac [lt_nat_in_nat] 1);
+by (ftac lt_nat_in_nat 1);
 by (etac nat_succI 1);
 by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
@@ -208,14 +208,14 @@ by (ALLGOALS Asm_simp_tac);
 qed "add_diff_inverse";
 
 Goal "[| n le m;  m:nat |] ==> (m#-n) #+ n = m";
-by (forward_tac [lt_nat_in_nat] 1);
+by (ftac lt_nat_in_nat 1);
 by (etac nat_succI 1);
 by (asm_simp_tac (simpset() addsimps [add_commute, add_diff_inverse]) 1);
 qed "add_diff_inverse2";
 
 (*Proof is IDENTICAL to that above*)
 Goal "[| n le m;  m:nat |] ==> succ(m) #- n = succ(m#-n)";
-by (forward_tac [lt_nat_in_nat] 1);
+by (ftac lt_nat_in_nat 1);
 by (etac nat_succI 1);
 by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
@@ -272,7 +272,7 @@ qed "diff_mult_distrib2" ;
 (*** Remainder ***)
 
 Goal "[| 0<n;  n le m;  m:nat |] ==> m #- n < m";
-by (forward_tac [lt_nat_in_nat] 1 THEN etac nat_succI 1);
+by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
@@ -299,7 +299,7 @@ by (asm_simp_tac div_ss 1);
 qed "mod_less";
 
 Goal "[| 0<n;  n le m;  m:nat |] ==> m mod n = (m#-n) mod n";
-by (forward_tac [lt_nat_in_nat] 1 THEN etac nat_succI 1);
+by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
 by (rtac (mod_def RS def_transrec RS trans) 1);
 by (asm_simp_tac div_ss 1);
 qed "mod_geq";
@@ -321,7 +321,7 @@ by (asm_simp_tac div_ss 1);
 qed "div_less";
 
 Goal "[| 0<n;  n le m;  m:nat |] ==> m div n = succ((m#-n) div n)";
-by (forward_tac [lt_nat_in_nat] 1 THEN etac nat_succI 1);
+by (ftac lt_nat_in_nat 1 THEN etac nat_succI 1);
 by (rtac (div_def RS def_transrec RS trans) 1);
 by (asm_simp_tac div_ss 1);
 qed "div_geq";
@@ -408,7 +408,7 @@ qed "add_le_self2";
 
 (*strict, in 1st argument; proof is by rule induction on 'less than'*)
 Goal "[| i<j; j:nat; k:nat |] ==> i#+k < j#+k";
-by (forward_tac [lt_nat_in_nat] 1);
+by (ftac lt_nat_in_nat 1);
 by (assume_tac 1);
 by (etac succ_lt_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [leI])));
@@ -453,7 +453,7 @@ qed "add_le_mono";
 (*** Monotonicity of Multiplication ***)
 
 Goal "[| i le j; j:nat; k:nat |] ==> i#*k le j#*k";
-by (forward_tac [lt_nat_in_nat] 1);
+by (ftac lt_nat_in_nat 1);
 by (induct_tac "k" 2);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_le_mono])));
 qed "mult_le_mono1";
@@ -471,7 +471,7 @@ qed "mult_le_mono";
 (*strict, in 1st argument; proof is by induction on k>0*)
 Goal "[| i<j; 0<k; j:nat; k:nat |] ==> k#*i < k#*j";
 by (etac zero_lt_natE 1);
-by (forward_tac [lt_nat_in_nat] 2);
+by (ftac lt_nat_in_nat 2);
 by (ALLGOALS Asm_simp_tac);
 by (induct_tac "x" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_lt_mono])));
@@ -534,7 +534,7 @@ by (asm_full_simp_tac (simpset() addsimps [not_le_iff_lt,nat_into_Ord]) 1);
 qed "add_le_elim1";
 
 Goal "[| m<n; n: nat |] ==> EX k: nat. n = succ(m#+k)";
-by (forward_tac [lt_nat_in_nat] 1 THEN assume_tac 1);
+by (ftac lt_nat_in_nat 1 THEN assume_tac 1);
 by (etac rev_mp 1);
 by (induct_tac "n" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [le_iff])));

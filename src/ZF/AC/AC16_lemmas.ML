@@ -137,7 +137,7 @@ by (etac impE 1);
 by (fast_tac (claset() addSEs [Diff_sing_eqpoll,
                 Diff_sing_eqpoll RS eqpoll_succ_imp_not_empty]) 1);
 by (resolve_tac [Union_eq_Un RSN (2, subst_elem)] 1 THEN (assume_tac 2));
-by (forward_tac [bspec] 1 THEN (assume_tac 1));
+by (ftac bspec 1 THEN (assume_tac 1));
 by (dresolve_tac [Diff_subset RS subsetD RSN (2, bspec)] 1 THEN (assume_tac 1));
 by (dtac Un_Ord_disj 1 THEN (assume_tac 1));
 by (etac DiffE 1);

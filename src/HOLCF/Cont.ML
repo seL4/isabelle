@@ -675,7 +675,7 @@ by (rtac monocontlub2cont 1);
 by ( atac 1);
 by (rtac contlubI 1);
 by (strip_tac 1);
-by (forward_tac [chfin2finch] 1);
+by (ftac chfin2finch 1);
 by (rtac antisym_less 1);
 by ( force_tac (HOL_cs addIs [is_ub_thelub,ch2ch_monofun],
                HOL_ss addsimps [finite_chain_def,maxinch_is_thelub]) 1);

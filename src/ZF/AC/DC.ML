@@ -214,7 +214,7 @@ by (rtac impI 1);
 by (etac conjE 1);
 by (resolve_tac [eqpoll_succ_imp_not_empty RS not_emptyE] 1
         THEN (assume_tac 1));
-by (forward_tac [Diff_sing_eqpoll] 1 THEN (assume_tac 1));
+by (ftac Diff_sing_eqpoll 1 THEN (assume_tac 1));
 by (etac allE 1);
 by (etac impE 1);
 by (Fast_tac 1);

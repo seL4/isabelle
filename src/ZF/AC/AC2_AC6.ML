@@ -138,7 +138,7 @@ by (fast_tac (claset() addSDs [apply_type]
 by (rtac ballI 1);
 by (rtac apply_equality 1 THEN (assume_tac 2));
 by (etac domainE 1);
-by (forward_tac [range_type] 1 THEN (assume_tac 1));
+by (ftac range_type 1 THEN (assume_tac 1));
 by (fast_tac (claset() addDs [apply_equality]) 1);
 qed "AC4_AC5";
 
@@ -164,7 +164,7 @@ val lemma2 = result();
 
 Goal "[| EX f: A->C. P(f,domain(f)); A=B |] ==>  EX f: B->C. P(f,B)";
 by (etac bexE 1);
-by (forward_tac [domain_of_fun] 1);
+by (ftac domain_of_fun 1);
 by (Fast_tac 1);
 val lemma3 = result();
 

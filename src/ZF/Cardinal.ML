@@ -650,7 +650,7 @@ by (blast_tac (claset() addSIs [eqpollI] addSEs [eqpollE]
 qed "Diff_sing_eqpoll";
 
 Goal "[| A lepoll 1; a:A |] ==> A = {a}";
-by (forward_tac [Diff_sing_lepoll] 1);
+by (ftac Diff_sing_lepoll 1);
 by (assume_tac 1);
 by (dtac lepoll_0_is_0 1);
 by (blast_tac (claset() addEs [equalityE]) 1);

@@ -326,8 +326,8 @@ by (rtac allI 1);
 by (rtac impI 1);
 by (res_inst_tac [("a1","a")] (th RS ssubst) 1);
 by (assume_tac 1);
-by (forward_tac [wf_trancl] 1);
-by (forward_tac [r_into_trancl] 1);
+by (ftac wf_trancl 1);
+by (ftac r_into_trancl 1);
 by (asm_simp_tac (HOL_ss addsimps [cut_apply]) 1);
 by (rtac H_cong2 1);    (*expose the equality of cuts*)
 by (simp_tac (HOL_ss addsimps [cuts_eq, cut_apply, r_into_trancl]) 1);

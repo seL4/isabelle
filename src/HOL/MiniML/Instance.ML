@@ -127,7 +127,7 @@ Goalw [is_bound_typ_instance] "(mk_scheme t) <= sch = t <| sch";
 by (simp_tac (simpset() addsimps [le_type_scheme_def2]) 1); 
 by (rtac iffI 1); 
 by (etac exE 1); 
-by (forward_tac [bound_scheme_inst_type] 1);
+by (ftac bound_scheme_inst_type 1);
 by (etac exE 1);
 by (rtac exI 1);
 by (rtac mk_scheme_injective 1); 

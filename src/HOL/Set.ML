@@ -466,7 +466,7 @@ AddSEs [insertE];
 Goal "A <= insert x B ==> A <= B & x ~: A | (? B'. A = insert x B' & B' <= B)";
 by (case_tac "x:A" 1);
 by  (Fast_tac 2);
-br  disjI2 1;
+by (rtac disjI2 1);
 by (res_inst_tac [("x","A-{x}")] exI 1);
 by (Fast_tac 1);
 qed "subset_insertD";

@@ -639,7 +639,7 @@ Goalw [hasty_env_def,hasty_def]
 by (dtac elab_fix_elim 1);
 by (safe_tac HOL_cs);
 (*Do a single unfolding of cl*)
-by ((forward_tac [ssubst] 1) THEN (assume_tac 2));
+by ((ftac ssubst 1) THEN (assume_tac 2));
 by (rtac hasty_rel_clos_coind 1);
 by (etac elab_fn 1);
 by (asm_simp_tac (simpset() addsimps [ve_dom_owr, te_dom_owr]) 1);

@@ -64,8 +64,8 @@ qed "YM4_Key_parts_knows_Spy";
 (*For proving the easier theorems about X ~: parts (knows Spy evs).*)
 fun parts_knows_Spy_tac i = 
   EVERY
-   [forward_tac [YM4_Key_parts_knows_Spy] (i+7),
-    forward_tac [YM4_parts_knows_Spy] (i+6), assume_tac (i+6),
+   [ftac YM4_Key_parts_knows_Spy (i+7),
+    ftac YM4_parts_knows_Spy (i+6), assume_tac (i+6),
     prove_simple_subgoals_tac i];
 
 (*Induction for regularity theorems.  If induction formula has the form
@@ -130,7 +130,7 @@ qed "Says_Server_message_form";
 (*For proofs involving analz.*)
 val analz_knows_Spy_tac = 
     dtac YM4_analz_knows_Spy 7 THEN assume_tac 7 THEN
-    forward_tac [Says_Server_message_form] 8 THEN
+    ftac Says_Server_message_form 8 THEN
     assume_tac 8 THEN
     REPEAT ((etac conjE ORELSE' hyp_subst_tac) 8);
 
@@ -228,7 +228,7 @@ Goal "[| Says Server A                                    \
 \        Notes Spy {|na, nb, Key K|} ~: set evs;          \
 \        A ~: bad;  B ~: bad;  evs : yahalom |]           \
 \     ==> Key K ~: analz (knows Spy evs)";
-by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
+by (ftac Says_Server_message_form 1 THEN assume_tac 1);
 by (blast_tac (claset() addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 
@@ -372,7 +372,7 @@ by (force_tac (claset() addSDs [Crypt_imp_keysFor], simpset()) 1);
 by (asm_simp_tac (simpset() addsimps [ex_disj_distrib]) 1);
 (*yes: delete a useless induction hypothesis; apply unicity of session keys*)
 by (thin_tac "?P-->?Q" 1);
-by (forward_tac [Gets_imp_Says] 1 THEN assume_tac 1);
+by (ftac Gets_imp_Says 1 THEN assume_tac 1);
 by (not_bad_tac "Aa" 1);
 by (blast_tac (claset() addSDs [A_trusts_YM3, B_trusts_YM4_shrK]
 			addDs  [unique_session_keys]) 1);

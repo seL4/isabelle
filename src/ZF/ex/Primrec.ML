@@ -75,7 +75,7 @@ qed "ack_lt_ack_succ2";
 
 (*PROPERTY A 5, monotonicity for < *)
 Goal "[| j<k; i:nat; k:nat |] ==> ack(i,j) < ack(i,k)";
-by (forward_tac [lt_nat_in_nat] 1 THEN assume_tac 1);
+by (ftac lt_nat_in_nat 1 THEN assume_tac 1);
 by (etac succ_lt_induct 1);
 by (assume_tac 1);
 by (rtac lt_trans 2);
@@ -106,7 +106,7 @@ qed "ack_lt_ack_succ1";
 
 (*PROPERTY A 7, monotonicity for < *)
 Goal "[| i<j; j:nat; k:nat |] ==> ack(i,k) < ack(j,k)";
-by (forward_tac [lt_nat_in_nat] 1 THEN assume_tac 1);
+by (ftac lt_nat_in_nat 1 THEN assume_tac 1);
 by (etac succ_lt_induct 1);
 by (assume_tac 1);
 by (rtac lt_trans 2);
@@ -227,7 +227,7 @@ Goalw [COMP_def]
 \                       f`l < ack(kf, list_add(l))})            \
 \      |] ==> EX k:nat. ALL l: list(nat). COMP(g,fs)`l < ack(k, list_add(l))";
 by (Asm_simp_tac 1);
-by (forward_tac [list_CollectD] 1);
+by (ftac list_CollectD 1);
 by (etac (COMP_map_lemma RS bexE) 1);
 by (rtac (ballI RS bexI) 1);
 by (etac (bspec RS lt_trans) 1);

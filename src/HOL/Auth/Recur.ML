@@ -112,9 +112,9 @@ bind_thm ("RA4_parts_spies",
 (*For proving the easier theorems about X ~: parts (spies evs).*)
 fun parts_induct_tac i = 
   EVERY [etac recur.induct i,
-	 forward_tac [RA4_parts_spies] (i+5),
-	 forward_tac [respond_imp_responses] (i+4),
-	 forward_tac [RA2_parts_spies] (i+3),
+	 ftac RA4_parts_spies (i+5),
+	 ftac respond_imp_responses (i+4),
+	 ftac RA2_parts_spies (i+3),
 	 prove_simple_subgoals_tac i];
 
 
@@ -175,7 +175,7 @@ Addsimps [new_keys_not_used, new_keys_not_analzd];
 (*For proofs involving analz.*)
 val analz_spies_tac = 
     dtac RA2_analz_spies 4 THEN 
-    forward_tac [respond_imp_responses] 5                THEN
+    ftac respond_imp_responses 5                THEN
     dtac RA4_analz_spies 6;
 
 
@@ -354,8 +354,8 @@ Goal "[| (PB,RB,KAB) : respond evs;  evs : recur |]              \
 \         Crypt (shrK A) {|Key K, Agent A', N|} : parts{RB} -->  \
 \         Key K ~: analz (insert RB (spies evs))";
 by (etac respond.induct 1);
-by (forward_tac [respond_imp_responses] 2);
-by (forward_tac [respond_imp_not_used] 2);
+by (ftac respond_imp_responses 2);
+by (ftac respond_imp_not_used 2);
 by (ALLGOALS (*6 seconds*)
     (asm_simp_tac 
      (analz_image_freshK_ss 

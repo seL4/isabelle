@@ -97,7 +97,7 @@ by (Asm_full_simp_tac 1);
 qed "restrict_eq_imp_val_eq";
 
 Goal "[| domain(f)=A; f:B->C |] ==> f:A->C";
-by (forward_tac [domain_of_fun] 1);
+by (ftac domain_of_fun 1);
 by (Fast_tac 1);
 qed "domain_eq_imp_fun_type";
 

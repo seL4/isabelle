@@ -274,7 +274,7 @@ by (REPEAT(Blast_tac 3));
 by (dres_inst_tac [("A","xa")] mem_FiltersetD3 2 THEN assume_tac 2);
 by (Blast_tac 2);
 by (dtac lemma_empty_Int_subset_Compl 1);
-by (EVERY1[forward_tac [mem_Filterset_disjI], assume_tac, Fast_tac]);
+by (EVERY1[ftac mem_Filterset_disjI , assume_tac, Fast_tac]);
 by (dtac mem_FiltersetD3 1 THEN assume_tac 1);
 by (dres_inst_tac [("x","f")] spec 1);
 by (Blast_tac 1);
@@ -387,7 +387,7 @@ Addsimps [UNIV_diff_Compl];
 Goalw [Ultrafilter_def,FreeUltrafilter_def]
      "[| ~finite(UNIV :: 'a set); (U :: 'a set set): FreeUltrafilter UNIV\
 \         |] ==> {X. finite(- X)} <= U";
-by (forward_tac [cofinite_Filter] 1);
+by (ftac cofinite_Filter 1);
 by (Step_tac 1);
 by (forw_inst_tac [("X","- x :: 'a set")] not_finite_UNIV_Compl 1);
 by (assume_tac 1);

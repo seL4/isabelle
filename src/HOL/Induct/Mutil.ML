@@ -103,7 +103,7 @@ by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 2);
 by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 1);
 by (REPEAT_FIRST assume_tac);
 (*Four similar cases: case (i+j) mod 2 = b, 2#-b, ...*)
-by(auto_tac (claset(), simpset() addsimps [less_Suc_eq, mod_Suc]));
+by (auto_tac (claset(), simpset() addsimps [less_Suc_eq, mod_Suc]));
 qed "domino_singleton";
 
 Goal "d:domino ==> finite d";

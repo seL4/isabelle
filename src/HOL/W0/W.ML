@@ -189,7 +189,7 @@ by (safe_tac (empty_cs addSIs [conjI,impI] addSEs [conjE]) );
 by (asm_full_simp_tac (simpset() addsimps [rotate_Ok,o_def]) 1);
 by (dtac W_var_geD 1);
 by (dtac W_var_geD 1);
-by ( (forward_tac [less_le_trans] 1) THEN (assume_tac 1) );
+by ( (ftac less_le_trans 1) THEN (assume_tac 1) );
 (** LEVEL 33 **)
 by (fast_tac (HOL_cs addDs [free_tv_comp_subst RS subsetD,sym RS mgu_free, 
     codD,free_tv_app_subst_te RS subsetD,free_tv_app_subst_tel RS subsetD,
@@ -199,7 +199,7 @@ by (fast_tac (HOL_cs addDs [free_tv_comp_subst RS subsetD,sym RS mgu_free,
 by (Asm_full_simp_tac 1); 
 by (dtac (sym RS W_var_geD) 1);
 by (dtac (sym RS W_var_geD) 1);
-by ( (forward_tac [less_le_trans] 1) THEN (assume_tac 1) );
+by ( (ftac less_le_trans 1) THEN (assume_tac 1) );
 by (fast_tac (HOL_cs addDs [mgu_free, codD,free_tv_subst_var RS subsetD,
                             free_tv_app_subst_te RS subsetD,
                             free_tv_app_subst_tel RS subsetD,
@@ -269,7 +269,7 @@ by (fast_tac (HOL_cs addDs [new_tv_W,sym RS W_var_geD,
 (** LEVEL 35 **)
 by (case_tac "na:free_tv sa" 2);
 (* na ~: free_tv sa *)
-by (forward_tac [not_free_impl_id] 3);
+by (ftac not_free_impl_id 3);
 by (Asm_simp_tac 3);
 (* na : free_tv sa *)
 by (dres_inst_tac [("ts1","$ s a")] (subst_comp_tel RSN (2,trans)) 2);
@@ -284,7 +284,7 @@ by (asm_full_simp_tac (simpset() addsimps [dom_def]) 3);
 by (rtac eq_free_eq_subst_te 2);
 by (strip_tac 2);
 by (subgoal_tac "nb ~= ma" 2);
-by ((forward_tac [new_tv_W] 3) THEN (atac 3));
+by ((ftac new_tv_W 3) THEN (atac 3));
 by (etac conjE 3);
 by (dtac new_tv_subst_tel 3);
 by (fast_tac (HOL_cs addIs [new_tv_list_le] addDs [sym RS W_var_geD]) 3);
@@ -297,7 +297,7 @@ by (Simp_tac 2);
 by (rtac eq_free_eq_subst_te 2);
 by (strip_tac 2 );
 by (subgoal_tac "na ~= ma" 2);
-by ((forward_tac [new_tv_W] 3) THEN (atac 3));
+by ((ftac new_tv_W 3) THEN (atac 3));
 by (etac conjE 3);
 by (dtac (sym RS W_var_geD) 3);
 by (fast_tac (HOL_cs addDs [new_tv_list_le,new_tv_subst_tel,new_tv_W,new_tv_not_free_tv]) 3);
@@ -331,7 +331,7 @@ by (dres_inst_tac [("s","Ok ?X")] sym 1);
 by (rtac eq_free_eq_subst_tel 1);
 by ( safe_tac HOL_cs );
 by (subgoal_tac "ma ~= na" 1);
-by ((forward_tac [new_tv_W] 2) THEN (atac 2));
+by ((ftac new_tv_W 2) THEN (atac 2));
 by (etac conjE 2);
 by (dtac new_tv_subst_tel 2);
 by (fast_tac (HOL_cs addIs [new_tv_list_le] addDs [sym RS W_var_geD]) 2);

@@ -498,7 +498,7 @@ by (asm_simp_tac (simpset() addsimps [real_mult_commute,
 qed "real_mult_inv_left_ex";
 
 Goalw [rinv_def] "x ~= 0r ==> rinv(x)*x = 1r";
-by (forward_tac [real_mult_inv_left_ex] 1);
+by (ftac real_mult_inv_left_ex 1);
 by (Step_tac 1);
 by (rtac selectI2 1);
 by Auto_tac;
@@ -531,7 +531,7 @@ by Auto_tac;
 qed "real_mult_right_cancel_ccontr";
 
 Goalw [rinv_def] "x ~= 0r ==> rinv(x) ~= 0r";
-by (forward_tac [real_mult_inv_left_ex] 1);
+by (ftac real_mult_inv_left_ex 1);
 by (etac exE 1);
 by (rtac selectI2 1);
 by (auto_tac (claset(),

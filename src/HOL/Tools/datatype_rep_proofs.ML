@@ -570,7 +570,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         [rtac iffI 1,
          REPEAT (etac conjE 2), hyp_subst_tac 2, rtac refl 2,
          dresolve_tac rep_congs 1, dtac box_equals 1,
-         REPEAT (resolve_tac rep_thms 1), rewrite_goals_tac [o_def],
+         REPEAT (resolve_tac rep_thms 1), rewtac o_def,
          REPEAT (eresolve_tac inj_thms 1),
          REPEAT (ares_tac [conjI] 1 ORELSE (EVERY [rtac ext 1, dtac fun_cong 1,
                   eresolve_tac inj_thms 1, atac 1]))])
@@ -634,7 +634,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac (Funs_IntE::Abs_inverse_thms) 1),
             simp_tac (HOL_basic_ss addsimps ((symmetric r)::Rep_inverse_thms')) 1,
-            DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE (EVERY [rewrite_goals_tac [o_def],
+            DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE (EVERY [rewtac o_def,
               rtac allI 1, dtac FunsD 1, etac CollectD 1]))]))
                 (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]);
 

@@ -507,7 +507,7 @@ qed "good_map_lift_map";
 
 
 Goal "fst (inv (lift_map i) g) = g i";
-br (good_map_lift_map RS good_map_is_surj RS fst_inv_equalityI) 1;
+by (rtac (good_map_lift_map RS good_map_is_surj RS fst_inv_equalityI) 1);
 by (auto_tac (claset(), simpset() addsimps [lift_map_def]));
 qed "fst_inv_lift_map";
 Addsimps [fst_inv_lift_map];
@@ -520,34 +520,34 @@ qed "lift_set_correct";
 
 Goalw [drop_set_def, project_set_def, lift_map_def]
      "drop_set i A = project_set (lift_map i) A";
-auto();
-br image_eqI 2;
-br exI 1;
+by Auto_tac;
+by (rtac image_eqI 2);
+by (rtac exI 1);
 by (stac (refl RS fun_upd_idem) 1);
-auto();
+by Auto_tac;
 qed "drop_set_correct";
 
 Goal "lift_act i = extend_act (lift_map i)";
-br ext 1;
+by (rtac ext 1);
 by Auto_tac;
 by (forward_tac [good_map_lift_map RS export extend_act_D] 2);
-by(Full_simp_tac 2);
-bws [extend_act_def, lift_map_def];
+by (Full_simp_tac 2);
+by (rewrite_goals_tac [extend_act_def, lift_map_def]);
 by Auto_tac;
-br bexI 1;
-ba 2;
-auto();
-br exI 1;
-auto();
+by (rtac bexI 1);
+by (assume_tac 2);
+by Auto_tac;
+by (rtac exI 1);
+by Auto_tac;
 qed "lift_act_correct";
 
 Goal "drop_act i = project_act (lift_map i)";
-br ext 1;
-bws [project_act_def, drop_act_def, lift_map_def];
+by (rtac ext 1);
+by (rewrite_goals_tac [project_act_def, drop_act_def, lift_map_def]);
 by Auto_tac;
-br image_eqI 2;
+by (rtac image_eqI 2);
 by (REPEAT (rtac exI 1 ORELSE stac (refl RS fun_upd_idem) 1));
-auto();
+by Auto_tac;
 qed "drop_act_correct";
 
 

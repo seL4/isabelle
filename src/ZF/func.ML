@@ -89,7 +89,7 @@ by (Blast_tac 1);
 qed "apply_0";
 
 Goal "[| f: Pi(A,B);  c: f |] ==> EX x:A.  c = <x,f`x>";
-by (forward_tac [fun_is_rel] 1);
+by (ftac fun_is_rel 1);
 by (blast_tac (claset() addDs [apply_equality]) 1);
 qed "Pi_memberD";
 
@@ -112,7 +112,7 @@ by (REPEAT (ares_tac [apply_type] 1));
 qed "apply_funtype";
 
 Goal "f: Pi(A,B) ==> <a,b>: f <-> a:A & f`a = b";
-by (forward_tac [fun_is_rel] 1);
+by (ftac fun_is_rel 1);
 by (blast_tac (claset() addSIs [apply_Pair, apply_equality]) 1);
 qed "apply_iff";
 

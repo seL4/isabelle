@@ -46,7 +46,7 @@ Goalw [hastyenv_def]
 \  <cl,t>:HasTyRel";
 by (etac elab_fixE 1);
 by Safe_tac;
-by (EVERY [forward_tac [subst] 1,atac 2,rtac htr_closCI 1]);
+by (EVERY [ftac subst 1,atac 2,rtac htr_closCI 1]);
 by clean_tac;
 by (rtac ve_owrI 1);
 by clean_tac;

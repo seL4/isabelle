@@ -14,7 +14,7 @@ Goal "[| Filter (%x. x:act A)`sch : schedules A; a:inp A; input_enabled A; Finit
 \         ==> Filter (%x. x:act A)`sch @@ a>>nil : schedules A";
 by (asm_full_simp_tac (simpset() addsimps [schedules_def,has_schedule_def]) 1);
 by (safe_tac set_cs);
-by (forward_tac  [inp_is_act] 1);
+by (ftac inp_is_act 1);
 by (asm_full_simp_tac (simpset() addsimps [executions_def]) 1);
 by (pair_tac "ex" 1);
 ren "s ex" 1;
@@ -25,7 +25,7 @@ by (res_inst_tac [("t","Map fst`ex")] subst 2);
 by (assume_tac 2);
 by (etac FiniteFilter 2);
 (* subgoal 1 *)
-by (forward_tac [exists_laststate] 1);
+by (ftac exists_laststate 1);
 by (etac allE 1);
 by (etac exE 1);
 (* using input-enabledness *)

@@ -47,7 +47,7 @@ Goal "[| l: Domain (findRel p);                                   \
 \            !!x l'. [| (l, LCons x l') : findRel p;  p x |] ==> Q    \
 \         |] ==> Q";
 by (rtac (major RS DomainE) 1);
-by (forward_tac [findRel_imp_LCons] 1);
+by (ftac findRel_imp_LCons 1);
 by (REPEAT (eresolve_tac [exE,conjE] 1));
 by (hyp_subst_tac 1);
 by (REPEAT (ares_tac prems 1));
@@ -331,7 +331,7 @@ by (subgoal_tac "l ~: Domain (findRel(%x. p (f x)))" 2);
 by (blast_tac (claset() addIs [findRel_lmap_Domain]) 3);
 by (Asm_simp_tac 2);
 by (etac Domain_findRelE 1);
-by (forward_tac [lmap_LCons_findRel] 1);
+by (ftac lmap_LCons_findRel 1);
 by (Clarify_tac 1);
 by (Asm_simp_tac 1);
 qed "lfilter_lmap";

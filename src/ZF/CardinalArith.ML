@@ -357,7 +357,7 @@ qed "InfCard_Un";
 (*Kunen's Lemma 10.11*)
 Goalw [InfCard_def] "InfCard(K) ==> Limit(K)";
 by (etac conjE 1);
-by (forward_tac [Card_is_Ord] 1);
+by (ftac Card_is_Ord 1);
 by (rtac (ltI RS non_succ_LimitI) 1);
 by (etac ([asm_rl, nat_0I] MRS (le_imp_subset RS subsetD)) 1);
 by (safe_tac (claset() addSDs [Limit_nat RS Limit_le_succD]));

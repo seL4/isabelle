@@ -341,7 +341,7 @@ by (etac cardR.induct 1);
  by (Auto_tac);
 by (asm_simp_tac (simpset() addsimps [insert_Diff_if]) 1);
 by (Auto_tac);
-by (forward_tac [cardR_SucD] 1);
+by (ftac cardR_SucD 1);
 by (Blast_tac 1);
 val lemma = result();
 
@@ -628,7 +628,7 @@ by (subgoal_tac "card Aa <= card Ab" 1);
 by (res_inst_tac [("A1", "Aa-{xb}"), ("f1","f")] 
     (finite_imp_foldSet RS exE) 1);
 by (blast_tac (claset() addIs [foldSet_imp_finite, finite_Diff]) 1);
-by (forward_tac [Diff1_foldSet] 1 THEN assume_tac 1);
+by (ftac Diff1_foldSet 1 THEN assume_tac 1);
 by (subgoal_tac "ya = f xb x" 1);
  by (Blast_tac 2);
 by (subgoal_tac "(Ab - {xa}, x) : foldSet f e" 1);

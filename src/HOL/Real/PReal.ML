@@ -247,7 +247,7 @@ qed "preal_add_set_not_prat_set";
 Goal "!y: {w. ? x: Rep_preal R. ? y: Rep_preal S. w = x + y}. \
 \         !z. z < y --> z : {w. ? x:Rep_preal R. ? y:Rep_preal S. w = x + y}";
 by Auto_tac;
-by (forward_tac [prat_mult_qinv_less_1] 1);
+by (ftac prat_mult_qinv_less_1 1);
 by (forw_inst_tac [("x","x"),("q2.0","prat_of_pnat (Abs_pnat 1)")] 
     prat_mult_less2_mono1 1);
 by (forw_inst_tac [("x","ya"),("q2.0","prat_of_pnat (Abs_pnat 1)")] 
@@ -658,7 +658,7 @@ by (dres_inst_tac [("x","xa")] prat_self_less_mult_right 1);
 by (etac prat_lessE 1);
 by (cut_inst_tac [("R","A"),("x","Q3")] lemma_gleason9_34 1);
 by (dtac sym 1 THEN Auto_tac );
-by (forward_tac [not_in_preal_ub] 1);
+by (ftac not_in_preal_ub 1);
 by (dres_inst_tac [("x","xa + Q3")] bspec 1 THEN assume_tac 1);
 by (dtac prat_add_right_less_cancel 1);
 by (dres_inst_tac [("x","qinv(xa)*Q3")] prat_mult_less2_mono1 1);

@@ -72,7 +72,7 @@ Goalw [WO1_def, LEMMA_def] "WO1 ==> LEMMA";
 by (REPEAT (resolve_tac [allI,impI] 1));
 by (REPEAT (eresolve_tac [allE,exE] 1));
 by (REPEAT (ares_tac [exI,conjI,notI] 1));
-by (forward_tac [well_ord_converse_Memrel] 1 THEN (assume_tac 1));
+by (ftac well_ord_converse_Memrel 1 THEN (assume_tac 1));
 by (forward_tac [Ord_ordertype RS converse_Memrel_not_well_ord] 1);
 by (contr_tac 2);
 by (fast_tac (empty_cs addSEs [ordertype_ord_iso RS ord_iso_is_bij RS 

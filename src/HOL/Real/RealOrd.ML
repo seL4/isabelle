@@ -353,7 +353,7 @@ by (auto_tac (claset() addIs [real_zero_less_one RS real_less_asym],
 qed "real_rinv_gt_zero";
 
 Goal "x < 0r ==> rinv x < 0r";
-by (forward_tac [real_not_refl2] 1);
+by (ftac real_not_refl2 1);
 by (dtac (real_minus_zero_less_iff RS iffD2) 1);
 by (rtac (real_minus_zero_less_iff RS iffD1) 1);
 by (dtac (real_minus_rinv RS sym) 1);
@@ -608,14 +608,14 @@ by (auto_tac (claset(),
 qed "real_of_posnat_rinv_eq_iff";
 
 Goal "[| 0r < r; r < x |] ==> rinv x < rinv r";
-by (forward_tac [real_less_trans] 1 THEN assume_tac 1);
-by (forward_tac [real_rinv_gt_zero] 1);
+by (ftac real_less_trans 1 THEN assume_tac 1);
+by (ftac real_rinv_gt_zero 1);
 by (forw_inst_tac [("x","x")] real_rinv_gt_zero 1);
 by (forw_inst_tac [("x","r"),("z","rinv r")] real_mult_less_mono1 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [real_not_refl2 RS 
 					   not_sym RS real_mult_inv_right]) 1);
-by (forward_tac [real_rinv_gt_zero] 1);
+by (ftac real_rinv_gt_zero 1);
 by (forw_inst_tac [("x","1r"),("z","rinv x")] real_mult_less_mono2 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [real_not_refl2 RS 
@@ -704,7 +704,7 @@ qed "real_mult_eq_self_zero2";
 Addsimps [real_mult_eq_self_zero2];
 
 Goal "[| 0r <= x*y; 0r < x |] ==> 0r <= y";
-by (forward_tac [real_rinv_gt_zero] 1);
+by (ftac real_rinv_gt_zero 1);
 by (dres_inst_tac [("x","rinv x")] real_less_le_mult_order 1);
 by (dtac (real_not_refl2 RS not_sym RS real_mult_inv_left) 2);
 by (auto_tac (claset(),

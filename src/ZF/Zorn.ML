@@ -300,7 +300,7 @@ by (Blast_tac 2);
 by (Blast_tac 2);
 (*Now prove the well_foundedness goal*)
 by (rtac wf_onI 1);
-by (forward_tac [well_ord_TFin_lemma] 1 THEN assume_tac 1);
+by (ftac well_ord_TFin_lemma 1 THEN assume_tac 1);
 by (dres_inst_tac [("x","Inter(Z)")] bspec 1 THEN assume_tac 1);
 by (Blast_tac 1);
 qed "well_ord_TFin";

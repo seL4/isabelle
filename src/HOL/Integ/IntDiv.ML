@@ -360,7 +360,7 @@ by (REPEAT (force_tac  (claset() addIs [lemma1,lemma2],
 qed "self_quotient";
 
 Goal "[| quorem((a,a),(q,r));  a ~= (#0::int) |] ==> r = #0";
-by (forward_tac [self_quotient] 1);
+by (ftac self_quotient 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [quorem_def]) 1);
 qed "self_remainder";

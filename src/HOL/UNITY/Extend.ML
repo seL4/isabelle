@@ -29,7 +29,7 @@ qed "good_map_is_surj";
 val [surj,prem] = Goalw [inv_def]
      "[| surj h;  !! x y. g (h(x,y)) = x |] ==> fst (inv h z) = g z";
 by (res_inst_tac [("y1", "z")] (surj RS surjD RS exE) 1);
-br selectI2 1;
+by (rtac selectI2 1);
 by (dres_inst_tac [("f", "g")] arg_cong 2);
 by (auto_tac (claset(), simpset() addsimps [prem]));
 qed "fst_inv_equalityI";
@@ -200,9 +200,9 @@ qed "project_act_Id";
 
 Goalw [project_set_def, project_act_def]
     "Domain (project_act h act) = project_set h (Domain act)";
-auto();
+by Auto_tac;
 by (res_inst_tac [("y1", "ya")] (surj_h RS surjD RS exE) 1);
-auto();
+by Auto_tac;
 qed "Domain_project_act";
 
 Addsimps [extend_act_Id, project_act_Id];
@@ -562,8 +562,8 @@ qed "extend_LeadsTo";
 Goal "F : transient (extend_set h A) ==> project h F : transient A";
 by (auto_tac (claset(),
 	      simpset() addsimps [transient_def, Domain_project_act]));
-br bexI 1;
-ba 2;
+by (rtac bexI 1);
+by (assume_tac 2);
 by (full_simp_tac (simpset() addsimps [extend_set_def, project_set_def, 
 				       project_act_def]) 1);
 by (Blast_tac 1);
@@ -577,8 +577,8 @@ Goal "[| project h F : transient A;  \
 \     ==> F : transient (extend_set h A)";
 by (auto_tac (claset(),
 	      simpset() addsimps [transient_def, 				  Domain_project_act]));
-br bexI 1;
-ba 2;
+by (rtac bexI 1);
+by (assume_tac 2);
 by Auto_tac;
 by (res_inst_tac [("y1", "x")] (surj_h RS surjD RS exE) 1);
 by (res_inst_tac [("y1", "xa")] (surj_h RS surjD RS exE) 1);

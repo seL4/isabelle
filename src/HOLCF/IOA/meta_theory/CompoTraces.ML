@@ -483,8 +483,8 @@ by (Asm_full_simp_tac 1);
 by (safe_tac set_cs);
 
 (* Case a:A, a:B *)
-by (forward_tac [divide_Seq] 1);
-by (forward_tac [divide_Seq] 1);
+by (ftac divide_Seq 1);
+by (ftac divide_Seq 1);
 back();
 by (REPEAT (etac conjE 1));
 (* filtering internals of A in schA and of B in schB is nil *)
@@ -501,7 +501,7 @@ by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act,
                    ForallTL,ForallDropwhile]) 1);
 
 (* Case a:A, a~:B *)
-by (forward_tac [divide_Seq] 1);
+by (ftac divide_Seq 1);
 by (REPEAT (etac conjE 1));
 (* filtering internals of A is nil *)
 by (asm_full_simp_tac (simpset() addsimps 
@@ -513,7 +513,7 @@ by (asm_full_simp_tac (simpset() addsimps [not_ext_is_int_or_not_act,
                     ForallTL,ForallDropwhile]) 1);
 
 (* Case a:B, a~:A *)
-by (forward_tac [divide_Seq] 1);
+by (ftac divide_Seq 1);
 by (REPEAT (etac conjE 1));
 (* filtering internals of A is nil *)
 by (asm_full_simp_tac (simpset() addsimps 

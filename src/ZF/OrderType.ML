@@ -39,7 +39,7 @@ by (Blast_tac 1);
 qed "pred_Memrel";
 
 Goal "[| j<i;  f: ord_iso(i,Memrel(i),j,Memrel(j)) |] ==> R";
-by (forward_tac [lt_pred_Memrel] 1);
+by (ftac lt_pred_Memrel 1);
 by (etac ltE 1);
 by (rtac (well_ord_Memrel RS well_ord_iso_predE) 1 THEN
     assume_tac 3 THEN assume_tac 1);
@@ -167,7 +167,7 @@ qed "ordertype_ord_iso";
 
 Goal "[| f: ord_iso(A,r,B,s);  well_ord(B,s) |] ==> \
 \    ordertype(A,r) = ordertype(B,s)";
-by (forward_tac [well_ord_ord_iso] 1 THEN assume_tac 1);
+by (ftac well_ord_ord_iso 1 THEN assume_tac 1);
 by (rtac Ord_iso_implies_eq 1
     THEN REPEAT (etac Ord_ordertype 1));
 by (deepen_tac (claset() addIs  [ord_iso_trans, ord_iso_sym]
@@ -535,8 +535,8 @@ by (asm_simp_tac (simpset() addsimps [Union_eq_UN RS sym, Limit_Union_eq,
 qed "oadd_le_self2";
 
 Goal "[| k le j;  Ord(i) |] ==> k++i le j++i";
-by (forward_tac [lt_Ord] 1);
-by (forward_tac [le_Ord2] 1);
+by (ftac lt_Ord 1);
+by (ftac le_Ord2 1);
 by (etac trans_induct3 1);
 by (Asm_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [oadd_succ, succ_le_iff]) 1);
@@ -818,8 +818,8 @@ by (REPEAT (ares_tac [Ord_omult, lt_omult1, lt_Ord2] 1));
 qed "omult_le_self";
 
 Goal "[| k le j;  Ord(i) |] ==> k**i le j**i";
-by (forward_tac [lt_Ord] 1);
-by (forward_tac [le_Ord2] 1);
+by (ftac lt_Ord 1);
+by (ftac le_Ord2 1);
 by (etac trans_induct3 1);
 by (asm_simp_tac (simpset() addsimps [le_refl, Ord_0]) 1);
 by (asm_simp_tac (simpset() addsimps [omult_succ, oadd_le_mono]) 1);
@@ -856,7 +856,7 @@ by (REPEAT (eresolve_tac [asm_rl, omult_le_mono1, omult_lt_mono2, ltE,
 qed "omult_lt_mono";
 
 Goal "[| Ord(i);  0<j |] ==> i le j**i";
-by (forward_tac [lt_Ord2] 1);
+by (ftac lt_Ord2 1);
 by (eres_inst_tac [("i","i")] trans_induct3 1);
 by (asm_simp_tac (simpset() addsimps [omult_0, Ord_0 RS le_refl]) 1);
 by (asm_simp_tac (simpset() addsimps [omult_succ, succ_le_iff]) 1);

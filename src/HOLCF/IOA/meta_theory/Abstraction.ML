@@ -410,7 +410,7 @@ satisfies_def,Box_def]
 "[| temp_strengthening P Q h |]\
 \      ==> temp_strengthening ([] P) ([] Q) h";
 by (clarify_tac set_cs 1);
-by (forward_tac [ex2seq_tsuffix] 1);
+by (ftac ex2seq_tsuffix 1);
 by (clarify_tac set_cs 1);
 by (dres_inst_tac [("h","h")] cex_absSeq_tsuffix 1);
 by (asm_full_simp_tac (simpset() addsimps [ex2seq_abs_cex])1);

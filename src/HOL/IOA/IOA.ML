@@ -70,7 +70,7 @@ Goalw (reachable_def::exec_rws)
    by (asm_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
   by (etac disjE 1);
    by (Asm_simp_tac 1);
-  by (forward_tac [less_not_sym] 1);
+  by (ftac less_not_sym 1);
   by (asm_simp_tac (simpset() addsimps [less_not_refl2,less_Suc_eq]) 1);
 qed "reachable_n";
 

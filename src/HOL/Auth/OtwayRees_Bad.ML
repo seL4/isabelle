@@ -74,9 +74,9 @@ bind_thm ("OR4_parts_knows_Spy",
 (*For proving the easier theorems about X ~: parts (knows Spy evs).*)
 fun parts_induct_tac i = 
     etac otway.induct i			THEN 
-    forward_tac [Oops_parts_knows_Spy] (i+7) THEN
-    forward_tac [OR4_parts_knows_Spy]  (i+6) THEN
-    forward_tac [OR2_parts_knows_Spy]  (i+4) THEN 
+    ftac Oops_parts_knows_Spy (i+7) THEN
+    ftac OR4_parts_knows_Spy (i+6) THEN
+    ftac OR2_parts_knows_Spy (i+4) THEN 
     prove_simple_subgoals_tac  i;
 
 
@@ -134,7 +134,7 @@ qed "Says_Server_message_form";
 val analz_knows_Spy_tac = 
     dtac OR2_analz_knows_Spy 5 THEN assume_tac 5 THEN 
     dtac OR4_analz_knows_Spy 7 THEN assume_tac 7 THEN
-    forward_tac [Says_Server_message_form] 8 THEN assume_tac 8 THEN
+    ftac Says_Server_message_form 8 THEN assume_tac 8 THEN
     REPEAT ((eresolve_tac [exE, conjE] ORELSE' hyp_subst_tac) 8);
 
 
@@ -229,7 +229,7 @@ Goal "[| Says Server B                                           \
 \        Notes Spy {|NA, NB, Key K|} ~: set evs;                 \
 \        A ~: bad;  B ~: bad;  evs : otway |]                    \
 \     ==> Key K ~: analz (knows Spy evs)";
-by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
+by (ftac Says_Server_message_form 1 THEN assume_tac 1);
 by (blast_tac (claset() addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 

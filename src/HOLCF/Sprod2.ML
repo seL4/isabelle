@@ -47,7 +47,7 @@ qed_goalw "monofun_Ispair1" Sprod2.thy [monofun] "monofun(Ispair)"
         (strip_tac 1),
         (res_inst_tac [("Q","xa=UU")] (excluded_middle RS disjE) 1),
         (res_inst_tac [("Q","x=UU")] (excluded_middle RS disjE) 1),
-        (forward_tac [notUU_I] 1),
+        (ftac notUU_I 1),
         (atac 1),
         (REPEAT(asm_simp_tac(Sprod0_ss 
                 addsimps[inst_sprod_po,refl_less,minimal]) 1))
@@ -59,7 +59,7 @@ qed_goalw "monofun_Ispair2" Sprod2.thy [monofun] "monofun(Ispair(x))"
         (strip_tac 1),
         (res_inst_tac [("Q","x=UU")] (excluded_middle RS disjE) 1),
         (res_inst_tac [("Q","xa=UU")] (excluded_middle RS disjE) 1),
-        (forward_tac [notUU_I] 1),
+        (ftac notUU_I 1),
         (atac 1),
         (REPEAT(asm_simp_tac(Sprod0_ss 
                 addsimps[inst_sprod_po,refl_less,minimal]) 1))
