@@ -437,7 +437,7 @@ first premise of~$rule$ by assumption and deletes that assumption.
 \end{ttdescription}
 
 
-\section{Managing lots of rules}
+\section{*Managing lots of rules}
 These operations are not intended for interactive use.  They are concerned
 with the processing of large numbers of rules in automatic proof
 strategies.  Higher-order resolution involving a long list of rules is
@@ -559,17 +559,17 @@ is no longer than {\it limit}.
 \end{ttdescription}
 
 
-\section{Programming tools for proof strategies}
+\section{*Programming tools for proof strategies}
 Do not consider using the primitives discussed in this section unless you
 really need to code tactics from scratch.
 
 \subsection{Operations on type {\tt tactic}}
 \index{tactics!primitives for coding} A tactic maps theorems to sequences of
 theorems.  The type constructor for sequences (lazy lists) is called
-\mltydx{Sequence.seq}.  To simplify the types of tactics and tacticals,
+\mltydx{Seq.seq}.  To simplify the types of tactics and tacticals,
 Isabelle defines a type abbreviation:
 \begin{ttbox} 
-type tactic = thm -> thm Sequence.seq
+type tactic = thm -> thm Seq.seq
 \end{ttbox} 
 The following operations provide means for coding tactics in a clean style.
 \begin{ttbox} 
@@ -616,90 +616,82 @@ the terminal.
 \end{ttdescription}
 
 
-\section{Sequences}
+\section{*Sequences}
 \index{sequences (lazy lists)|bold}
-The module {\tt Sequence} declares a type of lazy lists.  It uses
+The module {\tt Seq} declares a type of lazy lists.  It uses
 Isabelle's type \mltydx{option} to represent the possible presence
 (\ttindexbold{Some}) or absence (\ttindexbold{None}) of
 a value:
 \begin{ttbox}
 datatype 'a option = None  |  Some of 'a;
 \end{ttbox}
-For clarity, the module name {\tt Sequence} is omitted from the signature
-specifications below; for instance, {\tt null} appears instead of {\tt
-  Sequence.null}.
+The {\tt Seq} structure is supposed to be accessed via fully qualified
+names and should not be \texttt{open}ed.
 
 \subsection{Basic operations on sequences}
 \begin{ttbox} 
-null   : 'a seq
-seqof  : (unit -> ('a * 'a seq) option) -> 'a seq
-single : 'a -> 'a seq
-pull   : 'a seq -> ('a * 'a seq) option
+Seq.empty   : 'a seq
+Seq.make    : (unit -> ('a * 'a seq) option) -> 'a seq
+Seq.single  : 'a -> 'a seq
+Seq.pull    : 'a seq -> ('a * 'a seq) option
 \end{ttbox}
 \begin{ttdescription}
-\item[Sequence.null] 
-is the empty sequence.
+\item[Seq.empty] is the empty sequence.
 
-\item[\tt Sequence.seqof (fn()=> Some($x$,$s$))] 
-constructs the sequence with head~$x$ and tail~$s$, neither of which is
-evaluated.
+\item[\tt Seq.make (fn () => Some ($x$, $xq$))] constructs the
+  sequence with head~$x$ and tail~$xq$, neither of which is evaluated.
 
-\item[Sequence.single $x$] 
+\item[Seq.single $x$] 
 constructs the sequence containing the single element~$x$.
 
-\item[Sequence.pull $s$] 
-returns {\tt None} if the sequence is empty and {\tt Some($x$,$s'$)} if the
-sequence has head~$x$ and tail~$s'$.  Warning: calling \hbox{Sequence.pull
-$s$} again will {\it recompute\/} the value of~$x$; it is not stored!
+\item[Seq.pull $xq$] returns {\tt None} if the sequence is empty and
+  {\tt Some ($x$, $xq'$)} if the sequence has head~$x$ and tail~$xq'$.
+  Warning: calling \hbox{Seq.pull $xq$} again will {\it recompute\/}
+  the value of~$x$; it is not stored!
 \end{ttdescription}
 
 
 \subsection{Converting between sequences and lists}
 \begin{ttbox} 
-chop      : int * 'a seq -> 'a list * 'a seq
-list_of_s : 'a seq -> 'a list
-s_of_list : 'a list -> 'a seq
+Seq.chop    : int * 'a seq -> 'a list * 'a seq
+Seq.list_of : 'a seq -> 'a list
+Seq.of_list : 'a list -> 'a seq
 \end{ttbox}
 \begin{ttdescription}
-\item[Sequence.chop($n$,$s$)] 
-returns the first~$n$ elements of~$s$ as a list, paired with the remaining
-elements of~$s$.  If $s$ has fewer than~$n$ elements, then so will the
-list.
-
-\item[Sequence.list_of_s $s$] 
-returns the elements of~$s$, which must be finite, as a list.
-
-\item[Sequence.s_of_list $l$] 
-creates a sequence containing the elements of~$l$.
+\item[Seq.chop ($n$, $xq$)] returns the first~$n$ elements of~$xq$ as a
+  list, paired with the remaining elements of~$xq$.  If $xq$ has fewer
+  than~$n$ elements, then so will the list.
+  
+\item[Seq.list_of $xq$] returns the elements of~$xq$, which must be
+  finite, as a list.
+  
+\item[Seq.of_list $xs$] creates a sequence containing the elements
+  of~$xs$.
 \end{ttdescription}
 
 
 \subsection{Combining sequences}
 \begin{ttbox} 
-append     : 'a seq * 'a seq -> 'a seq
-interleave : 'a seq * 'a seq -> 'a seq
-flats      : 'a seq seq -> 'a seq
-maps       : ('a -> 'b) -> 'a seq -> 'b seq
-filters    : ('a -> bool) -> 'a seq -> 'a seq
+Seq.append      : 'a seq * 'a seq -> 'a seq
+Seq.interleave  : 'a seq * 'a seq -> 'a seq
+Seq.flat        : 'a seq seq -> 'a seq
+Seq.map         : ('a -> 'b) -> 'a seq -> 'b seq
+Seq.filter      : ('a -> bool) -> 'a seq -> 'a seq
 \end{ttbox} 
 \begin{ttdescription}
-\item[Sequence.append($s@1$,$s@2$)] 
-concatenates $s@1$ to $s@2$.
-
-\item[Sequence.interleave($s@1$,$s@2$)] 
-joins $s@1$ with $s@2$ by interleaving their elements.  The result contains
-all the elements of the sequences, even if both are infinite.
-
-\item[Sequence.flats $ss$] 
-concatenates a sequence of sequences.
-
-\item[Sequence.maps $f$ $s$] 
-applies $f$ to every element of~$s=x@1,x@2,\ldots$, yielding the sequence
-$f(x@1),f(x@2),\ldots$.
-
-\item[Sequence.filters $p$ $s$] 
-returns the sequence consisting of all elements~$x$ of~$s$ such that $p(x)$
-is {\tt true}.
+\item[Seq.append ($xq$, $yq$)] concatenates $xq$ to $yq$.
+  
+\item[Seq.interleave ($xq$, $yq$)] joins $xq$ with $yq$ by
+  interleaving their elements.  The result contains all the elements
+  of the sequences, even if both are infinite.
+  
+\item[Seq.flat $xqq$] concatenates a sequence of sequences.
+  
+\item[Seq.map $f$ $xq$] applies $f$ to every element
+  of~$xq=x@1,x@2,\ldots$, yielding the sequence $f(x@1),f(x@2),\ldots$.
+  
+\item[Seq.filter $p$ $xq$] returns the sequence consisting of all
+  elements~$x$ of~$xq$ such that $p(x)$ is {\tt true}.
 \end{ttdescription}
 
 \index{tactics|)}

@@ -33,7 +33,7 @@ allI RS mp  handle e => print_exn e;
 \begin{ttbox} 
 prth          : thm -> thm
 prths         : thm list -> thm list
-prthq         : thm Sequence.seq -> thm Sequence.seq
+prthq         : thm Seq.seq -> thm Seq.seq
 print_thm     : thm -> unit
 print_goals   : int -> thm -> unit
 string_of_thm : thm -> string
@@ -591,7 +591,7 @@ tactics.  There are few occasions for applying them directly to a theorem.
 \subsection{Proof by assumption}
 \index{meta-assumptions}
 \begin{ttbox} 
-assumption    : int -> thm -> thm Sequence.seq
+assumption    : int -> thm -> thm Seq.seq
 eq_assumption : int -> thm -> thm
 \end{ttbox}
 \begin{ttdescription}
@@ -607,7 +607,7 @@ is like {\tt assumption} but does not use unification.
 \index{resolution}
 \begin{ttbox} 
 biresolution : bool -> (bool*thm)list -> int -> thm
-               -> thm Sequence.seq
+               -> thm Seq.seq
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{biresolution} $match$ $rules$ $i$ $state$] 
@@ -624,7 +624,7 @@ is~{\tt true}, the $state$ is not instantiated.
 compose   : thm * int * thm -> thm list
 COMP      : thm * thm -> thm
 bicompose : bool -> bool * thm * int -> int -> thm
-            -> thm Sequence.seq
+            -> thm Seq.seq
 \end{ttbox}
 In forward proof, a typical use of composition is to regard an assertion of
 the form $\phi\Imp\psi$ as atomic.  Schematic variables are not renamed, so
@@ -663,7 +663,7 @@ assumption.  If $match$ is~{\tt true}, the $state$ is not instantiated.
 trivial            : cterm -> thm
 lift_rule          : (thm * int) -> thm -> thm
 rename_params_rule : string list * int -> thm -> thm
-flexflex_rule      : thm -> thm Sequence.seq
+flexflex_rule      : thm -> thm Seq.seq
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{trivial} $ct$] 

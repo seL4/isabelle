@@ -228,7 +228,7 @@ unique {\tt Var}s as placeholders for bound variables.
 
 
 \beginprog
-unifiers: env * ((term*term)list) -> (env * (term*term)list) seq
+unifiers: env * ((term*term)list) -> (env * (term*term)list) Seq.seq
 \endprog
 This is the main unification function.
 Given an environment and a list of disagreement pairs,
@@ -237,7 +237,7 @@ Each outcome consists of an updated environment and
 a list of flex-flex pairs (these are discussed below).
 
 \beginprog
-smash_unifiers: env * (term*term)list -> env seq
+smash_unifiers: env * (term*term)list -> env Seq.seq
 \endprog
 This unification function maps an environment and a list of disagreement
 pairs to a sequence of updated environments.  The function obliterates
