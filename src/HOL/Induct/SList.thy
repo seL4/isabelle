@@ -10,7 +10,7 @@ and not         list    == lfp(%Z. {NUMB(0)} <+> range(Leaf) <*> Z)
 so that list can serve as a "functor" for defining other recursive types
 *)
 
-SList = Sexp +
+SList = Sexp + Hilbert_Choice (*gives us "inv"*) +
 
 consts
 

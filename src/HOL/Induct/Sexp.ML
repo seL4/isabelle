@@ -6,8 +6,6 @@
 S-expressions, general binary trees for defining recursive data structures
 *)
 
-open Sexp;
-
 (** sexp_case **)
 
 Goalw [sexp_case_def] "sexp_case c d e (Leaf a) = c(a)";
