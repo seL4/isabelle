@@ -33,16 +33,12 @@ suffix {\tt .thy}).  There is also a low level interface provided by certain
 Appendix~\ref{app:TheorySyntax} presents the concrete syntax for theory
 definitions; here is an explanation of the constituent parts:
 \begin{description}
-\item[{\it theoryDef}] is the full definition.  The new theory is
-  called $id$.  It is the union of the named {\bf parent
+\item[{\it theoryDef}] is the full definition.  The new theory is called $id$.
+  It is the union of the named {\bf parent
     theories}\indexbold{theories!parent}, possibly extended with new
-  components.  \thydx{Pure} and \thydx{CPure} are the basic theories,
-  which contain only the meta-logic.  They differ just in their
-  concrete syntax for function applications.
-
-  Normally each {\it name\/} is an identifier, the name of the parent theory.
-  Quoted strings can be used to document additional file dependencies; see
-  \S\ref{LoadingTheories} for details.
+  components.  \thydx{Pure} and \thydx{CPure} are the basic theories, which
+  contain only the meta-logic.  They differ just in their concrete syntax for
+  function applications.
 
 \item[$classes$]
   is a series of class declarations.  Declaring {\tt$id$ < $id@1$ \dots\
@@ -231,143 +227,75 @@ arities
 \end{itemize}
 
 
-\section{Loading a new theory}\label{LoadingTheories}
-\index{theories!loading}\index{files!reading}
+\section{The theory loader}\label{sec:more-theories}
+\index{theories!reading}\index{files!reading}
+
+Isabelle's theory loader manages dependencies of the internal graph of theory
+nodes (the \emph{theory database}) and the external view of the file system.
+See \S\ref{sec:intro-theories} for its most basic commands, such as
+\texttt{use_thy}.  There are a few more operations available.
+
 \begin{ttbox}
-use_thy         : string -> unit
-time_use_thy    : string -> unit
-loadpath        : string list ref \hfill{\bf initially {\tt["."]}}
+use_thy_only    : string -> unit
+update_thy      : string -> unit
+touch_thy       : string -> unit
 delete_tmpfiles : bool ref \hfill{\bf initially true}
 \end{ttbox}
 
 \begin{ttdescription}
-\item[\ttindexbold{use_thy} $thyname$]
-  reads the theory $thyname$ and creates an \ML{} structure as described below.
-
-\item[\ttindexbold{time_use_thy} $thyname$]
-  calls {\tt use_thy} $thyname$ and reports the time taken.
-
-\item[\ttindexbold{loadpath}]
-  contains a list of directories to search when locating the files that
-  define a theory.  This list is only used if the theory name in {\tt
-    use_thy} does not specify the path explicitly.
-
-\item[reset \ttindexbold{delete_tmpfiles};]
-suppresses the deletion of temporary files.
+\item[\ttindexbold{use_thy_only} $name$;] is similar to \texttt{use_thy}, but
+  processes the actual theory file $name$\texttt{.thy} only, ignoring
+  $name$\texttt{.ML}.  This might be useful in replaying proof scripts by hand
+  from the very beginning, starting with the fresh theory.
+  
+\item[\ttindexbold{update_thy} $name$;] is similar to \texttt{use_thy}, but
+  ensures that theory $name$ is fully up-to-date with respect to the file
+  system --- apart from $name$ itself its parents may be reloaded as well.
+  
+\item[\ttindexbold{touch_thy} $name$;] marks theory node $name$ of the
+  internal graph as outdated.  While the theory remains usable, subsequent
+  operations such as \texttt{use_thy} may cause a reload.
+  
+\item[reset \ttindexbold{delete_tmpfiles};] processing theory files usually
+  involves temporary {\ML} files to be created.  By default, these are deleted
+  afterwards.  Resetting the \texttt{delete_tmpfiles} flag inhibits this,
+  leaving the generated code for debugging purposes.  The basic location for
+  temporary files is determined by the \texttt{ISABELLE_TMP} environment
+  variable, which is private to the running Isabelle process (it may be
+  retrieved by \ttindex{getenv} from {\ML}).
 \end{ttdescription}
-%
-Each theory definition must reside in a separate file.  Let the file
-{\it T}{\tt.thy} contain the definition of a theory called~$T$, whose
-parent theories are $TB@1$ \dots $TB@n$.  Calling
-\texttt{use_thy}~{\tt"{\it T\/}"} reads the file {\it T}{\tt.thy},
-writes a temporary \ML{} file {\tt.{\it T}.thy.ML}, and reads the
-latter file.  Recursive {\tt use_thy} calls load those parent theories
-that have not been loaded previously; the recursive calls may continue
-to any depth.  One {\tt use_thy} call can read an entire logic
-provided all theories are linked appropriately.
 
-The result is an \ML\ structure~$T$ containing at least a component
-{\tt thy} for the new theory and components for each of the rules.
-The structure also contains the definitions of the {\tt ML} section,
-if present.  The file {\tt.{\it T}.thy.ML} is then deleted if {\tt
-  delete_tmpfiles} is set and no errors occurred.
+\medskip Theory and {\ML} files are located by skimming through the
+directories listed in Isabelle's internal load path, which merely contains the
+current directory ``\texttt{.}'' by default.  The load path may be accessed by
+the following operations.
 
-Finally the file {\it T}{\tt.ML} is read, if it exists.  The structure
-$T$ is automatically open in this context.  Proof scripts typically
-refer to its components by unqualified names.
-
-Some applications construct theories directly by calling \ML\ functions.  In
-this situation there is no {\tt.thy} file, only an {\tt.ML} file.  The
-{\tt.ML} file must declare an \ML\ structure having the theory's name and a
-component {\tt thy} containing the new theory object.
-Section~\ref{sec:pseudo-theories} below describes a way of linking such
-theories to their parents.
-
-
-\section{Reloading modified theories}\label{sec:reloading-theories}
-\indexbold{theories!reloading}
 \begin{ttbox}
-update     : unit -> unit
-unlink_thy : string -> unit
+show_path: unit -> string list
+add_path: string -> unit
+del_path: string -> unit
+reset_path: unit -> unit
 \end{ttbox}
-Changing a theory on disk often makes it necessary to reload all theories
-descended from it.  However, {\tt use_thy} reads only one theory, even if
-some of the parent theories are out of date.  In this case you should call
-{\tt update()}.
-
-Isabelle keeps track of all loaded theories and their files.  If
-\texttt{use_thy} finds that the theory to be loaded has been read
-before, it determines whether to reload the theory as follows.  First
-it looks for the theory's files in their previous location.  If it
-finds them, it compares their modification times to the internal data
-and stops if they are equal.  If the files have been moved, {\tt
-  use_thy} searches for them as it would for a new theory.  After {\tt
-  use_thy} reloads a theory, it marks the children as out-of-date.
 
 \begin{ttdescription}
-\item[\ttindexbold{update}()]
-  reloads all modified theories and their descendants in the correct order.
-
-\item[\ttindexbold{unlink_thy} $thyname$]\indexbold{theories!removing}
-  informs Isabelle that theory $thyname$ no longer exists.  If you delete the
-  theory files for $thyname$ then you must execute {\tt unlink_thy};
-  otherwise {\tt update} will complain about a missing file.
+\item[\ttindexbold{show_path}();] displays the load path components in
+  canonical string representation, which is always according to Unix rules.
+  
+\item[\ttindexbold{add_path} $dir$;] adds component $dir$ to the beginning of
+  the load path.
+  
+\item[\ttindexbold{del_path} $dir$;] removes any occurrences of component
+  $dir$ from the load path.
+  
+\item[\ttindexbold{reset_path}();] resets the load path to ``\texttt{.}''
+  (current directory) only.
 \end{ttdescription}
 
-
-\subsection{*Pseudo theories}\label{sec:pseudo-theories}
-\indexbold{theories!pseudo}%
-Any automatic reloading facility requires complete knowledge of all
-dependencies.  Sometimes theories depend on objects created in \ML{} files
-with no associated theory definition file.  These objects may be theories but
-they could also be theorems, proof procedures, etc.
-
-Unless such dependencies are documented, {\tt update} fails to reload these
-\ML{} files and the system is left in a state where some objects, such as
-theorems, still refer to old versions of theories.  This may lead to the
-error
-\begin{ttbox}
-Attempt to merge different versions of theories: \dots
-\end{ttbox}
-Therefore there is a way to link theories and {\bf orphaned} \ML{} files ---
-those not associated with a theory definition.
-
-Let us assume we have an orphaned \ML{} file named {\tt orphan.ML} and a
-theory~$B$ that depends on {\tt orphan.ML} --- for example, {\tt B.ML} uses
-theorems proved in {\tt orphan.ML}.  Then {\tt B.thy} should
-mention this dependency as follows:
-\begin{ttbox}
-B = \(\ldots\) + "orphan" + \(\ldots\)
-\end{ttbox}
-Quoted strings stand for theories which have to be loaded before the
-current theory is read but which are not used in building the base of
-theory~$B$.  Whenever {\tt orphan} changes and is reloaded, Isabelle
-knows that $B$ has to be updated, too.
-
-Note that it's necessary for {\tt orphan} to declare a special ML
-object of type {\tt theory} which is present in all theories.  This is
-normally achieved by adding the file {\tt orphan.thy} to make {\tt
-orphan} a {\bf pseudo theory}.  A minimum version of {\tt orphan.thy}
-would be
-
-\begin{ttbox}
-orphan = Pure
-\end{ttbox}
-
-which uses {\tt Pure} to make a dummy theory.  Normally though the
-orphaned file has its own dependencies.  If {\tt orphan.ML} depends on
-theories or files $A@1$, \ldots, $A@n$, record this by creating the
-pseudo theory in the following way:
-\begin{ttbox}
-orphan = \(A@1\) + \(\ldots\) + \(A@n\)
-\end{ttbox}
-The resulting theory ensures that {\tt update} reloads {\tt orphan}
-whenever it reloads one of the $A@i$.
-
-For an extensive example of how this technique can be used to link
-lots of theory files and load them by just a few {\tt use_thy} calls
-see the sources of one of the major object-logics (e.g.\ \ZF).
-
+In operations referring indirectly to some file, such as
+\texttt{use_thy}~$name$, the argument may be prefixed by some directory that
+will be used as temporary load path.  Note that, depending on which parts of
+the ancestry of $name$ are already loaded, the dynamic change of paths might
+be hard to predict.  Use this feature with care only.
 
 
 \section{Basic operations on theories}\label{BasicOperationsOnTheories}
