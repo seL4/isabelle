@@ -17,7 +17,7 @@ use "thm_database.ML";
 use "symbol_input.ML";
 use "thy_read.ML";
 
-open ThmDB ThyRead ThyInfo BrowserInfo SymbolInput;
+open ThmDatabase ThyRead ThyInfo BrowserInfo SymbolInput;
 
 
 (* FIXME tmp *)
