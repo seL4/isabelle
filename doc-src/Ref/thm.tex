@@ -356,8 +356,8 @@ and $({\Imp}E)$:
 
 \index{meta-equality}
 Equality of truth values means logical equivalence:
-\[ \infer[({\equiv}I)]{\phi\equiv\psi}{\infer*{\psi}{[\phi]} &
-                                       \infer*{\phi}{[\psi]}}  
+\[ \infer[({\equiv}I)]{\phi\equiv\psi}{\phi\Imp\psi &
+                                       \psi\Imp\phi}
    \qquad
    \infer[({\equiv}E)]{\psi}{\phi\equiv \psi & \phi}   \]
 

@@ -246,7 +246,7 @@
   \item exceptions
     \subitem printing of, 5
   \item {\tt exit}, \bold{2}
-  \item {\tt extensional}, \bold{44}
+  \item {\tt extensional}, \bold{43}
 
   \indexspace
 
@@ -278,7 +278,7 @@
   \item {\tt forall_elim}, \bold{44}
   \item {\tt forall_elim_list}, \bold{44}
   \item {\tt forall_elim_var}, \bold{44}
-  \item {\tt forall_elim_vars}, \bold{45}
+  \item {\tt forall_elim_vars}, \bold{44}
   \item {\tt forall_intr}, \bold{44}
   \item {\tt forall_intr_frees}, \bold{44}
   \item {\tt forall_intr_list}, \bold{44}
@@ -325,7 +325,7 @@
   \item {\tt implies_elim}, \bold{43}
   \item {\tt implies_elim_list}, \bold{43}
   \item {\tt implies_intr}, \bold{42}
-  \item {\tt implies_intr_hyps}, \bold{43}
+  \item {\tt implies_intr_hyps}, \bold{42}
   \item {\tt implies_intr_list}, \bold{42}
   \item {\tt incr_boundvars}, \bold{58}, 92
   \item {\tt indexname} ML type, 57, 67
