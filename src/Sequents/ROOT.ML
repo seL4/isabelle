@@ -24,7 +24,7 @@ use_thy"T";
 use_thy"S4";
 use_thy"S43";
 
-use "../Pure/install_pp.ML";
+init_pps ();
 print_depth 8;
 
 val Sequents_build_completed = ();    (*indicate successful build*)
