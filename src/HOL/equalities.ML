@@ -36,6 +36,22 @@ Goal "{x. P x & Q x} = {x. P x} Int {x. Q x}";
 by (Blast_tac 1);
 qed "Collect_conj_eq";
 
+Goal "{x. ALL y. P x y} = (INT y. {x. P x y})";
+by (Blast_tac 1);
+qed "Collect_all_eq";
+
+Goal "{x. ALL y: A. P x y} = (INT y: A. {x. P x y})";
+by (Blast_tac 1);
+qed "Collect_ball_eq";
+
+Goal "{x. EX y. P x y} = (UN y. {x. P x y})";
+by (Blast_tac 1);
+qed "Collect_ex_eq";
+
+Goal "{x. EX y: A. P x y} = (UN y: A. {x. P x y})";
+by (Blast_tac 1);
+qed "Collect_bex_eq";
+
 
 section "insert";
 
