@@ -84,13 +84,17 @@ val IFOL_rews =
 
 open Simplifier Induction;
 
+infix addcongs;
+fun ss addcongs congs =
+  ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
+
 val IFOL_ss = empty_ss
       setmksimps mk_rew_rules
       setsolver
         (fn prems => resolve_tac (TrueI::refl::iff_refl::notFalseI::prems))
       setsubgoaler asm_simp_tac
       addsimps IFOL_rews
-      addcongs [imp_cong RS iff_reflection];
+      addcongs [imp_cong];
 
 (*Classical version...*)
 fun prove_fun s = 
