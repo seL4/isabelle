@@ -145,8 +145,8 @@ public class GraphBrowser extends Applet {
 			scrollp1.getVAdjustable().setUnitIncrement(20);
 			scrollp2.getHAdjustable().setUnitIncrement(20);
 			scrollp2.getVAdjustable().setUnitIncrement(20);
-			Component gv2 = new Border(scrollp1, 5);
-			Component tb2 = new Border(scrollp2, 5);
+			Component gv2 = new Border(scrollp1, 3);
+			Component tb2 = new Border(scrollp2, 3);
 			GridBagLayout gridbag = new GridBagLayout();
 			GridBagConstraints cnstr = new GridBagConstraints();
 			setLayout(gridbag);
