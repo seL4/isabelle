@@ -170,16 +170,11 @@ fun err_in_src kind msg (Src ((s, args), pos)) =
 
 (* argument syntax *)
 
-(* FIXME *)
-fun trace_src kind (Src ((s, args), pos)) =
-  warning ("TRACE: " ^ space_implode " " (kind :: s :: map str_of args) ^ Position.str_of pos);
-
 fun syntax kind scan st (src as Src ((s, args), pos)) =
-  (trace_src kind src;
   (case handle_error (Scan.error (Scan.finite' stopper (Scan.option scan))) (st, args) of
     OK (Some x, (st', [])) => (st', x)
   | OK (_, (_, args')) => err_in_src kind "bad arguments" (Src ((s, args'), pos))
-  | Error msg => err_in_src kind ("\n" ^ msg) src));
+  | Error msg => err_in_src kind ("\n" ^ msg) src);
 
 
 (* attribs *)
