@@ -61,7 +61,7 @@ mkdir -p $ISABELLE_OUTPUT
 
 case $FORCE.$EXEC in
   on.on) (cd $ISABELLE_OUTPUT;
-          for f in Pure FOL ZF CCL LCF CTT Sequents HOL HOLCF Cube FOLP
+          for f in Pure FOL ZF CCL LCF CTT Sequents HOL HOLCF Cube FOLP IOA TLA
 	  do 
 	   rm -f $f
 	  done)
