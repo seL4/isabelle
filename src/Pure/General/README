@@ -20,3 +20,4 @@ exported.
   Source        (co-algebraic data sources)
   Symbol        (generalized characters)
   Pretty        (generic pretty printing module)
+  Use		(enhanced ML 'use' command)
