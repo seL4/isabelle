@@ -301,12 +301,12 @@ val noteP =
 
 val assumeP =
   OuterSyntax.command "assume" "assume propositions" K.prf_asm
-    ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment
+    (P.and_list1 ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment)
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.assume)));
 
 val presumeP =
   OuterSyntax.command "presume" "assume propositions, to be established later" K.prf_asm
-    ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment
+    (P.and_list1 ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment)
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.presume)));
 
 val defP =
@@ -406,11 +406,11 @@ val backP =
 
 val cannot_undoP =
   OuterSyntax.improper_command "cannot_undo" "report 'cannot undo' error message" K.control
-    (P.name >> (Toplevel.print oo IsarCmd.cannot_undo));
+    (P.name >> IsarCmd.cannot_undo);
 
 val clear_undoP =
   OuterSyntax.improper_command "clear_undo" "clear undo information" K.control
-    (Scan.succeed (Toplevel.print o IsarCmd.clear_undo));
+    (Scan.succeed IsarCmd.clear_undo);
 
 val redoP =
   OuterSyntax.improper_command "redo" "redo last command" K.control
@@ -422,11 +422,11 @@ val undos_proofP =
 
 val kill_proofP =
   OuterSyntax.improper_command "kill_proof" "undo current proof" K.control
-    (Scan.succeed (Toplevel.print o IsarCmd.kill_proof));
+    (Scan.succeed IsarCmd.kill_proof);
 
 val undoP =
   OuterSyntax.improper_command "undo" "undo last command" K.control
-    (Scan.succeed (Toplevel.print o IsarCmd.undo));
+    (Scan.succeed IsarCmd.undo);
 
 
 
