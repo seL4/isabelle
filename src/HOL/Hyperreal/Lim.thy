@@ -144,7 +144,7 @@ proof (simp add: linorder_neq_iff LIM_eq, elim disjE)
   show "\<exists>r. 0 < r \<and>
         (\<forall>s. 0 < s \<longrightarrow> (\<exists>x. (x < a \<or> a < x) \<and> \<bar>x-a\<bar> < s) \<and> \<not> \<bar>k-L\<bar> < r)"
   proof (intro exI conjI strip)
-    show "0 < L-k" by (simp add: k)
+    show "0 < L-k" by (simp add: k compare_rls)
     fix s :: real
     assume s: "0<s"
     { from s show "s/2 + a < a \<or> a < s/2 + a" by arith
@@ -158,7 +158,7 @@ next
   show "\<exists>r. 0 < r \<and>
         (\<forall>s. 0 < s \<longrightarrow> (\<exists>x. (x < a \<or> a < x) \<and> \<bar>x-a\<bar> < s) \<and> \<not> \<bar>k-L\<bar> < r)"
   proof (intro exI conjI strip)
-    show "0 < k-L" by (simp add: k)
+    show "0 < k-L" by (simp add: k compare_rls)
     fix s :: real
     assume s: "0<s"
     { from s show "s/2 + a < a \<or> a < s/2 + a" by arith
@@ -1607,7 +1607,7 @@ proof -
       from isCont_bounded [OF le this]
       obtain k where k: "!!x. a \<le> x & x \<le> b --> inverse (M - f x) \<le> k" by auto
       have Minv: "!!x. a \<le> x & x \<le> b --> 0 < inverse (M - f (x))"
-        by (simp add: M3) 
+        by (simp add: M3 compare_rls) 
       have "!!x. a \<le> x & x \<le> b --> inverse (M - f x) < k+1" using k 
         by (auto intro: order_le_less_trans [of _ k]) 
       with Minv 

@@ -1675,8 +1675,9 @@ done
 lemma cos_zero_lemma: "[| 0 \<le> x; cos x = 0 |] ==>  
       \<exists>n::nat. ~even n & x = real n * (pi/2)"
 apply (drule pi_gt_zero [THEN reals_Archimedean4], safe)
-apply (subgoal_tac "0 \<le> x - real n * pi & (x - real n * pi) \<le> pi & (cos (x - real n * pi) = 0) ")
-apply safe
+apply (subgoal_tac "0 \<le> x - real n * pi & 
+                    (x - real n * pi) \<le> pi & (cos (x - real n * pi) = 0) ")
+apply (auto simp add: compare_rls) 
   prefer 3 apply (simp add: cos_diff) 
  prefer 2 apply (simp add: real_of_nat_Suc left_distrib) 
 apply (simp add: cos_diff)
@@ -1699,7 +1700,6 @@ apply (simp_all add: add_increasing)
 done
 
 
-(* also spoilt by numeral arithmetic *)
 lemma cos_zero_iff: "(cos x = 0) =  
       ((\<exists>n::nat. ~even n & (x = real n * (pi/2))) |    
        (\<exists>n::nat. ~even n & (x = -(real n * (pi/2)))))"

@@ -781,24 +781,15 @@ lemma real_0_le_add_iff: "((0::real) \<le> x+y) = (-x \<le> y)"
 by auto
 
 
-(** Simprules combining x-y and 0 (needed??) **)
-
-lemma real_0_less_diff_iff [iff]: "((0::real) < x-y) = (y < x)"
-by auto
-
-lemma real_0_le_diff_iff [iff]: "((0::real) \<le> x-y) = (y \<le> x)"
-by auto
-
 (*
 FIXME: we should have this, as for type int, but many proofs would break.
 It replaces x+-y by x-y.
-Addsimps [symmetric real_diff_def]
+declare real_diff_def [symmetric, simp]
 *)
 
 
 subsubsection{*Density of the Reals*}
 
-(*????FIXME: rename d1, d2 to x, y*)
 lemma real_lbound_gt_zero:
      "[| (0::real) < d1; 0 < d2 |] ==> \<exists>e. 0 < e & e < d1 & e < d2"
 apply (rule_tac x = " (min d1 d2) /2" in exI)
@@ -859,9 +850,6 @@ done
 
 ML
 {*
-val real_0_le_divide_iff = thm"real_0_le_divide_iff";
-val real_0_less_diff_iff = thm"real_0_less_diff_iff";
-val real_0_le_diff_iff = thm"real_0_le_diff_iff";
 val real_lbound_gt_zero = thm"real_lbound_gt_zero";
 val real_less_half_sum = thm"real_less_half_sum";
 val real_gt_half_sum = thm"real_gt_half_sum";
