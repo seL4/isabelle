@@ -65,8 +65,8 @@ well-founded by cutting it off at a certain point.  Here is an example
 of a recursive function that calls itself with increasing values up to ten:%
 \end{isamarkuptext}%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
-\isacommand{recdef}\ f\ {\isachardoublequote}{\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isachardot}\ j{\isacharless}i\ {\isasymand}\ i\ {\isasymle}\ {\isacharparenleft}{\isacharhash}{\isadigit{1}}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharbraceright}{\isachardoublequote}\isanewline
-{\isachardoublequote}f\ i\ {\isacharequal}\ {\isacharparenleft}if\ {\isacharhash}{\isadigit{1}}{\isadigit{0}}\ {\isasymle}\ i\ then\ {\isadigit{0}}\ else\ i\ {\isacharasterisk}\ f{\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
+\isacommand{recdef}\ f\ {\isachardoublequote}{\isacharbraceleft}{\isacharparenleft}i{\isacharcomma}j{\isacharparenright}{\isachardot}\ j{\isacharless}i\ {\isasymand}\ i\ {\isasymle}\ {\isacharparenleft}{\isadigit{1}}{\isadigit{0}}{\isacharcolon}{\isacharcolon}nat{\isacharparenright}{\isacharbraceright}{\isachardoublequote}\isanewline
+{\isachardoublequote}f\ i\ {\isacharequal}\ {\isacharparenleft}if\ {\isadigit{1}}{\isadigit{0}}\ {\isasymle}\ i\ then\ {\isadigit{0}}\ else\ i\ {\isacharasterisk}\ f{\isacharparenleft}Suc\ i{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
 Since \isacommand{recdef} is not prepared for the relation supplied above,
@@ -108,7 +108,7 @@ crucial hint to our definition:%
 {\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}wf{\isacharcolon}\ wf{\isacharunderscore}greater{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
-Alternatively, we could have given \isa{measure\ {\isacharparenleft}{\isasymlambda}k{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isacharhash}{\isadigit{1}}{\isadigit{0}}{\isacharminus}k{\isacharparenright}} for the
+Alternatively, we could have given \isa{measure\ {\isacharparenleft}{\isasymlambda}k{\isacharcolon}{\isacharcolon}nat{\isachardot}\ {\isadigit{1}}{\isadigit{0}}{\isacharminus}k{\isacharparenright}} for the
 well-founded relation in our \isacommand{recdef}.  However, the arithmetic
 goal in the lemma above would have arisen instead in the \isacommand{recdef}
 termination proof, where we have less control.  A tailor-made termination

@@ -32,10 +32,10 @@ then \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. We
 \ \ \ \ \ \ \ {\isachardoublequote}{\isasymlbrakk}\ t\ {\isasymin}\ Avoid\ s\ A{\isacharsemicolon}\ t\ {\isasymnotin}\ A{\isacharsemicolon}\ {\isacharparenleft}t{\isacharcomma}u{\isacharparenright}\ {\isasymin}\ M\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ u\ {\isasymin}\ Avoid\ s\ A{\isachardoublequote}%
 \begin{isamarkuptext}%
 It is easy to see that for any infinite \isa{A}-avoiding path \isa{f}
-with \isa{f\ {\isadigit{0}}\ {\isasymin}\ Avoid\ s\ A} there is an infinite \isa{A}-avoiding path
+with \isa{f\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymin}\ Avoid\ s\ A} there is an infinite \isa{A}-avoiding path
 starting with \isa{s} because (by definition of \isa{Avoid}) there is a
-finite \isa{A}-avoiding path from \isa{s} to \isa{f\ {\isadigit{0}}}.
-The proof is by induction on \isa{f\ {\isadigit{0}}\ {\isasymin}\ Avoid\ s\ A}. However,
+finite \isa{A}-avoiding path from \isa{s} to \isa{f\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}b{\isacharparenright}}.
+The proof is by induction on \isa{f\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymin}\ Avoid\ s\ A}. However,
 this requires the following
 reformulation, as explained in \S\ref{sec:ind-var-in-prems} above;
 the \isa{rule{\isacharunderscore}format} directive undoes the reformulation after the proof.%
