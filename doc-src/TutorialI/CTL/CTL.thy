@@ -84,7 +84,7 @@ lemma EF_lemma:
 apply(rule equalityI);
  apply(rule subsetI);
  apply(simp);
- apply(erule Lfp.induct);
+ apply(erule lfp_induct);
   apply(rule mono_ef);
  apply(simp);
  apply(blast intro: r_into_rtrancl rtrancl_trans);
@@ -112,7 +112,7 @@ by simplification and clarification
 *};
 
 apply(rule subsetI);
-apply(erule Lfp.induct[OF _ mono_af]);
+apply(erule lfp_induct[OF _ mono_af]);
 apply(clarsimp simp add: af_def Paths_def);
 (*ML"Pretty.setmargin 70";
 pr(latex xsymbols symbols);*)
