@@ -57,6 +57,7 @@ signature TACTICAL =
   val THEN              : tactic * tactic -> tactic
   val THEN'             : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val THEN_ALL_NEW	: (int -> tactic) * (int -> tactic) -> int -> tactic
+  val REPEAT_ALL_NEW	: (int -> tactic) -> int -> tactic
   val THEN_ELSE         : tactic * (tactic*tactic) -> tactic
   val traced_tac        : (thm -> (thm * thm Seq.seq) option) -> tactic
   val tracify           : bool ref -> tactic -> tactic
@@ -357,6 +358,10 @@ fun ALLGOALS_RANGE tac (i:int) j st =
 
 fun (tac1 THEN_ALL_NEW tac2) i st =
   st |> (tac1 i THEN (fn st' => ALLGOALS_RANGE tac2 i (i + nprems_of st' - nprems_of st) st'));
+
+(*repeatedly dig into any emerging subgoals*)
+fun REPEAT_ALL_NEW tac =
+  tac THEN_ALL_NEW (TRY o (fn i => REPEAT_ALL_NEW tac i));
 
 
 (*** SELECT_GOAL ***)
