@@ -1556,15 +1556,20 @@ apply (induct "n")
 apply (auto simp add: real_of_nat_Suc left_distrib)
 done
 
+lemma cos_npi2 [simp]: "cos (pi * real n) = -1 ^ n"
+proof -
+  have "cos (pi * real n) = cos (real n * pi)" by (simp only: mult_commute)
+  also have "... = -1 ^ n" by (rule cos_npi) 
+  finally show ?thesis .
+qed
+
 lemma sin_npi [simp]: "sin (real (n::nat) * pi) = 0"
 apply (induct "n")
 apply (auto simp add: real_of_nat_Suc left_distrib)
 done
 
 lemma sin_npi2 [simp]: "sin (pi * real (n::nat)) = 0"
-apply (cut_tac n = n in sin_npi)
-apply (auto simp add: mult_commute simp del: sin_npi)
-done
+by (simp add: mult_commute [of pi]) 
 
 lemma cos_two_pi [simp]: "cos (2 * pi) = 1"
 by (simp add: cos_double)
@@ -2006,14 +2011,14 @@ apply (best intro!: DERIV_intros intro: DERIV_chain2)+
 apply (simp (no_asm))
 done
 
-(* which further simplifies to (- 1 ^ m) !! *)
-lemma sin_cos_npi [simp]: "sin ((real m + 1/2) * pi) = cos (real m * pi)"
-by (auto simp add: right_distrib sin_add left_distrib mult_ac)
-
-lemma sin_cos_npi2 [simp]: "sin (real (Suc (2 * n)) * pi / 2) = (-1) ^ n"
-apply (cut_tac m = n in sin_cos_npi)
-apply (simp only: real_of_nat_Suc left_distrib add_divide_distrib, auto)
-done
+lemma sin_cos_npi [simp]: "sin (real (Suc (2 * n)) * pi / 2) = (-1) ^ n"
+proof -
+  have "sin ((real n + 1/2) * pi) = cos (real n * pi)"
+    by (auto simp add: right_distrib sin_add left_distrib mult_ac)
+  thus ?thesis
+    by (simp add: real_of_nat_Suc left_distrib add_divide_distrib 
+                  mult_commute [of pi])
+qed
 
 lemma cos_2npi [simp]: "cos (2 * real (n::nat) * pi) = 1"
 by (simp add: cos_double mult_assoc power_add [symmetric] numeral_2_eq_2)
@@ -2824,8 +2829,6 @@ val arctan_zero_zero = thm "arctan_zero_zero";
 val cos_arctan_not_zero = thm "cos_arctan_not_zero";
 val tan_sec = thm "tan_sec";
 val DERIV_sin_add = thm "DERIV_sin_add";
-val sin_cos_npi = thm "sin_cos_npi";
-val sin_cos_npi2 = thm "sin_cos_npi2";
 val cos_2npi = thm "cos_2npi";
 val cos_3over2_pi = thm "cos_3over2_pi";
 val sin_2npi = thm "sin_2npi";
