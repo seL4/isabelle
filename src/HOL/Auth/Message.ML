@@ -60,7 +60,6 @@ qed "keysFor_insert_MPair";
 goalw thy [keysFor_def]
     "keysFor (insert (Crypt X K) H) = insert (invKey K) (keysFor H)";
 by (Auto_tac());
-by (fast_tac (!claset addIs [image_eqI]) 1);
 qed "keysFor_insert_Crypt";
 
 Addsimps [keysFor_empty, keysFor_Un, keysFor_UN, 
@@ -388,6 +387,7 @@ by (REPEAT (ares_tac [equalityI, lemma1, lemma2] 1));
 qed "analz_insert_Decrypt";
 
 (*Case analysis: either the message is secure, or it is not!
+  Effective, but can cause subgoals to blow up!
   Use with expand_if;  apparently split_tac does not cope with patterns
   such as "analz (insert (Crypt X' K) H)" *)
 goal thy "analz (insert (Crypt X' K) H) = \
@@ -545,6 +545,10 @@ val Crypt_synth = mk_cases "Crypt X K : synth H";
 
 AddSEs [Nonce_synth, Key_synth, MPair_synth, Crypt_synth];
 
+goal thy "Agent A : synth H";
+by (Fast_tac 1);
+qed "Agent_synth";
+
 goal thy "(Nonce N : synth H) = (Nonce N : H)";
 by (Fast_tac 1);
 qed "Nonce_synth_eq";
@@ -553,7 +557,7 @@ goal thy "(Key K : synth H) = (Key K : H)";
 by (Fast_tac 1);
 qed "Key_synth_eq";
 
-Addsimps [Nonce_synth_eq, Key_synth_eq];
+Addsimps [Agent_synth, Nonce_synth_eq, Key_synth_eq];
 
 
 goalw thy [keysFor_def]
@@ -603,19 +607,40 @@ by (deepen_tac (!claset addSEs [analz.Decrypt]
 qed "analz_UN1_synth";
 Addsimps [analz_UN1_synth];
 
-(*Especially for reasoning about the Fake rule in traces*)
+
+(** For reasoning about the Fake rule in traces **)
+
 goal thy "!!Y. X: G ==> parts(insert X H) <= parts G Un parts H";
 br ([parts_mono, parts_Un_subset2] MRS subset_trans) 1;
 by (Fast_tac 1);
 qed "parts_insert_subset_Un";
 
-(*Also for the Fake rule, but more specific*)
+(*More specifically for Fake****OBSOLETE VERSION
 goal thy "!!H. X: synth (analz H) ==> \
 \              parts (insert X H) <= synth (analz H) Un parts H";
 bd parts_insert_subset_Un 1;
 by (Full_simp_tac 1);
 by (Fast_tac 1);
-qed "synth_analz_parts_insert_subset_Un";
+qed "Fake_parts_insert";
+*)
+
+(*More specifically for Fake*)
+goal thy "!!H. X: synth (analz G) ==> \
+\              parts (insert X H) <= synth (analz G) Un parts G Un parts H";
+bd parts_insert_subset_Un 1;
+by (Full_simp_tac 1);
+by (Deepen_tac 0 1);
+qed "Fake_parts_insert";
+
+goal thy "!!H. [| X: synth (analz G); G <= H |] ==> \
+\              analz (insert X H) <= synth (analz H) Un analz H";
+br subsetI 1;
+by (subgoal_tac "x : analz (synth (analz H))" 1);
+by (best_tac (!claset addIs [impOfSubs (analz_mono RS synth_mono)]
+                      addSEs [impOfSubs analz_mono]) 2);
+by (Full_simp_tac 1);
+by (Fast_tac 1);
+qed "Fake_analz_insert";
 
 
 
