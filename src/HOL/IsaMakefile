@@ -139,16 +139,14 @@ HOL-Complex: HOL $(OUT)/HOL-Complex
 $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Library/Zorn.thy\
   Real/Complex_Numbers.thy \
-  Real/Lubs.ML Real/Lubs.thy Real/PNat.ML Real/PNat.thy \
-  Real/PRat.ML Real/PRat.thy \
-  Real/PReal.thy Real/RComplete.ML Real/RComplete.thy \
+  Real/Lubs.ML Real/Lubs.thy Real/rat_arith.ML Real/RatArith.thy\
+  Real/Rational.thy Real/PReal.thy Real/RComplete.thy \
   Real/ROOT.ML Real/Real.thy \
-  Real/RealArith.thy Real/real_arith.ML Real/RealBin.ML \
-  Real/RealBin.thy Real/RealDef.thy \
-  Real/RealInt.thy Real/RealPow.thy Real/document/root.tex Real/real_arith.ML\
+  Real/RealArith.thy Real/real_arith.ML Real/RealDef.thy \
+  Real/RealPow.thy Real/document/root.tex Real/real_arith.ML\
   Hyperreal/EvenOdd.ML Hyperreal/EvenOdd.thy \
   Hyperreal/Fact.ML Hyperreal/Fact.thy\
-  Hyperreal/Filter.ML Hyperreal/Filter.thy Hyperreal/HRealAbs.ML\
+  Hyperreal/Filter.ML Hyperreal/Filter.thy\
   Hyperreal/HRealAbs.thy Hyperreal/HSeries.ML Hyperreal/HSeries.thy\
   Hyperreal/HyperArith.thy Hyperreal/HyperBin.ML Hyperreal/HyperBin.thy \
   Hyperreal/HyperDef.thy Hyperreal/HyperNat.ML Hyperreal/HyperNat.thy\
@@ -197,8 +195,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/Accessible_Part.thy \
   Library/Permutation.thy Library/Primes.thy Library/Quotient.thy \
   Library/Nat_Infinity.thy \
   Library/README.html Library/Continuity.thy \
-  Library/Nested_Environment.thy Library/Rational_Numbers.thy \
-  Library/Zorn.thy\
+  Library/Nested_Environment.thy Library/Zorn.thy\
   Library/Library/ROOT.ML Library/Library/document/root.tex \
   Library/Library/document/root.bib Library/While_Combinator.thy
 	@cd Library; $(ISATOOL) usedir $(OUT)/HOL Library

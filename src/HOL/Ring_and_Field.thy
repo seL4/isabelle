@@ -210,6 +210,9 @@ done
 lemma minus_mult_minus [simp]: "(- a) * (- b) = a * (b::'a::ring)"
   by (simp add: minus_mult_left [symmetric] minus_mult_right [symmetric])
 
+lemma minus_mult_commute: "(- a) * b = a * (- b::'a::ring)"
+  by (simp add: minus_mult_left [symmetric] minus_mult_right [symmetric])
+
 lemma right_diff_distrib: "a * (b - c) = a * b - a * (c::'a::ring)"
 by (simp add: right_distrib diff_minus 
               minus_mult_left [symmetric] minus_mult_right [symmetric]) 
@@ -889,6 +892,10 @@ apply (simp add: mult_commute [of "inverse a"])
 apply (simp add: mult_assoc [symmetric] add_commute)
 done
 
+lemma inverse_divide [simp]:
+      "inverse (a/b) = b / (a::'a::{field,division_by_zero})"
+  by (simp add: divide_inverse_zero mult_commute)
+
 lemma nonzero_mult_divide_cancel_left:
   assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" 
     shows "(c*a)/(c*b) = a/(b::'a::field)"
@@ -1137,6 +1144,43 @@ lemma inverse_le_iff_le_neg [simp]:
      "[|a < 0; b < 0|] 
       ==> (inverse a \<le> inverse b) = (b \<le> (a::'a::ordered_field))"
 by (blast intro: le_imp_inverse_le_neg dest: inverse_le_imp_le_neg) 
+
+
+subsection{*Inverses and the Number One*}
+
+lemma one_less_inverse_iff:
+    "(1 < inverse x) = (0 < x & x < (1::'a::{ordered_field,division_by_zero}))"proof cases
+  assume "0 < x"
+    with inverse_less_iff_less [OF zero_less_one, of x]
+    show ?thesis by simp
+next
+  assume notless: "~ (0 < x)"
+  have "~ (1 < inverse x)"
+  proof
+    assume "1 < inverse x"
+    also with notless have "... \<le> 0" by (simp add: linorder_not_less)
+    also have "... < 1" by (rule zero_less_one) 
+    finally show False by auto
+  qed
+  with notless show ?thesis by simp
+qed
+
+lemma inverse_eq_1_iff [simp]:
+    "(inverse x = 1) = (x = (1::'a::{field,division_by_zero}))"
+by (insert inverse_eq_iff_eq [of x 1], simp) 
+
+lemma one_le_inverse_iff:
+   "(1 \<le> inverse x) = (0 < x & x \<le> (1::'a::{ordered_field,division_by_zero}))"
+by (force simp add: order_le_less one_less_inverse_iff zero_less_one 
+                    eq_commute [of 1]) 
+
+lemma inverse_less_1_iff:
+   "(inverse x < 1) = (x \<le> 0 | 1 < (x::'a::{ordered_field,division_by_zero}))"
+by (simp add: linorder_not_le [symmetric] one_le_inverse_iff) 
+
+lemma inverse_le_1_iff:
+   "(inverse x \<le> 1) = (x \<le> 0 | 1 \<le> (x::'a::{ordered_field,division_by_zero}))"
+by (simp add: linorder_not_less [symmetric] one_less_inverse_iff) 
 
 
 subsection{*Division and Signs*}
@@ -1412,12 +1456,15 @@ done
 
 subsection {* Ordered Fields are Dense *}
 
-lemma zero_less_two: "0 < (1+1::'a::ordered_field)"
+lemma less_add_one: "a < (a+1::'a::ordered_semiring)"
 proof -
-  have "0 + 0 <  (1+1::'a::ordered_field)"
-    by (blast intro: zero_less_one add_strict_mono) 
+  have "a+0 < (a+1::'a::ordered_semiring)"
+    by (blast intro: zero_less_one add_strict_left_mono) 
   thus ?thesis by simp
 qed
+
+lemma zero_less_two: "0 < (1+1::'a::ordered_semiring)"
+  by (blast intro: order_less_trans zero_less_one less_add_one) 
 
 lemma less_half_sum: "a < b ==> a < (a+b) / (1+1::'a::ordered_field)"
 by (simp add: zero_less_two pos_less_divide_eq right_distrib) 
@@ -1610,6 +1657,7 @@ val minus_add_distrib = thm"minus_add_distrib";
 val minus_mult_left = thm"minus_mult_left";
 val minus_mult_right = thm"minus_mult_right";
 val minus_mult_minus = thm"minus_mult_minus";
+val minus_mult_commute = thm"minus_mult_commute";
 val right_diff_distrib = thm"right_diff_distrib";
 val left_diff_distrib = thm"left_diff_distrib";
 val minus_diff_eq = thm"minus_diff_eq";
@@ -1700,6 +1748,7 @@ val right_inverse_eq = thm"right_inverse_eq";
 val nonzero_inverse_eq_divide = thm"nonzero_inverse_eq_divide";
 val divide_self = thm"divide_self";
 val divide_inverse_zero = thm"divide_inverse_zero";
+val inverse_divide = thm"inverse_divide";
 val divide_zero_left = thm"divide_zero_left";
 val inverse_eq_divide = thm"inverse_eq_divide";
 val nonzero_add_divide_distrib = thm"nonzero_add_divide_distrib";

@@ -1088,7 +1088,7 @@ qed "lemma_SReal_ub";
 Goal "(x::hypreal): Reals ==> isLub Reals {s. s: Reals & s < x} x";
 by (auto_tac (claset() addSIs [isLubI2,lemma_SReal_ub,setgeI], simpset()));
 by (ftac isUbD2a 1);
-by (res_inst_tac [("x","x"),("y","y")] hypreal_linear_less2 1);
+by (res_inst_tac [("x","x"),("y","y")] linorder_cases 1);
 by (auto_tac (claset() addSIs [order_less_imp_le], simpset()));
 by (EVERY1[dtac SReal_dense, assume_tac, assume_tac, Step_tac]);
 by (dres_inst_tac [("y","r")] isUbD 1);
@@ -1980,7 +1980,7 @@ by Auto_tac;
 qed "lemma_Int_HI";
 
 Goal "{n. u < abs (X n)} Int {n. abs (X n) < (u::real)} = {}";
-by (auto_tac (claset() addIs [real_less_asym], simpset()));
+by (auto_tac (claset() addIs [order_less_asym], simpset()));
 qed "lemma_Int_HIa";
 
 Goal "EX X: Rep_hypreal x. ALL u. \

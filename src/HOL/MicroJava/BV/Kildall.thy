@@ -367,17 +367,17 @@ apply(subgoal_tac "\<forall>(q,t) \<in> set (step (SOME p. p \<in> w) (ss ! (SOM
   prefer 3
   apply assumption
   apply (erule listE_nth_in)
-  apply blast
- apply blast
+  apply simp
+ apply simp
 apply (subst decomp_propa)
- apply blast
+ apply fast
 apply simp
 apply (rule conjI)
  apply (rule merges_preserves_type)
  apply blast
  apply clarify
  apply (rule conjI)
-  apply(clarsimp, blast dest!: boundedD)
+  apply(clarsimp, fast dest!: boundedD)
  apply (erule pres_typeD)
   prefer 3
   apply assumption

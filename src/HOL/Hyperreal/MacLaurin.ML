@@ -63,8 +63,8 @@ by (simp_tac (HOL_ss addsimps [real_mult_assoc,real_divide_def]) 2);
 by (asm_simp_tac (HOL_ss addsimps 
     [CLAIM "(a::real) * (b * (c * d)) = (d * a) * (b * c)"]
      delsimps [realpow_Suc]) 2);
-by (stac real_mult_inv_left 2);
-by (stac real_mult_inv_left 3);
+by (stac left_inverse 2);
+by (stac left_inverse 3);
 by (rtac (real_not_refl2 RS not_sym) 2);
 by (etac zero_less_power 2);
 by (rtac real_of_nat_fact_not_zero 2);
@@ -345,7 +345,7 @@ Goal "[| diff 0 = f; \
 \     |] ==> EX t. 0 < abs t & abs t < abs x & \
 \              f x = sumr 0 n (%m. (diff m 0 / real (fact m)) * x ^ m) + \
 \                    (diff n t / real (fact n)) * x ^ n";
-by (res_inst_tac [("R1.0","x"),("R2.0","0")] real_linear_less2 1);
+by (res_inst_tac [("x","x"),("y","0")] linorder_cases 1);
 by (Blast_tac 2);
 by (dtac Maclaurin_minus 1);
 by (dtac Maclaurin 5);

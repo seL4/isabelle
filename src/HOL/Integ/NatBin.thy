@@ -269,17 +269,6 @@ done
 declare less_nat_number_of [simp]
 
 
-(** Less-than-or-equals (<=) **)
-
-lemma le_nat_number_of_eq_not_less:
-     "(number_of x <= (number_of y::nat)) =  
-      (~ number_of y < (number_of x::nat))"
-apply (rule linorder_not_less [symmetric])
-done
-
-declare le_nat_number_of_eq_not_less [simp]
-
-
 (*Maps #n to n for n = 0, 1, 2*)
 lemmas numerals = numeral_0_eq_0 numeral_1_eq_1 numeral_2_eq_2
 
@@ -732,7 +721,6 @@ ML
 val eq_nat_nat_iff = thm"eq_nat_nat_iff";
 val eq_nat_number_of = thm"eq_nat_number_of";
 val less_nat_number_of = thm"less_nat_number_of";
-val le_nat_number_of_eq_not_less = thm"le_nat_number_of_eq_not_less";
 val power2_eq_square = thm "power2_eq_square";
 val zero_le_power2 = thm "zero_le_power2";
 val zero_less_power2 = thm "zero_less_power2";

@@ -82,7 +82,7 @@ defs
                                Y \<in> Rep_hypreal(Q) &
                                {n::nat. X n < Y n} \<in> FreeUltrafilterNat"
   hypreal_le_def:
-  "P <= (Q::hypreal) == ~(Q < P)"
+  "P \<le> (Q::hypreal) == ~(Q < P)"
 
   hrabs_def:  "abs (r::hypreal) == (if 0 \<le> r then r else -r)"
 
@@ -149,7 +149,7 @@ apply (blast dest: FreeUltrafilter_Ultrafilter Ultrafilter_Filter mem_FiltersetD
 done
 
 lemma FreeUltrafilterNat_subset:
-     "[| X: FreeUltrafilterNat;  X <= Y |]  
+     "[| X: FreeUltrafilterNat;  X \<subseteq> Y |]  
       ==> Y \<in> FreeUltrafilterNat"
 apply (cut_tac FreeUltrafilterNat_mem)
 apply (blast dest: FreeUltrafilter_Ultrafilter Ultrafilter_Filter mem_FiltersetD2)
@@ -227,21 +227,20 @@ subsection{*Properties of @{term hyprel}*}
 
 text{*Proving that @{term hyprel} is an equivalence relation*}
 
-lemma hyprel_iff: "((X,Y): hyprel) = ({n. X n = Y n}: FreeUltrafilterNat)"
+lemma hyprel_iff: "((X,Y) \<in> hyprel) = ({n. X n = Y n}: FreeUltrafilterNat)"
 by (unfold hyprel_def, fast)
 
-lemma hyprel_refl: "(x,x): hyprel"
+lemma hyprel_refl: "(x,x) \<in> hyprel"
 apply (unfold hyprel_def)
 apply (auto simp add: FreeUltrafilterNat_Nat_set)
 done
 
-lemma hyprel_sym [rule_format (no_asm)]: "(x,y): hyprel --> (y,x):hyprel"
+lemma hyprel_sym [rule_format (no_asm)]: "(x,y) \<in> hyprel --> (y,x) \<in> hyprel"
 by (simp add: hyprel_def eq_commute)
 
 lemma hyprel_trans: 
-      "[|(x,y): hyprel; (y,z):hyprel|] ==> (x,z):hyprel"
-apply (unfold hyprel_def, auto, ultra)
-done
+      "[|(x,y) \<in> hyprel; (y,z) \<in> hyprel|] ==> (x,z) \<in> hyprel"
+by (unfold hyprel_def, auto, ultra)
 
 lemma equiv_hyprel: "equiv UNIV hyprel"
 apply (simp add: equiv_def refl_def sym_def trans_def hyprel_refl)
@@ -536,7 +535,7 @@ done
 
 subsection{*Trichotomy: the hyperreals are Linearly Ordered*}
 
-lemma lemma_hyprel_0_mem: "\<exists>x. x: hyprel `` {%n. 0}"
+lemma lemma_hyprel_0_mem: "\<exists>x. x \<in> hyprel `` {%n. 0}"
 apply (unfold hyprel_def)
 apply (rule_tac x = "%n. 0" in exI, safe)
 apply (auto intro!: FreeUltrafilterNat_Nat_set)
@@ -588,64 +587,57 @@ done
 lemma hypreal_neq_iff: "((w::hypreal) \<noteq> z) = (w<z | z<w)"
 by (cut_tac hypreal_linear, blast)
 
-lemma hypreal_linear_less2: "!!(x::hypreal). [| x < y ==> P;  x = y ==> P;  
-           y < x ==> P |] ==> P"
-apply (cut_tac x = x and y = y in hypreal_linear, auto)
-done
-
 
 subsection{*Properties of The @{text "\<le>"} Relation*}
 
 lemma hypreal_le: 
-      "(Abs_hypreal(hyprel``{%n. X n}) <=  
-            Abs_hypreal(hyprel``{%n. Y n})) =  
-       ({n. X n <= Y n} \<in> FreeUltrafilterNat)"
-apply (unfold hypreal_le_def real_le_def)
-apply (auto simp add: hypreal_less)
+      "(Abs_hypreal(hyprel``{%n. X n}) \<le> Abs_hypreal(hyprel``{%n. Y n})) =  
+       ({n. X n \<le> Y n} \<in> FreeUltrafilterNat)"
+apply (auto simp add: hypreal_less hypreal_le_def linorder_not_less[symmetric])
 apply (ultra+)
 done
 
-lemma hypreal_le_imp_less_or_eq: "!!(x::hypreal). x <= y ==> x < y | x = y"
+lemma hypreal_le_imp_less_or_eq: "!!(x::hypreal). x \<le> y ==> x < y | x = y"
 apply (unfold hypreal_le_def)
 apply (cut_tac hypreal_linear)
 apply (fast elim: hypreal_less_irrefl hypreal_less_asym)
 done
 
-lemma hypreal_less_or_eq_imp_le: "z<w | z=w ==> z <=(w::hypreal)"
+lemma hypreal_less_or_eq_imp_le: "z<w | z=w ==> z \<le>(w::hypreal)"
 apply (unfold hypreal_le_def)
 apply (cut_tac hypreal_linear)
 apply (fast elim: hypreal_less_irrefl hypreal_less_asym)
 done
 
-lemma hypreal_le_eq_less_or_eq: "(x <= (y::hypreal)) = (x < y | x=y)"
+lemma hypreal_le_eq_less_or_eq: "(x \<le> (y::hypreal)) = (x < y | x=y)"
 by (blast intro!: hypreal_less_or_eq_imp_le dest: hypreal_le_imp_less_or_eq) 
 
 lemmas hypreal_le_less = hypreal_le_eq_less_or_eq
 
-lemma hypreal_le_refl: "w <= (w::hypreal)"
+lemma hypreal_le_refl: "w \<le> (w::hypreal)"
 by (simp add: hypreal_le_eq_less_or_eq)
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
-lemma hypreal_le_linear: "(z::hypreal) <= w | w <= z"
+lemma hypreal_le_linear: "(z::hypreal) \<le> w | w \<le> z"
 apply (simp add: hypreal_le_less)
 apply (cut_tac hypreal_linear, blast)
 done
 
-lemma hypreal_le_trans: "[| i <= j; j <= k |] ==> i <= (k::hypreal)"
+lemma hypreal_le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::hypreal)"
 apply (drule hypreal_le_imp_less_or_eq) 
 apply (drule hypreal_le_imp_less_or_eq) 
 apply (rule hypreal_less_or_eq_imp_le) 
 apply (blast intro: hypreal_less_trans) 
 done
 
-lemma hypreal_le_anti_sym: "[| z <= w; w <= z |] ==> z = (w::hypreal)"
+lemma hypreal_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::hypreal)"
 apply (drule hypreal_le_imp_less_or_eq) 
 apply (drule hypreal_le_imp_less_or_eq) 
 apply (fast elim: hypreal_less_irrefl hypreal_less_asym)
 done
 
 (* Axiom 'order_less_le' of class 'order': *)
-lemma hypreal_less_le: "((w::hypreal) < z) = (w <= z & w \<noteq> z)"
+lemma hypreal_less_le: "((w::hypreal) < z) = (w \<le> z & w \<noteq> z)"
 apply (simp add: hypreal_le_def hypreal_neq_iff)
 apply (blast intro: hypreal_less_asym)
 done
@@ -794,9 +786,8 @@ apply (rule FreeUltrafilterNat_P, ultra)
 done
 
 lemma hypreal_of_real_le_iff [simp]: 
-     "(hypreal_of_real z1 <= hypreal_of_real z2) = (z1 <= z2)"
-apply (unfold hypreal_le_def real_le_def, auto)
-done
+     "(hypreal_of_real z1 \<le> hypreal_of_real z2) = (z1 \<le> z2)"
+by (force simp add: hypreal_less hypreal_le_def linorder_not_less[symmetric])
 
 lemma hypreal_of_real_eq_iff [simp]:
      "(hypreal_of_real z1 = hypreal_of_real z2) = (z1 = z2)"
@@ -952,8 +943,6 @@ val hypreal_eq_minus_iff2 = thm "hypreal_eq_minus_iff2";
 val hypreal_eq_minus_iff3 = thm "hypreal_eq_minus_iff3";
 val hypreal_not_eq_minus_iff = thm "hypreal_not_eq_minus_iff";
 val hypreal_linear = thm "hypreal_linear";
-val hypreal_neq_iff = thm "hypreal_neq_iff";
-val hypreal_linear_less2 = thm "hypreal_linear_less2";
 val hypreal_le = thm "hypreal_le";
 val hypreal_le_imp_less_or_eq = thm "hypreal_le_imp_less_or_eq";
 val hypreal_le_eq_less_or_eq = thm "hypreal_le_eq_less_or_eq";

@@ -382,7 +382,7 @@ by (Asm_full_simp_tac 2);
 by (subgoal_tac "0 <= sumr 0 (Suc (Suc 0) * Suc no + n) f + - suminf f" 1);
 by (dtac (abs_eqI1) 1 );
 by (Asm_full_simp_tac 1);
-by (auto_tac (claset(),simpset() addsimps [real_le_def]));
+by (auto_tac (claset(),simpset() addsimps [linorder_not_less RS sym]));
 qed "sumr_pos_lt_pair";
 
 (*-----------------------------------------------------------------

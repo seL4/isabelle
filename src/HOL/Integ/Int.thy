@@ -320,12 +320,16 @@ lemma negD: "neg x ==> \<exists>n. x = - (int (Suc n))"
 by (auto simp add: neg_eq_less_0 zless_iff_Suc_zadd 
                    diff_eq_eq [symmetric] zdiff_def)
 
-lemma int_cases: 
+lemma int_cases [cases type: int, case_names nonneg neg]: 
      "[|!! n. z = int n ==> P;  !! n. z =  - (int (Suc n)) ==> P |] ==> P"
 apply (case_tac "neg z")
 apply (fast dest!: negD)
 apply (drule not_neg_nat [symmetric], auto) 
 done
+
+lemma int_induct [induct type: int, case_names nonneg neg]: 
+     "[|!! n. P (int n);  !!n. P (- (int (Suc n))) |] ==> P z"
+  by (cases z) auto
 
 
 (*Legacy ML bindings, but no longer the structure Int.*)

@@ -20,7 +20,7 @@ Addsimps [partition_one];
 
 Goalw [partition_def] 
    "a <= b ==> partition(a,b)(%n. if n = 0 then a else b)";
-by (auto_tac (claset(),simpset() addsimps [real_le_less]));
+by (auto_tac (claset(),simpset() addsimps [order_le_less]));
 qed "partition_single";
 Addsimps [partition_single];
 
@@ -79,7 +79,7 @@ by (Step_tac 1);
 by (ALLGOALS(dtac (ARITH_PROVE "Suc m <= n ==> m < n")));
 by (ALLGOALS(dtac less_le_trans));
 by (assume_tac 1 THEN assume_tac 2);
-by (ALLGOALS(blast_tac (claset() addIs [real_less_trans])));
+by (ALLGOALS(blast_tac (claset() addIs [order_less_trans])));
 qed_spec_mp "lemma_partition_lt_gen";
 
 Goal "m < n ==> EX d. n = m + Suc d";
@@ -97,7 +97,7 @@ by (induct_tac "n" 1);
 by (Blast_tac 1);
 by (blast_tac (claset() addSDs [leI] addDs 
     [(ARITH_PROVE "m <= n ==> m <= Suc n"),
-    le_less_trans,real_less_trans]) 1);
+    le_less_trans,order_less_trans]) 1);
 qed_spec_mp "partition_lt";
 
 Goal "partition(a,b) D ==> a <= b";
@@ -587,7 +587,7 @@ Goal "partition(a,b) D ==> psize D = (LEAST n. D(n) = b)";
 by (auto_tac (claset() addSIs [Least_equality RS sym,partition_rhs],simpset()));
 by (rtac ccontr 1);
 by (dtac partition_ub_lt 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));
 qed "partition_psize_Least";
 
 Goal "partition (a, c) D ==> ~ (EX n. c < D(n))";

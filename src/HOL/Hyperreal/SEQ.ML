@@ -146,7 +146,7 @@ by (Step_tac 1);
 by (dtac choice 1 THEN Step_tac 1);
 by (dres_inst_tac [("x","Abs_hypnat(hypnatrel``{f})")] bspec 1);
 by (dtac (approx_minus_iff RS iffD1) 2);
-by (fold_tac [real_le_def]);
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [linorder_not_less])));
 by (blast_tac (claset() addIs [HNatInfinite_NSLIMSEQ]) 1);
 by (blast_tac (claset() addIs [lemmaLIM3]) 1);
 qed "NSLIMSEQ_LIMSEQ";
@@ -528,7 +528,7 @@ qed "HNatInfinite_skolem_f";
 Goalw [Bseq_def,NSBseq_def] 
       "NSBseq X ==> Bseq X";
 by (rtac ccontr 1);
-by (auto_tac (claset(), simpset() addsimps [real_le_def]));
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));
 by (dtac lemmaNSBseq2 1 THEN Step_tac 1);
 by (forw_inst_tac [("X","X"),("f","f")] real_seq_to_hypreal_HInfinite 1);
 by (dtac (HNatInfinite_skolem_f RSN (2,bspec)) 1 THEN assume_tac 1);
@@ -658,7 +658,7 @@ Goal "!!(X::nat=> real). \
 \              |] ==> EX m. U + -T < X m & X m < U";
 by (dtac lemma_converg2 1 THEN assume_tac 1);
 by (rtac ccontr 1 THEN Asm_full_simp_tac 1);
-by (fold_tac [real_le_def]);
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less]) 1);
 by (dtac lemma_converg3 1);
 by (dtac isLub_le_isUb 1 THEN assume_tac 1);
 by (auto_tac (claset() addDs [order_less_le_trans],

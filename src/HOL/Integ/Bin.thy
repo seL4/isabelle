@@ -314,17 +314,18 @@ done
 
 (** Less-than-or-equals (\<le>) **)
 
-lemma le_number_of_eq_not_less: "(number_of x \<le> (number_of y::int)) =
-      (~ number_of y < (number_of x::int))"
-apply (rule linorder_not_less [symmetric])
-done
+text{*Reduces @{term "a\<le>b"} to @{term "~ (b<a)"} for ALL numerals*}
+lemmas le_number_of_eq_not_less =
+       linorder_not_less [of "number_of w" "number_of v", symmetric, standard]
+
+declare le_number_of_eq_not_less [simp]
+
 
 (** Absolute value (abs) **)
 
 lemma zabs_number_of:
  "abs(number_of x::int) =
   (if number_of x < (0::int) then -number_of x else number_of x)"
-
 apply (unfold zabs_def)
 apply (rule refl)
 done
@@ -422,5 +423,12 @@ declare int_Suc [simp]
 
 (* Numeral0 -> 0 and Numeral1 -> 1 *)
 declare int_numeral_0_eq_0 [simp] int_numeral_1_eq_1 [simp]
+
+
+(*Simplification of  x-y < 0, etc.*)
+declare less_iff_diff_less_0 [symmetric, simp]
+declare eq_iff_diff_eq_0 [symmetric, simp]
+declare le_iff_diff_le_0 [symmetric, simp]
+
 
 end

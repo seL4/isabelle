@@ -81,8 +81,8 @@ by (blast_tac (claset() addIs [powr_less_cancel,powr_less_mono]) 1);
 qed "powr_less_cancel_iff";
 Addsimps [powr_less_cancel_iff];
 
-Goalw [real_le_def] "1 < x ==> (x powr a <= x powr b) = (a <= b)";
-by (Auto_tac);
+Goal "1 < x ==> (x powr a <= x powr b) = (a <= b)";
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));
 qed "powr_le_cancel_iff";
 Addsimps [powr_le_cancel_iff];
 
@@ -156,7 +156,7 @@ qed "log_less_cancel_iff";
 Addsimps [log_less_cancel_iff];
 
 Goal "[| 1 < a; 0 < x; 0 < y |] ==> (log a x <= log a y) = (x <= y)";
-by (auto_tac (claset(),simpset() addsimps [real_le_def]));
+by (auto_tac (claset(),simpset() addsimps [linorder_not_less RS sym]));
 qed "log_le_cancel_iff";
 Addsimps [log_le_cancel_iff];
 

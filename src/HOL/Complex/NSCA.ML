@@ -863,17 +863,18 @@ Addsimps [hcomplex_of_hypreal_capprox_iff];
 
 Goal "Abs_hcomplex(hcomplexrel ``{%n. X n}) : CFinite \
 \     ==> Abs_hypreal(hyprel `` {%n. Re(X n)}) : HFinite";
-by (auto_tac (claset(),simpset() addsimps [CFinite_hcmod_iff,
-    hcmod,HFinite_FreeUltrafilterNat_iff]));
+by (auto_tac (claset(),
+ simpset() addsimps [CFinite_hcmod_iff,hcmod,HFinite_FreeUltrafilterNat_iff]));
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (res_inst_tac [("x","u")] exI 1 THEN Auto_tac);
 by (Ultra_tac 1);
 by (dtac sym 1 THEN res_inst_tac [("z","X x")] eq_Abs_complex 1);
-by (auto_tac (claset(),simpset() addsimps [complex_mod,numeral_2_eq_2] delsimps [realpow_Suc]));
+by (auto_tac (claset(),
+    simpset() addsimps [complex_mod,numeral_2_eq_2] delsimps [realpow_Suc]));
 by (rtac ccontr 1 THEN dtac (linorder_not_less RS iffD1) 1);
 by (dtac order_less_le_trans 1 THEN assume_tac 1);
 by (dtac (real_sqrt_ge_abs1 RSN (2,order_less_le_trans)) 1);
-by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2 RS sym]));
+by (auto_tac ((claset(),simpset() addsimps [numeral_2_eq_2 RS sym]) addIffs [order_less_irrefl]));
 qed "CFinite_HFinite_Re";
 
 Goal "Abs_hcomplex(hcomplexrel ``{%n. X n}) : CFinite \
@@ -888,7 +889,7 @@ by (auto_tac (claset(),simpset() addsimps [complex_mod] delsimps [realpow_Suc]))
 by (rtac ccontr 1 THEN dtac (linorder_not_less RS iffD1) 1);
 by (dtac order_less_le_trans 1 THEN assume_tac 1);
 by (dtac (real_sqrt_ge_abs2 RSN (2,order_less_le_trans)) 1);
-by Auto_tac;
+by (auto_tac (clasimpset() addIffs [order_less_irrefl]));
 qed "CFinite_HFinite_Im";
 
 Goal "[| Abs_hypreal(hyprel `` {%n. Re(X n)}) : HFinite; \

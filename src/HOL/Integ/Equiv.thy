@@ -118,6 +118,21 @@ lemma quotient_disj:
   apply blast
   done
 
+lemma quotient_eqI:
+  "[|equiv A r; X \<in> A//r; Y \<in> A//r; x \<in> X; y \<in> Y; (x,y) \<in> r|] ==> X = Y" 
+  apply (clarify elim!: quotientE)
+  apply (rule equiv_class_eq, assumption)
+  apply (unfold equiv_def sym_def trans_def, blast)
+  done
+
+lemma quotient_eq_iff:
+  "[|equiv A r; X \<in> A//r; Y \<in> A//r; x \<in> X; y \<in> Y|] ==> (X = Y) = ((x,y) \<in> r)" 
+  apply (rule iffI)  
+   prefer 2 apply (blast del: equalityI intro: quotient_eqI) 
+  apply (clarify elim!: quotientE)
+  apply (unfold equiv_def sym_def trans_def, blast)
+  done
+
 
 subsection {* Defining unary operations upon equivalence classes *}
 

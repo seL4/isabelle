@@ -67,7 +67,7 @@ val trans_tac = Int_Numeral_Simprocs.trans_tac;
 
 val bin_simps = [numeral_0_eq_0 RS sym, numeral_1_eq_1 RS sym,
                  add_nat_number_of, nat_number_of_add_left,
-                 diff_nat_number_of, le_nat_number_of_eq_not_less,
+                 diff_nat_number_of, le_number_of_eq_not_less,
                  less_nat_number_of, mult_nat_number_of,
                  thm "Let_number_of", nat_number_of] @
                 bin_arith_simps @ bin_rel_simps;
@@ -506,7 +506,7 @@ local
 val add_rules =
   [thm "Let_number_of", thm "Let_0", thm "Let_1", nat_0, nat_1,
    add_nat_number_of, diff_nat_number_of, mult_nat_number_of,
-   eq_nat_number_of, less_nat_number_of, le_nat_number_of_eq_not_less,
+   eq_nat_number_of, less_nat_number_of, le_number_of_eq_not_less,
    le_Suc_number_of,le_number_of_Suc,
    less_Suc_number_of,less_number_of_Suc,
    Suc_eq_number_of,eq_number_of_Suc,

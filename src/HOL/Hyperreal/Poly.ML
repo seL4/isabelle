@@ -226,7 +226,7 @@ Goal "[| a < b; poly p a < 0; 0 < poly p b |] \
 \     ==> EX x. a < x & x < b & (poly p x = 0)";
 by (cut_inst_tac [("f","%x. poly p x"),("a","a"),("b","b"),("y","0")] 
     IVT_objl 1);
-by (auto_tac (claset(),simpset() addsimps [real_le_less]));
+by (auto_tac (claset(),simpset() addsimps [order_le_less]));
 qed "poly_IVT_pos";
 
 Goal "[| a < b; 0 < poly p a; poly p b < 0 |] \

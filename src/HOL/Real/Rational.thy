@@ -1,4 +1,4 @@
-(*  Title: HOL/Library/Rational_Numbers.thy
+(*  Title: HOL/Library/Rational.thy
     ID:    $Id$
     Author: Markus Wenzel, TU Muenchen
     License: GPL (GNU GENERAL PUBLIC LICENSE)
@@ -9,7 +9,7 @@ header {*
   \author{Markus Wenzel}
 *}
 
-theory Rational_Numbers = Quotient + Ring_and_Field:
+theory Rational = Quotient + Ring_and_Field:
 
 subsection {* Fractions *}
 
@@ -360,7 +360,6 @@ instance rat :: minus ..
 instance rat :: times ..
 instance rat :: inverse ..
 instance rat :: ord ..
-instance rat :: number ..
 
 defs (overloaded)
   zero_rat_def: "0 == rat_of 0"
@@ -369,12 +368,12 @@ defs (overloaded)
   minus_rat_def: "-q == rat_of (-(fraction_of q))"
   diff_rat_def: "q - r == q + (-(r::rat))"
   mult_rat_def: "q * r == rat_of (fraction_of q * fraction_of r)"
-  inverse_rat_def: "q \<noteq> 0 ==> inverse q == rat_of (inverse (fraction_of q))"
-  divide_rat_def: "r \<noteq> 0 ==> q / r == q * inverse (r::rat)"
+  inverse_rat_def: "inverse q == 
+                    if q=0 then 0 else rat_of (inverse (fraction_of q))"
+  divide_rat_def: "q / r == q * inverse (r::rat)"
   le_rat_def: "q \<le> r == fraction_of q \<le> fraction_of r"
   less_rat_def: "q < r == q \<le> r \<and> q \<noteq> (r::rat)"
   abs_rat_def: "\<bar>q\<bar> == if q < 0 then -q else (q::rat)"
-  number_of_rat_def: "number_of b == Fract (number_of b) 1"
 
 theorem zero_rat: "0 = Fract 0 1"
   by (simp add: zero_rat_def zero_fraction_def rat_of_def Fract_def)        
@@ -436,7 +435,7 @@ proof -
         by (simp add: Fract_inverse is_zero_fraction_iff zero_rat eq_rat)
     qed
     thus "inverse q == rat_of (inverse (fraction_of q))"
-      by (rule inverse_rat_def)
+      by (simp add: inverse_rat_def)
   qed
   also from neq nonzero have "inverse (fract a b) = fract b a"
     by (simp add: inverse_fraction_def)
@@ -635,25 +634,21 @@ proof
     by (simp only: abs_rat_def)
 qed
 
+instance rat :: division_by_zero
+proof
+  fix x :: rat
+  show "inverse 0 = (0::rat)"  by (simp add: inverse_rat_def)
+  show "x/0 = 0"   by (simp add: divide_rat_def inverse_rat_def)
+qed
 
-subsection {* Embedding integers *}
+
+subsection {* Embedding integers: The Injection @{term rat} *}
 
 constdefs
   rat :: "int => rat"    (* FIXME generalize int to any numeric subtype (?) *)
   "rat z == Fract z 1"
   int_set :: "rat set"    ("\<int>")    (* FIXME generalize rat to any numeric supertype (?) *)
   "\<int> == range rat"
-
-lemma rat_inject: "(rat z = rat w) = (z = w)"
-proof
-  assume "rat z = rat w"
-  hence "Fract z 1 = Fract w 1" by (unfold rat_def)
-  hence "\<lfloor>fract z 1\<rfloor> = \<lfloor>fract w 1\<rfloor>" ..
-  thus "z = w" by auto
-next
-  assume "z = w"
-  thus "rat z = rat w" by simp
-qed
 
 lemma int_set_cases [case_names rat, cases set: int_set]:
   "q \<in> \<int> ==> (!!z. q = rat z ==> C) ==> C"
@@ -666,7 +661,76 @@ lemma int_set_induct [case_names rat, induct set: int_set]:
   "q \<in> \<int> ==> (!!z. P (rat z)) ==> P q"
   by (rule int_set_cases) auto
 
-theorem number_of_rat: "number_of b = rat (number_of b)"
-  by (simp add: number_of_rat_def rat_def)
+lemma rat_of_int_zero [simp]: "rat (0::int) = (0::rat)"
+by (simp add: rat_def zero_rat [symmetric])
+
+lemma rat_of_int_one [simp]: "rat (1::int) = (1::rat)"
+by (simp add: rat_def one_rat [symmetric])
+
+lemma rat_of_int_add_distrib [simp]: "rat (x + y) = rat (x::int) + rat y"
+by (simp add: rat_def add_rat)
+
+lemma rat_of_int_minus_distrib [simp]: "rat (-x) = -rat (x::int)"
+by (simp add: rat_def minus_rat)
+
+lemma rat_of_int_diff_distrib [simp]: "rat (x - y) = rat (x::int) - rat y"
+by (simp add: rat_def diff_rat)
+
+lemma rat_of_int_mult_distrib [simp]: "rat (x * y) = rat (x::int) * rat y"
+by (simp add: rat_def mult_rat)
+
+lemma rat_inject [simp]: "(rat z = rat w) = (z = w)"
+proof
+  assume "rat z = rat w"
+  hence "Fract z 1 = Fract w 1" by (unfold rat_def)
+  hence "\<lfloor>fract z 1\<rfloor> = \<lfloor>fract w 1\<rfloor>" ..
+  thus "z = w" by auto
+next
+  assume "z = w"
+  thus "rat z = rat w" by simp
+qed
+
+
+lemma rat_of_int_zero_cancel [simp]: "(rat x = 0) = (x = 0)"
+proof -
+  have "(rat x = 0) = (rat x = rat 0)" by simp
+  also have "... = (x = 0)" by (rule rat_inject)
+  finally show ?thesis .
+qed
+
+lemma rat_of_int_less_iff [simp]: "rat (x::int) < rat y = (x < y)"
+by (simp add: rat_def less_rat) 
+
+lemma rat_of_int_le_iff [simp]: "(rat (x::int) \<le> rat y) = (x \<le> y)"
+by (simp add: linorder_not_less [symmetric])
+
+lemma zero_less_rat_of_int_iff [simp]: "(0 < rat y) = (0 < y)"
+by (insert rat_of_int_less_iff [of 0 y], simp)
+
+
+subsection {* Various Other Results *}
+
+lemma minus_rat_cancel [simp]: "b \<noteq> 0 ==> Fract (-a) (-b) = Fract a b"
+by (simp add: Fract_equality eq_fraction_iff) 
+
+theorem Rat_induct_pos [case_names Fract, induct type: rat]:
+  assumes step: "!!a b. 0 < b ==> P (Fract a b)"
+    shows "P q"
+proof (cases q)
+  have step': "!!a b. b < 0 ==> P (Fract a b)"
+  proof -
+    fix a::int and b::int
+    assume b: "b < 0"
+    hence "0 < -b" by simp
+    hence "P (Fract (-a) (-b))" by (rule step)
+    thus "P (Fract a b)" by (simp add: order_less_imp_not_eq [OF b])
+  qed
+  case (Fract a b)
+  thus "P q" by (force simp add: linorder_neq_iff step step')
+qed
+
+lemma zero_less_Fract_iff:
+     "0 < b ==> (0 < Fract a b) = (0 < a)"
+by (simp add: zero_rat less_rat order_less_imp_not_eq2 zero_less_mult_iff) 
 
 end

@@ -83,7 +83,7 @@ by (auto_tac (claset(),simpset() addsimps [eq_Abs_hcomplex_ALL,
     CInfinitesimal_hcmod_iff,hcomplex_of_complex_def,
     Infinitesimal_FreeUltrafilterNat_iff,hcmod]));
 by (EVERY1[rtac ccontr, Asm_full_simp_tac]);
-by (fold_tac [real_le_def]);
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less]) 1);
 by (dtac lemma_skolemize_CLIM2 1);
 by (Step_tac 1);
 by (dres_inst_tac [("x","X")] spec 1);
@@ -159,7 +159,7 @@ by (auto_tac (claset(),simpset() addsimps [eq_Abs_hcomplex_ALL,
     CInfinitesimal_hcmod_iff,hcmod,Infinitesimal_approx_minus RS sym,
     Infinitesimal_FreeUltrafilterNat_iff]));
 by (EVERY1[rtac ccontr, Asm_full_simp_tac]);
-by (fold_tac [real_le_def]);
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less]) 1);
 by (dtac lemma_skolemize_CRLIM2 1);
 by (Step_tac 1);
 by (dres_inst_tac [("x","X")] spec 1);

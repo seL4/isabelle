@@ -45,7 +45,8 @@ apply (drule_tac n = "n" in realpow_less)
 apply (assumption+)
 apply (drule real_le_trans , assumption)
 apply (drule_tac y = "y ^ n" in order_less_le_trans)
-apply (assumption , erule real_less_irrefl)
+apply (assumption)
+apply (simp); 
 apply (drule_tac n = "n" in zero_less_one [THEN realpow_less])
 apply auto
 done
@@ -53,8 +54,8 @@ done
 lemma nth_realpow_isLub_ex:
      "[| (0::real) < a; 0 < n |]  
       ==> \<exists>u. isLub (UNIV::real set) {x. x ^ n <= a & 0 < x} u"
-apply (blast intro: lemma_nth_realpow_isUb_ex lemma_nth_realpow_non_empty reals_complete)
-done
+by (blast intro: lemma_nth_realpow_isUb_ex lemma_nth_realpow_non_empty reals_complete)
+
  
 subsection{*First Half -- Lemmas First*}
 
@@ -62,7 +63,7 @@ lemma lemma_nth_realpow_seq:
      "isLub (UNIV::real set) {x. x ^ n <= a & (0::real) < x} u  
            ==> u + inverse(real (Suc k)) ~: {x. x ^ n <= a & 0 < x}"
 apply (safe , drule isLubD2 , blast)
-apply (simp add: real_le_def)
+apply (simp add: linorder_not_less [symmetric])
 done
 
 lemma lemma_nth_realpow_isLub_gt_zero:
@@ -78,8 +79,8 @@ lemma lemma_nth_realpow_isLub_ge:
          0 < a; 0 < n |] ==> ALL k. a <= (u + inverse(real (Suc k))) ^ n"
 apply (safe)
 apply (frule lemma_nth_realpow_seq , safe)
-apply (auto elim: real_less_asym simp add: real_le_def)
-apply (simp add: real_le_def [symmetric])
+apply (auto elim: order_less_asym simp add: linorder_not_less [symmetric])
+apply (simp add: linorder_not_less)
 apply (rule order_less_trans [of _ 0])
 apply (auto intro: lemma_nth_realpow_isLub_gt_zero)
 done
@@ -103,14 +104,14 @@ apply (safe)
 apply (drule isLub_le_isUb)
 apply assumption
 apply (drule order_less_le_trans)
-apply (auto simp add: real_less_not_refl)
+apply (auto)
 done
 
 lemma not_isUb_less_ex:
      "~ isUb (UNIV::real set) S u ==> \<exists>x \<in> S. u < x"
 apply (rule ccontr , erule swap)
 apply (rule setleI [THEN isUbI])
-apply (auto simp add: real_le_def)
+apply (auto simp add: linorder_not_less [symmetric])
 done
 
 lemma real_mult_less_self: "0 < r ==> r * (1 + -inverse(real (Suc n))) < r"
@@ -174,7 +175,7 @@ apply (cut_tac x = "r" and y = "y" in linorder_less_linear)
 apply auto
 apply (drule_tac x = "r" in realpow_less)
 apply (drule_tac [4] x = "y" in realpow_less)
-apply (auto simp add: real_less_not_refl)
+apply (auto)
 done
 
 ML

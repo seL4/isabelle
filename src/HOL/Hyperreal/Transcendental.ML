@@ -34,10 +34,10 @@ Goalw [root_def]
 by (rtac some_equality 1);
 by (forw_inst_tac [("n","n")] zero_less_power 2);
 by (auto_tac (claset(),simpset() addsimps [zero_less_mult_iff]));
-by (res_inst_tac [("R1.0","u"),("R2.0","x")] real_linear_less2 1);
+by (res_inst_tac [("x","u"),("y","x")] linorder_cases 1);
 by (dres_inst_tac [("n1","n"),("x","u")] (zero_less_Suc RSN  (3, realpow_less)) 1);
 by (dres_inst_tac [("n1","n"),("x","x")] (zero_less_Suc RSN (3, realpow_less)) 4);
-by (auto_tac (claset(),simpset() addsimps [real_less_not_refl])); 
+by (auto_tac (claset(),simpset() addsimps [order_less_irrefl])); 
 qed "real_root_pos";
 
 Goal "0 <= x ==> root(Suc n) (x ^ (Suc n)) = x";
@@ -62,10 +62,10 @@ Goalw [root_def] "root (Suc n) 1 = 1";
 by (rtac some_equality 1);
 by Auto_tac;
 by (rtac ccontr 1);
-by (res_inst_tac [("R1.0","u"),("R2.0","1")] real_linear_less2 1);
+by (res_inst_tac [("x","u"),("y","1")] linorder_cases 1);
 by (dres_inst_tac [("n","n")] realpow_Suc_less_one 1);
 by (dres_inst_tac [("n","n")] power_gt1_lemma 4);
-by (auto_tac (claset(),simpset() addsimps [real_less_not_refl]));
+by (auto_tac (claset(),simpset() addsimps [order_less_irrefl]));
 qed "real_root_one";
 Addsimps [real_root_one];
 
@@ -160,14 +160,14 @@ by (Asm_full_simp_tac 1 THEN Asm_full_simp_tac 1);
 by (rtac someI2 1 THEN Step_tac 1 THEN Blast_tac 2);
 by (Asm_full_simp_tac 1 THEN Asm_full_simp_tac 1);
 by (res_inst_tac [("a","xa * x")] someI2 1);
-by (auto_tac (claset() addEs [real_less_asym],
+by (auto_tac (claset() addEs [order_less_asym],
     simpset() addsimps mult_ac@[power_mult_distrib RS sym,realpow_two_disj,
     zero_less_power, real_mult_order] delsimps [realpow_Suc]));
 qed "real_sqrt_mult_distrib";
 
 Goal "[|0<=x; 0<=y |] ==> sqrt(x*y) =  sqrt(x) * sqrt(y)";
 by (auto_tac (claset() addIs [ real_sqrt_mult_distrib],
-    simpset() addsimps [real_le_less]));
+    simpset() addsimps [order_le_less]));
 qed "real_sqrt_mult_distrib2";
 
 Goal "(r * r = 0) = (r = (0::real))";
@@ -184,7 +184,7 @@ qed "real_sqrt_gt_zero";
 
 Goal "0 <= x ==> 0 <= sqrt(x)";
 by (auto_tac (claset() addIs [real_sqrt_gt_zero],
-    simpset() addsimps [real_le_less]));
+    simpset() addsimps [order_le_less]));
 qed "real_sqrt_ge_zero";
 
 Goal "0 <= sqrt (x ^ 2 + y ^ 2)";
@@ -226,7 +226,7 @@ qed "real_sqrt_pow2_gt_zero";
 
 Goal "0 < x ==> sqrt x ~= 0";
 by (ftac real_sqrt_pow2_gt_zero 1);
-by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2, real_less_not_refl]));
+by (auto_tac (claset(),simpset() addsimps [numeral_2_eq_2, order_less_irrefl]));
 qed "real_sqrt_not_eq_zero";
 
 Goal "0 < x ==> inverse (sqrt(x)) ^ 2 = inverse x";
@@ -621,7 +621,7 @@ by (auto_tac (claset(),simpset() addsimps [positive_imp_inverse_positive,
 by (rtac real_le_trans 2 THEN assume_tac 3 THEN Auto_tac);
 by (res_inst_tac [("x","e")] exI 1 THEN Auto_tac);
 by (res_inst_tac [("y","K * abs x")] order_le_less_trans 1);
-by (res_inst_tac [("R2.0","K * e")] real_less_trans 2);
+by (res_inst_tac [("y","K * e")] order_less_trans 2);
 by (res_inst_tac [("z","inverse K")] (CLAIM_SIMP 
     "[|(0::real) <z; z*x<z*y |] ==> x<y" [mult_less_cancel_left]) 3);
 by (asm_full_simp_tac (simpset() addsimps [mult_assoc RS sym]) 4);
@@ -1032,7 +1032,7 @@ Addsimps [exp_not_eq_zero];
 
 Goal "0 < exp x";
 by (simp_tac (simpset() addsimps 
-    [CLAIM_SIMP "(x < y) = (x <= y & y ~= (x::real))" [real_le_less]]) 1);
+    [CLAIM_SIMP "(x < y) = (x <= y & y ~= (x::real))" [order_le_less]]) 1);
 qed "exp_gt_zero";
 Addsimps [exp_gt_zero];
 
@@ -1073,8 +1073,8 @@ by (auto_tac (claset() addIs [exp_less_mono,exp_less_cancel],simpset()));
 qed "exp_less_cancel_iff";
 AddIffs [exp_less_cancel_iff];
 
-Goalw [real_le_def] "(exp(x) <= exp(y)) = (x <= y)";
-by (Auto_tac);
+Goal "(exp(x) <= exp(y)) = (x <= y)";
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));
 qed "exp_le_cancel_iff";
 AddIffs [exp_le_cancel_iff];
 
@@ -1094,7 +1094,7 @@ by (Asm_full_simp_tac 1);
 qed "lemma_exp_total";
 
 Goal "0 < y ==> EX x. exp x = y";
-by (res_inst_tac [("R1.0","1"),("R2.0","y")] real_linear_less2 1);
+by (res_inst_tac [("x","1"),("y","y")] linorder_cases 1);
 by (dtac (order_less_imp_le RS lemma_exp_total) 1);
 by (res_inst_tac [("x","0")] exI 2);
 by (ftac real_inverse_gt_one 3);
@@ -1156,7 +1156,8 @@ by (Simp_tac 1);
 qed "ln_less_cancel_iff";
 Addsimps [ln_less_cancel_iff];
 
-Goalw [real_le_def] "[| 0 < x; 0 < y|] ==> (ln x <= ln y) = (x <= y)";
+Goal "[| 0 < x; 0 < y|] ==> (ln x <= ln y) = (x <= y)";
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));
 by (Auto_tac);
 qed "ln_le_cancel_iff";
 Addsimps [ln_le_cancel_iff];
@@ -1348,8 +1349,8 @@ Goal "[| 1 < x; 0 <= y |] ==> 1 < x + (y::real)";
 by (arith_tac 1);
 qed "real_gt_one_ge_zero_add_less";
 
-Goalw [real_le_def] "abs(sin x) <= 1";
-by (rtac notI 1);
+Goal "abs(sin x) <= 1";
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));
 by (dres_inst_tac [("n","Suc 0")] power_gt1 1); 
 by (auto_tac (claset(),simpset() delsimps [realpow_Suc]));
 by (dres_inst_tac [("r1","cos x")] (realpow_two_le RSN 
@@ -1376,8 +1377,8 @@ by (full_simp_tac (simpset() addsimps [abs_sin_le_one RS
 qed "sin_le_one";
 Addsimps [sin_le_one];
 
-Goalw [real_le_def] "abs(cos x) <= 1";
-by (rtac notI 1);
+Goal "abs(cos x) <= 1";
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));
 by (dres_inst_tac [("n","Suc 0")] power_gt1 1); 
 by (auto_tac (claset(),simpset() delsimps [realpow_Suc]));
 by (dres_inst_tac [("r1","sin x")] (realpow_two_le RSN 
@@ -1599,7 +1600,7 @@ by (asm_simp_tac (simpset() addsimps [zero_less_power]) 2);
 by (asm_simp_tac (simpset() addsimps [mult_less_cancel_left]) 1); 
 by (rtac real_mult_less_mono 1); (*mult_strict_mono would be stronger*)
 by (ALLGOALS(Asm_simp_tac));
-by (TRYALL(rtac real_less_trans));
+by (TRYALL(rtac order_less_trans));
 by (auto_tac (claset(),simpset() addsimps [real_of_nat_Suc] delsimps [fact_Suc]));
 qed "sin_gt_zero";
 
@@ -1626,9 +1627,9 @@ by (cut_inst_tac [("x","2")] cos_paired 1);
 by (dtac sums_minus 1);
 by (rtac (CLAIM "- x < -y ==> (y::real) < x") 1);
 by (ftac sums_unique 1 THEN Auto_tac);
-by (res_inst_tac [("R2.0",
+by (res_inst_tac [("y",
     "sumr 0 (Suc (Suc (Suc 0))) (%n. -((- 1) ^ n /(real (fact(2 * n))) \
-\               * 2 ^ (2 * n)))")] real_less_trans 1);
+\               * 2 ^ (2 * n)))")] order_less_trans 1);
 by (simp_tac (simpset() addsimps [fact_num_eq_if,realpow_num_eq_if] 
     delsimps [fact_Suc,realpow_Suc]) 1);
 by (simp_tac (simpset() addsimps [real_mult_assoc] 
@@ -1832,7 +1833,7 @@ Addsimps [sin_two_pi];
 Goal "[| 0 < x; x < pi/2 |] ==> 0 < sin x";
 by (rtac sin_gt_zero 1);
 by (assume_tac 1); 
-by (rtac real_less_trans 1 THEN assume_tac 1);
+by (rtac order_less_trans 1 THEN assume_tac 1);
 by (rtac pi_half_less_two 1); 
 qed "sin_gt_zero2";
 
@@ -1866,7 +1867,7 @@ by (auto_tac (claset() addSDs [ pi_half_less_two RS order_less_trans,
 qed "cos_gt_zero";
 
 Goal "[| -(pi/2) < x; x < pi/2 |] ==> 0 < cos x";
-by (res_inst_tac [("R1.0","x"),("R2.0","0")] real_linear_less2 1);
+by (res_inst_tac [("x","x"),("y","0")] linorder_cases 1);
 by (rtac (cos_minus RS subst) 1);
 by (rtac cos_gt_zero 1);
 by (rtac (CLAIM "-y < x ==> -x < (y::real)") 2);
@@ -1874,7 +1875,7 @@ by (auto_tac (claset() addIs [cos_gt_zero],simpset()));
 qed "cos_gt_zero_pi";
  
 Goal "[| -(pi/2) <= x; x <= pi/2 |] ==> 0 <= cos x";
-by (auto_tac (claset(),HOL_ss addsimps [real_le_less,
+by (auto_tac (claset(),HOL_ss addsimps [order_le_less,
     cos_gt_zero_pi]));
 by Auto_tac;
 qed "cos_ge_zero";
@@ -1888,7 +1889,7 @@ by (auto_tac (claset() addSIs [cos_gt_zero_pi],
 qed "sin_gt_zero_pi";
 
 Goal "[| 0 <= x; x <= pi |] ==> 0 <= sin x";
-by (auto_tac (claset(),simpset() addsimps [real_le_less,
+by (auto_tac (claset(),simpset() addsimps [order_le_less,
     sin_gt_zero_pi]));
 qed "sin_ge_zero";
 
@@ -2354,7 +2355,7 @@ by (case_tac "n" 3);
 by (cut_inst_tac [("y","x")] arctan_ubound 2);
 by (cut_inst_tac [("y","x")] arctan_lbound 4);
 by (auto_tac (claset(),
-     simpset() addsimps [real_of_nat_Suc, left_distrib,real_le_def, mult_less_0_iff] 
+     simpset() addsimps [real_of_nat_Suc, left_distrib,linorder_not_less RS sym, mult_less_0_iff] 
      delsimps [arctan]));
 qed "cos_arctan_not_zero";
 Addsimps [cos_arctan_not_zero];
@@ -2544,7 +2545,7 @@ Addsimps [real_root_less_iff];
 
 Goal "[| 0 <= x; 0 <= y |] ==> (root(Suc n) x <= root(Suc n) y) = (x <= y)";
 by (auto_tac (claset() addIs [real_root_le_mono],simpset()));
-by (simp_tac (simpset() addsimps [real_le_def]) 1);
+by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1);
 by Auto_tac;
 by (dres_inst_tac [("x","y"),("n","n")] real_root_less_mono 1);
 by Auto_tac;
@@ -2808,11 +2809,11 @@ by (assume_tac 2);
 by (rotate_tac 2 2);
 by (dtac (real_mult_assoc RS subst) 2);
 by (rotate_tac 2 2);
-by (ftac (real_mult_inv_left RS subst) 2);
+by (ftac (left_inverse RS subst) 2);
 by (assume_tac 2);
 by (thin_tac "(1 - z) * (x + y) = x /(x + y) * (x + y)" 2);
 by (thin_tac "1 - z = x /(x + y)" 2);
-by (auto_tac (claset(),simpset() addsimps [real_mult_assoc]));
+by (auto_tac (claset(),simpset() addsimps [mult_assoc]));
 by (auto_tac (claset(),simpset() addsimps [right_distrib,
     left_diff_distrib]));
 qed "lemma_divide_rearrange";

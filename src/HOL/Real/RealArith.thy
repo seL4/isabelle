@@ -1,5 +1,158 @@
-theory RealArith = RealBin
+(*  Title:      HOL/RealArith.thy
+    ID:         $Id$
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1999  University of Cambridge
+
+Binary arithmetic and simplification for the reals
+
+This case is reduced to that for the integers
+*)
+
+theory RealArith = RealDef
 files ("real_arith.ML"):
+
+instance real :: number ..
+
+defs
+  real_number_of_def:
+    "number_of v == real (number_of v :: int)"
+     (*::bin=>real           ::bin=>int*)
+
+text{*Collapse applications of @{term real} to @{term number_of}*}
+declare real_number_of_def [symmetric, simp]
+
+lemma real_numeral_0_eq_0: "Numeral0 = (0::real)"
+by (simp add: real_number_of_def)
+
+lemma real_numeral_1_eq_1: "Numeral1 = (1::real)"
+apply (unfold real_number_of_def)
+apply (subst real_of_one [symmetric], simp)
+done
+
+
+subsection{*Arithmetic Operations On Numerals*}
+
+lemma add_real_number_of [simp]:
+     "(number_of v :: real) + number_of v' = number_of (bin_add v v')"
+by (simp only: real_number_of_def real_of_int_add number_of_add)
+
+lemma minus_real_number_of [simp]:
+     "- (number_of w :: real) = number_of (bin_minus w)"
+by (simp only: real_number_of_def number_of_minus real_of_int_minus)
+
+lemma diff_real_number_of [simp]: 
+   "(number_of v :: real) - number_of w = number_of (bin_add v (bin_minus w))"
+by (simp only: real_number_of_def diff_number_of_eq real_of_int_diff)
+
+lemma mult_real_number_of [simp]:
+     "(number_of v :: real) * number_of v' = number_of (bin_mult v v')"
+by (simp only: real_number_of_def real_of_int_mult number_of_mult)
+
+
+text{*Lemmas for specialist use, NOT as default simprules*}
+lemma real_mult_2: "2 * z = (z+z::real)"
+proof -
+  have eq: "(2::real) = 1 + 1" by (simp add: real_numeral_1_eq_1 [symmetric])
+  thus ?thesis by (simp add: eq left_distrib)
+qed
+
+lemma real_mult_2_right: "z * 2 = (z+z::real)"
+by (subst mult_commute, rule real_mult_2)
+
+
+subsection{*Comparisons On Numerals*}
+
+lemma eq_real_number_of [simp]:
+     "((number_of v :: real) = number_of v') =  
+      iszero (number_of (bin_add v (bin_minus v')))"
+by (simp only: real_number_of_def real_of_int_inject eq_number_of_eq)
+
+text{*@{term neg} is used in rewrite rules for binary comparisons*}
+lemma less_real_number_of [simp]:
+     "((number_of v :: real) < number_of v') =  
+      neg (number_of (bin_add v (bin_minus v')))"
+by (simp only: real_number_of_def real_of_int_less_iff less_number_of_eq_neg)
+
+
+text{*New versions of existing theorems involving 0, 1*}
+
+lemma real_minus_1_eq_m1 [simp]: "- 1 = (-1::real)"
+by (simp add: real_numeral_1_eq_1 [symmetric])
+
+lemma real_mult_minus1 [simp]: "-1 * z = -(z::real)"
+proof -
+  have  "-1 * z = (- 1) * z" by (simp add: real_minus_1_eq_m1)
+  also have "... = - (1 * z)" by (simp only: minus_mult_left) 
+  also have "... = -z" by simp
+  finally show ?thesis .
+qed
+
+lemma real_mult_minus1_right [simp]: "z * -1 = -(z::real)"
+by (subst mult_commute, rule real_mult_minus1)
+
+
+
+(** real from type "nat" **)
+
+lemma zero_less_real_of_nat_iff [iff]: "(0 < real (n::nat)) = (0<n)"
+by (simp only: real_of_nat_less_iff real_of_nat_zero [symmetric])
+
+lemma zero_le_real_of_nat_iff [iff]: "(0 <= real (n::nat)) = (0<=n)"
+by (simp only: real_of_nat_le_iff real_of_nat_zero [symmetric])
+
+
+(*Like the ones above, for "equals"*)
+declare real_of_nat_zero_iff [iff]
+
+
+subsection{*Simplification of Arithmetic when Nested to the Right*}
+
+lemma real_add_number_of_left [simp]:
+     "number_of v + (number_of w + z) = (number_of(bin_add v w) + z::real)"
+by (simp add: add_assoc [symmetric])
+
+lemma real_mult_number_of_left [simp]:
+     "number_of v * (number_of w * z) = (number_of(bin_mult v w) * z::real)"
+apply (simp (no_asm) add: mult_assoc [symmetric])
+done
+
+lemma real_add_number_of_diff1 [simp]: 
+     "number_of v + (number_of w - c) = number_of(bin_add v w) - (c::real)"
+apply (unfold real_diff_def)
+apply (rule real_add_number_of_left)
+done
+
+lemma real_add_number_of_diff2 [simp]:
+     "number_of v + (c - number_of w) =  
+      number_of (bin_add v (bin_minus w)) + (c::real)"
+apply (subst diff_real_number_of [symmetric])
+apply (simp only: real_diff_def add_ac)
+done
+
+
+text{*The constant @{term neg} is used in rewrite rules for binary
+comparisons. A complication in this proof is that both @{term real} and @{term
+number_of} are polymorphic, so that it's difficult to know what types subterms
+have. *}
+lemma real_of_nat_number_of [simp]:
+     "real (number_of v :: nat) =  
+        (if neg (number_of v) then 0  
+         else (number_of v :: real))"
+proof cases
+  assume "neg (number_of v)" thus ?thesis by simp
+next
+  assume neg: "~ neg (number_of v)"
+  thus ?thesis
+    by (simp only: nat_number_of_def real_of_nat_real_of_int [OF neg], simp) 
+qed
+
+declare real_numeral_0_eq_0 [simp] real_numeral_1_eq_1 [simp]
+
+(*Simplification of  x-y < 0, etc.*)
+declare less_iff_diff_less_0 [symmetric, iff]
+declare eq_iff_diff_eq_0 [symmetric, iff]
+declare le_iff_diff_le_0 [symmetric, iff]
+
 
 use "real_arith.ML"
 
@@ -79,13 +232,7 @@ lemma abs_nat_number_of [simp]:
         (if neg (number_of v) then number_of (bin_minus v)  
          else number_of v)"
 by (simp add: real_abs_def bin_arith_simps minus_real_number_of
-       le_real_number_of_eq_not_less less_real_number_of real_of_int_le_iff)
-
-
-(*----------------------------------------------------------------------------
-       Properties of the absolute value function over the reals
-       (adapted version of previously proved theorems about abs)
- ----------------------------------------------------------------------------*)
+       less_real_number_of real_of_int_le_iff)
 
 text{*FIXME: these should go!*}
 lemma abs_eqI1: "(0::real)\<le>x ==> abs x = x"
@@ -95,7 +242,7 @@ lemma abs_eqI2: "(0::real) < x ==> abs x = x"
 by (unfold real_abs_def, simp)
 
 lemma abs_minus_eqI2: "x < (0::real) ==> abs x = -x"
-by (unfold real_abs_def real_le_def, simp)
+by (simp add: real_abs_def linorder_not_less [symmetric])
 
 lemma abs_minus_add_cancel: "abs(x + (-y)) = abs (y + (-(x::real)))"
 by (unfold real_abs_def, simp)

@@ -43,6 +43,9 @@ by arith
 lemma zadd_left_cancel0 [simp]: "(z = z + w) = (w = (0::int))"
 by arith
 
+lemma int_one_le_iff_zero_less: "((1::int) \<le> z) = (0 < z)"
+by arith
+
 
 subsection{*The Functions @{term nat} and @{term int}*}
 

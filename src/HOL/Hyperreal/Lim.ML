@@ -32,8 +32,7 @@ by (Clarify_tac 1);
 by (REPEAT(dres_inst_tac [("x","r/2")] spec 1));
 by (Asm_full_simp_tac 1);
 by (Clarify_tac 1);
-by (res_inst_tac [("R1.0","s"),("R2.0","sa")] 
-    real_linear_less2 1);
+by (res_inst_tac [("x","s"),("y","sa")] linorder_cases 1);
 by (res_inst_tac [("x","s")] exI 1);
 by (res_inst_tac [("x","sa")] exI 2);
 by (res_inst_tac [("x","sa")] exI 3);
@@ -75,7 +74,7 @@ qed "LIM_zero";
    Limit not zero
  --------------------------*)
 Goalw [LIM_def] "k \\<noteq> 0 ==> ~ ((%x. k) -- x --> 0)";
-by (res_inst_tac [("R1.0","k"),("R2.0","0")] real_linear_less2 1);
+by (res_inst_tac [("x","k"),("y","0")] linorder_cases 1);
 by (auto_tac (claset(), simpset() addsimps [real_abs_def]));
 by (res_inst_tac [("x","-k")] exI 1);
 by (res_inst_tac [("x","k")] exI 2);
@@ -116,8 +115,8 @@ by (dres_inst_tac [("x","r")] spec 1);
 by (cut_facts_tac [real_zero_less_one] 1);
 by (asm_full_simp_tac (simpset() addsimps [abs_mult]) 1);
 by (Clarify_tac 1);
-by (res_inst_tac [("R1.0","s"),("R2.0","sa")] 
-    real_linear_less2 1);
+by (res_inst_tac [("x","s"),("y","sa")] 
+    linorder_cases 1);
 by (res_inst_tac [("x","s")] exI 1);
 by (res_inst_tac [("x","sa")] exI 2);
 by (res_inst_tac [("x","sa")] exI 3);
@@ -216,7 +215,7 @@ Goalw [LIM_def,NSLIM_def,approx_def]
 by (asm_full_simp_tac
     (simpset() addsimps [Infinitesimal_FreeUltrafilterNat_iff]) 1);
 by (EVERY1[Step_tac, rtac ccontr, Asm_full_simp_tac]);
-by (fold_tac [real_le_def]);
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less]) 1);
 by (dtac lemma_skolemize_LIM2 1);
 by Safe_tac;
 by (dres_inst_tac [("x","Abs_hypreal(hyprel``{X})")] spec 1);
@@ -722,7 +721,7 @@ Goalw [isNSUCont_def,isUCont_def,approx_def]
 by (asm_full_simp_tac (simpset() addsimps 
                        [Infinitesimal_FreeUltrafilterNat_iff]) 1);
 by (EVERY1[Step_tac, rtac ccontr, Asm_full_simp_tac]);
-by (fold_tac [real_le_def]);
+by (asm_full_simp_tac (simpset() addsimps [linorder_not_less]) 1);
 by (dtac lemma_skolemize_LIM2u 1);
 by Safe_tac;
 by (dres_inst_tac [("x","Abs_hypreal(hyprel``{X})")] spec 1);
@@ -1904,7 +1903,7 @@ qed "DERIV_left_dec";
 Goal "[| DERIV f x :> l; \
 \        \\<exists>d. 0 < d & (\\<forall>y. abs(x - y) < d --> f(y) \\<le> f(x)) |] \
 \     ==> l = 0";
-by (res_inst_tac [("R1.0","l"),("R2.0","0")] real_linear_less2 1);
+by (res_inst_tac [("x","l"),("y","0")] linorder_cases 1);
 by Safe_tac;
 by (dtac DERIV_left_dec 1);
 by (dtac DERIV_left_inc 3);
@@ -2113,13 +2112,13 @@ by (blast_tac (claset() addDs [DERIV_isconst1]) 1);
 qed "DERIV_isconst2";
 
 Goal "\\<forall>x. DERIV f x :> 0 ==> f(x) = f(y)";
-by (res_inst_tac [("R1.0","x"),("R2.0","y")] real_linear_less2 1);
+by (res_inst_tac [("x","x"),("y","y")] linorder_cases 1);
 by (rtac sym 1);
 by (auto_tac (claset() addIs [DERIV_isCont,DERIV_isconst_end],simpset()));
 qed "DERIV_isconst_all";
 
 Goal "[|a \\<noteq> b; \\<forall>x. DERIV f x :> k |] ==> (f(b) - f(a)) = (b - a) * k";
-by (res_inst_tac [("R1.0","a"),("R2.0","b")] real_linear_less2 1);
+by (res_inst_tac [("x","a"),("y","b")] linorder_cases 1);
 by Auto_tac;
 by (ALLGOALS(dres_inst_tac [("f","f")] MVT));
 by (auto_tac (claset() addDs [DERIV_isCont,DERIV_unique],simpset() addsimps 
@@ -2148,7 +2147,7 @@ Addsimps [real_average_minus_second];
 (* Gallileo's "trick": average velocity = av. of end velocities *)
 Goal "[|a \\<noteq> (b::real); \\<forall>x. DERIV v x :> k|] \
 \     ==> v((a + b)/2) = (v a + v b)/2";
-by (res_inst_tac [("R1.0","a"),("R2.0","b")] real_linear_less2 1);
+by (res_inst_tac [("x","a"),("y","b")] linorder_cases 1);
 by Safe_tac;
 by (ftac DERIV_const_ratio_const2 1 THEN assume_tac 1);
 by (ftac DERIV_const_ratio_const2 2 THEN assume_tac 2);

@@ -20,15 +20,13 @@ by Auto_tac;
 qed "number_of_less_real_of_int_iff2";
 Addsimps [number_of_less_real_of_int_iff2];
 
-Goalw [real_le_def,zle_def] 
-   "((number_of n) <= real (m::int)) = (number_of n <= m)";
-by Auto_tac;
+Goal "((number_of n) <= real (m::int)) = (number_of n <= m)";
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));
 qed "number_of_le_real_of_int_iff";
 Addsimps [number_of_le_real_of_int_iff];
 
-Goalw [real_le_def,zle_def] 
-   "(real (m::int) <= (number_of n)) = (m <= number_of n)";
-by Auto_tac;
+Goal "(real (m::int) <= (number_of n)) = (m <= number_of n)";
+by (auto_tac (claset(), simpset() addsimps [linorder_not_less RS sym]));
 qed "number_of_le_real_of_int_iff2";
 Addsimps [number_of_le_real_of_int_iff2];
 
