@@ -271,7 +271,7 @@ fun cond_quote prt =
 fun cond_display prt =
   if ! display then
     Pretty.string_of (Pretty.indent (! indent) prt)
-    |> enclose "\n\\begin{isabelle}%\n" "\n\\end{isabelle}%\n"
+    |> enclose "%\n\\begin{isabelle}%\n" "%\n\\end{isabelle}%\n"
   else
     Pretty.str_of prt
     |> enclose "\\isa{" "}";
