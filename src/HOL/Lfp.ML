@@ -37,7 +37,6 @@ val [mono] = goal Lfp.thy "mono(f) ==> lfp(f) = f(lfp(f))";
 by (REPEAT (resolve_tac [equalityI,lfp_lemma2,lfp_lemma3,mono] 1));
 qed "lfp_Tarski";
 
-
 (*** General induction rule for least fixed points ***)
 
 val [lfp,mono,indhyp] = goal Lfp.thy
@@ -62,6 +61,13 @@ by(res_inst_tac[("p","x")]PairE 1);
 by(hyp_subst_tac 1);
 by(asm_simp_tac (prod_ss addsimps prems) 1);
 qed"induct2";
+
+(*** Fixpoint induction a la David Park ***)
+goal Lfp.thy "!!f. [| mono f; f A <= A |] ==> lfp(f) <= A";
+br subsetI 1;
+by(EVERY[etac induct 1, atac 1, etac subsetD 1, rtac subsetD 1,
+                atac 2, fast_tac (set_cs addSEs [monoD]) 1]);
+qed "Park_induct";
 
 (** Definition forms of lfp_Tarski and induct, to control unfolding **)
 

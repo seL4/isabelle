@@ -98,6 +98,15 @@ SUBST_FILES = Subst/ROOT.ML \
 Subst:  $(BIN)/CHOL  $(SUBST_FILES)
 	echo 'exit_use"Subst/ROOT.ML";quit();' | $(LOGIC)
 
+##Confluence of Lambda-calculus
+LAMBDA_NAMES = Lambda ParRed Confluence
+
+LAMBDA_FILES = Lambda/ROOT.ML \
+              $(LAMBDA_NAMES:%=Lambda/%.thy) $(LAMBDA_NAMES:%=Lambda/%.ML)
+
+Lambda:  $(BIN)/CHOL  $(LAMBDA_FILES)
+	echo 'exit_use"Lambda/ROOT.ML";quit();' | $(LOGIC)
+
 ##Miscellaneous examples
 EX_NAMES = LexProd MT Acc PropLog Puzzle Qsort LList Rec Simult Term String 
 
@@ -108,7 +117,7 @@ ex:     $(BIN)/CHOL  $(EX_FILES)
 	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
 #Full test.
-test:   $(BIN)/CHOL IMP Integ IOA Subst ex
+test:   $(BIN)/CHOL IMP Integ IOA Subst Lambda ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/Pure $(BIN)/CHOL 
