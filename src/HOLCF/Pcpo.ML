@@ -1,280 +1,39 @@
-(*  Title:      HOLCF/Pcpo.ML
-    ID:         $Id$
-    Author:     Franz Regensburger
 
-introduction of the classes cpo and pcpo 
-*)
- 
+(* legacy ML bindings *)
 
-(* ------------------------------------------------------------------------ *)
-(* derive the old rule minimal                                              *)
-(* ------------------------------------------------------------------------ *)
- 
-Goalw [UU_def] "ALL z. UU << z";
-by (rtac (some_eq_ex RS iffD2) 1);
-by (rtac least 1);
-qed "UU_least";
+val cpo = thm "cpo";
+val least = thm "least";
+val UU_def = thm "UU_def";
+val chfin = thm "chfin";
+val ax_flat = thm "ax_flat";
+val UU_least = thm "UU_least";
+val minimal = thm "minimal";
+val thelubE = thm "thelubE";
+val is_ub_thelub = thm "is_ub_thelub";
+val is_lub_thelub = thm "is_lub_thelub";
+val lub_range_shift = thm "lub_range_shift";
+val maxinch_is_thelub = thm "maxinch_is_thelub";
+val lub_mono = thm "lub_mono";
+val lub_equal = thm "lub_equal";
+val lub_mono2 = thm "lub_mono2";
+val lub_equal2 = thm "lub_equal2";
+val lub_mono3 = thm "lub_mono3";
+val eq_UU_iff = thm "eq_UU_iff";
+val UU_I = thm "UU_I";
+val not_less2not_eq = thm "not_less2not_eq";
+val chain_UU_I = thm "chain_UU_I";
+val chain_UU_I_inverse = thm "chain_UU_I_inverse";
+val chain_UU_I_inverse2 = thm "chain_UU_I_inverse2";
+val notUU_I = thm "notUU_I";
+val chain_mono2 = thm "chain_mono2";
+val flat_imp_chfin = thm "flat_imp_chfin";
+val flat_eq = thm "flat_eq";
+val chfin2finch = thm "chfin2finch";
+val infinite_chain_adm_lemma = thm "infinite_chain_adm_lemma";
+val increasing_chain_adm_lemma = thm "increasing_chain_adm_lemma";
 
-bind_thm("minimal", UU_least RS spec);
-
-AddIffs [minimal];
-
-(* ------------------------------------------------------------------------ *)
-(* in cpo's everthing equal to THE lub has lub properties for every chain  *)
-(* ------------------------------------------------------------------------ *)
-
-Goal "[| chain(S); lub(range(S)) = (l::'a::cpo) |] ==> range(S) <<| l ";
-by (blast_tac (claset() addDs [cpo] addIs [lubI]) 1);
-qed "thelubE";
-
-(* ------------------------------------------------------------------------ *)
-(* Properties of the lub                                                    *)
-(* ------------------------------------------------------------------------ *)
-
-
-Goal "chain (S::nat => 'a::cpo) ==> S(x) << lub(range(S))";
-by (blast_tac (claset() addDs [cpo] addIs [lubI RS is_ub_lub]) 1);
-qed "is_ub_thelub";
-
-Goal "[| chain (S::nat => 'a::cpo); range(S) <| x |] ==> lub(range S) << x";
-by (blast_tac (claset() addDs [cpo] addIs [lubI RS is_lub_lub]) 1);
-qed "is_lub_thelub";
-
-Goal "[| range X <= range Y;  chain Y; chain (X::nat=>'a::cpo) |] ==> lub(range X) << lub(range Y)";
-by (etac is_lub_thelub 1);
-by (rtac ub_rangeI 1);
-by (subgoal_tac "? j. X i = Y j" 1);
-by  (Clarsimp_tac 1);
-by  (etac is_ub_thelub 1);
-by Auto_tac;
-qed "lub_range_mono";
-
-Goal "chain (Y::nat=>'a::cpo) ==> lub(range (%i. Y(i + j))) = lub(range Y)";
-by (rtac antisym_less 1);
-by (rtac lub_range_mono 1);
-by    (Fast_tac 1);
-by   (atac 1);
-by (etac chain_shift 1);
-by (rtac is_lub_thelub 1);
-by (assume_tac 1);
-by (rtac ub_rangeI 1);
-by (rtac trans_less 1);
-by (rtac is_ub_thelub 2);
-by (etac chain_shift 2);
-by (etac chain_mono3 1);
-by (rtac le_add1 1);
-qed "lub_range_shift";
-
-Goal "chain Y ==> max_in_chain i Y = (lub(range(Y)) = ((Y i)::'a::cpo))";
-by (rtac iffI 1);
-by (fast_tac (HOL_cs addSIs [thelubI,lub_finch1]) 1);
-by (rewtac max_in_chain_def);
-by (safe_tac (HOL_cs addSIs [antisym_less]));
-by (fast_tac (HOL_cs addSEs [chain_mono3]) 1);
-by (dtac sym 1);
-by (force_tac (HOL_cs addSEs [is_ub_thelub], simpset()) 1);
-qed "maxinch_is_thelub";
-
-
-(* ------------------------------------------------------------------------ *)
-(* the << relation between two chains is preserved by their lubs            *)
-(* ------------------------------------------------------------------------ *)
-
-Goal "[|chain(C1::(nat=>'a::cpo));chain(C2); ALL k. C1(k) << C2(k)|]\
-\     ==> lub(range(C1)) << lub(range(C2))";
-by (etac is_lub_thelub 1);
-by (rtac ub_rangeI 1);
-by (rtac trans_less 1);
-by (etac spec 1);
-by (etac is_ub_thelub 1);
-qed "lub_mono";
-
-(* ------------------------------------------------------------------------ *)
-(* the = relation between two chains is preserved by their lubs            *)
-(* ------------------------------------------------------------------------ *)
-
-Goal "[| chain(C1::(nat=>'a::cpo));chain(C2);ALL k. C1(k)=C2(k)|]\
-\     ==> lub(range(C1))=lub(range(C2))";
-by (rtac antisym_less 1);
-by (rtac lub_mono 1);
-by (atac 1);
-by (atac 1);
-by (strip_tac 1);
-by (rtac (antisym_less_inverse RS conjunct1) 1);
-by (etac spec 1);
-by (rtac lub_mono 1);
-by (atac 1);
-by (atac 1);
-by (strip_tac 1);
-by (rtac (antisym_less_inverse RS conjunct2) 1);
-by (etac spec 1);
-qed "lub_equal";
-
-(* ------------------------------------------------------------------------ *)
-(* more results about mono and = of lubs of chains                          *)
-(* ------------------------------------------------------------------------ *)
-
-Goal "[|EX j. ALL i. j<i --> X(i::nat)=Y(i);chain(X::nat=>'a::cpo);chain(Y)|]\
-\ ==> lub(range(X))<<lub(range(Y))";
-by (etac  exE 1);
-by (rtac is_lub_thelub 1);
-by (assume_tac 1);
-by (rtac ub_rangeI 1);
-by (strip_tac 1);
-by (case_tac "j<i" 1);
-by (res_inst_tac [("s","Y(i)"),("t","X(i)")] subst 1);
-by (rtac sym 1);
-by (Fast_tac 1);
-by (rtac is_ub_thelub 1);
-by (assume_tac 1);
-by (res_inst_tac [("y","X(Suc(j))")] trans_less 1);
-by (rtac chain_mono 1);
-by (assume_tac 1);
-by (rtac (not_less_eq RS subst) 1);
-by (atac 1);
-by (res_inst_tac [("s","Y(Suc(j))"),("t","X(Suc(j))")] subst 1);
-by (Asm_simp_tac 1);
-by (etac is_ub_thelub 1);
-qed "lub_mono2";
-
-Goal "[|EX j. ALL i. j<i --> X(i)=Y(i); chain(X::nat=>'a::cpo); chain(Y)|]\
-\     ==> lub(range(X))=lub(range(Y))";
-by (blast_tac (claset() addIs [antisym_less, lub_mono2, sym]) 1);
-qed "lub_equal2";
-
-Goal "[|chain(Y::nat=>'a::cpo);chain(X);\
-\ALL i. EX j. Y(i)<< X(j)|]==> lub(range(Y))<<lub(range(X))";
-by (rtac is_lub_thelub 1);
-by (atac 1);
-by (rtac ub_rangeI 1);
-by (strip_tac 1);
-by (etac allE 1);
-by (etac exE 1);
-by (rtac trans_less 1);
-by (rtac is_ub_thelub 2);
-by (atac 2);
-by (atac 1);
-qed "lub_mono3";
-
-(* ------------------------------------------------------------------------ *)
-(* usefull lemmas about UU                                                  *)
-(* ------------------------------------------------------------------------ *)
-
-Goal "(x=UU)=(x<<UU)";
-by (rtac iffI 1);
-by (hyp_subst_tac 1);
-by (rtac refl_less 1);
-by (rtac antisym_less 1);
-by (atac 1);
-by (rtac minimal 1);
-qed "eq_UU_iff";
-
-Goal "x << UU ==> x = UU";
-by (stac eq_UU_iff 1);
-by (assume_tac 1);
-qed "UU_I";
-
-Goal "~(x::'a::po)<<y ==> ~x=y";
-by Auto_tac;
-qed "not_less2not_eq";
-
-Goal "[|chain(Y);lub(range(Y))=UU|] ==> ALL i. Y(i)=UU";
-by (rtac allI 1);
-by (rtac antisym_less 1);
-by (rtac minimal 2);
-by (etac subst 1);
-by (etac is_ub_thelub 1);
-qed "chain_UU_I";
-
-
-Goal "ALL i. Y(i::nat)=UU ==> lub(range(Y::(nat=>'a::pcpo)))=UU";
-by (rtac lub_chain_maxelem 1);
-by (etac spec 1);
-by (rtac allI 1);
-by (rtac (antisym_less_inverse RS conjunct1) 1);
-by (etac spec 1);
-qed "chain_UU_I_inverse";
-
-Goal "~lub(range(Y::(nat=>'a::pcpo)))=UU ==> EX i.~ Y(i)=UU";
-by (blast_tac (claset() addIs [chain_UU_I_inverse]) 1);
-qed "chain_UU_I_inverse2";
-
-Goal "[| x<<y; ~x=UU |] ==> ~y=UU";
-by (blast_tac (claset() addIs [UU_I]) 1);
-qed "notUU_I";
-
-Goal 
- "[|EX j. ~Y(j)=UU;chain(Y::nat=>'a::pcpo)|] ==> EX j. ALL i. j<i-->~Y(i)=UU";
-by (blast_tac (claset() addDs [notUU_I, chain_mono]) 1);
-qed "chain_mono2";
-
-(**************************************)
-(* some properties for chfin and flat *)
-(**************************************)
-
-(* ------------------------------------------------------------------------ *)
-(* flat types are chfin                                              *)
-(* ------------------------------------------------------------------------ *)
-
-(*Used only in an "instance" declaration (Fun1.thy)*)
-Goalw [max_in_chain_def]
-     "ALL Y::nat=>'a::flat. chain Y --> (EX n. max_in_chain n Y)";
-by (Clarify_tac 1);
-by (case_tac "ALL i. Y(i)=UU" 1);
-by (res_inst_tac [("x","0")] exI 1);
-by (Asm_simp_tac 1);
-by (Asm_full_simp_tac 1);
-by (etac exE 1);
-by (res_inst_tac [("x","i")] exI 1);
-by (strip_tac 1);
-by (etac (le_imp_less_or_eq RS disjE) 1);
-by Safe_tac;
-by (blast_tac (claset() addDs [chain_mono, ax_flat RS spec RS spec RS mp]) 1);
-qed "flat_imp_chfin";
-
-(* flat subclass of chfin --> adm_flat not needed *)
-
-Goal "(a::'a::flat) ~= UU ==> a << b = (a = b)";
-by (safe_tac (HOL_cs addSIs [refl_less]));
-by (dtac (ax_flat RS spec RS spec RS mp) 1);
-by (fast_tac (HOL_cs addSIs [refl_less,ax_flat RS spec RS spec RS mp]) 1);
-qed "flat_eq";
-
-Goal "chain (Y::nat=>'a::chfin) ==> finite_chain Y";
-by (force_tac (HOL_cs, simpset() addsimps [chfin,finite_chain_def]) 1);
-qed "chfin2finch";
-
-(* ------------------------------------------------------------------------ *)
-(* lemmata for improved admissibility introdution rule                      *)
-(* ------------------------------------------------------------------------ *)
-
-val prems = Goal
-"[|chain Y; ALL i. P (Y i); \
-\  (!!Y. [| chain Y; ALL i. P (Y i); ~ finite_chain Y |] ==> P (lub(range Y)))\
-\ |] ==> P (lub (range Y))";
-by (cut_facts_tac prems 1);
-by (case_tac "finite_chain Y" 1);
-by (eresolve_tac prems 2);
-by (atac 2);
-by (atac 2);
-by (rewtac finite_chain_def);
-by (safe_tac HOL_cs);
-by (etac (lub_finch1 RS thelubI RS ssubst) 1);
-by (atac 1);
-by (etac spec 1);
-qed "infinite_chain_adm_lemma";
-
-val prems = Goal
-"[|chain Y;  ALL i. P (Y i); \
-\  (!!Y. [| chain Y; ALL i. P (Y i);  \
-\           ALL i. EX j. i < j & Y i ~= Y j & Y i << Y j|]\
-\ ==> P (lub (range Y))) |] ==> P (lub (range Y))";
-by (cut_facts_tac prems 1);
-by (etac infinite_chain_adm_lemma 1);
-by (atac 1);
-by (etac thin_rl 1);
-by (rewtac finite_chain_def);
-by (rewtac max_in_chain_def);
-by (fast_tac (HOL_cs addIs prems
-		     addDs [le_imp_less_or_eq] addEs [chain_mono]) 1);
-qed "increasing_chain_adm_lemma";
+structure Pcpo =
+struct
+  val thy = the_context ();
+  val UU_def = UU_def;
+end;
