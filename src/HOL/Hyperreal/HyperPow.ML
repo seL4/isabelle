@@ -23,7 +23,7 @@ qed_spec_mp "hrealpow_inverse";
 
 Goal "abs (r::hypreal) ^ n = abs (r ^ n)";
 by (induct_tac "n" 1);
-by (auto_tac (claset(), simpset() addsimps [hrabs_mult]));
+by Auto_tac;
 qed "hrealpow_hrabs";
 
 Goal "(r::hypreal) ^ (n + m) = (r ^ n) * (r ^ m)";
@@ -507,7 +507,7 @@ Goalw [Infinitesimal_def]
      "[| x : Infinitesimal; 0 < N |] ==> abs (x pow N) <= abs x";
 by (auto_tac (claset() addSIs [hyperpow_Suc_le_self2],
               simpset() addsimps [hyperpow_hrabs RS sym,
-                                  hypnat_gt_zero_iff2, hrabs_ge_zero]));
+                                  hypnat_gt_zero_iff2, abs_ge_zero]));
 qed "lemma_Infinitesimal_hyperpow";
 
 Goal "[| x : Infinitesimal; 0 < N |] ==> x pow N : Infinitesimal";

@@ -217,8 +217,7 @@ val simps = [True_implies_equals,
              inst "a" "(number_of ?v)::real" right_distrib,
              divide_1,times_divide_eq_right,times_divide_eq_left];
 
-val simprocs = [real_cancel_numeral_factors_divide,
-                real_cancel_numeral_factors_divide];
+val simprocs = [real_cancel_numeral_factors_divide];
 
 fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (#sign(rep_thm th)) var;
 

@@ -439,10 +439,6 @@ qed "lemma_realpow_rev_sumr";
 (* i.e. if it sums for x, then it sums absolutely for z with |z| < |x|.     *)
 (* ------------------------------------------------------------------------ *)
 
-Goalw [real_divide_def] "1/(x::real) = inverse x";
-by (Simp_tac 1);
-qed "real_divide_eq_inverse";
-
 Goal "[| summable (%n. f(n) * (x ^ n)); abs(z) < abs(x) |] \
 \     ==> summable (%n. abs(f(n)) * (z ^ n))";
 by (dtac summable_LIMSEQ_zero 1);
@@ -458,7 +454,7 @@ by (subgoal_tac "0 < abs (x ^ n)" 1);
 by (res_inst_tac [("z","abs (x ^ n)")] (CLAIM_SIMP 
     "[| (0::real) <z; x*z<=y*z |] ==> x<=y" [mult_le_cancel_left]) 1);
 by (auto_tac (claset(),
-    simpset() addsimps [real_mult_assoc,realpow_abs]));
+    simpset() addsimps [mult_assoc,realpow_abs]));
 by (dres_inst_tac [("x","0")] spec 2 THEN Force_tac 2); 
 by (auto_tac (claset(),simpset() addsimps [abs_mult,realpow_abs] @ mult_ac));
 by (res_inst_tac [("a2","z ^ n")] (abs_ge_zero RS real_le_imp_less_or_eq
@@ -466,29 +462,28 @@ by (res_inst_tac [("a2","z ^ n")] (abs_ge_zero RS real_le_imp_less_or_eq
 by (auto_tac (claset() addSIs [mult_right_mono],
     simpset() addsimps [mult_assoc RS sym, realpow_abs,summable_def]));
 by (res_inst_tac [("x","K * inverse(1 - (abs(z) * inverse(abs x)))")] exI 1);
-by (auto_tac (claset() addSIs [sums_mult],simpset() addsimps [real_mult_assoc]));
+by (auto_tac (claset() addSIs [sums_mult],simpset() addsimps [mult_assoc]));
 by (subgoal_tac 
     "abs(z ^ n) * inverse(abs x ^ n) = (abs(z) * inverse(abs x)) ^ n" 1);
 by (auto_tac (claset(),simpset() addsimps [realpow_abs RS sym]));
 by (subgoal_tac "x ~= 0" 1);
 by (subgoal_tac "x ~= 0" 3);
 by (auto_tac (claset(),
-     simpset() delsimps [abs_inverse]
+     simpset() delsimps [abs_inverse, abs_mult]
       addsimps [abs_inverse RS sym, realpow_not_zero, abs_mult RS sym,
     realpow_inverse, realpow_mult RS sym]));
 by (auto_tac (claset() addSIs [geometric_sums],
-   simpset() addsimps
-    [realpow_abs,real_divide_eq_inverse RS sym]));
+       simpset() addsimps [realpow_abs, inverse_eq_divide]));
 by (res_inst_tac [("z","abs(x)")] (CLAIM_SIMP 
     "[|(0::real)<z; x*z<y*z |] ==> x<y" [mult_less_cancel_left]) 1);
-by (auto_tac (claset(),simpset() addsimps [abs_mult RS sym,real_mult_assoc]));
+by (auto_tac (claset(),simpset() addsimps [abs_mult RS sym,mult_assoc]));
 qed "powser_insidea";
 
 Goal "[| summable (%n. f(n) * (x ^ n)); abs(z) < abs(x) |] \
 \     ==> summable (%n. f(n) * (z ^ n))";
 by (dres_inst_tac [("z","abs z")] powser_insidea 1);
 by (auto_tac (claset() addIs [summable_rabs_cancel],
-    simpset() addsimps [realpow_abs RS sym,abs_mult RS sym]));
+    simpset() addsimps [realpow_abs RS sym]));
 qed "powser_inside";
 
 (* ------------------------------------------------------------------------ *)

@@ -1733,11 +1733,12 @@ done
 lemma hcomplex_of_complex_inverse:
      "hcomplex_of_complex (inverse r) = inverse (hcomplex_of_complex r)"
 apply (case_tac "r=0")
-apply (simp (no_asm_simp) add: COMPLEX_INVERSE_ZERO HCOMPLEX_INVERSE_ZERO hcomplex_of_complex_zero COMPLEX_DIVIDE_ZERO)
-apply (rule_tac c1 = "hcomplex_of_complex r" in hcomplex_mult_left_cancel [THEN iffD1])
+apply (simp add: hcomplex_of_complex_zero)
+apply (rule_tac c1 = "hcomplex_of_complex r" 
+       in hcomplex_mult_left_cancel [THEN iffD1])
 apply (force simp add: hcomplex_of_complex_zero_iff)
 apply (subst hcomplex_of_complex_mult [symmetric])
-apply (auto simp add: hcomplex_of_complex_one hcomplex_of_complex_zero_iff); 
+apply (auto simp add: hcomplex_of_complex_one hcomplex_of_complex_zero_iff)
 done
 declare hcomplex_of_complex_inverse [simp]
 
