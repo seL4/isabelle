@@ -336,9 +336,9 @@ local
   fun split_pat tp i (Abs  (_,_,t)) = if tp 0 i t then Some (i,t) else None
   |   split_pat tp i (Const ("split", _) $ Abs (_, _, t)) = split_pat tp (i+1) t
   |   split_pat tp i _ = None;
-  fun metaeq sg lhs rhs = mk_meta_eq (prove_goalw_cterm []
-        (cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs))))
-        (K [simp_tac (HOL_basic_ss addsimps [cond_split_eta]) 1]));
+  fun metaeq sg lhs rhs = mk_meta_eq (Tactic.prove sg [] []
+        (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,rhs)))
+        (K (simp_tac (HOL_basic_ss addsimps [cond_split_eta]) 1)));
 
   fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k+1) i t
   |   beta_term_pat k i (t $ u) = Pair_pat k i (t $ u) orelse

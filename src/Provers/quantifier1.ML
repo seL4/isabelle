@@ -104,12 +104,7 @@ fun extract_quant extract q =
   in exqu end;
 
 fun prove_conv tac sg tu =
-  let val meta_eq = cterm_of sg (Logic.mk_equals tu)
-  in prove_goalw_cterm [] meta_eq (K [rtac iff_reflection 1, tac])
-     handle ERROR =>
-            error("The error(s) above occurred while trying to prove " ^
-                  string_of_cterm meta_eq)
-  end;
+  Tactic.prove sg [] [] (Logic.mk_equals tu) (K (rtac iff_reflection 1 THEN tac));
 
 fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i) 
 

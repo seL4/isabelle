@@ -334,19 +334,14 @@ qed "number_of_reorient";
 
 structure Bin_Simprocs =
   struct
-  fun prove_conv name tacs sg (hyps: thm list) (t,u) =
+  fun prove_conv tacs sg (hyps: thm list) xs (t, u) =
     if t aconv u then None
     else
-    let val ct = cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u)))
-    in Some
-       (prove_goalw_cterm [] ct (K tacs)
-	handle ERROR => error 
-	    ("The error(s) above occurred while trying to prove " ^
-	     string_of_cterm ct ^ "\nInternal failure of simproc " ^ name))
-    end
+      let val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u))
+      in Some (Tactic.prove sg xs [] eq (K (EVERY tacs))) end
 
-  (*version without the hyps argument*)
-  fun prove_conv_nohyps name tacs sg = prove_conv name tacs sg []
+  fun prove_conv_nohyps tacs sg = prove_conv tacs sg [];
+  fun prove_conv_nohyps_novars tacs sg = prove_conv tacs sg [] [];
 
   fun prep_simproc (name, pats, proc) =
     Simplifier.simproc (Theory.sign_of (the_context())) name pats proc;
@@ -363,7 +358,7 @@ structure Bin_Simprocs =
     val is_numeral	= is_numeral
     val numeral_0_eq_0    = int_numeral_0_eq_0
     val numeral_1_eq_1    = int_numeral_1_eq_1
-    val prove_conv	= prove_conv_nohyps "int_abstract_numerals"
+    val prove_conv	= prove_conv_nohyps_novars
     fun norm_tac simps	= ALLGOALS (simp_tac (HOL_ss addsimps simps))
     val simplify_meta_eq  = simplify_meta_eq 
     end

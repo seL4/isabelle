@@ -125,9 +125,7 @@ fun Mset thm = let val vars = get_vars(thm);
                            Free ("P",varsT --> boolT) $ Bound 0));
                    val impl = implies $ (Mset_incl big_Collect) $ 
                                           (Mset_incl small_Collect);
-                   val cimpl = cterm_of (#sign (rep_thm thm)) impl
-   in  prove_goalw_cterm [] cimpl (fn prems => 
-                              [cut_facts_tac prems 1,Blast_tac 1]) end;
+   in Tactic.prove (Thm.sign_of_thm thm) ["Mset", "P"] [] impl (K (CLASET' blast_tac 1)) end;
 
 end;
 
@@ -139,8 +137,10 @@ end;
 (** input does not suffer any unexpected transformation                     **)
 (*****************************************************************************)
 
-val Compl_Collect = prove_goal (the_context ()) "-(Collect b) = {x. ~(b x)}"
-    (fn _ => [Fast_tac 1]);
+Goal "-(Collect b) = {x. ~(b x)}";
+by (Fast_tac 1);
+qed "Compl_Collect";
+
 
 (**Simp_tacs**)
 

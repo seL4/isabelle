@@ -154,8 +154,11 @@ goalw (theory "Product_Type") [split_def] "(f::'a*'b=>'c) = (%(x, y). f (x, y))"
 qed "pair_eta_expand";
 
 val pair_eta_expand_proc =
-  Simplifier.simproc (Theory.sign_of (the_context ())) "pair_eta_expand" ["f::'a*'b=>'c"]
-  (fn _ => fn _ => fn t => case t of Abs _ => Some (mk_meta_eq pair_eta_expand) | _ => None);
+  Simplifier.simproc (Theory.sign_of (the_context ()))
+    "pair_eta_expand" ["f::'a*'b=>'c"]
+    (fn _ => fn _ => fn t =>
+      case t of Abs _ => Some (mk_meta_eq pair_eta_expand)
+      | _ => None);
 
 val Mucke_ss = simpset() addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
 

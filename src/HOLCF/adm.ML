@@ -104,8 +104,7 @@ fun prove_cont tac sign s T prems params (l, ts as ((t, _)::_)) =
          | mk_all ((a,T)::Ts) t = (all T) $ (Abs (a, T, mk_all Ts t));
        val t = HOLogic.mk_Trueprop((Const (cont_name, contT)) $ (Abs(s, T, t)));
        val t' = mk_all params (Logic.list_implies (prems, t));
-       val thm = transform_error (fn () => prove_goalw_cterm [] (cterm_of sign t')
-                  (fn ps => [cut_facts_tac ps 1, tac 1])) ()
+       val thm = Tactic.prove sign [] [] t' (K (tac 1));
   in (ts, thm)::l end
   handle ERROR_MESSAGE _ => l;
 

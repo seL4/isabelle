@@ -25,12 +25,6 @@ struct
 
  val assoc_ss = Data.ss addsimps Data.add_ac;
 
- (*prove while suppressing timing information*)
- fun prove name ct tacf =
-     setmp Library.timing false (prove_goalw_cterm [] ct) tacf
-     handle ERROR =>
-         error(name ^ " simproc:\nfailed to prove " ^ string_of_cterm ct);
-
  exception Assoc_fail;
 
  fun mk_sum []  = raise Assoc_fail
@@ -60,10 +54,9 @@ struct
                else ()
        val rhs = Data.plus $ mk_sum lits $ mk_sum others
        val _ = if !trace then tracing ("RHS = " ^ show rhs) else ()
-       val th = prove "assoc_fold"
-                   (Thm.cterm_of sg (Logic.mk_equals (lhs, rhs)))
-                   (fn _ => [rtac Data.eq_reflection 1,
-                             simp_tac assoc_ss 1])
+       val th = Tactic.prove sg [] [] (Logic.mk_equals (lhs, rhs))
+                   (fn _ => rtac Data.eq_reflection 1 THEN
+                            simp_tac assoc_ss 1)
    in Some th end
    handle Assoc_fail => None;
 

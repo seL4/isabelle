@@ -349,15 +349,15 @@ fun distinct_proc sg _ (t as Const ("op =", _) $ t1 $ t2) =
                              in (case (#distinct (datatype_info_sg_err sg tname1)) of
                                  QuickAndDirty => Some (Thm.invoke_oracle
                                    Datatype_thy distinctN (sg, ConstrDistinct eq_t))
-                               | FewConstrs thms => Some (prove_goalw_cterm [] eq_ct (K
-                                   [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
-                                    atac 2, resolve_tac thms 1, etac FalseE 1]))
-                               | ManyConstrs (thm, ss) => Some (prove_goalw_cterm [] eq_ct (K
-                                   [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
+                               | FewConstrs thms => Some (Tactic.prove sg [] [] eq_t (K
+                                   (EVERY [rtac eq_reflection 1, rtac iffI 1, rtac notE 1,
+                                    atac 2, resolve_tac thms 1, etac FalseE 1])))
+                               | ManyConstrs (thm, ss) => Some (Tactic.prove sg [] [] eq_t (K
+                                   (EVERY [rtac eq_reflection 1, rtac iffI 1, dtac thm 1,
                                     full_simp_tac ss 1,
                                     REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
                                     eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1,
-                                    etac FalseE 1])))
+                                    etac FalseE 1]))))
                              end
                            else None
                         end

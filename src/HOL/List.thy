@@ -393,11 +393,8 @@ fun list_eq sg _ (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
         val appT = [listT,listT] ---> listT
         val app = Const("List.op @",appT)
         val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
-        val ct = cterm_of sg (HOLogic.mk_Trueprop(HOLogic.mk_eq(F,F2)))
-        val thm = prove_goalw_cterm [] ct (K [rearr_tac 1])
-          handle ERROR =>
-            error("The error(s) above occurred while trying to prove " ^
-              string_of_cterm ct);
+        val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (F,F2));
+        val thm = Tactic.prove sg [] [] eq (K (rearr_tac 1));
       in Some ((conv RS (thm RS trans)) RS eq_reflection) end;
 
   in

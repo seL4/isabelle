@@ -359,23 +359,25 @@ Addsimps [fun_upd_upd];
 
 (* simplifies terms of the form f(...,x:=y,...,x:=z,...) to f(...,x:=z,...) *)
 local 
-  fun gen_fun_upd  None    T _ _ = None
-  |   gen_fun_upd (Some f) T x y = Some (Const ("Fun.fun_upd",T) $ f $ x $ y)
-  fun dest_fun_T1 (Type (_,T::Ts)) = T
-  fun find_double (t as Const ("Fun.fun_upd",T) $ f $ x $ y) = let
-      fun find         (Const ("Fun.fun_upd",T) $ g $ v $ w) = 
-          if v aconv x then Some g else gen_fun_upd (find g) T v w
-      |   find t = None
-      in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
+  fun gen_fun_upd None T _ _ = None
+    | gen_fun_upd (Some f) T x y = Some (Const ("Fun.fun_upd",T) $ f $ x $ y);
+  fun dest_fun_T1 (Type (_, T :: Ts)) = T;
+  fun find_double (t as Const ("Fun.fun_upd",T) $ f $ x $ y) =
+    let
+      fun find (Const ("Fun.fun_upd",T) $ g $ v $ w) =
+            if v aconv x then Some g else gen_fun_upd (find g) T v w
+        | find t = None;
+    in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end;
+
   val ss = simpset ();
-  val fun_upd_prover = K [rtac eq_reflection 1, rtac ext 1, 
-                          simp_tac ss 1]
-  fun mk_eq_cterm sg T l r = Thm.cterm_of sg (equals T $ l $ r)
+  val fun_upd_prover = K (rtac eq_reflection 1 THEN rtac ext 1 THEN simp_tac ss 1);
 in 
   val fun_upd2_simproc =
-    Simplifier.simproc (Theory.sign_of (the_context ())) "fun_upd2" ["f(v := w, x := y)"]
-    (fn sg => fn _ => fn t => case find_double t of (T, None) => None | (T, Some rhs) =>
-        Some (prove_goalw_cterm [] (mk_eq_cterm sg T t rhs) fun_upd_prover));
+    Simplifier.simproc (Theory.sign_of (the_context ()))
+      "fun_upd2" ["f(v := w, x := y)"]
+      (fn sg => fn _ => fn t =>
+        case find_double t of (T, None) => None
+        | (T, Some rhs) => Some (Tactic.prove sg [] [] (Term.equals T $ t $ rhs) fun_upd_prover));
 end;
 Addsimprocs[fun_upd2_simproc];
 

@@ -376,20 +376,6 @@ val real_mult_minus_simps =
 fun trans_tac None      = all_tac
   | trans_tac (Some th) = ALLGOALS (rtac (th RS trans));
 
-fun prove_conv name tacs sg (hyps: thm list) (t,u) =
-  if t aconv u then None
-  else
-  let val ct = cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u)))
-  in Some
-     (prove_goalw_cterm [] ct (K tacs)
-      handle ERROR => error
-          ("The error(s) above occurred while trying to prove " ^
-           string_of_cterm ct ^ "\nInternal failure of simproc " ^ name))
-  end;
-
-(*version without the hyps argument*)
-fun prove_conv_nohyps name tacs sg = prove_conv name tacs sg [];
-
 (*Final simplification: cancel + and *  *)
 val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
@@ -421,7 +407,7 @@ structure CancelNumeralsCommon =
 
 structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = prove_conv "realeq_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.realT
   val bal_add1 = real_eq_add_iff1 RS trans
@@ -430,7 +416,7 @@ structure EqCancelNumerals = CancelNumeralsFun
 
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = prove_conv "realless_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" HOLogic.realT
   val bal_add1 = real_less_add_iff1 RS trans
@@ -439,7 +425,7 @@ structure LessCancelNumerals = CancelNumeralsFun
 
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = prove_conv "realle_cancel_numerals"
+  val prove_conv = Bin_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" HOLogic.realT
   val bal_add1 = real_le_add_iff1 RS trans
@@ -473,7 +459,7 @@ structure CombineNumeralsData =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
   val left_distrib      = left_real_add_mult_distrib RS trans
-  val prove_conv        = prove_conv_nohyps "real_combine_numerals"
+  val prove_conv        = Bin_Simprocs.prove_conv_nohyps
   val trans_tac         = trans_tac
   val norm_tac =
      ALLGOALS (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
@@ -520,7 +506,7 @@ structure RealAbstractNumeralsData =
   val is_numeral      = Bin_Simprocs.is_numeral
   val numeral_0_eq_0  = real_numeral_0_eq_0
   val numeral_1_eq_1  = real_numeral_1_eq_1
-  val prove_conv      = prove_conv_nohyps "real_abstract_numerals"
+  val prove_conv      = Bin_Simprocs.prove_conv_nohyps_novars
   fun norm_tac simps  = ALLGOALS (simp_tac (HOL_ss addsimps simps))
   val simplify_meta_eq = Bin_Simprocs.simplify_meta_eq
   end

@@ -52,9 +52,6 @@ open Data;
                                     minus_add_distrib, minus_minus,
                                     minus_0, add_0, add_0_right];
 
- (*prove while suppressing timing information*)
- fun prove ct = setmp Library.timing false (prove_goalw_cterm [] ct);
-
  val plus = Const ("op +", [Data.T,Data.T] ---> Data.T);
  val minus = Const ("uminus", Data.T --> Data.T);
 
@@ -114,15 +111,11 @@ open Data;
        val _ = if !trace then
                  tracing ("RHS = " ^ string_of_cterm (Thm.cterm_of sg rhs))
                else ()
-       val ct = Thm.cterm_of sg (Logic.mk_equals (lhs, rhs))
-       val thm = prove ct
-                   (fn _ => [rtac eq_reflection 1,
-                             simp_tac prepare_ss 1,
-                             IF_UNSOLVED (simp_tac cancel_ss 1),
-                             IF_UNSOLVED (simp_tac inverse_ss 1)])
-         handle ERROR =>
-         error("cancel_sums simproc:\nfailed to prove " ^
-               string_of_cterm ct)
+       val thm = Tactic.prove sg [] [] (Logic.mk_equals (lhs, rhs))
+                   (fn _ => rtac eq_reflection 1 THEN
+                            simp_tac prepare_ss 1 THEN
+                            IF_UNSOLVED (simp_tac cancel_ss 1) THEN
+                            IF_UNSOLVED (simp_tac inverse_ss 1))
    in Some thm end
    handle Cancel => None;
 
@@ -172,17 +165,13 @@ open Data;
        val _ = if !trace then
                  tracing ("RHS = " ^ string_of_cterm (Thm.cterm_of sg rhs))
                else ()
-       val ct = Thm.cterm_of sg (Logic.mk_equals (lhs,rhs))
 
-       val thm = prove ct
-                   (fn _ => [rtac eq_reflection 1,
-                             resolve_tac eqI_rules 1,
-                             simp_tac prepare_ss 1,
-                             simp_tac sum_cancel_ss 1,
-                             IF_UNSOLVED (simp_tac add_ac_ss 1)])
-         handle ERROR =>
-         error("cancel_relations simproc:\nfailed to prove " ^
-               string_of_cterm ct)
+       val thm = Tactic.prove sg [] [] (Logic.mk_equals (lhs, rhs))
+                   (fn _ => rtac eq_reflection 1 THEN
+                            resolve_tac eqI_rules 1 THEN
+                            simp_tac prepare_ss 1 THEN
+                            simp_tac sum_cancel_ss 1 THEN
+                            IF_UNSOLVED (simp_tac add_ac_ss 1))
    in Some thm end
    handle Cancel => None;
 
