@@ -88,9 +88,8 @@ DVI_VIEWER=xdvi
 # (1) Get fonts from local (client side) directory:
 ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
 
-# (2) Get from font server (at Munich or Cambridge):
+# (2) Get from font server at Munich:
 #ISABELLE_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
-#ISABELLE_INSTALLFONTS="xset fp+ tcp/font-serv.cl.cam.ac.uk:7100"
 
 
 ###
