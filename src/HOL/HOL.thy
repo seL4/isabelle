@@ -77,6 +77,11 @@ consts
   inverse       :: "'a::inverse => 'a"
   divide        :: "['a::inverse, 'a] => 'a"        (infixl "'/" 70)
 
+syntax (xsymbols)
+  abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
+syntax (HTML output)
+  abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
+
 axclass plus_ac0 < plus, zero
   commute: "x + y = y + x"
   assoc:   "(x + y) + z = x + (y + z)"
