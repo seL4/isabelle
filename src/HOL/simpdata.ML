@@ -131,6 +131,55 @@ val defALL_regroup =
   Simplifier.simproc (Theory.sign_of (the_context ()))
     "defined ALL" ["ALL x. P x"] Quantifier1.rearrange_all;
 
+(*** Simproc for Let ***)
+
+val use_let_simproc = ref true;
+
+local
+val Let_folded = thm "Let_folded";
+val Let_unfold = thm "Let_unfold";
+
+val f_Let_unfold = 
+      let val [(_$(f$_)$_)] = prems_of Let_unfold in cterm_of (sign_of (the_context ())) f end
+val f_Let_folded = 
+      let val [(_$(f$_)$_)] = prems_of Let_folded in cterm_of (sign_of (the_context ())) f end;
+val g_Let_folded = 
+      let val [(_$_$(g$_))] = prems_of Let_folded in cterm_of (sign_of (the_context ())) g end;
+in
+val let_simproc =
+  Simplifier.simproc (Theory.sign_of (the_context ())) "let_simp" ["Let x f"] 
+   (fn sg => fn ss => fn t =>
+      (case t of (Const ("Let",_)$x$f) => (* x and f are already in normal form *)
+         if not (!use_let_simproc) then None
+         else if is_Free x orelse is_Bound x orelse is_Const x 
+         then Some Let_def  
+         else
+          let
+             val n = case f of (Abs (x,_,_)) => x | _ => "x";
+             val cx = cterm_of sg x;
+             val {T=xT,...} = rep_cterm cx;
+             val cf = cterm_of sg f;
+             val fx_g = Simplifier.rewrite ss (Thm.capply cf cx);
+             val (_$_$g) = prop_of fx_g;
+             val g' = abstract_over (x,g);
+           in (if (g aconv g') 
+               then
+                  let
+                    val rl = cterm_instantiate [(f_Let_unfold,cf)] Let_unfold;
+                  in Some (rl OF [fx_g]) end 
+               else if betapply (f,x) aconv g then None (* avoid identity conversion *)
+               else let 
+                     val abs_g'= Abs (n,xT,g');
+                     val g'x = abs_g'$x;
+                     val g_g'x = symmetric (beta_conversion false (cterm_of sg g'x));
+                     val rl = cterm_instantiate
+                               [(f_Let_folded,cterm_of sg f),
+                                (g_Let_folded,cterm_of sg abs_g')]
+                               Let_folded; 
+                   in Some (rl OF [transitive fx_g g_g'x]) end)
+           end
+        | _ => None))
+end
 
 (*** Case splitting ***)
 
@@ -248,7 +297,7 @@ val HOL_ss =
        disj_not1, not_all, not_ex, cases_simp,
        thm "the_eq_trivial", the_sym_eq_trivial]
      @ ex_simps @ all_simps @ simp_thms)
-     addsimprocs [defALL_regroup,defEX_regroup]
+     addsimprocs [defALL_regroup,defEX_regroup,let_simproc]
      addcongs [imp_cong]
      addsplits [split_if];
 

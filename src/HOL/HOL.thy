@@ -1098,6 +1098,14 @@ lemma if_bool_eq_disj: "(if P then Q else R) = ((P&Q) | (~P&R))"
 lemma Eq_TrueI: "P ==> P == True" by (unfold atomize_eq) rules
 lemma Eq_FalseI: "~P ==> P == False" by (unfold atomize_eq) rules
 
+text {* \medskip let rules for simproc *}
+
+lemma Let_folded: "f x \<equiv> g x \<Longrightarrow>  Let x f \<equiv> Let x g"
+  by (unfold Let_def)
+
+lemma Let_unfold: "f x \<equiv> g \<Longrightarrow>  Let x f \<equiv> g"
+  by (unfold Let_def)
+
 subsubsection {* Actual Installation of the Simplifier *}
 
 use "simpdata.ML"

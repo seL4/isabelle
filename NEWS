@@ -247,6 +247,14 @@ New in this Isabelle release
   all partial orders (class "order"), in particular numbers and sets. For
   linear orders (e.g. numbers) it treats ~ x < y just like y <= x.
 
+  - Simproc for "let x = a in f x"
+  If a is a free or bound variable or a constant then the let is unfolded.
+  Otherwise first a is simplified to a', and then f a' is simplified to
+  g. If possible we abstract a' from g arriving at "let x = a' in g' x",
+  otherwise we unfold the let and arrive at g. The simproc can be 
+  enabled/disabled by the reference use_let_simproc. Potential
+  INCOMPATIBILITY since simplification is more powerful by default.
+ 
 * HOL: new 'isatool dimacs2hol' to convert files in DIMACS CNF format
   (containing Boolean satisfiability problems) into Isabelle/HOL theories.
 
