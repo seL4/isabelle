@@ -1,0 +1,59 @@
+<!-- $Id$ -->
+<HTML><HEAD><TITLE>HOL/Auth/Guard/README.html</TITLE></HEAD><BODY>
+
+<H1>Protocol-Independent Secrecy Results</H1>
+
+date: april 2002
+author: Frederic Blanqui
+email: blanqui@lri.fr
+webpage: 
+
+<P>The current development is built above the HOL (Higher-Order Logic)
+Isabelle theory and the formalization of protocols introduced by <A
+HREF="http://www.cl.cam.ac.uk/users/lcp/">Larry Paulson</A>.  More details are
+in his paper <A
+HREF="http://www.cl.cam.ac.uk/users/lcp/papers/Auth/jcs.pdf">
+The Inductive approach
+to verifying cryptographic protocols</A> (J. Computer Security 6, pages
+85-128, 1998).
+
+<P>
+This directory contains a number of files:
+
+<UL>
+<LI>Extensions.thy contains extensions of Larry Paulson's files with many useful
+lemmas.
+
+<LI>Analz contains an important theorem about the decomposition of analz
+between pparts (pairs) and kparts (messages that are not pairs).
+
+<LI>Guard contains the protocol-independent secrecy theorem for nonces.
+<LI>GuardK is the same for keys.
+<LI>Guard_Public extends Guard and GuardK for public-key protocols.
+<LI>Guard_Shared extends Guard and GuardK for symmetric-key protocols.
+
+<LI>List_Msg contains definitions on lists (inside messages).
+
+<LI>P1 contains the definition of the protocol P1 and the proof of its
+properties (strong forward integrity, insertion resilience, truncation
+resilience, data confidentiality and non-repudiability)
+
+<LI>P2 is the same for the protocol P2
+
+<LI>NS_Public is for Needham-Schroeder-Lowe
+<LI>OtwayRees is for Otway-Rees
+<LI>Yahalom is for Yahalom
+
+<LI>Proto contains a more precise formalization of protocols with rules
+and a protocol-independent theorem for proving guardness from a preservation
+property. It also contains the proofs for Needham-Schroeder as an example.
+</UL>
+
+<HR>
+<P>Last modified 20 August 2002
+
+<ADDRESS>
+<A HREF="http://www.lri.fr/~blanqui/">Frederic Blanqui</A>,
+<A HREF="mailto:blanqui@lri.fr">blanqui@lri.fr</A>
+</ADDRESS>
+</BODY></HTML>

@@ -25,3 +25,11 @@ time_use_thy "Yahalom_Bad";
 time_use_thy "NS_Public_Bad";
 time_use_thy "NS_Public";
 time_use_thy "TLS";
+
+(*Blanqui's "guard" concept: protocol-independent secrecy*)
+time_use_thy "Guard/P1";
+time_use_thy "Guard/P2";
+time_use_thy "Guard/NS_Public";
+time_use_thy "Guard/OtwayRees";
+time_use_thy "Guard/Yahalom";
+time_use_thy "Guard/Proto";

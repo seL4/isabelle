@@ -555,6 +555,11 @@ by (rule in_lists_conv_set [THEN iffD1])
 lemma in_listsI [intro!]: "\<forall>x\<in>set xs. x \<in> A ==> xs \<in> lists A"
 by (rule in_lists_conv_set [THEN iffD2])
 
+lemma finite_list: "finite A ==> EX l. set l = A"
+apply (erule finite_induct, auto)
+apply (rule_tac x="x#l" in exI, auto)
+done
+
 
 subsection {* @{text mem} *}
 
