@@ -99,14 +99,14 @@ qed "less_ack1";
 AddIffs [less_ack1];
 
 (*PROPERTY A 8*)
-Goal "ack(1,j) = Suc(Suc(j))";
+Goal "ack(1,j) = j + #2";
 by (induct_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "ack_1";
 Addsimps [ack_1];
 
-(*PROPERTY A 9*)
-Goal "ack(Suc(1),j) = Suc(Suc(Suc(j+j)))";
+(*PROPERTY A 9.  The unary 1 and 2 in ack is essential for the rewriting.*)
+Goal "ack(2,j) = #2*j + #3";
 by (induct_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "ack_2";
@@ -136,7 +136,8 @@ by (blast_tac (claset() addIs [ack_less_mono1]) 1);
 qed "ack_le_mono1";
 
 (*PROPERTY A 10*)
-Goal "ack(i1, ack(i2,j)) < ack(Suc(Suc(i1+i2)), j)";
+Goal "ack(i1, ack(i2,j)) < ack(#2 + (i1+i2), j)";
+by (simp_tac numeral_ss 1);
 by (rtac (ack2_le_ack1 RSN (2,less_le_trans)) 1);
 by (Asm_simp_tac 1);
 by (rtac (le_add1 RS ack_le_mono1 RS le_less_trans) 1);
@@ -145,8 +146,8 @@ by (simp_tac (simpset() addsimps [le_imp_less_Suc, le_add2]) 1);
 qed "ack_nest_bound";
 
 (*PROPERTY A 11*)
-Goal "ack(i1,j) + ack(i2,j) < ack(Suc(Suc(Suc(Suc(i1+i2)))), j)";
-by (res_inst_tac [("j", "ack(Suc(1), ack(i1 + i2, j))")] less_trans 1);
+Goal "ack(i1,j) + ack(i2,j) < ack(#4 + (i1 + i2), j)";
+by (res_inst_tac [("j", "ack(2, ack(i1 + i2, j))")] less_trans 1);
 by (Asm_simp_tac 1);
 by (rtac (ack_nest_bound RS less_le_trans) 2);
 by (Asm_simp_tac 2);
@@ -159,7 +160,7 @@ qed "ack_add_bound";
 
 (*PROPERTY A 12.  Article uses existential quantifier but the ALF proof
   used k+4.  Quantified version must be nested EX k'. ALL i,j... *)
-Goal "i < ack(k,j) ==> i+j < ack(Suc(Suc(Suc(Suc(k)))), j)";
+Goal "i < ack(k,j) ==> i+j < ack(#4 + k, j)";
 by (res_inst_tac [("j", "ack(k,j) + ack(0,j)")] less_trans 1);
 by (rtac (ack_add_bound RS less_le_trans) 2);
 by (Asm_simp_tac 2);
