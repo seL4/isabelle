@@ -22,7 +22,7 @@ translations
 primrec
   "free (Var j) i = (j=i)"
   "free (s $ t) i = (free s i | free t i)"
-  "free (Abs s) i = free s (Suc i)"
+  "free (Abs s) i = free s (i+1)"
 
 inductive eta
 intrs

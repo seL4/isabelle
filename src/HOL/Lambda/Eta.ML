@@ -34,7 +34,7 @@ qed "free_lift";
 Addsimps [free_lift];
 
 Goal "!i k t. free (s[t/k]) i = \
-\              (free s k & free t i | free s (if i<k then i else Suc i))";
+\              (free s k & free t i | free s (if i<k then i else i+1))";
 by (induct_tac "s" 1);
 by (Asm_simp_tac 2);
 by (Blast_tac 2);
@@ -113,7 +113,7 @@ by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [subst_subst RS sym])));
 qed_spec_mp "beta_subst";
 AddIs [beta_subst];
 
-Goal "!i. t[Var i/i] = t[Var(i)/Suc i]";
+Goal "!i. t[Var i/i] = t[Var(i)/i+1]";
 by (induct_tac "t" 1);
 by (auto_tac (claset() addSEs [linorder_neqE], addsplit (simpset())));
 qed_spec_mp "subst_Var_Suc";

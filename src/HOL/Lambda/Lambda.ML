@@ -62,12 +62,12 @@ qed "subst_lt";
 Addsimps [subst_eq,subst_gt,subst_lt];
 
 Goal
-  "!i k. i < Suc k --> lift (lift t i) (Suc k) = lift (lift t k) i";
+  "!i k. i < k+1 --> lift (lift t i) (Suc k) = lift (lift t k) i";
 by (induct_tac "t" 1);
 by (Auto_tac);
 qed_spec_mp "lift_lift";
 
-Goal "!i j s. j < Suc i --> lift (t[s/j]) i = (lift t (Suc i)) [lift s i / j]";
+Goal "!i j s. j < i+1 --> lift (t[s/j]) i = (lift t (i+1)) [lift s i / j]";
 by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [diff_Suc,subst_Var,lift_lift]
                                 addsplits [nat.split])));
@@ -76,7 +76,7 @@ qed "lift_subst";
 Addsimps [lift_subst];
 
 Goal
-  "!i j s. i < Suc j --> lift (t[s/j]) i = (lift t i) [lift s i / Suc j]";
+  "!i j s. i < j+1 --> lift (t[s/j]) i = (lift t i) [lift s i / j+1]";
 by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [subst_Var,lift_lift])));
 qed "lift_subst_lt";
@@ -88,7 +88,7 @@ qed "subst_lift";
 Addsimps [subst_lift];
 
 
-Goal "!i j u v. i < Suc j --> t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]";
+Goal "!i j u v. i < j+1 --> t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]";
 by (induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac
       (simpset() addsimps [diff_Suc,subst_Var,lift_lift RS sym,lift_subst_lt]
