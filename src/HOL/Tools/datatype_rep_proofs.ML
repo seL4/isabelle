@@ -438,7 +438,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
         val inj_thm = prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5)
           (HOLogic.mk_Trueprop (mk_conj ind_concl1))) (fn _ =>
-            [indtac induction 1,
+            [(indtac induction THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
              REPEAT (EVERY
                [rtac allI 1, rtac impI 1,
                 exh_tac (exh_thm_of dt_info) 1,
@@ -448,12 +448,12 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                    REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
                    (eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1)
                    ORELSE (EVERY
-                     [REPEAT (etac Scons_inject 1),
-                      REPEAT (dresolve_tac
-                        (inj_thms' @ [Leaf_inject, Lim_inject, Inl_inject, Inr_inject]) 1),
+                     [REPEAT (eresolve_tac (Scons_inject :: sum_case_inject ::
+                        map make_elim (inj_thms' @
+                          [Leaf_inject, Lim_inject, Inl_inject, Inr_inject])) 1),
                       REPEAT ((EVERY [etac allE 1, dtac mp 1, atac 1]) ORELSE
                               (dtac inj_fun_lemma 1 THEN atac 1)),
-                      TRY (hyp_subst_tac 1),
+                      REPEAT (hyp_subst_tac 1),
                       rtac refl 1])])])]);
 
         val inj_thms'' = map (fn r => r RS datatype_injI)
@@ -464,7 +464,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 	      (cterm_of (Theory.sign_of thy5)
 	       (HOLogic.mk_Trueprop (mk_conj ind_concl2)))
 	      (fn _ =>
-	       [indtac induction 1,
+	       [(indtac induction THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
 		rewrite_goals_tac (o_def :: rewrites),
 		REPEAT (EVERY
 			[resolve_tac rep_intrs 1,
