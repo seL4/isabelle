@@ -23,9 +23,9 @@ qed "common_stable";
 
 Goal "[| Init F <= atMost n;  \
 \        ALL m. F : {m} Co (maxfg m); n: common |] \
-\     ==> F : Invariant (atMost n)";
-by (asm_simp_tac (simpset() addsimps [InvariantI, common_stable]) 1);
-qed "common_Invariant";
+\     ==> F : Always (atMost n)";
+by (asm_simp_tac (simpset() addsimps [AlwaysI, common_stable]) 1);
+qed "common_safety";
 
 
 (*** Some programs that implement the safety property above ***)

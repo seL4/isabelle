@@ -67,8 +67,8 @@ val parts_induct_tac =
 
 (*Spy never sees another agent's private key! (unless it's bad at start)*)
 (*
-    Goal "Nprg : Invariant {s. (Key (priK A) : parts (spies s)) = (A : bad)}";
-    by (rtac InvariantI 1);
+    Goal "Nprg : Always {s. (Key (priK A) : parts (spies s)) = (A : bad)}";
+    by (rtac AlwaysI 1);
     by (Force_tac 1);
     by (constrains_tac 1);
     by Auto_tac;

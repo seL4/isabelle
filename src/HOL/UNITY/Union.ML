@@ -249,14 +249,14 @@ by (asm_full_simp_tac (simpset() addsimps [ball_Un]) 1);
 by (Blast_tac 1);
 qed "stable_constrains_Join";
 
-(*Premise for G cannot use Invariant because  Stable F A  is weaker than
+(*Premise for G cannot use Always because  Stable F A  is weaker than
   G : stable A *)
-Goal "[| F : stable A;  G : invariant A |] ==> F Join G : Invariant A";
-by (full_simp_tac (simpset() addsimps [Invariant_def, invariant_def, 
+Goal "[| F : stable A;  G : invariant A |] ==> F Join G : Always A";
+by (full_simp_tac (simpset() addsimps [Always_def, invariant_def, 
 				       Stable_eq_stable, stable_Join]) 1);
 by (force_tac(claset() addIs [stable_reachable, stable_Int],
 	      simpset() addsimps [Acts_Join]) 1);
-qed "stable_Join_Invariant";
+qed "stable_Join_Always";
 
 Goal "[| F : stable A;  G : A ensures B |] ==> F Join G : A ensures B";
 by (asm_simp_tac (simpset() addsimps [ensures_Join]) 1);

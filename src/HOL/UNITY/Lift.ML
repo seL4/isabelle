@@ -67,43 +67,43 @@ Addsimps [bounded_def, open_stop_def, open_move_def, stop_floor_def,
 AddIffs [Min_le_Max];
 
 
-Goal "Lprg : Invariant open_stop";
-by (rtac InvariantI 1);
+Goal "Lprg : Always open_stop";
+by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (constrains_tac 1);
 qed "open_stop";
 
-Goal "Lprg : Invariant stop_floor";
-by (rtac InvariantI 1);
+Goal "Lprg : Always stop_floor";
+by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (constrains_tac 1);
 qed "stop_floor";
 
 (*This one needs open_stop, which was proved above*)
-Goal "Lprg : Invariant open_move";
-by (rtac InvariantI 1);
-by (rtac (open_stop RS Invariant_ConstrainsI RS StableI) 2);
+Goal "Lprg : Always open_move";
+by (rtac AlwaysI 1);
+by (rtac (open_stop RS Always_ConstrainsI RS StableI) 2);
 by (Force_tac 1);
 by (constrains_tac 1);
 qed "open_move";
 
-Goal "Lprg : Invariant moving_up";
-by (rtac InvariantI 1);
+Goal "Lprg : Always moving_up";
+by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (constrains_tac 1);
 by (blast_tac (claset() addDs [zle_imp_zless_or_eq]) 1);
 qed "moving_up";
 
-Goal "Lprg : Invariant moving_down";
-by (rtac InvariantI 1);
+Goal "Lprg : Always moving_down";
+by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (constrains_tac 1);
 by (blast_tac (claset() addDs [zle_imp_zless_or_eq]) 1);
 qed "moving_down";
 
-Goal "Lprg : Invariant bounded";
-by (rtac InvariantI 1);
-by (rtac (Invariant_Int_rule [moving_up, moving_down] RS Invariant_StableI) 2);
+Goal "Lprg : Always bounded";
+by (rtac AlwaysI 1);
+by (rtac (Always_Int_rule [moving_up, moving_down] RS Always_StableI) 2);
 by (Force_tac 1);
 by (constrains_tac 1);
 by (ALLGOALS Clarify_tac);
@@ -340,19 +340,19 @@ qed "lift_3_Req";
 
 
 (*Now we observe that our integer metric is really a natural number*)
-Goal "reachable Lprg <= {s. #0 <= metric n s}";
-by (rtac (bounded RS Invariant_includes_reachable RS subset_trans) 1);
+Goal "Lprg : Always {s. #0 <= metric n s}";
+by (rtac (bounded RS Always_weaken) 1);
 by (simp_tac (simpset() addsimps metric_simps @ zcompare_rls) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [zless_iff_Suc_zadd, zle_iff_zadd]));
 by (REPEAT_FIRST (etac ssubst));
 by (auto_tac (claset(), simpset() addsimps [zadd_int]));
-qed "reach_nonneg";
+qed "Always_nonneg";
 
-val R_thm11 = [reach_nonneg, E_thm11] MRS reachable_LeadsTo_weaken;
+val R_thm11 = [Always_nonneg, E_thm11] MRS Always_LeadsTo_weaken;
 
 Goal "Lprg : (moving Int Req n) LeadsTo (stopped Int atFloor n)";
-by (rtac (reach_nonneg RS integ_0_le_induct) 1);
+by (rtac (Always_nonneg RS integ_0_le_induct) 1);
 by (case_tac "#0 < z" 1);
 (*If z <= #0 then actually z = #0*)
 by (fold_tac [zle_def]);
@@ -374,8 +374,8 @@ by (rtac (lift_3 RS LeadsTo_Trans_Un') 2);
 by (rtac (lift_2 RS LeadsTo_Trans_Un') 2);
 by (rtac (E_thm03 RS LeadsTo_Trans_Un') 2);
 by (rtac E_thm02 2);
-by (rtac (open_move RS Invariant_LeadsToI) 1);
-by (rtac (open_stop RS Invariant_LeadsToI) 1);
+by (rtac (open_move RS Always_LeadsToI) 1);
+by (rtac (open_stop RS Always_LeadsToI) 1);
 by (rtac subset_imp_LeadsTo 1);
 by (Clarify_tac 1);
 (*The case split is not essential but makes Blast_tac much faster.

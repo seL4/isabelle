@@ -234,100 +234,102 @@ by (Blast_tac 1);
 qed "Elimination_sing";
 
 
-(*** Specialized laws for handling Invariants ***)
+(*** Specialized laws for handling Always ***)
 
-(** Natural deduction rules for "Invariant F A" **)
+(** Natural deduction rules for "Always A" **)
 
-Goal "[| Init F<=A;  F : Stable A |] ==> F : Invariant A";
-by (asm_simp_tac (simpset() addsimps [Invariant_def]) 1);
-qed "InvariantI";
+Goal "[| Init F<=A;  F : Stable A |] ==> F : Always A";
+by (asm_simp_tac (simpset() addsimps [Always_def]) 1);
+qed "AlwaysI";
 
-Goal "F : Invariant A ==> Init F<=A & F : Stable A";
-by (asm_full_simp_tac (simpset() addsimps [Invariant_def]) 1);
-qed "InvariantD";
+Goal "F : Always A ==> Init F<=A & F : Stable A";
+by (asm_full_simp_tac (simpset() addsimps [Always_def]) 1);
+qed "AlwaysD";
 
-bind_thm ("InvariantE", InvariantD RS conjE);
+bind_thm ("AlwaysE", AlwaysD RS conjE);
 
 
-(*The set of all reachable states is the strongest Invariant*)
-Goal "F : Invariant A ==> reachable F <= A";
+(*The set of all reachable states is Always*)
+Goal "F : Always A ==> reachable F <= A";
 by (full_simp_tac 
     (simpset() addsimps [Stable_def, Constrains_def, constrains_def, 
-			 Invariant_def]) 1);
+			 Always_def]) 1);
 by (rtac subsetI 1);
 by (etac reachable.induct 1);
 by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
-qed "Invariant_includes_reachable";
+qed "Always_includes_reachable";
 
-Goalw [Invariant_def, invariant_def, Stable_def, Constrains_def, stable_def]
-     "F : invariant A ==> F : Invariant A";
+Goalw [Always_def, invariant_def, Stable_def, Constrains_def, stable_def]
+     "F : invariant A ==> F : Always A";
 by (blast_tac (claset() addIs [constrains_reachable_Int]) 1);
-qed "invariant_imp_Invariant";
+qed "invariant_imp_Always";
 
-Goalw [Invariant_def, invariant_def, Stable_def, Constrains_def, stable_def]
-     "Invariant A = {F. F : invariant (reachable F Int A)}";
+Goalw [Always_def, invariant_def, Stable_def, Constrains_def, stable_def]
+     "Always A = {F. F : invariant (reachable F Int A)}";
 by (blast_tac (claset() addIs reachable.intrs) 1);
-qed "Invariant_eq_invariant_reachable";
+qed "Always_eq_invariant_reachable";
 
-(*Invariant is the "always" notion*)
-Goal "Invariant A = {F. reachable F <= A}";
+(*the RHS is the traditional definition of the "always" operator*)
+Goal "Always A = {F. reachable F <= A}";
 by (auto_tac (claset() addDs [invariant_includes_reachable],
 	      simpset() addsimps [Int_absorb2, invariant_reachable,
-				  Invariant_eq_invariant_reachable]));
-qed "Invariant_eq_always";
+				  Always_eq_invariant_reachable]));
+qed "Always_eq_includes_reachable";
 
 
-Goal "Invariant A = (UN I: Pow A. invariant I)";
-by (simp_tac (simpset() addsimps [Invariant_eq_always]) 1);
+Goal "Always A = (UN I: Pow A. invariant I)";
+by (simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
 by (blast_tac (claset() addIs [invariantI, impOfSubs Init_subset_reachable, 
                                stable_reachable,
 			       impOfSubs invariant_includes_reachable]) 1);
-qed "Invariant_eq_UN_invariant";
+qed "Always_eq_UN_invariant";
+
+Goal "[| F : Always A; A <= B |] ==> F : Always B";
+by (auto_tac (claset(), simpset() addsimps [Always_eq_includes_reachable]));
+qed "Always_weaken";
 
 
-(*** "Co" rules involving Invariant ***)
+(*** "Co" rules involving Always ***)
 
-Goal "[| F : Invariant INV;  F : (INV Int A) Co A' |]   \
+Goal "[| F : Always INV;  F : (INV Int A) Co A' |]   \
 \     ==> F : A Co A'";
 by (asm_full_simp_tac
-    (simpset() addsimps [Invariant_includes_reachable RS Int_absorb2,
+    (simpset() addsimps [Always_includes_reachable RS Int_absorb2,
 			 Constrains_def, Int_assoc RS sym]) 1);
-qed "Invariant_ConstrainsI";
+qed "Always_ConstrainsI";
 
-(* [| F : Invariant INV; F : (INV Int A) Co A |]
+(* [| F : Always INV; F : (INV Int A) Co A |]
    ==> F : Stable A *)
-bind_thm ("Invariant_StableI", Invariant_ConstrainsI RS StableI);
+bind_thm ("Always_StableI", Always_ConstrainsI RS StableI);
 
-Goal "[| F : Invariant INV;  F : A Co A' |]   \
+Goal "[| F : Always INV;  F : A Co A' |]   \
 \     ==> F : A Co (INV Int A')";
 by (asm_full_simp_tac
-    (simpset() addsimps [Invariant_includes_reachable RS Int_absorb2,
+    (simpset() addsimps [Always_includes_reachable RS Int_absorb2,
 			 Constrains_def, Int_assoc RS sym]) 1);
-qed "Invariant_ConstrainsD";
+qed "Always_ConstrainsD";
 
-bind_thm ("Invariant_StableD", StableD RSN (2,Invariant_ConstrainsD));
+bind_thm ("Always_StableD", StableD RSN (2,Always_ConstrainsD));
 
 
 
-(** Conjoining Invariants **)
+(** Conjoining Always properties **)
 
-Goal "[| F : Invariant A;  F : Invariant B |] ==> F : Invariant (A Int B)";
-by (auto_tac (claset(), simpset() addsimps [Invariant_eq_always]));
-qed "Invariant_Int";
+Goal "[| F : Always A;  F : Always B |] ==> F : Always (A Int B)";
+by (auto_tac (claset(), simpset() addsimps [Always_eq_includes_reachable]));
+qed "Always_Int";
 
 (*Delete the nearest invariance assumption (which will be the second one
-  used by Invariant_Int) *)
-val Invariant_thin =
+  used by Always_Int) *)
+val Always_thin =
     read_instantiate_sg (sign_of thy)
-                [("V", "?F : Invariant ?A")] thin_rl;
+                [("V", "?F : Always ?A")] thin_rl;
 
 (*Combines two invariance ASSUMPTIONS into one.  USEFUL??*)
-val Invariant_Int_tac = dtac Invariant_Int THEN' 
-                        assume_tac THEN'
-			etac Invariant_thin;
+val Always_Int_tac = dtac Always_Int THEN' assume_tac THEN' etac Always_thin;
 
 (*Combines a list of invariance THEOREMS into one.*)
-val Invariant_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS Invariant_Int);
+val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS Always_Int);
 
 
 (*To allow expansion of the program's definition when appropriate*)

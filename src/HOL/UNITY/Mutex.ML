@@ -16,37 +16,34 @@ Addsimps (map simp_of_act
 	  [U0_def, U1_def, U2_def, U3_def, U4_def, 
 	   V0_def, V1_def, V2_def, V3_def, V4_def]);
 
-Addsimps (map simp_of_set
-	  [invariantU_def, invariantV_def, bad_invariantU_def]);
+Addsimps (map simp_of_set [IU_def, IV_def, bad_IU_def]);
 
 (*Simplification for records*)
 Addsimps (thms"state.update_defs");
 
-Goal "Mutex : Invariant invariantU";
-by (rtac InvariantI 1);
+Goal "Mutex : Always IU";
+by (rtac AlwaysI 1);
 by (constrains_tac 2);
 by Auto_tac;
-qed "invariantU";
+qed "IU";
 
-Goal "Mutex : Invariant invariantV";
-by (rtac InvariantI 1);
+Goal "Mutex : Always IV";
+by (rtac AlwaysI 1);
 by (constrains_tac 2);
 by Auto_tac;
-qed "invariantV";
-
-val invariantUV = Invariant_Int_rule [invariantU, invariantV];
-
+qed "IV";
 
 (*The safety property: mutual exclusion*)
-Goal "(reachable Mutex) Int {s. m s = #3 & n s = #3} = {}";
-by (cut_facts_tac [invariantUV RS Invariant_includes_reachable] 1);
+Goal "Mutex : Always {s. ~ (m s = #3 & n s = #3)}";
+by (rtac Always_weaken 1);
+by (rtac ([IU, IV] MRS Always_Int) 1);
 by Auto_tac;
 qed "mutual_exclusion";
 
 
 (*The bad invariant FAILS in V1*)
-Goal "Mutex : Invariant bad_invariantU";
-by (rtac InvariantI 1);
+Goal "Mutex : Always bad_IU";
+by (rtac AlwaysI 1);
 by (constrains_tac 2);
 by (Force_tac 1);
 (*Needs a decision procedure to simplify the resulting state*)
@@ -83,7 +80,7 @@ by (ensures_tac "U1" 1);
 qed "U_F1";
 
 Goal "Mutex : {s. ~ p s & m s = #2} LeadsTo {s. m s = #3}";
-by (cut_facts_tac [invariantU] 1);
+by (cut_facts_tac [IU] 1);
 by (ensures_tac "U2" 1);
 qed "U_F2";
 
@@ -112,7 +109,7 @@ val U_lemma123 = result();
 
 (*Misra's F4*)
 Goal "Mutex : {s. u s} LeadsTo {s. p s}";
-by (rtac ([invariantU, U_lemma123] MRS Invariant_LeadsTo_weaken) 1);
+by (rtac ([IU, U_lemma123] MRS Always_LeadsTo_weaken) 1);
 by Auto_tac;
 qed "u_Leadsto_p";
 
@@ -129,7 +126,7 @@ by (ensures_tac "V1" 1);
 qed "V_F1";
 
 Goal "Mutex : {s. p s & n s = #2} LeadsTo {s. n s = #3}";
-by (cut_facts_tac [invariantV] 1);
+by (cut_facts_tac [IV] 1);
 by (ensures_tac "V2" 1);
 qed "V_F2";
 
@@ -159,7 +156,7 @@ val V_lemma123 = result();
 
 (*Misra's F4*)
 Goal "Mutex : {s. v s} LeadsTo {s. ~ p s}";
-by (rtac ([invariantV, V_lemma123] MRS Invariant_LeadsTo_weaken) 1);
+by (rtac ([IV, V_lemma123] MRS Always_LeadsTo_weaken) 1);
 by Auto_tac;
 qed "v_Leadsto_not_p";
 

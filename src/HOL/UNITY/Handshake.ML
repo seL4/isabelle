@@ -21,8 +21,8 @@ Addsimps (thms"state.update_defs");
 Addsimps [simp_of_set invFG_def];
 
 
-Goal "(F Join G) : Invariant invFG";
-by (rtac InvariantI 1);
+Goal "(F Join G) : Always invFG";
+by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (rtac (constrains_imp_Constrains RS StableI) 1);
 by (auto_tac (claset(), simpset() addsimps [constrains_Join]));

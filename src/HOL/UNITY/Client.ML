@@ -79,9 +79,9 @@ program_defs_ref := [];
 
 (*Safety property 2: clients return the right number of tokens*)
 Goal "Cli_prg : (Increasing giv Int (rel localTo Cli_prg))  \
-\               guarantees Invariant {s. rel s <= giv s}";
+\               guarantees Always {s. rel s <= giv s}";
 by (rtac guaranteesI 1);
-by (rtac InvariantI 1);
+by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (blast_tac (claset() addIs [Increasing_localTo_Stable, 
 			       stable_rel_le_giv]) 1);
@@ -104,12 +104,12 @@ val rewrite_o = rewrite_rule [o_def];
 
 Goal "Cli_prg : \
 \      (Increasing giv Int (rel localTo Cli_prg) Int (ask localTo Cli_prg)) \
-\      guarantees Invariant ({s. size (ask s) <= Suc (size (rel s))} Int \
+\      guarantees Always ({s. size (ask s) <= Suc (size (rel s))} Int \
 \                            {s. size (rel s) <= size (giv s)})";
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
 by (dtac (impOfSubs (rewrite_o Increasing_size)) 1);
-by (rtac InvariantI 1);
+by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (rtac Stable_Int 1);
 by (fast_tac (claset() addEs [impOfSubs (rewrite_o localTo_imp_o_localTo)]
@@ -123,18 +123,18 @@ val lemma1 = result();
 
 Goal "Cli_prg : \
 \      (Increasing giv Int (rel localTo Cli_prg) Int (ask localTo Cli_prg) \
-\                 Int Invariant giv_meets_ask) \
+\                 Int Always giv_meets_ask) \
 \      guarantees ({s. k < size (giv s)} LeadsTo {s. k < size (rel s)})";
 by (rtac guaranteesI 1);
 by (Clarify_tac 1);
-by (rtac Stable_transient_reachable_LeadsTo 1);
+by (rtac Stable_transient_Always_LeadsTo 1);
 by (res_inst_tac [("k", "k")] transient_lemma 2);
 by (force_tac (claset() addDs [impOfSubs Increasing_size,
 			       impOfSubs Increasing_Stable_less],
 	       simpset()) 1);
 by (rtac (make_elim (lemma1 RS guaranteesD)) 1);
- by (Blast_tac 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [Invariant_eq_always, giv_meets_ask_def]));
+by (Blast_tac 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [Always_eq_includes_reachable, giv_meets_ask_def]));
 by (ALLGOALS Force_tac);
 qed "client_correct";

@@ -46,8 +46,9 @@ constdefs
   Stable     :: "'a set => 'a program set"
     "Stable A == A Co A"
 
-  Invariant :: "'a set => 'a program set"
-    "Invariant A == {F. Init F <= A} Int Stable A"
+  (*Always is the weak form of "invariant"*)
+  Always :: "'a set => 'a program set"
+    "Always A == {F. Init F <= A} Int Stable A"
 
   (*Polymorphic in both states and the meaning of <= *)
   Increasing :: "['a => 'b::{ord}] => 'a program set"

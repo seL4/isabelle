@@ -11,33 +11,21 @@ overload_1st_set "SubstAx.op LeadsTo";
 
 (*** Specialized laws for handling invariants ***)
 
-(** Conjoining a safety property **)
+(** Conjoining an Always property **)
 
-Goal "[| reachable F <= C;  F : (C Int A) LeadsTo A' |]   \
+Goal "[| F : Always C;  F : (C Int A) LeadsTo A' |]   \
 \     ==> F : A LeadsTo A'";
 by (asm_full_simp_tac
-    (simpset() addsimps [LeadsTo_def, Int_absorb2, Int_assoc RS sym]) 1);
-qed "reachable_LeadsToI";
+    (simpset() addsimps [LeadsTo_def, Always_eq_includes_reachable,
+			 Int_absorb2, Int_assoc RS sym]) 1);
+qed "Always_LeadsToI";
 
-Goal "[| reachable F <= C;  F : A LeadsTo A' |]   \
+Goal "[| F : Always C;  F : A LeadsTo A' |]   \
 \     ==> F : A LeadsTo (C Int A')";
 by (asm_full_simp_tac
-    (simpset() addsimps [LeadsTo_def, Int_absorb2,
-			 Int_assoc RS sym]) 1);
-qed "reachable_LeadsToD";
-
-
-(** Conjoining an invariant **)
-
-(* [| Invariant F C; F : (C Int A) LeadsTo A' |] ==> F : A LeadsTo A' *)
-bind_thm ("Invariant_LeadsToI", 
-	  Invariant_includes_reachable RS reachable_LeadsToI);
-
-(* [| Invariant F C; F : A LeadsTo A' |] ==> F : A LeadsTo (C Int A') *)
-bind_thm ("Invariant_LeadsToD", 
-	  Invariant_includes_reachable RS reachable_LeadsToD);
-
-
+    (simpset() addsimps [LeadsTo_def, Always_eq_includes_reachable, 
+			 Int_absorb2, Int_assoc RS sym]) 1);
+qed "Always_LeadsToD";
 
 
 (*** Introduction rules: Basis, Trans, Union ***)
@@ -115,12 +103,12 @@ by (blast_tac (claset() addIs [LeadsTo_weaken_R, LeadsTo_weaken_L,
 			       LeadsTo_Trans]) 1);
 qed "LeadsTo_weaken";
 
-Goal "[| reachable F <= C;  F : A LeadsTo A';   \
+Goal "[| F : Always C;  F : A LeadsTo A';   \
 \        C Int B <= A;   C Int A' <= B' |] \
 \     ==> F : B LeadsTo B'";
-by (blast_tac (claset() addDs [reachable_LeadsToI] addIs[LeadsTo_weaken]
-                        addIs [reachable_LeadsToD]) 1);
-qed "reachable_LeadsTo_weaken";
+by (blast_tac (claset() addDs [Always_LeadsToI] addIs[LeadsTo_weaken]
+                        addIs [Always_LeadsToD]) 1);
+qed "Always_LeadsTo_weaken";
 
 (** Two theorems for "proof lattices" **)
 
@@ -150,7 +138,7 @@ by (blast_tac (claset() addIs [LeadsTo_Union, LeadsTo_weaken_L]) 1);
 qed "LeadsTo_Union_distrib";
 
 
-(** More rules using the premise "Invariant F" **)
+(** More rules using the premise "Always INV" **)
 
 Goal "[| F : (A-A') Co (A Un A');  F : transient (A-A') |]   \
 \     ==> F : A LeadsTo A'";
@@ -160,24 +148,16 @@ by (blast_tac (claset() addIs [transient_strengthen]) 2);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "LeadsTo_Basis";
 
-Goal "[| F : Invariant INV;      \
+Goal "[| F : Always INV;      \
 \        F : (INV Int (A-A')) Co (A Un A'); \
 \        F : transient (INV Int (A-A')) |]   \
 \ ==> F : A LeadsTo A'";
-by (rtac Invariant_LeadsToI 1);
+by (rtac Always_LeadsToI 1);
 by (assume_tac 1);
 by (rtac LeadsTo_Basis 1);
 by (blast_tac (claset() addIs [transient_strengthen]) 2);
-by (blast_tac (claset() addIs [Invariant_ConstrainsD RS Constrains_weaken]) 1);
-qed "Invariant_LeadsTo_Basis";
-
-Goal "[| F : Invariant INV;      \
-\        F : A LeadsTo A';  INV Int B  <= A;  INV Int A' <= B' |] \
-\     ==> F : B LeadsTo B'";
-by (REPEAT (ares_tac [Invariant_includes_reachable, 
-		      reachable_LeadsTo_weaken] 1));
-qed "Invariant_LeadsTo_weaken";
-
+by (blast_tac (claset() addIs [Always_ConstrainsD RS Constrains_weaken]) 1);
+qed "Always_LeadsTo_Basis";
 
 (*Set difference: maybe combine with leadsTo_weaken_L??
   This is the most useful form of the "disjunction" rule*)
@@ -251,9 +231,11 @@ qed "LeadsTo_cancel_Diff1";
 (** The impossibility law **)
 
 (*The set "A" may be non-empty, but it contains no reachable states*)
-Goal "F : A LeadsTo {} ==> reachable F Int A = {}";
-by (full_simp_tac (simpset() addsimps [LeadsTo_def]) 1);
-by (etac leadsTo_empty 1);
+Goal "F : A LeadsTo {} ==> F : Always (-A)";
+by (full_simp_tac (simpset() addsimps [LeadsTo_def,
+				       Always_eq_includes_reachable]) 1);
+by (dtac leadsTo_empty 1);
+by Auto_tac;
 qed "LeadsTo_empty";
 
 
@@ -295,12 +277,12 @@ qed "PSP_Unless";
 
 
 Goal "[| F : Stable A;  F : transient C;  \
-\        reachable F <= (-A Un B Un C) |] ==> F : A LeadsTo B";
-by (etac reachable_LeadsTo_weaken 1);
+\        F : Always (-A Un B Un C) |] ==> F : A LeadsTo B";
+by (etac Always_LeadsTo_weaken 1);
 by (rtac LeadsTo_Diff 1);
 by (etac (transient_imp_leadsTo RS leadsTo_imp_LeadsTo RS PSP_stable2) 2);
 by (ALLGOALS (blast_tac (claset() addIs [subset_imp_LeadsTo])));
-qed "Stable_transient_reachable_LeadsTo";
+qed "Stable_transient_Always_LeadsTo";
 
 
 (*** Induction rules ***)
@@ -337,13 +319,13 @@ qed "LessThan_induct";
 
 (*Integer version.  Could generalize from #0 to any lower bound*)
 val [reach, prem] =
-Goal "[| reachable F <= {s. #0 <= f s};  \
+Goal "[| F : Always {s. #0 <= f s};  \
 \        !! z. F : (A Int {s. f s = z}) LeadsTo                     \
 \                           ((A Int {s. f s < z}) Un B) |] \
 \     ==> F : A LeadsTo B";
 by (res_inst_tac [("f", "nat o f")] (allI RS LessThan_induct) 1);
 by (simp_tac (simpset() addsimps [vimage_def]) 1);
-by (rtac ([reach, prem] MRS reachable_LeadsTo_weaken) 1);
+by (rtac ([reach, prem] MRS Always_LeadsTo_weaken) 1);
 by (auto_tac (claset(), simpset() addsimps [nat_eq_iff, nat_less_iff]));
 qed "integ_0_le_induct";
 
@@ -412,8 +394,8 @@ qed_spec_mp "Finite_completion";
 (*proves "ensures/leadsTo" properties when the program is specified*)
 fun ensures_tac sact = 
     SELECT_GOAL
-      (EVERY [REPEAT (Invariant_Int_tac 1),
-	      etac Invariant_LeadsTo_Basis 1 
+      (EVERY [REPEAT (Always_Int_tac 1),
+	      etac Always_LeadsTo_Basis 1 
 	          ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
 		  REPEAT (ares_tac [LeadsTo_Basis, ensuresI] 1),
 	      (*now there are two subgoals: co & transient*)

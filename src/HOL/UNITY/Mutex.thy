@@ -60,18 +60,16 @@ constdefs
 
   (** The correct invariants **)
 
-  invariantU :: state set
-    "invariantU == {s. (u s = (#1 <= m s & m s <= #3)) &
-		       (m s = #3 --> ~ p s)}"
+  IU :: state set
+    "IU == {s. (u s = (#1 <= m s & m s <= #3)) & (m s = #3 --> ~ p s)}"
 
-  invariantV :: state set
-    "invariantV == {s. (v s = (#1 <= n s & n s <= #3)) &
-		       (n s = #3 --> p s)}"
+  IV :: state set
+    "IV == {s. (v s = (#1 <= n s & n s <= #3)) & (n s = #3 --> p s)}"
 
   (** The faulty invariant (for U alone) **)
 
-  bad_invariantU :: state set
-    "bad_invariantU == {s. (u s = (#1 <= m s & m s <= #3)) &
-		           (#3 <= m s & m s <= #4 --> ~ p s)}"
+  bad_IU :: state set
+    "bad_IU == {s. (u s = (#1 <= m s & m s <= #3)) &
+	           (#3 <= m s & m s <= #4 --> ~ p s)}"
 
 end
