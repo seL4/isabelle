@@ -537,7 +537,7 @@ fun extract thms thy =
                     val corr_prop = Reconstruct.prop_of corr_prf;
                     val corr_prf' = foldr forall_intr_prf
                       (map (get_var_type corr_prop) (vfs_of prop), proof_combt
-                         (PThm ((corr_name name vs, []), corr_prf, corr_prop,
+                         (PThm ((corr_name name vs', []), corr_prf, corr_prop,
                              Some (map TVar (term_tvars corr_prop))), vfs_of corr_prop))
                   in
                     ((name, (vs', ((nullt, nullt), (corr_prf, corr_prf')))) :: defs'',
