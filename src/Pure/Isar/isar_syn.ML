@@ -296,25 +296,25 @@ val localeP =
 
 (* statements *)
 
-val in_locale = Scan.optional (P.$$$ "(" |-- P.!!!
-    ((P.$$$ "in" |-- P.xname -- P.opt_attribs >> Some) -- Scan.repeat P.locale_element ||
-      Scan.repeat1 P.locale_element >> pair None) --| P.$$$ ")") (None, []);
+val in_locale_elems =
+  Scan.option ((P.$$$ "(" -- P.$$$ "in") |-- P.xname -- P.opt_attribs --| P.$$$ ")") --
+  Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.locale_element --| P.$$$ ")")) [];
 
 val statement = P.opt_thm_name ":" -- P.propp -- P.marg_comment;
 
 val theoremP =
   OuterSyntax.command "theorem" "state theorem" K.thy_goal
-    (in_locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
+    (in_locale_elems -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
       uncurry (IsarThy.theorem Drule.theoremK)));
 
 val lemmaP =
   OuterSyntax.command "lemma" "state lemma" K.thy_goal
-    (in_locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
+    (in_locale_elems -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
       uncurry (IsarThy.theorem Drule.lemmaK)));
 
 val corollaryP =
   OuterSyntax.command "corollary" "state corollary" K.thy_goal
-    (in_locale -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
+    (in_locale_elems -- statement >> ((Toplevel.print oo Toplevel.theory_to_proof) o
       uncurry (IsarThy.theorem Drule.corollaryK)));
 
 val showP =
