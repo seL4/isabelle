@@ -1,7 +1,7 @@
 (*  Title:      Provers/splitter
     ID:         $Id$
     Author:     Tobias Nipkow
-    Copyright   1993  TU Munich
+    Copyright   1995  TU Munich
 
 Generic case-splitter, suitable for most logics.
 
@@ -30,42 +30,61 @@ val lift =
 val trlift = lift RS transitive_thm;
 val _ $ (Var(P,PT)$_) $ _ = concl_of trlift;
 
-fun contains cmap =
-  let fun isin i (Abs(_,_,b)) = isin 0 b
-        | isin i (s$t) = isin (i+1) s orelse isin 0 t
-        | isin i (Const(c,_)) = (case assoc(cmap,c) of
-                                   Some(n,_) => n <= i
-                                 | None => false)
-        | isin _ _ = false
-  in isin 0 end;
 
-fun mk_context cmap Ts maxi t =
-  let fun var (t,i) = Var(("X",i),type_of1(Ts,t))
+fun mk_cntxt Ts t pos T maxi =
+  let fun var (t,i) = Var(("X",i),type_of1(Ts,t));
+      fun down [] t i = Bound 0
+        | down (p::ps) t i =
+            let val (h,ts) = strip_comb t
+                val v1 = map var (take(p,ts) ~~ (i upto (i+p-1)))
+                val u::us = drop(p,ts)
+                val v2 = map var (us ~~ ((i+p) upto (i+length(ts)-2)))
+      in list_comb(h,v1@[down ps u (i+length ts)]@v2) end;
+  in Abs("", T, down (rev pos) t maxi) end;
 
-      fun mka((None,i,ts),t) = if contains cmap t
-            then let val (u,T,j) = mk(t,i) in (Some(T),j,ts@[u]) end
-            else (None,i+1,ts@[var(t,i)])
-        | mka((some,i,ts),t) = (some,i+1,ts@[var(t,i)])
-      and mk(t as Abs _, i) = (Bound 0,type_of1(Ts,t),i)
-        | mk(t,i) =
-            let val (f,ts) = strip_comb t
-                val (Some(T),j,us) = foldl mka ((None,i,[]),ts)
-            in (list_comb(f,us),T,j) end
+fun add_lbnos(is,t) = add_loose_bnos(t,0,is);
 
-      val (u,T,_) = mk(t,maxi+1)
-  in Abs("",T,u) end;
+fun typ_test _ [] = true
+  | typ_test T ((_,U,_)::_) = (T=U);
+
+fun mk_split_pack(thm,T,n,ts,apsns) =
+  if n <= length ts andalso typ_test T apsns
+  then let val lev = length apsns
+           val lbnos = foldl add_lbnos ([],take(n,ts))
+           val flbnos = filter (fn i => i < lev) lbnos
+       in [(thm, if null flbnos then [] else rev apsns)] end
+  else [];
+
+fun split_posns cmap Ts t =
+  let fun posns Ts pos apsns (Abs(_,T,t)) =
+            let val U = fastype_of1(T::Ts,t)
+            in posns (T::Ts) (0::pos) ((T,U,pos)::apsns) t end
+        | posns Ts pos apsns t =
+            let val (h,ts) = strip_comb t
+                fun iter((i,a),t) = (i+1, (posns Ts (i::pos) apsns t) @ a);
+                val a = case h of
+                  Const(c,_) =>
+                    (case assoc(cmap,c) of
+                       Some(thm,T,n) => mk_split_pack(thm,T,n,ts,apsns)
+                     | None => [])
+                | _ => []
+             in snd(foldl iter ((0,a),ts)) end
+  in posns Ts [] [] t end;
 
 fun nth_subgoal i thm = nth_elem(i-1,prems_of thm);
 
-fun goal_concl i thm = Logic.strip_assums_concl(nth_subgoal i thm);
+fun shorter((_,ps),(_,qs)) = length ps <= length qs;
 
-fun inst_lift cmap state lift i =
+fun select cmap state i =
+  let val goali = nth_subgoal i state
+      val Ts = rev(map #2 (Logic.strip_params goali))
+      val _ $ t $ _ = Logic.strip_assums_concl goali;
+  in (Ts,t,sort shorter (split_posns cmap Ts t)) end;
+
+fun inst_lift Ts t (T,U,pos) state lift i =
   let val sg = #sign(rep_thm state)
       val tsig = #tsig(Sign.rep_sg sg)
-      val goali = nth_subgoal i state
-      val Ts = map #2 (Logic.strip_params goali)
-      val _ $ t $ _ = Logic.strip_assums_concl goali;
-      val cntxt = mk_context cmap (rev Ts) (#maxidx(rep_thm lift)) t
+      val cntxt = mk_cntxt Ts t pos (T-->U) (#maxidx(rep_thm lift))
       val cu = cterm_of sg cntxt
       val uT = #T(rep_cterm cu)
       val cP' = cterm_of sg (Var(P,uT))
@@ -73,45 +92,27 @@ fun inst_lift cmap state lift i =
       val ixncTs = map (fn (x,y) => (x,ctyp_of sg y)) ixnTs;
   in instantiate (ixncTs, [(cP',cu)]) lift end;
 
-fun splittable al i thm =
-  let val tm = goal_concl i thm
-      fun nobound j k (Abs(_,_,t)) = nobound j (k+1) t
-        | nobound j k (s$t) = nobound j k s andalso nobound j k t
-        | nobound j k (Bound n) = n < k orelse k+j <= n
-        | nobound _ _ _ = true;
-      fun find j (None,t) = (case t of
-            Abs(_,_,t) => find (j+1) (None,t)
-          | _ => let val (h,args) = strip_comb t
-                     fun no() = foldl (find j) (None,args)
-                 in case h of
-                      Const(c,_) =>
-                        (case assoc(al,c) of
-                           Some(n,thm) =>
-                             if length args < n then no()
-                             else if forall (nobound j 0) (take(n,args))
-                                  then Some(thm)
-                                  else no()
-                         | None => no())
-                    | _ => no()
-                 end)
-        | find _ (some,_) = some
-  in find 0 (None,tm) end;
 
 fun split_tac [] i = no_tac
   | split_tac splits i =
-  let fun const(thm) = let val _$(_$lhs)$_ = concl_of thm
+  let fun const(thm) = let val _$(t as _$lhs)$_ = concl_of thm
                            val (Const(a,_),args) = strip_comb lhs
-                       in (a,(length args,thm)) end
+                       in (a,(thm,fastype_of t,length args)) end
       val cmap = map const splits;
-      fun lift thm = rtac (inst_lift cmap thm trlift i) i
-      fun lift_split thm =
-            case splittable cmap i thm of
-              Some(split) => rtac split i
-            | None => EVERY[STATE lift, rtac reflexive_thm (i+1),
-                            STATE lift_split]
+      fun lift Ts t p state = rtac (inst_lift Ts t p state trlift i) i
+      fun lift_split state =
+            let val (Ts,t,splits) = select cmap state i
+            in case splits of
+                 [] => no_tac
+               | (thm,apsns)::_ =>
+                   (case apsns of
+                      [] => rtac thm i
+                    | p::_ => EVERY[STATE(lift Ts t p),
+                                    rtac reflexive_thm (i+1),
+                                    STATE lift_split])
+            end
   in STATE(fn thm =>
-       if (i <= nprems_of thm)  andalso  contains cmap (goal_concl i thm)
-       then EVERY[rtac iffD i, STATE lift_split]
+       if i <= nprems_of thm then rtac iffD i THEN STATE lift_split
        else no_tac)
   end;
 
