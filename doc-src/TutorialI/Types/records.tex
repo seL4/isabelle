@@ -1,6 +1,7 @@
 \section{Records} 
 \label{sec:records}
 
+\index{records|(}%
 Records are familiar from programming languages.  A record of $n$
 fields is essentially an $n$-tuple, but the record's components have
 names, which can make expressions easier to read and reduces the risk
@@ -14,8 +15,7 @@ Standard ML.  If two different record types have fields in common,
 then the ambiguity is resolved in the usual way, by qualified names.
 
 Record types can also be defined by extending other record types. 
-The effect resembles inheritance in object-oriented programming. 
-Extensible records make use of the reserved field \isa{more}, which is
+Extensible records make use of the reserved field \cdx{more}, which is
 present in every record type.  Generic methods, or operations that
 work on all possible extensions of a given record, can be expressed by
 definitions involving \isa{more}, but the details are complicated.
@@ -23,7 +23,7 @@ definitions involving \isa{more}, but the details are complicated.
 \subsection{Record Basics}
 
 Record types are not primitive in Isabelle and have a complex internal
-representation.  A \isacommand{record} declaration
+representation.  A \commdx{record} declaration
 introduces a new record type:
 \begin{isabelle}
 \isacommand{record}\ point\ =\isanewline
@@ -71,12 +71,14 @@ automatically:
 \begin{warn}
 Field names are declared as constants and can no longer be
 used as variables.  It would be unwise, for example, to call the fields
-of type \isa{point} simply \isa{x} and~\isa{y}.
+of type \isa{point} simply \isa{x} and~\isa{y}.  Each record
+declaration introduces a constant \cdx{more}.
 \end{warn}
 
 
 \subsection{Extensible Records and Generic Operations}
 
+\index{records!extensible|(}%
 Now, let us define coloured points
 (type \isa{cpoint}) to be points extended with a field \isa{col} of type
 \isa{colour}:
@@ -104,12 +106,12 @@ fields.  However,  we can define generic operations
 that work on type
 \isa{point} and all extensions of it.
 
-Every record structure has an implicit field, \isa{more}, to allow
+Every record structure has an implicit field, \cdx{more}, to allow
 extension.  Its type is completely polymorphic:~\isa{'a}.  When a
 record value is expressed using just its standard fields, the value of
 \isa{more} is implicitly set to \isa{()}, the empty tuple, which has
 type \isa{unit}.  Within the record brackets, you can refer to the
-\isa{more} field by writing \isa{...}:
+\isa{more} field by writing \isa{...} (three periods):
 \begin{isabelle}
 \isacommand{lemma}\ "Xcoord\ (|\ Xcoord\ =\ a,\ Ycoord\ =\ b,\ ...\ =\ p\ |)\ =\ a"
 \end{isabelle}
@@ -137,9 +139,11 @@ abbreviations:
 Type \isa{point} is for rigid records having the two fields
 \isa{Xcoord} and~\isa{Ycoord}, while the polymorphic type \isa{'a\ point_scheme}
 comprises all possible extensions to those two fields.  For example,
-let us define two operations (``methods'') to get and set any point's \isa{Xcoord}
-field.  The sort constraint in \isa{'a::more} is required, since
-all extensions must belong to the type class \isa{more}.%
+let us define two operations --- methods, if we regard records as
+objects --- to get and set any point's
+\isa{Xcoord} field.  The sort constraint in \isa{'a::more} is
+required, since all extensions must belong to the type class
+\isa{more}.%
 \REMARK{Why, and what does this imply in practice?}
 \begin{isabelle}
 \ \ getX\ ::\ "('a::more)\ point_scheme\ \isasymRightarrow \ int"\isanewline
@@ -176,12 +180,14 @@ If you use the symbolic record brackets \isa{\isasymlparr} and
 \isa{...}.  Mixing the ASCII and symbolic versions
 causes a syntax error.  (The two versions are more
 distinct on screen than they are on paper.)
-\end{warn}
+\end{warn}%
+\index{records!extensible|)}
 
 
 \subsection{Record Equality}
 
-Two records are equal if all pairs of corresponding fields are equal. 
+Two records are equal\index{equality!of records}
+if all pairs of corresponding fields are equal. 
 Record equalities are simplified automatically:
 \begin{isabelle}
 \isacommand{lemma}\ "(\isasymlparr Xcoord\ =\ a,\ Ycoord\ =\ b\isasymrparr \ =\ \isasymlparr Xcoord\ =\ a',\ Ycoord\ =\ b'\isasymrparr )\
@@ -203,8 +209,9 @@ have written the left-hand side as
 \isa{r\ \isasymlparr Xcoord\ :=\ a\isasymrparr \ \isasymlparr
 Ycoord\ :=\ b\isasymrparr}.
 
-Record equality is \emph{extensional}: a record is determined entirely
-by the values of its fields.
+Record equality is \emph{extensional}:
+\index{extensionality!for records} 
+a record is determined entirely by the values of its fields.
 \begin{isabelle}
 \isacommand{lemma}\ "r\ =\ \isasymlparr Xcoord\ =\ Xcoord\ r,\ Ycoord\ =\
 Ycoord\ r\isasymrparr "\isanewline
@@ -244,7 +251,7 @@ we enter the lemma again:
 \isacommand{lemma}\ "!!r.\ r\ \isasymlparr Xcoord\ :=\ a\isasymrparr \ =\ r\ \isasymlparr Xcoord\ :=\ a'\isasymrparr \ \isasymLongrightarrow \ a\ =\
 a'"\isanewline
 \end{isabelle}
-The \isa{record_split} method replaces the record variable by an
+The \methdx{record_split} method replaces the record variable by an
 explicit record, listing all fields.  Even the field \isa{more} is
 included, since the record equality is generic.
 \begin{isabelle}
@@ -263,6 +270,7 @@ replaced by equality of the corresponding fields.
 \begin{exercise}
 \REMARK{There should be some, but I can't think of any.} 
 \end{exercise}
+\index{records|)}
 
 \endinput
 
