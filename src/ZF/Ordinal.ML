@@ -475,9 +475,15 @@ Goal "Ord(i) ==> i~=0 <-> 0<i";
 by (blast_tac (claset() addIs [Ord_0_lt]) 1);
 qed "Ord_0_lt_iff";
 
+
 (*** Results about less-than or equals ***)
 
 (** For ordinals, j<=i (subset) implies j le i (less-than or equals) **)
+
+Goal "0 le succ(x) <-> Ord(x)";
+by (blast_tac (claset() addIs [Ord_0_le] addEs [ltE]) 1); 
+qed "zero_le_succ_iff";
+AddIffs [zero_le_succ_iff];
 
 Goal "[| j<=i;  Ord(i);  Ord(j) |] ==> j le i";
 by (rtac (not_lt_iff_le RS iffD1) 1);
