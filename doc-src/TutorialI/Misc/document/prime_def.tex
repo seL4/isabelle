@@ -1,4 +1,5 @@
-\begin{isabelle}%
+%
+\begin{isabellebody}%
 \isanewline
 \ \ \ \ {\isachardoublequote}prime{\isacharparenleft}p{\isacharparenright}\ {\isasymequiv}\ \isadigit{1}\ {\isacharless}\ p\ {\isasymand}\ {\isacharparenleft}m\ dvd\ p\ {\isasymlongrightarrow}\ {\isacharparenleft}m{\isacharequal}\isadigit{1}\ {\isasymor}\ m{\isacharequal}p{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
@@ -8,7 +9,7 @@ Isabelle rejects this ``definition'' because of the extra \isa{m} on the
 right-hand side, which would introduce an inconsistency (why?). What you
 should have written is%
 \end{isamarkuptext}%
-\ {\isachardoublequote}prime{\isacharparenleft}p{\isacharparenright}\ {\isasymequiv}\ \isadigit{1}\ {\isacharless}\ p\ {\isasymand}\ {\isacharparenleft}{\isasymforall}m{\isachardot}\ m\ dvd\ p\ {\isasymlongrightarrow}\ {\isacharparenleft}m{\isacharequal}\isadigit{1}\ {\isasymor}\ m{\isacharequal}p{\isacharparenright}{\isacharparenright}{\isachardoublequote}\end{isabelle}%
+\ {\isachardoublequote}prime{\isacharparenleft}p{\isacharparenright}\ {\isasymequiv}\ \isadigit{1}\ {\isacharless}\ p\ {\isasymand}\ {\isacharparenleft}{\isasymforall}m{\isachardot}\ m\ dvd\ p\ {\isasymlongrightarrow}\ {\isacharparenleft}m{\isacharequal}\isadigit{1}\ {\isasymor}\ m{\isacharequal}p{\isacharparenright}{\isacharparenright}{\isachardoublequote}\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

@@ -1,4 +1,5 @@
-\begin{isabelle}%
+%
+\begin{isabellebody}%
 \isacommand{datatype}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree\ {\isacharequal}\ Tip\ {\isacharbar}\ Branch\ {\isacharprime}a\ {\isachardoublequote}{\isacharprime}i\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a{\isacharcomma}{\isacharprime}i{\isacharparenright}bigtree{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent Parameter \isa{'a} is the type of values stored in
@@ -49,7 +50,7 @@ to understand what the presence of the function type entails:
 ~~~~~~map\_bt~g~(map\_bt~f~(Branch~a~F))~=~map\_bt~(g~{\isasymcirc}~f)~(Branch~a~F)%
 \end{isabellepar}%%
 \end{isamarkuptext}%
-\end{isabelle}%
+\end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"
