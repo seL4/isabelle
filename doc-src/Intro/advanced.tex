@@ -377,16 +377,16 @@ lower case and {\tt.thy} is appended, yielding the filename {\tt
 a given theory; \ttindexbold{use_thy} automatically loads a theory's
 parents before loading the theory itself.
 
-Calling \ttindexbold{use_thy}~{\tt"}{\it tf\/}{\tt"} reads a theory from
-the file {\it tf}{\tt.thy}, writes the corresponding {\ML} code to the file
-{\tt.}{\it tf}{\tt.thy.ML}, and reads the latter file.  This declares the
-{\ML} structure~$T$, which contains a component {\tt thy} denoting the new
-theory, a component for each rule, and everything declared in {\it ML
-  code}.
+Calling \ttindexbold{use_thy}~{\tt"}{\it T\/}{\tt"} reads a theory from the
+file {\it t}{\tt.thy}, writes the corresponding {\ML} code to the file
+{\tt.}{\it t}{\tt.thy.ML}, reads the latter file, and deletes it if no errors
+occured.  This declares the {\ML} structure~$T$, which contains a component
+{\tt thy} denoting the new theory, a component for each rule, and everything
+declared in {\it ML code}.
 
 Errors may arise during the translation to {\ML} (say, a misspelled keyword)
 or during creation of the new theory (say, a type error in a rule).  But if
-all goes well, {\tt use_thy} will finally read the file {\it tf}{\tt.ML}, if
+all goes well, {\tt use_thy} will finally read the file {\it t}{\tt.ML}, if
 it exists.  This file typically begins with the {\ML} declaration {\tt
 open}~$T$ and contains proofs that refer to the components of~$T$.
 Theories can be defined directly by issuing {\ML} declarations to Isabelle,
