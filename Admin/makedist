@@ -126,8 +126,7 @@ done
 
 cd $DISTBASE/$DISTNAME
 
-MOVE=$(find Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) \) \
-  | grep -v 'gfx/.*pdf')
+MOVE=$(find Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE Distribution/doc
 rm Distribution/doc/Isa-logics.eps
 cp Admin/index.html $DISTBASE
