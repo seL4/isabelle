@@ -94,10 +94,19 @@
 \newcommand\ex[1]{\exists#1.}
 \newcommand{\pair}[1]{\langle#1\rangle}
 
+\newcommand{\lparr}{\mathopen{(\!|}}
+\newcommand{\rparr}{\mathclose{|\!)}}
+\newcommand{\fs}{\mathpunct{,\,}}
+\newcommand{\ty}{\mathrel{::}}
+\newcommand{\asn}{\mathrel{:=}}
+\newcommand{\more}{\ldots}
+\newcommand{\record}[1]{\lparr #1 \rparr}
+
 \newcommand\lbrakk{\mathopen{[\![}}
 \newcommand\rbrakk{\mathclose{]\!]}}
 \newcommand\List[1]{\lbrakk#1\rbrakk}  %was \obj
 \newcommand\vpile[1]{\begin{array}{c}#1\end{array}}
+\newenvironment{matharray}[1]{\[\begin{array}{#1}}{\end{array}\]}
 
 \let\int=\cap
 \let\un=\cup
