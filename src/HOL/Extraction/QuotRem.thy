@@ -9,36 +9,33 @@ theory QuotRem = Main:
 
 text {* Derivation of quotient and remainder using program extraction. *}
 
-consts_code
-  arbitrary :: sumbool ("{* Left *}")
-
-lemma le_lt_eq_dec: "\<And>m::nat. n <= m \<Longrightarrow> n < m \<or> n = m"
-  apply (induct n)
-  apply (case_tac m)
-  apply simp
-  apply simp
-  apply (case_tac m)
-  apply simp
-  apply simp
+lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
+  apply (induct m)
+  apply (case_tac n)
+  apply (case_tac [3] na)
+  apply (simp only: nat.simps, rules?)+
   done
 
-lemma division: "\<exists>r q. a = Suc b * q + r \<and> r <= b"
-  apply (induct a)
-  apply (rule_tac x = 0 in exI)
-  apply (rule_tac x = 0 in exI)
-  apply simp
-  apply (erule exE)
-  apply (erule exE)
-  apply (erule conjE)
-  apply (drule le_lt_eq_dec)
-  apply (erule disjE)
-  apply (rule_tac x = "Suc r" in exI)
-  apply (rule_tac x = q in exI)
-  apply simp
-  apply (rule_tac x = 0 in exI)
-  apply (rule_tac x = "Suc q" in exI)
-  apply simp
-  done
+theorem division: "\<exists>r q. a = Suc b * q + r \<and> r \<le> b"
+proof (induct a)
+  case 0
+  have "0 = Suc b * 0 + 0 \<and> 0 \<le> b" by simp
+  thus ?case by rules
+next
+  case (Suc a)
+  then obtain r q where I: "a = Suc b * q + r" and "r \<le> b" by rules
+  from nat_eq_dec show ?case
+  proof
+    assume "r = b"
+    with I have "Suc a = Suc b * (Suc q) + 0 \<and> 0 \<le> b" by simp
+    thus ?case by rules
+  next
+    assume "r \<noteq> b"
+    hence "r < b" by (simp add: order_less_le)
+    with I have "Suc a = Suc b * q + (Suc r) \<and> (Suc r) \<le> b" by simp
+    thus ?case by rules
+  qed
+qed
 
 extract division
 
