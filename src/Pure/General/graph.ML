@@ -162,9 +162,11 @@ fun del_edge (x, y) =
 exception CYCLES of key list list;
 
 fun add_edge_acyclic (x, y) G =
-  (case find_paths G (y, x) of
-    [] => add_edge (x, y) G
-  | cycles => raise CYCLES (map (cons x) cycles));
+  if y mem_key imm_succs G x then G
+  else
+    (case find_paths G (y, x) of
+      [] => add_edge (x, y) G
+    | cycles => raise CYCLES (map (cons x) cycles));
 
 fun add_deps_acyclic (y, xs) G =
   foldl (fn (H, x) => add_edge_acyclic (x, y) H) (G, xs);
