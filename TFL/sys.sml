@@ -25,8 +25,8 @@ use "utils.sml";
 
 use "usyntax.sml";
 use "thms.sml";
-use"dcterm.sml"; 
-use"rules.new.sml";
+use "dcterm.sml"; 
+use "rules.new.sml";
 use "thry.sml";
 
 
@@ -34,4 +34,4 @@ use "thry.sml";
  *      Link system and specialize for Isabelle 
  *---------------------------------------------------------------------------*)
 use "tfl.sml";
-use"post.sml";
+use "post.sml";

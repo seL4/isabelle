@@ -224,8 +224,9 @@ fun mk_case ty_info ty_match usednames range_ty =
      case (ty_info ty_name)
      of None => mk_case_fail("Not a known datatype: "^ty_name)
       | Some{case_const,constructors} =>
-        let val case_const_name = #1(dest_Const case_const)
-            val nrows = List_.concat (map (expand constructors pty) rows)
+        let open Basis_Library (*restore original List*)
+	    val case_const_name = #1(dest_Const case_const)
+            val nrows = List.concat (map (expand constructors pty) rows)
             val subproblems = divide(constructors, pty, range_ty, nrows)
             val groups      = map #group subproblems
             and new_formals = map #new_formals subproblems
@@ -239,7 +240,7 @@ fun mk_case ty_info ty_match usednames range_ty =
             val types = map type_of (case_functions@[u]) @ [range_ty]
             val case_const' = Const(case_const_name, list_mk_type types)
             val tree = list_comb(case_const', case_functions@[u])
-            val pat_rect1 = List_.concat
+            val pat_rect1 = List.concat
                               (ListPair.map mk_pat (constructors', pat_rect))
         in (pat_rect1,tree)
         end 
