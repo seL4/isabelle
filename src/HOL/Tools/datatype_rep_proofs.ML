@@ -47,16 +47,16 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val Datatype_thy = theory "Datatype";
     val node_name = Sign.intern_tycon (Theory.sign_of Datatype_thy) "node";
     val [In0_name, In1_name, Scons_name, Leaf_name, Numb_name, Lim_name,
-      Funs_name, o_name] =
+      Funs_name, o_name, sum_case_name] =
       map (Sign.intern_const (Theory.sign_of Datatype_thy))
-        ["In0", "In1", "Scons", "Leaf", "Numb", "Lim", "Funs", "op o"];
+        ["In0", "In1", "Scons", "Leaf", "Numb", "Lim", "Funs", "op o", "sum_case"];
 
     val [In0_inject, In1_inject, Scons_inject, Leaf_inject, In0_eq, In1_eq,
          In0_not_In1, In1_not_In0, Funs_mono, FunsI, Lim_inject,
-         Funs_inv, FunsD, Funs_rangeE, Funs_nonempty] = map (get_thm Datatype_thy)
+         Funs_inv, FunsD, Funs_rangeE, Funs_nonempty, sum_case_inject] = map (get_thm Datatype_thy)
         ["In0_inject", "In1_inject", "Scons_inject", "Leaf_inject", "In0_eq", "In1_eq",
          "In0_not_In1", "In1_not_In0", "Funs_mono", "FunsI", "Lim_inject",
-         "Funs_inv", "FunsD", "Funs_rangeE", "Funs_nonempty"];
+         "Funs_inv", "FunsD", "Funs_rangeE", "Funs_nonempty", "sum_case_inject"];
 
     val Funs_IntE = (Int_lower2 RS Funs_mono RS
       (Int_lower1 RS Funs_mono RS Int_greatest) RS subsetD) RS IntE;
@@ -124,7 +124,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           let
             val n2 = n div 2;
             val Type (_, [T1, T2]) = T;
-            val sum_case = Const ("basic_sum_case", [T1 --> Univ_elT, T2 --> Univ_elT, T] ---> Univ_elT)
+            val sum_case = Const (sum_case_name, [T1 --> Univ_elT, T2 --> Univ_elT, T] ---> Univ_elT)
           in
             if i <= n2 then
               sum_case $ (mk_inj T1 n2 i) $ Const ("arbitrary", T2 --> Univ_elT)

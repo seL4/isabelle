@@ -455,6 +455,10 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
 
     val sign = Theory.sign_of thy;
 
+    val sum_case_rewrites = (case ThyInfo.lookup_theory "Datatype" of
+        None => []
+      | Some thy' => map mk_meta_eq (PureThy.get_thms thy' "sum.cases"));
+
     val (preds, ind_prems, mutual_ind_concl) = mk_indrule cs cTs params intr_ts;
 
     (* make predicate for instantiation of abstract induction rule *)
@@ -463,7 +467,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
       | mk_ind_pred T Ps =
          let val n = (length Ps) div 2;
              val Type (_, [T1, T2]) = T
-         in Const ("basic_sum_case",
+         in Const ("Datatype.sum.sum_case",
            [T1 --> HOLogic.boolT, T2 --> HOLogic.boolT, T] ---> HOLogic.boolT) $
              mk_ind_pred T1 (take (n, Ps)) $ mk_ind_pred T2 (drop (n, Ps))
          end;
@@ -482,8 +486,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
           (mk_vimage cs sumT (HOLogic.Collect_const sumT $ ind_pred) c,
            HOLogic.Collect_const (HOLogic.dest_setT (fastype_of c)) $
              nth_elem (find_index_eq c cs, preds)))))
-        (fn _ => [rtac vimage_Collect 1, rewrite_goals_tac
-           (map mk_meta_eq [sum_case_Inl, sum_case_Inr]),
+        (fn _ => [rtac vimage_Collect 1, rewrite_goals_tac sum_case_rewrites,
           rtac refl 1])) cs;
 
     val induct = prove_goalw_cterm [] (cterm_of sign
@@ -498,7 +501,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
            some premise involves disjunction.*)
          REPEAT (FIRSTGOAL (eresolve_tac [IntE, CollectE, exE, conjE] 
                      ORELSE' hyp_subst_tac)),
-         rewrite_goals_tac (map mk_meta_eq [sum_case_Inl, sum_case_Inr]),
+         rewrite_goals_tac sum_case_rewrites,
          EVERY (map (fn prem =>
            DEPTH_SOLVE_1 (ares_tac [prem, conjI, refl] 1)) prems)]);
 
@@ -508,7 +511,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
          REPEAT (EVERY
            [REPEAT (resolve_tac [conjI, impI] 1),
             TRY (dtac vimageD 1), etac allE 1, dtac mp 1, atac 1,
-            rewrite_goals_tac (map mk_meta_eq [sum_case_Inl, sum_case_Inr]),
+            rewrite_goals_tac sum_case_rewrites,
             atac 1])])
 
   in standard (split_rule (induct RS lemma))
