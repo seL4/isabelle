@@ -387,8 +387,6 @@ qed "analz_insert_Key_newK";
 (** The session key K uniquely identifies the message, if encrypted
     with a secure key **)
 
-fun ex_strip_tac i = REPEAT (ares_tac [exI, conjI] i) THEN assume_tac (i+1);
-
 goal thy 
  "!!evs. evs : ns_shared lost ==>                                            \
 \      EX A' NA' B' X'. ALL A NA B X.                                        \
