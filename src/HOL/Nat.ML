@@ -258,19 +258,6 @@ by (asm_full_simp_tac (simpset() addsimps [add_assoc]
                                  delsimps [add_0_right]) 1);
 qed "add_eq_self_zero";
 
-(* a rather special thm needed for arith_tac: m+n = 0 may arise where m or n
-contain Suc. This contradiction must be detected. It cannot be detected by
-pulling Suc outside because this interferes with simprocs on
-numerals. Sigh. *)
-
-Goal "m ~= 0 ==> m+n ~= (0::nat)";
-by(Asm_full_simp_tac 1);
-qed "add_not_0_if_left_not_0";
-
-Goal "n ~= 0 ==> m+n ~= (0::nat)";
-by(Asm_full_simp_tac 1);
-qed "add_not_0_if_right_not_0";
-
 (**** Additional theorems about "less than" ****)
 
 (*Deleted less_natE; instead use less_imp_Suc_add RS exE*)

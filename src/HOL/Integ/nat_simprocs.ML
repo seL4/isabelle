@@ -215,10 +215,16 @@ val add_0s  = map rename_numerals [add_0, add_0_right];
 val mult_1s = map rename_numerals [mult_1, mult_1_right];
 
 (*Final simplification: cancel + and *; replace Numeral0 by 0 and Numeral1 by 1*)
+
+(*And these help the simproc return False when appropriate, which helps
+  the arith prover.*)
+val contra_rules = [add_Suc, add_Suc_right, Zero_not_Suc, Suc_not_Zero, 
+                    le_0_eq];
+
 val simplify_meta_eq =
     Int_Numeral_Simprocs.simplify_meta_eq
-         [numeral_0_eq_0, numeral_1_eq_Suc_0, add_0, add_0_right,
-         mult_0, mult_0_right, mult_1, mult_1_right];
+        ([numeral_0_eq_0, numeral_1_eq_Suc_0, add_0, add_0_right,
+          mult_0, mult_0_right, mult_1, mult_1_right] @ contra_rules);
 
 
 (** Restricted version of dest_Sucs_sum for nat_combine_numerals:

@@ -368,8 +368,6 @@ local
 *)
 val add_rules =
  [add_0,add_0_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,
-  add_not_0_if_left_not_0,add_not_0_if_right_not_0,
-  add_not_0_if_left_not_0 RS not_sym,add_not_0_if_right_not_0 RS not_sym,
   One_nat_def];
 
 val add_mono_thms_nat = map (fn s => prove_goal (the_context ()) s
