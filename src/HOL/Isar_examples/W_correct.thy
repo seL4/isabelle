@@ -45,7 +45,7 @@ lemma has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t";
 proof -;
   assume "a |- e :: t";
   thus ?thesis (is "?P a e t");
-  proof (induct a e t in set: has_type);
+  proof induct;
     fix a n;
     assume "n < length (a::typ list)";
     hence "n < length (map ($ s) a)"; by simp;
