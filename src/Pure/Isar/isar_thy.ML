@@ -342,7 +342,7 @@ val proof = ProofHistory.applys o Method.proof o
 local
 
 fun pretty_result {kind, name, thm} =
-  Pretty.block [Pretty.str (kind ^ (if name = "" then "" else " " ^ name ^ ":")),
+  Pretty.block [Pretty.str (kind ^ (if name = "" then "" else " " ^ name) ^ ":"),
     Pretty.fbrk, Proof.pretty_thm thm];
 
 fun pretty_rule thm =
