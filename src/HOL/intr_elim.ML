@@ -100,8 +100,8 @@ val mk_disj_rls =
         and g rl = rl RS disjI2
     in  accesses_bal(f, g, asm_rl)  end;
 
-val intrs = map (uncurry (prove_goalw_cterm part_rec_defs))
-            (map (cterm_of sign) Inductive.intr_tms ~~ 
+val intrs = ListPair.map (uncurry (prove_goalw_cterm part_rec_defs))
+            (map (cterm_of sign) Inductive.intr_tms,
              map intro_tacsf (mk_disj_rls(length Inductive.intr_tms)));
 
 (********)

@@ -54,7 +54,7 @@ fun subst_apps (_,_) [] t = t
 (* abstract rhs *)
 
 fun abst_rec (fname,rpos,tc,ls,cargs,rs,rhs) =       
-  let val rargs = (map fst o 
+  let val rargs = (map #1 o 
                    (filter (fn (a,T) => is_dtRek T))) (cargs ~~ tc);
       val subs = map (fn (s,T) => (s,dummyT))
                    (rev(rename_wrt_term rhs rargs));
@@ -189,7 +189,7 @@ in
      (*Arg_eqs([x1,...,xn],[y1,...,yn]) = "x1 = y1 & ... & xn = yn" *)
       fun arg_eqs vns vns' =
         let fun mkeq(x,x') = x ^ "=" ^ x'
-        in space_implode " & " (map mkeq (vns~~vns')) end;
+        in space_implode " & " (ListPair.map mkeq (vns,vns')) end;
 
      (*Pretty printers for type lists;
        pp_typlist1: parentheses, pp_typlist2: brackets*)
@@ -310,7 +310,7 @@ in
         ts @ map (fn _ => dtVar new_tvar_name) (filter is_dtRek ts); 
 
 (* positions of the dtRek types in a list of dt_types, starting from 1  *)
-      fun rek_vars ts vns = map snd (filter (is_dtRek o fst) (ts ~~ vns))
+      fun rek_vars ts vns = map #2 (filter (is_dtRek o fst) (ts ~~ vns))
 
       fun rec_rule n (id,name,ts,vns,_) = 
         let val args = opt_parens(space_implode ") (" vns)
@@ -365,7 +365,7 @@ in
 
       fun Ci_neg2() =
         let val ord_t = tname ^ "_ord";
-          val cis = cons_list ~~ (0 upto (num_of_cons - 1))
+          val cis = ListPair.zip (cons_list, 0 upto (num_of_cons - 1))
           fun Ci_neg2equals ((id, name, _, vns, _), n) =
             let val ax = ord_t ^ "(" ^ (C_exp name vns) ^ ") = " ^ (suc_expr n)
             in (ord_t ^ "_" ^ id, ax) end
