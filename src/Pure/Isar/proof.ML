@@ -16,7 +16,6 @@ sig
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
   val the_facts: state -> thm list
-  val the_fact: state -> thm
   val get_goal: state -> thm list * thm
   val goal_facts: (state -> thm list) -> state -> state
   val use_facts: state -> state
@@ -26,6 +25,7 @@ sig
   val enter_forward: state -> state
   val show_hyps: bool ref
   val pretty_thm: thm -> Pretty.T
+  val pretty_thms: thm list -> Pretty.T
   val verbose: bool ref
   val print_state: int -> state -> unit
   val level: state -> int
@@ -40,8 +40,8 @@ sig
   val have_thmss: thm list -> string -> context attribute list ->
     (thm list * context attribute list) list -> state -> state
   val simple_have_thms: string -> thm list -> state -> state
-  val fix: (string * string option) list -> state -> state
-  val fix_i: (string * typ) list -> state -> state
+  val fix: (string list * string option) list -> state -> state
+  val fix_i: (string list * typ) list -> state -> state
   val assm: (int -> tactic) * (int -> tactic)
     -> (string * context attribute list * (string * (string list * string list)) list) list
     -> state -> state
@@ -191,18 +191,13 @@ val assumptions = ProofContext.assumptions o context_of;
 fun the_facts (State (Node {facts = Some facts, ...}, _)) = facts
   | the_facts state = raise STATE ("No current facts available", state);
 
-fun the_fact state =
-  (case the_facts state of
-    [fact] => fact
-  | _ => raise STATE ("Single fact expected", state));
-
 fun assert_facts state = (the_facts state; state);
 fun get_facts (State (Node {facts, ...}, _)) = facts;
 
 fun put_facts facts state =
   state
   |> map_current (fn (ctxt, _, mode, goal) => (ctxt, facts, mode, goal))
-  |> put_thms ("facts", if_none facts []);
+  |> put_thms ("this", if_none facts []);
 
 val reset_facts = put_facts None;
 
@@ -288,6 +283,10 @@ fun close_block (state as State (_, node :: nodes)) =
 val show_hyps = ProofContext.show_hyps;
 val pretty_thm = ProofContext.pretty_thm;
 
+fun pretty_thms [th] = pretty_thm th
+  | pretty_thms ths = Pretty.block (Pretty.fbreaks (map pretty_thm ths));
+
+
 val verbose = ProofContext.verbose;
 
 fun print_facts _ None = ()
@@ -303,7 +302,8 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
       | levels_up i = " (" ^ string_of_int i ^ " levels up)";
 
     fun print_goal (_, (i, (((kind, name, _), (goal_facts, thm)), _))) =
-      (print_facts "Using" (if null goal_facts then None else Some goal_facts);
+      (print_facts "Using"
+          (if mode <> Backward orelse null goal_facts then None else Some goal_facts);
         writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 2) ^ ":");
         Locale.print_goals_marker begin_goal (! goals_limit) thm);
 
@@ -587,7 +587,6 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
       state
       |> assert_forward_or_chain
       |> enter_forward
-      |> opt_block
       |> map_context_result (fn c => prepp (c, raw_propp));
     val cprop = Thm.cterm_of (sign_of state') prop;
     val casms = map #1 (assumptions state');
@@ -597,6 +596,7 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
     val goal = foldr cut_asm (casms, Drule.mk_triv_goal cprop);
   in
     state'
+    |> opt_block
     |> put_goal (Some (((kind atts, (PureThy.default_name name), prop), ([], goal)), after_qed))
     |> auto_bind_goal prop
     |> (if is_chain state then use_facts else reset_facts)
