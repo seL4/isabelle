@@ -1086,7 +1086,7 @@ duplicate TVars with differnt sorts *)
 
 (* Replace all TVars by new TFrees *)
 fun freezeT(Thm{sign,der,maxidx,shyps,hyps,prop}) =
-  let val prop' = Type.freeze prop
+  let val (prop',_) = Type.freeze_thaw prop
   in (*no fix_shyps*)
     Thm{sign = sign, 
         der = infer_derivs (FreezeT, [der]),
