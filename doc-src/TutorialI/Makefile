@@ -48,3 +48,4 @@ $(NAME).pdf: $(FILES) isabelle_hol.pdf
 	$(SEDINDEX) $(NAME)
 	$(FIXBOOKMARKS) $(NAME).out
 	$(PDFLATEX) $(NAME)
+	$(FIXBOOKMARKS) main.out
