@@ -12,10 +12,10 @@ theory SubstAx = WFair + Constrains:
 
 constdefs
    Ensures :: "['a set, 'a set] => 'a program set"    (infixl "Ensures" 60)
-    "A Ensures B == {F. F : (reachable F Int A) ensures B}"
+    "A Ensures B == {F. F \<in> (reachable F \<inter> A) ensures B}"
 
    LeadsTo :: "['a set, 'a set] => 'a program set"    (infixl "LeadsTo" 60)
-    "A LeadsTo B == {F. F : (reachable F Int A) leadsTo B}"
+    "A LeadsTo B == {F. F \<in> (reachable F \<inter> A) leadsTo B}"
 
 syntax (xsymbols)
   "op LeadsTo" :: "['a set, 'a set] => 'a program set" (infixl " \<longmapsto>w " 60)
@@ -23,7 +23,7 @@ syntax (xsymbols)
 
 (*Resembles the previous definition of LeadsTo*)
 lemma LeadsTo_eq_leadsTo: 
-     "A LeadsTo B = {F. F : (reachable F Int A) leadsTo (reachable F Int B)}"
+     "A LeadsTo B = {F. F \<in> (reachable F \<inter> A) leadsTo (reachable F \<inter> B)}"
 apply (unfold LeadsTo_def)
 apply (blast dest: psp_stable2 intro: leadsTo_weaken)
 done
@@ -34,35 +34,37 @@ subsection{*Specialized laws for handling invariants*}
 (** Conjoining an Always property **)
 
 lemma Always_LeadsTo_pre:
-     "F : Always INV ==> (F : (INV Int A) LeadsTo A') = (F : A LeadsTo A')"
-by (simp add: LeadsTo_def Always_eq_includes_reachable Int_absorb2 Int_assoc [symmetric])
+     "F \<in> Always INV ==> (F \<in> (INV \<inter> A) LeadsTo A') = (F \<in> A LeadsTo A')"
+by (simp add: LeadsTo_def Always_eq_includes_reachable Int_absorb2 
+              Int_assoc [symmetric])
 
 lemma Always_LeadsTo_post:
-     "F : Always INV ==> (F : A LeadsTo (INV Int A')) = (F : A LeadsTo A')"
-by (simp add: LeadsTo_eq_leadsTo Always_eq_includes_reachable Int_absorb2 Int_assoc [symmetric])
+     "F \<in> Always INV ==> (F \<in> A LeadsTo (INV \<inter> A')) = (F \<in> A LeadsTo A')"
+by (simp add: LeadsTo_eq_leadsTo Always_eq_includes_reachable Int_absorb2 
+              Int_assoc [symmetric])
 
-(* [| F : Always C;  F : (C Int A) LeadsTo A' |] ==> F : A LeadsTo A' *)
+(* [| F \<in> Always C;  F \<in> (C \<inter> A) LeadsTo A' |] ==> F \<in> A LeadsTo A' *)
 lemmas Always_LeadsToI = Always_LeadsTo_pre [THEN iffD1, standard]
 
-(* [| F : Always INV;  F : A LeadsTo A' |] ==> F : A LeadsTo (INV Int A') *)
+(* [| F \<in> Always INV;  F \<in> A LeadsTo A' |] ==> F \<in> A LeadsTo (INV \<inter> A') *)
 lemmas Always_LeadsToD = Always_LeadsTo_post [THEN iffD2, standard]
 
 
 subsection{*Introduction rules: Basis, Trans, Union*}
 
-lemma leadsTo_imp_LeadsTo: "F : A leadsTo B ==> F : A LeadsTo B"
+lemma leadsTo_imp_LeadsTo: "F \<in> A leadsTo B ==> F \<in> A LeadsTo B"
 apply (simp add: LeadsTo_def)
 apply (blast intro: leadsTo_weaken_L)
 done
 
 lemma LeadsTo_Trans:
-     "[| F : A LeadsTo B;  F : B LeadsTo C |] ==> F : A LeadsTo C"
+     "[| F \<in> A LeadsTo B;  F \<in> B LeadsTo C |] ==> F \<in> A LeadsTo C"
 apply (simp add: LeadsTo_eq_leadsTo)
 apply (blast intro: leadsTo_Trans)
 done
 
 lemma LeadsTo_Union: 
-     "(!!A. A : S ==> F : A LeadsTo B) ==> F : (Union S) LeadsTo B"
+     "(!!A. A \<in> S ==> F \<in> A LeadsTo B) ==> F \<in> (Union S) LeadsTo B"
 apply (simp add: LeadsTo_def)
 apply (subst Int_Union)
 apply (blast intro: leadsTo_UN)
@@ -71,37 +73,37 @@ done
 
 subsection{*Derived rules*}
 
-lemma LeadsTo_UNIV [simp]: "F : A LeadsTo UNIV"
+lemma LeadsTo_UNIV [simp]: "F \<in> A LeadsTo UNIV"
 by (simp add: LeadsTo_def)
 
 (*Useful with cancellation, disjunction*)
 lemma LeadsTo_Un_duplicate:
-     "F : A LeadsTo (A' Un A') ==> F : A LeadsTo A'"
+     "F \<in> A LeadsTo (A' \<union> A') ==> F \<in> A LeadsTo A'"
 by (simp add: Un_ac)
 
 lemma LeadsTo_Un_duplicate2:
-     "F : A LeadsTo (A' Un C Un C) ==> F : A LeadsTo (A' Un C)"
+     "F \<in> A LeadsTo (A' \<union> C \<union> C) ==> F \<in> A LeadsTo (A' \<union> C)"
 by (simp add: Un_ac)
 
 lemma LeadsTo_UN: 
-     "(!!i. i : I ==> F : (A i) LeadsTo B) ==> F : (UN i:I. A i) LeadsTo B"
+     "(!!i. i \<in> I ==> F \<in> (A i) LeadsTo B) ==> F \<in> (\<Union>i \<in> I. A i) LeadsTo B"
 apply (simp only: Union_image_eq [symmetric])
 apply (blast intro: LeadsTo_Union)
 done
 
 (*Binary union introduction rule*)
 lemma LeadsTo_Un:
-     "[| F : A LeadsTo C; F : B LeadsTo C |] ==> F : (A Un B) LeadsTo C"
+     "[| F \<in> A LeadsTo C; F \<in> B LeadsTo C |] ==> F \<in> (A \<union> B) LeadsTo C"
 apply (subst Un_eq_Union)
 apply (blast intro: LeadsTo_Union)
 done
 
 (*Lets us look at the starting state*)
 lemma single_LeadsTo_I:
-     "(!!s. s : A ==> F : {s} LeadsTo B) ==> F : A LeadsTo B"
+     "(!!s. s \<in> A ==> F \<in> {s} LeadsTo B) ==> F \<in> A LeadsTo B"
 by (subst UN_singleton [symmetric], rule LeadsTo_UN, blast)
 
-lemma subset_imp_LeadsTo: "A <= B ==> F : A LeadsTo B"
+lemma subset_imp_LeadsTo: "A \<subseteq> B ==> F \<in> A LeadsTo B"
 apply (simp add: LeadsTo_def)
 apply (blast intro: subset_imp_leadsTo)
 done
@@ -109,73 +111,73 @@ done
 lemmas empty_LeadsTo = empty_subsetI [THEN subset_imp_LeadsTo, standard, simp]
 
 lemma LeadsTo_weaken_R [rule_format]:
-     "[| F : A LeadsTo A';  A' <= B' |] ==> F : A LeadsTo B'"
-apply (simp (no_asm_use) add: LeadsTo_def)
+     "[| F \<in> A LeadsTo A';  A' \<subseteq> B' |] ==> F \<in> A LeadsTo B'"
+apply (simp add: LeadsTo_def)
 apply (blast intro: leadsTo_weaken_R)
 done
 
 lemma LeadsTo_weaken_L [rule_format]:
-     "[| F : A LeadsTo A';  B <= A |]   
-      ==> F : B LeadsTo A'"
-apply (simp (no_asm_use) add: LeadsTo_def)
+     "[| F \<in> A LeadsTo A';  B \<subseteq> A |]   
+      ==> F \<in> B LeadsTo A'"
+apply (simp add: LeadsTo_def)
 apply (blast intro: leadsTo_weaken_L)
 done
 
 lemma LeadsTo_weaken:
-     "[| F : A LeadsTo A';    
-         B  <= A;   A' <= B' |]  
-      ==> F : B LeadsTo B'"
+     "[| F \<in> A LeadsTo A';    
+         B  \<subseteq> A;   A' \<subseteq> B' |]  
+      ==> F \<in> B LeadsTo B'"
 by (blast intro: LeadsTo_weaken_R LeadsTo_weaken_L LeadsTo_Trans)
 
 lemma Always_LeadsTo_weaken:
-     "[| F : Always C;  F : A LeadsTo A';    
-         C Int B <= A;   C Int A' <= B' |]  
-      ==> F : B LeadsTo B'"
+     "[| F \<in> Always C;  F \<in> A LeadsTo A';    
+         C \<inter> B \<subseteq> A;   C \<inter> A' \<subseteq> B' |]  
+      ==> F \<in> B LeadsTo B'"
 by (blast dest: Always_LeadsToI intro: LeadsTo_weaken intro: Always_LeadsToD)
 
 (** Two theorems for "proof lattices" **)
 
-lemma LeadsTo_Un_post: "F : A LeadsTo B ==> F : (A Un B) LeadsTo B"
+lemma LeadsTo_Un_post: "F \<in> A LeadsTo B ==> F \<in> (A \<union> B) LeadsTo B"
 by (blast intro: LeadsTo_Un subset_imp_LeadsTo)
 
 lemma LeadsTo_Trans_Un:
-     "[| F : A LeadsTo B;  F : B LeadsTo C |]  
-      ==> F : (A Un B) LeadsTo C"
+     "[| F \<in> A LeadsTo B;  F \<in> B LeadsTo C |]  
+      ==> F \<in> (A \<union> B) LeadsTo C"
 by (blast intro: LeadsTo_Un subset_imp_LeadsTo LeadsTo_weaken_L LeadsTo_Trans)
 
 
 (** Distributive laws **)
 
 lemma LeadsTo_Un_distrib:
-     "(F : (A Un B) LeadsTo C)  = (F : A LeadsTo C & F : B LeadsTo C)"
+     "(F \<in> (A \<union> B) LeadsTo C)  = (F \<in> A LeadsTo C & F \<in> B LeadsTo C)"
 by (blast intro: LeadsTo_Un LeadsTo_weaken_L)
 
 lemma LeadsTo_UN_distrib:
-     "(F : (UN i:I. A i) LeadsTo B)  =  (ALL i : I. F : (A i) LeadsTo B)"
+     "(F \<in> (\<Union>i \<in> I. A i) LeadsTo B)  =  (\<forall>i \<in> I. F \<in> (A i) LeadsTo B)"
 by (blast intro: LeadsTo_UN LeadsTo_weaken_L)
 
 lemma LeadsTo_Union_distrib:
-     "(F : (Union S) LeadsTo B)  =  (ALL A : S. F : A LeadsTo B)"
+     "(F \<in> (Union S) LeadsTo B)  =  (\<forall>A \<in> S. F \<in> A LeadsTo B)"
 by (blast intro: LeadsTo_Union LeadsTo_weaken_L)
 
 
 (** More rules using the premise "Always INV" **)
 
-lemma LeadsTo_Basis: "F : A Ensures B ==> F : A LeadsTo B"
+lemma LeadsTo_Basis: "F \<in> A Ensures B ==> F \<in> A LeadsTo B"
 by (simp add: Ensures_def LeadsTo_def leadsTo_Basis)
 
 lemma EnsuresI:
-     "[| F : (A-B) Co (A Un B);  F : transient (A-B) |]    
-      ==> F : A Ensures B"
+     "[| F \<in> (A-B) Co (A \<union> B);  F \<in> transient (A-B) |]    
+      ==> F \<in> A Ensures B"
 apply (simp add: Ensures_def Constrains_eq_constrains)
 apply (blast intro: ensuresI constrains_weaken transient_strengthen)
 done
 
 lemma Always_LeadsTo_Basis:
-     "[| F : Always INV;       
-         F : (INV Int (A-A')) Co (A Un A');  
-         F : transient (INV Int (A-A')) |]    
-  ==> F : A LeadsTo A'"
+     "[| F \<in> Always INV;       
+         F \<in> (INV \<inter> (A-A')) Co (A \<union> A');  
+         F \<in> transient (INV \<inter> (A-A')) |]    
+  ==> F \<in> A LeadsTo A'"
 apply (rule Always_LeadsToI, assumption)
 apply (blast intro: EnsuresI LeadsTo_Basis Always_ConstrainsD [THEN Constrains_weaken] transient_strengthen)
 done
@@ -183,14 +185,14 @@ done
 (*Set difference: maybe combine with leadsTo_weaken_L??
   This is the most useful form of the "disjunction" rule*)
 lemma LeadsTo_Diff:
-     "[| F : (A-B) LeadsTo C;  F : (A Int B) LeadsTo C |]  
-      ==> F : A LeadsTo C"
+     "[| F \<in> (A-B) LeadsTo C;  F \<in> (A \<inter> B) LeadsTo C |]  
+      ==> F \<in> A LeadsTo C"
 by (blast intro: LeadsTo_Un LeadsTo_weaken)
 
 
 lemma LeadsTo_UN_UN: 
-     "(!! i. i:I ==> F : (A i) LeadsTo (A' i))  
-      ==> F : (UN i:I. A i) LeadsTo (UN i:I. A' i)"
+     "(!! i. i \<in> I ==> F \<in> (A i) LeadsTo (A' i))  
+      ==> F \<in> (\<Union>i \<in> I. A i) LeadsTo (\<Union>i \<in> I. A' i)"
 apply (simp only: Union_image_eq [symmetric])
 apply (blast intro: LeadsTo_Union LeadsTo_weaken_R)
 done
@@ -198,48 +200,47 @@ done
 
 (*Version with no index set*)
 lemma LeadsTo_UN_UN_noindex: 
-     "(!! i. F : (A i) LeadsTo (A' i))  
-      ==> F : (UN i. A i) LeadsTo (UN i. A' i)"
+     "(!!i. F \<in> (A i) LeadsTo (A' i)) ==> F \<in> (\<Union>i. A i) LeadsTo (\<Union>i. A' i)"
 by (blast intro: LeadsTo_UN_UN)
 
 (*Version with no index set*)
 lemma all_LeadsTo_UN_UN:
-     "ALL i. F : (A i) LeadsTo (A' i)  
-      ==> F : (UN i. A i) LeadsTo (UN i. A' i)"
+     "\<forall>i. F \<in> (A i) LeadsTo (A' i)  
+      ==> F \<in> (\<Union>i. A i) LeadsTo (\<Union>i. A' i)"
 by (blast intro: LeadsTo_UN_UN)
 
 (*Binary union version*)
 lemma LeadsTo_Un_Un:
-     "[| F : A LeadsTo A'; F : B LeadsTo B' |]  
-            ==> F : (A Un B) LeadsTo (A' Un B')"
+     "[| F \<in> A LeadsTo A'; F \<in> B LeadsTo B' |]  
+            ==> F \<in> (A \<union> B) LeadsTo (A' \<union> B')"
 by (blast intro: LeadsTo_Un LeadsTo_weaken_R)
 
 
 (** The cancellation law **)
 
 lemma LeadsTo_cancel2:
-     "[| F : A LeadsTo (A' Un B); F : B LeadsTo B' |]     
-      ==> F : A LeadsTo (A' Un B')"
+     "[| F \<in> A LeadsTo (A' \<union> B); F \<in> B LeadsTo B' |]     
+      ==> F \<in> A LeadsTo (A' \<union> B')"
 by (blast intro: LeadsTo_Un_Un subset_imp_LeadsTo LeadsTo_Trans)
 
 lemma LeadsTo_cancel_Diff2:
-     "[| F : A LeadsTo (A' Un B); F : (B-A') LeadsTo B' |]  
-      ==> F : A LeadsTo (A' Un B')"
+     "[| F \<in> A LeadsTo (A' \<union> B); F \<in> (B-A') LeadsTo B' |]  
+      ==> F \<in> A LeadsTo (A' \<union> B')"
 apply (rule LeadsTo_cancel2)
 prefer 2 apply assumption
 apply (simp_all (no_asm_simp))
 done
 
 lemma LeadsTo_cancel1:
-     "[| F : A LeadsTo (B Un A'); F : B LeadsTo B' |]  
-      ==> F : A LeadsTo (B' Un A')"
+     "[| F \<in> A LeadsTo (B \<union> A'); F \<in> B LeadsTo B' |]  
+      ==> F \<in> A LeadsTo (B' \<union> A')"
 apply (simp add: Un_commute)
 apply (blast intro!: LeadsTo_cancel2)
 done
 
 lemma LeadsTo_cancel_Diff1:
-     "[| F : A LeadsTo (B Un A'); F : (B-A') LeadsTo B' |]  
-      ==> F : A LeadsTo (B' Un A')"
+     "[| F \<in> A LeadsTo (B \<union> A'); F \<in> (B-A') LeadsTo B' |]  
+      ==> F \<in> A LeadsTo (B' \<union> A')"
 apply (rule LeadsTo_cancel1)
 prefer 2 apply assumption
 apply (simp_all (no_asm_simp))
@@ -249,8 +250,8 @@ done
 (** The impossibility law **)
 
 (*The set "A" may be non-empty, but it contains no reachable states*)
-lemma LeadsTo_empty: "F : A LeadsTo {} ==> F : Always (-A)"
-apply (simp (no_asm_use) add: LeadsTo_def Always_eq_includes_reachable)
+lemma LeadsTo_empty: "F \<in> A LeadsTo {} ==> F \<in> Always (-A)"
+apply (simp add: LeadsTo_def Always_eq_includes_reachable)
 apply (drule leadsTo_empty, auto)
 done
 
@@ -259,33 +260,33 @@ done
 
 (*Special case of PSP: Misra's "stable conjunction"*)
 lemma PSP_Stable:
-     "[| F : A LeadsTo A';  F : Stable B |]  
-      ==> F : (A Int B) LeadsTo (A' Int B)"
-apply (simp (no_asm_use) add: LeadsTo_eq_leadsTo Stable_eq_stable)
+     "[| F \<in> A LeadsTo A';  F \<in> Stable B |]  
+      ==> F \<in> (A \<inter> B) LeadsTo (A' \<inter> B)"
+apply (simp add: LeadsTo_eq_leadsTo Stable_eq_stable)
 apply (drule psp_stable, assumption)
 apply (simp add: Int_ac)
 done
 
 lemma PSP_Stable2:
-     "[| F : A LeadsTo A'; F : Stable B |]  
-      ==> F : (B Int A) LeadsTo (B Int A')"
+     "[| F \<in> A LeadsTo A'; F \<in> Stable B |]  
+      ==> F \<in> (B \<inter> A) LeadsTo (B \<inter> A')"
 by (simp add: PSP_Stable Int_ac)
 
 lemma PSP:
-     "[| F : A LeadsTo A'; F : B Co B' |]  
-      ==> F : (A Int B') LeadsTo ((A' Int B) Un (B' - B))"
-apply (simp (no_asm_use) add: LeadsTo_def Constrains_eq_constrains)
+     "[| F \<in> A LeadsTo A'; F \<in> B Co B' |]  
+      ==> F \<in> (A \<inter> B') LeadsTo ((A' \<inter> B) \<union> (B' - B))"
+apply (simp add: LeadsTo_def Constrains_eq_constrains)
 apply (blast dest: psp intro: leadsTo_weaken)
 done
 
 lemma PSP2:
-     "[| F : A LeadsTo A'; F : B Co B' |]  
-      ==> F : (B' Int A) LeadsTo ((B Int A') Un (B' - B))"
+     "[| F \<in> A LeadsTo A'; F \<in> B Co B' |]  
+      ==> F \<in> (B' \<inter> A) LeadsTo ((B \<inter> A') \<union> (B' - B))"
 by (simp add: PSP Int_ac)
 
 lemma PSP_Unless: 
-     "[| F : A LeadsTo A'; F : B Unless B' |]  
-      ==> F : (A Int B) LeadsTo ((A' Int B) Un B')"
+     "[| F \<in> A LeadsTo A'; F \<in> B Unless B' |]  
+      ==> F \<in> (A \<inter> B) LeadsTo ((A' \<inter> B) \<union> B')"
 apply (unfold Unless_def)
 apply (drule PSP, assumption)
 apply (blast intro: LeadsTo_Diff LeadsTo_weaken subset_imp_LeadsTo)
@@ -293,8 +294,8 @@ done
 
 
 lemma Stable_transient_Always_LeadsTo:
-     "[| F : Stable A;  F : transient C;   
-         F : Always (-A Un B Un C) |] ==> F : A LeadsTo B"
+     "[| F \<in> Stable A;  F \<in> transient C;   
+         F \<in> Always (-A \<union> B \<union> C) |] ==> F \<in> A LeadsTo B"
 apply (erule Always_LeadsTo_weaken)
 apply (rule LeadsTo_Diff)
    prefer 2
@@ -309,10 +310,10 @@ subsection{*Induction rules*}
 (** Meta or object quantifier ????? **)
 lemma LeadsTo_wf_induct:
      "[| wf r;      
-         ALL m. F : (A Int f-`{m}) LeadsTo                      
-                            ((A Int f-`(r^-1 `` {m})) Un B) |]  
-      ==> F : A LeadsTo B"
-apply (simp (no_asm_use) add: LeadsTo_eq_leadsTo)
+         \<forall>m. F \<in> (A \<inter> f-`{m}) LeadsTo                      
+                    ((A \<inter> f-`(r^-1 `` {m})) \<union> B) |]  
+      ==> F \<in> A LeadsTo B"
+apply (simp add: LeadsTo_eq_leadsTo)
 apply (erule leadsTo_wf_induct)
 apply (blast intro: leadsTo_weaken)
 done
@@ -320,28 +321,27 @@ done
 
 lemma Bounded_induct:
      "[| wf r;      
-         ALL m:I. F : (A Int f-`{m}) LeadsTo                    
-                              ((A Int f-`(r^-1 `` {m})) Un B) |]  
-      ==> F : A LeadsTo ((A - (f-`I)) Un B)"
+         \<forall>m \<in> I. F \<in> (A \<inter> f-`{m}) LeadsTo                    
+                      ((A \<inter> f-`(r^-1 `` {m})) \<union> B) |]  
+      ==> F \<in> A LeadsTo ((A - (f-`I)) \<union> B)"
 apply (erule LeadsTo_wf_induct, safe)
-apply (case_tac "m:I")
+apply (case_tac "m \<in> I")
 apply (blast intro: LeadsTo_weaken)
 apply (blast intro: subset_imp_LeadsTo)
 done
 
 
 lemma LessThan_induct:
-     "(!!m::nat. F : (A Int f-`{m}) LeadsTo ((A Int f-`(lessThan m)) Un B))  
-      ==> F : A LeadsTo B"
-apply (rule wf_less_than [THEN LeadsTo_wf_induct], auto)
-done
+     "(!!m::nat. F \<in> (A \<inter> f-`{m}) LeadsTo ((A \<inter> f-`(lessThan m)) \<union> B))
+      ==> F \<in> A LeadsTo B"
+by (rule wf_less_than [THEN LeadsTo_wf_induct], auto)
 
 (*Integer version.  Could generalize from 0 to any lower bound*)
 lemma integ_0_le_induct:
-     "[| F : Always {s. (0::int) <= f s};   
-         !! z. F : (A Int {s. f s = z}) LeadsTo                      
-                            ((A Int {s. f s < z}) Un B) |]  
-      ==> F : A LeadsTo B"
+     "[| F \<in> Always {s. (0::int) \<le> f s};   
+         !! z. F \<in> (A \<inter> {s. f s = z}) LeadsTo                      
+                   ((A \<inter> {s. f s < z}) \<union> B) |]  
+      ==> F \<in> A LeadsTo B"
 apply (rule_tac f = "nat o f" in LessThan_induct)
 apply (simp add: vimage_def)
 apply (rule Always_LeadsTo_weaken, assumption+)
@@ -349,42 +349,42 @@ apply (auto simp add: nat_eq_iff nat_less_iff)
 done
 
 lemma LessThan_bounded_induct:
-     "!!l::nat. [| ALL m:(greaterThan l). F : (A Int f-`{m}) LeadsTo    
-                                         ((A Int f-`(lessThan m)) Un B) |]  
-            ==> F : A LeadsTo ((A Int (f-`(atMost l))) Un B)"
-apply (simp only: Diff_eq [symmetric] vimage_Compl Compl_greaterThan [symmetric])
-apply (rule wf_less_than [THEN Bounded_induct])
-apply (simp (no_asm_simp))
+     "!!l::nat. \<forall>m \<in> greaterThan l. 
+                   F \<in> (A \<inter> f-`{m}) LeadsTo ((A \<inter> f-`(lessThan m)) \<union> B)
+            ==> F \<in> A LeadsTo ((A \<inter> (f-`(atMost l))) \<union> B)"
+apply (simp only: Diff_eq [symmetric] vimage_Compl 
+                  Compl_greaterThan [symmetric])
+apply (rule wf_less_than [THEN Bounded_induct], simp)
 done
 
 lemma GreaterThan_bounded_induct:
-     "!!l::nat. [| ALL m:(lessThan l). F : (A Int f-`{m}) LeadsTo    
-                               ((A Int f-`(greaterThan m)) Un B) |]  
-      ==> F : A LeadsTo ((A Int (f-`(atLeast l))) Un B)"
+     "!!l::nat. \<forall>m \<in> lessThan l. 
+                 F \<in> (A \<inter> f-`{m}) LeadsTo ((A \<inter> f-`(greaterThan m)) \<union> B)
+      ==> F \<in> A LeadsTo ((A \<inter> (f-`(atLeast l))) \<union> B)"
 apply (rule_tac f = f and f1 = "%k. l - k" 
        in wf_less_than [THEN wf_inv_image, THEN LeadsTo_wf_induct])
 apply (simp add: inv_image_def Image_singleton, clarify)
 apply (case_tac "m<l")
- prefer 2 apply (blast intro: not_leE subset_imp_LeadsTo)
-apply (blast intro: LeadsTo_weaken_R diff_less_mono2)
+ apply (blast intro: LeadsTo_weaken_R diff_less_mono2)
+apply (blast intro: not_leE subset_imp_LeadsTo)
 done
 
 
 subsection{*Completion: Binary and General Finite versions*}
 
 lemma Completion:
-     "[| F : A LeadsTo (A' Un C);  F : A' Co (A' Un C);  
-         F : B LeadsTo (B' Un C);  F : B' Co (B' Un C) |]  
-      ==> F : (A Int B) LeadsTo ((A' Int B') Un C)"
-apply (simp (no_asm_use) add: LeadsTo_eq_leadsTo Constrains_eq_constrains Int_Un_distrib)
+     "[| F \<in> A LeadsTo (A' \<union> C);  F \<in> A' Co (A' \<union> C);  
+         F \<in> B LeadsTo (B' \<union> C);  F \<in> B' Co (B' \<union> C) |]  
+      ==> F \<in> (A \<inter> B) LeadsTo ((A' \<inter> B') \<union> C)"
+apply (simp add: LeadsTo_eq_leadsTo Constrains_eq_constrains Int_Un_distrib)
 apply (blast intro: completion leadsTo_weaken)
 done
 
 lemma Finite_completion_lemma:
      "finite I  
-      ==> (ALL i:I. F : (A i) LeadsTo (A' i Un C)) -->   
-          (ALL i:I. F : (A' i) Co (A' i Un C)) -->  
-          F : (INT i:I. A i) LeadsTo ((INT i:I. A' i) Un C)"
+      ==> (\<forall>i \<in> I. F \<in> (A i) LeadsTo (A' i \<union> C)) -->   
+          (\<forall>i \<in> I. F \<in> (A' i) Co (A' i \<union> C)) -->  
+          F \<in> (\<Inter>i \<in> I. A i) LeadsTo ((\<Inter>i \<in> I. A' i) \<union> C)"
 apply (erule finite_induct, auto)
 apply (rule Completion)
    prefer 4
@@ -394,15 +394,15 @@ done
 
 lemma Finite_completion: 
      "[| finite I;   
-         !!i. i:I ==> F : (A i) LeadsTo (A' i Un C);  
-         !!i. i:I ==> F : (A' i) Co (A' i Un C) |]    
-      ==> F : (INT i:I. A i) LeadsTo ((INT i:I. A' i) Un C)"
+         !!i. i \<in> I ==> F \<in> (A i) LeadsTo (A' i \<union> C);  
+         !!i. i \<in> I ==> F \<in> (A' i) Co (A' i \<union> C) |]    
+      ==> F \<in> (\<Inter>i \<in> I. A i) LeadsTo ((\<Inter>i \<in> I. A' i) \<union> C)"
 by (blast intro: Finite_completion_lemma [THEN mp, THEN mp])
 
 lemma Stable_completion: 
-     "[| F : A LeadsTo A';  F : Stable A';    
-         F : B LeadsTo B';  F : Stable B' |]  
-      ==> F : (A Int B) LeadsTo (A' Int B')"
+     "[| F \<in> A LeadsTo A';  F \<in> Stable A';    
+         F \<in> B LeadsTo B';  F \<in> Stable B' |]  
+      ==> F \<in> (A \<inter> B) LeadsTo (A' \<inter> B')"
 apply (unfold Stable_def)
 apply (rule_tac C1 = "{}" in Completion [THEN LeadsTo_weaken_R])
 apply (force+)
@@ -410,14 +410,12 @@ done
 
 lemma Finite_stable_completion: 
      "[| finite I;   
-         !!i. i:I ==> F : (A i) LeadsTo (A' i);  
-         !!i. i:I ==> F : Stable (A' i) |]    
-      ==> F : (INT i:I. A i) LeadsTo (INT i:I. A' i)"
+         !!i. i \<in> I ==> F \<in> (A i) LeadsTo (A' i);  
+         !!i. i \<in> I ==> F \<in> Stable (A' i) |]    
+      ==> F \<in> (\<Inter>i \<in> I. A i) LeadsTo (\<Inter>i \<in> I. A' i)"
 apply (unfold Stable_def)
 apply (rule_tac C1 = "{}" in Finite_completion [THEN LeadsTo_weaken_R])
-apply (simp_all (no_asm_simp))
-apply blast+
+apply (simp_all, blast+)
 done
-
 
 end

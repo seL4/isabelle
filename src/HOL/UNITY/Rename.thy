@@ -31,7 +31,7 @@ apply (simp (no_asm_simp) add: surj_f_inv_f)
 apply (erule surj_f_inv_f)
 done
 
-lemma mem_rename_set_iff: "bij h ==> z : h`A = (inv h z : A)"
+lemma mem_rename_set_iff: "bij h ==> z \<in> h`A = (inv h z \<in> A)"
 by (force simp add: bij_is_inj bij_is_surj [THEN surj_f_inv_f])
 
 
@@ -176,31 +176,31 @@ lemma rename_Join [simp]:
 by (simp add: rename_def Extend.extend_Join)
 
 lemma rename_JN [simp]:
-     "bij h ==> rename h (JOIN I F) = (JN i:I. rename h (F i))"
+     "bij h ==> rename h (JOIN I F) = (\<Squnion>i \<in> I. rename h (F i))"
 by (simp add: rename_def Extend.extend_JN)
 
 
 subsection{*Strong Safety: co, stable*}
 
 lemma rename_constrains: 
-     "bij h ==> (rename h F : (h`A) co (h`B)) = (F : A co B)"
+     "bij h ==> (rename h F \<in> (h`A) co (h`B)) = (F \<in> A co B)"
 apply (unfold rename_def)
 apply (subst extend_set_eq_image [symmetric])+
 apply (erule good_map_bij [THEN Extend.intro, THEN Extend.extend_constrains])
 done
 
 lemma rename_stable: 
-     "bij h ==> (rename h F : stable (h`A)) = (F : stable A)"
+     "bij h ==> (rename h F \<in> stable (h`A)) = (F \<in> stable A)"
 apply (simp add: stable_def rename_constrains)
 done
 
 lemma rename_invariant:
-     "bij h ==> (rename h F : invariant (h`A)) = (F : invariant A)"
+     "bij h ==> (rename h F \<in> invariant (h`A)) = (F \<in> invariant A)"
 apply (simp add: invariant_def rename_stable bij_is_inj [THEN inj_image_subset_iff])
 done
 
 lemma rename_increasing:
-     "bij h ==> (rename h F : increasing func) = (F : increasing (func o h))"
+     "bij h ==> (rename h F \<in> increasing func) = (F \<in> increasing (func o h))"
 apply (simp add: increasing_def rename_stable [symmetric] bij_image_Collect_eq bij_is_surj [THEN surj_f_inv_f])
 done
 
@@ -213,19 +213,19 @@ apply (simp add: rename_def Extend.reachable_extend_eq)
 done
 
 lemma rename_Constrains:
-     "bij h ==> (rename h F : (h`A) Co (h`B)) = (F : A Co B)"
+     "bij h ==> (rename h F \<in> (h`A) Co (h`B)) = (F \<in> A Co B)"
 by (simp add: Constrains_def reachable_rename_eq rename_constrains
                bij_is_inj image_Int [symmetric])
 
 lemma rename_Stable: 
-     "bij h ==> (rename h F : Stable (h`A)) = (F : Stable A)"
+     "bij h ==> (rename h F \<in> Stable (h`A)) = (F \<in> Stable A)"
 by (simp add: Stable_def rename_Constrains)
 
-lemma rename_Always: "bij h ==> (rename h F : Always (h`A)) = (F : Always A)"
+lemma rename_Always: "bij h ==> (rename h F \<in> Always (h`A)) = (F \<in> Always A)"
 by (simp add: Always_def rename_Stable bij_is_inj [THEN inj_image_subset_iff])
 
 lemma rename_Increasing:
-     "bij h ==> (rename h F : Increasing func) = (F : Increasing (func o h))"
+     "bij h ==> (rename h F \<in> Increasing func) = (F \<in> Increasing (func o h))"
 by (simp add: Increasing_def rename_Stable [symmetric] bij_image_Collect_eq 
               bij_is_surj [THEN surj_f_inv_f])
 
@@ -233,52 +233,52 @@ by (simp add: Increasing_def rename_Stable [symmetric] bij_image_Collect_eq
 subsection{*Progress: transient, ensures*}
 
 lemma rename_transient: 
-     "bij h ==> (rename h F : transient (h`A)) = (F : transient A)"
+     "bij h ==> (rename h F \<in> transient (h`A)) = (F \<in> transient A)"
 apply (unfold rename_def)
 apply (subst extend_set_eq_image [symmetric])
 apply (erule good_map_bij [THEN Extend.intro, THEN Extend.extend_transient])
 done
 
 lemma rename_ensures: 
-     "bij h ==> (rename h F : (h`A) ensures (h`B)) = (F : A ensures B)"
+     "bij h ==> (rename h F \<in> (h`A) ensures (h`B)) = (F \<in> A ensures B)"
 apply (unfold rename_def)
 apply (subst extend_set_eq_image [symmetric])+
 apply (erule good_map_bij [THEN Extend.intro, THEN Extend.extend_ensures])
 done
 
 lemma rename_leadsTo: 
-     "bij h ==> (rename h F : (h`A) leadsTo (h`B)) = (F : A leadsTo B)"
+     "bij h ==> (rename h F \<in> (h`A) leadsTo (h`B)) = (F \<in> A leadsTo B)"
 apply (unfold rename_def)
 apply (subst extend_set_eq_image [symmetric])+
 apply (erule good_map_bij [THEN Extend.intro, THEN Extend.extend_leadsTo])
 done
 
 lemma rename_LeadsTo: 
-     "bij h ==> (rename h F : (h`A) LeadsTo (h`B)) = (F : A LeadsTo B)"
+     "bij h ==> (rename h F \<in> (h`A) LeadsTo (h`B)) = (F \<in> A LeadsTo B)"
 apply (unfold rename_def)
 apply (subst extend_set_eq_image [symmetric])+
 apply (erule good_map_bij [THEN Extend.intro, THEN Extend.extend_LeadsTo])
 done
 
 lemma rename_rename_guarantees_eq: 
-     "bij h ==> (rename h F : (rename h ` X) guarantees  
+     "bij h ==> (rename h F \<in> (rename h ` X) guarantees  
                               (rename h ` Y)) =  
-                (F : X guarantees Y)"
+                (F \<in> X guarantees Y)"
 apply (unfold rename_def)
 apply (subst good_map_bij [THEN Extend.intro, THEN Extend.extend_guarantees_eq [symmetric]], assumption)
 apply (simp (no_asm_simp) add: fst_o_inv_eq_inv o_def)
 done
 
 lemma rename_guarantees_eq_rename_inv:
-     "bij h ==> (rename h F : X guarantees Y) =  
-                (F : (rename (inv h) ` X) guarantees  
+     "bij h ==> (rename h F \<in> X guarantees Y) =  
+                (F \<in> (rename (inv h) ` X) guarantees  
                      (rename (inv h) ` Y))"
 apply (subst rename_rename_guarantees_eq [symmetric], assumption)
 apply (simp add: image_eq_UN o_def bij_is_surj [THEN surj_f_inv_f])
 done
 
 lemma rename_preserves:
-     "bij h ==> (rename h G : preserves v) = (G : preserves (v o h))"
+     "bij h ==> (rename h G \<in> preserves v) = (G \<in> preserves (v o h))"
 apply (subst good_map_bij [THEN Extend.intro, THEN Extend.extend_preserves [symmetric]], assumption)
 apply (simp add: o_def fst_o_inv_eq_inv rename_def bij_is_surj [THEN surj_f_inv_f])
 done

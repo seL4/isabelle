@@ -14,15 +14,15 @@ theory UNITY = Main:
 
 typedef (Program)
   'a program = "{(init:: 'a set, acts :: ('a * 'a)set set,
-		   allowed :: ('a * 'a)set set). Id:acts & Id: allowed}" 
+		   allowed :: ('a * 'a)set set). Id \<in> acts & Id: allowed}" 
   by blast
 
 constdefs
   constrains :: "['a set, 'a set] => 'a program set"  (infixl "co"     60)
-    "A co B == {F. ALL act: Acts F. act``A <= B}"
+    "A co B == {F. \<forall>act \<in> Acts F. act``A \<subseteq> B}"
 
   unless  :: "['a set, 'a set] => 'a program set"  (infixl "unless" 60)
-    "A unless B == (A-B) co (A Un B)"
+    "A unless B == (A-B) co (A \<union> B)"
 
   mk_program :: "('a set * ('a * 'a)set set * ('a * 'a)set set)
 		   => 'a program"
@@ -39,20 +39,20 @@ constdefs
     "AllowedActs F == (%(init, acts, allowed). allowed) (Rep_Program F)"
 
   Allowed :: "'a program => 'a program set"
-    "Allowed F == {G. Acts G <= AllowedActs F}"
+    "Allowed F == {G. Acts G \<subseteq> AllowedActs F}"
 
   stable     :: "'a set => 'a program set"
     "stable A == A co A"
 
   strongest_rhs :: "['a program, 'a set] => 'a set"
-    "strongest_rhs F A == Inter {B. F : A co B}"
+    "strongest_rhs F A == Inter {B. F \<in> A co B}"
 
   invariant :: "'a set => 'a program set"
-    "invariant A == {F. Init F <= A} Int stable A"
+    "invariant A == {F. Init F \<subseteq> A} \<inter> stable A"
 
-  (*Polymorphic in both states and the meaning of <= *)
+  (*Polymorphic in both states and the meaning of \<le> *)
   increasing :: "['a => 'b::{order}] => 'a program set"
-    "increasing f == INT z. stable {s. z <= f s}"
+    "increasing f == \<Inter>z. stable {s. z \<le> f s}"
 
 
 (*Perhaps equalities.ML shouldn't add this in the first place!*)
@@ -64,7 +64,7 @@ lemmas program_typedef =
      Rep_Program Rep_Program_inverse Abs_Program_inverse 
      Program_def Init_def Acts_def AllowedActs_def mk_program_def
 
-lemma Id_in_Acts [iff]: "Id : Acts F"
+lemma Id_in_Acts [iff]: "Id \<in> Acts F"
 apply (cut_tac x = F in Rep_Program)
 apply (auto simp add: program_typedef) 
 done
@@ -72,7 +72,7 @@ done
 lemma insert_Id_Acts [iff]: "insert Id (Acts F) = Acts F"
 by (simp add: insert_absorb Id_in_Acts)
 
-lemma Id_in_AllowedActs [iff]: "Id : AllowedActs F"
+lemma Id_in_AllowedActs [iff]: "Id \<in> AllowedActs F"
 apply (cut_tac x = F in Rep_Program)
 apply (auto simp add: program_typedef) 
 done
@@ -145,114 +145,114 @@ by simp
 
 (*An action is expanded only if a pair of states is being tested against it*)
 lemma def_act_simp:
-     "[| act == {(s,s'). P s s'} |] ==> ((s,s') : act) = P s s'"
+     "[| act == {(s,s'). P s s'} |] ==> ((s,s') \<in> act) = P s s'"
 by auto
 
 (*A set is expanded only if an element is being tested against it*)
-lemma def_set_simp: "A == B ==> (x : A) = (x : B)"
+lemma def_set_simp: "A == B ==> (x \<in> A) = (x \<in> B)"
 by auto
 
 
 (*** co ***)
 
 lemma constrainsI: 
-    "(!!act s s'. [| act: Acts F;  (s,s') : act;  s: A |] ==> s': A')  
-     ==> F : A co A'"
+    "(!!act s s'. [| act: Acts F;  (s,s') \<in> act;  s \<in> A |] ==> s': A')  
+     ==> F \<in> A co A'"
 by (simp add: constrains_def, blast)
 
 lemma constrainsD: 
-    "[| F : A co A'; act: Acts F;  (s,s'): act;  s: A |] ==> s': A'"
+    "[| F \<in> A co A'; act: Acts F;  (s,s'): act;  s \<in> A |] ==> s': A'"
 by (unfold constrains_def, blast)
 
-lemma constrains_empty [iff]: "F : {} co B"
+lemma constrains_empty [iff]: "F \<in> {} co B"
 by (unfold constrains_def, blast)
 
-lemma constrains_empty2 [iff]: "(F : A co {}) = (A={})"
+lemma constrains_empty2 [iff]: "(F \<in> A co {}) = (A={})"
 by (unfold constrains_def, blast)
 
-lemma constrains_UNIV [iff]: "(F : UNIV co B) = (B = UNIV)"
+lemma constrains_UNIV [iff]: "(F \<in> UNIV co B) = (B = UNIV)"
 by (unfold constrains_def, blast)
 
-lemma constrains_UNIV2 [iff]: "F : A co UNIV"
+lemma constrains_UNIV2 [iff]: "F \<in> A co UNIV"
 by (unfold constrains_def, blast)
 
 (*monotonic in 2nd argument*)
 lemma constrains_weaken_R: 
-    "[| F : A co A'; A'<=B' |] ==> F : A co B'"
+    "[| F \<in> A co A'; A'<=B' |] ==> F \<in> A co B'"
 by (unfold constrains_def, blast)
 
 (*anti-monotonic in 1st argument*)
 lemma constrains_weaken_L: 
-    "[| F : A co A'; B<=A |] ==> F : B co A'"
+    "[| F \<in> A co A'; B \<subseteq> A |] ==> F \<in> B co A'"
 by (unfold constrains_def, blast)
 
 lemma constrains_weaken: 
-   "[| F : A co A'; B<=A; A'<=B' |] ==> F : B co B'"
+   "[| F \<in> A co A'; B \<subseteq> A; A'<=B' |] ==> F \<in> B co B'"
 by (unfold constrains_def, blast)
 
 (** Union **)
 
 lemma constrains_Un: 
-    "[| F : A co A'; F : B co B' |] ==> F : (A Un B) co (A' Un B')"
+    "[| F \<in> A co A'; F \<in> B co B' |] ==> F \<in> (A \<union> B) co (A' \<union> B')"
 by (unfold constrains_def, blast)
 
 lemma constrains_UN: 
-    "(!!i. i:I ==> F : (A i) co (A' i)) 
-     ==> F : (UN i:I. A i) co (UN i:I. A' i)"
+    "(!!i. i \<in> I ==> F \<in> (A i) co (A' i)) 
+     ==> F \<in> (\<Union>i \<in> I. A i) co (\<Union>i \<in> I. A' i)"
 by (unfold constrains_def, blast)
 
-lemma constrains_Un_distrib: "(A Un B) co C = (A co C) Int (B co C)"
+lemma constrains_Un_distrib: "(A \<union> B) co C = (A co C) \<inter> (B co C)"
 by (unfold constrains_def, blast)
 
-lemma constrains_UN_distrib: "(UN i:I. A i) co B = (INT i:I. A i co B)"
+lemma constrains_UN_distrib: "(\<Union>i \<in> I. A i) co B = (\<Inter>i \<in> I. A i co B)"
 by (unfold constrains_def, blast)
 
-lemma constrains_Int_distrib: "C co (A Int B) = (C co A) Int (C co B)"
+lemma constrains_Int_distrib: "C co (A \<inter> B) = (C co A) \<inter> (C co B)"
 by (unfold constrains_def, blast)
 
-lemma constrains_INT_distrib: "A co (INT i:I. B i) = (INT i:I. A co B i)"
+lemma constrains_INT_distrib: "A co (\<Inter>i \<in> I. B i) = (\<Inter>i \<in> I. A co B i)"
 by (unfold constrains_def, blast)
 
 (** Intersection **)
 
 lemma constrains_Int: 
-    "[| F : A co A'; F : B co B' |] ==> F : (A Int B) co (A' Int B')"
+    "[| F \<in> A co A'; F \<in> B co B' |] ==> F \<in> (A \<inter> B) co (A' \<inter> B')"
 by (unfold constrains_def, blast)
 
 lemma constrains_INT: 
-    "(!!i. i:I ==> F : (A i) co (A' i)) 
-     ==> F : (INT i:I. A i) co (INT i:I. A' i)"
+    "(!!i. i \<in> I ==> F \<in> (A i) co (A' i)) 
+     ==> F \<in> (\<Inter>i \<in> I. A i) co (\<Inter>i \<in> I. A' i)"
 by (unfold constrains_def, blast)
 
-lemma constrains_imp_subset: "F : A co A' ==> A <= A'"
+lemma constrains_imp_subset: "F \<in> A co A' ==> A \<subseteq> A'"
 by (unfold constrains_def, auto)
 
 (*The reasoning is by subsets since "co" refers to single actions
   only.  So this rule isn't that useful.*)
 lemma constrains_trans: 
-    "[| F : A co B; F : B co C |] ==> F : A co C"
+    "[| F \<in> A co B; F \<in> B co C |] ==> F \<in> A co C"
 by (unfold constrains_def, blast)
 
 lemma constrains_cancel: 
-   "[| F : A co (A' Un B); F : B co B' |] ==> F : A co (A' Un B')"
+   "[| F \<in> A co (A' \<union> B); F \<in> B co B' |] ==> F \<in> A co (A' \<union> B')"
 by (unfold constrains_def, clarify, blast)
 
 
 (*** unless ***)
 
-lemma unlessI: "F : (A-B) co (A Un B) ==> F : A unless B"
+lemma unlessI: "F \<in> (A-B) co (A \<union> B) ==> F \<in> A unless B"
 by (unfold unless_def, assumption)
 
-lemma unlessD: "F : A unless B ==> F : (A-B) co (A Un B)"
+lemma unlessD: "F \<in> A unless B ==> F \<in> (A-B) co (A \<union> B)"
 by (unfold unless_def, assumption)
 
 
 (*** stable ***)
 
-lemma stableI: "F : A co A ==> F : stable A"
+lemma stableI: "F \<in> A co A ==> F \<in> stable A"
 by (unfold stable_def, assumption)
 
-lemma stableD: "F : stable A ==> F : A co A"
+lemma stableD: "F \<in> stable A ==> F \<in> A co A"
 by (unfold stable_def, assumption)
 
 lemma stable_UNIV [simp]: "stable UNIV = UNIV"
@@ -261,14 +261,14 @@ by (unfold stable_def constrains_def, auto)
 (** Union **)
 
 lemma stable_Un: 
-    "[| F : stable A; F : stable A' |] ==> F : stable (A Un A')"
+    "[| F \<in> stable A; F \<in> stable A' |] ==> F \<in> stable (A \<union> A')"
 
 apply (unfold stable_def)
 apply (blast intro: constrains_Un)
 done
 
 lemma stable_UN: 
-    "(!!i. i:I ==> F : stable (A i)) ==> F : stable (UN i:I. A i)"
+    "(!!i. i \<in> I ==> F \<in> stable (A i)) ==> F \<in> stable (\<Union>i \<in> I. A i)"
 apply (unfold stable_def)
 apply (blast intro: constrains_UN)
 done
@@ -276,75 +276,75 @@ done
 (** Intersection **)
 
 lemma stable_Int: 
-    "[| F : stable A;  F : stable A' |] ==> F : stable (A Int A')"
+    "[| F \<in> stable A;  F \<in> stable A' |] ==> F \<in> stable (A \<inter> A')"
 apply (unfold stable_def)
 apply (blast intro: constrains_Int)
 done
 
 lemma stable_INT: 
-    "(!!i. i:I ==> F : stable (A i)) ==> F : stable (INT i:I. A i)"
+    "(!!i. i \<in> I ==> F \<in> stable (A i)) ==> F \<in> stable (\<Inter>i \<in> I. A i)"
 apply (unfold stable_def)
 apply (blast intro: constrains_INT)
 done
 
 lemma stable_constrains_Un: 
-    "[| F : stable C; F : A co (C Un A') |] ==> F : (C Un A) co (C Un A')"
+    "[| F \<in> stable C; F \<in> A co (C \<union> A') |] ==> F \<in> (C \<union> A) co (C \<union> A')"
 by (unfold stable_def constrains_def, blast)
 
 lemma stable_constrains_Int: 
-  "[| F : stable C; F :  (C Int A) co A' |] ==> F : (C Int A) co (C Int A')"
+  "[| F \<in> stable C; F \<in>  (C \<inter> A) co A' |] ==> F \<in> (C \<inter> A) co (C \<inter> A')"
 by (unfold stable_def constrains_def, blast)
 
-(*[| F : stable C; F :  (C Int A) co A |] ==> F : stable (C Int A) *)
+(*[| F \<in> stable C; F \<in>  (C \<inter> A) co A |] ==> F \<in> stable (C \<inter> A) *)
 lemmas stable_constrains_stable = stable_constrains_Int [THEN stableI, standard]
 
 
 (*** invariant ***)
 
-lemma invariantI: "[| Init F<=A;  F: stable A |] ==> F : invariant A"
+lemma invariantI: "[| Init F \<subseteq> A;  F \<in> stable A |] ==> F \<in> invariant A"
 by (simp add: invariant_def)
 
-(*Could also say "invariant A Int invariant B <= invariant (A Int B)"*)
+(*Could also say "invariant A \<inter> invariant B \<subseteq> invariant (A \<inter> B)"*)
 lemma invariant_Int:
-     "[| F : invariant A;  F : invariant B |] ==> F : invariant (A Int B)"
+     "[| F \<in> invariant A;  F \<in> invariant B |] ==> F \<in> invariant (A \<inter> B)"
 by (auto simp add: invariant_def stable_Int)
 
 
 (*** increasing ***)
 
 lemma increasingD: 
-     "F : increasing f ==> F : stable {s. z <= f s}"
+     "F \<in> increasing f ==> F \<in> stable {s. z \<subseteq> f s}"
 
 by (unfold increasing_def, blast)
 
-lemma increasing_constant [iff]: "F : increasing (%s. c)"
+lemma increasing_constant [iff]: "F \<in> increasing (%s. c)"
 by (unfold increasing_def stable_def, auto)
 
 lemma mono_increasing_o: 
-     "mono g ==> increasing f <= increasing (g o f)"
+     "mono g ==> increasing f \<subseteq> increasing (g o f)"
 apply (unfold increasing_def stable_def constrains_def, auto)
 apply (blast intro: monoD order_trans)
 done
 
-(*Holds by the theorem (Suc m <= n) = (m < n) *)
+(*Holds by the theorem (Suc m \<subseteq> n) = (m < n) *)
 lemma strict_increasingD: 
-     "!!z::nat. F : increasing f ==> F: stable {s. z < f s}"
+     "!!z::nat. F \<in> increasing f ==> F \<in> stable {s. z < f s}"
 by (simp add: increasing_def Suc_le_eq [symmetric])
 
 
 (** The Elimination Theorem.  The "free" m has become universally quantified!
-    Should the premise be !!m instead of ALL m ?  Would make it harder to use
+    Should the premise be !!m instead of \<forall>m ?  Would make it harder to use
     in forward proof. **)
 
 lemma elimination: 
-    "[| ALL m:M. F : {s. s x = m} co (B m) |]  
-     ==> F : {s. s x : M} co (UN m:M. B m)"
+    "[| \<forall>m \<in> M. F \<in> {s. s x = m} co (B m) |]  
+     ==> F \<in> {s. s x \<in> M} co (\<Union>m \<in> M. B m)"
 by (unfold constrains_def, blast)
 
 (*As above, but for the trivial case of a one-variable state, in which the
   state is identified with its one variable.*)
 lemma elimination_sing: 
-    "(ALL m:M. F : {m} co (B m)) ==> F : M co (UN m:M. B m)"
+    "(\<forall>m \<in> M. F \<in> {m} co (B m)) ==> F \<in> M co (\<Union>m \<in> M. B m)"
 by (unfold constrains_def, blast)
 
 
@@ -352,20 +352,20 @@ by (unfold constrains_def, blast)
 (*** Theoretical Results from Section 6 ***)
 
 lemma constrains_strongest_rhs: 
-    "F : A co (strongest_rhs F A )"
+    "F \<in> A co (strongest_rhs F A )"
 by (unfold constrains_def strongest_rhs_def, blast)
 
 lemma strongest_rhs_is_strongest: 
-    "F : A co B ==> strongest_rhs F A <= B"
+    "F \<in> A co B ==> strongest_rhs F A \<subseteq> B"
 by (unfold constrains_def strongest_rhs_def, blast)
 
 
 (** Ad-hoc set-theory rules **)
 
-lemma Un_Diff_Diff [simp]: "A Un B - (A - B) = B"
+lemma Un_Diff_Diff [simp]: "A \<union> B - (A - B) = B"
 by blast
 
-lemma Int_Union_Union: "Union(B) Int A = Union((%C. C Int A)`B)"
+lemma Int_Union_Union: "Union(B) \<inter> A = Union((%C. C \<inter> A)`B)"
 by blast
 
 (** Needed for WF reasoning in WFair.ML **)
