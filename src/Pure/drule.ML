@@ -43,6 +43,7 @@ signature DRULE =
   val print_ctyp: ctyp -> unit
   val print_goals: int -> thm -> unit
   val print_goals_ref: (int -> thm -> unit) ref
+  val print_syntax: theory -> unit
   val print_sign: theory -> unit
   val print_axioms: theory -> unit
   val print_theory: theory -> unit
@@ -86,7 +87,8 @@ struct
 structure Thm = Thm;
 structure Sign = Thm.Sign;
 structure Type = Sign.Type;
-structure Pretty = Sign.Syntax.Pretty
+structure Syntax = Sign.Syntax;
+structure Pretty = Syntax.Pretty
 structure Symtab = Sign.Symtab;
 
 local open Thm
@@ -299,6 +301,8 @@ val print_cterm = writeln o string_of_cterm;
 (* print theory *)
 
 val pprint_theory = Sign.pprint_sg o sign_of;
+
+val print_syntax = Syntax.print_syntax o syn_of;
 
 val print_sign = Sign.print_sg o sign_of;
 
