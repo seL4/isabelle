@@ -237,7 +237,7 @@ by (Force_tac 1);
 qed_spec_mp "subset_chain_lemma";
 
 Goal "[| ALL i. is_ideal (I i); ALL i. I i <= I (Suc i) |] \
-\     ==> is_ideal (Union (I``UNIV))";
+\     ==> is_ideal (Union (I`UNIV))";
 by (rtac is_idealI 1);
 by Auto_tac;
 by (res_inst_tac [("x", "max x xa")] exI 1);
@@ -261,7 +261,7 @@ qed "chain_is_ideal";
 
 (*
 Goal "ALL i. ideal_of {a i} < ideal_of {a (Suc i)} ==> \
-\   EX n. Union ((ideal_of o (%a. {a}))``UNIV) = ideal_of {a n}";
+\   EX n. Union ((ideal_of o (%a. {a}))`UNIV) = ideal_of {a n}";
 
 Goal "wf {(a::'a::pid, b). a dvd b & ~ b dvd a}";
 by (simp_tac (simpset()

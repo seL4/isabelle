@@ -175,7 +175,7 @@ result();
 (*The equality makes the induction hypothesis easier to apply*)
 Goal "evs : ns_shared ==>                             \
 \  ALL K KK. KK <= - (range shrK) -->                 \
-\            (Key K : analz (Key``KK Un (spies evs))) =  \
+\            (Key K : analz (Key`KK Un (spies evs))) =  \
 \            (K : KK | Key K : analz (spies evs))";
 by (etac ns_shared.induct 1);
 by analz_spies_tac;

@@ -334,7 +334,7 @@ qed "Notes_unique_PMS";
 (*Key compromise lemma needed to prove analz_image_keys.
   No collection of keys can help the spy get new private keys.*)
 Goal "evs : tls                                      \
-\     ==> ALL KK. (Key(priK B) : analz (Key``KK Un (spies evs))) = \
+\     ==> ALL KK. (Key(priK B) : analz (Key`KK Un (spies evs))) = \
 \         (priK B : KK | B : bad)";
 by (etac tls.induct 1);
 by (ALLGOALS
@@ -357,13 +357,13 @@ by (blast_tac (claset() addIs [impOfSubs analz_mono]) 1);
 val analz_image_keys_lemma = result();
 
 (** Strangely, the following version doesn't work:
-\ ALL Z. (Nonce N : analz (Key``(sessionK``Z) Un (spies evs))) = \
+\ ALL Z. (Nonce N : analz (Key`(sessionK`Z) Un (spies evs))) = \
 \        (Nonce N : analz (spies evs))";
 **)
 
 Goal "evs : tls ==>                                    \
 \ ALL KK. KK <= range sessionK -->                     \
-\         (Nonce N : analz (Key``KK Un (spies evs))) = \
+\         (Nonce N : analz (Key`KK Un (spies evs))) = \
 \         (Nonce N : analz (spies evs))";
 by (etac tls.induct 1);
 by (ClientKeyExch_tac 7);

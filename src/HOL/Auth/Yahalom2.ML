@@ -149,7 +149,7 @@ val analz_knows_Spy_tac =
 
 Goal "evs : yahalom ==>                               \
 \  ALL K KK. KK <= - (range shrK) -->                 \
-\         (Key K : analz (Key``KK Un (knows Spy evs))) =  \
+\         (Key K : analz (Key`KK Un (knows Spy evs))) =  \
 \         (K : KK | Key K : analz (knows Spy evs))";
 by (etac yahalom.induct 1);
 by analz_knows_Spy_tac;

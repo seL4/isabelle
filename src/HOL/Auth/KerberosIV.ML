@@ -609,9 +609,9 @@ qed "KeyCryptKey_not_KeyCryptKey";
 
 (*We take some pains to express the property
   as a logical equivalence so that the simplifier can apply it.*)
-Goal "P --> (Key K : analz (Key``KK Un H)) --> (K:KK | Key K : analz H)  \
+Goal "P --> (Key K : analz (Key`KK Un H)) --> (K:KK | Key K : analz H)  \
 \     ==>       \
-\     P --> (Key K : analz (Key``KK Un H)) = (K:KK | Key K : analz H)";
+\     P --> (Key K : analz (Key`KK Un H)) = (K:KK | Key K : analz H)";
 by (blast_tac (claset() addIs [impOfSubs analz_mono]) 1);
 qed "Key_analz_image_Key_lemma";
 
@@ -651,7 +651,7 @@ val analz_sees_tac =
 		  ORELSE' hyp_subst_tac)];
 
 Goal "[| KK <= -(range shrK); Key K : analz (spies evs); evs: kerberos |]   \
-\     ==> Key K : analz (Key `` KK Un spies evs)";
+\     ==> Key K : analz (Key ` KK Un spies evs)";
 by (blast_tac (claset() addDs [impOfSubs analz_mono]) 1);
 qed "analz_mono_KK";
 
@@ -673,7 +673,7 @@ qed "Oops2_not_KeyCryptKey";
 Goal "evs : kerberos ==>                                         \
 \     (ALL SK KK. KK <= -(range shrK) -->                   \
 \     (ALL K: KK. ~ KeyCryptKey K SK evs)   -->           \
-\     (Key SK : analz (Key``KK Un (spies evs))) =        \
+\     (Key SK : analz (Key`KK Un (spies evs))) =        \
 \     (SK : KK | Key SK : analz (spies evs)))";
 by (etac kerberos.induct 1);
 by analz_sees_tac;

@@ -34,16 +34,16 @@ AddIffs [not_isSymKey_pubK, not_isSymKey_priK];
 
 (** "Image" equations that hold for injective functions **)
 
-Goal "(invKey x : invKey``A) = (x:A)";
+Goal "(invKey x : invKey`A) = (x:A)";
 by Auto_tac;
 qed "invKey_image_eq";
 
 (*holds because invKey is injective*)
-Goal "(pubK x : pubK``A) = (x:A)";
+Goal "(pubK x : pubK`A) = (x:A)";
 by Auto_tac;
 qed "pubK_image_eq";
 
-Goal "(priK x ~: pubK``A)";
+Goal "(priK x ~: pubK`A)";
 by Auto_tac;
 qed "priK_pubK_image_eq";
 Addsimps [invKey_image_eq, pubK_image_eq, priK_pubK_image_eq];
@@ -157,11 +157,11 @@ fun possibility_tac st = st |>
 
 (*** Specialized rewriting for the analz_image_... theorems ***)
 
-Goal "insert (Key K) H = Key `` {K} Un H";
+Goal "insert (Key K) H = Key ` {K} Un H";
 by (Blast_tac 1);
 qed "insert_Key_singleton";
 
-Goal "insert (Key K) (Key``KK Un C) = Key `` (insert K KK) Un C";
+Goal "insert (Key K) (Key`KK Un C) = Key ` (insert K KK) Un C";
 by (Blast_tac 1);
 qed "insert_Key_image";
 

@@ -16,15 +16,15 @@ Addsimps [result()];
 AddIffs msg.inject;
 
 (*Equations hold because constructors are injective; cannot prove for all f*)
-Goal "(Friend x : Friend``A) = (x:A)";
+Goal "(Friend x : Friend`A) = (x:A)";
 by Auto_tac;
 qed "Friend_image_eq";
 
-Goal "(Key x : Key``A) = (x:A)";
+Goal "(Key x : Key`A) = (x:A)";
 by Auto_tac;
 qed "Key_image_eq";
 
-Goal "(Nonce x ~: Key``A)";
+Goal "(Nonce x ~: Key`A)";
 by Auto_tac;
 qed "Nonce_Key_image_eq";
 Addsimps [Friend_image_eq, Key_image_eq, Nonce_Key_image_eq];
@@ -97,7 +97,7 @@ Addsimps [keysFor_empty, keysFor_Un, keysFor_UN,
 AddSEs [keysFor_Un RS equalityD1 RS subsetD RS UnE,
 	keysFor_UN RS equalityD1 RS subsetD RS UN_E];
 
-Goalw [keysFor_def] "keysFor (Key``E) = {}";
+Goalw [keysFor_def] "keysFor (Key`E) = {}";
 by Auto_tac;
 qed "keysFor_image_Key";
 Addsimps [keysFor_image_Key];
@@ -296,7 +296,7 @@ Addsimps [parts_insert_Agent, parts_insert_Nonce,
           parts_insert_Hash, parts_insert_Crypt, parts_insert_MPair];
 
 
-Goal "parts (Key``N) = Key``N";
+Goal "parts (Key`N) = Key`N";
 by Auto_tac;
 by (etac parts.induct 1);
 by Auto_tac;
@@ -484,7 +484,7 @@ by Auto_tac;
 qed "analz_insert_Crypt_subset";
 
 
-Goal "analz (Key``N) = Key``N";
+Goal "analz (Key`N) = Key`N";
 by Auto_tac;
 by (etac analz.induct 1);
 by Auto_tac;
@@ -653,7 +653,7 @@ Addsimps [Agent_synth, Number_synth,
 
 
 Goalw [keysFor_def]
-    "keysFor (synth H) = keysFor H Un invKey``{K. Key K : H}";
+    "keysFor (synth H) = keysFor H Un invKey`{K. Key K : H}";
 by (Blast_tac 1);
 qed "keysFor_synth";
 Addsimps [keysFor_synth];
@@ -707,7 +707,7 @@ by (Full_simp_tac 1);
 by (Blast_tac 1);
 qed "Fake_parts_insert";
 
-(*H is sometimes (Key `` KK Un spies evs), so can't put G=H*)
+(*H is sometimes (Key ` KK Un spies evs), so can't put G=H*)
 Goal "X: synth (analz G) ==> \
 \     analz (insert X H) <= synth (analz G) Un analz (G Un H)";
 by (rtac subsetI 1);
@@ -853,7 +853,7 @@ val pushes = pushKeys@pushCrypts;
 (*** Tactics useful for many protocol proofs ***)
 
 (*Prove base case (subgoal i) and simplify others.  A typical base case
-  concerns  Crypt K X ~: Key``shrK``bad  and cannot be proved by rewriting
+  concerns  Crypt K X ~: Key`shrK`bad  and cannot be proved by rewriting
   alone.*)
 fun prove_simple_subgoals_tac i = 
     force_tac (claset(), simpset() addsimps [image_eq_UN]) i THEN

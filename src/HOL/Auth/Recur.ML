@@ -186,10 +186,10 @@ val analz_spies_tac =
   satisfying the inductive hypothesis.*)
 Goal "[| RB : responses evs;                             \
 \        ALL K KK. KK <= - (range shrK) -->              \
-\                  (Key K : analz (Key``KK Un H)) =      \
+\                  (Key K : analz (Key`KK Un H)) =      \
 \                  (K : KK | Key K : analz H) |]         \
 \    ==> ALL K KK. KK <= - (range shrK) -->              \
-\                  (Key K : analz (insert RB (Key``KK Un H))) = \
+\                  (Key K : analz (insert RB (Key`KK Un H))) = \
 \                  (K : KK | Key K : analz (insert RB H))";
 by (etac responses.induct 1);
 by (ALLGOALS (asm_simp_tac analz_image_freshK_ss));
@@ -198,7 +198,7 @@ qed "resp_analz_image_freshK_lemma";
 (*Version for the protocol.  Proof is almost trivial, thanks to the lemma.*)
 Goal "evs : recur ==>                                 \
 \  ALL K KK. KK <= - (range shrK) -->                 \
-\         (Key K : analz (Key``KK Un (spies evs))) =  \
+\         (Key K : analz (Key`KK Un (spies evs))) =  \
 \         (K : KK | Key K : analz (spies evs))";
 by (etac recur.induct 1);
 by analz_spies_tac;
@@ -216,7 +216,7 @@ qed_spec_mp "analz_image_freshK";
 (*Instance of the lemma with H replaced by (spies evs):
    [| RB : responses evs;  evs : recur; |]
    ==> KK <= - (range shrK) --> 
-       Key K : analz (insert RB (Key``KK Un spies evs)) =
+       Key K : analz (insert RB (Key`KK Un spies evs)) =
        (K : KK | Key K : analz (insert RB (spies evs))) 
 *)
 bind_thm ("resp_analz_image_freshK",
@@ -291,7 +291,7 @@ Addsimps [shrK_in_analz_respond];
 
 Goal "[| RB : responses evs;                         \
 \        ALL K KK. KK <= - (range shrK) -->          \
-\                  (Key K : analz (Key``KK Un H)) =  \
+\                  (Key K : analz (Key`KK Un H)) =  \
 \                  (K : KK | Key K : analz H) |]     \
 \    ==> (Key K : analz (insert RB H)) -->           \
 \        (Key K : parts{RB} | Key K : analz H)";

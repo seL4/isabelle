@@ -180,7 +180,7 @@ val analz_spies_tac =
 
 Goal "evs : kerberos_ban ==>                          \
 \  ALL K KK. KK <= - (range shrK) -->                 \
-\         (Key K : analz (Key``KK Un (spies evs))) =  \
+\         (Key K : analz (Key`KK Un (spies evs))) =  \
 \         (K : KK | Key K : analz (spies evs))";
 by (etac kerberos_ban.induct 1);
 by analz_spies_tac;

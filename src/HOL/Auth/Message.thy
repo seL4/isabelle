@@ -57,7 +57,7 @@ constdefs
 
   (*Keys useful to decrypt elements of a message set*)
   keysFor :: msg set => key set
-  "keysFor H == invKey `` {K. EX X. Crypt K X : H}"
+  "keysFor H == invKey ` {K. EX X. Crypt K X : H}"
 
 (** Inductive definition of all "parts" of a message.  **)
 

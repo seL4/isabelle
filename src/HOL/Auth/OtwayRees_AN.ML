@@ -142,7 +142,7 @@ val analz_knows_Spy_tac =
 (*The equality makes the induction hypothesis easier to apply*)
 Goal "evs : otway ==>                                 \
 \  ALL K KK. KK <= -(range shrK) -->                  \
-\         (Key K : analz (Key``KK Un (knows Spy evs))) =  \
+\         (Key K : analz (Key`KK Un (knows Spy evs))) =  \
 \         (K : KK | Key K : analz (knows Spy evs))";
 by (etac otway.induct 1);
 by analz_knows_Spy_tac;

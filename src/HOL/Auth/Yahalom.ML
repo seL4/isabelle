@@ -147,7 +147,7 @@ val analz_knows_Spy_tac =
 
 Goal "evs : yahalom ==>                              \
 \  ALL K KK. KK <= - (range shrK) -->                \
-\         (Key K : analz (Key``KK Un (knows Spy evs))) = \
+\         (Key K : analz (Key`KK Un (knows Spy evs))) = \
 \         (K : KK | Key K : analz (knows Spy evs))";
 by (etac yahalom.induct 1);
 by analz_knows_Spy_tac;
@@ -367,7 +367,7 @@ val Nonce_secrecy_lemma = result();
 Goal "evs : yahalom ==>                                      \
 \     (ALL KK. KK <= - (range shrK) -->                      \
 \          (ALL K: KK. ~ KeyWithNonce K NB evs)   -->        \
-\          (Nonce NB : analz (Key``KK Un (knows Spy evs))) =     \
+\          (Nonce NB : analz (Key`KK Un (knows Spy evs))) =     \
 \          (Nonce NB : analz (knows Spy evs)))";
 by (etac yahalom.induct 1);
 by analz_knows_Spy_tac;
