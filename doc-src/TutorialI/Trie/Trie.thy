@@ -12,6 +12,7 @@ values @{typ"'v"} we define a trie as follows:
 datatype ('a,'v)trie = Trie  "'v option"  "('a * ('a,'v)trie)list";
 
 text{*\noindent
+\index{datatypes!and nested recursion}%
 The first component is the optional value, the second component the
 association list of subtries.  This is an example of nested recursion involving products,
 which is fine because products are datatypes as well.
@@ -100,11 +101,11 @@ theorem "\<forall>t v bs. lookup (update t as v) bs =
 txt{*\noindent
 Our plan is to induct on @{term as}; hence the remaining variables are
 quantified. From the definitions it is clear that induction on either
-@{term as} or @{term bs} is required. The choice of @{term as} is merely
+@{term as} or @{term bs} is required. The choice of @{term as} is 
 guided by the intuition that simplification of @{term lookup} might be easier
 if @{term update} has already been simplified, which can only happen if
 @{term as} is instantiated.
-The start of the proof is completely conventional:
+The start of the proof is conventional:
 *};
 apply(induct_tac as, auto);
 
@@ -123,6 +124,7 @@ apply(case_tac[!] bs, auto);
 done
 
 text{*\noindent
+\index{subgoal numbering}%
 All methods ending in @{text tac} take an optional first argument that
 specifies the range of subgoals they are applied to, where @{text"[!]"} means
 all subgoals, i.e.\ @{text"[1-3]"} in our case. Individual subgoal numbers,
@@ -133,8 +135,7 @@ comes at a cost: the proof script is unreadable because the intermediate
 proof states are invisible, and we rely on the (possibly brittle) magic of
 @{text auto} (@{text simp_all} will not do --- try it) to split the subgoals
 of the induction up in such a way that case distinction on @{term bs} makes
-sense and solves the proof. Chapter~\ref{ch:Isar} shows you how to write readable
-and stable proofs.
+sense and solves the proof. 
 
 \begin{exercise}
   Modify @{term update} (and its type) such that it allows both insertion and

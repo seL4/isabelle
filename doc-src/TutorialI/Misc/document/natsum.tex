@@ -70,9 +70,13 @@ simple arithmetic goals automatically:%
 \isacommand{lemma}\ {\isachardoublequote}{\isasymlbrakk}\ {\isasymnot}\ m\ {\isacharless}\ n{\isacharsemicolon}\ m\ {\isacharless}\ n{\isacharplus}{\isadigit{1}}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-For efficiency's sake, this built-in prover ignores quantified formulae and all 
-arithmetic operations apart from addition.
-
+For efficiency's sake, this built-in prover ignores quantified formulae,
+logical connectives, and all arithmetic operations apart from addition.
+In consequence, \isa{auto} cannot prove this slightly more complex goal:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}{\isasymnot}\ m\ {\isacharless}\ n\ {\isasymand}\ m\ {\isacharless}\ n{\isacharplus}{\isadigit{1}}\ {\isasymLongrightarrow}\ m\ {\isacharequal}\ n{\isachardoublequote}%
+\begin{isamarkuptext}%
+\noindent
 The method \methdx{arith} is more general.  It attempts to prove
 the first subgoal provided it is a quantifier-free \textbf{linear arithmetic}
 formula.  Such formulas may involve the

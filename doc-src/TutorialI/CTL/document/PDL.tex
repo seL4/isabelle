@@ -7,12 +7,13 @@
 %
 \begin{isamarkuptext}%
 \index{PDL|(}
-The formulae of PDL\footnote{The customary definition of PDL
-\cite{HarelKT-DL} looks quite different from ours, but the two are easily
-shown to be equivalent.} are built up from atomic propositions via
+The formulae of PDL are built up from atomic propositions via
 negation and conjunction and the two temporal
-connectives \isa{AX} and \isa{EF}. Since formulae are essentially
+connectives \isa{AX} and \isa{EF}\@. Since formulae are essentially
 syntax trees, they are naturally modelled as a datatype:%
+\footnote{The customary definition of PDL
+\cite{HarelKT-DL} looks quite different from ours, but the two are easily
+shown to be equivalent.}%
 \end{isamarkuptext}%
 \isacommand{datatype}\ formula\ {\isacharequal}\ Atom\ atom\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ Neg\ formula\isanewline
@@ -21,19 +22,16 @@ syntax trees, they are naturally modelled as a datatype:%
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharbar}\ EF\ formula%
 \begin{isamarkuptext}%
 \noindent
-This is almost the same as in the boolean expression case study in
+This resembles the boolean expression case study in
 \S\ref{sec:boolex}.
-
-The meaning of these formulae is given by saying which formula is true in
-which state:%
+A validity relation between
+states and formulae specifies the semantics:%
 \end{isamarkuptext}%
 \isacommand{consts}\ valid\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}state\ {\isasymRightarrow}\ formula\ {\isasymRightarrow}\ bool{\isachardoublequote}\ \ \ {\isacharparenleft}{\isachardoublequote}{\isacharparenleft}{\isacharunderscore}\ {\isasymTurnstile}\ {\isacharunderscore}{\isacharparenright}{\isachardoublequote}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{0}}{\isacharcomma}{\isadigit{8}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 \noindent
 The syntax annotation allows us to write \isa{s\ {\isasymTurnstile}\ f} instead of
 \hbox{\isa{valid\ s\ f}}.
-
-\smallskip
 The definition of \isa{{\isasymTurnstile}} is by recursion over the syntax:%
 \end{isamarkuptext}%
 \isacommand{primrec}\isanewline
@@ -51,8 +49,7 @@ true. The future is expressed via \isa{\isactrlsup {\isacharasterisk}}, the refl
 closure. Because of reflexivity, the future includes the present.
 
 Now we come to the model checker itself. It maps a formula into the set of
-states where the formula is true and is defined by recursion over the syntax,
-too:%
+states where the formula is true.  It too is defined by recursion over the syntax:%
 \end{isamarkuptext}%
 \isacommand{consts}\ mc\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}formula\ {\isasymRightarrow}\ state\ set{\isachardoublequote}\isanewline
 \isacommand{primrec}\isanewline
@@ -109,13 +106,14 @@ which is proved by \isa{lfp}-induction:%
 \begin{isamarkuptxt}%
 \noindent
 Having disposed of the monotonicity subgoal,
-simplification leaves us with the following main goal
+simplification leaves us with the following goal:
 \begin{isabelle}
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ A\ {\isasymor}\isanewline
 \ \ \ \ \ \ \ \ \ x\ {\isasymin}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ {\isacharparenleft}lfp\ {\isacharparenleft}\dots{\isacharparenright}\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A
 \end{isabelle}
-which is proved by \isa{blast} with the help of transitivity of \isa{\isactrlsup {\isacharasterisk}}:%
+It is proved by \isa{blast}, using the transitivity of 
+\isa{M\isactrlsup {\isacharasterisk}}.%
 \end{isamarkuptxt}%
 \ \isacommand{apply}{\isacharparenleft}blast\ intro{\isacharcolon}\ rtrancl{\isacharunderscore}trans{\isacharparenright}%
 \begin{isamarkuptxt}%
@@ -132,7 +130,7 @@ After simplification and clarification we are left with
 \end{isabelle}
 This goal is proved by induction on \isa{{\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}}. But since the model
 checker works backwards (from \isa{t} to \isa{s}), we cannot use the
-induction theorem \isa{rtrancl{\isacharunderscore}induct} because it works in the
+induction theorem \isa{rtrancl{\isacharunderscore}induct}: it works in the
 forward direction. Fortunately the converse induction theorem
 \isa{converse{\isacharunderscore}rtrancl{\isacharunderscore}induct} already exists:
 \begin{isabelle}%
@@ -178,9 +176,11 @@ The main theorem is proved in the familiar manner: induction followed by
 \isacommand{done}%
 \begin{isamarkuptext}%
 \begin{exercise}
-\isa{AX} has a dual operator \isa{EN}\footnote{We cannot use the customary \isa{EX}
-as that is the \textsc{ascii}-equivalent of \isa{{\isasymexists}}}
-(``there exists a next state such that'') with the intended semantics
+\isa{AX} has a dual operator \isa{EN} 
+(``there exists a next state such that'')%
+\footnote{We cannot use the customary \isa{EX}: it is reserved
+as the \textsc{ascii}-equivalent of \isa{{\isasymexists}}.}
+with the intended semantics
 \begin{isabelle}%
 \ \ \ \ \ s\ {\isasymTurnstile}\ EN\ f\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}t{\isachardot}\ {\isacharparenleft}s{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ t\ {\isasymTurnstile}\ f{\isacharparenright}%
 \end{isabelle}

@@ -26,11 +26,11 @@ primrec
 
 text{*\noindent This is a valid \isacommand{primrec} definition because the
 recursive calls of @{term"map_bt"} involve only subtrees obtained from
-@{term"F"}, i.e.\ the left-hand side. Thus termination is assured.  The
-seasoned functional programmer might have written @{term"map_bt f o F"}
-instead of @{term"%i. map_bt f (F i)"}, but the former is not accepted by
-Isabelle because the termination proof is not as obvious since
-@{term"map_bt"} is only partially applied.
+@{term"F"}: the left-hand side. Thus termination is assured.  The
+seasoned functional programmer might try expressing
+@{term"%i. map_bt f (F i)"} as @{term"map_bt f o F"}, which Isabelle 
+however will reject.  Applying @{term"map_bt"} to only one of its arguments
+makes the termination proof less obvious.
 
 The following lemma has a simple proof by induction:  *}
 
@@ -40,8 +40,8 @@ done
 (*<*)lemma "map_bt (g o f) T = map_bt g (map_bt f T)";
 apply(induct_tac T, rename_tac[2] F)(*>*)
 txt{*\noindent
-It is worth taking a look at the proof state after the induction step
-to understand what the presence of the function type entails.
+Because of the function type, the 
+the proof state after induction looks unusual.
 Notice the quantified induction hypothesis:
 @{subgoals[display,indent=0]}
 *}

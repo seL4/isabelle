@@ -13,16 +13,16 @@ from them) as theorems. For example, look (via \isacommand{thm}) at
 the same function. What is more, those equations are automatically declared as
 simplification rules.
 
-Isabelle may fail to prove some termination conditions
-(there is one for each recursive call).  For example,
-termination of the following artificial function%
+Isabelle may fail to prove the termination condition for some
+recursive call.  Let us try the following artificial function:%
 \end{isamarkuptext}%
 \isacommand{consts}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ f\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}f{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isasymle}\ y\ then\ x\ else\ f{\isacharparenleft}x{\isacharcomma}y{\isacharplus}{\isadigit{1}}{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-is not proved automatically. Isabelle prints a
+Isabelle prints a
+\REMARK{error or warning?  change this part?  rename g to f?}
 message showing you what it was unable to prove. You will then
 have to prove it as a separate lemma before you attempt the definition
 of your function once more. In our case the required lemma is the obvious one:%
@@ -30,8 +30,8 @@ of your function once more. In our case the required lemma is the obvious one:%
 \isacommand{lemma}\ termi{\isacharunderscore}lem{\isacharcolon}\ {\isachardoublequote}{\isasymnot}\ x\ {\isasymle}\ y\ {\isasymLongrightarrow}\ x\ {\isacharminus}\ Suc\ y\ {\isacharless}\ x\ {\isacharminus}\ y{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-It was not proved automatically because of the special nature of subtraction
-on \isa{nat}. This requires more arithmetic than is tried by default:%
+It was not proved automatically because of the awkward behaviour of subtraction
+on type \isa{nat}. This requires more arithmetic than is tried by default:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}arith{\isacharparenright}\isanewline
 \isacommand{done}%
@@ -49,8 +49,8 @@ a simplification rule.%
 \begin{isamarkuptext}%
 \noindent
 This time everything works fine. Now \isa{g{\isachardot}simps} contains precisely
-the stated recursion equation for \isa{g} and they are simplification
-rules. Thus we can automatically prove%
+the stated recursion equation for \isa{g}, which has been stored as a
+simplification rule.  Thus we can automatically prove results such as this one:%
 \end{isamarkuptext}%
 \isacommand{theorem}\ {\isachardoublequote}g{\isacharparenleft}{\isadigit{1}}{\isacharcomma}{\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ g{\isacharparenleft}{\isadigit{1}}{\isacharcomma}{\isadigit{1}}{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
@@ -70,13 +70,14 @@ the failed termination proof, the definition of \isa{f} did not
 fail, and thus we could not define it a second time. However, all theorems
 about \isa{f}, for example \isa{f{\isachardot}simps}, carry as a precondition
 the unproved termination condition. Moreover, the theorems
-\isa{f{\isachardot}simps} are not simplification rules. However, this mechanism
+\isa{f{\isachardot}simps} are not stored as simplification rules. 
+However, this mechanism
 allows a delayed proof of termination: instead of proving
 \isa{termi{\isacharunderscore}lem} up front, we could prove 
 it later on and then use it to remove the preconditions from the theorems
 about \isa{f}. In most cases this is more cumbersome than proving things
 up front.
-%FIXME, with one exception: nested recursion.%
+\REMARK{FIXME, with one exception: nested recursion.}%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

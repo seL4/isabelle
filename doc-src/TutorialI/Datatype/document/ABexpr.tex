@@ -3,12 +3,13 @@
 \def\isabellecontext{ABexpr}%
 %
 \begin{isamarkuptext}%
+\index{datatypes!mutually recursive}%
 Sometimes it is necessary to define two datatypes that depend on each
 other. This is called \textbf{mutual recursion}. As an example consider a
 language of arithmetic and boolean expressions where
 \begin{itemize}
 \item arithmetic expressions contain boolean expressions because there are
-  conditional arithmetic expressions like ``if $m<n$ then $n-m$ else $m-n$'',
+  conditional expressions like ``if $m<n$ then $n-m$ else $m-n$'',
   and
 \item boolean expressions contain arithmetic expressions because of
   comparisons like ``$m<n$''.
@@ -30,13 +31,13 @@ except that we have added an \isa{IF} constructor,
 fixed the values to be of type \isa{nat} and declared the two binary
 operations \isa{Sum} and \isa{Diff}.  Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
-The semantics is fixed via two evaluation functions%
+The semantics is given by two evaluation functions:%
 \end{isamarkuptext}%
 \isacommand{consts}\ \ evala\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \ \ \ \ \ \ \ \ evalb\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ bexp\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-that take an expression and an environment (a mapping from variables \isa{{\isacharprime}a} to values
+Both take an expression and an environment (a mapping from variables \isa{{\isacharprime}a} to values
 \isa{nat}) and return its arithmetic/boolean
 value. Since the datatypes are mutually recursive, so are functions that
 operate on them. Hence they need to be defined in a single \isacommand{primrec}
@@ -107,8 +108,9 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \begin{exercise}
   Define a function \isa{norma} of type \isa{{\isacharprime}a\ aexp\ {\isasymRightarrow}\ {\isacharprime}a\ aexp} that
   replaces \isa{IF}s with complex boolean conditions by nested
-  \isa{IF}s where each condition is a \isa{Less} --- \isa{And} and
-  \isa{Neg} should be eliminated completely. Prove that \isa{norma}
+  \isa{IF}s; it should eliminate the constructors
+  \isa{And} and \isa{Neg}, leaving only \isa{Less}.
+  Prove that \isa{norma}
   preserves the value of an expression and that the result of \isa{norma}
   is really normal, i.e.\ no more \isa{And}s and \isa{Neg}s occur in
   it.  ({\em Hint:} proceed as in \S\ref{sec:boolex}).

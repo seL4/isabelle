@@ -3,8 +3,9 @@ theory Nested = ABexpr:
 (*>*)
 
 text{*
+\index{datatypes!and nested recursion}%
 So far, all datatypes had the property that on the right-hand side of their
-definition they occurred only at the top-level, i.e.\ directly below a
+definition they occurred only at the top-level: directly below a
 constructor. Now we consider \emph{nested recursion}, where the recursive
 datatype occurs nested in some other datatype (but not inside itself!).
 Consider the following model of terms
@@ -55,7 +56,8 @@ primrec
   "substs s (t # ts) = subst s t # substs s ts";
 
 text{*\noindent
-Individual equations in a primrec definition may be named as shown for @{thm[source]subst_App}.
+Individual equations in a \commdx{primrec} definition may be
+named as shown for @{thm[source]subst_App}.
 The significance of this device will become apparent below.
 
 Similarly, when proving a statement about terms inductively, we need

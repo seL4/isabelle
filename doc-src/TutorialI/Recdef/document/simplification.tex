@@ -3,11 +3,12 @@
 \def\isabellecontext{simplification}%
 %
 \begin{isamarkuptext}%
-Once we have succeeded in proving all termination conditions, the recursion
-equations become simplification rules, just as with
+Once we have proved all the termination conditions, the \isacommand{recdef} 
+recursion equations become simplification rules, just as with
 \isacommand{primrec}. In most cases this works fine, but there is a subtle
 problem that must be mentioned: simplification may not
 terminate because of automatic splitting of \isa{if}.
+\index{*if expressions!splitting of}
 Let us look at an example:%
 \end{isamarkuptext}%
 \isacommand{consts}\ gcd\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
@@ -25,8 +26,9 @@ HOL\@.  Thus the recursion equation becomes a simplification
 rule. Of course the equation is nonterminating if we are allowed to unfold
 the recursive call inside the \isa{else} branch, which is why programming
 languages and our simplifier don't do that. Unfortunately the simplifier does
-something else which leads to the same problem: it splits \isa{if}s if the
-condition simplifies to neither \isa{True} nor \isa{False}. For
+something else that leads to the same problem: it splits 
+each \isa{if}-expression unless its
+condition simplifies to \isa{True} or \isa{False}.  For
 example, simplification reduces
 \begin{isabelle}%
 \ \ \ \ \ gcd\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ k%
@@ -44,9 +46,10 @@ an \isa{if}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
 
-The most radical solution is to disable the offending \isa{split{\isacharunderscore}if}
+The most radical solution is to disable the offending theorem
+\isa{split{\isacharunderscore}if},
 as shown in \S\ref{sec:AutoCaseSplits}.  However, we do not recommend this
-because it means you will often have to invoke the rule explicitly when
+approach: you will often have to invoke the rule explicitly when
 \isa{if} is involved.
 
 If possible, the definition should be given by pattern matching on the left
@@ -59,19 +62,20 @@ following alternative definition suggests itself:%
 \ \ {\isachardoublequote}gcd{\isadigit{1}}\ {\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ gcd{\isadigit{1}}{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-Note that the order of equations is important and hides the side condition
-\isa{n\ {\isasymnoteq}\ {\isadigit{0}}}. Unfortunately, in general the case distinction
+The order of equations is important: it hides the side condition
+\isa{n\ {\isasymnoteq}\ {\isadigit{0}}}.  Unfortunately, in general the case distinction
 may not be expressible by pattern matching.
 
-A very simple alternative is to replace \isa{if} by \isa{case}, which
-is also available for \isa{bool} but is not split automatically:%
+A simple alternative is to replace \isa{if} by \isa{case}, 
+which is also available for \isa{bool} and is not split automatically:%
 \end{isamarkuptext}%
 \isacommand{consts}\ gcd{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ gcd{\isadigit{2}}\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}{\isachardot}n{\isacharparenright}{\isachardoublequote}\isanewline
 \ \ {\isachardoublequote}gcd{\isadigit{2}}{\isacharparenleft}m{\isacharcomma}n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}case\ n{\isacharequal}{\isadigit{0}}\ of\ True\ {\isasymRightarrow}\ m\ {\isacharbar}\ False\ {\isasymRightarrow}\ gcd{\isadigit{2}}{\isacharparenleft}n{\isacharcomma}m\ mod\ n{\isacharparenright}{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-In fact, this is probably the neatest solution next to pattern matching.
+This is probably the neatest solution next to pattern matching, and it is
+always available.
 
 A final alternative is to replace the offending simplification rules by
 derived conditional ones. For \isa{gcd} it means we have to prove
@@ -80,11 +84,13 @@ these lemmas:%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}gcd\ {\isacharparenleft}m{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ m{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
 \isacommand{done}\isanewline
+\isanewline
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}n\ {\isasymnoteq}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ gcd{\isacharparenleft}m{\isacharcomma}\ n{\isacharparenright}\ {\isacharequal}\ gcd{\isacharparenleft}n{\isacharcomma}\ m\ mod\ n{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}simp{\isacharparenright}\isanewline
 \isacommand{done}%
 \begin{isamarkuptext}%
 \noindent
+Simplification terminates for these proofs because the condition of the \isa{if} simplifies to \isa{True} or \isa{False}.
 Now we can disable the original simplification rule:%
 \end{isamarkuptext}%
 \isacommand{declare}\ gcd{\isachardot}simps\ {\isacharbrackleft}simp\ del{\isacharbrackright}\isanewline

@@ -277,6 +277,9 @@ text{*
 Hilbert-epsilon theorems*}
 
 text{*
+@{thm[display] the_equality[no_vars]}
+\rulename{the_equality}
+
 @{thm[display] some_equality[no_vars]}
 \rulename{some_equality}
 
@@ -311,7 +314,7 @@ theorem Least_equality:
      "\<lbrakk> P (k::nat);  \<forall>x. P x \<longrightarrow> k \<le> x \<rbrakk> \<Longrightarrow> (LEAST x. P(x)) = k"
 apply (simp add: Least_def)
  
-txt{*omit maybe?
+txt{*
 @{subgoals[display,indent=0,margin=65]}
 *};
    

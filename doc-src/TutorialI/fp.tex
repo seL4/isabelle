@@ -155,7 +155,7 @@ starting with inductive datatypes.
 
 \index{datatypes|(}%
 Inductive datatypes are part of almost every non-trivial application of HOL.
-First we take another look at a very important example, the datatype of
+First we take another look at an important example, the datatype of
 lists, before we turn to datatypes in general. The section closes with a
 case study.
 
@@ -307,18 +307,19 @@ soundness errors.
 
 \chapter{More Functional Programming}
 
-The purpose of this chapter is to deepen the reader's understanding of the
+The purpose of this chapter is to deepen your understanding of the
 concepts encountered so far and to introduce advanced forms of datatypes and
 recursive functions. The first two sections give a structured presentation of
 theorem proving by simplification ({\S}\ref{sec:Simplification}) and discuss
-important heuristics for induction ({\S}\ref{sec:InductionHeuristics}). They can
-be skipped by readers less interested in proofs. They are followed by a case
-study, a compiler for expressions ({\S}\ref{sec:ExprCompiler}). Advanced
+important heuristics for induction ({\S}\ref{sec:InductionHeuristics}).  You can
+skip them if you are not planning to perform proofs yourself.
+We then present a case
+study: a compiler for expressions ({\S}\ref{sec:ExprCompiler}). Advanced
 datatypes, including those involving function spaces, are covered in
-{\S}\ref{sec:advanced-datatypes}, which closes with another case study, search
-trees (``tries'').  Finally we introduce \isacommand{recdef}, a very general
-form of recursive function definition which goes well beyond what
-\isacommand{primrec} allows ({\S}\ref{sec:recdef}).
+{\S}\ref{sec:advanced-datatypes}; it closes with another case study, search
+trees (``tries'').  Finally we introduce \isacommand{recdef}, a general
+form of recursive function definition that goes well beyond 
+\isacommand{primrec} ({\S}\ref{sec:recdef}).
 
 
 \section{Simplification}
@@ -326,21 +327,21 @@ form of recursive function definition which goes well beyond what
 \index{simplification|(}
 
 So far we have proved our theorems by \isa{auto}, which simplifies
-\emph{all} subgoals. In fact, \isa{auto} can do much more than that, except
-that it did not need to so far. However, when you go beyond toy examples, you
+all subgoals. In fact, \isa{auto} can do much more than that. 
+To go beyond toy examples, you
 need to understand the ingredients of \isa{auto}.  This section covers the
 method that \isa{auto} always applies first, simplification.
 
 Simplification is one of the central theorem proving tools in Isabelle and
-many other systems. The tool itself is called the \bfindex{simplifier}. The
-purpose of this section is to introduce the many features of the simplifier.
-Anybody intending to perform proofs in HOL should read this section. Later on
-({\S}\ref{sec:simplification-II}) we explain some more advanced features and a
+many other systems. The tool itself is called the \textbf{simplifier}. 
+This section introduces the many features of the simplifier
+and is required reading if you intend to perform proofs.  Later on,
+{\S}\ref{sec:simplification-II} explains some more advanced features and a
 little bit of how the simplifier works. The serious student should read that
-section as well, in particular in order to understand what happened if things
-do not simplify as expected.
+section as well, in particular to understand why the simplifier did
+something unexpected.
 
-\subsection{What is Simplification}
+\subsection{What is Simplification?}
 
 In its most basic form, simplification means repeated application of
 equations from left to right. For example, taking the rules for \isa{\at}
@@ -350,9 +351,15 @@ simplification steps:
 (0#1#[]) @ []  \(\leadsto\)  0#((1#[]) @ [])  \(\leadsto\)  0#(1#([] @ []))  \(\leadsto\)  0#1#[]
 \end{ttbox}
 This is also known as \bfindex{term rewriting}\indexbold{rewriting} and the
-equations are referred to as \textbf{rewrite rules}\indexbold{rewrite rule}.
+equations are referred to as \bfindex{rewrite rules}.
 ``Rewriting'' is more honest than ``simplification'' because the terms do not
 necessarily become simpler in the process.
+
+The simplifier proves arithmetic goals as described in
+{\S}\ref{sec:nat} above.  Arithmetic expressions are simplified using built-in
+procedures that go beyond mere rewrite rules.  New simplification procedures
+can be coded and installed, but they are definitely not a matter for this
+tutorial. 
 
 \input{Misc/document/simp.tex}
 
@@ -407,16 +414,16 @@ to allow recursion involving the type \isa{set}, which is isomorphic to
 Fortunately, a limited form of recursion
 involving function spaces is permitted: the recursive type may occur on the
 right of a function arrow, but never on the left. Hence the above can of worms
-is ruled out but the following example of a potentially infinitely branching tree is
-accepted:
+is ruled out but the following example of a potentially 
+\index{infinitely branching trees}%
+infinitely branching tree is accepted:
 \smallskip
 
 \input{Datatype/document/Fundata.tex}
-\bigskip
 
 If you need nested recursion on the left of a function arrow, there are
 alternatives to pure HOL\@.  In the Logic for Computable Functions 
-(LCF), types like
+(\rmindex{LCF}), types like
 \begin{isabelle}
 \isacommand{datatype} lam = C "lam \isasymrightarrow\ lam"
 \end{isabelle}
@@ -424,7 +431,7 @@ do indeed make sense~\cite{paulson87}.  Note the different arrow,
 \isa{\isasymrightarrow} instead of \isa{\isasymRightarrow},
 expressing the type of \emph{continuous} functions. 
 There is even a version of LCF on top of HOL,
-called HOLCF~\cite{MuellerNvOS99}.
+called \rmindex{HOLCF}~\cite{MuellerNvOS99}.
 \index{datatype@\isacommand {datatype} (command)|)}
 \index{primrec@\isacommand {primrec} (command)|)}
 
@@ -432,6 +439,7 @@ called HOLCF~\cite{MuellerNvOS99}.
 \subsection{Case Study: Tries}
 \label{sec:Trie}
 
+\index{tries|(}%
 Tries are a classic search tree data structure~\cite{Knuth3-75} for fast
 indexing with strings. Figure~\ref{fig:trie} gives a graphical example of a
 trie containing the words ``all'', ``an'', ``ape'', ``can'', ``car'' and
@@ -482,6 +490,7 @@ information is stored only in the final node associated with the string, many
 nodes do not carry any value. This distinction is modeled with the help
 of the predefined datatype \isa{option} (see {\S}\ref{sec:option}).
 \input{Trie/document/Trie.tex}
+\index{tries|)}
 
 \section{Total Recursive Functions}
 \label{sec:recdef}
@@ -503,12 +512,12 @@ more advanced termination proofs are discussed in {\S}\ref{sec:beyond-measure}.
 
 \input{Recdef/document/termination.tex}
 
-\subsection{Simplification with Recdef}
+\subsection{Simplification and Recursive Functions}
 \label{sec:recdef-simplification}
 
 \input{Recdef/document/simplification.tex}
 
-\subsection{Induction}
+\subsection{Induction and Recursive Functions}
 \index{induction!recursion|(}
 \index{recursion induction|(}
 

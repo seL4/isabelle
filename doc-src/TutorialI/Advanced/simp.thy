@@ -45,7 +45,7 @@ strategy in programming languages, which is why this is the default
 congruence rule for @{text if}. Analogous rules control the evaluation of
 @{text case} expressions.
 
-You can declare your own congruence rules with the attribute @{text cong},
+You can declare your own congruence rules with the attribute \attrdx{cong},
 either globally, in the usual manner,
 \begin{quote}
 \isacommand{declare} \textit{theorem-name} @{text"[cong]"}

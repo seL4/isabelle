@@ -1232,30 +1232,38 @@ The rest is automatic, by arithmetic.
 
 
 
-\section{Hilbert's $\varepsilon$-Operator}
+\section{Description Operators}
 \label{sec:SOME}
 
-\index{Hilbert's $\varepsilon$-operator|(}%
-HOL provides Hilbert's $\varepsilon$-operator.  The term $\varepsilon x.
-P(x)$ denotes some $x$ such that $P(x)$ is true, provided such a value
-exists.  In \textsc{ascii}, we write \sdx{SOME} for the Greek
-letter~$\varepsilon$.
+\index{description operators|(}%
+HOL provides two description operators.
+A \textbf{definite description} formalizes the word ``the,'' as in
+``the greatest divisior of~$n$.''
+It returns an arbitrary value unless the formula has a unique solution.
+An \textbf{indefinite description} formalizes the word ``some,'' as in
+``some member of~$S$.''  It differs from a definition description in not
+requiring the solution to be unique: it uses the axiom of choice to pick any
+solution. 
 
 \begin{warn}
-Hilbert's $\varepsilon$-operator can be hard to reason about.  New users
-should try to avoid it.  Fortunately, situations that require it are rare.
+Description operators can be hard to reason about.  Novices
+should try to avoid them.  Fortunately, descriptions are seldom required.
 \end{warn}
 
 \subsection{Definite Descriptions}
 
 \index{descriptions!definite}%
-The main use of \hbox{\isa{SOME\ x.\ P\ x}} is as a \textbf{definite
-description}: when \isa{P} is satisfied by a unique value,~\isa{a}. 
-We reason using this rule:\REMARK{update if we add iota}
+A definite description is traditionally written $\iota x.  P(x)$.  It denotes
+the $x$ such that $P(x)$ is true, provided there exists a unique such~$x$;
+otherwise, it returns an arbitrary value of the expected type.
+Isabelle uses \sdx{THE} for the Greek letter~$\iota$.  (The
+traditional notation could be provided, but it is not legible on screen.)
+
+We reason using this rule, where \isa{a} is the unique solution:
 \begin{isabelle}
 \isasymlbrakk P\ a;\ \isasymAnd x.\ P\ x\ \isasymLongrightarrow \ x\ =\ a\isasymrbrakk \ 
-\isasymLongrightarrow \ (SOME\ x.\ P\ x)\ =\ a%
-\rulenamedx{some_equality}
+\isasymLongrightarrow \ (THE\ x.\ P\ x)\ =\ a%
+\rulenamedx{the_equality}
 \end{isabelle}
 For instance, we can define the
 cardinality of a finite set~$A$ to be that
@@ -1267,21 +1275,22 @@ A more challenging example illustrates how Isabelle/HOL defines the least number
 operator, which denotes the least \isa{x} satisfying~\isa{P}:%
 \index{least number operator|see{\protect\isa{LEAST}}}
 \begin{isabelle}
-(LEAST\ x.\ P\ x)\ = (SOME\ x.\ P\ x\ \isasymand \ (\isasymforall y.\
+(LEAST\ x.\ P\ x)\ = (THE\ x.\ P\ x\ \isasymand \ (\isasymforall y.\
 P\ y\ \isasymlongrightarrow \ x\ \isasymle \ y))
 \end{isabelle}
 %
-Let us prove the counterpart of \isa{some_equality} for \sdx{LEAST}\@.
-The first step merely unfolds the definitions (\isa{LeastM} is a
-auxiliary operator):
+Let us prove the analogue of \isa{the_equality} for \sdx{LEAST}\@.
 \begin{isabelle}
 \isacommand{theorem}\ Least_equality:\isanewline
 \ \ \ \ \ "\isasymlbrakk P\ (k::nat);\ \ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\ \isasymle \ x\isasymrbrakk \ \isasymLongrightarrow \ (LEAST\ x.\ P\ x)\ =\ k"\isanewline
-\isacommand{apply}\ (simp\ add:\ Least_def\ LeastM_def)\isanewline
-%\ 1.\ \isasymlbrakk P\ k;\ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\
-%\isasymle \ x\isasymrbrakk \isanewline
-%\ \ \ \ \isasymLongrightarrow \ (SOME\ x.\ P\ x\ \isasymand \ (\isasymforall y.\ P\ y\ \isasymlongrightarrow \ x\ \isasymle \ y))\ =\ k%
-\isacommand{apply}\ (rule\ some_equality)\isanewline
+\isacommand{apply}\ (simp\ add:\ Least_def)\isanewline
+\isanewline
+\ 1.\ \isasymlbrakk P\ k;\ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\ \isasymle \ x\isasymrbrakk \isanewline
+\isaindent{\ 1.\ }\isasymLongrightarrow \ (THE\ x.\ P\ x\ \isasymand \ (\isasymforall y.\ P\ y\ \isasymlongrightarrow \ x\ \isasymle \ y))\ =\ k%
+\end{isabelle}
+The first step has merely unfolded the definition.
+\begin{isabelle}
+\isacommand{apply}\ (rule\ the_equality)\isanewline
 \isanewline
 \ 1.\ \isasymlbrakk P\ k;\ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\
 \isasymle \ x\isasymrbrakk \ \isasymLongrightarrow \ P\ k\ \isasymand \
@@ -1289,32 +1298,40 @@ auxiliary operator):
 \ 2.\ \isasymAnd x.\ \isasymlbrakk P\ k;\ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\ \isasymle \ x;\ P\ x\ \isasymand \ (\isasymforall y.\ P\ y\ \isasymlongrightarrow \ x\ \isasymle \ y)\isasymrbrakk \isanewline
 \ \ \ \ \ \ \ \ \isasymLongrightarrow \ x\ =\ k%
 \end{isabelle}
-As always with \isa{some_equality}, we must show existence and
+As always with \isa{the_equality}, we must show existence and
 uniqueness of the claimed solution,~\isa{k}.  Existence, the first
 subgoal, is trivial.  Uniqueness, the second subgoal, follows by antisymmetry:
 \begin{isabelle}
 \isasymlbrakk x\ \isasymle \ y;\ y\ \isasymle \ x\isasymrbrakk \ \isasymLongrightarrow \ x\ =\ y%
 \rulename{order_antisym}
 \end{isabelle}
-The assumptions imply both \isa{k~\isasymle~x} and \isa{x~\isasymle~k}.  One call
-to \isa{auto} does it all:
+The assumptions imply both \isa{k~\isasymle~x} and \isa{x~\isasymle~k}.  One
+call to \isa{auto} does it all: 
 \begin{isabelle}
 \isacommand{by}\ (auto\ intro:\ order_antisym)
 \end{isabelle}
 
+\REMARK{refer to \isa{Main_wo_AC} if we introduce it}
 
 \subsection{Indefinite Descriptions}
 
+\index{Hilbert's $\varepsilon$-operator}%
 \index{descriptions!indefinite}%
-Occasionally, \hbox{\isa{SOME\ x.\ P\ x}} serves as an \textbf{indefinite
-description}, when it makes an arbitrary selection from the values
-satisfying~\isa{P}\@.  Here is the definition
-of~\cdx{inv}, which expresses inverses of
+An indefinite description is traditionally written $\varepsilon x. P(x)$ and is
+known as Hilbert's $\varepsilon$-operator.  It denotes
+some $x$ such that $P(x)$ is true, provided one exists.
+Isabelle uses \sdx{SOME} for the Greek letter~$\varepsilon$.
+
+Here is the definition of~\cdx{inv}, which expresses inverses of
 functions:
 \begin{isabelle}
 inv\ f\ \isasymequiv \ \isasymlambda y.\ SOME\ x.\ f\ x\ =\ y%
 \rulename{inv_def}
 \end{isabelle}
+Using \isa{SOME} rather than \isa{THE} makes \isa{inv~f} behave well
+even if \isa{f} is not injective.  As it happens, most useful theorems about
+\isa{inv} do assume the function to be injective.
+
 The inverse of \isa{f}, when applied to \isa{y}, returns some~\isa{x} such that
 \isa{f~x~=~y}.  For example, we can prove \isa{inv~Suc} really is the inverse
 of the \isa{Suc} function 
@@ -1332,7 +1349,14 @@ finally to~\isa{n}.
 We know nothing about what
 \isa{inv~Suc} returns when applied to zero.  The proof above still treats
 \isa{SOME} as a definite description, since it only reasons about
-situations in which the value is  described uniquely.  To go further is
+situations in which the value is described uniquely.  Indeed, \isa{SOME}
+satisfies this rule:
+\begin{isabelle}
+\isasymlbrakk P\ a;\ \isasymAnd x.\ P\ x\ \isasymLongrightarrow \ x\ =\ a\isasymrbrakk \ 
+\isasymLongrightarrow \ (SOME\ x.\ P\ x)\ =\ a%
+\rulenamedx{some_equality}
+\end{isabelle}
+To go further is
 tricky and requires rules such as these:
 \begin{isabelle}
 P\ x\ \isasymLongrightarrow \ P\ (SOME\ x.\ P\ x)
@@ -1382,7 +1406,7 @@ existential destruction rule:
 This rule is seldom used for that purpose --- it can cause exponential
 blow-up --- but it is occasionally used as an introduction rule
 for~$\varepsilon$-operator.  Its name in HOL is \tdxbold{someI_ex}.%%
-\index{Hilbert's $\varepsilon$-operator|)}
+\index{description operators|)}
 
 
 \section{Some Proofs That Fail}

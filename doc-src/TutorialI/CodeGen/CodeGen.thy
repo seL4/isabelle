@@ -5,6 +5,7 @@ theory CodeGen = Main:
 section{*Case Study: Compiling Expressions*}
 
 text{*\label{sec:ExprCompiler}
+\index{compiling expressions example|(}%
 The task is to develop a compiler from a generic type of expressions (built
 from variables, constants and binary operations) to a stack machine.  This
 generic type of expressions is a generalization of the boolean expressions in
@@ -64,7 +65,7 @@ primrec
 text{*\noindent
 Recall that @{term"hd"} and @{term"tl"}
 return the first element and the remainder of a list.
-Because all functions are total, @{term"hd"} is defined even for the empty
+Because all functions are total, \cdx{hd} is defined even for the empty
 list, although we do not know what the result is. Thus our model of the
 machine always terminates properly, although the definition above does not
 tell us much about the result in situations where @{term"Apply"} was executed
@@ -87,14 +88,14 @@ execution of a compiled expression results in the value of the expression:
 theorem "exec (comp e) s [] = [value e s]";
 (*<*)oops;(*>*)
 text{*\noindent
-This theorem needs to be generalized to
+This theorem needs to be generalized:
 *}
 
 theorem "\<forall>vs. exec (comp e) s vs = (value e s) # vs";
 
 txt{*\noindent
-which is proved by induction on @{term"e"} followed by simplification, once
-we have the following lemma about executing the concatenation of two
+It will be proved by induction on @{term"e"} followed by simplification.  
+First, we must prove a lemma about executing the concatenation of two
 instruction sequences:
 *}
 (*<*)oops;(*>*)
@@ -105,7 +106,7 @@ txt{*\noindent
 This requires induction on @{term"xs"} and ordinary simplification for the
 base cases. In the induction step, simplification leaves us with a formula
 that contains two @{text"case"}-expressions over instructions. Thus we add
-automatic case splitting as well, which finishes the proof:
+automatic case splitting, which finishes the proof:
 *}
 apply(induct_tac xs, simp, simp split: instr.split);
 (*<*)done(*>*)
@@ -126,7 +127,8 @@ Although this is more compact, it is less clear for the reader of the proof.
 We could now go back and prove \isa{exec (comp e) s [] = [value e s]}
 merely by simplification with the generalized version we just proved.
 However, this is unnecessary because the generalized version fully subsumes
-its instance.
+its instance.%
+\index{compiling expressions example|)}
 *}
 (*<*)
 theorem "\<forall>vs. exec (comp e) s vs = (value e s) # vs";

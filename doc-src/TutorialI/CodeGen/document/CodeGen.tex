@@ -7,6 +7,7 @@
 %
 \begin{isamarkuptext}%
 \label{sec:ExprCompiler}
+\index{compiling expressions example|(}%
 The task is to develop a compiler from a generic type of expressions (built
 from variables, constants and binary operations) to a stack machine.  This
 generic type of expressions is a generalization of the boolean expressions in
@@ -60,7 +61,7 @@ unchanged:%
 \noindent
 Recall that \isa{hd} and \isa{tl}
 return the first element and the remainder of a list.
-Because all functions are total, \isa{hd} is defined even for the empty
+Because all functions are total, \cdx{hd} is defined even for the empty
 list, although we do not know what the result is. Thus our model of the
 machine always terminates properly, although the definition above does not
 tell us much about the result in situations where \isa{Apply} was executed
@@ -81,13 +82,13 @@ execution of a compiled expression results in the value of the expression:%
 \isacommand{theorem}\ {\isachardoublequote}exec\ {\isacharparenleft}comp\ e{\isacharparenright}\ s\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ {\isacharbrackleft}value\ e\ s{\isacharbrackright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-This theorem needs to be generalized to%
+This theorem needs to be generalized:%
 \end{isamarkuptext}%
 \isacommand{theorem}\ {\isachardoublequote}{\isasymforall}vs{\isachardot}\ exec\ {\isacharparenleft}comp\ e{\isacharparenright}\ s\ vs\ {\isacharequal}\ {\isacharparenleft}value\ e\ s{\isacharparenright}\ {\isacharhash}\ vs{\isachardoublequote}%
 \begin{isamarkuptxt}%
 \noindent
-which is proved by induction on \isa{e} followed by simplification, once
-we have the following lemma about executing the concatenation of two
+It will be proved by induction on \isa{e} followed by simplification.  
+First, we must prove a lemma about executing the concatenation of two
 instruction sequences:%
 \end{isamarkuptxt}%
 \isacommand{lemma}\ exec{\isacharunderscore}app{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
@@ -97,7 +98,7 @@ instruction sequences:%
 This requires induction on \isa{xs} and ordinary simplification for the
 base cases. In the induction step, simplification leaves us with a formula
 that contains two \isa{case}-expressions over instructions. Thus we add
-automatic case splitting as well, which finishes the proof:%
+automatic case splitting, which finishes the proof:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}induct{\isacharunderscore}tac\ xs{\isacharcomma}\ simp{\isacharcomma}\ simp\ split{\isacharcolon}\ instr{\isachardot}split{\isacharparenright}%
 \begin{isamarkuptext}%
@@ -115,6 +116,7 @@ We could now go back and prove \isa{exec (comp e) s [] = [value e s]}
 merely by simplification with the generalized version we just proved.
 However, this is unnecessary because the generalized version fully subsumes
 its instance.%
+\index{compiling expressions example|)}%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

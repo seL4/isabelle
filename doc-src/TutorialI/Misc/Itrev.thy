@@ -5,6 +5,7 @@ theory Itrev = Main:;
 section{*Induction Heuristics*}
 
 text{*\label{sec:InductionHeuristics}
+\index{induction heuristics|(}%
 The purpose of this section is to illustrate some simple heuristics for
 inductive proofs. The first one we have already mentioned in our initial
 example:
@@ -16,23 +17,29 @@ In case the function has more than one argument
 \emph{Do induction on argument number $i$ if the function is defined by
 recursion in argument number $i$.}
 \end{quote}
-When we look at the proof of @{term[source]"(xs @ ys) @ zs = xs @ (ys @ zs)"}
-in \S\ref{sec:intro-proof} we find (a) @{text"@"} is recursive in
-the first argument, (b) @{term xs} occurs only as the first argument of
-@{text"@"}, and (c) both @{term ys} and @{term zs} occur at least once as
-the second argument of @{text"@"}. Hence it is natural to perform induction
-on @{term xs}.
+When we look at the proof of @{text"(xs@ys) @ zs = xs @ (ys@zs)"}
+in \S\ref{sec:intro-proof} we find
+\begin{itemize}
+\item @{text"@"} is recursive in
+the first argument
+\item @{term xs}  occurs only as the first argument of
+@{text"@"}
+\item both @{term ys} and @{term zs} occur at least once as
+the second argument of @{text"@"}
+\end{itemize}
+Hence it is natural to perform induction on~@{term xs}.
 
 The key heuristic, and the main point of this section, is to
-generalize the goal before induction. The reason is simple: if the goal is
+\emph{generalize the goal before induction}.
+The reason is simple: if the goal is
 too specific, the induction hypothesis is too weak to allow the induction
 step to go through. Let us illustrate the idea with an example.
 
-Function @{term"rev"} has quadratic worst-case running time
+Function \cdx{rev} has quadratic worst-case running time
 because it calls function @{text"@"} for each element of the list and
 @{text"@"} is linear in its first argument.  A linear time version of
 @{term"rev"} reqires an extra argument where the result is accumulated
-gradually, using only @{text"#"}:
+gradually, using only~@{text"#"}:
 *}
 
 consts itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list";
@@ -41,10 +48,10 @@ primrec
 "itrev (x#xs) ys = itrev xs (x#ys)";
 
 text{*\noindent
-The behaviour of @{term"itrev"} is simple: it reverses
+The behaviour of \cdx{itrev} is simple: it reverses
 its first argument by stacking its elements onto the second argument,
 and returning that second argument when the first one becomes
-empty. Note that @{term"itrev"} is tail-recursive, i.e.\ it can be
+empty. Note that @{term"itrev"} is tail-recursive: it can be
 compiled into a loop.
 
 Naturally, we would like to show that @{term"itrev"} does indeed reverse
@@ -60,30 +67,30 @@ There is no choice as to the induction variable, and we immediately simplify:
 apply(induct_tac xs, simp_all);
 
 txt{*\noindent
-Unfortunately, this is not a complete success:
+Unfortunately, this attempt does not prove
+the induction step:
 @{subgoals[display,indent=0,margin=70]}
-Just as predicted above, the overall goal, and hence the induction
-hypothesis, is too weak to solve the induction step because of the fixed
-argument, @{term"[]"}.  This suggests a heuristic:
-\begin{quote}
+The induction hypothesis is too weak.  The fixed
+argument,~@{term"[]"}, prevents it from rewriting the conclusion.  
+This example suggests a heuristic:
+\begin{quote}\index{generalizing induction formulae}%
 \emph{Generalize goals for induction by replacing constants by variables.}
 \end{quote}
 Of course one cannot do this na\"{\i}vely: @{term"itrev xs ys = rev xs"} is
-just not true --- the correct generalization is
+just not true.  The correct generalization is
 *};
 (*<*)oops;(*>*)
 lemma "itrev xs ys = rev xs @ ys";
 (*<*)apply(induct_tac xs, simp_all)(*>*)
 txt{*\noindent
 If @{term"ys"} is replaced by @{term"[]"}, the right-hand side simplifies to
-@{term"rev xs"}, just as required.
+@{term"rev xs"}, as required.
 
-In this particular instance it was easy to guess the right generalization,
-but in more complex situations a good deal of creativity is needed. This is
-the main source of complications in inductive proofs.
+In this instance it was easy to guess the right generalization.
+Other situations can require a good deal of creativity.  
 
 Although we now have two variables, only @{term"xs"} is suitable for
-induction, and we repeat our above proof attempt. Unfortunately, we are still
+induction, and we repeat our proof attempt. Unfortunately, we are still
 not there:
 @{subgoals[display,indent=0,goals_limit=1]}
 The induction hypothesis is still too weak, but this time it takes no
@@ -105,12 +112,11 @@ leads to another heuristic for generalization:
 \emph{Generalize goals for induction by universally quantifying all free
 variables {\em(except the induction variable itself!)}.}
 \end{quote}
-This prevents trivial failures like the above and does not change the
-provability of the goal. Because it is not always required, and may even
-complicate matters in some cases, this heuristic is often not
-applied blindly.
-The variables that require generalization are typically those that 
-change in recursive calls.
+This prevents trivial failures like the one above and does not affect the
+validity of the goal.  However, this heuristic should not be applied blindly.
+It is not always required, and the additional quantifiers can complicate
+matters in some cases, The variables that should be quantified are typically
+those that change in recursive calls.
 
 A final point worth mentioning is the orientation of the equation we just
 proved: the more complex notion (@{term itrev}) is on the left-hand
@@ -124,12 +130,13 @@ This heuristic is tricky to apply because it is not obvious that
 @{term"rev xs @ ys"} is simpler than @{term"itrev xs ys"}. But see what
 happens if you try to prove @{prop"rev xs @ ys = itrev xs ys"}!
 
-In general, if you have tried the above heuristics and still find your
+If you have tried these heuristics and still find your
 induction does not go through, and no obvious lemma suggests itself, you may
 need to generalize your proposition even further. This requires insight into
-the problem at hand and is beyond simple rules of thumb.  You
-will need to be creative. Additionally, you can read \S\ref{sec:advanced-ind}
-to learn about some advanced techniques for inductive proofs.
+the problem at hand and is beyond simple rules of thumb.  
+Additionally, you can read \S\ref{sec:advanced-ind}
+to learn about some advanced techniques for inductive proofs.%
+\index{induction heuristics|)}
 *}
 (*<*)
 end

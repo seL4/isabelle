@@ -70,9 +70,15 @@ lemma "\<lbrakk> \<not> m < n; m < n+1 \<rbrakk> \<Longrightarrow> m = n"
 (*<*)by(auto)(*>*)
 
 text{*\noindent
-For efficiency's sake, this built-in prover ignores quantified formulae and all 
-arithmetic operations apart from addition.
+For efficiency's sake, this built-in prover ignores quantified formulae,
+logical connectives, and all arithmetic operations apart from addition.
+In consequence, @{text auto} cannot prove this slightly more complex goal:
+*}
 
+lemma "\<not> m < n \<and> m < n+1 \<Longrightarrow> m = n";
+(*<*)by(arith)(*>*)
+
+text{*\noindent
 The method \methdx{arith} is more general.  It attempts to prove
 the first subgoal provided it is a quantifier-free \textbf{linear arithmetic}
 formula.  Such formulas may involve the

@@ -14,7 +14,7 @@ state systems (implementations) with respect to temporal logic formulae
 (specifications) \cite{ClarkeGP-book,Huth-Ryan-book}. Its foundations are set theoretic
 and this section will explore them in HOL\@. This is done in two steps.  First
 we consider a simple modal logic called propositional dynamic
-logic (PDL), which we then extend to the temporal logic CTL, which is
+logic (PDL)\@.  We then proceed to the temporal logic CTL, which is
 used in many real
 model checkers. In each case we give both a traditional semantics (\isa{{\isasymTurnstile}}) and a
 recursive function \isa{mc} that maps a formula into the set of all states of
@@ -25,8 +25,9 @@ and the model checker agree.
 
 \underscoreon
 
-Our models are \emph{transition systems}, i.e.\ sets of \emph{states} with
-transitions between them, as shown in this simple example:
+Our models are \emph{transition systems}:\index{transition systems}
+sets of \emph{states} with
+transitions between them.  Here is a simple example:
 \begin{center}
 \unitlength.5mm
 \thicklines
@@ -49,20 +50,19 @@ transitions between them, as shown in this simple example:
 \put(91,21){\makebox(0,0)[bl]{$s_2$}}
 \end{picture}
 \end{center}
-Each state has a unique name or number ($s_0,s_1,s_2$), and in each
-state certain \emph{atomic propositions} ($p,q,r$) are true.
-The aim of temporal logic is to formalize statements such as ``there is no
-path starting from $s_2$ leading to a state where $p$ or $q$
-are true'', which is true, and ``on all paths starting from $s_0$ $q$ is always true'',
-which is false.
+Each state has a unique name or number ($s_0,s_1,s_2$), and in each state
+certain \emph{atomic propositions} ($p,q,r$) hold.  The aim of temporal logic
+is to formalize statements such as ``there is no path starting from $s_2$
+leading to a state where $p$ or $q$ holds,'' which is true, and ``on all paths
+starting from $s_0$, $q$ always holds,'' which is false.
 
-Abstracting from this concrete example, we assume there is some type of
+Abstracting from this concrete example, we assume there is a type of
 states:%
 \end{isamarkuptext}%
 \isacommand{typedecl}\ state%
 \begin{isamarkuptext}%
 \noindent
-Command \isacommand{typedecl} merely declares a new type but without
+Command \commdx{typedecl} merely declares a new type but without
 defining it (see \S\ref{sec:typedecl}). Thus we know nothing
 about the type other than its existence. That is exactly what we need
 because \isa{state} really is an implicit parameter of our model.  Of

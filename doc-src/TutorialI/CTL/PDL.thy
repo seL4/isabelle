@@ -3,12 +3,13 @@
 subsection{*Propositional Dynamic Logic --- PDL*}
 
 text{*\index{PDL|(}
-The formulae of PDL\footnote{The customary definition of PDL
-\cite{HarelKT-DL} looks quite different from ours, but the two are easily
-shown to be equivalent.} are built up from atomic propositions via
+The formulae of PDL are built up from atomic propositions via
 negation and conjunction and the two temporal
-connectives @{text AX} and @{text EF}. Since formulae are essentially
-syntax trees, they are naturally modelled as a datatype:
+connectives @{text AX} and @{text EF}\@. Since formulae are essentially
+syntax trees, they are naturally modelled as a datatype:%
+\footnote{The customary definition of PDL
+\cite{HarelKT-DL} looks quite different from ours, but the two are easily
+shown to be equivalent.}
 *}
 
 datatype formula = Atom atom
@@ -18,11 +19,10 @@ datatype formula = Atom atom
                   | EF formula
 
 text{*\noindent
-This is almost the same as in the boolean expression case study in
+This resembles the boolean expression case study in
 \S\ref{sec:boolex}.
-
-The meaning of these formulae is given by saying which formula is true in
-which state:
+A validity relation between
+states and formulae specifies the semantics:
 *}
 
 consts valid :: "state \<Rightarrow> formula \<Rightarrow> bool"   ("(_ \<Turnstile> _)" [80,80] 80)
@@ -30,8 +30,6 @@ consts valid :: "state \<Rightarrow> formula \<Rightarrow> bool"   ("(_ \<Turnst
 text{*\noindent
 The syntax annotation allows us to write @{term"s \<Turnstile> f"} instead of
 \hbox{@{text"valid s f"}}.
-
-\smallskip
 The definition of @{text"\<Turnstile>"} is by recursion over the syntax:
 *}
 
@@ -50,8 +48,7 @@ true. The future is expressed via @{text"\<^sup>*"}, the reflexive transitive
 closure. Because of reflexivity, the future includes the present.
 
 Now we come to the model checker itself. It maps a formula into the set of
-states where the formula is true and is defined by recursion over the syntax,
-too:
+states where the formula is true.  It too is defined by recursion over the syntax:
 *}
 
 consts mc :: "formula \<Rightarrow> state set";
@@ -111,13 +108,14 @@ which is proved by @{term lfp}-induction:
 (*pr(latex xsymbols symbols);*)
 txt{*\noindent
 Having disposed of the monotonicity subgoal,
-simplification leaves us with the following main goal
+simplification leaves us with the following goal:
 \begin{isabelle}
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ A\ {\isasymor}\isanewline
 \ \ \ \ \ \ \ \ \ x\ {\isasymin}\ M{\isasyminverse}\ {\isacharbackquote}{\isacharbackquote}\ {\isacharparenleft}lfp\ {\isacharparenleft}\dots{\isacharparenright}\ {\isasyminter}\ {\isacharbraceleft}x{\isachardot}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A{\isacharbraceright}{\isacharparenright}\isanewline
 \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isasymexists}t{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ t{\isacharparenright}\ {\isasymin}\ M\isactrlsup {\isacharasterisk}\ {\isasymand}\ t\ {\isasymin}\ A
 \end{isabelle}
-which is proved by @{text blast} with the help of transitivity of @{text"\<^sup>*"}:
+It is proved by @{text blast}, using the transitivity of 
+\isa{M\isactrlsup {\isacharasterisk}}.
 *}
 
  apply(blast intro: rtrancl_trans);
@@ -135,7 +133,7 @@ After simplification and clarification we are left with
 @{subgoals[display,indent=0,goals_limit=1]}
 This goal is proved by induction on @{term"(s,t)\<in>M\<^sup>*"}. But since the model
 checker works backwards (from @{term t} to @{term s}), we cannot use the
-induction theorem @{thm[source]rtrancl_induct} because it works in the
+induction theorem @{thm[source]rtrancl_induct}: it works in the
 forward direction. Fortunately the converse induction theorem
 @{thm[source]converse_rtrancl_induct} already exists:
 @{thm[display,margin=60]converse_rtrancl_induct[no_vars]}
@@ -181,9 +179,11 @@ done;
 
 text{*
 \begin{exercise}
-@{term AX} has a dual operator @{term EN}\footnote{We cannot use the customary @{text EX}
-as that is the \textsc{ascii}-equivalent of @{text"\<exists>"}}
-(``there exists a next state such that'') with the intended semantics
+@{term AX} has a dual operator @{term EN} 
+(``there exists a next state such that'')%
+\footnote{We cannot use the customary @{text EX}: it is reserved
+as the \textsc{ascii}-equivalent of @{text"\<exists>"}.}
+with the intended semantics
 @{prop[display]"(s \<Turnstile> EN f) = (EX t. (s,t) : M & t \<Turnstile> f)"}
 Fortunately, @{term"EN f"} can already be expressed as a PDL formula. How?
 

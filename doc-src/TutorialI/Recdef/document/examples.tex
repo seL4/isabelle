@@ -3,7 +3,7 @@
 \def\isabellecontext{examples}%
 %
 \begin{isamarkuptext}%
-Here is a simple example, the Fibonacci function:%
+Here is a simple example, the \rmindex{Fibonacci function}:%
 \end{isamarkuptext}%
 \isacommand{consts}\ fib\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ fib\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}n{\isachardot}\ n{\isacharparenright}{\isachardoublequote}\isanewline
@@ -12,7 +12,8 @@ Here is a simple example, the Fibonacci function:%
 \ \ {\isachardoublequote}fib\ {\isacharparenleft}Suc{\isacharparenleft}Suc\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ fib\ x\ {\isacharplus}\ fib\ {\isacharparenleft}Suc\ x{\isacharparenright}{\isachardoublequote}%
 \begin{isamarkuptext}%
 \noindent
-The definition of \isa{fib} is accompanied by a \bfindex{measure function}
+\index{measure functions}%
+The definition of \isa{fib} is accompanied by a \textbf{measure function}
 \isa{{\isasymlambda}n{\isachardot}\ n} which maps the argument of \isa{fib} to a
 natural number. The requirement is that in each equation the measure of the
 argument on the left-hand side is strictly greater than the measure of the
@@ -36,7 +37,8 @@ recursive call; the first component of the argument tuple is irrelevant.
 The details of tupled $\lambda$-abstractions \isa{{\isasymlambda}{\isacharparenleft}x\isactrlsub {\isadigit{1}}{\isacharcomma}{\isasymdots}{\isacharcomma}x\isactrlsub n{\isacharparenright}} are
 explained in \S\ref{sec:products}, but for now your intuition is all you need.
 
-Pattern matching need not be exhaustive:%
+Pattern matching\index{pattern matching!and \isacommand{recdef}}
+need not be exhaustive:%
 \end{isamarkuptext}%
 \isacommand{consts}\ last\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequote}\isanewline
 \isacommand{recdef}\ last\ {\isachardoublequote}measure\ {\isacharparenleft}{\isasymlambda}xs{\isachardot}\ length\ xs{\isacharparenright}{\isachardoublequote}\isanewline

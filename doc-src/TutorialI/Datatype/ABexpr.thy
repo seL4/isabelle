@@ -3,12 +3,13 @@ theory ABexpr = Main:;
 (*>*)
 
 text{*
+\index{datatypes!mutually recursive}%
 Sometimes it is necessary to define two datatypes that depend on each
 other. This is called \textbf{mutual recursion}. As an example consider a
 language of arithmetic and boolean expressions where
 \begin{itemize}
 \item arithmetic expressions contain boolean expressions because there are
-  conditional arithmetic expressions like ``if $m<n$ then $n-m$ else $m-n$'',
+  conditional expressions like ``if $m<n$ then $n-m$ else $m-n$'',
   and
 \item boolean expressions contain arithmetic expressions because of
   comparisons like ``$m<n$''.
@@ -31,14 +32,14 @@ except that we have added an @{text IF} constructor,
 fixed the values to be of type @{typ"nat"} and declared the two binary
 operations @{text Sum} and @{term"Diff"}.  Boolean
 expressions can be arithmetic comparisons, conjunctions and negations.
-The semantics is fixed via two evaluation functions
+The semantics is given by two evaluation functions:
 *}
 
 consts  evala :: "'a aexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat"
         evalb :: "'a bexp \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> bool";
 
 text{*\noindent
-that take an expression and an environment (a mapping from variables @{typ"'a"} to values
+Both take an expression and an environment (a mapping from variables @{typ"'a"} to values
 @{typ"nat"}) and return its arithmetic/boolean
 value. Since the datatypes are mutually recursive, so are functions that
 operate on them. Hence they need to be defined in a single \isacommand{primrec}
@@ -117,13 +118,14 @@ where each variable $x@i$ is of type $\tau@i$. Induction is started by
 \begin{exercise}
   Define a function @{text"norma"} of type @{typ"'a aexp => 'a aexp"} that
   replaces @{term"IF"}s with complex boolean conditions by nested
-  @{term"IF"}s where each condition is a @{term"Less"} --- @{term"And"} and
-  @{term"Neg"} should be eliminated completely. Prove that @{text"norma"}
+  @{term"IF"}s; it should eliminate the constructors
+  @{term"And"} and @{term"Neg"}, leaving only @{term"Less"}.
+  Prove that @{text"norma"}
   preserves the value of an expression and that the result of @{text"norma"}
   is really normal, i.e.\ no more @{term"And"}s and @{term"Neg"}s occur in
   it.  ({\em Hint:} proceed as in \S\ref{sec:boolex}).
 \end{exercise}
 *}
-(*<*)
+(*<*) 
 end
 (*>*)

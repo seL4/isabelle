@@ -13,17 +13,16 @@ from them) as theorems. For example, look (via \isacommand{thm}) at
 the same function. What is more, those equations are automatically declared as
 simplification rules.
 
-Isabelle may fail to prove some termination conditions
-(there is one for each recursive call).  For example,
-termination of the following artificial function
-*}
+Isabelle may fail to prove the termination condition for some
+recursive call.  Let us try the following artificial function:*}
 
 consts f :: "nat\<times>nat \<Rightarrow> nat";
 recdef f "measure(\<lambda>(x,y). x-y)"
   "f(x,y) = (if x \<le> y then x else f(x,y+1))";
 
 text{*\noindent
-is not proved automatically. Isabelle prints a
+Isabelle prints a
+\REMARK{error or warning?  change this part?  rename g to f?}
 message showing you what it was unable to prove. You will then
 have to prove it as a separate lemma before you attempt the definition
 of your function once more. In our case the required lemma is the obvious one:
@@ -32,8 +31,8 @@ of your function once more. In our case the required lemma is the obvious one:
 lemma termi_lem: "\<not> x \<le> y \<Longrightarrow> x - Suc y < x - y";
 
 txt{*\noindent
-It was not proved automatically because of the special nature of subtraction
-on @{typ"nat"}. This requires more arithmetic than is tried by default:
+It was not proved automatically because of the awkward behaviour of subtraction
+on type @{typ"nat"}. This requires more arithmetic than is tried by default:
 *}
 
 apply(arith);
@@ -53,8 +52,8 @@ recdef g "measure(\<lambda>(x,y). x-y)"
 
 text{*\noindent
 This time everything works fine. Now @{thm[source]g.simps} contains precisely
-the stated recursion equation for @{term g} and they are simplification
-rules. Thus we can automatically prove
+the stated recursion equation for @{term g}, which has been stored as a
+simplification rule.  Thus we can automatically prove results such as this one:
 *}
 
 theorem "g(1,0) = g(1,1)";
@@ -75,13 +74,14 @@ the failed termination proof, the definition of @{term f} did not
 fail, and thus we could not define it a second time. However, all theorems
 about @{term f}, for example @{thm[source]f.simps}, carry as a precondition
 the unproved termination condition. Moreover, the theorems
-@{thm[source]f.simps} are not simplification rules. However, this mechanism
+@{thm[source]f.simps} are not stored as simplification rules. 
+However, this mechanism
 allows a delayed proof of termination: instead of proving
 @{thm[source]termi_lem} up front, we could prove 
 it later on and then use it to remove the preconditions from the theorems
 about @{term f}. In most cases this is more cumbersome than proving things
 up front.
-%FIXME, with one exception: nested recursion.
+\REMARK{FIXME, with one exception: nested recursion.}
 *}
 
 (*<*)

@@ -54,17 +54,18 @@ In general, the format of invoking recursion induction is
 where $x@1~\dots~x@n$ is a list of free variables in the subgoal and $f$ the
 name of a function that takes an $n$-tuple. Usually the subgoal will
 contain the term $f(x@1,\dots,x@n)$ but this need not be the case. The
-induction rules do not mention $f$ at all. For example \isa{sep{\isachardot}induct}
+induction rules do not mention $f$ at all. Here is \isa{sep{\isachardot}induct}:
 \begin{isabelle}
 {\isasymlbrakk}~{\isasymAnd}a.~P~a~[];\isanewline
 ~~{\isasymAnd}a~x.~P~a~[x];\isanewline
 ~~{\isasymAnd}a~x~y~zs.~P~a~(y~\#~zs)~{\isasymLongrightarrow}~P~a~(x~\#~y~\#~zs){\isasymrbrakk}\isanewline
 {\isasymLongrightarrow}~P~u~v%
 \end{isabelle}
-merely says that in order to prove a property \isa{P} of \isa{u} and
+It merely says that in order to prove a property \isa{P} of \isa{u} and
 \isa{v} you need to prove it for the three cases where \isa{v} is the
-empty list, the singleton list, and the list with at least two elements
-(in which case you may assume it holds for the tail of that list).%
+empty list, the singleton list, and the list with at least two elements.
+The final case has an induction hypothesis:  you may assume that \isa{P}
+holds for the tail of that list.%
 \end{isamarkuptext}%
 \end{isabellebody}%
 %%% Local Variables:

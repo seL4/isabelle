@@ -3,11 +3,12 @@ theory simplification = Main:;
 (*>*)
 
 text{*
-Once we have succeeded in proving all termination conditions, the recursion
-equations become simplification rules, just as with
+Once we have proved all the termination conditions, the \isacommand{recdef} 
+recursion equations become simplification rules, just as with
 \isacommand{primrec}. In most cases this works fine, but there is a subtle
 problem that must be mentioned: simplification may not
 terminate because of automatic splitting of @{text if}.
+\index{*if expressions!splitting of}
 Let us look at an example:
 *}
 
@@ -24,8 +25,9 @@ HOL\@.  Thus the recursion equation becomes a simplification
 rule. Of course the equation is nonterminating if we are allowed to unfold
 the recursive call inside the @{text else} branch, which is why programming
 languages and our simplifier don't do that. Unfortunately the simplifier does
-something else which leads to the same problem: it splits @{text if}s if the
-condition simplifies to neither @{term True} nor @{term False}. For
+something else that leads to the same problem: it splits 
+each @{text if}-expression unless its
+condition simplifies to @{term True} or @{term False}.  For
 example, simplification reduces
 @{term[display]"gcd(m,n) = k"}
 in one step to
@@ -37,9 +39,10 @@ an @{text if}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
 
-The most radical solution is to disable the offending @{thm[source]split_if}
+The most radical solution is to disable the offending theorem
+@{thm[source]split_if},
 as shown in \S\ref{sec:AutoCaseSplits}.  However, we do not recommend this
-because it means you will often have to invoke the rule explicitly when
+approach: you will often have to invoke the rule explicitly when
 @{text if} is involved.
 
 If possible, the definition should be given by pattern matching on the left
@@ -54,12 +57,12 @@ recdef gcd1 "measure (\<lambda>(m,n).n)"
 
 
 text{*\noindent
-Note that the order of equations is important and hides the side condition
-@{prop"n ~= 0"}. Unfortunately, in general the case distinction
+The order of equations is important: it hides the side condition
+@{prop"n ~= 0"}.  Unfortunately, in general the case distinction
 may not be expressible by pattern matching.
 
-A very simple alternative is to replace @{text if} by @{text case}, which
-is also available for @{typ bool} but is not split automatically:
+A simple alternative is to replace @{text if} by @{text case}, 
+which is also available for @{typ bool} and is not split automatically:
 *}
 
 consts gcd2 :: "nat\<times>nat \<Rightarrow> nat";
@@ -67,7 +70,8 @@ recdef gcd2 "measure (\<lambda>(m,n).n)"
   "gcd2(m,n) = (case n=0 of True \<Rightarrow> m | False \<Rightarrow> gcd2(n,m mod n))";
 
 text{*\noindent
-In fact, this is probably the neatest solution next to pattern matching.
+This is probably the neatest solution next to pattern matching, and it is
+always available.
 
 A final alternative is to replace the offending simplification rules by
 derived conditional ones. For @{term gcd} it means we have to prove
@@ -77,11 +81,14 @@ these lemmas:
 lemma [simp]: "gcd (m, 0) = m";
 apply(simp);
 done
+
 lemma [simp]: "n \<noteq> 0 \<Longrightarrow> gcd(m, n) = gcd(n, m mod n)";
 apply(simp);
 done
 
 text{*\noindent
+Simplification terminates for these proofs because the condition of the @{text
+if} simplifies to @{term True} or @{term False}.
 Now we can disable the original simplification rule:
 *}
 

@@ -3,7 +3,7 @@ theory examples = Main:;
 (*>*)
 
 text{*
-Here is a simple example, the Fibonacci function:
+Here is a simple example, the \rmindex{Fibonacci function}:
 *}
 
 consts fib :: "nat \<Rightarrow> nat";
@@ -13,7 +13,8 @@ recdef fib "measure(\<lambda>n. n)"
   "fib (Suc(Suc x)) = fib x + fib (Suc x)";
 
 text{*\noindent
-The definition of @{term"fib"} is accompanied by a \bfindex{measure function}
+\index{measure functions}%
+The definition of @{term"fib"} is accompanied by a \textbf{measure function}
 @{term"%n. n"} which maps the argument of @{term"fib"} to a
 natural number. The requirement is that in each equation the measure of the
 argument on the left-hand side is strictly greater than the measure of the
@@ -38,7 +39,8 @@ recursive call; the first component of the argument tuple is irrelevant.
 The details of tupled $\lambda$-abstractions @{text"\<lambda>(x\<^sub>1,\<dots>,x\<^sub>n)"} are
 explained in \S\ref{sec:products}, but for now your intuition is all you need.
 
-Pattern matching need not be exhaustive:
+Pattern matching\index{pattern matching!and \isacommand{recdef}}
+need not be exhaustive:
 *}
 
 consts last :: "'a list \<Rightarrow> 'a";
