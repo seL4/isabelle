@@ -1,4 +1,4 @@
-(*  Title: 	HOL/wf.ML
+(*  Title: 	HOL/WF.thy
     ID:         $Id$
     Author: 	Tobias Nipkow
     Copyright   1992  University of Cambridge
