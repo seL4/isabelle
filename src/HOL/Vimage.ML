@@ -14,6 +14,8 @@ qed_goalw "vimage_eq" thy [vimage_def]
     "(a : f-``B) = (f a : B)"
  (fn _ => [ (Blast_tac 1) ]);
 
+Addsimps [vimage_eq];
+
 qed_goal "vimage_singleton_eq" thy
     "(a : f-``{b}) = (f a = b)"
  (fn _ => [ simp_tac (simpset() addsimps [vimage_eq]) 1 ]);
@@ -33,6 +35,11 @@ AddSEs [vimageE];
 
 
 (*** Simple equalities ***)
+
+goal thy "(%x. x) -`` B = B";
+by (Blast_tac 1);
+qed "ident_vimage";
+Addsimps [ident_vimage];
 
 goal thy "f-``{} = {}";
 by (Blast_tac 1);
