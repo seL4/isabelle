@@ -314,7 +314,7 @@ constdefs
 lemma wt_makelist [simp]:
   "wt_method E test_name [] (PrimT Void) 3 2 make_list_ins [] \<phi>\<^sub>m"
   apply (simp add: wt_method_def make_list_ins_def phi_makelist_def)
-  apply (simp add: wt_start_def nat_number_of)
+  apply (simp add: wt_start_def nat_number)
   apply (simp add: wt_instr_def)
   apply clarify
   apply (elim pc_end pc_next pc_0)

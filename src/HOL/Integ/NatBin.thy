@@ -52,7 +52,7 @@ lemma nat_number_of_BIT_False:
   apply (simp only: number_of_BIT if_False zadd_0 zadd_assoc)
   done
 
-lemmas nat_number_of =
+lemmas nat_number =
   nat_number_of_Pls nat_number_of_Min
   nat_number_of_BIT_True nat_number_of_BIT_False
 
