@@ -10,6 +10,7 @@
 @string{MIT="MIT Press"}
 @string{NH="North-Holland"}
 @string{Prentice="Prentice-Hall"}
+@string{PH="Prentice-Hall"}
 @string{Springer="Springer-Verlag"}
 
 %institutions
@@ -85,6 +86,9 @@ through Proof",
 		   Comparison}, 
   crossref	= {huet-plotkin91},
   pages		= {89-119}}
+
+@book{Bird-Wadler,author="Richard Bird and Philip Wadler",
+title="Introduction to Functional Programming",publisher=PH,year=1988}
 
 @Article{boyer86,
   author	= {Robert Boyer and Ewing Lusk and William McCune and Ross
@@ -266,6 +270,13 @@ through Proof",
   publisher	= {Springer},
   series	= {LNCS 78}}
 
+@inproceedings{Gunter-HOL92,author={Elsa L. Gunter},
+title={Why we can't have {SML} style datatype declarations in {HOL}},
+booktitle={Higher Order Logic Theorem Proving and its Applications: Proc.\
+IFIP TC10/WG10.2 Intl. Workshop, 1992},
+editor={L.J.M. Claesen and M.J.C. Gordon},
+publisher=NH,year=1993,pages={561--568}}
+
 @InProceedings{gunter-trees,
   author	= {Elsa L. Gunter},
   title		= {A Broader Class of Trees for Recursive Type Definitions for
@@ -336,6 +347,10 @@ through Proof",
   publisher	= {Elsevier}}
 
 %K
+
+@book{Knuth3-75,author={Donald E. Knuth},
+title={The Art of Computer Programming, Volume 3: Sorting and Searching},
+publisher={Addison-Wesley},year=1975}
 
 @Book{kunen80,
   author	= {Kenneth Kunen},
@@ -417,6 +432,11 @@ through Proof",
   school	= {University of Edinburgh},
   year		= 1984}
 
+@article{MuellerNvOS99,
+author=
+{Olaf M\"uller and Tobias Nipkow and Oheimb, David von and Oskar Slotosch},
+title={{HOLCF = HOL + LCF}},journal=JFP,year=1999}
+
 %N
 
 @InProceedings{NaraschewskiW-TPHOLs98,
@@ -474,6 +494,12 @@ through Proof",
   volume	= 10,
   pages		= {171-186},
   year		= 1998}
+
+@manual{isabelle-HOL,
+  author	= {Tobias Nipkow and Lawrence C. Paulson and Markus Wenzel},
+  title		= {{Isabelle}'s Logics: {HOL}},
+  institution	= {Institut f\"ur Informatik, Technische Universi\"at
+                  M\"unchen and Computer Laboratory, University of Cambridge}}
 
 @article{nipkow-prehofer,
   author	= {Tobias Nipkow and Christian Prehofer},
@@ -548,11 +574,13 @@ through Proof",
   month		= mar,
   pages		= {175-204}}
 
-@techreport{isabelle-ZF,
+@manual{isabelle-ref,author="Lawrence C. Paulson",
+title="The Isabelle Reference Manual",organization=CUCL}
+
+@manual{isabelle-ZF,
   author	= {Lawrence C. Paulson},
   title		= {{Isabelle}'s Logics: {FOL} and {ZF}},
-  institution	= CUCL,
-  year		= 1999}
+  institution	= CUCL}
 
 @article{paulson-found,
   author	= {Lawrence C. Paulson},
