@@ -25,7 +25,7 @@ fun statement_binds (name, prop) =
 
     val env = [(name ^ "_prop", prop), (name ^ "_concl", list_abs concl)] @
       (case concl of Const ("Trueprop", _) $ t => [(name, list_abs t)] | _ => []);
-  in map (fn (s, t) => ((Syntax.binding s, 0), t)) env end;
+  in map (fn (s, t) => ((s, 0), t)) env end;
 
 fun goal prop = statement_binds ("thesis", prop);
 
