@@ -238,8 +238,7 @@ Overloading requires distinct types.*}
 
 constdefs 
   ProdGroup :: "[('a,'c) group_scheme, ('b,'d) group_scheme] => ('a*'b) group"
-            (infixr "'(*')" 80)
-  "G (*) G' ==
+  "ProdGroup G G' ==
     (| carrier = carrier G \<times> carrier G',
        sum = (%(x, x') (y, y'). (sum G x y, sum G' x' y')),
        gminus = (%(x, y). (gminus G x, gminus G' y)),
