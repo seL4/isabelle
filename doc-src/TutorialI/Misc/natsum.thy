@@ -66,7 +66,7 @@ Both @{text auto} and @{text simp}
 simple arithmetic goals automatically:
 *}
 
-lemma "\<lbrakk> \<not> m < n; m < n+1 \<rbrakk> \<Longrightarrow> m = n"
+lemma "\<lbrakk> \<not> m < n; m < n + (1::nat) \<rbrakk> \<Longrightarrow> m = n"
 (*<*)by(auto)(*>*)
 
 text{*\noindent
@@ -75,7 +75,7 @@ logical connectives, and all arithmetic operations apart from addition.
 In consequence, @{text auto} cannot prove this slightly more complex goal:
 *}
 
-lemma "\<not> m < n \<and> m < n+1 \<Longrightarrow> m = n";
+lemma "\<not> m < n \<and> m < n + (1::nat) \<Longrightarrow> m = n";
 (*<*)by(arith)(*>*)
 
 text{*\noindent

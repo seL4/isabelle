@@ -78,9 +78,9 @@ by (blast intro!: mono_Int monoI gterms_mono)
 
 consts integer_arity :: "integer_op \<Rightarrow> nat"
 primrec
-"integer_arity (Number n)        = #0"
-"integer_arity UnaryMinus        = #1"
-"integer_arity Plus              = #2"
+"integer_arity (Number n)        = 0"
+"integer_arity UnaryMinus        = 1"
+"integer_arity Plus              = 2"
 
 consts well_formed_gterm :: "('f \<Rightarrow> nat) \<Rightarrow> 'f gterm set"
 inductive "well_formed_gterm arity"

@@ -12,7 +12,7 @@ lemma "\<lbrakk>P\<longrightarrow>Q; Q\<longrightarrow>R; R\<longrightarrow>S; P
 by (drule mp, assumption)+
 
 text{*ORELSE with REPEAT*}
-lemma "\<lbrakk>Q\<longrightarrow>R; P\<longrightarrow>Q; x<#5\<longrightarrow>P;  Suc x < #5\<rbrakk> \<Longrightarrow> R" 
+lemma "\<lbrakk>Q\<longrightarrow>R; P\<longrightarrow>Q; x<5\<longrightarrow>P;  Suc x < 5\<rbrakk> \<Longrightarrow> R" 
 by (drule mp, (assumption|arith))+
 
 text{*exercise: what's going on here?*}

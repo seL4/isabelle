@@ -52,10 +52,10 @@ unfortunately write the fields in a canonical order.*}
 
 constdefs 
   pt1 :: point
-   "pt1 == (| Xcoord = #999, Ycoord = #23 |)"
+   "pt1 == (| Xcoord = 999, Ycoord = 23 |)"
 
   pt2 :: "(| Xcoord :: int, Ycoord :: int |)" 
-   "pt2 == (| Xcoord = #-45, Ycoord = #97 |)" 
+   "pt2 == (| Xcoord = -45, Ycoord = 97 |)" 
 
 
 subsubsection {* Some lemmas about records *}
@@ -89,7 +89,7 @@ record cpoint = point +
 
 constdefs 
   cpt1 :: cpoint
-   "cpt1 == (| Xcoord = #999, Ycoord = #23, col = Green |)"
+   "cpt1 == (| Xcoord = 999, Ycoord = 23, col = Green |)"
 
 
 subsection {* Generic operations *}
@@ -121,7 +121,7 @@ constdefs
   setX :: "[('a::more) point_scheme, int] \<Rightarrow> 'a point_scheme"
    "setX r a == r (| Xcoord := a |)"
   extendpt :: "'a \<Rightarrow> ('a::more) point_scheme"
-   "extendpt ext == (| Xcoord = #15, Ycoord = 0, ... = ext |)"
+   "extendpt ext == (| Xcoord = 15, Ycoord = 0, ... = ext |)"
      text{*not sure what this is for!*}
 
 
@@ -129,7 +129,7 @@ text {*
  \medskip Concrete records are type instances of record schemes.
 *}
 
-lemma "getX (| Xcoord = #64, Ycoord = #36 |) = #64"
+lemma "getX (| Xcoord = 64, Ycoord = 36 |) = 64"
 by (simp add: getX_def) 
 
 
@@ -138,7 +138,7 @@ text {* \medskip Manipulating the `...' (more) part.  beware: EACH record
 
 constdefs
   incX :: "('a::more) point_scheme \<Rightarrow> 'a point_scheme"
-  "incX r == \<lparr>Xcoord = (Xcoord r) + #1, Ycoord = Ycoord r, \<dots> = point.more r\<rparr>"
+  "incX r == \<lparr>Xcoord = (Xcoord r) + 1, Ycoord = Ycoord r, \<dots> = point.more r\<rparr>"
 
 constdefs
   setGreen :: "[colour, ('a::more) point_scheme] \<Rightarrow> cpoint"
@@ -147,11 +147,11 @@ constdefs
 
 text {* works (I think) for ALL extensions of type point? *}
 
-lemma "incX r = setX r ((getX r) + #1)"
+lemma "incX r = setX r ((getX r) + 1)"
 by (simp add: getX_def setX_def incX_def)
 
 text {* An equivalent definition. *}
-lemma "incX r = r \<lparr>Xcoord := (Xcoord r) + #1\<rparr>"
+lemma "incX r = r \<lparr>Xcoord := (Xcoord r) + 1\<rparr>"
 by (simp add: incX_def)
 
 
@@ -160,7 +160,7 @@ text {*
  Functions on @{text point} schemes work for type @{text cpoint} as
  well.  *}
 
-lemma "getX \<lparr>Xcoord = #23, Ycoord = #10, col = Blue\<rparr> = #23"
+lemma "getX \<lparr>Xcoord = 23, Ycoord = 10, col = Blue\<rparr> = 23"
 by (simp add: getX_def)
 
 
@@ -170,8 +170,8 @@ text {*
  Function @{term setX} can be applied to type @{typ cpoint}, not just type
  @{typ point}, and returns a result of the same type!  *}
 
-lemma "setX \<lparr>Xcoord = #12, Ycoord = 0, col = Blue\<rparr> #23 =  
-            \<lparr>Xcoord = #23, Ycoord = 0, col = Blue\<rparr>"
+lemma "setX \<lparr>Xcoord = 12, Ycoord = 0, col = Blue\<rparr> 23 =  
+            \<lparr>Xcoord = 23, Ycoord = 0, col = Blue\<rparr>"
 by (simp add: setX_def)
 
 

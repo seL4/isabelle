@@ -9,7 +9,7 @@ text{*
 numeric literals; default simprules; can re-orient
 *}
 
-lemma "#2 * m = m + m"
+lemma "2 * m = m + m"
 txt{*
 @{subgoals[display,indent=0,margin=65]}
 *};
@@ -17,10 +17,10 @@ oops
 
 consts h :: "nat \<Rightarrow> nat"
 recdef h "{}"
-"h i = (if i = #3 then #2 else i)"
+"h i = (if i = 3 then 2 else i)"
 
 text{*
-@{term"h #3 = #2"}
+@{term"h 3 = 2"}
 @{term"h i  = i"}
 *}
 
@@ -83,7 +83,7 @@ text{*
 *}
 
 
-lemma "(n-#2)*(n+#2) = n*n - (#4::nat)"
+lemma "(n - 2) * (n + 2) = n * n - (4::nat)"
 apply (clarsimp split: nat_diff_split)
  --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (subgoal_tac "n=0 | n=1", force, arith)
@@ -167,7 +167,7 @@ Division, remainder of negatives
 lemma "abs (x+y) \<le> abs x + abs (y :: int)"
 by arith
 
-lemma "abs (#2*x) = #2 * abs (x :: int)"
+lemma "abs (2*x) = 2 * abs (x :: int)"
 by (simp add: zabs_def) 
 
 text {*REALS
@@ -205,10 +205,10 @@ This last NOT a simprule
 \rulename{real_add_divide_distrib}
 *}
 
-lemma "#3/#4 < (#7/#8 :: real)"
+lemma "3/4 < (7/8 :: real)"
 by simp 
 
-lemma "P ((#3/#4) * (#8/#15 :: real))"
+lemma "P ((3/4) * (8/15 :: real))"
 txt{*
 @{subgoals[display,indent=0,margin=65]}
 *};
@@ -218,7 +218,7 @@ txt{*
 *};
 oops
 
-lemma "(#3/#4) * (#8/#15) < (x :: real)"
+lemma "(3/4) * (8/15) < (x :: real)"
 txt{*
 @{subgoals[display,indent=0,margin=65]}
 *};
@@ -228,7 +228,7 @@ txt{*
 *};
 oops
 
-lemma "(#3/#4) * (#10^#15) < (x :: real)"
+lemma "(3/4) * (10^15) < (x :: real)"
 apply simp 
 oops
 

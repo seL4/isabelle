@@ -21,12 +21,12 @@ apply (subst is_gcd_commute)
 apply (simp add: is_gcd)
 done
 
-lemma gcd_1 [simp]: "gcd(m,1') = 1'"
+lemma gcd_1 [simp]: "gcd(m, Suc 0) = Suc 0"
 apply simp
 done
 
-lemma gcd_1_left [simp]: "gcd(1',m) = 1'"
-apply (simp add: gcd_commute [of "1'"])
+lemma gcd_1_left [simp]: "gcd(Suc 0, m) = Suc 0"
+apply (simp add: gcd_commute [of "Suc 0"])
 done
 
 text{*\noindent
@@ -125,7 +125,7 @@ theorem arg_cong, useful in forward steps
 \rulename{arg_cong}
 *}
 
-lemma "#2 \<le> u \<Longrightarrow> u*m \<noteq> Suc(u*n)"
+lemma "2 \<le> u \<Longrightarrow> u*m \<noteq> Suc(u*n)"
 apply intro
 txt{*
 before using arg_cong
@@ -177,7 +177,7 @@ lemma relprime_dvd_mult_iff: "gcd(k,n)=1 \<Longrightarrow> (k dvd m*n) = (k dvd 
 by (blast intro: relprime_dvd_mult dvd_trans)
 
 
-lemma relprime_20_81: "gcd(#20,#81) = 1";
+lemma relprime_20_81: "gcd(20,81) = 1";
 by (simp add: gcd.simps)
 
 text {*
@@ -199,14 +199,14 @@ Examples of 'OF'
 @{thm[display] dvd_add [OF _ dvd_refl]}
 *};
 
-lemma "\<lbrakk>(z::int) < #37; #66 < #2*z; z*z \<noteq> #1225; Q(#34); Q(#36)\<rbrakk> \<Longrightarrow> Q(z)";
-apply (subgoal_tac "z = #34 \<or> z = #36")
+lemma "\<lbrakk>(z::int) < 37; 66 < 2*z; z*z \<noteq> 1225; Q(34); Q(36)\<rbrakk> \<Longrightarrow> Q(z)";
+apply (subgoal_tac "z = 34 \<or> z = 36")
 txt{*
 the tactic leaves two subgoals:
 @{subgoals[display,indent=0,margin=65]}
 *};
 apply blast
-apply (subgoal_tac "z \<noteq> #35")
+apply (subgoal_tac "z \<noteq> 35")
 txt{*
 the tactic leaves two subgoals:
 @{subgoals[display,indent=0,margin=65]}
