@@ -1,7 +1,6 @@
-(*  Title:      Pure/Thy/syntax
+(*  Title:      Pure/Thy/syntax.ML
     ID:         $Id$
-    Author:     Sonia Mahjoub and Tobias Nipkow and Markus Wenzel
-    Copyright   1992  TU Muenchen
+    Author:     Sonia Mahjoub and Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Definition of theory syntax together with translation to ML code.
 *)
@@ -19,15 +18,13 @@ struct
 
 (*-------------- OBJECT TO STRING TRANSLATION ---------------*)
 
-fun string a = "\"" ^ a ^ "\"";
-
 fun parent s = "(" ^ s ^ ")";
 
-fun pair(a,b) = parent(a ^ ", " ^ b);
+fun pair(a, b) = parent(a ^ ", " ^ b);
 
-fun pair_string(a,b) = pair(string a,string b);
+fun pair_quote(a, b) = pair(quote a, quote b);
 
-fun pair_string2(a,b) = pair(a,string b);
+fun pair_quote2(a, b) = pair(a, quote b);
 
 fun bracket s = "[" ^ s ^ "]";
 
@@ -39,7 +36,7 @@ val big_bracket_comma = bracket o space_implode ",\n";
 
 fun big_bracket_comma_ind ind strs = bracket (space_implode (",\n" ^ ind) strs);
 
-val bracket_comma_string = bracket_comma o (map string);
+val bracket_comma_quote = bracket_comma o (map quote);
 
 
 (*------------------- ABSTRACT SYNTAX FUNCTIONS ---------------------*)
@@ -59,44 +56,44 @@ fun pm_proj(Pref s) = s
   | pm_proj(Mixf s) = s;
 
 fun split_decls l =
-    let val (p,m) = partition (fn Pref _ => true | _ => false) l;
+    let val (p, m) = partition (fn Pref _ => true | _ => false) l;
     in (big_bracket_comma_ind "   " (map pm_proj p), map pm_proj m) end;
 
 fun delim_mix (s, None) = Delimfix(s)
-  | delim_mix (s, Some(l,n)) = Mixfix(s,l,n);
+  | delim_mix (s, Some(l, n)) = Mixfix(s, l, n);
 
-fun mixfix (sy,c,ty,l,n) =  "Mixfix(" ^ comma[string sy, c, ty, l, n] ^ ")";
+fun mixfix (sy, c, ty, l, n) =  "Mixfix(" ^ comma[quote sy, c, ty, l, n] ^ ")";
 
-fun infixrl(ty,c,n) = parent(comma[ty,c,n]);
+fun infixrl(ty, c, n) = parent(comma[ty, c, n]);
 
-fun binder(sy, c, ty, n) = "Binder(" ^ comma[string sy, c, ty, "0", n] ^ ")";
+fun binder(sy, c, ty, n) = "Binder(" ^ comma[quote sy, c, ty, "0", n] ^ ")";
 
-fun delimfix (sy,c,ty) = "Delimfix(" ^ comma[string sy, c, ty] ^ ")";
+fun delimfix (sy, c, ty) = "Delimfix(" ^ comma[quote sy, c, ty] ^ ")";
 
 fun tinfixrl (ty, n) = "(" ^ comma[ty, ty, n] ^ ")";
 
-fun mk_mfix((c,ty),mfix) =
-      let val cs = string c and tys = string ty
+fun mk_mfix((c, ty), mfix) =
+      let val cs = quote c and tys = quote ty
       in case mfix of
            Mixfix(sy, l, n) => mixfix (sy, tys, cs, l, n)
          | Infixr(n) => "Infixr" ^ infixrl(cs, tys, n)
          | Infixl(n) => "Infixl" ^ infixrl(cs, tys, n)
-         | Binder(sy,n) => binder(sy,tys,cs,n)
+         | Binder(sy, n) => binder(sy, tys, cs, n)
          | TInfixl(n) => "TInfixl" ^ tinfixrl(cs, n)
          | TInfixr(n) => "TInfixr" ^ tinfixrl(cs, n)
          | Delimfix(sy) => delimfix(sy, tys, cs)
       end;
 
 
-fun mk_mixfix((cs,ty), None) =
-      [Pref(pair(bracket_comma_string cs, string ty))]
-  | mk_mixfix((c::cs,ty), Some(mfix)) =
-      Mixf(mk_mfix((c,ty),mfix)) :: mk_mixfix((cs,ty), Some(mfix))
-  | mk_mixfix(([],_),_) = [];
+fun mk_mixfix((cs, ty), None) =
+      [Pref(pair(bracket_comma_quote cs, quote ty))]
+  | mk_mixfix((c::cs, ty), Some(mfix)) =
+      Mixf(mk_mfix((c, ty), mfix)) :: mk_mixfix((cs, ty), Some(mfix))
+  | mk_mixfix(([], _), _) = [];
 
-fun mk_type_decl((ts, n), None) = [Pref(pair(bracket_comma_string ts, n))]
+fun mk_type_decl((ts, n), None) = [Pref(pair(bracket_comma_quote ts, n))]
   | mk_type_decl((t::ts, n), Some(tinfix)) =
-      [Pref(pair(bracket(string t), n)), Mixf(mk_mfix((t,n), tinfix))] @
+      [Pref(pair(bracket(quote t), n)), Mixf(mk_mfix((t, n), tinfix))] @
       mk_type_decl((ts, n), Some(tinfix))
   | mk_type_decl(([], n), Some(tinfix)) = [];
 
@@ -105,14 +102,14 @@ fun mk_extension (((((((cl, def), (ty, tinfix)), ar), (co, mfix)), tr), ax), ml)
   ((cl, def, ty, ar, co, ax), big_bracket_comma_ind "    " tinfix,
     big_bracket_comma_ind "     " mfix, big_bracket_comma_ind "     " tr, ml);
 
-fun add_val((id,_),s) = "val " ^ id ^ " = ax " ^ string id ^ "\n" ^ s;
+fun add_val((id, _), s) = "val " ^ id ^ " = get_axiom thy " ^ quote id ^ "\n" ^ s;
 
 fun mk_rules ps =
   let
-    val axs = big_bracket_comma_ind "  " (map pair_string ps);
+    val axs = big_bracket_comma_ind "  " (map pair_quote ps);
     val vals = foldr add_val (ps, "")
   in
-    axs ^ "\n\nval ax = get_axiom thy\n\n" ^ vals
+    axs ^ "\n\n" ^ vals
   end;
 
 fun mk_struct (id, s) = "structure " ^ id ^ " =\nstruct\n" ^ s ^ "\nend\n";
@@ -123,12 +120,8 @@ fun mk_sext mfix trans =
 \   mixfix =\n    " ^ mfix ^ ",\n\
 \   xrules =\n    " ^ trans ^ ",\n\
 \   parse_ast_translation = parse_ast_translation,\n\
-\   parse_preproc = parse_preproc,\n\
-\   parse_postproc = parse_postproc,\n\
 \   parse_translation = parse_translation,\n\
 \   print_translation = print_translation,\n\
-\   print_preproc = print_preproc,\n\
-\   print_postproc = print_postproc,\n\
 \   print_ast_translation = print_ast_translation})";
 
 fun mk_simple_sext mfix =
@@ -138,17 +131,13 @@ fun mk_ext ((cl, def, ty, ar, co, ax), sext) =
   " (" ^ space_implode ",\n  " [cl, def, ty, ar, co, sext] ^ ")\n " ^ ax ^ "\n";
 
 fun mk_ext_thy (base, name, ext, sext) =
-  "extend_theory (" ^ base ^ ")\n " ^ string name ^ "\n" ^ mk_ext (ext, sext);
+  "extend_theory (" ^ base ^ ")\n " ^ quote name ^ "\n" ^ mk_ext (ext, sext);
 
 val preamble =
   "\nlocal\n\
   \ val parse_ast_translation = []\n\
-  \ val parse_preproc = None\n\
-  \ val parse_postproc = None\n\
   \ val parse_translation = []\n\
   \ val print_translation = []\n\
-  \ val print_preproc = None\n\
-  \ val print_postproc = None\n\
   \ val print_ast_translation = []\n\
   \in\n\n\
   \(**** begin of user section ****)\n";
@@ -185,17 +174,17 @@ open Parse
 
 (*------------------- VARIOUS PARSERS ----------------------*)
 
-val emptyl = empty >> K"[]";
+val emptyl = empty >> K "[]";
 
-val ids  =  list_of1 id >> bracket_comma_string;
+val ids  =  list_of1 id >> bracket_comma_quote;
 (* -> "[id1, id2, ..., idn]" *)
 
 val stgorids =  list_of1 (stg || id);
 
-val sort =    id >> (bracket o string)
+val sort =    id >> (bracket o quote)
            || "{" $$-- (ids || emptyl) --$$ "}";
 (* -> "[id]"
-   -> "[id1, ...,idn]"  *)
+   -> "[id1, ..., idn]"  *)
 
 val infxl = "infixl" $$-- !! nat
 and infxr = "infixr" $$-- !! nat
@@ -206,7 +195,7 @@ and infxr = "infixr" $$-- !! nat
 
 
 
-val class  =  (id >> string) -- ( "<" $$-- (!! ids)  ||  emptyl)   >> pair;
+val class  =  (id >> quote) -- ( "<" $$-- (!! ids)  ||  emptyl)   >> pair;
 
 (* -> "(id, [id1, ..., idn])"
    ||
@@ -217,7 +206,7 @@ val classes =  "classes" $$-- !!(repeat1 class) >> bracket_comma
             || emptyl;
 
 
-(* "[(id, [..]), ...,(id, [...])]" *)
+(* "[(id, [..]), ..., (id, [...])]" *)
 
 
 
@@ -229,7 +218,7 @@ val default =  "default" $$-- !!sort
 
 (* -> "[]"
    -> "[id]"
-   -> "[id1, ...,idn]"  *)
+   -> "[id1, ..., idn]"  *)
 
 
 (*-------------------- TYPES  PARSER  ----------------------*)
@@ -260,25 +249,25 @@ val sorts =  list_of sort >> bracket_comma;
 (* -> "[[id1, ...], ..., [id, ...]]" *)
 
 
-val arity =  id                           >> (fn s => pair("[]",string s))
-          || "(" $$-- sorts --$$")" -- id >> (fn (l,s) => pair(l,string s));
+val arity =  id                           >> (fn s => pair("[]", quote s))
+          || "(" $$-- sorts --$$")" -- id >> (fn (l, s) => pair(l, quote s));
 
-(* -> "([],id)"
-   -> "([[id,..], ...,[id,..]], id)" *)
+(* -> "([], id)"
+   -> "([[id, ..], ..., [id, ..]], id)" *)
 
-val tys = stgorids >> bracket_comma_string;
+val tys = stgorids >> bracket_comma_quote;
 
 val arities =  "arities" $$-- !! (repeat1 (tys --$$ "::" -- arity >> pair))
                >> bracket_comma
             || emptyl;
 
-(* -> "[([id,..], ([[id,...],...], id))]" *)
+(* -> "[([id, ..], ([[id, ...], ...], id))]" *)
 
 
 (*--------------------- CONSTS PARSER ---------------------*)
 
 val natlist = "[" $$--  !!(list_of nat --$$ "]") >> bracket_comma
-            || empty                             >> K"[]";
+            || empty                             >> K "[]";
 
 
   (* "[nat, ...]"  || "[]" *)
@@ -306,15 +295,15 @@ val mixfix =  "(" $$-- !! (mfix --$$ ")")  >> Some
 val consts = "consts" $$--
                  !! (repeat1 (const_decl -- mixfix >> mk_mixfix))
                  >> (split_decls o flat)
-           || empty >> K ("[]",[]);
+           || empty >> K ("[]", []);
 
 (* ("[([exid, ...], stg), ....]", [strg, ..])  *)
 
 
 (*---------------- TRANSLATIONS PARSER --------------------*)
 
-val xpat = "(" $$-- id --$$ ")" -- stg >> pair_string
-         || stg >> (fn s => pair_string ("logic", s));
+val xpat = "(" $$-- id --$$ ")" -- stg >> pair_quote
+         || stg >> (fn s => pair_quote ("logic", s));
 
 val arrow = $$ "=>" >> K " |-> "
          || $$ "<=" >> K " <-| "
@@ -337,7 +326,7 @@ val rules  = "rules" $$-- !! (repeat1 (id -- !! stg) >> mk_rules)
 
 (*----------------------- ML_TEXT -------------------------*)
 
-val mltxt =  txt || empty >> K"";
+val mltxt =  txt || empty >> K "";
 
 
 (*---------------------------------------------------------*)
