@@ -31,6 +31,7 @@ sig
   val reset_facts: state -> state
   val assert_forward: state -> state
   val assert_backward: state -> state
+  val assert_no_chain: state -> state
   val enter_forward: state -> state
   val show_hyps: bool ref
   val pretty_thm: thm -> Pretty.T
@@ -269,6 +270,7 @@ fun is_chain state = get_mode state = ForwardChain;
 val assert_forward = assert_mode (equal Forward);
 val assert_forward_or_chain = assert_mode (equal Forward orf equal ForwardChain);
 val assert_backward = assert_mode (equal Backward);
+val assert_no_chain = assert_mode (not_equal ForwardChain);
 
 
 (* blocks *)
