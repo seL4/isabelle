@@ -8,6 +8,7 @@ list below later rules have priority.
 
 theory Calculation = Int:;
 
+theorems [trans] = rev_mp mp;
 
 theorem [trans]: "[| s = t; P t |] ==> P s"; 		    (*  =  x  x  *)
   by (rule ssubst);
