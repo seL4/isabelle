@@ -33,6 +33,7 @@ sig
   type method
   val method: (thm list -> tactic) -> method
   val refine: (context -> method) -> state -> state Seq.seq
+  val find_free: term -> string -> term option
   val export_thm: context -> thm -> thm
   val bind: (indexname * string) list -> state -> state
   val bind_i: (indexname * term) list -> state -> state
@@ -356,15 +357,16 @@ fun refine meth_fun state =
 
 (* export *)
 
+fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
+  | get_free _ (opt, _) = opt;
+
+fun find_free t x = foldl_aterms (get_free x) (None, t);
+
+
 local
 
 fun varify_frees fixes thm =
   let
-    fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
-      | get_free _ (opt, _) = opt;
-
-    fun find_free t x = foldl_aterms (get_free x) (None, t);
-
     val {sign, prop, ...} = Thm.rep_thm thm;
     val frees = map (Thm.cterm_of sign) (mapfilter (find_free prop) fixes);
   in
