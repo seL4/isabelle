@@ -16,14 +16,12 @@ consts     respond :: "event list => (msg*msg*key)set"
 inductive "respond evs" (*Server's response to the nested message*)
   intrs
     (*The message "Agent Server" marks the end of a list.*)
-
     One  "[| A ~= Server;  Key KAB ~: used evs |]
-          ==> (Hash[Key(shrK A)] 
-                        {|Agent A, Agent B, Nonce NA, Agent Server|}, 
+          ==> (Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, Agent Server|}, 
                {|Crypt (shrK A) {|Key KAB, Agent B, Nonce NA|}, Agent Server|},
                KAB)   : respond evs"
 
-    (*newK2(i,Suc j) is the key for A & B; newK2(i,j) is the key for B & C*)
+    (*The most recent session key is passed up to the caller*)
     Cons "[| (PA, RA, KAB) : respond evs;  
              Key KBC ~: used evs;  Key KBC ~: parts {RA};
              PA = Hash[Key(shrK A)] {|Agent A, Agent B, Nonce NA, P|};
@@ -37,8 +35,7 @@ inductive "respond evs" (*Server's response to the nested message*)
 
 
 (*Induction over "respond" can be difficult due to the complexity of the
-  subgoals.  The "responses" relation formalizes the general form of its
-  third component.
+  subgoals.  Set "responses" captures the general form of certificates.
 *)
 consts     responses :: event list => msg set
 inductive "responses evs"       
@@ -57,8 +54,7 @@ inductive "recur lost"
          (*Initial trace is empty*)
     Nil  "[]: recur lost"
 
-         (*The spy MAY say anything he CAN say.  We do not expect him to
-           invent new nonces here, but he can also use NS1.  Common to
+         (*The spy MAY say anything he CAN say.  Common to
            all similar protocols.*)
     Fake "[| evs: recur lost;  B ~= Spy;  
              X: synth (analz (sees lost Spy evs)) |]
