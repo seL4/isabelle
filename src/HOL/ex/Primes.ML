@@ -37,6 +37,35 @@ by (fast_tac (!claset addDs [mult_eq_self_implies_10]
                      addss (!simpset addsimps [mult_assoc, mult_eq_1_iff])) 1);
 qed "dvd_anti_sym";
 
+goalw thy [dvd_def] "!!k. [| k dvd m; k dvd n |] ==> k dvd (m + n)";
+by (blast_tac (!claset addIs [add_mult_distrib2 RS sym]) 1);
+qed "dvd_add";
+
+goalw thy [dvd_def] "!!k. k dvd m ==> k dvd (q * m)";
+by (blast_tac (!claset addIs [mult_left_commute]) 1);
+qed "dvd_mult";
+
+(*Based on a theorem of F. Kammüller's.  Doesn't really belong here...*)
+goal Primes.thy "!!C. finite C ==> finite (Union C) --> \
+\          (! c : C. k dvd card c) -->  \
+\          (! c1: C. ! c2: C. c1 ~= c2 --> c1 Int c2 = {}) \
+\          --> k dvd card(Union C)";
+by (etac finite_induct 1);
+by (ALLGOALS Asm_simp_tac);
+by (strip_tac 1);
+by (REPEAT (etac conjE 1));
+by (stac card_Un_disjoint 1);
+by (ALLGOALS
+    (asm_full_simp_tac (!simpset
+			 addsimps [dvd_add, disjoint_eq_subset_Compl])));
+by (thin_tac "?PP-->?QQ" 1);
+by (thin_tac "!c:F. ?PP(c)" 1);
+by (thin_tac "!c:F. ?PP(c) & ?QQ(c)" 1);
+by (Step_tac 1);
+by (ball_tac 1);
+by (Blast_tac 1);
+qed "dvd_partition";
+
 
 (************************************************)
 (** Greatest Common Divisor                    **)
@@ -70,14 +99,6 @@ qed "gcd_0_dvd_m";
 goal thy "gcd(m,0) dvd 0";
 by (Simp_tac 1);
 qed "gcd_0_dvd_0";
-
-goalw thy [dvd_def] "!!k. [| k dvd m; k dvd n |] ==> k dvd (m + n)";
-by (blast_tac (!claset addIs [add_mult_distrib2 RS sym]) 1);
-qed "dvd_add";
-
-goalw thy [dvd_def] "!!k. k dvd m ==> k dvd (q * m)";
-by (blast_tac (!claset addIs [mult_left_commute]) 1);
-qed "dvd_mult";
 
 goal thy "!!k. [| k dvd (m mod n); k dvd n; n~=0 |] ==> k dvd m";
 by (subgoal_tac "k dvd ((m div n)*n + m mod n)" 1);
