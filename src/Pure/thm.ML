@@ -1800,14 +1800,17 @@ fun rewritec (prover,sign_reft,maxt)
                            prop = prop',
                            maxidx = maxidx'}
             val (lhs',rhs') = Logic.dest_equals(Logic.strip_imp_concl prop')
-        in if perm andalso not(termless(rhs',lhs')) then None else
-           if unconditional
-           then (trace_thm false "Rewriting:" thm'; 
-                 Some(shyps', hyps', rhs', der'::ders))
-           else (trace_thm false "Trying to rewrite:" thm';
-                 case prover mss thm' of
-                   None       => (trace_thm false "FAILED" thm'; None)
-                 | Some(thm2) => check_conv(thm2,prop',ders))
+        in
+          if perm andalso not(termless(rhs',lhs')) then None
+          else
+           (trace_thm false "Applying instance of rewrite rule:" thm;
+            if unconditional
+            then (trace_thm false "Rewriting:" thm'; 
+                  Some(shyps', hyps', rhs', der'::ders))
+            else (trace_thm false "Trying to rewrite:" thm';
+                  case prover mss thm' of
+                    None       => (trace_thm false "FAILED" thm'; None)
+                  | Some(thm2) => check_conv(thm2,prop',ders)))
         end
 
       fun rews [] = None
