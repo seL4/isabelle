@@ -1,4 +1,4 @@
-(*  Title: 	CCL/wf.thy
+(*  Title: 	CCL/wfd.thy
     ID:         $Id$
     Author: 	Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
