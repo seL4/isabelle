@@ -62,8 +62,8 @@ lemma add_Suc_right: "m + Suc(n) = Suc(m + n)"
 
 lemma "(!!n. f(Suc(n)) = Suc(f(n))) ==> f(i + j) = i + f(j)"
 proof -
-  assume a: "!!n. f(Suc(n)) = Suc(f(n))"
-  show ?thesis by (induct i) (simp, simp add: a)  (* FIXME tune *)
+  assume "!!n. f(Suc(n)) = Suc(f(n))"
+  thus ?thesis by (induct i) simp_all
 qed
 
 end
