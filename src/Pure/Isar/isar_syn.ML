@@ -27,10 +27,6 @@ val end_excursionP =
   OuterSyntax.command "end" "end current excursion" K.thy_end
     (Scan.succeed (Toplevel.print o Toplevel.exit));
 
-val kill_excursionP =
-  OuterSyntax.improper_command "kill" "kill current excursion" K.control
-    (Scan.succeed (Toplevel.print o Toplevel.kill));
-
 val contextP =
   OuterSyntax.improper_command "context" "switch theory context" K.thy_switch
     (P.name >> (Toplevel.print oo IsarThy.context));
@@ -460,6 +456,10 @@ val undoP =
   OuterSyntax.improper_command "undo" "undo last command" K.control
     (Scan.succeed (Toplevel.print o IsarCmd.undo));
 
+val killP =
+  OuterSyntax.improper_command "kill" "kill current history node" K.control
+    (Scan.succeed (Toplevel.print o IsarCmd.kill));
+
 
 
 (** diagnostic commands (for interactive mode only) **)
@@ -626,7 +626,7 @@ val keywords =
 
 val parsers = [
   (*theory structure*)
-  theoryP, end_excursionP, kill_excursionP, contextP,
+  theoryP, end_excursionP, contextP,
   (*markup commands*)
   headerP, chapterP, sectionP, subsectionP, subsubsectionP, textP,
   text_rawP, sectP, subsectP, subsubsectP, txtP, txt_rawP,
@@ -643,7 +643,7 @@ val parsers = [
   nextP, qedP, terminal_proofP, immediate_proofP, default_proofP,
   skip_proofP, forget_proofP, deferP, preferP, applyP, apply_endP,
   proofP, alsoP, finallyP, backP, cannot_undoP, clear_undosP, redoP,
-  undos_proofP, kill_proofP, undoP,
+  undos_proofP, kill_proofP, undoP, killP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
   print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,
