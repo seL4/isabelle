@@ -115,6 +115,18 @@ subsection {* Lemmas and tool setup *}
 
 use "Product_Type_lemmas.ML"
 
+lemma (*split_paired_all:*) "(!!x. PROP P x) == (!!a b. PROP P (a, b))"   (* FIXME unused *)
+proof
+  fix a b
+  assume "!!x. PROP P x"
+  thus "PROP P (a, b)" .
+next
+  fix x
+  assume "!!a b. PROP P (a, b)"
+  hence "PROP P (fst x, snd x)" .
+  thus "PROP P x" by simp
+qed
+
 lemma pair_imageI [intro]: "(a, b) : A ==> f a b : (%(a, b). f a b) ` A"
   apply (rule_tac x = "(a, b)" in image_eqI)
    apply auto
