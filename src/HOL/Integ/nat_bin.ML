@@ -361,8 +361,6 @@ bind_thm ("add_is_one'", rename_numerals add_is_1);
 bind_thm ("zero_induct'", rename_numerals zero_induct);
 bind_thm ("diff_self_eq_0'", rename_numerals diff_self_eq_0);
 bind_thm ("mult_eq_self_implies_10'", rename_numerals mult_eq_self_implies_10);
-bind_thm ("le_pred_eq'", rename_numerals le_pred_eq);
-bind_thm ("less_pred_eq'", rename_numerals less_pred_eq);
 
 (** Divides **)
 
