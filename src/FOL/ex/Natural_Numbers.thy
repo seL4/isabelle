@@ -17,7 +17,7 @@ consts
   rec :: "[nat, 'a, [nat, 'a] => 'a] => 'a"
 
 axioms
-  induct [case_names Zero Suc, induct type: nat]:
+  induct [case_names 0 Suc, induct type: nat]:
     "P(0) ==> (!!x. P(x) ==> P(Suc(x))) ==> P(n)"
   Suc_inject: "Suc(m) = Suc(n) ==> m = n"
   Suc_neq_0: "Suc(m) = 0 ==> R"
