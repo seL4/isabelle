@@ -14,7 +14,8 @@ USEDIR = $(ISATOOL) usedir -i true -d ps -D document -v true
 
 Isar: $(LOG)/HOL-Isar.gz
 
-$(LOG)/HOL-Isar.gz: Isar/ROOT.ML Isar/document/root.tex Isar/document/root.bib Isar/*.thy
+$(LOG)/HOL-Isar.gz: Isar/ROOT.ML Isar/document/intro.tex \
+  Isar/document/root.tex Isar/document/root.bib Isar/*.thy
 	@$(USEDIR) HOL Isar
 
 

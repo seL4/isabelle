@@ -2,6 +2,11 @@
 
 section{*Case distinction and induction \label{sec:Induct}*}
 
+text{* Computer science applications abound with inductively defined
+structures, which is why we treat them in more detail. HOL already
+comes with a datatype of lists with the two constructors @{text Nil}
+and @{text Cons}. @{text Nil} is written @{term"[]"} and @{text"Cons x
+xs"} is written @{term"x # xs"}.  *}
 
 subsection{*Case distinction*}
 
@@ -16,7 +21,7 @@ qed
 text{*\noindent Note that the two cases must come in this order.
 
 This form is appropriate if @{term P} is textually small.  However, if
-@{term P} is large, we don't want to repeat it. This can be avoided by
+@{term P} is large, we do not want to repeat it. This can be avoided by
 the following idiom *}
 
 lemma "P \<or> \<not> P"
@@ -25,10 +30,12 @@ proof (cases "P")
 next
   case False thus ?thesis ..
 qed
+
 text{*\noindent which is simply a shorthand for the previous
-proof. More precisely, the phrases \isakeyword{case}~@{prop
-True}/@{prop False} abbreviate the corresponding assumptions @{prop P}
-and @{prop"\<not>P"}. In contrast to the previous proof we can prove the cases
+proof. More precisely, the phrase `\isakeyword{case}~@{text True}'
+abbreviates `\isakeyword{assume}~@{text"True: P"}'
+and analogously for @{text"False"} and @{prop"\<not>P"}.
+In contrast to the previous proof we can prove the cases
 in arbitrary order.
 
 The same game can be played with other datatypes, for example lists:
@@ -40,18 +47,19 @@ proof (cases xs)
 next
   case Cons thus ?thesis by simp
 qed
-text{*\noindent Here \isakeyword{case}~@{text Nil} abbreviates
-\isakeyword{assume}~@{prop"xs = []"} and \isakeyword{case}~@{text Cons}
-abbreviates \isakeyword{fix}~@{text"? ??"}
-\isakeyword{assume}~@{text"xs = ? # ??"} where @{text"?"} and @{text"??"}
+text{*\noindent Here `\isakeyword{case}~@{text Nil}' abbreviates
+`\isakeyword{assume}~@{text"Nil:"}~@{prop"xs = []"}' and
+`\isakeyword{case}~@{text Cons}'
+abbreviates `\isakeyword{fix}~@{text"? ??"}
+\isakeyword{assume}~@{text"Cons:"}~@{text"xs = ? # ??"}'
+where @{text"?"} and @{text"??"}
 stand for variable names that have been chosen by the system.
-Therefore we cannot
-refer to them (this would lead to obscure proofs) and have not even shown
-them. Luckily, this proof is simple enough we do not need to refer to them.
+Therefore we cannot refer to them.
+Luckily, this proof is simple enough we do not need to refer to them.
 However, sometimes one may have to. Hence Isar offers a simple scheme for
-naming those variables: replace the anonymous @{text Cons} by, for example,
-@{text"(Cons y ys)"}, which abbreviates \isakeyword{fix}~@{text"y ys"}
-\isakeyword{assume}~@{text"xs = Cons y ys"}, i.e.\ @{prop"xs = y # ys"}. Here
+naming those variables: replace the anonymous @{text Cons} by
+@{text"(Cons y ys)"}, which abbreviates `\isakeyword{fix}~@{text"y ys"}
+\isakeyword{assume}~@{text"Cons:"}~@{text"xs = y # ys"}'. Here
 is a (somewhat contrived) example: *}
 
 lemma "length(tl xs) = length xs - 1"
@@ -64,6 +72,10 @@ next
   thus ?thesis by simp
 qed
 
+text{* Note that in each \isakeyword{case} the assumption can be
+referred to inside the proof by the name of the constructor. In
+Section~\ref{sec:full-Ind} below we will come across an example
+of this. *}
 
 subsection{*Structural induction*}
 
@@ -111,23 +123,21 @@ text{* \noindent Of course we could again have written
 \isakeyword{thus}~@{text ?case} instead of giving the term explicitly
 but we wanted to use @{term i} somewhere. *}
 
-subsection{*Induction formulae involving @{text"\<And>"} or @{text"\<Longrightarrow>"}*}
+subsection{*Induction formulae involving @{text"\<And>"} or @{text"\<Longrightarrow>"}\label{sec:full-Ind}*}
 
 text{* Let us now consider the situation where the goal to be proved contains
 @{text"\<And>"} or @{text"\<Longrightarrow>"}, say @{prop"\<And>x. P x \<Longrightarrow> Q x"} --- motivation and a
 real example follow shortly.  This means that in each case of the induction,
-@{text ?case} would be of the same form @{prop"\<And>x. P' x \<Longrightarrow> Q' x"}.  Thus the
+@{text ?case} would be of the form @{prop"\<And>x. P' x \<Longrightarrow> Q' x"}.  Thus the
 first proof steps will be the canonical ones, fixing @{text x} and assuming
 @{prop"P' x"}. To avoid this tedium, induction performs these steps
 automatically: for example in case @{text"(Suc n)"}, @{text ?case} is only
-@{prop"Q' x"} whereas the assumptions (named @{term Suc}) contain both the
-usual induction hypothesis \emph{and} @{prop"P' x"}. To fix the name of the
-bound variable @{term x} you may write @{text"(Suc n x)"}, thus abbreviating
-\isakeyword{fix}~@{term x}.
-It should be clear how this example generalizes to more complex formulae.
+@{prop"Q' x"} whereas the assumptions (named @{term Suc}!) contain both the
+usual induction hypothesis \emph{and} @{prop"P' x"}.
+It should be clear how this generalizes to more complex formulae.
 
 As a concrete example we will now prove complete induction via
-structural induction: *}
+structural induction. *}
 
 lemma assumes A: "(\<And>n. (\<And>m. m < n \<Longrightarrow> P m) \<Longrightarrow> P n)"
   shows "P(n::nat)"
@@ -136,11 +146,11 @@ proof (rule A)
   proof (induct n)
     case 0 thus ?case by simp
   next
-    case (Suc n m)    -- {*@{text"?m < n \<Longrightarrow> P ?m"}  and  @{prop"m < Suc n"}*}
-    show ?case       -- {*@{term ?case}*}
+    case (Suc n)   -- {*\isakeyword{fix} @{term m} \isakeyword{assume} @{text Suc}: @{text[source]"?m < n \<Longrightarrow> P ?m"} @{prop[source]"m < Suc n"}*}
+    show ?case     -- {*@{term ?case}*}
     proof cases
       assume eq: "m = n"
-      from Suc A have "P n" by blast
+      from Suc and A have "P n" by blast
       with eq show "P m" by simp
     next
       assume "m \<noteq> n"
@@ -149,8 +159,9 @@ proof (rule A)
     qed
   qed
 qed
-text{* \noindent Given the explanations above and the comments in
-the proof text, the proof should be quite readable.
+text{* \noindent Given the explanations above and the comments in the
+proof text (only necessary for novices), the proof should be quite
+readable.
 
 The statement of the lemma is interesting because it deviates from the style in
 the Tutorial~\cite{LNCS2283}, which suggests to introduce @{text"\<forall>"} or
@@ -162,15 +173,21 @@ connectives.
 
 subsection{*Rule induction*}
 
-text{* We define our own version of reflexive transitive closure of a
-relation *}
+text{* HOL also supports inductively defined sets. See \cite{LNCS2283}
+for details. As an example we define our own version of reflexive
+transitive closure of a relation --- HOL provides a predefined one as well.*}
 consts rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
 inductive "r*"
 intros
 refl:  "(x,x) \<in> r*"
 step:  "\<lbrakk> (x,y) \<in> r; (y,z) \<in> r* \<rbrakk> \<Longrightarrow> (x,z) \<in> r*"
 
-text{* \noindent and prove that @{term"r*"} is indeed transitive: *}
+text{* \noindent
+First the constant is declared as a function on binary
+relations (with concrete syntax @{term"r*"} instead of @{text"rtc
+r"}), then the defining clauses are given. We will now prove that
+@{term"r*"} is indeed transitive: *}
+
 lemma assumes A: "(x,y) \<in> r*" shows "(y,z) \<in> r* \<Longrightarrow> (x,z) \<in> r*"
 using A
 proof induct
@@ -208,22 +225,37 @@ Since @{text B} is left over we don't just prove @{text
 ?thesis} but @{text"B \<Longrightarrow> ?thesis"}, just as in the previous proof. The
 base case is trivial. In the assumptions for the induction step we can
 see very clearly how things fit together and permit ourselves the
-obvious forward step @{text"IH[OF B]"}. *}
+obvious forward step @{text"IH[OF B]"}.
+
+The notation \isakeyword{case}~\isa{(constructor} \emph{vars}\isa{)}
+is also supported for inductive definitions. The constructor is (the
+names of) the rule and the \emph{vars} fix the free variables in the
+rule; the order of the \emph{vars} must correspond to the
+\emph{alphabetical order} of the variables as they appear in the rule.
+For example, we could start the above detailed proof of the induction
+with \isakeyword{case}~\isa{(step x' x y)}. However, we can then only
+refer to the assumptions named \isa{step} collectively and not
+individually, as the above proof requires.  *}
 
 subsection{*More induction*}
 
-text{* We close the section by demonstrating how arbitrary induction rules
-are applied. As a simple example we have chosen recursion induction, i.e.\
-induction based on a recursive function definition. The example is an unusual
-definition of rotation: *}
+text{* We close the section by demonstrating how arbitrary induction
+rules are applied. As a simple example we have chosen recursion
+induction, i.e.\ induction based on a recursive function
+definition. However, most of what we show works for induction in
+general.
+
+The example is an unusual definition of rotation: *}
 
 consts rot :: "'a list \<Rightarrow> 'a list"
 recdef rot "measure length"
 "rot [] = []"
 "rot [x] = [x]"
 "rot (x#y#zs) = y # rot(x#zs)"
+text{*\noindent This yields, among other things, the induction rule
+@{thm[source]rot.induct}: @{thm[display]rot.induct[no_vars]}
 
-text{* In the first proof we set up each case explicitly, merely using
+In the first proof we set up each case explicitly, merely using
 pattern matching to abbreviate the statement: *}
 
 lemma "length(rot xs) = length xs" (is "?P xs")
@@ -235,10 +267,7 @@ next
   fix x y zs assume "?P (x#zs)"
   thus "?P (x#y#zs)" by simp
 qed
-text{*\noindent
-This proof skeleton works for arbitrary induction rules, not just
-@{thm[source]rot.induct}.
-
+text{*
 In the following proof we rely on a default naming scheme for cases: they are
 called 1, 2, etc, unless they have been named explicitly. The latter happens
 only with datatypes and inductively defined sets, but not with recursive
@@ -250,13 +279,29 @@ proof (induct xs rule: rot.induct)
 next
   case 2 show ?case by simp
 next
-  case 3 thus ?case by simp
+  case (3 a b cs)
+  have "rot (a # b # cs) = b # rot(a # cs)" by simp
+  also have "\<dots> = b # tl(a # cs) @ [hd(a # cs)]" by(simp add:3)
+  also have "\<dots> = tl (a # b # cs) @ [hd (a # b # cs)]" by simp
+  finally show ?case .
 qed
 
-text{*\noindent Why can case 2 get away with \isakeyword{show} instead of
-\isakeyword{thus}?
+text{*\noindent Why can case 2 get away with \isakeyword{show} instead
+of \isakeyword{thus}?
+
+The third case is only shown in gory detail (see \cite{BauerW-TPHOLs01}
+for how to reason with chains of equations) to demonstrate that the
+\isakeyword{case}~\isa{(constructor} \emph{vars}\isa{)} notation also
+works for arbitrary induction theorems with numbered cases. The order
+of the \emph{vars} corresponds to the order of the
+@{text"\<And>"}-quantified variables in each case of the induction
+theorem. For induction theorems produced by \isakeyword{recdef} it is
+the order in which the variables appear on the left-hand side of the
+equation.
 
 Of course both proofs are so simple that they can be condensed to*}
 (*<*)lemma "xs \<noteq> [] \<Longrightarrow> rot xs = tl xs @ [hd xs]"(*>*)
 by (induct xs rule: rot.induct, simp_all)
+
+
 (*<*)end(*>*)

@@ -16,7 +16,8 @@ qed
 text{*\noindent
 The operational reading: the \isakeyword{assume}-\isakeyword{show} block
 proves @{prop"A \<Longrightarrow> A"},
-which rule @{thm[source]impI} turns into the desired @{prop"A \<longrightarrow> A"}.
+which rule @{thm[source]impI} (@{thm impI})
+turns into the desired @{prop"A \<longrightarrow> A"}.
 However, this text is much too detailed for comfort. Therefore Isar
 implements the following principle:
 \begin{quote}\em
@@ -49,7 +50,8 @@ proof
   assume "A"
   show "A \<and> A" by(rule conjI)
 qed
-text{*\noindent A drawback of these implicit proofs by assumption is that it
+text{*\noindent Rule @{thm[source]conjI} is of course @{thm conjI}.
+A drawback of these implicit proofs by assumption is that it
 is no longer obvious where an assumption is used.
 
 Proofs of the form \isakeyword{by}@{text"(rule"}~\emph{name}@{text")"} can be
@@ -70,8 +72,8 @@ is applied (first ``.''), then the two subgoals are solved by assumption
 subsubsection{*Elimination rules*}
 
 text{*A typical elimination rule is @{thm[source]conjE}, $\land$-elimination:
-@{thm[display,indent=5]conjE[no_vars]}  In the following proof it is applied
-by hand, after its first (``\emph{major}'') premise has been eliminated via
+@{thm[display,indent=5]conjE}  In the following proof it is applied
+by hand, after its first (\emph{major}) premise has been eliminated via
 @{text"[OF AB]"}: *}
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
@@ -306,11 +308,12 @@ qed
 text{*\noindent Command \isakeyword{using} can appear before a proof
 and adds further facts to those piped into the proof. Here @{text AB}
 is the only such fact and it triggers $\land$-elimination. Another
-frequent usage is as follows:
+frequent idiom is as follows:
 \begin{center}
-\isakeyword{from} \emph{important facts}
-\isakeyword{show} \emph{something}
-\isakeyword{using} \emph{minor facts}
+\isakeyword{from} \emph{major facts}~
+\isakeyword{show} \emph{proposition}~
+\isakeyword{using} \emph{minor facts}~
+\emph{proof}
 \end{center}
 \medskip
 
@@ -458,8 +461,74 @@ theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
 by best
 text{*\noindent Of course this only works in the context of HOL's carefully
 constructed introduction and elimination rules for set theory.
+*}
 
-Finally, whole ``scripts'' (unstructured proofs in the style of
+subsection{*Further refinements*}
+
+text{* Thus subsection discusses some further tricks that can make
+life easier although they are not essential. We start with some small
+syntactic items.*}
+
+subsubsection{*\isakeyword{and}*}
+
+text{* Propositions (following \isakeyword{assume} etc) may but need not be
+separated by \isakeyword{and}. This is not just for readability
+(\isakeyword{from} \isa{A} \isakeyword{and} \isa{B} looks nicer than
+\isakeyword{from} \isa{A} \isa{B}) but for structuring lists of propositions
+into possibly named blocks. For example in
+\begin{center}
+\isakeyword{assume} \isa{A:} $A_1$ $A_2$ \isakeyword{and} \isa{B:} $A_3$
+\isakeyword{and} $A_4$
+\end{center}
+label \isa{A} refers to the list of propositions $A_1$ $A_2$ and
+label \isa{B} to $A_3$. *}
+
+subsubsection{*\isakeyword{fixes}*}
+
+text{* Sometimes it is necessary to decorate a proposition with type
+constraints, as in Cantor's theorem above. These type constraints tend
+to make the theorem less readable. The situation can be improved a
+little by combining the type constraint with an outer @{text"\<And>"}: *}
+
+theorem "\<And>f :: 'a \<Rightarrow> 'a set. \<exists>S. S \<notin> range f"
+(*<*)oops(*>*)
+text{*\noindent However, now @{term f} is bound and we need a
+\isakeyword{fix}~\isa{f} in the proof before we can refer to @{term f}.
+This is avoided by \isakeyword{fixes}: *}
+
+theorem fixes f :: "'a \<Rightarrow> 'a set" shows "\<exists>S. S \<notin> range f"
+(*<*)oops(*>*)
+text{* \noindent
+But the real strength of \isakeyword{fixes} lies in the possibility to
+introduce concrete syntax locally:*}
+
+lemma comm_mono:
+  fixes r :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix ">" 60) and
+       f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"   (infixl "++" 70)
+  assumes comm: "\<And>x y::'a. x ++ y = y ++ x" and
+          mono: "\<And>x y z::'a. x > y \<Longrightarrow> x ++ z > y ++ z"
+  shows "x > y \<Longrightarrow> z ++ x > z ++ y"
+by(simp add: comm mono)
+
+text{*\noindent The concrete syntax is dropped at the end of the proof and the
+theorem becomes @{thm[display,margin=50]comm_mono} *}
+
+subsubsection{*\isakeyword{obtain}*}
+
+text{* The \isakeyword{obtain} construct can introduce multiple
+witnesses and propositions as in the following proof fragment:*}
+
+lemma assumes A: "\<exists>x y. P x y \<and> Q x y" shows "R"
+proof -
+  from A obtain x y where P: "P x y" and Q: "Q x y"  by blast
+(*<*)oops(*>*)
+text{* Remember also that one does not even need to start with a formula
+containing @{text"\<exists>"} as we saw in the proof of Cantor's theorem.
+*}
+
+subsubsection{*Combining proof styles*}
+
+text{* Finally, whole ``scripts'' (tactic-based proofs in the style of
 \cite{LNCS2283}) may appear in the leaves of the proof tree, although this is
 best avoided.  Here is a contrived example: *}
 
@@ -473,7 +542,12 @@ proof
     apply assumption
     done
 qed
-text{*\noindent You may need to resort to this technique if an automatic step
-fails to prove the desired proposition. *}
+
+text{*\noindent You may need to resort to this technique if an
+automatic step fails to prove the desired proposition.
+
+When converting a proof from tactic-style into Isar you can proceeed
+in a top-down manner: parts of the proof can be left in script form
+while to outer structure is already expressed in Isar. *}
 
 (*<*)end(*>*)
