@@ -9,12 +9,18 @@ New in Isabelle???? (DATE ????)
 
 * hierachically structured name spaces (for consts, types, axms,
 etc.); new lexical class 'longid' (e.g. Foo.bar.x) may render much of
-old input syntactically incorrect (e.g. "%x.x"); isatool fixdots
-ensures space after dots (e.g. "%x. x"); set long_names for fully
-qualified output names; NOTE: in case of severe problems with backward
-campatibility try setting 'global_names' at compile time to disable
-qualified names for theories; may also fine tune theories via 'global'
-and 'local' section;
+old input syntactically incorrect (e.g. "%x.x"); COMPATIBILITY:
+isatool fixdots ensures space after dots (e.g. "%x. x"); set
+long_names for fully qualified output names; NOTE: in case of severe
+problems with backward campatibility try setting 'global_names' at
+compile time to disable qualified names for theories; may also fine
+tune theories via 'global' and 'local' section;
+
+* reimplemented the implicit simpset and claset using the new anytype
+data filed in signatures; references simpset:simpset ref etc. are
+replaced by functions simpset:unit->simpset and
+simpset_ref:unit->simpset ref; COMPATIBILITY: use isatool fixclasimp
+to patch your ML files accordingly;
 
 * HTML output now includes theory graph data for display with Java
 applet or isatool browser; data generated automatically via isatool
