@@ -48,21 +48,11 @@ by (blast_tac (claset() addSIs [lists_IntI]) 1);
 qed "lists_Int_eq";
 Addsimps [lists_Int_eq];
 
-
-(**  Case analysis **)
-section "Case analysis";
-
-val prems = Goal "[| P([]); !!x xs. P(x#xs) |] ==> P(xs)";
-by (induct_tac "xs" 1);
-by (REPEAT(resolve_tac prems 1));
-qed "list_cases";
-
-Goal "(xs=[] --> P([])) & (!y ys. xs=y#ys --> P(y#ys)) --> P(xs)";
-by (induct_tac "xs" 1);
-by (Blast_tac 1);
-by (Blast_tac 1);
-bind_thm("list_eq_cases",
-  impI RSN (2,allI RSN (2,allI RSN (2,impI RS (conjI RS (result() RS mp))))));
+Goal "(xs@ys : lists A) = (xs : lists A & ys : lists A)";
+by(induct_tac "xs" 1);
+by(Auto_tac);
+qed "append_in_lists_conv";
+AddIffs [append_in_lists_conv];
 
 (** length **)
 (* needs to come before "@" because of thm append_eq_append_conv *)
