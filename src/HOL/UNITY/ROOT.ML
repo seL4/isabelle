@@ -20,10 +20,14 @@ time_use_thy "Handshake";
 time_use_thy "Lift";
 time_use_thy "Comp";
 time_use_thy "Reachability";
+
 (*Allocator example*)
 time_use_thy "PPROD";
 time_use_thy "TimerArray";
-with_path "../Induct" time_use_thy "Alloc";
+
+add_path "../Induct";
+time_use_thy "Alloc";
+time_use_thy "AllocImpl";
 time_use_thy "Client";
 
 time_use_thy "ELT";  (*obsolete*)
