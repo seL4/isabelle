@@ -15,9 +15,9 @@ sig
     term -> string list -> thm list -> tactic option -> theory -> theory
   val add_typedef_i_no_def: string -> bstring * string list * mixfix ->
     term -> string list -> thm list -> tactic option -> theory -> theory
-  val typedef_proof: string -> bstring * string list * mixfix -> string
+  val typedef_proof: (string * (bstring * string list * mixfix) * string) * Comment.text
     -> bool -> theory -> ProofHistory.T
-  val typedef_proof_i: string -> bstring * string list * mixfix -> term
+  val typedef_proof_i: (string * (bstring * string list * mixfix) * term) * Comment.text
     -> bool -> theory -> ProofHistory.T
 end;
 
@@ -189,13 +189,13 @@ val add_typedef_i_no_def = gen_add_typedef cert_term true;
 fun typedef_attribute cset do_typedef (thy, thm) =
   (check_nonempty cset thm; (thy |> do_typedef, thm));
 
-fun gen_typedef_proof prep_term name typ set int thy =
+fun gen_typedef_proof prep_term ((name, typ, set), comment) int thy =
   let
     val (cset, do_typedef) = prepare_typedef prep_term false name typ set thy;
     val goal = Thm.term_of (goal_nonempty cset);
   in
     thy
-    |> IsarThy.theorem_i "" [typedef_attribute cset do_typedef] (goal, []) int
+    |> IsarThy.theorem_i (("", [typedef_attribute cset do_typedef], (goal, [])), comment) int
   end;
 
 val typedef_proof = gen_typedef_proof read_term;
@@ -209,16 +209,16 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val typedeclP =
   OuterSyntax.command "typedecl" "HOL type declaration" K.thy_decl
-    (P.type_args -- P.name -- P.opt_mixfix >> (fn ((vs, t), mx) =>
+    (P.type_args -- P.name -- P.opt_mixfix --| P.marg_comment >> (fn ((vs, t), mx) =>
       Toplevel.theory (add_typedecls [(t, vs, mx)])));
 
 
 val typedef_proof_decl =
   Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") --
-    (P.type_args -- P.name) -- P.opt_infix -- (P.$$$ "=" |-- P.term);
+    (P.type_args -- P.name) -- P.opt_infix -- (P.$$$ "=" |-- P.term) -- P.marg_comment;
 
-fun mk_typedef_proof (((opt_name, (vs, t)), mx), A) =
-  typedef_proof (if_none opt_name (Syntax.type_name t mx)) (t, vs, mx) A;
+fun mk_typedef_proof ((((opt_name, (vs, t)), mx), A), comment) =
+  typedef_proof ((if_none opt_name (Syntax.type_name t mx), (t, vs, mx), A), comment);
 
 val typedefP =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)" K.thy_goal

@@ -710,10 +710,11 @@ fun mk_ind coind (((sets, (atts, intrs)), monos), con_defs) =
   #1 o add_inductive true coind sets atts (map P.triple_swap intrs) monos con_defs;
 
 fun ind_decl coind =
-  Scan.repeat1 P.term --
-  (P.$$$ "intrs" |-- P.!!! (P.opt_attribs -- Scan.repeat1 (P.opt_thm_name ":" -- P.term))) --
-  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1) [] --
-  Scan.optional (P.$$$ "con_defs" |-- P.!!! P.xthms1) []
+  (Scan.repeat1 P.term --| P.marg_comment) --
+  (P.$$$ "intrs" |--
+    P.!!! (P.opt_attribs -- Scan.repeat1 (P.opt_thm_name ":" -- P.term --| P.marg_comment))) --
+  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1 --| P.marg_comment) [] --
+  Scan.optional (P.$$$ "con_defs" |-- P.!!! P.xthms1 --| P.marg_comment) []
   >> (Toplevel.theory o mk_ind coind);
 
 val inductiveP =

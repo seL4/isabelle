@@ -139,7 +139,7 @@ val setup = [RecdefData.init];
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val recdef_decl =
-  P.name -- P.term -- Scan.repeat1 P.term --
+  P.name -- P.term -- Scan.repeat1 (P.term --| P.marg_comment) --
   Scan.optional (P.$$$ "(" |-- P.$$$ "congs" |-- P.!!! (P.xthms1 --| P.$$$ ")")) [] --
   Scan.option (P.$$$ "(" |-- P.$$$ "simpset" |-- P.!!! (P.name --| P.$$$ ")"))
   >> (fn ((((f, R), eqs), congs), ss) => #1 o add_recdef_x f R eqs ss congs);

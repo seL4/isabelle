@@ -670,7 +670,7 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val datatype_decl =
   Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_infix --
-    (P.$$$ "=" |-- P.enum1 "|" (P.name -- Scan.repeat P.typ -- P.opt_mixfix));
+    (P.$$$ "=" |-- P.enum1 "|" (P.name -- Scan.repeat P.typ -- P.opt_mixfix --| P.marg_comment));
 
 fun mk_datatype args =
   let
