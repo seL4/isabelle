@@ -42,16 +42,22 @@ sig
   val cert_context_statement: string option -> context attribute element_i list ->
     (term * (term list * term list)) list list -> context ->
     string option * context * context * (term * (term list * term list)) list list
+
   val add_locale: bstring -> expr -> context attribute element list -> theory -> theory
   val add_locale_i: bstring -> expr -> context attribute element_i list -> theory -> theory
   val print_locales: theory -> unit
   val print_locale: theory -> expr -> unit
-  val add_thmss: string -> ((string * thm list) * context attribute list) list -> theory -> theory
   val add_thmss_hybrid: string ->
     ((bstring * theory attribute list) * (thm list * theory attribute list) list) list ->
     (string * context attribute list list) option -> thm list list ->
     theory -> theory * (string * thm list) list
   val setup: (theory -> theory) list
+  val have_thmss: string -> string ->
+    ((string * context attribute list) * (string * context attribute list) list) list ->
+    theory -> theory * (string * thm list) list
+  val have_thmss_i: string -> string ->
+    ((string * context attribute list) * (thm list * context attribute list) list) list ->
+    theory -> theory * (string * thm list) list
 end;
 
 structure Locale: LOCALE =
@@ -699,34 +705,62 @@ end;
 
 (** store results **)
 
-fun add_thmss loc args thy =
+local
+
+fun put_facts loc args thy =
   let
     val {import, params, elems, text} = the_locale thy loc;
-    val note = Notes (map (fn ((a, ths), atts) =>
-      ((a, atts), [(map (curry Thm.name_thm a) ths, [])])) args);
-  in
-    thy |> ProofContext.init
-    |> cert_context_statement (Some loc) [Elem note] [];    (*test attributes!*)
-    thy |> put_locale loc (make_locale import (elems @ [(note, stamp ())]) params text)
+    val note = Notes (map (fn ((a, more_atts), th_atts) =>
+      ((a, more_atts), map (apfst (map (curry Thm.name_thm a))) th_atts)) args);
+  in thy |> put_locale loc (make_locale import (elems @ [(note, stamp ())]) params text) end;
+
+fun add_thmss loc args thy =
+  let val args' = map (fn ((a, ths), atts) => ((a, atts), [(ths, [])])) args in
+    thy |> ProofContext.init |>
+      cert_context_statement (Some loc) [Elem (Notes args')] [];    (*test attributes now!*)
+    thy |> put_facts loc args'
   end;
 
 fun hide_bound_names names thy =
   thy |> PureThy.hide_thms false
     (map (Sign.full_name (Theory.sign_of thy)) (filter_out (equal "") names));
 
+fun have_thmss_qualified kind loc args thy =
+  thy
+  |> Theory.add_path (Sign.base_name loc)
+  |> PureThy.have_thmss [Drule.kind kind] args
+  |>> hide_bound_names (map (#1 o #1) args)
+  |>> Theory.parent_path;
+
+fun gen_have_thmss prep_locale get_thms kind raw_loc raw_args thy =
+  let
+    val thy_ctxt = ProofContext.init thy;
+    val loc = prep_locale (Theory.sign_of thy) raw_loc;
+    val loc_ctxt = #1 (#1 (cert_context (Locale loc) [] thy_ctxt));
+    val args = map (apsnd (map (apfst (get_thms loc_ctxt)))) raw_args;
+    val export = Drule.local_standard o ProofContext.export_single loc_ctxt thy_ctxt;
+    val results = map (map export o #2) (#2 (ProofContext.have_thmss args loc_ctxt));
+    val args' = map (rpair [] o #1 o #1) args ~~ map (single o Thm.no_attributes) results;
+  in
+    thy
+    |> put_facts loc args
+    |> have_thmss_qualified kind loc args'
+  end;
+
+in
+
 fun add_thmss_hybrid kind args None _ thy = PureThy.have_thmss [Drule.kind kind] args thy
   | add_thmss_hybrid kind args (Some (loc, loc_atts)) loc_ths thy =
-      let val names = map (#1 o #1) args in
-        conditional (length names <> length loc_atts) (fn () =>
-          raise THEORY ("Bad number of locale attributes", [thy]));
-        thy
-        |> add_thmss loc ((names ~~ loc_ths) ~~ loc_atts)
-        |> Theory.add_path (Sign.base_name loc)
-        |> PureThy.have_thmss [Drule.kind kind] args
-        |>> hide_bound_names names
-        |>> Theory.parent_path
-      end;
+     if length args = length loc_atts then
+      thy
+      |> add_thmss loc ((map (#1 o #1) args ~~ loc_ths) ~~ loc_atts)
+      |> have_thmss_qualified kind loc args
+     else raise THEORY ("Bad number of locale attributes", [thy]);
 
+val have_thmss = gen_have_thmss intern ProofContext.get_thms;
+val have_thmss_i = gen_have_thmss (K I) (K I);
+
+end;
 
 
 (** locale theory setup **)
