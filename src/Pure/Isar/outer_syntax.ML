@@ -12,7 +12,6 @@ sig
   val loop: unit -> unit
   val sync_main: unit -> unit
   val sync_loop: unit -> unit
-  val help: unit -> unit
 end;
 
 signature OUTER_SYNTAX =
@@ -53,7 +52,7 @@ sig
   val dest_keywords: unit -> string list
   val dest_parsers: unit -> (string * string * string * bool) list
   val print_outer_syntax: unit -> unit
-  val print_help: Toplevel.transition -> Toplevel.transition
+  val print_commands: Toplevel.transition -> Toplevel.transition
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
   val deps_thy: string -> bool -> Path.T -> string list * Path.T list
@@ -205,7 +204,7 @@ fun dest_parsers () =
   map (fn (name, (((cmt, kind), (int_only, _)), _)) => (name, cmt, kind, int_only))
     (Symtab.dest (get_parsers ()));
 
-fun help_outer_syntax () =
+fun print_outer_syntax () =
   let
     fun pretty_cmd (name, comment, _, _) =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
@@ -214,19 +213,10 @@ fun help_outer_syntax () =
     [Pretty.strs ("syntax keywords:" :: map quote (dest_keywords ())),
       Pretty.big_list "proper commands:" (map pretty_cmd cmds),
       Pretty.big_list "improper commands (interactive-only):" (map pretty_cmd int_cmds)]
+    |> Pretty.chunks |> Pretty.writeln
   end;
 
-val print_outer_syntax = Pretty.writeln o Pretty.chunks o help_outer_syntax;
-
-val print_help =
-  Toplevel.keep (fn state =>
-    let val opt_thy = try Toplevel.theory_of state in
-      help_outer_syntax () @
-      IsarOutput.help_antiquotations () @
-      Method.help_methods opt_thy @
-      Attrib.help_attributes opt_thy
-      |> Pretty.chunks |> Pretty.writeln
-    end);
+val print_commands = Toplevel.imperative print_outer_syntax;
 
 
 
@@ -363,7 +353,7 @@ fun sync_loop () = gen_loop true true;
 
 fun help () =
   writeln ("This is Isabelle's underlying ML system (" ^ ml_system ^ ");\n\
-    \invoke 'loop();' to enter the Isar loop.");
+    \invoke 'Isar.loop();' to get back to the Isar read-eval-print loop.");
 
 
 (*final declarations of this structure!*)
