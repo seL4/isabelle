@@ -65,6 +65,10 @@ by (auto_tac (claset(), simpset() addsimps [natify_succ]));
 qed "natify_ident";
 Addsimps [natify_ident];
 
+Goal "[|natify(x) = y;  x: nat|] ==> x=y";
+by Auto_tac; 
+qed "natify_eqE";
+
 
 (*** Collapsing rules: to remove natify from arithmetic expressions ***)
 

@@ -435,11 +435,6 @@ Goalw [lesspoll_def]
 by (blast_tac (claset() addIs [lepoll_Ord_imp_eqpoll]) 1);
 qed "lesspoll_imp_eqpoll";
 
-Goalw [lesspoll_def]
-     "[| A lesspoll i; Ord(i) |] ==> |A| eqpoll A";
-by (blast_tac (claset() addIs [lepoll_Ord_imp_eqpoll]) 1);
-qed "lesspoll_imp_eqpoll";
-
 
 (*** The finite cardinals ***)
 
@@ -498,6 +493,19 @@ Goal "[| succ(n) lepoll n;  n:nat |] ==> P";
 by (rtac (nat_lepoll_imp_le RS lt_irrefl) 1);
 by (REPEAT (ares_tac [nat_succI] 1));
 qed "succ_lepoll_natE";
+
+Goalw [lesspoll_def] "n \\<in> nat ==> n lesspoll nat";
+by (fast_tac (claset() addSEs [Ord_nat RSN (2, ltI) RS leI RS le_imp_lepoll,
+			       eqpoll_sym RS eqpoll_imp_lepoll]
+	      addIs [Ord_nat RSN (2, nat_succI RS ltI) RS leI
+		     RS le_imp_lepoll RS lepoll_trans RS succ_lepoll_natE]) 1);
+qed "n_lesspoll_nat";
+
+Goalw [lepoll_def, eqpoll_def]
+     "[| n \\<in> nat;  nat lepoll X |] ==> \\<exists>Y. Y \\<subseteq> X & n eqpoll Y";
+by (fast_tac (subset_cs addSDs [Ord_nat RSN (2, OrdmemD) RSN (2, restrict_inj)]
+        addSEs [restrict_bij, inj_is_fun RS fun_is_rel RS image_subset]) 1);
+qed "nat_lepoll_imp_ex_eqpoll_n";
 
 
 (** lepoll, lesspoll and natural numbers **)
