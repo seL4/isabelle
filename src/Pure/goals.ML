@@ -279,7 +279,9 @@ fun filter_goal could ths i = filter_thms could (999, getgoal i, ths);
 (*For inspecting earlier levels of the backward proof*)
 fun chop_level n (pair,pairs) = 
   let val level = length pairs
-  in  if 0<=n andalso n<= level
+  in  if n<0 andalso ~n <= level
+      then  drop (~n, pair::pairs) 
+      else if 0<=n andalso n<= level
       then  drop (level - n, pair::pairs) 
       else  error ("Level number must lie between 0 and " ^ 
 		   string_of_int level)
