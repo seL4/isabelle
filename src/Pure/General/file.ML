@@ -100,8 +100,8 @@ fun system_command cmd =
     
 fun mkdir path = system_command ("mkdir -p " ^ quote_sysify path);
 
-fun copy_all path1 path2 =
-  system_command ("cp -R " ^ quote_sysify path1 ^ " " ^ quote_sysify path2);
+fun copy_all path1 path2 =  (*dereferences symlinks!*)
+  system_command ("cp -r " ^ quote_sysify path1 ^ " " ^ quote_sysify path2);
 
 
 (* symbol_use *)
