@@ -6,7 +6,7 @@
 
 open Denotation;
 
-(**** Rewrite Rules fuer A,B,C ****)
+(**** Rewrite Rules for A,B,C ****)
 
 val A_rewrite_rules =
      [A_nat_def,A_loc_def,A_op1_def,A_op2_def];
@@ -21,7 +21,7 @@ val C_rewrite_rules =
 
 val A_type = prove_goal Denotation.thy
 	"!!a.[|a:aexp; sigma:loc->nat|] ==> A(a,sigma):nat"
-   (fn _ => [(etac Aexp.induct 1),
+   (fn _ => [(etac aexp.induct 1),
              (rewrite_goals_tac A_rewrite_rules),
              (ALLGOALS (fast_tac (ZF_cs addSIs [apply_type])))]);
 
@@ -29,7 +29,7 @@ val A_type = prove_goal Denotation.thy
 
 val B_type = prove_goal Denotation.thy
 	"!!b. [|b:bexp; sigma:loc->nat|] ==> B(b,sigma):bool"
-   (fn _ => [(etac Bexp.induct 1),
+   (fn _ => [(etac bexp.induct 1),
              (rewrite_goals_tac B_rewrite_rules),
              (ALLGOALS (fast_tac (ZF_cs 
                           addSIs [apply_type,A_type]@bool_typechecks)))]);
@@ -38,7 +38,7 @@ val B_type = prove_goal Denotation.thy
 
 val C_subset = prove_goal Denotation.thy 
 	"!!c. c:com ==> C(c) <= (loc->nat)*(loc->nat)"
-   (fn _ => [(etac Com.induct 1),
+   (fn _ => [(etac com.induct 1),
              (rewrite_tac C_rewrite_rules),
              (ALLGOALS (fast_tac (comp_cs addDs [lfp_subset RS subsetD])))]);
 

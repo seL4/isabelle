@@ -4,4 +4,4 @@
     Copyright   1994 TUM
 *)
 
-Equiv = Denotation + Evalc
+Equiv = Denotation + Com
