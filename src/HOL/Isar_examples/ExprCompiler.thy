@@ -105,13 +105,13 @@ ML "reset HOL_quantifiers";
 
 lemma exec_append:
   "ALL stack. exec (xs @ ys) stack env = exec ys (exec xs stack env) env" (is "??P xs");
-proof ("induct" ??P xs type: list);
+proof (induct ??P xs type: list);
   show "??P []"; by simp;
 
   fix x xs;
   assume "??P xs";
   show "??P (x # xs)" (is "??Q x");
-  proof ("induct" ??Q x type: instr);
+  proof (induct ??Q x type: instr);
     fix val; show "??Q (Const val)"; by brute_force;
     next;
     fix adr; show "??Q (Load adr)"; by brute_force;
@@ -123,7 +123,7 @@ qed;
 
 lemma exec_comp:
   "ALL stack. exec (comp e) stack env = eval e env # stack" (is "??P e");
-proof ("induct" ??P e type: expr);
+proof (induct ??P e type: expr);
 
   fix adr; show "??P (Variable adr)"; by brute_force;
   next;
