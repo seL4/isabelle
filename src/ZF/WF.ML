@@ -81,9 +81,7 @@ by (res_inst_tac [ ("x", "{z:domain(r) Un {a}. ~P(z)}") ]  (major RS allE) 1);
 by (etac disjE 1);
 by (fast_tac (!claset addEs [equalityE]) 1);
 by (asm_full_simp_tac (!simpset addsimps [domainI]) 1);
-by (etac bexE 1);
-by (dtac minor 1);
-by (Fast_tac 1);
+by (fast_tac (!claset addSDs [minor]) 1);
 qed "wf_induct";
 
 (*Perform induction on i, then prove the wf(r) subgoal using prems. *)

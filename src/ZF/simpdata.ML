@@ -15,15 +15,23 @@ fun prove_fun s =
                       (fast_tac (!claset addSIs [equalityI]) 1) ]));
 
 (*Are all these really suitable?*)
-Addsimps (map prove_fun
-	  ["(ALL x:0.P(x)) <-> True",
-	   "(EX  x:0.P(x)) <-> False",
-	   "(ALL x:succ(i).P(x)) <-> P(i) & (ALL x:i.P(x))",
-	   "(EX  x:succ(i).P(x)) <-> P(i) | (EX  x:i.P(x))",
-	   "(ALL x:cons(a,B).P(x)) <-> P(a) & (ALL x:B.P(x))",
-	   "(EX  x:cons(a,B).P(x)) <-> P(a) | (EX  x:B.P(x))",
-	   "(ALL x: RepFun(A,f). P(x)) <-> (ALL y:A. P(f(y)))",
-	   "(EX  x: RepFun(A,f). P(x)) <-> (EX y:A. P(f(y)))"]);
+val ball_simps = map prove_fun
+    ["(ALL x:0.P(x)) <-> True",
+     "(ALL x:succ(i).P(x)) <-> P(i) & (ALL x:i.P(x))",
+     "(ALL x:cons(a,B).P(x)) <-> P(a) & (ALL x:B.P(x))",
+     "(ALL x:RepFun(A,f). P(x)) <-> (ALL y:A. P(f(y)))",
+     "(ALL x:Union(A).P(x)) <-> (ALL y:A. ALL x:y. P(x))",
+     "(ALL x:Collect(A,Q).P(x)) <-> (ALL x:A. Q(x) --> P(x))"];
+
+val bex_simps = map prove_fun
+    ["(EX x:0.P(x)) <-> False",
+     "(EX x:succ(i).P(x)) <-> P(i) | (EX x:i.P(x))",
+     "(EX x:cons(a,B).P(x)) <-> P(a) | (EX x:B.P(x))",
+     "(EX x:RepFun(A,f). P(x)) <-> (EX y:A. P(f(y)))",
+     "(EX x:Union(A).P(x)) <-> (EX y:A. EX x:y.  P(x))",
+     "(EX x:Collect(A,Q).P(x)) <-> (EX x:A. Q(x) & P(x))"];
+
+Addsimps (ball_simps @ bex_simps);
 
 Addsimps (map prove_fun
 	  ["{x:0. P(x)} = 0",
