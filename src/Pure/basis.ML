@@ -100,3 +100,6 @@ structure TextIO =
   val output 	= output
   val flushOut 	= flush_out
   end;
+
+
+fun print s = (output (std_out, s); flush_out std_out);
