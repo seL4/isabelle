@@ -901,6 +901,7 @@ predicate~\cdx{surj} is done simply by expanding the definitions.
 There is also a large collection of monotonicity theorems for constructions
 on sets in the file \texttt{HOL/mono.ML}.
 
+
 \section{Generic packages}
 \label{sec:HOL:generic-packages}
 
@@ -1008,13 +1009,107 @@ for adding splitting rules to, and deleting them from the current simpset.
 well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
 rule; recall Fig.\ts\ref{hol-lemmas2} above.
 
-The classical reasoner is installed.  Tactics such as \texttt{Blast_tac} and {\tt
-Best_tac} refer to the default claset (\texttt{claset()}), which works for most
-purposes.  Named clasets include \ttindexbold{prop_cs}, which includes the
-propositional rules, and \ttindexbold{HOL_cs}, which also includes quantifier
-rules.  See the file \texttt{HOL/cladata.ML} for lists of the classical rules,
+The classical reasoner is installed.  Tactics such as \texttt{Blast_tac} and
+{\tt Best_tac} refer to the default claset (\texttt{claset()}), which works
+for most purposes.  Named clasets include \ttindexbold{prop_cs}, which
+includes the propositional rules, and \ttindexbold{HOL_cs}, which also
+includes quantifier rules.  See the file \texttt{HOL/cladata.ML} for lists of
+the classical rules,
 and \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
 {Chap.\ts\ref{chap:classical}} for more discussion of classical proof methods.
+
+
+\section{Calling the decision procedure SVC}\label{sec:HOL:SVC}
+
+\index{SVC decision procedure|(}
+
+The Stanford Validity Checker (SVC) is a tool that can check the validity of
+certain types of formulae.  If it is installed on your machine, then
+Isabelle/HOL can be configured to call it through the tactic
+\ttindex{svc_tac}.  It is ideal for large tautologies and complex problems in
+linear arithmetic.  Subexpressions that SVC cannot handle are automatically
+replaced by variables, so you can call the tactic on any subgoal.  See the
+file \texttt{HOL/ex/svc_test.ML} for examples.
+\begin{ttbox} 
+svc_tac   : int -> tactic
+Svc.trace : bool ref      \hfill{\bf initially false}
+\end{ttbox}
+
+\begin{ttdescription}
+\item[\ttindexbold{svc_tac} $i$] attempts to prove subgoal~$i$ by translating
+  it into a formula recognized by~SVC\@.  If it succeeds then the subgoal is
+  removed.  It fails if SVC is unable to prove the subgoal.  It crashes with
+  an error message if SVC appears not to be installed.  Numeric variables may
+  have types \texttt{nat}, \texttt{int} or \texttt{real}.
+
+\item[\ttindexbold{Svc.trace}] is a flag that, if set, causes \texttt{svc_tac}
+  to trace its operations: abstraction of the subgoal, translation to SVC
+  syntax, SVC's response.
+\end{ttdescription}
+
+Here is an example, with tracing turned on:
+\begin{ttbox}
+set Svc.trace;
+{\out val it : bool = true}
+Goal "(#3::nat)*a <= #2 + #4*b + #6*c  & #11 <= #2*a + b + #2*c & \ttback
+\ttback     a + #3*b <= #5 + #2*c  --> #2 + #3*b <= #2*a + #6*c";
+
+by (svc_tac 1);
+{\out Subgoal abstracted to}
+{\out #3 * a <= #2 + #4 * b + #6 * c &}
+{\out #11 <= #2 * a + b + #2 * c & a + #3 * b <= #5 + #2 * c -->}
+{\out #2 + #3 * b <= #2 * a + #6 * c}
+{\out Calling SVC:}
+{\out (=> (<= 0  (F_c) )  (=> (<= 0  (F_b) )  (=> (<= 0  (F_a) )}
+{\out   (=> (AND (<= {* 3  (F_a) }  {+ {+ 2  {* 4  (F_b) } }  }
+{\out {* 6  (F_c) } } )  (AND (<= 11  {+ {+ {* 2  (F_a) }  (F_b) }}
+{\out   {* 2  (F_c) } } )  (<= {+ (F_a)  {* 3  (F_b) } }  {+ 5  }
+{\out {* 2  (F_c) } } ) ) )  (< {+ 2  {* 3  (F_b) } }  {+ 1  {+ }
+{\out {* 2  (F_a) }  {* 6  (F_c) } } } ) ) ) ) ) }
+{\out SVC Returns:}
+{\out VALID}
+{\out Level 1}
+{\out #3 * a <= #2 + #4 * b + #6 * c &}
+{\out #11 <= #2 * a + b + #2 * c & a + #3 * b <= #5 + #2 * c -->}
+{\out #2 + #3 * b <= #2 * a + #6 * c}
+{\out No subgoals!}
+\end{ttbox}
+
+
+\begin{warn}
+Calling \ttindex{svc_tac} entails an above-average risk of
+unsoundness.  Isabelle does not check SVC's result independently.  Moreover,
+the tactic translates the submitted formula using code that lies outside
+Isabelle's inference core.  Theorems that depend upon results proved using SVC
+(and other oracles) are displayed with the annotation \texttt{[!]} attached.
+You can also use \texttt{\#der (rep_thm $th$)} to examine the proof object of
+theorem~$th$, as described in the \emph{Reference Manual}.  
+\end{warn}
+
+To start, first download SVC from the Internet at URL
+\begin{ttbox}
+http://agamemnon.stanford.edu/~levitt/vc/index.html
+\end{ttbox}
+and install it using the instructions supplied.  SVC requires two environment
+variables:
+\begin{ttdescription}
+\item[\ttindexbold{SVC_HOME}] is an absolute pathname to the SVC
+    distribution directory. 
+    
+  \item[\ttindexbold{SVC_MACHINE}] identifies the type of computer and
+    operating system.  
+\end{ttdescription}
+You can set these environment variables either using the Unix shell or through
+an Isabelle \texttt{settings} file.  Isabelle assumes SVC to be installed if
+\texttt{SVC_HOME} is defined.
+
+\paragraph*{Acknowledgement.}  This interface uses code supplied by S{\o}ren
+Heilmann.
+
+
+\index{SVC decision procedure|)}
+
+
 
 
 \section{Types}\label{sec:HOL:Types}
