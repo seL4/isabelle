@@ -8,7 +8,7 @@ Based on work by Florian Kammueller, L C Paulson and Markus Wenzel.
 
 header {* Algebraic Structures up to Abelian Groups *}
 
-theory Group = FuncSet:
+theory Group = FuncSet + FoldSet:
 
 text {*
   Definitions follow Jacobson, Basic Algebra I, Freeman, 1985; with
@@ -20,12 +20,14 @@ section {* From Magmas to Groups *}
 
 subsection {* Definitions *}
 
-record 'a magma =
+record 'a semigroup =
   carrier :: "'a set"
   mult :: "['a, 'a] => 'a" (infixl "\<otimes>\<index>" 70)
 
-record 'a group = "'a magma" +
+record 'a monoid = "'a semigroup" +
   one :: 'a ("\<one>\<index>")
+
+record 'a group = "'a monoid" +
   m_inv :: "'a => 'a" ("inv\<index> _" [81] 80)
 
 locale magma = struct G +
@@ -37,10 +39,12 @@ locale semigroup = magma +
     "[| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
      (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
 
-locale group = semigroup +
+locale l_one = struct G +
   assumes one_closed [intro, simp]: "\<one> \<in> carrier G"
-    and inv_closed [intro, simp]: "x \<in> carrier G ==> inv x \<in> carrier G"
     and l_one [simp]: "x \<in> carrier G ==> \<one> \<otimes> x = x"
+
+locale group = semigroup + l_one +
+  assumes inv_closed [intro, simp]: "x \<in> carrier G ==> inv x \<in> carrier G"
     and l_inv: "x \<in> carrier G ==> inv x \<otimes> x = \<one>"
 
 subsection {* Cancellation Laws and Basic Properties *}
@@ -156,6 +160,11 @@ locale subgroup = submagma H G +
 
 declare (in subgroup) group.intro [intro]
 
+lemma (in subgroup) l_oneI [intro]:
+  includes l_one G
+  shows "l_one (G(| carrier := H |))"
+  by rule simp_all
+
 lemma (in subgroup) group_axiomsI [intro]:
   includes group G
   shows "group_axioms (G(| carrier := H |))"
@@ -206,8 +215,8 @@ lemma (in subgroup) m_closed:
 
 declare magma.m_closed [simp]
 
-declare group.one_closed [iff] group.inv_closed [simp]
-  group.l_one [simp] group.r_one [simp] group.inv_inv [simp]
+declare l_one.one_closed [iff] group.inv_closed [simp]
+  l_one.l_one [simp] group.r_one [simp] group.inv_inv [simp]
 
 lemma subgroup_nonempty:
   "~ subgroup {} G"
@@ -227,47 +236,57 @@ qed
 subsection {* Direct Products *}
 
 constdefs
-  DirProdMagma ::
-    "[('a, 'c) magma_scheme, ('b, 'd) magma_scheme] => ('a \<times> 'b) magma"
-    (infixr "\<times>\<^sub>m" 80)
-  "G \<times>\<^sub>m H == (| carrier = carrier G \<times> carrier H,
+  DirProdSemigroup ::
+    "[('a, 'c) semigroup_scheme, ('b, 'd) semigroup_scheme]
+    => ('a \<times> 'b) semigroup"
+    (infixr "\<times>\<^sub>s" 80)
+  "G \<times>\<^sub>s H == (| carrier = carrier G \<times> carrier H,
     mult = (%(xg, xh) (yg, yh). (mult G xg yg, mult H xh yh)) |)"
+
+  DirProdMonoid ::
+    "[('a, 'c) monoid_scheme, ('b, 'd) monoid_scheme] => ('a \<times> 'b) monoid"
+    (infixr "\<times>\<^sub>m" 80)
+  "G \<times>\<^sub>m H == (| carrier = carrier (G \<times>\<^sub>s H),
+    mult = mult (G \<times>\<^sub>s H),
+    one = (one G, one H) |)"
 
   DirProdGroup ::
     "[('a, 'c) group_scheme, ('b, 'd) group_scheme] => ('a \<times> 'b) group"
     (infixr "\<times>\<^sub>g" 80)
   "G \<times>\<^sub>g H == (| carrier = carrier (G \<times>\<^sub>m H),
     mult = mult (G \<times>\<^sub>m H),
-    one = (one G, one H),
+    one = one (G \<times>\<^sub>m H),
     m_inv = (%(g, h). (m_inv G g, m_inv H h)) |)"
 
-lemma DirProdMagma_magma:
+lemma DirProdSemigroup_magma:
   includes magma G + magma H
-  shows "magma (G \<times>\<^sub>m H)"
-  by rule (auto simp add: DirProdMagma_def)
+  shows "magma (G \<times>\<^sub>s H)"
+  by rule (auto simp add: DirProdSemigroup_def)
 
-lemma DirProdMagma_semigroup_axioms:
+lemma DirProdSemigroup_semigroup_axioms:
   includes semigroup G + semigroup H
-  shows "semigroup_axioms (G \<times>\<^sub>m H)"
-  by rule (auto simp add: DirProdMagma_def G.m_assoc H.m_assoc)
+  shows "semigroup_axioms (G \<times>\<^sub>s H)"
+  by rule (auto simp add: DirProdSemigroup_def G.m_assoc H.m_assoc)
 
-lemma DirProdMagma_semigroup:
+lemma DirProdSemigroup_semigroup:
   includes semigroup G + semigroup H
-  shows "semigroup (G \<times>\<^sub>m H)"
+  shows "semigroup (G \<times>\<^sub>s H)"
   using prems
   by (fast intro: semigroup.intro
-    DirProdMagma_magma DirProdMagma_semigroup_axioms)
+    DirProdSemigroup_magma DirProdSemigroup_semigroup_axioms)
 
 lemma DirProdGroup_magma:
   includes magma G + magma H
   shows "magma (G \<times>\<^sub>g H)"
-  by rule (auto simp add: DirProdGroup_def DirProdMagma_def)
+  by rule
+    (auto simp add: DirProdGroup_def DirProdMonoid_def DirProdSemigroup_def)
 
 lemma DirProdGroup_semigroup_axioms:
   includes semigroup G + semigroup H
   shows "semigroup_axioms (G \<times>\<^sub>g H)"
   by rule
-    (auto simp add: DirProdGroup_def DirProdMagma_def G.m_assoc H.m_assoc)
+    (auto simp add: DirProdGroup_def DirProdMonoid_def DirProdSemigroup_def
+      G.m_assoc H.m_assoc)
 
 lemma DirProdGroup_semigroup:
   includes semigroup G + semigroup H
@@ -278,18 +297,20 @@ lemma DirProdGroup_semigroup:
 
 (* ... and further lemmas for group ... *)
 
-lemma
+lemma DirProdGroup_group:
   includes group G + group H
   shows "group (G \<times>\<^sub>g H)"
 by rule
-  (auto intro: magma.intro semigroup_axioms.intro group_axioms.intro
-    simp add: DirProdGroup_def DirProdMagma_def
+  (auto intro: magma.intro l_one.intro
+      semigroup_axioms.intro group_axioms.intro
+    simp add: DirProdGroup_def DirProdMonoid_def DirProdSemigroup_def
       G.m_assoc H.m_assoc G.l_inv H.l_inv)
 
 subsection {* Homomorphisms *}
 
 constdefs
-  hom :: "[('a, 'c) magma_scheme, ('b, 'd) magma_scheme] => ('a => 'b)set"
+  hom :: "[('a, 'c) semigroup_scheme, ('b, 'd) semigroup_scheme]
+    => ('a => 'b)set"
   "hom G H ==
     {h. h \<in> carrier G -> carrier H &
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (mult G x y) = mult H (h x) (h y))}"
@@ -367,6 +388,291 @@ qed
 
 lemmas (in abelian_semigroup) ac = m_assoc m_comm m_lcomm
 
-locale abelian_group = abelian_semigroup + group
+locale abelian_monoid = abelian_semigroup + l_one
+
+lemma (in abelian_monoid) l_one [simp]:
+  "x \<in> carrier G ==> x \<otimes> \<one> = x"
+proof -
+  assume G: "x \<in> carrier G"
+  then have "x \<otimes> \<one> = \<one> \<otimes> x" by (simp add: m_comm)
+  also from G have "... = x" by simp
+  finally show ?thesis .
+qed
+
+locale abelian_group = abelian_monoid + group
+
+subsection {* Products over Finite Sets *}
+
+locale finite_prod = abelian_monoid + var prod +
+  defines "prod == (%f A. if finite A
+      then foldD (carrier G) (op \<otimes> o f) \<one> A
+      else arbitrary)"
+
+(* TODO: nice syntax for the summation operator inside the locale
+   like \<Otimes>\<index> i\<in>A. f i, probably needs hand-coded translation *)
+
+ML_setup {* 
+
+Context.>> (fn thy => (simpset_ref_of thy :=
+  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+
+lemma (in finite_prod) prod_empty [simp]: 
+  "prod f {} = \<one>"
+  by (simp add: prod_def)
+
+ML_setup {* 
+
+Context.>> (fn thy => (simpset_ref_of thy :=
+  simpset_of thy setsubgoaler asm_simp_tac; thy)) *}
+
+declare funcsetI [intro]
+  funcset_mem [dest]
+
+lemma (in finite_prod) prod_insert [simp]:
+  "[| finite F; a \<notin> F; f \<in> F -> carrier G; f a \<in> carrier G |] ==>
+   prod f (insert a F) = f a \<otimes> prod f F"
+  apply (rule trans)
+  apply (simp add: prod_def)
+  apply (rule trans)
+  apply (rule LCD.foldD_insert [OF LCD.intro [of "insert a F"]])
+    apply simp
+    apply (rule m_lcomm)
+      apply fast apply fast apply assumption
+    apply (fastsimp intro: m_closed)
+    apply simp+ apply fast
+  apply (auto simp add: prod_def)
+  done
+
+lemma (in finite_prod) prod_one:
+  "finite A ==> prod (%i. \<one>) A = \<one>"
+proof (induct set: Finites)
+  case empty show ?case by simp
+next
+  case (insert A a)
+  have "(%i. \<one>) \<in> A -> carrier G" by auto
+  with insert show ?case by simp
+qed
+
+(*
+lemma prod_eq_0_iff [simp]:
+    "finite F ==> (prod f F = 0) = (ALL a:F. f a = (0::nat))"
+  by (induct set: Finites) auto
+
+lemma prod_SucD: "prod f A = Suc n ==> EX a:A. 0 < f a"
+  apply (case_tac "finite A")
+   prefer 2 apply (simp add: prod_def)
+  apply (erule rev_mp)
+  apply (erule finite_induct)
+   apply auto
+  done
+
+lemma card_eq_prod: "finite A ==> card A = prod (\<lambda>x. 1) A"
+*)  -- {* Could allow many @{text "card"} proofs to be simplified. *}
+(*
+  by (induct set: Finites) auto
+*)
+
+lemma (in finite_prod) prod_closed:
+  fixes A
+  assumes fin: "finite A" and f: "f \<in> A -> carrier G" 
+  shows "prod f A \<in> carrier G"
+using fin f
+proof induct
+  case empty show ?case by simp
+next
+  case (insert A a)
+  then have a: "f a \<in> carrier G" by fast
+  from insert have A: "f \<in> A -> carrier G" by fast
+  from insert A a show ?case by simp
+qed
+
+lemma funcset_Int_left [simp, intro]:
+  "[| f \<in> A -> C; f \<in> B -> C |] ==> f \<in> A Int B -> C"
+  by fast
+
+lemma funcset_Un_left [iff]:
+  "(f \<in> A Un B -> C) = (f \<in> A -> C & f \<in> B -> C)"
+  by fast
+
+lemma (in finite_prod) prod_Un_Int:
+  "[| finite A; finite B; g \<in> A -> carrier G; g \<in> B -> carrier G |] ==>
+   prod g (A Un B) \<otimes> prod g (A Int B) = prod g A \<otimes> prod g B"
+  -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
+proof (induct set: Finites)
+  case empty then show ?case by (simp add: prod_closed)
+next
+  case (insert A a)
+  then have a: "g a \<in> carrier G" by fast
+  from insert have A: "g \<in> A -> carrier G" by fast
+  from insert A a show ?case
+    by (simp add: ac Int_insert_left insert_absorb prod_closed
+          Int_mono2 Un_subset_iff) 
+qed
+
+lemma (in finite_prod) prod_Un_disjoint:
+  "[| finite A; finite B; A Int B = {};
+      g \<in> A -> carrier G; g \<in> B -> carrier G |]
+   ==> prod g (A Un B) = prod g A \<otimes> prod g B"
+  apply (subst prod_Un_Int [symmetric])
+    apply (auto simp add: prod_closed)
+  done
+
+(*
+lemma prod_UN_disjoint:
+  fixes f :: "'a => 'b::plus_ac0"
+  shows
+    "finite I ==> (ALL i:I. finite (A i)) ==>
+        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
+      prod f (UNION I A) = prod (\<lambda>i. prod f (A i)) I"
+  apply (induct set: Finites)
+   apply simp
+  apply atomize
+  apply (subgoal_tac "ALL i:F. x \<noteq> i")
+   prefer 2 apply blast
+  apply (subgoal_tac "A x Int UNION F A = {}")
+   prefer 2 apply blast
+  apply (simp add: prod_Un_disjoint)
+  done
+*)
+
+lemma (in finite_prod) prod_addf:
+  "[| finite A; f \<in> A -> carrier G; g \<in> A -> carrier G |] ==>
+   prod (%x. f x \<otimes> g x) A = (prod f A \<otimes> prod g A)"
+proof (induct set: Finites)
+  case empty show ?case by simp
+next
+  case (insert A a) then
+  have fA: "f : A -> carrier G" by fast
+  from insert have fa: "f a : carrier G" by fast
+  from insert have gA: "g : A -> carrier G" by fast
+  from insert have ga: "g a : carrier G" by fast
+  from insert have fga: "(%x. f x \<otimes> g x) a : carrier G" by (simp add: Pi_def)
+  from insert have fgA: "(%x. f x \<otimes> g x) : A -> carrier G"
+    by (simp add: Pi_def)
+  show ?case  (* check if all simps are really necessary *)
+    by (simp add: insert fA fa gA ga fgA fga ac prod_closed Int_insert_left insert_absorb Int_mono2 Un_subset_iff)
+qed
+
+(*
+lemma prod_Un: "finite A ==> finite B ==>
+    (prod f (A Un B) :: nat) = prod f A + prod f B - prod f (A Int B)"
+  -- {* For the natural numbers, we have subtraction. *}
+  apply (subst prod_Un_Int [symmetric])
+    apply auto
+  done
+
+lemma prod_diff1: "(prod f (A - {a}) :: nat) =
+    (if a:A then prod f A - f a else prod f A)"
+  apply (case_tac "finite A")
+   prefer 2 apply (simp add: prod_def)
+  apply (erule finite_induct)
+   apply (auto simp add: insert_Diff_if)
+  apply (drule_tac a = a in mk_disjoint_insert)
+  apply auto
+  done
+*)
+
+lemma (in finite_prod) prod_cong:
+  "[| A = B; g : B -> carrier G;
+      !!i. i : B ==> f i = g i |] ==> prod f A = prod g B"
+proof -
+  assume prems: "A = B" "g : B -> carrier G"
+    "!!i. i : B ==> f i = g i"
+  show ?thesis
+  proof (cases "finite B")
+    case True
+    then have "!!A. [| A = B; g : B -> carrier G;
+      !!i. i : B ==> f i = g i |] ==> prod f A = prod g B"
+    proof induct
+      case empty thus ?case by simp
+    next
+      case (insert B x)
+      then have "prod f A = prod f (insert x B)" by simp
+      also from insert have "... = f x \<otimes> prod f B"
+      proof (intro prod_insert)
+	show "finite B" .
+      next
+	show "x ~: B" .
+      next
+	assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
+	  "g \<in> insert x B \<rightarrow> carrier G"
+	thus "f : B -> carrier G" by fastsimp
+      next
+	assume "x ~: B" "!!i. i \<in> insert x B \<Longrightarrow> f i = g i"
+	  "g \<in> insert x B \<rightarrow> carrier G"
+	thus "f x \<in> carrier G" by fastsimp
+      qed
+      also from insert have "... = g x \<otimes> prod g B" by fastsimp
+      also from insert have "... = prod g (insert x B)"
+      by (intro prod_insert [THEN sym]) auto
+      finally show ?case .
+    qed
+    with prems show ?thesis by simp
+  next
+    case False with prems show ?thesis by (simp add: prod_def)
+  qed
+qed
+
+lemma (in finite_prod) prod_cong1 [cong]:
+  "[| A = B; !!i. i : B ==> f i = g i;
+      g : B -> carrier G = True |] ==> prod f A = prod g B"
+  by (rule prod_cong) fast+
+
+text {*Usually, if this rule causes a failed congruence proof error,
+   the reason is that the premise @{text "g : B -> carrier G"} cannot be shown.
+   Adding @{thm [source] Pi_def} to the simpset is often useful. *}
+
+declare funcsetI [rule del]
+  funcset_mem [rule del]
+
+subsection {* Summation over the integer interval @{term "{..n}"} *}
+
+text {*
+  For technical reasons (locales) a new locale where the index set is
+  restricted to @{term "nat"} is necessary.
+*}
+
+locale finite_prod_nat = finite_prod +
+  assumes "False ==> prod f (A::nat set) = prod f A"
+
+lemma (in finite_prod_nat) natSum_0 [simp]:
+  "f : {0::nat} -> carrier G ==> prod f {..0} = f 0"
+by (simp add: Pi_def)
+
+lemma (in finite_prod_nat) natsum_Suc [simp]:
+  "f : {..Suc n} -> carrier G ==>
+   prod f {..Suc n} = (f (Suc n) \<otimes> prod f {..n})"
+by (simp add: Pi_def atMost_Suc)
+
+lemma (in finite_prod_nat) natsum_Suc2:
+  "f : {..Suc n} -> carrier G ==>
+   prod f {..Suc n} = (prod (%i. f (Suc i)) {..n} \<otimes> f 0)"
+proof (induct n)
+  case 0 thus ?case by (simp add: Pi_def)
+next
+  case Suc thus ?case by (simp add: m_assoc Pi_def prod_closed)
+qed
+
+lemma (in finite_prod_nat) natsum_zero [simp]:
+  "prod (%i. \<one>) {..n::nat} = \<one>"
+by (induct n) (simp_all add: Pi_def)
+
+lemma (in finite_prod_nat) natsum_add [simp]:
+  "[| f : {..n} -> carrier G; g : {..n} -> carrier G |] ==>
+   prod (%i. f i \<otimes> g i) {..n::nat} = prod f {..n} \<otimes> prod g {..n}"
+by (induct n) (simp_all add: ac Pi_def prod_closed)
+
+thm setsum_cong
+
+ML_setup {* 
+
+Context.>> (fn thy => (simpset_ref_of thy :=
+  simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
+
+lemma "(\<Sum>i\<in>{..10::nat}. if i<=10 then 0 else 1) = (0::nat)"
+apply simp done
+
+lemma (in finite_prod_nat) "prod (%i. if i<=10 then \<one> else x) {..10} = \<one>"
+apply (simp add: Pi_def)
 
 end
