@@ -7,16 +7,16 @@
 
 % symbol definitions
 
-\newcommand{\isasymzero}{\isatext{\textzerooldstyle}}  %requires textcomp
-\newcommand{\isasymone}{\isatext{\textoneoldstyle}}  %requires textcomp
-\newcommand{\isasymtwo}{\isatext{\texttwooldstyle}}  %requires textcomp
-\newcommand{\isasymthree}{\isatext{\textthreeoldstyle}}  %requires textcomp
-\newcommand{\isasymfour}{\isatext{\textfouroldstyle}}  %requires textcomp
-\newcommand{\isasymfive}{\isatext{\textfiveoldstyle}}  %requires textcomp
-\newcommand{\isasymsix}{\isatext{\textsixoldstyle}}  %requires textcomp
-\newcommand{\isasymseven}{\isatext{\textsevenoldstyle}}  %requires textcomp
-\newcommand{\isasymeight}{\isatext{\texteightoldstyle}}  %requires textcomp
-\newcommand{\isasymnine}{\isatext{\textnineoldstyle}}  %requires textcomp
+\newcommand{\isasymzero}{\isamath{\mathbf{0}}}  %requires amssym
+\newcommand{\isasymone}{\isamath{\mathbf{1}}}   %requires amssym
+\newcommand{\isasymtwo}{\isamath{\mathbf{2}}}   %requires amssym
+\newcommand{\isasymthree}{\isamath{\mathbf{3}}} %requires amssym
+\newcommand{\isasymfour}{\isamath{\mathbf{4}}}  %requires amssym
+\newcommand{\isasymfive}{\isamath{\mathbf{5}}}  %requires amssym
+\newcommand{\isasymsix}{\isamath{\mathbf{6}}}   %requires amssym
+\newcommand{\isasymseven}{\isamath{\mathbf{7}}} %requires amssym
+\newcommand{\isasymeight}{\isamath{\mathbf{8}}} %requires amssym
+\newcommand{\isasymnine}{\isamath{\mathbf{9}}}  %requires amssym
 \newcommand{\isasymA}{\isamath{\mathcal{A}}}
 \newcommand{\isasymB}{\isamath{\mathcal{B}}}
 \newcommand{\isasymC}{\isamath{\mathcal{C}}}
@@ -184,7 +184,7 @@
 \newcommand{\isasymleftharpoonup}{\isamath{\leftharpoonup}}
 \newcommand{\isasymrightharpoonup}{\isamath{\rightharpoonup}}
 \newcommand{\isasymrightleftharpoons}{\isamath{\rightleftharpoons}}
-\newcommand{\isasymleadsto}{\isamath{\leadsto}}  %requires latexsym
+\newcommand{\isasymleadsto}{\isamath{\leadsto}}  %requires amssym
 \newcommand{\isasymup}{\isamath{\uparrow}}
 \newcommand{\isasymUp}{\isamath{\Uparrow}}
 \newcommand{\isasymdown}{\isamath{\downarrow}}
@@ -203,8 +203,8 @@
 \newcommand{\isasymrbrakk}{\isamath{\mathclose{\rbrack\mkern-3mu\rbrack}}}
 \newcommand{\isasymlbrace}{\isamath{\mathopen{\lbrace\mkern-4.5mu\mid}}}
 \newcommand{\isasymrbrace}{\isamath{\mathclose{\mid\mkern-4.5mu\rbrace}}}
-\newcommand{\isasymguillemotleft}{\isatext{\flqq}}  %requires babel
-\newcommand{\isasymguillemotright}{\isatext{\frqq}}  %requires babel
+\newcommand{\isasymguillemotleft}{\isatext{\flqq}}  %requires babel 
+\newcommand{\isasymguillemotright}{\isatext{\frqq}}  %requires babel 
 \newcommand{\isasymColon}{\isamath{\mathrel{::}}}
 \newcommand{\isasymnot}{\isamath{\neg}}
 \newcommand{\isasymbottom}{\isamath{\bot}}
@@ -215,8 +215,8 @@
 \newcommand{\isasymOr}{\isamath{\bigvee}}
 \newcommand{\isasymforall}{\isamath{\forall\,}}
 \newcommand{\isasymexists}{\isamath{\exists\,}}
-\newcommand{\isasymbox}{\isamath{\Box}}  %requires latexsym
-\newcommand{\isasymdiamond}{\isamath{\Diamond}}  %requires latexsym
+\newcommand{\isasymbox}{\isamath{\Box}}  %requires amssym
+\newcommand{\isasymdiamond}{\isamath{\Diamond}}  %requires amssym
 \newcommand{\isasymturnstile}{\isamath{\vdash}}
 \newcommand{\isasymTurnstile}{\isamath{\models}}
 \newcommand{\isasymtturnstile}{\isamath{\vdash\!\!\!\vdash}}
@@ -238,7 +238,7 @@
 \newcommand{\isasymsubseteq}{\isamath{\subseteq}}
 \newcommand{\isasymsupseteq}{\isamath{\supseteq}}
 \newcommand{\isasymsqsubset}{\isamath{\sqsubset}}
-\newcommand{\isasymsqsupset}{\isamath{\sqsupset}}  %requires latexsym
+\newcommand{\isasymsqsupset}{\isamath{\sqsupset}}  %requires amssym
 \newcommand{\isasymsqsubseteq}{\isamath{\sqsubseteq}}
 \newcommand{\isasymsqsupseteq}{\isamath{\sqsupseteq}}
 \newcommand{\isasyminter}{\isamath{\cap}}
@@ -248,7 +248,7 @@
 \newcommand{\isasymsqunion}{\isamath{\sqcup}}
 \newcommand{\isasymSqunion}{\isamath{\bigsqcup\,}}
 \newcommand{\isasymsqinter}{\isamath{\sqcap}}
-\newcommand{\isasymSqinter}{\isamath{\bigsqcap\,}}  %requires stmaryrd
+\newcommand{\isasymSqinter}{\isamath{\bigsqcap\,}}  %requires masmath
 \newcommand{\isasymuplus}{\isamath{\uplus}}
 \newcommand{\isasymUplus}{\isamath{\biguplus\,}}
 \newcommand{\isasymnoteq}{\isamath{\not=}}
@@ -333,16 +333,16 @@
 \newcommand{\isasymparagraph}{\isatext{\rm\P}}
 \newcommand{\isasymexclamdown}{\isatext{\rm\textexclamdown}}
 \newcommand{\isasymquestiondown}{\isatext{\rm\textquestiondown}}
-\newcommand{\isasymeuro}{\isatext{\EUR}}  %requires marvosym
+\newcommand{\isasymeuro}{\isatext{\textgreek{\euro}}}  %requires greek babel
 \newcommand{\isasympounds}{\isamath{\pounds}}
 \newcommand{\isasymyen}{\isatext{\yen}}  %requires amssymb
 \newcommand{\isasymcent}{\isatext{\textcent}}  %requires textcomp
 \newcommand{\isasymcurrency}{\isatext{\textcurrency}} %requires textcomp
 \newcommand{\isasymdegree}{\isatext{\rm\textdegree}}  %requires latin1
 \newcommand{\isasymamalg}{\isamath{\amalg}}
-\newcommand{\isasymmho}{\isamath{\mho}}  %requires latexsym
+\newcommand{\isasymmho}{\isamath{\mho}}  %requires amssym
 \newcommand{\isasymlozenge}{\isamath{\lozenge}}  %requires amssym
-\newcommand{\isasymJoin}{\isamath{\Join}}  %requires latexsym
+\newcommand{\isasymJoin}{\isamath{\Join}}  %requires amssym
 \newcommand{\isasymwp}{\isamath{\wp}}
 \newcommand{\isasymwrong}{\isamath{\wr}}
 \newcommand{\isasymstruct}{\isamath{\diamond}}
