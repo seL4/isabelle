@@ -709,8 +709,6 @@ Goalw [increasing_def, stable_def]
  "F:increasing(A, r, lam s:state. c) <-> F:program & (EX a. a:A)";
 by (auto_tac (claset() addDs [constrains_type RS subsetD],
                simpset() addsimps [INT_iff]));
-by (cut_inst_tac [("F", "F")] Acts_type 1);
-by (auto_tac (claset(), simpset() addsimps [constrains_def]));
 qed "increasing_constant";
 AddIffs [increasing_constant];
 
