@@ -28,7 +28,7 @@ struct
 
 (* theory data kind 'Isar/calculation' *)
 
-fun print_rules rs = Pretty.writeln (Pretty.big_list "calculation rules:"
+fun print_rules rs = Pretty.writeln (Pretty.big_list "transitivity rules:"
   (map Display.pretty_thm (NetRules.rules rs)));
 
 structure GlobalCalculationArgs =
