@@ -11,7 +11,7 @@ theory Locales = Main:
 text_raw {*
   \newcommand{\isasyminv}{\isasyminverse}
   \newcommand{\isasymIN}{\isatext{\isakeyword{in}}}
-  \newcommand{\isasymUSES}{\isatext{\isakeyword{uses}}}
+  \newcommand{\isasymINCLUDES}{\isatext{\isakeyword{includes}}}
 *}
 
 subsection {* Overview *}
@@ -199,7 +199,7 @@ text {*
   definition of @{text abelian_group} is actually evaluated
   dynamically.  Thus any results in @{text group} are made available
   to the derived context of @{text abelian_group} as well.  Note that
-  the alternative context element @{text \<USES>} would import
+  the alternative context element @{text \<INCLUDES>} would import
   existing locales in a static fashion, without participating in
   further facts emerging later on.
 
