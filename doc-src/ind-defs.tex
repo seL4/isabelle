@@ -1,4 +1,5 @@
 \documentstyle[12pt,a4,proof,lcp,alltt,amssymbols]{article}
+\hyphenation{data-type}
 %CADE version should use 11pt and the Springer style
 \newif\ifCADE
 \CADEfalse
@@ -97,7 +98,6 @@
 \newcommand\Con{{\tt Con}}
 \newcommand\data{{\tt data}}
 
-\sloppy
 \binperiod     %%%treat . like a binary operator
 
 \begin{document}
@@ -106,19 +106,18 @@
 \maketitle 
 \begin{abstract}
   Several theorem provers provide commands for formalizing recursive
-  datatypes and/or inductively defined sets.  This paper presents a new
-  approach, based on fixedpoint definitions.  It is unusually general:
-  it admits all monotone inductive definitions.  It is conceptually simple,
-  which has allowed the easy implementation of mutual recursion and other
-  conveniences.  It also handles coinductive definitions: simply replace
-  the least fixedpoint by a greatest fixedpoint.  This represents the first
-  automated support for coinductive definitions.
+  data\-types or inductively defined sets.  This paper presents a new
+  approach, based on fixedpoint definitions.  It is unusually general: it
+  admits all provably monotone inductive definitions.  It is conceptually
+  simple, which has allowed the easy implementation of mutual recursion and
+  other conveniences.  It also handles coinductive definitions: simply
+  replace the least fixedpoint by a greatest fixedpoint.  This represents
+  the first automated support for coinductive definitions.
 
   The method has been implemented in Isabelle's formalization of ZF set
-  theory.  It should
-  be applicable to any logic in which the Knaster-Tarski Theorem can be
-  proved.  The paper briefly describes a method of formalizing
-  non-well-founded data structures in standard ZF set theory.
+  theory.  It should be applicable to any logic in which the Knaster-Tarski
+  Theorem can be proved.  The paper briefly describes a method of
+  formalizing non-well-founded data structures in standard ZF set theory.
 
   Examples include lists of $n$ elements, the accessible part of a relation
   and the set of primitive recursive functions.  One example of a
@@ -229,8 +228,8 @@ that  $\lfp$ must be the least fixedpoint, and $\gfp$ the greatest.
 This fixedpoint theory is simple.  The Knaster-Tarski theorem is easy to
 prove.  Showing monotonicity of~$h$ is trivial, in typical cases.  We must
 also exhibit a bounding set~$D$ for~$h$.  Sometimes this is trivial, as
-when a set of ``theorems'' is (co)inductively defined over some previously
-existing set of ``formulae.''  But defining the bounding set for
+when a set of `theorems' is (co)inductively defined over some previously
+existing set of `formulae.'  But defining the bounding set for
 (co)datatype definitions requires some effort; see~\S\ref{univ-sec} below.
 
 
@@ -534,10 +533,10 @@ to the $\Fin(A)$ introduction rules as {\tt Fin.intrs}, the induction rule
 as {\tt Fin.induct}, and so forth.
 
 \subsection{Lists of $n$ elements}\label{listn-sec}
-This has become a standard example in the
-literature.  Following Paulin-Mohring~\cite{paulin92}, we could attempt to
-define a new datatype $\listn(A,n)$, for lists of length~$n$, as an $n$-indexed
-family of sets.  But her introduction rules
+This has become a standard example of an inductive definition.  Following
+Paulin-Mohring~\cite{paulin92}, we could attempt to define a new datatype
+$\listn(A,n)$, for lists of length~$n$, as an $n$-indexed family of sets.
+But her introduction rules
 \[ {\tt Niln}\in\listn(A,0)  \qquad
    \infer{{\tt Consn}(n,a,l)\in\listn(A,\succ(n))}
          {n\in\nat & a\in A & l\in\listn(A,n)}
@@ -628,11 +627,11 @@ The elimination rule, {\tt ListN.elim}, is cumbersome:
                \pair{n,l}\in\listn(A)
                \end{array} \right]_{a,l,n}}}
 \]
-The ML function {\tt ListN.mk\_cases} generates simplified instances of this
-rule.  It works by freeness reasoning on the list constructors: $\Cons$ is
-injective and $\Cons(a,l)\not=\Nil$. If $x$ is $\pair{i,\Nil}$ or
-$\pair{i,\Cons(a,l)}$ then {\tt ListN.mk\_cases} deduces the corresponding
-form of~$i$.  For example,
+The ML function {\tt ListN.mk\_cases} generates simplified instances of
+this rule.  It works by freeness reasoning on the list constructors:
+$\Cons(a,l)$ is injective in its two arguments and differs from~$\Nil$.  If
+$x$ is $\pair{i,\Nil}$ or $\pair{i,\Cons(a,l)}$ then {\tt ListN.mk\_cases}
+deduces the corresponding form of~$i$.  For example,
 \begin{ttbox}
 ListN.mk_cases List.con_defs "<i,Cons(a,l)> : listn(A)"
 \end{ttbox}
@@ -947,9 +946,10 @@ Axiom~\cite{aczel88}.
 
 \subsection{The case analysis operator}
 The (co)datatype package automatically defines a case analysis operator,
-called {\tt$R$\_case}.  A mutually recursive definition still has only
-one operator, called {\tt$R_1$\_\ldots\_$R_n$\_case}.  The case operator is
-analogous to those for products and sums.  
+called {\tt$R$\_case}.  A mutually recursive definition still has only one
+operator, whose name combines those of the recursive sets: it is called
+{\tt$R_1$\_\ldots\_$R_n$\_case}.  The case operator is analogous to those
+for products and sums.
 
 Datatype definitions employ standard products and sums, whose operators are
 $\split$ and $\case$ and satisfy the equations
@@ -1519,7 +1519,7 @@ equivalences or elimination rules.
 
 The result structure also inherits everything from the underlying
 (co)inductive definition, such as the introduction rules, elimination rule,
-and induction/coinduction rule.
+and (co)induction rule.
 
 
 \begin{figure}
@@ -1576,16 +1576,16 @@ and disjoint sums; the appropriate domain is
 $\quniv(A_1\un\cdots\un A_k)$.
 
 The {\tt sintrs} specify the introduction rules, which govern the recursive
-structure of the datatype.  Introduction rules may involve monotone operators
-and side-conditions to express things that go beyond the usual notion of
-datatype.  The theorem lists {\tt monos}, {\tt type\_intrs} and {\tt
-type\_elims} should contain precisely what is needed for the underlying
-(co)inductive definition.  Isabelle/ZF defines theorem lists that can be
-defined for the latter two components:
+structure of the datatype.  Introduction rules may involve monotone
+operators and side-conditions to express things that go beyond the usual
+notion of datatype.  The theorem lists {\tt monos}, {\tt type\_intrs} and
+{\tt type\_elims} should contain precisely what is needed for the
+underlying (co)inductive definition.  Isabelle/ZF defines lists of
+type-checking rules that can be supplied for the latter two components:
 \begin{itemize}
-\item {\tt datatype\_intrs} and {\tt datatype\_elims} are type-checking rules
+\item {\tt datatype\_intrs} and {\tt datatype\_elims} are rules
 for $\univ(A)$.
-\item {\tt co\_datatype\_intrs} and {\tt co\_datatype\_elims} are type-checking
+\item {\tt co\_datatype\_intrs} and {\tt co\_datatype\_elims} are
 rules for $\quniv(A)$.
 \end{itemize}
 In typical definitions, these theorem lists need not be supplemented with
