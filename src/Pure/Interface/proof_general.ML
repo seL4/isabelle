@@ -120,7 +120,7 @@ in
 fun setup_messages () =
  (writeln_fn := message "output" "" "" "";
   priority_fn := message "information" (oct_char "360") (oct_char "361") "";
-  tracing_fn := message "tracing" (oct_char "360") (oct_char "361") (oct_char "375");
+  tracing_fn := message "tracing" (oct_char "360" ^ oct_char "375") (oct_char "361") "";
   warning_fn := message "warning" (oct_char "362") (oct_char "363") "### ";
   error_fn := message "error" (oct_char "364") (oct_char "365") "*** ");
 
