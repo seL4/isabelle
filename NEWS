@@ -195,6 +195,12 @@ HOLCF/ex/Dnat.thy;
 * ZF: the integer library now covers quotients and remainders, with
 many laws relating division to addition, multiplication, etc.;
 
+* ZF/Induct: new directory for examples of inductive definitions, including theory
+Multiset for multiset orderings;
+
+* ZF/UNITY: Chandy and Misra's UNITY is now available in ZF, giving a typeless
+version of the formalism;
+
 
 *** General ***
 
