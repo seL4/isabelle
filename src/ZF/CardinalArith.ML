@@ -743,6 +743,17 @@ by (Simp_tac 1);
 by (blast_tac (claset() addIs [Fin.consI, impOfSubs Fin_mono]) 1);
 qed "Finite_Union";
 
+(* Induction principle for Finite(A), by Sidi Ehmety *)
+val major::prems =  Goal
+"[| Finite(A); P(0); \
+\  !! x B.   [|  Finite(B); x ~: B; P(B) |] \
+\            ==> P(cons(x, B)) |] \
+\      ==> P(A)";
+by (resolve_tac [major RS Finite_into_Fin RS Fin_induct] 1);
+by (ALLGOALS(resolve_tac prems));
+by (ALLGOALS(asm_simp_tac (simpset() addsimps [Fin_into_Finite])));
+qed "Finite_induct";
+
 
 (** Removing elements from a finite set decreases its cardinality **)
 

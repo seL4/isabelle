@@ -541,3 +541,48 @@ qed_spec_mp "less_imp_succ_add";
 Goal "[| m: nat; n: nat |] ==> (m<n) <-> (EX k: nat. n = succ(m#+k))";
 by (auto_tac (claset() addIs [less_imp_succ_add], simpset()));
 qed "less_iff_succ_add";
+
+(* on nat *)
+
+Goal "m #- n = 0 <-> natify(m) le natify(n)";
+by (auto_tac (claset(), simpset() addsimps 
+      [le_iff, diff_self_eq_0]));
+by (full_simp_tac (simpset() addsimps [less_iff_succ_add ]) 2);
+by (Clarify_tac 2);
+by (subgoal_tac "natify(m) #- natify(n) = 0" 3);
+by (etac subst 3);
+by (ALLGOALS(asm_full_simp_tac (simpset() 
+             addsimps [diff_self_eq_0])));
+by (subgoal_tac "natify(m) #- natify(n) = 0" 2);
+by (etac subst 2);
+by (etac ssubst  3);
+by (rtac (not_le_iff_lt RS iffD1) 1);
+by (auto_tac (claset(), simpset() addsimps [le_iff]));
+by (subgoal_tac "natify(m) #- natify(n) = 0" 1);
+by (Asm_simp_tac 2);
+by (thin_tac "m #- n = 0" 1);
+by (dtac ([natify_in_nat, natify_in_nat] MRS zero_less_diff RS iffD2) 1);
+by Auto_tac;
+qed "diff_is_0_iff";
+
+Goal "[| a:nat; b:nat |] ==> \
+\ (P(a #- b)) <-> ((a < b -->P(0)) & (ALL d:nat. a = b #+ d --> P(d)))";
+by (case_tac "a le b" 1);
+by (subgoal_tac "natify(a) le natify(b)" 1);
+by (dtac (diff_is_0_iff RS iffD2) 1);
+by Safe_tac;
+by (ALLGOALS(Asm_full_simp_tac));
+by (ALLGOALS(rotate_tac ~1));
+by (ALLGOALS(asm_full_simp_tac  (simpset() addsimps [le_iff])));
+by (Clarify_tac 2);
+by (ALLGOALS(dtac not_lt_imp_le));
+by (ALLGOALS(Asm_full_simp_tac));
+by (ALLGOALS(dres_inst_tac [("x", "a #- b")] bspec));
+by (ALLGOALS(Asm_simp_tac));
+by (ALLGOALS(dtac add_diff_inverse));
+by (ALLGOALS(rotate_tac ~1));
+by (ALLGOALS(Asm_full_simp_tac));
+qed "nat_diff_split";
+
+
+

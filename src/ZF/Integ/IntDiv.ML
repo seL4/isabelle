@@ -30,6 +30,34 @@ Here is the division algorithm in ML:
 			  else        negateSnd (posDivAlg (~a,~b));
 *)
 
+(** Some basic laws by Sidi Ehmety (need linear arithmetic!) **)
+
+Goal "[| #0 $< x;  #0 $< y |] ==> #0 $< x $+ y";
+by (res_inst_tac [("y", "y")] zless_trans 1);
+by (rtac (zdiff_zless_iff RS iffD1) 2);
+by Auto_tac;
+qed "zspos_add_zspos_imp_zspos";
+
+Goal "[| #0 $<= x;  #0 $<= y |] ==> #0 $<= x $+ y";
+by (res_inst_tac [("y", "y")] zle_trans 1);
+by (rtac (zdiff_zle_iff RS iffD1) 2);
+by Auto_tac;
+qed "zpos_add_zpos_imp_zpos";
+
+Goal "[| x $< #0;  y $< #0 |] ==> x $+ y $< #0";
+by (res_inst_tac [("y", "y")] zless_trans 1);
+by (rtac (zless_zdiff_iff RS iffD1) 1);
+by Auto_tac;
+qed "zneg_add_zneg_imp_zneg";
+
+(* this theorem is used below *)
+Goal "[| x $<= #0;  y $<= #0 |] ==> x $+ y $<= #0";
+by (res_inst_tac [("y", "y")] zle_trans 1);
+by (rtac (zle_zdiff_iff RS iffD1) 1);
+by Auto_tac;
+qed "zneg_or_0_add_zneg_or_0_imp_zneg_or_0";
+
+
 Goal "[| #0 $< k; k \\<in> int |] ==> 0 < zmagnitude(k)";
 by (dtac zero_zless_imp_znegative_zminus 1);
 by (dtac zneg_int_of 2);

@@ -209,7 +209,9 @@ by (blast_tac (claset() addDs [r_subset_rtrancl]) 1);
 by (blast_tac (claset() addIs [rtrancl_mono RS subsetD]) 1);
 qed "rtrancl_Un_rtrancl";
 
-(** "converse" laws by Sidi Ould Ehmety **)
+(*** "converse" laws by Sidi Ould Ehmety ***)
+
+(** rtrancl **)
 
 Goal "<x,y>:converse(r)^* ==> <x,y>:converse(r^*)";
 by (rtac converseI 1);
@@ -232,3 +234,34 @@ by (safe_tac (claset() addSIs [equalityI]));
 by (forward_tac [rtrancl_type RS subsetD] 1);
 by (safe_tac (claset() addSDs [rtrancl_converseD] addSIs [rtrancl_converseI]));
 qed "rtrancl_converse";
+
+(** trancl **)
+
+Goal "<a, b>:converse(r)^+ ==> <a, b>:converse(r^+)";
+by (etac trancl_induct 1);
+by (auto_tac (claset() addIs [r_into_trancl, trancl_trans], simpset()));
+qed "trancl_converseD";
+
+Goal "<x,y>:converse(r^+) ==> <x,y>:converse(r)^+";
+by (dtac converseD 1);
+by (etac trancl_induct 1);
+by (auto_tac (claset() addIs [r_into_trancl, trancl_trans], simpset()));
+qed "trancl_converseI";
+
+Goal "converse(r)^+ = converse(r^+)";
+by (safe_tac (claset() addSIs [equalityI]));
+by (forward_tac [trancl_type RS subsetD] 1);
+by (safe_tac (claset() addSDs [trancl_converseD] addSIs [trancl_converseI]));
+qed "trancl_converse";
+
+val major::prems = Goal 
+"[| <a, b>:r^+; !!y. <y, b> :r ==> P(y); \
+\     !!y z. [| <y, z> : r; <z, b> : r^+; P(z) |] ==> P(y) |] \
+\      ==> P(a)";
+by (cut_facts_tac [major] 1);
+by (dtac converseI 1);
+by (full_simp_tac (simpset() addsimps [trancl_converse RS sym]) 1);
+by (etac trancl_induct 1);
+by (auto_tac (claset() addIs prems, 
+              simpset() addsimps [trancl_converse]));
+qed "converse_trancl_induct";

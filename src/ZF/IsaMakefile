@@ -125,8 +125,9 @@ $(LOG)/ZF-UNITY.gz: $(OUT)/ZF UNITY/ROOT.ML \
 ZF-Induct: ZF $(LOG)/ZF-Induct.gz
 
 $(LOG)/ZF-Induct.gz: $(OUT)/ZF  Induct/ROOT.ML Induct/Acc.ML Induct/Acc.thy \
-  Induct/Comb.ML Induct/Comb.thy \
-  Induct/ListN.ML Induct/ListN.thy  Induct/Mutil.ML Induct/Mutil.thy\
+  Induct/Comb.ML Induct/Comb.thy  Induct/FoldSet.ML Induct/FoldSet.thy \
+  Induct/ListN.ML Induct/ListN.thy\
+  Induct/Multiset.ML Induct/Multiset.thy  Induct/Mutil.ML Induct/Mutil.thy\
   Induct/Primrec_defs.ML Induct/Primrec_defs.thy\
   Induct/Primrec.ML Induct/Primrec.thy\
   Induct/PropLog.ML Induct/PropLog.thy  Induct/Rmap.ML Induct/Rmap.thy

@@ -77,13 +77,13 @@ by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]@
                                      zadd_ac@rel_iff_rel_0_rls) 1);
 qed "less_add_iff2";
 
-Goal "(i$*u $+ m $<= j$*u $+ n) <-> ((i$-j)$*u $+ m $<= intify(n))";
+Goal "(i$*u $+ m $<= j$*u $+ n) <-> ((i$-j)$*u $+ m $<= n)";
 by (simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]) 1);
 by (simp_tac (simpset() addsimps zcompare_rls) 1);
 by (simp_tac (simpset() addsimps zadd_ac) 1);
 qed "le_add_iff1";
 
-Goal "(i$*u $+ m $<= j$*u $+ n) <-> (intify(m) $<= (j$-i)$*u $+ n)";
+Goal "(i$*u $+ m $<= j$*u $+ n) <-> (m $<= (j$-i)$*u $+ n)";
 by (simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]) 1);
 by (simp_tac (simpset() addsimps zcompare_rls) 1);
 by (simp_tac (simpset() addsimps zadd_ac) 1);
@@ -236,6 +236,7 @@ structure CancelNumeralsCommon =
 			  THEN ALLGOALS (asm_simp_tac norm_tac_ss3)
   val numeral_simp_tac	= 
          ALLGOALS (simp_tac (ZF_ss addsimps add_0s@bin_simps@tc_rules@intifys))
+         THEN ALLGOALS Asm_simp_tac
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s@mult_1s)
   end;
 
@@ -300,7 +301,7 @@ structure CombineNumeralsData =
   val prove_conv        = prove_conv_nohyps "int_combine_numerals"
   val trans_tac         = ArithData.gen_trans_tac trans
   val norm_tac_ss1 = ZF_ss addsimps add_0s@mult_1s@diff_simps@
-                                    zminus_simps@zadd_ac
+                                    zminus_simps@zadd_ac@intifys
   val norm_tac_ss2 = ZF_ss addsimps bin_simps@int_mult_minus_simps@intifys
   val norm_tac_ss3 = ZF_ss addsimps int_minus_from_mult_simps@
                                     zadd_ac@zmult_ac@tc_rules@intifys
