@@ -58,7 +58,7 @@ defs
   Push_Node_def  "Push_Node == (%n x. Abs_Node (apfst (Push n) (Rep_Node x)))"
 
   (*crude "lists" of nats -- needed for the constructions*)
-  apfst_def  "apfst == (%f. split(%x y. (f(x),y)))"
+  apfst_def  "apfst == (%f (x,y). (f(x),y))"
   Push_def   "Push == (%b h. nat_case (Suc b) h)"
 
   (** operations on S-expressions -- sets of nodes **)
