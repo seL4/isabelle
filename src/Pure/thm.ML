@@ -1599,8 +1599,9 @@ fun congc (prover,signt) {thm=cong,lhs=lhs} (shypst,hypst,maxidxt,t,ders) =
                   else Logic.incr_indexes([],maxidxt+1) prop;
       val rlhs = if maxidxt = ~1 then lhs
                  else fst(Logic.dest_equals(Logic.strip_imp_concl rprop))
-      val insts = Pattern.match tsig (rlhs,t) handle Pattern.MATCH =>
-                  error("Congruence rule did not match")
+      val insts = Pattern.match tsig (rlhs,t)
+      (* Pattern.match can raise Pattern.MATCH;
+         is handled when congc is called *)
       val prop' = ren_inst(insts,rprop,rlhs,t);
       val shyps' = add_insts_sorts (insts, shyps union shypst)
       val maxidx' = maxidx_of_term prop'
@@ -1687,7 +1688,8 @@ fun bottomc ((simprem,useprem),prover,sign) =
 		    Const(a,_) =>
 		      (case assoc(congs,a) of
 			 None => appc()
-		       | Some(cong) => congc (prover mss,sign) cong trec)
+		       | Some(cong) => (congc (prover mss,sign) cong trec
+                                        handle Pattern.MATCH => appc() ) )
 		  | _ => appc()
 	       end)
 	 | _ => None)
