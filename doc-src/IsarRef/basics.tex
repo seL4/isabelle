@@ -1,11 +1,39 @@
 
-\chapter{Basic Concepts}
+\chapter{Basic Concepts}\label{ch:basics}
 
-\section{Isabelle/Isar Theories}
+Isabelle/Isar offers two main improvements over classic Isabelle:
+\begin{enumerate}
+\item A new \emph{theory format}, often referred to as ``new-style theories'',
+  supporting interactive development with unlimited undo operation.
+\item A formal \emph{proof language} language designed to support
+  \emph{intelligible} semi-automated reasoning.  Rather than putting together
+  tactic scripts, the author is enabled to express the reasoning in way that
+  is close to mathematical practice.
+\end{enumerate}
+
+The Isar proof language is embedded into the new theory format as a proper
+sub-language.  Proof mode is entered by stating some $\THEOREMNAME$ or
+$\LEMMANAME$ at the theory levels, and left with the final end of proof.  Some
+theory extension mechanisms require proof as well, such as the HOL
+$\isarkeyword{typedef}$.
+
+New-style theory files may still be associated with an ML file consisting of
+plain old tactic scripts.  Generally, migration between the two formats is
+made relatively easy, and users may start to benefit from interactive theory
+development even before they have any idea of the Isar proof language.
+
 
 \section{The Isar proof language}
 
-\subsection{Proof commands}
+This rather important section has not been written yet!  Refer to
+\cite{Wenzel:1999:TPHOL} for the time being.
+
+\subsection{Commands}
+
+\subsubsection{Isar primitives}
+
+\subsubsection{Derived elements}
+
 
 \subsection{Methods}
 

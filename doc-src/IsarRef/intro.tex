@@ -11,36 +11,36 @@ quickest way to do anything with Isabelle/Isar is as follows:
 isabelle -I HOL\medskip
 \out{> Welcome to Isabelle/HOL (Isabelle99)}\medskip
 theory Foo = Main:
-constdefs foo :: nat  "foo == 1"
-lemma "0 < foo" by (simp add: foo_def)
+constdefs foo :: nat  "foo == 1";
+lemma "0 < foo" by (simp add: foo_def);
 end
 \end{ttbox}
+Note that \emph{any} Isabelle/Isar command may be retracted by \texttt{undo}.
 
 Plain TTY-based interaction like this used to be quite feasible with
 traditional tactic based theorem proving, but developing Isar documents
-demands some better user-interface support.
-\emph{ProofGeneral}\index{ProofGeneral} of LFCS Edinburgh \cite{proofgeneral}
-offers a generic Emacs-based environment for interactive theorem provers that
-does all the cut-and-paste and forward-backward walk through the document in a
-very neat way.  Note that in Isabelle/Isar, the current position within a
-partial proof document is more informative than the actual proof state.  Thus
-the ProofGeneral/isar interface provides the canonical working environment for
-Isabelle/Isar, both for getting acquainted (e.g.\ by replaying existing Isar
-documents) and serious production work.
+demands some better user-interface support.  \emph{Proof~General}\index{Proof
+  General} of LFCS Edinburgh \cite{proofgeneral} offers a generic Emacs-based
+environment for interactive theorem provers that does all the cut-and-paste
+and forward-backward walk through the document in a very neat way.  Note that
+in Isabelle/Isar, the current position within a partial proof document is more
+informative than the actual proof state.  Thus Proof~General provides the
+canonical working environment for Isabelle/Isar, both for getting acquainted
+(e.g.\ by replaying existing Isar documents) and serious production work.
 
 \medskip
 
-The easiest way to use ProofGeneral/isar is to make it the default Isabelle
-user interface.  Just say something like this in your Isabelle settings file
-(cf.\ \cite{isabelle-sys}):
+The easiest way to use ProofGeneral is to make it the default Isabelle user
+interface.  Just say something like this in your Isabelle settings file (cf.\ 
+\cite{isabelle-sys}):
 \begin{ttbox}
 ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
 PROOFGENERAL_OPTIONS=""
 \end{ttbox}
 You may have to change \texttt{\$ISABELLE_HOME/contrib/ProofGeneral} to the
-actual installation directory of ProofGeneral.  Now the capital
-\texttt{Isabelle} binary refers to the ProofGeneral/isar interface.  It's
-usage is as follows:
+actual installation directory of Proof~General.  Now the capital
+\texttt{Isabelle} binary refers to the \texttt{ProofGeneral/isar} interface.
+It's usage is as follows:
 \begin{ttbox}
 Usage: interface [OPTIONS] [FILES ...]
 
@@ -50,14 +50,15 @@ Options are:
   -u BOOL      use .emacs file (default false)
   -w BOOL      use window system (default true)
 
-Starts ProofGeneral for Isabelle/Isar with proof documents FILES
+Starts Proof General for Isabelle/Isar with proof documents FILES
 (default Scratch.thy).
 \end{ttbox}
 The defaults for these options may be changed via the
-\texttt{PROOFGENERAL_OPTIONS} setting.  For example, GNU Emacs with loading of
-the startup file enabled may be configured as follows:\footnote{The interface
-  disables \texttt{.emacs} by default to ensure successful startup despite any
-  strange commands that tend to occur there.}
+\texttt{PROOFGENERAL_OPTIONS} setting.  For example, GNU Emacs\footnote{GNU
+  Emacs version 20.x required.} with loading of the startup file enabled may
+be configured as follows:\footnote{The interface disables \texttt{.emacs} by
+  default to ensure successful startup despite any strange commands that tend
+  to occur there.}
 \begin{ttbox}
 PROOFGENERAL_OPTIONS="-p emacs -u true"
 \end{ttbox}
@@ -68,13 +69,28 @@ visiting appropriate theory files, e.g.\
 Isabelle \({\langle}isabellehome{\rangle}\)/src/HOL/Isar_examples/BasicLogic.thy
 \end{ttbox}
 Users of XEmacs may note the toolbar for navigating forward and backward
-through the text.  Consult the ProofGeneral documentation for further basic
-commands, such as \texttt{c-c return} or \texttt{c-c u}.
+through the text.  Consult the Proof~General documentation \cite{proofgeneral}
+for further basic commands, such as \texttt{c-c return} or \texttt{c-c u}.
 
 
 \section{How to write Isar proofs anyway?}
 
-FIXME
+This is one of the key questions, of course.  Isar offers a rather different
+approach to formal proof documents than plain old tactic scripts.  Experienced
+users of existing interactive theorem proving systems may have to learn
+thinking different in order to make effective use of Isabelle/Isar.  On the
+other hand, Isabelle/Isar comes much closer to existing mathematical practice
+of formal proof, so users with less experience in old-style tactical proving,
+but a good understanding of mathematical proof might cope with Isar even
+better.
+
+Unfortunately, there is no tutorial on Isabelle/Isar available yet.  This
+document really is a \emph{reference manual}.  Nevertheless, we will give some
+discussions of the general principles underlying Isar in
+chapter~\ref{ch:basics}, and provide some clues of how these may be put into
+practice.  Some more background information on Isar is given in
+\cite{Wenzel:1999:TPHOL}.  Furthermore, there are several examples distributed
+with Isabelle (see directory \texttt{HOL/Isar_examples}).
 
 
 %%% Local Variables: 
