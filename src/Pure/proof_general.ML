@@ -285,6 +285,8 @@ val options = ref
       bool_option show_consts)),
    ("long-names", ("Whether to show fully qualified names in Isabelle.",
       bool_option long_names)),
+   ("show-brackets", ("Whether to show full bracketing in Isabelle.",
+      bool_option show_brackets)),
    ("eta-contract", ("Whether to print terms eta-contracted in Isabelle.",
       bool_option Syntax.eta_contract)),
    ("trace-simplifier", ("Whether to trace the Simplifier in Isabelle.",
