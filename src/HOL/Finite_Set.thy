@@ -999,6 +999,50 @@ next
   thus "setsum f (A - insert x F) = setsum f A - setsum f (insert x F)" by simp
 qed
 
+lemma setsum_mono:
+  assumes le: "\<And>i. i\<in>K \<Longrightarrow> f (i::'a) \<le> ((g i)::('b::{comm_monoid_add, pordered_ab_semigroup_add}))"
+  shows "(\<Sum>i\<in>K. f i) \<le> (\<Sum>i\<in>K. g i)"
+proof (cases "finite K")
+  case True
+  thus ?thesis using le
+  proof (induct)
+    case empty
+    thus ?case by simp
+  next
+    case insert
+    thus ?case using add_mono 
+      by force
+  qed
+next
+  case False
+  thus ?thesis
+    by (simp add: setsum_def)
+qed
+
+lemma finite_setsum_diff1: "finite A \<Longrightarrow> (setsum f (A - {a}) :: ('a::{pordered_ab_group_add})) =
+    (if a:A then setsum f A - f a else setsum f A)"
+  by (erule finite_induct) (auto simp add: insert_Diff_if)
+
+lemma finite_setsum_diff:
+  assumes le: "finite A" "B \<subseteq> A"
+  shows "setsum f (A - B) = setsum f A - ((setsum f B)::('a::pordered_ab_group_add))"
+proof -
+  from le have finiteB: "finite B" using finite_subset by auto
+  show ?thesis using le finiteB
+    proof (induct rule: Finites.induct[OF finiteB])
+      case 1
+      thus ?case by auto
+    next
+      case 2
+      thus ?case using le 
+	apply auto
+	apply (subst Diff_insert)
+	apply (subst finite_setsum_diff1)
+	apply (auto simp add: insert_absorb)
+	done
+    qed
+  qed
+
 lemma setsum_negf: "finite A ==> setsum (%x. - (f x)::'a::comm_ring_1) A =
   - setsum f A"
   by (induct set: Finites, auto)
