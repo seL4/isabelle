@@ -663,7 +663,6 @@ assumption.  If $match$ is~{\tt true}, the $state$ is not instantiated.
 trivial            : cterm -> thm
 lift_rule          : (thm * int) -> thm -> thm
 rename_params_rule : string list * int -> thm -> thm
-rewrite_cterm      : thm list -> cterm -> thm
 flexflex_rule      : thm -> thm Sequence.seq
 \end{ttbox}
 \begin{ttdescription}
@@ -682,12 +681,6 @@ names must be distinct.  If there are fewer names than parameters, then the
 rule renames the innermost parameters and may modify the remaining ones to
 ensure that all the parameters are distinct.
 \index{parameters!renaming}
-
-\item[\ttindexbold{rewrite_cterm} $defs$ $ct$]
-transforms $ct$ to $ct'$ by repeatedly applying $defs$ as rewrite rules; it
-returns the conclusion~$ct\equiv ct'$.  This underlies the meta-rewriting
-tactics and rules.
-\index{meta-rewriting!in terms}
 
 \item[\ttindexbold{flexflex_rule} $thm$]  \index{flex-flex constraints}
 removes all flex-flex pairs from $thm$ using the trivial unifier.
