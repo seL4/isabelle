@@ -19,6 +19,41 @@ by (simp_tac (simpset() addsimps [zle_def, zless_def]) 1);
 qed "zle_eq_not_neg";
 
 
+(*** Inequality lemmas involving int (Suc m) ***)
+
+Goal "(w < z + int (Suc m)) = (w < z + int m | w = z + int m)";
+by (auto_tac (claset(),
+	      simpset() addsimps [zless_iff_Suc_zadd, zadd_assoc, zadd_int]));
+by (cut_inst_tac [("m","m")] int_Suc 1);
+by (cut_inst_tac [("m","n")] int_Suc 1);
+by (Asm_full_simp_tac 1);
+by (exhaust_tac "n" 1);
+by Auto_tac;
+by (cut_inst_tac [("m","m")] int_Suc 1);
+by (full_simp_tac (simpset() addsimps zadd_ac) 1);
+by (asm_full_simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [zless_iff_Suc_zadd, zadd_assoc, zadd_int]));
+qed "zless_add_int_Suc_eq";
+
+
+Goal "(w + int (Suc m) <= z) = (w + int m < z)";
+by (simp_tac (simpset() addsimps [zle_def, zless_add_int_Suc_eq]) 1);
+by (auto_tac (claset() addIs [zle_anti_sym] addEs [zless_asym],
+	      simpset() addsimps [zless_imp_zle, symmetric zle_def]));
+qed "add_int_Suc_zle_eq";
+
+
+(* (w < int (Suc m)) = (w < int m | w = int m) *)
+bind_thm ("less_int_Suc_eq",
+	  simplify (simpset())
+	    (read_instantiate  [("z", "int 0")] zless_add_int_Suc_eq));
+
+Goal "(w <= int (Suc m)) = (w <= int m | w = int (Suc m))";
+by (simp_tac (simpset() addsimps [less_int_Suc_eq, order_le_less]) 1);
+qed "le_int_Suc_eq";
+
+
 (*** Monotonicity results ***)
 
 Goal "(v+z < w+z) = (v < (w::int))";
