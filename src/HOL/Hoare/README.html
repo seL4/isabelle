@@ -1,6 +1,59 @@
 <HTML><HEAD><TITLE>HOL/Hoare/ReadMe</TITLE></HEAD><BODY>
 
-<H2>Semantic Embedding of Hoare Logic</H2>
+<H2>Hoare Logic for a Simple WHILE Language</H2>
+
+<H1>The language and logic<H1>
+
+This directory contains an implementation of Hoare logic for a simple WHILE
+language. The  are
+<UL>
+<LI> SKIP
+<LI> _ := _
+<LI> _ ; _
+<LI> <kbd>IF _ THEN _ ELSE _ FI<kbd>
+<LI> WHILE _ INV {_} DO _ OD
+</UL>
+Note that each WHILE-loop must be annotated with an invariant.
+<P>
+
+After loading theory Hoare, you can state goals of the form
+<PRE>
+|- VARS x y ... . {P} prog {Q}
+</PRE>
+where <kbd>prog</kbd> is a program in the above language, <kbd>P</kbd> is the
+precondition, <kbd>Q</kbd> the postcondition, and <kbd>x y ...<kbd> is the
+list of all <i>program variables</i> in <kbd>prog</kbd>. The latter list must
+be nonempty and it must include all variables that occur on the left-hand
+side of an assignment in <kbd>prof</kbd>. Example:
+<PRE>
+|- VARS x. {x = a} x := x+1 {x = a+1}
+</PRE>
+The (normal) variable <kbd>a</kbd> is merely used to record the initial
+value of <kbd>x</kbd> and is not a program variable. Pre and postconditions
+can be arbitrary HOL formulae mentioning both program variables and normal
+variables.
+<P>
+
+The implementation hides reasoning in Hoare logic completely and provides a
+tactic hoare_tac for generating the verification conditions in ordinary
+logic:
+<PRE>
+by(hoare_tac tac i);
+</PRE>
+applies the tactic to subgoal <kbd>i</kbd> and applies the parameter
+<kbd>tac</kbd> to all generated verification conditions. A typical call is
+<PRE>
+by(hoare_tac Asm_full_simp_tac 1);
+</PRE>
+which, given the example goal above, solves it completely.
+<P>
+
+IMPORTANT:
+This is a logic of partial correctness. You can only prove that your program
+does the right thing <i>if</i> it terminates, but not <i>that</i> it
+terminates.
+
+<H1>Notes on the implementation</H1>
 
 This directory contains a sugared shallow semantic embedding of Hoare logic
 for a while language. The implementation closely follows<P>

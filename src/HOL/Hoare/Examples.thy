@@ -1,9 +1,9 @@
 (*  Title:      HOL/Hoare/Examples.thy
     ID:         $Id$
     Author:     Norbert Galm
-    Copyright   1995 TUM
+    Copyright   1998 TUM
 
-Various arithmetic examples.
+Various examples.
 *)
 
 Examples = Hoare + Arith2

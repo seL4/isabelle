@@ -1,94 +1,178 @@
 (*  Title:      HOL/Hoare/Examples.thy
     ID:         $Id$
-    Author:     Norbert Galm
-    Copyright   1995 TUM
-
-Various arithmetic examples.
+    Author:     Norbert Galm & Tobias Nipkow
+    Copyright   1998 TUM
 *)
 
-open Examples;
+(*** ARITHMETIC ***)
 
 (*** multiplication by successive addition ***)
 
-Goal
- "{m=0 & s=0} \
-\ WHILE m ~= a DO {s = m*b} s := s+b; m := Suc(m) END\
-\ {s = a*b}";
-by (hoare_tac 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps add_ac)));
+Goal "|- VARS m s. \
+\  {m=0 & s=0} \
+\  WHILE m~=a \
+\  INV {s=m*b} \  
+\  DO s := s+b; m := m+1 OD \
+\  {s = a*b}";
+by(hoare_tac (Asm_full_simp_tac) 1);
 qed "multiply_by_add";
-
 
 (*** Euclid's algorithm for GCD ***)
 
-Goal
-" {0<A & 0<B & a=A & b=B}   \
-\ WHILE a ~= b  \
-\ DO  {0<a & 0<b & gcd A B = gcd a b} \
-\      IF a<b   \
-\      THEN   \
-\           b:=b-a   \
-\      ELSE   \
-\           a:=a-b   \
-\      END   \
-\ END   \
+Goal "|- VARS a b. \
+\ {0<A & 0<B & a=A & b=B} \
+\ WHILE  a~=b  \
+\ INV {0<a & 0<b & gcd A B = gcd a b} \
+\ DO IF a<b THEN b := b-a ELSE a := a-b FI OD \
 \ {a = gcd A B}";
+by (hoare_tac (K all_tac) 1);
 
-by (hoare_tac 1);
 (*Now prove the verification conditions*)
 by Auto_tac;
 by (etac gcd_nnn 4);
 by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, gcd_diff_l]) 3);
 by (force_tac (claset(),
-	       simpset() addsimps [not_less_iff_le, order_le_less]) 2);
-by (asm_simp_tac (simpset() addsimps [less_imp_le, gcd_diff_r]) 1);
+               simpset() addsimps [not_less_iff_le, le_eq_less_or_eq]) 2);
+by (asm_simp_tac (simpset() addsimps [gcd_diff_r,less_imp_le]) 1);
 qed "Euclid_GCD";
 
+(*** Power by iterated squaring and multiplication ***)
 
-(*** Power by interated squaring and multiplication ***)
-
-Goal
-" {a=A & b=B}   \
-\ c:=1;   \
-\ WHILE b~=0   \
-\ DO {A^B = c * a^b}   \
-\      WHILE b mod 2=0   \
-\      DO  {A^B = c * a^b}  \
-\           a:=a*a;   \
-\           b:=b div 2   \
-\      END;   \
-\      c:=c*a;   \
-\      b:= b - 1 \
-\ END   \
+Goal "|- VARS a b c. \
+\ {a=A & b=B} \
+\ c := 1; \
+\ WHILE b ~= 0 \
+\ INV {A^B = c * a^b} \
+\ DO  WHILE b mod 2 = 0 \
+\     INV {A^B = c * a^b} \
+\     DO  a := a*a; b := b div 2 OD; \
+\     c := c*a; b := b-1 \
+\ OD \
 \ {c = A^B}";
-
-by (hoare_tac 1);
-
+by(hoare_tac (Asm_full_simp_tac) 1);
 by (exhaust_tac "b" 1);
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [mod_less]) 1);
 by (asm_simp_tac (simpset() addsimps [mult_assoc]) 1);
-
 qed "power_by_mult";
 
-(*** factorial ***)
-
-Goal
-" {a=A}   \
-\ b:=1;   \
-\ WHILE a~=0    \
-\ DO  {fac A = b*fac a} \
-\      b:=b*a;   \
-\      a:=a-1   \
-\ END   \
+Goal "|- VARS a b. \
+\ {a=A} \
+\ b := 1; \
+\ WHILE a ~= 0 \
+\ INV {fac A = b * fac a} \
+\ DO b := b*a; a := a-1 OD \
 \ {b = fac A}";
-
-by (hoare_tac 1);
+by (hoare_tac Asm_full_simp_tac 1);
 by Safe_tac;
 by (exhaust_tac "a" 1);
 by (ALLGOALS
     (asm_simp_tac
      (simpset() addsimps [add_mult_distrib,add_mult_distrib2,mult_assoc])));
 by (Fast_tac 1);
-
 qed"factorial";
+
+(*** LISTS ***)
+
+Goal "|- VARS y x. \
+\ {x=X} \
+\ y:=[]; \
+\ WHILE x ~= [] \
+\ INV {rev(x)@y = rev(X)} \
+\ DO y := (hd x # y); x := tl x OD \
+\ {y=rev(X)}";
+by (hoare_tac Asm_full_simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [neq_Nil_conv]) 1);
+by Safe_tac;
+by (ALLGOALS(Asm_full_simp_tac ));
+qed "imperative_reverse";
+
+Goal
+"|- VARS x y. \
+\ {x=X & y=Y} \
+\ x := rev(x); \
+\ WHILE x~=[] \
+\ INV {rev(x)@y = X@Y} \
+\ DO y := (hd x # y); \
+\    x := tl x \
+\ OD \
+\ {y = X@Y}";
+by (hoare_tac Asm_full_simp_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [neq_Nil_conv]) 1);
+by Safe_tac;
+by (ALLGOALS(Asm_full_simp_tac));
+qed "imperative_append";
+
+
+(*** ARRAYS ***)
+
+(* Search for 0 *)
+Goal
+"|- VARS A i. \
+\ {True} \
+\ i := 0; \
+\ WHILE i < length A & A!i ~= 0 \
+\ INV {!j. j<i --> A!j ~= 0} \
+\ DO i := i+1 OD \
+\ {(i < length A --> A!i = 0) & \
+\  (i = length A --> (!j. j < length A --> A!j ~= 0))}";
+by (hoare_tac Asm_full_simp_tac 1);
+by(blast_tac (claset() addSEs [less_SucE]) 1);
+qed "zero_search";
+
+(* 
+The `partition' procedure for quicksort.
+`A' is the array to be sorted (modelled as a list).
+Elements of A must be of class order to infer at the end
+that the elements between u and l are equal to pivot.
+
+Ambiguity warnings of parser are due to := being used
+both for assignment and list update.
+*)
+Goal
+"[| leq == %A i. !k. k<i --> A!k <= pivot; \
+\   geq == %A i. !k. i<k & k<length A --> pivot <= A!k |] ==> \
+\ |- VARS A u l.\
+\ {0 < length(A::('a::order)list)} \
+\ l := 0; u := length A - 1; \
+\ WHILE l <= u \
+\  INV {leq A l & geq A u & u<length A & l<=length A} \
+\  DO WHILE l < length A & A!l <= pivot \
+\      INV {leq A l & geq A u & u<length A & l<=length A} \
+\      DO l := l+1 OD; \
+\     WHILE 0 < u & pivot <= A!u \
+\      INV {leq A l & geq A u  & u<length A & l<=length A} \
+\      DO u := u-1 OD; \
+\     IF l <= u THEN A := A[l := A!u, u := A!l] ELSE SKIP FI \
+\  OD \
+\ {leq A u & (!k. u<k & k<l --> A!k = pivot) & geq A l}";
+(* expand and delete abbreviations first *)
+by(asm_simp_tac HOL_basic_ss 1);
+by(REPEAT(etac thin_rl 1));
+by (hoare_tac Asm_full_simp_tac 1);
+    by(asm_full_simp_tac (simpset() addsimps [neq_Nil_conv]) 1);
+    by(Clarify_tac 1);
+    by(asm_full_simp_tac (simpset() addsimps [nth_list_update]
+                                    addSolver cut_trans_tac) 1);
+   by(blast_tac (claset() addSEs [less_SucE] addIs [Suc_leI]) 1);
+  br conjI 1;
+   by(Clarify_tac 1);
+   bd (pred_less_imp_le RS le_imp_less_Suc) 1;
+   by(blast_tac (claset() addSEs [less_SucE]) 1);
+  br less_imp_diff_less 1;
+  by(Blast_tac 1);
+ by(Clarify_tac 1);
+ by(asm_simp_tac (simpset() addsimps [nth_list_update]
+                            addSolver cut_trans_tac) 1);
+ by(Clarify_tac 1);
+ by(trans_tac 1);
+by(Clarify_tac 1);
+by(asm_simp_tac (simpset() addSolver cut_trans_tac) 1);
+br conjI 1;
+ by(Clarify_tac 1);
+ br order_antisym 1;
+  by(asm_simp_tac (simpset() addSolver cut_trans_tac) 1);
+ by(asm_simp_tac (simpset() addSolver cut_trans_tac) 1);
+by(Clarify_tac 1);
+by(asm_simp_tac (simpset() addSolver cut_trans_tac) 1);
+qed "Partition";
