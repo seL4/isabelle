@@ -62,10 +62,10 @@ by (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2]) 3);
 by (stac fib_Suc3 3);
 by (ALLGOALS  (*using [fib_Suc_Suc] here results in a longer proof!*)
     (asm_simp_tac (simpset() addsimps [add_mult_distrib, add_mult_distrib2, 
-				       mod_less, mod_Suc])));
+				       mod_Suc])));
 by (asm_full_simp_tac
      (simpset() addsimps [fib_Suc_Suc, add_mult_distrib, add_mult_distrib2, 
-			  mod_less, mod_Suc]) 2);
+			  mod_Suc]) 2);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps add_ac @ [fib_Suc_Suc])));
 qed "fib_Cassini";
 
@@ -101,7 +101,7 @@ Goal "0<m ==> gcd (fib m, fib (n mod m)) = gcd (fib m, fib n)";
 by (res_inst_tac [("n","n")] less_induct 1);
 by (stac mod_if 1);
 by (Asm_simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [gcd_fib_diff, mod_less, mod_geq, 
+by (asm_simp_tac (simpset() addsimps [gcd_fib_diff, mod_geq, 
 				      not_less_iff_le, diff_less]) 1);
 qed "gcd_fib_mod";
 

@@ -51,7 +51,7 @@ qed"wf_nodeOrder";
 Goalw [nodeOrder_def, next_def, inv_image_def]
     "[| i<N; j<N |] ==> ((next i, i) : nodeOrder j) = (i ~= j)";
 by (auto_tac (claset(),
-	      simpset() addsimps [Suc_lessI, mod_Suc, mod_less, mod_geq]));
+	      simpset() addsimps [Suc_lessI, mod_Suc, mod_geq]));
 by (subgoal_tac "(j + N - i) = Suc (j + N - Suc i)" 1);
 by (asm_simp_tac (simpset() addsimps [Suc_diff_Suc, Suc_leI, less_imp_le,
                                       diff_add_assoc]) 2);
@@ -60,7 +60,7 @@ by (asm_full_simp_tac (simpset() addsimps [less_Suc_eq, mod_Suc]) 1);
 by (auto_tac (claset(), 
               simpset() addsimps [diff_add_assoc2, linorder_neq_iff, 
                                   Suc_le_eq, Suc_diff_Suc, less_imp_diff_less, 
-                                  add_diff_less, mod_less, mod_geq]));
+                                  add_diff_less, mod_geq]));
 qed "nodeOrder_eq";
 
 
