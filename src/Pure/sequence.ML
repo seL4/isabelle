@@ -2,12 +2,12 @@
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1988  University of Cambridge
-*)
 
-(*Unbounded sequences implemented by closures.
+Unbounded sequences implemented by closures.
 
-  Could use   'a seq = Seq of ('a * (unit -> 'a seq)) option.
-  Recomputes if sequence is re-inspected; memoing would need polymorphic refs.
+RECOMPUTES if sequence is re-inspected.
+
+Memoing, using polymorphic refs, was found to be slower!  (More GCs)
 *)
 
 
