@@ -32,6 +32,7 @@ sig
   val forall_elim_vars  : int -> thm -> thm
   val gen_all           : thm -> thm
   val freeze_thaw       : thm -> thm * (thm -> thm)
+  val freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
   val implies_elim_list : thm -> thm list -> thm
   val implies_intr_list : cterm list -> thm -> thm
   val instantiate       :
@@ -413,6 +414,30 @@ fun local_standard th =
 (*Convert all Vars in a theorem to Frees.  Also return a function for
   reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.
   Similar code in type/freeze_thaw*)
+
+fun freeze_thaw_robust th =
+ let val fth = freezeT th
+     val {prop, tpairs, sign, ...} = rep_thm fth
+ in
+   case foldr add_term_vars (prop :: Thm.terms_of_tpairs tpairs, []) of
+       [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
+     | vars =>
+         let fun newName (Var(ix,_), pairs) =
+                   let val v = gensym (string_of_indexname ix)
+                   in  ((ix,v)::pairs)  end;
+             val alist = foldr newName (vars,[])
+             fun mk_inst (Var(v,T)) =
+                 (cterm_of sign (Var(v,T)),
+                  cterm_of sign (Free(the (assoc(alist,v)), T)))
+             val insts = map mk_inst vars
+             fun thaw i th' = (*i is non-negative increment for Var indexes*)
+                 th' |> forall_intr_list (map #2 insts)
+                     |> forall_elim_list (map (Thm.cterm_incr_indexes i o #1) insts)
+         in  (Thm.instantiate ([],insts) fth, thaw)  end
+ end;
+
+(*Basic version of the function above. No option to rename Vars apart in thaw.
+  The Frees created from Vars have nice names.*)
 fun freeze_thaw th =
  let val fth = freezeT th
      val {prop, tpairs, sign, ...} = rep_thm fth
@@ -434,7 +459,6 @@ fun freeze_thaw th =
                      |> forall_elim_list (map #1 insts)
          in  (Thm.instantiate ([],insts) fth, thaw)  end
  end;
-
 
 (*Rotates a rule's premises to the left by k*)
 val rotate_prems = permute_prems 0;

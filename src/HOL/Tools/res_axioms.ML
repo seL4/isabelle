@@ -232,19 +232,9 @@ fun skolem_axiom thm =
     end;
 
 
-fun isa_cls thm = 
-    let val thm' = skolem_axiom thm 
-    in
-	map standard (make_clauses [thm'])
-    end;
+fun isa_cls thm = map zero_var_indexes (make_clauses [skolem_axiom thm])
 
-
-fun cnf_elim thm = 
-    let val thm' = transform_elim thm;
-    in
-	isa_cls thm'
-    end;
-
+fun cnf_elim thm = isa_cls (transform_elim thm);
 
 val cnf_intro = isa_cls;
 val cnf_rule = isa_cls;	

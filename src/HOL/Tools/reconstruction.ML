@@ -119,15 +119,15 @@ val paramod_local = gen_paramod local_thm;
 
 (** Demodulation: rewriting of a single literal (Non-Unit Rewriting, SPASS) **)
 
-(*currently identical to paramod_rule: the "match" argument of biresolution cannot be used
-  to prevent instantiation of the rewritten literal, in mod_lit_th: it could only prevent
-  instantiation of eq_lit_th, which we do not want.*)
 fun demod_rule ((cl1, lit1), (cl2 , lit2)) = 
     let  val eq_lit_th = select_literal (lit1+1) cl1
+         val offset = #maxidx(rep_thm eq_lit_th) + 1
+	     (*ensures "renaming apart" even when Vars are frozen*)
          val mod_lit_th = select_literal (lit2+1) cl2
+	 val (fmod_th,thaw) = Drule.freeze_thaw_robust mod_lit_th
          val eqsubst = eq_lit_th RSN (2,rev_subst)
-         val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 eqsubst)
-    in negated_asm_of_head newth end
+         val newth = Seq.hd(biresolution false [(false, fmod_th)] 1 eqsubst)
+    in negated_asm_of_head (thaw offset newth) end
     handle _ => raise THM ("select_literal", lit1, [cl1,cl2]);
 
 fun demod_syntax ((i, B), j) (x, A) = (x, demod_rule ((A,i), (B,j)));
@@ -161,10 +161,7 @@ local
       	        	  end;
 
 in
-fun clausify_rule (A,i) =
-  standard
-    (make_meta_clause
-      (List.nth(memo_cnf A,i)))
+fun clausify_rule (A,i) = make_meta_clause (List.nth(memo_cnf A,i))
 end;
 
 fun clausify_syntax i (x, A) = (x, clausify_rule (A,i));
