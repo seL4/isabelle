@@ -639,13 +639,12 @@ fun use_thy name =
     (*Invoke every put method stored in the methods table to initialize
       the state of user defined variables*)
     fun init_data methods data =
-      let fun put_data [] = ()
-            | put_data ((id, date) :: ds) =
-                case Symtab.lookup (methods, id) of
-                    Some (ThyMethods {put, ...}) => put date
-                  | None => error ("No method defined for theory data \"" ^
-                                   id ^ "\"");
-      in put_data data end;
+      let fun put_data (id, date) =
+            case Symtab.lookup (methods, id) of
+                Some (ThyMethods {put, ...}) => put date
+              | None => error ("No method defined for theory data \"" ^
+                               id ^ "\"");
+      in seq put_data data end;
 
     (*Add theory to file listing all loaded theories (for index.html)
       and to the sub-charts of its parents*)
