@@ -28,6 +28,7 @@ styles:
 	@rm -f */document/isabelle.sty
 	@rm -f */document/isabellesym.sty
 	@rm -f */document/pdfsetup.sty
+	@rm -f */document/session.tex
 
 
 ## HOL-Ifexpr
