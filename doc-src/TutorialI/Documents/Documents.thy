@@ -81,10 +81,10 @@ text {*
   is nested to the \emph{left}: in iterated applications the more
   complex expression appears on the left-hand side: @{term "A [+] B
   [+] C"} stands for @{text "(A [+] B) [+] C"}.  Similarly,
-  \isakeyword{infixr} refers to nesting to the \emph{right}, which
-  would turn @{term "A [+] B [+] C"} into @{text "A [+] (B [+] C)"}.
-  In contrast, a \emph{non-oriented} declaration via
-  \isakeyword{infix} would always demand explicit parentheses.
+  \isakeyword{infixr} refers to nesting to the \emph{right}, reading
+  @{term "A [+] B [+] C"} as @{text "A [+] (B [+] C)"}.  In contrast,
+  a \emph{non-oriented} declaration via \isakeyword{infix} would
+  always demand explicit parentheses.
   
   Many binary operations observe the associative law, so the exact
   grouping does not matter.  Nevertheless, formal statements need be
@@ -101,19 +101,57 @@ text {*
   expressions as required.  Note that the system would actually print
   the above statement as @{term "A [+] B [+] C = A [+] (B [+] C)"}
   (due to nesting to the left).  We have preferred to give the fully
-  parenthesized form in the text for clarity.
+  parenthesized form in the text for clarity.  Only in rare situations
+  one may consider to force parentheses by use of non-oriented infix
+  syntax; equality would probably be a typical candidate.
 *}
 
-(*<*)(*FIXME*)
+
 subsection {* Mathematical symbols \label{sec:thy-present-symbols} *}
 
 text {*
-  The limitations of the ASCII character set pose a serious
-  limitations for representing mathematical notation.  Even worse 
-  many handsome combinations have already been used up by HOL
-  itself.  Luckily, Isabelle supports infinitely many \emph{named
-  symbols}.  FIXME
+  Concrete syntax based on plain ASCII characters has its inherent
+  limitations.  Rich mathematical notation demands a larger repertoire
+  of symbols.  Several standards of extended character sets have been
+  proposed over decades, but none has become universally available so
+  far, not even Unicode\index{Unicode}.
 
+  Isabelle supports a generic notion of
+  \emph{symbols}\index{symbols|bold} as the smallest entities of
+  source text, without referring to internal encodings.  Such
+  ``generalized characters'' may be of one of the following three
+  kinds:
+
+  \begin{enumerate}
+
+  \item Traditional 7-bit ASCII characters.
+
+  \item Named symbols: \verb,\,\verb,<,$ident$\verb,>, (or
+  \verb,\\,\verb,<,$ident$\verb,>,).
+
+  \item Named control symbols: \verb,\,\verb,<^,$ident$\verb,>, (or
+  \verb,\\,\verb,<^,$ident$\verb,>,).
+
+  \end{enumerate}
+
+  Here $ident$ may be any identifier according to the usual Isabelle
+  conventions.  This results in an infinite store of symbols, whose
+  interpretation is left to further front-end tools.  For example, the
+  \verb,\,\verb,<forall>, symbol of Isabelle is really displayed as
+  $\forall$ --- both by the user-interface of Proof~General + X-Symbol
+  and the Isabelle document processor (see \S\ref{FIXME}).
+
+  A list of standard Isabelle symbols is given in
+  \cite[appendix~A]{isabelle-sys}.  Users may introduce their own
+  interpretation of further symbols by configuring the appropriate
+  front-end tool accordingly, e.g.\ defining appropriate {\LaTeX}
+  macros for document preparation.  There are also a few predefined
+  control symbols, such as \verb,\,\verb,<^sub>, and
+  \verb,\,\verb,<^sup>, for sub- and superscript of the subsequent
+  (printable) symbol, respectively.
+
+  \medskip The following version of our @{text xor} definition uses a
+  standard Isabelle symbol to achieve typographically pleasing output.
 *}
 
 (*<*)
@@ -123,17 +161,79 @@ ML_setup {* Context.>> (Theory.add_path "1") *}
 constdefs
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>" 60)
   "A \<oplus> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
-
 (*<*)
 local
 (*>*)
+
+text {*
+  The X-Symbol package within Proof~General provides several input
+  methods to enter @{text \<oplus>} in the text.  If all fails one may just
+  type \verb,\,\verb,<oplus>, by hand; the display is adapted
+  immediately after continuing further input.
+
+  \medskip A slightly more refined scheme is to provide alternative
+  syntax via the \emph{print mode}\index{print mode} concept of
+  Isabelle (see also \cite{isabelle-ref}).  By convention, the mode
+  ``$xsymbols$'' is enabled whenever X-Symbol is active.  Consider the
+  following hybrid declaration of @{text xor}.
+*}
+
+(*<*)
+hide const xor
+ML_setup {* Context.>> (Theory.add_path "2") *}
+(*>*)
+constdefs
+  xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]\<ignore>" 60)
+  "A [+]\<ignore> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
+
+syntax (xsymbols)
+  xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>\<ignore>" 60)
+(*<*)
+local
+(*>*)
+
+text {*
+  Here the \commdx{syntax} command acts like \isakeyword{consts}, but
+  without declaring a logical constant, and with an optional print
+  mode specification.  Note that the type declaration given here
+  merely serves for syntactic purposes, and is not checked for
+  consistency with the real constant.
+
+  \medskip Now we may write either @{text "[+]"} or @{text "\<oplus>"} in
+  input, while output uses the nicer syntax of $xsymbols$, provided
+  that print mode is presently active.  This scheme is particularly
+  useful for interactive development, with the user typing plain ASCII
+  text, but gaining improved visual feedback from the system (say in
+  current goal output).
+
+  \begin{warn}
+  Using alternative syntax declarations easily results in varying
+  versions of input sources.  Isabelle provides no systematic way to
+  convert alternative expressions back and forth.  Print modes only
+  affect situations where formal entities are pretty printed by the
+  Isabelle process (e.g.\ output of terms and types), but not the
+  original theory text.
+  \end{warn}
+
+  \medskip The following variant makes the alternative @{text \<oplus>}
+  notation only available for output.  Thus we may enforce input
+  sources to refer to plain ASCII only.
+*}
+
+syntax (xsymbols output)
+  xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>\<ignore>" 60)
 
 
 subsection {* Prefixes *}
 
 text {*
-  Prefix declarations are an even more degenerate form of mixfix
-  annotation, which allow a arbitrary symbolic token to be used for FIXME
+  Prefix syntax annotations\index{prefix annotation|bold} are just a
+  very degenerate of the general mixfix form \cite{isabelle-ref},
+  without any template arguments or priorities --- just some piece of
+  literal syntax.
+
+  The following example illustrates this idea idea by associating
+  common symbols with the constructors of a currency datatype.
 *}
 
 datatype currency =
@@ -143,16 +243,31 @@ datatype currency =
   | Dollar nat  ("$")
 
 text {*
-  FIXME The predefined Isabelle symbols used above are \verb,\<euro>,,
-  \verb,\<pounds>,, \verb,\<yen>,, and \verb,\<dollar>,.
+  Here the degenerate mixfix annotations on the rightmost column
+  happen to consist of a single Isabelle symbol each:
+  \verb,\,\verb,<euro>,, \verb,\,\verb,<pounds>,,
+  \verb,\,\verb,<yen>,, and \verb,\,$,.
 
-  The above syntax annotation makes \verb,\<euro>, stand for the
-  datatype constructor constant @{text Euro}, which happens to be a
-  function @{typ "nat \<Rightarrow> currency"}.  Using plain application syntax
-  we may write @{text "Euro 10"} as @{term "\<euro> 10"}.  So we already
-  achieve a decent syntactic representation without having to consider
-  arguments and precedences of general mixfix annotations -- prefixes
-  are already sufficient.
+  Recall that a constructor like @{text Euro} actually is a function
+  @{typ "nat \<Rightarrow> currency"}.  An expression like @{text "Euro 10"} will
+  be printed as @{term "\<euro> 10"}.  Merely the head of the application is
+  subject to our trivial concrete syntax; this form is sufficient to
+  achieve fair conformance to EU~Commission standards of currency
+  notation.
+
+  \medskip Certainly, the same idea of prefix syntax also works for
+  \isakeyword{consts}, \isakeyword{constdefs} etc.  For example, we
+  might introduce a (slightly unrealistic) function to calculate an
+  abstract currency value, by cases on the datatype constructors and
+  fixed exchange rates.
+*}
+
+consts
+  currency :: "currency \<Rightarrow> nat"    ("\<currency>")
+
+text {*
+  \noindent The funny symbol encountered here is that of
+  \verb,\<currency>,.
 *}
 
 
@@ -210,5 +325,4 @@ text {*
 
 (*<*)
 end
-(*>*)
 (*>*)
