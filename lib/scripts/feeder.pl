@@ -6,7 +6,7 @@
 
 # args
 
-($head, $noint, $emitpid, $quit, $symbols, $tail) = @ARGV;
+($head, $emitpid, $quit, $symbols, $tail) = @ARGV;
 
 
 # symbols translation table
@@ -113,19 +113,14 @@
 );
 
 
-# setup hangup handler
+# setup signal handlers
 
-sub hangup {
-    exit(0);
-}
-
+sub hangup { exit(0); }
 $SIG{'HUP'} = "hangup";
+$SIG{'INT'} = "IGNORE";
 
 
 # main
-
-#bulletproof session
-$noint && ($SIG{INT} = "IGNORE");
 
 #buffer lines
 $| = 1;
@@ -145,7 +140,7 @@ if (!$quit) {
 $tail && (print "$tail", "\n");
 
 
-# wait forever, expecting to be terminated by HUP
+# wait forever
 
 close STDOUT;
 sleep;

@@ -17,7 +17,6 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -h TEXT      head text"
-  echo "    -i           ignore INT signal"
   echo "    -p           emit my pid"
   echo "    -q           do not pipe stdin"
   echo "    -s           filter symbols"
@@ -40,20 +39,16 @@ function fail()
 # options
 
 HEAD=""
-NOINT=""
 EMITPID=""
 QUIT=""
 SYMBOLS=""
 TAIL=""
 
-while getopts "h:ipqst:" OPT
+while getopts "h:pqst:" OPT
 do
   case "$OPT" in
     h)
       HEAD="$OPTARG"
-      ;;
-    i)
-      NOINT=true
       ;;
     p)
       EMITPID=true
@@ -84,4 +79,4 @@ shift $(($OPTIND - 1))
 
 ## main
 
-exec perl -w $DIR/feeder.pl "$HEAD" "$NOINT" "$EMITPID" "$QUIT" "$SYMBOLS" "$TAIL"
+exec perl -w $DIR/feeder.pl "$HEAD" "$EMITPID" "$QUIT" "$SYMBOLS" "$TAIL"
