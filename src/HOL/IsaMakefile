@@ -7,12 +7,11 @@
 ## targets
 
 default: HOL
-images: HOL HOL-Real HOL-Hyperreal TLA
+images: HOL HOL-Algebra HOL-Real HOL-Hyperreal TLA
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
   HOL-Library \
-  HOL-Algebra \
   HOL-Auth \
   HOL-AxClasses \
   HOL-Bali \
@@ -340,6 +339,7 @@ $(LOG)/HOL-Lex.gz: $(OUT)/HOL \
 HOL-Algebra: HOL $(LOG)/HOL-Algebra.gz
 
 $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
+  Library/Primes.thy Library/FuncSet.thy \
   Algebra/Bij.thy \
   Algebra/CRing.thy \
   Algebra/Coset.thy \
@@ -357,12 +357,13 @@ $(LOG)/HOL-Algebra.gz: $(OUT)/HOL Algebra/ROOT.ML \
   Algebra/abstract/Ring.ML Algebra/abstract/Ring.thy \
   Algebra/abstract/RingHomo.ML Algebra/abstract/RingHomo.thy\
   Algebra/abstract/order.ML \
+  Algebra/document/root.tex \
   Algebra/poly/LongDiv.ML Algebra/poly/LongDiv.thy \
   Algebra/poly/PolyHomo.ML Algebra/poly/PolyHomo.thy \
   Algebra/poly/Polynomial.thy \
   Algebra/poly/UnivPoly2.ML Algebra/poly/UnivPoly2.thy \
   Algebra/ringsimp.ML
-	@$(ISATOOL) usedir $(OUT)/HOL Algebra
+	@cd Algebra; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Algebra
 
 ## HOL-Auth
 

@@ -9,8 +9,7 @@ theory UnivPoly = Module:
 
 section {* Univariate Polynomials *}
 
-subsection
-  {* Definition of the Constructor for Univariate Polynomials @{term UP} *}
+subsection {* The Constructor for Univariate Polynomials *}
 
 (* Could alternatively use locale ...
 locale bound = cring + var bound +
@@ -595,7 +594,7 @@ lemmas (in UP_cring) UP_smult_l_minus =
 lemmas (in UP_cring) UP_smult_r_minus =
   algebra.smult_r_minus [OF UP_algebra]
 
-subsection {* Further Lemmas Involving @{term monom} *}
+subsection {* Further lemmas involving monomials *}
 
 lemma (in UP_cring) monom_zero [simp]:
   "monom P \<zero> n = \<zero>\<^sub>2"
@@ -767,7 +766,7 @@ proof (rule inj_onI)
   with R show "x = y" by simp
 qed
 
-subsection {* The Degree Function *}
+subsection {* The degree function *}
 
 constdefs
   deg :: "[('a, 'm) ring_scheme, nat => 'a] => nat"
@@ -1060,7 +1059,7 @@ ML_setup {*
 Context.>> (fn thy => (simpset_ref_of thy :=
   simpset_of thy setsubgoaler asm_simp_tac; thy)) *}
 
-subsection {* Polynomial over an Integral Domain are an Integral Domain *}
+subsection {* Polynomials over an integral domain form an integral domain *}
 
 lemma domainI:
   assumes cring: "cring R"
@@ -1134,13 +1133,13 @@ lemma (in UP_domain) smult_integral:
   by (simp add: monom_mult_is_smult [THEN sym] UP_integral_iff
     inj_on_iff [OF monom_inj, of _ "\<zero>", simplified])
 
-subsection {* Evaluation Homomorphism *}
+subsection {* Evaluation Homomorphism and Universal Property*}
 
 ML_setup {*
 Context.>> (fn thy => (simpset_ref_of thy :=
   simpset_of thy setsubgoaler asm_full_simp_tac; thy)) *}
 
-(* alternative congruence rule (more efficient)
+(* alternative congruence rule (possibly more efficient)
 lemma (in abelian_monoid) finsum_cong2:
   "[| !!i. i \<in> A ==> f i \<in> carrier G = True; A = B;
   !!i. i \<in> B ==> f i = g i |] ==> finsum G f A = finsum G g B"

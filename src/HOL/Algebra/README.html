@@ -1,7 +1,61 @@
 <!-- $Id$ -->
 <HTML><HEAD><TITLE>HOL/Algebra/README.html</TITLE></HEAD><BODY>
 
-<H2>Algebra: Theories of Rings and Polynomials</H2>
+<H1>Algebra --- Classical Algebra, using Explicit Structures and Locales</H1>
+
+This directory presents proofs in classical algebra.  
+
+<H2>GroupTheory, including Sylow's Theorem</H2>
+
+<P>These proofs are mainly by Florian Kammüller.  (Later, Larry
+Paulson simplified some of the proofs.)  These theories were indeed
+the original motivation for locales.
+
+Here is an outline of the directory's contents: <UL> <LI>Theory <A
+HREF="Group.html"><CODE>Group</CODE></A> defines semigroups, monoids,
+groups, commutative monoids, commutative groups, homomorphisms and the
+subgroup relation.  It also defines the product of two groups
+(This theory was reimplemented by Clemens Ballarin).
+
+<LI>Theory <A HREF="FiniteProduct.html"><CODE>FiniteProduct</CODE></A> extends
+commutative groups by a product operator for finite sets (provided by
+Clemens Ballarin).
+
+<LI>Theory <A HREF="Coset.html"><CODE>Coset</CODE></A> defines
+the factorization of a group and shows that the factorization a normal
+subgroup is a group.
+
+<LI>Theory <A HREF="Bij.html"><CODE>Bij</CODE></A>
+defines bijections over sets and operations on them and shows that they
+are a group.  It shows that automorphisms form a group.
+
+<LI>Theory <A HREF="Exponent.html"><CODE>Exponent</CODE></A> the
+	    combinatorial argument underlying Sylow's first theorem.
+
+<LI>Theory <A HREF="Sylow.html"><CODE>Sylow</CODE></A>
+contains a proof of the first Sylow theorem.
+</UL>
+
+<H2>Rings and Polynomials</H2>
+
+<UL><LI>Theory <A HREF="CRing.html"><CODE>CRing</CODE></A>
+defines Abelian monoids and groups.  The difference to commutative
+      structures is merely notational:  the binary operation is
+      addition rather than multiplication.  Commutative rings are
+      obtained by inheriting properties from Abelian groups and
+      commutative monoids.  Further structures in the algebraic
+      hierarchy of rings: integral domain.
+
+<LI>Theory <A HREF="Module.html"><CODE>Module</CODE></A>
+introduces the notion of a R-left-module over an Abelian group, where
+	R is a ring.
+
+<LI>Theory <A HREF="UnivPoly.html"><CODE>UnivPoly</CODE></A>
+constructs univariate polynomials over rings and integral domains.
+	  Degree function.  Universal Property.
+</UL>
+
+<H2>Legacy Development of Rings using Axiomatic Type Classes</H2>
 
 <P>This development of univariate polynomials is separated into an
 abstract development of rings and the development of polynomials
@@ -16,7 +70,6 @@ of these domains in some typed computer algebra systems.  Summary:
   following are available:
 
 <PRE>
-  ringS:	Syntactic class
   ring:		Commutative rings with one (including a summation
 		operator, which is needed for the polynomials)
   domain:	Integral domains
@@ -39,51 +92,15 @@ of these domains in some typed computer algebra systems.  Summary:
 <LI>Polynomials over an integral domain form an integral domain
 </MENU>
 
- <P>Still missing are
-    Polynomials over a factorial domain form a factorial domain
-    (difficult), and polynomials over a field form a pid.
-
 <P>[Jacobson1985] Nathan Jacobson, Basic Algebra I, Freeman, 1985.
 
 <P>[Ballarin1999] Clemens Ballarin, Computer Algebra and Theorem Proving,
-  Author's <A HREF="http://iaks-www.ira.uka.de/iaks-calmet/ballarin/publications.html">PhD thesis</A>, 1999.
-
-<H2>GroupTheory -- Group Theory using Locales, including Sylow's Theorem</H2>
-
-<P>This directory presents proofs about group theory, by
-Florian Kammüller.  (Later, Larry Paulson simplified some of the proofs.)
-These theories use locales and were indeed the original motivation for
-locales.  However, this treatment of groups must still be regarded as
-experimental.  We can expect to see refinements in the future.
-
-Here is an outline of the directory's contents:
-
-<UL> <LI>Theory <A HREF="Group.html"><CODE>Group</CODE></A> defines
-semigroups, groups, homomorphisms and the subgroup relation.  It also defines
-the product of two groups.  It defines the factorization of a group and shows
-that the factorization a normal subgroup is a group.
-
-<LI>Theory <A HREF="Bij.html"><CODE>Bij</CODE></A>
-defines bijections over sets and operations on them and shows that they
-are a group.  It shows that automorphisms form a group.
-
-<LI>Theory <A HREF="Ring.html"><CODE>Ring</CODE></A> defines rings and proves
-a few basic theorems.  Ring automorphisms are shown to form a group.
-
-<LI>Theory <A HREF="Sylow.html"><CODE>Sylow</CODE></A>
-contains a proof of the first Sylow theorem.
-
-<LI>Theory <A HREF="Summation.html"><CODE>Summation</CODE></A> Extends
-abelian groups by a summation operator for finite sets (provided by
-Clemens Ballarin).
-</UL>
+  Author's <A HREF="http://www4.in.tum.de/~ballarin/publications.html">PhD thesis</A>, 1999.
 
 <HR>
 <P>Last modified on $Date$
 
 <ADDRESS>
-<P><A HREF="http://iaks-www.ira.uka.de/iaks-calmet/ballarin">Clemens Ballarin</A>.  Karlsruhe, October 1999
-
-<A NAME="ballarin@ira.uka.de" HREF="mailto:ballarin@ira.uka.de">ballarin@ira.uka.de</A>
+<P><A HREF="http://www4.in.tum.de/~ballarin">Clemens Ballarin</A>.
 </ADDRESS>
 </BODY></HTML>

@@ -139,7 +139,7 @@ proof -
   finally show ?thesis .
 qed
 
-subsection {* Every Abelian Group is a Z-module *}
+subsection {* Every Abelian Group is a $\mathbb{Z}$-module *}
 
 text {* Not finished. *}
 

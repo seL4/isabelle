@@ -6,14 +6,14 @@
 Based on work by Florian Kammueller, L C Paulson and Markus Wenzel.
 *)
 
-header {* Algebraic Structures up to Commutative Groups *}
+header {* Groups *}
 
 theory Group = FuncSet:
 
-axclass number < type
+(* axclass number < type
 
 instance nat :: number ..
-instance int :: number ..
+instance int :: number .. *)
 
 section {* From Magmas to Groups *}
 
@@ -416,12 +416,7 @@ locale subgroup = submagma H G +
     and m_inv_closed [intro, simp]: "x \<in> H ==> inv x \<in> H"
 
 declare (in subgroup) group.intro [intro]
-(*
-lemma (in subgroup) l_oneI [intro]:
-  includes l_one G
-  shows "l_one (G(| carrier := H |))"
-  by rule simp_all
-*)
+
 lemma (in subgroup) group_axiomsI [intro]:
   includes group G
   shows "group_axioms (G(| carrier := H |))"
@@ -511,15 +506,6 @@ constdefs
   "G \<times>\<^sub>g H == (| carrier = carrier (G \<times>\<^sub>s H),
     mult = mult (G \<times>\<^sub>s H),
     one = (one G, one H) |)"
-(*
-  DirProdGroup ::
-    "[('a, 'm) group_scheme, ('b, 'n) group_scheme] => ('a \<times> 'b) group"
-    (infixr "\<times>\<^sub>g" 80)
-  "G \<times>\<^sub>g H == (| carrier = carrier (G \<times>\<^sub>m H),
-    mult = mult (G \<times>\<^sub>m H),
-    one = one (G \<times>\<^sub>m H),
-    m_inv = (%(g, h). (m_inv G g, m_inv H h)) |)"
-*)
 
 lemma DirProdSemigroup_magma:
   includes magma G + magma H
@@ -659,7 +645,7 @@ proof -
   with x show ?thesis by simp
 qed
 
-section {* Commutative Structures *}
+subsection {* Commutative Structures *}
 
 text {*
   Naming convention: multiplicative structures that are commutative
