@@ -22,13 +22,11 @@ lemmas cardinal_idem = cardinal_eqpoll [THEN cardinal_cong, standard]
 lemma cardinal_eqE: "|X| = |Y| ==> X eqpoll Y"
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
-apply (rule well_ord_cardinal_eqE)
-apply assumption+
+apply (rule well_ord_cardinal_eqE, assumption+)
 done
 
 lemma cardinal_eqpoll_iff: "|X| = |Y| <-> X eqpoll Y"
-apply (blast intro: cardinal_cong cardinal_eqE)
-done
+by (blast intro: cardinal_cong cardinal_eqE)
 
 lemma cardinal_disjoint_Un: "[| |A|=|B|;  |C|=|D|;  A Int C = 0;  B Int D = 0 |] ==>  
           |A Un C| = |B Un D|"
@@ -37,38 +35,33 @@ done
 
 lemma lepoll_imp_Card_le: "A lepoll B ==> |A| le |B|"
 apply (rule AC_well_ord [THEN exE])
-apply (erule well_ord_lepoll_imp_Card_le)
-apply assumption
+apply (erule well_ord_lepoll_imp_Card_le, assumption)
 done
 
 lemma cadd_assoc: "(i |+| j) |+| k = i |+| (j |+| k)"
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
-apply (rule well_ord_cadd_assoc)
-apply assumption+
+apply (rule well_ord_cadd_assoc, assumption+)
 done
 
 lemma cmult_assoc: "(i |*| j) |*| k = i |*| (j |*| k)"
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
-apply (rule well_ord_cmult_assoc)
-apply assumption+
+apply (rule well_ord_cmult_assoc, assumption+)
 done
 
 lemma cadd_cmult_distrib: "(i |+| j) |*| k = (i |*| k) |+| (j |*| k)"
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
 apply (rule AC_well_ord [THEN exE])
-apply (rule well_ord_cadd_cmult_distrib)
-apply assumption+
+apply (rule well_ord_cadd_cmult_distrib, assumption+)
 done
 
 lemma InfCard_square_eq: "InfCard(|A|) ==> A*A eqpoll A"
 apply (rule AC_well_ord [THEN exE])
-apply (erule well_ord_InfCard_square_eq)
-apply assumption
+apply (erule well_ord_InfCard_square_eq, assumption)
 done
 
 
@@ -83,7 +76,7 @@ done
 
 lemma le_Card_iff: "Card(K) ==> |A| le K <-> A lepoll K"
 apply (erule Card_cardinal_eq [THEN subst], rule iffI, 
-       erule Card_le_imp_lepoll);
+       erule Card_le_imp_lepoll)
 apply (erule lepoll_imp_Card_le) 
 done
 
@@ -119,12 +112,10 @@ apply (subgoal_tac "ALL z: (UN i:K. X (i)). z: X (LEAST i. z:X (i)) & (LEAST i. 
  prefer 2
  apply (fast intro!: Least_le [THEN lt_trans1, THEN ltD] ltI
              elim!: LeastI Ord_in_Ord)
-apply (rule_tac c = "%z. <LEAST i. z:X (i) , f ` (LEAST i. z:X (i)) ` z>" 
+apply (rule_tac c = "%z. <LEAST i. z:X (i), f ` (LEAST i. z:X (i)) ` z>" 
             and d = "%<i,j>. converse (f`i) ` j" in lam_injective)
 (*Instantiate the lemma proved above*)
-apply (blast intro: inj_is_fun [THEN apply_type] dest: apply_type)
-apply (force ); 
-done
+by (blast intro: inj_is_fun [THEN apply_type] dest: apply_type, force)
 
 
 (*The same again, using csucc*)
@@ -139,8 +130,7 @@ done
 lemma cardinal_UN_Ord_lt_csucc:
      "[| InfCard(K);  ALL i:K. j(i) < csucc(K) |]
       ==> (UN i:K. j(i)) < csucc(K)"
-apply (rule cardinal_UN_lt_csucc [THEN Card_lt_imp_lt])
-apply assumption
+apply (rule cardinal_UN_lt_csucc [THEN Card_lt_imp_lt], assumption)
 apply (blast intro: Ord_cardinal_le [THEN lt_trans1] elim: ltE)
 apply (blast intro!: Ord_UN elim: ltE)
 apply (erule InfCard_is_Card [THEN Card_is_Ord, THEN Card_csucc])
@@ -172,9 +162,8 @@ apply (case_tac "W=0")
                   Card_is_Ord Ord_0_lt_csucc)
 apply (simp add: InfCard_is_Card le_Card_iff lepoll_def)
 apply (safe intro!: equalityI)
-apply (erule swap); 
-apply (rule lt_subset_trans [OF inj_UN_subset cardinal_UN_Ord_lt_csucc])
-apply assumption+
+apply (erule swap) 
+apply (rule lt_subset_trans [OF inj_UN_subset cardinal_UN_Ord_lt_csucc], assumption+)
  apply (simp add: inj_converse_fun [THEN apply_type])
 apply (blast intro!: Ord_UN elim: ltE)
 done

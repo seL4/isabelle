@@ -1,20 +1,5 @@
 theory WF_absolute = WFrec:
 
-(*????move to Wellorderings.thy*)
-lemma (in M_axioms) wellfounded_on_field_imp_wellfounded:
-     "wellfounded_on(M, field(r), r) ==> wellfounded(M,r)"
-by (simp add: wellfounded_def wellfounded_on_iff_wellfounded, fast)
-
-lemma (in M_axioms) wellfounded_iff_wellfounded_on_field:
-     "M(r) ==> wellfounded(M,r) <-> wellfounded_on(M, field(r), r)"
-by (blast intro: wellfounded_imp_wellfounded_on
-                 wellfounded_on_field_imp_wellfounded)
-
-lemma (in M_axioms) wellfounded_on_subset_A:
-     "[| wellfounded_on(M,A,r);  B<=A |] ==> wellfounded_on(M,B,r)"
-by (simp add: wellfounded_on_def, blast)
-
-
 subsection{*Every well-founded relation is a subset of some inverse image of
       an ordinal*}
 

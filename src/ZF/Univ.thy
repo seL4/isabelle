@@ -11,7 +11,7 @@ NOTE: univ(A) could be a translation; would simplify many proofs!
   But Ind_Syntax.univ refers to the constant "Univ.univ"
 *)
 
-theory Univ = Epsilon + Sum + Finite + mono:
+theory Univ = Epsilon + Cardinal:
 
 constdefs
   Vfrom       :: "[i,i]=>i"
@@ -37,9 +37,7 @@ constdefs
 
 text{*NOT SUITABLE FOR REWRITING -- RECURSIVE!*}
 lemma Vfrom: "Vfrom(A,i) = A Un (\<Union>j\<in>i. Pow(Vfrom(A,j)))"
-apply (subst Vfrom_def [THEN def_transrec])
-apply simp
-done
+by (subst Vfrom_def [THEN def_transrec], simp)
 
 subsubsection{* Monotonicity *}
 
@@ -450,6 +448,12 @@ apply (blast intro: i_subset_Vfrom [THEN subsetD]
                     Ord_in_Ord [THEN rank_of_Ord, THEN ssubst])
 done
 
+lemma Finite_Vset: "i \<in> nat ==> Finite(Vset(i))";
+apply (erule nat_induct)
+ apply (simp add: Vfrom_0) 
+apply (simp add: Vset_succ) 
+done
+
 subsubsection{* Reasoning about sets in terms of their elements' ranks *}
 
 lemma arg_subset_Vset_rank: "a <= Vset(rank(a))"
@@ -483,8 +487,7 @@ subsubsection{* Recursion over Vset levels! *}
 text{*NOT SUITABLE FOR REWRITING: recursive!*}
 lemma Vrec: "Vrec(a,H) = H(a, lam x:Vset(rank(a)). Vrec(x,H))"
 apply (unfold Vrec_def)
-apply (subst transrec)
-apply simp
+apply (subst transrec, simp)
 apply (rule refl [THEN lam_cong, THEN subst_context], simp add: lt_def)
 done
 

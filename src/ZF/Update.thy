@@ -39,8 +39,7 @@ lemma update_idem: "[| f`x = y;  f: Pi(A,B);  x: A |] ==> f(x:=y) = f"
 apply (unfold update_def)
 apply (simp add: domain_of_fun cons_absorb)
 apply (rule fun_extension)
-apply (best intro: apply_type if_type lam_type, assumption)
-apply simp
+apply (best intro: apply_type if_type lam_type, assumption, simp)
 done
 
 

@@ -38,26 +38,22 @@ constdefs
 
 lemma radd_Inl_Inr_iff [iff]: 
     "<Inl(a), Inr(b)> : radd(A,r,B,s)  <->  a:A & b:B"
-apply (unfold radd_def)
-apply blast
+apply (unfold radd_def, blast)
 done
 
 lemma radd_Inl_iff [iff]: 
     "<Inl(a'), Inl(a)> : radd(A,r,B,s)  <->  a':A & a:A & <a',a>:r"
-apply (unfold radd_def)
-apply blast
+apply (unfold radd_def, blast)
 done
 
 lemma radd_Inr_iff [iff]: 
     "<Inr(b'), Inr(b)> : radd(A,r,B,s) <->  b':B & b:B & <b',b>:s"
-apply (unfold radd_def)
-apply blast
+apply (unfold radd_def, blast)
 done
 
 lemma radd_Inr_Inl_iff [iff]: 
     "<Inr(b), Inl(a)> : radd(A,r,B,s) <->  False"
-apply (unfold radd_def)
-apply blast
+apply (unfold radd_def, blast)
 done
 
 (** Elimination Rule **)
@@ -68,8 +64,7 @@ lemma raddE:
         !!x' x. [| p'=Inl(x'); p=Inl(x); <x',x>: r; x':A; x:A |] ==> Q;  
         !!y' y. [| p'=Inr(y'); p=Inr(y); <y',y>: s; y':B; y:B |] ==> Q   
      |] ==> Q"
-apply (unfold radd_def)
-apply (blast intro: elim:); 
+apply (unfold radd_def, blast) 
 done
 
 (** Type checking **)
@@ -85,8 +80,7 @@ lemmas field_radd = radd_type [THEN field_rel_subset]
 
 lemma linear_radd: 
     "[| linear(A,r);  linear(B,s) |] ==> linear(A+B,radd(A,r,B,s))"
-apply (unfold linear_def)
-apply (blast intro: elim:); 
+apply (unfold linear_def, blast) 
 done
 
 
@@ -100,12 +94,11 @@ apply (subgoal_tac "ALL x:A. Inl (x) : Ba")
  apply (erule_tac V = "y : A + B" in thin_rl)
  apply (rule_tac ballI)
  apply (erule_tac r = "r" and a = "x" in wf_on_induct, assumption)
- apply (blast intro: elim:); 
+ apply blast 
 (*Returning to main part of proof*)
 apply safe
 apply blast
-apply (erule_tac r = "s" and a = "ya" in wf_on_induct , assumption)
-apply (blast intro: elim:); 
+apply (erule_tac r = "s" and a = "ya" in wf_on_induct, assumption, blast) 
 done
 
 lemma wf_radd: "[| wf(r);  wf(s) |] ==> wf(radd(field(r),r,field(s),s))"
@@ -126,7 +119,7 @@ done
 lemma sum_bij:
      "[| f: bij(A,C);  g: bij(B,D) |]
       ==> (lam z:A+B. case(%x. Inl(f`x), %y. Inr(g`y), z)) : bij(A+B, C+D)"
-apply (rule_tac d = "case (%x. Inl (converse (f) `x) , %y. Inr (converse (g) `y))" in lam_bijective)
+apply (rule_tac d = "case (%x. Inl (converse (f) `x), %y. Inr (converse (g) `y))" in lam_bijective)
 apply (typecheck add: bij_is_inj inj_is_fun) 
 apply (auto simp add: left_inverse_bij right_inverse_bij) 
 done
@@ -163,8 +156,7 @@ lemma sum_assoc_ord_iso:
      "(lam z:(A+B)+C. case(case(Inl, %y. Inr(Inl(y))), %y. Inr(Inr(y)), z))  
       : ord_iso((A+B)+C, radd(A+B, radd(A,r,B,s), C, t),     
                 A+(B+C), radd(A, r, B+C, radd(B,s,C,t)))"
-apply (rule sum_assoc_bij [THEN ord_isoI])
-apply auto
+apply (rule sum_assoc_bij [THEN ord_isoI], auto)
 done
 
 
@@ -177,8 +169,7 @@ lemma  rmult_iff [iff]:
             (<a',a>: r  & a':A & a:A & b': B & b: B) |   
             (<b',b>: s  & a'=a & a:A & b': B & b: B)"
 
-apply (unfold rmult_def)
-apply blast
+apply (unfold rmult_def, blast)
 done
 
 lemma rmultE: 
@@ -186,7 +177,7 @@ lemma rmultE:
         [| <a',a>: r;  a':A;  a:A;  b':B;  b:B |] ==> Q;         
         [| <b',b>: s;  a:A;  a'=a;  b':B;  b:B |] ==> Q  
      |] ==> Q"
-apply (blast intro: elim:); 
+apply blast 
 done
 
 (** Type checking **)
@@ -202,8 +193,7 @@ lemmas field_rmult = rmult_type [THEN field_rel_subset]
 
 lemma linear_rmult:
     "[| linear(A,r);  linear(B,s) |] ==> linear(A*B,rmult(A,r,B,s))"
-apply (simp add: linear_def); 
-apply (blast intro: elim:); 
+apply (simp add: linear_def, blast) 
 done
 
 (** Well-foundedness **)
@@ -212,11 +202,10 @@ lemma wf_on_rmult: "[| wf[A](r);  wf[B](s) |] ==> wf[A*B](rmult(A,r,B,s))"
 apply (rule wf_onI2)
 apply (erule SigmaE)
 apply (erule ssubst)
-apply (subgoal_tac "ALL b:B. <x,b>: Ba")
-apply blast
-apply (erule_tac a = "x" in wf_on_induct , assumption)
+apply (subgoal_tac "ALL b:B. <x,b>: Ba", blast)
+apply (erule_tac a = "x" in wf_on_induct, assumption)
 apply (rule ballI)
-apply (erule_tac a = "b" in wf_on_induct , assumption)
+apply (erule_tac a = "b" in wf_on_induct, assumption)
 apply (best elim!: rmultE bspec [THEN mp])
 done
 
@@ -257,9 +246,7 @@ apply (blast intro: bij_is_inj [THEN inj_apply_equality])
 done
 
 lemma singleton_prod_bij: "(lam z:A. <x,z>) : bij(A, {x}*A)"
-apply (rule_tac d = "snd" in lam_bijective)
-apply auto
-done
+by (rule_tac d = "snd" in lam_bijective, auto)
 
 (*Used??*)
 lemma singleton_prod_ord_iso:
@@ -279,8 +266,7 @@ lemma prod_sum_singleton_bij:
 apply (rule subst_elem)
 apply (rule id_bij [THEN sum_bij, THEN comp_bij])
 apply (rule singleton_prod_bij)
-apply (rule sum_disjoint_bij)
-apply blast
+apply (rule sum_disjoint_bij, blast)
 apply (simp (no_asm_simp) cong add: case_cong)
 apply (rule comp_lam [THEN trans, symmetric])
 apply (fast elim!: case_type)
@@ -303,7 +289,7 @@ done
 lemma sum_prod_distrib_bij:
      "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x))  
       : bij((A+B)*C, (A*C)+(B*C))"
-apply (rule_tac d = "case (%<x,y>.<Inl (x) ,y>, %<x,y>.<Inr (x) ,y>) " 
+apply (rule_tac d = "case (%<x,y>.<Inl (x),y>, %<x,y>.<Inr (x),y>) " 
        in lam_bijective)
 apply auto
 done
@@ -312,24 +298,21 @@ lemma sum_prod_distrib_ord_iso:
  "(lam <x,z>:(A+B)*C. case(%y. Inl(<y,z>), %y. Inr(<y,z>), x))  
   : ord_iso((A+B)*C, rmult(A+B, radd(A,r,B,s), C, t),  
             (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))"
-apply (rule sum_prod_distrib_bij [THEN ord_isoI])
-apply auto
+apply (rule sum_prod_distrib_bij [THEN ord_isoI], auto)
 done
 
 (** Associativity **)
 
 lemma prod_assoc_bij:
      "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>) : bij((A*B)*C, A*(B*C))"
-apply (rule_tac d = "%<x, <y,z>>. <<x,y>, z>" in lam_bijective)
-apply auto
+apply (rule_tac d = "%<x, <y,z>>. <<x,y>, z>" in lam_bijective, auto)
 done
 
 lemma prod_assoc_ord_iso:
  "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>)                    
   : ord_iso((A*B)*C, rmult(A*B, rmult(A,r,B,s), C, t),   
             A*(B*C), rmult(A, r, B*C, rmult(B,s,C,t)))"
-apply (rule prod_assoc_bij [THEN ord_isoI])
-apply auto
+apply (rule prod_assoc_bij [THEN ord_isoI], auto)
 done
 
 (**** Inverse image of a relation ****)
@@ -337,9 +320,7 @@ done
 (** Rewrite rule **)
 
 lemma rvimage_iff: "<a,b> : rvimage(A,f,r)  <->  <f`a,f`b>: r & a:A & b:A"
-apply (unfold rvimage_def)
-apply blast
-done
+by (unfold rvimage_def, blast)
 
 (** Type checking **)
 
@@ -351,9 +332,7 @@ done
 lemmas field_rvimage = rvimage_type [THEN field_rel_subset]
 
 lemma rvimage_converse: "rvimage(A,f, converse(r)) = converse(rvimage(A,f,r))"
-apply (unfold rvimage_def)
-apply blast
-done
+by (unfold rvimage_def, blast)
 
 
 (** Partial Ordering Properties **)
@@ -381,7 +360,7 @@ done
 lemma linear_rvimage:
     "[| f: inj(A,B);  linear(B,r) |] ==> linear(A,rvimage(A,f,r))"
 apply (simp add: inj_def linear_def rvimage_iff) 
-apply (blast intro: apply_funtype); 
+apply (blast intro: apply_funtype) 
 done
 
 lemma tot_ord_rvimage: 
@@ -400,9 +379,9 @@ apply clarify
 apply (subgoal_tac "EX w. w : {w: {f`x. x:Q}. EX x. x: Q & (f`x = w) }")
  apply (erule allE)
  apply (erule impE)
- apply assumption; 
+ apply assumption
  apply blast
-apply (blast intro: elim:); 
+apply blast 
 done
 
 lemma wf_on_rvimage: "[| f: A->B;  wf[B](r) |] ==> wf[A](rvimage(A,f,r))"
@@ -431,8 +410,7 @@ done
 
 lemma ord_iso_rvimage_eq: 
     "f: ord_iso(A,r, B,s) ==> rvimage(A,f,s) = r Int A*A"
-apply (unfold ord_iso_def rvimage_def)
-apply blast
+apply (unfold ord_iso_def rvimage_def, blast)
 done
 
 
@@ -441,8 +419,7 @@ done
 lemma measure_eq_rvimage_Memrel:
      "measure(A,f) = rvimage(A,Lambda(A,f),Memrel(Collect(RepFun(A,f),Ord)))"
 apply (simp (no_asm) add: measure_def rvimage_def Memrel_iff)
-apply (rule equalityI)
-apply auto
+apply (rule equalityI, auto)
 apply (auto intro: Ord_in_Ord simp add: lt_def)
 done
 

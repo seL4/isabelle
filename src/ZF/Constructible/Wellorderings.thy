@@ -71,6 +71,10 @@ lemma (in M_axioms) wellfounded_imp_wellfounded_on:
     "[| wellfounded(M,r); M(A) |] ==> wellfounded_on(M,A,r)"
 by (auto simp add: wellfounded_def wellfounded_on_def)
 
+lemma (in M_axioms) wellfounded_on_subset_A:
+     "[| wellfounded_on(M,A,r);  B<=A |] ==> wellfounded_on(M,B,r)"
+by (simp add: wellfounded_on_def, blast)
+
 
 subsubsection {*Well-founded relations*}
 
@@ -84,6 +88,15 @@ done
 lemma (in M_axioms) wellfounded_on_imp_wellfounded:
      "[|wellfounded_on(M,A,r); r \<subseteq> A*A|] ==> wellfounded(M,r)"
 by (simp add: wellfounded_on_iff_wellfounded subset_Int_iff)
+
+lemma (in M_axioms) wellfounded_on_field_imp_wellfounded:
+     "wellfounded_on(M, field(r), r) ==> wellfounded(M,r)"
+by (simp add: wellfounded_def wellfounded_on_iff_wellfounded, fast)
+
+lemma (in M_axioms) wellfounded_iff_wellfounded_on_field:
+     "M(r) ==> wellfounded(M,r) <-> wellfounded_on(M, field(r), r)"
+by (blast intro: wellfounded_imp_wellfounded_on
+                 wellfounded_on_field_imp_wellfounded)
 
 (*Consider the least z in domain(r) such that P(z) does not hold...*)
 lemma (in M_axioms) wellfounded_induct: 

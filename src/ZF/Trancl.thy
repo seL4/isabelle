@@ -124,8 +124,7 @@ done
 (*Closure under composition with r  *)
 lemma rtrancl_into_rtrancl: "[| <a,b> : r^*;  <b,c> : r |] ==> <a,c> : r^*"
 apply (rule rtrancl_unfold [THEN ssubst])
-apply (rule compI [THEN UnI2], assumption)
-apply assumption
+apply (rule compI [THEN UnI2], assumption, assumption)
 done
 
 (*rtrancl of r contains all pairs in r  *)
@@ -301,8 +300,7 @@ done
 
 lemma rtrancl_subset: "[| R <= S; S <= R^* |] ==> S^* = R^*"
 apply (drule rtrancl_mono)
-apply (drule rtrancl_mono, simp_all)
-apply blast
+apply (drule rtrancl_mono, simp_all, blast)
 done
 
 lemma rtrancl_Un_rtrancl:

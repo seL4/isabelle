@@ -12,14 +12,12 @@ constdefs
   nat :: i
     "nat == lfp(Inf, %X. {0} Un {succ(i). i:X})"
 
+  quasinat :: "i => o"
+    "quasinat(n) == n=0 | (\<exists>m. n = succ(m))"
+
   (*Has an unconditional succ case, which is used in "recursor" below.*)
   nat_case :: "[i, i=>i, i]=>i"
     "nat_case(a,b,k) == THE y. k=0 & y=a | (EX x. k=succ(x) & y=b(x))"
-
-  (*Slightly different from the version above. Requires k to be a 
-    natural number, but it has a splitting rule.*)
-  nat_case3 :: "[i, i=>i, i]=>i"
-    "nat_case3(a,b,k) == THE y. k=0 & y=a | (EX x:nat. k=succ(x) & y=b(x))"
 
   nat_rec :: "[i, i, [i,i]=>i]=>i"
     "nat_rec(k,a,b) ==   
@@ -47,8 +45,7 @@ constdefs
 
 lemma nat_bnd_mono: "bnd_mono(Inf, %X. {0} Un {succ(i). i:X})"
 apply (rule bnd_monoI)
-apply (cut_tac infinity, blast)
-apply blast 
+apply (cut_tac infinity, blast, blast) 
 done
 
 (* nat = {0} Un {succ(x). x:nat} *)
@@ -135,8 +132,7 @@ lemmas succ_in_naturalD = Ord_trans [OF succI1 _ nat_into_Ord]
 
 lemma lt_nat_in_nat: "[| m<n;  n: nat |] ==> m: nat"
 apply (erule ltE)
-apply (erule Ord_trans, assumption)
-apply simp 
+apply (erule Ord_trans, assumption, simp) 
 done
 
 lemma le_in_nat: "[| m le n; n:nat |] ==> m:nat"
@@ -205,6 +201,34 @@ lemma succ_lt_induct:
      ==> P(m,n)"
 by (blast intro: succ_lt_induct_lemma lt_nat_in_nat) 
 
+subsection{*quasinat: to allow a case-split rule for @{term nat_case}*}
+
+text{*True if the argument is zero or any successor*}
+lemma [iff]: "quasinat(0)"
+by (simp add: quasinat_def)
+
+lemma [iff]: "quasinat(succ(x))"
+by (simp add: quasinat_def)
+
+lemma nat_imp_quasinat: "n \<in> nat ==> quasinat(n)"
+by (erule natE, simp_all)
+
+lemma non_nat_case: "~ quasinat(x) ==> nat_case(a,b,x) = 0" 
+by (simp add: quasinat_def nat_case_def) 
+
+lemma nat_cases_disj: "k=0 | (\<exists>y. k = succ(y)) | ~ quasinat(k)"
+txt{*The @{text case_tac} method is not yet available.*}
+apply (rule_tac P = "k=0" in case_split_thm, simp) 
+apply (rule_tac P = "\<exists>m. k = succ(m)" in case_split_thm, simp) 
+apply simp 
+apply (simp add: quasinat_def) 
+done
+
+lemma nat_cases:
+     "[|k=0 ==> P;  !!y. k = succ(y) ==> P; ~ quasinat(k) ==> P|] ==> P"
+apply (insert nat_cases_disj [of k], blast) 
+done
+
 (** nat_case **)
 
 lemma nat_case_0 [simp]: "nat_case(a,b,0) = a"
@@ -218,32 +242,13 @@ lemma nat_case_type [TC]:
      ==> nat_case(a,b,n) : C(n)";
 by (erule nat_induct, auto) 
 
-(** nat_case3 **)
-
-lemma nat_case3_0 [simp]: "nat_case3(a,b,0) = a"
-by (simp add: nat_case3_def)
-
-lemma nat_case3_succ [simp]: "n\<in>nat \<Longrightarrow> nat_case3(a,b,succ(n)) = b(n)"
-by (simp add: nat_case3_def)
-
-lemma non_nat_case3: "x\<notin>nat \<Longrightarrow> nat_case3(a,b,x) = 0"
-apply (simp add: nat_case3_def) 
-apply (blast intro: the_0) 
+lemma split_nat_case:
+  "P(nat_case(a,b,k)) <-> 
+   ((k=0 --> P(a)) & (\<forall>x. k=succ(x) --> P(b(x))) & (~ quasinat(k) \<longrightarrow> P(0)))"
+apply (rule nat_cases [of k]) 
+apply (auto simp add: non_nat_case)
 done
 
-lemma split_nat_case3:
-  "P(nat_case3(a,b,k)) <-> 
-   ((k=0 --> P(a)) & (\<forall>x\<in>nat. k=succ(x) --> P(b(x))) & (k \<notin> nat \<longrightarrow> P(0)))"
-apply (rule_tac P="k\<in>nat" in case_split_thm)  
-    (*case_tac method not available yet; needs "inductive"*)
-apply (erule natE) 
-apply (auto simp add: non_nat_case3) 
-done
-
-lemma nat_case3_type [TC]:
-    "[| n: nat;  a: C(0);  !!m. m: nat ==> b(m): C(succ(m)) |] 
-     ==> nat_case3(a,b,n) : C(n)";
-by (erule nat_induct, auto) 
 
 
 (** nat_rec -- used to define eclose and transrec, then obsolete

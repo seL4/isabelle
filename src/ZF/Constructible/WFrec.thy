@@ -3,14 +3,11 @@ theory WFrec = Wellorderings:
 
 (*Many of these might be useful in WF.thy*)
 
-lemma is_recfunI:
-     "f = (lam x: r-``{a}. H(x, restrict(f, r-``{x}))) ==> is_recfun(r,a,H,f)"
-by (simp add: is_recfun_def) 
-
-lemma is_recfun_imp_function: "is_recfun(r,a,H,f) ==> function(f)"
-apply (simp add: is_recfun_def) 
-apply (erule ssubst)
-apply (rule function_lam) 
+lemma apply_recfun2:
+    "[| is_recfun(r,a,H,f); <x,i>:f |] ==> i = H(x, restrict(f,r-``{x}))"
+apply (frule apply_recfun) 
+ apply (blast dest: is_recfun_type fun_is_rel) 
+apply (simp add: function_apply_equality [OF _ is_recfun_imp_function])
 done
 
 text{*Expresses @{text is_recfun} as a recursion equation*}
@@ -28,14 +25,7 @@ apply (rule fun_extension)
 done
 
 lemma is_recfun_imp_in_r: "[|is_recfun(r,a,H,f); \<langle>x,i\<rangle> \<in> f|] ==> \<langle>x, a\<rangle> \<in> r"
-by (blast dest:  is_recfun_type fun_is_rel)
-
-lemma apply_recfun2:
-    "[| is_recfun(r,a,H,f); <x,i>:f |] ==> i = H(x, restrict(f,r-``{x}))"
-apply (frule apply_recfun) 
- apply (blast dest: is_recfun_type fun_is_rel) 
-apply (simp add: function_apply_equality [OF _ is_recfun_imp_function])
-done
+by (blast dest: is_recfun_type fun_is_rel)
 
 lemma trans_Int_eq:
       "[| trans(r); <y,x> \<in> r |] ==> r -`` {x} \<inter> r -`` {y} = r -`` {y}"
@@ -153,7 +143,7 @@ apply (blast dest!: pair_components_in_M)
 apply (blast intro!: function_restrictI dest!: pair_components_in_M)
 apply (blast intro!: function_restrictI dest!: pair_components_in_M)
 apply (simp only: subset_iff domain_iff restrict_iff vimage_iff) 
-apply (simp add:  vimage_singleton_iff) 
+apply (simp add: vimage_singleton_iff) 
 apply (intro allI impI conjI)
 apply (blast intro: transM dest!: pair_components_in_M)
 prefer 4;apply blast 

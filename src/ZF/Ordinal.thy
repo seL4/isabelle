@@ -290,6 +290,9 @@ by (unfold Memrel_def, blast)
 lemma Memrel_1 [simp]: "Memrel(1) = 0"
 by (unfold Memrel_def, blast)
 
+lemma relation_Memrel: "relation(Memrel(A))"
+by (simp add: relation_def Memrel_def, blast)
+
 (*The membership relation (as a set) is well-founded.
   Proof idea: show A<=B by applying the foundation axiom to A-B *)
 lemma wf_Memrel: "wf(Memrel(A))"
@@ -316,8 +319,7 @@ lemma Transset_induct:
         !!x.[| x: k;  ALL y:x. P(y) |] ==> P(x) |]
      ==>  P(i)"
 apply (simp add: Transset_def) 
-apply (erule wf_Memrel [THEN wf_induct2], blast)
-apply blast 
+apply (erule wf_Memrel [THEN wf_induct2], blast+)
 done
 
 (*Induction over an ordinal*)
@@ -404,8 +406,7 @@ lemma zero_le_succ_iff [iff]: "0 le succ(x) <-> Ord(x)"
 by (blast intro: Ord_0_le elim: ltE)
 
 lemma subset_imp_le: "[| j<=i;  Ord(i);  Ord(j) |] ==> j le i"
-apply (rule not_lt_iff_le [THEN iffD1], assumption)
-apply assumption
+apply (rule not_lt_iff_le [THEN iffD1], assumption+)
 apply (blast elim: ltE mem_irrefl)
 done
 

@@ -2,11 +2,6 @@ header {*Relativization and Absoluteness*}
 
 theory Relative = Main:
 
-(*func.thy*)
-lemma succ_fun_eq: "succ(n) -> B = (\<Union>f \<in> n->B. \<Union>b\<in>B. {cons(<n,b>, f)})"
-by (simp add: succ_def mem_not_refl cons_fun_eq)
-
-
 subsection{* Relativized versions of standard set-theoretic concepts *}
 
 constdefs
@@ -898,6 +893,13 @@ done
 lemma (in M_axioms) nat_into_M [intro]:
      "n \<in> nat ==> M(n)"
 by (induct n rule: nat_induct, simp_all)
+
+lemma (in M_axioms) nat_case_closed:
+  "[|M(k); M(a); \<forall>m[M]. M(b(m))|] ==> M(nat_case(a,b,k))"
+apply (case_tac "k=0", simp) 
+apply (case_tac "\<exists>m. k = succ(m)", force)
+apply (simp add: nat_case_def) 
+done
 
 lemma (in M_axioms) Inl_in_M_iff [iff]:
      "M(Inl(a)) <-> M(a)"

@@ -467,7 +467,7 @@ done
 
 (*A general fact about ordermap*)
 lemma ordermap_eqpoll_pred:
-    "[| well_ord(A,r);  x:A |] ==> ordermap(A,r)`x \<approx> pred(A,x,r)"
+    "[| well_ord(A,r);  x:A |] ==> ordermap(A,r)`x \<approx> Order.pred(A,x,r)"
 apply (unfold eqpoll_def)
 apply (rule exI)
 apply (simp add: ordermap_eq_image well_ord_is_wf)
@@ -503,7 +503,7 @@ apply (simp_all add: lt_def succI2)
 done
 
 lemma pred_csquare_subset: 
-    "z<K ==> pred(K*K, <z,z>, csquare_rel(K)) <= succ(z)*succ(z)"
+    "z<K ==> Order.pred(K*K, <z,z>, csquare_rel(K)) <= succ(z)*succ(z)"
 apply (unfold Order.pred_def)
 apply (safe del: SigmaI succCI)
 apply (erule csquareD [THEN conjE])

@@ -165,20 +165,17 @@ by (erule_tac a=a in wf_induct, blast)
 lemmas wf_asym = wf_not_sym [THEN swap, standard]
 
 lemma wf_on_not_refl: "[| wf[A](r); a: A |] ==> <a,a> ~: r"
-apply (erule_tac a=a in wf_on_induct, assumption)
-apply blast
-done
+by (erule_tac a=a in wf_on_induct, assumption, blast)
 
 lemma wf_on_not_sym [rule_format]:
      "[| wf[A](r);  a:A |] ==> ALL b:A. <a,b>:r --> <b,a>~:r"
-apply (erule_tac a=a in wf_on_induct, assumption)
-apply blast
+apply (erule_tac a=a in wf_on_induct, assumption, blast)
 done
 
 lemma wf_on_asym:
      "[| wf[A](r);  ~Z ==> <a,b> : r;
          <b,a> ~: r ==> Z; ~Z ==> a : A; ~Z ==> b : A |] ==> Z"
-by (blast dest: wf_on_not_sym); 
+by (blast dest: wf_on_not_sym) 
 
 
 (*Needed to prove well_ordI.  Could also reason that wf[A](r) means
@@ -187,8 +184,7 @@ lemma wf_on_chain3:
      "[| wf[A](r); <a,b>:r; <b,c>:r; <c,a>:r; a:A; b:A; c:A |] ==> P"
 apply (subgoal_tac "ALL y:A. ALL z:A. <a,y>:r --> <y,z>:r --> <z,a>:r --> P",
        blast) 
-apply (erule_tac a=a in wf_on_induct, assumption)
-apply blast
+apply (erule_tac a=a in wf_on_induct, assumption, blast)
 done
 
 
@@ -226,12 +222,14 @@ apply (erule ssubst)
 apply (rule lamI [THEN rangeI, THEN lam_type], assumption)
 done
 
+lemmas is_recfun_imp_function = is_recfun_type [THEN fun_is_function]
+
 lemma apply_recfun:
     "[| is_recfun(r,a,H,f); <x,a>:r |] ==> f`x = H(x, restrict(f,r-``{x}))"
 apply (unfold is_recfun_def) 
   txt{*replace f only on the left-hand side*}
 apply (erule_tac P = "%x.?t(x) = ?u" in ssubst)
-apply (simp add: underI); 
+apply (simp add: underI) 
 done
 
 lemma is_recfun_equal [rule_format]:
@@ -311,7 +309,7 @@ done
 lemma the_recfun_cut:
      "[| wf(r);  trans(r);  <b,a>:r |]
       ==> restrict(the_recfun(r,a,H), r-``{b}) = the_recfun(r,b,H)"
-by (blast intro: is_recfun_cut unfold_the_recfun);
+by (blast intro: is_recfun_cut unfold_the_recfun)
 
 (*NOT SUITABLE FOR REWRITING: it is recursive!*)
 lemma wftrec:

@@ -2,48 +2,6 @@ header {* First-Order Formulas and the Definition of the Class L *}
 
 theory Formula = Main:
 
-
-(*??for Bool.thy**)
-constdefs bool_of_o :: "o=>i"
-   "bool_of_o(P) == (if P then 1 else 0)"
-
-lemma [simp]: "bool_of_o(True) = 1"
-by (simp add: bool_of_o_def) 
-
-lemma [simp]: "bool_of_o(False) = 0"
-by (simp add: bool_of_o_def) 
-
-lemma [simp,TC]: "bool_of_o(P) \<in> bool"
-by (simp add: bool_of_o_def) 
-
-lemma [simp]: "(bool_of_o(P) = 1) <-> P"
-by (simp add: bool_of_o_def) 
-
-lemma [simp]: "(bool_of_o(P) = 0) <-> ~P"
-by (simp add: bool_of_o_def) 
-
-(*????????????????CardinalArith *)
-
-lemma Finite_Vset: "i \<in> nat ==> Finite(Vset(i))";
-apply (erule nat_induct)
- apply (simp add: Vfrom_0) 
-apply (simp add: Vset_succ) 
-done
-
-(*???Ordinal maybe, but some lemmas seem to be in CardinalArith??*)
-text{*Every ordinal is exceeded by some limit ordinal.*}
-lemma Ord_imp_greater_Limit: "Ord(i) ==> \<exists>k. i<k & Limit(k)"
-apply (rule_tac x="i ++ nat" in exI) 
-apply (blast intro: oadd_LimitI  oadd_lt_self  Limit_nat [THEN Limit_has_0])
-done
-
-lemma Ord2_imp_greater_Limit: "[|Ord(i); Ord(j)|] ==> \<exists>k. i<k & j<k & Limit(k)"
-apply (insert Ord_Un [of i j, THEN Ord_imp_greater_Limit]) 
-apply (simp add: Un_least_lt_iff) 
-done
-
-
-
 (*Internalized formulas of FOL. De Bruijn representation. 
   Unbound variables get their denotations from an environment.*)
 
@@ -250,7 +208,7 @@ primrec
 
   "arity(And(p,q)) = arity(p) \<union> arity(q)"
 
-  "arity(Forall(p)) = nat_case3(0, %x. x, arity(p))"
+  "arity(Forall(p)) = nat_case(0, %x. x, arity(p))"
 
 
 lemma arity_type [TC]: "p \<in> formula ==> arity(p) \<in> nat"
@@ -262,7 +220,7 @@ by (simp add: Or_def)
 lemma arity_Implies [simp]: "arity(Implies(p,q)) = arity(p) \<union> arity(q)"
 by (simp add: Implies_def) 
 
-lemma arity_Exists [simp]: "arity(Exists(p)) = nat_case3(0, %x. x, arity(p))"
+lemma arity_Exists [simp]: "arity(Exists(p)) = nat_case(0, %x. x, arity(p))"
 by (simp add: Exists_def) 
 
 
@@ -272,8 +230,8 @@ lemma arity_sats_iff [rule_format]:
            arity(p) \<le> length(env) --> 
            sats(A, p, env @ extra) <-> sats(A, p, env)"
 apply (induct_tac p)
-apply (simp_all add: nth_append Un_least_lt_iff arity_type 
-                split: split_nat_case3, auto) 
+apply (simp_all add: nth_append Un_least_lt_iff arity_type nat_imp_quasinat
+                split: split_nat_case, auto) 
 done
 
 lemma arity_sats1_iff:
@@ -308,14 +266,18 @@ lemma arity_incr_bv_lemma [rule_format]:
 apply (induct_tac p) 
 apply (simp_all add: imp_disj not_lt_iff_le Un_least_lt_iff lt_Un_iff le_Un_iff
                      succ_Un_distrib [symmetric] incr_var_lt incr_var_le
-                     Un_commute incr_var_lemma arity_type 
-            split: split_nat_case3) 
-(*left with the And case*)
+                     Un_commute incr_var_lemma arity_type nat_imp_quasinat
+            split: split_nat_case) 
+ txt{*the Forall case reduces to linear arithmetic*}
+ prefer 2
+ apply clarify 
+ apply (blast dest: lt_trans1) 
+txt{*left with the And case*}
 apply safe
  apply (blast intro: incr_And_lemma lt_trans1) 
 apply (subst incr_And_lemma)
- apply (blast intro:  lt_trans1) 
-apply (simp add:  Un_commute)
+ apply (blast intro: lt_trans1) 
+apply (simp add: Un_commute)
 done
 
 lemma arity_incr_boundvars_eq:
@@ -774,8 +736,8 @@ lemma doubleton_in_LLimit:
     "[| a: Lset(i);  b: Lset(i);  Limit(i) |] ==> {a,b} : Lset(i)"
 apply (erule Limit_LsetE, assumption)
 apply (erule Limit_LsetE, assumption)
-apply (blast intro:  lt_LsetI [OF doubleton_in_Lset]
-                     Lset_UnI1 Lset_UnI2 Limit_has_succ Un_least_lt)
+apply (blast intro: lt_LsetI [OF doubleton_in_Lset]
+                    Lset_UnI1 Lset_UnI2 Limit_has_succ Un_least_lt)
 done
 
 lemma Pair_in_LLimit:

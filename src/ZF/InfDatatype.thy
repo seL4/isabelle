@@ -17,8 +17,7 @@ lemma fun_Vcsucc_lemma:
 apply (rule_tac x = "UN d:D. LEAST i. f`d : Vfrom (A,i) " in exI)
 apply (rule conjI)
 apply (rule_tac [2] le_UN_Ord_lt_csucc) 
-apply (rule_tac [4] ballI, erule_tac [4] fun_Limit_VfromE)
-apply (simp_all add: ) 
+apply (rule_tac [4] ballI, erule_tac [4] fun_Limit_VfromE, simp_all) 
  prefer 2 apply (fast elim: Least_le [THEN lt_trans1] ltE)
 apply (rule Pi_type)
 apply (rename_tac [2] d)
@@ -44,7 +43,7 @@ apply (drule fun_is_rel)
 (*This level includes the function, and is below csucc(K)*)
 apply (rule_tac a1 = "succ (succ (j Un ja))" in UN_I [THEN UnI2])
 apply (blast intro: ltD InfCard_csucc InfCard_is_Limit Limit_has_succ
-                    Un_least_lt); 
+                    Un_least_lt) 
 apply (erule subset_trans [THEN PowI])
 apply (fast intro: Pair_in_Vfrom Vfrom_UnI1 Vfrom_UnI2)
 done

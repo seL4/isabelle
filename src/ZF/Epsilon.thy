@@ -181,6 +181,17 @@ apply (erule Ord_is_Transset [THEN Transset_succ, THEN eclose_least])
 apply (rule succI1 [THEN singleton_subsetI])
 done
 
+lemma succ_subset_eclose_sing: "succ(i) <= eclose({i})"
+apply (insert arg_subset_eclose [of "{i}"], simp) 
+apply (frule eclose_subset, blast) 
+done
+
+lemma eclose_sing_Ord_eq: "Ord(i) ==> eclose({i}) = succ(i)"
+apply (rule equalityI)
+apply (erule eclose_sing_Ord)  
+apply (rule succ_subset_eclose_sing) 
+done
+
 lemma Ord_transrec_type:
   assumes jini: "j: i"
       and ordi: "Ord(i)"
@@ -291,8 +302,8 @@ by (simp add: the_0 the_equality2)
   r = {<0,0>,<0,1>,<0,2>,...}.  Then f`0 = Union(f``{0}) = Union(nat) = nat,
   whose rank equals that of r.*)
 lemma rank_apply: "[|i : domain(f); function(f)|] ==> rank(f`i) < rank(f)"
-apply (clarify );  
-apply (simp add: function_apply_equality); 
+apply clarify  
+apply (simp add: function_apply_equality) 
 apply (blast intro: lt_trans rank_lt rank_pair2)
 done
 
@@ -332,7 +343,7 @@ done
 lemma transrec2_Limit:
      "Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))"
 apply (rule transrec2_def [THEN def_transrec, THEN trans])
-apply (auto simp add: OUnion_def); 
+apply (auto simp add: OUnion_def) 
 done
 
 lemma def_transrec2:

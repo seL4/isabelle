@@ -1,6 +1,6 @@
 header {* The class L satisfies the axioms of ZF*}
 
-theory L_axioms = Formula + Relative:
+theory L_axioms = Formula + Relative + Reflection:
 
 
 text {* The class L satisfies the premises of locale @{text M_axioms} *}
@@ -72,57 +72,57 @@ end
 (*
 
   and Inter_separation:
-     "L(A) ==> separation(M, \<lambda>x. \<forall>y\<in>A. L(y) --> x\<in>y)"
+     "L(A) ==> separation(L, \<lambda>x. \<forall>y\<in>A. L(y) --> x\<in>y)"
   and cartprod_separation:
      "[| L(A); L(B) |] 
-      ==> separation(M, \<lambda>z. \<exists>x\<in>A. \<exists>y\<in>B. L(x) & L(y) & pair(M,x,y,z))"
+      ==> separation(L, \<lambda>z. \<exists>x\<in>A. \<exists>y\<in>B. L(x) & L(y) & pair(L,x,y,z))"
   and image_separation:
      "[| L(A); L(r) |] 
-      ==> separation(M, \<lambda>y. \<exists>p\<in>r. L(p) & (\<exists>x\<in>A. L(x) & pair(M,x,y,p)))"
+      ==> separation(L, \<lambda>y. \<exists>p\<in>r. L(p) & (\<exists>x\<in>A. L(x) & pair(L,x,y,p)))"
   and vimage_separation:
      "[| L(A); L(r) |] 
-      ==> separation(M, \<lambda>x. \<exists>p\<in>r. L(p) & (\<exists>y\<in>A. L(x) & pair(M,x,y,p)))"
+      ==> separation(L, \<lambda>x. \<exists>p\<in>r. L(p) & (\<exists>y\<in>A. L(x) & pair(L,x,y,p)))"
   and converse_separation:
-     "L(r) ==> separation(M, \<lambda>z. \<exists>p\<in>r. L(p) & (\<exists>x y. L(x) & L(y) & 
-				     pair(M,x,y,p) & pair(M,y,x,z)))"
+     "L(r) ==> separation(L, \<lambda>z. \<exists>p\<in>r. L(p) & (\<exists>x y. L(x) & L(y) & 
+				     pair(L,x,y,p) & pair(L,y,x,z)))"
   and restrict_separation:
      "L(A) 
-      ==> separation(M, \<lambda>z. \<exists>x\<in>A. L(x) & (\<exists>y. L(y) & pair(M,x,y,z)))"
+      ==> separation(L, \<lambda>z. \<exists>x\<in>A. L(x) & (\<exists>y. L(y) & pair(L,x,y,z)))"
   and comp_separation:
      "[| L(r); L(s) |]
-      ==> separation(M, \<lambda>xz. \<exists>x y z. L(x) & L(y) & L(z) &
+      ==> separation(L, \<lambda>xz. \<exists>x y z. L(x) & L(y) & L(z) &
 			   (\<exists>xy\<in>s. \<exists>yz\<in>r. L(xy) & L(yz) & 
-		  pair(M,x,z,xz) & pair(M,x,y,xy) & pair(M,y,z,yz)))"
+		  pair(L,x,z,xz) & pair(L,x,y,xy) & pair(L,y,z,yz)))"
   and pred_separation:
-     "[| L(r); L(x) |] ==> separation(M, \<lambda>y. \<exists>p\<in>r. L(p) & pair(M,y,x,p))"
+     "[| L(r); L(x) |] ==> separation(L, \<lambda>y. \<exists>p\<in>r. L(p) & pair(L,y,x,p))"
   and Memrel_separation:
-     "separation(M, \<lambda>z. \<exists>x y. L(x) & L(y) & pair(M,x,y,z) \<and> x \<in> y)"
+     "separation(L, \<lambda>z. \<exists>x y. L(x) & L(y) & pair(L,x,y,z) \<and> x \<in> y)"
   and obase_separation:
      --{*part of the order type formalization*}
      "[| L(A); L(r) |] 
-      ==> separation(M, \<lambda>a. \<exists>x g mx par. L(x) & L(g) & L(mx) & L(par) & 
-	     ordinal(M,x) & membership(M,x,mx) & pred_set(M,A,a,r,par) &
-	     order_isomorphism(M,par,r,x,mx,g))"
+      ==> separation(L, \<lambda>a. \<exists>x g mx par. L(x) & L(g) & L(mx) & L(par) & 
+	     ordinal(L,x) & membership(L,x,mx) & pred_set(L,A,a,r,par) &
+	     order_isomorphism(L,par,r,x,mx,g))"
   and well_ord_iso_separation:
      "[| L(A); L(f); L(r) |] 
-      ==> separation (M, \<lambda>x. x\<in>A --> (\<exists>y. L(y) \<and> (\<exists>p. L(p) \<and> 
-		     fun_apply(M,f,x,y) \<and> pair(M,y,x,p) \<and> p \<in> r)))"
+      ==> separation (L, \<lambda>x. x\<in>A --> (\<exists>y. L(y) \<and> (\<exists>p. L(p) \<and> 
+		     fun_apply(L,f,x,y) \<and> pair(L,y,x,p) \<and> p \<in> r)))"
   and obase_equals_separation:
      "[| L(A); L(r) |] 
       ==> separation
-      (M, \<lambda>x. x\<in>A --> ~(\<exists>y. L(y) & (\<exists>g. L(g) &
-	      ordinal(M,y) & (\<exists>my pxr. L(my) & L(pxr) &
-	      membership(M,y,my) & pred_set(M,A,x,r,pxr) &
-	      order_isomorphism(M,pxr,r,y,my,g)))))"
+      (L, \<lambda>x. x\<in>A --> ~(\<exists>y. L(y) & (\<exists>g. L(g) &
+	      ordinal(L,y) & (\<exists>my pxr. L(my) & L(pxr) &
+	      membership(L,y,my) & pred_set(L,A,x,r,pxr) &
+	      order_isomorphism(L,pxr,r,y,my,g)))))"
   and is_recfun_separation:
      --{*for well-founded recursion.  NEEDS RELATIVIZATION*}
      "[| L(A); L(f); L(g); L(a); L(b) |] 
-     ==> separation(M, \<lambda>x. x \<in> A --> \<langle>x,a\<rangle> \<in> r \<and> \<langle>x,b\<rangle> \<in> r \<and> f`x \<noteq> g`x)"
+     ==> separation(L, \<lambda>x. x \<in> A --> \<langle>x,a\<rangle> \<in> r \<and> \<langle>x,b\<rangle> \<in> r \<and> f`x \<noteq> g`x)"
   and omap_replacement:
      "[| L(A); L(r) |] 
-      ==> strong_replacement(M,
+      ==> strong_replacement(L,
              \<lambda>a z. \<exists>x g mx par. L(x) & L(g) & L(mx) & L(par) &
-	     ordinal(M,x) & pair(M,a,x,z) & membership(M,x,mx) & 
-	     pred_set(M,A,a,r,par) & order_isomorphism(M,par,r,x,mx,g))"
+	     ordinal(L,x) & pair(L,a,x,z) & membership(L,x,mx) & 
+	     pred_set(L,A,a,r,par) & order_isomorphism(L,par,r,x,mx,g))"
 
 *)

@@ -151,9 +151,7 @@ apply (simp add: fun_extend3)
 done
 
 lemma FiniteFun_domain_Fin: "h: A -||>B ==> domain(h) : Fin(A)"
-apply (erule FiniteFun.induct, simp)
-apply simp
-done
+by (erule FiniteFun.induct, simp, simp)
 
 lemmas FiniteFun_apply_type = FiniteFun_is_fun [THEN apply_type, standard]
 
@@ -175,8 +173,7 @@ by (blast intro: FiniteFun_subset_lemma)
 
 lemma fun_FiniteFunI [rule_format]: "A:Fin(X) ==> ALL f. f:A->B --> f:A-||>B"
 apply (erule Fin.induct)
- apply (simp add: FiniteFun.intros)
-apply clarify
+ apply (simp add: FiniteFun.intros, clarify)
 apply (case_tac "a:b")
  apply (rotate_tac -1)
  apply (simp add: cons_absorb)

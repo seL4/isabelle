@@ -415,7 +415,7 @@ lemmas singleton_apply = apply_equality [OF singletonI singleton_fun, simp]
 
 (*For Finite.ML.  Inclusion of right into left is easy*)
 lemma cons_fun_eq:
-     "c ~: A ==> cons(c,A) -> B = (UN f: A->B. UN b:B. {cons(<c,b>, f)})"
+     "c ~: A ==> cons(c,A) -> B = (\<Union>f \<in> A->B. \<Union>b\<in>B. {cons(<c,b>, f)})"
 apply (rule equalityI)
 apply (safe elim!: fun_extend3)
 (*Inclusion of left into right*)
@@ -431,6 +431,9 @@ apply (rule fun_extension)
  apply (blast intro: fun_extend) 
 apply (erule consE, simp_all)
 done
+
+lemma succ_fun_eq: "succ(n) -> B = (\<Union>f \<in> n->B. \<Union>b\<in>B. {cons(<n,b>, f)})"
+by (simp add: succ_def mem_not_refl cons_fun_eq)
 
 ML
 {*

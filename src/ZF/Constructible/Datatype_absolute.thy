@@ -1,28 +1,4 @@
-theory Datatype_absolute = WF_absolute:
-
-(*Epsilon.thy*)
-lemma succ_subset_eclose_sing: "succ(i) <= eclose({i})"
-apply (insert arg_subset_eclose [of "{i}"], simp) 
-apply (frule eclose_subset, blast) 
-done
-
-lemma eclose_sing_Ord_eq: "Ord(i) ==> eclose({i}) = succ(i)"
-apply (rule equalityI)
-apply (erule eclose_sing_Ord)  
-apply (rule succ_subset_eclose_sing) 
-done
-
-(*Ordinal.thy*)
-lemma relation_Memrel: "relation(Memrel(A))"
-by (simp add: relation_def Memrel_def, blast)
-
-lemma (in M_axioms) nat_case_closed:
-  "[|M(k); M(a); \<forall>m[M]. M(b(m))|] ==> M(nat_case(a,b,k))"
-apply (case_tac "k=0", simp) 
-apply (case_tac "\<exists>m. k = succ(m)")
-apply force 
-apply (simp add: nat_case_def) 
-done
+theory Datatype_absolute = Formula + WF_absolute:
 
 
 subsection{*The lfp of a continuous function can be expressed as a union*}
@@ -143,13 +119,16 @@ by (simp add: iterates_nat_def recursor_def transrec_def
               wf_Memrel trans_Memrel relation_Memrel nat_case_closed)
 
 
+
 locale M_datatypes = M_wfrank +
 (*THEY NEED RELATIVIZATION*)
   assumes list_replacement1: 
 	   "[|M(A); n \<in> nat|] ==> 
 	    strong_replacement(M, 
-	      \<lambda>x z. \<exists>y[M]. \<exists>g[M]. pair(M, x, y, z) &
-		     is_recfun (Memrel(succ(n)), x,
+	      \<lambda>x z. \<exists>y[M]. \<exists>g[M]. \<exists>sucn[M]. \<exists>memr[M]. 
+                     pair(M,x,y,z) & successor(M,n,sucn) & 
+                     membership(M,sucn,memr) &
+		     is_recfun (memr, x,
 				\<lambda>n f. nat_case(0, \<lambda>m. {0} + A \<times> f`m, n), g) &
 		     y = nat_case(0, \<lambda>m. {0} + A \<times> g`m, x))"
       and list_replacement2': 
@@ -159,11 +138,11 @@ locale M_datatypes = M_wfrank +
 lemma (in M_datatypes) list_replacement1':
   "[|M(A); n \<in> nat|]
    ==> strong_replacement
-	  (M, \<lambda>x y. \<exists>z[M]. \<exists>g[M]. y = \<langle>x, z\<rangle> &
+	  (M, \<lambda>x y. \<exists>z[M]. \<exists>g[M]. y = \<langle>x,z\<rangle> &
                is_recfun (Memrel(succ(n)), x,
-		          \<lambda>n f. nat_case(0, \<lambda>m. {0} + A \<times> f ` m, n), g) &
+		          \<lambda>n f. nat_case(0, \<lambda>m. {0} + A \<times> f`m, n), g) &
  	       z = nat_case(0, \<lambda>m. {0} + A \<times> g ` m, x))"
-by (insert list_replacement1, simp) 
+by (insert list_replacement1, simp add: nat_into_M) 
 
 
 lemma (in M_datatypes) list_closed [intro,simp]:

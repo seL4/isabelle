@@ -11,7 +11,7 @@ Ordinal arithmetic is traditionally defined in terms of order types, as here.
 But a definition by transfinite recursion would be much simpler!
 *)
 
-theory OrderType = OrderArith + OrdQuant:
+theory OrderType = OrderArith + OrdQuant + Nat:
 
 constdefs
   
@@ -52,7 +52,7 @@ syntax (HTML output)
   "op **"     :: "[i,i] => i"          (infixl "\<times>\<times>" 70)
 
 
-(**** Proofs needing the combination of Ordinal.thy and Order.thy ****)
+subsection{*Proofs needing the combination of Ordinal.thy and Order.thy*}
 
 lemma le_well_ord_Memrel: "j le i ==> well_ord(j, Memrel(i))"
 apply (rule well_ordI)
@@ -99,7 +99,7 @@ apply (blast intro: ord_iso_sym Ord_iso_implies_eq_lemma)+
 done
 
 
-(**** Ordermap and ordertype ****)
+subsection{*Ordermap and ordertype*}
 
 lemma ordermap_type: 
     "ordermap(A,r) : A -> ordertype(A,r)"
@@ -310,7 +310,7 @@ apply (auto simp add: ordertype_def well_ord_is_wf [THEN ordermap_eq_image]
 done
 
 
-(**** Alternative definition of ordinal ****)
+subsection{*Alternative definition of ordinal*}
 
 (*proof by Krzysztof Grabczewski*)
 lemma Ord_is_Ord_alt: "Ord(i) ==> Ord_alt(i)"
@@ -330,7 +330,7 @@ apply (blast elim!: equalityE)
 done
 
 
-(**** Ordinal Addition ****)
+subsection{*Ordinal Addition*}
 
 (*** Order Type calculations for radd ***)
 
@@ -666,6 +666,17 @@ apply (simp only: lt_Ord2  oadd_1 [of i, symmetric])
 apply (blast intro: succ_leI oadd_le_mono)
 done
 
+text{*Every ordinal is exceeded by some limit ordinal.*}
+lemma Ord_imp_greater_Limit: "Ord(i) ==> \<exists>k. i<k & Limit(k)"
+apply (rule_tac x="i ++ nat" in exI) 
+apply (blast intro: oadd_LimitI  oadd_lt_self  Limit_nat [THEN Limit_has_0])
+done
+
+lemma Ord2_imp_greater_Limit: "[|Ord(i); Ord(j)|] ==> \<exists>k. i<k & j<k & Limit(k)"
+apply (insert Ord_Un [of i j, THEN Ord_imp_greater_Limit]) 
+apply (simp add: Un_least_lt_iff) 
+done
+
 
 (** Ordinal subtraction; the difference is ordertype(j-i, Memrel(j)). 
     Probably simpler to define the difference recursively!
@@ -733,7 +744,7 @@ apply (simp (no_asm_simp) add: lt_Ord le_Ord2)
 done
 
 
-(**** Ordinal Multiplication ****)
+subsection{*Ordinal Multiplication*}
 
 lemma Ord_omult [simp,TC]: 
     "[| Ord(i);  Ord(j) |] ==> Ord(i**j)"

@@ -72,7 +72,7 @@ lemma cond_0 [simp]: "cond(0,c,d) = d"
 by (simp add: bool_defs )
 
 lemma cond_type [TC]: "[| b: bool;  c: A(1);  d: A(0) |] ==> cond(b,c,d): A(b)"
-by (simp add: bool_defs , blast)
+by (simp add: bool_defs, blast)
 
 (*For Simp_tac and Blast_tac*)
 lemma cond_simple_type: "[| b: bool;  c: A;  d: A |] ==> cond(b,c,d): A"
@@ -137,7 +137,7 @@ lemma and_or_distrib: "[| a: bool; b:bool; c:bool |] ==>
        (a or b) and c  =  (a and c) or (b and c)"
 by (elim boolE, auto)
 
-(** binary orion **)
+(** binary 'or' **)
 
 lemma or_absorb [simp]: "a: bool ==> a or a = a"
 by (elim boolE, auto)
@@ -151,6 +151,25 @@ by (elim boolE, auto)
 lemma or_and_distrib: "[| a: bool; b: bool; c: bool |] ==>  
            (a and b) or c  =  (a or c) and (b or c)"
 by (elim boolE, auto)
+
+
+constdefs bool_of_o :: "o=>i"
+   "bool_of_o(P) == (if P then 1 else 0)"
+
+lemma [simp]: "bool_of_o(True) = 1"
+by (simp add: bool_of_o_def) 
+
+lemma [simp]: "bool_of_o(False) = 0"
+by (simp add: bool_of_o_def) 
+
+lemma [simp,TC]: "bool_of_o(P) \<in> bool"
+by (simp add: bool_of_o_def) 
+
+lemma [simp]: "(bool_of_o(P) = 1) <-> P"
+by (simp add: bool_of_o_def) 
+
+lemma [simp]: "(bool_of_o(P) = 0) <-> ~P"
+by (simp add: bool_of_o_def) 
 
 ML
 {*

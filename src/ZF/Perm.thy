@@ -380,8 +380,7 @@ lemma comp_mem_injD2:
     "[| (f O g): inj(A,C);  g: surj(A,B);  f: B->C |] ==> f: inj(B,C)"
 apply (unfold inj_def surj_def, safe)
 apply (rule_tac x1 = "x" in bspec [THEN bexE])
-apply (erule_tac [3] x1 = "w" in bspec [THEN bexE], assumption+)
-apply safe
+apply (erule_tac [3] x1 = "w" in bspec [THEN bexE], assumption+, safe)
 apply (rule_tac t = "op ` (g) " in subst_context)
 apply (erule asm_rl bspec [THEN bspec, THEN mp])+
 apply (simp (no_asm_simp))
@@ -518,8 +517,7 @@ done
 
 lemma inj_succ_restrict:
      "[| f: inj(succ(m), A) |] ==> restrict(f,m) : inj(m, A-{f`m})"
-apply (rule restrict_bij [THEN bij_is_inj, THEN inj_weaken_type], assumption)
-apply blast
+apply (rule restrict_bij [THEN bij_is_inj, THEN inj_weaken_type], assumption, blast)
 apply (unfold inj_def)
 apply (fast elim: range_type mem_irrefl dest: apply_equality)
 done

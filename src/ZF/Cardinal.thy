@@ -432,8 +432,7 @@ lemma Card_lt_iff: "[| Ord(i);  Card(K) |] ==> (|i| < K) <-> (i < K)"
 by (blast intro: Card_lt_imp_lt Ord_cardinal_le [THEN lt_trans1])
 
 lemma Card_le_iff: "[| Ord(i);  Card(K) |] ==> (K le |i|) <-> (K le i)"
-apply (simp add: Card_lt_iff Card_is_Ord Ord_cardinal not_lt_iff_le [THEN iff_sym])
-done
+by (simp add: Card_lt_iff Card_is_Ord Ord_cardinal not_lt_iff_le [THEN iff_sym])
 
 (*Can use AC or finiteness to discharge first premise*)
 lemma well_ord_lepoll_imp_Card_le:
@@ -805,10 +804,10 @@ apply (unfold succ_def)
 apply (erule Finite_cons)
 done
 
-lemma Finite_cons_iff [iff]:  "Finite(cons(y,x)) <-> Finite(x)"
+lemma Finite_cons_iff [iff]: "Finite(cons(y,x)) <-> Finite(x)"
 by (blast intro: Finite_cons subset_Finite)
 
-lemma Finite_succ_iff [iff]:  "Finite(succ(x)) <-> Finite(x)"
+lemma Finite_succ_iff [iff]: "Finite(succ(x)) <-> Finite(x)"
 by (simp add: succ_def)
 
 lemma nat_le_infinite_Ord: 

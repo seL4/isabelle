@@ -55,12 +55,10 @@ inductive
 (*** Section 1.  Mathematical Preamble ***)
 
 lemma Union_lemma0: "(ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)"
-apply blast
-done
+by blast
 
 lemma Inter_lemma0: "[| c:C; ALL x:C. A<=x | x<=B |] ==> A<=Inter(C) | Inter(C)<=B"
-apply blast
-done
+by blast
 
 
 (*** Section 2.  The Transfinite Construction ***)
@@ -71,9 +69,7 @@ apply (erule CollectD1)
 done
 
 lemma increasingD2: "[| f: increasing(A); x<=A |] ==> x <= f`x"
-apply (unfold increasing_def)
-apply (blast intro: elim:); 
-done
+by (unfold increasing_def, blast)
 
 lemmas TFin_UnionI = PowI [THEN TFin.Pow_UnionI, standard]
 
@@ -87,8 +83,7 @@ lemma TFin_induct:
       !!x. [| x : TFin(S,next);  P(x);  next: increasing(S) |] ==> P(next`x);  
       !!Y. [| Y <= TFin(S,next);  ALL y:Y. P(y) |] ==> P(Union(Y))  
    |] ==> P(n)"
-apply (erule TFin.induct)
-apply blast+
+apply (erule TFin.induct, blast+)
 done
 
 
@@ -119,19 +114,17 @@ apply (rule impI [THEN ballI])
 apply (rule_tac n1 = "n" and m1 = "x" in TFin_linear_lemma1 [THEN disjE],
        assumption+)
 apply (blast del: subsetI
-	     intro: increasing_trans subsetI)
-apply (blast intro: elim:); 
+	     intro: increasing_trans subsetI, blast) 
 (*second induction step*)
 apply (rule impI [THEN ballI])
 apply (rule Union_lemma0 [THEN disjE])
 apply (erule_tac [3] disjI2)
-prefer 2 apply (blast intro: elim:); 
+prefer 2 apply blast 
 apply (rule ballI)
 apply (drule bspec, assumption) 
 apply (drule subsetD, assumption) 
 apply (rule_tac n1 = "n" and m1 = "x" in TFin_linear_lemma1 [THEN disjE],
-       assumption+)
-apply (blast intro: elim:); 
+       assumption+, blast) 
 apply (erule increasingD2 [THEN subset_trans, THEN disjI1])
 apply (blast dest: TFin_is_subset)+
 done
@@ -159,9 +152,8 @@ lemma equal_next_upper:
      "[| n: TFin(S,next);  m: TFin(S,next);  m = next`m |] ==> n<=m"
 apply (erule TFin_induct)
 apply (drule TFin_subsetD)
-apply (assumption+)
-apply (force ); 
-apply (blast)
+apply (assumption+, force) 
+apply blast
 done
 
 (*Property 3.3 of section 3.3*)
@@ -172,7 +164,7 @@ apply (rule Union_upper [THEN equalityI])
 apply (rule_tac [2] equal_next_upper [THEN Union_least])
 apply (assumption+)
 apply (erule ssubst)
-apply (rule increasingD2 [THEN equalityI] , assumption)
+apply (rule increasingD2 [THEN equalityI], assumption)
 apply (blast del: subsetI
 	     intro: subsetI TFin_UnionI TFin.nextI TFin_is_subset)+
 done
@@ -202,8 +194,7 @@ lemma choice_super: "[| ch : (PROD X:Pow(chain(S)) - {0}. X);
          X : chain(S);  X ~: maxchain(S) |]      
       ==> ch ` super(S,X) : super(S,X)"
 apply (erule apply_type)
-apply (unfold super_def maxchain_def)
-apply blast
+apply (unfold super_def maxchain_def, blast)
 done
 
 lemma choice_not_equals:
@@ -211,8 +202,7 @@ lemma choice_not_equals:
          X : chain(S);  X ~: maxchain(S) |]      
       ==> ch ` super(S,X) ~= X"
 apply (rule notI)
-apply (drule choice_super)
-apply assumption
+apply (drule choice_super, assumption)
 apply assumption
 apply (simp add: super_def)
 done
@@ -225,7 +215,7 @@ lemma Hausdorff_next_exists:
 apply (rule_tac x="\<lambda>X\<in>Pow(S). 
                    if X \<in> chain(S) - maxchain(S) then ch ` super(S, X) else X" 
        in bexI)
-apply (force ); 
+apply force 
 apply (unfold increasing_def)
 apply (rule CollectI)
 apply (rule lam_type)
@@ -236,8 +226,7 @@ apply (simp (no_asm_simp) add: Pow_iff subset_refl)
 apply safe
 apply (drule choice_super)
 apply (assumption+)
-apply (simp add: super_def)
-apply blast
+apply (simp add: super_def, blast)
 done
 
 (*Lemma 4*)
@@ -252,16 +241,13 @@ apply (erule TFin_induct)
 apply (simp (no_asm_simp) add: chain_subset_Pow [THEN subsetD, THEN PowD] 
             choice_super [THEN super_subset_chain [THEN subsetD]])
 apply (unfold chain_def)
-apply (rule CollectI , blast)
-apply safe
-apply (rule_tac m1 = "B" and n1 = "Ba" in TFin_subset_linear [THEN disjE])
-apply fast+ (*Blast_tac's slow*)
+apply (rule CollectI, blast, safe)
+apply (rule_tac m1 = "B" and n1 = "Ba" in TFin_subset_linear [THEN disjE], fast+) (*Blast_tac's slow*)
 done
 
 lemma Hausdorff: "EX c. c : maxchain(S)"
 apply (rule AC_Pi_Pow [THEN exE])
-apply (rule Hausdorff_next_exists [THEN bexE])
-apply assumption
+apply (rule Hausdorff_next_exists [THEN bexE], assumption)
 apply (rename_tac ch "next")
 apply (subgoal_tac "Union (TFin (S,next)) : chain (S) ")
 prefer 2
@@ -271,7 +257,7 @@ apply (rule classical)
 apply (subgoal_tac "next ` Union (TFin (S,next)) = Union (TFin (S,next))")
 apply (rule_tac [2] equal_next_Union [THEN iffD2, symmetric])
 apply (rule_tac [2] subset_refl [THEN TFin_UnionI])
-prefer 2 apply (assumption)
+prefer 2 apply assumption
 apply (rule_tac [2] refl)
 apply (simp add: subset_refl [THEN TFin_UnionI, 
                               THEN TFin.dom_subset [THEN subsetD, THEN PowD]])
@@ -286,8 +272,7 @@ done
 (*Used in the proof of Zorn's Lemma*)
 lemma chain_extend: 
     "[| c: chain(A);  z: A;  ALL x:c. x<=z |] ==> cons(z,c) : chain(A)"
-apply (unfold chain_def)
-apply blast
+apply (unfold chain_def, blast)
 done
 
 lemma Zorn: "ALL c: chain(S). Union(c) : S ==> EX y:S. ALL z:S. y<=z --> y=z"
@@ -295,14 +280,13 @@ apply (rule Hausdorff [THEN exE])
 apply (simp add: maxchain_def)
 apply (rename_tac c)
 apply (rule_tac x = "Union (c)" in bexI)
-prefer 2 apply (blast)
+prefer 2 apply blast
 apply safe
 apply (rename_tac z)
 apply (rule classical)
 apply (subgoal_tac "cons (z,c) : super (S,c) ")
 apply (blast elim: equalityE)
-apply (unfold super_def)
-apply safe
+apply (unfold super_def, safe)
 apply (fast elim: chain_extend)
 apply (fast elim: equalityE)
 done
@@ -315,10 +299,9 @@ lemma TFin_well_lemma5:
      "[| n: TFin(S,next);  Z <= TFin(S,next);  z:Z;  ~ Inter(Z) : Z |]   
       ==> ALL m:Z. n<=m"
 apply (erule TFin_induct)
-prefer 2 apply (blast) (*second induction step is easy*)
+prefer 2 apply blast (*second induction step is easy*)
 apply (rule ballI)
-apply (rule bspec [THEN TFin_subsetD, THEN disjE])
-apply (auto ); 
+apply (rule bspec [THEN TFin_subsetD, THEN disjE], auto) 
 apply (subgoal_tac "m = Inter (Z) ")
 apply blast+
 done
@@ -330,8 +313,7 @@ apply (subgoal_tac "Z = {Union (TFin (S,next))}")
 apply (simp (no_asm_simp) add: Inter_singleton)
 apply (erule equal_singleton)
 apply (rule Union_upper [THEN equalityI])
-apply (rule_tac [2] subset_refl [THEN TFin_UnionI, THEN TFin_well_lemma5, THEN bspec])
-apply (blast intro: elim:)+
+apply (rule_tac [2] subset_refl [THEN TFin_UnionI, THEN TFin_well_lemma5, THEN bspec], blast+)
 done
 
 (*This theorem just packages the previous result*)
@@ -341,17 +323,16 @@ apply (rule well_ordI)
 apply (unfold Subset_rel_def linear_def)
 (*Prove the well-foundedness goal*)
 apply (rule wf_onI)
-apply (frule well_ord_TFin_lemma , assumption)
-apply (drule_tac x = "Inter (Z) " in bspec , assumption)
+apply (frule well_ord_TFin_lemma, assumption)
+apply (drule_tac x = "Inter (Z) " in bspec, assumption)
 apply blast
 (*Now prove the linearity goal*)
 apply (intro ballI)
 apply (case_tac "x=y")
- apply (blast)
+ apply blast
 (*The x~=y case remains*)
 apply (rule_tac n1=x and m1=y in TFin_subset_linear [THEN disjE],
-       assumption+)
-apply (blast intro: elim:)+
+       assumption+, blast+)
 done
 
 (** Defining the "next" operation for Zermelo's Theorem **)
@@ -369,7 +350,7 @@ lemma Zermelo_next_exists:
                       next`X = (if X=S then S else cons(ch`(S-X), X))"
 apply (rule_tac x="\<lambda>X\<in>Pow(S). if X=S then S else cons(ch`(S-X), X)"
        in bexI)
-apply (force );  
+apply force  
 apply (unfold increasing_def)
 apply (rule CollectI)
 apply (rule lam_type)
@@ -414,13 +395,11 @@ done
 (*The wellordering theorem*)
 lemma AC_well_ord: "EX r. well_ord(S,r)"
 apply (rule AC_Pi_Pow [THEN exE])
-apply (rule Zermelo_next_exists [THEN bexE])
-apply assumption
+apply (rule Zermelo_next_exists [THEN bexE], assumption)
 apply (rule exI)
 apply (rule well_ord_rvimage)
 apply (erule_tac [2] well_ord_TFin)
-apply (rule choice_imp_injection [THEN inj_weaken_type])
-apply (blast intro: elim:)+
+apply (rule choice_imp_injection [THEN inj_weaken_type], blast+)
 done
   
 end
