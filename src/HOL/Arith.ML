@@ -43,6 +43,18 @@ qed_goalw "diff_Suc_Suc" Arith.thy [diff_def, pred_def]
 Addsimps [diff_0, diff_0_eq_0, diff_Suc_Suc];
 
 
+goal Arith.thy "!!k. 0<k ==> EX j. k = Suc(j)";
+by (etac rev_mp 1);
+by (nat_ind_tac "k" 1);
+by (Simp_tac 1);
+by (fast_tac HOL_cs 1);
+val lemma = result();
+
+(* [| 0 < k; !!j. [| j: nat; k = succ(j) |] ==> Q |] ==> Q *)
+bind_thm ("zero_less_natE", lemma RS exE);
+
+
+
 (**** Inductive properties of the operators ****)
 
 (*** Addition ***)
@@ -179,10 +191,44 @@ by (nat_ind_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_add_inverse";
 
+goal Arith.thy "!!n::nat.(m+n) - n = m";
+by (res_inst_tac [("m1","m")] (add_commute RS ssubst) 1);
+by (REPEAT (ares_tac [diff_add_inverse] 1));
+qed "diff_add_inverse2";
+
+goal Arith.thy "!!k::nat. (k+m) - (k+n) = m - n";
+by (nat_ind_tac "k" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "diff_cancel";
+Addsimps [diff_cancel];
+
+goal Arith.thy "!!m::nat. (m+k) - (n+k) = m - n";
+val add_commute_k = read_instantiate [("n","k")] add_commute;
+by (asm_simp_tac (!simpset addsimps ([add_commute_k])) 1);
+qed "diff_cancel2";
+Addsimps [diff_cancel2];
+
 goal Arith.thy "!!n::nat. n - (n+m) = 0";
 by (nat_ind_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_add_0";
+Addsimps [diff_add_0];
+
+(** Difference distributes over multiplication **)
+
+goal Arith.thy "!!m::nat. (m - n) * k = (m * k) - (n * k)";
+by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
+by (ALLGOALS Asm_simp_tac);
+qed "diff_mult_distrib" ;
+
+goal Arith.thy "!!m::nat. k * (m - n) = (k * m) - (k * n)";
+val mult_commute_k = read_instantiate [("m","k")] mult_commute;
+by (simp_tac (!simpset addsimps [diff_mult_distrib, mult_commute_k]) 1);
+qed "diff_mult_distrib2" ;
+(*NOT added as rewrites, since sometimes they are used from right-to-left*)
+
+
+(** Less-then properties **)
 
 (*In ordinary notation: if 0<n and n<=m then m-n < m *)
 goal Arith.thy "!!m. [| 0<n; ~ m<n |] ==> m - n < m";
@@ -417,9 +463,7 @@ by (simp_tac (!simpset addsimps [less_add_Suc1]) 1);
 qed "less_add_eq_less";
 
 
-(** Monotonicity of addition (from ZF/Arith) **)
-
-(** Monotonicity results **)
+(*** Monotonicity of Addition ***)
 
 (*strict, in 1st argument*)
 goal Arith.thy "!!i j k::nat. i < j ==> i + k < j + k";
@@ -459,3 +503,60 @@ by (simp_tac (!simpset addsimps [add_commute]) 1);
 (*j moves to the end because it is free while k, l are bound*)
 by (etac add_le_mono1 1);
 qed "add_le_mono";
+
+(*** Monotonicity of Multiplication ***)
+
+goal Arith.thy "!!i::nat. i<=j ==> i*k<=j*k";
+by (nat_ind_tac "k" 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [add_le_mono])));
+qed "mult_le_mono1";
+
+(*<=monotonicity, BOTH arguments*)
+goal Arith.thy "!!i::nat. [| i<=j; k<=l |] ==> i*k<=j*l";
+by (rtac le_trans 1);
+by (ALLGOALS 
+    (deepen_tac (HOL_cs addIs [mult_commute RS ssubst, mult_le_mono1]) 0));
+qed "mult_le_mono";
+
+(*strict, in 1st argument; proof is by induction on k>0*)
+goal Arith.thy "!!i::nat. [| i<j; 0<k |] ==> k*i < k*j";
+be zero_less_natE 1;
+by (Asm_simp_tac 1);
+by (nat_ind_tac "x" 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [add_less_mono])));
+qed "mult_less_mono2";
+
+goal Arith.thy "(0 < m*n) = (0<m & 0<n)";
+by (nat_ind_tac "m" 1);
+by (nat_ind_tac "n" 2);
+by (ALLGOALS Asm_simp_tac);
+qed "zero_less_mult_iff";
+
+(*Cancellation law for division*)
+goal Arith.thy "!!k. [| 0<n; 0<k |] ==> (k*m) div (k*n) = m div n";
+by (res_inst_tac [("n","m")] less_induct 1);
+by (case_tac "na<n" 1);
+by (asm_simp_tac (!simpset addsimps [div_less, zero_less_mult_iff, 
+				     mult_less_mono2]) 1);
+by (subgoal_tac "~ k*na < k*n" 1);
+by (asm_simp_tac
+     (!simpset addsimps [zero_less_mult_iff, div_geq,
+			 diff_mult_distrib2 RS sym, diff_less]) 1);
+by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le, 
+					  le_refl RS mult_le_mono]) 1);
+qed "div_cancel";
+
+goal Arith.thy "!!k. [| 0<n; 0<k |] ==> (k*m) mod (k*n) = k * (m mod n)";
+by (res_inst_tac [("n","m")] less_induct 1);
+by (case_tac "na<n" 1);
+by (asm_simp_tac (!simpset addsimps [mod_less, zero_less_mult_iff, 
+				     mult_less_mono2]) 1);
+by (subgoal_tac "~ k*na < k*n" 1);
+by (asm_simp_tac
+     (!simpset addsimps [zero_less_mult_iff, mod_geq,
+			 diff_mult_distrib2 RS sym, diff_less]) 1);
+by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le, 
+					  le_refl RS mult_le_mono]) 1);
+qed "mult_mod_distrib";
+
+
