@@ -8,6 +8,11 @@ strings, lists as sets, association lists, generic tables, balanced trees,
 input / output, timing, filenames, misc functions.
 *)
 
+infix |> ~~ \ \\ orelf ins orf andf prefix upto downto mem union inter subset;
+
+
+structure Library =
+struct
 
 (** functions **)
 
@@ -18,11 +23,9 @@ fun I x = x;
 fun K x y = x;
 
 (*reverse apply*)
-infix |>;
 fun (x |> f) = f x;
 
 (*combine two functions forming the union of their domains*)
-infix orelf;
 fun f orelf g = fn x => f x handle Match => g x;
 
 (*application of (infix) operator to its left or right argument*)
@@ -92,10 +95,8 @@ fun not_equal x y = x <> y;
 
 (* operators for combining predicates *)
 
-infix orf;
 fun p orf q = fn x => p x orelse q x;
 
-infix andf;
 fun p andf q = fn x => p x andalso q x;
 
 fun notf p x = not (p x);
@@ -272,7 +273,6 @@ fun forall2 _ ([], []) = true
 
 (*combine two lists forming a list of pairs:
   [x1, ..., xn] ~~ [y1, ..., yn]  ===>  [(x1, y1), ..., (xn, yn)]*)
-infix ~~;
 fun [] ~~ [] = []
   | (x :: xs) ~~ (y :: ys) = (x, y) :: (xs ~~ ys)
   | _ ~~ _ = raise LIST "~~";
@@ -285,7 +285,6 @@ fun split_list (l: ('a * 'b) list) = (map #1 l, map #2 l);
 
 (* prefixes, suffixes *)
 
-infix prefix;
 fun [] prefix _ = true
   | (x :: xs) prefix (y :: ys) = x = y andalso (xs prefix ys)
   | _ prefix _ = false;
@@ -317,12 +316,10 @@ fun dec i = i := ! i - 1;
 (* lists of integers *)
 
 (*make the list [from, from + 1, ..., to]*)
-infix upto;
 fun from upto to =
   if from > to then [] else from :: ((from + 1) upto to);
 
 (*make the list [from, from - 1, ..., to]*)
-infix downto;
 fun from downto to =
   if from < to then [] else from :: ((from - 1) downto to);
 
@@ -429,7 +426,6 @@ fun space_explode sep s =
 (** lists as sets **)
 
 (*membership in a list*)
-infix mem;
 fun x mem [] = false
   | x mem (y :: ys) = x = y orelse x mem ys;
 
@@ -439,7 +435,6 @@ fun gen_mem eq (x, []) = false
 
 
 (*insertion into list if not already there*)
-infix ins;
 fun x ins xs = if x mem xs then xs else x :: xs;
 
 (*generalized insertion*)
@@ -447,7 +442,6 @@ fun gen_ins eq (x, xs) = if gen_mem eq (x, xs) then xs else x :: xs;
 
 
 (*union of sets represented as lists: no repetitions*)
-infix union;
 fun xs union [] = xs
   | [] union ys = ys
   | (x :: xs) union ys = xs union (x ins ys);
@@ -459,14 +453,12 @@ fun gen_union eq (xs, []) = xs
 
 
 (*intersection*)
-infix inter;
 fun [] inter ys = []
   | (x :: xs) inter ys =
       if x mem ys then x :: (xs inter ys) else xs inter ys;
 
 
 (*subset*)
-infix subset;
 fun [] subset ys = true
   | (x :: xs) subset ys = x mem ys andalso xs subset ys;
 
@@ -480,11 +472,9 @@ fun eq_set (xs, ys) =
 
 
 (*removing an element from a list WITHOUT duplicates*)
-infix \;
 fun (y :: ys) \ x = if x = y then ys else y :: (ys \ x)
   | [] \ x = [];
 
-infix \\;
 val op \\ = foldl (op \);
 
 (*removing an element from a list -- possibly WITH duplicates*)
@@ -860,3 +850,6 @@ fun scanwords is_let cs =
             in implode lets :: scanwords is_let rest end;
   in scan1 (#2 (take_prefix (not o is_let) cs)) end;
 
+end;
+
+open Library;

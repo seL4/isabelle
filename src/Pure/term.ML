@@ -2,11 +2,18 @@
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   Cambridge University 1992
+
+Simply typed lambda-calculus: types, terms, and basic operations
 *)
 
+infix 9  $;
+infixr 5 -->;
+infixr   --->;
+infix    aconv;
 
-(*Simply typed lambda-calculus: types, terms, and basic operations*)
 
+structure Term =
+struct
 
 (*Indexnames can be quickly renamed by adding an offset to the integer part,
   for resolution.*)
@@ -21,11 +28,9 @@ datatype typ = Type  of string * typ list
              | TFree of string * sort
 	     | TVar  of indexname * sort;
 
-infixr 5 -->;
 fun S --> T = Type("fun",[S,T]);
 
 (*handy for multiple args: [T1,...,Tn]--->T  gives  T1-->(T2--> ... -->T)*)
-infixr --->;
 val op ---> = foldr (op -->);
 
 
@@ -39,7 +44,6 @@ val op ---> = foldr (op -->);
 
 
 
-infix 9 $;  (*application binds tightly!*)
 datatype term = 
     Const of string * typ
   | Free  of string * typ 
@@ -304,7 +308,6 @@ fun betapply (Abs(_,_,t), u) = subst_bounds([u],t)
 
 (*Tests whether 2 terms are alpha-convertible and have same type.
   Note that constants and Vars may have more than one type.*)
-infix aconv;
 fun (Const(a,T)) aconv (Const(b,U)) = a=b  andalso  T=U
   | (Free(a,T)) aconv (Free(b,U)) = a=b  andalso  T=U
   | (Var(v,T)) aconv (Var(w,U)) =   v=w  andalso  T=U
@@ -588,3 +591,7 @@ fun rename_aTs names vars : (string*typ)list =
   in foldl rename_aT ([],vars) end;
 
 fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
+
+end;
+
+open Term;
