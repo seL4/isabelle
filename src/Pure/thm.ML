@@ -9,11 +9,7 @@ simplification).
 *)
 
 signature THM =
-sig
-  structure Envir       : ENVIR
-  structure Sequence    : SEQUENCE
-  structure Sign        : SIGN
-
+  sig
   (*certified types*)
   type ctyp
   val rep_ctyp          : ctyp -> {sign: Sign.sg, T: typ}
@@ -62,9 +58,9 @@ sig
   type theory
   exception THEORY of string * theory list
   val rep_theory        : theory ->
-    {sign: Sign.sg, new_axioms: term Sign.Symtab.table, parents: theory list}
+    {sign: Sign.sg, new_axioms: term Symtab.table, parents: theory list}
   val sign_of           : theory -> Sign.sg
-  val syn_of            : theory -> Sign.Syntax.syntax
+  val syn_of            : theory -> Syntax.syntax
   val stamps_of_thy     : theory -> string ref list
   val parents_of        : theory -> theory list
   val subthy            : theory * theory -> bool
@@ -74,31 +70,31 @@ sig
   val proto_pure_thy    : theory
   val pure_thy          : theory
   val cpure_thy         : theory
-  local open Sign.Syntax in
-    val add_classes     : (class * class list) list -> theory -> theory
-    val add_classrel    : (class * class) list -> theory -> theory
-    val add_defsort     : sort -> theory -> theory
-    val add_types       : (string * int * mixfix) list -> theory -> theory
-    val add_tyabbrs     : (string * string list * string * mixfix) list
-      -> theory -> theory
-    val add_tyabbrs_i   : (string * string list * typ * mixfix) list
-      -> theory -> theory
-    val add_arities     : (string * sort list * sort) list -> theory -> theory
-    val add_consts      : (string * string * mixfix) list -> theory -> theory
-    val add_consts_i    : (string * typ * mixfix) list -> theory -> theory
-    val add_syntax      : (string * string * mixfix) list -> theory -> theory
-    val add_syntax_i    : (string * typ * mixfix) list -> theory -> theory
-    val add_trfuns      :
-      (string * (ast list -> ast)) list *
-      (string * (term list -> term)) list *
-      (string * (term list -> term)) list *
-      (string * (ast list -> ast)) list -> theory -> theory
-    val add_trrules     : (string * string) trrule list -> theory -> theory
-    val add_trrules_i   : ast trrule list -> theory -> theory
-    val add_axioms      : (string * string) list -> theory -> theory
-    val add_axioms_i    : (string * term) list -> theory -> theory
-    val add_thyname     : string -> theory -> theory
-  end
+  (*theory primitives*)
+  val add_classes     : (class * class list) list -> theory -> theory
+  val add_classrel    : (class * class) list -> theory -> theory
+  val add_defsort     : sort -> theory -> theory
+  val add_types       : (string * int * mixfix) list -> theory -> theory
+  val add_tyabbrs     : (string * string list * string * mixfix) list
+    -> theory -> theory
+  val add_tyabbrs_i   : (string * string list * typ * mixfix) list
+    -> theory -> theory
+  val add_arities     : (string * sort list * sort) list -> theory -> theory
+  val add_consts      : (string * string * mixfix) list -> theory -> theory
+  val add_consts_i    : (string * typ * mixfix) list -> theory -> theory
+  val add_syntax      : (string * string * mixfix) list -> theory -> theory
+  val add_syntax_i    : (string * typ * mixfix) list -> theory -> theory
+  val add_trfuns      :
+    (string * (Syntax.ast list -> Syntax.ast)) list *
+    (string * (term list -> term)) list *
+    (string * (term list -> term)) list *
+    (string * (Syntax.ast list -> Syntax.ast)) list -> theory -> theory
+  val add_trrules     : (string * string)Syntax.trrule list -> theory -> theory
+  val add_trrules_i   : Syntax.ast Syntax.trrule list -> theory -> theory
+  val add_axioms      : (string * string) list -> theory -> theory
+  val add_axioms_i    : (string * term) list -> theory -> theory
+  val add_thyname     : string -> theory -> theory
+
   val merge_theories    : theory * theory -> theory
   val merge_thy_list    : bool -> theory list -> theory
 
@@ -155,17 +151,8 @@ sig
     (meta_simpset -> thm -> thm option) -> cterm -> thm
 end;
 
-functor ThmFun (structure Logic: LOGIC and Unify: UNIFY and Pattern: PATTERN
-  and Net:NET sharing type Pattern.type_sig = Unify.Sign.Type.type_sig): THM =
+structure Thm : THM =
 struct
-
-structure Sequence = Unify.Sequence;
-structure Envir = Unify.Envir;
-structure Sign = Unify.Sign;
-structure Type = Sign.Type;
-structure Syntax = Sign.Syntax;
-structure Symtab = Sign.Symtab;
-
 
 (*** Certified terms and types ***)
 
@@ -888,7 +875,7 @@ end;
 
 (**** Derived rules ****)
 
-(*Discharge all hypotheses (need not verify cterms)
+(*Discharge all hypotheses.  Need not verify cterms or call fix_shyps.
   Repeated hypotheses are discharged only once;  fold cannot do this*)
 fun implies_intr_hyps (Thm{sign, maxidx, shyps, hyps=A::As, prop}) =
       implies_intr_hyps (*no fix_shyps*)
@@ -973,8 +960,7 @@ fun trivial ct : thm =
               prop= implies$A$A})
   end;
 
-(*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)" --
-  essentially just an instance of A==>A.*)
+(*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)" *)
 fun class_triv thy c =
   let
     val sign = sign_of thy;
@@ -1644,3 +1630,5 @@ fun rewrite_cterm mode mss prover ct =
   end
 
 end;
+
+open Thm;
