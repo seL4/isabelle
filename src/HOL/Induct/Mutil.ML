@@ -60,20 +60,19 @@ Goalw [coloured_def]
 \                           else coloured b Int t)";
 by Auto_tac;
 qed "coloured_insert";
-
 Addsimps [coloured_insert];
+
+Goal "d:domino ==> (EX i j. coloured 0 Int d = {(i,j)}) & \
+\                  (EX m n. coloured 1 Int d = {(m,n)})";
+by (etac domino.elim 1);
+by (auto_tac (claset(), simpset() addsimps [mod_Suc]));
+qed "domino_singletons";
 
 Goal "d:domino ==> finite d";
 by (etac domino.elim 1);
 by Auto_tac;
 qed "domino_finite";
 Addsimps [domino_finite];
-
-Goal "d:domino ==> (EX i j. coloured 0 Int d = {(i,j)}) & \
-\                  (EX k l. coloured 1 Int d = {(k,l)})";
-by (etac domino.elim 1);
-by (auto_tac (claset(), simpset() addsimps [mod_Suc]));
-qed "domino_singletons";
 
 
 (*** Tilings of dominoes ***)
@@ -97,17 +96,15 @@ qed "tiling_domino_0_1";
 
 (*Final argument is surprisingly complex*)
 Goal "[| t : tiling domino;       \
-\        (i+j) mod #2 = 0;  (k+l) mod #2 = 0;  \
-\        {(i,j),(k,l)} <= t;  l ~= j |]    \
-\     ==> (t - {(i,j)} - {(k,l)}) ~: tiling domino";
+\        (i+j) mod #2 = 0;  (m+n) mod #2 = 0;  \
+\        {(i,j),(m,n)} <= t |]    \
+\     ==> (t - {(i,j)} - {(m,n)}) ~: tiling domino";
 by (rtac notI 1);
-by (subgoal_tac "card (coloured 0 Int (t - {(i,j)} - {(k,l)})) < \
-\                card (coloured 1 Int (t - {(i,j)} - {(k,l)}))" 1);
+by (subgoal_tac "card (coloured 0 Int (t - {(i,j)} - {(m,n)})) < \
+\                card (coloured 1 Int (t - {(i,j)} - {(m,n)}))" 1);
 by (force_tac (claset(), HOL_ss addsimps [tiling_domino_0_1]) 1);
 by (asm_simp_tac (simpset() addsimps [tiling_domino_0_1 RS sym]) 1);
-by (rtac less_trans 1);
-by (ALLGOALS (force_tac (claset() addSIs [card_Diff1_less], 
-			 simpset() addsimps [coloured_def])));
+by (asm_full_simp_tac (simpset() addsimps [coloured_def, card_Diff2_less]) 1); 
 qed "gen_mutil_not_tiling";
 
 (*Apply the general theorem to the well-known case*)

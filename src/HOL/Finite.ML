@@ -425,6 +425,13 @@ by (rtac Suc_less_SucD 1);
 by (asm_simp_tac (simpset() addsimps [card_Suc_Diff1]) 1);
 qed "card_Diff1_less";
 
+Goal "[| finite A; x: A; y: A |] ==> card(A-{x}-{y}) < card A"; 
+by (case_tac "x=y" 1);
+by (asm_simp_tac (simpset() addsimps [card_Diff1_less]) 1);
+by (rtac less_trans 1);
+by (ALLGOALS (force_tac (claset() addSIs [card_Diff1_less], simpset())));
+qed "card_Diff2_less";
+
 Goal "finite A ==> card(A-{x}) <= card A";
 by (case_tac "x: A" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [card_Diff1_less, less_imp_le])));
