@@ -25,9 +25,9 @@ sig
   val default_type: context -> string -> typ option
   val used_types: context -> string list
   val read_typ: context -> string -> typ
-  val read_typ_no_norm: context -> string -> typ
+  val read_typ_raw: context -> string -> typ
   val cert_typ: context -> typ -> typ
-  val cert_typ_no_norm: context -> typ -> typ
+  val cert_typ_raw: context -> typ -> typ
   val get_skolem: context -> string -> string
   val extern_skolem: context -> term -> term
   val read_termTs: context -> (string -> bool) -> (indexname -> typ option)
@@ -413,10 +413,10 @@ in
 
 (* Read/certify type, using default sort information from context. *)
 
-val read_typ = read_typ_aux Sign.read_typ';
-val read_typ_no_norm = read_typ_aux Sign.read_typ_no_norm';
-val cert_typ = cert_typ_aux Sign.certify_typ;
-val cert_typ_no_norm = cert_typ_aux Sign.certify_typ_no_norm;
+val read_typ     = read_typ_aux Sign.read_typ';
+val read_typ_raw = read_typ_aux Sign.read_typ_raw';
+val cert_typ     = cert_typ_aux Sign.certify_typ;
+val cert_typ_raw = cert_typ_aux Sign.certify_typ_raw;
 
 end;
 
