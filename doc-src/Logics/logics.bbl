@@ -73,8 +73,7 @@ Amy Felty.
 \newblock A logic program for transforming sequent proofs to natural deduction
   proofs.
 \newblock In Peter Schroeder-Heister, editor, {\em Extensions of Logic
-  Programming}, pages 157--178. Springer, 1991.
-\newblock LNAI 475.
+  Programming}, LNAI 475, pages 157--178. Springer, 1991.
 
 \bibitem{frost93}
 Jacob Frost.
@@ -114,8 +113,7 @@ Kenneth Kunen.
 Lena Magnusson and Bengt {Nordstr\"om}.
 \newblock The {ALF} proof editor and its proof engine.
 \newblock In {\em Types for Proofs and Programs: International Workshop {TYPES
-  '93}}, pages 213--237. Springer, published 1994.
-\newblock LNCS 806.
+  '93}}, LNCS 806, pages 213--237. Springer, published 1994.
 
 \bibitem{mw81}
 Zohar Manna and Richard Waldinger.
@@ -170,39 +168,37 @@ Lawrence~C. Paulson.
 \newblock Co-induction and co-recursion in higher-order logic.
 \newblock Technical Report 304, Computer Laboratory, University of Cambridge,
   July 1993.
+\newblock To appear in the Festscrift for Alonzo Church, edited by A. Anderson
+  and M. Zeleny.
 
 \bibitem{paulson-set-I}
 Lawrence~C. Paulson.
 \newblock Set theory for verification: {I}. {From} foundations to functions.
 \newblock {\em Journal of Automated Reasoning}, 11(3):353--389, 1993.
 
-\bibitem{paulson-set-II}
-Lawrence~C. Paulson.
-\newblock Set theory for verification: {II}. {Induction} and recursion.
-\newblock Technical Report 312, Computer Laboratory, University of Cambridge,
-  1993.
-\newblock To appear in Journal of Automated Reasoning.
-
-\bibitem{paulson-final}
-Lawrence~C. Paulson.
-\newblock A concrete final coalgebra theorem for {ZF} set theory.
-\newblock Technical Report 334, Computer Laboratory, University of Cambridge,
-  1994.
-
 \bibitem{paulson-CADE}
 Lawrence~C. Paulson.
 \newblock A fixedpoint approach to implementing (co)inductive definitions.
 \newblock In Alan Bundy, editor, {\em 12th International Conference on
-  Automated Deduction}, pages 148--161. Springer, 1994.
-\newblock LNAI 814.
+  Automated Deduction}, LNAI 814, pages 148--161. Springer, 1994.
+
+\bibitem{paulson-set-II}
+Lawrence~C. Paulson.
+\newblock Set theory for verification: {II}. {Induction} and recursion.
+\newblock {\em Journal of Automated Reasoning}, 15(2):167--215, 1995.
 
 \bibitem{paulson-COLOG}
 Lawrence~C. Paulson.
 \newblock A formulation of the simple theory of types (for {Isabelle}).
 \newblock In P.~Martin-L\"of and G.~Mints, editors, {\em COLOG-88:
-  International Conference on Computer Logic}, pages 246--274, Tallinn,
-  Published 1990. Estonian Academy of Sciences, Springer.
-\newblock LNCS 417.
+  International Conference on Computer Logic}, LNCS 417, pages 246--274,
+  Tallinn, Published 1990. Estonian Academy of Sciences, Springer.
+
+\bibitem{paulson-final}
+Lawrence~C. Paulson.
+\newblock A concrete final coalgebra theorem for {ZF} set theory.
+\newblock In {\em Types for Proofs and Programs: International Workshop {TYPES
+  '94}}, LNCS 996, pages 120--139. Springer, published 1995.
 
 \bibitem{pelletier86}
 F.~J. Pelletier.

@@ -19,7 +19,7 @@
 
   \item {\ptt allI} theorem, 35
   \item arities
-    \subitem declaring, 4, \bold{46}
+    \subitem declaring, 4, \bold{47}
   \item {\ptt asm_simp_tac}, 56
   \item {\ptt assume_tac}, 28, 30, 35, 44
   \item assumptions
@@ -34,7 +34,7 @@
   \indexspace
 
   \item {\ptt ba}, 29
-  \item {\ptt back}, 54, 55, 58
+  \item {\ptt back}, 55, 59
   \item backtracking
     \subitem Prolog style, 58
   \item {\ptt bd}, 29
@@ -59,10 +59,10 @@
 
   \item definitions, 5, \bold{46}
     \subitem and derived rules, 41--44
-  \item {\ptt DEPTH_FIRST}, 59
+  \item {\ptt DEPTH_FIRST}, 60
   \item destruct-resolution, 21, 29
   \item {\ptt disjE} theorem, 30
-  \item {\ptt dres_inst_tac}, 53
+  \item {\ptt dres_inst_tac}, 54
   \item {\ptt dresolve_tac}, 29, 31, 36
 
   \indexspace
@@ -71,12 +71,12 @@
   \item elim-resolution, \bold{19}, 28
   \item equality
     \subitem polymorphic, 3
-  \item {\ptt eres_inst_tac}, 53
+  \item {\ptt eres_inst_tac}, 54
   \item {\ptt eresolve_tac}, 28, 31, 36, 44
   \item examples
     \subitem of deriving rules, 39
-    \subitem of induction, 53, 54
-    \subitem of simplification, 55
+    \subitem of induction, 54, 55
+    \subitem of simplification, 56
     \subitem of tacticals, 35
     \subitem of theories, 46--52, 57
     \subitem propositional, 16, 29, 31
@@ -108,8 +108,8 @@
 
   \item identifiers, 23
   \item {\ptt impI} theorem, 30, 42
-  \item infixes, 48
-  \item instantiation, 53--56
+  \item infixes, 49
+  \item instantiation, 53--57
   \item Isabelle
     \subitem object-logics supported, i
     \subitem overview, i
@@ -135,7 +135,7 @@
   \item meta-implication, \bold{5}, 6, 24
   \item meta-quantifiers, \bold{5}, 7, 24
   \item meta-rewriting, 41
-  \item mixfix declarations, 49, 52
+  \item mixfix declarations, 49, 50, 52
   \item ML, i
   \item {\ptt ML} section, 45
   \item {\ptt mp} theorem, 26
@@ -159,7 +159,7 @@
   \item parameters, \bold{7}, 32
     \subitem lifting over, 14
   \item {\ptt Prolog} theory, 57
-  \item Prolog interpreter, \bold{56}
+  \item Prolog interpreter, \bold{57}
   \item proof state, 15
   \item proofs
     \subitem commands for, 29
@@ -178,13 +178,13 @@
 
   \item {\ptt read_instantiate}, 28
   \item {\ptt refl} theorem, 28
-  \item {\ptt REPEAT}, 31, 36, 58, 59
-  \item {\ptt res_inst_tac}, 53, 55
+  \item {\ptt REPEAT}, 31, 36, 58, 60
+  \item {\ptt res_inst_tac}, 53, 56
   \item reserved words, 23
   \item resolution, 10, \bold{11}
     \subitem in backward proof, 15
     \subitem with instantiation, 53
-  \item {\ptt resolve_tac}, 28, 30, 43, 54
+  \item {\ptt resolve_tac}, 28, 30, 43, 55
   \item {\ptt result}, 29, 40, 44
   \item {\ptt rewrite_goals_tac}, 42
   \item {\ptt rewrite_rule}, 43
@@ -206,8 +206,8 @@
     \subitem depth-first, 59
   \item signatures, \bold{8}
   \item {\ptt simp_tac}, 56
-  \item simplification, 55
-  \item simplification sets, 55
+  \item simplification, 56
+  \item simplification sets, 56
   \item sort constraints, 24
   \item sorts, \bold{4}
   \item {\ptt spec} theorem, 26, 34, 35
@@ -240,7 +240,7 @@
   \item type identifiers, 23
   \item type synonyms, \bold{48}
   \item types
-    \subitem declaring, \bold{46}
+    \subitem declaring, \bold{47}
     \subitem function, 1
     \subitem higher, \bold{5}
     \subitem polymorphic, \bold{3}
@@ -251,7 +251,7 @@
 
   \item {\ptt undo}, 29
   \item unification
-    \subitem higher-order, \bold{10}, 54
+    \subitem higher-order, \bold{10}, 55
     \subitem incompleteness of, 11
   \item unknowns, 9, 23, 32
     \subitem function, \bold{11}, 27, 32
