@@ -2,8 +2,9 @@
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
-New in Isabelle94-8 (??????????? 1997 FIXME)
----------------------------------------
+New in Isabelle94-8 (really-soon-now 1997 FIXME)
+------------------------------------------------
+
 * HOLCF changes: derived all rules and arities 
   + axiomatic type classes instead of classes 
   + typedef instead of faking type definitions
@@ -69,8 +70,6 @@ Beware of Union_iff.  eq_cs is gone, can be put back as ZF_cs addSIs
 * more default rewrite rules in HOL for quantifiers, union/intersection;
 
 * the NEWS file;
-
-Changes in HOLCF:
 
 
 New in Isabelle94-7 (November 96)
