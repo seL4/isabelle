@@ -950,13 +950,7 @@ $(t@1,\dots,t@n)$ & $(t@1,(\dots,(t@{n-1},t@n)\dots)$ \\
 In addition, it is possible to use tuples
 as patterns in abstractions:
 \begin{center}
-\begin{tabular}{|c|c|}
-\hline
-external & internal \\
-\hline
-{\tt\%($x$,$y$).$t$} & {\tt split(\%$x$ $y$.$t$)} \\
-\hline
-\end{tabular}
+{\tt\%($x$,$y$).$t$} \quad stands for\quad {\tt split(\%$x$ $y$.$t$)} 
 \end{center}
 Nested patterns are possible and are translated stepwise:
 {\tt\%($x$,$y$,$z$).$t$} $\leadsto$ {\tt\%($x$,($y$,$z$)).$t$} $\leadsto$
@@ -964,10 +958,10 @@ Nested patterns are possible and are translated stepwise:
   $z$.$t$))}. The reverse translation is performed upon printing.
 \begin{warn}
   The translation between patterns and {\tt split} is performed automatically
-  by the parser and printer. This means that the internal and external form
-  of a term may differ, which has to be taken into account during the proof
-  process. For example the term {\tt (\%(x,y).(y,x))(a,b)} requires the
-  theorem {\tt split} to rewrite to {\tt(b,a)}.
+  by the parser and printer.  Thus the internal and external form of a term
+  may differ, whichs affects proofs.  For example the term {\tt
+    (\%(x,y).(y,x))(a,b)} requires the theorem {\tt split} to rewrite to
+  {\tt(b,a)}.
 \end{warn}
 In addition to explicit $\lambda$-abstractions, patterns can be used in any
 variable binding construct which is internally described by a
