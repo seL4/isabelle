@@ -14,10 +14,6 @@ time_use_thy "Ramsey";          (*Simple form of Ramsey's theorem*)
 time_use_thy "Limit";           (*Inverse limit construction of domains*)
 time_use_thy "BinEx";		(*Binary integer arithmetic*)
 
-(** Datatypes **)
-time_use_thy "Ntree";           (*variable-branching trees; function demo*)
-time_use_thy "Brouwer";         (*Infinite-branching trees*)
-
 (** CoDatatypes **)
 time_use_thy "LList";
 time_use_thy "CoUnit";

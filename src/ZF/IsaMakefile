@@ -125,10 +125,10 @@ $(LOG)/ZF-UNITY.gz: $(OUT)/ZF UNITY/ROOT.ML \
 ZF-Induct: ZF $(LOG)/ZF-Induct.gz
 
 $(LOG)/ZF-Induct.gz: $(OUT)/ZF  Induct/ROOT.ML Induct/Acc.ML Induct/Acc.thy \
-  Induct/Binary_Trees.thy Induct/Comb.ML Induct/Comb.thy Induct/Datatypes.thy \
-  Induct/FoldSet.ML Induct/FoldSet.thy Induct/ListN.ML Induct/ListN.thy \
-  Induct/Multiset.ML Induct/Multiset.thy Induct/Mutil.thy \
-  Induct/Primrec_defs.ML Induct/Primrec_defs.thy \
+  Induct/Binary_Trees.thy Induct/Brouwer.thy Induct/Comb.ML Induct/Comb.thy \
+  Induct/Datatypes.thy Induct/FoldSet.ML Induct/FoldSet.thy Induct/ListN.ML \
+  Induct/ListN.thy Induct/Multiset.ML Induct/Multiset.thy Induct/Mutil.thy \
+  Induct/Ntree.thy Induct/Primrec_defs.ML Induct/Primrec_defs.thy \
   Induct/Primrec.ML Induct/Primrec.thy \
   Induct/PropLog.ML Induct/PropLog.thy Induct/Rmap.ML Induct/Rmap.thy \
   Induct/Term.thy Induct/Tree_Forest.thy Induct/document/root.tex
@@ -140,10 +140,8 @@ $(LOG)/ZF-Induct.gz: $(OUT)/ZF  Induct/ROOT.ML Induct/Acc.ML Induct/Acc.thy \
 ZF-ex: ZF $(LOG)/ZF-ex.gz
 
 $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/ROOT.ML \
-  ex/BinEx.thy ex/Brouwer.ML ex/Brouwer.thy ex/CoUnit.ML \
-  ex/CoUnit.thy ex/Commutation.ML ex/Commutation.thy \
-  ex/Limit.ML ex/Limit.thy ex/LList.ML ex/LList.thy \
-  ex/Ntree.ML ex/Ntree.thy ex/Primes.ML ex/Primes.thy \
+  ex/BinEx.thy ex/CoUnit.thy ex/Commutation.ML ex/Commutation.thy \
+  ex/Limit.ML ex/Limit.thy ex/LList.ML ex/LList.thy ex/Primes.ML ex/Primes.thy \
   ex/NatSum.ML ex/NatSum.thy ex/Ramsey.ML ex/Ramsey.thy ex/misc.thy
 	@$(ISATOOL) usedir $(OUT)/ZF ex
 
