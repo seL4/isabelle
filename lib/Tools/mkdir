@@ -96,6 +96,8 @@ mkdir -p "$DIR" || fail "Bad directory: $DIR"
 cd "$DIR"
 
 DOCUMENT_ROOT=""
+VERBOSE=""
+[ -z "$QUIET" ] && VERBOSE="-v true "
 
 if [ -n "$BUILD" ]; then
   IMAGES="$NAME"
@@ -136,7 +138,7 @@ else
     echo "OUT = \$(ISABELLE_OUTPUT)"
     echo "LOG = \$(OUT)/log"
     echo
-    echo "USEDIR = \$(ISATOOL) usedir -v true -i true -d dvi  ## -D document"
+    echo "USEDIR = \$(ISATOOL) usedir ${VERBOSE}-i true -d dvi  ## -D document"
     echo
     echo
     echo "## $NAME"
@@ -266,9 +268,9 @@ Notes:
 
   * $DIR/IsaMakefile contains compilation options and file dependencies
 
-  * $PREFIX/ROOT.ML needs to contain ML code to load all theories
-
   * $PREFIX/document/root.tex contains the LaTeX master document setup
+
+  * $PREFIX/ROOT.ML needs to contain ML code to load all theories
 
 EOF
 fi
