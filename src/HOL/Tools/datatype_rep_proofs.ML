@@ -124,7 +124,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           let
             val n2 = n div 2;
             val Type (_, [T1, T2]) = T;
-            val sum_case = Const ("sum_case", [T1 --> Univ_elT, T2 --> Univ_elT, T] ---> Univ_elT)
+            val sum_case = Const ("basic_sum_case", [T1 --> Univ_elT, T2 --> Univ_elT, T] ---> Univ_elT)
           in
             if i <= n2 then
               sum_case $ (mk_inj T1 n2 i) $ Const ("arbitrary", T2 --> Univ_elT)

@@ -463,7 +463,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
       | mk_ind_pred T Ps =
          let val n = (length Ps) div 2;
              val Type (_, [T1, T2]) = T
-         in Const ("sum_case",
+         in Const ("basic_sum_case",
            [T1 --> HOLogic.boolT, T2 --> HOLogic.boolT, T] ---> HOLogic.boolT) $
              mk_ind_pred T1 (take (n, Ps)) $ mk_ind_pred T2 (drop (n, Ps))
          end;
