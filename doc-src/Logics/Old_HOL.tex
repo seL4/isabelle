@@ -225,9 +225,9 @@ case construct for lists on page~\pageref{hol-list} below.
 
 \begin{figure}
 \begin{ttbox}\makeatother
-\tdx{refl}           t = t::'a
+\tdx{refl}           t = (t::'a)
 \tdx{subst}          [| s=t; P(s) |] ==> P(t::'a)
-\tdx{ext}            (!!x::'a. f(x)::'b = g(x)) ==> (\%x.f(x)) = (\%x.g(x))
+\tdx{ext}            (!!x::'a. (f(x)::'b) = g(x)) ==> (\%x.f(x)) = (\%x.g(x))
 \tdx{impI}           (P ==> Q) ==> P-->Q
 \tdx{mp}             [| P-->Q;  P |] ==> Q
 \tdx{iff}            (P-->Q) --> (Q-->P) --> (P=Q)
@@ -240,7 +240,7 @@ case construct for lists on page~\pageref{hol-list} below.
 
 \begin{figure}\hfuzz=4pt%suppress "Overfull \hbox" message
 \begin{ttbox}\makeatother
-\tdx{True_def}   True  == ((\%x.x)=(\%x.x))
+\tdx{True_def}   True  == ((\%x::bool.x)=(\%x.x))
 \tdx{All_def}    All   == (\%P. P = (\%x.True))
 \tdx{Ex_def}     Ex    == (\%P. P(@x.P(x)))
 \tdx{False_def}  False == (!P.P)
@@ -313,8 +313,8 @@ with confusing results.
 \tdx{trans}       [| r=s; s=t |] ==> r=t
 \tdx{ssubst}      [| t=s; P(s) |] ==> P(t::'a)
 \tdx{box_equals}  [| a=b;  a=c;  b=d |] ==> c=d  
-\tdx{arg_cong}    s=t ==> f(s)=f(t)
-\tdx{fun_cong}    s::'a=>'b = t ==> s(x)=t(x)
+\tdx{arg_cong}    x=y ==> f(x)=f(y)
+\tdx{fun_cong}    f=g ==> f(x)=g(x)
 \subcaption{Equality}
 
 \tdx{TrueI}       True 
