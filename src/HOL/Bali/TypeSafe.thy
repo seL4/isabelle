@@ -263,7 +263,7 @@ lemma conforms_newG: "\<lbrakk>globs s oref = None; (x, s)\<Colon>\<preceq>(G,L)
   (x, init_obj G oi oref s)\<Colon>\<preceq>(G, L)"
 apply (unfold init_obj_def)
 apply (auto elim!: conforms_gupd dest!: oconf_init_obj 
-            simp add: obj.update_defs)
+            )
 done
 
 lemma conforms_init_class_obj: 
