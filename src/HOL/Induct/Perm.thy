@@ -21,4 +21,12 @@ inductive perm
     Cons  "xs <~~> ys ==> z#xs <~~> z#ys"
     trans "[| xs <~~> ys;  ys <~~> zs |] ==> xs <~~> zs"
 
+
+consts
+  remove  :: ['a, 'a list] => 'a list
+
+primrec 
+  "remove x []     = []"
+  "remove x (y#ys) = (if x=y then ys else y#remove x ys)"
+
 end
