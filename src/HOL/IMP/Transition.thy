@@ -17,12 +17,9 @@ consts  evalc1    :: "((com*state)*(com*state))set"
 				("_ -*-> _" [81,81] 100)
 
 translations
-        "x -1-> (y,z)" == "(x,y,z) : evalc1" 
        	"cs0 -1-> cs1" == "(cs0,cs1) : evalc1"
-        "x -n-> (y,z)" == "(x,y,z) : evalc1 ^ n" 
-	"cs0 -n-> cs1" == "(cs0,cs1) : evalc1 ^ n"
-	"x -*-> (y,z)" == "(x,y,z) : evalc1 ^*" 
-	"cs0 -*-> cs1" == "(cs0,cs1) : evalc1 ^*"
+	"cs0 -n-> cs1" == "(cs0,cs1) : evalc1^n"
+	"cs0 -*-> cs1" == "(cs0,cs1) : evalc1^*"
 
 
 inductive evalc1
