@@ -204,11 +204,11 @@ end;
 
 local
 
-fun remdups_tac i thm =
-  let val prems = Logic.strip_assums_hyp (Library.nth_elem (i - 1, Thm.prems_of thm))
-  in REPEAT_DETERM_N (length prems - length (gen_distinct op aconv prems))
-    (Tactic.ematch_tac [Drule.remdups_rl] i THEN Tactic.eq_assume_tac i) thm
-  end;
+val remdups_tac = SUBGOAL (fn (g, i) =>
+  let val prems = Logic.strip_assums_hyp g in
+    REPEAT_DETERM_N (length prems - length (gen_distinct op aconv prems))
+    (Tactic.ematch_tac [Drule.remdups_rl] i THEN Tactic.eq_assume_tac i)
+  end);
 
 fun REMDUPS tac = tac THEN_ALL_NEW remdups_tac;
 
@@ -245,7 +245,8 @@ fun intpr_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac else
 
 in
 
-fun rules_tac ctxt opt_lim = DEEPEN (2, if_none opt_lim 20) (intpr_tac ctxt [] 0) 4;
+fun rules_tac ctxt opt_lim =
+  SELECT_GOAL (DEEPEN (2, if_none opt_lim 20) (intpr_tac ctxt [] 0) 4 1);
 
 end;
 
