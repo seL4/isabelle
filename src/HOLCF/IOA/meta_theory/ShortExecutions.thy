@@ -25,7 +25,7 @@ consts
 defs
 
 LastActExtsch_def
-  "LastActExtsch A sch == (Cut (%x.x: ext A) sch = sch)"
+  "LastActExtsch A sch == (Cut (%x. x: ext A) sch = sch)"
 
 LastActExtex_def
   "LastActExtex A ex == LastActExtsch A (filter_act`ex)"

@@ -95,7 +95,7 @@ qed"Cut_Cons";
 
 goal thy "Filter P`s = Filter P`(Cut P s)";
 
-by (res_inst_tac [("A1","%x.True")
+by (res_inst_tac [("A1","%x. True")
                  ,("Q1","%x.~ P x"), ("x1","s")]
                  (take_lemma_induct RS mp) 1);
 by (Fast_tac 3);
@@ -112,7 +112,7 @@ qed"FilterCut";
 
 goal thy "Cut P (Cut P s) = (Cut P s)";
 
-by (res_inst_tac [("A1","%x.True")
+by (res_inst_tac [("A1","%x. True")
                  ,("Q1","%x.~ P x"), ("x1","s")]
                  (take_lemma_less_induct RS mp) 1);
 by (Fast_tac 3);
@@ -130,7 +130,7 @@ qed"Cut_idemp";
 
 goal thy "Map f`(Cut (P o f) s) = Cut P (Map f`s)";
 
-by (res_inst_tac [("A1","%x.True")
+by (res_inst_tac [("A1","%x. True")
                  ,("Q1","%x.~ P (f x)"), ("x1","s")]
                  (take_lemma_less_induct RS mp) 1);
 by (Fast_tac 3);
@@ -230,17 +230,17 @@ qed"execThruCut";
 
 
 goalw thy [schedules_def,has_schedule_def]
- "!! sch. [|sch : schedules A ; tr = Filter (%a.a:ext A)`sch|] \
+ "!! sch. [|sch : schedules A ; tr = Filter (%a. a:ext A)`sch|] \
 \   ==> ? sch. sch : schedules A & \
-\              tr = Filter (%a.a:ext A)`sch &\
+\              tr = Filter (%a. a:ext A)`sch &\
 \              LastActExtsch A sch";
 
 by (safe_tac set_cs);
-by (res_inst_tac [("x","filter_act`(Cut (%a.fst a:ext A) (snd ex))")] exI 1);
+by (res_inst_tac [("x","filter_act`(Cut (%a. fst a:ext A) (snd ex))")] exI 1);
 by (asm_full_simp_tac (!simpset addsimps [executions_def]) 1);
 by (pair_tac "ex" 1);
 by (safe_tac set_cs);
-by (res_inst_tac [("x","(x,Cut (%a.fst a:ext A) y)")] exI 1);
+by (res_inst_tac [("x","(x,Cut (%a. fst a:ext A) y)")] exI 1);
 by (Asm_simp_tac 1);
 
 (* Subgoal 1: Lemma:  propagation of execution through Cut *)
@@ -250,14 +250,14 @@ by (asm_full_simp_tac (!simpset addsimps [execThruCut]) 1);
 (* Subgoal 2:  Lemma:  Filter P s = Filter P (Cut P s) *)
 
 by (simp_tac (!simpset addsimps [filter_act_def]) 1);
-by (subgoal_tac "Map fst`(Cut (%a.fst a: ext A) y)= Cut (%a.a:ext A) (Map fst`y)" 1);
+by (subgoal_tac "Map fst`(Cut (%a. fst a: ext A) y)= Cut (%a. a:ext A) (Map fst`y)" 1);
 by (rtac (rewrite_rule [o_def] MapCut) 2);
 by (asm_full_simp_tac (!simpset addsimps [FilterCut RS sym]) 1);
 
 (* Subgoal 3: Lemma: Cut idempotent  *)
 
 by (simp_tac (!simpset addsimps [LastActExtsch_def,filter_act_def]) 1);
-by (subgoal_tac "Map fst`(Cut (%a.fst a: ext A) y)= Cut (%a.a:ext A) (Map fst`y)" 1);
+by (subgoal_tac "Map fst`(Cut (%a. fst a: ext A) y)= Cut (%a. a:ext A) (Map fst`y)" 1);
 by (rtac (rewrite_rule [o_def] MapCut) 2);
 by (asm_full_simp_tac (!simpset addsimps [Cut_idemp]) 1);
 qed"exists_LastActExtsch";
@@ -268,7 +268,7 @@ qed"exists_LastActExtsch";
 (* ---------------------------------------------------------------- *)
 
 goalw  thy [LastActExtsch_def]
-  "!! A. [| LastActExtsch A sch; Filter (%x.x:ext A)`sch = nil |] \
+  "!! A. [| LastActExtsch A sch; Filter (%x. x:ext A)`sch = nil |] \
 \   ==> sch=nil";
 by (dtac FilternPnilForallP 1);
 by (etac conjE 1);
@@ -278,7 +278,7 @@ by (Asm_full_simp_tac 1);
 qed"LastActExtimplnil";
 
 goalw  thy [LastActExtsch_def]
-  "!! A. [| LastActExtsch A sch; Filter (%x.x:ext A)`sch = UU |] \
+  "!! A. [| LastActExtsch A sch; Filter (%x. x:ext A)`sch = UU |] \
 \   ==> sch=UU";
 by (dtac FilternPUUForallP 1);
 by (etac conjE 1);

@@ -74,7 +74,7 @@ by (Simp_tac 1);
 qed"sfilter_UU";
 
 goal thy 
-"!!x.x~=UU ==> sfilter`P`(x##xs)=   \
+"!!x. x~=UU ==> sfilter`P`(x##xs)=   \
 \             (If P`x then x##(sfilter`P`xs) else sfilter`P`xs fi)";
 by (rtac trans 1);
 by (stac sfilter_unfold 1);
@@ -102,7 +102,7 @@ by (Simp_tac 1);
 qed"sforall2_UU";
 
 goal thy 
-"!!x.x~=UU ==> sforall2`P`(x##xs)= ((P`x) andalso sforall2`P`xs)";
+"!!x. x~=UU ==> sforall2`P`(x##xs)= ((P`x) andalso sforall2`P`xs)";
 by (rtac trans 1);
 by (stac sforall2_unfold 1);
 by (Asm_full_simp_tac 1);
@@ -131,7 +131,7 @@ by (Simp_tac 1);
 qed"stakewhile_UU";
 
 goal thy 
-"!!x.x~=UU ==> stakewhile`P`(x##xs) =   \
+"!!x. x~=UU ==> stakewhile`P`(x##xs) =   \
 \             (If P`x then x##(stakewhile`P`xs) else nil fi)";
 by (rtac trans 1);
 by (stac stakewhile_unfold 1);
@@ -160,7 +160,7 @@ by (Simp_tac 1);
 qed"sdropwhile_UU";
 
 goal thy 
-"!!x.x~=UU ==> sdropwhile`P`(x##xs) =   \
+"!!x. x~=UU ==> sdropwhile`P`(x##xs) =   \
 \             (If P`x then sdropwhile`P`xs else x##xs fi)";
 by (rtac trans 1);
 by (stac sdropwhile_unfold 1);
@@ -191,7 +191,7 @@ by (Simp_tac 1);
 qed"slast_UU";
 
 goal thy 
-"!!x.x~=UU ==> slast`(x##xs)= (If is_nil`xs then x else slast`xs fi)";
+"!!x. x~=UU ==> slast`(x##xs)= (If is_nil`xs then x else slast`xs fi)";
 by (rtac trans 1);
 by (stac slast_unfold 1);
 by (Asm_full_simp_tac 1);
@@ -288,7 +288,7 @@ by (res_inst_tac [("x","x")] seq.cases 1);
 by (REPEAT (Asm_full_simp_tac 1));
 qed"szip_UU2";
 
-goal thy "!!x.x~=UU ==> szip`(x##xs)`nil=UU";
+goal thy "!!x. x~=UU ==> szip`(x##xs)`nil=UU";
 by (rtac trans 1);
 by (stac szip_unfold 1);
 by (REPEAT (Asm_full_simp_tac 1));
@@ -417,7 +417,7 @@ by (fast_tac (HOL_cs addss !simpset) 1);
 by (fast_tac (HOL_cs addSDs seq.injects) 1);
 qed"Finite_cons_a";
 
-goal thy "!!x.a~=UU ==>(Finite (a##x)) = (Finite x)";
+goal thy "!!x. a~=UU ==>(Finite (a##x)) = (Finite x)";
 by (rtac iffI 1);
 by (rtac (Finite_cons_a RS mp RS mp RS mp) 1);
 by (REPEAT (assume_tac 1));
@@ -439,7 +439,7 @@ section "induction";
 
 
 qed_goalw "seq_finite_ind_lemma" thy  [seq.finite_def]
-"(!!n.P(seq_take n`s)) ==>  seq_finite(s) -->P(s)"
+"(!!n. P(seq_take n`s)) ==>  seq_finite(s) -->P(s)"
  (fn prems =>
         [
         (strip_tac 1),

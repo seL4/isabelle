@@ -106,7 +106,7 @@ szip_def
 
 
 proj_def 
- "nproj == (%n tr.HD`(iterate n TL tr))"   
+ "nproj == (%n tr. HD`(iterate n TL tr))"   
 
 Partial_def
   "Partial x  == (seq_finite x) & ~(Finite x)"

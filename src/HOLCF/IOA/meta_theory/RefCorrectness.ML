@@ -65,7 +65,7 @@ goalw thy [is_ref_map_def]
    "!!f. [|is_ref_map f C A; reachable C s; (s,a,t):trans_of C|] ==>\
 \     move A (@x. move A x (f s) a (f t)) (f s) a (f t)";
 
-by (subgoal_tac "? ex.move A ex (f s) a (f t)" 1);
+by (subgoal_tac "? ex. move A ex (f s) a (f t)" 1);
 by (Asm_full_simp_tac 2);
 by (etac exE 1);
 by (rtac selectI 1);
