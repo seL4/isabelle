@@ -40,6 +40,10 @@ syntax
   "_updates"        	:: "[update, updates] => updates"    		("_,/ _")
   "_record_update"  	:: "['a, updates] => 'b"               	("_/(3'(| _ |'))" [900,0] 900)
 
+syntax (xsymbols)
+  "_record_type_scheme"	:: "[field_types, type] => type"	("(3'(| _,/ (2\<dots> ::/ _) |'))")
+  "_record_scheme"  	:: "[fields, 'a] => 'a"             	("(3'(| _,/ (2\<dots> =/ _) |'))")
+
 
 (* type class for record extensions *)
 
