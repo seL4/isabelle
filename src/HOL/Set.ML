@@ -187,6 +187,9 @@ qed "ComplD";
 
 val ComplE = make_elim ComplD;
 
+qed_goal "Compl_iff" Set.thy "(c : Compl(A)) = (c~:A)"
+ (fn _ => [ (fast_tac (HOL_cs addSIs [ComplI] addSEs [ComplE]) 1) ]);
+
 
 section "Binary union -- Un";
 
@@ -211,6 +214,9 @@ by (rtac (major RS CollectD RS disjE) 1);
 by (REPEAT (eresolve_tac prems 1));
 qed "UnE";
 
+qed_goal "Un_iff" Set.thy "(c : A Un B) = (c:A | c:B)"
+ (fn _ => [ (fast_tac (HOL_cs addSIs [UnCI] addSEs [UnE]) 1) ]);
+
 
 section "Binary intersection -- Int";
 
@@ -233,6 +239,9 @@ by (rtac minor 1);
 by (rtac (major RS IntD1) 1);
 by (rtac (major RS IntD2) 1);
 qed "IntE";
+
+qed_goal "Int_iff" Set.thy "(c : A Int B) = (c:A & c:B)"
+ (fn _ => [ (fast_tac (HOL_cs addSIs [IntI] addSEs [IntE]) 1) ]);
 
 
 section "Set difference";
@@ -275,6 +284,9 @@ qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
 qed_goal "equals0D" Set.thy "[| A={};  a:A |] ==> P"
  (fn [major,minor]=>
   [ (rtac (minor RS (major RS equalityD1 RS subsetD RS emptyE)) 1) ]);
+
+qed_goal "empty_iff" Set.thy "(c : {}) = False"
+ (fn _ => [ (fast_tac (HOL_cs addSEs [emptyE]) 1) ]);
 
 
 section "Augmenting a set -- insert";
