@@ -31,61 +31,6 @@ fun mk_all_imp (A,P) =
   in  all_const T $ Abs("v", T, imp $ (mk_mem (Bound 0, A)) $ (P $ Bound 0))
   end;
 
-(** Cartesian product type **)
-
-val unitT = Type("unit",[]);
-
-fun mk_prod (T1,T2) = Type("*", [T1,T2]);
-
-(*Maps the type T1*...*Tn to [T1,...,Tn], however nested*)
-fun factors (Type("*", [T1,T2])) = factors T1 @ factors T2
-  | factors T                    = [T];
-
-(*Make a correctly typed ordered pair*)
-fun mk_Pair (t1,t2) = 
-  let val T1 = fastype_of t1
-      and T2 = fastype_of t2
-  in  Const("Pair", [T1, T2] ---> mk_prod(T1,T2)) $ t1 $ t2  end;
-   
-fun split_const(Ta,Tb,Tc) = 
-    Const("split", [[Ta,Tb]--->Tc, mk_prod(Ta,Tb)] ---> Tc);
-
-(*In ap_split S T u, term u expects separate arguments for the factors of S,
-  with result type T.  The call creates a new term expecting one argument
-  of type S.*)
-fun ap_split (Type("*", [T1,T2])) T3 u = 
-      split_const(T1,T2,T3) $ 
-      Abs("v", T1, 
-	  ap_split T2 T3
-	     ((ap_split T1 (factors T2 ---> T3) (incr_boundvars 1 u)) $ 
-	      Bound 0))
-  | ap_split T T3 u = u;
-
-(*Makes a nested tuple from a list, following the product type structure*)
-fun mk_tuple (Type("*", [T1,T2])) tms = 
-        mk_Pair (mk_tuple T1 tms, 
-		 mk_tuple T2 (drop (length (factors T1), tms)))
-  | mk_tuple T (t::_) = t;
-
-(*Attempts to remove occurrences of split, and pair-valued parameters*)
-val remove_split = rewrite_rule [split RS eq_reflection]  o  
-	           rule_by_tactic (ALLGOALS split_all_tac);
-
-(*Uncurries any Var of function type in the rule*)
-fun split_rule_var (t as Var(v, Type("fun",[T1,T2])), rl) =
-      let val T' = factors T1 ---> T2
-	  val newt = ap_split T1 T2 (Var(v,T'))
-	  val cterm = Thm.cterm_of (#sign(rep_thm rl))
-      in
-	  remove_split (instantiate ([], [(cterm t, cterm newt)]) rl)
-      end
-  | split_rule_var (t,rl) = rl;
-
-(*Uncurries ALL function variables occurring in a rule's conclusion*)
-fun split_rule rl = foldr split_rule_var (term_vars (concl_of rl), rl)
-                    |> standard;
-
-
 (** Disjoint sum type **)
 
 fun mk_sum (T1,T2) = Type("+", [T1,T2]);

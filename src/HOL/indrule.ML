@@ -102,9 +102,9 @@ val quant_induct =
   Splits cartesian products in elem_type, however nested*)
 
 (*The components of the element type, several if it is a product*)
-val elem_factors = Ind_Syntax.factors elem_type;
+val elem_factors = Prod_Syntax.factors elem_type;
 val elem_frees = mk_frees "za" elem_factors;
-val elem_tuple = Ind_Syntax.mk_tuple elem_type elem_frees;
+val elem_tuple = Prod_Syntax.mk_tuple elem_type elem_frees;
 
 (*Given a recursive set, return the "split" predicate
   and a conclusion for the simultaneous induction rule*)
@@ -117,7 +117,7 @@ fun mk_predpair rec_tm =
           (elem_frees, 
            Ind_Syntax.imp $ (Ind_Syntax.mk_mem (elem_tuple, rec_tm))
                 $ (list_comb (pfree, elem_frees)))
-  in  (Ind_Syntax.ap_split elem_type Ind_Syntax.boolT pfree, 
+  in  (Prod_Syntax.ap_split elem_type Ind_Syntax.boolT pfree, 
        qconcl)  
   end;
 
@@ -214,14 +214,14 @@ val induct0 = quant_induct RS spec RSN (2,rev_mp) |>
 in
   struct
   val induct = standard 
-                  (Ind_Syntax.split_rule_var
+                  (Prod_Syntax.split_rule_var
 		    (Var((pred_name,2), elem_type --> Ind_Syntax.boolT),
 		     induct0));
 
   (*Just "True" unless there's true mutual recursion.  This saves storage.*)
   val mutual_induct = 
       if length Intr_elim.rec_names > 1
-      then Ind_Syntax.remove_split mutual_induct_split
+      then Prod_Syntax.remove_split mutual_induct_split
       else TrueI;
   end
 end;

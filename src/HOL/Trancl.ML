@@ -68,19 +68,10 @@ by (fast_tac (rel_cs addIs prems) 1);
 by (fast_tac (rel_cs addIs prems) 1);
 qed "rtrancl_induct";
 
-val prems = goal Trancl.thy
- "[| ((a,b),(c,d)) : r^*; P a b; \
-\    !!x y z u.[| ((a,b),(x,y)) : r^*;  ((x,y),(z,u)) : r;  P x y |] ==> P z u\
-\ |] ==> P c d";
-by(res_inst_tac[("R","P")]splitD 1);
-by(res_inst_tac[("P","split P")]rtrancl_induct 1);
-brs prems 1;
-by(Simp_tac 1);
-brs prems 1;
-by(split_all_tac 1);
-by(Asm_full_simp_tac 1);
-by(REPEAT(ares_tac prems 1));
-qed "rtrancl_induct2";
+bind_thm
+  ("rtrancl_induct2",
+   Prod_Syntax.split_rule
+     (read_instantiate [("a","(ax,ay)"), ("b","(bx,by)")] rtrancl_induct));
 
 (*transitivity of transitive closure!! -- by induction.*)
 goalw Trancl.thy [trans_def] "trans(r^*)";
