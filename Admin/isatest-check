@@ -27,7 +27,7 @@ MAIL=$HOME/bin/pmail
 ERRORLOG=$HOME/var/error.log
 
 # where the test-still-running files are
-RUNNING=$HOME/var/run/
+RUNNING=$HOME/var/running
 
 # tmp file for sending mail
 TMP=/tmp/isatest-makedist.$$
