@@ -165,8 +165,8 @@ returns \isa{x+1}. Instead of
 \textbf{Formulae}\indexbold{formula} are terms of type \isaindexbold{bool}.
 There are the basic constants \isaindexbold{True} and \isaindexbold{False} and
 the usual logical connectives (in decreasing order of priority):
-\indexboldpos{\isasymnot}{$HOL0not}, \indexboldpos{\isasymand}{$HOL0and},
-\indexboldpos{\isasymor}{$HOL0or}, and \indexboldpos{\isasymimp}{$HOL0imp},
+\indexboldpos{\protect\isasymnot}{$HOL0not}, \indexboldpos{\protect\isasymand}{$HOL0and},
+\indexboldpos{\protect\isasymor}{$HOL0or}, and \indexboldpos{\protect\isasymimp}{$HOL0imp},
 all of which (except the unary \isasymnot) associate to the right. In
 particular \isa{A \isasymimp~B \isasymimp~C} means \isa{A \isasymimp~(B
   \isasymimp~C)} and is thus logically equivalent to \isa{A \isasymand~B
@@ -181,11 +181,13 @@ and $t@2$ are terms of the same type. In case $t@1$ and $t@2$ are of type
 \isa{\isasymnot($t@1$ = $t@2$)}.
 
 Quantifiers are written as
-\isa{\isasymforall{}x.~$P$}\indexbold{$HOL0All@\isasymforall} and
-\isa{\isasymexists{}x.~$P$}\indexbold{$HOL0Ex@\isasymexists}.  There is
-even \isa{\isasymuniqex{}x.~$P$}\index{$HOL0ExU@\isasymuniqex|bold}, which
-means that there exists exactly one \isa{x} that satisfies \isa{$P$}.  Nested
-quantifications can be abbreviated: \isa{\isasymforall{}x~y~z.~$P$} means
+\isa{\isasymforall{}x.~$P$}\index{$HOL0All@\isasymforall|bold} and
+\isa{\isasymexists{}x.~$P$}\index{$HOL0Ex@\isasymexists|bold}. 
+There is even
+\isa{\isasymuniqex{}x.~$P$}\index{$HOL0ExU@\isasymuniqex|bold}, which
+means that there exists exactly one \isa{x} that satisfies \isa{$P$}. 
+Nested quantifications can be abbreviated:
+\isa{\isasymforall{}x~y~z.~$P$} means
 \isa{\isasymforall{}x.\isasymforall{}y.\isasymforall{}z.~$P$}.
 
 Despite type inference, it is sometimes necessary to attach explicit
