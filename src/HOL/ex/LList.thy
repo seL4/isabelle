@@ -89,7 +89,7 @@ defs
 
   llist_case_def
    "llist_case c d l == 
-       List_case c (%x y. d (Inv Leaf x) (Abs_llist y)) (Rep_llist l)"
+       List_case c (%x y. d (inv Leaf x) (Abs_llist y)) (Rep_llist l)"
 
   LList_corec_fun_def
     "LList_corec_fun k f == 

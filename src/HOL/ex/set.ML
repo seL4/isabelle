@@ -43,11 +43,11 @@ by (best_tac (!claset addSEs [equalityCE]) 1);
 
 (*** The Schroder-Berstein Theorem ***)
 
-val prems = goalw Lfp.thy [image_def] "inj(f) ==> Inv(f)``(f``X) = X";
+val prems = goalw Lfp.thy [image_def] "inj(f) ==> inv(f)``(f``X) = X";
 by (cut_facts_tac prems 1);
 by (rtac equalityI 1);
-by (fast_tac (!claset addEs [Inv_f_f RS ssubst]) 1);
-by (fast_tac (!claset addEs [Inv_f_f RS ssubst]) 1);
+by (fast_tac (!claset addEs [inv_f_f RS ssubst]) 1);
+by (fast_tac (!claset addEs [inv_f_f RS ssubst]) 1);
 qed "inv_image_comp";
 
 goal Set.thy "!!f. f(a) ~: (f``X) ==> a~:X";
@@ -116,7 +116,7 @@ by (rtac (decomposition RS exE) 1);
 by (rtac exI 1);
 by (rtac bij_if_then_else 1);
 by (EVERY [rtac refl 4, rtac (injf RS inj_imp) 1,
-           rtac (injg RS inj_onto_Inv) 1]);
+           rtac (injg RS inj_onto_inv) 1]);
 by (EVERY1 [etac ssubst, stac double_complement, rtac subsetI,
             etac imageE, etac ssubst, rtac rangeI]);
 by (EVERY1 [etac ssubst, stac double_complement, 

@@ -45,7 +45,7 @@ defs
 
   term_rec_def
    "term_rec t d == 
-   Term_rec (Rep_term t) (%x y r. d (Inv Leaf x) (Abs_Tlist(y)) r)"
+   Term_rec (Rep_term t) (%x y r. d (inv Leaf x) (Abs_Tlist(y)) r)"
 
 rules
     (*faking a type definition for term...*)

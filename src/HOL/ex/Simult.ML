@@ -280,7 +280,7 @@ val tf_rec_ss = HOL_ss addsimps
    TCONS_I, FNIL_I, FCONS_I, Rep_Tree, Rep_Forest,
    Rep_Tree_inverse, Rep_Forest_inverse,
    Abs_Tree_inverse, Abs_Forest_inverse,
-   inj_Leaf, Inv_f_f, sexp.LeafI, range_eqI,
+   inj_Leaf, inv_f_f, sexp.LeafI, range_eqI,
    Rep_Tree_in_sexp, Rep_Forest_in_sexp];
 
 goalw Simult.thy [tree_rec_def, forest_rec_def, Tcons_def]

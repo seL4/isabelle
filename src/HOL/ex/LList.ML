@@ -557,7 +557,7 @@ qed "Lappend_type";
 (** llist_case: case analysis for 'a llist **)
 
 Addsimps ([Abs_llist_inverse, Rep_llist_inverse,
-           Rep_llist, rangeI, inj_Leaf, Inv_f_f] @ llist.intrs);
+           Rep_llist, rangeI, inj_Leaf, inv_f_f] @ llist.intrs);
 
 goalw LList.thy [llist_case_def,LNil_def]  "llist_case c d LNil = c";
 by (Simp_tac 1);

@@ -92,7 +92,7 @@ defs
 
   list_rec_def
    "list_rec l c d == 
-   List_rec (Rep_list l) c (%x y r. d (Inv Leaf x) (Abs_list y) r)"
+   List_rec (Rep_list l) c (%x y r. d (inv Leaf x) (Abs_list y) r)"
 
   (* Generalized Map Functionals *)
 

@@ -161,7 +161,7 @@ local
   val term_rec_ss = HOL_ss
       addsimps [Rep_Tlist RS (rangeI RS term.APP_I RS Abs_term_inverse),  
                 Rep_term_in_sexp, Rep_Term_rec, Rep_term_inverse, inj_Leaf,
-                Inv_f_f, Abs_Rep_map, map_ident2, sexp.LeafI]
+                inv_f_f, Abs_Rep_map, map_ident2, sexp.LeafI]
 in
 
 val term_rec = prove_goalw Term.thy

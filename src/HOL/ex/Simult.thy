@@ -72,11 +72,11 @@ defs
 
   tree_rec_def
    "tree_rec t b c d == 
-   TF_rec (Rep_Tree t) (%x y r. b (Inv Leaf x) (Abs_Forest y) r) 
+   TF_rec (Rep_Tree t) (%x y r. b (inv Leaf x) (Abs_Forest y) r) 
           c (%x y rt rf. d (Abs_Tree x) (Abs_Forest y) rt rf)"
 
   forest_rec_def
    "forest_rec tf b c d == 
-   TF_rec (Rep_Forest tf) (%x y r. b (Inv Leaf x) (Abs_Forest y) r) 
+   TF_rec (Rep_Forest tf) (%x y r. b (inv Leaf x) (Abs_Forest y) r) 
           c (%x y rt rf. d (Abs_Tree x) (Abs_Forest y) rt rf)"
 end

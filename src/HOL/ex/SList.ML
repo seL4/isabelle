@@ -202,7 +202,7 @@ val Rep_list_in_sexp =
 local
   val list_rec_simps = [List_rec_NIL, List_rec_CONS, 
                         Abs_list_inverse, Rep_list_inverse,
-                        Rep_list, rangeI, inj_Leaf, Inv_f_f,
+                        Rep_list, rangeI, inj_Leaf, inv_f_f,
                         sexp.LeafI, Rep_list_in_sexp]
 in
   val list_rec_Nil = prove_goalw SList.thy [list_rec_def, Nil_def]
