@@ -111,7 +111,9 @@ cd "$DISTBASE"
 
 $EXPORT
 find . -name CVS -print | xargs rm -rf
-find . -type d -a -empty -print | xargs rm -rf
+find . "(" -type d -a -empty ")" -print | xargs rm -f
+find . "(" -type d -a -empty ")" -print | xargs rm -f
+find . "(" -type d -a -empty ")" -print | xargs rm -f
 
 
 # build docs
