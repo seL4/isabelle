@@ -12,10 +12,9 @@ by (asm_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
 by (blast_tac (claset() addIs [monoD]) 1);
 qed "mono_Always_o";
 
-Goalw [Follows_def]
-    "mono (h::'a::order => 'b::order) \
-\    ==> (INT j. {s. j <= g s} LeadsTo {s. j <= f s}) <= \
-\        (INT k. {s. k <= h (g s)} LeadsTo {s. k <= h (f s)})";
+Goal "mono (h::'a::order => 'b::order) \
+\     ==> (INT j. {s. j <= g s} LeadsTo {s. j <= f s}) <= \
+\         (INT k. {s. k <= h (g s)} LeadsTo {s. k <= h (f s)})";
 by Auto_tac;
 by (rtac single_LeadsTo_I 1);
 by (dres_inst_tac [("x", "g s")] spec 1);
@@ -36,6 +35,29 @@ Goalw [Follows_def]
 by (asm_full_simp_tac (simpset() addsimps [Always_eq_includes_reachable]) 1);
 by (blast_tac (claset() addIs [order_trans, LeadsTo_Trans]) 1);
 qed "Follows_trans";
+
+
+(** Destructiom rules **)
+
+Goalw [Follows_def]
+     "F : f Fols g ==> F : Increasing f";
+by (Blast_tac 1);
+qed "Follows_Increasing1";
+
+Goalw [Follows_def]
+     "F : f Fols g ==> F : Increasing g";
+by (Blast_tac 1);
+qed "Follows_Increasing2";
+
+Goalw [Follows_def]
+     "F : f Fols g ==> F : Always {s. f s <= g s}";
+by (Blast_tac 1);
+qed "Follows_Bounded";
+
+Goalw [Follows_def]
+     "F : f Fols g ==> F : {s. k <= g s} LeadsTo {s. k <= f s}";
+by (Blast_tac 1);
+qed "Follows_LeadsTo";
 
 
 (*Can replace "Un" by any sup.  But existing max only works for linorders.*)
