@@ -880,7 +880,7 @@ val inductive_casesP =
   OuterSyntax.improper_command "inductive_cases"
     "create simplified instances of elimination rules (improper)" K.thy_script ind_cases;
 
-val _ = OuterSyntax.add_keywords ["intros", "monos", "con_defs", "of"];
+val _ = OuterSyntax.add_keywords ["intros", "monos", "con_defs"];
 val _ = OuterSyntax.add_parsers [inductiveP, coinductiveP, inductive_casesP];
 
 end;
