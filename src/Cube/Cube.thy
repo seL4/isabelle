@@ -9,7 +9,7 @@ Barendregt's Lambda-Cube
 Cube = Pure +
 
 types
-  term, context, typing 0
+  term  context  typing
 
 arities
   term :: logic

@@ -9,7 +9,7 @@ Zermelo-Fraenkel Set Theory
 ZF = FOL +
 
 types
-  i, is 0
+  i  is
 
 arities
   i :: term
