@@ -6,11 +6,8 @@ Extensible records with structural subtyping in HOL.
 
 TODO:
   - field types: typedef;
-  - trfuns for record types;
   - operations and theorems: split, split_all/ex, ...;
-  - field constructor: more specific type for snd component;
-  - update_more operation;
-  - field syntax: "..." for "... = more", "?..." for "?... = ?more";
+  - field constructor: more specific type for snd component (x_more etc. classes);
 *)
 
 signature RECORD_PACKAGE =
@@ -187,6 +184,12 @@ fun mk_update r (c, x) =
   let val rT = fastype_of r
   in Const (mk_updateC rT (c, find_fieldT c rT)) $ x $ r end;
 
+val mk_more_updateC = mk_updateC;
+
+fun mk_more_update r (c, x) =
+  let val rT = fastype_of r
+  in Const (mk_more_updateC rT (c, snd (dest_recordT rT))) $ x $ r end;
+
 
 (* make *)
 
@@ -198,43 +201,83 @@ fun mk_makeC rT (c, Ts) = (c, Ts ---> rT);
 
 (* parse translations *)
 
-fun field_tr (Const ("_field", _) $ Free (name, _) $ arg) =
-      Syntax.const (suffix fieldN name) $ arg
-  | field_tr t = raise TERM ("field_tr", [t]);
+fun gen_field_tr mark sfx (t as Const (c, _) $ Free (name, _) $ arg) =
+      if c = mark then Syntax.const (suffix sfx name) $ arg
+      else raise TERM ("gen_field_tr: " ^ mark, [t])
+  | gen_field_tr mark _ t = raise TERM ("gen_field_tr: " ^ mark, [t]);
 
-fun fields_tr (Const ("_fields", _) $ field $ fields) =
-      field_tr field :: fields_tr fields
-  | fields_tr field = [field_tr field];
+fun gen_fields_tr sep mark sfx (tm as Const (c, _) $ t $ u) =
+      if c = sep then gen_field_tr mark sfx t :: gen_fields_tr sep mark sfx u
+      else [gen_field_tr mark sfx  tm]
+  | gen_fields_tr _ mark sfx t = [gen_field_tr mark sfx t];
 
-fun record_tr (*"_record"*) [fields] =
-      foldr (op $) (fields_tr fields, HOLogic.unit)
-  | record_tr (*"_record"*) ts = raise TERM ("record_tr", ts);
+fun gen_record_tr sep mark sfx unit [t] = foldr (op $) (gen_fields_tr sep mark sfx t, unit)
+  | gen_record_tr _ _ _ _ ts = raise TERM ("record_tr", ts);
 
-fun record_scheme_tr (*"_record_scheme"*) [fields, more] =
-      foldr (op $) (fields_tr fields, more)
-  | record_scheme_tr (*"_record_scheme"*) ts = raise TERM ("record_scheme_tr", ts);
+fun gen_record_scheme_tr sep mark sfx [t, more] = foldr (op $) (gen_fields_tr sep mark sfx t, more)
+  | gen_record_scheme_tr _ _ _ ts = raise TERM ("record_scheme_tr", ts);
+
+
+val record_type_tr = gen_record_tr "_field_types" "_field_type" field_typeN (Syntax.const "unit");
+val record_type_scheme_tr = gen_record_scheme_tr "_field_types" "_field_type" field_typeN;
+
+val record_tr = gen_record_tr "_fields" "_field" fieldN HOLogic.unit;
+val record_scheme_tr = gen_record_scheme_tr "_fields" "_field" fieldN;
+
+fun record_update_tr [t, u] =
+      foldr (op $) (rev (gen_fields_tr "_updates" "_update" updateN u), t)
+  | record_update_tr ts = raise TERM ("record_update_tr", ts);
+
+
+val parse_translation =
+ [("_record_type", record_type_tr),
+  ("_record_type_scheme", record_type_scheme_tr),
+  ("_record", record_tr),
+  ("_record_scheme", record_scheme_tr),
+  ("_record_update", record_update_tr)];
 
 
 (* print translations *)
 
-fun fields_tr' (tm as Const (name_field, _) $ arg $ more) =
-      (case try (unsuffix fieldN) name_field of
-        Some name =>
-          apfst (cons (Syntax.const "_field" $ Syntax.free name $ arg)) (fields_tr' more)
-      | None => ([], tm))
-  | fields_tr' tm = ([], tm);
+fun gen_field_tr' sfx f name =
+  let val name_sfx = suffix sfx name
+  in (name_sfx, fn [t, u] => f (Syntax.const name_sfx $ t $ u) | _ => raise Match) end;
 
-fun record_tr' tm =
+fun gen_fields_tr' mark sfx (tm as Const (name_field, _) $ t $ u) =
+      (case try (unsuffix sfx) name_field of
+        Some name =>
+          apfst (cons (Syntax.const mark $ Syntax.free name $ t)) (gen_fields_tr' mark sfx u)
+      | None => ([], tm))
+  | gen_fields_tr' _ _ tm = ([], tm);
+
+fun gen_record_tr' sep mark sfx is_unit record record_scheme tm =
   let
-    val (fields, more) = fields_tr' tm;
-    val fields' = foldr1 (fn (f, fs) => Syntax.const "_fields" $ f $ fs) fields;
+    val (ts, u) = gen_fields_tr' mark sfx tm;
+    val t' = foldr1 (fn (v, w) => Syntax.const sep $ v $ w) ts;
   in
-    if HOLogic.is_unit more then Syntax.const "_record" $ fields'
-    else Syntax.const "_record_scheme" $ fields' $ more
+    if is_unit u then Syntax.const record $ t'
+    else Syntax.const record_scheme $ t' $ u
   end;
 
-fun field_tr' name [arg, more] = record_tr' (Syntax.const name $ arg $ more)
-  | field_tr' _ _ = raise Match;
+
+val record_type_tr' =
+  gen_record_tr' "_field_types" "_field_type" field_typeN
+    (fn Const ("unit", _) => true | _ => false) "_record_type" "_record_type_scheme";
+
+val record_tr' =
+  gen_record_tr' "_fields" "_field" fieldN HOLogic.is_unit "_record" "_record_scheme";
+
+fun record_update_tr' tm =
+  let val (ts, u) = gen_fields_tr' "_update" updateN tm in
+    Syntax.const "_record_update" $ u $
+      foldr1 (fn (v, w) => Syntax.const "_updates" $ v $ w) (rev ts)
+  end;
+
+
+fun print_translation names =
+  map (gen_field_tr' field_typeN record_type_tr') names @
+  map (gen_field_tr' fieldN record_tr') names @
+  map (gen_field_tr' updateN record_update_tr') names;
 
 
 
@@ -387,7 +430,7 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
       |> Theory.add_tyabbrs_i fieldT_specs
       |> (Theory.add_consts_i o map (Syntax.no_syn o apfst base))
         (field_decls @ dest_decls)
-      |> (PureThy.add_defs_i o map Attribute.none)
+      |> (PureThy.add_defs_i o map (fn x => (x, [Attribute.tag_internal])))
         (field_specs @ dest_specs);
 
     val field_defs = get_defs defs_thy field_specs;
@@ -421,7 +464,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     (* basic components *)
 
     val alphas = map fst args;
-    val name = Sign.full_name sign bname;	(*not made part of record name space!*)
+    val name = Sign.full_name sign bname;       (*not made part of record name space!*)
 
     val parent_fields = flat (map #fields parents);
     val parent_names = map fst parent_fields;
@@ -450,7 +493,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val zeta = variant alphas "'z";
     val moreT = TFree (zeta, moreS);
     val more = Free (moreN, moreT);
-    fun more_part t = mk_more t (full moreN);
+    val full_moreN = full moreN;
+    fun more_part t = mk_more t full_moreN;
+    fun more_part_update t x = mk_more_update t (full_moreN, x);
 
     val parent_more = funpow parent_len mk_snd;
     val idxs = 0 upto (len - 1);
@@ -463,16 +508,17 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     (* prepare print translation functions *)
 
-    val field_tr'_names =
-      distinct (flat (map (NameSpace.accesses o suffix fieldN) names)) \\
-        #3 (Syntax.trfun_names (Theory.syn_of thy));
-    val field_trfuns = ([], [], field_tr'_names ~~ map field_tr' field_tr'_names, []);
+    val accesses = distinct (flat (map NameSpace.accesses (full_moreN :: names)));
+    val (_, _, tr'_names, _) = Syntax.trfun_names (Theory.syn_of thy);
+    val field_tr's = filter_out (fn (c, _) => c mem tr'_names) (print_translation accesses);
 
 
     (* prepare declarations *)
 
-    val sel_decls = map (mk_selC rec_schemeT) bfields @ [mk_moreC rec_schemeT (moreN, moreT)];
-    val update_decls = map (mk_updateC rec_schemeT) bfields;
+    val sel_decls = map (mk_selC rec_schemeT) bfields @
+      [mk_moreC rec_schemeT (moreN, moreT)];
+    val update_decls = map (mk_updateC rec_schemeT) bfields @
+      [mk_more_updateC rec_schemeT (moreN, moreT)];
     val make_decls =
       [(mk_makeC rec_schemeT (make_schemeN, all_types @ [moreT])),
        (mk_makeC recT (makeN, all_types))];
@@ -497,7 +543,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     fun mk_upd_spec (i, (c, x)) =
       mk_update r (c, x) :==
         mk_record (nth_update (c, x) (parent_len + i, all_sels), more_part r)
-    val update_specs = ListPair.map mk_upd_spec (idxs, named_vars);
+    val update_specs =
+      ListPair.map mk_upd_spec (idxs, named_vars) @
+        [more_part_update r more :== mk_record (all_sels, more)];
 
     (*makes*)
     val make_scheme = Const (mk_makeC rec_schemeT (full make_schemeN, all_types @ [moreT]));
@@ -520,7 +568,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
         mk_update rec_scheme (c, x') ===
           mk_record (nth_update (c, x') (parent_len + i, all_named_vars), more)
       end;
-    val update_props = ListPair.map mk_upd_prop (idxs, fields);
+    val update_props =
+      ListPair.map mk_upd_prop (idxs, fields) @
+        let val more' = Free (variant all_xs (moreN ^ "'"), moreT)
+        in [more_part_update rec_scheme more' === mk_record (all_named_vars, more')] end;
 
 
     (* 1st stage: fields_thy *)
@@ -536,12 +587,12 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val defs_thy =
       fields_thy
       |> Theory.parent_path
-      |> Theory.add_tyabbrs_i recordT_specs	(*not made part of record name space!*)
+      |> Theory.add_tyabbrs_i recordT_specs     (*not made part of record name space!*)
       |> Theory.add_path bname
-      |> Theory.add_trfuns field_trfuns
+      |> Theory.add_trfuns ([], [], field_tr's, [])
       |> (Theory.add_consts_i o map Syntax.no_syn)
         (sel_decls @ update_decls @ make_decls)
-      |> (PureThy.add_defs_i o map Attribute.none)
+      |> (PureThy.add_defs_i o map (fn x => (x, [Attribute.tag_internal])))
         (sel_specs @ update_specs @ make_specs);
 
     val sel_defs = get_defs defs_thy sel_specs;
@@ -697,8 +748,7 @@ val add_record_i = gen_add_record cert_typ (K I);
 
 val setup =
  [RecordsData.init,
-  Theory.add_trfuns
-    ([], [("_record", record_tr), ("_record_scheme", record_scheme_tr)], [], [])];
+  Theory.add_trfuns ([], parse_translation, [], [])];
 
 
 end;
