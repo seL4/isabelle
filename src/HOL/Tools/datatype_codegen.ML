@@ -23,12 +23,31 @@ fun mk_tuple [p] = p
 
 (**** datatype definition ****)
 
+(* find shortest path to constructor with no recursive arguments *)
+
+fun find_nonempty (descr: DatatypeAux.descr) is i =
+  let
+    val (_, _, constrs) = the (assoc (descr, i));
+    fun arg_nonempty (_, DatatypeAux.DtRec i) = if i mem is then None
+          else apsome (curry op + 1 o snd) (find_nonempty descr (i::is) i)
+      | arg_nonempty _ = Some 0;
+    fun max xs = foldl
+      (fn (None, _) => None
+        | (Some i, Some j) => Some (Int.max (i, j))
+        | (_, None) => None) (Some 0, xs);
+    val xs = sort (int_ord o pairself snd)
+      (mapfilter (fn (s, dts) => apsome (pair s)
+        (max (map (arg_nonempty o DatatypeAux.strip_dtyp) dts))) constrs)
+  in case xs of [] => None | x :: _ => Some x end;
+
 fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
   let
     val sg = sign_of thy;
     val tab = DatatypePackage.get_datatypes thy;
 
     val descr' = filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
+    val rtnames = map (#1 o snd) (filter (fn (_, (_, _, cs)) =>
+      exists (exists DatatypeAux.is_rec_type o snd) cs) descr');
 
     val (_, (_, _, (cname, _) :: _)) :: _ = descr';
     val dname = mk_const_id sg cname;
@@ -82,7 +101,72 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
                     map (fn (x, U) => [Pretty.block [mk_term_of sg false U,
                       Pretty.brk 1, x]]) (args ~~ Ts)))))
               end) (prfx, cs')
-          in eqs @ rest end
+          in eqs @ rest end;
+
+    fun mk_gen_of_def prfx [] = []
+      | mk_gen_of_def prfx ((i, (tname, dts, cs)) :: xs) =
+          let
+            val tvs = map DatatypeAux.dest_DtTFree dts;
+            val sorts = map (rpair []) tvs;
+            val (cs1, cs2) =
+              partition (exists DatatypeAux.is_rec_type o snd) cs;
+            val Some (cname, _) = find_nonempty descr [i] i;
+
+            fun mk_delay p = Pretty.block
+              [Pretty.str "fn () =>", Pretty.brk 1, p];
+
+            fun mk_constr s (cname, dts) =
+              let
+                val Ts = map (DatatypeAux.typ_of_dtyp descr sorts) dts;
+                val gs = map (fn T => mk_app false (mk_gen sg false rtnames s T)
+                  [Pretty.str "j"]) Ts;
+                val id = mk_const_id sg cname
+              in case gs of
+                  _ :: _ :: _ => Pretty.block
+                    [Pretty.str id, Pretty.brk 1, mk_tuple gs]
+                | _ => mk_app false (Pretty.str id) (map parens gs)
+              end;
+
+            fun mk_choice [c] = mk_constr "(i-1)" c
+              | mk_choice cs = Pretty.block [Pretty.str "one_of",
+                  Pretty.brk 1, Pretty.blk (1, Pretty.str "[" ::
+                  flat (separate [Pretty.str ",", Pretty.fbrk]
+                    (map (single o mk_delay o mk_constr "(i-1)") cs)) @
+                  [Pretty.str "]"]), Pretty.brk 1, Pretty.str "()"];
+
+            val gs = map (Pretty.str o suffix "G" o strip_tname) tvs;
+            val gen_name = "gen_" ^ mk_type_id sg tname
+
+          in
+            Pretty.blk (4, separate (Pretty.brk 1) 
+                (Pretty.str (prfx ^ gen_name ^
+                   (if null cs1 then "" else "'")) :: gs @
+                 (if null cs1 then [] else [Pretty.str "i"]) @
+                 [Pretty.str "j"]) @
+              [Pretty.str " =", Pretty.brk 1] @
+              (if not (null cs1) andalso not (null cs2)
+               then [Pretty.str "frequency", Pretty.brk 1,
+                 Pretty.blk (1, [Pretty.str "[",
+                   mk_tuple [Pretty.str "i", mk_delay (mk_choice cs1)],
+                   Pretty.str ",", Pretty.fbrk,
+                   mk_tuple [Pretty.str "1", mk_delay (mk_choice cs2)],
+                   Pretty.str "]"]), Pretty.brk 1, Pretty.str "()"]
+               else if null cs2 then
+                 [Pretty.block [Pretty.str "(case", Pretty.brk 1,
+                   Pretty.str "i", Pretty.brk 1, Pretty.str "of",
+                   Pretty.brk 1, Pretty.str "0 =>", Pretty.brk 1,
+                   mk_constr "0" (cname, the (assoc (cs, cname))),
+                   Pretty.brk 1, Pretty.str "| _ =>", Pretty.brk 1,
+                   mk_choice cs1, Pretty.str ")"]]
+               else [mk_choice cs2])) ::
+            (if null cs1 then []
+             else [Pretty.blk (4, separate (Pretty.brk 1) 
+                 (Pretty.str ("and " ^ gen_name) :: gs @ [Pretty.str "i"]) @
+               [Pretty.str " =", Pretty.brk 1] @
+               separate (Pretty.brk 1) (Pretty.str (gen_name ^ "'") :: gs @
+                 [Pretty.str "i", Pretty.str "i"]))]) @
+            mk_gen_of_def "and " xs
+          end
 
   in
     ((Graph.add_edge_acyclic (dname, dep) gr
@@ -97,7 +181,11 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
                [Pretty.str ";"])) ^ "\n\n" ^
              (if "term_of" mem !mode then
                 Pretty.string_of (Pretty.blk (0, separate Pretty.fbrk
-                  (mk_term_of_def "fun " descr')  @ [Pretty.str ";"])) ^ "\n\n"
+                  (mk_term_of_def "fun " descr') @ [Pretty.str ";"])) ^ "\n\n"
+              else "") ^
+             (if "test" mem !mode then
+                Pretty.string_of (Pretty.blk (0, separate Pretty.fbrk
+                  (mk_gen_of_def "fun " descr') @ [Pretty.str ";"])) ^ "\n\n"
               else ""))) gr2
          end)
   end;
