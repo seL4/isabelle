@@ -148,7 +148,7 @@ We must cite the theorem \isa{lists_mono} in order to justify
 using the function \isa{lists}. 
 \begin{isabelle}
 A\ \isasymsubseteq\ B\ \isasymLongrightarrow \ lists\ A\ \isasymsubseteq
-\ lists\ B\rulename{lists_mono}
+\ lists\ B\rulenamedx{lists_mono}
 \end{isabelle}
 %
 Why must the function be monotone?  An inductive definition describes
@@ -209,9 +209,9 @@ induction.  The resulting subgoal can be proved automatically:
 \begin{isabelle}
 {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
 \ \ \ \ \ \ {\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
-\ \ \ \ \ \ \ \ \ \ t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymand}\ t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharsemicolon}\isanewline
+\ \ \ \ \ \ \ \ \ \ t\ {\isasymin}\ well\_formed\_gterm\ arity\ {\isasymand}\ t\ {\isasymin}\ well\_formed\_gterm{\isacharprime}\ arity{\isacharsemicolon}\isanewline
 \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ {\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity%
+\ \ \ \ \ \ {\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well\_formed\_gterm{\isacharprime}\ arity%
 \end{isabelle}
 %
 This proof resembles the one given in
