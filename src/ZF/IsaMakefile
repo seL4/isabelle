@@ -78,9 +78,11 @@ $(LOG)/ZF-Coind.gz: $(OUT)/ZF Coind/Dynamic.thy \
 ZF-Constructible: ZF $(LOG)/ZF-Constructible.gz
 
 $(LOG)/ZF-Constructible.gz: $(OUT)/ZF  Constructible/ROOT.ML \
+  Constructible/Datatype_absolute.thy\
   Constructible/Formula.thy     Constructible/Relative.thy \
   Constructible/L_axioms.thy    Constructible/Wellorderings.thy \
-  Constructible/Normal.thy      Constructible/WF_absolute.thy \
+  Constructible/MetaExists.thy  Constructible/Normal.thy \
+  Constructible/Separation.thy      Constructible/WF_absolute.thy \
   Constructible/Reflection.thy  Constructible/WFrec.thy \
   Constructible/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/ZF Constructible
