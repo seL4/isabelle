@@ -13,6 +13,7 @@ Thanks to Sloane's On-Line Encyclopedia of Integer Sequences,
 *)
 
 Addsimps [add_mult_distrib, add_mult_distrib2];
+Addsimps [diff_mult_distrib, diff_mult_distrib2];
 
 (*The sum of the first n odd numbers equals n squared.*)
 Goal "sum (%i. Suc(i+i)) n = n*n";
