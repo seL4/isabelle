@@ -260,7 +260,7 @@ Also note that $\OBTAINNAME$ without parameters acts much like $\HAVENAME$,
 where the result is treated as an assumption.
 
 
-\section{Miscellaneous methods and attributes}
+\section{Miscellaneous methods and attributes}\label{sec:misc-methods}
 
 \indexisarmeth{unfold}\indexisarmeth{fold}\indexisarmeth{insert}
 \indexisarmeth{erule}\indexisarmeth{drule}\indexisarmeth{frule}
@@ -763,7 +763,8 @@ This is slightly less hazardous than for the Simplifier (see
   ;
 
   clasimpmod: ('simp' (() | 'add' | 'del' | 'only') |
-    ('cong' | 'split' | 'iff') (() | 'add' | 'del') |
+    ('cong' | 'split') (() | 'add' | 'del') |
+    'iff' (((() | 'add') '?'?) | 'del') |
     (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' thmrefs
 \end{rail}
 
@@ -802,7 +803,7 @@ This is slightly less hazardous than for the Simplifier (see
   ;
   'rule' 'del'
   ;
-  'iff' (() | 'add' | 'del')
+  'iff' (((() | 'add') '?'?) | 'del')
   ;
 \end{rail}
 
@@ -818,8 +819,15 @@ This is slightly less hazardous than for the Simplifier (see
   methods such as $rule$).
 \item [$rule~del$] deletes introduction, elimination, or destruct rules from
   the context.
-\item [$iff$] declares equations both as rules for the Simplifier and
-  Classical Reasoner.
+\item [$iff$] declares equivalence rules to the context.  The default behavior
+  is to declare a rewrite rule to the Simplifier, and the two corresponding
+  implications to the Classical Reasoner (as ``safe'' rules that are used
+  aggressively, which would normally be indicated by ``!'').
+  
+  The ``?'' version of $iff$ declares ``extra'' Classical Reasoner rules only,
+  and omits the Simplifier declaration.  Thus the declaration does not have
+  any effect on automated proof tools, but only on simple methods such as
+  $rule$ (see \S\ref{sec:misc-methods}).
 \end{descr}
 
 
