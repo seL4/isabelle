@@ -526,9 +526,11 @@ fun easy_setup reflect trivs =
     fun safe_solver_tac prems = FIRST' [match_tac (trivialities @ prems), eq_assume_tac];
     val safe_solver = mk_solver "easy safe" safe_solver_tac;
 
-    fun mksimps thm =
+    fun mk_eq thm =
       if Logic.is_equals (Thm.concl_of thm) then [thm]
       else [thm RS reflect] handle THM _ => [];
+
+    fun mksimps thm = mk_eq (Drule.forall_elim_vars (#maxidx (Thm.rep_thm thm) + 1) thm);
 
     fun init_ss thy =
       (simpset_ref_of thy :=
