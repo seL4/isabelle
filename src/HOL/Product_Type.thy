@@ -7,7 +7,7 @@ Ordered Pairs and the Cartesian product type.
 The unit type.
 *)
 
-Product_Type = Fun + equalities +
+Product_Type = Fun +
 
 
 (** products **)
