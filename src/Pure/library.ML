@@ -76,6 +76,7 @@ sig
   val length: 'a list -> int
   val take: int * 'a list -> 'a list
   val drop: int * 'a list -> 'a list
+  val dropwhile: ('a -> bool) -> 'a list -> 'a list
   val nth_elem: int * 'a list -> 'a
   val last_elem: 'a list -> 'a
   val split_last: 'a list -> 'a list * 'a
@@ -423,6 +424,9 @@ fun take (n, []) = []
 fun drop (n, []) = []
   | drop (n, x :: xs) =
       if n > 0 then drop (n - 1, xs) else x :: xs;
+
+fun dropwhile P [] = []
+  | dropwhile P (ys as x::xs) = if P x then dropwhile P xs else ys;
 
 (*return nth element of a list, where 0 designates the first element;
   raise EXCEPTION if list too short*)

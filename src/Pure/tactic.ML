@@ -10,7 +10,7 @@ signature TACTIC =
   sig
   val ares_tac		: thm list -> int -> tactic
   val asm_rewrite_goal_tac:
-        bool*bool -> (meta_simpset -> tactic) -> meta_simpset -> int -> tactic
+    bool*bool*bool -> (meta_simpset -> tactic) -> meta_simpset -> int -> tactic
   val assume_tac	: int -> tactic
   val atac	: int ->tactic
   val bimatch_from_nets_tac: 

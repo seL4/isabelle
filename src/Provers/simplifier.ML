@@ -323,13 +323,13 @@ fun gen_simp_tac mode (ss as Simpset {unsafe_finish_tac, ...}) =
   basic_gen_simp_tac mode (ss setSSolver unsafe_finish_tac);
 
 
-val          simp_tac = gen_simp_tac (false, false);
-val      asm_simp_tac = gen_simp_tac (false, true);
-val     full_simp_tac = gen_simp_tac (true,  false);
-val asm_full_simp_tac = gen_simp_tac (true,  true);
+val          simp_tac = gen_simp_tac (false, false, false);
+val      asm_simp_tac = gen_simp_tac (false, true, false);
+val     full_simp_tac = gen_simp_tac (true,  false, false);
+val asm_full_simp_tac = gen_simp_tac (true,  true, false);
 
 (*not totally safe: may instantiate unknowns that appear also in other subgoals*)
-val safe_asm_full_simp_tac = basic_gen_simp_tac (true, true);
+val safe_asm_full_simp_tac = basic_gen_simp_tac (true, true, false);
 
 (** The abstraction over the proof state delays the dereferencing **)
 
@@ -337,7 +337,6 @@ fun          Simp_tac i st =          simp_tac (simpset ()) i st;
 fun      Asm_simp_tac i st =      asm_simp_tac (simpset ()) i st;
 fun     Full_simp_tac i st =     full_simp_tac (simpset ()) i st;
 fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
-
 
 
 (** simplification meta rules **)
@@ -350,10 +349,10 @@ fun simp mode (Simpset {mss, subgoal_tac, loop_tacs, finish_tac, unsafe_finish_t
     Drule.rewrite_thm mode prover mss thm
   end;
 
-val          simplify = simp (false, false);
-val      asm_simplify = simp (false, true);
-val     full_simplify = simp (true, false);
-val asm_full_simplify = simp (true, true);
+val          simplify = simp (false, false, false);
+val      asm_simplify = simp (false, true, false);
+val     full_simplify = simp (true, false, false);
+val asm_full_simplify = simp (true, true, false);
 
 
 end;

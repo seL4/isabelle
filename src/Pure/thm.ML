@@ -168,7 +168,7 @@ signature THM =
   val set_mk_eq_True    : meta_simpset * (thm -> thm option) -> meta_simpset
   val set_termless      : meta_simpset * (term * term -> bool) -> meta_simpset
   val trace_simp        : bool ref
-  val rewrite_cterm     : bool * bool -> meta_simpset ->
+  val rewrite_cterm     : bool * bool * bool -> meta_simpset ->
                           (meta_simpset -> thm -> thm option) -> cterm -> thm
 
   val invoke_oracle     : theory -> xstring -> Sign.sg * object -> thm
@@ -1625,38 +1625,50 @@ fun decomp_simp(thm as Thm {sign_ref, prop, ...}) =
   in (sign,prems,lhs,rhs,perm) end;
 
 fun mk_eq_True (Mss{mk_rews={mk_eq_True,...},...}) thm =
-  apsome (fn eq_True => let val (_,_,lhs,_,_) = decomp_simp eq_True
-                        in {thm=eq_True, lhs=lhs, perm=false} end)
-         (mk_eq_True thm);
+  case mk_eq_True thm of
+    None => []
+  | Some eq_True => let val (_,_,lhs,_,_) = decomp_simp eq_True
+                    in [{thm=eq_True, lhs=lhs, perm=false}] end;
+
+(* create the rewrite rule and possibly also the ==True variant,
+   in case there are extra vars on the rhs *)
+fun rrule_eq_True(thm,lhs,rhs,mss,thm2) =
+  let val rrule = {thm=thm, lhs=lhs, perm=false}
+  in if (term_vars rhs)  subset (term_vars lhs) andalso
+        (term_tvars rhs) subset (term_tvars lhs)
+     then [rrule]
+     else mk_eq_True mss thm2 @ [rrule]
+  end;
 
 fun mk_rrule mss thm =
   let val (_,prems,lhs,rhs,perm) = decomp_simp thm
-  in if perm then Some{thm=thm, lhs=lhs, perm=true} else
+  in if perm then [{thm=thm, lhs=lhs, perm=true}] else
      (* weak test for loops: *)
      if rewrite_rule_extra_vars prems lhs rhs orelse
         is_Var (head_of lhs) (* mk_cases may do this! *)
      then mk_eq_True mss thm
-     else Some{thm=thm, lhs=lhs, perm=false}
+     else rrule_eq_True(thm,lhs,rhs,mss,thm)
   end;
 
 fun orient_rrule mss thm =
   let val (sign,prems,lhs,rhs,perm) = decomp_simp thm
-  in if perm then Some{thm=thm,lhs=lhs,perm=true}
+  in if perm then [{thm=thm,lhs=lhs,perm=true}]
      else if looptest sign prems lhs rhs
           then if looptest sign prems rhs lhs
                then mk_eq_True mss thm
                else let val Mss{mk_rews={mk_sym,...},...} = mss
-                    in apsome (fn thm' => {thm=thm', lhs=rhs, perm=false})
-                              (mk_sym thm)
+                    in case mk_sym thm of
+                         None => []
+                       | Some thm' => rrule_eq_True(thm',rhs,lhs,mss,thm)
                     end
-          else Some{thm=thm, lhs=lhs, perm=false}
+          else rrule_eq_True(thm,lhs,rhs,mss,thm)
   end;
 
 fun extract_rews(Mss{mk_rews = {mk,...},...},thms) = flat(map mk thms);
 
 fun orient_comb_simps comb mk_rrule (mss,thms) =
   let val rews = extract_rews(mss,thms)
-      val rrules = mapfilter mk_rrule rews
+      val rrules = flat (map mk_rrule rews)
   in foldl comb (mss,rrules) end
 
 (* Add rewrite rules explicitly; do not reorient! *)
@@ -1664,11 +1676,10 @@ fun add_simps(mss,thms) =
   orient_comb_simps insert_rrule (mk_rrule mss) (mss,thms);
 
 fun mss_of thms =
-  foldl insert_rrule (empty_mss, mapfilter (mk_rrule empty_mss) thms);
+  foldl insert_rrule (empty_mss, flat(map (mk_rrule empty_mss) thms));
 
-fun safe_add_simps(mss,thms) =
-  orient_comb_simps insert_rrule (orient_rrule mss) (mss,thms);
-
+fun extract_safe_rrules(mss,thm) =
+  flat (map (orient_rrule mss) (extract_rews(mss,[thm])));
 
 (* del_simps *)
 
@@ -1806,7 +1817,7 @@ fun check_conv (thm as Thm{shyps,hyps,prop,sign_ref,der,...}, prop0, ders) =
          if (lhs = lhs0) orelse
             (lhs aconv Envir.norm_term (Envir.empty 0) lhs0)
          then (trace_thm false "SUCCEEDED" thm; 
-               Some(shyps, hyps, rhs, der::ders))
+               Some(rhs, (shyps, hyps, der::ders)))
          else err()
      | _ => err()
   end;
@@ -1848,93 +1859,83 @@ fun mk_procrule thm =
 
 fun rewritec (prover,sign_reft,maxt)
              (mss as Mss{rules, procs, termless, prems, ...}) 
-             (shypst,hypst,t,ders) =
+             (t:term,etc as (shypst,hypst,ders)) =
   let
-      val signt = Sign.deref sign_reft;
-      val tsigt = Sign.tsig_of signt;
-      fun rew{thm as Thm{sign_ref,der,shyps,hyps,prop,maxidx,...}, lhs, perm} =
-        let
-            val _ =
-              if Sign.subsig (Sign.deref sign_ref, signt) then ()
-              else (trace_thm true "rewrite rule from different theory" thm;
-                raise Pattern.MATCH);
-            val rprop = if maxt = ~1 then prop
-                        else Logic.incr_indexes([],maxt+1) prop;
-            val rlhs = if maxt = ~1 then lhs
-                       else fst(Logic.dest_equals(Logic.strip_imp_concl rprop))
-            val insts = Pattern.match tsigt (rlhs,t);
-            val prop' = ren_inst(insts,rprop,rlhs,t);
-            val hyps' = union_term(hyps,hypst);
-            val shyps' = add_insts_sorts (insts, union_sort(shyps,shypst));
-            val unconditional = (Logic.count_prems(prop',0) = 0);
-            val maxidx' = if unconditional then maxt else maxidx+maxt+1
-            val ct' = Cterm{sign_ref = sign_reft,       (*used for deriv only*)
-                            t = prop',
-                            T = propT,
-                            maxidx = maxidx'}
-            val der' = infer_derivs (RewriteC ct', [der]);
-            val thm' = Thm{sign_ref = sign_reft, 
-                           der = der',
-                           shyps = shyps',
-                           hyps = hyps',
-                           prop = prop',
-                           maxidx = maxidx'}
-            val (lhs',rhs') = Logic.dest_equals(Logic.strip_imp_concl prop')
-        in
-          if perm andalso not(termless(rhs',lhs')) then None
-          else
-           (trace_thm false "Applying instance of rewrite rule:" thm;
-            if unconditional
-            then (trace_thm false "Rewriting:" thm'; 
-                  Some(shyps', hyps', rhs', der'::ders))
-            else (trace_thm false "Trying to rewrite:" thm';
-                  case prover mss thm' of
-                    None       => (trace_thm false "FAILED" thm'; None)
-                  | Some(thm2) => check_conv(thm2,prop',ders)))
-        end
-
-      fun rews [] = None
-        | rews (rrule :: rrules) =
-            let val opt = rew rrule handle Pattern.MATCH => None
-            in case opt of None => rews rrules | some => some end;
-
-      fun sort_rrules rrs = let
-        fun is_simple {thm as Thm{prop,...}, lhs, perm} = case prop of 
-                                        Const("==",_) $ _ $ _ => true
-                                        | _                   => false 
-        fun sort []        (re1,re2) = re1 @ re2
-        |   sort (rr::rrs) (re1,re2) = if is_simple rr 
-                                       then sort rrs (rr::re1,re2)
-                                       else sort rrs (re1,rr::re2)
-      in sort rrs ([],[]) 
+    val signt = Sign.deref sign_reft;
+    val tsigt = Sign.tsig_of signt;
+    fun rew{thm as Thm{sign_ref,der,shyps,hyps,prop,maxidx,...}, lhs, perm} =
+      let
+        val _ = if Sign.subsig (Sign.deref sign_ref, signt) then ()
+                else (trace_thm true "rewrite rule from different theory" thm;
+                      raise Pattern.MATCH);
+        val rprop = if maxt = ~1 then prop
+                    else Logic.incr_indexes([],maxt+1) prop;
+        val rlhs = if maxt = ~1 then lhs
+                   else fst(Logic.dest_equals(Logic.strip_imp_concl rprop))
+        val insts = Pattern.match tsigt (rlhs,t);
+        val prop' = ren_inst(insts,rprop,rlhs,t);
+        val hyps' = union_term(hyps,hypst);
+        val shyps' = add_insts_sorts (insts, union_sort(shyps,shypst));
+        val unconditional = (Logic.count_prems(prop',0) = 0);
+        val maxidx' = if unconditional then maxt else maxidx+maxt+1
+        val ct' = Cterm{sign_ref = sign_reft,       (*used for deriv only*)
+                        t = prop', T = propT, maxidx = maxidx'}
+        val der' = infer_derivs (RewriteC ct', [der]);
+        val thm' = Thm{sign_ref = sign_reft, der = der', shyps = shyps',
+                       hyps = hyps', prop = prop', maxidx = maxidx'}
+        val (lhs',rhs') = Logic.dest_equals(Logic.strip_imp_concl prop')
+      in
+        if perm andalso not(termless(rhs',lhs')) then None
+        else (trace_thm false "Applying instance of rewrite rule:" thm;
+              if unconditional
+              then (trace_thm false "Rewriting:" thm'; 
+                    Some(rhs', (shyps', hyps', der'::ders)))
+              else (trace_thm false "Trying to rewrite:" thm';
+                    case prover mss thm' of
+                      None       => (trace_thm false "FAILED" thm'; None)
+                    | Some(thm2) => check_conv(thm2,prop',ders)))
       end
 
-      fun proc_rews _ ([]:simproc list) = None
-        | proc_rews eta_t ({name, proc, lhs = Cterm {t = plhs, ...}, ...} :: ps) =
-            if Pattern.matches tsigt (plhs, t) then
-             (trace_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
-              case proc signt prems eta_t of
-                None => (trace false "FAILED"; proc_rews eta_t ps)
-              | Some raw_thm =>
+    fun rews [] = None
+      | rews (rrule :: rrules) =
+          let val opt = rew rrule handle Pattern.MATCH => None
+          in case opt of None => rews rrules | some => some end;
+
+    fun sort_rrules rrs = let
+      fun is_simple {thm as Thm{prop,...}, lhs, perm} = case prop of 
+                                      Const("==",_) $ _ $ _ => true
+                                      | _                   => false 
+      fun sort []        (re1,re2) = re1 @ re2
+        | sort (rr::rrs) (re1,re2) = if is_simple rr 
+                                     then sort rrs (rr::re1,re2)
+                                     else sort rrs (re1,rr::re2)
+    in sort rrs ([],[]) end
+
+    fun proc_rews _ ([]:simproc list) = None
+      | proc_rews eta_t ({name, proc, lhs = Cterm {t = plhs, ...}, ...} :: ps) =
+          if Pattern.matches tsigt (plhs, t) then
+            (trace_term false ("Trying procedure " ^ quote name ^ " on:") signt eta_t;
+             case proc signt prems eta_t of
+               None => (trace false "FAILED"; proc_rews eta_t ps)
+             | Some raw_thm =>
                  (trace_thm false ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
-                   (case rews (mk_procrule raw_thm) of
-                     None => (trace false "IGNORED"; proc_rews eta_t ps)
-                   | some => some)))
-            else proc_rews eta_t ps;
-  in
-    (case t of
-      Abs (_, _, body) $ u =>
-        Some (shypst, hypst, subst_bound (u, body), ders)
-     | _ =>
-      (case rews (sort_rrules (Net.match_term rules t)) of
-        None => proc_rews (Pattern.eta_contract t) (Net.match_term procs t)
-      | some => some))
+                  (case rews (mk_procrule raw_thm) of
+                    None => (trace false "IGNORED"; proc_rews eta_t ps)
+                  | some => some)))
+          else proc_rews eta_t ps;
+  in case t of
+       Abs (_, _, body) $ u =>
+         Some (subst_bound (u, body), etc)
+     | _ => (case rews (sort_rrules (Net.match_term rules t)) of
+               None => proc_rews (Pattern.eta_contract t)
+                                 (Net.match_term procs t)
+             | some => some)
   end;
 
 
 (* conversion to apply a congruence rule to a term *)
 
-fun congc (prover,sign_reft,maxt) {thm=cong,lhs=lhs} (shypst,hypst,t,ders) =
+fun congc (prover,sign_reft,maxt) {thm=cong,lhs=lhs} (t,(shypst,hypst,ders)) =
   let val signt = Sign.deref sign_reft;
       val tsig = Sign.tsig_of signt;
       val Thm{sign_ref,der,shyps,hyps,maxidx,prop,...} = cong
@@ -1969,8 +1970,9 @@ fun congc (prover,sign_reft,maxt) {thm=cong,lhs=lhs} (shypst,hypst,t,ders) =
                         None => err() | some => some)
   end;
 
-fun bottomc ((simprem,useprem),prover,sign_ref,maxidx) =
- let fun botc fail mss trec =
+fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
+  let
+    fun botc fail mss trec =
           (case subc mss trec of
              some as Some(trec1) =>
                (case rewritec (prover,sign_ref,maxidx) mss trec1 of
@@ -1981,43 +1983,39 @@ fun bottomc ((simprem,useprem),prover,sign_ref,maxidx) =
                   Some(trec2) => botc false mss trec2
                 | None => if fail then None else Some(trec)))
 
-     and try_botc mss trec = (case botc true mss trec of
+    and try_botc mss trec = (case botc true mss trec of
                                 Some(trec1) => trec1
                               | None => trec)
 
-     and subc (mss as Mss{rules,congs,procs,bounds,prems,mk_rews,termless})
-              (trec as (shyps,hyps,t0,ders)) =
+    and subc (mss as Mss{rules,congs,procs,bounds,prems,mk_rews,termless})
+             (trec as (t0:term,etc:sort list*term list * rule mtree list)) =
        (case t0 of
            Abs(a,T,t) =>
              let val b = variant bounds a
                  val v = Free("." ^ b,T)
                  val mss' = mk_mss (rules, congs, procs, b :: bounds, prems, mk_rews, termless)
-             in case botc true mss' 
-                       (shyps,hyps,subst_bound (v,t),ders) of
-                  Some(shyps',hyps',t',ders') =>
-                    Some(shyps', hyps', Abs(a, T, abstract_over(v,t')), ders')
+             in case botc true mss' (subst_bound(v,t),etc) of
+                  Some(t',etc') => Some(Abs(a, T, abstract_over(v,t')), etc')
                 | None => None
              end
          | t$u => (case t of
-             Const("==>",_)$s  => Some(impc(shyps,hyps,s,u,mss,ders))
+             Const("==>",_)$s  => Some(snd(impc([],s,u,mss,etc)))
            | Abs(_,_,body) =>
-               let val trec = (shyps,hyps,subst_bound (u,body),ders)
+               let val trec = (subst_bound(u,body), etc)
                in case subc mss trec of
                     None => Some(trec)
                   | trec => trec
                end
            | _  =>
                let fun appc() =
-                     (case botc true mss (shyps,hyps,t,ders) of
-                        Some(shyps1,hyps1,t1,ders1) =>
-                          (case botc true mss (shyps1,hyps1,u,ders1) of
-                             Some(shyps2,hyps2,u1,ders2) =>
-                               Some(shyps2, hyps2, t1$u1, ders2)
-                           | None => Some(shyps1, hyps1, t1$u, ders1))
+                     (case botc true mss (t,etc) of
+                        Some(t1,etc1) =>
+                          (case botc true mss (u,etc1) of
+                             Some(u1,etc2) => Some(t1$u1, etc2)
+                           | None => Some(t1$u, etc1))
                       | None =>
-                          (case botc true mss (shyps,hyps,u,ders) of
-                             Some(shyps1,hyps1,u1,ders1) =>
-                               Some(shyps1, hyps1, t$u1, ders1)
+                          (case botc true mss (u,etc) of
+                             Some(u1,etc1) => Some(t$u1, etc1)
                            | None => None))
                    val (h,ts) = strip_comb t
                in case h of
@@ -2031,24 +2029,67 @@ fun bottomc ((simprem,useprem),prover,sign_ref,maxidx) =
                end)
          | _ => None)
 
-     and impc(shyps, hyps, s, u, mss, ders) =
-       let val (shyps1,hyps1,s1,ders1) =
-             if simprem then try_botc mss (shyps,hyps,s,ders)
-                        else (shyps,hyps,s,ders);
-           val maxidx1 = maxidx_of_term s1
-           val mss1 =
-             if not useprem then mss else
-             if maxidx1 <> ~1 then (trace_term true
-"Cannot add premise as rewrite rule because it contains (type) unknowns:"
-                                                  (Sign.deref sign_ref) s1; mss)
-             else let val thm = assume (Cterm{sign_ref=sign_ref, t=s1, 
-                                              T=propT, maxidx= ~1})
-                  in safe_add_simps(add_prems(mss,[thm]), [thm]) end
-           val (shyps2,hyps2,u1,ders2) = try_botc mss1 (shyps1,hyps1,u,ders1)
-           val hyps3 = if gen_mem (op aconv) (s1, hyps1)
-                       then hyps2 else hyps2\s1
-       in (shyps2, hyps3, Logic.mk_implies(s1,u1), ders2) 
-       end
+    and impc(prems, prem, conc, mss, etc) =
+      let val (prem1,etc1) = if simprem then try_botc mss (prem,etc)
+                             else (prem,etc)
+      in impc1(prems, prem1, conc, mss, etc1) end
+
+    and impc1(prems, prem1, conc, mss, etc1 as (_,hyps1,_)) =
+      let
+        fun uncond({thm,lhs,...}:rrule) =
+          if nprems_of thm = 0 then Some lhs else None
+
+        val (rrules1,lhss1,mss1) =
+          if not useprem then ([],[],mss) else
+          if maxidx_of_term prem1 <> ~1
+          then (trace_term true "Cannot add premise as rewrite rule because it contains (type) unknowns:"
+                           (Sign.deref sign_ref) prem1;
+                ([],[],mss))
+          else let val thm = assume (Cterm{sign_ref=sign_ref, t=prem1, 
+                                           T=propT, maxidx= ~1})
+                   val rrules1 = extract_safe_rrules(mss,thm)
+                   val lhss1 = if mutsimp then mapfilter uncond rrules1 else []
+                   val mss1 = foldl insert_rrule (add_prems(mss,[thm]),rrules1)
+               in (rrules1, lhss1, mss1) end
+
+        fun rebuild(conc2,(shyps2,hyps2,ders2)) =
+          let val hyps2' = if gen_mem (op aconv) (prem1, hyps1)
+                           then hyps2 else hyps2\prem1
+              val trec = (Logic.mk_implies(prem1,conc2),
+                          (shyps2,hyps2',ders2))
+          in case rewritec (prover,sign_ref,maxidx) mss trec of
+               None => (None,trec)
+             | Some(Const("==>",_)$prem$conc,etc) =>
+                 impc(prems,prem,conc,mss,etc)
+             | Some(trec') => (None,trec')
+          end
+
+        fun simpconc() =
+          case conc of
+            Const("==>",_)$s$t =>
+              (case impc(prems@[prem1],s,t,mss1,etc1) of
+                 (Some(i,prem),(conc2,etc2)) =>
+                    let val impl = Logic.mk_implies(prem1,conc2)
+                    in if i=0 then impc1(prems,prem,impl,mss,etc2)
+                       else (Some(i-1,prem),(impl,etc2))
+                    end
+               | (None,trec) => rebuild(trec))
+          | _ => rebuild(try_botc mss1 (conc,etc1))
+
+      in if mutsimp
+         then let val sg = Sign.deref sign_ref
+                  val tsig = #tsig(Sign.rep_sg sg)
+                  fun reducible t =
+                    exists (fn lhs => Pattern.matches_subterm tsig (lhs,t))
+                           lhss1;
+              in case dropwhile (not o reducible) prems of
+                   [] => simpconc()
+                 | red::rest => (trace_term false "Can now reduce premise" sg
+                                            red;
+                                 (Some(length rest,prem1),(conc,etc1)))
+              end
+         else simpconc()
+      end
 
  in try_botc end;
 
@@ -2057,7 +2098,10 @@ fun bottomc ((simprem,useprem),prover,sign_ref,maxidx) =
 
 (*
   Parameters:
-    mode = (simplify A, use A in simplifying B) when simplifying A ==> B
+    mode = (simplify A,
+            use A in simplifying B,
+            use prems of B (if B is again a meta-impl.) to simplify A)
+           when simplifying A ==> B
     mss: contains equality theorems of the form [|p1,...|] ==> t==u
     prover: how to solve premises in conditional rewrites and congruences
 *)
@@ -2066,9 +2110,8 @@ fun bottomc ((simprem,useprem),prover,sign_ref,maxidx) =
 
 fun rewrite_cterm mode mss prover ct =
   let val Cterm {sign_ref, t, T, maxidx} = ct;
-      val (shyps,hyps,u,ders) =
-        bottomc (mode,prover, sign_ref, maxidx) mss 
-                (add_term_sorts(t,[]), [], t, []);
+      val (u,(shyps,hyps,ders)) = bottomc (mode,prover, sign_ref, maxidx) mss 
+                                          (t, (add_term_sorts(t,[]), [], []));
       val prop = Logic.mk_equals(t,u)
   in
       Thm{sign_ref = sign_ref, 

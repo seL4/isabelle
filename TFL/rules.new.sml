@@ -390,7 +390,7 @@ fun IT_EXISTS blist th =
 fun SUBS thl = 
    rewrite_rule (map (fn th => (th RS eq_reflection) handle _ => th) thl);
 
-local fun rew_conv mss = rewrite_cterm (true,false) mss (K(K None))
+local fun rew_conv mss = rewrite_cterm (true,false,false) mss (K(K None))
 in
 fun simpl_conv ss thl ctm = 
  rew_conv (Thm.mss_of (#simps (Thm.dest_mss (#mss (rep_ss ss))) @ thl)) ctm
@@ -654,7 +654,7 @@ fun CONTEXT_REWRITE_RULE (ss, func, R, cut_lemma, congs) th =
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
                      val mss' = add_prems(mss, map ASSUME ants)
-                     val lhs_eq_lhs1 = rewrite_cterm(false,true)mss' prover lhs
+                     val lhs_eq_lhs1 = rewrite_cterm(false,true,false)mss' prover lhs
                        handle _ => reflexive lhs
                      val dummy = print_thms "proven:\n" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
@@ -676,7 +676,7 @@ fun CONTEXT_REWRITE_RULE (ss, func, R, cut_lemma, congs) th =
                   val QeqQ1 = pbeta_reduce (tych Q)
                   val Q1 = #2(D.dest_eq(cconcl QeqQ1))
                   val mss' = add_prems(mss, map ASSUME ants1)
-                  val Q1eeqQ2 = rewrite_cterm (false,true) mss' prover Q1
+                  val Q1eeqQ2 = rewrite_cterm (false,true,false) mss' prover Q1
                                 handle _ => reflexive Q1
                   val Q2 = #2 (Logic.dest_equals (#prop(rep_thm Q1eeqQ2)))
                   val Q3 = tych(list_comb(list_mk_aabs(vstrl,Q2),vstrl))
@@ -701,7 +701,7 @@ fun CONTEXT_REWRITE_RULE (ss, func, R, cut_lemma, congs) th =
                  let val tych = cterm_of sign
                      val ants1 = map tych ants
                      val mss' = add_prems(mss, map ASSUME ants1)
-                     val Q_eeq_Q1 = rewrite_cterm(false,true) mss' 
+                     val Q_eeq_Q1 = rewrite_cterm(false,true,false) mss' 
                                                      prover (tych Q)
                       handle _ => reflexive (tych Q)
                      val lhs_eeq_lhs2 = implies_intr_list ants1 Q_eeq_Q1
@@ -771,7 +771,7 @@ fun CONTEXT_REWRITE_RULE (ss, func, R, cut_lemma, congs) th =
     (if (is_cong thm) then cong_prover else restrict_prover) mss thm
     end
     val ctm = cprop_of th
-    val th1 = rewrite_cterm(false,true) (add_congs(mss_of [cut_lemma'], congs))
+    val th1 = rewrite_cterm(false,true,false) (add_congs(mss_of [cut_lemma'], congs))
                             prover ctm
     val th2 = equal_elim th1 th
  in
