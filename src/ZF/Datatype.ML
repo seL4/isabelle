@@ -59,7 +59,7 @@ struct
 
   fun mk_new ([],[]) = Const("True",FOLogic.oT)
     | mk_new (largs,rargs) =
-	fold_bal (app FOLogic.conj) 
+	fold_bal FOLogic.mk_conj
 		 (map FOLogic.mk_eq (ListPair.zip (largs,rargs)));
 
 
