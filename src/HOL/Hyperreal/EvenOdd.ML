@@ -102,11 +102,6 @@ by (auto_tac (claset(),
 qed "even_mult_even";
 Addsimps [even_mult_even];
 
-Goal "(m*2) div 2 = (m::nat)";
-by (rtac div_mult_self_is_m 1);
-by (Simp_tac 1);
-qed "div_mult_self_two_is_m";
-
 Goal "(m + m) div 2 = (m::nat)";
 by (asm_full_simp_tac (simpset() addsimps [m_add_m_eq2]) 1); 
 qed "div_add_self_two_is_m";
