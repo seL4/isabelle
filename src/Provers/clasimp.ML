@@ -28,9 +28,9 @@ sig
   val auto_tac	: clasimpset -> tactic
   val Auto_tac	: tactic
   val auto	: unit -> unit
-  val smart_tac	: clasimpset  -> int -> tactic
-  val Smart_tac	: int -> tactic
-  val smart	: int -> unit
+  val force_tac	: clasimpset  -> int -> tactic
+  val Force_tac	: int -> tactic
+  val force	: int -> unit
 end;
 
 structure Clasimp: CLASIMP =
@@ -114,11 +114,11 @@ fun Auto_tac st = auto_tac (claset(), simpset()) st;
 fun auto () = by Auto_tac;
 
 (* aimed to solve the given subgoal totally, using whatever tools possible *)
-fun smart_tac (cs,ss) = let val cs' = cs addss ss in SELECT_GOAL (EVERY [
+fun force_tac (cs,ss) = let val cs' = cs addss ss in SELECT_GOAL (EVERY [
 	clarify_tac cs' 1,
 	IF_UNSOLVED (asm_full_simp_tac ss 1),
-	IF_UNSOLVED (fast_tac cs' 1)]) end;
-fun Smart_tac i = smart_tac (claset(), simpset()) i;
-fun smart i = by (Smart_tac i);
+	ALLGOALS (fast_tac cs')]) end;
+fun Force_tac i = force_tac (claset(), simpset()) i;
+fun force i = by (Force_tac i);
 
 end;
