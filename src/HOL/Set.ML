@@ -126,6 +126,8 @@ seq (fn a => Blast.overloaded (a, HOLogic.dest_setT o domain_type))
     ["Ball", "Bex"];
 (*need UNION, INTER also?*)
 
+(*Image: retain the type of the set being expressed*)
+Blast.overloaded ("op ``", domain_type o domain_type);
 
 (*Rule in Modus Ponens style*)
 val major::prems = goalw Set.thy [subset_def] "[| A <= B;  c:A |] ==> c:B";
