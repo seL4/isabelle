@@ -60,10 +60,19 @@ section "map_of";
 
 Goal "map_of xs k = Some y --> (k,y):set xs";
 by (induct_tac "xs" 1);
-by  (Simp_tac 1);
-by (split_all_tac 1);
-by (Asm_simp_tac 1);
+by  Auto_tac;
 qed_spec_mp "map_of_SomeD";
+
+Goal "inj f ==> map_of t k = Some x --> \
+\  map_of (map (split (%k. Pair (f k))) t) (f k) = Some x";
+by (induct_tac "t" 1);
+by  (auto_tac (claset(),simpset()addsimps[inj_eq]));
+qed_spec_mp "map_of_mapk_SomeI";
+
+Goal "(k, x) : set l --> (? x. map_of l k = Some x)";
+by (induct_tac "l" 1);
+by  Auto_tac;
+qed_spec_mp "weak_map_of_SomeI";
 
 Goal "[| map_of xs k = Some z; P z |] ==> map_of [(k,z):xs . P z] k = Some z";
 by (rtac mp 1);
@@ -80,6 +89,7 @@ by (rtac finite_subset 1);
 by (assume_tac 2);
 by Auto_tac;
 qed "finite_range_map_of";
+
 
 section "option_map related";
 
