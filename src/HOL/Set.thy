@@ -1095,14 +1095,20 @@ lemma UN_insert_distrib: "u \<in> A ==> (\<Union>x\<in>A. insert a (B x)) = inse
   by blast
 
 lemma insert_inter_insert[simp]: "insert a A \<inter> insert a B = insert a (A \<inter> B)"
-by blast
+  by blast
 
 lemma insert_disjoint[simp]:
  "(insert a A \<inter> B = {}) = (a \<notin> B \<and> A \<inter> B = {})"
-by blast
+ "({} = insert a A \<inter> B) = (a \<notin> B \<and> {} = A \<inter> B)"
+by auto
 
 lemma disjoint_insert[simp]:
  "(B \<inter> insert a A = {}) = (a \<notin> B \<and> B \<inter> A = {})"
+ "({} = A \<inter> insert b B) = (b \<notin> A \<and> {} = A \<inter> B)"
+by auto
+
+lemma disjoint_int_union[simp]:
+  "({} = A \<inter> (B \<union> C)) = ({} = A \<inter> B \<and> {} = A \<inter> C)"
 by blast
 
 text {* \medskip @{text image}. *}
