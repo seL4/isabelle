@@ -47,8 +47,6 @@ signature DRULE =
   val print_goals	: int -> thm -> unit
   val print_goals_ref	: (int -> thm -> unit) ref
   val print_syntax	: theory -> unit
-  val print_sign	: theory -> unit
-  val print_axioms	: theory -> unit
   val print_theory	: theory -> unit
   val print_thm		: thm -> unit
   val prth		: thm -> thm
@@ -336,8 +334,6 @@ val pprint_theory = Sign.pprint_sg o sign_of;
 
 val print_syntax = Syntax.print_syntax o syn_of;
 
-val print_sign = Sign.print_sg o sign_of;
-
 fun print_axioms thy =
   let
     val {sign, new_axioms, ...} = rep_theory thy;
@@ -349,7 +345,7 @@ fun print_axioms thy =
     Pretty.writeln (Pretty.big_list "additional axioms:" (map prt_axm axioms))
   end;
 
-fun print_theory thy = (print_sign thy; print_axioms thy);
+fun print_theory thy = (Sign.print_sg (sign_of thy); print_axioms thy);
 
 
 
