@@ -131,6 +131,10 @@ situations;
 * Pure: generic 'sym' attribute which declares a rule both as pure
 'elim?' and for the 'symmetric' operation;
 
+* Pure: marginal comments ``--'' may now occur just anywhere in the
+text; the fixed correlation with particular command syntax has been
+discontinued;
+
 * Pure/Provers/classical: simplified integration with pure rule
 attributes and methods; the classical "intro?/elim?/dest?"
 declarations coincide with the pure ones; the "rule" method no longer
