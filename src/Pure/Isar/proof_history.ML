@@ -28,6 +28,7 @@ sig
   val apply: (Proof.state -> Proof.state) -> T -> T
   val apply_open: (Proof.state -> Proof.state) -> T -> T
   val apply_close: (Proof.state -> Proof.state) -> T -> T
+  val apply_cond_open: bool -> (Proof.state -> Proof.state) -> T -> T
 end;
 
 structure ProofHistory: PROOF_HISTORY =
@@ -105,6 +106,6 @@ val applys_close = hist_app o gen_apply ~1;
 fun apply f = applys (Seq.single o f);
 fun apply_open f = applys_open (Seq.single o f);
 fun apply_close f = applys_close (Seq.single o f);
-
+fun apply_cond_open do_open f = if do_open then apply_open f else apply f;
 
 end;
