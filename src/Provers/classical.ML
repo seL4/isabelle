@@ -35,6 +35,7 @@ signature CLASSICAL =
   type claset
   type netpair
   val empty_cs		: claset
+  val merge_cs		: claset * claset -> claset
   val addDs 		: claset * thm list -> claset
   val addEs 		: claset * thm list -> claset
   val addIs 		: claset * thm list -> claset
@@ -316,6 +317,22 @@ fun tac1 THEN_MAYBE tac2 =
 fun cs addbefore tac2 = cs compwrapper (fn tac1 => tac2 THEN_MAYBE tac1);
 fun cs addafter tac2  = cs compwrapper (fn tac1 => tac1 THEN_MAYBE tac2);
 
+
+(*Merge works by adding all new rules of the 2nd claset into the 1st claset.
+  Merging the term nets may look more efficient, but the rather delicate
+  treatment of priority might get muddled up.*)
+fun merge_cs
+    (cs as CS{safeIs, safeEs, hazIs, hazEs, wrapper, ...},
+     CS{safeIs=safeIs2, safeEs=safeEs2, hazIs=hazIs2, hazEs=hazEs2,...}) =
+  let val safeIs' = gen_rems eq_thm (safeIs2,safeIs)
+      val safeEs' = gen_rems eq_thm (safeEs2,safeEs)
+      val hazIs' = gen_rems eq_thm (hazIs2,hazIs)
+      val hazEs' = gen_rems eq_thm (hazEs2,hazEs)
+  in cs addSIs safeIs'
+        addSEs safeEs'
+        addIs  hazIs'
+        addEs  hazEs'
+  end;
 
 
 (*** Simple tactics for theorem proving ***)
