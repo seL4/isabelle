@@ -58,6 +58,11 @@ qed_goal "notnotD" FOL.thy "~~P ==> P"
  (fn [major]=>
   [ (rtac classical 1), (eresolve_tac [major RS notE] 1) ]);
 
+qed_goal "contrapos2" FOL.thy "[| Q; ~ P ==> ~ Q |] ==> P" (fn [p1,p2] => [
+        rtac classical 1,
+        dtac p2 1,
+        etac notE 1,
+        rtac p1 1]);
 
 (*** Tactics for implication and contradiction ***)
 
