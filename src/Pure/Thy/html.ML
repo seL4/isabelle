@@ -28,7 +28,7 @@ sig
   val applet_pages: string -> Url.T -> Url.T * string -> bool -> (string * string) list
   val theory_entry: Url.T * string -> text
   val session_entries: (Url.T * string) list -> text
-  val verbatim_source: string list -> text
+  val verbatim_source: Symbol.symbol list -> text
   val begin_theory: Url.T * string -> string -> (Url.T option * string) list ->
     (Url.T option * Url.T * bool option) list -> text -> text
   val end_theory: text
