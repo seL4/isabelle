@@ -9,7 +9,8 @@ Abstract confluence notions.
 Confluence = Trancl +
 
 consts
-  confluent, confluent1, confluent2, diamond :: "('a*'a)set => bool"
+  confluent, confluent1, confluent2, diamond, Church_Rosser ::
+  "('a*'a)set => bool"
 
 defs
   diamond_def
@@ -25,4 +26,6 @@ defs
   "confluent2(R) ==
    !x y z. (x,y):R --> (x,z):R^* --> (EX u. (y,u):R^* & (z,u):R)"
 
+  Church_Rosser_def "Church_Rosser(R) ==   \
+\ !x y. (x,y) : (R Un converse(R))^* --> (? z. (x,z) : R^* & (y,z) : R^*)"
 end
