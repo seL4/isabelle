@@ -493,9 +493,9 @@ val breakP =
   outer_parse.ML, otherwise be prepared for unexpected errors*)
 
 val keywords =
- ["(", ")", "*", "+", "--", ",", ":", "::", ";", "<", "<=", "=", "==", "=>",
-  "?", "[", "]", "and", "as", "binder", "files", "infixl", "infixr", "is",
-  "output", "{", "|", "}"];
+ ["!", "(", ")", "*", "+", "--", ",", ":", "::", ";", "<", "<=", "=", "==", "=>",
+  "?", "[", "]", "and", "as", "binder", "files", "infixl", "infixr",
+  "is", "output", "{", "|", "}"];
 
 val parsers = [
   (*theory structure*)
