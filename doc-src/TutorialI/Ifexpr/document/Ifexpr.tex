@@ -1,5 +1,4 @@
-%
-\begin{isabellebody}%
+\begin{isabelle}%
 %
 \begin{isamarkuptext}%
 \subsubsection{How can we model boolean expressions?}
@@ -132,7 +131,7 @@ the above sense? We define a function that tests If-expressions for normality%
 and prove \isa{normal(norm b)}. Of course, this requires a lemma about
 normality of \isa{normif}:%
 \end{isamarkuptext}%
-\isacommand{lemma}{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ normal{\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}normal\ t\ {\isasymand}\ normal\ e{\isacharparenright}{\isachardoublequote}\end{isabellebody}%
+\isacommand{lemma}{\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymforall}t\ e{\isachardot}\ normal{\isacharparenleft}normif\ b\ t\ e{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}normal\ t\ {\isasymand}\ normal\ e{\isacharparenright}{\isachardoublequote}\end{isabelle}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

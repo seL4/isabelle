@@ -1363,8 +1363,7 @@ fun rename_bvs([],_,_,_) = I
                               else Var((y,i),T)
                  | None=> t)
           | rename(Abs(x,T,t)) =
-              Abs(case assoc_string(al,x) of Some(y) => y | None => x,
-                  T, rename t)
+              Abs(if_none(assoc_string(al,x)) x, T, rename t)
           | rename(f$t) = rename f $ rename t
           | rename(t) = t;
         fun strip_ren Ai = strip_apply rename (Ai,B)
@@ -1835,10 +1834,11 @@ fun add_cong (Mss {rules,congs,procs,bounds,prems,mk_rews,termless}, thm) =
     val (a, _) = dest_Const (head_of lhs) handle TERM _ =>
       raise SIMPLIFIER ("Congruence must start with a constant", thm);
     val (alist,weak) = congs
+    val alist2 = overwrite_warn (alist, (a,{lhs=lhs, thm=thm}))
+           ("Overwriting congruence rule for " ^ quote a);
     val weak2 = if is_full_cong thm then weak else a::weak
   in
-    mk_mss (rules, ((a, {lhs = lhs, thm = thm}) :: alist, weak2),
-            procs, bounds, prems, mk_rews, termless)
+    mk_mss (rules, (alist2,weak2), procs, bounds, prems, mk_rews, termless)
   end;
 
 val (op add_congs) = foldl add_cong;
@@ -1969,7 +1969,7 @@ fun check_conv
 fun ren_inst(insts,prop,pat,obj) =
   let val ren = match_bvs(pat,obj,[])
       fun renAbs(Abs(x,T,b)) =
-            Abs(case assoc_string(ren,x) of None => x | Some(y) => y, T, renAbs(b))
+            Abs(if_none(assoc_string(ren,x)) x, T, renAbs(b))
         | renAbs(f$t) = renAbs(f) $ renAbs(t)
         | renAbs(t) = t
   in subst_vars insts (if null(ren) then prop else renAbs(prop)) end;

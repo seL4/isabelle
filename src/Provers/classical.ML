@@ -683,15 +683,13 @@ fun update_uwrappers
 
 (*Add/replace a safe wrapper*)
 fun cs addSWrapper new_swrapper = update_swrappers cs (fn swrappers =>
-    (case assoc_string (swrappers,(fst new_swrapper)) of None =>()
-	   | Some x => warning("overwriting safe wrapper "^fst new_swrapper); 
-		   overwrite (swrappers, new_swrapper)));
+    overwrite_warn (swrappers, new_swrapper)
+       ("Overwriting safe wrapper " ^ fst new_swrapper));
 
 (*Add/replace an unsafe wrapper*)
 fun cs addWrapper new_uwrapper = update_uwrappers cs (fn uwrappers =>
-    (case assoc_string (uwrappers,(fst new_uwrapper)) of None =>()
-	   | Some x => warning ("overwriting unsafe wrapper "^fst new_uwrapper);
-		   overwrite (uwrappers, new_uwrapper)));
+    overwrite_warn (uwrappers, new_uwrapper)
+	("Overwriting unsafe wrapper "^fst new_uwrapper));
 
 (*Remove a safe wrapper*)
 fun cs delSWrapper name = update_swrappers cs (fn swrappers =>

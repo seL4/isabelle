@@ -34,10 +34,21 @@ This leaves us with a trivial base case @{term"trev (trev (Var x)) = Var x"} and
 both of which are solved by simplification:
 *};
 
-by(simp_all del:map_compose add:sym[OF map_compose] rev_map);
+by(simp_all add:rev_map sym[OF map_compose]);
 
 text{*\noindent
-If this surprises you, see Datatype/Nested2......
+If the proof of the induction step mystifies you, we recommend to go through
+the chain of simplification steps in detail, probably with the help of
+\isa{trace\_simp}.
+%\begin{quote}
+%{term[display]"trev(trev(App f ts))"}\\
+%{term[display]"App f (rev(map trev (rev(map trev ts))))"}\\
+%{term[display]"App f (map trev (rev(rev(map trev ts))))"}\\
+%{term[display]"App f (map trev (map trev ts))"}\\
+%{term[display]"App f (map (trev o trev) ts)"}\\
+%{term[display]"App f (map (%x. x) ts)"}\\
+%{term[display]"App f ts"}
+%\end{quote}
 
 The above definition of @{term"trev"} is superior to the one in \S\ref{sec:nested-datatype}
 because it brings @{term"rev"} into play, about which already know a lot, in particular
@@ -48,19 +59,22 @@ Thus this proof is a good example of an important principle:
 because they determine the complexity of your proofs.}
 \end{quote}
 
-Let us now return to the question of how \isacommand{recdef} can come up with sensible termination
-conditions in the presence of higher-order functions like @{term"map"}. For a start, if nothing
-were known about @{term"map"}, @{term"map trev ts"} might apply @{term"trev"} to arbitrary terms,
-and thus \isacommand{recdef} would try to prove the unprovable
-@{term"size t < Suc (term_size ts)"}, without any assumption about \isa{t}.
-Therefore \isacommand{recdef} has been supplied with the congruence theorem \isa{map\_cong}: 
+Let us now return to the question of how \isacommand{recdef} can come up with
+sensible termination conditions in the presence of higher-order functions
+like @{term"map"}. For a start, if nothing were known about @{term"map"},
+@{term"map trev ts"} might apply @{term"trev"} to arbitrary terms, and thus
+\isacommand{recdef} would try to prove the unprovable @{term"size t < Suc
+(term_size ts)"}, without any assumption about \isa{t}.  Therefore
+\isacommand{recdef} has been supplied with the congruence theorem
+\isa{map\_cong}:
 \begin{quote}
 @{thm[display,margin=50]"map_cong"[no_vars]}
 \end{quote}
-Its second premise expresses (indirectly) that the second argument of @{term"map"} is only applied
-to elements of its third argument. Congruence rules for other higher-order functions on lists would
-look very similar but have not been proved yet because they were never needed.
-If you get into a situation where you need to supply \isacommand{recdef} with new congruence
+Its second premise expresses (indirectly) that the second argument of
+@{term"map"} is only applied to elements of its third argument. Congruence
+rules for other higher-order functions on lists would look very similar but
+have not been proved yet because they were never needed. If you get into a
+situation where you need to supply \isacommand{recdef} with new congruence
 rules, you can either append the line
 \begin{ttbox}
 congs <congruence rules>

@@ -47,9 +47,8 @@ val cong_hd = fst o dest_Const o head_of o fst o Logic.dest_equals o concl_of;
 
 fun add_cong(congs,thm) =
   let val c = cong_hd thm
-  in case assoc(congs,c) of None => (c,thm)::congs
-     | _ => (warning ("Overwriting congruence rule for " ^ quote c);
-             overwrite (congs, (c,thm)))
+  in overwrite_warn (congs,(c,thm))
+       ("Overwriting congruence rule for " ^ quote c)
   end
 
 fun del_cong(congs,thm) =

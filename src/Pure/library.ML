@@ -188,6 +188,7 @@ sig
   val assoc2: (''a * (''b * 'c) list) list * (''a * ''b) -> 'c option
   val gen_assoc: ('a * 'b -> bool) -> ('b * 'c) list * 'a -> 'c option
   val overwrite: (''a * 'b) list * (''a * 'b) -> (''a * 'b) list
+  val overwrite_warn: (''a * 'b) list * (''a * 'b) -> string -> (''a * 'b) list
   val gen_overwrite: ('a * 'a -> bool) -> ('a * 'b) list * ('a * 'b) -> ('a * 'b) list
 
   (*generic tables*)
@@ -1203,6 +1204,10 @@ val timing = ref false;
 
 
 (** misc **)
+
+fun overwrite_warn (args as (alist,(a,_))) text =
+  (if is_none(assoc(alist,a)) then () else warning text;
+   overwrite args);
 
 (*use the keyfun to make a list of (x, key) pairs*)
 fun make_keylist (keyfun: 'a->'b) : 'a list -> ('a * 'b) list =

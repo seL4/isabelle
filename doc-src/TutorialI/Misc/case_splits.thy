@@ -81,6 +81,27 @@ or globally:
 *}
 lemmas [split del] = list.split;
 
+text{*
+The above split rules intentionally only affect the conclusion of a
+subgoal.  If you want to split an \isa{if} or \isa{case}-expression in
+the assumptions, you have to apply \isa{split\_if\_asm} or $t$\isa{.split_asm}:
+*}
+
+lemma "if xs = [] then ys ~= [] else ys = [] ==> xs @ ys ~= []"
+apply(simp only: split: split_if_asm);
+
+txt{*\noindent
+In contrast to splitting the conclusion, this actually creates two
+separate subgoals (which are solved by \isa{simp\_all}):
+\begin{isabelle}
+\ \isadigit{1}{\isachardot}\ {\isasymlbrakk}\mbox{xs}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ \mbox{ys}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ \mbox{ys}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
+\ \isadigit{2}{\isachardot}\ {\isasymlbrakk}\mbox{xs}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ \mbox{ys}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{xs}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}
+\end{isabelle}
+If you need to split both in the assumptions and the conclusion,
+use $t$\isa{.splits} which subsumes $t$\isa{.split} and $t$\isa{.split_asm}.
+*}
+
 (*<*)
+by(simp_all)
 end
 (*>*)

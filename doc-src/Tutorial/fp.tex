@@ -1029,7 +1029,7 @@ in case of recursive datatypes.
 Nevertheless the simplifier can be instructed to perform \texttt{case}-splits
 by adding the appropriate rule to the simpset:
 \begin{ttbox}
-by(simp_tac (simpset() addsplits [split_list_case]) 1);
+by(simp_tac (simpset() addsplits [list.split]) 1);
 \end{ttbox}\indexbold{*addsplits}
 solves the initial goal outright, which \texttt{Simp_tac} alone will not do.
 

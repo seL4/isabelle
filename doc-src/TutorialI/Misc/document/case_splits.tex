@@ -1,5 +1,4 @@
-%
-\begin{isabellebody}%
+\begin{isabelle}%
 %
 \begin{isamarkuptext}%
 Goals containing \isaindex{if}-expressions are usually proved by case
@@ -64,8 +63,26 @@ either locally%
 \noindent
 or globally:%
 \end{isamarkuptext}%
-\isacommand{lemmas}\ {\isacharbrackleft}split\ del{\isacharbrackright}\ {\isacharequal}\ list{\isachardot}split\isanewline
-\end{isabellebody}%
+\isacommand{lemmas}\ {\isacharbrackleft}split\ del{\isacharbrackright}\ {\isacharequal}\ list{\isachardot}split%
+\begin{isamarkuptext}%
+The above split rules intentionally only affect the conclusion of a
+subgoal.  If you want to split an \isa{if} or \isa{case}-expression in
+the assumptions, you have to apply \isa{split\_if\_asm} or $t$\isa{.split_asm}:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ {\isachardoublequote}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ ys\ {\isachartilde}{\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ else\ ys\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}{\isacharequal}{\isachargreater}\ xs\ {\isacharat}\ ys\ {\isachartilde}{\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequote}\isanewline
+\isacommand{apply}{\isacharparenleft}simp\ only{\isacharcolon}\ split{\isacharcolon}\ split{\isacharunderscore}if{\isacharunderscore}asm{\isacharparenright}%
+\begin{isamarkuptxt}%
+\noindent
+In contrast to splitting the conclusion, this actually creates two
+separate subgoals (which are solved by \isa{simp\_all}):
+\begin{isabelle}
+\ \isadigit{1}{\isachardot}\ {\isasymlbrakk}\mbox{xs}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ \mbox{ys}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ \mbox{ys}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
+\ \isadigit{2}{\isachardot}\ {\isasymlbrakk}\mbox{xs}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ \mbox{ys}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{xs}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}
+\end{isabelle}
+If you need to split both in the assumptions and the conclusion,
+use $t$\isa{.splits} which subsumes $t$\isa{.split} and $t$\isa{.split_asm}.%
+\end{isamarkuptxt}%
+\end{isabelle}%
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

@@ -214,66 +214,7 @@ A more general method for defining total recursive functions is introduced in
 \input{Misc/document/Tree.tex}%
 \end{exercise}
 
-\subsection{Case expressions}
-\label{sec:case-expressions}
-
-HOL also features \isaindexbold{case}-expressions for analyzing
-elements of a datatype. For example,
-% case xs of [] => 0 | y#ys => y
-\begin{isabellepar}%
-~~~case~xs~of~[]~{\isasymRightarrow}~0~|~y~\#~ys~{\isasymRightarrow}~y
-\end{isabellepar}%
-evaluates to \isa{0} if \isa{xs} is \isa{[]} and to \isa{y} if 
-\isa{xs} is \isa{y\#ys}. (Since the result in both branches must be of
-the same type, it follows that \isa{y::nat} and hence
-\isa{xs::(nat)list}.)
-
-In general, if $e$ is a term of the datatype $t$ defined in
-\S\ref{sec:general-datatype} above, the corresponding
-\isa{case}-expression analyzing $e$ is
-\[
-\begin{array}{rrcl}
-\isa{case}~e~\isa{of} & C@1~x@{11}~\dots~x@{1k@1} & \To & e@1 \\
-                           \vdots \\
-                           \mid & C@m~x@{m1}~\dots~x@{mk@m} & \To & e@m
-\end{array}
-\]
-
-\begin{warn}
-{\em All} constructors must be present, their order is fixed, and nested
-patterns are not supported.  Violating these restrictions results in strange
-error messages.
-\end{warn}
-\noindent
-Nested patterns can be simulated by nested \isa{case}-expressions: instead
-of
-% case xs of [] => 0 | [x] => x | x#(y#zs) => y
-\begin{isabellepar}%
-~~~case~xs~of~[]~{\isasymRightarrow}~0~|~[x]~{\isasymRightarrow}~x~|~x~\#~y~\#~zs~{\isasymRightarrow}~y
-\end{isabellepar}%
-write
-% term(latex xsymbols symbols)"case xs of [] => 0 | x#ys => (case ys of [] => x | y#zs => y)";
-\begin{isabellepar}%
-~~~case~xs~of~[]~{\isasymRightarrow}~0~|~x~\#~ys~{\isasymRightarrow}~(case~ys~of~[]~{\isasymRightarrow}~x~|~y~\#~zs~{\isasymRightarrow}~y)%
-\end{isabellepar}%
-Note that \isa{case}-expressions should be enclosed in parentheses to
-indicate their scope.
-
-\subsection{Structural induction and case distinction}
-\indexbold{structural induction}
-\indexbold{induction!structural}
-\indexbold{case distinction}
-
-Almost all the basic laws about a datatype are applied automatically during
-simplification. Only induction is invoked by hand via \isaindex{induct_tac},
-which works for any datatype. In some cases, induction is overkill and a case
-distinction over all constructors of the datatype suffices. This is performed
-by \isaindexbold{case_tac}. A trivial example:
-
-\input{Misc/document/cases.tex}%
-
-Note that we do not need to give a lemma a name if we do not intend to refer
-to it explicitly in the future.
+\input{Misc/document/case_exprs.tex}
 
 \begin{warn}
   Induction is only allowed on free (or \isasymAnd-bound) variables that
@@ -592,7 +533,6 @@ requires the \isa{let}-con\-structs to be expanded at some point. Since
 \index{*split|(}
 
 {\makeatother\input{Misc/document/case_splits.tex}}
-
 \index{*split|)}
 
 \begin{warn}
@@ -620,10 +560,10 @@ is not proved by simplification and requires \isa{arith}.
 
 \subsubsection{Permutative rewrite rules}
 
-A rewrite rule is {\bf permutative} if the left-hand side and right-hand side
-are the same up to renaming of variables.  The most common permutative rule
-is commutativity: $x+y = y+x$.  Another example is $(x-y)-z = (x-z)-y$.  Such
-rules are problematic because once they apply, they can be used forever.
+A rewrite rule is \textbf{permutative} if the left-hand side and right-hand
+side are the same up to renaming of variables.  The most common permutative
+rule is commutativity: $x+y = y+x$.  Another example is $(x-y)-z = (x-z)-y$.
+Such rules are problematic because once they apply, they can be used forever.
 The simplifier is aware of this danger and treats permutative rules
 separately. For details see~\cite{isabelle-ref}.
 
