@@ -1,6 +1,6 @@
 (*  Title:      HOLCF/domain/extender.ML
     ID:         $Id$
-    Author:     David von Oheimb and Markus Wenzel
+    Author:     David von Oheimb
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory extender for domain section, including new-style theory syntax.
@@ -49,23 +49,23 @@ open Domain_Library;
 	|   rm_sorts (TVar(s,_))  = TVar(s,[])
 	and remove_sorts l = map rm_sorts l;
 	fun analyse(TFree(v,s)) = (case assoc_string(tvars,v) of 
-		    None      => error ("Free type variable " ^ v ^ " on rhs.")
+		    None => error ("Free type variable " ^ quote v ^ " on rhs.")
 	          | Some sort => if eq_set_string (s,defaultS) orelse
 				    eq_set_string (s,sort    )
 				 then TFree(distinct_name v,sort)
-				 else error ("Additional constraint on rhs "^
-					     "for type variable "^quote v))
+				 else error ("Inconsistent sort constraint" ^
+				             " for type variable " ^ quote v))
 	(** BUG OR FEATURE?: mutual recursion may use different arguments **)
         |   analyse(Type(s,typl)) = (case assoc_string((*dtnvs*)
 						       [(dname,typevars)],s) of 
 		None          => Type(s,map analyse typl)
 	      | Some typevars => if remove_sorts typevars = remove_sorts typl 
 				then Type(s,map analyse typl)
-				else error ("Recursion of type " ^ s ^ 
+				else error ("Recursion of type " ^ quote s ^ 
 					    " with different arguments"))
         |   analyse(TVar _) = Imposs "extender:analyse";
 	fun check_pcpo t = (pcpo_type sg t orelse error(
-			   "Type not of sort pcpo: "^string_of_typ sg t); t);
+      "Constructor argument type is not of sort pcpo: "^string_of_typ sg t); t);
 	val analyse_con = upd_third (map (upd_third (check_pcpo o analyse)));
       in ((dname,distinct_typevars), map analyse_con cons') end; 
   in ListPair.map analyse_equation (dtnvs,cons'')
@@ -127,7 +127,14 @@ val cons_decl =
   P.name -- Scan.repeat dest_decl -- P.opt_mixfix
   >> (fn ((c, ds), mx) => (c, mx, ds));
 
-val domain_decl = (P.type_args -- P.name >> Library.swap) -- (P.$$$ "=" |-- P.enum1 "|" cons_decl);
+val type_var' = (P.type_ident ^^ 
+                 Scan.optional (P.$$$ "::" ^^ P.!!! P.sort) "");
+val type_args' = type_var' >> single ||
+                 P.$$$ "(" |-- P.!!! (P.list1 type_var' --| P.$$$ ")") ||
+ 		 Scan.succeed [];
+
+val domain_decl = (type_args' -- P.name >> Library.swap) -- 
+                  (P.$$$ "=" |-- P.enum1 "|" cons_decl);
 val domains_decl =
   Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.and_list1 domain_decl
   >> (fn (opt_name, doms) =>

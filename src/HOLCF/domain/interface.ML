@@ -5,6 +5,7 @@
 
 Parser for domain section.
 *)
+(** BEWARE: this is still needed for old-style theories **)
 
 local 
   open ThyParse;
@@ -101,21 +102,21 @@ local
       "") end;
 
 (* ----- parser for domain declaration equation ----------------------------- *)
+(** BEWARE: should be consistent with domains_decl in extender.ML **)
 
   val name' = name >> unenclose;
-  val type_var' = type_var >> unenclose;
   fun esc_quote s = let fun esc [] = []
 			|   esc ("\""::xs) = esc xs
 			|   esc ("[" ::xs) = "{"::esc xs
 			|   esc ("]" ::xs) = "}"::esc xs
 			|   esc (x   ::xs) = x  ::esc xs
 		    in implode (esc (Symbol.explode s)) end;
-  val tvar = (type_var' ^^ 
-	      optional ($$ "::" ^^ (sort >> esc_quote)) "") >> quote;
-  fun type_args l = (tvar >> (fn x => [x])
-                 ||  "(" $$-- !! (list1 tvar --$$ ")")
-                 ||  empty >> K []) l
-  fun con_typ l   = (type_args -- name' >> (fn (x,y) => (y,x))) l
+  val type_var' = ((type_var >> unenclose) ^^ 
+	          optional ($$ "::" ^^ !! (sort >> esc_quote)) "") >> quote;
+  val type_args = (type_var' >> single
+                 ||  "(" $$-- !! (list1 type_var' --$$ ")")
+                 ||  empty >> K [])
+  val con_typ   = (type_args -- name' >> Library.swap)
                       (* here ident may be used instead of name' 
                          to avoid ambiguity with standard mixfix option *)
   val domain_arg  = "(" $$-- (optional ($$ "lazy" >> K true) false)
