@@ -1,4 +1,4 @@
-(* theorems.ML
+ (* theorems.ML
    Author : David von Oheimb
    Created: 06-Jun-95
    Updated: 08-Jun-95 first proof from cterms
@@ -39,10 +39,10 @@ fun pg'  thy defs t tacsf=pg'' thy defs t (fn []   => tacsf
 
 fun REPEAT_DETERM_UNTIL p tac = 
 let fun drep st = if p st then Sequence.single st
-			  else (case Sequence.pull(tapply(tac,st)) of
+			  else (case Sequence.pull(tac st) of
 		                  None        => Sequence.null
 				| Some(st',_) => drep st')
-in Tactic drep end;
+in drep end;
 val UNTIL_SOLVED = REPEAT_DETERM_UNTIL (has_fewer_prems 1);
 
 local val trueI2 = prove_goal HOL.thy"f~=x ==> True"(fn prems=>[rtac TrueI 1])in
