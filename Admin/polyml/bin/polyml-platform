@@ -1,0 +1,52 @@
+#!/bin/sh
+#
+# polyml-platform --- determine Poly/ML's idea of current hardware and
+# operating system type
+#
+# NOTE: platform identifiers should be kept as generic as possible,
+# i.e. shared by compatible environments.
+
+PLATFORM=""
+
+case `uname -s` in
+  SunOS)
+    case `uname -r` in
+      5.*)
+        case `uname -p` in
+          sparc)
+            PLATFORM=sparc-solaris
+            ;;
+        esac
+        ;;
+    esac
+    ;;
+  Linux)
+    case `uname -m` in
+      i?86)
+        PLATFORM=x86-linux
+        ;;
+    esac
+    ;;
+  FreeBSD|NetBSD)
+    case `uname -m` in
+      i?86)
+        PLATFORM=x86-bsd
+        ;;
+    esac
+    ;;
+  Windows_NT)
+    case `uname -m` in
+      ?86)
+        PLATFORM=x86-win32
+        ;;
+    esac
+    ;;
+esac
+
+
+if [ -z "$PLATFORM" ]; then
+  echo "Unknown Poly/ML platform" >&2
+  exit 1
+else
+  echo "$PLATFORM"
+fi

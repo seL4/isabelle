@@ -1,0 +1,131 @@
+#!/bin/sh
+#
+# Poly/ML wrapper script
+
+
+## self references
+
+PRG=`basename "$0"`
+
+if [ -h "$0" ]; then
+  THIS=`cd \`dirname "$0"\`; cd \`dirname \\\`find "$PRG" -ls | cut -d ">" -f 2\\\`\`; pwd`
+else
+  THIS=`cd \`dirname "$0"\`; pwd`
+fi
+
+SUPER=`cd "$THIS/.."; pwd`
+
+
+## diagnostics
+
+usage()
+{
+  echo
+  echo "Usage: $PRG [OPTIONS] [DATABASE]"
+  echo
+  echo "  Options are:"
+  echo "    -H SIZE      heap size in MB"
+  echo "    -c           compress DATABASE"
+  echo "    -p ARGS      pass ARGS to poly"
+  echo "    -r           open DATABASE read-only"
+  echo
+  exit 1
+}
+
+fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+COMPRESS=""
+PASS_ARGS=""
+READONLY=""
+
+while getopts "H:cp:r" OPT
+do
+  case "$OPT" in
+    H)
+      PASS_ARGS="$PASS_ARGS -H $OPTARG"
+      ;;
+    c)
+      COMPRESS=true
+      ;;
+    p)
+      PASS_ARGS="$PASS_ARGS $OPTARG"
+      ;;
+    r)
+      READONLY=true
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift `expr $OPTIND - 1`
+
+
+# arguments
+
+DATABASE=""
+[ $# -ge 1 ] && { DATABASE="$1"; shift; }
+
+[ $# -ne 0 ] && { echo "Bad arguments: $*"; usage; }
+
+
+## main
+
+PLATFORM=`"$THIS/polyml-platform"`
+POLY="$SUPER/$PLATFORM/poly"
+
+
+# prepare database
+
+if [ -z "$DATABASE" ]; then
+  DB="$SUPER/$PLATFORM/ML_dbase"
+  READONLY=true
+elif [ -f "$DATABASE.$PLATFORM" ]; then
+  DB="$DATABASE.$PLATFORM"
+  [ ! -w "$DB" ] && READONLY=true
+elif [ -f "$DATABASE" ]; then
+  DB="$DATABASE"
+  [ ! -w "$DB" ] && READONLY=true
+else
+  if [ `basename "$DATABASE"` = `basename "$DATABASE" "$PLATFORM"` ]; then
+    DB="$DATABASE.$PLATFORM"
+  else
+    DB="$DATABASE"
+  fi
+  [ -n "$READONLY" ] && fail "Bad database: \"$DB\""
+  echo "PolyML.make_database \"$DB\"; PolyML.quit();" | \
+    "$POLY" -r "$SUPER/$PLATFORM/ML_dbase"
+  [ -f "$DB" ] || fail "Failed to prepare database: \"$DB\""
+fi
+
+DB_BASE=`basename "$DB"`
+DB_DIR=`dirname "$DB"`; DB_DIR=`cd "$DB_DIR"; pwd`
+FULL_DB="$DB_DIR/$DB_BASE"
+
+
+# run Poly/ML session
+
+POLY_OPTIONS="$PASS_ARGS"
+[ -n "$READONLY" ] && POLY_OPTIONS="-r $POLY_OPTIONS"
+
+INFO=`ls -l "$DB"`
+
+"$POLY" $POLY_OPTIONS "$FULL_DB"
+RC="$?"
+
+NEW_INFO=`ls -l "$DB"`
+
+[ -z "$READONLY" -a -f "$DB" -a "$INFO" != "$NEW_INFO" -a -n "$COMPRESS" ] \
+  && "$POLY" -d -c "$DB"
+
+exit "$RC"
