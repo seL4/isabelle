@@ -317,11 +317,11 @@ fun read_def_termTs freeze sg (types, sorts, used) sTs =
 fun read_def_termT freeze sg defs sT = apfst hd (read_def_termTs freeze sg defs [sT]);
 
 
-fun read_term_sg sg (defs as (_, _, used)) s =
-  #1 (read_def_termT true sg defs (s, TVar ((variant used "'z", 0), logicS)));
+fun read_term_sg freeze sg (defs as (_, _, used)) s =
+  #1 (read_def_termT freeze sg defs (s, TVar ((variant used "'z", 0), logicS)));
 
-fun read_prop_sg sg defs s =
-  #1 (read_def_termT true sg defs (s, propT));
+fun read_prop_sg freeze sg defs s =
+  #1 (read_def_termT freeze sg defs (s, propT));
 
 
 fun cert_term_sg sg t = Thm.term_of (Thm.cterm_of sg t);
@@ -389,18 +389,23 @@ fun norm_term (ctxt as Context {binds, ...}) =
 
 (* dummy patterns *)
 
+local
+
 fun is_dummy (Const (c, _)) = c = PureThy.dummy_patternN
   | is_dummy _ = false;
+
+fun prep_dummy (i, t) =
+  if is_dummy t then (i + 1, Var (("_dummy_", i), Term.fastype_of t)) else (i, t);
+
+in
+
+fun prepare_dummies tm = #2 (Term.foldl_map_aterms prep_dummy (1, tm));
 
 fun reject_dummies ctxt tm =
   if foldl_aterms (fn (ok, t) => ok andalso not (is_dummy t)) (true, tm) then tm
   else raise CONTEXT ("Illegal dummy pattern(s) in term", ctxt);
 
-
-fun prep_dummy (i, t) =
-  if is_dummy t then (i + 1, Var (("_dummy_", i), Term.fastype_of t)) else (i, t);
-
-fun prepare_dummies tm = #2 (Term.foldl_map_aterms prep_dummy (1, tm));
+end;
 
 
 (* read terms *)
@@ -425,10 +430,10 @@ fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, u
   end;
 
 val read_termTs = gen_read (read_def_termTs false) (apfst o map) false;
-val read_term = gen_read read_term_sg I false;
-val read_prop = gen_read read_prop_sg I false;
-val read_term_pat = gen_read read_term_sg I true;
-val read_prop_pat = gen_read read_prop_sg I true;
+val read_term = gen_read (read_term_sg true) I false;
+val read_prop = gen_read (read_prop_sg true) I false;
+val read_term_pat = gen_read (read_term_sg false) I true;
+val read_prop_pat = gen_read (read_prop_sg false) I true;
 
 
 (* certify terms *)
