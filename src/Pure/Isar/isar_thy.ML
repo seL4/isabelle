@@ -203,8 +203,8 @@ fun gen_hide f ((kind, names), comment_ignore) thy =
   if kind mem_string [Sign.classK, Sign.typeK, Sign.constK] then f (kind, names) thy
   else error ("Bad name space specification: " ^ quote kind);
 
-val hide_space = gen_hide Theory.hide_space;
-val hide_space_i = gen_hide Theory.hide_space_i;
+fun hide_space x = gen_hide Theory.hide_space x;
+fun hide_space_i x = gen_hide Theory.hide_space_i x;
 
 
 (* signature and syntax *)
