@@ -49,7 +49,7 @@ fun init reset parent name =
 (* finish *)
 
 fun finish () =
-  (ThyInfo.finalize_all ();
+  (ThyInfo.finish ();
     Present.finish ();
     session_finished := true);
 
