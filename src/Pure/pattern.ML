@@ -17,11 +17,12 @@ signature PATTERN =
   type type_sig
   type sg
   type env
-  val eta_contract: term -> term
-  val match: type_sig -> term * term
-        -> (indexname*typ)list * (indexname*term)list
-  val matches: type_sig -> term * term -> bool
-  val unify: sg * env * (term * term)list -> env
+  val eta_contract      : term -> term
+  val eta_contract_atom : term -> term
+  val match             : type_sig -> term * term
+                          -> (indexname*typ)list * (indexname*term)list
+  val matches           : type_sig -> term * term -> bool
+  val unify             : sg * env * (term * term)list -> env
   exception Unif
   exception MATCH
   exception Pattern
@@ -221,7 +222,7 @@ fun unify(sg,env,tus) = (tsgr := #tsig(Sign.rep_sg sg);
                          foldl (unif []) (env,tus));
 
 
-(*Perform eta-contractions upon a term*)
+(*Eta-contract a term (fully)*)
 fun eta_contract (Abs(a,T,body)) = 
       (case  eta_contract body  of
         body' as (f $ Bound 0) => 
@@ -232,6 +233,18 @@ fun eta_contract (Abs(a,T,body)) =
   | eta_contract t = t;
 
 
+(*Eta-contract a term from outside: just enough to reduce it to an atom*)
+fun eta_contract_atom (t0 as Abs(a, T, body)) = 
+      (case  eta_contract2 body  of
+        body' as (f $ Bound 0) => 
+	    if (0 mem_int loose_bnos f) then Abs(a,T,body')
+	    else eta_contract_atom (incr_boundvars ~1 f)
+      | _ => t0)
+  | eta_contract_atom t = t
+and eta_contract2 (f$t) = f $ eta_contract_atom t
+  | eta_contract2 t     = eta_contract_atom t;
+
+
 (* Pattern matching *)
 exception MATCH;
 
@@ -239,8 +252,7 @@ exception MATCH;
     returns a (tyvar,typ)list and (var,term)list.
   The pattern and object may have variables in common.
   Instantiation does not affect the object, so matching ?a with ?a+1 works.
-  A Const does not match a Free of the same name! 
-  Does not notice eta-equality, thus f does not match %(x)f(x)  *)
+  A Const does not match a Free of the same name! *)
 fun fomatch tsig (pat,obj) =
   let fun typ_match args = (Type.typ_match tsig args)
 			   handle Type.TYPE_MATCH => raise MATCH;
@@ -261,7 +273,7 @@ fun fomatch tsig (pat,obj) =
 	  mtch (typ_match (tyinsts,(T,U)),insts) (t,u)
       | (f$t, g$u) => mtch (mtch (tyinsts,insts) (f,g)) (t, u)
       | _ => raise MATCH
-  in mtch([],[]) (eta_contract pat,eta_contract obj) end;
+  in mtch([],[]) (eta_contract pat, eta_contract obj) end;
 
 
 fun match_bind(itms,binders,ixn,is,t) =
