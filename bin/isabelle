@@ -26,7 +26,6 @@ function usage()
   echo "    -m MODE      add print mode for output"
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
-  echo "    -u           pass 'exit_use_dir\".\";' to the ML session"
   echo
   echo "  INPUT (default \"$DEFAULT_LOGIC\") and OUTPUT specify in/out heaps."
   echo "  These are either names to be searched in the Isabelle path, or actual"
@@ -52,7 +51,7 @@ MODES=""
 TERMINATE=""
 READONLY=""
 
-while getopts "e:m:qru" OPT
+while getopts "e:m:qr" OPT
 do
   case "$OPT" in
     e)
@@ -70,9 +69,6 @@ do
       ;;
     r)
       READONLY=true
-      ;;
-    u)
-      MLTEXT="$MLTEXT exit_use_dir\".\";"
       ;;
     \?)
       usage
