@@ -133,6 +133,7 @@ defs
   Ball_def      "Ball A P       == ! x. x:A --> P(x)"
   Bex_def       "Bex A P        == ? x. x:A & P(x)"
   subset_def    "A <= B         == ! x:A. x:B"
+  psubset_def   "A < B          == (A::'a set) <= B & ~ A=B"
   Compl_def     "Compl A        == {x. ~x:A}"
   Un_def        "A Un B         == {x.x:A | x:B}"
   Int_def       "A Int B        == {x.x:A & x:B}"

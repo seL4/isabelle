@@ -22,6 +22,11 @@ by (Blast_tac 1);
 qed "subset_empty";
 Addsimps [subset_empty];
 
+goalw thy [psubset_def] "~ (A < {})";
+by (Blast_tac 1);
+qed "not_psubset_empty";
+AddIffs [not_psubset_empty];
+
 section "insert";
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a {}*)
@@ -55,6 +60,10 @@ by (Blast_tac 1);
 qed "insert_subset";
 Addsimps[insert_subset];
 
+goal Set.thy "!!a. insert a A ~= insert a B ==> A ~= B";
+by (Blast_tac 1);
+qed "insert_lim";
+
 (* use new B rather than (A-{a}) to avoid infinite unfolding *)
 goal Set.thy "!!a. a:A ==> ? B. A = insert a B & a ~: B";
 by (res_inst_tac [("x","A-{a}")] exI 1);
@@ -82,6 +91,18 @@ by (Blast_tac 1);
 qed "image_insert";
 Addsimps[image_insert];
 
+goal Set.thy  "(f `` (UNION A B)) = (UN x:A.(f `` (B x)))";
+by (Blast_tac 1);
+qed "image_UNION";
+
+goal Set.thy "(%x. x) `` Y = Y";
+by (Blast_tac 1);
+qed "image_id";
+
+goal Set.thy "f``(range g) = range (%x. f (g x))";
+by(Blast_tac 1);
+qed "image_range";
+
 qed_goal "ball_image" Set.thy "(!y:F``S. P y) = (!x:S. P (F x))"
  (fn _ => [Blast_tac 1]);
 
@@ -104,9 +125,6 @@ section "range";
 qed_goal "ball_range" Set.thy "(!y:range f. P y) = (!x. P (f x))"
  (fn _ => [Blast_tac 1]);
 
-qed_goalw "image_range" Set.thy [image_def]
- "f``range g = range (%x. f (g x))" 
- (fn _ => [rtac Collect_cong 1, Blast_tac 1]);
 
 section "Int";
 
@@ -167,9 +185,17 @@ by (Blast_tac 1);
 qed "Un_absorb";
 Addsimps[Un_absorb];
 
+goal Set.thy " A Un (A Un B) = A Un B";
+by (Blast_tac 1);
+qed "Un_left_absorb";
+
 goal Set.thy "A Un B  =  B Un A";
 by (Blast_tac 1);
 qed "Un_commute";
+
+goal Set.thy " A Un (B Un C) = B Un (A Un C)";
+by (Blast_tac 1);
+qed "Un_left_commute";
 
 goal Set.thy "(A Un B) Un C  =  A Un (B Un C)";
 by (Blast_tac 1);
@@ -329,6 +355,11 @@ by (Blast_tac 1);
 qed "UN_empty";
 Addsimps[UN_empty];
 
+goal Set.thy "(UN x:A. {}) = {}";
+by(Blast_tac 1);
+qed "UN_empty2";
+Addsimps[UN_empty2];
+
 goal Set.thy "(UN x:UNIV. B x) = (UN x. B x)";
 by (Blast_tac 1);
 qed "UN_UNIV";
@@ -348,6 +379,10 @@ goal Set.thy "(UN x:insert a A. B x) = B a Un UNION A B";
 by (Blast_tac 1);
 qed "UN_insert";
 Addsimps[UN_insert];
+
+goal Set.thy "(UN i: A Un B. M i) = ((UN i: A. M i) Un (UN i:B. M i))";
+by (Blast_tac 1);
+qed "UN_Un";
 
 goal Set.thy "(INT x:insert a A. B x) = B a Int INTER A B";
 by (Blast_tac 1);
@@ -405,6 +440,11 @@ qed "UN_eq";
 goal Set.thy "(INT x:A. B(x)) = Inter({Y. ? x:A. Y=B(x)})";
 by (Blast_tac 1);
 qed "INT_eq";
+
+goalw Set.thy [o_def] "UNION A (g o f) = UNION (f``A) g";
+by (Blast_tac 1);
+qed "UNION_o";
+
 
 (*Distributive laws...*)
 
@@ -542,7 +582,28 @@ goal Set.thy "A - (B Int C) = (A-B) Un (A-C)";
 by (Blast_tac 1);
 qed "Diff_Int";
 
-Addsimps[subset_UNIV, empty_subsetI, subset_refl];
+goal Set.thy "(A Un B) - C = (A - C) Un (B - C)";
+by (Blast_tac 1);
+qed "Un_Diff";
+
+goal Set.thy "(A Int B) - C = (A - C) Int (B - C)";
+by (Blast_tac 1);
+qed "Int_Diff";
+
+
+section "Miscellany";
+
+goal Set.thy "(A = B) = ((A <= (B::'a set)) & (B<=A))";
+by (Blast_tac 1);
+qed "set_eq_subset";
+
+goal Set.thy "A <= B =  (! t.t:A --> t:B)";
+by (Blast_tac 1);
+qed "subset_iff";
+
+goalw thy [psubset_def] "((A::'a set) <= B) = ((A < B) | (A=B))";
+by (Blast_tac 1);
+qed "subset_iff_psubset_eq";
 
 
 (** Miniscoping: pushing in big Unions and Intersections **)

@@ -10,7 +10,7 @@ OUT = $(ISABELLE_OUTPUT)
 
 NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF WF_Rel \
 	mono Lfp Gfp NatDef Nat intr_elim indrule Inductive Finite Arith \
-	Psubset Sexp Univ List RelPow Option
+	Sexp Univ List RelPow Option
 
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML \
 	ind_syntax.ML cladata.ML simpdata.ML \

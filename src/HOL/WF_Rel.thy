@@ -6,7 +6,7 @@
 Derived wellfounded relations: inverse image, relational product, measure, ...
 *)
 
-WF_Rel = WF + Psubset +
+WF_Rel = Finite +
 consts
  inv_image  :: "('b * 'b)set => ('a => 'b) => ('a * 'a)set"
  measure    :: "('a => nat) => ('a * 'a)set"

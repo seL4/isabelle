@@ -666,3 +666,17 @@ val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
 
 simpset := !simpset addcongs [ball_cong,bex_cong]
                     setmksimps (mksimps mksimps_pairs);
+
+Addsimps[subset_UNIV, empty_subsetI, subset_refl];
+
+
+(*** < ***)
+
+goalw Set.thy [psubset_def] "!!A::'a set. [| A <= B; A ~= B |] ==> A<B";
+by (Blast_tac 1);
+qed "psubsetI";
+
+goalw Set.thy [psubset_def]
+    "!!x. A < insert x B ==> (x ~: A) & A<=B | x:A & A-{x}<B";
+by (Auto_tac());
+qed "psubset_insertD";

@@ -322,3 +322,28 @@ by (case_tac "x:B" 1);
 by (rotate_tac ~1 1);
 by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
 qed_spec_mp "card_mono";
+
+goalw Finite.thy [psubset_def]
+"!!B. finite B ==> !A. A < B --> card(A) < card(B)";
+by (etac finite_induct 1);
+by (Simp_tac 1);
+by (Blast_tac 1);
+by (strip_tac 1);
+by (etac conjE 1);
+by (case_tac "x:A" 1);
+(*1*)
+by (dtac mk_disjoint_insert 1);
+by (etac exE 1);
+by (etac conjE 1);
+by (hyp_subst_tac 1);
+by (rotate_tac ~1 1);
+by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
+by (dtac insert_lim 1);
+by (Asm_full_simp_tac 1);
+(*2*)
+by (rotate_tac ~1 1);
+by (asm_full_simp_tac (!simpset addsimps [subset_insert_iff,finite_subset]) 1);
+by (case_tac "A=F" 1);
+by (Asm_simp_tac 1);
+by (Asm_simp_tac 1);
+qed_spec_mp "psubset_card" ;
