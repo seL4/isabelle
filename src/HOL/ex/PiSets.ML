@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/PiSets.thy
+(*  Title:      HOL/ex/PiSets.ML
     ID:         $Id$
     Author:     Florian Kammueller, University of Cambridge
 
@@ -33,7 +33,7 @@ by (assume_tac 1);
 by (assume_tac 1);
 by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps [PiBij_def,restrict_apply1]) 1);
-by (blast_tac (claset() addEs [equalityE]) 1);
+by (Blast_tac 1);
 qed "inj_PiBij";
 
 

@@ -92,8 +92,8 @@ qed "Diff_fixedpoint";
 
 Goalw [metric_def] "~ s x ==> Suc (metric (s(x:=True))) = metric s";
 by (subgoal_tac "{v. ~ (s(x:=True)) v} = {v. ~ s v} - {x}" 1);
-by Auto_tac;
-by (asm_simp_tac (simpset() addsimps [card_Suc_Diff1]) 1);
+by (Force_tac 2);
+by (asm_full_simp_tac (simpset() addsimps [card_Suc_Diff1]) 1);
 qed "Suc_metric";
 
 Goal "~ s x ==> metric (s(x:=True)) < metric s";

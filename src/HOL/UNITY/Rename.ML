@@ -145,7 +145,7 @@ qed "inj_rename_imp_inj";
 Goalw [surj_def] "surj (rename h) ==> surj h";
 by Auto_tac;
 by (dres_inst_tac [("x", "mk_program ({y}, {})")] spec 1);
-by (auto_tac (claset() addSEs [equalityE], 
+by (auto_tac (claset(), 
 	      simpset() addsimps [program_equality_iff, raw_Acts_rename]));
 qed "surj_rename_imp_surj";
 

@@ -435,7 +435,7 @@ by (full_simp_tac (simpset() addsimps [extend_set_Int_distrib,
 				       extend_set_Un_distrib]) 2);
 by (blast_tac (claset() addSIs [impOfSubs extend_set_project_set]) 2);
 by (full_simp_tac (simpset() addsimps [extend_set_def]) 1);
-by (blast_tac (claset() addSEs [equalityE]) 1);
+by (Blast_tac 1);
 (*The transient part*)
 by Auto_tac;
 by (force_tac (claset() addSDs [equalityD1]

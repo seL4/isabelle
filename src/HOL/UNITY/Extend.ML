@@ -45,7 +45,7 @@ qed "Restrict_subset";
 Goalw [Restrict_def]
      "[| A <= B;  Restrict B r = Restrict B s |] \
 \     ==> Restrict A r = Restrict A s";
-by (blast_tac (claset() addSEs [equalityE]) 1);
+by (Blast_tac 1);
 qed "Restrict_eq_mono";
 
 Goalw [Restrict_def, image_def]

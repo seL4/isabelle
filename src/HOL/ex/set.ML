@@ -84,12 +84,12 @@ qed "";
 (*** The Schroder-Berstein Theorem ***)
 
 Goal "[| -(f``X) = g``(-X);  f(a)=g(b);  a:X |] ==> b:X";
-by (blast_tac (claset() addEs [equalityE]) 1);
+by (Blast_tac 1);
 qed "disj_lemma";
 
 Goal "-(f``X) = g``(-X) ==> surj(%z. if z:X then f(z) else g(z))";
 by (asm_simp_tac (simpset() addsimps [surj_def]) 1);
-by (blast_tac (claset() addEs [equalityE]) 1);
+by (Blast_tac 1);
 qed "surj_if_then_else";
 
 Goalw [inj_on_def]

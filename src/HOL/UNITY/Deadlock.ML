@@ -18,9 +18,8 @@ result();
 Goal "(INT i: atMost n. A(Suc i) Int A i) = (INT i: atMost (Suc n). A i)";
 by (induct_tac "n" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [atMost_Suc])));
-by (blast_tac (claset() addEs [le_SucE] addSEs [equalityE]) 1);
+by Auto_tac;
 qed "Collect_le_Int_equals";
-
 
 (*Dual of the required property.  Converse inclusion fails.*)
 Goal "(UN i: lessThan n. A i) Int (- A n) <=  \

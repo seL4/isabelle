@@ -329,10 +329,8 @@ by (auto_tac (claset(),
 by (blast_tac (claset() addIs [transient_strengthen]) 3);
 by (ALLGOALS (dres_inst_tac [("P1","P")] (impOfSubs preserves_subset_stable)));
 by (rewtac stable_def);
-by (blast_tac (claset() addSEs [equalityE]
-			addIs [constrains_Int RS constrains_weaken]) 2);
-by (blast_tac (claset() addSEs [equalityE]
-			addIs [constrains_Int RS constrains_weaken]) 1);
+by (blast_tac (claset() addIs [constrains_Int RS constrains_weaken]) 2);
+by (blast_tac (claset() addIs [constrains_Int RS constrains_weaken]) 1);
 qed "gen_leadsETo_imp_Join_leadsETo";
 
 (*useful??*)
