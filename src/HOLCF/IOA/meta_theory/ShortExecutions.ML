@@ -160,7 +160,7 @@ by (rtac mp 1);
 by (assume_tac 2);
 by (thin_tac' 1 1);
 by (res_inst_tac [("x","s")] spec 1);
-by (rtac less_induct 1);
+by (rtac nat_less_induct 1);
 by (strip_tac 1);
 ren "na n s" 1;
 by (case_tac "Forall (%x. ~ P x) s" 1);

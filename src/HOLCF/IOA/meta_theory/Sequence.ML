@@ -945,7 +945,7 @@ qed"take_lemma_principle2";
          important, as otherwise either (Forall Q s1) would be in the IH as
          assumption (then rule useless) or it is not possible to strengthen 
          the IH by doing a forall closure of the sequence t (then rule also useless).
-         This is also the reason why the induction rule (less_induct or nat_induct) has to 
+         This is also the reason why the induction rule (nat_less_induct or nat_induct) has to 
          to be imbuilt into the rule, as induction has to be done early and the take lemma 
          has to be used in the trivial direction afterwards for the (Forall Q x) case.  *)
 
@@ -983,7 +983,7 @@ by (resolve_tac seq.take_lemmas 1);
 by (rtac mp 1);
 by (assume_tac 2);
 by (res_inst_tac [("x","x")] spec 1);
-by (rtac less_induct 1);
+by (rtac nat_less_induct 1);
 by (rtac allI 1);
 by (case_tac "Forall Q xa" 1);
 by (SELECT_GOAL (auto_tac (claset() addSIs [seq_take_lemma RS iffD2 RS spec],
@@ -1037,7 +1037,7 @@ by (assume_tac 2);
 by (res_inst_tac [("x","h2a")] spec 1);
 by (res_inst_tac [("x","h1a")] spec 1);
 by (res_inst_tac [("x","x")] spec 1);
-by (rtac less_induct 1);
+by (rtac nat_less_induct 1);
 by (rtac allI 1);
 by (case_tac "Forall Q xa" 1);
 by (SELECT_GOAL (auto_tac (claset() addSIs [seq_take_lemma RS iffD2 RS spec],
@@ -1064,7 +1064,7 @@ wie ziehe ich n durch P, d.h. evtl. ns in P muessen umbenannt werden.....
 
 FIX
 
-by (rtac less_induct 1);
+by (rtac nat_less_induct 1);
 by (rtac allI 1);
 by (case_tac "Forall Q xa" 1);
 by (SELECT_GOAL (auto_tac (claset() addSIs [seq_take_lemma RS iffD2 RS spec],
