@@ -39,7 +39,7 @@ inductive "leads F"
     (*Encoding using powerset of the desired axiom
        (!!A. A : S ==> (A,B) : leads F) ==> (Union S, B) : leads F
     *)
-    Union  "(UN A:S. {(A,B)}) : Pow (leads F) ==> (Union S, B) : leads F"
+    Union  "{(A,B) | A. A: S} : Pow (leads F) ==> (Union S, B) : leads F"
 
   monos Pow_mono
 
