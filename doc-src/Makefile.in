@@ -27,8 +27,12 @@ clean:
 mrproper:
 	@rm -f $(OUTPUT) $(GARBAGE)
 
+
 isabelle.eps:
 	test -r isabelle.eps || ln -s ../gfx/isabelle.eps .
+
+isabelle_isar.eps:
+	test -r isabelle_isar.eps || ln -s ../gfx/isabelle_isar.eps .
 
 isabelle_hol.eps:
 	test -r isabelle_hol.eps || ln -s ../gfx/isabelle_hol.eps .
@@ -36,8 +40,12 @@ isabelle_hol.eps:
 isabelle_zf.eps:
 	test -r isabelle_zf.eps || ln -s ../gfx/isabelle_zf.eps .
 
+
 isabelle.pdf:
 	test -r isabelle.pdf || ln -s ../gfx/isabelle.pdf .
+
+isabelle_isar.pdf:
+	test -r isabelle_isar.pdf || ln -s ../gfx/isabelle_isar.pdf .
 
 isabelle_hol.pdf:
 	test -r isabelle_hol.pdf || ln -s ../gfx/isabelle_hol.pdf .
