@@ -24,7 +24,17 @@
 \newcommand{\isascriptstyle}{\def\isamath##1{##1}\def\isatext##1{\mbox{\isastylescript##1}}}
 \newcommand{\isactrlsub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
 \newcommand{\isactrlsup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
+\newcommand{\isactrlisub}[1]{\emph{\isascriptstyle${}\sb{#1}$}}
+\newcommand{\isactrlisup}[1]{\emph{\isascriptstyle${}\sp{#1}$}}
 \newcommand{\isactrlbold}[1]{{\bfseries\upshape\boldmath#1}}
+
+% somewhat hackish: spanning sub/super scripts (\<^bsub>..\<^esub>)
+\newcommand{\isactrlbsub}{%
+\def\isatext##1{\isastylescript##1}\begin{math}_\bgroup}
+\newcommand{\isactrlesub}{\egroup\end{math}}
+\newcommand{\isactrlbsup}{%
+\def\isatext##1{\isastylescript##1}\begin{math}^\bgroup}
+\newcommand{\isactrlesup}{\egroup\end{math}}
 
 \newdimen\isa@parindent\newdimen\isa@parskip
 
@@ -42,6 +52,7 @@
 
 \newcommand{\isaindent}[1]{\hphantom{#1}}
 \newcommand{\isanewline}{\mbox{}\par\mbox{}}
+\newcommand{\isasep}{} % override with e.g. \renewcommand{\isasep}{\vspace{1ex}}
 \newcommand{\isadigit}[1]{#1}
 
 \chardef\isacharbang=`\!

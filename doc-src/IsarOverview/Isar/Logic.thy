@@ -543,7 +543,38 @@ Do not manipulate the proof state into a particular form by applying
 tactics but state the desired form explicitly and let the tactic verify
 that from this form the original goal follows.
 \end{quote}
-This yields more readable and also more robust proofs. *}
+This yields more readable and also more robust proofs.
+
+\subsubsection{General case distinctions}
+
+As an important application of raw proof blocks we show how to deal
+with general case distinctions --- more specific kinds are treated in
+\S\ref{sec:CaseDistinction}. Imagine that you would like to prove some
+goal by distinguishing $n$ cases $P_1$, \dots, $P_n$. You show that
+the $n$ cases are exhaustive (i.e.\ $P_1 \lor \dots \lor P_n$) and
+that each case $P_i$ implies the goal. Taken together, this proves the
+goal. The corresponding Isar proof pattern (for $n = 3$) is very handy:
+*}
+text_raw{*\renewcommand{\isamarkupcmt}[1]{#1}*}
+(*<*)lemma "XXX"(*>*)
+proof -
+  have "P\<^isub>1 \<or> P\<^isub>2 \<or> P\<^isub>3" (*<*)sorry(*>*) -- {*\dots*}
+  moreover
+  { assume P\<^isub>1
+    -- {*\dots*}
+    have ?thesis (*<*)sorry(*>*) -- {*\dots*} }
+  moreover
+  { assume P\<^isub>2
+    -- {*\dots*}
+    have ?thesis (*<*)sorry(*>*) -- {*\dots*} }
+  moreover
+  { assume P\<^isub>3
+    -- {*\dots*}
+    have ?thesis (*<*)sorry(*>*) -- {*\dots*} }
+  ultimately show ?thesis by blast
+qed
+text_raw{*\renewcommand{\isamarkupcmt}[1]{{\isastylecmt--- #1}}*}
+
 
 subsection{*Further refinements*}
 

@@ -931,9 +931,85 @@ Do not manipulate the proof state into a particular form by applying
 tactics but state the desired form explicitly and let the tactic verify
 that from this form the original goal follows.
 \end{quote}
-This yields more readable and also more robust proofs.%
+This yields more readable and also more robust proofs.
+
+\subsubsection{General case distinctions}
+
+As an important application of raw proof blocks we show how to deal
+with general case distinctions --- more specific kinds are treated in
+\S\ref{sec:CaseDistinction}. Imagine that you would like to prove some
+goal by distinguishing $n$ cases $P_1$, \dots, $P_n$. You show that
+the $n$ cases are exhaustive (i.e.\ $P_1 \lor \dots \lor P_n$) and
+that each case $P_i$ implies the goal. Taken together, this proves the
+goal. The corresponding Isar proof pattern (for $n = 3$) is very handy:%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\renewcommand{\isamarkupcmt}[1]{#1}
+\isamarkupfalse%
+\isacommand{proof}\ {\isacharminus}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{have}\ {\isachardoublequote}P\isactrlisub {\isadigit{1}}\ {\isasymor}\ P\isactrlisub {\isadigit{2}}\ {\isasymor}\ P\isactrlisub {\isadigit{3}}{\isachardoublequote}\ \isamarkupfalse%
+\ %
+\isamarkupcmt{\dots%
+}
+\isanewline
+\ \ \isamarkupfalse%
+\isacommand{moreover}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ P\isactrlisub {\isadigit{1}}\isanewline
+\ \ \ \ %
+\isamarkupcmt{\dots%
+}
+\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{have}\ {\isacharquery}thesis\ \isamarkupfalse%
+\ %
+\isamarkupcmt{\dots%
+}
+\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{moreover}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ P\isactrlisub {\isadigit{2}}\isanewline
+\ \ \ \ %
+\isamarkupcmt{\dots%
+}
+\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{have}\ {\isacharquery}thesis\ \isamarkupfalse%
+\ %
+\isamarkupcmt{\dots%
+}
+\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{moreover}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{{\isacharbraceleft}}\ \isamarkupfalse%
+\isacommand{assume}\ P\isactrlisub {\isadigit{3}}\isanewline
+\ \ \ \ %
+\isamarkupcmt{\dots%
+}
+\isanewline
+\ \ \ \ \isamarkupfalse%
+\isacommand{have}\ {\isacharquery}thesis\ \isamarkupfalse%
+\ %
+\isamarkupcmt{\dots%
+}
+\ \isamarkupfalse%
+\isacommand{{\isacharbraceright}}\isanewline
+\ \ \isamarkupfalse%
+\isacommand{ultimately}\ \isamarkupfalse%
+\isacommand{show}\ {\isacharquery}thesis\ \isamarkupfalse%
+\isacommand{by}\ blast\isanewline
+\isamarkupfalse%
+\isacommand{qed}\isamarkupfalse%
+%
+\renewcommand{\isamarkupcmt}[1]{{\isastylecmt--- #1}}
 %
 \isamarkupsubsection{Further refinements%
 }
@@ -1020,7 +1096,7 @@ Even better, \isakeyword{fixes} allows to introduce concrete syntax locally:%
 \noindent The concrete syntax is dropped at the end of the proof and the
 theorem becomes \begin{isabelle}%
 {\isasymlbrakk}{\isasymAnd}x\ y{\isachardot}\ {\isacharquery}f\ x\ y\ {\isacharequal}\ {\isacharquery}f\ y\ x{\isacharsemicolon}\isanewline
-\isaindent{\ \ \ }{\isasymAnd}x\ y\ z{\isachardot}\ {\isacharquery}r\ x\ y\ {\isasymLongrightarrow}\ {\isacharquery}r\ {\isacharparenleft}{\isacharquery}f\ x\ z{\isacharparenright}\ {\isacharparenleft}{\isacharquery}f\ y\ z{\isacharparenright}{\isacharsemicolon}\ {\isacharquery}r\ {\isacharquery}x\ {\isacharquery}y{\isasymrbrakk}\isanewline
+\isaindent{\ }{\isasymAnd}x\ y\ z{\isachardot}\ {\isacharquery}r\ x\ y\ {\isasymLongrightarrow}\ {\isacharquery}r\ {\isacharparenleft}{\isacharquery}f\ x\ z{\isacharparenright}\ {\isacharparenleft}{\isacharquery}f\ y\ z{\isacharparenright}{\isacharsemicolon}\ {\isacharquery}r\ {\isacharquery}x\ {\isacharquery}y{\isasymrbrakk}\isanewline
 {\isasymLongrightarrow}\ {\isacharquery}r\ {\isacharparenleft}{\isacharquery}f\ {\isacharquery}z\ {\isacharquery}x{\isacharparenright}\ {\isacharparenleft}{\isacharquery}f\ {\isacharquery}z\ {\isacharquery}y{\isacharparenright}%
 \end{isabelle}
 \tweakskip%
