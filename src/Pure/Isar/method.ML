@@ -218,11 +218,8 @@ fun sectioned args ss = args ss -- Scan.repeat (section ss);
 
 
 fun sectioned_args args ss f src ctxt =
-  let val (ctxt', (x, thss)) = syntax (sectioned args ss) ctxt src
-  in
-    warning "TRACE thms:"; seq Attribute.print_tthm (flat thss);             (* FIXME *)
-    f x ctxt'
-  end;
+  let val (ctxt', (x, _)) = syntax (sectioned args ss) ctxt src
+  in f x ctxt' end;
 
 fun default_sectioned_args att ss f src ctxt =
   sectioned_args thmss ss (fn ths => fn ctxt' => f (#1 (apply att (ctxt', ths)))) src ctxt;
