@@ -12,10 +12,11 @@ AddSIs [equalityI];
 
 section "{}";
 
-Goal "{x. False} = {}";
-by (Blast_tac 1);
-qed "Collect_False_empty";
-Addsimps [Collect_False_empty];
+(*supersedes Collect_False_empty*)
+Goal "{s. P} = (if P then UNIV else {})";
+by (Force_tac 1);
+qed "Collect_const";
+Addsimps [Collect_const];
 
 Goal "(A <= {}) = (A = {})";
 by (Blast_tac 1);
@@ -674,6 +675,10 @@ Addsimps [insert_Diff1];
 Goal "a:A ==> insert a (A-{a}) = A";
 by (Blast_tac 1);
 qed "insert_Diff";
+
+Goal "x ~: A ==> (insert x A) - {x} = A";
+by Auto_tac;
+qed "Diff_insert_absorb";
 
 Goal "A Int (B-A) = {}";
 by (Blast_tac 1);
