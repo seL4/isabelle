@@ -13,7 +13,8 @@ dist: dvi
 include ../Makefile.in
 
 NAME = system
-FILES = system.tex ../iman.sty ../extra.sty
+FILES = system.tex basics.tex misc.tex fonts.tex present.tex \
+	../iman.sty ../extra.sty
 
 dvi: $(NAME).dvi
 
