@@ -54,7 +54,7 @@ qed "diag_iff";
 
 Goal "diag(A) <= A Times A";
 by (Blast_tac 1);
-qed "diag_subset_Sigma";
+qed "diag_subset_Times";
 
 
 
@@ -161,6 +161,11 @@ by (Blast_tac 1);
 qed "converse_Id";
 Addsimps [converse_Id];
 
+Goal "(diag A) ^-1 = diag A";
+by (Blast_tac 1);
+qed "converse_diag";
+Addsimps [converse_diag];
+
 (** Domain **)
 
 Goalw [Domain_def] "a: Domain(r) = (EX y. (a,y): r)";
@@ -226,6 +231,11 @@ by (Blast_tac 1);
 qed "Range_Id";
 Addsimps [Range_Id];
 
+Goal "Range (diag A) = A";
+by Auto_tac;
+qed "Range_diag";
+Addsimps [Range_diag];
+
 Goal "Range(A Un B) = Range(A) Un Range(B)";
 by (Blast_tac 1);
 qed "Range_Un_eq";
@@ -284,7 +294,11 @@ Goal "Id ^^ A = A";
 by (Blast_tac 1);
 qed "Image_Id";
 
-Addsimps [Image_Id];
+Goal "B<=A ==> diag A ^^ B = B";
+by (Blast_tac 1);
+qed "Image_diag";
+
+Addsimps [Image_Id, Image_diag];
 
 qed_goal "Image_Int_subset" thy
     "R ^^ (A Int B) <= R ^^ A Int R ^^ B"
