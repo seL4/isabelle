@@ -1,13 +1,9 @@
 (*  Title:      FOL/FOL.thy
     ID:         $Id$
     Author:     Lawrence C Paulson and Markus Wenzel
-
-Classical first-order logic.
-
-This may serve as a good example of initializing all the tools and
-packages required for a reasonable working environment.  Please go
-elsewhere to see actual applications!
 *)
+
+header {* Classical first-order logic *}
 
 theory FOL = IFOL
 files
@@ -21,39 +17,10 @@ axioms
   classical: "(~P ==> P) ==> P"
 
 
-subsection {* Setup of several proof tools *}
+subsection {* Lemmas and proof tools *}
 
 use "FOL_lemmas1.ML"
-
-lemma atomize_all: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
-proof (rule equal_intr_rule)
-  assume "!!x. P(x)"
-  show "ALL x. P(x)" by (rule allI)
-next
-  assume "ALL x. P(x)"
-  thus "!!x. P(x)" by (rule allE)
-qed
-
-lemma atomize_imp: "(A ==> B) == Trueprop (A --> B)"
-proof (rule equal_intr_rule)
-  assume r: "A ==> B"
-  show "A --> B" by (rule impI) (rule r)
-next
-  assume "A --> B" and A
-  thus B by (rule mp)
-qed
-
-lemma atomize_eq: "(x == y) == Trueprop (x = y)"
-proof (rule equal_intr_rule)
-  assume "x == y"
-  show "x = y" by (unfold prems) (rule refl)
-next
-  assume "x = y"
-  thus "x == y" by (rule eq_reflection)
-qed
-
-lemmas atomize = atomize_all atomize_imp
-lemmas atomize' = atomize atomize_eq
+theorems case_split = case_split_thm [case_names True False]
 
 use "cladata.ML"
 setup Cla.setup
@@ -69,6 +36,52 @@ setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup
 setup Clasimp.setup
 setup Rulify.setup
+
+
+
+subsection {* Proof by cases and induction *}
+
+text {* Proper handling of non-atomic rule statements. *}
+
+constdefs
+  induct_forall :: "('a => o) => o"
+  "induct_forall(P) == \<forall>x. P(x)"
+  induct_implies :: "o => o => o"
+  "induct_implies(A, B) == A --> B"
+  induct_equal :: "'a => 'a => o"
+  "induct_equal(x, y) == x = y"
+
+lemma induct_forall_eq: "(!!x. P(x)) == Trueprop(induct_forall(\<lambda>x. P(x)))"
+  by (simp only: atomize_all induct_forall_def)
+
+lemma induct_implies_eq: "(A ==> B) == Trueprop(induct_implies(A, B))"
+  by (simp only: atomize_imp induct_implies_def)
+
+lemma induct_equal_eq: "(x == y) == Trueprop(induct_equal(x, y))"
+  by (simp only: atomize_eq induct_equal_def)
+
+lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq
+lemmas induct_rulify1 = induct_atomize [symmetric, standard]
+lemmas induct_rulify2 = induct_forall_def induct_implies_def induct_equal_def
+
+hide const induct_forall induct_implies induct_equal
+
+
+text {* Method setup. *}
+
+ML {*
+  structure InductMethod = InductMethodFun
+  (struct
+    val dest_concls = FOLogic.dest_concls;
+    val cases_default = thm "case_split";
+    val conjI = thm "conjI";
+    val atomize = thms "induct_atomize";
+    val rulify1 = thms "induct_rulify1";
+    val rulify2 = thms "induct_rulify2";
+  end);
+*}
+
+setup InductMethod.setup
 
 
 subsection {* Calculational rules *}
