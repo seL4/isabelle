@@ -40,10 +40,6 @@ consts
   "op :"        :: ['a, 'a set] => bool             ("(_/ : _)" [50, 51] 50)
 
 
-(*For compatibility: DELETE after one release*)
-syntax Compl :: ('a set) => 'a set   (*complement*)
-translations "Compl A"  => "- A"
-
 (** Additional concrete syntax **)
 
 syntax

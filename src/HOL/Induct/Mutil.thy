@@ -23,7 +23,7 @@ inductive domino
 inductive "tiling A"
   intrs
     empty  "{} : tiling A"
-    Un     "[| a: A;  t: tiling A;  a <= Compl t |] ==> a Un t : tiling A"
+    Un     "[| a: A;  t: tiling A;  a <= -t |] ==> a Un t : tiling A"
 
 defs
   below_def  "below n    == {i. i<n}"

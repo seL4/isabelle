@@ -5,6 +5,10 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Overview of INCOMPATIBILITIES (see below for more details) ***
+
+* HOL: Removed the obsolete syntax "Compl A"; use -A for set complement
+
 *** General ***
 
 * tuned current_goals_markers semantics: begin / end goal avoids

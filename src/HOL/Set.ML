@@ -299,7 +299,7 @@ val Pow_bottom = empty_subsetI RS PowI;        (* {}: Pow(B) *)
 val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
 
 
-section "Set complement -- Compl";
+section "Set complement";
 
 qed_goalw "Compl_iff" Set.thy [Compl_def] "(c : -A) = (c~:A)"
  (fn _ => [ (Blast_tac 1) ]);

@@ -36,10 +36,10 @@ constdefs
     "queueing == above Un below"
 
   goingup :: state set
-    "goingup   == above Int  ({s. up s}  Un Compl below)"
+    "goingup   == above Int  ({s. up s}  Un -below)"
 
   goingdown :: state set
-    "goingdown == below Int ({s. ~ up s} Un Compl above)"
+    "goingdown == below Int ({s. ~ up s} Un -above)"
 
   ready :: state set
     "ready == {s. stop s & ~ open s & move s}"

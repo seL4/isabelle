@@ -336,7 +336,7 @@ by (Blast_tac 1);
 qed "Un_Diff_Int";
 
 
-section "Compl";
+section "Set complement";
 
 Goal "A Int -A = {}";
 by (Blast_tac 1);

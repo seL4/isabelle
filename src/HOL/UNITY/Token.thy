@@ -49,7 +49,7 @@ locale Token =
 
     TR4  "F : constrains (H i - HasTok i) (H i)"
 
-    TR5  "F : constrains (HasTok i) (HasTok i Un Compl(E i))"
+    TR5  "F : constrains (HasTok i) (HasTok i Un -(E i))"
 
     TR6  "F : leadsTo (H i Int HasTok i) (E i)"
 
