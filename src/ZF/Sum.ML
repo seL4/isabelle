@@ -10,6 +10,10 @@ open Sum;
 
 val sum_defs = [sum_def,Inl_def,Inr_def,case_def];
 
+goalw Sum.thy (bool_def::sum_defs) "Sigma(bool,C) = C(0) + C(1)";
+by (fast_tac eq_cs 1);
+val Sigma_bool = result();
+
 (** Introduction rules for the injections **)
 
 goalw Sum.thy sum_defs "!!a A B. a : A ==> Inl(a) : A+B";
@@ -83,6 +87,7 @@ goal Sum.thy "A+B = C+D <-> A=C & B=D";
 by (simp_tac (ZF_ss addsimps [extension,sum_subset_iff]) 1);
 by (fast_tac ZF_cs 1);
 val sum_equal_iff = result();
+
 
 (*** Eliminator -- case ***)
 
