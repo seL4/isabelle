@@ -133,10 +133,11 @@ val constsP =
   OuterSyntax.command "consts" "declare constants" K.thy_decl
     (Scan.repeat1 (P.const -- P.marg_comment) >> (Toplevel.theory o IsarThy.add_consts));
 
-val opt_mode =
-  Scan.optional
-    (P.$$$ "(" |-- P.!!! (P.name -- Scan.optional (P.$$$ "output" >> K false) true --| P.$$$ ")"))
-    ("", true);
+
+val mode_spec = 
+  (P.$$$ "output" >> K ("", false)) || P.name -- Scan.optional (P.$$$ "output" >> K false) true;
+
+val opt_mode = Scan.optional (P.$$$ "(" |-- P.!!! (mode_spec --| P.$$$ ")")) ("", true);
 
 val syntaxP =
   OuterSyntax.command "syntax" "declare syntactic constants" K.thy_decl
@@ -621,9 +622,12 @@ val kill_thyP =
   OuterSyntax.improper_command "kill_thy" "kill theory -- try to remove from loader database"
     K.diag (P.name >> (Toplevel.no_timing oo IsarCmd.kill_thy));
 
+val opt_limits =
+  Scan.option P.nat -- Scan.option (P.$$$ "," |-- P.!!! P.nat);
+
 val prP =
   OuterSyntax.improper_command "pr" "print current proof state (if present)" K.diag
-    (opt_modes -- Scan.option P.nat >> (Toplevel.no_timing oo IsarCmd.pr));
+    (opt_modes -- opt_limits >> (Toplevel.no_timing oo IsarCmd.pr));
 
 val disable_prP =
   OuterSyntax.improper_command "disable_pr" "disable printing of toplevel state" K.diag

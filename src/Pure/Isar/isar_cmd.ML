@@ -17,7 +17,7 @@ sig
   val touch_thy: string -> Toplevel.transition -> Toplevel.transition
   val remove_thy: string -> Toplevel.transition -> Toplevel.transition
   val kill_thy: string -> Toplevel.transition -> Toplevel.transition
-  val pr: string list * int option -> Toplevel.transition -> Toplevel.transition
+  val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
   val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
@@ -93,8 +93,11 @@ fun kill_thy name = Toplevel.imperative (fn () => IsarThy.kill_theory name);
 fun with_modes modes e =
   Library.setmp print_mode (modes @ ! print_mode) e ();
 
-fun pr (ms, limit) = Toplevel.keep (fn state =>
-  ((case limit of Some n => goals_limit := n | None => ()); Toplevel.quiet := false;
+fun set_limit _ None = ()
+  | set_limit r (Some n) = r := n;
+
+fun pr (ms, (lim1, lim2)) = Toplevel.keep (fn state =>
+  (set_limit goals_limit lim1; set_limit ProofContext.prems_limit lim2; Toplevel.quiet := false;
     with_modes ms (fn () => Toplevel.print_state true state)));
 
 val disable_pr = Toplevel.imperative (fn () => Toplevel.quiet := true);
