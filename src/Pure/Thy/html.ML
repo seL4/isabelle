@@ -92,7 +92,7 @@ local
      | "\\<questiondown>" => (1.0, "&iquest;")
      | "\\<times>" => (1.0, "&times;")
      | "\\<div>" => (1.0, "&divide;")
-     | "\\<circ>" => (1.0, "&circ;")
+     | "\\<circ>" => (1.0, "o")
      | "\\<Alpha>" => (1.0, "&Alpha;")
      | "\\<Beta>" => (1.0, "&Beta;")
      | "\\<Gamma>" => (1.0, "&Gamma;")
