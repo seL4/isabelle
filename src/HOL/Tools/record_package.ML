@@ -338,6 +338,7 @@ struct
       (thm Symtab.table * Simplifier.simpset);          (*field split rules*)
 
   val empty = (Symtab.empty, (Symtab.empty, HOL_basic_ss));
+  val copy = I;
   val prep_ext = I;
   fun merge ((recs1, (sps1, ss1)), (recs2, (sps2, ss2))) =
     (Symtab.merge (K true) (recs1, recs2),

@@ -31,7 +31,7 @@ sig
   val clasetK: Object.kind
   exception ClasetData of Object.T ref
   val setup: (theory -> theory) list
-  val fix_methods: Object.T * (Object.T -> Object.T) *
+  val fix_methods: Object.T * (Object.T -> Object.T) * (Object.T -> Object.T) *
     (Object.T * Object.T -> Object.T) * (Sign.sg -> Object.T -> unit) -> unit
 end;
 
@@ -181,18 +181,20 @@ local
   fun undef _ = raise Match;
 
   val empty_ref = ref ERROR;
+  val copy_fn = ref (undef: Object.T -> Object.T);
   val prep_ext_fn = ref (undef: Object.T -> Object.T);
   val merge_fn = ref (undef: Object.T * Object.T -> Object.T);
   val print_fn = ref (undef: Sign.sg -> Object.T -> unit);
 
   val empty = ClasetData empty_ref;
+  fun copy exn = ! copy_fn exn;
   fun prep_ext exn = ! prep_ext_fn exn;
   fun merge exn = ! merge_fn exn;
   fun print sg exn = ! print_fn sg exn;
 in
-  val setup = [Theory.init_data clasetK (empty, prep_ext, merge, print)];
-  fun fix_methods (e, ext, mrg, prt) =
-    (empty_ref := e; prep_ext_fn := ext; merge_fn := mrg; print_fn := prt);
+  val setup = [Theory.init_data clasetK (empty, copy, prep_ext, merge, print)];
+  fun fix_methods (e, cp, ext, mrg, prt) =
+    (empty_ref := e; copy_fn := cp; prep_ext_fn := ext; merge_fn := mrg; print_fn := prt);
 end;
 
 
@@ -787,15 +789,16 @@ local
   val empty = CSData (ref empty_cs);
 
   (*create new references*)
-  fun prep_ext (ClasetData (ref (CSData (ref cs)))) =
+  fun copy (ClasetData (ref (CSData (ref cs)))) =
     ClasetData (ref (CSData (ref cs)));
+  val prep_ext = copy;
 
   fun merge (ClasetData (ref (CSData (ref cs1))), ClasetData (ref (CSData (ref cs2)))) =
     ClasetData (ref (CSData (ref (merge_cs (cs1, cs2)))));
 
   fun print (_: Sign.sg) (ClasetData (ref (CSData (ref cs)))) = print_cs cs;
 in
-  val _ = fix_methods (empty, prep_ext, merge, print);
+  val _ = fix_methods (empty, copy, prep_ext, merge, print);
 end;
 
 

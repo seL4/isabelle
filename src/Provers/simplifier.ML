@@ -266,7 +266,8 @@ struct
   type T = simpset ref;
 
   val empty = ref empty_ss;
-  fun prep_ext (ref ss) = (ref ss): T;            (*create new reference!*)
+  fun copy (ref ss) = (ref ss): T;            (*create new reference!*)
+  val prep_ext = copy;
   fun merge (ref ss1, ref ss2) = ref (merge_ss (ss1, ss2));
   fun print _ (ref ss) = print_ss ss;
 end;

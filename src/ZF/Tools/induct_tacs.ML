@@ -37,6 +37,7 @@ structure DatatypesArgs =
   type T = datatype_info Symtab.table;
 
   val empty = Symtab.empty;
+  val copy = I;
   val prep_ext = I;
   val merge: T * T -> T = Symtab.merge (K true);
 
@@ -63,6 +64,7 @@ struct
   type T = constructor_info Symtab.table
 
   val empty = Symtab.empty
+  val copy = I;
   val prep_ext = I
   val merge: T * T -> T = Symtab.merge (K true)
 

@@ -94,7 +94,8 @@ structure TypecheckingArgs =
   val name = "ZF/type-checker";
   type T = tcset ref;
   val empty = ref (TC{rules=[], net=Net.empty});
-  fun prep_ext (ref ss) = (ref ss): T;            (*create new reference!*)
+  fun copy (ref tc) = ref tc;
+  val prep_ext = copy;
   fun merge (ref tc1, ref tc2) = ref (merge_tc (tc1, tc2));
   fun print _ (ref tc) = print_tc tc;
   end;
