@@ -22,10 +22,10 @@ sig
   val name: T list -> string * T list
   val nat: T list -> int * T list
   val var: T list -> indexname * T list
-  val enum1: string -> (T list -> 'a * T list) -> T list -> 'a list * T list
-  val enum: string -> (T list -> 'a * T list) -> T list -> 'a list * T list
-  val list1: (T list -> 'a * T list) -> T list -> 'a list * T list
-  val list: (T list -> 'a * T list) -> T list -> 'a list * T list
+  val enum: string -> ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
+  val enum1: string -> ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
+  val and_list: ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
+  val and_list1: ('a * T list -> 'b * ('a * T list)) -> 'a * T list -> 'b list * ('a * T list)
   val global_typ: theory * T list -> typ * (theory * T list)
   val global_term: theory * T list -> term * (theory * T list)
   val global_prop: theory * T list -> term * (theory * T list)
@@ -116,11 +116,11 @@ val var = kind (apsome #1 o try Term.dest_Var o Syntax.read_var);
 
 (* enumerations *)
 
-fun enum1 sep scan = scan -- Scan.repeat ($$$ sep |-- scan) >> op ::;
+fun enum1 sep scan = scan -- Scan.repeat (Scan.lift ($$$ sep) |-- scan) >> op ::;
 fun enum sep scan = enum1 sep scan || Scan.succeed [];
 
-fun list1 scan = enum1 "," scan;
-fun list scan = enum "," scan;
+fun and_list1 scan = enum1 "and" scan;
+fun and_list scan = enum "and" scan;
 
 
 (* terms and types *)
@@ -182,6 +182,9 @@ fun syntax kind scan st (src as Src ((s, args), pos)) =
 
 
 (* attribs *)
+
+fun list1 scan = scan -- Scan.repeat ($$$ "," |-- scan) >> op ::;
+fun list scan = list1 scan || Scan.succeed [];
 
 val attrib = position (name -- !!! (args false)) >> src;
 val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
