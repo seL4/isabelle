@@ -5,6 +5,8 @@ Isabelle NEWS -- history of user-visible changes
 New in Isabelle94-8 (April 1997)
 --------------------------------
 
+* reimplemented type inference;
+
 * INSTALL text, together with ./configure and ./build scripts;
 
 * added token_translation interface (may translate name tokens in
