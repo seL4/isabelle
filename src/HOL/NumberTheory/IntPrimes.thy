@@ -663,14 +663,17 @@ lemma zcong_zero [iff]: "[a = b] (mod 0) = (a = b)"
 
 lemma "[a = b] (mod m) = (a mod m = b mod m)"
   apply (case_tac "m = 0", simp add: DIVISION_BY_ZERO)
-  apply (case_tac "0 < m")
-   apply (simp add: zcong_zmod_eq)
+  apply (simp add: linorder_neq_iff)
+  apply (erule disjE)  
+   prefer 2 apply (simp add: zcong_zmod_eq)
+  txt{*Remainding case: @{term "m<0"}*}
   apply (rule_tac t = m in zminus_zminus [THEN subst])
   apply (subst zcong_zminus)
   apply (subst zcong_zmod_eq)
    apply arith
-  oops  -- {* FIXME: finish this proof? *}
-
+  apply (frule neg_mod_bound [of _ a], frule neg_mod_bound [of _ b]) 
+  apply (simp add: zmod_zminus2_eq_if)
+  done
 
 subsection {* Modulo *}
 
