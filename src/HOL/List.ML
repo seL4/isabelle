@@ -643,47 +643,48 @@ qed_spec_mp "nth_append";
 
 Goal "!n. n < length xs --> (map f xs)!n = f(xs!n)";
 by (induct_tac "xs" 1);
-(* case [] *)
-by (Asm_full_simp_tac 1);
-(* case x#xl *)
+ by (Asm_full_simp_tac 1);
 by (rtac allI 1);
 by (induct_tac "n" 1);
 by Auto_tac;
 qed_spec_mp "nth_map";
 Addsimps [nth_map];
 
-Goal "!n. n < length xs --> Ball (set xs) P --> P(xs!n)";
-by (induct_tac "xs" 1);
-(* case [] *)
-by (Simp_tac 1);
-(* case x#xl *)
-by (rtac allI 1);
-by (induct_tac "n" 1);
-by Auto_tac;
-qed_spec_mp "list_ball_nth";
-
-Goal "!n. n < length xs --> xs!n : set xs";
+Goal "set xs = {xs!i |i. i < length xs}";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
-by (rtac allI 1);
-by (induct_tac "n" 1);
- by (Asm_full_simp_tac 1);
-by (Asm_full_simp_tac 1);
+by(Asm_simp_tac 1);
+by(Safe_tac);
+  by(res_inst_tac [("x","0")] exI 1);
+  by (Simp_tac 1);
+ by(res_inst_tac [("x","Suc i")] exI 1);
+ by(Asm_simp_tac 1);
+by(exhaust_tac "i" 1);
+ by(Asm_full_simp_tac 1);
+by(rename_tac "j" 1);
+ by(res_inst_tac [("x","j")] exI 1);
+by(Asm_simp_tac 1);
+qed "set_conv_nth";
+
+Goal "n < length xs ==> Ball (set xs) P --> P(xs!n)";
+by (simp_tac (simpset() addsimps [set_conv_nth]) 1);
+by(Blast_tac 1);
+qed_spec_mp "list_ball_nth";
+
+Goal "n < length xs ==> xs!n : set xs";
+by (simp_tac (simpset() addsimps [set_conv_nth]) 1);
+by(Blast_tac 1);
 qed_spec_mp "nth_mem";
 Addsimps [nth_mem];
 
-
 Goal "(!i. i < length xs --> P(xs!i)) --> (!x : set xs. P x)";
-by (induct_tac "xs" 1);
- by (Asm_full_simp_tac 1);
-by (simp_tac (simpset() addsplits [nat.split] addsimps [nth_Cons]) 1);
-by (fast_tac (claset() addss simpset()) 1);
+by (simp_tac (simpset() addsimps [set_conv_nth]) 1);
+by(Blast_tac 1);
 qed_spec_mp "all_nth_imp_all_set";
 
 Goal "(!x : set xs. P x) = (!i. i<length xs --> P (xs ! i))";
-by (rtac iffI 1);
- by (Asm_full_simp_tac 1);
-by (etac all_nth_imp_all_set 1);
+by (simp_tac (simpset() addsimps [set_conv_nth]) 1);
+by(Blast_tac 1);
 qed_spec_mp "all_set_conv_all_nth";
 
 
@@ -760,6 +761,12 @@ Goal "!ys. butlast (xs@ys) = (if ys=[] then butlast xs else xs@butlast ys)";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed_spec_mp "butlast_append";
+
+Goal "xs ~= [] --> butlast xs @ [last xs] = xs";
+by(induct_tac "xs" 1);
+by(ALLGOALS Asm_simp_tac);
+qed_spec_mp "append_butlast_last_id";
+Addsimps [append_butlast_last_id];
 
 Goal "x:set(butlast xs) --> x:set xs";
 by (induct_tac "xs" 1);
@@ -874,6 +881,7 @@ by (induct_tac "n" 1);
 by (exhaust_tac "xs" 1);
  by Auto_tac;
 qed_spec_mp "append_take_drop_id";
+Addsimps [append_take_drop_id];
 
 Goal "!xs. take n (map f xs) = map f (take n xs)"; 
 by (induct_tac "n" 1);
@@ -906,6 +914,17 @@ by (exhaust_tac "xs" 1);
  by Auto_tac;
 qed_spec_mp "nth_drop";
 Addsimps [nth_drop];
+
+
+Goal
+ "!zs. (xs@ys = zs) = (xs = take (length xs) zs & ys = drop (length xs) zs)";
+by(induct_tac "xs" 1);
+ by(Simp_tac 1);
+by(Asm_full_simp_tac 1);
+by(Clarify_tac 1);
+by(exhaust_tac "zs" 1);
+by(Auto_tac);
+qed_spec_mp "append_eq_conv_conj";
 
 (** takeWhile & dropWhile **)
 
@@ -962,7 +981,7 @@ Addsimps [zip_Cons_Cons];
 
 Delsimps(tl (thms"zip.simps"));
 
-Goal "!xs. length xs = length ys --> length (zip xs ys) = length ys";
+Goal "!xs. length (zip xs ys) = min (length xs) (length ys)";
 by (induct_tac "ys" 1);
  by (Simp_tac 1);
 by (Clarify_tac 1);
@@ -972,15 +991,33 @@ qed_spec_mp "length_zip";
 Addsimps [length_zip];
 
 Goal
-"!xs. length xs = length us --> length ys = length vs --> \
-\     zip (xs@ys) (us@vs) = zip xs us @ zip ys vs";
-by (induct_tac "us" 1);
- by (Asm_full_simp_tac 1);
-by (Asm_full_simp_tac 1);
+ "!xs. zip (xs@ys) zs = \
+\      zip xs (take (length xs) zs) @ zip ys (drop (length xs) zs)";
+by(induct_tac "zs" 1);
+ by(Simp_tac 1);
 by (Clarify_tac 1);
-by (exhaust_tac "xs" 1);
- by (Auto_tac);
+by(exhaust_tac "xs" 1);
+ by(Asm_simp_tac 1);
+by(Asm_simp_tac 1);
+qed_spec_mp "zip_append1";
+
+Goal
+ "!ys. zip xs (ys@zs) = \
+\      zip (take (length ys) xs) ys @ zip (drop (length ys) xs) zs";
+by(induct_tac "xs" 1);
+ by(Simp_tac 1);
+by (Clarify_tac 1);
+by(exhaust_tac "ys" 1);
+ by(Asm_simp_tac 1);
+by(Asm_simp_tac 1);
+qed_spec_mp "zip_append2";
+
+Goal
+ "[| length xs = length us; length ys = length vs |] ==> \
+\ zip (xs@ys) (us@vs) = zip xs us @ zip ys vs";
+by(asm_simp_tac (simpset() addsimps [zip_append1]) 1);
 qed_spec_mp "zip_append";
+Addsimps [zip_append];
 
 Goal "!xs. length xs = length ys --> zip (rev xs) (rev ys) = rev (zip xs ys)";
 by (induct_tac "ys" 1);
@@ -989,19 +1026,8 @@ by (Asm_full_simp_tac 1);
 by (Clarify_tac 1);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
-by (asm_full_simp_tac (simpset() addsimps [zip_append]) 1);
 qed_spec_mp "zip_rev";
 
-Goal
- "!ys. set(zip xs ys) = {(xs!i,ys!i) |i. i < min (length xs) (length ys)}";
-by(induct_tac "xs" 1);
- by (Simp_tac 1);
-br allI 1;
-by(exhaust_tac "ys" 1);
- by(Asm_simp_tac 1);
-by(auto_tac (claset(),
-           simpset() addsimps [nth_Cons,gr0_conv_Suc] addsplits [nat.split]));
-qed_spec_mp "set_zip";
 
 Goal
 "!i xs. i < length xs --> i < length ys --> (zip xs ys)!i = (xs!i, ys!i)";
@@ -1013,6 +1039,10 @@ by (exhaust_tac "xs" 1);
 by (asm_full_simp_tac (simpset() addsimps (thms"nth.simps") addsplits [nat.split]) 1);
 qed_spec_mp "nth_zip";
 Addsimps [nth_zip];
+
+Goal "set(zip xs ys) = {(xs!i,ys!i) |i. i < min (length xs) (length ys)}";
+by (simp_tac (simpset() addsimps [set_conv_nth]addcongs [rev_conj_cong]) 1);
+qed_spec_mp "set_zip";
 
 Goal
  "length xs = length ys ==> zip (xs[i:=x]) (ys[i:=y]) = (zip xs ys)[i:=(x,y)]";
@@ -1050,6 +1080,44 @@ Goalw [list_all2_def]
 by (Auto_tac);
 qed "list_all2_Cons";
 AddIffs[list_all2_Cons];
+
+Goalw [list_all2_def]
+ "list_all2 P (x#xs) ys = (? z zs. ys = z#zs & P x z & list_all2 P xs zs)";
+by(exhaust_tac "ys" 1);
+by(Auto_tac);
+qed "list_all2_Cons1";
+
+Goalw [list_all2_def]
+ "list_all2 P xs (y#ys) = (? z zs. xs = z#zs & P z y & list_all2 P zs ys)";
+by(exhaust_tac "xs" 1);
+by(Auto_tac);
+qed "list_all2_Cons2";
+
+Goalw [list_all2_def]
+ "list_all2 P (xs@ys) zs = \
+\ (EX us vs. zs = us@vs & length us = length xs & length vs = length ys & \
+\            list_all2 P xs us & list_all2 P ys vs)";
+by(simp_tac (simpset() addsimps [zip_append1]) 1);
+br iffI 1;
+ by(res_inst_tac [("x","take (length xs) zs")] exI 1);
+ by(res_inst_tac [("x","drop (length xs) zs")] exI 1);
+ by(asm_full_simp_tac (simpset() addsimps [min_def,eq_sym_conv]) 1);
+by (Clarify_tac 1);
+by(asm_full_simp_tac (simpset() addsimps [ball_Un]) 1);
+qed "list_all2_append1";
+
+Goalw [list_all2_def]
+ "list_all2 P xs (ys@zs) = \
+\ (EX us vs. xs = us@vs & length us = length ys & length vs = length zs & \
+\            list_all2 P us ys & list_all2 P vs zs)";
+by(simp_tac (simpset() addsimps [zip_append2]) 1);
+br iffI 1;
+ by(res_inst_tac [("x","take (length ys) xs")] exI 1);
+ by(res_inst_tac [("x","drop (length ys) xs")] exI 1);
+ by(asm_full_simp_tac (simpset() addsimps [min_def,eq_sym_conv]) 1);
+by (Clarify_tac 1);
+by(asm_full_simp_tac (simpset() addsimps [ball_Un]) 1);
+qed "list_all2_append2";
 
 Goalw [list_all2_def]
   "list_all2 P xs ys = \
