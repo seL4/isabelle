@@ -196,11 +196,6 @@ derived rules.
 \FOL{} instantiates most of Isabelle's generic packages.
 \begin{itemize}
 \item 
-Because it includes a general substitution rule, \FOL{} instantiates the
-tactic \ttindex{hyp_subst_tac}, which substitutes for an equality
-throughout a subgoal and its hypotheses.
-(See {\tt FOL/ROOT.ML} for details.)
-\item 
 It instantiates the simplifier.  Both equality ($=$) and the biconditional
 ($\bimp$) may be used for rewriting.  Tactics such as {\tt Asm_simp_tac} and
 {\tt Full_simp_tac} use the default simpset ({\tt!simpset}), which works for
@@ -215,7 +210,18 @@ rules%
 \item 
 It instantiates the classical reasoner.  See~\S\ref{fol-cla-prover}
 for details. 
+
+\item \FOL{} provides the tactic \ttindex{hyp_subst_tac}, which substitutes
+  for an equality throughout a subgoal and its hypotheses.  This tactic uses
+  \FOL's general substitution rule.
 \end{itemize}
+
+\begin{warn}\index{simplification!of conjunctions}%
+  Reducing $a=b\conj P(a)$ to $a=b\conj P(b)$ is sometimes advantageous.  The
+  left part of a conjunction helps in simplifying the right part.  This effect
+  is not available by default: it can be slow.  It can be obtained by
+  including \ttindex{conj_cong} in a simpset, \verb$addcongs [conj_cong]$.
+\end{warn}
 
 
 \section{Intuitionistic proof procedures} \label{fol-int-prover}
@@ -331,7 +337,7 @@ Natural deduction in classical logic is not really all that natural.
 well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
 rule (see Fig.\ts\ref{fol-cla-derived}).
 
-The classical reasoner is installed.  Tactics such as {\tt Fast_tac} and {\tt
+The classical reasoner is installed.  Tactics such as {\tt Blast_tac} and {\tt
 Best_tac} use the default claset ({\tt!claset}), which works for most
 purposes.  Named clasets include \ttindexbold{prop_cs}, which includes the
 propositional rules, and \ttindexbold{FOL_cs}, which also includes quantifier
@@ -649,7 +655,7 @@ end
 \end{ttbox}
 The derivations of the introduction and elimination rules demonstrate the
 methods for rewriting with definitions.  Classical reasoning is required,
-so we use {\tt fast_tac}.
+so we use {\tt blast_tac}.
 
 
 \subsection{Deriving the introduction rule}
@@ -665,10 +671,10 @@ val prems = goalw If.thy [if_def]
 {\out  1. P & Q | ~ P & R}
 \end{ttbox}
 The premises (bound to the {\ML} variable {\tt prems}) are passed as
-introduction rules to \ttindex{fast_tac}.  Remember that {\tt!claset} refers
+introduction rules to \ttindex{blast_tac}.  Remember that {\tt!claset} refers
 to the default classical set.
 \begin{ttbox}
-by (fast_tac (!claset addIs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
 {\out Level 1}
 {\out if(P,Q,R)}
 {\out No subgoals!}
@@ -689,14 +695,14 @@ val major::prems = goalw If.thy [if_def]
 The major premise contains an occurrence of~$if$, but the version returned
 by \ttindex{goalw} (and bound to the {\ML} variable~{\tt major}) has the
 definition expanded.  Now \ttindex{cut_facts_tac} inserts~{\tt major} as an
-assumption in the subgoal, so that \ttindex{fast_tac} can break it down.
+assumption in the subgoal, so that \ttindex{blast_tac} can break it down.
 \begin{ttbox}
 by (cut_facts_tac [major] 1);
 {\out Level 1}
 {\out S}
 {\out  1. P & Q | ~ P & R ==> S}
 \ttbreak
-by (fast_tac (!claset addIs prems) 1);
+by (blast_tac (!claset addIs prems) 1);
 {\out Level 2}
 {\out S}
 {\out No subgoals!}
@@ -789,13 +795,13 @@ AddSIs [ifI];
 AddSEs [ifE];
 \end{ttbox}
 Now we can revert to the
-initial proof state and let \ttindex{fast_tac} solve it.  
+initial proof state and let \ttindex{blast_tac} solve it.  
 \begin{ttbox}
 choplev 0;
 {\out Level 0}
 {\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
 {\out  1. if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
-by (Fast_tac 1);
+by (Blast_tac 1);
 {\out Level 1}
 {\out if(P,if(Q,A,B),if(Q,C,D)) <-> if(Q,if(P,A,C),if(P,B,D))}
 {\out No subgoals!}
@@ -807,7 +813,7 @@ goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
 {\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
 \ttbreak
-by (Fast_tac 1);
+by (Blast_tac 1);
 {\out Level 1}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
 {\out No subgoals!}
@@ -816,7 +822,7 @@ by (Fast_tac 1);
 
 \subsection{Derived rules versus definitions}
 Dispensing with the derived rules, we can treat $if$ as an
-abbreviation, and let \ttindex{fast_tac} prove the expanded formula.  Let
+abbreviation, and let \ttindex{blast_tac} prove the expanded formula.  Let
 us redo the previous proof:
 \begin{ttbox}
 choplev 0;
@@ -834,9 +840,9 @@ by (rewtac if_def);
 \end{ttbox}
 We are left with a subgoal in pure first-order logic, which is why the 
 classical reasoner can prove it given {\tt FOL_cs} alone.  (We could, of 
-course, have used {\tt Fast_tac}.)
+course, have used {\tt Blast_tac}.)
 \begin{ttbox}
-by (fast_tac FOL_cs 1);
+by (blast_tac FOL_cs 1);
 {\out Level 2}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,A,B))}
 {\out No subgoals!}
@@ -858,7 +864,7 @@ goal If.thy "if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,B,A))";
 {\out Level 0}
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
 {\out  1. if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
-by (Fast_tac 1);
+by (Blast_tac 1);
 {\out by: tactic failed}
 \end{ttbox}
 This failure message is uninformative, but we can get a closer look at the
@@ -889,7 +895,7 @@ by (rewtac if_def);
 {\out if(if(P,Q,R),A,B) <-> if(P,if(Q,A,B),if(R,B,A))}
 {\out  1. (P & Q | ~ P & R) & A | ~ (P & Q | ~ P & R) & B <->}
 {\out     P & (Q & A | ~ Q & B) | ~ P & (R & B | ~ R & A)}
-by (fast_tac FOL_cs 1);
+by (blast_tac FOL_cs 1);
 {\out by: tactic failed}
 \end{ttbox}
 Again we apply \ttindex{step_tac}:

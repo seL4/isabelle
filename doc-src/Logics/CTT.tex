@@ -669,7 +669,6 @@ tries to solve subgoal~$i$ by backtracking, using {\tt step_tac}.
 \tdx{div_def}           a div b ==
                   rec(a, 0, \%u v. rec(succ(u) mod b, succ(v), \%x y.v))
 
-
 \tdx{add_typing}        [| a:N;  b:N |] ==> a #+ b : N
 \tdx{addC0}             b:N ==> 0 #+ b = b : N
 \tdx{addC_succ}         [| a:N;  b:N |] ==> succ(a) #+ b = succ(a #+ b) : N

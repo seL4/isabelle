@@ -65,7 +65,7 @@ collections are sets; for instance, showing $x\in\{x\}$ requires showing that
 $x$ is a set.
 
 
-\begin{figure} 
+\begin{figure} \small
 \begin{center}
 \begin{tabular}{rrr} 
   \it name      &\it meta-type  & \it description \\ 
@@ -1243,7 +1243,7 @@ bijective.  Figure~\ref{zf-perm} displays many of their properties that
 have been proved.  These results are fundamental to a treatment of
 equipollence and cardinality.
 
-\begin{figure}
+\begin{figure}\small
 \index{#*@{\tt\#*} symbol}
 \index{*div symbol}
 \index{*mod symbol}
@@ -1293,9 +1293,8 @@ equipollence and cardinality.
 \tdx{mult_type}     [| m:nat;  n:nat |] ==> m #* n : nat
 \tdx{mult_0}        0 #* n = 0
 \tdx{mult_succ}     succ(m) #* n = n #+ (m #* n)
-\tdx{mult_commute}  [| m:nat;  n:nat |] ==> m #* n = n #* m
-\tdx{add_mult_dist}
-    [| m:nat;  k:nat |] ==> (m #+ n) #* k = (m #* k) #+ (n #* k)
+\tdx{mult_commute}  [| m:nat; n:nat |] ==> m #* n = n #* m
+\tdx{add_mult_dist} [| m:nat; k:nat |] ==> (m #+ n) #* k = (m #* k) #+ (n #* k)
 \tdx{mult_assoc}
     [| m:nat;  n:nat;  k:nat |] ==> (m #* n) #* k = m #* (n #* k)
 \tdx{mod_quo_equality}
@@ -1689,24 +1688,23 @@ by (REPEAT (assume_tac 1));
 \end{ttbox}
 \medskip
 We could have performed this proof in one step by applying
-\ttindex{Fast_tac}.  Let us
+\ttindex{Blast_tac}.  Let us
 go back to the start:
 \begin{ttbox}
 choplev 0;
 {\out Level 0}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. Pow(A Int B) = Pow(A) Int Pow(B)}
-\end{ttbox}
-We must add \tdx{equalityI} as an introduction rule.
-Extensionality is not used by default: many equalities can be proved
-by rewriting.
-\begin{ttbox}
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Blast_tac 1);
+{\out Depth = 0}
+{\out Depth = 1}
+{\out Depth = 2}
+{\out Depth = 3}
 {\out Level 1}
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out No subgoals!}
 \end{ttbox}
-In the past this was regarded as a difficult proof, as indeed it is if all
+Past researchers regarded this as a difficult proof, as indeed it is if all
 the symbols are replaced by their definitions.
 \goodbreak
 
@@ -1765,14 +1763,31 @@ by (assume_tac 1);
 {\out Union(C) <= Union(D)}
 {\out No subgoals!}
 \end{ttbox}
-Again, \ttindex{fast_tac} can prove the theorem in one
-step, provided we somehow supply it with~{\tt prem}.  We can either add
-this premise to the assumptions using \ttindex{cut_facts_tac}, or add
-\hbox{\tt prem RS subsetD} to the claset as an introduction rule.
+Again, \ttindex{Blast_tac} can prove the theorem in one
+step, provided we somehow supply it with~{\tt prem}.  We can add
+\hbox{\tt prem RS subsetD} to the claset as an introduction rule:
+\begin{ttbox}
+by (blast_tac (!claset addIs [prem RS subsetD]) 1);
+{\out Depth = 0}
+{\out Depth = 1}
+{\out Depth = 2}
+{\out Level 1}
+{\out Union(C) <= Union(D)}
+{\out No subgoals!}
+\end{ttbox}
+As an alternative, we could add premise to the assumptions, either using
+\ttindex{cut_facts_tac} or by stating the original goal using~\texttt{!!}:
+\begin{ttbox}
+goal thy "!!C D. C<=D ==> Union(C) <= Union(D)";
+{\out Level 0}
+{\out Union(C) <= Union(D)}
+{\out  1. !!C D. C <= D ==> Union(C) <= Union(D)}
+by (Blast_tac 1);
+\end{ttbox}
 
 The file {\tt ZF/equalities.ML} has many similar proofs.  Reasoning about
 general intersection can be difficult because of its anomalous behaviour on
-the empty set.  However, \ttindex{fast_tac} copes well with these.  Here is
+the empty set.  However, \ttindex{Blast_tac} copes well with these.  Here is
 a typical example, borrowed from Devlin~\cite[page 12]{devlin79}:
 \begin{ttbox}
 a:C ==> (INT x:C. A(x) Int B(x)) = (INT x:C.A(x)) Int (INT x:C.B(x))
