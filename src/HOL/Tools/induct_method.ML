@@ -434,18 +434,15 @@ val term = Scan.unless (Scan.lift kind) Args.local_term;
 val term_dummy = Scan.unless (Scan.lift kind)
   (Scan.lift (Args.$$$ "_") >> K None || Args.local_term >> Some);
 
-fun mode name =
-  Scan.lift (Scan.optional (Args.parens (Args.$$$ name) >> K true) false);
-
 val instss = Args.and_list (Scan.repeat1 term_dummy);
 
 in
 
 val cases_args = Method.syntax
-  (mode simplifiedN -- mode openN -- (instss -- Scan.option cases_rule));
+  (Args.mode simplifiedN -- Args.mode openN -- (instss -- Scan.option cases_rule));
 
 val induct_args = Method.syntax
-  (mode strippedN -- mode openN -- (instss -- Scan.option induct_rule));
+  (Args.mode strippedN -- Args.mode openN -- (instss -- Scan.option induct_rule));
 
 end;
 
