@@ -39,9 +39,9 @@ primrec
 "correct_frames G hp phi rT0 sig0 (f#frs) =
 	(let (stk,loc,C,sig,pc) = f in
   (\<exists>ST LT rT maxs maxl ins.
-    phi C sig ! pc = Some (ST,LT) \<and> 
+    phi C sig ! pc = Some (ST,LT) \<and> is_class G C \<and> 
     method (G,C) sig = Some(C,rT,(maxs,maxl,ins)) \<and>
-	(\<exists>C' mn pTs k. pc = k+1 \<and> ins!k = (Invoke C' mn pTs) \<and>
+	(\<exists>C' mn pTs k. pc = k+1 \<and> ins!k = (Invoke C' mn pTs) \<and> 
          (mn,pTs) = sig0 \<and> 
          (\<exists>apTs D ST' LT'.
          (phi C sig)!k = Some ((rev apTs) @ (Class D) # ST', LT') \<and>
@@ -64,6 +64,7 @@ constdefs
 			(let (stk,loc,C,sig,pc) = f
 		         in
                          \<exists>rT maxs maxl ins s.
+                         is_class G C \<and>
                          method (G,C) sig = Some(C,rT,(maxs,maxl,ins)) \<and>
                          phi C sig ! pc = Some s \<and>
 			 correct_frame G hp s maxl ins f \<and> 
