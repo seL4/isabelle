@@ -146,7 +146,7 @@ fun print_sign sg =
       [Pretty.str "default:", Pretty.brk 1, prt_sort S];
 
     fun pretty_ty (t, n) = Pretty.block
-      [Pretty.str (ext_tycon t), Pretty.str (" " ^ string_of_int n)];
+      [Pretty.str (ext_tycon t), Pretty.spc 1, Pretty.str (string_of_int n)];
 
     fun pretty_abbr (t, (vs, rhs)) = Pretty.block
       [prt_typ (Type (t, map (fn v => TVar ((v, 0), [])) vs)),
