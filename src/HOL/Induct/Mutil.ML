@@ -104,9 +104,9 @@ by (etac domino.elim 1);
 by (auto_tac (claset(), simpset() addsimps [mod_Suc]));
 qed "domino_singleton";
 
-Goal "d:domino \
-\     ==> EX i j i' j'. colored 0 d = {(i,j)} & colored 1 d = {(i',j')}";
-by (blast_tac (claset() addDs [domino_singleton]) 1);
+Goal "d:domino ==> (EX i j. colored 0 d = {(i,j)}) & \
+\                  (EX i' j'. colored 1 d = {(i',j')})";
+by (blast_tac (claset() addSIs [domino_singleton]) 1);
 qed "domino_singleton_01";
 
 (*** Tilings of dominoes ***)
