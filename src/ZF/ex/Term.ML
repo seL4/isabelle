@@ -7,6 +7,8 @@ Datatype definition of terms over an alphabet.
 Illustrates the list functor (essentially the same type as in Trees & Forests)
 *)
 
+AddTCs [term.Apply_I];
+
 Goal "term(A) = A * list(term(A))";
 let open term;  val rew = rewrite_rule con_defs in  
 by (fast_tac (claset() addSIs (map rew intrs) addEs [rew elim]) 1)
@@ -96,8 +98,7 @@ by (stac term_rec 1);
 by (REPEAT (ares_tac prems 1));
 by (etac list.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [term_rec])));
-by (etac CollectE 1);
-by (REPEAT (ares_tac [list.Cons_I, UN_I] 1));
+by Auto_tac;
 qed "term_rec_type";
 
 val [rew,tslist] = Goal
@@ -116,6 +117,7 @@ by (REPEAT (ares_tac (term_rec_type::prems) 1));
 by (etac (subset_refl RS UN_least RS list_mono RS subsetD) 1);
 qed "term_rec_simple_type";
 
+AddTCs [term_rec_simple_type];
 
 (** term_map **)
 
@@ -137,7 +139,7 @@ qed "term_map_type2";
 bind_thm ("term_size", term_size_def RS def_term_rec);
 
 Goalw [term_size_def] "t: term(A) ==> term_size(t) : nat";
-by (REPEAT (ares_tac [term_rec_simple_type, list_add_type, nat_succI] 1));
+by Auto_tac;
 qed "term_size_type";
 
 
@@ -146,32 +148,29 @@ qed "term_size_type";
 bind_thm ("reflect", reflect_def RS def_term_rec);
 
 Goalw [reflect_def] "t: term(A) ==> reflect(t) : term(A)";
-by (REPEAT (ares_tac [term_rec_simple_type, rev_type, term.Apply_I] 1));
+by Auto_tac;
 qed "reflect_type";
 
 (** preorder **)
 
 bind_thm ("preorder", preorder_def RS def_term_rec);
 
-Goalw [preorder_def]
-    "t: term(A) ==> preorder(t) : list(A)";
-by (REPEAT (ares_tac [term_rec_simple_type, list.Cons_I, flat_type] 1));
+Goalw [preorder_def] "t: term(A) ==> preorder(t) : list(A)";
+by Auto_tac;
 qed "preorder_type";
 
 (** postorder **)
 
 bind_thm ("postorder", postorder_def RS def_term_rec);
 
-Goalw [postorder_def]
-    "t: term(A) ==> postorder(t) : list(A)";
-by (REPEAT (ares_tac [term_rec_simple_type] 1));
-by (Asm_simp_tac 1);
+Goalw [postorder_def] "t: term(A) ==> postorder(t) : list(A)";
+by Auto_tac;
 qed "postorder_type";
 
 
 (** Term simplification **)
 
-AddTCs [term.Apply_I, term_map_type, term_map_type2, term_size_type, 
+AddTCs [term_map_type, term_map_type2, term_size_type, 
 	reflect_type, preorder_type, postorder_type];
 
 (*map_type2 and term_map_type2 instantiate variables*)
@@ -189,7 +188,7 @@ qed "term_map_ident";
 
 Goal "t: term(A) ==> term_map(f, term_map(g,t)) = term_map(%u. f(g(u)), t)";
 by (etac term_induct_eqn 1);
-by (asm_simp_tac (simpset() addsimps []) 1);
+by (Asm_simp_tac 1);
 qed "term_map_compose";
 
 Goal "t: term(A) ==> term_map(f, reflect(t)) = reflect(term_map(f,t))";
@@ -202,7 +201,7 @@ qed "term_map_reflect";
 
 Goal "t: term(A) ==> term_size(term_map(f,t)) = term_size(t)";
 by (etac term_induct_eqn 1);
-by (asm_simp_tac (simpset() addsimps []) 1);
+by (Asm_simp_tac 1);
 qed "term_size_term_map";
 
 Goal "t: term(A) ==> term_size(reflect(t)) = term_size(t)";
