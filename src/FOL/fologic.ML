@@ -14,10 +14,13 @@ sig
   val conj		: term
   val disj		: term
   val imp		: term
+  val iff		: term
   val mk_conj		: term * term -> term
   val mk_disj		: term * term -> term
   val mk_imp		: term * term -> term
   val dest_imp	       	: term -> term*term
+  val mk_iff		: term * term -> term
+  val dest_iff	       	: term -> term*term
   val all_const		: typ -> term
   val mk_all		: term * term -> term
   val exists_const	: typ -> term
@@ -25,6 +28,9 @@ sig
   val eq_const		: typ -> term
   val mk_eq		: term * term -> term
   val dest_eq 		: term -> term*term
+  val mk_binop: string -> term * term -> term
+  val mk_binrel: string -> term * term -> term
+  val dest_bin: string -> typ -> term -> term * term
 end;
 
 
@@ -46,14 +52,19 @@ fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
 
 val conj = Const("op &", [oT,oT]--->oT)
 and disj = Const("op |", [oT,oT]--->oT)
-and imp = Const("op -->", [oT,oT]--->oT);
+and imp = Const("op -->", [oT,oT]--->oT)
+and iff = Const("op <->", [oT,oT]--->oT);
 
 fun mk_conj (t1, t2) = conj $ t1 $ t2
 and mk_disj (t1, t2) = disj $ t1 $ t2
-and mk_imp (t1, t2) = imp $ t1 $ t2;
+and mk_imp (t1, t2) = imp $ t1 $ t2
+and mk_iff (t1, t2) = iff $ t1 $ t2;
 
 fun dest_imp (Const("op -->",_) $ A $ B) = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
+
+fun dest_iff (Const("op <->",_) $ A $ B) = (A, B)
+  | dest_iff  t = raise TERM ("dest_iff", [t]);
 
 fun eq_const T = Const ("op =", [T, T] ---> oT);
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
@@ -66,5 +77,23 @@ fun mk_all (Free(x,T),P) = all_const T $ (absfree (x,T,P));
 
 fun exists_const T = Const ("Ex", [T --> oT] ---> oT);
 fun mk_exists (Free(x,T),P) = exists_const T $ (absfree (x,T,P));
+
+(* binary oprations and relations *)
+
+fun mk_binop c (t, u) =
+  let val T = fastype_of t in
+    Const (c, [T, T] ---> T) $ t $ u
+  end;
+
+fun mk_binrel c (t, u) =
+  let val T = fastype_of t in
+    Const (c, [T, T] ---> oT) $ t $ u
+  end;
+
+fun dest_bin c T (tm as Const (c', Type ("fun", [T', _])) $ t $ u) =
+      if c = c' andalso T = T' then (t, u)
+      else raise TERM ("dest_bin " ^ c, [tm])
+  | dest_bin c _ tm = raise TERM ("dest_bin " ^ c, [tm]);
+
 
 end;
