@@ -329,7 +329,7 @@ you to modify this basic proof strategy by applying two lists of arbitrary
 The first wrapper list, which is considered to contain safe wrappers only, 
 affects \ttindex{safe_step_tac} and all the tactics that call it.  
 The second one, which may contain unsafe wrappers, affects \ttindex{step_tac}, 
-\ttindex{slow_step_tac} and the tactics that call them.
+\ttindex{slow_step_tac}, and the tactics that call them.
 A wrapper transforms each step of the search, for example 
 by invoking other tactics before or alternatively to the original step tactic. 
 All members of a wrapper list are applied in turn to the respective step tactic.
@@ -341,63 +341,79 @@ These names may be used to selectively delete wrappers.
 
 \begin{ttbox} 
 type wrapper = (int -> tactic) -> (int -> tactic);
+
+addSWrapper  : claset * (string *  wrapper       ) -> claset \hfill{\bf infix 4}
 addSbefore   : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
 addSaltern   : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
-addSWrapper  : claset * (string * wrapper        ) -> claset \hfill{\bf infix 4}
 delSWrapper  : claset *  string                    -> claset \hfill{\bf infix 4}
+
+addWrapper   : claset * (string *  wrapper       ) -> claset \hfill{\bf infix 4}
 addbefore    : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
 addaltern    : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
-addWrapper   : claset * (string * wrapper        ) -> claset \hfill{\bf infix 4}
 delWrapper   : claset *  string                    -> claset \hfill{\bf infix 4}
 
+addSss       : claset * simpset -> claset                 \hfill{\bf infix 4}
 addss        : claset * simpset -> claset                 \hfill{\bf infix 4}
 \end{ttbox}
 %
-\index{simplification!from classical reasoner} The wrapper tacticals
-underly the operator addss, which combines each search step by
-simplification.  Strictly speaking, \texttt{addss} is not part of the
-classical reasoner.  It should be defined when the simplifier is
-installed:
-\begin{ttbox}
-infix 4 addss;
-fun cs addss ss = cs addbefore asm_full_simp_tac ss;
-\end{ttbox}
 
 \begin{ttdescription}
+\item[$cs$ addSWrapper $(name,wrapper)$] \indexbold{*addSWrapper}
+adds a new wrapper, which should yield a safe tactic, 
+to modify the existing safe step tactic.
+
+\item[$cs$ addSbefore $(name,tac)$] \indexbold{*addSbefore}
+adds the given tactic as safe wrapper, such that it is
+applied {\em before} each safe step of the search.
+
+\item[$cs$ addSaltern $(name,tac)$] \indexbold{*addSaltern}
+adds the given tactic as safe wrapper, such that it is
+applied when a safe step of the search would fail.
+
+\item[$cs$ delSWrapper $name$] \indexbold{*delSWrapper}
+deletes the safe wrapper with the given name.
+
+\item[$cs$ addWrapper $(name,wrapper)$] \indexbold{*addWrapper}
+adds a new wrapper to modify the existing (unsafe) step tactic.
+
+\item[$cs$ addbefore $(name,tac)$] \indexbold{*addbefore}
+adds the given tactic as unsafe wrapper, such that it is
+applied {\em before} each step of the search.
+
+\item[$cs$ addaltern $(name,tac)$] \indexbold{*addaltern}
+adds the given tactic as unsafe wrapper, such that it is
+applied when a step of the search would fail.
+
+\item[$cs$ delWrapper $name$] \indexbold{*delWrapper}
+deletes the unsafe wrapper with the given name.
+
+\item[$cs$ addSss $ss$] \indexbold{*addss}
+adds the simpset~$ss$ to the classical set.  The assumptions and goal will be
+simplified, in a rather safe way, after each safe step of the search.
+
 \item[$cs$ addss $ss$] \indexbold{*addss}
 adds the simpset~$ss$ to the classical set.  The assumptions and goal will be
-simplified, in a safe way, after the safe steps of the search.
+simplified, before the each unsafe step of the search.
 
-\item[$cs$ addSbefore $tac$] \indexbold{*addSbefore}
-changes the safe wrapper tactical to apply the given tactic {\em before}
-each safe step of the search.
-
-\item[$cs$ addSaltern $tac$] \indexbold{*addSaltern}
-changes the safe wrapper tactical to apply the given tactic when a safe step 
-of the search would fail.
-
-\item[$cs$ setSWrapper $tactical$] \indexbold{*setSWrapper}
-specifies a new safe wrapper tactical.  
-
-\item[$cs$ compSWrapper $tactical$] \indexbold{*compSWrapper}
-composes the $tactical$ with the existing safe wrapper tactical, 
-to combine their effects. 
-
-\item[$cs$ addbefore $tac$] \indexbold{*addbefore}
-changes the (unsafe) wrapper tactical to apply the given tactic, which should
-be safe, {\em before} each step of the search.
-
-\item[$cs$ addaltern $tac$] \indexbold{*addaltern}
-changes the (unsafe) wrapper tactical to apply the given tactic 
-{\em alternatively} after each step of the search.
-
-\item[$cs$ setWrapper $tactical$] \indexbold{*setWrapper}
-specifies a new (unsafe) wrapper tactical.  
-
-\item[$cs$ compWrapper $tactical$] \indexbold{*compWrapper}
-composes the $tactical$ with the existing (unsafe) wrapper tactical, 
-to combine their effects. 
 \end{ttdescription}
+
+\index{simplification!from classical reasoner} The wrapper tacticals
+underly the operators addss and addSss, which are used as primitives 
+for the automatic tactics described in \S\label{sec:automatic-tactics}.
+Strictly speaking, both operators are not part of the classical reasoner. 
+They should be defined when the simplifier is installed:
+\begin{ttbox}
+infix 4 addSss addss;
+fun  cs addSss ss = cs addSaltern ("safe_asm_full_simp_tac",
+                         CHANGED o (safe_asm_full_simp_tac ss));
+fun  cs addss  ss = cs addbefore  ("asm_full_simp_tac", asm_full_simp_tac ss);
+\end{ttbox}
+\begin{warn}
+Being defined as wrappers, these operators are inappropriate for adding more 
+than one simpset at a time: the simpset added last overwrites any earlier ones.
+When a simpset combined with a claset is to be augmented, this should done 
+{\em before} combining it with the claset.
+\end{warn}
 
 
 \section{The classical tactics}
@@ -473,21 +489,35 @@ successively to~20, \texttt{Blast.depth_tac} applies a user-supplied search boun
 \end{ttdescription}
 
 
-\subsection{An automatic tactic}
+\subsection{Automatic tactics}\label{sec:automatic-tactics}
 \begin{ttbox} 
-auto_tac      : claset * simpset -> tactic
-auto          : unit -> unit
+type clasimpset = claset * simpset;
+auto_tac        : clasimpset ->        tactic
+force_tac       : clasimpset -> int -> tactic
+auto            : unit -> unit
+force           : int  -> unit
 \end{ttbox}
-The auto-tactic attempts to prove all subgoals using a combination of
-simplification and classical reasoning.  It is intended for situations where
-there are a lot of mostly trivial subgoals; it proves all the easy ones,
-leaving the ones it cannot prove.  (Unfortunately, attempting to prove the
-hard ones may take a long time.)  It must be supplied both a simpset and a
-claset; therefore it is most easily called as \texttt{Auto_tac}, which uses
-the default claset and simpset (see \S\ref{sec:current-claset} below).  For
-interactive use, the shorthand \texttt{auto();} abbreviates 
+The automatic tactics attempt to prove goals using a combination of
+simplification and classical reasoning. 
+\begin{itemize}
+\item[\ttindexbold{auto_tac $(cs,ss)$}] is intended for situations where 
+there are a lot of mostly trivial subgoals; it proves all the easy ones, 
+leaving the ones it cannot prove.
+(Unfortunately, attempting to prove the hard ones may take a long time.)  
+\item[\ttindexbold{force_tac} $(cs,ss)$ $i$] is intended to prove subgoal~$i$ 
+completely. It tries to apply all fancy tactics it knows about, 
+performing a rather exhaustive search.
+\end{itemize}
+They must be supplied both a simpset and a claset; therefore 
+they are most easily called as \texttt{Auto_tac} and \texttt{Force_tac}, which 
+use the default claset and simpset (see \S\ref{sec:current-claset} below). 
+For interactive use, the shorthand \texttt{auto();} abbreviates 
 \begin{ttbox}
 by Auto_tac;
+\end{ttbox}
+while \texttt{force 1;} abbreviates 
+\begin{ttbox}
+by (Force_tac 1);
 \end{ttbox}
 
 \subsection{Other classical tactics}
@@ -557,7 +587,7 @@ The automatic proof procedures call these tactics.  By calling them
 yourself, you can execute these procedures one step at a time.
 \begin{ttdescription}
 \item[\ttindexbold{safe_step_tac} $cs$ $i$] performs a safe step on
-  subgoal~$i$.  The safe wrapper tactical is applied to a tactic that may
+  subgoal~$i$.  The safe wrapper tacticals are applied to a tactic that may
   include proof by assumption or Modus Ponens (taking care not to instantiate
   unknowns), or substitution.
 
@@ -568,7 +598,7 @@ subgoals.  It is deterministic, with at most one outcome.
 but allows unknowns to be instantiated.
 
 \item[\ttindexbold{step_tac} $cs$ $i$] is the basic step of the proof
-  procedure.  The (unsafe) wrapper tactical is applied to a tactic that tries
+  procedure.  The (unsafe) wrapper tacticals are applied to a tactic that tries
  \texttt{safe_tac}, \texttt{inst_step_tac}, or applies an unsafe rule from~$cs$.
 
 \item[\ttindexbold{slow_step_tac}] 
@@ -597,6 +627,7 @@ The tactics
 \begin{ttbox}
 Blast_tac        : int -> tactic
 Auto_tac         :        tactic
+Force_tac        : int -> tactic
 Fast_tac         : int -> tactic
 Best_tac         : int -> tactic
 Deepen_tac       : int -> int -> tactic
@@ -606,7 +637,7 @@ Safe_tac         :        tactic
 Safe_step_tac    : int -> tactic
 Step_tac         : int -> tactic
 \end{ttbox}
-\indexbold{*Blast_tac}\indexbold{*Auto_tac}
+\indexbold{*Blast_tac}\indexbold{*Auto_tac}\indexbold{*Force_tac}
 \indexbold{*Best_tac}\indexbold{*Fast_tac}%
 \indexbold{*Deepen_tac}
 \indexbold{*Clarify_tac}\indexbold{*Clarify_step_tac}
