@@ -3,15 +3,21 @@
 # $Id$
 #
 
-case $(hostname) in
-  foobar)
-    DEST=/foo/bar/dist
+HOST=$(hostname)
+
+case  ${HOST} in
+  *.cl.cam.ac.uk)
+    USER=paulson
+    DEST=/anfs/www/html/Research/HVG/Isabelle/dist
+    ;;
+  sunbroy79)
+    DEST=/tmp/isabelle-dist
     ;;
   *)
-    echo "Unknown destination directory!"
+    echo "Unknown destination directory for ${HOST}"
     exit 2
     ;;
 esac
 
 rsync --rsh ssh --rsync-path /usr/local/dist/bin/rsync -va \
-  sunbroy30.informatik.tu-muenchen.de:/home/html/isabelle/html-data/dist/. $DEST/.
+  $USER@sunbroy30.informatik.tu-muenchen.de:/home/html/isabelle/html-data/dist/. $DEST/.
