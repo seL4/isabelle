@@ -1257,7 +1257,7 @@ subgoal:
 %gcd\ (m,\ n)\ dvd\ m\ \isasymand\ gcd\ (m,\ n)\ dvd\ n\isanewline
 \ 1.\ {\isasymAnd}m\ n.\ \isasymlbrakk0\ \isacharless\ n;\isanewline
  \ \ \ \ \ \ \ \ \ \ \ \ gcd\ (n,\ m\ mod\ n)\ dvd\ n\ \isasymand\ gcd\ (n,\ m\ mod\ n)\ dvd\ (m\ mod\ n){\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow\ gcd\ (n,\ m\ mod\ n)\ dvd\ m
+\ \ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow\ gcd\ (n,\ m\ mod\ n)\ dvd\ m
 \end{isabelle}
 %
 One of the assumptions, the induction hypothesis, is a conjunction. 
@@ -1409,19 +1409,17 @@ Also available is {\isa{clarsimp}}, a method that interleaves {\isa{clarify}}
 and {\isa{simp}}.  Also there is \isa{safe}, which like \isa{clarify} performs
 obvious steps and even applies those that split goals.
 
-The {\isa{force}} method applies the classical reasoner and simplifier 
+The \isa{force} method applies the classical reasoner and simplifier 
 to one goal. 
-\REMARK{example needed? most
-things done by blast, simp or auto can also be done by force, so why add a new
-one?}
+\REMARK{example needed of \isa{force}?}
 Unless it can prove the goal, it fails. Contrast 
-that with the auto method, which also combines classical reasoning 
+that with the \isa{auto} method, which also combines classical reasoning 
 with simplification. The latter's purpose is to prove all the 
 easy subgoals and parts of subgoals. Unfortunately, it can produce 
 large numbers of new subgoals; also, since it proves some subgoals 
 and splits others, it obscures the structure of the proof tree. 
-The {\isa{force}} method does not have these drawbacks. Another 
-difference: {\isa{force}} tries harder than {\isa{auto}} to prove 
+The \isa{force} method does not have these drawbacks. Another 
+difference: \isa{force} tries harder than {\isa{auto}} to prove 
 its goal, so it can take much longer to terminate.
 
 Older components of the classical reasoner have largely been 
@@ -1434,7 +1432,7 @@ presence of the more unusual features of Isabelle rules, such
 as type classes and function unknowns. For example, the introduction rule
 for Hilbert's epsilon-operator has the following form: 
 \begin{isabelle}
-?P\ ?x\ \isasymLongrightarrow\ ?P\ (Eps\ ?P)
+?P\ ?x\ \isasymLongrightarrow\ ?P\ (SOME\ x.\ ?P x)
 \rulename{someI}
 \end{isabelle}
 
@@ -1855,7 +1853,7 @@ subgoals:
 \end{isabelle}
 
 Assuming that \isa{z} is not 35, the first subgoal follows by linear arithmetic:
-the method {\isa{arith}}. For the second subgoal we apply the method {\isa{force}}, 
+the method {\isa{arith}}. For the second subgoal we apply the method \isa{force}, 
 which proceeds by assuming that \isa{z}=35 and arriving at a contradiction.
 
 
