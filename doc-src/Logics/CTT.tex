@@ -1,12 +1,17 @@
 %% $Id$
 \chapter{Constructive Type Theory}
+\index{Constructive Type Theory|(}
+
 Martin-L\"of's Constructive Type Theory \cite{martinlof84,nordstrom90} can
 be viewed at many different levels.  It is a formal system that embodies
 the principles of intuitionistic mathematics; it embodies the
 interpretation of propositions as types; it is a vehicle for deriving
-programs from proofs.  The logic is complex and many authors have attempted
-to simplify it.  Thompson~\cite{thompson91} is a readable and thorough
-account of the theory.
+programs from proofs.  
+
+Thompson's book~\cite{thompson91} gives a readable and thorough account of
+Type Theory.  Nuprl is an elaborate implementation~\cite{constable86}.
+{\sc alf} is a more recent tool that allows proof terms to be edited
+directly~\cite{alf}.
 
 Isabelle's original formulation of Type Theory was a kind of sequent
 calculus, following Martin-L\"of~\cite{martinlof84}.  It included rules for
@@ -19,7 +24,7 @@ This sequent calculus was not satisfactory because assumptions like
 `suppose $A$ is a type' or `suppose $B(x)$ is a type for all $x$ in $A$'
 could not be formalized.  
 
-The directory~\ttindexbold{CTT} implements Constructive Type Theory, using
+The theory~\thydx{CTT} implements Constructive Type Theory, using
 natural deduction.  The judgement above is expressed using $\Forall$ and
 $\Imp$:
 \[ \begin{array}{r@{}l}
@@ -39,90 +44,91 @@ to the rules themselves.  The order of assumptions no longer matters,
 unlike in standard Type Theory.  Contexts, which are typical of many modern
 type theories, are difficult to represent in Isabelle.  In particular, it
 is difficult to enforce that all the variables in a context are distinct.
+\index{assumptions!in {\CTT}}
 
-The theory has the {\ML} identifier \ttindexbold{CTT.thy}.  It does not
-use polymorphism.  Terms in {\CTT} have type~$i$, the type of individuals.
-Types in {\CTT} have type~$t$.
-
-{\CTT} supports all of Type Theory apart from list types, well ordering
-types, and universes.  Universes could be introduced {\em\`a la Tarski},
-adding new constants as names for types.  The formulation {\em\`a la
-Russell}, where types denote themselves, is only possible if we identify
-the meta-types~$i$ and~$o$.  Most published formulations of well ordering
-types have difficulties involving extensionality of functions; I suggest
-that you use some other method for defining recursive types.  List types
-are easy to introduce by declaring new rules.
-
-{\CTT} uses the 1982 version of Type Theory, with extensional equality.
-The computation $a=b\in A$ and the equality $c\in Eq(A,a,b)$ are
-interchangeable.  Its rewriting tactics prove theorems of the form $a=b\in
-A$.  It could be modified to have intensional equality, but rewriting
-tactics would have to prove theorems of the form $c\in Eq(A,a,b)$ and the
-computation rules might require a second simplifier.
-
+The theory does not use polymorphism.  Terms in {\CTT} have type~\tydx{i}, the
+type of individuals.  Types in {\CTT} have type~\tydx{t}.
 
 \begin{figure} \tabcolsep=1em  %wider spacing in tables
 \begin{center}
 \begin{tabular}{rrr} 
   \it name      & \it meta-type         & \it description \\ 
-  \idx{Type}    & $t \to prop$          & judgement form \\
-  \idx{Eqtype}  & $[t,t]\to prop$       & judgement form\\
-  \idx{Elem}    & $[i, t]\to prop$      & judgement form\\
-  \idx{Eqelem}  & $[i, i, t]\to prop$   & judgement form\\
-  \idx{Reduce}  & $[i, i]\to prop$      & extra judgement form\\[2ex]
+  \cdx{Type}    & $t \to prop$          & judgement form \\
+  \cdx{Eqtype}  & $[t,t]\to prop$       & judgement form\\
+  \cdx{Elem}    & $[i, t]\to prop$      & judgement form\\
+  \cdx{Eqelem}  & $[i, i, t]\to prop$   & judgement form\\
+  \cdx{Reduce}  & $[i, i]\to prop$      & extra judgement form\\[2ex]
 
-  \idx{N}       &     $t$               & natural numbers type\\
-  \idx{0}       &     $i$               & constructor\\
-  \idx{succ}    & $i\to i$              & constructor\\
-  \idx{rec}     & $[i,i,[i,i]\to i]\to i$       & eliminator\\[2ex]
-  \idx{Prod}    & $[t,i\to t]\to t$     & general product type\\
-  \idx{lambda}  & $(i\to i)\to i$       & constructor\\[2ex]
-  \idx{Sum}     & $[t, i\to t]\to t$    & general sum type\\
-  \idx{pair}    & $[i,i]\to i$          & constructor\\
-  \idx{split}   & $[i,[i,i]\to i]\to i$ & eliminator\\
-  \idx{fst} \idx{snd} & $i\to i$        & projections\\[2ex]
-  \idx{inl} \idx{inr} & $i\to i$        & constructors for $+$\\
-  \idx{when}    & $[i,i\to i, i\to i]\to i$    & eliminator for $+$\\[2ex]
-  \idx{Eq}      & $[t,i,i]\to t$        & equality type\\
-  \idx{eq}      & $i$                   & constructor\\[2ex]
-  \idx{F}       & $t$                   & empty type\\
-  \idx{contr}   & $i\to i$              & eliminator\\[2ex]
-  \idx{T}       & $t$                   & singleton type\\
-  \idx{tt}      & $i$                   & constructor
+  \cdx{N}       &     $t$               & natural numbers type\\
+  \cdx{0}       &     $i$               & constructor\\
+  \cdx{succ}    & $i\to i$              & constructor\\
+  \cdx{rec}     & $[i,i,[i,i]\to i]\to i$       & eliminator\\[2ex]
+  \cdx{Prod}    & $[t,i\to t]\to t$     & general product type\\
+  \cdx{lambda}  & $(i\to i)\to i$       & constructor\\[2ex]
+  \cdx{Sum}     & $[t, i\to t]\to t$    & general sum type\\
+  \cdx{pair}    & $[i,i]\to i$          & constructor\\
+  \cdx{split}   & $[i,[i,i]\to i]\to i$ & eliminator\\
+  \cdx{fst} \cdx{snd} & $i\to i$        & projections\\[2ex]
+  \cdx{inl} \cdx{inr} & $i\to i$        & constructors for $+$\\
+  \cdx{when}    & $[i,i\to i, i\to i]\to i$    & eliminator for $+$\\[2ex]
+  \cdx{Eq}      & $[t,i,i]\to t$        & equality type\\
+  \cdx{eq}      & $i$                   & constructor\\[2ex]
+  \cdx{F}       & $t$                   & empty type\\
+  \cdx{contr}   & $i\to i$              & eliminator\\[2ex]
+  \cdx{T}       & $t$                   & singleton type\\
+  \cdx{tt}      & $i$                   & constructor
 \end{tabular}
 \end{center}
 \caption{The constants of {\CTT}} \label{ctt-constants}
 \end{figure}
 
 
+{\CTT} supports all of Type Theory apart from list types, well-ordering
+types, and universes.  Universes could be introduced {\em\`a la Tarski},
+adding new constants as names for types.  The formulation {\em\`a la
+  Russell}, where types denote themselves, is only possible if we identify
+the meta-types~{\tt i} and~{\tt t}.  Most published formulations of
+well-ordering types have difficulties involving extensionality of
+functions; I suggest that you use some other method for defining recursive
+types.  List types are easy to introduce by declaring new rules.
+
+{\CTT} uses the 1982 version of Type Theory, with extensional equality.
+The computation $a=b\in A$ and the equality $c\in Eq(A,a,b)$ are
+interchangeable.  Its rewriting tactics prove theorems of the form $a=b\in
+A$.  It could be modified to have intensional equality, but rewriting
+tactics would have to prove theorems of the form $c\in Eq(A,a,b)$ and the
+computation rules might require a separate simplifier.
+
+
 \begin{figure} \tabcolsep=1em  %wider spacing in tables
+\index{lambda abs@$\lambda$-abstractions!in \CTT}
 \begin{center}
 \begin{tabular}{llrrr} 
-  \it symbol &\it name     &\it meta-type & \it precedence & \it description \\
-  \idx{lam} & \idx{lambda}  & $(i\To o)\To i$ & 10 & $\lambda$-abstraction
+  \it symbol &\it name     &\it meta-type & \it priority & \it description \\
+  \sdx{lam} & \cdx{lambda}  & $(i\To o)\To i$ & 10 & $\lambda$-abstraction
 \end{tabular}
 \end{center}
 \subcaption{Binders} 
 
 \begin{center}
-\indexbold{*"`}
-\indexbold{*"+}
+\index{*"` symbol}\index{function applications!in \CTT}
+\index{*"+ symbol}
 \begin{tabular}{rrrr} 
-  \it symbol & \it meta-type & \it precedence & \it description \\ 
+  \it symbol & \it meta-type    & \it priority & \it description \\ 
   \tt `         & $[i,i]\to i$  & Left 55       & function application\\
   \tt +         & $[t,t]\to t$  & Right 30      & sum of two types
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
 
-\indexbold{*"*}
-\indexbold{*"-"-">}
+\index{*"* symbol}
+\index{*"-"-"> symbol}
 \begin{center} \tt\frenchspacing
 \begin{tabular}{rrr} 
   \it external                  & \it internal  & \it standard notation \\ 
-  \idx{PROD} $x$:$A$ . $B[x]$   &  Prod($A$, $\lambda x.B[x]$) &
+  \sdx{PROD} $x$:$A$ . $B[x]$   &  Prod($A$, $\lambda x.B[x]$) &
         \rm product $\prod@{x\in A}B[x]$ \\
-  \idx{SUM} $x$:$A$ . $B[x]$    & Sum($A$, $\lambda x.B[x]$) &
+  \sdx{SUM} $x$:$A$ . $B[x]$    & Sum($A$, $\lambda x.B[x]$) &
         \rm sum $\sum@{x\in A}B[x]$ \\
   $A$ --> $B$     &  Prod($A$, $\lambda x.B$) &
         \rm function space $A\to B$ \\
@@ -132,7 +138,7 @@ computation rules might require a second simplifier.
 \end{center}
 \subcaption{Translations} 
 
-\indexbold{*"=}
+\index{*"= symbol}
 \begin{center}
 \dquotes
 \[ \begin{array}{rcl}
@@ -167,11 +173,15 @@ application, \hbox{\tt lam $x$.$b$} and $b{\tt`}a$.  A {\CTT}
 function~$f$ is simply an individual as far as Isabelle is concerned: its
 Isabelle type is~$i$, not say $i\To i$.
 
-\indexbold{*F}\indexbold{*T}\indexbold{*SUM}\indexbold{*PROD}
-The empty type is called $F$ and the one-element type is $T$; other finite
-sets are built as $T+T+T$, etc.  The notation for~{\CTT}
-(Fig.\ts\ref{ctt-syntax}) is based on that of Nordstr\"om et
-al.~\cite{nordstrom90}.  We can write
+The notation for~{\CTT} (Fig.\ts\ref{ctt-syntax}) is based on that of
+Nordstr\"om et al.~\cite{nordstrom90}.  The empty type is called $F$ and
+the one-element type is $T$; other finite types are built as $T+T+T$, etc.
+
+\index{*SUM symbol}\index{*PROD symbol}
+Quantification is expressed using general sums $\sum@{x\in A}B[x]$ and
+products $\prod@{x\in A}B[x]$.  Instead of {\tt Sum($A$,$B$)} and {\tt
+  Prod($A$,$B$)} we may write \hbox{\tt SUM $x$:$A$.$B[x]$} and \hbox{\tt
+  PROD $x$:$A$.$B[x]$}.  For example, we may write
 \begin{ttbox}
 SUM y:B. PROD x:A. C(x,y)   {\rm for}   Sum(B, \%y. Prod(A, \%x. C(x,y)))
 \end{ttbox}
@@ -184,29 +194,29 @@ abbreviations in parsing and uses them whenever possible for printing.
 
 \begin{figure} 
 \begin{ttbox}
-\idx{refl_type}         A type ==> A = A
-\idx{refl_elem}         a : A ==> a = a : A
+\tdx{refl_type}         A type ==> A = A
+\tdx{refl_elem}         a : A ==> a = a : A
 
-\idx{sym_type}          A = B ==> B = A
-\idx{sym_elem}          a = b : A ==> b = a : A
+\tdx{sym_type}          A = B ==> B = A
+\tdx{sym_elem}          a = b : A ==> b = a : A
 
-\idx{trans_type}        [| A = B;  B = C |] ==> A = C
-\idx{trans_elem}        [| a = b : A;  b = c : A |] ==> a = c : A
+\tdx{trans_type}        [| A = B;  B = C |] ==> A = C
+\tdx{trans_elem}        [| a = b : A;  b = c : A |] ==> a = c : A
 
-\idx{equal_types}       [| a : A;  A = B |] ==> a : B
-\idx{equal_typesL}      [| a = b : A;  A = B |] ==> a = b : B
+\tdx{equal_types}       [| a : A;  A = B |] ==> a : B
+\tdx{equal_typesL}      [| a = b : A;  A = B |] ==> a = b : B
 
-\idx{subst_type}        [| a : A;  !!z. z:A ==> B(z) type |] ==> B(a) type
-\idx{subst_typeL}       [| a = c : A;  !!z. z:A ==> B(z) = D(z) 
+\tdx{subst_type}        [| a : A;  !!z. z:A ==> B(z) type |] ==> B(a) type
+\tdx{subst_typeL}       [| a = c : A;  !!z. z:A ==> B(z) = D(z) 
                   |] ==> B(a) = D(c)
 
-\idx{subst_elem}        [| a : A;  !!z. z:A ==> b(z):B(z) |] ==> b(a):B(a)
-\idx{subst_elemL}       [| a = c : A;  !!z. z:A ==> b(z) = d(z) : B(z) 
+\tdx{subst_elem}        [| a : A;  !!z. z:A ==> b(z):B(z) |] ==> b(a):B(a)
+\tdx{subst_elemL}       [| a = c : A;  !!z. z:A ==> b(z) = d(z) : B(z) 
                   |] ==> b(a) = d(c) : B(a)
 
-\idx{refl_red}          Reduce(a,a)
-\idx{red_if_equal}      a = b : A ==> Reduce(a,b)
-\idx{trans_red}         [| a = b : A;  Reduce(b,c) |] ==> a = c : A
+\tdx{refl_red}          Reduce(a,a)
+\tdx{red_if_equal}      a = b : A ==> Reduce(a,b)
+\tdx{trans_red}         [| a = b : A;  Reduce(b,c) |] ==> a = c : A
 \end{ttbox}
 \caption{General equality rules} \label{ctt-equality}
 \end{figure}
@@ -214,30 +224,30 @@ abbreviations in parsing and uses them whenever possible for printing.
 
 \begin{figure} 
 \begin{ttbox}
-\idx{NF}        N type
+\tdx{NF}        N type
 
-\idx{NI0}       0 : N
-\idx{NI_succ}   a : N ==> succ(a) : N
-\idx{NI_succL}  a = b : N ==> succ(a) = succ(b) : N
+\tdx{NI0}       0 : N
+\tdx{NI_succ}   a : N ==> succ(a) : N
+\tdx{NI_succL}  a = b : N ==> succ(a) = succ(b) : N
 
-\idx{NE}        [| p: N;  a: C(0);  
+\tdx{NE}        [| p: N;  a: C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) 
           |] ==> rec(p, a, \%u v.b(u,v)) : C(p)
 
-\idx{NEL}       [| p = q : N;  a = c : C(0);  
+\tdx{NEL}       [| p = q : N;  a = c : C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v)=d(u,v): C(succ(u))
           |] ==> rec(p, a, \%u v.b(u,v)) = rec(q,c,d) : C(p)
 
-\idx{NC0}       [| a: C(0);  
+\tdx{NC0}       [| a: C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u))
           |] ==> rec(0, a, \%u v.b(u,v)) = a : C(0)
 
-\idx{NC_succ}   [| p: N;  a: C(0);  
+\tdx{NC_succ}   [| p: N;  a: C(0);  
              !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) 
           |] ==> rec(succ(p), a, \%u v.b(u,v)) =
                  b(p, rec(p, a, \%u v.b(u,v))) : C(succ(p))
 
-\idx{zero_ne_succ}      [| a: N;  0 = succ(a) : N |] ==> 0: F
+\tdx{zero_ne_succ}      [| a: N;  0 = succ(a) : N |] ==> 0: F
 \end{ttbox}
 \caption{Rules for type~$N$} \label{ctt-N}
 \end{figure}
@@ -245,83 +255,83 @@ abbreviations in parsing and uses them whenever possible for printing.
 
 \begin{figure} 
 \begin{ttbox}
-\idx{ProdF}     [| A type; !!x. x:A ==> B(x) type |] ==> PROD x:A.B(x) type
-\idx{ProdFL}    [| A = C;  !!x. x:A ==> B(x) = D(x) |] ==> 
+\tdx{ProdF}     [| A type; !!x. x:A ==> B(x) type |] ==> PROD x:A.B(x) type
+\tdx{ProdFL}    [| A = C;  !!x. x:A ==> B(x) = D(x) |] ==> 
           PROD x:A.B(x) = PROD x:C.D(x)
 
-\idx{ProdI}     [| A type;  !!x. x:A ==> b(x):B(x)
+\tdx{ProdI}     [| A type;  !!x. x:A ==> b(x):B(x)
           |] ==> lam x.b(x) : PROD x:A.B(x)
-\idx{ProdIL}    [| A type;  !!x. x:A ==> b(x) = c(x) : B(x)
+\tdx{ProdIL}    [| A type;  !!x. x:A ==> b(x) = c(x) : B(x)
           |] ==> lam x.b(x) = lam x.c(x) : PROD x:A.B(x)
 
-\idx{ProdE}     [| p : PROD x:A.B(x);  a : A |] ==> p`a : B(a)
-\idx{ProdEL}    [| p=q: PROD x:A.B(x);  a=b : A |] ==> p`a = q`b : B(a)
+\tdx{ProdE}     [| p : PROD x:A.B(x);  a : A |] ==> p`a : B(a)
+\tdx{ProdEL}    [| p=q: PROD x:A.B(x);  a=b : A |] ==> p`a = q`b : B(a)
 
-\idx{ProdC}     [| a : A;  !!x. x:A ==> b(x) : B(x)
+\tdx{ProdC}     [| a : A;  !!x. x:A ==> b(x) : B(x)
           |] ==> (lam x.b(x)) ` a = b(a) : B(a)
 
-\idx{ProdC2}    p : PROD x:A.B(x) ==> (lam x. p`x) = p : PROD x:A.B(x)
+\tdx{ProdC2}    p : PROD x:A.B(x) ==> (lam x. p`x) = p : PROD x:A.B(x)
 \end{ttbox}
-\caption{Rules for the product type $\prod@{x\in A}B[x]$} \label{ctt-prod}
+\caption{Rules for the product type $\prod\sb{x\in A}B[x]$} \label{ctt-prod}
 \end{figure}
 
 
 \begin{figure} 
 \begin{ttbox}
-\idx{SumF}      [| A type;  !!x. x:A ==> B(x) type |] ==> SUM x:A.B(x) type
-\idx{SumFL}     [| A = C;  !!x. x:A ==> B(x) = D(x) 
+\tdx{SumF}      [| A type;  !!x. x:A ==> B(x) type |] ==> SUM x:A.B(x) type
+\tdx{SumFL}     [| A = C;  !!x. x:A ==> B(x) = D(x) 
           |] ==> SUM x:A.B(x) = SUM x:C.D(x)
 
-\idx{SumI}      [| a : A;  b : B(a) |] ==> <a,b> : SUM x:A.B(x)
-\idx{SumIL}     [| a=c:A;  b=d:B(a) |] ==> <a,b> = <c,d> : SUM x:A.B(x)
+\tdx{SumI}      [| a : A;  b : B(a) |] ==> <a,b> : SUM x:A.B(x)
+\tdx{SumIL}     [| a=c:A;  b=d:B(a) |] ==> <a,b> = <c,d> : SUM x:A.B(x)
 
-\idx{SumE}      [| p: SUM x:A.B(x);  
+\tdx{SumE}      [| p: SUM x:A.B(x);  
              !!x y. [| x:A; y:B(x) |] ==> c(x,y): C(<x,y>) 
           |] ==> split(p, \%x y.c(x,y)) : C(p)
 
-\idx{SumEL}     [| p=q : SUM x:A.B(x); 
+\tdx{SumEL}     [| p=q : SUM x:A.B(x); 
              !!x y. [| x:A; y:B(x) |] ==> c(x,y)=d(x,y): C(<x,y>)
           |] ==> split(p, \%x y.c(x,y)) = split(q, \%x y.d(x,y)) : C(p)
 
-\idx{SumC}      [| a: A;  b: B(a);
+\tdx{SumC}      [| a: A;  b: B(a);
              !!x y. [| x:A; y:B(x) |] ==> c(x,y): C(<x,y>)
           |] ==> split(<a,b>, \%x y.c(x,y)) = c(a,b) : C(<a,b>)
 
-\idx{fst_def}   fst(a) == split(a, \%x y.x)
-\idx{snd_def}   snd(a) == split(a, \%x y.y)
+\tdx{fst_def}   fst(a) == split(a, \%x y.x)
+\tdx{snd_def}   snd(a) == split(a, \%x y.y)
 \end{ttbox}
-\caption{Rules for the sum type $\sum@{x\in A}B[x]$} \label{ctt-sum}
+\caption{Rules for the sum type $\sum\sb{x\in A}B[x]$} \label{ctt-sum}
 \end{figure}
 
 
 \begin{figure} 
 \begin{ttbox}
-\idx{PlusF}       [| A type;  B type |] ==> A+B type
-\idx{PlusFL}      [| A = C;  B = D |] ==> A+B = C+D
+\tdx{PlusF}       [| A type;  B type |] ==> A+B type
+\tdx{PlusFL}      [| A = C;  B = D |] ==> A+B = C+D
 
-\idx{PlusI_inl}   [| a : A;  B type |] ==> inl(a) : A+B
-\idx{PlusI_inlL}  [| a = c : A;  B type |] ==> inl(a) = inl(c) : A+B
+\tdx{PlusI_inl}   [| a : A;  B type |] ==> inl(a) : A+B
+\tdx{PlusI_inlL}  [| a = c : A;  B type |] ==> inl(a) = inl(c) : A+B
 
-\idx{PlusI_inr}   [| A type;  b : B |] ==> inr(b) : A+B
-\idx{PlusI_inrL}  [| A type;  b = d : B |] ==> inr(b) = inr(d) : A+B
+\tdx{PlusI_inr}   [| A type;  b : B |] ==> inr(b) : A+B
+\tdx{PlusI_inrL}  [| A type;  b = d : B |] ==> inr(b) = inr(d) : A+B
 
-\idx{PlusE}     [| p: A+B;
+\tdx{PlusE}     [| p: A+B;
              !!x. x:A ==> c(x): C(inl(x));  
              !!y. y:B ==> d(y): C(inr(y))
           |] ==> when(p, \%x.c(x), \%y.d(y)) : C(p)
 
-\idx{PlusEL}    [| p = q : A+B;
+\tdx{PlusEL}    [| p = q : A+B;
              !!x. x: A ==> c(x) = e(x) : C(inl(x));   
              !!y. y: B ==> d(y) = f(y) : C(inr(y))
           |] ==> when(p, \%x.c(x), \%y.d(y)) = 
                  when(q, \%x.e(x), \%y.f(y)) : C(p)
 
-\idx{PlusC_inl} [| a: A;
+\tdx{PlusC_inl} [| a: A;
              !!x. x:A ==> c(x): C(inl(x));  
              !!y. y:B ==> d(y): C(inr(y))
           |] ==> when(inl(a), \%x.c(x), \%y.d(y)) = c(a) : C(inl(a))
 
-\idx{PlusC_inr} [| b: B;
+\tdx{PlusC_inr} [| b: B;
              !!x. x:A ==> c(x): C(inl(x));  
              !!y. y:B ==> d(y): C(inr(y))
           |] ==> when(inr(b), \%x.c(x), \%y.d(y)) = d(b) : C(inr(b))
@@ -332,48 +342,46 @@ abbreviations in parsing and uses them whenever possible for printing.
 
 \begin{figure} 
 \begin{ttbox}
-\idx{EqF}       [| A type;  a : A;  b : A |] ==> Eq(A,a,b) type
-\idx{EqFL}      [| A=B;  a=c: A;  b=d : A |] ==> Eq(A,a,b) = Eq(B,c,d)
-\idx{EqI}       a = b : A ==> eq : Eq(A,a,b)
-\idx{EqE}       p : Eq(A,a,b) ==> a = b : A
-\idx{EqC}       p : Eq(A,a,b) ==> p = eq : Eq(A,a,b)
-\end{ttbox}
-\subcaption{The equality type $Eq(A,a,b)$} 
+\tdx{FF}        F type
+\tdx{FE}        [| p: F;  C type |] ==> contr(p) : C
+\tdx{FEL}       [| p = q : F;  C type |] ==> contr(p) = contr(q) : C
 
-\begin{ttbox}
-\idx{FF}        F type
-\idx{FE}        [| p: F;  C type |] ==> contr(p) : C
-\idx{FEL}       [| p = q : F;  C type |] ==> contr(p) = contr(q) : C
+\tdx{TF}        T type
+\tdx{TI}        tt : T
+\tdx{TE}        [| p : T;  c : C(tt) |] ==> c : C(p)
+\tdx{TEL}       [| p = q : T;  c = d : C(tt) |] ==> c = d : C(p)
+\tdx{TC}        p : T ==> p = tt : T)
 \end{ttbox}
-\subcaption{The empty type $F$} 
 
-\begin{ttbox}
-\idx{TF}        T type
-\idx{TI}        tt : T
-\idx{TE}        [| p : T;  c : C(tt) |] ==> c : C(p)
-\idx{TEL}       [| p = q : T;  c = d : C(tt) |] ==> c = d : C(p)
-\idx{TC}        p : T ==> p = tt : T)
-\end{ttbox}
-\subcaption{The unit type $T$} 
-
-\caption{Rules for other {\CTT} types} \label{ctt-others}
+\caption{Rules for types $F$ and $T$} \label{ctt-ft}
 \end{figure}
-
 
 
 \begin{figure} 
 \begin{ttbox}
-\idx{replace_type}    [| B = A;  a : A |] ==> a : B
-\idx{subst_eqtyparg}  [| a=c : A;  !!z. z:A ==> B(z) type |] ==> B(a)=B(c)
+\tdx{EqF}       [| A type;  a : A;  b : A |] ==> Eq(A,a,b) type
+\tdx{EqFL}      [| A=B;  a=c: A;  b=d : A |] ==> Eq(A,a,b) = Eq(B,c,d)
+\tdx{EqI}       a = b : A ==> eq : Eq(A,a,b)
+\tdx{EqE}       p : Eq(A,a,b) ==> a = b : A
+\tdx{EqC}       p : Eq(A,a,b) ==> p = eq : Eq(A,a,b)
+\end{ttbox}
+\caption{Rules for the equality type $Eq(A,a,b)$} \label{ctt-eq}
+\end{figure}
 
-\idx{subst_prodE}     [| p: Prod(A,B);  a: A;  !!z. z: B(a) ==> c(z): C(z)
+
+\begin{figure} 
+\begin{ttbox}
+\tdx{replace_type}    [| B = A;  a : A |] ==> a : B
+\tdx{subst_eqtyparg}  [| a=c : A;  !!z. z:A ==> B(z) type |] ==> B(a)=B(c)
+
+\tdx{subst_prodE}     [| p: Prod(A,B);  a: A;  !!z. z: B(a) ==> c(z): C(z)
                 |] ==> c(p`a): C(p`a)
 
-\idx{SumIL2}    [| c=a : A;  d=b : B(a) |] ==> <c,d> = <a,b> : Sum(A,B)
+\tdx{SumIL2}    [| c=a : A;  d=b : B(a) |] ==> <c,d> = <a,b> : Sum(A,B)
 
-\idx{SumE_fst}  p : Sum(A,B) ==> fst(p) : A
+\tdx{SumE_fst}  p : Sum(A,B) ==> fst(p) : A
 
-\idx{SumE_snd}  [| p: Sum(A,B);  A type;  !!x. x:A ==> B(x) type
+\tdx{SumE_snd}  [| p: Sum(A,B);  A type;  !!x. x:A ==> B(x) type
           |] ==> snd(p) : B(fst(p))
 \end{ttbox}
 
@@ -391,34 +399,70 @@ called {\em long} rules; their names have the suffix~{\tt L}\@.
 Introduction and computation rules often are further suffixed with
 constructor names.
 
-Figures~\ref{ctt-equality}--\ref{ctt-others} shows the rules.  Those
-for~$N$ include \ttindex{zero_ne_succ}, $0\not=n+1$: the fourth Peano axiom
-cannot be derived without universes \cite[page 91]{martinlof84}.
-Figure~\ref{ctt-sum} shows the rules for general sums, which include binary
-products as a special case, with the projections \ttindex{fst}
-and~\ttindex{snd}.
+Figure~\ref{ctt-equality} presents the equality rules.  Most of them are
+straightforward: reflexivity, symmetry, transitivity and substitution.  The
+judgement \cdx{Reduce} does not belong to Type Theory proper; it has
+been added to implement rewriting.  The judgement ${\tt Reduce}(a,b)$ holds
+when $a=b:A$ holds.  It also holds when $a$ and $b$ are syntactically
+identical, even if they are ill-typed, because rule {\tt refl_red} does
+not verify that $a$ belongs to $A$.  
 
-The extra judgement \ttindex{Reduce} is used to implement rewriting.  The
-judgement ${\tt Reduce}(a,b)$ holds when $a=b:A$ holds.  It also holds
-when $a$ and $b$ are syntactically identical, even if they are ill-typed,
-because rule \ttindex{refl_red} does not verify that $a$ belongs to $A$.  These
-rules do not give rise to new theorems about the standard judgements ---
-note that the only rule that makes use of {\tt Reduce} is \ttindex{trans_red},
-whose first premise ensures that $a$ and $b$ (and thus $c$) are well-typed.
+The {\tt Reduce} rules do not give rise to new theorems about the standard
+judgements.  The only rule with {\tt Reduce} in a premise is
+{\tt trans_red}, whose other premise ensures that $a$ and~$b$ (and thus
+$c$) are well-typed.
 
-Derived rules are shown in Fig.\ts\ref{ctt-derived}.  The rule
-\ttindex{subst_prodE} is derived from \ttindex{prodE}, and is easier to
-use in backwards proof.  The rules \ttindex{SumE_fst} and
-\ttindex{SumE_snd} express the typing of~\ttindex{fst} and~\ttindex{snd};
-together, they are roughly equivalent to~\ttindex{SumE} with the advantage
-of creating no parameters.  These rules are demonstrated in a proof of the
-Axiom of Choice~(\S\ref{ctt-choice}).
+Figure~\ref{ctt-N} presents the rules for~$N$, the type of natural numbers.
+They include \tdx{zero_ne_succ}, which asserts $0\not=n+1$.  This is
+the fourth Peano axiom and cannot be derived without universes \cite[page
+91]{martinlof84}.  
+
+The constant \cdx{rec} constructs proof terms when mathematical
+induction, rule~\tdx{NE}, is applied.  It can also express primitive
+recursion.  Since \cdx{rec} can be applied to higher-order functions,
+it can even express Ackermann's function, which is not primitive recursive
+\cite[page~104]{thompson91}.
+
+Figure~\ref{ctt-prod} shows the rules for general product types, which
+include function types as a special case.  The rules correspond to the
+predicate calculus rules for universal quantifiers and implication.  They
+also permit reasoning about functions, with the rules of a typed
+$\lambda$-calculus.
+
+Figure~\ref{ctt-sum} shows the rules for general sum types, which
+include binary product types as a special case.  The rules correspond to the
+predicate calculus rules for existential quantifiers and conjunction.  They
+also permit reasoning about ordered pairs, with the projections
+\cdx{fst} and~\cdx{snd}.
+
+Figure~\ref{ctt-plus} shows the rules for binary sum types.  They
+correspond to the predicate calculus rules for disjunction.  They also
+permit reasoning about disjoint sums, with the injections \cdx{inl}
+and~\cdx{inr} and case analysis operator~\cdx{when}.
+
+Figure~\ref{ctt-ft} shows the rules for the empty and unit types, $F$
+and~$T$.  They correspond to the predicate calculus rules for absurdity and
+truth.
+
+Figure~\ref{ctt-eq} shows the rules for equality types.  If $a=b\in A$ is
+provable then \cdx{eq} is a canonical element of the type $Eq(A,a,b)$,
+and vice versa.  These rules define extensional equality; the most recent
+versions of Type Theory use intensional equality~\cite{nordstrom90}.
+
+Figure~\ref{ctt-derived} presents the derived rules.  The rule
+\tdx{subst_prodE} is derived from {\tt prodE}, and is easier to use
+in backwards proof.  The rules \tdx{SumE_fst} and \tdx{SumE_snd}
+express the typing of~\cdx{fst} and~\cdx{snd}; together, they are
+roughly equivalent to~{\tt SumE} with the advantage of creating no
+parameters.  Section~\ref{ctt-choice} below demonstrates these rules in a
+proof of the Axiom of Choice.
 
 All the rules are given in $\eta$-expanded form.  For instance, every
 occurrence of $\lambda u\,v.b(u,v)$ could be abbreviated to~$b$ in the
-rules for~$N$.  This permits Isabelle to preserve bound variable names
-during backward proof.  Names of bound variables in the conclusion (here,
-$u$ and~$v$) are matched with corresponding bound variables in the premises.
+rules for~$N$.  The expanded form permits Isabelle to preserve bound
+variable names during backward proof.  Names of bound variables in the
+conclusion (here, $u$ and~$v$) are matched with corresponding bound
+variables in the premises.
 
 
 \section{Rule lists}
@@ -427,14 +471,14 @@ reasoning.  Many proof procedures work by repeatedly resolving certain Type
 Theory rules against a proof state.  {\CTT} defines lists --- each with
 type
 \hbox{\tt thm list} --- of related rules. 
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{form_rls}] 
 contains formation rules for the types $N$, $\Pi$, $\Sigma$, $+$, $Eq$,
 $F$, and $T$.
 
 \item[\ttindexbold{formL_rls}] 
 contains long formation rules for $\Pi$, $\Sigma$, $+$, and $Eq$.  (For
-other types use \ttindex{refl_type}.)
+other types use \tdx{refl_type}.)
 
 \item[\ttindexbold{intr_rls}] 
 contains introduction rules for the types $N$, $\Pi$, $\Sigma$, $+$, and
@@ -442,7 +486,7 @@ $T$.
 
 \item[\ttindexbold{intrL_rls}] 
 contains long introduction rules for $N$, $\Pi$, $\Sigma$, and $+$.  (For
-$T$ use \ttindex{refl_elem}.)
+$T$ use \tdx{refl_elem}.)
 
 \item[\ttindexbold{elim_rls}] 
 contains elimination rules for the types $N$, $\Pi$, $\Sigma$, $+$, and
@@ -457,8 +501,8 @@ contains computation rules for the types $N$, $\Pi$, $\Sigma$, and $+$.
 Those for $Eq$ and $T$ involve no eliminator.
 
 \item[\ttindexbold{basic_defs}] 
-contains the definitions of \ttindex{fst} and \ttindex{snd}.  
-\end{description}
+contains the definitions of {\tt fst} and {\tt snd}.  
+\end{ttdescription}
 
 
 \section{Tactics for subgoal reordering}
@@ -471,15 +515,18 @@ intr_tac        : thm list -> tactic
 Blind application of {\CTT} rules seldom leads to a proof.  The elimination
 rules, especially, create subgoals containing new unknowns.  These subgoals
 unify with anything, causing an undirectional search.  The standard tactic
-\ttindex{filt_resolve_tac} (see the {\em Reference Manual}) can reject
-overly flexible goals; so does the {\CTT} tactic {\tt test_assume_tac}.
-Used with the tactical \ttindex{REPEAT_FIRST} they achieve a simple kind of
-subgoal reordering: the less flexible subgoals are attempted first.  Do
-some single step proofs, or study the examples below, to see why this is
-necessary.
-\begin{description}
+\ttindex{filt_resolve_tac} 
+(see \iflabelundefined{filt_resolve_tac}{the {\em Reference Manual\/}}%
+        {\S\ref{filt_resolve_tac}})
+%
+can reject overly flexible goals; so does the {\CTT} tactic {\tt
+  test_assume_tac}.  Used with the tactical \ttindex{REPEAT_FIRST} they
+achieve a simple kind of subgoal reordering: the less flexible subgoals are
+attempted first.  Do some single step proofs, or study the examples below,
+to see why this is necessary.
+\begin{ttdescription}
 \item[\ttindexbold{test_assume_tac} $i$] 
-uses \ttindex{assume_tac} to solve the subgoal by assumption, but only if
+uses {\tt assume_tac} to solve the subgoal by assumption, but only if
 subgoal~$i$ has the form $a\in A$ and the head of $a$ is not an unknown.
 Otherwise, it fails.
 
@@ -501,7 +548,7 @@ uses $thms$ with the introduction rules to break down a type.  It is
 designed for goals like $\Var{a}\in A$ where $\Var{a}$ is flexible and $A$
 rigid.  These typically arise when trying to prove a proposition~$A$,
 expressed as a type.
-\end{description}
+\end{ttdescription}
 
 
 
@@ -511,15 +558,17 @@ rew_tac     : thm list -> tactic
 hyp_rew_tac : thm list -> tactic
 \end{ttbox}
 Object-level simplification is accomplished through proof, using the {\tt
-CTT} equality rules and the built-in rewriting functor
-\ttindex{TSimpFun}.\footnote{This should not be confused with {\tt
-SimpFun}, which is the main rewriting functor; {\tt TSimpFun} is only
-useful for {\CTT} and similar logics with type inference rules.}
-The rewrites include the computation rules and other equations.  The
-long versions of the other rules permit rewriting of subterms and subtypes.
-Also used are transitivity and the extra judgement form \ttindex{Reduce}.
+  CTT} equality rules and the built-in rewriting functor
+{\tt TSimpFun}.%
+\footnote{This should not be confused with Isabelle's main simplifier; {\tt
+    TSimpFun} is only useful for {\CTT} and similar logics with type
+  inference rules.  At present it is undocumented.} 
+%
+The rewrites include the computation rules and other equations.  The long
+versions of the other rules permit rewriting of subterms and subtypes.
+Also used are transitivity and the extra judgement form \cdx{Reduce}.
 Meta-level simplification handles only definitional equality.
-\begin{description}
+\begin{ttdescription}
 \item[\ttindexbold{rew_tac} $thms$]
 applies $thms$ and the computation rules as left-to-right rewrites.  It
 solves the goal $a=b\in A$ by rewriting $a$ to $b$.  If $b$ is an unknown
@@ -528,23 +577,26 @@ then it is assigned the rewritten form of~$a$.  All subgoals are rewritten.
 \item[\ttindexbold{hyp_rew_tac} $thms$]
 is like {\tt rew_tac}, but includes as rewrites any equations present in
 the assumptions.
-\end{description}
+\end{ttdescription}
 
 
 \section{Tactics for logical reasoning}
 Interpreting propositions as types lets {\CTT} express statements of
 intuitionistic logic.  However, Constructive Type Theory is not just
-another syntax for first-order logic. A key question: can assumptions be
-deleted after use?  Not every occurrence of a type represents a
-proposition, and Type Theory assumptions declare variables.  
+another syntax for first-order logic.  There are fundamental differences.
 
+\index{assumptions!in {\CTT}}
+Can assumptions be deleted after use?  Not every occurrence of a type
+represents a proposition, and Type Theory assumptions declare variables.
 In first-order logic, $\disj$-elimination with the assumption $P\disj Q$
 creates one subgoal assuming $P$ and another assuming $Q$, and $P\disj Q$
-can be deleted.  In Type Theory, $+$-elimination with the assumption $z\in
-A+B$ creates one subgoal assuming $x\in A$ and another assuming $y\in B$
-(for arbitrary $x$ and $y$).  Deleting $z\in A+B$ may render the subgoals
-unprovable if other assumptions refer to $z$.  Some people might argue that
-such subgoals are not even meaningful.
+can be deleted safely.  In Type Theory, $+$-elimination with the assumption
+$z\in A+B$ creates one subgoal assuming $x\in A$ and another assuming $y\in
+B$ (for arbitrary $x$ and $y$).  Deleting $z\in A+B$ when other assumptions
+refer to $z$ may render the subgoal unprovable: arguably,
+meaningless.
+
+Isabelle provides several tactics for predicate calculus reasoning in \CTT:
 \begin{ttbox}
 mp_tac       : int -> tactic
 add_mp_tac   : int -> tactic
@@ -554,10 +606,10 @@ step_tac     : thm list -> int -> tactic
 pc_tac       : thm list -> int -> tactic
 \end{ttbox}
 These are loosely based on the intuitionistic proof procedures
-of~\ttindex{FOL}.  For the reasons discussed above, a rule that is safe for
+of~\thydx{FOL}.  For the reasons discussed above, a rule that is safe for
 propositional reasoning may be unsafe for type checking; thus, some of the
-``safe'' tactics are misnamed.
-\begin{description}
+`safe' tactics are misnamed.
+\begin{ttdescription}
 \item[\ttindexbold{mp_tac} $i$] 
 searches in subgoal~$i$ for assumptions of the form $f\in\Pi(A,B)$ and
 $a\in A$, where~$A$ may be found by unification.  It replaces
@@ -566,16 +618,17 @@ can produce multiple outcomes for each suitable pair of assumptions.  In
 short, {\tt mp_tac} performs Modus Ponens among the assumptions.
 
 \item[\ttindexbold{add_mp_tac} $i$]
-is like {\tt mp_tac}~$i$ but retains the assumption $f\in\Pi(A,B)$.
+is like {\tt mp_tac}~$i$ but retains the assumption $f\in\Pi(A,B)$.  It
+avoids information loss but obviously loops if repeated.
 
 \item[\ttindexbold{safestep_tac} $thms$ $i$]
 attacks subgoal~$i$ using formation rules and certain other `safe' rules
-(\ttindex{FE}, \ttindex{ProdI}, \ttindex{SumE}, \ttindex{PlusE}), calling
+(tdx{FE}, tdx{ProdI}, tdx{SumE}, tdx{PlusE}), calling
 {\tt mp_tac} when appropriate.  It also uses~$thms$,
 which are typically premises of the rule being derived.
 
-\item[\ttindexbold{safe_tac} $thms$ $i$]
-tries to solve subgoal~$i$ by backtracking, using {\tt safestep_tac}.
+\item[\ttindexbold{safe_tac} $thms$ $i$] attempts to solve subgoal~$i$ by
+  means of backtracking, using {\tt safestep_tac}.
 
 \item[\ttindexbold{step_tac} $thms$ $i$]
 tries to reduce subgoal~$i$ using {\tt safestep_tac}, then tries unsafe
@@ -583,67 +636,79 @@ rules.  It may produce multiple outcomes.
 
 \item[\ttindexbold{pc_tac} $thms$ $i$]
 tries to solve subgoal~$i$ by backtracking, using {\tt step_tac}.
-\end{description}
+\end{ttdescription}
 
 
 
 \begin{figure} 
+\index{#+@{\tt\#+} symbol}
+\index{*"- symbol}
+\index{*"|"-"| symbol}
+\index{#*@{\tt\#*} symbol}
+\index{*div symbol}
+\index{*mod symbol}
+\begin{constants}
+  \it symbol  & \it meta-type & \it priority & \it description \\ 
+  \tt \#*       & $[i,i]\To i$  &  Left 70      & multiplication \\
+  \tt div       & $[i,i]\To i$  &  Left 70      & division\\
+  \tt mod       & $[i,i]\To i$  &  Left 70      & modulus\\
+  \tt \#+       & $[i,i]\To i$  &  Left 65      & addition\\
+  \tt -         & $[i,i]\To i$  &  Left 65      & subtraction\\
+  \verb'|-|'    & $[i,i]\To i$  &  Left 65      & absolute difference
+\end{constants}
+
 \begin{ttbox}
-\idx{add_def}           a#+b  == rec(a, b, \%u v.succ(v))  
-\idx{diff_def}          a-b   == rec(b, a, \%u v.rec(v, 0, \%x y.x))  
-\idx{absdiff_def}       a|-|b == (a-b) #+ (b-a)  
-\idx{mult_def}          a#*b  == rec(a, 0, \%u v. b #+ v)  
+\tdx{add_def}           a#+b  == rec(a, b, \%u v.succ(v))  
+\tdx{diff_def}          a-b   == rec(b, a, \%u v.rec(v, 0, \%x y.x))  
+\tdx{absdiff_def}       a|-|b == (a-b) #+ (b-a)  
+\tdx{mult_def}          a#*b  == rec(a, 0, \%u v. b #+ v)  
 
-\idx{mod_def}   a mod b == rec(a, 0,
-                      \%u v. rec(succ(v) |-| b, 0, \%x y.succ(v)))  
+\tdx{mod_def}           a mod b ==
+                  rec(a, 0, \%u v. rec(succ(v) |-| b, 0, \%x y.succ(v)))
 
-\idx{div_def}   a div b == rec(a, 0,
-                      \%u v. rec(succ(u) mod b, succ(v), \%x y.v))
-\end{ttbox}
-\subcaption{Definitions of the operators}
+\tdx{div_def}           a div b ==
+                  rec(a, 0, \%u v. rec(succ(u) mod b, succ(v), \%x y.v))
 
-\begin{ttbox}
-\idx{add_typing}        [| a:N;  b:N |] ==> a #+ b : N
-\idx{addC0}             b:N ==> 0 #+ b = b : N
-\idx{addC_succ}         [| a:N;  b:N |] ==> succ(a) #+ b = succ(a #+ b) : N
 
-\idx{add_assoc}         [| a:N;  b:N;  c:N |] ==> 
+\tdx{add_typing}        [| a:N;  b:N |] ==> a #+ b : N
+\tdx{addC0}             b:N ==> 0 #+ b = b : N
+\tdx{addC_succ}         [| a:N;  b:N |] ==> succ(a) #+ b = succ(a #+ b) : N
+
+\tdx{add_assoc}         [| a:N;  b:N;  c:N |] ==> 
                   (a #+ b) #+ c = a #+ (b #+ c) : N
 
-\idx{add_commute}       [| a:N;  b:N |] ==> a #+ b = b #+ a : N
+\tdx{add_commute}       [| a:N;  b:N |] ==> a #+ b = b #+ a : N
 
-\idx{mult_typing}       [| a:N;  b:N |] ==> a #* b : N
-\idx{multC0}            b:N ==> 0 #* b = 0 : N
-\idx{multC_succ}        [| a:N;  b:N |] ==> succ(a) #* b = b #+ (a#*b) : N
-\idx{mult_commute}      [| a:N;  b:N |] ==> a #* b = b #* a : N
+\tdx{mult_typing}       [| a:N;  b:N |] ==> a #* b : N
+\tdx{multC0}            b:N ==> 0 #* b = 0 : N
+\tdx{multC_succ}        [| a:N;  b:N |] ==> succ(a) #* b = b #+ (a#*b) : N
+\tdx{mult_commute}      [| a:N;  b:N |] ==> a #* b = b #* a : N
 
-\idx{add_mult_dist}     [| a:N;  b:N;  c:N |] ==> 
+\tdx{add_mult_dist}     [| a:N;  b:N;  c:N |] ==> 
                   (a #+ b) #* c = (a #* c) #+ (b #* c) : N
 
-\idx{mult_assoc}        [| a:N;  b:N;  c:N |] ==> 
+\tdx{mult_assoc}        [| a:N;  b:N;  c:N |] ==> 
                   (a #* b) #* c = a #* (b #* c) : N
 
-\idx{diff_typing}       [| a:N;  b:N |] ==> a - b : N
-\idx{diffC0}            a:N ==> a - 0 = a : N
-\idx{diff_0_eq_0}       b:N ==> 0 - b = 0 : N
-\idx{diff_succ_succ}    [| a:N;  b:N |] ==> succ(a) - succ(b) = a - b : N
-\idx{diff_self_eq_0}    a:N ==> a - a = 0 : N
-\idx{add_inverse_diff}  [| a:N;  b:N;  b-a=0 : N |] ==> b #+ (a-b) = a : N
-\end{ttbox}
-\subcaption{Some theorems of arithmetic}
+\tdx{diff_typing}       [| a:N;  b:N |] ==> a - b : N
+\tdx{diffC0}            a:N ==> a - 0 = a : N
+\tdx{diff_0_eq_0}       b:N ==> 0 - b = 0 : N
+\tdx{diff_succ_succ}    [| a:N;  b:N |] ==> succ(a) - succ(b) = a - b : N
+\tdx{diff_self_eq_0}    a:N ==> a - a = 0 : N
+\tdx{add_inverse_diff}  [| a:N;  b:N;  b-a=0 : N |] ==> b #+ (a-b) = a : N
 \caption{The theory of arithmetic} \label{ctt-arith}
+\end{ttbox}
 \end{figure}
 
 
 \section{A theory of arithmetic}
-{\CTT} contains a theory of elementary arithmetic.  It proves the
+\thydx{Arith} is a theory of elementary arithmetic.  It proves the
 properties of addition, multiplication, subtraction, division, and
 remainder, culminating in the theorem
 \[ a \bmod b + (a/b)\times b = a. \]
 Figure~\ref{ctt-arith} presents the definitions and some of the key
-theorems, including commutative, distributive, and associative laws.  The
-theory has the {\ML} identifier \ttindexbold{arith.thy}.  All proofs are on
-the file {\tt CTT/arith.ML}.
+theorems, including commutative, distributive, and associative laws.
+All proofs are on the file {\tt CTT/arith.ML}.
 
 The operators~\verb'#+', \verb'-', \verb'|-|', \verb'#*', \verb'mod'
 and~\verb'div' stand for sum, difference, absolute difference, product,
@@ -664,21 +729,21 @@ such that $0\leq x \leq a$ and $x\bmod b = 0$.
 
 \section{The examples directory}
 This directory contains examples and experimental proofs in {\CTT}.
-\begin{description}
-\item[{\tt CTT/ex/typechk.ML}]
+\begin{ttdescription}
+\item[CTT/ex/typechk.ML]
 contains simple examples of type checking and type deduction.
 
-\item[{\tt CTT/ex/elim.ML}]
+\item[CTT/ex/elim.ML]
 contains some examples from Martin-L\"of~\cite{martinlof84}, proved using 
 {\tt pc_tac}.
 
-\item[{\tt CTT/ex/equal.ML}]
+\item[CTT/ex/equal.ML]
 contains simple examples of rewriting.
 
-\item[{\tt CTT/ex/synth.ML}]
+\item[CTT/ex/synth.ML]
 demonstrates the use of unknowns with some trivial examples of program
 synthesis. 
-\end{description}
+\end{ttdescription}
 
 
 \section{Example: type inference}
@@ -695,7 +760,7 @@ goal CTT.thy "lam n. rec(n, 0, \%x y.x) : ?A";
 \end{ttbox}
 Since the term is a Constructive Type Theory $\lambda$-abstraction (not to
 be confused with a meta-level abstraction), we apply the rule
-\ttindex{ProdI}, for $\Pi$-introduction.  This instantiates~$\Var{A}$ to a
+\tdx{ProdI}, for $\Pi$-introduction.  This instantiates~$\Var{A}$ to a
 product type of unknown domain and range.
 \begin{ttbox}
 by (resolve_tac [ProdI] 1);
@@ -707,7 +772,8 @@ by (resolve_tac [ProdI] 1);
 Subgoal~1 is too flexible.  It can be solved by instantiating~$\Var{A@1}$
 to any type, but most instantiations will invalidate subgoal~2.  We
 therefore tackle the latter subgoal.  It asks the type of a term beginning
-with {\tt rec}, which can be found by $N$-elimination.\index{*NE}
+with {\tt rec}, which can be found by $N$-elimination.%
+\index{*NE theorem}
 \begin{ttbox}
 by (eresolve_tac [NE] 2);
 {\out Level 2}
@@ -718,7 +784,7 @@ by (eresolve_tac [NE] 2);
 \end{ttbox}
 Subgoal~1 is no longer flexible: we now know~$\Var{A@1}$ is the type of
 natural numbers.  However, let us continue proving nontrivial subgoals.
-Subgoal~2 asks, what is the type of~0?\index{*NIO}
+Subgoal~2 asks, what is the type of~0?\index{*NIO theorem}
 \begin{ttbox}
 by (resolve_tac [NI0] 2);
 {\out Level 3}
@@ -727,10 +793,11 @@ by (resolve_tac [NI0] 2);
 {\out  2. !!n x y. [| x : N; y : N |] ==> x : N}
 \end{ttbox}
 The type~$\Var{A}$ is now fully determined.  It is the product type
-$\prod@{x\in N}N$, which is equivalent to function type $N\to N$ because
+$\prod@{x\in N}N$, which is shown as the function type $N\to N$ because
 there is no dependence on~$x$.  But we must prove all the subgoals to show
 that the original term is validly typed.  Subgoal~2 is provable by
-assumption and the remaining subgoal falls by $N$-formation.\index{*NF}
+assumption and the remaining subgoal falls by $N$-formation.%
+\index{*NF theorem}
 \begin{ttbox}
 by (assume_tac 2);
 {\out Level 4}
@@ -755,27 +822,28 @@ goal CTT.thy "lam n. rec(n, 0, \%x y.tt) : ?A";
 
 \section{An example of logical reasoning}
 Logical reasoning in Type Theory involves proving a goal of the form
-$\Var{a}\in A$, where type $A$ expresses a proposition and $\Var{a}$ is an
-unknown standing
-for its proof term: a value of type $A$. This term is initially unknown, as
-with type inference, and takes shape during the proof.  Our example
-expresses, by propositions-as-types, a theorem about quantifiers in a
-sorted logic:
+$\Var{a}\in A$, where type $A$ expresses a proposition and $\Var{a}$ stands
+for its proof term, a value of type $A$.  The proof term is initially
+unknown and takes shape during the proof.  
+
+Our example expresses a theorem about quantifiers in a sorted logic:
 \[ \infer{(\ex{x\in A}P(x)) \disj (\ex{x\in A}Q(x))}
          {\ex{x\in A}P(x)\disj Q(x)} 
 \]
-It it related to a distributive law of Type Theory:
+By the propositions-as-types principle, this is encoded
+using~$\Sigma$ and~$+$ types.  A special case of it expresses a
+distributive law of Type Theory: 
 \[ \infer{(A\times B) + (A\times C)}{A\times(B+C)} \]
 Generalizing this from $\times$ to $\Sigma$, and making the typing
-conditions explicit, yields
+conditions explicit, yields the rule we must derive:
 \[ \infer{\Var{a} \in (\sum@{x\in A} B(x)) + (\sum@{x\in A} C(x))}
          {\hbox{$A$ type} &
           \infer*{\hbox{$B(x)$ type}}{[x\in A]}  &
           \infer*{\hbox{$C(x)$ type}}{[x\in A]}  &
           p\in \sum@{x\in A} B(x)+C(x)} 
 \]
-To derive this rule, we bind its premises --- returned by~\ttindex{goal}
---- to the {\ML} variable~{\tt prems}.
+To begin, we bind the rule's premises --- returned by the~{\tt goal}
+command --- to the {\ML} variable~{\tt prems}.
 \begin{ttbox}
 val prems = goal CTT.thy
     "[| A type;                       \ttback
@@ -793,13 +861,17 @@ val prems = goal CTT.thy
 {\out              "p : SUM x:A. B(x) + C(x)  [p : SUM x:A. B(x) + C(x)]"]}
 {\out             : thm list}
 \end{ttbox}
-One of the premises involves summation ($\Sigma$).  Since it is a premise
-rather than the assumption of a goal, it cannot be found by
-\ttindex{eresolve_tac}.  We could insert it by calling
-\hbox{\tt \ttindex{cut_facts_tac} prems 1}.   Instead, let us resolve the
-$\Sigma$-elimination rule with the premises using~{\tt RL}; this forward
-inference yields one result, which we supply to
-\ttindex{resolve_tac}.\index{*SumE}\index{*RL} 
+The last premise involves the sum type~$\Sigma$.  Since it is a premise
+rather than the assumption of a goal, it cannot be found by {\tt
+  eresolve_tac}.  We could insert it (and the other atomic premise) by
+calling
+\begin{ttbox}
+cut_facts_tac prems 1;
+\end{ttbox}
+A forward proof step is more straightforward here.  Let us resolve the
+$\Sigma$-elimination rule with the premises using~\ttindex{RL}.  This
+inference yields one result, which we supply to {\tt
+  resolve_tac}.\index{*SumE theorem}
 \begin{ttbox}
 by (resolve_tac (prems RL [SumE]) 1);
 {\out Level 1}
@@ -809,10 +881,10 @@ by (resolve_tac (prems RL [SumE]) 1);
 {\out        ?c1(x,y) : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 \end{ttbox}
 The subgoal has two new parameters, $x$ and~$y$.  In the main goal,
-$\Var{a}$ has been instantiated with a \ttindex{split} term.  The
+$\Var{a}$ has been instantiated with a \cdx{split} term.  The
 assumption $y\in B(x) + C(x)$ is eliminated next, causing a case split and
-a further parameter,~$xa$.  It also inserts~\ttindex{when} into the main goal.
-\index{*PlusE}
+creating the parameter~$xa$.  This inference also inserts~\cdx{when}
+into the main goal.\index{*PlusE theorem}
 \begin{ttbox}
 by (eresolve_tac [PlusE] 1);
 {\out Level 2}
@@ -828,9 +900,9 @@ by (eresolve_tac [PlusE] 1);
 \end{ttbox}
 To complete the proof object for the main goal, we need to instantiate the
 terms $\Var{c@2}(x,y,xa)$ and $\Var{d@2}(x,y,xa)$.  We attack subgoal~1 by
-introduction of~$+$; since it assumes $xa\in B(x)$, we take the left
-injection~(\ttindex{inl}).
-\index{*PlusI_inl}
+a~$+$-introduction rule; since the goal assumes $xa\in B(x)$, we take the left
+injection~(\cdx{inl}).
+\index{*PlusI_inl theorem}
 \begin{ttbox}
 by (resolve_tac [PlusI_inl] 1);
 {\out Level 3}
@@ -843,10 +915,11 @@ by (resolve_tac [PlusI_inl] 1);
 {\out        [| x : A; ya : C(x) |] ==>}
 {\out        ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 \end{ttbox}
-A new subgoal has appeared, to verify that $\sum@{x\in A}C(x)$ is a type.
-Continuing with subgoal~1, we apply $\Sigma$-introduction.  The main goal
-now contains an ordered pair.
-\index{*SumI}
+A new subgoal~2 has appeared, to verify that $\sum@{x\in A}C(x)$ is a type.
+Continuing to work on subgoal~1, we apply the $\Sigma$-introduction rule.
+This instantiates the term $\Var{a@3}(x,y,xa)$; the main goal now contains
+an ordered pair, whose components are two new unknowns.%
+\index{*SumI theorem}
 \begin{ttbox}
 by (resolve_tac [SumI] 1);
 {\out Level 4}
@@ -882,8 +955,9 @@ by (assume_tac 1);
 {\out        [| x : A; ya : C(x) |] ==>}
 {\out        ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 \end{ttbox}
-Subgoal~1 is just type checking.  It yields to \ttindex{typechk_tac},
-supplied with the current list of premises.
+Subgoal~1 is an example of a well-formedness subgoal~\cite{constable86}.
+Such subgoals are usually trivial; this one yields to
+\ttindex{typechk_tac}, given the current list of premises.
 \begin{ttbox}
 by (typechk_tac prems);
 {\out Level 7}
@@ -893,8 +967,9 @@ by (typechk_tac prems);
 {\out        [| x : A; ya : C(x) |] ==>}
 {\out        ?d2(x,y,ya) : (SUM x:A. B(x)) + (SUM x:A. C(x))}
 \end{ttbox}
-The other case is similar.  Let us prove it by \ttindex{pc_tac}, and note
-the final proof object.
+This subgoal is the other case from the $+$-elimination above, and can be
+proved similarly.  Quicker is to apply \ttindex{pc_tac}.  The main goal
+finally gets a fully instantiated proof object.
 \begin{ttbox}
 by (pc_tac prems 1);
 {\out Level 8}
@@ -909,7 +984,7 @@ proves this theorem.
 \section{Example: deriving a currying functional}
 In simply-typed languages such as {\ML}, a currying functional has the type 
 \[ (A\times B \to C) \to (A\to (B\to C)). \]
-Let us generalize this to~$\Sigma$ and~$\Pi$.  
+Let us generalize this to the dependent types~$\Sigma$ and~$\Pi$.  
 The functional takes a function~$f$ that maps $z:\Sigma(A,B)$
 to~$C(z)$; the resulting function maps $x\in A$ and $y\in B(x)$ to
 $C(\langle x,y\rangle)$.
@@ -939,7 +1014,7 @@ val prems = goal CTT.thy
 {\out               [!!z. z : SUM x:A. B(x) ==> C(z) type]"] : thm list}
 \end{ttbox}
 This is a chance to demonstrate \ttindex{intr_tac}.  Here, the tactic
-repeatedly applies $\Pi$-introduction, proving the rather
+repeatedly applies $\Pi$-introduction and proves the rather
 tiresome typing conditions.  
 
 Note that $\Var{a}$ becomes instantiated to three nested
@@ -957,7 +1032,7 @@ by (intr_tac prems);
 {\out        ?b7(f,x,y) : C(<x,y>)}
 \end{ttbox}
 Using $\Pi$-elimination, we solve subgoal~1 by applying the function~$f$.
-\index{*ProdE}
+\index{*ProdE theorem}
 \begin{ttbox}
 by (eresolve_tac [ProdE] 1);
 {\out Level 2}
@@ -965,8 +1040,8 @@ by (eresolve_tac [ProdE] 1);
 {\out : (PROD z:SUM x:A. B(x). C(z)) --> (PROD x:A. PROD y:B(x). C(<x,y>))}
 {\out  1. !!f x y. [| x : A; y : B(x) |] ==> <x,y> : SUM x:A. B(x)}
 \end{ttbox}
-Finally, we exhibit a suitable argument for the function application.  This
-is straightforward using introduction rules.
+Finally, we verify that the argument's type is suitable for the function
+application.  This is straightforward using introduction rules.
 \index{*intr_tac}
 \begin{ttbox}
 by (intr_tac prems);
@@ -995,11 +1070,11 @@ Theory \cite[page~50]{martinlof84}.  The following definitions work:
     f & \equiv & {\tt fst} \circ h \\
     g & \equiv & {\tt snd} \circ h
 \end{eqnarray*}
-But a completely formal proof is hard to find.  Many of the rules can be
-applied in a multiplicity of ways, yielding a large number of higher-order
-unifiers.  The proof can get bogged down in the details.  But with a
-careful selection of derived rules (recall Fig.\ts\ref{ctt-derived}) and
-the type checking tactics, we can prove the theorem in nine steps.
+But a completely formal proof is hard to find.  The rules can be applied in
+countless ways, yielding many higher-order unifiers.  The proof can get
+bogged down in the details.  But with a careful selection of derived rules
+(recall Fig.\ts\ref{ctt-derived}) and the type checking tactics, we can
+prove the theorem in nine steps.
 \begin{ttbox}
 val prems = goal CTT.thy
     "[| A type;  !!x. x:A ==> B(x) type;                    \ttback
@@ -1020,7 +1095,8 @@ val prems = goal CTT.thy
 \end{ttbox}
 First, \ttindex{intr_tac} applies introduction rules and performs routine
 type checking.  This instantiates~$\Var{a}$ to a construction involving
-three $\lambda$-abstractions and an ordered pair.
+a $\lambda$-abstraction and an ordered pair.  The pair's components are
+themselves $\lambda$-abstractions and there is a subgoal for each.
 \begin{ttbox}
 by (intr_tac prems);
 {\out Level 1}
@@ -1041,7 +1117,7 @@ $\Var{b@7}(h,x)\in B(x)$.  Subgoal~2 asks, given $x\in A$, for a proof
 object $\Var{b@8}(h,x)$ to witness that the choice function's argument and
 result lie in the relation~$C$.  This latter task will take up most of the
 proof.
-\index{*ProdE}\index{*SumE_fst}\index{*RS}
+\index{*ProdE theorem}\index{*SumE_fst theorem}\index{*RS}
 \begin{ttbox}
 by (eresolve_tac [ProdE RS SumE_fst] 1);
 {\out Level 2}
@@ -1054,8 +1130,9 @@ by (eresolve_tac [ProdE RS SumE_fst] 1);
 {\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        ?b8(h,x) : C(x,(lam x. fst(h ` x)) ` x)}
 \end{ttbox}
-Above, we have composed \ttindex{fst} with the function~$h$.  Unification
-has deduced that the function must be applied to $x\in A$.
+Above, we have composed {\tt fst} with the function~$h$.  Unification
+has deduced that the function must be applied to $x\in A$.  We have our
+choice function.
 \begin{ttbox}
 by (assume_tac 1);
 {\out Level 3}
@@ -1066,8 +1143,8 @@ by (assume_tac 1);
 {\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        ?b8(h,x) : C(x,(lam x. fst(h ` x)) ` x)}
 \end{ttbox}
-Before we can compose \ttindex{snd} with~$h$, the arguments of $C$ must be
-simplified.  The derived rule \ttindex{replace_type} lets us replace a type
+Before we can compose {\tt snd} with~$h$, the arguments of $C$ must be
+simplified.  The derived rule \tdx{replace_type} lets us replace a type
 by any equivalent type, shown below as the schematic term $\Var{A@{13}}(h,x)$:
 \begin{ttbox}
 by (resolve_tac [replace_type] 1);
@@ -1084,7 +1161,7 @@ by (resolve_tac [replace_type] 1);
 {\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        ?b8(h,x) : ?A13(h,x)}
 \end{ttbox}
-The derived rule \ttindex{subst_eqtyparg} lets us simplify a type's
+The derived rule \tdx{subst_eqtyparg} lets us simplify a type's
 argument (by currying, $C(x)$ is a unary type operator):
 \begin{ttbox}
 by (resolve_tac [subst_eqtyparg] 1);
@@ -1107,7 +1184,7 @@ by (resolve_tac [subst_eqtyparg] 1);
 {\out        ?b8(h,x) : C(x,?c14(h,x))}
 \end{ttbox}
 Subgoal~1 requires simply $\beta$-contraction, which is the rule
-\ttindex{ProdC}.  The term $\Var{c@{14}}(h,x)$ in the last subgoal
+\tdx{ProdC}.  The term $\Var{c@{14}}(h,x)$ in the last subgoal
 receives the contracted result.
 \begin{ttbox}
 by (resolve_tac [ProdC] 1);
@@ -1136,7 +1213,7 @@ by (resolve_tac [ProdC] 1);
 \end{ttbox}
 Routine type checking goals proliferate in Constructive Type Theory, but
 \ttindex{typechk_tac} quickly solves them.  Note the inclusion of
-\ttindex{SumE_fst} along with the premises.
+\tdx{SumE_fst} along with the premises.
 \begin{ttbox}
 by (typechk_tac (SumE_fst::prems));
 {\out Level 7}
@@ -1148,8 +1225,8 @@ by (typechk_tac (SumE_fst::prems));
 {\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        ?b8(h,x) : C(x,fst(h ` x))}
 \end{ttbox}
-We are finally ready to compose \ttindex{snd} with~$h$.
-\index{*ProdE}\index{*SumE_snd}\index{*RS}
+We are finally ready to compose {\tt snd} with~$h$.
+\index{*ProdE theorem}\index{*SumE_snd theorem}\index{*RS}
 \begin{ttbox}
 by (eresolve_tac [ProdE RS SumE_snd] 1);
 {\out Level 8}
@@ -1171,3 +1248,7 @@ by (typechk_tac prems);
 {\out   (SUM f:PROD x:A. B(x). PROD x:A. C(x,f ` x))}
 {\out No subgoals!}
 \end{ttbox}
+It might be instructive to compare this proof with Martin-L\"of's forward
+proof of the Axiom of Choice \cite[page~50]{martinlof84}.
+
+\index{Constructive Type Theory|)}
