@@ -42,50 +42,29 @@ end
 
 (* The following definition of acc should also work:
 consts
-  acc :: [('a,'b)auto, 'a list, 'b, 'a list list, 'a list, 'a list maybe]
-         => 'a list list * 'a list
+  acc1 :: [('a,'b)auto, 'a list, 'b, 'a list list, 'a list, 'a list]
+          => 'a list list * 'a list
 
-acc A [] s xss zs rec =
-  (case rec of
-     Yes(xs) => acc A zs (start A) (xss @ [xs]) [] No
-   | No => (xss, zs))
-acc A (y#ys) s xss zs rec =
+acc1 A [] s xss zs xs =
+  (if xs=[] then (xss, zs)
+   else acc1 A zs (start A) (xss @ [xs]) [] [])
+acc1 A (y#ys) s xss zs rec =
   let s' = next A s;
       zs' = (if fin A s' then [] else zs@[y])
-      rec' = (if fin A s'
-              then Yes(case rec of
-                         Yes(xs) => xs@zs@[y]
-                       | No => zs@[y])
-              else rec)
-  in acc A ys s' xss zs' rec'
+      xs' = (if fin A s' then xs@zs@[y] else xs)
+  in acc1 A ys s' xss zs' xs'
 
-Advantage: does not need lazy evaluation for reasonable (quadartic)
+Advantage: does not need lazy evaluation for reasonable (quadratic)
 performance.
 
+Disadavantage: not primrec.
+  
 Termination measure:
-  size(A,ys,s,xss,zs,rec) =
-    case rec of
-      No => |ys|^2 + |ys|
-      Yes => (|ys|+|zs|)^2 + 2|ys| + |zs| + 1
+  size(A,ys,s,xss,zs,rec) = (|xs| + |ys| + |zs|, |ys|)
 
-Termination proof:
-  
-  1. size(,[],,,zs,Yes(xs)) = z^2 + z + 1 > z^2 + z = size(,zs,,,[],No)
+Termination proof: the first clause reduces the first component by |xs|,
+the second clause leaves the first component alone but reduces the second by 1.
 
-  2. size(,y#ys,,,zs,No) = (y+1)^2 + y+1 = y^2 + 3y + 2
-  
-  2.1. fin A s' --> zs' = [] & rec' = Yes
-       size(,y#ys,,,zs,No) > y^2 + 2y + 1 = size(,ys,,,[],Yes)
-  
-  2.2. not(fin A s') --> rec' = rec = No
-       size(,y#ys,,,zs,No) > y^2 + y = size(,ys,,,,No)
-
-  3. size(,y#ys,,,zs,Yes) = (y+z+1)^2 + 2y + z + 3
-
-  3.1 fin A s' --> zs' = [] & rec' = Yes
-      size(,y#ys,,,zs,Yes) > y^2 + 2y + 1 = size(,ys,,,[],Yes)
-  3.2 not(fin A s') --> ze' = zs@[y] & rec' = rec = Yes
-      size(,y#ys,,,zs,Yes) > (y+z+1)^2 + 2y + z + 2 = size(,ys,,,zs@[y],Yes)
-
-where y := |ys| and z := |zs|
+Claim: acc1 A xs s [] [] [] = acc xs s [] [] ([],xs) A
+Generalization?
 *)
