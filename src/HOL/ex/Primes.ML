@@ -88,7 +88,7 @@ qed "gcd_recursion";
 
 (*gcd(m,n) divides m and n.  The conjunctions don't seem provable separately*)
 goal thy "(gcd(m,n) dvd m) & (gcd(m,n) dvd n)";
-by (res_inst_tac [("v","m"),("v1.0","n")] gcd_induct 1);
+by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
 by (case_tac "n=0" 1);
 by (ALLGOALS 
     (asm_simp_tac (!simpset addsimps [mod_less_divisor,zero_less_eq])));
@@ -112,7 +112,7 @@ qed "dvd_mod";
 (*Maximality: for all m,n,f naturals, 
                 if f divides m and f divides n then f divides gcd(m,n)*)
 goal thy "!!k. (f dvd m) & (f dvd n) --> f dvd gcd(m,n)";
-by (res_inst_tac [("v","m"),("v1.0","n")] gcd_induct 1);
+by (res_inst_tac [("u","m"),("v","n")] gcd_induct 1);
 by (case_tac "n=0" 1);
 by (ALLGOALS 
     (asm_simp_tac (!simpset addsimps [dvd_mod, mod_less_divisor,

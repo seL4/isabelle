@@ -1,3 +1,11 @@
+(*  Title:      TFL/tfl
+    ID:         $Id$
+    Author:     Konrad Slind, Cambridge University Computer Laboratory
+    Copyright   1997  University of Cambridge
+
+Main TFL functor
+*)
+
 functor TFL(structure Rules : Rules_sig
             structure Thry  : Thry_sig
             structure Thms  : Thms_sig
@@ -54,25 +62,21 @@ fun TFL_ERR{func,mesg} = U.ERR{module = "Tfl", func = func, mesg = mesg};
  * The next function is common to pattern-match translation and 
  * proof of completeness of cases for the induction theorem.
  *
- * "gvvariant" make variables that are guaranteed not to be in vlist and
- * furthermore, are guaranteed not to be equal to each other. The names of
- * the variables will start with "v" and end in a number.
+ * The curried function "gvvariant" returns a function to generate distinct
+ * variables that are guaranteed not to be in vlist.  The names of
+ * the variables go u, v, ..., z, aa, ..., az, ...  The returned 
+ * function contains embedded refs!
  *---------------------------------------------------------------------------*)
-local val counter = ref 0
-in
 fun gvvariant vlist =
   let val slist = ref (map (#Name o S.dest_var) vlist)
-      val mem = U.mem (curry (op=))
-      val dummy = counter := 0
-      fun pass str = 
-         if (mem str (!slist)) 
-         then ( counter := !counter + 1;
-                pass (U.concat"v" (Int.toString(!counter))))
-         else (slist := str :: !slist; str)
+      val vname = ref "u"
+      fun new() = 
+         if !vname mem_string (!slist)
+         then (vname := bump_string (!vname);  new())
+         else (slist := !vname :: !slist;  !vname)
   in 
-  fn ty => S.mk_var{Name=pass "v",  Ty=ty}
-  end
-end;
+  fn ty => Free(new(), ty)
+  end;
 
 
 (*---------------------------------------------------------------------------
