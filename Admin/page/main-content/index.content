@@ -5,6 +5,8 @@ Isabelle
 
 <p>
 
+<h2>What is Isabelle?</h2>
+
 Isabelle is a popular generic theorem proving environment developed at
 Cambridge University (<a
 href="http://www.cl.cam.ac.uk/users/lcp/">Larry Paulson</a>) and TU
@@ -21,8 +23,7 @@ information is available from the local pages
 href="http://www.cl.cam.ac.uk/Research/HVG/Isabelle/cambridge.html"><strong>Isabelle
 at Cambridge</strong></a> 
 
-<li> <a href="http://isabelle.in.tum.de/munich.html"><strong>Isabelle
-at Munich</strong></a>
+<li> <a href="http://isabelle.in.tum.de/munich.html"><strong>Isabelle at Munich</strong></a>
 
 </ul>
 
@@ -30,8 +31,14 @@ See there for information on projects done with Isabelle, mailing list
 archives, research papers, the Isabelle bibliography, and Isabelle
 workshops and courses.
 
+<p>
 
 <h2>Obtaining Isabelle</h2>
+
+You get <strong><!-- _GP_ distname --></strong> in the 
+<a href="dist/index.html">distribution area</a>.
+
+<p>
 
 The <strong><!-- _GP_ distname --></strong> distribution is available
 from several <a href="dist/index.html">mirror sites</a>.  It includes
@@ -46,10 +53,13 @@ href="library/HOLCF/index.html">HOLCF</a>, <a
 href="library/FOL/index.html">FOL</a> and <a
 href="library/ZF/index.html">ZF</a>.
 
+<p>
 
 <h2>Mailing list</h2>
 
 Use the mailing list <a href="mailto:
-isabelle-users@cl.cam.ac.uk">isabelle-users@cl.cam.ac.uk</a> to
+isabelle-users@cl.cam.ac.uk">isabelle-users@cl.cam.ac.uk</a> 
+and its <a href="ftp://ftp.cl.cam.ac.uk/ml/index.html">archive</a> to
 discuss problems and results.  Why not <A
-HREF="mailto:lcp@cl.cam.ac.uk">subscribe</A>?
+HREF="mailto:lcp@cl.cam.ac.uk">subscribe</A>? 
+
