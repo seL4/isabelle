@@ -20,6 +20,8 @@ sig
   val tcset_ref_of: theory -> tcset ref
   val tcset_of: theory -> tcset
   val tcset: unit -> tcset
+  val TCSET: (tcset -> tactic) -> tactic
+  val TCSET': (tcset -> 'a -> tactic) -> 'a -> tactic
   val AddTCs: thm list -> unit
   val DelTCs: thm list -> unit
   val TC_add_global: theory attribute
@@ -145,6 +147,9 @@ val tcset_of = tcset_of_sg o sign_of;
 
 val tcset = tcset_of o Context.the_context;
 val tcset_ref = tcset_ref_of_sg o sign_of o Context.the_context;
+
+fun TCSET tacf st = tacf (tcset_of_sg (Thm.sign_of_thm st)) st;
+fun TCSET' tacf i st = tacf (tcset_of_sg (Thm.sign_of_thm st)) i st;
 
 
 (* change global tcset *)
