@@ -259,7 +259,7 @@ lemma access_update_other: "path' \<parallel> path \<Longrightarrow>
 proof -
   assume "path' \<parallel> path"
   then obtain y z xs ys zs where
-    "y \<noteq> z" and "path' = xs @ y # ys" and "path = xs @ z # zs"
+      "y \<noteq> z" and "path' = xs @ y # ys" and "path = xs @ z # zs"
     by (blast dest: parallel_decomp)
   hence "lookup (update path' opt root) path = lookup root path"
     by (blast intro: lookup_update_other)

@@ -10,7 +10,7 @@ subsection {* Monoids and Groups *}
 
 consts
   times :: "'a => 'a => 'a"    (infixl "[*]" 70)
-  inverse :: "'a => 'a"
+  invers :: "'a => 'a"
   one :: 'a
 
 
@@ -24,7 +24,7 @@ axclass semigroup < "term"
 
 axclass group < semigroup
   left_unit:    "one [*] x = x"
-  left_inverse: "inverse x [*] x = one"
+  left_inverse: "invers x [*] x = one"
 
 axclass agroup < group
   commute: "x [*] y = y [*] x"
@@ -32,21 +32,21 @@ axclass agroup < group
 
 subsection {* Abstract reasoning *}
 
-theorem group_right_inverse: "x [*] inverse x = (one::'a::group)"
+theorem group_right_inverse: "x [*] invers x = (one::'a::group)"
 proof -
-  have "x [*] inverse x = one [*] (x [*] inverse x)"
+  have "x [*] invers x = one [*] (x [*] invers x)"
     by (simp only: group.left_unit)
-  also have "... = one [*] x [*] inverse x"
+  also have "... = one [*] x [*] invers x"
     by (simp only: semigroup.assoc)
-  also have "... = inverse (inverse x) [*] inverse x [*] x [*] inverse x"
+  also have "... = invers (invers x) [*] invers x [*] x [*] invers x"
     by (simp only: group.left_inverse)
-  also have "... = inverse (inverse x) [*] (inverse x [*] x) [*] inverse x"
+  also have "... = invers (invers x) [*] (invers x [*] x) [*] invers x"
     by (simp only: semigroup.assoc)
-  also have "... = inverse (inverse x) [*] one [*] inverse x"
+  also have "... = invers (invers x) [*] one [*] invers x"
     by (simp only: group.left_inverse)
-  also have "... = inverse (inverse x) [*] (one [*] inverse x)"
+  also have "... = invers (invers x) [*] (one [*] invers x)"
     by (simp only: semigroup.assoc)
-  also have "... = inverse (inverse x) [*] inverse x"
+  also have "... = invers (invers x) [*] invers x"
     by (simp only: group.left_unit)
   also have "... = one"
     by (simp only: group.left_inverse)
@@ -55,9 +55,9 @@ qed
 
 theorem group_right_unit: "x [*] one = (x::'a::group)"
 proof -
-  have "x [*] one = x [*] (inverse x [*] x)"
+  have "x [*] one = x [*] (invers x [*] x)"
     by (simp only: group.left_inverse)
-  also have "... = x [*] inverse x [*] x"
+  also have "... = x [*] invers x [*] x"
     by (simp only: semigroup.assoc)
   also have "... = one [*] x"
     by (simp only: group_right_inverse)
@@ -92,7 +92,7 @@ subsection {* Concrete instantiation *}
 
 defs (overloaded)
   times_bool_def:   "x [*] y == x ~= (y::bool)"
-  inverse_bool_def: "inverse x == x::bool"
+  inverse_bool_def: "invers x == x::bool"
   unit_bool_def:    "one == False"
 
 instance bool :: agroup
