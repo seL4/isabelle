@@ -507,6 +507,13 @@ setup Simplifier.setup
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
 
+text{*Needs only HOL-lemmas:*}
+lemma mk_left_commute:
+  assumes a: "\<And>x y z. f (f x y) z = f x (f y z)" and
+          c: "\<And>x y. f x y = f y x"
+  shows "f x (f y z) = f y (f x z)"
+by(rule trans[OF trans[OF c a] arg_cong[OF c, of "f y"]])
+
 
 subsubsection {* Generic cases and induction *}
 
@@ -851,6 +858,49 @@ lemma min_less_iff_disj: "!!z::'a::linorder. (min x y < z) = (x < z | y < z)"
   apply (insert linorder_less_linear)
   apply (blast intro: order_less_trans)
   done
+
+declare order_less_irrefl [iff]
+
+lemma max_assoc: "!!x::'a::linorder. max (max x y) z = max x (max y z)"
+apply(simp add:max_def)
+apply(rule conjI)
+apply(blast intro:order_trans)
+apply(simp add:linorder_not_le)
+apply(blast dest: order_less_trans order_le_less_trans)
+done
+
+lemma max_commute: "!!x::'a::linorder. max x y = max y x"
+apply(simp add:max_def)
+apply(rule conjI)
+apply(blast intro:order_antisym)
+apply(simp add:linorder_not_le)
+apply(blast dest: order_less_trans)
+done
+
+lemmas max_ac = max_assoc max_commute
+                mk_left_commute[of max,OF max_assoc max_commute]
+
+lemma min_assoc: "!!x::'a::linorder. min (min x y) z = min x (min y z)"
+apply(simp add:min_def)
+apply(rule conjI)
+apply(blast intro:order_trans)
+apply(simp add:linorder_not_le)
+apply(blast dest: order_less_trans order_le_less_trans)
+done
+
+lemma min_commute: "!!x::'a::linorder. min x y = min y x"
+apply(simp add:min_def)
+apply(rule conjI)
+apply(blast intro:order_antisym)
+apply(simp add:linorder_not_le)
+apply(blast dest: order_less_trans)
+done
+
+lemmas min_ac = min_assoc min_commute
+                mk_left_commute[of min,OF min_assoc min_commute]
+
+declare order_less_irrefl [iff del]
+declare order_less_irrefl [simp]
 
 lemma split_min:
     "P (min (i::'a::linorder) j) = ((i <= j --> P(i)) & (~ i <= j --> P(j)))"

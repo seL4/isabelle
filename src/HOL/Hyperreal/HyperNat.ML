@@ -161,9 +161,8 @@ qed "hypnat_add_assoc";
 
 (*For AC rewriting*)
 Goal "(x::hypnat)+(y+z)=y+(x+z)";
-by (rtac (hypnat_add_commute RS trans) 1);
-by (rtac (hypnat_add_assoc RS trans) 1);
-by (rtac (hypnat_add_commute RS arg_cong) 1);
+by(rtac ([hypnat_add_assoc,hypnat_add_commute] MRS
+         read_instantiate[("f","op +")](thm"mk_left_commute")) 1);
 qed "hypnat_add_left_commute";
 
 (* hypnat addition is an AC operator *)
@@ -301,9 +300,8 @@ qed "hypnat_mult_assoc";
 
 
 Goal "(z1::hypnat) * (z2 * z3) = z2 * (z1 * z3)";
-by (rtac (hypnat_mult_commute RS trans) 1);
-by (rtac (hypnat_mult_assoc RS trans) 1);
-by (rtac (hypnat_mult_commute RS arg_cong) 1);
+by(rtac ([hypnat_mult_assoc,hypnat_mult_commute] MRS
+         read_instantiate[("f","op *")](thm"mk_left_commute")) 1);
 qed "hypnat_mult_left_commute";
 
 (* hypnat multiplication is an AC operator *)

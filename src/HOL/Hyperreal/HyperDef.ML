@@ -352,9 +352,8 @@ qed "hypreal_add_assoc";
 
 (*For AC rewriting*)
 Goal "(x::hypreal)+(y+z)=y+(x+z)";
-by (rtac (hypreal_add_commute RS trans) 1);
-by (rtac (hypreal_add_assoc RS trans) 1);
-by (rtac (hypreal_add_commute RS arg_cong) 1);
+by(rtac ([hypreal_add_assoc,hypreal_add_commute] MRS
+         read_instantiate[("f","op +")](thm"mk_left_commute")) 1);
 qed "hypreal_add_left_commute";
 
 (* hypreal addition is an AC operator *)
@@ -476,11 +475,10 @@ by (res_inst_tac [("z","z3")] eq_Abs_hypreal 1);
 by (asm_simp_tac (simpset() addsimps [hypreal_mult,real_mult_assoc]) 1);
 qed "hypreal_mult_assoc";
 
-qed_goal "hypreal_mult_left_commute" (the_context ())
-    "(z1::hypreal) * (z2 * z3) = z2 * (z1 * z3)"
- (fn _ => [rtac (hypreal_mult_commute RS trans) 1, 
-           rtac (hypreal_mult_assoc RS trans) 1,
-           rtac (hypreal_mult_commute RS arg_cong) 1]);
+Goal "(z1::hypreal) * (z2 * z3) = z2 * (z1 * z3)";
+by(rtac ([hypreal_mult_assoc,hypreal_mult_commute] MRS
+         read_instantiate[("f","op *")](thm"mk_left_commute")) 1);
+qed "hypreal_mult_left_commute";
 
 (* hypreal multiplication is an AC operator *)
 bind_thms ("hypreal_mult_ac", [hypreal_mult_assoc, hypreal_mult_commute, 

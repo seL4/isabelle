@@ -109,16 +109,16 @@ Goal "F Join G = G Join F";
 by (simp_tac (simpset() addsimps [Join_def, Un_commute, Int_commute]) 1);
 qed "Join_commute";
 
-
-Goal "A Join (B Join C) = B Join (A Join C)";
-by (simp_tac (simpset() addsimps Un_ac@Int_ac@[Join_def, insert_absorb]) 1);
-qed "Join_left_commute";
-
-
 Goal "(F Join G) Join H = F Join (G Join H)";
 by (simp_tac (simpset() addsimps Un_ac@[Join_def, Int_assoc, insert_absorb]) 1);
 qed "Join_assoc";
  
+Goal "A Join (B Join C) = B Join (A Join C)";
+by(rtac ([Join_assoc,Join_commute] MRS
+         read_instantiate[("f","op Join")](thm"mk_left_commute")) 1);
+qed "Join_left_commute";
+
+
 Goalw [Join_def, SKIP_def] "SKIP Join F = F";
 by (rtac program_equalityI 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [insert_absorb])));

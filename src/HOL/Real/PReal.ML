@@ -266,9 +266,8 @@ by (auto_tac (claset() addSIs [exI],simpset() addsimps prat_add_ac));
 qed "preal_add_assoc";
 
 Goal "(z1::preal) + (z2 + z3) = z2 + (z1 + z3)";
-by (rtac (preal_add_commute RS trans) 1);
-by (rtac (preal_add_assoc RS trans) 1);
-by (rtac (preal_add_commute RS arg_cong) 1);
+by(rtac ([preal_add_assoc,preal_add_commute] MRS
+         read_instantiate[("f","op +")](thm"mk_left_commute")) 1);
 qed "preal_add_left_commute";
 
 (* Positive Reals addition is an AC operator *)
@@ -347,9 +346,8 @@ by (auto_tac (claset() addSIs [exI],simpset() addsimps prat_mult_ac));
 qed "preal_mult_assoc";
 
 Goal "(z1::preal) * (z2 * z3) = z2 * (z1 * z3)";
-by (rtac (preal_mult_commute RS trans) 1);
-by (rtac (preal_mult_assoc RS trans) 1);
-by (rtac (preal_mult_commute RS arg_cong) 1);
+by(rtac ([preal_mult_assoc,preal_mult_commute] MRS
+         read_instantiate[("f","op *")](thm"mk_left_commute")) 1);
 qed "preal_mult_left_commute";
 
 (* Positive Reals multiplication is an AC operator *)

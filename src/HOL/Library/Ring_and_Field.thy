@@ -55,11 +55,7 @@ proof -
 qed
 
 lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::ring))"
-proof -
-  have "a + (b + c) = (a + b) + c" by (simp only: add_assoc)
-  also have "... = (b + a) + c" by (simp only: add_commute)
-  finally show ?thesis by (simp only: add_assoc) 
-qed
+by(rule mk_left_commute[OF add_assoc add_commute])
 
 theorems ring_add_ac = add_assoc add_commute add_left_commute
 
@@ -94,11 +90,7 @@ proof -
 qed
 
 lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::ring))"
-proof -
-  have "a * (b * c) = (a * b) * c" by (simp only: mult_assoc)
-  also have "... = (b * a) * c" by (simp only: mult_commute)
-  finally show ?thesis by (simp only: mult_assoc)
-qed
+by(rule mk_left_commute[OF mult_assoc mult_commute])
 
 theorems ring_mult_ac = mult_assoc mult_commute mult_left_commute
 

@@ -139,9 +139,8 @@ qed "zadd_assoc";
 
 (*For AC rewriting*)
 Goal "(x::int)+(y+z)=y+(x+z)";
-by (rtac (zadd_commute RS trans) 1);
-by (rtac (zadd_assoc RS trans) 1);
-by (rtac (zadd_commute RS arg_cong) 1);
+by(rtac ([zadd_assoc,zadd_commute] MRS
+         read_instantiate[("f","op +")](thm"mk_left_commute")) 1);
 qed "zadd_left_commute";
 
 (*Integer addition is an AC operator*)
@@ -270,9 +269,8 @@ qed "zmult_assoc";
 
 (*For AC rewriting*)
 Goal "(z1::int)*(z2*z3) = z2*(z1*z3)";
-by (rtac (zmult_commute RS trans) 1);
-by (rtac (zmult_assoc RS trans) 1);
-by (rtac (zmult_commute RS arg_cong) 1);
+by(rtac ([zmult_assoc,zmult_commute] MRS
+         read_instantiate[("f","op *")](thm"mk_left_commute")) 1);
 qed "zmult_left_commute";
 
 (*Integer multiplication is an AC operator*)

@@ -195,9 +195,8 @@ by (ALLGOALS Asm_simp_tac);
 qed "add_commute";
 
 Goal "x+(y+z)=y+((x+z)::nat)";
-by (rtac (add_commute RS trans) 1);
-by (rtac (add_assoc RS trans) 1);
-by (rtac (add_commute RS arg_cong) 1);
+by(rtac ([add_assoc,add_commute] MRS
+         read_instantiate[("f","op +")](thm"mk_left_commute")) 1);
 qed "add_left_commute";
 
 (*Addition is an AC-operator*)
@@ -426,11 +425,8 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [add_mult_distrib])));
 qed "mult_assoc";
 
 Goal "x*(y*z) = y*((x*z)::nat)";
-by (rtac trans 1);
-by (rtac mult_commute 1);
-by (rtac trans 1);
-by (rtac mult_assoc 1);
-by (rtac (mult_commute RS arg_cong) 1);
+by(rtac ([mult_assoc,mult_commute] MRS
+         read_instantiate[("f","op *")](thm"mk_left_commute")) 1);
 qed "mult_left_commute";
 
 bind_thms ("mult_ac", [mult_assoc,mult_commute,mult_left_commute]);

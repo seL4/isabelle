@@ -177,9 +177,8 @@ qed "real_add_assoc";
 
 (*For AC rewriting*)
 Goal "(x::real)+(y+z)=y+(x+z)";
-by (rtac (real_add_commute RS trans) 1);
-by (rtac (real_add_assoc RS trans) 1);
-by (rtac (real_add_commute RS arg_cong) 1);
+by(rtac ([real_add_assoc,real_add_commute] MRS
+         read_instantiate[("f","op +")](thm"mk_left_commute")) 1);
 qed "real_add_left_commute";
 
 (* real addition is an AC operator *)
@@ -329,9 +328,8 @@ by (asm_simp_tac (simpset() addsimps [preal_add_mult_distrib2,real_mult] @
 qed "real_mult_assoc";
 
 Goal "(z1::real) * (z2 * z3) = z2 * (z1 * z3)";
-by (rtac (real_mult_commute RS trans) 1);
-by (rtac (real_mult_assoc RS trans) 1);
-by (rtac (real_mult_commute RS arg_cong) 1);
+by(rtac ([real_mult_assoc,real_mult_commute] MRS
+         read_instantiate[("f","op *")](thm"mk_left_commute")) 1);
 qed "real_mult_left_commute";
 
 (* real multiplication is an AC operator *)
