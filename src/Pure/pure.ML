@@ -18,7 +18,8 @@ local
     Latex.setup @
     Present.setup @
     Isamode.setup @
-    ProofGeneral.setup;
+    ProofGeneral.setup @
+    Codegen.setup;
 in
   structure Pure =
   struct
