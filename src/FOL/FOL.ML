@@ -5,4 +5,6 @@ struct
   val classical = classical;
 end;
 
+AddXIs [disjI1, disjI2];
+
 open FOL;

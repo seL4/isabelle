@@ -28,4 +28,6 @@ struct
   val arbitrary_def = arbitrary_def;
 end;
 
+AddXIs [disjI1, disjI2];
+
 open HOL;
