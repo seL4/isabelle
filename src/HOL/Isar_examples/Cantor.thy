@@ -95,16 +95,15 @@ qed;
 
 text {*
  How much creativity is required?  As it happens, Isabelle can prove
- this theorem automatically.  The context of Isabelle's classical
- prover contains rules for most of the constructs of HOL's set theory.
- We must augment it with \name{equalityCE} to break up set equalities,
- and then apply best-first search.  Depth-first search would diverge,
- but best-first search successfully navigates through the large search
- space.
+ this theorem automatically using best-first search.  Depth-first
+ search would diverge, but best-first search successfully navigates
+ through the large search space.  The context of Isabelle's classical
+ prover contains rules for the relevant constructs of HOL's set
+ theory.
 *};
 
 theorem "EX S. S ~: range (f :: 'a => 'a set)";
-  by (best elim: equalityCE);
+  by best;
 
 text {*
  While this establishes the same theorem internally, we do not get any

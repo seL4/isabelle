@@ -1,7 +1,7 @@
 
 (* tactic script -- single steps *)
 
-Goal "EX S. S ~: range(f :: 'a => 'a set)";
+Goal "EX S. S ~: range (f :: 'a => 'a set)";
   by (rtac exI 1);
   by (rtac notI 1);
   by (etac rangeE 1);
@@ -15,6 +15,6 @@ qed "";
 
 (* tactic script -- automatic *)
 
-Goal "EX S. S ~: range(f :: 'a => 'a set)";
-  by (best_tac (claset() addSEs [equalityCE]) 1);
+Goal "EX S. S ~: range (f :: 'a => 'a set)";
+  by (Best_tac 1);
 qed "";
