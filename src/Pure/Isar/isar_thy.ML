@@ -200,12 +200,34 @@ val add_subsubsect = add_txt;
 fun global_path comment_ignore = PureThy.global_path;
 fun local_path comment_ignore = PureThy.local_path;
 
-fun gen_hide f ((kind, names), comment_ignore) thy =
-  if kind mem_string [Sign.classK, Sign.typeK, Sign.constK] then f (kind, names) thy
-  else error ("Bad name space specification: " ^ quote kind);
+local
 
-fun hide_space x = gen_hide Theory.hide_space x;
-fun hide_space_i x = gen_hide Theory.hide_space_i x;
+val kinds =
+ [(Sign.classK, fn sg => fn c => c mem Sign.classes sg),
+  (Sign.typeK, fn sg => fn c =>
+    let val {tycons, abbrs, ...} = Type.rep_tsig (Sign.tsig_of sg)
+    in is_some (Symtab.lookup (tycons, c)) orelse is_some (Symtab.lookup (abbrs, c)) end),
+  (Sign.constK, is_some oo Sign.const_type)];
+
+fun gen_hide intern ((kind, xnames), comment_ignore) thy =
+  (case assoc (kinds, kind) of
+    Some check =>
+      let
+        val sg = Theory.sign_of thy;
+        val names = map (intern sg kind) xnames;
+        val bads = filter_out (check sg) names;
+      in
+        if null bads then Theory.hide_space_i (kind, names) thy
+        else error ("Attempt to hide undeclared item(s): " ^ commas_quote bads)
+      end
+  | None => error ("Bad name space specification: " ^ quote kind));
+
+in
+
+fun hide_space x = gen_hide Sign.intern x;
+fun hide_space_i x = gen_hide (K (K I)) x;
+
+end;
 
 
 (* signature and syntax *)
