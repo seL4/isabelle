@@ -67,6 +67,10 @@ goal ZF.thy "A<=B <-> B Int A = A";
 by (fast_tac (eq_cs addSEs [equalityE]) 1);
 qed "subset_Int_iff2";
 
+goal ZF.thy "!!A B C. C<=A ==> (A-B) Int C = C-B";
+by (fast_tac eq_cs 1);
+qed "Int_Diff_eq";
+
 (** Binary Union **)
 
 goal ZF.thy "0 Un A = A";
