@@ -32,7 +32,8 @@ time_use_thy "ex/termfn";
 (*trees/forests: mutual recursion*)
 time_use     "ex/tf.ML";
 time_use_thy "ex/tf_fn";
-(*Enormous enumeration type -- could be even bigger?*)
+(*Sample datatype; enormous enumeration type*)
+time_use     "ex/data.ML";
 time_use     "ex/enum.ML";
 
 (** Inductive definitions **)

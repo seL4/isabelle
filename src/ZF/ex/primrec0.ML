@@ -154,7 +154,7 @@ by (rtac lt_trans 2);
 by (REPEAT (ares_tac ([ack_lt_ack_succ2, ack_type] @ pr0_typechecks) 1));
 val ack_lt_mono2 = result();
 
-(*PROPERTY A 5', monotonicity for <= *)
+(*PROPERTY A 5', monotonicity for le *)
 goal Primrec.thy
     "!!i j k. [| j le k;  i: nat;  k:nat |] ==> ack(i,j) le ack(i,k)";
 by (res_inst_tac [("f", "%j.ack(i,j)")] Ord_lt_mono_imp_le_mono 1);

@@ -5,11 +5,11 @@
 
 Example of a BIG enumeration type
 
-Can go up to at least 100 constructors, but it takes over 10 minutes...
+Can go up to at least 100 constructors, but it takes nearly 7 minutes...
 *)
 
 
-(*An enumeration type with 60 contructors!  -- takes about 214 seconds!*)
+(*An enumeration type with 60 contructors!  -- takes about 150 seconds!*)
 fun mk_ids a 0 = []
   | mk_ids a n = a :: mk_ids (bump_string a) (n-1);
 
@@ -28,6 +28,6 @@ structure Enum = Datatype_Fun
   val type_elims = []);
 
 goal Enum.thy "con59 ~= con60";
-by (simp_tac (ZF_ss addsimps Enum.free_iffs) 1);  (*2.3 secs*)
+by (simp_tac (ZF_ss addsimps Enum.free_iffs) 1);
 result();
 

@@ -47,3 +47,6 @@ by (REPEAT (rtac ListN.bnd_mono 1));
 by (REPEAT (ares_tac ([univ_mono,Sigma_mono,list_mono] @ basic_monos) 1));
 val listn_mono = result();
 
+val Nil_listn_case = ListN.mk_cases List.con_defs "<i,Nil> : listn(A)"
+and Cons_listn_case = ListN.mk_cases List.con_defs "<i,Cons(x,xs)> : listn(A)";
+

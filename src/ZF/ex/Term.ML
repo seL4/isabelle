@@ -16,8 +16,8 @@ structure Term = Datatype_Fun
   val ext = None
   val sintrs = ["[| a: A;  l: list(term(A)) |] ==> Apply(a,l) : term(A)"];
   val monos = [list_mono];
-  val type_intrs = [list_univ RS subsetD] @ data_typechecks;
-  val type_elims = []);
+  val type_intrs = data_typechecks;
+  val type_elims = [make_elim (list_univ RS subsetD)]);
 
 val [ApplyI] = Term.intrs;
 

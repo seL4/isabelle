@@ -20,7 +20,7 @@ structure Bin = Datatype_Fun
 	   "Minus : bin",
 	   "[| w: bin;  b: bool |] ==> w$$b : bin"];
   val monos = [];
-  val type_intrs = bool_into_univ::data_typechecks;
+  val type_intrs = data_typechecks @ [bool_into_univ];
   val type_elims = []);
 
 (*Perform induction on l, then prove the major premise using prems. *)

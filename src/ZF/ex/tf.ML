@@ -22,7 +22,7 @@ structure TF = Datatype_Fun
 	   "[| t: tree(A);  tf: forest(A) |] ==> Fcons(t,tf) : forest(A)"];
   val monos = [];
   val type_intrs = data_typechecks
-  val type_elims = []);
+  val type_elims = data_elims);
 
 val [TconsI, FnilI, FconsI] = TF.intrs;
 
@@ -42,24 +42,25 @@ val TF_equals_Un = result();
 
 (** NOT useful, but interesting... **)
 
+(*The (refl RS conjI RS exI RS exI) avoids considerable search!*)
+val unfold_cs = sum_cs addSIs [PartI, refl RS conjI RS exI RS exI]
+                    addIs data_typechecks
+                    addDs [TF.dom_subset RS subsetD]
+	            addSEs ([PartE] @ data_elims @ TF.free_SEs);
+
 goalw TF.thy (tl TF.defs) "tree(A) = {Inl(x). x: A*forest(A)}";
 by (res_inst_tac [("P", "%x.?t(x) = ?u::i")] (TF.unfold RS ssubst) 1);
 by (rewrite_goals_tac TF.con_defs);
 by (rtac equalityI 1);
-by (fast_tac (ZF_cs addIs [PartI] addSEs (PartE::TF.free_SEs)) 1);
-by (fast_tac (ZF_cs addIs ([PartI,InlI,InrI] @ [TF.dom_subset RS subsetD]
-			   @ data_typechecks)
-	            addSEs (PartE::TF.free_SEs)) 1);
+by (fast_tac unfold_cs 1);
+by (fast_tac unfold_cs 1);
 val tree_unfold = result();
 
 goalw TF.thy (tl TF.defs) "forest(A) = {Inr(x). x: {0} + tree(A)*forest(A)}";
 by (res_inst_tac [("P", "%x.?t(x) = ?u::i")] (TF.unfold RS ssubst) 1);
 by (rewrite_goals_tac TF.con_defs);
 by (rtac equalityI 1);
-by (fast_tac (ZF_cs addIs [PartI,InlI,InrI] 
-                    addSEs (PartE::TF.free_SEs)) 1);
-by (fast_tac (ZF_cs addIs ([PartI,InlI,InrI] @ [TF.dom_subset RS subsetD]
-			   @ data_typechecks)
-	            addSEs ([PartE, sumE] @ TF.free_SEs)) 1);
+by (fast_tac unfold_cs 1);
+by (fast_tac unfold_cs 1);
 val forest_unfold = result();
 

@@ -44,6 +44,5 @@ by (fast_tac (ZF_cs addSIs [zero_in_univ, Inl_in_univ, Inr_in_univ,
 			    Pair_in_univ]) 1);
 val bt_univ = result();
 
-val bt_subset_univ = standard (bt_mono RS (bt_univ RSN (2,subset_trans)));
-
+val bt_subset_univ = standard ([bt_mono, bt_univ] MRS subset_trans);
 
