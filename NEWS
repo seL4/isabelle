@@ -116,6 +116,9 @@ arguments now have to occur explicitly on the rhs as type constraints;
 * HOL/recdef (TFL): requires theory Recdef; 'congs' syntax now expects
 comma separated list of theorem names rather than an ML expression;
 
+* reset HOL_quantifiers by default, i.e. quantifiers are printed as
+ALL/EX rather than !/?;
+
 
 *** ZF ***
 
