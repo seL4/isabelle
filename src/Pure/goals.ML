@@ -139,7 +139,9 @@ fun prepare_proof rths chorn =
       (*discharges assumptions from state in the order they appear in goal;
 	checks (if requested) that resulting theorem is equivalent to goal. *)
       fun mkresult (check,state) =
-        let val ngoals = nprems_of state
+        let val state = Sequence.hd (flexflex_rule state)
+	    		handle _ => state   (*smash flexflex pairs*)
+	    val ngoals = nprems_of state
             val th = implies_intr_list cAs state
             val {hyps,prop,sign=sign',...} = rep_thm th
         in  if not check then standard th
