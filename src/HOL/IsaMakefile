@@ -7,7 +7,7 @@
 ## targets
 
 default: HOL
-images: HOL HOL-Algebra HOL-Real HOL-Hyperreal TLA
+images: HOL HOL-Algebra HOL-Real HOL-Complex TLA
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
@@ -15,14 +15,13 @@ test: \
   HOL-Auth \
   HOL-AxClasses \
   HOL-Bali \
+  HOL-Complex-ex \
   HOL-CTL \
   HOL-Extraction \
-  HOL-GroupTheory \
       HOL-Real-HahnBanach \
       HOL-Real-ex \
   HOL-Hoare \
   HOL-HoareParallel \
-  HOL-Hyperreal-ex \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
@@ -157,11 +156,11 @@ $(LOG)/HOL-Real-HahnBanach.gz: $(OUT)/HOL-Real Real/HahnBanach/Aux.thy \
 	@cd Real; $(ISATOOL) usedir -g true $(OUT)/HOL-Real HahnBanach
 
 
-## HOL-Hyperreal
+## HOL-Complex
 
-HOL-Hyperreal: HOL-Real $(OUT)/HOL-Hyperreal
+HOL-Complex: HOL-Real $(OUT)/HOL-Complex
 
-$(OUT)/HOL-Hyperreal: $(OUT)/HOL-Real Hyperreal/ROOT.ML\
+$(OUT)/HOL-Complex: $(OUT)/HOL-Real Complex/ROOT.ML\
   Library/Zorn.thy\
   Hyperreal/EvenOdd.ML Hyperreal/EvenOdd.thy Hyperreal/ExtraThms2.ML\
   Hyperreal/ExtraThms2.thy Hyperreal/Fact.ML Hyperreal/Fact.thy\
@@ -181,18 +180,29 @@ $(OUT)/HOL-Hyperreal: $(OUT)/HOL-Real Hyperreal/ROOT.ML\
   Hyperreal/SEQ.ML Hyperreal/SEQ.thy Hyperreal/Series.ML Hyperreal/Series.thy\
   Hyperreal/Star.ML Hyperreal/Star.thy Hyperreal/Transcendental.ML\
   Hyperreal/Transcendental.thy Hyperreal/fuf.ML Hyperreal/hypreal_arith.ML \
-  Hyperreal/hypreal_arith0.ML
-	@cd Hyperreal; $(ISATOOL) usedir -b $(OUT)/HOL-Real HOL-Hyperreal
+  Hyperreal/hypreal_arith0.ML\
+  Complex/CLim.ML Complex/CLim.thy\
+  Complex/CSeries.ML Complex/CSeries.thy\
+  Complex/CStar.ML Complex/CStar.thy\
+  Complex/Complex.ML Complex/Complex.thy\
+  Complex/ComplexArith0.ML Complex/ComplexArith0.thy\
+  Complex/ComplexBin.ML Complex/ComplexBin.thy\
+  Complex/NSCA.ML Complex/NSCA.thy\
+  Complex/NSComplex.ML Complex/NSComplex.thy\
+  Complex/NSComplexArith0.ML Complex/NSComplexArith0.thy\
+  Complex/NSComplexBin.ML Complex/NSComplexBin.thy
+	@cd Complex; $(ISATOOL) usedir -b $(OUT)/HOL-Real HOL-Complex
 
 
-## HOL-Hyperreal-ex
+## HOL-Complex-ex
 
-HOL-Hyperreal-ex: HOL-Hyperreal $(LOG)/HOL-Hyperreal-ex.gz
+HOL-Complex-ex: HOL-Complex $(LOG)/HOL-Complex-ex.gz
 
-$(LOG)/HOL-Hyperreal-ex.gz: $(OUT)/HOL-Hyperreal Library/Primes.thy \
-  Hyperreal/ex/ROOT.ML Hyperreal/ex/document/root.tex \
-  Hyperreal/ex/Sqrt.thy Hyperreal/ex/Sqrt_Script.thy
-	@cd Hyperreal; $(ISATOOL) usedir $(OUT)/HOL-Hyperreal ex
+$(LOG)/HOL-Complex-ex.gz: $(OUT)/HOL-Complex Library/Primes.thy \
+  Complex/ex/ROOT.ML Complex/ex/document/root.tex \
+  Complex/ex/NSPrimes.ML Complex/ex/NSPrimes.thy\
+  Complex/ex/Sqrt.thy Complex/ex/Sqrt_Script.thy
+	@cd Complex; $(ISATOOL) usedir $(OUT)/HOL-Complex ex
 
 
 ## HOL-Library
@@ -275,18 +285,6 @@ $(LOG)/HOL-NumberTheory.gz: $(OUT)/HOL \
   NumberTheory/Quadratic_Reciprocity.thy\
   NumberTheory/ROOT.ML
 	@$(ISATOOL) usedir -g true $(OUT)/HOL NumberTheory
-
-
-## HOL-GroupTheory
-
-HOL-GroupTheory: HOL $(LOG)/HOL-GroupTheory.gz
-
-$(LOG)/HOL-GroupTheory.gz: $(OUT)/HOL \
-  Library/Primes.thy Library/FuncSet.thy \
-  GroupTheory/Group.thy \
-  GroupTheory/ROOT.ML \
-  GroupTheory/document/root.tex
-	@$(ISATOOL) usedir -g true $(OUT)/HOL GroupTheory
 
 
 ## HOL-Hoare
@@ -677,7 +675,7 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MIParameters.thy \
 ## clean
 
 clean:
-	@rm -f  $(OUT)/HOL $(OUT)/HOL-Real $(OUT)/HOL-Hyperreal $(OUT)/TLA \
+	@rm -f  $(OUT)/HOL $(OUT)/HOL-Real $(OUT)/HOL-Complex $(OUT)/TLA \
 		$(LOG)/HOL.gz $(LOG)/HOL-Real.gz $(LOG)/TLA.gz \
 		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
 		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
@@ -691,7 +689,7 @@ clean:
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Real-ex.gz \
-		$(LOG)/HOL-Hyperreal-ex.gz \
+		$(LOG)/HOL-Complex-ex.gz \
 		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
 		$(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
 		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz 
