@@ -1217,9 +1217,11 @@ fun rename_params_rule (cs, i) state =
       val newBi = Logic.list_rename_params (newnames, Bi)
   in
   case findrep cs of
-     c::_ => error ("Bound variables not distinct: " ^ c)
+     c::_ => (warning ("Can't rename.  Bound variables not distinct: " ^ c); 
+	      state)
    | [] => (case cs inter_string freenames of
-       a::_ => error ("Bound/Free variable clash: " ^ a)
+       a::_ => (warning ("Can't rename.  Bound/Free variable clash: " ^ a); 
+		state)
      | [] => fix_shyps [state] []
                 (Thm{sign = sign,
                      der = infer_derivs (Rename_params_rule(cs,i), [der]),
