@@ -257,6 +257,7 @@ val display = ref false;
 val quotes = ref false;
 val indent = ref 0;
 val source = ref false;
+val break = ref false;
 
 val _ = add_options
  [("show_types", Library.setmp Syntax.show_types o boolean),
@@ -264,6 +265,7 @@ val _ = add_options
   ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
   ("long_names", Library.setmp NameSpace.long_names o boolean),
   ("display", Library.setmp display o boolean),
+  ("break", Library.setmp break o boolean),
   ("quotes", Library.setmp quotes o boolean),
   ("mode", fn s => fn f => fn () => Library.setmp print_mode (s :: ! print_mode) f ()),
   ("margin", Pretty.setmp_margin o integer),
@@ -282,7 +284,7 @@ fun cond_display prt =
     Pretty.string_of (Pretty.indent (! indent) prt)
     |> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
   else
-    Pretty.str_of prt
+    (if ! break then Pretty.string_of else Pretty.str_of) prt
     |> enclose "\\isa{" "}";
 
 fun tweak_line s =
