@@ -108,7 +108,8 @@ Lambda:  $(BIN)/HOL  $(LAMBDA_FILES)
 	echo 'exit_use"Lambda/ROOT.ML";quit();' | $(LOGIC)
 
 ##Miscellaneous examples
-EX_NAMES = LexProd MT Acc PropLog Puzzle Qsort LList Rec Simult Term String 
+EX_NAMES = LexProd MT Acc PropLog Puzzle Qsort LList Rec Simult Term String \
+	   BT Perm
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
            ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)

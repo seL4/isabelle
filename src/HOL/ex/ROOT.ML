@@ -15,6 +15,8 @@ time_use     "ex/cla.ML";
 time_use     "ex/meson.ML";
 time_use     "ex/mesontest.ML";
 time_use_thy "String";
+time_use_thy "BT";
+time_use_thy "Perm";
 time_use_thy "InSort";
 time_use_thy "Qsort";
 time_use_thy "LexProd";
