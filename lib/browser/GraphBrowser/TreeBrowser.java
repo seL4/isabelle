@@ -11,24 +11,41 @@
 package GraphBrowser;
 
 import java.awt.*;
-import awtUtilities.ScrollCanvas;
+import java.awt.event.*;
 import java.util.*;
 
 
-public class TreeBrowser extends ScrollCanvas
+public class TreeBrowser extends Canvas implements MouseListener
 {
 	TreeNode t;
 	TreeNode selected;
 	GraphView gv;
 	long timestamp;
+	Dimension size;
+	boolean parent_needs_layout;
 
-	public TreeBrowser(TreeNode tn,GraphView gr) {
+	public TreeBrowser(TreeNode tn, GraphView gr) {
 		t=tn;gv=gr;
+		size = new Dimension(0, 0);
+		parent_needs_layout = true;
+		addMouseListener(this);
 	}
 
-	public boolean mouseDown(Event e,int x,int y)
+	public Dimension getPreferredSize() {
+		return size;
+	}
+
+	public void mouseEntered(MouseEvent evt) {}
+
+	public void mouseExited(MouseEvent evt) {}
+
+	public void mouseReleased(MouseEvent evt) {}
+
+	public void mousePressed(MouseEvent evt) {}
+
+	public void mouseClicked(MouseEvent e)
 	{
-		TreeNode l=t.lookup(y);
+		TreeNode l=t.lookup(e.getY());
 
 		if (l!=null)
 		{
@@ -41,15 +58,15 @@ public class TreeBrowser extends ScrollCanvas
 				Vertex vx=gv.getGraph().getVertexByNum(l.getNumber());
 				gv.focusToVertex(l.getNumber());
 				vx=gv.getOriginalGraph().getVertexByNum(l.getNumber());
-				if (e.when-timestamp < 400 && !(vx.getPath().equals("")))
+				if (e.getWhen()-timestamp < 400 && !(vx.getPath().equals("")))
 					gv.getBrowser().viewFile(vx.getPath());
-				timestamp=e.when;
+				timestamp=e.getWhen();
 
 			}
-			selected=l;repaint();
-			
+			selected=l;
+			parent_needs_layout = true;
+			repaint();
 		}
-		return true;
 	}
 
 	public void selectNode(TreeNode nd) {
@@ -58,13 +75,19 @@ public class TreeBrowser extends ScrollCanvas
 		t.collapsedDirectories(v);
 		gv.collapseDir(v);
 		gv.relayout();
-		selected=nd;repaint();
+		selected=nd;
+		parent_needs_layout = true;
+		repaint();
 	}
 
-	public void paintCanvas(Graphics g)
+	public void paint(Graphics g)
 	{
-		Dimension d=t.draw(g,5,5,selected);
-		set_size(5+d.width,5+d.height);
+		Dimension d = t.draw(g,5,5,selected);
+		if (parent_needs_layout) {
+			size = new Dimension(5+d.width, 5+d.height);
+			parent_needs_layout = false;
+			getParent().doLayout();
+		}
 	}
 }
 

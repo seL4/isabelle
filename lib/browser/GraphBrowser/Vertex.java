@@ -202,5 +202,5 @@ abstract class Vertex {
 
 	public boolean rightButton(int x,int y) { return false; }
 
-	public void PS(PrintStream p) {}
+	public void PS(PrintWriter p) {}
 }

@@ -104,7 +104,7 @@ public class Spline {
 		g.drawLine(p.x,p.y,end.x,end.y);
 	}
 
-	public void PS(PrintStream p) {
+	public void PS(PrintWriter p) {
 		Point p0,p1,p2;
 		int i;
 

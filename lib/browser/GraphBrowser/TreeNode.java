@@ -33,7 +33,7 @@ class Directory {
 
 public class TreeNode
 {
-	static Font f=new Font("Helvetica",Font.PLAIN,15);
+	static Font f=new Font("Helvetica", Font.PLAIN, 14);
 	int starty,endy,number;
 	String name,path;
 

@@ -14,7 +14,7 @@ import java.awt.*;
 public class Border extends Panel {
 	int bs;
 
-	public Insets insets() {
+	public Insets getInsets() {
 		return new Insets(bs*3/2,bs*3/2,bs*3/2,bs*3/2);
 	}
 
@@ -25,8 +25,8 @@ public class Border extends Panel {
 	}
 
 	public void paint(Graphics g) {
-		int w=size().width;
-		int h=size().height;
+		int w = getSize().width;
+		int h = getSize().height;
 		int x1[]={0,bs,w-bs,w}, y1[]={0,bs,bs,0};
 		int x2[]={w,w-bs,w-bs,w}, y2[]={0,bs,h-bs,h};
 		int y3[]={h,h-bs,h-bs,h};

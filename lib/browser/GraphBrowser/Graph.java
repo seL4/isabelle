@@ -74,7 +74,7 @@ public class Graph {
 	/********************************************************************/
 
 	public Graph(InputStream s,TreeNode tn) throws IOException, ParseError {
-		StreamTokenizer tok=new StreamTokenizer(s);
+		StreamTokenizer tok=new StreamTokenizer(new InputStreamReader(s));
 		String name,dir,vertexID;
 		Vertex ve1,ve2;
 		boolean children,unfoldDir;
@@ -1006,7 +1006,7 @@ public class Graph {
 
 	public void PS(String fname,boolean printable) throws IOException {
 		FileOutputStream f = new FileOutputStream(fname);
-		PrintStream p = new PrintStream(f);
+		PrintWriter p = new PrintWriter(f, true);
 
 		if (printable)
 			p.println("%!PS-Adobe-2.0\n\n%%BeginProlog");

@@ -138,7 +138,7 @@ class NormalVertex extends Vertex {
 		g.setColor(Color.black);
 	}
 
-	public void PS(PrintStream p) {
+	public void PS(PrintWriter p) {
 		p.print(leftX()+" "+getY()+" "+gra.box_width+" "+
 		        gra.box_height+" (");
 		for (int i=0;i<label.length();i++)

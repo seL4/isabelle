@@ -12,25 +12,28 @@
 package GraphBrowser;
 
 import java.awt.*;
+import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 import awtUtilities.*;
 
-public class GraphView extends ScrollCanvas {
-	Graph gra,gra2;
-	GraphBrowser parent;
-	Vertex v=null;
-	Vector collapsed=new Vector(10,10);
-	Vector collapsedDirs=new Vector(10,10);
+public class GraphView extends Canvas implements MouseListener, MouseMotionListener {
+	Graph gra, gra2;
+	GraphBrowser browser;
+	Vertex v = null;
+	Vector collapsed = new Vector(10,10);
+	Vector collapsedDirs = new Vector(10,10);
 	TreeBrowser tb;
 	long timestamp;
-	Vertex highlighted=null;
+	Vertex highlighted = null;
+	Dimension size;
+	boolean parent_needs_layout;
 
 	public void setTreeBrowser(TreeBrowser br) {
 		tb=br;
 	}
 
-	public GraphBrowser getBrowser() { return parent; }
+	public GraphBrowser getBrowser() { return browser; }
 
 	public Graph getGraph() { return gra; }
 
@@ -38,23 +41,35 @@ public class GraphView extends ScrollCanvas {
 
 	public GraphView(Graph gr,GraphBrowser br) {
 		gra2=gr;
-		parent=br;
+		browser=br;
 		gra=(Graph)(gra2.clone());
+		parent_needs_layout = true;
+		size = new Dimension(0, 0);
+		addMouseListener(this);
+		addMouseMotionListener(this);
 	}
 
 	public void PS(String fname,boolean printable) throws IOException {
 		gra.PS(fname,printable);
 	}
 
-	public void paintCanvas(Graphics g)
-	{
-		set_size(gra.max_x-gra.min_x,gra.max_y-gra.min_y);
+	public void paint(Graphics g) {
 		gra.draw(g);
+		if (highlighted!=null) highlighted.drawBox(g,Color.white);
+		size = new Dimension(gra.max_x-gra.min_x, gra.max_y-gra.min_y);
+		if (parent_needs_layout) {
+			parent_needs_layout = false;
+			getParent().doLayout();
+		}
 	}
 
-	public boolean mouseMove(Event evt,int x,int y) {
-		x+=gra.min_x;
-		y+=gra.min_y;
+	public Dimension getPreferredSize() {
+		return size;
+	}
+
+	public void mouseMoved(MouseEvent evt) {
+		int x = evt.getX() + gra.min_x;
+		int y = evt.getY() + gra.min_y;
 
 		Vertex v2=gra.vertexAt(x,y);
 		Graphics g=getGraphics();
@@ -68,8 +83,9 @@ public class GraphView extends ScrollCanvas {
 			if (v2!=null) v2.drawButtons(g);
 			v=v2;
 		}
-		return true;
 	}
+
+	public void mouseDragged(MouseEvent evt) {}
 
 	/*****************************************************************/
 	/* This method is called if successor / predecessor nodes (whose */
@@ -122,22 +138,34 @@ public class GraphView extends ScrollCanvas {
 	}
 
 	public void relayout() {
-		parent.showWaitMessage();
+		browser.showWaitMessage();
 		highlighted=null;
 		gra.layout(getGraphics());
 		v=null;
+		parent_needs_layout = true;
 		update(getGraphics());
-		parent.showReadyMessage();
+		browser.showReadyMessage();
 	}
 
 	public void focusToVertex(int n) {
 		Vertex vx=gra.getVertexByNum(n);
 		if (vx!=null) {
-			focus_to(vx.getX()-gra.min_x,vx.getY()-gra.min_y);
-			highlighted=vx;
+			ScrollPane scrollp = (ScrollPane)(getParent());
+			Dimension vpsize = scrollp.getViewportSize();
+
+                        int x = vx.getX()-gra.min_x;
+                        int y = vx.getY()-gra.min_y;
+			int offset_x = Math.min(scrollp.getHAdjustable().getMaximum(),
+				Math.max(0,x-vpsize.width/2));
+			int offset_y = Math.min(scrollp.getVAdjustable().getMaximum(),
+				Math.max(0,y-vpsize.height/2));
+
 			Graphics g=getGraphics();
 			g.translate(-gra.min_x,-gra.min_y);
+			if (highlighted!=null) highlighted.drawBox(g,Color.lightGray);
 			vx.drawBox(g,Color.white);
+			highlighted=vx;
+			scrollp.setScrollPosition(offset_x, offset_y);
 		}
 	}
 
@@ -165,11 +193,11 @@ public class GraphView extends ScrollCanvas {
 		}
 	}
 
-	public boolean mouseDown(Event evt,int x,int y) {
-		Vector code=null;
+	public void mouseClicked(MouseEvent evt) {
+		Vector code = null;
 		Vertex v2;
-		x+=gra.min_x;
-		y+=gra.min_y;
+		int x = evt.getX() + gra.min_x;
+		int y = evt.getY() + gra.min_y;
 
 		if (v!=null) {
 			int num=v.getNumber();
@@ -214,15 +242,14 @@ public class GraphView extends ScrollCanvas {
 				inflateNode(v.getInflate());
 				v=null;
 			} else {
-				if (evt.when-timestamp < 400 && !(v.getPath().equals("")))
-					parent.viewFile(v.getPath());
-				timestamp=evt.when;
+				if (evt.getWhen()-timestamp < 400 && !(v.getPath().equals("")))
+					browser.viewFile(v.getPath());
+				timestamp=evt.getWhen();
 			}
 		}
-		return true;
 	}
 
-	public boolean mouseExit(Event evt,int x,int y) {
+	public void mouseExited(MouseEvent evt) {
 		Graphics g=getGraphics();
 		g.translate(-gra.min_x,-gra.min_y);
 		if (highlighted!=null) {
@@ -231,6 +258,11 @@ public class GraphView extends ScrollCanvas {
 		}
 		if (v!=null) v.removeButtons(g);
 		v=null;
-		return true;
 	}
+
+	public void mouseEntered(MouseEvent evt) {}
+
+	public void mousePressed(MouseEvent evt) {}
+
+	public void mouseReleased(MouseEvent evt) {}
 }

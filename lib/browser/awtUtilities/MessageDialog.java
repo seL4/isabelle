@@ -10,18 +10,16 @@
 package awtUtilities;
 
 import java.awt.*;
+import java.awt.event.*;
 
-public class MessageDialog extends Dialog {
+public class MessageDialog extends Dialog implements ActionListener {
 	String txt;
 
 	public String getText() { return txt; }
 
-	public boolean action(Event evt, Object arg) {
-		if (evt.target instanceof Button) {
-			txt=(String)arg;
-			hide();
-			return true;
-		} else return false;
+	public void actionPerformed(ActionEvent evt) {
+		txt = evt.getActionCommand();
+		setVisible(false);
 	}
 
 	public MessageDialog(Frame parent,String title,String text,String []buttons) {
@@ -48,7 +46,10 @@ public class MessageDialog extends Dialog {
 		}
 
 		add(p1);add(p2);
-		for (i=0;i<buttons.length;i++)
-			p2.add(new Button(buttons[i]));
+		for (i=0;i<buttons.length;i++) {
+			Button bt = new Button(buttons[i]);
+			p2.add(bt);
+			bt.addActionListener(this);
+		}
 	}
 }

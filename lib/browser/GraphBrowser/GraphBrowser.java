@@ -8,7 +8,7 @@
   method, which is used for the stand-alone version, as well as
   "init(...)", "start(...)" and "stop(...)" methods which are used for
   the applet version.
-  Note: GraphBrowser is designed for the 1.0.2 version of the JDK.
+  Note: GraphBrowser is designed for the 1.1.x version of the JDK.
 ***************************************************************************/
 
 package GraphBrowser;
@@ -38,7 +38,7 @@ public class GraphBrowser extends Applet {
 		if (isApplet)
 			getAppletContext().showStatus("calculating layout, please wait ...");
 		else {
-			f.setCursor(Frame.WAIT_CURSOR);
+			f.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		}
 	}
 
@@ -46,24 +46,22 @@ public class GraphBrowser extends Applet {
 		if (isApplet)
 			getAppletContext().showStatus("ready !");
 		else {
-			f.setCursor(Frame.DEFAULT_CURSOR);
+			f.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 		}
 	}
 
 	public void viewFile(String fname) {
 		try {
 			if (isApplet)
-				getAppletContext().showDocument(new URL(getDocumentBase(), fname),"_blank");
+				getAppletContext().showDocument(new URL(getDocumentBase(), fname), "_blank");
 			else {
-				String path=gfname.substring(0,gfname.lastIndexOf('/')+1);
-				InputStream is;
-				String line, text="";
-				DataInputStream di;
+				String path = gfname.substring(0, gfname.lastIndexOf('/') + 1);
+				BufferedReader br;
+				String line, text = "";
 
-				is=new FileInputStream(path+fname);
-				di=new DataInputStream(is);
-				while ((line=di.readLine())!=null)
-					text+=line+"\n";
+				br = new BufferedReader(new FileReader(path + fname));
+				while ((line = br.readLine()) != null)
+					text += line + "\n";
 
 				if (fname.endsWith(".html")) {
 					/**** convert HTML to text (just a quick hack) ****/
@@ -106,7 +104,7 @@ public class GraphBrowser extends Applet {
 				}
 							
 				Frame f=new TextFrame(fname.substring(fname.lastIndexOf('/')+1),text);
-				f.resize(500,600);
+				f.setSize(500,600);
 				f.show();
 			}
 		} catch (Exception exn) {
@@ -128,11 +126,20 @@ public class GraphBrowser extends Applet {
 			gv=new GraphView(new Graph(is,tn),this);
 			tb=new TreeBrowser(tn,gv);
 			gv.setTreeBrowser(tb);
-			Vector v=new Vector(10,10);
+			Vector v = new Vector(10,10);
 			tn.collapsedDirectories(v);
 			gv.collapseDir(v);
-			Component gv2=new Border(gv,5);
-			Component tb2=new Border(tb,5);
+
+			ScrollPane scrollp1 = new ScrollPane();
+			ScrollPane scrollp2 = new ScrollPane();
+			scrollp1.add(gv);
+			scrollp2.add(tb);
+			scrollp1.getHAdjustable().setUnitIncrement(20);
+			scrollp1.getVAdjustable().setUnitIncrement(20);
+			scrollp2.getHAdjustable().setUnitIncrement(20);
+			scrollp2.getVAdjustable().setUnitIncrement(20);
+			Component gv2 = new Border(scrollp1, 5);
+			Component tb2 = new Border(scrollp2, 5);
 			GridBagLayout gridbag = new GridBagLayout();
 			GridBagConstraints cnstr = new GridBagConstraints();
 			setLayout(gridbag);
@@ -180,7 +187,7 @@ public class GraphBrowser extends Applet {
 				is.close();
 			}
 			f=new GraphBrowserFrame(gb);
-			f.resize(700,500);
+			f.setSize(700,500);
 			f.show();
 		} catch (IOException exn) {
 			System.out.println("Can't open graph file "+args[0]);
