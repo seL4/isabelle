@@ -136,7 +136,7 @@ IOA:	$(BIN)/HOL  $(IOA_FILES)
 
 ##Authentication & Security Protocols
 Auth_NAMES = Message Shared NS_Shared OtwayRees OtwayRees_AN OtwayRees_Bad \
-	     WooLam Yahalom Yahalom2
+	     WooLam Yahalom Yahalom2 Public NS_Public_Bad NS_Public
 
 AUTH_FILES = Auth/ROOT.ML $(AUTH_NAMES:%=Auth/%.thy) $(AUTH_NAMES:%=Auth/%.ML)
 
