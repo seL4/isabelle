@@ -38,6 +38,9 @@ arbitrary ways, dependent on their type (free, bound, tfree, ...));
 
 * HOL: primrec now also works with type nat;
 
+* HOL: the constant for negation has been renamed from "not" to "Not" to
+harmonize with FOL, ZF, LK, etc.
+
 * new utilities to build / run / maintain Isabelle etc. (in parts
 still somewhat experimental); old Makefiles etc. still functional;
 
