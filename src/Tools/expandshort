@@ -1,36 +1,28 @@
-#! /bin/sh
+#! /usr/bin/perl -pi~~
 # $Id$
 #Shell script to expand shorthand goal commands
 #  ALSO contracts uses of resolve_tac, dresolve_tac, eresolve_tac,
 #     rewrite_goals_tac on 1-element lists
-#  ALSO expands tabs, since they are now forbidden in strings.
+#  [Tabs are forbidden in strings.  Use "expand" or "untabify" in emacs".]
 #
 # Usage:
 #    expandshort FILE1 ... FILEn
 #
 #Renames old versions of the files as FILE1~~ ... FILEn~~
 #
-for f in $*
-do
-echo Expanding shorthands in $f. \ Backup file is $f~~
-if [ ! -s $f ]; then echo "File $f is EMPTY!!"; exit 1; fi
-mv $f $f~~; sed -e '
-s/^by(/by (/
-s/^ba \([0-9][0-9]*\);/by (assume_tac \1);/
-s/^br \([^;]*\) \([0-9][0-9]*\);/by (rtac \1 \2);/
-s/^brs \([^;]*\) \([0-9][0-9]*\);/by (resolve_tac \1 \2);/
-s/^bd \([^;]*\) \([0-9][0-9]*\);/by (dtac \1 \2);/
-s/^bds \([^;]*\) \([0-9][0-9]*\);/by (dresolve_tac \1 \2);/
-s/^be \([^;]*\) \([0-9][0-9]*\);/by (etac \1 \2);/
-s/^bes \([^;]*\) \([0-9][0-9]*\);/by (eresolve_tac \1 \2);/
-s/^bw \([^;]*\);/by (rewtac \1);/
-s/^bws \([^;]*\);/by (rewrite_goals_tac \1);/
-s/^auto *()/by (Auto_tac())/
-s/dresolve_tac *\[\([a-zA-Z0-9_]*\)\] */dtac \1 /g
-s/eresolve_tac *\[\([a-zA-Z0-9_]*\)\] */etac \1 /g
-s/resolve_tac *\[\([a-zA-Z0-9_]*\)\] */rtac \1 /g
-s/rewrite_goals_tac *\[\([a-zA-Z0-9_]*\)\]\( *\)/rewtac \1\2/g
-s/rtac *(\([a-zA-Z0-9_]*\)  *RS  *ssubst)  */stac \1 /g
-' $f~~ | expand > $f
-done
-echo Finished.
+s/\bby\(/by (/;
+s/\bba\b *(\d+);/by (assume_tac \1);/;
+s/\bbr\b *([^;]*) (\d+);/by (rtac \1 \2);/;
+s/\bbrs\b *([^;]*) (\d+);/by (resolve_tac \1 \2);/;
+s/\bbd\b *([^;]*) (\d+);/by (dtac \1 \2);/;
+s/\bbds\b *([^;]*) (\d+);/by (dresolve_tac \1 \2);/;
+s/\bbe\b *([^;]*) (\d+);/by (etac \1 \2);/;
+s/\bbes\b *([^;]*) (\d+);/by (eresolve_tac \1 \2);/;
+s/\bbw\b *([^;]*);/by (rewtac \1);/;
+s/\bbws\b *([^;]*);/by (rewrite_goals_tac \1);/;
+s/\bauto *\(\)/by (Auto_tac())/;
+s/dresolve_tac *\[(\w+)\] */dtac \1 /g;
+s/eresolve_tac *\[(\w+)\] */etac \1 /g;
+s/resolve_tac *\[(\w+)\] */rtac \1 /g;
+s/rewrite_goals_tac *\[(\w+)\]( *)/rewtac \1\2/g;
+s/rtac *\((\w+)\s+RS\s+ssubst\)\s+/stac \1 /g;
