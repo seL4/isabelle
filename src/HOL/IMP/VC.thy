@@ -23,7 +23,7 @@ consts
 
 primrec
   "awp Askip Q = Q"
-  "awp (Aass x a) Q = (%s. Q(s[x:=a s]))"
+  "awp (Aass x a) Q = (%s. Q(s[x::=a s]))"
   "awp (Asemi c d) Q = awp c (awp d Q)"
   "awp (Aif b c d) Q = (%s. (b s-->awp c Q s) & (~b s-->awp d Q s))" 
   "awp (Awhile b I c) Q = I"
@@ -38,7 +38,7 @@ primrec
 
 primrec
   "astrip Askip = SKIP"
-  "astrip (Aass x a) = (x:=a)"
+  "astrip (Aass x a) = (x:==a)"
   "astrip (Asemi c d) = (astrip c;astrip d)"
   "astrip (Aif b c d) = (IF b THEN astrip c ELSE astrip d)"
   "astrip (Awhile b I c) = (WHILE b DO astrip c)"
@@ -46,7 +46,7 @@ primrec
 (* simultaneous computation of vc and awp: *)
 primrec
   "vcawp Askip Q = (%s. True, Q)"
-  "vcawp (Aass x a) Q = (%s. True, %s. Q(s[x:=a s]))"
+  "vcawp (Aass x a) Q = (%s. True, %s. Q(s[x::=a s]))"
   "vcawp (Asemi c d) Q = (let (vcd,wpd) = vcawp d Q;
                               (vcc,wpc) = vcawp c wpd
                           in (%s. vcc s & vcd s, wpc))"

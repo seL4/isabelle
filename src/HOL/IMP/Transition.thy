@@ -31,7 +31,7 @@ translations
 
 inductive evalc1
   intrs
-    Assign "(x := a,s) -1-> (SKIP,s[x := a s])"
+    Assign "(x :== a,s) -1-> (SKIP,s[x ::= a s])"
 
     Semi1   "(SKIP;c,s) -1-> (c,s)"     
     Semi2   "(c0,s) -1-> (c2,s1) ==> (c0;c1,s) -1-> (c2;c1,s1)"

@@ -7,3 +7,4 @@
 time_use_thy "Expr";
 time_use_thy "Transition";
 time_use_thy "VC";
+time_use_thy "Examples";

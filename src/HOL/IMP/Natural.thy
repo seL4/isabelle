@@ -16,17 +16,17 @@ translations  "<ce,sig> -c-> s" == "(ce,sig,s) : evalc"
 
 consts
   update  :: "('a => 'b) => 'a => 'b => ('a => 'b)"
-           ("_/[_/:=/_]" [900,0,0] 900)
+           ("_/[_/::=/_]" [900,0,0] 900)
 (* update is NOT defined, only declared!
    Thus the whole theory is independent of its meaning!
-   If theory Update is included, proofs break.
+   If the definition (update == fun_upd) is included, proofs break.
 *)
 
 inductive evalc
   intrs
     Skip    "<SKIP,s> -c-> s"
 
-    Assign  "<x := a,s> -c-> s[x:=a(s)]"
+    Assign  "<x :== a,s> -c-> s[x::=a s]"
 
     Semi    "[| <c0,s> -c-> s2; <c1,s2> -c-> s1 |] 
             ==> <c0 ; c1, s> -c-> s1"

@@ -13,7 +13,7 @@ AddSEs [rel_pow_0_E];
 val evalc1_SEs = 
     map evalc1.mk_cases
        ["(SKIP,s) -1-> t", 
-	"(x:=a,s) -1-> t",
+	"(x:==a,s) -1-> t",
 	"(c1;c2, s) -1-> t", 
 	"(IF b THEN c1 ELSE c2, s) -1-> t",
         "(WHILE b DO c, s) -1-> t"];

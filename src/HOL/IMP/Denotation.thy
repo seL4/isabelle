@@ -20,7 +20,7 @@ consts
 
 primrec
   C_skip    "C(SKIP) = Id"
-  C_assign  "C(x := a) = {(s,t). t = s[x:=a(s)]}"
+  C_assign  "C(x :== a) = {(s,t). t = s[x::=a(s)]}"
   C_comp    "C(c0 ; c1) = C(c1) O C(c0)"
   C_if      "C(IF b THEN c1 ELSE c2) = {(s,t). (s,t) : C(c1) & b(s)} Un
                                        {(s,t). (s,t) : C(c2) & ~ b(s)}"
