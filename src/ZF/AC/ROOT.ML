@@ -1,4 +1,4 @@
-(*  Title: 	ZF/ex/ROOT
+(*  Title: 	ZF/AC/ROOT
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
