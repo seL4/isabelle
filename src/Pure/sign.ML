@@ -25,6 +25,7 @@ sig
     val const_type: sg -> string -> typ option
     val classes: sg -> class list
     val subsort: sg -> sort * sort -> bool
+    val nodup_Vars: term -> unit
     val norm_sort: sg -> sort -> sort
     val nonempty_sort: sg -> sort list -> sort -> bool
     val print_sg: sg -> unit
@@ -232,6 +233,35 @@ fun read_typ (Sg {tsig, syn, ...}, sort_of) str =
 
 fun certify_typ (Sg {tsig, ...}) ty = cert_typ tsig ty;
 
+(* check for duplicate TVars with distinct sorts *)
+fun nodup_TVars(tvars,T) = (case T of
+      Type(_,Ts) => foldl nodup_TVars (tvars,Ts)
+    | TFree _ => tvars
+    | TVar(v as (a,S)) =>
+        (case assoc(tvars,a) of
+           Some(S') => if S=S' then tvars
+                       else raise_type
+                            ("Type variable "^Syntax.string_of_vname a^
+                             "has two distinct sorts") [TVar(a,S'),T] []
+         | None => v::tvars));
+
+(* check for duplicate Vars with distinct types *)
+fun nodup_Vars tm =
+let fun nodups vars tvars tm = (case tm of
+          Const(c,T) => (vars, nodup_TVars(tvars,T))
+        | Free(a,T) => (vars, nodup_TVars(tvars,T))
+        | Var(v as (ixn,T)) =>
+            (case assoc(vars,ixn) of
+               Some(T') => if T=T' then (vars,nodup_TVars(tvars,T))
+                           else raise_type
+                             ("Variable "^Syntax.string_of_vname ixn^
+                              "has two distinct types") [T',T] []
+             | None => (v::vars,tvars))
+        | Bound _ => (vars,tvars)
+        | Abs(_,T,t) => nodups vars (nodup_TVars(tvars,T)) t
+        | s$t => let val (vars',tvars') = nodups vars tvars s
+                 in nodups vars' tvars' t end);
+in nodups [] [] tm; () end;
 
 fun mapfilt_atoms f (Abs (_, _, t)) = mapfilt_atoms f t
   | mapfilt_atoms f (t $ u) = mapfilt_atoms f t @ mapfilt_atoms f u
@@ -256,6 +286,7 @@ fun certify_term (sg as Sg {tsig, ...}) tm =
       (case it_term_types (typ_errors tsig) (tm, []) of
         [] => map_term_types (norm_typ tsig) tm
       | errs => raise_type (cat_lines errs) [] [tm]);
+    val _ = nodup_Vars norm_tm;
   in
     (case mapfilt_atoms atom_err norm_tm of
       [] => (norm_tm, type_of norm_tm, maxidx_of_term norm_tm)
