@@ -5,6 +5,7 @@
 This file builds the syntax module.
 *)
 
+use "symbol_font.ML";
 use "pretty.ML";
 use "lexicon.ML";
 use "ast.ML";
