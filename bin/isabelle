@@ -7,13 +7,26 @@
 
 ## settings
 
+PRG=$(basename $0)
+
 ISABELLE_HOME=$(dirname $(dirname $0))
-. $ISABELLE_HOME/lib/scripts/getsettings || exit 2
+case "$ISABELLE_HOME" in
+  /*)
+    if [ -f $ISABELLE_HOME/lib/scripts/getsettings ]; then
+      . $ISABELLE_HOME/lib/scripts/getsettings || exit 2
+    else
+      echo "ERROR: $PRG probably not called from its original place!"
+      exit 1
+    fi
+    ;;
+  *)
+    echo "ERROR: $PRG not called with absolute path specification!"
+    exit 1
+    ;;
+esac
 
 
 ## diagnostics
-
-PRG=$(basename $0)
 
 function usage()
 {
@@ -23,6 +36,7 @@ function usage()
   echo "  Options are:"
   echo "    -c           force copying of heap file (for Poly/ML)"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
+  echo "    -m MODE      add print mode for output"
   echo "    -q           non-interactive session"
   echo "    -r           open heap file read-only"
   echo "    -u           pass 'exit_use_dir\".\";' to the ML session"
@@ -49,10 +63,11 @@ function fail()
 COPYDB=""
 MLTEXT=""
 COPYDB=""
+MODES=""
 TERMINATE=""
 READONLY=""
 
-while getopts "ce:qru" OPT
+while getopts "ce:m:qru" OPT
 do
   case "$OPT" in
     c)
@@ -60,6 +75,13 @@ do
       ;;
     e)
       MLTEXT="$MLTEXT $OPTARG"
+      ;;
+    m)
+      if [ -z "$MODES" ]; then
+        MODES="\"$OPTARG\""
+      else
+        MODES="$MODES, \"$OPTARG\""
+      fi
       ;;
     q)
       TERMINATE=true
@@ -154,6 +176,8 @@ esac
 ## run it!
 
 ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
+
+[ -n "$MODES" ] && MLTEXT="print_mode := [$MODES]; $MLTEXT"
 
 export INFILE OUTFILE COPYDB MLTEXT TERMINATE
 [ -f $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM ] && exec $ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM
