@@ -202,7 +202,9 @@ fun select_match(obj, signobj, named_thms, extract) =
       fun substsize(prop, tsig) =
             let val Some pat = extract prop
                 val (_,subst) = Pattern.match tsig (pat,obj)
-            in sum(map (fn (_,t) => size_of_term t) subst) end
+            in foldl op+
+		(0, map (fn (_,t) => size_of_term t) subst)
+            end
 
       fun thm_order ((p0:int,s0:int,_),(p1,s1,_)) =
             (((p0=0 andalso p1=0) orelse (p0<>0 andalso p1<>0)) andalso s0<=s1)
