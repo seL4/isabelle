@@ -847,6 +847,12 @@ apply (induct xs, simp)
 apply (case_tac i, auto)
 done
 
+lemma drop_Suc_conv_tl:
+  "!!i. i < length xs \<Longrightarrow> (xs!i) # (drop (Suc i) xs) = drop i xs"
+apply (induct xs, simp)
+apply (case_tac i, auto)
+done
+
 lemma length_take [simp]: "!!xs. length (take n xs) = min (length xs) n"
 by (induct n) (auto, case_tac xs, auto)
 
