@@ -10,6 +10,18 @@ New in this Isabelle version
 * HOL: the constant for f``x is now "image" rather than "op ``".
 
 
+*** Isabelle document preparation ***
+
+* isatool mkdir provides easy setup of Isabelle session directories,
+including proper documents;
+
+* generated LaTeX sources are now deleted after successful run
+(isatool document -c); may retain a copy somewhere else via -D option
+of isatool usedir;
+
+* old-style theories now produce (crude) LaTeX sources as well;
+
+
 *** Isar ***
 
 * names of theorems etc. may be natural numbers as well;
@@ -37,6 +49,12 @@ Ballarin;
 
 * HOL/record: fixed select-update simplification procedure to handle
 extended records as well; admit "r" as field name;
+
+
+*** General ***
+
+* compression of ML heaps images may now be controlled via -c option
+of isabelle and isatool usedir;
 
 
 
