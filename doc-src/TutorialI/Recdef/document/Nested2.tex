@@ -1,0 +1,84 @@
+\begin{isabelle}%
+%
+\begin{isamarkuptext}%
+\noindent
+The termintion condition is easily proved by induction:%
+\end{isamarkuptext}%
+\isacommand{lemma}\ [simp]:\ {"}t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ <\ Suc(term\_size\ ts){"}\isanewline
+\isacommand{by}(induct\_tac\ ts,\ auto)%
+\begin{isamarkuptext}%
+\noindent
+By making this theorem a simplification rule, \isacommand{recdef}
+applies it automatically and the above definition of \isa{trev}
+succeeds now. As a reward for our effort, we can now prove the desired
+lemma directly. The key is the fact that we no longer need the verbose
+induction schema for type \isa{term} but the simpler one arising from
+\isa{trev}:%
+\end{isamarkuptext}%
+\isacommand{lemmas}\ [cong]\ =\ map\_cong\isanewline
+\isacommand{lemma}\ {"}trev(trev\ t)\ =\ t{"}\isanewline
+\isacommand{apply}(induct\_tac\ t\ rule:trev.induct)%
+\begin{isamarkuptxt}%
+\noindent
+This leaves us with a trivial base case \isa{trev\ (trev\ (Var\ \mbox{x}))\ =\ Var\ \mbox{x}} and the step case
+\begin{quote}
+
+\begin{isabelle}%
+{\isasymforall}\mbox{t}.\ \mbox{t}\ {\isasymin}\ set\ \mbox{ts}\ {\isasymlongrightarrow}\ trev\ (trev\ \mbox{t})\ =\ \mbox{t}\ {\isasymLongrightarrow}\isanewline
+trev\ (trev\ (App\ \mbox{f}\ \mbox{ts}))\ =\ App\ \mbox{f}\ \mbox{ts}
+\end{isabelle}%
+
+\end{quote}
+both of which are solved by simplification:%
+\end{isamarkuptxt}%
+\isacommand{by}(simp\_all\ del:map\_compose\ add:sym[OF\ map\_compose]\ rev\_map)%
+\begin{isamarkuptext}%
+\noindent
+If this surprises you, see Datatype/Nested2......
+
+The above definition of \isa{trev} is superior to the one in \S\ref{sec:nested-datatype}
+because it brings \isa{rev} into play, about which already know a lot, in particular
+\isa{rev\ (rev\ \mbox{xs})\ =\ \mbox{xs}}.
+Thus this proof is a good example of an important principle:
+\begin{quote}
+\emph{Chose your definitions carefully\\
+because they determine the complexity of your proofs.}
+\end{quote}
+
+Let us now return to the question of how \isacommand{recdef} can come up with sensible termination
+conditions in the presence of higher-order functions like \isa{map}. For a start, if nothing
+were known about \isa{map}, \isa{map\ trev\ \mbox{ts}} might apply \isa{trev} to arbitrary terms,
+and thus \isacommand{recdef} would try to prove the unprovable
+\isa{size\ \mbox{t}\ <\ Suc\ (term\_size\ \mbox{ts})}, without any assumption about \isa{t}.
+Therefore \isacommand{recdef} has been supplied with the congruence theorem \isa{map\_cong}: 
+\begin{quote}
+
+\begin{isabelle}%
+{\isasymlbrakk}\mbox{xs}\ =\ \mbox{ys};\ {\isasymAnd}\mbox{x}.\ \mbox{x}\ {\isasymin}\ set\ \mbox{ys}\ {\isasymLongrightarrow}\ \mbox{f}\ \mbox{x}\ =\ \mbox{g}\ \mbox{x}{\isasymrbrakk}\isanewline
+{\isasymLongrightarrow}\ map\ \mbox{f}\ \mbox{xs}\ =\ map\ \mbox{g}\ \mbox{ys}
+\end{isabelle}%
+
+\end{quote}
+Its second premise expresses (indirectly) that the second argument of \isa{map} is only applied
+to elements of its third argument. Congruence rules for other higher-order functions on lists would
+look very similar but have not been proved yet because they were never needed.
+If you get into a situation where you need to supply \isacommand{recdef} with new congruence
+rules, you can either append the line
+\begin{ttbox}
+congs <congruence rules>
+\end{ttbox}
+to the specific occurrence of \isacommand{recdef} or declare them globally:
+\begin{ttbox}
+lemmas [????????] = <congruence rules>
+\end{ttbox}
+
+Note that \isacommand{recdef} feeds on exactly the same \emph{kind} of
+congruence rules as the simplifier (\S\ref{sec:simp-cong}) but that
+declaring a congruence rule for the simplifier does not make it
+available to \isacommand{recdef}, and vice versa. This is intentional.%
+\end{isamarkuptext}%
+\end{isabelle}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
