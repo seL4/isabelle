@@ -12,7 +12,7 @@ goal Nat.thy "bnd_mono(Inf, %X. {0} Un {succ(i). i:X})";
 by (rtac bnd_monoI 1);
 by (REPEAT (ares_tac [subset_refl, RepFun_mono, Un_mono] 2)); 
 by (cut_facts_tac [infinity] 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "nat_bnd_mono";
 
 (* nat = {0} Un {succ(x). x:nat} *)
@@ -56,7 +56,7 @@ val bool_into_nat = bool_subset_nat RS subsetD;
 val major::prems = goal Nat.thy
     "[| n: nat;  P(0);  !!x. [| x: nat;  P(x) |] ==> P(succ(x)) |] ==> P(n)";
 by (rtac ([nat_def, nat_bnd_mono, major] MRS def_induct) 1);
-by (fast_tac (claset() addIs prems) 1);
+by (blast_tac (claset() addIs prems) 1);
 qed "nat_induct";
 
 (*Perform induction on n, then prove the n:nat subgoal using prems. *)
@@ -168,9 +168,9 @@ goal Nat.thy
  "!!m. m: nat ==> P(m,succ(m)) --> (ALL x: nat. P(m,x) --> P(m,succ(x))) --> \
 \                 (ALL n:nat. m<n --> P(m,n))";
 by (etac nat_induct 1);
-by (ALLGOALS
+by (ALLGOALS    (*blast_tac gives PROOF FAILED*)
     (EVERY' [rtac (impI RS impI), rtac (nat_induct RS ballI), assume_tac,
-             fast_tac le_cs, fast_tac le_cs]));
+             best_tac le_cs, best_tac le_cs])); 
 qed "succ_lt_induct_lemma";
 
 val prems = goal Nat.thy
