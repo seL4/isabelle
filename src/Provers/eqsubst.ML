@@ -27,6 +27,12 @@ end;
 signature EQSUBST_TAC = 
 sig
 
+  type match = 
+       ((Term.indexname * Term.typ) list (* type instantiations *)
+         * (Term.indexname * Term.term) list) (* term instantiations *)
+        * (string * Term.typ) list (* type abs env *)
+        * Term.term (* outer term *)
+
   val prep_subst_in_asm :
       (Sign.sg (* sign for matching *)
        -> int (* maxidx *)
@@ -61,10 +67,7 @@ sig
           * int (* num of premises of asm *) 
           * Thm.thm) (* premthm *)
       -> Thm.thm (* rule *)
-      -> (((Term.indexname * Term.typ) list (* type instantiations *)
-          * (Term.indexname * Term.term) list) (* term instantiations *)
-         * (string * Term.typ) list (* type abs env *)
-         * Term.term) (* outer term *)
+      -> match
       -> Thm.thm Seq.seq
 
   val prep_concl_subst :
@@ -80,10 +83,7 @@ sig
            * Thm.thm  (* trivial thm of goal concl *)
             (* possible matches/unifiers *)
         -> Thm.thm (* rule *)
-        -> (((Term.indexname * Term.typ) list (* type instantiations *)
-              * (Term.indexname * Term.term) list ) (* term instantiations *)
-             * (string * Term.typ) list (* Type abs env *)
-             * Term.term) (* outer term *)
+        -> match
         -> Thm.thm Seq.seq (* substituted goal *)
 
   val eqsubst_asm_meth : Thm.thm list -> Proof.method
@@ -101,6 +101,14 @@ end;
 functor EQSubstTacFUN (structure EqRuleData : EQRULE_DATA) 
   : EQSUBST_TAC
 = struct
+
+  (* a type abriviation for match infomration *)
+  type match = 
+       ((Term.indexname * Term.typ) list (* type instantiations *)
+         * (Term.indexname * Term.term) list) (* term instantiations *)
+        * (string * Term.typ) list (* type abs env *)
+        * Term.term (* outer term *)
+
 
 (* FOR DEBUGGING...
 type trace_subst_errT = int (* subgoal *)
