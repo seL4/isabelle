@@ -23,29 +23,30 @@ val dB_case_distinction =
 
 goal Lambda.thy "!!s. s ->> s' ==> Abs s ->> Abs s'";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (!claset addIs [rtrancl_into_rtrancl])));
+by (ALLGOALS (blast_tac (!claset addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_Abs";
 AddSIs [rtrancl_beta_Abs];
 
 goal Lambda.thy "!!s. s ->> s' ==> s @ t ->> s' @ t";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (!claset addIs [rtrancl_into_rtrancl])));
+by (ALLGOALS (blast_tac (!claset addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppL";
 
 goal Lambda.thy "!!s. t ->> t' ==> s @ t ->> s @ t'";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (!claset addIs [rtrancl_into_rtrancl])));
+by (ALLGOALS (blast_tac (!claset addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_beta_AppR";
 
 goal Lambda.thy "!!s. [| s ->> s'; t ->> t' |] ==> s @ t ->> s' @ t'";
-by (deepen_tac (!claset addSIs [rtrancl_beta_AppL,rtrancl_beta_AppR]
+by (deepen_tac (!claset addSIs [rtrancl_beta_AppL, rtrancl_beta_AppR]
                         addIs  [rtrancl_trans]) 3 1);
 qed "rtrancl_beta_App";
 AddIs [rtrancl_beta_App];
 
 (*** subst and lift ***)
 
-fun addsplit ss = ss addsimps [subst_Var] setloop (split_inside_tac [expand_if]);
+fun addsplit ss = ss addsimps [subst_Var] 
+                     setloop  (split_inside_tac [expand_if]);
 
 goal Lambda.thy "(Var k)[u/k] = u";
 by (asm_full_simp_tac(addsplit(!simpset)) 1);
@@ -123,7 +124,7 @@ Addsimps [liftn_0];
 goal Lambda.thy "!k. liftn (Suc n) t k = lift (liftn n t k) k";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac(addsplit(!simpset))));
-by (fast_tac (HOL_cs addDs [add_lessD1]) 1);
+by (blast_tac (!claset addDs [add_lessD1]) 1);
 qed "liftn_lift";
 Addsimps [liftn_lift];
 

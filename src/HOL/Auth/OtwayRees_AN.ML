@@ -311,7 +311,7 @@ goal thy
 \           A ~: lost;  B ~: lost;  evs : otway lost |]             \
 \        ==> Key K ~: analz (sees lost Spy evs)";
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
-by (fast_tac (!claset addSEs [lemma]) 1);
+by (blast_tac (!claset addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 
 
@@ -327,7 +327,7 @@ goal thy
 by (rtac (subset_insertI RS sees_mono RS analz_mono RS contra_subsetD) 1);
 by (rtac (sees_lost_agent_subset_sees_Spy RS analz_mono RS contra_subsetD) 1);
 by (FIRSTGOAL (rtac Spy_not_see_encrypted_key));
-by (REPEAT_FIRST (fast_tac (!claset addIs [otway_mono RS subsetD])));
+by (REPEAT_FIRST (blast_tac (!claset addIs [otway_mono RS subsetD])));
 qed "Agent_not_see_encrypted_key";
 
 

@@ -13,12 +13,12 @@ AddSIs [equalityI];
 section "{}";
 
 goal Set.thy "{x.False} = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Collect_False_empty";
 Addsimps [Collect_False_empty];
 
 goal Set.thy "(A <= {}) = (A = {})";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "subset_empty";
 Addsimps [subset_empty];
 
@@ -26,7 +26,7 @@ section "insert";
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a {}*)
 goal Set.thy "insert a A = {a} Un A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "insert_is_Un";
 
 goal Set.thy "insert a A ~= {}";
@@ -38,55 +38,55 @@ bind_thm("empty_not_insert",insert_not_empty RS not_sym);
 Addsimps[empty_not_insert];
 
 goal Set.thy "!!a. a:A ==> insert a A = A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "insert_absorb";
 
 goal Set.thy "insert x (insert x A) = insert x A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "insert_absorb2";
 Addsimps [insert_absorb2];
 
 goal Set.thy "insert x (insert y A) = insert y (insert x A)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "insert_commute";
 
 goal Set.thy "(insert x A <= B) = (x:B & A <= B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "insert_subset";
 Addsimps[insert_subset];
 
 (* use new B rather than (A-{a}) to avoid infinite unfolding *)
 goal Set.thy "!!a. a:A ==> ? B. A = insert a B & a ~: B";
 by (res_inst_tac [("x","A-{a}")] exI 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "mk_disjoint_insert";
 
 goal Set.thy
     "!!A. A~={} ==> (UN x:A. insert a (B x)) = insert a (UN x:A. B x)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN_insert_distrib";
 
 goal Set.thy "(UN x. insert a (B x)) = insert a (UN x. B x)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN1_insert_distrib";
 
 section "``";
 
 goal Set.thy "f``{} = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "image_empty";
 Addsimps[image_empty];
 
 goal Set.thy "f``insert a B = insert (f a) (f``B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "image_insert";
 Addsimps[image_insert];
 
 qed_goal "ball_image" Set.thy "(!y:F``S. P y) = (!x:S. P (F x))"
- (fn _ => [Fast_tac 1]);
+ (fn _ => [Blast_tac 1]);
 
 goal Set.thy "!!x. x:A ==> insert (f x) (f``A) = f``A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "insert_image";
 Addsimps [insert_image];
 
@@ -94,7 +94,7 @@ goalw Set.thy [image_def]
 "(%x. if P x then f x else g x) `` S                    \
 \ = (f `` ({x.x:S & P x})) Un (g `` ({x.x:S & ~(P x)}))";
 by (split_tac [expand_if] 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "if_image_distrib";
 Addsimps[if_image_distrib];
 
@@ -102,53 +102,53 @@ Addsimps[if_image_distrib];
 section "range";
 
 qed_goal "ball_range" Set.thy "(!y:range f. P y) = (!x. P (f x))"
- (fn _ => [Fast_tac 1]);
+ (fn _ => [Blast_tac 1]);
 
 qed_goalw "image_range" Set.thy [image_def]
  "f``range g = range (%x. f (g x))" 
- (fn _ => [rtac Collect_cong 1, Fast_tac 1]);
+ (fn _ => [rtac Collect_cong 1, Blast_tac 1]);
 
 section "Int";
 
 goal Set.thy "A Int A = A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_absorb";
 Addsimps[Int_absorb];
 
 goal Set.thy "A Int B  =  B Int A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_commute";
 
 goal Set.thy "(A Int B) Int C  =  A Int (B Int C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_assoc";
 
 goal Set.thy "{} Int B = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_empty_left";
 Addsimps[Int_empty_left];
 
 goal Set.thy "A Int {} = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_empty_right";
 Addsimps[Int_empty_right];
 
 goal Set.thy "UNIV Int B = B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_UNIV_left";
 Addsimps[Int_UNIV_left];
 
 goal Set.thy "A Int UNIV = A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_UNIV_right";
 Addsimps[Int_UNIV_right];
 
 goal Set.thy "A Int (B Un C)  =  (A Int B) Un (A Int C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_Un_distrib";
 
 goal Set.thy "(B Un C) Int A =  (B Int A) Un (C Int A)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_Un_distrib2";
 
 goal Set.thy "(A<=B) = (A Int B = A)";
@@ -163,53 +163,53 @@ Addsimps[Int_UNIV];
 section "Un";
 
 goal Set.thy "A Un A = A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_absorb";
 Addsimps[Un_absorb];
 
 goal Set.thy "A Un B  =  B Un A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_commute";
 
 goal Set.thy "(A Un B) Un C  =  A Un (B Un C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_assoc";
 
 goal Set.thy "{} Un B = B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_empty_left";
 Addsimps[Un_empty_left];
 
 goal Set.thy "A Un {} = A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_empty_right";
 Addsimps[Un_empty_right];
 
 goal Set.thy "UNIV Un B = UNIV";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_UNIV_left";
 Addsimps[Un_UNIV_left];
 
 goal Set.thy "A Un UNIV = UNIV";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_UNIV_right";
 Addsimps[Un_UNIV_right];
 
 goal Set.thy "(insert a B) Un C = insert a (B Un C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_insert_left";
 
 goal Set.thy "A Un (insert a B) = insert a (A Un B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_insert_right";
 
 goal Set.thy "(A Int B) Un C  =  (A Un C) Int (B Un C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_Int_distrib";
 
 goal Set.thy
  "(A Int B) Un (B Int C) Un (C Int A) = (A Un B) Int (B Un C) Int (C Un A)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_Int_crazy";
 
 goal Set.thy "(A<=B) = (A Un B = B)";
@@ -217,7 +217,7 @@ by (fast_tac (!claset addSEs [equalityE]) 1);
 qed "subset_Un_eq";
 
 goal Set.thy "(A <= insert b C) = (A <= C | b:A & A-{b} <= C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "subset_insert_iff";
 
 goal Set.thy "(A Un B = {}) = (A = {} & B = {})";
@@ -228,33 +228,33 @@ Addsimps[Un_empty];
 section "Compl";
 
 goal Set.thy "A Int Compl(A) = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Compl_disjoint";
 Addsimps[Compl_disjoint];
 
 goal Set.thy "A Un Compl(A) = UNIV";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Compl_partition";
 
 goal Set.thy "Compl(Compl(A)) = A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "double_complement";
 Addsimps[double_complement];
 
 goal Set.thy "Compl(A Un B) = Compl(A) Int Compl(B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Compl_Un";
 
 goal Set.thy "Compl(A Int B) = Compl(A) Un Compl(B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Compl_Int";
 
 goal Set.thy "Compl(UN x:A. B(x)) = (INT x:A. Compl(B(x)))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Compl_UN";
 
 goal Set.thy "Compl(INT x:A. B(x)) = (UN x:A. Compl(B(x)))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Compl_INT";
 
 (*Halmos, Naive Set Theory, page 16.*)
@@ -267,27 +267,27 @@ qed "Un_Int_assoc_eq";
 section "Union";
 
 goal Set.thy "Union({}) = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Union_empty";
 Addsimps[Union_empty];
 
 goal Set.thy "Union(UNIV) = UNIV";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Union_UNIV";
 Addsimps[Union_UNIV];
 
 goal Set.thy "Union(insert a B) = a Un Union(B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Union_insert";
 Addsimps[Union_insert];
 
 goal Set.thy "Union(A Un B) = Union(A) Un Union(B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Union_Un_distrib";
 Addsimps[Union_Un_distrib];
 
 goal Set.thy "Union(A Int B) <= Union(A) Int Union(B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Union_Int_subset";
 
 val prems = goal Set.thy
@@ -298,26 +298,26 @@ qed "Union_disjoint";
 section "Inter";
 
 goal Set.thy "Inter({}) = UNIV";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Inter_empty";
 Addsimps[Inter_empty];
 
 goal Set.thy "Inter(UNIV) = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Inter_UNIV";
 Addsimps[Inter_UNIV];
 
 goal Set.thy "Inter(insert a B) = a Int Inter(B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Inter_insert";
 Addsimps[Inter_insert];
 
 goal Set.thy "Inter(A) Un Inter(B) <= Inter(A Int B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Inter_Un_subset";
 
 goal Set.thy "Inter(A Un B) = Inter(A) Int Inter(B)";
-by (best_tac (!claset) 1);
+by (Blast_tac 1);
 qed "Inter_Un_distrib";
 
 section "UN and INT";
@@ -325,134 +325,134 @@ section "UN and INT";
 (*Basic identities*)
 
 goal Set.thy "(UN x:{}. B x) = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN_empty";
 Addsimps[UN_empty];
 
 goal Set.thy "(UN x:UNIV. B x) = (UN x. B x)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN_UNIV";
 Addsimps[UN_UNIV];
 
 goal Set.thy "(INT x:{}. B x) = UNIV";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "INT_empty";
 Addsimps[INT_empty];
 
 goal Set.thy "(INT x:UNIV. B x) = (INT x. B x)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "INT_UNIV";
 Addsimps[INT_UNIV];
 
 goal Set.thy "(UN x:insert a A. B x) = B a Un UNION A B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN_insert";
 Addsimps[UN_insert];
 
 goal Set.thy "(INT x:insert a A. B x) = B a Int INTER A B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "INT_insert";
 Addsimps[INT_insert];
 
 goal Set.thy
     "!!A. A~={} ==> (INT x:A. insert a (B x)) = insert a (INT x:A. B x)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "INT_insert_distrib";
 
 goal Set.thy "(INT x. insert a (B x)) = insert a (INT x. B x)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "INT1_insert_distrib";
 
 goal Set.thy "Union(range(f)) = (UN x.f(x))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Union_range_eq";
 
 goal Set.thy "Inter(range(f)) = (INT x.f(x))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Inter_range_eq";
 
 goal Set.thy "Union(B``A) = (UN x:A. B(x))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Union_image_eq";
 
 goal Set.thy "Inter(B``A) = (INT x:A. B(x))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Inter_image_eq";
 
 goal Set.thy "!!A. a: A ==> (UN y:A. c) = c";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN_constant";
 
 goal Set.thy "!!A. a: A ==> (INT y:A. c) = c";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "INT_constant";
 
 goal Set.thy "(UN x.B) = B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN1_constant";
 Addsimps[UN1_constant];
 
 goal Set.thy "(INT x.B) = B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "INT1_constant";
 Addsimps[INT1_constant];
 
 goal Set.thy "(UN x:A. B(x)) = Union({Y. ? x:A. Y=B(x)})";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN_eq";
 
 (*Look: it has an EXISTENTIAL quantifier*)
 goal Set.thy "(INT x:A. B(x)) = Inter({Y. ? x:A. Y=B(x)})";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "INT_eq";
 
 (*Distributive laws...*)
 
 goal Set.thy "A Int Union(B) = (UN C:B. A Int C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_Union";
 
 (* Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
    Union of a family of unions **)
 goal Set.thy "(UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_Union_image";
 
 (*Equivalent version*)
 goal Set.thy "(UN i:I. A(i) Un B(i)) = (UN i:I. A(i))  Un  (UN i:I. B(i))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN_Un_distrib";
 
 goal Set.thy "A Un Inter(B) = (INT C:B. A Un C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_Inter";
 
 goal Set.thy "(INT x:C. A(x) Int B(x)) = Inter(A``C) Int Inter(B``C)";
-by (best_tac (!claset) 1);
+by (Blast_tac 1);
 qed "Int_Inter_image";
 
 (*Equivalent version*)
 goal Set.thy "(INT i:I. A(i) Int B(i)) = (INT i:I. A(i)) Int (INT i:I. B(i))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "INT_Int_distrib";
 
 (*Halmos, Naive Set Theory, page 35.*)
 goal Set.thy "B Int (UN i:I. A(i)) = (UN i:I. B Int A(i))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_UN_distrib";
 
 goal Set.thy "B Un (INT i:I. A(i)) = (INT i:I. B Un A(i))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_INT_distrib";
 
 goal Set.thy
     "(UN i:I. A(i)) Int (UN j:J. B(j)) = (UN i:I. UN j:J. A(i) Int B(j))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Int_UN_distrib2";
 
 goal Set.thy
     "(INT i:I. A(i)) Un (INT j:J. B(j)) = (INT i:I. INT j:J. A(i) Un B(j))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Un_INT_distrib2";
 
 
@@ -462,58 +462,58 @@ section"Bounded quantifiers";
     body and (b) there are no similar rules for Int. **)
 
 goal Set.thy "(ALL x:A Un B.P x) = ((ALL x:A.P x) & (ALL x:B.P x))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "ball_Un";
 
 goal Set.thy "(EX x:A Un B.P x) = ((EX x:A.P x) | (EX x:B.P x))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "bex_Un";
 
 
 section "-";
 
 goal Set.thy "A-A = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Diff_cancel";
 Addsimps[Diff_cancel];
 
 goal Set.thy "{}-A = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "empty_Diff";
 Addsimps[empty_Diff];
 
 goal Set.thy "A-{} = A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Diff_empty";
 Addsimps[Diff_empty];
 
 goal Set.thy "A-UNIV = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Diff_UNIV";
 Addsimps[Diff_UNIV];
 
 goal Set.thy "!!x. x~:A ==> A - insert x B = A-B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Diff_insert0";
 Addsimps [Diff_insert0];
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a 0*)
 goal Set.thy "A - insert a B = A - B - {a}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Diff_insert";
 
 (*NOT SUITABLE FOR REWRITING since {a} == insert a 0*)
 goal Set.thy "A - insert a B = A - {a} - B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Diff_insert2";
 
 goal Set.thy "insert x A - B = (if x:B then A-B else insert x (A-B))";
 by (simp_tac (!simpset setloop split_tac[expand_if]) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "insert_Diff_if";
 
 goal Set.thy "!!x. x:B ==> insert x A - B = A-B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "insert_Diff1";
 Addsimps [insert_Diff1];
 
@@ -522,24 +522,24 @@ by (fast_tac (!claset addSIs prems) 1);
 qed "insert_Diff";
 
 goal Set.thy "A Int (B-A) = {}";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Diff_disjoint";
 Addsimps[Diff_disjoint];
 
 goal Set.thy "!!A. A<=B ==> A Un (B-A) = B";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Diff_partition";
 
 goal Set.thy "!!A. [| A<=B; B<= C |] ==> (B - (C - A)) = (A :: 'a set)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "double_diff";
 
 goal Set.thy "A - (B Un C) = (A-B) Int (A-C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Diff_Un";
 
 goal Set.thy "A - (B Int C) = (A-B) Un (A-C)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Diff_Int";
 
 Addsimps[subset_UNIV, empty_subsetI, subset_refl];
@@ -547,7 +547,7 @@ Addsimps[subset_UNIV, empty_subsetI, subset_refl];
 
 (** Miniscoping: pushing in big Unions and Intersections **)
 local
-  fun prover s = prove_goal Set.thy s (fn _ => [Fast_tac 1])
+  fun prover s = prove_goal Set.thy s (fn _ => [Blast_tac 1])
 in
 val UN1_simps = map prover 
                 ["(UN x. insert a (B x)) = insert a (UN x. B x)",

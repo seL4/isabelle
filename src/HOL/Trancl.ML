@@ -20,7 +20,7 @@ val rtrancl_unfold = rtrancl_fun_mono RS (rtrancl_def RS def_lfp_Tarski);
 (*Reflexivity of rtrancl*)
 goal Trancl.thy "(a,a) : r^*";
 by (stac rtrancl_unfold 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "rtrancl_refl";
 
 Addsimps [rtrancl_refl];
@@ -30,7 +30,7 @@ AddSIs   [rtrancl_refl];
 (*Closure under composition with r*)
 goal Trancl.thy "!!r. [| (a,b) : r^*;  (b,c) : r |] ==> (a,c) : r^*";
 by (stac rtrancl_unfold 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "rtrancl_into_rtrancl";
 
 (*rtrancl of r contains r*)
@@ -64,7 +64,7 @@ val major::prems = goal Trancl.thy
 (*by induction on this formula*)
 by (subgoal_tac "! y. (a::'a,b) = (a,y) --> P(y)" 1);
 (*now solve first subgoal: this formula is sufficient*)
-by (Fast_tac 1);
+by (Blast_tac 1);
 (*now do the induction*)
 by (resolve_tac [major RS rtrancl_full_induct] 1);
 by (fast_tac (!claset addIs prems) 1);
@@ -124,7 +124,7 @@ goal Trancl.thy "!!R. [| R <= S; S <= R^* |] ==> S^* = R^*";
 by (dtac rtrancl_mono 1);
 by (dtac rtrancl_mono 1);
 by (Asm_full_simp_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "rtrancl_subset";
 
 goal Trancl.thy "!!R. (R^* Un S^*)^* = (R Un S)^*";
@@ -165,7 +165,7 @@ val major::prems = goal Trancl.thy
 \     ==> P(a)";
 by (rtac ((major RS converseI RS rtrancl_converseI) RS rtrancl_induct) 1);
 by (resolve_tac prems 1);
-by (fast_tac (!claset addIs prems addSEs[converseD]addSDs[rtrancl_converseD])1);
+by (fast_tac (!claset addIs prems addSDs[rtrancl_converseD])1);
 qed "converse_rtrancl_induct";
 
 val prems = goal Trancl.thy
@@ -225,7 +225,7 @@ by (rtac (rewrite_rule [trancl_def] major  RS  compEpair) 1);
 (*by induction on this formula*)
 by (subgoal_tac "ALL z. (y,z) : r --> P(z)" 1);
 (*now solve first subgoal: this formula is sufficient*)
-by (Fast_tac 1);
+by (Blast_tac 1);
 by (etac rtrancl_induct 1);
 by (ALLGOALS (fast_tac (!claset addIs (rtrancl_into_trancl1::prems))));
 qed "trancl_induct";
@@ -240,7 +240,7 @@ by (subgoal_tac "(a::'a,b) : r | (? y. (a,y) : r^+  &  (y,b) : r)" 1);
 by (REPEAT (eresolve_tac ([asm_rl,disjE,exE,conjE]@prems) 1));
 by (rtac (rewrite_rule [trancl_def] major RS compEpair) 1);
 by (etac rtranclE 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 by (fast_tac (!claset addSIs [rtrancl_into_trancl1]) 1);
 qed "tranclE";
 
@@ -268,11 +268,11 @@ val major::prems = goal Trancl.thy
 by (cut_facts_tac prems 1);
 by (rtac (major RS rtrancl_induct) 1);
 by (rtac (refl RS disjI1) 1);
-by (fast_tac (!claset addSEs [SigmaE2]) 1);
+by (Blast_tac 1);
 val lemma = result();
 
 goalw Trancl.thy [trancl_def]
     "!!r. r <= A Times A ==> r^+ <= A Times A";
-by (fast_tac (!claset addSDs [lemma]) 1);
+by (blast_tac (!claset addSDs [lemma]) 1);
 qed "trancl_subset_Sigma";
 

@@ -21,7 +21,7 @@ AddSEs par_beta_cases;
 (*** beta <= par_beta <= beta^* ***)
 
 goal ParRed.thy "(Var n => t) = (t = Var n)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "par_beta_varL";
 Addsimps [par_beta_varL];
 
@@ -36,7 +36,7 @@ goal ParRed.thy "beta <= par_beta";
 by (rtac subsetI 1);
 by (split_all_tac 1);
 by (etac beta.induct 1);
-by (ALLGOALS(fast_tac (!claset addSIs [par_beta_refl])));
+by (ALLGOALS(blast_tac (!claset addSIs [par_beta_refl])));
 qed "beta_subset_par_beta";
 
 goal ParRed.thy "par_beta <= beta^*";
@@ -72,7 +72,7 @@ qed_spec_mp "par_beta_subst";
 goalw ParRed.thy [diamond_def,commute_def,square_def] "diamond(par_beta)";
 by (rtac (impI RS allI RS allI) 1);
 by (etac par_beta.induct 1);
-by (ALLGOALS(fast_tac (!claset addSIs [par_beta_subst])));
+by (ALLGOALS(Blast.depth_tac (!claset addSIs [par_beta_subst]) 7));
 qed "diamond_par_beta";
 
 
@@ -83,16 +83,17 @@ by (dB.induct_tac "s" 1);
   by (Simp_tac 1);
  by (etac rev_mp 1);
  by (dB.induct_tac "dB1" 1);
- by (ALLGOALS(fast_tac (!claset addSIs [par_beta_subst] unsafe_addss (!simpset))));
+ by (ALLGOALS(fast_tac (!claset addSIs [par_beta_subst] 
+                                unsafe_addss (!simpset))));
 qed_spec_mp "par_beta_cd";
 
 (*** Confluence (via cd) ***)
 
 goalw ParRed.thy [diamond_def,commute_def,square_def] "diamond(par_beta)";
-by (fast_tac (HOL_cs addIs [par_beta_cd]) 1);
+by (blast_tac (HOL_cs addIs [par_beta_cd]) 1);
 qed "diamond_par_beta2";
 
 goal ParRed.thy "confluent(beta)";
-by (fast_tac (HOL_cs addIs [diamond_par_beta2,diamond_to_confluence,
-                           par_beta_subset_beta,beta_subset_par_beta]) 1);
+by (blast_tac (HOL_cs addIs [diamond_par_beta2, diamond_to_confluence,
+			     par_beta_subset_beta, beta_subset_par_beta]) 1);
 qed"beta_confluent";

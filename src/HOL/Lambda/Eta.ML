@@ -27,8 +27,8 @@ section "eta, subst and free";
 goal Eta.thy "!i t u. ~free s i --> s[t/i] = s[u/i]";
 by (dB.induct_tac "s" 1);
 by (ALLGOALS(simp_tac (addsplit (!simpset))));
-by (fast_tac HOL_cs 1);
-by (fast_tac HOL_cs 1);
+by (Blast_tac 1);
+by (Blast_tac 1);
 qed_spec_mp "subst_not_free";
 Addsimps [subst_not_free RS eqTrueI];
 
@@ -36,7 +36,7 @@ goal Eta.thy "!i k. free (lift t k) i = \
 \                   (i < k & free t i | k < i & free t (pred i))";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_full_simp_tac (addsplit (!simpset) addcongs [conj_cong])));
-by (fast_tac HOL_cs 2);
+by (Blast_tac 2);
 by(simp_tac (!simpset addsimps [pred_def]
                       setloop (split_tac [expand_nat_case])) 1);
 by (safe_tac HOL_cs);
@@ -48,7 +48,7 @@ goal Eta.thy "!i k t. free (s[t/k]) i = \
 \              (free s k & free t i | free s (if i<k then i else Suc i))";
 by (dB.induct_tac "s" 1);
 by (Asm_simp_tac 2);
-by (Fast_tac 2);
+by (Blast_tac 2);
 by (asm_full_simp_tac (addsplit (!simpset)) 2);
 by(simp_tac (!simpset addsimps [pred_def,subst_Var]
                       setloop (split_tac [expand_if,expand_nat_case])) 1);
@@ -94,17 +94,17 @@ section "Congruence rules for -e>>";
 
 goal Eta.thy "!!s. s -e>> s' ==> Abs s -e>> Abs s'";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (!claset addIs [rtrancl_refl,rtrancl_into_rtrancl])));
+by (ALLGOALS(blast_tac (!claset addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_Abs";
 
 goal Eta.thy "!!s. s -e>> s' ==> s @ t -e>> s' @ t";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (!claset addIs [rtrancl_refl,rtrancl_into_rtrancl])));
+by (ALLGOALS(blast_tac (!claset addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_AppL";
 
 goal Eta.thy "!!s. t -e>> t' ==> s @ t -e>> s @ t'";
 by (etac rtrancl_induct 1);
-by (ALLGOALS(fast_tac (!claset addIs [rtrancl_refl,rtrancl_into_rtrancl])));
+by (ALLGOALS(blast_tac (!claset addIs [rtrancl_refl,rtrancl_into_rtrancl])));
 qed "rtrancl_eta_AppR";
 
 goal Eta.thy "!!s. [| s -e>> s'; t -e>> t' |] ==> s @ t -e>> s' @ t'";
@@ -142,9 +142,9 @@ Addsimps [eta_lift];
 goal Eta.thy "!s t i. s -e> t --> u[s/i] -e>> u[t/i]";
 by (dB.induct_tac "u" 1);
 by (ALLGOALS(asm_simp_tac (addsplit (!simpset))));
-by (fast_tac (!claset addIs [r_into_rtrancl]) 1);
-by (fast_tac (!claset addSIs [rtrancl_eta_App]) 1);
-by (fast_tac (!claset addSIs [rtrancl_eta_Abs,eta_lift]) 1);
+by (blast_tac (!claset addIs [r_into_rtrancl]) 1);
+by (blast_tac (!claset addSIs [rtrancl_eta_App]) 1);
+by (blast_tac (!claset addSIs [rtrancl_eta_Abs,eta_lift]) 1);
 qed_spec_mp "rtrancl_eta_subst";
 
 goalw Eta.thy [square_def] "square beta eta (eta^*) (beta^=)";
@@ -179,7 +179,7 @@ by (dB.induct_tac "s" 1);
   by (etac thin_rl 1);
   by (res_inst_tac [("dB","t")] dB_case_distinction 1);
     by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
-    by (fast_tac (HOL_cs addDs [less_not_refl2]) 1);
+    by (blast_tac (HOL_cs addDs [less_not_refl2]) 1);
    by (Simp_tac 1);
   by (Simp_tac 1);
  by (Asm_simp_tac 1);
@@ -196,7 +196,7 @@ by (dB.induct_tac "s" 1);
  by (res_inst_tac [("dB","t")] dB_case_distinction 1);
    by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
   by (Simp_tac 1);
-  by (fast_tac HOL_cs 1);
+  by (Blast_tac 1);
  by (Simp_tac 1);
 by (Asm_simp_tac 1);
 by (etac thin_rl 1);
@@ -211,7 +211,7 @@ by (res_inst_tac [("dB","t")] dB_case_distinction 1);
   by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
  by (Simp_tac 1);
 by (Simp_tac 1);
-by (fast_tac HOL_cs 1);
+by (Blast_tac 1);
 qed_spec_mp "not_free_iff_lifted";
 
 goal Eta.thy "(!s u. (~free s 0) --> R(Abs(s @ Var 0))(s[u/0])) = \

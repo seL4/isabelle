@@ -9,7 +9,7 @@ open Relation;
 (** Identity relation **)
 
 goalw Relation.thy [id_def] "(a,a) : id";  
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "idI";
 
 val major::prems = goalw Relation.thy [id_def]
@@ -21,7 +21,7 @@ by (eresolve_tac prems 1);
 qed "idE";
 
 goalw Relation.thy [id_def] "(a,b):id = (a=b)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "pair_in_id_conv";
 Addsimps [pair_in_id_conv];
 
@@ -30,7 +30,7 @@ Addsimps [pair_in_id_conv];
 
 goalw Relation.thy [comp_def]
     "!!r s. [| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "compI";
 
 (*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
@@ -55,12 +55,12 @@ AddIs [compI, idI];
 AddSEs [compE, idE];
 
 goal Relation.thy "!!r s. [| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "comp_mono";
 
 goal Relation.thy
     "!!r s. [| s <= A Times B;  r <= B Times C |] ==> (r O s) <= A Times C";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "comp_subset_Sigma";
 
 (** Natural deduction for trans(r) **)
@@ -72,7 +72,7 @@ qed "transI";
 
 goalw Relation.thy [trans_def]
     "!!r. [| trans(r);  (a,b):r;  (b,c):r |] ==> (a,c):r";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "transD";
 
 (** Natural deduction for converse(r) **)
@@ -88,7 +88,7 @@ by (Simp_tac 1);
 qed "converseI";
 
 goalw Relation.thy [converse_def] "!!a b r. (a,b) : converse(r) ==> (b,a) : r";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "converseD";
 
 (*More general than converseD, as it "splits" the member of the relation*)
@@ -104,14 +104,14 @@ qed_goalw "converseE" Relation.thy [converse_def]
 AddSEs [converseE];
 
 goalw Relation.thy [converse_def] "converse(converse R) = R";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "converse_converse";
 
 (** Domain **)
 
 qed_goalw "Domain_iff" Relation.thy [Domain_def]
     "a: Domain(r) = (EX y. (a,y): r)"
- (fn _=> [ (Fast_tac 1) ]);
+ (fn _=> [ (Blast_tac 1) ]);
 
 qed_goal "DomainI" Relation.thy "!!a b r. (a,b): r ==> a: Domain(r)"
  (fn _ => [ (etac (exI RS (Domain_iff RS iffD2)) 1) ]);
@@ -144,16 +144,16 @@ AddSEs [RangeE];
 
 qed_goalw "Image_iff" Relation.thy [Image_def]
     "b : r^^A = (? x:A. (x,b):r)"
- (fn _ => [ Fast_tac 1 ]);
+ (fn _ => [ Blast_tac 1 ]);
 
 qed_goal "Image_singleton_iff" Relation.thy
     "(b : r^^{a}) = ((a,b):r)"
  (fn _ => [ rtac (Image_iff RS trans) 1,
-            Fast_tac 1 ]);
+            Blast_tac 1 ]);
 
 qed_goalw "ImageI" Relation.thy [Image_def]
     "!!a b r. [| (a,b): r;  a:A |] ==> b : r^^A"
- (fn _ => [ (Fast_tac 1)]);
+ (fn _ => [ (Blast_tac 1)]);
 
 qed_goalw "ImageE" Relation.thy [Image_def]
     "[| b: r^^A;  !!x.[| (x,b): r;  x:A |] ==> P |] ==> P"

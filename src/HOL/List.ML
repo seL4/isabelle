@@ -23,7 +23,6 @@ goal List.thy "(xs ~= []) = (? y ys. xs = y#ys)";
 by (list.induct_tac "xs" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
-by (REPEAT(resolve_tac [exI,refl,conjI] 1));
 qed "neq_Nil_conv";
 
 
@@ -31,10 +30,10 @@ qed "neq_Nil_conv";
 
 goal List.thy
  "P(list_case a f xs) = ((xs=[] --> P(a)) & \
-\                         (!y ys. xs=y#ys --> P(f y ys)))";
+\                        (!y ys. xs=y#ys --> P(f y ys)))";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "expand_list_case";
 
 val prems = goal List.thy "[| P([]); !!x xs. P(x#xs) |] ==> P(xs)";
@@ -44,8 +43,8 @@ qed "list_cases";
 
 goal List.thy  "(xs=[] --> P([])) & (!y ys. xs=y#ys --> P(y#ys)) --> P(xs)";
 by (list.induct_tac "xs" 1);
-by (Fast_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
+by (Blast_tac 1);
 bind_thm("list_eq_cases",
   impI RSN (2,allI RSN (2,allI RSN (2,impI RS (conjI RS (result() RS mp))))));
 
@@ -73,7 +72,7 @@ AddIffs [append_is_Nil_conv];
 goal List.thy "([] = xs@ys) = (xs=[] & ys=[])";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-by(Fast_tac 1);
+by(Blast_tac 1);
 qed "Nil_is_append_conv";
 AddIffs [Nil_is_append_conv];
 
@@ -175,19 +174,19 @@ Addsimps[mem_filter];
 goal thy "set_of_list (xs@ys) = (set_of_list xs Un set_of_list ys)";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "set_of_list_append";
 Addsimps[set_of_list_append];
 
 goal thy "(x mem xs) = (x: set_of_list xs)";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "set_of_list_mem_eq";
 
 goal List.thy "set_of_list l <= set_of_list (x#l)";
 by (Simp_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "set_of_list_subset_Cons";
 
 goal List.thy "(set_of_list xs = {}) = (xs = [])";
@@ -199,7 +198,7 @@ Addsimps [set_of_list_empty];
 goal List.thy "set_of_list(rev xs) = set_of_list(xs)";
 by(list.induct_tac "xs" 1);
 by(ALLGOALS Asm_simp_tac);
-by(Fast_tac 1);
+by(Blast_tac 1);
 qed "set_of_list_rev";
 Addsimps [set_of_list_rev];
 
@@ -227,7 +226,7 @@ Addsimps [list_all_append];
 goal List.thy "list_all P xs = (!x. x mem xs --> P(x))";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "list_all_mem_conv";
 
 
@@ -463,7 +462,7 @@ by(list.induct_tac "xs" 1);
  by(ALLGOALS Asm_simp_tac);
 by(strip_tac 1);
 by(res_inst_tac [("n","n")] natE 1);
- by(Fast_tac 1);
+ by(Blast_tac 1);
 by(res_inst_tac [("n","i")] natE 1);
 by(ALLGOALS (hyp_subst_tac THEN' Asm_full_simp_tac));
 qed_spec_mp "nth_take";
@@ -486,7 +485,7 @@ goal List.thy
 by(list.induct_tac "xs" 1);
  by(Simp_tac 1);
 by(asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
-by(Fast_tac 1);
+by(Blast_tac 1);
 bind_thm("takeWhile_append1", conjI RS (result() RS mp));
 Addsimps [takeWhile_append1];
 
@@ -503,7 +502,7 @@ goal List.thy
 by(list.induct_tac "xs" 1);
  by(Simp_tac 1);
 by(asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
-by(Fast_tac 1);
+by(Blast_tac 1);
 bind_thm("dropWhile_append1", conjI RS (result() RS mp));
 Addsimps [dropWhile_append1];
 

@@ -125,12 +125,12 @@ qed "sees_Spy";
 
 goal thy "sees lost A (Says A' B X # evs) <= insert X (sees lost A evs)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "sees_Says_subset_insert";
 
 goal thy "sees lost A evs <= sees lost A (Says A' B X # evs)";
 by (simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "sees_subset_sees_Says";
 
 (*Pushing Unions into parts.  One of the agents A is B, and thus sees Y.
@@ -141,7 +141,7 @@ by (Step_tac 1);
 by (etac rev_mp 1);     (*split_tac does not work on assumptions*)
 by (ALLGOALS
     (fast_tac (!claset unsafe_addss (!simpset addsimps [parts_Un, sees_Cons] 
-                       setloop split_tac [expand_if]))));
+				            setloop split_tac [expand_if]))));
 qed "UN_parts_sees_Says";
 
 goal thy "Says A B X : set_of_list evs --> X : sees lost Spy evs";
@@ -179,12 +179,12 @@ goal thy "X : sees lost C evs --> \
 \          (EX A B. Says A B X : set_of_list evs) | (EX A. X = Key (shrK A))";
 by (list.induct_tac "evs" 1);
 by (ALLGOALS Asm_simp_tac);
-by (fast_tac (!claset addDs [impOfSubs initState_subset]) 1);
+by (blast_tac (!claset addDs [impOfSubs initState_subset]) 1);
 by (rtac conjI 1);
-by (Fast_tac 2);
+by (Blast_tac 2);
 by (event.induct_tac "a" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [mem_if])));
-by (ALLGOALS Fast_tac);
+by (ALLGOALS Blast_tac);
 qed_spec_mp "seesD";
 
 Addsimps [sees_own, sees_Server, sees_Friend, sees_Spy];
@@ -202,7 +202,7 @@ AddIffs [Nonce_notin_initState];
 
 goalw thy [used_def] "!!X. X: parts (sees lost B evs) ==> X: used evs";
 by (etac (impOfSubs parts_mono) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "usedI";
 
 AddIs [usedI];
@@ -222,7 +222,7 @@ qed "Key_not_used";
 
 (*A session key cannot clash with a long-term shared key*)
 goal thy "!!K. K ~: range shrK ==> shrK B ~= K";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "shrK_neq";
 
 Addsimps [Key_not_used, shrK_neq, shrK_neq RS not_sym];
@@ -264,7 +264,7 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps [exI, parts_insert2])));
 by (Step_tac 1);
 (*MPair case*)
 by (res_inst_tac [("x","Na+Nb")] exI 2);
-by (fast_tac (!claset addSEs [add_leE]) 2);
+by (blast_tac (!claset addSEs [add_leE]) 2);
 (*Nonce case*)
 by (res_inst_tac [("x","N + Suc nat")] exI 1);
 by (fast_tac (!claset addSEs [add_leE] addaltern trans_tac) 1);
@@ -272,7 +272,7 @@ val lemma = result();
 
 goal thy "EX N. Nonce N ~: used evs";
 by (rtac (lemma RS exE) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Nonce_supply1";
 
 goal thy "EX N N'. Nonce N ~: used evs & Nonce N' ~: used evs' & N ~= N'";
@@ -307,14 +307,14 @@ qed "Nonce_supply3";
 goal thy "Nonce (@ N. Nonce N ~: used evs) ~: used evs";
 by (rtac (lemma RS exE) 1);
 by (rtac selectI 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Nonce_supply";
 
 (*** Supply fresh keys for possibility theorems. ***)
 
 goal thy "EX K. Key K ~: used evs";
 by (rtac (Fin.emptyI RS Key_supply_ax RS exE) 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Key_supply1";
 
 val Fin_UNIV_insertI = UNIV_I RS Fin.insertI;
@@ -344,7 +344,7 @@ qed "Key_supply3";
 goal thy "Key (@ K. Key K ~: used evs) ~: used evs";
 by (rtac (Fin.emptyI RS Key_supply_ax RS exE) 1);
 by (rtac selectI 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Key_supply";
 
 (*** Tactics for possibility theorems ***)
@@ -400,28 +400,23 @@ val parts_insert_sees =
 val pushKey_newK = insComm thy "Key (newK ?evs)"  "Key (shrK ?C)";
 
 goal thy "!!A. A <= Compl (range shrK) ==> shrK x ~: A";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "subset_Compl_range";
 
-goal thy "insert (Key (f x)) (Key``(f``E) Un C) = \
-\         Key `` (f `` (insert x E)) Un C";
-by (Fast_tac 1);
-qed "insert_Key_image";
-
 goal thy "insert (Key K) H = Key `` {K} Un H";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "insert_Key_singleton";
 
 goal thy "insert (Key K) (Key``KK Un C) = Key `` (insert K KK) Un C";
-by (Fast_tac 1);
-qed "insert_Key_image'";
+by (Blast_tac 1);
+qed "insert_Key_image";
 
 val analz_image_freshK_ss = 
      !simpset delsimps [image_insert, image_Un]
               addsimps ([image_insert RS sym, image_Un RS sym,
                          Key_not_used, 
                          insert_Key_singleton, subset_Compl_range,
-                         insert_Key_image', Un_assoc RS sym]
+                         insert_Key_image, Un_assoc RS sym]
                         @disj_comms)
               setloop split_tac [expand_if];
 

@@ -151,10 +151,10 @@ AddSIs [subsetI];
 AddEs  [subsetD, subsetCE];
 
 qed_goal "subset_refl" Set.thy "A <= (A::'a set)"
- (fn _=> [Fast_tac 1]);
+ (fn _=> [Blast_tac 1]);
 
 val prems = goal Set.thy "!!B. [| A<=B;  B<=C |] ==> A<=(C::'a set)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "subset_trans";
 
 
@@ -206,7 +206,7 @@ qed "setup_induction";
 section "The empty set -- {}";
 
 qed_goalw "empty_iff" Set.thy [empty_def] "(c : {}) = False"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 Addsimps [empty_iff];
 
@@ -216,14 +216,14 @@ qed_goal "emptyE" Set.thy "!!a. a:{} ==> P"
 AddSEs [emptyE];
 
 qed_goal "empty_subsetI" Set.thy "{} <= A"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
  (fn [prem]=>
   [ (fast_tac (!claset addIs [prem RS FalseE]) 1) ]);
 
 qed_goal "equals0D" Set.thy "!!a. [| A={};  a:A |] ==> P"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 goal Set.thy "Ball {} P = True";
 by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Ball_def, empty_def]) 1);
@@ -235,13 +235,13 @@ qed "bex_empty";
 Addsimps [ball_empty, bex_empty];
 
 goalw Set.thy [Ball_def] "(!x:A.False) = (A = {})";
-by(Fast_tac 1);
+by(Blast_tac 1);
 qed "ball_False";
 Addsimps [ball_False];
 
 (* The dual is probably not helpful:
 goal Set.thy "(? x:A.True) = (A ~= {})";
-by(Fast_tac 1);
+by(Blast_tac 1);
 qed "bex_True";
 Addsimps [bex_True];
 *)
@@ -267,7 +267,7 @@ val Pow_top = subset_refl RS PowI;             (* A : Pow(A) *)
 section "Set complement -- Compl";
 
 qed_goalw "Compl_iff" Set.thy [Compl_def] "(c : Compl(A)) = (c~:A)"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 Addsimps [Compl_iff];
 
@@ -293,7 +293,7 @@ AddSEs [ComplE];
 section "Binary union -- Un";
 
 qed_goalw "Un_iff" Set.thy [Un_def] "(c : A Un B) = (c:A | c:B)"
- (fn _ => [ Fast_tac 1 ]);
+ (fn _ => [ Blast_tac 1 ]);
 
 Addsimps [Un_iff];
 
@@ -324,7 +324,7 @@ AddSEs [UnE];
 section "Binary intersection -- Int";
 
 qed_goalw "Int_iff" Set.thy [Int_def] "(c : A Int B) = (c:A & c:B)"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 Addsimps [Int_iff];
 
@@ -353,7 +353,7 @@ AddSEs [IntE];
 section "Set difference";
 
 qed_goalw "Diff_iff" Set.thy [set_diff_def] "(c : A-B) = (c:A & c~:B)"
- (fn _ => [ (Fast_tac 1) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 Addsimps [Diff_iff];
 
@@ -378,7 +378,7 @@ AddSEs [DiffE];
 section "Augmenting a set -- insert";
 
 qed_goalw "insert_iff" Set.thy [insert_def] "a : insert b A = (a=b | a:A)"
- (fn _ => [Fast_tac 1]);
+ (fn _ => [Blast_tac 1]);
 
 Addsimps [insert_iff];
 
@@ -409,13 +409,13 @@ qed_goal "singletonI" Set.thy "a : {a}"
  (fn _=> [ (rtac insertI1 1) ]);
 
 goal Set.thy "!!a. b : {a} ==> b=a";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "singletonD";
 
 bind_thm ("singletonE", make_elim singletonD);
 
 qed_goal "singleton_iff" thy "(b : {a}) = (b=a)" 
-(fn _ => [Fast_tac 1]);
+(fn _ => [Blast_tac 1]);
 
 goal Set.thy "!!a b. {a}={b} ==> a=b";
 by (fast_tac (!claset addEs [equalityE]) 1);
@@ -439,7 +439,7 @@ qed_goal "subset_UNIV" Set.thy "A <= UNIV"
 section "Unions of families -- UNION x:A. B(x) is Union(B``A)";
 
 goalw Set.thy [UNION_def] "(b: (UN x:A. B(x))) = (EX x:A. b: B(x))";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN_iff";
 
 Addsimps [UN_iff];
@@ -507,7 +507,7 @@ section "Unions over a type; UNION1(B) = Union(range(B))";
 
 goalw Set.thy [UNION1_def] "(b: (UN x. B(x))) = (EX x. b: B(x))";
 by (Simp_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "UN1_iff";
 
 Addsimps [UN1_iff];
@@ -531,7 +531,7 @@ section "Intersections over a type; INTER1(B) = Inter(range(B))";
 
 goalw Set.thy [INTER1_def] "(b: (INT x. B(x))) = (ALL x. b: B(x))";
 by (Simp_tac 1);
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "INT1_iff";
 
 Addsimps [INT1_iff];
@@ -552,7 +552,7 @@ AddDs  [INT1_D];
 section "Union";
 
 goalw Set.thy [Union_def] "(A : Union(C)) = (EX X:C. A:X)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Union_iff";
 
 Addsimps [Union_iff];
@@ -575,7 +575,7 @@ AddSEs [UnionE];
 section "Inter";
 
 goalw Set.thy [Inter_def] "(A : Inter(C)) = (ALL X:C. A:X)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "Inter_iff";
 
 Addsimps [Inter_iff];
