@@ -4,6 +4,35 @@
     Description : MacLaurin series
 *)
 
+val DERIV_intros = thms"DERIV_intros";
+
+val lemma_DERIV_subst = thm"lemma_DERIV_subst";
+
+fun ARITH_PROVE str = prove_goal thy str
+                      (fn prems => [cut_facts_tac prems 1,arith_tac 1]);
+
+
+(* FIXME: remove this quick, crude tactic *)
+exception DERIV_name;
+fun get_fun_name (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _)) = f
+|   get_fun_name (_ $ (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _))) = f
+|   get_fun_name _ = raise DERIV_name;
+
+val deriv_rulesI = [DERIV_Id,DERIV_const,DERIV_cos,DERIV_cmult,
+                    DERIV_sin, DERIV_exp, DERIV_inverse,DERIV_pow,
+                    DERIV_add, DERIV_diff, DERIV_mult, DERIV_minus,
+                    DERIV_inverse_fun,DERIV_quotient,DERIV_fun_pow,
+                    DERIV_fun_exp,DERIV_fun_sin,DERIV_fun_cos,
+                    DERIV_Id,DERIV_const,DERIV_cos];
+
+
+fun deriv_tac i = (resolve_tac deriv_rulesI i) ORELSE 
+                   ((rtac (read_instantiate [("f",get_fun_name (getgoal i))] 
+                     DERIV_chain2) i) handle DERIV_name => no_tac);
+
+val DERIV_tac = ALLGOALS(fn i => REPEAT(deriv_tac i));
+
+
 Goal "sumr 0 n (%m. f (m + k)) = sumr 0 (n + k) f - sumr 0 k f";
 by (induct_tac "n" 1);
 by Auto_tac;
@@ -34,6 +63,29 @@ qed "sumr_from_1_from_0";
 (*---------------------------------------------------------------------------*)
 (* Maclaurin's theorem with Lagrange form of remainder                       *)
 (*---------------------------------------------------------------------------*)
+
+
+
+(* FIXME: remove this quick, crude tactic *)
+exception DERIV_name;
+fun get_fun_name (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _)) = f
+|   get_fun_name (_ $ (_ $ (Const ("Lim.deriv",_) $ Abs(_,_, Const (f,_) $ _) $ _ $ _))) = f
+|   get_fun_name _ = raise DERIV_name;
+
+val deriv_rulesI = [DERIV_Id,DERIV_const,DERIV_cos,DERIV_cmult,
+                    DERIV_sin, DERIV_exp, DERIV_inverse,DERIV_pow,
+                    DERIV_add, DERIV_diff, DERIV_mult, DERIV_minus,
+                    DERIV_inverse_fun,DERIV_quotient,DERIV_fun_pow,
+                    DERIV_fun_exp,DERIV_fun_sin,DERIV_fun_cos,
+                    DERIV_Id,DERIV_const,DERIV_cos];
+
+
+fun deriv_tac i = (resolve_tac deriv_rulesI i) ORELSE 
+                   ((rtac (read_instantiate [("f",get_fun_name (getgoal i))] 
+                     DERIV_chain2) i) handle DERIV_name => no_tac);
+
+val DERIV_tac = ALLGOALS(fn i => REPEAT(deriv_tac i));
+
 
 (* Annoying: Proof is now even longer due mostly to 
    change in behaviour of simplifier  since Isabelle99 *)
@@ -123,7 +175,7 @@ by (simp_tac (simpset() addsimps [real_divide_def,real_mult_assoc]
     delsimps [fact_Suc,realpow_Suc]) 2);
 by (rtac DERIV_cmult 2);
 by (rtac lemma_DERIV_subst 2);
-by DERIV_tac;
+by (best_tac (claset() addIs [DERIV_chain2] addSIs DERIV_intros) 2);
 by (stac fact_Suc 2);
 by (stac real_of_nat_mult 2);
 by (simp_tac (simpset() addsimps [inverse_mult_distrib] @

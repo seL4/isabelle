@@ -60,7 +60,7 @@ done
 
 lemma hypreal_sqrt_gt_zero_pow2: "0 < x ==> ( *f* sqrt) (x) ^ 2 = x"
 apply (cases x)
-apply (auto intro: FreeUltrafilterNat_subset real_sqrt_gt_zero_pow2
+apply (auto intro: FreeUltrafilterNat_subset 
             simp add: hypreal_less starfun hrealpow hypreal_zero_num 
             simp del: hpowr_Suc realpow_Suc)
 done

@@ -798,6 +798,7 @@ Addsimps [symmetric real_diff_def]
 
 subsubsection{*Density of the Reals*}
 
+(*????FIXME: rename d1, d2 to x, y*)
 lemma real_lbound_gt_zero:
      "[| (0::real) < d1; 0 < d2 |] ==> \<exists>e. 0 < e & e < d1 & e < d2"
 apply (rule_tac x = " (min d1 d2) /2" in exI)

@@ -729,6 +729,15 @@ lemma inverse_1 [simp]: "inverse 1 = (1::'a::field)"
   thus ?thesis  by simp
   qed
 
+lemma inverse_unique: 
+  assumes ab: "a*b = 1"
+  shows "inverse a = (b::'a::field)"
+proof -
+  have "a \<noteq> 0" using ab by auto
+  moreover have "inverse a * (a * b) = inverse a" by (simp add: ab) 
+  ultimately show ?thesis by (simp add: mult_assoc [symmetric]) 
+qed
+
 lemma nonzero_inverse_mult_distrib: 
       assumes anz: "a \<noteq> 0"
           and bnz: "b \<noteq> 0"
