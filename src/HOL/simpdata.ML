@@ -175,6 +175,10 @@ prove "imp_conjR" "(P --> (Q&R)) = ((P-->Q) & (P-->R))";
 prove "imp_conjL" "((P&Q) -->R)  = (P --> (Q --> R))";
 prove "imp_disjL" "((P|Q) --> R) = ((P-->R)&(Q-->R))";
 
+(*These two are specialized, but imp_disj_not1 is useful in Auth/Yahalom.ML*)
+prove "imp_disj_not1" "((P --> Q | R)) = (~Q --> P --> R)";
+prove "imp_disj_not2" "((P --> Q | R)) = (~R --> P --> Q)";
+
 prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
 prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
 prove "not_imp" "(~(P --> Q)) = (P & ~Q)";
