@@ -142,23 +142,19 @@ val keyword_symid =
   Scan.one (fn Arg (k, (x, _)) => k = Keyword andalso OuterLex.is_sid x) >> val_of;
 
 fun kind f = Scan.one (K true) :--
-  ((fn Arg (Ident, (x, _)) =>
+  (fn Arg (Ident, (x, _)) =>
     (case f x of Some y => Scan.succeed y | _ => Scan.fail)
-  | _ => Scan.fail)
-(* o (fn (t as Arg (i, (s, _))) =>
-  (warning (
-    (case i of Ident => "Ident: " | String => "String: "
-            | Keyword => "Keyword: " | EOF => "EOF: ")
-    ^ s); t)) *) ) >> #2;
+  | _ => Scan.fail) >> #2;
 
 val nat = kind Syntax.read_nat;
 val int = Scan.optional ($$$ "-" >> K ~1) 1 -- nat >> op *;
 
-(* Read variable name.  Leading `?' may be omitted if name contains no dot. *)
-val var = kind (apsome #1 o
-      (fn s => (Some (Term.dest_Var (Syntax.read_var s)))
-         handle _ => (Some (Term.dest_Var (Syntax.read_var ("?" ^ s))))
-         handle _ => None));
+(*read variable name; leading '?' may be omitted if name contains no dot*)
+val var = kind (apsome #1 o (fn s =>
+  Some (Term.dest_Var (Syntax.read_var s))
+    handle _ => Some (Term.dest_Var (Syntax.read_var ("?" ^ s)))
+    handle _ => None));
+
 
 (* enumerations *)
 
