@@ -2,7 +2,7 @@
 Cockpit = MuIOAOracle +
 
 datatype 'a action = Alarm 'a | Info 'a | Ack 'a
-datatype event = None | PonR | Eng | Fue
+datatype event = NONE | PonR | Eng | Fue
 
 
 (*This cockpit automaton is a deeply simplified version of the
@@ -18,16 +18,16 @@ automaton cockpit =
   states
     APonR_incl :: bool
     info :: event
-  initially "info=None & ~APonR_incl"
+  initially "info=NONE & ~APonR_incl"
   transitions
     "Alarm a"
-      post info:="if (a=None) then info else a",
+      post info:="if (a=NONE) then info else a",
         APonR_incl:="if (a=PonR) then True else APonR_incl"
     "Info a"
       pre "(a=info)"
     "Ack a"
-      pre "(a=PonR --> APonR_incl) & (a=None --> ~APonR_incl)"
-      post info:="None",APonR_incl:="if (a=PonR) then False else APonR_incl"
+      pre "(a=PonR --> APonR_incl) & (a=NONE --> ~APonR_incl)"
+      post info:="NONE",APonR_incl:="if (a=PonR) then False else APonR_incl"
 
 automaton cockpit_hide = hide_action "Info a" in cockpit
 
@@ -61,7 +61,7 @@ automaton Info_while_Al =
   transitions
     "Alarm a"
       post
-        info_at_Pon:="if (a=PonR) then True else (if (a=None) then info_at_Pon else False)"
+        info_at_Pon:="if (a=PonR) then True else (if (a=NONE) then info_at_Pon else False)"
     "Info a"
       pre "(a=PonR) --> info_at_Pon"
     "Ack a"
@@ -73,14 +73,14 @@ automaton Info_before_Al =
     inputs "Alarm a"
     outputs "Ack a", "Info i"
   states
-    info_at_None :: bool
-  initially "info_at_None"
+    info_at_NONE :: bool
+  initially "info_at_NONE"
   transitions
     "Alarm a"
-      post info_at_None:="if (a=None) then info_at_None else False"
+      post info_at_NONE:="if (a=NONE) then info_at_NONE else False"
     "Info a"
-      pre "(a=None) --> info_at_None"
+      pre "(a=NONE) --> info_at_NONE"
     "Ack a"
-      post info_at_None:="True"
+      post info_at_NONE:="True"
 
 end

@@ -15,7 +15,7 @@ by (is_sim_tac aut_simps 1);
 qed"cockpit_implements_Info_while_Al";
 
 (* to prove that before any alarm arrives (and after each acknowledgment),
-   info remains at None *)
+   info remains at NONE *)
 Goal "cockpit =<| Info_before_Al";
 by (is_sim_tac aut_simps 1);       
 qed"cockpit_implements_Info_before_Al";
