@@ -44,15 +44,6 @@ qed "int_nat_number_of";
 Addsimps [int_nat_number_of];
 
 
-val nat_bin_arith_setup =
- [Fast_Arith.map_data 
-   (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
-     {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
-      inj_thms = inj_thms,
-      lessD = lessD,
-      simpset = simpset addsimps [int_nat_number_of, not_neg_number_of_Pls,
-                                  neg_number_of_Min,neg_number_of_BIT]})];
-
 (** Successor **)
 
 Goal "(0::int) <= z ==> Suc (nat z) = nat (1 + z)";
@@ -74,6 +65,16 @@ by (cut_inst_tac [("n","0")] Suc_nat_number_of_add 1);
 by (asm_full_simp_tac (simpset() delcongs [if_weak_cong]) 1); 
 qed "Suc_nat_number_of";
 Addsimps [Suc_nat_number_of];
+
+val nat_bin_arith_setup =
+ [Fast_Arith.map_data 
+   (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} =>
+     {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
+      inj_thms = inj_thms,
+      lessD = lessD,
+      simpset = simpset addsimps [Suc_nat_number_of, int_nat_number_of,
+                                  not_neg_number_of_Pls,
+                                  neg_number_of_Min,neg_number_of_BIT]})];
 
 (** Addition **)
 
