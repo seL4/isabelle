@@ -46,18 +46,13 @@ by (ALLGOALS
 qed "spies_evs_rev";
 bind_thm ("parts_spies_evs_revD2", spies_evs_rev RS equalityD2 RS parts_mono);
 
-Goal "spies (takeWhile P evs)  <=  spies evs";
+Goal "spies (takeWhile P evs) <=  spies evs";
 by (induct_tac "evs" 1);
 by (induct_tac "a" 2);
 by Auto_tac;
 (* Resembles "used_subset_append" in Event.ML*)
 qed "spies_takeWhile";
 bind_thm ("parts_spies_takeWhile_mono", spies_takeWhile RS parts_mono);
-
-Goal "~P(x) --> takeWhile P (xs @ [x]) = takeWhile P xs";
-by (induct_tac "xs" 1);
-by Auto_tac;
-qed "takeWhile_tail";
 
 
 (*****************LEMMAS ABOUT AuthKeys****************)
@@ -264,8 +259,9 @@ by (ALLGOALS
     (asm_full_simp_tac
      (simpset() addsimps [AuthKeys_insert, AuthKeys_not_insert,
 			  AuthKeys_empty, AuthKeys_simp])));
-by (blast_tac (claset()) 1);
+by (Blast_tac 1);
 by Auto_tac;
+(*Three subcases of Message 4*)
 by (blast_tac (claset() addSDs [AuthKeys_used, Says_Kas_message_form]) 1);
 by (blast_tac (claset() addSDs [SesKey_is_session_key]) 1);
 by (blast_tac (claset() addDs [AuthTicket_crypt_AuthKey]) 1);
@@ -445,9 +441,8 @@ qed "not_KeyCryptKey_Nil";
 AddIffs [not_KeyCryptKey_Nil];
 
 Goalw [KeyCryptKey_def]
- "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, tt, X |}) \
-\             \\<in> set evs;    \
-\           evs \\<in> kerberos |] ==> KeyCryptKey AuthKey ServKey evs";
+ "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, tt, X |}) \\<in> set evs; \
+\    evs \\<in> kerberos |] ==> KeyCryptKey AuthKey ServKey evs";
 by (blast_tac (claset() addDs [Says_Tgs_message_form]) 1); 
 qed "KeyCryptKeyI";
 
@@ -466,8 +461,8 @@ Addsimps [KeyCryptKey_Says];
 (*A fresh AuthKey cannot be associated with any other
   (with respect to a given trace). *)
 Goalw [KeyCryptKey_def]
- "[| Key AuthKey \\<notin> used evs; evs \\<in> kerberos |] \
-\        ==> ~ KeyCryptKey AuthKey ServKey evs";
+     "[| Key AuthKey \\<notin> used evs; evs \\<in> kerberos |] \
+\     ==> ~ KeyCryptKey AuthKey ServKey evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by (Asm_full_simp_tac 1);
@@ -481,10 +476,9 @@ Goalw [KeyCryptKey_def]
 by (Blast_tac 1);
 qed "Serv_fresh_not_KeyCryptKey";
 
-Goal
- "[| Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, tk|}\
-\             \\<in> parts (spies evs);  evs \\<in> kerberos |] \
-\        ==> ~ KeyCryptKey K AuthKey evs";
+Goal "[| Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, tk|}\
+\          \\<in> parts (spies evs);  evs \\<in> kerberos |] \
+\     ==> ~ KeyCryptKey K AuthKey evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 (*K4*)
@@ -515,17 +509,17 @@ qed "ServKey_not_KeyCryptKey";
 
 (*Long term keys are not issued as ServKeys*)
 Goalw [KeyCryptKey_def]
- "evs \\<in> kerberos ==> ~ KeyCryptKey K (shrK A) evs";
+     "evs \\<in> kerberos ==> ~ KeyCryptKey K (shrK A) evs";
 by (parts_induct_tac 1);
 qed "shrK_not_KeyCryptKey";
 
 (*The Tgs message associates ServKey with AuthKey and therefore not with any 
   other key AuthKey.*)
 Goalw [KeyCryptKey_def]
- "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, tt, X |}) \
-\      \\<in> set evs;                                         \
-\    AuthKey' \\<noteq> AuthKey;  evs \\<in> kerberos |]                      \
-\ ==> ~ KeyCryptKey AuthKey' ServKey evs";
+     "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, tt, X |}) \
+\          \\<in> set evs;                                         \
+\        AuthKey' \\<noteq> AuthKey;  evs \\<in> kerberos |]                      \
+\     ==> ~ KeyCryptKey AuthKey' ServKey evs";
 by (blast_tac (claset() addDs [unique_ServKeys]) 1);
 qed "Says_Tgs_KeyCryptKey";
 
@@ -533,9 +527,9 @@ Goal "[| KeyCryptKey AuthKey ServKey evs;  evs \\<in> kerberos |] \
 \     ==> ~ KeyCryptKey ServKey K evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Step_tac 1);
-by (ALLGOALS Asm_full_simp_tac);
+by Safe_tac;
 (*K4 splits into subcases*)
+by (ALLGOALS Asm_full_simp_tac);
 by (blast_tac (claset() addSDs [AuthKey_not_KeyCryptKey]) 4);
 (*ServKey is fresh and so could not have been used, by new_keys_not_used*)
 by (force_tac (claset() addSDs [Says_imp_spies RS parts.Inj,
@@ -654,7 +648,7 @@ Goal "[| evs \\<in> kerberos;  K \\<in> (AuthKeys evs) Un range shrK;      \
 \     ==> Key K \\<in> analz (insert (Key SesKey) (spies evs)) = \
 \         (K = SesKey | Key K \\<in> analz (spies evs))";
 by (ftac AuthKeys_are_not_KeyCryptKey 1 THEN assume_tac 1);
-by (asm_full_simp_tac (analz_image_freshK_ss addsimps [Key_analz_image_Key]) 1);
+by (asm_simp_tac (analz_image_freshK_ss addsimps [Key_analz_image_Key]) 1);
 qed "analz_insert_freshK1";
 
 
@@ -666,7 +660,7 @@ Goal "[| evs \\<in> kerberos;  ServKey \\<notin> (AuthKeys evs); ServKey \\<noti
 by (ftac not_AuthKeys_not_KeyCryptKey 1 
     THEN assume_tac 1
     THEN assume_tac 1);
-by (asm_full_simp_tac (analz_image_freshK_ss addsimps [Key_analz_image_Key]) 1);
+by (asm_simp_tac (analz_image_freshK_ss addsimps [Key_analz_image_Key]) 1);
 qed "analz_insert_freshK2";
 
 
@@ -682,7 +676,7 @@ Goal
 by (dres_inst_tac [("AuthKey'","AuthKey'")] Says_Tgs_KeyCryptKey 1);
 by (Blast_tac 1);
 by (assume_tac 1);
-by (asm_full_simp_tac (analz_image_freshK_ss addsimps [Key_analz_image_Key]) 1);
+by (asm_simp_tac (analz_image_freshK_ss addsimps [Key_analz_image_Key]) 1);
 qed "analz_insert_freshK3";
 
 
@@ -710,8 +704,7 @@ by (etac rev_mp 1);
 by (asm_full_simp_tac (simpset() addsimps [AuthKeys_def]) 1);
 by (parts_induct_tac 1);
 by (ALLGOALS Blast_tac);
-bind_thm ("ServKey_notin_AuthKeys", result() RSN (2, rev_notE));
-bind_thm ("ServKey_notin_AuthKeysD", result());
+qed "ServKey_notin_AuthKeysD";
 
 
 (** If Spy sees the Authentication Key sent in msg K2, then 
@@ -728,9 +721,9 @@ by (etac kerberos.induct 1);
 by analz_sees_tac;
 by (ALLGOALS 
     (asm_simp_tac 
-     (simpset() addsimps ([Says_Kas_message_form, less_SucI,
-			   analz_insert_eq, not_parts_not_analz, 
-			   analz_insert_freshK1] @ pushes))));
+     (simpset() addsimps [Says_Kas_message_form, less_SucI,
+                          analz_insert_eq, not_parts_not_analz, 
+			  analz_insert_freshK1] @ pushes)));
 (*Fake*) 
 by (spy_analz_tac 1);
 (*K2*)
@@ -738,8 +731,7 @@ by (Blast_tac 1);
 (*K4*)
 by (Blast_tac 1);
 (*Level 8: K5*)
-by (blast_tac (claset() addEs [ServKey_notin_AuthKeys]
-                        addDs [Says_Kas_message_form]
+by (blast_tac (claset() addDs [ServKey_notin_AuthKeysD, Says_Kas_message_form]
                         addIs [less_SucI]) 1);
 (*Oops1*)
 by (blast_tac (claset() addSDs [unique_AuthKeys] addIs [less_SucI]) 1);
@@ -763,15 +755,17 @@ qed "Confidentiality_Kas";
 
 (** If Spy sees the Service Key sent in msg K4, then 
     the Key has expired  **)
-Goal "[| A \\<notin> bad;  B \\<notin> bad; B \\<noteq> Tgs; evs \\<in> kerberos |]           \
-\  ==> Key AuthKey \\<notin> analz (spies evs) --> \
-\      Says Tgs A            \
+Goal "[| Says Tgs A            \
 \        (Crypt AuthKey                      \
 \           {|Key ServKey, Agent B, Number Tt,     \
 \             Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Number Tt|}|})\
-\        \\<in> set evs -->                 \
-\      Key ServKey \\<in> analz (spies evs) -->                       \
+\        \\<in> set evs;                 \
+\      Key AuthKey \\<notin> analz (spies evs); \
+\      A \\<notin> bad;  B \\<notin> bad; B \\<noteq> Tgs; evs \\<in> kerberos |]           \
+\  ==> Key ServKey \\<in> analz (spies evs) -->                       \
 \      ExpirServ Tt evs";
+by (etac rev_mp 1);
+by (etac rev_mp 1);
 by (etac kerberos.induct 1);
 (*The Oops1 case is unusual: must simplify Authkey \\<notin> analz (spies (ev#evs))
   rather than weakening it to Authkey \\<notin> analz (spies evs), for we then
@@ -784,13 +778,13 @@ by (ALLGOALS
      (simpset() addsimps [less_SucI, new_keys_not_analzd,
 			  Says_Kas_message_form, Says_Tgs_message_form,
 			  analz_insert_eq, not_parts_not_analz, 
-			  analz_insert_freshK1, analz_insert_freshK2] 
+			  analz_insert_freshK1, analz_insert_freshK2,
+                          analz_insert_freshK3] 
 			 @ pushes)));
 (*Fake*) 
 by (spy_analz_tac 1);
 (*K2*)
-by (blast_tac (claset()
-            addIs [parts_insertI, less_SucI]) 1);
+by (blast_tac (claset() addIs [parts_insertI, less_SucI]) 1);
 (*K4*)
 by (blast_tac (claset() addDs [A_trusts_AuthTicket, Confidentiality_Kas]) 1);
 by (ALLGOALS Clarify_tac);
@@ -799,10 +793,10 @@ by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj,
                                Key_unique_SesKey] addIs [less_SucI]) 3);
 (** Level 10 **)
 (*Oops1*)
-by (blast_tac (claset() addDs [analz_insert_freshK3,
-			       Says_Kas_message_form, Says_Tgs_message_form] 
-                        addIs  [less_SucI]) 2);
-(*K5*)
+by (blast_tac (claset() addDs [Says_Kas_message_form, Says_Tgs_message_form] 
+                        addIs [less_SucI]) 2);
+(*K5.  Not clear how this step could be integrated with the main
+       simplification step.*)
 by (thin_tac "Says Aa Tgs ?X \\<in> set ?evs" 1);
 by (forward_tac [Says_imp_spies RS parts.Inj RS ServKey_notin_AuthKeysD] 1);
 by (assume_tac 1 THEN Blast_tac 1 THEN assume_tac 1);
@@ -810,32 +804,31 @@ by (rotate_tac ~1 1);
 by (asm_full_simp_tac (simpset() addsimps [analz_insert_freshK2]) 1);
 by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj, Key_unique_SesKey] 
                         addIs  [less_SucI]) 1);
-val lemma = result() RS mp RS mp RS mp RSN(1,rev_notE);
+qed_spec_mp "Confidentiality_lemma";
 
 
 (* In the real world Tgs can't check wheter AuthKey is secure! *)
-Goal 
- "[| Says Tgs A      \
+Goal "[| Says Tgs A      \
 \             (Crypt AuthKey {|Key ServKey, Agent B, Number Tt, ServTicket|}) \
-\             \\<in> set evs;              \
-\           Key AuthKey \\<notin> analz (spies evs);        \
-\           ~ ExpirServ Tt evs;                         \
-\           A \\<notin> bad;  B \\<notin> bad; B \\<noteq> Tgs; evs \\<in> kerberos |]            \
-\        ==> Key ServKey \\<notin> analz (spies evs)";
-by (blast_tac (claset() addDs [Says_Tgs_message_form, lemma]) 1);
+\          \\<in> set evs;              \
+\        Key AuthKey \\<notin> analz (spies evs);        \
+\        ~ ExpirServ Tt evs;                         \
+\        A \\<notin> bad;  B \\<notin> bad; B \\<noteq> Tgs; evs \\<in> kerberos |]            \
+\     ==> Key ServKey \\<notin> analz (spies evs)";
+by (blast_tac
+    (claset() addDs [Says_Tgs_message_form, Confidentiality_lemma]) 1);
 qed "Confidentiality_Tgs1";
 
 (* In the real world Tgs CAN check what Kas sends! *)
-Goal 
- "[| Says Kas A                                             \
+Goal "[| Says Kas A                                             \
 \              (Crypt Ka {|Key AuthKey, Agent Tgs, Number Tk, AuthTicket|})  \
-\             \\<in> set evs;                                \
-\           Says Tgs A      \
+\          \\<in> set evs;                                \
+\        Says Tgs A      \
 \             (Crypt AuthKey {|Key ServKey, Agent B, Number Tt, ServTicket|}) \
-\             \\<in> set evs;              \
-\           ~ ExpirAuth Tk evs; ~ ExpirServ Tt evs;                         \
-\           A \\<notin> bad;  B \\<notin> bad; B \\<noteq> Tgs; evs \\<in> kerberos |]            \
-\        ==> Key ServKey \\<notin> analz (spies evs)";
+\          \\<in> set evs;              \
+\        ~ ExpirAuth Tk evs; ~ ExpirServ Tt evs;                         \
+\        A \\<notin> bad;  B \\<notin> bad; B \\<noteq> Tgs; evs \\<in> kerberos |]            \
+\     ==> Key ServKey \\<notin> analz (spies evs)";
 by (blast_tac (claset() addSDs [Confidentiality_Kas,
                                 Confidentiality_Tgs1]) 1);
 qed "Confidentiality_Tgs2";
@@ -891,15 +884,17 @@ qed "Confidentiality_Serv_A";
 
 Goal
 "[| Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, Number Tt, ServTicket|})\
-\            \\<in> set evs; evs \\<in> kerberos|]  \
-\  ==> \\<exists>Tk. Says Kas A (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Number Tk,\
+\     \\<in> set evs;  evs \\<in> kerberos|]  \
+\  ==> \\<exists>Tk. Says Kas A \
+\       (Crypt (shrK A) \
+\        {|Key AuthKey, Agent Tgs, Number Tk,\
 \          Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Number Tk|}|})\
-\            \\<in> set evs";
+\       \\<in> set evs";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by Auto_tac;
 by (blast_tac (claset() addSDs [Says_imp_spies RS parts.Inj RS parts.Fst RS
-                               A_trusts_AuthTicket]) 1);
+                                A_trusts_AuthTicket]) 1);
 qed "K4_imp_K2";
 
 Goal
@@ -913,7 +908,7 @@ by (etac rev_mp 1);
 by (parts_induct_tac 1);
 by Auto_tac;
 by (blast_tac (claset() addSDs [Says_imp_spies RS parts.Inj RS parts.Fst RS
-                               A_trusts_AuthTicket]) 1);
+                                A_trusts_AuthTicket]) 1);
 qed "K4_imp_K2_refined";
 
 Goal "[| Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Tt|}  \
@@ -931,14 +926,16 @@ qed "B_trusts_ServKey";
 Goal "[| Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Number Tt|}  \
 \          \\<in> parts (spies evs);  B \\<noteq> Tgs;  B \\<notin> bad;       \
 \        evs \\<in> kerberos |]                        \
-\  ==> \\<exists>AuthKey Tk. Says Kas A (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Number Tk,\
-\          Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Number Tk|}|})\
-\            \\<in> set evs";
+\ ==> \\<exists>AuthKey Tk. \
+\      Says Kas A \
+\        (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Number Tk,\
+\           Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Number Tk|}|})\
+\       \\<in> set evs";
 by (blast_tac (claset() addSDs [B_trusts_ServKey, K4_imp_K2]) 1);
 qed "B_trusts_ServTicket_Kas";
 
 Goal "[| Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Number Tt|}  \
-\          \\<in> parts (spies evs); B \\<noteq> Tgs; B \\<notin> bad;       \
+\          \\<in> parts (spies evs);  B \\<noteq> Tgs;  B \\<notin> bad;       \
 \        evs \\<in> kerberos |]                        \
 \  ==> \\<exists>AuthKey Tk. (Says Kas A (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Number Tk,\
 \          Crypt (shrK Tgs) {|Agent A, Agent Tgs, Key AuthKey, Number Tk|}|})\
@@ -948,7 +945,7 @@ by (blast_tac (claset() addSDs [B_trusts_ServKey,K4_imp_K2_refined]) 1);
 qed "B_trusts_ServTicket_Kas_refined";
 
 Goal "[| Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Number Tt|}  \
-\          \\<in> parts (spies evs); B \\<noteq> Tgs; B \\<notin> bad;        \
+\          \\<in> parts (spies evs);  B \\<noteq> Tgs;  B \\<notin> bad;        \
 \        evs \\<in> kerberos |]                        \
 \==> \\<exists>Tk AuthKey.        \
 \    Says Kas A (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Number Tk, \
@@ -961,7 +958,7 @@ by (blast_tac (claset() addDs [B_trusts_ServKey, K4_imp_K2]) 1);
 qed "B_trusts_ServTicket";
 
 Goal "[| Crypt (shrK B) {|Agent A, Agent B, Key ServKey, Number Tt|}  \
-\          \\<in> parts (spies evs); B \\<noteq> Tgs; B \\<notin> bad;        \
+\          \\<in> parts (spies evs);  B \\<noteq> Tgs;  B \\<notin> bad;        \
 \        evs \\<in> kerberos |]                        \
 \==> \\<exists>Tk AuthKey.        \
 \    (Says Kas A (Crypt (shrK A) {|Key AuthKey, Agent Tgs, Number Tk, \
@@ -976,7 +973,7 @@ qed "B_trusts_ServTicket_refined";
 
 
 Goal "[| ~ ExpirServ Tt evs; ServLife + Tt <= AuthLife + Tk |]        \
-\  ==> ~ ExpirAuth Tk evs";
+\     ==> ~ ExpirAuth Tk evs";
 by (blast_tac (claset() addDs [leI,le_trans] addEs [leE]) 1);
 qed "NotExpirServ_NotExpirAuth_refined";
 
@@ -1133,16 +1130,14 @@ qed "Says_K6";
 
 Goal "[| Crypt AuthKey {|Key ServKey, Agent B, T, ServTicket|}   \
 \          \\<in> parts (spies evs);    \
-\        Key AuthKey \\<notin> analz (spies evs); AuthKey \\<notin> range shrK;  \
+\        Key AuthKey \\<notin> analz (spies evs);  AuthKey \\<notin> range shrK;  \
 \        evs \\<in> kerberos |]              \
 \ ==> \\<exists>A. Says Tgs A (Crypt AuthKey {|Key ServKey, Agent B, T, ServTicket|})\
 \             \\<in> set evs";
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Blast_tac 1);
-by (Blast_tac 1);
-by (Blast_tac 1);
+by (ALLGOALS Blast_tac);
 qed "K4_trustworthy";
 
 Goal "[| Crypt ServKey (Number Ta) \\<in> parts (spies evs);           \
@@ -1209,7 +1204,7 @@ Goal "[| Says B A (Crypt ServKey (Number Ta)) \\<in> set evs;           \
 \        A \\<notin> bad;  B \\<notin> bad; B \\<noteq> Tgs; evs \\<in> kerberos |]            \
 \     ==> B Issues A with (Crypt ServKey (Number Ta)) on evs";
 by (blast_tac (claset() addSDs [Confidentiality_B,
-	                       B_Knows_B_Knows_ServKey_lemma]) 1);
+	                        B_Knows_B_Knows_ServKey_lemma]) 1);
 qed "B_Knows_B_Knows_ServKey";
 
 Goal "[| Says B A (Crypt ServKey (Number Ta)) \\<in> set evs;           \
