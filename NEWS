@@ -148,10 +148,17 @@ Finite_Set);
 %x. None. Warning: empty_def now refers to the previously hidden definition
 of the empty set.
 
-* Real/HahnBanach: updated and adapted to locales;
+* Algebra: contains a new formalization of group theory, using locales with
+implicit structures.  Also a new, experimental summation operator for
+abelian groups;
 
-* GroupTheory: converted to Isar theories, using locales with implicit
-structures.  Also a new, experimental summation operator for abelian groups;
+* Complex: new directory of the complex numbers with numeric constants, nonstandard complex numbers, and some complex analysis, standard and nonstandard (Jacques Fleuriot);
+
+* GroupTheory: deleted, since its material has been moved to Algebra;
+
+* Hyperreal: introduced Gauge integration and hyperreal logarithms (Jacques Fleuriot);
+
+* Real/HahnBanach: updated and adapted to locales;
 
 * NumberTheory: added Gauss's law of quadratic reciprocity (by Avigad, Gray and
 Kramer);
