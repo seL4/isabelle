@@ -7,8 +7,9 @@ Syntax extension (internal interface).
 
 signature SYN_EXT0 =
 sig
-  val typeT: typ
+  val dddot_indexname: indexname
   val constrainC: string
+  val typeT: typ
   val max_pri: int
 end;
 
@@ -76,6 +77,10 @@ struct
 
 (** misc definitions **)
 
+val dddot_indexname = (Lexicon.binding "dddot", 0);
+val constrainC = "_constrain";
+
+
 (* syntactic categories *)
 
 val logic = "logic";
@@ -91,11 +96,6 @@ val spropT = Type (sprop, []);
 
 val any = "any";
 val anyT = Type (any, []);
-
-
-(* constants *)
-
-val constrainC = "_constrain";
 
 
 
