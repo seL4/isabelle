@@ -521,7 +521,7 @@ local
                    def
     in  equal_elim def' th
     end
-    handle THM _ => err th | bind => err th
+    handle THM _ => err th | Bind => err th
 in
 val flexpair_intr = flexpair_inst (symmetric ProtoPure.flexpair_def)
 and flexpair_elim = flexpair_inst ProtoPure.flexpair_def
