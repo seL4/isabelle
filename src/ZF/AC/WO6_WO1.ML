@@ -159,12 +159,12 @@ val gg1_lepoll_m = result();
 (* Case 2 : vv2_subset							  *)
 (* ********************************************************************** *)
 
-goalw thy [uu_def] "!!f. [| b<a;  g<a;  f`b~=0;  f`g~=0;  \
-\			    y*y <= y;  (UN b<a. f`b)=y  \
+goalw thy [uu_def] "!!f. [| b<a;  g<a;  f`b~=0;  f`g~=0;  	\
+\			    y*y <= y;  (UN b<a. f`b)=y  	\
 \			 |] ==> EX d<a. uu(f,b,g,d) ~= 0";
 by (fast_tac (AC_cs addSIs [not_emptyI] 
-		addSDs [SigmaI RSN (2, subsetD)]
-		addSEs [not_emptyE]) 1);
+	  	    addSDs [SigmaI RSN (2, subsetD)]
+		    addSEs [not_emptyE]) 1);
 val ex_d_uu_not_empty = result();
 
 goal thy "!!f. [| b<a; g<a; f`b~=0; f`g~=0;  \
@@ -208,24 +208,20 @@ by (eresolve_tac [subset_Diff_sing RS subset_imp_lepoll RSN (2,
 val supset_lepoll_imp_eq = result();
 
 goal thy
-	"!!a. [| ALL g<a. ALL d<a. domain(uu(f, b, g, d))~=0 -->  \
-\	domain(uu(f, b, g, d)) eqpoll succ(m);  \
-\	ALL b<a. f`b lepoll succ(m); y*y <= y;  \
-\	(UN b<a. f`b)=y; b<a; g<a; d<a; f`b~=0; f`g~=0; m:nat; s:f`b |]  \
-\	 ==> uu(f,b,g,LEAST d. uu(f,b,g,d)~=0) : f`b -> f`g";
-by (eres_inst_tac [("x","g")] oallE 1 THEN (contr_tac 2));
-by (eres_inst_tac [("P","%z. ?QQ(z) ~= 0 --> ?RR(z)")] oallE 1);
-by (eresolve_tac [impE] 1);
-by (eresolve_tac [uu_not_empty RS (uu_subset1 RS not_empty_rel_imp_domain)] 1
-	THEN REPEAT (assume_tac 1));
-by (eresolve_tac [Least_uu_not_empty_lt_a RSN (2, notE)] 2
-	THEN (TRYALL assume_tac));
+ "!!a. [| ALL g<a. ALL d<a. domain(uu(f, b, g, d))~=0 -->  		\
+\	  domain(uu(f, b, g, d)) eqpoll succ(m);  			\
+\	  ALL b<a. f`b lepoll succ(m);  y*y <= y;  			\
+\	  (UN b<a. f`b)=y;  b<a;  g<a;  d<a;  				\
+\	  f`b~=0;  f`g~=0;  m:nat;  s:f`b  				\
+\      |] ==> uu(f, b, g, LEAST d. uu(f,b,g,d)~=0) : f`b -> f`g";
+by (dres_inst_tac [("x2","g")] (ospec RS ospec RS mp) 1);
+by (rtac ([uu_subset1, uu_not_empty] MRS not_empty_rel_imp_domain) 3);
+by (rtac Least_uu_not_empty_lt_a 2 THEN TRYALL assume_tac);
 by (resolve_tac [eqpoll_sym RS eqpoll_imp_lepoll RS 
 	(Least_uu_not_empty_lt_a RSN (2, uu_lepoll_m) RSN (2, 
 	uu_subset1 RSN (4, rel_is_fun)))] 1
-	THEN (TRYALL assume_tac));
-by (resolve_tac [eqpoll_sym RS eqpoll_imp_lepoll RSN (2, 
-		supset_lepoll_imp_eq)] 1);
+	THEN TRYALL assume_tac);
+by (rtac (eqpoll_sym RS eqpoll_imp_lepoll RSN (2, supset_lepoll_imp_eq)) 1);
 by (REPEAT (fast_tac (AC_cs addSIs [domain_uu_subset, nat_succI]) 1));
 val uu_Least_is_fun = result();
 
@@ -382,8 +378,7 @@ val lemma_iv = result();
 (* ********************************************************************** *)
 
 goalw thy [WO6_def, NN_def] "!!y. WO6 ==> NN(y) ~= 0";
-by (eresolve_tac [allE] 1);
-by (fast_tac (ZF_cs addSIs [not_emptyI]) 1);
+by (fast_tac (ZF_cs addEs [equals0D]) 1);
 val WO6_imp_NN_not_empty = result();
 
 (* ********************************************************************** *)

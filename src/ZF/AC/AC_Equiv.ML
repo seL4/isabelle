@@ -7,6 +7,13 @@
 
 open AC_Equiv;
 
+val WO_defs = [WO1_def, WO2_def, WO3_def, WO4_def, WO5_def, WO6_def, WO8_def];
+ 
+val AC_defs = [AC0_def, AC1_def, AC2_def, AC3_def, AC4_def, AC5_def, 
+               AC6_def, AC7_def, AC8_def, AC9_def, AC10_def, AC11_def, 
+               AC12_def, AC13_def, AC14_def, AC15_def, AC16_def, 
+               AC17_def, AC18_def, AC19_def];
+ 
 val AC_aux_defs = [pairwise_disjoint_def, sets_of_size_between_def];
 
 (* ******************************************** *)

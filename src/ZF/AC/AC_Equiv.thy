@@ -22,9 +22,10 @@ consts
 
 (* Axioms of Choice *)  
   AC0, AC1, AC2, AC3, AC4, AC5, AC6, AC7, AC8, AC9,
-  AC11, AC12, AC14, AC15, AC17, AC18, AC19 :: "o"
+  AC11, AC12, AC14, AC15, AC17, AC19 :: "o"
   AC10, AC13              :: "i => o"
   AC16                    :: "[i, i] => o"
+  AC18                    :: "prop"       ("AC18")
   
 (* Auxiliary definitions used in theorems *)
   first                   :: "[i, i, i] => o"
@@ -114,12 +115,9 @@ defs
   AC17_def "AC17 == ALL A. ALL g: (Pow(A)-{0} -> A) -> Pow(A)-{0}.   \
 \	            EX f: Pow(A)-{0} -> A. f`(g`f) : g`f"
 
-(***problems!  X is free, and is higher-order!
-  AC18_def "AC18 == ALL A. A~=0 --> (ALL F. (domain(F) = A &   \
-\	            (ALL a:A. F`a ~= 0)) -->   \
-\	            ((INT a:A. UN b:F`a. X(a,b)) =   \
-\	            (UN f: PROD a:A. F`a. INT a:A. X(a, f`a))))"
-***)
+  AC18_def "AC18 == (!!X A B. A~=0 & (ALL a:A. B(a) ~= 0) -->   \
+\                 ((INT a:A. UN b:B(a). X(a,b)) =   \
+\                 (UN f: PROD a:A. B(a). INT a:A. X(a, f`a))))"
 
   AC19_def "AC19 == ALL A. A~=0 & 0~:A --> ((INT a:A. UN b:a. b) =   \
 \	            (UN f:{f: A->Union(A). ALL B:A. f`B:B}. INT a:A. f`a))"
