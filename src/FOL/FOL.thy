@@ -43,6 +43,38 @@ setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup
 setup Clasimp.setup
 
+subsection {* Other simple lemmas *}
+
+lemma [simp]: "((P-->R) <-> (Q-->R)) <-> ((P<->Q) | R)"
+by blast
+
+lemma [simp]: "((P-->Q) <-> (P-->R)) <-> (P --> (Q<->R))"
+by blast
+
+lemma not_disj_iff_imp: "~P | Q <-> (P-->Q)"
+by blast
+
+(** Monotonicity of implications **)
+
+lemma conj_mono: "[| P1-->Q1; P2-->Q2 |] ==> (P1&P2) --> (Q1&Q2)"
+by fast (*or (IntPr.fast_tac 1)*)
+
+lemma disj_mono: "[| P1-->Q1; P2-->Q2 |] ==> (P1|P2) --> (Q1|Q2)"
+by fast (*or (IntPr.fast_tac 1)*)
+
+lemma imp_mono: "[| Q1-->P1; P2-->Q2 |] ==> (P1-->P2)-->(Q1-->Q2)"
+by fast (*or (IntPr.fast_tac 1)*)
+
+lemma imp_refl: "P-->P"
+by (rule impI, assumption)
+
+(*The quantifier monotonicity rules are also intuitionistically valid*)
+lemma ex_mono: "(!!x. P(x) --> Q(x)) ==> (EX x. P(x)) --> (EX x. Q(x))"
+by blast
+
+lemma all_mono: "(!!x. P(x) --> Q(x)) ==> (ALL x. P(x)) --> (ALL x. Q(x))"
+by blast
+
 
 subsection {* Proof by cases and induction *}
 
