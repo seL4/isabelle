@@ -46,7 +46,7 @@ fun print_depth n =
   [110, x] => if x >= 45
 	      then use "ML-Systems/cpu-timer-basis.ML"
 	      else use "ML-Systems/cpu-timer-gc.ML"
-| _ => ());
+| _ => use "ML-Systems/cpu-timer-gc.ML");
 
 
 (* prompts *)
@@ -67,7 +67,7 @@ fun ml_prompts p1 p2 =
   [110, x] => if x >= 45
 	      then use "ML-Systems/smlnj-pp-new.ML"
 	      else use "ML-Systems/smlnj-pp-old.ML"
-| _ => ());
+| _ => use "ML-Systems/smlnj-pp-old.ML");
 
 fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
 
