@@ -204,7 +204,7 @@ lemma (in M_DPow) rep':
    "M(A)
     ==> strong_replacement (M, 
          \<lambda>ep z. \<exists>env\<in>list(A). \<exists>p\<in>formula.
-                  ep = <env,p> & z = {x \<in> A . sats(A, p, Cons(x, env))})"
+                  ep = <env,p> & z = {x \<in> A . sats(A, p, Cons(x, env))})" 
 by (insert rep [of A], simp add: Collect_DPow_body_abs) 
 
 

@@ -219,7 +219,7 @@ done
 text{*This locale packages the premises of the following theorems,
       which is the normal purpose of locales.  It doesn't accumulate
       constraints on the class @{term M}, as in most of this deveopment.*}
-locale M_formula_rec = M_eclose +
+locale Formula_Rec = M_eclose +
   fixes a and is_a and b and is_b and c and is_c and d and is_d and MH
   defines
       "MH(u::i,f,z) ==
@@ -248,15 +248,15 @@ locale M_formula_rec = M_eclose +
 	      (M, \<lambda>x y. x \<in> formula &
 		  y = \<langle>x, formula_rec_case(a,b,c,d,g,x)\<rangle>)";
 
-lemma (in M_formula_rec) formula_rec_case_closed:
+lemma (in Formula_Rec) formula_rec_case_closed:
     "[|M(g); p \<in> formula|] ==> M(formula_rec_case(a, b, c, d, g, p))"
 by (simp add: formula_rec_case_def a_closed b_closed c_closed d_closed) 
 
-lemma (in M_formula_rec) formula_rec_lam_closed:
+lemma (in Formula_Rec) formula_rec_lam_closed:
     "M(g) ==> M(Lambda (formula, formula_rec_case(a,b,c,d,g)))"
 by (simp add: lam_closed2 fr_lam_replace formula_rec_case_closed)
 
-lemma (in M_formula_rec) MH_rel2:
+lemma (in Formula_Rec) MH_rel2:
      "relativize2 (M, MH,
              \<lambda>x h. Lambda (formula, formula_rec_case(a,b,c,d,h)))"
 apply (simp add: relativize2_def MH_def, clarify) 
@@ -266,7 +266,7 @@ apply (rule Relativize1_formula_rec_case)
 apply (simp_all add: a_rel b_rel c_rel d_rel formula_rec_case_closed) 
 done
 
-lemma (in M_formula_rec) fr_transrec_closed:
+lemma (in Formula_Rec) fr_transrec_closed:
     "n \<in> nat
      ==> M(transrec
           (n, \<lambda>x h. Lambda(formula, formula_rec_case(a, b, c, d, h))))"
@@ -274,12 +274,12 @@ by (simp add: transrec_closed [OF fr_replace MH_rel2]
               nat_into_M formula_rec_lam_closed) 
 
 text{*The main two results: @{term formula_rec} is absolute for @{term M}.*}
-theorem (in M_formula_rec) formula_rec_closed:
+theorem (in Formula_Rec) formula_rec_closed:
     "p \<in> formula ==> M(formula_rec(a,b,c,d,p))"
 by (simp add: formula_rec_eq2 fr_transrec_closed 
               transM [OF _ formula_closed])
 
-theorem (in M_formula_rec) formula_rec_abs:
+theorem (in Formula_Rec) formula_rec_abs:
   "[| p \<in> formula; M(z)|] 
    ==> is_formula_rec(M,MH,p,z) <-> z = formula_rec(a,b,c,d,p)" 
 by (simp add: is_formula_rec_def formula_rec_eq2 transM [OF _ formula_closed]
@@ -308,7 +308,7 @@ text{*There is at present some redundancy between the relativizations in
  e.g. @{text satisfies_is_a} and those in e.g. @{text Member_replacement}.*}
 
 text{*These constants let us instantiate the parameters @{term a}, @{term b},
-      @{term c}, @{term d}, etc., of the locale @{text M_formula_rec}.*}
+      @{term c}, @{term d}, etc., of the locale @{text Formula_Rec}.*}
 constdefs
   satisfies_a :: "[i,i,i]=>i"
    "satisfies_a(A) == 
@@ -567,16 +567,16 @@ done
 
 
 
-text{*Instantiate locale @{text M_formula_rec} for the 
+text{*Instantiate locale @{text Formula_Rec} for the 
       Function @{term satisfies}*}
 
-lemma (in M_satisfies) M_formula_rec_axioms_M:
+lemma (in M_satisfies) Formula_Rec_axioms_M:
    "M(A) ==>
-    M_formula_rec_axioms(M, satisfies_a(A), satisfies_is_a(M,A), 
-                            satisfies_b(A), satisfies_is_b(M,A), 
-                            satisfies_c(A), satisfies_is_c(M,A), 
-                            satisfies_d(A), satisfies_is_d(M,A))"
-apply (rule M_formula_rec_axioms.intro)
+    Formula_Rec_axioms(M, satisfies_a(A), satisfies_is_a(M,A), 
+			  satisfies_b(A), satisfies_is_b(M,A), 
+			  satisfies_c(A), satisfies_is_c(M,A), 
+			  satisfies_d(A), satisfies_is_d(M,A))"
+apply (rule Formula_Rec_axioms.intro)
 apply (assumption | 
        rule a_closed a_rel b_closed b_rel c_closed c_rel d_closed d_rel
        fr_replace [unfolded satisfies_MH_def]
@@ -584,31 +584,30 @@ apply (assumption |
 done
 
 
-theorem (in M_satisfies) M_formula_rec_M: 
+theorem (in M_satisfies) Formula_Rec_M: 
     "M(A) ==>
-     PROP M_formula_rec(M, satisfies_a(A), satisfies_is_a(M,A), 
-                            satisfies_b(A), satisfies_is_b(M,A), 
-                            satisfies_c(A), satisfies_is_c(M,A), 
-                            satisfies_d(A), satisfies_is_d(M,A))"
-apply (rule M_formula_rec.intro, assumption+)
-apply (erule M_formula_rec_axioms_M) 
+     PROP Formula_Rec(M, satisfies_a(A), satisfies_is_a(M,A), 
+			 satisfies_b(A), satisfies_is_b(M,A), 
+			 satisfies_c(A), satisfies_is_c(M,A), 
+			 satisfies_d(A), satisfies_is_d(M,A))"
+apply (rule Formula_Rec.intro, assumption+)
+apply (erule Formula_Rec_axioms_M) 
 done
 
 lemmas (in M_satisfies) 
-   satisfies_closed = M_formula_rec.formula_rec_closed [OF M_formula_rec_M]
-and
-   satisfies_abs = M_formula_rec.formula_rec_abs [OF M_formula_rec_M];
+    satisfies_closed = Formula_Rec.formula_rec_closed [OF Formula_Rec_M]
+and satisfies_abs    = Formula_Rec.formula_rec_abs [OF Formula_Rec_M]
 
 
 lemma (in M_satisfies) satisfies_closed:
   "[|M(A); p \<in> formula|] ==> M(satisfies(A,p))"
-by (simp add: M_formula_rec.formula_rec_closed [OF M_formula_rec_M]  
+by (simp add: Formula_Rec.formula_rec_closed [OF Formula_Rec_M]  
               satisfies_eq) 
 
 lemma (in M_satisfies) satisfies_abs:
   "[|M(A); M(z); p \<in> formula|] 
    ==> is_satisfies(M,A,p,z) <-> z = satisfies(A,p)"
-by (simp only: M_formula_rec.formula_rec_abs [OF M_formula_rec_M]  
+by (simp only: Formula_Rec.formula_rec_abs [OF Formula_Rec_M]  
                satisfies_eq is_satisfies_def satisfies_MH_def)
 
 
@@ -1197,5 +1196,9 @@ apply (rule M_satisfies.intro)
      apply (rule M_eclose.axioms [OF M_eclose_L])+
 apply (rule M_satisfies_axioms_L) 
 done
+
+text{*Finally: the point of the whole theory!*}
+lemmas satisfies_closed = M_satisfies.satisfies_closed [OF M_satisfies_L]
+   and satisfies_abs = M_satisfies.satisfies_abs [OF M_satisfies_L]
 
 end
