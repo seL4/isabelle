@@ -26,7 +26,7 @@ FILES = ROOT.ML zf.thy zf.ML upair.ML subset.ML pair.ML domrange.ML \
 	wf.thy wf.ML ordinal.thy ordinal.ML nat.thy nat.ML \
 	epsilon.thy epsilon.ML arith.thy arith.ML univ.thy univ.ML \
 	quniv.thy quniv.ML constructor.ML datatype.ML  \
-	fin.ML list.ML list-fn.thy list-fn.ML
+	fin.ML list.ML listfn.thy listfn.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/ZF:   $(BIN)/FOL  $(FILES) 
