@@ -633,6 +633,7 @@ lemma CardSecret_notin_spies:
      "evs \<in> set_pur ==> Nonce (CardSecret i) \<notin> parts (knows Spy evs)"
 by (erule set_pur.induct, auto)
 
+
 subsection{*Confidentiality of PAN*}
 
 lemma analz_image_pan_lemma:
@@ -672,7 +673,7 @@ by (simp del: image_insert image_Un
          add: analz_image_keys_simps analz_image_pan)
 
 text{*Confidentiality of the PAN, unsigned case.*}
-lemma pan_confidentiality_unsigned:
+theorem pan_confidentiality_unsigned:
      "[| Pan (pan C) \<in> analz(knows Spy evs);  C = Cardholder k;
          CardSecret k = 0;  evs \<in> set_pur|]
     ==> \<exists>P M KC1 K X Y.
@@ -696,13 +697,13 @@ apply force --{*PReqS: signed*}
 done
 
 text{*Confidentiality of the PAN, signed case.*}
-lemma pan_confidentiality_signed:
-     "[| Pan (pan C) \<in> analz(knows Spy evs);  C = Cardholder k;
-         CardSecret k \<noteq> 0;  evs \<in> set_pur|]
-    ==> \<exists>B M KC2 K ps X Y Z.
-     Says C M {|{|X, EXcrypt KC2 (pubEK B) Y {|Pan (pan C), ps|}|}, Z|}
-          \<in> set evs  &
-     B \<in> bad"
+theorem pan_confidentiality_signed:
+ "[|Pan (pan C) \<in> analz(knows Spy evs);  C = Cardholder k;
+    CardSecret k \<noteq> 0;  evs \<in> set_pur|]
+  ==> \<exists>P M KC2 PIDualSign_1 PIDualSign_2 other OIDualSign.
+      Says C M {|{|PIDualSign_1, 
+                   EXcrypt KC2 (pubEK P) PIDualSign_2 {|Pan (pan C), other|}|}, 
+       OIDualSign|} \<in> set evs  &  P \<in> bad"
 apply (erule rev_mp)
 apply (erule set_pur.induct)
 apply (frule_tac [9] AuthReq_msg_in_analz_spies) --{*AReq*}
@@ -818,7 +819,7 @@ text{*When M receives AuthRes, he knows that P signed it, including
   the identifying tages and the purchase amount, which he can verify.
   (Although the spec has SIGNED and UNSIGNED forms of AuthRes, they
    send the same message to M.)*}
-lemma M_verifies_AuthRes:
+theorem M_verifies_AuthRes:
   "[| MsgAuthRes = {|Number LID_M, Number XID, Number PurchAmt|};
       Crypt (priSK (PG j)) (Hash MsgAuthRes) \<in> parts (knows Spy evs);
       evs \<in> set_pur;  PG j \<notin> bad|]
@@ -946,7 +947,10 @@ apply (frule M_Notes_PG, auto)
 apply (blast dest: unique_LID_M)
 done
 
-lemma C_verifies_PRes:
+text{*When the Cardholder receives Purchase Response from an uncompromised
+Merchant, he knows that M sent it. He also knows that M received a message signed
+by a Payment Gateway chosen by M to authorize the purchase.*}
+theorem C_verifies_PRes:
      "[| MsgPRes = {|Number LID_M, Number XID, Nonce Chall_C,
                      Hash (Number PurchAmt)|};
          Gets C (sign (priSK M) MsgPRes) \<in> set evs;
@@ -957,8 +961,7 @@ lemma C_verifies_PRes:
         Notes M {|Number LID_M,Agent P, trans|} \<in> set evs &
         Gets M (EncB (priSK P) KP (pubEK M)
                 {|Number LID_M, Number XID, Number PurchAmt|}
-                authCode)
-          \<in> set evs &
+                authCode)  \<in>  set evs &
         Says M C (sign (priSK M) MsgPRes) \<in> set evs"
 apply (rule C_verifies_PRes_lemma [THEN exE])
 apply (auto simp add: sign_def)
@@ -1019,16 +1022,16 @@ done
 text{*When M sees a dual signature, he knows that it originated with C.
   Using XID he knows it was intended for him.
   This guarantee isn't useful to P, who never gets OIData.*}
-lemma M_verifies_Signed_PReq:
-     "[| MsgDualSign = {|HPIData, Hash OIData|};
-         OIData = {|Number LID_M, etc|};
-         Crypt (priSK C) (Hash MsgDualSign) \<in> parts (knows Spy evs);
-         Notes M {|Number LID_M, Agent P, extras|} \<in> set evs;
-         M = Merchant i;  C = Cardholder k;  C \<notin> bad;  evs \<in> set_pur|]
-      ==> \<exists>PIData PICrypt.
-            HPIData = Hash PIData &
-            Says C M {|{|sign (priSK C) MsgDualSign, PICrypt|}, OIData, Hash PIData|}
-              \<in> set evs"
+theorem M_verifies_Signed_PReq:
+ "[| MsgDualSign = {|HPIData, Hash OIData|};
+     OIData = {|Number LID_M, etc|};
+     Crypt (priSK C) (Hash MsgDualSign) \<in> parts (knows Spy evs);
+     Notes M {|Number LID_M, Agent P, extras|} \<in> set evs;
+     M = Merchant i;  C = Cardholder k;  C \<notin> bad;  evs \<in> set_pur|]
+  ==> \<exists>PIData PICrypt.
+	HPIData = Hash PIData &
+	Says C M {|{|sign (priSK C) MsgDualSign, PICrypt|}, OIData, Hash PIData|}
+	  \<in> set evs"
 apply clarify
 apply (erule rev_mp)
 apply (erule rev_mp)
@@ -1046,7 +1049,7 @@ text{*When P sees a dual signature, he knows that it originated with C.
   and was intended for M. This guarantee isn't useful to M, who never gets
   PIData. I don't see how to link @{term "PG j"} and @{text LID_M} without
   assuming @{term "M \<notin> bad"}.*}
-lemma P_verifies_Signed_PReq:
+theorem P_verifies_Signed_PReq:
      "[| MsgDualSign = {|Hash PIData, HOIData|};
          PIData = {|PIHead, PANData|};
          PIHead = {|Number LID_M, Number XID, HOD, Number PurchAmt, Agent M,
@@ -1128,7 +1131,7 @@ text{*When P receives an AuthReq and a dual signature, he knows that C and M
   of PG (namely j'), and sends AReq there; he can't, however, check that
   the EXcrypt involves the correct PG's key.
 *}
-lemma P_sees_CM_agreement:
+theorem P_sees_CM_agreement:
      "[| AuthReqData = {|Number LID_M, Number XID, HOIData, HOD|};
          KC \<in> symKeys;
          Gets (PG j) (EncB (priSK M) KM (pubEK (PG j)) AuthReqData P_I)
