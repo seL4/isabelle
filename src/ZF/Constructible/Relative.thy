@@ -802,14 +802,6 @@ lemma is_nat_case_cong:
       ==> is_nat_case(M, a, is_b, k, z) <-> is_nat_case(M, a', is_b', k', z')"
 by (simp add: is_nat_case_def) 
 
-lemma (in M_triv_axioms) Inl_in_M_iff [iff]:
-     "M(Inl(a)) <-> M(a)"
-by (simp add: Inl_def) 
-
-lemma (in M_triv_axioms) Inr_in_M_iff [iff]:
-     "M(Inr(a)) <-> M(a)"
-by (simp add: Inr_def)
-
 
 subsection{*Absoluteness for Ordinals*}
 text{*These results constitute Theorem IV 5.1 of Kunen (page 126).*}

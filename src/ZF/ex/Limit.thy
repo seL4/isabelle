@@ -542,12 +542,12 @@ apply (simp_all add: matrix_chain_left matrix_chain_diag chain_fun
                      matrix_chain_lub isub_lemma)
 done
 
-lemma lemma1:
+lemma lub_matrix_diag_aux1:
     "lub(D,(\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m))) =
      (THE x. islub(D, (\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m)), x))"
 by (simp add: lub_def)
 
-lemma lemma2:
+lemma lub_matrix_diag_aux2:
     "lub(D,(\<lambda>n \<in> nat. M`n`n)) =
      (THE x. islub(D, (\<lambda>n \<in> nat. M`n`n), x))"
 by (simp add: lub_def)
@@ -556,7 +556,7 @@ lemma lub_matrix_diag:
     "[|matrix(D,M); cpo(D)|] 
      ==> lub(D,(\<lambda>n \<in> nat. lub(D,\<lambda>m \<in> nat. M`n`m))) =
          lub(D,(\<lambda>n \<in> nat. M`n`n))"
-apply (simp (no_asm) add: lemma1 lemma2)
+apply (simp (no_asm) add: lub_matrix_diag_aux1 lub_matrix_diag_aux2)
 apply (simp add: islub_def isub_eq)
 done
 
@@ -876,7 +876,7 @@ by (simp add: projpair_def)
 lemmas id_comp = fun_is_rel [THEN left_comp_id]
 and    comp_id = fun_is_rel [THEN right_comp_id]
 
-lemma lemma1:
+lemma projpair_unique_aux1:
     "[|cpo(D); cpo(E); projpair(D,E,e,p); projpair(D,E,e',p');
        rel(cf(D,E),e,e')|] ==> rel(cf(E,D),p',p)"
 apply (rule_tac b=p' in
@@ -899,7 +899,7 @@ done
 
 text{*Proof's very like the previous one.  Is there a pattern that
       could be exploited?*}
-lemma lemma2:
+lemma projpair_unique_aux2:
     "[|cpo(D); cpo(E); projpair(D,E,e,p); projpair(D,E,e',p');
        rel(cf(E,D),p',p)|] ==> rel(cf(D,E),e,e')"
 apply (rule_tac b=e
@@ -923,7 +923,7 @@ done
 lemma projpair_unique:
     "[|cpo(D); cpo(E); projpair(D,E,e,p); projpair(D,E,e',p')|] 
      ==> (e=e')<->(p=p')"
-by (blast intro: cpo_antisym lemma1 lemma2 cpo_cf cont_cf
+by (blast intro: cpo_antisym projpair_unique_aux1 projpair_unique_aux2 cpo_cf cont_cf
           dest: projpair_ep_cont)
 
 (* Slightly different, more asms, since THE chooses the unique element. *)
@@ -1763,7 +1763,7 @@ done
 
 (* 32 vs 61, using safe_tac with imp in asm would be unfortunate (5steps) *)
 
-lemma lemma1:
+lemma eps1_aux1:
     "[|m le n; emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)); m \<in> nat; n \<in> nat|] 
      ==> rel(DD`n,e_less(DD,ee,m,n)`(x`m),x`n)"
 apply (erule rev_mp) (* For induction proof *)
@@ -1807,7 +1807,7 @@ done
 
 (* 18 vs 40 *)
 
-lemma lemma2:
+lemma eps1_aux2:
     "[|n le m; emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)); m \<in> nat; n \<in> nat|] 
      ==> rel(DD`n,e_gr(DD,ee,m,n)`(x`m),x`n)"
 apply (erule rev_mp) (* For induction proof *)
@@ -1835,7 +1835,7 @@ lemma eps1:
     "[|emb_chain(DD,ee); x \<in> set(Dinf(DD,ee)); m \<in> nat; n \<in> nat|] 
      ==> rel(DD`n,eps(DD,ee,m,n)`(x`m),x`n)"
 apply (simp add: eps_def)
-apply (blast intro: lemma1 not_le_iff_lt [THEN iffD1, THEN leI, THEN lemma2]  
+apply (blast intro: eps1_aux1 not_le_iff_lt [THEN iffD1, THEN leI, THEN eps1_aux2]
                     nat_into_Ord)
 done
 
@@ -1894,7 +1894,7 @@ lemma emb_rho_emb:
   "[| emb_chain(DD,ee); n \<in> nat |] ==> emb(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n))"
 by (auto simp add: emb_def intro: exI rho_projpair)
 
-lemma commuteI: "[| emb_chain(DD,ee); n \<in> nat |] 
+lemma rho_proj_cont: "[| emb_chain(DD,ee); n \<in> nat |] 
      ==> rho_proj(DD,ee,n) \<in> cont(Dinf(DD,ee),DD`n)"
 by (auto intro: rho_projpair projpair_p_cont)
 

@@ -301,7 +301,7 @@ by (case_tac "Finite(C)" 1);
 by (asm_simp_tac (simpset() addsimps [setsum_def]) 2);
 by (etac Finite_induct 1);
 by Auto_tac;
-qed "setsum_0";
+qed "setsum_K0";
 
 (*The reversed orientation looks more natural, but LOOPS as a simprule!*)
 Goal "[| Finite(C); Finite(D) |] \

@@ -164,11 +164,6 @@ lemma disj_iff_sats:
        ==> (P | Q) <-> sats(A, Or(p,q), env)"
 by (simp add: sats_Or_iff)
 
-lemma imp_iff_sats:
-      "[| P <-> sats(A,p,env); Q <-> sats(A,q,env); env \<in> list(A)|]
-       ==> (P --> Q) <-> sats(A, Implies(p,q), env)"
-by (simp add: sats_Forall_iff) 
-
 lemma iff_iff_sats:
       "[| P <-> sats(A,p,env); Q <-> sats(A,q,env); env \<in> list(A)|]
        ==> (P <-> Q) <-> sats(A, Iff(p,q), env)"
@@ -819,8 +814,6 @@ apply (unfold Pair_def)
 apply (blast intro: doubleton_in_Lset) 
 done
 
-lemmas zero_in_LLimit = Limit_has_0 [THEN ltD, THEN zero_in_Lset, standard]
-
 lemma singleton_in_LLimit:
     "[| a: Lset(i);  Limit(i) |] ==> {a} : Lset(i)"
 apply (erule Limit_LsetE, assumption)
@@ -974,7 +967,7 @@ apply (rule Pow_mono, blast)
 done
 
 text{*Kunen's VI, 1.12 *}
-lemma Lset_subset_Vset: "i \<in> nat ==> Lset(i) = Vset(i)";
+lemma Lset_subset_Vset': "i \<in> nat ==> Lset(i) = Vset(i)";
 apply (erule nat_induct)
  apply (simp add: Vfrom_0) 
 apply (simp add: Lset_succ Vset_succ Finite_Vset Finite_DPow_eq_Pow) 

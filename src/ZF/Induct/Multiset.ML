@@ -206,7 +206,7 @@ by Auto_tac;
 by (res_inst_tac [("x", "{x:A . 0<f`x}")] exI 1);
 by (auto_tac (claset() addIs [Collect_subset RS subset_Finite,
                               funrestrict_type], simpset()));
-qed "normalize_multiset";
+qed "multiset_normalize";
 
 (** Typechecking rules for union and difference of multisets **)
 
@@ -231,7 +231,7 @@ Addsimps [munion_multiset];
 
 Goalw [mdiff_def]
 "multiset(M) ==> multiset(M -# N)";
-by (res_inst_tac [("A", "mset_of(M)")] normalize_multiset 1);
+by (res_inst_tac [("A", "mset_of(M)")] multiset_normalize 1);
 by (asm_simp_tac (simpset() addsimps [multiset_set_of_Finite]) 2);
 by (auto_tac (claset(), simpset() addsimps [mset_of_def, multiset_def]));
 by (auto_tac (claset() addSIs [lam_type], 

@@ -78,7 +78,7 @@ apply (rule_tac x = "Union (A)" in exI)
 apply (blast intro: lam_type)
 done
 
-lemma lemma1:
+lemma AC17_AC1_aux1:
      "[| \<forall>f \<in> Pow(x) - {0} -> x. \<exists>u \<in> Pow(x) - {0}. f`u\<notin>u;   
          \<exists>f \<in> Pow(x)-{0}->x.  
             x - (\<Union>a \<in> (LEAST i. HH(\<lambda>X \<in> Pow(x)-{0}. {f`X},x,i)={x}).   
@@ -94,18 +94,18 @@ apply (rule Pi_type, assumption)
 apply (blast dest: apply_type) 
 done
 
-lemma lemma2:
+lemma AC17_AC1_aux2:
       "~ (\<exists>f \<in> Pow(x)-{0}->x. x - F(f) = 0)   
        ==> (\<lambda>f \<in> Pow(x)-{0}->x . x - F(f))   
            \<in> (Pow(x) -{0} -> x) -> Pow(x) - {0}"
 by (fast intro!: lam_type dest!: Diff_eq_0_iff [THEN iffD1])
 
-lemma lemma3:
+lemma AC17_AC1_aux3:
      "[| f`Z \<in> Z; Z \<in> Pow(x)-{0} |] 
       ==> (\<lambda>X \<in> Pow(x)-{0}. {f`X})`Z \<in> Pow(Z)-{0}"
 by auto
 
-lemma lemma4:
+lemma AC17_AC1_aux4:
      "\<exists>f \<in> F. f`((\<lambda>f \<in> F. Q(f))`f) \<in> (\<lambda>f \<in> F. Q(f))`f   
       ==> \<exists>f \<in> F. f`Q(f) \<in> Q(f)"
 by simp
@@ -117,15 +117,15 @@ apply (erule not_AC1_imp_ex [THEN exE])
 apply (case_tac 
        "\<exists>f \<in> Pow(x)-{0} -> x. 
         x - (\<Union>a \<in> (LEAST i. HH (\<lambda>X \<in> Pow (x) -{0}. {f`X},x,i) ={x}) . HH (\<lambda>X \<in> Pow (x) -{0}. {f`X},x,a)) = 0")
-apply (erule lemma1, assumption)
-apply (drule lemma2)
+apply (erule AC17_AC1_aux1, assumption)
+apply (drule AC17_AC1_aux2)
 apply (erule allE)
 apply (drule bspec, assumption)
-apply (drule lemma4)
+apply (drule AC17_AC1_aux4)
 apply (erule bexE)
 apply (drule apply_type, assumption)
 apply (simp add: HH_Least_eq_x del: Diff_iff ) 
-apply (drule lemma3, assumption) 
+apply (drule AC17_AC1_aux3, assumption) 
 apply (fast dest!: subst_elem [OF _ HH_Least_eq_x [symmetric]]
                    f_subset_imp_HH_subset elim!: mem_irrefl)
 done
@@ -142,11 +142,11 @@ done
 (* AC1 ==> AC2                                                            *)
 (* ********************************************************************** *)
 
-lemma lemma1:
+lemma AC1_AC2_aux1:
      "[| f:(\<Pi>X \<in> A. X);  B \<in> A;  0\<notin>A |] ==> {f`B} \<subseteq> B Int {f`C. C \<in> A}"
 by (fast elim!: apply_type)
 
-lemma lemma2: 
+lemma AC1_AC2_aux2: 
         "[| pairwise_disjoint(A); B \<in> A; C \<in> A; D \<in> B; D \<in> C |] ==> f`B = f`C"
 by (unfold pairwise_disjoint_def, fast)
 
@@ -156,8 +156,8 @@ apply (rule allI)
 apply (rule impI)  
 apply (elim asm_rl conjE allE exE impE, assumption)
 apply (intro exI ballI equalityI)
-prefer 2 apply (rule lemma1, assumption+)
-apply (fast elim!: lemma2 elim: apply_type)
+prefer 2 apply (rule AC1_AC2_aux1, assumption+)
+apply (fast elim!: AC1_AC2_aux2 elim: apply_type)
 done
 
 
@@ -165,30 +165,30 @@ done
 (* AC2 ==> AC1                                                            *)
 (* ********************************************************************** *)
 
-lemma lemma1: "0\<notin>A ==> 0 \<notin> {B*{B}. B \<in> A}"
+lemma AC2_AC1_aux1: "0\<notin>A ==> 0 \<notin> {B*{B}. B \<in> A}"
 by (fast dest!: sym [THEN Sigma_empty_iff [THEN iffD1]])
 
-lemma lemma2: "[| X*{X} Int C = {y}; X \<in> A |]   
+lemma AC2_AC1_aux2: "[| X*{X} Int C = {y}; X \<in> A |]   
                ==> (THE y. X*{X} Int C = {y}): X*A"
 apply (rule subst_elem [of y])
 apply (blast elim!: equalityE)
 apply (auto simp add: singleton_eq_iff) 
 done
 
-lemma lemma3:
+lemma AC2_AC1_aux3:
      "\<forall>D \<in> {E*{E}. E \<in> A}. \<exists>y. D Int C = {y}   
       ==> (\<lambda>x \<in> A. fst(THE z. (x*{x} Int C = {z}))) \<in> (\<Pi>X \<in> A. X)"
 apply (rule lam_type)
 apply (drule bspec, blast)
-apply (blast intro: lemma2 fst_type)
+apply (blast intro: AC2_AC1_aux2 fst_type)
 done
 
 lemma AC2_AC1: "AC2 ==> AC1"
 apply (unfold AC1_def AC2_def pairwise_disjoint_def)
 apply (intro allI impI)
 apply (elim allE impE)
-prefer 2 apply (fast elim!: lemma3) 
-apply (blast intro!: lemma1)
+prefer 2 apply (fast elim!: AC2_AC1_aux3) 
+apply (blast intro!: AC2_AC1_aux1)
 done
 
 
@@ -211,21 +211,21 @@ done
 (* AC4 ==> AC3                                                            *)
 (* ********************************************************************** *)
 
-lemma lemma1: "f \<in> A->B ==> (\<Union>z \<in> A. {z}*f`z) \<subseteq> A*Union(B)"
+lemma AC4_AC3_aux1: "f \<in> A->B ==> (\<Union>z \<in> A. {z}*f`z) \<subseteq> A*Union(B)"
 by (fast dest!: apply_type)
 
-lemma lemma2: "domain(\<Union>z \<in> A. {z}*f(z)) = {a \<in> A. f(a)\<noteq>0}"
+lemma AC4_AC3_aux2: "domain(\<Union>z \<in> A. {z}*f(z)) = {a \<in> A. f(a)\<noteq>0}"
 by blast
 
-lemma lemma3: "x \<in> A ==> (\<Union>z \<in> A. {z}*f(z))``{x} = f(x)"
+lemma AC4_AC3_aux3: "x \<in> A ==> (\<Union>z \<in> A. {z}*f(z))``{x} = f(x)"
 by fast
 
 lemma AC4_AC3: "AC4 ==> AC3"
 apply (unfold AC3_def AC4_def)
 apply (intro allI ballI)
 apply (elim allE impE)
-apply (erule lemma1)
-apply (simp add: lemma2 lemma3 cong add: Pi_cong)
+apply (erule AC4_AC3_aux1)
+apply (simp add: AC4_AC3_aux2 AC4_AC3_aux3 cong add: Pi_cong)
 done
 
 (* ********************************************************************** *)
@@ -264,18 +264,18 @@ done
 (* AC5 ==> AC4, Rubin & Rubin, p. 11                                      *)
 (* ********************************************************************** *)
 
-lemma lemma1: "R \<subseteq> A*B ==> (\<lambda>x \<in> R. fst(x)) \<in> R -> A"
+lemma AC5_AC4_aux1: "R \<subseteq> A*B ==> (\<lambda>x \<in> R. fst(x)) \<in> R -> A"
 by (fast intro!: lam_type fst_type)
 
-lemma lemma2: "R \<subseteq> A*B ==> range(\<lambda>x \<in> R. fst(x)) = domain(R)"
+lemma AC5_AC4_aux2: "R \<subseteq> A*B ==> range(\<lambda>x \<in> R. fst(x)) = domain(R)"
 by (unfold lam_def, force)
 
-lemma lemma3: "[| \<exists>f \<in> A->C. P(f,domain(f)); A=B |] ==>  \<exists>f \<in> B->C. P(f,B)"
+lemma AC5_AC4_aux3: "[| \<exists>f \<in> A->C. P(f,domain(f)); A=B |] ==>  \<exists>f \<in> B->C. P(f,B)"
 apply (erule bexE)
 apply (frule domain_of_fun, fast)
 done
 
-lemma lemma4: "[| R \<subseteq> A*B; g \<in> C->R; \<forall>x \<in> C. (\<lambda>z \<in> R. fst(z))` (g`x) = x |]  
+lemma AC5_AC4_aux4: "[| R \<subseteq> A*B; g \<in> C->R; \<forall>x \<in> C. (\<lambda>z \<in> R. fst(z))` (g`x) = x |]  
                 ==> (\<lambda>x \<in> C. snd(g`x)): (\<Pi>x \<in> C. R``{x})"
 apply (rule lam_type)
 apply (force dest: apply_type)
@@ -284,9 +284,9 @@ done
 lemma AC5_AC4: "AC5 ==> AC4"
 apply (unfold AC4_def AC5_def, clarify)
 apply (elim allE ballE)
-apply (drule lemma3 [OF _ lemma2], assumption)
-apply (fast elim!: lemma4)
-apply (blast intro: lemma1) 
+apply (drule AC5_AC4_aux3 [OF _ AC5_AC4_aux2], assumption)
+apply (fast elim!: AC5_AC4_aux4)
+apply (blast intro: AC5_AC4_aux1) 
 done
 
 

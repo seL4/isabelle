@@ -595,8 +595,8 @@ apply (erule Formula_Rec_axioms_M)
 done
 
 lemmas (in M_satisfies) 
-    satisfies_closed = Formula_Rec.formula_rec_closed [OF Formula_Rec_M]
-and satisfies_abs    = Formula_Rec.formula_rec_abs [OF Formula_Rec_M]
+    satisfies_closed' = Formula_Rec.formula_rec_closed [OF Formula_Rec_M]
+and satisfies_abs'    = Formula_Rec.formula_rec_abs [OF Formula_Rec_M]
 
 
 lemma (in M_satisfies) satisfies_closed:

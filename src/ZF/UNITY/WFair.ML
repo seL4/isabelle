@@ -387,7 +387,7 @@ by (subgoal_tac "P(zb) --> P(za)" 1);
 by (blast_tac (claset() addIs leadsTo_refl::prems) 1);
 by (rtac (major RS leadsTo_induct) 1);
 by (REPEAT (blast_tac (claset() addIs prems) 1));
-qed "lemma";
+qed "leadsTo_induct_pre_aux";
 
 
 val [major, zb_prem, basis_prem, union_prem] = Goal
@@ -399,7 +399,7 @@ val [major, zb_prem, basis_prem, union_prem] = Goal
 by (cut_facts_tac [major] 1);
 by (subgoal_tac "(F : za leadsTo zb) & P(za)" 1);
 by (etac conjunct2 1);
-by (rtac (major RS lemma) 1);
+by (rtac (major RS leadsTo_induct_pre_aux) 1);
 by (blast_tac (claset() addDs [leadsToD2]
                         addIs [leadsTo_Union,union_prem]) 3);
 by (blast_tac (claset() addIs [leadsTo_Trans,basis_prem, leadsTo_Basis]) 2);
@@ -501,7 +501,7 @@ by (asm_simp_tac (simpset() delsimps UN_simps
 by (blast_tac (claset() addIs [leadsTo_cancel1, leadsTo_Un_duplicate]) 1);
 by (auto_tac (claset() addIs [leadsTo_UN], 
               simpset()  delsimps UN_simps addsimps [Int_UN_distrib]));
-qed "lemma1";
+qed "leadsTo_wf_induct_aux";
 
 (** Meta or object quantifier ? **)
 Goal "[| wf(r); \
@@ -515,7 +515,7 @@ by (res_inst_tac [("b", "A")] subst 1);
 by (res_inst_tac [("I", "I")] leadsTo_UN 2);
 by (REPEAT (assume_tac 2));
 by (Clarify_tac 2);
-by (eres_inst_tac [("I", "I")] lemma1 2);
+by (eres_inst_tac [("I", "I")] leadsTo_wf_induct_aux 2);
 by (REPEAT (assume_tac 2));
 by (rtac equalityI 1);
 by Safe_tac;
@@ -602,7 +602,7 @@ Goalw [constrains_def, st_set_def]
 \   ==> F : (A1 Un A2 - C) co (A1 Un A2 Un C)";
 by (Clarify_tac 1);
 by (Blast_tac 1);
-qed "lemma1";
+qed "leadsTo_123_aux";
 
 (*Lemma (1,2,3) of Misra's draft book, Chapter 4, "Progress"*)
 (* slightly different from the HOL one: B here is bounded *)
@@ -615,7 +615,7 @@ by (blast_tac (claset() addDs [ensuresD, constrainsD2, st_setD]) 1);
 (*Trans*)
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "Ba Un Bb")] bexI 1);
-by (blast_tac (claset() addIs [lemma1,leadsTo_Un_Un, leadsTo_cancel1,
+by (blast_tac (claset() addIs [leadsTo_123_aux,leadsTo_Un_Un, leadsTo_cancel1,
                                leadsTo_Un_duplicate]) 1);
 by (Blast_tac 1);
 (*Union*)

@@ -412,10 +412,6 @@ Delsimps [bin_succ_BIT, bin_pred_BIT, bin_minus_BIT,
 Delsimps [integ_of_Pls, integ_of_Min, integ_of_BIT];
 
 
-bind_thms ("NCons_simps", 
-	   [NCons_Pls_0, NCons_Pls_1, NCons_Min_0, NCons_Min_1, NCons_BIT]);
-
-
 bind_thms ("bin_arith_extra_simps",
     [integ_of_add RS sym,   (*invoke bin_add*)
      integ_of_minus RS sym, (*invoke bin_minus*)

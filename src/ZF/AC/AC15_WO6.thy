@@ -145,7 +145,7 @@ done
 lemma OUN_eq_UN: "Ord(x) ==> (\<Union>a<x. F(a)) = (\<Union>a \<in> x. F(a))"
 by (fast intro!: ltI dest!: ltD)
 
-lemma lemma1:
+lemma AC15_WO6_aux1:
      "\<forall>x \<in> Pow(A)-{0}. f`x\<noteq>0 & f`x \<subseteq> x & f`x \<lesssim> m 
       ==> (\<Union>i<LEAST x. HH(f,A,x)={A}. HH(f,A,i)) = A"
 apply (simp add: Ord_Least [THEN OUN_eq_UN])
@@ -155,7 +155,7 @@ apply (blast del: subsetI
            intro!: f_subsets_imp_UN_HH_eq_x [THEN Diff_eq_0_iff [THEN iffD1]])
 done
 
-lemma lemma2:
+lemma AC15_WO6_aux2:
      "\<forall>x \<in> Pow(A)-{0}. f`x\<noteq>0 & f`x \<subseteq> x & f`x \<lesssim> m 
       ==> \<forall>x < (LEAST x. HH(f,A,x)={A}). HH(f,A,x) \<lesssim> m"
 apply (rule oallI)
@@ -163,7 +163,7 @@ apply (drule ltD [THEN less_Least_subset_x])
 apply (frule HH_subset_imp_eq)
 apply (erule ssubst)
 apply (blast dest!: HH_subset_x_imp_subset_Diff_UN [THEN not_emptyI2])
-	(*but can't use del: DiffE despite the obvious conflictc*)
+	(*but can't use del: DiffE despite the obvious conflict*)
 done
 
 theorem AC15_WO6: "AC15 ==> WO6"
@@ -178,7 +178,7 @@ apply (rule bexI)
  apply (rule_tac x = "\<lambda>j \<in> (LEAST i. HH (f,A,i) ={A}) . HH (f,A,j) " in exI)
  apply (simp_all add: ltD)
 apply (fast intro!: Ord_Least lam_type [THEN domain_of_fun]
-            elim!: less_Least_subset_x lemma1 lemma2) 
+            elim!: less_Least_subset_x AC15_WO6_aux1 AC15_WO6_aux2) 
 done
 
 

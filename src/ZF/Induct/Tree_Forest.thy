@@ -45,7 +45,7 @@ lemma forest_subset_TF: "forest(A) \<subseteq> tree_forest(A)"
   apply (rule Part_subset)
   done
 
-lemma treeI [TC]: "x \<in> forest(A) ==> x \<in> tree_forest(A)"
+lemma treeI' [TC]: "x \<in> forest(A) ==> x \<in> tree_forest(A)"
   by (rule forest_subset_TF [THEN subsetD])
 
 lemma TF_equals_Un: "tree(A) \<union> forest(A) = tree_forest(A)"
