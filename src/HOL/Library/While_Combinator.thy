@@ -94,7 +94,7 @@ theorem while_rule:
   "[| P s;
       !!s. [| P s; b s  |] ==> P (c s);
       !!s. [| P s; \<not> b s  |] ==> Q s;
-      wf r; 
+      wf r;
       !!s. [| P s; b s  |] ==> (c s, s) \<in> r |] ==>
    Q (while b c s)"
 apply (rule while_rule_lemma)
@@ -130,25 +130,27 @@ apply (blast intro!: finite_Diff dest: monoD)
 done
 
 
-(*
 text {*
- An example of using the @{term while} combinator.
+ An example of using the @{term while} combinator.\footnote{It is safe
+ to keep the example here, since there is no effect on the current
+ theory.}
 *}
-
-lemma aux: "{f n | n. A n \<or> B n} = {f n | n. A n} \<union> {f n | n. B n}"
-  apply blast
-  done
 
 theorem "P (lfp (\<lambda>N::int set. {#0} \<union> {(n + #2) mod #6 | n. n \<in> N})) =
     P {#0, #4, #2}"
-  apply (subst lfp_conv_while [where ?U = "{#0, #1, #2, #3, #4, #5}"])
-     apply (rule monoI)
+proof -
+  have aux: "!!f A B. {f n | n. A n \<or> B n} = {f n | n. A n} \<union> {f n | n. B n}"
     apply blast
-   apply simp
-  apply (simp add: aux set_eq_subset)
-  txt {* The fixpoint computation is performed purely by rewriting: *}
-  apply (simp add: while_unfold aux set_eq_subset del: subset_empty)
-  done
-*)
+    done
+  show ?thesis
+    apply (subst lfp_conv_while [where ?U = "{#0, #1, #2, #3, #4, #5}"])
+       apply (rule monoI)
+      apply blast
+     apply simp
+    apply (simp add: aux set_eq_subset)
+    txt {* The fixpoint computation is performed purely by rewriting: *}
+    apply (simp add: while_unfold aux set_eq_subset del: subset_empty)
+    done
+qed
 
 end
