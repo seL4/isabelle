@@ -662,7 +662,7 @@ fun prove sign xs asms prop tac =
       |> Drule.implies_intr_list casms
       |> Drule.forall_intr_list cparams
       |> norm_hhf
-      |> Thm.varifyT' fixed_tfrees
+      |> (#1 o Thm.varifyT' fixed_tfrees)
       |> Drule.zero_var_indexes
   end;
 
