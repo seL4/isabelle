@@ -1033,14 +1033,14 @@ fun cert_def ctxt eq =
       handle TERM _ => err "Not a meta-equality (==)";
     val (f, xs) = Term.strip_comb lhs;
     val (c, _) = Term.dest_Free f handle TERM _ =>
-      err "Head of lhs must be free or fixed variable";
+      err "Head of lhs must be a free/fixed variable";
 
     fun is_free (Free (x, _)) = not (is_fixed ctxt x)
       | is_free _ = false;
     val extra_frees = filter is_free (term_frees rhs) \\ xs;
   in
     conditional (not (forall (is_Bound orf is_free) xs andalso null (duplicates xs))) (fn () =>
-      err "Arguments of lhs must be distinct free or fixed variables");
+      err "Arguments of lhs must be distinct free/bound variables");
     conditional (f mem Term.term_frees rhs) (fn () =>
       err "Element to be defined occurs on rhs");
     conditional (not (null extra_frees)) (fn () =>
