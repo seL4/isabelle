@@ -72,7 +72,7 @@ fun rep_sg (Sg args) = args;
 
 fun subsig (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = s1 subset s2;
 
-fun eq_sg (sg1, sg2) = subsig (sg1, sg2) andalso subsig (sg2, sg1);
+fun eq_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = eq_set (s1, s2);
 
 
 
@@ -107,7 +107,7 @@ fun print_sg sg =
     fun pretty_coreg (ty, ars) = map (pretty_arity ty) ars;
 
     fun pretty_const syn (c, ty) = Pretty.block
-      [Pretty.str (c ^ " ::"), Pretty.brk 1, prt_typ syn ty];
+      [Pretty.str (quote c ^ " ::"), Pretty.brk 1, prt_typ syn ty];
 
 
     val Sg {tsig, const_tab, syn, stamps} = sg;
