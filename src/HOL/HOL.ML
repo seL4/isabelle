@@ -407,7 +407,7 @@ fun normalize_thm funs =
 
 fun qed_spec_mp name =
   let val thm = normalize_thm [RSspec,RSmp] (result())
-  in ml_store_thm(name, thm) end;
+  in ThmDatabase.ml_store_thm(name, thm) end;
 
 fun qed_goal_spec_mp name thy s p = 
 	bind_thm (name, normalize_thm [RSspec,RSmp] (prove_goal thy s p));
