@@ -76,7 +76,8 @@ HOL-Induct: HOL $(LOG)/HOL-Induct.gz
 
 $(LOG)/HOL-Induct.gz: $(OUT)/HOL Induct/Acc.ML Induct/Acc.thy \
   Induct/Com.ML Induct/Com.thy Induct/Comb.ML Induct/Comb.thy \
-  Induct/Exp.ML Induct/Exp.thy Induct/LFilter.ML Induct/LFilter.thy \
+  Induct/Exp.ML Induct/Exp.thy Induct/FoldSet.ML Induct/FoldSet.thy \
+  Induct/LFilter.ML Induct/LFilter.thy \
   Induct/LList.ML Induct/LList.thy Induct/Mutil.ML Induct/Mutil.thy \
   Induct/Perm.ML Induct/Perm.thy Induct/PropLog.ML Induct/PropLog.thy \
   Induct/ROOT.ML Induct/SList.ML Induct/SList.thy Induct/Simult.ML \
