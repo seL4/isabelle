@@ -25,6 +25,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -I           startup Isar interaction mode"
+  echo "    -P           startup ProofGeneral interaction mode"
   echo "    -c           tell ML system to compress output image"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -m MODE      add print mode for output"
@@ -52,6 +53,8 @@ function fail()
 
 # options
 
+ISAR=false
+PROOFGENERAL=""
 COMPRESS=""
 MLTEXT=""
 MODES=""
@@ -59,11 +62,14 @@ TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "Ice:m:qruw" OPT
+while getopts "IPce:m:qruw" OPT
 do
   case "$OPT" in
     I)
-      MLTEXT="$MLTEXT Isar.main();"
+      ISAR=true
+      ;;
+    P)
+      PROOFGENERAL=true
       ;;
     c)
       COMPRESS=true
@@ -186,6 +192,12 @@ mkdir -p "$ISABELLE_TMP"
 ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 
 [ -n "$MODES" ] && MLTEXT="print_mode := [$MODES]; $MLTEXT"
+
+if [ -n "$PROOFGENERAL" ]; then
+  MLTEXT="$MLTEXT; ProofGeneral.init $ISAR;"
+elif [ "$ISAR" = true ]; then
+  MLTEXT="$MLTEXT; Isar.main();"
+fi
 
 export INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_TMP
 
