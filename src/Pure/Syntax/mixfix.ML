@@ -24,6 +24,7 @@ signature MIXFIX1 =
 sig
   include MIXFIX0
   val no_syn: 'a * 'b -> 'a * 'b * mixfix
+  val string_of_mixfix: mixfix -> string
   val type_name: string -> mixfix -> string
   val const_name: string -> mixfix -> string
   val fix_mixfix: string -> mixfix -> mixfix
@@ -65,6 +66,24 @@ datatype mixfix =
   Binder of string * int * int;
 
 fun no_syn (x, y) = (x, y, NoSyn);
+
+
+(* string_of_mixfix *)
+
+val parens = enclose "(" ")";
+val brackets = enclose "[" "]";
+val spaces = space_implode " ";
+
+fun string_of_mixfix NoSyn = ""
+  | string_of_mixfix (Mixfix (sy, ps, p)) =
+      parens (spaces [quote sy, brackets (commas (map string_of_int ps)), string_of_int p])
+  | string_of_mixfix (Delimfix sy) = parens (quote sy)
+  | string_of_mixfix (InfixName (sy, p)) = parens (spaces ["infix", quote sy, string_of_int p])
+  | string_of_mixfix (InfixlName (sy, p)) = parens (spaces ["infixl", quote sy, string_of_int p])
+  | string_of_mixfix (InfixrName (sy, p)) = parens (spaces ["infixl", quote sy, string_of_int p])
+  | string_of_mixfix (Infix p) = parens (spaces ["infix", string_of_int p])
+  | string_of_mixfix (Infixl p) = parens (spaces ["infixl", string_of_int p])
+  | string_of_mixfix (Infixr p) = parens (spaces ["infixr", string_of_int p]);
 
 
 (* type / const names *)
