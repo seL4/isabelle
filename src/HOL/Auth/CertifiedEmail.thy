@@ -16,8 +16,8 @@ syntax
   TTPVerKey  :: key
 
 translations
-  "TTP"   == "Server"
-  "RPwd"  == "shrK"
+  "TTP"   == "Server "
+  "RPwd"  == "shrK "
   "TTPDecKey" == "priEK Server"
   "TTPEncKey" == "pubEK Server" 
   "TTPSigKey" == "priSK Server"
@@ -89,26 +89,13 @@ CM3: --{*@{term TTP} simultaneously reveals the key to the recipient and gives
     TTP \<noteq> R';  hs' = hr';  k' \<in> symKeys|]
  ==> 
   Notes R' {|Agent TTP, Agent R', Key k', hr'|} # 
+  Gets S (Crypt TTPSigKey S2TTP'') # 
   Says TTP S (Crypt TTPSigKey S2TTP'') # evs3 \<in> certified_mail"
 
 Reception:
  "[|evsr \<in> certified_mail; Says A B X \<in> set evsr|]
   ==> Gets B X#evsr \<in> certified_mail"
 
-
-axioms
-  (*Unlike the corresponding property of nonces, this cannot be proved.
-    We have infinitely many agents and there is nothing to stop their
-    long-term keys from exhausting all the natural numbers.  The axiom
-    assumes that their keys are dispersed so as to leave room for infinitely
-    many fresh session keys.  We could, alternatively, restrict agents to
-    an unspecified finite number.  TOO STRONG.  REPLACE "used evs" BY
-    used []*)
-  Key_supply_ax:  "finite KK ==> \<exists>K\<in>symKeys. K \<notin> KK & Key K \<notin> used evs"
-
-
-lemma Key_supply1: "\<exists>K\<in>symKeys. Key K \<notin> used evs"
-by (rule Finites.emptyI [THEN Key_supply_ax, THEN bexE], blast)
 
 (*A "possibility property": there are traces that reach the end*)
 lemma "\<exists>S2TTP. \<exists>evs \<in> certified_mail.
@@ -374,7 +361,7 @@ done
 
 
 text{*Less easy to prove @{term "m'=m"}.  Maybe needs a separate unicity
-theorem fror ciphertexts of the form @{term "Crypt K (Number m)"}, 
+theorem for ciphertexts of the form @{term "Crypt K (Number m)"}, 
 where @{term K} is secure.*}
 lemma Key_unique_lemma [rule_format]:
      "evs \<in> certified_mail ==>
@@ -399,7 +386,7 @@ apply (blast dest!: Says_imp_knows_Spy [THEN parts.Inj] new_keys_not_used Crypt_
 done
 
 text{*The key determines the sender, recipient and protocol options.*}
-theorem Key_unique:
+lemma Key_unique:
       "[|Says S R
            {|Agent S, Agent TTP, Crypt K (Number m), Number AO,
              Number cleartext, Nonce q,
@@ -415,9 +402,11 @@ theorem Key_unique:
        ==> R' = R & S' = S & AO' = AO & hs' = hs"
 by (rule Key_unique_lemma, assumption+)
 
+subsection{*The Guarantees for Sender and Recipient*}
+
 text{*If Spy gets the key then @{term R} is bad and also @{term S} at least
       gets his return receipt (and therefore has no grounds for complaint).*}
-lemma Spy_see_encrypted_key_imp:
+theorem Spy_see_encrypted_key_imp:
       "[|Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number AO, 
                      Number cleartext, Nonce q, S2TTP|} \<in> set evs;
          Key K \<in> analz(knows Spy evs);
@@ -454,8 +443,6 @@ theorem Spy_not_see_encrypted_key:
       ==> Key K \<notin> analz(knows Spy evs)"
 by (blast dest: Spy_see_encrypted_key_imp) 
 
-
-subsection{*The Guarantees for Sender and Recipient*}
 
 text{*Agent @{term R}, who may be the Spy, doesn't receive the key
  until @{term S} has access to the return receipt.*} 

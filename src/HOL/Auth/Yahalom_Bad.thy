@@ -128,8 +128,10 @@ lemma new_keys_not_used [rule_format, simp]:
  "evs \<in> yahalom ==> Key K \<notin> used evs --> K \<notin> keysFor (parts (knows Spy evs))"
 apply (erule yahalom.induct, force,
        frule_tac [6] YM4_parts_knows_Spy, simp_all)
-(*Fake, YM3, YM4*)
-apply (blast dest!: keysFor_parts_insert)+
+txt{*Fake*}
+apply (force dest!: keysFor_parts_insert)
+txt{*YM3, YM4*}
+apply blast+
 done
 
 

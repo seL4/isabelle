@@ -55,42 +55,28 @@ axioms
     keys are private!) *)
   privateKey_neq_publicKey [iff]: "privateKey b A \<noteq> publicKey c A'"
 
+declare privateKey_neq_publicKey [THEN not_sym, iff]
 
 
-
-(*** Basic properties of pubK & priK ***)
+subsection{*Basic properties of @{term pubK} and @{term priK}*}
 
 lemma [iff]: "(publicKey b A = publicKey c A') = (b=c & A=A')"
 by (blast dest!: injective_publicKey) 
 
-lemma [iff]:
-    "(privateKey b A = privateKey c A') = (b=c & A=A')"
-apply (rule iffI) 
-apply (drule_tac f = "invKey" in arg_cong)
-apply (auto ); 
-done
-
-declare privateKey_neq_publicKey [THEN not_sym, iff]
-
 lemma not_symKeys_pubK [iff]: "publicKey b A \<notin> symKeys"
-apply (simp add: symKeys_def)
-done
+by (simp add: symKeys_def)
 
 lemma not_symKeys_priK [iff]: "privateKey b A \<notin> symKeys"
-apply (simp add: symKeys_def)
-done
+by (simp add: symKeys_def)
 
 lemma symKey_neq_priEK: "K \<in> symKeys ==> K \<noteq> priEK A"
 by auto
 
 lemma symKeys_neq_imp_neq: "(K \<in> symKeys) \<noteq> (K' \<in> symKeys) ==> K \<noteq> K'"
-apply blast
-done
+by blast
 
 lemma symKeys_invKey_iff [iff]: "(invKey K \<in> symKeys) = (K \<in> symKeys)"
-apply (unfold symKeys_def)
-apply auto
-done
+by (unfold symKeys_def, auto)
 
 lemma analz_symKeys_Decrypt:
      "[| Crypt K X \<in> analz H;  K \<in> symKeys;  Key K \<in> analz H |]  
@@ -102,8 +88,7 @@ by (auto simp add: symKeys_def)
 subsection{*"Image" equations that hold for injective functions*}
 
 lemma invKey_image_eq [simp]: "(invKey x \<in> invKey`A) = (x \<in> A)"
-apply auto
-done
+by auto
 
 (*holds because invKey is injective*)
 lemma publicKey_image_eq [simp]:
@@ -111,16 +96,14 @@ lemma publicKey_image_eq [simp]:
 by auto
 
 lemma privateKey_notin_image_publicKey [simp]: "privateKey b x \<notin> publicKey c ` AA"
-apply auto
-done
+by auto
 
 lemma privateKey_image_eq [simp]:
      "(privateKey b A \<in> invKey ` publicKey c ` AS) = (b=c & A\<in>AS)"
 by auto
 
 lemma publicKey_notin_image_privateKey [simp]: "publicKey b A \<notin> invKey ` publicKey c ` AS"
-apply auto
-done
+by auto
 
 
 subsection{*Symmetric Keys*}
@@ -140,14 +123,12 @@ axioms
 declare inj_shrK [THEN inj_eq, iff]
 
 lemma priK_neq_shrK [iff]: "shrK A \<noteq> privateKey b C"
-apply (simp add: symKeys_neq_imp_neq)
-done
+by (simp add: symKeys_neq_imp_neq)
 
 declare priK_neq_shrK [THEN not_sym, simp]
 
 lemma pubK_neq_shrK [iff]: "shrK A \<noteq> publicKey b C"
-apply (simp add: symKeys_neq_imp_neq)
-done
+by (simp add: symKeys_neq_imp_neq)
 
 declare pubK_neq_shrK [THEN not_sym, simp]
 
@@ -242,29 +223,23 @@ by (induct B, auto)
 
 (*Agents see their own shared keys!*)
 lemma shrK_in_initState [iff]: "Key (shrK A) \<in> initState A"
-apply (induct_tac "A")
-apply auto
-done
+by (induct_tac "A", auto)
 
 lemma shrK_in_knows [iff]: "Key (shrK A) \<in> knows A evs"
 by (simp add: initState_subset_knows [THEN subsetD])
 
 lemma shrK_in_used [iff]: "Key (shrK A) \<in> used evs"
-apply (rule initState_into_used)
-apply blast
-done
+by (rule initState_into_used, blast)
 
 (** Fresh keys never clash with long-term shared keys **)
 
 (*Used in parts_induct_tac and analz_Fake_tac to distinguish session keys
   from long-term shared keys*)
 lemma Key_not_used: "Key K \<notin> used evs ==> K \<notin> range shrK"
-apply blast
-done
+by blast
 
 lemma shrK_neq: "Key K \<notin> used evs ==> shrK B \<noteq> K"
-apply blast
-done
+by blast
 
 
 
@@ -272,15 +247,11 @@ subsection{*Function @{term spies} *}
 
 text{*Agents see their own private keys!*}
 lemma priK_in_initState [iff]: "Key (privateKey b A) \<in> initState A"
-apply (induct_tac "A")
-apply auto
-done
+by (induct_tac "A", auto)
 
 text{*Agents see all public keys!*}
 lemma publicKey_in_initState [iff]: "Key (publicKey b A) \<in> initState B"
-apply (case_tac "B")
-apply auto
-done
+by (case_tac "B", auto)
 
 text{*All public keys are visible*}
 lemma spies_pubK [iff]: "Key (publicKey b A) \<in> spies evs"
@@ -318,13 +289,10 @@ done
 subsection{*Fresh Nonces*}
 
 lemma Nonce_notin_initState [iff]: "Nonce N \<notin> parts (initState B)"
-apply (induct_tac "B")
-apply auto
-done
+by (induct_tac "B", auto)
 
 lemma Nonce_notin_used_empty [simp]: "Nonce N \<notin> used []"
-apply (simp add: used_Nil)
-done
+by (simp add: used_Nil)
 
 
 subsection{*Supply fresh nonces for possibility theorems*}
@@ -332,32 +300,27 @@ subsection{*Supply fresh nonces for possibility theorems*}
 text{*In any trace, there is an upper bound N on the greatest nonce in use*}
 lemma Nonce_supply_lemma: "EX N. ALL n. N<=n --> Nonce n \<notin> used evs"
 apply (induct_tac "evs")
-apply (rule_tac x = "0" in exI)
+apply (rule_tac x = 0 in exI)
 apply (simp_all (no_asm_simp) add: used_Cons split add: event.split)
 apply safe
 apply (rule msg_Nonce_supply [THEN exE], blast elim!: add_leE)+
 done
 
 lemma Nonce_supply1: "EX N. Nonce N \<notin> used evs"
-apply (rule Nonce_supply_lemma [THEN exE])
-apply blast
-done
+by (rule Nonce_supply_lemma [THEN exE], blast)
 
 lemma Nonce_supply: "Nonce (@ N. Nonce N \<notin> used evs) \<notin> used evs"
 apply (rule Nonce_supply_lemma [THEN exE])
-apply (rule someI)
-apply fast
+apply (rule someI, fast)
 done
 
 subsection{*Specialized rewriting for the analz_image_... theorems*}
 
 lemma insert_Key_singleton: "insert (Key K) H = Key ` {K} Un H"
-apply blast
-done
+by blast
 
 lemma insert_Key_image: "insert (Key K) (Key`KK \<union> C) = Key ` (insert K KK) \<union> C"
-apply blast
-done
+by blast
 
 ML
 {*
@@ -388,8 +351,7 @@ lemma invKey_K [simp]: "K \<in> symKeys ==> invKey K = K"
 by (simp add: symKeys_def)
 
 lemma Crypt_imp_keysFor :"[|K \<in> symKeys; Crypt K X \<in> H|] ==> K \<in> keysFor H"
-apply (drule Crypt_imp_invKey_keysFor, simp)
-done
+by (drule Crypt_imp_invKey_keysFor, simp)
 
 
 subsection{*Specialized Methods for Possibility Theorems*}
@@ -419,20 +381,35 @@ method_setup possibility = {*
 
 
 
+lemmas analz_image_freshK_simps =
+       simp_thms mem_simps --{*these two allow its use with @{text "only:"}*}
+       disj_comms 
+       image_insert [THEN sym] image_Un [THEN sym] empty_subsetI insert_subset
+       analz_insert_eq Un_upper2 [THEN analz_mono, THEN [2] rev_subsetD]
+       insert_Key_singleton 
+       Key_not_used insert_Key_image Un_assoc [THEN sym]
+
 ML
 {*
-bind_thms ("analz_image_freshK_simps",
-           simp_thms @ mem_simps @  (*these two allow its use with only:*)
-           disj_comms @
-           [image_insert RS sym, image_Un RS sym, empty_subsetI, insert_subset,
-            analz_insert_eq, impOfSubs (Un_upper2 RS analz_mono),
-	    insert_Key_singleton, 
-            Key_not_used, insert_Key_image, Un_assoc RS sym]);
-
 val analz_image_freshK_ss =
      simpset() delsimps [image_insert, image_Un]
 	       delsimps [imp_disjL]    (*reduces blow-up*)
-	       addsimps analz_image_freshK_simps;
+	       addsimps thms"analz_image_freshK_simps"
 *}
+
+axioms
+  Key_supply_ax:  "finite KK ==> \<exists>K\<in>symKeys. K \<notin> KK & Key K \<notin> used evs"
+  --{*Unlike the corresponding property of nonces, this cannot be proved.
+    We have infinitely many agents and there is nothing to stop their
+    long-term keys from exhausting all the natural numbers.  The axiom
+    assumes that their keys are dispersed so as to leave room for infinitely
+    many fresh session keys.  We could, alternatively, restrict agents to
+    an unspecified finite number.  We could however replace @{term"used evs"} 
+    by @{term "used []"}.*}
+
+
+lemma Key_supply1: "\<exists>K\<in>symKeys. Key K \<notin> used evs"
+by (rule Finites.emptyI [THEN Key_supply_ax, THEN bexE], blast)
+
 
 end

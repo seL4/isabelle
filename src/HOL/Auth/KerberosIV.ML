@@ -177,7 +177,7 @@ Goal "evs \\<in> kerberos ==>      \
 \     Key K \\<notin> used evs --> K \\<notin> keysFor (parts (spies evs))";
 by (parts_induct_tac 1);
 (*Fake*)
-by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
+by (force_tac (claset() addSDs [keysFor_parts_insert], simpset()) 1);
 (*Others*)
 by (ALLGOALS Blast_tac);
 qed_spec_mp "new_keys_not_used";

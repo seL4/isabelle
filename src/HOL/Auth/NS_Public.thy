@@ -50,7 +50,8 @@ lemma "\<exists>NB. \<exists>evs \<in> ns_public. Says A B (Crypt (pubEK B) (Non
 apply (intro exI bexI)
 apply (rule_tac [2] ns_public.Nil [THEN ns_public.NS1, THEN ns_public.NS2, 
                                    THEN ns_public.NS3])
-by possibility
+apply possibility
+done
 
 
 (**** Inductive proofs about ns_public ****)
