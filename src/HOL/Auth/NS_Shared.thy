@@ -269,13 +269,13 @@ apply (erule_tac [5] disjE)
 apply (simp_all add: analz_insert_eq analz_insert_freshK pushes split_ifs)
 apply spy_analz  (*Fake*) 
 apply blast      (*NS2*)
-(*NS3, Server sub-case*) (**LEVEL 6 **)
-apply clarify
-apply (frule Says_imp_knows_Spy [THEN parts.Inj, THEN A_trusts_NS2])
-apply (blast dest: Says_imp_knows_Spy analz.Inj Crypt_Spy_analz_bad)
-apply assumption
-apply (blast dest: unique_session_keys)+ (*also proves Oops*)
+(*NS3, Server sub-case*) (**LEVEL 8 **)
+apply (blast dest!: Crypt_Spy_analz_bad A_trusts_NS2
+	     dest:  Says_imp_knows_Spy analz.Inj unique_session_keys)
+(*NS3, Spy sub-case; also Oops*) 
+apply (blast dest: unique_session_keys)+ 
 done
+
 
 
 (*Final version: Server's message in the most abstract form*)
