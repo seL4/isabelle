@@ -181,7 +181,7 @@ fun init isar =
  (setup_messages ();
   setup_state isar;
   setup_thy_loader isar;
-(*  print_mode := [proof_generalN];  (* FIXME doesn't work, yet *)  *)
+  print_mode := [proof_generalN];
   set quick_and_dirty;
   if isar then Isar.sync_main () else isa_restart ());
 
