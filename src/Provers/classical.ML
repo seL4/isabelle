@@ -934,7 +934,7 @@ fun find_erules [] _ = []
       let
         fun may_unify net = Net.unify_term net o #prop o Thm.rep_thm;
         fun erules_of (_, enet) = order_rules (flat (map (may_unify enet) facts));
-      in flat (map erules_of nets) end;
+      in flat (map erules_of nets) @ [Data.not_elim, imp_elim] end;
 
 
 (* trace rules *)
@@ -954,7 +954,7 @@ fun single_tac cs facts =
   let
     val CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...} = cs;
     val nets = [safe0_netpair, safep_netpair, haz_netpair, dup_netpair];
-    val erules = Data.not_elim :: imp_elim :: find_erules facts nets;
+    val erules = find_erules facts nets;
 
     val tac = SUBGOAL (fn (goal, i) =>
       let
