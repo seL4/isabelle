@@ -208,7 +208,7 @@ fun split_posns cmap sg Ts t =
               Const(c, cT) =>
                 let fun find [] = []
                       | find ((gcT, thm, T, n)::tups) =
-                          if Type.typ_instance(Sign.tsig_of sg, cT, gcT)
+                          if Sign.typ_instance sg (cT, gcT)
                           then
                             let val t2 = list_comb (h, take (n, ts))
                             in mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)

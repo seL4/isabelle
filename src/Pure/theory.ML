@@ -324,12 +324,9 @@ fun clash_defns c_ty axms =
 datatype overloading = NoOverloading | Useless | Plain;
 
 fun overloading sg declT defT =
-  let
-    val tsig = Sign.tsig_of sg;
-    val T = Term.incr_tvar (maxidx_of_typ declT + 1) (Type.varifyT defT);
-  in
-    if Type.typ_instance (tsig, declT, T) then NoOverloading
-    else if Type.typ_instance (tsig, Type.rem_sorts declT, Type.rem_sorts T) then Useless
+  let val T = Term.incr_tvar (maxidx_of_typ declT + 1) (Type.varifyT defT) in
+    if Sign.typ_instance sg (declT, T) then NoOverloading
+    else if Sign.typ_instance sg (Type.rem_sorts declT, Type.rem_sorts T) then Useless
     else Plain
   end;
 

@@ -178,7 +178,7 @@ fun inst_failure ixn =
   error("Instantiation of " ^ Syntax.string_of_vname ixn ^ " fails");
 
 fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
-let val {tsig,...} = Sign.rep_sg sign
+let
     fun split([],tvs,vs) = (tvs,vs)
       | split((sv,st)::l,tvs,vs) = (case Symbol.explode sv of
                   "'"::cs => split(l,(Syntax.indexname cs,st)::tvs,vs)
@@ -188,7 +188,7 @@ let val {tsig,...} = Sign.rep_sg sign
         let val ixn = ("'" ^ a,i);
             val S = case rsorts ixn of Some S => S | None => absent ixn;
             val T = Sign.read_typ (sign,sorts) st;
-        in if Type.typ_instance(tsig,T,TVar(ixn,S)) then (ixn,T)
+        in if Sign.typ_instance sign (T, TVar(ixn,S)) then (ixn,T)
            else inst_failure ixn
         end
     val tye = map readT tvs;
@@ -654,12 +654,11 @@ local
         val maxi = Int.max(maxidx, Int.max(maxt, maxu));
         val sign' = Sign.merge(sign, Sign.merge(signt, signu))
         val (tye',maxi') = Type.unify (#tsig(Sign.rep_sg sign')) maxi tye (T,U)
-          handle Type.TUNIFY => raise TYPE("add_types", [T,U], [t,u])
+          handle Type.TUNIFY => raise TYPE("Ill-typed instantiation", [T,U], [t,u])
     in  (sign', tye', maxi')  end;
 in
 fun cterm_instantiate ctpairs0 th =
   let val (sign,tye,_) = foldr add_types (ctpairs0, (#sign(rep_thm th), Vartab.empty, 0))
-      val tsig = #tsig(Sign.rep_sg sign);
       fun instT(ct,cu) = let val inst = subst_TVars_Vartab tye
                          in (cterm_fun inst ct, cterm_fun inst cu) end
       fun ctyp2 (ix,T) = (ix, ctyp_of sign T)
