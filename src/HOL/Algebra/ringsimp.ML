@@ -64,16 +64,28 @@ fun termless_ring (a, b) = (term_lpo ring_ord (a, b) = LESS);
 val cring_ss = HOL_ss settermless termless_ring;
 
 fun cring_normalise ctxt = let
-    fun filter t = (case HOLogic.dest_Trueprop t of
-        Const ("CRing.cring_axioms", _) $ Free (s, _) => [s]
+    fun ring_filter t = (case HOLogic.dest_Trueprop t of
+        Const ("CRing.ring_axioms", _) $ Free (s, _) => [s]
       | _ => [])
       handle TERM _ => [];
-    val insts = flat (map (filter o #prop o rep_thm)
-      (ProofContext.prems_of ctxt));
-val _ = warning ("Rings in proof context: " ^ implode insts);
+    fun comm_filter t = (case HOLogic.dest_Trueprop t of
+        Const ("Group.comm_semigroup_axioms", _) $ Free (s, _) => [s]
+      | _ => [])
+      handle TERM _ => [];
+
+    val prems = ProofContext.prems_of ctxt;
+    val rings = flat (map (ring_filter o #prop o rep_thm) prems);
+    val comms = flat (map (comm_filter o #prop o rep_thm) prems);
+    val non_comm_rings = rings \\ comms;
+    val comm_rings = rings inter_string comms;
+    val _ = tracing
+      ("Non-commutative rings in proof context: " ^ commas non_comm_rings ^
+       "\nCommutative rings in proof context: " ^ commas comm_rings);
     val simps =
+      flat (map (fn s => ProofContext.get_thms ctxt (s ^ ".ring_simprules"))
+        non_comm_rings) @
       flat (map (fn s => ProofContext.get_thms ctxt (s ^ ".cring_simprules"))
-        insts);
+        comm_rings);
   in Method.SIMPLE_METHOD' HEADGOAL (asm_full_simp_tac (cring_ss addsimps simps))
   end;
 

@@ -276,8 +276,8 @@ lemma (in abelian_monoid) finsum_add [simp]:
     simplified monoid_record_simps])
 
 lemma (in abelian_monoid) finsum_cong:
-  "[| A = B;
-      f : B -> carrier G = True; !!i. i : B ==> f i = g i |] ==> finsum G f A = finsum G g B"
+  "[| A = B; f : B -> carrier G = True;
+      !!i. i : B ==> f i = g i |] ==> finsum G f A = finsum G g B"
   by (rule comm_monoid.finprod_cong [OF a_comm_monoid, folded finsum_def,
     simplified monoid_record_simps]) auto
 
@@ -289,9 +289,13 @@ section {* The Algebraic Hierarchy of Rings *}
 
 subsection {* Basic Definitions *}
 
-locale cring = abelian_group R + comm_monoid R +
+locale ring = abelian_group R + monoid R +
   assumes l_distr: "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
       ==> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
+    and r_distr: "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
+      ==> z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y"
+
+locale cring = ring + comm_monoid R
 
 locale "domain" = cring +
   assumes one_not_zero [simp]: "\<one> ~= \<zero>"
@@ -300,18 +304,54 @@ locale "domain" = cring +
 
 subsection {* Basic Facts of Rings *}
 
+lemma ringI:
+  includes struct R
+  assumes abelian_group: "abelian_group R"
+    and monoid: "monoid R"
+    and l_distr: "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
+      ==> mult R (add R x y) z = add R (mult R x z) (mult R y z)"
+    and r_distr: "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
+      ==> z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y"
+  shows "ring R"
+  by (auto intro: ring.intro
+    abelian_group.axioms monoid.axioms ring_axioms.intro prems)
+
+lemma (in ring) is_abelian_group:
+  "abelian_group R"
+  by (auto intro!: abelian_groupI a_assoc a_comm l_neg)
+
+lemma (in ring) is_monoid:
+  "monoid R"
+  by (auto intro!: monoidI m_assoc)
+
 lemma cringI:
+  includes struct R
   assumes abelian_group: "abelian_group R"
     and comm_monoid: "comm_monoid R"
     and l_distr: "!!x y z. [| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
       ==> mult R (add R x y) z = add R (mult R x z) (mult R y z)"
   shows "cring R"
-  by (auto intro: cring.intro
-    abelian_group.axioms comm_monoid.axioms cring_axioms.intro prems)
-
-lemma (in cring) is_abelian_group:
-  "abelian_group R"
-  by (auto intro!: abelian_groupI a_assoc a_comm l_neg)
+  proof (rule cring.intro)
+    show "ring_axioms R"
+    -- {* Right-distributivity follows from left-distributivity and
+          commutativity. *}
+    proof (rule ring_axioms.intro)
+      fix x y z
+      assume R: "x \<in> carrier R" "y \<in> carrier R" "z \<in> carrier R"
+      note [simp]= comm_monoid.axioms [OF comm_monoid]
+        abelian_group.axioms [OF abelian_group]
+        abelian_monoid.a_closed
+        magma.m_closed
+        
+      from R have "z \<otimes> (x \<oplus> y) = (x \<oplus> y) \<otimes> z"
+        by (simp add: comm_semigroup.m_comm [OF comm_semigroup.intro])
+      also from R have "... = x \<otimes> z \<oplus> y \<otimes> z" by (simp add: l_distr)
+      also from R have "... = z \<otimes> x \<oplus> z \<otimes> y"
+        by (simp add: comm_semigroup.m_comm [OF comm_semigroup.intro])
+      finally show "z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y" .
+    qed
+  qed (auto intro: cring.intro
+      abelian_group.axioms comm_monoid.axioms ring_axioms.intro prems)
 
 lemma (in cring) is_comm_monoid:
   "comm_monoid R"
@@ -338,22 +378,11 @@ proof -
   with G show ?thesis by (simp add: a_ac)
 qed
 
-lemma (in cring) r_distr:
-  "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
-  ==> z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y"
-proof -
-  assume R: "x \<in> carrier R" "y \<in> carrier R" "z \<in> carrier R"
-  then have "z \<otimes> (x \<oplus> y) = (x \<oplus> y) \<otimes> z" by (simp add: m_comm)
-  also from R have "... = x \<otimes> z \<oplus> y \<otimes> z" by (simp add: l_distr)
-  also from R have "... = z \<otimes> x \<oplus> z \<otimes> y" by (simp add: m_comm)
-  finally show ?thesis .
-qed
-
 text {* 
   The following proofs are from Jacobson, Basic Algebra I, pp.~88--89
 *}
 
-lemma (in cring) l_null [simp]:
+lemma (in ring) l_null [simp]:
   "x \<in> carrier R ==> \<zero> \<otimes> x = \<zero>"
 proof -
   assume R: "x \<in> carrier R"
@@ -364,16 +393,18 @@ proof -
   with R show ?thesis by (simp del: r_zero)
 qed
 
-lemma (in cring) r_null [simp]:
+lemma (in ring) r_null [simp]:
   "x \<in> carrier R ==> x \<otimes> \<zero> = \<zero>"
 proof -
   assume R: "x \<in> carrier R"
-  then have "x \<otimes> \<zero> = \<zero> \<otimes> x" by (simp add: m_ac)
-  also from R have "... = \<zero>" by simp
-  finally show ?thesis .
+  then have "x \<otimes> \<zero> \<oplus> x \<otimes> \<zero> = x \<otimes> (\<zero> \<oplus> \<zero>)"
+    by (simp add: r_distr del: l_zero r_zero)
+  also from R have "... = x \<otimes> \<zero> \<oplus> \<zero>" by simp
+  finally have "x \<otimes> \<zero> \<oplus> x \<otimes> \<zero> = x \<otimes> \<zero> \<oplus> \<zero>" .
+  with R show ?thesis by (simp del: r_zero)
 qed
 
-lemma (in cring) l_minus:
+lemma (in ring) l_minus:
   "[| x \<in> carrier R; y \<in> carrier R |] ==> \<ominus> x \<otimes> y = \<ominus> (x \<otimes> y)"
 proof -
   assume R: "x \<in> carrier R" "y \<in> carrier R"
@@ -384,19 +415,26 @@ proof -
   with R show ?thesis by (simp add: a_assoc r_neg )
 qed
 
-lemma (in cring) r_minus:
+lemma (in ring) r_minus:
   "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<otimes> \<ominus> y = \<ominus> (x \<otimes> y)"
 proof -
   assume R: "x \<in> carrier R" "y \<in> carrier R"
-  then have "x \<otimes> \<ominus> y = \<ominus> y \<otimes> x" by (simp add: m_ac)
-  also from R have "... = \<ominus> (y \<otimes> x)" by (simp add: l_minus)
-  also from R have "... = \<ominus> (x \<otimes> y)" by (simp add: m_ac)
-  finally show ?thesis .
+  then have "x \<otimes> (\<ominus> y) \<oplus> x \<otimes> y = x \<otimes> (\<ominus> y \<oplus> y)" by (simp add: r_distr)
+  also from R have "... = \<zero>" by (simp add: l_neg r_null)
+  finally have "x \<otimes> (\<ominus> y) \<oplus> x \<otimes> y = \<zero>" .
+  with R have "x \<otimes> (\<ominus> y) \<oplus> x \<otimes> y \<oplus> \<ominus> (x \<otimes> y) = \<zero> \<oplus> \<ominus> (x \<otimes> y)" by simp
+  with R show ?thesis by (simp add: a_assoc r_neg )
 qed
 
-lemma (in cring) minus_eq:
+lemma (in ring) minus_eq:
   "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y = x \<oplus> \<ominus> y"
   by (simp only: minus_def)
+
+lemmas (in ring) ring_simprules =
+  a_closed zero_closed a_inv_closed minus_closed m_closed one_closed
+  a_assoc l_zero l_neg a_comm m_assoc l_one l_distr minus_eq
+  r_zero r_neg r_neg2 r_neg1 minus_add minus_minus minus_zero
+  a_lcomm r_distr l_null r_null l_minus r_minus
 
 lemmas (in cring) cring_simprules =
   a_closed zero_closed a_inv_closed minus_closed m_closed one_closed
@@ -417,7 +455,7 @@ lemma (in cring) nat_pow_zero:
 text {* Two examples for use of method algebra *}
 
 lemma
-  includes cring R + cring S
+  includes ring R + cring S
   shows "[| a \<in> carrier R; b \<in> carrier R; c \<in> carrier S; d \<in> carrier S |] ==> 
   a \<oplus> \<ominus> (a \<oplus> \<ominus> b) = b & c \<otimes>\<^sub>2 d = d \<otimes>\<^sub>2 c"
   by algebra

@@ -51,6 +51,23 @@ apply (unfold Inv_def)
 apply (fast intro: someI2)
 done
 
+lemma Inv_f_eq:
+  "[| inj_on f A; f x = y; x : A |] ==> Inv A f y = x"
+  apply (erule subst)
+  apply (erule Inv_f_f)
+  apply assumption
+  done
+
+lemma Inv_comp:
+  "[| inj_on f (g ` A); inj_on g A; x : f ` g ` A |] ==>
+  Inv A (f o g) x = (Inv A g o Inv (g ` A) f) x"
+  apply simp
+  apply (rule Inv_f_eq)
+    apply (fast intro: comp_inj_on)
+   apply (simp add: f_Inv_f Inv_mem)
+  apply (simp add: Inv_mem)
+  done
+
 lemma tfl_some: "\<forall>P x. P x --> P (Eps P)"
   -- {* dynamically-scoped fact for TFL *}
   by (blast intro: someI)

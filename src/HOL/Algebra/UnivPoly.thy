@@ -370,10 +370,14 @@ theorem (in UP_cring) UP_cring:
   by (auto intro!: cringI abelian_groupI comm_monoidI UP_a_assoc UP_l_zero
     UP_l_neg_ex UP_a_comm UP_m_assoc UP_l_one UP_m_comm UP_l_distr)
 
+lemma (in UP_cring) UP_ring:  (* preliminary *)
+  "ring P"
+  by (auto intro: ring.intro cring.axioms UP_cring)
+
 lemma (in UP_cring) UP_a_inv_closed [intro, simp]:
   "p \<in> carrier P ==> \<ominus>\<^sub>2 p \<in> carrier P"
   by (rule abelian_group.a_inv_closed
-    [OF cring.is_abelian_group [OF UP_cring]])
+    [OF ring.is_abelian_group [OF UP_ring]])
 
 lemma (in UP_cring) coeff_a_inv [simp]:
   assumes R: "p \<in> carrier P"
@@ -384,7 +388,7 @@ proof -
     by algebra
   also from R have "... =  \<ominus> (coeff P p n)"
     by (simp del: coeff_add add: coeff_add [THEN sym]
-      abelian_group.r_neg [OF cring.is_abelian_group [OF UP_cring]])
+      abelian_group.r_neg [OF ring.is_abelian_group [OF UP_ring]])
   finally show ?thesis .
 qed
 
@@ -409,11 +413,11 @@ lemma (in UP_cring) UP_comm_monoid:
 
 lemma (in UP_cring) UP_abelian_monoid:
   "abelian_monoid P"
-  by (fast intro!: abelian_group.axioms cring.is_abelian_group UP_cring)
+  by (fast intro!: abelian_group.axioms ring.is_abelian_group UP_ring)
 
 lemma (in UP_cring) UP_abelian_group:
   "abelian_group P"
-  by (fast intro!: cring.is_abelian_group UP_cring)
+  by (fast intro!: ring.is_abelian_group UP_ring)
 
 lemmas (in UP_cring) UP_r_one [simp] =
   monoid.r_one [OF UP_monoid]
@@ -521,19 +525,19 @@ lemmas (in UP_cring) UP_r_neg1 =
   abelian_group.r_neg1 [OF UP_abelian_group]
 
 lemmas (in UP_cring) UP_r_distr =
-  cring.r_distr [OF UP_cring]
+  ring.r_distr [OF UP_ring]
 
 lemmas (in UP_cring) UP_l_null [simp] =
-  cring.l_null [OF UP_cring]
+  ring.l_null [OF UP_ring]
 
 lemmas (in UP_cring) UP_r_null [simp] =
-  cring.r_null [OF UP_cring]
+  ring.r_null [OF UP_ring]
 
 lemmas (in UP_cring) UP_l_minus =
-  cring.l_minus [OF UP_cring]
+  ring.l_minus [OF UP_ring]
 
 lemmas (in UP_cring) UP_r_minus =
-  cring.r_minus [OF UP_cring]
+  ring.r_minus [OF UP_ring]
 
 lemmas (in UP_cring) UP_finsum_ldistr =
   cring.finsum_ldistr [OF UP_cring]

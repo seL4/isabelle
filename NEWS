@@ -117,6 +117,8 @@ New in this Isabelle release
 
 * arith(_tac) is now able to generate counterexamples for reals as well.
 
+* HOL-Algebra: new locale "ring" for non-commutative rings.
+
 * SET-Protocol: formalization and verification of the SET protocol suite;
 
 * HOL-ex: InductiveInvariant_examples illustrates advanced recursive function
