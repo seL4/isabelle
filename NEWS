@@ -14,6 +14,9 @@ Isabelle NEWS -- history user-relevant changes
   (rare) case use   delSWrapper "split_all_tac" addSbefore 
                     ("unsafe_split_all_tac", unsafe_split_all_tac)
 
+* ZF: the integer library now covers quotients and remainders, with many laws
+relating division to addition, multiplication, etc.;
+
 
 New in Isabelle99-2 (February 2001)
 -----------------------------------
