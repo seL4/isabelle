@@ -109,9 +109,9 @@ apply simp
 txt{*
 @{subgoals[display,indent=0]}
 Again, simplification produces a term suitable for @{thm[source]split_split}
-as above. If you are worried about the funny form of the premise:
-@{term"split (op =)"} is the same as @{text"\<lambda>(x,y). x=y"}.
-The same procedure works for
+as above. If you are worried about the strange form of the premise:
+@{term"split (op =)"} is short for @{text"\<lambda>(x,y). x=y"}.
+The same proof procedure works for
 *}
 
 (*<*)by(simp split:split_split)(*>*)

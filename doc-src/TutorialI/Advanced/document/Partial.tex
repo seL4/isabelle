@@ -3,15 +3,25 @@
 \def\isabellecontext{Partial}%
 %
 \begin{isamarkuptext}%
-\noindent
-Throughout the tutorial we have emphasized the fact that all functions
-in HOL are total. Hence we cannot hope to define truly partial
-functions. The best we can do are functions that are
-\emph{underdefined}\index{underdefined function}:
-for certain arguments we only know that a result
-exists, but we do not know what it is. When defining functions that are
-normally considered partial, underdefinedness turns out to be a very
-reasonable alternative.
+\noindent Throughout the tutorial we have emphasized the fact
+that all functions in HOL are total. Hence we cannot hope to define
+truly partial functions but must totalize them. A straightforward
+totalization is to lift the result type of the function from $\tau$ to
+$\tau$~\isa{option} (see \ref{sec:option}), where \isa{None} is
+returned if the function is applied to an argument not in its
+domain. Function \isa{assoc} in \S\ref{sec:Trie} is a simple example.
+We do not pursue this schema further because it should be clear
+how it works. Its main drawback is that the result of such a lifted
+function has to be unpacked first before it can be processed
+further. Its main advantage is that you can distinguish if the
+function was applied to an argument in its domain or not. If you do
+not need to make this distinction, for example because the function is
+never used outside its domain, it is easier to work with
+\emph{underdefined}\index{underdefined function} functions: for
+certain arguments we only know that a result exists, but we do not
+know what it is. When defining functions that are normally considered
+partial, underdefinedness turns out to be a very reasonable
+alternative.
 
 We have already seen an instance of underdefinedness by means of
 non-exhaustive pattern matching: the definition of \isa{last} in
@@ -64,7 +74,7 @@ simplifies proofs at the expense of deviating from the
 standard mathematical division function.
 
 As a more substantial example we consider the problem of searching a graph.
-For simplicity our graph is given by a function (\isa{f}) of
+For simplicity our graph is given by a function \isa{f} of
 type \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} which
 maps each node to its successor, i.e.\ the graph is really a tree.
 The task is to find the end of a chain, modelled by a node pointing to
@@ -93,9 +103,7 @@ must be well-founded. Thus we make the following definition:%
 \noindent
 The recursion equation itself should be clear enough: it is our aborted
 first attempt augmented with a check that there are no non-trivial loops.
-
-What complicates the termination proof is that the argument of \isa{find}
-is a pair. To express the required well-founded relation we employ the
+To express the required well-founded relation we employ the
 predefined combinator \isa{same{\isacharunderscore}fst} of type
 \begin{isabelle}%
 \ \ \ \ \ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b{\isasymtimes}{\isacharprime}b{\isacharparenright}set{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharparenleft}{\isacharprime}a{\isasymtimes}{\isacharprime}b{\isacharparenright}\ {\isasymtimes}\ {\isacharparenleft}{\isacharprime}a{\isasymtimes}{\isacharprime}b{\isacharparenright}{\isacharparenright}set%
@@ -188,8 +196,8 @@ of induction we apply the above while rule, suitably instantiated.
 Only the final premise of \isa{while{\isacharunderscore}rule} is left unproved
 by \isa{auto} but falls to \isa{simp}:%
 \end{isamarkuptext}%
-\isacommand{lemma}\ lem{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}{\isacharsemicolon}\ x{\isacharprime}\ {\isacharequal}\ f\ x\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ \isanewline
-\ \ \ {\isasymexists}y{\isachardot}\ while\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}f\ x{\isacharprime}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}y{\isacharparenright}\ {\isasymand}\isanewline
+\isacommand{lemma}\ lem{\isacharcolon}\ {\isachardoublequote}wf{\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\ \ {\isasymexists}y{\isachardot}\ while\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isasymnoteq}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharprime}{\isacharcomma}f\ x{\isacharprime}{\isacharparenright}{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}f\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}y{\isacharcomma}y{\isacharparenright}\ {\isasymand}\isanewline
 \ \ \ \ \ \ \ f\ y\ {\isacharequal}\ y{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ P\ {\isacharequal}\ {\isachardoublequote}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}x{\isacharprime}{\isacharparenright}{\isachardot}\ x{\isacharprime}\ {\isacharequal}\ f\ x{\isachardoublequote}\ \isakeyword{and}\isanewline
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ r\ {\isacharequal}\ {\isachardoublequote}inv{\isacharunderscore}image\ {\isacharparenleft}step{\isadigit{1}}\ f{\isacharparenright}\ fst{\isachardoublequote}\ \isakeyword{in}\ while{\isacharunderscore}rule{\isacharparenright}\isanewline

@@ -4,8 +4,8 @@ subsubsection{*Controlled Overloading with Type Classes*}
 
 text{*
 We now start with the theory of ordering relations, which we want to phrase
-in terms of the two binary symbols @{text"<<"} and @{text"<<="}: they have
-been chosen to avoid clashes with @{text"<"} and @{text"\<le>"} in theory @{text
+in terms of the two binary symbols @{text"<<"} and @{text"<<="}
+to avoid clashes with @{text"<"} and @{text"\<le>"} in theory @{text
 Main}. To restrict the application of @{text"<<"} and @{text"<<="} we
 introduce the class @{text ordrel}:
 *}
@@ -15,7 +15,7 @@ axclass ordrel < "term"
 text{*\noindent
 This introduces a new class @{text ordrel} and makes it a subclass of
 the predefined class @{text term}\footnote{The quotes around @{text term}
-simply avoid the clash with the command \isacommand{term}.}; @{text term}
+simply avoid the clash with the command \isacommand{term}.} --- @{text term}
 is the class of all HOL types, like ``Object'' in Java.
 This is a degenerate form of axiomatic type class without any axioms.
 Its sole purpose is to restrict the use of overloaded constants to meaningful

@@ -107,9 +107,9 @@ can be split as above. The same is true for paired set comprehension:%
 \ {\isadigit{1}}{\isachardot}\ split\ op\ {\isacharequal}\ p\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p%
 \end{isabelle}
 Again, simplification produces a term suitable for \isa{split{\isacharunderscore}split}
-as above. If you are worried about the funny form of the premise:
-\isa{split\ op\ {\isacharequal}} is the same as \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y}.
-The same procedure works for%
+as above. If you are worried about the strange form of the premise:
+\isa{split\ op\ {\isacharequal}} is short for \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y}.
+The same proof procedure works for%
 \end{isamarkuptxt}%
 \isacommand{lemma}\ {\isachardoublequote}p\ {\isasymin}\ {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharequal}y{\isacharbraceright}\ {\isasymLongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p{\isachardoublequote}%
 \begin{isamarkuptxt}%

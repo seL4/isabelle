@@ -59,9 +59,9 @@ expresses.  Simplification shows that this is a path starting with @{term t}
 and that the instantiated induction hypothesis implies the conclusion.
 
 Now we come to the key lemma. Assuming that no infinite @{term A}-avoiding
-path starts from @{term s}, we want to show @{prop"s \<in> lfp(af A)"}. This
-can be generalized by proving that every point @{term t} ``between''
-@{term s} and @{term A}, i.e.\ all of @{term"Avoid s A"},
+path starts from @{term s}, we want to show @{prop"s \<in> lfp(af A)"}. For the
+inductive proof this must be generalized to the statement that every point @{term t}
+``between'' @{term s} and @{term A}, i.e.\ all of @{term"Avoid s A"},
 is contained in @{term"lfp(af A)"}:
 *}
 
@@ -79,7 +79,7 @@ again trivial.
 The formal counterpart of this proof sketch is a well-founded induction
 w.r.t.\ @{term M} restricted to (roughly speaking) @{term"Avoid s A - A"}:
 @{term[display]"{(y,x). (x,y) \<in> M \<and> x \<in> Avoid s A \<and> x \<notin> A}"}
-As we shall see in a moment, the absence of infinite @{term A}-avoiding paths
+As we shall see presently, the absence of infinite @{term A}-avoiding paths
 starting from @{term s} implies well-foundedness of this relation. For the
 moment we assume this and proceed with the induction:
 *}

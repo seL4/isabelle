@@ -34,6 +34,6 @@ In addition there is a special input syntax for bounded quantifiers:
 \end{tabular}
 \end{center}
 And analogously for @{text"<"} instead of @{text"\<le>"}.
-The form on the left is translated into the one on the right upon input but it is not
-translated back upon output.
+The form on the left is translated into the one on the right upon input.
+For technical reasons, it is not translated back upon output.
 *}(*<*)end(*>*)

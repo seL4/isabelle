@@ -3,7 +3,7 @@
 \def\isabellecontext{Nested{\isadigit{2}}}%
 %
 \begin{isamarkuptext}%
-The termintion condition is easily proved by induction:%
+The termination condition is easily proved by induction:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ size\ t\ {\isacharless}\ Suc{\isacharparenleft}term{\isacharunderscore}list{\isacharunderscore}size\ ts{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{by}{\isacharparenleft}induct{\isacharunderscore}tac\ ts{\isacharcomma}\ auto{\isacharparenright}%
@@ -63,12 +63,12 @@ like \isa{map}. For a start, if nothing were known about \isa{map},
 \ \ \ \ \ {\isasymlbrakk}xs\ {\isacharequal}\ ys{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ set\ ys\ {\isasymLongrightarrow}\ f\ x\ {\isacharequal}\ g\ x{\isasymrbrakk}\isanewline
 \isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ map\ f\ xs\ {\isacharequal}\ map\ g\ ys%
 \end{isabelle}
-Its second premise expresses (indirectly) that the second argument of
-\isa{map} is only applied to elements of its third argument. Congruence
+Its second premise expresses (indirectly) that the first argument of
+\isa{map} is only applied to elements of its second argument. Congruence
 rules for other higher-order functions on lists look very similar. If you get
 into a situation where you need to supply \isacommand{recdef} with new
-congruence rules, you can either append a hint locally
-to the specific occurrence of \isacommand{recdef}%
+congruence rules, you can either append a hint after the end of
+the recursion equations%
 \end{isamarkuptext}%
 {\isacharparenleft}\isakeyword{hints}\ recdef{\isacharunderscore}cong{\isacharcolon}\ map{\isacharunderscore}cong{\isacharparenright}%
 \begin{isamarkuptext}%

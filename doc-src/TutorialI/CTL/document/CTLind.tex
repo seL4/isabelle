@@ -59,9 +59,9 @@ expresses.  Simplification shows that this is a path starting with \isa{t}
 and that the instantiated induction hypothesis implies the conclusion.
 
 Now we come to the key lemma. Assuming that no infinite \isa{A}-avoiding
-path starts from \isa{s}, we want to show \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. This
-can be generalized by proving that every point \isa{t} ``between''
-\isa{s} and \isa{A}, i.e.\ all of \isa{Avoid\ s\ A},
+path starts from \isa{s}, we want to show \isa{s\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}}. For the
+inductive proof this must be generalized to the statement that every point \isa{t}
+``between'' \isa{s} and \isa{A}, i.e.\ all of \isa{Avoid\ s\ A},
 is contained in \isa{lfp\ {\isacharparenleft}af\ A{\isacharparenright}}:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ Avoid{\isacharunderscore}in{\isacharunderscore}lfp{\isacharbrackleft}rule{\isacharunderscore}format{\isacharparenleft}no{\isacharunderscore}asm{\isacharparenright}{\isacharbrackright}{\isacharcolon}\isanewline
@@ -79,7 +79,7 @@ w.r.t.\ \isa{M} restricted to (roughly speaking) \isa{Avoid\ s\ A\ {\isacharminu
 \begin{isabelle}%
 \ \ \ \ \ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ x\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A{\isacharbraceright}%
 \end{isabelle}
-As we shall see in a moment, the absence of infinite \isa{A}-avoiding paths
+As we shall see presently, the absence of infinite \isa{A}-avoiding paths
 starting from \isa{s} implies well-foundedness of this relation. For the
 moment we assume this and proceed with the induction:%
 \end{isamarkuptxt}%

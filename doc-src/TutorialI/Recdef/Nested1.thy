@@ -3,7 +3,7 @@ theory Nested1 = Nested0:;
 (*>*)
 
 text{*\noindent
-Although the definition of @{term trev} is quite natural, we will have
+Although the definition of @{term trev} below is quite natural, we will have
 to overcome a minor difficulty in convincing Isabelle of its termination.
 It is precisely this difficulty that is the \textit{raison d'\^etre} of
 this subsection.

@@ -1,14 +1,24 @@
 (*<*)theory Partial = While_Combinator:(*>*)
 
-text{*\noindent
-Throughout the tutorial we have emphasized the fact that all functions
-in HOL are total. Hence we cannot hope to define truly partial
-functions. The best we can do are functions that are
-\emph{underdefined}\index{underdefined function}:
-for certain arguments we only know that a result
-exists, but we do not know what it is. When defining functions that are
-normally considered partial, underdefinedness turns out to be a very
-reasonable alternative.
+text{*\noindent Throughout the tutorial we have emphasized the fact
+that all functions in HOL are total. Hence we cannot hope to define
+truly partial functions but must totalize them. A straightforward
+totalization is to lift the result type of the function from $\tau$ to
+$\tau$~@{text option} (see \ref{sec:option}), where @{term None} is
+returned if the function is applied to an argument not in its
+domain. Function @{term assoc} in \S\ref{sec:Trie} is a simple example.
+We do not pursue this schema further because it should be clear
+how it works. Its main drawback is that the result of such a lifted
+function has to be unpacked first before it can be processed
+further. Its main advantage is that you can distinguish if the
+function was applied to an argument in its domain or not. If you do
+not need to make this distinction, for example because the function is
+never used outside its domain, it is easier to work with
+\emph{underdefined}\index{underdefined function} functions: for
+certain arguments we only know that a result exists, but we do not
+know what it is. When defining functions that are normally considered
+partial, underdefinedness turns out to be a very reasonable
+alternative.
 
 We have already seen an instance of underdefinedness by means of
 non-exhaustive pattern matching: the definition of @{term last} in
@@ -61,7 +71,7 @@ simplifies proofs at the expense of deviating from the
 standard mathematical division function.
 
 As a more substantial example we consider the problem of searching a graph.
-For simplicity our graph is given by a function (@{term f}) of
+For simplicity our graph is given by a function @{term f} of
 type @{typ"'a \<Rightarrow> 'a"} which
 maps each node to its successor, i.e.\ the graph is really a tree.
 The task is to find the end of a chain, modelled by a node pointing to
@@ -90,9 +100,7 @@ recdef find "same_fst (\<lambda>f. wf(step1 f)) step1"
 text{*\noindent
 The recursion equation itself should be clear enough: it is our aborted
 first attempt augmented with a check that there are no non-trivial loops.
-
-What complicates the termination proof is that the argument of @{term find}
-is a pair. To express the required well-founded relation we employ the
+To express the required well-founded relation we employ the
 predefined combinator @{term same_fst} of type
 @{text[display]"('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> ('b\<times>'b)set) \<Rightarrow> (('a\<times>'b) \<times> ('a\<times>'b))set"}
 defined as
@@ -177,8 +185,8 @@ Only the final premise of @{thm[source]while_rule} is left unproved
 by @{text auto} but falls to @{text simp}:
 *}
 
-lemma lem: "\<lbrakk> wf(step1 f); x' = f x \<rbrakk> \<Longrightarrow> 
-   \<exists>y. while (\<lambda>(x,x'). x' \<noteq> x) (\<lambda>(x,x'). (x',f x')) (x,x') = (y,y) \<and>
+lemma lem: "wf(step1 f) \<Longrightarrow>
+  \<exists>y. while (\<lambda>(x,x'). x' \<noteq> x) (\<lambda>(x,x'). (x',f x')) (x,f x) = (y,y) \<and>
        f y = y"
 apply(rule_tac P = "\<lambda>(x,x'). x' = f x" and
                r = "inv_image (step1 f) fst" in while_rule);

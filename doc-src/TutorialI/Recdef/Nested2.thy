@@ -2,7 +2,7 @@
 theory Nested2 = Nested0:
 (*>*)
 
-text{*The termintion condition is easily proved by induction:*}
+text{*The termination condition is easily proved by induction:*}
 
 lemma [simp]: "t \<in> set ts \<longrightarrow> size t < Suc(term_list_size ts)"
 by(induct_tac ts, auto)
@@ -61,12 +61,12 @@ like @{term"map"}. For a start, if nothing were known about @{term"map"},
 \isacommand{recdef} has been supplied with the congruence theorem
 @{thm[source]map_cong}:
 @{thm[display,margin=50]"map_cong"[no_vars]}
-Its second premise expresses (indirectly) that the second argument of
-@{term"map"} is only applied to elements of its third argument. Congruence
+Its second premise expresses (indirectly) that the first argument of
+@{term"map"} is only applied to elements of its second argument. Congruence
 rules for other higher-order functions on lists look very similar. If you get
 into a situation where you need to supply \isacommand{recdef} with new
-congruence rules, you can either append a hint locally
-to the specific occurrence of \isacommand{recdef}
+congruence rules, you can either append a hint after the end of
+the recursion equations
 *}
 (*<*)
 consts dummy :: "nat => nat"

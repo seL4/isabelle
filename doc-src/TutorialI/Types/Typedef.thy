@@ -26,10 +26,9 @@ text{*\noindent\indexbold{*typedecl}%
 This does not define @{typ my_new_type} at all but merely introduces its
 name. Thus we know nothing about this type, except that it is
 non-empty. Such declarations without definitions are
-useful only if that type can be viewed as a parameter of a theory and we do
-not intend to impose any restrictions on it. A typical example is given in
-\S\ref{sec:VMC}, where we define transition relations over an arbitrary type
-of states without any internal structure.
+useful if that type can be viewed as a parameter of the theory.
+A typical example is given in \S\ref{sec:VMC}, where we define a transition
+relation over an arbitrary type of states.
 
 In principle we can always get rid of such type declarations by making those
 types parameters of every other type, thus keeping the theory generic. In

@@ -79,7 +79,9 @@ A second reason why your proposition may not be amenable to induction is that
 you want to induct on a whole term, rather than an individual variable. In
 general, when inducting on some term $t$ you must rephrase the conclusion $C$
 as
-\[ \forall y@1 \dots y@n.~ x = t \longrightarrow C \]
+\begin{equation}\label{eqn:ind-over-term}
+\forall y@1 \dots y@n.~ x = t \longrightarrow C
+\end{equation}
 where $y@1 \dots y@n$ are the free variables in $t$ and $x$ is new, and
 perform induction on $x$ afterwards. An example appears in
 \S\ref{sec:complete-ind} below.
@@ -93,7 +95,20 @@ replace it with $(x@1,\dots,x@k) \in R$, and rephrase the conclusion $C$ as
 For an example see \S\ref{sec:CTL-revisited} below.
 
 Of course, all premises that share free variables with $t$ need to be pulled into
-the conclusion as well, under the \isa{{\isasymforall}}, again using \isa{{\isasymlongrightarrow}} as shown above.%
+the conclusion as well, under the \isa{{\isasymforall}}, again using \isa{{\isasymlongrightarrow}} as shown above.
+
+Readers who are puzzled by the form of statement
+(\ref{eqn:ind-over-term}) above should remember that the
+transformation is only performed to permit induction. Once induction
+has been applied, the statement can be transformed back into something quite
+intuitive. For example, applying wellfounded induction on $x$ (w.r.t.\
+$\prec$) to (\ref{eqn:ind-over-term}) and transforming the result a
+little leads to the goal
+\[ \bigwedge\vec{y}.~\forall \vec{z}.~ t(\vec{z}) \prec t(\vec{y}) \longrightarrow C(\vec{z})
+   \Longrightarrow C(\vec{y}) \]
+where the dependence of $t$ and $C$ on their free variables has been made explicit.
+Unfortunately, this induction schema cannot be expressed as a single theorem because it depends
+on the number of free variables in $t$ --- the notation $\vec{y}$ is merely an informal device.%
 \end{isamarkuptext}%
 %
 \isamarkupsubsection{Beyond Structural and Recursion Induction%

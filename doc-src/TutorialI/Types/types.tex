@@ -2,7 +2,7 @@
 \label{ch:more-types}
 
 So far we have learned about a few basic types (for example \isa{bool} and
-\isa{nat}), type abbreviations (\isacommand{types}) and recursive datatpes
+\isa{nat}), type abbreviations (\isacommand{types}) and recursive datatypes
 (\isacommand{datatype}). This chapter will introduce more
 advanced material:
 \begin{itemize}
@@ -33,13 +33,15 @@ about, but consult the rest only when necessary.
 \section{Records}
 \label{sec:records}
 
-\section{Axiomatic type classes}
+\section{Axiomatic Type Classes}
 \label{sec:axclass}
 \index{axiomatic type class|(}
 \index{*axclass|(}
 
 
 The programming language Haskell has popularized the notion of type classes.
+In its simplest form, a type class is a set of types with a common interface:
+all types in that class must provide the functions in the interface.
 Isabelle offers the related concept of an \textbf{axiomatic type class}.
 Roughly speaking, an axiomatic type class is a type class with axioms, i.e.\ 
 an axiomatic specification of a class of types. Thus we can talk about a type
