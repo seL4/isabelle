@@ -17,7 +17,8 @@ the conclusion.
 (*higher precedence than := facilitates use of references*)
 infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
   addSWrapper delSWrapper addWrapper delWrapper
-  addSbefore addSaltern addbefore addaltern;
+  addSbefore addSaltern addbefore addaltern
+  addD2 addE2 addSD2 addSE2;
 
 
 (*should be a type abbreviation in signature CLASSICAL*)
@@ -72,6 +73,10 @@ sig
   val addSaltern 	: claset * (string * (int -> tactic)) -> claset
   val addbefore 	: claset * (string * (int -> tactic)) -> claset
   val addaltern	 	: claset * (string * (int -> tactic)) -> claset
+  val addD2             : claset * (string * thm) -> claset
+  val addE2             : claset * (string * thm) -> claset
+  val addSD2            : claset * (string * thm) -> claset
+  val addSE2            : claset * (string * thm) -> claset
   val appSWrappers	: claset -> wrapper
   val appWrappers	: claset -> wrapper
 
@@ -557,16 +562,25 @@ fun cs delWrapper name = update_uwrappers cs (fn uwrappers =>
 
 (*compose a safe tactic sequentially before/alternatively after safe_step_tac*)
 fun cs addSbefore  (name,    tac1) = 
-    cs addSWrapper (name, fn tac2 => tac1 THEN_MAYBE' tac2);
+    cs addSWrapper (name, fn tac2 => tac1 ORELSE' tac2);
 fun cs addSaltern  (name,    tac2) = 
-    cs addSWrapper (name, fn tac1 => tac1 ORELSE'     tac2);
+    cs addSWrapper (name, fn tac1 => tac1 ORELSE' tac2);
 
 (*compose a tactic sequentially before/alternatively after the step tactic*)
 fun cs addbefore   (name,    tac1) = 
-    cs addWrapper  (name, fn tac2 => tac1 THEN_MAYBE' tac2);
+    cs addWrapper  (name, fn tac2 => tac1 APPEND' tac2);
 fun cs addaltern   (name,    tac2) =
-    cs addWrapper  (name, fn tac1 => tac1 APPEND'     tac2);
+    cs addWrapper  (name, fn tac1 => tac1 APPEND' tac2);
 
+(*#####*)
+fun cs addD2     (name, thm) = 
+    cs addaltern (name, dtac thm THEN' atac);
+fun cs addE2     (name, thm) = 
+    cs addaltern (name, etac thm THEN' atac);
+fun cs addSD2     (name, thm) = 
+    cs addSaltern (name, dmatch_tac [thm] THEN' eq_assume_tac);
+fun cs addSE2     (name, thm) = 
+    cs addSaltern (name, ematch_tac [thm] THEN' eq_assume_tac);
 
 (*Merge works by adding all new rules of the 2nd claset into the 1st claset.
   Merging the term nets may look more efficient, but the rather delicate
@@ -654,13 +668,13 @@ fun haz_step_tac (CS{haz_netpair,...}) =
   biresolve_from_nets_tac haz_netpair;
 
 (*Single step for the prover.  FAILS unless it makes progress. *)
-fun step_tac cs i = appWrappers cs 
-	(K (safe_tac cs) ORELSE' (inst_step_tac cs ORELSE' haz_step_tac cs)) i;
+fun step_tac cs i = safe_tac cs ORELSE appWrappers cs 
+	(inst_step_tac cs ORELSE' haz_step_tac cs) i;
 
 (*Using a "safe" rule to instantiate variables is unsafe.  This tactic
   allows backtracking from "safe" rules to "unsafe" rules here.*)
-fun slow_step_tac cs i = appWrappers cs 
-	(K (safe_tac cs) ORELSE' (inst_step_tac cs APPEND' haz_step_tac cs)) i;
+fun slow_step_tac cs i = safe_tac cs ORELSE appWrappers cs 
+	(inst_step_tac cs APPEND' haz_step_tac cs) i;
 
 (**** The following tactics all fail unless they solve one goal ****)
 
@@ -701,17 +715,14 @@ fun slow_astar_tac cs =
 fun dup_step_tac (cs as (CS{dup_netpair,...})) = 
   biresolve_from_nets_tac dup_netpair;
 
-(*Searching to depth m.*)
-fun depth_tac cs m i state = 
-  SELECT_GOAL 
-   (appWrappers cs
-    (fn i => REPEAT_DETERM1 (COND (has_fewer_prems i) no_tac
-			     (safe_step_tac cs i)) THEN_ELSE
-     (DEPTH_SOLVE (depth_tac cs m i),
-      inst0_step_tac cs i  APPEND
-      COND (K(m=0)) no_tac
-        ((instp_step_tac cs i APPEND dup_step_tac cs i)
-	 THEN DEPTH_SOLVE (depth_tac cs (m-1) i)))) 1)
+(*Searching to depth m. A variant called nodup_depth_tac appears in clasimp.ML*)
+fun depth_tac cs m i state = SELECT_GOAL 
+   (REPEAT_DETERM1 (COND (has_fewer_prems 1) no_tac (safe_step_tac cs 1)) 
+    THEN_ELSE (DEPTH_SOLVE (depth_tac cs m 1),
+               appWrappers cs (fn i => inst0_step_tac cs i APPEND
+	       COND (K (m=0)) no_tac
+		        ((instp_step_tac cs i APPEND dup_step_tac cs i)
+			 THEN DEPTH_SOLVE (depth_tac cs (m-1) i))) 1))
   i state;
 
 (*Search, with depth bound m.  
