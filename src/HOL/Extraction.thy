@@ -23,7 +23,7 @@ ML_setup {*
 *}
 
 lemmas [extraction_expand] =
-  nat.exhaust atomize_eq atomize_all atomize_imp
+  atomize_eq atomize_all atomize_imp
   allE rev_mp conjE Eq_TrueI Eq_FalseI eqTrueI eqTrueE eq_cong2
   notE' impE' impE iffE imp_cong simp_thms
   induct_forall_eq induct_implies_eq induct_equal_eq
@@ -406,38 +406,5 @@ realizers
 
   classical: "Null"
     "\<Lambda>P. classical \<cdot> _"
-
-
-subsection {* Induction on natural numbers *}
-
-theorem nat_ind_realizer:
-  "R f 0 \<Longrightarrow> (\<And>y h. R h y \<Longrightarrow> R (g y h) (Suc y)) \<Longrightarrow>
-     (R::'a \<Rightarrow> nat \<Rightarrow> bool) (nat_rec f g x) x"
-proof -
-  assume r1: "R f 0"
-  assume r2: "\<And>y h. R h y \<Longrightarrow> R (g y h) (Suc y)"
-  show "R (nat_rec f g x) x"
-  proof (induct x)
-    case 0
-    from r1 show ?case by simp
-  next
-    case (Suc n)
-    from Suc have "R (g n (nat_rec f g n)) (Suc n)" by (rule r2)
-    thus ?case by simp
-  qed
-qed
-
-realizers
-  Nat.nat_induct (P): "\<lambda>P n p0 ps. nat_rec p0 ps n"
-    "\<Lambda>P n p0 (h: _) ps. nat_ind_realizer \<cdot> _ \<cdot> _ \<cdot> _ \<cdot> _ \<bullet> h"
-
-  Nat.nat_induct: "Null"
-    "\<Lambda>P n. nat_induct \<cdot> _ \<cdot> _"
-
-  Nat.nat.induct (P): "\<lambda>P n p0 ps. nat_rec p0 ps n"
-    "\<Lambda>P n p0 (h: _) ps. nat_ind_realizer \<cdot> _ \<cdot> _ \<cdot> _ \<cdot> _ \<bullet> h"
-
-  Nat.nat.induct: "Null"
-    "\<Lambda>P n. nat_induct \<cdot> _ \<cdot> _"
 
 end
