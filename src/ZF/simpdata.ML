@@ -54,9 +54,9 @@ val Rep_simps = map prover
      "RepFun(cons(a,B),f) = cons(f(a), RepFun(B,f))"]
 
 val misc_simps = map prover
-    ["0 Un A = A",  "A Un 0 = A",
+    ["0 Un A = A", "A Un 0 = A",
      "0 Int A = 0", "A Int 0 = 0",
-     "0-A = 0",     "A-0 = A",
+     "0 - A = 0", "A - 0 = A",
      "Union(0) = 0",
      "Union(cons(b,A)) = b Un Union(A)",
      "Inter({b}) = b"]

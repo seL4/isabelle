@@ -99,19 +99,19 @@ qed "subset_Un_iff2";
 
 (** Simple properties of Diff -- set difference **)
 
-Goal "A-A = 0";
+Goal "A - A = 0";
 by (Blast_tac 1);
 qed "Diff_cancel";
 
-Goal "0-A = 0";
+Goal "0 - A = 0";
 by (Blast_tac 1);
 qed "empty_Diff";
 
-Goal "A-0 = A";
+Goal "A - 0 = A";
 by (Blast_tac 1);
 qed "Diff_0";
 
-Goal "A-B=0 <-> A<=B";
+Goal "A - B = 0 <-> A <= B";
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "Diff_eq_0_iff";
 
