@@ -802,7 +802,12 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
         fun rebuild None = (case rewritec (prover, sign, maxidx) mss
             (mk_implies (prem1, conc)) of
               None => None
-            | Some (thm, _) => Some (None, thm))
+            | Some (thm, _) => 
+                let val (prem, conc) = Drule.dest_implies (rhs_of thm)
+                in (case mut_impc (prems, prem, conc, mss) of
+                    None => Some (None, thm)
+                  | Some (x, thm') => Some (x, transitive thm thm'))
+                end handle TERM _ => Some (None, thm))
           | rebuild (Some thm2) =
             let val thm = disch1 thm2
             in (case rewritec (prover, sign, maxidx) mss (rhs_of thm) of
