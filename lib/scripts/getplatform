@@ -1,0 +1,10 @@
+#
+# $Id$
+#
+# getplatform - bash source script to augment current env.
+#
+
+#get bash-style platform info
+unset HOSTTYPE
+unset OSTYPE
+PLATFORM=$(bash -norc -c 'echo $HOSTTYPE-$OSTYPE')
