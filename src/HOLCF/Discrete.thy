@@ -14,6 +14,8 @@ begin
 
 datatype 'a discr = Discr "'a :: type"
 
+subsection {* Type @{typ "'a discr"} is a partial order *}
+
 instance discr :: (type) sq_ord ..
 
 defs (overloaded)
@@ -31,6 +33,8 @@ proof
   { assume "x << y" and "y << x" thus "x = y" by simp }
   { assume "x << y" and "y << z" thus "x << z" by simp }
 qed
+
+subsection {* Type @{typ "'a discr"} is a cpo *}
 
 lemma discr_chain0: 
  "!!S::nat=>('a::type)discr. chain S ==> S i = S 0"
@@ -54,26 +58,25 @@ apply (unfold is_lub_def is_ub_def)
 apply (simp (no_asm_simp))
 done
 
-instance discr :: (type)cpo
-by (intro_classes, rule discr_cpo)
+instance discr :: (type) cpo
+by intro_classes (rule discr_cpo)
+
+subsection {* @{term undiscr} *}
 
 constdefs
    undiscr :: "('a::type)discr => 'a"
   "undiscr x == (case x of Discr y => y)"
 
 lemma undiscr_Discr [simp]: "undiscr(Discr x) = x"
-apply (unfold undiscr_def)
-apply (simp (no_asm))
-done
+by (simp add: undiscr_def)
 
 lemma discr_chain_f_range0:
  "!!S::nat=>('a::type)discr. chain(S) ==> range(%i. f(S i)) = {f(S 0)}"
-apply (fast dest: discr_chain0 elim: arg_cong)
-done
+by (fast dest: discr_chain0 elim: arg_cong)
 
 lemma cont_discr [iff]: "cont(%x::('a::type)discr. f x)"
 apply (unfold cont is_lub_def is_ub_def)
-apply (simp (no_asm) add: discr_chain_f_range0)
+apply (simp add: discr_chain_f_range0)
 done
 
 end
