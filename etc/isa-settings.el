@@ -25,8 +25,8 @@
 (setq default-ctl-arrow "z")
 (setq ctl-arrow "z")
 
-(standard-display-european 1)
-(require 'iso-syntax)
+(standard-display-8bit 128 255)
+
 
 ;; FIXME
 ;; DO NOT EDIT the lines between BEGIN-KEY-MAP and END-KEY-MAP
