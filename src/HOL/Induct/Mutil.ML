@@ -21,23 +21,13 @@ AddIs [tiling_UnI];
 
 (*** Chess boards ***)
 
-Goalw [below_def] "(i: below k) = (i<k)";
-by Auto_tac;
-qed "below_less_iff";
-AddIffs [below_less_iff];
-
-Goalw [below_def] "below 0 = {}";
-by Auto_tac;
-qed "below_0";
-Addsimps [below_0];
-
-Goalw [below_def]
-    "below(Suc n) <*> B = ({n} <*> B) Un ((below n) <*> B)";
+Goalw [lessThan_def]
+    "lessThan(Suc n) <*> B = ({n} <*> B) Un ((lessThan n) <*> B)";
 by Auto_tac;
 qed "Sigma_Suc1";
 
-Goalw [below_def]
-    "A <*> below(Suc n) = (A <*> {n}) Un (A <*> (below n))";
+Goalw [lessThan_def]
+    "A <*> lessThan(Suc n) = (A <*> {n}) Un (A <*> (lessThan n))";
 by Auto_tac;
 qed "Sigma_Suc2";
 
@@ -47,7 +37,7 @@ Goal "({i} <*> {n}) Un ({i} <*> {m}) = {(i,m), (i,n)}";
 by Auto_tac;
 qed "sing_Times_lemma";
 
-Goal "{i} <*> below(#2*n) : tiling domino";
+Goal "{i} <*> lessThan(#2*n) : tiling domino";
 by (induct_tac "n" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Un_assoc RS sym])));
 by (rtac tiling.Un 1);
@@ -56,7 +46,7 @@ qed "dominoes_tile_row";
 
 AddSIs [dominoes_tile_row]; 
 
-Goal "(below m) <*> below(#2*n) : tiling domino";
+Goal "(lessThan m) <*> lessThan(#2*n) : tiling domino";
 by (induct_tac "m" 1);
 by Auto_tac;
 qed "dominoes_tile_matrix";
@@ -121,7 +111,7 @@ by (ALLGOALS (force_tac (claset() addSIs [card_Diff1_less],
 qed "gen_mutil_not_tiling";
 
 (*Apply the general theorem to the well-known case*)
-Goal "[| t = below(#2 * Suc m) <*> below(#2 * Suc n) |] \
+Goal "[| t = lessThan(#2 * Suc m) <*> lessThan(#2 * Suc n) |] \
 \     ==> t - {(0,0)} - {(Suc(#2*m), Suc(#2*n))} ~: tiling domino";
 by (rtac gen_mutil_not_tiling 1);
 by (blast_tac (claset() addSIs [dominoes_tile_matrix]) 1);

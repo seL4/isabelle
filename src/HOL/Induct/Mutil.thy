@@ -23,9 +23,6 @@ inductive domino
     vertl  "{(i, j), (Suc i, j)} : domino"
 
 constdefs
-  below   :: "nat => nat set"
-   "below n   == {i. i<n}"
-  
   colored  :: "nat => (nat*nat)set"
    "colored b == {(i,j). (i+j) mod #2 = b}"
 
