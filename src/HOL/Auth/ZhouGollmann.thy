@@ -101,6 +101,21 @@ declare symKey_neq_priEK [simp]
 declare symKey_neq_priEK [THEN not_sym, simp]
 
 
+text{*A "possibility property": there are traces that reach the end*}
+lemma "[|A \<noteq> B; TTP \<noteq> A; TTP \<noteq> B; K \<in> symKeys|] ==>
+     \<exists>L. \<exists>evs \<in> zg.
+           Notes TTP {|Number f_con, Agent A, Agent B, Nonce L, Key K,
+               Crypt (priK TTP) {|Number f_con, Agent A, Agent B, Nonce L, Key K|} |}
+               \<in> set evs"
+apply (intro exI bexI)
+apply (rule_tac [2] zg.Nil
+                    [THEN zg.ZG1, THEN zg.Reception [of _ A B],
+                     THEN zg.ZG2, THEN zg.Reception [of _ B A],
+                     THEN zg.ZG3, THEN zg.Reception [of _ A TTP], 
+                     THEN zg.ZG4])
+apply (possibility, auto)
+done
+
 subsection {*Basic Lemmas*}
 
 lemma Gets_imp_Says:
