@@ -25,16 +25,18 @@ constdefs
   extend_act :: "['a*'b => 'c, ('a*'a) set] => ('c*'c) set"
     "extend_act h act == UN (s,s'): act. UN y. {(h(s,y), h(s',y))}"
 
-  project_act :: "['a*'b => 'c, ('c*'c) set] => ('a*'a) set"
-    "project_act h act == {(x,x'). EX y y'. (h(x,y), h(x',y')) : act}"
+  project_act :: "['c set, 'a*'b => 'c, ('c*'c) set] => ('a*'a) set"
+    "project_act C h act ==
+         {(x,x'). EX y y'. (h(x,y), h(x',y')) : act &
+	                   (x = x' | h(x,y) : C)}"
 
   extend :: "['a*'b => 'c, 'a program] => 'c program"
     "extend h F == mk_program (extend_set h (Init F),
 			       extend_act h `` Acts F)"
 
-  project :: "['a*'b => 'c, 'c program] => 'a program"
-    "project h F == mk_program (project_set h (Init F),
-			        project_act h `` Acts F)"
+  project :: "['c set, 'a*'b => 'c, 'c program] => 'a program"
+    "project C h F == mk_program (project_set h (Init F),
+		  	          project_act C h `` Acts F)"
 
 locale Extend =
   fixes 

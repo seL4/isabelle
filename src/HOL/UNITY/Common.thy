@@ -10,7 +10,7 @@ The state is identified with the one variable in existence.
 From Misra, "A Logic for Concurrent Programming" (1994), sections 5.1 and 13.1.
 *)
 
-Common = SubstAx + Union + 
+Common = Union + 
 
 consts
   ftime,gtime :: nat=>nat

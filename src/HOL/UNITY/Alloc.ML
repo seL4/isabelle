@@ -214,25 +214,33 @@ val extend_Alloc_guar_Increasing =
 Goal "System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
 \                  <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
 by (res_inst_tac 
-    [("X", "(INT i : lessThan Nclients. (sub i o allocRel) localTo Network \
-\                                       Int Increasing (sub i o allocRel))")] 
-    component_guaranteesD 1);;
+    [("X", "(INT i : lessThan Nclients. Increasing (sub i o allocRel))")] 
+    component_guaranteesD 1);
 by (rtac Alloc_component_System 3);
+by (force_tac (claset(), simpset() addsimps [System_Increasing_allocRel]) 2);
 by (rtac project_guarantees 1);
 by (rtac Alloc_Safety 1);
+by Auto_tac;
+by (rtac project_Increasing_I 1);
+
 by (dtac (alloc_export (project_extend_Join RSN (2, subst_elem RS project_Always_D))) 2 
      THEN
      full_simp_tac
      (simpset() addsimps [inv_sysOfAlloc_eq,
 			  alloc_export Collect_eq_extend_set RS sym]) 2);
 by Auto_tac;
-by (force_tac (claset(), simpset() addsimps [System_Increasing_allocRel]) 3);
 
 by (dtac bspec 1);
 by (Blast_tac 1);
 
 
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+FIRST STEP WAS
+by (res_inst_tac 
+    [("X", "(INT i : lessThan Nclients. (sub i o allocRel) localTo Network \
+\                                       Int Increasing (sub i o allocRel))")] 
+    component_guaranteesD 1);
+
 
        [| i < Nclients;
           extend sysOfAlloc Alloc Join G

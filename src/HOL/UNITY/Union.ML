@@ -58,7 +58,7 @@ Goal "Acts (F Join G) = Acts F Un Acts G";
 by (auto_tac (claset(), simpset() addsimps [Join_def]));
 qed "Acts_Join";
 
-Addsimps [Init_Join];
+Addsimps [Init_Join, Acts_Join];
 
 
 (** JN **)
@@ -82,7 +82,7 @@ Goal "Acts (JN i:I. F i) = insert Id (UN i:I. Acts (F i))";
 by (auto_tac (claset(), simpset() addsimps [JOIN_def]));
 qed "Acts_JN";
 
-Addsimps [Init_JN];
+Addsimps [Init_JN, Acts_JN];
 
 val prems = Goalw [JOIN_def]
     "[| I=J;  !!i. i:J ==> F i = G i |] ==> \
@@ -139,23 +139,19 @@ val Join_ac = [Join_assoc, Join_left_absorb, Join_commute, Join_left_commute];
 
 (*Also follows by JN_insert and insert_absorb, but the proof is longer*)
 Goal "k:I ==> F k Join (JN i:I. F i) = (JN i:I. F i)";
-by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [Acts_JN, Acts_Join]));
+by (auto_tac (claset() addSIs [program_equalityI], simpset()));
 qed "JN_absorb";
 
 Goal "(JN i: I Un J. F i) = ((JN i: I. F i) Join (JN i:J. F i))";
-by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [Acts_JN, Acts_Join]));
+by (auto_tac (claset() addSIs [program_equalityI], simpset()));
 qed "JN_Un";
 
 Goal "(JN i:I. c) = (if I={} then SKIP else c)";
-by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [Acts_JN]));
+by (auto_tac (claset() addSIs [program_equalityI], simpset()));
 qed "JN_constant";
 
 Goal "(JN i:I. F i Join G i) = (JN i:I. F i)  Join  (JN i:I. G i)";
-by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [Acts_JN, Acts_Join]));
+by (auto_tac (claset() addSIs [program_equalityI], simpset()));
 qed "JN_Join_distrib";
 
 Goal "i : I ==> (JN i:I. F i Join G) = ((JN i:I. F i) Join G)";
@@ -268,7 +264,7 @@ Goal "[| F : stable A;  G : invariant A |] ==> F Join G : Always A";
 by (full_simp_tac (simpset() addsimps [Always_def, invariant_def, 
 				       Stable_eq_stable, Join_stable]) 1);
 by (force_tac(claset() addIs [stable_reachable, stable_Int],
-	      simpset() addsimps [Acts_Join]) 1);
+	      simpset()) 1);
 qed "stable_Join_Always";
 
 Goal "[| F : stable A;  G : A ensures B |] ==> F Join G : A ensures B";
@@ -300,7 +296,7 @@ Goal "[| F Join G : v localTo F;  Disjoint F G |] \
 \     ==> G : (INT z. stable {s. v s = z})";
 by (asm_full_simp_tac 
     (simpset() addsimps [localTo_def, Diff_def, Disjoint_def,
-			 Acts_Join, stable_def, constrains_def]) 1);
+			 stable_def, constrains_def]) 1);
 by (Blast_tac 1);
 qed "localTo_imp_stable";
 
@@ -308,7 +304,7 @@ Goal "[| F Join G : v localTo F;  (s,s') : act;  \
 \        act : Acts G;  Disjoint F G |] ==> v s' = v s";
 by (asm_full_simp_tac 
     (simpset() addsimps [localTo_def, Diff_def, Disjoint_def,
-			 Acts_Join, stable_def, constrains_def]) 1);
+			 stable_def, constrains_def]) 1);
 by (Blast_tac 1);
 qed "localTo_imp_equals";
 
@@ -326,7 +322,7 @@ Goal "[| F : {s. P (v s) (w s)} co {s. P' (v s) (w s)};   \
 \        F Join G : w localTo F;       \
 \        Disjoint F G |]               \
 \     ==> F Join G : {s. P (v s) (w s)} co {s. P' (v s) (w s)}";
-by (auto_tac (claset(), simpset() addsimps [constrains_def, Acts_Join]));
+by (auto_tac (claset(), simpset() addsimps [constrains_def]));
 by (REPEAT_FIRST (dtac localTo_imp_equals THEN' REPEAT1 o atac));
 by Auto_tac;
 qed "constrains_localTo_constrains2";

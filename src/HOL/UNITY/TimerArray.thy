@@ -9,7 +9,10 @@ A trivial example of reasoning about an array of processes
 TimerArray = PPROD +
 
 constdefs
+  decr  :: "(nat*nat) set"
+    "decr == UN n. {(Suc n, n)}"
+  
   Timer :: nat program
-    "Timer == mk_program (UNIV, {range(%n. (Suc n, n))})"
+    "Timer == mk_program (UNIV, {decr})"
 
 end

@@ -192,7 +192,7 @@ by (Blast_tac 1);
 qed "guarantees_Join_Un";
 
 Goal "((JOIN I F) <= H) = (ALL i: I. F i <= H)";
-by (simp_tac (simpset() addsimps [component_eq_subset, Acts_JN]) 1);
+by (simp_tac (simpset() addsimps [component_eq_subset]) 1);
 by (Blast_tac 1);
 qed "JN_component_iff";
 

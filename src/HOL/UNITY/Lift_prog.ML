@@ -100,12 +100,12 @@ qed "lift_prog_SKIP";
 
 Goal "lift_prog i (F Join G) = (lift_prog i F) Join (lift_prog i G)";
 by (rtac program_equalityI 1);
-by (auto_tac (claset(), simpset() addsimps [Acts_Join]));
+by Auto_tac;
 qed "lift_prog_Join";
 
 Goal "lift_prog i (JOIN J F) = (JN j:J. lift_prog i (F j))";
 by (rtac program_equalityI 1);
-by (auto_tac (claset(), simpset() addsimps [Acts_JN]));
+by Auto_tac;
 qed "lift_prog_JN";
 
 Goal "drop_prog i SKIP = SKIP";
@@ -161,7 +161,7 @@ qed "inj_lift_act";
 Goal "drop_prog i (lift_prog i F) = F";
 by (simp_tac (simpset() addsimps [lift_prog_def, drop_prog_def]) 1);
 by (rtac program_equalityI 1);
-by (simp_tac (simpset() addsimps [image_compose RS sym, o_def]) 2);
+by (simp_tac (simpset() addsimps [image_image_eq_UN]) 2);
 by (Simp_tac 1);
 qed "lift_prog_inverse";
 Addsimps [lift_prog_inverse];
@@ -224,7 +224,7 @@ by (rtac bexI 1);
 by (auto_tac (claset() addSIs [exI], simpset()));
 qed "lift_act_correct";
 
-Goal "drop_act i = project_act (lift_map i)";
+Goal "drop_act i = project_act UNIV (lift_map i)";
 by (rtac ext 1);
 by (rewrite_goals_tac [project_act_def, drop_act_def, lift_map_def]);
 by Auto_tac;
@@ -241,7 +241,7 @@ by (simp_tac (simpset()
 			lift_act_correct]) 1);
 qed "lift_prog_correct";
 
-Goal "drop_prog i F = project (lift_map i) F";
+Goal "drop_prog i F = project UNIV (lift_map i) F";
 by (rtac program_equalityI 1);
 by (simp_tac (simpset() addsimps [drop_set_correct]) 1);
 by (simp_tac (simpset() 
@@ -408,8 +408,7 @@ qed "drop_prog_Stable_D";
 
 Goal "drop_prog i ((lift_prog i F) Join G) = F Join (drop_prog i G)";
 by (rtac program_equalityI 1);
-by (simp_tac (simpset() addsimps [Acts_Join, image_Un,
-				  image_compose RS sym, o_def]) 2);
+by (simp_tac (simpset() addsimps [image_Un, image_image_eq_UN]) 2);
 by (simp_tac (simpset() addsimps [drop_set_Int_lift_set]) 1);
 qed "drop_prog_lift_prog_Join";
 
@@ -426,7 +425,7 @@ by (etac reachable.induct 1);
 by (force_tac (claset() addIs [reachable.Init, drop_set_I], simpset()) 1);
 (*By case analysis on whether the action is of lift_prog i F  or  G*)
 by (force_tac (claset() addIs [reachable.Acts, drop_act_I], 
-	       simpset() addsimps [Acts_Join, image_iff]) 1);
+	       simpset() addsimps [image_iff]) 1);
 qed "reachable_lift_prog_Join_D";
 
 (*Opposite inclusion fails, even for the initial state: lift_set i includes

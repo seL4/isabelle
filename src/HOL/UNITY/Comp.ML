@@ -21,7 +21,7 @@ qed "componentI";
 Goalw [component_def]
      "(F <= G) = (Init G <= Init F & Acts F <= Acts G)";
 by (force_tac (claset() addSIs [exI, program_equalityI], 
-	       simpset() addsimps [Acts_Join]) 1);
+	       simpset()) 1);
 qed "component_eq_subset";
 
 Goalw [component_def] "SKIP <= F";
@@ -67,7 +67,7 @@ by (blast_tac (claset() addSIs [Diff_Disjoint, Join_Diff2]) 1);
 qed "component_eq";
 
 Goal "((F Join G) <= H) = (F <= H & G <= H)";
-by (simp_tac (simpset() addsimps [component_eq_subset, Acts_Join]) 1);
+by (simp_tac (simpset() addsimps [component_eq_subset]) 1);
 by (Blast_tac 1);
 qed "Join_component_iff";
 

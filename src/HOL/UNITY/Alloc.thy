@@ -4,6 +4,10 @@
     Copyright   1998  University of Cambridge
 
 Specification of Chandy and Charpentier's Allocator
+
+CONSIDER CHANGING "sum" to work on type "int", not "nat"
+  --then can use subtraction in spec (1),
+  --but need invariants that values are non-negative
 *)
 
 Alloc = Follows + Extend + PPROD +

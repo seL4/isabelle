@@ -90,7 +90,7 @@ Goal "Cli_prg Join G   \
 \                       size (rel s) = k & ask s ! k <= giv s ! k}";
 by (res_inst_tac [("act", "rel_act")] transient_mem 1);
 by (auto_tac (claset(),
-	      simpset() addsimps [Domain_def, Acts_Join, Cli_prg_def]));
+	      simpset() addsimps [Domain_def, Cli_prg_def]));
 qed "transient_lemma";
 
 

@@ -19,7 +19,7 @@ Addsimps [Init_PLam];
 
 Goal "Acts (PLam I F) = insert Id (UN i:I. lift_act i `` Acts (F i))";
 by (auto_tac (claset(),
-	      simpset() addsimps [PLam_def, Acts_JN]));
+	      simpset() addsimps [PLam_def]));
 qed "Acts_PLam";
 
 Goal "PLam {} F = SKIP";
@@ -140,19 +140,19 @@ by (etac reachable.induct 1);
 by (force_tac (claset() addIs reachable.intrs, simpset()) 1);
 (*Init of F, action of PLam F case*)
 by (rtac reachable.Acts 1);
-by (force_tac (claset(), simpset() addsimps [Acts_Join]) 1);
+by (Force_tac 1);
 by (assume_tac 1);
 by (force_tac (claset() addIs [ext], simpset() addsimps [Acts_PLam]) 1);
 (*induction over the 2nd "reachable" assumption*)
 by (eres_inst_tac [("xa","f")] reachable.induct 1);
 (*Init of PLam F, action of F case*)
 by (res_inst_tac [("act","lift_act i act")] reachable.Acts 1);
-by (force_tac (claset(), simpset() addsimps [Acts_Join]) 1);
+by (Force_tac 1);
 by (force_tac (claset() addIs [reachable.Init], simpset()) 1);
 by (force_tac (claset() addIs [ext], simpset() addsimps [lift_act_def]) 1);
 (*last case: an action of PLam I F*)
 by (rtac reachable.Acts 1);
-by (force_tac (claset(), simpset() addsimps [Acts_Join]) 1);
+by (Force_tac 1);
 by (assume_tac 1);
 by (force_tac (claset() addIs [ext], simpset() addsimps [Acts_PLam]) 1);
 qed_spec_mp "reachable_lift_Join_PLam";
@@ -185,7 +185,7 @@ by (auto_tac
      simpset() addsimps [Constrains_def, Collect_conj_eq RS sym,
 			 reachable_PLam_eq]));
 by (auto_tac (claset(), 
-              simpset() addsimps [constrains_def, PLam_def, Acts_JN]));
+              simpset() addsimps [constrains_def, PLam_def]));
 by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
 qed "Constrains_imp_PLam_Constrains";
 
