@@ -100,10 +100,13 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   Tools/datatype_realizer.ML Tools/datatype_rep_proofs.ML \
   Tools/inductive_codegen.ML Tools/inductive_package.ML Tools/inductive_realizer.ML \
   Tools/meson.ML Tools/numeral_syntax.ML \
-  Tools/primrec_package.ML Tools/recdef_package.ML Tools/recfun_codegen.ML \
+  Tools/primrec_package.ML \
+  Tools/prop_logic.ML \
+  Tools/recdef_package.ML Tools/recfun_codegen.ML \
   Tools/record_package.ML \
   Tools/refute.ML Tools/refute_isar.ML \
   Tools/rewrite_hol_proof.ML \
+  Tools/sat_solver.ML \
   Tools/specification_package.ML \
   Tools/split_rule.ML Tools/typedef_package.ML \
   Transitive_Closure.thy Transitive_Closure.ML Typedef.thy \
