@@ -12,29 +12,43 @@ header {* Set intervals *}
 theory SetInterval = IntArith:
 
 constdefs
-  lessThan    :: "('a::ord) => 'a set"	("(1{.._'(})")
-  "{..u(} == {x. x<u}"
+  lessThan    :: "('a::ord) => 'a set"	("(1{..<_})")
+  "{..<u} == {x. x<u}"
 
   atMost      :: "('a::ord) => 'a set"	("(1{.._})")
   "{..u} == {x. x<=u}"
 
-  greaterThan :: "('a::ord) => 'a set"	("(1{')_..})")
-  "{)l..} == {x. l<x}"
+  greaterThan :: "('a::ord) => 'a set"	("(1{_<..})")
+  "{l<..} == {x. l<x}"
 
   atLeast     :: "('a::ord) => 'a set"	("(1{_..})")
   "{l..} == {x. l<=x}"
 
-  greaterThanLessThan :: "['a::ord, 'a] => 'a set"  ("(1{')_.._'(})")
-  "{)l..u(} == {)l..} Int {..u(}"
+  greaterThanLessThan :: "['a::ord, 'a] => 'a set"  ("(1{_<..<_})")
+  "{l<..<u} == {l<..} Int {..<u}"
 
-  atLeastLessThan :: "['a::ord, 'a] => 'a set"      ("(1{_.._'(})")
-  "{l..u(} == {l..} Int {..u(}"
+  atLeastLessThan :: "['a::ord, 'a] => 'a set"      ("(1{_..<_})")
+  "{l..<u} == {l..} Int {..<u}"
 
-  greaterThanAtMost :: "['a::ord, 'a] => 'a set"    ("(1{')_.._})")
-  "{)l..u} == {)l..} Int {..u}"
+  greaterThanAtMost :: "['a::ord, 'a] => 'a set"    ("(1{_<.._})")
+  "{l<..u} == {l<..} Int {..u}"
 
   atLeastAtMost :: "['a::ord, 'a] => 'a set"        ("(1{_.._})")
   "{l..u} == {l..} Int {..u}"
+
+(* Old syntax, will disappear! *)
+syntax
+  "_lessThan"    :: "('a::ord) => 'a set"	("(1{.._'(})")
+  "_greaterThan" :: "('a::ord) => 'a set"	("(1{')_..})")
+  "_greaterThanLessThan" :: "['a::ord, 'a] => 'a set"  ("(1{')_.._'(})")
+  "_atLeastLessThan" :: "['a::ord, 'a] => 'a set"      ("(1{_.._'(})")
+  "_greaterThanAtMost" :: "['a::ord, 'a] => 'a set"    ("(1{')_.._})")
+translations
+  "{..m(}" => "{..<m}"
+  "{)m..}" => "{m<..}"
+  "{)m..n(}" => "{m<..<n}"
+  "{m..n(}" => "{m..<n}"
+  "{)m..n}" => "{m<..n}"
 
 syntax
   "@UNION_le"   :: "nat => nat => 'b set => 'b set"       ("(3UN _<=_./ _)" 10)
@@ -56,9 +70,9 @@ syntax (xsymbols)
 
 translations
   "UN i<=n. A"  == "UN i:{..n}. A"
-  "UN i<n. A"   == "UN i:{..n(}. A"
+  "UN i<n. A"   == "UN i:{..<n}. A"
   "INT i<=n. A" == "INT i:{..n}. A"
-  "INT i<n. A"  == "INT i:{..n(}. A"
+  "INT i<n. A"  == "INT i:{..<n}. A"
 
 
 subsection {* Various equivalences *}
@@ -150,19 +164,19 @@ subsection {*Two-sided intervals*}
 text {* @{text greaterThanLessThan} *}
 
 lemma greaterThanLessThan_iff [simp]:
-  "(i : {)l..u(}) = (l < i & i < u)"
+  "(i : {l<..<u}) = (l < i & i < u)"
 by (simp add: greaterThanLessThan_def)
 
 text {* @{text atLeastLessThan} *}
 
 lemma atLeastLessThan_iff [simp]:
-  "(i : {l..u(}) = (l <= i & i < u)"
+  "(i : {l..<u}) = (l <= i & i < u)"
 by (simp add: atLeastLessThan_def)
 
 text {* @{text greaterThanAtMost} *}
 
 lemma greaterThanAtMost_iff [simp]:
-  "(i : {)l..u}) = (l < i & i <= u)"
+  "(i : {l<..u}) = (l < i & i <= u)"
 by (simp add: greaterThanAtMost_def)
 
 text {* @{text atLeastAtMost} *}
@@ -229,40 +243,40 @@ done
 lemma UN_atMost_UNIV: "(UN m::nat. atMost m) = UNIV"
 by blast
 
-lemma atLeast0LessThan [simp]: "{0::nat..n(} = {..n(}"
+lemma atLeast0LessThan [simp]: "{0::nat..<n} = {..<n}"
 by(simp add:lessThan_def atLeastLessThan_def)
 
 text {* Intervals of nats with @{text Suc} *}
 
-lemma atLeastLessThanSuc_atLeastAtMost: "{l..Suc u(} = {l..u}"
+lemma atLeastLessThanSuc_atLeastAtMost: "{l..<Suc u} = {l..u}"
   by (simp add: lessThan_Suc_atMost atLeastAtMost_def atLeastLessThan_def)
 
-lemma atLeastSucAtMost_greaterThanAtMost: "{Suc l..u} = {)l..u}"  
+lemma atLeastSucAtMost_greaterThanAtMost: "{Suc l..u} = {l<..u}"  
   by (simp add: atLeast_Suc_greaterThan atLeastAtMost_def 
     greaterThanAtMost_def)
 
-lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..u(} = {)l..u(}"  
+lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..<u} = {l<..<u}"  
   by (simp add: atLeast_Suc_greaterThan atLeastLessThan_def 
     greaterThanLessThan_def)
 
 subsubsection {* Finiteness *}
 
-lemma finite_lessThan [iff]: fixes k :: nat shows "finite {..k(}"
+lemma finite_lessThan [iff]: fixes k :: nat shows "finite {..<k}"
   by (induct k) (simp_all add: lessThan_Suc)
 
 lemma finite_atMost [iff]: fixes k :: nat shows "finite {..k}"
   by (induct k) (simp_all add: atMost_Suc)
 
 lemma finite_greaterThanLessThan [iff]:
-  fixes l :: nat shows "finite {)l..u(}"
+  fixes l :: nat shows "finite {l<..<u}"
 by (simp add: greaterThanLessThan_def)
 
 lemma finite_atLeastLessThan [iff]:
-  fixes l :: nat shows "finite {l..u(}"
+  fixes l :: nat shows "finite {l..<u}"
 by (simp add: atLeastLessThan_def)
 
 lemma finite_greaterThanAtMost [iff]:
-  fixes l :: nat shows "finite {)l..u}"
+  fixes l :: nat shows "finite {l<..u}"
 by (simp add: greaterThanAtMost_def)
 
 lemma finite_atLeastAtMost [iff]:
@@ -278,16 +292,16 @@ lemma bounded_nat_set_is_finite:
 
 subsubsection {* Cardinality *}
 
-lemma card_lessThan [simp]: "card {..u(} = u"
+lemma card_lessThan [simp]: "card {..<u} = u"
   by (induct_tac u, simp_all add: lessThan_Suc)
 
 lemma card_atMost [simp]: "card {..u} = Suc u"
   by (simp add: lessThan_Suc_atMost [THEN sym])
 
-lemma card_atLeastLessThan [simp]: "card {l..u(} = u - l"
-  apply (subgoal_tac "card {l..u(} = card {..u-l(}")
+lemma card_atLeastLessThan [simp]: "card {l..<u} = u - l"
+  apply (subgoal_tac "card {l..<u} = card {..<u-l}")
   apply (erule ssubst, rule card_lessThan)
-  apply (subgoal_tac "(%x. x + l) ` {..u-l(} = {l..u(}")
+  apply (subgoal_tac "(%x. x + l) ` {..<u-l} = {l..<u}")
   apply (erule subst)
   apply (rule card_image)
   apply (rule finite_lessThan)
@@ -301,52 +315,52 @@ lemma card_atLeastLessThan [simp]: "card {l..u(} = u - l"
 lemma card_atLeastAtMost [simp]: "card {l..u} = Suc u - l"
   by (subst atLeastLessThanSuc_atLeastAtMost [THEN sym], simp)
 
-lemma card_greaterThanAtMost [simp]: "card {)l..u} = u - l" 
+lemma card_greaterThanAtMost [simp]: "card {l<..u} = u - l" 
   by (subst atLeastSucAtMost_greaterThanAtMost [THEN sym], simp)
 
-lemma card_greaterThanLessThan [simp]: "card {)l..u(} = u - Suc l"
+lemma card_greaterThanLessThan [simp]: "card {l<..<u} = u - Suc l"
   by (subst atLeastSucLessThan_greaterThanLessThan [THEN sym], simp)
 
 subsection {* Intervals of integers *}
 
-lemma atLeastLessThanPlusOne_atLeastAtMost_int: "{l..u+1(} = {l..(u::int)}"
+lemma atLeastLessThanPlusOne_atLeastAtMost_int: "{l..<u+1} = {l..(u::int)}"
   by (auto simp add: atLeastAtMost_def atLeastLessThan_def)
 
-lemma atLeastPlusOneAtMost_greaterThanAtMost_int: "{l+1..u} = {)l..(u::int)}"  
+lemma atLeastPlusOneAtMost_greaterThanAtMost_int: "{l+1..u} = {l<..(u::int)}"  
   by (auto simp add: atLeastAtMost_def greaterThanAtMost_def)
 
 lemma atLeastPlusOneLessThan_greaterThanLessThan_int: 
-    "{l+1..u(} = {)l..(u::int)(}"  
+    "{l+1..<u} = {l<..<u::int}"  
   by (auto simp add: atLeastLessThan_def greaterThanLessThan_def)
 
 subsubsection {* Finiteness *}
 
 lemma image_atLeastZeroLessThan_int: "0 \<le> u ==> 
-    {(0::int)..u(} = int ` {..nat u(}"
+    {(0::int)..<u} = int ` {..<nat u}"
   apply (unfold image_def lessThan_def)
   apply auto
   apply (rule_tac x = "nat x" in exI)
   apply (auto simp add: zless_nat_conj zless_nat_eq_int_zless [THEN sym])
   done
 
-lemma finite_atLeastZeroLessThan_int: "finite {(0::int)..u(}"
+lemma finite_atLeastZeroLessThan_int: "finite {(0::int)..<u}"
   apply (case_tac "0 \<le> u")
   apply (subst image_atLeastZeroLessThan_int, assumption)
   apply (rule finite_imageI)
   apply auto
-  apply (subgoal_tac "{0..u(} = {}")
+  apply (subgoal_tac "{0..<u} = {}")
   apply auto
   done
 
 lemma image_atLeastLessThan_int_shift: 
-    "(%x. x + (l::int)) ` {0..u-l(} = {l..u(}"
+    "(%x. x + (l::int)) ` {0..<u-l} = {l..<u}"
   apply (auto simp add: image_def atLeastLessThan_iff)
   apply (rule_tac x = "x - l" in bexI)
   apply auto
   done
 
-lemma finite_atLeastLessThan_int [iff]: "finite {l..(u::int)(}"
-  apply (subgoal_tac "(%x. x + l) ` {0..u-l(} = {l..u(}")
+lemma finite_atLeastLessThan_int [iff]: "finite {l..<u::int}"
+  apply (subgoal_tac "(%x. x + l) ` {0..<u-l} = {l..<u}")
   apply (erule subst)
   apply (rule finite_imageI)
   apply (rule finite_atLeastZeroLessThan_int)
@@ -356,25 +370,25 @@ lemma finite_atLeastLessThan_int [iff]: "finite {l..(u::int)(}"
 lemma finite_atLeastAtMost_int [iff]: "finite {l..(u::int)}" 
   by (subst atLeastLessThanPlusOne_atLeastAtMost_int [THEN sym], simp)
 
-lemma finite_greaterThanAtMost_int [iff]: "finite {)l..(u::int)}" 
+lemma finite_greaterThanAtMost_int [iff]: "finite {l<..(u::int)}" 
   by (subst atLeastPlusOneAtMost_greaterThanAtMost_int [THEN sym], simp)
 
-lemma finite_greaterThanLessThan_int [iff]: "finite {)l..(u::int)(}" 
+lemma finite_greaterThanLessThan_int [iff]: "finite {l<..<u::int}" 
   by (subst atLeastPlusOneLessThan_greaterThanLessThan_int [THEN sym], simp)
 
 subsubsection {* Cardinality *}
 
-lemma card_atLeastZeroLessThan_int: "card {(0::int)..u(} = nat u"
+lemma card_atLeastZeroLessThan_int: "card {(0::int)..<u} = nat u"
   apply (case_tac "0 \<le> u")
   apply (subst image_atLeastZeroLessThan_int, assumption)
   apply (subst card_image)
   apply (auto simp add: inj_on_def)
   done
 
-lemma card_atLeastLessThan_int [simp]: "card {l..u(} = nat (u - l)"
-  apply (subgoal_tac "card {l..u(} = card {0..u-l(}")
+lemma card_atLeastLessThan_int [simp]: "card {l..<u} = nat (u - l)"
+  apply (subgoal_tac "card {l..<u} = card {0..<u-l}")
   apply (erule ssubst, rule card_atLeastZeroLessThan_int)
-  apply (subgoal_tac "(%x. x + l) ` {0..u-l(} = {l..u(}")
+  apply (subgoal_tac "(%x. x + l) ` {0..<u-l} = {l..<u}")
   apply (erule subst)
   apply (rule card_image)
   apply (rule finite_atLeastZeroLessThan_int)
@@ -387,10 +401,10 @@ lemma card_atLeastAtMost_int [simp]: "card {l..u} = nat (u - l + 1)"
   apply (auto simp add: compare_rls)
   done
 
-lemma card_greaterThanAtMost_int [simp]: "card {)l..u} = nat (u - l)" 
+lemma card_greaterThanAtMost_int [simp]: "card {l<..u} = nat (u - l)" 
   by (subst atLeastPlusOneAtMost_greaterThanAtMost_int [THEN sym], simp)
 
-lemma card_greaterThanLessThan_int [simp]: "card {)l..u(} = nat (u - (l + 1))"
+lemma card_greaterThanLessThan_int [simp]: "card {l<..<u} = nat (u - (l + 1))"
   by (subst atLeastPlusOneLessThan_greaterThanLessThan_int [THEN sym], simp)
 
 
@@ -403,38 +417,38 @@ subsubsection {* Disjoint Unions *}
 text {* Singletons and open intervals *}
 
 lemma ivl_disj_un_singleton:
-  "{l::'a::linorder} Un {)l..} = {l..}"
-  "{..u(} Un {u::'a::linorder} = {..u}"
-  "(l::'a::linorder) < u ==> {l} Un {)l..u(} = {l..u(}"
-  "(l::'a::linorder) < u ==> {)l..u(} Un {u} = {)l..u}"
-  "(l::'a::linorder) <= u ==> {l} Un {)l..u} = {l..u}"
-  "(l::'a::linorder) <= u ==> {l..u(} Un {u} = {l..u}"
+  "{l::'a::linorder} Un {l<..} = {l..}"
+  "{..<u} Un {u::'a::linorder} = {..u}"
+  "(l::'a::linorder) < u ==> {l} Un {l<..<u} = {l..<u}"
+  "(l::'a::linorder) < u ==> {l<..<u} Un {u} = {l<..u}"
+  "(l::'a::linorder) <= u ==> {l} Un {l<..u} = {l..u}"
+  "(l::'a::linorder) <= u ==> {l..<u} Un {u} = {l..u}"
 by auto
 
 text {* One- and two-sided intervals *}
 
 lemma ivl_disj_un_one:
-  "(l::'a::linorder) < u ==> {..l} Un {)l..u(} = {..u(}"
-  "(l::'a::linorder) <= u ==> {..l(} Un {l..u(} = {..u(}"
-  "(l::'a::linorder) <= u ==> {..l} Un {)l..u} = {..u}"
-  "(l::'a::linorder) <= u ==> {..l(} Un {l..u} = {..u}"
-  "(l::'a::linorder) <= u ==> {)l..u} Un {)u..} = {)l..}"
-  "(l::'a::linorder) < u ==> {)l..u(} Un {u..} = {)l..}"
-  "(l::'a::linorder) <= u ==> {l..u} Un {)u..} = {l..}"
-  "(l::'a::linorder) <= u ==> {l..u(} Un {u..} = {l..}"
+  "(l::'a::linorder) < u ==> {..l} Un {l<..<u} = {..<u}"
+  "(l::'a::linorder) <= u ==> {..<l} Un {l..<u} = {..<u}"
+  "(l::'a::linorder) <= u ==> {..l} Un {l<..u} = {..u}"
+  "(l::'a::linorder) <= u ==> {..<l} Un {l..u} = {..u}"
+  "(l::'a::linorder) <= u ==> {l<..u} Un {u<..} = {l<..}"
+  "(l::'a::linorder) < u ==> {l<..<u} Un {u..} = {l<..}"
+  "(l::'a::linorder) <= u ==> {l..u} Un {u<..} = {l..}"
+  "(l::'a::linorder) <= u ==> {l..<u} Un {u..} = {l..}"
 by auto
 
 text {* Two- and two-sided intervals *}
 
 lemma ivl_disj_un_two:
-  "[| (l::'a::linorder) < m; m <= u |] ==> {)l..m(} Un {m..u(} = {)l..u(}"
-  "[| (l::'a::linorder) <= m; m < u |] ==> {)l..m} Un {)m..u(} = {)l..u(}"
-  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..m(} Un {m..u(} = {l..u(}"
-  "[| (l::'a::linorder) <= m; m < u |] ==> {l..m} Un {)m..u(} = {l..u(}"
-  "[| (l::'a::linorder) < m; m <= u |] ==> {)l..m(} Un {m..u} = {)l..u}"
-  "[| (l::'a::linorder) <= m; m <= u |] ==> {)l..m} Un {)m..u} = {)l..u}"
-  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..m(} Un {m..u} = {l..u}"
-  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..m} Un {)m..u} = {l..u}"
+  "[| (l::'a::linorder) < m; m <= u |] ==> {l<..<m} Un {m..<u} = {l<..<u}"
+  "[| (l::'a::linorder) <= m; m < u |] ==> {l<..m} Un {m<..<u} = {l<..<u}"
+  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..<m} Un {m..<u} = {l..<u}"
+  "[| (l::'a::linorder) <= m; m < u |] ==> {l..m} Un {m<..<u} = {l..<u}"
+  "[| (l::'a::linorder) < m; m <= u |] ==> {l<..<m} Un {m..u} = {l<..u}"
+  "[| (l::'a::linorder) <= m; m <= u |] ==> {l<..m} Un {m<..u} = {l<..u}"
+  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..<m} Un {m..u} = {l..u}"
+  "[| (l::'a::linorder) <= m; m <= u |] ==> {l..m} Un {m<..u} = {l..u}"
 by auto
 
 lemmas ivl_disj_un = ivl_disj_un_singleton ivl_disj_un_one ivl_disj_un_two
@@ -444,38 +458,38 @@ subsubsection {* Disjoint Intersections *}
 text {* Singletons and open intervals *}
 
 lemma ivl_disj_int_singleton:
-  "{l::'a::order} Int {)l..} = {}"
-  "{..u(} Int {u} = {}"
-  "{l} Int {)l..u(} = {}"
-  "{)l..u(} Int {u} = {}"
-  "{l} Int {)l..u} = {}"
-  "{l..u(} Int {u} = {}"
+  "{l::'a::order} Int {l<..} = {}"
+  "{..<u} Int {u} = {}"
+  "{l} Int {l<..<u} = {}"
+  "{l<..<u} Int {u} = {}"
+  "{l} Int {l<..u} = {}"
+  "{l..<u} Int {u} = {}"
   by simp+
 
 text {* One- and two-sided intervals *}
 
 lemma ivl_disj_int_one:
-  "{..l::'a::order} Int {)l..u(} = {}"
-  "{..l(} Int {l..u(} = {}"
-  "{..l} Int {)l..u} = {}"
-  "{..l(} Int {l..u} = {}"
-  "{)l..u} Int {)u..} = {}"
-  "{)l..u(} Int {u..} = {}"
-  "{l..u} Int {)u..} = {}"
-  "{l..u(} Int {u..} = {}"
+  "{..l::'a::order} Int {l<..<u} = {}"
+  "{..<l} Int {l..<u} = {}"
+  "{..l} Int {l<..u} = {}"
+  "{..<l} Int {l..u} = {}"
+  "{l<..u} Int {u<..} = {}"
+  "{l<..<u} Int {u..} = {}"
+  "{l..u} Int {u<..} = {}"
+  "{l..<u} Int {u..} = {}"
   by auto
 
 text {* Two- and two-sided intervals *}
 
 lemma ivl_disj_int_two:
-  "{)l::'a::order..m(} Int {m..u(} = {}"
-  "{)l..m} Int {)m..u(} = {}"
-  "{l..m(} Int {m..u(} = {}"
-  "{l..m} Int {)m..u(} = {}"
-  "{)l..m(} Int {m..u} = {}"
-  "{)l..m} Int {)m..u} = {}"
-  "{l..m(} Int {m..u} = {}"
-  "{l..m} Int {)m..u} = {}"
+  "{l::'a::order<..<m} Int {m..<u} = {}"
+  "{l<..m} Int {m<..<u} = {}"
+  "{l..<m} Int {m..<u} = {}"
+  "{l..m} Int {m<..<u} = {}"
+  "{l<..<m} Int {m..u} = {}"
+  "{l<..m} Int {m<..u} = {}"
+  "{l..<m} Int {m..u} = {}"
+  "{l..m} Int {m<..u} = {}"
   by auto
 
 lemmas ivl_disj_int = ivl_disj_int_singleton ivl_disj_int_one ivl_disj_int_two
@@ -504,7 +518,7 @@ needed? Probably better to replace it with above syntax. *}
 syntax
   "_Summation" :: "idt => 'a => 'b => 'b"    ("\<Sum>_<_. _" [0, 51, 10] 10)
 translations
-  "\<Sum>i < n. b" == "setsum (\<lambda>i. b) {..n(}"
+  "\<Sum>i < n. b" == "setsum (\<lambda>i. b) {..<n}"
 
 lemma Summation_Suc[simp]: "(\<Sum>i < Suc n. b i) = b n + (\<Sum>i < n. b i)"
 by (simp add:lessThan_Suc)

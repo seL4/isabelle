@@ -470,7 +470,7 @@ done
 
 (*Alternative proof is via the lemma F \<in> (A \<inter> f-`(lessThan m)) leadsTo B*)
 lemma lessThan_induct: 
-     "[| !!m::nat. F \<in> (A \<inter> f-`{m}) leadsTo ((A \<inter> f-`{..m(}) \<union> B) |]  
+     "[| !!m::nat. F \<in> (A \<inter> f-`{m}) leadsTo ((A \<inter> f-`{..<m}) \<union> B) |]  
       ==> F \<in> A leadsTo B"
 apply (rule wf_less_than [THEN leadsTo_wf_induct])
 apply (simp (no_asm_simp))

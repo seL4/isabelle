@@ -513,10 +513,10 @@ done
 lemma Example2_lemma2: 
  "!!b. \<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i::nat< n. b i)=(\<Sum>i< n. (b (j := Suc 0)) i)"
 apply(frule_tac b="(b (j:=(Suc 0)))" in Example2_lemma2_aux)
-apply(erule_tac  t="setsum (b(j := (Suc 0))) {..n(}" in ssubst)
+apply(erule_tac  t="setsum (b(j := (Suc 0))) {..<n}" in ssubst)
 apply(frule_tac b=b in Example2_lemma2_aux)
-apply(erule_tac  t="setsum b {..n(}" in ssubst)
-apply(subgoal_tac "Suc (setsum b {..j(} + b j + (\<Sum>i<n - Suc j. b (Suc j + i)))=(setsum b {..j(} + Suc (b j) + (\<Sum>i<n - Suc j. b (Suc j + i)))")
+apply(erule_tac  t="setsum b {..<n}" in ssubst)
+apply(subgoal_tac "Suc (setsum b {..<j} + b j + (\<Sum>i<n - Suc j. b (Suc j + i)))=(setsum b {..<j} + Suc (b j) + (\<Sum>i<n - Suc j. b (Suc j + i)))")
 apply(rotate_tac -1)
 apply(erule ssubst)
 apply(subgoal_tac "j\<le>j")

@@ -643,12 +643,12 @@ next
   show "deg p + deg q <= deg (p * q)"
   proof (rule deg_belowI, simp)
     have "setsum ?s {.. deg p + deg q}
-      = setsum ?s ({.. deg p(} Un {deg p .. deg p + deg q})"
+      = setsum ?s ({..< deg p} Un {deg p .. deg p + deg q})"
       by (simp only: ivl_disj_un_one)
     also have "... = setsum ?s {deg p .. deg p + deg q}"
       by (simp add: setsum_Un_disjoint ivl_disj_int_one
         setsum_0 deg_aboveD less_add_diff)
-    also have "... = setsum ?s ({deg p} Un {)deg p .. deg p + deg q})"
+    also have "... = setsum ?s ({deg p} Un {deg p <.. deg p + deg q})"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff p (deg p) * coeff q (deg q)" 
       by (simp add: setsum_Un_disjoint ivl_disj_int_singleton 
@@ -686,14 +686,14 @@ proof (rule up_eqI)
   proof (cases "k <= deg p")
     case True
     hence "coeff (setsum ?s {..deg p}) k = 
-          coeff (setsum ?s ({..k} Un {)k..deg p})) k"
+          coeff (setsum ?s ({..k} Un {k<..deg p})) k"
       by (simp only: ivl_disj_un_one)
     also from True
     have "... = coeff (setsum ?s {..k}) k"
       by (simp add: setsum_Un_disjoint ivl_disj_int_one order_less_imp_not_eq2
         setsum_0 coeff_natsum )
     also
-    have "... = coeff (setsum ?s ({..k(} Un {k})) k"
+    have "... = coeff (setsum ?s ({..<k} Un {k})) k"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff p k"
       by (simp add: setsum_Un_disjoint ivl_disj_int_singleton 
@@ -702,7 +702,7 @@ proof (rule up_eqI)
   next
     case False
     hence "coeff (setsum ?s {..deg p}) k = 
-          coeff (setsum ?s ({..deg p(} Un {deg p})) k"
+          coeff (setsum ?s ({..<deg p} Un {deg p})) k"
       by (simp only: ivl_disj_un_singleton)
     also from False have "... = coeff p k"
       by (simp add: setsum_Un_disjoint ivl_disj_int_singleton 
@@ -716,7 +716,7 @@ lemma up_repr_le:
 proof -
   let ?s = "(%i. monom (coeff p i) i)"
   assume "deg p <= n"
-  then have "setsum ?s {..n} = setsum ?s ({..deg p} Un {)deg p..n})"
+  then have "setsum ?s {..n} = setsum ?s ({..deg p} Un {deg p<..n})"
     by (simp only: ivl_disj_un_one)
   also have "... = setsum ?s {..deg p}"
     by (simp add: setsum_Un_disjoint ivl_disj_int_one

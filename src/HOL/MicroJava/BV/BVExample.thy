@@ -416,7 +416,7 @@ constdefs
     in  kiljvm G mxs (1+size pTs+mxl) rT et instr start)"
 
 lemma [code]:
-  "unstables r step ss = (UN p:{..size ss(}. if \<not>stable r step ss p then {p} else {})"
+  "unstables r step ss = (UN p:{..<size ss}. if \<not>stable r step ss p then {p} else {})"
   apply (unfold unstables_def)
   apply (rule equalityI)
   apply (rule subsetI)

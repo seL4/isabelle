@@ -1526,7 +1526,7 @@ done
 lemma sublist_singleton [simp]: "sublist [x] A = (if 0 : A then [x] else [])"
 by (simp add: sublist_Cons)
 
-lemma sublist_upt_eq_take [simp]: "sublist l {..n(} = take n l"
+lemma sublist_upt_eq_take [simp]: "sublist l {..<n} = take n l"
 apply (induct l rule: rev_induct, simp)
 apply (simp split: nat_diff_split add: sublist_append)
 done

@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/NatSum.ML
+(* Title: HOL/ex/NatSum.ML
     ID:         $Id$
     Author:     Tobias Nipkow
 *)
@@ -26,7 +26,7 @@ text {*
   squared.
 *}
 
-lemma sum_of_odds: "(\<Sum>i \<in> {..n(}. Suc (i + i)) = n * n"
+lemma sum_of_odds: "(\<Sum>i \<in> {..<n}. Suc (i + i)) = n * n"
   apply (induct n)
    apply auto
   done
@@ -37,7 +37,7 @@ text {*
 *}
 
 lemma sum_of_odd_squares:
-  "3 * (\<Sum>i \<in> {..n(}. Suc (2*i) * Suc (2*i)) =
+  "3 * (\<Sum>i \<in> {..<n}. Suc (2*i) * Suc (2*i)) =
     n * (4 * n * n - 1)"
   apply (induct n)
    apply (auto split: nat_diff_split) (*eliminate the subtraction*)
@@ -51,7 +51,7 @@ text {*
 lemma numeral_2_eq_2: "2 = Suc (Suc 0)" by (auto ); 
 
 lemma sum_of_odd_cubes:
-  "(\<Sum>i \<in> {..n(}. Suc (2*i) * Suc (2*i) * Suc (2*i)) =
+  "(\<Sum>i \<in> {..<n}. Suc (2*i) * Suc (2*i) * Suc (2*i)) =
     n * n * (2 * n * n - 1)"
   apply (induct n)
    apply (auto split: nat_diff_split) (*eliminate the subtraction*)
@@ -105,7 +105,7 @@ declare
   zdiff_zmult_distrib2 [simp]
 
 lemma int_sum_of_fourth_powers:
-  "30 * int (\<Sum>i \<in> {..m(}. i * i * i * i) =
+  "30 * int (\<Sum>i \<in> {..<m}. i * i * i * i) =
     int m * (int m - 1) * (int (2 * m) - 1) *
     (int (3 * m * m) - int (3 * m) - 1)"
   apply (induct m)
@@ -118,17 +118,17 @@ text {*
   general case.
 *}
 
-lemma sum_of_2_powers: "(\<Sum>i \<in> {..n(}. 2^i) = 2^n - (1::nat)"
+lemma sum_of_2_powers: "(\<Sum>i \<in> {..<n}. 2^i) = 2^n - (1::nat)"
   apply (induct n)
    apply (auto split: nat_diff_split)
   done
 
-lemma sum_of_3_powers: "2 * (\<Sum>i \<in> {..n(}. 3^i) = 3^n - (1::nat)"
+lemma sum_of_3_powers: "2 * (\<Sum>i \<in> {..<n}. 3^i) = 3^n - (1::nat)"
   apply (induct n)
    apply auto
   done
 
-lemma sum_of_powers: "0 < k ==> (k - 1) * (\<Sum>i \<in> {..n(}. k^i) = k^n - (1::nat)"
+lemma sum_of_powers: "0 < k ==> (k - 1) * (\<Sum>i \<in> {..<n}. k^i) = k^n - (1::nat)"
   apply (induct n)
    apply auto
   done

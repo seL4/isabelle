@@ -68,7 +68,7 @@ text {*
 
 lemma finite_nat_bounded:
   assumes S: "finite (S::nat set)"
-  shows "\<exists>k. S \<subseteq> {..k(}" (is "\<exists>k. ?bounded S k")
+  shows "\<exists>k. S \<subseteq> {..<k}" (is "\<exists>k. ?bounded S k")
 using S
 proof (induct)
   have "?bounded {} 0" by simp
@@ -89,13 +89,13 @@ next
 qed
 
 lemma finite_nat_iff_bounded:
-  "finite (S::nat set) = (\<exists>k. S \<subseteq> {..k(})" (is "?lhs = ?rhs")
+  "finite (S::nat set) = (\<exists>k. S \<subseteq> {..<k})" (is "?lhs = ?rhs")
 proof
   assume ?lhs
   thus ?rhs by (rule finite_nat_bounded)
 next
   assume ?rhs
-  then obtain k where "S \<subseteq> {..k(}" ..
+  then obtain k where "S \<subseteq> {..<k}" ..
   thus "finite S"
     by (rule finite_subset, simp)
 qed
@@ -104,7 +104,7 @@ lemma finite_nat_iff_bounded_le:
   "finite (S::nat set) = (\<exists>k. S \<subseteq> {..k})" (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  then obtain k where "S \<subseteq> {..k(}" 
+  then obtain k where "S \<subseteq> {..<k}" 
     by (blast dest: finite_nat_bounded)
   hence "S \<subseteq> {..k}" by auto
   thus ?rhs ..
