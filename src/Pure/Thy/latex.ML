@@ -64,8 +64,8 @@ fun output_tok (Basic tok) =
         else if T.is_kind T.Verbatim tok then output_sym (enclose "{*" "*}" s)
         else output_sym s
       end
-  | output_tok (Markup (cmd, txt)) = "\n\\isamarkup" ^ cmd ^ "{" ^ strip_blanks txt ^ "}\n"
-  | output_tok (Verbatim txt) = "\n" ^ strip_blanks txt ^ "\n";
+  | output_tok (Markup (cmd, txt)) = "%\n\\isamarkup" ^ cmd ^ "{" ^ strip_blanks txt ^ "}\n"
+  | output_tok (Verbatim txt) = "%\n" ^ strip_blanks txt ^ "\n";
 
 
 val output_tokens = implode o map output_tok;
