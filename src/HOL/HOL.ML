@@ -1,4 +1,4 @@
-(*  Title: 	HOL/hol.ML
+(*  Title: 	HOL/HOL.ML
     ID:         $Id$
     Author: 	Tobias Nipkow
     Copyright   1991  University of Cambridge
@@ -312,3 +312,35 @@ val HOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I]
 
 use     "simpdata.ML";
 simpset := HOL_ss;
+
+
+(** Install simpsets and datatypes in theory structure **)
+exception SS_DATA of simpset;
+
+let fun merge [] = SS_DATA empty_ss
+      | merge ss = let val ss = map (fn SS_DATA x => x) ss;
+                   in SS_DATA (foldl merge_ss (hd ss, tl ss)) end;
+
+    fun put (SS_DATA ss) = simpset := ss;
+
+    fun get () = SS_DATA (!simpset);
+in add_thydata HOL.thy
+     ("simpset", ThyMethods {merge = merge, put = put, get = get})
+end;
+
+exception DT_DATA of string list;
+val datatypes = ref [] : string list ref;
+
+let fun merge [] = DT_DATA []
+      | merge ds = let val ds = map (fn DT_DATA x => x) ds;
+                   in DT_DATA (foldl (op union) (hd ds, tl ds)) end;
+
+    fun put (DT_DATA ds) = datatypes := ds;
+
+    fun get () = DT_DATA (!datatypes);
+in add_thydata HOL.thy
+     ("datatypes", ThyMethods {merge = merge, put = put, get = get})
+end;
+
+
+add_thy_reader_file "thy_data.ML";

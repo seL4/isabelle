@@ -405,7 +405,7 @@ in
 	end;
 
     in
-      store_datatype (tname, map (fn (x,_,_) => x) cons_list');
+      datatypes := map (fn (x,_,_) => x) cons_list' @ (!datatypes);
       (thy |> add_types types
            |> add_arities arities
            |> add_consts consts
