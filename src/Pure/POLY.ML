@@ -8,13 +8,7 @@ Compatibility file for Poly/ML (AHL release 1.88)
 
 open PolyML ExtendedIO;
 
-
-structure Int =
-  struct
-  fun max (x, y) = if x < y then y else x : int;
-  fun min (x, y) = if x < y then x else y : int;
-  end;
-
+use"basis.ML";
 
 (*A conditional timing function: applies f to () and, if the flag is true,
   prints its runtime.*)
@@ -77,22 +71,27 @@ in
 fun file_info "" = ""
   | file_info name = radixstring (System.filedate name)  handle _ => "";
 
-(*Delete a file *)
-fun delete_file name =
-  let val (is, os) = ExtendedIO.execute ("rm " ^ name)
-  in close_in is;
-     close_out os
+
+structure OS =
+  struct
+  structure FileSys =
+    struct
+    val chDir = PolyML.cd
+
+    fun remove name =    (*Delete a file *)
+      let val (is, os) = ExtendedIO.execute ("rm " ^ name)
+      in close_in is; close_out os end;
+
+    (*Get pathname of current working directory *)
+    fun getDir () =
+      let val (is, os) = ExtendedIO.execute ("pwd")
+	  val (path, _) = take_suffix (apr(op=,"\n")) (*remove newline*)
+			   (explode (ExtendedIO.input_line is)) 
+      in close_in is; close_out os; implode path end;
+
+    end
   end;
 
-(*Get pathname of current working directory *)
-fun pwd () =
-  let val (is, os) = ExtendedIO.execute ("pwd")
-      val (path, _) = take_suffix (apr(op=,"\n"))
-                       (explode (ExtendedIO.input_line is)) (*remove newline *)
-  in close_in is;
-     close_out os;
-     implode path
-  end;
 
 
 (*** ML command execution ***)

@@ -7,23 +7,13 @@ Compatibility file for Standard ML of New Jersey version 0.93.
 *)
 
 
-(*** Basis Library emulation ***)
-
-structure Int =
-  struct
-  fun max (x, y) = if x < y then y else x : int;
-  fun min (x, y) = if x < y then x else y : int;
-  end;
-
+use"basis.ML";
 
 (*** Poly/ML emulation ***)
 
 (*To exit the system with an exit code -- an alternative to ^D *)
 val exit = System.Unsafe.CInterface.exit;
 fun quit () = exit 0;
-
-(*To change the current directory*)
-val cd = System.Directory.cd;
 
 (*To limit the printing depth [divided by 2 for comparibility with Poly/ML]*)
 fun print_depth n = (System.Control.Print.printDepth := n div 2;
@@ -89,12 +79,17 @@ local
 in
   fun file_info "" = ""
     | file_info name = makestring (mtime (PATH name))  handle _ => "";
-
-  val delete_file = unlink;
 end;
 
-(*Get pathname of current working directory *)
-fun pwd () = System.Directory.getWD ();
+structure OS =
+  struct
+  structure FileSys =
+    struct
+    val OS.FileSys.chDir = System.Directory.cd
+    val remove = System.Unsafe.SysIO.unlink       (*Delete a file *)
+    val getDir = System.Directory.getWD           (*path of working directory*)
+    end
+  end;
 
 
 (*** ML command execution ***)
@@ -119,6 +114,9 @@ fun execute command =
      result
   end;
 
+(*redefine to flush its output immediately -- temporary patch suggested
+  by Kim Dam Petersen*)
+val output = fn(s, t) => (output(s, t); flush_out s);
 
 (*For use in Makefiles -- saves space*)
 fun xML filename banner = (exportML filename;  print(banner^"\n"));
