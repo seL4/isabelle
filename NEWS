@@ -7,12 +7,6 @@ New in Isabelle99-2 (February 2001)
 
 *** Overview of INCOMPATIBILITIES ***
 
-* HOL/Algebra: special summation operator SUM no longer exists, it has
-been replaced by setsum; infix 'assoc' now has priority 50 (like 'dvd');
-
-* HOL/Algebra: axiom 'one_not_zero' has been moved from axclass 'ring'
-to 'domain', this makes the theory consistent with mathematical literature;
- 
 * HOL: inductive package no longer splits induction rule aggressively,
 but only as far as specified by the introductions given; the old
 format may recovered via ML function complete_split_rule or attribute
@@ -134,9 +128,15 @@ HOL/Induct/Multiset, HOL/Induct/Acc (as Accessible_Part), HOL/While
 modelling and verification task performed in Isabelle/HOL +
 Isabelle/Isar + Isabelle document preparation (by Markus Wenzel).
 
+* HOL/Algebra: special summation operator SUM no longer exists, it has
+been replaced by setsum; infix 'assoc' now has priority 50 (like
+'dvd'); axiom 'one_not_zero' has been moved from axclass 'ring' to
+'domain', this makes the theory consistent with mathematical
+literature;
+
 * HOL basics: added overloaded operations "inverse" and "divide"
 (infix "/"), syntax for generic "abs" operation, generic summation
-operator;
+operator \<Sum>;
 
 * HOL/typedef: simplified package, provide more useful rules (see also
 HOL/subset.thy);
@@ -154,7 +154,7 @@ rules with string literals);
 * HOL-Hyperreal: a new target, extending HOL-Real with the hyperreals
 and Fleuriot's mechanization of analysis;
 
-* HOL-Real, HOL-Hyperreals: improved arithmetic simplification;
+* HOL/Real, HOL/Hyperreal: improved arithmetic simplification;
 
 
 *** CTT ***
