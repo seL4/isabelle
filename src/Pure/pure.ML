@@ -15,6 +15,7 @@ local
     Calculation.setup @
     SkipProof.setup @
     AxClass.setup @
+    Latex.setup @
     Present.setup @
     Isamode.setup @
     ProofGeneral.setup;

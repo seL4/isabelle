@@ -13,6 +13,7 @@ sig
   val old_symbol_source: string -> Symbol.symbol list -> string
   val token_source: token list -> string
   val theory_entry: string -> string
+  val setup: (theory -> theory) list
 end;
 
 structure Latex: LATEX =
@@ -108,11 +109,16 @@ fun theory_entry name = "\\input{" ^ name ^ ".tex}\n";
 
 (* print mode *)
 
+val latexN = "latex";
+
 fun latex_output str =
   let val syms = Symbol.explode str
   in (output_symbols syms, real (Symbol.length syms)) end;
 
-val _ = Symbol.add_mode "latex" latex_output;
+val token_translation = map (fn s => (latexN, s, latex_output)) Syntax.standard_token_classes;
+
+val _ = Symbol.add_mode latexN latex_output;
+val setup = [Theory.add_tokentrfuns token_translation];
 
 
 end;
