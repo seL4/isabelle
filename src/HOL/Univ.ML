@@ -2,11 +2,7 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
-
-For univ.thy
 *)
-
-open Univ;
 
 (** apfst -- can be used in similar type definitions **)
 

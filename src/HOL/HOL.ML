@@ -3,11 +3,8 @@
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 
-For HOL.thy
 Derived rules from Appendix of Mike Gordons HOL Report, Cambridge TR 68 
 *)
-
-open HOL;
 
 
 (** Equality **)

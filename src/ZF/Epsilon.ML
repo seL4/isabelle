@@ -3,10 +3,8 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-For epsilon.thy.  Epsilon induction and recursion
+Epsilon induction and recursion
 *)
-
-open Epsilon;
 
 (*** Basic closure properties ***)
 

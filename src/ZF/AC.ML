@@ -3,10 +3,8 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-For AC.thy.  The Axiom of Choice
+The Axiom of Choice
 *)
-
-open AC;
 
 (*The same as AC, but no premise a:A*)
 val [nonempty] = goal AC.thy

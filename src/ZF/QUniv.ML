@@ -3,10 +3,8 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-For quniv.thy.  A small universe for lazy recursive types
+A small universe for lazy recursive types
 *)
-
-open QUniv;
 
 (** Properties involving Transset and Sum **)
 
