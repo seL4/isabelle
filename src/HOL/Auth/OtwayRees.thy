@@ -66,7 +66,7 @@ inductive "otway lost"
                              Crypt (shrK B)
                                    {|Nonce NA, Nonce NB, Agent A, Agent B|}|}
                : set_of_list evs;
-             Says S B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
+             Says S' B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
                : set_of_list evs |]
           ==> Says B A {|Nonce NA, X|} # evs : otway lost"
 

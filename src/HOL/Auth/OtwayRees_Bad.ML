@@ -51,7 +51,7 @@ goal thy "!!evs. Says A' B {|N, Agent A, Agent B, X|} : set_of_list evs ==> \
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "OR2_analz_sees_Spy";
 
-goal thy "!!evs. Says S B {|N, X, Crypt (shrK B) X'|} : set_of_list evs ==> \
+goal thy "!!evs. Says S' B {|N, X, Crypt (shrK B) X'|} : set_of_list evs ==> \
 \                X : analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "OR4_analz_sees_Spy";

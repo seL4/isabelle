@@ -57,7 +57,7 @@ goal thy "!!evs. Says A' B {|N, Agent A, Agent B, X|} : set_of_list evs \
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "OR2_analz_sees_Spy";
 
-goal thy "!!evs. Says S B {|N, X, Crypt (shrK B) X'|} : set_of_list evs \
+goal thy "!!evs. Says S' B {|N, X, Crypt (shrK B) X'|} : set_of_list evs \
 \                ==> X : analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "OR4_analz_sees_Spy";
@@ -487,7 +487,7 @@ qed_spec_mp "NB_Crypt_imp_Server_msg";
   has sent the correct message.*)
 goal thy 
  "!!evs. [| B ~: lost;  B ~= Spy;  evs : otway lost;               \
-\           Says S B {|NA, X, Crypt (shrK B) {|NB, Key K|}|}       \
+\           Says S' B {|NA, X, Crypt (shrK B) {|NB, Key K|}|}      \
 \            : set_of_list evs;                                    \
 \           Says B Server {|NA, Agent A, Agent B, X',              \
 \                           Crypt (shrK B) {|NA, NB, Agent A, Agent B|} |} \

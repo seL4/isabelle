@@ -58,7 +58,7 @@ inductive "otway lost"
     OR4  "[| evs: otway lost;  A ~= B;
              Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
                : set_of_list evs;
-             Says S B {|X, Crypt(shrK B){|Nonce NB, Agent A, Agent B, Key K|}|}
+             Says S' B {|X, Crypt(shrK B){|Nonce NB,Agent A,Agent B,Key K|}|}
                : set_of_list evs |]
           ==> Says B A X # evs : otway lost"
 

@@ -63,7 +63,7 @@ inductive otway
     OR4  "[| evs: otway;  A ~= B;
              Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB, X''|}
                : set_of_list evs;
-             Says S B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
+             Says S' B {|Nonce NA, X, Crypt (shrK B) {|Nonce NB, Key K|}|}
                : set_of_list evs |]
           ==> Says B A {|Nonce NA, X|} # evs : otway"
 

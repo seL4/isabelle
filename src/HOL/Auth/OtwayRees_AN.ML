@@ -52,7 +52,7 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 
 (** For reasoning about the encrypted portion of messages **)
 
-goal thy "!!evs. Says S B {|X, Crypt(shrK B) X'|} : set_of_list evs ==> \
+goal thy "!!evs. Says S' B {|X, Crypt(shrK B) X'|} : set_of_list evs ==> \
 \                X : analz (sees lost Spy evs)";
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "OR4_analz_sees_Spy";
@@ -353,7 +353,7 @@ qed_spec_mp "NB_Crypt_imp_Server_msg";
   has sent the correct message in round 3.*)
 goal thy 
  "!!evs. [| B ~: lost;  evs : otway lost;                                   \
-\           Says S B {|X, Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}  \
+\           Says S' B {|X, Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|} \
 \            : set_of_list evs |]                                           \
 \        ==> EX NA. Says Server B                                           \
 \                     {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},     \
