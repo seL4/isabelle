@@ -14,65 +14,23 @@ See also E. Mendelson, Introduction to Mathematical Logic.
 (Van Nostrand, 1964), page 250, exercise 11.
 *)
 
-open Primrec;
-
-val pr_typechecks = 
-    nat_typechecks @ list.intrs @ 
-    [lam_type, list_case_type, drop_type, map_type, apply_type, rec_type];
-
-(** Useful special cases of evaluation ***)
-
-simpset_ref() := simpset() setSolver (type_auto_tac pr_typechecks);
-
-Goalw [SC_def]
-    "[| x:nat;  l: list(nat) |] ==> SC ` (Cons(x,l)) = succ(x)";
-by (Asm_simp_tac 1);
-qed "SC";
-
-Goalw [CONST_def]
-    "[| l: list(nat) |] ==> CONST(k) ` l = k";
-by (Asm_simp_tac 1);
-qed "CONST";
-
-Goalw [PROJ_def]
-    "[| x: nat;  l: list(nat) |] ==> PROJ(0) ` (Cons(x,l)) = x";
-by (Asm_simp_tac 1);
-qed "PROJ_0";
-
-Goalw [COMP_def]
-    "[| l: list(nat) |] ==> COMP(g,[f]) ` l = g` [f`l]";
-by (Asm_simp_tac 1);
-qed "COMP_1";
-
-Goalw [PREC_def]
-    "l: list(nat) ==> PREC(f,g) ` (Cons(0,l)) = f`l";
-by (Asm_simp_tac 1);
-qed "PREC_0";
-
-Goalw [PREC_def]
-    "[| x:nat;  l: list(nat) |] ==>  \
-\         PREC(f,g) ` (Cons(succ(x),l)) = \
-\         g ` Cons(PREC(f,g)`(Cons(x,l)), Cons(x,l))";
-by (Asm_simp_tac 1);
-qed "PREC_succ";
-
 (*** Inductive definition of the PR functions ***)
 
-(* c: primrec ==> c: list(nat) -> nat *)
-val primrec_into_fun = primrec.dom_subset RS subsetD;
+(* c: prim_rec ==> c: list(nat) -> nat *)
+val prim_rec_into_fun = prim_rec.dom_subset RS subsetD;
 
-simpset_ref() := simpset() setSolver (type_auto_tac ([primrec_into_fun] @ 
-					      pr_typechecks @ primrec.intrs));
+simpset_ref() := simpset() setSolver (type_auto_tac ([prim_rec_into_fun] @ 
+					      pr_typechecks @ prim_rec.intrs));
 
-Goalw [ACK_def] "i:nat ==> ACK(i): primrec";
+Goalw [ACK_def] "i:nat ==> ACK(i): prim_rec";
 by (etac nat_induct 1);
 by (ALLGOALS Asm_simp_tac);
-qed "ACK_in_primrec";
+qed "ACK_in_prim_rec";
 
 val ack_typechecks =
-    [ACK_in_primrec, primrec_into_fun RS apply_type,
+    [ACK_in_prim_rec, prim_rec_into_fun RS apply_type,
      add_type, list_add_type, nat_into_Ord] @ 
-    nat_typechecks @ list.intrs @ primrec.intrs;
+    nat_typechecks @ list.intrs @ prim_rec.intrs;
 
 (*strict typechecking for the Ackermann proof; instantiates no vars*)
 fun tc_tac rls =
@@ -96,8 +54,6 @@ by (asm_simp_tac (simpset() addsimps [CONST,PREC_0]) 1);
 qed "ack_succ_0";
 
 (*PROPERTY A 3*)
-(*Could be proved in Primrec0, like the previous two cases, but using
-  primrec_into_fun makes type-checking easier!*)
 Goalw [ACK_def]
     "[| i:nat;  j:nat |] ==> \
 \           ack(succ(i), succ(j)) = ack(i, ack(succ(i), j))";
@@ -257,7 +213,7 @@ val PROJ_case = PROJ_case_lemma RS bspec;
 
 (** COMP case **)
 
-Goal "fs : list({f: primrec .                                 \
+Goal "fs : list({f: prim_rec .                                 \
 \                  EX kf:nat. ALL l:list(nat).                  \
 \                             f`l < ack(kf, list_add(l))})      \
 \      ==> EX k:nat. ALL l: list(nat).                          \
@@ -278,7 +234,7 @@ qed "COMP_map_lemma";
 Goalw [COMP_def]
  "[| kg: nat;                                 \
 \         ALL l:list(nat). g`l < ack(kg, list_add(l));          \
-\         fs : list({f: primrec .                               \
+\         fs : list({f: prim_rec .                               \
 \                    EX kf:nat. ALL l:list(nat).                \
 \                       f`l < ack(kf, list_add(l))})            \
 \      |] ==> EX k:nat. ALL l: list(nat). COMP(g,fs)`l < ack(k, list_add(l))";
@@ -298,8 +254,8 @@ qed "COMP_case";
 Goalw [PREC_def]
  "[| ALL l:list(nat). f`l #+ list_add(l) < ack(kf, list_add(l)); \
 \           ALL l:list(nat). g`l #+ list_add(l) < ack(kg, list_add(l)); \
-\           f: primrec;  kf: nat;                                       \
-\           g: primrec;  kg: nat;                                       \
+\           f: prim_rec;  kf: nat;                                       \
+\           g: prim_rec;  kg: nat;                                       \
 \           l: list(nat)                                                \
 \        |] ==> PREC(f,g)`l #+ list_add(l) < ack(succ(kf#+kg), list_add(l))";
 by (etac list.elim 1);
@@ -326,8 +282,8 @@ by (etac ack_lt_mono2 5);
 by (tc_tac []);
 qed "PREC_case_lemma";
 
-Goal "[| f: primrec;  kf: nat;                               \
-\        g: primrec;  kg: nat;                               \
+Goal "[| f: prim_rec;  kf: nat;                               \
+\        g: prim_rec;  kg: nat;                               \
 \        ALL l:list(nat). f`l < ack(kf, list_add(l));        \
 \        ALL l:list(nat). g`l < ack(kg, list_add(l))         \
 \     |] ==> EX k:nat. ALL l: list(nat). PREC(f,g)`l< ack(k, list_add(l))";
@@ -340,20 +296,20 @@ by (REPEAT
               rtac (ack_add_bound2 RS ballI) THEN' etac bspec])));
 qed "PREC_case";
 
-Goal "f:primrec ==> EX k:nat. ALL l:list(nat). f`l < ack(k, list_add(l))";
-by (etac primrec.induct 1);
+Goal "f:prim_rec ==> EX k:nat. ALL l:list(nat). f`l < ack(k, list_add(l))";
+by (etac prim_rec.induct 1);
 by Safe_tac;
 by (DEPTH_SOLVE
     (ares_tac ([SC_case, CONST_case, PROJ_case, COMP_case, PREC_case,
                        bexI, ballI] @ nat_typechecks) 1));
-qed "ack_bounds_primrec";
+qed "ack_bounds_prim_rec";
 
-Goal "~ (lam l:list(nat). list_case(0, %x xs. ack(x,x), l)) : primrec";
+Goal "~ (lam l:list(nat). list_case(0, %x xs. ack(x,x), l)) : prim_rec";
 by (rtac notI 1);
-by (etac (ack_bounds_primrec RS bexE) 1);
+by (etac (ack_bounds_prim_rec RS bexE) 1);
 by (rtac lt_irrefl 1);
 by (dres_inst_tac [("x", "[x]")] bspec 1);
 by (Asm_simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [add_0_right]) 1);
-qed "ack_not_primrec";
+by (Asm_full_simp_tac 1);
+qed "ack_not_prim_rec";
 
