@@ -1,0 +1,809 @@
+(******************)
+(* complete later *)
+(******************)
+
+fun not_newline ch = not (ch = "\n");
+
+
+
+(* Versions that include type information *)
+ 
+fun string_of_thm thm = let val _ = set show_sorts
+                                val str = Sign.string_of_term Mainsign (prop_of thm)
+                                val no_returns =List.filter not_newline (explode str)
+                                val _ = reset show_sorts
+                            in 
+                                implode no_returns
+                            end
+
+
+fun thm_of_string str = let val _ = set show_sorts
+                                val term = read str
+                                val propterm = mk_Trueprop term
+                                val cterm = cterm_of Mainsign propterm
+                                val _ = reset show_sorts
+                            in
+                                assume cterm
+                            end
+
+(* check separate args in the watcher program for separating strings with a * or ; or something *)
+
+fun clause_strs_to_string [] str = str
+|   clause_strs_to_string (x::xs) str = clause_strs_to_string xs (str^x^"%")
+
+
+
+fun thmvars_to_string [] str = str
+|   thmvars_to_string (x::xs) str = thmvars_to_string xs (str^x^"%")
+
+
+fun proofstep_to_string Axiom = "Axiom()"
+|   proofstep_to_string  (Binary ((a,b), (c,d)))= "Binary"^"("^"("^(string_of_int a)^","^(string_of_int b)^")"^","^"("^(string_of_int c)^","^(string_of_int d)^")"^")"
+|   proofstep_to_string (Factor (a,b,c)) = "Factor"^"("^(string_of_int a)^","^(string_of_int b)^","^(string_of_int c)^")"
+|   proofstep_to_string  (Para ((a,b), (c,d)))= "Para"^"("^"("^(string_of_int a)^","^(string_of_int b)^")"^","^"("^(string_of_int c)^","^(string_of_int d)^")"^")"
+|   proofstep_to_string  (MRR ((a,b), (c,d)))= "MRR"^"("^"("^(string_of_int a)^","^(string_of_int b)^")"^","^"("^(string_of_int c)^","^(string_of_int d)^")"^")"
+|   proofstep_to_string (Rewrite((a,b),(c,d))) = "Rewrite"^"("^"("^(string_of_int a)^","^(string_of_int b)^")"^","^"("^(string_of_int c)^","^(string_of_int d)^")"^")"
+
+fun list_to_string [] liststr = liststr
+|   list_to_string (x::[]) liststr = liststr^(string_of_int x)
+|   list_to_string (x::xs) liststr = list_to_string xs (liststr^(string_of_int x)^",")
+
+
+fun proof_to_string (num,(step,clause_strs, thmvars)) = (string_of_int num)^(proofstep_to_string step)^"["^(clause_strs_to_string clause_strs "")^"]"^"["^(thmvars_to_string thmvars "")^"]"
+ 
+
+fun proofs_to_string [] str = str
+|   proofs_to_string (x::xs) str = let val newstr = proof_to_string x 
+                                   in
+                                       proofs_to_string xs (str^newstr)
+                                   end
+
+
+
+fun init_proofstep_to_string (num, step, clause_strs) = (string_of_int num)^" "^(proofstep_to_string step)^" "^(clause_strs_to_string clause_strs "")^" "
+
+fun init_proofsteps_to_string [] str = str
+|   init_proofsteps_to_string (x::xs) str = let val newstr = init_proofstep_to_string x 
+                                   in
+                                       init_proofsteps_to_string xs (str^newstr)
+                                   end
+  
+
+
+(*** get a string representing the Isabelle ordered axioms ***)
+
+fun origAx_to_string (num,(meta,thmvars)) =let val clause_strs = get_meta_lits_bracket meta
+                                         in
+                                            (string_of_int num)^"OrigAxiom()"^"["^(clause_strs_to_string clause_strs "")^"]"^"["^(thmvars_to_string thmvars "")^"]"
+                                         end
+
+
+fun  origAxs_to_string [] str = str
+|   origAxs_to_string (x::xs) str = let val newstr = origAx_to_string x 
+                                   in
+                                       origAxs_to_string xs (str^newstr)
+                                   end
+
+
+(*** get a string representing the Isabelle ordered axioms not used in the spass proof***)
+
+fun extraAx_to_string (num, (meta,thmvars)) = let val clause_strs = get_meta_lits_bracket meta
+                                           in
+                                              (string_of_int num)^"ExtraAxiom()"^"["^(clause_strs_to_string clause_strs "")^"]"^"["^(thmvars_to_string thmvars "")^"]"
+                                           end
+
+
+
+fun  extraAxs_to_string [] str = str
+|   extraAxs_to_string (x::xs) str = let val newstr = extraAx_to_string x 
+                                   in
+                                       extraAxs_to_string xs (str^newstr)
+                                   end
+
+
+
+
+
+
+fun is_axiom ( num:int,Axiom, str) = true
+|   is_axiom (num, _,_) = false
+
+fun get_init_axioms xs = List.filter (is_axiom) ( xs)
+
+fun get_step_nums [] nums = nums
+|   get_step_nums (( num:int,Axiom, str)::xs) nums = get_step_nums xs (nums@[num])
+
+fun assoc_snd a [] = raise Noassoc
+  | assoc_snd a ((x, y)::t) = if a = y then x else assoc_snd a t;
+
+(* change to be something using check_order  instead of a = y --> returns true if ASSERTION not raised in checkorder, false otherwise *)
+
+(*fun get_assoc_snds [] xs assocs= assocs
+|   get_assoc_snds (x::xs) ys assocs = get_assoc_snds xs ys (assocs@[((assoc_snd x ys))])
+*)
+(*FIX - should this have vars in it? *)
+fun there_out_of_order xs ys = let val foo = (checkorder xs ys [] ([],[],[])) 
+                                   
+                               in 
+                                   true
+                              end
+                              handle EXCEP => false
+
+fun assoc_out_of_order a [] = raise Noassoc
+|   assoc_out_of_order a ((b,c)::t) = if there_out_of_order a c then b else assoc_out_of_order a t;
+
+fun get_assoc_snds [] xs assocs= assocs
+|   get_assoc_snds (x::xs) ys assocs = get_assoc_snds xs ys (assocs@[((assoc_out_of_order x ys))])
+
+
+
+
+fun add_if_not_inlist [] xs newlist = newlist
+|   add_if_not_inlist (y::ys) xs newlist = if (not (inlist y xs)) then 
+                                      add_if_not_inlist ys xs (y::newlist)
+                                        else add_if_not_inlist ys xs (newlist)
+
+(*
+fun is_alpha_space_neg_eq_colon ch = (ch = "~") orelse (is_alpha ch) orelse ( ch = " ")orelse  ( ch = ";") orelse( ch = "=")
+
+(* replace | by ; here *)
+fun change_or [] = []
+|   change_or (x::xs) = if x = "|" 
+                          then 
+                             [";"]@(change_or xs)
+                          else (x::(change_or xs))
+
+
+fun clause_lit_string t = let val termstr = (Sign.string_of_term Mainsign ) t
+                              val exp_term = explode termstr
+                              val colon_term = change_or exp_term
+                   in
+                             implode(List.filter is_alpha_space_neg_eq_colon colon_term)
+                   end
+
+fun get_clause_lits thm =  clause_lit_string (prop_of thm)
+*)
+
+
+fun onestr [] str = str
+|   onestr (x::xs) str = onestr xs (str^(concat x))
+
+fun thmstrings [] str = str
+|   thmstrings (x::xs) str = thmstrings xs (str^(string_of_thm x))
+
+fun onelist [] newlist = newlist
+|   onelist (x::xs) newlist = onelist xs (newlist@x)
+
+
+(**** Code to support ordinary resolution, rather than Model Elimination ****)
+
+(*Convert a list of clauses (disjunctions) to meta-level clauses (==>), 
+  with no contrapositives, for ordinary resolution.*)
+
+(*raises exception if no rules apply -- unlike RL*)
+fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
+  | tryres (th, []) = raise THM("tryres", 0, [th]);
+
+val prop_of = #prop o rep_thm;
+
+
+(*For ordinary resolution. *)
+val resolution_clause_rules = [disj_assoc, make_neg_rule', make_pos_rule'];
+(*Use "theorem naming" to label the clauses*)
+fun name_thms label =
+    let fun name1 (th, (k,ths)) =
+	  (k-1, Thm.name_thm (label ^ string_of_int k, th) :: ths)
+
+    in  fn ths => #2 (foldr name1 (length ths, []) ths)  end;
+
+(*Find an all-negative support clause*)
+fun is_negative th = forall (not o #1) (literals (prop_of th));
+
+val neg_clauses = List.filter is_negative;
+
+
+
+(*True if the given type contains bool anywhere*)
+fun has_bool (Type("bool",_)) = true
+  | has_bool (Type(_, Ts)) = exists has_bool Ts
+  | has_bool _ = false;
+  
+
+(*Create a meta-level Horn clause*)
+fun make_horn crules th = make_horn crules (tryres(th,crules))
+			  handle THM _ => th;
+
+
+(*Raises an exception if any Vars in the theorem mention type bool. That would mean
+  they are higher-order, and in addition, they could cause make_horn to loop!*)
+fun check_no_bool th =
+  if exists (has_bool o fastype_of) (term_vars (#prop (rep_thm th)))
+  then raise THM ("check_no_bool", 0, [th]) else th;
+
+
+(*Rules to convert the head literal into a negated assumption. If the head
+  literal is already negated, then using notEfalse instead of notEfalse'
+  prevents a double negation.*)
+val notEfalse = read_instantiate [("R","False")] notE;
+val notEfalse' = rotate_prems 1 notEfalse;
+
+fun negated_asm_of_head th = 
+    th RS notEfalse handle THM _ => th RS notEfalse';
+
+(*Converting one clause*)
+fun make_meta_clause th = 
+	negated_asm_of_head (make_horn resolution_clause_rules (check_no_bool th));
+
+fun make_meta_clauses ths =
+    name_thms "MClause#"
+      (gen_distinct Drule.eq_thm_prop (map make_meta_clause ths));
+
+(*Permute a rule's premises to move the i-th premise to the last position.*)
+fun make_last i th =
+  let val n = nprems_of th 
+  in  if 1 <= i andalso i <= n 
+      then Thm.permute_prems (i-1) 1 th
+      else raise THM("select_literal", i, [th])
+  end;
+
+(*Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
+  double-negations.*)
+val negate_head = rewrite_rule [atomize_not, not_not RS eq_reflection];
+
+(*Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P*)
+fun select_literal i cl = negate_head (make_last i cl);
+
+ fun get_axioms_used proof_steps thmstring = let 
+                                             val  outfile = TextIO.openOut("foo_ax_thmstr");                                                                       
+                                             val _ = TextIO.output (outfile, thmstring)
+                                             
+                                             val _ =  TextIO.closeOut outfile
+                                            (* not sure why this is necessary again, but seems to be *)
+                                            val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+                                            val axioms = get_init_axioms proof_steps
+                                            val step_nums = get_step_nums axioms []
+                                            val thm = thm_of_string thmstring
+                                            val clauses = make_clauses [thm]
+                                            
+                                            val vars = map thm_vars clauses
+                                           
+                                            val distvars = distinct (fold append vars [])
+                                            val clause_terms = map prop_of clauses  
+                                            val clause_frees = onelist (map term_frees clause_terms) []
+
+                                            val frees = map lit_string_with_nums clause_frees;
+
+                                            val distfrees = distinct frees
+
+                                            val metas = map make_meta_clause clauses
+                                            val ax_strs = map (three_of_three ) axioms
+
+                                            (* literals of -all- axioms, not just those used by spass *)
+                                            val meta_strs = map get_meta_lits metas
+                                           
+                                            val metas_and_strs = zip  metas meta_strs
+                                             val  outfile = TextIO.openOut("foo_clauses");                                                                       
+                                             val _ = TextIO.output (outfile, (onestr ax_strs ""))
+                                             
+                                             val _ =  TextIO.closeOut outfile
+                                             val  outfile = TextIO.openOut("foo_metastrs");                                                                       
+                                             val _ = TextIO.output (outfile, (onestr meta_strs ""))
+                                             val _ =  TextIO.closeOut outfile
+
+                                            (* get list of axioms as thms with their variables *)
+
+                                            val ax_metas = get_assoc_snds ax_strs metas_and_strs []
+                                            val ax_vars = map thm_vars ax_metas
+                                            val ax_with_vars = zip ax_metas ax_vars
+
+                                            (* get list of extra axioms as thms with their variables *)
+                                            val extra_metas = add_if_not_inlist metas ax_metas []
+                                            val extra_vars = map thm_vars extra_metas
+                                            val extra_with_vars = if (not (extra_metas = []) ) 
+                                                                  then
+ 									 zip extra_metas extra_vars
+                                                                  else
+                                                                         []
+
+                                           (* val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
+                                           val  outfile = TextIO.openOut("foo_metas")
+
+                                           val _ = TextIO.output (outfile, ((thmstrings ax_metas "")))
+                                           val _ =  TextIO.closeOut outfile
+                                            val execperl = Unix.execute("/usr/bin/perl", ["remchars2.pl <foo_metas >foo_metas2"])
+                                         val infile = TextIO.openIn("foo_metas2")
+                                        val ax_metas_str = TextIO.inputLine (infile)
+                                        val _ = TextIO.closeIn infile
+                                           val _= (print_mode := (["xsymbols", "symbols"] @ ! print_mode))*)
+                                           
+                                         in
+                                            (distfrees,distvars, extra_with_vars,ax_with_vars, (zip step_nums ax_metas))
+                                         end
+                                        
+fun thmstrings [] str = str
+|   thmstrings (x::xs) str = thmstrings xs (str^(string_of_thm x))
+
+fun numclstr (vars, []) str = str
+|   numclstr ( vars, ((num, thm)::rest)) str = let val newstr = str^(string_of_int num)^" "^(string_of_thm thm)^" "
+                               in
+                                   numclstr  (vars,rest) newstr
+                               end
+
+(*
+
+val proofstr = "Did parsing on Here is a proof with depth 4, length 9 :\
+\1[0:Inp] || v_P(tconst_fun(typ__da_a,tconst_bool),v_x)*+ -> v_P(tconst_fun(typ__da_a,tconst_bool),U)*.\
+\3[0:Inp] || v_P(tconst_fun(typ__da_a,tconst_bool),U)*+ -> v_P(tconst_fun(typ__da_a,tconst_bool),v_x)*.\
+\5[0:Inp] ||  -> v_P(tconst_fun(typ__da_a,tconst_bool),U)* v_P(tconst_fun(typ__da_a,tconst_bool),v_xa)*.\
+\7[0:Inp] || v_P(tconst_fun(typ__da_a,tconst_bool),U)*+ v_P(tconst_fun(typ__da_a,tconst_bool),v_xb)* -> .\
+\9[0:Fac:5.0,5.1] ||  -> v_P(tconst_fun(typ__da_a,tconst_bool),v_xa)*.\
+\10[0:Res:9.0,3.0] ||  -> v_P(tconst_fun(typ__da_a,tconst_bool),v_x)*.\
+\11[0:Res:10.0,1.0] ||  -> v_P(tconst_fun(typ__da_a,tconst_bool),U)*.\
+\12[0:Fac:7.0,7.1] || v_P(tconst_fun(typ__da_a,tconst_bool),v_xb)* -> .\
+\14[0:Res:11.0,12.0] ||  -> .\
+\Formulae used in the proof :"
+
+*)
+
+
+fun addvars  c (a,b)  = (a,b,c)
+
+
+
+(*********************************************************************)
+(* Pass in spass string of proof and string version of isabelle goal *)
+(* Get out reconstruction steps as a string to be sent to Isabelle   *)
+(*********************************************************************)
+
+
+(*
+
+
+val proofstr = "Here is a proof with depth 2, length 5 :\
+\1[0:Inp] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*.\
+\3[0:Inp] || v_Q(tconst_fun(typ__asc39_a,tconst_bool),U)* -> .\
+\5[0:Inp] || v_P(tconst_fun(typ__asc39_a,tconst_bool),v_x)* -> v_Q(tconst_fun(typ__asc39_a,tconst_bool),v_xa).\
+\7[0:Res:1.0,5.0] ||  -> v_Q(tconst_fun(typ__asc39_a,tconst_bool),v_xa)*.\
+\9[0:Res:7.0,3.0] ||  -> .\
+\Formulae used in the proof :"
+
+
+val proofstr = "Here is a proof with depth 4, length 9 :\
+\1[0:Inp] || v_P(tconst_fun(typ__asc39_a,tconst_bool),v_x)*+ -> v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*.\
+\3[0:Inp] || v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*+ -> v_P(tconst_fun(typ__asc39_a,tconst_bool),v_x)*.\
+\5[0:Inp] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),U)* v_P(tconst_fun(typ__asc39_a,tconst_bool),v_xa)*.\
+\7[0:Inp] || v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*+ v_P(tconst_fun(typ__asc39_a,tconst_bool),v_xb)* -> .\
+\9[0:Fac:5.0,5.1] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),v_xa)*.\
+\10[0:Res:9.0,3.0] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),v_x)*.\
+\11[0:Res:10.0,1.0] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*.\
+\12[0:Fac:7.0,7.1] || v_P(tconst_fun(typ__asc39_a,tconst_bool),v_xb)* -> .\
+\14[0:Res:11.0,12.0] ||  -> .\
+\Formulae used in the proof :";
+
+
+val thmstring = " (~ (P::'a::type => bool) (x::'a::type) | P (U::'a::type)) & (~ (P::'a::type => bool) (U::'a::type) | P (x::'a::type)) & ((P::'a::type => bool) (xa::'a::type) | P (U::'a::type)) & (~ (P::'a::type => bool) (U::'a::type) | ~ P (xb::'a::type))";
+
+val thmstring = "(ALL xb::'a::type.   (~ (P::'a::type => bool) ((x::'a::type => 'a::type) xb) |    (Q::'a::type => bool) ((xa::'a::type => 'a::type) xb)) &   P xb & ~ Q xb)"
+
+
+val thmstring ="(ALL xb::'a::type.   (~ (P::'a::type => bool) ((x::'a::type => 'a::type) xb) |    (Q::'a::type => bool) ((xa::'a::type => 'a::type) xb)) &   P xb & ~ Q xb)"
+
+val proofstr = "Did parsing on Here is a proof with depth 2, length 5 :\
+\1[0:Inp] ||  -> v_P(tconst_fun(typ__asc39_a,tconst_bool),U)*.\
+\3[0:Inp] || v_Q(tconst_fun(typ__asc39_a,tconst_bool),U)* -> .\
+\5[0:Inp] || v_P(tconst_fun(typ__asc39_a,tconst_bool),v_x(tconst_fun(typ__asc39_a,typ__asc39_a),U))* -> v_Q(tconst_fun(typ__asc39_a,tconst_bool),v_xa(tconst_fun(typ__asc39_a,typ__asc39_a),U)).\
+\7[0:Res:1.0,5.0] ||  -> v_Q(tconst_fun(typ__asc39_a,tconst_bool),v_xa(tconst_fun(typ__asc39_a,typ__asc39_a),U))*.\
+\9[0:Res:7.0,3.0] ||  -> .\
+\Formulae used in the proof :";
+
+*)
+
+
+fun spassString_to_reconString proofstr thmstring = 
+                                              let val  outfile = TextIO.openOut("thmstringfile");                                                                                      val _= warning("proofstr is: "^proofstr);
+                                                  val _ = warning ("thmstring is: "^thmstring);
+                                                  val _ = TextIO.output (outfile, (thmstring))
+                                                  val _ =  TextIO.closeOut outfile
+                                                  val proofextract = extract_proof proofstr
+                                                  val tokens = fst(lex proofextract)
+                                                     
+                                              (***********************************)
+                                              (* parse spass proof into datatype *)
+                                              (***********************************)
+
+                                                  val proof_steps1 = parse tokens
+                                                  val proof_steps = just_change_space proof_steps1
+
+                                                  val  outfile = TextIO.openOut("foo_parse");                                                                                          val _ = TextIO.output (outfile, ("Did parsing on "^proofstr))
+                                                  val _ =  TextIO.closeOut outfile
+                                                
+                                                  val  outfile = TextIO.openOut("foo_thmstring_at_parse");                                                                             val _ = TextIO.output (outfile, ("Parsing for thmstring: "^thmstring))
+                                                  val _ =  TextIO.closeOut outfile
+                                              (************************************)
+                                              (* recreate original subgoal as thm *)
+                                              (************************************)
+                                                
+                                                  (* get axioms as correctly numbered clauses w.r.t. the Spass proof *)
+                                                  val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps thmstring
+                                                  
+                                                  (*val numcls_string = numclstr ( vars, numcls) ""*)
+                                                  val  outfile = TextIO.openOut("foo_axiom");                                                                            val _ = TextIO.output (outfile,"got axioms")
+                                                  val _ =  TextIO.closeOut outfile
+                                                    
+                                              (************************************)
+                                              (* translate proof                  *)
+                                              (************************************)
+                                                  val  outfile = TextIO.openOut("foo_steps");                                                          val _ = TextIO.output (outfile, ("about to translate proof, steps: "^(init_proofsteps_to_string proof_steps "")))
+                                                  val _ =  TextIO.closeOut outfile
+                                                  val (newthm,proof) = translate_proof numcls  proof_steps vars
+                                                  val  outfile = TextIO.openOut("foo_steps2");                                                                         val _ = TextIO.output (outfile, ("translated proof, steps: "^(init_proofsteps_to_string proof_steps "")))
+                                                  val _ =  TextIO.closeOut outfile
+                                              (***************************************************)
+                                              (* transfer necessary steps as strings to Isabelle *)
+                                              (***************************************************)
+                                                  (* turn the proof into a string *)
+                                                  val reconProofStr = proofs_to_string proof ""
+                                                  (* do the bit for the Isabelle ordered axioms at the top *)
+                                                  val ax_nums = map fst numcls
+                                                  val ax_strs = map get_meta_lits_bracket (map snd numcls)
+                                                  val numcls_strs = zip ax_nums ax_strs
+                                                  val num_cls_vars =  map (addvars vars) numcls_strs;
+                                                  val reconIsaAxStr = origAxs_to_string (zip ax_nums ax_with_vars) ""
+                                                  
+                                                  val extra_nums = if (not (extra_with_vars = [])) then (1 upto (length extra_with_vars)) else []
+                                                  val reconExtraAxStr = extraAxs_to_string ( zip extra_nums extra_with_vars) ""
+                                                  val frees_str = "["^(thmvars_to_string frees "")^"]"
+                                                  val  outfile = TextIO.openOut("reconstringfile");
+
+                                                  val _ = TextIO.output (outfile, (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr))
+                                                  val _ =  TextIO.closeOut outfile
+                                              in 
+                                                   (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr)
+                                              end
+                                              handle _ => (let val  outfile = TextIO.openOut("foo_handler");
+
+                                                  val _ = TextIO.output (outfile, ("In exception handler"));
+                                                  val _ =  TextIO.closeOut outfile
+                                              in 
+                                                 "Proof found but translation failed!"
+                                              end)
+
+
+
+
+
+
+
+
+
+(**********************************************************************************)
+(* At other end, want to turn back into datatype so can apply reconstruct_proof.  *)
+(* This will be done by the signal handler                                        *)
+(**********************************************************************************)
+
+(* Parse in the string version of the proof steps for reconstruction *)
+(* Isar format: cl1 [BINARY 0 cl2 0];cl1 [PARAMOD 0 cl2 0]; cl1 [DEMOD 0 cl2];cl1 [FACTOR 1 2];*)
+
+
+ val term_numstep =
+        (number ++ (a (Other ",")) ++ number) >> (fn (a, (_, c)) => (a, c))
+
+val extraaxiomstep = (a (Word "ExtraAxiom"))++ (a (Other "(")) ++(a (Other ")"))
+            >> (fn (_) => ExtraAxiom)
+
+
+
+val origaxiomstep = (a (Word "OrigAxiom"))++ (a (Other "(")) ++(a (Other ")"))
+            >> (fn (_) => OrigAxiom)
+
+
+ val axiomstep = (a (Word "Axiom"))++ (a (Other "(")) ++(a (Other ")"))
+            >> (fn (_) => Axiom)
+     
+
+
+      
+ val binarystep = (a (Word "Binary")) ++ (a (Other "(")) ++ (a (Other "(")) 
+                   ++ term_numstep  ++ (a (Other ")")) ++ (a (Other ","))
+                   ++ (a (Other "(")) ++ term_numstep ++ (a (Other ")")) ++ (a (Other ")"))
+            >> (fn (_, (_, (_, (c, (_,(_,(_, (e,(_,_))))))))) => Binary (c,e))
+      
+
+ val parastep = (a (Word "Para")) ++ (a (Other "(")) ++ (a (Other "(")) 
+                   ++ term_numstep  ++ (a (Other ")")) ++ (a (Other ","))
+                   ++ (a (Other "(")) ++ term_numstep ++ (a (Other ")")) ++ (a (Other ")"))
+            >> (fn (_, (_, (_, (c, (_,(_,(_, (e,(_,_))))))))) => Para(c, e))
+      
+ val mrrstep = (a (Word "MRR")) ++ (a (Other "(")) ++ (a (Other "(")) 
+                   ++ term_numstep  ++ (a (Other ")")) ++ (a (Other ","))
+                   ++ (a (Other "(")) ++ term_numstep ++ (a (Other ")")) ++ (a (Other ")"))
+            >> (fn (_, (_, (_, (c, (_,(_,(_, (e,(_,_))))))))) => MRR(c, e))
+      
+
+ val factorstep = (a (Word "Factor")) ++ (a (Other "("))
+                    ++ number ++ (a (Other ","))
+                       ++ number ++ (a (Other ","))
+                       ++ number ++  (a (Other ")"))
+                   
+            >> (fn (_, (_, (c, (_, (e,(_,(f,_))))))) =>  Factor (c,e,f))
+
+
+val rewritestep = (a (Word "Rewrite"))  ++ (a (Other "(")) ++ (a (Other "(")) 
+                   ++ term_numstep  ++ (a (Other ")")) ++ (a (Other ","))
+                   ++ (a (Other "(")) ++ term_numstep ++ (a (Other ")")) ++ (a (Other ")"))
+            >> (fn (_, (_, (_, (c, (_,(_,(_, (e,(_,_))))))))) => Rewrite (c,e))
+
+val obviousstep = (a (Word "Obvious")) ++ (a (Other "(")) 
+                   ++ term_numstep  ++ (a (Other ")")) 
+            >> (fn (_, (_, (c,_))) => Obvious (c))
+
+ val methodstep = extraaxiomstep || origaxiomstep || axiomstep ||binarystep || factorstep|| parastep || mrrstep || rewritestep || obviousstep
+
+
+ val number_list_step =
+        ( number ++ many ((a (Other ",") ++ number)>> snd))
+        >> (fn (a,b) => (a::b))
+        
+ val numberlist_step = a (Other "[")  ++ a (Other "]")
+                        >>(fn (_,_) => ([]:int list))
+                       || a (Other "[") ++ number_list_step ++ a (Other "]")
+                        >>(fn (_,(a,_)) => a)
+                    
+
+
+(** change this to allow P (x U) *)
+ fun arglist_step input = ( word ++ many  word >> (fn (a, b) => (a^" "^(implode_with_space b)))
+                           ||word >> (fn (a) => (a)))input
+                
+
+fun literal_step input = (word ++ a (Other "(") ++ arglist_step ++  a (Other ")")
+                                          >>(fn (a, (b, (c,d))) => (a^" ("^(c)^")"))
+                        || arglist_step >> (fn (a) => (a)))input
+                           
+
+
+(* fun term_step input = (a (Other "~") ++ arglist_step ++ a (Other "%")>> (fn (a,(b,c)) => ("~ "^b))
+                     ||  arglist_step ++ a (Other "%")>> (fn (a,b) => a ))input
+*)
+
+
+ fun term_step input = (a (Other "~") ++ literal_step ++ a (Other "%")>> (fn (a,(b,c)) => ("~ "^b))
+                     ||  literal_step ++ a (Other "%")>> (fn (a,b) => a ))input
+
+
+         
+
+ val term_list_step =
+        (  term_step ++ many ( term_step))
+        >> (fn (a,b) => (a::b))
+        
+ 
+val term_lists_step = a (Other "[")  ++ a (Other "]")
+                        >>(fn (_,_) => ([]:string list))
+                       || a (Other "[") ++ term_list_step ++ a (Other "]")
+                        >>(fn (_,(a,_)) => a)
+                     
+
+
+
+fun anytoken_step input  = (word>> (fn (a) => a)  ) input
+                       handle NOPARSE_WORD => (number>> (fn (a) => string_of_int a)  ) input
+                      handle NOPARSE_NUMBER => (other_char >> (fn(a) => a)) input
+
+
+
+fun goalstring_step input= (anytoken_step ++ many (anytoken_step )
+                  >> (fn (a,b) =>  (a^" "^(implode b)))) input
+
+
+
+ val linestep = number ++ methodstep ++ term_lists_step ++ term_lists_step
+                >> (fn (a, (b, (c,d))) => (a,(b,c,d)))
+    
+ val lines_step = many linestep
+
+ val alllines_step = (term_lists_step ++ lines_step ) ++ finished >> fst
+    
+ val parse_step = fst o alllines_step
+
+
+ (*
+val reconstr ="[P%x%xa%xb%]1OrigAxiom()[P x%~ P U%][U%]3OrigAxiom()[P U%~ P x%][U%]5OrigAxiom()[~ P xa%~ P U%][U%]7OrigAxiom()[P U%P xb%][U%]1Axiom()[P x%~ P U%][U%]3Axiom()[P U%~ P x%][U%]5Axiom()[~ P U%~ P xa%][U%]7Axiom()[P U%P xb%][U%]9Factor(5,0,1)[~ P xa%][]10Binary((9,0),(3,0))[~ P x%][]11Binary((10,0),(1,0))[~ P U%][U%]12Factor(7,0,1)[P xb%][]14Binary((11,0),(12,0))[][]%(EX x::'a::type. ALL y::'a::type. (P::'a::type => bool) x = P y) -->(EX x::'a::type. P x) = (ALL y::'a::type. P y)"
+*)
+
+(************************************************************)
+(* Construct an Isar style proof from a list of proof steps *)
+(************************************************************)
+(* want to assume all axioms, then do haves for the other clauses*)
+(* then show for the last step *)
+fun one_of_three (a,b,c) = a;
+fun two_of_three (a,b,c) = b;
+fun three_of_three (a,b,c) = c;
+
+(* replace ~ by not here *)
+fun change_nots [] = []
+|   change_nots (x::xs) = if x = "~" 
+                          then 
+                             ["\\", "<", "n", "o", "t", ">"]@(change_nots xs)
+                          else (x::(change_nots xs))
+
+(*
+fun clstrs_to_string [] str = str
+|   clstrs_to_string (x::[]) str = str^x
+|   clstrs_to_string (x::xs) str = clstrs_to_string xs (str^(x^"; "))
+*)
+fun clstrs_to_string [] str = implode (change_nots (explode str))
+|   clstrs_to_string (x::[]) str = implode (change_nots (explode (str^x)))
+|   clstrs_to_string (x::xs) str = implode (change_nots (explode (clstrs_to_string xs (str^(x^"; ")))))
+
+
+
+fun thmvars_to_quantstring [] str = str
+|   thmvars_to_quantstring (x::[]) str =str^x^". "
+|   thmvars_to_quantstring (x::xs) str = thmvars_to_quantstring xs (str^(x^" "))
+
+
+fun clause_strs_to_isar clstrs [] =  "\"\\<lbrakk>"^(clstrs_to_string clstrs "")^"\\<rbrakk> "^" \\<Longrightarrow> False\""
+|   clause_strs_to_isar clstrs thmvars = "\"\\<And>"^(thmvars_to_quantstring thmvars "")^"\\<lbrakk>"^(clstrs_to_string clstrs "")^"\\<rbrakk> "^"\\<Longrightarrow> False\""
+
+fun frees_to_string [] str = implode (change_nots (explode str))
+|   frees_to_string (x::[]) str = implode (change_nots (explode (str^x)))
+|   frees_to_string  (x::xs) str = implode (change_nots (explode (frees_to_string xs (str^(x^" ")))))
+
+fun frees_to_isar_str [] =  ""
+|   frees_to_isar_str  clstrs = (frees_to_string clstrs "")
+
+
+(***********************************************************************)
+(* functions for producing assumptions for the Isabelle ordered axioms *)
+(***********************************************************************)
+(*val str = "[P%x%xa%xb%]1OrigAxiom()[P x%~ P U%][U%]3OrigAxiom()[P U%~ P x%][U%]5OrigAxiom()[~ P xa%~ P U%][U%]7OrigAxiom()[P U%P xb%][U%]1Axiom()[P x%~ P U%][U%]3Axiom()[P U%~ P x%][U%]5Axiom()[~ P U%~ P xa%][U%]7Axiom()[P U%P xb%][U%]9Factor(5,0,1)[~ P xa%][]10Binary((9,0),(3,0))[~ P x%][]11Binary((10,0),(1,0))[~ P U%][U%]12Factor(7,0,1)[P xb%][]14Binary((11,0),(12,0))[][]";       
+num, rule, clausestrs, vars*)
+
+
+(* assume the extra clauses - not used in Spass proof *)
+
+fun is_extraaxiom_step ( num:int,(ExtraAxiom, str, tstr)) = true
+|   is_extraaxiom_step (num, _) = false
+
+fun get_extraaxioms xs = List.filter (is_extraaxiom_step) ( xs)
+
+fun assume_isar_extraaxiom [] str  = str
+|   assume_isar_extraaxiom ((numb,(step, clstr, thmvars))::xs) str  = assume_isar_extraaxiom xs (str^"and cl"^(string_of_int numb)^"': "^(clause_strs_to_isar clstr thmvars)^"\n " )
+
+
+
+fun assume_isar_extraaxioms  [] = ""
+|assume_isar_extraaxioms ((numb,(step, clstrs, thmstrs))::xs) = let val str = "assume cl"^(string_of_int numb)^"': "^(clause_strs_to_isar clstrs thmstrs)^"\n" 
+                                         in
+                                             assume_isar_extraaxiom xs str
+                                         end
+
+(* assume the Isabelle ordered clauses *)
+
+fun is_origaxiom_step ( num:int,(OrigAxiom, str, tstr)) = true
+|   is_origaxiom_step (num, _) = false
+
+fun get_origaxioms xs = List.filter (is_origaxiom_step) ( xs)
+
+fun assume_isar_origaxiom [] str  = str
+|   assume_isar_origaxiom ((numb,(step, clstr, thmvars))::xs) str  = assume_isar_origaxiom xs (str^"and cl"^(string_of_int numb)^"': "^(clause_strs_to_isar clstr thmvars)^"\n " )
+
+
+
+fun assume_isar_origaxioms ((numb,(step, clstrs, thmstrs))::xs) = let val str = "assume cl"^(string_of_int numb)^"': "^(clause_strs_to_isar clstrs thmstrs)^"\n" 
+                                         in
+                                             assume_isar_origaxiom xs str
+                                         end
+
+
+
+fun is_axiom_step ( num:int,(Axiom, str, tstr)) = true
+|   is_axiom_step (num, _) = false
+
+fun get_axioms xs = List.filter  (is_axiom_step) ( xs)
+
+fun have_isar_axiomline (numb,(step, clstrs, thmstrs))="have cl"^(string_of_int numb)^": "^(clause_strs_to_isar clstrs thmstrs)^"\n"
+
+fun  by_isar_axiomline (numb,(step, clstrs, thmstrs))="by (rule cl"^ (string_of_int numb)^"') \n"
+
+
+fun isar_axiomline (numb, (step, clstrs, thmstrs))  = (have_isar_axiomline (numb,(step,clstrs, thmstrs )))^( by_isar_axiomline(numb,(step,clstrs, thmstrs )) )
+
+
+fun isar_axiomlines [] str = str
+|   isar_axiomlines (x::xs) str = isar_axiomlines xs (str^(isar_axiomline x))
+
+
+fun have_isar_line (numb,(step, clstrs, thmstrs))="have cl"^(string_of_int numb)^": "^(clause_strs_to_isar clstrs thmstrs)^"\n"
+
+
+fun  by_isar_line ((Binary ((a,b), (c,d))))="by(rule cl"^
+                                                  (string_of_int a)^" [BINARY "^(string_of_int b)^" "^"cl"^
+                                                  (string_of_int c)^" "^(string_of_int d)^"])"^"\n"
+|   by_isar_line ( (Para ((a,b), (c,d)))) ="by (rule cl"^
+                                                  (string_of_int a)^" [PARAMOD "^(string_of_int b)^" "^"cl"^
+                                                  (string_of_int c)^" "^(string_of_int d)^"])"^"\n"
+|   by_isar_line ((Factor ((a,b,c)))) =    "by (rule cl"^(string_of_int a)^" [FACTOR "^(string_of_int b)^" "^
+                                                  (string_of_int c)^" "^"])"^"\n"
+|   by_isar_line ( (Rewrite ((a,b),(c,d)))) =  "by (rule cl"^(string_of_int a)^" [DEMOD "^(string_of_int b)^" "^
+                                                  (string_of_int c)^" "^(string_of_int d)^" "^"])"^"\n"
+
+|   by_isar_line ( (Obvious ((a,b)))) =  "by (rule cl"^(string_of_int a)^" [OBVIOUS "^(string_of_int b)^" ])"^"\n"
+
+fun isar_line (numb, (step, clstrs, thmstrs))  = (have_isar_line (numb,(step,clstrs, thmstrs )))^( by_isar_line step)
+
+
+fun isar_lines [] str = str
+|   isar_lines (x::xs) str = isar_lines xs (str^(isar_line x))
+
+fun last_isar_line (numb,( step, clstrs,thmstrs)) = "show \"False\"\n"^(by_isar_line step)
+
+
+fun to_isar_proof (frees, xs, goalstring) = let val extraaxioms = get_extraaxioms xs
+                           val extraax_num = length extraaxioms
+                           val origaxioms_and_steps = drop (extraax_num) xs  
+                          
+  
+                           val origaxioms = get_origaxioms origaxioms_and_steps
+                           val origax_num = length origaxioms
+                           val axioms_and_steps = drop (origax_num + extraax_num) xs  
+                           val axioms = get_axioms axioms_and_steps
+                           
+                           val steps = drop origax_num axioms_and_steps
+                           val firststeps = butlast steps
+                           val laststep = last steps
+                           val goalstring = implode(butlast(explode goalstring))
+                        
+                           val isar_proof = 
+                           ("show \""^goalstring^"\"\n")^
+                           ("proof (rule ccontr,skolemize, make_clauses) \n")^
+                           ("fix "^(frees_to_isar_str frees)^"\n")^
+                           (assume_isar_extraaxioms extraaxioms)^
+                           (assume_isar_origaxioms origaxioms)^
+                           (isar_axiomlines axioms "")^
+                           (isar_lines firststeps "")^
+                           (last_isar_line laststep)^
+                           ("qed")
+                          val  outfile = TextIO.openOut("isar_proof_file");
+
+                                                  val _ = TextIO.output (outfile, isar_proof)
+                                                  val _ =  TextIO.closeOut outfile
+
+
+                       in
+                           isar_proof
+                       end
+
+(* get fix vars from axioms - all Frees *)
+(* check each clause for meta-vars and /\ over them at each step*)
+
+(*******************************************************)
+(* This assumes the thm list  "numcls" is still there  *)
+(* In reality, should probably label it with an        *)
+(* ID number identifying the subgoal.  This could      *)
+(* be passed over to the watcher, e.g.  numcls25       *)
+(*******************************************************)
+
+(* val str = "[S%x%P%R%Q%]1ExtraAxiom()[~ Q U%~ R U%][U%]2ExtraAxiom()[~ Q U%~ P U%][U%]3ExtraAxiom()[Q U%R U%][U%]1OrigAxiom()[S x%][]2OrigAxiom()[P U%R U%][U%]6OrigAxiom()[~ S U%~ P U%][U%]7OrigAxiom()[~ S U%~ R U%][U%]1Axiom()[S x%][]2Axiom()[R U%P U%][U%]6Axiom()[~ P U%~ S U%][U%]7Axiom()[~ R U%~ S U%][U%]8Binary((6,1),(1,0))[~ P x%][]9Binary((7,1),(1,0))[~ R x%][]19Binary((9,0),(2,0))[P x%][]25Binary((8,0),(19,0))[][]";
+
+val str = "[P%x%xa%xb%]1OrigAxiom()[P x%~ P U%][U%]3OrigAxiom()[P U%~ P x%][U%]5OrigAxiom()[~ P xa%~ P U%][U%]7OrigAxiom()[P U%P xb%][U%]1Axiom()[P x%~ P U%][U%]3Axiom()[P U%~ P x%][U%]5Axiom()[~ P U%~ P xa%][U%]7Axiom()[P U%P xb%][U%]9Factor(5,0,1)[~ P xa%][]10Binary((9,0),(3,0))[~ P x%][]11Binary((10,0),(1,0))[~ P U%][U%]12Factor(7,0,1)[P xb%][]14Binary((11,0),(12,0))[][]";
+
+val reconstr = "[P%Q%x%xa%]1OrigAxiom()[~ P U%][U%]3OrigAxiom()[Q U%][U%]5OrigAxiom()[P (x U)%~ Q (xa U)%][U%]9Binary((7,0),(3,0))[][]7Binary((1,0),(5,0))[~ Q (xa U)%][U%]5Axiom()[P (x U)%~ Q (xa U)%][U%]3Axiom()[Q U%][U%]1Axiom()[~ P U%][U%](ALL xb::'a::type.   (~ (P::'a::type => bool) ((x::'a::type => 'a::type) xb) |    (Q::'a::type => bool) ((xa::'a::type => 'a::type) xb)) &   P xb & ~ Q xb)";
+
+
+val reconstr = "[P%x%xa%xb%]1OrigAxiom()[P x%~ P U%][U%]3OrigAxiom()[P U%~ P x%][U%]5OrigAxiom()[~ P xa%~ P U%][U%]7OrigAxiom()[P U%P xb%][U%]1Axiom()[P x%~ P U%][U%]3Axiom()[P U%~ P x%][U%]5Axiom()[~ P U%~ P xa%][U%]7Axiom()[P U%P xb%][U%]9Factor(5,0,1)[~ P xa%][]10Binary((9,0),(3,0))[~ P x%][]11Binary((10,0),(1,0))[~ P U%][U%]12Factor(7,0,1)[P xb%][]14Binary((11,0),(12,0))[][]";
+
+val thmstring = " (ALL xa::'a::type.   (~ (P::'a::type => bool) (x::'a::type) | P xa) & (~ P xa | P x)) & (((P::'a::type => bool) (xa::'a::type) | (ALL x::'a::type. P x)) &((ALL x::'a::type. ~ P x) | ~ P (xb::'a::type)))";
+*)
+
+fun apply_res_thm str goalstring  = let val tokens = fst (lex str);
+
+                                   val (frees,recon_steps) = parse_step tokens 
+                                   val isar_str = to_isar_proof (frees, recon_steps, goalstring)
+                                   val foo =   TextIO.openOut "foobar";
+                               in 
+                                  TextIO.output(foo,(isar_str));TextIO.closeOut foo;Pretty.writeln(Pretty.str  isar_str); () 
+                               end 
+
+
