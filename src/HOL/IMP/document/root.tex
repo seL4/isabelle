@@ -1,0 +1,64 @@
+
+\documentclass[a4wide]{article}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also isabellesym.sty)
+%\usepackage{latexsym}
+%\usepackage{amssymb}
+%\usepackage[english]{babel}
+%\usepackage[latin1]{inputenc}
+%\usepackage[only,bigsqcap]{stmaryrd}
+%\usepackage{wasysym}
+%\usepackage{eufrak}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% proper setup for best-style documents
+\urlstyle{rm}
+%\isabellestyle{it}
+\renewcommand{\isachardoublequote}{}
+
+% pretty printing for the Com language
+%\newcommand{\CMD}[1]{\isatext{\bf\sffamily#1}}
+\newcommand{\CMD}[1]{\isatext{\rm\sffamily#1}}
+\newcommand{\isasymSKIP}{\CMD{skip}}
+\newcommand{\isasymIF}{\CMD{if}}
+\newcommand{\isasymTHEN}{\CMD{then}}
+\newcommand{\isasymELSE}{\CMD{else}}
+\newcommand{\isasymWHILE}{\CMD{while}}
+\newcommand{\isasymDO}{\CMD{do}}
+
+\addtolength{\hoffset}{-1cm}
+\addtolength{\textwidth}{2cm}
+
+\begin{document}
+
+\title{IMP--A {\tt WHILE}-language and its Semantics}
+\author{Heiko Loetzbeyer, Robert Sandner, Tobias Nipkow, Gerwin Klein}
+\maketitle
+
+\parindent 0pt\parskip 0.5ex
+
+\begin{abstract}\noindent
+The denotational, operational, and axiomatic semantics, a verification
+condition generator, and all the necessary soundness, completeness and
+equivalence proofs. Essentially a formalization of the first 100 pages
+of \cite{Winskel}.
+
+An eminently readable description of this theory is found in \cite{Nipkow}.
+
+A denotational semantics for IMP based on HOLCF is found in {\tt HOLCF/IMP}.
+\end{abstract}
+
+\tableofcontents
+
+\parindent 0pt\parskip 0.5ex
+
+% include generated text of all theories
+\input{session}
+
+\bibliographystyle{plain}
+\bibliography{root}
+
+\end{document}
