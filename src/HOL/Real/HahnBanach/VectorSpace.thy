@@ -10,14 +10,11 @@ theory VectorSpace = Bounds + Aux:;
 subsection {* Signature *};
 
 text {* For the definition of real vector spaces a type $\alpha$
-of the sort $\idt{plus}, \idt{minus}$ is considered, on which a
-real scalar multiplication $\mult$ is defined, and which has an zero 
-element $\zero$.*};
+of the sort $\{ \idt{plus}, \idt{minus}\}$ is considered, on which a
+real scalar multiplication $\mult$, and a zero 
+element $\zero$ is defined. *};
 
 consts
-(***
-  sum	:: "['a, 'a] => 'a"                         (infixl "+" 65)
-***)
   prod  :: "[real, 'a] => 'a"                       (infixr "<*>" 70)
   zero  :: 'a                                       ("<0>");
 
@@ -45,7 +42,7 @@ text {* A \emph{vector space} is a non-empty set $V$ of elements from
   and commutative; $\minus x$ is the inverse of $x$ w.~r.~t.~addition
   and $\zero$ is the neutral element of addition.  Addition and
   multiplication are distributive; scalar multiplication is
-  associative and the real $1$ is the neutral element of scalar
+  associative and the real number $1$ is the neutral element of scalar
   multiplication.
 *};
 
@@ -55,7 +52,7 @@ constdefs
    & (ALL x:V. ALL y:V. ALL z:V. ALL a b.
         x + y : V                                 
       & a <*> x : V                                 
-      & x + y + z = x + (y + z)             
+      & (x + y) + z = x + (y + z)             
       & x + y = y + x                           
       & x - x = <0>                               
       & <0> + x = x                               
@@ -72,8 +69,8 @@ text {* The corresponding introduction rule is:*};
 lemma vsI [intro]:
   "[| <0>:V; 
   ALL x:V. ALL y:V. x + y : V; 
-  ALL x:V. ALL a. a <*> x : V;    
-  ALL x:V. ALL y:V. ALL z:V. x + y + z = x + (y + z);
+  ALL x:V. ALL a. a <*> x : V;  
+  ALL x:V. ALL y:V. ALL z:V. (x + y) + z = x + (y + z);
   ALL x:V. ALL y:V. x + y = y + x;
   ALL x:V. x - x = <0>;
   ALL x:V. <0> + x = x;
@@ -82,7 +79,7 @@ lemma vsI [intro]:
   ALL x:V. ALL a b. (a * b) <*> x = a <*> b <*> x; 
   ALL x:V. 1r <*> x = x; 
   ALL x:V. - x = (- 1r) <*> x; 
-  ALL x:V. ALL y:V. x - y = x + - y|] ==> is_vectorspace V";
+  ALL x:V. ALL y:V. x - y = x + - y |] ==> is_vectorspace V";
 proof (unfold is_vectorspace_def, intro conjI ballI allI);
   fix x y z; 
   assume "x:V" "y:V" "z:V"
@@ -113,7 +110,7 @@ lemma vs_not_empty [intro !!]: "is_vectorspace V ==> (V ~= {})";
   by (unfold is_vectorspace_def) simp;
  
 lemma vs_add_closed [simp, intro!!]: 
-  "[| is_vectorspace V; x:V; y:V|] ==> x + y : V"; 
+  "[| is_vectorspace V; x:V; y:V |] ==> x + y : V"; 
   by (unfold is_vectorspace_def) simp;
 
 lemma vs_mult_closed [simp, intro!!]: 
@@ -121,7 +118,7 @@ lemma vs_mult_closed [simp, intro!!]:
   by (unfold is_vectorspace_def) simp;
 
 lemma vs_diff_closed [simp, intro!!]: 
- "[| is_vectorspace V; x:V; y:V|] ==> x - y : V";
+ "[| is_vectorspace V; x:V; y:V |] ==> x - y : V";
   by (simp add: diff_eq1 negate_eq1);
 
 lemma vs_neg_closed  [simp, intro!!]: 
@@ -129,8 +126,8 @@ lemma vs_neg_closed  [simp, intro!!]:
   by (simp add: negate_eq1);
 
 lemma vs_add_assoc [simp]:  
-  "[| is_vectorspace V; x:V; y:V; z:V|]
-   ==> x + y + z = x + (y + z)";
+  "[| is_vectorspace V; x:V; y:V; z:V |]
+   ==> (x + y) + z = x + (y + z)";
   by (unfold is_vectorspace_def) fast;
 
 lemma vs_add_commute [simp]: 
@@ -155,8 +152,8 @@ lemma vs_diff_self [simp]:
   "[| is_vectorspace V; x:V |] ==>  x - x = <0>"; 
   by (unfold is_vectorspace_def) simp;
 
-text {* The existence of the zero element a vector space
-follows from the non-emptyness of the vector space. *};
+text {* The existence of the zero element of a vector space
+follows from the non-emptiness of carrier set. *};
 
 lemma zero_in_vs [simp, intro]: "is_vectorspace V ==> <0>:V";
 proof -; 
@@ -228,12 +225,12 @@ proof -;
   finally; show ?thesis; .;
 qed;
 
-(*text_raw {* \paragraph {Further derived laws:} *};*)
+(*text_raw {* \paragraph {Further derived laws.} *};*)
 text_raw {* \medskip *};
 text{* Further derived laws: *};
 
 lemma vs_mult_zero_left [simp]: 
-  "[| is_vectorspace V; x:V|] ==> 0r <*> x = <0>";
+  "[| is_vectorspace V; x:V |] ==> 0r <*> x = <0>";
 proof -;
   assume "is_vectorspace V" "x:V";
   have  "0r <*> x = (1r - 1r) <*> x"; by (simp only: real_diff_self);
@@ -304,11 +301,11 @@ proof -;
 qed;
 
 lemma vs_add_minus_cancel [simp]:  
-  "[| is_vectorspace V; x:V; y:V |] ==>  x + (- x + y) = y"; 
+  "[| is_vectorspace V; x:V; y:V |] ==> x + (- x + y) = y"; 
   by (simp add: vs_add_assoc [RS sym] del: vs_add_commute); 
 
 lemma vs_minus_add_cancel [simp]: 
-  "[| is_vectorspace V; x:V; y:V |] ==>  - x + (x + y) = y"; 
+  "[| is_vectorspace V; x:V; y:V |] ==> - x + (x + y) = y"; 
   by (simp add: vs_add_assoc [RS sym] del: vs_add_commute); 
 
 lemma vs_minus_add_distrib [simp]:  
@@ -325,7 +322,7 @@ lemma vs_diff_zero_right [simp]:
   by (simp add:diff_eq1);
 
 lemma vs_add_left_cancel:
-  "[| is_vectorspace V; x:V; y:V; z:V|] 
+  "[| is_vectorspace V; x:V; y:V; z:V |] 
    ==> (x + y = x + z) = (y = z)"  
   (concl is "?L = ?R");
 proof;
@@ -338,7 +335,7 @@ proof;
   also; have "- x + ... = - x + x + z"; 
     by (rule vs_add_assoc [RS sym]) (simp!)+;
   also; have "... = z"; by (simp!);
-  finally; show ?R;.;
+  finally; show ?R; .;
 qed force;
 
 lemma vs_add_right_cancel: 
@@ -381,7 +378,7 @@ proof;
     by (simp! only: vs_mult_assoc);
   also; assume ?L;
   also; have "rinv a <*> ... = y"; by (simp!);
-  finally; show ?R;.;
+  finally; show ?R; .;
 qed simp;
 
 lemma vs_mult_right_cancel: (*** forward ***)
@@ -437,7 +434,7 @@ proof -;
     also; from vs; have "... = z + <0>"; 
       by (simp only: vs_add_minus_left);
     also; from vs; have "... = z"; by (simp only: vs_add_zero_right);
-    finally; show ?R;.;
+    finally; show ?R; .;
   next;
     assume ?R;
     hence "z - y = (x + y) - y"; by simp;
@@ -451,7 +448,7 @@ proof -;
 qed;
 
 lemma vs_add_minus_eq_minus: 
-  "[| is_vectorspace V; x:V; y:V; x + y = <0>|] ==> x = - y"; 
+  "[| is_vectorspace V; x:V; y:V; x + y = <0> |] ==> x = - y"; 
 proof -;
   assume "is_vectorspace V" "x:V" "y:V"; 
   have "x = (- y + y) + x"; by (simp!);
@@ -473,11 +470,11 @@ proof -;
 qed;
 
 lemma vs_add_diff_swap:
-  "[| is_vectorspace V; a:V; b:V; c:V; d:V; a + b = c + d|] 
+  "[| is_vectorspace V; a:V; b:V; c:V; d:V; a + b = c + d |] 
   ==> a - c = d - b";
 proof -; 
   assume vs: "is_vectorspace V" "a:V" "b:V" "c:V" "d:V" 
-  and eq: "a + b = c + d";
+    and eq: "a + b = c + d";
   have "- c + (a + b) = - c + (c + d)"; 
     by (simp! add: vs_add_left_cancel);
   also; have "... = d"; by (rule vs_minus_add_cancel);
@@ -491,9 +488,9 @@ proof -;
 qed;
 
 lemma vs_add_cancel_21: 
-  "[| is_vectorspace V; x:V; y:V; z:V; u:V|] 
+  "[| is_vectorspace V; x:V; y:V; z:V; u:V |] 
   ==> (x + (y + z) = y + u) = ((x + z) = u)"
-  (concl is "?L = ?R" ); 
+  (concl is "?L = ?R"); 
 proof -; 
   assume "is_vectorspace V" "x:V" "y:V""z:V" "u:V";
   show "?L = ?R";

@@ -11,60 +11,61 @@ theory NormedSpace =  Subspace:;
 
 subsection {* Quasinorms *};
 
-text{* A \emph{quasinorm} $\norm{\cdot}$ is a  function on a real vector space into the reals 
-that has the following properties: *};
+text{* A \emph{seminorm} $\norm{\cdot}$ is a function on a real vector
+space into the reals that has the following properties: It is positive
+definite, absolute homogenous and subadditive.  *};
 
 constdefs
-  is_quasinorm :: "['a::{plus, minus} set, 'a => real] => bool"
-  "is_quasinorm V norm == ALL x: V. ALL y:V. ALL a. 
+  is_seminorm :: "['a::{plus, minus} set, 'a => real] => bool"
+  "is_seminorm V norm == ALL x: V. ALL y:V. ALL a. 
         0r <= norm x 
       & norm (a <*> x) = (rabs a) * (norm x)
       & norm (x + y) <= norm x + norm y";
 
-lemma is_quasinormI [intro]: 
-  "[| !! x y a. [| x:V; y:V|] ==>  0r <= norm x;
+lemma is_seminormI [intro]: 
+  "[| !! x y a. [| x:V; y:V|] ==> 0r <= norm x;
   !! x a. x:V ==> norm (a <*> x) = (rabs a) * (norm x);
   !! x y. [|x:V; y:V |] ==> norm (x + y) <= norm x + norm y |] 
-  ==> is_quasinorm V norm";
-  by (unfold is_quasinorm_def, force);
+  ==> is_seminorm V norm";
+  by (unfold is_seminorm_def, force);
 
-lemma quasinorm_ge_zero [intro!!]:
-  "[| is_quasinorm V norm; x:V |] ==> 0r <= norm x";
-  by (unfold is_quasinorm_def, force);
+lemma seminorm_ge_zero [intro!!]:
+  "[| is_seminorm V norm; x:V |] ==> 0r <= norm x";
+  by (unfold is_seminorm_def, force);
 
-lemma quasinorm_mult_distrib: 
-  "[| is_quasinorm V norm; x:V |] 
+lemma seminorm_rabs_homogenous: 
+  "[| is_seminorm V norm; x:V |] 
   ==> norm (a <*> x) = (rabs a) * (norm x)";
-  by (unfold is_quasinorm_def, force);
+  by (unfold is_seminorm_def, force);
 
-lemma quasinorm_triangle_ineq: 
-  "[| is_quasinorm V norm; x:V; y:V |] 
+lemma seminorm_subadditive: 
+  "[| is_seminorm V norm; x:V; y:V |] 
   ==> norm (x + y) <= norm x + norm y";
-  by (unfold is_quasinorm_def, force);
+  by (unfold is_seminorm_def, force);
 
-lemma quasinorm_diff_triangle_ineq: 
-  "[| is_quasinorm V norm; x:V; y:V; is_vectorspace V |] 
+lemma seminorm_diff_subadditive: 
+  "[| is_seminorm V norm; x:V; y:V; is_vectorspace V |] 
   ==> norm (x - y) <= norm x + norm y";
 proof -;
-  assume "is_quasinorm V norm" "x:V" "y:V" "is_vectorspace V";
+  assume "is_seminorm V norm" "x:V" "y:V" "is_vectorspace V";
   have "norm (x - y) = norm (x + - 1r <*> y)";  
     by (simp! add: diff_eq2 negate_eq2);
   also; have "... <= norm x + norm  (- 1r <*> y)"; 
-    by (simp! add: quasinorm_triangle_ineq);
+    by (simp! add: seminorm_subadditive);
   also; have "norm (- 1r <*> y) = rabs (- 1r) * norm y"; 
-    by (rule quasinorm_mult_distrib);
+    by (rule seminorm_rabs_homogenous);
   also; have "rabs (- 1r) = 1r"; by (rule rabs_minus_one);
   finally; show "norm (x - y) <= norm x + norm y"; by simp;
 qed;
 
-lemma quasinorm_minus: 
-  "[| is_quasinorm V norm; x:V; is_vectorspace V |] 
+lemma seminorm_minus: 
+  "[| is_seminorm V norm; x:V; is_vectorspace V |] 
   ==> norm (- x) = norm x";
 proof -;
-  assume "is_quasinorm V norm" "x:V" "is_vectorspace V";
-  have "norm (- x) = norm (-1r <*> x)"; by (simp! only: negate_eq1);
-  also; have "... = rabs (-1r) * norm x"; 
-    by (rule quasinorm_mult_distrib);
+  assume "is_seminorm V norm" "x:V" "is_vectorspace V";
+  have "norm (- x) = norm (- 1r <*> x)"; by (simp! only: negate_eq1);
+  also; have "... = rabs (- 1r) * norm x"; 
+    by (rule seminorm_rabs_homogenous);
   also; have "rabs (- 1r) = 1r"; by (rule rabs_minus_one);
   finally; show "norm (- x) = norm x"; by simp;
 qed;
@@ -72,20 +73,20 @@ qed;
 
 subsection {* Norms *};
 
-text{* A \emph{norm} $\norm{\cdot}$ is a quasinorm that maps only the
+text{* A \emph{norm} $\norm{\cdot}$ is a seminorm that maps only the
 $\zero$ vector to $0$. *};
 
 constdefs
   is_norm :: "['a::{minus, plus} set, 'a => real] => bool"
-  "is_norm V norm == ALL x: V.  is_quasinorm V norm 
+  "is_norm V norm == ALL x: V.  is_seminorm V norm 
       & (norm x = 0r) = (x = <0>)";
 
 lemma is_normI [intro]: 
-  "ALL x: V.  is_quasinorm V norm  & (norm x = 0r) = (x = <0>) 
+  "ALL x: V.  is_seminorm V norm  & (norm x = 0r) = (x = <0>) 
   ==> is_norm V norm"; by (simp only: is_norm_def);
 
-lemma norm_is_quasinorm [intro!!]: 
-  "[| is_norm V norm; x:V |] ==> is_quasinorm V norm";
+lemma norm_is_seminorm [intro!!]: 
+  "[| is_norm V norm; x:V |] ==> is_seminorm V norm";
   by (unfold is_norm_def, force);
 
 lemma norm_zero_iff: 
@@ -94,7 +95,7 @@ lemma norm_zero_iff:
 
 lemma norm_ge_zero [intro!!]:
   "[|is_norm V norm; x:V |] ==> 0r <= norm x";
-  by (unfold is_norm_def is_quasinorm_def, force);
+  by (unfold is_norm_def is_seminorm_def, force);
 
 
 subsection {* Normed vector spaces *};
@@ -141,16 +142,16 @@ proof (unfold is_normed_vectorspace_def, elim conjE);
   finally; show "0r < norm x"; .;
 qed;
 
-lemma normed_vs_norm_mult_distrib [intro!!]: 
+lemma normed_vs_norm_rabs_homogenous [intro!!]: 
   "[| is_normed_vectorspace V norm; x:V |] 
   ==> norm (a <*> x) = (rabs a) * (norm x)";
-  by (rule quasinorm_mult_distrib, rule norm_is_quasinorm, 
+  by (rule seminorm_rabs_homogenous, rule norm_is_seminorm, 
       rule normed_vs_norm);
 
-lemma normed_vs_norm_triangle_ineq [intro!!]: 
+lemma normed_vs_norm_subadditive [intro!!]: 
   "[| is_normed_vectorspace V norm; x:V; y:V |] 
   ==> norm (x + y) <= norm x + norm y";
-  by (rule quasinorm_triangle_ineq, rule norm_is_quasinorm, 
+  by (rule seminorm_subadditive, rule norm_is_seminorm, 
      rule normed_vs_norm);
 
 text{* Any subspace of a normed vector space is again a 
@@ -165,7 +166,7 @@ proof (rule normed_vsI);
   show "is_vectorspace F"; ..;
   show "is_norm F norm"; 
   proof (intro is_normI ballI conjI);
-    show "is_quasinorm F norm"; 
+    show "is_seminorm F norm"; 
     proof;
       fix x y a; presume "x : E";
       show "0r <= norm x"; ..;

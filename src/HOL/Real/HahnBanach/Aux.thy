@@ -15,7 +15,7 @@ lemmas [intro!!] = chainD;
 lemmas chainE2 = chainD2 [elimify];
 
 text_raw {* \medskip *};
-text{* Lemmas about sets: *};
+text{* Lemmas about sets. *};
 
 lemma Int_singletonD: "[| A Int B = {v}; x:A; x:B |] ==> x = v";
   by (fast elim: equalityE);
@@ -24,7 +24,7 @@ lemma set_less_imp_diff_not_empty: "H < E ==> EX x0:E. x0 ~: H";
  by (force simp add: psubset_eq);
 
 text_raw {* \medskip *};
-text{* Some lemmas about orders: *};
+text{* Some lemmas about orders. *};
 
 lemma lt_imp_not_eq: "x < (y::'a::order) ==> x ~= y"; 
   by (rule order_less_le[RS iffD1, RS conjunct2]);

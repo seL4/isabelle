@@ -3,29 +3,26 @@
     Author:     Gertrud Bauer, TU Munich
 *)
 
-header {* An Order on functions *};
+header {* An order on functions *};
 
 theory FunctionOrder = Subspace + Linearform:;
 
-
 subsection {* The graph of a function *};
 
-text{* We define the \emph{graph} of a (real) function $f$ with the 
+text{* We define the \emph{graph} of a (real) function $f$ with
 domain $F$ as the set 
 \[
 \{(x, f\ap x). \ap x:F\}
 \]
-So we are modelling partial functions by specifying the domain and 
-the mapping function. We use the notion ``function'' also for the graph
-of a function. 
+So we are modeling partial functions by specifying the domain and 
+the mapping function. We use the term ``function'' also for its graph.
 *};
 
-types 'a graph = "('a::{minus, plus} * real) set";
+types 'a graph = "('a * real) set";
 
 constdefs
   graph :: "['a set, 'a => real] => 'a graph "
-  "graph F f == {p. EX x. p = (x, f x) & x:F}"; (* 
-   == {(x, f x). x:F} *)
+  "graph F f == {(x, f x) | x. x:F}"; 
 
 lemma graphI [intro!!]: "x:F ==> (x, f x) : graph F f";
   by (unfold graph_def, intro CollectI exI) force;
@@ -41,7 +38,7 @@ lemma graphD2 [intro!!]: "(x, y): graph H h ==> y = h x";
 
 subsection {* Functions ordered by domain extension *};
 
-text{* The function $h'$ is an extension of $h$, iff the graph of 
+text{* A function $h'$ is an extension of $h$, iff the graph of 
 $h$ is a subset of the graph of $h'$.*};
 
 lemma graph_extI: 
@@ -83,7 +80,7 @@ if the relation induced by $g$ is unique. *};
 lemma graph_domain_funct: 
   "(!!x y z. (x, y):g ==> (x, z):g ==> z = y) 
   ==> graph (domain g) (funct g) = g";
-proof (unfold domain_def, unfold funct_def, unfold graph_def, auto);
+proof (unfold domain_def funct_def graph_def, auto);
   fix a b; assume "(a, b) : g";
   show "(a, SOME y. (a, y) : g) : g"; by (rule selectI2);
   show "EX y. (a, y) : g"; ..;
@@ -96,9 +93,9 @@ qed;
 
 
 
-subsection {* Norm preserving extensions of a function *};
+subsection {* Norm-preserving extensions of a function *};
 
-text {* Given a function $f$ on the space $F$ and a quasinorm $p$ on 
+text {* Given a linear form $f$ on the space $F$ and a seminorm $p$ on 
 $E$. The set of all linear extensions of $f$, to superspaces $H$ of 
 $F$, which are bounded by $p$, is defined as follows. *};
 

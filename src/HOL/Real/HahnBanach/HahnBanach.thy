@@ -1,6 +1,6 @@
 (*  Title:      HOL/Real/HahnBanach/HahnBanach.thy
     ID:         $Id$
-    Author:     Gertrud Baueer, TU Munich
+    Author:     Gertrud Bauer, TU Munich
 *)
 
 header {* The Hahn-Banach Theorem *};
@@ -15,18 +15,19 @@ text {*
 
 subsection {* The case of general linear spaces *};
 
-text  {* Every linearform $f$ on a subspace $F$ of $E$, which is 
- bounded by some  quasinorm $q$ on $E$, can be extended 
- to a function on $E$ in a norm preseving way. *};
+text  {* Let $f$ be a linear form $f$ defined on a subspace $F$ 
+ of a norm vector space $E$. If $f$ is  
+ bounded by some seminorm $q$ on $E$, it can be extended 
+ to a function on $E$ in a norm-preserving way. *};
 
 theorem HahnBanach: 
-  "[| is_vectorspace E; is_subspace F E; is_quasinorm E p; 
+  "[| is_vectorspace E; is_subspace F E; is_seminorm E p; 
   is_linearform F f; ALL x:F. f x <= p x |]
   ==> EX h. is_linearform E h
           & (ALL x:F. h x = f x)
           & (ALL x:E. h x <= p x)";
 proof -;
-  assume "is_vectorspace E" "is_subspace F E" "is_quasinorm E p"
+  assume "is_vectorspace E" "is_subspace F E" "is_seminorm E p"
          "is_linearform F f" "ALL x:F. f x <= p x";
   
   txt{* We define $M$ to be the set of all linear extensions 
@@ -42,19 +43,18 @@ proof -;
     thus "is_subspace F F"; ..;
   qed (blast!)+;
 
-  subsubsect {* Existence of a limit function of the norm preserving
+  subsubsect {* Existence of a limit function the norm-preserving
   extensions *}; 
 
-  txt {* For every non-empty chain of norm preserving functions
-  the union of all functions in the chain is again a norm preserving
-  function. (The union is an upper bound for all elements. 
+  txt {* For every non-empty chain of norm-preserving extensions
+  the union of all functions in the chain is again a norm-preserving
+  extension. (The union is an upper bound for all elements. 
   It is even the least upper bound, because every upper bound of $M$
   is also an upper bound for $\Union c$.) *};
 
-  have "!! c. [| c : chain M; EX x. x:c |] ==> Union c : M";  
-  proof -;
+  {{;
     fix c; assume "c:chain M" "EX x. x:c";
-    show "Union c : M";
+    have "Union c : M";
 
     proof (unfold M_def, rule norm_pres_extensionI);
       show "EX (H::'a set) h::'a => real. graph H h = Union c
@@ -67,29 +67,25 @@ proof -;
         let ?H = "domain (Union c)";
         let ?h = "funct (Union c)";
 
-        show a [simp]: "graph ?H ?h = Union c"; 
+        show a: "graph ?H ?h = Union c"; 
         proof (rule graph_domain_funct);
           fix x y z; assume "(x, y) : Union c" "(x, z) : Union c";
           show "z = y"; by (rule sup_definite);
         qed;
             
-        show "is_linearform ?H ?h"; 
+        show "is_linearform ?H ?h";  
           by (simp! add: sup_lf a);
-
         show "is_subspace ?H E"; 
           by (rule sup_subE, rule a) (simp!)+;
- 
         show "is_subspace F ?H"; 
           by (rule sup_supF, rule a) (simp!)+;
-
         show "graph F f <= graph ?H ?h"; 
           by (rule sup_ext, rule a) (simp!)+;
-
         show "ALL x::'a:?H. ?h x <= p x"; 
           by (rule sup_norm_pres, rule a) (simp!)+;
       qed;
     qed;
-  qed;
+  }};
  
   txt {* According to Zorn's Lemma there is
   a maximal norm-preserving extension $g\in M$. *};
@@ -120,19 +116,18 @@ proof -;
       have h: "is_vectorspace H"; ..;
       have f: "is_vectorspace F"; ..;
 
-subsubsect {* The domain of the limit function. *};
+subsubsect {* The domain of the limit function *};
 
 have eq: "H = E"; 
 proof (rule classical);
 
-txt {* Assume the domain of the supremum is not $E$. *};
+txt {* Assume that the domain of the supremum is not $E$, *};
 ;
   assume "H ~= E";
   have "H <= E"; ..;
   hence "H < E"; ..;
  
-  txt{* Then there exists an element $x_0$ in 
-  the difference of $E$ and $H$. *};
+  txt{* then there exists an element $x_0$ in $E \ H$: *};
 
   hence "EX x0:E. x0~:H"; 
     by (rule set_less_imp_diff_not_empty);
@@ -153,16 +148,16 @@ txt {* Assume the domain of the supremum is not $E$. *};
     qed blast;
 
     txt {* Define $H_0$ as the (direct) sum of H and the 
-    linear closure of $x_0$.*};
+    linear closure of $x_0$. \label{ex-xi-use}*};
 
     def H0 == "H + lin x0";
 
-    from h; have xi: "EX xi. (ALL y:H. - p (y + x0) - h y <= xi)
-                     & (ALL y:H. xi <= p (y + x0) - h y)";
+    from h; have xi: "EX xi. ALL y:H. - p (y + x0) - h y <= xi 
+                                    & xi <= p (y + x0) - h y";
     proof (rule ex_xi);
       fix u v; assume "u:H" "v:H";
       from h; have "h v - h u = h (v - u)";
-         by (simp! add: linearform_diff_linear);
+         by (simp! add: linearform_diff);
       also; from h_bound; have "... <= p (v - u)";
         by (simp!);
       also; have "v - u = x0 + - x0 + v + - u";
@@ -172,7 +167,7 @@ txt {* Assume the domain of the supremum is not $E$. *};
       also; have "... = (v + x0) - (u + x0)";
         by (simp! add: diff_eq1);
       also; have "p ... <= p (v + x0) + p (u + x0)";
-         by (rule quasinorm_diff_triangle_ineq) (simp!)+;
+         by (rule seminorm_diff_subadditive) (simp!)+;
       finally; have "h v - h u <= p (v + x0) + p (u + x0)"; .;
 
       thus "- p (u + x0) - h u <= p (v + x0) - h v";
@@ -182,13 +177,14 @@ txt {* Assume the domain of the supremum is not $E$. *};
                & graph H0 h0 : M"; 
     proof (elim exE, intro exI conjI);
       fix xi; 
-      assume a: "(ALL y:H. - p (y + x0) - h y <= xi) 
-               & (ALL y:H. xi <= p (y + x0) - h y)";
+      assume a: "ALL y:H. - p (y + x0) - h y <= xi 
+                        & xi <= p (y + x0) - h y";
      
-      txt {* Define $h_0$ as the linear extension of $h$ on $H_0$:*};  
+      txt {* Define $h_0$ as the canonical linear extension 
+      of $h$ on $H_0$:*};  
 
       def h0 ==
-          "\<lambda>x. let (y,a) = SOME (y, a). (x = y + a <*> x0 & y:H)
+          "\<lambda>x. let (y,a) = SOME (y, a). x = y + a <*> x0 & y:H
                in (h y) + a * xi";
 
       txt {* We get that the graph of $h_0$ extend that of
@@ -230,15 +226,13 @@ txt {* Assume the domain of the supremum is not $E$. *};
       qed;
       thus "g ~= graph H0 h0"; by (simp!);
 
-      txt {* Furthermore  $h_0$ is a norm preserving extension 
+      txt {* Furthermore  $h_0$ is a norm-preserving extension 
      of $f$. *};
 
       have "graph H0 h0 : norm_pres_extensions E p F f";
       proof (rule norm_pres_extensionI2);
-
         show "is_linearform H0 h0";
           by (rule h0_lf, rule x0) (simp!)+;
-
         show "is_subspace H0 E";
           by (unfold H0_def, rule vs_sum_subspace, 
              rule lin_subspace);
@@ -314,23 +308,24 @@ qed;
 
 subsection  {* An alternative formulation of the theorem *};
 
-text {* The following alternative formulation of the 
-Hahn-Banach Theorem uses the fact that for
-real numbers the following inequations are equivalent:
+text {* The following alternative formulation of the Hahn-Banach
+Theorem\label{rabs-HahnBanach} uses the fact that for real numbers the
+following inequations are equivalent:\footnote{This was shown in lemma
+$\idt{rabs{\dsh}ineq{\dsh}iff}$ (see page \pageref{rabs-ineq-iff}).}
 \begin{matharray}{ll}
 \forall x\in H.\ap |h\ap x|\leq p\ap x& {\rm and}\\
 \forall x\in H.\ap h\ap x\leq p\ap x\\
 \end{matharray}
-(This was shown in lemma $\idt{rabs{\dsh}ineq}$.) *};
+*};
 
 theorem rabs_HahnBanach:
-  "[| is_vectorspace E; is_subspace F E; is_quasinorm E p; 
+  "[| is_vectorspace E; is_subspace F E; is_seminorm E p; 
   is_linearform F f; ALL x:F. rabs (f x) <= p x |]
   ==> EX g. is_linearform E g
           & (ALL x:F. g x = f x)
           & (ALL x:E. rabs (g x) <= p x)";
 proof -; 
-  assume e: "is_vectorspace E" "is_subspace F E" "is_quasinorm E p" 
+  assume e: "is_vectorspace E" "is_subspace F E" "is_seminorm E p" 
             "is_linearform F f"  "ALL x:F. rabs (f x) <= p x";
   have "ALL x:F. f x <= p x"; 
     by (rule rabs_ineq_iff [RS iffD1]);
@@ -352,36 +347,35 @@ qed;
 
 subsection {* The Hahn-Banach Theorem for normed spaces *};
 
-text  {* Every continous linear function $f$ on a subspace of $E$, 
-  can be extended to a continous function on $E$ with the same 
-  function norm. *};
+text {* Every continuous linear form $f$ on a subspace $F$ of a
+norm space $E$, can be extended to a continuous linear form $g$ on
+$E$ such that $\fnorm{f} = \fnorm {g}$. *};
 
 theorem norm_HahnBanach:
   "[| is_normed_vectorspace E norm; is_subspace F E; 
-  is_linearform F f; is_continous F norm f |] 
+  is_linearform F f; is_continuous F norm f |] 
   ==> EX g. is_linearform E g
-         & is_continous E norm g 
+         & is_continuous E norm g 
          & (ALL x:F. g x = f x) 
          & function_norm E norm g = function_norm F norm f";
 proof -;
   assume e_norm: "is_normed_vectorspace E norm";
   assume f: "is_subspace F E" "is_linearform F f";
-  assume f_cont: "is_continous F norm f";
+  assume f_cont: "is_continuous F norm f";
   have e: "is_vectorspace E"; ..;
   with _; have f_norm: "is_normed_vectorspace F norm"; ..;
 
   txt{* We define the function $p$ on $E$ as follows:
   \begin{matharray}{l}
-  p\ap x = \fnorm f \cdot \norm x\\
-  % p\ap x = \fnorm f \cdot \fnorm x\\
+  p \ap x = \fnorm f \cdot \norm x\\
   \end{matharray}
   *};
 
   def p == "\<lambda>x. function_norm F norm f * norm x";
   
-  txt{* $p$ is a quasinorm on $E$: *};
+  txt{* $p$ is a seminorm on $E$: *};
 
-  have q: "is_quasinorm E p";
+  have q: "is_seminorm E p";
   proof;
     fix x y a; assume "x:E" "y:E";
 
@@ -393,14 +387,14 @@ proof -;
       show "0r <= norm x"; ..;
     qed;
 
-    txt{* $p$ is multiplicative: *};
+    txt{* $p$ is absolutely homogenous: *};
 
     show "p (a <*> x) = rabs a * p x";
     proof -; 
       have "p (a <*> x) = function_norm F norm f * norm (a <*> x)";
         by (simp!);
       also; have "norm (a <*> x) = rabs a * norm x"; 
-        by (rule normed_vs_norm_mult_distrib);
+        by (rule normed_vs_norm_rabs_homogenous);
       also; have "function_norm F norm f * (rabs a * norm x) 
         = rabs a * (function_norm F norm f * norm x)";
         by (simp! only: real_mult_left_commute);
@@ -408,7 +402,7 @@ proof -;
       finally; show ?thesis; .;
     qed;
 
-    txt{* Furthermore, $p$ obeys the triangle inequation: *};
+    txt{* Furthermore, $p$ is subadditive: *};
 
     show "p (x + y) <= p x + p y";
     proof -;
@@ -436,10 +430,10 @@ proof -;
        by (simp! add: norm_fx_le_norm_f_norm_x);
   qed;
 
-  txt{* Using the facts that $p$ is a quasinorm and 
-  $f$ is bounded we can apply the Hahn-Banach Theorem for real
-  vector spaces. 
-  So $f$ can be extended in a norm preserving way to some function
+  txt{* Using the fact that $p$ is a seminorm and 
+  $f$ is bounded by $q$ we can apply the Hahn-Banach Theorem 
+  for real vector spaces. 
+  So $f$ can be extended in a norm-preserving way to some function
   $g$ on the whole vector space $E$. *};
 
   with e f q; 
@@ -451,36 +445,43 @@ proof -;
   proof (elim exE conjE); 
     fix g;
     assume "is_linearform E g" and a: "ALL x:F. g x = f x" 
-       and "ALL x:E. rabs (g x) <= p x";
+       and b: "ALL x:E. rabs (g x) <= p x";
 
     show "EX g. is_linearform E g 
-            & is_continous E norm g 
+            & is_continuous E norm g 
             & (ALL x:F. g x = f x) 
             & function_norm E norm g = function_norm F norm f";
     proof (intro exI conjI);
 
-    txt{* To complete the proof, we show that this function
-    $g$ is also continous and has the same function norm as
-    $f$. *};
+    txt{* We futhermore have to show that 
+    $g$ is also continuous: *};
 
-      show g_cont: "is_continous E norm g";
+      show g_cont: "is_continuous E norm g";
       proof;
         fix x; assume "x:E";
+        from b [RS bspec, OF this]; 
         show "rabs (g x) <= function_norm F norm f * norm x";
-          by (rule bspec [of _ _ x], (simp!));
+          by (unfold p_def);
       qed; 
+
+      txt {* To complete the proof, we show that 
+      $\fnorm g = \fnorm f$. *};
 
       show "function_norm E norm g = function_norm F norm f"
         (is "?L = ?R");
       proof (rule order_antisym);
 
-        txt{* $\idt{function{\dsh}norm}\ap F\ap \idt{norm}\ap f$ is 
-        a solution
-        for the inequation 
+        txt{* First we show $\fnorm g \leq \fnorm f$.  The function norm
+        $\fnorm g$ is defined as the smallest $c\in\bbbR$ such that
         \begin{matharray}{l}
-        \forall\ap x\in E.\ap |g\ap x| \leq c \cdot \norm x
-        \end{matharray} *};
-
+        \All {x\in E} {|g\ap x| \leq c \cdot \norm x}
+        \end{matharray}
+        Furthermore holds
+        \begin{matharray}{l}
+        \All {x\in E} {|g\ap x| \leq \fnorm f \cdot \norm x}
+        \end{matharray}
+        *};
+ 
         have "ALL x:E. rabs (g x) <= function_norm F norm f * norm x";
         proof;
           fix x; assume "x:E"; 
@@ -488,12 +489,7 @@ proof -;
             by (simp!);
         qed;
 
-        txt{* Since
-         $\idt{function{\dsh}norm}\ap E\ap \idt{norm}\ap g$
-        is the smallest solution for this inequation, we have: *};
-
-        with _ g_cont;
-        show "?L <= ?R";
+        with _ g_cont; show "?L <= ?R";
         proof (rule fnorm_le_ub);
           from f_cont f_norm; show "0r <= function_norm F norm f"; ..;
         qed;

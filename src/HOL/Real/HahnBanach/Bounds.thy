@@ -71,10 +71,12 @@ subsection {* Infimum and Supremum *};
 
 text_raw {* \end{comment} *};
 
-text {* A supremum of an ordered set $B$ w.~r.~t.~$A$ 
-is defined as a least upperbound of $B$, which lies in $A$.
-The definition of the supremum is based on the
-existing definition (see HOL/Real/Lubs.thy).*};
+text {*
+ A supremum\footnote{The definition of the supremum is based on one in
+ \url{http://isabelle.in.tum.de/library/HOL/HOL-Real/Lubs.html}}  of
+ an ordered set $B$ w.~r.~t.~$A$ is defined as a least upper bound of
+ $B$, which lies in $A$.
+*};
    
 text{* If a supremum exists, then $\idt{Sup}\ap A\ap B$
 is equal to the supremum. *};
@@ -114,13 +116,13 @@ translations
 text_raw {* \end{comment} *};
 ;
 
-text{* The supremum of $B$ is less than every upper bound
+text{* The supremum of $B$ is less than any upper bound
 of $B$.*};
 
 lemma sup_le_ub: "isUb A B y ==> is_Sup A B s ==> s <= y";
   by (unfold is_Sup_def, rule isLub_le_isUb);
 
-text {* The supremum $B$ is an upperbound for $B$. *};
+text {* The supremum $B$ is an upper bound for $B$. *};
 
 lemma sup_ub: "y:B ==> is_Sup A B s ==> y <= s";
   by (unfold is_Sup_def, rule isLubD2);

@@ -17,15 +17,15 @@ scalar multiplication. *};
 
 constdefs 
   is_subspace ::  "['a::{minus, plus} set, 'a set] => bool"
-  "is_subspace U V ==  U ~= {}  & U <= V 
-     &  (ALL x:U. ALL y:U. ALL a. x + y : U & a <*> x : U)";
+  "is_subspace U V == U ~= {} & U <= V 
+     & (ALL x:U. ALL y:U. ALL a. x + y : U & a <*> x : U)";
 
 lemma subspaceI [intro]: 
-  "[| <0>:U; U <= V; ALL x:U. ALL y:U. (x + y : U); 
+  "[| <0> : U; U <= V; ALL x:U. ALL y:U. (x + y : U); 
   ALL x:U. ALL a. a <*> x : U |]
   ==> is_subspace U V";
 proof (unfold is_subspace_def, intro conjI); 
-  assume "<0>:U"; thus "U ~= {}"; by fast;
+  assume "<0> : U"; thus "U ~= {}"; by fast;
 qed (simp+);
 
 lemma subspace_not_empty [intro!!]: "is_subspace U V ==> U ~= {}";
@@ -35,28 +35,28 @@ lemma subspace_subset [intro !!]: "is_subspace U V ==> U <= V";
   by (unfold is_subspace_def) simp;
 
 lemma subspace_subsetD [simp, intro!!]: 
-  "[| is_subspace U V; x:U |]==> x:V";
+  "[| is_subspace U V; x:U |] ==> x:V";
   by (unfold is_subspace_def) force;
 
 lemma subspace_add_closed [simp, intro!!]: 
-  "[| is_subspace U V; x: U; y: U |] ==> x + y : U";
+  "[| is_subspace U V; x:U; y:U |] ==> x + y : U";
   by (unfold is_subspace_def) simp;
 
 lemma subspace_mult_closed [simp, intro!!]: 
-  "[| is_subspace U V; x: U |] ==> a <*> x: U";
+  "[| is_subspace U V; x:U |] ==> a <*> x : U";
   by (unfold is_subspace_def) simp;
 
 lemma subspace_diff_closed [simp, intro!!]: 
-  "[| is_subspace U V; is_vectorspace V; x: U; y: U |] 
-  ==> x - y: U";
+  "[| is_subspace U V; is_vectorspace V; x:U; y:U |] 
+  ==> x - y : U";
   by (simp! add: diff_eq1 negate_eq1);
 
 text {* Similar as for linear spaces, the existence of the 
-zero element in every subspace follws from the non-emptyness 
-of the subspace and vector space laws.*};
+zero element in every subspace follows from the non-emptiness 
+of the carrier set and by vector space laws.*};
 
 lemma zero_in_subspace [intro !!]:
-  "[| is_subspace U V; is_vectorspace V |] ==> <0>:U";
+  "[| is_subspace U V; is_vectorspace V |] ==> <0> : U";
 proof -; 
   assume "is_subspace U V" and v: "is_vectorspace V";
   have "U ~= {}"; ..;
@@ -72,11 +72,11 @@ proof -;
 qed;
 
 lemma subspace_neg_closed [simp, intro!!]: 
-  "[| is_subspace U V; is_vectorspace V; x: U |] ==> - x: U";
+  "[| is_subspace U V; is_vectorspace V; x:U |] ==> - x : U";
   by (simp add: negate_eq1);
 
 text_raw {* \medskip *};
-text {* Further derived laws: Every subspace is a vector space. *};
+text {* Further derived laws: every subspace is a vector space. *};
 
 lemma subspace_vs [intro!!]:
   "[| is_subspace U V; is_vectorspace V |] ==> is_vectorspace U";
@@ -84,7 +84,7 @@ proof -;
   assume "is_subspace U V" "is_vectorspace V";
   show ?thesis;
   proof; 
-    show "<0>:U"; ..;
+    show "<0> : U"; ..;
     show "ALL x:U. ALL a. a <*> x : U"; by (simp!);
     show "ALL x:U. ALL y:U. x + y : U"; by (simp!);
     show "ALL x:U. - x = -1r <*> x"; by (simp! add: negate_eq1);
@@ -134,26 +134,26 @@ qed;
 
 subsection {* Linear closure *};
 
-text {* The \emph{linear closure} of a vector $x$ is the set of all 
-multiples of $x$. *};
+text {* The \emph{linear closure} of a vector $x$ is the set of all
+scalar multiples of $x$. *};
 
 constdefs
   lin :: "'a => 'a set"
-  "lin x == {y. EX a. y = a <*> x}";
+  "lin x == {a <*> x | a. True}"; 
 
 lemma linD: "x : lin v = (EX a::real. x = a <*> v)";
-  by (unfold lin_def) force;
+  by (unfold lin_def) fast;
 
 lemma linI [intro!!]: "a <*> x0 : lin x0";
-  by (unfold lin_def) force;
+  by (unfold lin_def) fast;
 
 text {* Every vector is contained in its linear closure. *};
 
-lemma x_lin_x: "[| is_vectorspace V; x:V |] ==> x:lin x";
-proof (unfold lin_def, intro CollectI exI);
+lemma x_lin_x: "[| is_vectorspace V; x:V |] ==> x : lin x";
+proof (unfold lin_def, intro CollectI exI conjI);
   assume "is_vectorspace V" "x:V";
   show "x = 1r <*> x"; by (simp!);
-qed;
+qed simp;
 
 text {* Any linear closure is a subspace. *};
 
@@ -162,12 +162,12 @@ lemma lin_subspace [intro!!]:
 proof;
   assume "is_vectorspace V" "x:V";
   show "<0> : lin x"; 
-  proof (unfold lin_def, intro CollectI exI);
+  proof (unfold lin_def, intro CollectI exI conjI);
     show "<0> = 0r <*> x"; by (simp!);
-  qed;
+  qed simp;
 
   show "lin x <= V";
-  proof (unfold lin_def, intro subsetI, elim CollectE exE); 
+  proof (unfold lin_def, intro subsetI, elim CollectE exE conjE); 
     fix xa a; assume "xa = a <*> x"; 
     show "xa:V"; by (simp!);
   qed;
@@ -176,21 +176,23 @@ proof;
   proof (intro ballI);
     fix x1 x2; assume "x1 : lin x" "x2 : lin x"; 
     thus "x1 + x2 : lin x";
-    proof (unfold lin_def, elim CollectE exE, intro CollectI exI);
+    proof (unfold lin_def, elim CollectE exE conjE, 
+      intro CollectI exI conjI);
       fix a1 a2; assume "x1 = a1 <*> x" "x2 = a2 <*> x";
       show "x1 + x2 = (a1 + a2) <*> x"; 
         by (simp! add: vs_add_mult_distrib2);
-    qed;
+    qed simp;
   qed;
 
   show "ALL xa:lin x. ALL a. a <*> xa : lin x"; 
   proof (intro ballI allI);
     fix x1 a; assume "x1 : lin x"; 
     thus "a <*> x1 : lin x";
-    proof (unfold lin_def, elim CollectE exE, intro CollectI exI);
+    proof (unfold lin_def, elim CollectE exE conjE,
+      intro CollectI exI conjI);
       fix a1; assume "x1 = a1 <*> x";
       show "a <*> x1 = (a * a1) <*> x"; by (simp!);
-    qed;
+    qed simp;
   qed; 
 qed;
 
@@ -213,7 +215,7 @@ all sums of elements from $U$ and $V$. *};
 instance set :: (plus) plus; by intro_classes;
 
 defs vs_sum_def:
-  "U + V == {x. EX u:U. EX v:V. x = u + v}";(***  
+  "U + V == {u + v | u v. u:U & v:V}"; (***
 
 constdefs 
   vs_sum :: 
@@ -223,13 +225,13 @@ constdefs
 
 lemma vs_sumD: 
   "x: U + V = (EX u:U. EX v:V. x = u + v)";
-  by (unfold vs_sum_def) simp;
+    by (unfold vs_sum_def) fast;
 
 lemmas vs_sumE = vs_sumD [RS iffD1, elimify];
 
 lemma vs_sumI [intro!!]: 
   "[| x:U; y:V; t= x + y |] ==> t : U + V";
-  by (unfold vs_sum_def, intro CollectI bexI); 
+  by (unfold vs_sum_def) fast;
 
 text{* $U$ is a subspace of $U + V$. *};
 
@@ -287,7 +289,7 @@ proof;
     qed (simp!)+;
   qed;
 
-  show "ALL x: U + V. ALL a. a <*> x : U + V";
+  show "ALL x : U + V. ALL a. a <*> x : U + V";
   proof (intro ballI allI);
     fix x a; assume "x : U + V";
     thus "a <*> x : U + V";
@@ -348,10 +350,11 @@ proof;
   qed;
 qed;
 
-text {* An application of the previous lemma will be used in the 
-proof of the Hahn-Banach theorem: for an element $y + a \mult x_0$ 
-of the direct sum of a vectorspace $H$ and the linear closure of 
-$x_0$ the components $y \in H$ and $a$ are unique. *}; 
+text {* An application of the previous lemma will be used in the proof
+of the Hahn-Banach Theorem (see page \pageref{decomp-H0-use}): for any
+element $y + a \mult x_0$ of the direct sum of a vectorspace $H$ and
+the linear closure of $x_0$ the components $y \in H$ and $a$ are
+uniquely determined. *};
 
 lemma decomp_H0: 
   "[| is_vectorspace E; is_subspace H E; y1 : H; y2 : H; 
@@ -370,9 +373,9 @@ proof;
     proof;
       show "H Int lin x0 <= {<0>}"; 
       proof (intro subsetI, elim IntE, rule singleton_iff[RS iffD2]);
-        fix x; assume "x:H" "x:lin x0"; 
+        fix x; assume "x:H" "x : lin x0"; 
         thus "x = <0>";
-        proof (unfold lin_def, elim CollectE exE);
+        proof (unfold lin_def, elim CollectE exE conjE);
           fix a; assume "x = a <*> x0";
           show ?thesis;
           proof (rule case_split);
@@ -388,8 +391,9 @@ proof;
        qed;
       qed;
       show "{<0>} <= H Int lin x0";
-      proof (intro subsetI, elim singletonE, intro IntI, simp+);
-        show "<0> : H"; ..;
+      proof (intro subsetI, elim singletonE, intro IntI, 
+        (simp only:)+);
+        show "<0>:H"; ..;
         from lin_vs; show "<0> : lin x0"; ..;
       qed;
     qed;
@@ -404,20 +408,20 @@ proof;
   qed;
 qed;
 
-text {* Since for an element $y + a \mult x_0$ of the direct sum 
+text {* Since for any element $y + a \mult x_0$ of the direct sum 
 of a vectorspace $H$ and the linear closure of $x_0$ the components
-$y\in H$ and $a$ are unique, follows from $y\in H$ the fact that 
+$y\in H$ and $a$ are unique, it follows from $y\in H$ that 
 $a = 0$.*}; 
 
 lemma decomp_H0_H: 
-  "[| is_vectorspace E; is_subspace H E; t:H; x0~:H; x0:E;
+  "[| is_vectorspace E; is_subspace H E; t:H; x0 ~: H; x0:E;
   x0 ~= <0> |] 
   ==> (SOME (y, a). t = y + a <*> x0 & y : H) = (t, 0r)";
 proof (rule, unfold split_paired_all);
-  assume "is_vectorspace E" "is_subspace H E" "t:H" "x0~:H" "x0:E"
+  assume "is_vectorspace E" "is_subspace H E" "t:H" "x0 ~: H" "x0:E"
     "x0 ~= <0>";
   have h: "is_vectorspace H"; ..;
-  fix y a; presume t1: "t = y + a <*> x0" and "y : H";
+  fix y a; presume t1: "t = y + a <*> x0" and "y:H";
   have "y = t & a = 0r"; 
     by (rule decomp_H0) (assumption | (simp!))+;
   thus "(y, a) = (t, 0r)"; by (simp!);
@@ -428,14 +432,14 @@ are unique, so the function $h_0$ defined by
 $h_0 (y \plus a \mult x_0) = h y + a \cdot \xi$ is definite. *};
 
 lemma h0_definite:
-  "[| h0 = (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a <*> x0 & y:H)
+  "[| h0 == (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a <*> x0 & y:H)
                 in (h y) + a * xi);
   x = y + a <*> x0; is_vectorspace E; is_subspace H E;
   y:H; x0 ~: H; x0:E; x0 ~= <0> |]
   ==> h0 x = h y + a * xi";
 proof -;  
   assume 
-    "h0 = (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a <*> x0 & y:H)
+    "h0 == (\<lambda>x. let (y, a) = SOME (y, a). (x = y + a <*> x0 & y:H)
                in (h y) + a * xi)"
     "x = y + a <*> x0" "is_vectorspace E" "is_subspace H E"
     "y:H" "x0 ~: H" "x0:E" "x0 ~= <0>";
@@ -443,25 +447,25 @@ proof -;
     by (simp! add: vs_sum_def lin_def) force+;
   have "EX! xa. ((\<lambda>(y, a). x = y + a <*> x0 & y:H) xa)"; 
   proof;
-    show "EX xa. ((%(y, a). x = y + a <*> x0 & y:H) xa)";
+    show "EX xa. ((\<lambda>(y, a). x = y + a <*> x0 & y:H) xa)";
       by (force!);
   next;
     fix xa ya;
-    assume "(%(y,a). x = y + a <*> x0 & y : H) xa"
-           "(%(y,a). x = y + a <*> x0 & y : H) ya";
+    assume "(\<lambda>(y,a). x = y + a <*> x0 & y : H) xa"
+           "(\<lambda>(y,a). x = y + a <*> x0 & y : H) ya";
     show "xa = ya"; ;
     proof -;
       show "fst xa = fst ya & snd xa = snd ya ==> xa = ya"; 
         by (rule Pair_fst_snd_eq [RS iffD2]);
-      have x: "x = (fst xa) + (snd xa) <*> x0 & (fst xa) : H"; 
+      have x: "x = fst xa + snd xa <*> x0 & fst xa : H"; 
         by (force!);
-      have y: "x = (fst ya) + (snd ya) <*> x0 & (fst ya) : H"; 
+      have y: "x = fst ya + snd ya <*> x0 & fst ya : H"; 
         by (force!);
       from x y; show "fst xa = fst ya & snd xa = snd ya"; 
         by (elim conjE) (rule decomp_H0, (simp!)+);
     qed;
   qed;
-  hence eq: "(SOME (y, a). (x = y + a <*> x0 & y:H)) = (y, a)"; 
+  hence eq: "(SOME (y, a). x = y + a <*> x0 & y:H) = (y, a)"; 
     by (rule select1_equality) (force!);
   thus "h0 x = h y + a * xi"; by (simp! add: Let_def);
 qed;

@@ -5,5 +5,4 @@
 The Hahn-Banach theorem for real vector spaces (Isabelle/Isar).
 *)
 
-time_use_thy "Bounds";
 time_use_thy "HahnBanach";

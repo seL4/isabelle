@@ -10,20 +10,20 @@ theory HahnBanachSupLemmas = FunctionNorm + ZornLemma:;
 
 
 text{* This section contains some lemmas that will be used in the
-proof of the Hahn-Banach theorem.
+proof of the Hahn-Banach Theorem.
 In this section the following context is presumed. 
-Let $E$ be a real vector space with a quasinorm $q$ on $E$. 
-$F$ is a subspace of $E$ and $f$ a linearform on $F$. We 
-consider a chain $c$ of norm preserving extensions of $f$, such that
+Let $E$ be a real vector space with a seminorm $q$ on $E$. 
+$F$ is a subspace of $E$ and $f$ a linear form on $F$. We 
+consider a chain $c$ of norm-preserving extensions of $f$, such that
 $\Union c = \idt{graph}\ap H\ap h$. 
 We will show some properties about the limit function $h$, 
-i.~e.~the supremum of the chain $c$.
+i.e.\ the supremum of the chain $c$.
 *}; 
 
 (***
 lemma some_H'h't:
   "[| M = norm_pres_extensions E p F f; c: chain M; 
-  graph H h = Union c; x:H|]
+  graph H h = Union c; x:H |]
    ==> EX H' h' t. t : graph H h & t = (x, h x) & graph H' h':c 
        & t:graph H' h' & is_linearform H' h' & is_subspace H' E 
        & is_subspace F H' & graph F f <= graph H' h' 
@@ -60,14 +60,14 @@ proof -;
 qed;
 ***)
 
-text{* Let $c$ be a chain of norm preserving extensions of the 
+text{* Let $c$ be a chain of norm-preserving extensions of the 
 function $f$ and let $\idt{graph}\ap H\ap h$ be the supremum of $c$. 
 Every element in $H$ is member of
 one of the elements of the chain. *};
 
 lemma some_H'h't:
   "[| M = norm_pres_extensions E p F f; c: chain M; 
-  graph H h = Union c; x:H|]
+  graph H h = Union c; x:H |]
    ==> EX H' h'. graph H' h' : c & (x, h x) : graph H' h' 
        & is_linearform H' h' & is_subspace H' E 
        & is_subspace F H' & graph F f <= graph H' h' 
@@ -109,7 +109,7 @@ proof -;
 qed;
 
 
-text{*  Let $c$ be a chain of norm preserving extensions of the
+text{*  Let $c$ be a chain of norm-preserving extensions of the
 function $f$ and let $\idt{graph}\ap H\ap h$ be the supremum of $c$. 
 Every element in the domain $H$ of the supremum function is member of
 the domain $H'$ of some function $h'$, such that $h$ extends $h'$.
@@ -117,7 +117,7 @@ the domain $H'$ of some function $h'$, such that $h$ extends $h'$.
 
 lemma some_H'h': 
   "[| M = norm_pres_extensions E p F f; c: chain M; 
-  graph H h = Union c; x:H|] 
+  graph H h = Union c; x:H |] 
   ==> EX H' h'. x:H' & graph H' h' <= graph H h 
       & is_linearform H' h' & is_subspace H' E & is_subspace F H'
       & graph F f <= graph H' h' & (ALL x:H'. h' x <= p x)"; 
@@ -147,7 +147,7 @@ qed;
 (***
 lemma some_H'h': 
   "[| M = norm_pres_extensions E p F f; c: chain M; 
-  graph H h = Union c; x:H|] 
+  graph H h = Union c; x:H |] 
   ==> EX H' h'. x:H' & graph H' h' <= graph H h 
       & is_linearform H' h' & is_subspace H' E & is_subspace F H'
       & graph F f <= graph H' h' & (ALL x:H'. h' x <= p x)"; 
@@ -185,7 +185,7 @@ qed;
 
 
 text{* Any two elements $x$ and $y$ in the domain $H$ of the 
-supremum function $h$ lie both in the domain $H'$ of some function 
+supremum function $h$ are both in the domain $H'$ of some function 
 $h'$, such that $h$ extends $h'$. *};
 
 lemma some_H'h'2: 
@@ -265,7 +265,7 @@ qed;
 (***
 lemma some_H'h'2: 
   "[| M = norm_pres_extensions E p F f; c: chain M; 
-  graph H h = Union c;  x:H; y:H|] 
+  graph H h = Union c;  x:H; y:H |] 
   ==> EX H' h'. x:H' & y:H' & graph H' h' <= graph H h 
       & is_linearform H' h' & is_subspace H' E & is_subspace F H' 
       & graph F f <= graph H' h' & (ALL x:H'. h' x <= p x)"; 
@@ -350,7 +350,7 @@ proof -;
 
     txt{* Since both $(x, y) \in \Union c$ and $(x, z) \in \Union c$
     they are members of some graphs $G_1$ and $G_2$, resp., such that
-    both $G_1$ and $G_2$ are members of $c$*};
+    both $G_1$ and $G_2$ are members of $c$.*};
 
     fix G1 G2; assume
       "(x, y) : G1" "G1 : c" "(x, z) : G2" "G2 : c" "c <= M";
@@ -366,8 +366,8 @@ proof -;
       fix H1 h1 H2 h2; 
       assume "graph H1 h1 = G1" "graph H2 h2 = G2";
 
-      txt{* Since both h $G_1$ and $G_2$ are members of $c$, 
-      $G_1$ is contained in $G_2$ or vice versa. *};
+      txt{* $G_1$ is contained in $G_2$ or vice versa, 
+      since both $G_1$ and $G_2$ are members of $c$. *};
 
       have "G1 <= G2 | G2 <= G1" (is "?case1 | ?case2"); ..;
       thus ?thesis;
@@ -390,10 +390,10 @@ proof -;
   qed;
 qed;
 
-text{* The limit function $h$ is linear: every element $x$ in the
+text{* The limit function $h$ is linear. Every element $x$ in the
 domain of $h$ is in the domain of a function $h'$ in the chain of norm
 preserving extensions.  Furthermore, $h$ is an extension of $h'$ so
-the value of $x$ are identical for $h'$ and $h$.  Finally, the
+the function values of $x$ are identical for $h'$ and $h$.  Finally, the
 function $h'$ is linear by construction of $M$.  *};
 
 lemma sup_lf: 
@@ -412,8 +412,7 @@ proof -;
             & (ALL x:H'. h' x <= p x)";
       by (rule some_H'h'2);
 
-    txt {* We have to show that h is linear w.~r.~t. 
-    addition. *};
+    txt {* We have to show that $h$ is additive. *};
 
     thus "h (x + y) = h x + h y"; 
     proof (elim exE conjE);
@@ -421,7 +420,7 @@ proof -;
         and b: "graph H' h' <= graph H h" 
         and "is_linearform H' h'" "is_subspace H' E";
       have "h' (x + y) = h' x + h' y"; 
-        by (rule linearform_add_linear);
+        by (rule linearform_add);
       also; have "h' x = h x"; ..;
       also; have "h' y = h y"; ..;
       also; have "x + y : H'"; ..;
@@ -436,8 +435,7 @@ proof -;
             & (ALL x:H'. h' x <= p x)";
       by (rule some_H'h');
 
-    txt{* We have to show that h is linear w.~r.~t. 
-    scalar multiplication. *};
+    txt{* We have to show that $h$ is multiplicative. *};
 
     thus "h (a <*> x) = a * h x";
     proof (elim exE conjE);
@@ -445,7 +443,7 @@ proof -;
         and b: "graph H' h' <= graph H h" 
         and "is_linearform H' h'" "is_subspace H' E";
       have "h' (a <*> x) = a * h' x"; 
-        by (rule linearform_mult_linear);
+        by (rule linearform_mult);
       also; have "h' x = h x"; ..;
       also; have "a <*> x : H'"; ..;
       with b; have "h' (a <*> x) = h (a <*> x)"; ..;
@@ -462,7 +460,7 @@ for every element of the chain.*};
 
 lemma sup_ext:
   "[| M = norm_pres_extensions E p F f; c: chain M; EX x. x:c; 
-  graph H h = Union c|] ==> graph F f <= graph H h";
+  graph H h = Union c |] ==> graph F f <= graph H h";
 proof -;
   assume "M = norm_pres_extensions E p F f" "c: chain M" 
          "graph H h = Union c";
@@ -484,9 +482,11 @@ proof -;
 
     thus ?thesis; 
     proof (elim exE conjE); 
-      fix G g; assume "graph G g = x" "graph F f <= graph G g";
-      have "graph F f <= graph G g"; .;
-      also; have "graph G g <= graph H h"; by (simp!, fast);
+      fix G g; assume "graph F f <= graph G g";
+      also; assume "graph G g = x";
+      also; have "... : c"; .;
+      hence "x <= Union c"; by fast;
+      also; have [RS sym]: "graph H h = Union c"; .;
       finally; show ?thesis; .;
     qed;
   qed;
@@ -539,15 +539,15 @@ proof -;
   show ?thesis; 
   proof;
  
-    txt {* The $\zero$ element lies in $H$, as $F$ is a subset 
-    of $H$. *};
+    txt {* The $\zero$ element is in $H$, as $F$ is a subset 
+    of $H$: *};
 
     have "<0> : F"; ..;
     also; have "is_subspace F H"; by (rule sup_supF); 
     hence "F <= H"; ..;
     finally; show "<0> : H"; .;
 
-    txt{* $H$ is a subset of $E$. *};
+    txt{* $H$ is a subset of $E$: *};
 
     show "H <= E"; 
     proof;
@@ -565,7 +565,7 @@ proof -;
       qed;
     qed;
 
-    txt{* $H$ is closed under addition. *};
+    txt{* $H$ is closed under addition: *};
 
     show "ALL x:H. ALL y:H. x + y : H"; 
     proof (intro ballI); 
@@ -586,7 +586,7 @@ proof -;
       qed;
     qed;      
 
-    txt{* $H$ is closed under scalar multiplication. *};
+    txt{* $H$ is closed under scalar multiplication: *};
 
     show "ALL x:H. ALL a. a <*> x : H"; 
     proof (intro ballI allI); 
@@ -609,7 +609,8 @@ proof -;
 qed;
 
 text {* The limit function is bounded by 
-the norm $p$ as well, since all elements in the chain are norm preserving.
+the norm $p$ as well, since all elements in the chain are
+bounded by $p$.
 *};
 
 lemma sup_norm_pres: 
@@ -635,10 +636,10 @@ proof;
 qed;
 
 
-text_raw{* \medskip *}
-text{* The following lemma is a property of real linearforms on 
+text{* \medskip The following lemma is a property of linearforms on 
 real vector spaces. It will be used for the lemma 
-$\idt{rabs{\dsh}HahnBanach}$.
+$\idt{rabs{\dsh}HahnBanach}$ (see page \pageref{rabs-HahnBanach}).
+\label{rabs-ineq-iff}
 For real vector spaces the following inequations are equivalent:
 \begin{matharray}{ll} 
 \forall x\in H.\ap |h\ap x|\leq p\ap x& {\rm and}\\ 
@@ -647,12 +648,12 @@ For real vector spaces the following inequations are equivalent:
 *};
 
 lemma rabs_ineq_iff: 
-  "[| is_subspace H E; is_vectorspace E; is_quasinorm E p; 
+  "[| is_subspace H E; is_vectorspace E; is_seminorm E p; 
   is_linearform H h |] 
   ==> (ALL x:H. rabs (h x) <= p x) = (ALL x:H. h x <= p x)" 
   (concl is "?L = ?R");
 proof -;
-  assume "is_subspace H E" "is_vectorspace E" "is_quasinorm E p" 
+  assume "is_subspace H E" "is_vectorspace E" "is_seminorm E p" 
          "is_linearform H h";
   have h: "is_vectorspace H"; ..;
   show ?thesis;
@@ -675,10 +676,10 @@ proof -;
       show "- p x <= h x";
       proof (rule real_minus_le);
 	from h; have "- h x = h (- x)"; 
-          by (rule linearform_neg_linear [RS sym]);
+          by (rule linearform_neg [RS sym]);
 	also; from r; have "... <= p (- x)"; by (simp!);
 	also; have "... = p x"; 
-          by (rule quasinorm_minus, rule subspace_subsetD);
+          by (rule seminorm_minus, rule subspace_subsetD);
 	finally; show "- h x <= p x"; .; 
       qed;
       from r; show "h x <= p x"; ..; 
