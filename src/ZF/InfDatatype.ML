@@ -3,99 +3,12 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-Datatype Definitions involving function space and/or infinite-branching
+Infinite-branching datatype definitions
 *)
 
-(*** FINITE BRANCHING ***)
-
-(** Closure under finite powerset **)
-
-val Fin_Univ_thy = merge_theories (Univ.thy,Finite.thy);
-
-goal Fin_Univ_thy
-   "!!i. [| b: Fin(Vfrom(A,i));  Limit(i) |] ==> EX j. b <= Vfrom(A,j) & j<i";
-by (eresolve_tac [Fin_induct] 1);
-by (fast_tac (ZF_cs addSDs [Limit_has_0]) 1);
-by (safe_tac ZF_cs);
-by (eresolve_tac [Limit_VfromE] 1);
-by (assume_tac 1);
-by (res_inst_tac [("x", "xa Un j")] exI 1);
-by (best_tac (ZF_cs addIs [subset_refl RS Vfrom_mono RS subsetD, 
-			   Un_least_lt]) 1);
-val Fin_Vfrom_lemma = result();
-
-goal Fin_Univ_thy "!!i. Limit(i) ==> Fin(Vfrom(A,i)) <= Vfrom(A,i)";
-by (rtac subsetI 1);
-by (dresolve_tac [Fin_Vfrom_lemma] 1);
-by (safe_tac ZF_cs);
-by (resolve_tac [Vfrom RS ssubst] 1);
-by (fast_tac (ZF_cs addSDs [ltD]) 1);
-val Fin_VLimit = result();
-
-val Fin_subset_VLimit = 
-    [Fin_mono, Fin_VLimit] MRS subset_trans |> standard;
-
-goalw Fin_Univ_thy [univ_def] "Fin(univ(A)) <= univ(A)";
-by (rtac (Limit_nat RS Fin_VLimit) 1);
-val Fin_univ = result();
-
-(** Closure under finite powers (functions from a fixed natural number) **)
-
-goal Fin_Univ_thy
-    "!!i. [| n: nat;  Limit(i) |] ==> n -> Vfrom(A,i) <= Vfrom(A,i)";
-by (eresolve_tac [nat_fun_subset_Fin RS subset_trans] 1);
-by (REPEAT (ares_tac [Fin_subset_VLimit, Sigma_subset_VLimit,
-		      nat_subset_VLimit, subset_refl] 1));
-val nat_fun_VLimit = result();
-
-val nat_fun_subset_VLimit = 
-    [Pi_mono, nat_fun_VLimit] MRS subset_trans |> standard;
-
-goalw Fin_Univ_thy [univ_def] "!!i. n: nat ==> n -> univ(A) <= univ(A)";
-by (etac (Limit_nat RSN (2,nat_fun_VLimit)) 1);
-val nat_fun_univ = result();
-
-
-(** Closure under finite function space **)
-
-(*General but seldom-used version; normally the domain is fixed*)
-goal Fin_Univ_thy
-    "!!i. Limit(i) ==> Vfrom(A,i) -||> Vfrom(A,i) <= Vfrom(A,i)";
-by (resolve_tac [FiniteFun.dom_subset RS subset_trans] 1);
-by (REPEAT (ares_tac [Fin_subset_VLimit, Sigma_subset_VLimit, subset_refl] 1));
-val FiniteFun_VLimit1 = result();
-
-goalw Fin_Univ_thy [univ_def] "univ(A) -||> univ(A) <= univ(A)";
-by (rtac (Limit_nat RS FiniteFun_VLimit1) 1);
-val FiniteFun_univ1 = result();
-
-(*Version for a fixed domain*)
-goal Fin_Univ_thy
-   "!!i.  [| W <= Vfrom(A,i); Limit(i) |] ==> W -||> Vfrom(A,i) <= Vfrom(A,i)";
-by (eresolve_tac [subset_refl RSN (2, FiniteFun_mono) RS subset_trans] 1);
-by (eresolve_tac [FiniteFun_VLimit1] 1);
-val FiniteFun_VLimit = result();
-
-goalw Fin_Univ_thy [univ_def]
-    "!!W. W <= univ(A) ==> W -||> univ(A) <= univ(A)";
-by (etac (Limit_nat RSN (2, FiniteFun_VLimit)) 1);
-val FiniteFun_univ = result();
-
-goal Fin_Univ_thy
-    "!!W. [| f: W -||> univ(A);  W <= univ(A) |] ==> f : univ(A)";
-by (eresolve_tac [FiniteFun_univ RS subsetD] 1);
-by (assume_tac 1);
-val FiniteFun_in_univ = result();
-
-(*Remove <= from the rule above*)
-val FiniteFun_in_univ' = subsetI RSN (2, FiniteFun_in_univ);
-
-
-(*** INFINITE BRANCHING ***)
-
-val fun_Limit_VfromE = 
-    [apply_funtype, InfCard_csucc RS InfCard_is_Limit] MRS Limit_VfromE
-	|> standard;
+val fun_Limit_VfromE =
+   [apply_funtype, InfCard_csucc RS InfCard_is_Limit] MRS Limit_VfromE 
+   |> standard;
 
 goal InfDatatype.thy
     "!!K. [| f: W -> Vfrom(A,csucc(K));  |W| le K;  InfCard(K)	\
@@ -162,22 +75,27 @@ goal InfDatatype.thy
 by (REPEAT (ares_tac [Card_fun_Vcsucc RS subsetD] 1));
 qed "Card_fun_in_Vcsucc";
 
-val Pair_in_Vcsucc = Limit_csucc RSN (3, Pair_in_VLimit) |> standard;
-val Inl_in_Vcsucc  = Limit_csucc RSN (2, Inl_in_VLimit) |> standard;
-val Inr_in_Vcsucc  = Limit_csucc RSN (2, Inr_in_VLimit) |> standard;
-val zero_in_Vcsucc = Limit_csucc RS zero_in_VLimit |> standard;
-val nat_into_Vcsucc = Limit_csucc RSN (2, nat_into_VLimit) |> standard;
+(*Proved explicitly, in theory InfDatatype, to allow the bind_thm calls below*)
+qed_goal "Limit_csucc" InfDatatype.thy
+    "!!K. InfCard(K) ==> Limit(csucc(K))"
+  (fn _ => [etac (InfCard_csucc RS InfCard_is_Limit) 1]);
+
+bind_thm ("Pair_in_Vcsucc",  Limit_csucc RSN (3, Pair_in_VLimit));
+bind_thm ("Inl_in_Vcsucc",   Limit_csucc RSN (2, Inl_in_VLimit));
+bind_thm ("Inr_in_Vcsucc",   Limit_csucc RSN (2, Inr_in_VLimit));
+bind_thm ("zero_in_Vcsucc",  Limit_csucc RS zero_in_VLimit);
+bind_thm ("nat_into_Vcsucc", Limit_csucc RSN (2, nat_into_VLimit));
 
 (*For handling Cardinals of the form  (nat Un |X|) *)
 
-val InfCard_nat_Un_cardinal = [InfCard_nat, Card_cardinal] MRS InfCard_Un
-                              |> standard;
+bind_thm ("InfCard_nat_Un_cardinal",
+	  [InfCard_nat, Card_cardinal] MRS InfCard_Un);
 
-val le_nat_Un_cardinal = 
-    [Ord_nat, Card_cardinal RS Card_is_Ord] MRS Un_upper2_le  |> standard;
+bind_thm ("le_nat_Un_cardinal",
+	  [Ord_nat, Card_cardinal RS Card_is_Ord] MRS Un_upper2_le);
 
-val UN_upper_cardinal = UN_upper RS subset_imp_lepoll RS lepoll_imp_Card_le 
-                        |> standard;
+bind_thm ("UN_upper_cardinal",
+	  UN_upper RS subset_imp_lepoll RS lepoll_imp_Card_le);
 
 (*For most K-branching datatypes with domain Vfrom(A, csucc(K)) *)
 val inf_datatype_intrs =  
