@@ -114,7 +114,7 @@ by (subgoal_tac
 by (fast_tac (ZF_cs addSIs [Least_le RS lt_trans1 RS ltD, ltI]
                     addSEs [LeastI, Ord_in_Ord]) 2);
 by (res_inst_tac [("c", "%z. <LEAST i. z:X(i), f ` (LEAST i. z:X(i)) ` z>"),
-		  ("d", "split(%i j. converse(f`i) ` j)")] 
+		  ("d", "%<i,j>. converse(f`i) ` j")] 
 	lam_injective 1);
 (*Instantiate the lemma proved above*)
 by (ALLGOALS ball_tac);
