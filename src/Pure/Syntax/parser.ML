@@ -178,27 +178,29 @@ fun mk_gram prods =
 
       (*list all terminals that can start the given rhss*)
       fun look_rhss starts rhss_ref =
-        let fun look [] _ = []
-              | look ((symbs, _, _) :: todos) done =
+        let fun look [] _ result = result
+              | look ((symbs, _, _) :: todos) done result =
                   let val (start_token, skipped) = rhss_start symbs [];
 
                       (*process all nonterminals on which the lookahead
                         depends and build the new todo and done lists for
                         the look function*)
-                      fun look2 [] todos = look todos (done union skipped)
-                        | look2 (rhss_ref :: ls) todos =
-                            if rhss_ref mem done then look2 ls todos
+                      fun look2 [] todos result = 
+                            look todos (done union skipped) result
+                        | look2 (rhss_ref :: ls) todos result =
+                            if rhss_ref mem done then look2 ls todos result
                             else case assoc (starts, rhss_ref) of
-                                Some tks => tks union (look2 ls todos)
-                              | None => let val (_, rhss) = hd (!rhss_ref);
-                                        in look2 ls (rhss union todos) end;
+                                Some tks => look2 ls todos (tks union result)
+                              | None => 
+                                  let val (_, rhss) = hd (!rhss_ref);
+                                  in look2 ls (rhss @ todos) result end;
                   in case start_token of
-                         Some tk => start_token ins (look2 skipped todos)
-                       | None => look2 skipped todos
+                         Some tk => look2 skipped todos (start_token ins result)
+                       | None => look2 skipped todos result
                   end;
  
             val (_, rhss) = hd (!rhss_ref);
-        in look rhss [rhss_ref] end;                       
+        in look rhss [rhss_ref] [] end;                       
 
       (*make a table that contains all possible starting terminals
         for each nonterminal*)
@@ -210,14 +212,20 @@ fun mk_gram prods =
 
       (*add list of allowed starting tokens to productions*)
       fun mk_lookahead (_, rhss_ref) =
-        let (*add item to lookahead list (a list containing pairs of token and 
-              rhss that can be started with it*)
+        let (*compares two values of type token option 
+              (used for speed reasons)*)
+            fun matching_opt_tks (Some tk1, Some tk2) =
+                  matching_tokens (tk1, tk2)
+              | matching_opt_tks _ = false;
+
+            (*add item to lookahead list (a list containing pairs of token and 
+              rhss that can be started with it)*)
             fun add_start new_rhs tokens table =
                   let fun add [] [] = []
                         | add (tk :: tks) [] =
                             (tk, [new_rhs]) :: (add tks [])
                         | add tokens ((tk, rhss) :: ss) =
-                            if tk mem tokens then 
+                            if gen_mem matching_opt_tks (tk, tokens) then 
                               (tk, new_rhs :: rhss) :: (add (tokens \ tk) ss)
                             else
                               (tk, rhss) :: (add tokens ss);
@@ -225,7 +233,7 @@ fun mk_gram prods =
 
             (*combine all lookaheads of a list of nonterminals*)
             fun combine_starts rhss_refs =
-              foldr (op union) 
+              foldr (gen_union matching_opt_tks)
               ((map (fn rhss_ref => let val Some tks = assoc (starts, rhss_ref)
                                     in tks end) rhss_refs), []);
 
@@ -234,8 +242,8 @@ fun mk_gram prods =
               | look_rhss ((rhs as (symbs, id, prec)) :: rs) table =
                   let val (start_token, skipped) = rhss_start symbs [];
                       val starts = case start_token of
-                                     Some tk => Some tk 
-                                                ins (combine_starts skipped)
+                                     Some tk => gen_ins matching_opt_tks 
+                                             (Some tk, combine_starts skipped)
                                    | None => if skipped subset lambdas then
                                                [None]
                                              else
