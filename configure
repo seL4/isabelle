@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# $Id$
+#
+# configure - adapt Isabelle distribution to system environment
+
+if bash -norc -c ""
+then
+  bash lib/scripts/patch-scripts.bash
+else
+  echo "FATAL ERROR: bash not found!"
+  exit 2
+fi
