@@ -68,7 +68,7 @@ proof -
   hence "(THE x'. f x' = f x) = (THE x'. x' = x)"
     by (simp only: inj_eq)
   also have "... = x" by (rule the_eq_trivial)
-  finally (trans) show ?thesis by (unfold myinv_def)
+  finally show ?thesis by (unfold myinv_def)
 qed
 
 lemma f_myinv_f: "inj f ==> y \<in> range f ==> f (myinv f y) = y"
