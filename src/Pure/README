@@ -1,12 +1,20 @@
                         Pure: The Pure Isabelle System
 
-This directory contains the ML source files for Pure Isabelle, which is the
-basis for all object-logics.  Important files include:
+This directory contains the ML source files for Pure Isabelle, which
+is the basis for all object-logics:
 
-IsaMakefile -- compiles the files
+  IsaMakefile	compiles the Pure system
+  ML-Systems/   compatibility files for various ML systems
+  Syntax/     	the syntax module
+  Thy/          the theory file parser and loader
 
-Syntax/     -- the syntax module
+Isabelle programmers may want to have a look at the following generic
+modules:
 
-Thy/        -- the theory file parser and loader
-
-ML-Systems/ -- compatibility files for various ML systems
+  Library	basic library (see library.ML)
+  TableFun	efficient tables (see table.ML)
+  Seq		unbounded sequences (see seq.ML)
+  Pretty	pretty printing module (see Syntax/pretty.ML)
+  Scanner	scanner toolbox (see Syntax/lexicon.ML)
+  Path		abstract algebra of file paths (see Thy/path.ML)
+  File		file system operations (see Thy/file.ML)
