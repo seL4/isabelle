@@ -3,16 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Theory loader database, including theory and file dependencies.
-
-TODO:
-  - remove operation (GC!?);
-  - update_all operation (!?);
-  - put_theory:
-      . allow for undef entry only;
-      . elim (via theory_ref);
-  - stronger handling of missing files (!?!?);
-  - register_theory: do not require final parents (!?) (no?);
-  - hooks for init, update, finish operations (!?);
 *)
 
 signature BASIC_THY_INFO =
@@ -25,6 +15,7 @@ sig
   val touch_thy: string -> unit
   val use_thy: string -> unit
   val update_thy: string -> unit
+  val remove_thy: string -> unit
   val time_use_thy: string -> unit
   val use_thy_only: string -> unit
 end;
@@ -42,7 +33,7 @@ sig
   val use: string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory
   val end_theory: theory -> theory
-  val finalize_all: unit -> unit
+  val finish: unit -> unit
   val register_theory: theory -> unit
 end;
 
@@ -63,13 +54,13 @@ val show_path = space_implode " via " o map quote;
 fun cycle_msg name names = loader_msg ("cyclic dependency of " ^ show_path (name :: names)) [];
 
 
-(* derived graph operations *)          (* FIXME more abstract (!?) *)
+(* derived graph operations *)
 
 fun add_deps name parents G =
   foldl (fn (H, parent) => Graph.add_edge_acyclic (parent, name) H) (G, parents)
     handle Graph.CYCLES namess => error (cat_lines (map (cycle_msg name) namess));
 
-fun del_deps name G =           (* FIXME GC (!?!?) *)
+fun del_deps name G =
   foldl (fn (H, parent) => Graph.del_edge (parent, name) H) (G, Graph.imm_preds G name);
 
 fun update_node name parents entry G =
@@ -99,7 +90,7 @@ end;
 (* access thy graph *)
 
 fun thy_graph f x = f (get_thys ()) x;
-fun get_names () = map #1 (Graph.get_nodes (get_thys ()));
+fun get_names () = Graph.keys (get_thys ());
 
 
 (* access thy *)
@@ -120,7 +111,7 @@ val lookup_deps = apsome #1 o lookup_thy;
 val get_deps = #1 o get_thy;
 fun change_deps name f = change_thy name (fn (deps, x) => (f deps, x));
 
-fun is_final name = is_none (get_deps name);
+fun is_finished name = is_none (get_deps name);
 fun get_files name = (case get_deps name of Some {files, ...} => files | _ => []);
 val loaded_files = mapfilter #2 o get_files;
 
@@ -154,13 +145,13 @@ fun is_outdated name =
   | _ => false);
 
 fun outdate_thy name =
-  if is_final name then ()
+  if is_finished name then ()
   else change_deps name (apsome (fn {present, outdated = _, master, files} =>
     make_deps present true master files));
 
 fun touch_thy name =
   if is_outdated name then ()
-  else if is_final name then warning (loader_msg "tried to touch final theory" [name])
+  else if is_finished name then warning (loader_msg "tried to touch finished theory" [name])
   else
     (case filter_out is_outdated (thy_graph Graph.all_succs [name]) \ name of
       [] => outdate_thy name
@@ -287,6 +278,17 @@ val time_use_thy = gen_use_thy (require_thy true true true false []);
 val use_thy_only = gen_use_thy (require_thy false false true false []);
 
 
+(* remove_thy *)
+
+fun remove_thy name =
+  if is_finished name then error (loader_msg "cannot remove finished theory" [name])
+  else
+    let val succs = thy_graph Graph.all_succs [name] in
+      writeln (loader_msg "removing" succs);
+      change_thys (Graph.del_nodes succs)
+    end;
+
+
 (* begin / end theory *)                (* FIXME tune *) (* FIXME files vs. paths (!?!?) *)
 
 fun begin_theory name parents paths =
@@ -302,12 +304,9 @@ fun end_theory theory =
   in put_theory theory'; theory' end;
 
 
-(* finalize entries *)
+(* finish all theories *)
 
-fun update_all () = ();         (* FIXME fake *)
-
-fun finalize_all () =
-  (update_all (); change_thys (Graph.map_nodes (fn (_, entry) => (None, entry))));
+fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (None, entry)));
 
 
 (* register existing theories *)
@@ -321,7 +320,7 @@ fun register_theory theory =
     fun err txt bads =
       error (loader_msg txt bads ^ "\n" ^ gen_msg "cannot register theory" [name]);
 
-    val nonfinal = filter_out is_final parent_names;
+    val nonfinished = filter_out is_finished parent_names;
     fun get_variant (x, y_name) =
       if Theory.eq_thy (x, get_theory y_name) then None
       else Some y_name;
@@ -332,7 +331,7 @@ fun register_theory theory =
         handle Graph.DUPLICATE _ => err "duplicate theory entry" [])
       |> add_deps name parent_names;
   in
-    if not (null nonfinal) then err "non-final parent theories" nonfinal
+    if not (null nonfinished) then err "non-finished parent theories" nonfinished
     else if not (null variants) then err "different versions of parent theories" variants
     else change_thys register
   end;
