@@ -275,7 +275,7 @@ fun have_thmss opt_bname more_atts ths_atts thy =
       (case opt_bname of
         None => thms'
       | Some bname => enter_thmx (Theory.sign_of thy') name_multi (bname, thms'));
-  in (thy, thms'') end;
+  in (thy', thms'') end;
 
 
 (* store_thm *)
