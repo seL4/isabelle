@@ -1,3 +1,4 @@
+#  $Id$
 #########################################################################
 #									#
 # 			Makefile for Isabelle (FOLP)			#
@@ -19,7 +20,7 @@
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 FILES =  ROOT.ML IFOLP.thy IFOLP.ML FOLP.thy FOLP.ML intprover.ML simpdata.ML\
-	 classical.ML ../Provers/simp.ML ../Provers/ind.ML
+	 hypsubst.ML classical.ML simp.ML 
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/If.ML ex/If.thy ex/int.ML\
 	   ex/intro.ML ex/Nat.ML ex/Nat.thy ex/Prolog.ML ex/Prolog.thy\
