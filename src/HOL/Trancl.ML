@@ -31,9 +31,9 @@ by (fast_tac (rel_cs addIs prems) 1);
 qed "rtrancl_into_rtrancl";
 
 (*rtrancl of r contains r*)
-val [prem] = goal Trancl.thy "[| (a,b) : r |] ==> (a,b) : r^*";
-by (rtac (rtrancl_refl RS rtrancl_into_rtrancl) 1);
-by (rtac prem 1);
+goal Trancl.thy "!!p. p : r ==> p : r^*";
+by(split_all_tac 1);
+by (etac (rtrancl_refl RS rtrancl_into_rtrancl) 1);
 qed "r_into_rtrancl";
 
 (*monotonicity of rtrancl*)
@@ -161,7 +161,24 @@ br rtrancl_refl 1;
 by(fast_tac (HOL_cs addEs [rtrancl_trans]) 1);
 be r_into_rtrancl 1;
 qed "rtrancl_idemp";
+Addsimps [rtrancl_idemp];
 
+goal Trancl.thy "!!R. [| R <= S; S <= R^* |] ==> S^* = R^*";
+bd rtrancl_mono 1;
+bd rtrancl_mono 1;
+by(Asm_full_simp_tac 1);
+by(fast_tac eq_cs 1);
+qed "rtrancl_subset";
+
+goal Trancl.thy "!!R. (R^* Un S^*)^* = (R Un S)^*";
+by(best_tac (set_cs addIs [rtrancl_subset,r_into_rtrancl,
+                           rtrancl_mono RS subsetD]) 1);
+qed "trancl_Un_trancl";
+
+goal Trancl.thy "(R^=)^* = R^*";
+by(fast_tac (rel_cs addIs [rtrancl_refl,rtrancl_subset,r_into_rtrancl]) 1);
+qed "rtrancl_reflcl";
+Addsimps [rtrancl_reflcl];
 
 goal Trancl.thy "!!r. (x,y) : (converse r)^* ==> (x,y) : converse(r^*)";
 br converseI 1;
@@ -198,4 +215,5 @@ goalw Trancl.thy [trancl_def]
 by (fast_tac (rel_cs addSDs [trancl_subset_Sigma_lemma]) 1);
 qed "trancl_subset_Sigma";
 
+(* Don't add r_into_rtrancl: it messes up the proofs in Lambda *)
 val trancl_cs = rel_cs addIs [rtrancl_refl];

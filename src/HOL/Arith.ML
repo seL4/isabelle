@@ -14,6 +14,16 @@ open Arith;
 val [pred_0, pred_Suc] = nat_recs pred_def;
 val [add_0,add_Suc] = nat_recs add_def; 
 val [mult_0,mult_Suc] = nat_recs mult_def; 
+Addsimps [pred_0,pred_Suc,add_0,add_Suc,mult_0,mult_Suc];
+
+(** pred **)
+
+val prems = goal Arith.thy "n ~= 0 ==> Suc(pred n) = n";
+by(res_inst_tac [("n","n")] natE 1);
+by(cut_facts_tac prems 1);
+by(ALLGOALS Asm_full_simp_tac);
+qed "Suc_pred";
+Addsimps [Suc_pred];
 
 (** Difference **)
 
@@ -30,10 +40,7 @@ qed_goalw "diff_Suc_Suc" Arith.thy [diff_def, pred_def]
  (fn _ =>
   [Simp_tac 1, nat_ind_tac "n" 1, ALLGOALS Asm_simp_tac]);
 
-(*** Simplification over add, mult, diff ***)
-
-Addsimps [pred_0, pred_Suc, add_0, add_Suc, mult_0, mult_Suc, diff_0,
-          diff_0_eq_0, diff_Suc_Suc];
+Addsimps [diff_0, diff_0_eq_0, diff_Suc_Suc];
 
 
 (**** Inductive properties of the operators ****)

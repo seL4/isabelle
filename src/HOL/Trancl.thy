@@ -5,14 +5,20 @@
 
 Relfexive and Transitive closure of a relation
 
-rtrancl is refl&transitive closure;  trancl is transitive closure
+rtrancl is refl&transitive closure;
+trancl is transitive closure
+reflcl is reflexive closure
 *)
 
 Trancl = Lfp + Relation + 
 consts
     rtrancl :: "('a * 'a)set => ('a * 'a)set"	("(_^*)" [100] 100)
     trancl  :: "('a * 'a)set => ('a * 'a)set"	("(_^+)" [100] 100)  
+syntax
+    reflcl  :: "('a*'a)set => ('a*'a)set"       ("(_^=)" [100] 100)
 defs   
-rtrancl_def	"r^* == lfp(%s. id Un (r O s))"
-trancl_def	"r^+ == r O rtrancl(r)"
+  rtrancl_def	"r^*  ==  lfp(%s. id Un (r O s))"
+  trancl_def	"r^+  ==  r O rtrancl(r)"
+translations
+                "r^=" == "r Un id"
 end

@@ -125,17 +125,62 @@ goal List.thy "length(xs@ys) = length(xs)+length(ys)";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed"length_append";
+Addsimps [length_append];
+
+goal List.thy "length (map f l) = length l";
+by (list.induct_tac "l" 1);
+by (ALLGOALS Simp_tac);
+qed "length_map";
+Addsimps [length_map];
 
 goal List.thy "length(rev xs) = length(xs)";
 by (list.induct_tac "xs" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [length_append])));
+by (ALLGOALS Asm_simp_tac);
 qed "length_rev";
+Addsimps [length_rev];
 
 (** nth **)
 
 val [nth_0,nth_Suc] = nat_recs nth_def; 
 store_thm("nth_0",nth_0);
 store_thm("nth_Suc",nth_Suc);
+Addsimps [nth_0,nth_Suc];
+
+goal List.thy "!n. n < length xs --> nth n (map f xs) = f (nth n xs)";
+by (list.induct_tac "xs" 1);
+(* case [] *)
+by (Asm_full_simp_tac 1);
+(* case x#xl *)
+by (rtac allI 1);
+by (nat_ind_tac "n" 1);
+by (ALLGOALS Asm_full_simp_tac);
+bind_thm("nth_map", result() RS spec RS mp);
+Addsimps [nth_map];
+
+goal List.thy "!n. n < length xs --> list_all P xs --> P(nth n xs)";
+by (list.induct_tac "xs" 1);
+(* case [] *)
+by (Simp_tac 1);
+(* case x#xl *)
+by (rtac allI 1);
+by (nat_ind_tac "n" 1);
+by (ALLGOALS Asm_full_simp_tac);
+bind_thm("list_all_nth", result() RS spec RS mp RS mp);
+
+goal List.thy "!n. n < length xs --> (nth n xs) mem xs";
+by (list.induct_tac "xs" 1);
+(* case [] *)
+by (Simp_tac 1);
+(* case x#xl *)
+by (rtac allI 1);
+by (nat_ind_tac "n" 1);
+(* case 0 *)
+by (Asm_full_simp_tac 1);
+(* case Suc x *)
+by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+bind_thm ("nth_mem",result() RS spec RS mp);
+Addsimps [nth_mem];
+
 
 (** Additional mapping lemmas **)
 
@@ -171,5 +216,5 @@ Addsimps
    mem_append, mem_filter,
    rev_append, rev_rev_ident,
    map_ident, map_append, map_compose,
-   flat_append, length_append, list_all_True, list_all_conj, nth_0, nth_Suc];
+   flat_append, list_all_True, list_all_conj];
 

@@ -119,6 +119,14 @@ LAMBDA_FILES = Lambda/ROOT.ML \
 Lambda:  $(BIN)/HOL  $(LAMBDA_FILES)
 	echo 'exit_use"Lambda/ROOT.ML";quit();' | $(LOGIC)
 
+MINIML_NAMES = I Maybe MiniML Type W
+
+LAMBDA_FILES = MiniML/ROOT.ML \
+              $(MINIML_NAMES:%=MiniML/%.thy) $(MINIML_NAMES:%=MiniML/%.ML)
+
+MiniML: $(BIN)/HOL  $(MINIML_FILES)
+	echo 'exit_use"MiniML/ROOT.ML";quit();' | $(LOGIC)
+
 ##Miscellaneous examples
 EX_NAMES = LexProd MT Acc PropLog Puzzle Qsort LList Rec Simult Term String \
 	   BT Perm
@@ -130,7 +138,7 @@ ex:     $(BIN)/HOL  $(EX_FILES)
 	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
 #Full test. (IOA has been removed temporarily)
-test:   $(BIN)/HOL IMP Integ Subst Lambda ex
+test:   $(BIN)/HOL IMP Integ Subst Lambda MiniML ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/Pure $(BIN)/HOL 

@@ -53,12 +53,40 @@ by (rtac (PairE_lemma RS exE) 1);
 by (REPEAT (eresolve_tac [prem,exE] 1));
 qed "PairE";
 
+(* replace parameters of product type by individual component parameters *)
+local
+fun is_pair (_,Type("*",_)) = true
+  | is_pair _ = false;
+
+fun find_pair_param t =
+  let val params = Logic.strip_params t
+  in if exists is_pair params
+     then let val params = rev(rename_wrt_term t params)
+                           (*as they are printed*)
+          in apsome fst (find_first is_pair params) end
+     else None
+  end;
+
+in
+
+val split_all_tac = REPEAT o SUBGOAL (fn (t,_) =>
+  case find_pair_param t of
+    None => no_tac
+  | Some x => EVERY[res_inst_tac[("p",x)] PairE 1,
+                    REPEAT(hyp_subst_tac 1), prune_params_tac]);
+
+end;
+
+goal Prod.thy "(!x. P x) = (!a b. P(a,b))";
+by(fast_tac (HOL_cs addbefore split_all_tac 1) 1);
+qed "split_paired_All";
+
 goalw Prod.thy [split_def] "split c (a,b) = c a b";
 by (sstac [fst_conv, snd_conv] 1);
 by (rtac refl 1);
 qed "split";
 
-Addsimps [fst_conv, snd_conv, split, Pair_eq];
+Addsimps [fst_conv, snd_conv, split_paired_All, split, Pair_eq];
 
 goal Prod.thy "(s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
 by (res_inst_tac[("p","s")] PairE 1);

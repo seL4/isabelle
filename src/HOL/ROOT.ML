@@ -11,7 +11,6 @@ val banner = "Higher-Order Logic with curried functions";
 writeln banner;
 
 print_depth 1;
-set eta_contract;
 
 (* Add user sections *)
 use "../Pure/section_utils.ML";
