@@ -19,8 +19,7 @@ signature THM =
   (*certified terms*)
   type cterm
   exception CTERM of string
-  val rep_cterm         : cterm -> {sign: Sign.sg, t: term, T: typ,
-                                    maxidx: int}
+  val rep_cterm         : cterm -> {sign: Sign.sg, t: term, T: typ, maxidx: int}
   val term_of           : cterm -> term
   val cterm_of          : Sign.sg -> term -> cterm
   val ctyp_of_term      : cterm -> ctyp
@@ -121,7 +120,7 @@ signature THM =
   val equal_intr        : thm -> thm -> thm
   val equal_elim        : thm -> thm -> thm
   val implies_intr_hyps : thm -> thm
-  val flexflex_rule     : thm -> thm Sequence.seq
+  val flexflex_rule     : thm -> thm Seq.seq
   val instantiate       :
     (indexname * ctyp) list * (cterm * cterm) list -> thm -> thm
   val trivial           : cterm -> thm
@@ -131,14 +130,14 @@ signature THM =
   val dest_state        : thm * int ->
     (term * term) list * term list * term * term
   val lift_rule         : (thm * int) -> thm -> thm
-  val assumption        : int -> thm -> thm Sequence.seq
+  val assumption        : int -> thm -> thm Seq.seq
   val eq_assumption     : int -> thm -> thm
   val rotate_rule       : int -> int -> thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
   val bicompose         : bool -> bool * thm * int ->
-    int -> thm -> thm Sequence.seq
+    int -> thm -> thm Seq.seq
   val biresolution      : bool -> (bool * thm) list ->
-    int -> thm -> thm Sequence.seq
+    int -> thm -> thm Seq.seq
 
   (*meta simplification*)
   exception SIMPLIFIER of string * thm
@@ -1016,7 +1015,7 @@ fun flexflex_rule (th as Thm{sign_ref, der, maxidx, hyps, prop,...}) =
                      prop = newprop})
           end;
       val (tpairs,_) = Logic.strip_flexpairs prop
-  in Sequence.maps newthm
+  in Seq.map newthm
             (Unify.smash_unifiers(Sign.deref sign_ref, Envir.empty maxidx, tpairs))
   end;
 
@@ -1181,9 +1180,9 @@ fun assumption i state =
                    Logic.rule_of (tpairs, Bs, C)
                else (*normalize the new rule fully*)
                    Envir.norm_term env (Logic.rule_of (tpairs, Bs, C))});
-      fun addprfs [] = Sequence.null
-        | addprfs ((t,u)::apairs) = Sequence.seqof (fn()=> Sequence.pull
-             (Sequence.mapp newth
+      fun addprfs [] = Seq.empty
+        | addprfs ((t,u)::apairs) = Seq.make (fn()=> Seq.pull
+             (Seq.mapp newth
                 (Unify.unifiers(Sign.deref sign_ref,Envir.empty maxidx, (t,u)::tpairs))
                 (addprfs apairs)))
   in  addprfs (Logic.assum_pairs Bi)  end;
@@ -1349,7 +1348,7 @@ fun norm_term_skip env 0 t = Envir.norm_term env t
   nsubgoal is the number of new subgoals (written m above).
   Curried so that resolution calls dest_state only once.
 *)
-local open Sequence; exception COMPOSE
+local exception COMPOSE
 in
 fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
                         (eres_flg, orule, nsubgoal) =
@@ -1387,7 +1386,7 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
                  shyps = add_env_sorts (env, union_sort(rshyps,sshyps)),
                  hyps = union_term(rhyps,shyps),
                  prop = Logic.rule_of normp}
-        in  cons(th, thq)  end  handle COMPOSE => thq
+        in  Seq.cons(th, thq)  end  handle COMPOSE => thq
      val (rtpairs,rhorn) = Logic.strip_flexpairs(rprop);
      val (rAs,B) = Logic.strip_prems(nsubgoal, [], rhorn)
        handle TERM _ => raise THM("bicompose: rule", 0, [orule,state]);
@@ -1403,23 +1402,23 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
      val BBi = if lifted then strip_assums2(B,Bi) else (B,Bi);
      val dpairs = BBi :: (rtpairs@stpairs);
      (*elim-resolution: try each assumption in turn.  Initially n=1*)
-     fun tryasms (_, _, []) = null
+     fun tryasms (_, _, []) = Seq.empty
        | tryasms (As, n, (t,u)::apairs) =
-          (case pull(Unify.unifiers(sign, env, (t,u)::dpairs))  of
+          (case Seq.pull(Unify.unifiers(sign, env, (t,u)::dpairs))  of
                None                   => tryasms (As, n+1, apairs)
              | cell as Some((_,tpairs),_) =>
-                   its_right (addth (newAs(As, n, [BBi,(u,t)], tpairs)))
-                       (seqof (fn()=> cell),
-                        seqof (fn()=> pull (tryasms (As, n+1, apairs)))));
+                   Seq.it_right (addth (newAs(As, n, [BBi,(u,t)], tpairs)))
+                       (Seq.make (fn()=> cell),
+                        Seq.make (fn()=> Seq.pull (tryasms (As, n+1, apairs)))));
      fun eres [] = raise THM("bicompose: no premises", 0, [orule,state])
        | eres (A1::As) = tryasms (As, 1, Logic.assum_pairs A1);
      (*ordinary resolution*)
-     fun res(None) = null
+     fun res(None) = Seq.empty
        | res(cell as Some((_,tpairs),_)) =
-             its_right (addth(newAs(rev rAs, 0, [BBi], tpairs)))
-                       (seqof (fn()=> cell), null)
+             Seq.it_right (addth(newAs(rev rAs, 0, [BBi], tpairs)))
+                       (Seq.make (fn()=> cell), Seq.empty)
  in  if eres_flg then eres(rev rAs)
-     else res(pull(Unify.unifiers(sign, env, dpairs)))
+     else res(Seq.pull(Unify.unifiers(sign, env, dpairs)))
  end;
 end;  (*open Sequence*)
 
@@ -1444,14 +1443,14 @@ fun biresolution match brules i state =
         val B = Logic.strip_assums_concl Bi;
         val Hs = Logic.strip_assums_hyp Bi;
         val comp = bicompose_aux match (state, (stpairs, Bs, Bi, C), true);
-        fun res [] = Sequence.null
+        fun res [] = Seq.empty
           | res ((eres_flg, rule)::brules) =
               if could_bires (Hs, B, eres_flg, rule)
-              then Sequence.seqof (*delay processing remainder till needed*)
+              then Seq.make (*delay processing remainder till needed*)
                   (fn()=> Some(comp (eres_flg, lift rule, nprems_of rule),
                                res brules))
               else res brules
-    in  Sequence.flats (res brules)  end;
+    in  Seq.flat (res brules)  end;
 
 
 

@@ -27,7 +27,7 @@ use "sorts.ML";
 use "type_infer.ML";
 use "type.ML";
 use "sign.ML";
-use "sequence.ML";
+use "seq.ML";
 use "envir.ML";
 use "pattern.ML";
 use "unify.ML";

@@ -47,14 +47,14 @@ fun DEPTH_FIRST satp tac =
  let val tac = tracify trace_DEPTH_FIRST tac
      fun depth used [] = None
        | depth used (q::qs) =
-	  case Sequence.pull q of
+	  case Seq.pull q of
 	      None         => depth used qs
 	    | Some(st,stq) => 
 		if satp st andalso not (gen_mem eq_thm (st, used))
-		then Some(st, Sequence.seqof
+		then Some(st, Seq.make
 			         (fn()=> depth (st::used) (stq::qs)))
 		else depth used (tac st :: stq :: qs)
-  in  traced_tac (fn st => depth [] ([Sequence.single st]))  end;
+  in  traced_tac (fn st => depth [] ([Seq.single st]))  end;
 
 
 
@@ -136,11 +136,11 @@ fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
 		    writeln (string_of_int np ^ 
 			     implode (map (fn _ => "*") qs))
 		else ();
-		Sequence.pull q) of
+		Seq.pull q) of
 	     None         => depth (bnd,inc) qs
 	   | Some(st,stq) => 
 	       if satp st	(*solution!*)
-	       then Some(st, Sequence.seqof
+	       then Some(st, Seq.make
 			 (fn()=> depth (bnd,inc) ((k,np,rgd,stq)::qs)))
 
 	       else 
@@ -185,7 +185,7 @@ fun insert (nth: int*thm, []) = [nth]
 
 (*For creating output sequence*)
 fun some_of_list []     = None
-  | some_of_list (x::l) = Some (x, Sequence.seqof (fn () => some_of_list l));
+  | some_of_list (x::l) = Some (x, Seq.make (fn () => some_of_list l));
 
 
 (*Best-first search for a state that satisfies satp (incl initial state)
@@ -205,8 +205,8 @@ fun THEN_BEST_FIRST tac0 (satp, sizef) tac1 =
 	       then writeln("state size = " ^ string_of_int n ^ 
 		         "  queue length =" ^ string_of_int (length nprfs))  
                else ();
-	     bfs (Sequence.list_of_s (tac prf), nprfs))
-      fun btac st = bfs (Sequence.list_of_s (tac0 st),  [])
+	     bfs (Seq.list_of (tac prf), nprfs))
+      fun btac st = bfs (Seq.list_of (tac0 st),  [])
   in traced_tac btac end;
 
 (*Ordinary best-first search, with no initial tactic*)
@@ -215,7 +215,7 @@ val BEST_FIRST = THEN_BEST_FIRST all_tac;
 (*Breadth-first search to satisfy satpred (including initial state) 
   SLOW -- SHOULD NOT USE APPEND!*)
 fun BREADTH_FIRST satpred tac = 
-  let val tacf = Sequence.list_of_s o tac;
+  let val tacf = Seq.list_of o tac;
       fun bfs prfs =
 	 (case  partition satpred prfs  of
 	      ([],[]) => []
@@ -223,7 +223,7 @@ fun BREADTH_FIRST satpred tac =
 		  (prs("breadth=" ^ string_of_int(length nonsats) ^ "\n");
 		   bfs (List.concat (map tacf nonsats)))
 	    | (sats,_)  => sats)
-  in (fn st => Sequence.s_of_list (bfs [st])) end;
+  in (fn st => Seq.of_list (bfs [st])) end;
 
 
 (*  Author: 	Norbert Voelker, FernUniversitaet Hagen
@@ -242,7 +242,7 @@ fun insert_with_level (lnth: int*int*thm, []) = [lnth]
 
 (*For creating output sequence*)
 fun some_of_list []     = None
-  | some_of_list (x::l) = Some (x, Sequence.seqof (fn () => some_of_list l));
+  | some_of_list (x::l) = Some (x, Seq.make (fn () => some_of_list l));
 
 val trace_ASTAR = ref false; 
 
@@ -262,8 +262,8 @@ fun THEN_ASTAR tac0 (satp, costf) tac1 =
 			 "  cost = " ^ string_of_int n ^ 
                          "  queue length =" ^ string_of_int (length nprfs))  
                else ();
-             bfs (Sequence.list_of_s (tf prf), nprfs,level+1))
-      fun tf st = bfs (Sequence.list_of_s (tac0 st), [], 0)
+             bfs (Seq.list_of (tf prf), nprfs,level+1))
+      fun tf st = bfs (Seq.list_of (tac0 st), [], 0)
   in traced_tac tf end;
 
 (*Ordinary ASTAR, with no initial tactic*)

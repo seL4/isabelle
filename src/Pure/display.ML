@@ -24,7 +24,7 @@ signature DISPLAY =
   val print_data	: theory -> string -> unit
   val print_thm		: thm -> unit
   val prth		: thm -> thm
-  val prthq		: thm Sequence.seq -> thm Sequence.seq
+  val prthq		: thm Seq.seq -> thm Seq.seq
   val prths		: thm list -> thm list
   val show_hyps		: bool ref
   val string_of_cterm	: cterm -> string
@@ -67,7 +67,7 @@ fun prth th = (print_thm th; th);
 
 (*Print and return a sequence of theorems, separated by blank lines. *)
 fun prthq thseq =
-  (Sequence.prints (fn _ => print_thm) 100000 thseq; thseq);
+  (Seq.print (fn _ => print_thm) 100000 thseq; thseq);
 
 (*Print and return a list of theorems, separated by blank lines. *)
 fun prths ths = (seq (fn th => (print_thm th; writeln "")) ths; ths);

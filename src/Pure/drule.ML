@@ -256,7 +256,7 @@ fun assume_ax thy sP =
 
 (*Resolution: exactly one resolvent must be produced.*)
 fun tha RSN (i,thb) =
-  case Sequence.chop (2, biresolution false [(false,tha)] i thb) of
+  case Seq.chop (2, biresolution false [(false,tha)] i thb) of
       ([th],_) => th
     | ([],_)   => raise THM("RSN: no unifiers", i, [tha,thb])
     |      _   => raise THM("RSN: multiple unifiers", i, [tha,thb]);
@@ -267,7 +267,7 @@ fun tha RS thb = tha RSN (1,thb);
 (*For joining lists of rules*)
 fun thas RLN (i,thbs) =
   let val resolve = biresolution false (map (pair false) thas) i
-      fun resb thb = Sequence.list_of_s (resolve thb) handle THM _ => []
+      fun resb thb = Seq.list_of (resolve thb) handle THM _ => []
   in  List.concat (map resb thbs)  end;
 
 fun thas RL thbs = thas RLN (1,thbs);
@@ -289,7 +289,7 @@ fun rlss MRL bottom_rls =
   with no lifting or renaming!  Q may contain ==> or meta-quants
   ALWAYS deletes premise i *)
 fun compose(tha,i,thb) =
-    Sequence.list_of_s (bicompose false (false,tha,0) i thb);
+    Seq.list_of (bicompose false (false,tha,0) i thb);
 
 (*compose Q and [Q1,Q2,...,Qk]==>R to [Q2,...,Qk]==>R getting unique result*)
 fun tha COMP thb =

@@ -25,9 +25,9 @@ signature UNIFY =
   val combound : (term*int*int) -> term
   val rlist_abs: (string*typ)list * term -> term   
   val smash_unifiers : Sign.sg * Envir.env * (term*term)list
-	-> (Envir.env Sequence.seq)
+	-> (Envir.env Seq.seq)
   val unifiers: Sign.sg * Envir.env * ((term*term)list)
-	-> (Envir.env * (term * term)list) Sequence.seq
+	-> (Envir.env * (term * term)list) Seq.seq
   end;
 
 structure Unify	: UNIFY = 
@@ -386,16 +386,16 @@ fun type_abs (env,T,t) = types_abs(binder_types env T, t);
   The order for trying projections is crucial in ?b'(?a)   
   NB "vname" is only used in the call to make_args!!   *)
 fun matchcopy vname = let fun mc(rbinder, targs, u, ed as (env,dpairs)) 
-	: (term * (Envir.env * dpair list))Sequence.seq =
+	: (term * (Envir.env * dpair list))Seq.seq =
 let (*Produce copies of uarg and cons them in front of uargs*)
     fun copycons uarg (uargs, (env, dpairs)) =
-	Sequence.maps(fn (uarg', ed') => (uarg'::uargs, ed'))
+	Seq.map(fn (uarg', ed') => (uarg'::uargs, ed'))
 	    (mc (rbinder, targs,eta_norm env (rbinder,head_norm(env,uarg)),
 		 (env, dpairs)));
 	(*Produce sequence of all possible ways of copying the arg list*)
-    fun copyargs [] = Sequence.cons( ([],ed), Sequence.null)
+    fun copyargs [] = Seq.cons( ([],ed), Seq.empty)
       | copyargs (uarg::uargs) =
-	    Sequence.flats (Sequence.maps (copycons uarg) (copyargs uargs));
+	    Seq.flat (Seq.map (copycons uarg) (copyargs uargs));
     val (uhead,uargs) = strip_comb u;
     val base = body_type env (fastype env (rbinder,uhead));
     fun joinargs (uargs',ed') = (list_comb(uhead,uargs'), ed');
@@ -404,7 +404,7 @@ let (*Produce copies of uarg and cons them in front of uargs*)
     fun projenv (head, (Us,bary), targ, tail) = 
 	let val env = if !trace_types then test_unify_types(base,bary,env)
 		      else unify_types(base,bary,env)
-	in Sequence.seqof (fn () =>  
+	in Seq.make (fn () =>  
 	    let val (env',args) = make_args vname (Ts,env,Us);
 		(*higher-order projection: plug in targs for bound vars*)
 		fun plugin arg = list_comb(head_of arg, targs);
@@ -413,7 +413,7 @@ let (*Produce copies of uarg and cons them in front of uargs*)
 		    (*may raise exception CANTUNIFY*)
 	    in  Some ((list_comb(head,args), (env2, frigid@fflex)),
 			tail)
-	    end  handle CANTUNIFY => Sequence.pull tail)
+	    end  handle CANTUNIFY => Seq.pull tail)
 	end handle CANTUNIFY => tail;
     (*make a list of projections*)
     fun make_projs (T::Ts, targ::targs) =
@@ -425,12 +425,12 @@ let (*Produce copies of uarg and cons them in front of uargs*)
 	       (projenv(bvar, strip_type env T, targ, matchfun projs))
       | matchfun [] = (*imitation last of all*)
 	      (case uhead of
-		 Const _ => Sequence.maps joinargs (copyargs uargs)
-	       | Free _  => Sequence.maps joinargs (copyargs uargs)
-	       | _ => Sequence.null)  (*if Var, would be a loop!*)
+		 Const _ => Seq.map joinargs (copyargs uargs)
+	       | Free _  => Seq.map joinargs (copyargs uargs)
+	       | _ => Seq.empty)  (*if Var, would be a loop!*)
 in case uhead of
 	Abs(a, T, body) =>
-	    Sequence.maps(fn (body', ed') => (Abs (a,T,body'), ed')) 
+	    Seq.map(fn (body', ed') => (Abs (a,T,body'), ed')) 
 		(mc ((a,T)::rbinder,
 			(map (incr_boundvars 1) targs) @ [Bound 0], body, ed))
       | Var (w,uary) => 
@@ -438,7 +438,7 @@ in case uhead of
 	    let val (env', newhd) = Envir.genvar (#1 w) (env, Ts---> base)
 		val tabs = combound(newhd, 0, length Ts)
 		val tsub = list_comb(newhd,targs)
-	    in  Sequence.single (tabs, (env', (rbinder,tsub,u):: dpairs)) 
+	    in  Seq.single (tabs, (env', (rbinder,tsub,u):: dpairs)) 
 	    end
       | _ =>  matchfun(rev(make_projs(Ts, targs)))
 end
@@ -447,7 +447,7 @@ in mc end;
 
 (*Call matchcopy to produce assignments to the variable in the dpair*)
 fun MATCH (env, (rbinder,t,u), dpairs)
-	: (Envir.env * dpair list)Sequence.seq = 
+	: (Envir.env * dpair list)Seq.seq = 
   let val (Var(v,T), targs) = strip_comb t;
       val Ts = binder_types env T;
       fun new_dset (u', (env',dpairs')) =
@@ -455,7 +455,7 @@ fun MATCH (env, (rbinder,t,u), dpairs)
 	  case Envir.lookup(env',v) of
 	      None => (Envir.update ((v, types_abs(Ts, u')), env'),  dpairs')
 	    | Some s => (env', ([], s, types_abs(Ts, u'))::dpairs')
-  in Sequence.maps new_dset
+  in Seq.map new_dset
          (matchcopy (#1 v) (rbinder, targs, u, (env,dpairs)))
   end;
 
@@ -620,9 +620,9 @@ fun print_dpairs msg (env,dpairs) =
   Returns flex-flex disagreement pairs NOT IN normal form. 
   SIMPL may raise exception CANTUNIFY. *)
 fun hounifiers (sg,env, tus : (term*term)list) 
-  : (Envir.env * (term*term)list)Sequence.seq =
+  : (Envir.env * (term*term)list)Seq.seq =
   let fun add_unify tdepth ((env,dpairs), reseq) =
-	  Sequence.seqof (fn()=>
+	  Seq.make (fn()=>
 	  let val (env',flexflex,flexrigid) = 
 	       (if tdepth> !trace_bound andalso !trace_simp
 		then print_dpairs "Enter SIMPL" (env,dpairs)  else ();
@@ -631,25 +631,25 @@ fun hounifiers (sg,env, tus : (term*term)list)
 	      [] => Some (foldr add_ffpair (flexflex, (env',[])), reseq)
 	    | dp::frigid' => 
 		if tdepth > !search_bound then
-		    (prs"***Unification bound exceeded\n"; Sequence.pull reseq)
+		    (prs"***Unification bound exceeded\n"; Seq.pull reseq)
 		else
 		(if tdepth > !trace_bound then
 		    print_dpairs "Enter MATCH" (env',flexrigid@flexflex)
 		 else ();
-		 Sequence.pull (Sequence.its_right (add_unify (tdepth+1))
+		 Seq.pull (Seq.it_right (add_unify (tdepth+1))
 			   (MATCH (env',dp, frigid'@flexflex), reseq)))
 	  end
 	  handle CANTUNIFY => 
 	    (if tdepth > !trace_bound then writeln"Failure node" else ();
-	     Sequence.pull reseq));
+	     Seq.pull reseq));
      val dps = map (fn(t,u)=> ([],t,u)) tus
   in sgr := sg;
-     add_unify 1 ((env,dps), Sequence.null) 
+     add_unify 1 ((env,dps), Seq.empty) 
   end;
 
 fun unifiers(params) =
-      Sequence.cons((Pattern.unify(params), []),   Sequence.null)
-      handle Pattern.Unif => Sequence.null
+      Seq.cons((Pattern.unify(params), []),   Seq.empty)
+      handle Pattern.Unif => Seq.empty
            | Pattern.Pattern => hounifiers(params);
 
 
@@ -682,7 +682,7 @@ fun smash_flexflex (env,tpairs) : Envir.env =
   foldr smash_flexflex1 (tpairs, env);
 
 (*Returns unifiers with no remaining disagreement pairs*)
-fun smash_unifiers (sg, env, tus) : Envir.env Sequence.seq =
-    Sequence.maps smash_flexflex (unifiers(sg,env,tus));
+fun smash_unifiers (sg, env, tus) : Envir.env Seq.seq =
+    Seq.map smash_flexflex (unifiers(sg,env,tus));
 
 end;

@@ -68,7 +68,7 @@ signature TACTIC =
   val net_resolve_tac	: thm list -> int -> tactic
   val orderlist		: (int * 'a) list -> 'a list
   val PRIMITIVE		: (thm -> thm) -> tactic  
-  val PRIMSEQ		: (thm -> thm Sequence.seq) -> tactic  
+  val PRIMSEQ		: (thm -> thm Seq.seq) -> tactic  
   val prune_params_tac	: tactic
   val rename_tac	: string -> int -> tactic
   val rename_last_tac	: string -> string list -> int -> tactic
@@ -99,10 +99,10 @@ struct
 
 (*Discover which goal is chosen:  SOMEGOAL(trace_goalno_tac tac) *)
 fun trace_goalno_tac tac i st =  
-    case Sequence.pull(tac i st) of
-	None    => Sequence.null
+    case Seq.pull(tac i st) of
+	None    => Seq.empty
       | seqcell => (prs("Subgoal " ^ string_of_int i ^ " selected\n"); 
-    			 Sequence.seqof(fn()=> seqcell));
+    			 Seq.make(fn()=> seqcell));
 
 
 (*Convert all Vars in a theorem to Frees.  Also return a function for 
@@ -137,15 +137,15 @@ fun defer_tac i state =
     in  implies_intr hyp (implies_elim_list state' (map assume hyps)) 
         |> implies_intr_list (List.take(hyps, i-1) @ hyps')
         |> thaw
-        |> Sequence.single
+        |> Seq.single
     end
-    handle _ => Sequence.null;
+    handle _ => Seq.empty;
 
 
 (*Makes a rule by applying a tactic to an existing rule*)
 fun rule_by_tactic tac rl =
   let val (st, thaw) = freeze_thaw (zero_var_indexes rl)
-  in case Sequence.pull (tac st)  of
+  in case Seq.pull (tac st)  of
 	None        => raise THM("rule_by_tactic", 0, [rl])
       | Some(st',_) => Thm.varifyT (thaw st')
   end;
@@ -153,10 +153,10 @@ fun rule_by_tactic tac rl =
 (*** Basic tactics ***)
 
 (*Makes a tactic whose effect on a state is given by thmfun: thm->thm seq.*)
-fun PRIMSEQ thmfun st =  thmfun st handle THM _ => Sequence.null;
+fun PRIMSEQ thmfun st =  thmfun st handle THM _ => Seq.empty;
 
 (*Makes a tactic whose effect on a state is given by thmfun: thm->thm.*)
-fun PRIMITIVE thmfun = PRIMSEQ (Sequence.single o thmfun);
+fun PRIMITIVE thmfun = PRIMSEQ (Seq.single o thmfun);
 
 (*** The following fail if the goal number is out of range:
      thus (REPEAT (resolve_tac rules i)) stops once subgoal i disappears. *)
@@ -221,7 +221,7 @@ fun distinct_subgoals_tac state =
 	val assumed = implies_elim_list frozth (map assume froz_prems)
 	val implied = implies_intr_list (gen_distinct cterm_aconv froz_prems)
 					assumed;
-    in  Sequence.single (thawfn implied)  end
+    in  Seq.single (thawfn implied)  end
 end; 
 
 
@@ -315,7 +315,7 @@ fun make_elim_preserve rl =
 	  instantiate ([],  [(cvar("V",0), cvar("V",maxidx+1)),
 			     (cvar("W",0), cvar("W",maxidx+1))]) revcut_rl
       val arg = (false, rl, nprems_of rl)
-      val [th] = Sequence.list_of_s (bicompose false arg 1 revcut_rl')
+      val [th] = Seq.list_of (bicompose false arg 1 revcut_rl')
   in  th  end
   handle Bind => raise THM("make_elim_preserve", 1, [rl]);
 
@@ -352,12 +352,12 @@ fun cut_facts_tac ths i =
 
 (*Introduce the given proposition as a lemma and subgoal*)
 fun subgoal_tac sprop i st = 
-  let val st'    = Sequence.hd (res_inst_tac [("psi", sprop)] cut_rl i st)
+  let val st'    = Seq.hd (res_inst_tac [("psi", sprop)] cut_rl i st)
       val concl' = Logic.strip_assums_concl (List.nth(prems_of st', i))
   in  
       if null (term_tvars concl') then ()
       else warning"Type variables in new subgoal: add a type constraint?";
-      Sequence.single st'
+      Seq.single st'
   end;
 
 (*Introduce a list of lemmas and subgoals*)
@@ -496,7 +496,7 @@ fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 (*** Meta-Rewriting Tactics ***)
 
 fun result1 tacf mss thm =
-  apsome fst (Sequence.pull (tacf mss thm));
+  apsome fst (Seq.pull (tacf mss thm));
 
 val simple_prover =
   result1 (fn mss => ALLGOALS (resolve_tac (prems_of_mss mss)));

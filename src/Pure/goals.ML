@@ -76,7 +76,7 @@ struct
 
 (*Each level of goal stack includes a proof state and alternative states,
   the output of the tactic applied to the preceeding level.  *)
-type gstack = (thm * thm Sequence.seq) list;
+type gstack = (thm * thm Seq.seq) list;
 
 datatype proof = Proof of gstack list * thm list * (bool*thm->thm);
 
@@ -101,7 +101,7 @@ val dummy = trivial(read_cterm (sign_of Pure.thy)
 
 (*List of previous goal stacks, for the undo operation.  Set by setstate. 
   A list of lists!*)
-val undo_list = ref([[(dummy, Sequence.null)]] : gstack list);
+val undo_list = ref([[(dummy, Seq.empty)]] : gstack list);
 
 (* Stack of proof attempts *)
 val proofstack = ref([]: proof list);
@@ -137,7 +137,7 @@ fun prepare_proof rths chorn =
       (*discharges assumptions from state in the order they appear in goal;
 	checks (if requested) that resulting theorem is equivalent to goal. *)
       fun mkresult (check,state) =
-        let val state = Sequence.hd (flexflex_rule state)
+        let val state = Seq.hd (flexflex_rule state)
 	    		handle THM _ => state   (*smash flexflex pairs*)
 	    val ngoals = nprems_of state
             val th = strip_shyps (implies_intr_list cAs state)
@@ -199,7 +199,7 @@ fun prove_goalw_cterm rths chorn tacsf =
   let val (prems, st0, mkresult) = prepare_proof rths chorn
       val tac = EVERY (tacsf prems)
       fun statef() = 
-	  (case Sequence.pull (tac st0) of 
+	  (case Seq.pull (tac st0) of 
 	       Some(st,_) => st
 	     | _ => error ("prove_goal: tactic failed"))
   in  mkresult (true, cond_timeit (!proof_timing) statef)  end
@@ -243,7 +243,7 @@ fun print_top ((th, _), pairs) =
   !print_current_goals_fn (length pairs) (!goals_limit) th;
 
 (*Printing can raise exceptions, so the assignment occurs last.
-  Can do   setstate[(st,Sequence.null)]  to set st as the state.  *)
+  Can do   setstate[(st,Seq.empty)]  to set st as the state.  *)
 fun setstate newgoals = 
   (print_top (pop newgoals);  undo_list := newgoals :: !undo_list);
 
@@ -307,7 +307,7 @@ fun prlim n = (goals_limit:=n; pr());
 fun goalw_cterm rths chorn = 
   let val (prems, st0, mkresult) = prepare_proof rths chorn
   in  undo_list := [];
-      setstate [ (st0, Sequence.null) ];  
+      setstate [ (st0, Seq.empty) ];  
       curr_prems := prems;
       curr_mkresult := mkresult;
       prems
@@ -324,7 +324,7 @@ fun goal thy = goalw thy [];
 
 (*Proof step "by" the given tactic -- apply tactic to the proof state*)
 fun by_com tac ((th,ths), pairs) : gstack =
-  (case  Sequence.pull(tac th)  of
+  (case  Seq.pull(tac th)  of
      None      => error"by: tactic failed"
    | Some(th2,ths2) => 
        (if eq_thm(th,th2) 
@@ -346,7 +346,7 @@ val byev = by o EVERY;
   If none at this level, try earlier levels*)
 fun backtrack [] = error"back: no alternatives"
   | backtrack ((th,thstr) :: pairs) =
-     (case Sequence.pull thstr of
+     (case Seq.pull thstr of
 	  None      => (writeln"Going back a level..."; backtrack pairs)
 	| Some(th2,thstr2) =>  
 	   (if eq_thm(th,th2) 

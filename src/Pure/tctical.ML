@@ -13,7 +13,7 @@ infix 0 THEN_ELSE;
 
 signature TACTICAL =
   sig
-  type tactic  (* = thm -> thm Sequence.seq*)
+  type tactic  (* = thm -> thm Seq.seq*)
   val all_tac           : tactic
   val ALLGOALS          : (int -> tactic) -> tactic   
   val APPEND            : tactic * tactic -> tactic
@@ -55,8 +55,8 @@ signature TACTICAL =
   val THEN              : tactic * tactic -> tactic
   val THEN'             : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val THEN_ELSE         : tactic * (tactic*tactic) -> tactic
-  val traced_tac        : (thm -> (thm * thm Sequence.seq) option) -> tactic
-  val tracify           : bool ref -> tactic -> thm -> thm Sequence.seq
+  val traced_tac        : (thm -> (thm * thm Seq.seq) option) -> tactic
+  val tracify           : bool ref -> tactic -> thm -> thm Seq.seq
   val trace_REPEAT      : bool ref
   val TRY               : tactic -> tactic
   val TRYALL            : (int -> tactic) -> tactic   
@@ -72,45 +72,45 @@ struct
     if length of sequence = 0 then the tactic does not apply;
     if length > 1 then backtracking on the alternatives can occur.*)
 
-type tactic = thm -> thm Sequence.seq;
+type tactic = thm -> thm Seq.seq;
 
 
 (*** LCF-style tacticals ***)
 
 (*the tactical THEN performs one tactic followed by another*)
-fun (tac1 THEN tac2) st = Sequence.flats (Sequence.maps tac2 (tac1 st));
+fun (tac1 THEN tac2) st = Seq.flat (Seq.map tac2 (tac1 st));
 
 
 (*The tactical ORELSE uses the first tactic that returns a nonempty sequence.
   Like in LCF, ORELSE commits to either tac1 or tac2 immediately.
   Does not backtrack to tac2 if tac1 was initially chosen. *)
 fun (tac1 ORELSE tac2) st =
-    case Sequence.pull(tac1 st) of
+    case Seq.pull(tac1 st) of
         None       => tac2 st
-      | sequencecell => Sequence.seqof(fn()=> sequencecell);
+      | sequencecell => Seq.make(fn()=> sequencecell);
 
 
 (*The tactical APPEND combines the results of two tactics.
   Like ORELSE, but allows backtracking on both tac1 and tac2.
   The tactic tac2 is not applied until needed.*)
 fun (tac1 APPEND tac2) st = 
-  Sequence.append(tac1 st,
-                  Sequence.seqof(fn()=> Sequence.pull (tac2 st)));
+  Seq.append(tac1 st,
+                  Seq.make(fn()=> Seq.pull (tac2 st)));
 
 (*Like APPEND, but interleaves results of tac1 and tac2.*)
 fun (tac1 INTLEAVE tac2) st = 
-    Sequence.interleave(tac1 st,
-                        Sequence.seqof(fn()=> Sequence.pull (tac2 st)));
+    Seq.interleave(tac1 st,
+                        Seq.make(fn()=> Seq.pull (tac2 st)));
 
 (*Conditional tactic.
         tac1 ORELSE tac2 = tac1 THEN_ELSE (all_tac, tac2)
         tac1 THEN tac2   = tac1 THEN_ELSE (tac2, no_tac)
 *)
 fun (tac THEN_ELSE (tac1, tac2)) st = 
-    case Sequence.pull(tac st) of
+    case Seq.pull(tac st) of
         None    => tac2 st              (*failed; try tactic 2*)
-      | seqcell => Sequence.flats       (*succeeded; use tactic 1*)
-                    (Sequence.maps tac1 (Sequence.seqof(fn()=> seqcell)));
+      | seqcell => Seq.flat       (*succeeded; use tactic 1*)
+                    (Seq.map tac1 (Seq.make(fn()=> seqcell)));
 
 
 (*Versions for combining tactic-valued functions, as in
@@ -121,17 +121,17 @@ fun (tac1 APPEND' tac2) x = tac1 x APPEND tac2 x;
 fun (tac1 INTLEAVE' tac2) x = tac1 x INTLEAVE tac2 x;
 
 (*passes all proofs through unchanged;  identity of THEN*)
-fun all_tac st = Sequence.single st;
+fun all_tac st = Seq.single st;
 
 (*passes no proofs through;  identity of ORELSE and APPEND*)
-fun no_tac st  = Sequence.null;
+fun no_tac st  = Seq.empty;
 
 
 (*Make a tactic deterministic by chopping the tail of the proof sequence*)
 fun DETERM tac st =  
-      case Sequence.pull (tac st) of
-              None => Sequence.null
-            | Some(x,_) => Sequence.cons(x, Sequence.null);
+      case Seq.pull (tac st) of
+              None => Seq.empty
+            | Some(x,_) => Seq.cons(x, Seq.empty);
 
 
 (*Conditional tactical: testfun controls which tactic to use next.
@@ -148,15 +148,15 @@ local
   (*This version of EVERY avoids backtracking over repeated states*)
 
   fun EVY (trail, []) st = 
-	Sequence.seqof (fn()=> Some(st, 
-			Sequence.seqof (fn()=> Sequence.pull (evyBack trail))))
+	Seq.make (fn()=> Some(st, 
+			Seq.make (fn()=> Seq.pull (evyBack trail))))
     | EVY (trail, tac::tacs) st = 
-	  case Sequence.pull(tac st) of
+	  case Seq.pull(tac st) of
 	      None    => evyBack trail              (*failed: backtrack*)
 	    | Some(st',q) => EVY ((st',q,tacs)::trail, tacs) st'
-  and evyBack [] = Sequence.null (*no alternatives*)
+  and evyBack [] = Seq.empty (*no alternatives*)
     | evyBack ((st',q,tacs)::trail) =
-	  case Sequence.pull q of
+	  case Seq.pull q of
 	      None        => evyBack trail
 	    | Some(st,q') => if eq_thm (st',st) 
 			     then evyBack ((st',q',tacs)::trail)
@@ -192,13 +192,13 @@ val goals_limit = ref 10;
 (*Print the current proof state and pass it on.*)
 val print_tac = 
     (fn st => 
-     (print_goals (!goals_limit) st; Sequence.single st));
+     (print_goals (!goals_limit) st; Seq.single st));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
 fun pause_tac st =  
   (prs"** Press RETURN to continue: ";
-   if TextIO.inputLine TextIO.stdIn = "\n" then Sequence.single st
-   else (prs"Goodbye\n";  Sequence.null));
+   if TextIO.inputLine TextIO.stdIn = "\n" then Seq.single st
+   else (prs"Goodbye\n";  Seq.empty));
 
 exception TRACE_EXIT of thm
 and TRACE_QUIT;
@@ -211,7 +211,7 @@ and suppress_tracing = ref false;
 fun exec_trace_command flag (tac, st) = 
    case TextIO.inputLine(TextIO.stdIn) of
        "\n" => tac st
-     | "f\n" => Sequence.null
+     | "f\n" => Seq.empty
      | "o\n" => (flag:=false;  tac st)
      | "s\n" => (suppress_tracing:=true;  tac st)
      | "x\n" => (prs"Exiting now\n";  raise (TRACE_EXIT st))
@@ -237,8 +237,8 @@ fun tracify flag tac st =
 (*Create a tactic whose outcome is given by seqf, handling TRACE_EXIT*)
 fun traced_tac seqf st = 
     (suppress_tracing := false;
-     Sequence.seqof (fn()=> seqf st
-                         handle TRACE_EXIT st' => Some(st', Sequence.null)));
+     Seq.make (fn()=> seqf st
+                         handle TRACE_EXIT st' => Some(st', Seq.empty)));
 
 
 (*Deterministic REPEAT: only retains the first outcome; 
@@ -246,10 +246,10 @@ fun traced_tac seqf st =
   If non-negative, n bounds the number of repetitions.*)
 fun REPEAT_DETERM_N n tac = 
   let val tac = tracify trace_REPEAT tac
-      fun drep 0 st = Some(st, Sequence.null)
+      fun drep 0 st = Some(st, Seq.empty)
         | drep n st =
-           (case Sequence.pull(tac st) of
-                None       => Some(st, Sequence.null)
+           (case Seq.pull(tac st) of
+                None       => Some(st, Seq.empty)
               | Some(st',_) => drep (n-1) st')
   in  traced_tac (drep n)  end;
 
@@ -260,11 +260,11 @@ val REPEAT_DETERM = REPEAT_DETERM_N ~1;
 fun REPEAT tac = 
   let val tac = tracify trace_REPEAT tac
       fun rep qs st = 
-        case Sequence.pull(tac st) of
-            None       => Some(st, Sequence.seqof(fn()=> repq qs))
+        case Seq.pull(tac st) of
+            None       => Some(st, Seq.make(fn()=> repq qs))
           | Some(st',q) => rep (q::qs) st'
       and repq [] = None
-        | repq(q::qs) = case Sequence.pull q of
+        | repq(q::qs) = case Seq.pull q of
             None       => repq qs
           | Some(st,q) => rep (q::qs) st
   in  traced_tac (rep [])  end;
@@ -277,12 +277,12 @@ fun REPEAT1 tac = tac THEN REPEAT tac;
 (** Filtering tacticals **)
 
 (*Returns all states satisfying the predicate*)
-fun FILTER pred tac st = Sequence.filters pred (tac st);
+fun FILTER pred tac st = Seq.filter pred (tac st);
 
 (*Returns all changed states*)
 fun CHANGED tac st = 
     let fun diff st' = not (eq_thm(st,st'))
-    in  Sequence.filters diff (tac st)  end;
+    in  Seq.filter diff (tac st)  end;
 
 
 (*** Tacticals based on subgoal numbering ***)
@@ -320,7 +320,7 @@ fun TRYALL tac = ALLGOALS (TRY o tac);
 
 (*Make a tactic for subgoal i, if there is one.  *)
 fun SUBGOAL goalfun i st = goalfun (List.nth(prems_of st, i-1),  i) st
-                             handle Subscript => Sequence.null;
+                             handle Subscript => Seq.empty;
 
 
 (*** SELECT_GOAL ***)
@@ -362,7 +362,7 @@ fun select tac st0 i =
   let val (eq_cprem, restore) = (*we hope maxidx goes to ~1*)
 	  eq_trivial (adjust_maxidx (List.nth(cprems_of st0, i-1)))
       fun next st = bicompose false (false, restore st, nprems_of st) i st0
-  in  Sequence.flats (Sequence.maps next (tac eq_cprem))
+  in  Seq.flat (Seq.map next (tac eq_cprem))
   end;
 
 (* (!!selct. PROP ?V) ==> PROP ?V ;  contains NO TYPE VARIABLES.*)
@@ -373,12 +373,12 @@ val dummy_quant_rl =
 (* Prevent the subgoal's assumptions from becoming additional subgoals in the
    new proof state by enclosing them by a universal quantification *)
 fun protect_subgoal st i =
-        Sequence.hd (bicompose false (false,dummy_quant_rl,1) i st)
+        Seq.hd (bicompose false (false,dummy_quant_rl,1) i st)
         handle _ => error"SELECT_GOAL -- impossible error???";
 
 fun SELECT_GOAL tac i st = 
   case (i, List.drop(prems_of st, i-1)) of
-      (_,[]) => Sequence.null
+      (_,[]) => Seq.empty
     | (1,[_]) => tac st         (*If i=1 and only one subgoal do nothing!*)
     | (_, (Const("==>",_)$_$_) :: _) => select tac (protect_subgoal st i) i
     | (_, _::_) => select tac st i;
@@ -489,7 +489,7 @@ fun metahyps_aux_tac tacf (prem,i) state =
       (*function to replace the current subgoal*)
       fun next st = bicompose false (false, relift st, nprems_of st)
                     i state
-  in  Sequence.flats (Sequence.maps next (tacf subprems st0))
+  in  Seq.flat (Seq.map next (tacf subprems st0))
   end;
 end;
 
