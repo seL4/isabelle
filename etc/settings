@@ -80,6 +80,7 @@ ISABELLE_LATEX="latex"
 ISABELLE_PDFLATEX="pdflatex"
 ISABELLE_BIBTEX="bibtex"
 ISABELLE_DVIPS="dvips -D 600"
+ISABELLE_EPSTOPDF="epstopdf"
 
 # Paranoia setting ...
 #unset TEXMF
