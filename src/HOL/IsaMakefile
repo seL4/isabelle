@@ -421,10 +421,10 @@ $(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy \
   Isar_examples/ExprCompiler.thy Isar_examples/Group.thy \
   Isar_examples/KnasterTarski.thy Isar_examples/MultisetOrder.thy \
   Isar_examples/MutilatedCheckerboard.thy Isar_examples/Peirce.thy \
-  Isar_examples/Summation.thy Isar_examples/ROOT.ML \
-  Isar_examples/W_correct.thy Isar_examples/document/proof.sty \
-  Isar_examples/document/root.bib Isar_examples/document/root.tex \
-  Isar_examples/document/style.tex
+  Isar_examples/Puzzle.thy Isar_examples/Summation.thy \
+  Isar_examples/ROOT.ML Isar_examples/W_correct.thy \
+  Isar_examples/document/proof.sty Isar_examples/document/root.bib \
+  Isar_examples/document/root.tex Isar_examples/document/style.tex
 	@$(ISATOOL) usedir $(OUT)/HOL Isar_examples
 
 
