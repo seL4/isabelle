@@ -591,7 +591,7 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
   in
     state'
     |> put_goal (Some (((kind atts, name, prop), ([], goal)), after_qed o map_context gen_binds))
-    |> map_context (ProofContext.add_cases (RuleCases.make false goal [antN]))
+    |> map_context (ProofContext.add_cases (RuleCases.make true goal [antN]))
     |> auto_bind_goal prop
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
