@@ -56,20 +56,11 @@ fun seq (proc: 'a -> unit) : 'a list -> unit =
         | seqf (x :: xs) = (proc x; seqf xs)
   in seqf end;
 
-fun radixpand num : int list =
-  let fun radix (n, tail) =
-    if n < 10 then n :: tail else radix (n div 10, (n mod 10) :: tail)
-  in radix (num, []) end;
-
-fun radixstring num =
-  let fun chrof n = chr (ord "0" + n);
-  in implode (map chrof (radixpand num)) end;
-
 in
 
 (*Get time of last modification; if file doesn't exist return an empty string*)
 fun file_info "" = ""
-  | file_info name = radixstring (System.filedate name)  handle _ => "";
+  | file_info name = makestring (System.filedate name)  handle _ => "";
 
 
 structure OS =
