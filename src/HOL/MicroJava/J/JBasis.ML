@@ -67,10 +67,6 @@ val not_None_tac = EVERY' [dtac (not_None_eq RS iffD1),rotate_tac ~1,etac exE,
 		rotate_tac ~1,asm_full_simp_tac 
 	(simpset() delsimps [split_paired_All,split_paired_Ex])];
 
-Goal "{y. x = Some y} \\<subseteq> {the x}";
-by Auto_tac;
-qed "some_subset_the";
-
 fun ex_ftac thm = EVERY' [forward_tac [thm], REPEAT o (etac exE), rotate_tac ~1,
   asm_full_simp_tac (simpset() delsimps [split_paired_All,split_paired_Ex])];
 
