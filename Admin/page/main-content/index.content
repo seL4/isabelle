@@ -46,11 +46,11 @@ New features in <strong><!-- _GP_ distname --></strong> include
 <li>Type <code>rat</code> of the rational numbers available in HOL-Complex.</li>
 
 <li>Improved locales (named proof contexts), instantiation of locales.</li>
-
+<!--
 <li>Improved calculational reasoning chains.</li>
 
 <li>Improved records handling.</li>
-
+//-->
 <li>Improved handling of linear and partial orders in simplifier.</li>
  
 <li>New <code>specification</code> command for definition by specification.</li>  
@@ -59,7 +59,10 @@ New features in <strong><!-- _GP_ distname --></strong> include
 
 <li><code>arith</code> now generates counterexamples for reals as well.</li>
 
-<li>New <code>refute</code> command to search for (finite) countermodels for a fragment of HOL.</li>
+<li>New <code>quickcheck</code> command
+    to search for counterexamples of executable goals.</li>
+<li>New <code>refute</code> command
+    to search for finite countermodels of goals.</li>
 
 <li>Presentation and x-symbol enhancements, greek letters and sub/superscripts in identifiers.</li>
 </ul>
