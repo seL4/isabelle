@@ -398,8 +398,7 @@ fun fix_prover thy fixdef thm = prove_goal thy thm
         (rtac (fixdef RS fix_eq4) 1),
         (rtac trans 1),
         (rtac beta_cfun 1),
-        (cont_tacR 1),
-        (rtac refl 1)
+        (Simp_tac 1)
         ]);
 
 (* use this one for definitions! *)
@@ -411,7 +410,7 @@ fun fix_prover2 thy fixdef thm = prove_goal thy thm
         (rtac (fix_eq2) 1),
         (rtac fixdef 1),
         (rtac beta_cfun 1),
-        (cont_tacR 1)
+        (Simp_tac 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)
@@ -1323,6 +1322,8 @@ qed_goal "adm_not_conj"  Fix.thy
         etac adm_disj 1,
         atac 1]);
 
-val adm_thms = [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
+val adm_lemmas = [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
         adm_all2,adm_not_less,adm_not_free,adm_not_conj,adm_conj,adm_less];
+
+Addsimps adm_lemmas;
 

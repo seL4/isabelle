@@ -320,10 +320,8 @@ qed_goalw "beta_cfun_sprod" Sprod3.thy [spair_def]
  (fn prems =>
         [
         (stac beta_cfun 1),
-        (cont_tac 1),
-        (rtac cont_Ispair2 1),
-        (rtac cont2cont_CF1L 1),
-        (rtac cont_Ispair1 1),
+        (simp_tac (!simpset addsimps [cont_Ispair2, cont_Ispair1,
+					cont2cont_CF1L]) 1),
         (stac beta_cfun 1),
         (rtac cont_Ispair2 1),
         (rtac refl 1)
@@ -624,7 +622,7 @@ qed_goalw "ssplit1" Sprod3.thy [ssplit_def]
  (fn prems =>
         [
         (stac beta_cfun 1),
-        (cont_tacR 1),
+        (Simp_tac 1),
         (stac strictify1 1),
         (rtac refl 1)
         ]);
@@ -634,13 +632,13 @@ qed_goalw "ssplit2" Sprod3.thy [ssplit_def]
  (fn prems =>
         [
         (stac beta_cfun 1),
-        (cont_tacR 1),
+        (Simp_tac 1),
         (stac strictify2 1),
         (rtac defined_spair 1),
         (resolve_tac prems 1),
         (resolve_tac prems 1),
         (stac beta_cfun 1),
-        (cont_tacR 1),
+        (Simp_tac 1),
         (stac sfst2 1),
         (resolve_tac prems 1),
         (stac ssnd2 1),
@@ -654,7 +652,7 @@ qed_goalw "ssplit3" Sprod3.thy [ssplit_def]
  (fn prems =>
         [
         (stac beta_cfun 1),
-        (cont_tacR 1),
+        (Simp_tac 1),
         (case_tac "z=UU" 1),
         (hyp_subst_tac 1),
         (rtac strictify1 1),
@@ -662,7 +660,7 @@ qed_goalw "ssplit3" Sprod3.thy [ssplit_def]
         (rtac strictify2 1),
         (atac 1),
         (stac beta_cfun 1),
-        (cont_tacR 1),
+        (Simp_tac 1),
         (rtac surjective_pairing_Sprod2 1)
         ]);
 

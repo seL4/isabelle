@@ -224,17 +224,18 @@ val cont_if = result();
 
 val cont2cont_CF1L_rev2 = (allI RS cont2cont_CF1L_rev);
 
-val cont_lemmas =  cont_lemmas@
+val cont_lemmas2 =  cont_lemmas1@
 		   [cont_flift1_arg,cont_flift2_arg,
                     cont_flift1_not_arg2,cont2cont_CF1L_rev2, 
                     cont_fapp_app1,cont_fapp_app2,cont_if];
 
+Addsimps 	   [cont_flift1_arg,cont_flift2_arg,
+                    cont_flift1_not_arg2,cont2cont_CF1L_rev2, 
+                    cont_fapp_app1,cont_fapp_app2,cont_if];
 
-val cont_tac = (fn i => ((resolve_tac cont_lemmas i)));
- 
-val cont_tacR = (fn i => ((simp_tac (!simpset 
-                                addsimps [flift1_def,flift2_def]) i)
-                           THEN REPEAT (cont_tac i) ));
+fun cont_tac  i = resolve_tac cont_lemmas2 i;
+fun cont_tacR i = simp_tac (!simpset addsimps [flift1_def,flift2_def]) i THEN
+		  REPEAT (cont_tac i);
 
 (* --------------------------------------------------------- *)
 (*                Admissibility tactic and tricks            *)
@@ -253,10 +254,10 @@ qed"adm_trick_2";
 
 
 val adm_tricks = [adm_trick_1,adm_trick_2];
-val adm_tac = (fn i => ((resolve_tac adm_thms i)));
-val adm_tacR = (fn i => (REPEAT (adm_tac i)));
-val adm_cont_tac = (fn i => ((adm_tacR i) THEN (cont_tacR i)));
 
+(*val adm_tac = (fn i => ((resolve_tac adm_lemmas i)));*)
+(*val adm_tacR = (fn i => (REPEAT (adm_tac i)));*)
+(*val adm_cont_tac = (fn i => ((adm_tacR i) THEN (cont_tacR i)));*)
 
 (* ----------------------------------------------------------------- *)
 (*     Relations between domains and terms using lift constructs     *)
@@ -308,9 +309,6 @@ qed"blift_and_bool";
 
 goal Lift3.thy "plift P`(Def y) = blift (P y)";
 by (simp_tac (!simpset addsimps [plift_def,flift1_def]) 1);
-by (stac beta_cfun 1);
-by (cont_tacR 1);
-by (Simp_tac 1);
 qed"plift2blift";
 
 goal Lift3.thy 

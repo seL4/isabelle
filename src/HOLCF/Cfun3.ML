@@ -193,13 +193,15 @@ bind_thm ("cont2cont_LAM2", allI RSN (2,(allI RS cont2cont_LAM)));
 (* cont2cont tactic                                                       *)
 (* ------------------------------------------------------------------------ *)
 
-val cont_lemmas = [cont_const, cont_id, cont_fapp2,
-                        cont2cont_fapp,cont2cont_LAM2];
+val cont_lemmas1 = [cont_const, cont_id, cont_fapp2,
+                    cont2cont_fapp,cont2cont_LAM2];
+
+Addsimps cont_lemmas1;
 
 
-val cont_tac = (fn i => (resolve_tac cont_lemmas i));
+(*val cont_tac = (fn i => (resolve_tac cont_lemmas i));*)
 
-val cont_tacR = (fn i => (REPEAT (cont_tac i)));
+(*val cont_tacR = (fn i => (REPEAT (cont_tac i)));*)
 
 (* ------------------------------------------------------------------------ *)
 (* function application _[_]  is strict in its first arguments              *)
@@ -211,7 +213,7 @@ qed_goal "strict_fapp1" Cfun3.thy "(UU::'a->'b)`x = (UU::'b)"
         (stac inst_cfun_pcpo 1),
         (rewtac UU_cfun_def),
         (stac beta_cfun 1),
-        (cont_tac 1),
+        (Simp_tac 1),
         (rtac refl 1)
         ]);
 
@@ -350,29 +352,20 @@ bind_thm ("cont_Istrictify2", contlub_Istrictify2 RS
         (monofun_Istrictify2 RS monocontlub2cont)); 
 
 
-qed_goalw "strictify1" Cfun3.thy [strictify_def]
-        "strictify`f`UU=UU"
- (fn prems =>
-        [
+qed_goalw "strictify1" Cfun3.thy [strictify_def] "strictify`f`UU=UU" (fn _ => [
         (stac beta_cfun 1),
-        (cont_tac 1),
-        (rtac cont_Istrictify2 1),
-        (rtac cont2cont_CF1L 1),
-        (rtac cont_Istrictify1 1),
+         (simp_tac (!simpset addsimps [cont_Istrictify2,cont_Istrictify1,
+					cont2cont_CF1L]) 1),
         (stac beta_cfun 1),
         (rtac cont_Istrictify2 1),
         (rtac Istrictify1 1)
         ]);
 
 qed_goalw "strictify2" Cfun3.thy [strictify_def]
-        "~x=UU ==> strictify`f`x=f`x"
- (fn prems =>
-        [
+        "~x=UU ==> strictify`f`x=f`x"  (fn prems => [
         (stac beta_cfun 1),
-        (cont_tac 1),
-        (rtac cont_Istrictify2 1),
-        (rtac cont2cont_CF1L 1),
-        (rtac cont_Istrictify1 1),
+         (simp_tac (!simpset addsimps [cont_Istrictify2,cont_Istrictify1,
+					cont2cont_CF1L]) 1),
         (stac beta_cfun 1),
         (rtac cont_Istrictify2 1),
         (rtac Istrictify2 1),
@@ -391,4 +384,4 @@ Addsimps [minimal,refl_less,beta_cfun,strict_fapp1,strictify1, strictify2];
 (* use cont_tac as autotac.                                                *)
 (* ------------------------------------------------------------------------ *)
 
-simpset := !simpset addsolver (K (DEPTH_SOLVE_1 o cont_tac));
+(*simpset := !simpset addsolver (K (DEPTH_SOLVE_1 o cont_tac));*)

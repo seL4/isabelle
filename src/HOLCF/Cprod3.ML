@@ -148,10 +148,7 @@ qed_goalw "beta_cfun_cprod" Cprod3.thy [cpair_def]
  (fn prems =>
         [
         (stac beta_cfun 1),
-        (cont_tac 1),
-        (rtac cont_pair2 1),
-        (rtac cont2cont_CF1L 1),
-        (rtac cont_pair1 1),
+        (simp_tac (!simpset addsimps [cont_pair1,cont_pair2,cont2cont_CF1L]) 1),
         (stac beta_cfun 1),
         (rtac cont_pair2 1),
         (rtac refl 1)
@@ -299,7 +296,6 @@ qed_goalw "csplit2" Cprod3.thy [csplit_def]
  (fn prems =>
         [
         (stac beta_cfun 1),
-        (cont_tacR 1),
         (Simp_tac 1),
         (simp_tac (!simpset addsimps [cfst2,csnd2]) 1)
         ]);
@@ -309,7 +305,7 @@ qed_goalw "csplit3" Cprod3.thy [csplit_def]
  (fn prems =>
         [
         (stac beta_cfun 1),
-        (cont_tacR 1),
+        (Simp_tac 1),
         (simp_tac (!simpset addsimps [surjective_pairing_Cprod2]) 1)
         ]);
 

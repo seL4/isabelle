@@ -181,17 +181,17 @@ qed_goalw "upE1" Up3.thy [up_def]
         (asm_simp_tac (Up0_ss addsimps [cont_Iup]) 1)
         ]);
 
+val tac = (simp_tac (!simpset addsimps [cont_Iup,cont_Ifup1,
+                cont_Ifup2,cont2cont_CF1L]) 1);
 
 qed_goalw "fup1" Up3.thy [up_def,fup_def] "fup`f`UU=UU"
  (fn prems =>
         [
         (stac inst_up_pcpo 1),
         (stac beta_cfun 1),
-        (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ifup1,
-                cont_Ifup2,cont2cont_CF1L]) 1)),
+	tac,
         (stac beta_cfun 1),
-        (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ifup1,
-                cont_Ifup2,cont2cont_CF1L]) 1)),
+	tac,
         (simp_tac (Up0_ss addsimps [cont_Iup,cont_Ifup1,cont_Ifup2]) 1)
         ]);
 
@@ -201,8 +201,7 @@ qed_goalw "fup2" Up3.thy [up_def,fup_def] "fup`f`(up`x)=f`x"
         (stac beta_cfun 1),
         (rtac cont_Iup 1),
         (stac beta_cfun 1),
-        (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ifup1,
-                cont_Ifup2,cont2cont_CF1L]) 1)),
+	tac,
         (stac beta_cfun 1),
         (rtac cont_Ifup2 1),
         (simp_tac (Up0_ss addsimps [cont_Iup,cont_Ifup1,cont_Ifup2]) 1)
@@ -230,15 +229,11 @@ qed_goalw "thelub_up2a" Up3.thy [up_def,fup_def]
         [
         (cut_facts_tac prems 1),
         (stac beta_cfun 1),
-        (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ifup1,
-                cont_Ifup2,cont2cont_CF1L]) 1)),
+	tac,
         (stac beta_cfun 1),
-        (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ifup1,
-                cont_Ifup2,cont2cont_CF1L]) 1)),
-
+	tac,
         (stac (beta_cfun RS ext) 1),
-        (REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ifup1,
-                cont_Ifup2,cont2cont_CF1L]) 1)),
+	tac,
         (rtac thelub_up1a 1),
         (atac 1),
         (etac exE 1),
