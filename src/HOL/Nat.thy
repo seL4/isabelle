@@ -12,8 +12,8 @@ setup
   DatatypePackage.setup
 
 rep_datatype nat
-  distinct "[[Suc_not_Zero, Zero_not_Suc]]"
-  inject   "[[Suc_Suc_eq]]"
+  distinct Suc_not_Zero, Zero_not_Suc
+  inject   Suc_Suc_eq
   induct   nat_induct
 
 instance nat :: order (le_refl,le_trans,le_anti_sym,nat_less_le)
