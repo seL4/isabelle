@@ -1033,12 +1033,12 @@ fun arith_tac i =
 
 (* proof method setup *)
 
-val arith_method =
-  Method.METHOD (fn facts => FIRSTGOAL (Method.insert_tac facts THEN' arith_tac));
+fun arith_method prems =
+  Method.METHOD (fn facts => FIRSTGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac));
 
 val arith_setup =
  [Method.add_methods
-  [("arith", Method.no_args arith_method, "decide linear arithmethic")]];
+  [("arith", (arith_method o #2) oo Method.syntax Args.bang_facts , "decide linear arithmethic")]];
 
 (*---------------------------------------------------------------------------*)
 (* End of proof procedures. Now go and USE them!                             *)
