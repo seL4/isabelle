@@ -1187,11 +1187,14 @@ or~$u=t$.)  Then the simplifier can prove the goal outright.
 \end{ttbox}
 
 \begin{ttdescription}
-\item[\ttindexbold{simproc}~$sign$~$name$~$lhss$~$proc$] makes $proc$ a
-  simplification procedure for left-hand side patterns $lhss$.  The name just
-  serves as a comment.  The function $proc$ may be invoked by the simplifier
-  for redex positions matched by one of $lhss$ as described below (which are
-  be specified as strings to be read as terms).
+\item[\ttindexbold{Simplifier.simproc}~$sign$~$name$~$lhss$~$proc$] makes
+  $proc$ a simplification procedure for left-hand side patterns $lhss$.  The
+  name just serves as a comment.  The function $proc$ may be invoked by the
+  simplifier for redex positions matched by one of $lhss$ as described below
+  (which are be specified as strings to be read as terms).
+  
+\item[\ttindexbold{Simplifier.simproc_i}] is similar to
+  \verb,Simplifier.simproc,, but takes well-typed terms as pattern argument.
 \end{ttdescription}
 
 Simplification procedures are applied in a two-stage process as
@@ -1230,8 +1233,11 @@ making it rewrite only actual abstractions.  The simplification
 procedure \texttt{pair_eta_expand_proc} is defined as follows:
 \begin{ttbox}
 val pair_eta_expand_proc =
-  Simplifier.simproc (Theory.sign_of (the_context ())) "pair_eta_expand" ["f::'a*'b=>'c"]
-  (fn _ => fn _ => fn t => case t of Abs _ => Some (mk_meta_eq pair_eta_expand) | _ => None);
+  Simplifier.simproc (Theory.sign_of (the_context ()))
+    "pair_eta_expand" ["f::'a*'b=>'c"]
+    (fn _ => fn _ => fn t =>
+      case t of Abs _ => Some (mk_meta_eq pair_eta_expand)
+      | _ => None);
 \end{ttbox}
 This is an example of using \texttt{pair_eta_expand_proc}:
 \begin{ttbox}
