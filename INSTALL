@@ -55,9 +55,11 @@ search PATH.
 
 Please do *not* copy (or link) the Isabelle scripts anywhere else --
 or they just won't work!  If you really feel the urge to install
-independent Isabelle binaries somewhere use
-[ISABELLE_HOME]/bin/isatool install (see the system manual for more
-information).
+independent Isabelle binaries somewhere you should rather do it like
+this:
+
+  [ISABELLE_HOME]/bin/isatool install /usr/local/bin
+
 
 
 $Id$
