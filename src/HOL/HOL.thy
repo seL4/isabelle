@@ -116,6 +116,9 @@ translations
 
 syntax (symbols output)
   "op ~="       :: ['a, 'a] => bool                 ("(_ \\<noteq>/ _)" [51, 51] 50)
+  "*All"        :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
+  "*Ex"         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
+  "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
 
 syntax (symbols)
   Not           :: bool => bool                     ("\\<not> _" [40] 40)
@@ -130,12 +133,6 @@ syntax (symbols)
   "?! "         :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
   "@case1"      :: ['a, 'b] => case_syn             ("(2_ \\<Rightarrow>/ _)" 10)
 (*"@case2"      :: [case_syn, cases_syn] => cases_syn   ("_/ \\<orelse> _")*)
-
-syntax (symbols output)
-  "*All"        :: [idts, bool] => bool             ("(3\\<forall>_./ _)" [0, 10] 10)
-  "*Ex"         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" [0, 10] 10)
-  "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" [0, 10] 10)
-
 
 
 
