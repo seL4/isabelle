@@ -470,7 +470,7 @@ local
     | nNewHyps (Const "*Goal*" $ _ :: Ps) = nNewHyps Ps
     | nNewHyps (P::Ps)                    = 1 + nNewHyps Ps;
 
-  fun rot_tac [] i st      = Seq.single st
+  fun rot_tac [] i st      = Seq.single (Seq.hd (flexflex_rule st))
     | rot_tac (0::ks) i st = rot_tac ks (i+1) st
     | rot_tac (k::ks) i st = rot_tac ks (i+1) (rotate_rule (~k) i st);
 in
