@@ -54,6 +54,7 @@ function getoptions()
     case "$OPT" in
       B)
         BUILD=true
+        unset ISABELLE_SETTINGS_PRESENT
         export THIS_IS_ISABELLE_BUILD=true
         ;;
       b)
