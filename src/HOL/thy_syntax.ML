@@ -113,12 +113,11 @@ local
           (if length names > 1 then
              "structure " ^ (space_implode "_" names) ^ " =\n\
              \struct\n\
-             \val induct = induction;\n\
-             \val recs = rec_thms;\n\
-             \val simps = simps;\n\
-             \val size = size;\n"
-           else "") ^ structs ^
-          (if length names > 1 then "end;\n" else "")
+             \  val induct = induction;\n\
+             \  val recs = rec_thms;\n\
+             \  val simps = simps;\n\
+             \  val size = size;\nend;\n"
+           else "") ^ structs
         end);
 
   fun mk_dt_string dts =
@@ -135,7 +134,7 @@ local
       ";\nlocal\n\
       \val (thy, {distinct, inject, exhaustion, rec_thms,\n\
       \  case_thms, split_thms, induction, size, simps}) =\n\
-      \  DatatypePackage.add_datatype " ^ add_datatype_args ^ " thy;\n\
+      \  DatatypePackage.add_datatype false " ^ add_datatype_args ^ " thy;\n\
       \in\n" ^ mk_bind_thms_string names ^
       "val thy = thy;\nend;\nval thy = thy\n"
     end;
@@ -169,7 +168,7 @@ local
   val opt_typs = repeat ((string >> strip_quotes) ||
     simple_typ || ("(" $$-- complex_typ --$$ ")"));
   val constructor = name -- opt_typs -- opt_mixfix >> (fn ((n, Ts), mx) =>
-    parens (n ^ ", " ^ mx ^ ", " ^ brackets (commas (map quote Ts))));
+    parens (n ^ ", " ^ brackets (commas (map quote Ts)) ^ ", " ^ mx));
   val opt_name = optional ("(" $$-- name --$$ ")" >> Some) None
 
 in
