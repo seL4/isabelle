@@ -51,7 +51,7 @@ constdefs
     "Always A == {F. Init F <= A} Int Stable A"
 
   (*Polymorphic in both states and the meaning of <= *)
-  Increasing :: "['a => 'b::{ord}] => 'a program set"
+  Increasing :: "['a => 'b::{order}] => 'a program set"
     "Increasing f == INT z. Stable {s. z <= f s}"
 
 end
