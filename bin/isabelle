@@ -86,7 +86,7 @@ do
       if [ -z "$MODES" ]; then
         MODES="\"$OPTARG\""
       else
-        MODES="$MODES, \"$OPTARG\""
+        MODES="\"$OPTARG\", $MODES"
       fi
       ;;
     q)
