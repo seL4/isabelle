@@ -2,12 +2,13 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Utilities for input and output of types. Also the concrete syntax of
-types, which is used to bootstrap Pure.
+Utilities for input and output of types.  Also the concrete syntax of
+types, which is required to bootstrap Pure.
 *)
 
 signature TYPE_EXT0 =
 sig
+  val sort_of_term: term -> sort
   val raw_term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> term -> typ
   val term_of_typ: bool -> typ -> term
@@ -18,6 +19,7 @@ sig
   include TYPE_EXT0
   val term_of_sort: sort -> term
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val sortT: typ
   val type_ext: SynExt.syn_ext
 end;
 
@@ -27,30 +29,34 @@ struct
 
 (** input utils **)
 
-(* raw_term_sorts *)
+(* sort_of_term *)
 
-fun raw_term_sorts tm =
+fun sort_of_term tm =
   let
     fun classes (Const (c, _)) = [c]
       | classes (Free (c, _)) = [c]
       | classes (Const ("_classes", _) $ Const (c, _) $ cs) = c :: classes cs
       | classes (Const ("_classes", _) $ Free (c, _) $ cs) = c :: classes cs
-      | classes tm = raise TERM ("raw_term_sorts: bad encoding of classes", [tm]);
+      | classes tm = raise TERM ("sort_of_term: bad encoding of classes", [tm]);
 
     fun sort (Const ("_topsort", _)) = []
       | sort (Const (c, _)) = [c]
       | sort (Free (c, _)) = [c]
       | sort (Const ("_sort", _) $ cs) = classes cs
-      | sort tm = raise TERM ("raw_term_sorts: bad encoding of sort", [tm]);
+      | sort tm = raise TERM ("sort_of_term: bad encoding of sort", [tm]);
+  in sort tm end;
 
-    fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) env = ((x, ~1), sort cs) ins env
-      | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) env = (xi, sort cs) ins env
+
+(* raw_term_sorts *)
+
+fun raw_term_sorts tm =
+  let
+    fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) env = ((x, ~1), sort_of_term cs) ins env
+      | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) env = (xi, sort_of_term cs) ins env
       | add_env (Abs (_, _, t)) env = add_env t env
       | add_env (t1 $ t2) env = add_env t1 (add_env t2 env)
       | add_env t env = env;
-  in
-    add_env tm []
-  end;
+  in add_env tm [] end;
 
 
 (* typ_of_term *)
@@ -76,9 +82,7 @@ fun typ_of_term get_sort t =
           in
             Type (a, map typ_of ts)
           end;
-  in
-    typ_of t
-  end;
+  in typ_of t end;
 
 
 
@@ -112,9 +116,7 @@ fun term_of_typ show_sorts ty =
     fun term_of (Type (a, Ts)) = list_comb (Lexicon.const a, map term_of Ts)
       | term_of (TFree (x, S)) = of_sort (Lexicon.const "_tfree" $ Lexicon.free x) S
       | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Lexicon.var xi) S;
-  in
-    term_of ty
-  end;
+  in term_of ty end;
 
 
 
@@ -190,6 +192,5 @@ val type_ext = mk_syn_ext false ["dummy"]
   ([], []);
 
 end;
-
 
 end;
