@@ -223,6 +223,12 @@ lemma minus1_divide [simp]:
      "-1 / (x::'a::{field,division_by_zero,number_ring}) = - (1/x)"
 by (simp add: divide_inverse inverse_minus_eq)
 
+lemma half_gt_zero_iff:
+     "(0 < r/2) = (0 < (r::'a::{ordered_field,division_by_zero,number_ring}))"
+by auto
+
+lemmas half_gt_zero = half_gt_zero_iff [THEN iffD2, simp]
+
 
 
 

@@ -1648,6 +1648,14 @@ done
 lemma abs_triangle_ineq: "abs (a+b) \<le> abs a + abs (b::'a::ordered_ring)"
 by (force simp add: abs_le_iff abs_ge_self abs_ge_minus_self add_mono)
 
+lemma abs_diff_triangle_ineq:
+     "\<bar>(a::'a::ordered_ring) + b - (c+d)\<bar> \<le> \<bar>a-c\<bar> + \<bar>b-d\<bar>"
+proof -
+  have "\<bar>a + b - (c+d)\<bar> = \<bar>(a-c) + (b-d)\<bar>" by (simp add: diff_minus add_ac)
+  also have "... \<le> \<bar>a-c\<bar> + \<bar>b-d\<bar>" by (rule abs_triangle_ineq)
+  finally show ?thesis .
+qed
+
 lemma abs_mult_less:
      "[| abs a < c; abs b < d |] ==> abs a * abs b < c*(d::'a::ordered_ring)"
 proof -
