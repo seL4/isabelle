@@ -133,16 +133,16 @@ type context = ProofContext.context;
 datatype kind =
   Theorem of {kind: string,
     theory_spec: (bstring * theory attribute list) * theory attribute list list,
-    locale_spec: ((string * (context attribute list * context attribute list list)) *
-      cterm option) option} |
+    locale_spec: (string * (context attribute list * context attribute list list)) option,
+    view: cterm list} |
   Show of context attribute list list |
   Have of context attribute list list;
 
-fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _), locale_spec = None}) =
-      s ^ (if a = "" then "" else " " ^ a)
+fun kind_name _ (Theorem {kind = s, theory_spec = ((a, _), _),
+        locale_spec = None, view = _}) = s ^ (if a = "" then "" else " " ^ a)
   | kind_name sg (Theorem {kind = s, theory_spec = ((a, _), _),
-      locale_spec = Some ((name, _), _)}) =
-        s ^ " (in " ^ Locale.cond_extern sg name ^ ")" ^ (if a = "" then "" else " " ^ a)
+        locale_spec = Some (name, _), view = _}) =
+      s ^ " (in " ^ Locale.cond_extern sg name ^ ")" ^ (if a = "" then "" else " " ^ a)
   | kind_name _ (Show _) = "show"
   | kind_name _ (Have _) = "have";
 
@@ -692,8 +692,6 @@ fun global_goal prep kind raw_locale a elems concl thy =
     val init = init_state thy;
     val (opt_name, view, locale_ctxt, elems_ctxt, propp) =
       prep (apsome fst raw_locale) elems (map snd concl) (context_of init);
-    val locale_spec =
-      (case raw_locale of None => None | Some (_, x) => Some ((the opt_name, x), view));
   in
     init
     |> open_block
@@ -701,7 +699,10 @@ fun global_goal prep kind raw_locale a elems concl thy =
     |> open_block
     |> map_context (K elems_ctxt)
     |> setup_goal I ProofContext.bind_propp_schematic_i ProofContext.fix_frees
-      (Theorem {kind = kind, theory_spec = (a, map (snd o fst) concl), locale_spec = locale_spec})
+      (Theorem {kind = kind,
+        theory_spec = (a, map (snd o fst) concl),
+        locale_spec = (case raw_locale of None => None | Some (_, x) => Some (the opt_name, x)),
+        view = view})
       Seq.single true (map (fst o fst) concl) propp
   end;
 
@@ -802,19 +803,18 @@ fun finish_global state =
     val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), _)) = current_goal state;
     val locale_ctxt = context_of (state |> close_block);
     val theory_ctxt = context_of (state |> close_block |> close_block);
-    val {kind = k, theory_spec = ((name, atts), attss), locale_spec} =
+    val {kind = k, theory_spec = ((name, atts), attss), locale_spec, view} =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
-    val view = (case locale_spec of Some (_, Some view) => Some view | _ => None);
 
     val ts = flat tss;
-    val locale_results = map (ProofContext.export_standard None goal_ctxt locale_ctxt)
+    val locale_results = map (ProofContext.export_standard [] goal_ctxt locale_ctxt)
       (prep_result state ts raw_thm);
     val results = map (Drule.strip_shyps_warning o
       ProofContext.export_standard view locale_ctxt theory_ctxt) locale_results;
 
     val (theory', results') =
       theory_of state
-      |> (case locale_spec of None => I | Some ((loc, (loc_atts, loc_attss)), view) => fn thy =>
+      |> (case locale_spec of None => I | Some (loc, (loc_atts, loc_attss)) => fn thy =>
         if length names <> length loc_attss then
           raise THEORY ("Bad number of locale attributes", [thy])
         else (thy, locale_ctxt)
@@ -823,10 +823,10 @@ fun finish_global state =
             if name = "" andalso null loc_atts then thy'
             else (thy', ctxt')
               |> (#1 o #1 o Locale.add_thmss loc [((name, flat (map #2 res)), loc_atts)])))
-      |> Locale.smart_have_thmss k (apsome #1 locale_spec)
+      |> Locale.smart_have_thmss k locale_spec
         ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results))
       |> (fn (thy, res) => (thy, res)
-          |>> (#1 o Locale.smart_have_thmss k (apsome #1 locale_spec)
+          |>> (#1 o Locale.smart_have_thmss k locale_spec
             [((name, atts), [(flat (map #2 res), [])])]));
   in (theory', ((k, name), results')) end;
 

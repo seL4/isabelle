@@ -48,7 +48,7 @@ sig
   val generalize: context -> context -> term list -> term list
   val find_free: term -> string -> term option
   val export: bool -> context -> context -> thm -> thm Seq.seq
-  val export_standard: cterm option -> context -> context -> thm -> thm
+  val export_standard: cterm list -> context -> context -> thm -> thm
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -731,7 +731,7 @@ fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
 
 fun find_free t x = foldl_aterms (get_free x) (None, t);
 
-fun export0 view is_goal inner outer =
+fun export_view view is_goal inner outer =
   let
     val gen = generalize_tfrees inner outer;
     val fixes = fixed_names_of inner \\ fixed_names_of outer;
@@ -740,7 +740,7 @@ fun export0 view is_goal inner outer =
   in fn thm => thm
     |> Tactic.norm_hhf_rule
     |> Seq.EVERY (rev exp_asms)
-    |> Seq.map (case view of None => I | Some A => Thm.implies_intr A)
+    |> Seq.map (Drule.implies_intr_list view)
     |> Seq.map (fn rule =>
       let
         val {sign, prop, ...} = Thm.rep_thm rule;
@@ -754,10 +754,10 @@ fun export0 view is_goal inner outer =
       end)
   end;
 
-val export = export0 None;
+val export = export_view [];
 
 fun export_standard view inner outer =
-  let val exp = export0 view false inner outer in
+  let val exp = export_view view false inner outer in
     fn th =>
       (case Seq.pull (exp th) of
         Some (th', _) => th' |> Drule.local_standard
