@@ -14,7 +14,10 @@ New in Isabelle???? (DATE ????)
 * improved output of warnings / errors;
 
 * deleted the obsolete tactical STATE, which was declared by
-	fun STATE tacfun st = tacfun st st;
+    fun STATE tacfun st = tacfun st st;
+
+* added simplification meta rules
+    (asm_)(full_)simplify: simpset -> thm -> thm;
 
 
 New in Isabelle94-8 (May 1997)
