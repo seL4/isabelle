@@ -162,6 +162,8 @@ XSYMBOL_HOME=$(choosefrom \
   "/usr/share/x-symbol" \
   "/usr/local/x-symbol" \
   "")
+#required for remote fonts only ...
+#XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
 
 
 ###
