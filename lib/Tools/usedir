@@ -15,6 +15,7 @@ function usage()
   echo "Usage: $PRG LOGIC NAME"
   echo
   echo "  Options are:"
+  echo "    -D PATH      dump generated document sources into PATH"
   echo "    -P PATH      set path for remote theory browsing information"
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -d FORMAT    build document as FORMAT (default false)"
@@ -36,19 +37,26 @@ function usage()
 
 # options
 
+DUMP=""
+RPATH=""
 BUILD=""
 DOCUMENT=false
 INFO=false
 RESET=false
 SESSION=""
-RPATH=""
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "P:bc:d:i:rs:" OPT
+  while getopts "D:P:bc:d:i:rs:" OPT
   do
     case "$OPT" in
+      D)
+        DUMP="$OPTARG"
+        ;;
+      P)
+        RPATH="$OPTARG"
+        ;;
       b)
         BUILD=true
         ;;
@@ -63,9 +71,6 @@ function getoptions()
         ;;
       s)
         SESSION="$OPTARG"
-        ;;
-      P)
-        RPATH="$OPTARG"
         ;;
       \?)
         usage
@@ -135,7 +140,7 @@ if [ -n "$BUILD" ]; then
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
-    -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$RPATH\";" \
+    -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\";" \
     -q -w $LOGIC $NAME > $LOG 2>&1
   RC=$?
 else
@@ -144,7 +149,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   $ISABELLE \
-    -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$RPATH\"; quit();" \
+    -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\"; quit();" \
     -r -q $LOGIC > $LOG 2>&1
   RC=$?
   cd ..
