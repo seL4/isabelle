@@ -684,7 +684,7 @@ qed_goal "stream_take_lemma8" Stream.thy
         [
         (cut_facts_tac prems 1),
         (rtac (stream_reach2 RS subst) 1),
-        (rtac adm_disj_lemma11 1),
+        (rtac adm_lemma11 1),
         (atac 1),
         (atac 2),
         (rewtac stream_take_def),
