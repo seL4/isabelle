@@ -1127,7 +1127,7 @@ fun rename_params_rule (cs, i) state =
   in
   case findrep cs of
      c::_ => error ("Bound variables not distinct: " ^ c)
-   | [] => (case cs inter freenames of
+   | [] => (case cs inter_string freenames of
        a::_ => error ("Bound/Free variable clash: " ^ a)
      | [] => fix_shyps [state] []
 		(Thm{sign = sign,
@@ -1173,11 +1173,11 @@ fun rename_bvs([],_,_,_) = I
         val vids = map (#1 o #1 o dest_Var) vars;
         fun rename(t as Var((x,i),T)) =
                 (case assoc(al,x) of
-                   Some(y) => if x mem vids orelse y mem vids then t
+                   Some(y) => if x mem_string vids orelse y mem_string vids then t
                               else Var((y,i),T)
                  | None=> t)
           | rename(Abs(x,T,t)) =
-              Abs(case assoc(al,x) of Some(y) => y | None => x,
+              Abs(case assoc_string(al,x) of Some(y) => y | None => x,
                   T, rename t)
           | rename(f$t) = rename f $ rename t
           | rename(t) = t;
@@ -1528,7 +1528,7 @@ fun check_conv (thm as Thm{shyps,hyps,prop,sign,der,maxidx,...}, prop0, ders) =
 fun ren_inst(insts,prop,pat,obj) =
   let val ren = match_bvs(pat,obj,[])
       fun renAbs(Abs(x,T,b)) =
-            Abs(case assoc(ren,x) of None => x | Some(y) => y, T, renAbs(b))
+            Abs(case assoc_string(ren,x) of None => x | Some(y) => y, T, renAbs(b))
         | renAbs(f$t) = renAbs(f) $ renAbs(t)
         | renAbs(t) = t
   in subst_vars insts (if null(ren) then prop else renAbs(prop)) end;
@@ -1686,7 +1686,7 @@ fun bottomc ((simprem,useprem),prover,sign) =
 		   val (h,ts) = strip_comb t
 	       in case h of
 		    Const(a,_) =>
-		      (case assoc(congs,a) of
+		      (case assoc_string(congs,a) of
 			 None => appc()
 		       | Some(cong) => (congc (prover mss,sign) cong trec
                                         handle Pattern.MATCH => appc() ) )

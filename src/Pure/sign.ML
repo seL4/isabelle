@@ -225,7 +225,7 @@ fun nodup_TVars(tvars,T) = (case T of
       Type(_,Ts) => foldl nodup_TVars (tvars,Ts)
     | TFree _ => tvars
     | TVar(v as (a,S)) =>
-        (case assoc(tvars,a) of
+        (case assoc_string_int(tvars,a) of
            Some(S') => if S=S' then tvars
                        else raise_type
                             ("Type variable "^Syntax.string_of_vname a^
@@ -238,7 +238,7 @@ let fun nodups vars tvars tm = (case tm of
           Const(c,T) => (vars, nodup_TVars(tvars,T))
         | Free(a,T) => (vars, nodup_TVars(tvars,T))
         | Var(v as (ixn,T)) =>
-            (case assoc(vars,ixn) of
+            (case assoc_string_int(vars,ixn) of
                Some(T') => if T=T' then (vars,nodup_TVars(tvars,T))
                            else raise_type
                              ("Variable "^Syntax.string_of_vname ixn^

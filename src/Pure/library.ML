@@ -8,8 +8,9 @@ strings, lists as sets, association lists, generic tables, balanced trees,
 input / output, timing, filenames, misc functions.
 *)
 
-infix |> ~~ \ \\ orelf ins orf andf prefix upto downto mem union inter subset
-      subdir_of;
+infix |> ~~ \ \\ orelf ins ins_string ins_int orf andf prefix upto downto
+      mem mem_int mem_string union union_string union_int inter inter_int
+      inter_string subset subset_int subset_string subdir_of;
 
 
 structure Library =
@@ -430,6 +431,14 @@ fun space_explode sep s =
 fun x mem [] = false
   | x mem (y :: ys) = x = y orelse x mem ys;
 
+(*membership in a list, optimized version for int lists*)
+fun (x:int) mem_int [] = false
+  | x mem_int (y :: ys) = x = y orelse x mem_int ys;
+
+(*membership in a list, optimized version for string lists*)
+fun (x:string) mem_string [] = false
+  | x mem_string (y :: ys) = x = y orelse x mem_string ys;
+
 (*generalized membership test*)
 fun gen_mem eq (x, []) = false
   | gen_mem eq (x, y :: ys) = eq (x, y) orelse gen_mem eq (x, ys);
@@ -437,6 +446,12 @@ fun gen_mem eq (x, []) = false
 
 (*insertion into list if not already there*)
 fun x ins xs = if x mem xs then xs else x :: xs;
+
+(*insertion into list if not already there, optimized version for int lists*)
+fun (x:int) ins_int xs = if x mem_int xs then xs else x :: xs;
+
+(*insertion into list if not already there, optimized version for string lists*)
+fun (x:string) ins_string xs = if x mem_string xs then xs else x :: xs;
 
 (*generalized insertion*)
 fun gen_ins eq (x, xs) = if gen_mem eq (x, xs) then xs else x :: xs;
@@ -446,6 +461,16 @@ fun gen_ins eq (x, xs) = if gen_mem eq (x, xs) then xs else x :: xs;
 fun xs union [] = xs
   | [] union ys = ys
   | (x :: xs) union ys = xs union (x ins ys);
+
+(*union of sets represented as lists: no repetitions, optimized version for int lists*)
+fun (xs:int list) union_int [] = xs
+  | [] union_int ys = ys
+  | (x :: xs) union_int ys = xs union_int (x ins_int ys);
+
+(*union of sets represented as lists: no repetitions, optimized version for string lists*)
+fun (xs:string list) union_string [] = xs
+  | [] union_string ys = ys
+  | (x :: xs) union_string ys = xs union_string (x ins_string ys);
 
 (*generalized union*)
 fun gen_union eq (xs, []) = xs
@@ -458,10 +483,28 @@ fun [] inter ys = []
   | (x :: xs) inter ys =
       if x mem ys then x :: (xs inter ys) else xs inter ys;
 
+(*intersection, optimized version for int lists*)
+fun ([]:int list) inter_int ys = []
+  | (x :: xs) inter_int ys =
+      if x mem_int ys then x :: (xs inter_int ys) else xs inter_int ys;
+
+(*intersection, optimized version for string lists *)
+fun ([]:string list) inter_string ys = []
+  | (x :: xs) inter_string ys =
+      if x mem_string ys then x :: (xs inter_string ys) else xs inter_string ys;
+
 
 (*subset*)
 fun [] subset ys = true
   | (x :: xs) subset ys = x mem ys andalso xs subset ys;
+
+(*subset, optimized version for int lists*)
+fun ([]:int list) subset_int ys = true
+  | (x :: xs) subset_int ys = x mem_int ys andalso xs subset_int ys;
+
+(*subset, optimized version for string lists*)
+fun ([]:string list) subset_string ys = true
+  | (x :: xs) subset_string ys = x mem_string ys andalso xs subset_string ys;
 
 fun gen_subset eq (xs, ys) = forall (fn x => gen_mem eq (x, ys)) xs;
 
@@ -470,6 +513,16 @@ fun gen_subset eq (xs, ys) = forall (fn x => gen_mem eq (x, ys)) xs;
 
 fun eq_set (xs, ys) =
   xs = ys orelse (xs subset ys andalso ys subset xs);
+
+(*eq_set, optimized version for int lists*)
+
+fun eq_set_int ((xs:int list), ys) =
+  xs = ys orelse (xs subset_int ys andalso ys subset_int xs);
+
+(*eq_set, optimized version for string lists*)
+
+fun eq_set_string ((xs:string list), ys) =
+  xs = ys orelse (xs subset_string ys andalso ys subset_string xs);
 
 
 (*removing an element from a list WITHOUT duplicates*)
@@ -531,6 +584,21 @@ val duplicates = gen_duplicates (op =);
 fun assoc ([], key) = None
   | assoc ((keyi, xi) :: pairs, key) =
       if key = keyi then Some xi else assoc (pairs, key);
+
+(*association list lookup, optimized version for int lists*)
+fun assoc_int ([], (key:int)) = None
+  | assoc_int ((keyi, xi) :: pairs, key) =
+      if key = keyi then Some xi else assoc_int (pairs, key);
+
+(*association list lookup, optimized version for string lists*)
+fun assoc_string ([], (key:string)) = None
+  | assoc_string ((keyi, xi) :: pairs, key) =
+      if key = keyi then Some xi else assoc_string (pairs, key);
+
+(*association list lookup, optimized version for string*int lists*)
+fun assoc_string_int ([], (key:string*int)) = None
+  | assoc_string_int ((keyi, xi) :: pairs, key) =
+      if key = keyi then Some xi else assoc_string_int (pairs, key);
 
 fun assocs ps x =
   (case assoc (ps, x) of

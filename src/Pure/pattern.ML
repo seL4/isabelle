@@ -72,7 +72,7 @@ val incr = mapbnd (fn i => i+1);
 fun ints_of []             = []
   | ints_of (Bound i ::bs) = 
       let val is = ints_of bs
-      in if i mem is then raise Pattern else i::is end
+      in if i mem_int is then raise Pattern else i::is end
   | ints_of _              = raise Pattern;
 
 
@@ -167,10 +167,10 @@ fun flexflex1(env,binders,F,Fty,is,js) =
 
 fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
   let fun ff(F,Fty,is,G as (a,_),Gty,js) =
-            if js subset is
+            if js subset_int is
             then let val t= mkabs(binders,is,app(Var(G,Gty),map (idx is) js))
                  in Envir.update((F,t),env) end
-            else let val ks = is inter js
+            else let val ks = is inter_int js
                      val Hty = type_of_G(Fty,length is,map (idx is) ks)
                      val (env',H) = Envir.genvar a (env,Hty)
                      fun lam(is) = mkabs(binders,is,app(H,map (idx is) ks));
@@ -227,7 +227,7 @@ fun unify(sg,env,tus) = (tsgr := #tsig(Sign.rep_sg sg);
 fun eta_contract (Abs(a,T,body)) = 
       (case eta_contract body  of
         body' as (f $ Bound i) => 
-	  if i=0 andalso not (0 mem loose_bnos f) then incr_boundvars ~1 f 
+	  if i=0 andalso not (0 mem_int loose_bnos f) then incr_boundvars ~1 f 
 	  else Abs(a,T,body')
       | body' => Abs(a,T,body'))
   | eta_contract(f$t) = eta_contract f $ eta_contract t
@@ -249,7 +249,7 @@ fun fomatch tsig (pat,obj) =
       fun mtch (tyinsts,insts) = fn
 	(Var(ixn,T), t)  =>
 	  if loose_bvar(t,0) then raise MATCH
-	  else (case assoc(insts,ixn) of
+	  else (case assoc_string_int(insts,ixn) of
 		  None => (typ_match (tyinsts, (T, fastype_of t)), 
 			   (ixn,t)::insts)
 		| Some u => if t aconv u then (tyinsts,insts) else raise MATCH)
@@ -270,7 +270,7 @@ fun match_bind(itms,binders,ixn,is,t) =
   let val js = loose_bnos t
   in if null is
      then if null js then (ixn,t)::itms else raise MATCH
-     else if js subset is
+     else if js subset_int is
           then let val t' = if downto0(is,length binders - 1) then t
                             else mapbnd (idx is) t
                in (ixn, mkabs(binders,is,t')) :: itms end
@@ -320,7 +320,7 @@ and cases(binders,env as (iTs,itms),pat,obj) =
       in case ph of
            Var(ixn,_) =>
              let val is = ints_of pargs
-             in case assoc(itms,ixn) of
+             in case assoc_string_int(itms,ixn) of
                   None => (iTs,match_bind(itms,binders,ixn,is,obj))
                 | Some u => if obj aeconv (red u is []) then env
                             else raise MATCH
