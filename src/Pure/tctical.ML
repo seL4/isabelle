@@ -179,8 +179,9 @@ fun FIRST1 tfs = FIRST' tfs 1;
 val goals_limit = ref 10;
 
 (*Print the current proof state and pass it on.*)
-val print_tac = Tactic (fn state => 
-  (print_goals (!goals_limit) state;   Sequence.single state));
+val print_tac = Tactic 
+    (fn state => 
+     (!print_goals_ref (!goals_limit) state;   Sequence.single state));
 
 (*Pause until a line is typed -- if non-empty then fail. *)
 val pause_tac = Tactic (fn state => 
@@ -210,7 +211,7 @@ fun exec_trace_command flag (tf, state) =
 
 (*Extract from a tactic, a thm->thm seq function that handles tracing*)
 fun tracify flag (Tactic tf) state =
-  if !flag then (print_goals (!goals_limit) state;  
+  if !flag then (!print_goals_ref (!goals_limit) state;  
 		 prs"** Press RETURN to continue: ";
 		 exec_trace_command flag (tf,state))
   else tf state;

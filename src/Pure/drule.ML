@@ -36,6 +36,7 @@ signature DRULE =
   val print_cterm: Sign.cterm -> unit
   val print_ctyp: Sign.ctyp -> unit
   val print_goals: int -> thm -> unit
+  val print_goals_ref: (int -> thm -> unit) ref
   val print_sg: Sign.sg -> unit
   val print_theory: theory -> unit
   val pprint_sg: Sign.sg -> pprint_args -> unit
@@ -332,6 +333,8 @@ in
    printff tpairs
 end;
 
+(*"hook" for user interfaces: allows print_goals to be replaced*)
+val print_goals_ref = ref print_goals;
 
 (** theorem equality test is exported and used by BEST_FIRST **)
 
