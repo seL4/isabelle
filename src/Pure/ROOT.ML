@@ -11,10 +11,9 @@ val version = "Isabelle repository";
 
 print_depth 1;
 
-(* global flags *)
-val print_mode = ref ([]:string list);
-(*if true then some packages will OMIT SOME PROOFS*)
-val quick_and_dirty = ref false;
+(*global flags*)
+val print_mode = ref ([]: string list);
+val quick_and_dirty = ref false;        (*if true then some packages will OMIT SOME PROOFS*)
 
 (*fake hiding of private structures*)
 structure Hidden = struct end;
@@ -25,9 +24,7 @@ cd "General"; use "ROOT.ML"; cd "..";
 use "term.ML";
 
 (*inner syntax module*)
-cd "Syntax";
-use "ROOT.ML";
-cd "..";
+cd "Syntax"; use "ROOT.ML"; cd "..";
 
 (*main system*)
 use "sorts.ML";
@@ -41,6 +38,7 @@ use "net.ML";
 use "logic.ML";
 use "theory.ML";
 use "theory_data.ML";
+use "context.ML";
 use "object_logic.ML";
 use "thm.ML";
 use "display.ML";
@@ -54,32 +52,27 @@ use "tactic.ML";
 use "goals.ML";
 use "axclass.ML";
 
-(*theory parser and loader*)
-cd "Thy";
-use "ROOT.ML";
-cd "..";
+(*theory system operations*)
+cd "Thy"; use "ROOT.ML"; cd "..";
 
 (*the Isar subsystem*)
-cd "Isar";
-use "ROOT.ML";
-cd "..";
+cd "Isar"; use "ROOT.ML"; cd "..";
 
+(*final Pure theory setup*)
 use "pure.ML";
-
-use "install_pp.ML";
 
 (*several object-logics declare theories that hide basis library structures*)
 structure BasisLibrary =
 struct
-  structure List   = List 
-  and       Option = Option
-  and       Bool   = Bool
-  and       String = String
-  and       Int    = Int
-  and       Real   = Real;
+  structure List = List;
+  structure Option = Option;
+  structure Bool = Bool;
+  structure String = String;
+  structure Int = Int;
+  structure Real = Real;
 end;
 
-open Use;
-
+use "install_pp.ML";
+open BasicUse;
 print_depth 8;
 (*ml_prompts "ML> " "ML# ";*)
