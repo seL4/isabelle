@@ -18,6 +18,19 @@ assume that some private keys are lost to the spy.
 Abstracted from "The TLS Protocol, Version 1.0" by Tim Dierks and Christopher
 Allen, Transport Layer Security Working Group, 21 May 1997,
 INTERNET-DRAFT draft-ietf-tls-protocol-03.txt
+
+NOTE.  The event "Notes A {|Agent B, Nonce M|}" appears in ClientCertKeyEx,
+CertVerify, ClientFinished to record that A knows M.  It is a note from A to
+herself.  Nobody else can see it.  In ClientCertKeyEx, the Spy can substitute
+his own certificate for A's, but he cannot replace A's note by one for himself.
+
+The note is needed because of a weakness in the public-key model.  Each
+agent's state is recorded as the trace of messages.  When the true client (A)
+invents M, he encrypts M with B's public key before sending it.  The model
+does not distinguish the original occurrence of such a message from a replay.
+
+In the shared-key model, the ability to encrypt implies the ability to
+decrypt, so the problem does not arise.
 *)
 
 TLS = Public + 
@@ -77,7 +90,7 @@ inductive tls
 
     ServerHello
          (*XB represents CLIENT_VERSION, CIPHER_SUITE and COMPRESSION_METHOD.
-	   Na is returned in its role as SESSION_ID.  A CERTIFICATE_REQUEST is
+	   NA is returned in its role as SESSION_ID.  A CERTIFICATE_REQUEST is
 	   implied and a SERVER CERTIFICATE is always present.*)
          "[| evs: tls;  A ~= B;  Nonce NB ~: used evs;
              Says A' B {|Agent A, Nonce NA, Agent XA|} : set evs |]
@@ -86,13 +99,16 @@ inductive tls
                 # evs  :  tls"
 
     ClientCertKeyEx
-         (*CLIENT CERTIFICATE and KEY EXCHANGE.  M is the pre-master-secret.
-           Note that A encrypts using the supplied KB, not pubK B.*)
+         (*CLIENT CERTIFICATE and KEY EXCHANGE.  The client, A, chooses M,
+           the pre-master-secret.  She encrypts M using the supplied KB,
+           which ought to be pubK B, and also with her own public key,
+           to record in the trace that she knows M (see NOTE at top).*)
          "[| evs: tls;  A ~= B;  Nonce M ~: used evs;
              Says B' A {|Nonce NA, Nonce NB, Agent XB, certificate B KB|}
 	       : set evs |]
           ==> Says A B {|certificate A (pubK A), Crypt KB (Nonce M)|}
-                # evs  :  tls"
+	      # Notes A {|Agent B, Nonce M|}
+	      # evs  :  tls"
 
     CertVerify
 	(*The optional CERTIFICATE VERIFY message contains the specific
@@ -102,8 +118,7 @@ inductive tls
          "[| evs: tls;  A ~= B;  
              Says B' A {|Nonce NA, Nonce NB, Agent XB, certificate B KB|}
 	       : set evs;
-	     Says A B {|certificate A (pubK A), Crypt KB (Nonce M)|}
-	       : set evs |]
+	     Notes A {|Agent B, Nonce M|} : set evs |]
           ==> Says A B (Crypt (priK A)
 			(Hash{|Nonce NB, certificate B KB, Nonce M|}))
                 # evs  :  tls"
@@ -112,13 +127,18 @@ inductive tls
           other things.  The master-secret is the hash of NA, NB and M.
           Either party may sent its message first.*)
 
+        (*The occurrence of Crypt (pubK A) {|Agent B, Nonce M|} stops the 
+          rule's applying when the Spy has satisfied the "Says A B" by
+          repaying messages sent by the true client; in that case, the
+          Spy does not know M and could not sent CLIENT FINISHED.  One
+          could simply put A~=Spy into the rule, but one should not
+          expect the spy to be well-behaved.*)
     ClientFinished
          "[| evs: tls;  A ~= B;
 	     Says A  B {|Agent A, Nonce NA, Agent XA|} : set evs;
              Says B' A {|Nonce NA, Nonce NB, Agent XB, certificate B KB|}
 	       : set evs;
-             Says A  B {|certificate A (pubK A), Crypt KB (Nonce M)|}
-	       : set evs |]
+             Notes A {|Agent B, Nonce M|} : set evs |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
 			(Hash{|Hash{|Nonce NA, Nonce NB, Nonce M|},
 			       Nonce NA, Agent XA,
@@ -127,15 +147,16 @@ inductive tls
                 # evs  :  tls"
 
 	(*Keeping A' and A'' distinct means B cannot even check that the
-          two messages originate from the same source.*)
-
+          two messages originate from the same source.  B does not attempt
+          to read A's encrypted "note to herself".*)
     ServerFinished
          "[| evs: tls;  A ~= B;
 	     Says A' B  {|Agent A, Nonce NA, Agent XA|} : set evs;
 	     Says B  A  {|Nonce NA, Nonce NB, Agent XB,
 		 	  certificate B (pubK B)|}
 	       : set evs;
-	     Says A'' B {|CERTA, Crypt (pubK B) (Nonce M)|} : set evs |]
+	     Says A'' B {|certificate A KA, Crypt (pubK B) (Nonce M)|}
+	       : set evs |]
           ==> Says B A (Crypt (serverK(NA,NB,M))
 			(Hash{|Hash{|Nonce NA, Nonce NB, Nonce M|},
 			       Nonce NA, Agent XA, Agent A, 
