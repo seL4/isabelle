@@ -204,8 +204,6 @@ by (fast_tac (ZF_cs addSIs [super_subset_chain RS subsetD,
 			    chain_subset_Pow RS subsetD,
 			    choice_super]) 1);
 (*Now, verify that it increases*)
-by (rtac allI 1);
-by (rtac impI 1);
 by (asm_simp_tac (ZF_ss addsimps [Pow_iff, subset_refl]
                         setloop split_tac [expand_if]) 1);
 by (safe_tac ZF_cs);
