@@ -164,7 +164,7 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
 
     val dummy = seq (writeln o Sign.string_of_term sign o #2) axpairs
   
-  in  thy |> Theory.add_defs_i axpairs  end
+  in  thy |> PureThy.add_store_defs_i axpairs  end
 
 
 (*Expects the recursive sets to have been defined already.
@@ -257,7 +257,7 @@ fun add_constructs_def (rec_base_names, con_ty_lists) thy =
   in
     thy
     |> Theory.add_consts_i const_decs
-    |> Theory.add_defs_i axpairs
+    |> PureThy.add_store_defs_i axpairs
   end;
 
 

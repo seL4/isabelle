@@ -159,7 +159,7 @@ fun add_fp_def_i (rec_tms, intr_tms) thy =
              | x::_ => error ("Illegal occurrence of recursion op: " ^ x ^
                                "\n\t*Consider adding type constraints*"))
 
-  in  thy |> Theory.add_defs_i axpairs  end
+  in  thy |> PureThy.add_store_defs_i axpairs  end
 
 
 end;
