@@ -17,6 +17,7 @@ use "scan.ML";
 use "source.ML";
 use "symbol.ML";
 use "pretty.ML";
+use "use.ML";
 
 structure PureGeneral =
 struct
@@ -33,4 +34,5 @@ struct
   structure Source = Source;
   structure Symbol = Symbol;
   structure Pretty = Pretty;
+  structure Use = Use;
 end;
