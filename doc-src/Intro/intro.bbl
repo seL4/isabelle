@@ -41,11 +41,8 @@ Dale Miller.
 
 \bibitem{nipkow-prehofer}
 Tobias Nipkow and Christian Prehofer.
-\newblock Type checking type classes.
-\newblock In {\em 20th Principles of Programming Languages}, pages 409--418.
-  ACM Press, 1993.
-\newblock Revised version to appear in \bgroup\em Journal of Functional
-  Programming\egroup.
+\newblock Type reconstruction for type classes.
+\newblock {\em J. Functional Programming}, 5(2):201--224, 1995.
 
 \bibitem{nordstrom90}
 Bengt {Nordstr\"om}, Kent Petersson, and Jan Smith.
