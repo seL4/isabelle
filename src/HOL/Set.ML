@@ -80,17 +80,17 @@ qed "bexE";
 AddIs  [bexI];
 AddSEs [bexE];
 
-(*Trival rewrite rule;   (! x:A.P)=P holds only if A is nonempty!*)
-goalw Set.thy [Ball_def] "(! x:A. True) = True";
-by (Simp_tac 1);
-qed "ball_True";
+(*Trival rewrite rule*)
+goal Set.thy "(! x:A.P) = ((? x. x:A) --> P)";
+by (simp_tac (!simpset addsimps [Ball_def]) 1);
+qed "ball_triv";
 
 (*Dual form for existentials*)
-goalw Set.thy [Bex_def] "(? x:A. False) = False";
-by (Simp_tac 1);
-qed "bex_False";
+goal Set.thy "(? x:A.P) = ((? x. x:A) & P)";
+by (simp_tac (!simpset addsimps [Bex_def]) 1);
+qed "bex_triv";
 
-Addsimps [ball_True, bex_False];
+Addsimps [ball_triv, bex_triv];
 
 (** Congruence rules **)
 
@@ -233,18 +233,6 @@ goal Set.thy "Bex {} P = False";
 by (simp_tac (HOL_ss addsimps [mem_Collect_eq, Bex_def, empty_def]) 1);
 qed "bex_empty";
 Addsimps [ball_empty, bex_empty];
-
-goalw Set.thy [Ball_def] "(!x:A.False) = (A = {})";
-by(Blast_tac 1);
-qed "ball_False";
-Addsimps [ball_False];
-
-(* The dual is probably not helpful:
-goal Set.thy "(? x:A.True) = (A ~= {})";
-by(Blast_tac 1);
-qed "bex_True";
-Addsimps [bex_True];
-*)
 
 
 section "The Powerset operator -- Pow";
