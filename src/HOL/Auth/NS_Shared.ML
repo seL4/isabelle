@@ -362,7 +362,7 @@ by (etac ns_shared.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS 
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD,
+     (!simpset addsimps ([not_parts_not_analz,
                           analz_insert_Key_newK] @ pushes)
                setloop split_tac [expand_if])));
 (*NS2*)
@@ -370,7 +370,7 @@ by (fast_tac (!claset addIs [parts_insertI]
                       addEs [Says_imp_old_keys RS less_irrefl]
                       addss (!simpset)) 2);
 (*OR4, OR2, Fake*) 
-by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
+by (REPEAT_FIRST spy_analz_tac);
 (*NS3 and Oops subcases*) (**LEVEL 7 **)
 by (step_tac (!claset delrules [impCE]) 1);
 by (full_simp_tac (!simpset addsimps [all_conj_distrib]) 2);

@@ -119,7 +119,7 @@ goal thy
 by (etac ns_public.induct 1);
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD] @ pushes)
+     (!simpset addsimps ([not_parts_not_analz] @ pushes)
                setloop split_tac [expand_if])));
 (*NS3*)
 by (fast_tac (!claset addSEs partsEs
@@ -128,13 +128,12 @@ by (fast_tac (!claset addSEs partsEs
 by (fast_tac (!claset addSEs partsEs
                       addEs  [nonce_not_seen_now]) 3);
 (*Fake*)
-by (best_tac (!claset addIs [impOfSubs (subset_insertI RS analz_mono)]
+by (best_tac (!claset addIs [analz_insertI]
 		      addDs [impOfSubs analz_subset_parts,
 			     impOfSubs Fake_parts_insert]
 	              addss (!simpset)) 2);
 (*Base*)
-by (fast_tac (!claset addDs [impOfSubs analz_subset_parts]
-                      addss (!simpset)) 1);
+by (fast_tac (!claset addss (!simpset)) 1);
 bind_thm ("no_nonce_NS1_NS2", result() RSN (2, rev_mp) RSN (2, rev_mp));
 
 
@@ -148,7 +147,7 @@ goal thy
 by (etac ns_public.induct 1);
 by (ALLGOALS 
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD] @ pushes)
+     (!simpset addsimps ([not_parts_not_analz] @ pushes)
                setloop split_tac [expand_if])));
 (*NS1*)
 by (expand_case_tac "NA = ?y" 3 THEN
@@ -157,7 +156,7 @@ by (expand_case_tac "NA = ?y" 3 THEN
 by (fast_tac (!claset addss (!simpset)) 1);
 (*Fake*)
 by (simp_tac (!simpset addsimps [all_conj_distrib,parts_insert_sees]) 1);
-by (step_tac (!claset addSIs [impOfSubs (subset_insertI RS analz_mono)]) 1);
+by (step_tac (!claset addSIs [analz_insertI]) 1);
 by (ex_strip_tac 1);
 by (best_tac (!claset delrules [conjI]
 		      addSDs [impOfSubs Fake_parts_insert]
@@ -188,7 +187,7 @@ goal thy
 by (etac ns_public.induct 1);
 by (ALLGOALS 
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD] @ pushes)
+     (!simpset addsimps ([not_parts_not_analz] @ pushes)
                setloop split_tac [expand_if])));
 (*NS3*)
 by (fast_tac (!claset addSDs [Says_imp_sees_Spy' RS parts.Inj]
@@ -198,7 +197,7 @@ by (fast_tac (!claset addSEs partsEs
                       addSDs [new_nonces_not_seen, 
 			      Says_imp_sees_Spy' RS parts.Inj]) 2);
 (*Fake*)
-by (REPEAT_FIRST (rtac conjI ORELSE' spy_analz_tac));
+by (REPEAT_FIRST spy_analz_tac);
 (*NS2*)
 by (Step_tac 1);
 by (fast_tac (!claset addSEs partsEs
@@ -258,12 +257,12 @@ goal thy
 by (etac ns_public.induct 1);
 by (ALLGOALS
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD] @ pushes)
+     (!simpset addsimps ([not_parts_not_analz] @ pushes)
                setloop split_tac [expand_if])));
 (*Fake*)
 by (best_tac (!claset addSIs [disjI2]
 		      addSDs [impOfSubs Fake_parts_insert]
-		      addIs  [impOfSubs (subset_insertI RS analz_mono)]
+		      addIs  [analz_insertI]
 		      addDs  [impOfSubs analz_subset_parts]
 	              addss (!simpset)) 2);
 (*Base*)
@@ -285,7 +284,7 @@ goal thy
 by (etac ns_public.induct 1);
 by (ALLGOALS 
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD] @ pushes)
+     (!simpset addsimps ([not_parts_not_analz] @ pushes)
                setloop split_tac [expand_if])));
 (*NS2*)
 by (expand_case_tac "NB = ?y" 3 THEN
@@ -294,7 +293,7 @@ by (expand_case_tac "NB = ?y" 3 THEN
 by (fast_tac (!claset addss (!simpset)) 1);
 (*Fake*)
 by (simp_tac (!simpset addsimps [all_conj_distrib,parts_insert_sees]) 1);
-by (step_tac (!claset addSIs [impOfSubs (subset_insertI RS analz_mono)]) 1);
+by (step_tac (!claset addSIs [analz_insertI]) 1);
 by (ex_strip_tac 1);
 by (best_tac (!claset delrules [conjI]
 	              addSDs [impOfSubs Fake_parts_insert]
@@ -326,14 +325,14 @@ goal thy
 by (etac ns_public.induct 1);
 by (ALLGOALS 
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD] @ pushes)
+     (!simpset addsimps ([not_parts_not_analz] @ pushes)
                setloop split_tac [expand_if])));
 (*NS1*)
 by (fast_tac (!claset addSEs partsEs
                       addSDs [new_nonces_not_seen, 
 			      Says_imp_sees_Spy' RS parts.Inj]) 2);
 (*Fake*)
-by (REPEAT_FIRST (rtac conjI ORELSE' spy_analz_tac));
+by (REPEAT_FIRST spy_analz_tac);
 (*NS2 and NS3*)
 by (Step_tac 1);
 (*NS2*)
@@ -411,14 +410,14 @@ goal thy
 by (etac ns_public.induct 1);
 by (ALLGOALS 
     (asm_simp_tac 
-     (!simpset addsimps ([analz_subset_parts RS contra_subsetD] @ pushes)
+     (!simpset addsimps ([not_parts_not_analz] @ pushes)
                setloop split_tac [expand_if])));
 (*NS1*)
 by (fast_tac (!claset addSEs partsEs
                       addSDs [new_nonces_not_seen, 
 			      Says_imp_sees_Spy' RS parts.Inj]) 2);
 (*Fake*)
-by (REPEAT_FIRST (rtac conjI ORELSE' spy_analz_tac));
+by (REPEAT_FIRST spy_analz_tac);
 (*NS2 and NS3*)
 by (Step_tac 1);
 (*NS2*)
