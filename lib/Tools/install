@@ -34,6 +34,8 @@ function fail()
 
 # options
 
+NO_OPTS=true
+
 DISTDIR="$ISABELLE_HOME"
 KDE=""
 BINDIR=""
@@ -43,12 +45,15 @@ do
   case "$OPT" in
     d)
       DISTDIR="$OPTARG"
+      NO_OPTS=""
       ;;
     k)
       KDE=true
+      NO_OPTS=""
       ;;
     p)
       BINDIR="$OPTARG"
+      NO_OPTS=""
       ;;
     \?)
       usage
@@ -61,7 +66,7 @@ shift $(($OPTIND - 1))
 
 # args
 
-[ $# -ne 0 ] && usage
+[ $# -ne 0 -o -n "$NO_OPTS" ] && usage
 
 
 ## main
