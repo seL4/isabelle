@@ -912,7 +912,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       thms_thy |> PureThy.add_thms
        [(("induct", induct0), induct_type_global name),
         (("cases", cases0), cases_type_global name),
-        (("equality", equality), [Classical.xtra_intro_global])]
+        (("equality", equality), [ContextRules.intro_bang_global None])]
       |>> (#1 oo PureThy.add_thmss)
         [(("more_induct", more_induct), induct_type_global ""),
          (("more_cases", more_cases), cases_type_global "")];
