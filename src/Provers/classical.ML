@@ -83,8 +83,10 @@ fun swapify intrs = intrs RLN (2, [swap]);
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
 fun swap_res_tac rls = 
-    let fun tacf rl = rtac rl ORELSE' etac (rl RSN (2,swap))
-    in  assume_tac ORELSE' contr_tac ORELSE' FIRST' (map tacf rls)
+    let fun addrl (rl,brls) = (false, rl) :: (true, rl RSN (2,swap)) :: brls
+    in  assume_tac 	ORELSE' 
+	contr_tac 	ORELSE' 
+        biresolve_tac (foldr addrl (rls,[]))
     end;
 
 (*Given assumption P-->Q, reduces subgoal Q to P [deletes the implication!] *)
