@@ -295,14 +295,14 @@ val presume     = local_statement Proof.presume I o Comment.ignore;
 val presume_i   = local_statement_i Proof.presume_i I o Comment.ignore;
 val local_def   = local_statement LocalDefs.def I o Comment.ignore;
 val local_def_i = local_statement LocalDefs.def_i I o Comment.ignore;
-val show        = local_statement Proof.show I o Comment.ignore;
-val show_i      = local_statement_i Proof.show_i I o Comment.ignore;
-val have        = local_statement Proof.have I o Comment.ignore;
-val have_i      = local_statement_i Proof.have_i I o Comment.ignore;
-val thus        = local_statement Proof.show Proof.chain o Comment.ignore;
-val thus_i      = local_statement_i Proof.show_i Proof.chain o Comment.ignore;
-val hence       = local_statement Proof.have Proof.chain o Comment.ignore;
-val hence_i     = local_statement_i Proof.have_i Proof.chain o Comment.ignore;
+val show        = local_statement (Proof.show Seq.single) I o Comment.ignore;
+val show_i      = local_statement_i (Proof.show_i Seq.single) I o Comment.ignore;
+val have        = local_statement (Proof.have Seq.single) I o Comment.ignore;
+val have_i      = local_statement_i (Proof.have_i Seq.single) I o Comment.ignore;
+val thus        = local_statement (Proof.show Seq.single) Proof.chain o Comment.ignore;
+val thus_i      = local_statement_i (Proof.show_i Seq.single) Proof.chain o Comment.ignore;
+val hence       = local_statement (Proof.have Seq.single) Proof.chain o Comment.ignore;
+val hence_i     = local_statement_i (Proof.have_i Seq.single) Proof.chain o Comment.ignore;
 
 
 (* blocks *)

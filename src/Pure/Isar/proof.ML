@@ -17,6 +17,7 @@ sig
   val sign_of: state -> Sign.sg
   val the_facts: state -> thm list
   val the_fact: state -> thm
+  val get_goal: state -> thm list * thm
   val goal_facts: (state -> thm list) -> state -> state
   val use_facts: state -> state
   val reset_facts: state -> state
@@ -64,14 +65,14 @@ sig
   val chain: state -> state
   val export_chain: state -> state Seq.seq
   val from_facts: thm list -> state -> state
-  val show: string -> context attribute list -> string * (string list * string list)
-    -> state -> state
-  val show_i: string -> context attribute list -> term * (term list * term list)
-    -> state -> state
-  val have: string -> context attribute list -> string * (string list * string list)
-    -> state -> state
-  val have_i: string -> context attribute list -> term * (term list * term list)
-    -> state -> state
+  val show: (state -> state Seq.seq) -> string -> context attribute list
+    -> string * (string list * string list) -> state -> state
+  val show_i: (state -> state Seq.seq) -> string -> context attribute list
+    -> term * (term list * term list) -> state -> state
+  val have: (state -> state Seq.seq) -> string -> context attribute list
+    -> string * (string list * string list) -> state -> state
+  val have_i: (state -> state Seq.seq) -> string -> context attribute list
+    -> term * (term list * term list) -> state -> state
   val at_bottom: state -> bool
   val local_qed: (state -> state Seq.seq)
     -> ({kind: string, name: string, thm: thm} -> unit) * (thm -> unit) -> state -> state Seq.seq
@@ -125,24 +126,22 @@ val mode_name =
     (fn Forward => "state" | ForwardChain => "chain" | Backward => "prove");
 
 
-(* type node *)
-
-type node =
- {context: context,
-  facts: thm list option,
-  mode: mode,
-  goal: goal option};
-
-fun make_node (context, facts, mode, goal) =
-  {context = context, facts = facts, mode = mode, goal = goal}: node;
-
-
 (* datatype state *)
 
-datatype state =
+datatype node =
+  Node of
+   {context: context,
+    facts: thm list option,
+    mode: mode,
+    goal: (goal * (state -> state Seq.seq)) option}
+and state =
   State of
     node *              (*current*)
     node list;          (*parents wrt. block structure*)
+
+fun make_node (context, facts, mode, goal) =
+  Node {context = context, facts = facts, mode = mode, goal = goal};
+
 
 exception STATE of string * state;
 
@@ -155,7 +154,7 @@ fun check_result msg state sq =
   | Some s_sq => Seq.cons s_sq);
 
 
-fun map_current f (State ({context, facts, mode, goal}, nodes)) =
+fun map_current f (State (Node {context, facts, mode, goal}, nodes)) =
   State (make_node (f (context, facts, mode, goal)), nodes);
 
 fun init_state thy =
@@ -167,13 +166,13 @@ fun init_state thy =
 
 (* context *)
 
-fun context_of (State ({context, ...}, _)) = context;
+fun context_of (State (Node {context, ...}, _)) = context;
 val theory_of = ProofContext.theory_of o context_of;
 val sign_of = ProofContext.sign_of o context_of;
 
 fun map_context f = map_current (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
-fun map_context_result f (state as State ({context, facts, mode, goal}, nodes)) =
+fun map_context_result f (state as State (Node {context, facts, mode, goal}, nodes)) =
   let val (context', result) = f context
   in (State (make_node (context', facts, mode, goal), nodes), result) end;
 
@@ -190,7 +189,7 @@ val assumptions = ProofContext.assumptions o context_of;
 
 (* facts *)
 
-fun the_facts (State ({facts = Some facts, ...}, _)) = facts
+fun the_facts (State (Node {facts = Some facts, ...}, _)) = facts
   | the_facts state = raise STATE ("No current facts available", state);
 
 fun the_fact state =
@@ -199,7 +198,7 @@ fun the_fact state =
   | _ => raise STATE ("Single fact expected", state));
 
 fun assert_facts state = (the_facts state; state);
-fun get_facts (State ({facts, ...}, _)) = facts;
+fun get_facts (State (Node {facts, ...}, _)) = facts;
 
 fun put_facts facts state =
   state
@@ -218,14 +217,18 @@ fun these_facts (state, ths) = have_facts ths state;
 
 (* goal *)
 
-fun find_goal i (state as State ({goal = Some goal, ...}, _)) = (context_of state, (i, goal))
-  | find_goal i (State ({goal = None, ...}, node :: nodes)) =
+fun find_goal i (state as State (Node {goal = Some goal, ...}, _)) = (context_of state, (i, goal))
+  | find_goal i (State (Node {goal = None, ...}, node :: nodes)) =
       find_goal (i + 1) (State (node, nodes))
   | find_goal _ (state as State (_, [])) = err_malformed "find_goal" state;
 
+fun get_goal state =
+  let val (_, (_, ((_, goal), _))) = find_goal 0 state
+  in goal end;
+
 fun put_goal goal = map_current (fn (ctxt, facts, mode, _) => (ctxt, facts, mode, goal));
 
-fun map_goal f (State ({context, facts, mode, goal = Some goal}, nodes)) =
+fun map_goal f (State (Node {context, facts, mode, goal = Some goal}, nodes)) =
       State (make_node (context, facts, mode, Some (f goal)), nodes)
   | map_goal f (State (nd, node :: nodes)) =
       let val State (node', nodes') = map_goal f (State (node, nodes))
@@ -234,7 +237,7 @@ fun map_goal f (State ({context, facts, mode, goal = Some goal}, nodes)) =
 
 fun goal_facts get state =
   state
-  |> map_goal (fn (result, (_, thm)) => (result, (get state, thm)));
+  |> map_goal (fn ((result, (_, thm)), f) => ((result, (get state, thm)), f));
 
 fun use_facts state =
   state
@@ -244,7 +247,7 @@ fun use_facts state =
 
 (* mode *)
 
-fun get_mode (State ({mode, ...}, _)) = mode;
+fun get_mode (State (Node {mode, ...}, _)) = mode;
 fun put_mode mode = map_current (fn (ctxt, facts, _, goal) => (ctxt, facts, mode, goal));
 
 val enter_forward = put_mode Forward;
@@ -292,7 +295,7 @@ fun print_facts _ None = ()
   | print_facts s (Some ths) =
       Pretty.writeln (Pretty.big_list (s ^ " facts:") (map pretty_thm ths));
 
-fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
+fun print_state (state as State (Node {context, facts, mode, goal = _}, nodes)) =
   let
     val ref (_, _, begin_goal) = Goals.current_goals_markers;
 
@@ -300,7 +303,7 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
       | levels_up 1 = " (1 level up)"
       | levels_up i = " (" ^ string_of_int i ^ " levels up)";
 
-    fun print_goal (_, (i, ((kind, name, _), (goal_facts, thm)))) =
+    fun print_goal (_, (i, (((kind, name, _), (goal_facts, thm)), _))) =
       (print_facts "Using" (if null goal_facts then None else Some goal_facts);
         writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 2) ^ ":");
         Locale.print_goals_marker begin_goal (! goals_limit) thm);
@@ -335,15 +338,15 @@ fun check_sign sg state =
   if Sign.subsig (sg, sign_of state) then state
   else raise STATE ("Bad signature of result: " ^ Sign.str_of_sg sg, state);
 
-fun refine meth_fun (state as State ({context, ...}, _)) =
+fun refine meth_fun state =
   let
-    val Method meth = meth_fun context;
-    val (_, (_, (result, (facts, thm)))) = find_goal 0 state;
+    val Method meth = meth_fun (context_of state);
+    val (_, (_, ((result, (facts, thm)), f))) = find_goal 0 state;
 
     fun refn thm' =
       state
       |> check_sign (Thm.sign_of_thm thm')
-      |> map_goal (K (result, (facts, thm')));
+      |> map_goal (K ((result, (facts, thm')), f));
   in Seq.map refn (meth facts thm) end;
 
 
@@ -403,12 +406,12 @@ fun RANGE [] _ = all_tac
 
 fun export_goal print_rule raw_rule inner state =
   let
-    val (outer, (_, (result, (facts, thm)))) = find_goal 0 state;
+    val (outer, (_, ((result, (facts, thm)), f))) = find_goal 0 state;
     val (exp, tacs) = export_wrt inner (Some outer);
     val rule = exp raw_rule;
     val _ = print_rule rule;
     val thmq = FIRSTGOAL (Tactic.rtac rule THEN' RANGE (map #1 tacs)) thm;
-  in Seq.map (fn th => map_goal (K (result, (facts, th))) state) thmq end;
+  in Seq.map (fn th => map_goal (K ((result, (facts, th)), f)) state) thmq end;
 
 
 fun export_thm inner thm =
@@ -573,7 +576,7 @@ fun from_facts facts state =
 
 (* setup goals *)
 
-fun setup_goal opt_block prepp kind name atts raw_propp state =
+fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
   let
     val (state', prop) =
       state
@@ -589,7 +592,7 @@ fun setup_goal opt_block prepp kind name atts raw_propp state =
     val goal = foldr cut_asm (casms, Drule.mk_triv_goal cprop);
   in
     state'
-    |> put_goal (Some ((kind atts, (PureThy.default_name name), prop), ([], goal)))
+    |> put_goal (Some (((kind atts, (PureThy.default_name name), prop), ([], goal)), after_qed))
     |> auto_bind_goal prop
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
@@ -599,7 +602,7 @@ fun setup_goal opt_block prepp kind name atts raw_propp state =
 
 (*global goals*)
 fun global_goal prep kind name atts x thy =
-  setup_goal I prep kind name atts x (init_state thy);
+  setup_goal I prep kind Seq.single name atts x (init_state thy);
 
 val theorem = global_goal ProofContext.bind_propp Theorem;
 val theorem_i = global_goal ProofContext.bind_propp_i Theorem;
@@ -608,8 +611,8 @@ val lemma_i = global_goal ProofContext.bind_propp_i Lemma;
 
 
 (*local goals*)
-fun local_goal prep kind name atts x =
-  setup_goal open_block prep kind name atts x;
+fun local_goal prep kind f name atts x =
+  setup_goal open_block prep kind f name atts x;
 
 val show   = local_goal ProofContext.bind_propp Goal;
 val show_i = local_goal ProofContext.bind_propp_i Goal;
@@ -622,12 +625,12 @@ val have_i = local_goal ProofContext.bind_propp_i Aux;
 
 (* current goal *)
 
-fun current_goal (State ({context, goal = Some goal, ...}, _)) = (context, goal)
+fun current_goal (State (Node {context, goal = Some goal, ...}, _)) = (context, goal)
   | current_goal state = raise STATE ("No current goal!", state);
 
-fun assert_current_goal true (state as State ({goal = None, ...}, _)) =
+fun assert_current_goal true (state as State (Node {goal = None, ...}, _)) =
       raise STATE ("No goal in this block!", state)
-  | assert_current_goal false (state as State ({goal = Some _, ...}, _)) =
+  | assert_current_goal false (state as State (Node {goal = Some _, ...}, _)) =
       raise STATE ("Goal present in this block!", state)
   | assert_current_goal _ state = state;
 
@@ -652,7 +655,7 @@ fun end_proof bot state =
 
 fun finish_local (print_result, print_rule) state =
   let
-    val (ctxt, ((kind, name, t), (_, raw_thm))) = current_goal state;
+    val (ctxt, (((kind, name, t), (_, raw_thm)), after_qed)) = current_goal state;
     val result = prep_result state t raw_thm;
     val (atts, opt_solve) =
       (case kind of
@@ -666,6 +669,7 @@ fun finish_local (print_result, print_rule) state =
     |> auto_bind_facts name [t]
     |> have_thmss [] name atts [Thm.no_attributes [result]]
     |> opt_solve
+    |> (Seq.flat o Seq.map after_qed)
   end;
 
 fun local_qed finalize print state =
@@ -679,7 +683,7 @@ fun local_qed finalize print state =
 
 fun finish_global state =
   let
-    val (_, ((kind, name, t), (_, raw_thm))) = current_goal state;
+    val (_, (((kind, name, t), (_, raw_thm)), _)) = current_goal state;   (*ignores after_qed!*)
     val result = final_result state (prep_result state t raw_thm);
 
     val atts =
