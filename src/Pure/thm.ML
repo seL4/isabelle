@@ -1611,7 +1611,7 @@ val add_simprocs = foldl add_simproc;
 (* del_simprocs *)
 
 fun del_simproc (mss as Mss {rules, congs, procs, bounds, prems, mk_rews, termless},
-    (sign, lhs, proc, id)) =
+    (sign:Sign.sg, lhs, proc, id)) =
   mk_mss (rules, congs,
     Net.delete_term ((lhs, (proc, id)), procs, eq_simproc) handle Net.DELETE =>
       (trace_warning "simplification procedure not in simpset"; procs),
@@ -1765,14 +1765,14 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
       in sort rrs ([],[]) 
       end
 
-      fun proc_rews [] = None
-        | proc_rews ((f, _) :: fs) =
-            (case f signt t of
-              None => proc_rews fs
+      fun proc_rews _ [] = None
+        | proc_rews eta_t ((f, _) :: fs) =
+            (case f signt eta_t of
+              None => proc_rews eta_t fs
             | Some raw_thm =>
                 (trace_thm "Proved rewrite rule: " raw_thm;
                  (case rews (mk_procrule raw_thm) of
-                   None => proc_rews fs
+                   None => proc_rews eta_t fs
                  | some => some)));
   in
     (case t of
@@ -1780,7 +1780,7 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
         Some (shypst, hypst, maxt, subst_bound (u, body), ders)
      | _ =>
       (case rews (sort_rrules (Net.match_term rules t)) of
-        None => proc_rews (Net.match_term procs t)
+        None => proc_rews (Pattern.eta_contract t) (Net.match_term procs t)
       | some => some))
   end;
 
