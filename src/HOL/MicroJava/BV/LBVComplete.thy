@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Gerwin Klein
     Copyright   2000 Technische Universitaet Muenchen
-
-Proof of completeness for the lightweight bytecode verifier
 *)
+
+header {* Completeness of the LBV *}
 
 theory LBVComplete = LBVSpec:;
 

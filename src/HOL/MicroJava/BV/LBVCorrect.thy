@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
-
-    Correctness of the lightweight bytecode verifier
 *)
+
+header {* Correctness of the LBV *}
 
 theory LBVCorrect = LBVSpec:;
 

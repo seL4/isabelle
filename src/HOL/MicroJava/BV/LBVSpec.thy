@@ -2,9 +2,10 @@
     ID:         $Id$
     Author:     Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
-
-Specification of a lightweight bytecode verifier
 *)
+
+header {* Specification of the LBV *}
+
 
 theory LBVSpec = BVSpec:;
 
@@ -84,7 +85,7 @@ consts
  wtl_CH	:: "[check_object,jvm_prog,state_type,state_type,p_count,p_count] \\<Rightarrow> bool"; 
 primrec
 "wtl_CH (Checkcast C) G s s' max_pc pc = 
-	(let (ST,LT) = s
+	(let (ST,LT) = s 
 	 in
 	 pc+1 < max_pc \\<and>
 	 is_class G C \\<and> 
@@ -221,9 +222,10 @@ constdefs
     wf_prog (\\<lambda>G C (sig,rT,maxl,b). 
                wtl_method G C (snd sig) rT maxl b (cert C sig)) G"; 
 
+text {* \medskip *}
+
 lemma rev_eq: "\\<lbrakk>length a = n; length x = n; rev a @ b # c = rev x @ y # z\\<rbrakk> \\<Longrightarrow> a = x \\<and> b = y \\<and> c = z";
-proof auto;
-qed;
+by auto;
 
 lemma wtl_inst_unique: 
 "wtl_inst i G rT s0 s1 cert max_pc pc \\<longrightarrow>
@@ -244,7 +246,7 @@ case MI;
   thus "wtl_inst (MI (Invoke mname list)) G rT s0 s1 cert max_pc pc \\<longrightarrow>
         wtl_inst (MI (Invoke mname list)) G rT s0 s1' cert max_pc pc \\<longrightarrow>
         s1 = s1'";
-  proof (elim);
+  proof elim;
     apply_end(clarsimp_tac, drule rev_eq, assumption+);
   qed auto;
  qed;
@@ -271,7 +273,7 @@ proof (induct "?P" "is");
 
   case Cons;
   show "?P (a # list)"; 
-  proof (intro);
+  proof intro;
     fix s0; fix pc; 
     let "?o s0 s1" = "wtl_inst_option a G rT s0 s1 cert max_pc pc";
     let "?l l s1 s2 pc" = "wtl_inst_list l G rT s1 s2 cert max_pc pc"; 
