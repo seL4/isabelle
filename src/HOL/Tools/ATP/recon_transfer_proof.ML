@@ -254,7 +254,7 @@ val negate_head = rewrite_rule [atomize_not, not_not RS eq_reflection];
 fun select_literal i cl = negate_head (make_last i cl);
 
  fun get_axioms_used proof_steps thmstring = let 
-                                             val  outfile = TextIO.openOut("foo_ax_thmstr");                                                                       
+                                             val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_ax_thmstr")))                                                                      
                                              val _ = TextIO.output (outfile, thmstring)
                                              
                                              val _ =  TextIO.closeOut outfile
@@ -282,11 +282,11 @@ fun select_literal i cl = negate_head (make_last i cl);
                                             val meta_strs = map get_meta_lits metas
                                            
                                             val metas_and_strs = zip  metas meta_strs
-                                             val  outfile = TextIO.openOut("foo_clauses");                                                                       
+                                             val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_clauses")));                                                                       
                                              val _ = TextIO.output (outfile, (onestr ax_strs ""))
                                              
                                              val _ =  TextIO.closeOut outfile
-                                             val  outfile = TextIO.openOut("foo_metastrs");                                                                       
+                                             val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_metastrs")));                                                                       
                                              val _ = TextIO.output (outfile, (onestr meta_strs ""))
                                              val _ =  TextIO.closeOut outfile
 
@@ -306,12 +306,14 @@ fun select_literal i cl = negate_head (make_last i cl);
                                                                          []
 
                                            (* val _=  (print_mode := (Library.gen_rems (op =) (! print_mode, ["xsymbols", "symbols"])))
-                                           val  outfile = TextIO.openOut("foo_metas")
+                                           val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_metas")))
 
                                            val _ = TextIO.output (outfile, ((thmstrings ax_metas "")))
                                            val _ =  TextIO.closeOut outfile
-                                            val execperl = Unix.execute("/usr/bin/perl", ["remchars2.pl <foo_metas >foo_metas2"])
-                                         val infile = TextIO.openIn("foo_metas2")
+                                          val foo_metas =  File.sysify_path(File.tmp_path (Path.basic "foo_metas"))
+                                          val foo_metas2 =   File.sysify_path(File.tmp_path (Path.basic "foo_metas2"))
+                                            val execperl = Unix.execute("/usr/bin/perl", ["remchars.pl", "  <", foo_metas, "  >", foo_metas2])
+                                         val infile = TextIO.openIn(File.sysify_path(File.tmp_path (Path.basic "foo_metas2")))
                                         val ax_metas_str = TextIO.inputLine (infile)
                                         val _ = TextIO.closeIn infile
                                            val _= (print_mode := (["xsymbols", "symbols"] @ ! print_mode))*)
@@ -400,7 +402,7 @@ val proofstr = "Did parsing on Here is a proof with depth 2, length 5 :\
 
 
 fun spassString_to_reconString proofstr thmstring = 
-                                              let val  outfile = TextIO.openOut("thmstringfile");                                                                                      val _= warning("proofstr is: "^proofstr);
+                                              let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "thmstringfile")));                                                                                      val _= warning("proofstr is: "^proofstr);
                                                   val _ = warning ("thmstring is: "^thmstring);
                                                   val _ = TextIO.output (outfile, (thmstring))
                                                   val _ =  TextIO.closeOut outfile
@@ -414,10 +416,10 @@ fun spassString_to_reconString proofstr thmstring =
                                                   val proof_steps1 = parse tokens
                                                   val proof_steps = just_change_space proof_steps1
 
-                                                  val  outfile = TextIO.openOut("foo_parse");                                                                                          val _ = TextIO.output (outfile, ("Did parsing on "^proofstr))
+                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_parse")));                                                                                          val _ = TextIO.output (outfile, ("Did parsing on "^proofstr))
                                                   val _ =  TextIO.closeOut outfile
                                                 
-                                                  val  outfile = TextIO.openOut("foo_thmstring_at_parse");                                                                             val _ = TextIO.output (outfile, ("Parsing for thmstring: "^thmstring))
+                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_thmstring_at_parse")));                                                                             val _ = TextIO.output (outfile, ("Parsing for thmstring: "^thmstring))
                                                   val _ =  TextIO.closeOut outfile
                                               (************************************)
                                               (* recreate original subgoal as thm *)
@@ -427,16 +429,16 @@ fun spassString_to_reconString proofstr thmstring =
                                                   val (frees,vars,extra_with_vars ,ax_with_vars,numcls) = get_axioms_used proof_steps thmstring
                                                   
                                                   (*val numcls_string = numclstr ( vars, numcls) ""*)
-                                                  val  outfile = TextIO.openOut("foo_axiom");                                                                            val _ = TextIO.output (outfile,"got axioms")
+                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_axiom")));                                                                            val _ = TextIO.output (outfile,"got axioms")
                                                   val _ =  TextIO.closeOut outfile
                                                     
                                               (************************************)
                                               (* translate proof                  *)
                                               (************************************)
-                                                  val  outfile = TextIO.openOut("foo_steps");                                                          val _ = TextIO.output (outfile, ("about to translate proof, steps: "^(init_proofsteps_to_string proof_steps "")))
+                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_steps")));                                                          val _ = TextIO.output (outfile, ("about to translate proof, steps: "^(init_proofsteps_to_string proof_steps "")))
                                                   val _ =  TextIO.closeOut outfile
                                                   val (newthm,proof) = translate_proof numcls  proof_steps vars
-                                                  val  outfile = TextIO.openOut("foo_steps2");                                                                         val _ = TextIO.output (outfile, ("translated proof, steps: "^(init_proofsteps_to_string proof_steps "")))
+                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_steps2")));                                                                         val _ = TextIO.output (outfile, ("translated proof, steps: "^(init_proofsteps_to_string proof_steps "")))
                                                   val _ =  TextIO.closeOut outfile
                                               (***************************************************)
                                               (* transfer necessary steps as strings to Isabelle *)
@@ -453,14 +455,14 @@ fun spassString_to_reconString proofstr thmstring =
                                                   val extra_nums = if (not (extra_with_vars = [])) then (1 upto (length extra_with_vars)) else []
                                                   val reconExtraAxStr = extraAxs_to_string ( zip extra_nums extra_with_vars) ""
                                                   val frees_str = "["^(thmvars_to_string frees "")^"]"
-                                                  val  outfile = TextIO.openOut("reconstringfile");
+                                                  val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "reconstringfile")));
 
                                                   val _ = TextIO.output (outfile, (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr))
                                                   val _ =  TextIO.closeOut outfile
                                               in 
                                                    (frees_str^reconExtraAxStr^reconIsaAxStr^reconProofStr)
                                               end
-                                              handle _ => (let val  outfile = TextIO.openOut("foo_handler");
+                                              handle _ => (let val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "foo_handler")));
 
                                                   val _ = TextIO.output (outfile, ("In exception handler"));
                                                   val _ =  TextIO.closeOut outfile
@@ -765,7 +767,7 @@ fun to_isar_proof (frees, xs, goalstring) = let val extraaxioms = get_extraaxiom
                            (isar_lines firststeps "")^
                            (last_isar_line laststep)^
                            ("qed")
-                          val  outfile = TextIO.openOut("isar_proof_file");
+                          val  outfile = TextIO.openOut(File.sysify_path(File.tmp_path (Path.basic "isar_proof_file")));
 
                                                   val _ = TextIO.output (outfile, isar_proof)
                                                   val _ =  TextIO.closeOut outfile
@@ -801,7 +803,7 @@ fun apply_res_thm str goalstring  = let val tokens = fst (lex str);
 
                                    val (frees,recon_steps) = parse_step tokens 
                                    val isar_str = to_isar_proof (frees, recon_steps, goalstring)
-                                   val foo =   TextIO.openOut "foobar";
+                                   val foo =   TextIO.openOut (File.sysify_path(File.tmp_path (Path.basic "foobar")));
                                in 
                                   TextIO.output(foo,(isar_str));TextIO.closeOut foo;Pretty.writeln(Pretty.str  isar_str); () 
                                end 
