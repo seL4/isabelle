@@ -526,12 +526,9 @@ Goal "[| Notes A {|Agent B, Nonce PMS|} : set evs;  \
 \     ==> Key (clientK(Na,Nb,PRF(PMS,NA,NB))) ~: parts (spies evs)";
 by (etac rev_mp 1);
 by (etac rev_mp 1);
-(* FIXME zero_neq_conv *)
-DelIffs [zero_neq_conv];
 by (analz_induct_tac 1);        (*17 seconds*)
 (*Oops*)
 by (blast_tac (claset() addIs [Says_clientK_unique]) 4);
-AddIffs [zero_neq_conv];
 (*ClientKeyExch*)
 by (blast_tac (claset() addSDs [PMS_sessionK_not_spied]) 3);
 (*SpyKeys*)

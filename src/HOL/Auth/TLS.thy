@@ -41,28 +41,26 @@ about that message (which B receives) and the stronger event
 
 TLS = Public + 
 
+constdefs
+  certificate      :: "[agent,key] => msg"
+    "certificate A KA == Crypt (priK Server) {|Agent A, Key KA|}"
+
 consts
   (*Pseudo-random function of Section 5*)
   PRF  :: "nat*nat*nat => nat"
 
   (*Client, server write keys are generated uniformly by function sessionK
-    to avoid duplicating their properties.  They are indexed by a further
-    natural number, not a bool, to avoid the peculiarities of if-and-only-if.
+    to avoid duplicating their properties.  They are distinguished by a
+    tag (not a bool, to avoid the peculiarities of if-and-only-if).
     Session keys implicitly include MAC secrets.*)
-  sessionK :: "(nat*nat*nat)*nat => key"
-
-  certificate      :: "[agent,key] => msg"
-
-defs
-  certificate_def
-    "certificate A KA == Crypt (priK Server) {|Agent A, Key KA|}"
+  sessionK :: "(nat*nat*nat) * (unit option) => key"
 
 syntax
     clientK, serverK :: "nat*nat*nat => key"
 
 translations
-  "clientK X" == "sessionK(X,0)"
-  "serverK X" == "sessionK(X,1)"
+  "clientK X" == "sessionK(X,None)"
+  "serverK X" == "sessionK(X,Some())"
 
 rules
   (*the pseudo-random function is collision-free*)
