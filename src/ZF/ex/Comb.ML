@@ -23,9 +23,6 @@ val Ap_E = comb.mk_cases comb.con_defs "p#q : comb";
 
 (*** Results about Contraction ***)
 
-bind_thm ("contract_induct",
-    (contract.mutual_induct RS spec RS spec RSN (2,rev_mp)));
-
 (*For type checking: replaces a-1->b by a,b:comb *)
 val contract_combE2 = contract.dom_subset RS subsetD RS SigmaE2;
 val contract_combD1 = contract.dom_subset RS subsetD RS SigmaD1;
@@ -119,9 +116,6 @@ qed "not_diamond_contract";
 
 (*** Results about Parallel Contraction ***)
 
-bind_thm ("parcontract_induct",
-    (parcontract.mutual_induct RS spec RS spec RSN (2,rev_mp)));
-
 (*For type checking: replaces a=1=>b by a,b:comb *)
 val parcontract_combE2 = parcontract.dom_subset RS subsetD RS SigmaE2;
 val parcontract_combD1 = parcontract.dom_subset RS subsetD RS SigmaD1;
@@ -163,7 +157,7 @@ qed "S2_parcontractD";
 (*Church-Rosser property for parallel contraction*)
 goalw Comb.thy [diamond_def] "diamond(parcontract)";
 by (rtac (impI RS allI RS allI) 1);
-by (etac parcontract_induct 1);
+by (etac parcontract.induct 1);
 by (ALLGOALS 
     (fast_tac (parcontract_cs addSDs [K1_parcontractD,S2_parcontractD])));
 qed "diamond_parcontract";
@@ -192,7 +186,7 @@ qed "diamond_trancl";
 (*** Equivalence of p--->q and p===>q ***)
 
 goal Comb.thy "!!p q. p-1->q ==> p=1=>q";
-by (etac contract_induct 1);
+by (etac contract.induct 1);
 by (ALLGOALS (fast_tac (parcontract_cs)));
 qed "contract_imp_parcontract";
 
@@ -207,7 +201,7 @@ qed "reduce_imp_parreduce";
 
 
 goal Comb.thy "!!p q. p=1=>q ==> p--->q";
-by (etac parcontract_induct 1);
+by (etac parcontract.induct 1);
 by (fast_tac (contract_cs addIs reduction_rls) 1);
 by (fast_tac (contract_cs addIs reduction_rls) 1);
 by (fast_tac (contract_cs addIs reduction_rls) 1);

@@ -11,31 +11,28 @@ open Residuals;
 (*       Setting up rule lists                                               *)
 (* ------------------------------------------------------------------------- *)
 
-val residuals_induct = standard
-    (Sres.mutual_induct RS spec RS spec RS spec RSN (2,rev_mp));
-
 val res_cs = union_cs 
       addIs (Sres.intrs@redexes.intrs@Sreg.intrs@
              [subst_type]@nat_typechecks) 
-      addSEs (redexes.free_SEs@
-       [Sres.mk_cases redexes.con_defs "residuals(Var(n),Var(n),v)",
-        Sres.mk_cases redexes.con_defs "residuals(Fun(t),Fun(u),v)",
-        Sres.mk_cases redexes.con_defs 
-             "residuals(App(b, u1, u2), App(0, v1, v2),v)",
-        Sres.mk_cases redexes.con_defs 
-             "residuals(App(b, u1, u2), App(1, Fun(v1), v2),v)",
-        Sres.mk_cases redexes.con_defs "residuals(Var(n),u,v)",
-        Sres.mk_cases redexes.con_defs "residuals(Fun(t),u,v)",
-        Sres.mk_cases redexes.con_defs "residuals(App(b, u1, u2), w,v)",
-        Sres.mk_cases redexes.con_defs "residuals(u,Var(n),v)",
-        Sres.mk_cases redexes.con_defs "residuals(u,Fun(t),v)",
-        Sres.mk_cases redexes.con_defs "residuals(w,App(b, u1, u2),v)",
-        Ssub.mk_cases redexes.con_defs "Var(n) <== u",
-        Ssub.mk_cases redexes.con_defs "Fun(n) <== u",
-        Ssub.mk_cases redexes.con_defs "u <== Fun(n)",
-        Ssub.mk_cases redexes.con_defs "App(1,Fun(t),a) <== u",
-        Ssub.mk_cases redexes.con_defs "App(0,t,a) <== u",
-        redexes.mk_cases redexes.con_defs "Fun(t):redexes"]);
+      addSEs (redexes.free_SEs @
+	      (map (Sres.mk_cases redexes.con_defs) 
+	           ["residuals(Var(n),Var(n),v)",
+		    "residuals(Fun(t),Fun(u),v)",
+		    "residuals(App(b, u1, u2), App(0, v1, v2),v)",
+		    "residuals(App(b, u1, u2), App(1, Fun(v1), v2),v)",
+		    "residuals(Var(n),u,v)",
+		    "residuals(Fun(t),u,v)",
+		    "residuals(App(b, u1, u2), w,v)",
+		    "residuals(u,Var(n),v)",
+		    "residuals(u,Fun(t),v)",
+		    "residuals(w,App(b, u1, u2),v)"]) @
+	      (map (Ssub.mk_cases redexes.con_defs) 
+	           ["Var(n) <== u",
+		    "Fun(n) <== u",
+		    "u <== Fun(n)",
+		    "App(1,Fun(t),a) <== u",
+		    "App(0,t,a) <== u"]) @
+	      [redexes.mk_cases redexes.con_defs "Fun(t):redexes"]);
 
 val res_ss = subst_ss addsimps (Sres.intrs);
 val resD1 =Sres.dom_subset RS subsetD RS SigmaD1;
@@ -49,14 +46,14 @@ val resD3 =Sres.dom_subset RS subsetD RS SigmaD2 RS SigmaD2;
 
 goal Residuals.thy 
     "!!u.residuals(u,v,w) ==> ALL w1.residuals(u,v,w1) --> w1 = w";
-by (etac residuals_induct 1);
+by (etac Sres.induct 1);
 by (ALLGOALS (fast_tac res_cs ));
 val residuals_function = result();
 val res_is_func  = residuals_function  RS spec RS mp;
 
 goal Residuals.thy 
     "!!u.u~v ==> regular(v) --> (EX w.residuals(u,v,w))";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS (fast_tac res_cs));
 val residuals_intro = result();
 
@@ -102,7 +99,7 @@ val res_redex = result();
 
 goal Residuals.thy
     "!!n.[|s~t; regular(t)|]==> regular(t) --> s |> t:redexes";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS (asm_full_simp_tac 
              (res_ss addsimps [res_Var,res_Fun,res_App,res_redex] 
               setloop (SELECT_GOAL (safe_tac res_cs)))));
@@ -125,20 +122,20 @@ val res1L_ss = res1_ss setloop (SELECT_GOAL (safe_tac res_cs));
 
 goal Residuals.thy 
     "!!u.u<==v ==> u~v";
-by (etac sub_induct 1);
+by (etac Ssub.induct 1);
 by (ALLGOALS (asm_simp_tac res1_ss));
 val sub_comp = result();
 
 goal Residuals.thy 
     "!!u.u<==v  ==> regular(v) --> regular(u)";
-by (etac sub_induct 1);
+by (etac Ssub.induct 1);
 by (ALLGOALS (asm_simp_tac res1L_ss));
 val sub_preserve_reg = result();
 
 goal Residuals.thy 
     "!!u.[|u~v; k:nat|]==> regular(v)--> (ALL n:nat.  \
 \        lift_rec(u,n) |> lift_rec(v,n) = lift_rec(u |> v,n))";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (step_tac res_cs 1);
 by (ALLGOALS (asm_full_simp_tac ((addsplit res1_ss) addsimps [lift_subst])));
 by (dres_inst_tac [("psi", "ALL x:nat.Fun(?u(x)) |> ?v(x) = ?w(x)")] asm_rl 1);
@@ -149,7 +146,7 @@ goal Residuals.thy
     "!!u.u1~u2 ==>  ALL v1 v2.v1~v2 --> regular(v2) --> regular(u2) -->\
 \   (ALL n:nat.subst_rec(v1,u1,n) |> subst_rec(v2,u2,n) = \
 \              subst_rec(v1 |> v2, u1 |> u2,n))";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (step_tac (res_cs) 1);
 by (ALLGOALS
     (asm_full_simp_tac ((addsplit res1_ss) addsimps ([residuals_lift_rec]))));
@@ -170,7 +167,7 @@ val commutation = result();
 
 goal Residuals.thy 
     "!!u.u~v ==> ALL w. u~w --> v~w --> regular(w) --> (u|>w) ~ (v|>w)";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS (asm_simp_tac (res1L_ss )));
 by (dresolve_tac [spec RS mp RS mp RS mp] 1 
     THEN resolve_tac Scomp.intrs 1 THEN resolve_tac Scomp.intrs 2 
@@ -182,7 +179,7 @@ val residuals_preserve_comp = result();
 
 goal Residuals.thy 
     "!!u.u~v ==> regular(u) --> regular(v) --> regular(u|>v)";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (safe_tac res_cs);
 by (TRYALL (dres_inst_tac [("psi", "regular(Fun(?u) |> ?v)")] asm_rl));
 by (ALLGOALS (asm_full_simp_tac res1L_ss));
@@ -194,13 +191,13 @@ val residuals_preserve_reg = result();
 
 goal Residuals.thy 
     "!!u.u~v ==> v ~ (u un v)";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS (asm_full_simp_tac res_ss));
 val union_preserve_comp = result();
 
 goal Residuals.thy 
     "!!u.u ~ v ==> regular(v) --> u|>v = (u un v)|>v";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (safe_tac res_cs);
 by (dres_inst_tac [("psi", "Fun(?u) |> ?v = ?w")] asm_rl 3);
 by (ALLGOALS (asm_full_simp_tac (res1L_ss addsimps 

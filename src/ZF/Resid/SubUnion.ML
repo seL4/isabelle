@@ -12,9 +12,6 @@ fun rotate n i = EVERY(replicate n (etac revcut_rl i));
 (*    Specialisation of comp-rules                                           *)
 (* ------------------------------------------------------------------------- *)
 
-val comp_induct = standard
-    (Scomp.mutual_induct RS spec RS spec RSN (2,rev_mp));
-
 val compD1 =Scomp.dom_subset RS subsetD RS SigmaD1;
 val compD2 =Scomp.dom_subset RS subsetD RS SigmaD2;
 
@@ -76,7 +73,7 @@ val comp_refl = result();
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> v ~ u";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS(fast_tac union_cs));
 val comp_sym = result();
 
@@ -88,7 +85,7 @@ val comp_sym_iff = result();
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> ALL w.v ~ w-->u ~ w";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS(fast_tac union_cs));
 val comp_trans1 = result();
 
@@ -98,26 +95,23 @@ val comp_trans = comp_trans1 RS spec RS mp;
 (*   union proofs                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-val sub_induct = standard
-    (Ssub.mutual_induct RS spec RS spec RSN (2,rev_mp));
-
 goal SubUnion.thy 
     "!!u.u ~ v ==> u <== (u un v)";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (etac boolE 3);
 by (ALLGOALS(asm_full_simp_tac union_ss));
 val union_l = result();
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> v <== (u un v)";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (eres_inst_tac [("c","b2")] boolE 3);
 by (ALLGOALS(asm_full_simp_tac union_ss));
 val union_r = result();
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> u un v = v un u";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS(asm_simp_tac (union_ss addsimps [or_commute])));
 val union_sym = result();
 
@@ -127,7 +121,7 @@ val union_sym = result();
 
 goal SubUnion.thy 
     "!!u.u ~ v ==> regular(u)-->regular(v)-->regular(u un v)";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS(asm_full_simp_tac
              (union_ss setloop(SELECT_GOAL (safe_tac union_cs)))));
 by (dres_inst_tac [("psi", "regular(Fun(?u) un ?v)")] asm_rl 1);

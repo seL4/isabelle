@@ -15,9 +15,6 @@ by (REPEAT (ares_tac ([Sigma_mono, list_mono, domain_mono, range_mono] @
                       basic_monos) 1));
 qed "rmap_mono";
 
-bind_thm ("rmap_induct",
-    (rmap.mutual_induct RS spec RS spec RSN (2,rev_mp)));
-
 val Nil_rmap_case = rmap.mk_cases list.con_defs "<Nil,zs> : rmap(r)"
 and Cons_rmap_case = rmap.mk_cases list.con_defs "<Cons(x,xs),zs> : rmap(r)";
 
@@ -39,7 +36,7 @@ qed "rmap_total";
 
 goalw Rmap.thy [function_def] "!!r. function(r) ==> function(rmap(r))";
 by (rtac (impI RS allI RS allI) 1);
-by (etac rmap_induct 1);
+by (etac rmap.induct 1);
 by (ALLGOALS (fast_tac rmap_cs));
 qed "rmap_functional";
 

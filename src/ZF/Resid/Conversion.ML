@@ -9,13 +9,10 @@ open Conversion;
 
 val conv_ss = reduc_ss addsimps (Sconv1.intrs@[Sconv.one_step,Sconv.refl]);
 
-val conv1_induct = Sconv1.mutual_induct RS spec RS spec RSN (2,rev_mp);  
-val conv_induct  = Sconv.mutual_induct RS spec RS spec RSN (2,rev_mp);  
-
 goal Conversion.thy  
     "!!u.m<--->n ==> n<--->m";
-by (etac conv_induct 1);
-by (etac conv1_induct 1);
+by (etac Sconv.induct 1);
+by (etac Sconv1.induct 1);
 by (resolve_tac [Sconv.trans] 4);
 by (ALLGOALS(asm_simp_tac (conv_ss) ));
 val conv_sym = result();
@@ -26,8 +23,8 @@ val conv_sym = result();
 
 goal Conversion.thy  
     "!!u.m<--->n ==> EX p.(m --->p) & (n ---> p)";
-by (etac conv_induct 1);
-by (etac conv1_induct 1);
+by (etac Sconv.induct 1);
+by (etac Sconv1.induct 1);
 by (fast_tac (reduc_cs addIs [red1D1,redD2]) 1);
 by (fast_tac (reduc_cs addIs [red1D1,redD2]) 1);
 by (fast_tac (reduc_cs addIs [red1D1,redD2]) 1);

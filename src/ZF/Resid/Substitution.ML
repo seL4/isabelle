@@ -267,14 +267,14 @@ val substitution = result();
 
 goal Substitution.thy
     "!!n.[|n:nat; u ~ v|]==> ALL m:nat.lift_rec(u,m) ~ lift_rec(v,m)";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS(asm_simp_tac (subst_ss addsimps [comp_refl])));
 val lift_rec_preserve_comp = result();
 
 goal Substitution.thy
     "!!n.u2 ~ v2 ==> ALL m:nat.ALL u1:redexes.ALL v1:redexes.\
 \            u1 ~ v1--> subst_rec(u1,u2,m) ~ subst_rec(v1,v2,m)";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS(asm_full_simp_tac ((addsplit subst_ss) addsimps 
             ([lift_rec_preserve_comp,comp_refl]))));
 val subst_rec_preserve_comp = result();

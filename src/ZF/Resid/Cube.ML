@@ -21,7 +21,7 @@ goal Cube.thy
     "!!u.v<==u ==> \
 \   regular(u)-->(ALL w.w~v-->w~u-->  \
 \             w |> u = (w|>v) |> (u|>v))";
-by (etac sub_induct 1);
+by (etac Ssub.induct 1);
 by (asm_simp_tac (prism_ss) 1);
 by (asm_simp_tac (prism_ss ) 1);
 by (asm_simp_tac (prism_ss ) 1);

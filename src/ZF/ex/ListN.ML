@@ -11,9 +11,6 @@ Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 
 open ListN;
 
-val listn_induct = standard 
-    (listn.mutual_induct RS spec RS spec RSN (2,rev_mp));
-
 goal ListN.thy "!!l. l:list(A) ==> <length(l),l> : listn(A)";
 by (etac list.induct 1);
 by (ALLGOALS (asm_simp_tac list_ss));
@@ -22,7 +19,7 @@ qed "list_into_listn";
 
 goal ListN.thy "<n,l> : listn(A) <-> l:list(A) & length(l)=n";
 by (rtac iffI 1);
-by (etac listn_induct 1);
+by (etac listn.induct 1);
 by (safe_tac (ZF_cs addSIs (list_typechecks @
                             [length_Nil, length_Cons, list_into_listn])));
 qed "listn_iff";
@@ -41,7 +38,7 @@ qed "listn_mono";
 goal ListN.thy
     "!!n l. [| <n,l> : listn(A);  <n',l'> : listn(A) |] ==> \
 \           <n#+n', l@l'> : listn(A)";
-by (etac listn_induct 1);
+by (etac listn.induct 1);
 by (ALLGOALS (asm_simp_tac (list_ss addsimps listn.intrs)));
 qed "listn_append";
 

@@ -35,31 +35,26 @@ val reduc_ss = term_ss addsimps
 
 val reducL_ss = reduc_ss setloop (SELECT_GOAL (safe_tac reduc_cs));
 
-val red1_induct     = Sred1.mutual_induct RS spec RS spec RSN (2,rev_mp);
-val red_induct      = Sred.mutual_induct RS spec RS spec RSN (2,rev_mp);
-val par_red1_induct = Spar_red1.mutual_induct RS spec RS spec RSN (2,rev_mp);
-val par_red_induct  = Spar_red.mutual_induct RS spec RS spec RSN (2,rev_mp);
-
 (* ------------------------------------------------------------------------- *)
 (*     Lemmas for reduction                                                  *)
 (* ------------------------------------------------------------------------- *)
 
 goal Reduction.thy  "!!u. m--->n ==> Fun(m) ---> Fun(n)";
-by (etac red_induct 1);
+by (etac Sred.induct 1);
 by (resolve_tac [Sred.trans] 3);
 by (ALLGOALS (asm_simp_tac reduc_ss ));
 val red_Fun = result();
 
 goal Reduction.thy  
     "!!u.[|n:lambda; m ---> m'|]==> Apl(m,n)--->Apl(m',n)";
-by (etac red_induct 1);
+by (etac Sred.induct 1);
 by (resolve_tac [Sred.trans] 3);
 by (ALLGOALS (asm_simp_tac reduc_ss ));
 val red_Apll = result();
 
 goal Reduction.thy  
     "!!u.[|n:lambda; m ---> m'|]==> Apl(n,m)--->Apl(n,m')";
-by (etac red_induct 1);
+by (etac Sred.induct 1);
 by (resolve_tac [Sred.trans] 3);
 by (ALLGOALS (asm_simp_tac reduc_ss ));
 val red_Aplr = result();
@@ -89,19 +84,19 @@ by (ALLGOALS (asm_simp_tac reduc_ss ));
 val refl_par_red1 = result();
 
 goal Reduction.thy "!!u.m-1->n ==> m=1=>n";
-by (etac red1_induct 1);
+by (etac Sred1.induct 1);
 by (ALLGOALS (asm_simp_tac (reduc_ss addsimps [refl_par_red1]) ));
 val red1_par_red1 = result();
 
 goal Reduction.thy "!!u.m--->n ==> m===>n";
-by (etac red_induct 1);
+by (etac Sred.induct 1);
 by (resolve_tac [Spar_red.trans] 3);
 by (ALLGOALS (asm_simp_tac (reduc_ss addsimps [refl_par_red1,red1_par_red1]) ));
 val red_par_red = result();
 
 goal Reduction.thy "!!u.m===>n ==> m--->n";
-by (etac par_red_induct 1);
-by (etac par_red1_induct 1);
+by (etac Spar_red.induct 1);
+by (etac Spar_red1.induct 1);
 by (resolve_tac [Sred.trans] 5);
 by (ALLGOALS (asm_simp_tac (reduc_ss addsimps [red_Fun,red_beta,red_Apl]) ));
 val par_red_red = result();
@@ -113,7 +108,7 @@ val par_red_red = result();
 
 goal Reduction.thy  
     "!!u.m=1=>n ==> EX v. m|>v = n & m~v & regular(v)";
-by (etac par_red1_induct 1);
+by (etac Spar_red1.induct 1);
 by (step_tac ZF_cs 1);
 by (ALLGOALS (REPEAT o (resolve_tac [exI,conjI])));
 by (TRYALL(resolve_tac [res_redex,res_App,res_Fun,res_Var]));
@@ -147,7 +142,7 @@ val unmmark_subst_rec = result();
 
 goal Reduction.thy  
     "!!u.u~v ==> regular(v) --> unmark(u) =1=> unmark(u|>v)";
-by (etac comp_induct 1);
+by (etac Scomp.induct 1);
 by (ALLGOALS (asm_full_simp_tac (reducL_ss addsimps [unmmark_subst_rec]) ));
 by (dres_inst_tac [("psi", "Fun(?u) =1=> ?w")] asm_rl 1);
 by (asm_full_simp_tac reducL_ss 1);
