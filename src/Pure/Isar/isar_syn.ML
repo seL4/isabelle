@@ -298,7 +298,7 @@ val localeP =
 (* statements *)
 
 val in_locale_elems =
-  Scan.option ((P.$$$ "(" -- P.$$$ "in") |-- P.!!! (P.xname -- P.opt_attribs --| P.$$$ ")")) --
+  Scan.option ((P.$$$ "(" -- P.$$$ "in") |-- P.!!! (P.xname --| P.$$$ ")")) --
   Scan.optional (P.$$$ "(" |-- Scan.repeat1 P.locale_element --| P.!!! (P.$$$ ")")) [];
 
 val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment);
@@ -308,7 +308,7 @@ fun gen_theorem k =
   OuterSyntax.command k ("state " ^ k) K.thy_goal
     (Scan.optional (P.thm_name ":" --| Scan.ahead (P.$$$ "(")) ("", [])
       -- in_locale_elems -- statement' >> (fn ((x, y), z) =>
-      (Toplevel.print o Toplevel.theory_to_proof (IsarThy.multi_theorem k x y z))));
+      (Toplevel.print o Toplevel.theory_to_proof (IsarThy.smart_multi_theorem k x y z))));
 
 val theoremP = gen_theorem Drule.theoremK;
 val lemmaP = gen_theorem Drule.lemmaK;
