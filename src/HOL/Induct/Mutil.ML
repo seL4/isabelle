@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Mutil
+(*  Title:      HOL/Induct/Mutil
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
@@ -23,31 +23,29 @@ qed_spec_mp "tiling_UnI";
 
 (*** Chess boards ***)
 
-val [below_0, below_Suc] = nat_recs below_def;
-Addsimps [below_0, below_Suc];
-
-goal thy "ALL i. (i: below k) = (i<k)";
-by (nat_ind_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [less_Suc_eq])));
+goalw thy [below_def] "(i: below k) = (i<k)";
 by (Blast_tac 1);
-qed_spec_mp "below_less_iff";
+qed "below_less_iff";
+AddIffs [below_less_iff];
 
-Addsimps [below_less_iff];
-
-goal thy "below(Suc n) Times B = ({n} Times B) Un ((below n) Times B)";
+goalw thy [below_def] "below 0 = {}";
 by (Simp_tac 1);
+qed "below_0";
+Addsimps [below_0];
+
+goalw thy [below_def]
+    "below(Suc n) Times B = ({n} Times B) Un ((below n) Times B)";
+by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (Blast_tac 1);
 qed "Sigma_Suc1";
 
-goal thy "A Times below(Suc n) = (A Times {n}) Un (A Times (below n))";
-by (Simp_tac 1);
+goalw thy [below_def]
+    "A Times below(Suc n) = (A Times {n}) Un (A Times (below n))";
+by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (Blast_tac 1);
 qed "Sigma_Suc2";
 
-(*Deletion is essential to allow use of Sigma_Suc1,2*)
-Delsimps [below_Suc];
-
-goal thy "{i} Times below(n + n) : tiling domino";
+goal thy "{i} Times below(n+n) : tiling domino";
 by (nat_ind_tac "n" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [Un_assoc RS sym, Sigma_Suc2])));
 by (resolve_tac tiling.intrs 1);
@@ -57,15 +55,14 @@ by (subgoal_tac    (*seems the easiest way of turning one to the other*)
 \    {(i, n+n), (i, Suc(n+n))}" 1);
 by (Blast_tac 2);
 by (asm_simp_tac (!simpset addsimps [domino.horiz]) 1);
-by (blast_tac (!claset addEs  [less_irrefl, less_asym]
-                       addSDs [below_less_iff RS iffD1]) 1);
+by (Auto_tac());
 qed "dominoes_tile_row";
 
-goal thy "(below m) Times below(n + n) : tiling domino";
+goal thy "(below m) Times below(n+n) : tiling domino";
 by (nat_ind_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [Sigma_Suc1])));
 by (blast_tac (!claset addSIs [tiling_UnI, dominoes_tile_row]
-                      addSEs [below_less_iff RS iffD1 RS less_irrefl]) 1);
+                       addSEs [below_less_iff RS iffD1 RS less_irrefl]) 1);
 qed "dominoes_tile_matrix";
 
 
@@ -96,10 +93,11 @@ qed "evnodd_empty";
 
 goalw thy [evnodd_def]
     "evnodd (insert (i,j) C) b = \
-\    (if (i+j) mod 2 = b then insert (i,j) (evnodd C b) else evnodd C b)";
-by (asm_full_simp_tac (!simpset addsimps [evnodd_def] 
-             setloop (split_tac [expand_if] THEN' Step_tac)) 1);
+\      (if (i+j) mod 2 = b then insert (i,j) (evnodd C b) else evnodd C b)";
+by (simp_tac (!simpset setloop (split_tac [expand_if] THEN' Step_tac)) 1);
 qed "evnodd_insert";
+
+Addsimps [finite_evnodd, evnodd_Un, evnodd_Diff, evnodd_empty, evnodd_insert];
 
 
 (*** Dominoes ***)
@@ -110,8 +108,7 @@ by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 2);
 by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 1);
 by (REPEAT_FIRST assume_tac);
 (*Four similar cases: case (i+j) mod 2 = b, 2#-b, ...*)
-by (REPEAT (asm_full_simp_tac (!simpset addsimps
-                          [less_Suc_eq, evnodd_insert, evnodd_empty, mod_Suc] 
+by (REPEAT (asm_full_simp_tac (!simpset addsimps [less_Suc_eq, mod_Suc] 
                           setloop split_tac [expand_if]) 1
            THEN Blast_tac 1));
 qed "domino_singleton";
@@ -138,9 +135,7 @@ by (res_inst_tac [("b1","1")] (domino_singleton RS exE) 1);
 by (Simp_tac 2 THEN assume_tac 1);
 by (Step_tac 1);
 by (subgoal_tac "ALL p b. p : evnodd a b --> p ~: evnodd ta b" 1);
-by (asm_simp_tac (!simpset addsimps [evnodd_Un, Un_insert_left, 
-                                     tiling_domino_finite,
-                                     evnodd_subset RS finite_subset]) 1);
+by (asm_simp_tac (!simpset addsimps [tiling_domino_finite]) 1);
 by (blast_tac (!claset addSDs [evnodd_subset RS subsetD] addEs [equalityE]) 1);
 qed "tiling_domino_0_1";
 
@@ -157,14 +152,10 @@ by (asm_simp_tac (HOL_ss addsimps [dominoes_tile_matrix]) 2);
 by (subgoal_tac "(m+m)+(n+n) = (m+n)+(m+n)" 1);
 by (asm_simp_tac (!simpset addsimps add_ac) 2);
 by (asm_full_simp_tac 
-    (!simpset addsimps [evnodd_Diff, evnodd_insert, evnodd_empty, 
-                        mod_less, tiling_domino_0_1 RS sym]) 1);
+    (!simpset addsimps [mod_less, tiling_domino_0_1 RS sym]) 1);
 by (rtac less_trans 1);
 by (REPEAT
     (rtac card_Diff 1 
-     THEN
-     asm_simp_tac (!simpset addsimps [tiling_domino_finite, finite_evnodd]) 1 
-     THEN
-     asm_simp_tac (!simpset addsimps [mod_less, evnodd_iff]) 1));
+     THEN asm_simp_tac (!simpset addsimps [tiling_domino_finite]) 1 
+     THEN asm_simp_tac (!simpset addsimps [mod_less, evnodd_iff]) 1));
 qed "mutil_not_tiling";
-
