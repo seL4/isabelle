@@ -246,7 +246,7 @@ val HOL_ss =
        imp_disjL, conj_assoc, disj_assoc,
        de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
        disj_not1, not_all, not_ex, cases_simp,
-       thm "the_eq_trivial", the_sym_eq_trivial, thm "plus_ac0.zero", thm "plus_ac0_zero_right"]
+       thm "the_eq_trivial", the_sym_eq_trivial]
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defALL_regroup,defEX_regroup]
      addcongs [imp_cong]

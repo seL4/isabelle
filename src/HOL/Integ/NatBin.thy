@@ -648,6 +648,12 @@ lemma nat_number_of_add_left:
           else number_of (bin_add v v') + k)"
 by simp
 
+lemma nat_number_of_mult_left:
+     "number_of v * (number_of v' * (k::nat)) =  
+         (if neg (number_of v :: int) then 0
+          else number_of (bin_mult v v') * k)"
+by simp
+
 
 subsubsection{*For @{text combine_numerals}*}
 
@@ -776,6 +782,7 @@ val Let_Suc = thm"Let_Suc";
 val nat_number = thms"nat_number";
 
 val nat_number_of_add_left = thm"nat_number_of_add_left";
+val nat_number_of_mult_left = thm"nat_number_of_mult_left";
 val left_add_mult_distrib = thm"left_add_mult_distrib";
 val nat_diff_add_eq1 = thm"nat_diff_add_eq1";
 val nat_diff_add_eq2 = thm"nat_diff_add_eq2";

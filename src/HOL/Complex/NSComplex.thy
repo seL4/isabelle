@@ -1,8 +1,11 @@
 (*  Title:       NSComplex.thy
+    ID:      $Id$
     Author:      Jacques D. Fleuriot
     Copyright:   2001  University of Edinburgh
-    Description: Nonstandard Complex numbers
+    Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
 *)
+
+header{*Nonstandard Complex Numbers*}
 
 theory NSComplex = NSInduct:
 
@@ -394,20 +397,17 @@ proof
     by (rule hcomplex_zero_not_eq_one)
   show "(u + v) * w = u * w + v * w"
     by (simp add: hcomplex_add_mult_distrib)
-  assume neq: "w \<noteq> 0"
-  thus "z / w = z * inverse w"
+  show "z / w = z * inverse w"
     by (simp add: hcomplex_divide_def)
-  show "inverse w * w = 1"
+  assume "w \<noteq> 0"
+  thus "inverse w * w = 1"
     by (rule hcomplex_mult_inv_left)
 qed
 
 instance hcomplex :: division_by_zero
 proof
-  show inv: "inverse 0 = (0::hcomplex)"
+  show "inverse 0 = (0::hcomplex)"
     by (simp add: hcomplex_inverse hcomplex_zero_def)
-  fix x :: hcomplex
-  show "x/0 = 0"
-    by (simp add: hcomplex_divide_def inv)
 qed
 
 

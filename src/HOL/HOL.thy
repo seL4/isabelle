@@ -197,11 +197,6 @@ syntax (xsymbols)
 syntax (HTML output)
   abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
 
-axclass plus_ac0 < plus, zero
-  commute: "x + y = y + x"
-  assoc:   "(x + y) + z = x + (y + z)"
-  zero:    "0 + x = x"
-
 
 subsection {* Theory and package setup *}
 

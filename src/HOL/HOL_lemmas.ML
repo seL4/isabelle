@@ -446,21 +446,6 @@ by (rtac ccontr 1);
 by (REPEAT (ares_tac (prems@[exI,allI,notI,notE]) 1))  ;
 qed "exCI";
 
-Goal "x + (y+z) = y + ((x+z)::'a::plus_ac0)";
-by (rtac (thm"plus_ac0.commute" RS trans) 1);
-by (rtac (thm"plus_ac0.assoc" RS trans) 1);
-by (rtac (thm"plus_ac0.commute" RS arg_cong) 1);
-qed "plus_ac0_left_commute";
-
-Goal "x + 0 = (x ::'a::plus_ac0)";
-by (rtac (thm"plus_ac0.commute" RS trans) 1);
-by (rtac (thm"plus_ac0.zero") 1);
-qed "plus_ac0_zero_right";
-
-bind_thms ("plus_ac0", [thm"plus_ac0.assoc", thm"plus_ac0.commute",
-                        plus_ac0_left_commute,
-                        thm"plus_ac0.zero", plus_ac0_zero_right]);
-
 (* case distinction *)
 
 val [prem1,prem2] = Goal "[| P ==> Q; ~P ==> Q |] ==> Q";

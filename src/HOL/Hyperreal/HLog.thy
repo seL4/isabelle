@@ -57,7 +57,7 @@ by (rule powhr_gt_zero [THEN hypreal_not_refl2, THEN not_sym])
 lemma hypreal_divide: 
      "(Abs_hypreal(hyprel `` {X}))/(Abs_hypreal(hyprel `` {Y})) =  
       (Abs_hypreal(hyprel `` {%n. (X n)/(Y n)}))"
-by (simp add: divide_inverse_zero hypreal_zero_num hypreal_inverse hypreal_mult) 
+by (simp add: divide_inverse hypreal_zero_num hypreal_inverse hypreal_mult) 
 
 lemma powhr_divide:
      "[| 0 < x; 0 < y |] ==> (x / y) powhr a = (x powhr a)/(y powhr a)"
@@ -96,7 +96,7 @@ apply (simp add: powhr hypreal_minus hypreal_inverse hypreal_less powr_minus)
 done
 
 lemma powhr_minus_divide: "x powhr (-a) = 1/(x powhr a)"
-by (simp add: divide_inverse_zero powhr_minus)
+by (simp add: divide_inverse powhr_minus)
 
 lemma powhr_less_mono: "[| a < b; 1 < x |] ==> x powhr a < x powhr b"
 apply (rule eq_Abs_hypreal [of x])
@@ -194,7 +194,7 @@ apply (frule HInfinite_gt_zero_gt_one)
 apply (auto intro!: starfun_ln_HFinite_not_Infinitesimal
             HInfinite_inverse_Infinitesimal Infinitesimal_HFinite_mult2 
         simp add: starfun_ln_HInfinite not_Infinitesimal_not_zero 
-          hlog_as_starfun hypreal_not_refl2 [THEN not_sym] divide_inverse_zero)
+          hlog_as_starfun hypreal_not_refl2 [THEN not_sym] divide_inverse)
 done
 
 lemma hlog_HInfinite_as_starfun:
@@ -220,7 +220,7 @@ done
 
 lemma hlog_divide:
      "[| 0 < a; a \<noteq> 1; 0 < x; 0 < y|] ==> hlog a (x/y) = hlog a x - hlog a y"
-by (simp add: hlog_mult hlog_inverse divide_inverse_zero)
+by (simp add: hlog_mult hlog_inverse divide_inverse)
 
 lemma hlog_less_cancel_iff [simp]:
      "[| 1 < a; 0 < x; 0 < y |] ==> (hlog a x < hlog a y) = (x < y)"

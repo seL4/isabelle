@@ -351,7 +351,7 @@ proof
   show "(x + y) * z = x * z + y * z" by (simp add: real_add_mult_distrib)
   show "0 \<noteq> (1::real)" by (rule real_zero_not_eq_one)
   show "x \<noteq> 0 ==> inverse x * x = 1" by (rule real_mult_inverse_left)
-  show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: real_divide_def)
+  show "x / y = x * inverse y" by (simp add: real_divide_def)
 qed
 
 
@@ -365,9 +365,7 @@ done
 
 instance real :: division_by_zero
 proof
-  fix x :: real
   show "inverse 0 = (0::real)" by (rule INVERSE_ZERO)
-  show "x/0 = 0" by (simp add: real_divide_def INVERSE_ZERO)
 qed
 
 

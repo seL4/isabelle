@@ -535,9 +535,9 @@ by (dtac ssubst 1 THEN assume_tac 2);
 by (res_inst_tac [("x","t")] exI 1);
 by (rtac (CLAIM "[|x = y; x' = y'|] ==> x + x' = y + (y'::real)") 1);
 by (rtac sumr_fun_eq 1);
-by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym]));
-by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex,
-    even_mult_two_ex] delsimps [fact_Suc,realpow_Suc]));
+by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex]));
+by (auto_tac (claset(),simpset() addsimps [even_mult_two_ex] delsimps [fact_Suc,realpow_Suc]));
+(*Could sin_zero_iff help?*)
 qed "Maclaurin_sin_expansion";
 
 Goal "EX t. abs t <= abs x &  \
@@ -566,9 +566,8 @@ by (rtac conjI 1);
 by (arith_tac 1);
 by (rtac (CLAIM "[|x = y; x' = y'|] ==> x + x' = y + (y'::real)") 1);
 by (rtac sumr_fun_eq 1);
-by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym]));
-by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex,
-    even_mult_two_ex] delsimps [fact_Suc,realpow_Suc]));
+by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex]));
+by (auto_tac (claset(),simpset() addsimps [even_mult_two_ex] delsimps [fact_Suc,realpow_Suc]));
 qed "Maclaurin_sin_expansion2";
 
 Goal "[| 0 < n; 0 < x |] ==> \
@@ -590,9 +589,8 @@ by (rtac conjI 1 THEN rtac conjI 2);
 by (assume_tac 1 THEN assume_tac 1);
 by (rtac (CLAIM "[|x = y; x' = y'|] ==> x + x' = y + (y'::real)") 1);
 by (rtac sumr_fun_eq 1);
-by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym]));
-by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex,
-    even_mult_two_ex] delsimps [fact_Suc,realpow_Suc]));
+by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex]));
+by (auto_tac (claset(),simpset() addsimps [even_mult_two_ex] delsimps [fact_Suc,realpow_Suc]));
 qed "Maclaurin_sin_expansion3";
 
 Goal "0 < x ==> \
@@ -614,9 +612,8 @@ by (rtac conjI 1 THEN rtac conjI 2);
 by (assume_tac 1 THEN assume_tac 1);
 by (rtac (CLAIM "[|x = y; x' = y'|] ==> x + x' = y + (y'::real)") 1);
 by (rtac sumr_fun_eq 1);
-by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym]));
-by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex,
-    even_mult_two_ex] delsimps [fact_Suc,realpow_Suc]));
+by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex]));
+by (auto_tac (claset(),simpset() addsimps [even_mult_two_ex] delsimps [fact_Suc,realpow_Suc]));
 qed "Maclaurin_sin_expansion4";
 
 (*-----------------------------------------------------------------------------*)
@@ -658,9 +655,8 @@ by (rtac conjI 1);
 by (arith_tac 1);
 by (rtac (CLAIM "[|x = y; x' = y'|] ==> x + x' = y + (y'::real)") 1);
 by (rtac sumr_fun_eq 1);
-by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym]));
-by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex,
-    even_mult_two_ex,left_distrib,cos_add]  delsimps 
+by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex]));
+by (auto_tac (claset(),simpset() addsimps [even_mult_two_ex,left_distrib,cos_add]  delsimps 
     [fact_Suc,realpow_Suc]));
 by (auto_tac (claset(),simpset() addsimps [real_mult_commute]));
 qed "Maclaurin_cos_expansion";
@@ -685,10 +681,8 @@ by (rtac conjI 1 THEN rtac conjI 2);
 by (assume_tac 1 THEN assume_tac 1);
 by (rtac (CLAIM "[|x = y; x' = y'|] ==> x + x' = y + (y'::real)") 1);
 by (rtac sumr_fun_eq 1);
-by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym]));
-by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex,
-    even_mult_two_ex,left_distrib,cos_add]  delsimps 
-    [fact_Suc,realpow_Suc]));
+by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex]));
+by (auto_tac (claset(),simpset() addsimps [even_mult_two_ex,left_distrib,cos_add]  delsimps [fact_Suc,realpow_Suc]));
 by (auto_tac (claset(),simpset() addsimps [real_mult_commute]));
 qed "Maclaurin_cos_expansion2";
 
@@ -712,10 +706,8 @@ by (rtac conjI 1 THEN rtac conjI 2);
 by (assume_tac 1 THEN assume_tac 1);
 by (rtac (CLAIM "[|x = y; x' = y'|] ==> x + x' = y + (y'::real)") 1);
 by (rtac sumr_fun_eq 1);
-by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym]));
-by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex,
-    even_mult_two_ex,left_distrib,cos_add]  delsimps 
-    [fact_Suc,realpow_Suc]));
+by (auto_tac (claset(),simpset() addsimps [odd_Suc_mult_two_ex]));
+by (auto_tac (claset(),simpset() addsimps [even_mult_two_ex,left_distrib,cos_add]  delsimps [fact_Suc,realpow_Suc]));
 by (auto_tac (claset(),simpset() addsimps [real_mult_commute]));
 qed "Maclaurin_minus_cos_expansion";
 

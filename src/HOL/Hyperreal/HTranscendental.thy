@@ -555,13 +555,13 @@ lemma STAR_sin_inverse_HNatInfinite:
      "n \<in> HNatInfinite  
       ==> ( *f* sin) (inverse (hypreal_of_hypnat n)) * hypreal_of_hypnat n @= 1"
 apply (frule lemma_sin_pi)
-apply (simp add: divide_inverse_zero)
+apply (simp add: divide_inverse)
 done
 
 lemma Infinitesimal_pi_divide_HNatInfinite: 
      "N \<in> HNatInfinite  
       ==> hypreal_of_real pi/(hypreal_of_hypnat N) \<in> Infinitesimal"
-apply (simp add: divide_inverse_zero)
+apply (simp add: divide_inverse)
 apply (auto intro: Infinitesimal_HFinite_mult2)
 done
 
@@ -578,7 +578,7 @@ apply (frule STAR_sin_Infinitesimal_divide
                    pi_divide_HNatInfinite_not_zero])
 apply (auto simp add: hypreal_inverse_distrib)
 apply (rule approx_SReal_mult_cancel [of "inverse (hypreal_of_real pi)"])
-apply (auto intro: SReal_inverse simp add: divide_inverse_zero mult_ac)
+apply (auto intro: SReal_inverse simp add: divide_inverse mult_ac)
 done
 
 lemma STAR_sin_pi_divide_HNatInfinite_approx_pi2:
@@ -593,7 +593,7 @@ done
 lemma starfunNat_pi_divide_n_Infinitesimal: 
      "N \<in> HNatInfinite ==> ( *fNat* (%x. pi / real x)) N \<in> Infinitesimal"
 by (auto intro!: Infinitesimal_HFinite_mult2 
-         simp add: starfunNat_mult [symmetric] divide_inverse_zero
+         simp add: starfunNat_mult [symmetric] divide_inverse
                    starfunNat_inverse [symmetric] starfunNat_real_of_nat)
 
 lemma STAR_sin_pi_divide_n_approx:
@@ -601,16 +601,16 @@ lemma STAR_sin_pi_divide_n_approx:
       ( *f* sin) (( *fNat* (%x. pi / real x)) N) @=  
       hypreal_of_real pi/(hypreal_of_hypnat N)"
 by (auto intro!: STAR_sin_Infinitesimal Infinitesimal_HFinite_mult2 
-         simp add: starfunNat_mult [symmetric] divide_inverse_zero
+         simp add: starfunNat_mult [symmetric] divide_inverse
                    starfunNat_inverse_real_of_nat_eq)
 
 lemma NSLIMSEQ_sin_pi: "(%n. real n * sin (pi / real n)) ----NS> pi"
 apply (auto simp add: NSLIMSEQ_def starfunNat_mult [symmetric] starfunNat_real_of_nat)
 apply (rule_tac f1 = sin in starfun_stafunNat_o2 [THEN subst])
-apply (auto simp add: starfunNat_mult [symmetric] starfunNat_real_of_nat divide_inverse_zero)
+apply (auto simp add: starfunNat_mult [symmetric] starfunNat_real_of_nat divide_inverse)
 apply (rule_tac f1 = inverse in starfun_stafunNat_o2 [THEN subst])
 apply (auto dest: STAR_sin_pi_divide_HNatInfinite_approx_pi 
-            simp add: starfunNat_real_of_nat mult_commute divide_inverse_zero)
+            simp add: starfunNat_real_of_nat mult_commute divide_inverse)
 done
 
 lemma NSLIMSEQ_cos_one: "(%n. cos (pi / real n))----NS> 1"
@@ -618,7 +618,7 @@ apply (simp add: NSLIMSEQ_def, auto)
 apply (rule_tac f1 = cos in starfun_stafunNat_o2 [THEN subst])
 apply (rule STAR_cos_Infinitesimal)
 apply (auto intro!: Infinitesimal_HFinite_mult2 
-            simp add: starfunNat_mult [symmetric] divide_inverse_zero
+            simp add: starfunNat_mult [symmetric] divide_inverse
                       starfunNat_inverse [symmetric] starfunNat_real_of_nat)
 done
 

@@ -830,7 +830,6 @@ by (stac inverse_mult_distrib 1);
 by Auto_tac;
 qed "sin_fdiffs2";
 
-(* thms in EvenOdd needed *)
 Goalw [diffs_def,real_divide_def]
       "diffs(%n. if even n then \
 \                (- 1) ^ (n div 2)/(real (fact n)) else 0) \
@@ -841,11 +840,11 @@ by (stac fact_Suc 1);
 by (stac real_of_nat_mult 1);
 by (stac even_Suc 1);
 by (stac inverse_mult_distrib 1);
-by (res_inst_tac [("z1","real (Suc n)")] (real_mult_commute RS ssubst) 1);
-by (res_inst_tac [("z1","inverse(real (Suc n))")] 
-     (real_mult_commute RS ssubst) 1);
+by (res_inst_tac [("a1","real (Suc n)")] (mult_commute RS ssubst) 1);
+by (res_inst_tac [("a1","inverse(real (Suc n))")] 
+     (mult_commute RS ssubst) 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_assoc,
-    odd_not_even RS sym,odd_Suc_mult_two_ex]));
+    odd_Suc_mult_two_ex]));
 qed "cos_fdiffs";
 
 
@@ -862,7 +861,7 @@ by (res_inst_tac [("z1","real (Suc n)")] (real_mult_commute RS ssubst) 1);
 by (res_inst_tac [("z1","inverse (real (Suc n))")] 
      (real_mult_commute RS ssubst) 1);
 by (auto_tac (claset(),simpset() addsimps [real_mult_assoc,
-    odd_not_even RS sym,odd_Suc_mult_two_ex]));
+    odd_Suc_mult_two_ex]));
 qed "cos_fdiffs2";
 
 (* ------------------------------------------------------------------------ *)
@@ -1949,7 +1948,7 @@ qed "reals_Archimedean4";
 (* Pre Isabelle99-2 proof was simpler- numerals arithmetic 
    now causes some unwanted re-arrangements of literals!   *)
 Goal "[| 0 <= x; cos x = 0 |] ==> \
-\     EX n. ~even n & x = real n * (pi/2)";
+\     EX n::nat. ~even n & x = real n * (pi/2)";
 by (dtac (pi_gt_zero RS reals_Archimedean4) 1);
 by (Step_tac 1);
 by (subgoal_tac 
@@ -1973,7 +1972,7 @@ by Auto_tac;
 qed "cos_zero_lemma";
 
 Goal "[| 0 <= x; sin x = 0 |] ==> \
-\     EX n. even n & x = real n * (pi/2)";
+\     EX n::nat. even n & x = real n * (pi/2)";
 by (subgoal_tac 
     "EX n. ~ even n & x + pi/2  = real n * (pi/2)" 1);
 by (rtac cos_zero_lemma 2);
@@ -1981,15 +1980,15 @@ by (Step_tac 1);
 by (res_inst_tac [("x","n - 1")] exI 1);
 by (rtac (CLAIM "-y <= x ==> -x <= (y::real)") 2);
 by (rtac real_le_trans 2 THEN assume_tac 3);
-by (auto_tac (claset(),simpset() addsimps [odd_not_even RS sym,
+by (auto_tac (claset(),simpset() addsimps [
     odd_Suc_mult_two_ex,real_of_nat_Suc,
     left_distrib,real_mult_assoc RS sym]));
 qed "sin_zero_lemma";
 
 (* also spoilt by numeral arithmetic *)
 Goal "(cos x = 0) = \
-\     ((EX n. ~even n & (x = real n * (pi/2))) |   \
-\      (EX n. ~even n & (x = -(real n * (pi/2)))))";
+\     ((EX n::nat. ~even n & (x = real n * (pi/2))) |   \
+\      (EX n::nat. ~even n & (x = -(real n * (pi/2)))))";
 by (rtac iffI 1);
 by (cut_inst_tac [("x","x")] (CLAIM "0 <= (x::real) | x <= 0") 1);
 by (Step_tac 1);
@@ -1998,15 +1997,15 @@ by (dtac (CLAIM "(x::real) <= 0 ==> 0 <= -x") 3);
 by (dtac cos_zero_lemma 3);
 by (Step_tac 1);
 by (dtac (CLAIM "-x = y ==> x = -(y::real)") 2);
-by (auto_tac (claset(),HOL_ss addsimps [odd_not_even RS sym,
+by (auto_tac (claset(),HOL_ss addsimps [
     odd_Suc_mult_two_ex,real_of_nat_Suc,left_distrib]));
 by (auto_tac (claset(),simpset() addsimps [cos_add]));
 qed "cos_zero_iff";
 
 (* ditto: but to a lesser extent *)
 Goal "(sin x = 0) = \
-\     ((EX n. even n & (x = real n * (pi/2))) |   \
-\      (EX n. even n & (x = -(real n * (pi/2)))))";
+\     ((EX n::nat. even n & (x = real n * (pi/2))) |   \
+\      (EX n::nat. even n & (x = -(real n * (pi/2)))))";
 by (rtac iffI 1);
 by (cut_inst_tac [("x","x")] (CLAIM "0 <= (x::real) | x <= 0") 1);
 by (Step_tac 1);

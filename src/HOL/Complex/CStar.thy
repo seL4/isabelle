@@ -489,18 +489,17 @@ apply (simp add: starfunC hcomplex_inverse)
 done
 
 lemma starfunC_divide: "( *fc* f) y  / ( *fc* g) y = ( *fc* (%x. f x / g x)) y"
-by (simp add: divide_inverse_zero)
+by (simp add: divide_inverse)
 declare starfunC_divide [symmetric, simp]
 
 lemma starfunCR_divide:
   "( *fcR* f) y  / ( *fcR* g) y = ( *fcR* (%x. f x / g x)) y"
-by (simp add: divide_inverse_zero)
+by (simp add: divide_inverse)
 declare starfunCR_divide [symmetric, simp]
 
 lemma starfunRC_divide:
   "( *fRc* f) y  / ( *fRc* g) y = ( *fRc* (%x. f x / g x)) y"
-apply (simp add: divide_inverse_zero)
-done
+by (simp add: divide_inverse)
 declare starfunRC_divide [symmetric, simp]
 
 

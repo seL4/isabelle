@@ -253,12 +253,7 @@ lemma cartesian_product_card_a [simp]: "finite A ==>
 lemma cartesian_product_card [simp]: "[| finite A; finite B |] ==> 
   card (A <*> B) = card(A) * card(B)";
   apply (rule_tac F = A in finite_induct, auto)
-  apply (case_tac "F = {}", force)
-  apply (subgoal_tac "card({x} <*> B \<union> F <*> B) = card({x} <*> B) + 
-    card(F <*> B)");
-  apply simp
-  apply (rule card_Un_disjoint)
-  by auto
+  done
 
 (******************************************************************)
 (*                                                                *)

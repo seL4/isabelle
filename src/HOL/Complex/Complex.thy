@@ -1,4 +1,5 @@
 (*  Title:       Complex.thy
+    ID:      $Id$
     Author:      Jacques D. Fleuriot
     Copyright:   2001 University of Edinburgh
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
@@ -216,7 +217,7 @@ lemma complex_mult_inv_left: "z \<noteq> (0::complex) ==> inverse(z) * z = 1"
 apply (induct z)
 apply (rename_tac x y)
 apply (auto simp add: complex_mult complex_inverse complex_one_def
-       complex_zero_def add_divide_distrib [symmetric] power2_eq_square mult_ac)
+      complex_zero_def add_divide_distrib [symmetric] power2_eq_square mult_ac)
 apply (drule_tac y = y in real_sum_squares_not_zero)
 apply (drule_tac [2] x = x in real_sum_squares_not_zero2, auto)
 done
@@ -248,20 +249,17 @@ proof
   show "(u + v) * w = u * w + v * w"
     by (simp add: complex_mult_def complex_add_def left_distrib 
                   diff_minus add_ac)
-  assume neq: "w \<noteq> 0"
-  thus "z / w = z * inverse w"
+  show "z / w = z * inverse w"
     by (simp add: complex_divide_def)
-  show "inverse w * w = 1"
-    by (simp add: neq complex_mult_inv_left)
+  assume "w \<noteq> 0"
+  thus "inverse w * w = 1"
+    by (simp add: complex_mult_inv_left)
 qed
 
 instance complex :: division_by_zero
 proof
-  show inv: "inverse 0 = (0::complex)"
+  show "inverse 0 = (0::complex)"
     by (simp add: complex_inverse_def complex_zero_def)
-  fix x :: complex
-  show "x/0 = 0"
-    by (simp add: complex_divide_def inv)
 qed
 
 
@@ -789,7 +787,7 @@ by (simp add: cis_def complex_inverse_complex_split complex_of_real_minus
               complex_diff_def)
 
 lemma rcis_inverse: "inverse(rcis r a) = rcis (1/r) (-a)"
-by (simp add: divide_inverse_zero rcis_def complex_of_real_inverse)
+by (simp add: divide_inverse rcis_def complex_of_real_inverse)
 
 lemma cis_divide: "cis a / cis b = cis (a - b)"
 by (simp add: complex_divide_def cis_mult real_diff_def)

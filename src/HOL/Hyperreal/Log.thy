@@ -41,7 +41,7 @@ by (simp add: powr_def)
 
 lemma powr_divide:
      "[| 0 < x; 0 < y |] ==> (x / y) powr a = (x powr a)/(y powr a)"
-apply (simp add: divide_inverse_zero positive_imp_inverse_positive powr_mult)
+apply (simp add: divide_inverse positive_imp_inverse_positive powr_mult)
 apply (simp add: powr_def exp_minus [symmetric] exp_add [symmetric] ln_inverse)
 done
 
@@ -58,7 +58,7 @@ lemma powr_minus: "x powr (-a) = inverse (x powr a)"
 by (simp add: powr_def exp_minus [symmetric])
 
 lemma powr_minus_divide: "x powr (-a) = 1/(x powr a)"
-by (simp add: divide_inverse_zero powr_minus)
+by (simp add: divide_inverse powr_minus)
 
 lemma powr_less_mono: "[| a < b; 1 < x |] ==> x powr a < x powr b"
 by (simp add: powr_def)
@@ -85,12 +85,12 @@ by (simp add: log_def powr_def)
 lemma log_mult: 
      "[| 0 < a; a \<noteq> 1; 0 < x; 0 < y |]  
       ==> log a (x * y) = log a x + log a y"
-by (simp add: log_def ln_mult divide_inverse_zero left_distrib)
+by (simp add: log_def ln_mult divide_inverse left_distrib)
 
 lemma log_eq_div_ln_mult_log: 
      "[| 0 < a; a \<noteq> 1; 0 < b; b \<noteq> 1; 0 < x |]  
       ==> log a x = (ln b/ln a) * log b x"
-by (simp add: log_def divide_inverse_zero)
+by (simp add: log_def divide_inverse)
 
 text{*Base 10 logarithms*}
 lemma log_base_10_eq1: "0 < x ==> log 10 x = (ln (exp 1) / ln 10) * ln x"
@@ -113,7 +113,7 @@ done
 
 lemma log_divide:
      "[|0 < a; a \<noteq> 1; 0 < x; 0 < y|] ==> log a (x/y) = log a x - log a y"
-by (simp add: log_mult divide_inverse_zero log_inverse)
+by (simp add: log_mult divide_inverse log_inverse)
 
 lemma log_less_cancel_iff [simp]:
      "[| 1 < a; 0 < x; 0 < y |] ==> (log a x < log a y) = (x < y)"

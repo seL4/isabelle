@@ -914,7 +914,7 @@ done
 
 lemma Infinitesimal_SReal_divide: 
   "[| x \<in> Infinitesimal; y \<in> Reals |] ==> x/y \<in> Infinitesimal"
-apply (simp add: divide_inverse_zero)
+apply (simp add: divide_inverse)
 apply (auto intro!: Infinitesimal_HFinite_mult 
             dest!: SReal_inverse [THEN SReal_subset_HFinite [THEN subsetD]])
 done

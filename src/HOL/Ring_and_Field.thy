@@ -59,13 +59,12 @@ axclass ordered_ring \<subseteq> almost_ordered_semiring, ring
 
 axclass field \<subseteq> ring, inverse
   left_inverse [simp]: "a \<noteq> 0 ==> inverse a * a = 1"
-  divide_inverse:      "b \<noteq> 0 ==> a / b = a * inverse b"
+  divide_inverse:      "a / b = a * inverse b"
 
 axclass ordered_field \<subseteq> ordered_ring, field
 
 axclass division_by_zero \<subseteq> zero, inverse
   inverse_zero [simp]: "inverse 0 = 0"
-  divide_zero [simp]: "a / 0 = 0"
 
 
 subsection {* Derived Rules for Addition *}
@@ -595,7 +594,7 @@ text{*Proving axiom @{text zero_less_one} makes all @{text ordered_semiring}
 instance ordered_ring \<subseteq> ordered_semiring
 proof
   have "(0::'a) \<le> 1*1" by (rule zero_le_square)
-  thus "(0::'a) < 1" by (simp add: order_le_less ) 
+  thus "(0::'a) < 1" by (simp add: order_le_less) 
 qed
 
 text{*All three types of comparision involving 0 and 1 are covered.*}
@@ -650,7 +649,7 @@ done
 
 lemma less_1_mult: "[| 1 < m; 1 < n |] ==> 1 < m*(n::'a::ordered_semiring)"
 apply (insert mult_strict_mono [of 1 m 1 n]) 
-apply (simp add:  order_less_trans [OF zero_less_one]); 
+apply (simp add:  order_less_trans [OF zero_less_one]) 
 done
 
 
@@ -743,24 +742,18 @@ by (simp add: divide_inverse)
 lemma divide_self [simp]: "a \<noteq> 0 ==> a / (a::'a::field) = 1"
   by (simp add: divide_inverse)
 
-lemma divide_inverse_zero: "a/b = a * inverse(b::'a::{field,division_by_zero})"
-apply (case_tac "b = 0")
-apply (simp_all add: divide_inverse)
-done
+lemma divide_zero [simp]: "a / 0 = (0::'a::{field,division_by_zero})"
+by (simp add: divide_inverse)
 
-lemma divide_zero_left [simp]: "0/a = (0::'a::{field,division_by_zero})"
-by (simp add: divide_inverse_zero)
+lemma divide_zero_left [simp]: "0/a = (0::'a::field)"
+by (simp add: divide_inverse)
 
-lemma inverse_eq_divide: "inverse (a::'a::{field,division_by_zero}) = 1/a"
-by (simp add: divide_inverse_zero)
+lemma inverse_eq_divide: "inverse (a::'a::field) = 1/a"
+by (simp add: divide_inverse)
 
-lemma nonzero_add_divide_distrib: "c \<noteq> 0 ==> (a+b)/(c::'a::field) = a/c + b/c"
+lemma add_divide_distrib: "(a+b)/(c::'a::field) = a/c + b/c"
 by (simp add: divide_inverse left_distrib) 
 
-lemma add_divide_distrib: "(a+b)/(c::'a::{field,division_by_zero}) = a/c + b/c"
-apply (case_tac "c=0", simp) 
-apply (simp add: nonzero_add_divide_distrib) 
-done
 
 text{*Compared with @{text mult_eq_0_iff}, this version removes the requirement
       of an ordering.*}
@@ -935,7 +928,7 @@ done
 
 lemma inverse_divide [simp]:
       "inverse (a/b) = b / (a::'a::{field,division_by_zero})"
-  by (simp add: divide_inverse_zero mult_commute)
+  by (simp add: divide_inverse mult_commute)
 
 lemma nonzero_mult_divide_cancel_left:
   assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" 
@@ -975,23 +968,21 @@ lemma mult_divide_cancel_eq_if:
   by (simp add: mult_divide_cancel_left)
 
 lemma divide_1 [simp]: "a/1 = (a::'a::field)"
-  by (simp add: divide_inverse [OF not_sym])
+  by (simp add: divide_inverse)
 
-lemma times_divide_eq_right [simp]:
-     "a * (b/c) = (a*b) / (c::'a::{field,division_by_zero})"
-by (simp add: divide_inverse_zero mult_assoc)
+lemma times_divide_eq_right [simp]: "a * (b/c) = (a*b) / (c::'a::field)"
+by (simp add: divide_inverse mult_assoc)
 
-lemma times_divide_eq_left [simp]:
-     "(b/c) * a = (b*a) / (c::'a::{field,division_by_zero})"
-by (simp add: divide_inverse_zero mult_ac)
+lemma times_divide_eq_left: "(b/c) * a = (b*a) / (c::'a::field)"
+by (simp add: divide_inverse mult_ac)
 
 lemma divide_divide_eq_right [simp]:
      "a / (b/c) = (a*c) / (b::'a::{field,division_by_zero})"
-by (simp add: divide_inverse_zero mult_ac)
+by (simp add: divide_inverse mult_ac)
 
 lemma divide_divide_eq_left [simp]:
      "(a / b) / (c::'a::{field,division_by_zero}) = a / (b*c)"
-by (simp add: divide_inverse_zero mult_assoc)
+by (simp add: divide_inverse mult_assoc)
 
 
 subsection {* Division and Unary Minus *}
@@ -1005,14 +996,12 @@ by (simp add: divide_inverse nonzero_inverse_minus_eq minus_mult_right)
 lemma nonzero_minus_divide_divide: "b \<noteq> 0 ==> (-a)/(-b) = a / (b::'a::field)"
 by (simp add: divide_inverse nonzero_inverse_minus_eq)
 
-lemma minus_divide_left: "- (a/b) = (-a) / (b::'a::{field,division_by_zero})"
-apply (case_tac "b=0", simp) 
-apply (simp add: nonzero_minus_divide_left) 
-done
+lemma minus_divide_left: "- (a/b) = (-a) / (b::'a::field)"
+by (simp add: divide_inverse minus_mult_left [symmetric])
 
 lemma minus_divide_right: "- (a/b) = a / -(b::'a::{field,division_by_zero})"
-apply (case_tac "b=0", simp) 
-by (rule nonzero_minus_divide_right) 
+by (simp add: divide_inverse minus_mult_right [symmetric])
+
 
 text{*The effect is to extract signs from divisions*}
 declare minus_divide_left  [symmetric, simp]
@@ -1028,8 +1017,7 @@ apply (case_tac "b=0", simp)
 apply (simp add: nonzero_minus_divide_divide) 
 done
 
-lemma diff_divide_distrib:
-     "(a-b)/(c::'a::{field,division_by_zero}) = a/c - b/c"
+lemma diff_divide_distrib: "(a-b)/(c::'a::field) = a/c - b/c"
 by (simp add: diff_minus add_divide_distrib) 
 
 
@@ -1236,26 +1224,26 @@ subsection{*Division and Signs*}
 
 lemma zero_less_divide_iff:
      "((0::'a::{ordered_field,division_by_zero}) < a/b) = (0 < a & 0 < b | a < 0 & b < 0)"
-by (simp add: divide_inverse_zero zero_less_mult_iff)
+by (simp add: divide_inverse zero_less_mult_iff)
 
 lemma divide_less_0_iff:
      "(a/b < (0::'a::{ordered_field,division_by_zero})) = 
       (0 < a & b < 0 | a < 0 & 0 < b)"
-by (simp add: divide_inverse_zero mult_less_0_iff)
+by (simp add: divide_inverse mult_less_0_iff)
 
 lemma zero_le_divide_iff:
      "((0::'a::{ordered_field,division_by_zero}) \<le> a/b) =
       (0 \<le> a & 0 \<le> b | a \<le> 0 & b \<le> 0)"
-by (simp add: divide_inverse_zero zero_le_mult_iff)
+by (simp add: divide_inverse zero_le_mult_iff)
 
 lemma divide_le_0_iff:
      "(a/b \<le> (0::'a::{ordered_field,division_by_zero})) =
       (0 \<le> a & b \<le> 0 | a \<le> 0 & 0 \<le> b)"
-by (simp add: divide_inverse_zero mult_le_0_iff)
+by (simp add: divide_inverse mult_le_0_iff)
 
 lemma divide_eq_0_iff [simp]:
      "(a/b = 0) = (a=0 | b=(0::'a::{field,division_by_zero}))"
-by (simp add: divide_inverse_zero field_mult_eq_0_iff)
+by (simp add: divide_inverse field_mult_eq_0_iff)
 
 
 subsection{*Simplification of Inequalities Involving Literal Divisors*}
@@ -1415,13 +1403,13 @@ subsection{*Cancellation Laws for Division*}
 lemma divide_cancel_right [simp]:
      "(a/c = b/c) = (c = 0 | a = (b::'a::{field,division_by_zero}))"
 apply (case_tac "c=0", simp) 
-apply (simp add: divide_inverse_zero field_mult_cancel_right) 
+apply (simp add: divide_inverse field_mult_cancel_right) 
 done
 
 lemma divide_cancel_left [simp]:
      "(c/a = c/b) = (c = 0 | a = (b::'a::{field,division_by_zero}))" 
 apply (case_tac "c=0", simp) 
-apply (simp add: divide_inverse_zero field_mult_cancel_left) 
+apply (simp add: divide_inverse field_mult_cancel_left) 
 done
 
 subsection {* Division and the Number One *}
@@ -1669,6 +1657,9 @@ proof -
   thus ?thesis by (simp add: ac cpos mult_strict_mono) 
 qed
 
+text{*Moving this up spoils many proofs using @{text mult_le_cancel_right}*}
+declare times_divide_eq_left [simp]
+
 ML
 {*
 val add_assoc = thm"add_assoc";
@@ -1809,11 +1800,9 @@ val right_inverse = thm"right_inverse";
 val right_inverse_eq = thm"right_inverse_eq";
 val nonzero_inverse_eq_divide = thm"nonzero_inverse_eq_divide";
 val divide_self = thm"divide_self";
-val divide_inverse_zero = thm"divide_inverse_zero";
 val inverse_divide = thm"inverse_divide";
 val divide_zero_left = thm"divide_zero_left";
 val inverse_eq_divide = thm"inverse_eq_divide";
-val nonzero_add_divide_distrib = thm"nonzero_add_divide_distrib";
 val add_divide_distrib = thm"add_divide_distrib";
 val field_mult_eq_0_iff = thm"field_mult_eq_0_iff";
 val field_mult_cancel_right = thm"field_mult_cancel_right";

@@ -14,8 +14,6 @@ axclass
   div < type
 
 instance  nat :: div ..
-instance  nat :: plus_ac0
-proof qed (rule add_commute add_assoc add_0)+
 
 consts
   div  :: "'a::div \<Rightarrow> 'a \<Rightarrow> 'a"          (infixl 70)

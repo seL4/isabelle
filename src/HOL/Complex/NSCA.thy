@@ -56,7 +56,7 @@ apply (blast intro: hcomplex_of_complex_inverse [symmetric])
 done
 
 lemma SComplex_divide: "[| x \<in> SComplex;  y \<in> SComplex |] ==> x/y \<in> SComplex"
-by (simp add: SComplex_mult SComplex_inverse divide_inverse_zero)
+by (simp add: SComplex_mult SComplex_inverse divide_inverse)
 
 lemma SComplex_minus: "x \<in> SComplex ==> -x \<in> SComplex"
 apply (simp add: SComplex_def)
@@ -98,7 +98,7 @@ done
 
 lemma SComplex_divide_number_of:
      "r \<in> SComplex ==> r/(number_of w::hcomplex) \<in> SComplex"
-apply (simp only: divide_inverse_zero)
+apply (simp only: divide_inverse)
 apply (blast intro!: SComplex_number_of SComplex_mult SComplex_inverse)
 done
 
@@ -618,7 +618,7 @@ done
 lemma CInfinitesimal_ratio:
      "[| y \<noteq> 0;  y \<in> CInfinitesimal;  x/y \<in> CFinite |] ==> x \<in> CInfinitesimal"
 apply (drule CInfinitesimal_CFinite_mult2, assumption)
-apply (simp add: divide_inverse_zero hcomplex_mult_assoc)
+apply (simp add: divide_inverse hcomplex_mult_assoc)
 done
 
 lemma SComplex_capprox_iff:
@@ -1126,7 +1126,7 @@ done
 lemma stc_divide [simp]:
      "[| x \<in> CFinite; y \<in> CFinite; stc y \<noteq> 0 |]  
       ==> stc(x/y) = (stc x) / (stc y)"
-by (simp add: divide_inverse_zero stc_mult stc_not_CInfinitesimal CFinite_inverse stc_inverse)
+by (simp add: divide_inverse stc_mult stc_not_CInfinitesimal CFinite_inverse stc_inverse)
 
 lemma stc_idempotent [simp]: "x \<in> CFinite ==> stc(stc(x)) = stc(x)"
 by (blast intro: stc_CFinite stc_capprox_self capprox_stc_eq)

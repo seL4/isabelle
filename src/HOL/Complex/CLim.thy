@@ -858,8 +858,7 @@ apply (rule_tac z1 = "( *fc* g) (hcomplex_of_complex (x) + xa) - hcomplex_of_com
 apply (simp (no_asm_simp))
 apply (rule capprox_mult_hcomplex_of_complex)
 apply (auto intro!: NSCDERIVD1 intro: capprox_minus_iff [THEN iffD2] 
-            simp add: diff_minus [symmetric] 
-                      divide_inverse_zero [symmetric])
+            simp add: diff_minus [symmetric] divide_inverse [symmetric])
 apply (blast intro: NSCDERIVD2)
 done
 
@@ -968,8 +967,10 @@ lemma CDERIV_quotient:
 apply (simp add: complex_diff_def)
 apply (drule_tac f = g in CDERIV_inverse_fun)
 apply (drule_tac [2] CDERIV_mult, assumption+)
-apply (simp add: divide_inverse_zero right_distrib power_inverse minus_mult_left mult_ac 
-            del: complexpow_Suc minus_mult_right [symmetric] minus_mult_left [symmetric])
+apply (simp add: divide_inverse right_distrib power_inverse minus_mult_left 
+                 mult_ac 
+            del: minus_mult_right [symmetric] minus_mult_left [symmetric]
+                 complexpow_Suc)
 done
 
 lemma NSCDERIV_quotient:

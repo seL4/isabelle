@@ -369,9 +369,6 @@ apply (rule eq_Abs_Integ [of w])
 apply (simp add: zle linorder_linear) 
 done
 
-instance int :: plus_ac0
-proof qed (rule zadd_commute zadd_assoc zadd_0)+
-
 instance int :: linorder
 proof qed (rule zle_linear)
 
@@ -907,6 +904,63 @@ text{*Simplification of @{term "x-y < 0"}, etc.*}
 declare less_iff_diff_less_0 [symmetric, simp]
 declare eq_iff_diff_eq_0 [symmetric, simp]
 declare le_iff_diff_le_0 [symmetric, simp]
+
+
+subsection{*More Properties of @{term setsum} and  @{term setprod}*}
+
+text{*By Jeremy Avigad*}
+
+
+lemma setsum_of_nat: "of_nat (setsum f A) = setsum (of_nat \<circ> f) A"
+  apply (case_tac "finite A")
+  apply (erule finite_induct, auto)
+  apply (simp add: setsum_def)
+  done
+
+lemma setsum_of_int: "of_int (setsum f A) = setsum (of_int \<circ> f) A"
+  apply (case_tac "finite A")
+  apply (erule finite_induct, auto)
+  apply (simp add: setsum_def)
+  done
+
+lemma int_setsum: "int (setsum f A) = setsum (int \<circ> f) A"
+  by (subst int_eq_of_nat, rule setsum_of_nat)
+
+lemma setprod_of_nat: "of_nat (setprod f A) = setprod (of_nat \<circ> f) A"
+  apply (case_tac "finite A")
+  apply (erule finite_induct, auto)
+  apply (simp add: setprod_def)
+  done
+
+lemma setprod_of_int: "of_int (setprod f A) = setprod (of_int \<circ> f) A"
+  apply (case_tac "finite A")
+  apply (erule finite_induct, auto)
+  apply (simp add: setprod_def)
+  done
+
+lemma int_setprod: "int (setprod f A) = setprod (int \<circ> f) A"
+  by (subst int_eq_of_nat, rule setprod_of_nat)
+
+lemma setsum_constant: "finite A ==> (\<Sum>x \<in> A. y) = of_nat(card A) * y"
+  apply (erule finite_induct)
+  apply (auto simp add: ring_distrib add_ac)
+  done
+
+lemma setprod_nonzero_nat:
+    "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::nat)) ==> setprod f A \<noteq> 0"
+  by (rule setprod_nonzero, auto)
+
+lemma setprod_zero_eq_nat:
+    "finite A ==> (setprod f A = (0::nat)) = (\<exists>x \<in> A. f x = 0)"
+  by (rule setprod_zero_eq, auto)
+
+lemma setprod_nonzero_int:
+    "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::int)) ==> setprod f A \<noteq> 0"
+  by (rule setprod_nonzero, auto)
+
+lemma setprod_zero_eq_int:
+    "finite A ==> (setprod f A = (0::int)) = (\<exists>x \<in> A. f x = 0)"
+  by (rule setprod_zero_eq, auto)
 
 
 (*Legacy ML bindings, but no longer the structure Int.*)

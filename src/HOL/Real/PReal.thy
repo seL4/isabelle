@@ -296,13 +296,13 @@ proof (unfold add_set_def, clarify)
     show "\<exists>y' \<in> B. z = x*?f + y'"
     proof
       show "z = x*?f + y*?f"
-	by (simp add: left_distrib [symmetric] divide_inverse_zero mult_ac
+	by (simp add: left_distrib [symmetric] divide_inverse mult_ac
 		      order_less_imp_not_eq2)
     next
       show "y * ?f \<in> B"
       proof (rule preal_downwards_closed [OF B y])
         show "0 < y * ?f"
-          by (simp add: divide_inverse_zero zero_less_mult_iff)
+          by (simp add: divide_inverse zero_less_mult_iff)
       next
         show "y * ?f < y"
           by (insert mult_strict_left_mono [OF fless ypos], simp)
@@ -312,7 +312,7 @@ proof (unfold add_set_def, clarify)
     show "x * ?f \<in> A"
     proof (rule preal_downwards_closed [OF A x])
       show "0 < x * ?f"
-	by (simp add: divide_inverse_zero zero_less_mult_iff)
+	by (simp add: divide_inverse zero_less_mult_iff)
     next
       show "x * ?f < x"
 	by (insert mult_strict_left_mono [OF fless xpos], simp)
@@ -435,7 +435,7 @@ proof (unfold mult_set_def, clarify)
     show "\<exists>y'\<in>B. z = (z/y) * y'"
     proof
       show "z = (z/y)*y"
-	by (simp add: divide_inverse_zero mult_commute [of y] mult_assoc
+	by (simp add: divide_inverse mult_commute [of y] mult_assoc
 		      order_less_imp_not_eq2)
       show "y \<in> B" .
     qed
@@ -522,7 +522,7 @@ proof (induct z)
         show "\<exists>v'\<in>A. x = (x / v) * v'"
         proof
           show "x = (x/v)*v"
-	    by (simp add: divide_inverse_zero mult_assoc vpos
+	    by (simp add: divide_inverse mult_assoc vpos
                           order_less_imp_not_eq2)
           show "v \<in> A" .
         qed
@@ -579,7 +579,7 @@ proof
   have cpos: "0 < ?c"
     by (simp add: zero_less_divide_iff zero_less_mult_iff pos_add_strict)
   show "a * d + b * e = ?c * (d + e)"
-    by (simp add: divide_inverse_zero mult_assoc order_less_imp_not_eq2)
+    by (simp add: divide_inverse mult_assoc order_less_imp_not_eq2)
   show "?c \<in> Rep_preal w"
     proof (cases rule: linorder_le_cases)
       assume "a \<le> b"
@@ -808,7 +808,7 @@ proof -
     proof -
       have "r + ?d < r + (r * ?d)/y" by (simp add: dless)
       also with ypos have "... = (r/y) * (y + ?d)"
-	by (simp only: right_distrib divide_inverse_zero mult_ac, simp)
+	by (simp only: right_distrib divide_inverse mult_ac, simp)
       also have "... = r*x" using ypos
 	by simp
       finally show "r + ?d < r*x" .
@@ -849,12 +849,12 @@ proof -
     show "0 < x/u" using xpos upos
       by (simp add: zero_less_divide_iff)  
     show "x/u < x/r" using xpos upos rpos
-      by (simp add: divide_inverse_zero mult_less_cancel_left rless) 
+      by (simp add: divide_inverse mult_less_cancel_left rless) 
     show "inverse (x / r) \<notin> Rep_preal R" using notin
-      by (simp add: divide_inverse_zero mult_commute) 
+      by (simp add: divide_inverse mult_commute) 
     show "u \<in> Rep_preal R" by (rule u) 
     show "x = x / u * u" using upos 
-      by (simp add: divide_inverse_zero mult_commute) 
+      by (simp add: divide_inverse mult_commute) 
   qed
 qed
 
@@ -875,7 +875,7 @@ proof -
   have "q < inverse y" using rpos rless
     by (simp add: not_in_preal_ub [OF Rep_preal notin] q)
   hence "r * q < r/y" using rpos
-    by (simp add: divide_inverse_zero mult_less_cancel_left)
+    by (simp add: divide_inverse mult_less_cancel_left)
   also have "... \<le> 1" using rpos rless
     by (simp add: pos_divide_le_eq)
   finally show ?thesis .
@@ -1272,7 +1272,7 @@ proof -
   have "x * z * inverse y * inverse z = x * inverse y * (z * inverse z)"
     by (simp add: mult_ac)
   also have "... = x/y" using zpos
-    by (simp add: divide_inverse_zero)
+    by (simp add: divide_inverse)
   also have "... < z"
     by (simp add: pos_divide_less_eq [OF ypos] mult_commute) 
   finally show ?thesis .

@@ -476,17 +476,14 @@ proof
   show "(x + y) * z = x * z + y * z" by (simp add: hypreal_add_mult_distrib)
   show "0 \<noteq> (1::hypreal)" by (rule hypreal_zero_not_eq_one)
   show "x \<noteq> 0 ==> inverse x * x = 1" by (simp add: hypreal_mult_inverse_left)
-  show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: hypreal_divide_def)
+  show "x / y = x * inverse y" by (simp add: hypreal_divide_def)
 qed
 
 
 instance hypreal :: division_by_zero
 proof
-  fix x :: hypreal
-  show inv: "inverse 0 = (0::hypreal)" 
+  show "inverse 0 = (0::hypreal)" 
     by (simp add: hypreal_inverse hypreal_zero_def)
-  show "x/0 = 0" 
-    by (simp add: hypreal_divide_def inv hypreal_mult_commute [of a])
 qed
 
 

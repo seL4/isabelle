@@ -511,9 +511,8 @@ proof
        (simp add: add_rat mult_rat eq_rat int_distrib)
   show "q \<noteq> 0 ==> inverse q * q = 1"
     by (induct q) (simp add: inverse_rat mult_rat one_rat zero_rat eq_rat)
-  show "r \<noteq> 0 ==> q / r = q * inverse r"
-    by (induct q, induct r)
-       (simp add: mult_rat divide_rat inverse_rat zero_rat eq_rat)
+  show "q / r = q * inverse r"
+    by (simp add: divide_rat_def) 
   show "0 \<noteq> (1::rat)"
     by (simp add: zero_rat one_rat eq_rat) 
 qed
@@ -632,9 +631,7 @@ qed
 
 instance rat :: division_by_zero
 proof
-  fix x :: rat
   show "inverse 0 = (0::rat)"  by (simp add: inverse_rat_def)
-  show "x/0 = 0"   by (simp add: divide_rat_def inverse_rat_def)
 qed
 
 

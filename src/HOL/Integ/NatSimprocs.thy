@@ -204,7 +204,7 @@ by simp
 
 lemma minus1_divide [simp]:
      "-1 / (x::'a::{field,division_by_zero,number_ring}) = - (1/x)"
-by (simp add: divide_inverse_zero inverse_minus_eq)
+by (simp add: divide_inverse inverse_minus_eq)
 
 ML
 {*

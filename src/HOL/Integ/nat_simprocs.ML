@@ -6,6 +6,10 @@
 Simprocs for nat numerals.
 *)
 
+val Let_number_of = thm"Let_number_of";
+val Let_0 = thm"Let_0";
+val Let_1 = thm"Let_1";
+
 structure Nat_Numeral_Simprocs =
 struct
 
@@ -65,12 +69,14 @@ fun dest_Sucs_sum t = dest_sum (dest_Sucs (0,t));
 
 val trans_tac = Int_Numeral_Simprocs.trans_tac;
 
-val bin_simps = [nat_numeral_0_eq_0 RS sym, nat_numeral_1_eq_1 RS sym,
-                 add_nat_number_of, nat_number_of_add_left,
-                 diff_nat_number_of, le_number_of_eq_not_less,
-                 less_nat_number_of, mult_nat_number_of,
-                 thm "Let_number_of", nat_number_of] @
-                bin_arith_simps @ bin_rel_simps;
+val bin_simps =
+     [nat_numeral_0_eq_0 RS sym, nat_numeral_1_eq_1 RS sym,
+      add_nat_number_of, nat_number_of_add_left, 
+      diff_nat_number_of, le_number_of_eq_not_less,
+      mult_nat_number_of, nat_number_of_mult_left, 
+      less_nat_number_of, 
+      Let_number_of, nat_number_of] @
+     bin_arith_simps @ bin_rel_simps;
 
 fun prep_simproc (name, pats, proc) =
   Simplifier.simproc (Theory.sign_of (the_context ())) name pats proc;
@@ -268,7 +274,8 @@ structure CancelNumeralFactorCommon =
   val trans_tac         = trans_tac
   val norm_tac = ALLGOALS
                     (simp_tac (HOL_ss addsimps [Suc_eq_add_numeral_1]@mult_1s))
-                 THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@mult_ac))
+                 THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps))
+                 THEN ALLGOALS (simp_tac (HOL_ss addsimps mult_ac))
   val numeral_simp_tac  = ALLGOALS (simp_tac (HOL_ss addsimps bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
   end
@@ -504,7 +511,7 @@ local
 
 (* reduce contradictory <= to False *)
 val add_rules =
-  [thm "Let_number_of", thm "Let_0", thm "Let_1", nat_0, nat_1,
+  [thm "Let_number_of", Let_0, Let_1, nat_0, nat_1,
    add_nat_number_of, diff_nat_number_of, mult_nat_number_of,
    eq_nat_number_of, less_nat_number_of, le_number_of_eq_not_less,
    le_Suc_number_of,le_number_of_Suc,
