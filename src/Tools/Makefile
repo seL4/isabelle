@@ -9,5 +9,3 @@ OBJS = qed.o
 
 qed:	$(OBJS)
 	g++ -o qed $(OBJS)
-
-qed.o: qed.cc

@@ -1,5 +1,5 @@
 // Little utility to convert result() -> qed ... in Isabelle's files
-// Written in 1994 by Carsten Clasohm (clasohm@informatik.tu-muenchen.de)
+// Written in 1995 by Carsten Clasohm (clasohm@informatik.tu-muenchen.de)
 
 #define LIN_LEN   1000		// maximal length of lines in sourcefile
 
@@ -10,6 +10,18 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <ctype.h>
+
+// Null terminated list of theorem names that must not be included in the
+// theorem database
+char * excludeName[] = {"temp", "tmp", 0};
+
+int ExcludeThm(char *name)
+{
+    for (int i = 0; excludeName[i]; i++)
+	if (strcmp(name, excludeName[i]) == 0)
+	    return 1;
+    return 0;
+}
 
 main(int argc, char *argv[])
 {
@@ -41,7 +53,7 @@ main(int argc, char *argv[])
 	char *eqPos;
 	char *tmp;
 
-	if ((rPos = strstr(l, "result()")) && (!isalpha(*(rPos-1)))
+	if ((rPos = strstr(l, "result()")) && (!isalnum(*(rPos-1)))
 	    && (valPos = strstr(l, "val ")) && (eqPos = strstr(l, "=")))
 	{                            // does line contain "result()" and "val"?
 	    char name[LIN_LEN];
@@ -49,7 +61,7 @@ main(int argc, char *argv[])
 	    assert(eqPos-(valPos+4) > 0);
 	    strncpy(name, valPos+4, eqPos-(valPos+4));
 	    name[eqPos-(valPos+4)] = 0;
-	    if (!isalpha(name[eqPos-(valPos+4)-1]))
+	    if (!isalnum(name[eqPos-(valPos+4)-1]))
 	        name[eqPos-(valPos+4)-1] = 0;
 #ifdef DEBUG
 	    cerr << "Found result: \"" << name << "\"\n";
@@ -57,7 +69,9 @@ main(int argc, char *argv[])
 	    char prefix[LIN_LEN];
 	    char arg[LIN_LEN];
 
-	    if ((rPos - eqPos < 5) && (rPos == strstr(l, "result();")))
+	    if (ExcludeThm(name))
+		out << l << '\n';
+	    else if ((rPos - eqPos < 5) && (rPos == strstr(l, "result();")))
 	    {                                              // replace by "qed"?
 		strncpy(prefix, l, valPos-l);
 		prefix[valPos-l] = 0;
@@ -75,8 +89,8 @@ main(int argc, char *argv[])
 	    }
 	}
 	else if ((rPos = strstr(l, "prove_goal")) 
-		 && (!isalpha(*(rPos-1))) 
-		 && (!isalpha(*(rPos+10)) || (*(rPos+10) == 'w'))
+		 && (!isalnum(*(rPos-1))) 
+		 && (!isalnum(*(rPos+10)) || (*(rPos+10) == 'w'))
 		 && (valPos = strstr(l, "val ")) 
 		 && (eqPos = strstr(l, "="))
                  && (rPos - eqPos < 5))
@@ -86,22 +100,28 @@ main(int argc, char *argv[])
 	    assert(eqPos-(valPos+4) > 0);
 	    strncpy(name, valPos+4, eqPos-(valPos+4));
 	    name[eqPos-(valPos+4)] = 0;
-	    if (!isalpha(name[eqPos-(valPos+4)-1]))
+	    if (!isalnum(name[eqPos-(valPos+4)-1]))
 	        name[eqPos-(valPos+4)-1] = 0;
 #ifdef DEBUG
 	    cerr << "Found prove_goal: \"" << name << "\"\n";
 #endif
-	    char prefix[LIN_LEN];
-	    char arg[LIN_LEN];
+	    if (ExcludeThm(name))
+		out << l << '\n';
+	    else
+	    {
+	        char prefix[LIN_LEN];
+	        char arg[LIN_LEN];
 
-	    strncpy(prefix, l, valPos-l);
-	    prefix[valPos-l] = 0;
-	    out << prefix << "qed_goal" << ((*(rPos+10) == 'w') ? "w " : " ")
-		<< '\"' << name << '\"' << strchr(rPos, ' ') << '\n';
+	        strncpy(prefix, l, valPos-l);
+	        prefix[valPos-l] = 0;
+	        out << prefix << "qed_goal"
+                    << ((*(rPos+10) == 'w') ? "w " : " ")
+		    << '\"' << name << '\"' << strchr(rPos, ' ') << '\n';
+	    }
 	}
 	else if ((rPos = strstr(l, "standard"))
-		 && (!isalpha(*(rPos-1))) 
-		 && (!isalpha(*(rPos+8))) 
+		 && (!isalnum(*(rPos-1))) 
+		 && (!isalnum(*(rPos+8))) 
 		 && (valPos = strstr(l, "val ")) 
 		 && (eqPos = strstr(l, "="))
                  && (rPos - eqPos < 5)
@@ -112,19 +132,24 @@ main(int argc, char *argv[])
 	    assert(eqPos-(valPos+4) > 0);
 	    strncpy(name, valPos+4, eqPos-(valPos+4));
 	    name[eqPos-(valPos+4)] = 0;
-	    if (!isalpha(name[eqPos-(valPos+4)-1]))
+	    if (!isalnum(name[eqPos-(valPos+4)-1]))
 	        name[eqPos-(valPos+4)-1] = 0;
 #ifdef DEBUG
 	    cerr << "Found standard: \"" << name << "\"\n";
 #endif
-	    char prefix[LIN_LEN];
-	    char arg[LIN_LEN];
+	    if (ExcludeThm(name))
+		out << l << '\n';
+	    else
+	    {
+	        char prefix[LIN_LEN];
+	        char arg[LIN_LEN];
 
-	    strncpy(prefix, l, valPos-l);
-	    prefix[valPos-l] = 0;
-	    strcpy(l+strlen(l)-1, ");");        // insert ")" before line's ';'
-	    out << prefix << "bind_thm (\"" << name << "\","
-	        << strchr(rPos, ' ') << '\n';
+	        strncpy(prefix, l, valPos-l);
+	        prefix[valPos-l] = 0;
+	        strcpy(l+strlen(l)-1, ");");    // insert ")" before line's ';'
+	        out << prefix << "bind_thm (\"" << name << "\","
+	            << strchr(rPos, ' ') << '\n';
+            }
 	}
 	else                                           // output line unchanged
 	    out << l << '\n';
