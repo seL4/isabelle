@@ -33,11 +33,13 @@ by(simp (no_asm));
 text{*\noindent
 There are three options that influence the treatment of assumptions:
 \begin{description}
-\item[\isaindexbold{(no_asm)}] means that assumptions are completely ignored.
-\item[\isaindexbold{(no_asm_simp)}] means that the assumptions are not simplified but
+\item[\isa{(no_asm)}]\indexbold{*no_asm}
+ means that assumptions are completely ignored.
+\item[\isa{(no_asm_simp)}]\indexbold{*no_asm_simp}
+ means that the assumptions are not simplified but
   are used in the simplification of the conclusion.
-\item[\isaindexbold{(no_asm_use)}] means that the assumptions are simplified
-but are not
+\item[\isa{(no_asm_use)}]\indexbold{*no_asm_use}
+ means that the assumptions are simplified but are not
   used in the simplification of each other or the conclusion.
 \end{description}
 Neither \isa{(no_asm_simp)} nor \isa{(no_asm_use)} allow to simplify the above

@@ -220,8 +220,9 @@ oops
 text{*
 \subsubsection*{First lemma: \texttt{rev(xs \at~ys) = (rev ys) \at~(rev xs)}}
 
-After abandoning the above proof attempt\indexbold{abandon proof} (at the shell level type
-\isacommand{oops}) we start a new proof:
+After abandoning the above proof attempt\indexbold{abandon
+proof}\indexbold{proof!abandon} (at the shell level type
+\isacommand{oops}\indexbold{*oops}) we start a new proof:
 *}
 
 lemma rev_app [simp]: "rev(xs @ ys) = (rev ys) @ (rev xs)";

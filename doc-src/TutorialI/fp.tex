@@ -125,7 +125,8 @@ would have alerted us because of the unexpected variable \isa{re}.
   \isa{\isacommand{use\_thy}\indexbold{*use_thy}~"T"}.
   
   If you suddenly discover that you need to modify a parent theory of your
-  current theory you must first abandon your current theory (at the shell
+  current theory you must first abandon your current theory\indexbold{abandon
+  theory}\indexbold{theory!abandon} (at the shell
   level type \isacommand{kill}\indexbold{*kill}). After the parent theory has
   been modified you go back to your original theory. When its first line
   \isacommand{theory}\texttt{~T~=}~\dots~\texttt{:} is processed, the
@@ -316,21 +317,22 @@ Isabelle does not prove this completely automatically. Note that \isa{1} and
 see~\S\ref{nat-numerals}.
 
 \begin{warn}
-  The operations \ttindexboldpos{+}{$HOL2arithfun},
-  \ttindexboldpos{-}{$HOL2arithfun}, \ttindexboldpos{*}{$HOL2arithfun},
-  \isaindexbold{min}, \isaindexbold{max},
+  The constant \ttindexbold{0} and the operations
+  \ttindexboldpos{+}{$HOL2arithfun}, \ttindexboldpos{-}{$HOL2arithfun},
+  \ttindexboldpos{*}{$HOL2arithfun}, \isaindexbold{min}, \isaindexbold{max},
   \indexboldpos{\isasymle}{$HOL2arithrel} and
   \ttindexboldpos{<}{$HOL2arithrel} are overloaded, i.e.\ they are available
   not just for natural numbers but at other types as well (see
-  \S\ref{sec:TypeClasses}). For example, given the goal \isa{x+y = y+x},
-  there is nothing to indicate that you are talking about natural numbers.
-  Hence Isabelle can only infer that \isa{x} and \isa{y} are of some
-  arbitrary type where \isa{+} is declared. As a consequence, you will be
-  unable to prove the goal (although it may take you some time to realize
-  what has happened if \texttt{show_types} is not set).  In this particular
-  example, you need to include an explicit type constraint, for example
-  \isa{x+y = y+(x::nat)}.  If there is enough contextual information this may
-  not be necessary: \isa{x+0 = x} automatically implies \isa{x::nat}.
+  \S\ref{sec:TypeClasses}). For example, given the goal \isa{x+0 = x}, there
+  is nothing to indicate that you are talking about natural numbers.  Hence
+  Isabelle can only infer that \isa{x} is of some arbitrary type where
+  \isa{0} and \isa{+} are declared. As a consequence, you will be unable to
+  prove the goal (although it may take you some time to realize what has
+  happened if \texttt{show_types} is not set).  In this particular example,
+  you need to include an explicit type constraint, for example \isa{x+0 =
+    (x::nat)}.  If there is enough contextual information this may not be
+  necessary: \isa{Suc x = x} automatically implies \isa{x::nat} because
+  \isa{Suc} is not overloaded.
 \end{warn}
 
 Simple arithmetic goals are proved automatically by both \isa{auto}
