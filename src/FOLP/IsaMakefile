@@ -5,6 +5,7 @@
 #
 
 OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
 
 FILES =	ROOT.ML IFOLP.thy IFOLP.ML FOLP.thy FOLP.ML intprover.ML simpdata.ML \
 	hypsubst.ML classical.ML simp.ML
@@ -19,7 +20,13 @@ $(OUT)/FOLP: $(OUT)/Pure $(FILES)
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make
 
-test: ex/ROOT.ML $(OUT)/FOLP $(EX_FILES)
+$(LOG)/FOLP-ex.gz: ex/ROOT.ML $(OUT)/FOLP $(EX_FILES)
 	@$(ISATOOL) usedir $(OUT)/FOLP ex
+
+test: $(OUT)/FOLP $(LOG)/FOLP-ex.gz
+
+clean:
+	@rm -f $(OUT)/FOLP $(LOG)/FOLP-ex.gz
+
 
 .PRECIOUS: $(OUT)/Pure $(OUT)/FOLP

@@ -5,6 +5,7 @@
 #
 
 OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
 
 NAMES = ILL LK S4 S43 T
 FILES = ROOT.ML Sequents.thy prover.ML $(NAMES:%=%.thy) $(NAMES:%=%.ML)
@@ -22,7 +23,13 @@ $(OUT)/Sequents: $(OUT)/Pure $(FILES)
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make
 
-test: $(OUT)/Sequents $(EX_FILES)
+$(LOG)/Sequents-ex.gz: $(OUT)/Sequents $(EX_FILES)
 	@$(ISATOOL) usedir $(OUT)/Sequents ex
+
+test: $(OUT)/Sequents $(LOG)/Sequents-ex.gz
+
+clean:
+	@rm -f $(OUT)/Sequents $(LOG)/Sequents-ex.gz
+
 
 .PRECIOUS: $(OUT)/Pure $(OUT)/Sequents

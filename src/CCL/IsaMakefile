@@ -5,6 +5,7 @@
 #
 
 OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
 
 SET_FILES = ROOT.ML Set.thy Set.ML subset.ML equalities.ML mono.ML \
 	    Gfp.thy Gfp.ML Lfp.thy Lfp.ML
@@ -23,7 +24,13 @@ $(OUT)/CCL: $(OUT)/FOL $(SET_FILES) $(CCL_FILES)
 $(OUT)/FOL:
 	@cd ../FOL; $(ISATOOL) make
 
-test: ex/ROOT.ML $(OUT)/CCL $(EX_FILES)
+$(LOG)/CCL-ex.gz: ex/ROOT.ML $(OUT)/CCL $(EX_FILES)
 	@$(ISATOOL) usedir $(OUT)/CCL ex
+
+test: $(OUT)/CCL $(LOG)/CCL-ex.gz
+
+clean:
+	@rm -f $(OUT)/CCL $(LOG)/CCL-ex.gz
+
 
 .PRECIOUS: $(OUT)/FOL $(OUT)/CCL

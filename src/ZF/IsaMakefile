@@ -7,6 +7,7 @@
 #### Base system
 
 OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
 
 NAMES = ZF upair subset pair domrange \
 	func AC equalities Bool \
@@ -35,7 +36,7 @@ $(OUT)/FOL:
 IMP_NAMES = Com Denotation Equiv
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
-IMP: $(OUT)/ZF $(IMP_FILES)
+$(LOG)/ZF-IMP.gz: $(OUT)/ZF $(IMP_FILES)
 	@$(ISATOOL) usedir $(OUT)/ZF IMP
 
 
@@ -46,7 +47,7 @@ COIND_NAMES = ECR MT Map Static Types Values
 COIND_FILES = Coind/ROOT.ML Coind/Language.thy Coind/BCR.thy Coind/Dynamic.thy \
 	      $(COIND_NAMES:%=Coind/%.thy) $(COIND_NAMES:%=Coind/%.ML)
 
-Coind: $(OUT)/ZF $(COIND_FILES)
+$(LOG)/ZF-Coind.gz: $(OUT)/ZF $(COIND_FILES)
 	@$(ISATOOL) usedir $(OUT)/ZF Coind
 
 
@@ -62,7 +63,7 @@ AC_FILES = AC/ROOT.ML AC/AC0_AC1.ML AC/AC10_AC15.ML AC/AC1_AC17.ML \
 	   AC/WO1_WO6.ML AC/WO1_WO7.ML AC/WO1_WO8.ML \
 	   $(AC_NAMES:%=AC/%.thy) $(AC_NAMES:%=AC/%.ML)
 
-AC: $(OUT)/ZF $(AC_FILES)
+$(LOG)/ZF-AC.gz: $(OUT)/ZF $(AC_FILES)
 	@$(ISATOOL) usedir $(OUT)/ZF AC
 
 
@@ -73,7 +74,7 @@ RESID_NAMES = Confluence Redex SubUnion Conversion Reduction Substitution \
 
 RESID_FILES = Resid/ROOT.ML $(RESID_NAMES:%=Resid/%.thy) $(RESID_NAMES:%=Resid/%.ML)
 
-Resid: $(OUT)/ZF $(RESID_FILES)
+$(LOG)/ZF-Resid.gz: $(OUT)/ZF $(RESID_FILES)
 	@$(ISATOOL) usedir $(OUT)/ZF Resid
 
 
@@ -84,13 +85,19 @@ EX_NAMES = Primes Ramsey Limit Integ twos_compl Bin BT Term TF Ntree Brouwer \
 
 EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
-ex: $(OUT)/ZF $(EX_FILES)
+$(LOG)/ZF-ex.gz: $(OUT)/ZF $(EX_FILES)
 	@$(ISATOOL) usedir $(OUT)/ZF ex
 
 
 ## Full test
 
-test: $(OUT)/ZF IMP Coind AC Resid ex
-	echo 'Test examples ran successfully' > test
+ALL_TARGETS = $(OUT)/ZF $(LOG)/ZF-IMP.gz $(LOG)/ZF-Coind.gz \
+  $(LOG)/ZF-AC.gz $(LOG)/ZF-Resid.gz $(LOG)/ZF-ex.gz
+
+test: $(ALL_TARGETS)
+
+clean:
+	@rm -f $(ALL_TARGETS)
+
 
 .PRECIOUS: $(OUT)/FOL $(OUT)/ZF

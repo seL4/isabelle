@@ -7,6 +7,7 @@
 #### Base system
 
 OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
 
 THYS = Porder.thy Porder0.thy Pcpo.thy \
        Fun1.thy Fun2.thy Fun3.thy \
@@ -79,13 +80,13 @@ IOA_NTP_FILES = IOA/NTP/Abschannel.ML \
   IOA/NTP/Spec.thy 
 
  
-IOA: $(OUT)/HOLCF $(IOA_FILES)
+$(OUT)/IOA: $(OUT)/HOLCF $(IOA_FILES)
 	@cd IOA; $(ISATOOL) usedir -b $(OUT)/HOLCF IOA
 
-IOA_ABP: $(OUT)/IOA $(IOA_ABP_FILES)
+$(LOG)/IOA-ABP.gz: $(OUT)/IOA $(IOA_ABP_FILES)
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA ABP
 
-IOA_NTP: $(OUT)/IOA $(IOA_NTP_FILES)
+$(LOG)/IOA-NTP.gz: $(OUT)/IOA $(IOA_NTP_FILES)
 	@cd IOA; $(ISATOOL) usedir $(OUT)/IOA NTP
 
 
@@ -94,7 +95,7 @@ IOA_NTP: $(OUT)/IOA $(IOA_NTP_FILES)
 IMP_THYS = IMP/Denotational.thy
 IMP_FILES = IMP/ROOT.ML $(IMP_THYS) $(IMP_THYS:.thy=.ML)
 
-IMP:	$(OUT)/HOLCF $(IMP_FILES)
+$(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF $(IMP_FILES)
 	@$(ISATOOL) usedir $(OUT)/HOLCF IMP
 
 
@@ -106,14 +107,19 @@ EX_THYS = ex/Dnat.thy ex/Stream.thy \
 
 EX_FILES = ex/ROOT.ML ex/loeckx.ML $(EX_THYS) $(EX_THYS:.thy=.ML)
 
-ex:	ex/ROOT.ML $(EX_FILES)
+$(LOG)/HOLCF-ex.gz: ex/ROOT.ML $(EX_FILES)
 	@$(ISATOOL) usedir $(OUT)/HOLCF ex
 
 
 ## Full test
 
-test:	$(OUT)/HOLCF IOA IOA_ABP IOA_NTP IMP ex
-	echo 'Test examples ran successfully' > test
+ALL_TARGETS = $(OUT)/HOLCF $(OUT)/IOA $(LOG)/IOA-ABP.gz $(LOG)/IOA-NTP.gz \
+  $(LOG)/HOLCF-IMP.gz $(LOG)/HOLCF-ex.gz
+
+test: $(ALL_TARGETS)
+
+clean:
+	@rm -f $(ALL_TARGETS)
 
 
 .PRECIOUS: $(OUT)/HOL $(OUT)/HOLCF

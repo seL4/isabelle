@@ -5,6 +5,7 @@
 #
 
 OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
 
 FILES =	ROOT.ML CTT.thy CTT.ML Bool.thy Bool.ML \
 	Arith.thy Arith.ML rew.ML ../Provers/typedsimp.ML
@@ -17,7 +18,13 @@ $(OUT)/CTT: $(OUT)/Pure $(FILES)
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make
 
-test: ex/ROOT.ML $(OUT)/CTT $(EX_FILES)
+$(LOG)/CTT-ex.gz: ex/ROOT.ML $(OUT)/CTT $(EX_FILES)
 	@$(ISATOOL) usedir $(OUT)/CTT ex
+
+test: $(OUT)/CTT $(LOG)/CTT-ex.gz
+
+clean:
+	@rm -f $(OUT)/CTT $(LOG)/CTT-ex.gz
+
 
 .PRECIOUS: $(OUT)/Pure $(OUT)/CTT

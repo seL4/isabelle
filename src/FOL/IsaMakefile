@@ -5,12 +5,13 @@
 #
 
 OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
 
 PROVERS = hypsubst.ML classical.ML blast.ML \
 	simplifier.ML splitter.ML ind.ML 
 
 FILES =	ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
-	fologic.ML cladata.ML $(PROVERS:%=../Provers/%)
+	fologic.ML cladata.ML $(PROVERS:%=$(ISABELLE_HOME)/src/Provers/%)
 
 EX_NAMES = If List Nat Nat2 Prolog IffOracle
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/foundn.ML ex/int.ML ex/intro.ML \
@@ -23,7 +24,13 @@ $(OUT)/FOL: $(OUT)/Pure $(FILES)
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make
 
-test: ex/ROOT.ML $(OUT)/FOL $(EX_FILES)
+$(LOG)/FOL-ex.gz: ex/ROOT.ML $(OUT)/FOL $(EX_FILES)
 	@$(ISATOOL) usedir $(OUT)/FOL ex
+
+test: $(OUT)/FOL $(LOG)/FOL-ex.gz
+
+clean:
+	@rm -f $(OUT)/FOL $(LOG)/FOL-ex.gz
+
 
 .PRECIOUS: $(OUT)/Pure $(OUT)/FOL

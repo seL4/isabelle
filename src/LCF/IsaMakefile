@@ -5,6 +5,8 @@
 #
 
 OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
 FILES =	ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
 
 $(OUT)/LCF: $(OUT)/FOL $(FILES)
@@ -13,7 +15,13 @@ $(OUT)/LCF: $(OUT)/FOL $(FILES)
 $(OUT)/FOL:
 	@cd ../FOL; $(ISATOOL) make
 
-test: ex/ROOT.ML ex/ex.ML $(OUT)/LCF
+$(LOG)/LCF-ex.gz: ex/ROOT.ML ex/ex.ML $(OUT)/LCF
 	@$(ISATOOL) usedir $(OUT)/LCF ex
+
+test: $(OUT)/LCF $(LOG)/LCF-ex.gz
+
+clean:
+	@rm -f $(OUT)/LCF $(LOG)/LCF-ex.gz
+
 
 .PRECIOUS: $(OUT)/FOL $(OUT)/LCF

@@ -5,6 +5,8 @@
 #
 
 OUT = $(ISABELLE_OUTPUT)
+LOG = $(OUT)/log
+
 FILES =	ROOT.ML Cube.thy Cube.ML
 
 $(OUT)/Cube: $(OUT)/Pure $(FILES)
@@ -13,7 +15,13 @@ $(OUT)/Cube: $(OUT)/Pure $(FILES)
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make
 
-test: ex/ROOT.ML ex/ex.ML $(OUT)/Cube
+$(LOG)/Cube-ex.gz: ex/ROOT.ML ex/ex.ML $(OUT)/Cube
 	@$(ISATOOL) usedir $(OUT)/Cube ex
+
+test: $(OUT)/Cube $(LOG)/Cube-ex.gz
+
+clean:
+	@rm -f $(OUT)/Cube $(LOG)/Cube-ex.gz
+
 
 .PRECIOUS: $(OUT)/Pure $(OUT)/Cube
