@@ -24,7 +24,7 @@ translations
         "(|x, y|)"      == "spair`x`y"
 
 syntax (symbols)
-  "@stuple"	:: "['a, args] => 'a ** 'b"		("(1É_,/ _Ê)")
+  "@stuple"	:: "['a, args] => 'a ** 'b"		("(1\\<lparr>_,/ _\\<rparr>)")
 
 rules 
 
