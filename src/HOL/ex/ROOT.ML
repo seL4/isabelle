@@ -20,6 +20,7 @@ time_use_thy "InSort";
 time_use_thy "Qsort";
 time_use_thy "LexProd";
 time_use_thy "Puzzle";
+time_use_thy "Mutil";
 time_use_thy "NatSum";
 time_use     "set.ML";
 time_use_thy "SList";
