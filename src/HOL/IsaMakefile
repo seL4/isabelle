@@ -361,7 +361,7 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
   MicroJava/JVM/JVMExec.thy MicroJava/JVM/JVMInstructions.thy\
   MicroJava/JVM/JVMState.thy MicroJava/JVM/JVMExecInstr.thy\
   MicroJava/JVM/Store.thy MicroJava/JVM/Store.ML \
-  MicroJava/BV/BVSpec.thy MicroJava/BV/BVSpec.ML \
+  MicroJava/BV/BVSpec.thy MicroJava/BV/Step.thy\
   MicroJava/BV/BVSpecTypeSafe.thy MicroJava/BV/BVSpecTypeSafe.ML \
   MicroJava/BV/Convert.thy MicroJava/BV/Convert.ML \
   MicroJava/BV/Correct.thy MicroJava/BV/Correct.ML \
