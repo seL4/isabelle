@@ -101,16 +101,12 @@ fun factor x = syntax ((Scan.lift (Args.nat -- Args.nat)) >> factor_syntax) x;
   as the second to last premises of the result.*)
 val rev_subst = rotate_prems 1 subst;
 
-(*Get rid of a Not if it is present*)
-fun maybe_dest_not (Const ("Not", _) $ t) = t
-  | maybe_dest_not t = t;
-
 fun paramod_rule ((cl1, lit1), (cl2 , lit2)) =
     let  val eq_lit_th = select_literal (lit1+1) cl1
          val mod_lit_th = select_literal (lit2+1) cl2
          val eqsubst = eq_lit_th RSN (2,rev_subst)
          val newth = Seq.hd (biresolution false [(false, mod_lit_th)] 1 eqsubst)
-    in negated_asm_of_head newth end
+    in negated_asm_of_head newth end;
 
 
 fun paramod_syntax ((i, B), j) (x, A) = (x, paramod_rule ((A,i), (B,j)));
@@ -144,10 +140,32 @@ val demod_local = gen_demod local_thm;
 
 (** Conversion of a theorem into clauses **)
 
+local
+
+  (*Cache for clauses: could be a hash table if we provided them.*)
+  val cc = ref (Symtab.empty : (thm * thm list) Symtab.table)
+
+  fun memo_cnf th =
+    case Thm.name_of_thm th of
+        "" => ResAxioms.cnf_axiom th (*no name, so can't cache*)
+      | s  => case Symtab.lookup (!cc,s) of
+      	        None => 
+      	        	let val cls = ResAxioms.cnf_axiom th
+      	        	in  cc := Symtab.update ((s, (th,cls)), !cc); cls
+      	        	end
+      	      | Some(th',cls) =>
+      	      	    if eq_thm(th,th') then cls
+      	      	    else (*New theorem stored under the same name? Possible??*)
+      	      	      let val cls = ResAxioms.cnf_axiom th
+      	        	  in  cc := Symtab.update ((s, (th,cls)), !cc); cls
+      	        	  end;
+
+in
 fun clausify_rule (A,i) =
   standard
     (make_meta_clause
-      (List.nth(ResAxioms.cnf_axiom A,i)));
+      (List.nth(memo_cnf A,i)))
+end;
 
 fun clausify_syntax i (x, A) = (x, clausify_rule (A,i));
 
