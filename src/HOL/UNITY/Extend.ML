@@ -233,6 +233,11 @@ Goal "project_set h ((extend_set h A) Int B) = A Int (project_set h B)";
 by Auto_tac;
 qed "project_set_extend_set_Int";
 
+(*Unused, but interesting?*)
+Goal "project_set h ((extend_set h A) Un B) = A Un (project_set h B)";
+by Auto_tac;
+qed "project_set_extend_set_Un";
+
 Goal "project_set h (A Int B) <= (project_set h A) Int (project_set h B)";
 by Auto_tac;
 qed "project_set_Int_subset";
