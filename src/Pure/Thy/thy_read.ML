@@ -390,14 +390,14 @@ fun base_on bases child mk_draft =
                       end
                   | add [] =
                       [ThyInfo {name = base, path = "", children = [child], 
-                                thy_info = None, ml_info = None, theory = None}]
+                               thy_info = None, ml_info = None, theory = None}]
             in loaded_thys := add (!loaded_thys) end;       
 
           (*Load a base theory if not already done
             and no cycle would be created *)
           fun load base =
               let val thy_present = already_loaded base
-                                            (*test this before child is added *)
+                                           (*test this before child is added *)
               in
                 if child = base then
                     error ("Cyclic dependency of theories: " ^ child
@@ -428,10 +428,8 @@ fun base_on bases child mk_draft =
 
           val mergelist = (unlink_thy child;
                            load_base bases);
-          val (t :: ts) = if mergelist = [] then ["Pure"] else mergelist
-                                               (*we have to return something *)
      in writeln ("Loading theory " ^ (quote child));
-        foldl Thm.merge_theories (get_theory t, map get_theory ts) end;
+        merge_thy_list mk_draft (map get_theory mergelist) end;
 
 (*Change theory object for an existent item of loaded_thys 
   or create a new item *)
