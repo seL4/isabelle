@@ -4,13 +4,20 @@
 \newlinechar=-1  %mathsing.sty sets \newlinechar=`\|, which would cause mayhem
 
 \chapter{Syntax of Isabelle Theories}\label{app:TheorySyntax}
+Chapter~\ref{sec:ref-defining-theories} explains the meanings of these
+constructs.  The syntax obeys the following conventions:
 \begin{itemize}
 \item {\tt Typewriter font} denotes terminal symbols.
 \item $id$, $tid$, $nat$, $string$ and $text$ are the lexical classes of
   identifiers, type identifiers, natural numbers, \ML\ strings (with their
   quotation marks) and arbitrary \ML\ text.  The first three are fully defined
-  in the {\it Defining Logics} chapter of {\it Isabelle's Object Logics}.
+  in 
+\iflabelundefined{Defining-Logics}%
+    {{\it The Isabelle Reference Manual}, chapter `Defining Logics'}%
+    {Chap.\ts\ref{Defining-Logics}}.
 \end{itemize}
+Comments in theories take the form {\tt (*} {\it text\/} {\tt*)}, where
+{\it text\/} should not contain the character sequence {\tt*)}.
 
 \begin{rail}
 
@@ -37,10 +44,10 @@ sort :  id
      ;
 
 types :  ()
-      | 'types' ( ( type ( () | '(' infix ')' ) ) + )
+      | 'types' ( ( typeDecl ( () | '(' infix ')' ) ) + )
       ;
 
-type : ( () | tid | '(' ( tid + ',' ) ')') name ( () | '='  string );
+typeDecl : ( () | tid | '(' ( tid + ',' ) ')') name ( () | '='  string );
 
 infix : ( 'infixr' | 'infixl' ) nat;
 
