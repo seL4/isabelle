@@ -200,11 +200,15 @@ val useP =
     (P.name >> IsarCmd.use);
 
 val mlP =
-  OuterSyntax.command "ML" "eval ML text" K.diag
-    (P.text >> (fn txt => IsarCmd.use_mltext txt o IsarCmd.use_mltext_theory txt));
+  OuterSyntax.command "ML" "eval ML text (diagnostic)" K.diag
+    (P.text >> IsarCmd.use_mltext)
+
+val ml_setupP =
+  OuterSyntax.command "ML_setup" "eval ML text (may change theory)" K.thy_decl
+    (P.text >> IsarCmd.use_mltext_theory);
 
 val setupP =
-  OuterSyntax.command "setup" "apply ML theory transformer" K.thy_decl
+  OuterSyntax.command "setup" "apply ML theory setup" K.thy_decl
     (P.text >> (Toplevel.theory o IsarThy.use_setup));
 
 
@@ -465,6 +469,10 @@ val print_methodsP =
   OuterSyntax.improper_command "print_methods" "print methods known in this theory" K.diag
     (Scan.succeed IsarCmd.print_methods);
 
+val thms_containingP =
+  OuterSyntax.improper_command "thms_containing" "print theorems containing all given constants"
+    K.diag (Scan.repeat P.xname >> IsarCmd.print_thms_containing);
+
 val print_bindsP =
   OuterSyntax.improper_command "print_binds" "print term bindings of proof context" K.diag
     (Scan.succeed IsarCmd.print_binds);
@@ -585,10 +593,10 @@ val parsers = [
   (*theory sections*)
   classesP, classrelP, defaultsortP, typedeclP, typeabbrP, nontermP,
   aritiesP, constsP, syntaxP, translationsP, axiomsP, defsP,
-  constdefsP, theoremsP, lemmasP, globalP, localP, useP, mlP, setupP,
-  parse_ast_translationP, parse_translationP, print_translationP,
-  typed_print_translationP, print_ast_translationP,
-  token_translationP, oracleP,
+  constdefsP, theoremsP, lemmasP, globalP, localP, useP, mlP,
+  ml_setupP, setupP, parse_ast_translationP, parse_translationP,
+  print_translationP, typed_print_translationP,
+  print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, presumeP,
   defP, fixP, letP, thenP, thenceP, fromP, withP, noteP, beginP, endP,
@@ -597,9 +605,9 @@ val parsers = [
   cannot_undoP, clear_undoP, redoP, undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
   pretty_setmarginP, print_commandsP, print_contextP, print_theoryP,
-  print_syntaxP, print_attributesP, print_methodsP, print_theoremsP,
-  print_bindsP, print_lthmsP, print_thmsP, print_propP, print_termP,
-  print_typeP,
+  print_syntaxP, print_theoremsP, print_attributesP, print_methodsP,
+  thms_containingP, print_bindsP, print_lthmsP, print_thmsP,
+  print_propP, print_termP, print_typeP,
   (*system commands*)
   cdP, pwdP, use_thyP, use_thy_onlyP, update_thyP, update_thy_onlyP,
   touch_thyP, touch_all_thysP, remove_thyP, prP, disable_prP,
