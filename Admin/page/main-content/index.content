@@ -13,7 +13,7 @@ Munich (<a href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a>).
 
 <p>
 
-This page provides general information on Isabelle, more specific
+These pages provide <a href="about.html">general information on Isabelle</a>, more specific
 information is available from the local pages
 
 <ul>
@@ -38,12 +38,29 @@ workshops and courses.
 
 The current version is <strong>{ISABELLE}</strong>.  Several mirror
 sites provide the Isabelle <a href="dist/">distribution</a>, which
-includes sources, documentation, and binary packages.
-
+includes <a href="dist/source.html">sources</a>, 
+<a href="dist/binary.html">binary packages</a>, and 
+<a href="dist/docs.html">documentation</a>.
 
 <p>
 &nbsp;
 
+<h2>User interface</h2>
+
+The distribution includes only a very primitive interface based on
+ordinary terminal sessions.
+
+<p>
+
+<a href="http://zermelo.dcs.ed.ac.uk/~proofgen/">Proof General</a> is
+a generic Emacs interface for proof assistants, including Isabelle
+(both for the classic and Isar version).  Proof General is suitable
+for use by pacifists and Emacs militants alike. Its most prominent
+feature is script management, providing a metaphor of <em>live proof
+script editing</em>.
+
+<p>
+&nbsp;
 
 <h2>Mailing list</h2>
 

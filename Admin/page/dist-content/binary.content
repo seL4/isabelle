@@ -10,7 +10,7 @@ The binary distribution of {ISABELLE} for rpm-based Linux/x86 systems:
 <center>
 <table border="0" cellspacing="5" cellpadding="4" width="520">
 
-  <!-- _GP_ download("ML system", "rpm/smlnj-base-110.0.6-0.i386.rpm", "{RPM_SML_SIZE} K") -->
+  <!-- _GP_ download("ML system", "rpm/smlnj-110.0-3.i386.rpm", "{RPM_SML_SIZE} K") -->
   <!-- _GP_ download("Isabelle system", "rpm/isabelle.rpm", "{RPM_BASE_SIZE} K") -->
   <!-- _GP_ download("Isabelle/HOL image", "rpm/isabelle-HOL.i386.rpm", "{RPM_HOL_SIZE} K") -->
   <!-- _GP_ download("Isabelle/HOL-Real image (optional)", "rpm/isabelle-HOL-Real.i386.rpm", "{RPM_REAL_SIZE} K") -->
@@ -26,7 +26,12 @@ The binary distribution of {ISABELLE} for rpm-based Linux/x86 systems:
 Example installation procedure:
 
 <pre>
-rpm -i smlnj-base-110.0.6-0.i386.rpm
+rpm -i smlnj-base-110.0.3-0.i386.rpm
 rpm -i --prefix /usr/share isabelle.rpm             
 rpm -i --prefix /usr/share isabelle-HOL.i386.rpm    
 </pre>
+
+<p>
+
+Use the mailing list <a href="mailto:isabelle-users@cl.cam.ac.uk">isabelle-users@cl.cam.ac.uk</a>
+to discuss problems and results.  (Why not <A HREF="mailto:lcp@cl.cam.ac.uk">subscribe</A>?)
