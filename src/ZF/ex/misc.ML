@@ -60,10 +60,7 @@ qed "comp_homs";
 
 goalw ZF.thy [Pi_def, function_def]
     "r: domain(r)->B  <->  r <= domain(r)*B & (ALL X. r `` (r -`` X) <= X)";
-by (safe_tac ZF_cs);
-by (fast_tac ZF_cs 1);
-by (eres_inst_tac [("x", "{y}")] allE 1);
-by (fast_tac ZF_cs 1);
+by (best_tac ZF_cs 1);
 result();
 
 

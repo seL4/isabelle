@@ -542,13 +542,7 @@ by (rtac (major RS restrict_bij RS bij_is_inj RS inj_weaken_type) 1);
 by (fast_tac ZF_cs 1);
 by (cut_facts_tac [major] 1);
 by (rewtac inj_def);
-by (safe_tac ZF_cs);
-by (etac range_type 1);
-by (assume_tac 1);
-by (dtac apply_equality 1);
-by (assume_tac 1);
-by (res_inst_tac [("a","m")] mem_irrefl 1);
-by (fast_tac ZF_cs 1);
+by (fast_tac (ZF_cs addEs [range_type, mem_irrefl] addDs [apply_equality]) 1);
 qed "inj_succ_restrict";
 
 goalw Perm.thy [inj_def]

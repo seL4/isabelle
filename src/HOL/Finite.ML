@@ -201,9 +201,7 @@ by (case_tac "? a. a:A" 1);
 by (etac exE 1);
 by (simp_tac (!simpset addsimps [less_Suc_eq]) 1);
 by (rtac exI 1);
-by (rtac conjI 1);
- br disjI2 1;
- br refl 1;
+by (rtac (refl RS disjI2 RS conjI) 1);
 by (etac equalityE 1);
 by (asm_full_simp_tac
      (!simpset addsimps [subset_insert,Collect_conv_insert, less_Suc_eq]) 1);
