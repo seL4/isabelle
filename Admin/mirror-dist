@@ -20,5 +20,4 @@ case  ${HOST} in
     ;;
 esac
 
-rsync --rsh ssh --rsync-path /usr/local/dist/bin/rsync -va \
-  rsync://sunbroy30.informatik.tu-muenchen.de:8730/isabelle-dist/. $DEST/.
+rsync -va --delete rsync://www4.in.tum.de:8730/isabelle-dist/. $DEST/.
