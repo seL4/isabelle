@@ -748,7 +748,7 @@ fun next_block state =
   state
   |> assert_forward
   |> close_block
-  |> assert_current_goal true
+(*  |> assert_current_goal true  *)  (* FIXME !? *)
   |> new_block;
 
 
