@@ -9,6 +9,7 @@ Proof context information.
 signature PROOF_CONTEXT =
 sig
   type context
+  type exporter
   exception CONTEXT of string * context
   val theory_of: context -> theory
   val sign_of: context -> Sign.sg
@@ -23,7 +24,7 @@ sig
   val pretty_context: context -> Pretty.T list
   val print_proof_data: theory -> unit
   val init: theory -> context
-  val assumptions: context -> (cterm * ((int -> tactic) * (int -> tactic))) list
+  val assumptions: context -> (cterm list * exporter) list
   val fixed_names: context -> string list
   val read_typ: context -> string -> typ
   val cert_typ: context -> typ -> typ
@@ -44,9 +45,8 @@ sig
   val warn_extra_tfrees: context -> context -> context
   val generalizeT: context -> context -> typ -> typ
   val generalize: context -> context -> term -> term
-  val find_free: term -> string -> term option 
-  val export_wrt: context -> context option
-    -> (thm -> thm) * ((int -> tactic) * (int -> tactic)) list
+  val find_free: term -> string -> term option
+  val export_wrt: bool -> context -> context option -> (thm -> thm Seq.seq) * (int -> tactic) list
   val auto_bind_goal: term -> context -> context
   val auto_bind_facts: string -> term list -> context -> context
   val match_bind: bool -> (string list * string) list -> context -> context
@@ -69,10 +69,10 @@ sig
   val have_thmss:
     ((string * context attribute list) * (thm list * context attribute list) list) list ->
       context -> context * (string * thm list) list
-  val assume: ((int -> tactic) * (int -> tactic))
+  val assume: exporter
     -> (string * context attribute list * (string * (string list * string list)) list) list
     -> context -> context * ((string * thm list) list * thm list)
-  val assume_i: ((int -> tactic) * (int -> tactic))
+  val assume_i: exporter
     -> (string * context attribute list * (term * (term list * term list)) list) list
     -> context -> context * ((string * thm list) list * thm list)
   val read_vars: context * (string list * string option) -> context * (string list * typ option)
@@ -101,12 +101,15 @@ struct
 
 (** datatype context **)
 
+type exporter =
+  (cterm list -> thm -> thm Seq.seq) * (bool -> int -> (int -> tactic) list);
+
 datatype context =
   Context of
    {thy: theory,                                                        (*current theory*)
     data: Object.T Symtab.table,                                        (*user data*)
     asms:
-      ((cterm * ((int -> tactic) * (int -> tactic))) list *             (*assumes: A ==> _*)
+      ((cterm list * exporter) list *                                   (*assumes: A ==> _*)
         (string * thm list) list) *
       ((string * string) list * string list),                           (*fixes: !!x. _*)
     binds: (term * typ) option Vartab.table,                            (*term bindings*)
@@ -655,20 +658,20 @@ fun find_free t x = foldl_aterms (get_free x) (None, t);
 
 local
 
-fun export tfrees fixes casms thm =
-  let
-    val rule =
-      thm
+fun export tfrees fixes goal_asms thm =
+  thm
+  |> Drule.forall_elim_vars 0
+  |> Seq.EVERY (rev (map op |> goal_asms))
+  |> Seq.map (fn rule =>
+    let
+      val {sign, prop, maxidx, ...} = Thm.rep_thm rule;
+      val frees = map (Thm.cterm_of sign) (mapfilter (find_free prop) fixes);
+    in
+      rule
+      |> Drule.forall_intr_list frees
       |> Drule.forall_elim_vars 0
-      |> Drule.implies_intr_list casms;
-    val {sign, prop, ...} = Thm.rep_thm rule;
-    val frees = map (Thm.cterm_of sign) (mapfilter (find_free prop) fixes);
-  in
-    rule
-    |> Drule.forall_intr_list frees
-    |> Drule.forall_elim_vars 0
-    |> Drule.tvars_intr_list tfrees
-  end;
+      |> Drule.tvars_intr_list tfrees
+    end);
 
 fun diff_context inner None = (gen_tfrees inner None, fixed_names inner, assumptions inner)
   | diff_context inner (Some outer) =
@@ -678,12 +681,12 @@ fun diff_context inner None = (gen_tfrees inner None, fixed_names inner, assumpt
 
 in
 
-fun export_wrt inner opt_outer =
+fun export_wrt is_goal inner opt_outer =
   let
     val (tfrees, fixes, asms) = diff_context inner opt_outer;
-    val casms = map (Drule.mk_cgoal o #1) asms;
-    val tacs = map #2 asms;
-  in (export tfrees fixes casms, tacs) end;
+    val goal_asms = map (fn (cprops, (exp, _)) => (map Drule.mk_cgoal cprops, exp)) asms;
+    val tacs = flat (map (fn (cprops, (_, f)) => f is_goal (length cprops)) asms);
+  in (export tfrees fixes goal_asms, tacs) end;
 
 end;
 
@@ -880,12 +883,11 @@ fun have_thmss args ctxt = foldl_map have_thss (ctxt, args);
 
 local
 
-fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
+fun gen_assm prepp (ctxt, (name, attrs, raw_prop_pats)) =
   let
     val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
 
     val cprops = map (Thm.cterm_of (sign_of ctxt')) props;
-    val cprops_tac = map (rpair tac) cprops;
     val asms = map (Drule.forall_elim_vars 0 o Drule.assume_goal) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
@@ -893,17 +895,20 @@ fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
       ctxt'
       |> auto_bind_facts name props
       |> have_thmss [((name, attrs @ [Drule.tag_assumption]), ths)];
+  in (ctxt'', (cprops, (name, asms), (name, thms))) end;
 
-    val ctxt''' =
-      ctxt''
+fun gen_assms prepp exp args ctxt =
+  let
+    val (ctxt', results) = foldl_map (gen_assm prepp) (ctxt, args);
+    val cprops = flat (map #1 results);
+    val asmss = map #2 results;
+    val thmss = map #3 results;
+    val ctxt'' =
+      ctxt'
       |> map_context (fn (thy, data, ((asms_ct, asms_th), fixes), binds, thms, cases, defs) =>
-        (thy, data, ((asms_ct @ cprops_tac, asms_th @ [(name, asms)]), fixes),
-          binds, thms, cases, defs));
-  in (ctxt''', (name, thms)) end;
-
-fun gen_assms prepp tac args ctxt =
-  let val (ctxt', thmss) = foldl_map (gen_assm prepp tac) (ctxt, args)
-  in (warn_extra_tfrees ctxt ctxt', (thmss, prems_of ctxt')) end;
+        (thy, data, ((asms_ct @ [(cprops, exp)], asms_th @ asmss), fixes), binds, thms,
+          cases, defs));
+  in (warn_extra_tfrees ctxt ctxt'', (thmss, prems_of ctxt'')) end;
 
 in
 
