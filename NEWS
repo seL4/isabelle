@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -34,6 +33,9 @@ the goal statement); "foo" still refers to all facts collectively;
 
 * 'typedef' command has new option "open" to suppress the set
 definition;
+
+* Functions Min and Max on finite sets have been introduced.
+  (theory Finite_Set)
 
 * attribute [symmetric] now works for relations as well; it turns
 (x,y) : R^-1 into (y,x) : R, and vice versa;
