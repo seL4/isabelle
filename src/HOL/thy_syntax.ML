@@ -38,6 +38,7 @@ val record_decl =
   >> (fn ((x, y), zs) => cat_lines [x, y, mk_big_list zs]);
 
 
+
 (** (co)inductive **)
 
 fun inductive_decl coind =
@@ -78,6 +79,7 @@ fun inductive_decl coind =
     repeat1 name -- ipairs -- optlist "monos" -- optlist "con_defs"
       >> mk_params
   end;
+
 
 
 (** datatype **)
@@ -188,6 +190,7 @@ in
 end;
 
 
+
 (** primrec **)
 
 fun mk_primrec_decl (alt_name, eqns) =
@@ -205,36 +208,35 @@ val primrec_decl = (optional ("(" $$-- name --$$ ")") "\"\"" --
   (repeat1 ((ident -- string) || (string >> pair "")))) >> mk_primrec_decl;
 
 
-(** rec: interface to Slind's TFL **)
 
+(** recdef: interface to Slind's TFL **)
 
 (*fname: name of function being defined; rel: well-founded relation*)
-fun mk_rec_decl ((((fname, rel), congs), ss), axms) =
-  let val fid = strip_quotes fname
-      val intrnl_name = fid ^ "_Intrnl"
+fun mk_recdef_decl ((((fname, rel), congs), ss), axms) =
+  let
+    val fid = strip_quotes fname;
+    val congs_text = mk_list (map (fn c => mk_pair (c, "[]")) congs);
+    val axms_text = mk_big_list (map (fn a => mk_pair (mk_pair (quote "", a), "[]")) axms);
   in
-	 (";\n\n\
-          \val _ = writeln \"Recursive function " ^ fid ^ "\"\n\
-          \val (thy, pats_" ^ intrnl_name ^ ") = Tfl.define thy " ^ 
-	                 quote fid ^ " " ^ 
-	                 rel ^ "\n" ^ mk_big_list axms ^ ";\n\
-          \val thy = thy"
-         ,
-          "structure " ^ fid ^ " =\n\
-          \  struct\n\
-          \  val _ = writeln \"Proofs for recursive function " ^ fid ^ "\"\n\
-          \  val {rules, induct, tcs} = \n\
-          \    \t Tfl.simplify_defn (" ^ ss ^ ", " ^ congs ^ ")\n\
-          \    \t\t  (thy, (" ^ quote fid ^ ", pats_" ^ intrnl_name ^ "))\n\
-          \  end;\n\
-          \val pats_" ^ intrnl_name ^ " = ();\n")
+    ";\n\n\
+    \local\n\
+    \val (thy, result) = thy |> RecdefPackage.add_recdef " ^ quote fid ^ " " ^ rel ^ "\n" ^
+    axms_text ^ "\n(Some (" ^ ss ^ "))\n" ^ congs_text ^ ";\n\
+    \in\n\
+    \structure " ^ fid ^ " =\n\
+    \struct\n\
+    \  val {rules, induct, tcs} = result;\n\
+    \end;\n\
+    \val thy = thy;\n\
+    \end;\n\
+    \val thy = thy\n"
   end;
 
-val rec_decl = 
-    (name -- string -- 
-     optional ("congs" $$-- string >> strip_quotes) "[]" -- 
-     optional ("simpset" $$-- string >> strip_quotes) "simpset()" -- 
-     repeat1 string >> mk_rec_decl) ;
+val recdef_decl =
+  (name -- string --
+    optional ("congs" $$-- list1 name) [] --
+    optional ("simpset" $$-- string >> strip_quotes) "simpset()" --
+    repeat1 string >> mk_recdef_decl);
 
 
 
@@ -252,6 +254,6 @@ val _ = ThySyn.add_syntax
   section "datatype" "" datatype_decl,
   section "rep_datatype" "" rep_datatype_decl,
   section "primrec" "" primrec_decl,
-  ("recdef", rec_decl)];
+  section "recdef" "" recdef_decl];
 
 end;
