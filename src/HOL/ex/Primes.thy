@@ -38,7 +38,7 @@ lemma gcd_induct:
      "[| !!m. P m 0;     
          !!m n. [| 0<n;  P n (m mod n) |] ==> P m n  
       |] ==> P (m::nat) (n::nat)"
-  apply (rule_tac u="m" and v="n" in gcd.induct)
+  apply (induct_tac m n rule: gcd.induct)
   apply (case_tac "n=0")
   apply (simp_all)
   done
@@ -60,7 +60,7 @@ lemma gcd_1 [simp]: "gcd(m,1) = 1"
 
 (*gcd(m,n) divides m and n.  The conjunctions don't seem provable separately*)
 lemma gcd_dvd_both: "(gcd(m,n) dvd m) & (gcd(m,n) dvd n)"
-  apply (rule_tac m="m" and n="n" in gcd_induct)
+  apply (induct_tac m n rule: gcd_induct)
   apply (simp_all add: gcd_non_0)
   apply (blast dest: dvd_mod_imp_dvd)
   done
@@ -72,8 +72,12 @@ lemmas gcd_dvd2 = gcd_dvd_both [THEN conjunct2];
 (*Maximality: for all m,n,f naturals, 
                 if f divides m and f divides n then f divides gcd(m,n)*)
 lemma gcd_greatest [rulify]: "(f dvd m) --> (f dvd n) --> f dvd gcd(m,n)"
-  apply (rule_tac m="m" and n="n" in gcd_induct)
+  apply (induct_tac m n rule: gcd_induct)
   apply (simp_all add: gcd_non_0 dvd_mod);
+  done;
+
+lemma gcd_greatest_iff [iff]: "f dvd gcd(m,n) = (f dvd m & f dvd n)"
+  apply (blast intro!: gcd_dvd1 gcd_dvd2 intro: dvd_trans gcd_greatest);
   done;
 
 (*Function gcd yields the Greatest Common Divisor*)
@@ -108,7 +112,7 @@ lemma gcd_assoc: "gcd(gcd(k,m),n) = gcd(k,gcd(m,n))"
   apply (rule is_gcd_unique)
   apply (rule is_gcd)
   apply (simp add: is_gcd_def);
-  apply (blast intro!: gcd_dvd1 gcd_dvd2 intro: dvd_trans gcd_greatest);
+  apply (blast intro!: gcd_dvd1 gcd_dvd2 intro: dvd_trans);
   done 
 
 lemma gcd_0_left [simp]: "gcd(0,m) = m"
@@ -124,7 +128,7 @@ lemma gcd_1_left [simp]: "gcd(1,m) = 1"
 
 (*Davenport, page 27*)
 lemma gcd_mult_distrib2: "k * gcd(m,n) = gcd(k*m, k*n)"
-  apply (rule_tac m="m" and n="n" in gcd_induct)
+  apply (induct_tac m n rule: gcd_induct)
   apply (simp)
   apply (case_tac "k=0")
   apply (simp_all add: mod_geq gcd_non_0 mod_mult_distrib2)
@@ -149,12 +153,14 @@ proof -;
 done
 
 lemma relprime_dvd_mult: "[| gcd(k,n)=1; k dvd (m*n) |] ==> k dvd m";
-  apply (subgoal_tac "k dvd gcd(m*k, m*n)")
    apply (subgoal_tac "gcd(m*k, m*n) = m")
-    apply (simp)
+   apply (erule_tac t="m" in subst);
+   apply (simp)
    apply (simp add: gcd_mult_distrib2 [THEN sym]);
-  apply (rule gcd_greatest)
-   apply (simp_all)
+  done
+
+lemma relprime_dvd_mult_iff: "gcd(k,n)=1 \<Longrightarrow> k dvd (m*n) = k dvd m";
+  apply (blast intro: relprime_dvd_mult dvd_trans)
   done
 
 lemma prime_imp_relprime: "[| p: prime;  ~ p dvd n |] ==> gcd (p, n) = 1"
@@ -197,17 +203,14 @@ lemma gcd_add_mult: "gcd(m, k*m+n) = gcd(m,n)"
 
 (** More multiplication laws **)
 
-lemma gcd_dvd_gcd_mult: "gcd(m,n) dvd gcd(k*m, n)"
-  apply (blast intro: gcd_dvd2 gcd_dvd1 dvd_trans gcd_greatest);
-  done
-
 lemma gcd_mult_cancel: "gcd(k,n) = 1 ==> gcd(k*m, n) = gcd(m,n)"
   apply (rule dvd_anti_sym)
    apply (rule gcd_greatest)
     apply (rule_tac n="k" in relprime_dvd_mult)
      apply (simp add: gcd_assoc)
      apply (simp add: gcd_commute)
-    apply (simp_all add: mult_commute gcd_dvd1 gcd_dvd2 gcd_dvd_gcd_mult)
+    apply (simp_all add: mult_commute gcd_dvd1 gcd_dvd2)
+  apply (blast intro: gcd_dvd1 dvd_trans);
   done
 
 end
