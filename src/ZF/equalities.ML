@@ -245,6 +245,17 @@ goal ZF.thy "!!A. a: A ==> (INT y:A. c) = c";
 by (Blast_tac 1);
 qed "INT_constant";
 
+goal ZF.thy "(UN y: RepFun(A,f). B(y)) = (UN x:A. B(f(x)))";
+by (Blast_tac 1);
+qed "UN_RepFun";
+
+goal ZF.thy "!!x. x:A ==> (INT y: RepFun(A,f). B(y)) = (INT x:A. B(f(x)))";
+by (Blast_tac 1);
+qed "INT_RepFun";
+
+Addsimps [UN_RepFun, INT_RepFun];
+
+
 (** Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
     Union of a family of unions **)
 
