@@ -26,8 +26,9 @@ THYS = HOL.thy Ord.thy Set.thy Fun.thy subset.thy \
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML\
 	ind_syntax.ML indrule.ML intr_elim.ML simpdata.ML\
 	subtype.ML thy_syntax.ML ../Pure/section_utils.ML\
-	../Provers/classical.ML ../Provers/simplifier.ML \
-	../Provers/splitter.ML ../Provers/ind.ML $(THYS) $(THYS:.thy=.ML)
+	../Provers/hypsubst.ML ../Provers/classical.ML\
+        ../Provers/simplifier.ML ../Provers/splitter.ML\
+        $(THYS) $(THYS:.thy=.ML)
 
 $(BIN)/CHOL:   $(BIN)/Pure  $(FILES) 
 	if [ -d $${ISABELLEBIN:?}/Pure ];\
