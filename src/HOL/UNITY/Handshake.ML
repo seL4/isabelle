@@ -9,7 +9,7 @@ From Misra, "Asynchronous Compositions of Programs", Section 5.3.2
 *)
 
 (*split_all_tac causes a big blow-up*)
-claset_ref() := claset() delSWrapper "record_split_tac";
+claset_ref() := claset() delSWrapper record_split_name;
 
 Addsimps [F_def RS def_prg_Init, G_def RS def_prg_Init];
 program_defs_ref := [F_def, G_def];
