@@ -314,6 +314,7 @@ qed "restrict_eqI";
 Goalw [restrict_def, lam_def] "domain(restrict(f,C)) = C";
 by (Blast_tac 1);
 qed "domain_restrict";
+Addsimps [domain_restrict];
 
 Goalw [restrict_def]
     "A<=C ==> restrict(lam x:C. b(x), A) = (lam x:A. b(x))";
@@ -322,6 +323,12 @@ by (set_mp_tac 1);
 by (Asm_simp_tac 1);
 qed "restrict_lam_eq";
 
+Goal "f : cons(a, b) -> B ==> f = cons(<a, f ` a>, restrict(f, b))";
+by (rtac equalityI 1);
+by (blast_tac (claset() addIs [apply_Pair, impOfSubs restrict_subset]) 2);
+by (auto_tac (claset() addSDs [Pi_memberD],
+	       simpset() addsimps [restrict_def, lam_def]));
+qed "fun_cons_restrict_eq";
 
 
 (*** Unions of functions ***)
