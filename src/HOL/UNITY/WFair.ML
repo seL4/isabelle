@@ -145,11 +145,12 @@ by (REPEAT (blast_tac (claset() addIs prems) 1));
 qed "leadsTo_induct";
 
 
-Goal "A<=B ==> F : A leadsTo B";
-by (rtac leadsTo_Basis 1);
+Goal "A<=B ==> F : A ensures B";
 by (rewrite_goals_tac [ensures_def, constrains_def, transient_def]);
 by (Blast_tac 1);
-qed "subset_imp_leadsTo";
+qed "subset_imp_ensures";
+
+bind_thm ("subset_imp_leadsTo", subset_imp_ensures RS leadsTo_Basis);
 
 bind_thm ("empty_leadsTo", empty_subsetI RS subset_imp_leadsTo);
 Addsimps [empty_leadsTo];

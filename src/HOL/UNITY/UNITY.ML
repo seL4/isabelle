@@ -207,6 +207,11 @@ Goalw [stable_def] "F : stable A ==> F : A co A";
 by (assume_tac 1);
 qed "stableD";
 
+Goalw [stable_def, constrains_def] "stable UNIV = UNIV";
+by Auto_tac;
+qed "stable_UNIV";
+Addsimps [stable_UNIV];
+
 (** Union **)
 
 Goalw [stable_def]

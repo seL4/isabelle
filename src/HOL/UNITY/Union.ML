@@ -203,10 +203,16 @@ by (asm_full_simp_tac (simpset() addsimps [invariant_def, JN_stable]) 1);
 by (Blast_tac 1);
 bind_thm ("invariant_JN_I", ballI RS result());
 
-Goal "F Join G : stable A = \
+Goal "(F Join G : stable A) = \
 \     (F : stable A & G : stable A)";
 by (simp_tac (simpset() addsimps [stable_def, Join_constrains]) 1);
 qed "Join_stable";
+
+Goal "(F Join G : increasing f) = \
+\     (F : increasing f & G : increasing f)";
+by (simp_tac (simpset() addsimps [increasing_def, Join_stable]) 1);
+by (Blast_tac 1);
+qed "Join_increasing";
 
 Goal "[| F : invariant A; G : invariant A |]  \
 \     ==> F Join G : invariant A";
@@ -283,17 +289,27 @@ qed "stable_Join_ensures2";
 
 (** Diff and localTo **)
 
-Goalw [Join_def, Diff_def] "F Join (Diff G (Acts F)) = F Join G";
+Goalw [Diff_def] "F Join (Diff G (Acts F)) = F Join G";
 by (rtac program_equalityI 1);
 by Auto_tac;
 qed "Join_Diff2";
+
+Goalw [Diff_def]
+     "Diff (F Join G) (Acts H) = (Diff F (Acts H)) Join (Diff G (Acts H))";
+by (rtac program_equalityI 1);
+by Auto_tac;
+qed "Diff_Join_distrib";
+
+Goalw [Diff_def, constrains_def] "(Diff F (Acts F) : A co B) = (A <= B)";
+by Auto_tac;
+qed "Diff_self_constrains";
 
 Goalw [Diff_def, Disjoint_def] "Disjoint F (Diff G (Acts F))";
 by Auto_tac;
 qed "Diff_Disjoint";
 
-Goal "[| F Join G : v localTo F;  Disjoint F G |] \
-\     ==> G : (INT z. stable {s. v s = z})";
+Goal "[| G : v localTo F;  Disjoint F G |] \
+\     ==> G : stable {s. v s = z}";
 by (asm_full_simp_tac 
     (simpset() addsimps [localTo_def, Diff_def, Disjoint_def,
 			 stable_def, constrains_def]) 1);
@@ -313,6 +329,19 @@ Goalw [localTo_def, stable_def, constrains_def]
 by (Clarify_tac 1);
 by (force_tac (claset() addSEs [allE, ballE], simpset()) 1);
 qed "localTo_imp_o_localTo";
+
+Goal "(F Join G : v localTo H) = (F : v localTo H  &  G : v localTo H)";
+by (asm_full_simp_tac 
+    (simpset() addsimps [localTo_def, Diff_Join_distrib,
+			 stable_def, Join_constrains]) 1);
+by (Blast_tac 1);
+qed "Join_localTo";
+
+Goal "F : v localTo F";
+by (simp_tac 
+    (simpset() addsimps [localTo_def, stable_def, Diff_self_constrains]) 1);
+qed "self_localTo";
+
 
 
 (*** Higher-level rules involving localTo and Join ***)
@@ -342,20 +371,20 @@ by (Blast_tac 1);
 qed "UN_eq_UNIV";
 
 Goal "[| F : stable {s. v s <= w s};   \
-\        F Join G : v localTo F;       \
+\        G : v localTo F;       \
 \        F Join G : Increasing w;      \
 \        Disjoint F G |]               \
 \     ==> F Join G : Stable {s. v s <= w s}";
-by (safe_tac (claset() addSDs [localTo_imp_stable]));
 by (rewrite_goals_tac [stable_def, Stable_def, Increasing_def]);
 by (subgoal_tac "ALL k: UNIV. ?H : ({s. v s = k} Int ?AA) Co ?AA" 1);
 by (dtac ball_Constrains_UN 1);
 by (full_simp_tac (simpset() addsimps [UN_eq_UNIV]) 1);
 by (rtac ballI 1);
 by (subgoal_tac "F Join G : ({s. v s = k} Int {s. v s <= w s}) co \
-\                                      ({s. v s = k} Un {s. v s <= w s})" 1);
+\                           ({s. v s = k} Un {s. v s <= w s})" 1);
 by (asm_simp_tac (simpset() addsimps [Join_constrains]) 2);
-by (blast_tac (claset() addIs [constrains_weaken]) 2);
+by (fast_tac (claset() addIs [constrains_weaken] 
+                addEs [localTo_imp_stable RS stableD RS constrains_weaken]) 2);
 by (dtac (constrains_imp_Constrains RS Constrains_Int) 1 THEN etac INT_D 1);
 by (etac Constrains_weaken 2);
 by Auto_tac;

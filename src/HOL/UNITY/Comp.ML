@@ -77,3 +77,8 @@ by (auto_tac (claset(),
 qed "component_constrains";
 
 bind_thm ("program_less_le", strict_component_def RS meta_eq_to_obj_eq);
+
+Goal "Diff F (Acts G) <= F";
+by (auto_tac (claset() addSIs [program_equalityI],
+	      simpset() addsimps [Diff_def, component_eq_subset]));
+qed "Diff_component";

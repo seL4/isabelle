@@ -78,6 +78,7 @@ Goal "Cli_prg : (Increasing giv Int (rel localTo Cli_prg))  \
 by (rtac guaranteesI 1);
 by (rtac AlwaysI 1);
 by (Force_tac 1);
+by (full_simp_tac (simpset() addsimps [Join_localTo, self_localTo]) 1);
 by (blast_tac (claset() addIs [Increasing_localTo_Stable, 
 			       stable_rel_le_giv]) 1);
 qed "ok_guar_rel_prefix_giv";
@@ -109,6 +110,7 @@ by (dtac (impOfSubs (rewrite_o Increasing_length)) 1);
 by (rtac AlwaysI 1);
 by (Force_tac 1);
 by (rtac Stable_Int 1);
+by (full_simp_tac (simpset() addsimps [Join_localTo, self_localTo]) 2);
 by (fast_tac (claset() addEs [impOfSubs (rewrite_o localTo_imp_o_localTo)]
 	               addIs [Increasing_localTo_Stable, 
 			      stable_size_rel_le_giv]) 2);
