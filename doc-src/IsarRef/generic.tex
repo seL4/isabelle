@@ -304,7 +304,6 @@ over results of symbolic evaluation of recursive definitions, for example.
 \indexisaratt{RS}\indexisaratt{COMP}
 \indexisaratt{where}
 \indexisaratt{tag}\indexisaratt{untag}
-\indexisaratt{transfer}
 \indexisaratt{export}
 \indexisaratt{unfold}\indexisaratt{fold}
 \begin{matharray}{rcl}
@@ -318,7 +317,6 @@ over results of symbolic evaluation of recursive definitions, for example.
   standard & : & \isaratt \\
   elimify & : & \isaratt \\
   export^* & : & \isaratt \\
-  transfer & : & \isaratt \\[0.5ex]
 \end{matharray}
 
 \begin{rail}
@@ -363,10 +361,6 @@ over results of symbolic evaluation of recursive definitions, for example.
   proper incremental export is already done as part of the basic Isar
   machinery.  This attribute is mainly for experimentation.
   
-\item [$transfer$] promotes a theorem to the current theory context, which has
-  to enclose the former one.  This is done automatically whenever rules are
-  joined by inference.
-
 \end{descr}
 
 
