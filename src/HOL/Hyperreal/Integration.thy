@@ -114,10 +114,8 @@ done
 
 lemma partition_le: "partition(a,b) D ==> a \<le> b"
 apply (frule partition [THEN iffD1], safe)
-apply (rotate_tac 2)
-apply (drule_tac x = "psize D" in spec, safe)
-apply (rule ccontr)
-apply (case_tac "psize D = 0", safe)
+apply (drule_tac x = "psize D" and P="%n. psize D \<le> n --> ?P n" in spec, safe)
+apply (case_tac "psize D = 0")
 apply (drule_tac [2] n = "psize D - 1" in partition_lt, auto)
 done
 
@@ -130,7 +128,7 @@ apply (rotate_tac 2)
 apply (drule_tac x = "psize D" in spec)
 apply (rule ccontr)
 apply (drule_tac n = "psize D - 1" in partition_lt)
-prefer 3 apply (blast, auto)
+apply auto
 done
 
 lemma partition_lb: "partition(a,b) D ==> a \<le> D(r)"
@@ -194,7 +192,6 @@ lemma lemma_partition_append1:
              (if n < psize D1 then D1 n else D2 (n - psize D1)) =
              (if psize D1 + psize D2 < psize D1 then D1 (psize D1 + psize D2)
               else D2 (psize D1 + psize D2 - psize D1)))"
-apply safe
 apply (auto intro: partition_lt_gen)
 apply (subgoal_tac "psize D1 = Suc n")
 apply (auto intro!: partition_lt_gen simp add: partition_lhs partition_ub_lt)
@@ -206,37 +203,37 @@ lemma lemma_psize1:
      "[| partition (a, b) D1; partition (b, c) D2; N < psize D1 |]
       ==> D1(N) < D2 (psize D2)"
 apply (rule_tac y = "D1 (psize D1)" in order_less_le_trans)
-apply (erule partition_gt, assumption)
+apply (erule partition_gt)
 apply (auto simp add: partition_rhs partition_le)
 done
 
 lemma lemma_partition_append2:
      "[| partition (a, b) D1; partition (b, c) D2 |]
       ==> psize (%n. if n < psize D1 then D1 n else D2 (n - psize D1)) =
-          psize D1 + psize D2"
-apply (rule_tac D2 = "%n. if n < psize D1 then D1 n else D2 (n - psize D1) "
-       in psize_def [THEN meta_eq_to_obj_eq, THEN ssubst])
+          psize D1 + psize D2" 
+apply (unfold psize_def 
+         [of "%n. if n < psize D1 then D1 n else D2 (n - psize D1)"])
 apply (rule some1_equality)
-prefer 2 apply (blast intro!: lemma_partition_append1)
-apply (rule ex1I, rule lemma_partition_append1, auto)
-apply (rule ccontr)
-apply (simp add: linorder_neq_iff, safe)
-apply (rotate_tac 3)
-apply (drule_tac x = "psize D1 + psize D2" in spec, auto)
-apply (case_tac "N < psize D1")
-apply (auto dest: lemma_psize1)
-apply (subgoal_tac "N - psize D1 < psize D2")
+ prefer 2 apply (blast intro!: lemma_partition_append1)
+apply (rule ex1I, rule lemma_partition_append1) 
+apply (simp_all split: split_if_asm)
+ txt{*The case @{term "N < psize D1"}*} 
+ apply (drule_tac x = "psize D1 + psize D2" and P="%n. ?P n & ?Q n" in spec) 
+ apply (force dest: lemma_psize1)
+apply (rule order_antisym);
+ txt{*The case @{term "psize D1 \<le> N"}: 
+       proving @{term "N \<le> psize D1 + psize D2"}*}
+ apply (drule_tac x = "psize D1 + psize D2" in spec)
+ apply (simp add: partition_rhs2)
+apply (case_tac "N - psize D1 < psize D2") 
  prefer 2 apply arith
-apply (drule_tac a = b and b = c in partition_gt, auto)
-apply (drule_tac x = "psize D1 + psize D2" in spec)
-apply (auto simp add: partition_rhs2)
+ txt{*Proving @{term "psize D1 + psize D2 \<le> N"}*}
+apply (drule_tac x = "psize D1 + psize D2" and P="%n. N\<le>n --> ?P n" in spec, simp)
+apply (drule_tac a = b and b = c in partition_gt, assumption, simp)
 done
 
-lemma tpart_eq_lhs_rhs:
-"[|psize D = 0; tpart(a,b) (D,p)|] ==> a = b"
-apply (simp add: tpart_def)
-apply (auto simp add: partition_eq)
-done
+lemma tpart_eq_lhs_rhs: "[|psize D = 0; tpart(a,b) (D,p)|] ==> a = b"
+by (auto simp add: tpart_def partition_eq)
 
 lemma tpart_partition: "tpart(a,b) (D,p) ==> partition(a,b) D"
 by (simp add: tpart_def)
@@ -275,7 +272,7 @@ apply (drule_tac [4] lemma_partition_append1)
 apply (auto simp add: partition_lhs partition_rhs)
 done
 
-text{*We can always find a division which is fine wrt any gauge*}
+text{*We can always find a division that is fine wrt any gauge*}
 
 lemma partition_exists:
      "[| a \<le> b; gauge(%x. a \<le> x & x \<le> b) g |]
@@ -284,7 +281,7 @@ apply (cut_tac P = "%(u,v). a \<le> u & v \<le> b -->
                    (\<exists>D p. tpart (u,v) (D,p) & fine (g) (D,p))" 
        in lemma_BOLZANO2)
 apply safe
-apply (blast intro: real_le_trans)+
+apply (blast intro: order_trans)+
 apply (auto intro: partition_append)
 apply (case_tac "a \<le> x & x \<le> b")
 apply (rule_tac [2] x = 1 in exI, auto)
@@ -339,15 +336,13 @@ lemma sumr_partition_eq_diff_bounds [simp]:
 by (induct_tac "m", auto)
 
 lemma Integral_eq_diff_bounds: "a \<le> b ==> Integral(a,b) (%x. 1) (b - a)"
-apply (drule real_le_imp_less_or_eq, auto)
-apply (auto simp add: rsum_def Integral_def)
+apply (auto simp add: order_le_less rsum_def Integral_def)
 apply (rule_tac x = "%x. b - a" in exI)
 apply (auto simp add: gauge_def abs_interval_iff tpart_def partition)
 done
 
 lemma Integral_mult_const: "a \<le> b ==> Integral(a,b) (%x. c)  (c*(b - a))"
-apply (drule real_le_imp_less_or_eq, auto)
-apply (auto simp add: rsum_def Integral_def)
+apply (auto simp add: order_le_less rsum_def Integral_def)
 apply (rule_tac x = "%x. b - a" in exI)
 apply (auto simp add: sumr_mult [symmetric] gauge_def abs_interval_iff 
                right_diff_distrib [symmetric] partition tpart_def)
@@ -355,9 +350,8 @@ done
 
 lemma Integral_mult:
      "[| a \<le> b; Integral(a,b) f k |] ==> Integral(a,b) (%x. c * f x) (c * k)"
-apply (drule real_le_imp_less_or_eq)
-apply (auto dest: Integral_unique [OF real_le_refl Integral_zero])
-apply (auto simp add: rsum_def Integral_def sumr_mult [symmetric] real_mult_assoc)
+apply (auto simp add: order_le_less dest: Integral_unique [OF real_le_refl Integral_zero])
+apply (auto simp add: rsum_def Integral_def sumr_mult [symmetric] mult_assoc)
 apply (rule_tac a2 = c in abs_ge_zero [THEN real_le_imp_less_or_eq, THEN disjE])
  prefer 2 apply force
 apply (drule_tac x = "e/abs c" in spec, auto)
@@ -428,19 +422,17 @@ apply (drule_tac x = "e/2" in spec, auto)
 apply (frule strad1, assumption+)
 apply (rule_tac x = s in exI, auto)
 apply (rule_tac x = u and y = v in linorder_cases, auto)
-apply (rule_tac j = "\<bar>(f (v) - f (x)) - (f' (x) * (v - x))\<bar> + 
+apply (rule_tac y = "\<bar>(f (v) - f (x)) - (f' (x) * (v - x))\<bar> + 
                      \<bar>(f (x) - f (u)) - (f' (x) * (x - u))\<bar>"
-       in real_le_trans)
-apply (rule abs_triangle_ineq [THEN [2] real_le_trans])
+       in order_trans)
+apply (rule abs_triangle_ineq [THEN [2] order_trans])
 apply (simp add: right_diff_distrib, arith)
 apply (rule_tac t = "e* (v - u)" in real_sum_of_halves [THEN subst])
 apply (rule add_mono)
-apply (rule_tac j = " (e / 2) * \<bar>v - x\<bar>" in real_le_trans)
- prefer 2 apply simp apply arith
-apply (erule_tac [!]
-       V= "\<forall>xa. xa ~= x & \<bar>xa + - x\<bar> < s --> \<bar>(f xa - f x) / (xa - x) + - f' x\<bar> * 2 < e"
-        in thin_rl)
-apply (drule_tac x = v in spec, auto, arith)
+apply (rule_tac y = "(e/2) * \<bar>v - x\<bar>" in order_trans)
+ prefer 2 apply (simp, arith)
+apply (erule_tac [!] V= "\<forall>x'. x' ~= x & \<bar>x' + - x\<bar> < s --> ?P x'" in thin_rl)
+apply (drule_tac x = v in spec, simp, arith)
 apply (drule_tac x = u in spec, auto, arith)
 apply (subgoal_tac "\<bar>f u - f x - f' x * (u - x)\<bar> = \<bar>f x - f u - f' x * (x - u)\<bar>")
 apply (rule order_trans)
@@ -449,8 +441,8 @@ apply (simp add: right_diff_distrib, arith)
 done
 
 lemma FTC1: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) |]
-      ==> Integral(a,b) f' (f(b) - f(a))"
-apply (drule real_le_imp_less_or_eq, auto)
+             ==> Integral(a,b) f' (f(b) - f(a))"
+apply (drule order_le_imp_less_or_eq, auto) 
 apply (auto simp add: Integral_def)
 apply (rule ccontr)
 apply (subgoal_tac "\<forall>e. 0 < e --> (\<exists>g. gauge (%x. a \<le> x & x \<le> b) g & (\<forall>D p. tpart (a, b) (D, p) & fine g (D, p) --> \<bar>rsum (D, p) f' - (f b - f a)\<bar> \<le> e))")
@@ -469,7 +461,7 @@ apply (subgoal_tac "sumr 0 (psize D) (%n. f(D(Suc n)) - f(D n)) = f b - f a")
  apply (simp add: partition_lhs partition_rhs)
 apply (drule sym, simp)
 apply (simp (no_asm) add: sumr_diff)
-apply (rule sumr_rabs [THEN real_le_trans])
+apply (rule sumr_rabs [THEN order_trans])
 apply (subgoal_tac "ea = sumr 0 (psize D) (%n. (ea / (b - a)) * (D (Suc n) - (D n)))")
 apply (simp add: abs_minus_commute)
 apply (rule_tac t = ea in ssubst, assumption)
@@ -498,9 +490,7 @@ done
 lemma partition_psize_Least:
      "partition(a,b) D ==> psize D = (LEAST n. D(n) = b)"
 apply (auto intro!: Least_equality [symmetric] partition_rhs)
-apply (rule ccontr)
-apply (drule partition_ub_lt)
-apply (auto simp add: linorder_not_less [symmetric])
+apply (auto dest: partition_ub_lt simp add: linorder_not_less [symmetric])
 done
 
 lemma lemma_partition_bounded: "partition (a, c) D ==> ~ (\<exists>n. c < D(n))"
@@ -563,7 +553,7 @@ done
 
 lemma partition_lt_cancel: "[| partition(a,b) D; D m < D n |] ==> m < n"
 apply (cut_tac m = n and n = "psize D" in less_linear, auto)
-apply (rule ccontr, drule leI, drule le_imp_less_or_eq)
+apply (cut_tac m = m and n = n in less_linear)
 apply (cut_tac m = m and n = "psize D" in less_linear)
 apply (auto dest: partition_gt)
 apply (drule_tac n = m in partition_lt_gen, auto)
@@ -584,12 +574,12 @@ apply (frule lemma_additivity1)
 apply (assumption, assumption)
 apply (rule some_equality)
 apply (auto intro: partition_lt_Suc)
-apply (drule_tac n = n in partition_lt_gen)
-apply (assumption, arith, arith)
+apply (drule_tac n = n in partition_lt_gen, assumption)
+apply (arith, arith)
 apply (cut_tac m = na and n = "psize D" in less_linear)
 apply (auto dest: partition_lt_cancel)
 apply (rule_tac x=N and y=n in linorder_cases)
-apply (drule_tac x = n and P="%m. N \<le> m --> ?f m = ?g m" in spec, auto)
+apply (drule_tac x = n and P="%m. N \<le> m --> ?f m = ?g m" in spec, simp)
 apply (drule_tac n = n in partition_lt_gen, auto, arith)
 apply (drule_tac x = n in spec)
 apply (simp split: split_if_asm)
@@ -599,11 +589,11 @@ lemma lemma_psize_left_less_psize:
      "partition (a, b) D
       ==> psize (%x. if D x < D n then D(x) else D n) \<le> psize D"
 apply (frule_tac r = n in partition_ub)
-apply (drule_tac x = "D n" in real_le_imp_less_or_eq)
+apply (drule_tac x = "D n" in order_le_imp_less_or_eq)
 apply (auto simp add: lemma_partition_eq [symmetric])
 apply (frule_tac r = n in partition_lb)
-apply (drule lemma_additivity4_psize_eq)
-apply (rule_tac [3] ccontr, auto)
+apply (drule (2) lemma_additivity4_psize_eq)  
+apply (rule ccontr, auto)
 apply (frule_tac not_leE [THEN [2] partition_eq_bound])
 apply (auto simp add: partition_rhs)
 done
@@ -611,8 +601,7 @@ done
 lemma lemma_psize_left_less_psize2:
      "[| partition(a,b) D; na < psize (%x. if D x < D n then D(x) else D n) |]
       ==> na < psize D"
-apply (erule_tac lemma_psize_left_less_psize [THEN [2] less_le_trans], assumption)
-done
+by (erule lemma_psize_left_less_psize [THEN [2] less_le_trans])
 
 
 lemma lemma_additivity3:
@@ -627,7 +616,7 @@ apply (drule_tac n = na in partition_lt_gen, auto)
 done
 
 lemma psize_const [simp]: "psize (%x. k) = 0"
-by (simp add: psize_def, auto)
+by (auto simp add: psize_def)
 
 lemma lemma_additivity3a:
      "[| partition(a,b) D; D na < D n; D n < D (Suc na);
@@ -642,11 +631,7 @@ lemma better_lemma_psize_right_eq1:
 apply (simp add: psize_def [of "(%x. D (x + n))"]);
 apply (rule_tac a = "psize D - n" in someI2, auto)
   apply (simp add: partition less_diff_conv)
- apply (simp add: le_diff_conv)
- apply (case_tac "psize D \<le> n")
-  apply (simp add: partition_rhs2)
- apply (simp add: partition linorder_not_le)
-apply (rule ccontr, drule not_leE)
+ apply (simp add: le_diff_conv partition_rhs2 split: nat_diff_split)
 apply (drule_tac x = "psize D - n" in spec, auto)
 apply (frule partition_rhs, safe)
 apply (frule partition_lt_cancel, assumption)
@@ -655,10 +640,10 @@ apply (subgoal_tac "~ D (psize D - n + n) < D (Suc (psize D - n + n))")
  apply blast
 apply (drule_tac x = "Suc (psize D)" and P="%n. ?P n \<longrightarrow> D n = D (psize D)"
        in spec)
-apply (simp (no_asm_simp))
+apply simp
 done
 
-lemma psize_le_n: "partition (a, D n) D ==> psize D \<le> n"
+lemma psize_le_n: "partition (a, D n) D ==> psize D \<le> n" 
 apply (rule ccontr, drule not_leE)
 apply (frule partition_lt_Suc, assumption)
 apply (frule_tac r = "Suc n" in partition_ub, auto)
@@ -677,25 +662,24 @@ apply (rule ccontr, drule not_leE)
 apply (frule psize_le_n)
 apply (drule_tac x = "psize D - n" in spec, simp)
 apply (drule partition [THEN iffD1], safe)
-apply (drule_tac x = "Suc n" and P="%na. psize D \<le> na \<longrightarrow> D na = D n" in spec, auto)
+apply (drule_tac x = "Suc n" and P="%na. ?s \<le> na \<longrightarrow> D na = D n" in spec, auto)
 done
 
 lemma better_lemma_psize_right_eq:
      "partition(a,b) D ==> psize (%x. D (x + n)) \<le> psize D - n"
-apply (frule_tac r1 = n in partition_ub [THEN real_le_imp_less_or_eq])
+apply (frule_tac r1 = n in partition_ub [THEN order_le_imp_less_or_eq])
 apply (blast intro: better_lemma_psize_right_eq1a better_lemma_psize_right_eq1)
 done
 
 lemma lemma_psize_right_eq1:
      "[| partition(a,b) D; D n < b |] ==> psize (%x. D (x + n)) \<le> psize D"
-apply (simp add: psize_def [of "(%x. D (x + n))"]);
+apply (simp add: psize_def [of "(%x. D (x + n))"])
 apply (rule_tac a = "psize D - n" in someI2, auto)
   apply (simp add: partition less_diff_conv)
  apply (subgoal_tac "n \<le> psize D")
   apply (simp add: partition le_diff_conv)
  apply (rule ccontr, drule not_leE)
- apply (drule_tac less_imp_le [THEN [2] partition_rhs2], auto)
-apply (rule ccontr, drule not_leE)
+ apply (drule_tac less_imp_le [THEN [2] partition_rhs2], assumption, simp)
 apply (drule_tac x = "psize D" in spec)
 apply (simp add: partition)
 done
@@ -716,7 +700,7 @@ done
 
 lemma lemma_psize_right_eq:
      "[| partition(a,b) D |] ==> psize (%x. D (x + n)) \<le> psize D"
-apply (frule_tac r1 = n in partition_ub [THEN real_le_imp_less_or_eq])
+apply (frule_tac r1 = n in partition_ub [THEN order_le_imp_less_or_eq])
 apply (blast intro: lemma_psize_right_eq1a lemma_psize_right_eq1)
 done
 
@@ -725,21 +709,18 @@ lemma tpart_left1:
       ==> tpart(a, D n) (%x. if D x < D n then D(x) else D n,
           %x. if D x < D n then p(x) else D n)"
 apply (frule_tac r = n in tpart_partition [THEN partition_ub])
-apply (drule_tac x = "D n" in real_le_imp_less_or_eq)
+apply (drule_tac x = "D n" in order_le_imp_less_or_eq)
 apply (auto simp add: tpart_partition [THEN lemma_partition_eq, symmetric] tpart_tag_eq [symmetric])
 apply (frule_tac tpart_partition [THEN [3] lemma_additivity1])
 apply (auto simp add: tpart_def)
-apply (drule_tac [2] linorder_not_less [THEN iffD1, THEN real_le_imp_less_or_eq], auto)
-  prefer 3
-  apply (drule linorder_not_less [THEN iffD1])
-  apply (drule_tac x=na in spec, arith)
+apply (drule_tac [2] linorder_not_less [THEN iffD1, THEN order_le_imp_less_or_eq], auto)
+  prefer 3 apply (drule_tac x=na in spec, arith)
  prefer 2 apply (blast dest: lemma_additivity3)
-apply (frule lemma_additivity4_psize_eq)
-apply (assumption+)
+apply (frule (2) lemma_additivity4_psize_eq)
 apply (rule partition [THEN iffD2])
 apply (frule partition [THEN iffD1])
-apply (auto intro: partition_lt_gen)
- apply (drule (1) partition_lt_cancel, arith)
+apply safe 
+apply (auto simp add: partition_lt_gen)  
 apply (drule (1) partition_lt_cancel, arith)
 done
 
@@ -780,7 +761,7 @@ apply (drule_tac x = "na + n" in spec)
 apply (frule_tac n = n in tpart_partition [THEN better_lemma_psize_right_eq], auto, arith)
 apply (simp add: tpart_def, safe)
 apply (subgoal_tac "D n \<le> p (na + n)")
-apply (drule_tac y = "p (na + n)" in real_le_imp_less_or_eq)
+apply (drule_tac y = "p (na + n)" in order_le_imp_less_or_eq)
 apply safe
 apply (simp split: split_if_asm, simp)
 apply (drule less_le_trans, assumption)
@@ -898,17 +879,14 @@ done
 lemma partition_exists2:
      "[| a \<le> b; \<forall>n. gauge (%x. a \<le> x & x \<le> b) (fa n) |]
       ==> \<forall>n. \<exists>D p. tpart (a, b) (D, p) & fine (fa n) (D, p)"
-apply safe
-apply (rule partition_exists, auto)
-done
+by (blast dest: partition_exists) 
 
 lemma monotonic_anti_derivative:
      "[| a \<le> b; \<forall>c. a \<le> c & c \<le> b --> f' c \<le> g' c;
          \<forall>x. DERIV f x :> f' x; \<forall>x. DERIV g x :> g' x |]
       ==> f b - f a \<le> g b - g a"
 apply (rule Integral_le, assumption)
-apply (rule_tac [2] FTC1)
-apply (rule_tac [4] FTC1, auto)
+apply (auto intro: FTC1) 
 done
 
 end
