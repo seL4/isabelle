@@ -30,7 +30,7 @@
 \newcommand\sdx[1]{\isa{#1}\index{#1@\protect\isa{#1} (symbol)}}
 
 \newcommand\tdx[1]{\isa{#1}\index{#1@\protect\isa{#1} (theorem)}}
-\newcommand\tdxbold[1]{\isa{#1}\index{#1@\protect\isa{#1} (theorem|bold)}}
+\newcommand\tdxbold[1]{\isa{#1}\index{#1@\protect\isa{#1} (theorem)|bold}}
 
 \newcommand\cldx[1]{\isa{#1}\index{#1@\protect\isa{#1} (class)}}
 \newcommand\tydx[1]{\textit{#1}\index{#1@{\textit{#1}} (type)}}
@@ -50,8 +50,8 @@
 \newcommand\ttindex[1]{\texttt{#1}\index{#1@\texttt{#1}}\@}
 \newcommand\ttindexbold[1]{\texttt{#1}\index{#1@\texttt{#1}|bold}\@}
 
-\newcommand{\indexboldpos}[2]{#1\indexbold{#2@#1}\@}
-\newcommand{\ttindexboldpos}[2]{\texttt{#1}\indexbold{#2@\texttt{#1}}\@}
+\newcommand{\indexboldpos}[2]{#1\index{#2@#1|bold}\@}
+\newcommand{\ttindexboldpos}[2]{\texttt{#1}\index{#2@\texttt{#1}|bold}\@}
 \newcommand{\isaindexbold}[1]{\isa{#1}\index{*#1|bold}\@}
 \newcommand{\isaindex}[1]{\isa{#1}\index{*#1}\@}
 
@@ -76,8 +76,10 @@
 
 \newif\ifremarks
 \newcommand{\REMARK}[1]{\ifremarks\marginpar{\raggedright\footnotesize#1}\fi}
-\newcommand{\rulename}[1]{\hfill(#1\index{#1@\protect\isa{#1} (theorem)|bold})}
+
 %names of Isabelle rules
+\newcommand{\rulename}[1]{\hfill(#1)}
+\newcommand{\rulenamedx}[1]{\hfill(#1\index{#1@\protect\isa{#1} (theorem)|bold})}
 
 %%%% meta-logical connectives
 
@@ -143,7 +145,6 @@
 \let\union=\bigcup
 
 \def\ML{{\sc ml}}
-\def\OBJ{{\sc obj}}
 \def\AST{{\sc ast}}
 
 %macros to change the treatment of symbols
