@@ -6,7 +6,7 @@
 The Mutilated Chess Board Problem, formalized inductively
 *)
 
-Addsimps tiling.intrs;
+Addsimps (tiling.intrs @ domino.intrs);
 AddIs    tiling.intrs;
 
 (** The union of two disjoint tilings is a tiling **)
@@ -49,10 +49,9 @@ qed "sing_Times_lemma";
 
 Goal "{i} Times below(n+n) : tiling domino";
 by (induct_tac "n" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addsimps [Un_assoc RS sym])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Un_assoc RS sym])));
 by (rtac tiling.Un 1);
-by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [sing_Times_lemma, domino.horiz])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [sing_Times_lemma])));
 qed "dominoes_tile_row";
 
 AddSIs [dominoes_tile_row]; 
@@ -63,35 +62,16 @@ by Auto_tac;
 qed "dominoes_tile_matrix";
 
 
-(*** Basic properties of colored ***)
-
-Goalw [colored_def] "finite X ==> finite(colored b X)";
-by Auto_tac;
-qed "finite_colored";
-
-Goalw [colored_def] "colored b (A Un B) = colored b A Un colored b B";
-by Auto_tac;
-qed "colored_Un";
-
-Goalw [colored_def] "colored b (A - B) = colored b A - colored b B";
-by Auto_tac;
-qed "colored_Diff";
-
-Goalw [colored_def] "colored b {} = {}";
-by Auto_tac;
-qed "colored_empty";
+(*** "colored" and Dominoes ***)
 
 Goalw [colored_def]
-    "colored b (insert (i,j) C) = \
-\      (if (i+j) mod 2 = b then insert (i,j) (colored b C) else colored b C)";
+    "colored b Int (insert (i,j) C) = \
+\      (if (i+j) mod 2 = b then insert (i,j) (colored b Int C) \
+\                          else colored b Int C)";
 by Auto_tac;
 qed "colored_insert";
 
-Addsimps [finite_colored, colored_Un, colored_Diff, colored_empty, 
-	  colored_insert];
-
-
-(*** Dominoes ***)
+Addsimps [colored_insert];
 
 Goal "d:domino ==> finite d";
 by (etac domino.elim 1);
@@ -99,15 +79,12 @@ by Auto_tac;
 qed "domino_finite";
 Addsimps [domino_finite];
 
-Goal "[| d:domino; b<2 |] ==> EX i j. colored b d = {(i,j)}";
+Goal "d:domino ==> (EX i j. colored 0 Int d = {(i,j)}) & \
+\                  (EX k l. colored 1 Int d = {(k,l)})";
 by (etac domino.elim 1);
 by (auto_tac (claset(), simpset() addsimps [mod_Suc]));
-qed "domino_singleton";
+qed "domino_singletons";
 
-Goal "d:domino ==> (EX i j. colored 0 d = {(i,j)}) & \
-\                  (EX i' j'. colored 1 d = {(i',j')})";
-by (blast_tac (claset() addSIs [domino_singleton]) 1);
-qed "domino_singleton_01";
 
 (*** Tilings of dominoes ***)
 
@@ -116,26 +93,26 @@ by (etac tiling.induct 1);
 by Auto_tac;
 qed "tiling_domino_finite";
 
-Addsimps [tiling_domino_finite];
+Addsimps [tiling_domino_finite, Int_Un_distrib, Diff_Int_distrib];
 
-Goal "t: tiling domino ==> card(colored 0 t) = card(colored 1 t)";
+Goal "t: tiling domino ==> card(colored 0 Int t) = card(colored 1 Int t)";
 by (etac tiling.induct 1);
-by (dtac domino_singleton_01 2);
+by (dtac domino_singletons 2);
 by Auto_tac;
 (*this lemma tells us that both "inserts" are non-trivial*)
-by (subgoal_tac "ALL p b. p : colored b a --> p ~: colored b t" 1);
+by (subgoal_tac "ALL p C. C Int a = {p} --> p ~: t" 1);
 by (Asm_simp_tac 1);
-by (auto_tac (claset(), simpset() addsimps [colored_def]));
+by (blast_tac (claset() addEs [equalityE]) 1);
 qed "tiling_domino_0_1";
 
 (*Final argument is surprisingly complex*)
 Goal "[| t : tiling domino;       \
-\        (i+j) mod 2 = 0;  (i'+j') mod 2 = 0;  \
-\        {(i,j),(i',j')} <= t;  j' ~= j |]    \
-\     ==> (t - {(i,j)} - {(i',j')}) ~: tiling domino";
+\        (i+j) mod 2 = 0;  (k+l) mod 2 = 0;  \
+\        {(i,j),(k,l)} <= t;  l ~= j |]    \
+\     ==> (t - {(i,j)} - {(k,l)}) ~: tiling domino";
 by (rtac notI 1);
-by (subgoal_tac "card (colored 0 (t - {(i,j)} - {(i',j')})) < \
-\                card (colored 1 (t - {(i,j)} - {(i',j')}))" 1);
+by (subgoal_tac "card (colored 0 Int (t - {(i,j)} - {(k,l)})) < \
+\                card (colored 1 Int (t - {(i,j)} - {(k,l)}))" 1);
 by (force_tac (claset(), HOL_ss addsimps [tiling_domino_0_1]) 1);
 by (asm_simp_tac (simpset() addsimps [tiling_domino_0_1 RS sym]) 1);
 by (rtac less_trans 1);

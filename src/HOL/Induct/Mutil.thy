@@ -24,9 +24,9 @@ inductive domino
 
 constdefs
   below   :: "nat => nat set"
-   "below n    == {i. i<n}"
+   "below n   == {i. i<n}"
   
-  colored  :: "[nat, (nat*nat)set] => (nat*nat)set"
-   "colored b A == A Int {(i,j). (i+j) mod 2 = b}"
+  colored  :: "nat => (nat*nat)set"
+   "colored b == {(i,j). (i+j) mod 2 = b}"
 
 end
