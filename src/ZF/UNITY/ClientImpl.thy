@@ -9,13 +9,6 @@ Distributed Resource Management System:  Client Implementation
 
 theory ClientImpl = AllocBase + Guar:
 
-(*move to Constrains.thy when the latter is converted to Isar format*)
-method_setup constrains = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.METHOD (fn facts =>
-            gen_constrains_tac (local_clasimpset_of ctxt) 1)) *}
-    "for proving safety properties"
-
 consts
   ask :: i (* input history:  tokens requested *)
   giv :: i (* output history: tokens granted *)
