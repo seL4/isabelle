@@ -81,10 +81,13 @@ fun proc sg _ t =
       fun newshape (i,terms) = Data.mk_sum (Data.mk_coeff(i,u)::terms)
       val reshapes =  (*Move i*u to the front and put j*u into standard form
 		      i + #m + j + k == #m + i + (j + k) *)
-	    listof (Data.prove_conv [Data.norm_tac] sg 
-		    (t, 
-		     Data.mk_bal (newshape(n1,terms1'), 
-				  newshape(n2,terms2'))))
+	    if n1=0 orelse n2=0 then   (*trivial, so do nothing*)
+		raise TERM("cancel_numerals", []) 
+	    else
+		listof (Data.prove_conv [Data.norm_tac] sg 
+			(t, 
+			 Data.mk_bal (newshape(n1,terms1'), 
+				      newshape(n2,terms2'))))
   in
 
       if n2<=n1 then 
