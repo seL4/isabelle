@@ -163,9 +163,13 @@ struct
 fun add_text comment thy = thy:theory;
 fun add_title title author date thy = thy;
 val add_chapter = add_text;
-val add_section = add_text;
-val add_subsection = add_text;
-val add_subsubsection = add_text;
+
+fun gen_add_section add present txt thy =
+  (Context.setmp (Some thy) present (Comment.string_of txt); add txt thy);
+
+val add_section = gen_add_section add_text Present.section;
+val add_subsection = gen_add_section add_text Present.subsection;
+val add_subsubsection = gen_add_section add_text Present.subsubsection;
 
 fun add_txt comment = ProofHistory.apply Proof.assert_forward;
 val add_sect = add_txt;
