@@ -1086,8 +1086,8 @@ val setup =
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val record_decl =
-  P.type_args -- P.name -- (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+")
-    -- Scan.repeat1 (P.const --| P.marg_comment));
+  P.type_args -- P.name --
+    (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+") -- Scan.repeat1 P.const);
 
 val recordP =
   OuterSyntax.command "record" "define extensible record" K.thy_decl

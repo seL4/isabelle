@@ -228,20 +228,19 @@ val print_commands = Toplevel.imperative print_outer_syntax;
 
 (* basic sources *)
 
-fun token_source (src, pos) =
-  src
-  |> Symbol.source false
-  |> T.source false (K (get_lexicons ())) pos;
-
 fun toplevel_source term do_recover cmd src =
   let
     val no_terminator =
       Scan.unless P.semicolon (Scan.one (T.not_sync andf T.not_eof));
-    val recover = Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [None];
+    fun recover x = (Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [None]) x;
   in
     src
+    |> T.source_proper
     |> Source.source T.stopper
-      (Scan.bulk (fn xs => P.!!! (command term (cmd ())) xs))
+      (Scan.bulk (P.$$$ "--" -- P.!!! P.text >> K None || P.not_eof >> Some))
+      (if do_recover then Some recover else None)
+    |> Source.mapfilter I
+    |> Source.source T.stopper (Scan.bulk (fn xs => P.!!! (command term (cmd ())) xs))
       (if do_recover then Some recover else None)
     |> Source.mapfilter I
   end;
@@ -254,7 +253,6 @@ fun isar term no_pos =
   |> Symbol.source true
   |> T.source true get_lexicons
     (if no_pos then Position.none else Position.line_name 1 "stdin")
-  |> T.source_proper
   |> toplevel_source term true get_parser;
 
 
@@ -294,7 +292,6 @@ fun try_ml_file name time =
 
 fun parse_thy src =
   src
-  |> T.source_proper
   |> toplevel_source false false (K (get_parser ()))
   |> Source.exhaust;
 
@@ -311,7 +308,10 @@ fun run_thy name path =
       Present.old_symbol_source name present_text)   (*note: text presented twice*)
     else
       let
-        val tok_src = Source.exhausted (token_source (text_src, pos));
+        val tok_src = text_src
+          |> Symbol.source false
+          |> T.source false (K (get_lexicons ())) pos
+          |> Source.exhausted;
         val out = Toplevel.excursion_result
           (IsarOutput.parse_thy markup (#1 (get_lexicons ()))
             (parse_thy tok_src) tok_src);

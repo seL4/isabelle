@@ -29,11 +29,10 @@ sig
   val undo_theory: Toplevel.transition -> Toplevel.transition
   val undo: Toplevel.transition -> Toplevel.transition
   val kill: Toplevel.transition -> Toplevel.transition
-  val back: bool * Comment.text -> Toplevel.transition -> Toplevel.transition
-  val use: string * Comment.text -> Toplevel.transition -> Toplevel.transition
-  val use_mltext_theory: string * Comment.text -> Toplevel.transition -> Toplevel.transition
-  val use_mltext: bool -> string * Comment.text -> Toplevel.transition -> Toplevel.transition
-  val use_setup: string * Comment.text -> theory -> theory
+  val back: bool -> Toplevel.transition -> Toplevel.transition
+  val use: string -> Toplevel.transition -> Toplevel.transition
+  val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
+  val use_mltext: bool -> string -> Toplevel.transition -> Toplevel.transition
   val use_commit: Toplevel.transition -> Toplevel.transition
   val cd: string -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
@@ -47,7 +46,7 @@ sig
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_locales: Toplevel.transition -> Toplevel.transition
-  val print_locale: Locale.expr * (Args.src Locale.element * Comment.text) list
+  val print_locale: Locale.expr * Args.src Locale.element list
     -> Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
   val print_rules: Toplevel.transition -> Toplevel.transition
@@ -60,16 +59,13 @@ sig
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
-  val print_thms: (string list * (string * Args.src list) list) * Comment.text
+  val print_thms: string list * (string * Args.src list) list
     -> Toplevel.transition -> Toplevel.transition
-  val print_prfs: bool -> (string list * (string * Args.src list) list option) * Comment.text
+  val print_prfs: bool -> string list * (string * Args.src list) list option
     -> Toplevel.transition -> Toplevel.transition
-  val print_prop: (string list * string) * Comment.text
-    -> Toplevel.transition -> Toplevel.transition
-  val print_term: (string list * string) * Comment.text
-    -> Toplevel.transition -> Toplevel.transition
-  val print_type: (string list * string) * Comment.text
-    -> Toplevel.transition -> Toplevel.transition
+  val print_prop: (string list * string) -> Toplevel.transition -> Toplevel.transition
+  val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
+  val print_type: (string list * string) -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure IsarCmd: ISAR_CMD =
@@ -135,26 +131,23 @@ val undo_theory = Toplevel.history (fn hist =>
 
 val undo = Toplevel.kill o undo_theory o undos_proof 1;
 val kill = Toplevel.kill o kill_proof;
-
-val back = Toplevel.proof o ProofHistory.back o Comment.ignore;
+val back = Toplevel.proof o ProofHistory.back;
 
 
 (* use ML text *)
 
-fun use (name, comment_ignore) = Toplevel.keep (fn state =>
+fun use name = Toplevel.keep (fn state =>
   Context.setmp (try Toplevel.theory_of state) ThyInfo.use name);
 
 (*passes changes of theory context*)
-val use_mltext_theory = Toplevel.theory' o Context.use_mltext_theory o Comment.ignore;
+val use_mltext_theory = Toplevel.theory' o Context.use_mltext_theory;
 
 (*ignore result theory context*)
-fun use_mltext v (txt, comment_ignore) = Toplevel.keep' (fn verb => fn state =>
+fun use_mltext v txt = Toplevel.keep' (fn verb => fn state =>
   (Context.use_mltext txt (v andalso verb) (try Toplevel.theory_of state)));
 
-val use_setup = Context.use_setup o Comment.ignore;
-
 (*Note: commit is dynamically bound*)
-val use_commit = use_mltext false ("commit();", Comment.none);
+val use_commit = use_mltext false "commit();";
 
 
 (* current working directory *)
@@ -196,8 +189,7 @@ val print_locales = Toplevel.unknown_theory o
 
 fun print_locale (import, body) = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let val thy = Toplevel.theory_of state in
-    Locale.print_locale thy import
-      (map (Locale.attribute (Attrib.local_attribute thy) o Comment.ignore) body)
+    Locale.print_locale thy import (map (Locale.attribute (Attrib.local_attribute thy)) body)
   end);
 
 val print_attributes = Toplevel.unknown_theory o
@@ -291,11 +283,10 @@ fun string_of_type state ms s =
 fun print_item string_of (x, y) = Toplevel.keep (fn state =>
   writeln (string_of (Toplevel.enter_forward_proof state) x y));
 
-val print_thms = print_item string_of_thms o Comment.ignore;
-fun print_prfs full = print_item (string_of_prfs full) o Comment.ignore;
-val print_prop = print_item string_of_prop o Comment.ignore;
-val print_term = print_item string_of_term o Comment.ignore;
-val print_type = print_item string_of_type o Comment.ignore;
-
+val print_thms = print_item string_of_thms;
+fun print_prfs full = print_item (string_of_prfs full);
+val print_prop = print_item string_of_prop;
+val print_term = print_item string_of_term;
+val print_type = print_item string_of_type;
 
 end;

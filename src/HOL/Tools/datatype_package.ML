@@ -858,12 +858,13 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val datatype_decl =
   Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_infix --
-    (P.$$$ "=" |-- P.enum1 "|" (P.name -- Scan.repeat P.typ -- P.opt_mixfix --| P.marg_comment));
+    (P.$$$ "=" |-- P.enum1 "|" (P.name -- Scan.repeat P.typ -- P.opt_mixfix));
 
 fun mk_datatype args =
   let
     val names = map (fn ((((None, _), t), _), _) => t | ((((Some t, _), _), _), _) => t) args;
-    val specs = map (fn ((((_, vs), t), mx), cons) => (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
+    val specs = map (fn ((((_, vs), t), mx), cons) =>
+      (vs, t, mx, map (fn ((x, y), z) => (x, y, z)) cons)) args;
   in #1 o add_datatype false names specs end;
 
 val datatypeP =

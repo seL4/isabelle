@@ -124,7 +124,7 @@ val dest_decl =
     P.name -- (P.$$$ "::" |-- P.typ)  --| P.$$$ ")" >> P.triple1;
 
 val cons_decl =
-  P.name -- Scan.repeat dest_decl -- P.opt_mixfix --| P.marg_comment
+  P.name -- Scan.repeat dest_decl -- P.opt_mixfix
   >> (fn ((c, ds), mx) => (c, mx, ds));
 
 val domain_decl = (P.type_args -- P.name >> Library.swap) -- (P.$$$ "=" |-- P.enum1 "|" cons_decl);

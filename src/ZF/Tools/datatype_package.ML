@@ -419,14 +419,14 @@ fun mk_datatype ((((dom, dts), monos), type_intrs), type_elims) =
 
 val con_decl =
   P.name -- Scan.optional (P.$$$ "(" |-- P.list1 P.term --| P.$$$ ")") [] -- P.opt_mixfix
-  --| P.marg_comment >> P.triple1;
+  >> P.triple1;
 
 val datatype_decl =
-  (Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<=") |-- P.!!! P.term --| P.marg_comment) "") --
+  (Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<=") |-- P.!!! P.term) "") --
   P.and_list1 (P.term -- (P.$$$ "=" |-- P.enum1 "|" con_decl)) --
-  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1 --| P.marg_comment) [] --
-  Scan.optional (P.$$$ "type_intros" |-- P.!!! P.xthms1 --| P.marg_comment) [] --
-  Scan.optional (P.$$$ "type_elims" |-- P.!!! P.xthms1 --| P.marg_comment) []
+  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1) [] --
+  Scan.optional (P.$$$ "type_intros" |-- P.!!! P.xthms1) [] --
+  Scan.optional (P.$$$ "type_elims" |-- P.!!! P.xthms1) []
   >> (Toplevel.theory o mk_datatype);
 
 val coind_prefix = if coind then "co" else "";

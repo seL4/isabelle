@@ -291,7 +291,7 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val primrec_decl =
   Scan.optional (P.$$$ "(" |-- P.name --| P.$$$ ")") "" --
-    Scan.repeat1 (P.opt_thm_name ":" -- P.prop --| P.marg_comment);
+    Scan.repeat1 (P.opt_thm_name ":" -- P.prop);
 
 val primrecP =
   OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl

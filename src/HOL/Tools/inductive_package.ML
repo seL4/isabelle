@@ -44,10 +44,8 @@ sig
   val inductive_forall_name: string
   val inductive_forall_def: thm
   val rulify: thm -> thm
-  val inductive_cases: (((bstring * Args.src list) * string list) * Comment.text) list
-    -> theory -> theory
-  val inductive_cases_i: (((bstring * theory attribute list) * term list) * Comment.text) list
-    -> theory -> theory
+  val inductive_cases: ((bstring * Args.src list) * string list) list -> theory -> theory
+  val inductive_cases_i: ((bstring * theory attribute list) * term list) list -> theory -> theory
   val add_inductive_i: bool -> bool -> bstring -> bool -> bool -> bool -> term list ->
     ((bstring * term) * theory attribute list) list -> thm list -> theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
@@ -587,8 +585,8 @@ fun gen_inductive_cases prep_att prep_prop args thy =
     val cert_prop = Thm.cterm_of (Theory.sign_of thy) o prep_prop (ProofContext.init thy);
     val mk_cases = smart_mk_cases thy (Simplifier.simpset_of thy) o cert_prop;
 
-    val facts = args |> map (fn (((a, atts), props), comment) =>
-     (((a, map (prep_att thy) atts), map (Thm.no_attributes o single o mk_cases) props), comment));
+    val facts = args |> map (fn ((a, atts), props) =>
+     ((a, map (prep_att thy) atts), map (Thm.no_attributes o single o mk_cases) props));
   in thy |> IsarThy.theorems_i Drule.lemmaK facts |> #1 end;
 
 val inductive_cases = gen_inductive_cases Attrib.global_attribute ProofContext.read_prop;
@@ -874,10 +872,10 @@ fun mk_ind coind ((sets, intrs), monos) =
   #1 o add_inductive true coind sets (map P.triple_swap intrs) monos;
 
 fun ind_decl coind =
-  (Scan.repeat1 P.term --| P.marg_comment) --
+  Scan.repeat1 P.term --
   (P.$$$ "intros" |--
-    P.!!! (Scan.repeat1 (P.opt_thm_name ":" -- P.prop --| P.marg_comment))) --
-  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1 --| P.marg_comment) []
+    P.!!! (Scan.repeat1 (P.opt_thm_name ":" -- P.prop))) --
+  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1) []
   >> (Toplevel.theory o mk_ind coind);
 
 val inductiveP =
@@ -888,7 +886,7 @@ val coinductiveP =
 
 
 val ind_cases =
-  P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.prop -- P.marg_comment)
+  P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.prop)
   >> (Toplevel.theory o inductive_cases);
 
 val inductive_casesP =

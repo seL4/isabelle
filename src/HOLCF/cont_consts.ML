@@ -110,7 +110,7 @@ fun gen_add_constdefs consts defs args thy =
   thy
   |> consts (map fst args)
   |> defs (false, map (fn ((c, _, mx), s) =>
-    (((Thm.def_name (Syntax.const_name c mx), s), []), Comment.none)) args);
+    ((Thm.def_name (Syntax.const_name c mx), s), [])) args);
 
 fun add_constdefs args = gen_add_constdefs add_consts IsarThy.add_defs args;
 fun add_constdefs_i args = gen_add_constdefs add_consts_i IsarThy.add_defs_i args;
@@ -122,12 +122,11 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val constsP =
   OuterSyntax.command "consts" "declare constants (HOLCF)" K.thy_decl
-    (Scan.repeat1 (P.const --| P.marg_comment) >> (Toplevel.theory o add_consts));
+    (Scan.repeat1 P.const >> (Toplevel.theory o add_consts));
 
 val constdefsP =
   OuterSyntax.command "constdefs" "declare and define constants (HOLCF)" K.thy_decl
-    (Scan.repeat1 ((P.const --| P.marg_comment) -- (P.term --| P.marg_comment))
-      >> (Toplevel.theory o add_constdefs));
+    (Scan.repeat1 (P.const -- P.term) >> (Toplevel.theory o add_constdefs));
 
 
 val _ = OuterSyntax.add_parsers [constsP, constdefsP];

@@ -26,12 +26,10 @@ sig
   val add_inst_arity_i: string * sort list * sort -> tactic -> theory -> theory
   val default_intro_classes_tac: thm list -> int -> tactic
   val axclass_tac: thm list -> tactic
-  val instance_subclass_proof: (xclass * xclass) * Comment.text -> bool -> theory -> ProofHistory.T
-  val instance_subclass_proof_i: (class * class) * Comment.text -> bool -> theory -> ProofHistory.T
-  val instance_arity_proof: (xstring * string list * xclass) * Comment.text
-    -> bool -> theory -> ProofHistory.T
-  val instance_arity_proof_i: (string * sort list * class) * Comment.text
-    -> bool -> theory -> ProofHistory.T
+  val instance_subclass_proof: xclass * xclass -> bool -> theory -> ProofHistory.T
+  val instance_subclass_proof_i: class * class -> bool -> theory -> ProofHistory.T
+  val instance_arity_proof: xstring * string list * xclass -> bool -> theory -> ProofHistory.T
+  val instance_arity_proof_i: string * sort list * class -> bool -> theory -> ProofHistory.T
   val setup: (theory -> theory) list
 end;
 
@@ -421,10 +419,10 @@ val add_inst_arity_i = sane_inst_arity cert_arity;
 
 fun inst_attribute add_thms (thy, thm) = (add_thms [thm] thy, thm);
 
-fun inst_proof mk_prop add_thms (sig_prop, comment) int thy =
+fun inst_proof mk_prop add_thms sig_prop int thy =
   thy
-  |> IsarThy.theorem_i Drule.internalK ((("", [inst_attribute add_thms]),
-    (mk_prop (Theory.sign_of thy) sig_prop, ([], []))), comment) int;
+  |> IsarThy.theorem_i Drule.internalK (("", [inst_attribute add_thms]),
+    (mk_prop (Theory.sign_of thy) sig_prop, ([], []))) int;
 
 val instance_subclass_proof = inst_proof (mk_classrel oo read_classrel) add_classrel_thms;
 val instance_subclass_proof_i = inst_proof (mk_classrel oo cert_classrel) add_classrel_thms;
@@ -448,17 +446,14 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 
 val axclassP =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
-    (((P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
-        P.!!! (P.list1 P.xname)) []) --| P.marg_comment)
-      -- Scan.repeat (P.spec_name --| P.marg_comment)
+    ((P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
+        P.!!! (P.list1 P.xname)) []) -- Scan.repeat P.spec_name
       >> (fn (cls, axs) => Toplevel.theory (#1 o add_axclass cls axs)));
 
 val instanceP =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal
-    ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.xname)
-        -- P.marg_comment >> instance_subclass_proof ||
-      (P.xname -- (P.$$$ "::" |-- P.simple_arity) >> P.triple2) -- P.marg_comment
-        >> instance_arity_proof)
+    ((P.xname -- ((P.$$$ "\\<subseteq>" || P.$$$ "<") |-- P.xname) >> instance_subclass_proof ||
+      (P.xname -- (P.$$$ "::" |-- P.simple_arity) >> P.triple2) >> instance_arity_proof)
       >> (Toplevel.print oo Toplevel.theory_to_proof));
 
 val _ = OuterSyntax.add_parsers [axclassP, instanceP];

@@ -605,13 +605,13 @@ fun mk_ind (((((doms, intrs), monos), con_defs), type_intrs), type_elims) =
 
 val ind_decl =
   (P.$$$ "domains" |-- P.!!! (P.enum1 "+" P.term --
-      ((P.$$$ "\\<subseteq>" || P.$$$ "<=") |-- P.term)) --| P.marg_comment) --
+      ((P.$$$ "\\<subseteq>" || P.$$$ "<=") |-- P.term))) --
   (P.$$$ "intros" |--
-    P.!!! (Scan.repeat1 (P.opt_thm_name ":" -- P.prop --| P.marg_comment))) --
-  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1 --| P.marg_comment) [] --
-  Scan.optional (P.$$$ "con_defs" |-- P.!!! P.xthms1 --| P.marg_comment) [] --
-  Scan.optional (P.$$$ "type_intros" |-- P.!!! P.xthms1 --| P.marg_comment) [] --
-  Scan.optional (P.$$$ "type_elims" |-- P.!!! P.xthms1 --| P.marg_comment) []
+    P.!!! (Scan.repeat1 (P.opt_thm_name ":" -- P.prop))) --
+  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1) [] --
+  Scan.optional (P.$$$ "con_defs" |-- P.!!! P.xthms1) [] --
+  Scan.optional (P.$$$ "type_intros" |-- P.!!! P.xthms1) [] --
+  Scan.optional (P.$$$ "type_elims" |-- P.!!! P.xthms1) []
   >> (Toplevel.theory o mk_ind);
 
 val inductiveP = OuterSyntax.command (co_prefix ^ "inductive")

@@ -45,9 +45,6 @@ sig
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
   val uname: token list -> string option * token list
-  val comment: token list -> Comment.text * token list
-  val marg_comment: token list -> Comment.text * token list
-  val interest: token list -> Comment.interest * token list
   val sort: token list -> string * token list
   val arity: token list -> (string list * string) * token list
   val simple_arity: token list -> (string list * xclass) * token list
@@ -175,15 +172,6 @@ val xname = group "name reference" (short_ident || long_ident || sym_ident || st
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 
 val uname = underscore >> K None || name >> Some;
-
-
-(* formal comments *)
-
-val comment = text >> (Comment.plain o Library.single);
-val marg_comment = Scan.repeat ($$$ "--" |-- text) >> Comment.plain;
-
-val interest = Scan.optional ($$$ "%%" >> K Comment.no_interest ||
-  $$$ "%" |-- Scan.optional nat 1 >> Comment.interest) Comment.default_interest;
 
 
 (* sorts and arities *)

@@ -310,8 +310,8 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int thy =
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
   in
-    thy |> IsarThy.theorem_i Drule.internalK
-      (((bname, atts), (HOLogic.mk_Trueprop tc, ([], []))), Comment.none) int
+    thy
+    |> IsarThy.theorem_i Drule.internalK ((bname, atts), (HOLogic.mk_Trueprop tc, ([], []))) int
   end;
 
 val recdef_tc = gen_recdef_tc Attrib.global_attribute Sign.intern_const;
@@ -340,8 +340,7 @@ val hints =
 
 val recdef_decl =
   Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "permissive" -- P.$$$ ")") >> K false) true --
-  P.name -- P.term -- Scan.repeat1 (P.opt_thm_name ":" -- P.prop --| P.marg_comment)
-    -- Scan.option hints
+  P.name -- P.term -- Scan.repeat1 (P.opt_thm_name ":" -- P.prop) -- Scan.option hints
   >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map P.triple_swap eqs) src);
 
 val recdefP =
@@ -360,8 +359,7 @@ val defer_recdefP =
 
 
 val recdef_tc_decl =
-  P.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
-    --| P.marg_comment;
+  P.opt_thm_name ":" -- P.xname -- Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")");
 
 fun mk_recdef_tc ((thm_name, name), i) = recdef_tc thm_name name i;
 
