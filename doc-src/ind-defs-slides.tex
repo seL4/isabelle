@@ -1,0 +1,195 @@
+%process by     nlatex cade; dvips -o s.ps -Ppreview cade
+%               ghostview -magstep -2 -landscape s.ps
+\documentstyle[fancybox,newlfont,lcp,proof,semhelv,sem-a4,%
+%  article,%
+  slidesonly,%Try notes or notesonly instead
+  semlayer%     This must be included, but you need the semcolor option to
+  ]{seminar}                                  % actually see the overlays.
+
+\def\printlandscape{\special{landscape}}    % Works with dvips.
+
+\slidesmag{5}\articlemag{2}    %the difference is 3 instead of 4!
+\extraslideheight{30pt}
+
+\renewcommand\slidefuzz{6pt}
+\sloppy\hfuzz2pt   %sloppy defines \hfuzz0.5pt but it's mainly for text
+
+\newcommand\sbs{\subseteq}
+\newcommand\Pow{{\cal P}}
+\newcommand\lfp{\hbox{\tt lfp}}
+\newcommand\gfp{\hbox{\tt gfp}}
+\newcommand\lst{\hbox{\tt list}}
+\newcommand\term{\hbox{\tt term}}
+
+\newcommand\heading[1]{%
+  \begin{center}\large\bf\shadowbox{#1}\end{center}
+  \vspace{1ex minus 1ex}}
+
+\newpagestyle{mine}%
+  {L. Paulson\hfil A Fixedpoint Approach to (Co)Inductive Definitions\hfil
+      \thepage}%
+  {\hfil\special{psfile=cuarms.eps hscale=20 vscale=20 voffset=-6
+      hoffset=-14}\hfil}
+\pagestyle{mine}
+
+
+\begin{document}
+\slidefonts
+
+\begin{slide}\centering
+\shadowbox{% 
+    \begin{Bcenter}
+    {\Large\bf A Fixedpoint Approach to}\\[2ex]
+    {\Large\bf (Co)Inductive Definitions}
+    \end{Bcenter}}
+\bigskip
+
+    \begin{Bcenter}
+    Lawrence C. Paulson\\
+    Computer Laboratory\\
+    University of Cambridge\\
+    England\\[1ex]
+    \verb|lcp@cl.cam.ac.uk|
+    \end{Bcenter}
+\bigskip
+
+{\footnotesize Thanks: SERC grants GR/G53279, GR/H40570; ESPRIT Project 6453
+  `Types'} 
+\end{slide}
+
+
+\begin{slide}
+\heading{Inductive Definitions}
+\begin{itemize}
+  \item {\bf datatypes}
+    \begin{itemize}
+      \item finite lists, trees
+      \item syntax of expressions, \ldots
+    \end{itemize}
+  \item {\bf inference systems}
+    \begin{itemize}
+      \item transitive closure of a relation
+      \item transition systems
+      \item structural operational semantics
+    \end{itemize}
+\end{itemize}
+
+Supported by Boyer/Moore, HOL, Coq, \ldots, Isabelle/ZF
+\end{slide}
+
+
+\begin{slide}
+\heading{Coinductive Definitions}
+\begin{itemize}
+  \item {\bf codatatypes}
+    \begin{itemize}
+      \item {\it infinite\/} lists, trees
+      \item  syntax of {\it infinite\/} expressions, \ldots
+    \end{itemize}
+  \item {\bf bisimulation relations}
+    \begin{itemize}
+      \item process equivalence
+      \item uses in functional programming (Abramksy, Howe)
+    \end{itemize}
+\end{itemize}
+
+Supported by \ldots ?, \ldots, Isabelle/ZF
+\end{slide}
+
+
+\begin{slide}
+\heading{The Knaster-Tarksi Fixedpoint Theorem}
+$h$ a monotone function
+
+$D$ a set such that $h(D)\sbs D$
+
+The {\bf least} fixedpoint $\lfp(D,h)$ yields {\bf inductive} definitions
+
+The {\bf greatest} fixedpoint $\gfp(D,h)$ yields {\bf coinductive} definitions
+
+{\it A general approach\/}:
+\begin{itemize}
+  \item handles all provably monotone definitions
+  \item works for set theory, higher-order logic, \ldots
+\end{itemize}
+\end{slide}
+
+
+\begin{slide}
+\heading{An Implementation in Isabelle/ZF}\centering
+\begin{itemize}
+  \item {\bf Input} 
+     \begin{itemize}
+      \item description of {\it introduction rules\/} \& tree's {\it
+          constructors\/} 
+      \item {\it theorems\/} implying that the definition is {\it monotonic\/}
+    \end{itemize}
+  \item {\bf Output} 
+     \begin{itemize}
+      \item (co)induction rules
+      \item case analysis rule and {\it rule inversion\/} tools, \ldots
+    \end{itemize}
+\end{itemize}
+
+\vfill
+{\it flexible, secure, \ldots but fast\/}
+\end{slide}
+
+
+\begin{slide}
+\heading{Working Examples}
+\begin{itemize}
+  \item lists
+  \item terms recursive over lists: $\term(A) = A\times\lst(\term(A))$
+  \item primitive recursive functions
+  \item lazy lists
+  \item bisimulations for lazy lists
+  \item combinator reductions; Church-Rosser Theorem
+  \item mutually recursive trees \& forests
+\end{itemize}
+\end{slide}
+
+
+\begin{slide}
+\heading{Other Work Using Fixedpoints}
+{\bf The HOL system}:
+\begin{itemize}
+  \item Melham's induction package: special case of Fixedpoint Theorem
+  \item Andersen \& Petersen's induction package
+  \item (no HOL datatype package uses fixedpoints)
+\end{itemize}
+
+{\bf Coq and LEGO}:
+\begin{itemize}
+  \item (Co)induction {\it almost\/} expressible in base logic (CoC)
+  \item \ldots{} inductive definitions are built-in
+\end{itemize}
+\end{slide}
+
+
+\begin{slide}
+\heading{Limitations \& Future Developments}\centering
+\begin{itemize}
+  \item {\bf infinite-branching trees}
+    \begin{itemize}
+      \item justification requires proof
+      \item would be easier to {\it build them in\/}!
+    \end{itemize}
+  \item {\bf recursive function definitions}
+    \begin{itemize}
+      \item use {\it well-founded\/} recursion
+      \item distinct from datatype definitions
+    \end{itemize}
+  \item {\bf port to Isabelle/HOL}
+\end{itemize}
+\end{slide}
+
+\end{document}
+
+
+{\it flat\/} ordered pairs used to define infinite lists, \ldots
+
+\begin{slide}
+\heading{}\centering
+\end{slide}
+
