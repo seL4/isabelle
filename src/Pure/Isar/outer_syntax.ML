@@ -242,6 +242,7 @@ fun parse_thy (src, pos) =
 
 fun run_thy name path =
   let val (src, pos) = Source.of_file path in
+    Present.theory_source name src;
     if is_old_theory (src, pos) then ThySyn.load_thy name (Source.exhaust src)
     else (Toplevel.excursion (parse_thy (src, pos))
       handle exn => error (Toplevel.exn_message exn))
