@@ -39,7 +39,7 @@ syntax
 translations
   "f(r \<rightarrow> v)"  ==  "f(addr r := v)"
   "p^.f := e"  =>  "f := f(p \<rightarrow> e)"
-  "p^.f"       ==  "f(addr p)"
+  "p^.f"       =>  "f(addr p)"
 
 
 text "An example due to Suzuki:"

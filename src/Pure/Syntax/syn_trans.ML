@@ -9,6 +9,7 @@ Syntax translation functions.
 signature SYN_TRANS0 =
 sig
   val eta_contract: bool ref
+  val atomic_abs_tr': string * typ * term -> term * term
   val mk_binder_tr: string * string -> string * (term list -> term)
   val mk_binder_tr': string * string -> string * (term list -> term)
   val dependent_tr': string * string -> term list -> term
@@ -224,6 +225,10 @@ fun abs_tr' tm =
   foldr (fn (x, t) => Lexicon.const "_abs" $ x $ t)
     (strip_abss strip_abs_vars strip_abs_body (eta_contr tm));
 
+
+fun atomic_abs_tr' (x,T,t) = 
+  let val [xT] = rename_wrt_term t [(x,T)];
+  in  (mark_boundT xT, subst_bound (mark_bound(fst xT), t)) end;
 
 fun abs_ast_tr' (*"_abs"*) asts =
   (case Ast.unfold_ast_p "_abs" (Ast.Appl (Ast.Constant "_abs" :: asts)) of
