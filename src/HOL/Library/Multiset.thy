@@ -443,7 +443,7 @@ constdefs
       (\<forall>b. b :# K --> (b, a) \<in> r)}"
 
   mult :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set"
-  "mult r == (mult1 r)^+"
+  "mult r == (mult1 r)\<^sup>+"
 
 lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
   by (simp add: mult1_def)

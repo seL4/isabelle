@@ -36,7 +36,7 @@ text {*
  \emph{equivalence classes} over elements of the base type @{typ 'a}.
 *}
 
-typedef 'a quot = "{{x. a \<sim> x}| a::'a::eqv. True}"
+typedef 'a quot = "{{x. a \<sim> x} | a::'a::eqv. True}"
   by blast
 
 lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"
