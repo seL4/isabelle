@@ -99,7 +99,7 @@ $aprop$ &=& $id$ ~~$|$~~ $var$
     ~~$|$~~ $fun^{(\infty)}$ {\tt(} $logic$ {\tt,} \dots {\tt,} $logic$ {\tt)} \\\\
 $fun$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $fun$ {\tt)} \\
     &$|$& $fun^{(\infty)}$ {\tt(} $logic$ {\tt,} \dots {\tt,} $logic$ {\tt)} \\
-    &$|$& $fun^{(\infty)}$ {\tt::} $type$ \\
+    &$|$& $fun^{(4)}$ {\tt::} $type$ & (4) \\
     &$|$& {\tt \%} $idts$ {\tt.} $logic$ & (0) \\\\
 $idts$ &=& $idt$ ~~$|$~~ $idt^{(1)}$ $idts$ \\\\
 $idt$ &=& $id$ ~~$|$~~ {\tt(} $idt$ {\tt)} \\
@@ -186,11 +186,17 @@ where $c$ is a subclass of \cldx{logic}, several productions are added:
 \begin{tabular}{rclc}
 $ty$ &=& $id$ ~~$|$~~ $var$ ~~$|$~~ {\tt(} $ty$ {\tt)} \\
   &$|$& $fun^{(\infty)}$ {\tt(} $logic$ {\tt,} \dots {\tt,} $logic$ {\tt)}\\
-  &$|$& $ty^{(\infty)}$ {\tt::} $type$\\\\
+  &$|$& $ty^{(4)}$ {\tt::} $type$ ~~~~~~~ (3) \\\\
 $logic$ &=& $ty$
 \end{tabular}
 \end{center}
 
+\begin{warn}
+  Type constraints bind very weakly. For example, \verb!x<y::nat! is normally
+  parsed as \verb!(x<y)::nat!, unless \verb$<$ has priority of 4 or less, in
+  which case the string is likely to be ambiguous. The correct form is
+  \verb!x<(y::nat)!.
+\end{warn}
 
 \subsection{Lexical matters}
 The parser does not process input strings directly.  It operates on token
