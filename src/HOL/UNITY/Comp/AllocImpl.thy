@@ -13,8 +13,8 @@ theory AllocImpl = AllocBase + Follows + PPROD:
 
 (*Type variable 'b is the type of items being merged*)
 record 'b merge =
-  In   :: "nat => 'b list"   (*merge's INPUT histories: streams to merge*)
-  Out  :: "'b list"          (*merge's OUTPUT history: merged items*)
+  In   :: "nat => 'b list"  (*merge's INPUT histories: streams to merge*)
+  Out  :: "'b list"         (*merge's OUTPUT history: merged items*)
   iOut :: "nat list"        (*merge's OUTPUT history: origins of merged items*)
 
 record ('a,'b) merge_d =
@@ -77,8 +77,8 @@ constdefs
     "merge_follows ==
 	 (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o merge.In))
 	 guarantees
-	 (\<Inter>i \<in> lessThan Nclients. 
-	  (%s. sublist (merge.Out s) 
+	 (\<Inter>i \<in> lessThan Nclients.
+	  (%s. sublist (merge.Out s)
                        {k. k < size(merge.iOut s) & merge.iOut s! k = i})
 	  Fols (sub i o merge.In))"
 
@@ -104,9 +104,9 @@ constdefs
 	 Increasing distr.In Int Increasing distr.iIn Int
 	 Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients}
 	 guarantees
-	 (\<Inter>i \<in> lessThan Nclients. 
+	 (\<Inter>i \<in> lessThan Nclients.
 	  (sub i o distr.Out) Fols
-	  (%s. sublist (distr.In s) 
+	  (%s. sublist (distr.In s)
                        {k. k < size(distr.iIn s) & distr.iIn s ! k = i}))"
 
   distr_allowed_acts :: "('a,'b) distr_d program set"
@@ -126,25 +126,25 @@ constdefs
   alloc_safety :: "'a allocState_d program set"
     "alloc_safety ==
 	 Increasing rel
-         guarantees  Always {s. tokens (giv s) <= NbT + tokens (rel s)}"
+         guarantees  Always {s. tokens (giv s) \<le> NbT + tokens (rel s)}"
 
   (*spec (20)*)
   alloc_progress :: "'a allocState_d program set"
     "alloc_progress ==
 	 Increasing ask Int Increasing rel Int
-         Always {s. \<forall>elt \<in> set (ask s). elt <= NbT}
+         Always {s. \<forall>elt \<in> set (ask s). elt \<le> NbT}
          Int
-         (\<Inter>h. {s. h <= giv s & h pfixGe (ask s)}
+         (\<Inter>h. {s. h \<le> giv s & h pfixGe (ask s)}
 		 LeadsTo
-	         {s. tokens h <= tokens (rel s)})
-         guarantees  (\<Inter>h. {s. h <= ask s} LeadsTo {s. h pfixLe giv s})"
+	         {s. tokens h \<le> tokens (rel s)})
+         guarantees  (\<Inter>h. {s. h \<le> ask s} LeadsTo {s. h pfixLe giv s})"
 
   (*spec: preserves part*)
   alloc_preserves :: "'a allocState_d program set"
     "alloc_preserves == preserves rel Int
                         preserves ask Int
                         preserves allocState_d.dummy"
-  
+
 
   (*environmental constraints*)
   alloc_allowed_acts :: "'a allocState_d program set"
@@ -179,7 +179,7 @@ locale Distrib =
 #    {*spec (9.2)*}
 #    network_giv :: "'a systemState program set
 #	"network_giv == \<Inter>i \<in> lessThan Nclients.
-#			    Increasing giv 
+#			    Increasing giv
 #			    guarantees[giv o sub i o client]
 #			    ((giv o sub i o client) Fols giv)"
 
@@ -231,38 +231,39 @@ subsection{*Theorems for Merge*}
 lemma (in Merge) Merge_Allowed:
      "Allowed M = (preserves merge.Out) Int (preserves merge.iOut)"
 apply (cut_tac Merge_spec)
-apply (auto simp add: merge_spec_def merge_allowed_acts_def Allowed_def safety_prop_Acts_iff)
+apply (auto simp add: merge_spec_def merge_allowed_acts_def Allowed_def
+                      safety_prop_Acts_iff)
 done
 
 lemma (in Merge) M_ok_iff [iff]:
-     "M ok G = (G \<in> preserves merge.Out & G \<in> preserves merge.iOut &  
+     "M ok G = (G \<in> preserves merge.Out & G \<in> preserves merge.iOut &
                      M \<in> Allowed G)"
 by (auto simp add: Merge_Allowed ok_iff_Allowed)
 
 
 lemma (in Merge) Merge_Always_Out_eq_iOut:
-     "[| G \<in> preserves merge.Out; G \<in> preserves merge.iOut; M \<in> Allowed G |]  
+     "[| G \<in> preserves merge.Out; G \<in> preserves merge.iOut; M \<in> Allowed G |]
       ==> M Join G \<in> Always {s. length (merge.Out s) = length (merge.iOut s)}"
 apply (cut_tac Merge_spec)
 apply (force dest: guaranteesD simp add: merge_spec_def merge_eqOut_def)
 done
 
 lemma (in Merge) Merge_Bounded:
-     "[| G \<in> preserves merge.iOut; G \<in> preserves merge.Out; M \<in> Allowed G |]  
+     "[| G \<in> preserves merge.iOut; G \<in> preserves merge.Out; M \<in> Allowed G |]
       ==> M Join G \<in> Always {s. \<forall>elt \<in> set (merge.iOut s). elt < Nclients}"
 apply (cut_tac Merge_spec)
 apply (force dest: guaranteesD simp add: merge_spec_def merge_bounded_def)
 done
 
 lemma (in Merge) Merge_Bag_Follows_lemma:
-     "[| G \<in> preserves merge.iOut; G \<in> preserves merge.Out; M \<in> Allowed G |]  
-  ==> M Join G \<in> Always  
-          {s. (\<Sum>i: lessThan Nclients. bag_of (sublist (merge.Out s)  
-                                  {k. k < length (iOut s) & iOut s ! k = i})) =  
+     "[| G \<in> preserves merge.iOut; G \<in> preserves merge.Out; M \<in> Allowed G |]
+  ==> M Join G \<in> Always
+          {s. (\<Sum>i \<in> lessThan Nclients. bag_of (sublist (merge.Out s)
+                                  {k. k < length (iOut s) & iOut s ! k = i})) =
               (bag_of o merge.Out) s}"
-apply (rule Always_Compl_Un_eq [THEN iffD1]) 
-apply (blast intro: Always_Int_I [OF Merge_Always_Out_eq_iOut Merge_Bounded]) 
-apply (rule UNIV_AlwaysI, clarify) 
+apply (rule Always_Compl_Un_eq [THEN iffD1])
+apply (blast intro: Always_Int_I [OF Merge_Always_Out_eq_iOut Merge_Bounded])
+apply (rule UNIV_AlwaysI, clarify)
 apply (subst bag_of_sublist_UN_disjoint [symmetric])
   apply (simp)
  apply blast
@@ -275,15 +276,15 @@ apply blast
 done
 
 lemma (in Merge) Merge_Bag_Follows:
-     "M \<in> (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o merge.In))  
-          guarantees   
-             (bag_of o merge.Out) Fols  
-             (%s. \<Sum>i: lessThan Nclients. (bag_of o sub i o merge.In) s)"
+     "M \<in> (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o merge.In))
+          guarantees
+             (bag_of o merge.Out) Fols
+             (%s. \<Sum>i \<in> lessThan Nclients. (bag_of o sub i o merge.In) s)"
 apply (rule Merge_Bag_Follows_lemma [THEN Always_Follows1, THEN guaranteesI], auto)
 apply (rule Follows_setsum)
 apply (cut_tac Merge_spec)
 apply (auto simp add: merge_spec_def merge_follows_def o_def)
-apply (drule guaranteesD) 
+apply (drule guaranteesD)
   prefer 3
   apply (best intro: mono_bag_of [THEN mono_Follows_apply, THEN subsetD], auto)
 done
@@ -292,9 +293,9 @@ done
 subsection{*Theorems for Distributor*}
 
 lemma (in Distrib) Distr_Increasing_Out:
-     "D \<in> Increasing distr.In Int Increasing distr.iIn Int  
-          Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients}  
-          guarantees  
+     "D \<in> Increasing distr.In Int Increasing distr.iIn Int
+          Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients}
+          guarantees
           (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o distr.Out))"
 apply (cut_tac Distrib_spec)
 apply (simp add: distr_spec_def distr_follows_def)
@@ -303,11 +304,11 @@ apply (blast intro: guaranteesI Follows_Increasing1 dest: guaranteesD)
 done
 
 lemma (in Distrib) Distr_Bag_Follows_lemma:
-     "[| G \<in> preserves distr.Out;  
-         D Join G \<in> Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients} |]  
-  ==> D Join G \<in> Always  
-          {s. (\<Sum>i \<in> lessThan Nclients. bag_of (sublist (distr.In s)  
-                                  {k. k < length (iIn s) & iIn s ! k = i})) =  
+     "[| G \<in> preserves distr.Out;
+         D Join G \<in> Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients} |]
+  ==> D Join G \<in> Always
+          {s. (\<Sum>i \<in> lessThan Nclients. bag_of (sublist (distr.In s)
+                                  {k. k < length (iIn s) & iIn s ! k = i})) =
               bag_of (sublist (distr.In s) (lessThan (length (iIn s))))}"
 apply (erule Always_Compl_Un_eq [THEN iffD1])
 apply (rule UNIV_AlwaysI, clarify)
@@ -316,7 +317,7 @@ apply (subst bag_of_sublist_UN_disjoint [symmetric])
  apply blast
 apply (simp add: set_conv_nth)
 apply (subgoal_tac
-       "(\<Union>i \<in> lessThan Nclients. {k. k < length (iIn x) & iIn x ! k = i}) = 
+       "(\<Union>i \<in> lessThan Nclients. {k. k < length (iIn x) & iIn x ! k = i}) =
         lessThan (length (iIn x))")
  apply (simp (no_asm_simp))
 apply blast
@@ -325,17 +326,17 @@ done
 lemma (in Distrib) D_ok_iff [iff]:
      "D ok G = (G \<in> preserves distr.Out & D \<in> Allowed G)"
 apply (cut_tac Distrib_spec)
-apply (auto simp add: distr_spec_def distr_allowed_acts_def Allowed_def 
+apply (auto simp add: distr_spec_def distr_allowed_acts_def Allowed_def
                       safety_prop_Acts_iff ok_iff_Allowed)
 done
 
-lemma (in Distrib) Distr_Bag_Follows: 
- "D \<in> Increasing distr.In Int Increasing distr.iIn Int  
-      Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients}  
-      guarantees   
-       (\<Inter>i \<in> lessThan Nclients.  
-        (%s. \<Sum>i: lessThan Nclients. (bag_of o sub i o distr.Out) s)  
-        Fols  
+lemma (in Distrib) Distr_Bag_Follows:
+ "D \<in> Increasing distr.In Int Increasing distr.iIn Int
+      Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients}
+      guarantees
+       (\<Inter>i \<in> lessThan Nclients.
+        (%s. \<Sum>i \<in> lessThan Nclients. (bag_of o sub i o distr.Out) s)
+        Fols
         (%s. bag_of (sublist (distr.In s) (lessThan (length(distr.iIn s))))))"
 apply (rule guaranteesI, clarify)
 apply (rule Distr_Bag_Follows_lemma [THEN Always_Follows2], auto)
@@ -351,33 +352,33 @@ done
 subsection{*Theorems for Allocator*}
 
 lemma alloc_refinement_lemma:
-     "!!f::nat=>nat. (\<Inter>i \<in> lessThan n. {s. f i <= g i s})   
-      <= {s. (\<Sum>x \<in> lessThan n. f x) <= (\<Sum>x: lessThan n. g x s)}"
+     "!!f::nat=>nat. (\<Inter>i \<in> lessThan n. {s. f i \<le> g i s})
+      \<subseteq> {s. (\<Sum>x \<in> lessThan n. f x) \<le> (\<Sum>x: lessThan n. g x s)}"
 apply (induct_tac "n")
 apply (auto simp add: lessThan_Suc)
 done
 
-lemma alloc_refinement: 
-"(\<Inter>i \<in> lessThan Nclients. Increasing (sub i o allocAsk) Int   
-                             Increasing (sub i o allocRel))      
-  Int    
-  Always {s. \<forall>i. i<Nclients -->       
-              (\<forall>elt \<in> set ((sub i o allocAsk) s). elt <= NbT)}        
-  Int    
-  (\<Inter>i \<in> lessThan Nclients.    
-   \<Inter>h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}   
-           LeadsTo {s. tokens h <= (tokens o sub i o allocRel)s})         
-  <=      
- (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o allocAsk) Int   
-                             Increasing (sub i o allocRel))      
-  Int    
-  Always {s. \<forall>i. i<Nclients -->       
-              (\<forall>elt \<in> set ((sub i o allocAsk) s). elt <= NbT)}        
-  Int    
-  (\<Inter>hf. (\<Inter>i \<in> lessThan Nclients.   
-         {s. hf i <= (sub i o allocGiv)s & hf i pfixGe (sub i o allocAsk)s})  
-  LeadsTo {s. (\<Sum>i: lessThan Nclients. tokens (hf i)) <=          
-    (\<Sum>i: lessThan Nclients. (tokens o sub i o allocRel)s)})"
+lemma alloc_refinement:
+"(\<Inter>i \<in> lessThan Nclients. Increasing (sub i o allocAsk) Int
+                           Increasing (sub i o allocRel))
+  Int
+  Always {s. \<forall>i. i<Nclients -->
+              (\<forall>elt \<in> set ((sub i o allocAsk) s). elt \<le> NbT)}
+  Int
+  (\<Inter>i \<in> lessThan Nclients.
+   \<Inter>h. {s. h \<le> (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
+        LeadsTo {s. tokens h \<le> (tokens o sub i o allocRel)s})
+  \<subseteq>
+ (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o allocAsk) Int
+                           Increasing (sub i o allocRel))
+  Int
+  Always {s. \<forall>i. i<Nclients -->
+              (\<forall>elt \<in> set ((sub i o allocAsk) s). elt \<le> NbT)}
+  Int
+  (\<Inter>hf. (\<Inter>i \<in> lessThan Nclients.
+         {s. hf i \<le> (sub i o allocGiv)s & hf i pfixGe (sub i o allocAsk)s})
+  LeadsTo {s. (\<Sum>i \<in> lessThan Nclients. tokens (hf i)) \<le>
+              (\<Sum>i \<in> lessThan Nclients. (tokens o sub i o allocRel)s)})"
 apply (auto simp add: ball_conj_distrib)
 apply (rename_tac F hf)
 apply (rule LeadsTo_weaken_R [OF Finite_stable_completion alloc_refinement_lemma], blast, blast)
