@@ -30,6 +30,9 @@ sig
   val single_thm: string -> thm list -> thm
   val cond_extern_thm_sg: Sign.sg -> string -> xstring
   val thms_containing: theory -> string list * string list -> (string * thm list) list
+  val thms_containing_consts: theory -> string list -> (string * thm) list
+  val find_intros: theory -> term -> (string * thm) list
+  val find_elims : theory -> term -> (string * thm) list
   val hide_thms: bool -> string list -> theory -> theory
   val store_thm: (bstring * thm) * theory attribute list -> theory -> theory * thm
   val smart_store_thms: (bstring * thm list) -> thm list
@@ -189,6 +192,65 @@ fun thms_containing thy idx =
     |> flat
   end;
 
+fun thms_containing_consts thy consts =
+  thms_containing thy (consts, []) |> map #2 |> flat
+  |> map (fn th => (Thm.name_of_thm th, th))
+
+(* intro/elim theorems *)
+
+(* intro: given a goal state, find a suitable intro rule for some subgoal *)
+(* elim: given a theorem thm,
+         find a theorem whose major premise eliminates the conclusion of thm *)
+
+(*top_const: main constant, ignoring Trueprop *)
+fun top_const (_ $ t) = (case head_of t of Const (c, _) => Some c | _ => None)
+  | top_const _ = None;
+
+val intro_const = top_const o concl_of;
+fun elim_const thm = case prems_of thm of [] => None | p::_ => top_const p;
+
+fun index_intros thy c = thms_containing_consts thy [c]
+  |> filter (fn (_, thm) => intro_const thm = Some c);
+fun index_elims thy c = thms_containing_consts thy [c]
+  |> filter (fn (_, thm) => elim_const thm = Some c);
+
+(*returns all those named_thms whose subterm extracted by extract can be
+  instantiated to obj; the list is sorted according to the number of premises
+  and the size of the required substitution.*)
+fun select_match(obj, signobj, named_thms, extract) =
+  let val tsig = Sign.tsig_of signobj
+      fun matches prop =
+            case extract prop of
+              None => false
+            | Some pat => Pattern.matches tsig (pat, obj);
+
+      fun substsize prop =
+            let val Some pat = extract prop
+                val (_,subst) = Pattern.match tsig (pat,obj)
+            in foldl op+ (0, map (size_of_term o snd) subst) end
+
+      fun thm_ord ((p0,s0,_),(p1,s1,_)) =
+            prod_ord (int_ord o pairself (fn 0 => 0 | x => 1)) int_ord ((p0,s0),(p1,s1));
+
+      fun select((p as (_,thm))::named_thms, sels) =
+            let val {prop, sign, ...} = rep_thm thm
+            in select(named_thms,
+                      if Sign.subsig(sign, signobj) andalso matches prop
+                      then (nprems_of thm,substsize prop,p)::sels
+                      else sels)
+            end
+        | select([],sels) = sels
+
+  in map (fn (_,_,t) => t) (sort thm_ord (select(named_thms, []))) end;
+
+fun find_matching index extract thy prop =
+  (case top_const prop of None => []
+   | Some c => select_match(prop,Theory.sign_of thy,index thy c,extract))
+
+val find_intros = find_matching index_intros (Some o Logic.strip_imp_concl)
+
+val find_elims = find_matching index_elims
+  (fn prop => case Logic.strip_imp_prems prop of [] => None | p::_ => Some p)
 
 
 (** store theorems **)                    (*DESTRUCTIVE*)

@@ -410,7 +410,7 @@ fun check_defn sg overloaded ((deps, axms), def as (name, tm)) =
     else
       (case overloading sg c_decl ty of
         NoOverloading =>
-          (add_deps (c, Term.add_term_consts (rhs, [])) deps
+          (add_deps (c, Term.term_consts rhs) deps
               handle Graph.CYCLES namess => err_in_defn sg name (cycle_msg namess),
             def :: axms)
       | Useless =>

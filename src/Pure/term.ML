@@ -154,6 +154,7 @@ sig
   val add_typ_varnames: typ * string list -> string list
   val add_term_classes: term * class list -> class list
   val add_term_consts: term * string list -> string list
+  val term_consts: term -> string list
   val add_term_frees: term * term list -> term list
   val term_frees: term -> term list
   val add_term_free_names: term * string list -> string list
@@ -792,6 +793,8 @@ fun add_term_consts (Const (c, _), cs) = c ins_string cs
   | add_term_consts (t $ u, cs) = add_term_consts (t, add_term_consts (u, cs))
   | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
   | add_term_consts (_, cs) = cs;
+
+fun term_consts t = add_term_consts(t,[]);
 
 fun exists_Const P t = let
         fun ex (Const c      ) = P c

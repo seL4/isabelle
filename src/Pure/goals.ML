@@ -107,6 +107,7 @@ sig
   val print_locales: theory -> unit
   val get_thm: theory -> xstring -> thm
   val get_thms: theory -> xstring -> thm list
+  val find_intros_goal : theory -> thm -> int -> (string * thm) list
   val add_locale: bstring -> (bstring option) -> (string * string * mixfix) list ->
     (string * string) list -> (string * string) list -> theory -> theory
   val add_locale_i: bstring -> (bstring option) -> (string * typ * mixfix) list ->
@@ -899,8 +900,10 @@ fun result () = !curr_mkresult (true, topthm());
 fun uresult () = !curr_mkresult (false, topthm());
 
 (*Get subgoal i from goal stack*)
-fun getgoal i = List.nth (prems_of (topthm()), i-1)
+fun get_goal st i = List.nth (prems_of st, i-1)
                 handle Subscript => error"getgoal: Goal number out of range";
+
+fun getgoal i = get_goal (topthm()) i;
 
 (*Return subgoal i's hypotheses as meta-level assumptions.
   For debugging uses of METAHYPS*)
@@ -1134,93 +1137,40 @@ fun thms_containing raw_consts =
     (case filter (is_none o Sign.const_type (Theory.sign_of thy)) consts of
       [] => ()
     | cs => error ("thms_containing: undeclared consts " ^ commas_quote cs));
-    PureThy.thms_containing thy (consts, [])
-    |> map #2 |> flat
-    |> map (fn th => (Thm.name_of_thm th, th))
+    PureThy.thms_containing_consts thy consts
   end;
 
-(*top_const: main constant, ignoring Trueprop*)
-fun top_const (_ $ t) = (case head_of t of Const (c, _) => Some c | _ => None)
-  | top_const _ = None;
-
-val intro_const = top_const o concl_of;
-fun elim_const thm = case prems_of thm of [] => None | p::_ => top_const p;
-
-fun index_intros c = thms_containing [c] |> filter (fn (_, thm) => intro_const thm = Some c);
-fun index_elims c = thms_containing [c] |> filter (fn (_, thm) => elim_const thm = Some c);
-
 (*assume that parameters have unique names; reverse them for substitution*)
-fun goal_params i =
-  let val gi = getgoal i
+fun goal_params st i =
+  let val gi = get_goal st i
       val rfrees = rev(map Free (Logic.strip_params gi))
   in (gi,rfrees) end;
 
-fun concl_of_goal i =
-  let val (gi,rfrees) = goal_params i
+fun concl_of_goal st i =
+  let val (gi,rfrees) = goal_params st i
       val B = Logic.strip_assums_concl gi
   in subst_bounds(rfrees,B) end;
 
-fun prems_of_goal i =
-  let val (gi,rfrees) = goal_params i
+fun prems_of_goal st i =
+  let val (gi,rfrees) = goal_params st i
       val As = Logic.strip_assums_hyp gi
   in map (fn A => subst_bounds(rfrees,A)) As end;
 
-(*returns all those named_thms whose subterm extracted by extract can be
-  instantiated to obj; the list is sorted according to the number of premises
-  and the size of the required substitution.*)
-fun select_match(obj, signobj, named_thms, extract) =
-  let fun matches(prop, tsig) =
-            case extract prop of
-              None => false
-            | Some pat => Pattern.matches tsig (pat, obj);
+fun find_intros_goal thy st i = PureThy.find_intros thy (concl_of_goal st i);
 
-      fun substsize(prop, tsig) =
-            let val Some pat = extract prop
-                val (_,subst) = Pattern.match tsig (pat,obj)
-            in foldl op+
-                (0, map (fn (_,t) => size_of_term t) subst)
-            end
-
-      fun thm_ord ((p0,s0,_),(p1,s1,_)) =
-            prod_ord (int_ord o pairself (fn 0 => 0 | x => 1)) int_ord ((p0,s0),(p1,s1));
-
-      fun select((p as (_,thm))::named_thms, sels) =
-            let val {prop, sign, ...} = rep_thm thm
-            in select(named_thms,
-                      if Sign.subsig(sign, signobj) andalso
-                         matches(prop,#tsig(Sign.rep_sg signobj))
-                      then
-                        (nprems_of thm,substsize(prop,#tsig(Sign.rep_sg signobj)),p)::sels
-                      else sels)
-            end
-        | select([],sels) = sels
-
-  in map (fn (_,_,t) => t) (sort thm_ord (select(named_thms, []))) end;
-
-fun find_matching(prop,sign,index,extract) =
-  (case top_const prop of
-     Some c => select_match(prop,sign,index c,extract)
-   | _      => []);
-
-fun find_intros(prop,sign) =
-  find_matching(prop,sign,index_intros,Some o Logic.strip_imp_concl);
-
-fun find_elims sign prop =
-  let fun major prop = case Logic.strip_imp_prems prop of
-                         [] => None | p::_ => Some p
-  in find_matching(prop,sign,index_elims,major) end;
-
-fun findI i = find_intros(concl_of_goal i,#sign(rep_thm(topthm())));
+fun findI i = find_intros_goal (theory_of_goal()) (topthm()) i;
 
 fun findEs i =
   let fun eq_nth((n1,th1),(n2,th2)) = n1=n2 andalso eq_thm(th1,th2);
-      val sign = #sign(rep_thm(topthm()))
-      val thmss = map (find_elims sign) (prems_of_goal i)
+      val prems = prems_of_goal (topthm()) i
+      val thy = theory_of_goal();
+      val thmss = map (PureThy.find_elims thy) prems
   in foldl (gen_union eq_nth) ([],thmss) end;
 
 fun findE i j =
-  let val sign = #sign(rep_thm(topthm()))
-  in find_elims sign (nth_elem(j-1, prems_of_goal i)) end;
+  let val prems = prems_of_goal (topthm()) i
+      val thy = theory_of_goal();
+  in PureThy.find_elims thy (nth_elem(j-1, prems)) end;
 
 end;
 

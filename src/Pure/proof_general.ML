@@ -14,6 +14,7 @@ sig
   val inform_file_retracted: string -> unit
   val inform_file_processed: string -> unit
   val thms_containing: string list -> unit
+  val print_intros: unit -> unit
   val help: unit -> unit
   val show_context: unit -> theory
   val kill_goal: unit -> unit
@@ -246,6 +247,14 @@ fun proper_inform_file_processed file state =
 
 fun thms_containing ss =
   ProofContext.print_thms_containing (ProofContext.init (the_context ())) None ss;
+
+fun print_intros() =
+  let val proof_state = Toplevel.proof_of (Toplevel.get_state ())
+      val (ctxt,(_,st)) = Proof.get_goal proof_state
+      val prt_fact = ProofContext.pretty_fact ctxt
+      val thy = ProofContext.theory_of ctxt
+      val facts = map (apsnd single) (Goals.find_intros_goal thy st 1)
+  in map prt_fact (rev facts) |> Pretty.chunks |> Pretty.writeln end
 
 val welcome = priority o Session.welcome;
 val help = welcome;

@@ -249,7 +249,7 @@ fun elim_defs sign r defs prf =
         val thms = flat (map (fn (s, ps) =>
             if s mem defnames then []
             else map (pair s o Some o fst) (filter_out (fn (p, _) =>
-              null (add_term_consts (p, []) inter cnames)) ps))
+              null (term_consts p inter cnames)) ps))
           (Symtab.dest (thms_of_proof Symtab.empty prf)))
       in Reconstruct.expand_proof sign thms end
   in
