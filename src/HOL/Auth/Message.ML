@@ -68,6 +68,10 @@ Addsimps [keysFor_empty, keysFor_Un, keysFor_UN,
           keysFor_insert_Key, keysFor_insert_MPair,
           keysFor_insert_Crypt];
 
+goalw thy [keysFor_def] "!!H. Crypt X K : H ==> invKey K : keysFor H";
+by (Fast_tac 1);
+qed "Crypt_imp_invKey_keysFor";
+
 
 (**** Inductive relation "parts" ****)
 
