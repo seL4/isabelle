@@ -8,6 +8,8 @@ Intuitionistic first-order logic.
 
 IFOL = Pure +
 
+global
+
 classes
   term < logic
 
@@ -62,6 +64,8 @@ syntax (symbols)
   "op ~="       :: ['a, 'a] => o                (infixl "\\<noteq>" 50)
 
 
+path IFOL
+
 rules
 
   (* Equality *)
@@ -108,4 +112,3 @@ rules
   iff_reflection  "(P<->Q) ==> (P==Q)"
 
 end
-

@@ -8,6 +8,8 @@ Zermelo-Fraenkel Set Theory
 
 ZF = FOL + Let + 
 
+global
+
 types
   i
 
@@ -163,6 +165,9 @@ defs
 
   subset_def    "A <= B == ALL x:A. x:B"
   succ_def      "succ(i) == cons(i, i)"
+
+
+path ZF
 
 rules
 
