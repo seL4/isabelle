@@ -22,6 +22,7 @@ sig
   eqtype info
   val info: Path.T -> info option
   val exists: Path.T -> bool
+  val mkdir: Path.T -> unit
 end;
 
 structure File: FILE =
@@ -85,6 +86,11 @@ fun info path =
   end;
 
 val exists = is_some o info;
+
+
+(* mkdir *)
+
+fun mkdir path = (execute ("mkdir -p " ^ enclose "'" "'" (sysify path)); ());
 
 
 end;
