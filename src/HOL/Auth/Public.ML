@@ -11,9 +11,6 @@ Server keys; initial states of agents; new nonces and keys; function "sees"
 
 open Public;
 
-(*Injectiveness of new nonces*)
-AddIffs [inj_newN RS inj_eq];
-
 (*Holds because Friend is injective: thus cannot prove for all f*)
 goal thy "(Friend x : Friend``A) = (x:A)";
 by (Auto_tac());
@@ -52,6 +49,14 @@ qed "sees_mono";
 (*** Basic properties of pubK & priK ***)
 
 AddIffs [inj_pubK RS inj_eq];
+
+goal thy "!!A B. (priK A = priK B) = (A=B)";
+by (Step_tac 1);
+by (dres_inst_tac [("f","invKey")] arg_cong 1);
+by (Full_simp_tac 1);
+qed "priK_inj_eq";
+
+AddIffs [priK_inj_eq];
 AddIffs [priK_neq_pubK, priK_neq_pubK RS not_sym];
 
 goalw thy [isSymKey_def] "~ isSymKey (pubK A)";
