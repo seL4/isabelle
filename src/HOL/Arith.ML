@@ -146,7 +146,7 @@ qed "add_eq_self_zero";
 (*Deleted less_natE; instead use less_eq_Suc_add RS exE*)
 Goal "m<n --> (? k. n=Suc(m+k))";
 by (induct_tac "n" 1);
-by (ALLGOALS (simp_tac (simpset() addsimps [le_eq_less_or_eq])));
+by (ALLGOALS (simp_tac (simpset() addsimps [order_le_less])));
 by (blast_tac (claset() addSEs [less_SucE] 
                         addSIs [add_0_right RS sym, add_Suc_right RS sym]) 1);
 qed_spec_mp "less_eq_Suc_add";
@@ -245,7 +245,7 @@ val [lt_mono,le] = Goal
 \        i <= j                                 \
 \     |] ==> f(i) <= (f(j)::nat)";
 by (cut_facts_tac [le] 1);
-by (asm_full_simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
+by (asm_full_simp_tac (simpset() addsimps [order_le_less]) 1);
 by (blast_tac (claset() addSIs [lt_mono]) 1);
 qed "less_mono_imp_le_mono";
 
@@ -396,11 +396,6 @@ by (exhaust_tac "n" 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [Suc_diff_le]@le_simps));
 qed "diff_Suc_less_diff";
-
-Goal "m - n <= Suc m - n";
-by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS Asm_simp_tac);
-qed "diff_le_Suc_diff";
 
 (*This and the next few suggested by Florian Kammueller*)
 Goal "!!i::nat. i-j-k = i-k-j";
@@ -702,7 +697,7 @@ AddIffs [diff_le_Suc_diff];
 Goal "n - Suc i <= n - i";
 by (case_tac "i<n" 1);
 by (dtac diff_Suc_less_diff 1);
-by (auto_tac (claset(), simpset() addsimps [leI]));
+by (auto_tac (claset(), simpset() addsimps [less_imp_le, leI]));
 qed "diff_Suc_le_diff";
 AddIffs [diff_Suc_le_diff];
 
