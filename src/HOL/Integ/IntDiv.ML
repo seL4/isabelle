@@ -643,6 +643,12 @@ qed "zmod_zmult_self2";
 
 Addsimps [zmod_zmult_self1, zmod_zmult_self2];
 
+Goal "(m mod d = #0) = (EX q::int. m = d*q)";
+by (cut_inst_tac [("a","m"),("b","d")] zmod_zdiv_equality 1);
+by Auto_tac;  
+qed "zmod_eq_0_iff";
+AddSDs [zmod_eq_0_iff RS iffD1];
+
 
 (** proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) **)
 
