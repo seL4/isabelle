@@ -27,8 +27,7 @@ sig
   val exists: Path.T -> bool
   val mkdir: Path.T -> unit
   val copy_all: Path.T -> Path.T -> unit
-  val plain_use: Path.T -> unit
-  val symbol_use: Path.T -> unit
+  val use: Path.T -> unit
 end;
 
 structure File: FILE =
@@ -106,27 +105,8 @@ fun copy_all path1 path2 =  (*dereferences symlinks!*)
   system_command ("cp -r " ^ quote_sysify_path path1 ^ " " ^ quote_sysify_path path2);
 
 
-(* symbol_use *)
+(* use ML files *)
 
-val plain_use = use o sysify_path;
-
-(* version of 'use' with input filtering *)
-
-val symbol_use =
-  if not needs_filtered_use then plain_use	(*ML system (wrongly!) accepts non-ASCII*)
-  else
-    fn path =>
-      let
-        val txt = read path;
-        val txt_out = Symbol.input txt;
-      in
-        if txt = txt_out then plain_use path
-        else
-          let val tmp_path = tmp_path path in
-            write tmp_path txt_out;
-            plain_use tmp_path handle exn => (rm tmp_path; raise exn);
-            rm tmp_path
-          end
-      end;
+val use = use o sysify_path;
 
 end;

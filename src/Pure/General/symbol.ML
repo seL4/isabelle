@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Generalized characters, independent of encoding.
+Generalized characters with infinitely many named symbols.
 *)
 
 signature SYMBOL =
@@ -35,10 +35,8 @@ sig
   val source: bool -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
-  val input: string -> string
   val default_indent: string * int -> string
   val add_mode: string -> (string -> string * real) * (string * int -> string) -> unit
-  val isabelle_fontN: string
   val symbolsN: string
   val xsymbolsN: string
   val plain_output: string -> string
@@ -59,8 +57,8 @@ struct
     (b) printable symbols: \<ident>
     (c) control symbols: \<^ident>
 
-  input may include non-ASCII characters according to isabelle-0 encoding;
-  output is subject to the print_mode variable (default: verbatim);
+  output is subject to the print_mode variable (default: verbatim),
+  actual interpretation in display is up to front-end tools;
 *)
 
 type symbol = string;
@@ -133,135 +131,6 @@ fun beginning raw_ss =
 
 
 
-(** isabelle-0 encoding table **)
-
-val enc_start = 160;
-val enc_end = 255;
-
-val enc_vector =
-[
-(* GENERATED TEXT FOLLOWS - Do not edit! *)
-  "\\<spacespace>",
-  "\\<Gamma>",
-  "\\<Delta>",
-  "\\<Theta>",
-  "\\<Lambda>",
-  "\\<Pi>",
-  "\\<Sigma>",
-  "\\<Phi>",
-  "\\<Psi>",
-  "\\<Omega>",
-  "\\<alpha>",
-  "\\<beta>",
-  "\\<gamma>",
-  "\\<delta>",
-  "\\<epsilon>",
-  "\\<zeta>",
-  "\\<eta>",
-  "\\<theta>",
-  "\\<kappa>",
-  "\\<lambda>",
-  "\\<mu>",
-  "\\<nu>",
-  "\\<xi>",
-  "\\<pi>",
-  "\\<rho>",
-  "\\<sigma>",
-  "\\<tau>",
-  "\\<phi>",
-  "\\<chi>",
-  "\\<psi>",
-  "\\<omega>",
-  "\\<not>",
-  "\\<and>",
-  "\\<or>",
-  "\\<forall>",
-  "\\<exists>",
-  "\\<And>",
-  "\\<lceil>",
-  "\\<rceil>",
-  "\\<lfloor>",
-  "\\<rfloor>",
-  "\\<turnstile>",
-  "\\<Turnstile>",
-  "\\<lbrakk>",
-  "\\<rbrakk>",
-  "\\<cdot>",
-  "\\<in>",
-  "\\<subseteq>",
-  "\\<inter>",
-  "\\<union>",
-  "\\<Inter>",
-  "\\<Union>",
-  "\\<sqinter>",
-  "\\<squnion>",
-  "\\<Sqinter>",
-  "\\<Squnion>",
-  "\\<bottom>",
-  "\\<doteq>",
-  "\\<equiv>",
-  "\\<noteq>",
-  "\\<sqsubset>",
-  "\\<sqsubseteq>",
-  "\\<prec>",
-  "\\<preceq>",
-  "\\<succ>",
-  "\\<approx>",
-  "\\<sim>",
-  "\\<simeq>",
-  "\\<le>",
-  "\\<Colon>",
-  "\\<leftarrow>",
-  "\\<midarrow>",
-  "\\<rightarrow>",
-  "\\<Leftarrow>",
-  "\\<Midarrow>",
-  "\\<Rightarrow>",
-  "\\<frown>",
-  "\\<mapsto>",
-  "\\<leadsto>",
-  "\\<up>",
-  "\\<down>",
-  "\\<notin>",
-  "\\<times>",
-  "\\<oplus>",
-  "\\<ominus>",
-  "\\<otimes>",
-  "\\<oslash>",
-  "\\<subset>",
-  "\\<infinity>",
-  "\\<box>",
-  "\\<diamond>",
-  "\\<circ>",
-  "\\<bullet>",
-  "\\<parallel>",
-  "\\<surd>",
-  "\\<copyright>"
-(* END OF GENERATED TEXT *)
-];
-
-val enc_rel = enc_vector ~~ map chr (enc_start upto enc_end);
-
-val char_tab = Symtab.make enc_rel;
-val symbol_tab = Symtab.make (map swap enc_rel);
-
-fun lookup_symbol c =
-  if ord c < enc_start then None
-  else Symtab.lookup (symbol_tab, c);
-
-
-(* encode / decode *)
-
-fun char s = if_none (Symtab.lookup (char_tab, s)) s;
-fun symbol c = if_none (lookup_symbol c) c;
-
-fun symbol' c =
-  (case lookup_symbol c of
-    None => c
-  | Some s => "\\" ^ s);
-
-
-
 (** scanning through symbols **)
 
 fun scanner msg scan chs =
@@ -301,21 +170,12 @@ fun source do_recover src =
 
 fun no_syms [] = true
   | no_syms ("\\" :: "<" :: _) = false
-  | no_syms (c :: cs) = ord c < enc_start andalso no_syms cs;
+  | no_syms (_ :: cs) = no_syms cs;
 
 fun sym_explode str =
   let val chs = explode str in
     if no_syms chs then chs     (*tune trivial case*)
-    else map symbol (the (Scan.read stopper (Scan.repeat scan) chs))
-  end;
-
-
-(* input *)
-
-fun input str =
-  let val chs = explode str in
-    if forall (fn c => ord c < enc_start) chs then str
-    else implode (map symbol' chs)
+    else the (Scan.read stopper (Scan.repeat scan) chs)
   end;
 
 
@@ -333,22 +193,13 @@ fun default_output s =
 fun default_indent (_: string, k) = spaces k;
 
 
-(* isabelle_font *)
-
-fun isabelle_font_output s =
-  let val cs = sym_explode s
-  in (implode (map char cs), real (sym_length cs)) end;
-
-val isabelle_font_indent = default_indent;
-
-
 (* maintain modes *)
 
-val isabelle_fontN = "isabelle_font";
 val symbolsN = "symbols";
 val xsymbolsN = "xsymbols";
 
-val modes = ref (Symtab.make [(isabelle_fontN, (isabelle_font_output, isabelle_font_indent))]);
+val modes =
+  ref (Symtab.empty: ((string -> string * real) * (string * int -> string)) Symtab.table);
 
 fun lookup_mode name = Symtab.lookup (! modes, name);
 
