@@ -44,7 +44,7 @@ Darwin/PPC (MacOS X).
 <table border="0" cellspacing="5" cellpadding="4" width="520">
 
 <!-- _GP_ downloadhead("Isabelle") -->
-<!-- _GP_ download(1, "Main sources and documentation", distname . ".tar.gz", "../..") -->
+<!-- _GP_ download(1, "Sources and documentation", distname . ".tar.gz", "../..") -->
 <!-- _GP_ download(1, "Documentation in PDF", distname . "_pdf.tar.gz", "../..") -->
 <!-- _GP_ download(1, "Theory library in PDF and HTML", distname . "_library.tar.gz", "../..") -->
 

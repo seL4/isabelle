@@ -67,9 +67,6 @@ fi
 
 ISABELLE_USEDIR_OPTIONS=""
 
-# Default for precompiled distribution ...
-#ISABELLE_USEDIR_OPTIONS="-i true -d pdf -p 2"
-
 
 ###
 ### Document preparation
