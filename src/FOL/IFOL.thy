@@ -112,6 +112,7 @@ axioms
   iff_reflection: "(P<->Q) ==> (P==Q)"
 
 
+
 subsection {* Lemmas and proof tools *}
 
 setup Simplifier.setup
@@ -243,5 +244,39 @@ lemmas basic_trans_rules [trans] =
   rev_mp
   mp
   trans
+
+
+
+subsection {* ``Let'' declarations *}
+
+nonterminals letbinds letbind
+
+constdefs
+  Let :: "['a::logic, 'a => 'b] => ('b::logic)"
+    "Let(s, f) == f(s)"
+
+syntax
+  "_bind"       :: "[pttrn, 'a] => letbind"           ("(2_ =/ _)" 10)
+  ""            :: "letbind => letbinds"              ("_")
+  "_binds"      :: "[letbind, letbinds] => letbinds"  ("_;/ _")
+  "_Let"        :: "[letbinds, 'a] => 'a"             ("(let (_)/ in (_))" 10)
+
+translations
+  "_Let(_binds(b, bs), e)"  == "_Let(b, _Let(bs, e))"
+  "let x = a in e"          == "Let(a, %x. e)"
+
+
+lemma LetI: 
+    assumes prem: "(!!x. x=t ==> P(u(x)))"
+    shows "P(let x=t in u(x))"
+apply (unfold Let_def)
+apply (rule refl [THEN prem])
+done
+
+ML
+{*
+val Let_def = thm "Let_def";
+val LetI = thm "LetI";
+*}
 
 end
