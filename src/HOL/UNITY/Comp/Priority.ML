@@ -12,7 +12,6 @@ Examples of Program Composition Illustrating the Use of Universal Properties
 *)
 
 Addsimps [Component_def RS def_prg_Init];
-program_defs_ref := [Component_def, system_def];
 Addsimps [highest_def, lowest_def];
 Addsimps [simp_of_act  act_def];
 Addsimps (map simp_of_set [Highest_def, Lowest_def]);
@@ -24,13 +23,14 @@ Addsimps (map simp_of_set [Highest_def, Lowest_def]);
 
 (* neighbors is stable  *)
 Goal "Component i: stable {s. neighbors k s = n}";
+by (asm_full_simp_tac (simpset() addsimps [Component_def]) 1); 
 by (constrains_tac 1);
 by Auto_tac;
 qed "Component_neighbors_stable";
 
 (* property 4 *)
-Goal 
-"Component i: {s. ((i,j):s) = b} Int (- Highest i) co {s. ((i,j):s)=b}";
+Goal "Component i: {s. ((i,j):s) = b} Int (- Highest i) co {s. ((i,j):s)=b}";
+by (asm_full_simp_tac (simpset() addsimps [Component_def]) 1); 
 by (constrains_tac 1);
 qed "Component_waits_priority";  
 
@@ -39,24 +39,28 @@ qed "Component_waits_priority";
 Goal
  "Component i: {s. neighbors i s ~= {}} Int Highest i \
 \              ensures - Highest i";
+by (asm_full_simp_tac (simpset() addsimps [Component_def]) 1); 
 by (ensures_tac "act i" 1);
 by (REPEAT(Fast_tac 1));
 qed "Component_yields_priority"; 
 
 (* or better *)
 Goal "Component i: Highest i ensures Lowest i";
+by (asm_full_simp_tac (simpset() addsimps [Component_def]) 1); 
 by (ensures_tac "act i" 1);
 by (REPEAT(Fast_tac 1));
 qed "Component_yields_priority'";
 
 (* property 6: Component doesn't introduce cycle *)
 Goal "Component i: Highest i co Highest i Un Lowest i";
+by (asm_full_simp_tac (simpset() addsimps [Component_def]) 1); 
 by (constrains_tac 1);
 by (Fast_tac 1);
 qed "Component_well_behaves"; 
 
 (* property 7: local axiom *)
 Goal "Component i: stable {s. ALL j k. j~=i & k~=i--> ((j,k):s) = b j k}";
+by (asm_full_simp_tac (simpset() addsimps [Component_def]) 1); 
 by (constrains_tac 1);
 qed "locality";  
 
@@ -64,16 +68,16 @@ qed "locality";
 (**** System  properties  ****)
 (* property 8: strictly universal *)
 
-Goalw [Safety_def] 
-    "system: stable Safety";
+Goalw [Safety_def] "system: stable Safety";
 by (rtac stable_INT 1);
+by (asm_full_simp_tac (simpset() addsimps [system_def]) 1); 
 by (constrains_tac 1);
 by (Fast_tac 1);
 qed "Safety"; 
 
 (* property 13: universal *)
-Goal
-"system: {s. s = q} co {s. s=q} Un {s. EX i. derive i q s}";
+Goal "system: {s. s = q} co {s. s=q} Un {s. EX i. derive i q s}";
+by (asm_full_simp_tac (simpset() addsimps [system_def, Component_def]) 1); 
 by (constrains_tac 1);
 by (Blast_tac 1);
 qed "p13";
@@ -84,6 +88,7 @@ Goal
 "ALL j. system: -Highest i Int {s. j~:above i s} co {s. j~:above i s}";
 by (Clarify_tac 1);
 by (cut_inst_tac [("i", "j")] reach_lemma 1);
+by (asm_full_simp_tac (simpset() addsimps [system_def, Component_def]) 1); 
 by (constrains_tac 1);
 by (auto_tac (claset(), simpset() addsimps [trancl_converse]));
 qed "above_not_increase";  
@@ -101,6 +106,7 @@ qed "above_not_increase'";
 (* p15: universal property: all Components well behave  *)
 Goal "ALL i. system: Highest i co Highest i Un Lowest i";
 by (Clarify_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [system_def, Component_def]) 1); 
 by (constrains_tac 1);
 by Auto_tac;
 qed "system_well_behaves";  
@@ -141,6 +147,7 @@ qed "Acyclic_Maximal_stable";
 (* propert 5: existential property *)
 
 Goal "system: Highest i leadsTo Lowest i";
+by (asm_full_simp_tac (simpset() addsimps [system_def]) 1); 
 by (ensures_tac "act i" 1);
 by (auto_tac (claset(), simpset() addsimps [Component_def]));
 qed "Highest_leadsTo_Lowest";

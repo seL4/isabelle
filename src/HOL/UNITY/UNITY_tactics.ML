@@ -6,6 +6,72 @@
 Specialized UNITY tactics, and ML bindings of theorems
 *)
 
+(*FP*)
+val stable_FP_Orig_Int = thm "stable_FP_Orig_Int";
+val FP_Orig_weakest = thm "FP_Orig_weakest";
+val stable_FP_Int = thm "stable_FP_Int";
+val FP_equivalence = thm "FP_equivalence";
+val FP_weakest = thm "FP_weakest";
+val Compl_FP = thm "Compl_FP";
+val Diff_FP = thm "Diff_FP";
+
+(*SubstAx*)
+val LeadsTo_eq_leadsTo = thm "LeadsTo_eq_leadsTo";
+val Always_LeadsTo_pre = thm "Always_LeadsTo_pre";
+val Always_LeadsTo_post = thm "Always_LeadsTo_post";
+val Always_LeadsToI = thm "Always_LeadsToI";
+val Always_LeadsToD = thm "Always_LeadsToD";
+val leadsTo_imp_LeadsTo = thm "leadsTo_imp_LeadsTo";
+val LeadsTo_Trans = thm "LeadsTo_Trans";
+val LeadsTo_Union = thm "LeadsTo_Union";
+val LeadsTo_UNIV = thm "LeadsTo_UNIV";
+val LeadsTo_Un_duplicate = thm "LeadsTo_Un_duplicate";
+val LeadsTo_Un_duplicate2 = thm "LeadsTo_Un_duplicate2";
+val LeadsTo_UN = thm "LeadsTo_UN";
+val LeadsTo_Un = thm "LeadsTo_Un";
+val single_LeadsTo_I = thm "single_LeadsTo_I";
+val subset_imp_LeadsTo = thm "subset_imp_LeadsTo";
+val empty_LeadsTo = thm "empty_LeadsTo";
+val LeadsTo_weaken_R = thm "LeadsTo_weaken_R";
+val LeadsTo_weaken_L = thm "LeadsTo_weaken_L";
+val LeadsTo_weaken = thm "LeadsTo_weaken";
+val Always_LeadsTo_weaken = thm "Always_LeadsTo_weaken";
+val LeadsTo_Un_post = thm "LeadsTo_Un_post";
+val LeadsTo_Trans_Un = thm "LeadsTo_Trans_Un";
+val LeadsTo_Un_distrib = thm "LeadsTo_Un_distrib";
+val LeadsTo_UN_distrib = thm "LeadsTo_UN_distrib";
+val LeadsTo_Union_distrib = thm "LeadsTo_Union_distrib";
+val LeadsTo_Basis = thm "LeadsTo_Basis";
+val EnsuresI = thm "EnsuresI";
+val Always_LeadsTo_Basis = thm "Always_LeadsTo_Basis";
+val LeadsTo_Diff = thm "LeadsTo_Diff";
+val LeadsTo_UN_UN = thm "LeadsTo_UN_UN";
+val LeadsTo_UN_UN_noindex = thm "LeadsTo_UN_UN_noindex";
+val all_LeadsTo_UN_UN = thm "all_LeadsTo_UN_UN";
+val LeadsTo_Un_Un = thm "LeadsTo_Un_Un";
+val LeadsTo_cancel2 = thm "LeadsTo_cancel2";
+val LeadsTo_cancel_Diff2 = thm "LeadsTo_cancel_Diff2";
+val LeadsTo_cancel1 = thm "LeadsTo_cancel1";
+val LeadsTo_cancel_Diff1 = thm "LeadsTo_cancel_Diff1";
+val LeadsTo_empty = thm "LeadsTo_empty";
+val PSP_Stable = thm "PSP_Stable";
+val PSP_Stable2 = thm "PSP_Stable2";
+val PSP = thm "PSP";
+val PSP2 = thm "PSP2";
+val PSP_Unless = thm "PSP_Unless";
+val Stable_transient_Always_LeadsTo = thm "Stable_transient_Always_LeadsTo";
+val LeadsTo_wf_induct = thm "LeadsTo_wf_induct";
+val Bounded_induct = thm "Bounded_induct";
+val LessThan_induct = thm "LessThan_induct";
+val integ_0_le_induct = thm "integ_0_le_induct";
+val LessThan_bounded_induct = thm "LessThan_bounded_induct";
+val GreaterThan_bounded_induct = thm "GreaterThan_bounded_induct";
+val Completion = thm "Completion";
+val Finite_completion_lemma = thm "Finite_completion_lemma";
+val Finite_completion = thm "Finite_completion";
+val Stable_completion = thm "Stable_completion";
+val Finite_stable_completion = thm "Finite_stable_completion";
+
 (*Union*)
 val Init_SKIP = thm "Init_SKIP";
 val Acts_SKIP = thm "Acts_SKIP";
@@ -377,6 +443,35 @@ val guarantees_PLam_I = thm "guarantees_PLam_I";
 val Allowed_PLam = thm "Allowed_PLam";
 val PLam_preserves = thm "PLam_preserves";
 
+(*Follows*)
+val mono_Always_o = thm "mono_Always_o";
+val mono_LeadsTo_o = thm "mono_LeadsTo_o";
+val Follows_constant = thm "Follows_constant";
+val mono_Follows_o = thm "mono_Follows_o";
+val mono_Follows_apply = thm "mono_Follows_apply";
+val Follows_trans = thm "Follows_trans";
+val Follows_Increasing1 = thm "Follows_Increasing1";
+val Follows_Increasing2 = thm "Follows_Increasing2";
+val Follows_Bounded = thm "Follows_Bounded";
+val Follows_LeadsTo = thm "Follows_LeadsTo";
+val Follows_LeadsTo_pfixLe = thm "Follows_LeadsTo_pfixLe";
+val Follows_LeadsTo_pfixGe = thm "Follows_LeadsTo_pfixGe";
+val Always_Follows1 = thm "Always_Follows1";
+val Always_Follows2 = thm "Always_Follows2";
+val increasing_Un = thm "increasing_Un";
+val Increasing_Un = thm "Increasing_Un";
+val Always_Un = thm "Always_Un";
+val Follows_Un_lemma = thm "Follows_Un_lemma";
+val Follows_Un = thm "Follows_Un";
+val increasing_union = thm "increasing_union";
+val Increasing_union = thm "Increasing_union";
+val Always_union = thm "Always_union";
+val Follows_union_lemma = thm "Follows_union_lemma";
+val Follows_union = thm "Follows_union";
+val Follows_setsum = thm "Follows_setsum";
+val Increasing_imp_Stable_pfixGe = thm "Increasing_imp_Stable_pfixGe";
+val LeadsTo_le_imp_pfixGe = thm "LeadsTo_le_imp_pfixGe";
+
 
 (*proves "co" properties when the program is specified*)
 fun gen_constrains_tac(cs,ss) i = 
@@ -408,6 +503,8 @@ fun gen_ensures_tac(cs,ss) sact =
 	      gen_constrains_tac (cs,ss) 1,
 	      ALLGOALS (clarify_tac cs),
 	      ALLGOALS (asm_lr_simp_tac ss)]);
+
+fun ensures_tac sact = gen_ensures_tac (claset(), simpset()) sact;
 
 
 (*Composition equivalences, from Lift_prog*)

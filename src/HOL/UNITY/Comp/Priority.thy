@@ -11,7 +11,7 @@ Examples of Program Composition Illustrating the Use of Universal Properties
    Spriner LNCS 1586 (1999), pages 1215-1227.
 *)
 
-Priority = PriorityAux + Comp + SubstAx +
+Priority = PriorityAux +
 
 types state = "(vertex*vertex)set"
 types command = "vertex=>(state*state)set"

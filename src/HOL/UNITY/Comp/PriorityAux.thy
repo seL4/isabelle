@@ -6,7 +6,7 @@
 Auxiliary definitions needed in Priority.thy
 *)
 
-PriorityAux = Main +
+PriorityAux = UNITY_Main +
 
 types vertex
 arities vertex :: type
