@@ -57,9 +57,10 @@ sig
   val print_ast_translation: string -> theory -> theory
   val token_translation: string -> theory -> theory
   val add_oracle: bstring * string -> theory -> theory
-  val the_theory: string -> unit -> theory
-  val begin_theory: string * string list -> unit -> theory
-  val end_theory: theory -> unit
+  val theory: string * string list * (string * bool) list
+    -> Toplevel.transition -> Toplevel.transition
+  val context: string -> Toplevel.transition -> Toplevel.transition
+  val update_context: string -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure IsarThy: ISAR_THY =
@@ -239,15 +240,27 @@ fun add_oracle (name, txt) =
 
 (* theory init and exit *)
 
-fun the_theory name () = ThyInfo.theory name;
-
-fun begin_theory (name, names) () = ThyInfo.begin_theory name names;
+fun begin_theory (name, parents, files) () =
+  let val thy = ThyInfo.begin_theory name parents
+  in seq ThyInfo.use (mapfilter (fn (x, true) => Some x | _ => None) files); thy end;
 
 fun end_theory thy =
   let val thy' = PureThy.end_theory thy in
     transform_error ThyInfo.put_theory thy'
       handle exn => raise PureThy.ROLLBACK (thy', Some exn)     (* FIXME !!?? *)
   end;
+
+fun theory spec = Toplevel.init_theory (begin_theory spec) end_theory;
+
+
+(* context switch *)
+
+fun switch_theory require name =
+  Toplevel.init_theory
+    (fn () => (Context.save require name; ThyInfo.get_theory name)) (K ());
+
+val context = switch_theory ThyInfo.use_thy;
+val update_context = switch_theory ThyInfo.update_thy;
 
 
 end;
