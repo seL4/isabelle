@@ -172,7 +172,6 @@ $ISABELLE_HOME/heaps/${COMPILER}/ZF
 $BIN/Isabelle
 $BIN/isabelle
 $BIN/isatool
-%dir $ISABELLE_HOME
 EOF
 
 for F in $(ls -1 | grep -v heaps | grep -v browser_info)
