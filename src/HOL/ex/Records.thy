@@ -21,7 +21,7 @@ text {*
 
 thm "point.simps"
 thm "point.iffs"
-thm "point.derived_defs"
+thm "point.defs"
 
 text {*
   The set of theorems @{thm [source] point.simps} is added
