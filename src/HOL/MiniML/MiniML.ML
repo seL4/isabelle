@@ -12,7 +12,7 @@ Addsimps [Un_upper1,Un_upper2];
 
 (* has_type is closed w.r.t. substitution *)
 goal MiniML.thy
-     "!a e t. (a |- e :: t) --> ($ s a |- e :: $ s t)";
+     "!a e t. a |- e :: t --> $s a |- e :: $s t";
 by (rtac has_type.mutual_induct 1);
 (* case VarI *)
 by (asm_full_simp_tac (!simpset addsimps [app_subst_list]) 1);

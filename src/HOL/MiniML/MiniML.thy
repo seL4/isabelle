@@ -17,7 +17,7 @@ consts
         has_type :: "(typ list * expr * typ)set"
 syntax
         "@has_type" :: [typ list, expr, typ] => bool
-                       ("((_) |-/ (_) :: (_))" 60)
+                       ("((_) |-/ (_) :: (_))" [60,0,60] 60)
 translations 
         "a |- e :: t" == "(a,e,t):has_type"
 

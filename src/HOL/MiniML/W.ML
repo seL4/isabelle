@@ -19,8 +19,8 @@ qed "Suc_le_lessD";
 Addsimps [Suc_le_lessD];
 
 (* correctness of W with respect to has_type *)
-goal thy
-        "!a s t m n . Ok (s,t,m) = W e a n --> ($ s a |- e :: t)";
+goal W.thy
+        "!a s t m n . Ok (s,t,m) = W e a n --> $s a |- e :: t";
 by (expr.induct_tac "e" 1);
 (* case Var n *)
 by (asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
@@ -37,7 +37,7 @@ by( rename_tac "sa ta na sb tb nb sc" 1);
 by (res_inst_tac [("t2.0","$ sc tb")] has_type.AppI 1);
 by (res_inst_tac [("s1","sc")] (app_subst_TVar RS subst) 1);
 by (rtac (app_subst_Fun RS subst) 1);
-by (res_inst_tac [("t","$ sc (tb -> (TVar nb))"),("s","$ sc ($ sb ta)")] subst 1);
+by (res_inst_tac [("t","$sc(tb -> (TVar nb))"),("s","$sc($sb ta)")] subst 1);
 by (Asm_full_simp_tac 1);
 by (simp_tac (HOL_ss addsimps [subst_comp_tel RS sym]) 1);
 by ( (rtac has_type_cl_sub 1) THEN (rtac has_type_cl_sub 1));
@@ -97,7 +97,7 @@ qed "rotate_Ok";
 (* resulting type variable is new *)
 goal thy
      "!n a s t m. new_tv n a --> W e a n = Ok (s,t,m) -->    \
-\         (new_tv m s & new_tv m t)";
+\                 new_tv m s & new_tv m t";
 by (expr.induct_tac "e" 1);
 (* case Var n *)
 by (fast_tac (HOL_cs addss (!simpset 
@@ -219,10 +219,9 @@ qed_spec_mp "free_tv_W";
 
 (* Completeness of W w.r.t. has_type *)
 goal thy
-        "!s' a t' n. ($ s' a |- e :: t') --> new_tv n a -->     \
-\               (? s t. (? m. W e a n = Ok (s,t,m) ) &  \
-\                (? r. $ s' a = $ r ($ s a) &   \
-\                      t' = $ r t ) )";
+ "!s' a t' n. $s' a |- e :: t' --> new_tv n a -->     \
+\             (? s t. (? m. W e a n = Ok (s,t,m)) &  \
+\                     (? r. $s' a = $r ($s a) & t' = $r t))";
 by (expr.induct_tac "e" 1);
 (* case Var n *)
 by (strip_tac 1);
@@ -363,4 +362,12 @@ by (dtac (free_tv_app_subst_tel RS subsetD) 1);
 by (fast_tac (set_cs addDs [codD,subst_comp_tel RSN (2,trans),
     eq_subst_tel_eq_free] addss ((!simpset addsimps 
     [de_Morgan_disj,free_tv_subst,dom_def]))) 1);
-qed_spec_mp "W_complete";
+qed_spec_mp "W_complete_lemma";
+
+goal W.thy
+ "!!e. [] |- e :: t' ==>  (? s t. (? m. W e [] n = Ok(s,t,m)) &  \
+\                                 (? r. t' = $r t))";
+by(cut_inst_tac [("a","[]"),("s'","id_subst"),("e","e"),("t'","t'")]
+                W_complete_lemma 1);
+by(ALLGOALS Asm_full_simp_tac);
+qed "W_complete";
