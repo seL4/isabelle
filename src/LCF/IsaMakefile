@@ -4,7 +4,7 @@
 # IsaMakefile for LCF
 #
 
-OUT = $(ISABELLE_OUTPUT_DIR)
+OUT = $(ISABELLE_OUTPUT)
 FILES =	ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
 
 $(OUT)/LCF: $(OUT)/FOL $(FILES)

@@ -32,4 +32,4 @@ $ISABELLE \
   -e "use\"$COMPAT\"; use\"ROOT.ML\" handle _ => exit 1;" \
   -q RAW_ML_SYSTEM Pure
 
-chmod -w $ISABELLE_OUTPUT_DIR/Pure
+chmod -w $ISABELLE_OUTPUT/Pure

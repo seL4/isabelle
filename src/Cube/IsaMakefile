@@ -4,7 +4,7 @@
 # IsaMakefile for Cube
 #
 
-OUT = $(ISABELLE_OUTPUT_DIR)
+OUT = $(ISABELLE_OUTPUT)
 FILES =	ROOT.ML Cube.thy Cube.ML
 
 $(OUT)/Cube: $(OUT)/Pure $(FILES)

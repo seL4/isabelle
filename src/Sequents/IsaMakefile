@@ -4,7 +4,7 @@
 # IsaMakefile for Sequents
 #
 
-OUT = $(ISABELLE_OUTPUT_DIR)
+OUT = $(ISABELLE_OUTPUT)
 
 NAMES = ILL LK S4 S43 T
 FILES = ROOT.ML Sequents.thy prover.ML $(NAMES:%=%.thy) $(NAMES:%=%.ML)

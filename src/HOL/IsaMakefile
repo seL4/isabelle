@@ -6,7 +6,7 @@
 
 #### Base system
 
-OUT = $(ISABELLE_OUTPUT_DIR)
+OUT = $(ISABELLE_OUTPUT)
 
 NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF \
 	mono Lfp Gfp NatDef Nat intr_elim indrule Inductive Finite Arith \

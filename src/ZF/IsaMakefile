@@ -6,7 +6,7 @@
 
 #### Base system
 
-OUT = $(ISABELLE_OUTPUT_DIR)
+OUT = $(ISABELLE_OUTPUT)
 
 NAMES = ZF upair subset pair domrange \
 	func AC equalities Bool \

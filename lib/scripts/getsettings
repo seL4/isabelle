@@ -23,4 +23,9 @@ unset BASH_ENV
 ISABELLE=$ISABELLE_HOME/bin/isabelle
 ISATOOL=$ISABELLE_HOME/bin/isatool
 
+#append ML system to paths
+ISABELLE_OUTPUT="$ISABELLE_OUTPUT/$ML_SYSTEM"
+ISABELLE_PATH=$(for DIR in $(echo $ISABELLE_PATH | tr : " "); do echo $DIR/$ML_SYSTEM; done)
+ISABELLE_PATH=$(echo $ISABELLE_PATH | tr " " :)
+
 set +o allexport

@@ -4,7 +4,7 @@
 # IsaMakefile for CTT
 #
 
-OUT = $(ISABELLE_OUTPUT_DIR)
+OUT = $(ISABELLE_OUTPUT)
 
 FILES =	ROOT.ML CTT.thy CTT.ML Bool.thy Bool.ML \
 	Arith.thy Arith.ML rew.ML ../Provers/typedsimp.ML

@@ -148,8 +148,8 @@ case "$OUTPUT" in
     OUTFILE="$OUTPUT"
     ;;
   *)
-    mkdir -p "$ISABELLE_OUTPUT_DIR"
-    OUTFILE="$ISABELLE_OUTPUT_DIR/$OUTPUT"
+    mkdir -p "$ISABELLE_OUTPUT"
+    OUTFILE="$ISABELLE_OUTPUT/$OUTPUT"
     ;;
 esac
 

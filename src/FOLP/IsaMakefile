@@ -4,7 +4,7 @@
 # IsaMakefile for FOLP
 #
 
-OUT = $(ISABELLE_OUTPUT_DIR)
+OUT = $(ISABELLE_OUTPUT)
 
 FILES =	ROOT.ML IFOLP.thy IFOLP.ML FOLP.thy FOLP.ML intprover.ML simpdata.ML \
 	hypsubst.ML classical.ML simp.ML

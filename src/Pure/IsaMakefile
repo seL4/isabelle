@@ -7,7 +7,7 @@
 # are loaded on top of it.
 #
 
-OUT = $(ISABELLE_OUTPUT_DIR)
+OUT = $(ISABELLE_OUTPUT)
 
 FILES = ML-Systems/polyml.ML ML-Systems/smlnj-0.93.ML \
 	ML-Systems/smlnj-1.07.ML ML-Systems/smlnj-1.09.ML ROOT.ML \

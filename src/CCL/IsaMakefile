@@ -4,7 +4,7 @@
 # IsaMakefile for CCL
 #
 
-OUT = $(ISABELLE_OUTPUT_DIR)
+OUT = $(ISABELLE_OUTPUT)
 
 SET_FILES = ROOT.ML Set.thy Set.ML subset.ML equalities.ML mono.ML \
 	    Gfp.thy Gfp.ML Lfp.thy Lfp.ML

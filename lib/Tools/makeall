@@ -47,7 +47,7 @@ done
 
 echo Started at `date`
 echo Source=`pwd`
-echo Destination=$ISABELLE_OUTPUT_DIR
+echo Destination=$ISABELLE_OUTPUT
 echo force=$FORCE '    ' clean=$CLEAN '    '
 echo Compiler=$ML_SYSTEM
 echo Running on `hostname`
@@ -57,10 +57,10 @@ case $TEST in
         echo '		**** Consider the -notest switch ****'
 esac
 
-mkdir -p $ISABELLE_OUTPUT_DIR
+mkdir -p $ISABELLE_OUTPUT
 
 case $FORCE.$EXEC in
-  on.on) (cd $ISABELLE_OUTPUT_DIR;
+  on.on) (cd $ISABELLE_OUTPUT;
           for f in Pure FOL ZF CCL LCF CTT Sequents HOL HOLCF Cube FOLP
 	  do 
 	   rm -f $f
@@ -91,7 +91,7 @@ echo '*****Set theory (ZF)*****'
 tail ZF/make$$.log
 gzip ZF/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLE_OUTPUT_DIR/ZF
+    on.on)	rm -f $ISABELLE_OUTPUT/ZF
 esac
 
 echo
@@ -101,7 +101,7 @@ echo '*****Classical Computational Logic (CCL)*****'
 tail CCL/make$$.log
 gzip CCL/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLE_OUTPUT_DIR/CCL
+    on.on)	rm -f $ISABELLE_OUTPUT/CCL
 esac
 
 echo
@@ -111,7 +111,7 @@ echo '*****Domain Theory (LCF)*****'
 tail LCF/make$$.log
 gzip LCF/make$$.log
 case $CLEAN.$EXEC in
-  on.on)	rm -f $ISABELLE_OUTPUT_DIR/FOL $ISABELLE_OUTPUT_DIR/LCF
+  on.on)	rm -f $ISABELLE_OUTPUT/FOL $ISABELLE_OUTPUT/LCF
 esac
 
 echo
@@ -121,7 +121,7 @@ echo '*****Constructive Type Theory (CTT)*****'
 tail CTT/make$$.log
 gzip CTT/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLE_OUTPUT_DIR/CTT
+    on.on)	rm -f $ISABELLE_OUTPUT/CTT
 esac
 
 echo
@@ -131,7 +131,7 @@ echo '*****Sequent Calculi (Sequents)*****'
 tail Sequents/make$$.log
 gzip Sequents/make$$.log
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLE_OUTPUT_DIR/Sequents
+    on.on)	rm -f $ISABELLE_OUTPUT/Sequents
 esac
 
 echo
@@ -149,7 +149,7 @@ echo '*****LCF in HOL (HOLCF)*****'
 tail HOLCF/make$$.log
 gzip HOLCF/make$$.log
 case $CLEAN.$EXEC in
-  on.on)	rm -f $ISABELLE_OUTPUT_DIR/HOL $ISABELLE_OUTPUT_DIR/HOLCF
+  on.on)	rm -f $ISABELLE_OUTPUT/HOL $ISABELLE_OUTPUT/HOLCF
 esac
 
 echo
@@ -157,7 +157,7 @@ echo
 echo '*****The Lambda-Cube (Cube)*****'
 (cd Cube; $ISATOOL make $NO $TEST > make$$.log)
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLE_OUTPUT_DIR/Cube
+    on.on)	rm -f $ISABELLE_OUTPUT/Cube
 esac
 tail Cube/make$$.log 
 gzip Cube/make$$.log 
@@ -167,7 +167,7 @@ echo
 echo '*****First-Order Logic with Proof Terms (FOLP)*****'
 (cd FOLP; $ISATOOL make $NO $TEST > make$$.log)
 case $CLEAN.$EXEC in
-    on.on)	rm -f $ISABELLE_OUTPUT_DIR/FOLP
+    on.on)	rm -f $ISABELLE_OUTPUT/FOLP
 esac
 tail FOLP/make$$.log 
 gzip FOLP/make$$.log 

@@ -4,7 +4,7 @@
 # IsaMakefile for FOL
 #
 
-OUT = $(ISABELLE_OUTPUT_DIR)
+OUT = $(ISABELLE_OUTPUT)
 
 FILES =	ROOT.ML IFOL.thy IFOL.ML FOL.thy FOL.ML intprover.ML simpdata.ML \
 	thy_data.ML cladata.ML \
