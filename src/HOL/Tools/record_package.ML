@@ -71,7 +71,11 @@ fun prefix_base s = NameSpace.map_base (fn bname => s ^ bname);
 val Trueprop = HOLogic.mk_Trueprop;
 fun All xs t = Term.list_all_free (xs, t);
 
-infix 0 :== === ==>;
+infix 9 $$;
+infix 0 :== ===;
+infixr 0 ==>;
+
+val (op $$) = Term.list_comb;
 val (op :==) = Logic.mk_defpair;
 val (op ===) = Trueprop o HOLogic.mk_eq;
 val (op ==>) = Logic.mk_implies;
@@ -109,8 +113,9 @@ val fstN = "_val";
 val sndN = "_more";
 val updateN = "_update";
 val makeN = "make";
-val make_schemeN = "make_scheme";
-val recordN = "record";
+val extendN = "extend";
+val truncateN = "truncate";
+
 
 (*see typedef_package.ML*)
 val RepN = "Rep_";
@@ -203,6 +208,8 @@ fun mk_sel r c =
   let val rT = fastype_of r
   in Const (mk_selC rT (c, find_fieldT c rT)) $ r end;
 
+fun mk_named_sels names r = names ~~ map (mk_sel r) names;
+
 val mk_moreC = mk_selC;
 
 fun mk_more r c =
@@ -223,11 +230,6 @@ val mk_more_updateC = mk_updateC;
 fun mk_more_update r (c, x) =
   let val rT = fastype_of r
   in Const (mk_more_updateC rT (c, snd (dest_recordT rT))) $ x $ r end;
-
-
-(* make *)
-
-fun mk_makeC rT (c, Ts) = (c, Ts ---> rT);
 
 
 
@@ -263,11 +265,10 @@ fun record_update_tr [t, u] =
   | record_update_tr ts = raise TERM ("record_update_tr", ts);
 
 
-fun update_name_tr (Free (x, T) :: ts) = Term.list_comb (Free (suffix updateN x, T), ts)
-  | update_name_tr (Const (x, T) :: ts) = Term.list_comb (Const (suffix updateN x, T), ts)
+fun update_name_tr (Free (x, T) :: ts) = Free (suffix updateN x, T) $$ ts
+  | update_name_tr (Const (x, T) :: ts) = Const (suffix updateN x, T) $$ ts
   | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
-      Term.list_comb (c $ update_name_tr [t] $
-        (Syntax.const "fun" $ ty $ Syntax.const "dummy"), ts)
+      (c $ update_name_tr [t] $ (Syntax.const "fun" $ ty $ Syntax.const "dummy")) $$ ts
   | update_name_tr ts = raise TERM ("update_name_tr", ts);
 
 
@@ -700,12 +701,15 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val parent_more = funpow parent_len mk_snd;
     val idxs = 0 upto (len - 1);
 
+    val parentT = if null parent_fields then [] else [mk_recordT (parent_fields, HOLogic.unitT)];
+    val r_parent = if null parent_fields then [] else [Free (rN, hd parentT)];
+
     val rec_schemeT = mk_recordT (all_fields, moreT);
     val rec_scheme = mk_record (all_named_vars, more);
     val recT = mk_recordT (all_fields, HOLogic.unitT);
     val rec_ = mk_record (all_named_vars, HOLogic.unit);
-    val r = Free (rN, rec_schemeT);
-    val r' = Free (rN, recT);
+    val r_scheme = Free (rN, rec_schemeT);
+    val r = Free (rN, recT);
 
 
     (* prepare print translation functions *)
@@ -720,10 +724,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       [mk_moreC rec_schemeT (moreN, moreT)];
     val update_decls = map (mk_updateC rec_schemeT) bfields @
       [mk_more_updateC rec_schemeT (moreN, moreT)];
-    val make_decls =
-      [(mk_makeC rec_schemeT (make_schemeN, all_types @ [moreT])),
-       (mk_makeC recT (makeN, all_types))];
-    val record_decl = (recordN, rec_schemeT --> recT);
+    val make_decl = (makeN, parentT ---> types ---> recT);
+    val extend_decl = (extendN, recT --> moreT --> rec_schemeT);
+    val truncate_decl = (truncateN, rec_schemeT --> recT);
 
 
     (* prepare definitions *)
@@ -735,28 +738,27 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     (*selectors*)
     fun mk_sel_spec (i, c) =
-      mk_sel r c :== mk_fst (funpow i mk_snd (parent_more r));
+      mk_sel r_scheme c :== mk_fst (funpow i mk_snd (parent_more r_scheme));
     val sel_specs =
       ListPair.map mk_sel_spec (idxs, names) @
-        [more_part r :== funpow len mk_snd (parent_more r)];
+        [more_part r_scheme :== funpow len mk_snd (parent_more r_scheme)];
 
     (*updates*)
-    val all_sels = all_names ~~ map (mk_sel r) all_names;
+    val all_sels = mk_named_sels all_names r_scheme;
     fun mk_upd_spec (i, (c, x)) =
-      mk_update r (c, x) :==
-        mk_record (nth_update (c, x) (parent_len + i, all_sels), more_part r)
+      mk_update r_scheme (c, x) :==
+        mk_record (nth_update (c, x) (parent_len + i, all_sels), more_part r_scheme)
     val update_specs =
       ListPair.map mk_upd_spec (idxs, named_vars) @
-        [more_part_update r more :== mk_record (all_sels, more)];
+        [more_part_update r_scheme more :== mk_record (all_sels, more)];
 
-    (*makes*)
-    val make_scheme = Const (mk_makeC rec_schemeT (full make_schemeN, all_types @ [moreT]));
-    val make = Const (mk_makeC recT (full makeN, all_types));
-    val make_specs =
-      [list_comb (make_scheme, all_vars) $ more :== rec_scheme,
-        list_comb (make, all_vars) :== rec_];
-    val record_spec =
-      Const (full recordN, rec_schemeT --> recT) $ r :== mk_record (all_sels, HOLogic.unit);
+    (*derived operations*)
+    val make_spec = Const (full makeN, parentT ---> types ---> recT) $$ r_parent $$ vars :==
+      mk_record (flat (map (mk_named_sels parent_names) r_parent) @ named_vars, HOLogic.unit);
+    val extend_spec = Const (full extendN, recT --> moreT --> rec_schemeT) $ r $ more :==
+      mk_record (mk_named_sels all_names r, more);
+    val truncate_spec = Const (full truncateN, rec_schemeT --> recT) $ r_scheme :==
+      mk_record (all_sels, HOLogic.unit);
 
 
     (* prepare propositions *)
@@ -779,9 +781,10 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     (*equality*)
     fun mk_sel_eq (t, T) =
-      let val t' = Term.abstract_over (r, t)
+      let val t' = Term.abstract_over (r_scheme, t)
       in Trueprop (HOLogic.eq_const T $ Term.incr_boundvars 1 t' $ t') end;
-    val sel_eqs = map2 mk_sel_eq (map (mk_sel r) all_names @ [more_part r], all_types @ [moreT]);
+    val sel_eqs =
+      map2 mk_sel_eq (map (mk_sel r_scheme) all_names @ [more_part r_scheme], all_types @ [moreT]);
     val equality_prop =
       Term.all rec_schemeT $ (Abs ("r", rec_schemeT,
         Term.all rec_schemeT $ (Abs ("r'", rec_schemeT,
@@ -792,13 +795,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val P = Free ("P", rec_schemeT --> HOLogic.boolT);
     val P' = Free ("P", recT --> HOLogic.boolT);
     val induct_scheme_prop =
-      All (all_xs_more ~~ all_types_more) (Trueprop (P $ rec_scheme)) ==> Trueprop (P $ r);
-    val induct_prop = All (all_xs ~~ all_types) (Trueprop (P' $ rec_)) ==> Trueprop (P' $ r');
+      All (all_xs_more ~~ all_types_more) (Trueprop (P $ rec_scheme)) ==> Trueprop (P $ r_scheme);
+    val induct_prop = All (all_xs ~~ all_types) (Trueprop (P' $ rec_)) ==> Trueprop (P' $ r);
 
     (*cases*)
     val C = Trueprop (Free (variant all_xs_more "C", HOLogic.boolT));
-    val cases_scheme_prop = All (all_xs_more ~~ all_types_more) ((r === rec_scheme) ==> C) ==> C;
-    val cases_prop = All (all_xs ~~ all_types) ((r' === rec_) ==> C) ==> C;
+    val cases_scheme_prop =
+      All (all_xs_more ~~ all_types_more) ((r_scheme === rec_scheme) ==> C) ==> C;
+    val cases_prop = All (all_xs ~~ all_types) ((r === rec_) ==> C) ==> C;
 
 
     (* 1st stage: fields_thy *)
@@ -813,7 +817,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     (* 2nd stage: defs_thy *)
 
-    val (defs_thy, (((sel_defs, update_defs), make_defs), [record_def])) =
+    val (defs_thy, (((sel_defs, update_defs), derived_defs))) =
       fields_thy
       |> add_record_splits named_splits
       |> Theory.parent_path
@@ -821,11 +825,11 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> Theory.add_path bname
       |> Theory.add_trfuns ([], [], field_tr's, [])
       |> (Theory.add_consts_i o map Syntax.no_syn)
-        (sel_decls @ update_decls @ make_decls @ [record_decl])
+        (sel_decls @ update_decls @ [make_decl, extend_decl, truncate_decl])
       |> (PureThy.add_defs_i false o map Thm.no_attributes) sel_specs
       |>>> (PureThy.add_defs_i false o map Thm.no_attributes) update_specs
-      |>>> (PureThy.add_defs_i false o map Thm.no_attributes) make_specs
-      |>>> (PureThy.add_defs_i false o map Thm.no_attributes) [record_spec];
+      |>>> (PureThy.add_defs_i false o map Thm.no_attributes)
+        [make_spec, extend_spec, truncate_spec];
 
     val defs_sg = Theory.sign_of defs_thy;
 
@@ -868,7 +872,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
       |> (#1 oo (PureThy.add_thmss o map Thm.no_attributes))
         [("select_defs", sel_defs),
           ("update_defs", update_defs),
-          ("make_defs", make_defs),
+          ("derived_defs", derived_defs),
           ("select_convs", sel_convs),
           ("update_convs", update_convs)]
       |> (#1 oo PureThy.add_thms)
