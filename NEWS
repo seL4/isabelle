@@ -33,9 +33,14 @@ instantiated for other types and logics as well.
 
 *** General ***
 
+* improved browser info generation: better HTML markup (including
+colors), graph views in several sizes; isatool usedir now provides a
+proper interface for user theories (via -P option);
+
 * theory loader rewritten from scratch (may not be fully
 bug-compatible); old loadpath variable has been replaced by show_path,
-add_path, del_path, reset_path functions;
+add_path, del_path, reset_path functions; new operations such as
+update_thy, touch_thy, remove_thy (see also isatool doc ref);
 
 * in locales, the "assumes" and "defines" parts may be omitted if
 empty;
@@ -54,6 +59,7 @@ basically just comments that may be attached by some tools);
 option -p DIR installs standalone binaries;
 
 * added ML_PLATFORM setting (useful for cross-platform installations);
+more robust handling of platform specific ML images for SML/NJ;
 
 * Isamode 2.6 requires patch to accomodate change of Isabelle font
 mode and goal output format:
@@ -105,7 +111,8 @@ changed syntax and (many) tactics;
 * HOL/typedef: fixed type inference for representing set; type
 arguments now have to occur explicitly on the rhs as type constraints;
 
-* HOL/recdef (TFL) now requires theory Recdef;
+* HOL/recdef (TFL): requires theory Recdef; 'congs' syntax now expects
+comma separated list of theorem names rather than an ML expression;
 
 
 *** ZF ***
