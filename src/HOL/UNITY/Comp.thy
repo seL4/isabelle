@@ -34,9 +34,9 @@ constdefs
   component :: ['a program, 'a program] => bool     (infixl 50)
    "F component H == EX G. F Join G = H"
 
-  guarantees :: ['a program set, 'a program set] => 'a program set
-                                                    (infixl "guar" 65)
-   "X guar Y == {F. ALL H. F component H --> H:X --> H:Y}"
+  guar :: ['a program set, 'a program set] => 'a program set
+   (infixl "guarantees" 55)    (*higher than membership, lower than Co*)
+   "X guarantees Y == {F. ALL H. F component H --> H:X --> H:Y}"
 
   refines :: ['a program, 'a program, 'a program set] => bool
 			("(3_ refines _ wrt _)" [10,10,10] 10)
