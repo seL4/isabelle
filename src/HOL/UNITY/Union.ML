@@ -371,12 +371,6 @@ by (simp_tac (simpset() addsimps [self_Join_localTo, LocalTo_def,
 				  Join_left_absorb]) 1);
 qed "self_Join_LocalTo";
 
-Goalw [LOCALTO_def]
-     "[| G : v localTo[C] F;  F<=F' |] ==> G : v localTo[C] F'";
-by (Force_tac 1);
-qed "localTo_imp_o_localTo";
-
-
 
 (*** Higher-level rules involving localTo and Join ***)
 
