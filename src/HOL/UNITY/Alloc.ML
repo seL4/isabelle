@@ -73,16 +73,6 @@ by (auto_tac (claset() addSWrapper record_split_wrapper,
 qed "inv_sysOfAlloc_eq";
 Addsimps [inv_sysOfAlloc_eq];
 
-
-(*SHOULD NOT BE NECESSARY????????????????
-Goal "!!z. (| allocGiv = allocGiv z, allocAsk = allocAsk z, \
-\             allocRel = allocRel z |) = z";
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset()));
-qed "allocState_eq";
-Addsimps [allocState_eq];
-????*)
-
 (**SHOULD NOT BE NECESSARY: The various injections into the system
    state need to be treated symmetrically or done automatically*)
 Goalw [sysOfClient_def] "inj sysOfClient";
@@ -331,7 +321,27 @@ qed "System_safety";
 
 (*** Proof of the progress property (2) ***)
 
-(*we begin with proofs identical to System_Increasing_rel and
+(** Lemmas about localTo **)
+
+Goal "extend sysOfAlloc F : client localTo[C] extend sysOfClient G";
+by (rtac localTo_UNIV_imp_localTo 1);
+by (simp_tac (simpset() addsimps [LOCALTO_def, Diff_def, extend_def, 
+				  stable_def, constrains_def,
+				  image_eq_UN, extend_act_def,
+				  sysOfAlloc_def, sysOfClient_def]) 1);
+by (Force_tac 1);
+qed "sysOfAlloc_in_client_localTo_xl_Client";
+
+Goal "extend sysOfClient (plam i:I. F) :  \
+\      (sub i o client) localTo[C] extend sysOfClient (lift_prog i F)";
+by (rtac localTo_UNIV_imp_localTo 1);
+by (rtac (client_export (extend_set_UNIV_eq RS equalityD2 RSN
+			 (2, extend_localTo_extend_I))) 1);
+by (rtac PLam_sub_localTo 1);
+qed "sysOfClient_in_client_localTo_xl_Client";
+
+
+(*Now there are proofs identical to System_Increasing_rel and
   System_Increasing_allocRel: tactics needed!*)
 
 (*progress (2), step 1 is System_Increasing_ask and System_Increasing_rel*)
@@ -376,85 +386,44 @@ by (rtac (Always_Int_rule [Always_allocAsk_le_ask, System_Bounded_ask]
 by (auto_tac(claset() addDs [set_mono], simpset()));
 qed "System_Bounded_allocAsk";
 
-(*progress (2), step 5*)
+(*progress (2), step 5 is System_Increasing_allocGiv*)
 
+(*progress (2), step 6*)
 Goal "i < Nclients ==> System : Increasing (giv o sub i o client)";
 by (rtac Follows_Increasing1 1);
 by (blast_tac (claset() addIs [Network_Giv RS component_guaranteesD,
 			       System_Increasing_allocGiv]) 1);
 qed "System_Increasing_giv";
 
-(*progress (2), step 6*)
-
-(*A LOT of work just to lift "Client_Progress" to the array*)
+(*Lemma (?).  A LOT of work just to lift "Client_Progress" to the array*)
 Goal "lift_prog i Client \
-\  : Increasing (giv o sub i) Int ((%z. z i) LocalTo (lift_prog i Client)) \
+\  : Increasing (giv o sub i) Int (sub i LocalTo (lift_prog i Client)) \
 \    guarantees \
 \    (INT h. {s. h <=  (giv o sub i) s & \
 \                       h pfixGe (ask o sub i) s}  \
 \            LeadsTo {s. tokens h <= (tokens o rel o sub i) s})";
 by (rtac (Client_Progress RS drop_prog_guarantees) 1);
-by (rtac (lift_export extending_LeadsTo RS extending_weaken RS extending_INT) 2);
+by (rtac (lift_export extending_LeadsTo RS extending_weaken RS
+	  extending_INT) 2);
 by (rtac subset_refl 4);
 by (simp_tac (simpset()addsimps [lift_export Collect_eq_extend_set RS sym]) 3);
-by (force_tac (claset(), simpset() addsimps [lift_prog_correct]) 2);
+by (force_tac (claset(), simpset() addsimps [sub_def, lift_prog_correct]) 2);
 by (rtac (lift_export projecting_Increasing RS projecting_weaken) 1);
 by (auto_tac (claset(), simpset() addsimps [o_def]));
 qed "Client_i_Progress";
 
-Goal "extend sysOfAlloc F \
-\       : (v o client) localTo[C] extend sysOfClient (lift_prog i Client)";
-br localTo_UNIV_imp_localTo 1;
-by (simp_tac (simpset() addsimps [LOCALTO_def, Diff_def, extend_def, 
-				  stable_def, constrains_def,
-				  image_eq_UN, extend_act_def,
-				  sysOfAlloc_def, sysOfClient_def]) 1);
-by (Force_tac 1);
-qed "sysOfAlloc_in_client_localTo_xl_Client";
+(*needed??*)
+Goalw [PLam_def]
+     "(plam x:lessThan Nclients. Client) \
+\  : (INT i : lessThan Nclients. \
+\          Increasing (giv o sub i) Int (sub i LocalTo (lift_prog i Client))) \
+\    guarantees \
+\    (INT i : lessThan Nclients. \
+\         INT h. {s. h <=  (giv o sub i) s & \
+\                       h pfixGe (ask o sub i) s}  \
+\            LeadsTo {s. tokens h <= (tokens o rel o sub i) s})";
+br guarantees_JN_INT 1;
+br Client_i_Progress 1;
+qed "PLam_Client_Progress";
 
-Goal "extend sysOfClient (plam x: I. Client) : ((%z. z i) o client) \
-\     localTo[C] extend sysOfClient (lift_prog i Client)";
-br localTo_UNIV_imp_localTo 1;
-by (rtac (client_export (extend_set_UNIV_eq RS equalityD2 RSN
-			 (2, extend_localTo_extend_I))) 1);
-br (rewrite_rule [sub_def] PLam_sub_localTo) 1;
-qed "sysOfClient_in_client_localTo_xl_Client";
-
-xxxxxxxxxxxxxxxx;
-
-THIS PROOF requires an extra locality specification for Network:
-    Network : rel o sub i o client localTo[C] 
-                     extend sysOfClient (lift_prog i Client)
-and similarly for ask o sub i o client.
-
-The LeadsTo rule must be refined so as not to require the whole of client to
-be local, since giv is written by the Network.
-
-
-Goalw [System_def]
-     "i < Nclients \
-\ ==> System : (INT h. {s. h <=  (giv o sub i o client) s & \
-\                       h pfixGe (ask o sub i o client) s}  \
-\            LeadsTo {s. tokens h <= (tokens o rel o sub i o client) s})";
-by (rtac (guarantees_Join_I2 RS guaranteesD) 1);
-by (rtac (guarantees_PLam_I RS project_guarantees) 1);
-by (rtac Client_i_Progress 1);
-by (Force_tac 1);
-by (rtac (client_export extending_LeadsTo RS extending_weaken RS extending_INT) 2);
-by (rtac subset_refl 4);
-by (simp_tac (simpset()addsimps [client_export Collect_eq_extend_set RS sym]) 3);
-(*The next step goes wrong: it makes an impossible localTo subgoal*)
-(*blast_tac doesn't use HO unification*)
-by (fast_tac (claset() addIs [projecting_Int,
-			      client_export projecting_Increasing,
-			      component_PLam,
-			      client_export projecting_LocalTo]) 1);
-by (asm_simp_tac
-    (simpset() addsimps [rewrite_rule [System_def] System_Increasing_giv,
-			 LocalTo_def, Join_localTo,
-			 sysOfClient_in_client_localTo_xl_Client,
-			 sysOfAlloc_in_client_localTo_xl_Client]) 2);
-auto();
-
-
-
+(*progress (2), step 7*)
