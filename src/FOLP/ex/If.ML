@@ -22,7 +22,7 @@ by (fast_tac (FOLP_cs addIs prems) 1);
 val ifE = result();
 
 
-goal If.thy
+Goal
     "?p : if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))";
 by (rtac iffI 1);
 by (etac ifE 1);
@@ -36,7 +36,7 @@ by (fast_tac if_cs 1);
 val if_commute = result();
 
 
-goal If.thy "?p : if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
+Goal "?p : if(if(P,Q,R), A, B) <-> if(P, if(Q,A,B), if(R,A,B))";
 by (fast_tac if_cs 1);
 val nested_ifs = result();
 

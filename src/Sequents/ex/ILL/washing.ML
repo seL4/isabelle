@@ -12,7 +12,7 @@ val dryI =    [context1] RL ([dry]    RLN (2,[cut]));
 
 (* a load of dirty clothes and two dollars gives you clean clothes *)
 
-goal thy "dollar , dollar , dirty |- clean";
+Goal "dollar , dollar , dirty |- clean";
 
 by (best_tac (lazy_cs add_safes (changeI @ load1I @ washI @ dryI)) 1);
 

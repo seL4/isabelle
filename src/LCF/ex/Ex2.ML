@@ -3,7 +3,7 @@ simpset_ref() := LCF_ss;
 
 Addsimps [F_strict,K];
 
-goal thy "ALL x. F(H(x::'a,y::'b)) = H(x,F(y))";
+Goal "ALL x. F(H(x::'a,y::'b)) = H(x,F(y))";
 by (stac H 1);
 by (induct_tac "K::('a=>'b=>'b)=>('a=>'b=>'b)" 1);
 by (Simp_tac 1);

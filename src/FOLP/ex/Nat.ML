@@ -13,7 +13,7 @@ To generate similar output to manual, execute these commands:
 
 open Nat;
 
-goal Nat.thy "?p : ~ (Suc(k) = k)";
+Goal "?p : ~ (Suc(k) = k)";
 by (res_inst_tac [("n","k")] induct 1);
 by (rtac notI 1);
 by (etac Suc_neq_0 1);
@@ -23,7 +23,7 @@ by (etac Suc_inject 1);
 val Suc_n_not_n = result();
 
 
-goal Nat.thy "?p : (k+m)+n = k+(m+n)";
+Goal "?p : (k+m)+n = k+(m+n)";
 prths ([induct] RL [topthm()]);  (*prints all 14 next states!*)
 by (rtac induct 1);
 back();
@@ -33,11 +33,11 @@ back();
 back();
 back();
 
-goalw Nat.thy [add_def] "?p : 0+n = n";
+Goalw [add_def] "?p : 0+n = n";
 by (rtac rec_0 1);
 val add_0 = result();
 
-goalw Nat.thy [add_def] "?p : Suc(m)+n = Suc(m+n)";
+Goalw [add_def] "?p : Suc(m)+n = Suc(m+n)";
 by (rtac rec_Suc 1);
 val add_Suc = result();
 
@@ -61,19 +61,19 @@ val nat_congs = [Suc_cong,Plus_cong];
 val add_ss = FOLP_ss  addcongs nat_congs  
                      addrews  [add_0, add_Suc];
 
-goal Nat.thy "?p : (k+m)+n = k+(m+n)";
+Goal "?p : (k+m)+n = k+(m+n)";
 by (res_inst_tac [("n","k")] induct 1);
 by (SIMP_TAC add_ss 1);
 by (ASM_SIMP_TAC add_ss 1);
 val add_assoc = result();
 
-goal Nat.thy "?p : m+0 = m";
+Goal "?p : m+0 = m";
 by (res_inst_tac [("n","m")] induct 1);
 by (SIMP_TAC add_ss 1);
 by (ASM_SIMP_TAC add_ss 1);
 val add_0_right = result();
 
-goal Nat.thy "?p : m+Suc(n) = Suc(m+n)";
+Goal "?p : m+Suc(n) = Suc(m+n)";
 by (res_inst_tac [("n","m")] induct 1);
 by (ALLGOALS (ASM_SIMP_TAC add_ss));
 val add_Suc_right = result();

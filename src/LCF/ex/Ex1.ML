@@ -15,7 +15,7 @@ val H_strict = prove_goal thy "H(UU)=UU"
 bind_thm ("H_strict", H_strict);
 Addsimps [H_strict];
 
-goal thy "ALL x. H(FIX(K,x)) = FIX(K,x)";
+Goal "ALL x. H(FIX(K,x)) = FIX(K,x)";
 by (induct_tac "K" 1);
 by (Simp_tac 1);
 by (simp_tac (simpset() setloop (split_tac [COND_cases_iff])) 1);
