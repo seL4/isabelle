@@ -437,7 +437,7 @@ val depth_meson_tac =
   having only one eq_assume_tac speeds it up!*)
 fun prolog_step_tac' horns = 
     let val (horn0s, hornps) = (*0 subgoals vs 1 or more*)
-            take_prefix (fn rl => nprems_of rl=0) horns
+            take_prefix Thm.no_prems horns
         val nrtac = net_resolve_tac horns
     in  fn i => eq_assume_tac i ORELSE
                 match_tac horn0s i ORELSE  (*no backtracking if unit MATCHES*)
