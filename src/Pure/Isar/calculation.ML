@@ -139,9 +139,13 @@ val sym_attr =
 val calculationN = "calculation";
 
 fun maintain_calculation false calc state =
+    let val facts = Proof.the_facts state 
+    in
       state
       |> put_calculation calc
       |> Proof.simple_have_thms calculationN calc
+      |> Proof.simple_have_thms Proof.thisN facts
+    end
   | maintain_calculation true calc state =
       state
       |> reset_calculation
