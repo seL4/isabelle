@@ -17,10 +17,8 @@ val version = "Isabelle-94 revision 4: August 95";
 print_depth 1;
 
 use "library.ML";
-use "term.ML";
 use "symtab.ML";
-
-structure Symtab = SymtabFun();
+use "term.ML";
 
 (*Syntax module*)
 cd "Syntax";
@@ -68,7 +66,6 @@ structure Pure = struct val thy = pure_thy end;
 structure CPure = struct val thy = cpure_thy end;
 
 (* hide functors; saves space in PolyML *)
-functor SymtabFun() = struct end;
 functor TypeFun() = struct end;
 functor SignFun() = struct end;
 functor SequenceFun() = struct end;
