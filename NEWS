@@ -187,12 +187,12 @@ New in this Isabelle release
   Function 'Summation' over nat is gone, its syntax '\<Sum>i<k. e'
   now translates into 'setsum' as above.
 
-* Simplifier:
-  - Is now set up to reason about transitivity chains involving "trancl" (r^+)
-    and "rtrancl" (r^*) by setting up tactics provided by Provers/trancl.ML
-    as additional solvers.
-  - INCOMPATIBILITY: old proofs break occasionally.  Typically, this is
-    because simplification now solves more goals than previously.
+* HOL/Simplifier: Is now set up to reason about transitivity chains
+  involving "trancl" (r^+) and "rtrancl" (r^*) by setting up tactics
+  provided by Provers/trancl.ML as additional solvers.
+  INCOMPATIBILITY: old proofs break occasionally as simplification may
+  now solve more goals than previously.
+
 
 *** HOLCF ***
 
@@ -203,8 +203,13 @@ New in this Isabelle release
 
 *** ZF ***
 
-* ZF/ex/{Group,Ring}: examples in abstract algebra, including the First
-  Isomorphism Theorem (on quotienting by the kernel of a homomorphism).
+* ZF/ex/{Group,Ring}: examples in abstract algebra, including the
+  First Isomorphism Theorem (on quotienting by the kernel of a
+  homomorphism).
+
+* ZF/Simplifier: install second copy of type solver that actually
+  makes use of TC rules declared to Isar proof contexts (or locales);
+  the old version is still required for ML proof scripts.
 
 
 
