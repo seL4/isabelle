@@ -282,10 +282,12 @@ val asm_full_simp_tac = gen_simp_tac (true,  true);
 (*not totally safe: may instantiate unknowns that appear also in other subgoals*)
 val safe_asm_full_simp_tac = basic_gen_simp_tac (true, true);
 
-fun          Simp_tac i =          simp_tac (! simpset) i;
-fun      Asm_simp_tac i =      asm_simp_tac (! simpset) i;
-fun     Full_simp_tac i =     full_simp_tac (! simpset) i;
-fun Asm_full_simp_tac i = asm_full_simp_tac (! simpset) i;
+(** The abstraction over the proof state delays the dereferencing **)
+
+fun          Simp_tac i st =          simp_tac (! simpset) i st;
+fun      Asm_simp_tac i st =      asm_simp_tac (! simpset) i st;
+fun     Full_simp_tac i st =     full_simp_tac (! simpset) i st;
+fun Asm_full_simp_tac i st = asm_full_simp_tac (! simpset) i st;
 
 
 
