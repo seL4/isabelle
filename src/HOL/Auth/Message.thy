@@ -54,6 +54,7 @@ translations
   "Agent x"   == "Atomic (AGENT x)"
   "Number x"  == "Atomic (NUMBER x)"
   "Nonce x"   == "Atomic (NONCE x)"
+  "Nonce``x"  == "Atomic `` (NONCE `` x)"
   "Key x"     == "Atomic (KEY x)"
   "Key``x"    == "Atomic `` (KEY `` x)"
 
