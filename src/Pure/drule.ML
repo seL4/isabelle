@@ -278,7 +278,7 @@ fun get_kind thm =
   | _ => "unknown");
 
 fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
-fun kind k x = rule_attribute (K (kind_rule k)) x;
+fun kind k x = if k = "" then x else rule_attribute (K (kind_rule k)) x;
 fun kind_internal x = kind internalK x;
 fun has_internal tags = exists (equal internalK o fst) tags;
 
