@@ -91,11 +91,12 @@ sig
     -> ProofHistory.T -> ProofHistory.T
   val invoke_case_i: (string * string option list * Proof.context attribute list) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val theorem: string -> xstring option * Args.src Locale.element list ->
+  val theorem: string -> (xstring * Args.src list) option * Args.src Locale.element list ->
     ((bstring * Args.src list) * (string * (string list * string list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
-  val theorem_i: string -> string option * Proof.context attribute Locale.element_i list ->
-    ((bstring * theory attribute list) * (term * (term list * term list)))
+  val theorem_i: string -> (string * Proof.context attribute list) option
+    * Proof.context attribute Locale.element_i list ->
+      ((bstring * theory attribute list) * (term * (term list * term list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
   val assume: (((string * Args.src list) * (string * (string list * string list)) list)
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
@@ -168,6 +169,8 @@ sig
   val token_translation: string * Comment.text -> theory -> theory
   val method_setup: (bstring * string * string) * Comment.text -> theory -> theory
   val add_oracle: (bstring * string) * Comment.text -> theory -> theory
+  val add_locale: bstring * xstring list * (Args.src Locale.element * Comment.text) list
+    -> theory -> theory
   val begin_theory: string -> string list -> (string * bool) list -> theory
   val end_theory: theory -> theory
   val kill_theory: string -> unit
@@ -423,13 +426,14 @@ fun multi_statement_i f args = ProofHistory.apply (f args);
 
 in
 
-fun theorem k (loc, elems) (((name, src), s), comment_ignore) int thy =
+fun theorem k (locale, elems) (((name, src), s), comment_ignore) int thy =
   ProofHistory.init (Toplevel.undo_limit int)
-    (Proof.theorem k loc (map (Locale.intern_att (Attrib.local_attribute thy)) elems)
+    (Proof.theorem k (apsome (apsnd (map (Attrib.local_attribute thy))) locale)
+      (map (Locale.attribute (Attrib.local_attribute thy)) elems)
       name (map (Attrib.global_attribute thy) src) s thy);
 
-fun theorem_i k (loc, elems) (((name, atts), t), comment_ignore) int thy =
-  ProofHistory.init (Toplevel.undo_limit int) (Proof.theorem_i k loc elems name atts t thy);
+fun theorem_i k (locale, elems) (((name, atts), t), comment_ignore) int thy =
+  ProofHistory.init (Toplevel.undo_limit int) (Proof.theorem_i k locale elems name atts t thy);
 
 val assume      = multi_statement Proof.assume o map Comment.ignore;
 val assume_i    = multi_statement_i Proof.assume_i o map Comment.ignore;
@@ -607,6 +611,13 @@ fun add_oracle ((name, txt), comment_ignore) =
     "val oracle: bstring * (Sign.sg * Object.T -> term)"
     "Theory.add_oracle oracle"
     ("(" ^ quote name ^ ", " ^ txt ^ ")");
+
+
+(* add_locale *)
+
+fun add_locale (name, imports, elems) thy =
+  Locale.add_locale name imports
+    (map (Locale.attribute (Attrib.local_attribute thy) o Comment.ignore) elems) thy;
 
 
 (* theory init and exit *)
