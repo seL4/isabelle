@@ -146,14 +146,10 @@ lemma zero_in_vs [simp, intro]: "is_vectorspace V \<Longrightarrow> 0 \<in> V"
 proof -
   assume "is_vectorspace V"
   have "V \<noteq> {}" ..
-  hence "\<exists>x. x \<in> V" by blast
-  thus ?thesis
-  proof
-    fix x assume "x \<in> V"
-    have "0 = x - x" by (simp!)
-    also have "... \<in> V" by (simp! only: vs_diff_closed)
-    finally show ?thesis .
-  qed
+  then obtain x where "x \<in> V" by blast
+  have "0 = x - x" by (simp!)
+  also have "... \<in> V" by (simp! only: vs_diff_closed)
+  finally show ?thesis .
 qed
 
 lemma vs_add_zero_left [simp]:

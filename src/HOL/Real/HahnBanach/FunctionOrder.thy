@@ -27,7 +27,7 @@ constdefs
   "graph F f \<equiv> {(x, f x) | x. x \<in> F}"
 
 lemma graphI [intro?]: "x \<in> F \<Longrightarrow> (x, f x) \<in> graph F f"
-  by (unfold graph_def, intro CollectI exI) blast
+  by (unfold graph_def) blast
 
 lemma graphI2 [intro?]: "x \<in> F \<Longrightarrow> \<exists>t\<in> (graph F f). t = (x, f x)"
   by (unfold graph_def) blast
