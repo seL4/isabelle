@@ -1,3 +1,4 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
@@ -56,6 +57,8 @@ with main HOL; the theory loader path already includes this directory
 by default; the following existing theories have been moved here:
 HOL/Induct/Multiset, HOL/Induct/Acc (as Accessible_Part), HOL/While
 (as While_Combinator), HOL/Lex/Prefix (as List_Prefix);
+
+* added overloaded operations "inverse" and "divide" (infix "/");
 
 * >, >= and \<ge> can now be used for input; they are immediately replaced
   by the converse symbol, eg "x > y" by "y < x".
