@@ -338,8 +338,8 @@ default      {\it sort}
 types        {\it type declarations and synonyms}
 arities      {\it arity declarations}
 consts       {\it constant declarations}
-rules        {\it rule declarations}
 translations {\it translation declarations}
+rules        {\it rule declarations}
 end
 ML           {\it ML code}
 \end{ttbox}
@@ -453,7 +453,7 @@ The {\bf type declaration part} has the general form
 \begin{ttbox}
 types   \(tids@1\) \(id@1\)
         \vdots
-        \(tids@1\) \(id@n\)
+        \(tids@n\) \(id@n\)
 \end{ttbox}
 where $id@1$, \ldots, $id@n$ are identifiers and $tids@1$, \ldots, $tids@n$
 are type argument lists as shown in the example above.  It declares each
