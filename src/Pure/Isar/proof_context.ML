@@ -50,12 +50,12 @@ sig
     -> (thm list * context attribute list) list -> context -> context * (string * thm list)
   val assumptions: context -> (cterm * ((int -> tactic) * (int -> tactic))) list
   val fixed_names: context -> string list
-  val assume: ((int -> tactic) * (int -> tactic)) -> string -> context attribute list
-    -> (string * (string list * string list)) list
-    -> context -> context * ((string * thm list) * thm list)
-  val assume_i: ((int -> tactic) * (int -> tactic)) -> string -> context attribute list
-    -> (term * (term list * term list)) list
-    -> context -> context * ((string * thm list) * thm list)
+  val assume: ((int -> tactic) * (int -> tactic))
+    -> (string * context attribute list * (string * (string list * string list)) list) list
+    -> context -> context * ((string * thm list) list * thm list)
+  val assume_i: ((int -> tactic) * (int -> tactic))
+    -> (string * context attribute list * (term * (term list * term list)) list) list
+    -> context -> context * ((string * thm list) list * thm list)
   val fix: (string * string option) list -> context -> context
   val fix_i: (string * typ) list -> context -> context
   val transfer_used_names: context -> context -> context
@@ -105,6 +105,8 @@ fun map_context f (Context {thy, data, asms, binds, thms, defs}) =
 
 fun theory_of (Context {thy, ...}) = thy;
 val sign_of = Theory.sign_of o theory_of;
+
+fun prems_of (Context {asms = ((_, asms), _), ...}) = flat (map #2 asms);
 
 
 
@@ -157,10 +159,11 @@ val print_thms = seq writeln o strings_of_thms;
 
 (* main context *)
 
-fun strings_of_context (ctxt as Context {thy, data = _, asms = ((_, prems), (fixes, _)), binds = _,
+fun strings_of_context (ctxt as Context {thy, data = _, asms = (_, (fixes, _)), binds = _,
     thms = _, defs = (types, sorts, maxidx, used)}) =
   let
     val sign = Theory.sign_of thy;
+    val prems = prems_of ctxt;
 
     val prt_term = Sign.pretty_term sign;
     val prt_typ = Sign.pretty_typ sign;
@@ -191,7 +194,9 @@ fun strings_of_context (ctxt as Context {thy, data = _, asms = ((_, prems), (fix
     verb_string pretty_thy @
     (if null fixes andalso not (! verbose) then []
       else [Pretty.string_of (prt_fixes (rev fixes))]) @
-    strings_of_items (prt_term o #prop o Thm.rep_thm) "Assumptions:" prems @
+    (if null prems andalso not (! verbose) then []
+      else [Pretty.string_of (Pretty.big_list "Assumptions:"
+        (map (prt_term o #prop o Thm.rep_thm) prems))]) @
     verb strings_of_binds ctxt @
     verb strings_of_thms ctxt @
     verb_string (Pretty.big_list "Type constraints:" (map prt_defT (Vartab.dest types))) @
@@ -427,6 +432,10 @@ end;
 
 (* read terms *)
 
+fun warn_vars ctxt tm =
+  if null (term_vars tm) andalso null (term_tvars tm) then tm
+  else (warning "Illegal schematic variable(s) in term"; tm);
+
 fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, used), ...}) s =
   let
     val sign = sign_of ctxt;
@@ -444,6 +453,7 @@ fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, u
     |> app (intern_skolem ctxt true)
     |> app (if is_pat then I else norm_term ctxt)
     |> app (if is_pat then prepare_dummies else (reject_dummies ctxt))
+    |> app (if is_pat then I else warn_vars ctxt)
   end;
 
 val read_termTs = gen_read (read_def_termTs false) (apfst o map) false;
@@ -655,9 +665,9 @@ fun fixed_names (Context {asms = (_, (fixes, _)), ...}) = map #2 fixes;
 
 (* assume *)
 
-fun prems (Context {asms = ((_, asms), _), ...}) = flat (map #2 asms);
+local
 
-fun gen_assume prepp tac name attrs raw_prop_pats ctxt =
+fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
   let
     val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
     val sign = sign_of ctxt';
@@ -677,10 +687,18 @@ fun gen_assume prepp tac name attrs raw_prop_pats ctxt =
       ctxt''
       |> map_context (fn (thy, data, ((asms_ct, asms_th), fixes), binds, thms, defs) =>
         (thy, data, ((asms_ct @ cprops_tac, asms_th @ [(name, asms)]), fixes), binds, thms, defs));
-  in (ctxt''', ((name, thms), prems ctxt''')) end;
+  in (ctxt''', (name, thms)) end;
 
-val assume = gen_assume bind_propp;
-val assume_i = gen_assume bind_propp_i;
+fun gen_assms prepp tac args ctxt =
+  let val (ctxt', thmss) = foldl_map (gen_assm prepp tac) (ctxt, args)
+  in (ctxt', (thmss, prems_of ctxt')) end;
+
+in
+
+val assume = gen_assms bind_propp;
+val assume_i = gen_assms bind_propp_i;
+
+end;
 
 
 (* fix *)
