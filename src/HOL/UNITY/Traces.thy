@@ -32,19 +32,19 @@ constdefs
     "mk_program == %(init, acts). Abs_Program (init, insert Id acts)"
 
     Init :: "'a program => 'a set"
-    "Init prg == fst (Rep_Program prg)"
+    "Init F == fst (Rep_Program F)"
 
     Acts :: "'a program => ('a * 'a)set set"
-    "Acts prg == snd (Rep_Program prg)"
+    "Acts F == snd (Rep_Program F)"
 
 
 consts reachable :: "'a program => 'a set"
 
-inductive "reachable prg"
+inductive "reachable F"
   intrs 
-    Init  "s: Init prg ==> s : reachable prg"
+    Init  "s: Init F ==> s : reachable F"
 
-    Acts  "[| act: Acts prg;  s : reachable prg;  (s,s'): act |]
-	   ==> s' : reachable prg"
+    Acts  "[| act: Acts F;  s : reachable F;  (s,s'): act |]
+	   ==> s' : reachable F"
 
 end

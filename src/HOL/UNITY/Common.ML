@@ -11,8 +11,8 @@ From Misra, "A Logic for Concurrent Programming" (1994), sections 5.1 and 13.1.
 *)
 
 (*Misra's property CMT4: t exceeds no common meeting time*)
-Goal "[| ALL m. Constrains prg {m} (maxfg m); n: common |] \
-\     ==> Stable prg (atMost n)";
+Goal "[| ALL m. Constrains F {m} (maxfg m); n: common |] \
+\     ==> Stable F (atMost n)";
 by (dres_inst_tac [("M", "{t. t<=n}")] Elimination_sing 1);
 by (asm_full_simp_tac
     (simpset() addsimps [atMost_def, Stable_def, common_def, maxfg_def,
@@ -21,9 +21,9 @@ by (etac Constrains_weaken_R 1);
 by (blast_tac (claset() addIs [order_eq_refl, fmono, gmono, le_trans]) 1);
 qed "common_stable";
 
-Goal "[| Init prg <= atMost n;  \
-\        ALL m. Constrains prg {m} (maxfg m); n: common |] \
-\     ==> Invariant prg (atMost n)";
+Goal "[| Init F <= atMost n;  \
+\        ALL m. Constrains F {m} (maxfg m); n: common |] \
+\     ==> Invariant F (atMost n)";
 by (asm_simp_tac (simpset() addsimps [InvariantI, common_stable]) 1);
 qed "common_Invariant";
 
@@ -67,10 +67,10 @@ result();
 
 Addsimps [atMost_Int_atLeast];
 
-Goal "[| ALL m. Constrains prg {m} (maxfg m); \
-\               ALL m: lessThan n. LeadsTo prg {m} (greaterThan m); \
+Goal "[| ALL m. Constrains F {m} (maxfg m); \
+\               ALL m: lessThan n. LeadsTo F {m} (greaterThan m); \
 \               n: common |]  \
-\            ==> LeadsTo prg (atMost n) common";
+\            ==> LeadsTo F (atMost n) common";
 by (rtac LeadsTo_weaken_R 1);
 by (res_inst_tac [("f","%x. x"), ("l", "n")] GreaterThan_bounded_induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -80,10 +80,10 @@ by (blast_tac (claset() addDs [PSP_stable2]
 val lemma = result();
 
 (*The "ALL m: -common" form echoes CMT6.*)
-Goal "[| ALL m. Constrains prg {m} (maxfg m); \
-\               ALL m: -common. LeadsTo prg {m} (greaterThan m); \
+Goal "[| ALL m. Constrains F {m} (maxfg m); \
+\               ALL m: -common. LeadsTo F {m} (greaterThan m); \
 \               n: common |]  \
-\            ==> LeadsTo prg (atMost (LEAST n. n: common)) common";
+\            ==> LeadsTo F (atMost (LEAST n. n: common)) common";
 by (rtac lemma 1);
 by (ALLGOALS Asm_simp_tac);
 by (etac LeastI 2);

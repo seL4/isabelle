@@ -32,15 +32,15 @@ qed "component_trans";
 
 Goalw [component_def,Join_def] "component F G ==> Acts F <= Acts G";
 by Auto_tac;
-qed "componet_Acts";
+qed "component_Acts";
 
 Goalw [component_def,Join_def] "component F G ==> Init G <= Init F";
 by Auto_tac;
-qed "componet_Init";
+qed "component_Init";
 
 Goal "[| component F G; component G F |] ==> F=G";
 by (asm_simp_tac (simpset() addsimps [program_equalityI, equalityI, 
-				      componet_Acts, componet_Init]) 1);
+				      component_Acts, component_Init]) 1);
 qed "component_anti_sym";
 
 

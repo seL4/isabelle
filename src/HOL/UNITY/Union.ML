@@ -85,20 +85,29 @@ by (Simp_tac 1);
 by (Blast_tac 1);
 qed "constrains_JN";
 
+Goal "constrains (Acts (F Join G)) A B =  \
+\     (constrains (Acts F) A B & constrains (Acts G) A B)";
+by (auto_tac
+    (claset(),
+     simpset() addsimps [constrains_def, Join_def]));
+qed "constrains_Join";
+
 (**FAILS, I think; see 5.4.1, Substitution Axiom.
+   The problem is to relate reachable (F Join G) with 
+   reachable F and reachable G
+
 Goalw [Constrains_def]
     "Constrains (JN i:I. F i) A B = (ALL i:I. Constrains (F i) A B)";
 by (simp_tac (simpset() addsimps [constrains_JN]) 1);
 by (Blast_tac 1);
 qed "Constrains_JN";
-**)
 
-Goal "constrains (Acts (F Join G)) A B =  \
-\     (constrains (Acts F) A B & constrains (Acts G) A B)";
+Goal "Constrains (F Join G) A B = (Constrains F A B & Constrains G A B)";
 by (auto_tac
     (claset(),
-     simpset() addsimps [constrains_def, Join_def, ball_Un]));
-qed "constrains_Join";
+     simpset() addsimps [Constrains_def, constrains_Join]));
+qed "Constrains_Join";
+**)
 
 Goal "[| constrains (Acts F) A A';  constrains (Acts G) B B' |] \
 \     ==> constrains (Acts (F Join G)) (A Int B) (A' Un B')";

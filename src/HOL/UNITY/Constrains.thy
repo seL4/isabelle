@@ -11,18 +11,18 @@ Constrains = UNITY + Traces +
 constdefs
 
   Constrains :: "['a program, 'a set, 'a set] => bool"
-    "Constrains prg A B == 
-		 constrains (Acts prg)
-                            (reachable prg  Int  A)
-  		            (reachable prg  Int  B)"
+    "Constrains F A B == 
+		 constrains (Acts F)
+                            (reachable F  Int  A)
+  		            (reachable F  Int  B)"
 
   Stable     :: "'a program => 'a set => bool"
-    "Stable prg A == Constrains prg A A"
+    "Stable F A == Constrains F A A"
 
   Unless :: "['a program, 'a set, 'a set] => bool"
-    "Unless prg A B == Constrains prg (A-B) (A Un B)"
+    "Unless F A B == Constrains F (A-B) (A Un B)"
 
   Invariant :: "['a program, 'a set] => bool"
-  "Invariant prg A == (Init prg) <= A & Stable prg A"
+  "Invariant F A == (Init F) <= A & Stable F A"
 
 end

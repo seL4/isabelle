@@ -21,6 +21,12 @@ time_use_thy "FP";
 time_use_thy "Reach";
 time_use_thy "Handshake";
 time_use_thy "Lift";
+time_use_thy "Comp";
 
-loadpath := "../Auth" :: !loadpath;  (*necessary to find the Auth theories*)
+loadpath := "../Auth" :: !loadpath;  (*to find Public.thy*)
 use_thy"NSP_Bad";
+
+(*
+loadpath := "../Lex" :: !loadpath;   (*to find Prefix.thy*)
+use_thy"Client";
+*)

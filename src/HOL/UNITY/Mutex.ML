@@ -71,7 +71,7 @@ by (auto_tac (claset(),
 by (exhaust_tac "na" 1);
 by (exhaust_tac "nat" 2);
 by (exhaust_tac "n" 3);
-auto();
+by Auto_tac;
 qed "eq_123";
 
 

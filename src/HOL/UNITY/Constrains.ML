@@ -13,61 +13,61 @@ Safety relations: restricted to the set of reachable states.
 Blast.overloaded ("Constrains.Constrains", 
 		  HOLogic.dest_setT o domain_type o range_type);
 
-(*constrains (Acts prg) B B'
-  ==> constrains (Acts prg) (reachable prg Int B) (reachable prg Int B')*)
+(*constrains (Acts F) B B'
+  ==> constrains (Acts F) (reachable F Int B) (reachable F Int B')*)
 bind_thm ("constrains_reachable_Int",
 	  subset_refl RS
 	  rewrite_rule [stable_def] stable_reachable RS 
 	  constrains_Int);
 
 Goalw [Constrains_def]
-    "constrains (Acts prg) A A' ==> Constrains prg A A'";
+    "constrains (Acts F) A A' ==> Constrains F A A'";
 by (etac constrains_reachable_Int 1);
 qed "constrains_imp_Constrains";
 
 val prems = Goal
-    "(!!act s s'. [| act: Acts prg;  (s,s') : act;  s: A |] ==> s': A') \
-\    ==> Constrains prg A A'";
+    "(!!act s s'. [| act: Acts F;  (s,s') : act;  s: A |] ==> s': A') \
+\    ==> Constrains F A A'";
 by (rtac constrains_imp_Constrains 1);
 by (blast_tac (claset() addIs (constrainsI::prems)) 1);
 qed "ConstrainsI";
 
-Goalw [Constrains_def, constrains_def] "Constrains prg {} B";
+Goalw [Constrains_def, constrains_def] "Constrains F {} B";
 by (Blast_tac 1);
 qed "Constrains_empty";
 
-Goal "Constrains prg A UNIV";
+Goal "Constrains F A UNIV";
 by (blast_tac (claset() addIs [ConstrainsI]) 1);
 qed "Constrains_UNIV";
 AddIffs [Constrains_empty, Constrains_UNIV];
 
 
 Goalw [Constrains_def]
-    "[| Constrains prg A A'; A'<=B' |] ==> Constrains prg A B'";
+    "[| Constrains F A A'; A'<=B' |] ==> Constrains F A B'";
 by (blast_tac (claset() addIs [constrains_weaken_R]) 1);
 qed "Constrains_weaken_R";
 
 Goalw [Constrains_def]
-    "[| Constrains prg A A'; B<=A |] ==> Constrains prg B A'";
+    "[| Constrains F A A'; B<=A |] ==> Constrains F B A'";
 by (blast_tac (claset() addIs [constrains_weaken_L]) 1);
 qed "Constrains_weaken_L";
 
 Goalw [Constrains_def]
-   "[| Constrains prg A A'; B<=A; A'<=B' |] ==> Constrains prg B B'";
+   "[| Constrains F A A'; B<=A; A'<=B' |] ==> Constrains F B B'";
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "Constrains_weaken";
 
 (** Union **)
 
 Goalw [Constrains_def]
-    "[| Constrains prg A A'; Constrains prg B B' |]   \
-\    ==> Constrains prg (A Un B) (A' Un B')";
+    "[| Constrains F A A'; Constrains F B B' |]   \
+\    ==> Constrains F (A Un B) (A' Un B')";
 by (blast_tac (claset() addIs [constrains_Un RS constrains_weaken]) 1);
 qed "Constrains_Un";
 
 Goalw [Constrains_def]
-    "ALL i:I. Constrains prg (A i) (A' i) \
-\    ==> Constrains prg (UN i:I. A i) (UN i:I. A' i)";
+    "ALL i:I. Constrains F (A i) (A' i) \
+\    ==> Constrains F (UN i:I. A i) (UN i:I. A' i)";
 by (dtac ball_constrains_UN 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "ball_Constrains_UN";
@@ -75,75 +75,75 @@ qed "ball_Constrains_UN";
 (** Intersection **)
 
 Goalw [Constrains_def]
-    "[| Constrains prg A A'; Constrains prg B B' |]   \
-\    ==> Constrains prg (A Int B) (A' Int B')";
+    "[| Constrains F A A'; Constrains F B B' |]   \
+\    ==> Constrains F (A Int B) (A' Int B')";
 by (blast_tac (claset() addIs [constrains_Int RS constrains_weaken]) 1);
 qed "Constrains_Int";
 
 Goalw [Constrains_def]
-    "[| ALL i:I. Constrains prg (A i) (A' i) |]   \
-\    ==> Constrains prg (INT i:I. A i) (INT i:I. A' i)";
+    "[| ALL i:I. Constrains F (A i) (A' i) |]   \
+\    ==> Constrains F (INT i:I. A i) (INT i:I. A' i)";
 by (dtac ball_constrains_INT 1);
 by (dtac constrains_reachable_Int 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "ball_Constrains_INT";
 
 Goalw [Constrains_def]
-     "Constrains prg A A' ==> reachable prg Int A <= A'";
+     "Constrains F A A' ==> reachable F Int A <= A'";
 by (dtac constrains_imp_subset 1);
 by (ALLGOALS
     (full_simp_tac (simpset() addsimps [Int_subset_iff, Int_lower1])));
 qed "Constrains_imp_subset";
 
 Goalw [Constrains_def]
-    "[| Constrains prg A B; Constrains prg B C |]   \
-\    ==> Constrains prg A C";
+    "[| Constrains F A B; Constrains F B C |]   \
+\    ==> Constrains F A C";
 by (blast_tac (claset() addIs [constrains_trans, constrains_weaken]) 1);
 qed "Constrains_trans";
 
 
 (*** Stable ***)
 
-Goal "Stable prg A = stable (Acts prg) (reachable prg Int A)";
+Goal "Stable F A = stable (Acts F) (reachable F Int A)";
 by (simp_tac (simpset() addsimps [Stable_def, Constrains_def, stable_def]) 1);
 qed "Stable_eq_stable";
 
-Goalw [Stable_def] "Constrains prg A A ==> Stable prg A";
+Goalw [Stable_def] "Constrains F A A ==> Stable F A";
 by (assume_tac 1);
 qed "StableI";
 
-Goalw [Stable_def] "Stable prg A ==> Constrains prg A A";
+Goalw [Stable_def] "Stable F A ==> Constrains F A A";
 by (assume_tac 1);
 qed "StableD";
 
 Goalw [Stable_def]
-    "[| Stable prg A; Stable prg A' |] ==> Stable prg (A Un A')";
+    "[| Stable F A; Stable F A' |] ==> Stable F (A Un A')";
 by (blast_tac (claset() addIs [Constrains_Un]) 1);
 qed "Stable_Un";
 
 Goalw [Stable_def]
-    "[| Stable prg A; Stable prg A' |] ==> Stable prg (A Int A')";
+    "[| Stable F A; Stable F A' |] ==> Stable F (A Int A')";
 by (blast_tac (claset() addIs [Constrains_Int]) 1);
 qed "Stable_Int";
 
 Goalw [Stable_def]
-    "[| Stable prg C; Constrains prg A (C Un A') |]   \
-\    ==> Constrains prg (C Un A) (C Un A')";
+    "[| Stable F C; Constrains F A (C Un A') |]   \
+\    ==> Constrains F (C Un A) (C Un A')";
 by (blast_tac (claset() addIs [Constrains_Un RS Constrains_weaken]) 1);
 qed "Stable_Constrains_Un";
 
 Goalw [Stable_def]
-    "[| Stable prg C; Constrains prg (C Int A) A' |]   \
-\    ==> Constrains prg (C Int A) (C Int A')";
+    "[| Stable F C; Constrains F (C Int A) A' |]   \
+\    ==> Constrains F (C Int A) (C Int A')";
 by (blast_tac (claset() addIs [Constrains_Int RS Constrains_weaken]) 1);
 qed "Stable_Constrains_Int";
 
 Goalw [Stable_def]
-    "(ALL i:I. Stable prg (A i)) ==> Stable prg (INT i:I. A i)";
+    "(ALL i:I. Stable F (A i)) ==> Stable F (INT i:I. A i)";
 by (etac ball_Constrains_INT 1);
 qed "ball_Stable_INT";
 
-Goal "Stable prg (reachable prg)";
+Goal "Stable F (reachable F)";
 by (simp_tac (simpset() addsimps [Stable_eq_stable, stable_reachable]) 1);
 qed "Stable_reachable";
 
@@ -154,34 +154,34 @@ qed "Stable_reachable";
      in forward proof. ***)
 
 Goalw [Constrains_def, constrains_def]
-    "[| ALL m. Constrains prg {s. s x = m} (B m) |] \
-\    ==> Constrains prg {s. s x : M} (UN m:M. B m)";
+    "[| ALL m. Constrains F {s. s x = m} (B m) |] \
+\    ==> Constrains F {s. s x : M} (UN m:M. B m)";
 by (Blast_tac 1);
 qed "Elimination";
 
 (*As above, but for the trivial case of a one-variable state, in which the
   state is identified with its one variable.*)
 Goalw [Constrains_def, constrains_def]
-    "(ALL m. Constrains prg {m} (B m)) ==> Constrains prg M (UN m:M. B m)";
+    "(ALL m. Constrains F {m} (B m)) ==> Constrains F M (UN m:M. B m)";
 by (Blast_tac 1);
 qed "Elimination_sing";
 
 Goalw [Constrains_def, constrains_def]
-   "[| Constrains prg A (A' Un B); Constrains prg B B' |] \
-\   ==> Constrains prg A (A' Un B')";
+   "[| Constrains F A (A' Un B); Constrains F B B' |] \
+\   ==> Constrains F A (A' Un B')";
 by (Blast_tac 1);
 qed "Constrains_cancel";
 
 
 (*** Specialized laws for handling Invariants ***)
 
-(** Natural deduction rules for "Invariant prg A" **)
+(** Natural deduction rules for "Invariant F A" **)
 
-Goal "[| Init prg<=A;  Stable prg A |] ==> Invariant prg A";
+Goal "[| Init F<=A;  Stable F A |] ==> Invariant F A";
 by (asm_simp_tac (simpset() addsimps [Invariant_def]) 1);
 qed "InvariantI";
 
-Goal "Invariant prg A ==> Init prg<=A & Stable prg A";
+Goal "Invariant F A ==> Init F<=A & Stable F A";
 by (asm_full_simp_tac (simpset() addsimps [Invariant_def]) 1);
 qed "InvariantD";
 
@@ -189,13 +189,13 @@ bind_thm ("InvariantE", InvariantD RS conjE);
 
 
 (*The set of all reachable states is an Invariant...*)
-Goal "Invariant prg (reachable prg)";
+Goal "Invariant F (reachable F)";
 by (simp_tac (simpset() addsimps [Invariant_def]) 1);
 by (blast_tac (claset() addIs (Stable_reachable::reachable.intrs)) 1);
 qed "Invariant_reachable";
 
 (*...in fact the strongest Invariant!*)
-Goal "Invariant prg A ==> reachable prg <= A";
+Goal "Invariant F A ==> reachable F <= A";
 by (full_simp_tac 
     (simpset() addsimps [Stable_def, Constrains_def, constrains_def, 
 			 Invariant_def]) 1);
@@ -205,24 +205,24 @@ by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
 qed "Invariant_includes_reachable";
 
 
-Goal "Invariant prg INV ==> reachable prg Int INV = reachable prg";
+Goal "Invariant F INV ==> reachable F Int INV = reachable F";
 by (dtac Invariant_includes_reachable 1);
 by (Blast_tac 1);
 qed "reachable_Int_INV";
 
-Goal "[| Invariant prg INV;  Constrains prg (INV Int A) A' |]   \
-\     ==> Constrains prg A A'";
+Goal "[| Invariant F INV;  Constrains F (INV Int A) A' |]   \
+\     ==> Constrains F A A'";
 by (asm_full_simp_tac
     (simpset() addsimps [Constrains_def, reachable_Int_INV,
 			 Int_assoc RS sym]) 1);
 qed "Invariant_ConstrainsI";
 
-(* [| Invariant prg INV; Constrains prg (INV Int A) A |]
-   ==> Stable prg A *)
+(* [| Invariant F INV; Constrains F (INV Int A) A |]
+   ==> Stable F A *)
 bind_thm ("Invariant_StableI", Invariant_ConstrainsI RS StableI);
 
-Goal "[| Invariant prg INV;  Constrains prg A A' |]   \
-\     ==> Constrains prg A (INV Int A')";
+Goal "[| Invariant F INV;  Constrains F A A' |]   \
+\     ==> Constrains F A (INV Int A')";
 by (asm_full_simp_tac
     (simpset() addsimps [Constrains_def, reachable_Int_INV,
 			 Int_assoc RS sym]) 1);
@@ -234,7 +234,7 @@ bind_thm ("Invariant_StableD", StableD RSN (2,Invariant_ConstrainsD));
 
 (** Conjoining Invariants **)
 
-Goal "[| Invariant prg A;  Invariant prg B |] ==> Invariant prg (A Int B)";
+Goal "[| Invariant F A;  Invariant F B |] ==> Invariant F (A Int B)";
 by (auto_tac (claset(),
 	      simpset() addsimps [Invariant_def, Stable_Int]));
 qed "Invariant_Int";
@@ -261,7 +261,7 @@ val constrains_tac =
 				   constrains_imp_Constrains] 1),
 	      rtac constrainsI 1,
 	      Full_simp_tac 1,
-	      REPEAT_FIRST (etac disjE),
+	      REPEAT (FIRSTGOAL (etac disjE)),
 	      ALLGOALS Clarify_tac,
 	      ALLGOALS Asm_full_simp_tac]);
 

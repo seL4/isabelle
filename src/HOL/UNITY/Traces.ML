@@ -17,8 +17,8 @@ val rep_ss = simpset() addsimps
 		 Rep_Program_inverse, Abs_Program_inverse];
 
 
-Goal "Id: Acts prg";
-by (cut_inst_tac [("x", "prg")] Rep_Program 1);
+Goal "Id: Acts F";
+by (cut_inst_tac [("x", "F")] Rep_Program 1);
 by (auto_tac (claset(), rep_ss));
 qed "Id_in_Acts";
 AddIffs [Id_in_Acts];
@@ -35,8 +35,8 @@ qed "Acts_eq";
 Addsimps [Acts_eq, Init_eq];
 
 
-Goal "[| Init prg = Init prg'; Acts prg = Acts prg' |] ==> prg = prg'";
-by (cut_inst_tac [("p", "Rep_Program prg")] surjective_pairing 1);
+Goal "[| Init F = Init G; Acts F = Acts G |] ==> F = G";
+by (cut_inst_tac [("p", "Rep_Program F")] surjective_pairing 1);
 by (auto_tac (claset(), rep_ss));
 by (dres_inst_tac [("f", "Abs_Program")] arg_cong 1);
 by (full_simp_tac (rep_ss addsimps [surjective_pairing RS sym]) 1);
@@ -46,8 +46,8 @@ qed "program_equalityI";
 (*** These three rules allow "lazy" definition expansion ***)
 
 val [rew] = goal thy
-    "[| prg == mk_program (init,acts) |] \
-\    ==> Init prg = init & Acts prg = insert Id acts";
+    "[| F == mk_program (init,acts) |] \
+\    ==> Init F = init & Acts F = insert Id acts";
 by (rewtac rew);
 by Auto_tac;
 qed "def_prg_simps";
@@ -71,13 +71,17 @@ fun simp_of_set def = def RS def_set_simp;
 
 (*** traces and reachable ***)
 
-Goal "reachable prg = {s. EX evs. (s,evs): traces (Init prg) (Acts prg)}";
+Goal "reachable F = {s. EX evs. (s,evs): traces (Init F) (Acts F)}";
 by Safe_tac;
 by (etac traces.induct 2);
 by (etac reachable.induct 1);
-by (ALLGOALS (blast_tac (claset() addIs (reachable.intrs @ traces.intrs))));
+by (ALLGOALS (blast_tac (claset() addIs reachable.intrs @ traces.intrs)));
 qed "reachable_equiv_traces";
 
-Goal "acts <= Acts prg ==> stable acts (reachable prg)";
-by (blast_tac (claset() addIs ([stableI, constrainsI] @ reachable.intrs)) 1);
+Goal "Init F <= reachable F";
+by (blast_tac (claset() addIs reachable.intrs) 1);
+qed "Init_subset_reachable";
+
+Goal "acts <= Acts F ==> stable acts (reachable F)";
+by (blast_tac (claset() addIs [stableI, constrainsI] @ reachable.intrs) 1);
 qed "stable_reachable";
