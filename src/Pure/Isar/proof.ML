@@ -77,19 +77,13 @@ sig
   val def_i: string -> context attribute list -> string * (term * term list) -> state -> state
   val invoke_case: string * string option list * context attribute list -> state -> state
   val multi_theorem: string -> bstring * theory attribute list
-    -> (xstring * context attribute list) option -> context attribute Locale.element list
+    -> (xstring * context attribute list list) option -> context attribute Locale.element list
     -> ((bstring * theory attribute list) * (string * (string list * string list)) list) list
     -> theory -> state
   val multi_theorem_i: string -> bstring * theory attribute list
-    -> (string * context attribute list) option -> context attribute Locale.element_i list
+    -> (string * context attribute list list) option -> context attribute Locale.element_i list
     -> ((bstring * theory attribute list) * (term * (term list * term list)) list) list
     -> theory -> state
-  val theorem: string
-    -> (xstring * context attribute list) option -> context attribute Locale.element list
-    -> bstring -> theory attribute list -> string * (string list * string list) -> theory -> state
-  val theorem_i: string
-    -> (string * context attribute list) option -> context attribute Locale.element_i list
-    -> bstring -> theory attribute list -> term * (term list * term list) -> theory -> state
   val chain: state -> state
   val from_facts: thm list -> state -> state
   val show: (bool -> state -> state) -> (state -> state Seq.seq)
@@ -133,12 +127,12 @@ type context = ProofContext.context;
 (* type goal *)
 
 datatype kind =
-  Theorem of string *                           (*theorem kind*)
-    (bstring * theory attribute list) *         (*common result binding*)
-    (string * context attribute list) option *  (*target locale*)
-    theory attribute list list |                (*attributes of individual result binding*)
-  Show of context attribute list list |         (*intermediate result, solving subgoal*)
-  Have of context attribute list list;          (*intermediate result*)
+  Theorem of string *                                (*theorem kind*)
+    (bstring * theory attribute list) *              (*common result binding*)
+    (string * context attribute list list) option *  (*target locale and attributes*)
+    theory attribute list list |                     (*attributes of individual result binding*)
+  Show of context attribute list list |              (*intermediate result, solving subgoal*)
+  Have of context attribute list list;               (*intermediate result*)
 
 fun common_name "" = "" | common_name a = " " ^ a;
 
@@ -669,11 +663,6 @@ fun global_goal prep kind a raw_locale elems args thy =
 val multi_theorem = global_goal Locale.read_context_statement;
 val multi_theorem_i = global_goal Locale.cert_context_statement;
 
-fun theorem k locale elems name atts p =
-  multi_theorem k (name, atts) locale elems [(("", []), [p])];
-fun theorem_i k locale elems name atts p =
-  multi_theorem_i k (name, atts) locale elems [(("", []), [p])];
-
 
 (*local goals*)
 fun local_goal' prepp kind (check: bool -> state -> state) f args int state =
@@ -759,14 +748,7 @@ fun local_qed finalize print state =
   |> (Seq.flat o Seq.map (finish_local print));
 
 
-(* global_qed *)
-
-fun locale_prefix None f thy = f thy
-  | locale_prefix (Some (loc, _)) f thy =
-      thy |> Theory.add_path (Sign.base_name loc) |> f |>> Theory.parent_path;
-
-fun locale_add_thmss None _ = I
-  | locale_add_thmss (Some (loc, atts)) ths = Locale.add_thmss loc (map (rpair atts) ths);
+(* global_qed *)  (* FIXME tune *)
 
 fun finish_global state =
   let
@@ -774,6 +756,20 @@ fun finish_global state =
       (case Seq.pull (ProofContext.export false inner outer th) of
         Some (th', _) => th' |> Drule.local_standard
       | None => raise STATE ("Internal failure of theorem export", state));
+
+    fun add_thmss None _ _ add_global thy = add_global thy
+      | add_thmss (Some (loc, atts)) names ths add_global thy =
+          let val n = length names - length atts in
+            if n < 0 then raise STATE ("Bad number of local attributes", state)
+            else
+              thy
+              |> Locale.add_thmss loc ((names ~~ ths) ~~ (atts @ replicate n []))
+              |> Theory.add_path (Sign.base_name loc)
+              |> add_global
+              |>> (fn thy' => thy' |> PureThy.hide_thms false
+                (map (Sign.full_name (Theory.sign_of thy')) (filter_out (equal "") names)))
+              |>> Theory.parent_path
+          end;
 
     val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), _)) = current_goal state;
     val locale_ctxt = context_of (state |> close_block);
@@ -788,10 +784,10 @@ fun finish_global state =
     val (k, (cname, catts), locale, attss) =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
     val (thy1, res') =
-      theory_of state
-      |> locale_prefix locale (PureThy.have_thmss [Drule.kind k]
-          ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results)))
-      |>> locale_add_thmss locale (names ~~ Library.unflat tss locale_results);
+      theory_of state |>
+      add_thmss locale names (Library.unflat tss locale_results)
+        (PureThy.have_thmss [Drule.kind k]
+          ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results)));
     val thy2 = thy1 |> PureThy.add_thmss [((cname, flat (map #2 res')), catts)] |> #1;
   in (thy2, ((k, cname), res')) end;
 
