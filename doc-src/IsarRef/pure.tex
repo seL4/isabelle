@@ -297,7 +297,7 @@ preceding the actual theory definition.
 \begin{rail}
   'axioms' (axmdecl prop comment? +)
   ;
-  ('theorems' | 'lemmas') thmdef? thmrefs
+  ('theorems' | 'lemmas') (thmdef? thmrefs comment? + 'and')
   ;
 \end{rail}
 
@@ -364,16 +364,21 @@ following commands provide some way to do so.
 
 \indexisarcmd{use}\indexisarcmd{ML}\indexisarcmd{ML-command}
 \indexisarcmd{ML-setup}\indexisarcmd{setup}
+\indexisarcmd{method-setup}
 \begin{matharray}{rcl}
   \isarcmd{use} & : & \isartrans{\cdot}{\cdot} \\
   \isarcmd{ML} & : & \isartrans{\cdot}{\cdot} \\
   \isarcmd{ML_command} & : & \isartrans{\cdot}{\cdot} \\
   \isarcmd{ML_setup} & : & \isartrans{theory}{theory} \\
   \isarcmd{setup} & : & \isartrans{theory}{theory} \\
+  \isarcmd{method_setup} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
 \railalias{MLsetup}{ML\_setup}
 \railterm{MLsetup}
+
+\railalias{methodsetup}{method\_setup}
+\railterm{methodsetup}
 
 \railalias{MLcommand}{ML\_command}
 \railterm{MLcommand}
@@ -382,6 +387,8 @@ following commands provide some way to do so.
   'use' name
   ;
   ('ML' | MLcommand | MLsetup | 'setup') text
+  ;
+  methodsetup name '=' text text comment?
   ;
 \end{rail}
 
@@ -406,6 +413,27 @@ following commands provide some way to do so.
   \texttt{(theory~->~theory)~list}.  The $\isarkeyword{setup}$ command is the
   canonical way to initialize any object-logic specific tools and packages
   written in ML.
+  
+\item [$\isarkeyword{method_setup}~name = text~description$] defines a proof
+  method in the current theory.  The given $text$ has to be an ML expression
+  of type \texttt{Args.src -> Proof.context -> Proof.method}.  Parsing
+  concrete method syntax from \texttt{Args.src} input can be quite tedious in
+  general.  The following simple examples are for methods without any explicit
+  arguments, or a list of theorems, respectively.
+
+{\footnotesize
+\begin{verbatim}
+Method.no_args (Method.METHOD (fn facts => foobar_tac))
+Method.thms_args (fn thms => (Method.METHOD (fn facts => foobar_tac)))
+\end{verbatim}
+}
+
+Note that mere tactic emulations may ignore the \texttt{facts} parameter
+above.  Proper proof methods would do something ``appropriate'' with the list
+of current facts, though.  Single-rule methods usually do strict
+forward-chaining (e.g.\ by using \texttt{Method.multi_resolves}), while
+automatic ones just insert the facts using \texttt{Method.insert_tac} before
+applying the main tactic.
 \end{descr}
 
 
@@ -600,11 +628,11 @@ arguments of proof methods, or when forward chaining towards the next goal via
 $\THEN$ (and variants).  Note that the special theorem name
 $this$\indexisarthm{this} refers to the most recently established facts.
 \begin{rail}
-  'note' thmdef? thmrefs comment?
+  'note' (thmdef? thmrefs comment? + 'and')
   ;
   'then' comment?
   ;
-  ('from' | 'with') thmrefs comment?
+  ('from' | 'with') (thmrefs comment? + 'and')
   ;
 \end{rail}
 
@@ -1241,13 +1269,6 @@ undoable.
   $\isarkeyword{redo}$, or even $\isarkeyword{kill}$ commands would quickly
   result in utter confusion.
 \end{warn}
-
-%FIXME remove
-% \begin{descr}
-% \item [$\isarkeyword{undo}$] revokes the latest state-transforming command.
-% \item [$\isarkeyword{redo}$] undos the latest $\isarkeyword{undo}$.
-% \item [$\isarkeyword{kill}$] aborts the current history level.
-% \end{descr}
 
 
 \subsection{System operations}
