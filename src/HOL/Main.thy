@@ -19,7 +19,6 @@ subsection {* Configuration of the code generator *}
 
 types_code
   "bool"  ("bool")
-  "*"     ("(_ */ _)")
 
 consts_code
   "True"    ("true")
@@ -28,10 +27,6 @@ consts_code
   "op |"    ("(_ orelse/ _)")
   "op &"    ("(_ andalso/ _)")
   "If"      ("(if _/ then _/ else _)")
-
-  "Pair"    ("(_,/ _)")
-  "fst"     ("fst")
-  "snd"     ("snd")
 
   "wfrec"   ("wf'_rec?")
 
@@ -42,7 +37,6 @@ fun wf_rec f x = f (wf_rec f) x;
 
 fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
 val term_of_int = HOLogic.mk_int;
-fun term_of_id_42 f T g U (x, y) = HOLogic.pair_const T U $ f x $ g y;
 fun term_of_fun_type _ T _ U _ = Free ("<function>", T --> U);
 
 val eq_codegen_setup = [Codegen.add_codegen "eq_codegen"
@@ -64,8 +58,6 @@ val eq_codegen_setup = [Codegen.add_codegen "eq_codegen"
 fun gen_bool i = one_of [false, true];
 
 fun gen_int i = one_of [~1, 1] * random_range 0 i;
-
-fun gen_id_42 aG bG i = (aG i, bG i);
 
 fun gen_fun_type _ G i =
   let
