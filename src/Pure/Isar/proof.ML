@@ -17,6 +17,7 @@ sig
   include BASIC_PROOF
   type context
   type state
+  datatype mode = Forward | ForwardChain | Backward
   exception STATE of string * state
   val check_result: string -> state -> 'a Seq.seq -> 'a Seq.seq
   val init_state: theory -> state
@@ -32,6 +33,7 @@ sig
   val goal_facts: (state -> thm list) -> state -> state
   val use_facts: state -> state
   val reset_facts: state -> state
+  val get_mode: state -> mode
   val is_chain: state -> bool
   val assert_forward: state -> state
   val assert_forward_or_chain: state -> state
