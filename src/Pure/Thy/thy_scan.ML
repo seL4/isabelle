@@ -146,7 +146,7 @@ fun tokenize lex str =
   in
     (case Scan.error (Scan.finite' Symbol.stopper scan_toks) (Some 1, chs) of
       (toks, (n, [])) => filter_out ignore toks @ [token EOF n "end-of-file"]
-    | (_, (n, cs)) => error (lex_err n ("Bad input " ^ quote (beginning cs))))
+    | (_, (n, cs)) => error (lex_err n ("Bad input " ^ quote (Symbol.beginning cs))))
   end;
 
 

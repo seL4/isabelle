@@ -20,6 +20,7 @@ sig
   val is_letdig: symbol -> bool
   val is_blank: symbol -> bool
   val is_printable: symbol -> bool
+  val beginning: symbol list -> string
   val scan: string list -> symbol * string list
   val explode: string -> symbol list
   val input: string -> string
@@ -199,6 +200,18 @@ val is_letdig = is_quasi_letter orf is_digit;
 fun is_printable s =
   size s = 1 andalso ord " " <= ord s andalso ord s <= ord "~" orelse
   size s > 2 andalso nth_elem (2, explode s) <> "^";
+
+
+(* beginning *)
+
+val smash_blanks = map (fn s => if is_blank s then space else s);
+
+fun beginning raw_ss =
+  let
+    val (all_ss, _) = take_suffix is_blank raw_ss;
+    val dots = if length all_ss > 10 then " ..." else "";
+    val (ss, _) = take_suffix is_blank (take (10, all_ss));
+  in implode (smash_blanks ss) ^ dots end;
 
 
 (* scan *)

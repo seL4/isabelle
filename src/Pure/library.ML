@@ -116,7 +116,6 @@ sig
   val string_of_indexname: string * int -> string
 
   (*strings*)
-  val beginning: string list -> string
   val enclose: string -> string -> string -> string
   val quote: string -> string
   val space_implode: string -> string list -> string
@@ -635,10 +634,6 @@ fun string_of_indexname (a,0) = a
 
 
 (** strings **)
-
-(*beginning of text*)
-fun beginning cs =
-  implode (map (fn c => if ord c < ord " " then " " else c) (take (10, cs))) ^ " ...";
 
 (*enclose in brackets*)
 fun enclose lpar rpar str = lpar ^ str ^ rpar;

@@ -229,7 +229,7 @@ val scan_chr =
 val scan_str =
   $$ "'" |-- $$ "'" |--
     !! (fn (cs, _) => "Inner lexical error: malformed literal string at " ^
-      quote ("''" ^ beginning cs))
+      quote ("''" ^ Symbol.beginning cs))
     (Scan.repeat scan_chr --| $$ "'" --| $$ "'");
 
 
