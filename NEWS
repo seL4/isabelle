@@ -31,7 +31,10 @@ types and logics as well.
 * in locales, the "assumes" and "defines" parts may be omitted if empty;
 
 * new print_mode "xsymbols" for extended symbol support 
-  (e.g. genuiely long arrows)
+  (e.g. genuiene long arrows);
+
+* path element specification '~~' refers to '$ISABELLE_HOME';
+
 
 *** HOL ***
 
