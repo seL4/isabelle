@@ -5,6 +5,7 @@ General tools.
 *)
 
 use "table.ML";
+use "graph.ML";
 use "object.ML";
 use "seq.ML";
 use "name_space.ML";

@@ -23,7 +23,7 @@ LOG = $(OUT)/log
 
 Pure: $(OUT)/Pure
 
-$(OUT)/Pure: General/ROOT.ML General/file.ML General/history.ML \
+$(OUT)/Pure: General/ROOT.ML General/file.ML General/graph.ML General/history.ML \
   General/name_space.ML General/object.ML General/path.ML \
   General/position.ML General/pretty.ML General/scan.ML General/seq.ML \
   General/source.ML General/symbol.ML General/table.ML Isar/ROOT.ML \
