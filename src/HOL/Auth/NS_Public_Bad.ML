@@ -160,8 +160,8 @@ by (simp_tac (!simpset addsimps [all_conj_distrib,parts_insert_sees]) 1);
 by (step_tac (!claset addSIs [impOfSubs (subset_insertI RS analz_mono)]) 1);
 by (ex_strip_tac 1);
 by (best_tac (!claset delrules [conjI]
-	              addDs  [impOfSubs analz_subset_parts,
-			      impOfSubs Fake_parts_insert]
+		      addSDs [impOfSubs Fake_parts_insert]
+	              addDs  [impOfSubs analz_subset_parts]
                       addss (!simpset)) 1);
 val lemma = result();
 
@@ -226,8 +226,9 @@ by (fast_tac (!claset addSEs partsEs
 by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
 by (forward_tac [Spy_not_see_NA] 1 THEN REPEAT (assume_tac 1));
-by (best_tac (!claset addDs [impOfSubs analz_subset_parts,
-			     impOfSubs Fake_parts_insert]
+by (best_tac (!claset addSIs [disjI2]
+		      addSDs [impOfSubs Fake_parts_insert]
+		      addDs  [impOfSubs analz_subset_parts]
 	              addss (!simpset)) 1);
 (*NS2*)
 by (Step_tac 1);
@@ -261,9 +262,9 @@ by (ALLGOALS
                setloop split_tac [expand_if])));
 (*Fake*)
 by (best_tac (!claset addSIs [disjI2]
-		      addIs [impOfSubs (subset_insertI RS analz_mono)]
-		      addDs [impOfSubs analz_subset_parts,
-			     impOfSubs Fake_parts_insert]
+		      addSDs [impOfSubs Fake_parts_insert]
+		      addIs  [impOfSubs (subset_insertI RS analz_mono)]
+		      addDs  [impOfSubs analz_subset_parts]
 	              addss (!simpset)) 2);
 (*Base*)
 by (fast_tac (!claset addss (!simpset)) 1);
@@ -278,7 +279,7 @@ qed_spec_mp "B_trusts_NS1";
 goal thy 
  "!!evs. evs : ns_public                                                    \
 \ ==> Nonce NB ~: analz (sees lost Spy evs) -->                             \
-\     (EX A' NA'. ALL A NA.                                                   \
+\     (EX A' NA'. ALL A NA.                                                 \
 \      Crypt (pubK A) {|Nonce NA, Nonce NB|} : parts (sees lost Spy evs) --> \
 \      A=A' & NA=NA')";
 by (etac ns_public.induct 1);
@@ -296,9 +297,9 @@ by (simp_tac (!simpset addsimps [all_conj_distrib,parts_insert_sees]) 1);
 by (step_tac (!claset addSIs [impOfSubs (subset_insertI RS analz_mono)]) 1);
 by (ex_strip_tac 1);
 by (best_tac (!claset delrules [conjI]
-	              addDs  [impOfSubs analz_subset_parts,
-			      impOfSubs Fake_parts_insert]
-                      addss (!simpset)) 1);
+	              addSDs [impOfSubs Fake_parts_insert]
+	              addDs  [impOfSubs analz_subset_parts] 
+	              addss (!simpset)) 1);
 val lemma = result();
 
 goal thy 
@@ -376,7 +377,6 @@ by (fast_tac (!claset addss (!simpset)) 1);
 br (ccontr RS disjI2) 1;
 by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
 by (Fast_tac 1);
-(*37 seconds??*)
 by (best_tac (!claset addSDs [impOfSubs Fake_parts_insert]
 	              addDs  [impOfSubs analz_subset_parts] 
 	              addss (!simpset)) 1);

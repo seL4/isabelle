@@ -155,8 +155,8 @@ by (simp_tac (!simpset addsimps [all_conj_distrib,parts_insert_sees]) 1);
 by (step_tac (!claset addSIs [impOfSubs (subset_insertI RS analz_mono)]) 1);
 by (ex_strip_tac 1);
 by (best_tac (!claset delrules [conjI]
-	              addDs  [impOfSubs analz_subset_parts,
-			      impOfSubs Fake_parts_insert]
+		      addSDs [impOfSubs Fake_parts_insert]
+	              addDs  [impOfSubs analz_subset_parts]
                       addss (!simpset)) 1);
 val lemma = result();
 
@@ -224,8 +224,8 @@ by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
 by (forward_tac [Spy_not_see_NA] 1 THEN REPEAT (assume_tac 1));
 by (best_tac (!claset addSIs [disjI2]
-		      addDs [impOfSubs analz_subset_parts,
-			     impOfSubs Fake_parts_insert]
+		      addSDs [impOfSubs Fake_parts_insert]
+		      addDs  [impOfSubs analz_subset_parts]
 	              addss (!simpset)) 1);
 qed_spec_mp "NA_decrypt_imp_B_msg";
 
@@ -256,9 +256,9 @@ by (ALLGOALS
                setloop split_tac [expand_if])));
 (*Fake*)
 by (best_tac (!claset addSIs [disjI2]
-		      addIs [impOfSubs (subset_insertI RS analz_mono)]
-		      addDs [impOfSubs analz_subset_parts,
-			     impOfSubs Fake_parts_insert]
+		      addSDs [impOfSubs Fake_parts_insert]
+		      addIs  [impOfSubs (subset_insertI RS analz_mono)]
+		      addDs  [impOfSubs analz_subset_parts]
 	              addss (!simpset)) 2);
 (*Base*)
 by (fast_tac (!claset addss (!simpset)) 1);
@@ -292,9 +292,9 @@ by (simp_tac (!simpset addsimps [all_conj_distrib,parts_insert_sees]) 1);
 by (step_tac (!claset addSIs [impOfSubs (subset_insertI RS analz_mono)]) 1);
 by (ex_strip_tac 1);
 by (best_tac (!claset delrules [conjI]
-	              addDs  [impOfSubs analz_subset_parts,
-			      impOfSubs Fake_parts_insert]
-                      addss (!simpset)) 1);
+	              addSDs [impOfSubs Fake_parts_insert]
+	              addDs  [impOfSubs analz_subset_parts] 
+	              addss (!simpset)) 1);
 val lemma = result();
 
 goal thy 
@@ -368,8 +368,8 @@ by (REPEAT_FIRST (resolve_tac [impI, conjI]));
 by (fast_tac (!claset addss (!simpset)) 1);
 by (forward_tac [Spy_not_see_NB] 1 THEN REPEAT (assume_tac 1));
 by (best_tac (!claset addSIs [disjI2]
-		      addDs [impOfSubs analz_subset_parts,
-			     impOfSubs Fake_parts_insert]
+		      addSDs [impOfSubs Fake_parts_insert]
+	              addDs  [impOfSubs analz_subset_parts] 
 	              addss (!simpset)) 1);
 (*NS3*)
 by (Step_tac 1);
@@ -378,7 +378,7 @@ by (best_tac (!claset addSDs [Says_imp_sees_Spy'' RS parts.Inj]
 	              addDs  [unique_NB]) 1);
 qed_spec_mp "NB_decrypt_imp_A_msg";
 
-(*Corollary: if B receives message NS3 and the nonce NB agrees
+(*Corollary: if B receives message NS3 and the nonce NB agrees,
   then that message really originated with A.*)
 goal thy 
  "!!evs. [| Says A' B (Crypt (pubK B) (Nonce NB)): set_of_list evs;    \
