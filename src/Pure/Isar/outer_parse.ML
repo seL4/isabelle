@@ -219,7 +219,7 @@ val const =
 
 (* terms *)
 
-val trm = short_ident || long_ident || sym_ident || term_var || text_var || string;
+val trm = short_ident || long_ident || sym_ident || term_var || text_var || number || string;
 
 val term = group "term" trm;
 val prop = group "proposition" trm;
@@ -238,31 +238,31 @@ val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 
 (* arguments *)
 
-val keyword_symid = Scan.one (OuterLex.keyword_pred OuterLex.is_sid) >> OuterLex.val_of;
+fun keyword_symid is_symid = Scan.one (OuterLex.keyword_pred is_symid) >> OuterLex.val_of;
 
-fun atom_arg blk =
+fun atom_arg is_symid blk =
   group "argument"
     (position (short_ident || long_ident || sym_ident || term_var || text_var ||
         type_ident || type_var || number) >> Args.ident ||
-      position keyword_symid >> Args.keyword ||
+      position (keyword_symid is_symid) >> Args.keyword ||
       position string >> Args.string ||
       position (if blk then $$$ "," else Scan.fail) >> Args.keyword);
 
 fun paren_args l r scan = position ($$$ l) -- !!! (scan true -- position ($$$ r))
   >> (fn (x, (ys, z)) => Args.keyword x :: ys @ [Args.keyword z]);
 
-fun args blk x = Scan.optional (args1 blk) [] x
-and args1 blk x =
+fun args is_symid blk x = Scan.optional (args1 is_symid blk) [] x
+and args1 is_symid blk x =
   ((Scan.repeat1
-    (Scan.repeat1 (atom_arg blk) ||
-      paren_args "(" ")" args ||
-      paren_args "{" "}" args ||
-      paren_args "[" "]" args)) >> flat) x;
+    (Scan.repeat1 (atom_arg is_symid blk) ||
+      paren_args "(" ")" (args is_symid) ||
+      paren_args "{" "}" (args is_symid) ||
+      paren_args "[" "]" (args is_symid))) >> flat) x;
 
 
 (* theorem specifications *)
 
-val attrib = position (xname -- !!! (args false)) >> Args.src;
+val attrib = position (xname -- !!! (args OuterLex.is_sid false)) >> Args.src;
 val attribs = $$$ "[" |-- !!! (list attrib --| $$$ "]");
 val opt_attribs = Scan.optional attribs [];
 
@@ -279,16 +279,19 @@ val xthms1 = Scan.repeat1 xthm;
 
 (* proof methods *)
 
+fun is_symid_meth s =
+  s <> "|" andalso s <> "?" andalso s <> "*" andalso s <> "+" andalso OuterLex.is_sid s;
+
 fun meth4 x =
  (position (xname >> rpair []) >> (Method.Source o Args.src) ||
-  $$$ "(" |-- meth0 --| $$$ ")") x
+  $$$ "(" |-- !!! (meth0 --| $$$ ")")) x
 and meth3 x =
  (meth4 --| $$$ "?" >> Method.Try ||
   meth4 --| $$$ "*" >> Method.Repeat ||
   meth4 --| $$$ "+" >> Method.Repeat1 ||
   meth4) x
 and meth2 x =
- (position (xname -- args1 false) >> (Method.Source o Args.src) ||
+ (position (xname -- args1 is_symid_meth false) >> (Method.Source o Args.src) ||
   meth3) x
 and meth1 x = (enum1 "," meth2 >> (fn [m] => m | ms => Method.Then ms)) x
 and meth0 x = (enum1 "|" meth1 >> (fn [m] => m | ms => Method.Orelse ms)) x;
