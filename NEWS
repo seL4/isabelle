@@ -131,6 +131,11 @@ but fails if divisibility plays a role like in
 
   "n div 2 + (n+1) div 2 = (n::nat)"
 
+* New method / tactic presburger(_tac) for full Presburger arithmetic
+  (by Amine Chaieb). Integrated with arith(_tac), i.e. presburger(_tac)
+  is called automatically by arith(_tac), if the decision procedure for
+  simple arithmetic fails to solve the goal.
+
 * simp's arithmetic capabilities have been enhanced a bit: it now
 takes ~= in premises into account (by performing a case split);
 
