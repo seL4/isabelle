@@ -649,6 +649,8 @@ qed "rangeE";
 bind_thm ("split_if_eq1", read_instantiate [("P", "%x. x = ?b")] split_if);
 bind_thm ("split_if_eq2", read_instantiate [("P", "%x. ?a = x")] split_if);
 
+(*Split ifs on either side of the membership relation.
+	Not for Addsimps -- can cause goals to blow up!*)
 bind_thm ("split_if_mem1", 
     read_instantiate_sg (sign_of Set.thy) [("P", "%x. x : ?b")] split_if);
 bind_thm ("split_if_mem2", 
@@ -661,11 +663,6 @@ val split_ifs = [if_bool_eq_conj, split_if_eq1, split_if_eq2,
 (*Each of these has ALREADY been added to simpset() above.*)
 val mem_simps = [insert_iff, empty_iff, Un_iff, Int_iff, Compl_iff, Diff_iff, 
                  mem_Collect_eq, UN_iff, Union_iff, INT_iff, Inter_iff];
-
-(*Not for Addsimps -- it can cause goals to blow up!*)
-Goal "(a : (if Q then x else y)) = ((Q --> a:x) & (~Q --> a : y))";
-by (Simp_tac 1);
-qed "mem_if";
 
 val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
 
