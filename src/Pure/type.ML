@@ -857,10 +857,11 @@ fun constrain t T =
 fun is_param (x, _) = size x > 0 andalso ord x = ord "?";
 fun param i (x, S) = TVar (("?" ^ x, i), S);
 
-fun paramify_dummies (i, TFree ("'_dummy_", S)) = (i + 1, param i ("'dummy", S))
-  | paramify_dummies (i, Type (a, Ts)) =
-      let val (i', Ts') = foldl_map paramify_dummies (i, Ts)
-      in (i', Type (a, Ts')) end
+fun paramify_dummies (maxidx, TFree ("'_dummy_", S)) =
+      (maxidx + 1, param (maxidx + 1) ("'dummy", S))
+  | paramify_dummies (maxidx, Type (a, Ts)) =
+      let val (maxidx', Ts') = foldl_map paramify_dummies (maxidx, Ts)
+      in (maxidx', Type (a, Ts')) end
   | paramify_dummies arg = arg;
 
 
