@@ -146,7 +146,8 @@ sig
   val token_translation: string -> theory -> theory
   val method_setup: bstring * string * string -> theory -> theory
   val add_oracle: bstring * string -> theory -> theory
-  val add_locale: bstring * Locale.expr * Args.src Locale.element list -> theory -> theory
+  val add_locale: bstring option option * bstring * Locale.expr * Args.src Locale.element list
+    -> theory -> theory
   val begin_theory: string -> string list -> (string * bool) list -> theory
   val end_theory: theory -> theory
   val kill_theory: string -> unit
@@ -570,8 +571,9 @@ fun add_oracle (name, txt) =
 
 (* add_locale *)
 
-fun add_locale (name, import, body) thy =
-  Locale.add_locale name import (map (Locale.attribute (Attrib.local_attribute thy)) body) thy;
+fun add_locale (pname, name, import, body) thy =
+  Locale.add_locale pname name import
+    (map (Locale.attribute (Attrib.local_attribute thy)) body) thy;
 
 
 (* theory init and exit *)
