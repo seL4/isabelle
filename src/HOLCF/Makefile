@@ -33,7 +33,11 @@ THYS = Porder.thy Porder0.thy Pcpo.thy \
 
 ONLYTHYS = Lift.thy
 
-FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML)
+FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML) \
+        ax_ops/holcflogic.ML ax_ops/thy_axioms.ML \ 
+        ax_ops/thy_ops.ML    ax_ops/thy_syntax.ML \
+        domain/library.ML  domain/syntax.ML   domain/axioms.ML \
+        domain/theorems.ML domain/extender.ML domain/interface.ML
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/HOLCF:	$(BIN)/HOL  $(FILES) 

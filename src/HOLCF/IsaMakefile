@@ -17,11 +17,15 @@ THYS = Porder.thy Porder0.thy Pcpo.thy \
        Up1.thy Up2.thy Up3.thy Fix.thy ccc1.thy \
        One.thy Tr.thy\
        Discrete0.thy Discrete1.thy Discrete.thy\
-       Lift1.thy Lift2.thy Lift3.thy HOLCF.thy 
+       Lift1.thy Lift2.thy Lift3.thy HOLCF.thy
 
 ONLYTHYS = Lift.thy
 
-FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML)
+FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML) \
+        ax_ops/holcflogic.ML ax_ops/thy_axioms.ML \ 
+        ax_ops/thy_ops.ML    ax_ops/thy_syntax.ML \
+        domain/library.ML  domain/syntax.ML   domain/axioms.ML \
+        domain/theorems.ML domain/extender.ML domain/interface.ML
 
 $(OUT)/HOLCF: $(OUT)/HOL $(FILES)
 	@$(ISATOOL) usedir -b -c $(OUT)/HOL HOLCF
