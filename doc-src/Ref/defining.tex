@@ -620,7 +620,7 @@ escaped, as in delimiters, using a single quote.
 A {\bf binder} is a variable-binding construct such as a quantifier.  The
 constant declaration
 \begin{ttbox}
-\(c\) :: "\(\sigma\)"   (binder "\(\Q\)" \(pb\) \(p\))
+\(c\) :: "\(\sigma\)"   (binder "\(\Q\)" [\(pb\)] \(p\))
 \end{ttbox}
 introduces a constant~$c$ of type~$\sigma$, which must have the form
 $(\tau@1 \To \tau@2) \To \tau@3$.  Its concrete syntax is $\Q~x.P$, where
