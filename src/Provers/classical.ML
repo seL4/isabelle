@@ -16,12 +16,13 @@ the conclusion.
 
 (*higher precedence than := facilitates use of references*)
 infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
-  setSWrapper compSWrapper setWrapper compWrapper
+  addSWrapper delSWrapper addWrapper delWrapper
   addSbefore addSaltern addbefore addaltern;
 
 
 (*should be a type abbreviation in signature CLASSICAL*)
 type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net;
+type wrapper = (int -> tactic) -> (int -> tactic);
 
 signature CLASET_THY_DATA =
 sig
@@ -48,11 +49,11 @@ sig
   val empty_cs: claset
   val print_cs: claset -> unit
   val print_claset: theory -> unit
-  val rep_claset:
+  val rep_claset: (* BLAST_DATA in blast.ML dependent on this *)
     claset -> {safeIs: thm list, safeEs: thm list,
 		 hazIs: thm list, hazEs: thm list,
-		 uwrapper: (int -> tactic) -> (int -> tactic),
-		 swrapper: (int -> tactic) -> (int -> tactic),
+		 swrappers: (string * wrapper) list, 
+		 uwrappers: (string * wrapper) list,
 		 safe0_netpair: netpair, safep_netpair: netpair,
 		 haz_netpair: netpair, dup_netpair: netpair}
   val merge_cs		: claset * claset -> claset
@@ -63,16 +64,16 @@ sig
   val addSEs		: claset * thm list -> claset
   val addSIs		: claset * thm list -> claset
   val delrules		: claset * thm list -> claset
-  val setSWrapper 	: claset * ((int -> tactic) -> (int -> tactic)) ->claset
-  val compSWrapper 	: claset * ((int -> tactic) -> (int -> tactic)) ->claset
-  val setWrapper 	: claset * ((int -> tactic) -> (int -> tactic)) ->claset
-  val compWrapper 	: claset * ((int -> tactic) -> (int -> tactic)) ->claset
-  val addSbefore 	: claset * (int -> tactic) -> claset
-  val addSaltern 	: claset * (int -> tactic) -> claset
-  val addbefore 	: claset * (int -> tactic) -> claset
-  val addaltern	 	: claset * (int -> tactic) -> claset
-  val getWrapper	: claset -> (int -> tactic) -> (int -> tactic)
-  val getSWrapper	: claset -> (int -> tactic) -> (int -> tactic)
+  val addSWrapper 	: claset * (string * wrapper) -> claset
+  val delSWrapper 	: claset *  string            -> claset
+  val addWrapper 	: claset * (string * wrapper) -> claset
+  val delWrapper 	: claset *  string            -> claset
+  val addSbefore 	: claset * (string * (int -> tactic)) -> claset
+  val addSaltern 	: claset * (string * (int -> tactic)) -> claset
+  val addbefore 	: claset * (string * (int -> tactic)) -> claset
+  val addaltern	 	: claset * (string * (int -> tactic)) -> claset
+  val appWrappers	: claset -> wrapper
+  val appSWrappers	: claset -> wrapper
 
   val claset_ref_of_sg: Sign.sg -> claset ref
   val claset_ref_of: theory -> claset ref
@@ -218,10 +219,8 @@ datatype claset =
 	 safeEs		: thm list,		(*safe elimination rules*)
 	 hazIs		: thm list,		(*unsafe introduction rules*)
 	 hazEs		: thm list,		(*unsafe elimination rules*)
-	 uwrapper	: (int -> tactic) ->
-			  (int -> tactic),	(*for transforming step_tac*)
-	 swrapper	: (int -> tactic) ->
-			  (int -> tactic),	(*for safe_step_tac*)
+	 swrappers	: (string * wrapper) list, (*for transf. safe_step_tac*)
+	 uwrappers	: (string * wrapper) list, (*for transforming step_tac*)
 	 safe0_netpair	: netpair,		(*nets for trivial cases*)
 	 safep_netpair	: netpair,		(*nets for >0 subgoals*)
 	 haz_netpair  	: netpair,		(*nets for unsafe rules*)
@@ -246,8 +245,8 @@ val empty_cs =
      safeEs	= [],
      hazIs	= [],
      hazEs	= [],
-     uwrapper   = I,
-     swrapper   = I,
+     swrappers  = [],
+     uwrappers  = [],
      safe0_netpair = (Net.empty,Net.empty),
      safep_netpair = (Net.empty,Net.empty),
      haz_netpair   = (Net.empty,Net.empty),
@@ -263,11 +262,12 @@ fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
 
 fun rep_claset (CS args) = args;
 
-
-fun getWrapper  (CS{uwrapper,...}) = uwrapper;
-
-fun getSWrapper (CS{swrapper,...}) = swrapper;
-
+local 
+  fun calc_wrap l tac = foldr (fn ((name,tacf),w) => tacf w) (l, tac);
+in 
+  fun appSWrappers (CS{swrappers,...}) = calc_wrap swrappers;
+  fun appWrappers  (CS{uwrappers,...}) = calc_wrap uwrappers;
+end;
 
 
 (*** Adding (un)safe introduction or elimination rules.
@@ -317,7 +317,7 @@ fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, ...}) =
 
 (*** Safe rules ***)
 
-fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
 	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	   th)  =
   if mem_thm (th, safeIs) then 
@@ -335,13 +335,13 @@ fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
 	safeEs	= safeEs,
 	hazIs	= hazIs,
 	hazEs	= hazEs,
-	uwrapper     = uwrapper,
-	swrapper     = swrapper,
+	swrappers    = swrappers,
+	uwrappers    = uwrappers,
 	haz_netpair  = haz_netpair,
 	dup_netpair  = dup_netpair}
   end;
 
-fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
 		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	   th)  =
   if mem_thm (th, safeEs) then 
@@ -359,8 +359,8 @@ fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
 	safeIs	= safeIs,
 	hazIs	= hazIs,
 	hazEs	= hazEs,
-	uwrapper     = uwrapper,
-	swrapper     = swrapper,
+	swrappers    = swrappers,
+	uwrappers    = uwrappers,
 	haz_netpair  = haz_netpair,
 	dup_netpair  = dup_netpair}
   end;
@@ -375,7 +375,7 @@ fun cs addSDs ths = cs addSEs (map make_elim ths);
 
 (*** Hazardous (unsafe) rules ***)
 
-fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	  th)=
   if mem_thm (th, hazIs) then 
@@ -391,13 +391,13 @@ fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
 	safeIs 	= safeIs, 
 	safeEs	= safeEs,
 	hazEs	= hazEs,
-	uwrapper      = uwrapper,
-	swrapper      = swrapper,
+	swrappers     = swrappers,
+	uwrappers     = uwrappers,
 	safe0_netpair = safe0_netpair,
 	safep_netpair = safep_netpair}
   end;
 
-fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	  th) =
   if mem_thm (th, hazEs) then 
@@ -413,8 +413,8 @@ fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
 	safeIs	= safeIs, 
 	safeEs	= safeEs,
 	hazIs	= hazIs,
-	uwrapper      = uwrapper,
-	swrapper      = swrapper,
+	swrappers     = swrappers,
+	uwrappers     = uwrappers,
 	safe0_netpair = safe0_netpair,
 	safep_netpair = safep_netpair}
   end;
@@ -433,7 +433,7 @@ fun cs addDs ths = cs addEs (map make_elim ths);
 ***)
 
 fun delSI th 
-          (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+          (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
 		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
  if mem_thm (th, safeIs) then
    let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=0) [th]
@@ -443,15 +443,15 @@ fun delSI th
 	 safeEs	= safeEs,
 	 hazIs	= hazIs,
 	 hazEs	= hazEs,
-	 uwrapper     = uwrapper,
-	 swrapper     = swrapper,
+	 swrappers    = swrappers,
+	 uwrappers    = uwrappers,
 	 haz_netpair  = haz_netpair,
 	 dup_netpair  = dup_netpair}
    end
  else cs;
 
 fun delSE th
-          (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+          (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
 	            safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
  if mem_thm (th, safeEs) then
    let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=1) [th]
@@ -461,8 +461,8 @@ fun delSE th
 	 safeEs	= rem_thm (safeEs,th),
 	 hazIs	= hazIs,
 	 hazEs	= hazEs,
-	 uwrapper     = uwrapper,
-	 swrapper     = swrapper,
+	 swrappers    = swrappers,
+	 uwrappers    = uwrappers,
 	 haz_netpair  = haz_netpair,
 	 dup_netpair  = dup_netpair}
    end
@@ -470,7 +470,7 @@ fun delSE th
 
 
 fun delI th
-         (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+         (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
 	           safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
  if mem_thm (th, hazIs) then
      CS{haz_netpair = delete ([th], []) haz_netpair,
@@ -479,14 +479,14 @@ fun delI th
 	safeEs	= safeEs,
 	hazIs	= rem_thm (hazIs,th),
 	hazEs	= hazEs,
-	uwrapper      = uwrapper,
-	swrapper      = swrapper,
+	swrappers     = swrappers,
+	uwrappers     = uwrappers,
 	safe0_netpair = safe0_netpair,
 	safep_netpair = safep_netpair}
  else cs;
 
 fun delE th
-	 (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+	 (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
 	           safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
  if mem_thm (th, hazEs) then
      CS{haz_netpair = delete ([], [th]) haz_netpair,
@@ -495,8 +495,8 @@ fun delE th
 	safeEs	= safeEs,
 	hazIs	= hazIs,
 	hazEs	= rem_thm (hazEs,th),
-	uwrapper      = uwrapper,
-	swrapper      = swrapper,
+	swrappers     = swrappers,
+	uwrappers     = uwrappers,
 	safe0_netpair = safe0_netpair,
 	safep_netpair = safep_netpair}
  else cs;
@@ -514,49 +514,85 @@ val op delrules = foldl delrule;
 
 (*** Setting or modifying the wrapper tacticals ***)
 
-(*Set a new uwrapper*)
-fun (CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
+(*Add/replace a safe wrapper*)
+fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
 	safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...}) 
-    setWrapper new_uwrapper  =
+    addSWrapper new_swrapper  =
   CS{safeIs	= safeIs,
      safeEs	= safeEs,
      hazIs	= hazIs,
      hazEs	= hazEs,
-     uwrapper 	= new_uwrapper,
-     swrapper   = swrapper,
+     swrappers 	= (case assoc_string (swrappers,(fst new_swrapper)) of None =>()
+	   | Some x => warning("overwriting safe wrapper "^fst new_swrapper); 
+		   overwrite (swrappers, new_swrapper)),
+     uwrappers  = uwrappers,
      safe0_netpair = safe0_netpair,
      safep_netpair = safep_netpair,
      haz_netpair = haz_netpair,
      dup_netpair = dup_netpair};
 
-(*Set a new swrapper*)
-fun (CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
+(*Add/replace an unsafe wrapper*)
+fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
 	safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...}) 
-    setSWrapper new_swrapper  =
+    addWrapper new_uwrapper =
   CS{safeIs	= safeIs,
      safeEs	= safeEs,
      hazIs	= hazIs,
      hazEs	= hazEs,
-     uwrapper   = uwrapper,
-     swrapper   = new_swrapper,
+     swrappers   = swrappers,
+     uwrappers 	= (case assoc_string (uwrappers,(fst new_uwrapper)) of None =>()
+	   | Some x => warning ("overwriting unsafe wrapper "^fst new_uwrapper);
+		   overwrite (uwrappers, new_uwrapper)),
      safe0_netpair = safe0_netpair,
      safep_netpair = safep_netpair,
      haz_netpair = haz_netpair,
      dup_netpair = dup_netpair};
 
-(*Compose a tactical with the existing uwrapper*)
-fun cs compWrapper  uwrapper' = cs setWrapper  (uwrapper' o getWrapper cs);
+(*Remove a safe wrapper*)
+fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
+	safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...}) 
+    delSWrapper name =
+  CS{safeIs	= safeIs,
+     safeEs	= safeEs,
+     hazIs	= hazIs,
+     hazEs	= hazEs,
+     swrappers 	= (case assoc_string (swrappers, name) of None =>
+	   warning("safe wrapper "^ name ^" not in claset") | Some x => (); 
+		   filter_out (fn (n,f) => n = name) swrappers),
+     uwrappers  = uwrappers,
+     safe0_netpair = safe0_netpair,
+     safep_netpair = safep_netpair,
+     haz_netpair = haz_netpair,
+     dup_netpair = dup_netpair};
 
-(*Compose a tactical with the existing swrapper*)
-fun cs compSWrapper swrapper' = cs setSWrapper (swrapper' o getSWrapper cs);
+(*Remove an unsafe wrapper*)
+fun (CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, 
+	safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...}) 
+    delWrapper name =
+  CS{safeIs	= safeIs,
+     safeEs	= safeEs,
+     hazIs	= hazIs,
+     hazEs	= hazEs,
+     swrappers  = swrappers,
+     uwrappers 	= (case assoc_string (uwrappers, name) of None =>
+	   warning("unsafe wrapper "^ name ^" not in claset") | Some x => (); 
+		   filter_out (fn (n,f) => n = name) uwrappers),
+     safe0_netpair = safe0_netpair,
+     safep_netpair = safep_netpair,
+     haz_netpair = haz_netpair,
+     dup_netpair = dup_netpair};
 
 (*compose a safe tactic sequentially before/alternatively after safe_step_tac*)
-fun cs addSbefore tac1 = cs compSWrapper (fn tac2 => tac1 THEN_MAYBE' tac2);
-fun cs addSaltern tac2 = cs compSWrapper (fn tac1 => tac1 ORELSE'     tac2);
+fun cs addSbefore (name,tac1) = cs addSWrapper (name, 
+					fn tac2 => tac1 THEN_MAYBE' tac2);
+fun cs addSaltern (name,tac2) = cs addSWrapper (name,
+					fn tac1 => tac1 ORELSE'     tac2);
 
 (*compose a tactic sequentially before/alternatively after the step tactic*)
-fun cs addbefore  tac1 = cs compWrapper  (fn tac2 => tac1 THEN_MAYBE' tac2);
-fun cs addaltern  tac2 = cs compWrapper  (fn tac1 => tac1 APPEND'     tac2);
+fun cs addbefore  (name,tac1) = cs addWrapper  (name,
+					fn tac2 => tac1 THEN_MAYBE' tac2);
+fun cs addaltern  (name,tac2) = cs addWrapper  (name,
+					fn tac1 => tac1 APPEND'     tac2);
 
 (*Merge works by adding all new rules of the 2nd claset into the 1st claset.
   Merging the term nets may look more efficient, but the rather delicate
@@ -579,7 +615,7 @@ fun merge_cs
 
 (*Attack subgoals using safe inferences -- matching, not resolution*)
 fun safe_step_tac (cs as CS{safe0_netpair,safep_netpair,...}) = 
-  getSWrapper cs (FIRST' [
+  appSWrappers cs (FIRST' [
 	eq_assume_tac,
 	eq_mp_tac,
 	bimatch_from_nets_tac safe0_netpair,
@@ -610,7 +646,7 @@ fun bimatch2_tac netpair i =
 
 (*Attack subgoals using safe inferences -- matching, not resolution*)
 fun clarify_step_tac (cs as CS{safe0_netpair,safep_netpair,...}) = 
-  getSWrapper cs (FIRST' [
+  appSWrappers cs (FIRST' [
 	eq_assume_contr_tac,
 	bimatch_from_nets_tac safe0_netpair,
 	FIRST' hyp_subst_tacs,
@@ -640,12 +676,12 @@ fun haz_step_tac (CS{haz_netpair,...}) =
   biresolve_from_nets_tac haz_netpair;
 
 (*Single step for the prover.  FAILS unless it makes progress. *)
-fun step_tac cs i = getWrapper cs 
+fun step_tac cs i = appWrappers cs 
 	(K (safe_tac cs) ORELSE' (inst_step_tac cs ORELSE' haz_step_tac cs)) i;
 
 (*Using a "safe" rule to instantiate variables is unsafe.  This tactic
   allows backtracking from "safe" rules to "unsafe" rules here.*)
-fun slow_step_tac cs i = getWrapper cs 
+fun slow_step_tac cs i = appWrappers cs 
 	(K (safe_tac cs) ORELSE' (inst_step_tac cs APPEND' haz_step_tac cs)) i;
 
 (**** The following tactics all fail unless they solve one goal ****)
@@ -690,7 +726,7 @@ fun dup_step_tac (cs as (CS{dup_netpair,...})) =
 (*Searching to depth m.*)
 fun depth_tac cs m i state = 
   SELECT_GOAL 
-   (getWrapper cs
+   (appWrappers cs
     (fn i => REPEAT_DETERM1 (COND (has_fewer_prems i) no_tac
 			     (safe_step_tac cs i)) THEN_ELSE
      (DEPTH_SOLVE (depth_tac cs m i),

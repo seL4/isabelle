@@ -447,8 +447,9 @@ fun safe_asm_more_full_simp_tac ss = TRY o rot_eq_tac THEN'
 
 (*Add a simpset to a classical set!*)
 infix 4 addSss addss;
-fun cs addSss ss = cs addSaltern (CHANGED o (safe_asm_more_full_simp_tac ss));
-fun cs addss  ss = cs addbefore                        asm_full_simp_tac ss;
+fun cs addSss ss = cs addSaltern ("safe_asm_more_full_simp_tac",
+				  CHANGED o (safe_asm_more_full_simp_tac ss));
+fun cs addss  ss = cs addbefore  ("asm_full_simp_tac", asm_full_simp_tac ss);
 
 fun Addss ss = (claset_ref() := claset() addss ss);
 
@@ -485,7 +486,7 @@ fun mk_auto_tac (cs, ss) m n =
 	   with dup_step_tac when they are combined by auto_tac *)
 	fun nodup_depth_tac cs m i state = 
 	  SELECT_GOAL 
-	   (getWrapper cs
+	   (appWrappers cs
 	    (fn i => REPEAT_DETERM1 (COND (has_fewer_prems i) no_tac
 				     (safe_step_tac cs i)) THEN_ELSE
 	     (DEPTH_SOLVE (nodup_depth_tac cs m i),

@@ -46,8 +46,8 @@ fun temp_rewrite th = (rewrite_rule intensional_rews (th RS inteq_reflection));
 AddSIs [tempI];
 AddDs [tempD];
 
-val temp_cs = action_cs addSIs [tempI] addDs [tempD];
-val temp_css = (temp_cs,simpset());
+val temp_css = action_css addSIs2 [tempI] addDs2 [tempD];
+val temp_cs = op addss temp_css;
 
 (* ========================================================================= *)
 section "Init";
@@ -340,7 +340,7 @@ val temp_simps = map temp_rewrite
 (* Make these rewrites active by default *)
 Addsimps temp_simps;
 val temp_css = temp_css addsimps2 temp_simps;
-val temp_cs = temp_cs addss (empty_ss addsimps temp_simps);
+val temp_cs = op addss temp_css;
 
 
 (* ------------------------ Further rewrites ----------------------------------------- *)

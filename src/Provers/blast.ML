@@ -11,7 +11,8 @@ Generic tableau prover with proof reconstruction
 
 Blast_tac is often more powerful than fast_tac, but has some limitations.
 Blast_tac...
-  * ignores addss, addbefore, addafter; this restriction is intrinsic
+  * ignores wrappers (addss, addbefore, addafter, addWrapper, ...); 
+    this restriction is intrinsic
   * ignores elimination rules that don't have the correct format
 	(conclusion must be a formula variable)
   * ignores types, which can make HOL proofs fail
@@ -60,11 +61,11 @@ signature BLAST_DATA =
   val dup_intr		: thm -> thm
   val hyp_subst_tac     : bool ref -> int -> tactic
   val claset		: unit -> claset
-  val rep_claset	: 
+  val rep_claset	: (* dependent on classical.ML *)
       claset -> {safeIs: thm list, safeEs: thm list, 
 		 hazIs: thm list, hazEs: thm list,
-		 uwrapper: (int -> tactic) -> (int -> tactic),
-		 swrapper: (int -> tactic) -> (int -> tactic),
+		 swrappers: (string * wrapper) list, 
+		 uwrappers: (string * wrapper) list,
 		 safe0_netpair: netpair, safep_netpair: netpair,
 		 haz_netpair: netpair, dup_netpair: netpair}
   end;

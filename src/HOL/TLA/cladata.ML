@@ -42,10 +42,11 @@ open ActHypsubst;
   Add the new hyp_subst_tac to the wrapper (also for the default claset).
 **)
 
-val action_cs = (HOL_cs addSIs [actionI,intI] addSEs [exE_prop] addDs [actionD,intD] 
-                        addss simpset()) 
-                addSaltern action_hyp_subst_tac;
-val action_css = (action_cs, simpset());
+val action_css = (HOL_cs addSIs [actionI,intI] addSEs [exE_prop] 
+		  addDs  [actionD,intD] 
+		  addSaltern ("action_hyp_subst_tac", action_hyp_subst_tac),
+		 simpset());
+val action_cs = op addss action_css;
 
 
 AddSIs [actionI,intI];
