@@ -46,6 +46,7 @@ sig
   val pprint_ctyp: ctyp -> pprint_args -> unit
   val string_of_term: sg -> term -> string
   val string_of_typ: sg -> typ -> string
+  val subsig: sg * sg -> bool
   val pprint_term: sg -> term -> pprint_args -> unit
   val pprint_typ: sg -> typ -> pprint_args -> unit
   val term_of: cterm -> term
@@ -73,6 +74,8 @@ datatype sg =
 
 
 fun rep_sg (Sg args) = args;
+
+fun subsig(Sg{stamps=s1,...},Sg{stamps=s2,...}) = s1 subset s2;
 
 fun string_of_typ(Sg{tsig,syn,...}) = Syntax.string_of_typ syn;
 
