@@ -205,6 +205,10 @@ qed "weak_decr_stable";
  * Wellfoundedness of same_fst
  *---------------------------------------------------------------------------*)
 
+Goalw[same_fst_def] "[| P x; (y',y) : R x |] ==> ((x,y'),(x,y)) : same_fst P R";
+by (Asm_simp_tac 1);
+qed "same_fstI";
+
 val prems = goalw thy [same_fst_def]
   "(!!x. P x ==> wf(R x)) ==> wf(same_fst P R)";
 by(full_simp_tac (simpset() delcongs [imp_cong] addsimps [wf_def]) 1);
