@@ -5,7 +5,7 @@
   \item {\tt\$}, \bold{57}, 82
   \item {\tt\%} symbol, 65
   \item *
-    \subitem claset, 127
+    \subitem claset, 128
     \subitem simpset, 106
   \item {\tt ::} symbol, 65, 66
   \item {\tt ==} symbol, 65
@@ -32,23 +32,23 @@
   \item {\tt addaltern}, \bold{124}
   \item {\tt addbefore}, \bold{124}
   \item {\tt addcongs}, 103, \bold{115}, 116
-  \item {\tt AddDs}, \bold{127}
+  \item {\tt AddDs}, \bold{128}
   \item {\tt addDs}, \bold{123}
   \item {\tt addeqcongs}, \bold{103}, 105, 115
-  \item {\tt AddEs}, \bold{127}
+  \item {\tt AddEs}, \bold{128}
   \item {\tt addEs}, \bold{123}
-  \item {\tt AddIs}, \bold{127}
+  \item {\tt AddIs}, \bold{128}
   \item {\tt addIs}, \bold{123}
   \item {\tt addloop}, 104, 105
   \item {\tt addSaltern}, \bold{124}
   \item {\tt addSbefore}, \bold{124}
-  \item {\tt AddSDs}, \bold{127}
+  \item {\tt AddSDs}, \bold{128}
   \item {\tt addSDs}, \bold{123}
-  \item {\tt AddSEs}, \bold{127}
+  \item {\tt AddSEs}, \bold{128}
   \item {\tt addSEs}, \bold{123}
   \item {\tt Addsimps}, \bold{100}, 105, 106
   \item {\tt addsimps}, 102, 105, 106, 116
-  \item {\tt AddSIs}, \bold{127}
+  \item {\tt AddSIs}, \bold{128}
   \item {\tt addSIs}, \bold{123}
   \item {\tt addSolver}, 104, 105
   \item {\tt addss}, \bold{124}, 125
@@ -92,6 +92,7 @@
     \subitem made from parse trees, 80
     \subitem made from terms, 82
   \item {\tt atac}, \bold{19}
+  \item {\tt Auto_tac}, \bold{128}
   \item {\tt axclass} section, 51
   \item axiomatic type class, 51
   \item axioms
@@ -108,7 +109,7 @@
   \item {\tt be}, \bold{11}
   \item {\tt bes}, \bold{11}
   \item {\tt BEST_FIRST}, \bold{31}, 32
-  \item {\tt Best_tac}, \bold{127}
+  \item {\tt Best_tac}, \bold{128}
   \item {\tt best_tac}, \bold{126}
   \item {\tt beta_conversion}, \bold{43}
   \item {\tt bicompose}, \bold{46}
@@ -116,10 +117,10 @@
   \item {\tt bind_thm}, \bold{8}, 9, 37
   \item binders, \bold{74}
   \item {\tt biresolution}, \bold{45}
-  \item {\tt biresolve_tac}, \bold{23}, 128
+  \item {\tt biresolve_tac}, \bold{23}, 129
   \item {\tt Blast.depth_tac}, \bold{125}
   \item {\tt Blast.trace}, \bold{125}
-  \item {\tt Blast_tac}, \bold{127}
+  \item {\tt Blast_tac}, \bold{128}
   \item {\tt blast_tac}, \bold{125}
   \item {\tt Bound}, \bold{57}, 80, 82, 83
   \item {\tt bound_hyp_subst_tac}, \bold{96}
@@ -143,8 +144,8 @@
   \item {\tt claset} ML type, 122
   \item classes
     \subitem context conditions, 52
-  \item classical reasoner, 118--129
-    \subitem setting up, 128
+  \item classical reasoner, 118--130
+    \subitem setting up, 129
     \subitem tactics, 124
   \item classical sets, 122
   \item {\tt ClassicalFun}, 129
@@ -179,8 +180,8 @@
   \indexspace
 
   \item {\tt datatype}, 100
-  \item {\tt Deepen_tac}, \bold{127}
-  \item {\tt deepen_tac}, \bold{126}
+  \item {\tt Deepen_tac}, \bold{128}
+  \item {\tt deepen_tac}, \bold{127}
   \item {\tt defer_tac}, \bold{20}
   \item definitions, \see{rewriting, meta-level}{1}, 20, \bold{51}
     \subitem unfolding, 7, 8
@@ -195,7 +196,7 @@
   \item {\tt DEPTH_FIRST}, \bold{31}
   \item {\tt DEPTH_SOLVE}, \bold{31}
   \item {\tt DEPTH_SOLVE_1}, \bold{31}
-  \item {\tt depth_tac}, \bold{126}
+  \item {\tt depth_tac}, \bold{127}
   \item {\tt Deriv.drop}, \bold{48}
   \item {\tt Deriv.linear}, \bold{48}
   \item {\tt Deriv.size}, \bold{48}
@@ -247,7 +248,7 @@
   \indexspace
 
   \item {\tt fa}, \bold{11}
-  \item {\tt Fast_tac}, \bold{127}
+  \item {\tt Fast_tac}, \bold{128}
   \item {\tt fast_tac}, \bold{126}
   \item {\tt fd}, \bold{11}
   \item {\tt fds}, \bold{11}
@@ -338,7 +339,7 @@
 
   \indexspace
 
-  \item {\tt joinrules}, \bold{128}
+  \item {\tt joinrules}, \bold{129}
 
   \indexspace
 
@@ -374,7 +375,7 @@
   \item meta-implication, 41, 42
   \item meta-quantifiers, 42, 44
   \item meta-rewriting, 7, 12, 13, \bold{20}, 
-		\seealso{tactics, theorems}{130}
+		\seealso{tactics, theorems}{131}
     \subitem in terms, 47
     \subitem in theorems, 38
   \item meta-rules, \see{meta-rules}{1}, 41--47
@@ -550,7 +551,7 @@
   \indexspace
 
   \item {\tt safe_asm_full_simp_tac}, \bold{104}, 105
-  \item {\tt safe_step_tac}, 123, \bold{126}
+  \item {\tt safe_step_tac}, 123, \bold{127}
   \item {\tt safe_tac}, \bold{127}
   \item {\tt save_proof}, \bold{14}
   \item saving your work, \bold{1}
@@ -559,7 +560,7 @@
   \item {\tt SELECT_GOAL}, 20, \bold{33}
   \item {\tt Sequence.seq} ML type, 25
   \item sequences (lazy lists), \bold{26}
-  \item sequent calculus, 118
+  \item sequent calculus, 119
   \item sessions, 1--5
   \item {\tt set}, 3
   \item {\tt set_current_thy}, 101
@@ -617,7 +618,7 @@
   \item {\tt standard}, \bold{39}
   \item starting up, \bold{1}
   \item {\tt STATE}, \bold{25}
-  \item {\tt Step_tac}, \bold{127}
+  \item {\tt Step_tac}, \bold{128}
   \item {\tt step_tac}, 123, \bold{127}
   \item {\tt store_thm}, \bold{8}
   \item {\tt string_of_cterm}, \bold{59}
@@ -634,7 +635,7 @@
     \subitem rules, 95
   \item {\tt swap} theorem, \bold{129}
   \item {\tt swap_res_tac}, \bold{128}
-  \item {\tt swapify}, \bold{128}
+  \item {\tt swapify}, \bold{129}
   \item {\tt sym} theorem, 96, \bold{97}
   \item {\tt symmetric}, \bold{43}
   \item {\tt syn_of}, \bold{68}
