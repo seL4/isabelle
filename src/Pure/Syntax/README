@@ -8,7 +8,8 @@ that only the following structures are supposed to be exported:
 
   Pretty        (generic pretty printing module)
   Scan          (generic scanner toolbox)
-  Symbol	(baroque characters)
+  Source	(co-algebraic data sources)
+  Symbol	(generalized characters)
 
   Syntax        (internal interface to the syntax module)
   BasicSyntax   (part of Syntax made pervasive)

@@ -5,9 +5,13 @@
 This file builds the syntax module.
 *)
 
+(*generic modules*)
 use "pretty.ML";
 use "scan.ML";
+use "source.ML";
 use "symbol.ML";
+
+(*actual syntax module*)
 use "lexicon.ML";
 use "token_trans.ML";
 use "ast.ML";
