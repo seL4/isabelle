@@ -709,7 +709,7 @@ end
    was removed during parsing so we can provide markup around commands;
    2) parsing is intertwined with execution in Isar so we have to repeat
    the parsing to extract interesting parts of commands.  The trace of
-   tokens parsed which is now recorded in each transition helps do this.
+   tokens parsed which is now recorded in each transition helps to do this.
    
    If we had proper parse trees it would be easy, or if we could go
    beyond ML's type system to allow existential types to be part of
@@ -837,8 +837,8 @@ local
 	end
 
     fun xmls_of_thy_goal (name,toks,str) = 
-	let 
-	    (* see isar_syn.ML/gen_theorem *)
+     let 
+	 (* see isar_syn.ML/gen_theorem *)
          val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp);
 	 val general_statement =
 	    statement >> pair [] || Scan.repeat P.locale_elem_or_expr -- (P.$$$ "shows" |-- statement);
@@ -853,9 +853,9 @@ local
 	    (* TODO: add preference values for attributes 
 	       val prefval = XML.element "prefval" [("name","thm-kind"),("value",name)]
 	    *)
-	in 
-	    thmnamed_item_elt toks str "opengoal" nameP ""
-	end
+     in 
+	 thmnamed_item_elt toks str "opengoal" nameP ""
+     end
 
     fun xmls_of_qed (name,markup) = case name of
       "sorry"         => markup "giveupgoal"
