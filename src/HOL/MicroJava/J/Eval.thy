@@ -21,12 +21,12 @@ syntax
   exec :: "[java_mb prog,xstate,stmt,    xstate] \\<Rightarrow> bool "("_\\<turnstile>_ -_\\<rightarrow> _"  [51,82,82,   82]81)
 
 translations
-  "G\\<turnstile>s -e \\<succ> v\\<rightarrow> (x,s')" <= "(s, e, v, (_args x s')) \\<in> eval  G"
-  "G\\<turnstile>s -e \\<succ> v\\<rightarrow>    s' " == "(s, e, v,          s' ) \\<in> eval  G"
-  "G\\<turnstile>s -e[\\<succ>]v\\<rightarrow> (x,s')" <= "(s, e, v, (_args x s')) \\<in> evals G"
-  "G\\<turnstile>s -e[\\<succ>]v\\<rightarrow>    s' " == "(s, e, v,          s' ) \\<in> evals G"
-  "G\\<turnstile>s -c    \\<rightarrow> (x,s')" <= "(s, c,    (_args x s')) \\<in> exec  G"
-  "G\\<turnstile>s -c    \\<rightarrow>    s' " == "(s, c,             s')  \\<in> exec  G"
+  "G\\<turnstile>s -e \\<succ> v\\<rightarrow> (x,s')" <= "(s, e, v, x, s') \\<in> eval  G"
+  "G\\<turnstile>s -e \\<succ> v\\<rightarrow>    s' " == "(s, e, v,    s' ) \\<in> eval  G"
+  "G\\<turnstile>s -e[\\<succ>]v\\<rightarrow> (x,s')" <= "(s, e, v, x, s') \\<in> evals G"
+  "G\\<turnstile>s -e[\\<succ>]v\\<rightarrow>    s' " == "(s, e, v,    s' ) \\<in> evals G"
+  "G\\<turnstile>s -c    \\<rightarrow> (x,s')" <= "(s, c, x, s') \\<in> exec  G"
+  "G\\<turnstile>s -c    \\<rightarrow>    s' " == "(s, c,    s') \\<in> exec  G"
 
 inductive "eval G" "evals G" "exec G" intrs
 
