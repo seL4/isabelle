@@ -13,7 +13,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [DIR]"
   echo
   echo "  Options are:"
-  echo "    -c           clean -- remove DIR after succesful run"
+  echo "    -c           remove DIR after succesful run (!)"
   echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps,"
   echo "                 ps.gz, pdf"
   echo
@@ -115,7 +115,7 @@ function pre_latex ()
   [ "$RC" -eq 0 -a -f "root.$OUTFORMAT" ] && \
     cp -f "root.$OUTFORMAT" "../document.$OUTFORMAT"
 
-  exit $RC
+  exit "$RC"
 )
 RC=$?
 
