@@ -21,7 +21,7 @@ Addsimps[Nil_prefix];
 goalw Prefix.thy [prefix_def] "(xs <= []) = (xs = [])";
 by (list.induct_tac "xs" 1);
 by (Simp_tac 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 by (Simp_tac 1);
 qed "prefix_Nil";
 Addsimps [prefix_Nil];
@@ -31,13 +31,13 @@ goalw Prefix.thy [prefix_def]
    "(xs <= y#ys) = (xs=[] | (? zs. xs=y#zs & zs <= ys))";
 by (list.induct_tac "xs" 1);
 by (Simp_tac 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 by (Simp_tac 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "prefix_Cons";
 
 goalw Prefix.thy [prefix_def] "(x#xs <= y#ys) = (x=y & xs<=ys)";
 by(Simp_tac 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed"Cons_prefix_Cons";
 Addsimps [Cons_prefix_Cons];

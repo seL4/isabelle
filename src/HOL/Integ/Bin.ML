@@ -54,7 +54,7 @@ qed_goal "bin_add_Bcons_Bcons10" Bin.thy "bin_add (Bcons v True) (Bcons w False)
 
 (* SHOULD THIS THEOREM BE ADDED TO HOL_SS ? *)
 val my = prove_goal HOL.thy "(False = (~P)) = P"
-	(fn prem => [(fast_tac HOL_cs 1)]);
+	(fn prem => [(Fast_tac 1)]);
 
 qed_goal "bin_add_Bcons_Bcons0" Bin.thy "bin_add (Bcons v False) (Bcons w y) = norm_Bcons (bin_add v w) y"
 	(fn prem => [(simp_tac (!simpset addsimps [my]) 1)]);
@@ -141,7 +141,7 @@ val integ_of_bin_add_lemma = result();
 
 goal Bin.thy "integ_of_bin(bin_add v w) = integ_of_bin v + integ_of_bin w";
 by (cut_facts_tac [integ_of_bin_add_lemma] 1);
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "integ_of_bin_add";
 
 val bin_mult_simps = [integ_of_bin_minus, integ_of_bin_add,integ_of_bin_norm_Bcons];

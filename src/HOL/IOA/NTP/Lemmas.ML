@@ -10,43 +10,43 @@ Also: Get rid of all the --> in favour of ==> !!!
 
 (* Logic *)
 val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by(fast_tac (HOL_cs addDs prems) 1);
+  by(fast_tac (!claset addDs prems) 1);
 qed "imp_conj_lemma";
 
 goal HOL.thy "(P --> (? x. Q(x))) = (? x. P --> Q(x))";
-  by(fast_tac HOL_cs 1);
+  by(Fast_tac 1);
 qed "imp_ex_equiv";
 
 goal HOL.thy "(A --> B & C) = ((A --> B) & (A --> C))";
-  by (fast_tac HOL_cs 1);
+  by (Fast_tac 1);
 qed "fork_lemma";
 
 goal HOL.thy "((A --> B) & (C --> B)) = ((A | C) --> B)";
-  by (fast_tac HOL_cs 1);
+  by (Fast_tac 1);
 qed "imp_or_lem";
 
 goal HOL.thy "(X = (~ Y)) = ((~X) = Y)";
-  by (fast_tac HOL_cs 1);
+  by (Fast_tac 1);
 qed "neg_flip";
 
 goal HOL.thy "P --> Q(M) --> Q(if P then M else N)";
   by (rtac impI 1); 
   by (rtac impI 1);
   by (rtac (expand_if RS iffD2) 1);
-  by (fast_tac HOL_cs 1);
+  by (Fast_tac 1);
 qed "imp_true_decompose";
 
 goal HOL.thy "(~P) --> Q(N) --> Q(if P then M else N)";
   by (rtac impI 1); 
   by (rtac impI 1);
   by (rtac (expand_if RS iffD2) 1);
-  by (fast_tac HOL_cs 1);
+  by (Fast_tac 1);
 qed "imp_false_decompose";
 
 
 (* Sets *)
 val set_lemmas =
-   map (fn s => prove_goal Set.thy s (fn _ => [fast_tac set_cs 1]))
+   map (fn s => prove_goal Set.thy s (fn _ => [Fast_tac 1]))
         ["f(x) : (UN x. {f(x)})",
          "f x y : (UN x y. {f x y})",
          "!!a. (!x. a ~= f(x)) ==> a ~: (UN x. {f(x)})",
@@ -75,7 +75,7 @@ goal Arith.thy "(x ~= 0) = (? y. x = Suc(y))";
   by (nat_ind_tac "x" 1);
   by (Simp_tac 1);
   by (Asm_simp_tac 1);
-  by (fast_tac HOL_cs 1);
+  by (Fast_tac 1);
 qed "nonzero_is_succ";
 
 goal Arith.thy "(m::nat) < n --> m + p < n + p";
@@ -96,7 +96,7 @@ goal Arith.thy "(x::nat) + y <= z --> x <= z";
   by (Asm_simp_tac 1);
   by (rtac impI 1);
   by (dtac Suc_leD 1);
-  by (fast_tac HOL_cs 1);
+  by (Fast_tac 1);
 qed "left_add_leq";
 
 goal Arith.thy "(A::nat) < B --> C < D --> A + C < B + D";
@@ -115,7 +115,7 @@ goal Arith.thy "(A::nat) <= B --> C <= D --> A + C <= B + D";
   by (rtac impI 1);
   by (rtac impI 1);
   by (asm_full_simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
-  by (safe_tac HOL_cs);
+  by (safe_tac (!claset));
   by (rtac (less_add_cong RS mp RS mp) 1);
   by (assume_tac 1);
   by (assume_tac 1);
@@ -143,21 +143,21 @@ goal Arith.thy "(? x. y = Suc(x)) = (~(y = 0))";
   by (Simp_tac 1);
   by (rtac iffI 1);
   by (Asm_full_simp_tac 1);
-  by (fast_tac HOL_cs 1);
+  by (Fast_tac 1);
 qed "suc_not_zero";
 
 goal Arith.thy "Suc(x) <= y --> (? z. y = Suc(z))";
   by (rtac impI 1);
   by (asm_full_simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
-  by (safe_tac HOL_cs);
-  by (fast_tac HOL_cs 2);
+  by (safe_tac (!claset));
+  by (Fast_tac 2);
   by (asm_simp_tac (!simpset addsimps [suc_not_zero]) 1);
 qed "suc_leq_suc";
 
 goal Arith.thy "~0<n --> n = 0";
   by (nat_ind_tac "n" 1);
   by (Asm_simp_tac 1);
-  by (safe_tac HOL_cs);
+  by (safe_tac (!claset));
   by (Asm_full_simp_tac 1);
   by (Asm_full_simp_tac 1);
 qed "zero_eq";
@@ -165,7 +165,7 @@ qed "zero_eq";
 goal Arith.thy "x < Suc(y) --> x<=y";
   by (nat_ind_tac "n" 1);
   by (asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
-  by (safe_tac HOL_cs);
+  by (safe_tac (!claset));
   by (etac less_imp_le 1);
 qed "less_suc_imp_leq";
 

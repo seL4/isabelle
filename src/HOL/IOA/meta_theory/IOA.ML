@@ -41,7 +41,7 @@ goalw IOA.thy [mk_trace_def,filter_oseq_def]
 \   (s(n)=Some(a) & a : externals(asig_of(A)))";
   by (Option.option.induct_tac "s(n)" 1);
   by (ALLGOALS (simp_tac (!simpset setloop (split_tac [expand_if]))));
-  by (fast_tac HOL_cs 1);
+  by (Fast_tac 1);
 qed "mk_trace_thm";
 
 goalw IOA.thy [reachable_def] "!!A. s:starts_of(A) ==> reachable A s";
@@ -53,7 +53,7 @@ qed "reachable_0";
 goalw IOA.thy (reachable_def::exec_rws)
 "!!A. [| reachable A s; (s,a,t) : trans_of(A) |] ==> reachable A t";
   by(Asm_full_simp_tac 1);
-  by(safe_tac set_cs);
+  by(safe_tac (!claset));
   by(res_inst_tac [("x","(%i.if i<n then fst ex i                    \
 \                            else (if i=n then Some a else None),    \
 \                         %i.if i<Suc n then snd ex i else t)")] bexI 1);
@@ -66,7 +66,7 @@ goalw IOA.thy (reachable_def::exec_rws)
   by(asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1);
   be disjE 1;
   by(Asm_simp_tac 1);
-  by(fast_tac HOL_cs 1);
+  by(Fast_tac 1);
   by(forward_tac [less_not_sym] 1);
   by(asm_simp_tac (!simpset addsimps [less_not_refl2,less_Suc_eq]) 1);
 qed "reachable_n";
@@ -76,16 +76,16 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
 \     !!s t a. [|reachable A s; P(s)|] ==> (s,a,t): trans_of(A) --> P(t) |] \
 \  ==> invariant A P";
   by (rewrite_goals_tac(reachable_def::Let_def::exec_rws));
-  by (safe_tac set_cs);
+  by (safe_tac (!claset));
   by (res_inst_tac [("Q","reachable A (snd ex n)")] conjunct1 1);
   by (nat_ind_tac "n" 1);
-  by (fast_tac (set_cs addIs [p1,reachable_0]) 1);
+  by (fast_tac (!claset addIs [p1,reachable_0]) 1);
   by (eres_inst_tac[("x","n1")]allE 1);
   by (eres_inst_tac[("P","%x.!a.?Q x a"), ("opt","fst ex n1")] optE 1);
   by (Asm_simp_tac 1);
-  by (safe_tac HOL_cs);
+  by (safe_tac (!claset));
   by (etac (p2 RS mp) 1);
-  by (ALLGOALS(fast_tac(set_cs addDs [hd Option.option.inject RS iffD1,
+  by (ALLGOALS(fast_tac(!claset addDs [hd Option.option.inject RS iffD1,
                                       reachable_n])));
 qed "invariantI";
 
@@ -93,7 +93,7 @@ val [p1,p2] = goal IOA.thy
  "[| !!s. s : starts_of(A) ==> P(s); \
 \   !!s t a. reachable A s ==> P(s) --> (s,a,t):trans_of(A) --> P(t) \
 \ |] ==> invariant A P";
-  by (fast_tac (HOL_cs addSIs [invariantI] addSDs [p1,p2]) 1);
+  by (fast_tac (!claset addSIs [invariantI] addSDs [p1,p2]) 1);
 qed "invariantI1";
 
 val [p1,p2] = goalw IOA.thy [invariant_def]
@@ -116,7 +116,7 @@ qed "starts_of_par";
 (* Every state in an execution is reachable *)
 goalw IOA.thy [reachable_def] 
 "!!A. ex:executions(A) ==> !n. reachable A (snd ex n)";
-  by (fast_tac set_cs 1);
+  by (Fast_tac 1);
 qed "states_of_exec_reachable";
 
 
@@ -155,19 +155,19 @@ goal IOA.thy "externals(asig_of(A1||A2)) =    \
 \  (externals(asig_of(A1)) Un externals(asig_of(A2)))";
 by (asm_full_simp_tac (!simpset addsimps [externals_def,asig_of_par,asig_comp_def,asig_inputs_def,asig_outputs_def,Un_def,set_diff_def]) 1);
 by (rtac set_ext 1); 
-by (fast_tac set_cs 1);
+by (Fast_tac 1);
 qed"externals_of_par"; 
 
 goalw IOA.thy [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
  "!! a. [| compat_ioas A1 A2; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
 by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
+by (best_tac (!claset addEs [equalityCE]) 1);
 qed"ext1_is_not_int2";
 
 goalw IOA.thy [externals_def,actions_def,compat_ioas_def,compat_asigs_def]
  "!! a. [| compat_ioas A2 A1 ; a:externals(asig_of(A1))|] ==> a~:internals(asig_of(A2))";
 by (Asm_full_simp_tac 1);
-by (best_tac (set_cs addEs [equalityCE]) 1);
+by (best_tac (!claset addEs [equalityCE]) 1);
 qed"ext2_is_not_int1";
 
 val ext1_ext2_is_not_act2 = ext1_is_not_int2 RS int_and_ext_is_act;

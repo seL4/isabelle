@@ -34,7 +34,7 @@ goalw Multiset.thy [Multiset.count_def]
                          addsimps [Multiset.delm_nonempty_def,
                                    Multiset.countm_nonempty_def]
                          setloop (split_tac [expand_if])) 1);
-  by (safe_tac HOL_cs);
+  by (safe_tac (!claset));
   by (Asm_full_simp_tac 1);
 qed "count_delm_simp";
 

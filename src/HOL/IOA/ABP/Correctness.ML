@@ -9,7 +9,7 @@ open Correctness; open Abschannel; open Abschannel_finite;
 open Impl; open Impl_finite;
 
 goal Abschannel.thy "(? x.x=P & Q(x)) = Q(P)";
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed"exis_elim";
 
 Delsimps [split_paired_All];
@@ -47,7 +47,7 @@ fun rotate n i = EVERY(replicate n (etac revcut_rl i));
 goal Correctness.thy "(reduce(l)=[]) = (l=[])";  
  by (rtac iffI 1);
  by (subgoal_tac "(l~=[]) --> (reduce(l)~=[])" 1);
- by (fast_tac HOL_cs 1); 
+ by (Fast_tac 1); 
  by (List.list.induct_tac "l" 1);
  by (Simp_tac 1);
  by (Simp_tac 1);
@@ -139,7 +139,7 @@ by (Simp_tac 1);
 by (case_tac "list=[]" 1);
  by (asm_full_simp_tac (!simpset addsimps [reverse_Nil,reverse_Cons]) 1);
 by (rtac (expand_if RS ssubst) 1);
- by (fast_tac HOL_cs 1);
+ by (Fast_tac 1);
  by (rtac impI 1);
 by (Simp_tac 1);
 by (cut_inst_tac [("l","list")] cons_not_nil 1);
@@ -230,7 +230,7 @@ by (simp_tac (!simpset addsimps [Solve.is_weak_pmap_def]) 1);
 by (TRY(
    (rtac conjI 1) THEN
 (* start states *)
-   (fast_tac set_cs 1)));
+   (Fast_tac 1)));
 (* main-part *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
@@ -246,7 +246,7 @@ by (simp_tac (!simpset addsimps [Solve.is_weak_pmap_def]) 1);
 by (TRY(
    (rtac conjI 1) THEN
  (* start states *)
-   (fast_tac set_cs 1)));
+   (Fast_tac 1)));
 (* main-part *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
@@ -261,7 +261,7 @@ by (simp_tac (!simpset addsimps [Solve.is_weak_pmap_def]) 1);
 by (TRY(
    (rtac conjI 1) THEN
 (* start states *)
-   (fast_tac set_cs 1)));
+   (Fast_tac 1)));
 (* main-part *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);

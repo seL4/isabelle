@@ -15,7 +15,7 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
 \          is_weak_pmap f C A |] ==> traces(C) <= traces(A)";
 
   by (simp_tac(!simpset addsimps [has_trace_def])1);
-  by (safe_tac set_cs);
+  by (safe_tac (!claset));
 
   (* choose same trace, therefore same NF *)
   by (res_inst_tac[("x","mk_trace  C (fst ex)")] exI 1);
@@ -32,7 +32,7 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
 
   (* Now show that it's an execution *)
   by (asm_full_simp_tac(!simpset addsimps [executions_def]) 1);
-  by (safe_tac set_cs);
+  by (safe_tac (!claset));
 
   (* Start states map to start states *)
   by (dtac bspec 1);
@@ -40,7 +40,7 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
 
   (* Show that it's an execution fragment *)
   by (asm_full_simp_tac (!simpset addsimps [is_execution_fragment_def])1);
-  by (safe_tac HOL_cs);
+  by (safe_tac (!claset));
 
   by (eres_inst_tac [("x","snd ex n")] allE 1);
   by (eres_inst_tac [("x","snd ex (Suc n)")] allE 1);
@@ -51,7 +51,7 @@ qed "trace_inclusion";
 (* Lemmata *)
 
 val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";
-  by(fast_tac (HOL_cs addDs prems) 1);
+  by(fast_tac (!claset addDs prems) 1);
 val imp_conj_lemma = result();
 
 
@@ -61,7 +61,7 @@ goal IOA.thy "a:externals(asig_of(A1||A2)) =    \
 \  a:externals(asig_of(A1)) & a~:externals(asig_of(A2)) |  \
 \  a~:externals(asig_of(A1)) & a:externals(asig_of(A2)))";
 by (asm_full_simp_tac (!simpset addsimps [externals_def,asig_of_par,asig_comp_def,asig_inputs_def,asig_outputs_def]) 1);
- by (fast_tac set_cs 1);
+ by (Fast_tac 1);
 val externals_of_par_extra = result(); 
 
 goal Solve.thy "!!s.[| reachable (C1||C2) s |] ==> reachable C1 (fst s)";
@@ -73,7 +73,7 @@ by (res_inst_tac [("x",
 \    %i.fst (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
  by (Simp_tac 1);
- by (fast_tac HOL_cs 1);
+ by (Fast_tac 1);
 (* projected execution is indeed an execution *)
 by (asm_full_simp_tac (!simpset addsimps [executions_def,is_execution_fragment_def,
     par_def, starts_of_def,trans_of_def]) 1);
@@ -108,7 +108,7 @@ by (res_inst_tac [("x",
 \    %i.snd (snd ex i))")]  bexI 1);
 (* fst(s) is in projected execution *)
  by (Simp_tac 1);
- by (fast_tac HOL_cs 1);
+ by (Fast_tac 1);
 (* projected execution is indeed an execution *)
  by (asm_full_simp_tac (!simpset addsimps [executions_def,is_execution_fragment_def,
     par_def, starts_of_def,trans_of_def]) 1);
@@ -138,7 +138,7 @@ goalw Solve.thy [is_weak_pmap_def] "!!f g.[| is_weak_pmap f C1 A1 & \
  by (rtac conjI 1);
 (* start_states *)
  by (asm_full_simp_tac (!simpset addsimps [par_def, starts_of_def]) 1);
- by (fast_tac set_cs 1);
+ by (Fast_tac 1);
 (* transitions *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
@@ -165,7 +165,7 @@ by (rtac impI 1);
 by (subgoal_tac "a~:externals(asig_of(A1)) & a~:externals(asig_of(A2))" 1);
 (* delete auxiliary subgoal *)
 by (Asm_full_simp_tac 2);
-by (fast_tac HOL_cs 2);
+by (Fast_tac 2);
 by (simp_tac (!simpset addsimps [conj_disj_distribR] addcongs [conj_cong]
                  setloop (split_tac [expand_if])) 1);
 by(REPEAT((resolve_tac [conjI,impI] 1 ORELSE etac conjE 1) THEN
@@ -202,19 +202,19 @@ by (dtac sym 1);
 by (dtac sym 1);
 by (dtac sym 1);
 by (Asm_full_simp_tac 1);
-by (safe_tac HOL_cs);
+by (safe_tac (!claset));
 qed"reachable_rename_ioa";
 
 
 (* HOL Lemmata - must already exist ! *)
 goal HOL.thy  "(~(A|B)) =(~A&~B)";
- by (fast_tac HOL_cs 1);
+ by (Fast_tac 1);
 val disj_demorgan = result();
 goal HOL.thy  "(~(A&B)) =(~A|~B)";
- by (fast_tac HOL_cs 1);
+ by (Fast_tac 1);
 val conj_demorgan = result();
 goal HOL.thy  "(~(? x.P x)) =(! x. (~ (P x)))";
- by (fast_tac HOL_cs 1);
+ by (Fast_tac 1);
 val neg_ex = result();
 
 
@@ -227,7 +227,7 @@ by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
 by (simp_tac (!simpset addsimps [rename_def]) 1);
 by (asm_full_simp_tac (!simpset addsimps [externals_def,asig_inputs_def,asig_outputs_def,asig_of_def,trans_of_def]) 1);
-by (safe_tac set_cs);
+by (safe_tac (!claset));
 by (rtac (expand_if RS ssubst) 1);
  by (rtac conjI 1);
  by (rtac impI 1);

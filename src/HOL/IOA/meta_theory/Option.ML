@@ -11,7 +11,7 @@ Addsimps [Let_def];
 val [prem] = goal Option.thy "P(opt) ==> P(None) | (? x. P(Some(x)))";
  br (prem RS rev_mp) 1;
  by (Option.option.induct_tac "opt" 1);
- by (ALLGOALS(fast_tac HOL_cs));
+ by (ALLGOALS(Fast_tac));
 val optE = store_thm("optE", standard(result() RS disjE));
 
 goal Option.thy "x=None | (? y.x=Some(y))"; 
