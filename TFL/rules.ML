@@ -1,4 +1,4 @@
-(*  Title:      TFL/rules.sml
+(*  Title:      TFL/rules.ML
     ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
