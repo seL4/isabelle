@@ -45,6 +45,15 @@ syntax (symbols)
   "@filter"   :: [idt, 'a list, bool] => 'a list          ("(1[_\\<in>_ ./ _])")
 
 
+consts
+  lists        :: 'a set => 'a list set
+
+  inductive "lists A"
+  intrs
+    Nil  "[]: lists A"
+    Cons "[| a: A;  l: lists A |] ==> a#l : lists A"
+
+
 rules
   pred_list_def "pred_list == {(x,y). ? h. y = h#x}"
 

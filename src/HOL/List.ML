@@ -19,12 +19,12 @@ by (Asm_simp_tac 1);
 qed "neq_Nil_conv";
 
 
-goalw thy [wf_def, pred_list_def] "wf(pred_list)";
-by (strip_tac 1);
-by (induct_tac "x" 1);
-by (ALLGOALS Blast_tac);
-qed "wf_pred_list";
-AddIffs [wf_pred_list];
+(** List operator over sets **)
+
+goalw thy lists.defs "!!A B. A<=B ==> lists A <= lists B";
+by (rtac lfp_mono 1);
+by (REPEAT (ares_tac basic_monos 1));
+qed "lists_mono";
 
 
 (** list_case **)
