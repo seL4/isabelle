@@ -223,9 +223,11 @@ sig
   val cd: string -> unit
   val pwd: unit -> string
   val writeln_fn: (string -> unit) ref
+  val priority_fn: (string -> unit) ref
   val warning_fn: (string -> unit) ref
   val error_fn: (string -> unit) ref
   val writeln: string -> unit
+  val priority: string -> unit
   val warning: string -> unit
   exception ERROR
   val error_msg: string -> unit
@@ -1113,10 +1115,12 @@ fun prefix_lines prfx txt =
 
 (*hooks for output channels: normal, warning, error*)
 val writeln_fn = ref (std_output o suffix "\n");
+val priority_fn = ref (fn s => ! writeln_fn s);
 val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
 val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
 
 fun writeln s = ! writeln_fn s;
+fun priority s = ! priority_fn s;
 fun warning s = ! warning_fn s;
 
 (*print error message and abort to top level*)
