@@ -127,7 +127,7 @@ val not_eof = Scan.one OuterLex.not_eof;
 
 (* enumerations *)
 
-fun enum1 sep scan = scan -- Scan.repeat ($$$ sep |-- scan) >> op ::;
+fun enum1 sep scan = scan -- Scan.repeat ($$$ sep |-- !!! scan) >> op ::;
 fun enum sep scan = enum1 sep scan || Scan.succeed [];
 
 fun list1 scan = enum1 "," scan;
