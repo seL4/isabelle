@@ -487,6 +487,11 @@ val simp_modifiers' =
 
 fun simp_method tac =
   (fn prems => fn ctxt => Method.METHOD (fn facts =>
+    ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (get_local_simpset ctxt)))
+  |> Method.bang_sectioned_args simp_modifiers';
+
+fun simp_method' tac =
+  (fn prems => fn ctxt => Method.METHOD (fn facts =>
     HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (get_local_simpset ctxt))))
   |> Method.bang_sectioned_args simp_modifiers';
   
@@ -494,12 +499,14 @@ fun simp_method tac =
 (* setup_methods *)
 
 val setup_methods = Method.add_methods
- [(simpN,               simp_method (CHANGED oo asm_full_simp_tac), "full simplification"),
-  ("simp_tac",          simp_method simp_tac, "simp_tac (improper!)"),
-  ("asm_simp_tac",      simp_method asm_simp_tac, "asm_simp_tac (improper!)"),
-  ("full_simp_tac",     simp_method full_simp_tac, "full_simp_tac (improper!)"),
-  ("asm_full_simp_tac", simp_method asm_full_simp_tac, "asm_full_simp_tac (improper!)"),
-  ("asm_lr_simp_tac",   simp_method asm_lr_simp_tac, "asm_lr_simp_tac (improper!)")];
+ [(simpN,               simp_method' (CHANGED oo asm_full_simp_tac), "full simplification"),
+  ("simp_all",          simp_method  (CHANGED o ALLGOALS o asm_full_simp_tac),
+    "full simplification (all goals)"),
+  ("simp_tac",          simp_method' simp_tac, "simp_tac (improper!)"),
+  ("asm_simp_tac",      simp_method' asm_simp_tac, "asm_simp_tac (improper!)"),
+  ("full_simp_tac",     simp_method' full_simp_tac, "full_simp_tac (improper!)"),
+  ("asm_full_simp_tac", simp_method' asm_full_simp_tac, "asm_full_simp_tac (improper!)"),
+  ("asm_lr_simp_tac",   simp_method' asm_lr_simp_tac, "asm_lr_simp_tac (improper!)")];
 
 
 
