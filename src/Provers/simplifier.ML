@@ -89,6 +89,7 @@ sig
   val simp_del_global: theory attribute
   val simp_add_local: Proof.context attribute
   val simp_del_local: Proof.context attribute
+  val simp_modifiers: (Args.T list -> (Proof.context attribute * Args.T list)) list
   val setup: (theory -> theory) list
 end;
 
@@ -402,13 +403,14 @@ val asm_full_rewrite = simp_cterm (true, true, false);
 
 (* add / del *)
 
-val simp_addN = "add";
-val simp_delN = "del";
-val simp_ignoreN = "other";
+val simpN = "simp";
+val addN = "add";
+val delN = "del";
+val otherN = "other";
 
 fun simp_att change =
-  (Args.$$$ simp_addN >> K (op addsimps) ||
-    Args.$$$ simp_delN >> K (op delsimps) ||
+  (Args.$$$ addN >> K (op addsimps) ||
+    Args.$$$ delN >> K (op delsimps) ||
     Scan.succeed (op addsimps))
   >> change
   |> Scan.lift
@@ -427,7 +429,7 @@ fun conv_attr f =
 (* setup_attrs *)
 
 val setup_attrs = Attrib.add_attributes
- [("simp",              simp_attr, "simplification rule"),
+ [(simpN,               simp_attr, "simplification rule"),
   ("simplify",          conv_attr simplify, "simplify rule"),
   ("asm_simplify",      conv_attr asm_simplify, "simplify rule, using assumptions"),
   ("full_simplify",     conv_attr full_simplify, "fully simplify rule"),
@@ -439,11 +441,17 @@ val setup_attrs = Attrib.add_attributes
 
 (* simplification *)
 
-val simp_args =
-  Method.only_sectioned_args
-   [Args.$$$ simp_addN >> K simp_add_local,
-    Args.$$$ simp_delN >> K simp_del_local,
-    Args.$$$ simp_ignoreN >> K I];
+val simp_modifiers =
+ [Args.$$$ simpN -- Args.$$$ addN >> K simp_add_local,
+  Args.$$$ simpN -- Args.$$$ delN >> K simp_del_local,
+  Args.$$$ otherN >> K I];	(* FIXME ?? *)
+
+val simp_modifiers' =
+ [Args.$$$ addN >> K simp_add_local,
+  Args.$$$ delN >> K simp_del_local,
+  Args.$$$ otherN >> K I];
+
+val simp_args = Method.only_sectioned_args simp_modifiers';
 
 fun simp_meth tac ctxt = Method.METHOD (fn facts =>
   FIRSTGOAL (REPEAT_DETERM o etac Drule.thin_rl THEN'
@@ -456,7 +464,7 @@ val simp_method = simp_args o simp_meth;
 (* setup_methods *)
 
 val setup_methods = Method.add_methods
- [("simp",              simp_method asm_full_simp_tac, "simplification"),
+ [(simpN,               simp_method asm_full_simp_tac, "simplification"),
   ("simp_tac",          simp_method simp_tac, "simp_tac"),
   ("asm_simp_tac",      simp_method asm_simp_tac, "asm_simp_tac"),
   ("full_simp_tac",     simp_method full_simp_tac, "full_simp_tac"),
