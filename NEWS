@@ -1,6 +1,25 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+New in this Isabelle release
+----------------------------
+
+*** General ***
+
+* Pure: considerably improved version of 'constdefs' command.  Now
+performs automatic type-inference of declared constants; additional
+support for local structure declarations (cf. locales and HOL
+records), see also isar-ref manual.  Potential INCOMPATIBILITY: need
+to observe strictly sequential dependencies of definitions within a
+single 'constdefs' section -- some existing specifications may have to
+be reordered.
+
+* Pure: 'advanced' translation functions (parse_translation etc.) may
+depend on the signature of the theory context being presently used for
+parsing/printing, see also isar-ref manual.
+
+
+
 New in Isabelle2004 (April 2004)
 --------------------------------
 
