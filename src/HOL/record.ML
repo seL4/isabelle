@@ -69,7 +69,7 @@ in
       val paras_args = map (op ~~) (record_parass thy info ~~ record_argss thy info);
       val raw_substs = map typ_subst_TVars paras_args;
       fun make_substs [] = []
-        | make_substs (x::xs) = (foldr1 (op o) (x::xs)) :: make_substs xs; 
+        | make_substs (x::xs) = (foldr1 (op o) (rev (x::xs))) :: make_substs xs; 
       val free_TFree = map (map (map_type_tfree (fn (str, s) => TVar((str, 0), s))));
       val raw_record_field_types = map (map snd o #fields) (record_infos thy (Some info))
     in 
@@ -349,14 +349,14 @@ fun ext_record (args, name) opt_parent current_fields thy =
             |> Theory.add_defs_i 
                   ((make_defs make_schemeT makeT base_frees z thy) @ 
                    (sel_defs recT r all_fields current_fullfields) @
-                   (update_defs recT r all_fields current_fullfields thy))
+                   (update_defs recT r all_fields current_fullfields thy)) 
       in 
         thy |> PureThy.store_thmss 
                  [("record_simps", 
                    sel_make_scheme_thms recT make_schemeT base_frees z all_fields full thy @  
                    sel_make_thms recT_unitT makeT base_frees all_fields full thy @
                    update_make_scheme_thms recT make_schemeT base_frees z all_fields full thy @
-                   update_make_thms recT_unitT makeT base_frees all_fields full thy )] 
+                   update_make_thms recT_unitT makeT base_frees all_fields full thy )]
             |> Theory.add_path ".." 
       end
 
