@@ -39,6 +39,14 @@ use "~~/src/Provers/order.ML";
 
 with_path "Integ" use_thy "Main";
 
+(*Linking to external resolution provers*)
+use "Tools/res_lib.ML";
+use "Tools/res_clause.ML";
+use "Tools/res_skolem_function.ML";
+use "Tools/res_axioms.ML";
+use "Tools/res_types_sorts.ML";
+use "Tools/res_atp.ML";
+
 path_add "~~/src/HOL/Library";
 
 print_depth 8;
