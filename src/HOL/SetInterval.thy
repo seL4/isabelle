@@ -33,7 +33,8 @@ constdefs
   atLeastAtMost :: "['a::ord, 'a] => 'a set"        ("(1{_.._})")
   "{l..u} == {l..} Int {..u}"
 
-(* Setup of transitivity reasoner *)
+
+subsection {* Setup of transitivity reasoner *}
 
 ML {*
 
@@ -73,156 +74,158 @@ method_setup trans =
   {* Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (trans_tac)) *}
   {* simple transitivity reasoner *}
 
-(*** lessThan ***)
 
-lemma lessThan_iff: "(i: lessThan k) = (i<k)"
+subsection {*lessThan*}
 
-apply (unfold lessThan_def)
-apply blast
-done
-declare lessThan_iff [iff]
+lemma lessThan_iff [iff]: "(i: lessThan k) = (i<k)"
+by (simp add: lessThan_def)
 
-lemma lessThan_0: "lessThan (0::nat) = {}"
-apply (unfold lessThan_def)
-apply (simp (no_asm))
-done
-declare lessThan_0 [simp]
+lemma lessThan_0 [simp]: "lessThan (0::nat) = {}"
+by (simp add: lessThan_def)
 
 lemma lessThan_Suc: "lessThan (Suc k) = insert k (lessThan k)"
-apply (unfold lessThan_def)
-apply (simp (no_asm) add: less_Suc_eq)
-apply blast
-done
+by (simp add: lessThan_def less_Suc_eq, blast)
 
 lemma lessThan_Suc_atMost: "lessThan (Suc k) = atMost k"
-apply (unfold lessThan_def atMost_def)
-apply (simp (no_asm) add: less_Suc_eq_le)
-done
+by (simp add: lessThan_def atMost_def less_Suc_eq_le)
 
 lemma UN_lessThan_UNIV: "(UN m::nat. lessThan m) = UNIV"
-apply blast
-done
+by blast
 
-lemma Compl_lessThan: 
+lemma Compl_lessThan [simp]: 
     "!!k:: 'a::linorder. -lessThan k = atLeast k"
-apply (unfold lessThan_def atLeast_def)
-apply auto
-apply (blast intro: linorder_not_less [THEN iffD1])
+apply (auto simp add: lessThan_def atLeast_def)
+ apply (blast intro: linorder_not_less [THEN iffD1])
 apply (blast dest: order_le_less_trans)
 done
 
-lemma single_Diff_lessThan: "!!k:: 'a::order. {k} - lessThan k = {k}"
-apply auto
-done
-declare single_Diff_lessThan [simp]
+lemma single_Diff_lessThan [simp]: "!!k:: 'a::order. {k} - lessThan k = {k}"
+by auto
 
-(*** greaterThan ***)
+subsection {*greaterThan*}
 
-lemma greaterThan_iff: "(i: greaterThan k) = (k<i)"
+lemma greaterThan_iff [iff]: "(i: greaterThan k) = (k<i)"
+by (simp add: greaterThan_def)
 
-apply (unfold greaterThan_def)
-apply blast
-done
-declare greaterThan_iff [iff]
-
-lemma greaterThan_0: "greaterThan 0 = range Suc"
-apply (unfold greaterThan_def)
+lemma greaterThan_0 [simp]: "greaterThan 0 = range Suc"
+apply (simp add: greaterThan_def)
 apply (blast dest: gr0_conv_Suc [THEN iffD1])
 done
-declare greaterThan_0 [simp]
 
 lemma greaterThan_Suc: "greaterThan (Suc k) = greaterThan k - {Suc k}"
-apply (unfold greaterThan_def)
+apply (simp add: greaterThan_def)
 apply (auto elim: linorder_neqE)
 done
 
 lemma INT_greaterThan_UNIV: "(INT m::nat. greaterThan m) = {}"
-apply blast
-done
+by blast
 
-lemma Compl_greaterThan: 
+lemma Compl_greaterThan [simp]: 
     "!!k:: 'a::linorder. -greaterThan k = atMost k"
-apply (unfold greaterThan_def atMost_def le_def)
-apply auto
+apply (simp add: greaterThan_def atMost_def le_def, auto)
 apply (blast intro: linorder_not_less [THEN iffD1])
 apply (blast dest: order_le_less_trans)
 done
 
-lemma Compl_atMost: "!!k:: 'a::linorder. -atMost k = greaterThan k"
-apply (simp (no_asm) add: Compl_greaterThan [symmetric])
+lemma Compl_atMost [simp]: "!!k:: 'a::linorder. -atMost k = greaterThan k"
+apply (subst Compl_greaterThan [symmetric])
+apply (rule double_complement) 
 done
 
-declare Compl_greaterThan [simp] Compl_atMost [simp]
 
-(*** atLeast ***)
+subsection {*atLeast*}
 
-lemma atLeast_iff: "(i: atLeast k) = (k<=i)"
+lemma atLeast_iff [iff]: "(i: atLeast k) = (k<=i)"
+by (simp add: atLeast_def)
 
-apply (unfold atLeast_def)
-apply blast
-done
-declare atLeast_iff [iff]
-
-lemma atLeast_0: "atLeast (0::nat) = UNIV"
-apply (unfold atLeast_def UNIV_def)
-apply (simp (no_asm))
-done
-declare atLeast_0 [simp]
+lemma atLeast_0 [simp]: "atLeast (0::nat) = UNIV"
+by (unfold atLeast_def UNIV_def, simp)
 
 lemma atLeast_Suc: "atLeast (Suc k) = atLeast k - {k}"
-apply (unfold atLeast_def)
-apply (simp (no_asm) add: Suc_le_eq)
-apply (simp (no_asm) add: order_le_less)
-apply blast
+apply (simp add: atLeast_def)
+apply (simp add: Suc_le_eq)
+apply (simp add: order_le_less, blast)
 done
 
 lemma UN_atLeast_UNIV: "(UN m::nat. atLeast m) = UNIV"
-apply blast
-done
+by blast
 
-lemma Compl_atLeast: 
+lemma Compl_atLeast [simp]: 
     "!!k:: 'a::linorder. -atLeast k = lessThan k"
-apply (unfold lessThan_def atLeast_def le_def)
-apply auto
+apply (simp add: lessThan_def atLeast_def le_def, auto)
 apply (blast intro: linorder_not_less [THEN iffD1])
 apply (blast dest: order_le_less_trans)
 done
 
-declare Compl_lessThan [simp] Compl_atLeast [simp]
 
-(*** atMost ***)
+subsection {*atMost*}
 
-lemma atMost_iff: "(i: atMost k) = (i<=k)"
+lemma atMost_iff [iff]: "(i: atMost k) = (i<=k)"
+by (simp add: atMost_def)
 
-apply (unfold atMost_def)
-apply blast
-done
-declare atMost_iff [iff]
-
-lemma atMost_0: "atMost (0::nat) = {0}"
-apply (unfold atMost_def)
-apply (simp (no_asm))
-done
-declare atMost_0 [simp]
+lemma atMost_0 [simp]: "atMost (0::nat) = {0}"
+by (simp add: atMost_def)
 
 lemma atMost_Suc: "atMost (Suc k) = insert (Suc k) (atMost k)"
-apply (unfold atMost_def)
-apply (simp (no_asm) add: less_Suc_eq order_le_less)
-apply blast
+apply (simp add: atMost_def)
+apply (simp add: less_Suc_eq order_le_less, blast)
 done
 
 lemma UN_atMost_UNIV: "(UN m::nat. atMost m) = UNIV"
-apply blast
+by blast
+
+
+subsection {*Logical Equivalences for Set Inclusion and Equality*}
+
+lemma atLeast_subset_iff [iff]:
+     "(atLeast x \<subseteq> atLeast y) = (y \<le> (x::'a::order))" 
+by (blast intro: order_trans) 
+
+lemma atLeast_eq_iff [iff]:
+     "(atLeast x = atLeast y) = (x = (y::'a::linorder))" 
+by (blast intro: order_antisym order_trans)
+
+lemma greaterThan_subset_iff [iff]:
+     "(greaterThan x \<subseteq> greaterThan y) = (y \<le> (x::'a::linorder))" 
+apply (auto simp add: greaterThan_def) 
+ apply (subst linorder_not_less [symmetric], blast) 
+apply (blast intro: order_le_less_trans) 
+done
+
+lemma greaterThan_eq_iff [iff]:
+     "(greaterThan x = greaterThan y) = (x = (y::'a::linorder))" 
+apply (rule iffI) 
+ apply (erule equalityE) 
+ apply (simp add: greaterThan_subset_iff order_antisym, simp) 
+done
+
+lemma atMost_subset_iff [iff]: "(atMost x \<subseteq> atMost y) = (x \<le> (y::'a::order))" 
+by (blast intro: order_trans)
+
+lemma atMost_eq_iff [iff]: "(atMost x = atMost y) = (x = (y::'a::linorder))" 
+by (blast intro: order_antisym order_trans)
+
+lemma lessThan_subset_iff [iff]:
+     "(lessThan x \<subseteq> lessThan y) = (x \<le> (y::'a::linorder))" 
+apply (auto simp add: lessThan_def) 
+ apply (subst linorder_not_less [symmetric], blast) 
+apply (blast intro: order_less_le_trans) 
+done
+
+lemma lessThan_eq_iff [iff]:
+     "(lessThan x = lessThan y) = (x = (y::'a::linorder))" 
+apply (rule iffI) 
+ apply (erule equalityE) 
+ apply (simp add: lessThan_subset_iff order_antisym, simp) 
 done
 
 
-(*** Combined properties ***)
+subsection {*Combined properties*}
 
 lemma atMost_Int_atLeast: "!!n:: 'a::order. atMost n Int atLeast n = {n}"
-apply (blast intro: order_antisym)
-done
+by (blast intro: order_antisym)
 
-(*** Two-sided intervals ***)
+subsection {*Two-sided intervals*}
 
 (* greaterThanLessThan *)
 
@@ -252,7 +255,8 @@ by (simp add: atLeastAtMost_def)
    If we do so, a call to blast in Hyperreal/Star.ML, lemma STAR_Int
    seems to take forever (more than one hour). *)
 
-(*** The following lemmas are useful with the summation operator setsum ***)
+subsection {*Lemmas useful with the summation operator setsum*}
+
 (* For examples, see Algebra/poly/UnivPoly.thy *)
 
 (** Disjoint Unions **)
