@@ -35,16 +35,6 @@ result();
 
 (**** Inductive proofs about yahalom ****)
 
-(*Monotonicity*)
-goal thy "!!evs. lost' <= lost ==> yahalom lost' <= yahalom lost";
-by (rtac subsetI 1);
-by (etac yahalom.induct 1);
-by (REPEAT_FIRST
-    (blast_tac (!claset addIs (impOfSubs(sees_mono RS analz_mono RS synth_mono)
-			       :: yahalom.intrs))));
-qed "yahalom_mono";
-
-
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs: yahalom lost ==> ALL A X. Says A A X ~: set evs";
 by (etac yahalom.induct 1);
@@ -268,23 +258,6 @@ by (blast_tac (!claset addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 
 
-(*And other agents don't see the key either.*)
-goal thy 
- "!!evs. [| C ~: {A,B,Server};                                    \
-\           Says Server A                                         \
-\              {|nb, Crypt (shrK A) {|Agent B, Key K, na|},       \
-\                    Crypt (shrK B) {|nb, Key K, Agent A|}|}      \
-\           : set evs;                                            \
-\           Says A Spy {|na, nb, Key K|} ~: set evs;              \
-\           A ~: lost;  B ~: lost;  evs : yahalom lost |]         \
-\        ==> Key K ~: analz (sees lost C evs)";
-by (rtac (subset_insertI RS sees_mono RS analz_mono RS contra_subsetD) 1);
-by (rtac (sees_lost_agent_subset_sees_Spy RS analz_mono RS contra_subsetD) 1);
-by (FIRSTGOAL (rtac Spy_not_see_encrypted_key));
-by (REPEAT_FIRST (blast_tac (!claset addIs [yahalom_mono RS subsetD])));
-qed "Agent_not_see_encrypted_key";
-
-
 (** Security Guarantee for A upon receiving YM3 **)
 
 (*If the encrypted message appears then it originated with the Server.
@@ -399,14 +372,12 @@ qed "YM3_auth_B_to_A";
   It simplifies the proof by discarding needless information about
 	analz (insert X (sees lost Spy evs)) 
 *)
-val analz_mono_parts_induct_tac = 
-    etac yahalom.induct 1 
+fun analz_mono_parts_induct_tac i = 
+    etac yahalom.induct i
     THEN 
-    REPEAT_FIRST  
-      (rtac impI THEN' 
-       dtac (sees_subset_sees_Says RS analz_mono RS contra_subsetD) THEN'
-       mp_tac)  
+    REPEAT_FIRST analz_mono_contra_tac
     THEN  parts_sees_tac;
+
 
 (*Assuming the session key is secure, if both certificates are present then
   A has said NB.  We can't be sure about the rest of A's message, but only
@@ -419,7 +390,7 @@ goal thy
 \              : parts (sees lost Spy evs) -->                          \
 \            B ~: lost -->                                              \
 \             (EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs)";
-by analz_mono_parts_induct_tac;
+by (analz_mono_parts_induct_tac 1);
 (*Fake*)
 by (Fake_parts_insert_tac 1);
 (*YM3: by new_keys_not_used we note that Crypt K (Nonce NB) could not exist*)

@@ -33,16 +33,6 @@ result();
 
 (**** Inductive proofs about ns_shared ****)
 
-(*Monotonicity*)
-goal thy "!!evs. lost' <= lost ==> ns_shared lost' <= ns_shared lost";
-by (rtac subsetI 1);
-by (etac ns_shared.induct 1);
-by (REPEAT_FIRST
-    (blast_tac (!claset addIs (impOfSubs(sees_mono RS analz_mono RS synth_mono)
-                              :: ns_shared.intrs))));
-qed "ns_shared_mono";
-
-
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : ns_shared lost ==> ALL A X. Says A A X ~: set evs";
 by (etac ns_shared.induct 1);
@@ -315,21 +305,6 @@ goal thy
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
 by (blast_tac (!claset addSDs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
-
-
-goal thy 
- "!!evs. [| C ~: {A,B,Server};                                          \
-\           Says Server A                                               \
-\            (Crypt K' {|NA, Agent B, Key K, X|}) : set evs;            \
-\           (ALL NB. Says A Spy {|NA, NB, Key K|} ~: set evs);          \
-\           A ~: lost;  B ~: lost;  evs : ns_shared lost |]             \
-\        ==> Key K ~: analz (sees lost C evs)";
-by (rtac (subset_insertI RS sees_mono RS analz_mono RS contra_subsetD) 1);
-by (rtac (sees_lost_agent_subset_sees_Spy RS analz_mono RS contra_subsetD) 1);
-by (FIRSTGOAL (rtac Spy_not_see_encrypted_key));
-by (REPEAT_FIRST (blast_tac (!claset addIs [ns_shared_mono RS subsetD])));
-qed "Agent_not_see_encrypted_key";
-
 
 
 (**** Guarantees available at various stages of protocol ***)

@@ -32,15 +32,6 @@ result();
 
 (**** Inductive proofs about otway ****)
 
-(*Monotonicity*)
-goal thy "!!evs. lost' <= lost ==> otway lost' <= otway lost";
-by (rtac subsetI 1);
-by (etac otway.induct 1);
-by (REPEAT_FIRST
-    (best_tac (!claset addIs (impOfSubs (sees_mono RS analz_mono RS synth_mono)
-                              :: otway.intrs))));
-qed "otway_mono";
-
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : otway lost ==> ALL A X. Says A A X ~: set evs";
 by (etac otway.induct 1);
@@ -309,22 +300,6 @@ goal thy
 by (forward_tac [Says_Server_message_form] 1 THEN assume_tac 1);
 by (blast_tac (!claset addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
-
-
-goal thy 
- "!!evs. [| C ~: {A,B,Server};                                      \
-\           Says Server B                                           \
-\              {|Crypt (shrK A) {|NA, Agent A, Agent B, Key K|},    \
-\                Crypt (shrK B) {|NB, Agent A, Agent B, Key K|}|}   \
-\             : set evs;                                            \
-\           Says B Spy {|NA, NB, Key K|} ~: set evs;                \
-\           A ~: lost;  B ~: lost;  evs : otway lost |]             \
-\        ==> Key K ~: analz (sees lost C evs)";
-by (rtac (subset_insertI RS sees_mono RS analz_mono RS contra_subsetD) 1);
-by (rtac (sees_lost_agent_subset_sees_Spy RS analz_mono RS contra_subsetD) 1);
-by (FIRSTGOAL (rtac Spy_not_see_encrypted_key));
-by (REPEAT_FIRST (blast_tac (!claset addIs [otway_mono RS subsetD])));
-qed "Agent_not_see_encrypted_key";
 
 
 (**** Authenticity properties relating to NB ****)

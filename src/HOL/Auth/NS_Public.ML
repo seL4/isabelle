@@ -5,6 +5,8 @@
 
 Inductive relation "ns_public" for the Needham-Schroeder Public-Key protocol.
 Version incorporating Lowe's fix (inclusion of B's identify in round 2).
+
+PROOFS BELOW MIGHT BE SIMPLIFIED using Yahalom's analz_mono_parts_induct_tac 
 *)
 
 open NS_Public;
@@ -118,8 +120,8 @@ by (simp_tac (!simpset addsimps [all_conj_distrib, parts_insert_sees]) 1);
 by (step_tac (!claset addSIs [analz_insertI]) 1);
 by (ex_strip_tac 1);
 by (blast_tac (!claset delrules [conjI]
-                      addSDs [impOfSubs Fake_parts_insert]
-                      addDs  [impOfSubs analz_subset_parts]) 1);
+                       addSDs [impOfSubs Fake_parts_insert]
+                       addDs  [impOfSubs analz_subset_parts]) 1);
 val lemma = result();
 
 goal thy 

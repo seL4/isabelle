@@ -74,15 +74,6 @@ result();
 
 (**** Inductive proofs about recur ****)
 
-(*Monotonicity*)
-goal thy "!!evs. lost' <= lost ==> recur lost' <= recur lost";
-by (rtac subsetI 1);
-by (etac recur.induct 1);
-by (REPEAT_FIRST
-    (blast_tac (!claset addIs (impOfSubs(sees_mono RS analz_mono RS synth_mono)
-                              :: recur.intrs))));
-qed "recur_mono";
-
 (*Nobody sends themselves messages*)
 goal thy "!!evs. evs : recur lost ==> ALL A X. Says A A X ~: set evs";
 by (etac recur.induct 1);
@@ -488,21 +479,6 @@ by (blast_tac (!claset addSDs [resp_analz_insert]
 by (blast_tac (!claset addSEs [respond_Spy_not_see_session_key RSN
 			       (2,rev_notE)]) 1);
 qed "Spy_not_see_session_key";
-
-
-goal thy 
- "!!evs. [| Crypt (shrK A) {|Key K, Agent A', N|}         \
-\              : parts(sees lost Spy evs);                \
-\           C ~: {A,A',Server};                           \
-\           A ~: lost;  A' ~: lost;  evs : recur lost |]  \
-\        ==> Key K ~: analz (sees lost C evs)";
-by (rtac (subset_insertI RS sees_mono RS analz_mono RS contra_subsetD) 1);
-by (rtac (sees_lost_agent_subset_sees_Spy RS analz_mono RS contra_subsetD) 1);
-by (FIRSTGOAL (rtac Spy_not_see_session_key));
-by (REPEAT_FIRST
-    (blast_tac
-     (!claset addIs (map impOfSubs [recur_mono, parts_mono, sees_mono]))));
-qed "Agent_not_see_session_key";
 
 
 (**** Authenticity properties for Agents ****)
