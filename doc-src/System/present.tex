@@ -148,9 +148,18 @@ Usage: browser [OPTIONS] [GRAPHFILE]
 
   Options are:
     -d           delete file after use
+    -o FILE      output to FILE (ps, eps, pdf)
 \end{ttbox}
 When no filename is specified, the browser automatically changes to the
 directory \texttt{ISABELLE_BROWSER_INFO}.
+
+\medskip The \texttt{-d} option cases the source file (!)\ to be deleted after
+the browser terminates; this is mainly intended for detaching interactive
+graph views from a running Isabelle session.
+
+The \texttt{-o} option indicates batch-mode operation, with the output written
+to the indicated file; note that \texttt{pdf} produces an \texttt{eps} copy as
+well.
 
 \medskip The applet version of the browser can be invoked by opening the {\tt
   index.html} file in the directory \texttt{ISABELLE_BROWSER_INFO} from your
