@@ -22,7 +22,8 @@ href="http://proofgeneral.inf.ed.ac.uk/register">register</a>). The Proof Genera
 distribution now includes the <a
 href="http://x-symbol.sourceforge.net">X-Symbol</a> package.  It
 should be used with a recent version of <a
-href="http://www.xemacs.org">XEmacs-21</a>. 
+href="http://www.xemacs.org">XEmacs 21</a> or <a 
+href="http://www.gnu.org/software/emacs/emacs.html">GNU Emacs 21</a>. 
 
 <p>
 
@@ -32,7 +33,7 @@ href="http://www.xemacs.org">XEmacs-21</a>.
 We provide a complete set of packages for Isabelle, Proof General, and
 PolyML.  
 <p>
-While XEmacs-21 is not included here, most operating system
+While XEmacs 21 is not included here, most operating system
 distributions already provide a suitable package, although not
 installed by default.  Some of the packages below are platform
 dependent; we include binaries for Linux/x86, Solaris/Sparc, and
@@ -118,7 +119,7 @@ changed to anything appropriate).
 Users may now invoke Isabelle without further ado, e.g. run the main
 executable <tt>/usr/local/Isabelle/bin/Isabelle</tt> to launch the
 Proof General interface for Isabelle/Isar.  Note that there is a
-separate option in the Proof General <em>Customize</em> menu to enable
+separate option in the Proof General <em>Options</em> menu to enable
 X-Symbol.
 
 <p>
