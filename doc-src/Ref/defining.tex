@@ -620,18 +620,19 @@ escaped, as in delimiters, using a single quote.
 A {\bf binder} is a variable-binding construct such as a quantifier.  The
 constant declaration
 \begin{ttbox}
-\(c\) :: "\(\sigma\)"   (binder "\(\Q\)" \(p\))
+\(c\) :: "\(\sigma\)"   (binder "\(\Q\)" \(pb\) \(p\))
 \end{ttbox}
 introduces a constant~$c$ of type~$\sigma$, which must have the form
 $(\tau@1 \To \tau@2) \To \tau@3$.  Its concrete syntax is $\Q~x.P$, where
 $x$ is a bound variable of type~$\tau@1$, the body~$P$ has type $\tau@2$
-and the whole term has type~$\tau@3$.  Special characters in $\Q$ must be
-escaped using a single quote.
+and the whole term has type~$\tau@3$. The optional integer $pb$
+specifies the body's priority which defaults to 0.  Special characters
+in $\Q$ must be escaped using a single quote.
 
 The declaration is expanded internally to something like
 \begin{ttbox}
 \(c\)    :: "(\(\tau@1\) => \(\tau@2\)) => \(\tau@3\)"
-"\(\Q\)"\hskip-3pt  :: "[idts, \(\tau@2\)] => \(\tau@3\)"   ("(3\(\Q\)_./ _)" \(p\))
+"\(\Q\)"\hskip-3pt  :: "[idts, \(\tau@2\)] => \(\tau@3\)"   ("(3\(\Q\)_./ _)" [0, \(pb\)] \(p\))
 \end{ttbox}
 Here \ndx{idts} is the nonterminal symbol for a list of identifiers with
 \index{type constraints}
