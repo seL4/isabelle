@@ -11,6 +11,7 @@ decision procedure (intensively inspired from J.Harrison)
 signature COOPER_DEC = 
 sig
   exception COOPER
+  exception COOPER_ORACLE of term
   val is_arith_rel : term -> bool
   val mk_numeral : int -> term
   val dest_numeral : term -> int
@@ -43,6 +44,7 @@ sig
   val onatoms : (term -> term) -> term -> term
   val evalc : term -> term
   val integer_qelim : Term.term -> Term.term
+  val mk_presburger_oracle : (Sign.sg * exn) -> term
 end;
 
 structure  CooperDec : COOPER_DEC =
@@ -52,6 +54,10 @@ struct
 (* Cooper's algorithm for Presburger arithmetic.                             *) 
 (* ========================================================================= *) 
 exception COOPER;
+
+(* Exception for the oracle *)
+exception COOPER_ORACLE of term;
+
 
 (* ------------------------------------------------------------------------- *) 
 (* Lift operations up to numerals.                                           *) 
@@ -803,6 +809,10 @@ val integer_qelim = simpl o evalc o (lift_qelim linform (simpl o (cnnf posineq o
 *)
 val integer_qelim = simpl o evalc o (lift_qelim linform (cnnf posineq o evalc) cooper is_arith_rel) ; 
 
+fun mk_presburger_oracle (sg,COOPER_ORACLE t) = 
+    if (!quick_and_dirty) 
+    then HOLogic.mk_Trueprop (HOLogic.mk_eq(t,integer_qelim t))
+    else raise COOPER_ORACLE t;
 
 end;
 

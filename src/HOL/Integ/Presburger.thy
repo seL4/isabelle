@@ -985,6 +985,9 @@ theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <=
   by (simp cong: conj_cong)
 
 use "cooper_dec.ML"
+oracle
+  presburger_oracle = CooperDec.mk_presburger_oracle
+
 use "cooper_proof.ML"
 use "qelim.ML"
 use "presburger.ML"
