@@ -102,7 +102,11 @@ fun is_printable s =
   is_symbolic s;
 
 
-fun sym_length ss = foldl (fn (n, s) => if is_printable s then n + 1 else n) (0, ss);
+fun sym_length ss = foldl (fn (n, s) =>
+  (if not (is_printable s) then 0 else
+    (case Library.try String.substring (s, 2, 4) of
+      Some s' => if s' = "long" orelse s' = "Long" then 2 else 1
+    | None => 1)) + n) (0, ss);
 
 
 (* beginning *)
@@ -313,7 +317,7 @@ fun string_size s = (s, real (size s));
 
 fun default_output s =
   if not (exists_string (equal "\\") s) then string_size s
-  else string_size (implode (map (fn "\\" => "\\\\" | c => c) (explode s)));	(*sic!*)
+  else string_size (implode (map (fn "\\" => "\\\\" | c => c) (explode s)));    (*sic!*)
 
 
 (* isabelle_font_output *)
