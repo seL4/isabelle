@@ -1,0 +1,149 @@
+\documentstyle[a4,12pt,proof,iman,alltt]{article}
+%% $Id$
+%% run    bibtex intro         to prepare bibliography
+%% run    ../sedindex intro    to prepare index file
+%prth *(\(.*\));          \1;      
+%{\\out \(.*\)}          {\\out val it = "\1" : thm}
+
+\title{Introduction to Isabelle}   
+\author{{\em Lawrence C. Paulson}\\
+        Computer Laboratory \\ University of Cambridge \\[2ex]
+        {\small{\em Electronic mail\/}: {\tt lcp@cl.cam.ac.uk}}
+}
+\date{} 
+\makeindex
+
+\underscoreoff
+
+\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
+
+\sloppy
+\binperiod     %%%treat . like a binary operator
+
+\newcommand\qeq{\stackrel{?}{\equiv}}  %for disagreement pairs in unification
+\newcommand{\nand}{\mathbin{\lnot\&}} 
+\newcommand{\xor}{\mathbin{\#}}
+
+\pagenumbering{roman} 
+\begin{document}
+\pagestyle{empty}
+\begin{titlepage}
+\maketitle 
+\thispagestyle{empty}
+\vfill
+{\small Copyright \copyright{} \number\year{} by Lawrence C. Paulson}
+\end{titlepage}
+
+\pagestyle{headings}
+\part*{Preface}
+\index{Isabelle!overview}
+\index{Isabelle!object-logics supported}
+Isabelle~\cite{paulson86,paulson89,paulson700} is a generic theorem prover.
+It has been instantiated to support reasoning in several object-logics:
+\begin{itemize}
+\item first-order logic, constructive and classical versions
+\item higher-order logic, similar to that of Gordon's {\sc
+hol}~\cite{gordon88a}
+\item Zermelo-Fraenkel set theory~\cite{suppes72}
+\item an extensional version of Martin-L\"of's Type Theory~\cite{nordstrom90}
+\item the classical first-order sequent calculus, {\sc lk}
+\item the modal logics $T$, $S4$, and $S43$
+\item the Logic for Computable Functions~\cite{paulson87}
+\end{itemize}
+A logic's syntax and inference rules are specified declaratively; this
+allows single-step proof construction.  Isabelle provides control
+structures for expressing search procedures.  Isabelle also provides
+several generic tools, such as simplifiers and classical theorem provers,
+which can be applied to object-logics.
+
+\index{ML}
+Isabelle is a large system, but beginners can get by with a small
+repertoire of commands and a basic knowledge of how Isabelle works.  Some
+knowledge of Standard~\ML{} is essential, because \ML{} is Isabelle's user
+interface.  Advanced Isabelle theorem proving can involve writing \ML{}
+code, possibly with Isabelle's sources at hand.  My book
+on~\ML{}~\cite{paulson91} covers much material connected with Isabelle,
+including a simple theorem prover.  Users must be familiar with logic as
+used in computer science; there are many good
+texts~\cite{galton90,reeves90}.
+
+\index{LCF}
+{\sc lcf}, developed by Robin Milner and colleagues~\cite{gordon79}, is an
+ancestor of {\sc hol}, Nuprl, and several other systems.  Isabelle borrows
+ideas from {\sc lcf}: formulae are~\ML{} values; theorems belong to an
+abstract type; tactics and tacticals support backward proof.  But {\sc lcf}
+represents object-level rules by functions, while Isabelle represents them
+by terms.  You may find my other writings~\cite{paulson87,paulson-handbook}
+helpful in understanding the relationship between {\sc lcf} and Isabelle.
+
+Isabelle does not keep a record of inference steps.  Each step is checked
+at run time to ensure that theorems can only be constructed by applying
+inference rules.  An Isabelle proof typically involves hundreds of
+primitive inferences, and would be unintelligible if displayed.
+Discarding proofs saves vast amounts of storage.  But can Isabelle be
+trusted?  If desired, object-logics can be formalized such that each
+theorem carries a proof term, which could be checked by another program.
+Proofs can also be traced.
+
+\index{Isabelle!release history} Isabelle was first distributed in 1986.
+The 1987 version introduced a higher-order meta-logic with an improved
+treatment of quantifiers.  The 1988 version added limited polymorphism and
+support for natural deduction.  The 1989 version included a parser and
+pretty printer generator.  The 1992 version introduced type classes, to
+support many-sorted and higher-order logics.  The current version provides
+greater support for theories and is much faster.  Isabelle is still under
+development and will continue to change.
+
+\subsubsection*{Overview} 
+This manual consists of three parts.  
+Part~I discusses the Isabelle's foundations.
+Part~II, presents simple on-line sessions, starting with forward proof.
+It also covers basic tactics and tacticals, and some commands for invoking
+Part~III contains further examples for users with a bit of experience.
+It explains how to derive rules define theories, and concludes with an
+extended example: a Prolog interpreter.
+
+Isabelle's Reference Manual and Object-Logics manual contain more details.
+They assume familiarity with the concepts presented here.
+
+
+\subsubsection*{Acknowledgements} 
+Tobias Nipkow contributed most of the section on ``Defining Theories''.
+Sara Kalvala and Markus Wenzel suggested improvements.
+
+Tobias Nipkow has made immense contributions to Isabelle, including the
+parser generator, type classes, and the simplifier.  Carsten Clasohm, Sonia
+Mahjoub, Karin Nimmermann and Markus Wenzel also made improvements.
+Isabelle was developed using Dave Matthews's Standard~{\sc ml} compiler,
+Poly/{\sc ml}.  Many people have contributed to Isabelle's standard
+object-logics, including Martin Coen, Philippe de Groote, Philippe No\"el.
+The research has been funded by the SERC (grants GR/G53279, GR/H40570) and
+by ESPRIT (projects 3245: Logical Frameworks, and 6453: Types).
+
+\newpage
+\pagestyle{plain} \tableofcontents 
+\newpage
+
+\newfont{\sanssi}{cmssi12}
+\vspace*{2.5cm}
+\begin{quote}
+\raggedleft
+{\sanssi
+You can only find truth with logic\\
+if you have already found truth without it.}\\
+\bigskip
+
+G.K. Chesterton, {\em The Man who was Orthodox}
+\end{quote}
+
+\clearfirst  \pagestyle{headings}
+\include{foundations}
+\include{getting}
+\include{advanced}
+
+
+\bibliographystyle{plain} \small\raggedright\frenchspacing
+\bibliography{atp,funprog,general,logicprog,theory}
+
+\input{intro.ind}
+\end{document}

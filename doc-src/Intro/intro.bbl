@@ -1,0 +1,108 @@
+\begin{thebibliography}{10}
+
+\bibitem{galton90}
+Antony Galton.
+\newblock {\em Logic for Information Technology}.
+\newblock Wiley, 1990.
+
+\bibitem{gordon88a}
+Michael J.~C. Gordon.
+\newblock {HOL}: A proof generating system for higher-order logic.
+\newblock In Graham Birtwistle and P.~A. Subrahmanyam, editors, {\em {VLSI}
+  Specification, Verification and Synthesis}, pages 73--128. Kluwer Academic
+  Publishers, 1988.
+
+\bibitem{gordon79}
+Michael J.~C. Gordon, Robin Milner, and Christopher~P. Wadsworth.
+\newblock {\em Edinburgh {LCF}: A Mechanised Logic of Computation}.
+\newblock Springer LNCS 78, 1979.
+
+\bibitem{haskell-tutorial}
+Paul Hudak and Joseph~H. Fasel.
+\newblock A gentle introduction to {Haskell}.
+\newblock {\em {ACM} {SIGPLAN} Notices}, 27(5), May 1992.
+
+\bibitem{haskell-report}
+Paul Hudak, Simon~Peyton Jones, and Philip Wadler.
+\newblock Report on the programming language {Haskell}: A non-strict, purely
+  functional language.
+\newblock {\em {ACM} {SIGPLAN} Notices}, 27(5), May 1992.
+\newblock Version 1.2.
+
+\bibitem{huet75}
+G.~P. Huet.
+\newblock A unification algorithm for typed $\lambda$-calculus.
+\newblock {\em Theoretical Computer Science}, 1:27--57, 1975.
+
+\bibitem{miller-jsc}
+Dale Miller.
+\newblock Unification under a mixed prefix.
+\newblock {\em Journal of Symbolic Computation}, 14(4):321--358, 1992.
+
+\bibitem{nipkow-prehofer}
+Tobias Nipkow and Christian Prehofer.
+\newblock Type checking type classes.
+\newblock In {\em 20th ACM Symp.\ Principles of Programming Languages}, 1993.
+\newblock To appear.
+
+\bibitem{nordstrom90}
+Bengt {Nordstr\"om}, Kent Petersson, and Jan Smith.
+\newblock {\em Programming in {Martin-L\"of}'s Type Theory. An Introduction}.
+\newblock Oxford, 1990.
+
+\bibitem{paulson86}
+Lawrence~C. Paulson.
+\newblock Natural deduction as higher-order resolution.
+\newblock {\em Journal of Logic Programming}, 3:237--258, 1986.
+
+\bibitem{paulson87}
+Lawrence~C. Paulson.
+\newblock {\em Logic and Computation: Interactive proof with Cambridge LCF}.
+\newblock Cambridge University Press, 1987.
+
+\bibitem{paulson89}
+Lawrence~C. Paulson.
+\newblock The foundation of a generic theorem prover.
+\newblock {\em Journal of Automated Reasoning}, 5:363--397, 1989.
+
+\bibitem{paulson700}
+Lawrence~C. Paulson.
+\newblock {Isabelle}: The next 700 theorem provers.
+\newblock In P.~Odifreddi, editor, {\em Logic and Computer Science}, pages
+  361--386. Academic Press, 1990.
+
+\bibitem{paulson91}
+Lawrence~C. Paulson.
+\newblock {\em {ML} for the Working Programmer}.
+\newblock Cambridge University Press, 1991.
+
+\bibitem{paulson-handbook}
+Lawrence~C. Paulson.
+\newblock Designing a theorem prover.
+\newblock In S.~Abramsky, D.~M. Gabbay, and T.~S.~E. Maibaum, editors, {\em
+  Handbook of Logic in Computer Science}, volume~2, pages 415--475. Oxford
+  University Press, 1992.
+
+\bibitem{pelletier86}
+F.~J. Pelletier.
+\newblock Seventy-five problems for testing automatic theorem provers.
+\newblock {\em Journal of Automated Reasoning}, 2:191--216, 1986.
+\newblock Errata, JAR 4 (1988), 235--236.
+
+\bibitem{reeves90}
+Steve Reeves and Michael Clarke.
+\newblock {\em Logic for Computer Science}.
+\newblock Addison-Wesley, 1990.
+
+\bibitem{suppes72}
+Patrick Suppes.
+\newblock {\em Axiomatic Set Theory}.
+\newblock Dover, 1972.
+
+\bibitem{wos-bledsoe}
+Larry Wos.
+\newblock Automated reasoning and {Bledsoe's} dream for the field.
+\newblock In Robert~S. Boyer, editor, {\em Automated Reasoning: Essays in Honor
+  of {Woody Bledsoe}}, pages 297--342. Kluwer Academic Publishers, 1991.
+
+\end{thebibliography}

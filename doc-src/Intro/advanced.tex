@@ -1,0 +1,1199 @@
+%% $Id$
+\part{Advanced methods}
+Before continuing, it might be wise to try some of your own examples in
+Isabelle, reinforcing your knowledge of the basic functions.
+This paper is merely an introduction to Isabelle.  Two other documents
+exist:
+\begin{itemize}
+  \item {\em The Isabelle Reference Manual\/} contains information about
+most of the facilities of Isabelle, apart from particular object-logics.
+
+  \item {\em Isabelle's Object-Logics\/} describes the various logics
+distributed with Isabelle.  It also explains how to define new logics in
+Isabelle.
+\end{itemize}
+Look through {\em Isabelle's Object-Logics\/} and try proving some simple
+theorems.  You probably should begin with first-order logic ({\tt FOL}
+or~{\tt LK}).  Try working some of the examples provided, and others from
+the literature.  Set theory~({\tt ZF}) and Constructive Type Theory~({\tt
+  CTT}) form a richer world for mathematical reasoning and, again, many
+examples are in the literature.  Higher-order logic~({\tt HOL}) is
+Isabelle's most sophisticated logic, because its types and functions are
+identified with those of the meta-logic; this may cause difficulties for
+beginners.
+
+Choose a logic that you already understand.  Isabelle is a proof
+tool, not a teaching tool; if you do not know how to do a particular proof
+on paper, then you certainly will not be able to do it on the machine.
+Even experienced users plan large proofs on paper.
+
+We have covered only the bare essentials of Isabelle, but enough to perform
+substantial proofs.  By occasionally dipping into the {\em Reference
+Manual}, you can learn additional tactics, subgoal commands and tacticals.
+Isabelle's simplifier and classical theorem prover are
+difficult to learn, and can be ignored at first.
+
+
+\section{Deriving rules in Isabelle}
+\index{rules!derived}
+A mathematical development goes through a progression of stages.  Each
+stage defines some concepts and derives rules about them.  We shall see how
+to derive rules, perhaps involving definitions, using Isabelle.  The
+following section will explain how to declare types, constants, axioms and
+definitions.
+
+
+\subsection{Deriving a rule using tactics} \label{deriving-example}
+\index{examples!of deriving rules}
+The subgoal module supports the derivation of rules.  The \ttindex{goal}
+command, when supplied a goal of the form $\List{\theta@1; \ldots;
+\theta@k} \Imp \phi$, creates $\phi\Imp\phi$ as the initial proof state and
+returns a list consisting of the theorems 
+${\theta@i\;[\theta@i]}$, for $i=1$, \ldots,~$k$.  These assumptions are
+also recorded internally, allowing \ttindex{result} to discharge them in the
+original order.
+
+Let us derive $\conj$ elimination~(\S\ref{deriving}) using Isabelle.
+Until now, calling \ttindex{goal} has returned an empty list, which we have
+thrown away.  In this example, the list contains the two premises of the
+rule.  We bind them to the \ML\ identifiers {\tt major} and {\tt
+minor}:\footnote{Some ML compilers will print a message such as {\em
+binding not exhaustive}.  This warns that {\tt goal} must return a
+2-element list.  Otherwise, the pattern-match will fail; ML will
+raise exception \ttindex{Match}.}
+\begin{ttbox}
+val [major,minor] = goal FOL.thy
+    "[| P&Q;  [| P; Q |] ==> R |] ==> R";
+{\out Level 0}
+{\out R}
+{\out  1. R}
+{\out val major = "P & Q  [P & Q]" : thm}
+{\out val minor = "[| P; Q |] ==> R  [[| P; Q |] ==> R]" : thm}
+\end{ttbox}
+Look at the minor premise, recalling that meta-level assumptions are
+shown in brackets.  Using {\tt minor}, we reduce $R$ to the subgoals
+$P$ and~$Q$:
+\begin{ttbox}
+by (resolve_tac [minor] 1);
+{\out Level 1}
+{\out R}
+{\out  1. P}
+{\out  2. Q}
+\end{ttbox}
+Deviating from~\S\ref{deriving}, we apply $({\conj}E1)$ forwards from the
+assumption $P\conj Q$ to obtain the theorem~$P\;[P\conj Q]$.
+\begin{ttbox}
+major RS conjunct1;
+{\out val it = "P  [P & Q]" : thm}
+\ttbreak
+by (resolve_tac [major RS conjunct1] 1);
+{\out Level 2}
+{\out R}
+{\out  1. Q}
+\end{ttbox}
+Similarly, we solve the subgoal involving~$Q$.
+\begin{ttbox}
+major RS conjunct2;
+{\out val it = "Q  [P & Q]" : thm}
+by (resolve_tac [major RS conjunct2] 1);
+{\out Level 3}
+{\out R}
+{\out No subgoals!}
+\end{ttbox}
+Calling \ttindex{topthm} returns the current proof state as a theorem.
+Note that it contains assumptions.  Calling \ttindex{result} discharges the
+assumptions --- both occurrences of $P\conj Q$ are discharged as one ---
+and makes the variables schematic.
+\begin{ttbox}
+topthm();
+{\out val it = "R  [P & Q, P & Q, [| P; Q |] ==> R]" : thm}
+val conjE = result();
+{\out val conjE = "[| ?P & ?Q; [| ?P; ?Q |] ==> ?R |] ==> ?R" : thm}
+\end{ttbox}
+
+
+\subsection{Definitions and derived rules} \label{definitions}
+\index{rules!derived}
+\index{Isabelle!definitions in}
+\index{definitions!reasoning about|bold}
+Definitions are expressed as meta-level equalities.  Let us define negation
+and the if-and-only-if connective:
+\begin{eqnarray*}
+  \neg \Var{P}          & \equiv & \Var{P}\imp\bot \\
+  \Var{P}\bimp \Var{Q}  & \equiv & 
+                (\Var{P}\imp \Var{Q}) \conj (\Var{Q}\imp \Var{P})
+\end{eqnarray*}
+\index{rewriting!meta-level|bold}
+\index{unfolding|bold}\index{folding|bold}
+Isabelle permits {\bf meta-level rewriting} using definitions such as
+these.  {\bf Unfolding} replaces every instance
+of $\neg \Var{P}$ by the corresponding instance of $\Var{P}\imp\bot$.  For
+example, $\forall x.\neg (P(x)\conj \neg R(x,0))$ unfolds to
+\[ \forall x.(P(x)\conj R(x,0)\imp\bot)\imp\bot.  \]
+{\bf Folding} a definition replaces occurrences of the right-hand side by
+the left.  The occurrences need not be free in the entire formula.
+
+\begin{warn}
+Isabelle does not distinguish sensible definitions, like $1\equiv Suc(0)$, from
+equations like $1\equiv Suc(1)$.  However, meta-rewriting fails for
+equations like ${f(\Var{x})\equiv g(\Var{x},\Var{y})}$: all variables on
+the right-hand side must also be present on the left.
+\index{rewriting!meta-level}
+\end{warn}
+
+When you define new concepts, you should derive rules asserting their
+abstract properties, and then forget their definitions.  This supports
+modularity: if you later change the definitions, without affecting their
+abstract properties, then most of your proofs will carry through without
+change.  Indiscriminate unfolding makes a subgoal grow exponentially,
+becoming unreadable.
+
+Taking this point of view, Isabelle does not unfold definitions
+automatically during proofs.  Rewriting must be explicit and selective.
+Isabelle provides tactics and meta-rules for rewriting, and a version of
+the {\tt goal} command that unfolds the conclusion and premises of the rule
+being derived.
+
+For example, the intuitionistic definition of negation given above may seem
+peculiar.  Using Isabelle, we shall derive pleasanter negation rules:
+\[  \infer[({\neg}I)]{\neg P}{\infer*{\bot}{[P]}}   \qquad
+    \infer[({\neg}E)]{Q}{\neg P & P}  \]
+This requires proving the following formulae:
+$$ (P\Imp\bot)    \Imp \neg P   \eqno(\neg I)$$
+$$ \List{\neg P; P} \Imp Q.       \eqno(\neg E)$$
+
+
+\subsubsection{Deriving the introduction rule}
+To derive $(\neg I)$, we may call \ttindex{goal} with the appropriate
+formula.  Again, {\tt goal} returns a list consisting of the rule's
+premises.  We bind this list, which contains the one element $P\Imp\bot$,
+to the \ML\ identifier {\tt prems}.
+\begin{ttbox}
+val prems = goal FOL.thy "(P ==> False) ==> ~P";
+{\out Level 0}
+{\out ~P}
+{\out  1. ~P}
+{\out val prems = ["P ==> False  [P ==> False]"] : thm list}
+\end{ttbox}
+Calling \ttindex{rewrite_goals_tac} with \ttindex{not_def}, which is the
+definition of negation, unfolds that definition in the subgoals.  It leaves
+the main goal alone.
+\begin{ttbox}
+not_def;
+{\out val it = "~?P == ?P --> False" : thm}
+by (rewrite_goals_tac [not_def]);
+{\out Level 1}
+{\out ~P}
+{\out  1. P --> False}
+\end{ttbox}
+Using \ttindex{impI} and the premise, we reduce subgoal~1 to a triviality:
+\begin{ttbox}
+by (resolve_tac [impI] 1);
+{\out Level 2}
+{\out ~P}
+{\out  1. P ==> False}
+\ttbreak
+by (resolve_tac prems 1);
+{\out Level 3}
+{\out ~P}
+{\out  1. P ==> P}
+\end{ttbox}
+The rest of the proof is routine.
+\begin{ttbox}
+by (assume_tac 1);
+{\out Level 4}
+{\out ~P}
+{\out No subgoals!}
+val notI = result();
+{\out val notI = "(?P ==> False) ==> ~?P" : thm}
+\end{ttbox}
+\indexbold{*notI}
+
+\medskip
+There is a simpler way of conducting this proof.  The \ttindex{goalw}
+command starts a backward proof, as does \ttindex{goal}, but it also
+unfolds definitions:
+\begin{ttbox}
+val prems = goalw FOL.thy [not_def]
+    "(P ==> False) ==> ~P";
+{\out Level 0}
+{\out ~P}
+{\out  1. P --> False}
+{\out val prems = ["P ==> False  [P ==> False]"] : thm list}
+\end{ttbox}
+The proof continues as above, but without calling \ttindex{rewrite_goals_tac}.
+
+
+\subsubsection{Deriving the elimination rule}
+Let us derive $(\neg E)$.  The proof follows that of~{\tt conjE}
+(\S\ref{deriving-example}), with an additional step to unfold negation in
+the major premise.  Although the {\tt goalw} command is best for this, let
+us try~\ttindex{goal}.  As usual, we bind the premises to \ML\ identifiers.
+We then apply \ttindex{FalseE}, which stands for~$(\bot E)$:
+\begin{ttbox}
+val [major,minor] = goal FOL.thy "[| ~P;  P |] ==> R";
+{\out Level 0}
+{\out R}
+{\out  1. R}
+{\out val major = "~ P  [~ P]" : thm}
+{\out val minor = "P  [P]" : thm}
+\ttbreak
+by (resolve_tac [FalseE] 1);
+{\out Level 1}
+{\out R}
+{\out  1. False}
+\ttbreak
+by (resolve_tac [mp] 1);
+{\out Level 2}
+{\out R}
+{\out  1. ?P1 --> False}
+{\out  2. ?P1}
+\end{ttbox}
+For subgoal~1, we transform the major premise from~$\neg P$
+to~${P\imp\bot}$.  The function \ttindex{rewrite_rule}, given a list of
+definitions, unfolds them in a theorem.  Rewriting does {\bf not}
+affect the theorem's hypothesis, which remains~$\neg P$:
+\begin{ttbox}
+rewrite_rule [not_def] major;
+{\out val it = "P --> False  [~P]" : thm}
+by (resolve_tac [it] 1);
+{\out Level 3}
+{\out R}
+{\out  1. P}
+\end{ttbox}
+Now {\tt?P1} has changed to~{\tt P}; we need only use the minor premise:
+\begin{ttbox}
+by (resolve_tac [minor] 1);
+{\out Level 4}
+{\out R}
+{\out No subgoals!}
+val notE = result();
+{\out val notE = "[| ~?P; ?P |] ==> ?R" : thm}
+\end{ttbox}
+\indexbold{*notE}
+
+\medskip
+Again, there is a simpler way of conducting this proof.  The
+\ttindex{goalw} command starts unfolds definitions in the premises, as well
+as the conclusion:
+\begin{ttbox}
+val [major,minor] = goalw FOL.thy [not_def]
+    "[| ~P;  P |] ==> R";
+{\out val major = "P --> False  [~ P]" : thm}
+{\out val minor = "P  [P]" : thm}
+\end{ttbox}
+Observe the difference in {\tt major}; the premises are now {\bf unfolded}
+and we need not call~\ttindex{rewrite_rule}.  Incidentally, the four calls
+to \ttindex{resolve_tac} above can be collapsed to one, with the help
+of~\ttindex{RS}\@:
+\begin{ttbox}
+minor RS (major RS mp RS FalseE);
+{\out val it = "?P  [P, ~P]" : thm}
+by (resolve_tac [it] 1);
+{\out Level 1}
+{\out R}
+{\out No subgoals!}
+\end{ttbox}
+
+
+\medskip Finally, here is a trick that is sometimes useful.  If the goal
+has an outermost meta-quantifier, then \ttindex{goal} and \ttindex{goalw}
+do not return the rule's premises in the list of theorems.  Instead, the
+premises become assumptions in subgoal~1:
+\begin{ttbox}
+goalw FOL.thy [not_def] "!!P R. [| ~P;  P |] ==> R";
+{\out Level 0}
+{\out !!P R. [| ~ P; P |] ==> R}
+{\out  1. !!P R. [| P --> False; P |] ==> R}
+val it = [] : thm list
+\end{ttbox}
+The proof continues as before.  But instead of referring to \ML\
+identifiers, we refer to assumptions using \ttindex{eresolve_tac} or
+\ttindex{assume_tac}: 
+\begin{ttbox}
+by (resolve_tac [FalseE] 1);
+{\out Level 1}
+{\out !!P R. [| ~ P; P |] ==> R}
+{\out  1. !!P R. [| P --> False; P |] ==> False}
+\ttbreak
+by (eresolve_tac [mp] 1);
+{\out Level 2}
+{\out !!P R. [| ~ P; P |] ==> R}
+{\out  1. !!P R. P ==> P}
+\ttbreak
+by (assume_tac 1);
+{\out Level 3}
+{\out !!P R. [| ~ P; P |] ==> R}
+{\out No subgoals!}
+\end{ttbox}
+Calling \ttindex{result} strips the meta-quantifiers, so the resulting
+theorem is the same as before.
+\begin{ttbox}
+val notE = result();
+{\out val notE = "[| ~?P; ?P |] ==> ?R" : thm}
+\end{ttbox}
+Do not use the {\tt!!}\ trick if the premises contain meta-level
+connectives, because \ttindex{eresolve_tac} and \ttindex{assume_tac} would
+not be able to handle the resulting assumptions.  The trick is not suitable
+for deriving the introduction rule~$(\neg I)$.
+
+
+\section{Defining theories}
+\index{theories!defining|(}
+Isabelle makes no distinction between simple extensions of a logic --- like
+defining a type~$bool$ with constants~$true$ and~$false$ --- and defining
+an entire logic.  A theory definition has the form
+\begin{ttbox}
+\(T\) = \(S@1\) + \(\cdots\) + \(S@n\) +
+classes      {\it class declarations}
+default      {\it sort}
+types        {\it type declarations}
+arities      {\it arity declarations}
+consts       {\it constant declarations}
+rules        {\it rule declarations}
+translations {\it translation declarations}
+end
+ML           {\it ML code}
+\end{ttbox}
+This declares the theory $T$ to extend the existing theories
+$S@1$,~\ldots,~$S@n$.  It may declare new classes, types, arities
+(overloadings of existing types), constants and rules; it can specify the
+default sort for type variables.  A constant declaration can specify an
+associated concrete syntax.  The translations section specifies rewrite
+rules on abstract syntax trees, for defining notations and abbreviations.
+The {\ML} section contains code to perform arbitrary syntactic
+transformations.  The main declaration forms are discussed below; see {\em
+  Isabelle's Object-Logics} for full details and examples.
+
+All the declaration parts can be omitted.  In the simplest case, $T$ is
+just the union of $S@1$,~\ldots,~$S@n$.  New theories always extend one
+or more other theories, inheriting their types, constants, syntax, etc.
+The theory \ttindexbold{Pure} contains nothing but Isabelle's meta-logic.
+
+Each theory definition must reside in a separate file, whose name is
+determined as follows: the theory name, say {\tt ListFn}, is converted to
+lower case and {\tt.thy} is appended, yielding the filename {\tt
+  listfn.thy}.  Isabelle uses this convention to locate the file containing
+a given theory; \ttindexbold{use_thy} automatically loads a theory's
+parents before loading the theory itself.
+
+Calling \ttindexbold{use_thy}~{\tt"}{\it tf\/}{\tt"} reads a theory from
+the file {\it tf}{\tt.thy}, writes the corresponding {\ML} code to the file
+{\tt.}{\it tf}{\tt.thy.ML}, and reads the latter file.  This declares the
+{\ML} structure~$T$, which contains a component {\tt thy} denoting the new
+theory, a component for each rule, and everything declared in {\it ML
+  code}.
+
+Errors may arise during the translation to {\ML} (say, a misspelled keyword)
+or during creation of the new theory (say, a type error in a rule).  But if
+all goes well, {\tt use_thy} will finally read the file {\it tf}{\tt.ML}, if
+it exists.  This file typically begins with the {\ML} declaration {\tt
+open}~$T$ and contains proofs that refer to the components of~$T$.
+Theories can be defined directly by issuing {\ML} declarations to Isabelle,
+but the calling sequences are extremely cumbersome.
+
+If theory~$T$ is later redeclared in order to delete an incorrect rule,
+bindings to the old rule may persist.  Isabelle ensures that the old and
+new versions of~$T$ are not involved in the same proof.  Attempting to
+combine different versions of~$T$ yields the fatal error
+\begin{ttbox} 
+Attempt to merge different versions of theory: \(T\)
+\end{ttbox}
+
+\subsection{Declaring constants and rules}
+\indexbold{constants!declaring}\indexbold{rules!declaring}
+Most theories simply declare constants and some rules.  The {\bf constant
+declaration part} has the form
+\begin{ttbox}
+consts  \(c@1\) :: "\(\tau@1\)"
+        \vdots
+        \(c@n\) :: "\(\tau@n\)"
+\end{ttbox}
+where $c@1$, \ldots, $c@n$ are constants and $\tau@1$, \ldots, $\tau@n$ are
+types.  Each type {\em must\/} be enclosed in quotation marks.  Each
+constant must be enclosed in quotation marks unless it is a valid
+identifier.  To declare $c@1$, \ldots, $c@n$ as constants of type $\tau$,
+the $n$ declarations may be abbreviated to a single line:
+\begin{ttbox}
+        \(c@1\), \ldots, \(c@n\) :: "\(\tau\)"
+\end{ttbox}
+The {\bf rule declaration part} has the form
+\begin{ttbox}
+rules   \(id@1\) "\(rule@1\)"
+        \vdots
+        \(id@n\) "\(rule@n\)"
+\end{ttbox}
+where $id@1$, \ldots, $id@n$ are \ML{} identifiers and $rule@1$, \ldots,
+$rule@n$ are expressions of type~$prop$.  {\bf Definitions} are rules of
+the form $t\equiv u$.  Each rule {\em must\/} be enclosed in quotation marks.
+
+\index{examples!of theories}
+This theory extends first-order logic with two constants {\em nand} and
+{\em xor}, and two rules defining them:
+\begin{ttbox} 
+Gate = FOL +
+consts  nand,xor :: "[o,o] => o"
+rules   nand_def "nand(P,Q) == ~(P & Q)"
+        xor_def  "xor(P,Q)  == P & ~Q | ~P & Q"
+end
+\end{ttbox}
+
+
+\subsection{Declaring type constructors}
+\indexbold{type constructors!declaring}\indexbold{arities!declaring}
+Types are composed of type variables and {\bf type constructors}.  Each
+type constructor has a fixed number of argument places.  For example,
+$list$ is a 1-place type constructor and $nat$ is a 0-place type
+constructor.
+
+The {\bf type declaration part} has the form
+\begin{ttbox}
+types   \(id@1\) \(k@1\)
+        \vdots
+        \(id@n\) \(k@n\)
+\end{ttbox}
+where $id@1$, \ldots, $id@n$ are identifiers and $k@1$, \ldots, $k@n$ are
+natural numbers.  It declares each $id@i$ as a type constructor with $k@i$
+argument places.
+
+The {\bf arity declaration part} has the form
+\begin{ttbox}
+arities \(tycon@1\) :: \(arity@1\)
+        \vdots
+        \(tycon@n\) :: \(arity@n\)
+\end{ttbox}
+where $tycon@1$, \ldots, $tycon@n$ are identifiers and $arity@1$, \ldots,
+$arity@n$ are arities.  Arity declarations add arities to existing
+types; they complement type declarations.
+
+In the simplest case, for an 0-place type constructor, an arity is simply
+the type's class.  Let us declare a type~$bool$ of class $term$, with
+constants $tt$ and~$ff$:\footnote{In first-order logic, booleans are
+distinct from formulae, which have type $o::logic$.}
+\index{examples!of theories}
+\begin{ttbox} 
+Bool = FOL +
+types   bool 0
+arities bool    :: term
+consts  tt,ff   :: "bool"
+end
+\end{ttbox}
+In the general case, type constructors take arguments.  Each type
+constructor has an {\bf arity} with respect to
+classes~(\S\ref{polymorphic}).  A $k$-place type constructor may have
+arities of the form $(s@1,\ldots,s@k)c$, where $s@1,\ldots,s@n$ are sorts
+and $c$ is a class.  Each sort specifies a type argument; it has the form
+$\{c@1,\ldots,c@m\}$, where $c@1$, \dots,~$c@m$ are classes.  Mostly we
+deal with singleton sorts, and may abbreviate them by dropping the braces.
+The arity declaration $list{::}(term)term$ is short for
+$list{::}(\{term\})term$.
+
+A type constructor may be overloaded (subject to certain conditions) by
+appearing in several arity declarations.  For instance, the built-in type
+constructor~$\To$ has the arity $(logic,logic)logic$; in higher-order
+logic, it is declared also to have arity $(term,term)term$.
+
+Theory {\tt List} declares the 1-place type constructor $list$, gives
+it arity $list{::}(term)term$, and declares constants $Nil$ and $Cons$ with
+polymorphic types:
+\index{examples!of theories}
+\begin{ttbox} 
+List = FOL +
+types   list 1
+arities list    :: (term)term
+consts  Nil     :: "'a list"
+        Cons    :: "['a, 'a list] => 'a list" 
+end
+\end{ttbox}
+Multiple type and arity declarations may be abbreviated to a single line:
+\begin{ttbox}
+types   \(id@1\), \ldots, \(id@n\) \(k\)
+arities \(tycon@1\), \ldots, \(tycon@n\) :: \(arity\)
+\end{ttbox}
+
+\begin{warn}
+Arity declarations resemble constant declarations, but there are {\it no\/}
+quotation marks!  Types and rules must be quoted because the theory
+translator passes them verbatim to the {\ML} output file.
+\end{warn}
+
+\subsection{Infixes and Mixfixes}
+\indexbold{infix operators}\index{examples!of theories}
+The constant declaration part of the theory
+\begin{ttbox} 
+Gate2 = FOL +
+consts  "~&"     :: "[o,o] => o"         (infixl 35)
+        "#"      :: "[o,o] => o"         (infixl 30)
+rules   nand_def "P ~& Q == ~(P & Q)"    
+        xor_def  "P # Q  == P & ~Q | ~P & Q"
+end
+\end{ttbox}
+declares two left-associating infix operators: $\nand$ of precedence~35 and
+$\xor$ of precedence~30.  Hence $P \xor Q \xor R$ is parsed as $(P\xor
+Q) \xor R$ and $P \xor Q \nand R$ as $P \xor (Q \nand R)$.  Note the
+quotation marks in \verb|"~&"| and \verb|"#"|.
+
+The constants \hbox{\verb|op ~&|} and \hbox{\verb|op #|} are declared
+automatically, just as in \ML.  Hence you may write propositions like
+\verb|op #(True) == op ~&(True)|, which asserts that the functions $\lambda
+Q.True \xor Q$ and $\lambda Q.True \nand Q$ are identical.
+
+\indexbold{mixfix operators}
+{\bf Mixfix} operators may have arbitrary context-free syntaxes.  For example
+\begin{ttbox} 
+    If :: "[o,o,o] => o"       ("if _ then _ else _")
+\end{ttbox}
+declares a constant $If$ of type $[o,o,o] \To o$ with concrete syntax
+$if~P~then~Q~else~R$ instead of $If(P,Q,R)$.  Underscores denote argument
+positions.  Pretty-printing information can be specified in order to
+improve the layout of formulae with mixfix operations.  For details, see
+{\em Isabelle's Object-Logics}.
+
+Mixfix declarations can be annotated with precedences, just like
+infixes.  The example above is just a shorthand for
+\begin{ttbox} 
+    If :: "[o,o,o] => o"       ("if _ then _ else _" [0,0,0] 1000)
+\end{ttbox}
+The numeric components determine precedences.  The list of integers
+defines, for each argument position, the minimal precedence an expression
+at that position must have.  The final integer is the precedence of the
+construct itself.  In the example above, any argument expression is
+acceptable because precedences are non-negative, and conditionals may
+appear everywhere because 1000 is the highest precedence.  On the other
+hand,
+\begin{ttbox} 
+    If :: "[o,o,o] => o"       ("if _ then _ else _" [100,0,0] 99)
+\end{ttbox}
+defines a conditional whose first argument cannot be a conditional because it
+must have a precedence of at least 100.  Precedences only apply to
+mixfix syntax: we may write $If(If(P,Q,R),S,T)$.
+
+Binary type constructors, like products and sums, may also be declared as
+infixes.  The type declaration below introduces a type constructor~$*$ with
+infix notation $\alpha*\beta$, together with the mixfix notation
+${<}\_,\_{>}$ for pairs.  
+\index{examples!of theories}
+\begin{ttbox}
+Prod = FOL +
+types   "*" 2                                 (infixl 20)
+arities "*"     :: (term,term)term
+consts  fst     :: "'a * 'b => 'a"
+        snd     :: "'a * 'b => 'b"
+        Pair    :: "['a,'b] => 'a * 'b"       ("(1<_,/_>)")
+rules   fst     "fst(<a,b>) = a"
+        snd     "snd(<a,b>) = b"
+end
+\end{ttbox}
+
+\begin{warn}
+The name of the type constructor is~{\tt *} and not {\tt op~*}, as it would
+be in the case of an infix constant.  Only infix type constructors can have
+symbolic names like~{\tt *}.  There is no general mixfix syntax for types.
+\end{warn}
+
+
+\subsection{Overloading}
+\index{overloading}\index{examples!of theories}
+The {\bf class declaration part} has the form
+\begin{ttbox}
+classes \(id@1\) < \(c@1\)
+        \vdots
+        \(id@n\) < \(c@n\)
+\end{ttbox}
+where $id@1$, \ldots, $id@n$ are identifiers and $c@1$, \ldots, $c@n$ are
+existing classes.  It declares each $id@i$ as a new class, a subclass
+of~$c@i$.  In the general case, an identifier may be declared to be a
+subclass of $k$ existing classes:
+\begin{ttbox}
+        \(id\) < \(c@1\), \ldots, \(c@k\)
+\end{ttbox}
+Type classes allow constants to be overloaded~(\S\ref{polymorphic}).  As an
+example, we define the class $arith$ of ``arithmetic'' types with the
+constants ${+} :: [\alpha,\alpha]\To \alpha$ and $0,1 :: \alpha$, for
+$\alpha{::}arith$.  We introduce $arith$ as a subclass of $term$ and add
+the three polymorphic constants of this class.
+\index{examples!of theories}
+\begin{ttbox}
+Arith = FOL +
+classes arith < term
+consts  "0"     :: "'a::arith"                  ("0")
+        "1"     :: "'a::arith"                  ("1")
+        "+"     :: "['a::arith,'a] => 'a"       (infixl 60)
+end
+\end{ttbox}
+No rules are declared for these constants: we merely introduce their
+names without specifying properties.  On the other hand, classes
+with rules make it possible to prove {\bf generic} theorems.  Such
+theorems hold for all instances, all types in that class.
+
+We can now obtain distinct versions of the constants of $arith$ by
+declaring certain types to be of class $arith$.  For example, let us
+declare the 0-place type constructors $bool$ and $nat$:
+\index{examples!of theories}
+\begin{ttbox}
+BoolNat = Arith +
+types   bool,nat    0
+arities bool,nat    :: arith
+consts  Suc         :: "nat=>nat"
+rules   add0        "0 + n = n::nat"
+        addS        "Suc(m)+n = Suc(m+n)"
+        nat1        "1 = Suc(0)"
+        or0l        "0 + x = x::bool"
+        or0r        "x + 0 = x::bool"
+        or1l        "1 + x = 1::bool"
+        or1r        "x + 1 = 1::bool"
+end
+\end{ttbox}
+Because $nat$ and $bool$ have class $arith$, we can use $0$, $1$ and $+$ at
+either type.  The type constraints in the axioms are vital.  Without
+constraints, the $x$ in $1+x = x$ would have type $\alpha{::}arith$
+and the axiom would hold for any type of class $arith$.  This would
+collapse $nat$:
+\[ Suc(1) = Suc(0+1) = Suc(0)+1 = 1+1 = 1! \]
+The class $arith$ as defined above is more specific than necessary.  Many
+types come with a binary operation and identity~(0).  On lists,
+$+$ could be concatenation and 0 the empty list --- but what is 1?  Hence it
+may be better to define $+$ and 0 on $arith$ and introduce a separate
+class, say $k$, containing~1.  Should $k$ be a subclass of $term$ or of
+$arith$?  This depends on the structure of your theories; the design of an
+appropriate class hierarchy may require some experimentation.
+
+We will now work through a small example of formalized mathematics
+demonstrating many of the theory extension features.
+
+
+\subsection{Extending first-order logic with the natural numbers}
+\index{examples!of theories}
+
+The early part of this paper defines a first-order logic, including a
+type~$nat$ and the constants $0::nat$ and $Suc::nat\To nat$.  Let us
+introduce the Peano axioms for mathematical induction and the freeness of
+$0$ and~$Suc$:
+\[ \vcenter{\infer[(induct)*]{P[n/x]}{P[0/x] & \infer*{P[Suc(x)/x]}{[P]}}}
+ \qquad \parbox{4.5cm}{provided $x$ is not free in any assumption except~$P$}
+\]
+\[ \infer[(Suc\_inject)]{m=n}{Suc(m)=Suc(n)} \qquad
+   \infer[(Suc\_neq\_0)]{R}{Suc(m)=0}
+\]
+Mathematical induction asserts that $P(n)$ is true, for any $n::nat$,
+provided $P(0)$ holds and that $P(x)$ implies $P(Suc(x))$ for all~$x$.
+Some authors express the induction step as $\forall x. P(x)\imp P(Suc(x))$.
+To avoid making induction require the presence of other connectives, we
+formalize mathematical induction as
+$$ \List{P(0); \Forall x. P(x)\Imp P(Suc(x))} \Imp P(n). \eqno(induct) $$
+
+\noindent
+Similarly, to avoid expressing the other rules using~$\forall$, $\imp$
+and~$\neg$, we take advantage of the meta-logic;\footnote
+{On the other hand, the axioms $Suc(m)=Suc(n) \bimp m=n$
+and $\neg(Suc(m)=0)$ are logically equivalent to those given, and work
+better with Isabelle's simplifier.} 
+$(Suc\_neq\_0)$ is
+an elimination rule for $Suc(m)=0$:
+$$ Suc(m)=Suc(n) \Imp m=n  \eqno(Suc\_inject) $$
+$$ Suc(m)=0      \Imp R    \eqno(Suc\_neq\_0) $$
+
+\noindent
+We shall also define a primitive recursion operator, $rec$.  Traditionally,
+primitive recursion takes a natural number~$a$ and a 2-place function~$f$,
+and obeys the equations
+\begin{eqnarray*}
+  rec(0,a,f)            & = & a \\
+  rec(Suc(m),a,f)       & = & f(m, rec(m,a,f))
+\end{eqnarray*}
+Addition, defined by $m+n \equiv rec(m,n,\lambda x\,y.Suc(y))$,
+should satisfy
+\begin{eqnarray*}
+  0+n      & = & n \\
+  Suc(m)+n & = & Suc(m+n)
+\end{eqnarray*}
+This appears to pose difficulties: first-order logic has no functions.
+Following the previous examples, we take advantage of the meta-logic, which
+does have functions.  We also generalise primitive recursion to be
+polymorphic over any type of class~$term$, and declare the addition
+function:
+\begin{eqnarray*}
+  rec   & :: & [nat, \alpha{::}term, [nat,\alpha]\To\alpha] \To\alpha \\
+  +     & :: & [nat,nat]\To nat 
+\end{eqnarray*}
+
+
+\subsection{Declaring the theory to Isabelle}
+\index{examples!of theories}
+Let us create the theory \ttindexbold{Nat} starting from theory~\verb$FOL$,
+which contains only classical logic with no natural numbers.  We declare
+the 0-place type constructor $nat$ and the constants $rec$ and~$Suc$:
+\begin{ttbox}
+Nat = FOL +
+types   nat 0
+arities nat         :: term
+consts  "0"         :: "nat"    ("0")
+        Suc         :: "nat=>nat"
+        rec         :: "[nat, 'a, [nat,'a]=>'a] => 'a"
+        "+"         :: "[nat, nat] => nat"              (infixl 60)
+rules   induct      "[| P(0);  !!x. P(x) ==> P(Suc(x)) |]  ==> P(n)"
+        Suc_inject  "Suc(m)=Suc(n) ==> m=n"
+        Suc_neq_0   "Suc(m)=0      ==> R"
+        rec_0       "rec(0,a,f) = a"
+        rec_Suc     "rec(Suc(m), a, f) = f(m, rec(m,a,f))"
+        add_def     "m+n == rec(m, n, %x y. Suc(y))"
+end
+\end{ttbox}
+In axiom {\tt add_def}, recall that \verb|%| stands for~$\lambda$.
+Opening the \ML\ structure {\tt Nat} permits reference to the axioms by \ML\
+identifiers; we may write {\tt induct} instead of {\tt Nat.induct}.
+\begin{ttbox}
+open Nat;
+\end{ttbox}
+File {\tt FOL/ex/nat.ML} contains proofs involving this theory of the
+natural numbers.  As a trivial example, let us derive recursion equations
+for \verb$+$.  Here is the zero case:
+\begin{ttbox} 
+goalw Nat.thy [add_def] "0+n = n";
+{\out Level 0}
+{\out 0 + n = n}
+{\out  1. rec(0,n,%x y. Suc(y)) = n}
+\ttbreak
+by (resolve_tac [rec_0] 1);
+{\out Level 1}
+{\out 0 + n = n}
+{\out No subgoals!}
+val add_0 = result();
+\end{ttbox} 
+And here is the successor case:
+\begin{ttbox} 
+goalw Nat.thy [add_def] "Suc(m)+n = Suc(m+n)";
+{\out Level 0}
+{\out Suc(m) + n = Suc(m + n)}
+{\out  1. rec(Suc(m),n,%x y. Suc(y)) = Suc(rec(m,n,%x y. Suc(y)))}
+\ttbreak
+by (resolve_tac [rec_Suc] 1);
+{\out Level 1}
+{\out Suc(m) + n = Suc(m + n)}
+{\out No subgoals!}
+val add_Suc = result();
+\end{ttbox} 
+The induction rule raises some complications, which are discussed next.
+\index{theories!defining|)}
+
+
+\section{Refinement with explicit instantiation}
+\index{refinement!with instantiation|bold}
+\index{instantiation!explicit|bold}
+In order to employ mathematical induction, we need to refine a subgoal by
+the rule~$(induct)$.  The conclusion of this rule is $\Var{P}(\Var{n})$,
+which is highly ambiguous in higher-order unification.  It matches every
+way that a formula can be regarded as depending on a subterm of type~$nat$.
+To get round this problem, we could make the induction rule conclude
+$\forall n.\Var{P}(n)$ --- but putting a subgoal into this form requires
+refinement by~$(\forall E)$, which is equally hard!
+
+The tactic {\tt res_inst_tac}, like {\tt resolve_tac}, refines a subgoal by
+a rule.  But it also accepts explicit instantiations for the rule's
+schematic variables.  
+\begin{description}
+\item[\ttindexbold{res_inst_tac} {\it insts} {\it thm} {\it i}]
+instantiates the rule {\it thm} with the instantiations {\it insts}, and
+then performs resolution on subgoal~$i$.
+
+\item[\ttindexbold{eres_inst_tac}] 
+and \ttindexbold{dres_inst_tac} are similar, but perform elim-resolution
+and destruct-resolution, respectively.
+\end{description}
+The list {\it insts} consists of pairs $[(v@1,e@1), \ldots, (v@n,e@n)]$,
+where $v@1$, \ldots, $v@n$ are names of schematic variables in the rule ---
+with {\bf no} leading question marks!! --- and $e@1$, \ldots, $e@n$ are
+expressions giving their instantiations.  The expressions are type-checked
+in the context of a particular subgoal: free variables receive the same
+types as they have in the subgoal, and parameters may appear.  Type
+variable instantiations may appear in~{\it insts}, but they are seldom
+required: {\tt res_inst_tac} instantiates type variables automatically
+whenever the type of~$e@i$ is an instance of the type of~$\Var{v@i}$.
+
+\subsection{A simple proof by induction}
+\index{proof!by induction}\index{examples!of induction}
+Let us prove that no natural number~$k$ equals its own successor.  To
+use~$(induct)$, we instantiate~$\Var{n}$ to~$k$; Isabelle finds a good
+instantiation for~$\Var{P}$.
+\begin{ttbox} 
+goal Nat.thy "~ (Suc(k) = k)";
+{\out Level 0}
+{\out ~Suc(k) = k}
+{\out  1. ~Suc(k) = k}
+\ttbreak
+by (res_inst_tac [("n","k")] induct 1);
+{\out Level 1}
+{\out ~Suc(k) = k}
+{\out  1. ~Suc(0) = 0}
+{\out  2. !!x. ~Suc(x) = x ==> ~Suc(Suc(x)) = Suc(x)}
+\end{ttbox} 
+We should check that Isabelle has correctly applied induction.  Subgoal~1
+is the base case, with $k$ replaced by~0.  Subgoal~2 is the inductive step,
+with $k$ replaced by~$Suc(x)$ and with an induction hypothesis for~$x$.
+The rest of the proof demonstrates~\ttindex{notI}, \ttindex{notE} and the
+other rules of~\ttindex{Nat.thy}.  The base case holds by~\ttindex{Suc_neq_0}:
+\begin{ttbox} 
+by (resolve_tac [notI] 1);
+{\out Level 2}
+{\out ~Suc(k) = k}
+{\out  1. Suc(0) = 0 ==> False}
+{\out  2. !!x. ~Suc(x) = x ==> ~Suc(Suc(x)) = Suc(x)}
+\ttbreak
+by (eresolve_tac [Suc_neq_0] 1);
+{\out Level 3}
+{\out ~Suc(k) = k}
+{\out  1. !!x. ~Suc(x) = x ==> ~Suc(Suc(x)) = Suc(x)}
+\end{ttbox} 
+The inductive step holds by the contrapositive of~\ttindex{Suc_inject}.
+Using the negation rule, we assume $Suc(Suc(x)) = Suc(x)$ and prove $Suc(x)=x$:
+\begin{ttbox} 
+by (resolve_tac [notI] 1);
+{\out Level 4}
+{\out ~Suc(k) = k}
+{\out  1. !!x. [| ~Suc(x) = x; Suc(Suc(x)) = Suc(x) |] ==> False}
+\ttbreak
+by (eresolve_tac [notE] 1);
+{\out Level 5}
+{\out ~Suc(k) = k}
+{\out  1. !!x. Suc(Suc(x)) = Suc(x) ==> Suc(x) = x}
+\ttbreak
+by (eresolve_tac [Suc_inject] 1);
+{\out Level 6}
+{\out ~Suc(k) = k}
+{\out No subgoals!}
+\end{ttbox} 
+
+
+\subsection{An example of ambiguity in {\tt resolve_tac}}
+\index{examples!of induction}\index{unification!higher-order}
+If you try the example above, you may observe that {\tt res_inst_tac} is
+not actually needed.  Almost by chance, \ttindex{resolve_tac} finds the right
+instantiation for~$(induct)$ to yield the desired next state.  With more
+complex formulae, our luck fails.  
+\begin{ttbox} 
+goal Nat.thy "(k+m)+n = k+(m+n)";
+{\out Level 0}
+{\out k + m + n = k + (m + n)}
+{\out  1. k + m + n = k + (m + n)}
+\ttbreak
+by (resolve_tac [induct] 1);
+{\out Level 1}
+{\out k + m + n = k + (m + n)}
+{\out  1. k + m + n = 0}
+{\out  2. !!x. k + m + n = x ==> k + m + n = Suc(x)}
+\end{ttbox} 
+This proof requires induction on~$k$.  But the 0 in subgoal~1 indicates
+that induction has been applied to the term~$k+(m+n)$.  The
+\ttindex{back} command causes backtracking to an alternative
+outcome of the tactic.  
+\begin{ttbox} 
+back();
+{\out Level 1}
+{\out k + m + n = k + (m + n)}
+{\out  1. k + m + n = k + 0}
+{\out  2. !!x. k + m + n = k + x ==> k + m + n = k + Suc(x)}
+\end{ttbox} 
+Now induction has been applied to~$m+n$.  Let us call \ttindex{back}
+again.
+\begin{ttbox} 
+back();
+{\out Level 1}
+{\out k + m + n = k + (m + n)}
+{\out  1. k + m + 0 = k + (m + 0)}
+{\out  2. !!x. k + m + x = k + (m + x) ==> k + m + Suc(x) = k + (m + Suc(x))}
+\end{ttbox} 
+Now induction has been applied to~$n$.  What is the next alternative?
+\begin{ttbox} 
+back();
+{\out Level 1}
+{\out k + m + n = k + (m + n)}
+{\out  1. k + m + n = k + (m + 0)}
+{\out  2. !!x. k + m + n = k + (m + x) ==> k + m + n = k + (m + Suc(x))}
+\end{ttbox} 
+Inspecting subgoal~1 reveals that induction has been applied to just the
+second occurrence of~$n$.  This perfectly legitimate induction is useless
+here.  The main goal admits fourteen different applications of induction.
+The number is exponential in the size of the formula.
+
+\subsection{Proving that addition is associative}
+\index{associativity of addition}
+\index{examples!of rewriting}
+Let us do the proof properly, using~\ttindex{res_inst_tac}.  At the same
+time, we shall have a glimpse at Isabelle's rewriting tactics, which are
+described in the {\em Reference Manual}.
+
+\index{rewriting!object-level} 
+Isabelle's rewriting tactics repeatedly applies equations to a subgoal,
+simplifying or proving it.  For efficiency, the rewriting rules must be
+packaged into a \bfindex{simplification set}.  Let us include the equations
+for~{\tt add} proved in the previous section, namely $0+n=n$ and ${\tt
+  Suc}(m)+n={\tt Suc}(m+n)$: 
+\begin{ttbox} 
+val add_ss = FOL_ss addrews [add_0, add_Suc];
+\end{ttbox} 
+We state the goal for associativity of addition, and
+use \ttindex{res_inst_tac} to invoke induction on~$k$:
+\begin{ttbox} 
+goal Nat.thy "(k+m)+n = k+(m+n)";
+{\out Level 0}
+{\out k + m + n = k + (m + n)}
+{\out  1. k + m + n = k + (m + n)}
+\ttbreak
+by (res_inst_tac [("n","k")] induct 1);
+{\out Level 1}
+{\out k + m + n = k + (m + n)}
+{\out  1. 0 + m + n = 0 + (m + n)}
+{\out  2. !!x. x + m + n = x + (m + n) ==> Suc(x) + m + n = Suc(x) + (m + n)}
+\end{ttbox} 
+The base case holds easily; both sides reduce to $m+n$.  The
+tactic~\ttindex{simp_tac} rewrites with respect to the given simplification
+set, applying the rewrite rules for~{\tt +}:
+\begin{ttbox} 
+by (simp_tac add_ss 1);
+{\out Level 2}
+{\out k + m + n = k + (m + n)}
+{\out  1. !!x. x + m + n = x + (m + n) ==> Suc(x) + m + n = Suc(x) + (m + n)}
+\end{ttbox} 
+The inductive step requires rewriting by the equations for~{\tt add}
+together the induction hypothesis, which is also an equation.  The
+tactic~\ttindex{asm_simp_tac} rewrites using a simplification set and any
+useful assumptions:
+\begin{ttbox} 
+by (asm_simp_tac add_ss 1);
+{\out Level 3}
+{\out k + m + n = k + (m + n)}
+{\out No subgoals!}
+\end{ttbox} 
+
+
+\section{A {\sc Prolog} interpreter}
+\index{Prolog interpreter|bold}
+To demonstrate the power of tacticals, let us construct a {\sc Prolog}
+interpreter and execute programs involving lists.\footnote{To run these
+examples, see the file {\tt FOL/ex/prolog.ML}.} The {\sc Prolog} program
+consists of a theory.  We declare a type constructor for lists, with an
+arity declaration to say that $(\tau)list$ is of class~$term$
+provided~$\tau$ is:
+\begin{eqnarray*}
+  list  & :: & (term)term
+\end{eqnarray*}
+We declare four constants: the empty list~$Nil$; the infix list
+constructor~{:}; the list concatenation predicate~$app$; the list reverse
+predicate~$rev$.  (In {\sc Prolog}, functions on lists are expressed as
+predicates.)
+\begin{eqnarray*}
+    Nil         & :: & \alpha list \\
+    {:}         & :: & [\alpha,\alpha list] \To \alpha list \\
+    app & :: & [\alpha list,\alpha list,\alpha list] \To o \\
+    rev & :: & [\alpha list,\alpha list] \To o 
+\end{eqnarray*}
+The predicate $app$ should satisfy the {\sc Prolog}-style rules
+\[ {app(Nil,ys,ys)} \qquad
+   {app(xs,ys,zs) \over app(x:xs, ys, x:zs)} \]
+We define the naive version of $rev$, which calls~$app$:
+\[ {rev(Nil,Nil)} \qquad
+   {rev(xs,ys)\quad  app(ys, x:Nil, zs) \over
+    rev(x:xs, zs)} 
+\]
+
+\index{examples!of theories}
+Theory \ttindex{Prolog} extends first-order logic in order to make use
+of the class~$term$ and the type~$o$.  The interpreter does not use the
+rules of~\ttindex{FOL}.
+\begin{ttbox}
+Prolog = FOL +
+types   list 1
+arities list    :: (term)term
+consts  Nil     :: "'a list"
+        ":"     :: "['a, 'a list]=> 'a list"            (infixr 60)
+        app     :: "['a list, 'a list, 'a list] => o"
+        rev     :: "['a list, 'a list] => o"
+rules   appNil  "app(Nil,ys,ys)"
+        appCons "app(xs,ys,zs) ==> app(x:xs, ys, x:zs)"
+        revNil  "rev(Nil,Nil)"
+        revCons "[| rev(xs,ys); app(ys,x:Nil,zs) |] ==> rev(x:xs,zs)"
+end
+\end{ttbox}
+\subsection{Simple executions}
+Repeated application of the rules solves {\sc Prolog} goals.  Let us
+append the lists $[a,b,c]$ and~$[d,e]$.  As the rules are applied, the
+answer builds up in~{\tt ?x}.
+\begin{ttbox}
+goal Prolog.thy "app(a:b:c:Nil, d:e:Nil, ?x)";
+{\out Level 0}
+{\out app(a : b : c : Nil, d : e : Nil, ?x)}
+{\out  1. app(a : b : c : Nil, d : e : Nil, ?x)}
+\ttbreak
+by (resolve_tac [appNil,appCons] 1);
+{\out Level 1}
+{\out app(a : b : c : Nil, d : e : Nil, a : ?zs1)}
+{\out  1. app(b : c : Nil, d : e : Nil, ?zs1)}
+\ttbreak
+by (resolve_tac [appNil,appCons] 1);
+{\out Level 2}
+{\out app(a : b : c : Nil, d : e : Nil, a : b : ?zs2)}
+{\out  1. app(c : Nil, d : e : Nil, ?zs2)}
+\end{ttbox}
+At this point, the first two elements of the result are~$a$ and~$b$.
+\begin{ttbox}
+by (resolve_tac [appNil,appCons] 1);
+{\out Level 3}
+{\out app(a : b : c : Nil, d : e : Nil, a : b : c : ?zs3)}
+{\out  1. app(Nil, d : e : Nil, ?zs3)}
+\ttbreak
+by (resolve_tac [appNil,appCons] 1);
+{\out Level 4}
+{\out app(a : b : c : Nil, d : e : Nil, a : b : c : d : e : Nil)}
+{\out No subgoals!}
+\end{ttbox}
+
+{\sc Prolog} can run functions backwards.  Which list can be appended
+with $[c,d]$ to produce $[a,b,c,d]$?
+Using \ttindex{REPEAT}, we find the answer at once, $[a,b]$:
+\begin{ttbox}
+goal Prolog.thy "app(?x, c:d:Nil, a:b:c:d:Nil)";
+{\out Level 0}
+{\out app(?x, c : d : Nil, a : b : c : d : Nil)}
+{\out  1. app(?x, c : d : Nil, a : b : c : d : Nil)}
+\ttbreak
+by (REPEAT (resolve_tac [appNil,appCons] 1));
+{\out Level 1}
+{\out app(a : b : Nil, c : d : Nil, a : b : c : d : Nil)}
+{\out No subgoals!}
+\end{ttbox}
+
+
+\subsection{Backtracking}
+\index{backtracking}
+Which lists $x$ and $y$ can be appended to form the list $[a,b,c,d]$?
+Using \ttindex{REPEAT} to apply the rules, we quickly find the solution
+$x=[]$ and $y=[a,b,c,d]$:
+\begin{ttbox}
+goal Prolog.thy "app(?x, ?y, a:b:c:d:Nil)";
+{\out Level 0}
+{\out app(?x, ?y, a : b : c : d : Nil)}
+{\out  1. app(?x, ?y, a : b : c : d : Nil)}
+\ttbreak
+by (REPEAT (resolve_tac [appNil,appCons] 1));
+{\out Level 1}
+{\out app(Nil, a : b : c : d : Nil, a : b : c : d : Nil)}
+{\out No subgoals!}
+\end{ttbox}
+The \ttindex{back} command returns the tactic's next outcome,
+$x=[a]$ and $y=[b,c,d]$:
+\begin{ttbox}
+back();
+{\out Level 1}
+{\out app(a : Nil, b : c : d : Nil, a : b : c : d : Nil)}
+{\out No subgoals!}
+\end{ttbox}
+The other solutions are generated similarly.
+\begin{ttbox}
+back();
+{\out Level 1}
+{\out app(a : b : Nil, c : d : Nil, a : b : c : d : Nil)}
+{\out No subgoals!}
+\ttbreak
+back();
+{\out Level 1}
+{\out app(a : b : c : Nil, d : Nil, a : b : c : d : Nil)}
+{\out No subgoals!}
+\ttbreak
+back();
+{\out Level 1}
+{\out app(a : b : c : d : Nil, Nil, a : b : c : d : Nil)}
+{\out No subgoals!}
+\end{ttbox}
+
+
+\subsection{Depth-first search}
+\index{search!depth-first}
+Now let us try $rev$, reversing a list.
+Bundle the rules together as the \ML{} identifier {\tt rules}.  Naive
+reverse requires 120 inferences for this 14-element list, but the tactic
+terminates in a few seconds.
+\begin{ttbox}
+goal Prolog.thy "rev(a:b:c:d:e:f:g:h:i:j:k:l:m:n:Nil, ?w)";
+{\out Level 0}
+{\out rev(a : b : c : d : e : f : g : h : i : j : k : l : m : n : Nil, ?w)}
+{\out  1. rev(a : b : c : d : e : f : g : h : i : j : k : l : m : n : Nil, ?w)}
+val rules = [appNil,appCons,revNil,revCons];
+\ttbreak
+by (REPEAT (resolve_tac rules 1));
+{\out Level 1}
+{\out rev(a : b : c : d : e : f : g : h : i : j : k : l : m : n : Nil,}
+{\out     n : m : l : k : j : i : h : g : f : e : d : c : b : a : Nil)}
+{\out No subgoals!}
+\end{ttbox}
+We may execute $rev$ backwards.  This, too, should reverse a list.  What
+is the reverse of $[a,b,c]$?
+\begin{ttbox}
+goal Prolog.thy "rev(?x, a:b:c:Nil)";
+{\out Level 0}
+{\out rev(?x, a : b : c : Nil)}
+{\out  1. rev(?x, a : b : c : Nil)}
+\ttbreak
+by (REPEAT (resolve_tac rules 1));
+{\out Level 1}
+{\out rev(?x1 : Nil, a : b : c : Nil)}
+{\out  1. app(Nil, ?x1 : Nil, a : b : c : Nil)}
+\end{ttbox}
+The tactic has failed to find a solution!  It reached a dead end at
+subgoal~1: there is no~$\Var{x1}$ such that [] appended with~$[\Var{x1}]$
+equals~$[a,b,c]$.  Backtracking explores other outcomes.
+\begin{ttbox}
+back();
+{\out Level 1}
+{\out rev(?x1 : a : Nil, a : b : c : Nil)}
+{\out  1. app(Nil, ?x1 : Nil, b : c : Nil)}
+\end{ttbox}
+This too is a dead end, but the next outcome is successful.
+\begin{ttbox}
+back();
+{\out Level 1}
+{\out rev(c : b : a : Nil, a : b : c : Nil)}
+{\out No subgoals!}
+\end{ttbox}
+\ttindex{REPEAT} stops when it cannot continue, regardless of which state
+is reached.  The tactical \ttindex{DEPTH_FIRST} searches for a satisfactory
+state, as specified by an \ML{} predicate.  Below,
+\ttindex{has_fewer_prems} specifies that the proof state should have no
+subgoals.  
+\begin{ttbox}
+val prolog_tac = DEPTH_FIRST (has_fewer_prems 1) 
+                             (resolve_tac rules 1);
+\end{ttbox}
+Since {\sc Prolog} uses depth-first search, this tactic is a (slow!) {\sc
+Prolog} interpreter.  We return to the start of the proof (using
+\ttindex{choplev}), and apply {\tt prolog_tac}:
+\begin{ttbox}
+choplev 0;
+{\out Level 0}
+{\out rev(?x, a : b : c : Nil)}
+{\out  1. rev(?x, a : b : c : Nil)}
+\ttbreak
+by (DEPTH_FIRST (has_fewer_prems 1) (resolve_tac rules 1));
+{\out Level 1}
+{\out rev(c : b : a : Nil, a : b : c : Nil)}
+{\out No subgoals!}
+\end{ttbox}
+Let us try {\tt prolog_tac} on one more example, containing four unknowns:
+\begin{ttbox}
+goal Prolog.thy "rev(a:?x:c:?y:Nil, d:?z:b:?u)";
+{\out Level 0}
+{\out rev(a : ?x : c : ?y : Nil, d : ?z : b : ?u)}
+{\out  1. rev(a : ?x : c : ?y : Nil, d : ?z : b : ?u)}
+\ttbreak
+by prolog_tac;
+{\out Level 1}
+{\out rev(a : b : c : d : Nil, d : c : b : a : Nil)}
+{\out No subgoals!}
+\end{ttbox}
+Although Isabelle is much slower than a {\sc Prolog} system, many
+Isabelle tactics exploit logic programming techniques.  For instance, the
+simplification tactics prove subgoals of the form $t=\Var{x}$, rewriting~$t$
+and placing the normalised result in~$\Var{x}$.
+% Local Variables: 
+% mode: latex
+% TeX-master: t
+% End: 

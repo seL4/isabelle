@@ -1,0 +1,1123 @@
+%% $Id$
+\part{Foundations} 
+This Part presents Isabelle's logical foundations in detail:
+representing logical syntax in the typed $\lambda$-calculus; expressing
+inference rules in Isabelle's meta-logic; combining rules by resolution.
+Readers wishing to use Isabelle immediately may prefer to skip straight to
+Part~II, using this Part (via the index) for reference only.
+
+\begin{figure} 
+\begin{eqnarray*}
+  \neg P   & \hbox{abbreviates} & P\imp\bot \\
+  P\bimp Q & \hbox{abbreviates} & (P\imp Q) \conj (Q\imp P)
+\end{eqnarray*}
+\vskip 4ex
+
+\(\begin{array}{c@{\qquad\qquad}c}
+  \infer[({\conj}I)]{P\conj Q}{P & Q}  &
+  \infer[({\conj}E1)]{P}{P\conj Q} \qquad 
+  \infer[({\conj}E2)]{Q}{P\conj Q} \\[4ex]
+
+  \infer[({\disj}I1)]{P\disj Q}{P} \qquad 
+  \infer[({\disj}I2)]{P\disj Q}{Q} &
+  \infer[({\disj}E)]{R}{P\disj Q & \infer*{R}{[P]} & \infer*{R}{[Q]}}\\[4ex]
+
+  \infer[({\imp}I)]{P\imp Q}{\infer*{Q}{[P]}} &
+  \infer[({\imp}E)]{Q}{P\imp Q & P}  \\[4ex]
+
+  &
+  \infer[({\bot}E)]{P}{\bot}\\[4ex]
+
+  \infer[({\forall}I)*]{\forall x.P}{P} &
+  \infer[({\forall}E)]{P[t/x]}{\forall x.P} \\[3ex]
+
+  \infer[({\exists}I)]{\exists x.P}{P[t/x]} &
+  \infer[({\exists}E)*]{Q}{{\exists x.P} & \infer*{Q}{[P]} } \\[3ex]
+
+  {t=t} \,(refl)   &  \vcenter{\infer[(subst)]{P[u/x]}{t=u & P[t/x]}} 
+\end{array} \)
+
+\bigskip\bigskip
+*{\em Eigenvariable conditions\/}:
+
+$\forall I$: provided $x$ is not free in the assumptions
+
+$\exists E$: provided $x$ is not free in $Q$ or any assumption except $P$
+\caption{Intuitionistic first-order logic} \label{fol-fig}
+\end{figure}
+
+\section{Formalizing logical syntax in Isabelle}
+\index{Isabelle!formalizing syntax|bold}
+Figure~\ref{fol-fig} presents intuitionistic first-order logic,
+including equality and the natural numbers.  Let us see how to formalize
+this logic in Isabelle, illustrating the main features of Isabelle's
+polymorphic meta-logic.
+
+Isabelle represents syntax using the typed $\lambda$-calculus.  We declare
+a type for each syntactic category of the logic.  We declare a constant for
+each symbol of the logic, giving each $n$-ary operation an $n$-argument
+curried function type.  Most importantly, $\lambda$-abstraction represents
+variable binding in quantifiers.
+
+\index{$\To$|bold}\index{types}
+Isabelle has \ML-style type constructors such as~$(\alpha)list$, where
+$(bool)list$ is the type of lists of booleans.  Function types have the
+form $\sigma\To\tau$, where $\sigma$ and $\tau$ are types.  Functions
+taking $n$~arguments require curried function types; we may abbreviate
+\[  \sigma@1\To (\cdots \sigma@n\To \tau\cdots)  \quad \hbox{as} \quad
+   [\sigma@1, \ldots, \sigma@n] \To \tau. $$ 
+ 
+The syntax for terms is summarised below.  Note that function application is
+written $t(u)$ rather than the usual $t\,u$.
+\[ 
+\begin{array}{ll}
+  t :: \sigma   & \hbox{type constraint, on a term or variable} \\
+  \lambda x.t   & \hbox{abstraction} \\
+  \lambda x@1\ldots x@n.t
+        & \hbox{curried abstraction, $\lambda x@1. \ldots \lambda x@n.t$} \\
+  t(u)          & \hbox{application} \\
+  t (u@1, \ldots, u@n) & \hbox{curried application, $t(u@1)\ldots(u@n)$} 
+\end{array}
+\]
+
+
+\subsection{Simple types and constants}
+\index{types!simple|bold}
+The syntactic categories of our logic (Figure~\ref{fol-fig}) are 
+{\bf formulae} and {\bf terms}.  Formulae denote truth
+values, so (following logical tradition) we call their type~$o$.  Terms can
+be constructed using~0 and~$Suc$, requiring a type~$nat$ of natural
+numbers.  Later, we shall see how to admit terms of other types.
+
+After declaring the types~$o$ and~$nat$, we may declare constants for the
+symbols of our logic.  Since $\bot$ denotes a truth value (falsity) and 0
+denotes a number, we put \begin{eqnarray*}
+  \bot  & :: & o \\
+  0     & :: & nat.
+\end{eqnarray*}
+If a symbol requires operands, the corresponding constant must have a
+function type.  In our logic, the successor function
+($Suc$) is from natural numbers to natural numbers, negation ($\neg$) is a
+function from truth values to truth values, and the binary connectives are
+curried functions taking two truth values as arguments: 
+\begin{eqnarray*}
+  Suc    & :: & nat\To nat  \\
+  {\neg} & :: & o\To o      \\
+  \conj,\disj,\imp,\bimp  & :: & [o,o]\To o 
+\end{eqnarray*}
+
+Isabelle allows us to declare the binary connectives as infixes, with
+appropriate precedences, so that we write $P\conj Q\disj R$ instead of
+$\disj(\conj(P,Q), R)$.
+
+
+\subsection{Polymorphic types and constants} \label{polymorphic}
+\index{types!polymorphic|bold}
+Which type should we assign to the equality symbol?  If we tried
+$[nat,nat]\To o$, then equality would be restricted to the natural
+numbers; we would have to declare different equality symbols for each
+type.  Isabelle's type system is polymorphic, so we could declare
+\begin{eqnarray*}
+  {=}  & :: & [\alpha,\alpha]\To o.
+\end{eqnarray*}
+But this is also wrong.  The declaration is too polymorphic; $\alpha$
+ranges over all types, including~$o$ and $nat\To nat$.  Thus, it admits
+$\bot=\neg(\bot)$ and $Suc=Suc$ as formulae, which is acceptable in
+higher-order logic but not in first-order logic.
+
+Isabelle's \bfindex{classes} control polymorphism.  Each type variable
+belongs to a class, which denotes a set of types.  Classes are partially
+ordered by the subclass relation, which is essentially the subset relation
+on the sets of types.  They closely resemble the classes of the functional
+language Haskell~\cite{haskell-tutorial,haskell-report}.  Nipkow and
+Prehofer discuss type inference for type classes~\cite{nipkow-prehofer}.
+
+Isabelle provides the built-in class $logic$, which consists of the logical
+types: the ones we want to reason about.  Let us declare a class $term$, to
+consist of all legal types of terms in our logic.  The subclass structure
+is now $term\le logic$.
+
+We declare $nat$ to be in class $term$.  Type variables of class~$term$
+should resemble Standard~\ML's equality type variables, which range over
+those types that possess an equality test.  Thus, we declare the equality
+constant by
+\begin{eqnarray*}
+  {=}  & :: & [\alpha{::}term,\alpha]\To o 
+\end{eqnarray*}
+We give function types and~$o$ the class $logic$ rather than~$term$, since
+they are not legal types for terms.  We may introduce new types of class
+$term$ --- for instance, type $string$ or $real$ --- at any time.  We can
+even declare type constructors such as $(\alpha)list$, and state that type
+$(\sigma)list$ belongs to class~$term$ provided $\sigma$ does;  equality
+applies to lists of natural numbers but not to lists of formulae.  We may
+summarize this paragraph by a set of {\bf arity declarations} for type
+constructors: 
+\index{$\To$|bold}\index{arities!declaring}
+\begin{eqnarray*}
+  o     & :: & logic \\
+  {\To} & :: & (logic,logic)logic \\
+  nat, string, real     & :: & term \\
+  list  & :: & (term)term
+\end{eqnarray*}
+Higher-order logic, where equality does apply to truth values and
+functions, would require different arity declarations, namely ${o::term}$
+and ${{\To}::(term,term)term}$.  The class system can also handle
+overloading.\index{overloading|bold} We could declare $arith$ to be the
+subclass of $term$ consisting of the `arithmetic' types, such as~$nat$.
+Then we could declare the operators
+\begin{eqnarray*}
+  {+},{-},{\times},{/}  & :: & [\alpha{::}arith,\alpha]\To \alpha
+\end{eqnarray*}
+If we declare new types $real$ and $complex$ of class $arith$, then we
+effectively have three sets of operators:
+\begin{eqnarray*}
+  {+},{-},{\times},{/}  & :: & [nat,nat]\To nat \\
+  {+},{-},{\times},{/}  & :: & [real,real]\To real \\
+  {+},{-},{\times},{/}  & :: & [complex,complex]\To complex 
+\end{eqnarray*}
+Isabelle will regard these as distinct constants, each of which can be defined
+separately.  We could even introduce the type $(\alpha)vector$, make
+$(\sigma)vector$ belong to $arith$ provided $\sigma$ is in $arith$, and define
+\begin{eqnarray*}
+  {+}  & :: & [(\sigma)vector,(\sigma)vector]\To (\sigma)vector 
+\end{eqnarray*}
+in terms of ${+} :: [\sigma,\sigma]\To \sigma$.
+
+Although we have pretended so far that a type variable belongs to only one
+class --- Isabelle's concrete syntax helps to uphold this illusion --- it
+may in fact belong to any finite number of classes.  For example suppose
+that we had declared yet another class $ord \le term$, the class of all
+`ordered' types, and a constant
+\begin{eqnarray*}
+  {\le}  & :: & [\alpha{::}ord,\alpha]\To o.
+\end{eqnarray*}
+In this context the variable $x$ in $x \le (x+x)$ will be assigned type
+$\alpha{::}\{arith,ord\}$, i.e.\ $\alpha$ belongs to both $arith$ and $ord$.
+Semantically the set $\{arith,ord\}$ should be understood
+as the intersection of the sets of types represented by $arith$ and $ord$.
+Such intersections of classes are called \bfindex{sorts}.  The empty
+intersection of classes, $\{\}$, contains all types and is thus the
+{\bf universal sort}.
+
+The type checker handles overloading, assigning each term a unique type.  For
+this to be possible, the class and type declarations must satisfy certain
+technical constraints~\cite{nipkow-prehofer}.
+
+\subsection{Higher types and quantifiers}
+\index{types!higher|bold}
+Quantifiers are regarded as operations upon functions.  Ignoring polymorphism
+for the moment, consider the formula $\forall x. P(x)$, where $x$ ranges
+over type~$nat$.  This is true if $P(x)$ is true for all~$x$.  Abstracting
+$P(x)$ into a function, this is the same as saying that $\lambda x.P(x)$
+returns true for all arguments.  Thus, the universal quantifier can be
+represented by a constant
+\begin{eqnarray*}
+  \forall  & :: & (nat\To o) \To o,
+\end{eqnarray*}
+which is essentially an infinitary truth table.  The representation of $\forall
+x. P(x)$ is $\forall(\lambda x. P(x))$.  
+
+The existential quantifier is treated
+in the same way.  Other binding operators are also easily handled; for
+instance, the summation operator $\Sigma@{k=i}^j f(k)$ can be represented as
+$\Sigma(i,j,\lambda k.f(k))$, where
+\begin{eqnarray*}
+  \Sigma  & :: & [nat,nat, nat\To nat] \To nat.
+\end{eqnarray*}
+Quantifiers may be polymorphic.  We may define $\forall$ and~$\exists$ over
+all legal types of terms, not just the natural numbers, and
+allow summations over all arithmetic types:
+\begin{eqnarray*}
+   \forall,\exists      & :: & (\alpha{::}term\To o) \To o \\
+   \Sigma               & :: & [nat,nat, nat\To \alpha{::}arith] \To \alpha
+\end{eqnarray*}
+Observe that the index variables still have type $nat$, while the values
+being summed may belong to any arithmetic type.
+
+
+\section{Formalizing logical rules in Isabelle}
+\index{meta-logic|bold}
+\index{Isabelle!formalizing rules|bold}
+\index{$\Imp$|bold}\index{$\Forall$|bold}\index{$\equiv$|bold}
+\index{implication!meta-level|bold}
+\index{quantifiers!meta-level|bold}
+\index{equality!meta-level|bold}
+Object-logics are formalized by extending Isabelle's meta-logic, which is
+intuitionistic higher-order logic.  The meta-level connectives are {\bf
+implication}, the {\bf universal quantifier}, and {\bf equality}.
+\begin{itemize}
+  \item The implication \(\phi\Imp \psi\) means `\(\phi\) implies
+\(\psi\)', and expresses logical {\bf entailment}.  
+
+  \item The quantification \(\Forall x.\phi\) means `\(\phi\) is true for
+all $x$', and expresses {\bf generality} in rules and axiom schemes. 
+
+\item The equality \(a\equiv b\) means `$a$ equals $b$', for expressing
+  \bfindex{definitions} (see~\S\ref{definitions}).  Equalities left over
+  from the unification process, so called \bfindex{flex-flex equations},
+  are written $a\qeq b$.  The two equality symbols have the same logical
+  meaning. 
+
+\end{itemize}
+The syntax of the meta-logic is formalized in precisely in the same manner
+as object-logics, using the typed $\lambda$-calculus.  Analogous to
+type~$o$ above, there is a built-in type $prop$ of meta-level truth values.
+Meta-level formulae will have this type.  Type $prop$ belongs to
+class~$logic$; also, $\sigma\To\tau$ belongs to $logic$ provided $\sigma$
+and $\tau$ do.  Here are the types of the built-in connectives:
+\begin{eqnarray*}
+  \Imp     & :: & [prop,prop]\To prop \\
+  \Forall  & :: & (\alpha{::}logic\To prop) \To prop \\
+  {\equiv} & :: & [\alpha{::}\{\},\alpha]\To prop \\
+  \qeq & :: & [\alpha{::}\{\},\alpha]\To prop c
+\end{eqnarray*}
+The restricted polymorphism in $\Forall$ excludes certain types, those used
+just for parsing. 
+
+In our formalization of first-order logic, we declared a type~$o$ of
+object-level truth values, rather than using~$prop$ for this purpose.  If
+we declared the object-level connectives to have types such as
+${\neg}::prop\To prop$, then these connectives would be applicable to
+meta-level formulae.  Keeping $prop$ and $o$ as separate types maintains
+the distinction between the meta-level and the object-level.  To formalize
+the inference rules, we shall need to relate the two levels; accordingly,
+we declare the constant
+\index{Trueprop@{$Trueprop$}}
+\begin{eqnarray*}
+  Trueprop & :: & o\To prop.
+\end{eqnarray*}
+We may regard $Trueprop$ as a meta-level predicate, reading $Trueprop(P)$ as
+`$P$ is true at the object-level.'  Put another way, $Trueprop$ is a coercion
+from $o$ to $prop$.
+
+
+\subsection{Expressing propositional rules}
+\index{rules!propositional|bold}
+We shall illustrate the use of the meta-logic by formalizing the rules of
+Figure~\ref{fol-fig}.  Each object-level rule is expressed as a meta-level
+axiom. 
+
+One of the simplest rules is $(\conj E1)$.  Making
+everything explicit, its formalization in the meta-logic is
+$$ \Forall P\;Q. Trueprop(P\conj Q) \Imp Trueprop(P).   \eqno(\conj E1) $$
+This may look formidable, but it has an obvious reading: for all object-level
+truth values $P$ and~$Q$, if $P\conj Q$ is true then so is~$P$.  The
+reading is correct because the meta-logic has simple models, where
+types denote sets and $\Forall$ really means `for all.'
+
+\index{Trueprop@{$Trueprop$}}
+Isabelle adopts notational conventions to ease the writing of rules.  We may
+hide the occurrences of $Trueprop$ by making it an implicit coercion.
+Outer universal quantifiers may be dropped.  Finally, the nested implication
+\[  \phi@1\Imp(\cdots \phi@n\Imp\psi\cdots) \]
+may be abbreviated as $\List{\phi@1; \ldots; \phi@n} \Imp \psi$, which
+formalizes a rule of $n$~premises.
+
+Using these conventions, the conjunction rules become the following axioms.
+These fully specify the properties of~$\conj$:
+$$ \List{P; Q} \Imp P\conj Q                 \eqno(\conj I) $$
+$$ P\conj Q \Imp P  \qquad  P\conj Q \Imp Q  \eqno(\conj E1,2) $$
+
+\noindent
+Next, consider the disjunction rules.  The discharge of assumption in
+$(\disj E)$ is expressed  using $\Imp$:
+$$ P \Imp P\disj Q  \qquad  Q \Imp P\disj Q  \eqno(\disj I1,2) $$
+$$ \List{P\disj Q; P\Imp R; Q\Imp R} \Imp R  \eqno(\disj E) $$
+
+\noindent
+To understand this treatment of assumptions\index{assumptions} in natural
+deduction, look at implication.  The rule $({\imp}I)$ is the classic
+example of natural deduction: to prove that $P\imp Q$ is true, assume $P$
+is true and show that $Q$ must then be true.  More concisely, if $P$
+implies $Q$ (at the meta-level), then $P\imp Q$ is true (at the
+object-level).  Showing the coercion explicitly, this is formalized as
+\[ (Trueprop(P)\Imp Trueprop(Q)) \Imp Trueprop(P\imp Q). \]
+The rule $({\imp}E)$ is straightforward; hiding $Trueprop$, the axioms to
+specify $\imp$ are 
+$$ (P \Imp Q)  \Imp  P\imp Q   \eqno({\imp}I) $$
+$$ \List{P\imp Q; P}  \Imp Q.  \eqno({\imp}E) $$
+
+\noindent
+Finally, the intuitionistic contradiction rule is formalized as the axiom
+$$ \bot \Imp P.   \eqno(\bot E) $$
+
+\begin{warn}
+Earlier versions of Isabelle, and certain
+papers~\cite{paulson89,paulson700}, use $\List{P}$ to mean $Trueprop(P)$.
+\index{Trueprop@{$Trueprop$}}
+\end{warn}
+
+\subsection{Quantifier rules and substitution}
+\index{rules!quantifier|bold}\index{substitution|bold}
+\index{variables!bound}
+Isabelle expresses variable binding using $\lambda$-abstraction; for instance,
+$\forall x.P$ is formalized as $\forall(\lambda x.P)$.  Recall that $F(t)$
+is Isabelle's syntax for application of the function~$F$ to the argument~$t$;
+it is not a meta-notation for substitution.  On the other hand, a substitution
+will take place if $F$ has the form $\lambda x.P$;  Isabelle transforms
+$(\lambda x.P)(t)$ to~$P[t/x]$ by $\beta$-conversion.  Thus, we can express
+inference rules that involve substitution for bound variables.
+
+\index{parameters|bold}\index{eigenvariables|see{parameters}}
+A logic may attach provisos to certain of its rules, especially quantifier
+rules.  We cannot hope to formalize arbitrary provisos.  Fortunately, those
+typical of quantifier rules always have the same form, namely `$x$ not free in
+\ldots {\it (some set of formulae)},' where $x$ is a variable (called a {\bf
+parameter} or {\bf eigenvariable}) in some premise.  Isabelle treats
+provisos using~$\Forall$, its inbuilt notion of `for all'.
+
+\index{$\Forall$}
+The purpose of the proviso `$x$ not free in \ldots' is
+to ensure that the premise may not make assumptions about the value of~$x$,
+and therefore holds for all~$x$.  We formalize $(\forall I)$ by
+\[ \left(\Forall x. Trueprop(P(x))\right) \Imp Trueprop(\forall x.P(x)). \]
+This means, `if $P(x)$ is true for all~$x$, then $\forall x.P(x)$ is true.'
+The $\forall E$ rule exploits $\beta$-conversion.  Hiding $Trueprop$, the
+$\forall$ axioms are
+$$ \left(\Forall x. P(x)\right)  \Imp  \forall x.P(x)   \eqno(\forall I) $$
+$$ \forall x.P(x)  \Imp P(t).  \eqno(\forall E)$$
+
+\noindent
+We have defined the object-level universal quantifier~($\forall$)
+using~$\Forall$.  But we do not require meta-level counterparts of all the
+connectives of the object-logic!  Consider the existential quantifier: 
+$$ P(t)  \Imp  \exists x.P(x)  \eqno(\exists I)$$
+$$ \List{\exists x.P(x);\; \Forall x. P(x)\Imp Q} \Imp Q  \eqno(\exists E) $$
+Let us verify $(\exists E)$ semantically.  Suppose that the premises
+hold; since $\exists x.P(x)$ is true, we may choose $a$ such that $P(a)$ is
+true.  Instantiating $\Forall x. P(x)\Imp Q$ with $a$ yields $P(a)\Imp Q$, and
+we obtain the desired conclusion, $Q$.
+
+The treatment of substitution deserves mention.  The rule
+\[ \infer{P[u/t]}{t=u & P} \]
+would be hard to formalize in Isabelle.  It calls for replacing~$t$ by $u$
+throughout~$P$, which cannot be expressed using $\beta$-conversion.  Our
+rule~$(subst)$ uses the occurrences of~$x$ in~$P$ as a template for
+substitution, inferring $P[u/x]$ from~$P[t/x]$.  When we formalize this as
+an axiom, the template becomes a function variable:
+$$ \List{t=u; P(t)} \Imp P(u).  \eqno(subst)$$
+
+
+\subsection{Signatures and theories}
+\index{signatures|bold}\index{theories|bold}
+A {\bf signature} contains the information necessary for type checking,
+parsing and pretty printing.  It specifies classes and their
+relationships; types, with their arities, and constants, with
+their types.  It also contains syntax rules, specified using mixfix
+declarations.
+
+Two signatures can be merged provided their specifications are compatible ---
+they must not, for example, assign different types to the same constant.
+Under similar conditions, a signature can be extended.  Signatures are
+managed internally by Isabelle; users seldom encounter them.
+
+A {\bf theory} consists of a signature plus a collection of axioms.  The
+{\bf pure} theory contains only the meta-logic.  Theories can be combined
+provided their signatures are compatible.  A theory definition extends an
+existing theory with further signature specifications --- classes, types,
+constants and mixfix declarations --- plus a list of axioms, expressed as
+strings to be parsed.  A theory can formalize a small piece of mathematics,
+such as lists and their operations, or an entire logic.  A mathematical
+development typically involves many theories in a hierarchy.  For example,
+the pure theory could be extended to form a theory for
+Figure~\ref{fol-fig}; this could be extended in two separate ways to form a
+theory for natural numbers and a theory for lists; the union of these two
+could be extended into a theory defining the length of a list:
+\[ \bf
+\begin{array}{c@{}c@{}c@{}c@{}c}
+     {}   &     {} & \hbox{Length} &  {}   &     {}   \\
+     {}   &     {}   &  \uparrow &     {}   &     {}   \\
+     {}   &     {} &\hbox{Nat}+\hbox{List}&  {}   &     {}   \\
+     {}   & \nearrow &     {}    & \nwarrow &     {}   \\
+ \hbox{Nat} &   {}   &     {}    &     {}   & \hbox{List} \\
+     {}   & \nwarrow &     {}    & \nearrow &     {}   \\
+     {}   &     {}   &\hbox{FOL} &     {}   &     {}   \\
+     {}   &     {}   &  \uparrow &     {}   &     {}   \\
+     {}   &     {}   &\hbox{Pure}&     {}  &     {}
+\end{array}
+\]
+Each Isabelle proof typically works within a single theory, which is
+associated with the proof state.  However, many different theories may
+coexist at the same time, and you may work in each of these during a single
+session.  
+
+
+\section{Proof construction in Isabelle}
+\index{Isabelle!proof construction in|bold}
+There is a one-to-one correspondence between meta-level proofs and
+object-level proofs~\cite{paulson89}.  To each use of a meta-level axiom,
+such as $(\forall I)$, there is a use of the corresponding object-level
+rule.  Object-level assumptions and parameters have meta-level
+counterparts.  The meta-level formalization is {\bf faithful}, admitting no
+incorrect object-level inferences, and {\bf adequate}, admitting all
+correct object-level inferences.  These properties must be demonstrated
+separately for each object-logic.
+
+The meta-logic is defined by a collection of inference rules, including
+equational rules for the $\lambda$-calculus, and logical rules.  The rules
+for~$\Imp$ and~$\Forall$ resemble those for~$\imp$ and~$\forall$ in
+Figure~\ref{fol-fig}.  Proofs performed using the primitive meta-rules
+would be lengthy; Isabelle proofs normally use certain derived rules.
+{\bf Resolution}, in particular, is convenient for backward proof.
+
+Unification is central to theorem proving.  It supports quantifier
+reasoning by allowing certain `unknown' terms to be instantiated later,
+possibly in stages.  When proving that the time required to sort $n$
+integers is proportional to~$n^2$, we need not state the constant of
+proportionality; when proving that a hardware adder will deliver the sum of
+its inputs, we need not state how many clock ticks will be required.  Such
+quantities often emerge from the proof.
+
+\index{variables!schematic|see{unknowns}}
+Isabelle provides {\bf schematic variables}, or \bfindex{unknowns}, for
+unification.  Logically, unknowns are free variables.  Pragmatically, they
+may be instantiated during a proof, while ordinary variables remain fixed.
+Unknowns are written with a ?\ prefix and are frequently subscripted:
+$\Var{a}$, $\Var{a@1}$, $\Var{a@2}$, \ldots, $\Var{P}$, $\Var{P@1}$, \ldots.
+
+Recall that an inference rule of the form
+\[ \infer{\phi}{\phi@1 & \ldots & \phi@n} \]
+is formalized in Isabelle's meta-logic as the axiom
+$\List{\phi@1; \ldots; \phi@n} \Imp \phi$.
+Such axioms resemble {\sc Prolog}'s Horn clauses, and can be combined by
+resolution --- Isabelle's principal proof method.  Resolution yields both
+forward and backward proof.  Backward proof works by unifying a goal with
+the conclusion of a rule, whose premises become new subgoals.  Forward proof
+works by unifying theorems with the premises of a rule, deriving a new theorem.
+
+Isabelle axioms will require an extended notion of resolution, because
+they differ from Horn clauses in two major respects:
+\begin{itemize}
+  \item They are written in the typed $\lambda$-calculus, and therefore must be
+resolved using higher-order unification.
+
+  \item Horn clauses are composed of atomic formulae.  Any formula of the form
+$Trueprop(\cdots)$ is atomic, but axioms such as ${\imp}I$ and $\forall I$
+contain non-atomic formulae.
+\index{Trueprop@{$Trueprop$}}
+\end{itemize}
+Isabelle should not be confused with classical resolution theorem provers
+such as Otter~\cite{wos-bledsoe}.  At the meta-level, Isabelle proves
+theorems in their positive form, not by refutation.  However, an
+object-logic that includes a contradiction rule may employ a refutation
+proof procedure.
+
+
+\subsection{Higher-order unification}
+\index{unification!higher-order|bold}
+Unification is equation solving.  The solution of $f(\Var{x},c) \qeq
+f(d,\Var{y})$ is $\Var{x}\equiv d$ and $\Var{y}\equiv c$.  {\bf
+Higher-order unification} is equation solving for typed $\lambda$-terms.
+To handle $\beta$-conversion, it must reduce $(\lambda x.t)u$ to $t[u/x]$.
+That is easy --- in the typed $\lambda$-calculus, all reduction sequences
+terminate at a normal form.  But it must guess the unknown
+function~$\Var{f}$ in order to solve the equation
+\begin{equation} \label{hou-eqn}
+ \Var{f}(t) \qeq g(u@1,\ldots,u@k).
+\end{equation}
+Huet's~\cite{huet75} search procedure solves equations by imitation and
+projection.  {\bf Imitation}\index{imitation|bold} makes~$\Var{f}$ apply
+leading symbol (if a constant) of the right-hand side.  To solve
+equation~(\ref{hou-eqn}), it guesses
+\[ \Var{f} \equiv \lambda x. g(\Var{h@1}(x),\ldots,\Var{h@k}(x)), \]
+where $\Var{h@1}$, \ldots, $\Var{h@k}$ are new unknowns.  Assuming there are no
+other occurrences of~$\Var{f}$, equation~(\ref{hou-eqn}) simplifies to the
+set of equations
+\[ \Var{h@1}(t)\qeq u@1 \quad\ldots\quad \Var{h@k}(t)\qeq u@k. \]
+If the procedure solves these equations, instantiating $\Var{h@1}$, \ldots,
+$\Var{h@k}$, then it yields an instantiation for~$\Var{f}$.
+
+\index{projection|bold}
+{\bf Projection} makes $\Var{f}$ apply one of its arguments.  To solve
+equation~(\ref{hou-eqn}), if $t$ expects~$m$ arguments and delivers a
+result of suitable type, it guesses
+\[ \Var{f} \equiv \lambda x. x(\Var{h@1}(x),\ldots,\Var{h@m}(x)), \]
+where $\Var{h@1}$, \ldots, $\Var{h@m}$ are new unknowns.  Assuming there are no
+other occurrences of~$\Var{f}$, equation~(\ref{hou-eqn}) simplifies to the 
+equation 
+\[ t(\Var{h@1}(t),\ldots,\Var{h@m}(t)) \qeq g(u@1,\ldots,u@k). $$ 
+
+\begin{warn}
+Huet's unification procedure is complete.  Isabelle's polymorphic version,
+which solves for type unknowns as well as for term unknowns, is incomplete.
+The problem is that projection requires type information.  In
+equation~(\ref{hou-eqn}), if the type of~$t$ is unknown, then projections
+are possible for all~$m\geq0$, and the types of the $\Var{h@i}$ will be
+similarly unconstrained.  Therefore, Isabelle never attempts such
+projections, and may fail to find unifiers where a type unknown turns out
+to be a function type.
+\end{warn}
+
+\index{unknowns!of function type|bold}
+Given $\Var{f}(t@1,\ldots,t@n)\qeq u$, Huet's procedure could make up to
+$n+1$ guesses.  The search tree and set of unifiers may be infinite.  But
+higher-order unification can work effectively, provided you are careful
+with {\bf function unknowns}:
+\begin{itemize}
+  \item Equations with no function unknowns are solved using first-order
+unification, extended to treat bound variables.  For example, $\lambda x.x
+\qeq \lambda x.\Var{y}$ has no solution because $\Var{y}\equiv x$ would
+capture the free variable~$x$.
+
+  \item An occurrence of the term $\Var{f}(x,y,z)$, where the arguments are
+distinct bound variables, causes no difficulties.  Its projections can only
+match the corresponding variables.
+
+  \item Even an equation such as $\Var{f}(a)\qeq a+a$ is all right.  It has
+four solutions, but Isabelle evaluates them lazily, trying projection before
+imitation. The first solution is usually the one desired:
+\[ \Var{f}\equiv \lambda x. x+x \quad
+   \Var{f}\equiv \lambda x. a+x \quad
+   \Var{f}\equiv \lambda x. x+a \quad
+   \Var{f}\equiv \lambda x. a+a \]
+  \item  Equations such as $\Var{f}(\Var{x},\Var{y})\qeq t$ and
+$\Var{f}(\Var{g}(x))\qeq t$ admit vast numbers of unifiers, and must be
+avoided. 
+\end{itemize}
+In problematic cases, you may have to instantiate some unknowns before
+invoking unification. 
+
+
+\subsection{Joining rules by resolution} \label{joining}
+\index{resolution|bold}
+Let $\List{\psi@1; \ldots; \psi@m} \Imp \psi$ and $\List{\phi@1; \ldots;
+\phi@n} \Imp \phi$ be two Isabelle theorems, representing object-level rules. 
+Choosing some~$i$ from~1 to~$n$, suppose that $\psi$ and $\phi@i$ have a
+higher-order unifier.  Writing $Xs$ for the application of substitution~$s$ to
+expression~$X$, this means there is some~$s$ such that $\psi s\equiv \phi@i s$.
+By resolution, we may conclude
+\[ (\List{\phi@1; \ldots; \phi@{i-1}; \psi@1; \ldots; \psi@m;
+          \phi@{i+1}; \ldots; \phi@n} \Imp \phi)s.
+\]
+The substitution~$s$ may instantiate unknowns in both rules.  In short,
+resolution is the following rule:
+\[ \infer[(\psi s\equiv \phi@i s)]
+         {(\List{\phi@1; \ldots; \phi@{i-1}; \psi@1; \ldots; \psi@m;
+          \phi@{i+1}; \ldots; \phi@n} \Imp \phi)s}
+         {\List{\psi@1; \ldots; \psi@m} \Imp \psi & &
+          \List{\phi@1; \ldots; \phi@n} \Imp \phi}
+\]
+It operates at the meta-level, on Isabelle theorems, and is justified by
+the properties of $\Imp$ and~$\Forall$.  It takes the number~$i$ (for
+$1\leq i\leq n$) as a parameter and may yield infinitely many conclusions,
+one for each unifier of $\psi$ with $\phi@i$.  Isabelle returns these
+conclusions as a sequence (lazy list).
+
+Resolution expects the rules to have no outer quantifiers~($\Forall$).  It
+may rename or instantiate any schematic variables, but leaves free
+variables unchanged.  When constructing a theory, Isabelle puts the rules
+into a standard form containing no free variables; for instance, $({\imp}E)$
+becomes
+\[ \List{\Var{P}\imp \Var{Q}; \Var{P}}  \Imp \Var{Q}. 
+\]
+When resolving two rules, the unknowns in the first rule are renamed, by
+subscripting, to make them distinct from the unknowns in the second rule.  To
+resolve $({\imp}E)$ with itself, the first copy of the rule would become
+\[ \List{\Var{P@1}\imp \Var{Q@1}; \Var{P@1}}  \Imp \Var{Q@1}. \]
+Resolving this with $({\imp}E)$ in the first premise, unifying $\Var{Q@1}$ with
+$\Var{P}\imp \Var{Q}$, is the meta-level inference
+\[ \infer{\List{\Var{P@1}\imp (\Var{P}\imp \Var{Q}); \Var{P@1}; \Var{P}} 
+           \Imp\Var{Q}.}
+         {\List{\Var{P@1}\imp \Var{Q@1}; \Var{P@1}}  \Imp \Var{Q@1} & &
+          \List{\Var{P}\imp \Var{Q}; \Var{P}}  \Imp \Var{Q}}
+\]
+Renaming the unknowns in the resolvent, we have derived the
+object-level rule
+\[ \infer{Q.}{R\imp (P\imp Q)  &  R  &  P}  \]
+\index{rules!derived}
+Joining rules in this fashion is a simple way of proving theorems.  The
+derived rules are conservative extensions of the object-logic, and may permit
+simpler proofs.  Let us consider another example.  Suppose we have the axiom
+$$ \forall x\,y. Suc(x)=Suc(y)\imp x=y. \eqno (inject) $$
+
+\noindent 
+The standard form of $(\forall E)$ is
+$\forall x.\Var{P}(x)  \Imp \Var{P}(\Var{t})$.
+Resolving $(inject)$ with $(\forall E)$ replaces $\Var{P}$ by
+$\lambda x. \forall y. Suc(x)=Suc(y)\imp x=y$ and leaves $\Var{t}$
+unchanged, yielding  
+\[ \forall y. Suc(\Var{t})=Suc(y)\imp \Var{t}=y. \]
+Resolving this with $(\forall E)$ puts a subscript on~$\Var{t}$
+and yields
+\[ Suc(\Var{t@1})=Suc(\Var{t})\imp \Var{t@1}=\Var{t}. \]
+Resolving this with $({\imp}E)$ increases the subscripts and yields
+\[ Suc(\Var{t@2})=Suc(\Var{t@1})\Imp \Var{t@2}=\Var{t@1}. 
+\]
+We have derived the rule
+\[ \infer{m=n,}{Suc(m)=Suc(n)} \]
+which goes directly from $Suc(m)=Suc(n)$ to $m=n$.  It is handy for simplifying
+an equation like $Suc(Suc(Suc(m)))=Suc(Suc(Suc(0)))$.  
+
+
+\subsection{Lifting a rule into a context}
+The rules $({\imp}I)$ and $(\forall I)$ may seem unsuitable for
+resolution.  They have non-atomic premises, namely $P\Imp Q$ and $\Forall
+x.P(x)$, while the conclusions of all the rules are atomic (they have the form
+$Trueprop(\cdots)$).  Isabelle gets round the problem through a meta-inference
+called \bfindex{lifting}.  Let us consider how to construct proofs such as
+\[ \infer[({\imp}I)]{P\imp(Q\imp R)}
+         {\infer[({\imp}I)]{Q\imp R}
+                        {\infer*{R}{[P] & [Q]}}}
+   \qquad
+   \infer[(\forall I)]{\forall x\,y.P(x,y)}
+         {\infer[(\forall I)]{\forall y.P(x,y)}{P(x,y)}}
+\]
+
+\subsubsection{Lifting over assumptions}
+\index{lifting!over assumptions|bold}
+Lifting over $\theta\Imp{}$ is the following meta-inference rule:
+\[ \infer{\List{\theta\Imp\phi@1; \ldots; \theta\Imp\phi@n} \Imp
+          (\theta \Imp \phi)}
+         {\List{\phi@1; \ldots; \phi@n} \Imp \phi} \]
+This is clearly sound: if $\List{\phi@1; \ldots; \phi@n} \Imp \phi$ is true and
+$\theta\Imp\phi@1$, \ldots, $\theta\Imp\phi@n$, $\theta$ are all true then
+$\phi$ must be true.  Iterated lifting over a series of meta-formulae
+$\theta@k$, \ldots, $\theta@1$ yields an object-rule whose conclusion is
+$\List{\theta@1; \ldots; \theta@k} \Imp \phi$.  Typically the $\theta@i$ are
+the assumptions in a natural deduction proof; lifting copies them into a rule's
+premises and conclusion.
+
+When resolving two rules, Isabelle lifts the first one if necessary.  The
+standard form of $({\imp}I)$ is
+\[ (\Var{P} \Imp \Var{Q})  \Imp  \Var{P}\imp \Var{Q}.   \]
+To resolve this rule with itself, Isabelle modifies one copy as follows: it
+renames the unknowns to $\Var{P@1}$ and $\Var{Q@1}$, then lifts the rule over
+$\Var{P}\Imp{}$:
+\[ \List{\List{\Var{P}; \Var{P@1}} \Imp \Var{Q@1}; \Var{P}} 
+   \Imp  \Var{P@1}\imp \Var{Q@1}.   \]
+Unifying $\Var{P}\Imp \Var{P@1}\imp\Var{Q@1}$ with $\Var{P} \Imp
+\Var{Q}$ instantiates $\Var{Q}$ to ${\Var{P@1}\imp\Var{Q@1}}$.
+Resolution yields
+\[ (\List{\Var{P}; \Var{P@1}} \Imp \Var{Q@1}) \Imp
+\Var{P}\imp(\Var{P@1}\imp\Var{Q@1}).   \]
+This represents the derived rule
+\[ \infer{P\imp(Q\imp R).}{\infer*{R}{[P,Q]}} \]
+
+\subsubsection{Lifting over parameters}
+\index{lifting!over parameters|bold}
+An analogous form of lifting handles premises of the form $\Forall x\ldots\,$. 
+Here, lifting prefixes an object-rule's premises and conclusion with $\Forall
+x$.  At the same time, lifting introduces a dependence upon~$x$.  It replaces
+each unknown $\Var{a}$ in the rule by $\Var{a'}(x)$, where $\Var{a'}$ is a new
+unknown (by subscripting) of suitable type --- necessarily a function type.  In
+short, lifting is the meta-inference
+\[ \infer{\List{\Forall x.\phi@1^x; \ldots; \Forall x.\phi@n^x} 
+           \Imp \Forall x.\phi^x,}
+         {\List{\phi@1; \ldots; \phi@n} \Imp \phi} \]
+where $\phi^x$ stands for the result of lifting unknowns over~$x$ in $\phi$. 
+It is not hard to verify that this meta-inference is sound.
+For example, $(\disj I)$ might be lifted to
+\[ (\Forall x.\Var{P@1}(x)) \Imp (\Forall x. \Var{P@1}(x)\disj \Var{Q@1}(x))\]
+and $(\forall I)$ to
+\[ (\Forall x\,y.\Var{P@1}(x,y)) \Imp (\Forall x. \forall y.\Var{P@1}(x,y)). \]
+Isabelle has renamed a bound variable in $(\forall I)$ from $x$ to~$y$,
+avoiding a clash.  Resolving the above with $(\forall I)$ is the meta-inference
+\[ \infer{\Forall x\,y.\Var{P@1}(x,y)) \Imp \forall x\,y.\Var{P@1}(x,y)) }
+         {(\Forall x\,y.\Var{P@1}(x,y)) \Imp 
+               (\Forall x. \forall y.\Var{P@1}(x,y))  &
+          (\Forall x.\Var{P}(x)) \Imp (\forall x.\Var{P}(x))} \]
+Here, $\Var{P}$ is replaced by $\lambda x.\forall y.\Var{P@1}(x,y)$; the
+resolvent expresses the derived rule
+\[ \vcenter{ \infer{\forall x\,y.Q(x,y)}{Q(x,y)} }
+   \quad\hbox{provided $x$, $y$ not free in the assumptions} 
+\] 
+I discuss lifting and parameters at length elsewhere~\cite{paulson89}.
+Miller goes into even greater detail~\cite{miller-jsc}.
+
+
+\section{Backward proof by resolution}
+\index{resolution!in backward proof}\index{proof!backward|bold}
+Resolution is convenient for deriving simple rules and for reasoning
+forward from facts.  It can also support backward proof, where we start
+with a goal and refine it to progressively simpler subgoals until all have
+been solved.  {\sc lcf} (and its descendants {\sc hol} and Nuprl) provide
+tactics and tacticals, which constitute a high-level language for
+expressing proof searches.  \bfindex{Tactics} perform primitive refinements
+while \bfindex{tacticals} combine tactics.
+
+\index{LCF}
+Isabelle's tactics and tacticals work differently from {\sc lcf}'s.  An
+Isabelle rule is {\bf bidirectional}: there is no distinction between
+inputs and outputs.  {\sc lcf} has a separate tactic for each rule;
+Isabelle performs refinement by any rule in a uniform fashion, using
+resolution.
+
+\index{subgoals|bold}\index{main goal|bold}
+Isabelle works with meta-level theorems of the form
+\( \List{\phi@1; \ldots; \phi@n} \Imp \phi \).
+We have viewed this as the {\bf rule} with premises
+$\phi@1$,~\ldots,~$\phi@n$ and conclusion~$\phi$.  It can also be viewed as
+the \bfindex{proof state} with subgoals $\phi@1$,~\ldots,~$\phi@n$ and main
+goal~$\phi$.
+
+To prove the formula~$\phi$, take $\phi\Imp \phi$ as the initial proof
+state.  This assertion is, trivially, a theorem.  At a later stage in the
+backward proof, a typical proof state is $\List{\phi@1; \ldots; \phi@n}
+\Imp \phi$.  This proof state is a theorem, guaranteeing that the subgoals
+$\phi@1$,~\ldots,~$\phi@n$ imply~$\phi$.  If $m=0$ then we have
+proved~$\phi$ outright.  If $\phi$ contains unknowns, they may become
+instantiated during the proof; a proof state may be $\List{\phi@1; \ldots;
+\phi@n} \Imp \phi'$, where $\phi'$ is an instance of~$\phi$.
+
+\subsection{Refinement by resolution}
+\index{refinement|bold}
+To refine subgoal~$i$ of a proof state by a rule, perform the following
+resolution: 
+\[ \infer{\hbox{new proof state}}{\hbox{rule} & & \hbox{proof state}} \]
+If the rule is $\List{\psi'@1; \ldots; \psi'@m} \Imp \psi'$ after lifting
+over subgoal~$i$, and the proof state is $\List{\phi@1; \ldots; \phi@n}
+\Imp \phi$, then the new proof state is (for~$1\leq i\leq n$)
+\[ (\List{\phi@1; \ldots; \phi@{i-1}; \psi'@1;
+          \ldots; \psi'@m; \phi@{i+1}; \ldots; \phi@n} \Imp \phi)s.  \]
+Substitution~$s$ unifies $\psi'$ with~$\phi@i$.  In the proof state,
+subgoal~$i$ is replaced by $m$ new subgoals, the rule's instantiated premises.
+If some of the rule's unknowns are left un-instantiated, they become new
+unknowns in the proof state.  Refinement by~$(\exists I)$, namely
+\[ \Var{P}(\Var{t}) \Imp \exists x. \Var{P}(x), \]
+inserts a new unknown derived from~$\Var{t}$ by subscripting and lifting.
+We do not have to specify an `existential witness' when
+applying~$(\exists I)$.  Further resolutions may instantiate unknowns in
+the proof state.
+
+\subsection{Proof by assumption}
+\index{proof!by assumption|bold}
+In the course of a natural deduction proof, parameters $x@1$, \ldots,~$x@l$ and
+assumptions $\theta@1$, \ldots, $\theta@k$ accumulate, forming a context for
+each subgoal.  Repeated lifting steps can lift a rule into any context.  To
+aid readability, Isabelle puts contexts into a normal form, gathering the
+parameters at the front:
+\begin{equation} \label{context-eqn}
+\Forall x@1 \ldots x@l. \List{\theta@1; \ldots; \theta@k}\Imp\theta. 
+\end{equation}
+Under the usual reading of the connectives, this expresses that $\theta$
+follows from $\theta@1$,~\ldots~$\theta@k$ for arbitrary
+$x@1$,~\ldots,~$x@l$.  It is trivially true if $\theta$ equals any of
+$\theta@1$,~\ldots~$\theta@k$, or is unifiable with any of them.  This
+models proof by assumption in natural deduction.
+
+Isabelle automates the meta-inference for proof by assumption.  Its arguments
+are the meta-theorem $\List{\phi@1; \ldots; \phi@n} \Imp \phi$, and some~$i$
+from~1 to~$n$, where $\phi@i$ has the form~(\ref{context-eqn}).  Its results
+are meta-theorems of the form
+\[ (\List{\phi@1; \ldots; \phi@{i-1}; \phi@{i+1}; \phi@n} \Imp \phi)s \]
+for each $s$ and~$j$ such that $s$ unifies $\lambda x@1 \ldots x@l. \theta@j$
+with $\lambda x@1 \ldots x@l. \theta$.  Isabelle supplies the parameters
+$x@1$,~\ldots,~$x@l$ to higher-order unification as bound variables, which
+regards them as unique constants with a limited scope --- this enforces
+parameter provisos~\cite{paulson89}.
+
+The premise represents a proof state with~$n$ subgoals, of which the~$i$th is
+to be solved by assumption.  Isabelle searches the subgoal's context for an
+assumption, say $\theta@j$, that can solve it by unification.  For each
+unifier, the meta-inference returns an instantiated proof state from which the
+$i$th subgoal has been removed.  Isabelle searches for a unifying assumption;
+for readability and robustness, proofs do not refer to assumptions by number.
+
+Consider the proof state $(\List{P(a); P(b)} \Imp P(\Var{x})) \Imp Q(\Var{x})$.
+Proof by assumption (with $i=1$, the only possibility) yields two results:
+\begin{itemize}
+  \item $Q(a)$, instantiating $\Var{x}\equiv a$
+  \item $Q(b)$, instantiating $\Var{x}\equiv b$
+\end{itemize}
+Here, proof by assumption affects the main goal.  It could also affect
+other subgoals.  Consider the effect of having the
+additional subgoal ${\List{P(b); P(c)} \Imp P(\Var{x})}$.
+
+\subsection{A propositional proof} \label{prop-proof}
+\index{examples!propositional}
+Our first example avoids quantifiers.  Given the main goal $P\disj P\imp
+P$, Isabelle creates the initial state
+\[ (P\disj P\imp P)\Imp (P\disj P\imp P). \]
+Bear in mind that every proof state we derive will be a meta-theorem,
+expressing that the subgoals imply the main goal.  The first step is to refine
+subgoal~1 by (${\imp}I)$, creating a new state where $P\disj P$ is an
+assumption: 
+\[ (P\disj P\Imp P)\Imp (P\disj P\imp P) \]
+The next step is $(\disj E)$, which replaces subgoal~1 by three new subgoals. 
+Because of lifting, each subgoal contains a copy of the context --- the
+assumption $P\disj P$.  (In fact, this assumption is now redundant; we shall
+shortly see how to get rid of it!)  The new proof state is the following
+meta-theorem, laid out for clarity:
+\[ \begin{array}{l@{}l@{\qquad\qquad}l} 
+  \lbrakk\;& P\disj P\Imp \Var{P@1}\disj\Var{Q@1}; & \hbox{(subgoal 1)} \\
+           & \List{P\disj P; \Var{P@1}} \Imp P;    & \hbox{(subgoal 2)} \\
+           & \List{P\disj P; \Var{Q@1}} \Imp P     & \hbox{(subgoal 3)} \\
+  \rbrakk\;& \Imp (P\disj P\imp P)                 & \hbox{(main goal)}
+   \end{array} 
+\]
+Notice the unknowns in the proof state.  Because we have applied $(\disj E)$,
+we must prove some disjunction, $\Var{P@1}\disj\Var{Q@1}$.  Of course,
+subgoal~1 is provable by assumption.  This instantiates both $\Var{P@1}$ and
+$\Var{Q@1}$ to~$P$ throughout the proof state:
+\[ \begin{array}{l@{}l@{\qquad\qquad}l} 
+    \lbrakk\;& \List{P\disj P; P} \Imp P; & \hbox{(subgoal 1)} \\
+             & \List{P\disj P; P} \Imp P  & \hbox{(subgoal 2)} \\
+    \rbrakk\;& \Imp (P\disj P\imp P)      & \hbox{(main goal)}
+   \end{array} \]
+Both of the remaining subgoals can be proved by assumption.  After two such
+steps, the proof state is simply the meta-theorem $P\disj P\imp P$.  This is
+our desired result.
+
+\subsection{A quantifier proof}
+\index{examples!with quantifiers}
+To illustrate quantifiers and $\Forall$-lifting, let us prove
+$(\exists x.P(f(x)))\imp(\exists x.P(x))$.  The initial proof
+state is the trivial meta-theorem 
+\[ (\exists x.P(f(x)))\imp(\exists x.P(x)) \Imp 
+   (\exists x.P(f(x)))\imp(\exists x.P(x)). \]
+As above, the first step is refinement by (${\imp}I)$: 
+\[ (\exists x.P(f(x))\Imp \exists x.P(x)) \Imp 
+   (\exists x.P(f(x)))\imp(\exists x.P(x)) 
+\]
+The next step is $(\exists E)$, which replaces subgoal~1 by two new subgoals.
+Both have the assumption $\exists x.P(f(x))$.  The new proof
+state is the meta-theorem  
+\[ \begin{array}{l@{}l@{\qquad\qquad}l} 
+   \lbrakk\;& \exists x.P(f(x)) \Imp \exists x.\Var{P@1}(x); & \hbox{(subgoal 1)} \\
+            & \Forall x.\List{\exists x.P(f(x)); \Var{P@1}(x)} \Imp 
+                       \exists x.P(x)  & \hbox{(subgoal 2)} \\
+    \rbrakk\;& \Imp (\exists x.P(f(x)))\imp(\exists x.P(x))  & \hbox{(main goal)}
+   \end{array} 
+\]
+The unknown $\Var{P@1}$ appears in both subgoals.  Because we have applied
+$(\exists E)$, we must prove $\exists x.\Var{P@1}(x)$, where $\Var{P@1}(x)$ may
+become any formula possibly containing~$x$.  Proving subgoal~1 by assumption
+instantiates $\Var{P@1}$ to~$\lambda x.P(f(x))$:  
+\[ \left(\Forall x.\List{\exists x.P(f(x)); P(f(x))} \Imp 
+         \exists x.P(x)\right) 
+   \Imp (\exists x.P(f(x)))\imp(\exists x.P(x)) 
+\]
+The next step is refinement by $(\exists I)$.  The rule is lifted into the
+context of the parameter~$x$ and the assumption $P(f(x))$.  This ensures that
+the context is copied to the subgoal and allows the existential witness to
+depend upon~$x$: 
+\[ \left(\Forall x.\List{\exists x.P(f(x)); P(f(x))} \Imp 
+         P(\Var{x@2}(x))\right) 
+   \Imp (\exists x.P(f(x)))\imp(\exists x.P(x)) 
+\]
+The existential witness, $\Var{x@2}(x)$, consists of an unknown
+applied to a parameter.  Proof by assumption unifies $\lambda x.P(f(x))$ 
+with $\lambda x.P(\Var{x@2}(x))$, instantiating $\Var{x@2}$ to $f$.  The final
+proof state contains no subgoals: $(\exists x.P(f(x)))\imp(\exists x.P(x))$.
+
+
+\subsection{Tactics and tacticals}
+\index{tactics|bold}\index{tacticals|bold}
+{\bf Tactics} perform backward proof.  Isabelle tactics differ from those
+of {\sc lcf}, {\sc hol} and Nuprl by operating on entire proof states,
+rather than on individual subgoals.  An Isabelle tactic is a function that
+takes a proof state and returns a sequence (lazy list) of possible
+successor states.  Sequences are coded in ML as functions, a standard
+technique~\cite{paulson91}.  Isabelle represents proof states by theorems.
+
+Basic tactics execute the meta-rules described above, operating on a
+given subgoal.  The {\bf resolution tactics} take a list of rules and
+return next states for each combination of rule and unifier.  The {\bf
+assumption tactic} examines the subgoal's assumptions and returns next
+states for each combination of assumption and unifier.  Lazy lists are
+essential because higher-order resolution may return infinitely many
+unifiers.  If there are no matching rules or assumptions then no next
+states are generated; a tactic application that returns an empty list is
+said to {\bf fail}.
+
+Sequences realize their full potential with {\bf tacticals} --- operators
+for combining tactics.  Depth-first search, breadth-first search and
+best-first search (where a heuristic function selects the best state to
+explore) return their outcomes as a sequence.  Isabelle provides such
+procedures in the form of tacticals.  Simpler procedures can be expressed
+directly using the basic tacticals {\it THEN}, {\it ORELSE} and {\it REPEAT}:
+\begin{description}
+\item[$tac1\;THEN\;tac2$] is a tactic for sequential composition.  Applied
+to a proof state, it returns all states reachable in two steps by applying
+$tac1$ followed by~$tac2$.
+
+\item[$tac1\;ORELSE\;tac2$] is a choice tactic.  Applied to a state, it
+tries~$tac1$ and returns the result if non-empty; otherwise, it uses~$tac2$.
+
+\item[$REPEAT\;tac$] is a repetition tactic.  Applied to a state, it
+returns all states reachable by applying~$tac$ as long as possible (until
+it would fail).  $REPEAT$ can be expressed in a few lines of \ML{} using
+{\it THEN} and~{\it ORELSE}.
+\end{description}
+For instance, this tactic repeatedly applies $tac1$ and~$tac2$, giving
+$tac1$ priority:
+\[ REPEAT(tac1\;ORELSE\;tac2) \]
+
+
+\section{Variations on resolution}
+In principle, resolution and proof by assumption suffice to prove all
+theorems.  However, specialized forms of resolution are helpful for working
+with elimination rules.  Elim-resolution applies an elimination rule to an
+assumption; destruct-resolution is similar, but applies a rule in a forward
+style.
+
+The last part of the section shows how the techniques for proving theorems
+can also serve to derive rules.
+
+\subsection{Elim-resolution}
+\index{elim-resolution|bold}
+Consider proving the theorem $((R\disj R)\disj R)\disj R\imp R$.  By
+$({\imp}I)$, we prove $R$ from the assumption $((R\disj R)\disj R)\disj R$.
+Applying $(\disj E)$ to this assumption yields two subgoals, one that
+assumes~$R$ (and is therefore trivial) and one that assumes $(R\disj
+R)\disj R$.  This subgoal admits another application of $(\disj E)$.  Since
+natural deduction never discards assumptions, we eventually generate a
+subgoal containing much that is redundant:
+\[ \List{((R\disj R)\disj R)\disj R; (R\disj R)\disj R; R\disj R; R} \Imp R. \]
+In general, using $(\disj E)$ on the assumption $P\disj Q$ creates two new
+subgoals with the additional assumption $P$ or~$Q$.  In these subgoals,
+$P\disj Q$ is redundant.  It wastes space; worse, it could make a theorem
+prover repeatedly apply~$(\disj E)$, looping.  Other elimination rules pose
+similar problems.  In first-order logic, only universally quantified
+assumptions are sometimes needed more than once --- say, to prove
+$P(f(f(a)))$ from the assumptions $\forall x.P(x)\imp P(f(x))$ and~$P(a)$.
+
+Many logics can be formulated as sequent calculi that delete redundant
+assumptions after use.  The rule $(\disj E)$ might become
+\[ \infer[\disj\hbox{-left}]
+         {\Gamma,P\disj Q,\Delta \turn \Theta}
+         {\Gamma,P,\Delta \turn \Theta && \Gamma,Q,\Delta \turn \Theta}  \] 
+In backward proof, a goal containing $P\disj Q$ on the left of the~$\turn$
+(that is, as an assumption) splits into two subgoals, replacing $P\disj Q$
+by $P$ or~$Q$.  But the sequent calculus, with its explicit handling of
+assumptions, can be tiresome to use.
+
+Elim-resolution is Isabelle's way of getting sequent calculus behaviour
+from natural deduction rules.  It lets an elimination rule consume an
+assumption.  Elim-resolution takes a rule $\List{\psi@1; \ldots; \psi@m}
+\Imp \psi$ a proof state $\List{\phi@1; \ldots; \phi@n} \Imp \phi$, and a
+subgoal number~$i$.  The rule must have at least one premise, thus $m>0$.
+Write the rule's lifted form as $\List{\psi'@1; \ldots; \psi'@m} \Imp
+\psi'$.  Ordinary resolution would attempt to reduce~$\phi@i$,
+replacing subgoal~$i$ by $m$ new ones.  Elim-resolution tries {\bf
+simultaneously} to reduce~$\phi@i$ and to solve~$\psi'@1$ by assumption; it
+returns a sequence of next states.  Each of these replaces subgoal~$i$ by
+instances of $\psi'@2$, \ldots, $\psi'@m$ from which the selected
+assumption has been deleted.  Suppose $\phi@i$ has the parameter~$x$ and
+assumptions $\theta@1$,~\ldots,~$\theta@k$.  Then $\psi'@1$, the rule's first
+premise after lifting, will be
+\( \Forall x. \List{\theta@1; \ldots; \theta@k}\Imp \psi^{x}@1 \).
+Elim-resolution tries to unify simultaneously $\psi'\qeq\phi@i$ and
+$\lambda x. \theta@j \qeq \lambda x. \psi^{x}@1$, for $j=1$,~\ldots,~$k$.
+
+Let us redo the example from~\S\ref{prop-proof}.  The elimination rule
+is~$(\disj E)$,
+\[ \List{\Var{P}\disj \Var{Q};\; \Var{P}\Imp \Var{R};\; \Var{Q}\Imp \Var{R}}
+      \Imp \Var{R}  \]
+and the proof state is $(P\disj P\Imp P)\Imp (P\disj P\imp P)$.  The
+lifted rule would be
+\[ \begin{array}{l@{}l}
+  \lbrakk\;& P\disj P \Imp \Var{P@1}\disj\Var{Q@1}; \\
+           & \List{P\disj P ;\; \Var{P@1}} \Imp \Var{R@1};    \\
+           & \List{P\disj P ;\; \Var{Q@1}} \Imp \Var{R@1}     \\
+  \rbrakk\;& \Imp \Var{R@1}
+  \end{array} 
+\]
+Unification would take the simultaneous equations
+$P\disj P \qeq \Var{P@1}\disj\Var{Q@1}$ and $\Var{R@1} \qeq P$, yielding
+$\Var{P@1}\equiv\Var{Q@1}\equiv\Var{R@1} \equiv P$.  The new proof state
+would be simply
+\[ \List{P \Imp P;\; P \Imp P} \Imp (P\disj P\imp P). 
+\]
+Elim-resolution's simultaneous unification gives better control
+than ordinary resolution.  Recall the substitution rule:
+$$ \List{\Var{t}=\Var{u}; \Var{P}(\Var{t})} \Imp \Var{P}(\Var{u}) 
+   \eqno(subst) $$
+Unsuitable for ordinary resolution because $\Var{P}(\Var{u})$ admits many
+unifiers, $(subst)$ works well with elim-resolution.  It deletes some
+assumption of the form $x=y$ and replaces every~$y$ by~$x$ in the subgoal
+formula.  The simultaneous unification instantiates $\Var{u}$ to~$y$; if
+$y$ is not an unknown, then $\Var{P}(y)$ can easily be unified with another
+formula.  
+
+In logical parlance, the premise containing the connective to be eliminated
+is called the \bfindex{major premise}.  Elim-resolution expects the major
+premise to come first.  The order of the premises is significant in
+Isabelle.
+
+\subsection{Destruction rules} \label{destruct}
+\index{destruction rules|bold}\index{proof!forward}
+Looking back to Figure~\ref{fol-fig}, notice that there are two kinds of
+elimination rule.  The rules $({\conj}E1)$, $({\conj}E2)$, $({\imp}E)$ and
+$({\forall}E)$ extract the conclusion from the major premise.  In Isabelle
+parlance, such rules are called \bfindex{destruction rules}; they are readable
+and easy to use in forward proof.  The rules $({\disj}E)$, $({\bot}E)$ and
+$({\exists}E)$ work by discharging assumptions; they support backward proof
+in a style reminiscent of the sequent calculus.
+
+The latter style is the most general form of elimination rule.  In natural
+deduction, there is no way to recast $({\disj}E)$, $({\bot}E)$ or
+$({\exists}E)$ as destruction rules.  But we can write general elimination
+rules for $\conj$, $\imp$ and~$\forall$:
+\[
+\infer{R}{P\conj Q & \infer*{R}{[P,Q]}} \qquad
+\infer{R}{P\imp Q & P & \infer*{R}{[Q]}}  \qquad
+\infer{Q}{\forall x.P & \infer*{Q}{[P[t/x]]}} 
+\]
+Because they are concise, destruction rules are simpler to derive than the
+corresponding elimination rules.  To facilitate their use in backward
+proof, Isabelle provides a means of transforming a destruction rule such as
+\[ \infer[\quad\hbox{to the elimination rule}\quad]{Q}{P@1 & \ldots & P@m} 
+   \infer{R.}{P@1 & \ldots & P@m & \infer*{R}{[Q]}} 
+\]
+\index{destruct-resolution|bold}
+{\bf Destruct-resolution} combines this transformation with
+elim-resolution.  It applies a destruction rule to some assumption of a
+subgoal.  Given the rule above, it replaces the assumption~$P@1$ by~$Q$,
+with new subgoals of showing instances of $P@2$, \ldots,~$P@m$.
+Destruct-resolution works forward from a subgoal's assumptions.  Ordinary
+resolution performs forward reasoning from theorems, as illustrated
+in~\S\ref{joining}. 
+
+
+\subsection{Deriving rules by resolution}  \label{deriving}
+\index{rules!derived|bold}
+The meta-logic, itself a form of the predicate calculus, is defined by a
+system of natural deduction rules.  Each theorem may depend upon
+meta-assumptions.  The theorem that~$\phi$ follows from the assumptions
+$\phi@1$, \ldots, $\phi@n$ is written
+\[ \phi \quad [\phi@1,\ldots,\phi@n]. \]
+A more conventional notation might be $\phi@1,\ldots,\phi@n \turn \phi$,
+but Isabelle's notation is more readable with large formulae.
+
+Meta-level natural deduction provides a convenient mechanism for deriving
+new object-level rules.  To derive the rule
+\[ \infer{\phi,}{\theta@1 & \ldots & \theta@k} \]
+assume the premises $\theta@1$,~\ldots,~$\theta@k$ at the
+meta-level.  Then prove $\phi$, possibly using these assumptions.
+Starting with a proof state $\phi\Imp\phi$, assumptions may accumulate,
+reaching a final state such as
+\[ \phi \quad [\theta@1,\ldots,\theta@k]. \]
+The meta-rule for $\Imp$ introduction discharges an assumption.
+Discharging them in the order $\theta@k,\ldots,\theta@1$ yields the
+meta-theorem $\List{\theta@1; \ldots; \theta@k} \Imp \phi$, with no
+assumptions.  This represents the desired rule.
+Let us derive the general $\conj$ elimination rule:
+$$ \infer{R}{P\conj Q & \infer*{R}{[P,Q]}}  \eqno(\conj E)$$
+We assume $P\conj Q$ and $\List{P;Q}\Imp R$, and commence backward proof in
+the state $R\Imp R$.  Resolving this with the second assumption yields the
+state 
+\[ \phantom{\List{P\conj Q;\; P\conj Q}}
+   \llap{$\List{P;Q}$}\Imp R \quad [\,\List{P;Q}\Imp R\,]. \]
+Resolving subgoals~1 and~2 with $({\conj}E1)$ and $({\conj}E2)$,
+respectively, yields the state
+\[ \List{P\conj Q;\; P\conj Q}\Imp R \quad [\,\List{P;Q}\Imp R\,]. \]
+Resolving both subgoals with the assumption $P\conj Q$ yields
+\[ R \quad [\, \List{P;Q}\Imp R, P\conj Q \,]. \]
+The proof may use the meta-assumptions in any order, and as often as
+necessary; when finished, we discharge them in the correct order to
+obtain the desired form:
+\[ \List{P\conj Q;\; \List{P;Q}\Imp R} \Imp R \]
+We have derived the rule using free variables, which prevents their
+premature instantiation during the proof; we may now replace them by
+schematic variables.
+
+\begin{warn}
+Schematic variables are not allowed in (meta) assumptions because they would
+complicate lifting.  Assumptions remain fixed throughout a proof.
+\end{warn}
+
+% Local Variables: 
+% mode: latex
+% TeX-master: t
+% End: 

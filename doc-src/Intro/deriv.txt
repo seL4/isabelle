@@ -1,0 +1,210 @@
+(* Deriving an inference rule *)
+
+Pretty.setmargin 72;  (*existing macros just allow this margin*)
+print_depth 0;
+
+
+val [major,minor] = goal Int_Rule.thy
+    "[| P&Q;  [| P; Q |] ==> R |] ==> R";
+prth minor;
+by (resolve_tac [minor] 1);
+prth major;
+prth (major RS conjunct1);
+by (resolve_tac [major RS conjunct1] 1);
+prth (major RS conjunct2);
+by (resolve_tac [major RS conjunct2] 1);
+prth (topthm());
+val conjE = prth(result());
+
+
+- val [major,minor] = goal Int_Rule.thy
+=     "[| P&Q;  [| P; Q |] ==> R |] ==> R";
+Level 0
+R
+ 1. R
+val major = Thm {hyps=#,maxidx=#,prop=#,sign=#} : thm
+val minor = Thm {hyps=#,maxidx=#,prop=#,sign=#} : thm
+- prth minor;
+[| P; Q |] ==> R  [[| P; Q |] ==> R]
+- by (resolve_tac [minor] 1);
+Level 1
+R
+ 1. P
+ 2. Q
+- prth major;
+P & Q  [P & Q]
+- prth (major RS conjunct1);
+P  [P & Q]
+- by (resolve_tac [major RS conjunct1] 1);
+Level 2
+R
+ 1. Q
+- prth (major RS conjunct2);
+Q  [P & Q]
+- by (resolve_tac [major RS conjunct2] 1);
+Level 3
+R
+No subgoals!
+- prth (topthm());
+R  [P & Q, P & Q, [| P; Q |] ==> R]
+- val conjE = prth(result());
+[| ?P & ?Q; [| ?P; ?Q |] ==> ?R |] ==> ?R
+val conjE = Thm {hyps=#,maxidx=#,prop=#,sign=#} : thm
+
+
+(*** Derived rules involving definitions ***)
+
+(** notI **)
+
+val prems = goal Int_Rule.thy "(P ==> False) ==> ~P";
+prth not_def;
+by (rewrite_goals_tac [not_def]);
+by (resolve_tac [impI] 1);
+by (resolve_tac prems 1);
+by (assume_tac 1);
+val notI = prth(result());
+
+val prems = goalw Int_Rule.thy [not_def]
+    "(P ==> False) ==> ~P";
+
+
+- prth not_def;
+~?P == ?P --> False
+- val prems = goal Int_Rule.thy "(P ==> False) ==> ~P";
+Level 0
+~P
+ 1. ~P
+- by (rewrite_goals_tac [not_def]);
+Level 1
+~P
+ 1. P --> False
+- by (resolve_tac [impI] 1);
+Level 2
+~P
+ 1. P ==> False
+- by (resolve_tac prems 1);
+Level 3
+~P
+ 1. P ==> P
+- by (assume_tac 1);
+Level 4
+~P
+No subgoals!
+- val notI = prth(result());
+(?P ==> False) ==> ~?P
+val notI = # : thm
+
+- val prems = goalw Int_Rule.thy [not_def]
+=     "(P ==> False) ==> ~P";
+Level 0
+~P
+ 1. P --> False
+
+
+(** notE **)
+
+val [major,minor] = goal Int_Rule.thy "[| ~P;  P |] ==> R";
+by (resolve_tac [FalseE] 1);
+by (resolve_tac [mp] 1);
+prth (rewrite_rule [not_def] major);
+by (resolve_tac [it] 1);
+by (resolve_tac [minor] 1);
+val notE = prth(result());
+
+val [major,minor] = goalw Int_Rule.thy [not_def]
+    "[| ~P;  P |] ==> R";
+prth (minor RS (major RS mp RS FalseE));
+by (resolve_tac [it] 1);
+
+
+val prems = goalw Int_Rule.thy [not_def]
+    "[| ~P;  P |] ==> R";
+prths prems;
+by (resolve_tac [FalseE] 1);
+by (resolve_tac [mp] 1);
+by (resolve_tac prems 1);
+by (resolve_tac prems 1);
+val notE = prth(result());
+
+
+- val [major,minor] = goal Int_Rule.thy "[| ~P;  P |] ==> R";
+Level 0
+R
+ 1. R
+val major = # : thm
+val minor = # : thm
+- by (resolve_tac [FalseE] 1);
+Level 1
+R
+ 1. False
+- by (resolve_tac [mp] 1);
+Level 2
+R
+ 1. ?P1 --> False
+ 2. ?P1
+- prth (rewrite_rule [not_def] major);
+P --> False  [~P]
+- by (resolve_tac [it] 1);
+Level 3
+R
+ 1. P
+- by (resolve_tac [minor] 1);
+Level 4
+R
+No subgoals!
+- val notE = prth(result());
+[| ~?P; ?P |] ==> ?R
+val notE = # : thm
+- val [major,minor] = goalw Int_Rule.thy [not_def]
+=     "[| ~P;  P |] ==> R";
+Level 0
+R
+ 1. R
+val major = # : thm
+val minor = # : thm
+- prth (minor RS (major RS mp RS FalseE));
+?P  [P, ~P]
+- by (resolve_tac [it] 1);
+Level 1
+R
+No subgoals!
+
+
+
+
+- goal Int_Rule.thy "[| ~P;  P |] ==> R";
+Level 0
+R
+ 1. R
+- prths (map (rewrite_rule [not_def]) it);
+P --> False  [~P]
+
+P  [P]
+
+- val prems = goalw Int_Rule.thy [not_def]
+=     "[| ~P;  P |] ==> R";
+Level 0
+R
+ 1. R
+val prems = # : thm list
+- prths prems;
+P --> False  [~P]
+
+P  [P]
+
+- by (resolve_tac [mp RS FalseE] 1);
+Level 1
+R
+ 1. ?P1 --> False
+ 2. ?P1
+- by (resolve_tac prems 1);
+Level 2
+R
+ 1. P
+- by (resolve_tac prems 1);
+Level 3
+R
+No subgoals!
+- val notE = prth(result());
+[| ~?P; ?P |] ==> ?R
+val notE = # : thm
