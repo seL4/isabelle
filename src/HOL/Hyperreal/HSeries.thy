@@ -157,7 +157,7 @@ by (simp add: hypnat_omega_def hypnat_zero_def omega_def hypreal_one_def
 lemma sumhr_minus_one_realpow_zero [simp]: 
      "sumhr(0, whn + whn, %i. (-1) ^ (i+1)) = 0"
 by (simp del: realpow_Suc 
-         add: sumhr hypnat_add double_lemma hypreal_zero_def 
+         add: sumhr hypnat_add nat_mult_2 [symmetric] hypreal_zero_def 
               hypnat_zero_def hypnat_omega_def)
 
 lemma sumhr_interval_const:

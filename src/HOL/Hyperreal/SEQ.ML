@@ -76,18 +76,18 @@ by (Auto_tac);
 by (dres_inst_tac [("x","xa")] spec 1);
 by (dres_inst_tac [("x","x")] spec 2);
 by (Auto_tac);
-val lemma_NSLIMSEQ1 = result();
+qed "lemma_NSLIMSEQ1";
 
 Goal "{n. f n <= Suc u} = {n. f n <= u} Un {n. f n = Suc u}";
 by (auto_tac (claset(),simpset() addsimps [le_Suc_eq]));
-val lemma_NSLIMSEQ2 = result();
+qed "lemma_NSLIMSEQ2";
 
 Goal "!!(f::nat=>nat). ALL n. n <= f n \
 \          ==> {n. f n = Suc u} <= {n. n <= Suc u}";
 by (Auto_tac);
 by (dres_inst_tac [("x","x")] spec 1);
 by (Auto_tac);
-val lemma_NSLIMSEQ3 = result();
+qed "lemma_NSLIMSEQ3";
 
 Goal "!!(f::nat=>nat). ALL n. n <= f n \ 
 \         ==> finite {n. f n <= u}";
@@ -127,7 +127,7 @@ val lemmaLIM = CLAIM  "{n. X (f n) + - L = Y n} Int {n. abs (Y n) < r} <= \
 Goal "{n. abs (X (f n) + - L) < r} Int {n. r <= abs (X (f n) + - (L::real))} \
 \     = {}";
 by Auto_tac;  
-val lemmaLIM2 = result();
+qed "lemmaLIM2";
 
 Goal "[| 0 < r; ALL n. r <= abs (X (f n) + - L); \
 \          ( *fNat* X) (Abs_hypnat (hypnatrel `` {f})) + \
@@ -145,7 +145,7 @@ by (thin_tac "{n. abs (Y n) < r} : FreeUltrafilterNat" 1);
 by (dtac FreeUltrafilterNat_Int 1 THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [lemmaLIM2,
                                   FreeUltrafilterNat_empty]) 1);
-val lemmaLIM3 = result();
+qed "lemmaLIM3";
 
 Goalw [LIMSEQ_def,NSLIMSEQ_def] 
       "X ----NS> L ==> X ----> L";
@@ -445,7 +445,7 @@ qed "NSBseqI";
 (* a few lemmas *)
 Goal "ALL n. abs(X n) <= K ==> ALL n. abs(X((f::nat=>nat) n)) <= K";
 by (Auto_tac);
-val lemma_Bseq = result();
+qed "lemma_Bseq";
 
 Goalw [Bseq_def,NSBseq_def] "Bseq X ==> NSBseq X";
 by (Step_tac 1);
@@ -477,14 +477,14 @@ Goal "ALL K. 0 < K --> (EX n. K < abs (X n)) \
 by (Step_tac 1);
 by (cut_inst_tac [("n","N")] real_of_nat_Suc_gt_zero 1);
 by (Blast_tac 1);
-val lemmaNSBseq = result();
+qed "lemmaNSBseq";
 
 Goal "ALL K. 0 < K --> (EX n. K < abs (X n)) \
 \         ==> EX f. ALL N. real(Suc N) < abs (X (f N))";
 by (dtac lemmaNSBseq 1);
 by (dtac choice 1);
 by (Blast_tac 1);
-val lemmaNSBseq2 = result();
+qed "lemmaNSBseq2";
 
 Goal "ALL N. real(Suc N) < abs (X (f N)) \
 \         ==>  Abs_hypreal(hyprel``{X o f}) : HInfinite";
@@ -506,7 +506,7 @@ Goal "{n. f n <= Suc u & real(Suc n) < abs (X (f n))} <= \
 \         {n. f n <= u & real(Suc n) < abs (X (f n))} \
 \         Un {n. real(Suc n) < abs (X (Suc u))}";
 by (auto_tac (claset() addSDs [le_imp_less_or_eq], simpset()));
-val lemma_finite_NSBseq = result();
+qed "lemma_finite_NSBseq";
 
 Goal "finite {n. f n <= (u::nat) &  real(Suc n) < abs(X(f n))}";
 by (induct_tac "u" 1);
@@ -515,7 +515,7 @@ by (Force_tac 1);
 by (rtac (lemma_finite_NSBseq RS finite_subset) 2);
 by (auto_tac (claset() addIs [finite_real_of_nat_less_real], 
               simpset() addsimps [real_of_nat_Suc, less_diff_eq RS sym]));
-val lemma_finite_NSBseq2 = result();
+qed "lemma_finite_NSBseq2";
 
 Goal "ALL N. real(Suc N) < abs (X (f N)) \
 \     ==> Abs_hypnat(hypnatrel``{f}) : HNatInfinite";
@@ -619,7 +619,7 @@ Goal
 by (Step_tac 1);
 by (dres_inst_tac [("y","X n")] isLubD2 1);
 by (ALLGOALS(blast_tac (claset() addDs [real_le_anti_sym])));
-val lemma_converg1 = result();
+qed "lemma_converg1";
 
 (*------------------------------------------------------------------- 
    The best of both world: Easier to prove this result as a standard
@@ -651,13 +651,13 @@ by (Step_tac 1);
 by (dres_inst_tac [("y","X m")] isLubD2 1);
 by (auto_tac (claset() addSDs [order_le_imp_less_or_eq],
               simpset()));
-val lemma_converg2 = result();
+qed "lemma_converg2";
 
 Goal "!!(X ::nat=>real). ALL m. X m <= U ==> \
 \         isUb UNIV {x. EX n. X n = x} U";
 by (rtac (setleI RS isUbI) 1);
 by (Auto_tac);
-val lemma_converg3 = result();
+qed "lemma_converg3";
 
 (* FIXME: U - T < U redundant *)
 Goal "!!(X::nat=> real). \
@@ -673,7 +673,7 @@ by (dtac lemma_converg3 1);
 by (dtac isLub_le_isUb 1 THEN assume_tac 1);
 by (auto_tac (claset() addDs [order_less_le_trans],
               simpset()));
-val lemma_converg4 = result();
+qed "lemma_converg4";
 
 (*-------------------------------------------------------------------
   A standard proof of the theorem for monotone increasing sequence
@@ -777,13 +777,13 @@ by (auto_tac (claset(),
               simpset() addsimps [HNatInfinite_FreeUltrafilterNat_iff]));
 by (dres_inst_tac [("x","M")] spec 1);
 by (ultra_tac (claset(), simpset() addsimps [less_imp_le]) 1);
-val lemmaCauchy1 = result();
+qed "lemmaCauchy1";
 
 Goal "{n. ALL m n. M <= m & M <= (n::nat) --> abs (X m + - X n) < u} Int \
 \     {n. M <= xa n} Int {n. M <= x n} <= \
 \     {n. abs (X (xa n) + - X (x n)) < u}";
 by (Blast_tac 1);
-val lemmaCauchy2 = result();
+qed "lemmaCauchy2";
 
 Goalw [Cauchy_def,NSCauchy_def] 
       "Cauchy X ==> NSCauchy X";
@@ -858,7 +858,7 @@ Goal "ALL n. M <= n --> abs (X M + - X n) < (1::real) \
 by (Step_tac 1);
 by (dtac spec 1 THEN Auto_tac);
 by (arith_tac 1);
-val lemmaCauchy = result();
+qed "lemmaCauchy";
 
 Goal "(n < Suc M) = (n <= M)";
 by Auto_tac;
@@ -894,29 +894,29 @@ by (Step_tac 1);
 by (REPEAT(dres_inst_tac [("x","m")] spec 1));
 by (auto_tac (claset() addEs [less_asym],
     simpset() addsimps [le_def]));
-val lemma_Nat_covered = result();
+qed "lemma_Nat_covered";
 
 Goal "[| ALL n. n <= M --> abs ((X::nat=>real) n) <= a;  a < b |] \
 \     ==> ALL n. n <= M --> abs(X n) <= b";
 by (blast_tac (claset() addIs [order_le_less_trans RS order_less_imp_le]) 1);
-val lemma_trans1 = result();
+qed "lemma_trans1";
 
 Goal "[| ALL n. M <= n --> abs ((X::nat=>real) n) < a; \
 \        a < b |] \
 \     ==> ALL n. M <= n --> abs(X n)<= b";
 by (blast_tac (claset() addIs [order_less_trans RS order_less_imp_le]) 1);
-val lemma_trans2 = result();
+qed "lemma_trans2";
 
 Goal "[| ALL n. n <= M --> abs (X n) <= a; \
 \        a = b |] \
 \     ==> ALL n. n <= M --> abs(X n) <= b";
 by (Auto_tac);
-val lemma_trans3 = result();
+qed "lemma_trans3";
 
 Goal "ALL n. M <= n --> abs ((X::nat=>real) n) < a \
 \             ==>  ALL n. M <= n --> abs (X n) <= a";
 by (blast_tac (claset() addIs [order_less_imp_le]) 1);
-val lemma_trans4 = result();
+qed "lemma_trans4";
 
 (*---------------------------------------------------------- 
    Trickier than expected --- proof is more involved than

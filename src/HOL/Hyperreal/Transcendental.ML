@@ -333,21 +333,21 @@ Goal "(if even n then 0 \
 \      else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) * 0 ^ n = 0";
 by (induct_tac "n" 1);
 by (Auto_tac);
-val lemma_STAR_sin = result();
+qed "lemma_STAR_sin";
 Addsimps [lemma_STAR_sin];
 
 Goal "0 < n --> \
 \     (- 1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0";
 by (induct_tac "n" 1);
 by (Auto_tac);
-val lemma_STAR_cos = result();
+qed "lemma_STAR_cos";
 Addsimps [lemma_STAR_cos];
 
 Goal "0 < n --> \
 \     (-1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0";
 by (induct_tac "n" 1);
 by (Auto_tac);
-val lemma_STAR_cos1 = result();
+qed "lemma_STAR_cos1";
 Addsimps [lemma_STAR_cos1];
 
 Goal "sumr 1 n (%n. if even n \
@@ -357,7 +357,7 @@ Goal "sumr 1 n (%n. if even n \
 by (induct_tac "n" 1);
 by (case_tac "n" 2);
 by (Auto_tac);
-val lemma_STAR_cos2 = result();
+qed "lemma_STAR_cos2";
 Addsimps [lemma_STAR_cos2];
 
 Goalw [exp_def] "(%n. inverse (real (fact n)) * x ^ n) sums exp(x)";
@@ -812,7 +812,7 @@ Goalw [diffs_def,real_divide_def]
 by (rtac ext 1);
 by (stac fact_Suc 1);
 by (stac real_of_nat_mult 1);
-by (stac even_Suc 1);
+by (stac even_nat_Suc 1);
 by (stac inverse_mult_distrib 1);
 by Auto_tac;
 qed "sin_fdiffs";
@@ -825,7 +825,7 @@ Goalw  [diffs_def,real_divide_def]
 \             else 0)";
 by (stac fact_Suc 1);
 by (stac real_of_nat_mult 1);
-by (stac even_Suc 1);
+by (stac even_nat_Suc 1);
 by (stac inverse_mult_distrib 1);
 by Auto_tac;
 qed "sin_fdiffs2";
@@ -838,7 +838,7 @@ Goalw [diffs_def,real_divide_def]
 by (rtac ext 1);
 by (stac fact_Suc 1);
 by (stac real_of_nat_mult 1);
-by (stac even_Suc 1);
+by (stac even_nat_Suc 1);
 by (stac inverse_mult_distrib 1);
 by (res_inst_tac [("a1","real (Suc n)")] (mult_commute RS ssubst) 1);
 by (res_inst_tac [("a1","inverse(real (Suc n))")] 
@@ -855,7 +855,7 @@ Goalw [diffs_def,real_divide_def]
 \          else (- 1) ^ ((n - Suc 0)div 2)/(real (fact n)))";
 by (stac fact_Suc 1);
 by (stac real_of_nat_mult 1);
-by (stac even_Suc 1);
+by (stac even_nat_Suc 1);
 by (stac inverse_mult_distrib 1);
 by (res_inst_tac [("z1","real (Suc n)")] (real_mult_commute RS ssubst) 1);
 by (res_inst_tac [("z1","inverse (real (Suc n))")] 
@@ -876,7 +876,7 @@ qed "lemma_sin_minus";
 
 Goal "exp = (%x. suminf (%n. inverse (real (fact n)) * x ^ n))";
 by (auto_tac (claset() addSIs [ext],simpset() addsimps [exp_def]));
-val lemma_exp_ext = result();
+qed "lemma_exp_ext";
 
 Goalw [exp_def] "DERIV exp x :> exp(x)";
 by (stac lemma_exp_ext 1);
@@ -893,13 +893,13 @@ Goal "sin = (%x. suminf(%n. (if even n then 0 \
 \           else (- 1) ^ ((n - Suc 0) div 2)/(real (fact n))) * \
 \                x ^ n))";
 by (auto_tac (claset() addSIs [ext],simpset() addsimps [sin_def]));
-val lemma_sin_ext = result();
+qed "lemma_sin_ext";
 
 Goal "cos = (%x. suminf(%n. (if even n then \
 \          (- 1) ^ (n div 2)/(real (fact n)) \
 \          else 0) * x ^ n))";
 by (auto_tac (claset() addSIs [ext],simpset() addsimps [cos_def]));
-val lemma_cos_ext = result();
+qed "lemma_cos_ext";
 
 Goalw [cos_def] "DERIV sin x :> cos(x)";
 by (stac lemma_sin_ext 1);
@@ -1284,7 +1284,7 @@ Addsimps [DERIV_cos_realpow2a];
 
 Goal "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E";
 by (Auto_tac);
-val lemma_DERIV_subst = result();
+qed "lemma_DERIV_subst";
 
 Goal "DERIV (%x. cos(x) ^ 2) x :> -(2 * cos(x) * sin(x))";
 by (rtac lemma_DERIV_subst 1);
@@ -1457,7 +1457,7 @@ by DERIV_tac;
 by (auto_tac (claset(),simpset() addsimps [real_diff_def,
     left_distrib,right_distrib] @ 
     mult_ac @ add_ac));
-val lemma_DERIV_sin_cos_add = result();
+qed "lemma_DERIV_sin_cos_add";
 
 Goal "(sin (x + y) - (sin x * cos y + cos x * sin y)) ^ 2 + \
 \     (cos (x + y) - (cos x * cos y - sin x * sin y)) ^ 2 = 0";
@@ -1485,7 +1485,7 @@ by DERIV_tac;
 by (auto_tac (claset(),simpset() addsimps [real_diff_def,
     left_distrib,right_distrib]
     @ mult_ac @ add_ac));
-val lemma_DERIV_sin_cos_minus = result();
+qed "lemma_DERIV_sin_cos_minus";
 
 Goal "(sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2 = 0";
 by (cut_inst_tac [("y","0"),("x","x")] 
@@ -1550,7 +1550,7 @@ qed "sin_paired";
 Goal "real (Suc (Suc (Suc (Suc 2)))) = \
 \     real (2::nat) * real (Suc 2)";
 by (simp_tac (simpset() addsimps [numeral_2_eq_2, real_of_nat_Suc]) 1);
-val lemma_real_of_nat_six_mult = result();
+qed "lemma_real_of_nat_six_mult";
 
 Goal "[|0 < x; x < 2 |] ==> 0 < sin x";
 by (cut_inst_tac [("x2","x")] (CLAIM "0 < (2::nat)" RS ((sin_paired
@@ -2056,7 +2056,7 @@ by (res_inst_tac [("c1","cos x * cos y")] (real_mult_right_cancel RS subst) 1);
 by (auto_tac (claset(), 
     simpset() delsimps [inverse_mult_distrib]
 	      addsimps [mult_assoc, left_diff_distrib,cos_add]));
-val lemma_tan_add1 = result();
+qed "lemma_tan_add1";
 Addsimps [lemma_tan_add1];
 
 Goalw [tan_def] 

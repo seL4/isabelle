@@ -634,14 +634,14 @@ Goal "[| a <= D n; D n < b; partition(a,b) D |] ==> n < psize D";
 by (dtac (partition RS iffD1) 1 THEN Step_tac 1);
 by (rtac ccontr 1 THEN dtac leI 1);
 by Auto_tac;
-val lemma_additivity1 = result();
+qed "lemma_additivity1";
 
 Goal "[| a <= D n; partition(a,D n) D |] ==> psize D <= n";
 by (rtac ccontr 1 THEN dtac not_leE 1);
 by (ftac (partition RS iffD1) 1 THEN Step_tac 1);
 by (forw_inst_tac [("r","Suc n")] partition_ub 1);
 by (auto_tac (claset() addSDs [spec],simpset()));
-val lemma_additivity2 = result();
+qed "lemma_additivity2";
 
 Goal "[| partition(a,b) D; psize D < m |] ==> D(m) = D(psize D)";
 by (auto_tac (claset(),simpset() addsimps [partition]));
@@ -734,7 +734,7 @@ by (dtac (ARITH_PROVE "n < Suc na ==> n < na | n = na") 1);
 by Auto_tac;
 by (dres_inst_tac [("n","na")] partition_lt_gen 1);
 by Auto_tac;
-val lemma_additivity3 = result();
+qed "lemma_additivity3";
 
 Goalw [psize_def] "psize (%x. k) = 0";
 by Auto_tac;
@@ -746,7 +746,7 @@ Goal "[| partition(a,b) D; D na < D n; D n < D (Suc na); \
 \     ==> False";
 by (forw_inst_tac [("m","n")] partition_lt_cancel 1);
 by (auto_tac (claset() addIs [lemma_additivity3],simpset()));
-val lemma_additivity3a = result();
+qed "lemma_additivity3a";
 
 Goal "[| partition(a,b) D; D n < b |] ==> psize (%x. D (x + n)) <= psize D - n";
 by (res_inst_tac [("D2","(%x. D (x + n))")] (psize_def RS 

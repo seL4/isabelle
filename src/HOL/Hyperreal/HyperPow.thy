@@ -1,7 +1,6 @@
 (*  Title       : HyperPow.thy
     Author      : Jacques D. Fleuriot  
     Copyright   : 1998  University of Cambridge
-    Description : Powers theory for hyperreals
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
 *)
 
@@ -40,9 +39,6 @@ defs
 lemma hrealpow_two: "(r::hypreal) ^ Suc (Suc 0) = r * r"
 apply (simp (no_asm))
 done
-
-lemma hrabs_hrealpow_minus_one [simp]: "abs(-1 ^ n) = (1::hypreal)"
-by (simp add: power_abs)
 
 lemma hrealpow_two_le: "(0::hypreal) \<le> r ^ Suc (Suc 0)"
 by (auto simp add: zero_le_mult_iff)
@@ -90,17 +86,6 @@ apply (auto simp add: hypreal_of_nat_Suc left_distrib)
 apply (cut_tac n = n in two_hrealpow_ge_one, arith)
 done
 declare two_hrealpow_gt [simp] 
-
-lemma hrealpow_minus_one: "-1 ^ (2*n) = (1::hypreal)"
-by (induct_tac "n", auto)
-
-lemma double_lemma: "n+n = (2*n::nat)"
-by auto
-
-(*ugh: need to get rid fo the n+n*)
-lemma hrealpow_minus_one2: "-1 ^ (n + n) = (1::hypreal)"
-by (auto simp add: double_lemma hrealpow_minus_one)
-declare hrealpow_minus_one2 [simp]
 
 lemma hrealpow:
     "Abs_hypreal(hyprel``{%n. X n}) ^ m = Abs_hypreal(hyprel``{%n. (X n) ^ m})"
@@ -291,7 +276,7 @@ apply (subgoal_tac " (- ((1::hypreal))) pow ((1 + 1)*n) = (1::hypreal) ")
 apply simp
 apply (simp only: hypreal_one_def)
 apply (rule eq_Abs_hypnat [of n])
-apply (auto simp add: double_lemma hyperpow hypnat_add hypreal_minus
+apply (auto simp add: nat_mult_2 [symmetric] hyperpow hypnat_add hypreal_minus
                       left_distrib)
 done
 declare hyperpow_minus_one2 [simp]
@@ -369,7 +354,6 @@ by (force intro!: Infinitesimal_hyperpow
 ML
 {*
 val hrealpow_two = thm "hrealpow_two";
-val hrabs_hrealpow_minus_one = thm "hrabs_hrealpow_minus_one";
 val hrealpow_two_le = thm "hrealpow_two_le";
 val hrealpow_two_le_add_order = thm "hrealpow_two_le_add_order";
 val hrealpow_two_le_add_order2 = thm "hrealpow_two_le_add_order2";
@@ -379,9 +363,6 @@ val hrealpow_three_squares_add_zero_iff = thm "hrealpow_three_squares_add_zero_i
 val hrabs_hrealpow_two = thm "hrabs_hrealpow_two";
 val two_hrealpow_ge_one = thm "two_hrealpow_ge_one";
 val two_hrealpow_gt = thm "two_hrealpow_gt";
-val hrealpow_minus_one = thm "hrealpow_minus_one";
-val double_lemma = thm "double_lemma";
-val hrealpow_minus_one2 = thm "hrealpow_minus_one2";
 val hrealpow = thm "hrealpow";
 val hrealpow_sum_square_expand = thm "hrealpow_sum_square_expand";
 val hypreal_of_real_power = thm "hypreal_of_real_power";
