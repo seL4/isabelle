@@ -45,7 +45,9 @@ sig
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
+  val print_trans_rules: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
+  val print_antiquotations: Toplevel.transition -> Toplevel.transition
   val print_thms_containing: xstring list -> Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
@@ -162,7 +164,10 @@ val print_theory = Toplevel.keep (PureThy.print_theory o Toplevel.theory_of);
 val print_syntax = Toplevel.keep (Display.print_syntax o Toplevel.theory_of);
 val print_theorems = Toplevel.keep (PureThy.print_theorems o Toplevel.theory_of);
 val print_attributes = Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
+val print_trans_rules = Toplevel.keep (Toplevel.node_case Calculation.print_global_rules
+  (Calculation.print_local_rules o Proof.context_of));
 val print_methods = Toplevel.keep (Method.print_methods o Toplevel.theory_of);
+val print_antiquotations = Toplevel.imperative IsarOutput.print_antiquotations;
 
 fun print_thms_containing cs = Toplevel.keep (fn state =>
   ThmDatabase.print_thms_containing (Toplevel.theory_of state) cs);
