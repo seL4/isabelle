@@ -78,7 +78,7 @@ NAME="$1"; shift
 
 # prepare browser info dir
 
-if [ "$INFO" = "true" -a ! -d $ISABELLE_BROWSER_INFO ]; then
+if [ "$INFO" = "true" -a ! -f $ISABELLE_BROWSER_INFO/index.html ]; then
 
   mkdir -p $ISABELLE_BROWSER_INFO/gif
   cp $ISABELLE_HOME/lib/images/blue_arrow.gif $ISABELLE_BROWSER_INFO/gif
