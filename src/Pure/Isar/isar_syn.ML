@@ -228,7 +228,7 @@ val mlP =
 
 val ml_commandP =
   OuterSyntax.command "ML_command" "eval ML text" K.diag
-    (P.text -- P.marg_comment >> IsarCmd.use_mltext false);
+    (P.text -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.use_mltext false));
 
 val ml_setupP =
   OuterSyntax.command "ML_setup" "eval ML text (may change theory)" K.thy_decl
