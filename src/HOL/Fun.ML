@@ -128,5 +128,23 @@ by (fast_tac (!claset addIs [inj_ontoI]
                       addEs [inv_injective,injD]) 1);
 qed "inj_onto_inv";
 
+goalw thy [inj_onto_def]
+   "!!f. [| inj_onto f C;  A<=C;  B<=C |] ==> f``(A Int B) = f``A Int f``B";
+by (Blast_tac 1);
+qed "inj_onto_image_Int";
+
+goalw thy [inj_onto_def]
+   "!!f. [| inj_onto f C;  A<=C;  B<=C |] ==> f``(A-B) = f``A - f``B";
+by (Blast_tac 1);
+qed "inj_onto_image_set_diff";
+
+goalw thy [inj_def] "!!f. inj f ==> f``(A Int B) = f``A Int f``B";
+by (Blast_tac 1);
+qed "image_Int";
+
+goalw thy [inj_def] "!!f. inj f ==> f``(A-B) = f``A - f``B";
+by (Blast_tac 1);
+qed "image_set_diff";
+
 
 val set_cs = !claset delrules [equalityI];

@@ -102,7 +102,7 @@ by (etac lemma 1);
 qed "rel_pow_imp_rtrancl";
 
 goal RelPow.thy "R^* = (UN n. R^n)";
-by (fast_tac (!claset addIs [rtrancl_imp_UN_rel_pow, rel_pow_imp_rtrancl]) 1);
+by (blast_tac (!claset addIs [rtrancl_imp_UN_rel_pow, rel_pow_imp_rtrancl]) 1);
 qed "rtrancl_is_UN_rel_pow";
 
 

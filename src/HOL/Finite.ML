@@ -128,20 +128,21 @@ by (ALLGOALS Asm_simp_tac);
 qed "finite_Diff_singleton";
 AddIffs [finite_Diff_singleton];
 
+(*Lemma for proving finite_imageD*)
 goal Finite.thy "!!A. finite B ==> !A. f``A = B --> inj_onto f A --> finite A";
 by (etac finite_induct 1);
  by (ALLGOALS Asm_simp_tac);
 by (Clarify_tac 1);
 by (subgoal_tac "EX y:A. f y = x & F = f``(A-{y})" 1);
  by (Clarify_tac 1);
- by (rewtac inj_onto_def);
+ by (full_simp_tac (!simpset addsimps [inj_onto_def]) 1);
  by (Blast_tac 1);
 by (thin_tac "ALL A. ?PP(A)" 1);
 by (forward_tac [[equalityD2, insertI1] MRS subsetD] 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("x","xa")] bexI 1);
-by (ALLGOALS Asm_simp_tac);
-by (blast_tac (!claset addEs [equalityE]) 1);
+by (ALLGOALS 
+    (asm_full_simp_tac (!simpset addsimps [inj_onto_image_set_diff])));
 val lemma = result();
 
 goal Finite.thy "!!A. [| finite(f``A);  inj_onto f A |] ==> finite A";

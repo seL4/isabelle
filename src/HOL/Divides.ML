@@ -294,7 +294,7 @@ qed "mult_mod_distrib";
 (************************************************)
 
 goalw thy [dvd_def] "m dvd 0";
-by (fast_tac (!claset addIs [mult_0_right RS sym]) 1);
+by (blast_tac (!claset addIs [mult_0_right RS sym]) 1);
 qed "dvd_0_right";
 Addsimps [dvd_0_right];
 
@@ -308,12 +308,12 @@ qed "dvd_1_left";
 AddIffs [dvd_1_left];
 
 goalw thy [dvd_def] "m dvd m";
-by (fast_tac (!claset addIs [mult_1_right RS sym]) 1);
+by (blast_tac (!claset addIs [mult_1_right RS sym]) 1);
 qed "dvd_refl";
 Addsimps [dvd_refl];
 
 goalw thy [dvd_def] "!!m n p. [| m dvd n; n dvd p |] ==> m dvd p";
-by (fast_tac (!claset addIs [mult_assoc] ) 1);
+by (blast_tac (!claset addIs [mult_assoc] ) 1);
 qed "dvd_trans";
 
 goalw thy [dvd_def] "!!m n. [| m dvd n; n dvd m |] ==> m=n";

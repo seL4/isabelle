@@ -117,7 +117,15 @@ val prems = goalw Set.thy [subset_def] "(!!x. x:A ==> x:B) ==> A <= B";
 by (REPEAT (ares_tac (prems @ [ballI]) 1));
 qed "subsetI";
 
-Blast.declConsts (["op <="], [subsetI]);	(*overloading of <=*)
+Blast.overload ("op <=", domain_type); (*The <= relation is overloaded*)
+
+(*While (:) is not, its type must be kept
+  for overloading of = to work.*)
+Blast.overload ("op :", domain_type);
+seq (fn a => Blast.overload (a, HOLogic.dest_setT o domain_type))
+    ["Ball", "Bex"];
+(*need UNION, INTER also?*)
+
 
 (*Rule in Modus Ponens style*)
 val major::prems = goalw Set.thy [subset_def] "[| A <= B;  c:A |] ==> c:B";
@@ -152,7 +160,7 @@ AddSIs [subsetI];
 AddEs  [subsetD, subsetCE];
 
 qed_goal "subset_refl" Set.thy "A <= (A::'a set)"
- (fn _=> [Blast_tac 1]);
+ (fn _=> [Fast_tac 1]);		(*Blast_tac would try order_refl and fail*)
 
 val prems = goal Set.thy "!!B. [| A<=B;  B<=C |] ==> A<=(C::'a set)";
 by (Blast_tac 1);
@@ -168,7 +176,6 @@ by (REPEAT (ares_tac (prems RL [subsetD]) 1));
 qed "subset_antisym";
 val equalityI = subset_antisym;
 
-Blast.declConsts (["op ="], [equalityI]);	(*overloading of equality*)
 AddSIs [equalityI];
 
 (* Equality rules from ZF set theory -- are they appropriate here? *)
@@ -642,9 +649,6 @@ by (rtac (major RS imageE) 1);
 by (etac minor 1);
 qed "rangeE";
 
-AddIs  [rangeI]; 
-AddSEs [rangeE]; 
-
 
 (*** Set reasoning tools ***)
 
@@ -694,3 +698,5 @@ goalw Set.thy [psubset_def]
     "!!x. A < insert x B ==> (x ~: A) & A<=B | x:A & A-{x}<B";
 by (Auto_tac());
 qed "psubset_insertD";
+
+bind_thm ("psubset_eq", psubset_def RS meta_eq_to_obj_eq);

@@ -8,6 +8,8 @@ Notions about functions.
 
 Fun = Set +
 
+instance set :: (term) order
+                       (subset_refl,subset_trans,subset_antisym,psubset_eq)
 consts
 
   inj, surj     :: ('a => 'b) => bool                   (*inj/surjective*)

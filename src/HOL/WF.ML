@@ -121,9 +121,10 @@ by (case_tac "a = x" 1);
  by (Blast_tac 2);
 by (case_tac "y:Q" 1);
  by (Blast_tac 2);
-by (res_inst_tac [("x","{z. z:Q & (z,y) : r^*}")]allE 1);
+by (res_inst_tac [("x","{z. z:Q & (z,y) : r^*}")] allE 1);
  by (assume_tac 1);
-by (fast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
+by (thin_tac "! Q. (? x. x : Q) --> ?P Q" 1);	(*essential for speed*)
+by (blast_tac (!claset addIs [rtrancl_into_rtrancl2]) 1);
 qed "wf_insert";
 AddIffs [wf_insert];
 

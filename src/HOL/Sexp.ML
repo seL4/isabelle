@@ -90,7 +90,7 @@ qed "pred_sexpE";
 goal Sexp.thy "wf(pred_sexp)";
 by (rtac (pred_sexp_subset_Sigma RS wfI) 1);
 by (etac sexp.induct 1);
-by (ALLGOALS (fast_tac (!claset addSEs [mp, pred_sexpE])));
+by (ALLGOALS (blast_tac (!claset addSEs [allE, pred_sexpE])));
 qed "wf_pred_sexp";
 
 
