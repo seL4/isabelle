@@ -7,8 +7,13 @@ A small universe for lazy recursive types
 *)
 
 QUniv = Univ + QPair + mono + equalities +
+
+global
+
 consts
     quniv        :: i=>i
+
+path QUniv
 
 defs
     quniv_def    "quniv(A) == Pow(univ(eclose(A)))"

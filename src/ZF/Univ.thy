@@ -12,6 +12,9 @@ NOTE: univ(A) could be a translation; would simplify many proofs!
 *)
 
 Univ = Arith + Sum + Finite + mono +
+
+global
+
 consts
     Vfrom       :: [i,i]=>i
     Vset        :: i=>i
@@ -20,6 +23,8 @@ consts
 
 translations
     "Vset(x)"   ==      "Vfrom(0,x)"
+
+path Univ
 
 defs
     Vfrom_def   "Vfrom(A,i) == transrec(i, %x f. A Un (UN y:x. Pow(f`y)))"

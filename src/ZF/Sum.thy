@@ -8,11 +8,16 @@ Disjoint sums in Zermelo-Fraenkel Set Theory
 *)
 
 Sum = Bool + pair + 
+
+global
+
 consts
     "+"         :: [i,i]=>i                     (infixr 65)
     Inl,Inr     :: i=>i
     case        :: [i=>i, i=>i, i]=>i
     Part        :: [i,i=>i] => i
+
+path Sum
 
 defs
     sum_def     "A+B == {0}*A Un {1}*B"
