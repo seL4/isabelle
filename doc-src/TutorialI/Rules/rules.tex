@@ -475,8 +475,8 @@ contrapos_np)\isanewline
 %
 There are two negated assumptions and we need to exchange the conclusion with the
 second one.  The method \isa{erule contrapos_np} would select the first assumption,
-which we do not want.  So we specify the desired assumption explicitly, using
-\isa{erule_tac}.  This is the resulting subgoal: 
+which we do not want.  So we specify the desired assumption explicitly
+using a new method, \isa{erule_tac}.  This is the resulting subgoal: 
 \begin{isabelle}
 \ 1.\ \isasymlbrakk{\isasymnot}\ (P\ \isasymlongrightarrow\ Q);\ \isasymnot\
 R\isasymrbrakk\ \isasymLongrightarrow\ R\ \isasymlongrightarrow\ Q%
@@ -562,6 +562,64 @@ command.%
 \index{negation|)}
 
 
+\section{Interlude: the Basic Methods for Rules}
+
+We have seen examples of many tactics that operate on individual rules.  It
+may be helpful to review how they work given an arbitrary rule such as this:
+\[ \infer{Q}{P@1 & \ldots & P@n} \]
+Below, we refer to $P@1$ as the \textbf{major premise}.  This concept
+applies only to elimination and destruction rules.  These rules act upon an
+instance of their major premise, typically to replace it by other
+assumptions.
+
+Suppose that the rule above is called~\isa{R}\@.  Here are the basic rule
+methods, most of which we have already seen:
+\begin{itemize}
+\item 
+Method \isa{rule\ R} unifies~$Q$ with the current subgoal, which it
+replaces by $n$ new subgoals, to prove instances of $P@1$, \ldots,~$P@n$. 
+This is  backward reasoning and is appropriate for introduction rules.
+\item 
+Method \isa{erule\ R} unifies~$Q$ with the current subgoal and
+simultaneously unifies $P@1$ with some assumption.  The subgoal is 
+replaced by the $n-1$ new subgoals of proving
+instances of $P@2$,
+\ldots,~$P@n$, with the matching assumption deleted.  It is appropriate for
+elimination rules.  The method
+\isa{(rule\ R,\ assumption)} is similar, but it does not delete an
+assumption.
+\item 
+Method \isa{drule\ R} unifies $P@1$ with some assumption, which is
+then deleted.  The subgoal is 
+replaced by the $n-1$ new subgoals of proving $P@2$, \ldots,~$P@n$; an
+$n$th subgoal is like the original one but has an additional assumption: an
+instance of~$Q$.  It is appropriate for destruction rules. 
+\item 
+Method \isa{frule\ R} is like \isa{drule\ R} except that the matching
+assumption is not deleted.  (See \S\ref{sec:frule} below.)
+\end{itemize}
+
+When applying a rule, we can constrain some of its
+variables: 
+\begin{isabelle}
+\ \ \ \ \ rule_tac\ $v@1$ = $t@1$ \isakeyword{and} \ldots \isakeyword{and}
+$v@k$ =
+$t@k$ \isakeyword{in} R
+\end{isabelle}
+This method behaves like \isa{rule R}, while instantiating the variables
+$v@1$, \ldots,
+$v@k$ as specified.  We similarly have \isa{erule_tac}, \isa{drule_tac} and
+\isa{frule_tac}.  These methods also let us specify which subgoal to
+operate on.  By default it is the first subgoal, as with nearly all
+methods, but we can specify that rule \isa{R} should be applied to subgoal
+number~$i$:
+\begin{isabelle}
+\ \ \ \ \ rule_tac\ [$i$] R
+\end{isabelle}
+
+
+
+
 \section{Unification and Substitution}\label{sec:unification}
 
 \index{unification|(}%
@@ -570,7 +628,7 @@ a question mark and act as
 placeholders for terms.  \emph{Unification} refers to  the process of
 making two terms identical, possibly by replacing their schematic variables by
 terms.  The simplest case is when the two terms  are already the same. Next
-simplest is when the variables in only one of the terms
+simplest is when the variables in only one of the term
  are replaced; this is called pattern-matching.  The
 \isa{rule} method typically  matches the rule's conclusion
 against the current subgoal.  In the most complex case,  variables in both
@@ -612,7 +670,8 @@ exponential in the number of occurrences of~\isa{a} in the second term.
 \end{warn}
 
 
-\subsection{Substitution}
+\subsection{Substitution and the {\tt\slshape subst} Method}
+\label{sec:subst}
 
 \index{substitution|(}%
 Isabelle also uses function variables to express \emph{substitution}. 
@@ -638,11 +697,44 @@ involving one bound variable whose occurrences identify the places
 in which $s$ will be replaced by~$t$.  The proof above requires
 \isa{{\isasymlambda}x.~x=s}.
 
-The \isa{simp} method replaces equals by equals, but using the substitution
-rule gives us more control. Consider this proof: 
+The \isa{simp} method replaces equals by equals, but the substitution
+rule gives us more control.  The \isa{subst} method is the easiest way to
+use the substitution rule.  Suppose a
+proof has reached this point:
+\begin{isabelle}
+\ 1.\ \isasymlbrakk P\ x\ y\ z;\ Suc\ x\ <\ y\isasymrbrakk \ \isasymLongrightarrow \ f\ z\ =\ x\ *\ y%
+\end{isabelle}
+Now we wish to apply a commutative law:
+\begin{isabelle}
+?m\ *\ ?n\ =\ ?n\ *\ ?m%
+\rulename{mult_commute}
+\end{isabelle}
+Isabelle rejects our first attempt:
+\begin{isabelle}
+apply (simp add: mult_commute)
+\end{isabelle}
+The simplifier notices the danger of looping and refuses to apply the
+rule.%
+\footnote{More precisely, it only applies such a rule if the new term is
+smaller under a specified ordering; here, \isa{x\ *\ y}
+is already smaller than
+\isa{y\ *\ x}.}
+%
+The \isa{subst} method applies \isa{mult_commute} exactly once.  
+\begin{isabelle}
+\isacommand{apply}\ (subst\ mult_commute)\isanewline
+\ 1.\ \isasymlbrakk P\ x\ y\ z;\ Suc\ x\ <\ y\isasymrbrakk \
+\isasymLongrightarrow \ f\ z\ =\ y\ *\ x%
+\end{isabelle}
+As we wanted, \isa{x\ *\ y} has become \isa{y\ *\ x}.
+
+\medskip
+The \isa{subst} method is convenient, but to see how it works, let us
+examine an explicit use of the rule \isa{ssubst}.
+Consider this proof: 
 \begin{isabelle}
 \isacommand{lemma}\
-"\isasymlbrakk \ x\ =\ f\ x;\ odd(f\ x)\ \isasymrbrakk\ \isasymLongrightarrow\
+"\isasymlbrakk x\ =\ f\ x;\ odd(f\ x)\isasymrbrakk\ \isasymLongrightarrow\
 odd\ x"\isanewline
 \isacommand{by}\ (erule\ ssubst)
 \end{isabelle}
@@ -655,7 +747,7 @@ cases it can be fooled.) When we apply substitution,  Isabelle replaces every
 resulting subgoal is trivial by assumption, so the \isacommand{by} command
 proves it implicitly. 
 
-We are using the \isa{erule} method in a novel way. Hitherto, 
+We are using the \isa{erule} method it in a novel way. Hitherto, 
 the conclusion of the rule was just a variable such as~\isa{?R}, but it may
 be any term. The conclusion is unified with the subgoal just as 
 it would be with the \isa{rule} method. At the same time \isa{erule} looks 
@@ -669,9 +761,8 @@ assumption.
 Higher-order unification can be tricky.  Here is an example, which you may
 want to skip on your first reading:
 \begin{isabelle}
-\isacommand{lemma}\ "\isasymlbrakk \ x\ =\
-f\ x;\ triple\ (f\ x)\
-(f\ x)\ x\ \isasymrbrakk\
+\isacommand{lemma}\ "\isasymlbrakk x\ =\
+f\ x;\ triple\ (f\ x)\ (f\ x)\ x\isasymrbrakk\
 \isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
 \isacommand{apply}\ (erule\ ssubst)\isanewline
 \isacommand{back}\isanewline
@@ -729,8 +820,7 @@ second. If the second method  fails then Isabelle automatically backtracks.
 This process continues until  the first method produces an output that the
 second method can  use. We get a one-line proof of our example: 
 \begin{isabelle}
-\isacommand{lemma}\ "\isasymlbrakk \ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\
-\isasymrbrakk\
+\isacommand{lemma}\ "\isasymlbrakk x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\isasymrbrakk\
 \isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
 \isacommand{apply}\ (erule\ ssubst,\ assumption)\isanewline
 \isacommand{done}
@@ -740,8 +830,7 @@ second method can  use. We get a one-line proof of our example:
 The \isacommand{by} command works too, since it backtracks when
 proving subgoals by assumption:
 \begin{isabelle}
-\isacommand{lemma}\ "\isasymlbrakk \ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\
-\isasymrbrakk\
+\isacommand{lemma}\ "\isasymlbrakk x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\isasymrbrakk\
 \isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
 \isacommand{by}\ (erule\ ssubst)
 \end{isabelle}
@@ -754,8 +843,8 @@ makes some of the rule's variables  denote specified terms.
 Also available are {\isa{drule_tac}}  and \isa{erule_tac}.  Here we need
 \isa{erule_tac} since above we used \isa{erule}.
 \begin{isabelle}
-\isacommand{lemma}\ "\isasymlbrakk \ x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\ \isasymrbrakk\ \isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
-\isacommand{by}\ (erule_tac\ P = "\isasymlambda u.\ P\ u\ u\ x"\ 
+\isacommand{lemma}\ "\isasymlbrakk x\ =\ f\ x;\ triple\ (f\ x)\ (f\ x)\ x\isasymrbrakk\ \isasymLongrightarrow\ triple\ x\ x\ x"\isanewline
+\isacommand{by}\ (erule_tac\ P = "\isasymlambda u.\ triple\ u\ u\ x"\ 
 \isakeyword{in}\ ssubst)
 \end{isabelle}
 %
@@ -953,6 +1042,7 @@ If the subgoal has more bound variables than there are names given to
 
 
 \subsection{Reusing an Assumption: {\tt\slshape frule}}
+\label{sec:frule}
 
 \index{assumptions!reusing|(}\index{*frule|(}%
 Note that \isa{drule spec} removes the universal quantifier and --- as
@@ -1085,15 +1175,16 @@ description) and proceed to prove other facts.
 A more challenging example illustrates how Isabelle/HOL defines the least-number
 operator, which denotes the least \isa{x} satisfying~\isa{P}:
 \begin{isabelle}
-(LEAST\ x.\ P\ x)\ = \ SOME\ x.\ P\ x\ \isasymand \ (\isasymforall y.\
-P\ y\ \isasymlongrightarrow \ x\ \isasymle \ y)
+(LEAST\ x.\ P\ x)\ = (SOME\ x.\ P\ x\ \isasymand \ (\isasymforall y.\
+P\ y\ \isasymlongrightarrow \ x\ \isasymle \ y))
 \end{isabelle}
-
-Let us prove the counterpart of \isa{some_equality} for this operator.
-The first step merely unfolds the definitions:
+%
+Let us prove the counterpart of \isa{some_equality} for \isa{LEAST}\@.
+The first step merely unfolds the definitions (\isa{LeastM} is a
+auxiliary operator):
 \begin{isabelle}
 \isacommand{theorem}\ Least_equality:\isanewline
-\ \ \ \ \ "\isasymlbrakk \ P\ (k::nat);\ \ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\ \isasymle \ x\ \isasymrbrakk \ \isasymLongrightarrow \ (LEAST\ x.\ P\ x)\ =\ k"\isanewline
+\ \ \ \ \ "\isasymlbrakk P\ (k::nat);\ \ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\ \isasymle \ x\isasymrbrakk \ \isasymLongrightarrow \ (LEAST\ x.\ P\ x)\ =\ k"\isanewline
 \isacommand{apply}\ (simp\ add:\ Least_def\ LeastM_def)\isanewline
 %\ 1.\ \isasymlbrakk P\ k;\ \isasymforall x.\ P\ x\ \isasymlongrightarrow \ k\
 %\isasymle \ x\isasymrbrakk \isanewline
@@ -1507,7 +1598,7 @@ superseded by \isa{blast}, but they still have niche applications.
 Most important among these are \isa{fast} and \isa{best}. While \isa{blast} 
 searches for proofs using a built-in first-order reasoner, these 
 earlier methods search for proofs using standard Isabelle inference. 
-That makes them slower but enables them to work correctly in the 
+That makes them slower but enables them to work in the 
 presence of the more unusual features of Isabelle rules, such 
 as type classes and function unknowns. For example, recall the introduction rule
 for Hilbert's $\varepsilon$-operator: 
@@ -1719,6 +1810,12 @@ is the Isabelle version:
 \isacommand{by}\ (rule\ gcd_mult\ [of\ k\ 1,\ simplified])
 \end{isabelle}
 
+\begin{exercise}
+In \S\ref{sec:subst} the method \isa{subst\ mult_commute} was applied.  How
+can we achieve the same effect using \isa{THEN} with the rule \isa{ssubst}?
+% answer  rule (mult_commute [THEN ssubst])
+
+\end{exercise}
 
 \subsection{The {\tt\slshape OF} Directive}
 
@@ -1880,8 +1977,7 @@ proof step inserts the distributive law for
 \begin{isabelle}
 \isacommand{lemma}\
 relprime_dvd_mult:\isanewline
-\ \ \ \ \ \ \ "\isasymlbrakk \ gcd(k,n){=}1;\ k\ dvd\ m*n\
-\isasymrbrakk\
+\ \ \ \ \ \ \ "\isasymlbrakk gcd(k,n){=}1;\ k\ dvd\ m*n\isasymrbrakk\
 \isasymLongrightarrow\ k\ dvd\
 m"\isanewline
 \isacommand{apply}\ (insert\ gcd_mult_distrib2\ [of\ m\ k\
