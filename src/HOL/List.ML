@@ -94,6 +94,11 @@ by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 by (Fast_tac 1);
 qed "set_of_list_mem_eq";
 
+goal List.thy "set_of_list l <= set_of_list (x#l)";
+by (Simp_tac 1);
+by (Fast_tac 1);
+qed "set_of_list_subset_Cons";
+
 
 (** list_all **)
 
