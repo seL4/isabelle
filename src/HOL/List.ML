@@ -312,7 +312,7 @@ Goalw [o_def] "map (f o g) xs = map f (map g xs)";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "map_compose";
-Addsimps[map_compose];
+(*Addsimps[map_compose];*)
 
 Goal "rev(map f xs) = map f (rev xs)";
 by (induct_tac "xs" 1);
