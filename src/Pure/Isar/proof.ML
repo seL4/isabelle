@@ -44,10 +44,11 @@ sig
   val method_cases: (thm list -> thm -> (thm * (string * RuleCases.T) list) Seq.seq) -> method
   val refine: (context -> method) -> state -> state Seq.seq
   val refine_end: (context -> method) -> state -> state Seq.seq
-  val find_free: term -> string -> term option
   val export_thm: context -> thm -> thm
   val match_bind: (string list * string) list -> state -> state
   val match_bind_i: (term list * term) list -> state -> state
+  val let_bind: (string list * string) list -> state -> state
+  val let_bind_i: (term list * term) list -> state -> state
   val have_thmss: thm list -> string -> context attribute list ->
     (thm list * context attribute list) list -> state -> state
   val simple_have_thms: string -> thm list -> state -> state
@@ -77,7 +78,6 @@ sig
   val lemma_i: bstring -> theory attribute list -> term * (term list * term list)
     -> theory -> state
   val chain: state -> state
-  val export_chain: state -> state Seq.seq
   val from_facts: thm list -> state -> state
   val show: (state -> state Seq.seq) -> string -> context attribute list
     -> string * (string list * string list) -> state -> state
@@ -379,49 +379,6 @@ val refine_end = gen_refine false;
 end;
 
 
-(* export *)
-
-fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
-  | get_free _ (opt, _) = opt;
-
-fun find_free t x = foldl_aterms (get_free x) (None, t);
-
-
-local
-
-fun varify_frees fixes thm =
-  let
-    val {sign, prop, ...} = Thm.rep_thm thm;
-    val frees = map (Thm.cterm_of sign) (mapfilter (find_free prop) fixes);
-  in
-    thm
-    |> Drule.forall_intr_list frees
-    |> Drule.forall_elim_vars 0
-  end;
-
-fun export fixes casms thm =
-  thm
-  |> Drule.implies_intr_list casms
-  |> varify_frees fixes
-  |> ProofContext.most_general_varify_tfrees;
-
-fun diff_context inner None = (ProofContext.fixed_names inner, ProofContext.assumptions inner)
-  | diff_context inner (Some outer) =
-      (ProofContext.fixed_names inner \\ ProofContext.fixed_names outer,
-        Library.drop (length (ProofContext.assumptions outer), ProofContext.assumptions inner));
-
-in
-
-fun export_wrt inner opt_outer =
-  let
-    val (fixes, asms) = diff_context inner opt_outer;
-    val casms = map (Drule.mk_cgoal o #1) asms;
-    val tacs = map #2 asms;
-  in (export fixes casms, tacs) end;
-
-end;
-
-
 (* export results *)
 
 fun RANGE [] _ = all_tac
@@ -436,7 +393,7 @@ fun HEADGOAL tac = tac 1;
 fun export_goal print_rule raw_rule inner state =
   let
     val (outer, (_, ((result, (facts, thm)), f))) = find_goal 0 state;
-    val (exp, tacs) = export_wrt inner (Some outer);
+    val (exp, tacs) = ProofContext.export_wrt inner (Some outer);
     val rule = exp raw_rule;
     val _ = print_rule rule;
     val thmq = FINDGOAL (Tactic.rtac rule THEN' RANGE (map #1 tacs)) thm;
@@ -444,25 +401,22 @@ fun export_goal print_rule raw_rule inner state =
 
 
 fun export_thm inner thm =
-  let val (exp, tacs) = export_wrt inner None in
+  let val (exp, tacs) = ProofContext.export_wrt inner None in
     (case Seq.chop (2, RANGE (map #2 tacs) 1 (exp thm)) of
       ([thm'], _) => thm'
     | ([], _) => raise THM ("export: failed", 0, [thm])
     | _ => raise THM ("export: more than one result", 0, [thm]))
   end;
 
-
-fun export_facts inner_state opt_outer_state state =
-  let
-    val thms = the_facts inner_state;
-    val (exp, tacs) = export_wrt (context_of inner_state) (apsome context_of opt_outer_state);
-    val thmqs = map (RANGE (map #2 tacs) 1 o exp) thms;
-  in Seq.map (fn ths => put_facts (Some ths) state) (Seq.commute thmqs) end;
-
 fun transfer_facts inner_state state =
   (case get_facts inner_state of
     None => Seq.single (reset_facts state)
-  | Some ths => export_facts inner_state (Some state) state);
+  | Some thms =>
+      let
+        val (exp, tacs) =
+          ProofContext.export_wrt (context_of inner_state) (Some (context_of state));
+        val thmqs = map (RANGE (map #2 tacs) 1 o exp) thms;
+      in Seq.map (fn ths => put_facts (Some ths) state) (Seq.commute thmqs) end);
 
 
 (* prepare result *)
@@ -478,7 +432,7 @@ fun prep_result state t raw_thm =
       else (Locale.print_goals ngoals raw_thm; err (string_of_int ngoals ^ " unsolved goal(s)!"));
 
     val thm = raw_thm RS Drule.rev_triv_goal;
-    val {hyps, prop, sign, maxidx, ...} = Thm.rep_thm thm;
+    val {hyps, prop, sign, ...} = Thm.rep_thm thm;
     val tsig = Sign.tsig_of sign;
 
     val casms = map #1 (assumptions state);
@@ -488,7 +442,7 @@ fun prep_result state t raw_thm =
       err ("Additional hypotheses:\n" ^ cat_lines (map (Sign.string_of_term sign) bad_hyps))
     else if not (t aconv prop) then
       err ("Proved a different theorem: " ^ Sign.string_of_term sign prop)
-    else thm |> Drule.forall_elim_vars (maxidx + 1) |> ProofContext.most_general_varify_tfrees
+    else thm
   end;
 
 
@@ -505,8 +459,10 @@ fun gen_bind f x state =
   |> map_context (f x)
   |> reset_facts;
 
-val match_bind = gen_bind ProofContext.match_bind;
-val match_bind_i = gen_bind ProofContext.match_bind_i;
+val match_bind = gen_bind (ProofContext.match_bind false);
+val match_bind_i = gen_bind (ProofContext.match_bind_i false);
+val let_bind = gen_bind (ProofContext.match_bind true);
+val let_bind_i = gen_bind (ProofContext.match_bind_i true);
 
 
 (* have_thmss *)
@@ -547,7 +503,7 @@ fun gen_assume f tac args state =
 
 val hard_asm_tac = Tactic.etac Drule.triv_goal;
 val soft_asm_tac = Tactic.rtac Drule.triv_goal
-  THEN' Tactic.rtac asm_rl;	(* FIXME hack to norm goal *)
+  THEN' Tactic.rtac asm_rl;     (* FIXME hack to norm goal *)
 
 in
 
@@ -582,12 +538,6 @@ fun chain state =
   |> assert_facts
   |> enter_forward_chain;
 
-fun export_chain state =
-  state
-  |> assert_forward
-  |> export_facts state None
-  |> Seq.map chain;
-
 fun from_facts facts state =
   state
   |> put_facts (Some facts)
@@ -598,17 +548,17 @@ fun from_facts facts state =
 
 fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
   let
-    val (state', prop) =
+    val (state', (prop, gen_binds)) =
       state
       |> assert_forward_or_chain
       |> enter_forward
+      |> opt_block
       |> map_context_result (fn ct => prepp (ct, raw_propp));
     val cprop = Thm.cterm_of (sign_of state') prop;
     val goal = Drule.mk_triv_goal cprop;
   in
     state'
-    |> opt_block
-    |> put_goal (Some (((kind atts, name, prop), ([], goal)), after_qed))
+    |> put_goal (Some (((kind atts, name, prop), ([], goal)), after_qed o map_context gen_binds))
     |> auto_bind_goal prop
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
@@ -673,19 +623,22 @@ fun end_proof bot state =
 
 fun finish_local (print_result, print_rule) state =
   let
-    val (ctxt, (((kind, name, t), (_, raw_thm)), after_qed)) = current_goal state;
+    val (goal_ctxt, (((kind, name, t), (_, raw_thm)), after_qed)) = current_goal state;
+    val outer_state = state |> close_block;
+    val outer_ctxt = context_of outer_state;
+
     val result = prep_result state t raw_thm;
     val (atts, opt_solve) =
       (case kind of
-        Goal atts => (atts, export_goal print_rule result ctxt)
+        Goal atts => (atts, export_goal print_rule result goal_ctxt)
       | Aux atts => (atts, Seq.single)
       | _ => err_malformed "finish_local" state);
   in
     print_result {kind = kind_name kind, name = name, thm = result};
-    state
-    |> close_block
-    |> auto_bind_facts name [t]
-    |> have_thmss [] name atts [Thm.no_attributes [result]]
+    outer_state
+    |> auto_bind_facts name [ProofContext.generalize goal_ctxt outer_ctxt t]
+    |> have_thmss [] name atts [Thm.no_attributes
+        [#1 (ProofContext.export_wrt goal_ctxt (Some outer_ctxt)) result]]
     |> opt_solve
     |> (Seq.flat o Seq.map after_qed)
   end;
