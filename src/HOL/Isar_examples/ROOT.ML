@@ -11,3 +11,4 @@ use_thy "Cantor";
 use_thy "ExprCompiler";
 use_thy "Group";
 use_thy "NatSum";
+use_thy "KnasterTarski";
