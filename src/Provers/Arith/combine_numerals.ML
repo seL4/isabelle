@@ -41,9 +41,6 @@ functor CombineNumeralsFun(Data: COMBINE_NUMERALS_DATA):
 =
 struct
 
-fun listof None = []
-  | listof (Some x) = [x];
-
 (*Remove the first occurrence of #m*u from the term list*)
 fun remove (_, _, []) = (*impossible, since #m*u was found by find_repeated*)
       raise TERM("combine_numerals: remove", [])  
