@@ -132,7 +132,7 @@ serves little purpose in forward proof.
 \end{ttdescription}
 
 
-\subsection{Instantiating a theorem}
+\subsection{Instantiating a theorem} \label{sec:instantiate}
 \index{instantiation}
 \begin{ttbox}
 read_instantiate    :                (string * string) list -> thm -> thm
@@ -593,6 +593,9 @@ $tyinsts$) and terms for term unknowns (the $insts$).  Instantiations are
 given as $(v,t)$ pairs, where $v$ is an unknown and $t$ is a term (of the
 same type as $v$) or a type (of the same sort as~$v$).  All the unknowns
 must be distinct.  The rule normalizes its conclusion.
+
+Note that \ttindex{instantiate'} (see \S\ref{sec:instantiate})
+provides a more convenient interface to this rule.
 \end{ttdescription}
 
 
