@@ -293,6 +293,39 @@ fun elim_format x = no_args (Drule.rule_attribute (K Tactic.make_elim)) x;
 fun no_vars x = no_args (Drule.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
 
 
+(* rule declarations *)
+
+local
+
+fun add_args a b c x = syntax
+  (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) -- (Scan.option Args.nat))
+    >> (fn (f, n) => f n)) x;
+
+fun del_args att = syntax (Scan.lift Args.del >> K att);
+
+open ContextRules;
+
+in
+
+val rule_atts =
+ [("intro",
+   (add_args intro_bang_global intro_global intro_query_global,
+    add_args intro_bang_local intro_local intro_query_local),
+    "declaration of introduction rule"),
+  ("elim",
+   (add_args elim_bang_global elim_global elim_query_global,
+    add_args elim_bang_local elim_local elim_query_local),
+    "declaration of elimination rule"),
+  ("dest",
+   (add_args dest_bang_global dest_global dest_query_global,
+    add_args dest_bang_local dest_local dest_query_local),
+    "declaration of destruction rule"),
+  ("rule", (del_args rule_del_global, del_args rule_del_local),
+    "remove declaration of intro/elim/dest rule")];
+
+end;
+
+
 
 (** theory setup **)
 
@@ -319,7 +352,8 @@ val pure_attributes =
     "declaration of atomize rule"),
   ("rulify", (no_args ObjectLogic.declare_rulify, no_args undef_local_attribute),
     "declaration of rulify rule"),
-  ("rule_format", (rule_format_att, rule_format_att), "result put into standard rule format")];
+  ("rule_format", (rule_format_att, rule_format_att), "result put into standard rule format")] @
+  rule_atts;
 
 
 (* setup *)
