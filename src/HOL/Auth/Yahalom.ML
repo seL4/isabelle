@@ -58,8 +58,8 @@ bind_thm ("YM4_parts_knows_Spy",
 (*For Oops*)
 Goal "Says Server A {|Crypt (shrK A) {|B,K,NA,NB|}, X|} : set evs \
 \     ==> K : parts (knows Spy evs)";
-by (blast_tac (claset() addSEs partsEs
-                        addSDs [Says_imp_knows_Spy RS parts.Inj]) 1);
+by (blast_tac (claset() addSDs [parts.Body, 
+                  Says_imp_knows_Spy RS parts.Inj]) 1);
 qed "YM4_Key_parts_knows_Spy";
 
 (*For proving the easier theorems about X ~: parts (knows Spy evs).*)
@@ -439,7 +439,7 @@ by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (blast_tac (claset() addDs [Gets_imp_knows_Spy RS analz.Inj]
                         addSIs [parts_insertI]
-                        addSEs partsEs) 1);
+                        addSDs [parts.Body]) 1);
 bind_thm ("no_nonce_YM1_YM2", result() RS mp RSN (2,rev_mp) RSN (2,rev_notE));
 
 (*more readable version cited in Yahalom paper*)
@@ -475,7 +475,7 @@ by (blast_tac (claset() addDs [Says_imp_knows_Spy RS parts.Inj]
 	                addSEs [no_nonce_YM1_YM2, MPair_parts]
 		        addDs  [Gets_imp_Says, Says_unique_NB]) 4);
 (*YM2: similar freshness reasoning*) 
-by (blast_tac (claset() addSEs partsEs
+by (blast_tac (claset() addSDs [parts.Body]
 		        addDs  [Gets_imp_Says,
 				Says_imp_knows_Spy RS analz.Inj,
 				impOfSubs analz_subset_parts]) 3);

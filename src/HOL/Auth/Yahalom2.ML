@@ -12,9 +12,8 @@ From page 259 of
   Proc. Royal Soc. 426 (1989)
 *)
 
-AddEs knows_Spy_partsEs;
-AddDs [impOfSubs analz_subset_parts];
-AddDs [impOfSubs Fake_parts_insert];
+AddDs  [Says_imp_knows_Spy RS parts.Inj, parts.Body];
+AddDs  [impOfSubs analz_subset_parts, impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)
@@ -57,8 +56,8 @@ bind_thm ("YM4_parts_knows_Spy",
 (*For Oops*)
 Goal "Says Server A {|NB, Crypt (shrK A) {|B,K,NA|}, X|} : set evs \
 \     ==> K : parts (knows Spy evs)";
-by (blast_tac (claset() addSEs partsEs
-                        addSDs [Says_imp_knows_Spy RS parts.Inj]) 1);
+by (blast_tac (claset() addSDs [parts.Body, 
+         Says_imp_knows_Spy RS parts.Inj]) 1);
 qed "YM4_Key_parts_knows_Spy";
 
 (*For proving the easier theorems about X ~: parts (knows Spy evs).*)
@@ -361,7 +360,7 @@ by (force_tac (claset() addSDs [Crypt_imp_keysFor], simpset()) 1);
 by (asm_simp_tac (simpset() addsimps [ex_disj_distrib]) 1);
 (*yes: delete a useless induction hypothesis; apply unicity of session keys*)
 by (thin_tac "?P-->?Q" 1);
-by (ftac Gets_imp_Says 1 THEN assume_tac 1);
+by (dtac Gets_imp_Says 1 THEN assume_tac 1);
 by (not_bad_tac "Aa" 1);
 by (blast_tac (claset() addSDs [A_trusts_YM3, B_trusts_YM4_shrK]
 			addDs  [unique_session_keys]) 1);

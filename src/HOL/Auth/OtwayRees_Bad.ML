@@ -15,10 +15,8 @@ protocol is open to a middleperson attack.  Attempting to prove some key lemmas
 indicates the possibility of this attack.
 *)
 
-AddEs knows_Spy_partsEs;
-AddDs [impOfSubs analz_subset_parts];
-AddDs [impOfSubs Fake_parts_insert];
-
+AddDs  [Says_imp_knows_Spy RS parts.Inj, parts.Body];
+AddDs  [impOfSubs analz_subset_parts, impOfSubs Fake_parts_insert];
 
 (*A "possibility property": there are traces that reach the end*)
 Goal "[| A ~= B; B ~= Server |]   \
@@ -107,12 +105,7 @@ by (blast_tac (claset() addSDs [keysFor_parts_insert]) 1);
 (*OR2, OR3*)
 by (ALLGOALS Blast_tac);
 qed_spec_mp "new_keys_not_used";
-
-bind_thm ("new_keys_not_analzd",
-          [analz_subset_parts RS keysFor_mono,
-           new_keys_not_used] MRS contra_subsetD);
-
-Addsimps [new_keys_not_used, new_keys_not_analzd];
+Addsimps [new_keys_not_used];
 
 
 

@@ -69,7 +69,7 @@ qed_spec_mp "Notes_imp_knows_Spy";
 (*Use with addSEs to derive contradictions from old Says events containing
   items known to be fresh*)
 bind_thms ("knows_Spy_partsEs", 
-           make_elim (Says_imp_knows_Spy RS parts.Inj) :: partsEs);
+           map make_elim [Says_imp_knows_Spy RS parts.Inj, parts.Body]);
 
 Addsimps [knows_Spy_Says, knows_Spy_Notes, knows_Spy_Gets];
 

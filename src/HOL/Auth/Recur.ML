@@ -8,9 +8,8 @@ Inductive relation "recur" for the Recursive Authentication protocol.
 
 Pretty.setdepth 30;
 
-AddEs spies_partsEs;
-AddDs [impOfSubs analz_subset_parts];
-AddDs [impOfSubs Fake_parts_insert];
+AddDs  [Says_imp_knows_Spy RS parts.Inj, parts.Body];
+AddDs  [impOfSubs analz_subset_parts, impOfSubs Fake_parts_insert];
 
 
 (** Possibility properties: traces that reach the end 
@@ -343,9 +342,7 @@ by (blast_tac (claset() addSDs [respond_certificate]) 2);
 by (Asm_full_simp_tac 1);
 (*by unicity, either B=Aa or B=A', a contradiction if B \\<in> bad*)
 by (blast_tac
-    (claset() addSEs [MPair_parts]
-	     addDs [parts.Body,
-		    respond_certificate RSN (2, unique_session_keys)]) 1);
+    (claset() addDs [respond_certificate RSN (2, unique_session_keys)]) 1);
 qed_spec_mp "respond_Spy_not_see_session_key";
 
 
@@ -371,7 +368,6 @@ by (simp_tac (simpset() addsimps [parts_insert_spies]) 1);
 by (safe_tac (claset() delrules [impCE]));
 (*RA3, case 2: K is an old key*)
 by (blast_tac (claset() addSDs [resp_analz_insert]
-                        addSEs partsEs
                         addDs  [Key_in_parts_respond]) 2);
 (*RA3, case 1: use lemma previously proved by induction*)
 by (blast_tac (claset() addSEs [respond_Spy_not_see_session_key RSN

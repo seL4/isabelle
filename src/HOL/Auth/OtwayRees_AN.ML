@@ -12,9 +12,8 @@ From page 11 of
   IEEE Trans. SE 22 (1), 1996
 *)
 
-AddEs knows_Spy_partsEs;
-AddDs [impOfSubs analz_subset_parts];
-AddDs [impOfSubs Fake_parts_insert];
+AddDs  [Says_imp_knows_Spy RS parts.Inj, parts.Body];
+AddDs  [impOfSubs analz_subset_parts, impOfSubs Fake_parts_insert];
 
 
 (*A "possibility property": there are traces that reach the end*)

@@ -202,7 +202,7 @@ lemma "\<lbrakk>A \<notin> bad;  B \<notin> bad;  evs \<in> ns_public\<rbrakk>
 apply (erule ns_public.induct, simp_all)
 apply spy_analz
 (*NS1: by freshness*)
-apply (blast)
+apply blast
 (*NS2: by freshness and unicity of NB*)
 apply (blast intro: no_nonce_NS1_NS2)
 (*NS3: unicity of NB identifies A and NA, but not B*)

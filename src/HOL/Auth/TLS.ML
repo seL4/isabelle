@@ -17,9 +17,8 @@ Protocol goals:
   rollback attacks).
 *)
 
-AddEs spies_partsEs;
-AddDs [impOfSubs analz_subset_parts];
-AddDs [impOfSubs Fake_parts_insert];
+AddDs  [Says_imp_knows_Spy RS parts.Inj, parts.Body];
+AddDs  [impOfSubs analz_subset_parts, impOfSubs Fake_parts_insert];
 
 (*Automatically unfold the definition of "certificate"*)
 Addsimps [certificate_def];
@@ -129,10 +128,8 @@ result();
    needless information about analz (insert X (spies evs))  *)
 fun parts_induct_tac i = 
     etac tls.induct i
-    THEN 
-    REPEAT (FIRSTGOAL analz_mono_contra_tac)
-    THEN 
-    fast_tac (claset() addss (simpset())) i THEN
+    THEN REPEAT (FIRSTGOAL analz_mono_contra_tac)
+    THEN Force_tac i THEN
     ALLGOALS Asm_simp_tac;
 
 
@@ -438,14 +435,14 @@ Goal "[| evs : tls;  A ~: bad;  B ~: bad |]           \
 \         Nonce PMS ~: analz (spies evs)";
 by (analz_induct_tac 1);   (*4 seconds*)
 (*ClientAccepts and ServerAccepts: because PMS ~: range PRF*)
-by (REPEAT (fast_tac (claset() addss (simpset())) 6));
+by (REPEAT (Force_tac 6));
 (*ClientHello, ServerHello, ClientKeyExch, ServerResume: 
   mostly freshness reasoning*)
-by (REPEAT (blast_tac (claset() addSEs partsEs
+by (REPEAT (blast_tac (claset() addSDs [parts.Body]
 				addDs  [Notes_Crypt_parts_spies,
 					Says_imp_spies RS analz.Inj]) 3));
 (*SpyKeys*)
-by (fast_tac (claset() addss (simpset())) 2);
+by (Force_tac 2);
 (*Fake*)
 by (spy_analz_tac 1);
 bind_thm ("Spy_not_see_PMS", result() RSN (2, rev_mp));
@@ -469,7 +466,7 @@ by (blast_tac (claset() addSDs [Spy_not_see_PMS,
 (*Fake*)
 by (spy_analz_tac 1);
 (*ServerHello and ClientKeyExch: mostly freshness reasoning*)
-by (REPEAT (blast_tac (claset() addSEs partsEs
+by (REPEAT (blast_tac (claset() addSDs [parts.Body]
 				addDs  [Notes_Crypt_parts_spies,
 					Says_imp_spies RS analz.Inj]) 1));
 bind_thm ("Spy_not_see_MS", result() RSN (2, rev_mp));
@@ -578,7 +575,6 @@ Goal "[| X = Crypt (serverK(Na,Nb,M))                  \
 \         X : parts (spies evs) --> Says B A X : set evs";
 by (hyp_subst_tac 1);
 by (analz_induct_tac 1);        (*7 seconds*)
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 by (ALLGOALS Clarify_tac);
 (*ClientKeyExch*)
 by (blast_tac (claset() addSDs [PMS_Crypt_sessionK_not_spied]) 2);

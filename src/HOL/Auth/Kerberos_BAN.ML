@@ -16,9 +16,8 @@ From page 251 of
 Tidied by lcp.
 *)
 
-AddEs spies_partsEs;
-AddDs [impOfSubs analz_subset_parts];
-AddDs [impOfSubs Fake_parts_insert];
+AddDs  [Says_imp_knows_Spy RS parts.Inj, parts.Body];
+AddDs  [impOfSubs analz_subset_parts, impOfSubs Fake_parts_insert];
 
 AddIffs [SesKeyLife_LB, AutLife_LB];
 
@@ -229,10 +228,9 @@ by (etac kerberos_ban.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [less_SucI, analz_insert_eq, 
-				       analz_insert_freshK]
-		                      @ pushes)));
-(*Oops*)
-by (blast_tac (claset() addDs [unique_session_keys] addIs [less_SucI]) 4);
+				       analz_insert_freshK] @ pushes)));
+(*Oops: PROOF FAILED if addIs below*)
+by (blast_tac (claset() addDs [unique_session_keys] addSIs [less_SucI]) 4);
 (*Kb2*)
 by (blast_tac (claset() addIs [parts_insertI, less_SucI]) 2);
 (*Fake*) 

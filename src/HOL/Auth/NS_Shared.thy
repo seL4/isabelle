@@ -71,9 +71,13 @@ inductive "ns_shared"
 	      \<in> set evso\<rbrakk>
 	 \<Longrightarrow> Notes Spy \<lbrace>Nonce NA, Nonce NB, Key K\<rbrace> # evso \<in> ns_shared"
 
-declare knows_Spy_partsEs [elim]
+
+declare Says_imp_knows_Spy [THEN parts.Inj, dest]
+declare parts.Body  [dest]
+declare MPair_parts [elim!]    (*can speed up some proofs*)
+
 declare analz_subset_parts [THEN subsetD, dest]
-declare Fake_parts_insert [THEN subsetD, dest]
+declare Fake_parts_insert  [THEN subsetD, dest]
 declare image_eq_UN [simp]  (*accelerates proofs involving nested images*)
 
 
@@ -171,10 +175,8 @@ lemma Says_S_message_form:
        evs \<in> ns_shared\<rbrakk>
       \<Longrightarrow> (K \<notin> range shrK \<and> X = (Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>))
           \<or> X \<in> analz (spies evs)"
-apply (frule Says_imp_knows_Spy)
-(*mystery: why is this frule needed?*)
-apply (blast dest: cert_A_form analz.Inj)
-done
+by (blast dest: Says_imp_knows_Spy cert_A_form analz.Inj)
+
 
 (*Alternative version also provable
 lemma Says_S_message_form2:
@@ -251,7 +253,8 @@ done
 
 (** Crucial secrecy property: Spy does not see the keys sent in msg NS2 **)
 
-lemma secrecy_lemma [rule_format]:
+(*Beware of [rule_format] and the universal quantifier!*)
+lemma secrecy_lemma:
      "\<lbrakk>Says Server A (Crypt (shrK A) \<lbrace>NA, Agent B, Key K,
                                       Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>\<rbrace>)
               \<in> set evs;
@@ -269,7 +272,7 @@ apply blast      (*NS2*)
 (*NS3, Server sub-case*) (**LEVEL 6 **)
 apply clarify
 apply (frule Says_imp_knows_Spy [THEN parts.Inj, THEN A_trusts_NS2])
-apply (blast dest: Says_imp_knows_Spy [THEN analz.Inj, THEN Crypt_Spy_analz_bad])
+apply (blast dest: Says_imp_knows_Spy analz.Inj Crypt_Spy_analz_bad)
 apply assumption
 apply (blast dest: unique_session_keys)+ (*also proves Oops*)
 done
@@ -281,9 +284,7 @@ lemma Spy_not_see_encrypted_key:
        \<forall>NB. Notes Spy \<lbrace>NA, NB, Key K\<rbrace> \<notin> set evs;
        A \<notin> bad;  B \<notin> bad;  evs \<in> ns_shared\<rbrakk>
       \<Longrightarrow> Key K \<notin> analz (spies evs)"
-apply (frule Says_Server_message_form, assumption)
-apply (auto dest: Says_Server_message_form secrecy_lemma)
-done
+by (blast dest: Says_Server_message_form secrecy_lemma)
 
 
 (**** Guarantees available at various stages of protocol ***)
@@ -291,8 +292,8 @@ done
 (*If the encrypted message appears then it originated with the Server*)
 lemma B_trusts_NS3:
      "\<lbrakk>Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace> \<in> parts (spies evs);
-            B \<notin> bad;  evs \<in> ns_shared\<rbrakk>
-          \<Longrightarrow> \<exists>NA. Says Server A
+       B \<notin> bad;  evs \<in> ns_shared\<rbrakk>
+      \<Longrightarrow> \<exists>NA. Says Server A
                (Crypt (shrK A) \<lbrace>NA, Agent B, Key K,
                                  Crypt (shrK B) \<lbrace>Key K, Agent A\<rbrace>\<rbrace>)
               \<in> set evs"
@@ -317,10 +318,9 @@ apply blast     (*Fake*)
 apply (force dest!: Crypt_imp_keysFor) 
 apply blast     (*NS3*)
 (*NS4*)
-apply clarify;
-apply (frule Says_imp_knows_Spy [THEN analz.Inj])
-apply (blast dest: Says_imp_knows_Spy [THEN analz.Inj] Crypt_Spy_analz_bad
-                   B_trusts_NS3 unique_session_keys)
+apply (blast dest!: B_trusts_NS3
+	     dest: Says_imp_knows_Spy [THEN analz.Inj] 
+                   Crypt_Spy_analz_bad unique_session_keys)
 done
 
 (*This version no longer assumes that K is secure*)
@@ -349,11 +349,9 @@ apply blast  (*Fake*)
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)  (*NS2*)
 apply blast  (*NS3*)
 (*NS4*)
-apply (case_tac "Ba \<in> bad")
-apply (blast dest: Says_imp_knows_Spy [THEN analz.Inj] Crypt_Spy_analz_bad);
-apply (frule Says_imp_knows_Spy [THEN parts.Inj, THEN B_trusts_NS3], 
-       assumption+)
-apply (blast dest: unique_session_keys)
+apply (blast dest!: B_trusts_NS3
+	     dest: Says_imp_knows_Spy [THEN analz.Inj] 
+                   unique_session_keys Crypt_Spy_analz_bad)
 done
 
 
@@ -371,12 +369,10 @@ apply simp_all
 apply blast  (*Fake*)
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)  (*NS2*)
 apply (blast dest!: cert_A_form) (*NS3*)
-(**LEVEL 5**)
 (*NS5*)
-apply clarify
-apply (case_tac "Aa \<in> bad")
-apply (blast dest: Says_imp_knows_Spy [THEN analz.Inj] Crypt_Spy_analz_bad);
-apply (blast dest: A_trusts_NS2 unique_session_keys)
+apply (blast dest!: A_trusts_NS2
+	     dest: Says_imp_knows_Spy [THEN analz.Inj] 
+                   unique_session_keys Crypt_Spy_analz_bad)
 done
 
 
@@ -387,10 +383,7 @@ lemma B_trusts_NS5:
        \<forall>NA NB. Notes Spy \<lbrace>NA, NB, Key K\<rbrace> \<notin> set evs;
        A \<notin> bad;  B \<notin> bad;  evs \<in> ns_shared\<rbrakk>
       \<Longrightarrow> Says A B (Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace>) \<in> set evs"
-apply (drule B_trusts_NS3, clarify+)
-apply (blast intro: B_trusts_NS5_lemma 
-             dest: dest: Spy_not_see_encrypted_key)
-(*surprisingly delicate proof due to quantifier interactions*)
-done
+by (blast intro: B_trusts_NS5_lemma 
+          dest: B_trusts_NS3 Spy_not_see_encrypted_key)
 
 end

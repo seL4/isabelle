@@ -120,12 +120,11 @@ qed "MPair_parts";
 
 AddIs  [parts.Inj];
 
-val partsEs = [MPair_parts, make_elim parts.Body];
-
-AddSEs partsEs;
+AddSEs [MPair_parts, make_elim parts.Body];
 (*NB These two rules are UNSAFE in the formal sense, as they discard the
-     compound message.  They work well on THIS FILE, perhaps because its
-     proofs concern only atomic messages.*)
+     compound message.  They work well on THIS FILE.  
+  MPair_parts is left as SAFE because it speeds up proofs.
+  The Crypt rule is normally kept UNSAFE to avoid breaking up certificates.*)
 
 Goal "H <= parts(H)";
 by (Blast_tac 1);
@@ -327,9 +326,9 @@ by (resolve_tac prems 1);
 by (REPEAT (eresolve_tac [asm_rl, analz.Fst, analz.Snd] 1));
 qed "MPair_analz";
 
+AddSEs [MPair_analz];     (*Making it safe speeds up proofs*)
+AddDs  [analz.Decrypt];   (*Unsafe: we don't want to split up certificates!*)
 AddIs  [analz.Inj];
-AddSEs [MPair_analz];      (*Perhaps it should NOT be deemed safe!*)
-AddDs  [analz.Decrypt];
 
 Addsimps [analz.Inj];
 
@@ -829,7 +828,7 @@ Addsimps [keysFor_insert_HPair, parts_insert_HPair, analz_insert_HPair,
 
 
 (*We do NOT want Crypt... messages broken up in protocols!!*)
-Delrules partsEs;
+Delrules [make_elim parts.Body];
 
 
 (** Rewrites to push in Key and Crypt messages, so that other messages can
