@@ -93,7 +93,7 @@ struct
   type T = GlobalInductArgs.T;
 
   fun init thy = GlobalInduct.get thy;
-  val print = GlobalInductArgs.print o ProofContext.sign_of;
+  fun print x = GlobalInductArgs.print (ProofContext.sign_of x);
 end;
 
 structure LocalInduct = ProofDataFun(LocalInductArgs);
