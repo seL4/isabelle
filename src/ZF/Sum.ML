@@ -115,6 +115,10 @@ by (simp_tac (ZF_ss addsimps [extension,sum_subset_iff]) 1);
 by (fast_tac ZF_cs 1);
 qed "sum_equal_iff";
 
+goalw Sum.thy [sum_def] "A+A = 2*A";
+by (fast_tac eq_cs 1);
+qed "sum_eq_2_times";
+
 
 (*** Eliminator -- case ***)
 

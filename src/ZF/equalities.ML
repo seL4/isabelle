@@ -141,6 +141,10 @@ goal ZF.thy "!!A B. A<=B ==> A Un (B-A) = B";
 by (fast_tac eq_cs 1);
 qed "Diff_partition";
 
+goal ZF.thy "A <= B Un (A - B)";
+by (fast_tac ZF_cs 1);
+qed "subset_Un_Diff";
+
 goal ZF.thy "!!A B. [| A<=B; B<=C |] ==> B-(C-A) = A";
 by (fast_tac eq_cs 1);
 qed "double_complement";
@@ -274,9 +278,23 @@ qed "Diff_INT";
 
 (** Unions and Intersections with General Sum **)
 
+(*Not suitable for rewriting: LOOPS!*)
 goal ZF.thy "Sigma(cons(a,B), C) = ({a}*C(a)) Un Sigma(B,C)";
 by (fast_tac eq_cs 1);
-qed "Sigma_cons";
+qed "Sigma_cons1";
+
+(*Not suitable for rewriting: LOOPS!*)
+goal ZF.thy "A * cons(b,B) = A*{b} Un A*B";
+by (fast_tac eq_cs 1);
+qed "Sigma_cons2";
+
+goal ZF.thy "Sigma(succ(A), B) = ({A}*B(A)) Un Sigma(A,B)";
+by (fast_tac eq_cs 1);
+qed "Sigma_succ1";
+
+goal ZF.thy "A * succ(B) = A*{B} Un A*B";
+by (fast_tac eq_cs 1);
+qed "Sigma_succ2";
 
 goal ZF.thy "(SUM x:(UN y:A. C(y)). B(x)) = (UN y:A. SUM x:C(y). B(x))";
 by (fast_tac eq_cs 1);
@@ -502,3 +520,24 @@ qed "RepFun_eq_0_iff";
 goal ZF.thy "{f(x).x:0} = 0";
 by (fast_tac eq_cs 1);
 qed "RepFun_0";
+
+(** Collect **)
+
+goal ZF.thy "Collect(A Un B, P) = Collect(A,P) Un Collect(B,P)";
+by (fast_tac eq_cs 1);
+qed "Collect_Un";
+
+goal ZF.thy "Collect(A Int B, P) = Collect(A,P) Int Collect(B,P)";
+by (fast_tac eq_cs 1);
+qed "Collect_Int";
+
+goal ZF.thy "Collect(A - B, P) = Collect(A,P) - Collect(B,P)";
+by (fast_tac eq_cs 1);
+qed "Collect_Diff";
+
+goal ZF.thy
+    "{x:cons(a,B). P(x)} = if(P(a), cons(a, {x:B. P(x)}), {x:B. P(x)})";
+by (simp_tac (FOL_ss setloop split_tac [expand_if]) 1);
+by (fast_tac eq_cs 1);
+qed "Collect_cons";
+
