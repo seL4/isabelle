@@ -286,7 +286,6 @@ val [mem_Nil, mem_Cons] = list_recs mem_def;
 val [map_Nil,map_Cons] = list_recs map_def;
 val [list_case_Nil,list_case_Cons] = list_recs list_case_def;
 val [filter_Nil,filter_Cons] = list_recs filter_def;
-val [list_all_Nil,list_all_Cons] = list_recs list_all_def;
 
 Addsimps
   [null_Nil, ttl_Nil,
@@ -294,7 +293,6 @@ Addsimps
    list_case_Nil, list_case_Cons,
    append_Nil3, append_Cons,
    map_Nil, map_Cons,
-   list_all_Nil, list_all_Cons,
    filter_Nil, filter_Cons];
 
 
@@ -321,24 +319,6 @@ goal SList.thy "x mem [x:xs.P(x)] = (x mem xs & P(x))";
 by(list_ind_tac "xs" 1);
 by(ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "mem_filter2";
-
-(** list_all **)
-
-goal SList.thy "(Alls x:xs.True) = True";
-by(list_ind_tac "xs" 1);
-by(ALLGOALS Asm_simp_tac);
-qed "list_all_True2";
-
-goal SList.thy "list_all p (xs@ys) = (list_all p xs & list_all p ys)";
-by(list_ind_tac "xs" 1);
-by(ALLGOALS Asm_simp_tac);
-qed "list_all_conj2";
-
-goal SList.thy "(Alls x:xs.P(x)) = (!x. x mem xs --> P(x))";
-by(list_ind_tac "xs" 1);
-by(ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
-by(fast_tac HOL_cs 1);
-qed "list_all_mem_conv2";
 
 
 (** The functional "map" **)

@@ -38,7 +38,6 @@ consts
   hd        :: 'a list => 'a
   tl,ttl    :: 'a list => 'a list
   mem           :: ['a, 'a list] => bool                        (infixl 55)
-  list_all  :: ('a => bool) => ('a list => bool)
   map       :: ('a=>'b) => ('a list => 'b list)
   "@"       :: ['a list, 'a list] => 'a list                    (infixr 65)
   filter    :: ['a => bool, 'a list] => 'a list
@@ -48,8 +47,7 @@ consts
   "[]"      :: 'a list                            ("[]")
   "@list"   :: args => 'a list                    ("[(_)]")
 
-  (* Special syntax for list_all and filter *)
-  "@Alls"       :: [idt, 'a list, bool] => bool ("(2Alls _:_./ _)" 10)
+  (* Special syntax for filter *)
   "@filter"     :: [idt, 'a list, bool] => 'a list      ("(1[_:_ ./ _])")
 
 translations
@@ -60,7 +58,6 @@ translations
   "case xs of Nil => a | y#ys => b" == "list_case a (%y ys.b) xs"
 
   "[x:xs . P]"  == "filter (%x.P) xs"
-  "Alls x:xs.P" == "list_all (%x.P) xs"
 
 defs
   (* Defining the Concrete Constructors *)
@@ -109,7 +106,6 @@ defs
 
   mem_def       "x mem xs            == 
                    list_rec xs False (%y ys r. if y=x then True else r)"
-  list_all_def  "list_all P xs       == list_rec xs True (%x l r. P(x) & r)"
   map_def       "map f xs            == list_rec xs [] (%x l r. f(x)#r)"
   append_def    "xs@ys               == list_rec xs ys (%x l r. x#r)"
   filter_def    "filter P xs         == 
