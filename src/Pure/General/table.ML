@@ -20,7 +20,10 @@ sig
   exception DUPS of key list
   val empty: 'a table
   val is_empty: 'a table -> bool
+  val map: ('a -> 'b) -> 'a table -> 'b table
+  val foldl: ('a * (key * 'b) -> 'a) -> 'a * 'b table -> 'a
   val dest: 'a table -> (key * 'a) list
+  val keys: 'a table -> key list
   val lookup: 'a table * key -> 'a option
   val update: (key * 'a) * 'a table -> 'a table
   val update_new: (key * 'a) * 'a table -> 'a table                 (*exception DUP*)
@@ -30,7 +33,6 @@ sig
   val lookup_multi: 'a list table * key -> 'a list
   val make_multi: (key * 'a) list -> 'a list table
   val dest_multi: 'a list table -> (key * 'a) list
-  val map: ('a -> 'b) -> 'a table -> 'b table
 end;
 
 functor TableFun(Key: KEY): TABLE =
@@ -50,15 +52,30 @@ exception DUP of key;
 exception DUPS of key list;
 
 
+(* empty *)
+
 val empty = Empty;
 
 fun is_empty Empty = true
   | is_empty _ = false;
 
-fun dest Empty = []
-  | dest (Branch2 (left, p, right)) = dest left @ [p] @ dest right
-  | dest (Branch3 (left, p1, mid, p2, right)) =
-      dest left @ [p1] @ dest mid @ [p2] @ dest right;
+
+(* map and fold combinators *)
+
+fun map_table _ Empty = Empty
+  | map_table f (Branch2 (left, (k, x), right)) =
+      Branch2 (map_table f left, (k, f x), map_table f right)
+  | map_table f (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
+      Branch3 (map_table f left, (k1, f x1), map_table f mid, (k2, f x2), map_table f right);
+
+fun foldl_table _ (x, Empty) = x
+  | foldl_table f (x, Branch2 (left, p, right)) =
+      foldl_table f (f (foldl_table f (x, left), p), right)
+  | foldl_table f (x, Branch3 (left, p1, mid, p2, right)) =
+      foldl_table f (f (foldl_table f (f (foldl_table f (x, left), p1), mid), p2), right);
+
+fun dest tab = rev (foldl_table (fn (rev_ps, p) => p :: rev_ps) ([], tab));
+fun keys tab = rev (foldl_table (fn (rev_ks, (k, _)) => k :: rev_ks) ([], tab));
 
 
 (* lookup *)
@@ -165,13 +182,9 @@ fun dest_multi tab =
   flat (map (fn (key, xs) => map (Library.pair key) xs) (dest tab));
 
 
-(* map *)
-
-fun map _ Empty = Empty
-  | map f (Branch2 (left, (k, x), right)) =
-      Branch2 (map f left, (k, f x), map f right)
-  | map f (Branch3 (left, (k1, x1), mid, (k2, x2), right)) =
-      Branch3 (map f left, (k1, f x1), map f mid, (k2, f x2), map f right);
+(*final declarations of this structure!*)
+val map = map_table;
+val foldl = foldl_table;
 
 
 end;
