@@ -39,3 +39,5 @@ time_use_thy "Tarski";
 
 time_use_thy "SVC_Oracle";
 if_svc_enabled time_use_thy "svc_test";
+
+time_use_thy "Refute_Examples.thy";
