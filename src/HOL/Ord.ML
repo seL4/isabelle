@@ -154,6 +154,12 @@ by (cut_facts_tac [linorder_linear] 1);
 by (blast_tac (claset() addIs [order_trans]) 1);
 qed "le_max_iff_disj";
 
+qed_goal "le_maxI1" Ord.thy "(x::'a::linorder) <= max x y" 
+	(K [rtac (le_max_iff_disj RS iffD2) 1, rtac (order_refl RS disjI1) 1]);
+qed_goal "le_maxI2" Ord.thy "(y::'a::linorder) <= max x y" 
+	(K [rtac (le_max_iff_disj RS iffD2) 1, rtac (order_refl RS disjI2) 1]);
+AddSIs[le_maxI1, le_maxI2];
+
 Goalw [max_def] "!!z::'a::linorder. (z < max x y) = (z < x | z < y)";
 by (simp_tac (simpset() addsimps [order_le_less]) 1);
 by (cut_facts_tac [linorder_less_linear] 1);

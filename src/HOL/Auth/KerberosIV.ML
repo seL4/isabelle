@@ -713,14 +713,16 @@ by (forward_tac [Says_imp_spies RS parts.Inj RS parts.Body
                  RS parts.Snd RS parts.Snd RS parts.Snd] 2);
 by (Asm_full_simp_tac 2);
 by (blast_tac (claset() addSDs [ServKey_not_KeyCryptKey] 
+			delrules [le_maxI1, le_maxI2]
                         addDs [impOfSubs analz_mono]) 2);
-(*Level 28: Oops 1*)
+(*Level 27: Oops 1*)
 by (dres_inst_tac [("x","SK")] spec 1);
 by (dres_inst_tac [("x","insert AuthKey KK")] spec 1);
 by (case_tac "KeyCryptKey AuthKey SK evsO1" 1);
 by (ALLGOALS Asm_full_simp_tac);
 by (blast_tac (claset() addSDs [KeyCryptKey_analz_insert]) 1);
-by (blast_tac (claset() addDs [impOfSubs analz_mono]) 1);
+by (blast_tac (claset() delrules [le_maxI1, le_maxI2] 
+			addDs [impOfSubs analz_mono]) 1);
 qed_spec_mp "Key_analz_image_Key";
 
 
