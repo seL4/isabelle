@@ -21,7 +21,8 @@ struct
 (** theory context references **)
 
 val inductive_atomize = thms "inductive_atomize";
-val inductive_rulify = thms "inductive_rulify";
+val inductive_rulify1 = thms "inductive_rulify1";
+val inductive_rulify2 = thms "inductive_rulify2";
 
 
 
@@ -194,9 +195,13 @@ fun drop_Trueprop ct =
   in Thm.cterm_of sign (drop t) handle TERM _ => ct end;
 
 val atomize_cterm = drop_Trueprop o rewrite_cterm inductive_atomize;
-val atomize_tac = Method.rewrite_goal_tac inductive_atomize;
-val rulify_cterm = rewrite_cterm inductive_rulify;
-val rulify_tac = Method.rewrite_goal_tac inductive_rulify;
+val atomize_tac = Tactic.rewrite_goal_tac inductive_atomize;
+val rulify_cterm = rewrite_cterm inductive_rulify2 o rewrite_cterm inductive_rulify1;
+
+val rulify_tac =
+  Tactic.rewrite_goal_tac inductive_rulify1 THEN'
+  Tactic.rewrite_goal_tac inductive_rulify2 THEN'
+  Proof.norm_hhf_tac;
 
 fun rulify_cases cert =
   map (apsnd (apsnd (map (Thm.term_of o rulify_cterm o cert)))) ooo RuleCases.make;
