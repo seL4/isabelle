@@ -18,11 +18,13 @@ consts
   concat:: "'a list list => 'a list"
   foldl :: "('b => 'a => 'b) => 'b => 'a list => 'b"
   foldr :: "('a => 'b => 'b) => 'a list => 'b => 'b"
+  fold_rel :: "('a * 'c * 'a) set => ('a * 'c list * 'a) set"
   hd:: "'a list => 'a"
   tl:: "'a list => 'a list"
   last:: "'a list => 'a"
   butlast :: "'a list => 'a list"
   set :: "'a list => 'a set"
+  o2l :: "'a option => 'a list"
   list_all:: "('a => bool) => ('a list => bool)"
   list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool"
   map :: "('a=>'b) => ('a list => 'b list)"
@@ -40,6 +42,10 @@ consts
   null:: "'a list => bool"
   "distinct":: "'a list => bool"
   replicate :: "nat => 'a => 'a list"
+  postfix :: "'a list => 'a list => bool"
+
+syntax (xsymbols)
+  postfix :: "'a list => 'a list => bool"             ("(_/ \<sqsupseteq> _)" [51, 51] 50)
 
 nonterminals lupdbinds lupdbind
 
@@ -108,6 +114,9 @@ primrec
 "set [] = {}"
 "set (x#xs) = insert x (set xs)"
 primrec
+ "o2l  None    = []"
+ "o2l (Some x) = [x]"
+primrec
 list_all_Nil:"list_all P [] = True"
 list_all_Cons: "list_all P (x#xs) = (P(x) \<and> list_all P xs)"
 primrec
@@ -173,6 +182,8 @@ primrec
 primrec
 replicate_0: "replicate 0 x = []"
 replicate_Suc: "replicate (Suc n) x = x # replicate n x"
+defs
+ postfix_def: "postfix xs ys == \<exists>zs. xs = zs @ ys"
 defs
  list_all2_def:
  "list_all2 P xs ys == length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y)"
@@ -275,6 +286,12 @@ apply (induct xs)
  apply simp
 apply simp
 apply blast
+done
+
+lemma impossible_Cons [rule_format]: 
+  "length xs <= length ys --> xs = x # ys = False"
+apply (induct xs)
+apply auto
 done
 
 
@@ -523,7 +540,15 @@ by (induct xs) auto
 lemma set_append [simp]: "set (xs @ ys) = (set xs \<union> set ys)"
 by (induct xs) auto
 
+lemma hd_in_set: "l = x#xs \<Longrightarrow> x\<in>set l"
+apply (case_tac l)
+apply auto
+done
+
 lemma set_subset_Cons: "set xs \<subseteq> set (x # xs)"
+by auto
+
+lemma set_ConsD: "y \<in> set (x # xs) \<Longrightarrow> y=x \<or> y \<in> set xs" 
 by auto
 
 lemma set_empty [iff]: "(set xs = {}) = (xs = [])"
@@ -1164,6 +1189,21 @@ lemma sum_eq_0_conv [iff]:
 by (induct ns) auto
 
 
+subsection {* folding a relation over a list *}
+
+(*"fold_rel R cs \<equiv> foldl (%r c. r O {(x,y). (c,x,y):R}) Id cs"*)
+inductive "fold_rel R" intros
+  Nil:  "(a, [],a) : fold_rel R"
+  Cons: "[|(a,x,b) : R; (b,xs,c) : fold_rel R|] ==> (a,x#xs,c) : fold_rel R"
+inductive_cases fold_rel_elim_case [elim!]:
+   "(a, []  , b) : fold_rel R"
+   "(a, x#xs, b) : fold_rel R"
+
+lemma fold_rel_Nil [intro!]: "a = b ==> (a, [], b) : fold_rel R" 
+by (simp add: fold_rel.Nil)
+declare fold_rel.Cons [intro!]
+
+
 subsection {* @{text upto} *}
 
 lemma upt_rec: "[i..j(] = (if i<j then i#[Suc i..j(] else [])"
@@ -1348,7 +1388,32 @@ lemma in_set_replicateD: "x : set (replicate n y) ==> x = y"
 by (simp add: set_replicate_conv_if split: split_if_asm)
 
 
-subsection {* Lexcicographic orderings on lists *}
+subsection {* @{text postfix} *}
+
+lemma postfix_refl [simp, intro!]: "xs \<sqsupseteq> xs" by (auto simp add: postfix_def)
+lemma postfix_trans: "\<lbrakk>xs \<sqsupseteq> ys; ys \<sqsupseteq> zs\<rbrakk> \<Longrightarrow> xs \<sqsupseteq> zs" 
+         by (auto simp add: postfix_def)
+lemma postfix_antisym: "\<lbrakk>xs \<sqsupseteq> ys; ys \<sqsupseteq> xs\<rbrakk> \<Longrightarrow> xs = ys" 
+         by (auto simp add: postfix_def)
+
+lemma postfix_emptyI [simp, intro!]: "xs \<sqsupseteq> []" by (auto simp add: postfix_def)
+lemma postfix_emptyD [dest!]: "[] \<sqsupseteq> xs \<Longrightarrow> xs = []"by(auto simp add:postfix_def)
+lemma postfix_ConsI: "xs \<sqsupseteq> ys \<Longrightarrow> x#xs \<sqsupseteq> ys" by (auto simp add: postfix_def)
+lemma postfix_ConsD: "xs \<sqsupseteq> y#ys \<Longrightarrow> xs \<sqsupseteq> ys" by (auto simp add: postfix_def)
+lemma postfix_appendI: "xs \<sqsupseteq> ys \<Longrightarrow> zs@xs \<sqsupseteq> ys" by (auto simp add: postfix_def)
+lemma postfix_appendD: "xs \<sqsupseteq> zs@ys \<Longrightarrow> xs \<sqsupseteq> ys" by (auto simp add: postfix_def)
+
+lemma postfix_is_subset_lemma: "xs = zs @ ys \<Longrightarrow> set ys \<subseteq> set xs"
+by (induct zs, auto)
+lemma postfix_is_subset: "xs \<sqsupseteq> ys \<Longrightarrow> set ys \<subseteq> set xs"
+by (unfold postfix_def, erule exE, erule postfix_is_subset_lemma)
+
+lemma postfix_ConsD2_lemma [rule_format]: "x#xs = zs @ y#ys \<longrightarrow> xs \<sqsupseteq> ys"
+by (induct zs, auto intro!: postfix_appendI postfix_ConsI)
+lemma postfix_ConsD2: "x#xs \<sqsupseteq> y#ys \<Longrightarrow> xs \<sqsupseteq> ys"
+by (auto simp add: postfix_def dest!: postfix_ConsD2_lemma)
+
+subsection {* Lexicographic orderings on lists *}
 
 lemma wf_lexn: "wf r ==> wf (lexn r n)"
 apply (induct_tac n)
