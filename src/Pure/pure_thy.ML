@@ -56,20 +56,23 @@ struct
 
 (** data kind 'Pure/theorems' **)
 
-local
-  val theoremsK = Object.kind "Pure/theorems";
+structure TheoremsDataArgs =
+struct
+  val name = "Pure/theorems";
 
-  exception Theorems of
-   {space: NameSpace.T,
-    thms_tab: tthm list Symtab.table,
-    const_idx: int * (int * tthm) list Symtab.table} ref;
-
+  type T =
+    {space: NameSpace.T,
+      thms_tab: tthm list Symtab.table,
+      const_idx: int * (int * tthm) list Symtab.table} ref;
 
   fun mk_empty _ =
-    Theorems (ref {space = NameSpace.empty,
-      thms_tab = Symtab.empty, const_idx = (0, Symtab.empty)});
+    ref {space = NameSpace.empty, thms_tab = Symtab.empty, const_idx = (0, Symtab.empty)} : T;
 
-  fun print sg (Theorems (ref {space, thms_tab, const_idx = _})) =
+  val empty = mk_empty ();
+  val prep_ext = mk_empty;
+  val merge = mk_empty;
+
+  fun print sg (ref {space, thms_tab, const_idx = _}) =
     let
       val prt_thm = Attribute.pretty_tthm o apfst (Thm.transfer_sg sg);
       fun prt_thms (name, [th]) =
@@ -83,16 +86,16 @@ local
       Pretty.writeln (Display.pretty_name_space ("theorem name space", space));
       Pretty.writeln (Pretty.big_list "theorems:" (map prt_thms thmss))
     end;
-in
-  val init_theorems = Theory.init_data theoremsK (mk_empty (), mk_empty, mk_empty, print);
-  val print_theorems = Theory.print_data theoremsK;
-  val get_theorems_sg = Sign.get_data theoremsK (fn Theorems r => r);
-  val get_theorems = get_theorems_sg o Theory.sign_of;
 end;
+
+structure TheoremsData = TheoryDataFun(TheoremsDataArgs);
+val get_theorems_sg = TheoremsData.get_sg;
+val get_theorems = TheoremsData.get;
 
 
 (* print theory *)
 
+val print_theorems = TheoremsData.print;
 fun print_theory thy =
   (Display.print_theory thy; print_theorems thy);
 
@@ -208,7 +211,7 @@ fun warn_overwrite name =
   warning ("Replaced old copy of theorems " ^ quote name);
 
 fun warn_same name =
-  warning ("Theorem database already contains a copy of " ^ quote name);  
+  warning ("Theorem database already contains a copy of " ^ quote name);
 
 fun enter_tthmx sg app_name (bname, tthmx) =
   let
@@ -287,21 +290,22 @@ fun add_defs_x defs thy = add_defs (map (apsnd (map (Attribute.global_attr thy))
 
 (** theory management **)
 
-(* data kind 'Pure/theory' *)
+(* data kind 'Pure/theory_management' *)
 
-local
-  val theoryK = Object.kind "Pure/theory";
-  exception Theory of {name: string, generation: int};
+structure TheoryManagementDataArgs =
+struct
+  val name = "Pure/theory_management";
+  type T = {name: string, generation: int};
 
-  val empty = Theory {name = "", generation = 0};
-  fun prep_ext (x as Theory _) = x;
+  val empty = {name = "", generation = 0};
+  val prep_ext  = I;
   fun merge _ = empty;
-  fun print _ (Theory _) = ();
-in
-  val init_theory = Theory.init_data theoryK (empty, prep_ext, merge, print);
-  val get_info = Theory.get_data theoryK (fn Theory info => info);
-  val put_info = Theory.put_data theoryK Theory;
+  fun print _ _ = ();
 end;
+
+structure TheoryManagementData = TheoryDataFun(TheoryManagementDataArgs);
+val get_info = TheoryManagementData.get;
+val put_info = TheoryManagementData.put;
 
 
 (* get / put name *)
@@ -341,7 +345,7 @@ fun transaction f thy =
     val copy_thy =
       thy
       |> Theory.prep_ext
-      |> Theory.add_name ("#" ^ name ^ ":" ^ string_of_int generation)	(* FIXME !!?? *)
+      |> Theory.add_name ("#" ^ name ^ ":" ^ string_of_int generation)  (* FIXME !!?? *)
       |> put_info {name = name, generation = generation + 1};
   in
     (transform_error f thy, false, None) handle exn =>
@@ -378,7 +382,7 @@ fun add_typedecls decls thy =
 
 val proto_pure =
   Theory.pre_pure
-  |> Theory.apply (Attribute.setup @ [init_theorems, init_theory])
+  |> Theory.apply (Attribute.setup @ [TheoremsData.init, TheoryManagementData.init])
   |> put_name "ProtoPure"
   |> global_path
   |> Theory.add_types
