@@ -55,6 +55,7 @@ sig
   exception METHOD_FAIL of (string * Position.T) * exn
   val help_methods: theory option -> Pretty.T list
   val method: theory -> Args.src -> Proof.context -> Proof.method
+  val add_method: bstring * (Args.src -> Proof.context -> Proof.method) * string -> theory -> theory
   val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
     -> theory -> theory
   val syntax: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
@@ -417,7 +418,7 @@ fun method thy =
   in meth end;
 
 
-(* add_methods *)
+(* add_method(s) *)
 
 fun add_methods raw_meths thy =
   let
@@ -432,6 +433,8 @@ fun add_methods raw_meths thy =
   in
     thy |> MethodsData.put {space = space', meths = meths'}
   end;
+
+val add_method = add_methods o Library.single;
 
 (*implicit version*)
 fun Method name meth cmt = Context.>> (add_methods [(name, meth, cmt)]);
