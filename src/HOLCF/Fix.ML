@@ -1044,9 +1044,8 @@ qed_goal "adm_eq"  Fix.thy
 
 local
 
-  val adm_disj_lemma1 = prove_goal Pcpo.thy 
-  "[| is_chain Y; !n.P (Y n) | Q(Y n)|]\
-  \ ==> (? i.!j. i<j --> Q(Y(j))) | (!i.? j.i<j & P(Y(j)))"
+  val adm_disj_lemma1 = prove_goal HOL.thy 
+  "!n.P(Y n)|Q(Y n) ==> (? i.!j.R i j --> Q(Y(j))) | (!i.? j.R i j & P(Y(j)))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -1054,113 +1053,44 @@ local
         ]);
 
   val adm_disj_lemma2 = prove_goal Fix.thy  
-  "[| adm(Q); ? X.is_chain(X) & (!n.Q(X(n))) &\
+  "!!Q. [| adm(Q); ? X.is_chain(X) & (!n.Q(X(n))) &\
   \   lub(range(Y))=lub(range(X))|] ==> Q(lub(range(Y)))"
- (fn prems =>
+ (fn _ => [fast_tac (!claset addEs [adm_def2 RS iffD1 RS spec RS mp RS mp]
+                             addss !simpset) 1]);
+
+  val adm_disj_lemma3 = prove_goalw Fix.thy [is_chain]
+  "!!Q. is_chain(Y) ==> is_chain(%m. if m < Suc i then Y(Suc i) else Y m)"
+ (fn _ =>
         [
-        (cut_facts_tac prems 1),
-        (etac exE 1),
-        (etac conjE 1),
-        (etac conjE 1),
-        (res_inst_tac [("s","lub(range(X))"),("t","lub(range(Y))")] ssubst 1),
-        (atac 1),
-        (rtac (adm_def2 RS iffD1 RS spec RS mp RS mp) 1),
-        (atac 1),
-        (atac 1),
-        (atac 1)
+        asm_simp_tac (!simpset setloop (split_tac[expand_if])) 1,
+        safe_tac HOL_cs,
+        subgoal_tac "ia = i" 1,
+        Asm_simp_tac 1,
+        trans_tac 1
         ]);
 
-  val adm_disj_lemma3 = prove_goal Fix.thy
-  "[| is_chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
-  \         is_chain(%m. if m < Suc i then Y(Suc i) else Y m)"
- (fn prems =>
+  val adm_disj_lemma4 = prove_goal Nat.thy
+  "!!Q. !j. i < j --> Q(Y(j))  ==> !n. Q( if n < Suc i then Y(Suc i) else Y n)"
+ (fn _ =>
         [
-        (cut_facts_tac prems 1),
-        (rtac is_chainI 1),
-        (rtac allI 1),
-        (res_inst_tac [("m","i"),("n","ia")] nat_less_cases 1),
-        (res_inst_tac [("s","False"),("t","ia < Suc(i)")] ssubst 1),
-        (rtac iffI 1),
-        (etac FalseE 2),
-        (rtac notE 1),
-        (rtac (not_less_eq RS iffD2) 1),
-        (atac 1),
-        (atac 1),
-        (res_inst_tac [("s","False"),("t","Suc(ia) < Suc(i)")] ssubst 1),
-        (Asm_simp_tac  1),
-        (rtac iffI 1),
-        (etac FalseE 2),
-        (rtac notE 1),
-        (etac less_not_sym 1),  
-        (atac 1),
-        (Asm_simp_tac 1),
-        (etac (is_chainE RS spec) 1),
-        (hyp_subst_tac 1),
-        (Asm_simp_tac 1),
-        (Asm_simp_tac 1),
-        (asm_simp_tac (!simpset addsimps [less_Suc_eq]) 1)
-        ]);
-
-  val adm_disj_lemma4 = prove_goal Fix.thy
-  "[| ! j. i < j --> Q(Y(j)) |] ==>\
-  \        ! n. Q( if n < Suc i then Y(Suc i) else Y n)"
- (fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (rtac allI 1),
-        (res_inst_tac [("m","n"),("n","Suc(i)")] nat_less_cases 1),
-        (res_inst_tac[("s","Y(Suc(i))"),
-                      ("t","if n<Suc(i) then Y(Suc(i)) else Y n")] ssubst 1),
-        (Asm_simp_tac 1),
-        (etac allE 1),
-        (rtac mp 1),
-        (atac 1),
-        (Asm_simp_tac 1),
-        (res_inst_tac[("s","Y(n)"),
-                      ("t","if n<Suc(i) then Y(Suc(i)) else Y(n)")] ssubst 1),
-        (Asm_simp_tac 1),
-        (hyp_subst_tac 1),
-        (dtac spec 1),
-        (rtac mp 1),
-        (atac 1),
-        (Asm_simp_tac 1),
-        (res_inst_tac [("s","Y(n)"),
-                       ("t","if n < Suc(i) then Y(Suc(i)) else Y(n)")]ssubst 1),
-        (res_inst_tac [("s","False"),("t","n < Suc(i)")] ssubst 1),
-        (rtac iffI 1),
-        (etac FalseE 2),
-        (rtac notE 1),
-        (etac less_not_sym 1),  
-        (atac 1),
-        (Asm_simp_tac 1),
-        (dtac spec 1),
-        (rtac mp 1),
-        (atac 1),
-        (etac Suc_lessD 1)
+        asm_simp_tac (!simpset setloop (split_tac[expand_if])) 1,
+        strip_tac 1,
+        etac allE 1,
+        etac mp 1,
+        trans_tac 1
         ]);
 
   val adm_disj_lemma5 = prove_goal Fix.thy
-  "[| is_chain(Y::nat=>'a); ! j. i < j --> Q(Y(j)) |] ==>\
+  "!!Y::nat=>'a. [| is_chain(Y); ! j. i < j --> Q(Y(j)) |] ==>\
   \       lub(range(Y)) = lub(range(%m. if m< Suc(i) then Y(Suc(i)) else Y m))"
  (fn prems =>
         [
-        (cut_facts_tac prems 1),
-        (rtac lub_equal2 1),
-        (atac 2),
-        (rtac adm_disj_lemma3 2),
-        (atac 2),
-        (atac 2),
-        (res_inst_tac [("x","i")] exI 1),
-        (strip_tac 1),
-        (res_inst_tac [("s","False"),("t","ia < Suc(i)")] ssubst 1),
-        (rtac iffI 1),
-        (etac FalseE 2),
-        (rtac notE 1),
-        (rtac (not_less_eq RS iffD2) 1),
-        (atac 1),
-        (atac 1),
-        (stac if_False 1),
-        (rtac refl 1)
+        safe_tac (HOL_cs addSIs [lub_equal2,adm_disj_lemma3]),
+        atac 2,
+        asm_simp_tac (!simpset setloop (split_tac[expand_if])) 1,
+        res_inst_tac [("x","i")] exI 1,
+        strip_tac 1,
+        trans_tac 1
         ]);
 
   val adm_disj_lemma6 = prove_goal Fix.thy
@@ -1173,7 +1103,6 @@ local
         (res_inst_tac [("x","%m.if m<Suc(i) then Y(Suc(i)) else Y m")] exI 1),
         (rtac conjI 1),
         (rtac adm_disj_lemma3 1),
-        (atac 1),
         (atac 1),
         (rtac conjI 1),
         (rtac adm_disj_lemma4 1),
@@ -1207,7 +1136,7 @@ local
         ]);
 
   val adm_disj_lemma8 = prove_goal Fix.thy 
-  "[| ! i. ? j. i < j & P(Y(j)) |] ==> ! m. P(Y(Least(%j. m<j & P(Y(j)))))"
+  "[| ! i. ? j. i < j & P(Y(j)) |] ==> ! m. P(Y(LEAST j::nat. m<j & P(Y(j))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -1297,7 +1226,6 @@ val adm_disj = prove_goal Fix.thy
         (rtac (adm_def2 RS iffD2) 1),
         (strip_tac 1),
         (rtac (adm_disj_lemma1 RS disjE) 1),
-        (atac 1),
         (atac 1),
         (rtac disjI2 1),
         (etac adm_disj_lemma12 1),
