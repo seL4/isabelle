@@ -215,7 +215,7 @@ fun prove_goalw thy rths agoal tacsf =
       val chorn = read_cterm sign (agoal,propT)
   in  prove_goalw_cterm rths chorn tacsf end
   handle ERROR => error (*from read_cterm?*)
-		("The error above occurred for " ^ quote agoal);
+		("The error(s) above occurred for " ^ quote agoal);
 
 (*String version with no meta-rewrite-rules*)
 fun prove_goal thy = prove_goalw thy [];
@@ -318,7 +318,7 @@ fun goalw_cterm rths chorn =
 fun goalw thy rths agoal = 
   goalw_cterm rths (read_cterm(sign_of thy)(agoal,propT))
   handle ERROR => error (*from type_assign, etc via prepare_proof*)
-	    ("The error above occurred for " ^ quote agoal);
+	    ("The error(s) above occurred for " ^ quote agoal);
 
 (*String version with no meta-rewrite-rules*)
 fun goal thy = goalw thy [];

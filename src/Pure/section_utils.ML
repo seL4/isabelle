@@ -27,7 +27,7 @@ fun assume_read thy a = assume (read_cterm (sign_of thy) (a,propT));
 (*Read a term from string "b", with expected type T*)
 fun readtm sign T b = 
     read_cterm sign (b,T) |> term_of
-    handle ERROR => error ("The error above occurred for " ^ b);
+    handle ERROR => error ("The error(s) above occurred for " ^ b);
 
 (*From HOL/ex/meson.ML: raises exception if no rules apply -- unlike RL*)
 fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
