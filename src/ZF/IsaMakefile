@@ -109,7 +109,7 @@ $(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/Confluence.ML Resid/Confluence.thy \
 ZF-ex: ZF $(LOG)/ZF-ex.gz
 
 $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/Acc.ML ex/Acc.thy ex/BT.ML ex/BT.thy \
-  ex/BinEx.ML ex/Brouwer.ML ex/Brouwer.thy ex/CoUnit.ML \
+  ex/BinEx.thy ex/Brouwer.ML ex/Brouwer.thy ex/CoUnit.ML \
   ex/CoUnit.thy ex/Comb.ML ex/Comb.thy ex/Commutation.ML ex/Commutation.thy \
   ex/Data.ML ex/Data.thy ex/Enum.ML ex/Enum.thy \
   ex/LList.ML ex/LList.thy \
@@ -118,7 +118,7 @@ $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/Acc.ML ex/Acc.thy ex/BT.ML ex/BT.thy \
   ex/NatSum.ML ex/NatSum.thy  ex/Primrec_defs.ML ex/Primrec_defs.thy \
   ex/Primrec.ML ex/Primrec.thy ex/PropLog.ML ex/PropLog.thy ex/ROOT.ML \
   ex/Ramsey.ML ex/Ramsey.thy ex/Rmap.ML ex/Rmap.thy ex/TF.ML ex/TF.thy \
-  ex/Term.ML ex/Term.thy ex/misc.ML
+  ex/Term.ML ex/Term.thy ex/misc.thy
 	@$(ISATOOL) usedir $(OUT)/ZF ex
 
 
