@@ -34,9 +34,6 @@ Generic tools may refer to the information provided by object-logic
 declarations internally (e.g.\ locales \S\ref{sec:locale}, or the Classical
 Reasoner \S\ref{sec:classical}).
 
-\railalias{ruleformat}{rule\_format}
-\railterm{ruleformat}
-
 \begin{rail}
   'judgment' constdecl
   ;
@@ -96,7 +93,12 @@ Reasoner \S\ref{sec:classical}).
 \begin{rail}
   'typedecl' typespec infix?
   ;
-  'typedef' parname? typespec infix? '=' term
+  'typedef' parname? abstype '=' repset
+  ;
+
+  abstype: typespec infix?
+  ;
+  repset: term ('morphisms' name name)?
   ;
 \end{rail}
 
@@ -113,17 +115,22 @@ Reasoner \S\ref{sec:classical}).
   bijection between the representing set $A$ and the new type $t$.
   
   Technically, $\isarkeyword{typedef}$ defines both a type $t$ and a set (term
-  constant) of the same name.  The injection from type to set is called
-  $Rep_t$, its inverse $Abs_t$.  Theorems $Rep_t$, $Rep_inverse$, and
-  $Abs_inverse$ provide the most basic characterization as a corresponding
-  injection/surjection pair (in both directions).  Rules $Rep_t_inject$ and
-  $Abs_t_inject$ provide a slightly more comfortable view on the injectivity
-  part; likewise do $Rep_t_cases$, $Rep_t_induct$, and $Abs_t_cases$,
-  $Abs_t_induct$ for surjectivity.  The latter rules are already declare as
-  type or set rules for the generic $cases$ and $induct$ methods.
+  constant) of the same name (an alternative base name may be given in
+  parentheses).  The injection from type to set is called $Rep_t$, its inverse
+  $Abs_t$ (this may be changed via an explicit $\isarkeyword{morphisms}$
+  declaration).
+  
+  Theorems $Rep_t$, $Rep_inverse$, and $Abs_inverse$ provide the most basic
+  characterization as a corresponding injection/surjection pair (in both
+  directions).  Rules $Rep_t_inject$ and $Abs_t_inject$ provide a slightly
+  more comfortable view on the injectivity part, suitable for automated proof
+  tools (e.g.\ in $simp$ or $iff$ declarations).  Rules $Rep_t_cases$,
+  $Rep_t_induct$, and $Abs_t_cases$, $Abs_t_induct$ provide alternative views
+  on surjectivity; these are already declared as type or set rules for the
+  generic $cases$ and $induct$ methods.
 \end{descr}
 
-Raw type declarations are rarely useful in practice.  The main application is
+Raw type declarations are rarely used in practice; the main application is
 with experimental (or even axiomatic!) theory fragments.  Instead of primitive
 HOL type definitions, user-level theories usually refer to higher-level
 packages such as $\isarkeyword{record}$ (see \S\ref{sec:hol-record}) or

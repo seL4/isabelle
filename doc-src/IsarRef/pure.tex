@@ -754,22 +754,22 @@ $\PROOFNAME$ (\S\ref{sec:proof-steps}) or $\APPLYNAME$
 (\S\ref{sec:tactic-commands}).\footnote{The $induct$ method covered in
   \S\ref{sec:cases-induct-meth} acts on multiple claims simultaneously.}
 
-Claims at the theory level may be either in ``short'' or ``long'' form.  A
-short goal merely consists of several simultaneous propositions (often just
-one).  A long goal includes an explicit context specification for the
-subsequent conclusions, involving local parameters; here the role of each part
-of the statement is explicitly marked by separate keywords (see also
+Claims at the theory level may be either in short or long form.  A short goal
+merely consists of several simultaneous propositions (often just one).  A long
+goal includes an explicit context specification for the subsequent
+conclusions, involving local parameters; here the role of each part of the
+statement is explicitly marked by separate keywords (see also
 \S\ref{sec:locale}).
 
 \begin{rail}
-  ('lemma' | 'theorem' | 'corollary') locale? (shortgoal | longgoal)
+  ('lemma' | 'theorem' | 'corollary') locale? (goal | longgoal)
   ;
-  ('have' | 'show' | 'hence' | 'thus') shortgoal
+  ('have' | 'show' | 'hence' | 'thus') goal
   ;
   
-  shortgoal: (props + 'and')
+  goal: (props + 'and')
   ;
-  longgoal: thmdecl? (contextelem *) 'shows' shortgoal
+  longgoal: thmdecl? (contextelem *) 'shows' goal
   ;
 \end{rail}
 
