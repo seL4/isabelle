@@ -210,8 +210,7 @@ text {*
 text {* a polymorphic record equality (covers all possible extensions) *}
 lemma "r \<lparr>Xcoord := a\<rparr> \<lparr>Ycoord := b\<rparr> = r \<lparr>Ycoord := b\<rparr> \<lparr>Xcoord := a\<rparr>"
   -- "introduction of abstract record equality
-         (order of updates doesn't affect the value, 
-          though order of fields does the type)"
+         (order of updates doesn't affect the value)"
 by simp
 
 lemma "r \<lparr>Xcoord := a, Ycoord := b\<rparr> = r \<lparr>Ycoord := b, Xcoord := a\<rparr>"
@@ -220,7 +219,7 @@ by simp
 
 text {* Showing that repeated updates don't matter *}
 lemma "r \<lparr>Xcoord := a\<rparr> \<lparr>Xcoord := a'\<rparr> = r \<lparr>Xcoord := a'\<rparr>"
-apply simp
+by simp
 
 
 text {* surjective *}

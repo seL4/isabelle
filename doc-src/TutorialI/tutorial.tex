@@ -1,7 +1,7 @@
 \documentclass{article}
 \newif\ifremarks
-%\remarkstrue          %TRUE causes remarks to be displayed (as marginal notes)
-\remarksfalse
+\remarkstrue          %TRUE causes remarks to be displayed (as marginal notes)
+%\remarksfalse
 \usepackage{cl2emono-modified,isabelle,isabellesym}
 \usepackage{../proof,amsmath,amsfonts}
 \usepackage{latexsym,verbatim,graphicx,../iman,../extra,../ttbox,comment}
@@ -29,11 +29,6 @@
 %% lcp's macros
 \newcommand{\REMARK}[1]{\ifremarks\marginpar{\raggedright\footnotesize#1}\fi}
 \newcommand{\rulename}[1]{\hfill$(\text{#1})$} %names of Isabelle rules
-\let\bigisa=\isa
-%% was previously
-%% \newcommand{\bigisa}[1]{\texttt{\textsl{#1}}} 
-%% because \isa is too small for variables, but does it really matter?
-
 
 %%% to index derived rls:  ^\([a-zA-Z0-9][a-zA-Z0-9_]*\)        \\tdx{\1}  
 %%% to index rulenames:   ^ *(\([a-zA-Z0-9][a-zA-Z0-9_]*\),     \\tdx{\1}  
