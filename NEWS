@@ -33,6 +33,9 @@ conditional equations;
 * deleted the obsolete tactical STATE, which was declared by
     fun STATE tacfun st = tacfun st st;
 
+* slightly changed interfaces for oracles: admit many per theory, named
+(e.g. oracle foo = mlfun), additional name argument for invoke_oracle;
+
 
 *** Classical Reasoner ***
 
