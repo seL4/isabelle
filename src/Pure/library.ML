@@ -5,7 +5,7 @@
 
 Basic library: functions, options, pairs, booleans, lists, integers,
 strings, lists as sets, association lists, generic tables, balanced trees,
-input / output, timing, filenames, misc functions.
+input / TextIO.output, timing, filenames, misc functions.
 *)
 
 infix |> ~~ \ \\ orelf ins ins_string ins_int orf andf prefix upto downto
@@ -506,12 +506,12 @@ fun gen_subset eq (xs, ys) = forall (fn x => gen_mem eq (x, ys)) xs;
 fun (y :: ys) \ x = if x = y then ys else y :: (ys \ x)
   | [] \ x = [];
 
-val op \\ = foldl (op \);
+fun ys \\ xs = foldl (op \) (ys,xs);
 
 (*removing an element from a list -- possibly WITH duplicates*)
 fun gen_rem eq (xs, y) = filter_out (fn x => eq (x, y)) xs;
 
-val gen_rems = foldl o gen_rem;
+fun gen_rems eq = foldl (gen_rem eq);
 
 
 (*makes a list of the distinct members of the input; preserves order, takes
@@ -528,7 +528,7 @@ fun gen_distinct eq lst =
     dist ([], lst)
   end;
 
-val distinct = gen_distinct (op =);
+fun distinct l = gen_distinct (op =) l;
 
 
 (*returns the tail beginning with the first repeated element, or []*)
@@ -551,7 +551,7 @@ fun gen_duplicates eq lst =
     dups ([], lst)
   end;
 
-val duplicates = gen_duplicates (op =);
+fun duplicates l = gen_duplicates (op =) l;
 
 
 
@@ -633,8 +633,8 @@ fun generic_merge eq dest_tab mk_tab tab1 tab2 =
 
 
 (*lists as tables*)
-val extend_list = generic_extend (op =) I I;
-val merge_lists = generic_merge (op =) I I;
+fun extend_list tab = generic_extend (op =) I I tab;
+fun merge_lists tab = generic_merge (op =) I I tab;
 
 fun merge_rev_lists xs [] = xs
   | merge_rev_lists [] ys = ys
@@ -680,23 +680,25 @@ fun accesses_bal (f, g, x) n =
 
 (** input / output **)
 
-val prs_fn = ref(fn s => output (std_out, s));
+val cd = OS.FileSys.chDir;
+
+val prs_fn = ref(fn s => TextIO.output (TextIO.stdOut, s));
 
 fun prs s = !prs_fn s;
 fun writeln s = prs (s ^ "\n");
 
-(* output to LaTeX / xdvi *)
+(* TextIO.output to LaTeX / xdvi *)
 fun latex s = 
-	execute ( "( cd /tmp ; echo \"" ^ s ^
-	"\" | isa2latex -s > $$.tex ; latex $$.tex ; xdvi $$.dvi ; rm $$.* ) > /dev/null &" ) ;
+        execute ( "( cd /tmp ; echo \"" ^ s ^
+        "\" | isa2latex -s > $$.tex ; latex $$.tex ; xdvi $$.dvi ; rm $$.* ) > /dev/null &" ) ;
 
 (*print warning*)
-val warning_fn = ref(fn s => output (std_out, s ^ "\n"));
+val warning_fn = ref(fn s => TextIO.output (TextIO.stdOut, s ^ "\n"));
 fun warning s = !warning_fn ("Warning: " ^ s);
 
 (*print error message and abort to top level*)
 
-val error_fn = ref(fn s => output (std_out, s ^ "\n"));
+val error_fn = ref(fn s => TextIO.output (TextIO.stdOut, s ^ "\n"));
 
 exception ERROR;
 fun error msg = (!error_fn msg; raise ERROR);
@@ -708,16 +710,16 @@ fun deny p msg = if p then error msg else ();
 (*Assert pred for every member of l, generating a message if pred fails*)
 fun assert_all pred l msg_fn = 
   let fun asl [] = ()
-	| asl (x::xs) = if pred x then asl xs
-	                else error (msg_fn x)
+        | asl (x::xs) = if pred x then asl xs
+                        else error (msg_fn x)
   in  asl l  end;
 
 (*for the "test" target in Makefiles -- signifies successful termination*)
 fun maketest msg =
   (writeln msg; 
-   let val os = open_out "test" 
-   in  output (os, "Test examples ran successfully\n");
-       close_out os
+   let val os = TextIO.openOut "test" 
+   in  TextIO.output (os, "Test examples ran successfully\n");
+       TextIO.closeOut os
    end);
 
 
@@ -743,7 +745,7 @@ val print_int = prs o string_of_int;
 (** timing **)
 
 (*unconditional timing function*)
-val timeit = cond_timeit true;
+fun timeit x = cond_timeit true x;
 
 (*timed application function*)
 fun timeap f x = timeit (fn () => f x);
@@ -879,7 +881,7 @@ fun transitive_closure [] = []
       let val qs = transitive_closure ps
           val zs = foldl (fn (zs, y) => assocs qs y union_string zs) (ys, ys)
           fun step(u, us) = (u, if x mem_string us then zs union_string us 
-				else us)
+                                else us)
       in (x, zs) :: map step qs end;
 
 
@@ -917,7 +919,7 @@ fun newid n =
     [division by two avoids overflow for ML systems whose maxint is 2^30 - 1 *)
 fun gensym pre = pre ^ 
                  (#1(newid (floor (!seedr/2.0)), 
-		     seedr := nextrandom (!seedr)))
+                     seedr := nextrandom (!seedr)))
 
 (*Increment a list of letters like a reversed base 26 number.
   If head is "z", bumps chars in tail.
