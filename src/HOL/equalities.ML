@@ -465,6 +465,10 @@ goal thy "(UN i: A Un B. M i) = ((UN i: A. M i) Un (UN i:B. M i))";
 by (Blast_tac 1);
 qed "UN_Un";
 
+goal thy "(UN x : (UN y:A. B y). C x) = (UN y:A. UN x: B y. C x)";
+by (Blast_tac 1);
+qed "UN_UN_flatten";
+
 goal thy "(INT x:insert a A. B x) = B a Int INTER A B";
 by (Blast_tac 1);
 qed "INT_insert";
@@ -573,6 +577,14 @@ qed "ball_Un";
 goal thy "(EX x:A Un B. P x) = ((EX x:A. P x) | (EX x:B. P x))";
 by (Blast_tac 1);
 qed "bex_Un";
+
+goal thy "(ALL z: UNION A B. P z) = (ALL x:A. ALL z:B x. P z)";
+by (Blast_tac 1);
+qed "ball_UN";
+
+goal thy "(EX z: UNION A B. P z) = (EX x:A. EX z:B x. P z)";
+by (Blast_tac 1);
+qed "bex_UN";
 
 
 section "-";
