@@ -57,7 +57,8 @@ sig
       (string * (term list -> term)) list *
       (string * (term list -> term)) list *
       (string * (ast list -> ast)) list -> sg -> sg
-    val add_trrules: xrule list -> sg -> sg
+    val add_trrules: (string * string) trrule list -> sg -> sg
+    val add_trrules_i: ast trrule list -> sg -> sg
     val add_name: string -> sg -> sg
     val make_draft: sg -> sg
     val merge: sg * sg -> sg
@@ -434,13 +435,10 @@ fun ext_classrel (syn, tsig, ctab) pairs =
   (syn, ext_tsig_subclass tsig pairs, ctab);
 
 
-(* add syntactic translations *)
+(* add to syntax *)
 
-fun ext_trfuns (syn, tsig, ctab) trfuns =
-  (Syntax.extend_trfuns syn trfuns, tsig, ctab);
-
-fun ext_trrules (syn, tsig, ctab) xrules =
-  (Syntax.extend_trrules syn xrules, tsig, ctab);
+fun ext_syn extfun (syn, tsig, ctab) args =
+  (extfun syn args, tsig, ctab);
 
 
 (* build signature *)
@@ -475,8 +473,9 @@ val add_consts    = extend_sign ext_consts "#";
 val add_consts_i  = extend_sign ext_consts_i "#";
 val add_syntax    = extend_sign ext_syntax "#";
 val add_syntax_i  = extend_sign ext_syntax_i "#";
-val add_trfuns    = extend_sign ext_trfuns "#";
-val add_trrules   = extend_sign ext_trrules "#";
+val add_trfuns    = extend_sign (ext_syn Syntax.extend_trfuns) "#";
+val add_trrules   = extend_sign (ext_syn Syntax.extend_trrules) "#";
+val add_trrules_i = extend_sign (ext_syn Syntax.extend_trrules_i) "#";
 
 fun add_name name sg = extend_sign K name () sg;
 val make_draft = add_name "#";
