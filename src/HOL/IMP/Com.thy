@@ -7,7 +7,7 @@ Semantics of arithmetic and boolean expressions
 Syntax of commands
 *)
 
-Com = Datatype +
+Com = Main +
 
 types 
       val

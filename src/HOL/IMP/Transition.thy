@@ -6,7 +6,7 @@
 Transition semantics of commands
 *)
 
-Transition = Natural + RelPow +
+Transition = Natural +
 
 consts  evalc1    :: "((com*state)*(com*state))set"
 
