@@ -61,8 +61,8 @@ syntax
     clientK, serverK :: "nat*nat*nat => key"
 
 translations
-  "clientK (nonces)"	== "sessionK(nonces,0)"
-  "serverK (nonces)"	== "sessionK(nonces,1)"
+  "clientK X" == "sessionK(X,0)"
+  "serverK X" == "sessionK(X,1)"
 
 rules
   (*the pseudo-random function is collision-free*)
