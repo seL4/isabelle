@@ -282,6 +282,11 @@ goal ZF.thy "(SUM i:I. A(i) Un B(i)) = (SUM i:I. A(i)) Un (SUM i:I. B(i))";
 by (fast_tac eq_cs 1);
 val SUM_Un_distrib2 = result();
 
+(*First-order version of the above, for rewriting*)
+goal ZF.thy "I * (A Un B) = I*A Un I*B";
+by (resolve_tac [SUM_Un_distrib2] 1);
+val prod_Un_distrib2 = result();
+
 goal ZF.thy "(SUM i:I Int J. C(i)) = (SUM i:I. C(i)) Int (SUM j:J. C(j))";
 by (fast_tac eq_cs 1);
 val SUM_Int_distrib1 = result();
@@ -290,6 +295,11 @@ goal ZF.thy
     "(SUM i:I. A(i) Int B(i)) = (SUM i:I. A(i)) Int (SUM i:I. B(i))";
 by (fast_tac eq_cs 1);
 val SUM_Int_distrib2 = result();
+
+(*First-order version of the above, for rewriting*)
+goal ZF.thy "I * (A Int B) = I*A Int I*B";
+by (resolve_tac [SUM_Int_distrib2] 1);
+val prod_Int_distrib2 = result();
 
 (*Cf Aczel, Non-Well-Founded Sets, page 115*)
 goal ZF.thy "(SUM i:I. A(i)) = (UN i:I. {i} * A(i))";
@@ -320,6 +330,12 @@ goal ZF.thy "domain(A) - domain(B) <= domain(A - B)";
 by (fast_tac eq_cs 1);
 val domain_diff_subset = result();
 
+goal ZF.thy "domain(converse(r)) = range(r)";
+by (fast_tac eq_cs 1);
+val domain_converse = result();
+
+
+
 (** Range **)
 
 val range_of_prod = prove_goal ZF.thy
@@ -344,6 +360,10 @@ val range_Int_subset = result();
 goal ZF.thy "range(A) - range(B) <= range(A - B)";
 by (fast_tac eq_cs 1);
 val range_diff_subset = result();
+
+goal ZF.thy "range(converse(r)) = domain(r)";
+by (fast_tac eq_cs 1);
+val range_converse = result();
 
 (** Field **)
 
