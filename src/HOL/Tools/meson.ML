@@ -371,7 +371,7 @@ fun make_last i th =
   let val n = nprems_of th 
   in  if 1 <= i andalso i <= n 
       then Thm.permute_prems (i-1) 1 th
-      else raise THM("make_last", i, [th])
+      else raise THM("select_literal", i, [th])
   end;
 
 (*Maps a rule that ends "... ==> P ==> False" to "... ==> ~P" while suppressing
@@ -398,8 +398,9 @@ val skolemize_tac =
 	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
 
-(*Top-level conversion to clauses (disjunctions). Each clause has  
-  leading !!-bound universal variables, to express generality.*)
+(*Top-level conversion to meta-level clauses. Each clause has  
+  leading !!-bound universal variables, to express generality. To get 
+  disjunctions instead of meta-clauses, remove "make_meta_clauses" below.*)
 val make_clauses_tac = 
   SUBGOAL
     (fn (prop,_) =>
@@ -407,10 +408,11 @@ val make_clauses_tac =
      in EVERY1 
 	 [METAHYPS
 	    (fn hyps => 
-              (cut_rules_tac (map forall_intr_vars (make_clauses hyps)) 1)),
+              (cut_rules_tac
+                (map forall_intr_vars 
+                  (make_meta_clauses (make_clauses hyps))) 1)),
 	  REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
-
 
 
 (** proof method setup **)
@@ -438,7 +440,7 @@ val meson_setup =
    ("skolemize", Method.no_args skolemize_meth, 
     "Skolemization into existential quantifiers"),
    ("make_clauses", Method.no_args make_clauses_meth, 
-    "Conversion to !!-quantified disjunctions")]];
+    "Conversion to !!-quantified meta-level clauses")]];
 
 end;
 
