@@ -26,15 +26,11 @@ type pprint_args = (string -> unit) * (int -> unit) * (int -> unit) *
 signature PRETTY =
   sig
   type T
+  val raw_str: string * real -> T
   val str: string -> T
-  val strlen: string -> int -> T
-  val strlen_real: string -> real -> T
-  val sym: string -> T
-  val spc: int -> T
   val brk: int -> T
   val fbrk: T
   val blk: int * T list -> T
-  val lst: string * string -> T list -> T
   val quote: T -> T
   val commas: T list -> T list
   val breaks: T list -> T list
@@ -45,6 +41,7 @@ signature PRETTY =
   val list: string -> string -> T list -> T
   val str_list: string -> string -> string list -> T
   val big_list: string -> T list -> T
+  val chunks: T list -> T
   val string_of: T -> string
   val writeln: T -> unit
   val str_of: T -> string
@@ -78,22 +75,22 @@ fun repstring a 0 = ""
 
 (*** Type for lines of text: string, # of lines, position on line ***)
 
-type text = {tx: string, nl: int, pos: int};
+type text = {tx: Buffer.T, nl: int, pos: int};
 
-val emptytext = {tx="", nl=0, pos=0};
+val emptytext = {tx = Buffer.empty, nl = 0, pos = 0};
 
-fun blanks wd {tx,nl,pos} =
-    {tx  = tx ^ repstring " " wd,
+fun blanks wd {tx, nl, pos} =
+    {tx  = Buffer.add (Symbol.output (repstring " " wd)) tx,
      nl  = nl,
      pos = pos+wd};
 
-fun newline {tx,nl,pos} =
-    {tx  = tx ^ "\n",
-     nl  = nl+1,
+fun newline {tx, nl, pos} =
+    {tx  = Buffer.add (Symbol.output "\n") tx,
+     nl  = nl + 1,
      pos = 0};
 
-fun string s len {tx,nl,pos:int} =
-    {tx  = tx ^ s,
+fun string s len {tx, nl, pos:int} =
+    {tx  = Buffer.add s tx,
      nl  = nl,
      pos = pos + len};
 
@@ -145,12 +142,8 @@ fun length (Block (_, _, len)) = len
   | length (String (_, len)) = len
   | length (Break(_, wd)) = wd;
 
-fun str s = String (s, size s);
-fun strlen s len = String (s, len);
-fun strlen_real s len = strlen s (Real.round len);
-val sym = String o apsnd Real.round o Symbol.output_width;
-
-fun spc n = str (repstring " " n);
+fun raw_str (s, len) = String (s, Real.round len);
+val str = String o apsnd Real.round o Symbol.output_width;
 
 fun brk wd = Break (false, wd);
 val fbrk = Break (true, 0);
@@ -160,14 +153,6 @@ fun blk (indent, es) =
     fun sum([], k) = k
       | sum(e :: es, k) = sum (es, length e + k);
   in Block (es, indent, sum (es, 0)) end;
-
-(*Join the elements of es as a comma-separated list, bracketted by lp and rp*)
-fun lst(lp,rp) es =
-  let fun add(e,es) = str"," :: brk 1 :: e :: es;
-      fun list(e :: (es as _::_)) = str lp :: e :: foldr add (es,[str rp])
-        | list(e::[]) = [str lp, e, str rp]
-        | list([]) = []
-  in blk(size lp, list es) end;
 
 
 (* utils *)
@@ -179,7 +164,6 @@ fun commas prts =
   flat (separate [str ",", brk 1] (map (fn x => [x]) prts));
 
 fun breaks prts = separate (brk 1) prts;
-
 fun fbreaks prts = separate fbrk prts;
 
 fun block prts = blk (2, prts);
@@ -189,15 +173,10 @@ val strs = block o breaks o (map str);
 fun enclose lpar rpar prts =
   block (str lpar :: (prts @ [str rpar]));
 
-fun list lpar rpar prts =
-  enclose lpar rpar (commas prts);
-
-fun str_list lpar rpar strs =
-  list lpar rpar (map str strs);
-
-fun big_list name prts =
-  block (fbreaks (str name :: prts));
-
+fun list lpar rpar prts = enclose lpar rpar (commas prts);
+fun str_list lpar rpar strs = list lpar rpar (map str strs);
+fun big_list name prts = block (fbreaks (str name :: prts));
+fun chunks prts = blk (0, fbreaks prts);
 
 
 (*** Pretty printing with depth limitation ***)
@@ -215,7 +194,7 @@ fun pruning dp (Block(bes,indent,wd)) =
 fun prune dp e = if dp>0 then pruning dp e else e;
 
 
-fun string_of e = #tx (format ([prune (! depth) e], 0, 0) emptytext);
+fun string_of e = Buffer.content (#tx (format ([prune (! depth) e], 0, 0) emptytext));
 
 val writeln = writeln o string_of;
 
@@ -225,11 +204,11 @@ fun str_of prt =
   let
     fun s_of (Block (prts, _, _)) = implode (map s_of prts)
       | s_of (String (s, _)) = s
-      | s_of (Break (false, wd)) = repstring " " wd
-      | s_of (Break (true, _)) = " ";
+      | s_of (Break (false, wd)) = Symbol.output (repstring " " wd)
+      | s_of (Break (true, _)) = Symbol.output " ";
   in s_of (prune (! depth) prt) end;
 
-(*Part of the interface to the Poly/ML and New Jersey ML pretty printers*)
+(*part of the interface to the ML toplevel pretty printers*)
 fun pprint prt (put_str, begin_blk, put_brk, put_fbrk, end_blk) =
   let
     fun pp (Block (prts, ind, _)) = (begin_blk ind; pp_lst prts; end_blk ())
