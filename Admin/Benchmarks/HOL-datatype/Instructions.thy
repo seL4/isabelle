@@ -2,7 +2,7 @@
     ID:         $Id$
 *)
 
-Instructions = Main +
+theory Instructions = Main:
 
 (* ------------------------------------------------------------------------- *)
 (* Example from Konrad: 68000 instruction set.                               *)
@@ -117,8 +117,8 @@ datatype M68kInstruction
     | MOVEtoUSP AddressingMode
     | MOVEfromUSP AddressingMode
     | MOVEA Size AddressingMode AddressRegister
-    | MOVEMto Size AddressingMode (DataOrAddressRegister list)
-    | MOVEMfrom Size (DataOrAddressRegister list) AddressingMode
+    | MOVEMto Size AddressingMode "DataOrAddressRegister list"
+    | MOVEMfrom Size "DataOrAddressRegister list" AddressingMode
     | MOVEP Size AddressingMode AddressingMode
     | MOVEQ nat DataRegister
     | MULS AddressingMode DataRegister

@@ -2,7 +2,7 @@
     ID:         $Id$
 *)
 
-Verilog = Main +
+theory Verilog = Main:
 
 (* ------------------------------------------------------------------------- *)
 (* Example from Daryl: a Verilog grammar.                                    *)
@@ -10,7 +10,7 @@ Verilog = Main +
 
 datatype
   Source_text
-     = module string (string list) (Module_item list)
+     = module string "string list" "Module_item list"
      | Source_textMeta string
 and
   Module_item
@@ -21,10 +21,10 @@ and
      | Module_itemMeta string
 and
   Declaration
-     = reg_declaration (Range option) (string list)
-     | net_declaration (Range option) (string list)
-     | input_declaration (Range option) (string list)
-     | output_declaration (Range option) (string list)
+     = reg_declaration "Range option" "string list"
+     | net_declaration "Range option" "string list"
+     | input_declaration "Range option" "string list"
+     | output_declaration "Range option" "string list"
      | DeclarationMeta string
 and
   Range = range Expression Expression | RangeMeta string
@@ -34,15 +34,15 @@ and
      | blocking_assignment Lvalue Expression
      | non_blocking_assignment Lvalue Expression
      | conditional_statement
-          Expression Statement_or_null (Statement_or_null option)
-     | case_statement Expression (Case_item list)
+          Expression Statement_or_null "Statement_or_null option"
+     | case_statement Expression "Case_item list"
      | while_loop Expression Statement
      | repeat_loop Expression Statement
      | for_loop
           Lvalue Expression Expression Lvalue Expression Statement
      | forever_loop Statement
      | disable string
-     | seq_block (string option) (Statement list)
+     | seq_block "string option" "Statement list"
      | StatementMeta string
 and
   Statement_or_null
@@ -55,7 +55,7 @@ and
      | ClockMeta string
 and
   Case_item
-     = case_item (Expression list) Statement_or_null
+     = case_item "Expression list" Statement_or_null
      | default_case_item Statement_or_null
      | Case_itemMeta string
 and
@@ -112,14 +112,14 @@ and
 and
   Number
      = decimal string
-     | based (string option) string
+     | based "string option" string
      | NumberMeta string
 and
   Concatenation
-     = concatenation (Expression list) | ConcatenationMeta string
+     = concatenation "Expression list" | ConcatenationMeta string
 and
   Multiple_concatenation
-     = multiple_concatenation Expression (Expression list)
+     = multiple_concatenation Expression "Expression list"
      | Multiple_concatenationMeta string
 and
   meta
