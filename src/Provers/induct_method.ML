@@ -182,7 +182,8 @@ fun join_rules [] = []
           [foldr1 (fn (x, x') => [x, x'] MRS Data.conjI)
             (map (fn x => Drule.implies_elim_list x asms) (th :: ths))
           |> Drule.implies_intr_list cprems
-          |> Drule.standard']
+          |> Drule.standard'
+          |> RuleCases.save th]
         end;
 
 
