@@ -54,34 +54,34 @@ by (rtac (PairE_lemma RS exE) 1);
 by (REPEAT (eresolve_tac [prem,exE] 1));
 qed "PairE";
 
-fun pair_tac s = res_inst_tac [("p",s)] PairE THEN' hyp_subst_tac;
+fun pair_tac s = EVERY' [res_inst_tac [("p",s)] PairE, hyp_subst_tac,
+			 K prune_params_tac];
 
 (* replace parameters of product type by individual component parameters *)
 local
-fun is_pair (_,Type("*",_)) = true
-  | is_pair _ = false;
-
-fun find_pair_param prem =
-  let val params = Logic.strip_params prem
-  in if exists is_pair params
-     then let val params = rev(rename_wrt_term prem params)
-                           (*as they are printed*)
-          in apsome fst (find_first is_pair params) end
-     else None
-  end;
-
+  fun is_pair (_,Type("*",_)) = true
+    | is_pair  _              = false;
+  fun ptac x = res_inst_tac [("p",x)] PairE;
+  fun find_pair_params prem =
+    let val params = Logic.strip_params prem
+    in if exists is_pair params
+       then let val params = rev(rename_wrt_term prem params)
+                             (*as they are printed*)
+            in filter is_pair params end
+       else []
+   end;
 in
-
-val split_all_tac = REPEAT1 o SUBGOAL (fn (prem,i) =>
-  case find_pair_param prem of
-    None => no_tac
-  | Some x => EVERY[res_inst_tac[("p",x)] PairE i,
-                    REPEAT(hyp_subst_tac i), prune_params_tac]);
-
+val split_all_tac = REPEAT1 o SUBGOAL (fn (prem,i) => 
+  let val params = find_pair_params prem in
+  if params = [] then no_tac 
+  	         else EVERY'[EVERY' (map (ptac o fst) params),
+			     REPEAT o hyp_subst_tac,
+			     K prune_params_tac] i end)
 end;
 
-(* claset_ref() := claset() addbefore  ("split_all_tac", TRY o split_all_tac);*)
-   claset_ref() := claset() addSaltern ("split_all_tac",       split_all_tac);
+(*claset_ref() := claset()  addbefore  ("split_all_tac", TRY o split_all_tac);*)
+  claset_ref() := claset() addSWrapper ("split_all_tac", 
+					fn tac2 => split_all_tac ORELSE' tac2);
 
 (*** lemmas for splitting paired `!!'
 Does not work with simplifier because it also affects premises in
@@ -163,7 +163,7 @@ Addsimps [surj_pair];
 qed_goal "split_eta" Prod.thy "(%(x,y). f(x,y)) = f"
   (K [rtac ext 1, split_all_tac 1, rtac split 1]);
 
-val split_beta = prove_goal Prod.thy "(%(x,y). P x y) z = P (fst z) (snd z)"
+qed_goal "split_beta" Prod.thy "(%(x,y). P x y) z = P (fst z) (snd z)"
 	(K [stac surjective_pairing 1, stac split 1, rtac refl 1]);
 
 (*For use with split_tac and the simplifier*)
