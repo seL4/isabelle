@@ -73,12 +73,12 @@ inductive "otway lost"
 
          (*This message models possible leaks of session keys.  Alice's Nonce
            identifies the protocol run.*)
-    Reveal "[| evs: otway lost;  A ~= Spy;
-               Says B' A {|Nonce NA, Crypt {|Nonce NA, Key K|} (shrK A)|}
-                 : set_of_list evs;
-               Says A  B {|Nonce NA, Agent A, Agent B, 
-                           Crypt {|Nonce NA, Agent A, Agent B|} (shrK A)|}
-                 : set_of_list evs |]
-            ==> Says A Spy {|Nonce NA, Key K|} # evs : otway lost"
+    Revl "[| evs: otway lost;  A ~= Spy;
+             Says B' A {|Nonce NA, Crypt {|Nonce NA, Key K|} (shrK A)|}
+               : set_of_list evs;
+             Says A  B {|Nonce NA, Agent A, Agent B, 
+                         Crypt {|Nonce NA, Agent A, Agent B|} (shrK A)|}
+               : set_of_list evs |]
+          ==> Says A Spy {|Nonce NA, Key K|} # evs : otway lost"
 
 end

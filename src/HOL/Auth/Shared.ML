@@ -9,6 +9,18 @@ Server keys; initial states of agents; new nonces and keys; function "sees"
 *)
 
 
+val prems = goal HOL.thy "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
+by (excluded_middle_tac "P" 1);
+by (asm_simp_tac (!simpset addsimps prems) 1);
+by (asm_simp_tac (!simpset addsimps prems) 1);
+val expand_case = result();
+
+fun expand_case_tac P i =
+    res_inst_tac [("P",P)] expand_case i THEN
+    Simp_tac (i+1) THEN 
+    Simp_tac i;
+
+
 
 (*GOALS.ML??*)
 fun prlim n = (goals_limit:=n; pr());
@@ -107,7 +119,6 @@ qed "Spy_sees_lost";
 
 AddSIs [sees_own_shrK, Spy_sees_lost];
 
-
 (** Specialized rewrite rules for (sees lost A (Says...#evs)) **)
 
 goal thy "sees lost A (Says A B X # evs) = insert X (sees lost A evs)";
@@ -155,6 +166,14 @@ qed_spec_mp "Says_imp_sees_Spy";
 
 Addsimps [Says_imp_sees_Spy];
 AddIs    [Says_imp_sees_Spy];
+
+goal thy  
+ "!!evs. [| Says A B (Crypt X (shrK C)) : set_of_list evs;        \
+\           C   : lost |]                                         \
+\        ==> X : analz (sees lost Spy evs)";
+by (fast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]
+                      addss (!simpset)) 1);
+qed "Says_Crypt_lost";
 
 goal thy "initState lost C <= Key `` range shrK";
 by (agent.induct_tac "C" 1);

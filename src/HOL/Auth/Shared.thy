@@ -23,7 +23,7 @@ primrec initState agent
         (*Server knows all keys; other agents know only their own*)
   initState_Server  "initState lost Server     = Key `` range shrK"
   initState_Friend  "initState lost (Friend i) = {Key (shrK (Friend i))}"
-  initState_Spy   "initState lost Spy      = Key``shrK``lost"
+  initState_Spy     "initState lost Spy        = Key``shrK``lost"
 
 
 datatype  (*Messages, and components of agent stores*)
