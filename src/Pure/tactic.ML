@@ -54,12 +54,12 @@ sig
   val forward_tac       : thm list -> int -> tactic
   val forw_inst_tac     : (string*string)list -> thm -> int -> tactic
   val ftac              : thm -> int ->tactic
-  val insert_tagged_brl : ('a*(bool*thm)) *
-                          (('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net) ->
-                          ('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net
-  val delete_tagged_brl : (bool*thm) *
-                         ((int*(bool*thm))Net.net * (int*(bool*thm))Net.net) ->
-                    (int*(bool*thm))Net.net * (int*(bool*thm))Net.net
+  val insert_tagged_brl : ('a * (bool * thm)) *
+    (('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net) ->
+      ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
+  val delete_tagged_brl : (bool * thm) *
+    (('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net) ->
+      ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
   val is_fact           : thm -> bool
   val lessb             : (bool * thm) * (bool * thm) -> bool
   val lift_inst_rule    : thm * int * (string*string)list * thm -> thm
@@ -399,28 +399,27 @@ fun untaglist [] = []
 fun orderlist kbrls = untaglist (sort (int_ord o pairself fst) kbrls);
 
 (*insert one tagged brl into the pair of nets*)
-fun insert_tagged_brl (kbrl as (k,(eres,th)), (inet,enet)) =
-    if eres then
-        case prems_of th of
-            prem::_ => (inet, Net.insert_term ((prem,kbrl), enet, K false))
-          | [] => error"insert_tagged_brl: elimination rule with no premises"
-    else (Net.insert_term ((concl_of th, kbrl), inet, K false), enet);
+fun insert_tagged_brl (kbrl as (k, (eres, th)), (inet, enet)) =
+  if eres then
+    (case try Thm.major_prem_of th of
+      Some prem => (inet, Net.insert_term ((prem, kbrl), enet, K false))
+    | None => error "insert_tagged_brl: elimination rule with no premises")
+  else (Net.insert_term ((concl_of th, kbrl), inet, K false), enet);
 
 (*build a pair of nets for biresolution*)
 fun build_netpair netpair brls =
     foldr insert_tagged_brl (taglist 1 brls, netpair);
 
-(*delete one kbrl from the pair of nets;
-  we don't know the value of k, so we use 0 and ignore it in the comparison*)
+(*delete one kbrl from the pair of nets*)
 local
-  fun eq_kbrl ((k,(eres,th)), (k',(eres',th'))) = eq_thm (th,th')
+  fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = eq_thm (th, th')
 in
-fun delete_tagged_brl (brl as (eres,th), (inet,enet)) =
-    if eres then
-        case prems_of th of
-            prem::_ => (inet, Net.delete_term ((prem, (0,brl)), enet, eq_kbrl))
-          | []      => (inet,enet)     (*no major premise: ignore*)
-    else (Net.delete_term ((concl_of th, (0,brl)), inet, eq_kbrl), enet);
+fun delete_tagged_brl (brl as (eres, th), (inet, enet)) =
+  if eres then
+    (case try Thm.major_prem_of th of
+      Some prem => (inet, Net.delete_term ((prem, ((), brl)), enet, eq_kbrl))
+    | None => (inet, enet))  (*no major premise: ignore*)
+  else (Net.delete_term ((Thm.concl_of th, ((), brl)), inet, eq_kbrl), enet);
 end;
 
 
