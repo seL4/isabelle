@@ -6,10 +6,11 @@
 *)
 
 (* should go into Pure *)
-fun ALLNEWSUBGOALS tac tacf i =
-  STATE (fn state0 => tac i THEN
-  STATE (fn state1 => let val d = nprems_of state1 - nprems_of state0
-                      in EVERY(map tacf ((i+d) downto i)) end));
+fun ALLNEWSUBGOALS tac tacf i st0 = st0 |>
+  (tac i THEN
+   (fn st1 => st1 |> 
+        let val d = nprems_of st1 - nprems_of st0
+        in EVERY(map tacf ((i+d) downto i)) end));
 
 (*used for constructor parameters*)
 datatype dt_type = dtVar of string |
@@ -878,12 +879,11 @@ fun build_record (thy,(ty,cl),itac) =
      fun exhaust_tac a =
            ALLNEWSUBGOALS (res_inst_tac [(exh_var,a)] exhaustion)
                           (rotate_tac ~1);
-     fun induct_tac a i =
-           STATE(fn st =>
+     fun induct_tac a i st = st |>
              (if Datatype.occs_in_prems a i st
               then warning "Induction variable occurs also among premises!"
               else ();
-              itac a i))
+              itac a i)
  in
   (ty, {constructors = map(fn s => const s handle _ => const("op "^s)) cl,
         case_const = const (ty^"_case"),

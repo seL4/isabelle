@@ -269,12 +269,10 @@ end;
      subgoal.  Fails if "i" is out of range.  ***)
 
 (*compose version: arguments are as for bicompose.*)
-fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i =
-  STATE ( fn st => 
-	   compose_tac (bires_flg, lift_inst_rule (st, i, sinsts, rule),
-			nsubgoal) i
-	   handle TERM (msg,_) => (writeln msg;  no_tac)
-		| THM  (msg,_,_) => (writeln msg;  no_tac) );
+fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i st = st |>
+  (compose_tac (bires_flg, lift_inst_rule (st, i, sinsts, rule), nsubgoal) i
+   handle TERM (msg,_)   => (writeln msg;  no_tac)
+	| THM  (msg,_,_) => (writeln msg;  no_tac));
 
 (*"Resolve" version.  Note: res_inst_tac cannot behave sensibly if the
   terms that are substituted contain (term or type) unknowns from the

@@ -85,23 +85,19 @@ end;
 in
 
 (* generic induction tactic for datatypes *)
-fun induct_tac var i =
-  let fun induct state =
+fun induct_tac var i state = state |>
         let val (_, _, Bi, _) = dest_state (state, i)
             val sign = #sign(rep_thm state)
             val tn = find_tname var Bi
             val ind_tac = #induct_tac(get_dt_info sign tn)
-        in ind_tac var i end
-  in STATE induct end;
+        in ind_tac var i end;
 
 (* generic exhaustion tactic for datatypes *)
-fun exhaust_tac aterm i =
-  let fun exhaust state =
+fun exhaust_tac aterm i state = state |>
         let val sign = #sign(rep_thm state)
             val tn = infer_tname state sign i aterm
             val exh_tac = #exhaust_tac(get_dt_info sign tn)
-        in exh_tac aterm i end
-  in STATE exhaust end;
+        in exh_tac aterm i end;
 
 end;
 

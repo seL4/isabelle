@@ -66,19 +66,17 @@ val IF_UNSOLVED = COND (has_fewer_prems 1) all_tac;
 
 (*Execute tac1, but only execute tac2 if there are at least as many subgoals
   as before.  This ensures that tac2 is only applied to an outcome of tac1.*)
-fun tac1 THEN_MAYBE tac2 = STATE
-    (fn st => tac1  THEN  
-	 COND (has_fewer_prems (nprems_of st)) all_tac tac2);
+fun (tac1 THEN_MAYBE tac2) st = 
+    (tac1  THEN  COND (has_fewer_prems (nprems_of st)) all_tac tac2)  st;
 
 fun (tac1 THEN_MAYBE' tac2) x = tac1 x THEN_MAYBE tac2 x;
 
 (*Tactical to reduce the number of premises by 1.
   If no subgoals then it must fail! *)
-fun DEPTH_SOLVE_1 tac = STATE
- (fn st => 
+fun DEPTH_SOLVE_1 tac st = st |>
     (case nprems_of st of
 	0 => no_tac
-      | n => DEPTH_FIRST (has_fewer_prems n) tac));
+      | n => DEPTH_FIRST (has_fewer_prems n) tac);
 
 (*Uses depth-first search to solve ALL subgoals*)
 val DEPTH_SOLVE = DEPTH_FIRST (has_fewer_prems 1);
@@ -166,12 +164,11 @@ val ITER_DEEPEN = THEN_ITER_DEEPEN all_tac;
 (*Simple iterative deepening tactical.  It merely "deepens" any search tactic
   using increment "inc" up to limit "lim". *)
 fun DEEPEN (inc,lim) tacf m i = 
-  let fun dpn m = STATE(fn state => 
-			if has_fewer_prems i state then no_tac
-			else if m>lim then 
-			     (writeln "Giving up..."; no_tac)
-			else (writeln ("Depth = " ^ string_of_int m);
-			      tacf m i  ORELSE  dpn (m+inc)))
+  let fun dpn m st = st |> (if has_fewer_prems i st then no_tac
+			    else if m>lim then 
+				(writeln "Giving up..."; no_tac)
+				 else (writeln ("Depth = " ^ string_of_int m);
+				       tacf m i  ORELSE  dpn (m+inc)))
   in  dpn m  end;
 
 (*** Best-first search ***)

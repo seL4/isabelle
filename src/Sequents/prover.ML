@@ -85,13 +85,13 @@ fun has_prems n rule =  (nprems_of rule = n);
 
 fun RESOLVE_THEN rules =
   let val [rls0,rls1,rls2] = partition_list has_prems 0 2 rules;
-      fun tac nextac i = STATE (fn state =>  
-	  filseq_resolve_tac rls0 9999 i 
-	  ORELSE
-	  (DETERM(filseq_resolve_tac rls1 9999 i) THEN  TRY(nextac i))
-	  ORELSE
-	  (DETERM(filseq_resolve_tac rls2 9999 i) THEN  TRY(nextac(i+1))
-					THEN  TRY(nextac i)) )
+      fun tac nextac i state = state |>
+	     (filseq_resolve_tac rls0 9999 i 
+	      ORELSE
+	      (DETERM(filseq_resolve_tac rls1 9999 i) THEN  TRY(nextac i))
+	      ORELSE
+	      (DETERM(filseq_resolve_tac rls2 9999 i) THEN  TRY(nextac(i+1))
+					    THEN  TRY(nextac i)))
   in  tac  end;
 
 
@@ -202,11 +202,11 @@ val fres_bound_tac = fresolve_tac bound_rls;
 
 fun UPTOGOAL n tf = let fun tac i = if i<n then all_tac
                                     else tf(i) THEN tac(i-1)
-                    in STATE(fn state=> tac(nprems_of state)) end;
+                    in fn st => tac (nprems_of st) st end;
 
 (* Depth first search bounded by d *)
-fun solven_tac d n = STATE (fn state =>
-        if d<0 then no_tac
+fun solven_tac d n state = state |>
+       (if d<0 then no_tac
         else if (nprems_of state = 0) then all_tac 
         else (DETERM(fres_safe_tac n) THEN UPTOGOAL n (solven_tac d)) ORELSE
                  ((fres_unsafe_tac n  THEN UPTOGOAL n (solven_tac d)) APPEND
@@ -214,10 +214,10 @@ fun solven_tac d n = STATE (fn state =>
 
 fun solve_tac d = rewrite_goals_tac rewrite_rls THEN solven_tac d 1;
 
-fun step_tac n = STATE (fn state =>  
-      if (nprems_of state = 0) then all_tac 
-      else (DETERM(fres_safe_tac n)) ORELSE 
-           (fres_unsafe_tac n APPEND fres_bound_tac n));
+fun step_tac n = 
+    COND (has_fewer_prems 1) all_tac 
+         (DETERM(fres_safe_tac n) ORELSE 
+	  (fres_unsafe_tac n APPEND fres_bound_tac n));
 
 end;
 end;
