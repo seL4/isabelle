@@ -210,11 +210,10 @@ struct
 	fun is_satisfying_model model intr satisfy =
 	let
 		(* prop_formula list -> prop_formula *)
-		fun allfalse []      = True
-		  | allfalse (x::xs) = SAnd (SNot x, allfalse xs)
+		fun oneoutoftwofalse []      = True
+		  | oneoutoftwofalse (x::xs) = SAnd (PropLogic.all (map (fn x' => SOr (SNot x, SNot x')) xs), oneoutoftwofalse xs)
 		(* prop_formula list -> prop_formula *)
-		fun exactly1true []      = False
-		  | exactly1true (x::xs) = SOr (SAnd (x, allfalse xs), SAnd (SNot x, exactly1true xs))
+		fun exactly1true xs = SAnd (PropLogic.exists xs, oneoutoftwofalse xs)
 	(* ------------------------------------------------------------------------- *)
 	(* restrict_to_single_element: returns a propositional formula that is true  *)
 	(*      iff the interpretation denotes a single element of its corresponding *)
