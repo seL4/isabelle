@@ -118,6 +118,7 @@ cd "$DISTBASE"
 
 $EXPORT
 $FIND . -name CVS -print | xargs rm -rf
+$FIND . -name .cvsignore -print | xargs rm -rf
 $FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
 $FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
 $FIND . "(" -type d -a -empty ")" -print | xargs rm -rf
