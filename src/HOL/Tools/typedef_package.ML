@@ -15,8 +15,10 @@ sig
     term -> string list -> thm list -> tactic option -> theory -> theory
   val add_typedef_i_no_def: string -> bstring * string list * mixfix ->
     term -> string list -> thm list -> tactic option -> theory -> theory
-  val typedef_proof: string -> bstring * string list * mixfix -> string -> theory -> ProofHistory.T
-  val typedef_proof_i: string -> bstring * string list * mixfix -> term -> theory -> ProofHistory.T
+  val typedef_proof: string -> bstring * string list * mixfix -> string
+    -> bool -> theory -> ProofHistory.T
+  val typedef_proof_i: string -> bstring * string list * mixfix -> term
+    -> bool -> theory -> ProofHistory.T
 end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
@@ -187,13 +189,13 @@ val add_typedef_i_no_def = gen_add_typedef cert_term true;
 fun typedef_attribute cset do_typedef (thy, thm) =
   (check_nonempty cset thm; (thy |> do_typedef, thm));
 
-fun gen_typedef_proof prep_term name typ set thy =
+fun gen_typedef_proof prep_term name typ set int thy =
   let
     val (cset, do_typedef) = prepare_typedef prep_term false name typ set thy;
     val goal = Thm.term_of (goal_nonempty cset);
   in
     thy
-    |> IsarThy.theorem_i "" [typedef_attribute cset do_typedef] (goal, [])
+    |> IsarThy.theorem_i "" [typedef_attribute cset do_typedef] (goal, []) int
   end;
 
 val typedef_proof = gen_typedef_proof read_term;
