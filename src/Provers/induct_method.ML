@@ -150,7 +150,7 @@ val rulify_tac =
   Tactic.rewrite_goal_tac Data.rulify2 THEN'
   Tactic.norm_hhf_tac;
 
-val localize_concl = Tactic.simplify false [Thm.symmetric Data.local_imp_def];
+val localize = Tactic.simplify false [Thm.symmetric Data.local_imp_def];
 
 
 (* imp_intr --- limited to atomic prems *)
@@ -225,7 +225,7 @@ fun resolveq_cases_tac' make ruleq i st =
   ruleq |> Seq.map (fn (rule, (cases, k, more_facts)) => st
     |> (Method.insert_tac more_facts THEN' atomize_tac) i
     |> Seq.map (fn st' => divinate_inst (internalize k rule) i st' |> Seq.map (fn rule' =>
-          (PolyML.print st') |> Tactic.rtac (PolyML.print rule') i |> Seq.map (rpair (make (rulify rule') cases))) |> Seq.flat)
+          st' |> Tactic.rtac rule' i |> Seq.map (rpair (make (rulify rule') cases))) |> Seq.flat)
     |> Seq.flat)
   |> Seq.flat;
 
@@ -254,24 +254,26 @@ fun induct_tac (ctxt, (open_parms, (insts, opt_rule))) facts =
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
 
-    fun inst_rule r =
-      if null insts then RuleCases.add r
+    fun rule_versions r = Seq.cons (r, Seq.filter (not o curry eq_thm r)
+        (Seq.make (fn () => Some (localize r, Seq.empty))))
+      |> Seq.map (rpair (RuleCases.get r));
+
+    val inst_rule = apfst (fn r =>
+      if null insts then r
       else (align_right "Rule has fewer conclusions than arguments given"
           (Data.dest_concls (Thm.concl_of r)) insts
         |> (flat o map (prep_inst align_right cert atomize_cterm))
-        |> Drule.cterm_instantiate) r |> rpair (RuleCases.get r);
+        |> Drule.cterm_instantiate) r);
 
     val ruleq =
       (case opt_rule of
         None =>
           let val rules = find_inductS ctxt facts @ find_inductT ctxt insts in
-            if null rules then error "Unable to figure out induct rule" else ();
+            conditional (null rules) (fn () => error "Unable to figure out induct rule");
             Method.trace ctxt rules;
-            Seq.flat (Seq.map (Seq.APPEND (Seq.try inst_rule,
-              Seq.try (inst_rule o localize_concl))) (Seq.of_list rules))
+            rules |> Seq.THEN (Seq.of_list, Seq.THEN (rule_versions, Seq.try inst_rule))
           end
-      | Some r => Seq.make (fn () => Some (inst_rule r,
-          Seq.make (fn () => Some (inst_rule (localize_concl r), Seq.empty)))));
+      | Some r => r |> Seq.THEN (rule_versions, Seq.single o inst_rule));
 
     fun prep_rule (th, (cases, n)) =
       Seq.map (rpair (cases, n - length facts, drop (n, facts)))
