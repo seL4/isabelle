@@ -43,16 +43,16 @@ consts
 
   ntrunc    :: [nat, ('a, 'b) dtree] => ('a, 'b) dtree
 
-  "<*>"  :: [('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set (infixr 80)
-  "<+>"  :: [('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set (infixr 70)
+  uprod     :: [('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set
+  usum      :: [('a, 'b) dtree set, ('a, 'b) dtree set]=> ('a, 'b) dtree set
 
-  Split  :: [[('a, 'b) dtree, ('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c
-  Case   :: [[('a, 'b) dtree]=>'c, [('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c
+  Split     :: [[('a, 'b) dtree, ('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c
+  Case      :: [[('a, 'b) dtree]=>'c, [('a, 'b) dtree]=>'c, ('a, 'b) dtree] => 'c
 
-  "<**>" :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set] 
-           => (('a, 'b) dtree * ('a, 'b) dtree)set" (infixr 80)
-  "<++>" :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set] 
-           => (('a, 'b) dtree * ('a, 'b) dtree)set" (infixr 70)
+  dprod     :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set] 
+                => (('a, 'b) dtree * ('a, 'b) dtree)set"
+  dsum      :: "[(('a, 'b) dtree * ('a, 'b) dtree)set, (('a, 'b) dtree * ('a, 'b) dtree)set] 
+                => (('a, 'b) dtree * ('a, 'b) dtree)set"
 
 
 local
@@ -88,21 +88,21 @@ defs
   ntrunc_def "ntrunc k N == {n. n:N & ndepth(n)<k}"
 
   (*products and sums for the "universe"*)
-  uprod_def  "A<*>B == UN x:A. UN y:B. { Scons x y }"
-  usum_def   "A<+>B == In0``A Un In1``B"
+  uprod_def  "uprod A B == UN x:A. UN y:B. { Scons x y }"
+  usum_def   "usum A B == In0``A Un In1``B"
 
   (*the corresponding eliminators*)
   Split_def  "Split c M == @u. ? x y. M = Scons x y & u = c x y"
 
   Case_def   "Case c d M == @u.  (? x . M = In0(x) & u = c(x)) 
-                              | (? y . M = In1(y) & u = d(y))"
+                               | (? y . M = In1(y) & u = d(y))"
 
 
   (** equality for the "universe" **)
 
-  dprod_def  "r<**>s == UN (x,x'):r. UN (y,y'):s. {(Scons x y, Scons x' y')}"
+  dprod_def  "dprod r s == UN (x,x'):r. UN (y,y'):s. {(Scons x y, Scons x' y')}"
 
-  dsum_def   "r<++>s == (UN (x,x'):r. {(In0(x),In0(x'))}) Un 
-                        (UN (y,y'):s. {(In1(y),In1(y'))})"
+  dsum_def   "dsum r s == (UN (x,x'):r. {(In0(x),In0(x'))}) Un 
+                          (UN (y,y'):s. {(In1(y),In1(y'))})"
 
 end

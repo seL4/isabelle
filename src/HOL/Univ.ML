@@ -294,13 +294,13 @@ Addsimps [ntrunc_one_In0, ntrunc_In0, ntrunc_one_In1, ntrunc_In1];
 
 (*** Cartesian Product ***)
 
-Goalw [uprod_def] "[| M:A;  N:B |] ==> Scons M N : A<*>B";
+Goalw [uprod_def] "[| M:A;  N:B |] ==> Scons M N : uprod A B";
 by (REPEAT (ares_tac [singletonI,UN_I] 1));
 qed "uprodI";
 
 (*The general elimination rule*)
 val major::prems = Goalw [uprod_def]
-    "[| c : A<*>B;  \
+    "[| c : uprod A B;  \
 \       !!x y. [| x:A;  y:B;  c = Scons x y |] ==> P \
 \    |] ==> P";
 by (cut_facts_tac [major] 1);
@@ -310,7 +310,7 @@ qed "uprodE";
 
 (*Elimination of a pair -- introduces no eigenvariables*)
 val prems = Goal
-    "[| Scons M N : A<*>B;      [| M:A;  N:B |] ==> P   \
+    "[| Scons M N : uprod A B;      [| M:A;  N:B |] ==> P   \
 \    |] ==> P";
 by (rtac uprodE 1);
 by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [Scons_inject,ssubst] 1));
@@ -319,16 +319,16 @@ qed "uprodE2";
 
 (*** Disjoint Sum ***)
 
-Goalw [usum_def] "M:A ==> In0(M) : A<+>B";
+Goalw [usum_def] "M:A ==> In0(M) : usum A B";
 by (Blast_tac 1);
 qed "usum_In0I";
 
-Goalw [usum_def] "N:B ==> In1(N) : A<+>B";
+Goalw [usum_def] "N:B ==> In1(N) : usum A B";
 by (Blast_tac 1);
 qed "usum_In1I";
 
 val major::prems = Goalw [usum_def]
-    "[| u : A<+>B;  \
+    "[| u : usum A B;  \
 \       !!x. [| x:A;  u=In0(x) |] ==> P; \
 \       !!y. [| y:B;  u=In1(y) |] ==> P \
 \    |] ==> P";
@@ -465,11 +465,11 @@ qed "ntrunc_o_equality";
 
 (*** Monotonicity ***)
 
-Goalw [uprod_def] "[| A<=A';  B<=B' |] ==> A<*>B <= A'<*>B'";
+Goalw [uprod_def] "[| A<=A';  B<=B' |] ==> uprod A B <= uprod A' B'";
 by (Blast_tac 1);
 qed "uprod_mono";
 
-Goalw [usum_def] "[| A<=A';  B<=B' |] ==> A<+>B <= A'<+>B'";
+Goalw [usum_def] "[| A<=A';  B<=B' |] ==> usum A B <= usum A' B'";
 by (Blast_tac 1);
 qed "usum_mono";
 
@@ -529,13 +529,13 @@ qed "In1_UN1";
 (*** Equality for Cartesian Product ***)
 
 Goalw [dprod_def]
-    "[| (M,M'):r;  (N,N'):s |] ==> (Scons M N, Scons M' N') : r<**>s";
+    "[| (M,M'):r;  (N,N'):s |] ==> (Scons M N, Scons M' N') : dprod r s";
 by (Blast_tac 1);
 qed "dprodI";
 
 (*The general elimination rule*)
 val major::prems = Goalw [dprod_def]
-    "[| c : r<**>s;  \
+    "[| c : dprod r s;  \
 \       !!x y x' y'. [| (x,x') : r;  (y,y') : s;  c = (Scons x y, Scons x' y') |] ==> P \
 \    |] ==> P";
 by (cut_facts_tac [major] 1);
@@ -546,16 +546,16 @@ qed "dprodE";
 
 (*** Equality for Disjoint Sum ***)
 
-Goalw [dsum_def]  "(M,M'):r ==> (In0(M), In0(M')) : r<++>s";
+Goalw [dsum_def]  "(M,M'):r ==> (In0(M), In0(M')) : dsum r s";
 by (Blast_tac 1);
 qed "dsum_In0I";
 
-Goalw [dsum_def]  "(N,N'):s ==> (In1(N), In1(N')) : r<++>s";
+Goalw [dsum_def]  "(N,N'):s ==> (In1(N), In1(N')) : dsum r s";
 by (Blast_tac 1);
 qed "dsum_In1I";
 
 val major::prems = Goalw [dsum_def]
-    "[| w : r<++>s;  \
+    "[| w : dsum r s;  \
 \       !!x x'. [| (x,x') : r;  w = (In0(x), In0(x')) |] ==> P; \
 \       !!y y'. [| (y,y') : s;  w = (In1(y), In1(y')) |] ==> P \
 \    |] ==> P";
@@ -571,31 +571,31 @@ AddSEs [uprodE, dprodE, usumE, dsumE];
 
 (*** Monotonicity ***)
 
-Goal "[| r<=r';  s<=s' |] ==> r<**>s <= r'<**>s'";
+Goal "[| r<=r';  s<=s' |] ==> dprod r s <= dprod r' s'";
 by (Blast_tac 1);
 qed "dprod_mono";
 
-Goal "[| r<=r';  s<=s' |] ==> r<++>s <= r'<++>s'";
+Goal "[| r<=r';  s<=s' |] ==> dsum r s <= dsum r' s'";
 by (Blast_tac 1);
 qed "dsum_mono";
 
 
 (*** Bounding theorems ***)
 
-Goal "((A Times B) <**> (C Times D)) <= (A<*>C) Times (B<*>D)";
+Goal "(dprod (A Times B) (C Times D)) <= (uprod A C) Times (uprod B D)";
 by (Blast_tac 1);
 qed "dprod_Sigma";
 
 val dprod_subset_Sigma = [dprod_mono, dprod_Sigma] MRS subset_trans |>standard;
 
 (*Dependent version*)
-Goal "(Sigma A B <**> Sigma C D) <= Sigma (A<*>C) (Split(%x y. B(x)<*>D(y)))";
+Goal "(dprod (Sigma A B) (Sigma C D)) <= Sigma (uprod A C) (Split (%x y. uprod (B x) (D y)))";
 by Safe_tac;
 by (stac Split 1);
 by (Blast_tac 1);
 qed "dprod_subset_Sigma2";
 
-Goal "(A Times B <++> C Times D) <= (A<+>C) Times (B<+>D)";
+Goal "(dsum (A Times B) (C Times D)) <= (usum A C) Times (usum B D)";
 by (Blast_tac 1);
 qed "dsum_Sigma";
 
@@ -604,11 +604,11 @@ val dsum_subset_Sigma = [dsum_mono, dsum_Sigma] MRS subset_trans |> standard;
 
 (*** Domain ***)
 
-Goal "Domain (r<**>s) = (Domain r) <*> (Domain s)";
+Goal "Domain (dprod r s) = uprod (Domain r) (Domain s)";
 by Auto_tac;
 qed "Domain_dprod";
 
-Goal "Domain (r<++>s) = (Domain r) <+> (Domain s)";
+Goal "Domain (dsum r s) = usum (Domain r) (Domain s)";
 by Auto_tac;
 qed "Domain_dsum";
 
