@@ -15,8 +15,8 @@ goalw Solve.thy [is_weak_pmap_def,traces_def]
 \          is_weak_pmap f C A |] ==> traces(C) <= traces(A)";
 
   by (simp_tac(simpset() addsimps [has_trace_def])1);
-  by (safe_tac (claset() addSaltern ("split_all_tac", split_all_tac)));
-  by (rename_tac "f ex1 ex2" 1);
+  by (Safe_tac);
+  by (rename_tac "ex1 ex2" 1);
 
   (* choose same trace, therefore same NF *)
   by (res_inst_tac[("x","mk_trace  C ex1")] exI 1);

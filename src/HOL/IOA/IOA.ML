@@ -55,15 +55,16 @@ qed "reachable_0";
 goalw IOA.thy (reachable_def::exec_rws)
 "!!A. [| reachable A s; (s,a,t) : trans_of(A) |] ==> reachable A t";
   by (asm_full_simp_tac (simpset() delsimps bex_simps) 1);
-  by (safe_tac (claset() addSaltern ("split_all_tac", split_all_tac)));
-  by (rename_tac "n ex1 ex2 a1 a4 a5 a2 a3" 1);
+  by (split_all_tac 1);
+  by (Safe_tac);
+  by (rename_tac "ex1 ex2 n" 1);
   by (res_inst_tac [("x","(%i. if i<n then ex1 i                    \
 \                            else (if i=n then Some a else None),    \
 \                         %i. if i<Suc n then ex2 i else t)")] bexI 1);
-   by (res_inst_tac [("x","Suc(n)")] exI 1);
+   by (res_inst_tac [("x","Suc n")] exI 1);
    by (Simp_tac 1);
   by (Asm_full_simp_tac 1);
-  by (REPEAT(rtac allI 1));
+  by (rtac allI 1);
   by (res_inst_tac [("m","na"),("n","n")] (make_elim less_linear) 1);
   by (etac disjE 1);
    by (asm_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
@@ -78,8 +79,8 @@ val [p1,p2] = goalw IOA.thy [invariant_def]
 \     !!s t a. [|reachable A s; P(s)|] ==> (s,a,t): trans_of(A) --> P(t) |] \
 \  ==> invariant A P";
   by (rewrite_goals_tac(reachable_def::Let_def::exec_rws));
-  by (safe_tac (claset() addSaltern ("split_all_tac", split_all_tac)));
-  by (rename_tac "n ex1 ex2" 1);
+  by (Safe_tac);
+  by (rename_tac "ex1 ex2 n" 1);
   by (res_inst_tac [("Q","reachable A (ex2 n)")] conjunct1 1);
   by (Asm_full_simp_tac 1);
   by (nat_ind_tac "n" 1);

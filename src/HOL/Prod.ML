@@ -57,66 +57,55 @@ qed "PairE";
 fun pair_tac s = EVERY' [res_inst_tac [("p",s)] PairE, hyp_subst_tac,
 			 K prune_params_tac];
 
-(* replace parameters of product type by individual component parameters *)
-local
-  fun is_pair (_,Type("*",_)) = true
-    | is_pair  _              = false;
-  fun ptac x = res_inst_tac [("p",x)] PairE;
-  fun find_pair_params prem =
-    let val params = Logic.strip_params prem
-    in if exists is_pair params
-       then let val params = rev(rename_wrt_term prem params)
-                             (*as they are printed*)
-            in filter is_pair params end
-       else []
-   end;
-in
-val split_all_tac = REPEAT1 o SUBGOAL (fn (prem,i) => 
-  let val params = find_pair_params prem in
-  if params = [] then no_tac 
-  	         else EVERY'[EVERY' (map (ptac o fst) params),
-			     REPEAT o hyp_subst_tac,
-			     K prune_params_tac] i end)
-end;
+(* Do not add as rewrite rule: invalidates some proofs in IMP *)
+goal Prod.thy "p = (fst(p),snd(p))";
+by (pair_tac "p" 1);
+by (Asm_simp_tac 1);
+qed "surjective_pairing";
 
-(*claset_ref() := claset()  addbefore  ("split_all_tac", TRY o split_all_tac);*)
-  claset_ref() := claset() addSWrapper ("split_all_tac", 
-					fn tac2 => split_all_tac ORELSE' tac2);
+val surj_pair = prove_goal Prod.thy "? x y. z = (x, y)" (K [
+	rtac exI 1, rtac exI 1, rtac surjective_pairing 1]);
+Addsimps [surj_pair];
 
-(*** lemmas for splitting paired `!!'
-Does not work with simplifier because it also affects premises in
-congrence rules, where is can lead to premises of the form
-!!a b. ... = ?P(a,b)
-which cannot be solved by reflexivity.
-   
-val [prem] = goal Prod.thy "(!!x. PROP P x) ==> (!!a b. PROP P(a,b))";
-by (rtac prem 1);
-val lemma1 = result();
+(* lemmas for splitting paired `!!' *)
+local 
+    val lemma1 = prove_goal Prod.thy "(!!x. PROP P x) ==> (!!a b. PROP P(a,b))" 
+		 (fn prems => [resolve_tac prems 1]);
 
-local
     val psig = sign_of Prod.thy;
     val pT = Sign.read_typ (psig, K None) "?'a*?'b=>prop";
     val PeqP = reflexive(read_cterm psig ("P", pT));
     val psplit = zero_var_indexes(read_instantiate [("p","x")]
-                                  surjective_pairing RS eq_reflection)
+                                  surjective_pairing RS eq_reflection);
+    val adhoc = combination PeqP psplit;
+    val lemma = prove_goal Prod.thy "(!!a b. PROP P(a,b)) ==> PROP P x" 
+		(fn prems => [rewtac adhoc, resolve_tac prems 1]);
+    val lemma2 = prove_goal Prod.thy "(!!a b. PROP P(a,b)) ==> (!!x. PROP P x)"
+		(fn prems => [rtac lemma 1, resolve_tac prems 1]);
 in
-val adhoc = combination PeqP psplit
+  val split_paired_all = equal_intr lemma1 lemma2
+end;
+bind_thm("split_paired_all", split_paired_all);
+(*
+Addsimps [split_paired_all] does not work with simplifier 
+because it also affects premises in congrence rules, 
+where is can lead to premises of the form !!a b. ... = ?P(a,b)
+which cannot be solved by reflexivity.
+*)
+
+(* replace parameters of product type by individual component parameters *)
+local
+  fun is_pair (_,Type("*",_)) = true
+    | is_pair  _              = false;
+  fun exists_paired_all prem  = exists is_pair (Logic.strip_params prem);
+  val split_tac = full_simp_tac (HOL_basic_ss addsimps [split_paired_all]);
+in
+val split_all_tac = SUBGOAL (fn (prem,i) => 
+    if exists_paired_all prem then split_tac i else no_tac);  
 end;
 
-
-val [prem] = goal Prod.thy "(!!a b. PROP P(a,b)) ==> PROP P x";
-by (rewtac adhoc);
-by (rtac prem 1);
-val lemma = result();
-
-val [prem] = goal Prod.thy "(!!a b. PROP P(a,b)) ==> (!!x. PROP P x)";
-by (rtac lemma 1);
-by (rtac prem 1);
-val lemma2 = result();
-
-bind_thm("split_paired_all", equal_intr lemma1 lemma2);
-Addsimps [split_paired_all];
-***)
+claset_ref() := claset() addSWrapper ("split_all_tac", 
+				      fn tac2 => split_all_tac ORELSE' tac2);
 
 goal Prod.thy "(!x. P x) = (!a b. P(a,b))";
 by (Fast_tac 1);
@@ -134,9 +123,14 @@ by (Simp_tac 1);
 qed "split";
 Addsimps [split];
 
-goal Prod.thy "(s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
-by (res_inst_tac[("p","s")] PairE 1);
-by (res_inst_tac[("p","t")] PairE 1);
+goal Prod.thy "split Pair p = p";
+by (pair_tac "p" 1);
+by (Simp_tac 1);
+qed "split_Pair";
+(*unused: val surjective_pairing2 = split_Pair RS sym;*)
+
+goal Prod.thy "!!s t. (s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
+by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "Pair_fst_snd_eq";
 
@@ -144,21 +138,6 @@ qed "Pair_fst_snd_eq";
 qed_goal "split_weak_cong" Prod.thy
   "p=q ==> split c p = split c q"
   (fn [prem] => [rtac (prem RS arg_cong) 1]);
-
-(* Do not add as rewrite rule: invalidates some proofs in IMP *)
-goal Prod.thy "p = (fst(p),snd(p))";
-by (res_inst_tac [("p","p")] PairE 1);
-by (Asm_simp_tac 1);
-qed "surjective_pairing";
-
-goal Prod.thy "p = split (%x y.(x,y)) p";
-by (res_inst_tac [("p","p")] PairE 1);
-by (Asm_simp_tac 1);
-qed "surjective_pairing2";
-
-val surj_pair = prove_goal Prod.thy "? x y. z = (x, y)" (K [
-	rtac exI 1, rtac exI 1, rtac surjective_pairing 1]);
-Addsimps [surj_pair];
 
 qed_goal "split_eta" Prod.thy "(%(x,y). f(x,y)) = f"
   (K [rtac ext 1, split_all_tac 1, rtac split 1]);
@@ -264,13 +243,13 @@ Addsimps [prod_fun];
 goal Prod.thy 
     "prod_fun (f1 o f2) (g1 o g2) = ((prod_fun f1 g1) o (prod_fun f2 g2))";
 by (rtac ext 1);
-by (res_inst_tac [("p","x")] PairE 1);
+by (pair_tac "x" 1);
 by (Asm_simp_tac 1);
 qed "prod_fun_compose";
 
 goal Prod.thy "prod_fun (%x. x) (%y. y) = (%z. z)";
 by (rtac ext 1);
-by (res_inst_tac [("p","z")] PairE 1);
+by (pair_tac "z" 1);
 by (Asm_simp_tac 1);
 qed "prod_fun_ident";
 Addsimps [prod_fun_ident];

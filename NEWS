@@ -33,7 +33,9 @@ New in Isabelle??? (FIXME)
 * added option_map_eq_Some to simpset(), option_map_eq_Some RS iffD1 to claset()
 * New directory HOL/UNITY: Chandy and Misra's UNITY formalism
 
-* split_all_tac is now much faster and fails if there is nothing to split
+* split_all_tac is now much faster and fails if there is nothing to split.
+  Existing (fragile) proofs may require adaption because the order and the names
+  of the automatically generated variables have changed.
   split_all_tac has moved within claset() from usafe wrappers to safe wrappers,
   which means that !!-bound variables are splitted much more aggressively.
   If this splitting is not appropriate, use delSWrapper "split_all_tac".
