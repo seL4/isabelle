@@ -144,15 +144,16 @@ fun witness_sorts (tsig as TSig {classes, arities, log_types, ...}) =
 fun bad_nargs t = "Bad number of arguments for type constructor: " ^ quote t;
 fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
+local
+
+fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
+  | inst_typ env (T as TFree (x, _)) = if_none (Library.assoc_string (env, x)) T
+  | inst_typ _ T = T;
+
 fun certify_typ normalize syntax tsig ty =
   let
     val TSig {classes, types, ...} = tsig;
     fun err msg = raise TYPE (msg, [ty], []);
-
-    fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
-      | inst_typ env (T as TFree (x, _)) = if_none (Library.assoc_string (env, x)) T
-      | inst_typ _ T = T;
-
 
     val check_syntax =
       if syntax then K ()
@@ -181,9 +182,13 @@ fun certify_typ normalize syntax tsig ty =
     val ty' = cert ty;
   in if ty = ty' then ty else ty' end;  (*avoid copying of already normal type*)
 
+in
+
 val cert_typ         = certify_typ true false;
 val cert_typ_syntax  = certify_typ true true;
 val cert_typ_raw     = certify_typ false true;
+
+end;
 
 
 
