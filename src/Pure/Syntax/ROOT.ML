@@ -41,3 +41,14 @@ structure Scanner = PrivateSyntax.Scanner;
 structure Syntax = PrivateSyntax.Syntax;
 structure BasicSyntax = PrivateSyntax.BasicSyntax;
 
+(* hide functors; saves space in PolyML *)
+functor PrettyFun() = struct end;
+functor LexiconFun() = struct end;
+functor AstFun() = struct end;
+functor SynExtFun() = struct end;
+functor ParserFun() = struct end;
+functor TypeExtFun() = struct end;
+functor SynTransFun() = struct end;
+functor MixfixFun() = struct end;
+functor PrinterFun() = struct end;
+functor SyntaxFun() = struct end;

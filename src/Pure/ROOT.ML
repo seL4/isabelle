@@ -67,6 +67,23 @@ open BasicSyntax Thm Drule Tactical Tactic Goals;
 structure Pure = struct val thy = pure_thy end;
 structure CPure = struct val thy = cpure_thy end;
 
+(* hide functors; saves space in PolyML *)
+functor SymtabFun() = struct end;
+functor TypeFun() = struct end;
+functor SignFun() = struct end;
+functor SequenceFun() = struct end;
+functor EnvirFun() = struct end;
+functor PatternFun() = struct end;
+functor UnifyFun() = struct end;
+functor NetFun() = struct end;
+functor LogicFun() = struct end;
+functor ThmFun() = struct end;
+functor DruleFun() = struct end;
+functor TacticalFun() = struct end;
+functor TacticFun() = struct end;
+functor GoalsFun() = struct end;
+functor AxClassFun() = struct end;
+
 (*Theory parser and loader*)
 cd "Thy";
 use "ROOT.ML";
