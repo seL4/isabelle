@@ -218,7 +218,7 @@ fun basic_possibility_tac st = st |>
 
 (*** Specialized rewriting for analz_insert_freshK ***)
 
-Goal "A <= Compl (range shrK) ==> shrK x ~: A";
+Goal "A <= - (range shrK) ==> shrK x ~: A";
 by (Blast_tac 1);
 qed "subset_Compl_range";
 

@@ -132,7 +132,7 @@ val analz_spies_tac =
 (** Session keys are not used to encrypt other session keys **)
 
 Goal "evs : yahalom ==>                               \
-\  ALL K KK. KK <= Compl (range shrK) -->                \
+\  ALL K KK. KK <= - (range shrK) -->                 \
 \         (Key K : analz (Key``KK Un (spies evs))) =  \
 \         (K : KK | Key K : analz (spies evs))";
 by (etac yahalom.induct 1);

@@ -134,7 +134,7 @@ val analz_spies_tac =
 (** Session keys are not used to encrypt other session keys **)
 
 (*The equality makes the induction hypothesis easier to apply*)
-Goal "evs : otway ==> ALL K KK. KK <= Compl (range shrK) -->       \
+Goal "evs : otway ==> ALL K KK. KK <= - (range shrK) -->           \
 \                      (Key K : analz (Key``KK Un (spies evs))) =  \
 \                      (K : KK | Key K : analz (spies evs))";
 by (etac otway.induct 1);

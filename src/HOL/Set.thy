@@ -28,7 +28,6 @@ consts
   UNIV          :: 'a set
   insert        :: ['a, 'a set] => 'a set
   Collect       :: ('a => bool) => 'a set               (*comprehension*)
-  Compl         :: ('a set) => 'a set                   (*complement*)
   Int           :: ['a set, 'a set] => 'a set       (infixl 70)
   Un            :: ['a set, 'a set] => 'a set       (infixl 65)
   UNION, INTER  :: ['a set, 'a => 'b set] => 'b set     (*general*)
@@ -41,10 +40,14 @@ consts
   "op :"        :: ['a, 'a set] => bool             ("(_/ : _)" [50, 51] 50)
 
 
+(*For compatibility: DELETE after one release*)
+syntax Compl :: ('a set) => 'a set   (*complement*)
+translations "Compl A"  => "- A"
 
 (** Additional concrete syntax **)
 
 syntax
+
 
   (* Infix syntax for non-membership *)
 
@@ -144,7 +147,7 @@ defs
   Bex_def       "Bex A P        == ? x. x:A & P(x)"
   subset_def    "A <= B         == ! x:A. x:B"
   psubset_def   "A < B          == (A::'a set) <= B & ~ A=B"
-  Compl_def     "Compl A        == {x. ~x:A}"
+  Compl_def     "- A            == {x. ~x:A}"
   Un_def        "A Un B         == {x. x:A | x:B}"
   Int_def       "A Int B        == {x. x:A & x:B}"
   set_diff_def  "A - B          == {x. x:A & ~x:B}"

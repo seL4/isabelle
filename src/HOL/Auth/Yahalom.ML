@@ -127,7 +127,7 @@ val analz_spies_tac = forward_tac [YM4_analz_spies] 6;
 (** Session keys are not used to encrypt other session keys **)
 
 Goal "evs : yahalom ==>                              \
-\  ALL K KK. KK <= Compl (range shrK) -->               \
+\  ALL K KK. KK <= - (range shrK) -->                \
 \         (Key K : analz (Key``KK Un (spies evs))) = \
 \         (K : KK | Key K : analz (spies evs))";
 by (etac yahalom.induct 1);
@@ -340,7 +340,7 @@ by (blast_tac (claset() addIs [impOfSubs analz_mono]) 1);
 val Nonce_secrecy_lemma = result();
 
 Goal "evs : yahalom ==>                                      \
-\     (ALL KK. KK <= Compl (range shrK) -->                  \
+\     (ALL KK. KK <= - (range shrK) -->                      \
 \          (ALL K: KK. ~ KeyWithNonce K NB evs)   -->        \
 \          (Nonce NB : analz (Key``KK Un (spies evs))) =     \
 \          (Nonce NB : analz (spies evs)))";
