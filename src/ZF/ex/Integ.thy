@@ -6,7 +6,7 @@
 The integers as equivalence classes over nat*nat.
 *)
 
-Integ = Equiv + Arith +
+Integ = EquivClass + Arith +
 consts
     intrel,integ::      "i"
     znat	::	"i=>i"		("$# _" [80] 80)

@@ -42,6 +42,7 @@ init_thy_reader ();
 
 use_thy "InfDatatype";
 use_thy "List";
+use_thy "EquivClass";
 
 (*printing functions are inherited from FOL*)
 print_depth 8;
