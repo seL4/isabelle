@@ -9,6 +9,8 @@ signature ISAR =
 sig
   val main: unit -> unit
   val loop: unit -> unit
+  val sync_main: unit -> unit
+  val sync_loop: unit -> unit
   val help: unit -> unit
 end;
 
@@ -17,6 +19,8 @@ struct
 
 val main = OuterSyntax.main;
 val loop = OuterSyntax.loop;
+val sync_main = OuterSyntax.sync_main;
+val sync_loop = OuterSyntax.sync_loop;
 val help = OuterSyntax.help;
 
 end;
