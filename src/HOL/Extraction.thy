@@ -428,10 +428,10 @@ proof -
 qed
 
 realizers
-  NatDef.nat_induct (P): "\<lambda>P n p0 ps. nat_rec p0 ps n"
+  Nat.nat_induct (P): "\<lambda>P n p0 ps. nat_rec p0 ps n"
     "\<Lambda>P n p0 (h: _) ps. nat_ind_realizer \<cdot> _ \<cdot> _ \<cdot> _ \<cdot> _ \<bullet> h"
 
-  NatDef.nat_induct: "Null"
+  Nat.nat_induct: "Null"
     "\<Lambda>P n. nat_induct \<cdot> _ \<cdot> _"
 
   Nat.nat.induct (P): "\<lambda>P n p0 ps. nat_rec p0 ps n"
