@@ -1,0 +1,22 @@
+
+				Pure/Isar/
+
+This directory contains the Isabelle/Isar subsystem -- Intelligible
+Semi-Automated Reasoning for Isabelle.  Interesting modules include:
+
+  Proof		(core of the Isar/VM interpreter)
+  Args		(concrete argument syntax of attributes and methods)
+  Method	(proof methods)
+  Attrib	(attributes)
+
+  LocalDefs	(local definitions)
+  Calculation	(calculational proofs)
+
+  Toplevel	(the Isabelle/Isar toplevel)
+  IsarThy	(Isar derived theory operations)
+  IsarCmd	(non-logical commands)
+  IsarSyn	(syntax for Pure/Isar commands)
+
+  OuterParse	(outer syntax parser combinators, see also
+                 Pure/General/scan.ML)
+  OuterSyntax   (outer syntax main)
