@@ -176,6 +176,8 @@ end;
 signature TERM =
 sig
   include BASIC_TERM
+  val match_bvars: (term * term) * (string * string) list -> (string * string) list
+  val rename_abs: term -> term -> term -> term option
   val invent_names: string list -> string -> int -> string list
   val invent_type_names: string list -> int -> string list
   val add_tvarsT: (indexname * sort) list * typ -> (indexname * sort) list
@@ -454,6 +456,25 @@ fun incr_bv (inc, lev, u as Bound i) = if i>=lev then Bound(i+inc) else u
 fun incr_boundvars  0  t = t
   | incr_boundvars inc t = incr_bv(inc,0,t);
 
+(*Scan a pair of terms; while they are similar,
+  accumulate corresponding bound vars in "al"*)
+fun match_bvs(Abs(x,_,s),Abs(y,_,t), al) =
+      match_bvs(s, t, if x="" orelse y="" then al
+                                          else (x,y)::al)
+  | match_bvs(f$s, g$t, al) = match_bvs(f,g,match_bvs(s,t,al))
+  | match_bvs(_,_,al) = al;
+
+(* strip abstractions created by parameters *)
+fun match_bvars((s,t),al) = match_bvs(strip_abs_body s, strip_abs_body t, al);
+
+fun rename_abs pat obj t =
+  let
+    val ren = match_bvs (pat, obj, []);
+    fun ren_abs (Abs (x, T, b)) =
+          Abs (if_none (assoc_string (ren, x)) x, T, ren_abs b)
+      | ren_abs (f $ t) = ren_abs f $ ren_abs t
+      | ren_abs t = t
+  in if null ren then None else Some (ren_abs t) end;
 
 (*Accumulate all 'loose' bound vars referring to level 'lev' or beyond.
    (Bound 0) is loose at level 0 *)
