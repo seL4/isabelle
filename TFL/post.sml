@@ -84,7 +84,7 @@ val concl = #2 o Rules.dest_thm;
  * Defining a function with an associated termination relation. 
  *---------------------------------------------------------------------------*)
 fun define_i thy fid R eqs = 
-  let val dummy = require_thy thy "WF_Rel" "recursive function definitions"
+  let val dummy = Theory.require thy "WF_Rel" "recursive function definitions"
       val {functional,pats} = Prim.mk_functional thy eqs
   in (Prim.wfrec_definition0 thy fid R functional, pats)
   end;
