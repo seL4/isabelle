@@ -44,6 +44,7 @@ sig
   val name: token list -> bstring * token list
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
+  val uname: token list -> string option * token list
   val comment: token list -> Comment.text * token list
   val marg_comment: token list -> Comment.text * token list
   val interest: token list -> Comment.interest * token list
@@ -171,6 +172,8 @@ fun and_list scan = enum "and" scan;
 val name = group "name declaration" (short_ident || sym_ident || string || number);
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
+
+val uname = underscore >> K None || name >> Some;
 
 
 (* formal comments *)
@@ -303,6 +306,13 @@ val xthms1 = Scan.repeat1 xthm;
 
 (* locale elements *)
 
+(* FIXME
+fun expr2 x = (xname >> Locale.Locale || $$$ "(" |-- !!! (expr0 --| $$$ ")")) x
+and expr1 x = (expr2 -- Scan.repeat1 uname >> Locale.Rename || expr2) x
+and expr0 x = (enum1 "+" expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
+*)
+val expr0 = xname;
+
 val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K None || opt_mixfix >> Some;
 
 val locale_element = group "locale element"
@@ -313,7 +323,7 @@ val locale_element = group "locale element"
   $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp'))
     >> Locale.Defines ||
   $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1)) >> Locale.Notes ||
-  $$$ "uses" |-- !!! xname >> (Locale.Uses o Locale.Locale));
+  $$$ "uses" |-- !!! expr0 >> (Locale.Uses o Locale.Locale));
 
 
 (* proof methods *)
