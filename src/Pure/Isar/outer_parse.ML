@@ -73,6 +73,7 @@ sig
   val locale_expr: token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
   val locale_element: token list -> Args.src Locale.element * token list
+  val locale_elem_or_expr: token list -> Args.src Locale.elem_or_expr * token list
   val method: token list -> Method.text * token list
 end;
 
@@ -305,6 +306,16 @@ local
 val loc_mixfix = $$$ "(" -- $$$ "structure" -- !!! ($$$ ")") >> K None || opt_mixfix >> Some;
 val loc_keyword = $$$ "fixes" || $$$ "assumes" || $$$ "defines" || $$$ "notes" || $$$ "includes";
 
+val loc_element =
+  $$$ "fixes" |-- !!! (and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- loc_mixfix
+    >> triple1)) >> Locale.Fixes ||
+  $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
+    >> Locale.Assumes ||
+  $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp'))
+    >> Locale.Defines ||
+  $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1))
+    >> Locale.Notes;
+
 fun plus1 scan =
   scan -- Scan.repeat ($$$ "+" |-- Scan.unless loc_keyword (!!! scan)) >> op ::;
 
@@ -318,15 +329,10 @@ val locale_target = Scan.option (($$$ "(" -- $$$ "in") |-- !!! (xname --| $$$ ")
 val locale_expr = expr0;
 val locale_keyword = loc_keyword;
 
-val locale_element = group "locale element"
-  ($$$ "fixes" |-- !!! (and_list1 (name -- Scan.option ($$$ "::" |-- typ) -- loc_mixfix
-    >> triple1)) >> (Locale.Elem o Locale.Fixes) ||
-  $$$ "assumes" |-- !!! (and_list1 (opt_thm_name ":" -- Scan.repeat1 propp))
-    >> (Locale.Elem o Locale.Assumes) ||
-  $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp'))
-    >> (Locale.Elem o Locale.Defines) ||
-  $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1))
-    >> (Locale.Elem o Locale.Notes) ||
+val locale_element = group "locale element" loc_element;
+
+val locale_elem_or_expr = group "locale element or includes"
+  (loc_element >> Locale.Elem ||
   $$$ "includes" |-- !!! locale_expr >> Locale.Expr);
 
 end;

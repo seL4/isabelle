@@ -35,16 +35,20 @@ sig
     Elem of ('typ, 'term, 'fact, 'att) elem | Expr of expr
   type 'att element
   type 'att element_i
+  type 'att elem_or_expr
+  type 'att elem_or_expr_i
   type locale
   val intern: Sign.sg -> xstring -> string
   val cond_extern: Sign.sg -> string -> xstring
   val the_locale: theory -> string -> locale
-  val attribute: ('att -> context attribute) -> ('typ, 'term, 'thm, 'att) elem_expr
+  val map_attrib_elem: ('att -> context attribute) -> ('typ, 'term, 'thm, 'att) elem
+    -> ('typ, 'term, 'thm, context attribute) elem
+  val map_attrib_elem_expr: ('att -> context attribute) -> ('typ, 'term, 'thm, 'att) elem_expr
     -> ('typ, 'term, 'thm, context attribute) elem_expr
-  val read_context_statement: xstring option -> context attribute element list ->
+  val read_context_statement: xstring option -> context attribute elem_or_expr list ->
     (string * (string list * string list)) list list -> context ->
     string option * cterm list * context * context * (term * (term list * term list)) list list
-  val cert_context_statement: string option -> context attribute element_i list ->
+  val cert_context_statement: string option -> context attribute elem_or_expr_i list ->
     (term * (term list * term list)) list list -> context ->
     string option * cterm list * context * context * (term * (term list * term list)) list list
   val print_locales: theory -> unit
@@ -92,8 +96,10 @@ val empty = Merge [];
 datatype ('typ, 'term, 'fact, 'att) elem_expr =
   Elem of ('typ, 'term, 'fact, 'att) elem | Expr of expr;
 
-type 'att element = (string, string, string, 'att) elem_expr;
-type 'att element_i = (typ, term, thm list, 'att) elem_expr;
+type 'att element = (string, string, string, 'att) elem;
+type 'att element_i = (typ, term, thm list, 'att) elem;
+type 'att elem_or_expr = (string, string, string, 'att) elem_expr;
+type 'att elem_or_expr_i = (typ, term, thm list, 'att) elem_expr;
 
 type locale =
  {view: cterm list * thm list,
@@ -116,10 +122,8 @@ type locale =
      *)
   import: expr,                                                         (*dynamic import*)
   elems: ((typ, term, thm list, context attribute) elem * stamp) list,  (*static content*)
-  params: (string * typ option) list * string list};                  (*all/local params*)
-
-fun make_locale view import elems params =
- {view = view, import = import, elems = elems, params = params}: locale;
+  params: (string * typ option) list * string list,                     (*all/local params*)
+  typing: (string * typ) list};                                         (*inferred parameter types, currently unused*)
 
 
 (** theory data **)
@@ -134,8 +138,9 @@ struct
   val prep_ext = I;
 
   (*joining of locale elements: only facts may be added later!*)
-  fun join ({view, import, elems, params}: locale, {elems = elems', ...}: locale) =
-    Some (make_locale view import (gen_merge_lists eq_snd elems elems') params);
+  fun join ({view, import, elems, params, typing}: locale, {elems = elems', ...}: locale) =
+    Some {view = view, import = import, elems = gen_merge_lists eq_snd elems elems',
+      params = params, typing = typing};
   fun merge ((space1, locs1), (space2, locs2)) =
     (NameSpace.merge (space1, space2), Symtab.join join (locs1, locs2));
 
@@ -704,12 +709,14 @@ local fun read_att attrib (x, srcs) = (x, map attrib srcs) in
    * Locale expression: no effect. *)
 
 
-fun attribute _ (Elem (Fixes fixes)) = Elem (Fixes fixes)
-  | attribute attrib (Elem (Assumes asms)) = Elem (Assumes (map (apfst (read_att attrib)) asms))
-  | attribute attrib (Elem (Defines defs)) = Elem (Defines (map (apfst (read_att attrib)) defs))
-  | attribute attrib (Elem (Notes facts)) =
-      Elem (Notes (map (apfst (read_att attrib) o apsnd (map (read_att attrib))) facts))
-  | attribute _ (Expr expr) = Expr expr;
+fun map_attrib_elem _ (Fixes fixes) = Fixes fixes
+  | map_attrib_elem attrib (Assumes asms) = Assumes (map (apfst (read_att attrib)) asms)
+  | map_attrib_elem attrib (Defines defs) = Defines (map (apfst (read_att attrib)) defs)
+  | map_attrib_elem attrib (Notes facts) =
+      Notes (map (apfst (read_att attrib) o apsnd (map (read_att attrib))) facts)
+
+fun map_attrib_elem_expr attrib (Elem elem) = Elem (map_attrib_elem attrib elem)
+  | map_attrib_elem_expr _ (Expr expr) = Expr expr;
 
 end;
 
@@ -894,8 +901,12 @@ fun finish_elemss ctxt parms do_close =
 
 end;
 
+(* CB: type inference and consistency checks for locales *)
+
 fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_concl =
   let
+    (* CB: contexts computed in the course of this function are discarded.
+       They are used for type inference and consistency checks only. *)
     (* CB: raw_elemss are list of pairs consisting of identifiers and
        context elements, the latter marked as internal or external. *)
     val (raw_ctxt, raw_proppss) = declare_elemss prep_fixes fixed_params raw_elemss context;
@@ -1032,10 +1043,13 @@ fun gen_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
 
 in
 
-(* CB: arguments are: x->import, y->body (elements), z->context *)
-fun read_context x y z = #1 (gen_context true [] [] x y [] z);
-fun cert_context x y z = #1 (gen_context_i true [] [] x y [] z);
+(* CB: processing of locales for add_locale(_i) and print_locale *)
+  (* CB: arguments are: x->import, y->body (elements), z->context *)
+fun read_context x y z = #1 (gen_context true [] [] x (map Elem y) [] z);
+fun cert_context x y z = #1 (gen_context_i true [] [] x (map Elem y) [] z);
 
+(* CB: processing of locales for note_thmss(_i),
+   Proof.multi_theorem(_i) and antiquotations with option "locale" *)
 val read_context_statement = gen_statement intern gen_context;
 val cert_context_statement = gen_statement (K I) gen_context_i;
 
@@ -1280,10 +1294,11 @@ local
 
 fun put_facts loc args thy =
   let
-    val {view, import, elems, params} = the_locale thy loc;
+    val {view, import, elems, params, typing} = the_locale thy loc;
     val note = Notes (map (fn ((a, more_atts), th_atts) =>
       ((a, more_atts), map (apfst (map (curry Thm.name_thm a))) th_atts)) args);
-  in thy |> put_locale loc (make_locale view import (elems @ [(note, stamp ())]) params) end;
+  in thy |> put_locale loc {view = view, import = import, elems = elems @ [(note, stamp ())],
+    params = params, typing = typing} end;
 
 fun gen_note_thmss prep_locale get_thms kind raw_loc raw_args thy =
   let
@@ -1463,6 +1478,8 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     val thy_ctxt = ProofContext.init thy;
     val (((import_ctxt, import_elemss), (body_ctxt, body_elemss)), text) =
       prep_ctxt raw_import raw_body thy_ctxt;
+    (* typing: all parameters with their types *)
+    val (typing, _, _) = text;
     val elemss = import_elemss @ body_elemss;
 
     val (pred_thy, (elemss', view as (view_statement, view_axioms))) =
@@ -1477,9 +1494,9 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     pred_thy
     |> note_thmss_qualified "" name facts' |> #1
     |> declare_locale name
-    |> put_locale name (make_locale view (prep_expr sign raw_import)
-        (map (fn e => (e, stamp ())) (flat (map #2 (filter (equal "" o #1 o #1) elemss'))))
-        (params_of elemss', map #1 (params_of body_elemss)))
+    |> put_locale name {view = view, import = prep_expr sign raw_import,
+        elems = map (fn e => (e, stamp ())) (flat (map #2 (filter (equal "" o #1 o #1) elemss'))),
+        params = (params_of elemss', map #1 (params_of body_elemss)), typing = typing}
   end;
 
 in
@@ -1496,7 +1513,7 @@ end;
 
 val setup =
  [LocalesData.init,
-  add_locale_i true "var" empty [Elem (Fixes [(Syntax.internal "x", None, Some Syntax.NoSyn)])],
-  add_locale_i true "struct" empty [Elem (Fixes [(Syntax.internal "S", None, None)])]];
+  add_locale_i true "var" empty [Fixes [(Syntax.internal "x", None, Some Syntax.NoSyn)]],
+  add_locale_i true "struct" empty [Fixes [(Syntax.internal "S", None, None)]]];
 
 end;

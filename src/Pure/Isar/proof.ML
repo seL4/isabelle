@@ -88,13 +88,13 @@ sig
   val invoke_case: string * string option list * context attribute list -> state -> state
   val multi_theorem: string
     -> (xstring * (context attribute list * context attribute list list)) option
-    -> bstring * theory attribute list -> context attribute Locale.element list
+    -> bstring * theory attribute list -> context attribute Locale.elem_or_expr list
     -> ((bstring * theory attribute list) * (string * (string list * string list)) list) list
     -> theory -> state
   val multi_theorem_i: string
     -> (string * (context attribute list * context attribute list list)) option
     -> bstring * theory attribute list
-    -> context attribute Locale.element_i list
+    -> context attribute Locale.elem_or_expr_i list
     -> ((bstring * theory attribute list) * (term * (term list * term list)) list) list
     -> theory -> state
   val chain: state -> state

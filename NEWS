@@ -126,6 +126,12 @@ New in this Isabelle release
   both Output.output and Output.raw have no effect.
 
 
+*** Isar ***
+
+* Locales:
+  - "includes" disallowed in declaration of named locales (command "locale").
+
+ 
 *** HOL ***
 
 * HOL/record: reimplementation of records. Improved scalability for

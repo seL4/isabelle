@@ -59,23 +59,23 @@ sig
   val theorem_i: string -> (bstring * theory attribute list) *
     (term * (term list * term list)) -> bool -> theory -> ProofHistory.T
   val multi_theorem: string -> bstring * Args.src list
-    -> Args.src Locale.element list
+    -> Args.src Locale.elem_or_expr list
     -> ((bstring * Args.src list) * (string * (string list * string list)) list) list
     -> bool -> theory -> ProofHistory.T
   val multi_theorem_i: string -> bstring * theory attribute list
-    -> Proof.context attribute Locale.element_i list
+    -> Proof.context attribute Locale.elem_or_expr_i list
     -> ((bstring * theory attribute list) * (term * (term list * term list)) list) list
     -> bool -> theory -> ProofHistory.T
   val locale_multi_theorem: string -> xstring
-    -> bstring * Args.src list -> Args.src Locale.element list
+    -> bstring * Args.src list -> Args.src Locale.elem_or_expr list
     -> ((bstring * Args.src list) * (string * (string list * string list)) list) list
     -> bool -> theory -> ProofHistory.T
   val locale_multi_theorem_i: string -> string -> bstring * Proof.context attribute list
-    -> Proof.context attribute Locale.element_i list
+    -> Proof.context attribute Locale.elem_or_expr_i list
     -> ((bstring * Proof.context attribute list) * (term * (term list * term list)) list) list
     -> bool -> theory -> ProofHistory.T
   val smart_multi_theorem: string -> xstring Library.option
-    -> bstring * Args.src list -> Args.src Locale.element list
+    -> bstring * Args.src list -> Args.src Locale.elem_or_expr list
     -> ((bstring * Args.src list) * (string * (string list * string list)) list) list
     -> bool -> theory -> ProofHistory.T
   val assume: ((string * Args.src list) * (string * (string list * string list)) list) list
@@ -372,7 +372,7 @@ in
 
 fun multi_theorem k a elems concl int thy =
   global_statement (Proof.multi_theorem k None (apsnd (map (Attrib.global_attribute thy)) a)
-    (map (Locale.attribute (Attrib.local_attribute thy)) elems)) concl int thy;
+    (map (Locale.map_attrib_elem_expr (Attrib.local_attribute thy)) elems)) concl int thy;
 
 fun multi_theorem_i k a = global_statement_i o Proof.multi_theorem_i k None a;
 
@@ -380,7 +380,7 @@ fun locale_multi_theorem k locale (name, atts) elems concl int thy =
   global_statement (Proof.multi_theorem k
       (Some (locale, (map (Attrib.local_attribute thy) atts,
           map (map (Attrib.local_attribute thy) o snd o fst) concl)))
-      (name, []) (map (Locale.attribute (Attrib.local_attribute thy)) elems))
+      (name, []) (map (Locale.map_attrib_elem_expr (Attrib.local_attribute thy)) elems))
       (map (apfst (apsnd (K []))) concl) int thy;
 
 fun locale_multi_theorem_i k locale (name, atts) elems concl =
@@ -578,7 +578,7 @@ fun add_oracle (name, txt) =
 
 fun add_locale (do_pred, name, import, body) thy =
   Locale.add_locale do_pred name import
-    (map (Locale.attribute (Attrib.local_attribute thy)) body) thy;
+    (map (Locale.map_attrib_elem (Attrib.local_attribute thy)) body) thy;
 
 
 (* theory init and exit *)
