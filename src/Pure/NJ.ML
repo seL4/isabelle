@@ -8,8 +8,9 @@ Compatibility file for Standard ML of New Jersey.
 
 (*** Poly/ML emulation ***)
 
-(*To exit the system -- an alternative to ^D *)
-fun quit () = System.Unsafe.CInterface.exit 0;
+(*To exit the system with an exit code -- an alternative to ^D *)
+val exit = System.Unsafe.CInterface.exit;
+fun quit () = exit 0;
 
 (*To change the current directory*)
 val cd = System.Directory.cd;
