@@ -44,7 +44,7 @@ val use_filter =
         if txt = txt_out then use_orig name
         else
           let
-            val tmp_name = File.tmp_name (Path.base_name name);
+            val tmp_name = File.tmp_name ("." ^ Path.base_name name);
             val _ = File.write tmp_name txt_out;
             val rm = OS.FileSys.remove;
           in
