@@ -60,4 +60,17 @@ by (rtac le_cube 2);
 by (Simp_tac 1);
 qed "sum_of_fourth_powers";
 
+(** Alternative proof, avoiding the need for inequality reasoning **)
+
+Addsimps [zmult_int RS sym, zadd_zmult_distrib, zadd_zmult_distrib2, 
+	  zdiff_zmult_distrib, zdiff_zmult_distrib2];
+
+Goal "#30 * int (sum (%i. i*i*i*i) (Suc n)) = \
+\     int n * int(Suc n) * int (Suc(#2*n)) * (int (#3*n*n) + int (#3*n) - #1)";
+by (induct_tac "n" 1);
+by (Simp_tac 1);
+by (asm_simp_tac (simpset() delsimps [sum_Suc]
+                            addsimps [inst "n" "Suc ?m" sum_Suc]) 1);
+qed "int_sum_of_fourth_powers";
+
 
