@@ -20,7 +20,7 @@ Primrec = WF_Rel + List +
 
 consts ack  :: "nat * nat => nat"
 recdef ack "less_than ** less_than"
-    "ack (0,n) =  (n + 1)"
+    "ack (0,n) =  Suc n"
     "ack (Suc m,0) = (ack (m, 1))"
     "ack (Suc m, Suc n) = ack (m, ack (Suc m, n))"
 
