@@ -23,10 +23,26 @@ signature THMDB =
   val findI:         int -> (string * thm)list
   val findEs:        int -> (string * thm)list
   val findE:  int -> int -> (string * thm)list
+
+  val store_thm      : string * thm -> thm
+  val bind_thm       : string * thm -> unit
+  val qed            : string -> unit
+  val qed_thm        : thm ref
+  val qed_goal       : string -> theory -> string 
+                       -> (thm list -> tactic list) -> unit
+  val qed_goalw      : string -> theory -> thm list -> string 
+                       -> (thm list -> tactic list) -> unit
+  val get_thm        : theory -> string -> thm
+  val thms_of        : theory -> (string * thm) list
+  val delete_thms    : string -> unit
+
+  val print_theory   : theory -> unit
   end;
 
-functor ThmDBFun(): THMDB =
+structure ThmDB: THMDB =
 struct
+
+open ThyInfo BrowserInfo;
 
 (*** ignore and top_const could be turned into functor-parameters, but are
 currently identical for all object logics ***)
@@ -247,5 +263,132 @@ fun findEs i =
 fun findE i j =
   let val sign = #sign(rep_thm(topthm()))
   in find_elims sign (nth_elem(j-1, prems_of_goal i)) end;
+
+
+(*** Store and retrieve theorems ***)
+
+(** Store theorems **)
+
+(*Store a theorem in the thy_info of its theory,
+  and in the theory's HTML file*)
+fun store_thm (name, thm) =
+  let
+    val (thy_name, ThyInfo {path, children, parents, thy_time, ml_time,
+                            theory, thms, methods, data}) =
+      thyinfo_of_sign (#sign (rep_thm thm))
+
+    val (thms', duplicate) = (Symtab.update_new ((name, thm), thms), false)
+      handle Symtab.DUPLICATE s => 
+        (if eq_thm (the (Symtab.lookup (thms, name)), thm) then 
+           (warning ("Theory database already contains copy of\
+                     \ theorem " ^ quote name);
+            (thms, true))
+         else error ("Duplicate theorem name " ^ quote s
+                     ^ " used in theory database"));
+
+    (*Label this theorem*)
+    val thm' = Thm.name_thm (name, thm)
+  in
+    loaded_thys := Symtab.update
+     ((thy_name, ThyInfo {path = path, children = children, parents = parents,
+                          thy_time = thy_time, ml_time = ml_time,
+                          theory = theory, thms = thms',
+                          methods = methods, data = data}),
+      !loaded_thys);
+    thm_to_html thm name;
+    if duplicate then thm' else store_thm_db (name, thm')
+  end;
+
+
+(*Store result of proof in loaded_thys and as ML value*)
+
+val qed_thm = ref flexpair_def(*dummy*);
+
+
+fun bind_thm (name, thm) =
+ (qed_thm := store_thm (name, (standard thm));
+  use_string ["val " ^ name ^ " = !qed_thm;"]);
+
+
+fun qed name =
+ (qed_thm := store_thm (name, result ());
+  use_string ["val " ^ name ^ " = !qed_thm;"]);
+
+
+fun qed_goal name thy agoal tacsf =
+ (qed_thm := store_thm (name, prove_goal thy agoal tacsf);
+  use_string ["val " ^ name ^ " = !qed_thm;"]);
+
+
+fun qed_goalw name thy rths agoal tacsf =
+ (qed_thm := store_thm (name, prove_goalw thy rths agoal tacsf);
+  use_string ["val " ^ name ^ " = !qed_thm;"]);
+
+
+(** Retrieve theorems **)
+
+(*Get all theorems belonging to a given theory*)
+fun thmtab_of_thy thy =
+  let val (_, ThyInfo {thms, ...}) = thyinfo_of_sign (sign_of thy);
+  in thms end;
+
+
+fun thmtab_of_name name =
+  let val ThyInfo {thms, ...} = the (get_thyinfo name);
+  in thms end;
+
+
+(*Get a stored theorem specified by theory and name. *)
+fun get_thm thy name =
+  let fun get [] [] searched =
+           raise THEORY ("get_thm: no theorem " ^ quote name, [thy])
+        | get [] ng searched =
+            get (ng \\ searched) [] searched
+        | get (t::ts) ng searched =
+            (case Symtab.lookup (thmtab_of_name t, name) of
+                 Some thm => thm
+               | None => get ts (ng union (parents_of_name t)) (t::searched));
+
+      val (tname, _) = thyinfo_of_sign (sign_of thy);
+  in get [tname] [] [] end;
+
+
+(*Get stored theorems of a theory (original derivations) *)
+val thms_of = Symtab.dest o thmtab_of_thy;
+
+
+(*Remove theorems associated with a theory from theory and theorem database*)
+fun delete_thms tname =
+  let
+    val tinfo = case get_thyinfo tname of
+        Some (ThyInfo {path, children, parents, thy_time, ml_time, theory,
+                       methods, data, ...}) =>
+          ThyInfo {path = path, children = children, parents = parents,
+                   thy_time = thy_time, ml_time = ml_time,
+                   theory = theory, thms = Symtab.null,
+                   methods = methods, data = data}
+      | None => error ("Theory " ^ tname ^ " not stored by loader");
+
+    val ThyInfo {theory, ...} = tinfo;
+  in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys);
+     case theory of
+         Some t => delete_thm_db t
+       | None => ()
+  end;
+
+
+(*** Print theory ***)
+
+fun print_thms thy =
+  let
+    val thms = thms_of thy;
+    fun prt_thm (s, th) = Pretty.block [Pretty.str (s ^ ":"), Pretty.brk 1,
+      Pretty.quote (pretty_thm th)];
+  in
+    Pretty.writeln (Pretty.big_list "stored theorems:" (map prt_thm thms))
+  end;
+
+
+fun print_theory thy = (Display.print_theory thy; print_thms thy);
 
 end;
