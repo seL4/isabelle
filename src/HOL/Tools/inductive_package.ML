@@ -697,7 +697,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
 
 fun cond_declare_consts declare_consts cs paramTs cnames =
   if declare_consts then
-    Theory.add_consts_i (map (fn (c, n) => (n, paramTs ---> fastype_of c, NoSyn)) (cs ~~ cnames))
+    Theory.add_consts_i (map (fn (c, n) => (Sign.base_name n, paramTs ---> fastype_of c, NoSyn)) (cs ~~ cnames))
   else I;
 
 fun mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
@@ -738,8 +738,10 @@ fun mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
 
     (* add definiton of recursive sets to theory *)
 
-    val rec_name = if alt_name = "" then space_implode "_" cnames else alt_name;
-    val full_rec_name = Sign.full_name (Theory.sign_of thy) rec_name;
+    val rec_name = if alt_name = "" then
+      space_implode "_" (map Sign.base_name cnames) else alt_name;
+    val full_rec_name = if length cs < 2 then hd cnames
+      else Sign.full_name (Theory.sign_of thy) rec_name;
 
     val rec_const = list_comb
       (Const (full_rec_name, paramTs ---> setT), params);
@@ -767,7 +769,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
   let
     val _ =
       if verbose then message ("Proofs for " ^ coind_prefix coind ^ "inductive set(s) " ^
-        commas_quote cnames) else ();
+        commas_quote (map Sign.base_name cnames)) else ();
 
     val ((intr_names, intr_ts), intr_atts) = apfst split_list (split_list intros);
 
@@ -832,9 +834,8 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs pre_
     val cTs = map (try_term (HOLogic.dest_setT o fastype_of)
       "Recursive component not of type set: " sign) cs;
 
-    val full_cnames = map (try_term (fst o dest_Const o head_of)
+    val cnames = map (try_term (fst o dest_Const o head_of)
       "Recursive set not previously declared as constant: " sign) cs;
-    val cnames = map Sign.base_name full_cnames;
 
     val save_sign =
       thy |> Theory.copy |> cond_declare_consts declare_consts cs paramTs cnames |> Theory.sign_of;
@@ -845,9 +846,9 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs pre_
       add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs intros monos
         thy params paramTs cTs cnames induct_cases;
     val thy2 = thy1
-      |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result)
+      |> put_inductives cnames ({names = cnames, coind = coind}, result)
       |> add_cases_induct no_elim (no_ind orelse coind orelse length cs > 1)
-          full_cnames elims induct;
+          cnames elims induct;
   in (thy2, result) end;
 
 fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
