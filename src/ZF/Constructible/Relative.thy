@@ -9,10 +9,10 @@ constdefs
     "empty(M,z) == \<forall>x[M]. x \<notin> z"
 
   subset :: "[i=>o,i,i] => o"
-    "subset(M,A,B) == \<forall>x\<in>A. M(x) --> x \<in> B"
+    "subset(M,A,B) == \<forall>x[M]. x\<in>A --> x \<in> B"
 
   upair :: "[i=>o,i,i,i] => o"
-    "upair(M,a,b,z) == a \<in> z & b \<in> z & (\<forall>x\<in>z. M(x) --> x = a | x = b)"
+    "upair(M,a,b,z) == a \<in> z & b \<in> z & (\<forall>x[M]. x\<in>z --> x = a | x = b)"
 
   pair :: "[i=>o,i,i,i] => o"
     "pair(M,a,b,z) == \<exists>x[M]. upair(M,a,a,x) & 
@@ -34,35 +34,34 @@ constdefs
     "setdiff(M,a,b,z) == \<forall>x[M]. x \<in> z <-> x \<in> a & x \<notin> b"
 
   big_union :: "[i=>o,i,i] => o"
-    "big_union(M,A,z) == \<forall>x[M]. x \<in> z <-> (\<exists>y\<in>A. M(y) & x \<in> y)"
+    "big_union(M,A,z) == \<forall>x[M]. x \<in> z <-> (\<exists>y[M]. y\<in>A & x \<in> y)"
 
   big_inter :: "[i=>o,i,i] => o"
     "big_inter(M,A,z) == 
              (A=0 --> z=0) &
-	     (A\<noteq>0 --> (\<forall>x[M]. x \<in> z <-> (\<forall>y\<in>A. M(y) --> x \<in> y)))"
+	     (A\<noteq>0 --> (\<forall>x[M]. x \<in> z <-> (\<forall>y[M]. y\<in>A --> x \<in> y)))"
 
   cartprod :: "[i=>o,i,i,i] => o"
     "cartprod(M,A,B,z) == 
-	\<forall>u[M]. u \<in> z <-> (\<exists>x\<in>A. M(x) & (\<exists>y\<in>B. M(y) & pair(M,x,y,u)))"
+	\<forall>u[M]. u \<in> z <-> (\<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>B & pair(M,x,y,u)))"
 
   is_converse :: "[i=>o,i,i] => o"
     "is_converse(M,r,z) == 
 	\<forall>x. M(x) --> 
             (x \<in> z <-> 
-             (\<exists>w\<in>r. M(w) & 
-              (\<exists>u[M]. \<exists>v[M]. pair(M,u,v,w) & pair(M,v,u,x))))"
+             (\<exists>w[M]. w\<in>r & (\<exists>u[M]. \<exists>v[M]. pair(M,u,v,w) & pair(M,v,u,x))))"
 
   pre_image :: "[i=>o,i,i,i] => o"
     "pre_image(M,r,A,z) == 
-	\<forall>x. M(x) --> (x \<in> z <-> (\<exists>w\<in>r. M(w) & (\<exists>y\<in>A. M(y) & pair(M,x,y,w))))"
+	\<forall>x. M(x) --> (x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. y\<in>A & pair(M,x,y,w))))"
 
   is_domain :: "[i=>o,i,i] => o"
     "is_domain(M,r,z) == 
-	\<forall>x. M(x) --> (x \<in> z <-> (\<exists>w\<in>r. M(w) & (\<exists>y. M(y) & pair(M,x,y,w))))"
+	\<forall>x. M(x) --> (x \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>y[M]. pair(M,x,y,w))))"
 
   image :: "[i=>o,i,i,i] => o"
     "image(M,r,A,z) == 
-        \<forall>y. M(y) --> (y \<in> z <-> (\<exists>w\<in>r. M(w) & (\<exists>x\<in>A. M(x) & pair(M,x,y,w))))"
+        \<forall>y. M(y) --> (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,w))))"
 
   is_range :: "[i=>o,i,i] => o"
     --{*the cleaner 
@@ -70,16 +69,16 @@ constdefs
       unfortunately needs an instance of separation in order to prove 
         @{term "M(converse(r))"}.*}
     "is_range(M,r,z) == 
-	\<forall>y. M(y) --> (y \<in> z <-> (\<exists>w\<in>r. M(w) & (\<exists>x. M(x) & pair(M,x,y,w))))"
+	\<forall>y. M(y) --> (y \<in> z <-> (\<exists>w[M]. w\<in>r & (\<exists>x[M]. pair(M,x,y,w))))"
 
   is_field :: "[i=>o,i,i] => o"
     "is_field(M,r,z) == 
-	\<exists>dr. M(dr) & is_domain(M,r,dr) & 
-            (\<exists>rr. M(rr) & is_range(M,r,rr) & union(M,dr,rr,z))"
+	\<exists>dr[M]. is_domain(M,r,dr) & 
+            (\<exists>rr[M]. is_range(M,r,rr) & union(M,dr,rr,z))"
 
   is_relation :: "[i=>o,i] => o"
     "is_relation(M,r) == 
-        (\<forall>z\<in>r. M(z) --> (\<exists>x y. M(x) & M(y) & pair(M,x,y,z)))"
+        (\<forall>z[M]. z\<in>r --> (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,z)))"
 
   is_function :: "[i=>o,i] => o"
     "is_function(M,r) == 
@@ -713,13 +712,13 @@ assumes Inter_separation:
      "M(A) ==> separation(M, \<lambda>x. \<forall>y[M]. y\<in>A --> x\<in>y)"
   and cartprod_separation:
      "[| M(A); M(B) |] 
-      ==> separation(M, \<lambda>z. \<exists>x\<in>A. \<exists>y\<in>B. M(x) & M(y) & pair(M,x,y,z))"
+      ==> separation(M, \<lambda>z. \<exists>x[M]. x\<in>A & (\<exists>y[M]. y\<in>B & pair(M,x,y,z)))"
   and image_separation:
      "[| M(A); M(r) |] 
       ==> separation(M, \<lambda>y. \<exists>p[M]. p\<in>r & (\<exists>x[M]. x\<in>A & pair(M,x,y,p)))"
   and converse_separation:
-     "M(r) ==> separation(M, \<lambda>z. \<exists>p\<in>r. 
-                    M(p) & (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,p) & pair(M,y,x,z)))"
+     "M(r) ==> separation(M, 
+         \<lambda>z. \<exists>p[M]. p\<in>r & (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,p) & pair(M,y,x,z)))"
   and restrict_separation:
      "M(A) ==> separation(M, \<lambda>z. \<exists>x[M]. x\<in>A & (\<exists>y[M]. pair(M,x,y,z)))"
   and comp_separation:
@@ -728,9 +727,9 @@ assumes Inter_separation:
 		  pair(M,x,z,xz) & pair(M,x,y,xy) & pair(M,y,z,yz) & 
                   xy\<in>s & yz\<in>r)"
   and pred_separation:
-     "[| M(r); M(x) |] ==> separation(M, \<lambda>y. \<exists>p\<in>r. M(p) & pair(M,y,x,p))"
+     "[| M(r); M(x) |] ==> separation(M, \<lambda>y. \<exists>p[M]. p\<in>r & pair(M,y,x,p))"
   and Memrel_separation:
-     "separation(M, \<lambda>z. \<exists>x y. M(x) & M(y) & pair(M,x,y,z) & x \<in> y)"
+     "separation(M, \<lambda>z. \<exists>x[M]. \<exists>y[M]. pair(M,x,y,z) & x \<in> y)"
   and obase_separation:
      --{*part of the order type formalization*}
      "[| M(A); M(r) |] 

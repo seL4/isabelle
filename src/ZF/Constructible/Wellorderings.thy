@@ -192,7 +192,7 @@ done
 
 lemma (in M_axioms) M_Memrel_iff:
      "M(A) ==> 
-      Memrel(A) = {z \<in> A*A. \<exists>x. M(x) \<and> (\<exists>y. M(y) \<and> z = \<langle>x,y\<rangle> \<and> x \<in> y)}"
+      Memrel(A) = {z \<in> A*A. \<exists>x[M]. \<exists>y[M]. z = \<langle>x,y\<rangle> & x \<in> y}"
 apply (simp add: Memrel_def) 
 apply (blast dest: transM)
 done 

@@ -95,7 +95,7 @@ by simp
 
 declare satisfies.simps [simp del]; 
 
-subsubsection{*Dividing line between primitive and derived connectives*}
+subsection{*Dividing line between primitive and derived connectives*}
 
 lemma sats_Or_iff [simp]:
   "env \<in> list(A) 
@@ -123,6 +123,11 @@ subsubsection{*Derived rules to help build up formulas*}
 lemma mem_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; env \<in> list(A)|]
        ==> (x\<in>y) <-> sats(A, Member(i,j), env)" 
+by (simp add: satisfies.simps)
+
+lemma equal_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; env \<in> list(A)|]
+       ==> (x=y) <-> sats(A, Equal(i,j), env)" 
 by (simp add: satisfies.simps)
 
 lemma conj_iff_sats:
@@ -159,22 +164,6 @@ lemma bex_iff_sats:
       "[| !!x. x\<in>A ==> P(x) <-> sats(A, p, Cons(x, env)); env \<in> list(A)|]
        ==> (\<exists>x\<in>A. P(x)) <-> sats(A, Exists(p), env)"
 by (simp add: sats_Exists_iff) 
-
-
-
-(*pretty but unnecessary
-constdefs sat     :: "[i,i] => o"
-  "sat(A,p) == satisfies(A,p)`[] = 1"
-
-syntax "_sat"  :: "[i,i] => o"    (infixl "|=" 50)
-translations "A |= p" == "sat(A,p)"
-
-lemma [simp]: "(A |= Neg(p)) <-> ~ (A |= p)"
-by (simp add: sat_def)
-
-lemma [simp]: "(A |= And(p,q)) <-> A|=p & A|=q"
-by (simp add: sat_def)
-*) 
 
 
 constdefs incr_var :: "[i,i]=>i"
@@ -355,7 +344,7 @@ apply (simp_all add: arity_incr_boundvars_eq not_lt_iff_le)
 done
 
 
-(**** TRYING INCR_BV1 AGAIN ****)
+subsection{*Renaming all but the first bound variable*}
 
 constdefs incr_bv1 :: "i => i"
     "incr_bv1(p) == incr_bv(p)`1"
@@ -398,7 +387,7 @@ lemma arity_iterates_incr_bv1_eq:
    ==> arity(incr_bv1^n(p)) =
          (if 1 < arity(p) then n #+ arity(p) else arity(p))"
 apply (induct_tac n) 
-apply (simp_all add: arity_incr_bv1_eq )
+apply (simp_all add: arity_incr_bv1_eq)
 apply (simp add: not_lt_iff_le)
 apply (blast intro: le_trans add_le_self2 arity_type) 
 done
@@ -519,6 +508,76 @@ lemma DPow_insert: "DPow (cons(a,A)) = DPow(A) Un {cons(a,X) . X: DPow(A)}"
 apply (rule equalityI, safe)
 oops
 *)
+
+
+subsection{*Internalized formulas for basic concepts*}
+
+subsubsection{*The subset relation*}
+
+lemma lt_length_in_nat:
+   "[|x < length(xs); xs \<in> list(A)|] ==> x \<in> nat"
+apply (frule lt_nat_in_nat, typecheck) 
+done
+
+constdefs subset_fm :: "[i,i]=>i"
+    "subset_fm(x,y) == Forall(Implies(Member(0,succ(x)), Member(0,succ(y))))"
+
+lemma subset_type [TC]: "[| x \<in> nat; y \<in> nat |] ==> subset_fm(x,y) \<in> formula"
+by (simp add: subset_fm_def) 
+
+lemma arity_subset_fm [simp]:
+     "[| x \<in> nat; y \<in> nat |] ==> arity(subset_fm(x,y)) = succ(x) \<union> succ(y)"
+by (simp add: subset_fm_def succ_Un_distrib [symmetric]) 
+
+lemma sats_subset_fm [simp]:
+   "[|x < length(env); y \<in> nat; env \<in> list(A); Transset(A)|]
+    ==> sats(A, subset_fm(x,y), env) <-> nth(x,env) \<subseteq> nth(y,env)"
+apply (frule lt_length_in_nat, assumption)  
+apply (simp add: subset_fm_def Transset_def) 
+apply (blast intro: nth_type) 
+done
+
+subsubsection{*Transitive sets*}
+
+constdefs transset_fm :: "i=>i"
+   "transset_fm(x) == Forall(Implies(Member(0,succ(x)), subset_fm(0,succ(x))))"
+
+lemma transset_type [TC]: "x \<in> nat ==> transset_fm(x) \<in> formula"
+by (simp add: transset_fm_def) 
+
+lemma arity_transset_fm [simp]:
+     "x \<in> nat ==> arity(transset_fm(x)) = succ(x)"
+by (simp add: transset_fm_def succ_Un_distrib [symmetric]) 
+
+lemma sats_transset_fm [simp]:
+   "[|x < length(env); env \<in> list(A); Transset(A)|]
+    ==> sats(A, transset_fm(x), env) <-> Transset(nth(x,env))"
+apply (frule lt_nat_in_nat, erule length_type) 
+apply (simp add: transset_fm_def Transset_def) 
+apply (blast intro: nth_type) 
+done
+
+subsubsection{*Ordinals*}
+
+constdefs ordinal_fm :: "i=>i"
+   "ordinal_fm(x) == 
+      And(transset_fm(x), Forall(Implies(Member(0,succ(x)), transset_fm(0))))"
+
+lemma ordinal_type [TC]: "x \<in> nat ==> ordinal_fm(x) \<in> formula"
+by (simp add: ordinal_fm_def) 
+
+lemma arity_ordinal_fm [simp]:
+     "x \<in> nat ==> arity(ordinal_fm(x)) = succ(x)"
+by (simp add: ordinal_fm_def succ_Un_distrib [symmetric]) 
+
+lemma sats_ordinal_fm [simp]:
+   "[|x < length(env); env \<in> list(A); Transset(A)|]
+    ==> sats(A, ordinal_fm(x), env) <-> Ord(nth(x,env))"
+apply (frule lt_nat_in_nat, erule length_type) 
+apply (simp add: ordinal_fm_def Ord_def Transset_def)
+apply (blast intro: nth_type) 
+done
+
 
 subsection{* Constant Lset: Levels of the Constructible Universe *}
 
@@ -661,63 +720,7 @@ apply (blast dest: DPowD)
 done
 
 
-
-text{*Kunen's VI, 1.9 (b)*}
-
-constdefs subset_fm :: "[i,i]=>i"
-    "subset_fm(x,y) == Forall(Implies(Member(0,succ(x)), Member(0,succ(y))))"
-
-lemma subset_type [TC]: "[| x \<in> nat; y \<in> nat |] ==> subset_fm(x,y) \<in> formula"
-by (simp add: subset_fm_def) 
-
-lemma arity_subset_fm [simp]:
-     "[| x \<in> nat; y \<in> nat |] ==> arity(subset_fm(x,y)) = succ(x) \<union> succ(y)"
-by (simp add: subset_fm_def succ_Un_distrib [symmetric]) 
-
-lemma sats_subset_fm [simp]:
-   "[|x < length(env); y \<in> nat; env \<in> list(A); Transset(A)|]
-    ==> sats(A, subset_fm(x,y), env) <-> nth(x,env) \<subseteq> nth(y,env)"
-apply (frule lt_nat_in_nat, erule length_type) 
-apply (simp add: subset_fm_def Transset_def) 
-apply (blast intro: nth_type ) 
-done
-
-constdefs transset_fm :: "i=>i"
-   "transset_fm(x) == Forall(Implies(Member(0,succ(x)), subset_fm(0,succ(x))))"
-
-lemma transset_type [TC]: "x \<in> nat ==> transset_fm(x) \<in> formula"
-by (simp add: transset_fm_def) 
-
-lemma arity_transset_fm [simp]:
-     "x \<in> nat ==> arity(transset_fm(x)) = succ(x)"
-by (simp add: transset_fm_def succ_Un_distrib [symmetric]) 
-
-lemma sats_transset_fm [simp]:
-   "[|x < length(env); env \<in> list(A); Transset(A)|]
-    ==> sats(A, transset_fm(x), env) <-> Transset(nth(x,env))"
-apply (frule lt_nat_in_nat, erule length_type) 
-apply (simp add: transset_fm_def Transset_def) 
-apply (blast intro: nth_type ) 
-done
-
-constdefs ordinal_fm :: "i=>i"
-   "ordinal_fm(x) == 
-      And(transset_fm(x), Forall(Implies(Member(0,succ(x)), transset_fm(0))))"
-
-lemma ordinal_type [TC]: "x \<in> nat ==> ordinal_fm(x) \<in> formula"
-by (simp add: ordinal_fm_def) 
-
-lemma arity_ordinal_fm [simp]:
-     "x \<in> nat ==> arity(ordinal_fm(x)) = succ(x)"
-by (simp add: ordinal_fm_def succ_Un_distrib [symmetric]) 
-
-lemma sats_ordinal_fm [simp]:
-   "[|x < length(env); env \<in> list(A); Transset(A)|]
-    ==> sats(A, ordinal_fm(x), env) <-> Ord(nth(x,env))"
-apply (frule lt_nat_in_nat, erule length_type) 
-apply (simp add: ordinal_fm_def Ord_def Transset_def)
-apply (blast intro: nth_type ) 
-done
+subsection{*Constructible Ordinals: Kunen's VI, 1.9 (b)*}
 
 text{*The subset consisting of the ordinals is definable.*}
 lemma Ords_in_DPow: "Transset(A) ==> {x \<in> A. Ord(x)} \<in> DPow(A)"
