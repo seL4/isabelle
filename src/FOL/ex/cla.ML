@@ -503,6 +503,23 @@ goal FOL.thy
 by (Blast_tac 1);
 result();
 
+(*From Davis, Obvious Logical Inferences, IJCAI-81, 530-531
+  Fast_tac indeed copes!*)
+goal FOL.thy "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) & \
+\             (EX x. K(x) & F(x) & (ALL y. H(x,y) --> K(y))) &   \
+\             (ALL x. K(x) --> ~G(x))  -->  (EX x. K(x) & J(x))";
+by (Fast_tac 1);
+result();
+
+(*From Rudnicki, Obvious Inferences, JAR 3 (1987), 383-393.  
+  It does seem obvious!*)
+goal FOL.thy
+    "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) &        \
+\    (EX x. K(x) & F(x) & (ALL y. H(x,y) --> K(y)))  &        \
+\    (ALL x. K(x) --> ~G(x))   -->   (EX x. K(x) --> ~G(x))";
+by (Fast_tac 1);
+result();
+
 (*Halting problem: Formulation of Li Dafa (AAR Newsletter 27, Oct 1994.)
 	author U. Egly*)
 goal FOL.thy
@@ -566,10 +583,13 @@ writeln"Reached end of file.";
 (*Wed Nov 16 1994: loaded in 138s [after addition of norm_term_skip] *)
 (*Mon Nov 21 1994: loaded in 131s [DEPTH_FIRST suppressing repetitions] *)
 
-(*Tue Mar  4 1997: loaded in 93s (on pochard, version 94-7) *)
-(*Tue Mar  4 1997: loaded in 89s (on pochard) *)
-(*Thu Apr  3 1997: loaded in 44s (on pochard)--using mostly Blast_tac*)
-(*Thu Apr  3 1997: loaded in 96s (on pochard)--addition of two Halting Probs*)
-(*Thu Apr  3 1997: loaded in 98s (on pochard)--using lim-1 for all haz rules*)
-(*Tue Dec  2 1997: loaded in 107s (on pochard)--added 46; new equalSubst*)
+(*Further runtimes on pochard*)
+(*Tue Mar  4 1997: loaded in 93s (version 94-7) *)
+(*Tue Mar  4 1997: loaded in 89s*)
+(*Thu Apr  3 1997: loaded in 44s--using mostly Blast_tac*)
+(*Thu Apr  3 1997: loaded in 96s--addition of two Halting Probs*)
+(*Thu Apr  3 1997: loaded in 98s--using lim-1 for all haz rules*)
+(*Tue Dec  2 1997: loaded in 107s--added 46; new equalSubst*)
+(*Fri Dec 12 1997: loaded in 91s--faster proof reconstruction*)
+(*Thu Dec 18 1997: loaded in 94s--two new "obvious theorems" (??)*)
 
