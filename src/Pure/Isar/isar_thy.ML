@@ -57,6 +57,8 @@ sig
   val print_ast_translation: string -> theory -> theory
   val token_translation: string -> theory -> theory
   val add_oracle: bstring * string -> theory -> theory
+  val begin_theory: string -> string list -> (string * bool) list -> theory
+  val end_theory: theory -> theory
   val theory: string * string list * (string * bool) list
     -> Toplevel.transition -> Toplevel.transition
   val context: string -> Toplevel.transition -> Toplevel.transition
@@ -174,8 +176,8 @@ val default_proof = ProofHistory.applys_close Method.default_proof;
 
 (* use ML text *)
 
-fun use_mltext txt opt_thy = #2 (Context.fetch opt_thy (use_text false) txt);
-fun use_mltext_theory txt thy = #2 (Context.fetch_theory thy (use_text false) txt);
+fun use_mltext txt opt_thy = #2 (Context.pass opt_thy (use_text false) txt);
+fun use_mltext_theory txt thy = #2 (Context.pass_theory thy (use_text false) txt);
 
 fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");");
 
@@ -222,21 +224,31 @@ fun add_oracle (name, txt) =
     ("(" ^ quote name ^ ", " ^ txt ^ ")");
 
 
-(* theory init and exit *)
+(* theory init and exit *)	(* FIXME move? rearrange? *)
 
-fun begin_theory (name, parents, files) () =
+fun begin_theory name parents files =
   let
-    val thy = ThyInfo.begin_theory name parents;
-    val names = mapfilter (fn (x, true) => Some x | _ => None) files;
-  in Context.setmp (Some thy) (seq ThyInfo.use) names; thy end;
+    val paths = map (apfst Path.unpack) files;
+    val thy = ThyInfo.begin_theory name parents paths;
+  in Present.begin_theory name parents paths; thy end;
 
+
+(* FIXME
 fun end_theory thy =
   let val thy' = PureThy.end_theory thy in
+    Present.end_theory (PureThy.get_name thy');
     transform_error ThyInfo.put_theory thy'
       handle exn => raise PureThy.ROLLBACK (thy', Some exn)     (* FIXME !!?? *)
   end;
+*)
 
-fun theory spec = Toplevel.init_theory (begin_theory spec) end_theory;
+fun end_theory thy =
+  (Present.end_theory (PureThy.get_name thy); ThyInfo.end_theory thy);
+
+fun bg_theory (name, parents, files) () = begin_theory name parents files;
+fun en_theory thy = (end_theory thy; ());
+
+fun theory spec = Toplevel.init_theory (bg_theory spec) en_theory;
 
 
 (* context switch *)
