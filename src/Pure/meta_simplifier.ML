@@ -44,7 +44,7 @@ sig
   val goals_conv        : (int -> bool) -> (cterm -> thm) -> cterm -> thm
   val forall_conv       : (cterm -> thm) -> cterm -> thm
   val fconv_rule        : (cterm -> thm) -> thm -> thm
-  val full_rewrite_cterm_aux: (meta_simpset -> thm -> thm option) -> thm list -> cterm -> cterm
+  val full_rewrite_aux: (meta_simpset -> thm -> thm option) -> thm list -> cterm -> thm
   val rewrite_rule_aux  : (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
   val rewrite_thm       : bool * bool * bool
                           -> (meta_simpset -> thm -> thm option)
@@ -949,16 +949,14 @@ fun forall_conv cv ct =
 (*Use a conversion to transform a theorem*)
 fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
 
-(*Rewrite a cterm (yielding again a cterm instead of a theorem)*)
-fun full_rewrite_cterm_aux _ [] = (fn ct => ct)
-  | full_rewrite_cterm_aux prover thms =
-      #2 o Thm.dest_comb o #prop o Thm.crep_thm o
-        rewrite_cterm (true, false, false) prover (mss_of thms);
+(*Rewrite a cterm*)
+fun full_rewrite_aux _ [] = (fn ct => Thm.reflexive ct)
+  | full_rewrite_aux prover thms = rewrite_cterm (true, false, false) prover (mss_of thms);
 
 (*Rewrite a theorem*)
 fun rewrite_rule_aux _ [] = (fn th => th)
   | rewrite_rule_aux prover thms =
-      fconv_rule (rewrite_cterm (true,false,false) prover (mss_of thms));
+      fconv_rule (rewrite_cterm (true, false, false) prover (mss_of thms));
 
 fun rewrite_thm mode prover mss = fconv_rule (rewrite_cterm mode prover mss);
 
