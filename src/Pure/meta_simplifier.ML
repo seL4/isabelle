@@ -54,7 +54,11 @@ struct
 
 exception SIMPLIFIER of string * thm;
 
-fun prnt warn a = if warn then warning a else writeln a;
+val simp_depth = ref 0;
+
+fun println a = writeln(replicate_string (!simp_depth) " " ^ a)
+
+fun prnt warn a = if warn then warning a else println a;
 
 fun prtm warn a sign t =
   (prnt warn a; prnt warn (Sign.string_of_term sign t));
@@ -592,27 +596,24 @@ fun rewritec (prover, signt, maxt)
         if perm andalso not (termless (rhs', lhs'))
         then (trace_thm false "Cannot apply permutative rewrite rule:" thm;
               trace_thm false "Term does not become smaller:" thm'; None)
-        else
-          let val ds = "[" ^ string_of_int depth ^ "]"
-          in trace_thm false "Applying instance of rewrite rule:" thm;
+        else (trace_thm false "Applying instance of rewrite rule:" thm;
            if unconditional
            then
-             (trace_thm false (ds ^ "Rewriting:") thm';
+             (trace_thm false "Rewriting:" thm';
               let val lr = Logic.dest_equals prop;
                   val Some thm'' = check_conv false eta_thm thm'
               in Some (thm'', uncond_skel (congs, lr)) end)
            else
-             (trace_thm false (ds ^ "Trying to rewrite:") thm';
+             (trace_thm false "Trying to rewrite:" thm';
               case prover (incr_depth mss) thm' of
-                None       => (trace_thm false (ds ^ "FAILED") thm'; None)
+                None       => (trace_thm false "FAILED" thm'; None)
               | Some thm2 =>
                   (case check_conv true eta_thm thm2 of
                      None => None |
                      Some thm2' =>
                        let val concl = Logic.strip_imp_concl prop
                            val lr = Logic.dest_equals concl
-                       in Some (thm2', cond_skel (congs, lr)) end))
-          end
+                       in Some (thm2', cond_skel (congs, lr)) end)))
       end
 
     fun rews [] = None
@@ -907,7 +908,10 @@ fun bottomc ((simprem,useprem,mutsimp), prover, sign, maxidx) =
 
 fun rewrite_cterm mode prover mss ct =
   let val {sign, t, maxidx, ...} = rep_cterm ct
-  in bottomc (mode, prover, sign, maxidx) mss ct end
+      val Mss{depth, ...} = mss
+  in simp_depth := depth;
+     bottomc (mode, prover, sign, maxidx) mss ct
+  end
   handle THM (s, _, thms) =>
     error ("Exception THM was raised in simplifier:\n" ^ s ^ "\n" ^
       Pretty.string_of (pretty_thms thms));
