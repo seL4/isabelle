@@ -47,7 +47,7 @@ $(OUT)/HOLCF: $(OUT)/HOL Cfun1.ML Cfun1.thy Cfun2.ML Cfun2.thy \
 HOLCF-IMP: HOLCF $(LOG)/HOLCF-IMP.gz
 
 $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/HoareEx.thy \
-  IMP/Denotational.thy IMP/ROOT.ML
+  IMP/Denotational.thy IMP/ROOT.ML IMP/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOLCF IMP
 
 
