@@ -353,7 +353,8 @@ fun read_asts (Syntax tabs) xids root str =
     val chars = SymbolFont.read_charnames (explode str);
     val pts = parse gram root' (tokenize lexicon xids chars);
 
-    fun show_pt pt = warning (str_of_ast (pt_to_ast (K None) pt));
+    fun show_pt pt =
+      warning (Pretty.string_of (pretty_ast (pt_to_ast (K None) pt)));
   in
     if length pts > ! ambiguity_level then
       (warning ("Ambiguous input " ^ quote str);
