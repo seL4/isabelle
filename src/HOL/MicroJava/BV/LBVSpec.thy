@@ -301,7 +301,7 @@ lemma (in lbv) wtl_all:
 proof -
   from pc have "0 < length (drop pc is)" by simp
   then  obtain i r where Cons: "drop pc is = i#r" 
-    by (auto simp add: neq_Nil_conv simp del: length_drop)
+    by (auto simp add: neq_Nil_conv simp del: length_drop drop_eq_Nil)
   hence "i#r = drop pc is" ..
   with all have take: "?wtl (take pc is@i#r) \<noteq> \<top>" by simp 
   from pc have "is!pc = drop pc is ! 0" by simp

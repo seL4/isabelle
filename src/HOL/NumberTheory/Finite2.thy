@@ -266,13 +266,7 @@ subsection {* Reindexing sums and products *}
 
 lemma sum_prop [rule_format]: "finite B ==>
                   inj_on f B --> setsum h (f ` B) = setsum (h \<circ> f) B";
-apply (rule finite_induct, assumption, force)
-apply (rule impI, auto)
-apply (simp add: inj_on_def)
-apply (subgoal_tac "f x \<notin> f ` F")
-apply (subgoal_tac "finite (f ` F)");
-apply (auto simp add: setsum_insert)
-by (simp add: inj_on_def) 
+by (rule finite_induct, auto)
 
 lemma sum_prop_id: "finite B ==> inj_on f B ==> 
     setsum f B = setsum id (f ` B)";
