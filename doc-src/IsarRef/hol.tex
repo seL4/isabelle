@@ -231,11 +231,11 @@ about large specifications.
   The rule is determined as follows, according to the facts and arguments
   passed to the $cases$ method:
   \begin{matharray}{llll}
-    \text{facts}    &       & \text{arguments} & \text{rule} \\\hline
-                    & cases &           & \text{classical case split} \\
-                    & cases & t         & \text{datatype exhaustion (type of $t$)} \\
-    \edrv a \in A   & cases & \dots     & \text{inductive set elimination (of $A$)} \\
-    \dots           & cases & \dots ~ R & \text{explicit rule $R$} \\
+    \Text{facts}    &       & \Text{arguments} & \Text{rule} \\\hline
+                    & cases &           & \Text{classical case split} \\
+                    & cases & t         & \Text{datatype exhaustion (type of $t$)} \\
+    \edrv a \in A   & cases & \dots     & \Text{inductive set elimination (of $A$)} \\
+    \dots           & cases & \dots ~ R & \Text{explicit rule $R$} \\
   \end{matharray}
   
   Several instantiations may be given, referring to the \emph{suffix} of
@@ -257,10 +257,10 @@ about large specifications.
 \item [$induct~insts~R$] is analogous to the $cases$ method, but refers to
   induction rules, which are determined as follows:
   \begin{matharray}{llll}
-    \text{facts}    &        & \text{arguments} & \text{rule} \\\hline
-                    & induct & P ~ x ~ \dots & \text{datatype induction (type of $x$)} \\
-    \edrv x \in A   & induct & \dots         & \text{set induction (of $A$)} \\
-    \dots           & induct & \dots ~ R     & \text{explicit rule $R$} \\
+    \Text{facts}    &        & \Text{arguments} & \Text{rule} \\\hline
+                    & induct & P ~ x ~ \dots & \Text{datatype induction (type of $x$)} \\
+    \edrv x \in A   & induct & \dots         & \Text{set induction (of $A$)} \\
+    \dots           & induct & \dots ~ R     & \Text{explicit rule $R$} \\
   \end{matharray}
   
   Several instantiations may be given, each referring to some part of a mutual

@@ -293,7 +293,7 @@ not presented here, the full syntax can be found in
 \iflabelundefined{app:TheorySyntax}{an appendix of the {\it Reference
     Manual}}{App.\ts\ref{app:TheorySyntax}}.  Also note that
 object-logics may add further theory sections, for example
-\texttt{typedef}, \texttt{datatype} in \HOL.
+\texttt{typedef}, \texttt{datatype} in HOL.
 
 All the declaration parts can be omitted or repeated and may appear in
 any order, except that the {\ML} section must be last (after the {\tt
@@ -302,7 +302,7 @@ $S@1$,~\ldots,~$S@n$.  New theories always extend one or more other
 theories, inheriting their types, constants, syntax, etc.  The theory
 \thydx{Pure} contains nothing but Isabelle's meta-logic.  The variant
 \thydx{CPure} offers the more usual higher-order function application
-syntax $t\,u@1\ldots\,u@n$ instead of $t(u@1,\ldots,u@n)$ in \Pure.
+syntax $t\,u@1\ldots\,u@n$ instead of $t(u@1,\ldots,u@n)$ in Pure.
 
 Each theory definition must reside in a separate file, whose name is
 the theory's with {\tt.thy} appended.  Calling
@@ -964,12 +964,11 @@ simplification tactics, which are described in
 
 \index{simplification}\index{examples!of simplification} 
 
-Isabelle's simplification tactics repeatedly apply equations to a
-subgoal, perhaps proving it.  For efficiency, the rewrite rules must
-be packaged into a {\bf simplification set},\index{simplification
-  sets} or {\bf simpset}.  We augment the implicit simpset of {\FOL}
-with the equations proved in the previous section, namely $0+n=n$ and
-$\texttt{Suc}(m)+n=\texttt{Suc}(m+n)$:
+Isabelle's simplification tactics repeatedly apply equations to a subgoal,
+perhaps proving it.  For efficiency, the rewrite rules must be packaged into a
+{\bf simplification set},\index{simplification sets} or {\bf simpset}.  We
+augment the implicit simpset of FOL with the equations proved in the previous
+section, namely $0+n=n$ and $\texttt{Suc}(m)+n=\texttt{Suc}(m+n)$:
 \begin{ttbox}
 Addsimps [add_0, add_Suc];
 \end{ttbox}

@@ -192,7 +192,7 @@ derived rules.
 
 
 \section{Generic packages}
-\FOL{} instantiates most of Isabelle's generic packages.
+FOL instantiates most of Isabelle's generic packages.
 \begin{itemize}
 \item 
 It instantiates the simplifier.  Both equality ($=$) and the biconditional
@@ -210,9 +210,9 @@ rules%
 It instantiates the classical reasoner.  See~\S\ref{fol-cla-prover}
 for details. 
 
-\item \FOL{} provides the tactic \ttindex{hyp_subst_tac}, which substitutes
-  for an equality throughout a subgoal and its hypotheses.  This tactic uses
-  \FOL's general substitution rule.
+\item FOL provides the tactic \ttindex{hyp_subst_tac}, which substitutes for
+  an equality throughout a subgoal and its hypotheses.  This tactic uses FOL's
+  general substitution rule.
 \end{itemize}
 
 \begin{warn}\index{simplification!of conjunctions}%
@@ -331,10 +331,10 @@ The classical theory, \thydx{FOL}, consists of intuitionistic logic plus
 the rule
 $$ \vcenter{\infer{P}{\infer*{P}{[\neg P]}}} \eqno(classical) $$
 \noindent
-Natural deduction in classical logic is not really all that natural.
-{\FOL} derives classical introduction rules for $\disj$ and~$\exists$, as
-well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
-rule (see Fig.\ts\ref{fol-cla-derived}).
+Natural deduction in classical logic is not really all that natural.  FOL
+derives classical introduction rules for $\disj$ and~$\exists$, as well as
+classical elimination rules for~$\imp$ and~$\bimp$, and the swap rule (see
+Fig.\ts\ref{fol-cla-derived}).
 
 The classical reasoner is installed.  Tactics such as \texttt{Blast_tac} and {\tt
 Best_tac} refer to the default claset (\texttt{claset()}), which works for most
@@ -897,8 +897,8 @@ Subgoal~1 is unprovable and yields a countermodel: $P$ and~$B$ are false
 while~$R$ and~$A$ are true.  This truth assignment reduces the main goal to
 $true\bimp false$, which is of course invalid.
 
-We can repeat this analysis by expanding definitions, using just
-the rules of {\FOL}:
+We can repeat this analysis by expanding definitions, using just the rules of
+FOL:
 \begin{ttbox}
 choplev 0;
 {\out Level 0}

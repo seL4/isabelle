@@ -13,7 +13,7 @@ include ../Makefile.in
 
 NAME = logics-HOL
 FILES = logics-HOL.tex ../Logics/syntax.tex HOL.tex \
-	 ../rail.sty ../proof.sty ../iman.sty ../extra.sty ../manual.bib
+	 ../rail.sty ../proof.sty ../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
 
 dvi: $(NAME).dvi
 

@@ -3,12 +3,11 @@
 \index{classical reasoner|(}
 \newcommand\ainfer[2]{\begin{array}{r@{\,}l}#2\\ \hline#1\end{array}}
 
-Although Isabelle is generic, many users will be working in some
-extension of classical first-order logic.  
-Isabelle's set theory~{\tt ZF} is built upon theory~\texttt{FOL}, 
-while {\HOL} conceptually contains first-order logic as a fragment.
-Theorem-proving in predicate logic is undecidable, but many
-researchers have developed strategies to assist in this task.
+Although Isabelle is generic, many users will be working in some extension of
+classical first-order logic.  Isabelle's set theory~ZF is built upon
+theory~FOL, while HOL conceptually contains first-order logic as a fragment.
+Theorem-proving in predicate logic is undecidable, but many researchers have
+developed strategies to assist in this task.
 
 Isabelle's classical reasoner is an \ML{} functor that accepts certain
 information about a logic and delivers a suite of automatic tactics.  Each
@@ -52,9 +51,9 @@ You need to know how the classical reasoner works in order to use it
 effectively.  There are many tactics to choose from, including 
 {\tt Fast_tac} and \texttt{Best_tac}.
 
-We shall first discuss the underlying principles, then present the
-classical reasoner.  Finally, we shall see how to instantiate it for new logics.
-The logics \FOL, \ZF, {\HOL} and {\HOLCF} have it already installed.
+We shall first discuss the underlying principles, then present the classical
+reasoner.  Finally, we shall see how to instantiate it for new logics.  The
+logics FOL, ZF, HOL and HOLCF have it already installed.
 
 
 \section{The sequent calculus}
@@ -445,12 +444,11 @@ reasoning tactics, but has major limitations too.
 \begin{itemize}
 \item It does not use the wrapper tacticals described above, such as
   \ttindex{addss}.
-\item It ignores types, which can cause problems in \HOL.  If it applies a rule
+\item It ignores types, which can cause problems in HOL.  If it applies a rule
   whose types are inappropriate, then proof reconstruction will fail.
 \item It does not perform higher-order unification, as needed by the rule {\tt
-    rangeI} in {\HOL} and \texttt{RepFunI} in {\ZF}.  There are often
-    alternatives to such rules, for example {\tt
-    range_eqI} and \texttt{RepFun_eqI}.
+    rangeI} in HOL and \texttt{RepFunI} in ZF.  There are often alternatives
+  to such rules, for example {\tt range_eqI} and \texttt{RepFun_eqI}.
 \item Function variables may only be applied to parameters of the subgoal.
 (This restriction arises because the prover does not use higher-order
 unification.)  If other function variables are present then the prover will

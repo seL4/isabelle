@@ -12,7 +12,7 @@ default: dvi
 include ../Makefile.in
 
 NAME = ind-defs
-FILES = ind-defs.tex ../proof.sty ../iman.sty ../extra.sty ../manual.bib
+FILES = ind-defs.tex ../proof.sty ../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
 
 dvi: $(NAME).dvi
 

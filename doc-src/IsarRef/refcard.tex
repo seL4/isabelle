@@ -15,7 +15,7 @@
   $\BG~\dots~\EN$ & declare explicit blocks \\
   $\NEXT$ & switch implicit blocks \\
   $\NOTE{a}{\vec b}$ & reconsider facts \\
-  $\LET{p = t}$ & \text{abbreviate terms by higher-order matching} \\
+  $\LET{p = t}$ & \Text{abbreviate terms by higher-order matching} \\
 \end{tabular}
 
 \begin{matharray}{rcl}
@@ -61,13 +61,13 @@
   \MOREOVER & \approx & \NOTE{calculation}{calculation~this} \\
   \ULTIMATELY & \approx & \MOREOVER~\FROM{calculation} \\[0.5ex]
   \PRESUME{a}{\vec\phi} & \approx & \ASSUME{a}{\vec\phi} \\
-%  & & \text{(permissive assumption)} \\
+%  & & \Text{(permissive assumption)} \\
   \DEF{a}{x \equiv t} & \approx & \FIX{x}~\ASSUME{a}{x \equiv t} \\
-%  & & \text{(definitional assumption)} \\
+%  & & \Text{(definitional assumption)} \\
   \OBTAIN{\vec x}{a}{\vec\phi} & \approx & \dots~\FIX{\vec x}~\ASSUME{a}{\vec\phi} \\
-%  & & \text{(generalized existence)} \\
+%  & & \Text{(generalized existence)} \\
   \CASE{c} & \approx & \FIX{\vec x}~\ASSUME{c}{\vec\phi} \\
-%  & & \text{(named context)} \\[0.5ex]
+%  & & \Text{(named context)} \\[0.5ex]
   \SORRY & \approx & \BY{cheating} \\
 \end{matharray}
 
@@ -75,11 +75,11 @@
 \subsection{Diagnostic commands}
 
 \begin{matharray}{ll}
-  \isarkeyword{pr} & \text{print current state} \\
-  \isarkeyword{thm}~\vec a & \text{print theorems} \\
-  \isarkeyword{term}~t & \text{print term} \\
-  \isarkeyword{prop}~\phi & \text{print meta-level proposition} \\
-  \isarkeyword{typ}~\tau & \text{print meta-level type} \\
+  \isarkeyword{pr} & \Text{print current state} \\
+  \isarkeyword{thm}~\vec a & \Text{print theorems} \\
+  \isarkeyword{term}~t & \Text{print term} \\
+  \isarkeyword{prop}~\phi & \Text{print meta-level proposition} \\
+  \isarkeyword{typ}~\tau & \Text{print meta-level type} \\
 \end{matharray}
 
 
@@ -96,11 +96,11 @@
   $induct~\vec x$ & proof by induction (provides cases) \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Repeated steps (inserting facts)}} \\[0.5ex]
-  $-$ & \text{no rules} \\
-  $intro~\vec a$ & \text{introduction rules} \\
-  $intro_classes$ & \text{class introduction rules} \\
-  $elim~\vec a$ & \text{elimination rules} \\
-  $unfold~\vec a$ & \text{definitions} \\[2ex]
+  $-$ & \Text{no rules} \\
+  $intro~\vec a$ & \Text{introduction rules} \\
+  $intro_classes$ & \Text{class introduction rules} \\
+  $elim~\vec a$ & \Text{elimination rules} \\
+  $unfold~\vec a$ & \Text{definitions} \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts, or even prems!)}} \\[0.5ex]
   $simp$, $simp_all$ & Simplifier (+ Splitter) \\

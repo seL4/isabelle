@@ -13,7 +13,7 @@ include ../Makefile.in
 
 NAME = system
 FILES = system.tex basics.tex misc.tex fonts.tex present.tex \
-	../iman.sty ../extra.sty ../manual.bib
+	../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
 
 dvi: $(NAME).dvi
 

@@ -3,12 +3,11 @@
 \label{chap:simplification}
 \index{simplification|(}
 
-This chapter describes Isabelle's generic simplification package.  It
-performs conditional and unconditional rewriting and uses contextual
-information (`local assumptions').  It provides several general hooks,
-which can provide automatic case splits during rewriting, for example.
-The simplifier is already set up for many of Isabelle's logics: \FOL,
-\ZF, \HOL, \HOLCF.
+This chapter describes Isabelle's generic simplification package.  It performs
+conditional and unconditional rewriting and uses contextual information
+(`local assumptions').  It provides several general hooks, which can provide
+automatic case splits during rewriting, for example.  The simplifier is
+already set up for many of Isabelle's logics: FOL, ZF, HOL, HOLCF.
 
 The first section is a quick introduction to the simplifier that
 should be sufficient to get started.  The later sections explain more
@@ -71,9 +70,9 @@ debug_simp        : bool ref \hfill{\bf initially false}
 
 \medskip
 
-As an example, consider the theory of arithmetic in \HOL.  The (rather
-trivial) goal $0 + (x + 0) = x + 0 + 0$ can be solved by a single call
-of \texttt{Simp_tac} as follows:
+As an example, consider the theory of arithmetic in HOL.  The (rather trivial)
+goal $0 + (x + 0) = x + 0 + 0$ can be solved by a single call of
+\texttt{Simp_tac} as follows:
 \begin{ttbox}
 context Arith.thy;
 Goal "0 + (x + 0) = x + 0 + 0";
@@ -181,11 +180,11 @@ the current redex.  Congruences are a more advanced feature; see
 
 \end{ttdescription}
 
-When a new theory is built, its implicit simpset is initialized by the
-union of the respective simpsets of its parent theories.  In addition,
-certain theory definition constructs (e.g.\ \ttindex{datatype} and
-\ttindex{primrec} in \HOL) implicitly augment the current simpset.
-Ordinary definitions are not added automatically!
+When a new theory is built, its implicit simpset is initialized by the union
+of the respective simpsets of its parent theories.  In addition, certain
+theory definition constructs (e.g.\ \ttindex{datatype} and \ttindex{primrec}
+in HOL) implicitly augment the current simpset.  Ordinary definitions are not
+added automatically!
 
 It is up the user to manipulate the current simpset further by
 explicitly adding or deleting theorems and simplification procedures.
@@ -253,12 +252,11 @@ merge_ss : simpset * simpset -> simpset
 \end{ttbox}
 \begin{ttdescription}
   
-\item[\ttindexbold{empty_ss}] is the empty simpset.  This is not very
-  useful under normal circumstances because it doesn't contain
-  suitable tactics (subgoaler etc.).  When setting up the simplifier
-  for a particular object-logic, one will typically define a more
-  appropriate ``almost empty'' simpset.  For example, in \HOL\ this is
-  called \ttindexbold{HOL_basic_ss}.
+\item[\ttindexbold{empty_ss}] is the empty simpset.  This is not very useful
+  under normal circumstances because it doesn't contain suitable tactics
+  (subgoaler etc.).  When setting up the simplifier for a particular
+  object-logic, one will typically define a more appropriate ``almost empty''
+  simpset.  For example, in HOL this is called \ttindexbold{HOL_basic_ss}.
   
 \item[\ttindexbold{merge_ss} ($ss@1$, $ss@2$)] merges simpsets $ss@1$
   and $ss@2$ by building the union of their respective rewrite rules,
@@ -1077,12 +1075,11 @@ such as boolean rings.
 
 \subsection{Example: sums of natural numbers}
 
-This example is again set in \HOL\ (see \texttt{HOL/ex/NatSum}).
-Theory \thydx{Arith} contains natural numbers arithmetic.  Its
-associated simpset contains many arithmetic laws including
-distributivity of~$\times$ over~$+$, while \texttt{add_ac} is a list
-consisting of the A, C and LC laws for~$+$ on type \texttt{nat}.  Let
-us prove the theorem
+This example is again set in HOL (see \texttt{HOL/ex/NatSum}).  Theory
+\thydx{Arith} contains natural numbers arithmetic.  Its associated simpset
+contains many arithmetic laws including distributivity of~$\times$ over~$+$,
+while \texttt{add_ac} is a list consisting of the A, C and LC laws for~$+$ on
+type \texttt{nat}.  Let us prove the theorem
 \[ \sum@{i=1}^n i = n\times(n+1)/2. \]
 %
 A functional~\texttt{sum} represents the summation operator under the
@@ -1216,12 +1213,11 @@ consider eta-expansion of pair abstraction (see also
 \texttt{HOL/Modelcheck/MCSyn} where this is used to provide external
 model checker syntax).
   
-The {\HOL} theory of tuples (see \texttt{HOL/Prod}) provides an
-operator \texttt{split} together with some concrete syntax supporting
-$\lambda\,(x,y).b$ abstractions.  Assume that we would like to offer a
-tactic that rewrites any function $\lambda\,p.f\,p$ (where $p$ is of
-some pair type) to $\lambda\,(x,y).f\,(x,y)$.  The corresponding rule
-is:
+The HOL theory of tuples (see \texttt{HOL/Prod}) provides an operator
+\texttt{split} together with some concrete syntax supporting
+$\lambda\,(x,y).b$ abstractions.  Assume that we would like to offer a tactic
+that rewrites any function $\lambda\,p.f\,p$ (where $p$ is of some pair type)
+to $\lambda\,(x,y).f\,(x,y)$.  The corresponding rule is:
 \begin{ttbox}
 pair_eta_expand:  (f::'a*'b=>'c) = (\%(x, y). f (x, y))
 \end{ttbox}
@@ -1298,7 +1294,7 @@ intensional equality~\cite{nordstrom90}.
 We first prove lots of standard rewrite rules about the logical
 connectives.  These include cancellation and associative laws.  We
 define a function that echoes the desired law and then supplies it the
-prover for intuitionistic \FOL:
+prover for intuitionistic FOL:
 \begin{ttbox}
 fun int_prove_fun s = 
  (writeln s;  
@@ -1437,12 +1433,11 @@ val notFalseI = int_prove_fun "~False";
 val triv_rls = [TrueI,refl,iff_refl,notFalseI];
 \end{ttbox}
 %
-The basic simpset for intuitionistic \FOL{} is
-\ttindexbold{FOL_basic_ss}.  It preprocess rewrites using {\tt
-  gen_all}, \texttt{atomize} and \texttt{mk_eq}.  It solves simplified
-subgoals using \texttt{triv_rls} and assumptions, and by detecting
-contradictions.  It uses \ttindex{asm_simp_tac} to tackle subgoals of
-conditional rewrites.
+The basic simpset for intuitionistic FOL is \ttindexbold{FOL_basic_ss}.  It
+preprocess rewrites using {\tt gen_all}, \texttt{atomize} and \texttt{mk_eq}.
+It solves simplified subgoals using \texttt{triv_rls} and assumptions, and by
+detecting contradictions.  It uses \ttindex{asm_simp_tac} to tackle subgoals
+of conditional rewrites.
 
 Other simpsets built from \texttt{FOL_basic_ss} will inherit these items.
 In particular, \ttindexbold{IFOL_ss}, which introduces {\tt

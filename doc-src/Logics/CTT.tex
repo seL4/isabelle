@@ -40,16 +40,16 @@ $\Imp$:
 Assumptions can use all the judgement forms, for instance to express that
 $B$ is a family of types over~$A$:
 \[ \Forall x . x\in A \Imp B(x)\;{\rm type} \]
-To justify the {\CTT} formulation it is probably best to appeal directly
-to the semantic explanations of the rules~\cite{martinlof84}, rather than
-to the rules themselves.  The order of assumptions no longer matters,
-unlike in standard Type Theory.  Contexts, which are typical of many modern
-type theories, are difficult to represent in Isabelle.  In particular, it
-is difficult to enforce that all the variables in a context are distinct.
-\index{assumptions!in {\CTT}}
+To justify the CTT formulation it is probably best to appeal directly to the
+semantic explanations of the rules~\cite{martinlof84}, rather than to the
+rules themselves.  The order of assumptions no longer matters, unlike in
+standard Type Theory.  Contexts, which are typical of many modern type
+theories, are difficult to represent in Isabelle.  In particular, it is
+difficult to enforce that all the variables in a context are distinct.
+\index{assumptions!in CTT}
 
-The theory does not use polymorphism.  Terms in {\CTT} have type~\tydx{i}, the
-type of individuals.  Types in {\CTT} have type~\tydx{t}.
+The theory does not use polymorphism.  Terms in CTT have type~\tydx{i}, the
+type of individuals.  Types in CTT have type~\tydx{t}.
 
 \begin{figure} \tabcolsep=1em  %wider spacing in tables
 \begin{center}
@@ -81,29 +81,29 @@ type of individuals.  Types in {\CTT} have type~\tydx{t}.
   \cdx{tt}      & $i$                   & constructor
 \end{tabular}
 \end{center}
-\caption{The constants of {\CTT}} \label{ctt-constants}
+\caption{The constants of CTT} \label{ctt-constants}
 \end{figure}
 
 
-{\CTT} supports all of Type Theory apart from list types, well-ordering
-types, and universes.  Universes could be introduced {\em\`a la Tarski},
-adding new constants as names for types.  The formulation {\em\`a la
-  Russell}, where types denote themselves, is only possible if we identify
-the meta-types~{\tt i} and~{\tt t}.  Most published formulations of
-well-ordering types have difficulties involving extensionality of
-functions; I suggest that you use some other method for defining recursive
-types.  List types are easy to introduce by declaring new rules.
+CTT supports all of Type Theory apart from list types, well-ordering types,
+and universes.  Universes could be introduced {\em\`a la Tarski}, adding new
+constants as names for types.  The formulation {\em\`a la Russell}, where
+types denote themselves, is only possible if we identify the meta-types~{\tt
+  i} and~{\tt t}.  Most published formulations of well-ordering types have
+difficulties involving extensionality of functions; I suggest that you use
+some other method for defining recursive types.  List types are easy to
+introduce by declaring new rules.
 
-{\CTT} uses the 1982 version of Type Theory, with extensional equality.
-The computation $a=b\in A$ and the equality $c\in Eq(A,a,b)$ are
-interchangeable.  Its rewriting tactics prove theorems of the form $a=b\in
-A$.  It could be modified to have intensional equality, but rewriting
-tactics would have to prove theorems of the form $c\in Eq(A,a,b)$ and the
-computation rules might require a separate simplifier.
+CTT uses the 1982 version of Type Theory, with extensional equality.  The
+computation $a=b\in A$ and the equality $c\in Eq(A,a,b)$ are interchangeable.
+Its rewriting tactics prove theorems of the form $a=b\in A$.  It could be
+modified to have intensional equality, but rewriting tactics would have to
+prove theorems of the form $c\in Eq(A,a,b)$ and the computation rules might
+require a separate simplifier.
 
 
 \begin{figure} \tabcolsep=1em  %wider spacing in tables
-\index{lambda abs@$\lambda$-abstractions!in \CTT}
+\index{lambda abs@$\lambda$-abstractions!in CTT}
 \begin{center}
 \begin{tabular}{llrrr} 
   \it symbol &\it name     &\it meta-type & \it priority & \it description \\
@@ -113,7 +113,7 @@ computation rules might require a separate simplifier.
 \subcaption{Binders} 
 
 \begin{center}
-\index{*"` symbol}\index{function applications!in \CTT}
+\index{*"` symbol}\index{function applications!in CTT}
 \index{*"+ symbol}
 \begin{tabular}{rrrr} 
   \it symbol & \it meta-type    & \it priority & \it description \\ 
@@ -160,7 +160,7 @@ term    & = & \hbox{expression of type~$i$} \\
 \]
 \end{center}
 \subcaption{Grammar}
-\caption{Syntax of {\CTT}} \label{ctt-syntax}
+\caption{Syntax of CTT} \label{ctt-syntax}
 \end{figure}
 
 %%%%\section{Generic Packages}  typedsimp.ML????????????????
@@ -168,16 +168,16 @@ term    & = & \hbox{expression of type~$i$} \\
 
 \section{Syntax}
 The constants are shown in Fig.\ts\ref{ctt-constants}.  The infixes include
-the function application operator (sometimes called `apply'), and the
-2-place type operators.  Note that meta-level abstraction and application,
-$\lambda x.b$ and $f(a)$, differ from object-level abstraction and
-application, \hbox{\tt lam $x$. $b$} and $b{\tt`}a$.  A {\CTT}
-function~$f$ is simply an individual as far as Isabelle is concerned: its
-Isabelle type is~$i$, not say $i\To i$.
+the function application operator (sometimes called `apply'), and the 2-place
+type operators.  Note that meta-level abstraction and application, $\lambda
+x.b$ and $f(a)$, differ from object-level abstraction and application,
+\hbox{\tt lam $x$. $b$} and $b{\tt`}a$.  A CTT function~$f$ is simply an
+individual as far as Isabelle is concerned: its Isabelle type is~$i$, not say
+$i\To i$.
 
-The notation for~{\CTT} (Fig.\ts\ref{ctt-syntax}) is based on that of
-Nordstr\"om et al.~\cite{nordstrom90}.  The empty type is called $F$ and
-the one-element type is $T$; other finite types are built as $T+T+T$, etc.
+The notation for~CTT (Fig.\ts\ref{ctt-syntax}) is based on that of Nordstr\"om
+et al.~\cite{nordstrom90}.  The empty type is called $F$ and the one-element
+type is $T$; other finite types are built as $T+T+T$, etc.
 
 \index{*SUM symbol}\index{*PROD symbol}
 Quantification is expressed by sums $\sum@{x\in A}B[x]$ and
@@ -387,7 +387,7 @@ abbreviations in parsing and uses them whenever possible for printing.
           |] ==> snd(p) : B(fst(p))
 \end{ttbox}
 
-\caption{Derived rules for {\CTT}} \label{ctt-derived}
+\caption{Derived rules for CTT} \label{ctt-derived}
 \end{figure}
 
 
@@ -470,7 +470,7 @@ variables in the premises.
 \section{Rule lists}
 The Type Theory tactics provide rewriting, type inference, and logical
 reasoning.  Many proof procedures work by repeatedly resolving certain Type
-Theory rules against a proof state.  {\CTT} defines lists --- each with
+Theory rules against a proof state.  CTT defines lists --- each with
 type
 \hbox{\tt thm list} --- of related rules. 
 \begin{ttdescription}
@@ -514,14 +514,14 @@ typechk_tac     : thm list -> tactic
 equal_tac       : thm list -> tactic
 intr_tac        : thm list -> tactic
 \end{ttbox}
-Blind application of {\CTT} rules seldom leads to a proof.  The elimination
+Blind application of CTT rules seldom leads to a proof.  The elimination
 rules, especially, create subgoals containing new unknowns.  These subgoals
 unify with anything, creating a huge search space.  The standard tactic
-\ttindex{filt_resolve_tac} 
+\ttindex{filt_resolve_tac}
 (see \iflabelundefined{filt_resolve_tac}{the {\em Reference Manual\/}}%
         {\S\ref{filt_resolve_tac}})
 %
-fails for goals that are too flexible; so does the {\CTT} tactic {\tt
+fails for goals that are too flexible; so does the CTT tactic {\tt
   test_assume_tac}.  Used with the tactical \ttindex{REPEAT_FIRST} they
 achieve a simple kind of subgoal reordering: the less flexible subgoals are
 attempted first.  Do some single step proofs, or study the examples below,
@@ -563,8 +563,8 @@ Object-level simplification is accomplished through proof, using the {\tt
   CTT} equality rules and the built-in rewriting functor
 {\tt TSimpFun}.%
 \footnote{This should not be confused with Isabelle's main simplifier; {\tt
-    TSimpFun} is only useful for {\CTT} and similar logics with type
-  inference rules.  At present it is undocumented.} 
+    TSimpFun} is only useful for CTT and similar logics with type inference
+  rules.  At present it is undocumented.}
 %
 The rewrites include the computation rules and other equations.  The long
 versions of the other rules permit rewriting of subterms and subtypes.
@@ -583,11 +583,11 @@ the assumptions.
 
 
 \section{Tactics for logical reasoning}
-Interpreting propositions as types lets {\CTT} express statements of
-intuitionistic logic.  However, Constructive Type Theory is not just
-another syntax for first-order logic.  There are fundamental differences.
+Interpreting propositions as types lets CTT express statements of
+intuitionistic logic.  However, Constructive Type Theory is not just another
+syntax for first-order logic.  There are fundamental differences.
 
-\index{assumptions!in {\CTT}}
+\index{assumptions!in CTT}
 Can assumptions be deleted after use?  Not every occurrence of a type
 represents a proposition, and Type Theory assumptions declare variables.
 In first-order logic, $\disj$-elimination with the assumption $P\disj Q$
@@ -598,7 +598,7 @@ B$ (for arbitrary $x$ and $y$).  Deleting $z\in A+B$ when other assumptions
 refer to $z$ may render the subgoal unprovable: arguably,
 meaningless.
 
-Isabelle provides several tactics for predicate calculus reasoning in \CTT:
+Isabelle provides several tactics for predicate calculus reasoning in CTT:
 \begin{ttbox}
 mp_tac       : int -> tactic
 add_mp_tac   : int -> tactic
@@ -728,7 +728,7 @@ such that $0\leq x \leq a$ and $x\bmod b = 0$.
 
 
 \section{The examples directory}
-This directory contains examples and experimental proofs in {\CTT}.
+This directory contains examples and experimental proofs in CTT.
 \begin{ttdescription}
 \item[CTT/ex/typechk.ML]
 contains simple examples of type-checking and type deduction.

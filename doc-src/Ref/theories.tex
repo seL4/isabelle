@@ -3,12 +3,12 @@
 
 \chapter{Theories, Terms and Types} \label{theories}
 \index{theories|(}\index{signatures|bold}
-\index{reading!axioms|see{\texttt{assume_ax}}} Theories organize the
-syntax, declarations and axioms of a mathematical development.  They
-are built, starting from the {\Pure} or {\CPure} theory, by extending
-and merging existing theories.  They have the \ML\ type
-\mltydx{theory}.  Theory operations signal errors by raising exception
-\xdx{THEORY}, returning a message and a list of theories.
+\index{reading!axioms|see{\texttt{assume_ax}}} Theories organize the syntax,
+declarations and axioms of a mathematical development.  They are built,
+starting from the Pure or CPure theory, by extending and merging existing
+theories.  They have the \ML\ type \mltydx{theory}.  Theory operations signal
+errors by raising exception \xdx{THEORY}, returning a message and a list of
+theories.
 
 Signatures, which contain information about sorts, types, constants and
 syntax, have the \ML\ type~\mltydx{Sign.sg}.  For identification, each
@@ -715,9 +715,9 @@ datatype term = Const of string * typ
 \item[$t$ \$ $u$] \index{$@{\tt\$}|bold} \index{function applications|bold}
 is the \textbf{application} of~$t$ to~$u$.
 \end{ttdescription}
-Application is written as an infix operator to aid readability.
-Here is an \ML\ pattern to recognize \FOL{} formulae of
-the form~$A\imp B$, binding the subformulae to~$A$ and~$B$:
+Application is written as an infix operator to aid readability.  Here is an
+\ML\ pattern to recognize FOL formulae of the form~$A\imp B$, binding the
+subformulae to~$A$ and~$B$:
 \begin{ttbox}
 Const("Trueprop",_) $ (Const("op -->",_) $ A $ B)
 \end{ttbox}

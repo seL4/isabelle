@@ -18,8 +18,8 @@ $\alpha$ ranges over class {\tt term}; the equality symbol and quantifiers
 are polymorphic (many-sorted).  The type of formulae is~\tydx{o}, which
 belongs to class {\tt logic}.
 
-\LK{} implements a classical logic theorem prover that is nearly as powerful
-as the generic classical reasoner.  The simplifier is now available too.
+LK implements a classical logic theorem prover that is nearly as powerful as
+the generic classical reasoner.  The simplifier is now available too.
 
 To work in LK, start up Isabelle specifying  \texttt{Sequents} as the
 object-logic.  Once in Isabelle, change the context to theory \texttt{LK.thy}:
@@ -179,17 +179,17 @@ by the representation of sequents.  Type $sobj\To sobj$ represents a list
 of formulae.
 
 The \textbf{definite description} operator~$\iota x. P[x]$ stands for some~$a$
-satisfying~$P[a]$, if one exists and is unique.  Since all terms in \LK{}
-denote something, a description is always meaningful, but we do not know
-its value unless $P[x]$ defines it uniquely.  The Isabelle notation is
-\hbox{\tt THE $x$.\ $P[x]$}.  The corresponding rule (Fig.\ts\ref{lk-rules})
-does not entail the Axiom of Choice because it requires uniqueness.
+satisfying~$P[a]$, if one exists and is unique.  Since all terms in LK denote
+something, a description is always meaningful, but we do not know its value
+unless $P[x]$ defines it uniquely.  The Isabelle notation is \hbox{\tt THE
+  $x$.\ $P[x]$}.  The corresponding rule (Fig.\ts\ref{lk-rules}) does not
+entail the Axiom of Choice because it requires uniqueness.
 
 Conditional expressions are available with the notation 
 \[ \dquotes
    "if"~formula~"then"~term~"else"~term. \]
 
-Figure~\ref{lk-grammar} presents the grammar of \LK.  Traditionally,
+Figure~\ref{lk-grammar} presents the grammar of LK.  Traditionally,
 \(\Gamma\) and \(\Delta\) are meta-variables for sequences.  In Isabelle's
 notation, the prefix~\verb|$| on a term makes it range over sequences.
 In a sequent, anything not prefixed by \verb|$| is taken as a formula.
@@ -272,13 +272,13 @@ the logical connectives and for if-then-else expressions.  See the file
 
 \section{Automatic Proof}
 
-\LK{} instantiates Isabelle's simplifier.  Both equality ($=$) and the
+LK instantiates Isabelle's simplifier.  Both equality ($=$) and the
 biconditional ($\bimp$) may be used for rewriting.  The tactic
 \texttt{Simp_tac} refers to the default simpset (\texttt{simpset()}).  With
 sequents, the \texttt{full_} and \texttt{asm_} forms of the simplifier are not
-required; all the formulae{} in the sequent will be simplified.  The
-left-hand formulae{} are taken as rewrite rules.  (Thus, the behaviour is what
-you would normally expect from calling \texttt{Asm_full_simp_tac}.)
+required; all the formulae{} in the sequent will be simplified.  The left-hand
+formulae{} are taken as rewrite rules.  (Thus, the behaviour is what you would
+normally expect from calling \texttt{Asm_full_simp_tac}.)
 
 For classical reasoning, several tactics are available:
 \begin{ttbox} 
@@ -325,15 +325,13 @@ cutL_tac : string -> int -> tactic
 These tactics refine a subgoal into two by applying the cut rule.  The cut
 formula is given as a string, and replaces some other formula in the sequent.
 \begin{ttdescription}
-\item[\ttindexbold{cutR_tac} {\it P\/} {\it i}] 
-reads an \LK{} formula~$P$, and applies the cut rule to subgoal~$i$.  It
-then deletes some formula from the right side of subgoal~$i$, replacing
-that formula by~$P$.
-
-\item[\ttindexbold{cutL_tac} {\it P\/} {\it i}] 
-reads an \LK{} formula~$P$, and applies the cut rule to subgoal~$i$.  It
-then deletes some formula from the left side of the new subgoal $i+1$,
-replacing that formula by~$P$.
+\item[\ttindexbold{cutR_tac} {\it P\/} {\it i}] reads an LK formula~$P$, and
+  applies the cut rule to subgoal~$i$.  It then deletes some formula from the
+  right side of subgoal~$i$, replacing that formula by~$P$.
+  
+\item[\ttindexbold{cutL_tac} {\it P\/} {\it i}] reads an LK formula~$P$, and
+  applies the cut rule to subgoal~$i$.  It then deletes some formula from the
+  left side of the new subgoal $i+1$, replacing that formula by~$P$.
 \end{ttdescription}
 All the structural rules --- cut, contraction, and thinning --- can be
 applied to particular formulae using {\tt res_inst_tac}.
@@ -378,11 +376,11 @@ Thus, it is the sequent calculus analogue of \ttindex{filt_resolve_tac}.
 
 \section{A simple example of classical reasoning} 
 The theorem $\turn\ex{y}\all{x}P(y)\imp P(x)$ is a standard example of the
-classical treatment of the existential quantifier.  Classical reasoning
-is easy using~{\LK}, as you can see by comparing this proof with the one
-given in the FOL manual~\cite{isabelle-ZF}.  From a logical point of view, the
-proofs are essentially the same; the key step here is to use \tdx{exR}
-rather than the weaker~\tdx{exR_thin}.
+classical treatment of the existential quantifier.  Classical reasoning is
+easy using~LK, as you can see by comparing this proof with the one given in
+the FOL manual~\cite{isabelle-ZF}.  From a logical point of view, the proofs
+are essentially the same; the key step here is to use \tdx{exR} rather than
+the weaker~\tdx{exR_thin}.
 \begin{ttbox}
 Goal "|- EX y. ALL x. P(y)-->P(x)";
 {\out Level 0}
@@ -405,10 +403,10 @@ by (resolve_tac [impR] 1);
 {\out  |- EX y. ALL x. P(y) --> P(x)}
 {\out  1. !!x. P(?x) |- P(x), EX x. ALL xa. P(x) --> P(xa)}
 \end{ttbox}
-Because {\LK} is a sequent calculus, the formula~$P(\Var{x})$ does not
-become an assumption;  instead, it moves to the left side.  The
-resulting subgoal cannot be instantiated to a basic sequent: the bound
-variable~$x$ is not unifiable with the unknown~$\Var{x}$.
+Because LK is a sequent calculus, the formula~$P(\Var{x})$ does not become an
+assumption; instead, it moves to the left side.  The resulting subgoal cannot
+be instantiated to a basic sequent: the bound variable~$x$ is not unifiable
+with the unknown~$\Var{x}$.
 \begin{ttbox}
 by (resolve_tac [basic] 1);
 {\out by: tactic failed}
@@ -548,10 +546,10 @@ where the comma is the associative operator:
 Multiple unifiers occur whenever this is resolved against a goal containing
 more than one conjunction on the left.  
 
-\LK{} exploits this representation of lists.  As an alternative, the
-sequent calculus can be formalized using an ordinary representation of
-lists, with a logic program for removing a formula from a list.  Amy Felty
-has applied this technique using the language $\lambda$Prolog~\cite{felty91a}.
+LK exploits this representation of lists.  As an alternative, the sequent
+calculus can be formalized using an ordinary representation of lists, with a
+logic program for removing a formula from a list.  Amy Felty has applied this
+technique using the language $\lambda$Prolog~\cite{felty91a}.
 
 Explicit formalization of sequents can be tiresome.  But it gives precise
 control over contraction and weakening, and is essential to handle relevant
@@ -575,10 +573,10 @@ subgoals.  Safe rules are (by definition) deterministic, while the unsafe
 rules require a search strategy, such as backtracking.
 
 A \textbf{pack} is a pair whose first component is a list of safe rules and
-whose second is a list of unsafe rules.  Packs can be extended in an
-obvious way to allow reasoning with various collections of rules.  For
-clarity, \LK{} declares \mltydx{pack} as an \ML{} datatype, although is
-essentially a type synonym:
+whose second is a list of unsafe rules.  Packs can be extended in an obvious
+way to allow reasoning with various collections of rules.  For clarity, LK
+declares \mltydx{pack} as an \ML{} datatype, although is essentially a type
+synonym:
 \begin{ttbox}
 datatype pack = Pack of thm list * thm list;
 \end{ttbox}
@@ -628,8 +626,7 @@ adds some unsafe~$rules$ to the pack~$pack$.
 
 \section{*Proof procedures}\label{sec:sequent-provers}
 
-The \LK{} proof procedure is similar to the classical reasoner
-described in 
+The LK proof procedure is similar to the classical reasoner described in
 \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
             {Chap.\ts\ref{chap:classical}}.  
 %

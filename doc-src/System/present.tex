@@ -38,7 +38,7 @@ the applet version.  See \S\ref{sec:browse} for further information.
 
 In order to let Isabelle generate theory browsing information, simply append
 ``\texttt{-i true}'' to the \settdx{ISABELLE_USEDIR_OPTIONS} setting before
-making a logic.  For example, in order to do this for {\FOL}, add this to your
+making a logic.  For example, in order to do this for FOL, add this to your
 Isabelle settings file
 \begin{ttbox}
 ISABELLE_USEDIR_OPTIONS="-i true"
@@ -87,8 +87,8 @@ server, after having generated browser info like this:
 isatool usedir -i true HOL Foo
 \end{ttbox}
 This assumes that directory \texttt{Foo} contains some \texttt{ROOT.ML} file
-to load all your theories, and {\HOL} is your parent logic image.  Ideally,
-theory browser information would have been generated for {\HOL} already.
+to load all your theories, and HOL is your parent logic image.  Ideally,
+theory browser information would have been generated for HOL already.
 
 Alternatively, one may specify an external link to an existing body of HTML
 data by giving \texttt{usedir} a \texttt{-P} option like this:
@@ -499,7 +499,7 @@ Isabelle style files will be placed in \texttt{PATH} as well.
 \medskip Any \texttt{usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend on
 others. For example, consider \texttt{Pure/FOL/ex}, which refers to the
-examples of {\FOL}, which in turn is built upon {\Pure}.
+examples of FOL, which in turn is built upon Pure.
 
 The current session's identifier is by default just the base name of the
 \texttt{LOGIC} argument (in build mode), or of the \texttt{NAME} argument (in

@@ -13,7 +13,7 @@ include ../Makefile.in
 
 NAME = logics
 FILES = logics.tex preface.tex syntax.tex LK.tex Sequents.tex CTT.tex \
-	../proof.sty ../iman.sty ../extra.sty ../manual.bib
+	../proof.sty ../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
 
 dvi: $(NAME).dvi
 

@@ -3,33 +3,32 @@
 \index{higher-order logic|(}
 \index{HOL system@{\sc hol} system}
 
-The theory~\thydx{HOL} implements higher-order logic.
-It is based on Gordon's~{\sc hol} system~\cite{mgordon-hol}, which itself is
-based on Church's original paper~\cite{church40}.  Andrews's
-book~\cite{andrews86} is a full description of higher-order logic.
-Experience with the {\sc hol} system has demonstrated that higher-order
-logic is useful for hardware verification; beyond this, it is widely
-applicable in many areas of mathematics.  It is weaker than {\ZF} set
-theory but for most applications this does not matter.  If you prefer {\ML}
-to Lisp, you will probably prefer \HOL\ to~{\ZF}.
+The theory~\thydx{HOL} implements higher-order logic.  It is based on
+Gordon's~{\sc hol} system~\cite{mgordon-hol}, which itself is based on
+Church's original paper~\cite{church40}.  Andrews's book~\cite{andrews86} is a
+full description of higher-order logic.  Experience with the {\sc hol} system
+has demonstrated that higher-order logic is useful for hardware verification;
+beyond this, it is widely applicable in many areas of mathematics.  It is
+weaker than ZF set theory but for most applications this does not matter.  If
+you prefer {\ML} to Lisp, you will probably prefer HOL to~ZF.
 
-Previous releases of Isabelle included a different version of~\HOL, with
+Previous releases of Isabelle included a different version of~HOL, with
 explicit type inference rules~\cite{paulson-COLOG}.  This version no longer
 exists, but \thydx{ZF} supports a similar style of reasoning.
 
-\HOL\ has a distinct feel, compared with {\ZF} and {\CTT}.  It
-identifies object-level types with meta-level types, taking advantage of
-Isabelle's built-in type checker.  It identifies object-level functions
-with meta-level functions, so it uses Isabelle's operations for abstraction
-and application.  There is no `apply' operator: function applications are
-written as simply~$f(a)$ rather than $f{\tt`}a$.
+HOL has a distinct feel, compared with ZF and CTT.  It identifies object-level
+types with meta-level types, taking advantage of Isabelle's built-in type
+checker.  It identifies object-level functions with meta-level functions, so
+it uses Isabelle's operations for abstraction and application.  There is no
+`apply' operator: function applications are written as simply~$f(a)$ rather
+than $f{\tt`}a$.
 
-These identifications allow Isabelle to support \HOL\ particularly nicely,
-but they also mean that \HOL\ requires more sophistication from the user
---- in particular, an understanding of Isabelle's type system.  Beginners
-should work with {\tt show_types} set to {\tt true}.  Gain experience by
-working in first-order logic before attempting to use higher-order logic.
-This chapter assumes familiarity with~{\FOL{}}.
+These identifications allow Isabelle to support HOL particularly nicely, but
+they also mean that HOL requires more sophistication from the user --- in
+particular, an understanding of Isabelle's type system.  Beginners should work
+with {\tt show_types} set to {\tt true}.  Gain experience by working in
+first-order logic before attempting to use higher-order logic.  This chapter
+assumes familiarity with~FOL.
 
 
 \begin{figure} 
@@ -115,7 +114,7 @@ This chapter assumes familiarity with~{\FOL{}}.
          & | & "EX!~" id~id^* " . " formula
   \end{array}
 \]
-\caption{Full grammar for \HOL} \label{hol-grammar}
+\caption{Full grammar for HOL} \label{hol-grammar}
 \end{figure} 
 
 
@@ -140,7 +139,7 @@ higher-order logic.  Note that $a$\verb|~=|$b$ is translated to
 $\neg(a=b)$.
 
 \begin{warn}
-  \HOL\ has no if-and-only-if connective; logical equivalence is expressed
+  HOL has no if-and-only-if connective; logical equivalence is expressed
   using equality.  But equality has a high priority, as befitting a
   relation, while if-and-only-if typically has the lowest priority.  Thus,
   $\neg\neg P=P$ abbreviates $\neg\neg (P=P)$ and not $(\neg\neg P)=P$.
@@ -155,7 +154,7 @@ types, is overloaded with arity {\tt(term,term)term}.  Thus, $\sigma\To\tau$
 belongs to class~{\tt term} if $\sigma$ and~$\tau$ do, allowing quantification
 over functions.
 
-Types in \HOL\ must be non-empty; otherwise the quantifier rules would be
+Types in HOL must be non-empty; otherwise the quantifier rules would be
 unsound.  I have commented on this elsewhere~\cite[\S7]{paulson-COLOG}.
 
 \index{type definitions}
@@ -178,11 +177,10 @@ Isabelle cannot enforce this.
 
 \subsection{Binders}
 Hilbert's {\bf description} operator~$\epsilon x.P[x]$ stands for some~$a$
-satisfying~$P[a]$, if such exists.  Since all terms in \HOL\ denote
-something, a description is always meaningful, but we do not know its value
-unless $P[x]$ defines it uniquely.  We may write descriptions as
-\cdx{Eps}($P$) or use the syntax
-\hbox{\tt \at $x$.$P[x]$}.
+satisfying~$P[a]$, if such exists.  Since all terms in HOL denote something, a
+description is always meaningful, but we do not know its value unless $P[x]$
+defines it uniquely.  We may write descriptions as \cdx{Eps}($P$) or use the
+syntax \hbox{\tt \at $x$.$P[x]$}.
 
 Existential quantification is defined by
 \[ \exists x.P(x) \;\equiv\; P(\epsilon x.P(x)). \]
@@ -193,14 +191,14 @@ $\exists!x. \exists!y.P(x,y)$; note that this does not mean that there
 exists a unique pair $(x,y)$ satisfying~$P(x,y)$.
 
 \index{*"! symbol}\index{*"? symbol}\index{HOL system@{\sc hol} system}
-Quantifiers have two notations.  As in Gordon's {\sc hol} system, \HOL\
+Quantifiers have two notations.  As in Gordon's {\sc hol} system, HOL
 uses~{\tt!}\ and~{\tt?}\ to stand for $\forall$ and $\exists$.  The
 existential quantifier must be followed by a space; thus {\tt?x} is an
 unknown, while \verb'? x.f(x)=y' is a quantification.  Isabelle's usual
-notation for quantifiers, \sdx{ALL} and \sdx{EX}, is also
-available.  Both notations are accepted for input.  The {\ML} reference
+notation for quantifiers, \sdx{ALL} and \sdx{EX}, is also available.  Both
+notations are accepted for input.  The {\ML} reference
 \ttindexbold{HOL_quantifiers} governs the output notation.  If set to {\tt
-true}, then~{\tt!}\ and~{\tt?}\ are displayed; this is the default.  If set
+  true}, then~{\tt!}\ and~{\tt?}\ are displayed; this is the default.  If set
 to {\tt false}, then~{\tt ALL} and~{\tt EX} are displayed.
 
 All these binders have priority 10. 
@@ -212,7 +210,7 @@ syntax appears in Fig.\ts\ref{hol-grammar}.  Internally it is translated into
 the constant~\cdx{Let}.  It can be expanded by rewriting with its
 definition, \tdx{Let_def}.
 
-\HOL\ also defines the basic syntax
+HOL also defines the basic syntax
 \[\dquotes"case"~e~"of"~c@1~"=>"~e@1~"|" \dots "|"~c@n~"=>"~e@n\] 
 as a uniform means of expressing {\tt case} constructs.  Therefore {\tt
   case} and \sdx{of} are reserved words.  However, so far this is mere
@@ -259,8 +257,8 @@ case construct for lists on page~\pageref{hol-list} below.
 
 
 \section{Rules of inference}
-Figure~\ref{hol-rules} shows the inference rules of~\HOL{}, with
-their~{\ML} names.  Some of the rules deserve additional comments:
+Figure~\ref{hol-rules} shows the inference rules of~HOL, with their~{\ML}
+names.  Some of the rules deserve additional comments:
 \begin{ttdescription}
 \item[\tdx{ext}] expresses extensionality of functions.
 \item[\tdx{iff}] asserts that logically equivalent formulae are
@@ -273,14 +271,14 @@ their~{\ML} names.  Some of the rules deserve additional comments:
     shown by Diaconescu; see Paulson~\cite{paulson-COLOG} for details.}
 \end{ttdescription}
 
-\HOL{} follows standard practice in higher-order logic: only a few
-connectives are taken as primitive, with the remainder defined obscurely
+HOL follows standard practice in higher-order logic: only a few connectives
+are taken as primitive, with the remainder defined obscurely
 (Fig.\ts\ref{hol-defs}).  Gordon's {\sc hol} system expresses the
 corresponding definitions \cite[page~270]{mgordon-hol} using
-object-equality~({\tt=}), which is possible because equality in
-higher-order logic may equate formulae and even functions over formulae.
-But theory~\HOL{}, like all other Isabelle theories, uses
-meta-equality~({\tt==}) for definitions.
+object-equality~({\tt=}), which is possible because equality in higher-order
+logic may equate formulae and even functions over formulae.  But theory~HOL,
+like all other Isabelle theories, uses meta-equality~({\tt==}) for
+definitions.
 
 Some of the rules mention type variables; for
 example, {\tt refl} mentions the type variable~{\tt'a}.  This allows you to
@@ -344,7 +342,7 @@ with confusing results.
 \subcaption{Logical equivalence}
 
 \end{ttbox}
-\caption{Derived rules for \HOL} \label{hol-lemmas1}
+\caption{Derived rules for HOL} \label{hol-lemmas1}
 \end{figure}
 
 
@@ -521,8 +519,8 @@ simplifying both sides of an equation.
 \section{A formulation of set theory}
 Historically, higher-order logic gives a foundation for Russell and
 Whitehead's theory of classes.  Let us use modern terminology and call them
-{\bf sets}, but note that these sets are distinct from those of {\ZF} set
-theory, and behave more like {\ZF} classes.
+{\bf sets}, but note that these sets are distinct from those of ZF set theory,
+and behave more like ZF classes.
 \begin{itemize}
 \item
 Sets are given by predicates over some type~$\sigma$.  Types serve to
@@ -534,20 +532,19 @@ may be defined by absolute comprehension.
 Although sets may contain other sets as elements, the containing set must
 have a more complex type.
 \end{itemize}
-Finite unions and intersections have the same behaviour in \HOL\ as they
-do in~{\ZF}.  In \HOL\ the intersection of the empty set is well-defined,
-denoting the universal set for the given type.
+Finite unions and intersections have the same behaviour in HOL as they do
+in~ZF.  In HOL the intersection of the empty set is well-defined, denoting the
+universal set for the given type.
 
 
 \subsection{Syntax of set theory}\index{*set type}
-\HOL's set theory is called \thydx{Set}.  The type $\alpha\,set$ is
-essentially the same as $\alpha\To bool$.  The new type is defined for
-clarity and to avoid complications involving function types in unification.
-Since Isabelle does not support type definitions (as mentioned in
-\S\ref{HOL-types}), the isomorphisms between the two types are declared
-explicitly.  Here they are natural: {\tt Collect} maps $\alpha\To bool$ to
-$\alpha\,set$, while \hbox{\tt op :} maps in the other direction (ignoring
-argument order).
+HOL's set theory is called \thydx{Set}.  The type $\alpha\,set$ is essentially
+the same as $\alpha\To bool$.  The new type is defined for clarity and to
+avoid complications involving function types in unification.  Since Isabelle
+does not support type definitions (as mentioned in \S\ref{HOL-types}), the
+isomorphisms between the two types are declared explicitly.  Here they are
+natural: {\tt Collect} maps $\alpha\To bool$ to $\alpha\,set$, while \hbox{\tt
+  op :} maps in the other direction (ignoring argument order).
 
 Figure~\ref{hol-set-syntax} lists the constants, infixes, and syntax
 translations.  Figure~\ref{hol-set-syntax2} presents the grammar of the new
@@ -563,11 +560,11 @@ obvious manner using~{\tt insert} and~$\{\}$:
   {\tt insert}(a@1,\ldots,{\tt insert}(a@n,\{\}))
 \end{eqnarray*}
 
-The set \hbox{\tt\{$x$.$P[x]$\}} consists of all $x$ (of suitable type)
-that satisfy~$P[x]$, where $P[x]$ is a formula that may contain free
-occurrences of~$x$.  This syntax expands to \cdx{Collect}$(\lambda
-x.P[x])$.  It defines sets by absolute comprehension, which is impossible
-in~{\ZF}; the type of~$x$ implicitly restricts the comprehension.
+The set \hbox{\tt\{$x$.$P[x]$\}} consists of all $x$ (of suitable type) that
+satisfy~$P[x]$, where $P[x]$ is a formula that may contain free occurrences
+of~$x$.  This syntax expands to \cdx{Collect}$(\lambda x.P[x])$.  It defines
+sets by absolute comprehension, which is impossible in~ZF; the type of~$x$
+implicitly restricts the comprehension.
 
 The set theory defines two {\bf bounded quantifiers}:
 \begin{eqnarray*}
@@ -811,14 +808,13 @@ representations; we should not expect $f$ to be injective outside of~$A$.
 
 
 Figures~\ref{hol-set1} and~\ref{hol-set2} present derived rules.  Most are
-obvious and resemble rules of Isabelle's {\ZF} set theory.  Certain rules,
-such as \tdx{subsetCE}, \tdx{bexCI} and \tdx{UnCI},
-are designed for classical reasoning; the rules \tdx{subsetD},
-\tdx{bexI}, \tdx{Un1} and~\tdx{Un2} are not
-strictly necessary but yield more natural proofs.  Similarly,
-\tdx{equalityCE} supports classical reasoning about extensionality,
-after the fashion of \tdx{iffCE}.  See the file {\tt HOL/Set.ML} for
-proofs pertaining to set theory.
+obvious and resemble rules of Isabelle's ZF set theory.  Certain rules, such
+as \tdx{subsetCE}, \tdx{bexCI} and \tdx{UnCI}, are designed for classical
+reasoning; the rules \tdx{subsetD}, \tdx{bexI}, \tdx{Un1} and~\tdx{Un2} are
+not strictly necessary but yield more natural proofs.  Similarly,
+\tdx{equalityCE} supports classical reasoning about extensionality, after the
+fashion of \tdx{iffCE}.  See the file {\tt HOL/Set.ML} for proofs pertaining
+to set theory.
 
 Figure~\ref{hol-fun} presents derived inference rules involving functions.
 They also include rules for \cdx{Inv}, which is defined in theory~{\tt
@@ -905,13 +901,12 @@ classical reasoner; see file {\tt HOL/equalities.ML}.
 
 
 \section{Generic packages and classical reasoning}
-\HOL\ instantiates most of Isabelle's generic packages;
-see {\tt HOL/ROOT.ML} for details.
+HOL instantiates most of Isabelle's generic packages; see {\tt HOL/ROOT.ML}
+for details.
 \begin{itemize}
-\item 
-Because it includes a general substitution rule, \HOL\ instantiates the
-tactic {\tt hyp_subst_tac}, which substitutes for an equality
-throughout a subgoal and its hypotheses.
+\item Because it includes a general substitution rule, HOL instantiates the
+  tactic {\tt hyp_subst_tac}, which substitutes for an equality throughout a
+  subgoal and its hypotheses.
 \item 
 It instantiates the simplifier, defining~\ttindexbold{HOL_ss} as the
 simplification set for higher-order logic.  Equality~($=$), which also
@@ -921,14 +916,14 @@ rules.
 \item 
 It instantiates the classical reasoner, as described below. 
 \end{itemize}
-\HOL\ derives classical introduction rules for $\disj$ and~$\exists$, as
-well as classical elimination rules for~$\imp$ and~$\bimp$, and the swap
-rule; recall Fig.\ts\ref{hol-lemmas2} above.
+HOL derives classical introduction rules for $\disj$ and~$\exists$, as well as
+classical elimination rules for~$\imp$ and~$\bimp$, and the swap rule; recall
+Fig.\ts\ref{hol-lemmas2} above.
 
-The classical reasoner is set up as the structure
-{\tt Classical}.  This structure is open, so {\ML} identifiers such
-as {\tt step_tac}, {\tt fast_tac}, {\tt best_tac}, etc., refer to it.
-\HOL\ defines the following classical rule sets:
+The classical reasoner is set up as the structure {\tt Classical}.  This
+structure is open, so {\ML} identifiers such as {\tt step_tac}, {\tt
+  fast_tac}, {\tt best_tac}, etc., refer to it.  HOL defines the following
+classical rule sets:
 \begin{ttbox} 
 prop_cs    : claset
 HOL_cs     : claset
@@ -1075,13 +1070,12 @@ along arbitrary well-founded relations.  The corresponding theories are
 called {\tt Lfp}, {\tt Trancl} and {\tt WF}\@.  Elsewhere I have described
 similar constructions in the context of set theory~\cite{paulson-set-II}.
 
-Type~\tydx{nat} is postulated to belong to class~\cldx{ord}, which
-overloads $<$ and $\leq$ on the natural numbers.  As of this writing,
-Isabelle provides no means of verifying that such overloading is sensible;
-there is no means of specifying the operators' properties and verifying
-that instances of the operators satisfy those properties.  To be safe, the
-\HOL\ theory includes no polymorphic axioms asserting general properties of
-$<$ and~$\leq$.
+Type~\tydx{nat} is postulated to belong to class~\cldx{ord}, which overloads
+$<$ and $\leq$ on the natural numbers.  As of this writing, Isabelle provides
+no means of verifying that such overloading is sensible; there is no means of
+specifying the operators' properties and verifying that instances of the
+operators satisfy those properties.  To be safe, the HOL theory includes no
+polymorphic axioms asserting general properties of $<$ and~$\leq$.
 
 Theory \thydx{Arith} develops arithmetic on the natural numbers.  It
 defines addition, multiplication, subtraction, division, and remainder.
@@ -1190,9 +1184,9 @@ variable~$n$ in subgoal~$i$.
 \subsection{The type constructor for lists, {\tt list}}
 \index{*list type}
 
-\HOL's definition of lists is an example of an experimental method for
-handling recursive data types.  Figure~\ref{hol-list} presents the theory
-\thydx{List}: the basic list operations with their types and properties.
+HOL's definition of lists is an example of an experimental method for handling
+recursive data types.  Figure~\ref{hol-list} presents the theory \thydx{List}:
+the basic list operations with their types and properties.
 
 The \sdx{case} construct is defined by the following translation:
 {\dquotes
@@ -1740,8 +1734,8 @@ denotational and operational semantics of a simple while-language, then
 proves the two equivalent.  It contains several datatype and inductive
 definitions, and demonstrates their use.
 
-Directory {\tt HOL/ex} contains other examples and experimental proofs in
-{\HOL}.  Here is an overview of the more interesting files.
+Directory {\tt HOL/ex} contains other examples and experimental proofs in HOL.
+Here is an overview of the more interesting files.
 \begin{itemize}
 \item File {\tt cla.ML} demonstrates the classical reasoner on over sixty
   predicate calculus theorems, ranging from simple tautologies to
@@ -1770,12 +1764,12 @@ Directory {\tt HOL/ex} contains other examples and experimental proofs in
   as filter, which can compute indefinitely before yielding the next
   element (if any!) of the lazy list.  A coinduction principle is defined
   for proving equations on lazy lists.
-
-\item Theory {\tt PropLog} proves the soundness and completeness of
-  classical propositional logic, given a truth table semantics.  The only
-  connective is $\imp$.  A Hilbert-style axiom system is specified, and its
-  set of theorems defined inductively.  A similar proof in \ZF{} is
-  described elsewhere~\cite{paulson-set-II}.
+  
+\item Theory {\tt PropLog} proves the soundness and completeness of classical
+  propositional logic, given a truth table semantics.  The only connective is
+  $\imp$.  A Hilbert-style axiom system is specified, and its set of theorems
+  defined inductively.  A similar proof in ZF is described
+  elsewhere~\cite{paulson-set-II}.
 
 \item Theory {\tt Term} develops an experimental recursive type definition;
   the recursion goes through the type constructor~\tydx{list}.
@@ -1804,8 +1798,8 @@ Viewing types as sets, $\alpha\To bool$ represents the powerset
 of~$\alpha$.  This version states that for every function from $\alpha$ to
 its powerset, some subset is outside its range.  
 
-The Isabelle proof uses \HOL's set theory, with the type $\alpha\,set$ and
-the operator \cdx{range}.  The set~$S$ is given as an unknown instead of a
+The Isabelle proof uses HOL's set theory, with the type $\alpha\,set$ and the
+operator \cdx{range}.  The set~$S$ is given as an unknown instead of a
 quantified variable so that we may inspect the subset found by the proof.
 \begin{ttbox}
 goal Set.thy "~ ?S : range(f :: 'a=>'a set)";
@@ -1870,12 +1864,11 @@ by (assume_tac 1);
 {\out No subgoals!}
 \end{ttbox}
 How much creativity is required?  As it happens, Isabelle can prove this
-theorem automatically.  The classical set \ttindex{set_cs} contains rules
-for most of the constructs of \HOL's set theory.  We must augment it with
-\tdx{equalityCE} to break up set equalities, and then apply best-first
-search.  Depth-first search would diverge, but best-first search
-successfully navigates through the large search space.
-\index{search!best-first}
+theorem automatically.  The classical set \ttindex{set_cs} contains rules for
+most of the constructs of HOL's set theory.  We must augment it with
+\tdx{equalityCE} to break up set equalities, and then apply best-first search.
+Depth-first search would diverge, but best-first search successfully navigates
+through the large search space.  \index{search!best-first}
 \begin{ttbox}
 choplev 0;
 {\out Level 0}

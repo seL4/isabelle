@@ -34,7 +34,7 @@ prompt within an ordinary text terminal session, simply type
 \({\langle}isabellehome{\rangle}\)/bin/isabelle
 \end{ttbox}
 This should start an interactive \ML{} session with the default object-logic
-(usually {\HOL}) already pre-loaded.
+(usually HOL) already pre-loaded.
 
 Subsequently, we assume that the \texttt{isabelle} executable is determined
 automatically by the shell, e.g.\ by adding {\tt \(\langle isabellehome
@@ -52,7 +52,7 @@ to the {\tt isabelle} command, e.g.
 isabelle FOL
 \end{ttbox}
 This should put you into the world of polymorphic first-order logic (assuming
-that an image of {\FOL} has been pre-built).
+that an image of FOL has been pre-built).
 
 \index{saving your session|bold} Isabelle provides no means of storing
 theorems or internal proof objects on files.  Theorems are simply part of the
@@ -62,7 +62,7 @@ normally (e.g.\ by typing control-D), provided that the image has been opened
 \emph{writable} in the first place.  The standard object-logic images are
 usually read-only, so you have to create a private working copy first.  For
 example, the following shell command puts you into a writable Isabelle session
-of name \texttt{Foo} that initially contains just plain \HOL:
+of name \texttt{Foo} that initially contains just plain HOL:
 \begin{ttbox}
 isabelle HOL Foo
 \end{ttbox}
@@ -202,7 +202,7 @@ update_thy   : string -> unit
   
 \end{ttdescription}
 
-Note that theories of pre-built logic images (e.g.\ {\HOL}) are marked as
+Note that theories of pre-built logic images (e.g.\ HOL) are marked as
 \emph{finished} and cannot be updated any more.  See \S\ref{sec:more-theories}
 for further information on Isabelle's theory loader.
 

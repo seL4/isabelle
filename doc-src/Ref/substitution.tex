@@ -61,7 +61,7 @@ To replace $u$ by~$t$ or $t$ by~$u$ in subgoal~$i$, use
 eresolve_tac [subst] \(i\)    {\rm or}    eresolve_tac [ssubst] \(i\){\it.}
 \end{ttbox}
 
-Logics \HOL, {\FOL} and {\ZF} define the tactic \ttindexbold{stac} by
+Logics HOL, FOL and ZF define the tactic \ttindexbold{stac} by
 \begin{ttbox} 
 fun stac eqth = CHANGED o rtac (eqth RS ssubst);
 \end{ttbox}

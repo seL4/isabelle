@@ -441,20 +441,18 @@ they must not, for example, assign different types to the same constant.
 Under similar conditions, a signature can be extended.  Signatures are
 managed internally by Isabelle; users seldom encounter them.
 
-\index{theories|bold} A {\bf theory} consists of a signature plus a
-collection of axioms.  The {\Pure} theory contains only the
-meta-logic.  Theories can be combined provided their signatures are
-compatible.  A theory definition extends an existing theory with
-further signature specifications --- classes, types, constants and
-mixfix declarations --- plus lists of axioms and definitions etc.,
-expressed as strings to be parsed.  A theory can formalize a small
-piece of mathematics, such as lists and their operations, or an entire
-logic.  A mathematical development typically involves many theories in
-a hierarchy.  For example, the {\Pure} theory could be extended to
-form a theory for Fig.\ts\ref{fol-fig}; this could be extended in two
-separate ways to form a theory for natural numbers and a theory for
-lists; the union of these two could be extended into a theory defining
-the length of a list:
+\index{theories|bold} A {\bf theory} consists of a signature plus a collection
+of axioms.  The Pure theory contains only the meta-logic.  Theories can be
+combined provided their signatures are compatible.  A theory definition
+extends an existing theory with further signature specifications --- classes,
+types, constants and mixfix declarations --- plus lists of axioms and
+definitions etc., expressed as strings to be parsed.  A theory can formalize a
+small piece of mathematics, such as lists and their operations, or an entire
+logic.  A mathematical development typically involves many theories in a
+hierarchy.  For example, the Pure theory could be extended to form a theory
+for Fig.\ts\ref{fol-fig}; this could be extended in two separate ways to form
+a theory for natural numbers and a theory for lists; the union of these two
+could be extended into a theory defining the length of a list:
 \begin{tt}
 \[
 \begin{array}{c@{}c@{}c@{}c@{}c}

@@ -31,16 +31,15 @@ $(\exists x.P)\disj Q$.  Note especially that $P\disj(\exists x.Q)$
 becomes syntactically invalid if the brackets are removed.
 
 A {\bf binder} is a symbol associated with a constant of type
-$(\sigma\To\tau)\To\tau'$.  For instance, we may declare~$\forall$ as
-a binder for the constant~$All$, which has type $(\alpha\To o)\To o$.
-This defines the syntax $\forall x.t$ to mean $All(\lambda x.t)$.  We
-can also write $\forall x@1\ldots x@m.t$ to abbreviate $\forall x@1.
-\ldots \forall x@m.t$; this is possible for any constant provided that
-$\tau$ and $\tau'$ are the same type.  \HOL's description operator
-$\varepsilon x.P\,x$ has type $(\alpha\To bool)\To\alpha$ and can bind
-only one variable, except when $\alpha$ is $bool$.  \ZF's bounded
-quantifier $\forall x\in A.P(x)$ cannot be declared as a binder
-because it has type $[i, i\To o]\To o$.  The syntax for binders allows
+$(\sigma\To\tau)\To\tau'$.  For instance, we may declare~$\forall$ as a binder
+for the constant~$All$, which has type $(\alpha\To o)\To o$.  This defines the
+syntax $\forall x.t$ to mean $All(\lambda x.t)$.  We can also write $\forall
+x@1\ldots x@m.t$ to abbreviate $\forall x@1.  \ldots \forall x@m.t$; this is
+possible for any constant provided that $\tau$ and $\tau'$ are the same type.
+HOL's description operator $\varepsilon x.P\,x$ has type $(\alpha\To
+bool)\To\alpha$ and can bind only one variable, except when $\alpha$ is
+$bool$.  ZF's bounded quantifier $\forall x\in A.P(x)$ cannot be declared as a
+binder because it has type $[i, i\To o]\To o$.  The syntax for binders allows
 type constraints on bound variables, as in
 \[ \forall (x{::}\alpha) \; (y{::}\beta) \; z{::}\gamma. Q(x,y,z) \]
 

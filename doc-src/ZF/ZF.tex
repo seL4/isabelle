@@ -23,10 +23,9 @@ bisimulation relations, and codatatype definitions, such as streams.  It
 provides a streamlined syntax for defining primitive recursive functions over
 datatypes. 
 
-Because {\ZF} is an extension of {\FOL}, it provides the same
-packages, namely \texttt{hyp_subst_tac}, the simplifier, and the
-classical reasoner.  The default simpset and claset are usually
-satisfactory.
+Because ZF is an extension of FOL, it provides the same packages, namely
+\texttt{hyp_subst_tac}, the simplifier, and the classical reasoner.  The
+default simpset and claset are usually satisfactory.
 
 Published articles~\cite{paulson-set-I,paulson-set-II} describe \texttt{ZF}
 less formally than this chapter.  Isabelle employs a novel treatment of
@@ -94,7 +93,7 @@ $x$ is a set.
 \begin{center}
 \index{*"`"` symbol}
 \index{*"-"`"` symbol}
-\index{*"` symbol}\index{function applications!in \ZF}
+\index{*"` symbol}\index{function applications!in ZF}
 \index{*"- symbol}
 \index{*": symbol}
 \index{*"<"= symbol}
@@ -111,7 +110,7 @@ $x$ is a set.
 \end{tabular}
 \end{center}
 \subcaption{Infixes}
-\caption{Constants of {\ZF}} \label{zf-constants}
+\caption{Constants of ZF} \label{zf-constants}
 \end{figure} 
 
 
@@ -125,10 +124,10 @@ comprehension, general union/intersection, general sums/products, and
 bounded quantifiers.  In most other respects, Isabelle implements precisely
 Zermelo-Fraenkel set theory.
 
-Figure~\ref{zf-constants} lists the constants and infixes of~\ZF, while
+Figure~\ref{zf-constants} lists the constants and infixes of~ZF, while
 Figure~\ref{zf-trans} presents the syntax translations.  Finally,
-Figure~\ref{zf-syntax} presents the full grammar for set theory, including
-the constructs of \FOL.
+Figure~\ref{zf-syntax} presents the full grammar for set theory, including the
+constructs of FOL.
 
 Local abbreviations can be introduced by a \texttt{let} construct whose
 syntax appears in Fig.\ts\ref{zf-syntax}.  Internally it is translated into
@@ -136,7 +135,7 @@ the constant~\cdx{Let}.  It can be expanded by rewriting with its
 definition, \tdx{Let_def}.
 
 Apart from \texttt{let}, set theory does not use polymorphism.  All terms in
-{\ZF} have type~\tydx{i}, which is the type of individuals and has class~{\tt
+ZF have type~\tydx{i}, which is the type of individuals and has class~{\tt
   term}.  The type of first-order formulae, remember, is~\textit{o}.
 
 Infix operators include binary union and intersection ($A\un B$ and
@@ -167,15 +166,15 @@ as {\tt<$a$,$b$>}.  The $n$-tuple {\tt<$a@1$,\ldots,$a@{n-1}$,$a@n$>}
 abbreviates the nest of pairs\par\nobreak
 \centerline{\texttt{Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots).}}
 
-In {\ZF}, a function is a set of pairs.  A {\ZF} function~$f$ is simply an
-individual as far as Isabelle is concerned: its Isabelle type is~$i$, not
-say $i\To i$.  The infix operator~{\tt`} denotes the application of a
-function set to its argument; we must write~$f{\tt`}x$, not~$f(x)$.  The
-syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
+In ZF, a function is a set of pairs.  A ZF function~$f$ is simply an
+individual as far as Isabelle is concerned: its Isabelle type is~$i$, not say
+$i\To i$.  The infix operator~{\tt`} denotes the application of a function set
+to its argument; we must write~$f{\tt`}x$, not~$f(x)$.  The syntax for image
+is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
 
 
 \begin{figure} 
-\index{lambda abs@$\lambda$-abstractions!in \ZF}
+\index{lambda abs@$\lambda$-abstractions!in ZF}
 \index{*"-"> symbol}
 \index{*"* symbol}
 \begin{center} \footnotesize\tt\frenchspacing
@@ -215,7 +214,7 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
         \rm bounded $\exists$
 \end{tabular}
 \end{center}
-\caption{Translations for {\ZF}} \label{zf-trans}
+\caption{Translations for ZF} \label{zf-trans}
 \end{figure} 
 
 
@@ -264,7 +263,7 @@ syntax for image is~$f{\tt``}A$ and that for inverse image is~$f{\tt-``}A$.
          & | & "EX!~" id~id^* " . " formula
   \end{array}
 \]
-\caption{Full grammar for {\ZF}} \label{zf-syntax}
+\caption{Full grammar for ZF} \label{zf-syntax}
 \end{figure} 
 
 
@@ -321,14 +320,13 @@ infix operators, {\tt*} and {\tt->} merely define abbreviations; there are
 no constants~\texttt{op~*} and~\hbox{\tt op~->}.} Isabelle accepts these
 abbreviations in parsing and uses them whenever possible for printing.
 
-\index{*THE symbol} 
-As mentioned above, whenever the axioms assert the existence and uniqueness
-of a set, Isabelle's set theory declares a constant for that set.  These
-constants can express the {\bf definite description} operator~$\iota
-x. P[x]$, which stands for the unique~$a$ satisfying~$P[a]$, if such exists.
-Since all terms in {\ZF} denote something, a description is always
-meaningful, but we do not know its value unless $P[x]$ defines it uniquely.
-Using the constant~\cdx{The}, we may write descriptions as {\tt
+\index{*THE symbol} As mentioned above, whenever the axioms assert the
+existence and uniqueness of a set, Isabelle's set theory declares a constant
+for that set.  These constants can express the {\bf definite description}
+operator~$\iota x. P[x]$, which stands for the unique~$a$ satisfying~$P[a]$,
+if such exists.  Since all terms in ZF denote something, a description is
+always meaningful, but we do not know its value unless $P[x]$ defines it
+uniquely.  Using the constant~\cdx{The}, we may write descriptions as {\tt
   The($\lambda x. P[x]$)} or use the syntax \hbox{\tt THE $x$.\ $P[x]$}.
 
 \index{*lam symbol}
@@ -385,7 +383,7 @@ write
 \tdx{Diff_def}     A - B    == {\ttlbrace}x:A . x~:B{\ttrbrace}
 \subcaption{Union, intersection, difference}
 \end{ttbox}
-\caption{Rules and axioms of {\ZF}} \label{zf-rules}
+\caption{Rules and axioms of ZF} \label{zf-rules}
 \end{figure}
 
 
@@ -417,7 +415,7 @@ write
 \tdx{restrict_def}   restrict(f,A) == lam x:A. f`x
 \subcaption{Functions and general product}
 \end{ttbox}
-\caption{Further definitions of {\ZF}} \label{zf-defs}
+\caption{Further definitions of ZF} \label{zf-defs}
 \end{figure}
 
 
@@ -515,7 +513,7 @@ over the domain~$A$.
 \tdx{PowD}            A : Pow(B)  ==>  A<=B
 \subcaption{The empty set; power sets}
 \end{ttbox}
-\caption{Basic derived rules for {\ZF}} \label{zf-lemmas1}
+\caption{Basic derived rules for ZF} \label{zf-lemmas1}
 \end{figure}
 
 
@@ -555,7 +553,7 @@ is no reason to aim for a minimal set of rules.  See the file
 Figure~\ref{zf-lemmas3} presents rules for general union and intersection.
 The empty intersection should be undefined.  We cannot have
 $\bigcap(\emptyset)=V$ because $V$, the universal class, is not a set.  All
-expressions denote something in {\ZF} set theory; the definition of
+expressions denote something in ZF set theory; the definition of
 intersection implies $\bigcap(\emptyset)=\emptyset$, but this value is
 arbitrary.  The rule \tdx{InterI} must have a premise to exclude
 the empty intersection.  Some of the laws governing intersections require
@@ -1051,7 +1049,7 @@ and idempotency laws of union and intersection, along with other equations.
 See file \texttt{ZF/equalities.ML}.
 
 Theory \thydx{Bool} defines $\{0,1\}$ as a set of booleans, with the usual
-operators including a conditional (Fig.\ts\ref{zf-bool}).  Although {\ZF} is a
+operators including a conditional (Fig.\ts\ref{zf-bool}).  Although ZF is a
 first-order theory, you can obtain the effect of higher-order logic using
 \texttt{bool}-valued functions, for example.  The constant~\texttt{1} is
 translated to \texttt{succ(0)}.
@@ -1343,13 +1341,13 @@ under the non-standard product and sum.
 
 \section{Automatic Tools}
 
-{\ZF} provides the simplifier and the classical reasoner.   Moreover it
-supplies a specialized tool to infer `types' of terms.
+ZF provides the simplifier and the classical reasoner.  Moreover it supplies a
+specialized tool to infer `types' of terms.
 
 \subsection{Simplification}
 
-{\ZF} inherits simplification from {\FOL} but adopts it for set theory.  The
-extraction of rewrite rules takes the {\ZF} primitives into account.  It can
+ZF inherits simplification from FOL but adopts it for set theory.  The
+extraction of rewrite rules takes the ZF primitives into account.  It can
 strip bounded universal quantifiers from a formula; for example, ${\forall
   x\in A. f(x)=g(x)}$ yields the conditional rewrite rule $x\in A \Imp
 f(x)=g(x)$.  Given $a\in\{x\in A. P(x)\}$ it extracts rewrite rules from $a\in
@@ -1360,10 +1358,9 @@ Simplification tactics tactics such as \texttt{Asm_simp_tac} and
 works for most purposes.  A small simplification set for set theory is
 called~\ttindexbold{ZF_ss}, and you can even use \ttindex{FOL_ss} as a minimal
 starting point.  \texttt{ZF_ss} contains congruence rules for all the binding
-operators of {\ZF}\@.  It contains all the conversion rules, such as
-\texttt{fst} and \texttt{snd}, as well as the rewrites shown in
-Fig.\ts\ref{zf-simpdata}.  See the file \texttt{ZF/simpdata.ML} for a fuller
-list.
+operators of ZF.  It contains all the conversion rules, such as \texttt{fst}
+and \texttt{snd}, as well as the rewrites shown in Fig.\ts\ref{zf-simpdata}.
+See the file \texttt{ZF/simpdata.ML} for a fuller list.
 
 
 \subsection{Classical Reasoning}
@@ -1396,7 +1393,7 @@ clasets.  See \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
 \subsection{Type-Checking Tactics}
 \index{type-checking tactics}
 
-Isabelle/{\ZF} provides simple tactics to help automate those proofs that are
+Isabelle/ZF provides simple tactics to help automate those proofs that are
 essentially type-checking.  Such proofs are built by applying rules such as
 these:
 \begin{ttbox}
@@ -1614,13 +1611,13 @@ For more information on the integers, please see the theories on directory
 \label{sec:ZF:datatype}
 \index{*datatype|(}
 
-The \ttindex{datatype} definition package of \ZF\ constructs inductive
-datatypes similar to those of \ML.  It can also construct coinductive
-datatypes (codatatypes), which are non-well-founded structures such as
-streams.  It defines the set using a fixed-point construction and proves
-induction rules, as well as theorems for recursion and case combinators.  It
-supplies mechanisms for reasoning about freeness.  The datatype package can
-handle both mutual and indirect recursion.
+The \ttindex{datatype} definition package of ZF constructs inductive datatypes
+similar to those of \ML.  It can also construct coinductive datatypes
+(codatatypes), which are non-well-founded structures such as streams.  It
+defines the set using a fixed-point construction and proves induction rules,
+as well as theorems for recursion and case combinators.  It supplies
+mechanisms for reasoning about freeness.  The datatype package can handle both
+mutual and indirect recursion.
 
 
 \subsection{Basics}
@@ -2440,10 +2437,10 @@ denotational and operational semantics of a simple while-language, then
 proves the two equivalent.  It contains several datatype and inductive
 definitions, and demonstrates their use.
 
-The directory \texttt{ZF/ex} contains further developments in {\ZF} set
-theory.  Here is an overview; see the files themselves for more details.  I
-describe much of this material in other
-publications~\cite{paulson-set-I,paulson-set-II,paulson-CADE}. 
+The directory \texttt{ZF/ex} contains further developments in ZF set theory.
+Here is an overview; see the files themselves for more details.  I describe
+much of this material in other
+publications~\cite{paulson-set-I,paulson-set-II,paulson-CADE}.
 \begin{itemize}
 \item File \texttt{misc.ML} contains miscellaneous examples such as
   Cantor's Theorem, the Schr\"oder-Bernstein Theorem and the `Composition
