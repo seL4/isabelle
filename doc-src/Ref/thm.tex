@@ -100,13 +100,13 @@ conclusion of $thm@1$ with the first premise of~$thm@2$.
   does not matter if the $thm@i$ create new premises.  {\tt MRS} is useful
   for expressing proof trees.
 
-\item[\tt$thms1$ RLN $(i,thms2)$] \indexbold{*RLN} 
-for every $thm@1$ in $thms1$ and $thm@2$ in $thms2$, it resolves the
+\item[\tt$thms@1$ RLN $(i,thms@2)$] \indexbold{*RLN} 
+for every $thm@1$ in $thms@1$ and $thm@2$ in $thms@2$, it resolves the
 conclusion of $thm@1$ with the $i$th premise of~$thm@2$, accumulating the
 results.  It is useful for combining lists of theorems.
 
-\item[\tt$thms1$ RL $thms2$] \indexbold{*RL} 
-abbreviates \hbox{\tt$thms1$ RLN $(1,thms2)$}. 
+\item[\tt$thms@1$ RL $thms@2$] \indexbold{*RL} 
+abbreviates \hbox{\tt$thms@1$ RLN $(1,thms@2)$}. 
 
 \item[\tt {$[thms@1,\ldots,thms@n]$} MRL $thms$] \indexbold{*MRL} 
 is analogous to {\tt MRS}, but combines theorem lists rather than theorems.
@@ -372,7 +372,7 @@ applies $({\Imp}E)$ to $thm@1$ and~$thm@2$.  It maps the premises $\phi\Imp
 
 \item[\ttindexbold{implies_elim_list} $thm$ $thms$] 
 applies $({\Imp}E)$ repeatedly to $thm$, using each element of~$thms$ in
-turn.  It maps the premises $[\phi@1,\ldots,\phi@n]\Imp\psi$ and
+turn.  It maps the premises $\List{\phi@1,\ldots,\phi@n}\Imp\psi$ and
 $\phi@1$,\ldots,$\phi@n$ to the conclusion~$\psi$.
 \end{description}
 
@@ -401,7 +401,7 @@ transitive : thm -> thm -> thm
 \end{ttbox}
 \begin{description}
 \item[\ttindexbold{reflexive} $ct$] 
-makes the theorem \(ct=ct\). 
+makes the theorem \(ct\equiv ct\). 
 
 \item[\ttindexbold{symmetric} $thm$] 
 maps the premise $a\equiv b$ to the conclusion $b\equiv a$.
@@ -587,7 +587,7 @@ unique; otherwise, it raises exception~\ttindex{THM}\@.  It is
 analogous to {\tt RS}\@.  
 
 For example, suppose that $thm@1$ is $a=b\Imp b=a$, a symmetry rule, and
-that $thm@2$ is $\List{P\Imp Q; \neg Q} \Imp\neg A)$, which is the
+that $thm@2$ is $\List{P\Imp Q; \neg Q} \Imp\neg P)$, which is the
 principle of contrapositives.  Then the result would be the
 derived rule $\neg(b=a)\Imp\neg(a=b)$.
 
