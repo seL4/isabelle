@@ -266,9 +266,13 @@ opposite inclusion asserts that if \isa{t} is a ground term over both of the
 sets
 \isa{F} and~\isa{G} then it is also a ground term over their intersection,
 \isa{F\isasyminter G}.
-
+\begin{isabelle}
+\isacommand{lemma}\ gterms_IntI:\isanewline
+\ \ \ \ \ "t\ \isasymin \ gterms\ F\ \isasymLongrightarrow \ t\ \isasymin \ gterms\ G\ \isasymlongrightarrow \ t\ \isasymin \ gterms\ (F\isasyminter
+G)"
+\end{isabelle}
 Attempting this proof, we get the assumption 
-\isa{Apply\ f\ args\ \isasymin\ gterms\ F}, which cannot be broken down. 
+\isa{Apply\ f\ args\ \isasymin\ gterms\ G}, which cannot be broken down. 
 It looks like a job for rule inversion:
 \begin{isabelle}
 \isacommand{inductive\_cases}\ gterm_Apply_elim\ [elim!]:\ "Apply\ f\ args\
@@ -326,18 +330,6 @@ Our distributive law is a trivial consequence of previously-proved results:
 \ \ \ \ \ "gterms\ (F\isasyminter G)\ =\ gterms\ F\ \isasyminter \ gterms\ G"\isanewline
 \isacommand{by}\ (blast\ intro!:\ mono_Int\ monoI\ gterms_mono)
 \end{isabelle}
-The \isa{intro!}\ attribute of \isa{gterms_IntI} makes it available for
-this proof.
-
-
-\begin{exercise}
-Prove this theorem, one direction of which was proved in
-{\S}\ref{sec:rule-inversion} above.
-\begin{isabelle}
-\isacommand{lemma}\ gterms_Int_eq\ [simp]:\ "gterms\ (F\isasyminter G)\ =\
-gterms\ F\ \isasyminter \ gterms\ G"\isanewline
-\end{isabelle}
-\end{exercise}
 
 
 \begin{exercise}
