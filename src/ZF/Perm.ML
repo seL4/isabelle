@@ -1,9 +1,9 @@
-(*  Title: 	ZF/perm.ML
+(*  Title: 	ZF/Perm.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-For perm.thy.  The theory underlying permutation groups
+The theory underlying permutation groups
   -- Composition of relations, the identity relation
   -- Injections, surjections, bijections
   -- Lemmas for the Schroeder-Bernstein Theorem
@@ -42,6 +42,13 @@ val prems = goal Perm.thy
 by (res_inst_tac [("d", "d")] f_imp_surjective 1);
 by (ALLGOALS (asm_simp_tac (ZF_ss addsimps ([lam_type]@prems)) ));
 val lam_surjective = result();
+
+(*Cantor's theorem revisited*)
+goalw Perm.thy [surj_def] "f ~: surj(A,Pow(A))";
+by (safe_tac ZF_cs);
+by (cut_facts_tac [cantor] 1);
+by (fast_tac subset_cs 1);
+val cantor_surj = result();
 
 
 (** Injective function space **)
@@ -235,7 +242,7 @@ val compEpair =
 		    THEN prune_params_tac)
 	(read_instantiate [("xz","<a,c>")] compE);
 
-val comp_cs = ZF_cs addIs [compI,idI] addSEs [compE,idE];
+val comp_cs = ZF_cs addSIs [idI] addIs [compI] addSEs [compE,idE];
 
 (** Domain and Range -- see Suppes, section 3.1 **)
 
@@ -298,7 +305,7 @@ val right_comp_id = result();
 
 goalw Perm.thy [function_def]
     "!!f g. [| function(g);  function(f) |] ==> function(f O g)";
-by (fast_tac (subset_cs addIs [compI] addSEs [compE, Pair_inject]) 1);
+by (fast_tac (ZF_cs addIs [compI] addSEs [compE, Pair_inject]) 1);
 val comp_function = result();
 
 goalw Perm.thy [Pi_def]
@@ -389,7 +396,8 @@ by (fast_tac (comp_cs addIs [equalityI,apply_Pair]
 val left_comp_inverse = result();
 
 (*right inverse of composition; one inclusion is
-        f: A->B ==> f O converse(f) <= id(B) *)
+	        f: A->B ==> f O converse(f) <= id(B) 
+*)
 val [prem] = goalw Perm.thy [surj_def]
     "f: surj(A,B) ==> f O converse(f) = id(B)";
 val appfD = (prem RS CollectD1) RSN (3,apply_equality2);
@@ -466,8 +474,7 @@ val rls = apply_equality :: (prems RL [apply_Pair,Pi_type]);
 by (fast_tac (ZF_cs addIs rls) 1);
 val surj_image = result();
 
-goal Perm.thy 
-    "!!f. [| f: Pi(C,B);  A<=C |] ==> restrict(f,A)``A = f``A";
+goal Perm.thy "!!f. [| f: Pi(C,B);  A<=C |] ==> restrict(f,A)``A = f``A";
 by (rtac equalityI 1);
 by (SELECT_GOAL (rewtac restrict_def) 2);
 by (REPEAT (eresolve_tac [imageE, apply_equality RS subst] 2
