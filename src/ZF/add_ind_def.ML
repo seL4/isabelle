@@ -64,8 +64,7 @@ signature SU =			(** Description of a disjoint sum **)
 
 signature ADD_INDUCTIVE_DEF =
   sig 
-  val add_fp_def_i : term list * term list * term list -> theory -> theory
-  val add_fp_def   : (string*string) list * string list -> theory -> theory
+  val add_fp_def_i : term list * term * term list -> theory -> theory
   val add_constructs_def :
         string list * ((string*typ*mixfix) * 
                        string * term list * term list) list list ->
@@ -81,7 +80,7 @@ struct
 open Logic Ind_Syntax;
 
 (*internal version*)
-fun add_fp_def_i (rec_tms, domts, intr_tms) thy = 
+fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy = 
   let
     val sign = sign_of thy;
 
@@ -128,8 +127,6 @@ fun add_fp_def_i (rec_tms, domts, intr_tms) thy =
 	  val zeq = eq_const $ (Free(z',iT)) $ (#1 (rule_concl intr))
       in foldr mk_exists (exfrees, fold_bal (app conj) (zeq::prems)) end;
 
-    val dom_sum = fold_bal (app Su.sum) domts;
-
     (*The Part(A,h) terms -- compose injections to make h*)
     fun mk_Part (Bound 0) = Free(X',iT)	(*no mutual rec, no Part needed*)
       | mk_Part h         = Part_const $ Free(X',iT) $ Abs(w',iT,h);
@@ -172,15 +169,6 @@ fun add_fp_def_i (rec_tms, domts, intr_tms) thy =
     val _ = seq (writeln o Sign.string_of_term sign o #2) axpairs
   
   in  thy |> add_defs_i axpairs  end
-
-
-(*external, string-based version; needed?*)
-fun add_fp_def (rec_doms, sintrs) thy = 
-  let val sign = sign_of thy;
-      val rec_tms = map (readtm sign iT o fst) rec_doms
-      and domts   = map (readtm sign iT o snd) rec_doms
-      val intr_tms = map (readtm sign propT) sintrs
-  in  add_fp_def_i (rec_tms, domts, intr_tms) thy  end
 
 
 (*Expects the recursive sets to have been defined already.
