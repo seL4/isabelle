@@ -7,6 +7,7 @@ lessThan, greaterThan, atLeast, atMost
 *)
 
 
+(*Make Auto_tac and Force_tac try trans_tac!*)
 claset_ref() := claset() addaltern ("trans_tac",trans_tac);
 
 
@@ -26,6 +27,10 @@ Goalw [lessThan_def] "lessThan (Suc k) = insert k (lessThan k)";
 by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 by (Blast_tac 1);
 qed "lessThan_Suc";
+
+Goalw [lessThan_def, atMost_def] "lessThan (Suc k) = atMost k";
+by (simp_tac (simpset() addsimps [less_Suc_eq_le]) 1);
+qed "lessThan_Suc_atMost";
 
 Goal "(UN m. lessThan m) = UNIV";
 by (Blast_tac 1);

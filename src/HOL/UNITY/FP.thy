@@ -12,10 +12,10 @@ FP = UNITY +
 
 constdefs
 
-  FP_Orig :: "('a * 'a)set set => 'a set"
-    "FP_Orig Acts == Union{A. ALL B. stable Acts (A Int B)}"
+  FP_Orig :: "'a program => 'a set"
+    "FP_Orig F == Union{A. ALL B. F : stable (A Int B)}"
 
-  FP :: "('a * 'a)set set => 'a set"
-    "FP Acts == {s. stable Acts {s}}"
+  FP :: "'a program => 'a set"
+    "FP F == {s. F : stable {s}}"
 
 end

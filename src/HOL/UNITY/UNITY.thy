@@ -8,20 +8,33 @@ The basic UNITY theory (revised version, based upon the "co" operator)
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-UNITY = LessThan +
+UNITY = Traces + Prefix +
 
 constdefs
 
-  constrains :: "[('a * 'a)set set, 'a set, 'a set] => bool"
-    "constrains acts A B == ALL act:acts. act^^A <= B"
+  constrains :: "['a set, 'a set] => 'a program set"
+    "constrains A B == {F. ALL act: Acts F. act^^A <= B}"
 
-  stable     :: "('a * 'a)set set => 'a set => bool"
-    "stable acts A == constrains acts A A"
+  stable     :: "'a set => 'a program set"
+    "stable A == constrains A A"
 
-  strongest_rhs :: "[('a * 'a)set set, 'a set] => 'a set"
-    "strongest_rhs acts A == Inter {B. constrains acts A B}"
+  strongest_rhs :: "['a program, 'a set] => 'a set"
+    "strongest_rhs F A == Inter {B. F : constrains A B}"
 
-  unless :: "[('a * 'a)set set, 'a set, 'a set] => bool"
-    "unless acts A B == constrains acts (A-B) (A Un B)"
+  unless :: "['a set, 'a set] => 'a program set"
+    "unless A B == constrains (A-B) (A Un B)"
+
+  (*The traditional word for inductive properties.  Anyway, INDUCTIVE is
+    reserved!*)
+  invariant :: "'a set => 'a program set"
+    "invariant A == {F. Init F <= A} Int stable A"
+
+  (*Safety properties*)
+  always :: "'a set => 'a program set"
+    "always A == {F. reachable F <= A}"
+
+  (*Polymorphic in both states and the meaning of <= *)
+  increasing :: "['a => 'b::{ord}] => 'a program set"
+    "increasing f == INT z. stable {s. z <= f s}"
 
 end

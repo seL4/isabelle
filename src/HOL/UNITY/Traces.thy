@@ -8,7 +8,7 @@ Inductive definitions of
   * reachable: the set of reachable states
 *)
 
-Traces = UNITY +
+Traces = LessThan +
 
 consts traces :: "['a set, ('a * 'a)set set] => ('a * 'a list) set"
 

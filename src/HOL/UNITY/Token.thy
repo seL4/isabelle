@@ -36,26 +36,24 @@ constdefs
 locale Token =
   fixes
     N         :: nat	 (*number of nodes in the ring*)
-    acts      :: "(state*state)set set"
+    F         :: state program
     nodeOrder :: "nat => (nat*nat)set"
     next      :: nat => nat
 
   assumes
     N_positive "0<N"
 
-    skip "Id: acts"
+    TR2  "!!i. F : constrains (T i) (T i Un H i)"
 
-    TR2  "!!i. constrains acts (T i) (T i Un H i)"
+    TR3  "!!i. F : constrains (H i) (H i Un E i)"
 
-    TR3  "!!i. constrains acts (H i) (H i Un E i)"
+    TR4  "!!i. F : constrains (H i - HasTok i) (H i)"
 
-    TR4  "!!i. constrains acts (H i - HasTok i) (H i)"
+    TR5  "!!i. F : constrains (HasTok i) (HasTok i Un Compl(E i))"
 
-    TR5  "!!i. constrains acts (HasTok i) (HasTok i Un Compl(E i))"
+    TR6  "!!i. F : leadsTo (H i Int HasTok i) (E i)"
 
-    TR6  "!!i. leadsTo acts (H i Int HasTok i) (E i)"
-
-    TR7  "!!i. leadsTo acts (HasTok i) (HasTok (next i))"
+    TR7  "!!i. F : leadsTo (HasTok i) (HasTok (next i))"
 
   defines
     nodeOrder_def

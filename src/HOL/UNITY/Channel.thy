@@ -12,18 +12,19 @@ Channel = WFair + Option +
 
 types state = nat set
 
+consts
+  F :: state program
+
 constdefs
   minSet :: nat set => nat option
     "minSet A == if A={} then None else Some (LEAST x. x:A)"
 
 rules
 
-  skip "Id: acts"
+  UC1  "F : constrains (minSet -`` {Some x}) (minSet -`` (Some``atLeast x))"
 
-  UC1  "constrains acts (minSet -`` {Some x}) (minSet -`` (Some``atLeast x))"
+  (*  UC1  "F : constrains {s. minSet s = x} {s. x <= minSet s}"  *)
 
-  (*  UC1  "constrains acts {s. minSet s = x} {s. x <= minSet s}"  *)
-
-  UC2  "leadsTo acts (minSet -`` {Some x}) {s. x ~: s}"
+  UC2  "F : leadsTo (minSet -`` {Some x}) {s. x ~: s}"
 
 end

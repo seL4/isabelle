@@ -24,6 +24,7 @@ AddIffs (map simp_of_act [Fake_def, NS1_def, NS2_def, NS3_def]);
 
 Addsimps [Nprg_def RS def_prg_simps];
 
+
 (*A "possibility property": there are traces that reach the end*)
 Goal "A ~= B ==> EX NB. EX s: reachable Nprg.                \
 \                  Says A B (Crypt (pubK B) (Nonce NB)) : set s";
@@ -32,7 +33,7 @@ by (res_inst_tac [("act", "NS3")] reachable.Acts 2);
 by (res_inst_tac [("act", "NS2")] reachable.Acts 3);
 by (res_inst_tac [("act", "NS1")] reachable.Acts 4);
 by (rtac reachable.Init 5);
-by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [Nprg_def])));
 by (REPEAT_FIRST (rtac exI ));
 by possibility_tac;
 result();
@@ -66,7 +67,7 @@ val parts_induct_tac =
 
 (*Spy never sees another agent's private key! (unless it's bad at start)*)
 (*
-    Goal "Invariant Nprg {s. (Key (priK A) : parts (spies s)) = (A : bad)}";
+    Goal "Nprg : Invariant {s. (Key (priK A) : parts (spies s)) = (A : bad)}";
     by (rtac InvariantI 1);
     by (Force_tac 1);
     by (constrains_tac 1);

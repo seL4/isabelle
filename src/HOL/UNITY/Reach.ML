@@ -19,7 +19,8 @@ qed "ifE";
 AddSEs [ifE];
 
 
-Addsimps [Rprg_def RS def_prg_simps];
+Addsimps [Rprg_def RS def_prg_Init];
+program_defs_ref := [Rprg_def];
 
 Addsimps [simp_of_act asgt_def];
 
@@ -28,7 +29,7 @@ AddIffs [[subset_UNIV, finite_graph] MRS finite_subset];
 
 Addsimps [simp_of_set reach_invariant_def];
 
-Goal "Invariant Rprg reach_invariant";
+Goal "Rprg : Invariant reach_invariant";
 by (rtac InvariantI 1);
 by Auto_tac;  (*for the initial state; proof of stability remains*)
 by (constrains_tac 1);
@@ -48,20 +49,20 @@ by (etac rtrancl_induct 1);
 by Auto_tac;
 qed "fixedpoint_invariant_correct";
 
-Goalw [FP_def, fixedpoint_def, stable_def, constrains_def]
-     "FP (Acts Rprg) <= fixedpoint";
+Goalw [FP_def, fixedpoint_def, stable_def, constrains_def, Rprg_def]
+     "FP Rprg <= fixedpoint";
 by Auto_tac;
 by (asm_full_simp_tac (simpset() addsimps [Image_singleton, image_iff]) 1);
 by (dtac fun_cong 1);
 by Auto_tac;
 val lemma1 = result();
 
-Goalw [FP_def, fixedpoint_def, stable_def, constrains_def]
-     "fixedpoint <= FP (Acts Rprg)";
+Goalw [FP_def, fixedpoint_def, stable_def, constrains_def, Rprg_def]
+     "fixedpoint <= FP Rprg";
 by (auto_tac (claset() addSIs [ext], simpset()));
 val lemma2 = result();
 
-Goal "FP (Acts Rprg) = fixedpoint";
+Goal "FP Rprg = fixedpoint";
 by (rtac ([lemma1,lemma2] MRS equalityI) 1);
 qed "FP_fixedpoint";
 
@@ -74,7 +75,7 @@ qed "FP_fixedpoint";
 
 Goal "- fixedpoint = (UN (u,v): edges. {s. s u & ~ s v})";
 by (simp_tac (simpset() addsimps
-	      ([Compl_FP, UN_UN_flatten, FP_fixedpoint RS sym])) 1);
+	      ([Compl_FP, UN_UN_flatten, FP_fixedpoint RS sym, Rprg_def])) 1);
 by Auto_tac;
 by (rtac fun_upd_idem 1);
  by (auto_tac (claset(),simpset() addsimps [fun_upd_idem_iff]));
@@ -106,7 +107,7 @@ by (auto_tac (claset() addIs [less_imp_le],
 	      simpset() addsimps [fun_upd_idem]));
 qed "metric_le";
 
-Goal "LeadsTo Rprg ((metric-``{m}) - fixedpoint) (metric-``(lessThan m))";
+Goal "Rprg : LeadsTo ((metric-``{m}) - fixedpoint) (metric-``(lessThan m))";
 by (simp_tac (simpset() addsimps [Diff_fixedpoint]) 1);
 by (rtac LeadsTo_UN 1);
 by Auto_tac;
@@ -118,7 +119,7 @@ by (auto_tac (claset() addEs [less_not_refl3 RSN (2, rev_notE)],
 	      simpset()));
 qed "LeadsTo_Diff_fixedpoint";
 
-Goal "LeadsTo Rprg (metric-``{m}) (metric-``(lessThan m) Un fixedpoint)";
+Goal "Rprg : LeadsTo (metric-``{m}) (metric-``(lessThan m) Un fixedpoint)";
 by (rtac ([LeadsTo_Diff_fixedpoint RS LeadsTo_weaken_R,
 	   subset_imp_LeadsTo] MRS LeadsTo_Diff) 1);
 by Auto_tac;
@@ -126,13 +127,13 @@ qed "LeadsTo_Un_fixedpoint";
 
 
 (*Execution in any state leads to a fixedpoint (i.e. can terminate)*)
-Goal "LeadsTo Rprg UNIV fixedpoint";
+Goal "Rprg : LeadsTo UNIV fixedpoint";
 by (rtac LessThan_induct 1);
 by Auto_tac;
 by (rtac LeadsTo_Un_fixedpoint 1);
 qed "LeadsTo_fixedpoint";
 
-Goal "LeadsTo Rprg UNIV { %v. (init, v) : edges^* }";
+Goal "Rprg : LeadsTo UNIV { %v. (init, v) : edges^* }";
 by (stac (fixedpoint_invariant_correct RS sym) 1);
 by (rtac ([reach_invariant, LeadsTo_fixedpoint] 
 	  MRS Invariant_LeadsTo_weaken) 1); 

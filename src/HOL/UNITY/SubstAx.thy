@@ -10,9 +10,7 @@ SubstAx = WFair + Constrains +
 
 constdefs
 
-   LeadsTo :: "['a program, 'a set, 'a set] => bool"
-    "LeadsTo F A B ==
-		 leadsTo (Acts F)
-                         (reachable F  Int  A)
-  		         (reachable F  Int  B)"
+   LeadsTo :: "['a set, 'a set] => 'a program set"
+    "LeadsTo A B == {F. F : leadsTo (reachable F  Int  A)
+	   	                    (reachable F  Int  B)}"
 end

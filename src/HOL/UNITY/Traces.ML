@@ -43,8 +43,17 @@ by (full_simp_tac (rep_ss addsimps [surjective_pairing RS sym]) 1);
 qed "program_equalityI";
 
 
-(*** These three rules allow "lazy" definition expansion ***)
+(*** These rules allow "lazy" definition expansion ***)
 
+(*The program is not expanded, but its Init is*)
+val [rew] = goal thy
+    "[| F == mk_program (init,acts) |] \
+\    ==> Init F = init";
+by (rewtac rew);
+by Auto_tac;
+qed "def_prg_Init";
+
+(*The program is not expanded, but its Init and Acts are*)
 val [rew] = goal thy
     "[| F == mk_program (init,acts) |] \
 \    ==> Init F = init & Acts F = insert Id acts";
@@ -52,6 +61,7 @@ by (rewtac rew);
 by Auto_tac;
 qed "def_prg_simps";
 
+(*An action is expanded only if a pair of states is being tested against it*)
 val [rew] = goal thy
     "[| act == {(s,s'). P s s'} |] ==> ((s,s') : act) = P s s'";
 by (rewtac rew);
@@ -60,8 +70,9 @@ qed "def_act_simp";
 
 fun simp_of_act def = def RS def_act_simp;
 
+(*A set is expanded only if an element is being tested against it*)
 val [rew] = goal thy
-    "[| A == B |] ==> (x : A) = (x : B)";
+    "A == B ==> (x : A) = (x : B)";
 by (rewtac rew);
 by Auto_tac;
 qed "def_set_simp";
@@ -77,11 +88,3 @@ by (etac traces.induct 2);
 by (etac reachable.induct 1);
 by (ALLGOALS (blast_tac (claset() addIs reachable.intrs @ traces.intrs)));
 qed "reachable_equiv_traces";
-
-Goal "Init F <= reachable F";
-by (blast_tac (claset() addIs reachable.intrs) 1);
-qed "Init_subset_reachable";
-
-Goal "acts <= Acts F ==> stable acts (reachable F)";
-by (blast_tac (claset() addIs [stableI, constrainsI] @ reachable.intrs) 1);
-qed "stable_reachable";

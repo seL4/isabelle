@@ -10,15 +10,15 @@ From Misra, "A Logic for Concurrent Programming" (1994), section 5.7
 
 val [rsA, rsB, sent_nondec, rcvd_nondec, rcvd_idle, sent_idle] = 
 Goalw [stable_def]
-   "[| !! m. stable Acts {s. s(Bproc,Rcvd) <= s(Aproc,Sent)};  \
-\      !! m. stable Acts {s. s(Aproc,Rcvd) <= s(Bproc,Sent)};  \
-\      !! m proc. stable Acts {s. m <= s(proc,Sent)};  \
-\      !! n proc. stable Acts {s. n <= s(proc,Rcvd)};  \
-\      !! m proc. constrains Acts {s. s(proc,Idle) = 1 & s(proc,Rcvd) = m} \
+   "[| !! m. F : stable {s. s(Bproc,Rcvd) <= s(Aproc,Sent)};  \
+\      !! m. F : stable {s. s(Aproc,Rcvd) <= s(Bproc,Sent)};  \
+\      !! m proc. F : stable {s. m <= s(proc,Sent)};  \
+\      !! n proc. F : stable {s. n <= s(proc,Rcvd)};  \
+\      !! m proc. F : constrains {s. s(proc,Idle) = 1 & s(proc,Rcvd) = m} \
 \                                 {s. s(proc,Rcvd) = m --> s(proc,Idle) = 1}; \
-\      !! n proc. constrains Acts {s. s(proc,Idle) = 1 & s(proc,Sent) = n} \
+\      !! n proc. F : constrains {s. s(proc,Idle) = 1 & s(proc,Sent) = n} \
 \                                 {s. s(proc,Sent) = n} \
-\   |] ==> stable Acts {s. s(Aproc,Idle) = 1 & s(Bproc,Idle) = 1 & \
+\   |] ==> F : stable {s. s(Aproc,Idle) = 1 & s(Bproc,Idle) = 1 & \
 \                         s(Aproc,Sent) = s(Bproc,Rcvd) & \
 \                         s(Bproc,Sent) = s(Aproc,Rcvd) & \
 \                         s(Aproc,Rcvd) = m & s(Bproc,Rcvd) = n}";

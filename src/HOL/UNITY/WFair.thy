@@ -14,39 +14,38 @@ constdefs
 
   (*This definition specifies weak fairness.  The rest of the theory
     is generic to all forms of fairness.*)
-  transient :: "[('a * 'a)set set, 'a set] => bool"
-    "transient acts A == EX act:acts. A <= Domain act & act^^A <= Compl A"
+  transient :: "'a set => 'a program set"
+    "transient A == {F. EX act: Acts F. A <= Domain act & act^^A <= Compl A}"
 
-  ensures :: "[('a * 'a)set set, 'a set, 'a set] => bool"
-    "ensures acts A B == constrains acts (A-B) (A Un B) & transient acts (A-B)"
-			(*(unless acts A B) would be equivalent*)
+  ensures :: "['a set, 'a set] => 'a program set"
+    "ensures A B == constrains (A-B) (A Un B) Int transient (A-B)"
 
-syntax leadsTo :: "[('a * 'a)set set, 'a set, 'a set] => bool"
-consts leadsto :: "[('a * 'a)set set] => ('a set * 'a set) set"
+
+consts leadsto :: "'a program => ('a set * 'a set) set"
   
-translations
-  "leadsTo acts A B" == "(A,B) : leadsto acts"
-  "~ leadsTo acts A B" <= "(A,B) ~: leadsto acts"
-
-inductive "leadsto acts"
+inductive "leadsto F"
   intrs 
 
-    Basis  "ensures acts A B ==> leadsTo acts A B"
+    Basis  "F : ensures A B ==> (A,B) : leadsto F"
 
-    Trans  "[| leadsTo acts A B;  leadsTo acts B C |]
-	   ==> leadsTo acts A C"
+    Trans  "[| (A,B) : leadsto F;  (B,C) : leadsto F |]
+	   ==> (A,C) : leadsto F"
 
     (*Encoding using powerset of the desired axiom
-       (!!A. A : S ==> leadsTo acts A B) ==> leadsTo acts (Union S) B
+       (!!A. A : S ==> (A,B) : leadsto F) ==> (Union S, B) : leadsto F
     *)
-    Union  "(UN A:S. {(A,B)}) : Pow (leadsto acts)
-	   ==> leadsTo acts (Union S) B"
+    Union  "(UN A:S. {(A,B)}) : Pow (leadsto F) ==> (Union S, B) : leadsto F"
 
   monos "[Pow_mono]"
 
 
-(*wlt acts B is the largest set that leads to B*)
-constdefs wlt :: "[('a * 'a)set set, 'a set] => 'a set"
-  "wlt acts B == Union {A. leadsTo acts A B}"
+  
+constdefs (*visible version of the relation*)
+  leadsTo :: "['a set, 'a set] => 'a program set"
+    "leadsTo A B == {F. (A,B) : leadsto F}"
+  
+  (*wlt F B is the largest set that leads to B*)
+  wlt :: "['a program, 'a set] => 'a set"
+    "wlt F B == Union {A. F: leadsTo A B}"
 
 end

@@ -8,24 +8,6 @@ Distributed Resource Management System: the Client
 
 Client = Comp + Prefix + 
 
-constdefs  (*MOVE higher-up: UNITY.thy or Traces.thy ???*)
-  always :: "'a set => 'a program set"
-    "always A == {F. reachable F <= A}"
-
-  (*The traditional word for inductive properties.  Anyway, INDUCTIVE is
-    reserved!*)
-  invariant :: "'a set => 'a program set"
-    "invariant A == {F. Init F <= A & stable (Acts F) A}"
-
-  (*Polymorphic in both states and the meaning of <= *)
-  increasing :: "['a => 'b::{ord}] => 'a program set"
-    "increasing f == {F. ALL z. stable (Acts F) {s. z <= f s}}"
-
-  (*The set of systems that regard "f" as local to F*)
-  localTo :: ['a => 'b, 'a program] => 'a program set  (infixl 80)
-    "f localTo F == {G. ALL z. stable (Acts G - Acts F) {s. f s = z}}"
-
-
 consts
   Max :: nat       (*Maximum number of tokens*)
 
