@@ -477,7 +477,7 @@ by (Blast_tac 1);
 qed "UN_insert";
 Addsimps[UN_insert];
 
-Goal "(UN i: A Un B. M i) = ((UN i: A. M i) Un (UN i:B. M i))";
+Goal "(UN i: A Un B. M i) = (UN i: A. M i) Un (UN i:B. M i)";
 by (Blast_tac 1);
 qed "UN_Un";
 
@@ -489,6 +489,10 @@ Goal "(INT x:insert a A. B x) = B a Int INTER A B";
 by (Blast_tac 1);
 qed "INT_insert";
 Addsimps[INT_insert];
+
+Goal "(INT i: A Un B. M i) = (INT i: A. M i) Int (INT i:B. M i)";
+by (Blast_tac 1);
+qed "INT_Un";
 
 Goal "u: A ==> (INT x:A. insert a (B x)) = insert a (INT x:A. B x)";
 by (Blast_tac 1);
