@@ -157,8 +157,7 @@ let
     let val (x,t) = atomic_abs_tr' abs
     in Syntax.const syn $ x $ A $ t end
 in
-[("Ball", btr' "_Ball"),("Bex", btr' "_Bex"),
- ("UNION", btr' "@UNION"),("INTER", btr' "@INTER")]
+[("Ball", btr' "_Ball"),("Bex", btr' "_Bex")]
 end
 *}
 
