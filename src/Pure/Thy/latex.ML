@@ -41,7 +41,7 @@ fun output_sym s =
   else
     (case explode s of
       cs as "\\" :: "<" :: "^" :: _ => implode (map output_chr cs)
-    | "\\" :: "<" :: cs => "{\\isasymbol" ^ implode (#1 (Library.split_last cs)) ^ "}"
+    | "\\" :: "<" :: cs => "{\\isasym" ^ implode (#1 (Library.split_last cs)) ^ "}"
     | _ => sys_error "output_sym");
 
 in
