@@ -20,8 +20,9 @@ time_use_thy "Simple/Mutex";
 time_use_thy "Simple/Reach";
 time_use_thy "Simple/Reachability";
 
-with_path "../Auth"  (*to find Public.thy*)
-  time_use_thy"Simple/NSP_Bad";
+(*Verifying security protocols using UNITY*)
+with_path "../Auth" (no_document use_thy) "Public";
+with_path "../Auth" time_use_thy "Simple/NSP_Bad";
 
 (*Example of composition*)
 time_use_thy "Comp/Handshake";
