@@ -13,6 +13,6 @@ writeln"Root file for LK examples";
 proof_timing := true;
 time_use "ex/prop.ML";
 time_use "ex/quant.ML";
-time_use "ex/hard-quant.ML";
+time_use "ex/hardquant.ML";
 
 maketest"END: Root file for LK examples";
