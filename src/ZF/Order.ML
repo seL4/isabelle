@@ -42,12 +42,7 @@ goalw Order.thy [irrefl_def, part_ord_def, tot_ord_def,
 		 trans_on_def, well_ord_def]
     "!!r. [| wf[A](r); linear(A,r) |] ==> well_ord(A,r)";
 by (asm_simp_tac (ZF_ss addsimps [wf_on_not_refl]) 1);
-by (safe_tac ZF_cs);
-by (linear_case_tac 1);
-(*case x=xb*)
-by (fast_tac (ZF_cs addSEs [wf_on_asym]) 1);
-(*case x<xb*)
-by (fast_tac (ZF_cs addSEs [wf_on_chain3]) 1);
+by (fast_tac (ZF_cs addEs [linearE, wf_on_asym, wf_on_chain3]) 1);
 qed "well_ordI";
 
 goalw Order.thy [well_ord_def]
@@ -261,24 +256,21 @@ qed "ord_iso_refl";
 (*Symmetry of similarity*)
 goalw Order.thy [ord_iso_def] 
     "!!f. f: ord_iso(A,r,B,s) ==> converse(f): ord_iso(B,s,A,r)";
-by (safe_tac ZF_cs);
-by (ALLGOALS (asm_full_simp_tac bij_inverse_ss));
+by (fast_tac (ZF_cs addss bij_inverse_ss) 1);
 qed "ord_iso_sym";
 
 (*Transitivity of similarity*)
 goalw Order.thy [mono_map_def] 
     "!!f. [| g: mono_map(A,r,B,s);  f: mono_map(B,s,C,t) |] ==> \
 \         (f O g): mono_map(A,r,C,t)";
-by (safe_tac ZF_cs);
-by (ALLGOALS (asm_full_simp_tac bij_inverse_ss));
+by (fast_tac (ZF_cs addss bij_inverse_ss) 1);
 qed "mono_map_trans";
 
 (*Transitivity of similarity: the order-isomorphism relation*)
 goalw Order.thy [ord_iso_def] 
     "!!f. [| g: ord_iso(A,r,B,s);  f: ord_iso(B,s,C,t) |] ==> \
 \         (f O g): ord_iso(A,r,C,t)";
-by (safe_tac ZF_cs);
-by (ALLGOALS (asm_full_simp_tac bij_inverse_ss));
+by (fast_tac (ZF_cs addss bij_inverse_ss) 1);
 qed "ord_iso_trans";
 
 (** Two monotone maps can make an order-isomorphism **)
