@@ -8,4 +8,4 @@ date > ${LISTEN?'Set this variable to the desired filename'}
 
 xterm -geo 80x10+0+0 -T Listener -n Listener -e tail -f $LISTEN &
 sleep 2
-xterm -geo 80x45+0-0 -e teeinput $* &
+xterm -geo 80x60+0-0 -e teeinput $* &
