@@ -52,7 +52,7 @@ consts
 
 
 constdefs
-  class	     :: "cname \<leadsto> class"
+  class	     :: "cname \<rightharpoonup> class"
  "class      \<equiv> map_of Prog"
 
   is_class   :: "cname => bool"

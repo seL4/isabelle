@@ -32,7 +32,7 @@ design issues:
 *}
 
 types ('a, 'b) table    --{* table with key type 'a and contents type 'b *}
-      = "'a \<leadsto> 'b"
+      = "'a \<rightharpoonup> 'b"
       ('a, 'b) tables   --{* non-unique table with key 'a and contents 'b *}
       = "'a \<Rightarrow> 'b set"
 
@@ -45,8 +45,8 @@ syntax
 translations
   "table_of" == "map_of"
   
-  (type)"'a \<leadsto> 'b"       <= (type)"'a \<Rightarrow> 'b Option.option"
-  (type)"('a, 'b) table" <= (type)"'a \<leadsto> 'b"
+  (type)"'a \<rightharpoonup> 'b"       <= (type)"'a \<Rightarrow> 'b Option.option"
+  (type)"('a, 'b) table" <= (type)"'a \<rightharpoonup> 'b"
 
 (* ### To map *)
 lemma map_add_find_left[simp]:

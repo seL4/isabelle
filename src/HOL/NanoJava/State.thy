@@ -21,7 +21,7 @@ datatype val
   | Addr loc    --{* address, i.e. location of object *}
 
 types	fields
-	= "(fname \<leadsto> val)"
+	= "(fname \<rightharpoonup> val)"
 
         obj = "cname \<times> fields"
 
@@ -32,12 +32,12 @@ translations
 
 constdefs
 
-  init_vars:: "('a \<leadsto> 'b) => ('a \<leadsto> val)"
+  init_vars:: "('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> val)"
  "init_vars m == option_map (\<lambda>T. Null) o m"
   
 text {* private: *}
-types	heap   = "loc   \<leadsto> obj"
-        locals = "vname \<leadsto> val"	
+types	heap   = "loc   \<rightharpoonup> obj"
+        locals = "vname \<rightharpoonup> val"	
 
 text {* private: *}
 record  state

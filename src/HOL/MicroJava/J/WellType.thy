@@ -24,12 +24,12 @@ methods of class Object to be called upon references of interface type.
 
 text "local variables, including method parameters and This:"
 types 
-  lenv   = "vname \<leadsto> ty"
+  lenv   = "vname \<rightharpoonup> ty"
   'c env = "'c prog \<times> lenv"
 
 syntax
   prg    :: "'c env => 'c prog"
-  localT :: "'c env => (vname \<leadsto> ty)"
+  localT :: "'c env => (vname \<rightharpoonup> ty)"
 
 translations  
   "prg"    => "fst"

@@ -33,7 +33,7 @@ translations
 
 
 constdefs
-  class :: "'c prog => (cname \<leadsto> 'c class)"
+  class :: "'c prog => (cname \<rightharpoonup> 'c class)"
   "class \<equiv> map_of"
 
   is_class :: "'c prog => cname => bool"

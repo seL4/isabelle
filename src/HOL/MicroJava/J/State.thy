@@ -9,7 +9,7 @@ header {* \isaheader{Program State} *}
 theory State = TypeRel + Value:
 
 types 
-  fields_ = "(vname \<times> cname \<leadsto> val)"  -- "field name, defining class, value"
+  fields_ = "(vname \<times> cname \<rightharpoonup> val)"  -- "field name, defining class, value"
 
   obj = "cname \<times> fields_"    -- "class instance with class name and fields"
 
@@ -17,12 +17,12 @@ constdefs
   obj_ty  :: "obj => ty"
  "obj_ty obj  == Class (fst obj)"
 
-  init_vars :: "('a \<times> ty) list => ('a \<leadsto> val)"
+  init_vars :: "('a \<times> ty) list => ('a \<rightharpoonup> val)"
  "init_vars == map_of o map (\<lambda>(n,T). (n,default_val T))"
   
 
-types aheap  = "loc \<leadsto> obj"    -- {* "@{text heap}" used in a translation below *}
-      locals = "vname \<leadsto> val"  -- "simple state, i.e. variable contents"
+types aheap  = "loc \<rightharpoonup> obj"    -- {* "@{text heap}" used in a translation below *}
+      locals = "vname \<rightharpoonup> val"  -- "simple state, i.e. variable contents"
 
       state  = "aheap \<times> locals"      -- "heap, local parameter including This"
       xstate = "val option \<times> state" -- "state including exception information"

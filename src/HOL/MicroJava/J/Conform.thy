@@ -8,7 +8,7 @@ header {* \isaheader{Conformity Relations for Type Soundness Proof} *}
 
 theory Conform = State + WellType + Exceptions:
 
-types 'c env_ = "'c prog \<times> (vname \<leadsto> ty)"  -- "same as @{text env} of @{text WellType.thy}"
+types 'c env_ = "'c prog \<times> (vname \<rightharpoonup> ty)"  -- "same as @{text env} of @{text WellType.thy}"
 
 constdefs
 
@@ -19,7 +19,7 @@ constdefs
                                    ("_,_ |- _ ::<= _"  [51,51,51,51] 50)
  "G,h|-v::<=T == \<exists>T'. typeof (option_map obj_ty o h) v = Some T' \<and> G\<turnstile>T'\<preceq>T"
 
-  lconf :: "'c prog => aheap => ('a \<leadsto> val) => ('a \<leadsto> ty) => bool"
+  lconf :: "'c prog => aheap => ('a \<rightharpoonup> val) => ('a \<rightharpoonup> ty) => bool"
                                    ("_,_ |- _ [::<=] _" [51,51,51,51] 50)
  "G,h|-vs[::<=]Ts == \<forall>n T. Ts n = Some T --> (\<exists>v. vs n = Some v \<and> G,h|-v::<=T)"
 
@@ -45,7 +45,7 @@ syntax (xsymbols)
   conf     :: "'c prog => aheap => val => ty => bool"
               ("_,_ \<turnstile> _ ::\<preceq> _" [51,51,51,51] 50)
 
-  lconf    :: "'c prog => aheap => ('a \<leadsto> val) => ('a \<leadsto> ty) => bool"
+  lconf    :: "'c prog => aheap => ('a \<rightharpoonup> val) => ('a \<rightharpoonup> ty) => bool"
               ("_,_ \<turnstile> _ [::\<preceq>] _" [51,51,51,51] 50)
 
   oconf    :: "'c prog => aheap => obj => bool"

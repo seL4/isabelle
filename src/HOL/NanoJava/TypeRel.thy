@@ -27,8 +27,8 @@ translations
   "S \<preceq>   T" == "(S,T) \<in> widen"
 
 consts
-  method :: "cname => (mname \<leadsto> methd)"
-  field  :: "cname => (fname \<leadsto> ty)"
+  method :: "cname => (mname \<rightharpoonup> methd)"
+  field  :: "cname => (fname \<rightharpoonup> ty)"
 
 
 subsection "Declarations and properties not used in the meta theory"
@@ -102,7 +102,7 @@ lemma wf_subcls1: "ws_prog \<Longrightarrow> wf (subcls1\<inverse>)"
 by (auto intro: finite_acyclic_wf_converse finite_subcls1 subcls1_acyclic)
 
 
-consts class_rec ::"cname \<Rightarrow> (class \<Rightarrow> ('a \<times> 'b) list) \<Rightarrow> ('a \<leadsto> 'b)"
+consts class_rec ::"cname \<Rightarrow> (class \<Rightarrow> ('a \<times> 'b) list) \<Rightarrow> ('a \<rightharpoonup> 'b)"
 
 recdef (permissive) class_rec "subcls1\<inverse>"
       "class_rec C = (\<lambda>f. case class C of None   \<Rightarrow> arbitrary 

@@ -35,7 +35,7 @@ map_upd	:: "('a ~=> 'b) => 'a => 'b => ('a ~=> 'b)"
 					 ("_/'(_/|->_')"   [900,0,0]900)
 
 syntax (xsymbols)
-  "~=>"     :: "[type, type] => type"    (infixr "\<leadsto>" 0)
+  "~=>"     :: "[type, type] => type"    (infixr "\<rightharpoonup>" 0)
   restrict_map :: "('a ~=> 'b) => 'a set => ('a ~=> 'b)" ("_\<lfloor>_" [90, 91] 90)
   map_upd   :: "('a ~=> 'b) => 'a      => 'b      => ('a ~=> 'b)"
 					  ("_/'(_/\<mapsto>/_')"  [900,0,0]900)
