@@ -2,6 +2,10 @@
     ID:         $Id$
     Author:     Tobias Nipkow, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
+
+Blast_tac proofs here can get PROOF FAILED of Ord theorems like order_refl
+and order_less_irrefl.  We do not add the "nat" versions to the basic claset
+because the type will be promoted to type class "order".
 *)
 
 goal thy "mono(%X. {Zero_Rep} Un (Suc_Rep``X))";
@@ -293,12 +297,9 @@ by (ALLGOALS Asm_full_simp_tac);
 qed "gr_implies_not0";
 
 goal thy "(n ~= 0) = (0 < n)";
-by (rtac iffI 1);
- by (etac gr_implies_not0 2);
 by (rtac natE 1);
- by (contr_tac 1);
-by (etac ssubst 1);
-by (rtac zero_less_Suc 1);
+by (Blast_tac 1);
+by (Blast_tac 1);
 qed "neq0_conv";
 AddIffs [neq0_conv];
 
@@ -373,6 +374,11 @@ by (rtac (refl RS disjI1 RS disjI2) 1);
 by (rtac (zero_less_Suc RS disjI1) 1);
 by (blast_tac (claset() addIs [Suc_mono, less_SucI] addEs [lessE]) 1);
 qed "less_linear";
+
+goal thy "!!m::nat. (m ~= n) = (m<n | n<m)";
+by (cut_facts_tac [less_linear] 1);
+by (blast_tac (claset() addSEs [less_irrefl]) 1);
+qed "nat_neq_iff";
 
 qed_goal "nat_less_cases" thy 
    "[| (m::nat)<n ==> P n m; m=n ==> P n m; n<m ==> P n m |] ==> P n m"
@@ -581,11 +587,8 @@ AddIffs [Suc_le_mono];
 
 (* Axiom 'order_le_less' of class 'order': *)
 goal thy "(m::nat) < n = (m <= n & m ~= n)";
-by (rtac iffI 1);
- by (rtac conjI 1);
-  by (etac less_imp_le 1);
- by (etac (less_not_refl2 RS not_sym) 1);
-by (blast_tac (claset() addSDs [le_imp_less_or_eq]) 1);
+by (simp_tac (simpset() addsimps [le_def, nat_neq_iff]) 1);
+by (blast_tac (claset() addSEs [less_asym]) 1);
 qed "nat_less_le";
 
 (* Axiom 'linorder_linear' of class 'linorder': *)
@@ -764,15 +767,14 @@ structure Trans_Tac = Trans_Tac_Fun(Less_Arith);
 open Trans_Tac;
 
 (*** eliminates ~= in premises, which trans_tac cannot deal with ***)
-qed_goal "nat_neqE" thy
-  "[| (m::nat) ~= n; m < n ==> P; n < m ==> P |] ==> P"
-  (fn major::prems => [cut_facts_tac [less_linear] 1,
-                       REPEAT(eresolve_tac ([disjE,major RS notE]@prems) 1)]);
-
+bind_thm("nat_neqE", nat_neq_iff RS iffD1 RS disjE);
 
 
 (* add function nat_add_primrec *) 
-val (_, nat_add_primrec, _, _) = Datatype.add_datatype
-([], "nat", [("0", [], Mixfix ("0", [], max_pri)), ("Suc", [dtTyp ([],
-"nat")], NoSyn)]) (Theory.add_name "Arith" HOL.thy);
+val (_, nat_add_primrec, _, _) = 
+    Datatype.add_datatype ([], "nat", 
+			   [("0", [], Mixfix ("0", [], max_pri)), 
+			    ("Suc", [dtTyp ([], "nat")], NoSyn)])
+    (Theory.add_name "Arith" HOL.thy);
+
 (*pretend Arith is part of the basic theory to fool package*)
