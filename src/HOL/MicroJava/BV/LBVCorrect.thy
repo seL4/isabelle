@@ -241,18 +241,18 @@ proof -
   moreover
   from pc
   obtain x xs where "is = x#xs" 
-    by (simp add: neq_Nil_conv) (elim, rule that)
+    by (auto simp add: neq_Nil_conv)
   with wtl
   obtain s' where
     "wtl_cert x G rT s cert mxs (length is) 0 = OK s'"
-    by simp (elim, rule that, simp)
+    by auto
   hence 
     "!!t. cert!0 = Some t ==> G \<turnstile> s <=' cert!0"
     by (simp add: wtl_cert_def split: if_splits)
 
   ultimately
   show ?thesis
-    by - (cases "cert!0", auto)
+    by (cases "cert!0") auto
 qed
 
   

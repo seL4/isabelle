@@ -268,12 +268,12 @@ proof -
   from step
   obtain ST' LT' where
     s': "phi C sig ! Suc pc = Some (ST', LT')"
-    by (simp add: step_def split_paired_Ex) (elim, rule that)
+    by (auto simp add: step_def split_paired_Ex)
 
-  from X 
+  from X
   obtain T where
     X_Ref: "X = RefT T"
-    by - (drule widen_RefT2, erule exE, rule that)
+    by (blast dest: widen_RefT2)
   
   from s ins frame 
   obtain 
@@ -289,8 +289,8 @@ proof -
     a_stk': "approx_stk G hp stk' ST" and
     stk':   "stk = opTs @ oX # stk'" and
     l_o:    "length opTs = length apTs" 
-            "length stk' = length ST"  
-    by - (drule approx_stk_append, simp, elim, simp)
+            "length stk' = length ST"
+    by (auto dest: approx_stk_append)
 
   from oX 
   have "\<exists>T'. typeof (option_map obj_ty \<circ> hp) oX = Some T' \<and> G \<turnstile> T' \<preceq> X"
@@ -299,10 +299,8 @@ proof -
   with X_Ref
   obtain T' where
     oX_Ref: "typeof (option_map obj_ty \<circ> hp) oX = Some (RefT T')"
-            "G \<turnstile> RefT T' \<preceq> X" 
-    apply (elim, simp)
-    apply (frule widen_RefT2)
-    by (elim, simp)
+            "G \<turnstile> RefT T' \<preceq> X"
+    by (auto dest: widen_RefT2)
 
   from stk' l_o l
   have oX_pos: "last (take (Suc (length pTs)) stk) = oX" by simp
@@ -330,7 +328,7 @@ proof -
     with X_Ref
     obtain X' where 
       X': "X = Class X'"
-      by - (drule widen_Class, elim, rule that)
+      by (blast dest: widen_Class)
       
     with X
     have X'_subcls: "G \<turnstile> X' \<preceq>C C'" 
@@ -339,7 +337,7 @@ proof -
     with mC' wfprog
     obtain D0 rT0 maxs0 maxl0 ins0 where
       mX: "method (G, X') (mn, pTs) = Some (D0, rT0, maxs0, maxl0, ins0)" "G\<turnstile>rT0\<preceq>rT"
-      by (auto dest: subtype_widen_methd intro: that)
+      by (fast dest: subtype_widen_methd)
 
     from X' D
     have D_subcls: "G \<turnstile> D \<preceq>C X'" 
@@ -349,7 +347,7 @@ proof -
     obtain D'' rT' mxs' mxl' ins' where
       mD: "method (G, D) (mn, pTs) = Some (D'', rT', mxs', mxl', ins')" 
           "G \<turnstile> rT' \<preceq> rT0"
-      by (auto dest: subtype_widen_methd intro: that)
+      by (fast dest: subtype_widen_methd)
 
     from mX mD
     have rT': "G \<turnstile> rT' \<preceq> rT"
@@ -357,7 +355,7 @@ proof -
     
     from is_class X'_subcls D_subcls
     have is_class_D: "is_class G D"
-    by (auto dest: subcls_is_class2)
+      by (auto dest: subcls_is_class2)
 
     with mD wfprog
     obtain mD'': 
@@ -442,12 +440,11 @@ proof -
 
     with state'_val heap_ok mD'' ins method phi_pc s X' l 
          frames s' LT0 c_f c_f' is_class_C
-    have ?thesis 
-      by (simp add: correct_state_def) (intro exI conjI, blast, assumption+)
+    have ?thesis by (simp add: correct_state_def) (intro exI conjI, blast)
   }
   
   with Null_ok oX_Ref
-  show "G,phi \<turnstile>JVM state'\<surd>" by - (cases oX, auto)
+  show "G,phi \<turnstile>JVM state'\<surd>" by (cases oX) auto
 qed
 
 lemmas [simp del] = map_append
