@@ -9,6 +9,8 @@ open Option;
 
 qed_goal "not_None_eq" thy "(x ~= None) = (? y. x = Some y)"
 	(K [induct_tac "x" 1, Auto_tac]);
+AddIffs[not_None_eq];
+
 
 section "case analysis in premises";
 
@@ -42,6 +44,7 @@ qed_goalw "the_Some" thy [the_def]
 Addsimps [the_Some];
 
 
+
 section "option_map";
 
 qed_goalw "option_map_None" thy [option_map_def] 
@@ -55,11 +58,14 @@ val option_map_eq_Some = prove_goalw thy [option_map_def]
  (K [asm_full_simp_tac (simpset() addsplits [option.split]) 1]);
 AddIffs[option_map_eq_Some];
 
+
 section "o2s";
 
 qed_goal "ospec" thy 
 	"!!x. [| !x:o2s A. P x; A = Some x |] ==> P x" (K [Auto_tac]);
-claset_ref() := claset() addSaltern ("ospec", dtac ospec THEN' atac);
+claset_ref() := claset() addSaltern ("ospec", 
+				dmatch_tac [ospec] THEN' eq_assume_tac);
+
 
 val elem_o2s = prove_goal thy "!!X. x : o2s xo = (xo = Some x)"
  (K [optionE_tac "xo" 1, Auto_tac]);

@@ -23,6 +23,7 @@ consts
   o2s	   :: "'a option => 'a set"
 
 primrec
+
  "o2s  None    = {}"
  "o2s (Some x) = {x}"
 
