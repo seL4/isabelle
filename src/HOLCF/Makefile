@@ -1,3 +1,4 @@
+# $Id$
 ############################################################################
 #                                                                          #
 #                   Makefile for Isabelle (HOLCF)                          #
@@ -5,7 +6,11 @@
 ############################################################################
 
 #To make the system, cd to this directory and type  
-#	make -f Makefile 
+#	make
+#To make the system and test it on standard examples, type 
+#	make test
+#To generate HTML files for every theory, set the environment variable
+#MAKE_HTML or add the parameter "MAKE_HTML=".
 
 #Environment variable ISABELLECOMP specifies the compiler.
 #Environment variable ISABELLEBIN specifies the destination directory.
@@ -27,12 +32,21 @@ THYS = Holcfb.thy Void.thy Porder.thy Pcpo.thy \
 
 FILES = ROOT.ML Porder0.thy  $(THYS) $(THYS:.thy=.ML)
 
+#Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/HOLCF:   $(BIN)/HOL  $(FILES) 
 	case "$(COMP)" in \
-	poly*)  echo 'make_database"$(BIN)/HOLCF"; quit();'  \
-		     | $(COMP) $(BIN)/HOL ;\
-		echo 'exit_use"ROOT";' | $(COMP) $(BIN)/HOLCF ;;\
-	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/HOLCF" banner;' | $(BIN)/HOL ;;\
+	poly*)  cp $(BIN)/HOL $(BIN)/HOLCF;\
+                if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; init_html (); exit_use"ROOT";' \
+                       | $(COMP) $(BIN)/HOLCF;\
+		else echo 'open PolyML; exit_use"ROOT";' \
+		       | $(COMP) $(BIN)/HOLCF;\
+                fi;;\
+	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'init_html (); exit_use"ROOT.ML";                                               xML"$(BIN)/HOLCF" banner;' | $(BIN)/HOL;\
+                else echo 'exit_use"ROOT.ML"; xML"$(BIN)/HOLCF" banner;' \
+                       | $(BIN)/HOL;\
+                fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
