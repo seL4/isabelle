@@ -246,6 +246,19 @@ by (simp_tac (simpset() addsimps [extend_set_INT_distrib]) 1);
 qed "extend_JN";
 Addsimps [extend_JN];
 
+Goal "project h ((extend h F) Join G) = F Join (project h G)";
+by (rtac program_equalityI 1);
+by (simp_tac (simpset() addsimps [Acts_Join, image_Un,
+				  image_compose RS sym, o_def]) 2);
+by (simp_tac (simpset() addsimps [project_set_extend_set_Int]) 1);
+qed "project_extend_Join";
+
+Goal "(extend h F) Join G = extend h H ==> H = F Join (project h G)";
+by (dres_inst_tac [("f", "project h")] arg_cong 1);
+by (full_simp_tac (simpset() addsimps [project_extend_Join]) 1);
+by (etac sym 1);
+qed "extend_Join_eq_extend_D";
+
 
 (*** Safety: co, stable ***)
 
@@ -275,38 +288,64 @@ Goal "(project h F : stable A)  =  (F : stable (extend_set h A))";
 by (simp_tac (simpset() addsimps [stable_def, project_constrains]) 1);
 qed "project_stable";
 
+Goal "(project h F : increasing func)  =  (F : increasing (func o f))";
+by (simp_tac (simpset() addsimps [increasing_def, project_stable,
+				  Collect_eq_extend_set RS sym]) 1);
+qed "project_increasing";
+
 
 (*** Diff, needed for localTo ***)
 
-Goal "Diff G (extend_act h `` Acts F) : (extend_set h A) co (extend_set h B)  \
-\     ==> Diff (project h G) (Acts F) : A co B";
-by (auto_tac (claset(), 
-	      simpset() addsimps [constrains_def, Diff_def]));
-by (dtac bspec 1);
-by (Force_tac 1);
-by (auto_tac (claset(), simpset() addsimps [project_act_def]));
-by (Force_tac 1);
+(** project versions **)
+
+(*Opposite direction fails because Diff in the extended state may remove
+  fewer actions, i.e. those that affect other state variables.*)
+Goal "Diff (project h G) acts  component  \
+\     project h (Diff G (extend_act h `` acts))";
+by (force_tac (claset(), 
+	       simpset() addsimps [component_eq_subset, Diff_def]) 1);
+qed "Diff_project_component_project_Diff";
+
+Goal "Diff G (extend_act h `` acts) : (extend_set h A) co (extend_set h B)  \
+\     ==> Diff (project h G) acts : A co B";
+br (Diff_project_component_project_Diff RS component_constrains) 1;
+be (project_constrains RS iffD2) 1;
 qed "Diff_project_co";
 
 Goalw [stable_def]
-     "Diff G (extend_act h `` Acts F) : stable (extend_set h A)  \
-\     ==> Diff (project h G) (Acts F) : stable A";
+     "Diff G (extend_act h `` acts) : stable (extend_set h A)  \
+\     ==> Diff (project h G) acts : stable A";
 by (etac Diff_project_co 1);
 qed "Diff_project_stable";
 
-Goal "Diff G (Acts F) : A co B  \
-\     ==> Diff (extend h G) (extend_act h `` Acts F) \
-\         : (extend_set h A) co (extend_set h B)";
-by (auto_tac (claset(), 
-	      simpset() addsimps [constrains_def, Diff_def]));
-by (blast_tac (claset() addDs [extend_act_D]) 1);
+(** extend versions **)
+
+Goal "(Diff (extend h G) (extend_act h `` acts)) = extend h (Diff G acts)";
+by (auto_tac (claset() addSIs [program_equalityI],
+	      simpset() addsimps [Diff_def,
+				  inj_extend_act RS image_set_diff RS sym,
+				  image_compose RS sym, o_def]));
+qed "Diff_extend_eq";
+
+Goal "(Diff (extend h G) (extend_act h `` acts) \
+\         : (extend_set h A) co (extend_set h B)) \
+\     = (Diff G acts : A co B)";
+by (simp_tac (simpset() addsimps [Diff_extend_eq, extend_constrains]) 1);
 qed "Diff_extend_co";
 
-Goalw [stable_def]
-   "Diff G (Acts F) : stable A  \
-\   ==> Diff (extend h G) (extend_act h `` Acts F) : stable (extend_set h A)";
-by (etac Diff_extend_co 1);
+Goal "(Diff (extend h G) (extend_act h `` acts) : stable (extend_set h A)) \
+\     = (Diff G acts : stable A)";
+by (simp_tac (simpset() addsimps [Diff_extend_co, stable_def]) 1);
 qed "Diff_extend_stable";
+
+(*Converse appears to fail*)
+Goal "(H : (func o f) localTo extend h G) ==> (project h H : func localTo G)";
+by (asm_full_simp_tac 
+    (simpset() addsimps [localTo_def, 
+			 project_extend_Join RS sym,
+			 Diff_project_stable,
+			 Collect_eq_extend_set RS sym]) 1);
+qed "project_localTo_I";
 
 
 (*** Weak safety primitives: Co, Stable ***)
@@ -387,19 +426,6 @@ qed "project_Increasing_D";
 
 (*** Programs of the form  ((extend h F) Join G)
      in other words programs containing an extended component ***)
-
-Goal "project h ((extend h F) Join G) = F Join (project h G)";
-by (rtac program_equalityI 1);
-by (simp_tac (simpset() addsimps [Acts_Join, image_Un,
-				  image_compose RS sym, o_def]) 2);
-by (simp_tac (simpset() addsimps [project_set_extend_set_Int]) 1);
-qed "project_extend_Join";
-
-Goal "(extend h F) Join G = extend h H ==> H = F Join (project h G)";
-by (dres_inst_tac [("f", "project h")] arg_cong 1);
-by (full_simp_tac (simpset() addsimps [project_extend_Join]) 1);
-by (etac sym 1);
-qed "extend_Join_eq_extend_D";
 
 Goal "z : reachable (extend h F Join G)  \
 \     ==> f z : reachable (F Join project h G)";
@@ -549,25 +575,6 @@ by (force_tac
 qed "f_act_extend_act";
 Addsimps [f_act_extend_act];
 
-Goalw [extend_set_def]
-     "f `` (extend_set h A Int B) = (f `` extend_set h A) Int (f``B)";
-by (force_tac (claset() addIs  [h_f_g_eq RS sym], simpset()) 1);
-qed "image_extend_set_Int_eq";
-
-Goal "(extend h F) Join G = extend h H ==> EX J. H = F Join J";
-by (etac program_equalityE 1);
-by (auto_tac (claset(), simpset() addsimps [Acts_Join]));
-by (res_inst_tac [("x", "mk_program(f``(Init G), f_act``Acts G)")] exI 1);
-by (rtac program_equalityI 1);
-(*Init*)
-by (REPEAT (dres_inst_tac [("f", "op `` f")] arg_cong 1));
-by (asm_full_simp_tac (simpset() addsimps [image_extend_set_Int_eq]) 1);
-(*Now for the Actions*)
-by (dres_inst_tac [("f", "op `` f_act")] arg_cong 1);
-by (asm_full_simp_tac 
-    (simpset() addsimps [Acts_Join, image_Un, image_compose RS sym, o_def]) 1);
-qed "extend_Join_eq_extend_D";
-
 (** Strong precondition and postcondition; doesn't seem very useful. **)
 
 Goal "F : X guarantees Y ==> \
@@ -610,58 +617,44 @@ qed "project_guarantees";
 
 (*** guarantees corollaries ***)
 
-Goalw [increasing_def]
-     "F : UNIV guarantees increasing func \
+Goal "F : UNIV guarantees increasing func \
 \     ==> extend h F : UNIV guarantees increasing (func o f)";
 by (etac project_guarantees 1);
+by (asm_simp_tac
+    (simpset() addsimps [project_extend_Join, project_increasing RS sym]) 2);
 by Auto_tac;
-by (stac Collect_eq_extend_set 1); 
-by (asm_full_simp_tac
-    (simpset() addsimps [extend_stable, project_stable, 
-			 stable_Join]) 1);
 qed "extend_guar_increasing";
 
-Goalw [Increasing_def]
-     "F : UNIV guarantees Increasing func \
+Goal "F : UNIV guarantees Increasing func \
 \     ==> extend h F : UNIV guarantees Increasing (func o f)";
 by (etac project_guarantees 1);
+by (asm_simp_tac
+    (simpset() addsimps [project_extend_Join, project_Increasing_D]) 2);
 by Auto_tac;
-by (stac Collect_eq_extend_set 1); 
-by (asm_simp_tac (simpset() addsimps [extend_Join_Stable]) 1);
 qed "extend_guar_Increasing";
 
-Goalw [localTo_def, increasing_def]
-     "F : (func localTo F) guarantees increasing func  \
-\     ==> extend h F : (func o f) localTo (extend h F)  \
-\                         guarantees increasing (func o f)";
+Goal "F : (func localTo G) guarantees increasing func  \
+\     ==> extend h F : (func o f) localTo (extend h G)  \
+\                      guarantees increasing (func o f)";
 by (etac project_guarantees 1);
-by Auto_tac;
-by (stac Collect_eq_extend_set 2); 
 (*the "increasing" guarantee*)
-by (asm_full_simp_tac
-    (simpset() addsimps [extend_stable, project_stable, 
-			 stable_Join]) 2);
-(*the "localTo" requirement*)
 by (asm_simp_tac
-    (simpset() addsimps [project_extend_Join RS sym,
-			 Diff_project_stable, 
-			 Collect_eq_extend_set RS sym]) 1); 
+    (simpset() addsimps [project_extend_Join, project_increasing RS sym]) 2);
+(*the "localTo" requirement*)
+by (asm_simp_tac 
+    (simpset() addsimps [project_localTo_I, project_extend_Join RS sym]) 1);
 qed "extend_localTo_guar_increasing";
 
-Goalw [localTo_def, Increasing_def]
-     "F : (func localTo F) guarantees Increasing func  \
-\     ==> extend h F : (func o f) localTo (extend h F)  \
-\                         guarantees Increasing (func o f)";
+Goal "F : (func localTo G) guarantees Increasing func  \
+\     ==> extend h F : (func o f) localTo (extend h G)  \
+\                      guarantees Increasing (func o f)";
 by (etac project_guarantees 1);
-by Auto_tac;
-by (stac Collect_eq_extend_set 2); 
 (*the "Increasing" guarantee*)
-by (asm_simp_tac (simpset() addsimps [extend_Join_Stable]) 2);
-(*the "localTo" requirement*)
 by (asm_simp_tac
-    (simpset() addsimps [project_extend_Join RS sym,
-			 Diff_project_stable, 
-			 Collect_eq_extend_set RS sym]) 1); 
+    (simpset() addsimps [project_extend_Join, project_Increasing_D]) 2);
+(*the "localTo" requirement*)
+by (asm_simp_tac 
+    (simpset() addsimps [project_localTo_I, project_extend_Join RS sym]) 1);
 qed "extend_localTo_guar_Increasing";
 
 Close_locale "Extend";
