@@ -135,6 +135,14 @@ goalw Perm.thy [bij_def] "id(A): bij(A,A)";
 by (fast_tac (ZF_cs addIs [id_inj,id_surj]) 1);
 val id_bij = result();
 
+goalw Perm.thy [id_def] "A <= B <-> id(A) : A->B";
+by (safe_tac ZF_cs);
+by (fast_tac (ZF_cs addSIs [lam_type]) 1);
+by (dtac apply_type 1);
+by (assume_tac 1);
+by (asm_full_simp_tac ZF_ss 1);
+val subset_iff_id = result();
+
 
 (*** Converse of a function ***)
 

@@ -619,6 +619,11 @@ val Card_csucc = csucc_basic RS conjunct1 |> standard;
 
 val lt_csucc = csucc_basic RS conjunct2 |> standard;
 
+goal CardinalArith.thy "!!K. Ord(K) ==> 0 < csucc(K)";
+by (resolve_tac [[Ord_0_le, lt_csucc] MRS lt_trans1] 1);
+by (REPEAT (assume_tac 1));
+val Ord_0_lt_csucc = result();
+
 goalw CardinalArith.thy [csucc_def]
     "!!K L. [| Card(L);  K<L |] ==> csucc(K) le L";
 by (rtac Least_le 1);
@@ -650,3 +655,5 @@ goalw CardinalArith.thy [InfCard_def]
 by (asm_simp_tac (ZF_ss addsimps [Card_csucc, Card_is_Ord, 
 				  lt_csucc RS leI RSN (2,le_trans)]) 1);
 val InfCard_csucc = result();
+
+val Limit_csucc = InfCard_csucc RS InfCard_is_Limit |> standard;

@@ -4,6 +4,8 @@
     Copyright   1994  University of Cambridge
 
 Cardinal arithmetic WITH the Axiom of Choice
+
+These results help justify infinite-branching datatypes
 *)
 
 open Cardinal_AC;
@@ -135,15 +137,34 @@ by (fast_tac (ZF_cs addSIs [Ord_UN] addEs [ltE]) 1);
 by (eresolve_tac [InfCard_is_Card RS Card_is_Ord RS Card_csucc] 1);
 val cardinal_UN_Ord_lt_csucc = result();
 
+
+(*Saves checking Ord(j) below*)
+goal Ordinal.thy "!!i j. [| i <= j;  j<k;  Ord(i) |] ==> i<k";
+by (resolve_tac [subset_imp_le RS lt_trans1] 1);
+by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
+val lt_subset_trans = result();
+
 goal Cardinal_AC.thy
-    "!!K. [| InfCard(K);  |I| le K;  ALL i:I. j(i) < csucc(K) |] ==> \
-\         (UN i:I. j(i)) < csucc(K)";
+    "!!K. [| InfCard(K);  |W| le K;  ALL w:W. j(w) < csucc(K) |] ==> \
+\         (UN w:W. j(w)) < csucc(K)";
+by (excluded_middle_tac "W=0" 1);
+by (asm_simp_tac
+    (ZF_ss addsimps [UN_0, InfCard_is_Card, Card_is_Ord RS Card_csucc, 
+		     Card_is_Ord, Ord_0_lt_csucc]) 2);
 by (asm_full_simp_tac
     (ZF_ss addsimps [InfCard_is_Card, le_Card_iff, lepoll_def]) 1);
-by (eresolve_tac [exE] 1);
-by (resolve_tac [lt_trans1] 1);
-by (resolve_tac [cardinal_UN_Ord_lt_csucc] 2);
+by (safe_tac eq_cs);
+by (eresolve_tac [notE] 1);
+by (res_inst_tac [("j1", "%i. j(if(i: range(f), converse(f)`i, x))")]
+    (cardinal_UN_Ord_lt_csucc RSN (2,lt_subset_trans)) 1);
 by (assume_tac 2);
-
-val ?cardinal_UN_Ord_lt_csucc = result();
+by (resolve_tac [UN_least] 1);
+by (res_inst_tac [("x1", "f`xa")] (UN_upper RSN (2,subset_trans)) 1);
+by (eresolve_tac [inj_is_fun RS apply_type] 2 THEN assume_tac 2);
+by (asm_simp_tac 
+    (ZF_ss addsimps [inj_is_fun RS apply_rangeI, left_inverse]) 1);
+by (fast_tac (ZF_cs addSIs [Ord_UN] addEs [ltE]) 2);
+by (asm_simp_tac (ZF_ss addsimps [inj_converse_fun RS apply_type]
+		        setloop split_tac [expand_if]) 1);
+val le_UN_Ord_lt_csucc = result();
 

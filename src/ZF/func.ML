@@ -71,6 +71,13 @@ by (rtac apply_equality2 2);
 by (REPEAT (assume_tac 1));
 val apply_equality = result();
 
+(*Applying a function outside its domain yields 0*)
+goalw ZF.thy [apply_def]
+    "!!a b f. [| a ~: domain(f);  f: Pi(A,B) |] ==> f`a = 0";
+by (rtac the_0 1);
+by (fast_tac ZF_cs 1);
+val apply_0 = result();
+
 val prems = goal ZF.thy
     "[| f: Pi(A,B);   c: f;   !!x. [| x:A;  c = <x,f`x> |] ==> P  \
 \    |] ==> P";
@@ -338,9 +345,14 @@ by (rtac (major RS PiE) 1);
 by (fast_tac ZF_cs 1);
 val domain_of_fun = result();
 
+goal ZF.thy "!!f. [| f : Pi(A,B);  a: A |] ==> f`a : range(f)";
+by (etac (apply_Pair RS rangeI) 1);
+by (assume_tac 1);
+val apply_rangeI = result();
+
 val [major] = goal ZF.thy "f : Pi(A,B) ==> f : A->range(f)";
 by (rtac (major RS Pi_type) 1);
-by (etac (major RS apply_Pair RS rangeI) 1);
+by (etac (major RS apply_rangeI) 1);
 val range_of_fun = result();
 
 (*** Extensions of functions ***)

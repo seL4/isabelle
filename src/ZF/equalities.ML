@@ -200,6 +200,10 @@ goalw ZF.thy [Inter_def] "Inter(A) = (INT x:A. x)";
 by (fast_tac eq_cs 1);
 val Inter_eq_INT = result();
 
+goal ZF.thy "(UN i:0. A(i)) = 0";
+by (fast_tac eq_cs 1);
+val UN_0 = result();
+
 (*Halmos, Naive Set Theory, page 35.*)
 goal ZF.thy "B Int (UN i:I. A(i)) = (UN i:I. B Int A(i))";
 by (fast_tac eq_cs 1);
