@@ -1,9 +1,16 @@
-open Lift;
+(*  Title:      HOLCF/Lift.ML
+    ID:         $Id$
+    Author:     Olaf Mueller
+    Copyright   1997 Technische Universitaet Muenchen
+
+Theorems for Lift.thy
+*)
+
 
 (* ---------------------------------------------------------- *)
     section"Continuity Proofs for flift1, flift2, if";
-(* need the instance into flat *)
 (* ---------------------------------------------------------- *)
+(* need the instance into flat *)
 
 
 (* flift1 is continuous in its argument itself*)
