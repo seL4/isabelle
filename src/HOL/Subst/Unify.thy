@@ -6,14 +6,12 @@
 Unification algorithm
 *)
 
-Unify = Unifier + WF_Rel + 
-
-datatype 'a subst = Fail | Subst ('a list)
+Unify = Unifier + WF_Rel + Option + 
 
 consts
 
    unifyRel :: "(('a uterm * 'a uterm) * ('a uterm * 'a uterm)) set"
-   unify    :: "'a uterm * 'a uterm => ('a * 'a uterm) subst"
+   unify    :: "'a uterm * 'a uterm => ('a * 'a uterm) list option"
 
 defs
 
@@ -25,17 +23,17 @@ defs
                                (%(M,N). (vars_of M Un vars_of N, M))"
 
 recdef unify "unifyRel"
-  "unify(Const m, Const n)  = (if (m=n) then Subst[] else Fail)"
-  "unify(Const m, Comb M N) = Fail"
-  "unify(Const m, Var v)    = Subst[(v,Const m)]"
-  "unify(Var v, M)          = (if (Var v <: M) then Fail else Subst[(v,M)])"
-  "unify(Comb M N, Const x) = Fail"
-  "unify(Comb M N, Var v)   = (if (Var v <: Comb M N) then Fail   
-                               else Subst[(v,Comb M N)])"
+  "unify(Const m, Const n)  = (if (m=n) then Some[] else None)"
+  "unify(Const m, Comb M N) = None"
+  "unify(Const m, Var v)    = Some[(v,Const m)]"
+  "unify(Var v, M)          = (if (Var v <: M) then None else Some[(v,M)])"
+  "unify(Comb M N, Const x) = None"
+  "unify(Comb M N, Var v)   = (if (Var v <: Comb M N) then None   
+                               else Some[(v,Comb M N)])"
   "unify(Comb M1 N1, Comb M2 N2) =   
       (case unify(M1,M2)  
-        of Fail => Fail  
-         | Subst theta => (case unify(N1 <| theta, N2 <| theta)  
-                            of Fail => Fail  
-                             | Subst sigma => Subst (theta <> sigma)))"
+        of None       => None  
+         | Some theta => (case unify(N1 <| theta, N2 <| theta)  
+                            of None       => None  
+                             | Some sigma => Some (theta <> sigma)))"
 end
