@@ -13,7 +13,7 @@ arities
 
 consts	
       (*** Judgements ***)
- "@Proof"   	::   "[p,o]=>prop"	("(_ /: _)" [10,10] 5)
+ "@Proof"   	::   "[p,o]=>prop"	("(_ /: _)" [51,10] 5)
  Proof  	::   "[o,p]=>prop"
  EqProof        ::   "[p,p,o]=>prop"    ("(3_ /= _ :/ _)" [10,10,10] 5)
         
@@ -33,7 +33,7 @@ consts
  NORM		::	"o => o"
  norm		::	"'a => 'a"
 
-      (*** Proof Term Formers ***)
+      (*** Proof Term Formers: precedence must exceed 50 ***)
  tt		:: "p"
  contr		:: "p=>p"
  fst,snd	:: "p=>p"
@@ -41,10 +41,10 @@ consts
  split		:: "[p, [p,p]=>p] =>p"
  inl,inr	:: "p=>p"
  when		:: "[p, p=>p, p=>p]=>p"
- lambda		:: "(p => p) => p"	(binder "lam " 20)
+ lambda		:: "(p => p) => p"	(binder "lam " 55)
  "`"		:: "[p,p]=>p"		(infixl 60)
- alll           :: "['a=>p]=>p"         (binder "all " 15)
- "^"            :: "[p,'a]=>p"          (infixl 50)
+ alll           :: "['a=>p]=>p"         (binder "all " 55)
+ "^"            :: "[p,'a]=>p"          (infixl 55)
  exists		:: "['a,p]=>p"		("(1[_,/_])")
  xsplit         :: "[p,['a,p]=>p]=>p"
  ideq           :: "'a=>p"
