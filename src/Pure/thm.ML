@@ -144,6 +144,7 @@ signature THM =
   val del_simps         : meta_simpset * thm list -> meta_simpset
   val mss_of            : thm list -> meta_simpset
   val add_congs         : meta_simpset * thm list -> meta_simpset
+  val del_congs         : meta_simpset * thm list -> meta_simpset
   val add_simprocs	: meta_simpset *
     (Sign.sg * term * (Sign.sg -> term -> thm option) * stamp) list -> meta_simpset
   val del_simprocs	: meta_simpset *
@@ -1526,7 +1527,7 @@ fun del_simp
 val del_simps = foldl del_simp;
 
 
-(* congs *)
+(* add_congs *)
 
 fun add_cong (Mss {rules, congs, procs, bounds, prems, mk_rews, termless}, thm) =
   let
@@ -1541,6 +1542,23 @@ fun add_cong (Mss {rules, congs, procs, bounds, prems, mk_rews, termless}, thm) 
   end;
 
 val (op add_congs) = foldl add_cong;
+
+
+(* del_congs *)
+
+fun del_cong (Mss {rules, congs, procs, bounds, prems, mk_rews, termless}, thm) =
+  let
+    val (lhs, _) = Logic.dest_equals (concl_of thm) handle TERM _ =>
+      raise SIMPLIFIER ("Congruence not a meta-equality", thm);
+(*   val lhs = Pattern.eta_contract lhs; *)
+    val (a, _) = dest_Const (head_of lhs) handle TERM _ =>
+      raise SIMPLIFIER ("Congruence must start with a constant", thm);
+  in
+    mk_mss (rules, filter (fn (x,_)=> x<>a) congs, procs, bounds,
+      prems, mk_rews, termless)
+  end;
+
+val (op del_congs) = foldl del_cong;
 
 
 (* add_simprocs *)
