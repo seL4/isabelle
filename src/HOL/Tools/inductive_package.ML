@@ -31,6 +31,7 @@ derive "streamlined" induction rules for relations.
 signature INDUCTIVE_PACKAGE =
 sig
   val quiet_mode: bool ref
+  val trace: bool ref
   val unify_consts: Sign.sg -> term list -> term list -> term list * term list
   val split_rule_vars: term list -> thm -> thm
   val get_inductive: theory -> string -> ({names: string list, coind: bool} *
@@ -165,6 +166,7 @@ val mono_attr =
 (** misc utilities **)
 
 val quiet_mode = ref false;
+val trace = ref false;  (*for debugging*)
 fun message s = if ! quiet_mode then () else writeln s;
 fun clean_message s = if ! quick_and_dirty then () else message s;
 
@@ -412,6 +414,7 @@ fun mk_indrule cs cTs params intr_ts =
       end;
 
     val ind_prems = map mk_ind_prem intr_ts;
+
     val factors = foldl (mg_prod_factors preds) ([], ind_prems);
 
     (* make conclusions for induction rules *)
@@ -624,6 +627,11 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
     val (preds, ind_prems, mutual_ind_concl, factors) =
       mk_indrule cs cTs params intr_ts;
 
+    val dummy = if !trace then
+		(writeln "ind_prems = ";
+		 seq (writeln o Sign.string_of_term sign) ind_prems)
+	    else ();
+
     (* make predicate for instantiation of abstract induction rule *)
 
     fun mk_ind_pred _ [P] = P
@@ -651,20 +659,27 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
              nth_elem (find_index_eq c cs, preds)))))
         (fn _ => [rtac vimage_Collect 1, rewrite_goals_tac sum_case_rewrites, rtac refl 1])) cs;
 
+    val raw_fp_induct = (mono RS (fp_def RS def_lfp_induct));
+
+    val dummy = if !trace then
+		(writeln "raw_fp_induct = "; print_thm raw_fp_induct)
+	    else ();
+
     val induct = quick_and_dirty_prove_goalw_cterm thy [inductive_conj_def] (Thm.cterm_of sign
       (Logic.list_implies (ind_prems, ind_concl))) (fn prems =>
         [rtac (impI RS allI) 1,
-         DETERM (etac (mono RS (fp_def RS def_lfp_induct)) 1),
+         DETERM (etac raw_fp_induct 1),
          rewrite_goals_tac (map mk_meta_eq (vimage_Int::Int_Collect::vimage_simps)),
          fold_goals_tac rec_sets_defs,
          (*This CollectE and disjE separates out the introduction rules*)
          REPEAT (FIRSTGOAL (eresolve_tac [CollectE, disjE, exE])),
          (*Now break down the individual cases.  No disjE here in case
            some premise involves disjunction.*)
-         REPEAT (FIRSTGOAL (etac conjE ORELSE' hyp_subst_tac)),
-         rewrite_goals_tac sum_case_rewrites,
+         REPEAT (FIRSTGOAL (etac conjE)),
+         ALLGOALS (asm_simp_tac (HOL_basic_ss addsimps sum_case_rewrites)),
          EVERY (map (fn prem =>
-           DEPTH_SOLVE_1 (ares_tac [prem, conjI, refl] 1)) prems)]);
+			DEPTH_SOLVE_1 (ares_tac [prem, conjI, refl] 1 APPEND 
+						hyp_subst_tac 1)) prems)]);
 
     val lemma = quick_and_dirty_prove_goalw_cterm thy rec_sets_defs (Thm.cterm_of sign
       (Logic.mk_implies (ind_concl, mutual_ind_concl))) (fn prems =>
