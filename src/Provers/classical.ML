@@ -62,6 +62,8 @@ signature CLASSICAL =
   val swapify 		: thm list -> thm list
   val swap_res_tac 	: thm list -> int -> tactic
   val inst_step_tac 	: claset -> int -> tactic
+  val inst0_step_tac 	: claset -> int -> tactic
+  val instp_step_tac 	: claset -> int -> tactic
   end;
 
 
@@ -184,14 +186,20 @@ fun safe_step_tac (CS{safe0_netpair,safep_netpair,...}) =
 	  bimatch_from_nets_tac safep_netpair] ;
 
 (*Repeatedly attack subgoals using safe inferences -- it's deterministic!*)
-fun safe_tac cs = DETERM (REPEAT_FIRST (safe_step_tac cs));
+fun safe_tac cs = REPEAT_DETERM_FIRST (safe_step_tac cs);
 
-(*These steps could instantiate variables and are therefore unsafe.*)
-fun inst_step_tac (CS{safe0_netpair,safep_netpair,...}) =
+(*But these unsafe steps at least solve a subgoal!*)
+fun inst0_step_tac (CS{safe0_netpair,safep_netpair,...}) =
   assume_tac 			  APPEND' 
   contr_tac 			  APPEND' 
-  biresolve_from_nets_tac safe0_netpair APPEND' 
+  biresolve_from_nets_tac safe0_netpair;
+
+(*These are much worse since they could generate more and more subgoals*)
+fun instp_step_tac (CS{safep_netpair,...}) =
   biresolve_from_nets_tac safep_netpair;
+
+(*These steps could instantiate variables and are therefore unsafe.*)
+fun inst_step_tac cs = inst0_step_tac cs APPEND' instp_step_tac cs;
 
 fun haz_step_tac (cs as (CS{haz_netpair,...})) = 
   biresolve_from_nets_tac haz_netpair;
@@ -220,19 +228,35 @@ fun slow_best_tac cs =
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (slow_step_tac cs 1));
 
 
-(*** Complete(?) tactic, loosely based upon LeanTaP ***)
+(*** Complete tactic, loosely based upon LeanTaP This tactic is the outcome
+  of much experimentation!  Changing APPEND to ORELSE below would prove
+  easy theorems faster, but loses completeness -- and many of the harder
+  theorems such as 43. ***)
 
-(*Not deterministic.  A different approach would always expand the first
-  unsafe connective.  That's harder in Isabelle because etac can pick up
-  any assumption.  One way is to express *all* unsafe connectives in terms 
-  of universal quantification.*)
+(*Non-deterministic!  Could always expand the first unsafe connective.
+  That's hard to implement and did not perform better in experiments, due to
+  greater search depth required.*)
 fun dup_step_tac (cs as (CS{dup_netpair,...})) = 
   biresolve_from_nets_tac dup_netpair;
 
-(*Searching to depth m of duplicative steps
-  Uses DEPTH_SOLVE (tac 1) instead of (ALLGOALS tac) since the latter
-  solves the subgoals in reverse order!*)
-fun depth_tac cs m = 
+(*Searching to depth m.*)
+fun depth_tac cs m i = STATE(fn state => 
+  SELECT_GOAL 
+    (REPEAT_DETERM1 (safe_step_tac cs 1) THEN_ELSE
+     (DEPTH_SOLVE (depth_tac cs m 1),
+      inst0_step_tac cs 1  APPEND
+      COND (K(m=0)) no_tac
+        ((instp_step_tac cs 1 APPEND dup_step_tac cs 1)
+	 THEN DEPTH_SOLVE (depth_tac cs (m-1) 1))))
+  i);
+
+(*Iterative deepening tactical.  Allows us to "deepen" any search tactic*)
+fun DEEPEN tacf m i = STATE(fn state => 
+   if has_fewer_prems i state then no_tac
+   else (writeln ("Depth = " ^ string_of_int m);
+	 tacf m i  ORELSE  DEEPEN tacf (m+2) i));
+
+fun safe_depth_tac cs m = 
   SUBGOAL 
     (fn (prem,i) =>
       let val deti =
@@ -241,19 +265,10 @@ fun depth_tac cs m =
 	      []	=> DETERM 
 	    | _::_	=> I
       in  SELECT_GOAL (TRY (safe_tac cs) THEN 
-		       DEPTH_SOLVE (deti (depth_aux_tac cs m 1))) i
-      end)
-and depth_aux_tac cs m =
-  SELECT_GOAL 
-    (inst_step_tac cs 1 THEN DEPTH_SOLVE (depth_tac cs m 1) 
-     APPEND
-     COND (K(m=0)) no_tac
-       (dup_step_tac cs 1 THEN DEPTH_SOLVE (depth_tac cs (m-1) 1)));
+		       DEPTH_SOLVE (deti (depth_tac cs m 1))) i
+      end);
 
-fun deepen_tac cs m i = STATE(fn state => 
-   if has_fewer_prems i state then no_tac
-   else (writeln ("Depth = " ^ string_of_int m);
-	 depth_tac cs m i  ORELSE  deepen_tac cs (m+1) i));
+fun deepen_tac cs = DEEPEN (safe_depth_tac cs);
 
 end; 
 end;
