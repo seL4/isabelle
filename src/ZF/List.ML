@@ -109,7 +109,10 @@ qed "drop_Nil";
 goalw List.thy [drop_def]
     "!!i. i:nat ==> drop(succ(i), Cons(a,l)) = drop(i,l)";
 by (etac nat_induct 1);
-by (ALLGOALS (asm_simp_tac (nat_ss addsimps [tl_Cons])));
+by (simp_tac (nat_ss addsimps [tl_Cons]) 1);
+by (rtac (rec_succ RS ssubst) 1);
+by (rtac (rec_succ RS ssubst) 1);
+by (asm_simp_tac ZF_ss 1);
 qed "drop_succ_Cons";
 
 goalw List.thy [drop_def] 
