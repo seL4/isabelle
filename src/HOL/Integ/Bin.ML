@@ -12,86 +12,86 @@ decision procedure for linear arithmetic.
 
 (** extra rules for bin_succ, bin_pred, bin_add, bin_mult **)
 
-qed_goal "NCons_Pls_0" thy
-    "NCons Pls False = Pls"
- (fn _ => [(Simp_tac 1)]);
+Goal "NCons Pls False = Pls";
+by (Simp_tac 1);
+qed "NCons_Pls_0";
 
-qed_goal "NCons_Pls_1" thy
-    "NCons Pls True = Pls BIT True"
- (fn _ => [(Simp_tac 1)]);
+Goal "NCons Pls True = Pls BIT True";
+by (Simp_tac 1);
+qed "NCons_Pls_1";
 
-qed_goal "NCons_Min_0" thy
-    "NCons Min False = Min BIT False"
- (fn _ => [(Simp_tac 1)]);
+Goal "NCons Min False = Min BIT False";
+by (Simp_tac 1);
+qed "NCons_Min_0";
 
-qed_goal "NCons_Min_1" thy
-    "NCons Min True = Min"
- (fn _ => [(Simp_tac 1)]);
+Goal "NCons Min True = Min";
+by (Simp_tac 1);
+qed "NCons_Min_1";
 
-qed_goal "bin_succ_1" thy
-    "bin_succ(w BIT True) = (bin_succ w) BIT False"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_succ(w BIT True) = (bin_succ w) BIT False";
+by (Simp_tac 1);
+qed "bin_succ_1";
 
-qed_goal "bin_succ_0" thy
-    "bin_succ(w BIT False) =  NCons w True"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_succ(w BIT False) =  NCons w True";
+by (Simp_tac 1);
+qed "bin_succ_0";
 
-qed_goal "bin_pred_1" thy
-    "bin_pred(w BIT True) = NCons w False"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_pred(w BIT True) = NCons w False";
+by (Simp_tac 1);
+qed "bin_pred_1";
 
-qed_goal "bin_pred_0" thy
-    "bin_pred(w BIT False) = (bin_pred w) BIT True"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_pred(w BIT False) = (bin_pred w) BIT True";
+by (Simp_tac 1);
+qed "bin_pred_0";
 
-qed_goal "bin_minus_1" thy
-    "bin_minus(w BIT True) = bin_pred (NCons (bin_minus w) False)"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_minus(w BIT True) = bin_pred (NCons (bin_minus w) False)";
+by (Simp_tac 1);
+qed "bin_minus_1";
 
-qed_goal "bin_minus_0" thy
-    "bin_minus(w BIT False) = (bin_minus w) BIT False"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_minus(w BIT False) = (bin_minus w) BIT False";
+by (Simp_tac 1);
+qed "bin_minus_0";
 
 
 (*** bin_add: binary addition ***)
 
-qed_goal "bin_add_BIT_11" thy
-    "bin_add (v BIT True) (w BIT True) = \
-\    NCons (bin_add v (bin_succ w)) False"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_add (v BIT True) (w BIT True) = \
+\    NCons (bin_add v (bin_succ w)) False";
+by (Simp_tac 1);
+qed "bin_add_BIT_11";
 
-qed_goal "bin_add_BIT_10" thy
-    "bin_add (v BIT True) (w BIT False) = NCons (bin_add v w) True"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_add (v BIT True) (w BIT False) = NCons (bin_add v w) True";
+by (Simp_tac 1);
+qed "bin_add_BIT_10";
 
-qed_goal "bin_add_BIT_0" thy
-    "bin_add (v BIT False) (w BIT y) = NCons (bin_add v w) y"
- (fn _ => [Auto_tac]);
+Goal "bin_add (v BIT False) (w BIT y) = NCons (bin_add v w) y";
+by Auto_tac;
+qed "bin_add_BIT_0";
 
 Goal "bin_add w Pls = w";
 by (induct_tac "w" 1);
 by Auto_tac;
 qed "bin_add_Pls_right";
 
-qed_goal "bin_add_BIT_Min" thy
-    "bin_add (v BIT x) Min = bin_pred (v BIT x)"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_add (v BIT x) Min = bin_pred (v BIT x)";
+by (Simp_tac 1);
+qed "bin_add_BIT_Min";
 
-qed_goal "bin_add_BIT_BIT" thy
-    "bin_add (v BIT x) (w BIT y) = \
-\    NCons(bin_add v (if x & y then (bin_succ w) else w)) (x~= y)"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_add (v BIT x) (w BIT y) = \
+\    NCons(bin_add v (if x & y then (bin_succ w) else w)) (x~= y)";
+by (Simp_tac 1);
+qed "bin_add_BIT_BIT";
 
 
 (*** bin_mult: binary multiplication ***)
 
-qed_goal "bin_mult_1" thy
-    "bin_mult (v BIT True) w = bin_add (NCons (bin_mult v w) False) w"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_mult (v BIT True) w = bin_add (NCons (bin_mult v w) False) w";
+by (Simp_tac 1);
+qed "bin_mult_1";
 
-qed_goal "bin_mult_0" thy
-    "bin_mult (v BIT False) w = NCons (bin_mult v w) False"
- (fn _ => [(Simp_tac 1)]);
+Goal "bin_mult (v BIT False) w = NCons (bin_mult v w) False";
+by (Simp_tac 1);
+qed "bin_mult_0";
 
 
 (**** The carry/borrow functions, bin_succ and bin_pred ****)
@@ -99,22 +99,22 @@ qed_goal "bin_mult_0" thy
 
 (**** number_of ****)
 
-qed_goal "number_of_NCons" thy
-    "number_of(NCons w b) = (number_of(w BIT b)::int)"
- (fn _ =>[(induct_tac "w" 1),
-          (ALLGOALS Asm_simp_tac) ]);
+Goal "number_of(NCons w b) = (number_of(w BIT b)::int)";
+by (induct_tac "w" 1);
+by (ALLGOALS Asm_simp_tac);
+qed "number_of_NCons";
 
 Addsimps [number_of_NCons];
 
-qed_goal "number_of_succ" thy
-    "number_of(bin_succ w) = int 1 + number_of w"
- (fn _ =>[induct_tac "w" 1,
-          (ALLGOALS(asm_simp_tac (simpset() addsimps zadd_ac))) ]);
+Goal "number_of(bin_succ w) = int 1 + number_of w";
+by (induct_tac "w" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac)));
+qed "number_of_succ";
 
-qed_goal "number_of_pred" thy
-    "number_of(bin_pred w) = - (int 1) + number_of w"
- (fn _ =>[induct_tac "w" 1,
-          (ALLGOALS(asm_simp_tac (simpset() addsimps zadd_ac))) ]);
+Goal "number_of(bin_pred w) = - (int 1) + number_of w";
+by (induct_tac "w" 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps zadd_ac)));
+qed "number_of_pred";
 
 Goal "number_of(bin_minus w) = (- (number_of w)::int)";
 by (induct_tac "w" 1);
@@ -665,12 +665,14 @@ by (asm_full_simp_tac
     (simpset() addsimps [neg_eq_less_0, zle_def, not_neg_nat]) 1); 
 qed "nat_0_le"; 
 
-Goal "z < #0 ==> nat z = 0"; 
-by (asm_full_simp_tac
-    (simpset() addsimps [neg_eq_less_0, zle_def, neg_nat]) 1); 
-qed "nat_less_0"; 
+Goal "z <= #0 ==> nat z = 0"; 
+by (case_tac "z = #0" 1);
+by (asm_simp_tac (simpset() addsimps [nat_le_int0]) 1); 
+by (asm_full_simp_tac 
+    (simpset() addsimps [neg_eq_less_0, neg_nat, linorder_neq_iff]) 1);
+qed "nat_le_0"; 
 
-Addsimps [nat_0_le, nat_less_0];
+Addsimps [nat_0_le, nat_le_0];
 
 Goal "#0 <= w ==> (nat w = m) = (w = int m)";
 by Auto_tac;
@@ -740,6 +742,17 @@ by (auto_tac (claset() addIs [zless_trans],
 	      simpset() addsimps [neg_eq_less_0, zle_def]));
 qed "nat_less_eq_zless";
 
+Goal "#0 < w | #0 <= z ==> (nat w <= nat z) = (w<=z)";
+by (auto_tac (claset(), 
+	      simpset() addsimps [linorder_not_less RS sym, 
+				  zless_nat_conj]));
+qed "nat_le_eq_zle";
+
+(*Analogous to zadd_int, but more easily provable using the arithmetic in Bin*)
+Goal "n<=m --> int m - int n = int (m-n)";
+by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
+by Auto_tac;
+qed_spec_mp "zdiff_int";
 
 (*Towards canonical simplification*)
 Addsimps zadd_ac;
