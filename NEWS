@@ -5,6 +5,9 @@ Isabelle NEWS -- history of user-visible changes
 New in Isabelle???? (DATE ????)
 -------------------------------
 
+* added extended adm_tac to simplifier in HOLCF. Is now capable to discharge
+  adm (%x. P (t x)), where P is chainfinite and t continuous.
+
 * replaced print_goals_ref hook by print_current_goals_fn and
   result_error_fn;
 
