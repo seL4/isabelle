@@ -3,13 +3,9 @@
     Author:     Tobias Mayr
 
 Additional theory file section for HOLCF: ops 
-There's an elaborate but german description of this program,
-write to mayrt@informatik.tu-muenchen.de.
-For a short english description of the new sections
-write to regensbu@informatik.tu-muenchen.de. 
 
-TODO: maybe AST-representation with "op name" instead of _I_...
-
+TODO:
+  maybe AST-representation with "op name" instead of _I_...
 *)
 
 signature THY_OPS =
@@ -453,4 +449,3 @@ val ops_keywords = ["curried","strict","total","cinfixl","cinfixr","cmixfix"];
 val ops_sections = [("ops"    , ops_decls) ];
 
 end; (* the structure ThyOps *)
-

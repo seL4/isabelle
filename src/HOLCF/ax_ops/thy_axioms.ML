@@ -3,12 +3,6 @@
     Author:     Tobias Mayr
 
 Additional theory file section for HOLCF: axioms 
-There's an elaborate but german description of this program
-and a short english description of the new sections,
-write to mayrt@informatik.tu-muenchen.de.
-
-TODO:
-
 *)
 
 (*** new section of HOLCF : axioms 
@@ -213,4 +207,3 @@ val axioms_keywords = ["vars", "defvars","in"];
 val axioms_sections = [("axioms" , ext_axiom_decls)]
                        
 end; (* the structure *)
-
