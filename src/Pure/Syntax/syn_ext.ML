@@ -46,6 +46,7 @@ sig
       print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
       token_translation: (string * string * (string -> string * real)) list}
   val mfix_args: string -> int
+  val escape_mfix: string -> string
   val mk_syn_ext: bool -> string list -> mfix list ->
     string list -> (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
@@ -216,6 +217,7 @@ local
 in
   val read_mixfix = unique_index o read_symbs o Symbol.explode;
   val mfix_args = length o filter is_argument o read_mixfix;
+  val escape_mfix = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
 end;
 
 
