@@ -142,6 +142,17 @@ end;
 
 (** misc utils **)
 
+(* align lists *)
+
+fun align_left msg xs ys =
+  let val m = length xs and n = length ys
+  in if m < n then error msg else (Library.take (n, xs) ~~ ys) end;
+
+fun align_right msg xs ys =
+  let val m = length xs and n = length ys
+  in if m < n then error msg else (Library.drop (m - n, xs) ~~ ys) end;
+
+
 (* thms and terms *)
 
 val concls_of = HOLogic.dest_conj o HOLogic.dest_Trueprop o Thm.concl_of;
@@ -152,7 +163,16 @@ fun vars_of tm =        (*ordered left-to-right, preferring right!*)
 
 fun type_name t =
   #1 (Term.dest_Type (Term.type_of t))
-    handle TYPE _ => raise TERM ("Bad type of term argument", [t]);
+    handle TYPE _ => raise TERM ("Type of term argument is too general", [t]);
+
+fun prep_inst align cert (tm, ts) =
+  let
+    fun prep_var (x, Some t) = Some (cert x, cert t)
+      | prep_var (_, None) = None;
+  in
+    align "Rule has fewer variables than instantiations given" (vars_of tm) ts
+    |> mapfilter prep_var
+  end;
 
 
 (* simplifying cases rules *)
@@ -191,10 +211,12 @@ val case_split = RuleCases.name ["True", "False"] case_split_thm;
 
 local
 
-fun cases_var thm =
-  (case try (hd o vars_of o hd o Logic.strip_assums_hyp o Library.last_elem o Thm.prems_of) thm of
+(* FIXME
+fun cases_vars thm =
+  (case try (vars_of o hd o Logic.strip_assums_hyp o Library.last_elem o Thm.prems_of) thm of
     None => raise THM ("Malformed cases rule", 0, [thm])
-  | Some x => x);
+  | Some xs => xs);
+*)
 
 fun simplified_cases ctxt cases thm =
   let
@@ -217,8 +239,10 @@ fun cases_tac (ctxt, ((simplified, opaque), args)) facts =
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
 
-    fun inst_rule t thm =
-      Drule.cterm_instantiate [(cert (cases_var thm), cert t)] thm;
+    fun inst_rule insts thm =
+      (align_right "Rule has fewer premises than arguments given" (Thm.prems_of thm) insts
+        |> (flat o map (prep_inst align_left cert))
+        |> Drule.cterm_instantiate) thm;
 
     fun find_cases th =
       NetRules.may_unify (#2 (get_cases ctxt))
@@ -226,20 +250,23 @@ fun cases_tac (ctxt, ((simplified, opaque), args)) facts =
 
     val rules =
       (case (args, facts) of
-        ((None, None), []) => [RuleCases.add case_split]
-      | ((Some t, None), []) =>
-          let val name = type_name t in
+        (([], None), []) => [RuleCases.add case_split]
+      | ((insts, None), []) =>
+          let
+            val name = type_name (hd (flat (map (mapfilter I) insts)))
+              handle Library.LIST _ => error "Unable to figure out type cases rule"
+          in
             (case lookup_casesT ctxt name of
               None => error ("No cases rule for type: " ^ quote name)
-            | Some thm => [(inst_rule t thm, RuleCases.get thm)])
+            | Some thm => [(inst_rule insts thm, RuleCases.get thm)])
           end
-      | ((None, None), th :: _) => map (RuleCases.add o #2) (find_cases th)
-      | ((Some t, None), th :: _) =>
+      | (([], None), th :: _) => map (RuleCases.add o #2) (find_cases th)
+      | ((insts, None), th :: _) =>
           (case find_cases th of        (*may instantiate first rule only!*)
-            (_, thm) :: _ => [(inst_rule t thm, RuleCases.get thm)]
+            (_, thm) :: _ => [(inst_rule insts thm, RuleCases.get thm)]
           | [] => [])
-      | ((None, Some thm), _) => [RuleCases.add thm]
-      | ((Some t, Some thm), _) => [(inst_rule t thm, RuleCases.get thm)]);
+      | (([], Some thm), _) => [RuleCases.add thm]
+      | ((insts, Some thm), _) => [(inst_rule insts thm, RuleCases.get thm)]);
 
     val cond_simp = if simplified then simplified_cases ctxt else rpair;
 
@@ -309,21 +336,10 @@ fun induct_tac (ctxt, ((stripped, opaque), args)) facts =
     val sg = ProofContext.sign_of ctxt;
     val cert = Thm.cterm_of sg;
 
-    fun prep_var (x, Some t) = Some (cert x, cert t)
-      | prep_var (_, None) = None;
-
-    fun prep_inst (concl, ts) =
-      let val xs = vars_of concl; val n = length xs - length ts in
-        if n < 0 then error "More variables than given than in induction rule"
-        else mapfilter prep_var (Library.drop (n, xs) ~~ ts)
-      end;
-
     fun inst_rule insts thm =
-      let val concls = concls_of thm in
-        if length concls < length insts then
-          error "More arguments than given than in induction rule"
-        else Drule.cterm_instantiate (flat (map prep_inst (concls ~~ insts))) thm
-      end;
+      (align_right "Rule has fewer conclusions than arguments given" (concls_of thm) insts
+        |> (flat o map (prep_inst align_right cert))
+        |> Drule.cterm_instantiate) thm;
 
     fun find_induct th =
       NetRules.may_unify (#2 (get_induct ctxt))
@@ -420,13 +436,15 @@ val term_dummy = Scan.unless (Scan.lift kind)
 fun mode name =
   Scan.lift (Scan.optional (Args.parens (Args.$$$ name) >> K true) false);
 
+val instss = Args.and_list (Scan.repeat1 term_dummy);
+
 in
 
 val cases_args = Method.syntax
-  (mode simplifiedN -- mode opaqN -- (Scan.option term -- Scan.option cases_rule));
+  (mode simplifiedN -- mode opaqN -- (instss -- Scan.option cases_rule));
 
 val induct_args = Method.syntax
-  (mode strippedN -- mode opaqN -- (Args.and_list (Scan.repeat term_dummy) -- Scan.option induct_rule));
+  (mode strippedN -- mode opaqN -- (instss -- Scan.option induct_rule));
 
 end;
 
