@@ -21,7 +21,11 @@ declare wf_induct [induct set: wf]
 hide const Node Atom Leaf Numb Lim Funs Split Case
 
 
-(*belongs to theory Nat, but requires Datatype*)
+(* generic summation indexed over nat *)
+
+(*FIXME move to Ring_and_Field, when it is made part of main HOL (!?)*)
+(*FIXME port theorems from Algebra/abstract/NatSum*)
+
 consts
   Summation :: "(nat => 'a::{zero,plus}) => nat => 'a"
 primrec
