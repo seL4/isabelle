@@ -14,7 +14,7 @@ val [nonempty] = goal AC.thy
 by (excluded_middle_tac "A=0" 1);
 by (asm_simp_tac (ZF_ss addsimps [Pi_empty1]) 2 THEN fast_tac ZF_cs 2);
 (*The non-trivial case*)
-by (fast_tac (eq_cs addSIs [AC, nonempty]) 1);
+by (fast_tac (eq_cs addIs [AC, nonempty]) 1);
 qed "AC_Pi";
 
 (*Using dtac, this has the advantage of DELETING the universal quantifier*)
@@ -55,4 +55,9 @@ by (assume_tac 2);
 by (eresolve_tac [fun_weaken_type] 2);
 by (ALLGOALS (fast_tac ZF_cs));
 qed "AC_func_Pow";
+
+goal AC.thy "!!A. 0 ~: A ==> EX f. f: (PROD x:A. x)";
+by (rtac AC_Pi 1);
+by (REPEAT (ares_tac [non_empty_family] 1));
+qed "AC_Pi0";
 
