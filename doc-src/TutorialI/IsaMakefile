@@ -64,8 +64,8 @@ $(LOG)/HOL-CodeGen.gz: $(OUT)/HOL CodeGen/CodeGen.thy
 
 HOL-Datatype: HOL $(LOG)/HOL-Datatype.gz
 
-$(LOG)/HOL-Datatype.gz: $(OUT)/HOL Datatype/ROOT.ML Datatype/ABexpr.thy Datatype/Nested.thy \
-  Datatype/Fundata.thy
+$(LOG)/HOL-Datatype.gz: $(OUT)/HOL Datatype/ROOT.ML Datatype/ABexpr.thy \
+  Datatype/Nested.thy Datatype/unfoldnested.thy Datatype/Fundata.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Datatype
 
 

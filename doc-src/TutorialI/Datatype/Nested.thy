@@ -25,8 +25,12 @@ What complicates the definition of \isa{term} is the nested occurrence of
 nested recursion can be eliminated in favour of mutual recursion by unfolding
 the offending datatypes, here \isa{list}. The result for \isa{term}
 would be something like
-\begin{ttbox}
-\input{Datatype/tunfoldeddata}\end{ttbox}
+\medskip
+
+\input{Datatype/document/unfoldnested.tex}
+\medskip
+
+\noindent
 Although we do not recommend this unfolding to the user, it shows how to
 simulate nested recursion by mutual recursion.
 Now we return to the initial definition of \isa{term} using
