@@ -76,8 +76,10 @@ sig
   val bit_const: term
   val number_of_const: typ -> term
   val int_of: int list -> int
+  val intinf_of: int list -> IntInf.int
   val dest_binum: term -> int
   val mk_bin: int -> term
+  val mk_bin_from_intinf: IntInf.int -> term
   val mk_list: ('a -> term) -> typ -> 'a list -> term
   val dest_list: term -> term list
 end;
@@ -297,6 +299,9 @@ fun number_of_const T = Const ("Numeral.number_of", binT --> T);
 fun int_of [] = 0
   | int_of (b :: bs) = b + 2 * int_of bs;
 
+fun intinf_of [] = IntInf.fromInt 0
+  | intinf_of (b :: bs) = IntInf.+ (IntInf.fromInt b, IntInf.*(IntInf.fromInt 2, intinf_of bs));
+
 fun dest_bit (Const ("False", _)) = 0
   | dest_bit (Const ("True", _)) = 1
   | dest_bit t = raise TERM("dest_bit", [t]);
@@ -323,6 +328,28 @@ fun mk_bin n =
       | term_of (b :: bs) = bit_const $ term_of bs $ mk_bit b;
     in term_of (bin_of n) end;
 
+fun mk_bin_from_intinf  n =
+    let
+	val zero = IntInf.fromInt 0
+	val minus_one = IntInf.fromInt ~1
+	val two = IntInf.fromInt 2
+
+	fun mk_bit n = if n = zero then false_const else true_const
+								 
+	fun bin_of n = 
+	    if n = zero then pls_const
+	    else if n = minus_one then min_const
+	    else 
+		let 
+		    (*val (q,r) = IntInf.divMod (n, two): doesn't work in SML 10.0.7, but in newer versions!*)
+	            val q = IntInf.div (n, two)
+		    val r = IntInf.mod (n, two)
+		in
+		    bit_const $ bin_of q $ mk_bit r
+		end
+    in 
+	bin_of n
+    end
 
 (* int *)
 
