@@ -9,9 +9,9 @@ Also "cterm" / "ctyp" (certified terms / typs under a signature).
 
 signature THM =
 sig
-  structure Envir : ENVIR
-  structure Sequence : SEQUENCE
-  structure Sign : SIGN
+  structure Envir 	: ENVIR
+  structure Sequence 	: SEQUENCE
+  structure Sign 	: SIGN
   type ctyp
   type cterm
   type thm
@@ -21,110 +21,113 @@ sig
   exception THEORY of string * theory list
   exception SIMPLIFIER of string * thm
   (*certified terms/types; previously in sign.ML*)
-  val cterm_of: Sign.sg -> term -> cterm
-  val ctyp_of: Sign.sg -> typ -> ctyp
-  val read_ctyp: Sign.sg -> string -> ctyp
-  val read_cterm: Sign.sg -> string * typ -> cterm
-  val rep_cterm: cterm -> {T: typ, t: term, sign: Sign.sg, maxidx: int}
-  val rep_ctyp: ctyp -> {T: typ, sign: Sign.sg}
-  val term_of: cterm -> term
-  val typ_of: ctyp -> typ
-  val cterm_fun: (term -> term) -> (cterm -> cterm)
+  val cterm_of		: Sign.sg -> term -> cterm
+  val ctyp_of		: Sign.sg -> typ -> ctyp
+  val read_ctyp		: Sign.sg -> string -> ctyp
+  val read_cterm	: Sign.sg -> string * typ -> cterm
+  val rep_cterm		: cterm -> {T:typ, t:term, sign:Sign.sg, maxidx:int}
+  val rep_ctyp		: ctyp -> {T: typ, sign: Sign.sg}
+  val term_of		: cterm -> term
+  val typ_of		: ctyp -> typ
+  val cterm_fun		: (term -> term) -> (cterm -> cterm)
   (*end of cterm/ctyp functions*)
   local open Sign.Syntax in
-    val add_classes: (class * class list) list -> theory -> theory
-    val add_classrel: (class * class) list -> theory -> theory
-    val add_defsort: sort -> theory -> theory
-    val add_types: (string * int * mixfix) list -> theory -> theory
-    val add_tyabbrs: (string * string list * string * mixfix) list
+    val add_classes	: (class * class list) list -> theory -> theory
+    val add_classrel	: (class * class) list -> theory -> theory
+    val add_defsort	: sort -> theory -> theory
+    val add_types	: (string * int * mixfix) list -> theory -> theory
+    val add_tyabbrs	: (string * string list * string * mixfix) list
       -> theory -> theory
-    val add_tyabbrs_i: (string * string list * typ * mixfix) list
+    val add_tyabbrs_i	: (string * string list * typ * mixfix) list
       -> theory -> theory
-    val add_arities: (string * sort list * sort) list -> theory -> theory
-    val add_consts: (string * string * mixfix) list -> theory -> theory
-    val add_consts_i: (string * typ * mixfix) list -> theory -> theory
-    val add_syntax: (string * string * mixfix) list -> theory -> theory
-    val add_syntax_i: (string * typ * mixfix) list -> theory -> theory
-    val add_trfuns:
+    val add_arities	: (string * sort list * sort) list -> theory -> theory
+    val add_consts	: (string * string * mixfix) list -> theory -> theory
+    val add_consts_i	: (string * typ * mixfix) list -> theory -> theory
+    val add_syntax	: (string * string * mixfix) list -> theory -> theory
+    val add_syntax_i	: (string * typ * mixfix) list -> theory -> theory
+    val add_trfuns	:
       (string * (ast list -> ast)) list *
       (string * (term list -> term)) list *
       (string * (term list -> term)) list *
       (string * (ast list -> ast)) list -> theory -> theory
-    val add_trrules: xrule list -> theory -> theory
-    val add_axioms: (string * string) list -> theory -> theory
-    val add_axioms_i: (string * term) list -> theory -> theory
-    val add_thyname: string -> theory -> theory
+    val add_trrules	: xrule list -> theory -> theory
+    val add_axioms	: (string * string) list -> theory -> theory
+    val add_axioms_i	: (string * term) list -> theory -> theory
+    val add_thyname	: string -> theory -> theory
   end
-  val cert_axm: Sign.sg -> string * term -> string * term
-  val read_axm: Sign.sg -> string * string -> string * term
-  val inferT_axm: Sign.sg -> string * term -> string * term
-  val abstract_rule: string -> cterm -> thm -> thm
-  val add_congs: meta_simpset * thm list -> meta_simpset
-  val add_prems: meta_simpset * thm list -> meta_simpset
-  val add_simps: meta_simpset * thm list -> meta_simpset
-  val assume: cterm -> thm
-  val assumption: int -> thm -> thm Sequence.seq
-  val axioms_of: theory -> (string * term) list
-  val beta_conversion: cterm -> thm
-  val bicompose: bool -> bool * thm * int -> int -> thm -> thm Sequence.seq
-  val biresolution: bool -> (bool*thm)list -> int -> thm -> thm Sequence.seq
-  val combination: thm -> thm -> thm
-  val concl_of: thm -> term
-  val cprop_of: thm -> cterm
-  val del_simps: meta_simpset * thm list -> meta_simpset
-  val dest_cimplies: cterm -> cterm*cterm
-  val dest_state: thm * int -> (term*term)list * term list * term * term
-  val empty_mss: meta_simpset
-  val eq_assumption: int -> thm -> thm
-  val equal_intr: thm -> thm -> thm
-  val equal_elim: thm -> thm -> thm
-  val extensional: thm -> thm
-  val flexflex_rule: thm -> thm Sequence.seq
-  val flexpair_def: thm
-  val forall_elim: cterm -> thm -> thm
-  val forall_intr: cterm -> thm -> thm
-  val freezeT: thm -> thm
-  val get_axiom: theory -> string -> thm
-  val implies_elim: thm -> thm -> thm
-  val implies_intr: cterm -> thm -> thm
-  val implies_intr_hyps: thm -> thm
-  val instantiate: (indexname*ctyp)list * (cterm*cterm)list
-                   -> thm -> thm
-  val lift_rule: (thm * int) -> thm -> thm
-  val merge_theories: theory * theory -> theory
-  val merge_thy_list: bool -> theory list -> theory
-  val mk_rews_of_mss: meta_simpset -> thm -> thm list
-  val mss_of: thm list -> meta_simpset
-  val nprems_of: thm -> int
-  val parents_of: theory -> theory list
-  val prems_of: thm -> term list
-  val prems_of_mss: meta_simpset -> thm list
-  val pure_thy: theory
-  val read_def_cterm :
+  val cert_axm		: Sign.sg -> string * term -> string * term
+  val read_axm		: Sign.sg -> string * string -> string * term
+  val inferT_axm	: Sign.sg -> string * term -> string * term
+  val abstract_rule	: string -> cterm -> thm -> thm
+  val add_congs		: meta_simpset * thm list -> meta_simpset
+  val add_prems		: meta_simpset * thm list -> meta_simpset
+  val add_simps		: meta_simpset * thm list -> meta_simpset
+  val assume		: cterm -> thm
+  val assumption	: int -> thm -> thm Sequence.seq
+  val axioms_of		: theory -> (string * term) list
+  val beta_conversion	: cterm -> thm
+  val bicompose		: bool -> bool * thm * int -> int -> thm -> 
+                          thm Sequence.seq
+  val biresolution	: bool -> (bool*thm)list -> int -> thm -> 
+                          thm Sequence.seq
+  val combination	: thm -> thm -> thm
+  val concl_of		: thm -> term
+  val cprop_of		: thm -> cterm
+  val del_simps		: meta_simpset * thm list -> meta_simpset
+  val dest_cimplies	: cterm -> cterm*cterm
+  val dest_state	: thm*int -> (term*term)list * term list * term * term
+  val empty_mss		: meta_simpset
+  val eq_assumption	: int -> thm -> thm
+  val equal_intr	: thm -> thm -> thm
+  val equal_elim	: thm -> thm -> thm
+  val extensional	: thm -> thm
+  val flexflex_rule	: thm -> thm Sequence.seq
+  val flexpair_def	: thm
+  val forall_elim	: cterm -> thm -> thm
+  val forall_intr	: cterm -> thm -> thm
+  val freezeT		: thm -> thm
+  val get_axiom		: theory -> string -> thm
+  val implies_elim	: thm -> thm -> thm
+  val implies_intr	: cterm -> thm -> thm
+  val implies_intr_hyps	: thm -> thm
+  val instantiate	: (indexname*ctyp)list * (cterm*cterm)list -> 
+                          thm -> thm
+  val lift_rule		: (thm * int) -> thm -> thm
+  val merge_theories	: theory * theory -> theory
+  val merge_thy_list	: bool -> theory list -> theory
+  val mk_rews_of_mss	: meta_simpset -> thm -> thm list
+  val mss_of		: thm list -> meta_simpset
+  val nprems_of		: thm -> int
+  val parents_of	: theory -> theory list
+  val prems_of		: thm -> term list
+  val prems_of_mss	: meta_simpset -> thm list
+  val pure_thy		: theory
+  val read_def_cterm 	:
          Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
          string * typ -> cterm * (indexname * typ) list
-   val reflexive: cterm -> thm
+   val reflexive	: cterm -> thm
   val rename_params_rule: string list * int -> thm -> thm
-  val rep_thm: thm -> {prop: term, hyps: term list, maxidx: int, sign: Sign.sg}
-  val rewrite_cterm:
-         bool*bool -> meta_simpset -> (meta_simpset -> thm -> thm option)
-           -> cterm -> thm
-  val set_mk_rews: meta_simpset * (thm -> thm list) -> meta_simpset
-  val rep_theory: theory -> {sign: Sign.sg, new_axioms: term Sign.Symtab.table,
-    parents: theory list}
-  val subthy: theory * theory -> bool
-  val eq_thy: theory * theory -> bool
-  val sign_of: theory -> Sign.sg
-  val syn_of: theory -> Sign.Syntax.syntax
-  val stamps_of_thm: thm -> string ref list
-  val stamps_of_thy: theory -> string ref list
-  val symmetric: thm -> thm
-  val tpairs_of: thm -> (term*term)list
-  val trace_simp: bool ref
-  val transitive: thm -> thm -> thm
-  val trivial: cterm -> thm
-  val class_triv: theory -> class -> thm
-  val varifyT: thm -> thm
+  val rep_thm		: thm -> {prop: term, hyps: term list, 
+				  maxidx: int, sign: Sign.sg}
+  val rewrite_cterm	: bool*bool -> meta_simpset -> 
+      (meta_simpset -> thm -> thm option) -> cterm -> thm
+  val set_mk_rews	: meta_simpset * (thm -> thm list) -> meta_simpset
+  val rep_theory	: theory -> {sign: Sign.sg, 
+				     new_axioms: term Sign.Symtab.table,
+				     parents: theory list}
+  val subthy		: theory * theory -> bool
+  val eq_thy		: theory * theory -> bool
+  val sign_of		: theory -> Sign.sg
+  val syn_of		: theory -> Sign.Syntax.syntax
+  val stamps_of_thm	: thm -> string ref list
+  val stamps_of_thy	: theory -> string ref list
+  val symmetric		: thm -> thm
+  val tpairs_of		: thm -> (term*term)list
+  val trace_simp	: bool ref
+  val transitive	: thm -> thm -> thm
+  val trivial		: cterm -> thm
+  val class_triv	: theory -> class -> thm
+  val varifyT		: thm -> thm
 end;
 
 functor ThmFun (structure Logic: LOGIC and Unify: UNIFY and Pattern: PATTERN
@@ -880,6 +883,8 @@ fun rename_bvars(dpairs, tpairs, B) =
 
 (*** RESOLUTION ***)
 
+(** Lifting optimizations **)
+
 (*strip off pairs of assumptions/parameters in parallel -- they are
   identical because of lifting*)
 fun strip_assums2 (Const("==>", _) $ _ $ B1,
@@ -889,6 +894,19 @@ fun strip_assums2 (Const("==>", _) $ _ $ B1,
       let val (B1,B2) = strip_assums2 (t1,t2)
       in  (Abs(a,T,B1), Abs(a,T,B2))  end
   | strip_assums2 BB = BB;
+
+
+(*Faster normalization: skip assumptions that were lifted over*)
+fun norm_term_skip env 0 t = Envir.norm_term env t
+  | norm_term_skip env n (Const("all",_)$Abs(a,T,t)) =
+        let val Envir.Envir{iTs, ...} = env
+	    val T' = typ_subst_TVars iTs T
+	    (*Must instantiate types of parameters because they are flattened;
+              this could be a NEW parameter*)
+        in  all T' $ Abs(a, T', norm_term_skip env n t)  end
+  | norm_term_skip env n (Const("==>", _) $ A $ B) =
+	implies $ A $ norm_term_skip env (n-1) B
+  | norm_term_skip env n t = error"norm_term_skip: too few assumptions??";
 
 
 (*Composition of object rule r=(A1...Am/B) with proof state s=(B1...Bn/C)
@@ -904,7 +922,10 @@ in
 fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
                         (eres_flg, orule, nsubgoal) =
  let val Thm{maxidx=smax, hyps=shyps, ...} = state
-     and Thm{maxidx=rmax, hyps=rhyps, prop=rprop,...} = orule;
+     and Thm{maxidx=rmax, hyps=rhyps, prop=rprop,...} = orule
+	     (*How many hyps to skip over during normalization*)
+     and nlift = Logic.count_prems(strip_all_body Bi, 
+				   if eres_flg then ~1 else 0)
      val sign = merge_thm_sgs(state,orule);
      (** Add new theorem with prop = '[| Bs; As |] ==> C' to thq **)
      fun addth As ((env as Envir.Envir {maxidx, ...}, tpairs), thq) =
@@ -914,8 +935,11 @@ fun bicompose_aux match (state, (stpairs, Bs, Bi, C), lifted)
              if Envir.is_empty env then (tpairs, Bs @ As, C)
              else
              let val ntps = map (pairself normt) tpairs
-             in if the (Envir.minidx env) > smax then (*no assignments in state*)
-                  (ntps, Bs @ map normt As, C)
+             in if the (Envir.minidx env) > smax then 
+		  (*no assignments in state; normalize the rule only*)
+                  if lifted 
+		  then (ntps, Bs @ map (norm_term_skip env nlift) As, C)
+		  else (ntps, Bs @ map normt As, C)
                 else if match then raise Bicompose
                 else (*normalize the new rule fully*)
                   (ntps, map normt (Bs @ As), normt C)
