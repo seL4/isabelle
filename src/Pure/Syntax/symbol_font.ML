@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
 
 The Isabelle symbol font.
-enc_vector must be consistent with Distribution/lib/scripts/symbol_input.pl
+enc_vector must be consistent with Distribution/lib/scripts/symbolinput.pl
 *)
 
 signature SYMBOL_FONT =
