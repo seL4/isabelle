@@ -7,24 +7,29 @@ Abstract syntax trees, translation rules, matching and normalization of asts.
 
 signature AST0 =
 sig
-  structure Pretty: PRETTY
   datatype ast =
     Constant of string |
     Variable of string |
     Appl of ast list
-  val mk_appl: ast -> ast list -> ast
   exception AST of string * ast list
+end;
+
+signature AST1 =
+sig
+  include AST0
+  structure Pretty: PRETTY
+  val mk_appl: ast -> ast list -> ast
   val str_of_ast: ast -> string
   val pretty_ast: ast -> Pretty.T
-  val pretty_rule: (ast * ast) -> Pretty.T
+  val pretty_rule: ast * ast -> Pretty.T
   val pprint_ast: ast -> pprint_args -> unit
   val trace_norm_ast: bool ref
   val stat_norm_ast: bool ref
-end
+end;
 
 signature AST =
 sig
-  include AST0
+  include AST1
   val raise_ast: string -> ast list -> 'a
   val head_of_rule: ast * ast -> string
   val rule_error: ast * ast -> string option

@@ -6,7 +6,6 @@ The concrete syntax of types (used to bootstrap Pure).
 
 TODO:
   term_of_typ: prune sorts
-  move "_K", "_explode", "_implode"
 *)
 
 signature TYPE_EXT0 =
@@ -188,7 +187,7 @@ val type_ext = syn_ext
    Mfix ("_,/ _",       [typeT, typesT] ---> typesT,   "_types", [], max_pri),
    Mfix ("(_/ => _)",   [typeT, typeT] ---> typeT,     "fun", [1, 0], 0),
    Mfix ("([_]/ => _)", [typesT, typeT] ---> typeT,    "_bracket", [0, 0], 0)]
-  ["_K", "_explode", "_implode"]
+  []
   ([("_tapp", tappl_ast_tr), ("_tappl", tappl_ast_tr), ("_bracket", bracket_ast_tr)],
    [],
    [],

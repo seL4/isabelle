@@ -271,7 +271,7 @@ end;
 
 
 fun syntax_error toks =
-  error ("Syntax error at: " ^ space_implode " " (map str_of_token toks));
+  error ("Syntax error at: " ^ quote (space_implode " " (map str_of_token toks)));
 
 fun produce grammar stateset i indata =
   (case Array.sub (stateset, i) of

@@ -412,7 +412,7 @@ fun predict(tk,isi,si,p',opLA) = fn nti =>
 fun unknown c = error ("Unparsable category: " ^ c);
 
 fun syn_err toks =
-  error ("Syntax error at: " ^ space_implode " " (map str_of_token toks));
+  error ("Syntax error at: " ^ quote (space_implode " " (map str_of_token toks)));
 
 fun parse ((_, _, (tab, opLA, rchA)):gram) (root:string) (tl: token list): parsetree =
   let

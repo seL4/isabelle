@@ -32,7 +32,7 @@ end;
 
 functor PrinterFun(structure Symtab: SYMTAB and TypeExt: TYPE_EXT
   and SExtension: SEXTENSION sharing TypeExt.SynExt = SExtension.Parser.SynExt)
-  (*: PRINTER *) = (* FIXME *)
+  : PRINTER =
 struct
 
 structure Symtab = Symtab;
@@ -212,8 +212,6 @@ fun merge_prtabs tab1 tab2 =
 
 
 (** pretty term or typ asts **)
-
-(*assumes a syntax derived from Pure, otherwise may loop forever*)
 
 fun pretty prtab trf type_mode ast0 p0 =
   let

@@ -31,8 +31,5 @@ structure Printer = PrinterFun(structure Symtab = Symtab and TypeExt = TypeExt
   and SExtension = SExtension);
 structure Syntax = SyntaxFun(structure Symtab = Symtab and TypeExt = TypeExt
   and SExtension = SExtension and Printer = Printer);
-
-(*BasicSyntax has the most important primitives, which are made pervasive*)
-signature BASIC_SYNTAX = sig include SEXTENSION0 include PRINTER0 end;
 structure BasicSyntax: BASIC_SYNTAX = Syntax;
 
