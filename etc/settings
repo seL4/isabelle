@@ -75,7 +75,6 @@ ISABELLE_USEDIR_OPTIONS=""
 ### Document preparation
 ###
 
-TEXINPUTS="$ISABELLE_HOME/lib/texinputs:$TEXINPUTS"
 ISABELLE_LATEX="latex"
 ISABELLE_PDFLATEX="pdflatex"
 ISABELLE_BIBTEX="bibtex"
