@@ -15,10 +15,10 @@ function usage()
   echo "Usage: $PRG [OPTIONS]"
   echo
   echo "  Options are:"
-  echo "    -g GEOM      main window geometry (default 80x20)"
+# echo "    -g GEOM      main window geometry (default 80x20)"
+  echo "  (currently none)"
   echo
-  echo "  Starts Emacs and Isamode."
-  echo
+  echo "Starts Emacs and Isamode."
   exit 1
 }
 
@@ -33,21 +33,21 @@ function fail()
 
 # options
 
-MAINGEOM="80x20"
+#MAINGEOM="80x20"
 
-while getopts "g:" OPT
-do
-  case "$OPT" in
-    g)
-      MAINGEOM="$OPTARG"
-      ;;
-    \?)
-      usage
-      ;;
-  esac
-done
+#while getopts "g:" OPT
+#do
+#  case "$OPT" in
+#    g)
+#      MAINGEOM="$OPTARG"
+#      ;;
+#    \?)
+#      usage
+#      ;;
+#  esac
+#done
 
-shift $(($OPTIND - 1))
+#shift $(($OPTIND - 1))
 
 
 # args
@@ -68,4 +68,5 @@ done
 CMDS="$CMDS -f isabelle"
 
 
-exec $ISAMODE_EMACS -T "Isabelle" -geometry $MAINGEOM $CMDS
+ exec $ISAMODE_EMACS -T "Isabelle" $CMDS
+#exec $ISAMODE_EMACS -T "Isabelle" -geometry $MAINGEOM $CMDS
