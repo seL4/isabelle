@@ -32,7 +32,7 @@ use "~~/src/Provers/Arith/assoc_fold.ML";
 use "~~/src/Provers/quantifier1.ML";
 use "~~/src/Provers/Arith/combine_coeff.ML";
 use "~~/src/Provers/Arith/cancel_numerals.ML";
-use "~~/src/Provers/Arith/fold_Suc.ML";
+use "~~/src/Provers/Arith/combine_numerals.ML";
 
 with_path "Integ" use_thy "Main";
 

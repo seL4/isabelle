@@ -34,8 +34,7 @@ Pure:
 $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   $(SRC)/Provers/Arith/cancel_sums.ML		\
   $(SRC)/Provers/Arith/assoc_fold.ML		\
-  $(SRC)/Provers/Arith/combine_coeff.ML		\
-  $(SRC)/Provers/Arith/fold_Suc.ML		\
+  $(SRC)/Provers/Arith/combine_numerals.ML		\
   $(SRC)/Provers/Arith/cancel_numerals.ML		\
   $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
