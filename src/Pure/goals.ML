@@ -9,7 +9,6 @@ undo list is a list of goal stacks.  Finally, there may be a stack of
 pending proofs.
 *)
 
-
 signature GOALS =
   sig
   type proof
@@ -29,6 +28,7 @@ signature GOALS =
   val byev		: tactic list -> unit
   val chop		: unit -> unit
   val choplev		: int -> unit
+  val export            : thm -> thm
   val fa		: unit -> unit
   val fd		: thm -> unit
   val fds		: thm list -> unit
@@ -42,6 +42,7 @@ signature GOALS =
   val goal		: theory -> string -> thm list
   val goalw		: theory -> thm list -> string -> thm list
   val goalw_cterm	: thm list -> cterm -> thm list
+  val print_current_goals_default: (int -> int -> thm -> unit)
   val print_current_goals_fn : (int -> int -> thm -> unit) ref
   val pop_proof		: unit -> thm list
   val pr		: unit -> unit
@@ -81,6 +82,7 @@ struct
 type gstack = (thm * thm Seq.seq) list;
 
 datatype proof = Proof of gstack list * thm list * (bool*thm->thm);
+
 
 (*** References ***)
 
@@ -128,6 +130,21 @@ fun result_error_default state msg : thm =
 
 val result_error_fn = ref result_error_default;
 
+(* alternative to standard: this function does not discharge the hypotheses
+   first. Is used for locales, in the following function prepare_proof *)
+fun varify th =
+  let val {maxidx,...} = rep_thm th
+  in
+    th |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
+       |> Thm.strip_shyps |> Thm.implies_intr_shyps
+       |> zero_var_indexes |> Thm.varifyT |> Thm.compress
+  end;
+
+(** exporting a theorem out of a locale means turning all meta-hyps into assumptions
+    and expand and cancel the locale definitions. It's relatively easy, because 
+    a definiendum is a locale const, hence Free, hence Var, after standard **)
+val export = standard o Seq.hd o (REPEAT (FIRSTGOAL (rtac reflexive_thm))) o standard;
+
 (*Common treatment of "goal" and "prove_goal":
   Return assumptions, initial proof state, and function to make result.
   "atomic" indicates if the goal should be wrapped up in the function
@@ -160,7 +177,8 @@ fun prepare_proof atomic rths chorn =
 		 sign_error (sign,sign'))
             else if ngoals>0 then !result_error_fn state
 		(string_of_int ngoals ^ " unsolved goals!")
-            else if not (null hyps) then !result_error_fn state
+            else if (not (null hyps) andalso (not (Locale.in_locale hyps sign)))
+		 then !result_error_fn state
                 ("Additional hypotheses:\n" ^ 
                  cat_lines (map (Sign.string_of_term sign) hyps))
 	    else if not (null xshyps) then !result_error_fn state
@@ -168,7 +186,8 @@ fun prepare_proof atomic rths chorn =
                  commas (map (Sign.str_of_sort sign) xshyps))
 	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
 			            (term_of chorn, prop)
-		 then  standard th
+		 then  (if (null(hyps)) then standard th 
+                       else varify th)
 	    else  !result_error_fn state "proved a different theorem"
         end
   in
@@ -328,9 +347,9 @@ val goalw_cterm = agoalw_cterm false;
 
 (*Version taking the goal as a string*)
 fun agoalw atomic thy rths agoal = 
-  agoalw_cterm atomic rths (read_cterm(sign_of thy)(agoal,propT))
-  handle ERROR => error (*from type_assign, etc via prepare_proof*)
-	    ("The error(s) above occurred for " ^ quote agoal);
+    agoalw_cterm atomic rths (Locale.read_cterm(sign_of thy)(agoal,propT))
+    handle ERROR => error (*from type_assign, etc via prepare_proof*)
+	("The error(s) above occurred for " ^ quote agoal);
 
 val goalw = agoalw false;
 
@@ -498,5 +517,7 @@ fun printgoal_latex n = redirect_to_latex (fn () => prin(getgoal n));
 fun print_exn e = (print_sign_exn_unit (top_sg()) e;  raise e);
 
 end;
+
+
 
 open Goals;
