@@ -449,8 +449,8 @@ by (simp_tac (simpset_of Int.thy addsimps
 	       [number_of_BIT, lemma1, lemma2, eq_commute]) 1); 
 qed "eq_number_of_BIT_BIT"; 
 
-Goal "((number_of (v BIT x) ::int) = number_of Pls) = \
-\     (x=False & (((number_of v) ::int) = number_of Pls))"; 
+Goal "((number_of (v BIT x) ::int) = number_of bin.Pls) = \
+\     (x=False & (((number_of v) ::int) = number_of bin.Pls))"; 
 by (simp_tac (simpset_of Int.thy addsimps
 	       [number_of_BIT, number_of_Pls, eq_commute]) 1); 
 by (res_inst_tac [("x", "number_of v")] spec 1);
@@ -460,8 +460,8 @@ by (dres_inst_tac [("f", "%x. x mod 2")] arg_cong 1);
 by (full_simp_tac (simpset() addsimps [zmod_zadd1_eq]) 1); 
 qed "eq_number_of_BIT_Pls"; 
 
-Goal "((number_of (v BIT x) ::int) = number_of Min) = \
-\     (x=True & (((number_of v) ::int) = number_of Min))"; 
+Goal "((number_of (v BIT x) ::int) = number_of bin.Min) = \
+\     (x=True & (((number_of v) ::int) = number_of bin.Min))"; 
 by (simp_tac (simpset_of Int.thy addsimps
 	       [number_of_BIT, number_of_Min, eq_commute]) 1); 
 by (res_inst_tac [("x", "number_of v")] spec 1);
@@ -470,7 +470,7 @@ by (dres_inst_tac [("f", "%x. x mod 2")] arg_cong 1);
 by Auto_tac;
 qed "eq_number_of_BIT_Min"; 
 
-Goal "(number_of Pls ::int) ~= number_of Min"; 
+Goal "(number_of bin.Pls ::int) ~= number_of bin.Min"; 
 by Auto_tac;
 qed "eq_number_of_Pls_Min"; 
 

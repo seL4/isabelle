@@ -26,10 +26,10 @@ setup nat_bin_arith_setup
 declare split_div[of _ _ "number_of k", standard, arith_split]
 declare split_mod[of _ _ "number_of k", standard, arith_split]
 
-lemma nat_number_of_Pls: "number_of Pls = (0::nat)"
+lemma nat_number_of_Pls: "number_of bin.Pls = (0::nat)"
   by (simp add: number_of_Pls nat_number_of_def)
 
-lemma nat_number_of_Min: "number_of Min = (0::nat)"
+lemma nat_number_of_Min: "number_of bin.Min = (0::nat)"
   apply (simp only: number_of_Min nat_number_of_def nat_zminus_int)
   apply (simp add: neg_nat)
   done

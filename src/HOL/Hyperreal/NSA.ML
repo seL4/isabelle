@@ -935,10 +935,10 @@ Addsimps [number_of_approx_iff];
 (*And also for 0 @= #nn and 1 @= #nn, #nn @= 0 and #nn @= 1.*)
 Addsimps
  (map (simplify (simpset()))
-      [inst "v" "Pls" number_of_approx_iff,
-       inst "v" "Pls BIT True" number_of_approx_iff,
-       inst "w" "Pls" number_of_approx_iff,
-       inst "w" "Pls BIT True" number_of_approx_iff]);
+      [inst "v" "bin.Pls" number_of_approx_iff,
+       inst "v" "bin.Pls BIT True" number_of_approx_iff,
+       inst "w" "bin.Pls" number_of_approx_iff,
+       inst "w" "bin.Pls BIT True" number_of_approx_iff]);
 
 
 Goal "~ (0 @= 1)";
@@ -970,8 +970,8 @@ Addsimps [hypreal_of_real_approx_number_of_iff];
 (*And also for 0 and 1.*)
 Addsimps
  (map (simplify (simpset()))
-      [inst "w" "Pls" hypreal_of_real_approx_number_of_iff,
-       inst "w" "Pls BIT True" hypreal_of_real_approx_number_of_iff]);
+      [inst "w" "bin.Pls" hypreal_of_real_approx_number_of_iff,
+       inst "w" "bin.Pls BIT True" hypreal_of_real_approx_number_of_iff]);
 
 Goal "[| r: Reals; s: Reals; r @= x; s @= x|] ==> r = s";
 by (blast_tac (claset() addIs [(SReal_approx_iff RS iffD1),
@@ -1737,7 +1737,7 @@ Addsimps [st_number_of];
 (*the theorem above for the special cases of zero and one*)
 Addsimps
   (map (simplify (simpset()))
-   [inst "w" "Pls" st_number_of, inst "w" "Pls BIT True" st_number_of]);
+   [inst "w" "bin.Pls" st_number_of, inst "w" "bin.Pls BIT True" st_number_of]);
 
 Goal "y: HFinite ==> st(-y) = -st(y)";
 by (forward_tac [HFinite_minus_iff RS iffD2] 1);

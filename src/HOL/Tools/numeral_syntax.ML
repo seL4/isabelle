@@ -29,14 +29,10 @@ fun prefix_len _ [] = 0
   | prefix_len pred (x :: xs) =
       if pred x then 1 + prefix_len pred xs else 0;
 
-(*we consider all "spellings"; Min is likely to be declared elsewhere*)
-fun bin_of (Const ("Pls", _)) = []
-  | bin_of (Const ("bin.Pls", _)) = []
+fun bin_of (Const ("bin.Pls", _)) = []
   | bin_of (Const ("Numeral.bin.Pls", _)) = []
-  | bin_of (Const ("Min", _)) = [~1]
   | bin_of (Const ("bin.Min", _)) = [~1]
   | bin_of (Const ("Numeral.bin.Min", _)) = [~1]
-  | bin_of (Const ("Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
   | bin_of (Const ("bin.Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
   | bin_of (Const ("Numeral.bin.Bit", _) $ bs $ b) = dest_bit b :: bin_of bs
   | bin_of _ = raise Match;
@@ -78,7 +74,9 @@ fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
 (* theory setup *)
 
 val setup =
- [Theory.add_trfuns ([], [("_Numeral", numeral_tr)], [], []),
+ [Theory.hide_consts false
+    ["Numeral.bin.Pls", "Numeral.bin.Min"],
+Theory.add_trfuns ([], [("_Numeral", numeral_tr)], [], []),
   Theory.add_trfunsT [("number_of", numeral_tr'), ("Numeral.number_of", numeral_tr')]];
 
 

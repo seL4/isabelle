@@ -12,19 +12,19 @@ Arithmetic on binary integers.
 
 (** extra rules for bin_succ, bin_pred, bin_add, bin_mult **)
 
-Goal "NCons Pls False = Pls";
+Goal "NCons bin.Pls False = bin.Pls";
 by (Simp_tac 1);
 qed "NCons_Pls_0";
 
-Goal "NCons Pls True = Pls BIT True";
+Goal "NCons bin.Pls True = bin.Pls BIT True";
 by (Simp_tac 1);
 qed "NCons_Pls_1";
 
-Goal "NCons Min False = Min BIT False";
+Goal "NCons bin.Min False = bin.Min BIT False";
 by (Simp_tac 1);
 qed "NCons_Min_0";
 
-Goal "NCons Min True = Min";
+Goal "NCons bin.Min True = bin.Min";
 by (Simp_tac 1);
 qed "NCons_Min_1";
 
@@ -68,12 +68,12 @@ Goal "bin_add (v BIT False) (w BIT y) = NCons (bin_add v w) y";
 by Auto_tac;
 qed "bin_add_BIT_0";
 
-Goal "bin_add w Pls = w";
+Goal "bin_add w bin.Pls = w";
 by (induct_tac "w" 1);
 by Auto_tac;
 qed "bin_add_Pls_right";
 
-Goal "bin_add w Min = bin_pred w";
+Goal "bin_add w bin.Min = bin_pred w";
 by (induct_tac "w" 1);
 by Auto_tac;
 qed "bin_add_Min_right";
@@ -246,11 +246,11 @@ by (simp_tac (simpset()
                  addsimps zcompare_rls @ [number_of_add, number_of_minus]) 1); 
 qed "eq_number_of_eq"; 
 
-Goalw [iszero_def] "iszero ((number_of Pls)::int)"; 
+Goalw [iszero_def] "iszero ((number_of bin.Pls)::int)"; 
 by (Simp_tac 1); 
 qed "iszero_number_of_Pls"; 
 
-Goalw [iszero_def] "~ iszero ((number_of Min)::int)"; 
+Goalw [iszero_def] "~ iszero ((number_of bin.Min)::int)"; 
 by (Simp_tac 1);
 qed "nonzero_number_of_Min"; 
 
@@ -284,11 +284,11 @@ qed "less_number_of_eq_neg";
 
 (*But if Numeral0 is rewritten to 0 then this rule can't be applied:
   Numeral0 IS (number_of Pls) *)
-Goal "~ neg (number_of Pls)";
+Goal "~ neg (number_of bin.Pls)";
 by (simp_tac (simpset() addsimps [neg_eq_less_0]) 1);  
 qed "not_neg_number_of_Pls"; 
 
-Goal "neg (number_of Min)"; 
+Goal "neg (number_of bin.Min)"; 
 by (simp_tac (simpset() addsimps [neg_eq_less_0, int_0_less_1]) 1);
 qed "neg_number_of_Min"; 
 

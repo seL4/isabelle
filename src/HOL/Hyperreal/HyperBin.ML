@@ -619,14 +619,14 @@ Addsimps [hypreal_of_real_le_number_of_iff];
 
 (*As above, for the special case of zero*)
 Addsimps
-  (map (simplify (simpset()) o inst "w" "Pls")
+  (map (simplify (simpset()) o inst "w" "bin.Pls")
    [hypreal_of_real_eq_number_of_iff,
     hypreal_of_real_le_number_of_iff, hypreal_of_real_less_number_of_iff,
     number_of_le_hypreal_of_real_iff, number_of_less_hypreal_of_real_iff]);
 
 (*As above, for the special case of one*)
 Addsimps
-  (map (simplify (simpset()) o inst "w" "Pls BIT True")
+  (map (simplify (simpset()) o inst "w" "bin.Pls BIT True")
    [hypreal_of_real_eq_number_of_iff,
     hypreal_of_real_le_number_of_iff, hypreal_of_real_less_number_of_iff,
     number_of_le_hypreal_of_real_iff, number_of_less_hypreal_of_real_iff]);

@@ -278,10 +278,10 @@ text {*
 consts normal :: "bin set"
 inductive normal
   intros
-    Pls [simp]: "Pls: normal"
-    Min [simp]: "Min: normal"
-    BIT_F [simp]: "w: normal ==> w \<noteq> Pls ==> w BIT False : normal"
-    BIT_T [simp]: "w: normal ==> w \<noteq> Min ==> w BIT True : normal"
+    Pls [simp]: "bin.Pls: normal"
+    Min [simp]: "bin.Min: normal"
+    BIT_F [simp]: "w: normal ==> w \<noteq> bin.Pls ==> w BIT False : normal"
+    BIT_T [simp]: "w: normal ==> w \<noteq> bin.Min ==> w BIT True : normal"
 
 text {*
   \medskip Binary arithmetic on normalized operands yields normalized
@@ -303,12 +303,12 @@ lemma NCons_normal [simp]: "w \<in> normal ==> NCons w b \<in> normal"
     apply (auto simp add: NCons_Pls NCons_Min)
   done
 
-lemma NCons_True: "NCons w True \<noteq> Pls"
+lemma NCons_True: "NCons w True \<noteq> bin.Pls"
   apply (induct w)
     apply auto
   done
 
-lemma NCons_False: "NCons w False \<noteq> Min"
+lemma NCons_False: "NCons w False \<noteq> bin.Min"
   apply (induct w)
     apply auto
   done
@@ -338,7 +338,7 @@ lemma bin_add_normal [rule_format]:
     apply simp_all
   done
 
-lemma normal_Pls_eq_0: "w \<in> normal ==> (w = Pls) = (number_of w = (0::int))"
+lemma normal_Pls_eq_0: "w \<in> normal ==> (w = bin.Pls) = (number_of w = (0::int))"
   apply (erule normal.induct)
      apply auto
   done
@@ -362,11 +362,11 @@ which its local simplification setup should turn into False.
 But on the way we get
 
 Procedure "int_add_eval_numerals" produced rewrite rule:
-number_of ?v3 + 1 \<equiv> number_of (bin_add ?v3 (Pls BIT True))
+number_of ?v3 + 1 \<equiv> number_of (bin_add ?v3 (bin.Pls BIT True))
 
 and eventually we arrive not at false but at
 
-"\<not> neg (number_of (bin_add w (bin_minus (bin_add w (Pls BIT True)))))"
+"\<not> neg (number_of (bin_add w (bin_minus (bin_add w (bin.Pls BIT True)))))"
 
 The simplification with eq_commute should now be obsolete.
 *)
