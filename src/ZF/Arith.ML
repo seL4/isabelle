@@ -521,9 +521,9 @@ by Auto_tac;
 qed "mult_eq_self_implies_10";
 
 (*Thanks to Sten Agerholm*)
-Goal "[|m#+n le m#+k; m:nat; n:nat; k:nat|] ==> n le k";
+Goal "[|k#+m le k#+n; k:nat |] ==> m le n";
 by (etac rev_mp 1);
-by (induct_tac "m" 1);
+by (induct_tac "k" 1);
 by (Asm_simp_tac 1);
 by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps [not_le_iff_lt]) 1);
