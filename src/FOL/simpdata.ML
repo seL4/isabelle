@@ -352,8 +352,8 @@ end;
 
 structure Clasimp = ClasimpFun
  (structure Simplifier = Simplifier and Classical = Cla and Blast = Blast
-  val addcongs = op addcongs and delcongs = op delcongs
-  and addSaltern = op addSaltern and addbefore = op addbefore);
+  val op addcongs = op addcongs and op delcongs = op delcongs
+  and op addSaltern = op addSaltern and op addbefore = op addbefore);
 
 open Clasimp;
 
