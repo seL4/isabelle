@@ -29,6 +29,7 @@ sig
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
   val is_ml_identifier: string -> bool
+  val print_thms_containing: theory -> xstring list -> unit
 end;
 
 structure ThmDatabase: THM_DATABASE =
@@ -93,13 +94,20 @@ fun no_qed () = ();
 (** retrieve theorems **)
 
 (*get theorems that contain all of given constants*)
-fun thms_containing raw_consts =
-  let
-    val sign = sign_of_thm (topthm ());
-    val consts = map (Sign.intern_const sign) raw_consts;
-    val thy = ThyInfo.theory_of_sign sign;
+fun thms_containing_thy thy raw_consts =
+  let val consts = map (Sign.intern_const (Theory.sign_of thy)) raw_consts;
   in PureThy.thms_containing thy consts end
   handle THEORY (msg,_) => error msg;
+
+fun thms_containing cs =
+  thms_containing_thy (ThyInfo.theory_of_sign (Thm.sign_of_thm (Goals.topthm ()))) cs;
+
+fun prt_thm (a, th) =
+  Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1,
+    Display.pretty_thm_no_quote (#1 (Drule.freeze_thaw th))];
+
+fun print_thms_containing thy cs =
+  Pretty.writeln (Pretty.blk (0, Pretty.fbreaks (map prt_thm (thms_containing_thy thy cs))));
 
 
 (*top_const: main constant, ignoring Trueprop*)
