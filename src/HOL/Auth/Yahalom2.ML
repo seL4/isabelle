@@ -17,10 +17,6 @@ open Yahalom2;
 proof_timing:=true;
 HOL_quantifiers := false;
 
-(*Replacing the variable by a constant improves speed*)
-val Says_imp_sees_Spy' =  Says_imp_sees_Spy;
-
-
 (*A "possibility property": there are traces that reach the end*)
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
@@ -49,7 +45,7 @@ AddSEs   [not_Says_to_self RSN (2, rev_notE)];
 (*Lets us treat YM4 using a similar argument as for the Fake case.*)
 goal thy "!!evs. Says S A {|NB, Crypt (shrK A) Y, X|} : set evs ==> \
 \                X : analz (sees Spy evs)";
-by (blast_tac (!claset addSDs [Says_imp_sees_Spy' RS analz.Inj]) 1);
+by (blast_tac (!claset addSDs [Says_imp_sees_Spy RS analz.Inj]) 1);
 qed "YM4_analz_sees_Spy";
 
 bind_thm ("YM4_parts_sees_Spy",
@@ -59,7 +55,7 @@ bind_thm ("YM4_parts_sees_Spy",
 goal thy "!!evs. Says S A {|NB, Crypt (shrK A) {|B,K,NA|}, X|} : set evs ==> \
 \                K : parts (sees Spy evs)";
 by (blast_tac (!claset addSEs partsEs
-                       addSDs [Says_imp_sees_Spy' RS parts.Inj]) 1);
+                       addSDs [Says_imp_sees_Spy RS parts.Inj]) 1);
 qed "YM4_Key_parts_sees_Spy";
 
 (*For proving the easier theorems about X ~: parts (sees Spy evs).*)
@@ -313,7 +309,7 @@ goal thy
 \                      Crypt (shrK A) {|Agent B, Key K, Nonce NA|},      \
 \                      Crypt (shrK B) {|Nonce NB, Key K, Agent A|}|}     \
 \                   : set evs";
-by (etac (Says_imp_sees_Spy' RS parts.Inj RS MPair_parts) 1);
+by (etac (Says_imp_sees_Spy RS parts.Inj RS MPair_parts) 1);
 by (blast_tac (!claset addSDs [B_trusts_YM4_shrK]) 1);
 qed "B_trusts_YM4";
 
@@ -349,7 +345,7 @@ by (ALLGOALS Asm_simp_tac);
 (*YM3*)
 by (blast_tac (!claset addSDs [B_Said_YM2]
 		       addSEs [MPair_parts]
-		       addDs [Says_imp_sees_Spy' RS parts.Inj]) 3);
+		       addDs [Says_imp_sees_Spy RS parts.Inj]) 3);
 (*Fake, YM2*)
 by (ALLGOALS Blast_tac);
 val lemma = result() RSN (2, rev_mp) RS mp |> standard;
@@ -391,7 +387,7 @@ by (asm_simp_tac (!simpset addsimps [ex_disj_distrib]) 1);
 by (not_lost_tac "Aa" 1);
 by (blast_tac (!claset addSEs [MPair_parts]
                        addSDs [A_trusts_YM3, B_trusts_YM4_shrK]
-		       addDs  [Says_imp_sees_Spy' RS parts.Inj,
+		       addDs  [Says_imp_sees_Spy RS parts.Inj,
 			       unique_session_keys]) 1);
 val lemma = normalize_thm [RSspec, RSmp] (result()) |> standard;
 
@@ -404,12 +400,12 @@ goal thy
 \           (ALL NA. Says A Spy {|Nonce NA, Nonce NB, Key K|} ~: set evs); \
 \           A ~: lost;  B ~: lost;  evs : yahalom |]                    \
 \        ==> EX X. Says A B {|X, Crypt K (Nonce NB)|} : set evs";
-by (etac (Says_imp_sees_Spy' RS parts.Inj RS MPair_parts) 1);
+by (etac (Says_imp_sees_Spy RS parts.Inj RS MPair_parts) 1);
 by (dtac B_trusts_YM4_shrK 1);
 by (safe_tac (!claset));
 by (rtac lemma 1);
 by (rtac Spy_not_see_encrypted_key 2);
 by (REPEAT_FIRST assume_tac);
 by (ALLGOALS (blast_tac (!claset addSEs [MPair_parts]
-			         addDs [Says_imp_sees_Spy' RS parts.Inj])));
+			         addDs [Says_imp_sees_Spy RS parts.Inj])));
 qed_spec_mp "YM4_imp_A_Said_YM3";
