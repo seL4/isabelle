@@ -4,7 +4,7 @@
     Copyright   1995 TU Muenchen
 *)
 
-datatype thm_db_type =
+datatype thm_db =
   ThmDB of {count: int,
             thy_idx: (Sign.sg * (string list * int list)) list,
             const_idx: ((int * (string * thm)) list) Symtab.table};
@@ -14,9 +14,9 @@ datatype thm_db_type =
       const_idx: named theorems tagged by numbers and
                  indexed by the constants they contain*)
 
-signature THMDB =
+signature THM_DATABASE =
   sig
-  val thm_db: thm_db_type ref
+  val thm_db: thm_db ref
   val store_thm_db: string * thm -> thm
   val delete_thm_db: theory -> unit
   val thms_containing: string list -> (string * thm) list
@@ -39,7 +39,7 @@ signature THMDB =
   val print_theory   : theory -> unit
   end;
 
-structure ThmDB: THMDB =
+structure ThmDatabase: THM_DATABASE =
 struct
 
 open ThyInfo BrowserInfo;
