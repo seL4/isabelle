@@ -445,7 +445,7 @@ fun extract thms thy =
             val defs' = if T = nullT then defs
               else fst (extr d defs vs ts Ts hs prf0)
           in
-            if T = nullT andalso realizes_null vs' prop = prop then (defs, prf0)
+            if T = nullT andalso realizes_null vs' prop aconv prop then (defs, prf0)
             else case Symtab.lookup (realizers, name) of
               None => (case find vs' (find' name defs') of
                 None =>
@@ -476,7 +476,9 @@ fun extract thms thy =
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye
           in
-            case find vs' (Symtab.lookup_multi (realizers, s)) of
+            if etype_of sg vs' [] prop = nullT andalso
+              realizes_null vs' prop aconv prop then (defs, prf0)
+            else case find vs' (Symtab.lookup_multi (realizers, s)) of
               Some (_, prf) => (defs, prf_subst_TVars tye' prf)
             | None => error ("corr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Sign.string_of_term sg (Envir.beta_norm
@@ -578,7 +580,7 @@ fun extract thms thy =
           in
             case find vs' (Symtab.lookup_multi (realizers, s)) of
               Some (t, _) => (defs, subst_TVars tye' t)
-            | None => error ("no realizer for instance of axiom " ^
+            | None => error ("extr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Sign.string_of_term sg (Envir.beta_norm
                   (Reconstruct.prop_of (proof_combt (prf0, ts)))))
           end
