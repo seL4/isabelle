@@ -329,7 +329,7 @@ fun finish () = with_session ()
     val {theories, tex_index, html_index, graph, all_graph} = ! browser_info;
 
     fun finish_node (a, {tex_source, html_source = _, html}) =
-     (apsome (fn p => Buffer.write_nonempty (Path.append p (tex_path a)) tex_source) doc_prefix;
+     (apsome (fn p => Buffer.write (Path.append p (tex_path a)) tex_source) doc_prefix;
       Buffer.write (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_theory html));
   in
     seq finish_node (Symtab.dest theories);
