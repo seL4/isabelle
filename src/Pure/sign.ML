@@ -292,7 +292,7 @@ fun infer_types sg types sorts print_msg (ts, T) =
       | process_terms [] (idx, infrd_t, tye) msg _ = 
           if msg = "" then (the idx, the infrd_t, the tye) 
           else
-            (if length ts <= !Syntax.ambiguity_level then
+            (if length ts > 1 andalso length ts <= !Syntax.ambiguity_level then
                                                       (*no warning shown yet?*)
                writeln "Warning: Currently parsed input \
                        \produces more than one parse tree.\n\
