@@ -45,21 +45,21 @@ consts
 (* patterns -- extends pre-defined type "pttrn" used in abstractions *)
 
 nonterminals
-  patterns
+  tuple_args patterns
 
 syntax
-  "@Tuple"      :: "['a, args] => 'a * 'b"       ("(1'(_,/ _'))")
-  "_pattern"    :: [pttrn, patterns] => pttrn      ("'(_,/ _')")
-  ""            :: pttrn => patterns                     ("_")
-  "_patterns"   :: [pttrn, patterns] => patterns     ("_,/ _")
-
+  "_tuple"      :: "'a => tuple_args => 'a * 'b"        ("(1'(_,/ _'))")
+  "_tuple_arg"  :: "'a => tuple_args"                   ("_")
+  "_tuple_args" :: "'a => tuple_args => tuple_args"     ("_,/ _")
+  "_pattern"    :: [pttrn, patterns] => pttrn           ("'(_,/ _')")
+  ""            :: pttrn => patterns                    ("_")
+  "_patterns"   :: [pttrn, patterns] => patterns        ("_,/ _")
   "@Sigma"      :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"   ("(3SIGMA _:_./ _)" 10)
   "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    (infixr "<*>" 80)
 
 translations
-  "(x, y, z)"    == "(x, (y, z))"
   "(x, y)"       == "Pair x y"
-
+  "_tuple x (_tuple_args y z)" == "_tuple x (_tuple_arg (_tuple y z))"
   "%(x,y,zs).b"  == "split(%x (y,zs).b)"
   "%(x,y).b"     == "split(%x y. b)"
   "_abs (Pair x y) t" => "%(x,y).t"
