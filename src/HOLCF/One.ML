@@ -16,9 +16,8 @@ qed_goalw "Exh_one" thy [ONE_def] "t=UU | t = ONE"
  (fn prems =>
         [
 	(lift.induct_tac "t" 1),
-	(fast_tac HOL_cs 1),
 	(Simp_tac 1),
-	(rtac unit_eq 1)
+	(Simp_tac 1)
 	]);
 
 qed_goal "oneE" thy
