@@ -81,6 +81,7 @@ end;
 signature DRULE =
 sig
   include BASIC_DRULE
+  val compose_single	: thm * int * thm -> thm
   val triv_goal		: thm
   val rev_triv_goal	: thm
   val mk_triv_goal      : cterm -> thm
@@ -347,6 +348,11 @@ fun rlss MRL bottom_rls =
   ALWAYS deletes premise i *)
 fun compose(tha,i,thb) =
     Seq.list_of (bicompose false (false,tha,0) i thb);
+
+fun compose_single (tha,i,thb) =
+  (case compose (tha,i,thb) of
+    [th] => th
+  | _ => raise THM ("compose: unique result expected", i, [tha,thb]));
 
 (*compose Q and [Q1,Q2,...,Qk]==>R to [Q2,...,Qk]==>R getting unique result*)
 fun tha COMP thb =
