@@ -175,14 +175,14 @@ The one-step argument in the above sketch
 
 lemma not_in_lfp_afD:
  "s \<notin> lfp(af A) \<Longrightarrow> s \<notin> A \<and> (\<exists> t. (s,t)\<in>M \<and> t \<notin> lfp(af A))";
-apply(erule swap);
+apply(erule contrapos_np);
 apply(rule ssubst[OF lfp_unfold[OF mono_af]]);
 apply(simp add:af_def);
 done;
 
 text{*\noindent
-is proved by a variant of contraposition (@{thm[source]swap}:
-@{thm swap[no_vars]}), i.e.\ assuming the negation of the conclusion
+is proved by a variant of contraposition (@{thm[source]contrapos_np}:
+@{thm contrapos_np[no_vars]}), i.e.\ assuming the negation of the conclusion
 and proving @{term"s : lfp(af A)"}. Unfolding @{term lfp} once and
 simplifying with the definition of @{term af} finishes the proof.
 
@@ -333,12 +333,12 @@ theorem AF_lemma2:
 "{s. \<forall> p \<in> Paths s. \<exists> i. p i \<in> A} \<subseteq> lfp(af A)";
 
 txt{*\noindent
-The proof is again pointwise and then by contraposition (@{thm[source]contrapos2} is the rule
-@{thm contrapos2}):
+The proof is again pointwise and then by contraposition (@{thm[source]contrapos_pp} is the rule
+@{thm contrapos_pp}):
 *};
 
 apply(rule subsetI);
-apply(erule contrapos2);
+apply(erule contrapos_pp);
 apply simp;
 (*pr(latex xsymbols symbols);*)
 

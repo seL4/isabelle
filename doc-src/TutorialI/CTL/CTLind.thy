@@ -110,7 +110,7 @@ From lemma @{thm[source]ex_infinite_path} the existence of an infinite
 the contraposition.
 *}
 
-apply(erule contrapos2);
+apply(erule contrapos_pp);
 apply(simp add:wf_iff_no_infinite_down_chain);
 apply(erule exE);
 apply(rule ex_infinite_path);
