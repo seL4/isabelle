@@ -19,9 +19,9 @@ Addsimps [pred_0,pred_Suc,add_0,add_Suc,mult_0,mult_Suc];
 (** pred **)
 
 val prems = goal Arith.thy "n ~= 0 ==> Suc(pred n) = n";
-by(res_inst_tac [("n","n")] natE 1);
-by(cut_facts_tac prems 1);
-by(ALLGOALS Asm_full_simp_tac);
+by (res_inst_tac [("n","n")] natE 1);
+by (cut_facts_tac prems 1);
+by (ALLGOALS Asm_full_simp_tac);
 qed "Suc_pred";
 Addsimps [Suc_pred];
 
@@ -205,12 +205,12 @@ val mod_def1 = result() RS eq_reflection;
 
 goal Arith.thy "!!m. m<n ==> m mod n = m";
 by (rtac (mod_def1 RS wf_less_trans) 1);
-by(Asm_simp_tac 1);
+by (Asm_simp_tac 1);
 qed "mod_less";
 
 goal Arith.thy "!!m. [| 0<n;  ~m<n |] ==> m mod n = (m-n) mod n";
 by (rtac (mod_def1 RS wf_less_trans) 1);
-by(asm_simp_tac (!simpset addsimps [diff_less, cut_apply, less_eq]) 1);
+by (asm_simp_tac (!simpset addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "mod_geq";
 
 
@@ -223,12 +223,12 @@ val div_def1 = result() RS eq_reflection;
 
 goal Arith.thy "!!m. m<n ==> m div n = 0";
 by (rtac (div_def1 RS wf_less_trans) 1);
-by(Asm_simp_tac 1);
+by (Asm_simp_tac 1);
 qed "div_less";
 
 goal Arith.thy "!!M. [| 0<n;  ~m<n |] ==> m div n = Suc((m-n) div n)";
 by (rtac (div_def1 RS wf_less_trans) 1);
-by(asm_simp_tac (!simpset addsimps [diff_less, cut_apply, less_eq]) 1);
+by (asm_simp_tac (!simpset addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "div_geq";
 
 (*Main Result about quotient and remainder.*)
@@ -268,7 +268,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "Suc_diff_n";
 
 goal Arith.thy "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
-by(simp_tac (!simpset addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]
+by (simp_tac (!simpset addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]
                     setloop (split_tac [expand_if])) 1);
 qed "if_Suc_diff_n";
 
@@ -326,20 +326,20 @@ bind_thm ("trans_less_add1", le_add1 RSN (2,less_le_trans));
 bind_thm ("trans_less_add2", le_add2 RSN (2,less_le_trans));
 
 goal Arith.thy "!!i. i+j < (k::nat) ==> i<k";
-be rev_mp 1;
-by(nat_ind_tac "j" 1);
+by (etac rev_mp 1);
+by (nat_ind_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
-by(fast_tac (HOL_cs addDs [Suc_lessD]) 1);
+by (fast_tac (HOL_cs addDs [Suc_lessD]) 1);
 qed "add_lessD1";
 
 goal Arith.thy "!!k::nat. m <= n ==> m <= n+k";
-by (eresolve_tac [le_trans] 1);
-by (resolve_tac [le_add1] 1);
+by (etac le_trans 1);
+by (rtac le_add1 1);
 qed "le_imp_add_le";
 
 goal Arith.thy "!!k::nat. m < n ==> m < n+k";
-by (eresolve_tac [less_le_trans] 1);
-by (resolve_tac [le_add1] 1);
+by (etac less_le_trans 1);
+by (rtac le_add1 1);
 qed "less_imp_add_less";
 
 goal Arith.thy "m+k<=n --> m<=(n::nat)";
@@ -353,7 +353,7 @@ by (safe_tac (HOL_cs addSDs [less_eq_Suc_add]));
 by (asm_full_simp_tac
     (!simpset delsimps [add_Suc_right]
                 addsimps ([add_Suc_right RS sym, add_left_cancel] @add_ac)) 1);
-by (eresolve_tac [subst] 1);
+by (etac subst 1);
 by (simp_tac (!simpset addsimps [less_add_Suc1]) 1);
 qed "less_add_eq_less";
 
@@ -389,7 +389,7 @@ qed "less_mono_imp_le_mono";
 (*non-strict, in 1st argument*)
 goal Arith.thy "!!i j k::nat. i<=j ==> i + k <= j + k";
 by (res_inst_tac [("f", "%j.j+k")] less_mono_imp_le_mono 1);
-by (eresolve_tac [add_less_mono1] 1);
+by (etac add_less_mono1 1);
 by (assume_tac 1);
 qed "add_le_mono1";
 
@@ -398,5 +398,5 @@ goal Arith.thy "!!k l::nat. [|i<=j;  k<=l |] ==> i + k <= j + l";
 by (etac (add_le_mono1 RS le_trans) 1);
 by (simp_tac (!simpset addsimps [add_commute]) 1);
 (*j moves to the end because it is free while k, l are bound*)
-by (eresolve_tac [add_le_mono1] 1);
+by (etac add_le_mono1 1);
 qed "add_le_mono";

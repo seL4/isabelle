@@ -32,13 +32,13 @@ qed "rtrancl_into_rtrancl";
 
 (*rtrancl of r contains r*)
 goal Trancl.thy "!!p. p : r ==> p : r^*";
-by(split_all_tac 1);
+by (split_all_tac 1);
 by (etac (rtrancl_refl RS rtrancl_into_rtrancl) 1);
 qed "r_into_rtrancl";
 
 (*monotonicity of rtrancl*)
 goalw Trancl.thy [rtrancl_def] "!!r s. r <= s ==> r^* <= s^*";
-by(REPEAT(ares_tac [lfp_mono,Un_mono,comp_mono,subset_refl] 1));
+by (REPEAT(ares_tac [lfp_mono,Un_mono,comp_mono,subset_refl] 1));
 qed "rtrancl_mono";
 
 (** standard induction rule **)
@@ -71,7 +71,7 @@ qed "rtrancl_induct";
 (*transitivity of transitive closure!! -- by induction.*)
 goal Trancl.thy "!!r. [| (a,b):r^*; (b,c):r^* |] ==> (a,c):r^*";
 by (eres_inst_tac [("b","c")] rtrancl_induct 1);
-by(ALLGOALS(fast_tac (HOL_cs addIs [rtrancl_into_rtrancl])));
+by (ALLGOALS(fast_tac (HOL_cs addIs [rtrancl_into_rtrancl])));
 qed "rtrancl_trans";
 
 (*elimination of rtrancl -- by induction on a special formula*)
@@ -87,13 +87,13 @@ by (REPEAT (eresolve_tac ([asm_rl,exE,disjE,conjE]@prems) 1));
 qed "rtranclE";
 
 goal Trancl.thy "!!R. (y,z):R^* ==> !x. (x,y):R --> (x,z):R^*";
-be rtrancl_induct 1;
-by(fast_tac (HOL_cs addIs [r_into_rtrancl]) 1);
-by(fast_tac (HOL_cs addEs [rtrancl_into_rtrancl]) 1);
+by (etac rtrancl_induct 1);
+by (fast_tac (HOL_cs addIs [r_into_rtrancl]) 1);
+by (fast_tac (HOL_cs addEs [rtrancl_into_rtrancl]) 1);
 val lemma = result();
 
 goal Trancl.thy  "!!R. [| (x,y) : R;  (y,z) : R^* |] ==> (x,z) : R^*";
-by(fast_tac (HOL_cs addDs [lemma]) 1);
+by (fast_tac (HOL_cs addDs [lemma]) 1);
 qed "rtrancl_into_rtrancl2";
 
 
@@ -163,12 +163,12 @@ qed "trancl_into_trancl2";
 
 goal Trancl.thy "(r^*)^* = r^*";
 by (rtac set_ext 1);
-by(res_inst_tac [("p","x")] PairE 1);
-by(hyp_subst_tac 1);
+by (res_inst_tac [("p","x")] PairE 1);
+by (hyp_subst_tac 1);
 by (rtac iffI 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by(fast_tac (HOL_cs addEs [rtrancl_trans]) 1);
+by (fast_tac (HOL_cs addEs [rtrancl_trans]) 1);
 by (etac r_into_rtrancl 1);
 qed "rtrancl_idemp";
 Addsimps [rtrancl_idemp];
@@ -176,17 +176,17 @@ Addsimps [rtrancl_idemp];
 goal Trancl.thy "!!R. [| R <= S; S <= R^* |] ==> S^* = R^*";
 by (dtac rtrancl_mono 1);
 by (dtac rtrancl_mono 1);
-by(Asm_full_simp_tac 1);
-by(fast_tac eq_cs 1);
+by (Asm_full_simp_tac 1);
+by (fast_tac eq_cs 1);
 qed "rtrancl_subset";
 
 goal Trancl.thy "!!R. (R^* Un S^*)^* = (R Un S)^*";
-by(best_tac (set_cs addIs [rtrancl_subset,r_into_rtrancl,
+by (best_tac (set_cs addIs [rtrancl_subset,r_into_rtrancl,
                            rtrancl_mono RS subsetD]) 1);
 qed "trancl_Un_trancl";
 
 goal Trancl.thy "(R^=)^* = R^*";
-by(fast_tac (rel_cs addIs [rtrancl_refl,rtrancl_subset,r_into_rtrancl]) 1);
+by (fast_tac (rel_cs addIs [rtrancl_refl,rtrancl_subset,r_into_rtrancl]) 1);
 qed "rtrancl_reflcl";
 Addsimps [rtrancl_reflcl];
 
@@ -194,20 +194,20 @@ goal Trancl.thy "!!r. (x,y) : (converse r)^* ==> (x,y) : converse(r^*)";
 by (rtac converseI 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by(fast_tac (rel_cs addIs [r_into_rtrancl,rtrancl_trans]) 1);
+by (fast_tac (rel_cs addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseD";
 
 goal Trancl.thy "!!r. (x,y) : converse(r^*) ==> (x,y) : (converse r)^*";
 by (dtac converseD 1);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
-by(fast_tac (rel_cs addIs [r_into_rtrancl,rtrancl_trans]) 1);
+by (fast_tac (rel_cs addIs [r_into_rtrancl,rtrancl_trans]) 1);
 qed "rtrancl_converseI";
 
 goal Trancl.thy "(converse r)^* = converse(r^*)";
-by(safe_tac (rel_eq_cs addSIs [rtrancl_converseI]));
-by(res_inst_tac [("p","x")] PairE 1);
-by(hyp_subst_tac 1);
+by (safe_tac (rel_eq_cs addSIs [rtrancl_converseI]));
+by (res_inst_tac [("p","x")] PairE 1);
+by (hyp_subst_tac 1);
 by (etac rtrancl_converseD 1);
 qed "rtrancl_converse";
 

@@ -69,12 +69,12 @@ qed "wf_trancl";
   H_cong to expose the equality*)
 goalw WF.thy [cut_def]
     "(cut f r x = cut g r x) = (!y. (y,x):r --> f(y)=g(y))";
-by(simp_tac (HOL_ss addsimps [expand_fun_eq]
+by (simp_tac (HOL_ss addsimps [expand_fun_eq]
                     setloop (split_tac [expand_if])) 1);
 qed "cuts_eq";
 
 goalw WF.thy [cut_def] "!!x. (x,a):r ==> (cut f r a)(x) = f(x)";
-by(asm_simp_tac HOL_ss 1);
+by (asm_simp_tac HOL_ss 1);
 qed "cut_apply";
 
 (*** is_recfun ***)
@@ -82,7 +82,7 @@ qed "cut_apply";
 goalw WF.thy [is_recfun_def,cut_def]
     "!!f. [| is_recfun r H a f;  ~(b,a):r |] ==> f(b) = (@z.True)";
 by (etac ssubst 1);
-by(asm_simp_tac HOL_ss 1);
+by (asm_simp_tac HOL_ss 1);
 qed "is_recfun_undef";
 
 (*** NOTE! some simplifications need a different finish_tac!! ***)
@@ -129,7 +129,7 @@ val prems = goal WF.thy
   by (wf_ind_tac "a" prems 1);
   by (res_inst_tac [("f","cut (%y. H (the_recfun r H y) y) r a1")]
                    is_the_recfun 1);
-  by (rewrite_goals_tac [is_recfun_def]);
+  by (rewtac is_recfun_def);
   by (rtac (cuts_eq RS ssubst) 1);
   by (rtac allI 1);
   by (rtac impI 1);

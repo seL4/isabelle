@@ -27,7 +27,7 @@ by (eresolve_tac prems 1);
 qed "idE";
 
 goalw Relation.thy [id_def] "(a,b):id = (a=b)";
-by(fast_tac prod_cs 1);
+by (fast_tac prod_cs 1);
 qed "pair_in_id_conv";
 
 

@@ -193,7 +193,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "drop_0";
 
 goal thy "drop (Suc n) (x#xs) = drop n xs";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "drop_Suc_Cons";
 
 Delsimps [drop_Cons];
@@ -207,7 +207,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "take_0";
 
 goal thy "take (Suc n) (x#xs) = x # take n xs";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "take_Suc_Cons";
 
 Delsimps [take_Cons];

@@ -231,7 +231,7 @@ Addsimps [zero_less_Suc];
 (** Elimination properties **)
 
 val prems = goalw Nat.thy [less_def] "n<m ==> ~ m<(n::nat)";
-by(fast_tac (HOL_cs addIs ([wf_pred_nat, wf_trancl RS wf_asym]@prems))1);
+by (fast_tac (HOL_cs addIs ([wf_pred_nat, wf_trancl RS wf_asym]@prems))1);
 qed "less_not_sym";
 
 (* [| n(m; m(n |] ==> R *)
@@ -246,7 +246,7 @@ qed "less_not_refl";
 bind_thm ("less_anti_refl", (less_not_refl RS notE));
 
 goal Nat.thy "!!m. n<m ==> m ~= (n::nat)";
-by(fast_tac (HOL_cs addEs [less_anti_refl]) 1);
+by (fast_tac (HOL_cs addEs [less_anti_refl]) 1);
 qed "less_not_refl2";
 
 
@@ -285,9 +285,9 @@ by (fast_tac (HOL_cs addSIs [lessI]
 qed "less_Suc_eq";
 
 val prems = goal Nat.thy "m<n ==> n ~= 0";
-by(res_inst_tac [("n","n")] natE 1);
-by(cut_facts_tac prems 1);
-by(ALLGOALS Asm_full_simp_tac);
+by (res_inst_tac [("n","n")] natE 1);
+by (cut_facts_tac prems 1);
+by (ALLGOALS Asm_full_simp_tac);
 qed "gr_implies_not0";
 Addsimps [gr_implies_not0];
 
@@ -335,14 +335,14 @@ qed "Suc_less_eq";
 Addsimps [Suc_less_eq];
 
 goal Nat.thy "~(Suc(n) < n)";
-by(fast_tac (HOL_cs addEs [Suc_lessD RS less_anti_refl]) 1);
+by (fast_tac (HOL_cs addEs [Suc_lessD RS less_anti_refl]) 1);
 qed "not_Suc_n_less_n";
 Addsimps [not_Suc_n_less_n];
 
 goal Nat.thy "!!i. i<j ==> j<k --> Suc i < k";
-by(nat_ind_tac "k" 1);
-by(ALLGOALS (asm_simp_tac (!simpset addsimps [less_Suc_eq])));
-by(fast_tac (HOL_cs addDs [Suc_lessD]) 1);
+by (nat_ind_tac "k" 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [less_Suc_eq])));
+by (fast_tac (HOL_cs addDs [Suc_lessD]) 1);
 qed_spec_mp "less_trans_Suc";
 
 (*"Less than" is a linear ordering*)
@@ -357,7 +357,7 @@ qed "less_linear";
 (*Can be used with less_Suc_eq to get n=m | n<m *)
 goal Nat.thy "(~ m < n) = (n < Suc(m))";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by(ALLGOALS Asm_simp_tac);
+by (ALLGOALS Asm_simp_tac);
 qed "not_less_eq";
 
 (*Complete induction, aka course-of-values induction*)
@@ -375,12 +375,12 @@ by (rtac not_less0 1);
 qed "le0";
 
 goalw Nat.thy [le_def] "~ Suc n <= n";
-by(Simp_tac 1);
+by (Simp_tac 1);
 qed "Suc_n_not_le_n";
 
 goalw Nat.thy [le_def] "(i <= 0) = (i = 0)";
-by(nat_ind_tac "i" 1);
-by(ALLGOALS Asm_simp_tac);
+by (nat_ind_tac "i" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "le_0";
 
 Addsimps [less_not_refl,
@@ -413,13 +413,13 @@ by (fast_tac HOL_cs 1);
 qed "not_leE";
 
 goalw Nat.thy [le_def] "!!m. m < n ==> Suc(m) <= n";
-by(Simp_tac 1);
+by (Simp_tac 1);
 by (fast_tac (HOL_cs addEs [less_anti_refl,less_asym]) 1);
 qed "lessD";
 
 goalw Nat.thy [le_def] "!!m. Suc(m) <= n ==> m <= n";
-by(Asm_full_simp_tac 1);
-by(fast_tac HOL_cs 1);
+by (Asm_full_simp_tac 1);
+by (fast_tac HOL_cs 1);
 qed "Suc_leD";
 
 goalw Nat.thy [le_def] "!!m. m <= n ==> m <= Suc n";
@@ -447,7 +447,7 @@ by (REPEAT(ares_tac [iffI,less_or_eq_imp_le,le_imp_less_or_eq] 1));
 qed "le_eq_less_or_eq";
 
 goal Nat.thy "n <= (n::nat)";
-by(simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
+by (simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
 qed "le_refl";
 
 val prems = goal Nat.thy "!!i. [| i <= j; j < k |] ==> i < (k::nat)";

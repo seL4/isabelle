@@ -78,7 +78,7 @@ val split_all_tac = REPEAT o SUBGOAL (fn (t,_) =>
 end;
 
 goal Prod.thy "(!x. P x) = (!a b. P(a,b))";
-by(fast_tac (HOL_cs addbefore split_all_tac 1) 1);
+by (fast_tac (HOL_cs addbefore split_all_tac 1) 1);
 qed "split_paired_All";
 
 goalw Prod.thy [split_def] "split c (a,b) = c a b";
@@ -123,7 +123,7 @@ qed "expand_split";
   Could instead call simp_tac/asm_full_simp_tac using split as rewrite.*)
 
 goal Prod.thy "!!p. [| !!a b. p=(a,b) ==> c a b |] ==> split c p";
-by(split_all_tac 1);
+by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "splitI2";
 
@@ -145,7 +145,7 @@ by (Asm_simp_tac 1);
 qed "mem_splitI";
 
 goal Prod.thy "!!p. [| !!a b. p=(a,b) ==> z: c a b |] ==> z: split c p";
-by(split_all_tac 1);
+by (split_all_tac 1);
 by (Asm_simp_tac 1);
 qed "mem_splitI2";
 

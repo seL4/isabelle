@@ -311,7 +311,7 @@ qed_goal "singletonE" Set.thy "[| a: {b};  a=b ==> P |] ==> P"
     (REPEAT (eresolve_tac (prems @ [emptyE]) 1)) ]);
 
 goalw Set.thy [insert_def] "!!a. b : {a} ==> b=a";
-by(fast_tac (HOL_cs addSEs [emptyE,CollectE,UnE]) 1);
+by (fast_tac (HOL_cs addSEs [emptyE,CollectE,UnE]) 1);
 qed "singletonD";
 
 val singletonE = make_elim singletonD;
