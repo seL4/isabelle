@@ -1,5 +1,76 @@
 
-\chapter{Generic Tools and Packages}
+\chapter{Generic Tools and Packages}\label{ch:gen-tools}
+
+\section{Basic proof methods and attributes}\label{sec:pure-meth}
+
+\indexisarmeth{fail}\indexisarmeth{succeed}\indexisarmeth{$-$}\indexisarmeth{assumption}
+\indexisarmeth{finish}\indexisarmeth{fold}\indexisarmeth{unfold}
+\indexisarmeth{rule}\indexisarmeth{erule}
+\begin{matharray}{rcl}
+  fail & : & \isarmeth \\
+  succeed & : & \isarmeth \\
+  - & : & \isarmeth \\
+  assumption & : & \isarmeth \\
+  finish & : & \isarmeth \\
+  fold & : & \isarmeth \\
+  unfold & : & \isarmeth \\
+  rule & : & \isarmeth \\
+  erule^* & : & \isarmeth \\
+\end{matharray}
+
+\begin{rail}
+  ('fold' | 'unfold' | 'rule' | 'erule') thmrefs
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$ $]
+\end{descr}
+
+FIXME
+
+%FIXME sort
+%FIXME thmref (single)
+%FIXME var vs. term
+
+\indexisaratt{tag}\indexisaratt{untag}\indexisaratt{COMP}\indexisaratt{RS}
+\indexisaratt{OF}\indexisaratt{where}\indexisaratt{of}\indexisaratt{standard}
+\indexisaratt{elimify}\indexisaratt{transfer}\indexisaratt{export}
+\begin{matharray}{rcl}
+  tag & : & \isaratt \\
+  untag & : & \isaratt \\
+  COMP & : & \isaratt \\
+  RS & : & \isaratt \\
+  OF & : & \isaratt \\
+  where & : & \isaratt \\
+  of & : & \isaratt \\
+  standard & : & \isaratt \\
+  elimify & : & \isaratt \\
+  transfer & : & \isaratt \\
+  export & : & \isaratt \\
+\end{matharray}
+
+\begin{rail}
+  ('tag' | 'untag') (nameref+)
+  ;
+  ('COMP' | 'RS') nat? thmref
+  ;
+  'OF' thmrefs
+  ;
+  'where' (term '=' term * 'and')
+  ;
+  'of' (inst * ) ('concl:' (inst * ))?
+  ;
+
+  inst: underscore | term
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$ $]
+\end{descr}
+
+FIXME
 
 \section{Axiomatic Type Classes}\label{sec:axclass}
 
@@ -23,7 +94,7 @@ the standard Isabelle documentation.
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{axclass}~$] FIXME
 \item [$\isarkeyword{instance}~c@1 < c@2$ and $\isarkeyword{instance}~c@1 <
   c@2$] setup up a goal stating the class relation or type arity.  The proof
@@ -31,7 +102,7 @@ the standard Isabelle documentation.
   characteristic theorems of the type classes involved.  After finishing the
   proof the theory will be augmented by a type signature declaration
   corresponding to the resulting theorem.
-\end{description}
+\end{descr}
 
 
 
@@ -49,9 +120,9 @@ the standard Isabelle documentation.
   
 %\end{rail}
 
-%\begin{description}
+%\begin{descr}
 %\item [$ $]
-%\end{description}
+%\end{descr}
 
 
 %%% Local Variables: 

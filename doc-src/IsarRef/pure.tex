@@ -1,11 +1,27 @@
 
-\chapter{Common Isar elements}
+\chapter{Basic Isar elements}
 
-FIXME $*$ indicates \emph{improper commands}
+Subsequently, we introduce most of the basic Isar theory and proof commands as
+provided by Isabelle/Pure.  Chapter~\ref{ch:gen-tools} describes further Isar
+elements as provided by generic tools and packages that are either part of
+Pure Isabelle, or preloaded by most object logics (such as the simplifier).
+See chapter~\ref{ch:hol-tools} for actual object-logic specific elements (for
+Isabelle/HOL).
+
+\medskip
+
+Isar commands may be either \emph{proper} document constructors, or
+\emph{improper commands} (indicated by $^*$).  Improper commands might be
+helpful when developing proof documents, while their use is strongly
+discouraged for the final outcome.  Typical examples are diagnostic commands
+that print terms or theorems according to the current context; other commands
+even emulate old-style tactical theorem proving, which facilitates porting of
+legacy proof scripts.
+
 
 \section{Theory commands}
 
-\subsection{Defining theories}
+\subsection{Defining theories}\label{sec:begin-thy}
 
 \indexisarcmd{theory}\indexisarcmd{end}\indexisarcmd{context}
 \begin{matharray}{rcl}
@@ -15,15 +31,16 @@ FIXME $*$ indicates \emph{improper commands}
 \end{matharray}
 
 Isabelle/Isar ``new-style'' theories are either defined via theory files or
-interactively.\footnote{In contrast, ``old-style'' Isabelle theories support
-  batch processing only, with only the ML proof script part suitable for
-  interaction.}
+interactively.  Both actual theory specifications and proofs are handled
+uniformly --- occasionally definitional mechanisms even require some proof.
+In contrast, ``old-style'' Isabelle theories support batch processing only,
+with the proof scripts collected in separate ML files.
 
 The first command of any theory has to be $\THEORY$, starting a new theory
-based on the merge of existing ones.  In interactive experiments, the theory
-context may be changed by $\CONTEXT$ without creating a new theory.  In both
-cases the concluding command is $\END$, which has to be the very last one of
-any proper theory file.
+based on the merge of existing ones.  The theory context may be changed by
+$\CONTEXT$ without creating a new theory.  In both cases $\END$ concludes the
+theory development; it has to be the very last command of any proper theory
+file.
 
 \begin{rail}
   'theory' name '=' (name + '+') filespecs? ':'
@@ -33,38 +50,42 @@ any proper theory file.
   'end'
   ;;
 
-  filespecs : 'files' ((name | '(' name ')') +);
+  filespecs: 'files' ((name | parname) +);
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\THEORY~A = B@1 + \cdots + B@n$] commences a new theory $A$ based on
   existing ones $B@1 + \cdots + B@n$.  Note that Isabelle's theory loader
   system ensures that any of the base theories are properly loaded (and fully
-  up-to-date when $\THEORY$ is executed interactively).
+  up-to-date when $\THEORY$ is executed interactively).  The optional
+  $\isarkeyword{files}$ specification declares additional dependencies on ML
+  files.  Unless put in in parentheses, any file will be loaded immediately
+  via $\isarcmd{use}$ (see also \S\ref{sec:ML}).
   
-\item [$\CONTEXT~B$] enters existing theory context $B$, basically in
+\item [$\CONTEXT~B$] enters an existing theory context $B$, basically in
   read-only mode, so only a limited set of commands may be performed.  Just as
   for $\THEORY$, the theory loader ensures that $B$ is loaded and up-to-date.
 
-\item [$\END$] concludes the current theory definition of context switch.
-\end{description}
+\item [$\END$] concludes the current theory definition or context switch.
+\end{descr}
 
 
-\subsection{Formal comments}
+\subsection{Formal comments}\label{sec:formal-cmt-thy}
 
-\indexisarcmd{title}\indexisarcmd{chapter}\indexisarcmd{subsection}\indexisarcmd{subsubsection}
-\indexisarcmd{text}\indexisarcmd{txt}
+\indexisarcmd{title}\indexisarcmd{chapter}\indexisarcmd{section}\indexisarcmd{subsection}
+\indexisarcmd{subsubsection}\indexisarcmd{text}
 \begin{matharray}{rcl}
   \isarcmd{title} & : & \isartrans{theory}{theory} \\
   \isarcmd{chapter} & : & \isartrans{theory}{theory} \\
+  \isarcmd{section} & : & \isartrans{theory}{theory} \\
   \isarcmd{subsection} & : & \isartrans{theory}{theory} \\
   \isarcmd{subsubsection} & : & \isartrans{theory}{theory} \\
   \isarcmd{text} & : & \isartrans{theory}{theory} \\
-  \isarcmd{txt} & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
 
-There are several commands to include \emph{formal comments} in theory and
-proof specification.  In contrast to source-level comments
+There are several commands to include \emph{formal comments} in theory
+specification (a few more are available for proofs, see
+\S\ref{sec:formal-cmt-prf}).  In contrast to source-level comments
 \verb|(*|\dots\verb|*)|, which are stripped at the lexical level, any text
 given as formal comment is meant to be part of the actual document.
 Consequently, it would be included in the final printed version.
@@ -81,28 +102,20 @@ declared in the current theory, e.g.\ type-checking of included terms.
 \begin{rail}
   'title' text text? text?
   ;
-  'chapter' text
-  ;
-  'subsection' text
-  ;
-  'subsubsection' text
-  ;
-  'text' text
-  ;
-  'txt' text
+  ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text') text
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{title}~title~author~date$] specifies the document title
   just as in typical LaTeX documents.
-\item [$\isarkeyword{chapter}~text$, $\isarkeyword{subsection}~text$,
-  $\isarkeyword{subsubsection}~text$] specify chapter and subsection headings.
+\item [$\isarkeyword{chapter}~text$, $\isarkeyword{section}~text$,
+  $\isarkeyword{subsection}~text$, $\isarkeyword{subsubsection}~text$] specify
+  chapter and subsection headings.
 \item [$\TEXT~text$] specifies an actual body of prose text, including
   references to formal entities.\footnote{The latter feature is not yet
     exploited in any way.}
-\item [$\TXT~text$] is similar to $\TEXT$, but may appear within proofs.
-\end{description}
+\end{descr}
 
 
 \subsection{Type classes and sorts}\label{sec:classes}
@@ -115,7 +128,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
 \end{matharray}
 
 \begin{rail}
-  'classes' (classdecl +)
+  'classes' (classdecl comment? +)
   ;
   'classrel' nameref '<' nameref comment?
   ;
@@ -123,7 +136,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{classes}~c<cs ~\dots$] declares class $c$ to be a
   subclass of existing classes $cs$.  Cyclic class structures are ruled out.
 \item [$\isarkeyword{classrel}~c@1<c@2$] states a subclass relation between
@@ -133,7 +146,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
 \item [$\isarkeyword{defaultsort}~s$] makes sort $s$ the new default sort for
   any type variables input without sort constraints.  Typically, the default
   sort would be only changed when defining new logics.
-\end{description}
+\end{descr}
 
 
 \subsection{Types}\label{sec:types-pure}
@@ -157,7 +170,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\TYPES~(\vec\alpha)t = \tau~\dots$] introduces \emph{type synonym}
   $(\vec\alpha)t$ for existing type $\tau$.  Unlike actual type definitions,
   as are available in Isabelle/HOL for example, type synonyms are just purely
@@ -174,7 +187,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
   order-sorted signature of types by new type constructor arities.  This is
   done axiomatically!  The $\isarkeyword{instance}$ command provides a way
   introduce proven type arities (see \S\ref{sec:axclass}).
-\end{description}
+\end{descr}
 
 
 \subsection{Constants and simple definitions}
@@ -198,7 +211,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\CONSTS~c::\tau~\dots$] declares constant $c$ to have any instance of
   type scheme $\tau$.  The optional mixfix annotations may attach concrete
   syntax to the constant.
@@ -208,10 +221,10 @@ declared in the current theory, e.g.\ type-checking of included terms.
 \item [$\isarkeyword{constdefs}~c::\tau~eqn~\dots$] combines constant
   declarations and definitions, using canonical name $c_def$ for the
   definitional axiom.
-\end{description}
+\end{descr}
 
 
-\subsection{Concrete syntax}
+\subsection{Syntax and translations}
 
 \indexisarcmd{syntax}\indexisarcmd{translations}
 \begin{matharray}{rcl}
@@ -228,7 +241,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{syntax}~mode~decls$] is similar to $\CONSTS~decls$,
   except the actual logical signature extension.  Thus the context free
   grammar of Isabelle's inner syntax may be augmented in arbitrary ways.  The
@@ -240,7 +253,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
   (\texttt{=>}), print rules (\texttt{<=}).  Translation patterns may be
   prefixed by the syntactic category to be used for parsing; the default is
   \texttt{logic}.
-\end{description}
+\end{descr}
 
 
 \subsection{Axioms and theorems}
@@ -259,7 +272,7 @@ declared in the current theory, e.g.\ type-checking of included terms.
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{axioms}~name: \phi~\dots$] introduces arbitrary
   statements as logical axioms.  In fact, axioms are ``axiomatic theorems'',
   and may be referred as any other theorems later.
@@ -272,35 +285,32 @@ declared in the current theory, e.g.\ type-checking of included terms.
   the default simpset, for example.
 \item [$\isarkeyword{lemmas}$] is similar to $\isarkeyword{theorems}$, but
   tags the results as ``lemma''.
-\end{description}
+\end{descr}
 
 
-\subsection{Manipulating name spaces}
+\subsection{Name spaces}
 
-\indexisarcmd{global}\indexisarcmd{local}\indexisarcmd{path}
+Isabelle organizes any kind of names (of types, constants, theorems etc.)  by
+hierarchically structured name spaces.  Normally the user never has to control
+the behavior of name space entry by hand, yet the following commands provide
+some way to do so.
+
+\indexisarcmd{global}\indexisarcmd{local}
 \begin{matharray}{rcl}
   \isarcmd{global} & : & \isartrans{theory}{theory} \\
   \isarcmd{local} & : & \isartrans{theory}{theory} \\
-  \isarcmd{path} & : & \isartrans{theory}{theory} \\
 \end{matharray}
 
-\begin{rail}
-  'global'
-  ;
-  'local'
-  ;
-  'path' nameref
-  ;
-\end{rail}
-
-\begin{description}
-\item [$\isarkeyword{global}$] FIXME
-\item [$\isarkeyword{local}$] FIXME
-\item [$\isarkeyword{path}~name$] FIXME
-\end{description}
+\begin{descr}
+\item [$\isarkeyword{global}$ and $\isarkeyword{local}$] change the current
+  name declaration mode.  Initially, theories start in $\isarkeyword{local}$
+  mode, causing all names to be automatically qualified by the theory name.
+  Changing this to $\isarkeyword{global}$ causes all names to be declared as
+  base names only.
+\end{descr}
 
 
-\subsection{Incorporating ML code}
+\subsection{Incorporating ML code}\label{sec:ML}
 
 \indexisarcmd{use}\indexisarcmd{ML}\indexisarcmd{setup}
 \begin{matharray}{rcl}
@@ -318,18 +328,25 @@ declared in the current theory, e.g.\ type-checking of included terms.
   ;
 \end{rail}
 
-\begin{description}
-\item [$\isarkeyword{use}~file$] FIXME
-\item [$\isarkeyword{ML}~text$] FIXME
-\item [$\isarkeyword{setup}~text$] FIXME
-\end{description}
+\begin{descr}
+\item [$\isarkeyword{use}~file$] reads and execute ML commands from $file$.
+  The current theory context as passed down to the ML session.  Furthermore,
+  the file name is checked with the dependency declarations given in the
+  theory header (see also \S\ref{sec:begin-thy}).
+  \item [$\isarkeyword{ML}~text$] reads and executes ML commands from $text$.
+  The theory context is passed just as in $\isarkeyword{use}$.
+\item [$\isarkeyword{setup}~text$] changes the current theory context by
+  applying setup functions $text$ (which has to be an ML expression of type
+  $(theory -> theory)~list$.  The $\isarkeyword{setup}$ is the usual way to
+  initialize object-logic specific tools and packages written in ML.
+\end{descr}
 
 
-\subsection{ML translation functions}
+\subsection{Syntax translation functions}
 
-\indexisarcmd{parse\_ast\_translation}\indexisarcmd{parse\_translation}
-\indexisarcmd{print\_translation}\indexisarcmd{typed\_print\_translation}
-\indexisarcmd{print\_ast\_translation}\indexisarcmd{token\_translation}
+\indexisarcmd{parse-ast-translation}\indexisarcmd{parse-translation}
+\indexisarcmd{print-translation}\indexisarcmd{typed-print-translation}
+\indexisarcmd{print-ast-translation}\indexisarcmd{token-translation}
 \begin{matharray}{rcl}
   \isarcmd{parse_ast_translation} & : & \isartrans{theory}{theory} \\
   \isarcmd{parse_translation} & : & \isartrans{theory}{theory} \\
@@ -358,106 +375,49 @@ transformations.
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{oracle}~name=text$] FIXME
-\end{description}
+\end{descr}
 
 
 \section{Proof commands}
 
-\subsection{Goal statements}
+Proof commands provide transitions of Isar/VM machine configurations.  There
+are three different kinds of operation:
+\begin{descr}
+\item [$proof(prove)$] means that a new goal has just been stated that is now
+  to be \emph{proven}; the next command may refine it by some proof method
+  ($\approx$ tactic) and enter a sub-proof to establish the final result.
+\item [$proof(state)$] is like an internal theory mode: the context may be
+  augmented by \emph{stating} additional assumptions, intermediate result;
+\item [$proof(chain)$] indicates an intermediate mode between $proof(state)$
+  and $proof(state)$: some already established facts have been just picked up
+  in order to use them when refining the subsequent goal.
+\end{descr}
 
-\indexisarcmd{theorem}\indexisarcmd{lemma}
-\indexisarcmd{have}\indexisarcmd{show}\indexisarcmd{hence}\indexisarcmd{thus}
+
+\subsection{Formal comments}\label{sec:formal-cmt-prf}
+
+The following formal comments in proof mode closely correspond to the ones of
+theory mode (see \S\ref{sec:formal-cmt-thy} for more information).
+
+\indexisarcmd{sect}\indexisarcmd{subsect}\indexisarcmd{subsect}\indexisarcmd{txt}
 \begin{matharray}{rcl}
-  \isarcmd{theorem} & : & \isartrans{theory}{proof(prove)} \\
-  \isarcmd{lemma} & : & \isartrans{theory}{proof(prove)} \\
-  \isarcmd{have} & : & \isartrans{proof(state)}{proof(prove)} \\
-  \isarcmd{show} & : & \isartrans{proof(state)}{proof(prove)} \\
-  \isarcmd{hence} & : & \isartrans{proof(state)}{proof(prove)} \\
-  \isarcmd{thus} & : & \isartrans{proof(state)}{proof(prove)} \\
+  \isarcmd{sect} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{subsect} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{subsubsect} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{txt} & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
 
 \begin{rail}
-  ('theorem' | 'lemma') goal
-  ;
-  ('have' | 'show' | 'hence' | 'thus') goal
-  ;
-
-  goal: thmdecl? proppat comment?
+  ('sect' | 'subsect' | 'subsubsect' | 'txt') text
   ;
 \end{rail}
-
-\begin{description}
-\item [$\THEOREM{name}{\phi}$] enters proof mode with $\phi$ as main goal,
-  eventually resulting in some theorem $\turn \phi$, which stored in the
-  theory.
-\item [$\LEMMANAME$] is similar to $\THEOREMNAME$, but tags the result as
-  ``lemma''.
-\item [$\HAVE{name}{\phi}$] FIXME
-\item [$\SHOW{name}{\phi}$] FIXME
-\item [$\HENCE{name}{\phi}$] FIXME
-\item [$\THUS{name}{\phi}$] FIXME
-\end{description}
-
-
-\subsection{Initial and terminal proof steps}
-
-\indexisarcmd{proof}\indexisarcmd{qed}\indexisarcmd{by}
-\indexisarcmd{.}\indexisarcmd{..}\indexisarcmd{sorry}
-\begin{matharray}{rcl}
-  \isarcmd{proof} & : & \isartrans{proof(prove)}{proof(state)} \\
-  \isarcmd{qed} & : & \isartrans{proof(state)}{proof(state) ~|~ theory} \\
-  \isarcmd{by} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
-  \isarcmd{.} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
-  \isarcmd{..} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
-  \isarcmd{sorry} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
-\end{matharray}
-
-\begin{rail}
-  'proof' interest? meth? comment?
-  ;
-  'qed' meth? comment?
-  ;
-  'by' meth meth? comment?
-  ;
-  ('.' | '..' | 'sorry') comment?
-  ;
-
-  meth: method interest?
-  ;
-\end{rail}
-
-\begin{description}
-\item [$ $] FIXME
-\end{description}
-
-
-\subsection{Facts and forward chaining}
-
-\indexisarcmd{note}\indexisarcmd{then}\indexisarcmd{from}\indexisarcmd{with}
-\begin{matharray}{rcl}
-  \isarcmd{note} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{then} & : & \isartrans{proof(state)}{proof(chain)} \\
-  \isarcmd{from} & : & \isartrans{proof(state)}{proof(chain)} \\
-  \isarcmd{with} & : & \isartrans{proof(state)}{proof(chain)} \\
-\end{matharray}
-
-\begin{rail}
-  'note' thmdef? thmrefs comment?
-  ;
-  'then' comment?
-  ;
-  ('from' | 'with') thmrefs comment?
-  ;
-\end{rail}
-
-\begin{description}
-\item [$ $] FIXME
-\end{description}
 
 
 \subsection{Proof context}
+
+FIXME
 
 \indexisarcmd{fix}\indexisarcmd{assume}\indexisarcmd{presume}\indexisarcmd{def}\indexisarcmd{let}
 \begin{matharray}{rcl}
@@ -482,12 +442,194 @@ transformations.
   ;
 \end{rail}
 
-\begin{description}
-\item [$ $] FIXME
-\end{description}
+\begin{descr}
+\item [$\FIX{x}$] FIXME
+\item [$\ASSUME{a}{\Phi}$ and $\PRESUME{a}{\Phi}$] FIXME
+\item [$\DEF{a}{x \equiv t}$] FIXME
+\item [$\LET{\vec p = \vec t}$] FIXME
+\end{descr}
+
+
+\subsection{Facts and forward chaining}
+
+FIXME
+
+\indexisarcmd{note}\indexisarcmd{then}\indexisarcmd{from}\indexisarcmd{with}
+\begin{matharray}{rcl}
+  \isarcmd{note} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{then} & : & \isartrans{proof(state)}{proof(chain)} \\
+  \isarcmd{from} & : & \isartrans{proof(state)}{proof(chain)} \\
+  \isarcmd{with} & : & \isartrans{proof(state)}{proof(chain)} \\
+\end{matharray}
+
+\begin{rail}
+  'note' thmdef? thmrefs comment?
+  ;
+  'then' comment?
+  ;
+  ('from' | 'with') thmrefs comment?
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$\NOTE{a}{bs}$] recalls existing facts $bs$, binding the result as $a$
+  (and $facts$).  Note that attributes may be involved as well, both on the
+  left and right hand side.
+\item [$\THEN$] indicates forward chaining by the current facts in order to
+  establish the subsequent goal.  The initial proof method invoked to solve
+  that will be offered these facts to do anything ``appropriate'' (see also
+  \S\ref{sec:proof-steps}).  For example, method $rule$ (see
+  \S\ref{sec:pure-meth}) would do an elimination rather than an introduction.
+\item [$\FROM{bs}$] abbreviates $\NOTE{facts}{bs}~\THEN$; also note that
+  $\THEN$ is equivalent to $\FROM{facts}$.
+\item [$\WITH{bs}$] abbreviates $\FROM{bs~facts}$; thus the forward chaining
+  is from earlier facts together with the current ones.
+\end{descr}
+
+
+\subsection{Goal statements}
+
+Proof mode is entered from theory mode by initial goal commands $\THEOREMNAME$
+and $\LEMMANAME$.  New local goals may be claimed within proof mode: four
+variants indicate whether the result is meant to solve some pending goal and
+whether forward chaining is employed.
+
+\indexisarcmd{theorem}\indexisarcmd{lemma}
+\indexisarcmd{have}\indexisarcmd{show}\indexisarcmd{hence}\indexisarcmd{thus}
+\begin{matharray}{rcl}
+  \isarcmd{theorem} & : & \isartrans{theory}{proof(prove)} \\
+  \isarcmd{lemma} & : & \isartrans{theory}{proof(prove)} \\
+  \isarcmd{have} & : & \isartrans{proof(state)}{proof(prove)} \\
+  \isarcmd{show} & : & \isartrans{proof(state)}{proof(prove)} \\
+  \isarcmd{hence} & : & \isartrans{proof(state)}{proof(prove)} \\
+  \isarcmd{thus} & : & \isartrans{proof(state)}{proof(prove)} \\
+\end{matharray}
+
+\begin{rail}
+  ('theorem' | 'lemma') goal
+  ;
+  ('have' | 'show' | 'hence' | 'thus') goal
+  ;
+
+  goal: thmdecl? proppat comment?
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$\THEOREM{name}{\phi}$] enters proof mode with $\phi$ as main goal,
+  eventually resulting in some theorem $\turn \phi$, which stored in the
+  theory.
+\item [$\LEMMANAME$] is similar to $\THEOREMNAME$, but tags the result as
+  ``lemma''.
+\item [$\HAVE{name}{\phi}$] claims a local goal, eventually resulting in a
+  theorem with the current assumption context as hypotheses.
+\item [$\SHOW{name}{\phi}$] same as $\HAVE{name}{\phi}$, but solves some
+  pending goal with the result exported to the enclosing assumption context.
+\item [$\HENCE{name}{\phi}$] abbreviates $\THEN~\HAVE{name}{\phi}$, i.e.\ 
+  claims a local goal to be proven by forward chaining the current facts.
+\item [$\THUS{name}{\phi}$] abbreviates $\THEN~\SHOW{name}{\phi}$.
+\end{descr}
+
+
+\subsection{Initial and terminal proof steps}\label{sec:proof-steps}
+
+Arbitrary goal refinements via tactics is considered harmful.  Consequently
+the Isar framework admits proof methods to be invoked in two places only.
+\begin{enumerate}
+\item An \emph{initial} refinement step (via $\PROOF{m@1}$) reduces a newly
+  stated intermediate goal to a number of sub-goals that are to be solved
+  subsequently.  Facts are passed to $m@1$ for forward chaining if so
+  indicated by $proof(chain)$ mode.
+  
+\item A \emph{terminal} conclusion step (via $\QED{m@2}$)) solves any remaining
+  pending goals completely.  No facts are passed to $m@2$.
+\end{enumerate}
+
+The only other proper way to affect pending goals is by $\SHOWNAME$, which
+involves an explicit statement of what is solved.
+
+Also note that initial proof methods should either solve the goal completely,
+or constitute some well-understood deterministic reduction to new sub-goals.
+Arbitrary automatic proof tools that are prone leave a large number of badly
+structured sub-goals are no help in continuing the proof document in any
+intelligible way.  A much better technique is to $\SHOWNAME$ some non-trivial
+reduction as an explicit rule, which is solved completely by some automated
+method, and then applied to some pending goal.
+
+\indexisarcmd{proof}\indexisarcmd{qed}\indexisarcmd{by}
+\indexisarcmd{.}\indexisarcmd{..}\indexisarcmd{sorry}
+\begin{matharray}{rcl}
+  \isarcmd{proof} & : & \isartrans{proof(prove)}{proof(state)} \\
+  \isarcmd{qed} & : & \isartrans{proof(state)}{proof(state) ~|~ theory} \\
+  \isarcmd{by} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
+  \isarcmd{..} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
+  \isarcmd{.} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
+  \isarcmd{sorry} & : & \isartrans{proof(prove)}{proof(state) ~|~ theory} \\
+\end{matharray}
+
+\begin{rail}
+  'proof' interest? meth? comment?
+  ;
+  'qed' meth? comment?
+  ;
+  'by' meth meth? comment?
+  ;
+  ('.' | '..' | 'sorry') comment?
+  ;
+
+  meth: method interest?
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$\PROOF{m}$] refines the pending goal by proof method $m$ (facts for
+  forward chaining are passed if indicated by $proof(chain)$).
+\item [$\QED{m}$] refines any remaining goals by proof method $m$ and
+  concludes the sub-proof.  If the goal had been $\SHOWNAME$, some pending
+  sub-goal is solved as well by the rule resulting from the result exported to
+  the enclosing goal context.
+  
+  Thus $\QEDNAME$ may fail for two reasons: either $m$ fails to solve all
+  remaining goals completely, or the resulting rule does not resolve with any
+  enclosing goal.  Debugging such a situation might involve temporarily
+  changing $\SHOWNAME$ into $\HAVENAME$, or weakening the local context by
+  replacing $\ASSUMENAME$ by $\PRESUMENAME$.
+\item [$\BY{m@1}{m@2}$] is a \emph{terminal proof}; it abbreviates
+  $\PROOF{m@1}~\QED{m@2}$, automatically backtracking across both methods.
+  
+  Debugging an unsuccessful $\BY{m@1}{m@2}$ commands might be done by simply
+  expanding the abbreviation by hand; usually $\PROOF{m@1}$ is already
+  sufficient to see what goes wrong.
+\item [$\isarkeyword{..}$] is a \emph{default proof}; it abbreviates
+  $\BY{default}{finish}$, where method $default$ usually applies a single
+  elimination or introduction rule according to the topmost symbol, and
+  $finish$ solves all goals by assumption.
+\item [$\isarkeyword{.}$] is a \emph{trivial proof}, it abbreviates
+  $\BY{-}{finish}$, where method $-$ does nothing except inserting any facts
+  into the proof state.
+\item [$\isarkeyword{sorry}$] is a \emph{fake proof}; provided that
+  \texttt{quick_and_dirty} is enabled, $\isarkeyword{sorry}$ pretends to solve
+  the goal without much ado.  Of course, the result is a fake theorem only,
+  involving some oracle in its internal derivation object.  Note that this is
+  indicated as \texttt{[!]} in the printed result.  The main application of
+  $\isarkeyword{sorry}$ is to support top-down proof development.
+\end{descr}
 
 
 \subsection{Block structure}
+
+While Isar is inherently block-structured, opening and closing blocks is
+mostly handled rather casually, with little explicit user-intervention.  Any
+local goal statement automatically opens \emph{two} blocks, which are closed
+again when concluding the sub-proof (by $\QEDNAME$ etc.).  Sections of
+different context within a sub-proof are typically switched via
+$\isarkeyword{next}$, which is just a single block-close followed by
+block-open again.  Thus the effect of $\isarkeyword{next}$ is to reset the
+proof context to that of the head of the sub-proof.  Note that there is no
+goal focus involved!
+
+There are explicit block parentheses as well.  These typically achieve a
+strong forward style of reasoning.
 
 \indexisarcmd{next}\indexisarcmd{\{\{}\indexisarcmd{\}\}}
 \begin{matharray}{rcl}
@@ -496,10 +638,15 @@ transformations.
   \isarcmd{\}\}} & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
 
-\begin{description}
-\item [$ $] FIXME
-\end{description}
-
+\begin{descr}
+\item [$\isarkeyword{next}$] switches to a fresh block within a sub-proof,
+  resetting the context to the initial one.
+\item [$\isarkeyword{\{\{}$ and $\isarkeyword{\}\}}$] explicitly open and
+  close blocks.  Any current facts pass through $\isarkeyword{\{\{}$
+  unchanged, while $\isarkeyword{\}\}}$ causes them to be \emph{exported} into
+  the enclosing context.  Thus fixed variables are generalized, assumptions
+  discharged, and local definitions eliminated.
+\end{descr}
 
 \subsection{Calculational proof}
 
@@ -517,15 +664,19 @@ transformations.
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$ $] FIXME
-\end{description}
+\end{descr}
 
 
 
 \subsection{Improper proof steps}
 
-\indexisarcmd{apply}\indexisarcmd{then\_apply}\indexisarcmd{back}
+The following commands emulate tactic scripts to some extent.  While these are
+anathema for writing proper Isar proof documents, they might come in handy for
+exploring and debugging.
+
+\indexisarcmd{apply}\indexisarcmd{then-apply}\indexisarcmd{back}
 \begin{matharray}{rcl}
   \isarcmd{apply}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{then_apply}^* & : & \isartrans{proof}{proof} \\
@@ -544,9 +695,9 @@ transformations.
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$ $] FIXME
-\end{description}
+\end{descr}
 
 
 \section{Other commands}
@@ -572,7 +723,7 @@ transformations.
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{typ}~\tau$, $\isarkeyword{term}~t$,
   $\isarkeyword{prop}~\phi$] read and print types / terms / propositions
   according to the current theory or proof context.
@@ -580,13 +731,13 @@ transformations.
   theory or proof context.  Note that any attributes included in the theorem
   specifications are applied to a temporary proof context derived from the
   current theory or proof; the resulting context is discarded.
-\end{description}
+\end{descr}
 
 
 \subsection{System operations}
 
-\indexisarcmd{cd}\indexisarcmd{pwd}\indexisarcmd{use\_thy}\indexisarcmd{use\_thy\_only}
-\indexisarcmd{update\_thy}\indexisarcmd{update\_thy\_only}
+\indexisarcmd{cd}\indexisarcmd{pwd}\indexisarcmd{use-thy}\indexisarcmd{use-thy-only}
+\indexisarcmd{update-thy}\indexisarcmd{update-thy-only}
 \begin{matharray}{rcl}
   \isarcmd{cd} & : & \isarkeep{\cdot} \\
   \isarcmd{pwd} & : & \isarkeep{\cdot} \\
@@ -596,7 +747,7 @@ transformations.
   \isarcmd{update_thy_only} & : & \isarkeep{\cdot} \\
 \end{matharray}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{cd}~name$] changes the current directory of the Isabelle
   process.
 \item [$\isarkeyword{pwd}~$] prints the current working directory.
@@ -604,7 +755,7 @@ transformations.
   $\isarkeyword{update_thy}~name$, $\isarkeyword{update_thy_only}~name$] load
   theory files.  These commands are exactly the same as the corresponding ML
   functions (see also \cite[\S1 and \S6]{isabelle-ref}).
-\end{description}
+\end{descr}
 
 
 %%% Local Variables: 

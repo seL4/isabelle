@@ -9,8 +9,8 @@
 
 \makeindex
 
-\railterm{lbrace,rbrace,llbrace,rrbrace}
-\railterm{ident,longident,symident,var,textvar,typefree,typevar,nat,string,verbatim}
+\railterm{percent,ppercent,underscore,lbrace,rbrace,llbrace,rrbrace}
+\railterm{ident,longident,symident,var,textvar,typefree,typevar,nat,string,verbatim,keyword}
 
 \railalias{name}{\railqtoken{name}}
 \railalias{nameref}{\railqtoken{nameref}}
@@ -37,7 +37,38 @@
 \maketitle 
 
 \begin{abstract}
-  FIXME
+  \emph{Intelligible semi-automated reasoning} (\emph{Isar}) is a generic
+  approach to readable formal proof documents.  It sets out to bridge the
+  semantic gap between any internal notions of proof based on primitive
+  inferences and tactics, and an appropriate level of abstraction for
+  user-level work.  The Isar formal proof language has been designed to
+  satisfy quite contradictory requirements, being both ``declarative'' and
+  immediately ``executable'', by virtue of the \emph{Isar/VM} interpreter.
+  
+  The current version of Isabelle offers Isar as an alternative proof language
+  interface layer, beyond traditional tactic scripts.  The Isabelle/Isar
+  system provides an interpreter for the Isar formal proof document language.
+  Isabelle/Isar input may consist either of \emph{proper document
+    constructors}, or \emph{improper auxiliary commands} (for diagnostics,
+  exploration etc.).  Proof texts consisting of proper document constructors
+  only admit a purely static reading, thus being intelligible later without
+  requiring dynamic replay that is so typical for traditional proof scripts.
+  Any of the Isabelle/Isar commands may be executed in single-steps, so
+  basically the interpreter has a proof text debugger already built-in.
+  
+  Employing the \emph{ProofGeneral/isar} instantiation of the generic Emacs
+  interface for interactive proof assistants of LFCS Edinburgh, we arrive at a
+  reasonable environment for \emph{live document editing}.  Thus proof texts
+  may be developed incrementally by issuing proper document constructors,
+  including forward and backward tracing of partial documents; intermediate
+  states may be inspected by diagnostic commands.
+  
+  The Isar subsystem of Isabelle is tightly integrated into the Isabelle/Pure
+  meta-logic implementation.  Theories, theorems, proof procedures etc.\ may
+  be used interchangeably between Isabelle-classic proof scripts and
+  Isabelle/Isar documents.  Isar is as generic as Isabelle, able to support a
+  wide range of object-logics.  The current end-user setup is mainly for
+  Isabelle/HOL.
 \end{abstract}
 
 \pagenumbering{roman} \tableofcontents \clearfirst

@@ -1,5 +1,5 @@
 
-\chapter{Isabelle/HOL Tools and Packages}
+\chapter{Isabelle/HOL Tools and Packages}\label{ch:hol-tools}
 
 \section{Primitive types}
 
@@ -16,7 +16,7 @@
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{typedecl}~(\vec\alpha)t$] is similar to the original
   $\isarkeyword{typedecl}$ of Isabelle/Pure (see \S\ref{sec:types-pure}), but
   also declares type arity $t :: (term, \dots, term) term$, making $t$ an
@@ -28,7 +28,7 @@
   refer to the HOL $\isarkeyword{typedef}$ primitive, but uses more advanced
   packages such as $\isarkeyword{record}$ (\S\ref{sec:record}) or
   $\isarkeyword{datatype}$ (\S\ref{sec:datatype}).
-\end{description}
+\end{descr}
 
 
 \section{Records}\label{sec:record}
@@ -47,18 +47,18 @@
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{record}~(\vec\alpha)t = \tau + \vec c :: \vec\sigma$]
   defines extensible record type $(\vec\alpha)t$, derived from the optional
   parent record $\tau$ by adding new field components $\vec c :: \vec\sigma$.
   See \cite{isabelle-HOL,NaraschewskiW-TPHOLs98} for more information only
   simply-typed records.
-\end{description}
+\end{descr}
 
 
 \section{Datatypes}\label{sec:datatype}
 
-\indexisarcmd{datatype}\indexisarcmd{rep_datatype}
+\indexisarcmd{datatype}\indexisarcmd{rep-datatype}
 \begin{matharray}{rcl}
   \isarcmd{datatype} & : & \isartrans{theory}{theory} \\
   \isarcmd{rep_datatype} & : & \isartrans{theory}{theory} \\
@@ -77,10 +77,10 @@
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{datatype}$] FIXME
 \item [$\isarkeyword{rep_datatype}$] FIXME
-\end{description}
+\end{descr}
 
 
 \section{Recursive functions}
@@ -100,15 +100,15 @@
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{primrec}$] FIXME
 \item [$\isarkeyword{recdef}$] FIXME
-\end{description}
+\end{descr}
 
 
 \section{(Co)Inductive sets}
 
-\indexisarcmd{inductive}\indexisarcmd{coinductive}\indexisarcmd{inductive\_cases}
+\indexisarcmd{inductive}\indexisarcmd{coinductive}\indexisarcmd{inductive-cases}
 \begin{matharray}{rcl}
   \isarcmd{inductive} & : & \isartrans{theory}{theory} \\
   \isarcmd{coinductive} & : & \isartrans{theory}{theory} \\
@@ -128,10 +128,10 @@
   ;
 \end{rail}
 
-\begin{description}
+\begin{descr}
 \item [$\isarkeyword{inductive}$ and $\isarkeyword{coinductive}$] FIXME
 \item [$\isarkeyword{inductive_cases}$] FIXME
-\end{description}
+\end{descr}
 
 
 \section{Proof by induction}
