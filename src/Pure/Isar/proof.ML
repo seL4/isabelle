@@ -137,7 +137,7 @@ fun map_current f (State ({context, facts, mode, goal}, nodes)) =
   State (make_node (f (context, facts, mode, goal)), nodes);
 
 fun init_state thy =
-  State (make_node (ProofContext.init_context thy, None, Forward, None), []);
+  State (make_node (ProofContext.init thy, None, Forward, None), []);
 
 
 
