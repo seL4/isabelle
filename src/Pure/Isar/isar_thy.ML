@@ -120,8 +120,8 @@ sig
   val end_block: ProofHistory.T -> ProofHistory.T
   val defer: int option -> ProofHistory.T -> ProofHistory.T
   val prefer: int -> ProofHistory.T -> ProofHistory.T
-  val tac: Method.text -> ProofHistory.T -> ProofHistory.T
-  val then_tac: Method.text -> ProofHistory.T -> ProofHistory.T
+  val apply: Method.text -> ProofHistory.T -> ProofHistory.T
+  val apply_end: Method.text -> ProofHistory.T -> ProofHistory.T
   val proof: (Comment.interest * (Method.text * Comment.interest) option) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
   val qed: (Method.text * Comment.interest) option * Comment.text
@@ -349,7 +349,7 @@ val end_block = ProofHistory.applys Proof.end_block;
 
 (* shuffle state *)
 
-fun shuffle meth i = Method.refine_no_facts (Method.Basic (K (meth i))) o Proof.assert_no_chain;
+fun shuffle meth i = Method.refine (Method.Basic (K (meth i))) o Proof.assert_no_chain;
 
 fun defer i = ProofHistory.applys (shuffle Method.defer i);
 fun prefer i = ProofHistory.applys (shuffle Method.prefer i);
@@ -357,8 +357,8 @@ fun prefer i = ProofHistory.applys (shuffle Method.prefer i);
 
 (* backward steps *)
 
-fun tac m = ProofHistory.applys (Method.refine_no_facts m o Proof.assert_backward);
-fun then_tac m = ProofHistory.applys (Method.refine m o Proof.assert_backward);
+fun apply m = ProofHistory.applys (Method.refine m o Proof.assert_backward);
+fun apply_end m = ProofHistory.applys (Method.refine_end m o Proof.assert_forward);
 
 val proof = ProofHistory.applys o Method.proof o
   apsome Comment.ignore_interest o Comment.ignore_interest' o Comment.ignore;
