@@ -24,12 +24,12 @@ qed "zle_eq_not_neg";
 Goal "(w < z + int (Suc m)) = (w < z + int m | w = z + int m)";
 by (auto_tac (claset(),
 	      simpset() addsimps [zless_iff_Suc_zadd, zadd_assoc, zadd_int]));
-by (cut_inst_tac [("m","m")] int_Suc 1);
-by (cut_inst_tac [("m","n")] int_Suc 1);
+by (cut_inst_tac [("m","m")] int_Suc_int_1 1);
+by (cut_inst_tac [("m","n")] int_Suc_int_1 1);
 by (Asm_full_simp_tac 1);
 by (exhaust_tac "n" 1);
 by Auto_tac;
-by (cut_inst_tac [("m","m")] int_Suc 1);
+by (cut_inst_tac [("m","m")] int_Suc_int_1 1);
 by (full_simp_tac (simpset() addsimps zadd_ac) 1);
 by (asm_full_simp_tac (simpset() addsimps [zadd_assoc RS sym]) 1);
 by (auto_tac (claset(),

@@ -220,7 +220,7 @@ qed "zadd_int_left";
 
 Goal "int (Suc m) = int 1 + (int m)";
 by (simp_tac (simpset() addsimps [zadd_int]) 1);
-qed "int_Suc";
+qed "int_Suc_int_1";
 
 Goalw [int_def] "int 0 + z = z";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
