@@ -1277,8 +1277,14 @@ by (full_simp_tac (simpset() addsimps [le_max_iff_disj, take_all]) 1);
 qed_spec_mp "take_equalityI";
 
 
-(** nodups & remdups **)
-section "nodups & remdups";
+(** distinct & remdups **)
+section "distinct & remdups";
+
+Goal  "distinct(xs@ys) = (distinct xs & distinct ys & set xs Int set ys = {})";
+by(induct_tac "xs" 1);
+by Auto_tac;
+qed "distinct_append";
+Addsimps [distinct_append];
 
 Goal "set(remdups xs) = set xs";
 by (induct_tac "xs" 1);
@@ -1287,15 +1293,15 @@ by (asm_full_simp_tac (simpset() addsimps [insert_absorb]) 1);
 qed "set_remdups";
 Addsimps [set_remdups];
 
-Goal "nodups(remdups xs)";
+Goal "distinct(remdups xs)";
 by (induct_tac "xs" 1);
 by Auto_tac;
-qed "nodups_remdups";
+qed "distinct_remdups";
 
-Goal "nodups xs --> nodups (filter P xs)";
+Goal "distinct xs --> distinct (filter P xs)";
 by (induct_tac "xs" 1);
 by Auto_tac;
-qed_spec_mp "nodups_filter";
+qed_spec_mp "distinct_filter";
 
 (** replicate **)
 section "replicate";

@@ -31,8 +31,8 @@ consts
   rev         :: 'a list => 'a list
   zip	      :: "'a list => 'b list => ('a * 'b) list"
   upt         :: nat => nat => nat list                   ("(1[_../_'(])")
-  remdups     :: 'a list => 'a list
-  null, nodups :: "'a list => bool"
+  remdups     :: "'a list => 'a list"
+  null, "distinct" :: "'a list => bool"
   replicate   :: nat => 'a => 'a list
 
 nonterminals
@@ -158,8 +158,8 @@ primrec
   upt_0   "[i..0(] = []"
   upt_Suc "[i..(Suc j)(] = (if i <= j then [i..j(] @ [j] else [])"
 primrec
-  "nodups []     = True"
-  "nodups (x#xs) = (x ~: set xs & nodups xs)"
+  "distinct []     = True"
+  "distinct (x#xs) = (x ~: set xs & distinct xs)"
 primrec
   "remdups [] = []"
   "remdups (x#xs) = (if x : set xs then remdups xs else x # remdups xs)"
