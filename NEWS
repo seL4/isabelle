@@ -93,7 +93,7 @@ lib/logo/isabelle-{small,tiny}.xpm;
 *** HOL ***
 
 * HOL/inductive package reorganized and improved: now supports mutual
-definitions such as:
+definitions such as
 
   inductive EVEN ODD
     intrs
@@ -111,7 +111,7 @@ contained in "induct";
 
 
 * HOL/datatype package re-implemented and greatly improved: now
-supports mutually recursive datatypes such as:
+supports mutually recursive datatypes such as
 
   datatype
     'a aexp = IF_THEN_ELSE ('a bexp) ('a aexp) ('a aexp)
@@ -123,7 +123,7 @@ supports mutually recursive datatypes such as:
             | AND ('a bexp) ('a bexp)
             | OR ('a bexp) ('a bexp)
 
-as well as indirectly recursive datatypes such as:
+as well as indirectly recursive datatypes such as
 
   datatype
     ('a, 'b) term = Var 'a
@@ -185,6 +185,8 @@ unit_eq_proc on (%u::unit. f u), replacing it by f rather than by
 * HOL/Fun INCOMPATIBILITY: `inj_onto' is now called `inj_on' (which
 makes more sense);
 
+* HOL/Set INCOMPATIBILITY: rule `equals0D' is now called `equals0E' (the old name was misleading);
+
 * HOL/Relation INCOMPATIBILITY: renamed the relational operator r^-1
 to 'converse' from 'inverse' (for compatibility with ZF and some
 literature);
@@ -210,9 +212,6 @@ may also be iterated as in f(a:=b,c:=d,...);
 * HOL/Relation: renamed the relational operator r^-1 "converse"
 instead of "inverse";
 
-* HOL/Set: added the predicate "disjoint A B" that stands for "A <= Compl B".
-  This is much better than "A Int B = {}" for Fast/Blast_tac.
-
 * directory HOL/Real: a construction of the reals using Dedekind cuts
 (not included by default);
 
@@ -225,6 +224,11 @@ instead of "inverse";
 *** ZF ***
 
 * theory Main includes everything;
+
+* ZF INCOMPATIBILITY: rule `equals0D' is now called `equals0E' (the old name
+  was misleading).  The rule and 'sym RS equals0E' are now in the default
+  claset, giving automatic disjointness reasoning but breaking a few old 
+  proofs.
 
 * ZF/Update: new theory of function updates
     with default rewrite rule  f(x:=y) ` z = if(z=x, y, f`z)
