@@ -112,7 +112,7 @@ sig
     (string * (bool -> typ -> term list -> term)) list -> sg -> sg
   val add_tokentrfuns:
     (string * string * (string -> string * int)) list -> sg -> sg
-  val add_trrules: (string * string) Syntax.trrule list -> sg -> sg
+  val add_trrules: (xstring * string) Syntax.trrule list -> sg -> sg
   val add_trrules_i: ast Syntax.trrule list -> sg -> sg
   val add_path: string -> sg -> sg
   val add_space: string * string list -> sg -> sg
@@ -801,6 +801,14 @@ fun ext_classrel int (syn, tsig, ctab, (path, spaces), data) pairs =
   end;
 
 
+(* add translation rules *)
+
+fun ext_trrules (syn, tsig, ctab, (path, spaces), data) args =
+  (Syntax.extend_trrules syn
+    (map (Syntax.map_trrule (fn (root, str) => (intrn spaces typeK root, str))) args),
+      tsig, ctab, (path, spaces), data);
+
+
 (* add to syntax *)
 
 fun ext_syn extfun (syn, tsig, ctab, names, data) args =
@@ -857,7 +865,7 @@ val add_modesyntax_i = extend_sign true ext_modesyntax_i "#";
 val add_trfuns       = extend_sign true (ext_syn Syntax.extend_trfuns) "#";
 val add_trfunsT      = extend_sign true (ext_syn Syntax.extend_trfunsT) "#";
 val add_tokentrfuns  = extend_sign true (ext_syn Syntax.extend_tokentrfuns) "#";
-val add_trrules      = extend_sign true (ext_syn Syntax.extend_trrules) "#";
+val add_trrules      = extend_sign true ext_trrules "#";
 val add_trrules_i    = extend_sign true (ext_syn Syntax.extend_trrules_i) "#";
 val add_path         = extend_sign true ext_path "#";
 val add_space        = extend_sign true ext_space "#";
