@@ -44,6 +44,7 @@ fun sort_of_term tm =
     fun sort (Const ("_topsort", _)) = []
       | sort (Const (c, _)) = [c]
       | sort (Free (c, _)) = [c]
+      | sort (Const ("_class",_) $ Free (c, _)) = [c]
       | sort (Const ("_sort", _) $ cs) = classes cs
       | sort tm = raise TERM ("sort_of_term: bad encoding of sort", [tm]);
   in sort tm end;
@@ -54,7 +55,11 @@ fun sort_of_term tm =
 fun raw_term_sorts tm =
   let
     fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) env = ((x, ~1), sort_of_term cs) ins env
+      | add_env (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ cs) env 
+                = ((x, ~1), sort_of_term cs) ins env
       | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) env = (xi, sort_of_term cs) ins env
+      | add_env (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ cs) env 
+                = (xi, sort_of_term cs) ins env
       | add_env (Abs (_, _, t)) env = add_env t env
       | add_env (t1 $ t2) env = add_env t1 (add_env t2 env)
       | add_env t env = env;
@@ -69,9 +74,16 @@ fun typ_of_term get_sort map_sort t =
           if Lexicon.is_tid x then TFree (x, get_sort (x, ~1))
           else Type (x, [])
       | typ_of (Var (xi, _)) = TVar (xi, get_sort xi)
+      | typ_of (Const ("_tfree",_) $ (t as Free x)) = typ_of t
+      | typ_of (Const ("_tvar",_) $ (t as Var x)) = typ_of t
       | typ_of (Const ("_ofsort", _) $ Free (x, _) $ _) = TFree (x, get_sort (x, ~1))
+      | typ_of (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ _) 
+               = TFree (x, get_sort (x, ~1))
       | typ_of (Const ("_ofsort", _) $ Var (xi, _) $ _) = TVar (xi, get_sort xi)
+      | typ_of (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ _) 
+               = TVar (xi, get_sort xi)
       | typ_of (Const ("_dummy_ofsort", _) $ t) = TFree ("'_dummy_", map_sort (sort_of_term t))
+     
       | typ_of tm =
           let
             val (t, ts) = strip_comb tm;

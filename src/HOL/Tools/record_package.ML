@@ -13,6 +13,7 @@ sig
   val record_split_tac: int -> tactic
   val record_split_name: string
   val record_split_wrapper: string * wrapper
+  val print_record_type_abbr: bool ref 
 end;
 
 signature RECORD_PACKAGE =
@@ -22,6 +23,8 @@ sig
   val updateN: string
   val mk_fieldT: (string * typ) * typ -> typ
   val dest_fieldT: typ -> (string * typ) * typ
+  val dest_fieldTs: typ -> (string * typ) list
+  val last_fieldT: typ -> (string * typ) option
   val mk_field: (string * term) * term -> term
   val mk_fst: term -> term
   val mk_snd: term -> term
@@ -36,9 +39,12 @@ sig
   val add_record_i: (string list * bstring) -> (typ list * string) option
     -> (bstring * typ * mixfix) list -> theory -> theory * {simps: thm list, iffs: thm list}
   val setup: (theory -> theory) list
+  val record_upd_simproc: simproc
+  val record_split_simproc: (term -> bool) -> simproc
+  val record_split_simp_tac: (term -> bool) -> int -> tactic
 end;
 
-structure RecordPackage: RECORD_PACKAGE =
+structure RecordPackage :RECORD_PACKAGE =
 struct
 
 
@@ -170,6 +176,12 @@ fun dest_fieldTs T =
   in (c, T) :: dest_fieldTs U
   end handle TYPE _ => [];
 
+fun last_fieldT T =
+  let val ((c, T), U) = dest_fieldT T
+  in (case last_fieldT U of
+        None => Some (c,T)
+      | Some l => Some l)
+  end handle TYPE _ => None
 
 (* morphisms *)
 
@@ -313,6 +325,9 @@ val parse_translation =
 
 (* print translations *)
 
+
+val print_record_type_abbr = ref true;
+
 fun gen_fields_tr' mark sfx (tm as Const (name_field, _) $ t $ u) =
       (case try (unsuffix sfx) name_field of
         Some name =>
@@ -334,6 +349,49 @@ val record_type_tr' =
   gen_record_tr' "_field_types" "_field_type" field_typeN
     (fn Const ("unit", _) => true | _ => false) "_record_type" "_record_type_scheme";
 
+
+(* record_type_abbr_tr' tries to reconstruct the record name type abbreviation from *)
+(* the (nested) field types.                                                        *)
+fun record_type_abbr_tr' sg abbr alphas zeta lastF recT rec_schemeT tm =
+  let
+      (* tm is term representation of a (nested) field type. We first reconstruct the      *)
+      (* type from tm so that we can continue on the type level rather then the term level.*)
+ 
+      fun get_sort xs n = (case assoc (xs,n) of 
+                             Some s => s 
+                           | None => Sign.defaultS sg);
+
+      val T = Sign.intern_typ sg (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts tm)) I tm) 
+      val {tsig,...} = Sign.rep_sg sg
+
+      fun mk_type_abbr subst name alphas = 
+          let val abbrT = Type (name, map (fn a => TVar ((a,0),logicS)) alphas);
+          in Syntax.term_of_typ (! Syntax.show_sorts) (Envir.norm_type subst abbrT) end;    
+
+      fun unify rT T = fst (Type.unify tsig (Vartab.empty,0) (Type.varifyT rT,T))
+
+   in if !print_record_type_abbr
+      then (case last_fieldT T of
+             Some (name,_) 
+              => if name = lastF 
+                 then
+		   let val subst = unify rec_schemeT T 
+                   in 
+                    if HOLogic.is_unitT (Envir.norm_type subst (TVar((zeta,0),Sign.defaultS sg)))
+                    then mk_type_abbr subst abbr alphas
+                    else mk_type_abbr subst (suffix schemeN abbr) (alphas@[zeta])
+		   end handle TUNIFY => record_type_tr' tm
+                 else raise Match (* give print translation of specialised record a chance *)
+            | _ => record_type_tr' tm)
+       else record_type_tr' tm
+  end
+
+     
+fun gen_record_type_abbr_tr' sg abbr alphas zeta lastF recT rec_schemeT name =
+  let val name_sfx = suffix field_typeN name
+      val tr' = record_type_abbr_tr' sg abbr alphas zeta lastF recT rec_schemeT 
+  in (name_sfx, fn [t,u] => tr' (Syntax.const name_sfx $ t $ u) | _ => raise Match) end;
+      
 val record_tr' =
   gen_record_tr' "_fields" "_field" fieldN
     (fn Const ("Unity", _) => true | _ => false) "_record" "_record_scheme";
@@ -344,15 +402,16 @@ fun record_update_tr' tm =
       foldr1 (fn (v, w) => Syntax.const "_updates" $ v $ w) (rev ts)
   end;
 
-
 fun gen_field_tr' sfx tr' name =
   let val name_sfx = suffix sfx name
   in (name_sfx, fn [t, u] => tr' (Syntax.const name_sfx $ t $ u) | _ => raise Match) end;
 
 fun print_translation names =
-  map (gen_field_tr' field_typeN record_type_tr') names @
   map (gen_field_tr' fieldN record_tr') names @
   map (gen_field_tr' updateN record_update_tr') names;
+
+fun print_translation_field_types names =
+  map (gen_field_tr' field_typeN record_type_tr') names
 
 
 
@@ -360,7 +419,7 @@ fun print_translation names =
 
 (** record info **)
 
-(* type record_info and parent_info *)
+(* type record_info and parent_info  *)
 
 type record_info =
  {args: (string * sort) list,
@@ -368,22 +427,24 @@ type record_info =
   fields: (string * typ) list,
   field_inducts: thm list,
   field_cases: thm list,
+  field_splits: thm list,
   simps: thm list};
 
-fun make_record_info args parent fields field_inducts field_cases simps =
+fun make_record_info args parent fields field_inducts field_cases field_splits simps =
  {args = args, parent = parent, fields = fields, field_inducts = field_inducts,
-  field_cases = field_cases, simps = simps}: record_info;
+  field_cases = field_cases, field_splits = field_splits, simps = simps}: record_info;
 
 type parent_info =
  {name: string,
   fields: (string * typ) list,
   field_inducts: thm list,
   field_cases: thm list,
+  field_splits: thm list,
   simps: thm list};
 
-fun make_parent_info name fields field_inducts field_cases simps =
+fun make_parent_info name fields field_inducts field_cases field_splits simps =
  {name = name, fields = fields, field_inducts = field_inducts,
-  field_cases = field_cases, simps = simps}: parent_info;
+  field_cases = field_cases, field_splits = field_splits, simps = simps}: parent_info;
 
 
 (* data kind 'HOL/records' *)
@@ -397,11 +458,13 @@ type record_data =
   field_splits:
    {fields: unit Symtab.table,
     simpset: Simplifier.simpset},
-  equalities: thm Symtab.table};
+  equalities: thm Symtab.table,
+  splits: (thm*thm*thm*thm) Symtab.table (* !!,!,EX - split-equalities,induct rule *) 
+};
 
-fun make_record_data records sel_upd field_splits equalities=
+fun make_record_data records sel_upd field_splits equalities splits =
  {records = records, sel_upd = sel_upd, field_splits = field_splits,
-  equalities = equalities}: record_data;
+  equalities = equalities, splits = splits}: record_data;
 
 structure RecordsArgs =
 struct
@@ -411,7 +474,7 @@ struct
   val empty =
     make_record_data Symtab.empty
       {selectors = Symtab.empty, updates = Symtab.empty, simpset = HOL_basic_ss}
-      {fields = Symtab.empty, simpset = HOL_basic_ss} Symtab.empty;
+      {fields = Symtab.empty, simpset = HOL_basic_ss} Symtab.empty Symtab.empty;
 
   val copy = I;
   val prep_ext = I;
@@ -419,19 +482,25 @@ struct
    ({records = recs1,
      sel_upd = {selectors = sels1, updates = upds1, simpset = ss1},
      field_splits = {fields = flds1, simpset = fld_ss1},
-     equalities = equalities1},
+     equalities = equalities1,
+     splits = splits1},
     {records = recs2,
      sel_upd = {selectors = sels2, updates = upds2, simpset = ss2},
      field_splits = {fields = flds2, simpset = fld_ss2},
-     equalities = equalities2}) =
-    make_record_data
+     equalities = equalities2, 
+     splits = splits2}) =
+    make_record_data  
       (Symtab.merge (K true) (recs1, recs2))
       {selectors = Symtab.merge (K true) (sels1, sels2),
         updates = Symtab.merge (K true) (upds1, upds2),
         simpset = Simplifier.merge_ss (ss1, ss2)}
       {fields = Symtab.merge (K true) (flds1, flds2),
         simpset = Simplifier.merge_ss (fld_ss1, fld_ss2)}
-      (Symtab.merge Thm.eq_thm (equalities1, equalities2));
+      (Symtab.merge Thm.eq_thm (equalities1, equalities2))
+      (Symtab.merge (fn ((a,b,c,d),(w,x,y,z)) 
+                     => Thm.eq_thm (a,w) andalso Thm.eq_thm (b,x) andalso 
+                        Thm.eq_thm (c,y) andalso Thm.eq_thm (d,z)) 
+                    (splits1, splits2));
 
   fun print sg ({records = recs, ...}: record_data) =
     let
@@ -462,9 +531,9 @@ fun get_record thy name = Symtab.lookup (#records (RecordsData.get thy), name);
 
 fun put_record name info thy =
   let
-    val {records, sel_upd, field_splits, equalities} = RecordsData.get thy;
+    val {records, sel_upd, field_splits, equalities, splits} = RecordsData.get thy;
     val data = make_record_data (Symtab.update ((name, info), records))
-      sel_upd field_splits equalities;
+      sel_upd field_splits equalities splits;
   in RecordsData.put data thy end;
 
 
@@ -476,32 +545,31 @@ fun get_selectors sg name = Symtab.lookup (#selectors (get_sel_upd sg), name);
 fun get_updates sg name = Symtab.lookup (#updates (get_sel_upd sg), name);
 fun get_simpset sg = #simpset (get_sel_upd sg);
 
-
 fun put_sel_upd names simps thy =
   let
     val sels = map (rpair ()) names;
     val upds = map (suffix updateN) names ~~ names;
 
     val {records, sel_upd = {selectors, updates, simpset}, field_splits,
-      equalities} = RecordsData.get thy;
+      equalities, splits} = RecordsData.get thy;
     val data = make_record_data records
       {selectors = Symtab.extend (selectors, sels),
         updates = Symtab.extend (updates, upds),
         simpset = Simplifier.addsimps (simpset, simps)}
-      field_splits equalities;
+      field_splits equalities splits;
   in RecordsData.put data thy end;
 
 
 (* access 'field_splits' *)
 
-fun add_record_splits names simps thy =
+fun add_field_splits names simps thy =
   let
     val {records, sel_upd, field_splits = {fields, simpset},
-      equalities} = RecordsData.get thy;
+      equalities, splits} = RecordsData.get thy;
     val flds = map (rpair ()) names;
     val data = make_record_data records sel_upd
       {fields = Symtab.extend (fields, flds),
-       simpset = Simplifier.addsimps (simpset, simps)} equalities;
+       simpset = Simplifier.addsimps (simpset, simps)} equalities splits;
   in RecordsData.put data thy end;
 
 
@@ -509,13 +577,25 @@ fun add_record_splits names simps thy =
 
 fun add_record_equalities name thm thy =
   let
-    val {records, sel_upd, field_splits, equalities} = RecordsData.get thy;
+    val {records, sel_upd, field_splits, equalities, splits} = RecordsData.get thy;
     val data = make_record_data records sel_upd field_splits
-      (Symtab.update_new ((name, thm), equalities));
+      (Symtab.update_new ((name, thm), equalities)) splits;
   in RecordsData.put data thy end;
 
 fun get_equalities sg name =
   Symtab.lookup (#equalities (RecordsData.get_sg sg), name);
+
+(* access 'splits' *)
+
+fun add_record_splits name thmP thy =
+  let
+    val {records, sel_upd, field_splits, equalities, splits} = RecordsData.get thy;
+    val data = make_record_data records sel_upd field_splits
+      equalities (Symtab.update_new ((name, thmP), splits));
+  in RecordsData.put data thy end;
+
+fun get_splits sg name =
+  Symtab.lookup (#splits (RecordsData.get_sg sg), name);
 
 
 (* parent records *)
@@ -526,7 +606,7 @@ fun add_parents thy None parents = parents
         val sign = Theory.sign_of thy;
         fun err msg = error (msg ^ " parent record " ^ quote name);
 
-        val {args, parent, fields, field_inducts, field_cases, simps} =
+        val {args, parent, fields, field_inducts, field_cases, field_splits, simps} =
           (case get_record thy name of Some info => info | None => err "Unknown");
         val _ = if length types <> length args then err "Bad number of arguments for" else ();
 
@@ -542,60 +622,201 @@ fun add_parents thy None parents = parents
         conditional (not (null bads)) (fn () =>
           err ("Ill-sorted instantiation of " ^ commas bads ^ " in"));
         add_parents thy parent'
-          (make_parent_info name fields' field_inducts field_cases simps :: parents)
+          (make_parent_info name fields' field_inducts field_cases field_splits simps::parents)
       end;
 
 
+(** record simprocs **)
+ 
+fun quick_and_dirty_prove sg xs asms prop tac =
+Tactic.prove sg xs asms prop
+    (if ! quick_and_dirty then (K (SkipProof.cheat_tac HOL.thy)) else tac);
 
-(** record simproc **)
 
+fun prove_split_simp sg T prop =
+    (case last_fieldT T of
+      Some (name,_) => (case get_splits sg name of
+                         Some (all_thm,_,_,_) 
+                          => let val {sel_upd={simpset,...},...} = RecordsData.get_sg sg;
+                             in (quick_and_dirty_prove sg [] [] prop 
+                                  (K (simp_tac (simpset addsimps [all_thm]) 1)))
+                             end
+                      | _ => error "RecordPackage.prove_split_simp: code should never been reached")
+     | _ => error "RecordPackage.prove_split_simp: code should never been reached")
+
+
+(* record_simproc *)
+(* Simplifies selections of an record update:
+ *  (1)  S (r(|S:=k|)) = k respectively
+ *  (2)  S (r(|X:=k|)) = S r
+ * The simproc skips multiple updates at once, eg:
+ *  S (r (|S:=k,X:=2,Y:=3|)) = k
+ * But be careful in (2) because of the extendibility of records.
+ * - If S is a more-selector we have to make sure that the update on component
+ *   X does not affect the selected subrecord.
+ * - If X is a more-selector we have to make sure that S is not in the updated
+ *   subrecord. 
+ *)
 val record_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_simp" ["s (u k r)"]
     (fn sg => fn _ => fn t =>
-      (case t of (sel as Const (s, _)) $ ((upd as Const (u, _)) $ k $ r) =>
+      (case t of (sel as Const (s, Type (_,[domS,rangeS]))) $ ((upd as Const (u, _)) $ k $ r) =>
         (case get_selectors sg s of Some () =>
           (case get_updates sg u of Some u_name =>
             let
-              fun mk_free x t = Free (x, fastype_of t);
-              val k' = mk_free "k" k;
-              val r' = mk_free "r" r;
-              val t' = sel $ (upd $ k' $ r');
-              fun prove prop =
-                Tactic.prove sg ["k", "r"] [] prop (K (simp_all_tac (get_simpset sg) []));
+              fun mk_abs_var x t = (x, fastype_of t);
+              val {sel_upd={updates,...},...} = RecordsData.get_sg sg;
+
+              fun mk_eq_terms ((upd as Const (u,Type(_,[updT,_]))) $ k $ r) =
+		  (case (Symtab.lookup (updates,u)) of
+                     None => None
+                   | Some u_name 
+                     => if u_name = s
+                        then let 
+                               val rv = mk_abs_var "r" r
+                               val rb = Bound 0
+                               val kv = mk_abs_var "k" k
+                               val kb = Bound 1 
+                             in Some (upd$kb$rb,kb,[kv,rv],true) end
+                        else if u_name mem (map fst (dest_fieldTs rangeS))
+                             orelse s mem (map fst (dest_fieldTs updT))
+                             then None
+			     else (case mk_eq_terms r of 
+                                     Some (trm,trm',vars,update_s) 
+                                     => let   
+					  val kv = mk_abs_var "k" k
+                                          val kb = Bound (length vars)
+		                        in Some (upd$kb$trm,trm',kv::vars,update_s) end
+                                   | None
+                                     => let 
+					  val rv = mk_abs_var "r" r
+                                          val rb = Bound 0
+                                          val kv = mk_abs_var "k" k
+                                          val kb = Bound 1 
+                                        in Some (upd$kb$rb,rb,[kv,rv],false) end))
+                | mk_eq_terms r = None     
             in
-              if u_name = s then Some (prove (Logic.mk_equals (t', k')))
-              else Some (prove (Logic.mk_equals (t', sel $ r')))
+	      (case mk_eq_terms (upd$k$r) of
+                 Some (trm,trm',vars,update_s) 
+                 => if update_s 
+		    then Some (prove_split_simp sg domS 
+                                 (list_all(vars,(Logic.mk_equals (sel$trm,trm')))))
+                    else Some (prove_split_simp sg domS 
+                                 (list_all(vars,(Logic.mk_equals (sel$trm,sel$trm')))))
+               | None => None)
             end
           | None => None)
         | None => None)
       | _ => None));
 
+(* record_eq_simproc *)
+(* looks up the most specific record-equality.
+ * Note on efficiency:
+ * Testing equality of records boils down to the test of equality of all components.
+ * Therefore the complexity is: #components * complexity for single component.
+ * Especially if a record has a lot of components it may be better to split up
+ * the record first and do simplification on that (record_split_simp_tac).
+ * e.g. r(|lots of updates|) = x
+ *
+ *               record_eq_simproc           record_split_simp_tac
+ * Complexity: #components * #updates     #updates   
+ *           
+ *)
 val record_eq_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_eq_simp" ["r = s"]
     (fn sg => fn _ => fn t =>
       (case t of Const ("op =", Type (_, [T, _])) $ _ $ _ =>
-        (case rev (dest_fieldTs T) of
-           [] => None
-         | (name, _) :: _ => (case get_equalities sg name of
-             None => None
-           | Some thm => Some (thm RS Eq_TrueI)))
+        (case last_fieldT T of
+           None => None
+         | Some (name, _) => (case get_equalities sg name of
+                                None => None
+                              | Some thm => Some (thm RS Eq_TrueI)))
        | _ => None));
 
 
+(* record_upd_simproc *)
+(* simplify multiple updates; for example: "r(|M:=3,N:=1,M:=2,N:=4|) == r(|M:=2,N:=4|)" *)
+val record_upd_simproc =
+  Simplifier.simproc (Theory.sign_of HOL.thy) "record_upd_simp" ["(u1 k1 (u2 k2 r))"]
+    (fn sg => fn _ => fn t =>
+      (case t of ((upd as Const (u, Type(_,[_,Type(_,[T,_])]))) $ k $ r) =>
+ 	 let val {sel_upd={updates,...},...} = RecordsData.get_sg sg;
+	     fun mk_abs_var x t = (x, fastype_of t);
+
+             fun mk_updterm upds already ((upd as Const (u,_)) $ k $ r) =
+		 if is_some (Symtab.lookup (upds,u))
+		 then let 
+			 fun rest already = mk_updterm upds already
+		      in if is_some (Symtab.lookup (already,u)) 
+			 then (case (rest already r) of
+				 None => let 
+				           val rv = mk_abs_var "r" r
+                                           val rb = Bound 0
+					   val kv = mk_abs_var "k" k
+                                           val kb = Bound 1	      
+                                         in Some (upd$kb$rb,rb,[kv,rv]) end
+                               | Some (trm,trm',vars) 
+				 => let 
+				     val kv = mk_abs_var "k" k
+                                     val kb = Bound (length vars)
+                                    in Some (upd$kb$trm,trm',kv::vars) end)
+	                 else (case rest (Symtab.update ((u,()),already)) r of 
+				 None => None
+		               | Some (trm,trm',vars) 
+                                  => let
+				      val kv = mk_abs_var "k" k
+                                      val kb = Bound (length vars)
+                                     in Some (upd$kb$trm,upd$kb$trm',kv::vars) end)
+		     end
+		 else None
+	       | mk_updterm _ _ _ = None;
+
+	 in (case mk_updterm updates Symtab.empty t of
+	       Some (trm,trm',vars)
+                => Some (prove_split_simp sg T (list_all(vars,(Logic.mk_equals (trm,trm')))))
+             | None => None)
+	 end
+       | _ => None));
+
+(* record_split_simproc *)
+(* splits quantified occurrences of records, for which P holds. P can peek on the 
+ * subterm starting at the quantified occurrence of the record (including the quantifier)
+ *)
+fun record_split_simproc P =
+  Simplifier.simproc (Theory.sign_of HOL.thy) "record_split_simp" ["(a t)"]
+    (fn sg => fn _ => fn t =>
+      (case t of (Const (quantifier, Type (_, [Type (_, [T, _]), _])))$trm =>
+         if quantifier = "All" orelse quantifier = "all" orelse quantifier = "Ex"
+         then (case last_fieldT T of
+                 None => None
+               | Some (name, _)
+                  => if P t 
+                     then (case get_splits sg name of
+                             None => None
+                           | Some (all_thm, All_thm, Ex_thm,_) 
+                              => Some (case quantifier of
+                                         "all" => all_thm
+                                       | "All" => All_thm RS HOL.eq_reflection
+                                       | "Ex"  => Ex_thm RS HOL.eq_reflection
+                                       | _     => error "record_split_simproc"))
+                     else None)
+         else None
+       | _ => None))
 
 (** record field splitting **)
 
 (* tactic *)
 
+fun is_fieldT fields (Type (a, [_, _])) = is_some (Symtab.lookup (fields, a))
+  | is_fieldT _ _ = false;
+
 fun record_split_tac i st =
   let
     val {field_splits = {fields, simpset}, ...} = RecordsData.get_sg (Thm.sign_of_thm st);
 
-    fun is_fieldT (Type (a, [_, _])) = is_some (Symtab.lookup (fields, a))
-      | is_fieldT _ = false;
     val has_field = exists_Const
       (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = "all" orelse s = "All") andalso is_fieldT T
+          (s = "all" orelse s = "All") andalso is_fieldT fields T
         | _ => false);
 
     val goal = Library.nth_elem (i - 1, Thm.prems_of st);
@@ -604,6 +825,60 @@ fun record_split_tac i st =
     else Seq.empty
   end handle Library.LIST _ => Seq.empty;
 
+
+local
+val inductive_atomize = thms "induct_atomize";
+val inductive_rulify1 = thms "induct_rulify1";
+in
+(* record_split_simp_tac *)
+(* splits (and simplifies) all records in the goal for which P holds. 
+ * For quantified occurrences of a record
+ * P can peek on the whole subterm (including the quantifier); for free variables P
+ * can only peek on the variable itself. 
+ *)
+fun record_split_simp_tac P i st =
+  let
+    val sg = Thm.sign_of_thm st;
+    val {sel_upd={simpset,...},field_splits={fields,...},...} 
+            = RecordsData.get_sg sg;
+
+    val has_field = exists_Const
+      (fn (s, Type (_, [Type (_, [T, _]), _])) =>
+          (s = "all" orelse s = "All" orelse s = "Ex") andalso is_fieldT fields T
+        | _ => false);
+
+    val goal = Library.nth_elem (i - 1, Thm.prems_of st);
+    val frees = filter (is_fieldT fields o type_of) (term_frees goal);
+
+    fun mk_split_free_tac free induct_thm i = 
+	let val cfree = cterm_of sg free;
+            val (_$(_$r)) = concl_of induct_thm;
+            val crec = cterm_of sg r;
+            val thm  = cterm_instantiate [(crec,cfree)] induct_thm;
+        in EVERY [simp_tac (HOL_basic_ss addsimps inductive_atomize) i,
+                  rtac thm i,
+                  simp_tac (HOL_basic_ss addsimps inductive_rulify1) i]
+	end;
+
+    fun split_free_tac P i (free as Free (n,T)) = 
+	(case last_fieldT T of
+           None => None
+         | Some(name,_)=> if P free 
+                          then (case get_splits sg name of
+                                  None => None
+                                | Some (_,_,_,induct_thm)
+                                   => Some (mk_split_free_tac free induct_thm i))
+                          else None)
+     | split_free_tac _ _ _ = None;
+
+    val split_frees_tacs = mapfilter (split_free_tac P i) frees;
+   
+    val simprocs = if has_field goal then [record_split_simproc P] else [];
+   
+  in st |> (EVERY split_frees_tacs) 
+           THEN (Simplifier.full_simp_tac (simpset addsimprocs simprocs) i)
+  end handle Library.LIST _ => Seq.empty;
+end;
 
 (* wrapper *)
 
@@ -778,12 +1053,22 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     fun r_scheme n = Free (rN, rec_schemeT n);
     fun r n = Free (rN, recT n);
 
+    
 
     (* prepare print translation functions *)
-
     val field_tr's =
       print_translation (distinct (flat (map NameSpace.accesses' (full_moreN :: names))));
 
+    val field_type_tr's = 
+	let val fldnames = if parent_len = 0 then (tl names) else names;
+        in print_translation_field_types (distinct (flat (map NameSpace.accesses' fldnames))) 
+        end;
+                          
+    fun record_type_abbr_tr's thy =
+	let val trnames = (distinct (flat (map NameSpace.accesses' [hd all_names])))
+            val sg = Theory.sign_of thy
+	in map (gen_record_type_abbr_tr' 
+                 sg bname alphas zeta (hd (rev names)) (recT 0) (rec_schemeT 0)) trnames end;   
 
     (* prepare declarations *)
 
@@ -879,7 +1164,33 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         ((r_scheme n === rec_scheme n) ==> C) ==> C;
     fun cases_prop n = All (prune n all_xs ~~ prune n all_types) ((r n === rec_ n) ==> C) ==> C;
 
+    (*split*)
+    fun split_scheme_meta_prop n =
+      let val P = Free ("P", rec_schemeT n --> Term.propT) in
+       equals (Term.propT) $
+        (Term.list_all_free ([(rN,rec_schemeT n)],(P $ r_scheme n)))$
+        (All (prune n all_xs_more ~~ prune n all_types_more) (P $ rec_scheme n))
+      end;
 
+    fun split_scheme_object_prop n =
+      let val P = Free ("P", rec_schemeT n --> HOLogic.boolT) 
+          val ALL = foldr (fn ((v,T),t) => HOLogic.mk_all (v,T,t)) 
+      in
+	Trueprop (
+           HOLogic.eq_const (HOLogic.boolT) $
+            (HOLogic.mk_all ((rN,rec_schemeT n,P $ r_scheme n)))$
+            (ALL (prune n all_xs_more ~~ prune n all_types_more,P $ rec_scheme n)))
+      end;
+
+      fun split_scheme_object_ex_prop n =
+      let val P = Free ("P", rec_schemeT n --> HOLogic.boolT) 
+          val EX = foldr (fn ((v,T),t) => HOLogic.mk_exists (v,T,t)) 
+      in
+	Trueprop (
+           HOLogic.eq_const (HOLogic.boolT) $
+            (HOLogic.mk_exists ((rN,rec_schemeT n,P $ r_scheme n)))$
+            (EX (prune n all_xs_more ~~ prune n all_types_more,P $ rec_scheme n)))
+      end;
     (* 1st stage: fields_thy *)
 
     val (fields_thy, field_simps, field_injects, field_splits, field_inducts, field_cases) =
@@ -889,17 +1200,22 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     val all_field_inducts = flat (map #field_inducts parents) @ field_inducts;
     val all_field_cases = flat (map #field_cases parents) @ field_cases;
+    val all_field_splits = flat (map #field_splits parents) @ field_splits
 
-
+    
     (* 2nd stage: defs_thy *)
+
+        
+   
 
     val (defs_thy, (((sel_defs, update_defs), derived_defs))) =
       fields_thy
-      |> add_record_splits (map (suffix field_typeN) names) field_splits
+      |> Theory.add_trfuns 
+           ([],[],record_type_abbr_tr's fields_thy @ field_type_tr's @ field_tr's, [])
+      |> add_field_splits (map (suffix field_typeN) names) field_splits
       |> Theory.parent_path
       |> Theory.add_tyabbrs_i recordT_specs
       |> Theory.add_path bname
-      |> Theory.add_trfuns ([], [], field_tr's, [])
       |> Theory.add_consts_i
         (map2 (fn ((x, T), mx) => (x, T, mx)) (sel_decls, field_syntax @ [Syntax.NoSyn]))
       |> (Theory.add_consts_i o map Syntax.no_syn)
@@ -935,12 +1251,32 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         EVERY (map (fn rule => try_param_tac rN rule 1) (prune n all_field_cases))
         THEN simp_all_tac HOL_basic_ss []);
 
+    fun split_scheme_meta n =
+      prove_standard [] [] (split_scheme_meta_prop n) (fn _ =>
+        Simplifier.full_simp_tac (HOL_basic_ss addsimps all_field_splits) 1);
+
+    fun split_scheme_object induct_scheme n =
+      prove_standard [] [] (split_scheme_object_prop n) (fn _ =>
+         EVERY [rtac iffI 1, 
+                REPEAT (rtac allI 1), etac allE 1, atac 1,
+                rtac allI 1, rtac induct_scheme 1,REPEAT (etac allE 1),atac 1]);
+
+    fun split_scheme_object_ex split_scheme_meta n =
+      prove_standard [] [] (split_scheme_object_ex_prop n) (fn _ =>
+        fast_simp_tac (claset_of HOL.thy,
+                       HOL_basic_ss addsimps [split_scheme_meta]) 1);
+       
     val induct_scheme0 = induct_scheme 0;
     val cases_scheme0 = cases_scheme 0;
+    val split_scheme_meta0 = split_scheme_meta 0;
+    val split_scheme_object0 = split_scheme_object induct_scheme0 0;
+    val split_scheme_object_ex0 = split_scheme_object_ex split_scheme_meta0 0;
     val more_induct_scheme = map induct_scheme ancestry;
     val more_cases_scheme = map cases_scheme ancestry;
 
-    val (thms_thy, (([sel_convs', update_convs', sel_defs', update_defs', _],
+    val (thms_thy, (([sel_convs', update_convs', sel_defs', update_defs', _, 
+                      [split_scheme_meta',split_scheme_object',
+                       split_scheme_object_ex',split_scheme_free']],
         [induct_scheme', cases_scheme']), [more_induct_scheme', more_cases_scheme'])) =
       defs_thy
       |> (PureThy.add_thmss o map Thm.no_attributes)
@@ -948,7 +1284,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
         ("update_convs", update_convs),
         ("select_defs", sel_defs),
         ("update_defs", update_defs),
-        ("defs", derived_defs)]
+        ("defs", derived_defs),
+        ("splits",[split_scheme_meta0,split_scheme_object0,
+                   split_scheme_object_ex0,induct_scheme0])]
       |>>> PureThy.add_thms
        [(("induct_scheme", induct_scheme0), induct_type_global (suffix schemeN name)),
         (("cases_scheme", cases_scheme0), cases_type_global (suffix schemeN name))]
@@ -1009,9 +1347,12 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val final_thy =
       more_thms_thy'
       |> put_record name (make_record_info args parent fields field_inducts field_cases
-        (field_simps @ simps))
-      |> put_sel_upd (names @ [full_moreN]) (field_simps @ sel_defs' @ update_defs')
+          field_splits (field_simps @ simps))
+      |> put_sel_upd (names @ [full_moreN]) simps
       |> add_record_equalities (snd (split_last names)) equality'
+      |> add_record_splits (snd (split_last names)) 
+                           (split_scheme_meta',split_scheme_object',
+                            split_scheme_object_ex',split_scheme_free')
       |> Theory.parent_path;
 
   in (final_thy, {simps = simps, iffs = iffs}) end;
@@ -1127,7 +1468,6 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
 
 val add_record = gen_add_record read_typ read_raw_parent;
 val add_record_i = gen_add_record cert_typ (K I);
-
 
 
 (** package setup **)

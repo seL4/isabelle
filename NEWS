@@ -56,6 +56,14 @@ New in this Isabelle release
 
 *** HOL ***
 
+* Records:
+  - Record types are now by default printed with their type abbreviation
+    instead of the list of all field types. This can be configured via
+    the reference "print_record_type_abbr".
+  - Simproc "record_upd_simproc" for simplification of multiple updates added 
+    (not enabled by default).
+  - Tactic "record_split_simp_tac" to split and simplify records added.
+ 
 * 'specification' command added, allowing for definition by
   specification.  There is also an 'ax_specification' command that
   introduces the new constants axiomatically.
