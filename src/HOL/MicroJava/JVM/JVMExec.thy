@@ -36,4 +36,16 @@ syntax (xsymbols)
   exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"
               ("_ \<turnstile> _ -jvm\<rightarrow> _" [61,61,61]60)
 
+text {*
+  The start configuration of the JVM: in the start heap, we call a 
+  method @{text m} of class @{text C} in program @{text G}. The 
+  @{text this} pointer of the frame is set to @{text Null} to simulate
+  a static method invokation.
+*}
+constdefs  
+  start_state :: "jvm_prog \<Rightarrow> cname \<Rightarrow> mname \<Rightarrow> jvm_state"
+  "start_state G C m \<equiv>
+  let (C',rT,mxs,mxl,ins,et) = the (method (G,C) (m,[])) in
+    (None, start_heap G, [([], Null # replicate mxl arbitrary, C, (m,[]), 0)])"
+
 end

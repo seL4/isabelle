@@ -158,6 +158,14 @@ apply (erule approx_val_widen)
 apply assumption
 done
 
+lemma loc_widen_Err [dest]:
+  "\<And>XT. G \<turnstile> replicate n Err <=l XT \<Longrightarrow> XT = replicate n Err"
+  by (induct n) auto
+  
+lemma approx_loc_Err [iff]:
+  "approx_loc G hp (replicate n v) (replicate n Err)"
+  by (induct n) auto
+
 lemma approx_loc_subst:
   "\<lbrakk> approx_loc G hp loc LT; approx_val G hp x X \<rbrakk>
   \<Longrightarrow> approx_loc G hp (loc[idx:=x]) (LT[idx:=X])"
@@ -280,10 +288,19 @@ lemma preallocated_field_update:
   apply (simp del: split_paired_All)
   done  
 
-lemma preallocated_newref:
-  "\<lbrakk> hp oref = None; preallocated hp \<rbrakk> \<Longrightarrow> preallocated (hp(oref\<mapsto>obj))"
-  by (unfold preallocated_def) auto
 
+lemma 
+  assumes none: "hp oref = None" and alloc: "preallocated hp"
+  shows preallocated_newref: "preallocated (hp(oref\<mapsto>obj))"
+proof (cases oref)
+  case (XcptRef x) 
+  with none alloc have "False" by (auto elim: preallocatedE [of _ x])
+  thus ?thesis ..
+next
+  case (Loc l)
+  with alloc show ?thesis by (simp add: preallocated_def)
+qed
+  
 section {* correct-frames *}
 
 lemmas [simp del] = fun_upd_apply

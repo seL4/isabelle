@@ -264,14 +264,19 @@ proof -
   assume xcpt: ?xcpt with pre show ?thesis 
   proof (cases "ins!pc")
     case New with xcpt pre
-    show ?thesis by (auto dest: new_Addr_OutOfMemory) 
+    show ?thesis by (auto dest: new_Addr_OutOfMemory dest!: preallocatedD) 
   next
     case Throw with xcpt wt
     show ?thesis
       by (auto simp add: wt_instr_def correct_state_def correct_frame_def 
-               dest: non_npD)
-  qed auto
+               dest: non_npD dest!: preallocatedD)
+  qed (auto dest!: preallocatedD)
 qed
+
+
+lemma cname_of_xcp [intro]:
+  "\<lbrakk>preallocated hp; xcp = Addr (XcptRef x)\<rbrakk> \<Longrightarrow> cname_of hp xcp = Xcpt x"
+  by (auto elim: preallocatedE [of hp x])
 
 
 text {*
@@ -358,7 +363,7 @@ proof -
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef OutOfMemory)"
         by (simp add: raise_system_xcpt_def split_beta new_Addr_OutOfMemory)
-      with prehp have "cname_of hp xcp = Xcpt OutOfMemory" by simp
+      with prehp have "cname_of hp xcp = Xcpt OutOfMemory" ..
       with New some_handler phi_pc eff 
       obtain ST' LT' where
         phi': "phi C sig ! handler = Some (ST', LT')" and
@@ -369,7 +374,7 @@ proof -
       moreover
       { from xcp prehp
         have "G,hp \<turnstile> xcp ::\<preceq> Class (Xcpt OutOfMemory)"
-          by (simp add: conf_def obj_ty_def)
+          by (auto simp add: conf_def obj_ty_def dest!: preallocatedD)
         moreover
         from wf less loc
         have "approx_loc G hp loc LT'"
@@ -388,7 +393,7 @@ proof -
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef NullPointer)"
         by (simp add: raise_system_xcpt_def split_beta split: split_if_asm)
-      with prehp have "cname_of hp xcp = Xcpt NullPointer" by simp
+      with prehp have "cname_of hp xcp = Xcpt NullPointer" ..
       with Getfield some_handler phi_pc eff 
       obtain ST' LT' where
         phi': "phi C sig ! handler = Some (ST', LT')" and
@@ -399,7 +404,7 @@ proof -
       moreover
       { from xcp prehp
         have "G,hp \<turnstile> xcp ::\<preceq> Class (Xcpt NullPointer)"
-          by (simp add: conf_def obj_ty_def)
+          by (auto simp add: conf_def obj_ty_def dest!: preallocatedD)
         moreover
         from wf less loc
         have "approx_loc G hp loc LT'"
@@ -418,7 +423,7 @@ proof -
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef NullPointer)"
         by (simp add: raise_system_xcpt_def split_beta split: split_if_asm)
-      with prehp have "cname_of hp xcp = Xcpt NullPointer" by simp
+      with prehp have "cname_of hp xcp = Xcpt NullPointer" ..
       with Putfield some_handler phi_pc eff 
       obtain ST' LT' where
         phi': "phi C sig ! handler = Some (ST', LT')" and
@@ -429,7 +434,7 @@ proof -
       moreover
       { from xcp prehp
         have "G,hp \<turnstile> xcp ::\<preceq> Class (Xcpt NullPointer)"
-          by (simp add: conf_def obj_ty_def)
+          by (auto simp add: conf_def obj_ty_def dest!: preallocatedD)
         moreover
         from wf less loc
         have "approx_loc G hp loc LT'"
@@ -448,7 +453,7 @@ proof -
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef ClassCast)"
         by (simp add: raise_system_xcpt_def split_beta split: split_if_asm)
-      with prehp have "cname_of hp xcp = Xcpt ClassCast" by simp
+      with prehp have "cname_of hp xcp = Xcpt ClassCast" ..
       with Checkcast some_handler phi_pc eff 
       obtain ST' LT' where
         phi': "phi C sig ! handler = Some (ST', LT')" and
@@ -459,7 +464,7 @@ proof -
       moreover
       { from xcp prehp
         have "G,hp \<turnstile> xcp ::\<preceq> Class (Xcpt ClassCast)"
-          by (simp add: conf_def obj_ty_def)
+          by (auto simp add: conf_def obj_ty_def dest!: preallocatedD)
         moreover
         from wf less loc
         have "approx_loc G hp loc LT'"
@@ -1296,6 +1301,7 @@ apply (erule rtrancl_induct)
 apply (auto intro: BV_correct_1)
 done
 
+
 theorem BV_correct_implies_approx:
 "\<lbrakk> wt_jvm_prog G phi; 
     G \<turnstile> s0 -jvm\<rightarrow> (None,hp,(stk,loc,C,sig,pc)#frs); G,phi \<turnstile>JVM s0 \<surd>\<rbrakk> 
@@ -1307,4 +1313,45 @@ apply (simp add: correct_state_def correct_frame_def split_def
             split: option.splits)
 done
 
+lemma 
+  fixes G :: jvm_prog ("\<Gamma>")
+  assumes wf: "wf_prog wf_mb \<Gamma>"
+  shows hconf_start: "\<Gamma> \<turnstile>h (start_heap \<Gamma>) \<surd>"
+  apply (unfold hconf_def start_heap_def)
+  apply (auto simp add: fun_upd_apply blank_def oconf_def split: split_if_asm)
+  apply (simp add: fields_is_type [OF _ wf is_class_xcpt [OF wf]])+
+  done
+    
+lemma 
+  fixes G :: jvm_prog ("\<Gamma>") and Phi :: prog_type ("\<Phi>")
+  shows BV_correct_initial: 
+  "wt_jvm_prog \<Gamma> \<Phi> \<Longrightarrow> is_class \<Gamma> C \<Longrightarrow> method (\<Gamma>,C) (m,[]) = Some (C, b)
+  \<Longrightarrow> \<Gamma>,\<Phi> \<turnstile>JVM start_state G C m \<surd>"
+  apply (cases b)
+  apply (unfold  start_state_def)
+  apply (unfold correct_state_def)
+  apply (auto simp add: preallocated_start)
+   apply (simp add: wt_jvm_prog_def hconf_start)
+  apply (drule wt_jvm_prog_impl_wt_start, assumption+)
+  apply (clarsimp simp add: wt_start_def)
+  apply (auto simp add: correct_frame_def)
+   apply (simp add: approx_stk_def sup_state_conv)
+  apply (auto simp add: sup_state_conv approx_val_def dest!: widen_RefT split: err.splits)
+  done  
+
+theorem
+  fixes G :: jvm_prog ("\<Gamma>") and Phi :: prog_type ("\<Phi>")
+  assumes welltyped:   "wt_jvm_prog \<Gamma> \<Phi>" and
+          main_method: "is_class \<Gamma> C" "method (\<Gamma>,C) (m,[]) = Some (C, b)"  
+  shows typesafe:
+  "G \<turnstile> start_state \<Gamma> C m -jvm\<rightarrow> s  \<Longrightarrow>  \<Gamma>,\<Phi> \<turnstile>JVM s \<surd>"
+proof -
+  from welltyped main_method
+  have "\<Gamma>,\<Phi> \<turnstile>JVM start_state \<Gamma> C m \<surd>" by (rule BV_correct_initial)
+  moreover
+  assume "G \<turnstile> start_state \<Gamma> C m -jvm\<rightarrow> s"
+  ultimately  
+  show "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" using welltyped by - (rule BV_correct)
+qed
+  
 end

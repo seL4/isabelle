@@ -5,7 +5,7 @@
 
 header {* \isaheader{Example Welltypings}\label{sec:BVExample} *}
 
-theory BVExample = JVMListExample + Correct:
+theory BVExample = JVMListExample + BVSpecTypeSafe:
 
 text {*
   This theory shows type correctness of the example program in section 
@@ -365,20 +365,11 @@ section "Conformance"
 text {* Execution of the program will be typesafe, because its
   start state conforms to the welltyping: *}
 
-lemma [simp]: "preallocated start_heap"
-  apply (unfold start_heap_def preallocated_def)
-  apply auto
-  apply (case_tac x)
-  apply auto
-  done
-
-lemma "E,\<Phi> \<turnstile>JVM start_state \<surd>"
-  apply (simp add: correct_state_def start_state_def test_class_def)
-  apply (simp add: hconf_def start_heap_def oconf_def lconf_def)
-  apply (simp add: Phi_def phi_makelist_def)
-  apply (simp add: correct_frame_def)
-  apply (simp add: make_list_ins_def)
-  apply (simp add: conf_def start_heap_def)
+lemma "E,\<Phi> \<turnstile>JVM start_state E test_name makelist_name \<surd>"
+  apply (rule BV_correct_initial)
+    apply (rule wf_prog)
+   apply simp
+  apply simp
   done
 
 end

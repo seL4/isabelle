@@ -14,7 +14,6 @@ consts
   makelist_name :: mname
   val_nam :: vnam
   next_nam :: vnam
-  test_name_loc :: loc_
 
 constdefs
   list_name :: cname
@@ -87,15 +86,6 @@ constdefs
   E :: jvm_prog
   "E == SystemClasses @ [(list_name, list_class), (test_name, test_class)]"
 
-  start_heap :: aheap
-  "start_heap == empty (XcptRef NullPointer \<mapsto> (Xcpt NullPointer, empty))
-                       (XcptRef ClassCast \<mapsto> (Xcpt ClassCast, empty))
-                       (XcptRef OutOfMemory \<mapsto> (Xcpt OutOfMemory, empty))
-                       (Loc test_name_loc \<mapsto> (test_name, empty))"
-
-  start_state :: jvm_state
-  "start_state ==
-    (None, start_heap, [([], [Addr (Loc test_name_loc), arbitrary, arbitrary], test_name, (makelist_name, []), 0)])"
 
 types_code
   cnam ("string")
@@ -111,8 +101,6 @@ consts_code
   "arbitrary" ("(raise ERROR)")
   "arbitrary" :: "val" ("{* Unit *}")
   "arbitrary" :: "cname" ("Object")
-
-  "test_name_loc" ("0")
 
   "list_nam" ("\"list\"")
   "test_nam" ("\"test\"")
@@ -130,7 +118,7 @@ fun new_addr p none loc hp =
 subsection {* Single step execution *}
 
 generate_code 
-  test = "exec (E, start_state)"
+  test = "exec (E, start_state E test_name makelist_name)"
 
 ML {* test *}
 ML {* exec (E, the it) *}

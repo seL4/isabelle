@@ -46,6 +46,16 @@ types
   jvm_state = "val option \<times> aheap \<times> frame list"  -- "exception flag, heap, frames"
 
 
+text {* a new, blank object with default values in all fields: *}
+constdefs
+  blank :: "'c prog \<Rightarrow> cname \<Rightarrow> obj"
+  "blank G C \<equiv> (C,init_vars (fields(G,C)))" 
+
+  start_heap :: "'c prog \<Rightarrow> aheap"
+  "start_heap G \<equiv> empty (XcptRef NullPointer \<mapsto> blank G (Xcpt NullPointer))
+                      (XcptRef ClassCast \<mapsto> blank G (Xcpt ClassCast))
+                      (XcptRef OutOfMemory \<mapsto> blank G (Xcpt OutOfMemory))"
+
 section {* Lemmas *}
 
 lemma new_AddrD:
@@ -68,6 +78,6 @@ proof -
   assume "snd (new_Addr hp) = Some xcp" 
   ultimately
   show ?thesis by (auto dest: new_AddrD)
-qed  
-
+qed
+  
 end

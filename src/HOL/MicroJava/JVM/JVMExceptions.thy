@@ -50,16 +50,19 @@ primrec
 
 
 text {*
-  System exceptions are allocated in all heaps, 
-  and they don't carry any information other than their type: 
+  System exceptions are allocated in all heaps:
 *}
 constdefs
   preallocated :: "aheap \<Rightarrow> bool"
-  "preallocated hp \<equiv> \<forall>x. hp (XcptRef x) = Some (Xcpt x, empty)"
+  "preallocated hp \<equiv> \<forall>x. \<exists>fs. hp (XcptRef x) = Some (Xcpt x, fs)"
 
-lemma preallocated_iff [iff]:
-  "preallocated hp \<Longrightarrow> hp (XcptRef x) = Some (Xcpt x, empty)"
+lemma preallocatedD:
+  "preallocated hp \<Longrightarrow> \<exists>fs. hp (XcptRef x) = Some (Xcpt x, fs)"
   by (unfold preallocated_def) fast
+
+lemma preallocatedE [elim?]:
+  "preallocated hp \<Longrightarrow> (\<And>fs. hp (XcptRef x) = Some (Xcpt x, fs) \<Longrightarrow> P hp) \<Longrightarrow> P hp"
+  by (fast dest: preallocatedD)
 
 lemma cname_of_xcp:
   "raise_system_xcpt b x = Some xcp \<Longrightarrow> preallocated hp 
@@ -70,9 +73,18 @@ proof -
     by (simp add: raise_system_xcpt_def split: split_if_asm)
   moreover
   assume "preallocated hp" 
-  hence "hp (XcptRef x) = Some (Xcpt x, empty)" ..
+  then obtain fs where "hp (XcptRef x) = Some (Xcpt x, fs)" ..
   ultimately
   show ?thesis by simp
 qed
+
+lemma preallocated_start:
+  "preallocated (start_heap G)"
+  apply (unfold preallocated_def)
+  apply (unfold start_heap_def)
+  apply (rule allI)
+  apply (case_tac x)
+  apply (auto simp add: blank_def)
+  done
 
 end
