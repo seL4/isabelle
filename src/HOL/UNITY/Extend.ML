@@ -315,6 +315,13 @@ by (dtac extend_leadsTo_slice 1);
 by (full_simp_tac (simpset() addsimps [slice_extend_set]) 1);
 qed "extend_leadsto_eq";
 
+Goal "(extend h F : LeadsTo (extend_set h A) (extend_set h B)) =  \
+\     (F : LeadsTo A B)";
+by (simp_tac
+    (simpset() addsimps [LeadsTo_def, reachable_extend_eq, 
+			 extend_leadsto_eq, extend_set_Int_distrib RS sym]) 1);
+qed "extend_LeadsTo";
+
 
 (*** guarantees properties ***)
 
