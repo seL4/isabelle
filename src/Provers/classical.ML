@@ -174,8 +174,11 @@ local open ClasetThyData Data in
 val imp_elim = (*cannot use bind_thm within a structure!*)
   store_thm ("imp_elim", make_elim mp);
 
-(*Solve goal that assumes both P and ~P. *)
-val contr_tac = eresolve_tac [not_elim]  THEN'  assume_tac;
+(*Prove goal that assumes both P and ~P.  
+  No backtracking if it finds an equal assumption.  Perhaps should call
+  ematch_tac instead of eresolve_tac, but then cannot prove ZF/cantor.*)
+val contr_tac = eresolve_tac [not_elim]  THEN'  
+                (eq_assume_tac ORELSE' assume_tac);
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q.
   Could do the same thing for P<->Q and P... *)
