@@ -582,7 +582,7 @@ text{*The @{text "(no_asm)"} attribute is essential, since it retains
 lemma Nonce_compromise [rule_format (no_asm)]:
      "evs \<in> set_pur ==>
       (\<forall>N KK. (\<forall>K \<in> KK. K \<notin> range(\<lambda>C. priEK C))   -->
-              (Nonce N \<in> analz (Key`KK Un (knows Spy evs))) =
+              (Nonce N \<in> analz (Key`KK \<union> (knows Spy evs))) =
               (Nonce N \<in> analz (knows Spy evs)))"
 apply (erule set_pur.induct)
 apply (rule_tac [!] allI)+
@@ -601,12 +601,13 @@ apply (blast elim!: ballE) --{*PReqS*}
 done
 
 lemma PANSecret_notin_spies:
-     "evs \<in> set_pur
-   ==> Nonce (PANSecret k) \<in> analz (knows Spy evs) -->
+     "[|Nonce (PANSecret k) \<in> analz (knows Spy evs);  evs \<in> set_pur|]
+      ==> 
        (\<exists>V W X Y KC2 M. \<exists>P \<in> bad.
           Says (Cardholder k) M
                {|{|W, EXcrypt KC2 (pubEK P) X {|Y, Nonce (PANSecret k)|}|},
                  V|}  \<in>  set evs)"
+apply (erule rev_mp)
 apply (erule set_pur.induct)
 apply (frule_tac [9] AuthReq_msg_in_analz_spies)
 apply (tactic{*valid_certificate_tac 8*}) --{*PReqS*}
