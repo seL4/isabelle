@@ -121,11 +121,11 @@ fun prep_thm_axm thy thm =
   let
     fun err msg = raise THM ("prep_thm_axm: " ^ msg, 0, [thm]);
 
-    val {sign, shyps, hyps, prop, ...} = rep_thm thm;
+    val {sign, hyps, prop, ...} = rep_thm thm;
   in
     if not (Sign.subsig (sign, sign_of thy)) then
       err "theorem not of same theory"
-    else if not (null shyps) orelse not (null hyps) then
+    else if not (null (extra_shyps thm)) orelse not (null hyps) then
       err "theorem may not contain hypotheses"
     else prop
   end;

@@ -109,7 +109,7 @@ in
 fun ancestry_of thy =
   thy :: flat (map ancestry_of (parents_of thy));
 
-val all_axioms_of = 
+val all_axioms_of =
   flat o map (Symtab.dest o #new_axioms o rep_theory) o ancestry_of;
 
 
@@ -293,13 +293,14 @@ val show_hyps = ref true;
 
 fun pretty_thm th =
   let
-    val {sign, shyps, hyps, prop, ...} = rep_thm th;
-    val hlen = length shyps + length hyps;
+    val {sign, hyps, prop, ...} = rep_thm th;
+    val xshyps = extra_shyps th;
+    val hlen = length xshyps + length hyps;
     val hsymbs =
       if hlen = 0 then []
       else if ! show_hyps then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map (Sign.pretty_term sign) hyps @ map Sign.pretty_sort shyps)]
+          (map (Sign.pretty_term sign) hyps @ map Sign.pretty_sort xshyps)]
       else
         [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ "]")];
   in
@@ -537,7 +538,7 @@ fun zero_var_indexes th =
     all generality expressed by Vars having index 0.*)
 fun standard th =
   let val {maxidx,...} = rep_thm th
-  in  
+  in
     th |> implies_intr_hyps
     |> strip_shyps |> implies_intr_shyps
     |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
@@ -670,7 +671,7 @@ fun forall_intr_vars th =
       val vars = distinct (term_vars' prop);
   in forall_intr_list (map (cterm_of sign) vars) th end;
 
-fun weak_eq_thm (tha,thb) = 
+fun weak_eq_thm (tha,thb) =
     eq_thm(forall_intr_vars (freezeT tha), forall_intr_vars (freezeT thb));
 
 
