@@ -38,6 +38,7 @@ sig
   val insert_facts: Proof.method
   val unfold: thm list -> Proof.method
   val fold: thm list -> Proof.method
+  val atomize_tac: thm list -> int -> tactic
   val multi_resolve: thm list -> thm -> thm Seq.seq
   val multi_resolves: thm list -> thm list -> thm Seq.seq
   val resolveq_tac: thm Seq.seq -> int -> tactic
@@ -242,8 +243,20 @@ end;
 
 (* unfold / fold definitions *)
 
-fun unfold thms = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN rewrite_goals_tac thms);
-fun fold thms = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN fold_goals_tac thms);
+fun unfold thms = METHOD (fn facts =>
+  ALLGOALS (insert_tac facts) THEN CHANGED (rewrite_goals_tac thms));
+
+fun fold thms = METHOD (fn facts =>
+  ALLGOALS (insert_tac facts) THEN CHANGED (fold_goals_tac thms));
+
+
+(* atomize meta-connectives *)
+
+fun atomize_tac rews i st =
+  if Logic.has_meta_prems (#prop (Thm.rep_thm st)) i then
+    (warning "FIXME: atomize_tac";
+    Tactic.asm_rewrite_goal_tac (true, false, false) (K no_tac) (Thm.mss_of rews) i st)
+  else all_tac st;
 
 
 (* multi_resolve *)
