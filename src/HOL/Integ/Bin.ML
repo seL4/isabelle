@@ -138,8 +138,7 @@ val bin_add_simps = [add_Plus,add_Minus,bin_add_Bcons_Plus,
                      integ_of_bin_norm_Bcons];
 val bin_simps = [iob_Plus,iob_Minus,iob_Bcons];
 
-Goal
-    "! w. integ_of_bin(bin_add v w) = integ_of_bin v + integ_of_bin w";
+Goal "! w. integ_of_bin(bin_add v w) = integ_of_bin v + integ_of_bin w";
 by (induct_tac "v" 1);
 by (simp_tac (simpset() addsimps bin_add_simps) 1);
 by (simp_tac (simpset() addsimps bin_add_simps) 1);
@@ -151,12 +150,7 @@ by (cut_inst_tac [("P","bool")] True_or_False 1);
 by (etac disjE 1);
 by (asm_simp_tac (simpset() addsimps (bin_add_simps @ zadd_ac)) 1);
 by (asm_simp_tac (simpset() addsimps (bin_add_simps @ zadd_ac)) 1);
-val integ_of_bin_add_lemma = result();
-
-Goal "integ_of_bin(bin_add v w) = integ_of_bin v + integ_of_bin w";
-by (cut_facts_tac [integ_of_bin_add_lemma] 1);
-by (Fast_tac 1);
-qed "integ_of_bin_add";
+qed_spec_mp "integ_of_bin_add";
 
 val bin_mult_simps = [integ_of_bin_minus, integ_of_bin_add,
                       integ_of_bin_norm_Bcons];
@@ -195,8 +189,7 @@ Addsimps [integ_of_bin_add RS sym,
 
 Addsimps [zadd_assoc];
 
-Goal  
-    "(integ_of_bin x = integ_of_bin y) \ 
+Goal "(integ_of_bin x = integ_of_bin y) \ 
 \   = (integ_of_bin (bin_add x (bin_minus y)) = $# 0)"; 
   by (simp_tac (HOL_ss addsimps
                 [integ_of_bin_add, integ_of_bin_minus,zdiff_def]) 1); 
@@ -218,8 +211,7 @@ Goal "(integ_of_bin MinusSign = $# 0) = False";
   by (Simp_tac 1);
 val iob_Minus_not_eq_0 = result(); 
 
-Goal 
-    "(integ_of_bin (Bcons w x) = $# 0) = (~x & integ_of_bin w = $# 0)"; 
+Goal "(integ_of_bin (Bcons w x) = $# 0) = (~x & integ_of_bin w = $# 0)"; 
   by (stac iob_Bcons 1);
   by (case_tac "x" 1); 
   by (ALLGOALS Asm_simp_tac); 
@@ -229,6 +221,7 @@ Goal
                (simpset() addsimps[zminus_zadd_distrib RS sym, 
                                 znat_add RS sym]))); 
   by (rtac notI 1); 
+  (*Add  Suc(Suc(n + n))  to both sides*)
   by (dres_inst_tac [("f","(% z. z +  $# Suc (Suc (n + n)))")] arg_cong 1); 
   by (Asm_full_simp_tac 1); 
 val iob_Bcons_eq_0 = result(); 
@@ -247,8 +240,7 @@ Goal "(integ_of_bin MinusSign < $# 0) = True";
   by (stac iob_Minus 1); by (Simp_tac 1);
 val iob_Minus_lt_0 = result(); 
 
-Goal 
-    "(integ_of_bin (Bcons w x) < $# 0) = (integ_of_bin w < $# 0)"; 
+Goal "(integ_of_bin (Bcons w x) < $# 0) = (integ_of_bin w < $# 0)"; 
   by (stac iob_Bcons 1);
   by (case_tac "x" 1); 
   by (ALLGOALS Asm_simp_tac); 
@@ -262,8 +254,7 @@ Goal
   by (Simp_tac 1); 
 val iob_Bcons_lt_0 = result(); 
 
-Goal
-  "integ_of_bin x <= integ_of_bin y \
+Goal "integ_of_bin x <= integ_of_bin y \
 \  = ( integ_of_bin (bin_add x (bin_minus y)) < $# 0 \
 \    | integ_of_bin (bin_add x (bin_minus y)) = $# 0)";
 by (simp_tac (HOL_ss addsimps 
