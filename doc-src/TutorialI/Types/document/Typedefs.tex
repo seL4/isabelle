@@ -1,0 +1,319 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Typedefs}%
+\isamarkupfalse%
+%
+\isamarkupsection{Introducing New Types%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\label{sec:adv-typedef}
+For most applications, a combination of predefined types like \isa{bool} and
+\isa{{\isasymRightarrow}} with recursive datatypes and records is quite sufficient. Very
+occasionally you may feel the need for a more advanced type.  If you
+are certain that your type is not definable by any of the
+standard means, then read on.
+\begin{warn}
+  Types in HOL must be non-empty; otherwise the quantifier rules would be
+  unsound, because $\exists x.\ x=x$ is a theorem.
+\end{warn}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Declaring New Types%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\label{sec:typedecl}
+\index{types!declaring|(}%
+\index{typedecl@\isacommand {typedecl} (command)}%
+The most trivial way of introducing a new type is by a \textbf{type
+declaration}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{typedecl}\ my{\isacharunderscore}new{\isacharunderscore}type\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+This does not define \isa{my{\isacharunderscore}new{\isacharunderscore}type} at all but merely introduces its
+name. Thus we know nothing about this type, except that it is
+non-empty. Such declarations without definitions are
+useful if that type can be viewed as a parameter of the theory.
+A typical example is given in \S\ref{sec:VMC}, where we define a transition
+relation over an arbitrary type of states.
+
+In principle we can always get rid of such type declarations by making those
+types parameters of every other type, thus keeping the theory generic. In
+practice, however, the resulting clutter can make types hard to read.
+
+If you are looking for a quick and dirty way of introducing a new type
+together with its properties: declare the type and state its properties as
+axioms. Example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{axioms}\isanewline
+just{\isacharunderscore}one{\isacharcolon}\ {\isachardoublequote}{\isasymexists}x{\isacharcolon}{\isacharcolon}my{\isacharunderscore}new{\isacharunderscore}type{\isachardot}\ {\isasymforall}y{\isachardot}\ x\ {\isacharequal}\ y{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+However, we strongly discourage this approach, except at explorative stages
+of your development. It is extremely easy to write down contradictory sets of
+axioms, in which case you will be able to prove everything but it will mean
+nothing.  In the example above, the axiomatic approach is
+unnecessary: a one-element type called \isa{unit} is already defined in HOL.
+\index{types!declaring|)}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Defining New Types%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\label{sec:typedef}
+\index{types!defining|(}%
+\index{typedecl@\isacommand {typedef} (command)|(}%
+Now we come to the most general means of safely introducing a new type, the
+\textbf{type definition}. All other means, for example
+\isacommand{datatype}, are based on it. The principle is extremely simple:
+any non-empty subset of an existing type can be turned into a new type.  Thus
+a type definition is merely a notational device: you introduce a new name for
+a subset of an existing type. This does not add any logical power to HOL,
+because you could base all your work directly on the subset of the existing
+type. However, the resulting theories could easily become indigestible
+because instead of implicit types you would have explicit sets in your
+formulae.
+
+Let us work a simple example, the definition of a three-element type.
+It is easily represented by the first three natural numbers:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{typedef}\ three\ {\isacharequal}\ {\isachardoublequote}{\isacharbraceleft}n{\isacharcolon}{\isacharcolon}nat{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+In order to enforce that the representing set on the right-hand side is
+non-empty, this definition actually starts a proof to that effect:
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymexists}x{\isachardot}\ x\ {\isasymin}\ {\isacharbraceleft}n{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}%
+\end{isabelle}
+Fortunately, this is easy enough to show: take 0 as a witness.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isadigit{0}}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{by}\ simp\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+This type definition introduces the new type \isa{three} and asserts
+that it is a copy of the set \isa{{\isacharbraceleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharcomma}\ {\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharcomma}\ {\isadigit{2}}{\isasymColon}{\isacharprime}a{\isacharbraceright}}. This assertion
+is expressed via a bijection between the \emph{type} \isa{three} and the
+\emph{set} \isa{{\isacharbraceleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharcomma}\ {\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharcomma}\ {\isadigit{2}}{\isasymColon}{\isacharprime}a{\isacharbraceright}}. To this end, the command declares the following
+constants behind the scenes:
+\begin{center}
+\begin{tabular}{rcl}
+\isa{three} &::& \isa{nat\ set} \\
+\isa{Rep{\isacharunderscore}three} &::& \isa{three\ {\isasymRightarrow}\ nat}\\
+\isa{Abs{\isacharunderscore}three} &::& \isa{nat\ {\isasymRightarrow}\ three}
+\end{tabular}
+\end{center}
+where constant \isa{three} is explicitly defined as the representing set:
+\begin{center}
+\isa{three\ {\isasymequiv}\ {\isacharbraceleft}n{\isachardot}\ n\ {\isasymle}\ {\isadigit{2}}{\isacharbraceright}}\hfill(\isa{three{\isacharunderscore}def})
+\end{center}
+The situation is best summarized with the help of the following diagram,
+where squares are types and circles are sets:
+\begin{center}
+\unitlength1mm
+\thicklines
+\begin{picture}(100,40)
+\put(3,13){\framebox(15,15){\isa{three}}}
+\put(55,5){\framebox(30,30){\isa{three}}}
+\put(70,32){\makebox(0,0){\isa{nat}}}
+\put(70,20){\circle{40}}
+\put(10,15){\vector(1,0){60}}
+\put(25,14){\makebox(0,0)[tl]{\isa{Rep{\isacharunderscore}three}}}
+\put(70,25){\vector(-1,0){60}}
+\put(25,26){\makebox(0,0)[bl]{\isa{Abs{\isacharunderscore}three}}}
+\end{picture}
+\end{center}
+Finally, \isacommand{typedef} asserts that \isa{Rep{\isacharunderscore}three} is
+surjective on the subset \isa{three} and \isa{Abs{\isacharunderscore}three} and \isa{Rep{\isacharunderscore}three} are inverses of each other:
+\begin{center}
+\begin{tabular}{@ {}r@ {\qquad\qquad}l@ {}}
+\isa{Rep{\isacharunderscore}three\ x\ {\isasymin}\ three} & (\isa{Rep{\isacharunderscore}three}) \\
+\isa{Abs{\isacharunderscore}three\ {\isacharparenleft}Rep{\isacharunderscore}three\ x{\isacharparenright}\ {\isacharequal}\ x} & (\isa{Rep{\isacharunderscore}three{\isacharunderscore}inverse}) \\
+\isa{y\ {\isasymin}\ three\ {\isasymLongrightarrow}\ Rep{\isacharunderscore}three\ {\isacharparenleft}Abs{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ y} & (\isa{Abs{\isacharunderscore}three{\isacharunderscore}inverse})
+\end{tabular}
+\end{center}
+%
+From this example it should be clear what \isacommand{typedef} does
+in general given a name (here \isa{three}) and a set
+(here \isa{{\isacharbraceleft}n{\isachardot}\ n\ {\isasymle}\ {\isacharparenleft}{\isadigit{2}}{\isasymColon}{\isacharprime}a{\isacharparenright}{\isacharbraceright}}).
+
+Our next step is to define the basic functions expected on the new type.
+Although this depends on the type at hand, the following strategy works well:
+\begin{itemize}
+\item define a small kernel of basic functions that can express all other
+functions you anticipate.
+\item define the kernel in terms of corresponding functions on the
+representing type using \isa{Abs} and \isa{Rep} to convert between the
+two levels.
+\end{itemize}
+In our example it suffices to give the three elements of type \isa{three}
+names:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{constdefs}\isanewline
+\ \ A{\isacharcolon}{\isacharcolon}\ three\isanewline
+\ {\isachardoublequote}A\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{0}}{\isachardoublequote}\isanewline
+\ \ B{\isacharcolon}{\isacharcolon}\ three\isanewline
+\ {\isachardoublequote}B\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{1}}{\isachardoublequote}\isanewline
+\ \ C\ {\isacharcolon}{\isacharcolon}\ three\isanewline
+\ {\isachardoublequote}C\ {\isasymequiv}\ Abs{\isacharunderscore}three\ {\isadigit{2}}{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+So far, everything was easy. But it is clear that reasoning about \isa{three} will be hell if we have to go back to \isa{nat} every time. Thus our
+aim must be to raise our level of abstraction by deriving enough theorems
+about type \isa{three} to characterize it completely. And those theorems
+should be phrased in terms of \isa{A}, \isa{B} and \isa{C}, not \isa{Abs{\isacharunderscore}three} and \isa{Rep{\isacharunderscore}three}. Because of the simplicity of the example,
+we merely need to prove that \isa{A}, \isa{B} and \isa{C} are distinct
+and that they exhaust the type.
+
+In processing our \isacommand{typedef} declaration, 
+Isabelle helpfully proves several lemmas.
+One, \isa{Abs{\isacharunderscore}three{\isacharunderscore}inject},
+expresses that \isa{Abs{\isacharunderscore}three} is injective on the representing subset:
+\begin{center}
+\isa{{\isasymlbrakk}x\ {\isasymin}\ three{\isacharsemicolon}\ y\ {\isasymin}\ three{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}Abs{\isacharunderscore}three\ x\ {\isacharequal}\ Abs{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}}
+\end{center}
+Another, \isa{Rep{\isacharunderscore}three{\isacharunderscore}inject}, expresses that the representation
+function is also injective:
+\begin{center}
+\isa{{\isacharparenleft}Rep{\isacharunderscore}three\ x\ {\isacharequal}\ Rep{\isacharunderscore}three\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}}
+\end{center}
+Distinctness of \isa{A}, \isa{B} and \isa{C} follows immediately
+if we expand their definitions and rewrite with the injectivity
+of \isa{Abs{\isacharunderscore}three}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ {\isachardoublequote}A\ {\isasymnoteq}\ B\ {\isasymand}\ B\ {\isasymnoteq}\ A\ {\isasymand}\ A\ {\isasymnoteq}\ C\ {\isasymand}\ C\ {\isasymnoteq}\ A\ {\isasymand}\ B\ {\isasymnoteq}\ C\ {\isasymand}\ C\ {\isasymnoteq}\ B{\isachardoublequote}\isanewline
+\isamarkupfalse%
+\isacommand{by}{\isacharparenleft}simp\ add{\isacharcolon}\ Abs{\isacharunderscore}three{\isacharunderscore}inject\ A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def\ three{\isacharunderscore}def{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+Of course we rely on the simplifier to solve goals like \isa{{\isacharparenleft}{\isadigit{0}}{\isasymColon}{\isacharprime}a{\isacharparenright}\ {\isasymnoteq}\ {\isacharparenleft}{\isadigit{1}}{\isasymColon}{\isacharprime}a{\isacharparenright}}.
+
+The fact that \isa{A}, \isa{B} and \isa{C} exhaust type \isa{three} is
+best phrased as a case distinction theorem: if you want to prove \isa{P\ x}
+(where \isa{x} is of type \isa{three}) it suffices to prove \isa{P\ A},
+\isa{P\ B} and \isa{P\ C}. First we prove the analogous proposition for the
+representation:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ cases{\isacharunderscore}lemma{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ Q\ {\isadigit{0}}{\isacharsemicolon}\ Q\ {\isadigit{1}}{\isacharsemicolon}\ Q\ {\isadigit{2}}{\isacharsemicolon}\ n\ {\isasymin}\ three\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ \ Q\ n{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+Expanding \isa{three{\isacharunderscore}def} yields the premise \isa{n\ {\isasymle}\ {\isadigit{2}}}. Repeated
+elimination with \isa{le{\isacharunderscore}SucE}
+\begin{isabelle}%
+{\isasymlbrakk}{\isacharquery}m\ {\isasymle}\ Suc\ {\isacharquery}n{\isacharsemicolon}\ {\isacharquery}m\ {\isasymle}\ {\isacharquery}n\ {\isasymLongrightarrow}\ {\isacharquery}R{\isacharsemicolon}\ {\isacharquery}m\ {\isacharequal}\ Suc\ {\isacharquery}n\ {\isasymLongrightarrow}\ {\isacharquery}R{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}R%
+\end{isabelle}
+reduces \isa{n\ {\isasymle}\ {\isadigit{2}}} to the three cases \isa{n\ {\isasymle}\ {\isadigit{0}}}, \isa{n\ {\isacharequal}\ {\isadigit{1}}} and
+\isa{n\ {\isacharequal}\ {\isadigit{2}}} which are trivial for simplification:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}simp\ add{\isacharcolon}\ three{\isacharunderscore}def\ numerals{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{apply}{\isacharparenleft}{\isacharparenleft}erule\ le{\isacharunderscore}SucE{\isacharparenright}{\isacharplus}{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{apply}\ simp{\isacharunderscore}all\isanewline
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Now the case distinction lemma on type \isa{three} is easy to derive if you 
+know how:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\ three{\isacharunderscore}cases{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}\ P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ x{\isachardoublequote}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+We start by replacing the \isa{x} by \isa{Abs{\isacharunderscore}three\ {\isacharparenleft}Rep{\isacharunderscore}three\ x{\isacharparenright}}:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}rule\ subst{\isacharbrackleft}OF\ Rep{\isacharunderscore}three{\isacharunderscore}inverse{\isacharbrackright}{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\noindent
+This substitution step worked nicely because there was just a single
+occurrence of a term of type \isa{three}, namely \isa{x}.
+When we now apply \isa{cases{\isacharunderscore}lemma}, \isa{Q} becomes \isa{{\isasymlambda}n{\isachardot}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ n{\isacharparenright}} because \isa{Rep{\isacharunderscore}three\ x} is the only term of type \isa{nat}:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}rule\ cases{\isacharunderscore}lemma{\isacharparenright}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{0}}{\isacharparenright}\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{1}}{\isacharparenright}\isanewline
+\ {\isadigit{3}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Abs{\isacharunderscore}three\ {\isadigit{2}}{\isacharparenright}\isanewline
+\ {\isadigit{4}}{\isachardot}\ {\isasymlbrakk}P\ A{\isacharsemicolon}\ P\ B{\isacharsemicolon}\ P\ C{\isasymrbrakk}\ {\isasymLongrightarrow}\ Rep{\isacharunderscore}three\ x\ {\isasymin}\ three%
+\end{isabelle}
+The resulting subgoals are easily solved by simplification:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\isacommand{apply}{\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}A{\isacharunderscore}def\ B{\isacharunderscore}def\ C{\isacharunderscore}def\ Rep{\isacharunderscore}three{\isacharparenright}\isanewline
+\isamarkupfalse%
+\isacommand{done}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+This concludes the derivation of the characteristic theorems for
+type \isa{three}.
+
+The attentive reader has realized long ago that the
+above lengthy definition can be collapsed into one line:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\ three{\isacharprime}\ {\isacharequal}\ A\ {\isacharbar}\ B\ {\isacharbar}\ C\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+\noindent
+In fact, the \isacommand{datatype} command performs internally more or less
+the same derivations as we did, which gives you some idea what life would be
+like without \isacommand{datatype}.
+
+Although \isa{three} could be defined in one line, we have chosen this
+example to demonstrate \isacommand{typedef} because its simplicity makes the
+key concepts particularly easy to grasp. If you would like to see a
+non-trivial example that cannot be defined more directly, we recommend the
+definition of \emph{finite multisets} in the HOL Library.
+
+Let us conclude by summarizing the above procedure for defining a new type.
+Given some abstract axiomatic description $P$ of a type $ty$ in terms of a
+set of functions $F$, this involves three steps:
+\begin{enumerate}
+\item Find an appropriate type $\tau$ and subset $A$ which has the desired
+  properties $P$, and make a type definition based on this representation.
+\item Define the required functions $F$ on $ty$ by lifting
+analogous functions on the representation via $Abs_ty$ and $Rep_ty$.
+\item Prove that $P$ holds for $ty$ by lifting $P$ from the representation.
+\end{enumerate}
+You can now forget about the representation and work solely in terms of the
+abstract functions $F$ and properties $P$.%
+\index{typedecl@\isacommand {typedef} (command)|)}%
+\index{types!defining|)}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isamarkupfalse%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
