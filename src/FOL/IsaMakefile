@@ -43,7 +43,7 @@ FOL-ex: FOL $(LOG)/FOL-ex.gz
 $(LOG)/FOL-ex.gz: $(OUT)/FOL ex/If.ML ex/If.thy ex/IffOracle.ML \
   ex/IffOracle.thy ex/List.ML ex/List.thy ex/Nat.ML ex/Nat.thy \
   ex/Nat2.ML ex/Nat2.thy ex/Prolog.ML ex/Prolog.thy ex/ROOT.ML ex/cla.ML \
-  ex/foundn.ML ex/int.ML ex/intro.ML ex/prop.ML ex/quant.ML
+  ex/foundn.ML ex/int.ML ex/int.thy ex/intro.ML ex/prop.ML ex/quant.ML
 	@$(ISATOOL) usedir $(OUT)/FOL ex
 
 

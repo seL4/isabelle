@@ -6,8 +6,6 @@
 Intuitionistic FOL: Examples from The Foundation of a Generic Theorem Prover
 *)
 
-writeln"File FOL/ex/foundn.ML";
-
 goal IFOL.thy "A&B  --> (C-->A&C)";
 by (rtac impI 1);
 by (rtac impI 1);
@@ -129,6 +127,3 @@ by (rtac exI 1);
 by (rtac allE 1 THEN assume_tac 1);
 by (assume_tac 1);
 result();  
-
-
-writeln"Reached end of file.";

@@ -1,12 +1,11 @@
-(*  Title:      FOL/ex/if
+(*  Title:      FOL/ex/If.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-First-Order Logic: the 'if' example
+First-Order Logic: the 'if' example.
 *)
 
-open If;
 open Cla;    (*in case structure IntPr is open!*)
 
 val prems = Goalw [if_def]
@@ -42,7 +41,7 @@ qed "nested_ifs";
 choplev 0;
 by (rewtac if_def);
 by (blast_tac FOL_cs 1);
-result();
+qed "";
 
 
 (*An invalid formula.  High-level rules permit a simpler diagnosis*)
@@ -58,7 +57,3 @@ by (blast_tac FOL_cs 1) handle ERROR => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1; 
 by (REPEAT (step_tac FOL_cs 1));
-
-
-
-writeln"Reached end of file.";

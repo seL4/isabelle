@@ -1,9 +1,9 @@
-(*  Title:      FOL/ex/int
+(*  Title:      FOL/ex/int.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-Intuitionistic First-Order Logic
+Intuitionistic First-Order Logic.
 
 Single-step commands:
 by (IntPr.step_tac 1);
@@ -15,9 +15,6 @@ by (IntPr.mp_tac 1);
 by (IntPr.fast_tac 1);
 *)
 
-context IFOL.thy;
-
-writeln"File FOL/ex/int.";
 
 (*Metatheorem (for PROPOSITIONAL formulae...):
   P is classically provable iff ~~P is intuitionistically provable.
@@ -33,54 +30,54 @@ intuitionstically equivalent to P.  [Andy Pitts] *)
 
 Goal "~~(P&Q) <-> ~~P & ~~Q";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 Goal "~~ ((~P --> Q) --> (~P --> ~Q) --> P)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 (* ~~ does NOT distribute over | *)
 
 Goal "~~(P-->Q)  <-> (~~P --> ~~Q)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 Goal "~~~P <-> ~P";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 Goal "~~((P --> Q | R)  -->  (P-->Q) | (P-->R))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 Goal "(P<->Q) <-> (Q<->P)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 Goal "((P --> (Q | (Q-->R))) --> R) --> R";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 Goal "(((G-->A) --> J) --> D --> E) --> (((H-->B)-->I)-->C-->J) \
 \     --> (A-->H) --> F --> G --> (((C-->B)-->I)-->D)-->(A-->C) \
 \     --> (((F-->A)-->B) --> I) --> E";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 
 writeln"Lemmas for the propositional double-negation translation";
 
 Goal "P --> ~~P";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 Goal "~~(~~P --> P)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 Goal "~~P & ~~(P --> Q) --> ~~Q";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 
 writeln"The following are classically but not constructively valid.";
@@ -103,7 +100,7 @@ Goal "((P<->Q) --> P&Q&R) &    \
 \              ((Q<->R) --> P&Q&R) &    \
 \              ((R<->P) --> P&Q&R) --> P&Q&R";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 
 (*de Bruijn formula with five predicates*)
@@ -113,7 +110,7 @@ Goal "((P<->Q) --> P&Q&R&S&T) &    \
 \              ((S<->T) --> P&Q&R&S&T) &    \
 \              ((T<->P) --> P&Q&R&S&T) --> P&Q&R&S&T";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 
 (*** Problems from of Sahlin, Franzen and Haridi, 
@@ -131,7 +128,7 @@ by (IntPr.best_dup_tac 1);   (*65 seconds on a Pentium III!  Is it worth it?*)
 (*Problem 3.1*)
 Goal "~ (EX x. ALL y. mem(y,x) <-> ~ mem(x,x))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 (*Problem 4.1: hopeless!*)
 Goal "(ALL x. p(x) --> p(h(x)) | p(g(x))) & (EX x. p(x)) & (ALL x. ~p(h(x))) \
@@ -143,60 +140,60 @@ writeln"Intuitionistic FOL: propositional problems based on Pelletier.";
 writeln"Problem ~~1";
 Goal "~~((P-->Q)  <->  (~Q --> ~P))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 
 writeln"Problem ~~2";
 Goal "~~(~~P  <->  P)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 (*1 secs*)
 
 
 writeln"Problem 3";
 Goal "~(P-->Q) --> (Q-->P)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem ~~4";
 Goal "~~((~P-->Q)  <->  (~Q --> P))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 (*9 secs*)
 
 writeln"Problem ~~5";
 Goal "~~((P|Q-->P|R) --> P|(Q-->R))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 (*10 secs*)
 
 
 writeln"Problem ~~6";
 Goal "~~(P | ~P)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem ~~7";
 Goal "~~(P | ~~~P)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem ~~8.  Peirce's law";
 Goal "~~(((P-->Q) --> P)  -->  P)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 9";
 Goal "((P|Q) & (~P|Q) & (P| ~Q)) --> ~ (~P | ~Q)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 (*9 secs*)
 
 
 writeln"Problem 10";
 Goal "(Q-->R) --> (R-->P&Q) --> (P-->(Q|R)) --> (P<->Q)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"11.  Proved in each direction (incorrectly, says Pelletier!!) ";
 Goal "P<->P";
@@ -205,42 +202,42 @@ by (IntPr.fast_tac 1);
 writeln"Problem ~~12.  Dijkstra's law  ";
 Goal "~~(((P <-> Q) <-> R)  <->  (P <-> (Q <-> R)))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 Goal "((P <-> Q) <-> R)  -->  ~~(P <-> (Q <-> R))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 13.  Distributive law";
 Goal "P | (Q & R)  <-> (P | Q) & (P | R)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem ~~14";
 Goal "~~((P <-> Q) <-> ((Q | ~P) & (~Q|P)))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem ~~15";
 Goal "~~((P --> Q) <-> (~P | Q))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem ~~16";
 Goal "~~((P-->Q) | (Q-->P))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem ~~17";
 Goal
   "~~(((P & (Q-->R))-->S) <-> ((~P | Q | S) & (~P | ~R | S)))";
 by (IntPr.fast_tac 1);    
-result();
+qed "";
 
 (*Dijkstra's "Golden Rule"*)
 Goal "(P&Q) <-> P <-> Q <-> (P|Q)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 
 writeln"****Examples with quantifiers****";
@@ -250,23 +247,23 @@ writeln"The converse is classical in the following implications...";
 
 Goal "(EX x. P(x)-->Q)  -->  (ALL x. P(x)) --> Q";
 by (IntPr.fast_tac 1); 
-result();  
+qed "";  
 
 Goal "((ALL x. P(x))-->Q) --> ~ (ALL x. P(x) & ~Q)";
 by (IntPr.fast_tac 1); 
-result();  
+qed "";  
 
 Goal "((ALL x. ~P(x))-->Q)  -->  ~ (ALL x. ~ (P(x)|Q))";
 by (IntPr.fast_tac 1); 
-result();  
+qed "";  
 
 Goal "(ALL x. P(x)) | Q  -->  (ALL x. P(x) | Q)";
 by (IntPr.fast_tac 1); 
-result();  
+qed "";  
 
 Goal "(EX x. P --> Q(x)) --> (P --> (EX x. Q(x)))";
 by (IntPr.fast_tac 1);
-result();  
+qed "";  
 
 
 
@@ -313,7 +310,7 @@ writeln"Problem 20";
 Goal "(ALL x y. EX z. ALL w. (P(x)&Q(y)-->R(z)&S(w)))     \
 \   --> (EX x y. P(x) & Q(y)) --> (EX z. R(z))";
 by (IntPr.fast_tac 1); 
-result();
+qed "";
 
 writeln"Problem 21";
 Goal "(EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> ~~(EX x. P<->Q(x))";
@@ -322,12 +319,12 @@ Goal "(EX x. P-->Q(x)) & (EX x. Q(x)-->P) --> ~~(EX x. P<->Q(x))";
 writeln"Problem 22";
 Goal "(ALL x. P <-> Q(x))  -->  (P <-> (ALL x. Q(x)))";
 by (IntPr.fast_tac 1); 
-result();
+qed "";
 
 writeln"Problem ~~23";
 Goal "~~ ((ALL x. P | Q(x))  <->  (P | (ALL x. Q(x))))";
 by (IntPr.fast_tac 1); 
-result();
+qed "";
 
 writeln"Problem 24";
 Goal "~(EX x. S(x)&Q(x)) & (ALL x. P(x) --> Q(x)|R(x)) &  \
@@ -338,7 +335,7 @@ by IntPr.safe_tac;
 by (etac impE 1);
 by (IntPr.fast_tac 1); 
 by (IntPr.fast_tac 1); 
-result();
+qed "";
 
 writeln"Problem 25";
 Goal "(EX x. P(x)) &  \
@@ -347,7 +344,7 @@ Goal "(EX x. P(x)) &  \
 \       ((ALL x. P(x)-->Q(x)) | (EX x. P(x)&R(x)))  \
 \   --> (EX x. Q(x)&P(x))";
 by (IntPr.fast_tac 1); 
-result();
+qed "";
 
 writeln"Problem ~~26";
 Goal "(~~(EX x. p(x)) <-> ~~(EX x. q(x))) &    \
@@ -362,7 +359,7 @@ Goal "(EX x. P(x) & ~Q(x)) &   \
 \             ((EX x. R(x) & ~ Q(x)) --> (ALL x. L(x) --> ~ R(x)))  \
 \         --> (ALL x. M(x) --> ~L(x))";
 by (IntPr.fast_tac 1);   (*21 secs*)
-result();
+qed "";
 
 writeln"Problem ~~28.  AMENDED";
 Goal "(ALL x. P(x) --> (ALL x. Q(x))) &   \
@@ -370,21 +367,21 @@ Goal "(ALL x. P(x) --> (ALL x. Q(x))) &   \
 \       (~~(EX x. S(x)) --> (ALL x. L(x) --> M(x)))  \
 \   --> (ALL x. P(x) & L(x) --> M(x))";
 by (IntPr.fast_tac 1);  (*48 secs*)
-result();
+qed "";
 
 writeln"Problem 29.  Essentially the same as Principia Mathematica *11.71";
 Goal "(EX x. P(x)) & (EX y. Q(y))  \
 \   --> ((ALL x. P(x)-->R(x)) & (ALL y. Q(y)-->S(y))   <->     \
 \        (ALL x y. P(x) & Q(y) --> R(x) & S(y)))";
 by (IntPr.fast_tac 1); 
-result();
+qed "";
 
 writeln"Problem ~~30";
 Goal "(ALL x. (P(x) | Q(x)) --> ~ R(x)) & \
 \       (ALL x. (Q(x) --> ~ S(x)) --> P(x) & R(x))  \
 \   --> (ALL x. ~~S(x))";
 by (IntPr.fast_tac 1);  
-result();
+qed "";
 
 writeln"Problem 31";
 Goal "~(EX x. P(x) & (Q(x) | R(x))) & \
@@ -392,7 +389,7 @@ Goal "~(EX x. P(x) & (Q(x) | R(x))) & \
 \       (ALL x. ~ R(x) --> M(x))  \
 \   --> (EX x. L(x) & M(x))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 32";
 Goal "(ALL x. P(x) & (Q(x)|R(x))-->S(x)) & \
@@ -400,13 +397,13 @@ Goal "(ALL x. P(x) & (Q(x)|R(x))-->S(x)) & \
 \       (ALL x. M(x) --> R(x))  \
 \   --> (ALL x. P(x) & M(x) --> L(x))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem ~~33";
 Goal "(ALL x. ~~(P(a) & (P(x)-->P(b))-->P(c)))  <->    \
 \     (ALL x. ~~((~P(a) | P(x) | P(c)) & (~P(a) | ~P(b) | P(c))))";
 by (IntPr.best_tac 1);   (*1.67s*)
-result();
+qed "";
 
 
 writeln"Problem 36";
@@ -416,7 +413,7 @@ Goal
 \     (ALL x y. J(x,y) | G(x,y) --> (ALL z. J(y,z) | G(y,z) --> H(x,z)))   \
 \ --> (ALL x. EX y. H(x,y))";
 by (IntPr.fast_tac 1);  (*5 secs*)
-result();
+qed "";
 
 writeln"Problem 37";
 Goal
@@ -430,13 +427,13 @@ Goal
 writeln"Problem 39";
 Goal "~ (EX x. ALL y. F(y,x) <-> ~F(y,y))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 40.  AMENDED";
 Goal "(EX y. ALL x. F(x,y) <-> F(x,x)) -->  \
 \             ~(ALL x. EX y. ALL z. F(z,y) <-> ~ F(z,x))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 44";
 Goal "(ALL x. f(x) -->                                 \
@@ -444,40 +441,38 @@ Goal "(ALL x. f(x) -->                                 \
 \             (EX x. j(x) & (ALL y. g(y) --> h(x,y)))                   \
 \             --> (EX x. j(x) & ~f(x))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 48";
 Goal "(a=b | c=d) & (a=c | b=d) --> a=d | b=c";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 51";
 Goal "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
 \    (EX z. ALL x. EX w. (ALL y. P(x,y) <-> y=w) <-> x=z)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 52";
 (*Almost the same as 51. *)
 Goal "(EX z w. ALL x y. P(x,y) <->  (x=z & y=w)) -->  \
 \    (EX w. ALL y. EX z. (ALL x. P(x,y) <-> x=z) <-> y=w)";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 56";
 Goal "(ALL x. (EX y. P(y) & x=f(y)) --> P(x)) <-> (ALL x. P(x) --> P(f(x)))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 57";
 Goal "P(f(a,b), f(b,c)) & P(f(b,c), f(a,c)) & \
 \    (ALL x y z. P(x,y) & P(y,z) --> P(x,z))    -->   P(f(a,b), f(a,c))";
 by (IntPr.fast_tac 1);
-result();
+qed "";
 
 writeln"Problem 60";
 Goal "ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))";
 by (IntPr.fast_tac 1);
-result();
-
-writeln"Reached end of file.";
+qed "";

@@ -12,7 +12,7 @@ time_use     "foundn.ML";
 time_use_thy "Prolog";
 
 writeln"\n** Intuitionistic examples **\n";
-time_use     "int.ML";
+time_use_thy "int";
 
 val thy = IFOL.thy  and  tac = IntPr.fast_tac 1;
 time_use     "prop.ML";
