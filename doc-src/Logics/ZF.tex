@@ -3,7 +3,7 @@
 \index{set theory|(}
 
 The theory~\thydx{ZF} implements Zermelo-Fraenkel set
-theory~\cite{halmos60,suppes72} as an extension of~{\tt FOL}, classical
+theory~\cite{halmos60,suppes72} as an extension of~\texttt{FOL}, classical
 first-order logic.  The theory includes a collection of derived natural
 deduction rules, for use with Isabelle's classical reasoner.  Much
 of it is based on the work of No\"el~\cite{noel}.
@@ -20,7 +20,7 @@ Thus, we may even regard set theory as a computational logic, loosely
 inspired by Martin-L\"of's Type Theory.
 
 Because {\ZF} is an extension of {\FOL}, it provides the same
-packages, namely {\tt hyp_subst_tac}, the simplifier, and the
+packages, namely \texttt{hyp_subst_tac}, the simplifier, and the
 classical reasoner.  The default simpset and claset are usually
 satisfactory.  Named simpsets include \ttindexbold{ZF_ss} (basic set
 theory rules) and \ttindexbold{rank_ss} (for proving termination of
@@ -28,7 +28,7 @@ well-founded recursion).  Named clasets include \ttindexbold{ZF_cs}
 (basic set theory) and \ttindexbold{le_cs} (useful for reasoning about
 the relations $<$ and $\le$).
 
-{\tt ZF} has a flexible package for handling inductive definitions,
+\texttt{ZF} has a flexible package for handling inductive definitions,
 such as inference systems, and datatype definitions, such as lists and
 trees.  Moreover it handles coinductive definitions, such as
 bisimulation relations, and codatatype definitions, such as streams.
@@ -36,7 +36,7 @@ There is a paper \cite{paulson-CADE} describing the package, but its
 examples use an obsolete declaration syntax.  Please consult the
 version of the paper distributed with Isabelle.
 
-Recent reports~\cite{paulson-set-I,paulson-set-II} describe {\tt ZF} less
+Recent reports~\cite{paulson-set-I,paulson-set-II} describe \texttt{ZF} less
 formally than this chapter.  Isabelle employs a novel treatment of
 non-well-founded data structures within the standard {\sc zf} axioms including
 the Axiom of Foundation~\cite{paulson-final}.
@@ -128,7 +128,7 @@ The language of set theory, as studied by logicians, has no constants.  The
 traditional axioms merely assert the existence of empty sets, unions,
 powersets, etc.; this would be intolerable for practical reasoning.  The
 Isabelle theory declares constants for primitive sets.  It also extends
-{\tt FOL} with additional syntax for finite sets, ordered pairs,
+\texttt{FOL} with additional syntax for finite sets, ordered pairs,
 comprehension, general union/intersection, general sums/products, and
 bounded quantifiers.  In most other respects, Isabelle implements precisely
 Zermelo-Fraenkel set theory.
@@ -138,14 +138,14 @@ Figure~\ref{zf-trans} presents the syntax translations.  Finally,
 Figure~\ref{zf-syntax} presents the full grammar for set theory, including
 the constructs of \FOL.
 
-Local abbreviations can be introduced by a {\tt let} construct whose
+Local abbreviations can be introduced by a \texttt{let} construct whose
 syntax appears in Fig.\ts\ref{zf-syntax}.  Internally it is translated into
 the constant~\cdx{Let}.  It can be expanded by rewriting with its
 definition, \tdx{Let_def}.
 
-Apart from {\tt let}, set theory does not use polymorphism.  All terms in
+Apart from \texttt{let}, set theory does not use polymorphism.  All terms in
 {\ZF} have type~\tydx{i}, which is the type of individuals and has class~{\tt
-  term}.  The type of first-order formulae, remember, is~{\tt o}.
+  term}.  The type of first-order formulae, remember, is~\textit{o}.
 
 Infix operators include binary union and intersection ($A\un B$ and
 $A\int B$), set difference ($A-B$), and the subset and membership
@@ -155,25 +155,25 @@ union or intersection of a set of sets; $\bigcup A$ means the same as
 $\bigcup@{x\in A}x$.  Of these operators, only $\bigcup A$ is primitive.
 
 The constant \cdx{Upair} constructs unordered pairs; thus {\tt
-  Upair($A$,$B$)} denotes the set~$\{A,B\}$ and {\tt Upair($A$,$A$)}
+  Upair($A$,$B$)} denotes the set~$\{A,B\}$ and \texttt{Upair($A$,$A$)}
 denotes the singleton~$\{A\}$.  General union is used to define binary
 union.  The Isabelle version goes on to define the constant
 \cdx{cons}:
 \begin{eqnarray*}
-   A\cup B              & \equiv &       \bigcup({\tt Upair}(A,B)) \\
-   {\tt cons}(a,B)      & \equiv &        {\tt Upair}(a,a) \un B
+   A\cup B              & \equiv &       \bigcup(\texttt{Upair}(A,B)) \\
+   \texttt{cons}(a,B)      & \equiv &        \texttt{Upair}(a,a) \un B
 \end{eqnarray*}
 The $\{a@1, \ldots\}$ notation abbreviates finite sets constructed in the
-obvious manner using~{\tt cons} and~$\emptyset$ (the empty set):
+obvious manner using~\texttt{cons} and~$\emptyset$ (the empty set):
 \begin{eqnarray*}
- \{a,b,c\} & \equiv & {\tt cons}(a,{\tt cons}(b,{\tt cons}(c,\emptyset)))
+ \{a,b,c\} & \equiv & \texttt{cons}(a,\texttt{cons}(b,\texttt{cons}(c,\emptyset)))
 \end{eqnarray*}
 
 The constant \cdx{Pair} constructs ordered pairs, as in {\tt
 Pair($a$,$b$)}.  Ordered pairs may also be written within angle brackets,
 as {\tt<$a$,$b$>}.  The $n$-tuple {\tt<$a@1$,\ldots,$a@{n-1}$,$a@n$>}
 abbreviates the nest of pairs\par\nobreak
-\centerline{\tt Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots).}
+\centerline\texttt{Pair($a@1$,\ldots,Pair($a@{n-1}$,$a@n$)\ldots).}
 
 In {\ZF}, a function is a set of pairs.  A {\ZF} function~$f$ is simply an
 individual as far as Isabelle is concerned: its Isabelle type is~$i$, not
@@ -281,7 +281,7 @@ The constant \cdx{Collect} constructs sets by the principle of {\bf
 \hbox{\tt\ttlbrace$x$:$A$.$P[x]$\ttrbrace}, where $P[x]$ is a formula
 that may contain free occurrences of~$x$.  It abbreviates the set {\tt
   Collect($A$,$\lambda x.P[x]$)}, which consists of all $x\in A$ that
-satisfy~$P[x]$.  Note that {\tt Collect} is an unfortunate choice of
+satisfy~$P[x]$.  Note that \texttt{Collect} is an unfortunate choice of
 name: some set theories adopt a set-formation principle, related to
 replacement, called collection.
 
@@ -298,7 +298,7 @@ The constant \cdx{RepFun} expresses a special case of replacement,
 where $Q[x,y]$ has the form $y=b[x]$.  Such a $Q$ is trivially
 single-valued, since it is just the graph of the meta-level
 function~$\lambda x.b[x]$.  The resulting set consists of all $b[x]$
-for~$x\in A$.  This is analogous to the \ML{} functional {\tt map},
+for~$x\in A$.  This is analogous to the \ML{} functional \texttt{map},
 since it applies a function to every element of a set.  The syntax is
 \hbox{\tt\ttlbrace$b[x]$.$x$:$A$\ttrbrace}, which expands to {\tt
   RepFun($A$,$\lambda x.b[x]$)}.
@@ -307,7 +307,7 @@ since it applies a function to every element of a set.  The syntax is
 General unions and intersections of indexed
 families of sets, namely $\bigcup@{x\in A}B[x]$ and $\bigcap@{x\in A}B[x]$,
 are written \hbox{\tt UN $x$:$A$.$B[x]$} and \hbox{\tt INT $x$:$A$.$B[x]$}.
-Their meaning is expressed using {\tt RepFun} as
+Their meaning is expressed using \texttt{RepFun} as
 \[
 \bigcup(\{B[x]. x\in A\}) \qquad\hbox{and}\qquad 
 \bigcap(\{B[x]. x\in A\}). 
@@ -318,7 +318,7 @@ have as special cases $A\times B$ and $A\to B$, where $B$ is simply a set.
 This is similar to the situation in Constructive Type Theory (set theory
 has `dependent sets') and calls for similar syntactic conventions.  The
 constants~\cdx{Sigma} and~\cdx{Pi} construct general sums and
-products.  Instead of {\tt Sigma($A$,$B$)} and {\tt Pi($A$,$B$)} we may write
+products.  Instead of \texttt{Sigma($A$,$B$)} and \texttt{Pi($A$,$B$)} we may write
 \hbox{\tt SUM $x$:$A$.$B[x]$} and \hbox{\tt PROD $x$:$A$.$B[x]$}.  
 \index{*SUM symbol}\index{*PROD symbol}%
 The special cases as \hbox{\tt$A$*$B$} and \hbox{\tt$A$->$B$} abbreviate
@@ -350,7 +350,7 @@ Isabelle's set theory defines two {\bf bounded quantifiers}:
    \exists x\in A.P[x] &\hbox{abbreviates}& \exists x. x\in A\conj P[x]
 \end{eqnarray*}
 The constants~\cdx{Ball} and~\cdx{Bex} are defined
-accordingly.  Instead of {\tt Ball($A$,$P$)} and {\tt Bex($A$,$P$)} we may
+accordingly.  Instead of \texttt{Ball($A$,$P$)} and \texttt{Bex($A$,$P$)} we may
 write
 \hbox{\tt ALL $x$:$A$.$P[x]$} and \hbox{\tt EX $x$:$A$.$P[x]$}.
 
@@ -434,19 +434,19 @@ presented by Suppes~\cite{suppes72}.  Most of the theory consists of
 definitions.  In particular, bounded quantifiers and the subset relation
 appear in other axioms.  Object-level quantifiers and implications have
 been replaced by meta-level ones wherever possible, to simplify use of the
-axioms.  See the file {\tt ZF/ZF.thy} for details.
+axioms.  See the file \texttt{ZF/ZF.thy} for details.
 
 The traditional replacement axiom asserts
-\[ y \in {\tt PrimReplace}(A,P) \bimp (\exists x\in A. P(x,y)) \]
+\[ y \in \texttt{PrimReplace}(A,P) \bimp (\exists x\in A. P(x,y)) \]
 subject to the condition that $P(x,y)$ is single-valued for all~$x\in A$.
 The Isabelle theory defines \cdx{Replace} to apply
 \cdx{PrimReplace} to the single-valued part of~$P$, namely
 \[ (\exists!z.P(x,z)) \conj P(x,y). \]
-Thus $y\in {\tt Replace}(A,P)$ if and only if there is some~$x$ such that
+Thus $y\in \texttt{Replace}(A,P)$ if and only if there is some~$x$ such that
 $P(x,-)$ holds uniquely for~$y$.  Because the equivalence is unconditional,
-{\tt Replace} is much easier to use than {\tt PrimReplace}; it defines the
+\texttt{Replace} is much easier to use than \texttt{PrimReplace}; it defines the
 same set, if $P(x,y)$ is single-valued.  The nice syntax for replacement
-expands to {\tt Replace}.
+expands to \texttt{Replace}.
 
 Other consequences of replacement include functional replacement
 (\cdx{RepFun}) and definite descriptions (\cdx{The}).
@@ -455,7 +455,7 @@ Axioms for separation (\cdx{Collect}) and unordered pairs
 from replacement~\cite[pages 237--8]{suppes72}.
 
 The definitions of general intersection, etc., are straightforward.  Note
-the definition of {\tt cons}, which underlies the finite set notation.
+the definition of \texttt{cons}, which underlies the finite set notation.
 The axiom of infinity gives us a set that contains~0 and is closed under
 successor (\cdx{succ}).  Although this set is not uniquely defined,
 the theory names it (\cdx{Inf}) in order to simplify the
@@ -549,14 +549,14 @@ power set operator.
 
 Figure~\ref{zf-lemmas2} presents rules for replacement and separation.
 The rules for \cdx{Replace} and \cdx{RepFun} are much simpler than
-comparable rules for {\tt PrimReplace} would be.  The principle of
+comparable rules for \texttt{PrimReplace} would be.  The principle of
 separation is proved explicitly, although most proofs should use the
-natural deduction rules for {\tt Collect}.  The elimination rule
+natural deduction rules for \texttt{Collect}.  The elimination rule
 \tdx{CollectE} is equivalent to the two destruction rules
 \tdx{CollectD1} and \tdx{CollectD2}, but each rule is suited to
 particular circumstances.  Although too many rules can be confusing, there
 is no reason to aim for a minimal set of rules.  See the file
-{\tt ZF/ZF.ML} for a complete listing.
+\texttt{ZF/ZF.ML} for a complete listing.
 
 Figure~\ref{zf-lemmas3} presents rules for general union and intersection.
 The empty intersection should be undefined.  We cannot have
@@ -693,15 +693,15 @@ Figure~\ref{zf-upair1} presents the principle of unordered pairing, along
 with its derived rules.  Binary union and intersection are defined in terms
 of ordered pairs (Fig.\ts\ref{zf-Un}).  Set difference is also included.  The
 rule \tdx{UnCI} is useful for classical reasoning about unions,
-like {\tt disjCI}\@; it supersedes \tdx{UnI1} and
+like \texttt{disjCI}\@; it supersedes \tdx{UnI1} and
 \tdx{UnI2}, but these rules are often easier to work with.  For
 intersection and difference we have both elimination and destruction rules.
 Again, there is no reason to provide a minimal rule set.
 
 Figure~\ref{zf-upair2} is concerned with finite sets: it presents rules
-for~{\tt cons}, the finite set constructor, and rules for singleton
+for~\texttt{cons}, the finite set constructor, and rules for singleton
 sets.  Figure~\ref{zf-succ} presents derived rules for the successor
-function, which is defined in terms of~{\tt cons}.  The proof that {\tt
+function, which is defined in terms of~\texttt{cons}.  The proof that {\tt
   succ} is injective appears to require the Axiom of Foundation.
 
 Definite descriptions (\sdx{THE}) are defined in terms of the singleton
@@ -715,7 +715,7 @@ Finally, the impossibility of having both $a\in b$ and $b\in a$
 (\tdx{mem_asym}) is proved by applying the Axiom of Foundation to
 the set $\{a,b\}$.  The impossibility of $a\in a$ is a trivial consequence.
 
-See the file {\tt ZF/upair.ML} for full proofs of the rules discussed in
+See the file \texttt{ZF/upair.ML} for full proofs of the rules discussed in
 this section.
 
 
@@ -750,7 +750,7 @@ this section.
 The subset relation is a complete lattice.  Unions form least upper bounds;
 non-empty intersections form greatest lower bounds.  Figure~\ref{zf-subset}
 shows the corresponding rules.  A few other laws involving subsets are
-included.  Proofs are in the file {\tt ZF/subset.ML}.
+included.  Proofs are in the file \texttt{ZF/subset.ML}.
 
 Reasoning directly about subsets often yields clearer proofs than
 reasoning about the membership relation.  Section~\ref{sec:ZF-pow-example}
@@ -784,7 +784,7 @@ below presents an example of this, proving the equation ${{\tt Pow}(A)\cap
 
 \subsection{Ordered pairs}
 Figure~\ref{zf-pair} presents the rules governing ordered pairs,
-projections and general sums.  File {\tt ZF/pair.ML} contains the
+projections and general sums.  File \texttt{ZF/pair.ML} contains the
 full (and tedious) proof that $\{\{a\},\{a,b\}\}$ functions as an ordered
 pair.  This property is expressed as two destruction rules,
 \tdx{Pair_inject1} and \tdx{Pair_inject2}, and equivalently
@@ -798,32 +798,32 @@ satisfy $\pair{\emptyset;\emptyset}=\emptyset$.
 The natural deduction rules \tdx{SigmaI} and \tdx{SigmaE}
 assert that \cdx{Sigma}$(A,B)$ consists of all pairs of the form
 $\pair{x,y}$, for $x\in A$ and $y\in B(x)$.  The rule \tdx{SigmaE2}
-merely states that $\pair{a,b}\in {\tt Sigma}(A,B)$ implies $a\in A$ and
+merely states that $\pair{a,b}\in \texttt{Sigma}(A,B)$ implies $a\in A$ and
 $b\in B(a)$.
 
 In addition, it is possible to use tuples as patterns in abstractions:
 \begin{center}
-{\tt\%<$x$,$y$>.$t$} \quad stands for\quad {\tt split(\%$x$ $y$.$t$)}
+{\tt\%<$x$,$y$>.$t$} \quad stands for\quad \texttt{split(\%$x$ $y$.$t$)}
 \end{center}
 Nested patterns are translated recursively:
 {\tt\%<$x$,$y$,$z$>.$t$} $\leadsto$ {\tt\%<$x$,<$y$,$z$>>.$t$} $\leadsto$
-{\tt split(\%$x$.\%<$y$,$z$>.$t$)} $\leadsto$ {\tt split(\%$x$.split(\%$y$
+\texttt{split(\%$x$.\%<$y$,$z$>.$t$)} $\leadsto$ \texttt{split(\%$x$.split(\%$y$
   $z$.$t$))}.  The reverse translation is performed upon printing.
 \begin{warn}
-  The translation between patterns and {\tt split} is performed automatically
+  The translation between patterns and \texttt{split} is performed automatically
   by the parser and printer.  Thus the internal and external form of a term
   may differ, which affects proofs.  For example the term {\tt
-    (\%<x,y>.<y,x>)<a,b>} requires the theorem {\tt split} to rewrite to
+    (\%<x,y>.<y,x>)<a,b>} requires the theorem \texttt{split} to rewrite to
   {\tt<b,a>}.
 \end{warn}
 In addition to explicit $\lambda$-abstractions, patterns can be used in any
 variable binding construct which is internally described by a
 $\lambda$-abstraction.  Some important examples are
 \begin{description}
-\item[Let:] {\tt let {\it pattern} = $t$ in $u$}
-\item[Choice:] {\tt THE~{\it pattern}~.~$P$}
-\item[Set operations:] {\tt UN~{\it pattern}:$A$.~$B$}
-\item[Comprehension:] {\tt {\ttlbrace}~{\it pattern}:$A$~.~$P$~{\ttrbrace}}
+\item[Let:] \texttt{let {\it pattern} = $t$ in $u$}
+\item[Choice:] \texttt{THE~{\it pattern}~.~$P$}
+\item[Set operations:] \texttt{UN~{\it pattern}:$A$.~$B$}
+\item[Comprehension:] \texttt{{\ttlbrace}~{\it pattern}:$A$~.~$P$~{\ttrbrace}}
 \end{description}
 
 
@@ -877,7 +877,7 @@ the field of a relation is merely the union of its domain and range.
 
 Figure~\ref{zf-domrange2} presents rules for images and inverse images.
 Note that these operations are generalisations of range and domain,
-respectively.  See the file {\tt ZF/domrange.ML} for derivations of the
+respectively.  See the file \texttt{ZF/domrange.ML} for derivations of the
 rules.
 
 
@@ -947,7 +947,7 @@ rules.
 
 \subsection{Functions}
 Functions, represented by graphs, are notoriously difficult to reason
-about.  The file {\tt ZF/func.ML} derives many rules, which overlap more
+about.  The file \texttt{ZF/func.ML} derives many rules, which overlap more
 than they ought.  This section presents the more important rules.
 
 Figure~\ref{zf-func1} presents the basic properties of \cdx{Pi}$(A,B)$,
@@ -1021,11 +1021,11 @@ disjoint.
 %\begin{constants} 
 %  \cdx{1}       & $i$           &       & $\{\emptyset\}$       \\
 %  \cdx{bool}    & $i$           &       & the set $\{\emptyset,1\}$     \\
-%  \cdx{cond}   & $[i,i,i]\To i$ &       & conditional for {\tt bool}    \\
-%  \cdx{not}    & $i\To i$       &       & negation for {\tt bool}       \\
-%  \sdx{and}    & $[i,i]\To i$   & Left 70 & conjunction for {\tt bool}  \\
-%  \sdx{or}     & $[i,i]\To i$   & Left 65 & disjunction for {\tt bool}  \\
-%  \sdx{xor}    & $[i,i]\To i$   & Left 65 & exclusive-or for {\tt bool}
+%  \cdx{cond}   & $[i,i,i]\To i$ &       & conditional for \texttt{bool}    \\
+%  \cdx{not}    & $i\To i$       &       & negation for \texttt{bool}       \\
+%  \sdx{and}    & $[i,i]\To i$   & Left 70 & conjunction for \texttt{bool}  \\
+%  \sdx{or}     & $[i,i]\To i$   & Left 65 & disjunction for \texttt{bool}  \\
+%  \sdx{xor}    & $[i,i]\To i$   & Left 65 & exclusive-or for \texttt{bool}
 %\end{constants}
 %
 \begin{ttbox}
@@ -1053,13 +1053,13 @@ proofs.
 
 Figure~\ref{zf-equalities} presents commutative, associative, distributive,
 and idempotency laws of union and intersection, along with other equations.
-See file {\tt ZF/equalities.ML}.
+See file \texttt{ZF/equalities.ML}.
 
-Theory \thydx{Bool} defines $\{0,1\}$ as a set of booleans, with the
-usual operators including a conditional (Fig.\ts\ref{zf-bool}).  Although
-{\ZF} is a first-order theory, you can obtain the effect of higher-order
-logic using {\tt bool}-valued functions, for example.  The constant~{\tt1}
-is translated to {\tt succ(0)}.
+Theory \thydx{Bool} defines $\{0,1\}$ as a set of booleans, with the usual
+operators including a conditional (Fig.\ts\ref{zf-bool}).  Although {\ZF} is a
+first-order theory, you can obtain the effect of higher-order logic using
+\texttt{bool}-valued functions, for example.  The constant~\texttt{1} is
+translated to \texttt{succ(0)}.
 
 \begin{figure}
 \index{*"+ symbol}
@@ -1186,7 +1186,7 @@ Monotonicity properties are proved for most of the set-forming operations:
 union, intersection, Cartesian product, image, domain, range, etc.  These
 are useful for applying the Knaster-Tarski Fixedpoint Theorem.  The proofs
 themselves are trivial applications of Isabelle's classical reasoner.  See
-file {\tt ZF/mono.ML}.
+file \texttt{ZF/mono.ML}.
 
 
 \begin{figure}
@@ -1309,7 +1309,7 @@ equipollence and cardinality.
 
 Theory \thydx{Nat} defines the natural numbers and mathematical
 induction, along with a case analysis operator.  The set of natural
-numbers, here called {\tt nat}, is known in set theory as the ordinal~$\omega$.
+numbers, here called \texttt{nat}, is known in set theory as the ordinal~$\omega$.
 
 Theory \thydx{Arith} defines primitive recursion and goes on to develop
 arithmetic on the natural numbers (Fig.\ts\ref{zf-nat}).  It defines
@@ -1321,7 +1321,7 @@ remainder are defined by repeated subtraction, which requires well-founded
 rather than primitive recursion; the termination argument relies on the
 divisor's being non-zero.
 
-Theory \thydx{Univ} defines a `universe' ${\tt univ}(A)$, for
+Theory \thydx{Univ} defines a `universe' $\texttt{univ}(A)$, for
 constructing datatypes such as trees.  This set contains $A$ and the
 natural numbers.  Vitally, it is closed under finite products: ${\tt
   univ}(A)\times{\tt univ}(A)\subseteq{\tt univ}(A)$.  This theory also
@@ -1334,7 +1334,7 @@ constructing codatatypes such as streams.  It is analogous to ${\tt
   univ}(A)$ (and is defined in terms of it) but is closed under the
 non-standard product and sum.
 
-Theory {\tt Finite} (Figure~\ref{zf-fin}) defines the finite set operator;
+Theory \texttt{Finite} (Figure~\ref{zf-fin}) defines the finite set operator;
 ${\tt Fin}(A)$ is the set of all finite sets over~$A$.  The theory employs
 Isabelle's inductive definition package, which proves various rules
 automatically.  The induction rule shown is stronger than the one proved by
@@ -1416,8 +1416,8 @@ between two given sets.
 Figure~\ref{zf-list} presents the set of lists over~$A$, ${\tt list}(A)$.
 The definition employs Isabelle's datatype package, which defines the
 introduction and induction rules automatically, as well as the constructors
-and case operator (\verb|list_case|).  See file {\tt ZF/List.ML}.
-The file {\tt ZF/ListFn.thy} proceeds to define structural
+and case operator (\verb|list_case|).  See file \texttt{ZF/List.ML}.
+The file \texttt{ZF/ListFn.thy} proceeds to define structural
 recursion and the usual list functions.
 
 The constructions of the natural numbers and lists make use of a suite of
@@ -1425,20 +1425,20 @@ operators for handling recursive function definitions.  I have described
 the developments in detail elsewhere~\cite{paulson-set-II}.  Here is a brief
 summary:
 \begin{itemize}
-  \item Theory {\tt Trancl} defines the transitive closure of a relation
+  \item Theory \texttt{Trancl} defines the transitive closure of a relation
     (as a least fixedpoint).
 
-  \item Theory {\tt WF} proves the Well-Founded Recursion Theorem, using an
+  \item Theory \texttt{WF} proves the Well-Founded Recursion Theorem, using an
     elegant approach of Tobias Nipkow.  This theorem permits general
     recursive definitions within set theory.
 
-  \item Theory {\tt Ord} defines the notions of transitive set and ordinal
+  \item Theory \texttt{Ord} defines the notions of transitive set and ordinal
     number.  It derives transfinite induction.  A key definition is {\bf
       less than}: $i<j$ if and only if $i$ and $j$ are both ordinals and
     $i\in j$.  As a special case, it includes less than on the natural
     numbers.
     
-  \item Theory {\tt Epsilon} derives $\varepsilon$-induction and
+  \item Theory \texttt{Epsilon} derives $\varepsilon$-induction and
     $\varepsilon$-recursion, which are generalisations of transfinite
     induction and recursion.  It also defines \cdx{rank}$(x)$, which
     is the least ordinal $\alpha$ such that $x$ is constructed at
@@ -1449,25 +1449,25 @@ summary:
 Other important theories lead to a theory of cardinal numbers.  They have
 not yet been written up anywhere.  Here is a summary:
 \begin{itemize}
-\item Theory {\tt Rel} defines the basic properties of relations, such as
+\item Theory \texttt{Rel} defines the basic properties of relations, such as
   (ir)reflexivity, (a)symmetry, and transitivity.
 
-\item Theory {\tt EquivClass} develops a theory of equivalence
+\item Theory \texttt{EquivClass} develops a theory of equivalence
   classes, not using the Axiom of Choice.
 
-\item Theory {\tt Order} defines partial orderings, total orderings and
+\item Theory \texttt{Order} defines partial orderings, total orderings and
   wellorderings.
 
-\item Theory {\tt OrderArith} defines orderings on sum and product sets.
+\item Theory \texttt{OrderArith} defines orderings on sum and product sets.
   These can be used to define ordinal arithmetic and have applications to
   cardinal arithmetic.
 
-\item Theory {\tt OrderType} defines order types.  Every wellordering is
+\item Theory \texttt{OrderType} defines order types.  Every wellordering is
   equivalent to a unique ordinal, which is its order type.
 
-\item Theory {\tt Cardinal} defines equipollence and cardinal numbers.
+\item Theory \texttt{Cardinal} defines equipollence and cardinal numbers.
  
-\item Theory {\tt CardinalArith} defines cardinal addition and
+\item Theory \texttt{CardinalArith} defines cardinal addition and
   multiplication, and proves their elementary laws.  It proves that there
   is no greatest cardinal.  It also proves a deep result, namely
   $\kappa\otimes\kappa=\kappa$ for every infinite cardinal~$\kappa$; see
@@ -1477,10 +1477,10 @@ not yet been written up anywhere.  Here is a summary:
 
 The following developments involve the Axiom of Choice (AC):
 \begin{itemize}
-\item Theory {\tt AC} asserts the Axiom of Choice and proves some simple
+\item Theory \texttt{AC} asserts the Axiom of Choice and proves some simple
   equivalent forms.
 
-\item Theory {\tt Zorn} proves Hausdorff's Maximal Principle, Zorn's Lemma
+\item Theory \texttt{Zorn} proves Hausdorff's Maximal Principle, Zorn's Lemma
   and the Wellordering Theorem, following Abrial and
   Laffitte~\cite{abrial93}.
 
@@ -1490,7 +1490,7 @@ The following developments involve the Axiom of Choice (AC):
   cardinal and $|X(\alpha)| \le \kappa$ for all $\alpha<\kappa$ then
   $|\union\sb{\alpha<\kappa} X(\alpha)| \le \kappa$.
 
-\item Theory {\tt InfDatatype} proves theorems to justify infinitely
+\item Theory \texttt{InfDatatype} proves theorems to justify infinitely
   branching datatypes.  Arbitrary index sets are allowed, provided their
   cardinalities have an upper bound.  The theory also justifies some
   unusual cases of finite branching, involving the finite powerset operator
@@ -1501,7 +1501,7 @@ The following developments involve the Axiom of Choice (AC):
 
 \section{Simplification rules}
 {\ZF} does not merely inherit simplification from \FOL, but modifies it
-extensively.  File {\tt ZF/simpdata.ML} contains the details.
+extensively.  File \texttt{ZF/simpdata.ML} contains the details.
 
 The extraction of rewrite rules takes set theory primitives into account.
 It can strip bounded universal quantifiers from a formula; for example,
@@ -1511,9 +1511,9 @@ $a\in A$ and~$P(a)$.  It can also break down $a\in A\int B$ and $a\in A-B$.
 
 The default simplification set contains congruence rules for
 all the binding operators of {\ZF}\@.  It contains all the conversion
-rules, such as {\tt fst} and {\tt snd}, as well as the rewrites
+rules, such as \texttt{fst} and \texttt{snd}, as well as the rewrites
 shown in Fig.\ts\ref{zf-simpdata}.  See the file 
-{\tt ZF/simpdata.ML} for a fuller list.
+\texttt{ZF/simpdata.ML} for a fuller list.
 
 \begin{figure}
 \begin{eqnarray*}
@@ -1532,60 +1532,67 @@ shown in Fig.\ts\ref{zf-simpdata}.  See the file
 
 
 \section{The examples directories}
-Directory {\tt HOL/IMP} contains a mechanised version of a semantic
+Directory \texttt{HOL/IMP} contains a mechanised version of a semantic
 equivalence proof taken from Winskel~\cite{winskel93}.  It formalises the
 denotational and operational semantics of a simple while-language, then
 proves the two equivalent.  It contains several datatype and inductive
 definitions, and demonstrates their use.
 
-The directory {\tt ZF/ex} contains further developments in {\ZF} set
+The directory \texttt{ZF/ex} contains further developments in {\ZF} set
 theory.  Here is an overview; see the files themselves for more details.  I
 describe much of this material in other
 publications~\cite{paulson-set-I,paulson-set-II,paulson-CADE}. 
 \begin{itemize}
-\item File {\tt misc.ML} contains miscellaneous examples such as
+\item File \texttt{misc.ML} contains miscellaneous examples such as
   Cantor's Theorem, the Schr\"oder-Bernstein Theorem and the `Composition
   of homomorphisms' challenge~\cite{boyer86}.
 
-\item Theory {\tt Ramsey} proves the finite exponent 2 version of
+\item Theory \texttt{Ramsey} proves the finite exponent 2 version of
   Ramsey's Theorem, following Basin and Kaufmann's
   presentation~\cite{basin91}.
 
-\item Theory {\tt Integ} develops a theory of the integers as
+\item Theory \texttt{Integ} develops a theory of the integers as
   equivalence classes of pairs of natural numbers.
 
-\item Theory {\tt Bin} defines a datatype for two's complement binary
+\item Theory \texttt{Primrec} develops some computation theory.  It
+  inductively defines the set of primitive recursive functions and presents a
+  proof that Ackermann's function is not primitive recursive.
+
+\item Theory \texttt{Primes} defines the Greatest Common Divisor of two
+  natural numbers and and the ``divides'' relation.
+
+\item Theory \texttt{Bin} defines a datatype for two's complement binary
   integers, then proves rewrite rules to perform binary arithmetic.  For
   instance, $1359\times {-}2468 = {-}3354012$ takes under 14 seconds.
 
-\item Theory {\tt BT} defines the recursive data structure ${\tt
+\item Theory \texttt{BT} defines the recursive data structure ${\tt
     bt}(A)$, labelled binary trees.
 
-\item Theory {\tt Term} defines a recursive data structure for terms
+\item Theory \texttt{Term} defines a recursive data structure for terms
   and term lists.  These are simply finite branching trees.
 
-\item Theory {\tt TF} defines primitives for solving mutually
+\item Theory \texttt{TF} defines primitives for solving mutually
   recursive equations over sets.  It constructs sets of trees and forests
   as an example, including induction and recursion rules that handle the
   mutual recursion.
 
-\item Theory {\tt Prop} proves soundness and completeness of
+\item Theory \texttt{Prop} proves soundness and completeness of
   propositional logic~\cite{paulson-set-II}.  This illustrates datatype
   definitions, inductive definitions, structural induction and rule
   induction.
 
-\item Theory {\tt ListN} inductively defines the lists of $n$
+\item Theory \texttt{ListN} inductively defines the lists of $n$
   elements~\cite{paulin92}.
 
-\item Theory {\tt Acc} inductively defines the accessible part of a
+\item Theory \texttt{Acc} inductively defines the accessible part of a
   relation~\cite{paulin92}.
 
-\item Theory {\tt Comb} defines the datatype of combinators and
+\item Theory \texttt{Comb} defines the datatype of combinators and
   inductively defines contraction and parallel contraction.  It goes on to
   prove the Church-Rosser Theorem.  This case study follows Camilleri and
   Melham~\cite{camilleri92}.
 
-\item Theory {\tt LList} defines lazy lists and a coinduction
+\item Theory \texttt{LList} defines lazy lists and a coinduction
   principle for proving equations between them.
 \end{itemize}
 
@@ -1597,7 +1604,7 @@ with first-order logic, set theory involves a maze of rules, and theorems
 have many different proofs.  Attempting other proofs of the theorem might
 be instructive.  This proof exploits the lattice properties of
 intersection.  It also uses the monotonicity of the powerset operation,
-from {\tt ZF/mono.ML}:
+from \texttt{ZF/mono.ML}:
 \begin{ttbox}
 \tdx{Pow_mono}      A<=B ==> Pow(A) <= Pow(B)
 \end{ttbox}
@@ -1615,7 +1622,7 @@ by (resolve_tac [equalityI] 1);
 {\out  1. Pow(A Int B) <= Pow(A) Int Pow(B)}
 {\out  2. Pow(A) Int Pow(B) <= Pow(A Int B)}
 \end{ttbox}
-Both inclusions could be tackled straightforwardly using {\tt subsetI}.
+Both inclusions could be tackled straightforwardly using \texttt{subsetI}.
 A shorter proof results from noting that intersection forms the greatest
 lower bound:\index{*Int_greatest theorem}
 \begin{ttbox}
@@ -1626,7 +1633,7 @@ by (resolve_tac [Int_greatest] 1);
 {\out  2. Pow(A Int B) <= Pow(B)}
 {\out  3. Pow(A) Int Pow(B) <= Pow(A Int B)}
 \end{ttbox}
-Subgoal~1 follows by applying the monotonicity of {\tt Pow} to $A\int
+Subgoal~1 follows by applying the monotonicity of \texttt{Pow} to $A\int
 B\subseteq A$; subgoal~2 follows similarly:
 \index{*Int_lower1 theorem}\index{*Int_lower2 theorem}
 \begin{ttbox}
@@ -1659,7 +1666,7 @@ by (eresolve_tac [IntE] 1);
 {\out Pow(A Int B) = Pow(A) Int Pow(B)}
 {\out  1. !!x. [| x : Pow(A); x : Pow(B) |] ==> x : Pow(A Int B)}
 \end{ttbox}
-The next step replaces the {\tt Pow} by the subset
+The next step replaces the \texttt{Pow} by the subset
 relation~($\subseteq$).\index{*PowI theorem}
 \begin{ttbox}
 by (resolve_tac [PowI] 1);
@@ -1769,7 +1776,7 @@ by (assume_tac 1);
 {\out No subgoals!}
 \end{ttbox}
 Again, \ttindex{Blast_tac} can prove the theorem in one
-step, provided we somehow supply it with~{\tt prem}.  We can add
+step, provided we somehow supply it with~\texttt{prem}.  We can add
 \hbox{\tt prem RS subsetD} to the claset as an introduction rule:
 \begin{ttbox}
 by (blast_tac (!claset addIs [prem RS subsetD]) 1);
@@ -1790,7 +1797,7 @@ goal thy "!!C D. C<=D ==> Union(C) <= Union(D)";
 by (Blast_tac 1);
 \end{ttbox}
 
-The file {\tt ZF/equalities.ML} has many similar proofs.  Reasoning about
+The file \texttt{ZF/equalities.ML} has many similar proofs.  Reasoning about
 general intersection can be difficult because of its anomalous behaviour on
 the empty set.  However, \ttindex{Blast_tac} copes well with these.  Here is
 a typical example, borrowed from Devlin~\cite[page 12]{devlin79}:
@@ -1803,8 +1810,8 @@ In traditional notation this is
        \Bigl(\inter@{x\in C} B(x)\Bigr)  \]
 
 \section{Low-level reasoning about functions}
-The derived rules {\tt lamI}, {\tt lamE}, {\tt lam_type}, {\tt beta}
-and {\tt eta} support reasoning about functions in a
+The derived rules \texttt{lamI}, \texttt{lamE}, \texttt{lam_type}, \texttt{beta}
+and \texttt{eta} support reasoning about functions in a
 $\lambda$-calculus style.  This is generally easier than regarding
 functions as sets of ordered pairs.  But sometimes we must look at the
 underlying representation, as in the following proof
@@ -1820,7 +1827,7 @@ val prems = goal thy
 {\out  1. (f Un g) ` a = f ` a}
 \end{ttbox}
 Isabelle has produced the output above; the \ML{} top-level now echoes the
-binding of {\tt prems}.
+binding of \texttt{prems}.
 \begin{ttbox}
 {\out val prems = ["a : A  [a : A]",}
 {\out              "f : A -> B  [f : A -> B]",}
@@ -1857,7 +1864,7 @@ by (resolve_tac [apply_Pair] 1);
 \end{ttbox}
 Using the premises $f\in A\to B$ and $a\in A$, we solve the two subgoals
 from \tdx{apply_Pair}.  Recall that a $\Pi$-set is merely a generalized
-function space, and observe that~{\tt?A2} is instantiated to~{\tt A}.
+function space, and observe that~{\tt?A2} is instantiated to~\texttt{A}.
 \begin{ttbox}
 by (resolve_tac prems 1);
 {\out Level 4}
@@ -1896,7 +1903,7 @@ by (resolve_tac prems 1);
 {\out (f Un g) ` a = f ` a}
 {\out No subgoals!}
 \end{ttbox}
-See the files {\tt ZF/func.ML} and {\tt ZF/WF.ML} for more
+See the files \texttt{ZF/func.ML} and \texttt{ZF/WF.ML} for more
 examples of reasoning about functions.
 
 \index{set theory|)}
