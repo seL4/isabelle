@@ -86,8 +86,8 @@ intros
                   Impl (D,m) {Q} ==>
              A |- {P} Meth (C,m) {Q}"
 
-  --{*\<Union>z instead of \<forall>z in the conclusion and
-      z restricted to type state due to limitations of the inductive package *}
+  --{* @{text "\<Union>z"} instead of @{text "\<forall>z"} in the conclusion and
+       z restricted to type state due to limitations of the inductive package *}
   Impl: "\<forall>z::state. A\<union> (\<Union>z. (\<lambda>Cm. (P z Cm, Impl Cm, Q z Cm))`Ms) ||- 
                             (\<lambda>Cm. (P z Cm, body Cm, Q z Cm))`Ms ==>
                       A ||- (\<lambda>Cm. (P z Cm, Impl Cm, Q z Cm))`Ms"
