@@ -1,0 +1,67 @@
+\documentclass[11pt]{article}
+
+\title{Isabelle: An Overview}
+\author{Lawrence C. Paulson}
+
+\date{October 2003}
+
+\usepackage{basic,times,mathtime}
+
+\makeatletter
+\@ifundefined{pdfoutput}{\message{No PDF output}%
+  \usepackage{../url}%
+  \newcommand{\hfootref}[2]{#2\footnote{\url{#1}}}}%
+{\message{Generating PDF output}%
+  \usepackage{color}\definecolor{darkblue}{rgb}{0,0,0.5}%
+  \usepackage[pdftex,colorlinks=true,linkcolor=darkblue,citecolor=darkblue,filecolor=darkblue,pagecolor=darkblue,urlcolor=darkblue]{hyperref}  \newcommand{\hfootref}[2]{\href{#1}{#2}\footnote{\url{#1}}}}
+
+\makeatother
+
+\begin{document}
+\maketitle
+
+Isabelle~\cite{isa-tutorial} is a generic proof assistant.  It allows mathematical formulas to be expressed in a 
+formal language and provides tools for proving those formulas in a
+logical calculus. The main potential application in industry is
+\emph{formal verification}, which includes proving the 
+correctness of computer hardware or software and proving 
+properties of computer languages and protocols. Among its research
+applications are the formalization of mathematical proofs.
+
+Compared with similar tools, Isabelle's distinguishing feature is its flexibility. Most proof assistants
+are built around a single formal calculus, typically higher-order logic.
+Isabelle has the capacity to
+accept a variety of formal calculi. The distributed version
+supports higher-order logic but also axiomatic set theory and several other
+formalisms. Isabelle provides excellent notational support: 
+new notations can be introduced, using normal mathematical symbols.
+
+The main limitation of all such systems is that proving theorems
+requires much effort
+from an expert user. Isabelle incorporates some tools to improve
+the user's productivity by automating some parts of the proof process.
+In particular, Isabelle's \emph{classical reasoner} can perform long
+chains of reasoning steps to prove formulas. The \emph{simplifier} 
+can prove certain arithmetic facts and can reason about equations.
+
+Isabelle is closely integrated with the 
+\hfootref{http://www.cl.cam.ac.uk/users/lcp/papers/protocols.html}{Proof General} user interface, which greatly eases the task of interacting with 
+Isabelle. Proof General is open-source software under the GNU General Public
+License. Using Isabelle without Proof General would be difficult.
+
+Isabelle is distributed with large theories of formalized mathematics, 
+including elementary number theory (for example, Gauss's law of quadratic reciprocity), analysis (basic properties of limits, derivatives and integrals) and algebra (up to Sylow's theorem). Also provided are numerous 
+examples arising from research into formal verification. The total size of
+the distribution (program sources and documentation) is about 5.4MB.
+
+\paragraph*{Sponsorship.}
+Isabelle is a joint project between Cambridge and the Technical University
+of Munich, Germany. Prof.\ Tobias Nipkow leads the German team; other significant contributors at Munich include Dr. Markus Wenzel, Dr. Gerwin Klein and Mr.\ Stefan Berghofer.
+The development of Isabelle at Cambridge was funded by the following grants:
+\begin{itemize}\item \emph{Supporting Logics} (6/1986--11/1989). SERC grant GR/E0355.7\item \emph{Logical Frameworks: Design, Implementation and Experiment} (6/1989--3/1992). ESPRIT Basic Research Action 3245\item \emph{Types for Proofs and Programs}: ESPRIT Basic Research Action 6453 (9/1992--8/1995) 
+\item \emph{Combining HOL with Isabelle} (9/1992--8/1995). EPSRC grant GR/H40570\item \emph{Mechanising Temporal Reasoning} (11/1995--4/1999). EPSRC grant reference GR/K57381\item \emph{Authentication Logics: New Theory and Implementations} (1/1996--6/1999). EPSRC grant GR/K77051\item \emph{Compositional Proofs of Concurrent Programs} (10/1999--6/2003). EPSRC grant GR/M75440 (RG28587)\item \emph{Verifying Electronic Commerce Protocols} (10/2000--9/2003). EPSRC grant GR/R 01156/01 (NRAG/002)%\item \emph{Automation for Interactive Proof} (2/2004--1/2007).
+%EPSRC grant GR/S57198/01 (NRAG/071)
+\end{itemize}
+Lawrence Paulson was the Principal Investigator on all of these grants.
+The Munich side had support from German sponsors.
+\bibliographystyle{plain} \footnotesize\raggedright\frenchspacing\bibliography{string,atp,funprog,general,isabelle,theory,crossref}\end{document}
