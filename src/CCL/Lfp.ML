@@ -18,27 +18,27 @@ open Lfp;
 val prems = goalw Lfp.thy [lfp_def] "[| f(A) <= A |] ==> lfp(f) <= A";
 by (rtac (CollectI RS Inter_lower) 1);
 by (resolve_tac prems 1);
-val lfp_lowerbound = result();
+qed "lfp_lowerbound";
 
 val prems = goalw Lfp.thy [lfp_def]
     "[| !!u. f(u) <= u ==> A<=u |] ==> A <= lfp(f)";
 by (REPEAT (ares_tac ([Inter_greatest]@prems) 1));
 by (etac CollectD 1);
-val lfp_greatest = result();
+qed "lfp_greatest";
 
 val [mono] = goal Lfp.thy "mono(f) ==> f(lfp(f)) <= lfp(f)";
 by (EVERY1 [rtac lfp_greatest, rtac subset_trans,
 	    rtac (mono RS monoD), rtac lfp_lowerbound, atac, atac]);
-val lfp_lemma2 = result();
+qed "lfp_lemma2";
 
 val [mono] = goal Lfp.thy "mono(f) ==> lfp(f) <= f(lfp(f))";
 by (EVERY1 [rtac lfp_lowerbound, rtac (mono RS monoD), 
 	    rtac lfp_lemma2, rtac mono]);
-val lfp_lemma3 = result();
+qed "lfp_lemma3";
 
 val [mono] = goal Lfp.thy "mono(f) ==> lfp(f) = f(lfp(f))";
 by (REPEAT (resolve_tac [equalityI,lfp_lemma2,lfp_lemma3,mono] 1));
-val lfp_Tarski = result();
+qed "lfp_Tarski";
 
 
 (*** General induction rule for least fixed points ***)
@@ -53,14 +53,14 @@ by (EVERY1 [rtac Int_greatest, rtac subset_trans,
 	    rtac (Int_lower1 RS (mono RS monoD)),
 	    rtac (mono RS lfp_lemma2),
 	    rtac (CollectI RS subsetI), rtac indhyp, atac]);
-val induct = result();
+qed "induct";
 
 (** Definition forms of lfp_Tarski and induct, to control unfolding **)
 
 val [rew,mono] = goal Lfp.thy "[| h==lfp(f);  mono(f) |] ==> h = f(h)";
 by (rewtac rew);
 by (rtac (mono RS lfp_Tarski) 1);
-val def_lfp_Tarski = result();
+qed "def_lfp_Tarski";
 
 val rew::prems = goal Lfp.thy
     "[| A == lfp(f);  a:A;  mono(f);   			\
@@ -68,7 +68,7 @@ val rew::prems = goal Lfp.thy
 \    |] ==> P(a)";
 by (EVERY1 [rtac induct,	(*backtracking to force correct induction*)
 	    REPEAT1 o (ares_tac (map (rewrite_rule [rew]) prems))]);
-val def_induct = result();
+qed "def_induct";
 
 (*Monotonicity of lfp!*)
 val prems = goal Lfp.thy
@@ -78,5 +78,5 @@ by (rtac subset_trans 1);
 by (resolve_tac prems 1);
 by (rtac lfp_lemma2 1);
 by (resolve_tac prems 1);
-val lfp_mono = result();
+qed "lfp_mono";
 

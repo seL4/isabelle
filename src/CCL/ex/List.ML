@@ -34,52 +34,52 @@ val list_ss = nat_ss addsimps listBs;
 val [prem] = goal List.thy "n:Nat ==> map(f) ^ n ` [] = []";
 br (prem RS Nat_ind) 1;
 by (ALLGOALS (asm_simp_tac list_ss));
-val nmapBnil = result();
+qed "nmapBnil";
 
 val [prem] = goal List.thy "n:Nat ==> map(f)^n`(x$xs) = (f^n`x)$(map(f)^n`xs)";
 br (prem RS Nat_ind) 1;
 by (ALLGOALS (asm_simp_tac list_ss));
-val nmapBcons = result();
+qed "nmapBcons";
 
 (***)
 
 val prems = goalw List.thy [map_def]
   "[| !!x.x:A==>f(x):B;  l : List(A) |] ==> map(f,l) : List(B)";
 by (typechk_tac prems 1);
-val mapT = result();
+qed "mapT";
 
 val prems = goalw List.thy [append_def]
   "[| l : List(A);  m : List(A) |] ==> l @ m : List(A)";
 by (typechk_tac prems 1);
-val appendT = result();
+qed "appendT";
 
 val prems = goal List.thy
   "[| l : {l:List(A). m : {m:List(A).P(l @ m)}} |] ==> l @ m : {x:List(A). P(x)}";
 by (cut_facts_tac prems 1);
 by (fast_tac (set_cs addSIs [SubtypeI,appendT] addSEs [SubtypeE]) 1);
-val appendTS = result();
+qed "appendTS";
 
 val prems = goalw List.thy [filter_def]
   "[| f:A->Bool;   l : List(A) |] ==> filter(f,l) : List(A)";
 by (typechk_tac prems 1);
-val filterT = result();
+qed "filterT";
 
 val prems = goalw List.thy [flat_def]
   "l : List(List(A)) ==> flat(l) : List(A)";
 by (typechk_tac (appendT::prems) 1);
-val flatT = result();
+qed "flatT";
 
 val prems = goalw List.thy [insert_def]
   "[|  f : A->A->Bool; a:A; l : List(A) |] ==> insert(f,a,l) : List(A)";
 by (typechk_tac prems 1);
-val insertT = result();
+qed "insertT";
 
 val prems = goal List.thy
   "[| f : {f:A->A->Bool. a : {a:A. l : {l:List(A).P(insert(f,a,l))}}} |] ==> \
 \  insert(f,a,l)  : {x:List(A). P(x)}";
 by (cut_facts_tac prems 1);
 by (fast_tac (set_cs addSIs [SubtypeI,insertT] addSEs [SubtypeE]) 1);
-val insertTS = result();
+qed "insertTS";
 
 val prems = goalw List.thy [partition_def]
   "[| f:A->Bool;  l : List(A) |] ==> partition(f,l) : List(A)*List(A)";
@@ -88,7 +88,7 @@ by clean_ccs_tac;
 br (ListPRI RS wfstI RS (ListPR_wf RS wmap_wf RS wfI)) 2;
 br (ListPRI RS wfstI RS (ListPR_wf RS wmap_wf RS wfI)) 1;
 by (REPEAT (atac 1));
-val partitionT = result();
+qed "partitionT";
 
 (*** Correctness Conditions for Insertion Sort ***)
 

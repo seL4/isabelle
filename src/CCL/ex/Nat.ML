@@ -27,34 +27,34 @@ val nat_ss = term_ss addsimps natBs;
 val [prem] = goal Nat.thy "n:Nat ==> f^n`f(a) = f^succ(n)`a";
 br (prem RS Nat_ind) 1;
 by (ALLGOALS (asm_simp_tac nat_ss));
-val napply_f = result();
+qed "napply_f";
 
 (****)
 
 val prems = goalw Nat.thy [add_def] "[| a:Nat;  b:Nat |] ==> a #+ b : Nat";
 by (typechk_tac prems 1);
-val addT = result();
+qed "addT";
 
 val prems = goalw Nat.thy [mult_def] "[| a:Nat;  b:Nat |] ==> a #* b : Nat";
 by (typechk_tac (addT::prems) 1);
-val multT = result();
+qed "multT";
 
 (* Defined to return zero if a<b *)
 val prems = goalw Nat.thy [sub_def] "[| a:Nat;  b:Nat |] ==> a #- b : Nat";
 by (typechk_tac (prems) 1);
 by clean_ccs_tac;
 be (NatPRI RS wfstI RS (NatPR_wf RS wmap_wf RS wfI)) 1;
-val subT = result();
+qed "subT";
 
 val prems = goalw Nat.thy [le_def] "[| a:Nat;  b:Nat |] ==> a #<= b : Bool";
 by (typechk_tac (prems) 1);
 by clean_ccs_tac;
 be (NatPRI RS wfstI RS (NatPR_wf RS wmap_wf RS wfI)) 1;
-val leT = result();
+qed "leT";
 
 val prems = goalw Nat.thy [not_def,lt_def] "[| a:Nat;  b:Nat |] ==> a #< b : Bool";
 by (typechk_tac (prems@[leT]) 1);
-val ltT = result();
+qed "ltT";
 
 (* Correctness conditions for subtractive division **)
 

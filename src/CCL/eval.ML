@@ -16,7 +16,7 @@ fun ceval_tac rls = DEPTH_SOLVE_1 (resolve_tac (!EVal_rls@rls) 1);
 val prems = goalw thy [apply_def]
    "[| f ---> lam x.b(x);  b(a) ---> c |] ==> f ` a ---> c";
 by (ceval_tac prems);
-val applyV = result();
+qed "applyV";
 
 EVal_rls := !EVal_rls @ [applyV];
 
@@ -25,20 +25,20 @@ val major::prems = goalw thy [let_def]
 by (rtac (major RS canonical) 1);
 by (REPEAT (DEPTH_SOLVE_1 (resolve_tac ([major]@prems@(!EVal_rls)) 1 ORELSE
                            etac substitute 1)));
-val letV = result();
+qed "letV";
 
 val prems = goalw thy [fix_def]
    "f(fix(f)) ---> c ==> fix(f) ---> c";
 by (rtac applyV 1);
 by (rtac lamV 1);
 by (resolve_tac prems 1);
-val fixV = result();
+qed "fixV";
 
 val prems = goalw thy [letrec_def]
     "h(t,%y.letrec g x be h(x,g) in g(y)) ---> c ==> \
 \                  letrec g x be h(x,g) in g(t) ---> c";
 by (REPEAT (resolve_tac (prems @ [fixV,applyV,lamV]) 1));
-val letrecV = result();
+qed "letrecV";
 
 EVal_rls := !EVal_rls @ [letV,letrecV,fixV];
 

@@ -46,23 +46,23 @@ val prems = goal Type.thy
 by (cut_facts_tac prems 1);
 by (etac (letB RS ssubst) 1);
 by (assume_tac 1);
-val letT = result();
+qed "letT";
 
 val prems = goal Type.thy
      "[| a:A;  f : Pi(A,B)  |] ==> f ` a  : B(a)";
 by (REPEAT (ares_tac (applyT::prems) 1));
-val applyT2 = result();
+qed "applyT2";
 
 val prems = goal Type.thy 
     "[| a:A;  a:A ==> P(a) |] ==> a : {x:A.P(x)}";
 by (fast_tac (type_cs addSIs prems) 1);
-val rcall_lemma1 = result();
+qed "rcall_lemma1";
 
 val prems = goal Type.thy 
     "[| a:{x:A.Q(x)};  [| a:A; Q(a) |] ==> P(a) |] ==> a : {x:A.P(x)}";
 by (cut_facts_tac prems 1);
 by (fast_tac (type_cs addSIs prems) 1);
-val rcall_lemma2 = result();
+qed "rcall_lemma2";
 
 val rcall_lemmas = [asm_rl,rcall_lemma1,SubtypeD1,rcall_lemma2];
 

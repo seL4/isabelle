@@ -23,7 +23,7 @@ be (XH_to_E ListsXH) 1;
 by (EQgen_tac list_ss [] 1);
 by (simp_tac list_ss 1);
 by (fast_tac ccl_cs 1);
-val map_comp = result();
+qed "map_comp";
 
 (*** Mapping the identity function leaves a list unchanged ***)
 
@@ -35,7 +35,7 @@ by (safe_tac type_cs);
 be (XH_to_E ListsXH) 1;
 by (EQgen_tac list_ss [] 1);
 by (fast_tac ccl_cs 1);
-val map_id = result();
+qed "map_id";
 
 (*** Mapping distributes over append ***)
 
@@ -50,7 +50,7 @@ by (EQgen_tac list_ss [] 1);
 be (XH_to_E ListsXH) 1;
 by (EQgen_tac list_ss [] 1);
 by (fast_tac ccl_cs 1);
-val map_append = result();
+qed "map_append";
 
 (*** Append is associative ***)
 
@@ -67,7 +67,7 @@ by (EQgen_tac list_ss [] 1);
 be (XH_to_E ListsXH) 1;
 by (EQgen_tac list_ss [] 1);
 by (fast_tac ccl_cs 1);
-val append_assoc = result();
+qed "append_assoc";
 
 (*** Appending anything to an infinite list doesn't alter it ****)
 
@@ -78,7 +78,7 @@ by (safe_tac set_cs);
 be (XH_to_E IListsXH) 1;
 by (EQgen_tac list_ss [] 1);
 by (fast_tac ccl_cs 1);
-val ilist_append = result();
+qed "ilist_append";
 
 (*** The equivalance of two versions of an iteration function       ***)
 (*                                                                    *)
@@ -88,18 +88,18 @@ val ilist_append = result();
 goalw Stream.thy [iter1_def] "iter1(f,a) = a$iter1(f,f(a))";
 br (letrecB RS trans) 1;
 by (simp_tac term_ss 1);
-val iter1B = result();
+qed "iter1B";
 
 goalw Stream.thy [iter2_def] "iter2(f,a) = a $ map(f,iter2(f,a))";
 br (letrecB RS trans) 1;
 br refl 1;
-val iter2B = result();
+qed "iter2B";
 
 val [prem] =goal Stream.thy
    "n:Nat ==> map(f) ^ n ` iter2(f,a) = (f ^ n ` a) $ (map(f) ^ n ` map(f,iter2(f,a)))";
 br (iter2B RS ssubst) 1;back();back();
 by (simp_tac (list_ss addsimps [prem RS nmapBcons]) 1);
-val iter2Blemma = result();
+qed "iter2Blemma";
 
 goal Stream.thy "iter1(f,a) = iter2(f,a)";
 by (eq_coinduct3_tac 
@@ -111,4 +111,4 @@ by (EQgen_tac list_ss [iter1B,iter2Blemma] 1);
 by (rtac (napply_f RS ssubst) 1 THEN atac 1);
 by (res_inst_tac [("f1","f")] (napplyBsucc RS subst) 1);
 by (fast_tac type_cs 1);
-val iter1_iter2_eq = result();
+qed "iter1_iter2_eq";

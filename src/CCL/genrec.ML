@@ -20,12 +20,12 @@ by (eresolve_tac prems 1);
 by (rtac ballI 1);
 by (etac (spec RS mp RS mp) 1);
 by (REPEAT (eresolve_tac [SubtypeD1,SubtypeD2] 1));
-val letrecT = result();
+qed "letrecT";
 
 goalw Wfd.thy [SPLIT_def] "SPLIT(<a,b>,B) = B(a,b)";
 by (rtac set_ext 1);
 by (fast_tac ccl_cs 1);
-val SPLITB = result();
+qed "SPLITB";
 
 val prems = goalw Wfd.thy [letrec2_def]
     "[| a : A;  b : B;  \
@@ -40,11 +40,11 @@ by (REPEAT (ares_tac ([ballI,SubtypeI]@prems) 1));
 by (rtac (SPLITB RS subst) 1);
 by (REPEAT (ares_tac ([letrecT,SubtypeI,pairT,splitT]@prems) 1 ORELSE 
             eresolve_tac [bspec,SubtypeE,sym RS subst] 1));
-val letrec2T = result();
+qed "letrec2T";
 
 goal Wfd.thy "SPLIT(<a,<b,c>>,%x xs.SPLIT(xs,%y z.B(x,y,z))) = B(a,b,c)";
 by (simp_tac (ccl_ss addsimps [SPLITB]) 1);
-val lemma = result();
+qed "lemma";
 
 val prems = goalw Wfd.thy [letrec3_def]
     "[| a : A;  b : B;  c : C;  \
@@ -60,7 +60,7 @@ by (REPEAT (ares_tac ([ballI,SubtypeI]@prems) 1));
 by (rtac (lemma RS subst) 1);
 by (REPEAT (ares_tac ([letrecT,SubtypeI,pairT,splitT]@prems) 1 ORELSE 
             eresolve_tac [bspec,SubtypeE,sym RS subst] 1));
-val letrec3T = result();
+qed "letrec3T";
 
 val letrecTs = [letrecT,letrec2T,letrec3T];
 
@@ -72,14 +72,14 @@ val major::prems = goal Wfd.thy
 \       g(a) : D(a) ==> g(a) : E;  a:A;  <a,p>:wf(R) |] ==> \
 \   g(a) : E";
 by (REPEAT (ares_tac ([SubtypeI,major RS bspec,major]@prems) 1));
-val rcallT = result();
+qed "rcallT";
 
 val major::prems = goal Wfd.thy
     "[| ALL x:A.ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y); \
 \       g(a,b) : D(a,b) ==> g(a,b) : E;  a:A;  b:B;  <<a,b>,<p,q>>:wf(R) |] ==> \
 \   g(a,b) : E";
 by (REPEAT (ares_tac ([SubtypeI,major RS bspec RS bspec,major]@prems) 1));
-val rcall2T = result();
+qed "rcall2T";
 
 val major::prems = goal Wfd.thy
     "[| ALL x:A.ALL y:B.ALL z:{z:C.<<x,<y,z>>,<p,<q,r>>>:wf(R)}. g(x,y,z):D(x,y,z); \
@@ -87,7 +87,7 @@ val major::prems = goal Wfd.thy
 \       a:A;  b:B;  c:C;  <<a,<b,c>>,<p,<q,r>>> : wf(R) |] ==> \
 \   g(a,b,c) : E";
 by (REPEAT (ares_tac ([SubtypeI,major RS bspec RS bspec RS bspec,major]@prems) 1));
-val rcall3T = result();
+qed "rcall3T";
 
 val rcallTs = [rcallT,rcall2T,rcall3T];
 
@@ -113,7 +113,7 @@ by (resolve_tac (prems) 1);
 by (resolve_tac (prems RL [sym]) 1);
 by (rtac rcallT 1);
 by (REPEAT (ares_tac prems 1));
-val hyprcallT = result();
+qed "hyprcallT";
 
 val prems = goal Wfd.thy
     "[| g(a,b) = c; ALL x:A.ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y); \
@@ -124,7 +124,7 @@ by (resolve_tac (prems) 1);
 by (resolve_tac (prems RL [sym]) 1);
 by (rtac rcall2T 1);
 by (REPEAT (ares_tac prems 1));
-val hyprcall2T = result();
+qed "hyprcall2T";
 
 val prems = goal Wfd.thy
   "[| g(a,b,c) = d; \
@@ -136,7 +136,7 @@ by (resolve_tac (prems) 1);
 by (resolve_tac (prems RL [sym]) 1);
 by (rtac rcall3T 1);
 by (REPEAT (ares_tac prems 1));
-val hyprcall3T = result();
+qed "hyprcall3T";
 
 val hyprcallTs = [hyprcallT,hyprcall2T,hyprcall3T];
 
@@ -146,20 +146,20 @@ val prems = goal Wfd.thy
     "[| ALL x:{x:A.<x,p>:wf(R)}.g(x):D(x); P |] ==> \
 \    P";
 by (REPEAT (ares_tac prems 1));
-val rmIH1  = result();
+qed "rmIH1";
 
 val prems = goal Wfd.thy
     "[| ALL x:A.ALL y:{y:B.<<x,y>,<p,q>>:wf(R)}.g(x,y):D(x,y); P |] ==> \
 \    P";
 by (REPEAT (ares_tac prems 1));
-val rmIH2  = result();
+qed "rmIH2";
 
 val prems = goal Wfd.thy
  "[| ALL x:A.ALL y:B.ALL z:{z:C.<<x,<y,z>>,<p,<q,r>>>:wf(R)}.g(x,y,z):D(x,y,z); \
 \    P |] ==> \
 \    P";
 by (REPEAT (ares_tac prems 1));
-val rmIH3  = result();
+qed "rmIH3";
 
 val rmIHs = [rmIH1,rmIH2,rmIH3];
 

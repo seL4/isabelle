@@ -9,15 +9,15 @@ Lemmas and tactics for using the rule coinduct3 on [= and =.
 val [mono,prem] = goal Lfp.thy "[| mono(f);  a : f(lfp(f)) |] ==> a : lfp(f)";
 by (rtac ((mono RS lfp_Tarski) RS ssubst) 1);
 by (rtac prem 1);
-val lfpI = result();
+qed "lfpI";
 
 val prems = goal CCL.thy "[| a=a';  a' : A |] ==> a : A";
 by (simp_tac (term_ss addsimps prems) 1);
-val ssubst_single = result();
+qed "ssubst_single";
 
 val prems = goal CCL.thy "[| a=a';  b=b';  <a',b'> : A |] ==> <a,b> : A";
 by (simp_tac (term_ss addsimps prems) 1);
-val ssubst_pair = result();
+qed "ssubst_pair";
 
 (***)
 
@@ -42,7 +42,7 @@ fun mk_genIs thy defs genXH gen_mono s = prove_goalw thy defs s
 
 goal Term.thy "<a,a> : PO";
 by (rtac (po_refl RS (XH_to_D PO_iff)) 1);
-val PO_refl = result();
+qed "PO_refl";
 
 val POgenIs = map (mk_genIs Term.thy data_defs POgenXH POgen_mono)
       ["<true,true> : POgen(R)",
@@ -72,7 +72,7 @@ fun POgen_tac (rla,rlb) i =
 
 goal Term.thy "<a,a> : EQ";
 by (rtac (refl RS (EQ_iff RS iffD1)) 1);
-val EQ_refl = result();
+qed "EQ_refl";
 
 val EQgenIs = map (mk_genIs Term.thy data_defs EQgenXH EQgen_mono)
 ["<true,true> : EQgen(R)",

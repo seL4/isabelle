@@ -17,7 +17,7 @@ val ind_data_defs = [zero_def,succ_def,nil_def,cons_def];
 
 goal Set.thy "A <= B <-> (ALL x.x:A --> x:B)";
 by (fast_tac set_cs 1);
-val subsetXH = result();
+qed "subsetXH";
 
 (*** Exhaustion Rules ***)
 
@@ -99,22 +99,22 @@ val SubtypeD2 = standard ((SubtypeXH RS iffD1) RS conjunct2);
 val prems = goal Type.thy
      "[| a:A;  P(a) |] ==> a : {x:A. P(x)}";
 by (REPEAT (resolve_tac (prems@[SubtypeXH RS iffD2,conjI]) 1));
-val SubtypeI = result();
+qed "SubtypeI";
 
 val prems = goal Type.thy
      "[| a : {x:A. P(x)};  [| a:A;  P(a) |] ==> Q |] ==> Q";
 by (REPEAT (resolve_tac (prems@[SubtypeD1,SubtypeD2]) 1));
-val SubtypeE = result();
+qed "SubtypeE";
 
 (*** Monotonicity ***)
 
 goal Type.thy "mono (%X.X)";
 by (REPEAT (ares_tac [monoI] 1));
-val idM = result();
+qed "idM";
 
 goal Type.thy "mono(%X.A)";
 by (REPEAT (ares_tac [monoI,subset_refl] 1));
-val constM = result();
+qed "constM";
 
 val major::prems = goal Type.thy
     "mono(%X.A(X)) ==> mono(%X.[A(X)])";
@@ -125,7 +125,7 @@ by (etac (disjI1 RS (LiftXH RS iffD2)) 1);
 by (rtac (disjI2 RS (LiftXH RS iffD2)) 1);
 by (etac (major RS monoD RS subsetD) 1);
 by (assume_tac 1);
-val LiftM = result();
+qed "LiftM";
 
 val prems = goal Type.thy
     "[| mono(%X.A(X)); !!x X. x:A(X) ==> mono(%X.B(X,x)) |] ==> \
@@ -134,7 +134,7 @@ by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
             eresolve_tac ([bspec,exE,conjE,disjE,bexE] @ case_rls) 1 ORELSE
             (resolve_tac (prems RL [monoD RS subsetD]) 1 THEN assume_tac 1) ORELSE
             hyp_subst_tac 1));
-val SgM = result();
+qed "SgM";
 
 val prems = goal Type.thy
     "[| !!x. x:A ==> mono(%X.B(X,x)) |] ==> mono(%X.Pi(A,B(X)))";
@@ -142,7 +142,7 @@ by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
             eresolve_tac ([bspec,exE,conjE,disjE,bexE] @ case_rls) 1 ORELSE
             (resolve_tac (prems RL [monoD RS subsetD]) 1 THEN assume_tac 1) ORELSE
             hyp_subst_tac 1));
-val PiM = result();
+qed "PiM";
 
 val prems = goal Type.thy
      "[| mono(%X.A(X));  mono(%X.B(X)) |] ==> mono(%X.A(X)+B(X))";
@@ -150,7 +150,7 @@ by (REPEAT (ares_tac ([subsetI RS monoI] @ canTs) 1 ORELSE
             eresolve_tac ([bspec,exE,conjE,disjE,bexE] @ case_rls) 1 ORELSE
             (resolve_tac (prems RL [monoD RS subsetD]) 1 THEN assume_tac 1) ORELSE
             hyp_subst_tac 1));
-val PlusM = result();
+qed "PlusM";
 
 (**************** RECURSIVE TYPES ******************)
 
@@ -158,19 +158,19 @@ val PlusM = result();
 
 goal Type.thy "mono(%X.Unit+X)";
 by (REPEAT (ares_tac [PlusM,constM,idM] 1));
-val NatM = result();
-val def_NatB = result() RS (Nat_def RS def_lfp_Tarski);
+qed "NatM";
+val def_NatB = store_thm("def_NatB", result() RS (Nat_def RS def_lfp_Tarski));
 
 goal Type.thy "mono(%X.(Unit+Sigma(A,%y.X)))";
 by (REPEAT (ares_tac [PlusM,SgM,constM,idM] 1));
-val ListM = result();
-val def_ListB = result() RS (List_def RS def_lfp_Tarski);
-val def_ListsB = result() RS (Lists_def RS def_gfp_Tarski);
+qed "ListM";
+val def_ListB = store_thm("def_ListB", result() RS (List_def RS def_lfp_Tarski));
+val def_ListsB = store_thm("def_ListsB", result() RS (Lists_def RS def_gfp_Tarski));
 
 goal Type.thy "mono(%X.({} + Sigma(A,%y.X)))";
 by (REPEAT (ares_tac [PlusM,SgM,constM,idM] 1));
-val IListsM = result();
-val def_IListsB = result() RS (ILists_def RS def_gfp_Tarski);
+qed "IListsM";
+val def_IListsB = store_thm("def_IListsB", result() RS (ILists_def RS def_gfp_Tarski));
 
 val ind_type_eqs = [def_NatB,def_ListB,def_ListsB,def_IListsB];
 
@@ -264,7 +264,7 @@ val [major,minor] = goal Type.thy
 by (rtac (major RS (XH_to_E SgXH)) 1);
 by (rtac minor 1);
 by (ALLGOALS (fast_tac term_cs));
-val SgE2 = result();
+qed "SgE2";
 
 (* General theorem proving ignores non-canonical term-formers,             *)
 (*         - intro rules are type rules for canonical terms                *)
@@ -280,7 +280,7 @@ val [mono] = goal Type.thy "mono(f) ==> lfp(f) <= gfp(f)";
 by (rtac (lfp_lowerbound RS subset_trans) 1);
 by (rtac (mono RS gfp_lemma3) 1);
 by (rtac subset_refl 1);
-val lfp_subset_gfp = result();
+qed "lfp_subset_gfp";
 
 val prems = goal Type.thy
     "[| a:A;  !!x X.[| x:A;  ALL y:A.t(y):X |] ==> t(x) : B(X) |] ==> \
@@ -288,14 +288,14 @@ val prems = goal Type.thy
 by (rtac coinduct 1);
 by (res_inst_tac [("P","%x.EX y:A.x=t(y)")] CollectI 1);
 by (ALLGOALS (fast_tac (ccl_cs addSIs prems)));
-val gfpI = result();
+qed "gfpI";
 
 val rew::prem::prems = goal Type.thy
     "[| C==gfp(B);  a:A;  !!x X.[| x:A;  ALL y:A.t(y):X |] ==> t(x) : B(X) |] ==> \
 \    t(a) : C";
 by (rewtac rew);
 by (REPEAT (ares_tac ((prem RS gfpI)::prems) 1));
-val def_gfpI = result();
+qed "def_gfpI";
 
 (* EG *)
 

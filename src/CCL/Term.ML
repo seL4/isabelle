@@ -24,34 +24,34 @@ val genrec_defs = [letrec_def,letrec2_def,letrec3_def];
 goalw Term.thy [let_def] "~ t=bot--> let x be t in f(x) = f(t)";
 by (res_inst_tac [("t","t")] term_case 1);
 by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])));
-val letB = result() RS mp;
+val letB = store_thm("letB", result() RS mp);
 
 goalw Term.thy [let_def] "let x be bot in f(x) = bot";
 by (rtac caseBbot 1);
-val letBabot = result();
+qed "letBabot";
 
 goalw Term.thy [let_def] "let x be t in bot = bot";
 by (resolve_tac ([caseBbot] RL [term_case]) 1);
 by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])));
-val letBbbot = result();
+qed "letBbbot";
 
 goalw Term.thy [apply_def] "(lam x.b(x)) ` a = b(a)";
 by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])));
-val applyB = result();
+qed "applyB";
 
 goalw Term.thy [apply_def] "bot ` a = bot";
 by (rtac caseBbot 1);
-val applyBbot = result();
+qed "applyBbot";
 
 goalw Term.thy [fix_def] "fix(f) = f(fix(f))";
 by (resolve_tac [applyB RS ssubst] 1 THEN rtac refl 1);
-val fixB = result();
+qed "fixB";
 
 goalw Term.thy [letrec_def]
       "letrec g x be h(x,g) in g(a) = h(a,%y.letrec g x be h(x,g) in g(y))";
 by (resolve_tac [fixB RS ssubst] 1 THEN 
     resolve_tac [applyB RS ssubst] 1 THEN rtac refl 1);
-val letrecB = result();
+qed "letrecB";
 
 val rawBs = caseBs @ [applyB,applyBbot];
 
