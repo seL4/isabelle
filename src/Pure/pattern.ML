@@ -12,11 +12,14 @@ In Proceedings of the 8th IEEE Symposium Logic in Computer Science, 1993.
 TODO: optimize red by special-casing it
 *)
 
+infix aeconv;
+
 signature PATTERN =
   sig
   type type_sig
   type sg
   type env
+  val aeconv            : term * term -> bool
   val eta_contract      : term -> term
   val eta_contract_atom : term -> term
   val match             : type_sig -> term * term
@@ -289,16 +292,14 @@ fun match_bind(itms,binders,ixn,is,t) =
 
 (*Tests whether 2 terms are alpha/eta-convertible and have same type.
   Note that Consts and Vars may have more than one type.*)
-infix aeconv;
-fun (Const(a,T)) aeconv (Const(b,U)) = a=b  andalso  T=U
-  | (Free(a,T))  aeconv (Free(b,U))  = a=b  andalso  T=U
-  | (Var(v,T))   aeconv (Var(w,U))   = v=w  andalso  T=U
-  | (Bound i)    aeconv (Bound j)    = i=j
-  | (Abs(_,T,t)) aeconv (Abs(_,U,u)) = (t aeconv u)  andalso  T=U
-  | (Abs(_,T,t)) aeconv u            = t aeconv ((incr u)$Bound(0))
-  | t            aeconv (Abs(_,U,u)) = ((incr t)$Bound(0)) aeconv u
-  | (f$t)        aeconv (g$u)        = (f aeconv g)  andalso (t aeconv u)
-  | _ aeconv _                       =  false;
+fun t aeconv u = aconv_aux (eta_contract_atom t, eta_contract_atom u)
+and aconv_aux (Const(a,T), Const(b,U)) = a=b  andalso  T=U
+  | aconv_aux (Free(a,T),  Free(b,U))  = a=b  andalso  T=U
+  | aconv_aux (Var(v,T),   Var(w,U))   = eq_ix(v,w) andalso  T=U
+  | aconv_aux (Bound i,	   Bound j)    = i=j
+  | aconv_aux (Abs(_,T,t), Abs(_,U,u)) = (t aeconv u)  andalso  T=U
+  | aconv_aux (f$t,	   g$u)        = (f aeconv g)  andalso (t aeconv u)
+  | aconv_aux _ =  false;
 
 
 fun match tsg (po as (pat,obj)) =
