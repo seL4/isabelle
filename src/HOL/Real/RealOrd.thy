@@ -163,9 +163,6 @@ apply (drule real_mult_order, assumption)
 apply (simp add: real_add_mult_distrib2)
 done
 
-(** For the cancellation simproc.
-    The idea is to cancel like terms on opposite sides by subtraction **)
-
 lemma real_less_sum_gt_0_iff: "(0 < S + (-W::real)) = (W < S)"
 by (blast intro: real_less_sum_gt_zero real_sum_gt_zero_less)
 
@@ -321,16 +318,16 @@ lemma real_le_add_right_cancel: "!!(A::real). A + C \<le> B + C ==> A \<le> B"
 lemma real_le_add_left_cancel: "!!(A::real). C + A \<le> C + B ==> A \<le> B"
   by (rule (*Ring_and_Field.*)add_le_imp_le_left)
 
-lemma real_add_right_cancel_less [simp]: "(v+z < w+z) = (v < (w::real))"
+lemma real_add_right_cancel_less: "(v+z < w+z) = (v < (w::real))"
   by (rule Ring_and_Field.add_less_cancel_right)
 
-lemma real_add_left_cancel_less [simp]: "(z+v < z+w) = (v < (w::real))"
+lemma real_add_left_cancel_less: "(z+v < z+w) = (v < (w::real))"
   by (rule Ring_and_Field.add_less_cancel_left)
 
-lemma real_add_right_cancel_le [simp]: "(v+z \<le> w+z) = (v \<le> (w::real))"
+lemma real_add_right_cancel_le: "(v+z \<le> w+z) = (v \<le> (w::real))"
   by (rule Ring_and_Field.add_le_cancel_right)
 
-lemma real_add_left_cancel_le [simp]: "(z+v \<le> z+w) = (v \<le> (w::real))"
+lemma real_add_left_cancel_le: "(z+v \<le> z+w) = (v \<le> (w::real))"
   by (rule Ring_and_Field.add_le_cancel_left)
 
 
@@ -778,7 +775,6 @@ val real_minus_zero_less_iff2 = thm"real_minus_zero_less_iff2";
 val real_less_add_positive_left_Ex = thm"real_less_add_positive_left_Ex";
 val real_less_sum_gt_zero = thm"real_less_sum_gt_zero";
 val real_sum_gt_zero_less = thm"real_sum_gt_zero_less";
-val real_less_sum_gt_0_iff = thm"real_less_sum_gt_0_iff";
 
 val real_gt_zero_preal_Ex = thm "real_gt_zero_preal_Ex";
 val real_gt_preal_preal_Ex = thm "real_gt_preal_preal_Ex";
