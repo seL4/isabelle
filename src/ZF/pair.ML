@@ -186,6 +186,3 @@ qed "splitE";
 Goalw [split_def] "split(R,<a,b>) ==> R(a,b)";
 by (Full_simp_tac 1);
 qed "splitD";
-
-
-

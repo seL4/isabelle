@@ -536,7 +536,9 @@ by (forward_tac [ord_iso_is_bij RS bij_is_fun RS apply_type] 1  THEN
 by (ftac ord_iso_restrict_pred 1  THEN
     REPEAT1 (eresolve_tac [asm_rl, predI] 1));
 by (asm_full_simp_tac
-    (simpset() addsimps [well_ord_is_trans_on, trans_pred_pred_eq]) 1);
+    (simpset() addsplits [split_if_asm]
+	       addsimps [well_ord_is_trans_on, trans_pred_pred_eq,
+                         domain_UN, domain_Union]) 1);
 by (Blast_tac 1);
 qed "domain_ord_iso_map_subset";
 

@@ -42,18 +42,35 @@ qed "Int_cons";
 Goal "A Int A = A";
 by (Blast_tac 1);
 qed "Int_absorb";
+Addsimps [Int_absorb];
+
+Goal "A Int (A Int B) = A Int B";
+by (Blast_tac 1);
+qed "Int_left_absorb";
 
 Goal "A Int B = B Int A";
 by (Blast_tac 1);
 qed "Int_commute";
 
+Goal "A Int (B Int C) = B Int (A Int C)";
+by (Blast_tac 1);
+qed "Int_left_commute";
+
 Goal "(A Int B) Int C  =  A Int (B Int C)";
 by (Blast_tac 1);
 qed "Int_assoc";
 
-Goal "(A Un B) Int C  =  (A Int C) Un (B Int C)";
+(*Intersection is an AC-operator*)
+bind_thms ("Int_ac", 
+           [Int_assoc, Int_left_absorb, Int_commute, Int_left_commute]);
+
+Goal "A Int (B Un C) = (A Int B) Un (A Int C)";
 by (Blast_tac 1);
 qed "Int_Un_distrib";
+
+Goal "(B Un C) Int A = (B Int A) Un (C Int A)";
+by (Blast_tac 1);
+qed "Int_Un_distrib2";
 
 Goal "A<=B <-> A Int B = A";
 by (blast_tac (claset() addSEs [equalityE]) 1);
@@ -76,14 +93,26 @@ qed "Un_cons";
 Goal "A Un A = A";
 by (Blast_tac 1);
 qed "Un_absorb";
+Addsimps [Un_absorb];
+
+Goal "A Un (A Un B) = A Un B";
+by (Blast_tac 1);
+qed "Un_left_absorb";
 
 Goal "A Un B = B Un A";
 by (Blast_tac 1);
 qed "Un_commute";
 
+Goal "A Un (B Un C) = B Un (A Un C)";
+by (Blast_tac 1);
+qed "Un_left_commute";
+
 Goal "(A Un B) Un C  =  A Un (B Un C)";
 by (Blast_tac 1);
 qed "Un_assoc";
+
+(*Union is an AC-operator*)
+bind_thms ("Un_ac", [Un_assoc, Un_left_absorb, Un_commute, Un_left_commute]);
 
 Goal "(A Int B) Un C  =  (A Un C) Int (B Un C)";
 by (Blast_tac 1);
@@ -97,19 +126,34 @@ Goal "A<=B <-> B Un A = B";
 by (blast_tac (claset() addSEs [equalityE]) 1);
 qed "subset_Un_iff2";
 
+Goal "(A Un B = 0) <-> (A = 0 & B = 0)";
+by (Blast_tac 1); 
+qed "Un_empty";
+AddIffs[Un_empty];
+
+Goal "A Un B = Union({A, B})";
+by (Blast_tac 1);
+qed "Un_eq_Union";
+
 (** Simple properties of Diff -- set difference **)
 
 Goal "A - A = 0";
 by (Blast_tac 1);
 qed "Diff_cancel";
 
+Goal "A  Int B = 0 ==> A - B = A";
+by (Blast_tac 1);
+qed "Diff_triv";
+
 Goal "0 - A = 0";
 by (Blast_tac 1);
 qed "empty_Diff";
+Addsimps[empty_Diff];
 
 Goal "A - 0 = A";
 by (Blast_tac 1);
 qed "Diff_0";
+Addsimps[Diff_0];
 
 Goal "A - B = 0 <-> A <= B";
 by (blast_tac (claset() addEs [equalityE]) 1);
@@ -158,6 +202,22 @@ Goal "A - (B Int C) = (A-B) Un (A-C)";
 by (Blast_tac 1);
 qed "Diff_Int";
 
+Goal "(A Un B) - C = (A - C) Un (B - C)";
+by (Blast_tac 1);
+qed "Un_Diff";
+
+Goal "(A Int B) - C = A Int (B - C)";
+by (Blast_tac 1);
+qed "Int_Diff";
+
+Goal "C Int (A-B) = (C Int A) - (C Int B)";
+by (Blast_tac 1);
+qed "Diff_Int_distrib";
+
+Goal "(A-B) Int C = (A Int C) - (B Int C)";
+by (Blast_tac 1);
+qed "Diff_Int_distrib2";
+
 (*Halmos, Naive Set Theory, page 16.*)
 Goal "(A Int B) Un C = A Int (B Un C)  <->  C<=A";
 by (blast_tac (claset() addSEs [equalityE]) 1);
@@ -169,6 +229,7 @@ qed "Un_Int_assoc_iff";
 Goal "Union(cons(a,B)) = a Un Union(B)";
 by (Blast_tac 1);
 qed "Union_cons";
+Addsimps [Union_cons];
 
 Goal "Union(A Un B) = Union(A) Un Union(B)";
 by (Blast_tac 1);
@@ -207,6 +268,12 @@ Goal "Inter({b}) = b";
 by (Blast_tac 1);
 qed "Inter_singleton";
 
+Goal "Inter(cons(a,B)) = (if B=0 then a else a Int Inter(B))"; 
+by (Simp_tac 1);
+by (Blast_tac 1); 
+qed "Inter_cons";
+Addsimps [Inter_cons];
+
 (** Unions and Intersections of Families **)
 
 Goal "Union(A) = (UN x:A. x)";
@@ -220,6 +287,26 @@ qed "Inter_eq_INT";
 Goal "(UN i:0. A(i)) = 0";
 by (Blast_tac 1);
 qed "UN_0";
+Addsimps [UN_0];
+
+Goal "(UN x:A. {x}) = A";
+by (Blast_tac 1);
+qed "UN_singleton";
+
+Goal "(UN i: A Un B. C(i)) = (UN i: A. C(i)) Un (UN i:B. C(i))";
+by (Blast_tac 1);
+qed "UN_Un";
+
+Goal "(INT i:I Un J. A(i)) = (if I=0 then INT j:J. A(j) \
+\                             else if J=0 then INT i:I. A(i) \
+\                             else ((INT i:I. A(i)) Int  (INT j:J. A(j))))"; 
+by Auto_tac;
+by (blast_tac (claset() addSIs [equalityI]) 1);
+qed "INT_Un";
+
+Goal "(UN x : (UN y:A. B(y)). C(x)) = (UN y:A. UN x: B(y). C(x))";
+by (Blast_tac 1);
+qed "UN_UN_flatten";
 
 (*Halmos, Naive Set Theory, page 35.*)
 Goal "B Int (UN i:I. A(i)) = (UN i:I. B Int A(i))";
@@ -250,12 +337,29 @@ qed "INT_constant";
 Goal "(UN y: RepFun(A,f). B(y)) = (UN x:A. B(f(x)))";
 by (Blast_tac 1);
 qed "UN_RepFun";
+Addsimps [UN_RepFun];
 
-Goal "x:A ==> (INT y: RepFun(A,f). B(y)) = (INT x:A. B(f(x)))";
-by (Blast_tac 1);
+Goal "(INT x:RepFun(A,f). B(x))    = (INT a:A. B(f(a)))";
+by (auto_tac (claset(), simpset() addsimps [Inter_def])); 
 qed "INT_RepFun";
+Addsimps [INT_RepFun];
 
-Addsimps [UN_RepFun, INT_RepFun];
+Goal "0 ~: A ==> (INT x: Union(A). B(x)) = (INT y:A. INT x:y. B(x))";
+by (asm_full_simp_tac (simpset() addsimps [Inter_def]) 1); 
+by (subgoal_tac "ALL x:A. x~=0" 1);
+by (Blast_tac 2);
+by (rtac equalityI 1);   
+by (Clarify_tac 1); 
+by (blast_tac (claset() addIs []) 1); 
+by (blast_tac (claset() addSDs [bspec]) 1);   
+qed "INT_Union_eq";
+
+Goal "(ALL x:A. B(x) ~= 0) \
+\     ==> (INT z: (UN x:A. B(x)). C(z)) = (INT x:A. INT z: B(x). C(z))";
+by (stac INT_Union_eq 1);  
+by (Blast_tac 1);
+by (simp_tac (simpset() addsimps [Inter_def]) 1); 
+qed "INT_UN_eq";
 
 
 (** Devlin, Fundamentals of Contemporary Set Theory, page 12, exercise 5: 
@@ -351,14 +455,17 @@ qed "domain_of_prod";
 Goal "domain(0) = 0";
 by (Blast_tac 1);
 qed "domain_0";
+Addsimps [domain_0];
 
 Goal "domain(cons(<a,b>,r)) = cons(a, domain(r))";
 by (Blast_tac 1);
 qed "domain_cons";
+Addsimps [domain_cons];
 
 Goal "domain(A Un B) = domain(A) Un domain(B)";
 by (Blast_tac 1);
 qed "domain_Un_eq";
+Addsimps [domain_Un_eq];
 
 Goal "domain(A Int B) <= domain(A) Int domain(B)";
 by (Blast_tac 1);
@@ -371,8 +478,15 @@ qed "domain_Diff_subset";
 Goal "domain(converse(r)) = range(r)";
 by (Blast_tac 1);
 qed "domain_converse";
+Addsimps [domain_converse];
 
-Addsimps [domain_0, domain_cons, domain_Un_eq, domain_converse];
+Goal "domain(UN x:A. B(x)) = (UN x:A. domain(B(x)))";
+by (Blast_tac 1); 
+qed "domain_UN";
+
+Goal "domain(Union(A)) = (UN x:A. domain(x))";
+by (Blast_tac 1); 
+qed "domain_Union";
 
 
 (** Range **)
@@ -486,14 +600,21 @@ qed "image_Int_subset_left";
 Goal "r-``0 = 0";
 by (Blast_tac 1);
 qed "vimage_0";
+Addsimps [vimage_0];
 
 Goal "r-``(A Un B) = (r-``A) Un (r-``B)";
 by (Blast_tac 1);
 qed "vimage_Un";
+Addsimps [vimage_Un];
 
 Goal "r-``(A Int B) <= (r-``A) Int (r-``B)";
 by (Blast_tac 1);
 qed "vimage_Int_subset";
+
+(*NOT suitable for rewriting*)
+Goal "f -``B = (UN y:B. f-``{y})";
+by (Blast_tac 1);
+qed "vimage_eq_UN";
 
 Goalw [function_def] "function(f) ==> f-``(A Int B) = (f-``A)  Int  (f-``B)";
 by (Blast_tac 1);
@@ -515,7 +636,6 @@ Goal "B<=A ==> (r Int A*A)-``B = (r-``B) Int A";
 by (Blast_tac 1);
 qed "vimage_Int_square";
 
-Addsimps [vimage_0, vimage_Un];
 
 
 (*Invese image laws for special relations*)
@@ -603,6 +723,13 @@ Addsimps [Pow_0, Union_Pow_eq, Pow_Int_eq];
 Goal "{f(x).x:A}=0 <-> A=0";
 by (Blast_tac 1);
 qed "RepFun_eq_0_iff";
+Addsimps [RepFun_eq_0_iff];
+
+Goal "{c. x:A} = (if A=0 then 0 else {c})";
+by Auto_tac; 
+by (Blast_tac 1);
+qed "RepFun_constant";
+Addsimps [RepFun_constant];
 
 (** Collect **)
 
@@ -623,4 +750,3 @@ Goal "{x:cons(a,B). P(x)} = \
 by (simp_tac (simpset() addsplits [split_if]) 1);
 by (Blast_tac 1);
 qed "Collect_cons";
-

@@ -446,4 +446,3 @@ by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [restrict, fun_extend_apply1, 
                                       fun_extend_apply2])));
 qed "cons_fun_eq";
-

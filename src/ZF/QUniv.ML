@@ -14,7 +14,7 @@ by (blast_tac (claset() addDs [Transset_includes_range]) 1);
 qed "Transset_includes_summands";
 
 Goalw [sum_def] "Transset(C) ==> (A+B) Int C <= (A Int C) + (B Int C)";
-by (stac Int_Un_distrib 1);
+by (stac Int_Un_distrib2 1);
 by (blast_tac (claset() addDs [Transset_Pair_D]) 1);
 qed "Transset_sum_Int_subset";
 
@@ -160,7 +160,7 @@ bind_thm ("bool_into_quniv", bool_subset_quniv RS subsetD);
 Goalw [QPair_def,sum_def]
  "Transset(X) ==>          \
 \      <a;b> Int Vfrom(X, succ(i))  <=  <a Int Vfrom(X,i);  b Int Vfrom(X,i)>";
-by (stac Int_Un_distrib 1);
+by (stac Int_Un_distrib2 1);
 by (rtac Un_mono 1);
 by (REPEAT (ares_tac [product_Int_Vfrom_subset RS subset_trans,
                       [Int_lower1, subset_refl] MRS Sigma_mono] 1));
@@ -190,6 +190,7 @@ by (rtac (Transset_0 RS QPair_Int_Vfrom_succ_subset RS subset_trans) 1);
 by (rtac (succI1 RS UN_upper) 1);
 (*Limit(i) case*)
 by (asm_simp_tac
-    (simpset() addsimps [Limit_Vfrom_eq, Int_UN_distrib, 
+    (simpset() delsimps UN_simps
+	       addsimps [Limit_Vfrom_eq, Int_UN_distrib, 
 			 UN_mono, QPair_Int_Vset_subset_trans]) 1);
 qed "QPair_Int_Vset_subset_UN";
