@@ -534,8 +534,10 @@ by (subgoal_tac
 by (rewrite_goals_tac [project_set_def, extend_set_def, project_act_def]);
 (*using Int_greatest actually slows the next step!*)
 by (Blast_tac 2);
-by (force_tac (claset(), 
-	      simpset() addsimps [split_extended_all]) 1);
+by (rtac ccontr 1);
+by (dtac subsetD 1);
+by (Blast_tac 1);  
+by (force_tac (claset(), simpset() addsimps [split_extended_all]) 1);
 qed "stable_project_transient";
 
 
