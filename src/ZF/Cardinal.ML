@@ -567,29 +567,31 @@ qed "inj_disjoint_eqpoll";
 (*** Lemmas by Krzysztof Grabczewski.  New proofs using cons_lepoll_cons.
      Could easily generalise from succ to cons. ***)
 
+(*If A has at most n+1 elements and a:A then A-{a} has at most n.*)
 goalw Cardinal.thy [succ_def]
       "!!A a n. [| a:A;  A lepoll succ(n) |] ==> A - {a} lepoll n";
 by (rtac cons_lepoll_consD 1);
 by (rtac mem_not_refl 3);
 by (eresolve_tac [cons_Diff RS ssubst] 1);
 by (safe_tac ZF_cs);
-qed "diff_sing_lepoll";
+qed "Diff_sing_lepoll";
 
+(*If A has at least n+1 elements then A-{a} has at least n.*)
 goalw Cardinal.thy [succ_def]
-      "!!A a n. [| a:A; succ(n) lepoll A |] ==> n lepoll A - {a}";
+      "!!A a n. [| succ(n) lepoll A |] ==> n lepoll A - {a}";
 by (rtac cons_lepoll_consD 1);
 by (rtac mem_not_refl 2);
-by (eresolve_tac [cons_Diff RS ssubst] 1);
-by (safe_tac ZF_cs);
-qed "lepoll_diff_sing";
+by (fast_tac ZF_cs 2);
+by (fast_tac (ZF_cs addSEs [subset_imp_lepoll RSN (2, lepoll_trans)]) 1);
+qed "lepoll_Diff_sing";
 
 goal Cardinal.thy "!!A a n. [| a:A; A eqpoll succ(n) |] ==> A - {a} eqpoll n";
 by (fast_tac (ZF_cs addSIs [eqpollI] addSEs [eqpollE] 
-                    addIs [diff_sing_lepoll,lepoll_diff_sing]) 1);
-qed "diff_sing_eqpoll";
+                    addIs [Diff_sing_lepoll,lepoll_Diff_sing]) 1);
+qed "Diff_sing_eqpoll";
 
 goal Cardinal.thy "!!A. [| A lepoll 1; a:A |] ==> A = {a}";
-by (forward_tac [diff_sing_lepoll] 1);
+by (forward_tac [Diff_sing_lepoll] 1);
 by (assume_tac 1);
 by (dtac lepoll_0_is_0 1);
 by (fast_tac (eq_cs addEs [equalityE]) 1);
