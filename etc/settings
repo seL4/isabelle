@@ -1,4 +1,4 @@
-#
+# -*- shell-script -*-
 # $Id$
 # Author: Markus Wenzel, TU Muenchen
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
@@ -31,7 +31,7 @@ else
     "/usr/local/polyml" \
     "/opt/polyml")
   ML_SYSTEM=$("$POLYML_HOME/bin/polyml-version" 2>/dev/null || echo polyml)
-  ML_PLATFORM=$("$POLYML_HOME/bin/polyml-platform" 2>/dev/null || echo platform)
+  ML_PLATFORM=$("$POLYML_HOME/bin/polyml-platform" 2>/dev/null || echo unknown-platform)
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-h 30000"
 fi
