@@ -686,3 +686,13 @@ by Auto_tac;
 qed "psubset_insertD";
 
 bind_thm ("psubset_eq", psubset_def RS meta_eq_to_obj_eq);
+
+bind_thm ("psubset_imp_subset", psubset_eq RS iffD1 RS conjunct1);
+
+Goal"[| (A::'a set) < B; B <= C |] ==> A < C";
+by (auto_tac (claset(), simpset() addsimps [psubset_eq]));
+qed "psubset_subset_trans";
+
+Goal"[| (A::'a set) <= B; B < C|] ==> A < C";
+by (auto_tac (claset(), simpset() addsimps [psubset_eq]));
+qed "subset_psubset_trans";
