@@ -13,11 +13,12 @@ sig
   val judgment_name: Sign.sg -> string
   val is_judgment: Sign.sg -> term -> bool
   val drop_judgment: Sign.sg -> term -> term
-  val assert_judgment: Sign.sg -> term -> term
   val fixed_judgment: Sign.sg -> string -> term
+  val assert_propT: Sign.sg -> term -> term
   val declare_atomize: theory attribute
   val declare_rulify: theory attribute
   val atomize_term: Sign.sg -> term -> term
+  val atomize_rule: Sign.sg -> cterm -> thm
   val atomize_tac: int -> tactic
   val full_atomize_tac: int -> tactic
   val atomize_goal: int -> thm -> thm
@@ -96,11 +97,6 @@ fun drop_judgment sg (Abs (x, T, t)) = Abs (x, T, drop_judgment sg t)
       if (c = judgment_name sg handle TERM _ => false) then t else tm
   | drop_judgment _ tm = tm;
 
-fun assert_judgment sg (Abs (x, T, t)) = Abs (x, T, assert_judgment sg t)
-  | assert_judgment sg t =
-      if (is_judgment sg t handle TERM _ => true) then t
-      else Const (judgment_name sg, fastype_of t --> propT) $ t;
-
 fun fixed_judgment sg x =
   let  (*be robust wrt. low-level errors*)
     val c = judgment_name sg;
@@ -110,6 +106,10 @@ fun fixed_judgment sg x =
       |> Term.map_type_tvar (fn ((x, _), S) => TFree (x, S));
     val U = Term.domain_type T handle Match => aT;
   in Const (c, T) $ Free (x, U) end;
+
+fun assert_propT sg t =
+  let val T = Term.fastype_of t
+  in if T = propT then t else Const (judgment_name sg, T --> propT) $ t end;
 
 
 
@@ -136,6 +136,8 @@ fun rewrite_prems_tac rews i = PRIMITIVE (MetaSimplifier.fconv_rule
 
 fun atomize_term sg =
   drop_judgment sg o MetaSimplifier.rewrite_term sg (get_atomize sg) [];
+
+fun atomize_rule sg = Tactic.rewrite true (get_atomize sg);
 
 fun atomize_tac i st =
   if Logic.has_meta_prems (Thm.prop_of st) i then
