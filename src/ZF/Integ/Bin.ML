@@ -586,3 +586,34 @@ by (auto_tac (claset(),
 	      simpset() addsimps [lemma, nat_le_int0, not_zless_iff_zle])); 
 qed "zless_nat_conj";
 
+(*This simprule cannot be added unless we can find a way to make eq_integ_of_eq
+  unconditional!
+
+  (*The condition "True" is a hack to prevent looping.
+    Conditional rewrite rules are tried after unconditional ones, so a rule
+    like eq_nat_number_of will be tried first to eliminate #mm=#nn. *)
+  Goal "True ==> (integ_of(w) = x) <-> (x = integ_of(w))";
+  by Auto_tac;  
+  qed "integ_of_reorient";
+  Addsimps [integ_of_reorient];
+*)
+
+Goal "(integ_of(w) = $- x) <-> ($- x = integ_of(w))";
+by Auto_tac;  
+qed "integ_of_minus_reorient";
+Addsimps [integ_of_minus_reorient];
+
+Goal "(integ_of(w) = x $+ y) <-> (x $+ y = integ_of(w))";
+by Auto_tac;  
+qed "integ_of_add_reorient";
+Addsimps [integ_of_add_reorient];
+
+Goal "(integ_of(w) = x $- y) <-> (x $- y = integ_of(w))";
+by Auto_tac;  
+qed "integ_of_diff_reorient";
+Addsimps [integ_of_diff_reorient];
+
+Goal "(integ_of(w) = x $* y) <-> (x $* y = integ_of(w))";
+by Auto_tac;  
+qed "integ_of_mult_reorient";
+Addsimps [integ_of_mult_reorient];

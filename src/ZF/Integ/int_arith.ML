@@ -185,6 +185,18 @@ val zminus_simps = NCons_simps @
 (*To let us treat subtraction as addition*)
 val diff_simps = [zdiff_def, zminus_zadd_distrib, zminus_zminus];
 
+(*push the unary minus down: - x * y = x * - y *)
+val int_minus_mult_eq_1_to_2 = 
+    [zmult_zminus, zmult_zminus_right RS sym] MRS trans |> standard;
+
+(*to extract again any uncancelled minuses*)
+val int_minus_from_mult_simps = 
+    [zminus_zminus, zmult_zminus, zmult_zminus_right];
+
+(*combine unary minus with numeric literals, however nested within a product*)
+val int_mult_minus_simps =
+    [zmult_assoc, zmult_zminus RS sym, int_minus_mult_eq_1_to_2];
+
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
 fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context ()))
                       (s, TypeInfer.anyT ["logic"]);
@@ -200,10 +212,12 @@ structure CancelNumeralsCommon =
   val trans_tac		= ArithData.gen_trans_tac iff_trans
   val norm_tac_ss1 = ZF_ss addsimps add_0s@mult_1s@diff_simps@
                                     zminus_simps@zadd_ac
-  val norm_tac_ss2 = ZF_ss addsimps [zmult_zminus_right RS sym]@
-                                    bin_simps@zadd_ac@zmult_ac@tc_rules@intifys
+  val norm_tac_ss2 = ZF_ss addsimps bin_simps@int_mult_minus_simps@intifys
+  val norm_tac_ss3 = ZF_ss addsimps int_minus_from_mult_simps@
+                                    zadd_ac@zmult_ac@tc_rules@intifys
   val norm_tac		= ALLGOALS (asm_simp_tac norm_tac_ss1)
 			  THEN ALLGOALS (asm_simp_tac norm_tac_ss2)
+			  THEN ALLGOALS (asm_simp_tac norm_tac_ss3)
   val numeral_simp_tac	= 
          ALLGOALS (simp_tac (ZF_ss addsimps add_0s@bin_simps@tc_rules@intifys))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s@mult_1s)
@@ -271,10 +285,12 @@ structure CombineNumeralsData =
   val trans_tac         = ArithData.gen_trans_tac trans
   val norm_tac_ss1 = ZF_ss addsimps add_0s@mult_1s@diff_simps@
                                     zminus_simps@zadd_ac
-  val norm_tac_ss2 = ZF_ss addsimps [zmult_zminus_right RS sym]@
-                                    bin_simps@zadd_ac@zmult_ac@tc_rules@intifys
+  val norm_tac_ss2 = ZF_ss addsimps bin_simps@int_mult_minus_simps@intifys
+  val norm_tac_ss3 = ZF_ss addsimps int_minus_from_mult_simps@
+                                    zadd_ac@zmult_ac@tc_rules@intifys
   val norm_tac		= ALLGOALS (asm_simp_tac norm_tac_ss1)
 			  THEN ALLGOALS (asm_simp_tac norm_tac_ss2)
+			  THEN ALLGOALS (asm_simp_tac norm_tac_ss3)
   val numeral_simp_tac	= 
          ALLGOALS (simp_tac (ZF_ss addsimps add_0s@bin_simps@tc_rules@intifys))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s@mult_1s)
