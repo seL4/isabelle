@@ -102,12 +102,14 @@ sig
   val add_path: string -> sg -> sg
   val add_space: string * string list -> sg -> sg
   val add_name: string -> sg -> sg
-  val make_draft: sg -> sg
-  val print_data: sg -> unit
-  val init_data: string * exn * (exn * exn -> exn) * (string -> exn -> Pretty.T) -> sg -> sg
+  val init_data: string * exn * (exn -> exn) * (exn * exn -> exn) *
+    (string -> exn -> unit) -> sg -> sg
   val get_data: sg -> string -> exn
   val put_data: string * exn -> sg -> sg
+  val print_data: sg -> string -> unit
+  val prep_ext: sg -> sg
   val merge: sg * sg -> sg
+  val nontriv_merge: sg * sg -> sg
   val proto_pure: sg
   val pure: sg
   val cpure: sg
@@ -356,12 +358,13 @@ fun print_sg sg =
     fun pretty_const (c, ty) = Pretty.block
       [Pretty.str (quote c ^ " ::"), Pretty.brk 1, prt_typ ty];
 
-    val Sg {tsig, const_tab, syn = _, path, spaces, data = _, stamps} = sg;
+    val Sg {tsig, const_tab, syn = _, path, spaces, data, stamps} = sg;
     val spaces' = sort (fn ((k1, _), (k2, _)) => k1 < k2) spaces;
     val {classes, classrel, default, tycons, abbrs, arities} =
       Type.rep_tsig tsig;
   in
     Pretty.writeln (Pretty.strs ("stamps:" :: stamp_names stamps));
+    Pretty.writeln (Pretty.strs ("data:" :: Data.kinds data));
     Pretty.writeln (Pretty.strs ["name entry path:", NameSpace.pack path]);
     Pretty.writeln (Pretty.big_list "name spaces:" (map pretty_space spaces'));
     Pretty.writeln (pretty_classes classes);
@@ -799,26 +802,32 @@ val make_draft = add_name "#";
 
 (* additional signature data *)
 
-fun print_data (Sg {data, ...}) = Data.print data;
-fun get_data (Sg {data, ...}) = Data.get data;
-
 fun map_data f (Sg {tsig, const_tab, syn, path, spaces, data, stamps}) =
   make_sign (syn, tsig, const_tab, (path, spaces)) (f data) stamps "#";
 
-fun init_data (kind, e, mrg, prt) = map_data (fn d => Data.init d kind e mrg prt);
+fun init_data (kind, e, ext, mrg, prt) =
+  map_data (fn d => Data.init d kind e ext mrg prt);
+
+fun get_data (Sg {data, ...}) = Data.get data;
 fun put_data (kind, e) = map_data (fn d => Data.put d kind e);
+fun print_data (Sg {data, ...}) kind = Data.print data kind;
+
+(*prepare extension*)
+val prep_ext = map_data Data.prep_ext;
 
 
 
 (** merge signatures **)    (*exception TERM*)
 
-fun merge_aux (sg1, sg2) =
+fun merge_aux triv_only (sg1, sg2) =
   if fast_subsig (sg2, sg1) then sg1
   else if fast_subsig (sg1, sg2) then sg2
   else if subsig (sg2, sg1) then sg1
   else if subsig (sg1, sg2) then sg2
   else if is_draft sg1 orelse is_draft sg2 then
     raise TERM ("Illegal merge of draft signatures", [])
+  else if triv_only then
+    raise TERM ("Illegal non-trivial merge of signatures", [])
   else
     (*neither is union already; must form union*)
     let
@@ -855,10 +864,13 @@ fun merge_aux (sg1, sg2) =
         path = [], spaces = spaces, data = data, stamps = stamps}
     end;
 
-fun merge sgs =
-  (case handle_error merge_aux sgs of
+fun gen_merge triv sgs =
+  (case handle_error (merge_aux triv) sgs of
     OK sg => sg
   | Error msg => raise TERM (msg, []));
+
+val merge = gen_merge true;
+val nontriv_merge = gen_merge false;
 
 
 
