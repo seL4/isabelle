@@ -302,8 +302,8 @@ by (rtac zero_less_Suc 1);
 qed "neq0_conv";
 AddIffs [neq0_conv];
 
-
-bind_thm("gr0I", notI RS (neq0_conv RS iffD1));
+(*This theorem is useful with blast_tac: (n=0 ==> False) ==> 0<n *)
+bind_thm ("gr0I", [neq0_conv, notI] MRS iffD1);
 
 goal thy "(~(0 < n)) = (n=0)";
 by (rtac iffI 1);
@@ -544,6 +544,9 @@ qed "less_or_eq_imp_le";
 goal thy "(m <= (n::nat)) = (m < n | m=n)";
 by (REPEAT(ares_tac [iffI,less_or_eq_imp_le,le_imp_less_or_eq] 1));
 qed "le_eq_less_or_eq";
+
+(*Useful with Blast_tac.   m=n ==> m<=n *)
+bind_thm ("eq_imp_le", disjI2 RS less_or_eq_imp_le);
 
 goal thy "n <= (n::nat)";
 by (simp_tac (simpset() addsimps [le_eq_less_or_eq]) 1);
