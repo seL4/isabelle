@@ -169,9 +169,13 @@ val axiomsP =
   OuterSyntax.command "axioms" "state arbitrary propositions (axiomatic!)" K.thy_decl
     (Scan.repeat1 (P.spec_name -- P.marg_comment) >> (Toplevel.theory o IsarThy.add_axioms));
 
+val opt_overloaded =
+  Scan.optional (P.$$$ "(" |-- P.!!! ((P.$$$ "overloaded" >> K true) --| P.$$$ ")")) false;
+
 val defsP =
   OuterSyntax.command "defs" "define constants" K.thy_decl
-    (Scan.repeat1 (P.spec_name -- P.marg_comment) >> (Toplevel.theory o IsarThy.add_defs));
+    (opt_overloaded -- Scan.repeat1 (P.spec_name -- P.marg_comment)
+  >> (Toplevel.theory o IsarThy.add_defs));
 
 val constdefsP =
   OuterSyntax.command "constdefs" "declare and define constants" K.thy_decl
@@ -652,7 +656,7 @@ val welcomeP =
 val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "and", "binder", "concl",
-  "files", "in", "infixl", "infixr", "is", "output", "|"];
+  "files", "in", "infixl", "infixr", "is", "output", "overloaded", "|"];
 
 val parsers = [
   (*theory structure*)
