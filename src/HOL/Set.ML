@@ -263,7 +263,7 @@ qed_goal "equals0I" Set.thy "[| !!y. y:A ==> False |] ==> A={}"
 qed_goal "equals0E" Set.thy "!!a. [| A={};  a:A |] ==> P"
  (fn _ => [ (Blast_tac 1) ]);
 
-AddEs [equals0E];
+AddEs [equals0E, sym RS equals0E];
 
 Goalw [Ball_def] "Ball {} P = True";
 by (Simp_tac 1);
