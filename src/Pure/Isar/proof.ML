@@ -573,11 +573,11 @@ fun from_facts facts state =
 
 fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
   let
-    val (state', [prop]) =
+    val (state', prop) =
       state
       |> assert_forward_or_chain
       |> enter_forward
-      |> map_context_result (prepp [raw_propp]);
+      |> map_context_result (prepp raw_propp);
     val cprop = Thm.cterm_of (sign_of state') prop;
     val goal = Drule.mk_triv_goal cprop;
   in
@@ -593,22 +593,24 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
 
 (*global goals*)
 fun global_goal prep kind name atts x thy =
-  setup_goal I (prep false) kind Seq.single name atts x (init_state thy);
+  setup_goal I prep kind Seq.single name atts x (init_state thy);
 
-val theorem = global_goal ProofContext.bind_propps Theorem;
-val theorem_i = global_goal ProofContext.bind_propps_i Theorem;
-val lemma = global_goal ProofContext.bind_propps Lemma;
-val lemma_i = global_goal ProofContext.bind_propps_i Lemma;
+val theorem = global_goal ProofContext.bind_propp Theorem;
+val theorem_i = global_goal ProofContext.bind_propp_i Theorem;
+val lemma = global_goal ProofContext.bind_propp Lemma;
+val lemma_i = global_goal ProofContext.bind_propp_i Lemma;
 
 
 (*local goals*)
-fun local_goal prep kind f name atts x =
-  setup_goal open_block (prep true) kind f name atts x;
+fun local_goal prep kind f name atts args state =
+  state
+  |> setup_goal open_block prep kind f name atts args
+  |> warn_extra_tfrees state;
 
-val show   = local_goal ProofContext.bind_propps Goal;
-val show_i = local_goal ProofContext.bind_propps_i Goal;
-val have   = local_goal ProofContext.bind_propps Aux;
-val have_i = local_goal ProofContext.bind_propps_i Aux;
+val show   = local_goal ProofContext.bind_propp Goal;
+val show_i = local_goal ProofContext.bind_propp_i Goal;
+val have   = local_goal ProofContext.bind_propp Aux;
+val have_i = local_goal ProofContext.bind_propp_i Aux;
 
 
 
