@@ -79,7 +79,7 @@ by (fast_tac ZF_cs 1);
 qed "equiv_class_nondisjoint";
 
 goalw EquivClass.thy [equiv_def] "!!A r. equiv(A,r) ==> r <= A*A";
-by (safe_tac ZF_cs);
+by (safe_tac subset_cs);
 qed "equiv_type";
 
 goal EquivClass.thy
