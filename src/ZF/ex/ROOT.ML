@@ -43,6 +43,6 @@ time_use_thy "ex/Primrec0";
 (** CoDatatypes **)
 time_use_thy "ex/LList";
 time_use_thy "ex/LListFn";
-time_use     "ex/counit.ML";
+time_use     "ex/CoUnit.ML";
 
 maketest"END: Root file for ZF Set Theory examples";
