@@ -1006,14 +1006,18 @@ solver all the time rather than add the additional check. *)
 simpset_ref () := (simpset() addSolver
    (mk_solver "lin. arith." Fast_Arith.cut_lin_arith_tac));
 
-(*Elimination of `-' on nat due to John Harrison.  An alternative is to
-  replace b=a+d by a<b; not clear that it makes much difference. *)
+(*Elimination of `-' on nat due to John Harrison. *)
 Goal "P(a - b::nat) = (ALL d. (b = a + d --> P 0) & (a = b + d --> P d))";
 by (case_tac "a <= b" 1);
 by Auto_tac;
 by (eres_inst_tac [("x","b-a")] allE 1);
 by (asm_simp_tac (simpset() addsimps [diff_is_0_eq RS iffD2]) 1);
 qed "nat_diff_split";
+
+(*LCP's version, replacing b=a+d by a<b, which sometimes works better*)
+Goal "P(a - b::nat) = (ALL d. (a<b --> P 0) & (a = b + d --> P d))";
+by (auto_tac (claset(), simpset() addsplits [nat_diff_split]));
+qed "nat_diff_split'";
 
 
 (* FIXME: K true should be replaced by a sensible test to speed things up
