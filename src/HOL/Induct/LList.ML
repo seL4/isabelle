@@ -341,10 +341,6 @@ by (rtac inj_inverseI 1);
 by (rtac Rep_LList_inverse 1);
 qed "inj_Rep_LList";
 
-Goal "inj_on Abs_LList LList";
-by (rtac inj_on_inverseI 1);
-by (etac Abs_LList_inverse 1);
-qed "inj_on_Abs_LList";
 
 Goalw [LList_def] "x : llist (range Leaf) ==> x : LList";
 by (Asm_simp_tac 1);
@@ -358,9 +354,9 @@ qed "LListD";
 (** Distinctness of constructors **)
 
 Goalw [LNil_def,LCons_def] "~ LCons x xs = LNil";
-by (rtac (CONS_not_NIL RS (inj_on_Abs_LList RS inj_on_contraD)) 1);
-by (REPEAT (resolve_tac (llist.intrs @
-			 [rangeI, LListI, Rep_LList RS LListD]) 1));
+by (stac (thm "Abs_LList_inject") 1);
+by (REPEAT (resolve_tac (llist.intrs @ [CONS_not_NIL, rangeI, 
+                                        LListI, Rep_LList RS LListD]) 1));
 qed "LCons_not_LNil";
 
 bind_thm ("LNil_not_LCons", LCons_not_LNil RS not_sym);
@@ -393,11 +389,9 @@ bind_thm ("CONS_inject", CONS_CONS_eq RS iffD1 RS conjE);
 AddIs [Rep_LList RS LListD, LListI];
 AddIs llist.intrs;
 
-AddSDs [inj_on_Abs_LList RS inj_onD,
-        inj_Rep_LList RS injD];
-
 Goalw [LCons_def] "(LCons x xs=LCons y ys) = (x=y & xs=ys)";
-by (Fast_tac 1);
+by (stac (thm "Abs_LList_inject") 1);
+by (auto_tac (claset(), simpset() addsimps [thm "Rep_LList_inject"])); 
 qed "LCons_LCons_eq";
 
 AddIffs [LCons_LCons_eq];
@@ -570,15 +564,14 @@ val [prem1,prem2] =
 Goalw [NIL_def,CONS_def]
      "[| l=LNil ==> P;  !!x l'. l=LCons x l' ==> P |] ==> P";
 by (rtac (Rep_LList RS LListD RS llist.elim) 1);
-by (rtac (inj_Rep_LList RS injD RS prem1) 1);
-by (stac Rep_LList_LNil 1);
-by (assume_tac 1);
-by (etac rangeE 1);
-by (rtac (inj_Rep_LList RS injD RS prem2) 1);
-by (asm_simp_tac (simpset() delsimps [CONS_CONS_eq] 
-		            addsimps [Rep_LList_LCons]) 1);
-by (etac (LListI RS Abs_LList_inverse RS ssubst) 1);
-by (rtac refl 1);
+by (asm_full_simp_tac
+    (simpset() addsimps [Rep_LList_LNil RS sym, thm "Rep_LList_inject"]) 1);
+by (etac prem1 1); 
+by (etac (LListI RS thm "Rep_LList_cases") 1); 
+by (Clarify_tac 1);  
+by (asm_full_simp_tac
+    (simpset() addsimps [Rep_LList_LCons RS sym, thm "Rep_LList_inject"]) 1); 
+by (etac prem2 1); 
 qed "llistE";
 
 (** llist_corec: corecursion for 'a llist **)
@@ -658,7 +651,7 @@ qed "llistD_Fun_mono";
       [also admits true equality] **)
 Goalw [llistD_Fun_def]
     "[| (l1,l2) : r;  r <= llistD_Fun(r Un range(%x.(x,x))) |] ==> l1=l2";
-by (rtac (inj_Rep_LList RS injD) 1);
+by (rtac (thm "Rep_LList_inject" RS iffD1) 1);
 by (res_inst_tac [("r", "prod_fun Rep_LList Rep_LList `r"),
                   ("A", "range(Leaf)")] 
         LList_equalityI 1);
