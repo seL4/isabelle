@@ -22,8 +22,8 @@ consts  "0"         :: "nat"    ("0")
        rec0, recSuc :: "p"
 
 rules   
-  induct     "[| b:P(0); !!x u. u:P(x) ==> c(x,u):P(Suc(x)) \
-\             |] ==> nrec(n,b,c):P(n)"
+  induct     "[| b:P(0); !!x u. u:P(x) ==> c(x,u):P(Suc(x)) 
+             |] ==> nrec(n,b,c):P(n)"
   
   Suc_inject "p:Suc(m)=Suc(n) ==> ninj(p) : m=n"
   Suc_neq_0  "p:Suc(m)=0      ==> nneq(p) : R"

@@ -84,8 +84,8 @@ conjunct2 "p:P&Q ==> snd(p):Q"
 
 disjI1    "a:P ==> inl(a):P|Q"
 disjI2    "b:Q ==> inr(b):P|Q"
-disjE     "[| a:P|Q;  !!x.x:P ==> f(x):R;  !!x.x:Q ==> g(x):R \
-\          |] ==> when(a,f,g):R"
+disjE     "[| a:P|Q;  !!x.x:P ==> f(x):R;  !!x.x:Q ==> g(x):R 
+          |] ==> when(a,f,g):R"
 
 (* Implication *)
 

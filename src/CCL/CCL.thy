@@ -64,11 +64,11 @@ rules
 
   (*** Properties of evaluation: note that "t ---> c" impies that c is canonical ***)
 
-  canonical  "[| t ---> c; c==true ==> u--->v; \
-\                          c==false ==> u--->v; \
-\                    !!a b.c==<a,b> ==> u--->v; \
-\                      !!f.c==lam x.f(x) ==> u--->v |] ==> \
-\             u--->v"
+  canonical  "[| t ---> c; c==true ==> u--->v; 
+                          c==false ==> u--->v; 
+                    !!a b.c==<a,b> ==> u--->v; 
+                      !!f.c==lam x.f(x) ==> u--->v |] ==> 
+             u--->v"
 
   (* Should be derivable - but probably a bitch! *)
   substitute "[| a==a'; t(a)--->c(a) |] ==> t(a')--->c(a')"
@@ -86,9 +86,9 @@ rules
   (*  behavioural equivalence (ie the relations PO and EQ defined below).            *)
 
   SIM_def
-  "SIM(t,t',R) ==  (t=true & t'=true) | (t=false & t'=false) | \
-\                  (EX a a' b b'.t=<a,b> & t'=<a',b'> & <a,a'> : R & <b,b'> : R) | \
-\                  (EX f f'.t=lam x.f(x) & t'=lam x.f'(x) & (ALL x.<f(x),f'(x)> : R))"
+  "SIM(t,t',R) ==  (t=true & t'=true) | (t=false & t'=false) | 
+                  (EX a a' b b'.t=<a,b> & t'=<a',b'> & <a,a'> : R & <b,b'> : R) | 
+                  (EX f f'.t=lam x.f(x) & t'=lam x.f'(x) & (ALL x.<f(x),f'(x)> : R))"
 
   POgen_def  "POgen(R) == {p. EX t t'. p=<t,t'> & (t = bot | SIM(t,t',R))}"
   EQgen_def  "EQgen(R) == {p. EX t t'. p=<t,t'> & (t = bot & t' = bot | SIM(t,t',R))}"

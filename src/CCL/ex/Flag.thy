@@ -26,21 +26,21 @@ rules
 
   ccase_def   "ccase(c,r,w,b) == when(c,%x.r,%wb.when(wb,%x.w,%x.b))"
 
-  flag_def    "flag == lam l.letrec \
-\      flagx l be lcase(l,<[],<[],[]>>, \
-\                       %h t. split(flagx(t),%lr p.split(p,%lw lb. \
-\                            ccase(h, <red$lr,<lw,lb>>, \
-\                                     <lr,<white$lw,lb>>, \
-\                                     <lr,<lw,blue$lb>>)))) \
-\      in flagx(l)"    
+  flag_def    "flag == lam l.letrec 
+      flagx l be lcase(l,<[],<[],[]>>, 
+                       %h t. split(flagx(t),%lr p.split(p,%lw lb. 
+                            ccase(h, <red$lr,<lw,lb>>, 
+                                     <lr,<white$lw,lb>>, 
+                                     <lr,<lw,blue$lb>>)))) 
+      in flagx(l)"    
 
   Flag_def
-     "Flag(l,x) == ALL lr:List(Colour).ALL lw:List(Colour).ALL lb:List(Colour). \
-\                    x = <lr,<lw,lb>> --> \
-\                  (ALL c:Colour.(c mem lr = true --> c=red) & \
-\                                (c mem lw = true --> c=white) & \
-\                                (c mem lb = true --> c=blue)) & \
-\                  Perm(l,lr @ lw @ lb)"
+     "Flag(l,x) == ALL lr:List(Colour).ALL lw:List(Colour).ALL lb:List(Colour). 
+                    x = <lr,<lw,lb>> --> 
+                  (ALL c:Colour.(c mem lr = true --> c=red) & 
+                                (c mem lw = true --> c=white) & 
+                                (c mem lb = true --> c=blue)) & 
+                  Perm(l,lr @ lw @ lb)"
 
 end
 

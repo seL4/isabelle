@@ -75,13 +75,13 @@ rules
   letrec_def    
   "letrec g x be h(x,g) in b(g) == b(%x.fix(%f.lam x.h(x,%y.f`y))`x)"
 
-  letrec2_def  "letrec g x y be h(x,y,g) in f(g)== \
-\               letrec g' p be split(p,%x y.h(x,y,%u v.g'(<u,v>))) \
-\                          in f(%x y.g'(<x,y>))"
+  letrec2_def  "letrec g x y be h(x,y,g) in f(g)== 
+               letrec g' p be split(p,%x y.h(x,y,%u v.g'(<u,v>))) 
+                          in f(%x y.g'(<x,y>))"
 
-  letrec3_def  "letrec g x y z be h(x,y,z,g) in f(g) == \
-\             letrec g' p be split(p,%x xs.split(xs,%y z.h(x,y,z,%u v w.g'(<u,<v,w>>)))) \
-\                          in f(%x y z.g'(<x,<y,z>>))"
+  letrec3_def  "letrec g x y z be h(x,y,z,g) in f(g) == 
+             letrec g' p be split(p,%x xs.split(xs,%y z.h(x,y,z,%u v w.g'(<u,<v,w>>)))) 
+                          in f(%x y z.g'(<x,<y,z>>))"
 
   napply_def "f ^n` a == nrec(n,a,%x g.f(g))"
 

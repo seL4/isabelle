@@ -33,12 +33,12 @@ rules
   isort_def   "isort(f) == lam l.lrec(l,[],%h t g.insert(f,h,g))"
 
   partition_def 
-  "partition(f,l) == letrec part l a b be lcase(l,<a,b>,%x xs.\
-\                            if f`x then part(xs,x$a,b) else part(xs,a,x$b)) \
-\                    in part(l,[],[])"
-  qsort_def   "qsort(f) == lam l. letrec qsortx l be lcase(l,[],%h t. \
-\                                   let p be partition(f`h,t) \
-\                                   in split(p,%x y.qsortx(x) @ h$qsortx(y))) \
-\                          in qsortx(l)"
+  "partition(f,l) == letrec part l a b be lcase(l,<a,b>,%x xs.
+                            if f`x then part(xs,x$a,b) else part(xs,a,x$b)) 
+                    in part(l,[],[])"
+  qsort_def   "qsort(f) == lam l. letrec qsortx l be lcase(l,[],%h t. 
+                                   let p be partition(f`h,t) 
+                                   in split(p,%x y.qsortx(x) @ h$qsortx(y))) 
+                          in qsortx(l)"
 
 end

@@ -112,22 +112,22 @@ rules
   NI_succL  "a = b : N ==> succ(a) = succ(b) : N"
 
   NE
-   "[| p: N;  a: C(0);  !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) |] \
-\   ==> rec(p, a, %u v.b(u,v)) : C(p)"
+   "[| p: N;  a: C(0);  !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) |] 
+   ==> rec(p, a, %u v.b(u,v)) : C(p)"
 
   NEL
-   "[| p = q : N;  a = c : C(0);  \
-\      !!u v. [| u: N; v: C(u) |] ==> b(u,v) = d(u,v): C(succ(u)) |] \
-\   ==> rec(p, a, %u v.b(u,v)) = rec(q,c,d) : C(p)"
+   "[| p = q : N;  a = c : C(0);  
+      !!u v. [| u: N; v: C(u) |] ==> b(u,v) = d(u,v): C(succ(u)) |] 
+   ==> rec(p, a, %u v.b(u,v)) = rec(q,c,d) : C(p)"
 
   NC0
-   "[| a: C(0);  !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) |] \
-\   ==> rec(0, a, %u v.b(u,v)) = a : C(0)"
+   "[| a: C(0);  !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) |] 
+   ==> rec(0, a, %u v.b(u,v)) = a : C(0)"
 
   NC_succ
-   "[| p: N;  a: C(0);  \
-\       !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) |] ==>  \
-\   rec(succ(p), a, %u v.b(u,v)) = b(p, rec(p, a, %u v.b(u,v))) : C(succ(p))"
+   "[| p: N;  a: C(0);  
+       !!u v. [| u: N; v: C(u) |] ==> b(u,v): C(succ(u)) |] ==>  
+   rec(succ(p), a, %u v.b(u,v)) = b(p, rec(p, a, %u v.b(u,v))) : C(succ(p))"
 
   (*The fourth Peano axiom.  See page 91 of Martin-Lof's book*)
   zero_ne_succ
@@ -139,22 +139,22 @@ rules
   ProdF  "[| A type; !!x. x:A ==> B(x) type |] ==> PROD x:A.B(x) type"
 
   ProdFL
-   "[| A = C;  !!x. x:A ==> B(x) = D(x) |] ==> \
-\   PROD x:A.B(x) = PROD x:C.D(x)"
+   "[| A = C;  !!x. x:A ==> B(x) = D(x) |] ==> 
+   PROD x:A.B(x) = PROD x:C.D(x)"
 
   ProdI
    "[| A type;  !!x. x:A ==> b(x):B(x)|] ==> lam x.b(x) : PROD x:A.B(x)"
 
   ProdIL
-   "[| A type;  !!x. x:A ==> b(x) = c(x) : B(x)|] ==> \
-\   lam x.b(x) = lam x.c(x) : PROD x:A.B(x)"
+   "[| A type;  !!x. x:A ==> b(x) = c(x) : B(x)|] ==> 
+   lam x.b(x) = lam x.c(x) : PROD x:A.B(x)"
 
   ProdE  "[| p : PROD x:A.B(x);  a : A |] ==> p`a : B(a)"
   ProdEL "[| p=q: PROD x:A.B(x);  a=b : A |] ==> p`a = q`b : B(a)"
 
   ProdC
-   "[| a : A;  !!x. x:A ==> b(x) : B(x)|] ==> \
-\   (lam x.b(x)) ` a = b(a) : B(a)"
+   "[| a : A;  !!x. x:A ==> b(x) : B(x)|] ==> 
+   (lam x.b(x)) ` a = b(a) : B(a)"
 
   ProdC2
    "p : PROD x:A.B(x) ==> (lam x. p`x) = p : PROD x:A.B(x)"
@@ -170,17 +170,17 @@ rules
   SumIL "[| a=c:A;  b=d:B(a) |] ==> <a,b> = <c,d> : SUM x:A.B(x)"
 
   SumE
-    "[| p: SUM x:A.B(x);  !!x y. [| x:A; y:B(x) |] ==> c(x,y): C(<x,y>) |] \
-\    ==> split(p, %x y.c(x,y)) : C(p)"
+    "[| p: SUM x:A.B(x);  !!x y. [| x:A; y:B(x) |] ==> c(x,y): C(<x,y>) |] 
+    ==> split(p, %x y.c(x,y)) : C(p)"
 
   SumEL
-    "[| p=q : SUM x:A.B(x); \
-\       !!x y. [| x:A; y:B(x) |] ==> c(x,y)=d(x,y): C(<x,y>)|] \
-\    ==> split(p, %x y.c(x,y)) = split(q, % x y.d(x,y)) : C(p)"
+    "[| p=q : SUM x:A.B(x); 
+       !!x y. [| x:A; y:B(x) |] ==> c(x,y)=d(x,y): C(<x,y>)|] 
+    ==> split(p, %x y.c(x,y)) = split(q, % x y.d(x,y)) : C(p)"
 
   SumC
-    "[| a: A;  b: B(a);  !!x y. [| x:A; y:B(x) |] ==> c(x,y): C(<x,y>) |] \
-\    ==> split(<a,b>, %x y.c(x,y)) = c(a,b) : C(<a,b>)"
+    "[| a: A;  b: B(a);  !!x y. [| x:A; y:B(x) |] ==> c(x,y): C(<x,y>) |] 
+    ==> split(<a,b>, %x y.c(x,y)) = c(a,b) : C(<a,b>)"
 
   fst_def   "fst(a) == split(a, %x y.x)"
   snd_def   "snd(a) == split(a, %x y.y)"
@@ -198,24 +198,24 @@ rules
   PlusI_inrL "[| A type;  b = d : B |] ==> inr(b) = inr(d) : A+B"
 
   PlusE
-    "[| p: A+B;  !!x. x:A ==> c(x): C(inl(x));  \
-\                !!y. y:B ==> d(y): C(inr(y)) |] \
-\    ==> when(p, %x.c(x), %y.d(y)) : C(p)"
+    "[| p: A+B;  !!x. x:A ==> c(x): C(inl(x));  
+                !!y. y:B ==> d(y): C(inr(y)) |] 
+    ==> when(p, %x.c(x), %y.d(y)) : C(p)"
 
   PlusEL
-    "[| p = q : A+B;  !!x. x: A ==> c(x) = e(x) : C(inl(x));   \
-\                     !!y. y: B ==> d(y) = f(y) : C(inr(y)) |] \
-\    ==> when(p, %x.c(x), %y.d(y)) = when(q, %x.e(x), %y.f(y)) : C(p)"
+    "[| p = q : A+B;  !!x. x: A ==> c(x) = e(x) : C(inl(x));   
+                     !!y. y: B ==> d(y) = f(y) : C(inr(y)) |] 
+    ==> when(p, %x.c(x), %y.d(y)) = when(q, %x.e(x), %y.f(y)) : C(p)"
 
   PlusC_inl
-    "[| a: A;  !!x. x:A ==> c(x): C(inl(x));  \
-\              !!y. y:B ==> d(y): C(inr(y)) |] \
-\    ==> when(inl(a), %x.c(x), %y.d(y)) = c(a) : C(inl(a))"
+    "[| a: A;  !!x. x:A ==> c(x): C(inl(x));  
+              !!y. y:B ==> d(y): C(inr(y)) |] 
+    ==> when(inl(a), %x.c(x), %y.d(y)) = c(a) : C(inl(a))"
 
   PlusC_inr
-    "[| b: B;  !!x. x:A ==> c(x): C(inl(x));  \
-\              !!y. y:B ==> d(y): C(inr(y)) |] \
-\    ==> when(inr(b), %x.c(x), %y.d(y)) = d(b) : C(inr(b))"
+    "[| b: B;  !!x. x:A ==> c(x): C(inl(x));  
+              !!y. y:B ==> d(y): C(inr(y)) |] 
+    ==> when(inr(b), %x.c(x), %y.d(y)) = d(b) : C(inr(b))"
 
 
   (*The type Eq*)

@@ -46,8 +46,8 @@ rules
 
   pi_ss         "[| A:*; !!x. x:A ==> B(x):* |] ==> Prod(A, B):*"
 
-  lam_ss        "[| A:*; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):* |] \
-\                   ==> Abs(A, f) : Prod(A, B)"
+  lam_ss        "[| A:*; !!x. x:A ==> f(x):B(x); !!x. x:A ==> B(x):* |] 
+                   ==> Abs(A, f) : Prod(A, B)"
 
   beta          "Abs(A, f)^a == f(a)"
 
