@@ -1223,15 +1223,17 @@ and $induct$ methods in handling of non-atomic goal statements: $cases$ just
 applies a certain rule in backward fashion, splitting the result into new
 goals with the local contexts being augmented in a purely monotonic manner.
 
-In contrast, $induct$ passes the full goal statement through the ``recursive''
-course involved in the induction.  Thus the original statement is basically
-replaced by separate copies, corresponding to the induction hypotheses and
-conclusion; the original goal context is no longer available.  This behavior
-allows \emph{strengthened induction predicates} to be expressed concisely as
-meta-level rule statements, i.e.\ $\All{\vec x} \vec\phi \Imp \psi$ to
-indicate ``variable'' parameters $\vec x$ and ``recursive'' assumptions
-$\vec\phi$.  Also note that local definitions may be expressed as $\All{\vec
-  x} n \equiv t[\vec x] \Imp \phi[n]$, with induction over $n$.
+In contrast, $induct$ passes the full goal statement through the
+``recursive'' course involved in the induction.  Thus the original statement
+is basically replaced by separate copies, corresponding to the induction
+hypotheses and conclusion; the original goal context is no longer available.
+This behavior allows \emph{strengthened induction predicates} to be expressed
+concisely as meta-level rule statements, i.e.\ $\All{\vec x} \vec\phi \Imp
+\psi$ to indicate ``variable'' parameters $\vec x$ and ``recursive''
+assumptions $\vec\phi$. Note that ``$\isarcmd{case}~c$'' already performs
+``$\FIX{\vec x}$''.  Also note that local definitions may be expressed as
+$\All{\vec x} n \equiv t[\vec x] \Imp \phi[n]$, with induction over $n$.
+
 
 In induction proofs, local assumptions introduced by cases are split into two
 different kinds: $hyps$ stemming from the rule and $prems$ from the goal
