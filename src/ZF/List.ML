@@ -470,19 +470,19 @@ by Auto_tac;
 qed "append_left_is_self_iff2";
 Addsimps [append_left_is_self_iff2];
 
+(*TOO SLOW as a default simprule!*)
 Goal "[| xs:list(A); ys:list(A); zs:list(A) |] ==> \
 \  length(ys)=length(zs) --> (xs@ys=zs <-> (xs=Nil & ys=zs))";
 by (etac list.induct 1);
 by (auto_tac (claset(), simpset() addsimps [length_app]));
 qed_spec_mp "append_left_is_Nil_iff";
-Addsimps [append_left_is_Nil_iff];
 
+(*TOO SLOW as a default simprule!*)
 Goal "[| xs:list(A); ys:list(A); zs:list(A) |] ==> \
 \  length(ys)=length(zs) --> (zs=ys@xs <-> (xs=Nil & ys=zs))";
 by (etac list.induct 1);
 by (auto_tac (claset(), simpset() addsimps [length_app]));
 qed_spec_mp "append_left_is_Nil_iff2";
-Addsimps [append_left_is_Nil_iff2];
 
 Goal "xs:list(A) ==> ALL ys:list(A). \
 \     length(xs)=length(ys) --> (xs@us = ys@vs) <-> (xs=ys & us=vs)";
@@ -536,7 +536,7 @@ qed_spec_mp "append1_eq_iff";
 Addsimps [append1_eq_iff];
 
 Goal "[| xs:list(A); ys:list(A) |] ==> (xs@ys = ys) <-> (xs=Nil)";
-by (Asm_simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [append_left_is_Nil_iff]) 1);
 qed "append_right_is_self_iff";
 Addsimps [append_right_is_self_iff];
 
