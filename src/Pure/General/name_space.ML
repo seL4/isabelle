@@ -21,6 +21,7 @@ sig
   val map_base: (string -> string) -> string -> string
   val is_qualified: string -> bool
   val accesses: string -> string list
+  val accesses': string -> string list
   type T
   val empty: T
   val extend: T * string list -> T
@@ -63,6 +64,8 @@ fun accesses name =
     val sfxs = Library.suffixes1 uname;
     val pfxs = map (fn x => x @ [b]) (Library.prefixes1 q);
   in map pack (sfxs @ pfxs) end;
+
+val accesses' = map pack o Library.suffixes1 o unpack;
 
 
 
@@ -142,7 +145,7 @@ fun extern space name =
       | try (nm :: nms) =
           let val (full_nm, uniq) = lookup space nm
           in if full_nm = name andalso uniq then nm else try nms end
-  in try (map pack (Library.suffixes1 (unpack name))) end;
+  in try (accesses' name) end;
 
 (*prune names on output by default*)
 val long_names = ref false;
