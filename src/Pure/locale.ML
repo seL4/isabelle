@@ -22,6 +22,11 @@ sig
   val print_locales: theory -> unit
   val print_goals: int -> thm -> unit
   val print_goals_marker: string -> int -> thm -> unit
+  val thm: xstring -> thm
+  val thms: xstring -> thm list
+  val Open_locale: xstring -> unit
+  val Close_locale: xstring -> unit
+  val Print_scope: unit -> unit
 end;
 
 signature LOCALE =
@@ -203,6 +208,12 @@ fun close_locale name thy =
 fun print_scope thy = 
 Pretty.writeln (Pretty.strs ("current scope:" :: rev(map (Sign.base_name o fst) (get_scope thy))));
 
+(*implicit context versions*)
+fun Open_locale xname = (open_locale xname (Context.the_context ()); ());
+fun Close_locale xname = (close_locale xname (Context.the_context ()); ());
+fun Print_scope () = (print_scope (Context.the_context ()); ());
+
+
 (** functions for goals.ML **)
 
 (* in_locale: check if hyps (: term list) of a proof are contained in the
@@ -239,8 +250,11 @@ fun get_thmx f get thy name =
   | None => get thy name);
 
 val get_thm = get_thmx I PureThy.get_thm;
-
 val get_thms = get_thmx (fn x => [x]) PureThy.get_thms;
+
+fun thm name = get_thm (Context.the_context ()) name;
+fun thms name = get_thms (Context.the_context ()) name;
+
 
 (* get the defaults of a locale, for extension *)
 
