@@ -19,6 +19,7 @@ signature PATTERN =
   type type_sig
   type sg
   type env
+  val trace_unify_fail  : bool ref
   val aeconv            : term * term -> bool
   val eta_contract      : term -> term
   val beta_eta_contract : term -> term
@@ -48,6 +49,66 @@ type env = Envir.env
 
 exception Unif;
 exception Pattern;
+
+val trace_unify_fail = ref false;
+
+(* Only for communication between unification and error message printing *)
+val sgr = ref Sign.pre_pure
+
+fun string_of_term env binders t = Sign.string_of_term (!sgr)
+  (Envir.norm_term env (subst_bounds(map Free binders,t)));
+
+fun bname binders i = fst(nth_elem(i,binders));
+fun bnames binders is = space_implode " " (map (bname binders) is);
+
+fun norm_typ tye =
+  let fun chase(v,s) =
+      (case  Vartab.lookup (tye, v) of
+        Some U => norm_typ tye U
+      | None => TVar(v,s))
+  in map_type_tvar chase end
+
+fun typ_clash(tye,T,U) =
+  if !trace_unify_fail
+  then let val t = Sign.string_of_typ (!sgr) (norm_typ tye T)
+           and u = Sign.string_of_typ (!sgr) (norm_typ tye U)
+       in tracing("The following types do not unify:\n" ^ t ^ "\n" ^ u) end
+  else ()
+
+fun clash a b =
+  if !trace_unify_fail then tracing("Clash: " ^ a ^ " =/= " ^ b) else ()
+
+fun boundVar binders i =
+  "bound variable " ^ bname binders i ^ " (depth " ^ string_of_int i ^ ")";
+
+fun clashBB binders i j =
+  if !trace_unify_fail then clash (boundVar binders i) (boundVar binders j)
+  else ()
+
+fun clashB binders i s =
+  if !trace_unify_fail then clash (boundVar binders i) s
+  else ()
+
+fun proj_fail(env,binders,F,is,t) =
+  if !trace_unify_fail
+  then let val f = Syntax.string_of_vname F
+           val xs = bnames binders is
+           val u = string_of_term env binders t
+           val ys = bnames binders (loose_bnos t \\ is)
+       in tracing("Cannot unify variable " ^ f ^
+               " (depending on bound variables " ^ xs ^ ")\nwith term " ^ u ^
+               "\nTerm contains additional bound variable(s) " ^ ys)
+       end
+  else ()
+
+fun ocheck_fail(F,t,binders,env) =
+  if !trace_unify_fail
+  then let val f = Syntax.string_of_vname F
+           val u = string_of_term env binders t
+       in tracing("Variable " ^ f ^ " occurs in term\n" ^ u ^
+                  "\nCannot unify!\n")
+       end
+  else ()
 
 fun occurs(F,t,env) =
     let fun occ(Var(G,_))   = (case Envir.lookup(env,G) of
@@ -188,7 +249,7 @@ fun unify_types(T,U, env as Envir.Envir{asol,iTs,maxidx}) =
   if T=U then env
   else let val (iTs',maxidx') = Type.unify (!tsgr) (iTs, maxidx) (U, T)
        in Envir.Envir{asol=asol,maxidx=maxidx',iTs=iTs'} end
-       handle Type.TUNIFY => raise Unif;
+       handle Type.TUNIFY => (typ_clash(iTs,T,U); raise Unif);
 
 fun unif binders (env,(s,t)) = case (Envir.head_norm env s, Envir.head_norm env t) of
       (Abs(ns,Ts,ts),Abs(nt,Tt,tt)) =>
@@ -209,21 +270,29 @@ and cases(binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
       | ((Bound(i),ss),(Bound(j),ts)) => rigidrigidB (env,binders,i,j,ss,ts)
       | ((Abs(_),_),_)                => raise Pattern
       | (_,(Abs(_),_))                => raise Pattern
-      | _                             => raise Unif
+      | ((Const(c,_),_),(Free(f,_),_)) => (clash c f; raise Unif)
+      | ((Const(c,_),_),(Bound i,_))   => (clashB binders i c; raise Unif)
+      | ((Free(f,_),_),(Const(c,_),_)) => (clash f c; raise Unif)
+      | ((Free(f,_),_),(Bound i,_))    => (clashB binders i f; raise Unif)
+      | ((Bound i,_),(Const(c,_),_))   => (clashB binders i c; raise Unif)
+      | ((Bound i,_),(Free(f,_),_))    => (clashB binders i f; raise Unif)
+
 
 and rigidrigid (env,binders,(a,Ta),(b,Tb),ss,ts) =
-      if a<>b then raise Unif
+      if a<>b then (clash a b; raise Unif)
       else foldl (unif binders) (unify_types(Ta,Tb,env), ss~~ts)
 
 and rigidrigidB (env,binders,i,j,ss,ts) =
-     if i <> j then raise Unif else foldl (unif binders) (env ,ss~~ts)
+     if i <> j then (clashBB binders i j; raise Unif)
+     else foldl (unif binders) (env ,ss~~ts)
 
-and flexrigid (env,binders,F,is,t) =
-      if occurs(F,t,env) then raise Unif
-      else let val (u,env') = proj(t,env,binders,is)
-           in Envir.update((F,mkabs(binders,is,u)),env') end;
+and flexrigid (params as (env,binders,F,is,t)) =
+      if occurs(F,t,env) then (ocheck_fail(F,t,binders,env); raise Unif)
+      else (let val (u,env') = proj(t,env,binders,is)
+            in Envir.update((F,mkabs(binders,is,u)),env') end
+            handle Unif => (proj_fail params; raise Unif));
 
-fun unify(sg,env,tus) = (tsgr := #tsig(Sign.rep_sg sg);
+fun unify(sg,env,tus) = (sgr := sg; tsgr := #tsig(Sign.rep_sg sg);
                          foldl (unif []) (env,tus));
 
 
@@ -472,3 +541,5 @@ fun rewrite_term tsig rules procs tm =
   in if_none (rew1 skel0 tm) tm end;
 
 end;
+
+val trace_unify_fail = Pattern.trace_unify_fail;

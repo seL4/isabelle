@@ -1386,7 +1386,8 @@ fun biresolution match brules i state =
         val comp = bicompose_aux match (state, (stpairs, Bs, Bi, C), true);
         fun res [] = Seq.empty
           | res ((eres_flg, rule)::brules) =
-              if could_bires (Hs, B, eres_flg, rule)
+              if !Pattern.trace_unify_fail orelse
+                 could_bires (Hs, B, eres_flg, rule)
               then Seq.make (*delay processing remainder till needed*)
                   (fn()=> Some(comp (eres_flg, lift rule, nprems_of rule),
                                res brules))
