@@ -155,7 +155,7 @@ val context_of = node_case ProofContext.init Proof.context_of;
 val sign_of = Theory.sign_of o theory_of;
 val proof_of = node_case (fn _ => raise UNDEF) I;
 
-val enter_forward_proof = node_case Proof.init_state Proof.enter_forward;
+val enter_forward_proof = node_case (fn thy => Proof.init_state thy None) Proof.enter_forward;
 
 
 (** toplevel transitions **)
