@@ -60,7 +60,7 @@ qed "image_compose";
 
 Goalw [o_def] "UNION A (g o f) = UNION (f``A) g";
 by (Blast_tac 1);
-qed "UNION_o";
+qed "UN_o";
 
 
 section "inj";
@@ -220,6 +220,17 @@ qed "inj_image_mem_iff";
 Goal "inj f ==> (f``A = f``B) = (A = B)";
 by (blast_tac (claset() addSEs [equalityE] addDs [injD]) 1);
 qed "inj_image_eq_iff";
+
+Goal  "(f `` (UNION A B)) = (UN x:A.(f `` (B x)))";
+by (Blast_tac 1);
+qed "image_UN";
+
+(*injectivity's required.  Left-to-right inclusion holds even if A is empty*)
+Goalw [inj_on_def]
+   "[| inj_on f C;  ALL x:A. B x <= C;  j:A |] \
+\   ==> f `` (INTER A B) = (INT x:A. f `` B x)";
+by (Blast_tac 1);
+qed "image_INT";
 
 val set_cs = claset() delrules [equalityI];
 
