@@ -515,13 +515,17 @@ in
 end;
 
 (* ------------------------------------------------------------------------- *)
-(* ZChaff, Version 2004.05.13 (http://www.princeton.edu/~chaff/zchaff.html)  *)
+(* zChaff (http://www.princeton.edu/~chaff/zchaff.html)                      *)
 (* ------------------------------------------------------------------------- *)
 
 let
 	fun zchaff fm =
 	let
 		val _          = if (getenv "ZCHAFF_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
+		val _          = if (getenv "ZCHAFF_VERSION") <> "2004.5.13" andalso
+		                    (getenv "ZCHAFF_VERSION") <> "2004.11.15" then raise SatSolver.NOT_CONFIGURED else ()
+			(* both versions of zChaff appear to have the same interface, so we do *)
+			(* not actually need to distinguish between them in the following code *)
 		val inpath     = File.tmp_path (Path.unpack "isabelle.cnf")
 		val outpath    = File.tmp_path (Path.unpack "result")
 		val cmd        = (getenv "ZCHAFF_HOME") ^ "/zchaff " ^ (Path.pack inpath) ^ " > " ^ (Path.pack outpath)
