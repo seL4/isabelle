@@ -87,12 +87,10 @@ sig
   val put_local_simpset: simpset -> Proof.context -> Proof.context
   val simp_add_global: theory attribute
   val simp_del_global: theory attribute
-  val simp_only_global: theory attribute
   val simp_add_local: Proof.context attribute
   val simp_del_local: Proof.context attribute
-  val simp_only_local: Proof.context attribute
   val change_simpset_of: (simpset * 'a -> simpset) -> 'a -> theory -> theory
-  val simp_modifiers: (Args.T list -> (Proof.context attribute * Args.T list)) list
+  val simp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val setup: (theory -> theory) list
 end;
 
@@ -247,9 +245,8 @@ fun (Simpset {mss, subgoal_tac, loop_tacs, unsafe_finish_tac, finish_tac})
     (Thm.del_simprocs (mss, map rep_simproc simprocs),
       subgoal_tac, loop_tacs, unsafe_finish_tac, finish_tac);
 
-fun onlysimps (Simpset {mss, subgoal_tac, loop_tacs, unsafe_finish_tac, finish_tac}, rews) =
-  make_ss (Thm.clear_mss mss, subgoal_tac, loop_tacs, unsafe_finish_tac, finish_tac)
-    addsimps rews;
+fun clear_ss (Simpset {mss, subgoal_tac, loop_tacs, unsafe_finish_tac, finish_tac}) =
+  make_ss (Thm.clear_mss mss, subgoal_tac, loop_tacs, unsafe_finish_tac, finish_tac);
 
 
 (* merge simpsets *)    (*NOTE: ignores tactics of 2nd simpset (except loopers)*)
@@ -324,6 +321,7 @@ structure LocalSimpset = ProofDataFun(LocalSimpsetArgs);
 val print_local_simpset = LocalSimpset.print;
 val get_local_simpset = LocalSimpset.get;
 val put_local_simpset = LocalSimpset.put;
+fun map_local_simpset f ctxt = put_local_simpset (f (get_local_simpset ctxt)) ctxt;
 
 
 (* attributes *)
@@ -338,10 +336,8 @@ fun change_local_ss f (ctxt, th) =
 
 val simp_add_global = change_global_ss (op addsimps);
 val simp_del_global = change_global_ss (op delsimps);
-val simp_only_global = change_global_ss onlysimps;
 val simp_add_local = change_local_ss (op addsimps);
 val simp_del_local = change_local_ss (op delsimps);
-val simp_only_local = change_local_ss onlysimps;
 
 
 
@@ -430,7 +426,6 @@ val otherN = "other";
 fun simp_att change =
   (Args.$$$ addN >> K (op addsimps) ||
     Args.$$$ delN >> K (op delsimps) ||
-    Args.$$$ onlyN >> K onlysimps ||
     Scan.succeed (op addsimps))
   >> change
   |> Scan.lift
@@ -462,16 +457,16 @@ val setup_attrs = Attrib.add_attributes
 (* simplification *)
 
 val simp_modifiers =
- [Args.$$$ simpN -- Args.$$$ addN >> K simp_add_local,
-  Args.$$$ simpN -- Args.$$$ delN >> K simp_del_local,
-  Args.$$$ simpN -- Args.$$$ onlyN >> K simp_only_local,
-  Args.$$$ otherN >> K I];
+ [Args.$$$ simpN -- Args.$$$ addN >> K (I, simp_add_local),
+  Args.$$$ simpN -- Args.$$$ delN >> K (I, simp_del_local),
+  Args.$$$ simpN -- Args.$$$ onlyN >> K (map_local_simpset clear_ss, simp_add_local),
+  Args.$$$ otherN >> K (I, I)];
 
 val simp_modifiers' =
- [Args.$$$ addN >> K simp_add_local,
-  Args.$$$ delN >> K simp_del_local,
-  Args.$$$ onlyN >> K simp_only_local,
-  Args.$$$ otherN >> K I];
+ [Args.$$$ addN >> K (I, simp_add_local),
+  Args.$$$ delN >> K (I, simp_del_local),
+  Args.$$$ onlyN >> K (map_local_simpset clear_ss, simp_add_local),
+  Args.$$$ otherN >> K (I, I)];
 
 val simp_args = Method.only_sectioned_args simp_modifiers';
 
@@ -487,8 +482,8 @@ val simp_method = simp_args ooo simp_meth;
 (* setup_methods *)
 
 val setup_methods = Method.add_methods
- [(simpN,               simp_method true true asm_full_simp_tac, "simplification"),
-  (asm_simpN,           simp_method false true asm_full_simp_tac,
+ [(simpN,               simp_method true true (CHANGED oo asm_full_simp_tac), "simplification"),
+  (asm_simpN,           simp_method false true (CHANGED oo asm_full_simp_tac),
     "simplification (including assumption)"),
   ("simp_tac",          simp_method false false simp_tac, "simp_tac (improper!)"),
   ("asm_simp_tac",      simp_method false false asm_simp_tac, "asm_simp_tac (improper!)"),
