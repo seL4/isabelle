@@ -385,7 +385,7 @@ fun app int (tr as Transition {trans, int_only, print, ...}) state =
   let
     val _ =
       if int orelse not int_only then ()
-      else warning (command_msg "Executing interactive-only " tr);
+      else warning (command_msg "Interactive-only " tr);
     val (result, opt_exn) =
       (if ! trace then (writeln (command_msg "" tr); timeap) else I) (apply_trans int trans) state;
     val _ = if int andalso print andalso not (! quiet) then print_state result else ();
