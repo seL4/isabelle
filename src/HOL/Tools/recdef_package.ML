@@ -86,15 +86,13 @@ fun gen_add_recdef tfl_fn prep_ss app_thms raw_name R eqs raw_ss raw_congs thy =
     val ss = (case raw_ss of None => Simplifier.simpset_of thy | Some x => prep_ss x);
     val (thy, congs) = thy |> app_thms raw_congs;
     val (thy, {rules, induct, tcs}) = tfl_fn thy name R (ss, congs) eqs;
-    val thy =
+    val case_numbers = map Library.string_of_int (1 upto Thm.nprems_of induct);
+    val (thy, ([rules], [induct])) =
       thy
       |> Theory.add_path bname
       |> PureThy.add_thmss [(("rules", rules), [])]
-      |> PureThy.add_thms [(("induct", induct), [])];
-    val result =
-     {rules = PureThy.get_thms thy "rules",
-      induct = PureThy.get_thm thy "induct",
-      tcs = tcs};
+      |>>> PureThy.add_thms [(("induct", induct), [RuleCases.case_names case_numbers])];
+    val result = {rules = rules, induct = induct, tcs = tcs};
     val thy =
       thy
       |> put_recdef name result
@@ -120,12 +118,12 @@ fun gen_defer_recdef tfl_fn app_thms raw_name eqs raw_congs thy =
 
     val (thy1, congs) = thy |> app_thms raw_congs;
     val (thy2, induct_rules) = tfl_fn thy1 name congs eqs;
-    val thy3 =
+    val (thy3, [induct_rules']) =
       thy2
       |> Theory.add_path bname
       |> PureThy.add_thms [(("induct_rules", induct_rules), [])]
-      |> Theory.parent_path;
-  in (thy3, {induct_rules = induct_rules}) end;
+      |>> Theory.parent_path;
+  in (thy3, {induct_rules = induct_rules'}) end;
 
 val defer_recdef = gen_defer_recdef Tfl.defer IsarThy.apply_theorems;
 val defer_recdef_i = gen_defer_recdef Tfl.defer_i IsarThy.apply_theorems_i;
