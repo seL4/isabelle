@@ -187,37 +187,31 @@ Addsimps [nth_mem];
 
 (** drop **)
 
-goalw thy [drop_def] "drop 0 xs = xs";
-by(Simp_tac 1);
+goal thy "drop 0 xs = xs";
+by (list.induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "drop_0";
 
-goalw thy [drop_def] "drop (Suc n) (x#xs) = drop n xs";
+goal thy "drop (Suc n) (x#xs) = drop n xs";
 by(Simp_tac 1);
-qed "drop_Suc";
+qed "drop_Suc_Cons";
 
-goalw thy [drop_def] "drop n [] = []";
-by (nat_ind_tac "n" 1);
-by (ALLGOALS Asm_simp_tac);
-qed "drop_Nil";
-
-Addsimps [drop_0,drop_Suc,drop_Nil];
+Delsimps [drop_Cons];
+Addsimps [drop_0,drop_Suc_Cons];
 
 (** take **)
 
-goalw thy [take_def] "take 0 xs = []";
-by(Simp_tac 1);
+goal thy "take 0 xs = []";
+by (list.induct_tac "xs" 1);
+by (ALLGOALS Asm_simp_tac);
 qed "take_0";
 
-goalw thy [take_def] "take (Suc n) (x#xs) = x # take n xs";
+goal thy "take (Suc n) (x#xs) = x # take n xs";
 by(Simp_tac 1);
-qed "take_Suc";
+qed "take_Suc_Cons";
 
-goalw thy [take_def] "take n [] = []";
-by (nat_ind_tac "n" 1);
-by (ALLGOALS Asm_simp_tac);
-qed "take_Nil";
-
-Addsimps [take_0,take_Suc,take_Nil];
+Delsimps [take_Cons];
+Addsimps [take_0,take_Suc_Cons];
 
 (** Additional mapping lemmas **)
 

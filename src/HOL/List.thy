@@ -80,10 +80,12 @@ primrec length list
 primrec flat list
   flat_Nil  "flat([]) = []"
   flat_Cons "flat(x#xs) = x @ flat(xs)"
+primrec drop list
+  drop_Nil  "drop n [] = []"
+  drop_Cons "drop n (x#xs) = (case n of 0 => x#xs | Suc(m) => drop m xs)"
+primrec take list
+  take_Nil  "take n [] = []"
+  take_Cons "take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)"
 defs
-  drop_def "drop n == nat_rec n (%xs.xs)   \
-\	                (%m r xs. case xs of [] => [] | y#ys => r ys)"
-  take_def "take n == nat_rec n (%xs.[])   \
-\	                (%m r xs. case xs of [] => [] | y#ys => y # r ys)"
   nth_def  "nth(n) == nat_rec n hd (%m r xs. r(tl(xs)))"
 end
