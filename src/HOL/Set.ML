@@ -24,3 +24,25 @@ struct
   val set_diff_def = set_diff_def;
   val subset_def = subset_def;
 end;
+
+val vimageD = thm "vimageD";
+val vimageE = thm "vimageE";
+val vimageI = thm "vimageI";
+val vimageI2 = thm "vimageI2";
+val vimage_Collect = thm "vimage_Collect";
+val vimage_Collect_eq = thm "vimage_Collect_eq";
+val vimage_Compl = thm "vimage_Compl";
+val vimage_Diff = thm "vimage_Diff";
+val vimage_INT = thm "vimage_INT";
+val vimage_Int = thm "vimage_Int";
+val vimage_UN = thm "vimage_UN";
+val vimage_UNIV = thm "vimage_UNIV";
+val vimage_Un = thm "vimage_Un";
+val vimage_Union = thm "vimage_Union";
+val vimage_def = thm "vimage_def";
+val vimage_empty = thm "vimage_empty";
+val vimage_eq = thm "vimage_eq";
+val vimage_eq_UN = thm "vimage_eq_UN";
+val vimage_insert = thm "vimage_insert";
+val vimage_mono = thm "vimage_mono";
+val vimage_singleton_eq = thm "vimage_singleton_eq";

@@ -1,6 +1,6 @@
 (*  Title:      HOL/Set.thy
     ID:         $Id$
-    Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
@@ -187,11 +187,11 @@ defs (overloaded)
   subset_def:   "A <= B         == ALL x:A. x:B"
   psubset_def:  "A < B          == (A::'a set) <= B & ~ A=B"
   Compl_def:    "- A            == {x. ~x:A}"
+  set_diff_def: "A - B          == {x. x:A & ~x:B}"
 
 defs
   Un_def:       "A Un B         == {x. x:A | x:B}"
   Int_def:      "A Int B        == {x. x:A & x:B}"
-  set_diff_def: "A - B          == {x. x:A & ~x:B}"
   INTER_def:    "INTER A B      == {y. ALL x:A. y: B(x)}"
   UNION_def:    "UNION A B      == {y. EX x:A. y: B(x)}"
   Inter_def:    "Inter S        == (INT x:S. x)"
@@ -207,26 +207,22 @@ subsection {* Lemmas and proof tool setup *}
 
 subsubsection {* Relating predicates and sets *}
 
-lemma CollectI [intro!]: "P(a) ==> a : {x. P(x)}"
+lemma CollectI: "P(a) ==> a : {x. P(x)}"
   by simp
 
 lemma CollectD: "a : {x. P(x)} ==> P(a)"
   by simp
 
-lemma set_ext: "(!!x. (x:A) = (x:B)) ==> A = B"
-proof -
-  case rule_context
-  show ?thesis
-    apply (rule prems [THEN ext, THEN arg_cong, THEN box_equals])
-     apply (rule Collect_mem_eq)
-    apply (rule Collect_mem_eq)
-    done
-qed
+lemma set_ext: (assumes prem: "(!!x. (x:A) = (x:B))") "A = B"
+  apply (rule prem [THEN ext, THEN arg_cong, THEN box_equals])
+   apply (rule Collect_mem_eq)
+  apply (rule Collect_mem_eq)
+  done
 
 lemma Collect_cong: "(!!x. P x = Q x) ==> {x. P(x)} = {x. Q(x)}"
   by simp
 
-lemmas CollectE [elim!] = CollectD [elim_format]
+lemmas CollectE = CollectD [elim_format]
 
 
 subsubsection {* Bounded quantifiers *}
@@ -903,6 +899,82 @@ lemma Least_mono:
   apply (rule LeastI2)
   apply (auto elim: monoD intro!: order_antisym)
   done
+
+
+subsection {* Inverse image of a function *}
+
+constdefs
+  vimage :: "('a => 'b) => 'b set => 'a set"    (infixr "-`" 90)
+  "f -` B == {x. f x : B}"
+
+
+subsubsection {* Basic rules *}
+
+lemma vimage_eq [simp]: "(a : f -` B) = (f a : B)"
+  by (unfold vimage_def) blast
+
+lemma vimage_singleton_eq: "(a : f -` {b}) = (f a = b)"
+  by simp
+
+lemma vimageI [intro]: "f a = b ==> b:B ==> a : f -` B"
+  by (unfold vimage_def) blast
+
+lemma vimageI2: "f a : A ==> a : f -` A"
+  by (unfold vimage_def) fast
+
+lemma vimageE [elim!]: "a: f -` B ==> (!!x. f a = x ==> x:B ==> P) ==> P"
+  by (unfold vimage_def) blast
+
+lemma vimageD: "a : f -` A ==> f a : A"
+  by (unfold vimage_def) fast
+
+
+subsubsection {* Equations *}
+
+lemma vimage_empty [simp]: "f -` {} = {}"
+  by blast
+
+lemma vimage_Compl: "f -` (-A) = -(f -` A)"
+  by blast
+
+lemma vimage_Un [simp]: "f -` (A Un B) = (f -` A) Un (f -` B)"
+  by blast
+
+lemma vimage_Int [simp]: "f -` (A Int B) = (f -` A) Int (f -` B)"
+  by fast
+
+lemma vimage_Union: "f -` (Union A) = (UN X:A. f -` X)"
+  by blast
+
+lemma vimage_UN: "f-`(UN x:A. B x) = (UN x:A. f -` B x)"
+  by blast
+
+lemma vimage_INT: "f-`(INT x:A. B x) = (INT x:A. f -` B x)"
+  by blast
+
+lemma vimage_Collect_eq [simp]: "f -` Collect P = {y. P (f y)}"
+  by blast
+
+lemma vimage_Collect: "(!!x. P (f x) = Q x) ==> f -` (Collect P) = Collect Q"
+  by blast
+
+lemma vimage_insert: "f-`(insert a B) = (f-`{a}) Un (f-`B)"
+  -- {* NOT suitable for rewriting because of the recurrence of @{term "{a}"}. *}
+  by blast
+
+lemma vimage_Diff: "f -` (A - B) = (f -` A) - (f -` B)"
+  by blast
+
+lemma vimage_UNIV [simp]: "f -` UNIV = UNIV"
+  by blast
+
+lemma vimage_eq_UN: "f-`B = (UN y: B. f-`{y})"
+  -- {* NOT suitable for rewriting *}
+  by blast
+
+lemma vimage_mono: "A <= B ==> f -` A <= f -` B"
+  -- {* monotonicity *}
+  by blast
 
 
 subsection {* Transitivity rules for calculational reasoning *}
