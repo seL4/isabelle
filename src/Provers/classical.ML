@@ -14,6 +14,8 @@ equivalent.  There should be no variables in the premises that are not in
 the conclusion.
 *)
 
+infix 1 THEN_MAYBE;
+
 signature CLASSICAL_DATA =
   sig
   val mp	: thm    	(* [| P-->Q;  P |] ==> Q *)
@@ -24,7 +26,8 @@ signature CLASSICAL_DATA =
   end;
 
 (*Higher precedence than := facilitates use of references*)
-infix 4 addSIs addSEs addSDs addIs addEs addDs;
+infix 4 addSIs addSEs addSDs addIs addEs addDs 
+        setwrapper compwrapper addbefore addafter;
 
 
 signature CLASSICAL =
@@ -37,9 +40,18 @@ signature CLASSICAL =
   val addSDs		: claset * thm list -> claset
   val addSEs		: claset * thm list -> claset
   val addSIs		: claset * thm list -> claset
+  val setwrapper 	: claset * (tactic->tactic) -> claset
+  val compwrapper 	: claset * (tactic->tactic) -> claset
+  val addbefore 	: claset * tactic -> claset
+  val addafter 		: claset * tactic -> claset
+
   val print_cs		: claset -> unit
   val rep_claset	: claset -> {safeIs: thm list, safeEs: thm list, 
-				     hazIs: thm list, hazEs: thm list}
+				     hazIs: thm list, hazEs: thm list,
+				     wrapper: tactic -> tactic}
+  val getwrapper	: claset -> tactic -> tactic
+  val THEN_MAYBE	: tactic * tactic -> tactic
+
   val best_tac 		: claset -> int -> tactic
   val contr_tac 	: int -> tactic
   val depth_tac		: claset -> int -> int -> tactic
@@ -111,20 +123,24 @@ fun dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Sequence.hd |>
 type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
 
 datatype claset =
-  CS of {safeIs		: thm list,
-	 safeEs		: thm list,
-	 hazIs		: thm list,
-	 hazEs		: thm list,
-	 safe0_netpair	: netpair,
-	 safep_netpair	: netpair,
-	 haz_netpair  	: netpair,
-	 dup_netpair	: netpair};
+  CS of {safeIs		: thm list,		(*safe introduction rules*)
+	 safeEs		: thm list,		(*safe elimination rules*)
+	 hazIs		: thm list,		(*unsafe introduction rules*)
+	 hazEs		: thm list,		(*unsafe elimination rules*)
+	 wrapper	: tactic->tactic,	(*for transforming step_tac*)
+	 safe0_netpair	: netpair,		(*nets for trivial cases*)
+	 safep_netpair	: netpair,		(*nets for >0 subgoals*)
+	 haz_netpair  	: netpair,		(*nets for unsafe rules*)
+	 dup_netpair	: netpair};		(*nets for duplication*)
 
-fun rep_claset (CS{safeIs,safeEs,hazIs,hazEs,...}) = 
-    {safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs};
+fun rep_claset (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) = 
+    {safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs, wrapper=wrapper};
 
-(*For use with biresolve_tac.  Combines intrs with swap to catch negated
-  assumptions; pairs elims with true; sorts. *)
+fun getwrapper (CS{wrapper,...}) = wrapper;
+
+(*For use with biresolve_tac.  Combines intr rules with swap to handle negated
+  assumptions.  Pairs elim rules with true.  Sorts the list of pairs by 
+  the number of new subgoals generated. *)
 fun joinrules (intrs,elims) =  
   sort lessb 
     (map (pair true) (elims @ swapify intrs)  @
@@ -133,7 +149,7 @@ fun joinrules (intrs,elims) =
 val build = build_netpair(Net.empty,Net.empty);
 
 (*Make a claset from the four kinds of rules*)
-fun make_cs {safeIs,safeEs,hazIs,hazEs} =
+fun make_cs {safeIs,safeEs,hazIs,hazEs,wrapper} =
   let val (safe0_brls, safep_brls) = (*0 subgoals vs 1 or more*)
           take_prefix (fn brl => subgoals_of_brl brl=0)
              (joinrules(safeIs, safeEs))
@@ -141,6 +157,7 @@ fun make_cs {safeIs,safeEs,hazIs,hazEs} =
         safeEs = safeEs,
 	hazIs = hazIs,
 	hazEs = hazEs,
+	wrapper = wrapper,
 	safe0_netpair = build safe0_brls,
 	safep_netpair = build safep_brls,
 	haz_netpair = build (joinrules(hazIs, hazEs)),
@@ -150,7 +167,7 @@ fun make_cs {safeIs,safeEs,hazIs,hazEs} =
 
 (*** Manipulation of clasets ***)
 
-val empty_cs = make_cs{safeIs=[], safeEs=[], hazIs=[], hazEs=[]};
+val empty_cs = make_cs{safeIs=[], safeEs=[], hazIs=[], hazEs=[], wrapper=I};
 
 fun print_cs (CS{safeIs,safeEs,hazIs,hazEs,...}) =
  (writeln"Introduction rules";  prths hazIs;
@@ -159,21 +176,50 @@ fun print_cs (CS{safeIs,safeEs,hazIs,hazEs,...}) =
   writeln"Safe elimination rules";  prths safeEs;
   ());
 
-fun (CS{safeIs,safeEs,hazIs,hazEs,...}) addSIs ths =
-  make_cs {safeIs=ths@safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs};
+(** Adding new (un)safe introduction or elimination rules **)
 
-fun (CS{safeIs,safeEs,hazIs,hazEs,...}) addSEs ths =
-  make_cs {safeIs=safeIs, safeEs=ths@safeEs, hazIs=hazIs, hazEs=hazEs};
+fun (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) addSIs ths =
+  make_cs {safeIs=ths@safeIs, 
+	   safeEs=safeEs, hazIs=hazIs, hazEs=hazEs, wrapper=wrapper};
+
+fun (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) addSEs ths =
+  make_cs {safeEs=ths@safeEs, 
+	   safeIs=safeIs, hazIs=hazIs, hazEs=hazEs, wrapper=wrapper};
 
 fun cs addSDs ths = cs addSEs (map make_elim ths);
 
-fun (CS{safeIs,safeEs,hazIs,hazEs,...}) addIs ths =
-  make_cs {safeIs=safeIs, safeEs=safeEs, hazIs=ths@hazIs, hazEs=hazEs};
+fun (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) addIs ths =
+  make_cs {hazIs=ths@hazIs, 
+	   safeIs=safeIs, safeEs=safeEs, hazEs=hazEs, wrapper=wrapper};
 
-fun (CS{safeIs,safeEs,hazIs,hazEs,...}) addEs ths =
-  make_cs {safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=ths@hazEs};
+fun (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) addEs ths =
+  make_cs {hazEs=ths@hazEs,
+	   safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, wrapper=wrapper};
 
 fun cs addDs ths = cs addEs (map make_elim ths);
+
+(** Setting or modifying the wrapper tactical **)
+
+(*Set a new wrapper*)
+fun (CS{safeIs,safeEs,hazIs,hazEs,...}) setwrapper wrapper =
+  make_cs {wrapper=wrapper,
+	   safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs};
+
+(*Compose a tactical with the existing wrapper*)
+fun cs compwrapper wrapper' = cs setwrapper (wrapper' o getwrapper cs);
+
+(*Execute tac1, but only execute tac2 if there are at least as many subgoals
+  as before.  This ensures that tac2 is only applied to an outcome of tac1.*)
+fun tac1 THEN_MAYBE tac2 = 
+  STATE (fn state =>
+	 tac1  THEN  
+	 COND (has_fewer_prems (nprems_of state)) all_tac tac2);
+
+(*Cause a tactic to be executed before/after the step tactic*)
+fun cs addbefore tac2 = cs compwrapper (fn tac1 => tac2 THEN_MAYBE tac1);
+fun cs addafter tac2  = cs compwrapper (fn tac1 => tac1 THEN_MAYBE tac2);
+
+
 
 (*** Simple tactics for theorem proving ***)
 
@@ -201,17 +247,19 @@ fun instp_step_tac (CS{safep_netpair,...}) =
 (*These steps could instantiate variables and are therefore unsafe.*)
 fun inst_step_tac cs = inst0_step_tac cs APPEND' instp_step_tac cs;
 
-fun haz_step_tac (cs as (CS{haz_netpair,...})) = 
+fun haz_step_tac (CS{haz_netpair,...}) = 
   biresolve_from_nets_tac haz_netpair;
 
 (*Single step for the prover.  FAILS unless it makes progress. *)
 fun step_tac cs i = 
-  FIRST [safe_tac cs, inst_step_tac cs i, haz_step_tac cs i];
+  getwrapper cs 
+    (FIRST [safe_tac cs, inst_step_tac cs i, haz_step_tac cs i]);
 
 (*Using a "safe" rule to instantiate variables is unsafe.  This tactic
   allows backtracking from "safe" rules to "unsafe" rules here.*)
 fun slow_step_tac cs i = 
-    safe_tac cs ORELSE (inst_step_tac cs i APPEND haz_step_tac cs i);
+  getwrapper cs 
+    (safe_tac cs ORELSE (inst_step_tac cs i APPEND haz_step_tac cs i));
 
 (*** The following tactics all fail unless they solve one goal ***)
 
@@ -228,7 +276,7 @@ fun slow_best_tac cs =
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (slow_step_tac cs 1));
 
 
-(*** Complete tactic, loosely based upon LeanTaP This tactic is the outcome
+(*** Complete tactic, loosely based upon LeanTaP.  This tactic is the outcome
   of much experimentation!  Changing APPEND to ORELSE below would prove
   easy theorems faster, but loses completeness -- and many of the harder
   theorems such as 43. ***)
