@@ -69,8 +69,8 @@ fun >> f = set_context (Some (f (the_context ())));
 
 (* use ML text *)
 
-fun use_mltext txt verb opt_thy = setmp opt_thy (fn () => use_text writeln verb txt) ();
-fun use_mltext_theory txt verb thy = #2 (pass_theory thy (use_text writeln verb) txt);
+fun use_mltext txt verb opt_thy = setmp opt_thy (fn () => use_text priority verb txt) ();
+fun use_mltext_theory txt verb thy = #2 (pass_theory thy (use_text priority verb) txt);
 
 fun use_context txt = use_mltext_theory ("Context.>> (" ^ txt ^ ");") false;
 
