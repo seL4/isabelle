@@ -424,7 +424,8 @@ The absolute value function \isa{abs} is
 defined for the reals, along with many theorems such as this one about
 exponentiation:
 \begin{isabelle}
-\isasymbar r\isasymbar \ \isacharcircum \ n\ =\ \isasymbar r\ \isacharcircum \ n\isasymbar 
+\isasymbar r\ \isacharcircum \ n\isasymbar\ =\ 
+\isasymbar r\isasymbar \ \isacharcircum \ n
 \rulename{realpow_abs}
 \end{isabelle}
 
@@ -462,5 +463,8 @@ small and infinitely large quantities; they facilitate proofs
 about limits, differentiation and integration~\cite{fleuriot-jcm}.  The
 development defines an infinitely large number, \isa{omega} and an
 infinitely small positive number, \isa{epsilon}.  The 
-relation $x\approx y$ means ``$x$ is infinitely close to~$y$''.%
+relation $x\approx y$ means ``$x$ is infinitely close to~$y$.''
+Theory \isa{Hyperreal} also defines transcendental functions such as sine,
+cosine, exponential and logarithm --- even the versions for type
+\isa{real}, because they are defined using nonstandard limits.%
 \index{numbers|)}

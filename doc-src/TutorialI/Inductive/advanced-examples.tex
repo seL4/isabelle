@@ -144,8 +144,10 @@ step[intro!]:\ "\isasymlbrakk args\ \isasymin \ lists\ (well_formed_gterm'\ arit
 \isakeyword{monos}\ lists_mono
 \end{isabelle}
 
-We must cite the theorem \isa{lists_mono} in order to justify 
-using the function \isa{lists}. 
+We cite the theorem \isa{lists_mono} to justify 
+using the function \isa{lists}.%
+\footnote{This particular theorem is installed by default already, but we
+include the \isakeyword{monos} declaration in order to illustrate its syntax.}
 \begin{isabelle}
 A\ \isasymsubseteq\ B\ \isasymLongrightarrow \ lists\ A\ \isasymsubseteq
 \ lists\ B\rulenamedx{lists_mono}

@@ -38,7 +38,7 @@
   \indexspace
 
   \item \isa {0} (constant), 22, 23, 140
-  \item \isa {1} (constant), 140, 141
+  \item \isa {1} (constant), 23, 140, 141
 
   \indexspace
 
@@ -336,7 +336,7 @@
   \item lexicographic product, \bold{105}, 166
   \item {\texttt{lfp}}
     \subitem applications of, \see{CTL}{106}
-  \item linear arithmetic, 22--23, 139
+  \item linear arithmetic, 22--24, 139
   \item \isa {List} (theory), 17
   \item \isa {list} (type), 4, 9, 17
   \item \isa {list.split} (theorem), 32
@@ -347,12 +347,12 @@
 
   \item \isa {Main} (theory), 4
   \item major premise, \bold{65}
-  \item \isa {max} (constant), 23
+  \item \isa {max} (constant), 23, 24
   \item measure functions, 47, 104
   \item \isa {measure_def} (theorem), \bold{105}
   \item meta-logic, \bold{70}
   \item methods, \bold{15}
-  \item \isa {min} (constant), 23
+  \item \isa {min} (constant), 23, 24
   \item \isa {mod} (symbol), 23
   \item \isa {mod_div_equality} (theorem), \bold{141}
   \item \isa {mod_mult_distrib} (theorem), \bold{141}

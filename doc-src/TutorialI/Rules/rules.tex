@@ -81,7 +81,11 @@ has the form \isa{?P\ \isasymand\ ?Q}.  (Unification is discussed below,
 it yields new subgoals given by the formulas assigned to 
 \isa{?P} and \isa{?Q}.
 
-The following trivial proof illustrates this point. 
+The following trivial proof illustrates how rules work.  It also introduces a
+style of indentation.  If a command adds a new subgoal, then the next
+command's indentation is increased by one space; if it proves a subgoal, then
+the indentation is reduced.  This provides the reader with hints about the
+subgoal structure.
 \begin{isabelle}
 \isacommand{lemma}\ conj_rule:\ "\isasymlbrakk P;\
 Q\isasymrbrakk\ \isasymLongrightarrow\ P\ \isasymand\
@@ -1806,8 +1810,8 @@ Let us reproduce our examples in Isabelle.  Recall that in
 \ \ \ \ "gcd\ (m,n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n))"
 \end{isabelle}
 %
-From this definition, it is possible to prove the 
-distributive law.  
+From this definition, it is possible to prove the distributive law.  
+That takes us to the starting point for our example.
 \begin{isabelle}
 ?k\ *\ gcd\ (?m,\ ?n)\ =\ gcd\ (?k\ *\ ?m,\ ?k\ *\ ?n)
 \rulename{gcd_mult_distrib2}
@@ -1947,7 +1951,8 @@ as we recall is defined by
 \rulename{dvd_def}
 \end{isabelle}
 %
-For example, this rule states that if $k$ and $n$ are relatively prime
+Suppose, for example, that we have proved the following rule.  
+It states that if $k$ and $n$ are relatively prime
 and if $k$ divides $m\times n$ then $k$ divides $m$.
 \begin{isabelle}
 \isasymlbrakk gcd(?k,?n){=}1;\ ?k\ dvd\ ?m * ?n\isasymrbrakk\
