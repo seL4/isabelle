@@ -143,7 +143,7 @@ lemma (in M_axioms) rtran_closure_mem_iff:
 by (simp add: rtran_closure_mem_def Ord_succ_mem_iff nat_0_le [THEN ltD]) 
 
 
-locale (open) M_trancl = M_axioms +
+locale M_trancl = M_axioms +
   assumes rtrancl_separation:
 	 "[| M(r); M(A) |] ==> separation (M, rtran_closure_mem(M,A,r))"
       and wellfounded_trancl_separation:
@@ -231,7 +231,7 @@ inverse image of an ordinal.  Key step is the construction (in M) of a
 rank function.*}
 
 
-locale (open) M_wfrank = M_trancl +
+locale M_wfrank = M_trancl +
   assumes wfrank_separation:
      "M(r) ==>
       separation (M, \<lambda>x. 
@@ -317,7 +317,7 @@ lemma (in M_wfrank) Ord_wfrank_range [rule_format]:
     "[| wellfounded(M,r); a\<in>A; M(r); M(A) |]
      ==> \<forall>f[M]. is_recfun(r^+, a, %x f. range(f), f) --> Ord(range(f))"
 apply (drule wellfounded_trancl, assumption)
-apply (rule wellfounded_induct, assumption+)
+apply (rule wellfounded_induct, assumption, erule (1) transM)
   apply simp
  apply (blast intro: Ord_wfrank_separation', clarify)
 txt{*The reasoning in both cases is that we get @{term y} such that
@@ -445,7 +445,8 @@ apply (frule wellfounded_trancl, assumption)
 apply (subgoal_tac "a\<in>A & b\<in>A")
  prefer 2 apply blast
 apply (simp add: lt_def Ord_wellfoundedrank, clarify)
-apply (frule exists_wfrank [of concl: _ b], assumption+, clarify)
+apply (frule exists_wfrank [of concl: _ b], erule (1) transM, assumption)
+apply clarify
 apply (rename_tac fb)
 apply (frule is_recfun_restrict [of concl: "r^+" a])
     apply (rule trans_trancl, assumption)

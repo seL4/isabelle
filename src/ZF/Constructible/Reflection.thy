@@ -25,7 +25,7 @@ uses of @{term Pair_in_Mset}.  But there isn't much point in doing so, since
 ultimately the @{text ex_reflection} proof is packaged up using the
 predicate @{text Reflects}.
 *}
-locale (open) reflection =
+locale reflection =
   fixes Mset and M and Reflects
   assumes Mset_mono_le : "mono_le_subset(Mset)"
       and Mset_cont    : "cont_Ord(Mset)"
@@ -124,7 +124,7 @@ done
 
 text{*Locale for the induction hypothesis*}
 
-locale (open) ex_reflection = reflection +
+locale ex_reflection = reflection +
   fixes P  --"the original formula"
   fixes Q  --"the reflected formula"
   fixes Cl --"the class of reflecting ordinals"
@@ -170,16 +170,19 @@ lemma (in reflection) ClEx_iff:
         !!a. [| Cl(a); Ord(a) |] ==> \<forall>x\<in>Mset(a). P(x) <-> Q(a,x) |] 
       ==> (\<exists>z. M(z) \<and> P(<y,z>)) <-> (\<exists>z\<in>Mset(a). Q(a,<y,z>))"
 apply (unfold ClEx_def FF_def F0_def M_def)
-apply (rule Reflection.ZF_ClEx_iff [of Mset Cl], 
-       simp_all add: Mset_mono_le Mset_cont Pair_in_Mset)
+apply (rule ex_reflection.ZF_ClEx_iff
+  [OF ex_reflection.intro, OF reflection.intro ex_reflection_axioms.intro,
+    of Mset Cl])
+apply (simp_all add: Mset_mono_le Mset_cont Pair_in_Mset)
 done
 
 lemma (in reflection) Closed_Unbounded_ClEx:
      "(!!a. [| Cl(a); Ord(a) |] ==> \<forall>x\<in>Mset(a). P(x) <-> Q(a,x))
       ==> Closed_Unbounded(ClEx(P))"
 apply (unfold ClEx_def FF_def F0_def M_def)
-apply (rule Reflection.ZF_Closed_Unbounded_ClEx, 
-       simp_all add: Mset_mono_le Mset_cont Pair_in_Mset) 
+apply (rule ex_reflection.ZF_Closed_Unbounded_ClEx
+  [OF ex_reflection.intro, OF reflection.intro ex_reflection_axioms.intro])
+apply (simp_all add: Mset_mono_le Mset_cont Pair_in_Mset) 
 done
 
 subsection{*Packaging the Quantifier Reflection Rules*}

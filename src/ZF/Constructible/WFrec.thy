@@ -378,7 +378,7 @@ constdefs
                   fun_apply(M,f,j,fj) & fj = k"
 
 
-locale (open) M_ord_arith = M_axioms +
+locale M_ord_arith = M_axioms +
   assumes oadd_strong_replacement:
    "[| M(i); M(j) |] ==>
     strong_replacement(M, 

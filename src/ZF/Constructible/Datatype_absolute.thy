@@ -362,7 +362,7 @@ constdefs
   is_formula :: "[i=>o,i] => o"
     "is_formula(M,Z) == \<forall>p[M]. p \<in> Z <-> mem_formula(M,p)"
 
-locale (open) M_datatypes = M_wfrank +
+locale M_datatypes = M_wfrank +
  assumes list_replacement1: 
    "M(A) ==> iterates_replacement(M, is_list_functor(M,A), 0)"
   and list_replacement2: 
@@ -506,7 +506,7 @@ constdefs
     "is_eclose(M,A,Z) == \<forall>u[M]. u \<in> Z <-> mem_eclose(M,A,u)"
 
 
-locale (open) M_eclose = M_datatypes +
+locale M_eclose = M_datatypes +
  assumes eclose_replacement1: 
    "M(A) ==> iterates_replacement(M, big_union(M), A)"
   and eclose_replacement2: 

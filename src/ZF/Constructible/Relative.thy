@@ -448,7 +448,7 @@ subsection{*Introducing a Transitive Class Model*}
 
 text{*The class M is assumed to be transitive and to satisfy some
       relativized ZF axioms*}
-locale (open) M_triv_axioms =
+locale M_triv_axioms =
   fixes M
   assumes transM:           "[| y\<in>x; M(x) |] ==> M(y)"
       and nonempty [simp]:  "M(0)"
@@ -821,7 +821,7 @@ lemma (in M_triv_axioms) number1_abs [simp]:
      "M(a) ==> number1(M,a) <-> a = 1"
 by (simp add: number1_def) 
 
-lemma (in M_triv_axioms) number1_abs [simp]: 
+lemma (in M_triv_axioms) number2_abs [simp]: 
      "M(a) ==> number2(M,a) <-> a = succ(1)"
 by (simp add: number2_def) 
 
@@ -854,7 +854,7 @@ text{*Kunen continued to 20...*}
 
 subsection{*Some instances of separation and strong replacement*}
 
-locale (open) M_axioms = M_triv_axioms +
+locale M_axioms = M_triv_axioms +
 assumes Inter_separation:
      "M(A) ==> separation(M, \<lambda>x. \<forall>y[M]. y\<in>A --> x\<in>y)"
   and cartprod_separation:

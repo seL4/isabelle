@@ -75,110 +75,65 @@ by (simp add: mono_le_subset_def le_imp_subset Lset_mono)
 lemma Lset_cont: "cont_Ord(Lset)"
 by (simp add: cont_Ord_def Limit_Lset_eq OUnion_def Limit_is_Ord) 
 
-lemmas Pair_in_Lset = Formula.Pair_in_LLimit;
+lemmas Pair_in_Lset = Formula.Pair_in_LLimit
 
-lemmas L_nat = Ord_in_L [OF Ord_nat];
+lemmas L_nat = Ord_in_L [OF Ord_nat]
 
-ML
-{*
-val transL = thm "transL";
-val nonempty = thm "nonempty";
-val upair_ax = thm "upair_ax";
-val Union_ax = thm "Union_ax";
-val power_ax = thm "power_ax";
-val replacement = thm "replacement";
-val L_nat = thm "L_nat";
+theorem M_triv_axioms_L: "PROP M_triv_axioms(L)"
+  apply (rule M_triv_axioms.intro)
+        apply (erule (1) transL)
+       apply (rule nonempty)
+      apply (rule upair_ax)
+     apply (rule Union_ax)
+    apply (rule power_ax)
+   apply (rule replacement)
+  apply (rule L_nat)
+  done
 
-fun kill_flex_triv_prems st = Seq.hd ((REPEAT_FIRST assume_tac) st);
-
-fun triv_axioms_L th =
-    kill_flex_triv_prems 
-       ([transL, nonempty, upair_ax, Union_ax, power_ax, replacement, L_nat] 
-        MRS (inst "M" "L" th));
-
-bind_thm ("rall_abs", triv_axioms_L (thm "M_triv_axioms.rall_abs"));
-bind_thm ("rex_abs", triv_axioms_L (thm "M_triv_axioms.rex_abs"));
-bind_thm ("ball_iff_equiv", triv_axioms_L (thm "M_triv_axioms.ball_iff_equiv"));
-bind_thm ("M_equalityI", triv_axioms_L (thm "M_triv_axioms.M_equalityI"));
-bind_thm ("empty_abs", triv_axioms_L (thm "M_triv_axioms.empty_abs"));
-bind_thm ("subset_abs", triv_axioms_L (thm "M_triv_axioms.subset_abs"));
-bind_thm ("upair_abs", triv_axioms_L (thm "M_triv_axioms.upair_abs"));
-bind_thm ("upair_in_M_iff", triv_axioms_L (thm "M_triv_axioms.upair_in_M_iff"));
-bind_thm ("singleton_in_M_iff", triv_axioms_L (thm "M_triv_axioms.singleton_in_M_iff"));
-bind_thm ("pair_abs", triv_axioms_L (thm "M_triv_axioms.pair_abs"));
-bind_thm ("pair_in_M_iff", triv_axioms_L (thm "M_triv_axioms.pair_in_M_iff"));
-bind_thm ("pair_components_in_M", triv_axioms_L (thm "M_triv_axioms.pair_components_in_M"));
-bind_thm ("cartprod_abs", triv_axioms_L (thm "M_triv_axioms.cartprod_abs"));
-bind_thm ("union_abs", triv_axioms_L (thm "M_triv_axioms.union_abs"));
-bind_thm ("inter_abs", triv_axioms_L (thm "M_triv_axioms.inter_abs"));
-bind_thm ("setdiff_abs", triv_axioms_L (thm "M_triv_axioms.setdiff_abs"));
-bind_thm ("Union_abs", triv_axioms_L (thm "M_triv_axioms.Union_abs"));
-bind_thm ("Union_closed", triv_axioms_L (thm "M_triv_axioms.Union_closed"));
-bind_thm ("Un_closed", triv_axioms_L (thm "M_triv_axioms.Un_closed"));
-bind_thm ("cons_closed", triv_axioms_L (thm "M_triv_axioms.cons_closed"));
-bind_thm ("successor_abs", triv_axioms_L (thm "M_triv_axioms.successor_abs"));
-bind_thm ("succ_in_M_iff", triv_axioms_L (thm "M_triv_axioms.succ_in_M_iff"));
-bind_thm ("separation_closed", triv_axioms_L (thm "M_triv_axioms.separation_closed"));
-bind_thm ("strong_replacementI", triv_axioms_L (thm "M_triv_axioms.strong_replacementI"));
-bind_thm ("strong_replacement_closed", triv_axioms_L (thm "M_triv_axioms.strong_replacement_closed"));
-bind_thm ("RepFun_closed", triv_axioms_L (thm "M_triv_axioms.RepFun_closed"));
-bind_thm ("lam_closed", triv_axioms_L (thm "M_triv_axioms.lam_closed"));
-bind_thm ("image_abs", triv_axioms_L (thm "M_triv_axioms.image_abs"));
-bind_thm ("powerset_Pow", triv_axioms_L (thm "M_triv_axioms.powerset_Pow"));
-bind_thm ("powerset_imp_subset_Pow", triv_axioms_L (thm "M_triv_axioms.powerset_imp_subset_Pow"));
-bind_thm ("nat_into_M", triv_axioms_L (thm "M_triv_axioms.nat_into_M"));
-bind_thm ("nat_case_closed", triv_axioms_L (thm "M_triv_axioms.nat_case_closed"));
-bind_thm ("Inl_in_M_iff", triv_axioms_L (thm "M_triv_axioms.Inl_in_M_iff"));
-bind_thm ("Inr_in_M_iff", triv_axioms_L (thm "M_triv_axioms.Inr_in_M_iff"));
-bind_thm ("lt_closed", triv_axioms_L (thm "M_triv_axioms.lt_closed"));
-bind_thm ("transitive_set_abs", triv_axioms_L (thm "M_triv_axioms.transitive_set_abs"));
-bind_thm ("ordinal_abs", triv_axioms_L (thm "M_triv_axioms.ordinal_abs"));
-bind_thm ("limit_ordinal_abs", triv_axioms_L (thm "M_triv_axioms.limit_ordinal_abs"));
-bind_thm ("successor_ordinal_abs", triv_axioms_L (thm "M_triv_axioms.successor_ordinal_abs"));
-bind_thm ("finite_ordinal_abs", triv_axioms_L (thm "M_triv_axioms.finite_ordinal_abs"));
-bind_thm ("omega_abs", triv_axioms_L (thm "M_triv_axioms.omega_abs"));
-bind_thm ("number1_abs", triv_axioms_L (thm "M_triv_axioms.number1_abs"));
-bind_thm ("number1_abs", triv_axioms_L (thm "M_triv_axioms.number1_abs"));
-bind_thm ("number3_abs", triv_axioms_L (thm "M_triv_axioms.number3_abs"));
-*}
-
-declare rall_abs [simp] 
-declare rex_abs [simp] 
-declare empty_abs [simp] 
-declare subset_abs [simp] 
-declare upair_abs [simp] 
-declare upair_in_M_iff [iff]
-declare singleton_in_M_iff [iff]
-declare pair_abs [simp] 
-declare pair_in_M_iff [iff]
-declare cartprod_abs [simp] 
-declare union_abs [simp] 
-declare inter_abs [simp] 
-declare setdiff_abs [simp] 
-declare Union_abs [simp] 
-declare Union_closed [intro,simp]
-declare Un_closed [intro,simp]
-declare cons_closed [intro,simp]
-declare successor_abs [simp] 
-declare succ_in_M_iff [iff]
-declare separation_closed [intro,simp]
-declare strong_replacementI
-declare strong_replacement_closed [intro,simp]
-declare RepFun_closed [intro,simp]
-declare lam_closed [intro,simp]
-declare image_abs [simp] 
-declare nat_into_M [intro]
-declare Inl_in_M_iff [iff]
-declare Inr_in_M_iff [iff]
-declare transitive_set_abs [simp] 
-declare ordinal_abs [simp] 
-declare limit_ordinal_abs [simp] 
-declare successor_ordinal_abs [simp] 
-declare finite_ordinal_abs [simp] 
-declare omega_abs [simp] 
-declare number1_abs [simp] 
-declare number1_abs [simp] 
-declare number3_abs [simp]
+lemmas rall_abs [simp] = M_triv_axioms.rall_abs [OF M_triv_axioms_L]
+  and rex_abs [simp] = M_triv_axioms.rex_abs [OF M_triv_axioms_L]
+  and ball_iff_equiv = M_triv_axioms.ball_iff_equiv [OF M_triv_axioms_L]
+  and M_equalityI = M_triv_axioms.M_equalityI [OF M_triv_axioms_L]
+  and empty_abs [simp] = M_triv_axioms.empty_abs [OF M_triv_axioms_L]
+  and subset_abs [simp] = M_triv_axioms.subset_abs [OF M_triv_axioms_L]
+  and upair_abs [simp] = M_triv_axioms.upair_abs [OF M_triv_axioms_L]
+  and upair_in_M_iff [iff] = M_triv_axioms.upair_in_M_iff [OF M_triv_axioms_L]
+  and singleton_in_M_iff [iff] = M_triv_axioms.singleton_in_M_iff [OF M_triv_axioms_L]
+  and pair_abs [simp] = M_triv_axioms.pair_abs [OF M_triv_axioms_L]
+  and pair_in_M_iff [iff] = M_triv_axioms.pair_in_M_iff [OF M_triv_axioms_L]
+  and pair_components_in_M = M_triv_axioms.pair_components_in_M [OF M_triv_axioms_L]
+  and cartprod_abs [simp] = M_triv_axioms.cartprod_abs [OF M_triv_axioms_L]
+  and union_abs [simp] = M_triv_axioms.union_abs [OF M_triv_axioms_L]
+  and inter_abs [simp] = M_triv_axioms.inter_abs [OF M_triv_axioms_L]
+  and setdiff_abs [simp] = M_triv_axioms.setdiff_abs [OF M_triv_axioms_L]
+  and Union_abs [simp] = M_triv_axioms.Union_abs [OF M_triv_axioms_L]
+  and Union_closed [intro, simp] = M_triv_axioms.Union_closed [OF M_triv_axioms_L]
+  and Un_closed [intro, simp] = M_triv_axioms.Un_closed [OF M_triv_axioms_L]
+  and cons_closed [intro, simp] = M_triv_axioms.cons_closed [OF M_triv_axioms_L]
+  and successor_abs [simp] = M_triv_axioms.successor_abs [OF M_triv_axioms_L]
+  and succ_in_M_iff [iff] = M_triv_axioms.succ_in_M_iff [OF M_triv_axioms_L]
+  and separation_closed [intro, simp] = M_triv_axioms.separation_closed [OF M_triv_axioms_L]
+  and strong_replacementI = M_triv_axioms.strong_replacementI [OF M_triv_axioms_L]
+  and strong_replacement_closed [intro, simp] = M_triv_axioms.strong_replacement_closed [OF M_triv_axioms_L]
+  and RepFun_closed [intro, simp] = M_triv_axioms.RepFun_closed [OF M_triv_axioms_L]
+  and lam_closed [intro, simp] = M_triv_axioms.lam_closed [OF M_triv_axioms_L]
+  and image_abs [simp] = M_triv_axioms.image_abs [OF M_triv_axioms_L]
+  and powerset_Pow = M_triv_axioms.powerset_Pow [OF M_triv_axioms_L]
+  and powerset_imp_subset_Pow = M_triv_axioms.powerset_imp_subset_Pow [OF M_triv_axioms_L]
+  and nat_into_M [intro] = M_triv_axioms.nat_into_M [OF M_triv_axioms_L]
+  and nat_case_closed = M_triv_axioms.nat_case_closed [OF M_triv_axioms_L]
+  and Inl_in_M_iff [iff] = M_triv_axioms.Inl_in_M_iff [OF M_triv_axioms_L]
+  and Inr_in_M_iff [iff] = M_triv_axioms.Inr_in_M_iff [OF M_triv_axioms_L]
+  and lt_closed = M_triv_axioms.lt_closed [OF M_triv_axioms_L]
+  and transitive_set_abs [simp] = M_triv_axioms.transitive_set_abs [OF M_triv_axioms_L]
+  and ordinal_abs [simp] = M_triv_axioms.ordinal_abs [OF M_triv_axioms_L]
+  and limit_ordinal_abs [simp] = M_triv_axioms.limit_ordinal_abs [OF M_triv_axioms_L]
+  and successor_ordinal_abs [simp] = M_triv_axioms.successor_ordinal_abs [OF M_triv_axioms_L]
+  and finite_ordinal_abs = M_triv_axioms.finite_ordinal_abs [OF M_triv_axioms_L]
+  and omega_abs [simp] = M_triv_axioms.omega_abs [OF M_triv_axioms_L]
+  and number1_abs [simp] = M_triv_axioms.number1_abs [OF M_triv_axioms_L]
+  and number2_abs [simp] = M_triv_axioms.number2_abs [OF M_triv_axioms_L]
+  and number3_abs [simp] = M_triv_axioms.number3_abs [OF M_triv_axioms_L]
 
 
 subsection{*Instantiation of the locale @{text reflection}*}
@@ -260,8 +215,9 @@ theorem Ex_reflection:
 apply (unfold L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def) 
 apply (elim meta_exE) 
 apply (rule meta_exI)
-apply (rule reflection.Ex_reflection [OF Lset_mono_le Lset_cont Pair_in_Lset],
-       assumption+)
+apply (rule reflection.Ex_reflection
+  [OF reflection.intro, OF Lset_mono_le Lset_cont Pair_in_Lset],
+  assumption+)
 done
 
 theorem All_reflection:
@@ -270,7 +226,8 @@ theorem All_reflection:
 apply (unfold L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def) 
 apply (elim meta_exE) 
 apply (rule meta_exI)
-apply (rule reflection.All_reflection [OF Lset_mono_le Lset_cont Pair_in_Lset],
+apply (rule reflection.All_reflection
+  [OF reflection.intro, OF Lset_mono_le Lset_cont Pair_in_Lset],
        assumption+)
 done
 
@@ -308,7 +265,7 @@ lemma ReflectsE:
 apply (drule ReflectsD, assumption, blast) 
 done
 
-lemma Collect_mem_eq: "{x\<in>A. x\<in>B} = A \<inter> B";
+lemma Collect_mem_eq: "{x\<in>A. x\<in>B} = A \<inter> B"
 by blast
 
 

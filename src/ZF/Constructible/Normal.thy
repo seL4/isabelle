@@ -72,7 +72,7 @@ subsubsection{*The intersection of any set-indexed family of c.u. classes is
       c.u.*}
 
 text{*The constructions below come from Kunen, \emph{Set Theory}, page 78.*}
-locale (open) cub_family =
+locale cub_family =
   fixes P and A
   fixes next_greater -- "the next ordinal satisfying class @{term A}"
   fixes sup_greater  -- "sup of those ordinals over all @{term A}"
@@ -177,7 +177,7 @@ theorem Closed_Unbounded_INT:
     "(!!a. a\<in>A ==> Closed_Unbounded(P(a)))
      ==> Closed_Unbounded(\<lambda>x. \<forall>a\<in>A. P(a, x))"
 apply (case_tac "A=0", simp)
-apply (rule cub_family.Closed_Unbounded_INT)
+apply (rule cub_family.Closed_Unbounded_INT [OF cub_family.intro])
 apply (simp_all add: Closed_Unbounded_def)
 done
 

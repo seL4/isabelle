@@ -603,7 +603,7 @@ apply (rule_tac x="range(x)" in rexI)
 apply blast+
 done
 
-theorem (in M_axioms) omap_ord_iso_otype:
+theorem (in M_axioms) omap_ord_iso_otype':
      "[| wellordered(M,A,r); M(A); M(r) |]
       ==> \<exists>f[M]. (\<exists>i[M]. Ord(i) & f \<in> ord_iso(A, r, i, Memrel(i)))"
 apply (insert obase_exists [of A r] omap_exists [of A r] otype_exists [of A r], simp, clarify)
@@ -619,7 +619,7 @@ lemma (in M_axioms) ordertype_exists:
       ==> \<exists>f[M]. (\<exists>i[M]. Ord(i) & f \<in> ord_iso(A, r, i, Memrel(i)))"
 apply (insert obase_exists [of A r] omap_exists [of A r] otype_exists [of A r], simp, clarify)
 apply (rename_tac i) 
-apply (subgoal_tac "Ord(i)", blast intro: omap_ord_iso_otype) 
+apply (subgoal_tac "Ord(i)", blast intro: omap_ord_iso_otype')
 apply (rule Ord_otype) 
     apply (force simp add: otype_def range_closed) 
    apply (simp_all add: wellordered_is_trans_on) 
