@@ -313,6 +313,7 @@
   \indexspace
 
   \item {\tt has_fewer_prems}, \bold{32}
+  \item higher-order pattern, \bold{102}
   \item {\tt hyp_subst_tac}, \bold{96}
   \item {\tt hyp_subst_tacs}, \bold{130}
   \item {\tt HypsubstFun}, 97, 130
@@ -427,6 +428,7 @@
   \item {\tt parse_ast_translation}, 91
   \item {\tt parse_rules}, 86
   \item {\tt parse_translation}, 91
+  \item pattern, higher-order, \bold{102}
   \item {\tt pause_tac}, \bold{25}
   \item Poly/{\ML} compiler, 5
   \item {\tt pop_proof}, \bold{14}

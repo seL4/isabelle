@@ -15,7 +15,7 @@ Given equalities of the form $t=u$, rewriting replaces instances of~$t$ by
 corresponding instances of~$u$, and continues until it reaches a normal
 form.  Substitution handles `one-off' replacements by particular
 equalities while rewriting handles general equations.
-Chapter~\ref{simp-chap} discusses Isabelle's rewriting tactics.
+Chapter~\ref{chap:simplification} discusses Isabelle's rewriting tactics.
 
 
 \section{Substitution rules}
@@ -136,7 +136,7 @@ signature HYPSUBST_DATA =
 Thus, the functor requires the following items:
 \begin{ttdescription}
 \item[Simplifier] should be an instance of the simplifier (see
-  Chapter~\ref{simp-chap}).
+  Chapter~\ref{chap:simplification}).
 
 \item[\ttindexbold{dest_eq}] should return the pair~$(t,u)$ when
 applied to the \ML{} term that represents~$t=u$.  For other terms, it
