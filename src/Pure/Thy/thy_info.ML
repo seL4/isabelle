@@ -248,9 +248,9 @@ fun load_file time path =
   if time then
     let val name = Path.pack path in
       timeit (fn () =>
-       (writeln ("\n**** Starting file " ^ quote name ^ " ****");
+       (priority ("\n**** Starting file " ^ quote name ^ " ****");
         run_file path;
-        writeln ("**** Finished file " ^ quote name ^ " ****\n")))
+        priority ("**** Finished file " ^ quote name ^ " ****\n")))
     end
   else run_file path;
 
@@ -267,7 +267,7 @@ fun required_by _ [] = ""
 
 fun load_thy ml time initiators dir name parents =
   let
-    val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
+    val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
 
     val _ = touch_thy name;
     val master = ThyLoad.load_thy dir name ml time;
@@ -366,7 +366,7 @@ fun remove_thy name =
   if is_finished name then error (loader_msg "cannot remove finished theory" [name])
   else
     let val succs = thy_graph Graph.all_succs [name] in
-      writeln (loader_msg "removing" succs);
+      priority (loader_msg "removing" succs);
       seq (perform Remove) succs;
       change_thys (Graph.del_nodes succs)
     end;
