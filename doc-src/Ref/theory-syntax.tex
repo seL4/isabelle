@@ -70,13 +70,13 @@ arity   : ( ()
 consts : 'consts' ( ( constDecl ( () | ( '(' mixfix ')' ) ) ) + )
        ;
 
-constDecl : ( name + ',') '::' (string | constType);
+constDecl : ( name + ',') '::' (string | type);
 
-constType : simpleType | '(' constType ')' | '[' ( constType + "," ) ']'
-            '=>' constType | constType '=>' constType;
+type : simpleType | '(' type ')' | type '=>' type |
+       '[' ( type + "," ) ']' '=>' type;
 
 simpleType: id | ( tid ( () | '::' id ) ) |
-            '(' ( constType + "," ) ')' ( id + ',' ) | simpleType ( id + ',' );
+            '(' ( type + "," ) ')' id | simpleType id;
 
 mixfix :  string ( () | ( () | ('[' (nat + ',') ']')) nat )
        | infix
