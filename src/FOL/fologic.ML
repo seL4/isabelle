@@ -9,6 +9,7 @@ signature FOLOGIC =
 sig
   val oT		: typ
   val mk_Trueprop	: term -> term
+  val atomic_Trueprop	: string -> term
   val dest_Trueprop	: term -> term
   val conj		: term
   val disj		: term
@@ -35,6 +36,8 @@ val oT = Type("o",[]);
 val Trueprop = Const("Trueprop", oT-->propT);
 
 fun mk_Trueprop P = Trueprop $ P;
+
+fun atomic_Trueprop x = mk_Trueprop (Free (x, oT));
 
 fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
