@@ -52,11 +52,13 @@ much like a module in a programming language or a specification in a
 specification language. In fact, theories in HOL can be either. The general
 format of a theory \texttt{T} is
 \begin{ttbox}
-theory T = B\(@1\) + \(\cdots\) + B\(@n\):
+theory T
+import B\(@1\) \(\ldots\) B\(@n\)
+begin
 {\rmfamily\textit{declarations, definitions, and proofs}}
 end
 \end{ttbox}
-where \texttt{B}$@1$, \dots, \texttt{B}$@n$ are the names of existing
+where \texttt{B}$@1$ \dots\ \texttt{B}$@n$ are the names of existing
 theories that \texttt{T} is based on and \textit{declarations,
     definitions, and proofs} represents the newly introduced concepts
 (types, functions etc.) and proofs about them. The \texttt{B}$@i$ are the

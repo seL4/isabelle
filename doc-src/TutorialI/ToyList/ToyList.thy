@@ -1,4 +1,6 @@
-theory ToyList = PreList:
+theory ToyList
+import PreList
+begin
 
 text{*\noindent
 HOL already has a predefined theory of lists called @{text"List"} ---

@@ -489,7 +489,9 @@ text {*
   \begin{ttbox}
   header {\ttlbrace}* Some properties of Foo Bar elements *{\ttrbrace}
 
-  theory Foo_Bar = Main:
+  theory Foo_Bar
+  import Main
+  begin
 
   subsection {\ttlbrace}* Basic definitions *{\ttrbrace}
 
@@ -764,7 +766,9 @@ text {*
 
   \begin{tabular}{l}
   \verb,(,\verb,*,\verb,<,\verb,*,\verb,), \\
-  \texttt{theory T = Main:} \\
+  \texttt{theory T} \\
+  \texttt{import Main} \\
+  \texttt{begin} \\
   \verb,(,\verb,*,\verb,>,\verb,*,\verb,), \\
   ~~$\vdots$ \\
   \verb,(,\verb,*,\verb,<,\verb,*,\verb,), \\
@@ -796,11 +800,13 @@ text {*
   easy to invalidate the visible text by hiding references to
   questionable axioms.
 
-  Authentic reports of Isabelle/Isar theories, say as part of a
-  library, should suppress nothing.  Other users may need the full
-  information for their own derivative work.  If a particular
-  formalization appears inadequate for general public coverage, it is
-  often more appropriate to think of a better way in the first place.
+% I removed this because the page overflowed and I disagree a little. TN
+%
+%  Authentic reports of Isabelle/Isar theories, say as part of a
+% library, should suppress nothing.  Other users may need the full
+% information for their own derivative work.  If a particular
+% formalization appears inadequate for general public coverage, it is
+% often more appropriate to think of a better way in the first place.
 
   \medskip Some technical subtleties of the
   \verb,(,\verb,*,\verb,<,\verb,*,\verb,),~\verb,(,\verb,*,\verb,>,\verb,*,\verb,),
