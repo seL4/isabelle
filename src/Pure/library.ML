@@ -685,6 +685,7 @@ fun accesses_bal (f, g, x) n =
 (** input / output **)
 
 val cd = OS.FileSys.chDir;
+val pwd = OS.FileSys.getDir;
 
 val prs_fn = ref(fn s => TextIO.output (TextIO.stdOut, s));
 
