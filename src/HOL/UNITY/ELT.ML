@@ -120,7 +120,6 @@ by (blast_tac (claset() addIs [leadsETo_Trans]) 2);
 by (blast_tac (claset() addIs [leadsETo_Basis]) 1);
 qed "leadsETo_mono";
 
-
 val prems = Goalw [leadsETo_def]
  "(!!A. A : S ==> F : (A Int C) leadsTo[CC] B) ==> F : (Union S Int C) leadsTo[CC] B";
 by (simp_tac (HOL_ss addsimps [Int_Union_Union]) 1);
@@ -349,6 +348,58 @@ by (rewtac constrains_def);
 by (blast_tac (claset() addSDs [bspec]) 1);
 qed "Join_leadsETo_stable_imp_leadsETo";
 
+
+(**** Relationship with traditional "leadsTo", strong & weak ****)
+
+(** strong **)
+
+Goal "(A leadsTo[CC] B) <= (A leadsTo B)";
+by Safe_tac;
+by (etac leadsETo_induct 1);
+by (blast_tac (claset() addIs [leadsTo_Union]) 3);
+by (blast_tac (claset() addIs [leadsTo_Trans]) 2);
+by (blast_tac (claset() addIs [leadsTo_Basis]) 1);
+qed "leadsETo_subset_leadsTo";
+
+Goal "(A leadsTo[UNIV] B) = (A leadsTo B)";
+by Safe_tac;
+by (etac (impOfSubs leadsETo_subset_leadsTo) 1);
+(*right-to-left case*)
+by (etac leadsTo_induct 1);
+by (blast_tac (claset() addIs [leadsETo_Union]) 3);
+by (blast_tac (claset() addIs [leadsETo_Trans]) 2);
+by (blast_tac (claset() addIs [leadsETo_Basis]) 1);
+qed "leadsETo_UNIV_eq_leadsTo";
+
+(** weak **)
+
+Goalw [LeadsETo_def, LeadsTo_def] "(A LeadsTo[CC] B) <= (A LeadsTo B)";
+by (blast_tac (claset() addIs [impOfSubs leadsETo_subset_leadsTo]) 1);
+qed "LeadsETo_subset_LeadsTo";
+
+(*Postcondition can be strengthened to (reachable F Int B) *)
+Goal "F : A ensures B ==> F : (reachable F Int A) ensures B";
+by (rtac (stable_ensures_Int RS ensures_weaken_R) 1);
+by (auto_tac (claset(), simpset() addsimps [stable_reachable]));
+qed "reachable_ensures";
+
+Goal "F : A leadsTo B ==> F : (reachable F Int A) leadsTo[Pow(reachable F)] B";
+by (etac leadsTo_induct 1);
+by (stac Int_Union 3);
+by (blast_tac (claset() addIs [leadsETo_UN]) 3);
+by (blast_tac (claset() addDs [e_psp_stable2] 
+                        addIs [leadsETo_Trans, stable_reachable, 
+			       leadsETo_weaken_L]) 2);
+by (blast_tac (claset() addIs [reachable_ensures, leadsETo_Basis]) 1);
+val lemma = result();
+
+Goal "(A LeadsTo[UNIV] B) = (A LeadsTo B)";
+by Safe_tac;
+by (etac (impOfSubs LeadsETo_subset_LeadsTo) 1);
+(*right-to-left case*)
+by (rewrite_goals_tac [LeadsETo_def, LeadsTo_def]);
+by (fast_tac (claset() addEs [lemma RS leadsETo_weaken]) 1);
+qed "LeadsETo_UNIV_eq_LeadsTo";
 
 
 (**** EXTEND/PROJECT PROPERTIES ****)

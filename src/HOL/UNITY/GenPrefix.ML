@@ -343,3 +343,18 @@ by Auto_tac;
 qed "trans_Ge";
 
 AddIffs [reflexive_Ge, antisym_Ge, trans_Ge];
+
+Goal "r<=s ==> genPrefix r <= genPrefix s";
+by (Clarify_tac 1);
+by (etac genPrefix.induct 1);
+by (auto_tac (claset() addIs [genPrefix.append], simpset()));
+qed "genPrefix_mono";
+
+Goalw [prefix_def, Le_def] "xs<=ys ==> xs pfixLe ys";
+by (blast_tac (claset() addIs [impOfSubs genPrefix_mono]) 1);
+qed "prefix_imp_pfixLe";
+
+Goalw [prefix_def, Ge_def] "xs<=ys ==> xs pfixGe ys";
+by (blast_tac (claset() addIs [impOfSubs genPrefix_mono]) 1);
+qed "prefix_imp_pfixGe";
+

@@ -13,6 +13,8 @@ guarantees_PLam_I looks wrong: refers to lift_prog
 AddIs [impOfSubs subset_preserves_o];
 Addsimps [funPair_o_distrib];
 
+Delsimps [o_apply];
+
 (*Eliminating the "o" operator gives associativity for free*)
 val o_simp = simplify (simpset() addsimps [o_def]);
 
@@ -34,6 +36,27 @@ fun normalize th =
 		handle THM _ => th RS bspec
 		handle THM _ => th RS (guarantees_INT_right_iff RS iffD1))
      handle THM _ => th;
+
+(*Currently UNUSED, but possibly of interest*)
+Goal "F : Increasing func ==> F : Stable {s. h pfixGe (func s)}";
+by (asm_full_simp_tac
+    (simpset() addsimps [Increasing_def, Stable_def, Constrains_def, 
+			 constrains_def]) 1); 
+by (blast_tac (claset() addIs [trans_Ge RS trans_genPrefix RS transD,
+			       prefix_imp_pfixGe]) 1);
+qed "Increasing_imp_Stable_pfixGe";
+
+(*Currently UNUSED, but possibly of interest*)
+Goal "ALL z. F : {s. z <= f s} LeadsTo {s. z <= g s} \
+\     ==> F : {s. z pfixGe f s} LeadsTo {s. z pfixGe g s}";
+by (rtac single_LeadsTo_I 1);
+by (dres_inst_tac [("x", "f s")] spec 1);
+by (etac LeadsTo_weaken 1);
+by (blast_tac (claset() addIs [trans_Ge RS trans_genPrefix RS transD,
+			       prefix_imp_pfixGe]) 2);
+by (Blast_tac 1);
+qed "LeadsTo_le_imp_pfixGe";
+
 
 Goal "(ALL i: lessThan n. f i <= g i) --> sum f n <= sum g n";
 by (induct_tac "n" 1);
@@ -282,8 +305,7 @@ by (rtac (client_export extend_guar_Increasing RS guarantees_Join_I2
 	  RS guaranteesD) 1);
 by (rtac (lift_prog_guar_Increasing RS guarantees_PLam_I) 1);
 by (auto_tac (claset(), 
-	      simpset() delsimps [o_apply]
-			addsimps [sub_fold, Network_preserves_rel_ask]));
+	      simpset() addsimps [Network_preserves_rel_ask]));
 qed "System_Increasing_ask";
 
 Goalw [System_def]
@@ -293,13 +315,10 @@ by (rtac (client_export extend_guar_Increasing RS guarantees_Join_I2
 by (rtac (lift_prog_guar_Increasing RS guarantees_PLam_I) 1);
 (*gets Client_Increasing_rel from simpset*)
 by (auto_tac (claset(), 
-	      simpset() delsimps [o_apply]
-			addsimps [sub_fold, Network_preserves_rel_ask]));
+	      simpset() addsimps [Network_preserves_rel_ask]));
 qed "System_Increasing_rel";
 
-
-(*Not sure what to say about the other components because they involve
-  extend*)
+(** Components lemmas **)
 
 (*Alternative is to say that System = Network Join F such that F preserves
   certain state variables*)
@@ -323,28 +342,45 @@ AddIffs [Network_component_System, Alloc_component_System];
     The "Always (INT ...) formulation expresses the general safety property
     and allows it to be combined using Always_Int_rule below. **)
 
+Goal
+  "i < Nclients ==> System : ((sub i o allocRel) Fols (rel o sub i o client))";
+by (auto_tac (claset() addSIs [System_Increasing_rel, 
+			       Network_Rel RS component_guaranteesD], 
+	      simpset()));
+qed "System_Follows_rel";
+
+Goal
+  "i < Nclients ==> System : ((sub i o allocAsk) Fols (ask o sub i o client))";
+by (auto_tac (claset() addSIs [System_Increasing_ask, 
+			       Network_Ask RS component_guaranteesD], 
+	      simpset()));
+qed "System_Follows_ask";
+
+Goal
+  "i < Nclients ==> System : (giv o sub i o client) Fols (sub i o allocGiv)";
+by (auto_tac (claset() addSIs [Network_Giv RS component_guaranteesD, 
+		 extend_Alloc_Increasing_allocGiv RS component_guaranteesD], 
+	      simpset()));
+qed "System_Follows_allocGiv";
+
 Goal "System : Always (INT i: lessThan Nclients. \
 \                      {s. (giv o sub i o client) s <= (sub i o allocGiv) s})";
 by (auto_tac (claset(), 
-	      simpset() delsimps [o_apply] addsimps [Always_INT_distrib]));
-br Follows_Bounded 1;
-br (Network_Giv RS component_guaranteesD) 1;
-br (extend_Alloc_Increasing_allocGiv RS component_guaranteesD) 2;
-by Auto_tac;
+	      simpset() addsimps [Always_INT_distrib]));
+by (etac (System_Follows_allocGiv RS Follows_Bounded) 1);
 qed "Always_giv_le_allocGiv";
 
 Goal "System : Always (INT i: lessThan Nclients. \
 \                      {s. (sub i o allocAsk) s <= (ask o sub i o client) s})";
-by (auto_tac (claset() addSIs [Follows_Bounded, System_Increasing_ask, 
-			       Network_Ask RS component_guaranteesD], 
-	      simpset() delsimps [o_apply] addsimps [Always_INT_distrib]));
+by (auto_tac (claset(), 
+	      simpset() addsimps [Always_INT_distrib]));
+by (etac (System_Follows_ask RS Follows_Bounded) 1);
 qed "Always_allocAsk_le_ask";
 
 Goal "System : Always (INT i: lessThan Nclients. \
 \                      {s. (sub i o allocRel) s <= (rel o sub i o client) s})";
-by (auto_tac (claset() addSIs [Follows_Bounded, System_Increasing_rel, 
-			       Network_Rel RS component_guaranteesD], 
-	      simpset() delsimps [o_apply] addsimps [Always_INT_distrib]));
+by (auto_tac (claset() addSIs [Follows_Bounded, System_Follows_rel], 
+	      simpset() addsimps [Always_INT_distrib]));
 qed "Always_allocRel_le_rel";
 
 
@@ -354,9 +390,7 @@ qed "Always_allocRel_le_rel";
 
 (*safety (1), step 2*)
 Goal "i < Nclients ==> System : Increasing (sub i o allocRel)";
-by (rtac Follows_Increasing1 1);
-by (blast_tac (claset() addIs [Network_Rel RS component_guaranteesD,
-			       System_Increasing_rel]) 1);
+by (etac (System_Follows_rel RS Follows_Increasing1) 1);
 qed "System_Increasing_allocRel";
 
 (*safety (1), step 3*)
@@ -386,14 +420,16 @@ Goal "System : Always (INT i: lessThan Nclients. \
 \                         {s. (tokens o giv o sub i o client) s \
 \                          <= (tokens o sub i o allocGiv) s})";
 by (rtac (Always_giv_le_allocGiv RS Always_weaken) 1);
-by (auto_tac (claset() addIs [tokens_mono_prefix], simpset()));
+by (auto_tac (claset() addIs [tokens_mono_prefix], 
+	      simpset() addsimps [o_apply]));
 qed "Always_tokens_giv_le_allocGiv";
 
 Goal "System : Always (INT i: lessThan Nclients. \
 \                         {s. (tokens o sub i o allocRel) s \
 \                          <= (tokens o rel o sub i o client) s})";
 by (rtac (Always_allocRel_le_rel RS Always_weaken) 1);
-by (auto_tac (claset() addIs [tokens_mono_prefix], simpset()));
+by (auto_tac (claset() addIs [tokens_mono_prefix], 
+	      simpset() addsimps [o_apply]));
 qed "Always_tokens_allocRel_le_rel";
 
 (*safety (1), step 4 (final result!) *)
@@ -444,7 +480,7 @@ by (rtac (guarantees_PLam_I RS client_export UNIV_guar_Always RS
 	  guarantees_Join_I2 RS guaranteesD RS Always_weaken) 1);
 by (rtac Client_i_Bounded 1);
 by (auto_tac(claset(),
-	 simpset() addsimps [lift_export Collect_eq_extend_set RS sym,
+	 simpset() addsimps [o_apply, lift_export Collect_eq_extend_set RS sym,
 			     client_export Collect_eq_extend_set RS sym]));
 qed "System_Bounded_ask";
 
@@ -509,7 +545,47 @@ by (asm_full_simp_tac
 by (rtac (client_export extending_LeadsETo RS extending_weaken RS 
 	  extending_INT) 1);
 by (auto_tac (claset(), 
-	   simpset() addsimps [client_export Collect_eq_extend_set RS sym]));
+  simpset() addsimps [o_apply, client_export Collect_eq_extend_set RS sym]));
 qed "System_Client_Progress";
 
+val lemma =
+    [System_Follows_ask RS Follows_Bounded,
+     System_Follows_allocGiv RS Follows_LeadsTo] MRS Always_LeadsToD;
 
+val lemma2 = [lemma, 
+	      System_Follows_ask RS Follows_Increasing1 RS IncreasingD]
+             MRS PSP_Stable;
+
+Goal "i < Nclients \
+\     ==> System : {s. h <= (sub i o allocGiv) s &      \
+\                      h pfixGe (sub i o allocAsk) s}   \
+\                  LeadsTo  \
+\                  {s. h <= (giv o sub i o client) s &  \
+\                      h pfixGe (ask o sub i o client) s}";
+by (rtac single_LeadsTo_I 1);
+by (res_inst_tac [("k6", "h"), ("x2", "(sub i o allocAsk) s")]
+    (lemma2 RS LeadsTo_weaken) 1);
+by Auto_tac;
+by (blast_tac (claset() addIs [trans_Ge RS trans_genPrefix RS transD,
+			       prefix_imp_pfixGe]) 1);
+val lemma3 = result();
+
+
+(*progress (2), step 8*)
+Goal
+ "System : (INT i : lessThan Nclients. \
+\           INT h. {s. h <= (sub i o allocGiv) s & \
+\                      h pfixGe (sub i o allocAsk) s}  \
+\                  LeadsTo {s. tokens h <= (tokens o sub i o allocRel) s})";
+by Auto_tac;
+by (rtac LeadsTo_Trans 1);
+by (dtac (System_Follows_rel RS impOfSubs (mono_tokens RS mono_Follows_o) RS 
+    Follows_LeadsTo) 2);
+by (asm_full_simp_tac (simpset() addsimps [o_assoc]) 2);
+by (rtac LeadsTo_Trans 1);
+by (rtac (impOfSubs LeadsETo_subset_LeadsTo) 2);
+by (cut_facts_tac [System_Client_Progress] 2);
+by (Force_tac 2);
+by (simp_tac (simpset() addsimps [Collect_conj_eq]) 1); 
+by (etac lemma3 1);
+qed "System_Alloc_Progress";
