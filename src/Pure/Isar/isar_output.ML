@@ -141,6 +141,7 @@ fun eval_antiquote lex state (str, pos) =
     fun expand (Antiquote.Text s) = s
       | expand (Antiquote.Antiq x) =
           let val (opts, src) = antiq_args lex x in
+            options opts (fn () => command src state) ();  (*preview errors!*)
             Library.setmp print_mode (Latex.modes @ ! print_mode)
               (options opts (fn () => command src state)) ()
           end;
