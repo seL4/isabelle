@@ -123,6 +123,10 @@ AddIs [PLam_preserves_snd];
 
 (*** guarantees properties ***)
 
+(*This rule looks unsatisfactory because it refers to "lift".  One must use
+  lift_guarantees_eq_lift_inv to rewrite the first subgoal and
+  something like lift_preserves_sub to rewrite the third.  However there's
+  no obvious way to alternative for the third premise.*)
 Goalw [PLam_def]
     "[| lift i (F i): X guarantees[v] Y;  i : I;  \
 \        ALL j:I. i~=j --> lift j (F j) : preserves v |]  \

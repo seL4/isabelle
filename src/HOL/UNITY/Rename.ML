@@ -52,6 +52,12 @@ qed "Acts_rename";
 
 Addsimps [Init_rename, Acts_rename];
 
+(*Useful if we don't assume bij h*)
+Goalw [rename_def, rename_act_def, extend_def]
+     "Acts (rename h F) = insert Id (rename_act h `` Acts F)";
+by (asm_simp_tac (simpset() addsimps [export Acts_extend]) 1);
+qed "raw_Acts_rename";
+
 Goalw [rename_act_def, extend_act_def]
      "(s,s') : act ==> (h s, h s') : rename_act h act";
 by Auto_tac;
@@ -117,6 +123,8 @@ by (rtac (inv_equality RS sym) 1);
 by Auto_tac;
 qed "rename_inv_eq";
 
+(** (rename h) is bijective <=> h is bijective **)
+
 Goal "bij h ==> inj (rename h)";
 by (asm_simp_tac (simpset() addsimps [inj_iff, expand_fun_eq, o_def, 
 				      rename_inv_eq RS sym]) 1);
@@ -131,6 +139,30 @@ Goal "bij h ==> bij (rename h)";
 by (blast_tac (claset() addIs [bijI, inj_rename, surj_rename]) 1);
 qed "bij_rename";
 
+Goalw [inj_on_def] "inj (rename h) ==> inj h";
+by Auto_tac;
+by (dres_inst_tac [("x", "mk_program ({x}, {})")] spec 1);
+by (dres_inst_tac [("x", "mk_program ({y}, {})")] spec 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [program_equality_iff, raw_Acts_rename]));
+qed "inj_rename_imp_inj";
+
+Goalw [surj_def] "surj (rename h) ==> surj h";
+by Auto_tac;
+by (dres_inst_tac [("x", "mk_program ({y}, {})")] spec 1);
+by (auto_tac (claset() addSEs [equalityE], 
+	      simpset() addsimps [program_equality_iff, raw_Acts_rename]));
+qed "surj_rename_imp_surj";
+
+Goalw [bij_def] "bij (rename h) ==> bij h";
+by (asm_simp_tac
+    (simpset() addsimps [inj_rename_imp_inj, surj_rename_imp_surj]) 1);
+qed "bij_rename_imp_bij";
+
+Goal "bij (rename h) = bij h";
+by (blast_tac (claset() addIs [bij_rename, bij_rename_imp_bij]) 1);
+qed "bij_rename_iff";
+AddIffs [bij_rename_iff];
 
 (*** the lattice operations ***)
 
@@ -138,10 +170,6 @@ Goalw [rename_def] "bij h ==> rename h SKIP = SKIP";
 by (Asm_simp_tac 1);
 qed "rename_SKIP";
 Addsimps [rename_SKIP];
-
-Goalw [rename_def] "bij h ==> inj (rename h)";
-by (asm_simp_tac (simpset() addsimps [export inj_extend]) 1);
-qed "inj_rename";
 
 Goalw [rename_def]
      "bij h ==> rename h (F Join G) = rename h F Join rename h G";

@@ -360,6 +360,8 @@ Goal "(lift i F : preserves v) = (F : preserves (v o lift_map i))";
 by (simp_tac (simpset() addsimps [lift_def, rename_preserves]) 1);
 qed "lift_preserves_eq";
 
+(*A useful rewrite.  If o, sub have been rewritten out already then can also
+  use it as   rewrite_rule [sub_def, o_def] lift_preserves_sub*)
 Goal "F : preserves snd \
 \     ==> lift i F : preserves (v o sub j o fst) = \
 \         (if i=j then F : preserves (v o fst) else True)";

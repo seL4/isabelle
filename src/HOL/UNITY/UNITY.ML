@@ -63,8 +63,7 @@ qed "Acts_eq";
 Addsimps [Acts_eq, Init_eq];
 
 
-(** The notation of equality for type "program" **)
-
+(** Equality for UNITY programs **)
 
 Goal "mk_program (Init F, Acts F) = F";
 by (cut_inst_tac [("x", "F")] Rep_Program 1);
@@ -83,6 +82,10 @@ Goal "[| F = G; [| Init F = Init G; Acts F = Acts G |] ==> P |] ==> P";
 by (rtac minor 1);
 by (auto_tac (claset(), simpset() addsimps [major]));
 qed "program_equalityE";
+
+Goal "(F=G) = (Init F = Init G & Acts F = Acts G)";
+by (blast_tac (claset() addIs [program_equalityI, program_equalityE]) 1);
+qed "program_equality_iff";
 
 Addsimps [surjective_mk_program];
 

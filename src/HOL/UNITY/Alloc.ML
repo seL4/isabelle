@@ -5,8 +5,6 @@
 
 Specification of Chandy and Charpentier's Allocator
 
-guarantees_PLam_I looks wrong: refers to lift_prog
-
 Goal "(plam x: lessThan Nclients. Client) = x";
 Client :: (clientState * ((nat => clientState) * 'b)) program
 *)
@@ -21,8 +19,7 @@ qed "surj_image_Collect_lemma";
 
 AddIs [impOfSubs subset_preserves_o];
 Addsimps [funPair_o_distrib];
-Addsimps [rename_preserves];
-
+Addsimps [Always_INT_distrib];
 Delsimps [o_apply];
 
 (*Eliminate the "o" operator*)
@@ -33,7 +30,9 @@ Addsimps [rename_image_constrains, rename_image_stable,
 	  rename_image_increasing, rename_image_invariant,
 	  rename_image_Constrains, rename_image_Stable,
 	  rename_image_Increasing, rename_image_Always,
-	  rename_image_leadsTo, rename_image_LeadsTo];
+	  rename_image_leadsTo, rename_image_LeadsTo,
+	  rename_preserves,
+	  bij_image_INT, bij_is_inj RS image_Int, bij_image_Collect_eq];
 
 (*Splits up conjunctions & intersections: like CONJUNCTS in the HOL system*)
 fun list_of_Int th = 
@@ -91,7 +90,7 @@ qed "inv_sysOfAlloc_eq";
 Addsimps [inv_sysOfAlloc_eq];
 
 Goal "surj sysOfAlloc";
-by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_def]) 1);
+by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_apply]) 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
 	      simpset() addsimps [sysOfAlloc_def, Let_def]));
 qed "surj_sysOfAlloc";
@@ -124,7 +123,7 @@ qed "inv_sysOfClient_eq";
 Addsimps [inv_sysOfClient_eq];
 
 Goal "surj sysOfClient";
-by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_def]) 1);
+by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_apply]) 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
 	      simpset() addsimps [sysOfClient_def]));
 qed "surj_sysOfClient";
@@ -154,7 +153,7 @@ qed "inv_client_map_eq";
 Addsimps [inv_client_map_eq];
 
 Goal "surj client_map";
-by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_def]) 1);
+by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_apply]) 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
 	      simpset() addsimps [client_map_def, non_extra_def]));
 qed "surj_client_map";
@@ -168,77 +167,73 @@ AddIffs [bij_client_map];
 
 (** o-simprules for client_map **)
 
-Goal "fst o client_map = non_extra";
-by (rtac ext 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [o_def, client_map_def]));
+Goalw [client_map_def] "fst o client_map = non_extra";
+by (rtac fst_o_funPair 1);
 qed "fst_o_client_map";
 Addsimps (make_o_equivs fst_o_client_map);
 
-Goal "snd o client_map = clientState_u.extra";
-by (rtac ext 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [o_def, client_map_def]));
+Goalw [client_map_def] "snd o client_map = clientState_u.extra";
+by (rtac snd_o_funPair 1);
 qed "snd_o_client_map";
 Addsimps (make_o_equivs snd_o_client_map);
 
-(** o-simprules for sysOfAlloc **)
+(** o-simprules for sysOfAlloc [MUST BE AUTOMATED] **)
 
 Goal "client o sysOfAlloc = fst o allocState_u.extra ";
 by (rtac ext 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [o_def, sysOfAlloc_def, Let_def]));
+	      simpset() addsimps [o_apply, sysOfAlloc_def, Let_def]));
 qed "client_o_sysOfAlloc";
 Addsimps (make_o_equivs client_o_sysOfAlloc);
 
 Goal "allocGiv o sysOfAlloc = allocGiv";
 by (rtac ext 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfAlloc_def, Let_def, o_def]));
+	      simpset() addsimps [sysOfAlloc_def, Let_def, o_apply]));
 qed "allocGiv_o_sysOfAlloc_eq";
 Addsimps (make_o_equivs allocGiv_o_sysOfAlloc_eq);
 
 Goal "allocAsk o sysOfAlloc = allocAsk";
 by (rtac ext 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfAlloc_def, Let_def, o_def]));
+	      simpset() addsimps [sysOfAlloc_def, Let_def, o_apply]));
 qed "allocAsk_o_sysOfAlloc_eq";
 Addsimps (make_o_equivs allocAsk_o_sysOfAlloc_eq);
 
 Goal "allocRel o sysOfAlloc = allocRel";
 by (rtac ext 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfAlloc_def, Let_def, o_def]));
+	      simpset() addsimps [sysOfAlloc_def, Let_def, o_apply]));
 qed "allocRel_o_sysOfAlloc_eq";
 Addsimps (make_o_equivs allocRel_o_sysOfAlloc_eq);
 
-(** o-simprules for sysOfClient **)
+(** o-simprules for sysOfClient [MUST BE AUTOMATED] **)
 
 Goal "client o sysOfClient = fst";
 by (rtac ext 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [o_def, sysOfClient_def]));
+	      simpset() addsimps [o_apply, sysOfClient_def]));
 qed "client_o_sysOfClient";
 Addsimps (make_o_equivs client_o_sysOfClient);
 
 Goal "allocGiv o sysOfClient = allocGiv o snd ";
 by (rtac ext 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfClient_def, o_def]));
+	      simpset() addsimps [sysOfClient_def, o_apply]));
 qed "allocGiv_o_sysOfClient_eq";
 Addsimps (make_o_equivs allocGiv_o_sysOfClient_eq);
 
 Goal "allocAsk o sysOfClient = allocAsk o snd ";
 by (rtac ext 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfClient_def, o_def]));
+	      simpset() addsimps [sysOfClient_def, o_apply]));
 qed "allocAsk_o_sysOfClient_eq";
 Addsimps (make_o_equivs allocAsk_o_sysOfClient_eq);
 
 Goal "allocRel o sysOfClient = allocRel o snd ";
 by (rtac ext 1);
 by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfClient_def, o_def]));
+	      simpset() addsimps [sysOfClient_def, o_apply]));
 qed "allocRel_o_sysOfClient_eq";
 Addsimps (make_o_equivs allocRel_o_sysOfClient_eq);
 
@@ -302,10 +297,8 @@ val Alloc_Increasing = normalize Alloc_Increasing_0;
 
 AddIffs (Alloc_preserves |> simplify (simpset()) |> list_of_Int);
 
-(** Components lemmas **)
+(** Components lemmas [MUST BE AUTOMATED] **)
 
-(*Alternative is to say that System = Network Join F such that F preserves
-  certain state variables*)
 Goal "Network Join \
 \     ((rename sysOfClient \
 \       (plam x: lessThan Nclients. rename client_map Client)) Join \
@@ -348,14 +341,29 @@ by (assume_tac 2);
 by (asm_simp_tac (simpset() addsimps [lift_preserves_sub]) 2);
 (*the guarantee for  "lift i (rename client_map Client)" *)
 by (asm_simp_tac
-    (simpset() addsimps [lift_guarantees_eq_lift_inv, 
+    (simpset() addsimps [lift_guarantees_eq_lift_inv,
 			 rename_guarantees_eq_rename_inv,
 			 bij_imp_bij_inv, surj_rename RS surj_range,
-			 bij_rename, bij_image_INT, bij_is_inj RS image_Int,
 			 inv_inv_eq]) 1);
 by (asm_simp_tac
     (simpset() addsimps [o_def, non_extra_def, guarantees_Int_right]) 1);
 qed "rename_Client_Increasing";
+
+(*The proofs of rename_Client_Bounded and rename_Client_Progress are 
+  similar to the one above.  All require copying out the original Client
+  property.  A forward proof can be constructed as follows:
+
+  Client_Increasing_ask RS
+      (bij_client_map RS rename_rename_guarantees_eq RS iffD2)
+  RS (lift_lift_guarantees_eq RS iffD2)
+  RS guarantees_PLam_I
+  RS (bij_sysOfClient RS rename_rename_guarantees_eq RS iffD2)
+  |> simplify (simpset() addsimps [lift_image_eq_rename, o_def, split_def, 
+				   surj_rename RS surj_range]);
+
+However, the "preserves" property remains to be discharged, and the unfolding
+of "o" and "sub" complicates subsequent reasoning.
+*)
 
 Goal "i < Nclients \
 \     ==> System : Increasing (ask o sub i o client) Int \
@@ -365,13 +373,14 @@ by (rtac ([rename_Client_Increasing,
 by Auto_tac;
 qed "System_Increasing";
 
+bind_thm ("rename_guarantees_sysOfAlloc_I",
+	  bij_sysOfAlloc RS rename_rename_guarantees_eq RS iffD2);
+
+
 (*Lifting Alloc_Increasing up to the level of systemState*)
 val rename_Alloc_Increasing = 
-    [bij_sysOfAlloc RS rename_rename_guarantees_eq, Alloc_Increasing] MRS iffD2
-     |> simplify
-	 (simpset() addsimps [bij_rename, surj_rename RS surj_range,
-			      bij_image_INT, 
-			      bij_image_Collect_eq, o_def]);
+    Alloc_Increasing RS rename_guarantees_sysOfAlloc_I
+     |> simplify (simpset() addsimps [surj_rename RS surj_range, o_def]);
 
 Goalw [System_def]
      "i < Nclients ==> System : Increasing (sub i o allocGiv)";
@@ -411,22 +420,20 @@ qed "System_Follows_allocGiv";
 
 Goal "System : Always (INT i: lessThan Nclients. \
 \                      {s. (giv o sub i o client) s <= (sub i o allocGiv) s})";
-by (auto_tac (claset(), 
-	      simpset() addsimps [Always_INT_distrib]));
+by Auto_tac;
 by (etac (System_Follows_allocGiv RS Follows_Bounded) 1);
 qed "Always_giv_le_allocGiv";
 
 Goal "System : Always (INT i: lessThan Nclients. \
 \                      {s. (sub i o allocAsk) s <= (ask o sub i o client) s})";
-by (auto_tac (claset(), 
-	      simpset() addsimps [Always_INT_distrib]));
+by Auto_tac;
 by (etac (System_Follows_ask RS Follows_Bounded) 1);
 qed "Always_allocAsk_le_ask";
 
 Goal "System : Always (INT i: lessThan Nclients. \
 \                      {s. (sub i o allocRel) s <= (rel o sub i o client) s})";
 by (auto_tac (claset() addSIs [Follows_Bounded, System_Follows_rel], 
-	      simpset() addsimps [Always_INT_distrib]));
+	      simpset()));
 qed "Always_allocRel_le_rel";
 
 
@@ -441,22 +448,16 @@ qed "System_Increasing_allocRel";
 
 (*Lifting Alloc_safety up to the level of systemState*)
 val rename_Alloc_Safety = 
-    [bij_sysOfAlloc RS rename_rename_guarantees_eq, Alloc_Safety] MRS iffD2
-     |> simplify
-	 (simpset() addsimps [bij_rename, 
-			      bij_image_INT, 
-			      bij_image_Collect_eq, o_def]);
+    Alloc_Safety RS rename_guarantees_sysOfAlloc_I
+     |> simplify (simpset() addsimps [o_def]);
 
 (*safety (1), step 3*)
 Goal "System : Always {s. sum (%i. (tokens o sub i o allocGiv) s) Nclients \
 \                  <= NbT + sum (%i. (tokens o sub i o allocRel) s) Nclients}";
-by (simp_tac (simpset() addsimps [o_def]) 1);
-by (rtac ([rename_Alloc_Safety, Alloc_component_System] MRS 
-	  component_guaranteesD) 1);
-(*preserves*)
-by (Simp_tac 2);
-by (force_tac (claset(), 
-	       simpset() addsimps [o_simp System_Increasing_allocRel]) 1);
+by (simp_tac (simpset() addsimps [o_apply]) 1);
+by (rtac (rename_Alloc_Safety RS component_guaranteesD) 1);
+by (auto_tac (claset(), 
+	       simpset() addsimps [o_simp System_Increasing_allocRel]));
 qed "System_sum_bounded";
 
 
@@ -518,12 +519,10 @@ by (assume_tac 2);
 by (asm_simp_tac (simpset() addsimps [lift_preserves_sub]) 2);
 (*the guarantee for  "lift i (rename client_map Client)" *)
 by (asm_simp_tac
-    (simpset() addsimps [lift_guarantees_eq_lift_inv, 
+    (simpset() addsimps [lift_guarantees_eq_lift_inv,
 			 rename_guarantees_eq_rename_inv,
 			 bij_imp_bij_inv, surj_rename RS surj_range,
-			 bij_rename, bij_image_INT, bij_is_inj RS image_Int,
-			 rename_image_Always, inv_inv_eq,
-			 bij_image_Collect_eq]) 1);
+			 inv_inv_eq]) 1);
 by (asm_simp_tac (simpset() addsimps [o_def, non_extra_def]) 1);
 qed "rename_Client_Bounded";
 
@@ -539,7 +538,7 @@ qed "System_Bounded_ask";
 Goal "System : Always {s. ALL i : lessThan Nclients. \
 \                          ALL elt : set ((sub i o allocAsk) s). elt <= NbT}";
 by (auto_tac (claset(), 
-	      simpset() addsimps [Collect_ball_eq, Always_INT_distrib]));
+	      simpset() addsimps [Collect_ball_eq]));
 by (rtac (Always_Int_rule [Always_allocAsk_le_ask, System_Bounded_ask] 
     RS Always_weaken) 1);
 by (auto_tac (claset() addDs [set_mono], simpset()));
@@ -567,13 +566,9 @@ by (assume_tac 2);
 by (asm_simp_tac (simpset() addsimps [lift_preserves_sub]) 2);
 (*the guarantee for  "lift i (rename client_map Client)" *)
 by (asm_simp_tac
-    (simpset() addsimps [lift_guarantees_eq_lift_inv, 
+    (simpset() addsimps [lift_guarantees_eq_lift_inv,
 			 rename_guarantees_eq_rename_inv,
-			 bij_imp_bij_inv, surj_rename RS surj_range,
-			 bij_rename, bij_image_INT, bij_is_inj RS image_Int,
-			 rename_image_LeadsTo, rename_image_Increasing, 
-			 inv_inv_eq,
-			 bij_image_Collect_eq]) 1);
+			 bij_imp_bij_inv, inv_inv_eq]) 1);
 by (asm_simp_tac (simpset() addsimps [o_def, non_extra_def,
 				  rewrite_rule [o_def] Client_Progress]) 1);
 qed "rename_Client_Progress";
@@ -589,8 +584,7 @@ by (rtac INT_I 1);
 (*Couldn't have just used Auto_tac since the "INT h" must be kept*)
 by (rtac ([rename_Client_Progress,
 	   Client_component_System] MRS component_guaranteesD) 1);
-by (asm_full_simp_tac
-    (simpset() addsimps [System_Increasing_giv]) 2);
+by (asm_full_simp_tac (simpset() addsimps [System_Increasing_giv]) 2);
 by Auto_tac;
 qed "System_Client_Progress";
 
@@ -640,11 +634,8 @@ qed "System_Alloc_Client_Progress";
 
 (*Lifting Alloc_Progress up to the level of systemState*)
 val rename_Alloc_Progress = 
-    [bij_sysOfAlloc RS rename_rename_guarantees_eq, Alloc_Progress] MRS iffD2
-     |> simplify
-	 (simpset() addsimps [bij_rename, surj_rename RS surj_range,
-			      bij_image_INT, bij_is_inj RS image_Int,
-			      bij_image_Collect_eq, o_def]);
+    Alloc_Progress RS rename_guarantees_sysOfAlloc_I
+     |> simplify (simpset() addsimps [o_def]);
 
 (*progress (2), step 9*)
 Goal
@@ -652,12 +643,8 @@ Goal
 \           INT h. {s. h <= (sub i o allocAsk) s}  \
 \                  LeadsTo {s. h pfixLe (sub i o allocGiv) s})";
 (*Can't use simpset(): the "INT h" must be kept*)
-by (simp_tac (HOL_ss addsimps [o_def, sub_def]) 1);
-by (rtac ([rename_Alloc_Progress, Alloc_component_System] MRS 
-	  component_guaranteesD) 1);
-(*preserves*)
-by (Simp_tac 2);
-(*the guarantees precondition*)
+by (simp_tac (HOL_ss addsimps [o_apply, sub_def]) 1);
+by (rtac (rename_Alloc_Progress RS component_guaranteesD) 1);
 by (auto_tac (claset(), 
 	      simpset() addsimps [o_simp System_Increasing_allocRel,
 				  o_simp System_Increasing_allocAsk,
