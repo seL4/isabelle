@@ -1,9 +1,8 @@
 \documentclass[12pt]{report}
-\usepackage{a4,latexsym}
+\usepackage{a4,latexsym,proof}
 
 \makeatletter
 \input{../rail.sty}
-\input{../proof.sty}
 \input{../iman.sty}
 \input{../extra.sty}
 \makeatother
@@ -18,19 +17,20 @@
 %% run    ../sedindex logics    to prepare index file
 \title{Isabelle's Object-Logics}
 
-\author{{\em Lawrence C. Paulson}\thanks{Tobias Nipkow revised and extended
-    the chapter on \HOL. Markus Wenzel suggested changes and corrections.
+\author{{\em Lawrence C. Paulson}\\
+        Computer Laboratory \\ University of Cambridge \\
+        \texttt{lcp@cl.cam.ac.uk}\\[3ex] 
+        With Contributions by Tobias Nipkow and Markus Wenzel%
+\thanks{Tobias Nipkow revised and extended
+    the chapter on \HOL.  Markus Wenzel made numerous improvements.
     Philippe de Groote wrote the
     first version of the logic~\LK{} and contributed to~\ZF{}.  Tobias
     Nipkow developed~\HOL{}, \LCF{} and~\Cube{}.  Philippe No\"el and
     Martin Coen made many contributions to~\ZF{}.  Martin Coen
-    developed~\Modal{} with assistance from Rajeev Gor\'e.  The research
-    has been funded by the SERC (grants GR/G53279, GR/H40570) and by ESPRIT
-    project 6453: Types.}\\
-  Computer Laboratory \\ 
-  University of Cambridge \\[2ex] 
-  {\small{\em Electronic mail\/}: {\tt lcp@cl.cam.ac.uk}} \\[3cm]
-  {\small Copyright \copyright{} \number\year{} by Lawrence C. Paulson} }
+    developed~\Modal{} with assistance from Rajeev Gor\'e.  The research has 
+    been funded by the EPSRC (grants GR/G53279, GR/H40570, GR/K57381,
+    GR/K77051) and by ESPRIT project 6453: Types.}
+}
 
 \newcommand\subcaption[1]{\par {\centering\normalsize\sc#1\par}\bigskip
   \hrule\bigskip}
