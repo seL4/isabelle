@@ -147,7 +147,7 @@ bind_thm ("thelub_cprod", lub_cprod RS thelubI);
 
 *)
 
-qed_goal "cpo_cprod" thy "is_chain(S::nat=>'a*'b)==>? x.range S<<| x"
+qed_goal "cpo_cprod" thy "is_chain(S::nat=>'a::cpo*'b::cpo)==>? x.range S<<| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

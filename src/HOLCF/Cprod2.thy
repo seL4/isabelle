@@ -9,7 +9,9 @@ Class Instance *::(pcpo,pcpo)po
 
 Cprod2 = Cprod1 + 
 
-instance "*"::(pcpo,pcpo)po 
+default pcpo
+
+instance "*"::(cpo,cpo)po 
 	(refl_less_cprod,antisym_less_cprod,trans_less_cprod)
 end
 

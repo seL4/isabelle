@@ -9,7 +9,8 @@ Class instance of  * for class pcpo
 
 Cprod3 = Cprod2 +
 
-instance "*" :: (pcpo,pcpo)pcpo   (least_cprod,cpo_cprod)
+instance "*" :: (cpo,cpo)cpo   	  (cpo_cprod)
+instance "*" :: (pcpo,pcpo)pcpo   (least_cprod)
 
 consts  
         cpair        :: "'a -> 'b -> ('a*'b)" (* continuous  pairing *)

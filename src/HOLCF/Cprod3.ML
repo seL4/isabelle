@@ -20,8 +20,8 @@ qed_goal "inst_cprod_pcpo" thy "UU = (UU,UU)"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "Cprod3_lemma1" Cprod3.thy 
-"is_chain(Y::(nat=>'a)) ==>\
-\ (lub(range(Y)),(x::'b)) =\
+"is_chain(Y::(nat=>'a::cpo)) ==>\
+\ (lub(range(Y)),(x::'b::cpo)) =\
 \ (lub(range(%i. fst(Y i,x))),lub(range(%i. snd(Y i,x))))"
  (fn prems =>
         [
@@ -57,8 +57,8 @@ qed_goal "contlub_pair1" Cprod3.thy "contlub(Pair)"
         ]);
 
 qed_goal "Cprod3_lemma2" Cprod3.thy 
-"is_chain(Y::(nat=>'a)) ==>\
-\ ((x::'b),lub(range Y)) =\
+"is_chain(Y::(nat=>'a::cpo)) ==>\
+\ ((x::'b::cpo),lub(range Y)) =\
 \ (lub(range(%i. fst(x,Y i))),lub(range(%i. snd(x, Y i))))"
  (fn prems =>
         [
