@@ -95,7 +95,7 @@ qed "STARC_mem_Compl";
 
 Goal "*sc* (A - B) = *sc* A - *sc* B";
 by (auto_tac (claset(),simpset() addsimps 
-         [set_diff_iff2,STARC_Int,STARC_Compl]));
+         [Diff_eq,STARC_Int,STARC_Compl]));
 qed "STARC_diff";
 
 Goalw [starsetC_n_def] 

@@ -114,7 +114,7 @@ qed "powhr_less_cancel_iff";
 Addsimps [powhr_less_cancel_iff];
 
 Goal "1 < x ==> (x powhr a <= x powhr b) = (a <= b)";
-by (auto_tac (claset(),simpset() addsimps [hypreal_le_def]));
+by (auto_tac (claset(),simpset() addsimps [linorder_not_less RS sym]));
 qed "powhr_le_cancel_iff";
 Addsimps [powhr_le_cancel_iff];
 
@@ -246,7 +246,7 @@ qed "hlog_less_cancel_iff";
 Addsimps [hlog_less_cancel_iff];
 
 Goal "[| 1 < a; 0 < x; 0 < y |] ==> (hlog a x <= hlog a y) = (x <= y)";
-by (auto_tac (claset(),simpset() addsimps [hypreal_le_def]));
+by (auto_tac (claset(),simpset() addsimps [linorder_not_less RS sym]));
 qed "hlog_le_cancel_iff";
 Addsimps [hlog_le_cancel_iff];
 

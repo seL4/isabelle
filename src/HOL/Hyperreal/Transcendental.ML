@@ -1216,7 +1216,6 @@ Goal "exp u = x ==> ln x = u";
 by Auto_tac;
 qed "exp_ln_eq";
 
-Addsimps [hypreal_less_not_refl];
 
 (* ------------------------------------------------------------------------ *)
 (* Basic properties of the trig functions                                   *)

@@ -6,17 +6,15 @@
 
 theory NSComplex = NSInduct:
 
-(* Move to one of the hyperreal theories *)
+(* ???MOVE to one of the hyperreal theories: HRealAbs??? *)
 lemma hypreal_of_nat: "hypreal_of_nat m = Abs_hypreal(hyprel `` {%n. real m})"
 apply (induct_tac "m")
 apply (auto simp add: hypreal_zero_def hypreal_of_nat_Suc hypreal_zero_num hypreal_one_num hypreal_add real_of_nat_Suc)
 done
 
-(* not proved already? strange! *)
 lemma hypreal_of_nat_le_iff:
       "(hypreal_of_nat n \<le> hypreal_of_nat m) = (n \<le> m)"
-apply (unfold hypreal_le_def)
-apply auto
+apply (auto simp add: linorder_not_less [symmetric])
 done
 declare hypreal_of_nat_le_iff [simp]
 
@@ -1365,7 +1363,7 @@ done
 
 lemma cos_harg_i_mult_zero [simp]:
      "y \<noteq> 0 ==> ( *f* cos) (harg(iii * hcomplex_of_hypreal y)) = 0"
-apply (cut_tac x = "y" and y = "0" in hypreal_linear)
+apply (cut_tac x = "y" and y = "0" in linorder_less_linear)
 apply (auto simp add: cos_harg_i_mult_zero_pos cos_harg_i_mult_zero_neg)
 done
 

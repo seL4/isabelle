@@ -31,7 +31,7 @@ lemma hrabs_eqI2: "(0::hypreal)<x ==> abs x = x"
 by (simp add: order_less_imp_le hrabs_eqI1)
 
 lemma hrabs_minus_eqI2: "x<(0::hypreal) ==> abs x = -x"
-by (simp add: hypreal_le_def hrabs_def)
+by (simp add: linorder_not_less [symmetric] hrabs_def)
 
 lemma hrabs_minus_eqI1: "x<=(0::hypreal) ==> abs x = -x"
 by (auto dest: order_antisym simp add: hrabs_def)

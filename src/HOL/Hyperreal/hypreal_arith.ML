@@ -9,6 +9,8 @@ Instantiation of the generic linear arithmetic package for type hypreal.
 *)
 
 (*FIXME DELETE*)
+val hypreal_mult_less_mono2 = thm"hypreal_mult_less_mono2";
+
 val hypreal_mult_left_mono =
     read_instantiate_sg(sign_of (the_context())) [("a","?a::hypreal")] mult_left_mono;
 

@@ -67,7 +67,7 @@ syntax (xsymbols)
   epsilon :: hypreal   ("\<epsilon>")
 
 
-defs
+defs (overloaded)
 
   hypreal_add_def:
   "P + Q == Abs_hypreal(\<Union>X \<in> Rep_hypreal(P). \<Union>Y \<in> Rep_hypreal(Q).
@@ -77,12 +77,12 @@ defs
   "P * Q == Abs_hypreal(\<Union>X \<in> Rep_hypreal(P). \<Union>Y \<in> Rep_hypreal(Q).
                 hyprel``{%n::nat. X n * Y n})"
 
-  hypreal_less_def:
-  "P < (Q::hypreal) == \<exists>X Y. X \<in> Rep_hypreal(P) &
-                               Y \<in> Rep_hypreal(Q) &
-                               {n::nat. X n < Y n} \<in> FreeUltrafilterNat"
   hypreal_le_def:
-  "P \<le> (Q::hypreal) == ~(Q < P)"
+  "P \<le> (Q::hypreal) == \<exists>X Y. X \<in> Rep_hypreal(P) &
+                               Y \<in> Rep_hypreal(Q) &
+                               {n::nat. X n \<le> Y n} \<in> FreeUltrafilterNat"
+
+  hypreal_less_def: "(x < (y::hypreal)) == (x \<le> y & x \<noteq> y)"
 
   hrabs_def:  "abs (r::hypreal) == (if 0 \<le> r then r else -r)"
 
@@ -494,195 +494,77 @@ proof
 qed
 
 
-subsection{*Theorems for Ordering*}
-
-text{*TODO: define @{text "\<le>"} as the primitive concept and quickly 
-establish membership in class @{text linorder}. Then proofs could be
-simplified, since properties of @{text "<"} would be generic.*}
-
-text{*TODO: The following theorem should be used througout the proofs
-  as it probably makes many of them more straightforward.*}
-lemma hypreal_less: 
-      "(Abs_hypreal(hyprel``{%n. X n}) < Abs_hypreal(hyprel``{%n. Y n})) =  
-       ({n. X n < Y n} \<in> FreeUltrafilterNat)"
-apply (unfold hypreal_less_def)
-apply (auto intro!: lemma_hyprel_refl, ultra)
-done
-
-lemma hypreal_less_not_refl: "~ (R::hypreal) < R"
-apply (rule_tac z = R in eq_Abs_hypreal)
-apply (auto simp add: hypreal_less_def, ultra)
-done
-
-lemmas hypreal_less_irrefl = hypreal_less_not_refl [THEN notE, standard]
-declare hypreal_less_irrefl [elim!]
-
-lemma hypreal_not_refl2: "!!(x::hypreal). x < y ==> x \<noteq> y"
-by (auto simp add: hypreal_less_not_refl)
-
-lemma hypreal_less_trans: "!!(R1::hypreal). [| R1 < R2; R2 < R3 |] ==> R1 < R3"
-apply (rule_tac z = R1 in eq_Abs_hypreal)
-apply (rule_tac z = R2 in eq_Abs_hypreal)
-apply (rule_tac z = R3 in eq_Abs_hypreal)
-apply (auto intro!: exI simp add: hypreal_less_def, ultra)
-done
-
-lemma hypreal_less_asym: "!! (R1::hypreal). [| R1 < R2; R2 < R1 |] ==> P"
-apply (drule hypreal_less_trans, assumption)
-apply (simp add: hypreal_less_not_refl)
-done
-
-
-subsection{*Trichotomy: the hyperreals are Linearly Ordered*}
-
-lemma lemma_hyprel_0_mem: "\<exists>x. x \<in> hyprel `` {%n. 0}"
-apply (unfold hyprel_def)
-apply (rule_tac x = "%n. 0" in exI, safe)
-apply (auto intro!: FreeUltrafilterNat_Nat_set)
-done
-
-lemma hypreal_trichotomy: "0 <  x | x = 0 | x < (0::hypreal)"
-apply (unfold hypreal_zero_def)
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (auto simp add: hypreal_less_def)
-apply (cut_tac lemma_hyprel_0_mem, erule exE)
-apply (drule_tac x = xa in spec)
-apply (drule_tac x = x in spec)
-apply (cut_tac x = x in lemma_hyprel_refl, auto)
-apply (drule_tac x = x in spec)
-apply (drule_tac x = xa in spec, auto, ultra)
-done
-
-lemma hypreal_trichotomyE:
-     "[| (0::hypreal) < x ==> P;  
-         x = 0 ==> P;  
-         x < 0 ==> P |] ==> P"
-apply (insert hypreal_trichotomy [of x], blast) 
-done
-
-lemma hypreal_less_minus_iff: "((x::hypreal) < y) = (0 < y + -x)"
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal)
-apply (auto simp add: hypreal_add hypreal_zero_def hypreal_minus hypreal_less)
-done
-
-lemma hypreal_less_minus_iff2: "((x::hypreal) < y) = (x + -y < 0)"
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal)
-apply (auto simp add: hypreal_add hypreal_zero_def hypreal_minus hypreal_less)
-done
-
-lemma hypreal_eq_minus_iff2: "((x::hypreal) = y) = (0 = y + - x)"
-apply auto
-apply (rule Ring_and_Field.add_right_cancel [of _ "-x", THEN iffD1], auto)
-done
-
-lemma hypreal_linear: "(x::hypreal) < y | x = y | y < x"
-apply (subst hypreal_eq_minus_iff2)
-apply (rule_tac x1 = x in hypreal_less_minus_iff [THEN ssubst])
-apply (rule_tac x1 = y in hypreal_less_minus_iff2 [THEN ssubst])
-apply (rule hypreal_trichotomyE, auto)
-done
-
-lemma hypreal_neq_iff: "((w::hypreal) \<noteq> z) = (w<z | z<w)"
-by (cut_tac hypreal_linear, blast)
-
-
 subsection{*Properties of The @{text "\<le>"} Relation*}
 
 lemma hypreal_le: 
       "(Abs_hypreal(hyprel``{%n. X n}) \<le> Abs_hypreal(hyprel``{%n. Y n})) =  
        ({n. X n \<le> Y n} \<in> FreeUltrafilterNat)"
-apply (auto simp add: hypreal_less hypreal_le_def linorder_not_less[symmetric])
-apply (ultra+)
-done
-
-lemma hypreal_le_imp_less_or_eq: "!!(x::hypreal). x \<le> y ==> x < y | x = y"
 apply (unfold hypreal_le_def)
-apply (cut_tac hypreal_linear)
-apply (fast elim: hypreal_less_irrefl hypreal_less_asym)
+apply (auto intro!: lemma_hyprel_refl)
+apply (ultra)
 done
-
-lemma hypreal_less_or_eq_imp_le: "z<w | z=w ==> z \<le>(w::hypreal)"
-apply (unfold hypreal_le_def)
-apply (cut_tac hypreal_linear)
-apply (fast elim: hypreal_less_irrefl hypreal_less_asym)
-done
-
-lemma hypreal_le_eq_less_or_eq: "(x \<le> (y::hypreal)) = (x < y | x=y)"
-by (blast intro!: hypreal_less_or_eq_imp_le dest: hypreal_le_imp_less_or_eq) 
-
-lemmas hypreal_le_less = hypreal_le_eq_less_or_eq
 
 lemma hypreal_le_refl: "w \<le> (w::hypreal)"
-by (simp add: hypreal_le_eq_less_or_eq)
-
-(* Axiom 'linorder_linear' of class 'linorder': *)
-lemma hypreal_le_linear: "(z::hypreal) \<le> w | w \<le> z"
-apply (simp add: hypreal_le_less)
-apply (cut_tac hypreal_linear, blast)
+apply (rule eq_Abs_hypreal [of w])
+apply (simp add: hypreal_le) 
 done
 
 lemma hypreal_le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::hypreal)"
-apply (drule hypreal_le_imp_less_or_eq) 
-apply (drule hypreal_le_imp_less_or_eq) 
-apply (rule hypreal_less_or_eq_imp_le) 
-apply (blast intro: hypreal_less_trans) 
+apply (rule eq_Abs_hypreal [of i])
+apply (rule eq_Abs_hypreal [of j])
+apply (rule eq_Abs_hypreal [of k])
+apply (simp add: hypreal_le) 
+apply ultra
 done
 
 lemma hypreal_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::hypreal)"
-apply (drule hypreal_le_imp_less_or_eq) 
-apply (drule hypreal_le_imp_less_or_eq) 
-apply (fast elim: hypreal_less_irrefl hypreal_less_asym)
+apply (rule eq_Abs_hypreal [of z])
+apply (rule eq_Abs_hypreal [of w])
+apply (simp add: hypreal_le) 
+apply ultra
 done
 
 (* Axiom 'order_less_le' of class 'order': *)
 lemma hypreal_less_le: "((w::hypreal) < z) = (w \<le> z & w \<noteq> z)"
-apply (simp add: hypreal_le_def hypreal_neq_iff)
-apply (blast intro: hypreal_less_asym)
+apply (simp add: hypreal_less_def)
 done
 
 instance hypreal :: order
-  by (intro_classes,
-      (assumption | 
-       rule hypreal_le_refl hypreal_le_trans hypreal_le_anti_sym
-            hypreal_less_le)+)
+proof qed
+ (assumption |
+  rule hypreal_le_refl hypreal_le_trans hypreal_le_anti_sym hypreal_less_le)+
+
+
+(* Axiom 'linorder_linear' of class 'linorder': *)
+lemma hypreal_le_linear: "(z::hypreal) \<le> w | w \<le> z"
+apply (rule eq_Abs_hypreal [of z])
+apply (rule eq_Abs_hypreal [of w])
+apply (auto simp add: hypreal_le) 
+apply ultra
+done
 
 instance hypreal :: linorder 
   by (intro_classes, rule hypreal_le_linear)
 
+lemma hypreal_not_refl2: "!!(x::hypreal). x < y ==> x \<noteq> y"
+by (auto simp add: order_less_irrefl)
 
-lemma hypreal_add_less_mono1: "(A::hypreal) < B ==> A + C < B + C"
-apply (rule_tac z = A in eq_Abs_hypreal)
-apply (rule_tac z = B in eq_Abs_hypreal)
-apply (rule_tac z = C in eq_Abs_hypreal)
-apply (auto intro!: exI simp add: hypreal_less_def hypreal_add, ultra)
-done
-
-lemma hypreal_mult_order: "[| 0 < x; 0 < y |] ==> (0::hypreal) < x * y"
-apply (unfold hypreal_zero_def)
-apply (rule_tac z = x in eq_Abs_hypreal)
-apply (rule_tac z = y in eq_Abs_hypreal)
-apply (auto intro!: exI simp add: hypreal_less_def hypreal_mult, ultra)
-apply (auto intro: real_mult_order)
-done
-
-lemma hypreal_add_left_le_mono1: "(q1::hypreal) \<le> q2  ==> x + q1 \<le> x + q2"
-apply (drule order_le_imp_less_or_eq)
-apply (auto intro: order_less_imp_le hypreal_add_less_mono1 simp add: hypreal_add_commute)
-done
-
-lemma hypreal_mult_less_mono1: "[| (0::hypreal) < z; x < y |] ==> x*z < y*z"
-apply (rotate_tac 1)
-apply (drule hypreal_less_minus_iff [THEN iffD1])
-apply (rule hypreal_less_minus_iff [THEN iffD2])
-apply (drule hypreal_mult_order, assumption)
-apply (simp add: right_distrib hypreal_mult_commute)
+lemma hypreal_add_left_mono: "x \<le> y ==> z + x \<le> z + (y::hypreal)"
+apply (rule eq_Abs_hypreal [of x])
+apply (rule eq_Abs_hypreal [of y])
+apply (rule eq_Abs_hypreal [of z])
+apply (auto simp add: hypreal_le hypreal_add) 
 done
 
 lemma hypreal_mult_less_mono2: "[| (0::hypreal)<z; x<y |] ==> z*x<z*y"
-apply (simp (no_asm_simp) add: hypreal_mult_commute hypreal_mult_less_mono1)
+apply (rule eq_Abs_hypreal [of x])
+apply (rule eq_Abs_hypreal [of y])
+apply (rule eq_Abs_hypreal [of z])
+apply (auto simp add: hypreal_zero_def hypreal_le hypreal_mult 
+                      linorder_not_le [symmetric])
+apply ultra 
 done
+
 
 subsection{*The Hyperreals Form an Ordered Field*}
 
@@ -690,9 +572,10 @@ instance hypreal :: ordered_field
 proof
   fix x y z :: hypreal
   show "0 < (1::hypreal)" 
-    by (unfold hypreal_one_def hypreal_zero_def hypreal_less_def, force)
+    by (simp add: hypreal_zero_def hypreal_one_def linorder_not_le [symmetric],
+        simp add: hypreal_le)
   show "x \<le> y ==> z + x \<le> z + y" 
-    by (rule hypreal_add_left_le_mono1)
+    by (rule hypreal_add_left_mono)
   show "x < y ==> 0 < z ==> z * x < z * y" 
     by (simp add: hypreal_mult_less_mono2)
   show "\<bar>x\<bar> = (if x < 0 then -x else x)"
@@ -783,17 +666,17 @@ by (unfold hypreal_of_real_def hypreal_one_def, simp)
 lemma hypreal_of_real_zero [simp]: "hypreal_of_real 0 = 0"
 by (unfold hypreal_of_real_def hypreal_zero_def, simp)
 
-lemma hypreal_of_real_less_iff [simp]: 
-     "(hypreal_of_real w <  hypreal_of_real z) = (w < z)"
-apply (unfold hypreal_less_def hypreal_of_real_def, auto)
+lemma hypreal_of_real_le_iff [simp]: 
+     "(hypreal_of_real w \<le> hypreal_of_real z) = (w \<le> z)"
+apply (unfold hypreal_le_def hypreal_of_real_def, auto)
 apply (rule_tac [2] x = "%n. w" in exI, safe)
 apply (rule_tac [3] x = "%n. z" in exI, auto)
 apply (rule FreeUltrafilterNat_P, ultra)
 done
 
-lemma hypreal_of_real_le_iff [simp]: 
-     "(hypreal_of_real w \<le> hypreal_of_real z) = (w \<le> z)"
-by (force simp add: hypreal_less hypreal_le_def linorder_not_less[symmetric])
+lemma hypreal_of_real_less_iff [simp]: 
+     "(hypreal_of_real w < hypreal_of_real z) = (w < z)"
+by (simp add: linorder_not_le [symmetric]) 
 
 lemma hypreal_of_real_eq_iff [simp]:
      "(hypreal_of_real w = hypreal_of_real z) = (w = z)"
@@ -821,14 +704,11 @@ declare hypreal_of_real_eq_iff   [of _ 1, simplified, simp]
 
 lemma hypreal_of_real_minus [simp]:
      "hypreal_of_real (-r) = - hypreal_of_real  r"
-apply (unfold hypreal_of_real_def)
-apply (auto simp add: hypreal_minus)
-done
+by (auto simp add: hypreal_of_real_def hypreal_minus)
 
 lemma hypreal_of_real_inverse [simp]:
      "hypreal_of_real (inverse r) = inverse (hypreal_of_real r)"
-apply (case_tac "r=0")
-apply (simp add: DIVISION_BY_ZERO INVERSE_ZERO HYPREAL_INVERSE_ZERO)
+apply (case_tac "r=0", simp)
 apply (rule_tac c1 = "hypreal_of_real r" in hypreal_mult_left_cancel [THEN iffD1])
 apply (auto simp add: hypreal_of_real_mult [symmetric])
 done
@@ -839,6 +719,13 @@ by (simp add: hypreal_divide_def real_divide_def)
 
 
 subsection{*Misc Others*}
+
+lemma hypreal_less: 
+      "(Abs_hypreal(hyprel``{%n. X n}) < Abs_hypreal(hyprel``{%n. Y n})) =  
+       ({n. X n < Y n} \<in> FreeUltrafilterNat)"
+apply (auto simp add: hypreal_le linorder_not_le [symmetric]) 
+apply ultra+
+done
 
 lemma hypreal_zero_num: "0 = Abs_hypreal (hyprel `` {%n. 0})"
 by (simp add: hypreal_zero_def [THEN meta_eq_to_obj_eq, symmetric])
@@ -851,13 +738,80 @@ apply (unfold omega_def)
 apply (auto simp add: hypreal_less hypreal_zero_num)
 done
 
-
 lemma hypreal_hrabs:
      "abs (Abs_hypreal (hyprel `` {X})) = 
       Abs_hypreal(hyprel `` {%n. abs (X n)})"
 apply (auto simp add: hrabs_def hypreal_zero_def hypreal_le hypreal_minus)
 apply (ultra, arith)+
 done
+
+
+
+lemma hypreal_add_zero_less_le_mono: "[|r < x; (0::hypreal) \<le> y|] ==> r < x+y"
+by (auto dest: add_less_le_mono)
+
+text{*The precondition could be weakened to @{term "0\<le>x"}*}
+lemma hypreal_mult_less_mono:
+     "[| u<v;  x<y;  (0::hypreal) < v;  0 < x |] ==> u*x < v* y"
+ by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
+
+
+subsection{*Existence of Infinite Hyperreal Number*}
+
+lemma Rep_hypreal_omega: "Rep_hypreal(omega) \<in> hypreal"
+apply (unfold omega_def)
+apply (rule Rep_hypreal)
+done
+
+text{*Existence of infinite number not corresponding to any real number.
+Use assumption that member @{term FreeUltrafilterNat} is not finite.*}
+
+
+text{*A few lemmas first*}
+
+lemma lemma_omega_empty_singleton_disj: "{n::nat. x = real n} = {} |  
+      (\<exists>y. {n::nat. x = real n} = {y})"
+by (force dest: inj_real_of_nat [THEN injD])
+
+lemma lemma_finite_omega_set: "finite {n::nat. x = real n}"
+by (cut_tac x = x in lemma_omega_empty_singleton_disj, auto)
+
+lemma not_ex_hypreal_of_real_eq_omega: 
+      "~ (\<exists>x. hypreal_of_real x = omega)"
+apply (unfold omega_def hypreal_of_real_def)
+apply (auto simp add: real_of_nat_Suc diff_eq_eq [symmetric] 
+            lemma_finite_omega_set [THEN FreeUltrafilterNat_finite])
+done
+
+lemma hypreal_of_real_not_eq_omega: "hypreal_of_real x \<noteq> omega"
+by (cut_tac not_ex_hypreal_of_real_eq_omega, auto)
+
+text{*Existence of infinitesimal number also not corresponding to any
+ real number*}
+
+lemma lemma_epsilon_empty_singleton_disj:
+     "{n::nat. x = inverse(real(Suc n))} = {} |  
+      (\<exists>y. {n::nat. x = inverse(real(Suc n))} = {y})"
+by (auto simp add: inj_real_of_nat [THEN inj_eq])
+
+lemma lemma_finite_epsilon_set: "finite {n. x = inverse(real(Suc n))}"
+by (cut_tac x = x in lemma_epsilon_empty_singleton_disj, auto)
+
+lemma not_ex_hypreal_of_real_eq_epsilon: 
+      "~ (\<exists>x. hypreal_of_real x = epsilon)"
+apply (unfold epsilon_def hypreal_of_real_def)
+apply (auto simp add: lemma_finite_epsilon_set [THEN FreeUltrafilterNat_finite])
+done
+
+lemma hypreal_of_real_not_eq_epsilon: "hypreal_of_real x \<noteq> epsilon"
+by (cut_tac not_ex_hypreal_of_real_eq_epsilon, auto)
+
+lemma hypreal_epsilon_not_zero: "epsilon \<noteq> 0"
+by (unfold epsilon_def hypreal_zero_def, auto)
+
+lemma hypreal_epsilon_inverse_omega: "epsilon = inverse(omega)"
+by (simp add: hypreal_inverse omega_def epsilon_def)
+
 
 ML
 {*
@@ -946,23 +900,12 @@ val hypreal_inverse_not_zero = thm "hypreal_inverse_not_zero";
 val hypreal_mult_not_0 = thm "hypreal_mult_not_0";
 val hypreal_minus_inverse = thm "hypreal_minus_inverse";
 val hypreal_inverse_distrib = thm "hypreal_inverse_distrib";
-val hypreal_less_not_refl = thm "hypreal_less_not_refl";
-val hypreal_less_irrefl = thm"hypreal_less_irrefl";
 val hypreal_not_refl2 = thm "hypreal_not_refl2";
-val hypreal_less_trans = thm "hypreal_less_trans";
-val hypreal_less_asym = thm "hypreal_less_asym";
 val hypreal_less = thm "hypreal_less";
-val hypreal_trichotomy = thm "hypreal_trichotomy";
-val hypreal_less_minus_iff = thm "hypreal_less_minus_iff";
-val hypreal_less_minus_iff2 = thm "hypreal_less_minus_iff2";
 val hypreal_eq_minus_iff = thm "hypreal_eq_minus_iff";
-val hypreal_eq_minus_iff2 = thm "hypreal_eq_minus_iff2";
 val hypreal_eq_minus_iff3 = thm "hypreal_eq_minus_iff3";
 val hypreal_not_eq_minus_iff = thm "hypreal_not_eq_minus_iff";
-val hypreal_linear = thm "hypreal_linear";
 val hypreal_le = thm "hypreal_le";
-val hypreal_le_imp_less_or_eq = thm "hypreal_le_imp_less_or_eq";
-val hypreal_le_eq_less_or_eq = thm "hypreal_le_eq_less_or_eq";
 val hypreal_le_refl = thm "hypreal_le_refl";
 val hypreal_le_linear = thm "hypreal_le_linear";
 val hypreal_le_trans = thm "hypreal_le_trans";
@@ -984,6 +927,17 @@ val hypreal_inverse_add = thm "hypreal_inverse_add";
 val hypreal_zero_num = thm "hypreal_zero_num";
 val hypreal_one_num = thm "hypreal_one_num";
 val hypreal_omega_gt_zero = thm "hypreal_omega_gt_zero";
+
+val hypreal_add_zero_less_le_mono = thm"hypreal_add_zero_less_le_mono";
+val Rep_hypreal_omega = thm"Rep_hypreal_omega";
+val lemma_omega_empty_singleton_disj = thm"lemma_omega_empty_singleton_disj";
+val lemma_finite_omega_set = thm"lemma_finite_omega_set";
+val not_ex_hypreal_of_real_eq_omega = thm"not_ex_hypreal_of_real_eq_omega";
+val hypreal_of_real_not_eq_omega = thm"hypreal_of_real_not_eq_omega";
+val not_ex_hypreal_of_real_eq_epsilon = thm"not_ex_hypreal_of_real_eq_epsilon";
+val hypreal_of_real_not_eq_epsilon = thm"hypreal_of_real_not_eq_epsilon";
+val hypreal_epsilon_not_zero = thm"hypreal_epsilon_not_zero";
+val hypreal_epsilon_inverse_omega = thm"hypreal_epsilon_inverse_omega";
 *}
 
 end

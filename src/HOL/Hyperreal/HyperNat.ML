@@ -5,6 +5,12 @@
                   ultrafilters
 *) 
 
+fun CLAIM_SIMP str thms =
+               prove_goal (the_context()) str
+               (fn prems => [cut_facts_tac prems 1,
+                   auto_tac (claset(),simpset() addsimps thms)]);
+fun CLAIM str = CLAIM_SIMP str [];
+
 (* blast confuses different versions of < *)
 DelIffs [order_less_irrefl];
 Addsimps [order_less_irrefl];

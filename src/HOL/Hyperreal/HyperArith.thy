@@ -143,6 +143,9 @@ text{*Used once in NSA*}
 lemma hypreal_add_minus_eq_minus: "x + y = (0::hypreal) ==> x = -y"
 by arith
 
+lemma hypreal_le_add_order: "[| 0 \<le> x; 0 \<le> y |] ==> (0::hypreal) \<le> x + y"
+by arith
+
 
 subsubsection{*Division By @{term 1} and @{term "-1"}*}
 
@@ -197,6 +200,7 @@ Addsimps [symmetric hypreal_diff_def]
 ML
 {*
 val hypreal_add_minus_eq_minus = thm "hypreal_add_minus_eq_minus";
+val hypreal_le_add_order = thm"hypreal_le_add_order";
 *}
 
 end

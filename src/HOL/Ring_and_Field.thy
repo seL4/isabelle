@@ -249,7 +249,8 @@ apply (erule add_strict_right_mono [THEN order_less_trans])
 apply (erule add_strict_left_mono)
 done
 
-lemma add_less_le_mono: "[| a<b; c\<le>d |] ==> a + c < b + (d::'a::ordered_semiring)"
+lemma add_less_le_mono:
+     "[| a<b; c\<le>d |] ==> a + c < b + (d::'a::ordered_semiring)"
 apply (erule add_strict_right_mono [THEN order_less_le_trans])
 apply (erule add_left_mono) 
 done
