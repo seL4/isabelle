@@ -271,23 +271,33 @@ fun smart_store_thms (name, []) = error ("Cannot store empty list of theorems: "
 (* store axioms as theorems *)
 
 local
-  fun add_ax app_name add ((name, axs), atts) thy =
+  fun get_axs thy named_axs = map (Thm.get_axiom thy o fst) named_axs;
+
+  fun add_single add ((name, ax), atts) thy =
     let
-      val named_axs = app_name name axs;
+      val named_ax = name_single name ax;
+      val thy' = add named_ax thy;
+      val thm = hd (get_axs thy' named_ax);
+    in add_thms [((name, thm), atts)] thy' end;
+
+  fun add_multi add ((name, axs), atts) thy =
+    let
+      val named_axs = name_multi name axs;
       val thy' = add named_axs thy;
-      val thms = map (Thm.get_axiom thy' o fst) named_axs;
+      val thms = get_axs thy' named_axs;
     in add_thmss [((name, thms), atts)] thy' end;
 
-  fun add_axs app_name add = Library.apply o map (add_ax app_name add);
+  fun add_singles add = Library.apply o map (add_single add);
+  fun add_multis add = Library.apply o map (add_multi add);
 in
-  val add_axioms    = add_axs name_single Theory.add_axioms;
-  val add_axioms_i  = add_axs name_single Theory.add_axioms_i;
-  val add_axiomss   = add_axs name_multi Theory.add_axioms;
-  val add_axiomss_i = add_axs name_multi Theory.add_axioms_i;
-  val add_defs      = add_axs name_single Theory.add_defs;
-  val add_defs_i    = add_axs name_single Theory.add_defs_i;
-  val add_defss     = add_axs name_multi Theory.add_defs;
-  val add_defss_i   = add_axs name_multi Theory.add_defs_i;
+  val add_axioms    = add_singles Theory.add_axioms;
+  val add_axioms_i  = add_singles Theory.add_axioms_i;
+  val add_axiomss   = add_multis Theory.add_axioms;
+  val add_axiomss_i = add_multis Theory.add_axioms_i;
+  val add_defs      = add_singles Theory.add_defs;
+  val add_defs_i    = add_singles Theory.add_defs_i;
+  val add_defss     = add_multis Theory.add_defs;
+  val add_defss_i   = add_multis Theory.add_defs_i;
 end;
 
 
