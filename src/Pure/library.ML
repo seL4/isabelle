@@ -770,10 +770,15 @@ fun nth_elem_string (i, str) =
 fun foldl_string f (x0, str) =
   let
     val n = size str;
-    fun fold (x, i) = if i < n then fold (f (x, String.substring (str, i, 1)), i + 1) else x
+    fun fold (x, i) =
+      if i < n then fold (f (x, String.substring (str, i, 1)), i + 1) else x;
   in fold (x0, 0) end;
 
-fun exists_string pred str = foldl_string (fn (b, s) => b orelse pred s) (false, str);
+fun exists_string pred str =
+  let
+    val n = size str;
+    fun ex i = i < n andalso (pred (String.substring (str, i, 1)) orelse ex (i + 1));
+  in ex 0 end;
 
 (*enclose in brackets*)
 fun enclose lpar rpar str = lpar ^ str ^ rpar;
