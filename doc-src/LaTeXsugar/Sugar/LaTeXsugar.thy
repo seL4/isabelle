@@ -1,3 +1,4 @@
+(*<*)
 theory LaTeXsugar
 imports Main
 begin
@@ -79,3 +80,4 @@ syntax (IfThenNoBox output)
   "_asm" :: "prop \<Rightarrow> asms" ("_")
 
 end
+(*>*)
