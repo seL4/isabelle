@@ -7,15 +7,15 @@
 \indexisarmeth{finish}\indexisarmeth{fold}\indexisarmeth{unfold}
 \indexisarmeth{rule}\indexisarmeth{erule}
 \begin{matharray}{rcl}
-  fail & : & \isarmeth \\
-  succeed & : & \isarmeth \\
   - & : & \isarmeth \\
   assumption & : & \isarmeth \\
-  finish & : & \isarmeth \\
-  fold & : & \isarmeth \\
-  unfold & : & \isarmeth \\
+  finish & : & \isarmeth \\[0.5ex]
   rule & : & \isarmeth \\
-  erule^* & : & \isarmeth \\
+  erule^* & : & \isarmeth \\[0.5ex]
+  fold & : & \isarmeth \\
+  unfold & : & \isarmeth \\[0.5ex]
+  fail & : & \isarmeth \\
+  succeed & : & \isarmeth \\
 \end{matharray}
 
 \begin{rail}
@@ -24,14 +24,42 @@
 \end{rail}
 
 \begin{descr}
-\item [$ $]
+\item [``$-$''] does nothing but insert the forward chaining facts as premises
+  into the goal.  Note that command $\PROOFNAME$ without any method given
+  actually performs a single reduction step using the $rule$ method (see
+  below); thus a plain \emph{do-nothing} proof step would be $\PROOF{-}$
+  rather than $\PROOFNAME$ alone.
+\item [$assumption$] solves some goal by assumption (after inserting the
+  goal's facts).
+\item [$finish$] solves all remaining goals by assumption; this is the default
+  terminal proof method for $\QEDNAME$, i.e.\ it usually does not have to be
+  spelled out explicitly.
+\item [$rule~thms$] applies some rule given as argument in backward manner;
+  facts are used to reduce the rule before applying it to the goal.  Thus
+  $rule$ without facts is plain \emph{introduction}, while with facts it
+  becomes an \emph{elimination}.
+  
+  Note that the classical reasoner introduces another version of $rule$ that
+  is able to pick appropriate rules automatically, whenever explicit $thms$
+  are omitted (see \S\ref{sec:classical-basic}) .  That method is the default
+  one for proof steps such as $\PROOFNAME$ and ``$\DDOT$'' (two dots).
+  
+\item [$erule~thms$] is similar to $rule$, but applies rules by
+  elim-resolution.  This is an improper method, mainly for experimentation and
+  porting of old script.  Actual elimination proofs are usually done with
+  $rule$ (single step) or $elim$ (multiple steps, see
+  \S\ref{sec:classical-basic}).
+  
+\item [$unfold~thms$ and $fold~thms$] expand and fold back again meta-level
+  definitions $thms$ throughout all goals; facts may not be given.
+
+\item [$fail$] yields an empty result sequence; it is the identify of the
+  ``\texttt{|}'' method combinator.
+  
+\item [$succeed$] yields a singleton result, which is unchanged except for the
+  change from $prove$ mode back to $state$; it is the identify of the
+  ``\texttt{,}'' method combinator.
 \end{descr}
-
-FIXME
-
-%FIXME sort
-%FIXME thmref (single)
-%FIXME var vs. term
 
 
 \section{Miscellaneous attributes}
@@ -41,34 +69,28 @@ FIXME
 \indexisaratt{elimify}\indexisaratt{transfer}\indexisaratt{export}
 \begin{matharray}{rcl}
   tag & : & \isaratt \\
-  untag & : & \isaratt \\
-  COMP & : & \isaratt \\
-  RS & : & \isaratt \\
+  untag & : & \isaratt \\[0.5ex]
   OF & : & \isaratt \\
+  RS & : & \isaratt \\
+  COMP & : & \isaratt \\[0.5ex]
   where & : & \isaratt \\
-  of & : & \isaratt \\
+  of & : & \isaratt \\[0.5ex]
   standard & : & \isaratt \\
   elimify & : & \isaratt \\
-  transfer & : & \isaratt \\
   export & : & \isaratt \\
+  transfer & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
   ('tag' | 'untag') (nameref+)
   ;
-\end{rail}
-
-\begin{rail}
-  ('COMP' | 'RS') nat? thmref
-  ;
   'OF' thmrefs
   ;
-\end{rail}
-
-\begin{rail}
-  'where' (name '=' term * 'and')
+  ('RS' | 'COMP') nat? thmref
   ;
   'of' (inst * ) ('concl' ':' (inst * ))?
+  ;
+  'where' (name '=' term * 'and')
   ;
 
   inst: underscore | term
@@ -76,10 +98,38 @@ FIXME
 \end{rail}
 
 \begin{descr}
-\item [$ $]
-\end{descr}
+\item [$tag~tags$ and $untag~tags$] add and remove $tags$ to the theorem,
+  respectively.  Tags may be any list of strings that serve as comment for
+  some tools (e.g.\ $\LEMMANAME$ causes tag ``$lemma$'' to be added to the
+  result).
+\item [$OF~thms$, $RS~n~thm$, and $COMP~n~thm$] compose rules.  $OF$ applies
+  $thms$ in parallel (cf.\ \texttt{MRS} in \cite[\S5]{isabelle-ref}, but note
+  the reversed order).  $RS$ resolves with the $n$-th premise of $thm$; $COMP$
+  is a version of $RS$ that does not include the automatic lifting process
+  that is normally desired (see \texttt{RS} and \texttt{COMP} in
+  \cite[\S5]{isabelle-ref}).
+  
+\item [$of~ts$ and $where~insts$] perform positional and named instantiation,
+  respectively.  The terms given in $of$ are substituted for any variables
+  occurring in a theorem from left to right; ``\texttt{_}'' (underscore)
+  indicates to skip a position.
+ 
+\item [$standard$] puts a theorem into the standard form of object-rules, just
+  as the ML function \texttt{standard} (see \cite[\S5]{isabelle-ref}).
+  
+\item [$elimify$] turns an destruction rule (such as projection $conjunct@1$
+  into an elimination.
+  
+\item [$export$] lifts a local result out of the current proof context,
+  generalizing all fixed variables and discharging all assumptions.  Export is
+  usually done automatically behind the scenes.  This attribute is mainly for
+  experimentation.
+  
+\item [$transfer$] promotes a theorem to the current theory context, which has
+  to enclose the former one.  Normally, this is done automatically when rules
+  are joined by inference.
 
-FIXME
+\end{descr}
 
 
 \section{Calculational proof}\label{sec:calculation}
@@ -172,7 +222,13 @@ the standard Isabelle documentation.
 \end{rail}
 
 \begin{descr}
-\item [$\isarkeyword{axclass}~$] FIXME
+\item [$\isarkeyword{axclass}~$] defines an axiomatic type class as the
+  intersection of existing classes, with additional axioms holding.  Class
+  axioms may not contain more than one type variable.  The class axioms (with
+  implicit sort constraints added) are bound to the given names.  Furthermore
+  a class introduction rule is generated, which is employed by method
+  $expand_classes$ in support instantiation proofs of this class.
+
 \item [$\isarkeyword{instance}~c@1 < c@2$ and $\isarkeyword{instance}~c@1 <
   c@2$] setup up a goal stating the class relation or type arity.  The proof
   would usually proceed by the $expand_classes$ method, and then establish the
@@ -189,13 +245,12 @@ axiomatic type classes, including instantiation proofs.
 
 \section{The Simplifier}
 
-\subsection{Simplification methods}
+\subsection{Simplification methods}\label{sec:simp}
 
-\indexisarmeth{simp}\indexisarmeth{asm_simp}\indexisaratt{simp}
+\indexisarmeth{simp}\indexisarmeth{asm_simp}
 \begin{matharray}{rcl}
   simp & : & \isarmeth \\
   asm_simp & : & \isarmeth \\
-  simp & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
@@ -206,7 +261,35 @@ axiomatic type classes, including instantiation proofs.
   ;
 \end{rail}
 
-FIXME
+\begin{descr}
+\item [Methods $simp$ and $asm_simp$] invoke Isabelle's simplifier, after
+  modifying the context as follows adding or deleting given rules.  The
+  \railtoken{only} modifier first removes all other rewrite rules and
+  congruences, and then is like \railtoken{add}.  In contrast,
+  \railtoken{other} ignores its arguments; nevertheless there may be
+  side-effects on the context via attributes.  This provides a back door for
+  arbitrary manipulation of the context.
+  
+  Both of these methods are based on \texttt{asm_full_simp_tac}, see
+  \cite[\S10]{isabelle-ref}.
+\end{descr}
+
+\subsection{Modifying the context}
+
+\indexisaratt{simp}
+\begin{matharray}{rcl}
+  simp & : & \isaratt \\
+\end{matharray}
+
+\begin{rail}
+  'simp' (() | 'add' | 'del')
+  ;
+\end{rail}
+
+\begin{descr}
+\item [Attribute $simp$] adds or deletes rules from the theory or proof
+  context.  The default is to add rules.
+\end{descr}
 
 
 \subsection{Forward simplification}
@@ -219,33 +302,135 @@ FIXME
   asm_full_simplify & : & \isaratt \\
 \end{matharray}
 
-FIXME
+These attributes provide forward rules for simplification, which should be
+used very rarely.  See the ML function of the same name in
+\cite[\S10]{isabelle-ref} for more information.
 
 
 \section{The Classical Reasoner}
 
-\subsection{Single step methods}
+\subsection{Basic step methods}\label{sec:classical-basic}
 
-\subsection{Automatic methods}
+\indexisarmeth{rule}\indexisarmeth{default}\indexisarmeth{contradiction}
+\begin{matharray}{rcl}
+  rule & : & \isarmeth \\
+  intro & : & \isarmeth \\
+  elim & : & \isarmeth \\
+  contradiction & : & \isarmeth \\
+\end{matharray}
+
+\begin{rail}
+  ('rule' | 'intro' | 'elim') thmrefs
+  ;
+\end{rail}
+
+\begin{descr}
+\item [Method $rule$] as offered by the classical reasoner is a refinement
+  over the primitive one (see \S\ref{sec:pure-meth}).  In the case that no
+  rules are provided as arguments, it automatically determines elimination and
+  introduction rules from the context (see also \S\ref{sec:classical-mod}).
+  In that form it is the default method for basic proof steps.
+  
+\item [Methods $intro$ and $elim$] repeatedly refine some goal by intro- or
+  elim-resolution, after having inserted the facts.  Omitting the arguments
+  refers to any suitable rules from the context, otherwise only the explicitly
+  given ones may be applied.  The latter form admits better control of what is
+  actually happening, thus it is appropriate as an initial proof method that
+  splits up certain connectives of the goal, before entering the sub-proof.
+
+\item [Method $contradiction$] solves some goal by contradiction: both $A$ and
+  $\neg A$ have to be present in the assumptions.
+\end{descr}
+
+
+\subsection{Automatic methods}\label{sec:classical-auto}
+
+\indexisarmeth{blast}
+\indexisarmeth{fast}\indexisarmeth{best}\indexisarmeth{slow}\indexisarmeth{slow_best}
+\begin{matharray}{rcl}
+ blast & : & \isarmeth \\
+ fast & : & \isarmeth \\
+ best & : & \isarmeth \\
+ slow & : & \isarmeth \\
+ slow_best & : & \isarmeth \\
+\end{matharray}
+
+\railalias{slowbest}{slow\_best}
+\railterm{slowbest}
+
+\begin{rail}
+  'blast' nat? (clamod * )
+  ;
+  ('fast' | 'best' | 'slow' | slowbest) (clamod * )
+  ;
+
+  clamod: (('intro' | 'elim' | 'dest') (() | '!' | '!!') | 'del') ':' thmrefs
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$blast$] refers to the classical tableau prover (see \texttt{blast_tac}
+  in \cite[\S11]{isabelle-ref}).  The optional argument specifies a applies a
+  user-supplied search bound (default 20).
+\item [$fast$, $best$, $slow$, $slow_best$] refer to the generic classical
+  reasoner (see the corresponding tactics \texttt{fast_tac} etc.\ in
+  \cite[\S11]{isabelle-ref}).
+\end{descr}
+
+Any of above methods support additional modifiers of the context of classical
+rules.  There semantics is analogous to the attributes given in
+\S\ref{sec:classical-mod}.
+
 
 \subsection{Combined automatic methods}
 
-\subsection{Modifying the context}
+\indexisarmeth{auto}\indexisarmeth{force}
+\begin{matharray}{rcl}
+  force & : & \isarmeth \\
+  auto & : & \isarmeth \\
+\end{matharray}
 
+\begin{rail}
+  ('force' | 'auto') (clasimpmod * )
+  ;
 
+  clasimpmod: ('simp' ('add' | 'del' | 'only') | other |
+    (('intro' | 'elim' | 'dest') (() | '!' | '!!') | 'del')) ':' thmrefs
+\end{rail}
 
-%\indexisarcmd{}
-%\begin{matharray}{rcl}
-%  \isarcmd{} & : & \isartrans{}{} \\
-%\end{matharray}
+\begin{descr}
+\item [$force$ and $auto$] provide access to Isabelle's combined
+  simplification and classical reasoning tactics.  See \texttt{force_tac} and
+  \texttt{auto_tac} in \cite[\S11]{isabelle-ref} for more information.  The
+  modifier arguments correspond to those given in \S\ref{sec:simp} and
+  \S\ref{sec:classical-auto}.
+\end{descr}
 
-%\begin{rail}
-  
-%\end{rail}
+\subsection{Modifying the context}\label{sec:classical-mod}
 
-%\begin{descr}
-%\item [$ $]
-%\end{descr}
+\indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}\indexisaratt{delrule}
+\begin{matharray}{rcl}
+  intro & : & \isaratt \\
+  elim & : & \isaratt \\
+  dest & : & \isaratt \\
+  delrule & : & \isaratt \\
+\end{matharray}
+
+\begin{rail}
+  ('intro' | 'elim' | 'dest') (() | '!' | '!!')
+  ;
+\end{rail}
+
+\begin{descr}
+\item [Attributes $intro$, $elim$, and $dest$] add introduction, elimination,
+  and destruct rules, respectively.  By default, rules are considered as
+  \emph{safe}, while a single ``!'' classifies as \emph{unsafe}, and ``!!'' as
+  \emph{extra} (i.e.\ not applied in the search-oriented automatic methods).
+
+\item [Attribute $delrule$] deletes introduction or elimination rules from the
+  context.  Destruction rules would have to be turned into elimination rules
+  first, e.g.\ by using the $elimify$ attribute.
+\end{descr}
 
 
 %%% Local Variables: 

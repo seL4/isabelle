@@ -134,7 +134,7 @@ that this is in contrast to that types and terms (see \ref{sec:types-terms}).
 \indexouternonterm{sort}\indexouternonterm{arity}\indexouternonterm{simplearity}
 \indexouternonterm{classdecl}
 \begin{rail}
-  classdecl: name ('<' (nameref ',' +))?
+  classdecl: name ('<' (nameref + ','))?
   ;
   sort: nameref | lbrace (nameref * ',') rbrace
   ;
