@@ -13,8 +13,8 @@ sig
   val trans_del_global: theory attribute
   val trans_add_local: Proof.context attribute
   val trans_del_local: Proof.context attribute
-  val also: thm list option -> (thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val finally: thm list option -> (thm -> unit) -> Proof.state -> Proof.state Seq.seq
+  val also: thm list option -> (thm list -> unit) -> Proof.state -> Proof.state Seq.seq
+  val finally: thm list option -> (thm list -> unit) -> Proof.state -> Proof.state Seq.seq
   val setup: (theory -> theory) list
 end;
 
@@ -26,6 +26,7 @@ struct
 
 fun print_rules ths =
   Pretty.writeln (Pretty.big_list "calculation rules:" (map Display.pretty_thm ths));
+
 
 (* theory data kind 'Isar/calculation' *)
 
@@ -50,7 +51,7 @@ val print_global_rules = GlobalCalculation.print;
 structure LocalCalculationArgs =
 struct
   val name = "Isar/calculation";
-  type T = thm list * (thm * int) option;
+  type T = thm list * (thm list * int) option;
 
   fun init thy = (GlobalCalculation.get thy, None);
   fun print _ (ths, _) = print_rules ths;
@@ -66,10 +67,10 @@ val print_local_rules = LocalCalculation.print;
 fun get_calculation state =
   (case #2 (LocalCalculation.get_st state) of
     None => None
-  | Some (thm, lev) => if lev = Proof.level state then Some thm else None);
+  | Some (thms, lev) => if lev = Proof.level state then Some thms else None);
 
-fun put_calculation thm state =
-  LocalCalculation.put_st (get_local_rules state, Some (thm, Proof.level state)) state;
+fun put_calculation thms state =
+  LocalCalculation.put_st (get_local_rules state, Some (thms, Proof.level state)) state;
 
 fun reset_calculation state =
   LocalCalculation.put_st (get_local_rules state, None) state;
@@ -121,12 +122,18 @@ val calculationN = "calculation";
 fun calculate final opt_rules print state =
   let
     fun err_if b msg = if b then raise Proof.STATE (msg, state) else ();
-    val fact = Proof.the_fact state;
+    val facts = Proof.the_facts state;
     val rules = Seq.of_list (if_none opt_rules [] @ get_local_rules state);
+
+    fun differ thms thms' =
+      length thms <> length thms' orelse exists2 (not o Thm.eq_thm) (thms, thms');
+    fun combine thms =
+      Seq.map Library.single (Seq.flat (Seq.map (Method.multi_resolve (thms @ facts)) rules));
+
     val (initial, calculations) =
       (case get_calculation state of
-        None => (true, Seq.single fact)
-      | Some thm => (false, Seq.flat (Seq.map (Method.multi_resolve [thm, fact]) rules)));
+        None => (true, Seq.single facts)
+      | Some thms => (false, Seq.filter (differ thms) (combine thms)))
   in
     err_if (initial andalso final) "No calculation yet";
     err_if (initial andalso is_some opt_rules) "Initial calculation -- no rules to be given";
@@ -136,12 +143,12 @@ fun calculate final opt_rules print state =
           state
           |> reset_calculation
           |> Proof.simple_have_thms calculationN []
-          |> Proof.simple_have_thms "" [calc]
+          |> Proof.simple_have_thms "" calc
           |> Proof.chain
         else
           state
           |> put_calculation calc
-          |> Proof.simple_have_thms calculationN [calc]
+          |> Proof.simple_have_thms calculationN calc
           |> Proof.reset_facts)))
   end;
 
