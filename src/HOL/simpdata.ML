@@ -57,38 +57,6 @@ fun DelIffs thms = store_clasimp ((claset (), simpset ()) delIffs thms);
 end;
 
 
-(* "iff" attribute *)
-
-local
-  fun change_global_css f (thy, th) =
-    let
-      val cs_ref = Classical.claset_ref_of thy;
-      val ss_ref = Simplifier.simpset_ref_of thy;
-      val (cs', ss') = f ((! cs_ref, ! ss_ref), [th]);
-    in cs_ref := cs'; ss_ref := ss'; (thy, th) end;
-
-  fun change_local_css f (ctxt, th) =
-    let
-      val cs = Classical.get_local_claset ctxt;
-      val ss = Simplifier.get_local_simpset ctxt;
-      val (cs', ss') = f ((cs, ss), [th]);
-      val ctxt' =
-        ctxt
-        |> Classical.put_local_claset cs'
-        |> Simplifier.put_local_simpset ss';
-    in (ctxt', th) end;
-in
-
-val iff_add_global = change_global_css (op addIffs);
-val iff_add_local = change_local_css (op addIffs);
-
-val iff_attrib_setup =
-  [Attrib.add_attributes [("iff", (Attrib.no_args iff_add_global, Attrib.no_args iff_add_local),
-    "add rules to simpset and claset simultaneously")]];
-
-end;
-
-
 val [prem] = goal (the_context ()) "x==y ==> x=y";
 by (rewtac prem);
 by (rtac refl 1);
@@ -154,6 +122,13 @@ fun ss addcongs congs = ss addeqcongs (map mk_meta_cong congs);
 fun ss delcongs congs = ss deleqcongs (map mk_meta_cong congs);
 fun Addcongs congs = (simpset_ref() := simpset() addcongs congs);
 fun Delcongs congs = (simpset_ref() := simpset() delcongs congs);
+
+val cong_add_global = Simplifier.change_global_ss (op addcongs);
+val cong_add_local = Simplifier.change_local_ss (op addcongs);
+
+val cong_attrib_setup =
+  [Attrib.add_attributes [("cong", (Attrib.no_args cong_add_global, Attrib.no_args cong_add_local),
+    "add rules to simpset and claset simultaneously")]];
 
 
 val imp_cong = impI RSN
@@ -522,6 +497,17 @@ structure Clasimp = ClasimpFun
 open Clasimp;
 
 val HOL_css = (HOL_cs, HOL_ss);
+
+
+(* "iff" attribute *)
+
+val iff_add_global = Clasimp.change_global_css (op addIffs);
+val iff_add_local = Clasimp.change_local_css (op addIffs);
+
+val iff_attrib_setup =
+  [Attrib.add_attributes [("iff", (Attrib.no_args iff_add_global, Attrib.no_args iff_add_local),
+    "add rules to simpset and claset simultaneously")]];
+
 
 
 (*** A general refutation procedure ***)
