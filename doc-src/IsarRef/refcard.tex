@@ -8,9 +8,10 @@
 \begin{tabular}{ll}
   $\FIX{\vec x}$ & augment context by $\All {\vec x} \Box$ \\
   $\ASSUME{a}{\vec\phi}$ & augment context by $\vec\phi \Imp \Box$ \\
-  $\THEN$ & indicate forward chaining \\
+  $\THEN$ & indicate forward chaining of facts \\
   $\HAVE{a}{\phi}$ & prove local result \\
   $\SHOW{a}{\phi}$ & prove local result, establishing some goal \\
+  $\USING{\vec a}$ & indicate use of additional facts \\
   $\PROOF{m@1}~\dots~\QED{m@2}$ & apply proof methods \\
   $\BG~\dots~\EN$ & declare explicit blocks \\
   $\NEXT$ & switch implicit blocks \\
