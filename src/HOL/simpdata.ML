@@ -62,6 +62,10 @@ by (rewtac prem);
 by (rtac refl 1);
 qed "meta_eq_to_obj_eq";
 
+Goal "(%s. f s) = f";
+br refl 1;
+qed "eta_contract_eq";
+
 local
 
   fun prover s = prove_goal (the_context ()) s (fn _ => [(Blast_tac 1)]);
@@ -437,6 +441,7 @@ val HOL_ss =
     HOL_basic_ss addsimps 
      ([triv_forall_equality, (* prunes params *)
        True_implies_equals, (* prune asms `True' *)
+       eta_contract_eq, (* prunes eta-expansions *)
        if_True, if_False, if_cancel, if_eq_cancel,
        imp_disjL, conj_assoc, disj_assoc,
        de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
