@@ -63,9 +63,5 @@ terminal.  You may want to put [ISABELLE_HOME]/bin into your shell's
 PATH. Please do *not* copy (or link) the Isabelle scripts somewhere
 else -- or they just won't work!
 
-Other users may directly run your Isabelle installation without
-additional configuration, provided that no globally required settings
-reside in your ~/isabelle/etc/settings.
-
 
 $Id$
