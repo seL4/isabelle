@@ -268,3 +268,47 @@ fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 fun stac th = rtac(th RS ssubst);
 fun sstac ths = EVERY' (map stac ths);
 fun strip_tac i = REPEAT(resolve_tac [impI,allI] i); 
+
+
+(*** Load simpdata.ML to be able to initialize HOL's simpset ***)
+
+(** Applying HypsubstFun to generate hyp_subst_tac **)
+
+structure Hypsubst_Data =
+  struct
+  structure Simplifier = Simplifier
+  (*Take apart an equality judgement; otherwise raise Match!*)
+  fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)  $ t $ u)) = (t,u);
+  val eq_reflection = eq_reflection
+  val imp_intr = impI
+  val rev_mp = rev_mp
+  val subst = subst
+  val sym = sym
+  end;
+
+structure Hypsubst = HypsubstFun(Hypsubst_Data);
+open Hypsubst;
+
+(*** Applying ClassicalFun to create a classical prover ***)
+structure Classical_Data = 
+  struct
+  val sizef	= size_of_thm
+  val mp	= mp
+  val not_elim	= notE
+  val classical	= classical
+  val hyp_subst_tacs=[hyp_subst_tac]
+  end;
+
+structure Classical = ClassicalFun(Classical_Data);
+open Classical;
+
+(*Propositional rules*)
+val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
+                       addSEs [conjE,disjE,impCE,FalseE,iffE];
+
+(*Quantifier rules*)
+val HOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I]
+                     addSEs [exE,ex1E] addEs [allE];
+
+use     "simpdata.ML";
+simpset := HOL_ss;

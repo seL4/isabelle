@@ -16,50 +16,12 @@ print_depth 1;
 use "../Pure/section_utils.ML";
 use "thy_syntax.ML";
 
-use_thy "HOL";
 use "../Provers/splitter.ML";
 use "../Provers/hypsubst.ML";
 use "../Provers/classical.ML";
 
-(** Applying HypsubstFun to generate hyp_subst_tac **)
 
-structure Hypsubst_Data =
-  struct
-  structure Simplifier = Simplifier
-  (*Take apart an equality judgement; otherwise raise Match!*)
-  fun dest_eq (Const("Trueprop",_) $ (Const("op =",_)  $ t $ u)) = (t,u);
-  val eq_reflection = eq_reflection
-  val imp_intr = impI
-  val rev_mp = rev_mp
-  val subst = subst
-  val sym = sym
-  end;
-
-structure Hypsubst = HypsubstFun(Hypsubst_Data);
-open Hypsubst;
-
-(*** Applying ClassicalFun to create a classical prover ***)
-structure Classical_Data = 
-  struct
-  val sizef	= size_of_thm
-  val mp	= mp
-  val not_elim	= notE
-  val classical	= classical
-  val hyp_subst_tacs=[hyp_subst_tac]
-  end;
-
-structure Classical = ClassicalFun(Classical_Data);
-open Classical;
-
-(*Propositional rules*)
-val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
-                       addSEs [conjE,disjE,impCE,FalseE,iffE];
-
-(*Quantifier rules*)
-val HOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I]
-                     addSEs [exE,ex1E] addEs [allE];
-
-use     "simpdata.ML";
+use_thy "HOL";
 
 use_thy "Ord";
 use_thy "subset";
