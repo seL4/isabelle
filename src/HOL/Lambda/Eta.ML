@@ -12,6 +12,7 @@ confluence of beta+eta
 open Eta;
 
 Addsimps eta.intrs;
+Addsimps [imp_disj];
 
 val eta_cases = map (eta.mk_cases db.simps)
     ["Fun s -e> z","s @ t -e> u","Var i -e> t"];
@@ -32,22 +33,21 @@ Addsimps [less_not_sym RS True_eq];
 
 goal Arith.thy "i < j --> pred i < j";
 by(nat_ind_tac "j" 1);
-by(ALLGOALS(asm_simp_tac(simpset_of "Arith" addsimps [less_Suc_eq])));
+by(ALLGOALS(asm_simp_tac(!simpset addsimps [less_Suc_eq])));
 by(nat_ind_tac "j1" 1);
-by(ALLGOALS(asm_simp_tac(simpset_of "Arith")));
+by(ALLGOALS Asm_simp_tac);
 qed_spec_mp "less_imp_pred_less";
 
 goal Arith.thy "i<j --> ~ pred j < i";
 by(nat_ind_tac "j" 1);
-by(ALLGOALS(asm_simp_tac(simpset_of "Arith" addsimps [less_Suc_eq])));
-by(fast_tac (HOL_cs addDs [less_imp_pred_less]) 1);
+by(ALLGOALS(asm_simp_tac(!simpset addsimps [less_Suc_eq])));
 qed_spec_mp "less_imp_not_pred_less";
 Addsimps [less_imp_not_pred_less];
 
 goal Nat.thy "i < j --> j < Suc(Suc i) --> j = Suc i";
 by(nat_ind_tac "j" 1);
-by(ALLGOALS(simp_tac(simpset_of "Nat")));
-by(simp_tac(simpset_of "Nat" addsimps [less_Suc_eq])1);
+by(ALLGOALS Simp_tac);
+by(simp_tac(!simpset addsimps [less_Suc_eq])1);
 by(fast_tac (HOL_cs addDs [less_not_sym]) 1);
 qed_spec_mp "less_interval1";
 
@@ -80,7 +80,7 @@ by(fast_tac (HOL_cs addEs [less_imp_not_pred_less RS notE]) 1);
 by(fast_tac (HOL_cs addDs [less_not_sym]) 1);
 by (dtac Suc_mono 1);
 by(dtac less_interval1 1 THEN atac 1);
-by(asm_full_simp_tac (simpset_of "Nat" addsimps [eq_sym_conv]) 1);
+by(asm_full_simp_tac (!simpset addsimps [eq_sym_conv]) 1);
 by(dtac less_trans_Suc 1 THEN atac 1);
 by(Asm_full_simp_tac 1);
 qed "free_subst";

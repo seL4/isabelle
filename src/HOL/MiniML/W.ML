@@ -150,6 +150,8 @@ by (fast_tac (HOL_cs addDs [W_var_geD] addIs
 qed_spec_mp "new_tv_W";
 
 
+AddSEs [less_SucE];
+
 goal thy
      "!n a s t m v. W e a n = Ok (s,t,m) -->            \
 \         (v:free_tv s | v:free_tv t) --> v<n --> v:free_tv a";
@@ -219,7 +221,7 @@ by (expr.induct_tac "e" 1);
 (* case Var n *)
 by (strip_tac 1);
 by (simp_tac (!simpset addcongs [conj_cong] 
-    setloop (split_tac [expand_if])) 1);
+	      setloop (split_tac [expand_if])) 1);
 by (eresolve_tac has_type_casesE 1); 
 by (asm_full_simp_tac (!simpset addsimps [eq_sym_conv,app_subst_list]) 1);
 by (res_inst_tac [("x","id_subst")] exI 1);
@@ -236,7 +238,7 @@ by (eres_inst_tac [("x","(TVar n)#a")] allE 1);
 by (eres_inst_tac [("x","t2")] allE 1);
 by (eres_inst_tac [("x","Suc n")] allE 1);
 by (fast_tac (HOL_cs addss (!simpset addcongs [conj_cong]
-    setloop (split_tac [expand_bind]))) 1);
+			    setloop (split_tac [expand_bind]))) 1);
 
 (* case App e1 e2 *)
 by (strip_tac 1);
@@ -257,7 +259,7 @@ by (Asm_full_simp_tac 1);
 by (safe_tac HOL_cs);
 by (fast_tac HOL_cs 1);
 by (fast_tac (HOL_cs addIs [sym RS W_var_geD,new_tv_W RS
-        conjunct1,new_tv_list_le,new_tv_subst_tel]) 1);
+			    conjunct1,new_tv_list_le,new_tv_subst_tel]) 1);
 
 by (subgoal_tac
   "$ (%x.if x=ma then t' else (if x:(free_tv t - free_tv sa) then r x \
@@ -272,11 +274,11 @@ by (rtac eq_free_eq_subst_te 2);
 by (strip_tac 2);
 by (subgoal_tac "na ~=ma" 2);
 by (fast_tac (HOL_cs addDs [new_tv_W,sym RS W_var_geD,
-    new_tv_not_free_tv,new_tv_le]) 3);
+			    new_tv_not_free_tv,new_tv_le]) 3);
 by (case_tac "na:free_tv sa" 2);
 (* na ~: free_tv sa *)
 by (asm_simp_tac (!simpset addsimps [not_free_impl_id]
-    setloop (split_tac [expand_if])) 3);
+		  setloop (split_tac [expand_if])) 3);
 (* na : free_tv sa *)
 by (dres_inst_tac [("ts1","$ s a")] (subst_comp_tel RSN (2,trans)) 2);
 by (dtac eq_subst_tel_eq_free 2);
@@ -285,7 +287,7 @@ by (Asm_simp_tac 2);
 by (case_tac "na:dom sa" 2);
 (* na ~: dom sa *)
 by (asm_full_simp_tac (!simpset addsimps [dom_def] 
-    setloop (split_tac [expand_if])) 3);
+		       setloop (split_tac [expand_if])) 3);
 (* na : dom sa *)
 by (rtac eq_free_eq_subst_te 2);
 by (strip_tac 2);
@@ -295,9 +297,9 @@ by (etac conjE 3);
 by (dtac new_tv_subst_tel 3);
 by (fast_tac (HOL_cs addIs [new_tv_list_le] addDs [sym RS W_var_geD]) 3);
 by (fast_tac (set_cs addDs [new_tv_W,new_tv_not_free_tv] addss 
-    (!simpset addsimps [cod_def,free_tv_subst])) 3);
+	      (!simpset addsimps [cod_def,free_tv_subst])) 3);
 by (fast_tac (set_cs addss (!simpset addsimps [cod_def,free_tv_subst] 
-    setloop (split_tac [expand_if]))) 2);
+			    setloop (split_tac [expand_if]))) 2);
 
 by (Simp_tac 2);  
 by (rtac eq_free_eq_subst_te 2);
