@@ -382,6 +382,22 @@ by (REPEAT (ares_tac [exI, conjI, fun_in_Vfrom, transset,
                       limiti RS Limit_has_succ] 1));
 qed "fun_in_VLimit";
 
+goalw Univ.thy [Pi_def]
+    "!!A. [| a: Vfrom(A,j);  Transset(A) |] ==> \
+\         Pow(a) : Vfrom(A, succ(succ(j)))";
+by (dtac Transset_Vfrom 1);
+by (rtac subset_mem_Vfrom 1);
+by (rewtac Transset_def);
+by (stac Vfrom 1);
+by (Blast_tac 1);
+qed "Pow_in_Vfrom";
+
+goal Univ.thy
+  "!!a. [| a: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> Pow(a) : Vfrom(A,i)";
+by (blast_tac (!claset addEs [Limit_VfromE]
+		       addIs [Limit_has_succ, Pow_in_Vfrom, Limit_VfromI]) 1);
+qed "Pow_in_VLimit";
+
 
 (*** The set Vset(i) ***)
 
