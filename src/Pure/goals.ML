@@ -15,56 +15,57 @@ signature GOALS =
   structure Tactical: TACTICAL
   local open Tactical Tactical.Thm in
   type proof
-  val ba: int -> unit
-  val back: unit -> unit
-  val bd: thm -> int -> unit
-  val bds: thm list -> int -> unit
-  val be: thm -> int -> unit
-  val bes: thm list -> int -> unit
-  val br: thm -> int -> unit
-  val brs: thm list -> int -> unit
-  val bw: thm -> unit
-  val bws: thm list -> unit
-  val by: tactic -> unit
-  val byev: tactic list -> unit
-  val chop: unit -> unit
-  val choplev: int -> unit
-  val fa: unit -> unit
-  val fd: thm -> unit
-  val fds: thm list -> unit
-  val fe: thm -> unit
-  val fes: thm list -> unit
-  val filter_goal: (term*term->bool) -> thm list -> int -> thm list
-  val fr: thm -> unit
-  val frs: thm list -> unit
-  val getgoal: int -> term
-  val gethyps: int -> thm list
-  val goal:  theory -> string -> thm list
-  val goalw: theory -> thm list -> string -> thm list
-  val goalw_cterm:     thm list -> cterm -> thm list
-  val pop_proof: unit -> thm list
-  val pr: unit -> unit
-  val premises: unit -> thm list
-  val prin: term -> unit
-  val printyp: typ -> unit
-  val pprint_term: term -> pprint_args -> unit
-  val pprint_typ: typ -> pprint_args -> unit
-  val print_exn: exn -> 'a
-  val prlev: int -> unit
-  val proof_timing: bool ref
-  val prove_goal: theory -> string -> (thm list -> tactic list) -> thm
-  val prove_goalw: theory->thm list->string->(thm list->tactic list)->thm
-  val prove_goalw_cterm: thm list->cterm->(thm list->tactic list)->thm
-  val push_proof: unit -> unit
-  val read: string -> term
-  val ren: string -> int -> unit
-  val restore_proof: proof -> thm list
-  val result: unit -> thm  
-  val rotate_proof: unit -> thm list
-  val uresult: unit -> thm  
-  val save_proof: unit -> proof
-  val topthm: unit -> thm
-  val undo: unit -> unit
+  val ba		: int -> unit
+  val back		: unit -> unit
+  val bd		: thm -> int -> unit
+  val bds		: thm list -> int -> unit
+  val be		: thm -> int -> unit
+  val bes		: thm list -> int -> unit
+  val br		: thm -> int -> unit
+  val brs		: thm list -> int -> unit
+  val bw		: thm -> unit
+  val bws		: thm list -> unit
+  val by		: tactic -> unit
+  val byev		: tactic list -> unit
+  val chop		: unit -> unit
+  val choplev		: int -> unit
+  val fa		: unit -> unit
+  val fd		: thm -> unit
+  val fds		: thm list -> unit
+  val fe		: thm -> unit
+  val fes		: thm list -> unit
+  val filter_goal	: (term*term->bool) -> thm list -> int -> thm list
+  val fr		: thm -> unit
+  val frs		: thm list -> unit
+  val getgoal		: int -> term
+  val gethyps		: int -> thm list
+  val goal		: theory -> string -> thm list
+  val goalw		: theory -> thm list -> string -> thm list
+  val goalw_cterm	: thm list -> cterm -> thm list
+  val pop_proof		: unit -> thm list
+  val pr		: unit -> unit
+  val premises		: unit -> thm list
+  val prin		: term -> unit
+  val printyp		: typ -> unit
+  val pprint_term	: term -> pprint_args -> unit
+  val pprint_typ	: typ -> pprint_args -> unit
+  val print_exn		: exn -> 'a
+  val print_sign_exn	: Sign.sg -> exn -> 'a
+  val prlev		: int -> unit
+  val proof_timing	: bool ref
+  val prove_goal	: theory -> string -> (thm list -> tactic list) -> thm
+  val prove_goalw      : theory->thm list->string->(thm list->tactic list)->thm
+  val prove_goalw_cterm	: thm list->cterm->(thm list->tactic list)->thm
+  val push_proof	: unit -> unit
+  val read		: string -> term
+  val ren		: string -> int -> unit
+  val restore_proof	: proof -> thm list
+  val result		: unit -> thm  
+  val rotate_proof	: unit -> thm list
+  val uresult		: unit -> thm  
+  val save_proof	: unit -> proof
+  val topthm		: unit -> thm
+  val undo		: unit -> unit
   end
   end;
 
@@ -164,7 +165,7 @@ fun prepare_proof rths chorn =
   handle THM(s,_,_) => error("prepare_proof: exception THM was raised!\n" ^ s);
 
 (*Prints exceptions readably to users*)
-fun print_sign_exn sign e = 
+fun print_sign_exn_unit sign e = 
   case e of
      THM (msg,i,thms) =>
 	 (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
@@ -180,6 +181,9 @@ fun print_sign_exn sign e =
 	  seq (writeln o Sign.string_of_typ sign) Ts;
 	  seq (writeln o Sign.string_of_term sign) ts)
    | e => raise e;
+
+(*Prints an exception, then fails*)
+fun print_sign_exn sign e = (print_sign_exn_unit sign e; raise ERROR);
 
 (** the prove_goal.... commands
     Prove theorem using the listed tactics; check it has the specified form.
