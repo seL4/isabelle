@@ -70,7 +70,7 @@ val Const("==",_) $ _ $ (_ $ dom_sum $ fp_abs) =
 
 val bnd_mono = 
     prove_goalw_cterm [] 
-      (cterm_of sign (Ind_Syntax.mk_tprop (Fp.bnd_mono $ dom_sum $ fp_abs)))
+      (cterm_of sign (FOLogic.mk_Trueprop (Fp.bnd_mono $ dom_sum $ fp_abs)))
       (fn _ =>
        [rtac (Collect_subset RS bnd_monoI) 1,
         REPEAT (ares_tac (basic_monos @ Inductive.monos) 1)]);

@@ -119,8 +119,10 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
       let val prems = map dest_tprop (strip_imp_prems intr)
           val dummy = seq (fn rec_hd => seq (chk_prem rec_hd) prems) rec_hds
           val exfrees = term_frees intr \\ rec_params
-          val zeq = eq_const $ (Free(z',iT)) $ (#1 (rule_concl intr))
-      in foldr mk_exists (exfrees, fold_bal (app conj) (zeq::prems)) end;
+          val zeq = FOLogic.mk_eq (Free(z',iT), #1 (rule_concl intr))
+      in foldr FOLogic.mk_exists
+	       (exfrees, fold_bal (app FOLogic.conj) (zeq::prems)) 
+      end;
 
     (*The Part(A,h) terms -- compose injections to make h*)
     fun mk_Part (Bound 0) = Free(X',iT) (*no mutual rec, no Part needed*)
@@ -135,7 +137,8 @@ fun add_fp_def_i (rec_tms, dom_sum, intr_tms) thy =
     val part_intrs = map (subst_free (rec_tms ~~ parts) o lfp_part) intr_tms;
 
     val lfp_abs = absfree(X', iT, 
-                     mk_Collect(z', dom_sum, fold_bal (app disj) part_intrs));
+                     mk_Collect(z', dom_sum, 
+				fold_bal (app FOLogic.disj) part_intrs));
 
     val lfp_rhs = Fp.oper $ dom_sum $ lfp_abs
 

@@ -47,11 +47,12 @@ val (_, big_case_args) = strip_comb big_case_tm;
 (*Each equation has the form 
   rec_case(f_con1,...,f_conn)(coni(args)) = f_coni(args) *)
 fun mk_case_equation (((id,T,syn), name, args, prems), case_free) = 
-  Ind_Syntax.mk_tprop
-    (Ind_Syntax.eq_const $
-      (big_case_tm $
-        (list_comb (Const (Sign.intern_const (sign_of Const.thy) name,T), args))) $
-      (list_comb (case_free, args)));
+  FOLogic.mk_Trueprop
+    (FOLogic.mk_eq
+     (big_case_tm $
+       (list_comb (Const (Sign.intern_const (sign_of Const.thy) name,T), 
+		   args)),
+      list_comb (case_free, args)));
 
 val case_trans = hd con_defs RS Ind_Syntax.def_trans
 and split_trans = Pr.split_eq RS meta_eq_to_obj_eq RS trans;

@@ -44,7 +44,7 @@ val big_rec_def::part_rec_defs = Intr_elim.defs;
 fun add_induct_prem ind_alist (prem as Const("Trueprop",_) $ 
                  (Const("op :",_)$t$X), iprems) =
      (case gen_assoc (op aconv) (ind_alist, X) of
-          Some pred => prem :: Ind_Syntax.mk_tprop (pred $ t) :: iprems
+          Some pred => prem :: FOLogic.mk_Trueprop (pred $ t) :: iprems
         | None => (*possibly membership in M(rec_tm), for M monotone*)
             let fun mk_sb (rec_tm,pred) = 
                         (rec_tm, Ind_Syntax.Collect_const$rec_tm$pred)
@@ -58,7 +58,7 @@ fun induct_prem ind_alist intr =
                          (Logic.strip_imp_prems intr,[])
       val (t,X) = Ind_Syntax.rule_concl intr
       val (Some pred) = gen_assoc (op aconv) (ind_alist, X)
-      val concl = Ind_Syntax.mk_tprop (pred $ t)
+      val concl = FOLogic.mk_Trueprop (pred $ t)
   in list_all_free (quantfrees, Logic.list_implies (iprems,concl)) end
   handle Bind => error"Recursion term not found in conclusion";
 
@@ -69,7 +69,7 @@ fun ind_tac [] 0 = all_tac
         DEPTH_SOLVE_1 (ares_tac [prem, refl] i) THEN
         ind_tac prems (i-1);
 
-val pred = Free(pred_name, Ind_Syntax.iT --> Ind_Syntax.oT);
+val pred = Free(pred_name, Ind_Syntax.iT --> FOLogic.oT);
 
 val ind_prems = map (induct_prem (map (rpair pred) Inductive.rec_tms)) 
                     Inductive.intr_tms;
@@ -92,7 +92,7 @@ val quant_induct =
     prove_goalw_cterm part_rec_defs 
       (cterm_of sign 
        (Logic.list_implies (ind_prems, 
-                Ind_Syntax.mk_tprop (Ind_Syntax.mk_all_imp(big_rec_tm,pred)))))
+                FOLogic.mk_Trueprop (Ind_Syntax.mk_all_imp(big_rec_tm,pred)))))
       (fn prems =>
        [rtac (impI RS allI) 1,
         DETERM (etac Intr_elim.raw_induct 1),
@@ -120,14 +120,14 @@ val elem_tuple = CP.mk_tuple Pr.pair elem_type elem_frees;
 fun mk_predpair rec_tm = 
   let val rec_name = (#1 o dest_Const o head_of) rec_tm
       val pfree = Free(pred_name ^ "_" ^ Sign.base_name rec_name,
-                       elem_factors ---> Ind_Syntax.oT)
+                       elem_factors ---> FOLogic.oT)
       val qconcl = 
-        foldr Ind_Syntax.mk_all 
+        foldr FOLogic.mk_all
           (elem_frees, 
-           Ind_Syntax.imp $ 
+           FOLogic.imp $ 
            (Ind_Syntax.mem_const $ elem_tuple $ rec_tm)
                  $ (list_comb (pfree, elem_frees)))
-  in  (CP.ap_split elem_type Ind_Syntax.oT pfree, 
+  in  (CP.ap_split elem_type FOLogic.oT pfree, 
        qconcl)  
   end;
 
@@ -135,19 +135,19 @@ val (preds,qconcls) = split_list (map mk_predpair Inductive.rec_tms);
 
 (*Used to form simultaneous induction lemma*)
 fun mk_rec_imp (rec_tm,pred) = 
-    Ind_Syntax.imp $ (Ind_Syntax.mem_const $ Bound 0 $ rec_tm) $ 
+    FOLogic.imp $ (Ind_Syntax.mem_const $ Bound 0 $ rec_tm) $ 
                      (pred $ Bound 0);
 
 (*To instantiate the main induction rule*)
 val induct_concl = 
-    Ind_Syntax.mk_tprop
+    FOLogic.mk_Trueprop
       (Ind_Syntax.mk_all_imp
        (big_rec_tm,
         Abs("z", Ind_Syntax.iT, 
-            fold_bal (app Ind_Syntax.conj) 
+            fold_bal (app FOLogic.conj) 
             (ListPair.map mk_rec_imp (Inductive.rec_tms,preds)))))
 and mutual_induct_concl =
- Ind_Syntax.mk_tprop(fold_bal (app Ind_Syntax.conj) qconcls);
+ FOLogic.mk_Trueprop(fold_bal (app FOLogic.conj) qconcls);
 
 val lemma_tac = FIRST' [eresolve_tac [asm_rl, conjE, PartE, mp],
                         resolve_tac [allI, impI, conjI, Part_eqI],
@@ -241,7 +241,7 @@ val Const ("Trueprop", _) $ (pred_var $ _) = concl_of induct0
 in
   struct
   (*strip quantifier*)
-  val induct = CP.split_rule_var(pred_var, elem_type-->Ind_Syntax.oT, induct0) 
+  val induct = CP.split_rule_var(pred_var, elem_type-->FOLogic.oT, induct0) 
                |> standard;
 
   (*Just "True" unless there's true mutual recursion.  This saves storage.*)

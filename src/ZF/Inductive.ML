@@ -13,7 +13,7 @@ Products are used only to derive "streamlined" induction rules for relations
 *)
 
 val iT = Ind_Syntax.iT
-and oT = Ind_Syntax.oT;
+and oT = FOLogic.oT;
 
 structure Lfp =
   struct

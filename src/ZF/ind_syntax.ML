@@ -12,39 +12,21 @@ Abstract Syntax functions for Inductive Definitions
 structure Ind_Syntax =
 struct
 
-(** Abstract syntax definitions for FOL and ZF **)
+(** Abstract syntax definitions for ZF **)
 
-val iT = Type("i",[])
-and oT = Type("o",[]);
+val iT = Type("i",[]);
 
-
-(** Logical constants **)
-
-val conj = Const("op &", [oT,oT]--->oT)
-and disj = Const("op |", [oT,oT]--->oT)
-and imp = Const("op -->", [oT,oT]--->oT);
-
-val eq_const = Const("op =", [iT,iT]--->oT);
-
-val mem_const = Const("op :", [iT,iT]--->oT);
-
-val exists_const = Const("Ex", [iT-->oT]--->oT);
-fun mk_exists (Free(x,T),P) = exists_const $ (absfree (x,T,P));
-
-val all_const = Const("All", [iT-->oT]--->oT);
-fun mk_all (Free(x,T),P) = all_const $ (absfree (x,T,P));
+val mem_const = Const("op :", [iT,iT]--->FOLogic.oT);
 
 (*Creates All(%v.v:A --> P(v)) rather than Ball(A,P) *)
 fun mk_all_imp (A,P) = 
-    all_const $ Abs("v", iT, imp $ (mem_const $ Bound 0 $ A) $ (P $ Bound 0));
+    FOLogic.all_const iT $ 
+      Abs("v", iT, FOLogic.imp $ (mem_const $ Bound 0 $ A) $ (P $ Bound 0));
 
 val Part_const = Const("Part", [iT,iT-->iT]--->iT);
 
-val Collect_const = Const("Collect", [iT,iT-->oT]--->iT);
+val Collect_const = Const("Collect", [iT, iT-->FOLogic.oT] ---> iT);
 fun mk_Collect (a,D,t) = Collect_const $ D $ absfree(a, iT, t);
-
-val Trueprop = Const("Trueprop",oT-->propT);
-fun mk_tprop P = Trueprop $ P;
 
 (*simple error-checking in the premises of an inductive definition*)
 fun chk_prem rec_hd (Const("op &",_) $ _ $ _) =
@@ -79,7 +61,7 @@ fun dest_mem (Const("op :",_) $ x $ A) = (x,A)
 
 (*read a constructor specification*)
 fun read_construct sign (id, sprems, syn) =
-    let val prems = map (readtm sign oT) sprems
+    let val prems = map (readtm sign FOLogic.oT) sprems
         val args = map (#1 o dest_mem) prems
         val T = (map (#2 o dest_Free) args) ---> iT
                 handle TERM _ => error 
@@ -94,8 +76,10 @@ fun mk_intr_tms sg (rec_tm, constructs) =
   let
     fun mk_intr ((id,T,syn), name, args, prems) =
       Logic.list_implies
-        (map mk_tprop prems,
-          mk_tprop (mem_const $ list_comb (Const (Sign.full_name sg name, T), args) $ rec_tm))
+        (map FOLogic.mk_Trueprop prems,
+	 FOLogic.mk_Trueprop
+	    (mem_const $ list_comb (Const (Sign.full_name sg name, T), args)
+	               $ rec_tm))
   in  map mk_intr constructs  end;
 
 fun mk_all_intr_tms sg arg = List.concat (ListPair.map (mk_intr_tms sg) arg);
