@@ -188,7 +188,7 @@ end;
 
 fun mk_primrec_decl (alt_name, (names, eqns)) =
   ";\nval (thy, " ^ (if null names then "_" else brackets (commas names)) ^
-  ") = PrimrecPackage.add_primrec " ^ alt_name ^ " " ^
+  ") = PrimrecPackage.add_primrec (" ^ alt_name ^ ") " ^
     brackets (commas_quote names) ^ " " ^ brackets (commas eqns) ^ " thy;\n\
   \val thy = thy\n";
 
