@@ -125,7 +125,7 @@ Resid:  $(BIN)/ZF  $(RESID_FILES)
 
 ##Miscellaneous examples
 EX_NAMES = Ramsey Limit Integ twos_compl Bin BT Term TF Ntree Brouwer \
-           Data Enum Rmap PropLog ListN Acc Comb Primrec LList CoUnit 
+           Data Enum Rmap Mutil PropLog ListN Acc Comb Primrec LList CoUnit 
 
 EX_FILES = ex/ROOT.ML ex/misc.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
 
