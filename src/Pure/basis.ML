@@ -141,7 +141,7 @@ structure TextIO =
   exception Io of {name: string, function: string, cause: exn}
   val stdIn 	= std_in
   val stdOut 	= std_out
-  val stdErr 	= std_err
+  val stdErr 	= std_out
   val openIn 	= open_in
   val openAppend = open_append
   val openOut 	= open_out
