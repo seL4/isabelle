@@ -214,8 +214,6 @@ by (res_inst_tac [("t1.0","$((%x. if x : free_tv A Un free_tv t then S x else TV
                  has_type.LETI 1);
  by (dres_inst_tac [("x","(%x. if x : free_tv A Un free_tv t then S x else TVar x) o \
 \                         (%x. if x : free_tv A then x else n + x)")] spec 1);
- val o_apply = prove_goalw HOL.thy [o_def] "(f o g) x = f (g x)"
- (fn _ => [rtac refl 1]);
  by (stac (S'_A_eq_S'_alpha_A) 1);
  by (assume_tac 1);
 by (stac S_o_alpha_typ 1);
