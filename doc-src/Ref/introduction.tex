@@ -145,7 +145,7 @@ The $dir$ and $file$ specifications of the \texttt{cd} and \texttt{use}
 commands may contain path variables (e.g.\ \texttt{\$ISABELLE_HOME}) that are
 expanded appropriately.  Note that \texttt{\~\relax} abbreviates
 \texttt{\$HOME}, and \texttt{\~\relax\~\relax} abbreviates
-\texttt{\$ISABELLE_HOME}.
+\texttt{\$ISABELLE_HOME}\index{*\$ISABELLE_HOME}.
 
 
 \section{Reading theories}\label{sec:intro-theories}
@@ -177,16 +177,16 @@ time_use_thy : string -> unit
 \item[\ttindexbold{the_context}();] obtains the current theory context, or
   raises an error if absent.
   
-\item[\ttindexbold{theory} $name$;] retrieves the theory called $name$ from
+\item[\ttindexbold{theory} "$name$";] retrieves the theory called $name$ from
   the internal database of loaded theories, raising an error if absent.
   
-\item[\ttindexbold{use_thy} $name$;] reads theory $name$ from the file system,
-  looking for $name$\texttt{.thy} and (optionally) $name$\texttt{.ML}; also
-  makes sure that all parent theories are loaded as well.  In case some older
-  versions have already been present, \texttt{use_thy} only tries to reload
-  $name$ itself, but is content with any version of its parents.
+\item[\ttindexbold{use_thy} "$name$";] reads theory $name$ from the file
+  system, looking for $name$\texttt{.thy} and (optionally) $name$\texttt{.ML};
+  also makes sure that all parent theories are loaded as well.  In case some
+  older versions have already been present, \texttt{use_thy} only tries to
+  reload $name$ itself, but is content with any version of its parents.
   
-\item[\ttindexbold{time_use_thy} $name$;] same as \texttt{use_thy}, but
+\item[\ttindexbold{time_use_thy} "$name$";] same as \texttt{use_thy}, but
   reports the time taken to process the actual theory parts and {\ML} files
   separately.
   

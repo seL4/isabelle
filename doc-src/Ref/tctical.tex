@@ -294,11 +294,10 @@ reports whether $thm$ has fewer than~$n$ premises.  By currying,
 \hbox{\tt has_fewer_prems $n$} is a predicate on theorems; it may 
 be given to the searching tacticals.
 
-\item[\ttindexbold{eq_thm} ($thm_1$, $thm_2$)] reports whether $thm_1$
-  and $thm_2$ are equal.  Both theorems must have identical
-  signatures.  Both theorems must have the same conclusions, and the
-  same hypotheses, in the same order.  Names of bound variables are
-  ignored.
+\item[\ttindexbold{eq_thm} ($thm@1$, $thm@2$)] reports whether $thm@1$ and
+  $thm@2$ are equal.  Both theorems must have identical signatures.  Both
+  theorems must have the same conclusions, and the same hypotheses, in the
+  same order.  Names of bound variables are ignored.
 
 \item[\ttindexbold{size_of_thm} $thm$] 
 computes the size of $thm$, namely the number of variables, constants and

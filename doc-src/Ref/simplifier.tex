@@ -1238,12 +1238,13 @@ describes how the simplifier is installed for intuitionistic
 first-order logic; the code is largely taken from {\tt
   FOL/simpdata.ML} of the Isabelle sources.
 
-The simplifier and the case splitting tactic, which reside on separate
-files, are not part of Pure Isabelle.  They must be loaded explicitly
-by the object-logic as follows:
+The simplifier and the case splitting tactic, which reside on separate files,
+are not part of Pure Isabelle.  They must be loaded explicitly by the
+object-logic as follows (below \texttt{\~\relax\~\relax} refers to
+\texttt{\$ISABELLE_HOME}):
 \begin{ttbox}
-use "$ISABELLE_HOME/src/Provers/simplifier.ML";
-use "$ISABELLE_HOME/src/Provers/splitter.ML";
+use "\~\relax\~\relax/src/Provers/simplifier.ML";
+use "\~\relax\~\relax/src/Provers/splitter.ML";
 \end{ttbox}
 
 Simplification requires converting object-equalities to meta-level rewrite

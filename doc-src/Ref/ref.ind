@@ -13,6 +13,7 @@
   \item {\tt\at Finset} constant, 94, 95
   \item {\tt [} symbol, 71
   \item {\tt [|} symbol, 71
+  \item {\tt \$ISABELLE_HOME}, 3
   \item {\tt ]} symbol, 71
   \item {\tt _K} constant, 96, 98
   \item \verb'{}' symbol, 94
@@ -207,7 +208,7 @@
   \item {\tt defer_tac}, \bold{24}
   \item definitions, \see{rewriting, meta-level}{1}, 24, \bold{58}
     \subitem unfolding, 9, 10
-  \item {\tt del_path}, \bold{59}
+  \item {\tt del_path}, \bold{60}
   \item {\tt Delcongs}, \bold{107}
   \item {\tt delcongs}, \bold{112}
   \item {\tt deleqcongs}, \bold{112}

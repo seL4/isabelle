@@ -243,16 +243,16 @@ delete_tmpfiles : bool ref \hfill{\bf initially true}
 \end{ttbox}
 
 \begin{ttdescription}
-\item[\ttindexbold{use_thy_only} $name$;] is similar to \texttt{use_thy}, but
-  processes the actual theory file $name$\texttt{.thy} only, ignoring
+\item[\ttindexbold{use_thy_only} "$name$";] is similar to \texttt{use_thy},
+  but processes the actual theory file $name$\texttt{.thy} only, ignoring
   $name$\texttt{.ML}.  This might be useful in replaying proof scripts by hand
   from the very beginning, starting with the fresh theory.
   
-\item[\ttindexbold{update_thy} $name$;] is similar to \texttt{use_thy}, but
+\item[\ttindexbold{update_thy} "$name$";] is similar to \texttt{use_thy}, but
   ensures that theory $name$ is fully up-to-date with respect to the file
   system --- apart from $name$ itself its parents may be reloaded as well.
   
-\item[\ttindexbold{touch_thy} $name$;] marks theory node $name$ of the
+\item[\ttindexbold{touch_thy} "$name$";] marks theory node $name$ of the
   internal graph as outdated.  While the theory remains usable, subsequent
   operations such as \texttt{use_thy} may cause a reload.
   
@@ -281,10 +281,10 @@ reset_path: unit -> unit
 \item[\ttindexbold{show_path}();] displays the load path components in
   canonical string representation, which is always according to Unix rules.
   
-\item[\ttindexbold{add_path} $dir$;] adds component $dir$ to the beginning of
-  the load path.
+\item[\ttindexbold{add_path} "$dir$";] adds component $dir$ to the beginning
+  of the load path.
   
-\item[\ttindexbold{del_path} $dir$;] removes any occurrences of component
+\item[\ttindexbold{del_path} "$dir$";] removes any occurrences of component
   $dir$ from the load path.
   
 \item[\ttindexbold{reset_path}();] resets the load path to ``\texttt{.}''
@@ -292,7 +292,7 @@ reset_path: unit -> unit
 \end{ttdescription}
 
 In operations referring indirectly to some file, such as
-\texttt{use_thy}~$name$, the argument may be prefixed by some directory that
+\texttt{use_thy~"$name$"}, the argument may be prefixed by some directory that
 will be used as temporary load path.  Note that, depending on which parts of
 the ancestry of $name$ are already loaded, the dynamic change of paths might
 be hard to predict.  Use this feature with care only.
