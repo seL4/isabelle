@@ -951,7 +951,7 @@ come in handy for interactive exploration and debugging, or even actual
 tactical proof within new-style theories (to benefit from document
 preparation, for example).
 
-\indexisarcmd{apply}\indexisarcmd{apply-end}
+\indexisarcmd{apply}\indexisarcmd{done}\indexisarcmd{apply-end}
 \indexisarcmd{defer}\indexisarcmd{prefer}\indexisarcmd{back}
 \indexisarmeth{tactic}\indexisarmeth{insert}
 \indexisarmeth{res-inst-tac}\indexisarmeth{eres-inst-tac}
@@ -959,6 +959,7 @@ preparation, for example).
 \indexisarmeth{subgoal-tac}
 \begin{matharray}{rcl}
   \isarcmd{apply}^* & : & \isartrans{proof(prove)}{proof(prove)} \\
+  \isarcmd{done}^* & : & \isartrans{proof(prove)}{proof(state)} \\
   \isarcmd{apply_end}^* & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{defer}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{prefer}^* & : & \isartrans{proof}{proof} \\
@@ -993,6 +994,8 @@ preparation, for example).
 \begin{rail}
   'apply' method comment?
   ;
+  'done' comment?
+  ;
   applyend method comment?
   ;
   'defer' nat? comment?
@@ -1012,13 +1015,17 @@ preparation, for example).
 \begin{descr}
 \item [$\isarkeyword{apply}~(m)$] applies proof method $m$ in initial
   position, but unlike $\PROOFNAME$ it retains ``$proof(prove)$'' mode.  Thus
-  consecutive method applications may be given just as in tactic scripts.  In
-  order to complete the proof properly, any of the actual structured proof
-  commands (e.g.\ ``$\DOT$'') has to be given eventually.
+  consecutive method applications may be given just as in tactic scripts.
   
   Facts are passed to $m$ as indicated by the goal's forward-chain mode, and
   are \emph{consumed} afterwards.  Thus any further $\isarkeyword{apply}$
   command would always work in a purely backward manner.
+  
+\item [$\isarkeyword{done}$] completes a proof script, provided that the
+  current goal state is solved completely.
+    
+  Note that actual structured proof commands (e.g.\ ``$\DOT$'', $\SORRY$) may
+  be used to conclude proof scripts as well.
 
 \item [$\isarkeyword{apply_end}~(m)$] applies proof method $m$ as if in
   terminal position.  Basically, this simulates a multi-step tactic script for
