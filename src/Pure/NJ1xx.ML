@@ -59,7 +59,7 @@ val implode = String.concat;
 
 (*** Timing functions ***)
 
-val CPUtimer = Timer.totalCPUTimer();
+val CPUtimer = Timer.startCPUTimer();
 
 (*A conditional timing function: applies f to () and, if the flag is true,
   prints its runtime. *)
