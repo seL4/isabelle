@@ -156,7 +156,12 @@ rules
 
   refl          "t = (t::'a)"
   subst         "[| s = t; P(s) |] ==> P(t::'a)"
+
+  (*Extensionality is built into the meta-logic, and this rule expresses
+    a related property.  It is an eta-expanded version of the traditional
+    rule, and similar to the ABS rule of HOL.*)
   ext           "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
+
   selectI       "P (x::'a) ==> P (@x. P x)"
 
   impI          "(P ==> Q) ==> P-->Q"
