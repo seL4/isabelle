@@ -213,11 +213,11 @@ fun merge_mss
        bounds = bounds2, prems = prems2, ...}) =
       mk_mss
        (Net.merge (rules1, rules2, eq_rrule),
-        (generic_merge (eq_cong o pairself snd) I I congs1 congs2,
+        (gen_merge_lists (eq_cong o pairself snd) congs1 congs2,
         merge_lists weak1 weak2),
         Net.merge (procs1, procs2, eq_simproc),
         merge_lists bounds1 bounds2,
-        generic_merge eq_prem I I prems1 prems2,
+        gen_merge_lists eq_prem prems1 prems2,
         mk_rews, termless, depth);
 
 
