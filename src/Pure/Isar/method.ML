@@ -115,12 +115,13 @@ sig
   val local_done_proof: (Proof.context -> string * (string * thm list) list -> unit) *
     (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
   val global_qed: bool -> text option
-    -> Proof.state -> theory * (string * (string * thm list) list)
+    -> Proof.state -> theory * ((string * string) * (string * thm list) list)
   val global_terminal_proof: text * text option
-    -> Proof.state -> theory * (string * (string * thm list) list)
-  val global_default_proof: Proof.state -> theory * (string * (string * thm list) list)
-  val global_immediate_proof: Proof.state -> theory * (string * (string * thm list) list)
-  val global_done_proof: Proof.state -> theory * (string * (string * thm list) list)
+    -> Proof.state -> theory * ((string * string) * (string * thm list) list)
+  val global_default_proof: Proof.state -> theory * ((string * string) * (string * thm list) list)
+  val global_immediate_proof: Proof.state ->
+    theory * ((string * string) * (string * thm list) list)
+  val global_done_proof: Proof.state -> theory * ((string * string) * (string * thm list) list)
   val goal_args: (Args.T list -> 'a * Args.T list) -> ('a -> int -> tactic)
     -> Args.src -> Proof.context -> Proof.method
   val goal_args': (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))

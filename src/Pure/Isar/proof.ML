@@ -109,7 +109,7 @@ sig
     -> (context -> string * (string * thm list) list -> unit) * (context -> thm -> unit)
     -> state -> state Seq.seq
   val global_qed: (state -> state Seq.seq) -> state
-    -> (theory * (string * (string * thm list) list)) Seq.seq
+    -> (theory * ((string * string) * (string * thm list) list)) Seq.seq
   val begin_block: state -> state
   val end_block: state -> state Seq.seq
   val next_block: state -> state
@@ -789,7 +789,7 @@ fun finish_global state =
           ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results)))
       |>> locale_add_thmss locale (names ~~ Library.unflat tss locale_results);
     val thy2 = thy1 |> PureThy.add_thmss [((cname, flat (map #2 res')), catts)] |> #1;
-  in (thy2, (k, res')) end;
+  in (thy2, ((k, cname), res')) end;
 
 (*note: clients should inspect first result only, as backtracking may destroy theory*)
 fun global_qed finalize state =

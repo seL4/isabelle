@@ -14,7 +14,7 @@ sig
   val prove: theory -> string list -> term list -> term -> (thm list -> tactic) -> thm
   val local_skip_proof: (Proof.context -> string * (string * thm list) list -> unit) *
     (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val global_skip_proof: Proof.state -> theory * (string * (string * thm list) list)
+  val global_skip_proof: Proof.state -> theory * ((string * string) * (string * thm list) list)
   val setup: (theory -> theory) list
 end;
 

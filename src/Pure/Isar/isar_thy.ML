@@ -203,6 +203,7 @@ structure IsarThy: ISAR_THY =
 struct
 
 
+
 (** derived theory and proof operations **)
 
 (* markup commands *)
@@ -382,13 +383,18 @@ val invoke_case_i = ProofHistory.apply o Proof.invoke_case o Comment.ignore;
 
 local
 
-fun pretty_result ctxt k (name, ths) = Pretty.block
-  [Pretty.str (k ^ (if name = "" then "" else " " ^ name ^ ":")), Pretty.brk 1,
-    ProofContext.pretty_thms ctxt ths];
+fun prt_fact ctxt ("", ths) = ProofContext.pretty_thms ctxt ths
+  | prt_fact ctxt (name, ths) =
+      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, ProofContext.pretty_thms ctxt ths];
 
-fun pretty_results ctxt (kind, r :: rs) =
-      pretty_result ctxt kind r :: map (pretty_result ctxt "and") rs
-  | pretty_results _ (_, []) = [];
+fun prt_facts ctxt =
+  flat o (separate [Pretty.fbrk, Pretty.str "and "]) o map (single o prt_fact ctxt);
+
+fun pretty_results ctxt ((kind, ""), facts) =
+      Pretty.block (Pretty.str kind :: Pretty.brk 1 :: prt_facts ctxt facts)
+  | pretty_results ctxt ((kind, name), facts) = Pretty.blk (1,
+      [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk,
+        Pretty.blk (1, Pretty.str "(" :: prt_facts ctxt facts @ [Pretty.str ")"])]);
 
 fun pretty_rule s ctxt thm =
   Pretty.block [Pretty.str (s ^ " to solve goal by exported rule:"),
@@ -396,10 +402,11 @@ fun pretty_rule s ctxt thm =
 
 in
 
-val print_result = (Pretty.writeln o Pretty.chunks) oo pretty_results;
+val print_result = Pretty.writeln oo pretty_results;
+fun print_result' ctxt (k, res) = print_result ctxt ((k, ""), res);
 
 fun cond_print_result_rule int =
-  if int then (print_result, priority oo (Pretty.string_of oo pretty_rule "Attempt"))
+  if int then (print_result', priority oo (Pretty.string_of oo pretty_rule "Attempt"))
   else (K (K ()), K (K ()));
 
 fun proof'' f = Toplevel.proof' (f o cond_print_result_rule);
@@ -422,7 +429,7 @@ fun check_goal false state = state
           |> Library.transform_error;
         val result = (check (), None) handle Interrupt => raise Interrupt | e => (None, Some e);
       in (case result of (Some _, None) => () | (_, exn) => warn exn); state end;
-      
+
 end;
 
 
@@ -536,10 +543,10 @@ fun global_result finish = Toplevel.proof_to_theory (fn prf =>
   let
     val state = ProofHistory.current prf;
     val _ = if Proof.at_bottom state then () else raise Toplevel.UNDEF;
-    val (thy, (kind, res)) = finish state;
+    val (thy, ((kind, name), res)) = finish state;
   in
     if kind = "" orelse kind = Drule.internalK then ()
-    else (print_result (Proof.context_of state) (kind, res);
+    else (print_result (Proof.context_of state) ((kind, name), res);
       Context.setmp (Some thy) Present.multi_result (kind, res));
     thy
   end);
