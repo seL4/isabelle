@@ -5,6 +5,8 @@
 
 Generic tableau prover with proof reconstruction
 
+  Why does Abs take a string argument?
+
   SKOLEMIZES ReplaceI WRONGLY: allow new vars in prems, or forbid such rules??
   Needs explicit instantiation of assumptions?
 
@@ -20,6 +22,15 @@ Blast_tac...
   * its proof strategy is more general but can actually be slower
 
 Known problems:
+  With overloading:
+    1.  Overloading can't follow all chains of type dependencies.  Cannot
+        prove "In1 x ~: Part A In0" because PartE introducees the polymorphic
+	equality In1 x = In0 y, when the corresponding rule uses the (distinct)
+	set equality.  Workaround: supply a type instance of the rule that
+	creates new equalities (e.g. PartE in HOL/ex/Simult)
+	==> affects freeness reasoning about Sexp constants (since they have
+		type ... set)
+
   With substition for equalities (hyp_subst_tac):
     1.  Sometimes hyp_subst_tac will fail due to occurrence of the parameter
         as the argument of a function variable
@@ -297,7 +308,7 @@ fun subst_bound (arg, t) : term =
 
 (*Normalize...but not the bodies of ABSTRACTIONS*)
 fun norm t = case t of
-    Skolem(a,args)       => Skolem(a, vars_in_vars args)
+    Skolem (a,args)      => Skolem(a, vars_in_vars args)
   | (Var (ref None))     => t
   | (Var (ref (Some u))) => norm u
   | (f $ u) => (case norm f of
@@ -314,6 +325,13 @@ fun wkNormAux t = case t of
   | (f $ u) => (case wkNormAux f of
 		    Abs(_,body) => wkNorm (subst_bound (u, body))
 		  | nf          => nf $ u)
+  | Abs (a,body) =>	(*eta-contract if possible*)
+	(case wkNormAux body of
+	     nb as (f $ t) => 
+		 if (0 mem_int loose_bnos f) orelse wkNorm t <> Bound 0
+		 then Abs(a,nb)
+		 else wkNorm (incr_boundvars ~1 f)
+	   | nb          => Abs (a,nb))
   | _ => t
 and wkNorm t = case head_of t of
     Const _        => t
@@ -630,7 +648,7 @@ fun normBr (br, lits, vars, lim) =
      (map normLev br, map norm lits, vars, lim);
 
 fun tracing brs = if !trace then fullTrace := map normBr brs :: !fullTrace 
-		else ()
+	 	  else ()
 end;
 
 
@@ -740,9 +758,9 @@ fun addLit (Const "*Goal*" $ G, lits) =
   | addLit (G,lits) = ins_term(G, lits)
 
 
-(*For calculating the "penalty" to assess on a branching factor of n*)
-fun log2 1 = 0
-  | log2 n = 1 + log2(n div 2);
+(*For calculating the "penalty" to assess on a branching factor of n
+  log2 seems a little too severe*)
+fun log3 n = if n<3 then 0 else 1 + log3(n div 3);
 
 
 (*Tableau prover based on leanTaP.  Argument is a list of branches.  Each 
@@ -781,7 +799,7 @@ fun prove (cs, brs, cont) =
 			    (*P comes from the rule; G comes from the branch.*)
                         val ntrl' = !ntrail
 			val lim' = if ntrl < !ntrail 
-				   then lim - (1+log2(length rules))
+				   then lim - (1+log3(length rules))
 				   else lim   (*discourage branching updates*)
                         val vars  = vars_in_vars vars
                         val vars' = foldr add_terms_vars (prems, vars)
@@ -879,7 +897,7 @@ fun prove (cs, brs, cont) =
                         val dup = md andalso vars' <> vars
 			(*duplicate H only if md and the premise has new vars*)
 			val lim' = (*Decrement "lim" extra if updates occur*)
-			    if ntrl < !ntrail then lim - (1+log2(length rules))
+			    if ntrl < !ntrail then lim - (1+log3(length rules))
 			    else lim-1
 			    (*NB: if the formula is duplicated, 
 			      then it seems plausible to leave lim alone.  
