@@ -250,6 +250,8 @@ setup hypsubst_setup
 setup Classical.setup
 setup clasetup
 
+declare impE [CPure.elim]  iffD1 [CPure.elim]  iffD2 [CPure.elim]
+
 use "blastdata.ML"
 setup Blast.setup
 
