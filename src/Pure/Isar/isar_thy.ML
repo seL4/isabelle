@@ -21,12 +21,13 @@ sig
   val have_facts: (string * Args.src list) * (string * Args.src list) list
     -> ProofHistory.T -> ProofHistory.T
   val fix: (string * string option) list -> ProofHistory.T -> ProofHistory.T
-  val match_bind: (string * string) list -> ProofHistory.T -> ProofHistory.T
-  val theorem: string -> Args.src list -> string -> theory -> ProofHistory.T
-  val lemma: string -> Args.src list -> string -> theory -> ProofHistory.T
-  val assume: string -> Args.src list -> string list -> ProofHistory.T -> ProofHistory.T
-  val show: string -> Args.src list -> string -> ProofHistory.T -> ProofHistory.T
-  val have: string -> Args.src list -> string -> ProofHistory.T -> ProofHistory.T
+  val match_bind: (string list * string) list -> ProofHistory.T -> ProofHistory.T
+  val theorem: string -> Args.src list -> string * string list -> theory -> ProofHistory.T
+  val lemma: string -> Args.src list -> string * string list -> theory -> ProofHistory.T
+  val assume: string -> Args.src list -> (string * string list) list
+    -> ProofHistory.T -> ProofHistory.T
+  val show: string -> Args.src list -> string * string list -> ProofHistory.T -> ProofHistory.T
+  val have: string -> Args.src list -> string * string list -> ProofHistory.T -> ProofHistory.T
   val chain: ProofHistory.T -> ProofHistory.T
   val from_facts: (string * Args.src list) list -> ProofHistory.T -> ProofHistory.T
   val begin_block: ProofHistory.T -> ProofHistory.T
