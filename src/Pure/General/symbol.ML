@@ -30,6 +30,9 @@ sig
   val is_raw: symbol -> bool
   val decode_raw: symbol -> string
   val encode_raw: string -> symbol list
+  datatype sym = Char of string | Sym of string | Ctrl of string | Raw of string
+  exception DECODE of string
+  val decode: symbol -> sym
   datatype kind = Letter | Digit | Quasi | Blank | Other
   val kind: symbol -> kind
   val is_letter: symbol -> bool
@@ -164,6 +167,20 @@ fun encode_raw s =
   else [enclose "\\<^raw:" ">" s];
 
 end;
+
+
+(* symbol variants *)
+
+datatype sym = Char of string | Sym of string | Ctrl of string | Raw of string;
+
+exception DECODE of string;
+
+fun decode s =
+  if is_char s then Char s
+  else if is_raw s then Raw (decode_raw s)
+  else if String.isPrefix "\\<^" s then Ctrl (String.substring (s, 3, size s - 4))
+  else if String.isPrefix "\\<" s then Sym (String.substring (s, 2, size s - 3))
+  else raise DECODE s;   (*NB: no error message in order to avoid looping in output!*)
 
 
 (* standard symbol kinds *)
