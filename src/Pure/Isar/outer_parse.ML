@@ -85,8 +85,7 @@ type token = T.token;
 
 fun fail_with s = Scan.fail_with
   (fn [] => s ^ " expected (past end-of-file!)"
-    | (tok :: _) => s ^ " expected,\nbut " ^ T.name_of tok ^ " " ^
-      quote (T.val_of tok) ^ T.pos_of tok ^ " was found");
+    | (tok :: _) => s ^ " expected,\nbut " ^ T.name_of tok ^ T.pos_of tok ^ " was found");
 
 fun group s scan = scan || fail_with s;
 

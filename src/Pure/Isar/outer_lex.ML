@@ -106,8 +106,6 @@ fun is_kind k (Token (_, (k', _))) = k = k';
 fun keyword_with pred (Token (_, (Keyword, x))) = pred x
   | keyword_with _ _ = false;
 
-fun name_of (Token (_, (k, _))) = str_of_kind k;
-
 fun is_proper (Token (_, (Space, _))) = false
   | is_proper (Token (_, (Comment, _))) = false
   | is_proper _ = true;
@@ -132,7 +130,10 @@ fun is_indent (Token (_, (Space, s))) =
   | is_indent _ = false;
 
 
-(* value of token *)
+(* name and value of token *)
+
+fun name_of (tok as Token (_, (k, x))) =
+  if is_semicolon tok then "terminator" else str_of_kind k ^ " " ^ quote x;
 
 fun val_of (Token (_, (_, x))) = x;
 
