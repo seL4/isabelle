@@ -39,12 +39,15 @@ signature TYPE =
   val merge_tsigs: type_sig * type_sig -> type_sig
   val subsort: type_sig -> sort * sort -> bool
   val norm_sort: type_sig -> sort -> sort
+  val eq_sort: type_sig -> sort * sort -> bool
   val rem_sorts: typ -> typ
   val nonempty_sort: type_sig -> sort list -> sort -> bool
   val cert_typ: type_sig -> typ -> typ
   val norm_typ: type_sig -> typ -> typ
   val freeze: term -> term
   val freeze_vars: typ -> typ
+  val get_sort: type_sig -> (indexname -> sort option) -> (indexname * sort) list
+    -> indexname -> sort
   val infer_types: type_sig * (string -> typ option) *
                    (indexname -> typ option) * (indexname -> sort option) *
                    string list * bool * typ list * term list
@@ -386,6 +389,10 @@ fun subsort (TySg {subclass, ...}) (S1, S2) =
 
 fun norm_sort (TySg {subclass, ...}) S =
   sort_strings (min_sort subclass S);
+
+(* FIXME tmp! (sorts.ML) *)
+fun eq_sort tsig (S1, S2) =
+  norm_sort tsig S1 = norm_sort tsig S2;
 
 fun rem_sorts (Type (a, tys)) = Type (a, map rem_sorts tys)
   | rem_sorts (TFree (x, _)) = TFree (x, [])
@@ -938,6 +945,19 @@ fun constrainAbs (Abs (a, _, body), T) = Abs (a, T, body)
   | constrainAbs _ = sys_error "constrainAbs";
 
 
+(* get_sort *)
+
+fun get_sort tsig def_sort env xi =
+  (case (assoc (env, xi), def_sort xi) of
+    (None, None) => defaultS tsig
+  | (None, Some S) => S
+  | (Some S, None) => S
+  | (Some S, Some S') =>
+      if eq_sort tsig (S, S') then S
+      else error ("Sort constraint inconsistent with default for type variable " ^
+        quote (Syntax.string_of_vname' xi)));
+
+
 (* attach_types *)
 
 (*
@@ -960,15 +980,12 @@ fun constrainAbs (Abs (a, _, body), T) = Abs (a, T, body)
     bound variables of the same name but different types.
 *)
 
-(* FIXME consistency of sort_env / sorts (!?) *)
-
 fun attach_types (tsig, const_type, types, sorts, maxidx1) tm =
   let
-    val sort_env = Syntax.raw_term_sorts tm;
-    fun def_sort xi = if_none (sorts xi) (defaultS tsig);
+    val sort_env = Syntax.raw_term_sorts (eq_sort tsig) tm;
 
     fun prepareT t =
-      freeze_vars (cert_typ tsig (Syntax.typ_of_term sort_env def_sort t));
+      freeze_vars (cert_typ tsig (Syntax.typ_of_term (get_sort tsig sorts sort_env) t));
 
     fun add (Const (a, _)) =
           (case const_type a of
