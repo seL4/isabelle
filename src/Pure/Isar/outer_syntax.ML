@@ -49,7 +49,7 @@ sig
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
   val theory_header: token list -> (string * string list * (string * bool) list) * token list
-  val deps_thy: string -> bool -> Path.T -> string list * Path.T list
+  val deps_thy: string -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
   val isar: bool -> Toplevel.isar
 end;
@@ -270,7 +270,7 @@ val old_header =
 
 end;
 
-fun deps_thy name ml path =
+fun deps_thy name path =
   let
     val src = File.source path;
     val is_old = warn_theory_style path (is_old_theory src);
@@ -280,7 +280,7 @@ fun deps_thy name ml path =
       else scan_header (K header_lexicon) (Scan.error new_header) src;
 
     val ml_path = ThyLoad.ml_path name;
-    val ml_file = if not ml orelse is_none (ThyLoad.check_file ml_path) then [] else [ml_path];
+    val ml_file = if is_none (ThyLoad.check_file ml_path) then [] else [ml_path];
   in
     if name <> name' then
       error ("Filename " ^ quote (Path.pack path) ^ " does not match theory name " ^ quote name)
