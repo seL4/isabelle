@@ -95,7 +95,7 @@ qed_goalw "monofun_Issnd" Sprod2.thy [monofun] "monofun(Issnd)"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_sprod" Sprod2.thy 
-"[|is_chain(S)|] ==> range(S) <<| \
+"[|chain(S)|] ==> range(S) <<| \
 \ Ispair (lub(range(%i. Isfst(S i)))) (lub(range(%i. Issnd(S i))))"
 (fn prems =>
         [
@@ -123,7 +123,7 @@ bind_thm ("thelub_sprod", lub_sprod RS thelubI);
 
 
 qed_goal "cpo_sprod" Sprod2.thy 
-        "is_chain(S::nat=>'a**'b)==>? x. range(S)<<| x"
+        "chain(S::nat=>'a**'b)==>? x. range(S)<<| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -111,7 +111,7 @@ qed_goal "up_lemma1" thy  "z=Iup(x) ==> Iup(Ifup(LAM x. x)(z)) = z"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_up1a" thy 
-"[|is_chain(Y);? i x. Y(i)=Iup(x)|] ==>\
+"[|chain(Y);? i x. Y(i)=Iup(x)|] ==>\
 \ range(Y) <<| Iup(lub(range(%i.(Ifup (LAM x. x) (Y(i))))))"
  (fn prems =>
         [
@@ -148,7 +148,7 @@ qed_goal "lub_up1a" thy
         ]);
 
 qed_goal "lub_up1b" thy 
-"[|is_chain(Y);!i x. Y(i)~=Iup(x)|] ==>\
+"[|chain(Y);!i x. Y(i)~=Iup(x)|] ==>\
 \ range(Y) <<| Abs_Up (Inl ())"
  (fn prems =>
         [
@@ -172,18 +172,18 @@ qed_goal "lub_up1b" thy
 
 bind_thm ("thelub_up1a", lub_up1a RS thelubI);
 (*
-[| is_chain ?Y1; ? i x. ?Y1 i = Iup x |] ==>
+[| chain ?Y1; ? i x. ?Y1 i = Iup x |] ==>
  lub (range ?Y1) = Iup (lub (range (%i. Iup (LAM x. x) (?Y1 i))))
 *)
 
 bind_thm ("thelub_up1b", lub_up1b RS thelubI);
 (*
-[| is_chain ?Y1; ! i x. ?Y1 i ~= Iup x |] ==>
+[| chain ?Y1; ! i x. ?Y1 i ~= Iup x |] ==>
  lub (range ?Y1) = UU_up
 *)
 
 qed_goal "cpo_up" thy 
-        "is_chain(Y::nat=>('a)u) ==> ? x. range(Y) <<|x"
+        "chain(Y::nat=>('a)u) ==> ? x. range(Y) <<|x"
  (fn prems =>
         [
         (cut_facts_tac prems 1),

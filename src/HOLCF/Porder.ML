@@ -28,7 +28,7 @@ qed_goalw "unique_lub" thy [is_lub, is_ub]
 (* chains are monotone functions                                            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "chain_mono" thy [is_chain] "is_chain F ==> x<y --> F x<<F y"
+qed_goalw "chain_mono" thy [chain] "chain F ==> x<y --> F x<<F y"
 ( fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -47,7 +47,7 @@ qed_goalw "chain_mono" thy [is_chain] "is_chain F ==> x<y --> F x<<F y"
         (atac 1)
         ]);
 
-qed_goal "chain_mono3" thy "[| is_chain F; x <= y |] ==> F x << F y"
+qed_goal "chain_mono3" thy "[| chain F; x <= y |] ==> F x << F y"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -64,8 +64,8 @@ qed_goal "chain_mono3" thy "[| is_chain F; x <= y |] ==> F x << F y"
 (* The range of a chain is a totaly ordered     <<                           *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "chain_is_tord" thy [is_tord] 
-"!!F. is_chain(F) ==> is_tord(range(F))"
+qed_goalw "chain_tord" thy [tord] 
+"!!F. chain(F) ==> tord(range(F))"
  (fn _ =>
         [
         Safe_tac,
@@ -138,13 +138,13 @@ qed_goalw "is_lubI" thy [is_lub]
         (atac 1)
         ]);
 
-qed_goalw "is_chainE" thy [is_chain] "is_chain F ==> !i. F(i) << F(Suc(i))"
+qed_goalw "chainE" thy [chain] "chain F ==> !i. F(i) << F(Suc(i))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
         (atac 1)]);
 
-qed_goalw "is_chainI" thy [is_chain] "!i. F i << F(Suc i) ==> is_chain F"
+qed_goalw "chainI" thy [chain] "!i. F i << F(Suc i) ==> chain F"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -185,7 +185,7 @@ bind_thm ("is_lub_lub", is_lubE RS conjunct2 RS spec RS mp);
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "lub_finch1" thy [max_in_chain_def]
-        "[| is_chain C; max_in_chain i C|] ==> range C <<| C i"
+        "[| chain C; max_in_chain i C|] ==> range C <<| C i"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -218,11 +218,11 @@ qed_goalw "lub_finch2" thy [finite_chain_def]
         ]);
 
 
-qed_goal "bin_chain" thy "x<<y ==> is_chain (%i. if i=0 then x else y)"
+qed_goal "bin_chain" thy "x<<y ==> chain (%i. if i=0 then x else y)"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac is_chainI 1),
+        (rtac chainI 1),
         (rtac allI 1),
         (nat_ind_tac "i" 1),
         (Asm_simp_tac 1),

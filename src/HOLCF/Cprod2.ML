@@ -116,7 +116,7 @@ qed_goalw "monofun_snd" thy [monofun] "monofun snd"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_cprod" thy 
-"is_chain S ==> range S<<|(lub(range(%i. fst(S i))),lub(range(%i. snd(S i))))"
+"chain S ==> range S<<|(lub(range(%i. fst(S i))),lub(range(%i. snd(S i))))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -141,13 +141,13 @@ qed_goal "lub_cprod" thy
 
 bind_thm ("thelub_cprod", lub_cprod RS thelubI);
 (*
-"is_chain ?S1 ==>
+"chain ?S1 ==>
  lub (range ?S1) =
  (lub (range (%i. fst (?S1 i))), lub (range (%i. snd (?S1 i))))" : thm
 
 *)
 
-qed_goal "cpo_cprod" thy "is_chain(S::nat=>'a::cpo*'b::cpo)==>? x. range S<<| x"
+qed_goal "cpo_cprod" thy "chain(S::nat=>'a::cpo*'b::cpo)==>? x. range S<<| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -20,7 +20,7 @@ qed_goal "inst_cprod_pcpo" thy "UU = (UU,UU)"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "Cprod3_lemma1" Cprod3.thy 
-"is_chain(Y::(nat=>'a::cpo)) ==>\
+"chain(Y::(nat=>'a::cpo)) ==>\
 \ (lub(range(Y)),(x::'b::cpo)) =\
 \ (lub(range(%i. fst(Y i,x))),lub(range(%i. snd(Y i,x))))"
  (fn prems =>
@@ -57,7 +57,7 @@ qed_goal "contlub_pair1" Cprod3.thy "contlub(Pair)"
         ]);
 
 qed_goal "Cprod3_lemma2" Cprod3.thy 
-"is_chain(Y::(nat=>'a::cpo)) ==>\
+"chain(Y::(nat=>'a::cpo)) ==>\
 \ ((x::'b::cpo),lub(range Y)) =\
 \ (lub(range(%i. fst(x,Y i))),lub(range(%i. snd(x, Y i))))"
  (fn prems =>
@@ -261,7 +261,7 @@ qed_goalw "less_cprod5c" Cprod3.thy [cfst_def,csnd_def,cpair_def]
         ]);
 
 qed_goalw "lub_cprod2" Cprod3.thy [cfst_def,csnd_def,cpair_def]
-"[|is_chain(S)|] ==> range(S) <<| \
+"[|chain(S)|] ==> range(S) <<| \
 \ <(lub(range(%i. cfst`(S i)))) , lub(range(%i. csnd`(S i)))>"
  (fn prems =>
         [
@@ -277,7 +277,7 @@ qed_goalw "lub_cprod2" Cprod3.thy [cfst_def,csnd_def,cpair_def]
 
 bind_thm ("thelub_cprod2", lub_cprod2 RS thelubI);
 (*
-is_chain ?S1 ==>
+chain ?S1 ==>
  lub (range ?S1) =
  <lub (range (%i. cfst`(?S1 i))), lub (range (%i. csnd`(?S1 i)))>" 
 *)

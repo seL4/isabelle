@@ -41,7 +41,7 @@ fun case_UU_tac rews i v =      case_tac (v^"=UU") i THEN
                                 asm_simp_tac (HOLCF_ss addsimps rews) i;
 
 val chain_tac = REPEAT_DETERM o resolve_tac 
-                [is_chain_iterate, ch2ch_fappR, ch2ch_fappL];
+                [chain_iterate, ch2ch_fappR, ch2ch_fappL];
 
 (* ----- general proofs ----------------------------------------------------- *)
 

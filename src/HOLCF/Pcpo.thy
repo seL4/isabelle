@@ -11,7 +11,7 @@ Pcpo = Porder +
 (* ********************************************** *)
 axclass cpo < po
         (* class axiom: *)
-  cpo   "is_chain S ==> ? x. range(S) <<| (x::'a::po)" 
+  cpo   "chain S ==> ? x. range(S) <<| (x::'a::po)" 
 
 (* The class pcpo of pointed cpos *)
 (* ****************************** *)
@@ -32,7 +32,7 @@ defs
 
 axclass chfin<cpo
 
-chfin 	"!Y. is_chain Y-->(? n. max_in_chain n Y)"
+chfin 	"!Y. chain Y-->(? n. max_in_chain n Y)"
 
 axclass flat<pcpo
 

@@ -136,12 +136,12 @@ qed_goal "stream_reach2" thy  "(LUB i. stream_take i`s) = s"
 	(stac fix_def2 1),
 	(rewrite_goals_tac [stream.take_def]),
 	(stac contlub_cfun_fun 1),
-	(rtac is_chain_iterate 1),
+	(rtac chain_iterate 1),
 	(rtac refl 1)
 	]);
 
-qed_goal "chain_stream_take" thy "is_chain (%i. stream_take i`s)" (fn _ => [
-	rtac is_chainI 1,
+qed_goal "chain_stream_take" thy "chain (%i. stream_take i`s)" (fn _ => [
+	rtac chainI 1,
 	subgoal_tac "!i s. stream_take i`s << stream_take (Suc i)`s" 1,
 	fast_tac HOL_cs 1,
 	rtac allI 1,
@@ -160,10 +160,10 @@ qed_goalw "stream_take_more" thy [stream.take_def]
 		rtac monofun_cfun_fun 1,
 		stac fix_def2 1,
 		rtac is_ub_thelub 1,
-		rtac is_chain_iterate 1,
+		rtac chain_iterate 1,
 		etac subst 1, (* 2*back(); *)
 		rtac monofun_cfun_fun 1,
-		rtac (rewrite_rule [is_chain] is_chain_iterate RS spec) 1]);
+		rtac (rewrite_rule [chain] chain_iterate RS spec) 1]);
 
 (*
 val stream_take_lemma2 = prove_goal thy 

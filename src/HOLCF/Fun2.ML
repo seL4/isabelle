@@ -52,11 +52,11 @@ qed_goal "less_fun" thy "(f1 << f2) = (! x. f1(x) << f2(x))"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ch2ch_fun" thy 
-        "is_chain(S::nat=>('a=>'b::po)) ==> is_chain(% i. S(i)(x))"
+        "chain(S::nat=>('a=>'b::po)) ==> chain(% i. S(i)(x))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rewtac is_chain),
+        (rewtac chain),
         (rtac allI 1),
         (rtac spec 1),
         (rtac (less_fun RS subst) 1),
@@ -86,7 +86,7 @@ qed_goal "ub2ub_fun" Fun2.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_fun"  Fun2.thy
-        "is_chain(S::nat=>('a::term => 'b::cpo)) ==> \
+        "chain(S::nat=>('a::term => 'b::cpo)) ==> \
 \        range(S) <<| (% x. lub(range(% i. S(i)(x))))"
 (fn prems =>
         [
@@ -108,10 +108,10 @@ qed_goal "lub_fun"  Fun2.thy
         ]);
 
 bind_thm ("thelub_fun", lub_fun RS thelubI);
-(* is_chain ?S1 ==> lub (range ?S1) = (%x. lub (range (%i. ?S1 i x))) *)
+(* chain ?S1 ==> lub (range ?S1) = (%x. lub (range (%i. ?S1 i x))) *)
 
 qed_goal "cpo_fun"  Fun2.thy
-        "is_chain(S::nat=>('a::term => 'b::cpo)) ==> ? x. range(S) <<| x"
+        "chain(S::nat=>('a::term => 'b::cpo)) ==> ? x. range(S) <<| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

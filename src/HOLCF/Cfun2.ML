@@ -75,10 +75,10 @@ bind_thm ("contlub_fapp2", cont_fapp2 RS cont2contlub);
 (* ------------------------------------------------------------------------ *)
 
 bind_thm ("cont_cfun_arg", (cont_fapp2 RS contE RS spec RS mp));
-(* is_chain(?x1) ==> range (%i. ?fo3`(?x1 i)) <<| ?fo3`(lub (range ?x1))    *)
+(* chain(?x1) ==> range (%i. ?fo3`(?x1 i)) <<| ?fo3`(lub (range ?x1))    *)
  
 bind_thm ("contlub_cfun_arg", (contlub_fapp2 RS contlubE RS spec RS mp));
-(* is_chain(?x1) ==> ?fo4`(lub (range ?x1)) = lub (range (%i. ?fo4`(?x1 i))) *)
+(* chain(?x1) ==> ?fo4`(lub (range ?x1)) = lub (range (%i. ?fo4`(?x1 i))) *)
 
 
 (* ------------------------------------------------------------------------ *)
@@ -138,7 +138,7 @@ qed_goal "strictI" thy "f`x = UU ==> f`UU = UU" (fn prems => [
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ch2ch_fappR" thy 
- "is_chain(Y) ==> is_chain(%i. f`(Y i))"
+ "chain(Y) ==> chain(%i. f`(Y i))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -147,7 +147,7 @@ qed_goal "ch2ch_fappR" thy
 
 
 bind_thm ("ch2ch_fappL", monofun_fapp1 RS ch2ch_MF2L);
-(* is_chain(?F) ==> is_chain (%i. ?F i`?x)                                  *)
+(* chain(?F) ==> chain (%i. ?F i`?x)                                  *)
 
 
 (* ------------------------------------------------------------------------ *)
@@ -156,7 +156,7 @@ bind_thm ("ch2ch_fappL", monofun_fapp1 RS ch2ch_MF2L);
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_cfun_mono" thy 
-        "is_chain(F) ==> monofun(% x. lub(range(% j.(F j)`x)))"
+        "chain(F) ==> monofun(% x. lub(range(% j.(F j)`x)))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -172,7 +172,7 @@ qed_goal "lub_cfun_mono" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ex_lubcfun" thy
-        "[| is_chain(F); is_chain(Y) |] ==>\
+        "[| chain(F); chain(Y) |] ==>\
 \               lub(range(%j. lub(range(%i. F(j)`(Y i))))) =\
 \               lub(range(%i. lub(range(%j. F(j)`(Y i)))))"
 (fn prems =>
@@ -190,7 +190,7 @@ qed_goal "ex_lubcfun" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "cont_lubcfun" thy 
-        "is_chain(F) ==> cont(% x. lub(range(% j. F(j)`x)))"
+        "chain(F) ==> cont(% x. lub(range(% j. F(j)`x)))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -209,7 +209,7 @@ qed_goal "cont_lubcfun" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_cfun" thy 
-  "is_chain(CCF) ==> range(CCF) <<| (LAM x. lub(range(% i. CCF(i)`x)))"
+  "chain(CCF) ==> range(CCF) <<| (LAM x. lub(range(% i. CCF(i)`x)))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -233,11 +233,11 @@ qed_goal "lub_cfun" thy
 
 bind_thm ("thelub_cfun", lub_cfun RS thelubI);
 (* 
-is_chain(?CCF1) ==>  lub (range ?CCF1) = (LAM x. lub (range (%i. ?CCF1 i`x)))
+chain(?CCF1) ==>  lub (range ?CCF1) = (LAM x. lub (range (%i. ?CCF1 i`x)))
 *)
 
 qed_goal "cpo_cfun" thy 
-  "is_chain(CCF::nat=>('a->'b)) ==> ? x. range(CCF) <<| x"
+  "chain(CCF::nat=>('a->'b)) ==> ? x. range(CCF) <<| x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

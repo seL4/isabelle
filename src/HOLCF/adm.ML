@@ -10,7 +10,7 @@ state:
   [| cont t; adm P |] ==> adm (%x. P (t x))
 
 "t" is instantiated with a term of chain-finite type, so that
-adm_chain_finite can be applied:
+adm_chfin can be applied:
 
   adm (P::'a::{chfin,pcpo} => bool)
 
@@ -177,7 +177,7 @@ fun adm_tac tac i state =
                 compose_tac (false, rule, 2) i THEN
                 rtac cont_thm i THEN
                 REPEAT (assume_tac i) THEN
-                rtac adm_chain_finite i
+                rtac adm_chfin i
               end 
           | [] => no_tac)
         end)

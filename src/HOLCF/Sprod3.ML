@@ -19,7 +19,7 @@ qed_goal "inst_sprod_pcpo" thy "UU = Ispair UU UU"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "sprod3_lemma1" thy 
-"[| is_chain(Y);  x~= UU;  lub(range(Y))~= UU |] ==>\
+"[| chain(Y);  x~= UU;  lub(range(Y))~= UU |] ==>\
 \ Ispair (lub(range Y)) x =\
 \ Ispair (lub(range(%i. Isfst(Ispair(Y i) x)))) \
 \        (lub(range(%i. Issnd(Ispair(Y i) x))))"
@@ -56,7 +56,7 @@ qed_goal "sprod3_lemma1" thy
         ]);
 
 qed_goal "sprod3_lemma2" thy 
-"[| is_chain(Y); x ~= UU; lub(range(Y)) = UU |] ==>\
+"[| chain(Y); x ~= UU; lub(range(Y)) = UU |] ==>\
 \   Ispair (lub(range Y)) x =\
 \   Ispair (lub(range(%i. Isfst(Ispair(Y i) x))))\
 \          (lub(range(%i. Issnd(Ispair(Y i) x))))"
@@ -78,7 +78,7 @@ qed_goal "sprod3_lemma2" thy
 
 
 qed_goal "sprod3_lemma3" thy 
-"[| is_chain(Y); x = UU |] ==>\
+"[| chain(Y); x = UU |] ==>\
 \          Ispair (lub(range Y)) x =\
 \          Ispair (lub(range(%i. Isfst(Ispair (Y i) x))))\
 \                 (lub(range(%i. Issnd(Ispair (Y i) x))))"
@@ -124,7 +124,7 @@ qed_goal "contlub_Ispair1" thy "contlub(Ispair)"
         ]);
 
 qed_goal "sprod3_lemma4" thy 
-"[| is_chain(Y); x ~= UU; lub(range(Y)) ~= UU |] ==>\
+"[| chain(Y); x ~= UU; lub(range(Y)) ~= UU |] ==>\
 \         Ispair x (lub(range Y)) =\
 \         Ispair (lub(range(%i. Isfst (Ispair x (Y i)))))\
 \                (lub(range(%i. Issnd (Ispair x (Y i)))))"
@@ -160,7 +160,7 @@ qed_goal "sprod3_lemma4" thy
         ]);
 
 qed_goal "sprod3_lemma5" thy 
-"[| is_chain(Y); x ~= UU; lub(range(Y)) = UU |] ==>\
+"[| chain(Y); x ~= UU; lub(range(Y)) = UU |] ==>\
 \         Ispair x (lub(range Y)) =\
 \         Ispair (lub(range(%i. Isfst(Ispair x (Y i)))))\
 \                (lub(range(%i. Issnd(Ispair x (Y i)))))"
@@ -181,7 +181,7 @@ qed_goal "sprod3_lemma5" thy
         ]);
 
 qed_goal "sprod3_lemma6" thy 
-"[| is_chain(Y); x = UU |] ==>\
+"[| chain(Y); x = UU |] ==>\
 \         Ispair x (lub(range Y)) =\
 \         Ispair (lub(range(%i. Isfst (Ispair x (Y i)))))\
 \                (lub(range(%i. Issnd (Ispair x (Y i)))))"
@@ -563,7 +563,7 @@ qed_goalw "surjective_pairing_Sprod2" thy
 
 
 qed_goalw "lub_sprod2" thy [sfst_def,ssnd_def,spair_def]
-"[|is_chain(S)|] ==> range(S) <<| \
+"[|chain(S)|] ==> range(S) <<| \
 \ (| lub(range(%i. sfst`(S i))), lub(range(%i. ssnd`(S i))) |)"
  (fn prems =>
         [
@@ -580,7 +580,7 @@ qed_goalw "lub_sprod2" thy [sfst_def,ssnd_def,spair_def]
 
 bind_thm ("thelub_sprod2", lub_sprod2 RS thelubI);
 (*
- "is_chain ?S1 ==>
+ "chain ?S1 ==>
  lub (range ?S1) =
  (|lub (range (%i. sfst`(?S1 i))), lub (range (%i. ssnd`(?S1 i)))|)" : thm
 *)

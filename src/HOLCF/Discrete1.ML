@@ -11,8 +11,8 @@ by (rtac refl 1);
 qed "discr_less_eq";
 AddIffs [discr_less_eq];
 
-goalw thy [is_chain]
- "!!S::nat=>('a::term)discr. is_chain S ==> S i = S 0";
+goalw thy [chain]
+ "!!S::nat=>('a::term)discr. chain S ==> S i = S 0";
 by (nat_ind_tac "i" 1);
 by (rtac refl 1);
 by (etac subst 1);
@@ -21,12 +21,12 @@ by (Fast_tac 1);
 qed "discr_chain0";
 
 goal thy
- "!!S::nat=>('a::term)discr. is_chain(S) ==> range(S) = {S 0}";
+ "!!S::nat=>('a::term)discr. chain(S) ==> range(S) = {S 0}";
 by (fast_tac (claset() addEs [discr_chain0]) 1);
 qed "discr_chain_range0";
 Addsimps [discr_chain_range0];
 
 goalw thy [is_lub,is_ub]
- "!!S. is_chain S ==> ? x::('a::term)discr. range(S) <<| x";
+ "!!S. chain S ==> ? x::('a::term)discr. range(S) <<| x";
 by (Asm_simp_tac 1);
 qed "discr_cpo";

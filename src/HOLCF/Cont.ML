@@ -13,7 +13,7 @@ open Cont;
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "contlubI" thy [contlub]
-        "! Y. is_chain(Y) --> f(lub(range(Y))) = lub(range(%i. f(Y(i))))==>\
+        "! Y. chain(Y) --> f(lub(range(Y))) = lub(range(%i. f(Y(i))))==>\
 \        contlub(f)"
 (fn prems =>
         [
@@ -23,7 +23,7 @@ qed_goalw "contlubI" thy [contlub]
 
 qed_goalw "contlubE" thy [contlub]
         " contlub(f)==>\
-\         ! Y. is_chain(Y) --> f(lub(range(Y))) = lub(range(%i. f(Y(i))))"
+\         ! Y. chain(Y) --> f(lub(range(Y))) = lub(range(%i. f(Y(i))))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -32,7 +32,7 @@ qed_goalw "contlubE" thy [contlub]
 
 
 qed_goalw "contI" thy [cont]
- "! Y. is_chain(Y) --> range(% i. f(Y(i))) <<| f(lub(range(Y))) ==> cont(f)"
+ "! Y. chain(Y) --> range(% i. f(Y(i))) <<| f(lub(range(Y))) ==> cont(f)"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -40,7 +40,7 @@ qed_goalw "contI" thy [cont]
         ]);
 
 qed_goalw "contE" thy [cont]
- "cont(f) ==> ! Y. is_chain(Y) --> range(% i. f(Y(i))) <<| f(lub(range(Y)))"
+ "cont(f) ==> ! Y. chain(Y) --> range(% i. f(Y(i))) <<| f(lub(range(Y)))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -74,14 +74,14 @@ qed_goalw "monofunE" thy [monofun]
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ch2ch_monofun" thy 
-        "[| monofun(f); is_chain(Y) |] ==> is_chain(%i. f(Y(i)))"
+        "[| monofun(f); chain(Y) |] ==> chain(%i. f(Y(i)))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac is_chainI 1),
+        (rtac chainI 1),
         (rtac allI 1),
         (etac (monofunE RS spec RS spec RS mp) 1),
-        (etac (is_chainE RS spec) 1)
+        (etac (chainE RS spec) 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)
@@ -194,7 +194,7 @@ bind_thm ("cont_finch2finch", cont2mono RS monofun_finch2finch);
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "ch2ch_MF2L" thy 
-"[|monofun(MF2); is_chain(F)|] ==> is_chain(%i. MF2 (F i) x)"
+"[|monofun(MF2); chain(F)|] ==> chain(%i. MF2 (F i) x)"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -204,7 +204,7 @@ qed_goal "ch2ch_MF2L" thy
 
 
 qed_goal "ch2ch_MF2R" thy 
-"[|monofun(MF2(f)); is_chain(Y)|] ==> is_chain(%i. MF2 f (Y i))"
+"[|monofun(MF2(f)); chain(Y)|] ==> chain(%i. MF2 f (Y i))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -213,36 +213,36 @@ qed_goal "ch2ch_MF2R" thy
         ]);
 
 qed_goal "ch2ch_MF2LR" thy 
-"[|monofun(MF2); !f. monofun(MF2(f)); is_chain(F); is_chain(Y)|] ==> \
-\  is_chain(%i. MF2(F(i))(Y(i)))"
+"[|monofun(MF2); !f. monofun(MF2(f)); chain(F); chain(Y)|] ==> \
+\  chain(%i. MF2(F(i))(Y(i)))"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac is_chainI 1),
+        (rtac chainI 1),
         (strip_tac 1 ),
         (rtac trans_less 1),
-        (etac (ch2ch_MF2L RS is_chainE RS spec) 1),
+        (etac (ch2ch_MF2L RS chainE RS spec) 1),
         (atac 1),
         ((rtac (monofunE RS spec RS spec RS mp) 1) THEN (etac spec 1)),
-        (etac (is_chainE RS spec) 1)
+        (etac (chainE RS spec) 1)
         ]);
 
 
 qed_goal "ch2ch_lubMF2R" thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
 \  !f. monofun(MF2(f)::('b::po=>'c::cpo));\
-\       is_chain(F);is_chain(Y)|] ==> \
-\       is_chain(%j. lub(range(%i. MF2 (F j) (Y i))))"
+\       chain(F);chain(Y)|] ==> \
+\       chain(%j. lub(range(%i. MF2 (F j) (Y i))))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (lub_mono RS allI RS is_chainI) 1),
+        (rtac (lub_mono RS allI RS chainI) 1),
         ((rtac ch2ch_MF2R 1) THEN (etac spec 1)),
         (atac 1),
         ((rtac ch2ch_MF2R 1) THEN (etac spec 1)),
         (atac 1),
         (strip_tac 1),
-        (rtac (is_chainE RS spec) 1),
+        (rtac (chainE RS spec) 1),
         (etac ch2ch_MF2L 1),
         (atac 1)
         ]);
@@ -251,18 +251,18 @@ qed_goal "ch2ch_lubMF2R" thy
 qed_goal "ch2ch_lubMF2L" thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
 \  !f. monofun(MF2(f)::('b::po=>'c::cpo));\
-\       is_chain(F);is_chain(Y)|] ==> \
-\       is_chain(%i. lub(range(%j. MF2 (F j) (Y i))))"
+\       chain(F);chain(Y)|] ==> \
+\       chain(%i. lub(range(%j. MF2 (F j) (Y i))))"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (lub_mono RS allI RS is_chainI) 1),
+        (rtac (lub_mono RS allI RS chainI) 1),
         (etac ch2ch_MF2L 1),
         (atac 1),
         (etac ch2ch_MF2L 1),
         (atac 1),
         (strip_tac 1),
-        (rtac (is_chainE RS spec) 1),
+        (rtac (chainE RS spec) 1),
         ((rtac ch2ch_MF2R 1) THEN (etac spec 1)),
         (atac 1)
         ]);
@@ -271,7 +271,7 @@ qed_goal "ch2ch_lubMF2L" thy
 qed_goal "lub_MF2_mono" thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
 \  !f. monofun(MF2(f)::('b::po=>'c::cpo));\
-\       is_chain(F)|] ==> \
+\       chain(F)|] ==> \
 \       monofun(% x. lub(range(% j. MF2 (F j) (x))))"
 (fn prems =>
         [
@@ -291,7 +291,7 @@ qed_goal "lub_MF2_mono" thy
 qed_goal "ex_lubMF2" thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
 \  !f. monofun(MF2(f)::('b::po=>'c::cpo));\
-\       is_chain(F); is_chain(Y)|] ==> \
+\       chain(F); chain(Y)|] ==> \
 \               lub(range(%j. lub(range(%i. MF2(F j) (Y i))))) =\
 \               lub(range(%i. lub(range(%j. MF2(F j) (Y i)))))"
  (fn prems =>
@@ -330,7 +330,7 @@ qed_goal "ex_lubMF2" thy
 qed_goal "diag_lubMF2_1" thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
 \  !f. monofun(MF2(f)::('b::po=>'c::cpo));\
-\  is_chain(FY);is_chain(TY)|] ==>\
+\  chain(FY);chain(TY)|] ==>\
 \ lub(range(%i. lub(range(%j. MF2(FY(j))(TY(i)))))) =\
 \ lub(range(%i. MF2(FY(i))(TY(i))))"
  (fn prems =>
@@ -374,7 +374,7 @@ qed_goal "diag_lubMF2_1" thy
 qed_goal "diag_lubMF2_2" thy 
 "[|monofun(MF2::('a::po=>'b::po=>'c::cpo));\
 \  !f. monofun(MF2(f)::('b::po=>'c::cpo));\
-\  is_chain(FY);is_chain(TY)|] ==>\
+\  chain(FY);chain(TY)|] ==>\
 \ lub(range(%j. lub(range(%i. MF2(FY(j))(TY(i)))))) =\
 \ lub(range(%i. MF2(FY(i))(TY(i))))"
  (fn prems =>
@@ -394,7 +394,7 @@ qed_goal "diag_lubMF2_2" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_CF2" thy 
-"[|cont(CF2);!f. cont(CF2(f));is_chain(FY);is_chain(TY)|] ==>\
+"[|cont(CF2);!f. cont(CF2(f));chain(FY);chain(TY)|] ==>\
 \ CF2(lub(range(FY)))(lub(range(TY))) = lub(range(%i. CF2(FY(i))(TY(i))))"
  (fn prems =>
         [
@@ -524,7 +524,7 @@ qed_goal "cont2cont_CF1L_rev" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_abstraction" thy
-"[|is_chain(Y::nat=>'a);!y. cont(%x.(c::'a::cpo=>'b::cpo=>'c::cpo) x y)|] ==>\
+"[|chain(Y::nat=>'a);!y. cont(%x.(c::'a::cpo=>'b::cpo=>'c::cpo) x y)|] ==>\
 \ (%y. lub(range(%i. c (Y i) y))) = (lub(range(%i.%y. c (Y i) y)))"
  (fn prems =>
         [

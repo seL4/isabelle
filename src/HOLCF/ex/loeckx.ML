@@ -8,13 +8,13 @@ by (stac thelub_fun 1);
 by (rtac ch2ch_fun 1);
 back();
 by (rtac refl 2);
-by (rtac is_chainI 1);
+by (rtac chainI 1);
 by (strip_tac 1);
 by (rtac (less_fun RS iffD2) 1);
 by (strip_tac 1);
 by (rtac (less_fun RS iffD2) 1);
 by (strip_tac 1);
-by (rtac (is_chain_iterate RS is_chainE RS spec) 1);
+by (rtac (chain_iterate RS chainE RS spec) 1);
 val loeckx_sieber = result();
 
 (* 
@@ -27,7 +27,7 @@ Idea: (%i.%G.iterate i G UU) is a chain of continuous functions and
 Since we already proved the theorem
 
 val cont_lubcfun = prove_goal Cfun2.thy 
-        "is_chain ?F ==> cont (%x. lub (range (%j. ?F j`x)))"
+        "chain ?F ==> cont (%x. lub (range (%j. ?F j`x)))"
 
 
 it suffices to prove:
@@ -64,7 +64,7 @@ by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
 by (rtac refl 1);
 by (rtac cont_lubcfun 1);
-by (rtac is_chainI 1);
+by (rtac chainI 1);
 by (strip_tac 1);
 by (rtac less_cfun2 1);
 by (stac beta_cfun 1);
@@ -73,7 +73,7 @@ by (rtac cont_iterate 1);
 by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
-by (rtac (is_chain_iterate RS is_chainE RS spec) 1);
+by (rtac (chain_iterate RS chainE RS spec) 1);
 val cont_Ifix2 = result();
 
 (* the proof in little steps *)
@@ -97,14 +97,14 @@ val fix_lemma2 = result();
 
 (*
 - cont_lubcfun;
-val it = "is_chain ?F ==> cont (%x. lub (range (%j. ?F j`x)))" : thm   
+val it = "chain ?F ==> cont (%x. lub (range (%j. ?F j`x)))" : thm   
 
 *)
 
 val prems = goal Fix.thy "cont Ifix";
 by (stac fix_lemma2 1);
 by (rtac cont_lubcfun 1);
-by (rtac is_chainI 1);
+by (rtac chainI 1);
 by (strip_tac 1);
 by (rtac less_cfun2 1);
 by (stac beta_cfun 1);
@@ -113,6 +113,6 @@ by (rtac cont_iterate 1);
 by (stac beta_cfun 1);
 by (rtac  cont2cont_CF1L 1);
 by (rtac cont_iterate 1);
-by (rtac (is_chain_iterate RS is_chainE RS spec) 1);
+by (rtac (chain_iterate RS chainE RS spec) 1);
 val cont_Ifix2 = result();
 

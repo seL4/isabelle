@@ -12,7 +12,7 @@ REMARK: The ordering on 'a => 'b is only defined if 'b is in class po !!
 
 Fun1 = Pcpo +
 
-instance flat<chfin (flat_imp_chain_finite)
+instance flat<chfin (flat_imp_chfin)
 
 (* to make << defineable: *)
 instance fun  :: (term,sq_ord)sq_ord

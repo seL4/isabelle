@@ -52,7 +52,7 @@ qed_goal "cont_fapp1" thy "cont(fapp)"
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_cfun_fun" thy 
-"is_chain(FY) ==>\
+"chain(FY) ==>\
 \ lub(range FY)`x = lub(range (%i. FY(i)`x))"
 (fn prems =>
         [
@@ -66,7 +66,7 @@ qed_goal "contlub_cfun_fun" thy
 
 
 qed_goal "cont_cfun_fun" thy 
-"is_chain(FY) ==>\
+"chain(FY) ==>\
 \ range(%i. FY(i)`x) <<| lub(range FY)`x"
 (fn prems =>
         [
@@ -82,7 +82,7 @@ qed_goal "cont_cfun_fun" thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_cfun" thy 
-"[|is_chain(FY);is_chain(TY)|] ==>\
+"[|chain(FY);chain(TY)|] ==>\
 \ (lub(range FY))`(lub(range TY)) = lub(range(%i. FY(i)`(TY i)))"
 (fn prems =>
         [
@@ -96,7 +96,7 @@ qed_goal "contlub_cfun" thy
         ]);
 
 qed_goal "cont_cfun" thy 
-"[|is_chain(FY);is_chain(TY)|] ==>\
+"[|chain(FY);chain(TY)|] ==>\
 \ range(%i.(FY i)`(TY i)) <<| (lub (range FY))`(lub(range TY))"
 (fn prems =>
         [
@@ -373,11 +373,11 @@ Addsimps [minimal,refl_less,beta_cfun,strict_fapp1,strictify1, strictify2];
 (*simpset_ref() := simpset() addsolver (K (DEPTH_SOLVE_1 o cont_tac));*)
 
 (* ------------------------------------------------------------------------ *)
-(* some lemmata for functions with flat/chain_finite domain/range types	    *)
+(* some lemmata for functions with flat/chfin domain/range types	    *)
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "chfin_fappR" thy 
-    "is_chain (Y::nat => 'a::cpo->'b::chfin)==> !s. ? n. lub(range(Y))`s = Y n`s" 
+    "chain (Y::nat => 'a::cpo->'b::chfin)==> !s. ? n. lub(range(Y))`s = Y n`s" 
 (fn prems => 
 	[
 	cut_facts_tac prems 1,
@@ -441,15 +441,15 @@ qed_goal "isoabs_defined" thy
 (* propagation of flatness and chainfiniteness by continuous isomorphisms   *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "chfin2chfin" thy "!!f g.[|! Y::nat=>'a. is_chain Y --> (? n. max_in_chain n Y); \
+qed_goal "chfin2chfin" thy "!!f g.[|! Y::nat=>'a. chain Y --> (? n. max_in_chain n Y); \
 \ !y. f`(g`y)=(y::'b) ; !x. g`(f`x)=(x::'a::chfin) |] \
-\ ==> ! Y::nat=>'b. is_chain Y --> (? n. max_in_chain n Y)"
+\ ==> ! Y::nat=>'b. chain Y --> (? n. max_in_chain n Y)"
  (fn prems =>
         [
         (rewtac max_in_chain_def),
         (strip_tac 1),
         (rtac exE 1),
-        (res_inst_tac [("P","is_chain(%i. g`(Y i))")] mp 1),
+        (res_inst_tac [("P","chain(%i. g`(Y i))")] mp 1),
         (etac spec 1),
         (etac ch2ch_fappR 1),
         (rtac exI 1),

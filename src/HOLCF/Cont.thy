@@ -27,10 +27,10 @@ defs
 
 monofun         "monofun(f) == ! x y. x << y --> f(x) << f(y)"
 
-contlub         "contlub(f) == ! Y. is_chain(Y) --> 
+contlub         "contlub(f) == ! Y. chain(Y) --> 
                                 f(lub(range(Y))) = lub(range(% i. f(Y(i))))"
 
-cont            "cont(f)   == ! Y. is_chain(Y) --> 
+cont            "cont(f)   == ! Y. chain(Y) --> 
                                 range(% i. f(Y(i))) <<| f(lub(range(Y)))"
 
 (* ------------------------------------------------------------------------ *)

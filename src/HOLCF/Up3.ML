@@ -230,7 +230,7 @@ qed_goalw "less_up4c" thy [up_def,fup_def]
         ]);
 
 qed_goalw "thelub_up2a" thy [up_def,fup_def] 
-"[| is_chain(Y); ? i x. Y(i) = up`x |] ==>\
+"[| chain(Y); ? i x. Y(i) = up`x |] ==>\
 \      lub(range(Y)) = up`(lub(range(%i. fup`(LAM x. x)`(Y i))))"
  (fn prems =>
         [
@@ -255,7 +255,7 @@ qed_goalw "thelub_up2a" thy [up_def,fup_def]
 
 
 qed_goalw "thelub_up2b" thy [up_def,fup_def] 
-"[| is_chain(Y); ! i x. Y(i) ~= up`x |] ==> lub(range(Y)) = UU"
+"[| chain(Y); ! i x. Y(i) ~= up`x |] ==> lub(range(Y)) = UU"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -289,7 +289,7 @@ qed_goal "up_lemma2" thy  " (? x. z = up`x) = (z~=UU)"
 
 
 qed_goal "thelub_up2a_rev" thy  
-"[| is_chain(Y); lub(range(Y)) = up`x |] ==> ? i x. Y(i) = up`x"
+"[| chain(Y); lub(range(Y)) = up`x |] ==> ? i x. Y(i) = up`x"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -303,7 +303,7 @@ qed_goal "thelub_up2a_rev" thy
         ]);
 
 qed_goal "thelub_up2b_rev" thy  
-"[| is_chain(Y); lub(range(Y)) = UU |] ==> ! i x.  Y(i) ~= up`x"
+"[| chain(Y); lub(range(Y)) = UU |] ==> ! i x.  Y(i) ~= up`x"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -316,7 +316,7 @@ qed_goal "thelub_up2b_rev" thy
 
 
 qed_goal "thelub_up3" thy  
-"is_chain(Y) ==> lub(range(Y)) = UU |\
+"chain(Y) ==> lub(range(Y)) = UU |\
 \                lub(range(Y)) = up`(lub(range(%i. fup`(LAM x. x)`(Y i))))"
  (fn prems =>
         [

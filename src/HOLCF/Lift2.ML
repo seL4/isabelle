@@ -56,7 +56,7 @@ qed"notUndef_I";
 (* Tailoring chain_mono2 of Pcpo.ML to Undef *)
 
 goal Lift2.thy
-"!!Y. [|? j.~Y(j)=Undef;is_chain(Y::nat=>('a)lift)|] \
+"!!Y. [|? j.~Y(j)=Undef;chain(Y::nat=>('a)lift)|] \
 \ ==> ? j.!i. j<i-->~Y(i)=Undef";
 by Safe_tac;
 by (Step_tac 1);
@@ -68,10 +68,10 @@ by (atac 1);
 qed"chain_mono2_po";
 
 
-(* Tailoring flat_imp_chain_finite of Fix.ML to lift *)
+(* Tailoring flat_imp_chfin of Fix.ML to lift *)
 
 goal Lift2.thy
-        "(! Y. is_chain(Y::nat=>('a)lift)-->(? n. max_in_chain n Y))";
+        "(! Y. chain(Y::nat=>('a)lift)-->(? n. max_in_chain n Y))";
 by (rewtac max_in_chain_def);  
 by (strip_tac 1);
 by (res_inst_tac [("P","!i. Y(i)=Undef")] case_split_thm  1);
@@ -104,14 +104,14 @@ by (atac 2);
 by (rtac mp 1); 
 by (etac spec 1); 
 by (Asm_simp_tac 1);
-qed"flat_imp_chain_finite_poo";
+qed"flat_imp_chfin_poo";
 
 
 (* Main Lemma: cpo_lift *)
 
 goal Lift2.thy  
-  "!!Y. is_chain(Y::nat=>('a)lift) ==> ? x. range(Y) <<|x";
-by (cut_inst_tac [] flat_imp_chain_finite_poo 1);
+  "!!Y. chain(Y::nat=>('a)lift) ==> ? x. range(Y) <<|x";
+by (cut_inst_tac [] flat_imp_chfin_poo 1);
 by (Step_tac 1);
 by Safe_tac;
 by (Step_tac 1); 
