@@ -155,8 +155,8 @@ local
 
   fun int_tr (*"_Int"*) [t as Free (str, _)] =
         (const "integ_of_bin" $
-          (mk_bin str handle ERROR => raise_term "int_tr" [t]))
-    | int_tr (*"_Int"*) ts = raise_term "int_tr" ts;
+          (mk_bin str handle ERROR => raise TERM ("int_tr", [t])))
+    | int_tr (*"_Int"*) ts = raise TERM ("int_tr", ts);
 
   fun int_tr' (*"integ_of"*) [t] = const "_Int" $ free (dest_bin t)
     | int_tr' (*"integ_of"*) _ = raise Match;

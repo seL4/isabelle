@@ -58,7 +58,7 @@ local
   fun char_tr (*"_Char"*) [Free (c, _)] =
         if size c = 1 then mk_char c
         else error ("Bad character: " ^ quote c)
-    | char_tr (*"_Char"*) ts = raise_term "char_tr" ts;
+    | char_tr (*"_Char"*) ts = raise TERM ("char_tr", ts);
 
   fun char_tr' (*"Char"*) [t1, t2] =
         const "_Char" $ free (ssquote (dest_nibs t1 t2))
@@ -77,7 +77,7 @@ local
 
   fun string_tr (*"_String"*) [Free (txt, _)] =
         mk_string (map mk_char (explode txt))
-    | string_tr (*"_String"*) ts = raise_term "string_tr" ts;
+    | string_tr (*"_String"*) ts = raise TERM ("string_tr", ts);
 
   fun cons_tr' (*"op #"*) [c, cs] =
         const "_String" $ free (ssquote (implode (dest_char c :: dest_string cs)))
