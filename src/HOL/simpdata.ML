@@ -328,7 +328,7 @@ qed_goal "if_distrib" HOL.thy
 bind_thm ("o_apply", o_apply);
 
 qed_goalw "o_assoc" HOL.thy [o_def] "f o (g o h) = f o g o h"
-  (fn _=>[rtac ext 1, rtac refl 1]);
+  (fn _ => [rtac ext 1, rtac refl 1]);
 
 
 
