@@ -214,6 +214,12 @@ by (cut_facts_tac [linorder_linear] 1);
 by (blast_tac (claset() addIs [order_trans]) 1);
 qed "min_le_iff_disj";
 
+Goalw [min_def] "!!z::'a::linorder. (min x y < z) = (x < z | y < z)";
+by (simp_tac (simpset() addsimps [order_le_less]) 1);
+by (cut_facts_tac [linorder_less_linear] 1);
+by (blast_tac (claset() addIs [order_less_trans]) 1);
+qed "min_less_iff_disj";
+
 Goalw [min_def]
  "P(min (i::'a::linorder) j) = ((i <= j --> P(i)) & (~ i <= j --> P(j)))";
 by (Simp_tac 1);
