@@ -12,10 +12,6 @@ A rule is unsafe unless it can be applied blindly without harmful results.
 For a rule to be safe, its premises and conclusion should be logically
 equivalent.  There should be no variables in the premises that are not in
 the conclusion.
-
-TODO:
-  - only BASIC_CLASSICAL made pervasive;
-  - fix global claset data;
 *)
 
 (*higher precedence than := facilitates use of references*)
