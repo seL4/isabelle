@@ -9,5 +9,9 @@ Root file for ZF/UNITY proofs.
 (*Basic meta-theory*)
 time_use_thy "Guar";
 
+(* Prefix relation; part of the Allocator example *)
+time_use_thy "GenPrefix";
+
 (*Simple examples: no composition*)
 time_use_thy"Mutex";
+
