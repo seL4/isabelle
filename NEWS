@@ -24,6 +24,11 @@ New in this Isabelle release
   a normal (but invisible) letter. For multiple letter subscripts repeat 
   \<^isub> like this: x\<^isub>1\<^isub>2. 
 
+* Pure: There are now sub-/superscripts that can span more than one
+  character. Text between \<^bsub> and \<^esub> is set in subscript in
+  PG and LaTeX, text between \<^bsup> and \<^esup> in superscript. The
+  new control characters are not identifier parts.
+
 * Pure: Using new Isar command "finalconsts" (or the ML functions
   Theory.add_finals or Theory.add_finals_i) it is now possible to
   declare constants "final", which prevents their being given a definition
