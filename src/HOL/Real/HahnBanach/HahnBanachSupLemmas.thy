@@ -32,7 +32,7 @@ proof -;
   assume m: "M = norm_pres_extensions E p F f" and cM: "c: chain M"
      and u: "graph H h = Union c" "x:H";
 
-  let ?P = "\<lambda>H h. is_linearform H h
+  let ?P = "\\<lambda>H h. is_linearform H h
                 & is_subspace H E
                 & is_subspace F H
                 & graph F f <= graph H h
@@ -273,7 +273,7 @@ proof -;
   assume "M = norm_pres_extensions E p F f" "c: chain M" 
          "graph H h = Union c";
  
-  let ?P = "\<lambda>H h. is_linearform H h 
+  let ?P = "\\<lambda>H h. is_linearform H h 
                 & is_subspace H E 
                 & is_subspace F H
                 & graph F f <= graph H h
@@ -677,8 +677,8 @@ proof -;
 	from h; have "- h x = h (- x)"; 
           by (rule linearform_neg [RS sym]);
 	also; from r; have "... <= p (- x)"; by (simp!);
-	also; have "... = p x"; 
-          by (rule seminorm_minus, rule subspace_subsetD);
+	also; have "... = p x";
+          by (rule seminorm_minus [OF _ subspace_subsetD]);
 	finally; show "- h x <= p x"; .; 
       qed;
       from r; show "h x <= p x"; ..; 

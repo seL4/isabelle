@@ -274,8 +274,8 @@ proof (unfold mutilated_board_def);
       have "card (?e ?t' 0 - {(2 * m + 1, 2 * n + 1)})
         < card (?e ?t' 0)";
       proof (rule card_Diff1_less);
-	show "finite (?e ?t' 0)";
-          by (rule finite_subset, rule fin) force;
+	from _ fin; show "finite (?e ?t' 0)";
+          by (rule finite_subset) force;
 	show "(2 * m + 1, 2 * n + 1) : ?e ?t' 0"; by simp;
       qed;
       thus ?thesis; by simp;

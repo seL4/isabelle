@@ -72,14 +72,14 @@ txt {* Show that every non-empty chain $c$ in $M$ has an upper bound in $M$: $\U
         qed;
         show "is_linearform ?H ?h"; 
           by (simp! add: sup_lf a);
-        show "is_subspace ?H E"; 
-          by (rule sup_subE, rule a) (simp!)+;
+        show "is_subspace ?H E";
+          by (rule sup_subE [OF _ _ _ a]) (simp!)+;
         show "is_subspace F ?H"; 
-          by (rule sup_supF, rule a) (simp!)+;
+          by (rule sup_supF [OF _ _ _ a]) (simp!)+;
         show "graph F f <= graph ?H ?h"; 
-          by (rule sup_ext, rule a) (simp!)+;
+          by (rule sup_ext [OF _ _ _ a]) (simp!)+;
         show "ALL x::'a:?H. ?h x <= p x"; 
-          by (rule sup_norm_pres, rule a) (simp!)+;
+          by (rule sup_norm_pres [OF _ _ a]) (simp!)+;
       qed;
     qed;
   }};
@@ -190,7 +190,7 @@ txt {* Define $H_0$ as the direct sum of $H$ and the linear closure of $x_0$.  *
 
 txt {* Define the extension $h_0$ of $h$ to $H_0$ using $\xi$.  *};
 
-            def h0 == "\<lambda>x. let (y,a) = SOME (y, a). x = y + a <*> x0 
+            def h0 == "\\<lambda>x. let (y,a) = SOME (y, a). x = y + a <*> x0 
                                                   & y:H
                            in (h y) + a * xi";
             show ?thesis;
@@ -205,9 +205,9 @@ txt {* Show that $h_0$ is an extension of $h$  *};
 		  have  "graph H h <= graph H0 h0";
                   proof (rule graph_extI);
 		    fix t; assume "t:H"; 
-		    have "(SOME (y, a). t = y + a <*> x0 & y : H) 
+		    have "(SOME (y, a). t = y + a <*> x0 & y : H)
                          = (t,0r)";
-		      by (rule decomp_H0_H, rule x0); 
+		      by (rule decomp_H0_H [OF _ _ _ _ _ x0]);
 		    thus "h t = h0 t"; by (simp! add: Let_def);
 		  next;
 		    show "H <= H0";
@@ -248,10 +248,9 @@ txt {* and $h_0$ is norm-preserving.  *};
 		have "graph H0 h0 : norm_pres_extensions E p F f";
 		proof (rule norm_pres_extensionI2);
 		  show "is_linearform H0 h0";
-		    by (rule h0_lf, rule x0) (simp!)+;
+		    by (rule h0_lf [OF _ _ _ _ _ _ x0]) (simp!)+;
 		  show "is_subspace H0 E";
-		    by (unfold H0_def, rule vs_sum_subspace, 
-                        rule lin_subspace);
+		    by (unfold H0_def) (rule vs_sum_subspace [OF _ lin_subspace]);
 		  have "is_subspace F H"; .;
 		  also; from h lin_vs; 
 		  have [fold H0_def]: "is_subspace H (H + lin x0)"; ..;
@@ -267,7 +266,7 @@ txt {* and $h_0$ is norm-preserving.  *};
 		      by (simp add: Let_def);
 		    also; have 
 		      "(x, 0r) = (SOME (y, a). x = y + a <*> x0 & y : H)";
-		      by (rule decomp_H0_H [RS sym], rule x0) (simp!)+;
+		      by (rule decomp_H0_H [RS sym, OF _ _ _ _ _ x0]) (simp!)+;
 		    also; have 
 		      "(let (y,a) = (SOME (y,a). x = y + a <*> x0 & y : H)
                         in h y + a * xi) 
@@ -278,7 +277,7 @@ txt {* and $h_0$ is norm-preserving.  *};
 		  qed;
 		
 		  show "ALL x:H0. h0 x <= p x";
-		    by (rule h0_norm_pres, rule x0);
+		    by (rule h0_norm_pres [OF _ _ _ _ x0]);
 		qed;
 		thus "graph H0 h0 : M"; by (simp!);
 	      qed;
@@ -472,7 +471,7 @@ txt {* Assume that the domain of the supremum is not $E$, *};
       of $h$ on $H_0$:*};  
 
       def h0 ==
-          "\<lambda>x. let (y,a) = SOME (y, a). x = y + a <*> x0 & y:H
+          "\\<lambda>x. let (y,a) = SOME (y, a). x = y + a <*> x0 & y:H
                in (h y) + a * xi";
 
       txt {* We get that the graph of $h_0$ extends that of
@@ -655,7 +654,7 @@ proof -;
   \end{matharray}
   *};
 
-  def p == "\<lambda>x. function_norm F norm f * norm x";
+  def p == "\\<lambda>x. function_norm F norm f * norm x";
   
   txt{* $p$ is a seminorm on $E$: *};
 
