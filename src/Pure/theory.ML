@@ -249,8 +249,7 @@ fun cert_axm sg (name, raw_tm) =
     Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
     assert (T = propT) "Term not of type prop";
     (name, no_vars t)
-  end
-  handle ERROR => err_in_axm name;
+  end;
 
 (*some duplication of code with read_def_cterm*)
 fun read_def_axm (sg, types, sorts) used (name, str) =
