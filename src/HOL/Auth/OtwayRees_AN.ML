@@ -34,6 +34,7 @@ result();
 
 (**** Inductive proofs about otway ****)
 
+(*Monotonicity*)
 goal thy "!!evs. lost' <= lost ==> otway lost' <= otway lost";
 by (rtac subsetI 1);
 by (etac otway.induct 1);
@@ -188,18 +189,6 @@ by (fast_tac (!claset addDs [lemma]) 1);
 qed "new_nonces_not_seen";
 Addsimps [new_nonces_not_seen];
 
-(*Another variant: old messages must contain old nonces!*)
-goal thy 
- "!!evs. [| Says A B X : set_of_list evs;  \
-\           Nonce (newN evt) : parts {X};    \
-\           evs : otway lost                 \
-\        |] ==> length evt < length evs";
-by (rtac ccontr 1);
-by (dtac leI 1);
-by (fast_tac (!claset addSDs [new_nonces_not_seen, Says_imp_sees_Spy]
-                      addIs  [impOfSubs parts_mono]) 1);
-qed "Says_imp_old_nonces";
-
 
 (*Nobody can have USED keys that will be generated in the future.
   ...very like new_keys_not_seen*)
@@ -210,19 +199,13 @@ by (parts_induct_tac 1);
 (*OR1 and OR3*)
 by (EVERY (map (fast_tac (!claset addDs [Suc_leD] addss (!simpset))) [4,2]));
 (*Fake, OR2, OR4: these messages send unknown (X) components*)
-by (EVERY 
-    (map
-     (best_tac
+by (REPEAT
+    (best_tac
       (!claset addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
                       impOfSubs (parts_insert_subset_Un RS keysFor_mono),
                       Suc_leD]
                addEs [new_keys_not_seen RS not_parts_not_analz RSN(2,rev_notE)]
-               addss (!simpset)))
-     [3,2,1]));
-(*Reveal: dummy message*)
-by (best_tac (!claset addEs  [new_keys_not_seen RSN(2,rev_notE)]
-                      addIs  [less_SucI, impOfSubs keysFor_mono]
-                      addss (!simpset addsimps [le_def])) 1);
+               addss (!simpset)) 1));
 val lemma = result();
 
 goal thy 
@@ -287,25 +270,6 @@ val analz_Fake_tac =
 ****)
 
 
-(*NOT useful in this form, but it says that session keys are not used
-  to encrypt messages containing other keys, in the actual protocol.
-  We require that agents should behave like this subsequently also.*)
-goal thy 
- "!!evs. evs : otway lost ==> \
-\        (Crypt X (newK evt)) : parts (sees lost Spy evs) & \
-\        Key K : parts {X} --> Key K : parts (sees lost Spy evs)";
-by (etac otway.induct 1);
-by parts_Fake_tac;
-by (ALLGOALS Asm_simp_tac);
-(*Deals with Faked messages*)
-by (best_tac (!claset addSEs partsEs
-                      addDs [impOfSubs parts_insert_subset_Un]
-                      addss (!simpset)) 2);
-(*Base case and Reveal*)
-by (Auto_tac());
-result();
-
-
 (** Session keys are not used to encrypt other session keys **)
 
 (*The equality makes the induction hypothesis easier to apply*)
@@ -323,7 +287,7 @@ by (ALLGOALS (*Takes 28 secs*)
                          @ pushes)
                setloop split_tac [expand_if])));
 (** LEVEL 5 **)
-(*Reveal case 2, OR4, OR2, Fake*) 
+(*Reveal case 2, OR4, Fake*) 
 by (EVERY (map spy_analz_tac [6, 4, 2]));
 (*Reveal case 1, OR3, Base*)
 by (REPEAT (fast_tac (!claset addIs [image_eqI] addss (!simpset)) 1));
@@ -407,7 +371,8 @@ qed_spec_mp "NA_Crypt_imp_Server_msg";
 (*Corollary: if A receives B's OR4 message and the nonce NA agrees
   then the key really did come from the Server!  CANNOT prove this of the
   bad form of this protocol, even though we can prove
-  Spy_not_see_encrypted_key*)
+  Spy_not_see_encrypted_key.  (We can implicitly infer freshness of
+  the Server's message from its nonce NA.)*)
 goal thy 
  "!!evs. [| Says B' A (Crypt {|NA, Agent A, Agent B, Key K|} (shrK A))  \
 \            : set_of_list evs;                                         \
@@ -465,10 +430,10 @@ by (fast_tac (!claset addSIs [parts_insertI]
 (*Reveal case 2, OR4, Fake*) 
 by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
 (*Reveal case 1*) (** LEVEL 6 **)
-by (excluded_middle_tac "Aa : lost" 1);
+by (case_tac "Aa : lost" 1);
 (*But this contradicts Key K ~: analz (sees lost Spy evsa) *)
-by (dtac (Says_imp_sees_Spy RS analz.Inj) 2);
-by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 2);
+by (dtac (Says_imp_sees_Spy RS analz.Inj) 1);
+by (fast_tac (!claset addSDs [analz.Decrypt] addss (!simpset)) 1);
 (*So now we have  Aa ~: lost *)
 by (dtac A_trust_OR4 1);
 by (REPEAT (assume_tac 1));
@@ -476,8 +441,8 @@ by (fast_tac (!claset addDs [unique_session_keys] addss (!simpset)) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 goal thy 
- "!!evs. [| Says Server B \
-\           {|Crypt {|NA, Agent A, Agent B, K|} (shrK A),                    \
+ "!!evs. [| Says Server B                                                     \
+\           {|Crypt {|NA, Agent A, Agent B, K|} (shrK A),                     \
 \             Crypt {|NB, Agent A, Agent B, K|} (shrK B)|} : set_of_list evs; \
 \           Says A Spy {|NA, K|} ~: set_of_list evs;                     \
 \           A ~: lost;  B ~: lost;  evs : otway lost |]                  \
@@ -488,9 +453,9 @@ qed "Spy_not_see_encrypted_key";
 
 
 goal thy 
- "!!evs. [| C ~: {A,B,Server};                                           \
-\           Says Server B \
-\           {|Crypt {|NA, Agent A, Agent B, K|} (shrK A),                    \
+ "!!evs. [| C ~: {A,B,Server};                                                \
+\           Says Server B                                                     \
+\           {|Crypt {|NA, Agent A, Agent B, K|} (shrK A),                     \
 \             Crypt {|NB, Agent A, Agent B, K|} (shrK B)|} : set_of_list evs; \
 \           Says A Spy {|NA, K|} ~: set_of_list evs;                     \
 \           A ~: lost;  B ~: lost;  evs : otway lost |]                  \
@@ -506,9 +471,9 @@ qed "Agent_not_see_encrypted_key";
 
 (*If the encrypted message appears then it originated with the Server!*)
 goal thy 
- "!!evs. [| B ~: lost;  evs : otway lost |]                   \
-\    ==> Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)       \
-\         : parts (sees lost Spy evs)                         \
+ "!!evs. [| B ~: lost;  evs : otway lost |]                                 \
+\    ==> Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)                     \
+\         : parts (sees lost Spy evs)                                       \
 \        --> (EX NA. Says Server B                                          \
 \                     {|Crypt {|NA, Agent A, Agent B, Key K|} (shrK A),     \
 \                       Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|}    \
@@ -523,10 +488,10 @@ qed_spec_mp "NB_Crypt_imp_Server_msg";
 (*Guarantee for B: if it gets a message with matching NB then the Server
   has sent the correct message.*)
 goal thy 
- "!!evs. [| B ~: lost;  evs : otway lost;               \
-\           Says S B {|X, Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|} \
-\            : set_of_list evs |]                                  \
-\        ==> EX NA. Says Server B                                          \
+ "!!evs. [| B ~: lost;  evs : otway lost;                                   \
+\           Says S B {|X, Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|}  \
+\            : set_of_list evs |]                                           \
+\        ==> EX NA. Says Server B                                           \
 \                     {|Crypt {|NA, Agent A, Agent B, Key K|} (shrK A),     \
 \                       Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|}    \
 \                     : set_of_list evs";
