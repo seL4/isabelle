@@ -8,10 +8,7 @@ structure Thry : Thry_sig (* LThry_sig *) =
 struct
 
 structure USyntax  = USyntax;
-
-open Mask;
 structure S = USyntax;
-
 
 fun THRY_ERR{func,mesg} = Utils.ERR{module = "Thry",func=func,mesg=mesg};
 
@@ -19,10 +16,8 @@ fun THRY_ERR{func,mesg} = Utils.ERR{module = "Thry",func=func,mesg=mesg};
  *    Matching 
  *---------------------------------------------------------------------------*)
 
-local open Utils
-      infix 3 |->
-      fun tybind (x,y) = TVar (x,["term"])  |-> y
-      fun tmbind (x,y) = Var  (x,type_of y) |-> y
+local fun tybind (x,y) = (TVar (x,["term"]) , y)
+      fun tmbind (x,y) = (Var  (x,type_of y), y)
 in
  fun match_term thry pat ob = 
     let val tsig = #tsig(Sign.rep_sg(sign_of thry))

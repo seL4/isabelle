@@ -10,8 +10,6 @@ structure FastRules : Rules_sig =
 struct
 
 open Utils;
-open Mask;
-infix 7 |->;
 
 structure USyntax  = USyntax;
 structure S  = USyntax;
@@ -53,7 +51,7 @@ fun ALPHA thm ctm1 =
  *---------------------------------------------------------------------------*)
 fun INST_TYPE blist thm = 
   let val {sign,...} = rep_thm thm
-      val blist' = map (fn (TVar(idx,_) |-> B) => (idx, ctyp_of sign B)) blist
+      val blist' = map (fn (TVar(idx,_), B) => (idx, ctyp_of sign B)) blist
   in Thm.instantiate (blist',[]) thm
   end
   handle _ => raise RULES_ERR{func = "INST_TYPE", mesg = ""};
@@ -368,18 +366,19 @@ fun EXISTL vlist th =
  *       A |- ?y_1...y_n. M
  *
  *---------------------------------------------------------------------------*)
-(* Could be improved, but needs "subst" for certified terms *)
+(* Could be improved, but needs "subst_free" for certified terms *)
 
 fun IT_EXISTS blist th = 
    let val {sign,...} = rep_thm th
        val tych = cterm_of sign
        val detype = #t o rep_cterm
-       val blist' = map (fn (x|->y) => (detype x |-> detype y)) blist
+       val blist' = map (fn (x,y) => (detype x, detype y)) blist
        fun ?v M  = cterm_of sign (S.mk_exists{Bvar=v,Body = M})
        
   in
-  U.itlist (fn (b as (r1 |-> r2)) => fn thm => 
-        EXISTS(?r2(S.subst[b] (HOLogic.dest_Trueprop(#prop(rep_thm thm)))), tych r1)
+  U.itlist (fn (b as (r1,r2)) => fn thm => 
+        EXISTS(?r2(subst_free[b] 
+		   (HOLogic.dest_Trueprop(#prop(rep_thm thm)))), tych r1)
               thm)
        blist' th
   end;
@@ -389,10 +388,10 @@ fun IT_EXISTS blist th =
  * fun IT_EXISTS blist th = 
  *    let val {sign,...} = rep_thm th
  *        val tych = cterm_of sign
- *        fun detype (x |-> y) = ((#t o rep_cterm) x |-> (#t o rep_cterm) y)
+ *        fun detype (x,y) = ((#t o rep_cterm) x, (#t o rep_cterm) y)
  *   in
- *  fold (fn (b as (r1|->r2), thm) => 
- *  EXISTS(D.mk_exists(r2, tych(S.subst[detype b](#t(rep_cterm(cconcl thm))))),
+ *  fold (fn (b as (r1,r2), thm) => 
+ *  EXISTS(D.mk_exists(r2, tych(subst_free[detype b](#t(rep_cterm(cconcl thm))))),
  *           r1) thm)  blist th
  *   end;
  *---------------------------------------------------------------------------*)
@@ -692,9 +691,8 @@ fun CONTEXT_REWRITE_RULE(func,R){thms=[cut_lemma],congs,th} =
                                       (ListPair.zip (vlist, args)))
                                "assertion failed in CONTEXT_REWRITE_RULE"
 (*                val fbvs1 = variants (S.free_vars imp) fbvs *)
-                  val imp_body1 = S.subst (map (op|->) 
-                                           (ListPair.zip (args, vstrl)))
-                                          imp_body
+                  val imp_body1 = subst_free (ListPair.zip (args, vstrl))
+                                             imp_body
                   val tych = cterm_of sign
                   val ants1 = map tych (Logic.strip_imp_prems imp_body1)
                   val eq1 = Logic.strip_imp_concl imp_body1

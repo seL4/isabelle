@@ -6,13 +6,11 @@
 
 signature Thry_sig =
 sig
-  type 'a binding
-
   structure USyntax : USyntax_sig
   val match_term : theory -> term -> term 
-                    -> term binding list * typ binding list
+                    -> (term*term)list * (typ*typ)list
 
-  val match_type : theory -> typ -> typ -> typ binding list
+  val match_type : theory -> typ -> typ -> (typ*typ)list
 
   val typecheck : theory -> term -> cterm
 

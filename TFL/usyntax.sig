@@ -10,8 +10,6 @@ signature USyntax_sig =
 sig
   structure Utils : Utils_sig
 
-  type 'a binding
-
   datatype lambda = VAR   of {Name : string, Ty : typ}
                   | CONST of {Name : string, Ty : typ}
                   | COMB  of {Rator: term, Rand : term}
@@ -28,7 +26,6 @@ sig
   val -->        : typ * typ -> typ
   val strip_type : typ -> typ list * typ
   val strip_prod_type : typ -> typ list
-  val match_type: typ -> typ -> typ binding list
 
   (* Terms *)
   val free_vars  : term -> term list
@@ -42,8 +39,7 @@ sig
   
   (* Prelogic *)
   val aconv     : term -> term -> bool
-  val subst     : term binding list -> term -> term
-  val inst      : typ binding list -> term -> term
+  val inst      : (typ*typ) list -> term -> term
   val beta_conv : term -> term
 
   (* Construction routines *)

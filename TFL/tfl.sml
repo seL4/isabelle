@@ -8,9 +8,7 @@ Main TFL functor
 
 functor TFL(structure Rules : Rules_sig
             structure Thry  : Thry_sig
-            structure Thms  : Thms_sig
-            sharing type Rules.binding = Thry.binding = 
-                         Thry.USyntax.binding = Mask.binding) : TFL_sig  =
+            structure Thms  : Thms_sig) : TFL_sig  =
 struct
 
 (* Declarations *)
@@ -25,14 +23,10 @@ structure R = Rules;
 structure S = USyntax;
 structure U = S.Utils;
 
-(* Declares 'a binding datatype *)
-open Mask;
-
-nonfix mem --> |->;
+nonfix mem -->;
 val --> = S.-->;
 
 infixr 3 -->;
-infixr 7 |->;
 
 val concl = #2 o R.dest_thm;
 val hyp = #1 o R.dest_thm;
@@ -118,8 +112,8 @@ fun ipartition gv (constructors,rows) =
 datatype pattern = GIVEN   of term * int
                  | OMITTED of term * int
 
-fun psubst theta (GIVEN (tm,i)) = GIVEN(S.subst theta tm, i)
-  | psubst theta (OMITTED (tm,i)) = OMITTED(S.subst theta tm, i);
+fun psubst theta (GIVEN (tm,i)) = GIVEN(subst_free theta tm, i)
+  | psubst theta (OMITTED (tm,i)) = OMITTED(subst_free theta tm, i);
 
 fun dest_pattern (GIVEN (tm,i)) = ((GIVEN,i),tm)
   | dest_pattern (OMITTED (tm,i)) = ((OMITTED,i),tm);
@@ -217,7 +211,7 @@ fun mk_case ty_info ty_match FV range_ty =
        then let val fresh = fresh_constr ty_match ty fresh_var
                 fun expnd (c,gvs) = 
                   let val capp = list_comb(c,gvs)
-                  in ((prefix, capp::rst), psubst[p |-> capp] rhs)
+                  in ((prefix, capp::rst), psubst[(p,capp)] rhs)
                   end
             in map expnd (map fresh constructors)  end
        else [row]
@@ -235,7 +229,7 @@ fun mk_case ty_info ty_match FV range_ty =
          val col0 = map(hd o #2) pat_rectangle
      in 
      if (forall is_Free col0) 
-     then let val rights' = map (fn(v,e) => psubst[v|->u] e)
+     then let val rights' = map (fn(v,e) => psubst[(v,u)] e)
                                 (ListPair.zip (col0, rights))
               val pat_rectangle' = map v_to_prefix pat_rectangle
               val (pref_patl,tm) = mk{path = rstp,
@@ -330,7 +324,7 @@ fun mk_functional thy eqs =
              of [] => ()
           | L => mk_functional_err("The following rows (counting from zero)\
                                    \ are inaccessible: "^stringize L)
-     val case_tm' = S.subst [f |-> fvar] case_tm
+     val case_tm' = subst_free [(f,fvar)] case_tm
  in {functional = S.list_mk_abs ([fvar,a], case_tm'),
      pats = patts2}
 end end;
@@ -497,7 +491,7 @@ fun lazyR_def thy eqns =
      val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
      val R'abs = S.rand R'
      val (def,theory) = Thry.make_definition thy (Name ^ "_def") 
-                                                 (S.subst[R1 |-> R'] proto_def)
+                                               (subst_free[(R1,R')] proto_def)
      val fconst = #lhs(S.dest_eq(concl def)) 
      val tych = Thry.typecheck theory
      val baz = R.DISCH (tych proto_def)
@@ -571,7 +565,7 @@ fun mk_case ty_info FV thy =
  let 
  val divide = ipartition (gvvariant FV)
  val tych = Thry.typecheck thy
- fun tych_binding(x|->y) = (tych x |-> tych y)
+ fun tych_binding(x,y) = (tych x, tych y)
  fun fail s = raise TFL_ERR{func = "mk_case", mesg = s}
  fun mk{rows=[],...} = fail"no rows"
    | mk{path=[], rows = [([], (thm, bindings))]} = 
@@ -582,7 +576,7 @@ fun mk_case ty_info FV thy =
          val pat_rectangle' = map tl pat_rectangle
      in 
      if (forall is_Free col0) (* column 0 is all variables *)
-     then let val rights' = map (fn ((thm,theta),v) => (thm,theta@[u|->v]))
+     then let val rights' = map (fn ((thm,theta),v) => (thm,theta@[(u,v)]))
                                 (ListPair.zip (rights, col0))
           in mk{path = rstp, rows = ListPair.zip (pat_rectangle', rights')}
           end

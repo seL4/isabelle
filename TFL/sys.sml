@@ -1,4 +1,4 @@
-(*  Title:      TFL/mask
+(*  Title:      TFL/sys
     ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
@@ -8,8 +8,6 @@ Compile the TFL system
 
 (* Portability stuff *)
 nonfix prefix;
-use"mask.sig";
-use"mask.sml";
 
 (* Establish a base of common and/or helpful functions. *)
 use "utils.sig";

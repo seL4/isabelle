@@ -9,8 +9,6 @@ Emulation of HOL inference rules for TFL
 signature Rules_sig =
 sig
 (*  structure USyntax : USyntax_sig *)
-  type 'a binding
-
   val dest_thm : thm -> term list * term
 
   (* Inference rules *)
@@ -23,7 +21,7 @@ sig
   val CONJUNCTS :thm -> thm list
   val DISCH     :cterm -> thm -> thm
   val UNDISCH   :thm  -> thm
-  val INST_TYPE :typ binding list -> thm -> thm
+  val INST_TYPE :(typ*typ)list -> thm -> thm
   val SPEC      :cterm -> thm -> thm
   val ISPEC     :cterm -> thm -> thm
   val ISPECL    :cterm list -> thm -> thm
@@ -42,7 +40,7 @@ sig
   val CHOOSE : cterm * thm -> thm -> thm
   val EXISTS : cterm * cterm -> thm -> thm
   val EXISTL : cterm list -> thm -> thm
-  val IT_EXISTS : cterm binding list -> thm -> thm
+  val IT_EXISTS : (cterm*cterm) list -> thm -> thm
 
   val EVEN_ORS : thm list -> thm list
   val DISJ_CASESL : thm -> thm list -> thm

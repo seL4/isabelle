@@ -11,12 +11,10 @@ struct
 
 structure Utils = Utils;
 open Utils;
-open Mask;
 
-infix 7 |->;
 infix 4 ##;
 
-fun ERR{func,mesg} = Utils.ERR{module = "USyntax", func = func, mesg = mesg};
+fun USYN_ERR{func,mesg} = Utils.ERR{module = "USyntax", func = func, mesg = mesg};
 
 
 (*---------------------------------------------------------------------------
@@ -29,7 +27,7 @@ fun mk_vartype s = mk_prim_vartype((s,0),["term"]);
 
 (* But internally, it's useful *)
 fun dest_vtype (TVar x) = x
-  | dest_vtype _ = raise ERR{func = "dest_vtype", 
+  | dest_vtype _ = raise USYN_ERR{func = "dest_vtype", 
                              mesg = "not a flexible type variable"};
 
 val is_vartype = Utils.can dest_vtype;
@@ -41,7 +39,6 @@ fun type_varsl L = Utils.mk_set (curry op=)
 val alpha  = mk_vartype "'a"
 val beta   = mk_vartype "'b"
 
-fun match_type ty1 ty2 = raise ERR{func="match_type",mesg="not implemented"};
 
 
 (* What nonsense *)
@@ -102,13 +99,11 @@ fun all_varsl L = Utils.mk_set aconv
 
 
 (* Prelogic *)
-val subst = subst_free o map (fn (a |-> b) => (a,b));
-
-fun dest_tybinding (v |-> ty) = (#1(dest_vtype v),ty)
+fun dest_tybinding (v,ty) = (#1(dest_vtype v),ty)
 fun inst theta = subst_vars (map dest_tybinding theta,[])
 
 fun beta_conv((t1 as Abs _ ) $ t2) = betapply(t1,t2)
-  | beta_conv _ = raise ERR{func = "beta_conv", mesg = "Not a beta-redex"};
+  | beta_conv _ = raise USYN_ERR{func = "beta_conv", mesg = "Not a beta-redex"};
 
 
 (* Construction routines *)
@@ -119,7 +114,7 @@ val string_variant = variant;
 
 local fun var_name(Var((Name,_),_)) = Name
         | var_name(Free(s,_)) = s
-        | var_name _ = raise ERR{func = "variant",
+        | var_name _ = raise USYN_ERR{func = "variant",
                                  mesg = "list elem. is not a variable"}
 in
 fun variant [] v = v
@@ -127,7 +122,7 @@ fun variant [] v = v
        Var((string_variant (map var_name vlist) Name,i),ty)
   | variant vlist (Free(Name,ty)) =
        Free(string_variant (map var_name vlist) Name,ty)
-  | variant _ _ = raise ERR{func = "variant",
+  | variant _ _ = raise USYN_ERR{func = "variant",
                             mesg = "2nd arg. should be a variable"}
 end;
 
@@ -136,7 +131,7 @@ fun mk_comb{Rator,Rand} = Rator $ Rand;
 
 fun mk_abs{Bvar as Var((s,_),ty),Body}  = Abs(s,ty,abstract_over(Bvar,Body))
   | mk_abs{Bvar as Free(s,ty),Body}  = Abs(s,ty,abstract_over(Bvar,Body))
-  | mk_abs _ = raise ERR{func = "mk_abs", mesg = "Bvar is not a variable"};
+  | mk_abs _ = raise USYN_ERR{func = "mk_abs", mesg = "Bvar is not a variable"};
 
 
 fun mk_imp{ant,conseq} = 
@@ -179,7 +174,7 @@ local
 fun mk_uncurry(xt,yt,zt) =
     mk_const{Name = "split", Ty = (xt --> yt --> zt) --> prod_ty xt yt --> zt}
 fun dest_pair(Const("Pair",_) $ M $ N) = {fst=M, snd=N}
-  | dest_pair _ = raise ERR{func = "dest_pair", mesg = "not a pair"}
+  | dest_pair _ = raise USYN_ERR{func = "dest_pair", mesg = "not a pair"}
 fun is_var(Var(_)) = true | is_var (Free _) = true | is_var _ = false
 in
 fun mk_pabs{varstruct,body} = 
@@ -192,7 +187,7 @@ fun mk_pabs{varstruct,body} =
             end
  in mpa(varstruct,body)
  end
- handle _ => raise ERR{func = "mk_pabs", mesg = ""};
+ handle _ => raise USYN_ERR{func = "mk_pabs", mesg = ""};
 end;
 
 (* Destruction routines *)
@@ -210,43 +205,43 @@ fun dest_term(Var((s,i),ty)) = VAR{Name = s, Ty = ty}
   | dest_term(Abs(s,ty,M))   = let  val v = mk_var{Name = s, Ty = ty}
                                in LAMB{Bvar = v, Body = betapply (M,v)}
                                end
-  | dest_term(Bound _)       = raise ERR{func = "dest_term",mesg = "Bound"};
+  | dest_term(Bound _)       = raise USYN_ERR{func = "dest_term",mesg = "Bound"};
 
 fun dest_const(Const(s,ty)) = {Name = s, Ty = ty}
-  | dest_const _ = raise ERR{func = "dest_const", mesg = "not a constant"};
+  | dest_const _ = raise USYN_ERR{func = "dest_const", mesg = "not a constant"};
 
 fun dest_comb(t1 $ t2) = {Rator = t1, Rand = t2}
-  | dest_comb _ =  raise ERR{func = "dest_comb", mesg = "not a comb"};
+  | dest_comb _ =  raise USYN_ERR{func = "dest_comb", mesg = "not a comb"};
 
 fun dest_abs(a as Abs(s,ty,M)) = 
      let val v = mk_var{Name = s, Ty = ty}
      in {Bvar = v, Body = betapply (a,v)}
      end
-  | dest_abs _ =  raise ERR{func = "dest_abs", mesg = "not an abstraction"};
+  | dest_abs _ =  raise USYN_ERR{func = "dest_abs", mesg = "not an abstraction"};
 
 fun dest_eq(Const("op =",_) $ M $ N) = {lhs=M, rhs=N}
-  | dest_eq _ = raise ERR{func = "dest_eq", mesg = "not an equality"};
+  | dest_eq _ = raise USYN_ERR{func = "dest_eq", mesg = "not an equality"};
 
 fun dest_imp(Const("op -->",_) $ M $ N) = {ant=M, conseq=N}
-  | dest_imp _ = raise ERR{func = "dest_imp", mesg = "not an implication"};
+  | dest_imp _ = raise USYN_ERR{func = "dest_imp", mesg = "not an implication"};
 
 fun dest_select(Const("Eps",_) $ (a as Abs _)) = dest_abs a
-  | dest_select _ = raise ERR{func = "dest_select", mesg = "not a select"};
+  | dest_select _ = raise USYN_ERR{func = "dest_select", mesg = "not a select"};
 
 fun dest_forall(Const("All",_) $ (a as Abs _)) = dest_abs a
-  | dest_forall _ = raise ERR{func = "dest_forall", mesg = "not a forall"};
+  | dest_forall _ = raise USYN_ERR{func = "dest_forall", mesg = "not a forall"};
 
 fun dest_exists(Const("Ex",_) $ (a as Abs _)) = dest_abs a
-  | dest_exists _ = raise ERR{func = "dest_exists", mesg="not an existential"};
+  | dest_exists _ = raise USYN_ERR{func = "dest_exists", mesg="not an existential"};
 
 fun dest_neg(Const("not",_) $ M) = M
-  | dest_neg _ = raise ERR{func = "dest_neg", mesg = "not a negation"};
+  | dest_neg _ = raise USYN_ERR{func = "dest_neg", mesg = "not a negation"};
 
 fun dest_conj(Const("op &",_) $ M $ N) = {conj1=M, conj2=N}
-  | dest_conj _ = raise ERR{func = "dest_conj", mesg = "not a conjunction"};
+  | dest_conj _ = raise USYN_ERR{func = "dest_conj", mesg = "not a conjunction"};
 
 fun dest_disj(Const("op |",_) $ M $ N) = {disj1=M, disj2=N}
-  | dest_disj _ = raise ERR{func = "dest_disj", mesg = "not a disjunction"};
+  | dest_disj _ = raise USYN_ERR{func = "dest_disj", mesg = "not a disjunction"};
 
 fun mk_pair{fst,snd} = 
    let val ty1 = type_of fst
@@ -256,7 +251,7 @@ fun mk_pair{fst,snd} =
    end;
 
 fun dest_pair(Const("Pair",_) $ M $ N) = {fst=M, snd=N}
-  | dest_pair _ = raise ERR{func = "dest_pair", mesg = "not a pair"};
+  | dest_pair _ = raise USYN_ERR{func = "dest_pair", mesg = "not a pair"};
 
 
 local  fun ucheck t = (if #Name(dest_const t) = "split" then t
@@ -404,7 +399,7 @@ fun find_term p =
            then find (#Body(dest_abs tm))
            else let val {Rator,Rand} = dest_comb tm
                 in find Rator handle _ => find Rand
-                end handle _ => raise ERR{func = "find_term",mesg = ""}
+                end handle _ => raise USYN_ERR{func = "find_term",mesg = ""}
    in find
    end;
 
@@ -431,9 +426,9 @@ fun dest_relation tm =
    if (type_of tm = HOLogic.boolT)
    then let val (Const("op :",_) $ (Const("Pair",_)$y$x) $ R) = tm
         in (R,y,x)
-        end handle _ => raise ERR{func="dest_relation",
+        end handle _ => raise USYN_ERR{func="dest_relation",
                                   mesg="unexpected term structure"}
-   else raise ERR{func="dest_relation",mesg="not a boolean term"};
+   else raise USYN_ERR{func="dest_relation",mesg="not a boolean term"};
 
 fun is_WFR tm = (#Name(dest_const(rator tm)) = "wf") handle _ => false;
 
