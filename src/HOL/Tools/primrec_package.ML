@@ -136,7 +136,7 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
 
     fun trans eqns ((cname, cargs), (fnames', fnss', fns)) =
       (case assoc (eqns, cname) of
-          None => (warning ("no equation for constructor " ^ quote cname ^
+          None => (warning ("No equation for constructor " ^ quote cname ^
             "\nin definition of function " ^ quote fname);
               (fnames', fnss', (Const ("arbitrary", dummyT))::fns))
         | Some (ls, cargs', rs, rhs, eq) =>
