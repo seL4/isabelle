@@ -28,10 +28,18 @@ interactive proof assistants provide this much automation.  The tactics can
 be traced, and their components can be called directly; in this manner,
 any proof can be viewed interactively.
 
-We shall first discuss the underlying principles, then consider how to use
-the classical reasoner.  Finally, we shall see how to instantiate it for
-new logics.  The logics {\tt FOL}, {\tt HOL} and {\tt ZF} have it already
-installed.
+The simplest way to apply the classical reasoner (to subgoal~$i$) is as
+follows:
+\begin{ttbox}
+by (Fast_tac \(i\));
+\end{ttbox}
+If the subgoal is a simple formula of the predicate calculus or set theory,
+then it should be proved quickly.  However, to use the classical reasoner
+effectively, you need to know how it works.
+
+We shall first discuss the underlying principles, then present the classical
+reasoner.  Finally, we shall see how to instantiate it for new logics.  The
+logics {\tt FOL}, {\tt HOL} and {\tt ZF} have it already installed.
 
 
 \section{The sequent calculus}
@@ -397,12 +405,12 @@ but allows unknowns to be instantiated.
 \end{ttdescription}
 
 \subsection{The current claset}
-Some logics (e.g.\ \HOL) support the concept of a {\em current set of
-classical rules}\index{claset!current}.
-The underlying idea is quite similar to that of a current simpset described
-in \S\ref{sec:simp-for-dummies}.
-Just like simpsets, clasets can be associated with theories.
-The tactics
+Some logics (\FOL, {\HOL} and \ZF) support the concept of a current
+claset\index{claset!current}.  This is a default set of classical rules.  The
+underlying idea is quite similar to that of a current simpset described in
+\S\ref{sec:simp-for-dummies}; please read that section, including its
+warnings.  Just like simpsets, clasets can be associated with theories.  The
+tactics
 \begin{ttbox}
 Step_tac     : int -> tactic
 Fast_tac     : int -> tactic

@@ -15,17 +15,17 @@ sections explain advanced features.
 \section{Simplification for dummies}
 \label{sec:simp-for-dummies}
 
-In some logics (e.g.\ \HOL), the simplifier is particularly easy to
-use because it supports the concept of a {\em current set of simplification
-  rules}, also called the {\em current simpset}\index{simpset!current}. All
-commands are interpreted relative to the current simpset. For example, in the
-theory of arithmetic the goal
+In some logics (\FOL, {\HOL} and \ZF), the simplifier is particularly easy to
+use because it supports the concept of a {\em current
+  simpset}\index{simpset!current}.  This is a default set of simplification
+rules.  All commands are interpreted relative to the current simpset.  For
+example, in the theory of arithmetic the goal
 \begin{ttbox}
 {\out  1. 0 + (x + 0) = x + 0 + 0}
 \end{ttbox}
 can be solved by a single
 \begin{ttbox}
-by(Simp_tac 1);
+by (Simp_tac 1);
 \end{ttbox}
 The simplifier uses the current simpset, which in the case of arithmetic
 contains the required theorems $\Var{n}+0 = \Var{n}$ and $0+\Var{n} =
@@ -38,7 +38,7 @@ process, as in
 \end{ttbox}
 then there is the more powerful
 \begin{ttbox}
-by(Asm_simp_tac 1);
+by (Asm_simp_tac 1);
 \end{ttbox}
 which solves the above goal.
 
@@ -115,6 +115,18 @@ formula) should only be added for specific proofs and deleted again
 afterwards. Conversely, it may also happen that a generally useful rule needs
 to be removed for a certain proof and is added again afterwards.  Well
 designed simpsets need few temporary additions or deletions.
+
+\begin{warn}
+  The union of the ancestor simpsets (as described above) is not always a good
+  simpset for the new theory.  If some ancestors have deleted simplification
+  rules because they are no longer wanted, while others have left those rules
+  in, then the union will contain the unwanted rules.  If the ancestor
+  simpsets differ in other components (the subgoaler, solver, looper or rule
+  preprocessor: see below), then you cannot be sure which version of that
+  component will be inherited.  You may have to set the component explicitly
+  for the new theory's simpset by an assignment of the form
+ {\tt simpset := \dots}.
+\end{warn}
 
 \begin{warn}
   If you execute proofs interactively, or load them from an ML file without
@@ -378,12 +390,12 @@ and can also be used directly, even in the presence of a current simpset. For
 example
 \begin{ttbox}
 Addsimps \(thms\);
-by(Simp_tac \(i\));
+by (Simp_tac \(i\));
 Delsimps \(thms\);
 \end{ttbox}
 can be compressed into
 \begin{ttbox}
-by(simp_tac (!simpset addsimps \(thms\)) \(i\));
+by (simp_tac (!simpset addsimps \(thms\)) \(i\));
 \end{ttbox}
 
 The simpset associated with a particular theory can be retrieved via the name
