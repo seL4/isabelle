@@ -821,7 +821,7 @@ fun constrain t T =
 (* user parameters *)
 
 fun is_param (x, _) = size x > 0 andalso ord x = ord "?";
-fun param used (x, S) = TVar (("?" ^ variant used x, 0), S);
+fun param used (x, S) = TVar ((variant used ("?" ^ x), 0), S);
 
 
 (* decode_types *)
