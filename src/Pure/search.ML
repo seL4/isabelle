@@ -23,6 +23,7 @@ signature SEARCH =
 
   val has_fewer_prems	: int -> thm -> bool   
   val IF_UNSOLVED	: tactic -> tactic
+  val SOLVE		: tactic -> tactic
   val trace_BEST_FIRST	: bool ref
   val BEST_FIRST	: (thm -> bool) * (thm -> int) -> tactic -> tactic
   val THEN_BEST_FIRST	: tactic -> (thm->bool) * (thm->int) -> tactic
@@ -64,6 +65,9 @@ fun has_fewer_prems n rule = (nprems_of rule < n);
 
 (*Apply a tactic if subgoals remain, else do nothing.*)
 val IF_UNSOLVED = COND (has_fewer_prems 1) all_tac;
+
+(*Force a tactic to solve its goal completely, otherwise fail *)
+fun SOLVE tac = tac THEN COND (has_fewer_prems 1) all_tac no_tac;
 
 (*Execute tac1, but only execute tac2 if there are at least as many subgoals
   as before.  This ensures that tac2 is only applied to an outcome of tac1.*)

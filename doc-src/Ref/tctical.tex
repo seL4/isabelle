@@ -254,6 +254,7 @@ view the tracing options, type {\tt h} at the prompt.
 \begin{ttbox} 
 COND        : (thm->bool) -> tactic -> tactic -> tactic
 IF_UNSOLVED : tactic -> tactic
+SOLVE       : tactic -> tactic
 DETERM      : tactic -> tactic
 \end{ttbox}
 \begin{ttdescription}
@@ -267,6 +268,10 @@ evaluated because \ML{} uses eager evaluation.
 applies {\it tac\/} to the proof state if it has any subgoals, and simply
 returns the proof state otherwise.  Many common tactics, such as {\tt
 resolve_tac}, fail if applied to a proof state that has no subgoals.
+
+\item[\ttindexbold{SOLVE} {\it tac}] 
+applies {\it tac\/} to the proof state and then fails iff there are subgoals
+left.
 
 \item[\ttindexbold{DETERM} {\it tac}] 
 applies {\it tac\/} to the proof state and returns the head of the
