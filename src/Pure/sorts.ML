@@ -26,6 +26,8 @@ sig
   val inter_class: classes -> class * sort -> sort
   val inter_sort: classes -> sort * sort -> sort
   val norm_sort: classes -> sort -> sort
+  val certify_class: classes -> class -> class
+  val certify_sort: classes -> sort -> sort
   val of_sort: classes * arities -> typ * sort -> bool
   exception DOMAIN of string * class
   val mg_domain: classes * arities -> string -> sort -> sort list  (*exception DOMAIN*)
@@ -119,11 +121,30 @@ fun sort_less classes (S1, S2) =
 
 (* normal forms of sorts *)
 
+local
+
 fun minimal_class classes S c =
   not (exists (fn c' => class_less classes (c', c)) S);
 
-fun norm_sort classes S =
-  sort_strings (distinct (filter (minimal_class classes S) S));
+val distinct_class = gen_distinct (op = : class * class -> bool);
+
+in
+
+fun norm_sort _ [] = []
+  | norm_sort _ (S as [_]) = S
+  | norm_sort classes S =
+      sort_strings (distinct_class (filter (minimal_class classes S) S));
+
+end;
+
+
+(* certify *)
+
+fun certify_class classes c =
+  if can (Graph.get_node classes) c then c
+  else raise TYPE ("Undeclared class: " ^ quote c, [], []);
+
+fun certify_sort classes = norm_sort classes o map (certify_class classes);
 
 
 
