@@ -435,16 +435,19 @@ in
       local
       val fs = map (fn i => "f"^(string_of_int i)) (1 upto num_of_cons);
 
-      fun split1case ((_,name,_,vns,_),fi) =
+      fun split1case concl ((_,name,_,vns,_),fi) =
         let val svns = " " ^ (space_implode " " vns);
-            val all = if null vns then "" else "!" ^ svns ^ ". "
-        in "("^all^tname^"0 = "^C_exp name vns^" --> P("^fi^svns^"))" end;
+            val quant = if concl then "!" else "?";
+            val impl = if concl then " --> " else " & ~";
+            val all = if null vns then "" else quant ^ svns ^ ". "
+        in "("^all^tname^"0 = "^C_exp name vns^impl^"P("^fi^svns^"))" end;
 
-      val rhss  = map split1case (cons_list ~~ fs);
-      val rhs = space_implode " & " rhss;
+      fun rhss concl = map (split1case concl) (cons_list ~~ fs);
+      fun rhs concl= space_implode(if concl then " & " else " | ")(rhss concl);
       val lhs = "P(" ^ t_case ^ " " ^ (space_implode " " fs) ^" "^ tname^"0)"
       in
-      val split_eqn = lhs ^ " = (" ^ rhs ^ ")"
+      val split_eqn = lhs ^ " = (" ^ rhs true ^ ")"
+      val split_eqn_prem = lhs ^ " = ( ~ (" ^ rhs false ^ "))"
       end;
 
 (* -------------------------------------------------------------------- *)
@@ -518,7 +521,8 @@ in
            |> Theory.add_arities arities
            |> Theory.add_consts consts
            |> Theory.add_trrules xrules
-           |> PureThy.add_store_axioms rules, add_primrec, size_eqns, split_eqn)
+           |> PureThy.add_store_axioms rules,
+       add_primrec, size_eqns, (split_eqn,split_eqn_prem))
     end
 
 (*Warn if the (induction) variable occurs Free among the premises, which

@@ -123,7 +123,7 @@ local
 
   (*generate string for calling add_datatype and build_record*)
   fun mk_params ((ts, tname), cons) =
-    "val (thy,"^tname^"_add_primrec,size_"^tname^"_eqns,split_"^tname^"_eqn) =\n\
+    "val (thy,"^tname^"_add_primrec,size_"^tname^"_eqns,split_"^tname^"_eqns) =\n\
     \    Datatype.add_datatype\n"
     ^ mk_triple (mk_list ts, quote tname, mk_list (mk_cons cons)) ^ " thy\n\
     \val thy = ("^tname^"_add_primrec size_"^tname^"_eqns thy)\n\
@@ -161,7 +161,11 @@ local
     \val dummy = Addsimps(map (fn (_,eqn) =>\n\
     \ prove_goalw thy [get_def thy " ^ quote("size_"^tname) ^
                      "] eqn (fn _ => [Simp_tac 1])) size_"^tname^"_eqns);\n\
-    \val split_"^tname^"_case = prove_goal thy split_"^tname^"_eqn\n\
+    \val split_"^tname^"_case = prove_goal thy (#1(split_"^tname^"_eqns))\n\
+    \  (fn _ => [#exhaust_tac (datatype_info thy (Sign.intern_tycon (sign_of thy) "
+      ^ quote tname ^ ")) \""^tname^"0\" 1,\n\
+    \            ALLGOALS Asm_simp_tac]);\n\
+    \val split_"^tname^"_case_prem = prove_goal thy (#2(split_"^tname^"_eqns))\n\
     \  (fn _ => [#exhaust_tac (datatype_info thy (Sign.intern_tycon (sign_of thy) "
       ^ quote tname ^ ")) \""^tname^"0\" 1,\n\
     \            ALLGOALS Asm_simp_tac]);\n\
