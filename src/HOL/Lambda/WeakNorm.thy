@@ -134,7 +134,7 @@ lemma subst_Var_NF: "t \<in> NF \<Longrightarrow> (\<And>i j. t[Var i/j] \<in> N
 
 lemma app_Var_NF: "t \<in> NF \<Longrightarrow> \<exists>t'. t \<degree> Var i \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> t' \<in> NF"
   apply (induct set: NF)
-  apply (subst app_last)
+  apply (simplesubst app_last)
   apply (rule exI)
   apply (rule conjI)
   apply (rule rtrancl_refl)
