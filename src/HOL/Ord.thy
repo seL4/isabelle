@@ -66,6 +66,6 @@ translations
  "! x<y.  P"  =>  "! x. x < y  --> P"
  "! x<=y. P"  =>  "! x. x <= y --> P"
  "? x<y.  P"  =>  "? x. x < y  & P"
- "? x<=y. P"  =>  "! x. x <= y & P"
+ "? x<=y. P"  =>  "? x. x <= y & P"
 
 end
