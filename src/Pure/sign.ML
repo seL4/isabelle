@@ -255,8 +255,12 @@ fun infer_types sg types sorts print_msg (ts, T) =
       | term_err ts = 
           "\nInvolving these terms:\n" ^ cat_lines (map show_term ts);
 
+    fun exn_type_msg (msg, Ts, ts) =
+	msg ^ "\nType checking error: " ^ msg ^ "\n" ^
+	cat_lines (map show_typ Ts) ^ term_err ts ^ "\n";
+
     val T' = certify_typ sg T
-      handle TYPE (msg, _, _) => error msg;
+      handle TYPE arg => error (exn_type_msg arg);
 
     val ct = const_type sg;
 
@@ -265,9 +269,7 @@ fun infer_types sg types sorts print_msg (ts, T) =
 
              val ((infrd_t', tye'), msg') = 
               (mk_some (Type.infer_types (tsig, ct, types, sorts, T', t)), msg)
-              handle TYPE (tmsg, Ts, ts) => 
-                ((None, None), msg ^ "Type checking error: " ^ tmsg ^ "\n" ^
-                 cat_lines (map show_typ Ts) ^ term_err ts ^ "\n")
+              handle TYPE arg => ((None, None), exn_type_msg arg)
 
              val old_show_brackets = !show_brackets;
 
