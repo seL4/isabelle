@@ -264,6 +264,7 @@ apply (erule exE)
 apply (erule exE) 
 	--{* @{subgoals[display,indent=0,margin=65]} *}
 apply (rule_tac x="k*ka" in exI) 
+	--{* @{subgoals[display,indent=0,margin=65]} *}
 apply simp
 done
 
