@@ -1,6 +1,6 @@
 (*  Title:      HOL/ex/Recdefs.ML
     ID:         $Id$
-    Author:     Konrad Lawrence C Paulson
+    Author:     Konrad Slind and Lawrence C Paulson
     Copyright   1997  University of Cambridge
 
 A few proofs to demonstrate the functions defined in Recdefs.thy
