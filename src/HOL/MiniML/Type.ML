@@ -29,6 +29,12 @@ by (ALLGOALS Asm_simp_tac);
 qed "app_subst_id_tel";
 Addsimps [app_subst_id_tel];
 
+goalw Type.thy [id_subst_def,o_def] "$s o id_subst = s";
+br ext 1;
+by(Simp_tac 1);
+qed "o_id_subst";
+Addsimps[o_id_subst];
+
 goalw thy [dom_def,id_subst_def,empty_def]
   "dom id_subst = {}";
 by (Simp_tac 1);
@@ -111,6 +117,11 @@ qed "new_tv_Cons";
 
 Addsimps [new_tv_TVar,new_tv_Fun,new_tv_Nil,new_tv_Cons];
 
+goalw Type.thy [id_subst_def,new_tv_def,free_tv_subst,dom_def,cod_def]
+  "new_tv n id_subst";
+by(Simp_tac 1);
+qed "new_tv_id_subst";
+Addsimps[new_tv_id_subst];
 
 goalw thy [new_tv_def]
   "new_tv n s = ((!m. n <= m --> (s m = TVar m)) & \

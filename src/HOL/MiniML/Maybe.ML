@@ -18,3 +18,7 @@ by (maybe.induct_tac "res" 1);
 by (fast_tac (HOL_cs addss !simpset) 1);
 by (Asm_simp_tac 1);
 qed "expand_bind";
+
+goal Maybe.thy "!!x. x = Ok y ==> x ~= Fail";
+by(Asm_simp_tac 1);
+qed "eq_OkD";

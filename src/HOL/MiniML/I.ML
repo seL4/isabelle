@@ -1,8 +1,5 @@
 open I;
 
-Unify.trace_bound := 45;
-Unify.search_bound := 50;
-
 goal thy
   "! a m s s' t n.  \
 \    (new_tv m a & new_tv m s) --> I e a m s = Ok(s',t,n) -->   \
@@ -113,3 +110,95 @@ by ((dtac new_tv_subst_tel 1) THEN (atac 1));
 by (fast_tac (HOL_cs addDs [new_tv_W] addss 
     (!simpset addsimps [subst_comp_tel])) 1);
 qed_spec_mp "I_correct_wrt_W";
+
+(***
+We actually want the corollary
+
+goal I.thy
+  "I e [] m id_subst = Ok(s,t,n) --> W e [] m = Ok(s, $s t, n)";
+by(cut_facts_tac [(read_instantiate[("x","id_subst")]
+ (read_instantiate[("x","[]")](thm RS spec)
+  RS spec RS spec))] 1);
+by(Full_simp_tac 1);
+by(fast_tac HOL_cs 1);
+qed;
+
+assuming that thm is the undischarged version of I_correct_wrt_W.
+
+Wait until simplification of thms is possible.
+***)
+
+goal I.thy "!a m s. \
+\  new_tv m a & new_tv m s --> I e a m s = Fail --> W e ($s a) m = Fail";
+by (expr.induct_tac "e" 1);
+  by(simp_tac (!simpset addsimps [app_subst_list]
+                        setloop (split_tac [expand_if])) 1);
+ by(simp_tac (!simpset setloop (split_tac [expand_bind])) 1);
+ by(strip_tac 1);
+ br notI 1;
+ bd eq_OkD 1;
+ be swap 1;
+ by(subgoal_tac "TVar m # $ s a = $s(TVar m # a)" 1);
+  by(asm_simp_tac HOL_ss 1);
+  by(fast_tac (HOL_cs addSIs [new_tv_Suc_list RS mp,
+                              lessI RS less_imp_le RS new_tv_subst_le]) 1);
+ be conjE 1;
+ bd (new_tv_not_free_tv RS not_free_impl_id) 1;
+ by(Asm_simp_tac 1);
+by(simp_tac (!simpset setloop (split_tac [expand_bind])) 1);
+by(strip_tac 1);
+br conjI 1;
+ by(fast_tac (HOL_cs addSDs [eq_OkD]) 1);
+by(strip_tac 1);
+br conjI 1;
+ by(strip_tac 1);
+ br notI 1;
+ by(forward_tac [conjunct1] 1);
+ by(forward_tac [conjunct2] 1);
+ bd I_correct_wrt_W 1;
+  ba 1;
+ be exE 1;
+ by(Asm_full_simp_tac 1);
+ by(REPEAT(etac conjE 1));
+ by(hyp_subst_tac 1);
+ by(full_simp_tac (!simpset addsimps [o_def,subst_comp_tel]) 1);
+ by(EVERY[dtac eq_OkD 1, etac notE 1, etac allE 1, etac allE 1, etac allE 1,
+          etac impE 1, etac impE 2, atac 2, atac 2]);
+ br conjI 1;
+  by(fast_tac (HOL_cs addIs [W_var_ge RS new_tv_list_le]) 1);
+ br new_tv_subst_comp_2 1;
+  by(fast_tac (HOL_cs addIs [W_var_ge RS new_tv_subst_le]) 1);
+ by(fast_tac (HOL_cs addSIs [new_tv_subst_tel]addIs[new_tv_W RS conjunct1])1);
+by(strip_tac 1);
+br notI 1;
+by(forward_tac [conjunct1] 1);
+by(forward_tac [conjunct2] 1);
+bd I_correct_wrt_W 1;
+ ba 1;
+be exE 1;
+by(Asm_full_simp_tac 1);
+by(REPEAT(etac conjE 1));
+by(hyp_subst_tac 1);
+by(METAHYPS(fn [_,_,_,_,w1,_,i2,_,na,ns] =>
+               (cut_facts_tac[na RS (ns RS new_tv_subst_tel RS
+                      (w1 RSN (2,new_tv_W RS conjunct1) RS
+                       (ns RS (w1 RS W_var_ge RS new_tv_subst_le) RS
+                        new_tv_subst_comp_1 RS
+                        (na RS (w1 RS W_var_ge RS new_tv_list_le) RS
+                         (conjI RS (i2 RSN (2,I_correct_wrt_W)))))))]1))1);
+be exE 1;
+by(asm_full_simp_tac (!simpset addsimps
+     [o_def,subst_comp_te RS sym,subst_comp_tel RS sym]) 1);
+by(REPEAT(etac conjE 1));
+by(hyp_subst_tac 1);
+by(asm_full_simp_tac (!simpset addsimps
+           [subst_comp_te RS sym,subst_comp_tel RS sym]) 1);
+qed_spec_mp "I_complete_wrt_W";
+
+(***
+We actually want the corollary
+
+  "I e [] m id_subst = Fail ==> W e [] m = Fail";
+
+Wait until simplification of thms is possible.
+***)
