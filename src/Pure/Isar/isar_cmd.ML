@@ -183,7 +183,8 @@ val print_theory = Toplevel.unknown_theory o
   Toplevel.keep (PureThy.print_theory o Toplevel.theory_of);
 
 val print_syntax = Toplevel.unknown_theory o
-  Toplevel.keep (Display.print_syntax o Toplevel.theory_of);
+  Toplevel.keep (Display.print_syntax o Toplevel.theory_of) o
+  Toplevel.keep (ProofContext.print_syntax o Proof.context_of o Toplevel.proof_of);
 
 val print_theorems = Toplevel.unknown_theory o
   Toplevel.keep (PureThy.print_theorems o Toplevel.theory_of);
