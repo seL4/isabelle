@@ -87,8 +87,6 @@ types_code
 
 consts_code
   "new_Addr" ("new'_addr {* %x. case x of None => True | Some y => False *}/ {* None *}/ {* Loc *}")
-  "cast_ok" ("true????")
-  "match_exception_entry" ("true????")
 
   "wf" ("true?")
 
