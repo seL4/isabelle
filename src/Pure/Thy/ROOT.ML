@@ -6,10 +6,6 @@
 This file builds the theory parser and autoloading system.
 *)
 
-(* FIXME remove (still needed by HOL/Datatype.ML) *)
-use "scan.ML"; use "parse.ML";
-
-
 use "thy_scan.ML";
 use "thy_parse.ML";
 
