@@ -282,7 +282,7 @@ fun presburger_args meth =
       || Args.$$$ "abs" >> K (apsnd (K true));
  in
    Method.simple_args 
-  (Scan.optional (Args.$$$ "(" |-- Args.list1 parse_flag --| Args.$$$ ")") [] >>
+  (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
     curry (foldl op |>) (true, false))
     (fn (q,a) => fn _ => meth q a 1)
   end;
