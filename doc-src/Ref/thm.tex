@@ -747,7 +747,8 @@ seven; attempts to build large logics (such as {\sc zf} and {\sc hol}) may
 fail.  Isabelle normally builds minimal proof objects, which include only uses
 of oracles.  You can also request an intermediate level of detail, containing
 uses of oracles, axioms and theorems.  These smaller proof objects indicate a
-theorem's dependencies.
+theorem's dependencies.  Theorems involving oracles will be printed with a
+suffixed \verb|[!]| to point out the different quality of confidence achieved.
 
 Isabelle provides proof objects for the sake of transparency.  Their aim is to
 increase your confidence in Isabelle.  They let you inspect proofs constructed
