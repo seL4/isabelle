@@ -134,13 +134,7 @@ fun strings_of_items prt name items =
 fun strings_of_binds (Context {thy, binds, ...}) =
   let
     val prt_term = Sign.pretty_term (Theory.sign_of thy);
-
-    fun fix_var (x, i) =
-      (case try Syntax.dest_binding x of
-        None => Syntax.string_of_vname (x, i)
-      | Some x' => if i = 0 then "??" ^ x' else Syntax.string_of_vname (x, i));
-    fun pretty_bind (xi, (t, T)) = Pretty.block
-      [Pretty.str (fix_var xi), Pretty.str " ==", Pretty.brk 1, prt_term t];
+    fun pretty_bind (xi, (t, T)) = prt_term (Logic.mk_equals (Var (xi, T), t));
   in
     if Vartab.is_empty binds andalso not (! verbose) then []
     else [Pretty.string_of (Pretty.big_list "Term bindings:" (map pretty_bind (Vartab.dest binds)))]
@@ -394,10 +388,7 @@ fun norm_term (ctxt as Context {binds, ...}) =
             Some (u, U) =>
               if T = U then (norm u handle SAME => u)
               else raise TYPE ("norm_term: ill-typed variable assigment", [T, U], [t, u])
-          | None =>
-              if can Syntax.dest_binding (#1 xi) then
-                raise CONTEXT ("Unbound binding: " ^ Syntax.string_of_vname xi, ctxt)
-              else raise SAME)
+          | None => raise CONTEXT ("Unbound schematic variable: " ^ Syntax.string_of_vname xi, ctxt))
       | norm (Abs (a, T, body)) =  Abs (a, T, norm body)
       | norm (Abs (_, _, body) $ t) = normh (subst_bound (t, body))
       | norm (f $ t) =
@@ -432,10 +423,6 @@ end;
 
 (* read terms *)
 
-fun warn_vars ctxt tm =
-  if null (term_vars tm) andalso null (term_tvars tm) then tm
-  else (warning "Illegal schematic variable(s) in term"; tm);
-
 fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, used), ...}) s =
   let
     val sign = sign_of ctxt;
@@ -453,7 +440,6 @@ fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, u
     |> app (intern_skolem ctxt true)
     |> app (if is_pat then I else norm_term ctxt)
     |> app (if is_pat then prepare_dummies else (reject_dummies ctxt))
-    |> app (if is_pat then I else warn_vars ctxt)
   end;
 
 val read_termTs = gen_read (read_def_termTs false) (apfst o map) false;
@@ -535,17 +521,14 @@ fun upd_bind (ctxt, (xi, t)) =
   end;
 
 fun update_binds bs ctxt = foldl upd_bind (ctxt, bs);
-fun update_binds_env env = update_binds (Envir.alist_of env);
+fun update_binds_env env = (*Envir.norm_term ensures proper type instantiation*)
+  update_binds (map (apsnd (Envir.norm_term env)) (Envir.alist_of env));
 
 
 (* add_binds(_i) -- sequential *)
 
 fun gen_bind prep (ctxt, (xi as (x, _), raw_t)) =
-  let val t = prep ctxt raw_t in
-    if can Syntax.dest_binding x then ctxt |> update_binds [(xi, t)]
-    else raise CONTEXT ("Illegal variable name for term binding: " ^
-      quote (Syntax.string_of_vname xi), ctxt)
-  end;
+  ctxt |> update_binds [(xi, prep ctxt raw_t)];
 
 fun gen_binds prep binds ctxt = foldl (gen_bind prep) (ctxt, binds);
 
@@ -632,9 +615,10 @@ fun get_thmss ctxt names = flat (map (get_thms ctxt) names);
 
 (* put_thm(s) *)
 
-fun put_thms (name, ths) = map_context
-  (fn (thy, data, asms, binds, thms, defs) =>
-    (thy, data, asms, binds, Symtab.update ((name, ths), thms), defs));
+fun put_thms ("", _) = I
+  | put_thms (name, ths) = map_context
+      (fn (thy, data, asms, binds, thms, defs) =>
+        (thy, data, asms, binds, Symtab.update ((name, ths), thms), defs));
 
 fun put_thm (name, th) = put_thms (name, [th]);
 
