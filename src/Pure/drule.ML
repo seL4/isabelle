@@ -89,8 +89,13 @@ sig
   val untag_rule        : string -> thm -> thm
   val tag               : tag -> 'a attribute
   val untag             : string -> 'a attribute
-  val tag_lemma         : 'a attribute
-  val tag_internal      : 'a attribute
+  val get_kind          : thm -> string
+  val kind              : string -> 'a attribute
+  val theoremK          : string
+  val lemmaK            : string
+  val corollaryK        : string
+  val internalK         : string
+  val kind_internal     : 'a attribute
   val has_internal	: tag list -> bool
   val close_derivation  : thm -> thm
   val compose_single    : thm * int * thm -> thm
@@ -249,11 +254,23 @@ fun untag s x = rule_attribute (K (untag_rule s)) x;
 
 fun simple_tag name x = tag (name, []) x;
 
-fun tag_lemma x = simple_tag "lemma" x;
 
-val internal_tag = ("internal", []);
-fun tag_internal x = tag internal_tag x;
-fun has_internal tags = exists (equal internal_tag) tags;
+(* theorem kinds *)
+
+val theoremK = "theorem";
+val lemmaK = "lemma";
+val corollaryK = "corollary";
+val internalK = "internal";
+
+fun get_kind thm =
+  (case Library.assoc (#2 (Thm.get_name_tags thm), "kind") of
+    Some (k :: _) => k
+  | _ => "unknown");
+
+fun kind_rule k = tag_rule ("kind", [k]) o untag_rule "kind";
+fun kind k x = rule_attribute (K (kind_rule k)) x;
+fun kind_internal x = kind internalK x;
+fun has_internal tags = exists (equal internalK o fst) tags;
 
 
 
@@ -726,9 +743,9 @@ local
   val G = Logic.mk_goal A;
   val (G_def, _) = freeze_thaw ProtoPure.Goal_def;
 in
-  val triv_goal = store_thm "triv_goal" (tag_rule internal_tag (standard
+  val triv_goal = store_thm "triv_goal" (kind_rule internalK (standard
       (Thm.equal_elim (Thm.symmetric G_def) (Thm.assume (cert A)))));
-  val rev_triv_goal = store_thm "rev_triv_goal" (tag_rule internal_tag (standard
+  val rev_triv_goal = store_thm "rev_triv_goal" (kind_rule internalK (standard
       (Thm.equal_elim G_def (Thm.assume (cert G)))));
 end;
 
