@@ -22,14 +22,13 @@ constdefs
     "hyprel == {p. ? X Y. p = ((X::nat=>real),Y) & 
                    {n::nat. X(n) = Y(n)}: FreeUltrafilterNat}"
 
-typedef hypreal = "{x::nat=>real. True}/hyprel"              (Equiv.quotient_def)
+typedef hypreal = "{x::nat=>real. True}/hyprel"   (Equiv.quotient_def)
 
 instance
-   hypreal  :: {ord,plus,times,minus}
+   hypreal  :: {ord, zero, plus, times, minus}
 
 consts 
 
-  "0hr"       :: hypreal               ("0hr")   
   "1hr"       :: hypreal               ("1hr")  
   "whr"       :: hypreal               ("whr")  
   "ehr"       :: hypreal               ("ehr")  
@@ -37,7 +36,7 @@ consts
 
 defs
 
-  hypreal_zero_def     "0hr == Abs_hypreal(hyprel^^{%n::nat. (#0::real)})"
+  hypreal_zero_def     "0 == Abs_hypreal(hyprel^^{%n::nat. (#0::real)})"
   hypreal_one_def      "1hr == Abs_hypreal(hyprel^^{%n::nat. (#1::real)})"
 
   (* an infinite number = [<1,2,3,...>] *)
@@ -47,7 +46,7 @@ defs
   epsilon_def "ehr == Abs_hypreal(hyprel^^{%n::nat. rinv(real_of_posnat n)})"
 
   hypreal_minus_def
-  "- P         == Abs_hypreal(UN X: Rep_hypreal(P). hyprel^^{%n::nat. - (X n)})"
+  "- P == Abs_hypreal(UN X: Rep_hypreal(P). hyprel^^{%n::nat. - (X n)})"
 
   hypreal_diff_def 
   "x - y == x + -(y::hypreal)"

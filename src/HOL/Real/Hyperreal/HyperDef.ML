@@ -10,7 +10,7 @@
  ------------------------------------------------------------------------*)
 
 (*** based on James' proof that the set of naturals is not finite ***)
-Goal "finite (A::nat set) --> (? n. !m. Suc (n + m) ~: A)";
+Goal "finite (A::nat set) --> (EX n. ALL m. Suc (n + m) ~: A)";
 by (rtac impI 1);
 by (eres_inst_tac [("F","A")] finite_induct 1);
 by (Blast_tac 1 THEN etac exE 1);
@@ -22,7 +22,7 @@ by (auto_tac (claset(),
 				  less_add_Suc2 RS less_not_refl2]));
 qed_spec_mp "finite_exhausts";
 
-Goal "finite (A :: nat set) --> (? n. n ~:A)";
+Goal "finite (A :: nat set) --> (EX n. n ~:A)";
 by (rtac impI 1 THEN dtac finite_exhausts 1);
 by (Blast_tac 1);
 qed_spec_mp "finite_not_covers";
@@ -311,13 +311,13 @@ by (dres_inst_tac [("f","uminus")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_minus_minus]) 1);
 qed "inj_hypreal_minus";
 
-Goalw [hypreal_zero_def] "-0hr = 0hr";
+Goalw [hypreal_zero_def] "-0 = (0::hypreal)";
 by (simp_tac (simpset() addsimps [hypreal_minus]) 1);
 qed "hypreal_minus_zero";
 
 Addsimps [hypreal_minus_zero];
 
-Goal "(-x = 0hr) = (x = 0hr)"; 
+Goal "(-x = 0) = (x = (0::hypreal))"; 
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_zero_def,
     hypreal_minus] @ real_add_ac));
@@ -342,7 +342,7 @@ by (simp_tac (simpset() addsimps
    [hyprel_in_hypreal RS Abs_hypreal_inverse,hypreal_hrinv_ize UN_equiv_class]) 1);
 qed "hypreal_hrinv";
 
-Goal "z ~= 0hr ==> hrinv (hrinv z) = z";
+Goal "z ~= 0 ==> hrinv (hrinv z) = z";
 by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
 by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps 
@@ -402,24 +402,24 @@ qed "hypreal_add_left_commute";
 val hypreal_add_ac = [hypreal_add_assoc,hypreal_add_commute,
                       hypreal_add_left_commute];
 
-Goalw [hypreal_zero_def] "0hr + z = z";
+Goalw [hypreal_zero_def] "(0::hypreal) + z = z";
 by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
 by (asm_full_simp_tac (simpset() addsimps 
     [hypreal_add]) 1);
 qed "hypreal_add_zero_left";
 
-Goal "z + 0hr = z";
+Goal "z + (0::hypreal) = z";
 by (simp_tac (simpset() addsimps 
     [hypreal_add_zero_left,hypreal_add_commute]) 1);
 qed "hypreal_add_zero_right";
 
-Goalw [hypreal_zero_def] "z + -z = 0hr";
+Goalw [hypreal_zero_def] "z + -z = (0::hypreal)";
 by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_minus,
         hypreal_add]) 1);
 qed "hypreal_add_minus";
 
-Goal "-z + z = 0hr";
+Goal "-z + z = (0::hypreal)";
 by (simp_tac (simpset() addsimps 
     [hypreal_add_commute,hypreal_add_minus]) 1);
 qed "hypreal_add_minus_left";
@@ -427,31 +427,31 @@ qed "hypreal_add_minus_left";
 Addsimps [hypreal_add_minus,hypreal_add_minus_left,
           hypreal_add_zero_left,hypreal_add_zero_right];
 
-Goal "? y. (x::hypreal) + y = 0hr";
+Goal "EX y. (x::hypreal) + y = 0";
 by (fast_tac (claset() addIs [hypreal_add_minus]) 1);
 qed "hypreal_minus_ex";
 
-Goal "?! y. (x::hypreal) + y = 0hr";
+Goal "EX! y. (x::hypreal) + y = 0";
 by (auto_tac (claset() addIs [hypreal_add_minus],simpset()));
 by (dres_inst_tac [("f","%x. ya+x")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_add_assoc RS sym]) 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_add_commute]) 1);
 qed "hypreal_minus_ex1";
 
-Goal "?! y. y + (x::hypreal) = 0hr";
+Goal "EX! y. y + (x::hypreal) = 0";
 by (auto_tac (claset() addIs [hypreal_add_minus_left],simpset()));
 by (dres_inst_tac [("f","%x. x+ya")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_add_assoc]) 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_add_commute]) 1);
 qed "hypreal_minus_left_ex1";
 
-Goal "x + y = 0hr ==> x = -y";
+Goal "x + y = (0::hypreal) ==> x = -y";
 by (cut_inst_tac [("z","y")] hypreal_add_minus_left 1);
 by (res_inst_tac [("x1","y")] (hypreal_minus_left_ex1 RS ex1E) 1);
 by (Blast_tac 1);
 qed "hypreal_add_minus_eq_minus";
 
-Goal "? y::hypreal. x = -y";
+Goal "EX y::hypreal. x = -y";
 by (cut_inst_tac [("x","x")] hypreal_minus_ex 1);
 by (etac exE 1 THEN dtac hypreal_add_minus_eq_minus 1);
 by (Fast_tac 1);
@@ -572,12 +572,12 @@ by (simp_tac (simpset() addsimps [hypreal_mult_commute,
     hypreal_mult_1]) 1);
 qed "hypreal_mult_1_right";
 
-Goalw [hypreal_zero_def] "0hr * z = 0hr";
+Goalw [hypreal_zero_def] "0 * z = (0::hypreal)";
 by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_mult,real_mult_0]) 1);
 qed "hypreal_mult_0";
 
-Goal "z * 0hr = 0hr";
+Goal "z * 0 = (0::hypreal)";
 by (simp_tac (simpset() addsimps [hypreal_mult_commute,
     hypreal_mult_0]) 1);
 qed "hypreal_mult_0_right";
@@ -600,16 +600,11 @@ by (auto_tac (claset(),simpset() addsimps [hypreal_minus,
                                            @ real_mult_ac @ real_add_ac));
 qed "hypreal_minus_mult_eq2";
 
-Goal "-x*-y = x*(y::hypreal)";
-by (full_simp_tac (simpset() addsimps [hypreal_minus_mult_eq2 RS sym,
-				       hypreal_minus_mult_eq1 RS sym]) 1);
-qed "hypreal_minus_mult_cancel";
-
-Addsimps [hypreal_minus_mult_cancel];
+(*Pull negations out*)
+Addsimps [hypreal_minus_mult_eq2 RS sym, hypreal_minus_mult_eq1 RS sym];
 
 Goal "-x*y = (x::hypreal)*-y";
-by (full_simp_tac (simpset() addsimps [hypreal_minus_mult_eq2 RS sym,
-				       hypreal_minus_mult_eq1 RS sym]) 1);
+by Auto_tac;
 qed "hypreal_minus_mult_commute";
 
 
@@ -642,13 +637,13 @@ val hypreal_mult_simps = [hypreal_mult_1, hypreal_mult_1_right];
 Addsimps hypreal_mult_simps;
 
 (*** one and zero are distinct ***)
-Goalw [hypreal_zero_def,hypreal_one_def] "0hr ~= 1hr";
+Goalw [hypreal_zero_def,hypreal_one_def] "0 ~= 1hr";
 by (auto_tac (claset(),simpset() addsimps [real_zero_not_eq_one]));
 qed "hypreal_zero_not_eq_one";
 
 (*** existence of inverse ***)
 Goalw [hypreal_one_def,hypreal_zero_def] 
-          "x ~= 0hr ==> x*hrinv(x) = 1hr";
+          "x ~= 0 ==> x*hrinv(x) = 1hr";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_hrinv,
@@ -658,41 +653,41 @@ by (blast_tac (claset() addSIs [real_mult_inv_right,
     FreeUltrafilterNat_subset]) 1);
 qed "hypreal_mult_hrinv";
 
-Goal "x ~= 0hr ==> hrinv(x)*x = 1hr";
+Goal "x ~= 0 ==> hrinv(x)*x = 1hr";
 by (asm_simp_tac (simpset() addsimps [hypreal_mult_hrinv,
-    hypreal_mult_commute]) 1);
+				      hypreal_mult_commute]) 1);
 qed "hypreal_mult_hrinv_left";
 
-Goal "x ~= 0hr ==> ? y. (x::hypreal) * y = 1hr";
+Goal "x ~= 0 ==> EX y. x * y = 1hr";
 by (fast_tac (claset() addDs [hypreal_mult_hrinv]) 1);
 qed "hypreal_hrinv_ex";
 
-Goal "x ~= 0hr ==> ? y. y * (x::hypreal) = 1hr";
+Goal "x ~= 0 ==> EX y. y * x = 1hr";
 by (fast_tac (claset() addDs [hypreal_mult_hrinv_left]) 1);
 qed "hypreal_hrinv_left_ex";
 
-Goal "x ~= 0hr ==> ?! y. (x::hypreal) * y = 1hr";
+Goal "x ~= 0 ==> EX! y. x * y = 1hr";
 by (auto_tac (claset() addIs [hypreal_mult_hrinv],simpset()));
 by (dres_inst_tac [("f","%x. ya*x")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_mult_assoc RS sym]) 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_mult_commute]) 1);
 qed "hypreal_hrinv_ex1";
 
-Goal "x ~= 0hr ==> ?! y. y * (x::hypreal) = 1hr";
+Goal "x ~= 0 ==> EX! y. y * x = 1hr";
 by (auto_tac (claset() addIs [hypreal_mult_hrinv_left],simpset()));
 by (dres_inst_tac [("f","%x. x*ya")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_mult_assoc]) 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_mult_commute]) 1);
 qed "hypreal_hrinv_left_ex1";
 
-Goal "[| y~= 0hr; x * y = 1hr |]  ==> x = hrinv y";
+Goal "[| y~= 0; x * y = 1hr |]  ==> x = hrinv y";
 by (forw_inst_tac [("x","y")] hypreal_mult_hrinv_left 1);
 by (res_inst_tac [("x1","y")] (hypreal_hrinv_left_ex1 RS ex1E) 1);
 by (assume_tac 1);
 by (Blast_tac 1);
 qed "hypreal_mult_inv_hrinv";
 
-Goal "x ~= 0hr ==> ? y. x = hrinv y";
+Goal "x ~= 0 ==> EX y. x = hrinv y";
 by (forw_inst_tac [("x","x")] hypreal_hrinv_left_ex 1);
 by (etac exE 1 THEN 
     forw_inst_tac [("x","y")] hypreal_mult_inv_hrinv 1);
@@ -700,19 +695,19 @@ by (res_inst_tac [("x","y")] exI 2);
 by Auto_tac;
 qed "hypreal_as_inverse_ex";
 
-Goal "(c::hypreal) ~= 0hr ==> (c*a=c*b) = (a=b)";
+Goal "(c::hypreal) ~= 0 ==> (c*a=c*b) = (a=b)";
 by Auto_tac;
 by (dres_inst_tac [("f","%x. x*hrinv c")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_mult_hrinv] @ hypreal_mult_ac)  1);
 qed "hypreal_mult_left_cancel";
     
-Goal "(c::hypreal) ~= 0hr ==> (a*c=b*c) = (a=b)";
+Goal "(c::hypreal) ~= 0 ==> (a*c=b*c) = (a=b)";
 by (Step_tac 1);
 by (dres_inst_tac [("f","%x. x*hrinv c")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_mult_hrinv] @ hypreal_mult_ac)  1);
 qed "hypreal_mult_right_cancel";
 
-Goalw [hypreal_zero_def] "x ~= 0hr ==> hrinv(x) ~= 0hr";
+Goalw [hypreal_zero_def] "x ~= 0 ==> hrinv(x) ~= 0";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (rotate_tac 1 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_hrinv,
@@ -724,7 +719,7 @@ qed "hrinv_not_zero";
 
 Addsimps [hypreal_mult_hrinv,hypreal_mult_hrinv_left];
 
-Goal "[| x ~= 0hr; y ~= 0hr |] ==> x * y ~= 0hr";
+Goal "[| x ~= 0; y ~= 0 |] ==> x * y ~= (0::hypreal)";
 by (Step_tac 1);
 by (dres_inst_tac [("f","%z. hrinv x*z")] arg_cong 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_mult_assoc RS sym]) 1);
@@ -732,11 +727,11 @@ qed "hypreal_mult_not_0";
 
 bind_thm ("hypreal_mult_not_0E",hypreal_mult_not_0 RS notE);
 
-Goal "x ~= 0hr ==> x * x ~= 0hr";
+Goal "x ~= 0 ==> x * x ~= (0::hypreal)";
 by (blast_tac (claset() addDs [hypreal_mult_not_0]) 1);
 qed "hypreal_mult_self_not_zero";
 
-Goal "[| x ~= 0hr; y ~= 0hr |] ==> hrinv(x*y) = hrinv(x)*hrinv(y)";
+Goal "[| x ~= 0; y ~= 0 |] ==> hrinv(x*y) = hrinv(x)*hrinv(y)";
 by (res_inst_tac [("c1","x")] (hypreal_mult_left_cancel RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_mult_assoc RS sym,
     hypreal_mult_not_0]));
@@ -745,12 +740,13 @@ by (auto_tac (claset(),simpset() addsimps [hypreal_mult_not_0] @ hypreal_mult_ac
 by (auto_tac (claset(),simpset() addsimps [hypreal_mult_assoc RS sym,hypreal_mult_not_0]));
 qed "hrinv_mult_eq";
 
-Goal "x ~= 0hr ==> hrinv(-x) = -hrinv(x)";
-by (res_inst_tac [("c1","-x")] (hypreal_mult_right_cancel RS iffD1) 1);
+Goal "x ~= 0 ==> hrinv(-x) = -hrinv(x)";
+by (rtac (hypreal_mult_right_cancel RS iffD1) 1);
+by (stac hypreal_mult_hrinv_left 2);
 by Auto_tac;
 qed "hypreal_minus_hrinv";
 
-Goal "[| x ~= 0hr; y ~= 0hr |] \
+Goal "[| x ~= 0; y ~= 0 |] \
 \     ==> hrinv(x*y) = hrinv(x)*hrinv(y)";
 by (forw_inst_tac [("y","y")] hypreal_mult_not_0 1 THEN assume_tac 1);
 by (res_inst_tac [("c1","x")] (hypreal_mult_left_cancel RS iffD1) 1);
@@ -844,7 +840,7 @@ qed "hypreal_less";
 (*** sum order ***)
 
 Goalw [hypreal_zero_def] 
-      "[| 0hr < x; 0hr < y |] ==> 0hr < x + y";
+      "[| 0 < x; 0 < y |] ==> (0::hypreal) < x + y";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps
@@ -857,7 +853,7 @@ qed "hypreal_add_order";
 (*** mult order ***)
 
 Goalw [hypreal_zero_def] 
-          "[| 0hr < x; 0hr < y |] ==> 0hr < x * y";
+          "[| 0 < x; 0 < y |] ==> (0::hypreal) < x * y";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSIs [exI],simpset() addsimps
@@ -870,13 +866,13 @@ qed "hypreal_mult_order";
                          Trichotomy of the hyperreals
   --------------------------------------------------------------------------------*)
 
-Goalw [hyprel_def] "? x. x: hyprel ^^ {%n. #0}";
+Goalw [hyprel_def] "EX x. x: hyprel ^^ {%n. #0}";
 by (res_inst_tac [("x","%n. #0")] exI 1);
 by (Step_tac 1);
 by (auto_tac (claset() addSIs [FreeUltrafilterNat_Nat_set],simpset()));
 qed "lemma_hyprel_0r_mem";
 
-Goalw [hypreal_zero_def]"0hr <  x | x = 0hr | x < 0hr";
+Goalw [hypreal_zero_def]"0 <  x | x = 0 | x < (0::hypreal)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_less_def]));
 by (cut_facts_tac [lemma_hyprel_0r_mem] 1 THEN etac exE 1);
@@ -891,9 +887,9 @@ by (Ultra_tac 1);
 by (auto_tac (claset() addIs [real_linear_less2],simpset()));
 qed "hypreal_trichotomy";
 
-val prems = Goal "[| 0hr < x ==> P; \
-\                 x = 0hr ==> P; \
-\                 x < 0hr ==> P |] ==> P";
+val prems = Goal "[| (0::hypreal) < x ==> P; \
+\                 x = 0 ==> P; \
+\                 x < 0 ==> P |] ==> P";
 by (cut_inst_tac [("x","x")] hypreal_trichotomy 1);
 by (REPEAT (eresolve_tac (disjE::prems) 1));
 qed "hypreal_trichotomyE";
@@ -915,14 +911,14 @@ by (auto_tac (claset() addIs [hypreal_add_less_mono1],
     simpset() addsimps [hypreal_add_commute]));
 qed "hypreal_add_less_mono2";
 
-Goal "((x::hypreal) < y) = (0hr < y + -x)";
+Goal "((x::hypreal) < y) = (0 < y + -x)";
 by (Step_tac 1);
 by (dres_inst_tac [("C","-x")] hypreal_add_less_mono1 1);
 by (dres_inst_tac [("C","x")] hypreal_add_less_mono1 2);
 by (auto_tac (claset(),simpset() addsimps [hypreal_add_assoc]));
 qed "hypreal_less_minus_iff"; 
 
-Goal "((x::hypreal) < y) = (x + -y< 0hr)";
+Goal "((x::hypreal) < y) = (x + -y< 0)";
 by (Step_tac 1);
 by (dres_inst_tac [("C","-y")] hypreal_add_less_mono1 1);
 by (dres_inst_tac [("C","y")] hypreal_add_less_mono1 2);
@@ -933,19 +929,19 @@ Goal  "!!(y1 :: hypreal). [| z1 < y1; z2 < y2 |] ==> z1 + z2 < y1 + y2";
 by (dtac (hypreal_less_minus_iff RS iffD1) 1);
 by (dtac (hypreal_less_minus_iff RS iffD1) 1);
 by (dtac hypreal_add_order 1 THEN assume_tac 1);
-by (thin_tac "0hr < y2 + - z2" 1);
+by (thin_tac "0 < y2 + - z2" 1);
 by (dres_inst_tac [("C","z1 + z2")] hypreal_add_less_mono1 1);
 by (auto_tac (claset(),simpset() addsimps 
     [hypreal_minus_add_distrib RS sym] @ hypreal_add_ac));
 qed "hypreal_add_less_mono";
 
-Goal "((x::hypreal) = y) = (0hr = x + - y)";
+Goal "((x::hypreal) = y) = (0 = x + - y)";
 by Auto_tac;
 by (res_inst_tac [("x1","-y")] (hypreal_add_right_cancel RS iffD1) 1);
 by Auto_tac;
 qed "hypreal_eq_minus_iff"; 
 
-Goal "((x::hypreal) = y) = (0hr = y + - x)";
+Goal "((x::hypreal) = y) = (0 = y + - x)";
 by Auto_tac;
 by (res_inst_tac [("x1","-x")] (hypreal_add_right_cancel RS iffD1) 1);
 by Auto_tac;
@@ -959,7 +955,7 @@ Goal "(x = z + y) = (x + -z = (y::hypreal))";
 by (auto_tac (claset(),simpset() addsimps hypreal_add_ac));
 qed "hypreal_eq_minus_iff4";
 
-Goal "(x ~= a) = (x + -a ~= 0hr)";
+Goal "(x ~= a) = (x + -a ~= (0::hypreal))";
 by (auto_tac (claset() addDs [sym RS 
     (hypreal_eq_minus_iff RS iffD2)],simpset())); 
 qed "hypreal_not_eq_minus_iff";
@@ -1057,7 +1053,7 @@ by (EVERY1 [dtac hypreal_le_imp_less_or_eq, dtac hypreal_le_imp_less_or_eq,
             fast_tac (claset() addEs [hypreal_less_irrefl,hypreal_less_asym])]);
 qed "hypreal_le_anti_sym";
 
-Goal "[| 0hr < x; 0hr <= y |] ==> 0hr < x + y";
+Goal "[| 0 < x; 0 <= y |] ==> (0::hypreal) < x + y";
 by (auto_tac (claset() addDs [sym,hypreal_le_imp_less_or_eq]
               addIs [hypreal_add_order],simpset()));
 qed "hypreal_add_order_le";            
@@ -1070,14 +1066,14 @@ by (rtac not_hypreal_leE 1);
 by (fast_tac (claset() addDs [hypreal_le_imp_less_or_eq]) 1);
 qed "not_less_not_eq_hypreal_less";
 
-Goal "(0hr < -R) = (R < 0hr)";
+Goal "(0 < -R) = (R < (0::hypreal))";
 by (Step_tac 1);
 by (dres_inst_tac [("C","R")] hypreal_add_less_mono1 1);
 by (dres_inst_tac [("C","-R")] hypreal_add_less_mono1 2);
 by (auto_tac (claset(),simpset() addsimps [hypreal_add_assoc]));
 qed "hypreal_minus_zero_less_iff";
 
-Goal "(-R < 0hr) = (0hr < R)";
+Goal "(-R < 0) = ((0::hypreal) < R)";
 by (Step_tac 1);
 by (dres_inst_tac [("C","R")] hypreal_add_less_mono1 1);
 by (dres_inst_tac [("C","-R")] hypreal_add_less_mono1 2);
@@ -1090,7 +1086,7 @@ by (res_inst_tac [("x1","x")] (hypreal_less_minus_iff RS ssubst) 1);
 by (simp_tac (simpset() addsimps [hypreal_add_commute]) 1);
 qed "hypreal_less_swap_iff";
 
-Goal "(0hr < x) = (-x < x)";
+Goal "((0::hypreal) < x) = (-x < x)";
 by (Step_tac 1);
 by (rtac ccontr 2 THEN forward_tac 
     [hypreal_leI RS hypreal_le_imp_less_or_eq] 2);
@@ -1103,33 +1099,33 @@ by (dres_inst_tac [("C","-x"),("B","x + x")] hypreal_add_less_mono1 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_add_assoc]));
 qed "hypreal_gt_zero_iff";
 
-Goal "(x < 0hr) = (x < -x)";
+Goal "(x < (0::hypreal)) = (x < -x)";
 by (rtac (hypreal_minus_zero_less_iff RS subst) 1);
 by (stac hypreal_gt_zero_iff 1);
 by (Full_simp_tac 1);
 qed "hypreal_lt_zero_iff";
 
-Goalw [hypreal_le_def] "(0hr <= x) = (-x <= x)";
+Goalw [hypreal_le_def] "((0::hypreal) <= x) = (-x <= x)";
 by (auto_tac (claset(),simpset() addsimps [hypreal_lt_zero_iff RS sym]));
 qed "hypreal_ge_zero_iff";
 
-Goalw [hypreal_le_def] "(x <= 0hr) = (x <= -x)";
+Goalw [hypreal_le_def] "(x <= (0::hypreal)) = (x <= -x)";
 by (auto_tac (claset(),simpset() addsimps [hypreal_gt_zero_iff RS sym]));
 qed "hypreal_le_zero_iff";
 
-Goal "[| x < 0hr; y < 0hr |] ==> 0hr < x * y";
+Goal "[| x < 0; y < 0 |] ==> (0::hypreal) < x * y";
 by (REPEAT(dtac (hypreal_minus_zero_less_iff RS iffD2) 1));
 by (dtac hypreal_mult_order 1 THEN assume_tac 1);
 by (Asm_full_simp_tac 1);
 qed "hypreal_mult_less_zero1";
 
-Goal "[| 0hr <= x; 0hr <= y |] ==> 0hr <= x * y";
+Goal "[| 0 <= x; 0 <= y |] ==> (0::hypreal) <= x * y";
 by (REPEAT(dtac hypreal_le_imp_less_or_eq 1));
 by (auto_tac (claset() addIs [hypreal_mult_order,
     hypreal_less_imp_le],simpset()));
 qed "hypreal_le_mult_order";
 
-Goal "[| x <= 0hr; y <= 0hr |] ==> 0hr <= x * y";
+Goal "[| x <= 0; y <= 0 |] ==> (0::hypreal) <= x * y";
 by (rtac hypreal_less_or_eq_imp_le 1);
 by (dtac hypreal_le_imp_less_or_eq 1 THEN etac disjE 1);
 by Auto_tac;
@@ -1137,7 +1133,7 @@ by (dtac hypreal_le_imp_less_or_eq 1);
 by (auto_tac (claset() addDs [hypreal_mult_less_zero1],simpset()));
 qed "real_mult_le_zero1";
 
-Goal "[| 0hr <= x; y < 0hr |] ==> x * y <= 0hr";
+Goal "[| 0 <= x; y < 0 |] ==> x * y <= (0::hypreal)";
 by (rtac hypreal_less_or_eq_imp_le 1);
 by (dtac hypreal_le_imp_less_or_eq 1 THEN etac disjE 1);
 by Auto_tac;
@@ -1147,21 +1143,21 @@ by (blast_tac (claset() addDs [hypreal_mult_order]
     addIs [hypreal_minus_mult_eq2 RS ssubst]) 1);
 qed "hypreal_mult_le_zero";
 
-Goal "[| 0hr < x; y < 0hr |] ==> x*y < 0hr";
+Goal "[| 0 < x; y < 0 |] ==> x*y < (0::hypreal)";
 by (dtac (hypreal_minus_zero_less_iff RS iffD2) 1);
 by (dtac hypreal_mult_order 1 THEN assume_tac 1);
 by (rtac (hypreal_minus_zero_less_iff RS iffD1) 1);
-by (asm_full_simp_tac (simpset() addsimps [hypreal_minus_mult_eq2]) 1);
+by (Asm_full_simp_tac 1);
 qed "hypreal_mult_less_zero";
 
-Goalw [hypreal_one_def,hypreal_zero_def,hypreal_less_def] "0hr < 1hr";
+Goalw [hypreal_one_def,hypreal_zero_def,hypreal_less_def] "0 < 1hr";
 by (res_inst_tac [("x","%n. #0")] exI 1);
 by (res_inst_tac [("x","%n. #1")] exI 1);
 by (auto_tac (claset(),simpset() addsimps [real_zero_less_one,
     FreeUltrafilterNat_Nat_set]));
 qed "hypreal_zero_less_one";
 
-Goal "[| 0hr <= x; 0hr <= y |] ==> 0hr <= x + y";
+Goal "[| 0 <= x; 0 <= y |] ==> (0::hypreal) <= x + y";
 by (REPEAT(dtac hypreal_le_imp_less_or_eq 1));
 by (auto_tac (claset() addIs [hypreal_add_order,
     hypreal_less_imp_le],simpset()));
@@ -1197,70 +1193,70 @@ by (auto_tac (claset() addSDs [hypreal_le_imp_less_or_eq]
     addIs [hypreal_add_less_mono2,hypreal_add_less_mono],simpset()));
 qed "hypreal_add_le_less_mono";
 
-Goal "(0hr*x<r)=(0hr<r)";
+Goal "(0*x<r)=((0::hypreal)<r)";
 by (Simp_tac 1);
 qed "hypreal_mult_0_less";
 
-Goal "[| 0hr < z; x < y |] ==> x*z < y*z";       
+Goal "[| (0::hypreal) < z; x < y |] ==> x*z < y*z";       
 by (rotate_tac 1 1);
 by (dtac (hypreal_less_minus_iff RS iffD1) 1);
 by (rtac (hypreal_less_minus_iff RS iffD2) 1);
 by (dtac hypreal_mult_order 1 THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_add_mult_distrib2,
-    hypreal_minus_mult_eq2 RS sym, hypreal_mult_commute ]) 1);
+					   hypreal_mult_commute ]) 1);
 qed "hypreal_mult_less_mono1";
 
-Goal "[| 0hr<z; x<y |] ==> z*x<z*y";       
+Goal "[| (0::hypreal)<z; x<y |] ==> z*x<z*y";       
 by (asm_simp_tac (simpset() addsimps [hypreal_mult_commute,hypreal_mult_less_mono1]) 1);
 qed "hypreal_mult_less_mono2";
 
-Goal "[| 0hr<=z; x<y |] ==> x*z<=y*z";
+Goal "[| (0::hypreal)<=z; x<y |] ==> x*z<=y*z";
 by (EVERY1 [rtac hypreal_less_or_eq_imp_le, dtac hypreal_le_imp_less_or_eq]);
 by (auto_tac (claset() addIs [hypreal_mult_less_mono1],simpset()));
 qed "hypreal_mult_le_less_mono1";
 
-Goal "[| 0hr<=z; x<y |] ==> z*x<=z*y";
+Goal "[| (0::hypreal)<=z; x<y |] ==> z*x<=z*y";
 by (asm_simp_tac (simpset() addsimps [hypreal_mult_commute,
 				      hypreal_mult_le_less_mono1]) 1);
 qed "hypreal_mult_le_less_mono2";
 
-Goal "[| 0hr<=z; x<=y |] ==> z*x<=z*y";
+Goal "[| (0::hypreal)<=z; x<=y |] ==> z*x<=z*y";
 by (dres_inst_tac [("x","x")] hypreal_le_imp_less_or_eq 1);
 by (auto_tac (claset() addIs [hypreal_mult_le_less_mono2,hypreal_le_refl],simpset()));
 qed "hypreal_mult_le_le_mono1";
 
 val prem1::prem2::prem3::rest = goal thy
-     "[| 0hr<y; x<r; y*r<t*s |] ==> y*x<t*s";
+     "[| (0::hypreal)<y; x<r; y*r<t*s |] ==> y*x<t*s";
 by (rtac ([([prem1,prem2] MRS hypreal_mult_less_mono2),prem3] MRS hypreal_less_trans) 1);
 qed "hypreal_mult_less_trans";
 
-Goal "[| 0hr<=y; x<r; y*r<t*s; 0hr<t*s|] ==> y*x<t*s";
+Goal "[| 0<=y; x<r; y*r<t*s; (0::hypreal)<t*s|] ==> y*x<t*s";
 by (dtac hypreal_le_imp_less_or_eq 1);
 by (fast_tac (HOL_cs addEs [(hypreal_mult_0_less RS iffD2),hypreal_mult_less_trans]) 1);
 qed "hypreal_mult_le_less_trans";
 
-Goal "[| 0hr <= y; x <= r; y*r < t*s; 0hr < t*s|] ==> y*x < t*s";
+Goal "[| 0 <= y; x <= r; y*r < t*s; (0::hypreal) < t*s|] ==> y*x < t*s";
 by (dres_inst_tac [("x","x")] hypreal_le_imp_less_or_eq 1);
 by (fast_tac (claset() addIs [hypreal_mult_le_less_trans]) 1);
 qed "hypreal_mult_le_le_trans";
 
-Goal "[| 0hr < r1; r1 <r2; 0hr < x; x < y|] \
+Goal "[| 0 < r1; r1 <r2; (0::hypreal) < x; x < y|] \
 \                     ==> r1 * x < r2 * y";
 by (dres_inst_tac [("x","x")] hypreal_mult_less_mono2 1);
-by (dres_inst_tac [("R1.0","0hr")] hypreal_less_trans 2);
+by (dres_inst_tac [("R1.0","0")] hypreal_less_trans 2);
 by (dres_inst_tac [("x","r1")] hypreal_mult_less_mono1 3);
 by Auto_tac;
 by (blast_tac (claset() addIs [hypreal_less_trans]) 1);
 qed "hypreal_mult_less_mono";
 
-Goal "[| 0hr < r1; r1 <r2; 0hr < y|] \
-\                           ==> 0hr < r2 * y";
-by (dres_inst_tac [("R1.0","0hr")] hypreal_less_trans 1);
+Goal "[| 0 < r1; r1 <r2; 0 < y|] \
+\                           ==> (0::hypreal) < r2 * y";
+by (dres_inst_tac [("R1.0","0")] hypreal_less_trans 1);
 by (assume_tac 1);
 by (blast_tac (claset() addIs [hypreal_mult_order]) 1);
 qed "hypreal_mult_order_trans";
 
-Goal "[| 0hr < r1; r1 <= r2; 0hr <= x; x <= y |] \
+Goal "[| 0 < r1; r1 <= r2; (0::hypreal) <= x; x <= y |] \
 \                  ==> r1 * x <= r2 * y";
 by (rtac hypreal_less_or_eq_imp_le 1);
 by (REPEAT(dtac hypreal_le_imp_less_or_eq 1));
@@ -1307,7 +1303,7 @@ Goalw [hypreal_of_real_def] "hypreal_of_real (-r) = - hypreal_of_real  r";
 by (auto_tac (claset(),simpset() addsimps [hypreal_minus]));
 qed "hypreal_of_real_minus";
 
-Goal "0hr < x ==> 0hr < hrinv x";
+Goal "0 < x ==> 0 < hrinv x";
 by (EVERY1[rtac ccontr, dtac hypreal_leI]);
 by (forward_tac [hypreal_minus_zero_less_iff2 RS iffD2] 1);
 by (forward_tac [hypreal_not_refl2 RS not_sym] 1);
@@ -1315,11 +1311,10 @@ by (dtac (hypreal_not_refl2 RS not_sym RS hrinv_not_zero) 1);
 by (EVERY1[dtac hypreal_le_imp_less_or_eq, Step_tac]); 
 by (dtac hypreal_mult_less_zero1 1 THEN assume_tac 1);
 by (auto_tac (claset() addIs [hypreal_zero_less_one RS hypreal_less_asym],
-    simpset() addsimps [hypreal_minus_mult_eq1 RS sym,
-     hypreal_minus_zero_less_iff]));
+    simpset() addsimps [hypreal_minus_zero_less_iff]));
 qed "hypreal_hrinv_gt_zero";
 
-Goal "x < 0hr ==> hrinv x < 0hr";
+Goal "x < 0 ==> hrinv x < 0";
 by (ftac hypreal_not_refl2 1);
 by (dtac (hypreal_minus_zero_less_iff RS iffD2) 1);
 by (rtac (hypreal_minus_zero_less_iff RS iffD1) 1);
@@ -1332,17 +1327,17 @@ Goalw [hypreal_of_real_def,hypreal_one_def] "hypreal_of_real  #1 = 1hr";
 by (Step_tac 1);
 qed "hypreal_of_real_one";
 
-Goalw [hypreal_of_real_def,hypreal_zero_def] "hypreal_of_real  #0 = 0hr";
+Goalw [hypreal_of_real_def,hypreal_zero_def] "hypreal_of_real  #0 = 0";
 by (Step_tac 1);
 qed "hypreal_of_real_zero";
 
-Goal "(hypreal_of_real  r = 0hr) = (r = #0)";
+Goal "(hypreal_of_real  r = 0) = (r = #0)";
 by (auto_tac (claset() addIs [FreeUltrafilterNat_P],
     simpset() addsimps [hypreal_of_real_def,
     hypreal_zero_def,FreeUltrafilterNat_Nat_set]));
 qed "hypreal_of_real_zero_iff";
 
-Goal "(hypreal_of_real  r ~= 0hr) = (r ~= #0)";
+Goal "(hypreal_of_real  r ~= 0) = (r ~= #0)";
 by (full_simp_tac (simpset() addsimps [hypreal_of_real_zero_iff]) 1);
 qed "hypreal_of_real_not_zero_iff";
 
@@ -1354,7 +1349,7 @@ by (forward_tac [hypreal_of_real_not_zero_iff RS iffD2] 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_of_real_mult RS sym,hypreal_of_real_one]));
 qed "hypreal_of_real_hrinv";
 
-Goal "hypreal_of_real r ~= 0hr ==> hrinv (hypreal_of_real r) = \
+Goal "hypreal_of_real r ~= 0 ==> hrinv (hypreal_of_real r) = \
 \          hypreal_of_real (rinv r)";
 by (etac (hypreal_of_real_not_zero_iff RS iffD1 RS hypreal_of_real_hrinv) 1);
 qed "hypreal_of_real_hrinv2";
@@ -1369,12 +1364,12 @@ by (full_simp_tac (simpset() addsimps [hypreal_zero_less_one,
     hypreal_add_assoc]) 1);
 qed "hypreal_one_less_two";
 
-Goal "0hr < 1hr + 1hr";
+Goal "0 < 1hr + 1hr";
 by (rtac ([hypreal_zero_less_one,
           hypreal_one_less_two] MRS hypreal_less_trans) 1);
 qed "hypreal_zero_less_two";
 
-Goal "1hr + 1hr ~= 0hr";
+Goal "1hr + 1hr ~= 0";
 by (rtac (hypreal_zero_less_two RS hypreal_not_refl2 RS not_sym) 1);
 qed "hypreal_two_not_zero";
 Addsimps [hypreal_two_not_zero];
@@ -1384,18 +1379,18 @@ by (stac hypreal_add_self 1);
 by (full_simp_tac (simpset() addsimps [hypreal_mult_assoc]) 1);
 qed "hypreal_sum_of_halves";
 
-Goal "z ~= 0hr ==> x*y = (x*hrinv(z))*(z*y)";
+Goal "z ~= 0 ==> x*y = (x*hrinv(z))*(z*y)";
 by (asm_simp_tac (simpset() addsimps hypreal_mult_ac)  1);
 qed "lemma_chain";
 
-Goal "0hr < r ==> 0hr < r*hrinv(1hr+1hr)";
+Goal "0 < r ==> 0 < r*hrinv(1hr+1hr)";
 by (dtac (hypreal_zero_less_two RS hypreal_hrinv_gt_zero 
           RS hypreal_mult_less_mono1) 1);
 by Auto_tac;
 qed "hypreal_half_gt_zero";
 
-(* TODO: remove redundant  0hr < x *)
-Goal "[| 0hr < r; 0hr < x; r < x |] ==> hrinv x < hrinv r";
+(* TODO: remove redundant  0 < x *)
+Goal "[| 0 < r; 0 < x; r < x |] ==> hrinv x < hrinv r";
 by (ftac hypreal_hrinv_gt_zero 1);
 by (forw_inst_tac [("x","x")] hypreal_hrinv_gt_zero 1);
 by (forw_inst_tac [("x","r"),("z","hrinv r")] hypreal_mult_less_mono1 1);
@@ -1409,7 +1404,7 @@ by (asm_full_simp_tac (simpset() addsimps [hypreal_not_refl2 RS
          not_sym RS hypreal_mult_hrinv_left,hypreal_mult_assoc RS sym]) 1);
 qed "hypreal_hrinv_less_swap";
 
-Goal "[| 0hr < r; 0hr < x|] ==> (r < x) = (hrinv x < hrinv r)";
+Goal "[| 0 < r; 0 < x|] ==> (r < x) = (hrinv x < hrinv r)";
 by (auto_tac (claset() addIs [hypreal_hrinv_less_swap],simpset()));
 by (res_inst_tac [("t","r")] (hypreal_hrinv_hrinv RS subst) 1);
 by (etac (hypreal_not_refl2 RS not_sym) 1);
@@ -1419,29 +1414,29 @@ by (auto_tac (claset() addIs [hypreal_hrinv_less_swap],
     simpset() addsimps [hypreal_hrinv_gt_zero]));
 qed "hypreal_hrinv_less_iff";
 
-Goal "[| 0hr < z; x < y |] ==> x*hrinv(z) < y*hrinv(z)";
+Goal "[| 0 < z; x < y |] ==> x*hrinv(z) < y*hrinv(z)";
 by (blast_tac (claset() addSIs [hypreal_mult_less_mono1,
     hypreal_hrinv_gt_zero]) 1);
 qed "hypreal_mult_hrinv_less_mono1";
 
-Goal "[| 0hr < z; x < y |] ==> hrinv(z)*x < hrinv(z)*y";
+Goal "[| 0 < z; x < y |] ==> hrinv(z)*x < hrinv(z)*y";
 by (blast_tac (claset() addSIs [hypreal_mult_less_mono2,
     hypreal_hrinv_gt_zero]) 1);
 qed "hypreal_mult_hrinv_less_mono2";
 
-Goal "[| 0hr < z; x*z < y*z |] ==> x < y";
+Goal "[| (0::hypreal) < z; x*z < y*z |] ==> x < y";
 by (forw_inst_tac [("x","x*z")] hypreal_mult_hrinv_less_mono1 1);
 by (dtac (hypreal_not_refl2 RS not_sym) 2);
 by (auto_tac (claset() addSDs [hypreal_mult_hrinv],
               simpset() addsimps hypreal_mult_ac));
 qed "hypreal_less_mult_right_cancel";
 
-Goal "[| 0hr < z; z*x < z*y |] ==> x < y";
+Goal "[| (0::hypreal) < z; z*x < z*y |] ==> x < y";
 by (auto_tac (claset() addIs [hypreal_less_mult_right_cancel],
     simpset() addsimps [hypreal_mult_commute]));
 qed "hypreal_less_mult_left_cancel";
 
-Goal "[| 0hr < r; 0hr < ra; \
+Goal "[| 0 < r; (0::hypreal) < ra; \
 \                 r < x; ra < y |] \
 \              ==> r*ra < x*y";
 by (forw_inst_tac [("R2.0","r")] hypreal_less_trans 1);
@@ -1450,7 +1445,7 @@ by (dres_inst_tac [("z","x"),("x","ra")] hypreal_mult_less_mono2 3);
 by (auto_tac (claset() addIs [hypreal_less_trans],simpset()));
 qed "hypreal_mult_less_gt_zero"; 
 
-Goal "[| 0hr < r; 0hr < ra; \
+Goal "[| 0 < r; (0::hypreal) < ra; \
 \                 r <= x; ra <= y |] \
 \              ==> r*ra <= x*y";
 by (REPEAT(dtac hypreal_le_imp_less_or_eq 1));
@@ -1460,7 +1455,7 @@ by (auto_tac (claset() addIs [hypreal_mult_less_mono1,
     simpset()));
 qed "hypreal_mult_le_ge_zero"; 
 
-Goal "? (x::hypreal). x < y";
+Goal "EX (x::hypreal). x < y";
 by (rtac (hypreal_add_zero_right RS subst) 1);
 by (res_inst_tac [("x","y + -1hr")] exI 1);
 by (auto_tac (claset() addSIs [hypreal_add_less_mono2],
@@ -1478,22 +1473,22 @@ by (dres_inst_tac [("C","-C")] hypreal_add_less_mono2 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_add_assoc RS sym]) 1);
 qed "hypreal_less_add_left_cancel";
 
-Goal "0hr <= x*x";
-by (res_inst_tac [("x","0hr"),("y","x")] hypreal_linear_less2 1);
+Goal "(0::hypreal) <= x*x";
+by (res_inst_tac [("x","0"),("y","x")] hypreal_linear_less2 1);
 by (auto_tac (claset() addIs [hypreal_mult_order,
     hypreal_mult_less_zero1,hypreal_less_imp_le],
     simpset()));
 qed "hypreal_le_square";
 Addsimps [hypreal_le_square];
 
-Goalw [hypreal_le_def] "- (x*x) <= 0hr";
+Goalw [hypreal_le_def] "- (x*x) <= (0::hypreal)";
 by (auto_tac (claset() addSDs [(hypreal_le_square RS 
     hypreal_le_less_trans)],simpset() addsimps 
     [hypreal_minus_zero_less_iff,hypreal_less_not_refl]));
 qed "hypreal_less_minus_square";
 Addsimps [hypreal_less_minus_square];
 
-Goal "[|x ~= 0hr; y ~= 0hr |] ==> \
+Goal "[|x ~= 0; y ~= 0 |] ==> \
 \                   hrinv(x) + hrinv(y) = (x + y)*hrinv(x*y)";
 by (asm_full_simp_tac (simpset() addsimps [hypreal_hrinv_distrib,
              hypreal_add_mult_distrib,hypreal_mult_assoc RS sym]) 1);
@@ -1502,7 +1497,7 @@ by (rtac (hypreal_mult_left_commute RS subst) 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_add_commute]) 1);
 qed "hypreal_hrinv_add";
 
-Goal "x = -x ==> x = 0hr";
+Goal "x = -x ==> x = (0::hypreal)";
 by (dtac (hypreal_eq_minus_iff RS iffD1 RS sym) 1);
 by (Asm_full_simp_tac 1);
 by (dtac (hypreal_add_self RS subst) 1);
@@ -1511,7 +1506,7 @@ by (blast_tac (claset() addDs [hypreal_two_not_zero RSN
                (2,hypreal_mult_not_0)]) 1);
 qed "hypreal_self_eq_minus_self_zero";
 
-Goal "(x + x = 0hr) = (x = 0hr)";
+Goal "(x + x = 0) = (x = (0::hypreal))";
 by Auto_tac;
 by (dtac (hypreal_add_self RS subst) 1);
 by (rtac ccontr 1 THEN rtac hypreal_mult_not_0E 1);
@@ -1519,14 +1514,14 @@ by Auto_tac;
 qed "hypreal_add_self_zero_cancel";
 Addsimps [hypreal_add_self_zero_cancel];
 
-Goal "(x + x + y = y) = (x = 0hr)";
+Goal "(x + x + y = y) = (x = (0::hypreal))";
 by Auto_tac;
 by (dtac (hypreal_eq_minus_iff RS iffD1) 1 THEN dtac sym 1);
 by (auto_tac (claset(),simpset() addsimps [hypreal_add_assoc]));
 qed "hypreal_add_self_zero_cancel2";
 Addsimps [hypreal_add_self_zero_cancel2];
 
-Goal "(x + (x + y) = y) = (x = 0hr)";
+Goal "(x + (x + y) = y) = (x = (0::hypreal))";
 by (simp_tac (simpset() addsimps [hypreal_add_assoc RS sym]) 1);
 qed "hypreal_add_self_zero_cancel2a";
 Addsimps [hypreal_add_self_zero_cancel2a];
@@ -1607,18 +1602,18 @@ by (blast_tac (claset() addSIs [hypreal_less_half_sum,
     hypreal_gt_half_sum]) 1);
 qed "hypreal_dense";
 
-Goal "(x * x = 0hr) = (x = 0hr)";
+Goal "(x * x = 0) = (x = (0::hypreal))";
 by Auto_tac;
 by (blast_tac (claset() addIs [hypreal_mult_not_0E]) 1);
 qed "hypreal_mult_self_eq_zero_iff";
 Addsimps [hypreal_mult_self_eq_zero_iff];
 
-Goal "(0hr = x * x) = (x = 0hr)";
+Goal "(0 = x * x) = (x = (0::hypreal))";
 by (auto_tac (claset() addDs [sym],simpset()));
 qed "hypreal_mult_self_eq_zero_iff2";
 Addsimps [hypreal_mult_self_eq_zero_iff2];
 
-Goal "(x*x + y*y = 0hr) = (x = 0hr & y = 0hr)";
+Goal "(x*x + y*y = 0) = (x = 0 & y = (0::hypreal))";
 by Auto_tac;
 by (dtac (sym RS (hypreal_eq_minus_iff3 RS iffD1))  1);
 by (dtac (sym RS (hypreal_eq_minus_iff4 RS iffD1))  2);
@@ -1638,25 +1633,24 @@ by (auto_tac (claset(),simpset() addsimps
 qed "hypreal_squares_add_zero_iff";
 Addsimps [hypreal_squares_add_zero_iff];
 
-Goal "x * x ~= 0hr ==> 0hr < x* x + y*y + z*z";
+Goal "x * x ~= 0 ==> (0::hypreal) < x* x + y*y + z*z";
 by (cut_inst_tac [("x1","x")] (hypreal_le_square 
         RS hypreal_le_imp_less_or_eq) 1);
 by (auto_tac (claset() addSIs 
               [hypreal_add_order_le],simpset()));
 qed "hypreal_sum_squares3_gt_zero";
 
-Goal "x * x ~= 0hr ==> 0hr < y*y + x*x + z*z";
+Goal "x * x ~= 0 ==> (0::hypreal) < y*y + x*x + z*z";
 by (dtac hypreal_sum_squares3_gt_zero 1);
 by (auto_tac (claset(),simpset() addsimps hypreal_add_ac));
 qed "hypreal_sum_squares3_gt_zero2";
 
-Goal "x * x ~= 0hr ==> 0hr < y*y + z*z + x*x";
+Goal "x * x ~= 0 ==> (0::hypreal) < y*y + z*z + x*x";
 by (dtac hypreal_sum_squares3_gt_zero 1);
 by (auto_tac (claset(),simpset() addsimps hypreal_add_ac));
 qed "hypreal_sum_squares3_gt_zero3";
 
-Goal "(x*x + y*y + z*z = 0hr) = \ 
-\               (x = 0hr & y = 0hr & z = 0hr)";
+Goal "(x*x + y*y + z*z = 0) = (x = 0 & y = 0 & z = (0::hypreal))";
 by Auto_tac;
 by (ALLGOALS(rtac ccontr));
 by (ALLGOALS(dtac hypreal_mult_self_not_zero));
@@ -1746,7 +1740,7 @@ qed "Rep_hypreal_omega";
 (* a few lemmas first *)
 
 Goal "{n::nat. x = real_of_posnat n} = {} | \
-\     (? y. {n::nat. x = real_of_posnat n} = {y})";
+\     (EX y. {n::nat. x = real_of_posnat n} = {y})";
 by (auto_tac (claset() addDs [inj_real_of_posnat RS injD],simpset()));
 qed "lemma_omega_empty_singleton_disj";
 
@@ -1756,7 +1750,7 @@ by Auto_tac;
 qed "lemma_finite_omega_set";
 
 Goalw [omega_def,hypreal_of_real_def] 
-      "~ (? x. hypreal_of_real x = whr)";
+      "~ (EX x. hypreal_of_real x = whr)";
 by (auto_tac (claset(),simpset() addsimps [lemma_finite_omega_set 
     RS FreeUltrafilterNat_finite]));
 qed "not_ex_hypreal_of_real_eq_omega";
@@ -1770,7 +1764,7 @@ qed "hypreal_of_real_not_eq_omega";
 (* corresponding to any real number *)
 
 Goal "{n::nat. x = rinv(real_of_posnat n)} = {} | \
-\     (? y. {n::nat. x = rinv(real_of_posnat n)} = {y})";
+\     (EX y. {n::nat. x = rinv(real_of_posnat n)} = {y})";
 by (Step_tac 1 THEN Step_tac 1);
 by (auto_tac (claset() addIs [real_of_posnat_rinv_inj],simpset()));
 qed "lemma_epsilon_empty_singleton_disj";
@@ -1781,7 +1775,7 @@ by Auto_tac;
 qed "lemma_finite_epsilon_set";
 
 Goalw [epsilon_def,hypreal_of_real_def] 
-      "~ (? x. hypreal_of_real x = ehr)";
+      "~ (EX x. hypreal_of_real x = ehr)";
 by (auto_tac (claset(),simpset() addsimps [lemma_finite_epsilon_set 
     RS FreeUltrafilterNat_finite]));
 qed "not_ex_hypreal_of_real_eq_epsilon";
@@ -1791,13 +1785,13 @@ by (cut_facts_tac [not_ex_hypreal_of_real_eq_epsilon] 1);
 by Auto_tac;
 qed "hypreal_of_real_not_eq_epsilon";
 
-Goalw [epsilon_def,hypreal_zero_def] "ehr ~= 0hr";
+Goalw [epsilon_def,hypreal_zero_def] "ehr ~= 0";
 by (auto_tac (claset(),simpset() addsimps 
     [rename_numerals thy real_of_posnat_rinv_not_zero]));
 qed "hypreal_epsilon_not_zero";
 
 Addsimps [rename_numerals thy real_of_posnat_not_eq_zero];
-Goalw [omega_def,hypreal_zero_def] "whr ~= 0hr";
+Goalw [omega_def,hypreal_zero_def] "whr ~= 0";
 by (Simp_tac 1);
 qed "hypreal_omega_not_zero";
 
@@ -1811,7 +1805,7 @@ qed "hypreal_epsilon_hrinv_omega";
      Another embedding of the naturals in the 
     hyperreals (see hypreal_of_posnat)
  ----------------------------------------------------------------*)
-Goalw [hypreal_of_nat_def] "hypreal_of_nat 0 = 0hr";
+Goalw [hypreal_of_nat_def] "hypreal_of_nat 0 = 0";
 by (full_simp_tac (simpset() addsimps [hypreal_of_posnat_one]) 1);
 qed "hypreal_of_nat_zero";
 
