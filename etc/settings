@@ -23,26 +23,26 @@ POLYML_HOME=$(choosefrom \
   "/usr/share/polyml-4.0" \
   "/usr/share/polyml-3.x" \
   "/usr/share/polyml")
-ML_SYSTEM=$($POLYML_HOME/bin/polyml-version 2>/dev/null || echo polyml)
-ML_PLATFORM=$($POLYML_HOME/bin/polyml-platform 2>/dev/null)
-ML_HOME=$POLYML_HOME/$ML_PLATFORM
+ML_SYSTEM=$("$POLYML_HOME/bin/polyml-version" 2>/dev/null || echo polyml)
+ML_PLATFORM=$("$POLYML_HOME/bin/polyml-platform" 2>/dev/null)
+ML_HOME="$POLYML_HOME/$ML_PLATFORM"
 ML_OPTIONS="-h 30000"
 
 # Standard ML of New Jersey 110 or later
 #ML_SYSTEM=smlnj-110
-#ML_HOME=$ISABELLE_HOME/../smlnj/bin
+#ML_HOME="$ISABELLE_HOME/../smlnj/bin"
 #ML_OPTIONS="@SMLdebug=/dev/null"
-#ML_PLATFORM=$(eval $($ML_HOME/.arch-n-opsys 2>/dev/null); echo $HEAP_SUFFIX)
+#ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 
 # Moscow ML 2.00 or later (experimental!)
 #ML_SYSTEM=mosml
-#ML_HOME=$ISABELLE_HOME/../mosml/bin
+#ML_HOME="$ISABELLE_HOME/../mosml/bin"
 #ML_PLATFORM=""
 #ML_OPTIONS=""
 
 # MLWorks 2.0
 #ML_SYSTEM=mlworks
-#ML_HOME=$ISABELLE_HOME/../mlworks/bin
+#ML_HOME="$ISABELLE_HOME/../mlworks/bin"
 #ML_OPTIONS=""
 #ML_PLATFORM=""
 
@@ -83,24 +83,23 @@ ISABELLE_DVIPS="dvips -D 600"
 ISABELLE_HOME_USER=~/isabelle
 
 # Where to look for isabelle tools (multiple dirs separated by ':').
-ISABELLE_TOOLS=$ISABELLE_HOME/lib/Tools
+ISABELLE_TOOLS="$ISABELLE_HOME/lib/Tools"
 
 # Location for temporary files (should be on a local file system).
-ISABELLE_TMP_PREFIX=/tmp/isabelle-$USER
+ISABELLE_TMP_PREFIX="/tmp/isabelle-$USER"
 
 
-# Heap file locations. ML system identifier appended automatically!
+# Heap input locations. ML system identifier is included in lookup.
+ISABELLE_PATH="$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps"
 
-ISABELLE_PATH=$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps
-
-#A hack! Isabelle build tells us to store heaps etc. within the
-#distribution.
+# Heap output location. ML system identifier is appended automatically later on.
 if [ "$THIS_IS_ISABELLE_BUILD" = true ]; then
-  ISABELLE_OUTPUT=$ISABELLE_HOME/heaps
-  ISABELLE_BROWSER_INFO=$ISABELLE_HOME/browser_info
+  #Isabelle build tells us to store heaps etc. within the distribution.
+  ISABELLE_OUTPUT="$ISABELLE_HOME/heaps"
+  ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
 else
-  ISABELLE_OUTPUT=$ISABELLE_HOME_USER/heaps
-  ISABELLE_BROWSER_INFO=$ISABELLE_HOME_USER/browser_info
+  ISABELLE_OUTPUT="$ISABELLE_HOME_USER/heaps"
+  ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 fi
 
 # Site settings check -- just to make it a little bit harder to copy this file!
@@ -114,7 +113,7 @@ ISABELLE_LOGIC=HOL
 ## Docs
 
 #Where to look for docs (multiple dirs separated by ':').
-ISABELLE_DOCS=$ISABELLE_HOME/doc
+ISABELLE_DOCS="$ISABELLE_HOME/doc"
 
 #The dvi file viewer
 DVI_VIEWER=xdvi
@@ -126,7 +125,7 @@ DVI_VIEWER=xdvi
 ## Fonts -- how to install the Isabelle X11 fonts (can be tricky!).
 
 # (1) Get fonts from local (client side) directory:
-ISABELLE_INSTALLFONTS="xset fp+ $ISABELLE_HOME/lib/fonts; xset fp rehash"
+ISABELLE_INSTALLFONTS="xset fp+ \"$ISABELLE_HOME/lib/fonts\"; xset fp rehash"
 
 # (2) Get from font server at Munich or Cambridge:
 #ISABELLE_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
@@ -146,13 +145,14 @@ ISABELLE_XTERM_OPTIONS=""
 
 # Emacs running Isamode.
 #ISABELLE_INTERFACE=emacs
-ISAMODE_HOME=$ISABELLE_HOME/contrib/Isamode
+ISAMODE_HOME="$ISABELLE_HOME/contrib/Isamode"
 ISAMODE_OPTIONS=""
 
 # Proof General
 ISABELLE_INTERFACE=$(choosefrom \
   "$ISABELLE_HOME/contrib/ProofGeneral/isar/interface" \
   "$ISABELLE_HOME/../ProofGeneral/isar/interface" \
+  "/usr/share/ProofGeneral/isar/interface" \
   "$ISABELLE_INTERFACE")
 PROOFGENERAL_OPTIONS=""
 
@@ -160,6 +160,7 @@ PROOFGENERAL_OPTIONS=""
 XSYMBOL_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/x-symbol" \
   "$ISABELLE_HOME/../x-symbol" \
+  "/usr/share/x-symbol" \
   "")
 
 
