@@ -10,6 +10,7 @@ sig
   val termC: class
   val termS: sort
   val termT: typ
+  val boolN: string
   val boolT: typ
   val false_const: term
   val true_const: term
@@ -80,7 +81,8 @@ val termT = TypeInfer.anyT termS;
 
 (* bool and set *)
 
-val boolT = Type ("bool", []);
+val boolN = "bool";
+val boolT = Type (boolN, []);
 
 val true_const =  Const ("True", boolT)
 and false_const = Const ("False", boolT);
@@ -89,6 +91,7 @@ fun mk_setT T = Type ("set", [T]);
 
 fun dest_setT (Type ("set", [T])) = T
   | dest_setT T = raise TYPE ("dest_setT: set type expected", [T], []);
+
 
 (* logic *)
 
