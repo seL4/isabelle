@@ -90,7 +90,7 @@ proofs are in separate ML files.
   as a direct or indirect parent of all your theories.
 \end{warn}
 There is also a growing Library~\cite{HOL-Library}\index{Library}
-of useful theories that are not part of \isa{Main} but can to be included
+of useful theories that are not part of \isa{Main} but can be included
 among the parents of a theory and will then be loaded automatically.%
 \index{theories|)}
 
@@ -161,10 +161,10 @@ programming, such as conditional expressions:
 \item[\isa{if $b$ then $t@1$ else $t@2$}]\index{*if expressions}
 Here $b$ is of type \isa{bool} and $t@1$ and $t@2$ are of the same type.
 \item[\isa{let $x$ = $t$ in $u$}]\index{*let expressions}
-is equivalent to $u$ where all occurrences of $x$ have been replaced by
+is equivalent to $u$ where all free occurrences of $x$ have been replaced by
 $t$. For example,
 \isa{let x = 0 in x+x} is equivalent to \isa{0+0}. Multiple bindings are separated
-by semicolons: \isa{let $x@1$ = $t@1$; \dots; $x@n$ = $t@n$ in $u$}.
+by semicolons: \isa{let $x@1$ = $t@1$;\dots; $x@n$ = $t@n$ in $u$}.
 \item[\isa{case $e$ of $c@1$ \isasymFun~$e@1$ |~\dots~| $c@n$ \isasymFun~$e@n$}]
 \index{*case expressions}
 evaluates to $e@i$ if $e$ is of the form $c@i$.

@@ -182,7 +182,7 @@
   \item elimination rules, 69--70
   \item \isacommand {end} (command), 14
   \item \isa {Eps} (constant), 109
-  \item equality, 5
+  \item equality, 6
     \subitem of functions, \bold{109}
     \subitem of records, 161
     \subitem of sets, \bold{106}
