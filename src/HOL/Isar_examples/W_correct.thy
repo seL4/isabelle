@@ -39,7 +39,7 @@ inductive has_type
     AppI: "[| a |- e1 :: t2 -> t1; a |- e2 :: t2 |]
               ==> a |- App e1 e2 :: t1";
 
-text {* Type assigment is close wrt.\ substitution. *};
+text {* Type assigment is closed wrt.\ substitution. *};
 
 lemma has_type_subst_closed: "a |- e :: t ==> $s a |- e :: $s t";
 proof -;
@@ -79,10 +79,10 @@ consts
 
 primrec
   "W (Var i) a n =
-      (if i < length a then Ok(id_subst, a ! i, n) else Fail)"
+      (if i < length a then Ok (id_subst, a ! i, n) else Fail)"
   "W (Abs e) a n =
       ((s, t, m) := W e (TVar n # a) (Suc n);
-       Ok(s, (s n) -> t, m))"
+       Ok (s, (s n) -> t, m))"
   "W (App e1 e2) a n =
       ((s1, t1, m1) := W e1 a n;
        (s2, t2, m2) := W e2 ($s1 a) m1;
@@ -92,8 +92,12 @@ primrec
 
 subsection {* Correctness theorem *};
 
+text_raw {* \begin{comment} *};
+
 (* FIXME proper split att/mod *)
 ML_setup {* Addsplits [split_bind]; *};
+
+text_raw {* \end{comment} *};
 
 theorem W_correct: "W e a n = Ok (s, t, m) ==> $ s a |- e :: t";
 proof -;

@@ -16,7 +16,7 @@ text_raw {*
 
 text {*
  Subsequently, we prove some summation laws of natural numbers
- (including odds, squares and cubes).  These examples demonstrate how
+ (including odds, squares, and cubes).  These examples demonstrate how
  plain natural deduction (including induction) may be combined with
  calculational proof.
 *};
@@ -26,25 +26,25 @@ subsection {* A summation operator *};
 
 text {*
   The binder operator $\idt{sum} :: (\idt{nat} \To \idt{nat}) \To
- \idt{nat} \To \idt{nat}$ formalizes summation from $0$ up to $k$
- (excluding the bound).
+ \idt{nat} \To \idt{nat}$ formalizes summation of natural numbers
+ indexed from $0$ up to $k$ (excluding the bound):
  \[
  \sum\limits_{i < k} f(i) = \idt{sum} \ap (\lam i f \ap i) \ap k
  \]
 *};
 
 consts
-  sum   :: "[nat => nat, nat] => nat";
+  sum :: "[nat => nat, nat] => nat";
 
 primrec
   "sum f 0 = 0"
   "sum f (Suc n) = f n + sum f n";
 
 syntax
-  "_SUM" :: "idt => nat => nat => nat"
+  "_SUM" :: "[idt, nat, nat] => nat"
     ("SUM _ < _. _" [0, 0, 10] 10);
 translations
-  "SUM i < k. b" == "sum (%i. b) k";
+  "SUM i < k. b" == "sum (\<lambda>i. b) k";
 
 
 subsection {* Summation laws *};
@@ -69,8 +69,8 @@ text_raw {* \end{comment} *};
 
 text {*
  The sum of natural numbers $0 + \cdots + n$ equals $n \times (n +
- 1)/2$.  In order to avoid formal reasoning about division, we just
- show $2 \times \Sigma_{i < n} i = n \times (n + 1)$.
+ 1)/2$.  Avoiding formal reasoning about division we prove this
+ equation multiplied by $2$.
 *};
 
 theorem sum_of_naturals:
@@ -90,23 +90,22 @@ text {*
  The above proof is a typical instance of mathematical induction.  The
  main statement is viewed as some $\var{P} \ap n$ that is split by the
  induction method into base case $\var{P} \ap 0$, and step case
- $\var{P} \ap n \Impl \var{P} \ap (\idt{Suc} \ap n)$ for any $n$.
+ $\var{P} \ap n \Impl \var{P} \ap (\idt{Suc} \ap n)$ for arbitrary $n$.
 
  The step case is established by a short calculation in forward
  manner.  Starting from the left-hand side $\var{S} \ap (n + 1)$ of
- the thesis, the final result is achieved by basic transformations
- involving arithmetic reasoning (using the Simplifier).  The main
- point is where the induction hypothesis $\var{S} \ap n = n \times (n
- + 1)$ is introduced in order to replace a certain subterm.  So the
+ the thesis, the final result is achieved by transformations involving
+ basic arithmetic reasoning (using the Simplifier).  The main point is
+ where the induction hypothesis $\var{S} \ap n = n \times (n + 1)$ is
+ introduced in order to replace a certain subterm.  So the
  ``transitivity'' rule involved here is actual \emph{substitution}.
  Also note how the occurrence of ``\dots'' in the subsequent step
- documents the position where the right-hand side of the hypotheses
+ documents the position where the right-hand side of the hypothesis
  got filled in.
 
  \medskip A further notable point here is integration of calculations
- with plain natural deduction.  This works works quite well in Isar
- for two reasons.
-
+ with plain natural deduction.  This works so well in Isar for two
+ reasons.
  \begin{enumerate}
 
  \item Facts involved in \isakeyword{also}~/ \isakeyword{finally}
@@ -116,19 +115,18 @@ text {*
 
  \item There are two \emph{separate} primitives for building natural
  deduction contexts: \isakeyword{fix}~$x$ and \isakeyword{assume}~$A$.
- Thus it is possible to start reasoning with new ``arbitrary, but
- fixed'' elements before bringing in the actual assumptions.
- Occasionally, natural deduction is formalized with basic context
- elements of the form $x:A$; this would rule out mixing with
- calculations as done here.
+ Thus it is possible to start reasoning with some new ``arbitrary, but
+ fixed'' elements before bringing in the actual assumption.  In
+ contrast, natural deduction is occasionally formalized with basic
+ context elements of the form $x:A$ instead.
 
  \end{enumerate}
 *};
 
 text {*
- \medskip We derive further summation laws for odds, squares, cubes as
- follows.  The basic technique of induction plus calculation is the
- same.
+ \medskip We derive further summation laws for odds, squares, and
+ cubes as follows.  The basic technique of induction plus calculation
+ is the same as before.
 *};
 
 theorem sum_of_odds:
@@ -175,20 +173,20 @@ qed;
 text {*
  Comparing these examples with the tactic script version
  \url{http://isabelle.in.tum.de/library/HOL/ex/NatSum.html}, we note
- an important difference how of induction vs.\ simplification is
+ an important difference of how induction vs.\ simplification is
  applied.  While \cite[\S10]{isabelle-ref} advises for these examples
  that ``induction should not be applied until the goal is in the
  simplest form'' this would be a very bad idea in our setting.
 
  Simplification normalizes all arithmetic expressions involved,
- producing huge intermediate goals.  Applying induction afterwards,
- the Isar document would then have to reflect the emerging
- configuration by appropriate the sub-proofs.  This would result in
- badly structured, low-level technical reasoning, without any good
- idea of the actual point.
+ producing huge intermediate goals.  With applying induction
+ afterwards, the Isar proof text would have to reflect the emerging
+ configuration by appropriate sub-proofs.  This would result in badly
+ structured, low-level technical reasoning, without any good idea of
+ the actual point.
 
  \medskip As a general rule of good proof style, automatic methods
- such as $\idt{simp}$ or $\idt{auto}$ should normally never used as
+ such as $\idt{simp}$ or $\idt{auto}$ should normally be never used as
  initial proof methods, but only as terminal ones, solving certain
  goals completely.
 *};

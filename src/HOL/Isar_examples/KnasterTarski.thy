@@ -37,7 +37,8 @@ text {*
  The Isar proof below closely follows the original presentation.
  Virtually all of the prose narration has been rephrased in terms of
  formal Isar language elements.  Just as many textbook-style proofs,
- there is a strong bias towards forward reasoning.
+ there is a strong bias towards forward proof, and several bends
+ in the course of reasoning.
 *};
 
 theorem KnasterTarski: "mono f ==> EX a::'a set. f a = a";
@@ -72,11 +73,11 @@ text {*
  explicit block structure and weak assumptions.  Thus we have mimicked
  the particular way of reasoning of the original text.
 
- In the subsequent version of the proof the order of reasoning is
- changed to achieve structured top-down decomposition of the problem
- at the outer level, while the small inner steps of reasoning or done
- in a forward manner.  Note that this requires only the most basic
- features of the Isar language, we are certainly more at ease here.
+ In the subsequent version the order of reasoning is changed to
+ achieve structured top-down decomposition of the problem at the outer
+ level, while only the inner steps of reasoning are done in a forward
+ manner.  We are certainly more at ease here, requiring only the most
+ basic features of the Isar language.
 *};
 
 theorem KnasterTarski': "mono f ==> EX a::'a set. f a = a";

@@ -5,7 +5,7 @@
 Basic propositional and quantifier reasoning.
 *)
 
-header {* Basic reasoning *};
+header {* Basic logical reasoning *};
 
 theory BasicLogic = Main:;
 
@@ -70,9 +70,9 @@ qed;
 text {*
  In fact, concluding any (sub-)proof already involves solving any
  remaining goals by assumption\footnote{This is not a completely
- trivial operation, as proof by assumption involves full higher-order
- unification.}.  Thus we may skip the rather vacuous body of the above
- proof as well.
+ trivial operation, as proof by assumption may involve full
+ higher-order unification.}.  Thus we may skip the rather vacuous body
+ of the above proof as well.
 *};
 
 lemma "A --> A";
@@ -99,7 +99,7 @@ lemma "A --> A"; ..;
 text {*
  Thus we have arrived at an adequate representation of the proof of a
  tautology that holds by a single standard rule.\footnote{Apparently,
- the rule is implication introduction.}
+ the rule here is implication introduction.}
 *};
 
 text {*
@@ -129,7 +129,7 @@ text {*
  Just like $\idt{rule}$, the $\idt{intro}$ and $\idt{elim}$ proof
  methods pick standard structural rules, in case no explicit arguments
  are given.  While implicit rules are usually just fine for single
- rule application, this may go too far in iteration.  Thus in
+ rule application, this may go too far with iteration.  Thus in
  practice, $\idt{intro}$ and $\idt{elim}$ would be typically
  restricted to certain structures by giving a few rules only, e.g.\
  \isacommand{proof}~($\idt{intro}$~\name{impI}~\name{allI}) to strip
@@ -168,11 +168,12 @@ qed;
 
 text {*
  Above, the $\idt{conjunct}_{1/2}$ projection rules had to be named
- explicitly, since the goals did not provide any structural clue.
- This may be avoided using \isacommand{from} to focus on $\idt{prems}$
- (i.e.\ the $A \conj B$ assumption) as the current facts, enabling the
- use of double-dot proofs.  Note that \isacommand{from} already
- does forward-chaining, involving the \name{conjE} rule.
+ explicitly, since the goals $B$ and $A$ did not provide any
+ structural clue.  This may be avoided using \isacommand{from} to
+ focus on $\idt{prems}$ (i.e.\ the $A \conj B$ assumption) as the
+ current facts, enabling the use of double-dot proofs.  Note that
+ \isacommand{from} already does forward-chaining, involving the
+ \name{conjE} rule here.
 *};
 
 lemma "A & B --> B & A";
@@ -222,7 +223,7 @@ qed;
 text {*
  We can still push forward reasoning a bit further, even at the risk
  of getting ridiculous.  Note that we force the initial proof step to
- do nothing, by referring to the ``-'' proof method.
+ do nothing here, by referring to the ``-'' proof method.
 *};
 
 lemma "A & B --> B & A";
@@ -245,7 +246,7 @@ text {*
 
  The general lesson learned here is that good proof style would
  achieve just the \emph{right} balance of top-down backward
- decomposition, and bottom-up forward composition.  In practice, there
+ decomposition, and bottom-up forward composition.  In general, there
  is no single best way to arrange some pieces of formal reasoning, of
  course.  Depending on the actual applications, the intended audience
  etc., rules (and methods) on the one hand vs.\ facts on the other
@@ -278,7 +279,7 @@ subsection {* A few examples from ``Introduction to Isabelle'' *};
 
 text {*
  We rephrase some of the basic reasoning examples of
- \cite{isabelle-intro} (using HOL rather than FOL).
+ \cite{isabelle-intro}, using HOL rather than FOL.
 *};
 
 subsubsection {* A propositional proof *};
@@ -315,8 +316,8 @@ text {*
  In order to avoid too much explicit parentheses, the Isar system
  implicitly opens an additional block for any new goal, the
  \isacommand{next} statement then closes one block level, opening a
- new one.  The resulting behavior is what one might expect from
- separating cases, only that it is more flexible.  E.g. an induction
+ new one.  The resulting behavior is what one would expect from
+ separating cases, only that it is more flexible.  E.g.\ an induction
  base case (which does not introduce local assumptions) would
  \emph{not} require \isacommand{next} to separate the subsequent step
  case.
@@ -381,8 +382,8 @@ proof;
 qed;
 
 text {*
- While explicit rule instantiation may occasionally help to improve
- the readability of certain aspects of reasoning, it is usually quite
+ While explicit rule instantiation may occasionally improve
+ readability of certain aspects of reasoning, it is usually quite
  redundant.  Above, the basic proof outline gives already enough
  structural clues for the system to infer both the rules and their
  instances (by higher-order unification).  Thus we may as well prune
@@ -404,17 +405,18 @@ qed;
 subsubsection {* Deriving rules in Isabelle *};
 
 text {*
- We derive the conjunction elimination rule from the projections.  The
- proof is quite straight-forward, since Isabelle/Isar supports
- non-atomic goals and assumptions fully transparently.
+ We derive the conjunction elimination rule from the corresponding
+ projections.  The proof is quite straight-forward, since
+ Isabelle/Isar supports non-atomic goals and assumptions fully
+ transparently.
 *};
 
 theorem conjE: "A & B ==> (A ==> B ==> C) ==> C";
 proof -;
   assume "A & B";
-  assume ab_c: "A ==> B ==> C";
+  assume r: "A ==> B ==> C";
   show C;
-  proof (rule ab_c);
+  proof (rule r);
     show A; by (rule conjunct1);
     show B; by (rule conjunct2);
   qed;
@@ -425,7 +427,7 @@ text {*
  different way.  The tactic script as given in \cite{isabelle-intro}
  for the same example of \name{conjE} depends on the primitive
  \texttt{goal} command to decompose the rule into premises and
- conclusion.  The proper result would then emerge by discharging of
+ conclusion.  The actual result would then emerge by discharging of
  the context at \texttt{qed} time.
 *};
 

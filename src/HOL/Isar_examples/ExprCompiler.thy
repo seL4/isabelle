@@ -20,7 +20,7 @@ subsection {* Binary operations *};
 
 text {*
  Binary operations are just functions over some type of values.  This
- is both for syntax and semantics, i.e.\ we use a ``shallow
+ is both for abstract syntax and semantics, i.e.\ we use a ``shallow
  embedding'' here.
 *};
 

@@ -53,8 +53,9 @@ proof -;
 qed;
 
 text {*
- With \name{group-right-inverse} already at our disposal,
- \name{group-right-unit} is now obtained much easier.
+ With \name{group-right-inverse} already available,
+ \name{group-right-unit}\label{thm:group-right-unit} is now
+ established much easier.
 *};
 
 theorem group_right_unit: "x * one = (x::'a::group)";
@@ -75,14 +76,14 @@ text {*
  presentations given in any introductory course on algebra.  The basic
  technique is to form a transitive chain of equations, which in turn
  are established by simplifying with appropriate rules.  The low-level
- logical parts of equational reasoning are left implicit.
+ logical details of equational reasoning are left implicit.
 
- Note that ``$\dots$'' is just a special term variable that happens to
- be bound automatically to the argument\footnote{The argument of a
- curried infix expression happens to be its right-hand side.} of the
- last fact achieved by any local assumption or proven statement.  In
- contrast to $\var{thesis}$, the ``$\dots$'' variable is bound
- \emph{after} the proof is finished.
+ Note that ``$\dots$'' is just a special term variable that is bound
+ automatically to the argument\footnote{The argument of a curried
+ infix expression happens to be its right-hand side.} of the last fact
+ achieved by any local assumption or proven statement.  In contrast to
+ $\var{thesis}$, the ``$\dots$'' variable is bound \emph{after} the
+ proof is finished, though.
 
  There are only two separate Isar language elements for calculational
  proofs: ``\isakeyword{also}'' for initial or intermediate
@@ -90,8 +91,8 @@ text {*
  result of a calculation.  These constructs are not hardwired into
  Isabelle/Isar, but defined on top of the basic Isar/VM interpreter.
  Expanding the \isakeyword{also} and \isakeyword{finally} derived
- language elements, calculations may be simulated as demonstrated
- below.
+ language elements, calculations may be simulated by hand as
+ demonstrated below.
 *};
 
 theorem "x * one = (x::'a::group)";
@@ -128,10 +129,10 @@ qed;
 text {*
  Note that this scheme of calculations is not restricted to plain
  transitivity.  Rules like anti-symmetry, or even forward and backward
- substitution work as well.  For the actual \isacommand{also} and
- \isacommand{finally} commands, Isabelle/Isar maintains separate
- context information of ``transitivity'' rules.  Rule selection takes
- place automatically by higher-order unification.
+ substitution work as well.  For the actual implementation of
+ \isacommand{also} and \isacommand{finally}, Isabelle/Isar maintains
+ separate context information of ``transitivity'' rules.  Rule
+ selection takes place automatically by higher-order unification.
 *};
 
 
@@ -150,10 +151,11 @@ axclass monoid < times
 text {*
  Groups are \emph{not} yet monoids directly from the definition.  For
  monoids, \name{right-unit} had to be included as an axiom, but for
- groups both \name{right-unit} and \name{right-inverse} are
- derivable from the other axioms.  With \name{group-right-unit}
- derived as a theorem of group theory (see above), we may still
- instantiate $\idt{group} \subset \idt{monoid}$ properly as follows.
+ groups both \name{right-unit} and \name{right-inverse} are derivable
+ from the other axioms.  With \name{group-right-unit} derived as a
+ theorem of group theory (see page~\pageref{thm:group-right-unit}), we
+ may still instantiate $\idt{group} \subset \idt{monoid}$ properly as
+ follows.
 *};
 
 instance group < monoid;
@@ -167,7 +169,7 @@ text {*
  \isacommand{theorem}, setting up a goal that reflects the intended
  class relation (or type constructor arity).  Thus any Isar proof
  language element may be involved to establish this statement.  When
- concluding the proof, the result is transformed into the original
+ concluding the proof, the result is transformed into the intended
  type signature extension behind the scenes.
 *};
 

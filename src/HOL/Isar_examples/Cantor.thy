@@ -30,7 +30,7 @@ text {*
  with the innermost reasoning expressed quite naively.
 *};
 
-theorem "EX S. S ~: range(f :: 'a => 'a set)";
+theorem "EX S. S ~: range (f :: 'a => 'a set)";
 proof;
   let ?S = "{x. x ~: f x}";
   show "?S ~: range f";
@@ -69,7 +69,7 @@ text {*
  introduced \emph{before} its corresponding \isacommand{show}.}
 *};
 
-theorem "EX S. S ~: range(f :: 'a => 'a set)";
+theorem "EX S. S ~: range (f :: 'a => 'a set)";
 proof;
   let ?S = "{x. x ~: f x}";
   show "?S ~: range f";
@@ -95,22 +95,22 @@ qed;
 
 text {*
  How much creativity is required?  As it happens, Isabelle can prove
- this theorem automatically.  The default context of the Isabelle's
- classical prover contains rules for most of the constructs of HOL's
- set theory.  We must augment it with \name{equalityCE} to break up
- set equalities, and then apply best-first search.  Depth-first search
- would diverge, but best-first search successfully navigates through
- the large search space.
+ this theorem automatically.  The context of Isabelle's classical
+ prover contains rules for most of the constructs of HOL's set theory.
+ We must augment it with \name{equalityCE} to break up set equalities,
+ and then apply best-first search.  Depth-first search would diverge,
+ but best-first search successfully navigates through the large search
+ space.
 *};
 
-theorem "EX S. S ~: range(f :: 'a => 'a set)";
+theorem "EX S. S ~: range (f :: 'a => 'a set)";
   by (best elim: equalityCE);
 
 text {*
  While this establishes the same theorem internally, we do not get any
  idea of how the proof actually works.  There is currently no way to
  transform internal system-level representations of Isabelle proofs
- back into Isar documents.  Writing intelligible proof documents
+ back into Isar text.  Writing intelligible proof documents
  really is a creative process, after all.
 *};
 

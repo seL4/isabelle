@@ -75,15 +75,15 @@ text {*
  individual parts of the proof configuration.
 
  Nevertheless, the ``strong'' mode of plain assumptions is quite
- important in practice to achieve robustness of proof document
+ important in practice to achieve robustness of proof text
  interpretation.  By forcing both the conclusion \emph{and} the
  assumptions to unify with the pending goal to be solved, goal
  selection becomes quite deterministic.  For example, decomposition
- with ``case-analysis'' type rules usually give rise to several goals
- that only differ in there local contexts.  With strong assumptions
- these may be still solved in any order in a predictable way, while
- weak ones would quickly lead to great confusion, eventually demanding
- even some backtracking.
+ with rules of the ``case-analysis'' type usually gives rise to
+ several goals that only differ in there local contexts.  With strong
+ assumptions these may be still solved in any order in a predictable
+ way, while weak ones would quickly lead to great confusion,
+ eventually demanding even some backtracking.
 *};
 
 end;

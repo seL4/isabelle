@@ -10,7 +10,7 @@ header {* Wellfoundedness of multiset ordering *};
 theory MultisetOrder = Multiset:;
 
 text_raw {*
- \footnote{Original tactic script by Tobias Nipkow (see also
+ \footnote{Original tactic script by Tobias Nipkow (see
  \url{http://isabelle.in.tum.de/library/HOL/Induct/Multiset.html}),
  based on a pen-and-paper proof due to Wilfried Buchholz.}
 *};
@@ -22,8 +22,8 @@ lemma less_add: "(N, M0 + {#a#}) : mult1 r ==>
     (EX K. (ALL b. elem K b --> (b, a) : r) & N = M0 + K)"
   (concl is "?case1 (mult1 r) | ?case2");
 proof (unfold mult1_def);
-  let ?r = "%K a. ALL b. elem K b --> (b, a) : r";
-  let ?R = "%N M. EX a M0 K. M = M0 + {#a#} & N = M0 + K & ?r K a";
+  let ?r = "\<lambda>K a. ALL b. elem K b --> (b, a) : r";
+  let ?R = "\<lambda>N M. EX a M0 K. M = M0 + {#a#} & N = M0 + K & ?r K a";
   let ?case1 = "?case1 {(N, M). ?R N M}";
 
   assume "(N, M0 + {#a#}) : {(N, M). ?R N M}";
@@ -61,7 +61,6 @@ lemma all_accessible: "wf r ==> ALL M. M : acc (mult1 r)";
 proof;
   let ?R = "mult1 r";
   let ?W = "acc ?R";
-
   {{;
     fix M M0 a;
     assume M0: "M0 : ?W"
