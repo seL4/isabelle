@@ -20,6 +20,7 @@ use "file.ML";
 use "buffer.ML";
 use "history.ML";
 use "pretty.ML";
+use "xml.ML";
 
 structure PureGeneral =
 struct
@@ -38,4 +39,5 @@ struct
   structure Buffer = Buffer;
   structure History = History;
   structure Pretty = Pretty;
+  structure XML = XML;
 end;
