@@ -24,9 +24,10 @@ FILES = ROOT.ML ZF.thy ZF.ML upair.thy upair.ML subset.thy subset.ML \
 	equalities.thy equalities.ML Bool.thy Bool.ML \
 	Sum.thy Sum.ML QPair.thy QPair.ML mono.ML Fixedpt.thy Fixedpt.ML \
 	ind_syntax.thy ind_syntax.ML add_ind_def.thy add_ind_def.ML \
-\       intr_elim.thy intr_elim.ML indrule.thy indrule.ML \
+	intr_elim.thy intr_elim.ML indrule.thy indrule.ML \
 	inductive.thy inductive.ML \
-	Perm.thy Perm.ML Rel.thy Rel.ML Trancl.thy Trancl.ML \
+	Perm.thy Perm.ML Rel.thy Rel.ML EquivClass.ML EquivClass.thy \
+	Trancl.thy Trancl.ML \
 	WF.thy WF.ML Order.thy Order.ML Ordinal.thy Ordinal.ML \
 	Epsilon.thy Epsilon.ML Arith.thy Arith.ML Univ.thy Univ.ML \
 	QUniv.thy QUniv.ML constructor.ML Datatype.thy Datatype.ML  \
@@ -40,7 +41,7 @@ IMP_FILES = IMP/ROOT.ML IMP/Com.ML IMP/Com.thy IMP/Denotation.ML\
             IMP/Denotation.thy IMP/Equiv.ML IMP/Equiv.thy
 
 EX_FILES = ex/ROOT.ML ex/misc.ML ex/Ramsey.ML ex/Ramsey.thy\
-	   ex/Equiv.ML ex/Equiv.thy ex/Integ.ML ex/Integ.thy\
+	   ex/Integ.ML ex/Integ.thy\
            ex/twos_compl.ML ex/Bin.thy ex/Bin.ML\
 	   ex/BT.thy ex/BT.ML ex/Term.thy ex/Term.ML \
 	   ex/TF.thy ex/TF.ML ex/Ntree.thy ex/Ntree.ML \
