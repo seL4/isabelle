@@ -14,7 +14,7 @@ section "unique"
  
 constdefs
   unique  :: "('a \<times> 'b) list => bool"
-  "unique  == nodups \<circ> map fst"
+  "unique  == distinct \<circ> map fst"
 
 
 lemma fst_in_set_lemma [rule_format (no_asm)]: 

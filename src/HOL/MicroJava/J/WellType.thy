@@ -209,7 +209,7 @@ constdefs
  wf_java_mdecl :: "java_mb prog => cname => java_mb mdecl => bool"
 "wf_java_mdecl G C == \<lambda>((mn,pTs),rT,(pns,lvars,blk,res)).
   length pTs = length pns \<and>
-  nodups pns \<and>
+  distinct pns \<and>
   unique lvars \<and>
         This \<notin> set pns \<and> This \<notin> set (map fst lvars) \<and> 
   (\<forall>pn\<in>set pns. map_of lvars pn = None) \<and>

@@ -238,7 +238,7 @@ apply auto
 done
 
 lemma lconf_ext_list [rule_format (no_asm)]: 
-  "G,h\<turnstile>l[::\<preceq>]L ==> \<forall>vs Ts. nodups vns --> length Ts = length vns --> 
+  "G,h\<turnstile>l[::\<preceq>]L ==> \<forall>vs Ts. distinct vns --> length Ts = length vns --> 
   list_all2 (\<lambda>v T. G,h\<turnstile>v::\<preceq>T) vs Ts --> G,h\<turnstile>l(vns[\<mapsto>]vs)[::\<preceq>]L(vns[\<mapsto>]Ts)"
 apply (unfold lconf_def)
 apply( induct_tac "vns")
