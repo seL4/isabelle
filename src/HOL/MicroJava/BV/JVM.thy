@@ -10,10 +10,6 @@ theory JVM = Kildall_Lift + JVMType + EffectMono + BVSpec:
 
 
 constdefs
-  check_bounded :: "instr list \<Rightarrow> exception_table \<Rightarrow> bool"
-  "check_bounded ins et \<equiv> (\<forall>pc < length ins. \<forall>pc' \<in> set (succs (ins!pc) pc). pc' < length ins) \<and>
-                          (\<forall>e \<in> set et. fst (snd (snd e)) < length ins)"
-
   exec :: "jvm_prog \<Rightarrow> nat \<Rightarrow> ty \<Rightarrow> exception_table \<Rightarrow> instr list \<Rightarrow> state step_type"
   "exec G maxs rT et bs == 
   err_step (size bs) (\<lambda>pc. app (bs!pc) G maxs rT pc et) (\<lambda>pc. eff (bs!pc) G pc et)"
@@ -78,23 +74,8 @@ text {*
 *}
 
 lemma check_bounded_is_bounded:
-  "check_bounded ins et \<Longrightarrow> bounded (\<lambda>pc. eff (ins!pc) G pc et) (length ins)"
-  apply (unfold bounded_def eff_def)
-  apply clarify
-  apply simp
-  apply (unfold check_bounded_def)
-  apply clarify
-  apply (erule disjE)
-   apply blast
-  apply (erule allE, erule impE, assumption)
-  apply (unfold xcpt_eff_def)
-  apply clarsimp    
-  apply (drule xcpt_names_in_et)
-  apply clarify
-  apply (drule bspec, assumption)
-  apply simp
-  done
-   
+  "check_bounded ins et \<Longrightarrow> bounded (\<lambda>pc. eff (ins!pc) G pc et) (length ins)"  
+  by (unfold bounded_def) (blast dest: check_boundedD)
 
 lemma special_ex_swap_lemma [iff]: 
   "(? X. (? n. X = A n & P n) & Q X) = (? n. Q(A n) & P n)"
@@ -315,6 +296,8 @@ theorem is_bcv_kiljvm:
   apply (erule exec_mono, assumption)  
   done
 
+lemma map_id: "\<forall>x \<in> set xs. f (g x) = x \<Longrightarrow> map f (map g xs) = xs"
+  by (induct xs) auto
 
 theorem wt_kil_correct:
   "\<lbrakk> wt_kil G C pTs rT maxs mxl et bs; wf_prog wf_mb G; 
@@ -367,7 +350,7 @@ proof -
          wt_step (JVMType.le G maxs maxr) Err (exec G maxs rT et bs) ts"
     by (unfold is_bcv_def) auto
   then obtain phi' where
-    l: "phi' \<in> list (length bs) (states G maxs maxr)" and
+    phi': "phi' \<in> list (length bs) (states G maxs maxr)" and
     s: "?start <=[JVMType.le G maxs maxr] phi'" and
     w: "wt_step (JVMType.le G maxs maxr) Err (exec G maxs rT et bs) phi'"
     by blast
@@ -378,10 +361,22 @@ proof -
   from s have le: "JVMType.le G maxs maxr (?start ! 0) (phi'!0)"
     by (drule_tac p=0 in le_listD) (simp add: lesub_def)+
 
-  from l have l: "size phi' = size bs" by simp  
+  from phi' have l: "size phi' = size bs" by simp  
   with instrs w have "phi' ! 0 \<noteq> Err" by (unfold wt_step_def) simp
   with instrs l have phi0: "OK (map ok_val phi' ! 0) = phi' ! 0"
-    by (clarsimp simp add: not_Err_eq)
+    by (clarsimp simp add: not_Err_eq)  
+
+  from phi' have "check_types G maxs maxr phi'" by(simp add: check_types_def)
+  also from w have "phi' = map OK (map ok_val phi')" 
+    apply (clarsimp simp add: wt_step_def)
+    apply (rule map_id [symmetric])
+    apply (clarsimp simp add: in_set_conv_decomp)
+    apply (erule_tac x = "length ys" in allE)
+    apply (clarsimp simp add: nth_append not_Err_eq)
+    done    
+  finally 
+  have check_types:
+    "check_types G maxs maxr (map OK (map ok_val phi'))" .
 
   from l bounded 
   have "bounded (\<lambda>pc. eff (bs!pc) G pc et) (length phi')"
@@ -392,7 +387,7 @@ proof -
   have "wt_app_eff (sup_state_opt G) (\<lambda>pc. app (bs!pc) G maxs rT pc et) 
                    (\<lambda>pc. eff (bs!pc) G pc et) (map ok_val phi')"
     by (auto intro: wt_err_imp_wt_app_eff simp add: l exec_def)
-  with instrs l le bounded'
+  with instrs l le bounded bounded' check_types maxr
   have "wt_method G C pTs rT maxs mxl bs et (map ok_val phi')"
     apply (unfold wt_method_def wt_app_eff_def)
     apply simp
@@ -415,25 +410,31 @@ qed
 
 theorem wt_kil_complete:
   "\<lbrakk> wt_method G C pTs rT maxs mxl bs et phi; wf_prog wf_mb G; 
-     check_bounded bs et; length phi = length bs; is_class G C; 
-      \<forall>x \<in> set pTs. is_type G x;
-      map OK phi \<in> list (length bs) (states G maxs (1+size pTs+mxl)) \<rbrakk>
+      is_class G C; 
+      \<forall>x \<in> set pTs. is_type G x \<rbrakk>
   \<Longrightarrow> wt_kil G C pTs rT maxs mxl et bs"
 proof -
   assume wf: "wf_prog wf_mb G"  
   assume isclass: "is_class G C"
   assume istype: "\<forall>x \<in> set pTs. is_type G x"
-  assume length: "length phi = length bs"
-  assume istype_phi: "map OK phi \<in> list (length bs) (states G maxs (1+size pTs+mxl))"
-  assume bounded: "check_bounded bs et"
-
+  
+  let ?mxr = "1+size pTs+mxl"
+  
   assume "wt_method G C pTs rT maxs mxl bs et phi"
   then obtain
     instrs:   "0 < length bs" and
+    len:      "length phi = length bs" and
+    bounded:  "check_bounded bs et" and
+    ck_types: "check_types G maxs ?mxr (map OK phi)" and
     wt_start: "wt_start G C pTs mxl phi" and
     wt_ins:   "\<forall>pc. pc < length bs \<longrightarrow> 
                     wt_instr (bs ! pc) G rT phi maxs (length bs) et pc"
     by (unfold wt_method_def) simp
+
+  from ck_types len
+  have istype_phi: 
+    "map OK phi \<in> list (length bs) (states G maxs (1+size pTs+mxl))"
+    by (auto simp add: check_types_def intro!: listI)
 
   let ?eff  = "\<lambda>pc. eff (bs!pc) G pc et"
   let ?app   = "\<lambda>pc. app (bs!pc) G maxs rT pc et"
@@ -445,15 +446,15 @@ proof -
   from wt_ins
   have "wt_app_eff (sup_state_opt G) ?app ?eff phi"
     apply (unfold wt_app_eff_def wt_instr_def lesub_def)
-    apply (simp (no_asm) only: length)
+    apply (simp (no_asm) only: len)
     apply blast
     done
   with bounded_exec
   have "wt_err_step (sup_state_opt G) (err_step (size phi) ?app ?eff) (map OK phi)"
-    by - (erule wt_app_eff_imp_wt_err,simp add: exec_def length)
+    by - (erule wt_app_eff_imp_wt_err,simp add: exec_def len)
   hence wt_err:
     "wt_err_step (sup_state_opt G) (exec G maxs rT et bs) (map OK phi)"
-    by (unfold exec_def) (simp add: length)
+    by (unfold exec_def) (simp add: len)
  
   let ?maxr = "1+size pTs+mxl"
   from wf bounded_exec
@@ -487,7 +488,7 @@ proof -
   let ?phi = "map OK phi"  
   have less_phi: "?start <=[JVMType.le G maxs ?maxr] ?phi"
   proof -
-    from length instrs
+    from len instrs
     have "length ?start = length (map OK phi)" by simp
     moreover
     { fix n
@@ -495,7 +496,7 @@ proof -
       have "G \<turnstile> ok_val (?start!0) <=' phi!0"
         by (simp add: wt_start_def)
       moreover
-      from instrs length
+      from instrs len
       have "0 < length phi" by simp
       ultimately
       have "JVMType.le G maxs ?maxr (?start!0) (?phi!0)"
@@ -525,35 +526,7 @@ proof -
   with bounded instrs
   show "wt_kil G C pTs rT maxs mxl et bs" by (unfold wt_kil_def) simp
 qed
-text {*
-  The above theorem @{text wt_kil_complete} is all nice'n shiny except
-  for one assumption: @{term "map OK phi \<in> list (length bs) (states G maxs (1+size pTs+mxl))"}  
-  It does not hold for all @{text phi} that satisfy @{text wt_method}.
 
-  The assumption states mainly that all entries in @{text phi} are legal
-  types in the program context, that the stack size is bounded by @{text maxs},
-  and that the register sizes are exactly @{term "1+size pTs+mxl"}. 
-  The BV specification, i.e.~@{text wt_method}, only gives us this
-  property for \emph{reachable} code. For unreachable code, 
-  e.g.~unused registers may contain arbitrary garbage. Even the stack
-  and register sizes can be different from the rest of the program (as 
-  long as they are consistent inside each chunk of unreachable code).
-  
-  All is not lost, though: for each @{text phi} that satisfies 
-  @{text wt_method} there is a @{text phi'} that also satisfies 
-  @{text wt_method} and that additionally satisfies our assumption.
-  The construction is quite easy: the entries for reachable code
-  are the same in @{text phi} and @{text phi'}, the entries for
-  unreachable code are all @{text None} in @{text phi'} (as it would
-  be produced by Kildall's algorithm). 
-
-  Although this is proved easily by comment, it requires some more
-  overhead (i.e.~talking about reachable instructions) if you try
-  it the hard way. Thus it is missing here for the time being.
-
-  The other direction (@{text wt_kil_correct}) can be lifted to
-  programs without problems:
-*}
 lemma is_type_pTs:
   "\<lbrakk> wf_prog wf_mb G; (C,S,fs,mdecls) \<in> set G; (sig,rT,code) \<in> set mdecls; 
       t \<in> set (snd sig) \<rbrakk>
@@ -573,9 +546,9 @@ proof -
 qed
 
 
-theorem jvm_kildall_correct:
-  "wt_jvm_prog_kildall G \<Longrightarrow> \<exists>Phi. wt_jvm_prog G Phi"
-proof -  
+theorem jvm_kildall_sound_complete:
+  "wt_jvm_prog_kildall G = (\<exists>Phi. wt_jvm_prog G Phi)"
+proof 
   assume wtk: "wt_jvm_prog_kildall G"
 
   then obtain wf_mb where
@@ -605,8 +578,34 @@ proof -
     apply (auto intro: someI)
     done
 
-  thus ?thesis by blast
-qed
+  thus "\<exists>Phi. wt_jvm_prog G Phi" by blast
+next
+  assume "\<exists>Phi. wt_jvm_prog G Phi"
+  then obtain Phi where wt: "wt_jvm_prog G Phi" ..
 
+  then obtain wf_mb where
+    wf: "wf_prog wf_mb G"
+    by (auto simp add: wt_jvm_prog_def)
+
+  { fix C S fs mdecls sig rT code
+    assume "(C,S,fs,mdecls) \<in> set G" "(sig,rT,code) \<in> set mdecls"
+    with wf
+    have "method (G,C) sig = Some (C,rT,code) \<and> is_class G C \<and> (\<forall>t \<in> set (snd sig). is_type G t)"
+      by (simp add: methd is_type_pTs)
+  } note this [simp]
+ 
+  from wt
+  show "wt_jvm_prog_kildall G"
+    apply (unfold wt_jvm_prog_def wt_jvm_prog_kildall_def wf_prog_def wf_cdecl_def)
+    apply clarsimp
+    apply (drule bspec, assumption)
+    apply (unfold wf_mdecl_def)
+    apply clarsimp
+    apply (drule bspec, assumption)
+    apply clarsimp
+    apply (drule wt_kil_complete [OF _ wf])
+    apply (auto intro: someI)
+    done
+qed
 
 end

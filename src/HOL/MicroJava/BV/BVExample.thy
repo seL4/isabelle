@@ -252,11 +252,27 @@ constdefs
    (                                    [], [Class list_name, Class list_name]),
    (                          [PrimT Void], [Class list_name, Class list_name])]"
 
+
+lemma bounded_append [simp]:
+  "check_bounded append_ins [(Suc 0, 2, 8, Xcpt NullPointer)]"
+  apply (simp add: check_bounded_def)
+  apply (simp add: nat_number append_ins_def)
+  apply (rule allI, rule impI)
+  apply (elim pc_end pc_next pc_0)
+  apply auto
+  done
+
+lemma types_append [simp]: "check_types E 3 (Suc (Suc 0)) (map OK \<phi>\<^sub>a)"
+  apply (auto simp add: check_types_def phi_append_def JVM_states_unfold)
+  apply (unfold list_def)
+  apply auto
+  done
+  
 lemma wt_append [simp]:
   "wt_method E list_name [Class list_name] (PrimT Void) 3 0 append_ins
              [(Suc 0, 2, 8, Xcpt NullPointer)] \<phi>\<^sub>a"
-  apply (simp add: wt_method_def append_ins_def phi_append_def 
-                   wt_start_def wt_instr_def)
+  apply (simp add: wt_method_def wt_start_def wt_instr_def)
+  apply (simp add: phi_append_def append_ins_def)
   apply clarify
   apply (elim pc_end pc_next pc_0)
   apply simp
@@ -277,42 +293,57 @@ lemma wt_append [simp]:
 
 text {* Some abbreviations for readability *} 
 syntax
-  list :: ty 
-  test :: ty
+  Clist :: ty 
+  Ctest :: ty
 translations
-  "list" == "Class list_name"
-  "test" == "Class test_name"
+  "Clist" == "Class list_name"
+  "Ctest" == "Class test_name"
 
 constdefs
   phi_makelist :: method_type ("\<phi>\<^sub>m")
   "\<phi>\<^sub>m \<equiv> map (\<lambda>(x,y). Some (x, y)) [ 
-    (                                   [], [OK test, Err    , Err    ]),
-    (                               [list], [OK test, Err    , Err    ]),
-    (                         [list, list], [OK test, Err    , Err    ]),
-    (                               [list], [OK list, Err    , Err    ]),
-    (                [PrimT Integer, list], [OK list, Err    , Err    ]),
-    (                                   [], [OK list, Err    , Err    ]),
-    (                               [list], [OK list, Err    , Err    ]),
-    (                         [list, list], [OK list, Err    , Err    ]),
-    (                               [list], [OK list, OK list, Err    ]),
-    (                [PrimT Integer, list], [OK list, OK list, Err    ]),
-    (                                   [], [OK list, OK list, Err    ]),
-    (                               [list], [OK list, OK list, Err    ]),
-    (                         [list, list], [OK list, OK list, Err    ]),
-    (                               [list], [OK list, OK list, OK list]),
-    (                [PrimT Integer, list], [OK list, OK list, OK list]),
-    (                                   [], [OK list, OK list, OK list]),
-    (                               [list], [OK list, OK list, OK list]),
-    (                         [list, list], [OK list, OK list, OK list]),
-    (                         [PrimT Void], [OK list, OK list, OK list]),
-    (                                   [], [OK list, OK list, OK list]),
-    (                               [list], [OK list, OK list, OK list]),
-    (                         [list, list], [OK list, OK list, OK list]),
-    (                         [PrimT Void], [OK list, OK list, OK list])]"
+    (                                   [], [OK Ctest, Err     , Err     ]),
+    (                              [Clist], [OK Ctest, Err     , Err     ]),
+    (                       [Clist, Clist], [OK Ctest, Err     , Err     ]),
+    (                              [Clist], [OK Clist, Err     , Err     ]),
+    (               [PrimT Integer, Clist], [OK Clist, Err     , Err     ]),
+    (                                   [], [OK Clist, Err     , Err     ]),
+    (                              [Clist], [OK Clist, Err     , Err     ]),
+    (                       [Clist, Clist], [OK Clist, Err     , Err     ]),
+    (                              [Clist], [OK Clist, OK Clist, Err     ]),
+    (               [PrimT Integer, Clist], [OK Clist, OK Clist, Err     ]),
+    (                                   [], [OK Clist, OK Clist, Err     ]),
+    (                              [Clist], [OK Clist, OK Clist, Err     ]),
+    (                       [Clist, Clist], [OK Clist, OK Clist, Err     ]),
+    (                              [Clist], [OK Clist, OK Clist, OK Clist]),
+    (               [PrimT Integer, Clist], [OK Clist, OK Clist, OK Clist]),
+    (                                   [], [OK Clist, OK Clist, OK Clist]),
+    (                              [Clist], [OK Clist, OK Clist, OK Clist]),
+    (                       [Clist, Clist], [OK Clist, OK Clist, OK Clist]),
+    (                         [PrimT Void], [OK Clist, OK Clist, OK Clist]),
+    (                                   [], [OK Clist, OK Clist, OK Clist]),
+    (                              [Clist], [OK Clist, OK Clist, OK Clist]),
+    (                       [Clist, Clist], [OK Clist, OK Clist, OK Clist]),
+    (                         [PrimT Void], [OK Clist, OK Clist, OK Clist])]"
+
+lemma bounded_makelist [simp]: "check_bounded make_list_ins []"
+  apply (simp add: check_bounded_def)
+  apply (simp add: nat_number make_list_ins_def)
+  apply (rule allI, rule impI)
+  apply (elim pc_end pc_next pc_0)
+  apply auto
+  done
+
+lemma types_makelist [simp]: "check_types E 3 (Suc (Suc (Suc 0))) (map OK \<phi>\<^sub>m)"
+  apply (auto simp add: check_types_def phi_makelist_def JVM_states_unfold)
+  apply (unfold list_def)
+  apply auto
+  done
 
 lemma wt_makelist [simp]:
   "wt_method E test_name [] (PrimT Void) 3 2 make_list_ins [] \<phi>\<^sub>m"
-  apply (simp add: wt_method_def make_list_ins_def phi_makelist_def)
+  apply (simp add: wt_method_def)
+  apply (simp add: make_list_ins_def phi_makelist_def)
   apply (simp add: wt_start_def nat_number)
   apply (simp add: wt_instr_def)
   apply clarify
@@ -375,8 +406,8 @@ lemma "E,\<Phi> \<turnstile>JVM start_state E test_name makelist_name \<surd>"
 section "Example for code generation: inferring method types"
 
 constdefs
-  test_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty List.list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
-             exception_table \<Rightarrow> instr List.list \<Rightarrow> JVMType.state List.list"
+  test_kil :: "jvm_prog \<Rightarrow> cname \<Rightarrow> ty list \<Rightarrow> ty \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
+             exception_table \<Rightarrow> instr list \<Rightarrow> JVMType.state list"
   "test_kil G C pTs rT mxs mxl et instr ==
    (let first  = Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err));
         start  = OK first#(replicate (size instr - 1) (OK None))
