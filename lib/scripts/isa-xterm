@@ -67,10 +67,10 @@ if [ -z "$SYMBOLS" -o "$SYMBOLS" = false ]; then
   exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM" -e $ISABELLE $PASS "$@"
 else
   $ISATOOL installfonts
-  exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM" -fn isacr14 \
+  exec xterm -T Isabelle -n Isabelle -geometry "$MAINGEOM" -fn isabelle14 \
     -xrm "*fontMenu.Label: Isabelle fonts" \
     -xrm "*fontMenu*font1*Label: Large" \
-    -xrm "*VT100*font1: isacb24" \
+    -xrm "*VT100*font1: isabelle24" \
     -xrm "*fontMenu*font2*Label:" \
     -xrm "*VT100*font2:" \
     -xrm "*fontMenu*font3*Label:" \
