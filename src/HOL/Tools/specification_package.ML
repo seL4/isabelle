@@ -9,9 +9,9 @@ Package for defining constants by specification.
 signature SPECIFICATION_PACKAGE =
 sig
     val quiet_mode: bool ref
-    val add_specification: (bstring * bool) list -> bstring * Args.src list
+    val add_specification: (bstring * bstring * bool) list -> bstring * Args.src list
 			   -> theory * thm -> theory * thm
-    val add_specification_i: (bstring * bool) list -> bstring * theory attribute list
+    val add_specification_i: (bstring * bstring * bool) list -> bstring * theory attribute list
 			     -> theory * thm -> theory * thm
 end
 
@@ -38,12 +38,14 @@ fun choice_const T = Const("Hilbert_Choice.Eps",(T-->HOLogic.boolT)-->T)
 (* Actual code *)
 
 fun proc_exprop [] arg = arg
-  | proc_exprop ((cname,covld)::cos) (thy,thm) =
+  | proc_exprop ((thname,cname,covld)::cos) (thy,thm) =
     case concl_of thm of
 	Const("Trueprop",_) $ (Const("Ex",_) $ P) =>
 	let
 	    val ctype = domain_type (type_of P)
-	    val cdefname = Thm.def_name (Sign.base_name cname)
+	    val cdefname = if thname = ""
+			   then Thm.def_name (Sign.base_name cname)
+			   else thname
 	    val def_eq = Logic.mk_equals (Const(cname,ctype),choice_const ctype $  P)
 	    val (thy',thms) = PureThy.add_defs_i covld [((cdefname,def_eq),[])] thy
 	    val thm' = [thm,hd thms] MRS helper
@@ -106,7 +108,8 @@ fun process_spec cos alt_name sprop int thy =
 	val prop = term_of (Thm.read_cterm sg (sprop,HOLogic.boolT))
 	val (prop_thawed,vmap) = Type.varify (prop,[])
 	val thawed_prop_consts = collect_consts (prop_thawed,[])
-	val (sconsts,overloaded) = Library.split_list cos
+	val (altcos,overloaded) = Library.split_list cos
+	val (names,sconsts) = Library.split_list altcos
 	val consts = map (term_of o Thm.read_cterm sg o rpair TypeInfer.logicT) sconsts
 	val _ = assert (not (Library.exists (not o Term.is_Const) consts))
 		       "Non-constant found as parameter"
@@ -131,9 +134,12 @@ fun process_spec cos alt_name sprop int thy =
 	    end
 	val ex_prop = foldr mk_exist (proc_consts,prop)
 	val cnames = map (fst o dest_Const) proc_consts
+	fun zip3 [] [] [] = []
+	  | zip3 (x::xs) (y::ys) (z::zs) = (x,y,z)::zip3 xs ys zs
+	  | zip3 _ _ _ = error "Internal error: Bad specification syntax"
     in
 	IsarThy.theorem_i Drule.internalK
-	    (("",[add_specification (cnames ~~ overloaded) alt_name]),
+	    (("",[add_specification (zip3 (names:string list) (cnames:string list) (overloaded:bool list)) alt_name]),
 	     (HOLogic.mk_Trueprop ex_prop,([],[]))) int thy
     end
 
@@ -145,8 +151,10 @@ local structure P = OuterParse and K = OuterSyntax.Keyword in
 val opt_overloaded =
   Scan.optional (P.$$$ "(" |-- P.!!! ((P.$$$ "overloaded" >> K true) --| P.$$$ ")")) false
 
+val opt_name = Scan.optional (P.name --| P.$$$ ":") ""
+
 val specification_decl =
-    P.$$$ "(" |-- Scan.repeat1 (P.term -- opt_overloaded) --| P.$$$ ")" --
+    P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
 	  P.opt_thm_name ":" -- P.prop
 
 val specificationP =
