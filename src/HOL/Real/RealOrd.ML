@@ -574,26 +574,6 @@ by (auto_tac (claset() addIs [real_mult_self_le],
 	      simpset() addsimps [real_le_refl]));
 qed "real_mult_self_le2";
 
-Goal "x < y ==> x < (x + y) * inverse (1r + 1r)";
-by (dres_inst_tac [("C","x")] real_add_less_mono2 1);
-by (dtac (real_add_self RS subst) 1);
-by (dtac (real_zero_less_two RS real_inverse_gt_zero RS 
-          real_mult_less_mono1) 1);
-by (asm_full_simp_tac (simpset() addsimps [real_mult_assoc]) 1);
-qed "real_less_half_sum";
-
-Goal "x < y ==> (x + y) * inverse (1r + 1r) < y";
-by (dtac real_add_less_mono1 1);
-by (dtac (real_add_self RS subst) 1);
-by (dtac (real_zero_less_two RS real_inverse_gt_zero RS 
-          real_mult_less_mono1) 1);
-by (asm_full_simp_tac (simpset() addsimps [real_mult_assoc]) 1);
-qed "real_gt_half_sum";
-
-Goal "x < y ==> EX r::real. x < r & r < y";
-by (blast_tac (claset() addSIs [real_less_half_sum, real_gt_half_sum]) 1);
-qed "real_dense";
-
 Goal "(EX n. inverse (real_of_posnat n) < r) = (EX n. 1r < r * real_of_posnat n)";
 by (Step_tac 1);
 by (dres_inst_tac [("n1","n")] (real_of_posnat_gt_zero 

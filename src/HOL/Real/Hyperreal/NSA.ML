@@ -27,18 +27,18 @@ by (res_inst_tac [("x","r * ra")] exI 1);
 by (simp_tac (simpset() addsimps [hypreal_of_real_mult]) 1);
 qed "SReal_mult";
 
-Goalw [SReal_def] "[| x: SReal; x ~= 0 |] ==> inverse x : SReal";
-by (blast_tac (claset() addSDs [hypreal_of_real_inverse2]) 1);
+Goalw [SReal_def] "x: SReal ==> inverse x : SReal";
+by (auto_tac (claset(), simpset() addsimps [hypreal_of_real_inverse]));
 qed "SReal_inverse";
 
 Goalw [SReal_def] "x: SReal ==> -x : SReal";
-by (auto_tac (claset(),simpset() addsimps [hypreal_of_real_minus RS sym]));
+by (auto_tac (claset(), simpset() addsimps [hypreal_of_real_minus RS sym]));
 qed "SReal_minus";
 
 Goal "[| x + y : SReal; y: SReal |] ==> x: SReal";
 by (dres_inst_tac [("x","y")] SReal_minus 1);
 by (dtac SReal_add 1);
-by (auto_tac (claset(),simpset() addsimps [hypreal_add_assoc]));
+by (auto_tac (claset(), simpset() addsimps [hypreal_add_assoc]));
 qed "SReal_add_cancel";
 
 Goalw [SReal_def] "x: SReal ==> abs x : SReal";
@@ -46,21 +46,21 @@ by (auto_tac (claset(),simpset() addsimps [hypreal_of_real_hrabs]));
 qed "SReal_hrabs";
 
 Goalw [SReal_def] "hypreal_of_real #1 : SReal";
-by (Auto_tac);
+by (auto_tac (claset() addIs [hypreal_of_real_one RS sym], simpset()));  
 qed "SReal_hypreal_of_real_one";
 
 Goalw [SReal_def] "hypreal_of_real 0 : SReal";
-by (Auto_tac);
+by (auto_tac (claset() addIs [hypreal_of_real_zero RS sym], simpset()));  
 qed "SReal_hypreal_of_real_zero";
 
 Goal "1hr : SReal";
 by (simp_tac (simpset() addsimps [SReal_hypreal_of_real_one,
-    hypreal_of_real_one RS sym]) 1);
+                                  hypreal_of_real_one RS sym]) 1);
 qed "SReal_one";
 
 Goal "0 : SReal";
-by (simp_tac (simpset() addsimps [rename_numerals 
-    SReal_hypreal_of_real_zero,hypreal_of_real_zero RS sym]) 1);
+by (simp_tac (simpset() addsimps [rename_numerals SReal_hypreal_of_real_zero,
+                                  hypreal_of_real_zero RS sym]) 1);
 qed "SReal_zero";
 
 Goal "1hr + 1hr : SReal";
@@ -69,13 +69,12 @@ qed "SReal_two";
 
 Addsimps [SReal_zero,SReal_two];
 
-Goal "r : SReal ==> r*inverse(1hr + 1hr): SReal";
-by (blast_tac (claset() addSIs [SReal_mult,SReal_inverse,
-    SReal_two,hypreal_two_not_zero]) 1);
+Goalw [hypreal_divide_def] "r : SReal ==> r/(1hr + 1hr): SReal";
+by (blast_tac (claset() addSIs [SReal_mult, SReal_inverse, SReal_two]) 1);
 qed "SReal_half";
 
 (* in general: move before previous thms!*)
-Goalw [SReal_def] "hypreal_of_real  x: SReal";
+Goalw [SReal_def] "hypreal_of_real x: SReal";
 by (Blast_tac 1);
 qed "SReal_hypreal_of_real";
 
@@ -84,13 +83,13 @@ Addsimps [SReal_hypreal_of_real];
 (* Infinitesimal ehr not in SReal *)
 
 Goalw [SReal_def] "ehr ~: SReal";
-by (auto_tac (claset(),simpset() addsimps 
-    [hypreal_of_real_not_eq_epsilon RS not_sym]));
+by (auto_tac (claset(),
+              simpset() addsimps [hypreal_of_real_not_eq_epsilon RS not_sym]));
 qed "SReal_epsilon_not_mem";
 
 Goalw [SReal_def] "whr ~: SReal";
-by (auto_tac (claset(),simpset() addsimps 
-    [hypreal_of_real_not_eq_omega RS not_sym]));
+by (auto_tac (claset(),
+              simpset() addsimps [hypreal_of_real_not_eq_omega RS not_sym]));
 qed "SReal_omega_not_mem";
 
 Goalw [SReal_def] "{x. hypreal_of_real x : SReal} = (UNIV::real set)";
@@ -286,18 +285,15 @@ qed "InfinitesimalD";
 Goalw [Infinitesimal_def] "0 : Infinitesimal";
 by (simp_tac (simpset() addsimps [hrabs_zero]) 1);
 qed "Infinitesimal_zero";
-
 Addsimps [Infinitesimal_zero];
 
 Goalw [Infinitesimal_def] 
-      "[| x : Infinitesimal; y : Infinitesimal |] \
-\      ==> (x + y) : Infinitesimal";
+      "[| x : Infinitesimal; y : Infinitesimal |] ==> (x + y) : Infinitesimal";
 by (Auto_tac);
 by (rtac (hypreal_sum_of_halves RS subst) 1);
 by (dtac hypreal_half_gt_zero 1);
 by (dtac SReal_half 1);
-by (auto_tac (claset() addSDs [bspec] 
-    addIs [hrabs_add_less],simpset()));
+by (auto_tac (claset() addSDs [bspec] addIs [hrabs_add_less], simpset()));
 qed "Infinitesimal_add";
 
 Goalw [Infinitesimal_def] 
@@ -326,22 +322,20 @@ by (cut_facts_tac [SReal_one,hypreal_zero_less_one] 2);
 by (ALLGOALS(blast_tac (claset() addSDs [bspec])));
 qed "Infinitesimal_mult";
 
-Goal "[| x : Infinitesimal; y : HFinite |] \
-\     ==> (x * y) : Infinitesimal";
+Goal "[| x : Infinitesimal; y : HFinite |] ==> (x * y) : Infinitesimal";
 by (auto_tac (claset() addSDs [HFiniteD],
-    simpset() addsimps [Infinitesimal_def]));
+              simpset() addsimps [Infinitesimal_def]));
 by (forward_tac [hrabs_less_gt_zero] 1);
 by (dtac (hypreal_inverse_gt_zero RSN (2,hypreal_mult_less_mono2)) 1 
     THEN assume_tac 1);
-by (dtac ((hypreal_not_refl2 RS not_sym) RSN (2,SReal_inverse)) 1 
-    THEN assume_tac 1);
+by (dtac SReal_inverse 1);
 by (dtac SReal_mult 1 THEN assume_tac 1);
 by (thin_tac "inverse t : SReal" 1);
-by (auto_tac (claset() addSDs [bspec],simpset() addsimps [hrabs_mult]));
+by (auto_tac (claset() addSDs [bspec], simpset() addsimps [hrabs_mult]));
 by (dtac hrabs_mult_less 1 THEN assume_tac 1);
 by (dtac (hypreal_not_refl2 RS not_sym) 1);
 by (auto_tac (claset() addSDs [hypreal_mult_inverse],
-     simpset() addsimps [hrabs_mult] @ hypreal_mult_ac));
+              simpset() addsimps [hrabs_mult] @ hypreal_mult_ac));
 qed "Infinitesimal_HFinite_mult";
 
 Goal "[| x : Infinitesimal; y : HFinite |] \
@@ -352,25 +346,20 @@ qed "Infinitesimal_HFinite_mult2";
 
 (*** rather long proof ***)
 Goalw [HInfinite_def,Infinitesimal_def] 
-      "x: HInfinite ==> inverse x: Infinitesimal";
+     "x: HInfinite ==> inverse x: Infinitesimal";
 by (Auto_tac);
 by (eres_inst_tac [("x","inverse r")] ballE 1);
 by (rtac (hrabs_inverse RS ssubst) 1);
-by (etac (((hypreal_inverse_gt_zero RS hypreal_less_trans) 
-   RS hypreal_not_refl2 RS not_sym) RS (hrabs_not_zero_iff 
-   RS iffD2)) 1 THEN assume_tac 1);
 by (forw_inst_tac [("x1","r"),("R3.0","abs x")] 
     (hypreal_inverse_gt_zero RS hypreal_less_trans) 1);
 by (assume_tac 1);
 by (forw_inst_tac [("s","abs x"),("t","0")] 
               (hypreal_not_refl2 RS not_sym) 1);
 by (dtac ((hypreal_inverse_inverse RS sym) RS subst) 1);
-by (rotate_tac 2 1 THEN assume_tac 1);
 by (dres_inst_tac [("x","abs x")] hypreal_inverse_gt_zero 1);
 by (rtac (hypreal_inverse_less_iff RS ssubst) 1);
 by (auto_tac (claset() addSDs [SReal_inverse],
-    simpset() addsimps [hypreal_not_refl2 RS not_sym,
-    hypreal_less_not_refl]));
+    simpset() addsimps [hypreal_not_refl2 RS not_sym, hypreal_less_not_refl]));
 qed "HInfinite_inverse_Infinitesimal";
 
 Goalw [HInfinite_def] 
@@ -904,20 +893,20 @@ by (Auto_tac);
 qed "inf_close_hypreal_of_real_not_zero";
 
 Goal "[| x @= y; y : HFinite - Infinitesimal |] \
-\                  ==> x : HFinite - Infinitesimal";
+\     ==> x : HFinite - Infinitesimal";
 by (auto_tac (claset() addIs [inf_close_sym RSN (2,inf_close_HFinite)],
     simpset() addsimps [mem_infmal_iff]));
 by (dtac inf_close_trans3 1 THEN assume_tac 1);
 by (blast_tac (claset() addDs [inf_close_sym]) 1);
 qed "HFinite_diff_Infinitesimal_inf_close";
 
-Goal "[| y ~= 0; y: Infinitesimal; \
-\                 x*inverse(y) : HFinite \
-\              |] ==> x : Infinitesimal";
+(*The premise y~=0 is essential; otherwise x/y =0 and we lose the 
+  HFinite premise.*)
+Goal "[| y ~= 0;  y: Infinitesimal;  x/y : HFinite |] ==> x : Infinitesimal";
 by (dtac Infinitesimal_HFinite_mult2 1);
 by (assume_tac 1);
-by (asm_full_simp_tac (simpset() 
-    addsimps [hypreal_mult_assoc]) 1);
+by (asm_full_simp_tac 
+    (simpset() addsimps [hypreal_divide_def, hypreal_mult_assoc]) 1);
 qed "Infinitesimal_ratio";
 
 (*------------------------------------------------------------------
@@ -928,7 +917,7 @@ qed "Infinitesimal_ratio";
          Uniqueness: Two infinitely close reals are equal
  ------------------------------------------------------------------*)
 
-Goal "[|x: SReal; y: SReal|] ==> (x @= y) = (x = y)";
+Goal "[|x: SReal; y: SReal|] ==> (x @= y) = (x = y)"; 
 by (auto_tac (claset(),simpset() addsimps [inf_close_refl]));
 by (rewrite_goals_tac [inf_close_def]);
 by (dres_inst_tac [("x","y")] SReal_minus 1);
@@ -1203,7 +1192,6 @@ qed "HInfinite_diff_HFinite_Infinitesimal_disj";
 
 Goal "[| x : HFinite; x ~: Infinitesimal |] ==> inverse x : HFinite";
 by (cut_inst_tac [("x","inverse x")] HInfinite_HFinite_disj 1);
-by (forward_tac [not_Infinitesimal_not_zero RS hypreal_inverse_inverse] 1);
 by (auto_tac (claset() addSDs [HInfinite_inverse_Infinitesimal],simpset()));
 qed "HFinite_inverse";
 
@@ -1215,15 +1203,16 @@ qed "HFinite_inverse2";
 Goal "x ~: Infinitesimal ==> inverse(x) : HFinite";
 by (dtac HInfinite_diff_HFinite_Infinitesimal_disj 1);
 by (blast_tac (claset() addIs [HFinite_inverse,
-    HInfinite_inverse_Infinitesimal,
-    Infinitesimal_subset_HFinite RS subsetD]) 1);
+                 HInfinite_inverse_Infinitesimal,
+                 Infinitesimal_subset_HFinite RS subsetD]) 1);
 qed "Infinitesimal_inverse_HFinite";
 
 Goal "x : HFinite - Infinitesimal ==> inverse x : HFinite - Infinitesimal";
 by (auto_tac (claset() addIs [Infinitesimal_inverse_HFinite],simpset()));
 by (dtac Infinitesimal_HFinite_mult2 1);
-by (auto_tac (claset() addSDs [not_Infinitesimal_not_zero,
-    hypreal_mult_inverse],simpset()));
+by (auto_tac (claset() addSDs [not_Infinitesimal_not_zero, 
+                               hypreal_mult_inverse],
+              simpset()));
 qed "HFinite_not_Infinitesimal_inverse";
 
 Goal "[| x @= y; y :  HFinite - Infinitesimal |] \
@@ -2075,14 +2064,14 @@ by (rtac (real_of_posnat_gt_zero RS real_inverse_gt_zero RS
           (hypreal_of_real_less_iff RS iffD1) RSN(2,impE)) 1);
 by (assume_tac 2);
 by (asm_full_simp_tac (simpset() addsimps 
-       [real_not_refl2 RS not_sym RS hypreal_of_real_inverse RS sym,
+       [hypreal_of_real_inverse RS sym,
         rename_numerals real_of_posnat_gt_zero,hypreal_of_real_zero,
         hypreal_of_real_of_posnat]) 1);
 by (auto_tac (claset() addSDs [reals_Archimedean],
               simpset() addsimps [SReal_iff,hypreal_of_real_zero RS sym]));
 by (dtac (hypreal_of_real_less_iff RS iffD1) 1);
 by (asm_full_simp_tac (simpset() addsimps 
-       [real_not_refl2 RS not_sym RS hypreal_of_real_inverse RS sym,
+       [hypreal_of_real_inverse RS sym,
         rename_numerals real_of_posnat_gt_zero,hypreal_of_real_of_posnat])1);
 by (blast_tac (claset() addIs [hypreal_less_trans]) 1);
 qed "lemma_Infinitesimal2";

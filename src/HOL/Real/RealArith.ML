@@ -8,7 +8,44 @@ Assorted facts that need binary literals and the arithmetic decision procedure
 Also, common factor cancellation
 *)
 
+(*****????????????????***VERY EARLY! (HOL itself)*********)
+Goal "(number_of w = x+y) = (x+y = number_of w)";
+by Auto_tac;  
+qed "number_of_add_reorient";
+AddIffs [number_of_add_reorient];
+
+Goal "(number_of w = x-y) = (x-y = number_of w)";
+by Auto_tac;  
+qed "number_of_diff_reorient";
+AddIffs [number_of_diff_reorient];
+
+Goal "(number_of w = x*y) = (x*y = number_of w)";
+by Auto_tac;  
+qed "number_of_mult_reorient";
+AddIffs [number_of_mult_reorient];
+
+Goal "(number_of w = x div y) = (x div y = number_of w)";
+by Auto_tac;  
+qed "number_of_div_reorient";
+AddIffs [number_of_div_reorient];
+
+Goal "(number_of w = x mod y) = (x mod y = number_of w)";
+by Auto_tac;  
+qed "number_of_mod_reorient";
+AddIffs [number_of_mod_reorient];
+
+Goal "(number_of w = x/y) = (x/y = number_of w)";
+by Auto_tac;  
+qed "number_of_divide_reorient";
+AddIffs [number_of_divide_reorient];
+
+
 (** Division and inverse **)
+
+Goal "#0/x = (#0::real)";
+by (simp_tac (simpset() addsimps [real_divide_def]) 1); 
+qed "real_0_divide";
+Addsimps [real_0_divide];
 
 Goal "((#0::real) < inverse x) = (#0 < x)";
 by (case_tac "x=#0" 1);
@@ -63,6 +100,18 @@ by (simp_tac (simpset() addsimps [real_divide_def]) 1);
 qed "real_divide_1";
 Addsimps [real_divide_1];
 
+Goal "(inverse(x::real) = #0) = (x = #0)";
+by (auto_tac (claset(), simpset() addsimps [rename_numerals INVERSE_ZERO]));  
+by (rtac ccontr 1); 
+by (blast_tac (claset() addDs [rename_numerals real_inverse_not_zero]) 1); 
+qed "real_inverse_zero_iff";
+AddIffs [real_inverse_zero_iff];
+
+Goal "(x/y = #0) = (x=#0 | y=(#0::real))";
+by (auto_tac (claset(), simpset() addsimps [real_divide_def]));  
+qed "real_divide_eq_0_iff";
+AddIffs [real_divide_eq_0_iff];
+
 
 (**** Factor cancellation theorems for "real" ****)
 
@@ -74,6 +123,7 @@ bind_thm ("real_mult_minus_right", real_minus_mult_eq2 RS sym);
 Goal "(-y < -x) = ((x::real) < y)";
 by (arith_tac 1);
 qed "real_minus_less_minus";
+Addsimps [real_minus_less_minus];
 
 Goal "[| i<j;  k < (0::real) |] ==> j*k < i*k";
 by (rtac (real_minus_less_minus RS iffD1) 1);
@@ -366,9 +416,21 @@ by (Asm_simp_tac 1);
 qed "real_divide_eq_eq";
 Addsimps [inst "z" "number_of ?w" real_divide_eq_eq];
 
+Goal "(m/k = n/k) = (k = #0 | m = (n::real))";
+by (case_tac "k=#0" 1);
+by (asm_simp_tac (simpset() addsimps [REAL_DIVIDE_ZERO]) 1); 
+by (asm_simp_tac (simpset() addsimps [real_divide_eq_eq, real_eq_divide_eq, 
+                                      real_mult_eq_cancel2]) 1); 
+qed "real_divide_eq_cancel2";
 
-(** Moved from RealOrd.ML to use #0 **)
+Goal "(k/m = k/n) = (k = #0 | m = (n::real))";
+by (case_tac "m=#0 | n = #0" 1);
+by (auto_tac (claset(), 
+              simpset() addsimps [REAL_DIVIDE_ZERO, real_divide_eq_eq, 
+                                  real_eq_divide_eq, real_mult_eq_cancel1]));  
+qed "real_divide_eq_cancel1";
 
+(*Moved from RealOrd.ML to use #0 *)
 Goal "[| #0 < r; #0 < x|] ==> (inverse x < inverse (r::real)) = (r < x)";
 by (auto_tac (claset() addIs [real_inverse_less_swap], simpset()));
 by (res_inst_tac [("t","r")] (real_inverse_inverse RS subst) 1);
@@ -387,3 +449,142 @@ Goal "[| (#0::real) < d1; #0 < d2 |] ==> EX e. #0 < e & e < d1 & e < d2";
 by (res_inst_tac [("x","(min d1 d2)/#2")] exI 1); 
 by (asm_simp_tac (simpset() addsimps [min_def]) 1); 
 qed "real_lbound_gt_zero";
+
+
+(*** General rewrites to improve automation, like those for type "int" ***)
+
+(** The next several equations can make the simplifier loop! **)
+
+Goal "(x < - y) = (y < - (x::real))";
+by Auto_tac;  
+qed "real_less_minus"; 
+
+Goal "(- x < y) = (- y < (x::real))";
+by Auto_tac;  
+qed "real_minus_less"; 
+
+Goal "(x <= - y) = (y <= - (x::real))";
+by Auto_tac;  
+qed "real_le_minus"; 
+
+Goal "(- x <= y) = (- y <= (x::real))";
+by Auto_tac;  
+qed "real_minus_le"; 
+
+Goal "(x = - y) = (y = - (x::real))";
+by Auto_tac;
+qed "real_equation_minus";
+
+Goal "(- x = y) = (- (y::real) = x)";
+by Auto_tac;
+qed "real_minus_equation";
+
+
+(*Distributive laws for literals*)
+Addsimps (map (inst "w" "number_of ?v")
+	  [real_add_mult_distrib, real_add_mult_distrib2,
+	   real_diff_mult_distrib, real_diff_mult_distrib2]);
+
+Addsimps (map (inst "x" "number_of ?v") 
+	  [real_less_minus, real_le_minus, real_equation_minus]);
+Addsimps (map (inst "y" "number_of ?v") 
+	  [real_minus_less, real_minus_le, real_minus_equation]);
+
+
+(*** Simprules combining x+y and #0 ***)
+
+Goal "(x+y = (#0::real)) = (y = -x)";
+by Auto_tac;  
+qed "real_add_eq_0_iff";
+AddIffs [real_add_eq_0_iff];
+
+(**?????????not needed with re-orientation
+Goal "((#0::real) = x+y) = (y = -x)";
+by Auto_tac;  
+qed "real_0_eq_add_iff";
+AddIffs [real_0_eq_add_iff];
+????????*)
+
+Goal "(x+y < (#0::real)) = (y < -x)";
+by Auto_tac;  
+qed "real_add_less_0_iff";
+AddIffs [real_add_less_0_iff];
+
+Goal "((#0::real) < x+y) = (-x < y)";
+by Auto_tac;  
+qed "real_0_less_add_iff";
+AddIffs [real_0_less_add_iff];
+
+Goal "(x+y <= (#0::real)) = (y <= -x)";
+by Auto_tac;  
+qed "real_add_le_0_iff";
+AddIffs [real_add_le_0_iff];
+
+Goal "((#0::real) <= x+y) = (-x <= y)";
+by Auto_tac;  
+qed "real_0_le_add_iff";
+AddIffs [real_0_le_add_iff];
+
+
+(*** Simprules combining x-y and #0 ***)
+
+Goal "(x-y = (#0::real)) = (x = y)";
+by Auto_tac;  
+qed "real_diff_eq_0_iff";
+AddIffs [real_diff_eq_0_iff];
+
+Goal "((#0::real) = x-y) = (x = y)";
+by Auto_tac;  
+qed "real_0_eq_diff_iff";
+AddIffs [real_0_eq_diff_iff];
+
+Goal "(x-y < (#0::real)) = (x < y)";
+by Auto_tac;  
+qed "real_diff_less_0_iff";
+AddIffs [real_diff_less_0_iff];
+
+Goal "((#0::real) < x-y) = (y < x)";
+by Auto_tac;  
+qed "real_0_less_diff_iff";
+AddIffs [real_0_less_diff_iff];
+
+Goal "(x-y <= (#0::real)) = (x <= y)";
+by Auto_tac;  
+qed "real_diff_le_0_iff";
+AddIffs [real_diff_le_0_iff];
+
+Goal "((#0::real) <= x-y) = (y <= x)";
+by Auto_tac;  
+qed "real_0_le_diff_iff";
+AddIffs [real_0_le_diff_iff];
+
+(*
+?? still needed ??
+Addsimps [symmetric real_diff_def];
+*)
+
+Goal "-(x-y) = y - (x::real)";
+by (arith_tac 1);
+qed "real_minus_diff_eq";
+Addsimps [real_minus_diff_eq];
+
+
+(*** Density of the Reals ***)
+
+Goal "x < y ==> x < (x+y) / (#2::real)";
+by Auto_tac;
+qed "real_less_half_sum";
+
+Goal "x < y ==> (x+y)/(#2::real) < y";
+by Auto_tac;
+qed "real_gt_half_sum";
+
+Goal "x < y ==> EX r::real. x < r & r < y";
+by (blast_tac (claset() addSIs [real_less_half_sum, real_gt_half_sum]) 1);
+qed "real_dense";
+
+
+(*Replaces "inverse #nn" by #1/#nn *)
+Addsimps [inst "x" "number_of ?w" real_inverse_eq_divide];
+
+

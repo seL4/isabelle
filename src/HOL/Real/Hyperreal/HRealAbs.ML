@@ -94,36 +94,14 @@ by (auto_tac (claset(),simpset() addsimps [hypreal_hrabs,
     hypreal_mult,abs_mult]));
 qed "hrabs_mult";
 
-Goal "x~= (0::hypreal) ==> abs(inverse(x)) = inverse(abs(x))";
+Goal "abs(inverse(x)) = inverse(abs(x::hypreal))";
+by (hypreal_div_undefined_case_tac "x=0" 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
-by (auto_tac (claset(),simpset() addsimps [hypreal_hrabs,
-    hypreal_inverse,hypreal_zero_def]));
-by (ultra_tac (claset(),simpset() addsimps [abs_inverse]) 1);
-by (arith_tac 1);
+by (auto_tac (claset(),
+       simpset() addsimps [hypreal_hrabs,
+                           hypreal_inverse,hypreal_zero_def]));
+by (ultra_tac (claset(), simpset() addsimps [abs_inverse]) 1);
 qed "hrabs_inverse";
-
-(* old version of proof:
-Goalw [hrabs_def] 
-   "x~= (0::hypreal) ==> abs(inverse(x)) = inverse(abs(x))";
-by (auto_tac (claset(),simpset() addsimps [hypreal_minus_inverse]));
-by (ALLGOALS(dtac not_hypreal_leE));
-by (etac hypreal_less_asym 1);
-by (blast_tac (claset() addDs [hypreal_le_imp_less_or_eq,
-          hypreal_inverse_gt_zero]) 1);
-by (dtac (hreal_inverse_not_zero RS not_sym) 1);
-by (rtac (hypreal_inverse_less_zero RSN (2,hypreal_less_asym)) 1);
-by (assume_tac 2);
-by (blast_tac (claset() addSDs [hypreal_le_imp_less_or_eq]) 1);
-qed "hrabs_inverse";
-*)
-
-val [prem] = goal thy "y ~= (0::hypreal) ==> \
-\            abs(x*inverse(y)) = abs(x)*inverse(abs(y))";
-by (res_inst_tac [("c1","abs y")] (hypreal_mult_left_cancel RS subst) 1);
-by (simp_tac (simpset() addsimps [(hrabs_not_zero_iff RS sym), prem]) 1);
-by (simp_tac (simpset() addsimps [(hrabs_mult RS sym), prem, 
-    hrabs_not_zero_iff RS sym] @ hypreal_mult_ac) 1);
-qed "hrabs_mult_inverse";
 
 Goal "abs(x+(y::hypreal)) <= abs x + abs y";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);

@@ -12,7 +12,7 @@
    referee for the JCM Paper: let f(x) be least y such 
    that  Q(x,y) 
 *)
-Goal "!!Q. ALL x. EX y. Q x y ==> EX (f :: nat => nat). ALL x. Q x (f x)";
+Goal "ALL x. EX y. Q x y ==> EX (f :: nat => nat). ALL x. Q x (f x)";
 by (res_inst_tac [("x","%x. LEAST y. Q x y")] exI 1);
 by (blast_tac (claset() addIs [LeastI]) 1);
 qed "no_choice";
@@ -65,7 +65,7 @@ goal Set.thy "(A - B) = (A Int (- B))";
 by (Step_tac 1);
 qed "set_diff_iff2";
 
-Goal "!!x. x ~: *s* F ==> x : *s* (- F)";
+Goal "x ~: *s* F ==> x : *s* (- F)";
 by (auto_tac (claset(),simpset() addsimps [STAR_Compl]));
 qed "STAR_mem_Compl";
 
@@ -74,12 +74,12 @@ by (auto_tac (claset(),simpset() addsimps
          [set_diff_iff2,STAR_Int,STAR_Compl]));
 qed "STAR_diff";
 
-Goalw [starset_def] "!!A. A <= B ==> *s* A <= *s* B";
+Goalw [starset_def] "A <= B ==> *s* A <= *s* B";
 by (REPEAT(blast_tac (claset() addIs [FreeUltrafilterNat_subset]) 1));
 qed "STAR_subset";
 
 Goalw [starset_def,hypreal_of_real_def] 
-          "!!A. a : A ==> hypreal_of_real a : *s* A";
+          "a : A ==> hypreal_of_real a : *s* A";
 by (auto_tac (claset() addIs [FreeUltrafilterNat_subset],simpset()));
 qed "STAR_mem";
 
@@ -98,7 +98,7 @@ by (blast_tac (claset() addIs [FreeUltrafilterNat_subset]) 2);
 by (Auto_tac);
 qed "STAR_hypreal_of_real_Int";
 
-Goal "!!x. x ~: hypreal_of_real `` A ==> ALL y: A. x ~= hypreal_of_real y";
+Goal "x ~: hypreal_of_real `` A ==> ALL y: A. x ~= hypreal_of_real y";
 by (Auto_tac);
 qed "lemma_not_hyprealA";
 
@@ -107,7 +107,7 @@ by (Auto_tac);
 qed "lemma_Compl_eq";
 
 Goalw [starset_def]
-    "!!M. ALL n. (X n) ~: M \
+    "ALL n. (X n) ~: M \
 \         ==> Abs_hypreal(hyprel^^{X}) ~: *s* M";
 by (Auto_tac THEN rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (Auto_tac);
@@ -120,14 +120,14 @@ by (auto_tac (claset() addIs [FreeUltrafilterNat_subset],simpset()));
 qed "STAR_singleton";
 Addsimps [STAR_singleton];
 
-Goal "!!x. x ~: F ==> hypreal_of_real x ~: *s* F";
+Goal "x ~: F ==> hypreal_of_real x ~: *s* F";
 by (auto_tac (claset(),simpset() addsimps
     [starset_def,hypreal_of_real_def]));
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (Auto_tac);
 qed "STAR_not_mem";
 
-Goal "!!x. [| x : *s* A; A <= B |] ==> x : *s* B";
+Goal "[| x : *s* A; A <= B |] ==> x : *s* B";
 by (blast_tac (claset() addDs [STAR_subset]) 1);
 qed "STAR_subset_closed";
 
@@ -137,7 +137,7 @@ qed "STAR_subset_closed";
  -----------------------------------------------------------------*)
 
 Goalw [starset_n_def,starset_def] 
-     "!!A. ALL n. (As n = A) ==> *sn* As = *s* A";
+     "ALL n. (As n = A) ==> *sn* As = *s* A";
 by (Auto_tac);
 qed "starset_n_starset";
 
@@ -152,7 +152,7 @@ qed "starset_n_starset";
 (*----------------------------------------------------------------*)
 
 Goalw [starfun_n_def,starfun_def] 
-     "!!A. ALL n. (F n = f) ==> *fn* F = *f* f";
+     "ALL n. (F n = f) ==> *fn* F = *f* f";
 by (Auto_tac);
 qed "starfun_n_starfun";
 
@@ -181,7 +181,7 @@ by (TRYALL(Ultra_tac));
 by (TRYALL(arith_tac));
 qed "hrabs_is_starext_rabs";
 
-Goal "!!z. [| X: Rep_hypreal z; Y: Rep_hypreal z |] \
+Goal "[| X: Rep_hypreal z; Y: Rep_hypreal z |] \
 \              ==> {n. X n = Y n} : FreeUltrafilterNat";
 by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
 by (Auto_tac THEN Fuf_tac 1);
@@ -224,10 +224,14 @@ qed "starfun_add";
 (*--------------------------------------------
   subtraction: ( *f ) + -( *g ) = *(f + -g)  
  -------------------------------------------*)
+
+Goal "- (*f* f) x = (*f* (%x. - f x)) x";
+by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
+by (auto_tac (claset(),simpset() addsimps [starfun, hypreal_minus]));
+qed "starfun_minus";
+
 Goal "(*f* f) xa + -(*f* g) xa = (*f* (%x. f x + -g x)) xa";
-by (res_inst_tac [("z","xa")] eq_Abs_hypreal 1);
-by (auto_tac (claset(),simpset() addsimps [starfun,
-    hypreal_minus,hypreal_add]));
+by (simp_tac (simpset() addsimps [starfun_minus, starfun_add]) 1);
 qed "starfun_add_minus";
 
 Goalw [hypreal_diff_def,real_diff_def]
@@ -260,17 +264,11 @@ qed "starfun_const_fun";
 
 Addsimps [starfun_const_fun];
 
-Goal "- (*f* f) x = (*f* (%x. - f x)) x";
-by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
-by (auto_tac (claset(),simpset() addsimps [starfun,
-              hypreal_minus]));
-qed "starfun_minus";
-
 (*----------------------------------------------------
    the NS extension of the identity function
  ----------------------------------------------------*)
 
-Goal "!!x. x @= hypreal_of_real a ==> (*f* (%x. x)) x @= hypreal_of_real  a";
+Goal "x @= hypreal_of_real a ==> (*f* (%x. x)) x @= hypreal_of_real  a";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
 qed "starfun_Idfun_inf_close";
@@ -295,7 +293,7 @@ qed "is_starext_starfun";
      Any nonstandard extension is in fact the *-function
  ----------------------------------------------------------------------*)
 
-Goalw [is_starext_def] "!!f. is_starext F f ==> F = *f* f";
+Goalw [is_starext_def] "is_starext F f ==> F = *f* f";
 by (rtac ext 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (dres_inst_tac [("x","x")] spec 1);
@@ -338,7 +336,7 @@ by (auto_tac (claset(),simpset() addsimps [starfun,
     hypreal_of_real_def,hypreal_add]));
 qed "starfun_lambda_cancel2";
 
-Goal "!!f. [| (*f* f) xa @= l; (*f* g) xa @= m; \
+Goal "[| (*f* f) xa @= l; (*f* g) xa @= m; \
 \                 l: HFinite; m: HFinite  \
 \              |] ==>  (*f* (%x. f x * g x)) xa @= l * m";
 by (dtac inf_close_mult_HFinite 1);
@@ -347,7 +345,7 @@ by (auto_tac (claset() addIs [inf_close_sym RSN (2,inf_close_HFinite)],
               simpset() addsimps [starfun_mult]));
 qed "starfun_mult_HFinite_inf_close";
 
-Goal "!!f. [| (*f* f) xa @= l; (*f* g) xa @= m \
+Goal "[| (*f* f) xa @= l; (*f* g) xa @= m \
 \              |] ==>  (*f* (%x. f x + g x)) xa @= l + m";
 by (auto_tac (claset() addIs [inf_close_add],
               simpset() addsimps [starfun_add RS sym]));
@@ -367,61 +365,41 @@ by (rtac (hrabs_is_starext_rabs RS
     (is_starext_starfun_iff RS iffD1) RS sym) 1);
 qed "starfun_rabs_hrabs";
 
-Goal "!!x. x ~= 0 ==> (*f* inverse) x = inverse(x)";
+Goal "(*f* inverse) x = inverse(x)";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
-by (auto_tac (claset(),simpset() addsimps [starfun,
-    hypreal_inverse,hypreal_zero_def]));
-by (dtac FreeUltrafilterNat_Compl_mem 1);
-by (auto_tac (claset() addEs [FreeUltrafilterNat_subset],simpset()));
+by (auto_tac (claset(),
+            simpset() addsimps [starfun, hypreal_inverse, hypreal_zero_def]));
 qed "starfun_inverse_inverse";
 
 (* more specifically *)
 Goal "(*f* inverse) ehr = inverse (ehr)";
-by (rtac (hypreal_epsilon_not_zero RS starfun_inverse_inverse) 1);
+by (rtac starfun_inverse_inverse 1);
 qed "starfun_inverse_epsilon";
 
-Goal "ALL x. f x ~= 0 ==> \
-\     inverse ((*f* f) x) = (*f* (%x. inverse (f x))) x";
+Goal "inverse ((*f* f) x) = (*f* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
-by (auto_tac (claset(),simpset() addsimps [starfun,
-              hypreal_inverse]));
+by (auto_tac (claset(),
+              simpset() addsimps [starfun, hypreal_inverse]));
 qed "starfun_inverse";
 
-Goal "(*f* f) x ~= 0 ==> \
-\     inverse ((*f* f) x) = (*f* (%x. inverse (f x))) x";
+Goalw [hypreal_divide_def,real_divide_def]
+  "(*f* f) xa  / (*f* g) xa = (*f* (%x. f x / g x)) xa";
+by (simp_tac (simpset() addsimps [starfun_inverse, starfun_mult]) 1);
+qed "starfun_divide";
+
+Goal "inverse ((*f* f) x) = (*f* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addIs [FreeUltrafilterNat_subset]
-    addSDs [FreeUltrafilterNat_Compl_mem],
-    simpset() addsimps [starfun,hypreal_inverse,
-    hypreal_zero_def]));
+                       addSDs [FreeUltrafilterNat_Compl_mem],
+    simpset() addsimps [starfun, hypreal_inverse, hypreal_zero_def]));
 qed "starfun_inverse2";
-
-Goal "a ~= hypreal_of_real b ==> \
-\     (*f* (%z. inverse (z + -b))) a = inverse(a + -hypreal_of_real b)";
-by (res_inst_tac [("z","a")] eq_Abs_hypreal 1);
-by (auto_tac (claset() addIs [FreeUltrafilterNat_subset]
-    addSDs [FreeUltrafilterNat_Compl_mem],
-    simpset() addsimps [starfun,hypreal_of_real_def,hypreal_add,
-    hypreal_minus,hypreal_inverse,rename_numerals 
-    (real_eq_minus_iff2 RS sym)]));
-qed "starfun_inverse3";
-
-Goal 
-     "!!f. a + hypreal_of_real b ~= 0 ==> \
-\          (*f* (%z. inverse (z + b))) a = inverse(a + hypreal_of_real b)";
-by (res_inst_tac [("z","a")] eq_Abs_hypreal 1);
-by (auto_tac (claset() addIs [FreeUltrafilterNat_subset]
-    addSDs [FreeUltrafilterNat_Compl_mem],
-    simpset() addsimps [starfun,hypreal_of_real_def,hypreal_add,
-    hypreal_inverse,hypreal_zero_def]));
-qed "starfun_inverse4";
 
 (*-------------------------------------------------------------
     General lemma/theorem needed for proofs in elementary
     topology of the reals
  ------------------------------------------------------------*)
 Goalw [starset_def] 
-      "!!A. (*f* f) x : *s* A ==> x : *s* {x. f x : A}";
+      "(*f* f) x : *s* A ==> x : *s* {x. f x : A}";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),simpset() addsimps [starfun]));
 by (dres_inst_tac [("x","%n. f (Xa n)")] bspec 1);

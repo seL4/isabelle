@@ -313,11 +313,9 @@ by (auto_tac (claset(),simpset() addsimps [starfunNat,
               hypreal_minus]));
 qed "starfunNat_minus";
 
-Goal "ALL x. f x ~= 0 ==> \
-\     inverse ((*fNat* f) x) = (*fNat* (%x. inverse (f x))) x";
+Goal "inverse ((*fNat* f) x) = (*fNat* (%x. inverse (f x))) x";
 by (res_inst_tac [("z","x")] eq_Abs_hypnat 1);
-by (auto_tac (claset(),simpset() addsimps [starfunNat,
-              hypreal_inverse]));
+by (auto_tac (claset(), simpset() addsimps [starfunNat, hypreal_inverse]));
 qed "starfunNat_inverse";
 
 (*--------------------------------------------------------
@@ -359,19 +357,6 @@ by (auto_tac (claset() addIs [inf_close_add],
               simpset() addsimps [starfunNat_add RS sym]));
 qed "starfunNat_add_inf_close";
 
-(*-------------------------------------------------------------------
-  A few more theorems involving NS extension of real sequences
-  See analogous theorems for starfun- NS extension of f::real=>real
- ------------------------------------------------------------------*)
-Goal 
-     "!!f. (*fNat* f) x ~= 0 ==> \
-\     inverse ((*fNat* f) x) = (*fNat* (%x. inverse (f x))) x";
-by (res_inst_tac [("z","x")] eq_Abs_hypnat 1);
-by (auto_tac (claset() addIs [FreeUltrafilterNat_subset]
-    addSDs [FreeUltrafilterNat_Compl_mem],
-    simpset() addsimps [starfunNat,hypreal_inverse,
-    hypreal_zero_def]));
-qed "starfunNat_inverse2";
 
 (*-----------------------------------------------------------------
     Example of transfer of a property from reals to hyperreals

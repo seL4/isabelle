@@ -137,10 +137,6 @@ Goal "(xa <= S + X + (-Z)) = (xa + (-X) + Z <= (S::real))";
 by (Auto_tac);
 qed "lemma_le_swap2";
 
-Goal "[| #0 < (x::real) + (-X) + #1; x < xa |] ==> #0 < xa + (-X) + #1";
-by (Auto_tac);
-qed "lemma_real_complete1";
-
 Goal "[| (x::real) + (-X) + #1 <= S; xa < x |] ==> xa + (-X) + #1 <= S";
 by (Auto_tac);
 qed "lemma_real_complete2";
@@ -183,7 +179,7 @@ by (stac lemma_le_swap2 1);
 by (ftac isLubD2 1 THEN assume_tac 2);
 by (Step_tac 1);
 by (Blast_tac 1);
-by (dtac lemma_real_complete1 1 THEN REPEAT(assume_tac 1));
+by (arith_tac 1);
 by (stac lemma_le_swap2 1);
 by (ftac isLubD2 1 THEN assume_tac 2);
 by (Blast_tac 1);

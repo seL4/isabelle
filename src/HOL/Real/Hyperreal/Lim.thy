@@ -7,57 +7,60 @@
 
 Lim = SEQ + RealAbs + 
 
-     (*-----------------------------------------------------------------------
-         Limits, continuity and differentiation: standard and NS definitions
-      -----------------------------------------------------------------------*)
+(*-----------------------------------------------------------------------
+    Limits, continuity and differentiation: standard and NS definitions
+ -----------------------------------------------------------------------*)
+
 constdefs
-      LIM :: [real=>real,real,real] => bool
-                                    ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
-      "f -- a --> L ==
-         ALL r. #0 < r --> 
-                 (EX s. #0 < s & (ALL x. (x ~= a & (abs(x + -a) < s)
-                              --> abs(f x + -L) < r)))"
+  LIM :: [real=>real,real,real] => bool
+				("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
+  "f -- a --> L ==
+     ALL r. #0 < r --> 
+	     (EX s. #0 < s & (ALL x. (x ~= a & (abs(x + -a) < s)
+			  --> abs(f x + -L) < r)))"
 
-      NSLIM :: [real=>real,real,real] => bool
-                                  ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
-      "f -- a --NS> L == (ALL x. (x ~= hypreal_of_real a & 
-                          x @= hypreal_of_real a --> (*f* f) x @= hypreal_of_real L))"   
+  NSLIM :: [real=>real,real,real] => bool
+			      ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
+  "f -- a --NS> L == (ALL x. (x ~= hypreal_of_real a & 
+		      x @= hypreal_of_real a -->
+		      (*f* f) x @= hypreal_of_real L))"   
 
-      isCont :: [real=>real,real] => bool
-      "isCont f a == (f -- a --> (f a))"        
+  isCont :: [real=>real,real] => bool
+  "isCont f a == (f -- a --> (f a))"        
 
-      (* NS definition dispenses with limit notions *)
-      isNSCont :: [real=>real,real] => bool
-      "isNSCont f a == (ALL y. y @= hypreal_of_real a --> 
-                               (*f* f) y @= hypreal_of_real (f a))"
-      
-      (* differentiation: D is derivative of function f at x *)
-      deriv:: [real=>real,real,real] => bool
-                                ("(DERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
-      "DERIV f x :> D == ((%h. (f(x + h) + -f(x))*inverse(h)) -- #0 --> D)"
+  (* NS definition dispenses with limit notions *)
+  isNSCont :: [real=>real,real] => bool
+  "isNSCont f a == (ALL y. y @= hypreal_of_real a --> 
+			   (*f* f) y @= hypreal_of_real (f a))"
 
-      nsderiv :: [real=>real,real,real] => bool
-                                ("(NSDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
-      "NSDERIV f x :> D == (ALL h: Infinitesimal - {0}. 
-                            ((*f* f)(hypreal_of_real x + h) + 
-                             -hypreal_of_real (f x))*inverse(h) @= hypreal_of_real D)"
+  (* differentiation: D is derivative of function f at x *)
+  deriv:: [real=>real,real,real] => bool
+			    ("(DERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
+  "DERIV f x :> D == ((%h. (f(x + h) + -f(x))/h) -- #0 --> D)"
 
-      differentiable :: [real=>real,real] => bool   (infixl 60)
-      "f differentiable x == (EX D. DERIV f x :> D)"
+  nsderiv :: [real=>real,real,real] => bool
+			    ("(NSDERIV (_)/ (_)/ :> (_))" [60, 0, 60] 60)
+  "NSDERIV f x :> D == (ALL h: Infinitesimal - {0}. 
+			((*f* f)(hypreal_of_real x + h) + 
+			 - hypreal_of_real (f x))/h @= hypreal_of_real D)"
 
-      NSdifferentiable :: [real=>real,real] => bool   (infixl 60)
-      "f NSdifferentiable x == (EX D. NSDERIV f x :> D)"
+  differentiable :: [real=>real,real] => bool   (infixl 60)
+  "f differentiable x == (EX D. DERIV f x :> D)"
 
-      increment :: [real=>real,real,hypreal] => hypreal
-      "increment f x h == (@inc. f NSdifferentiable x & 
-                           inc = (*f* f)(hypreal_of_real x + h) + -hypreal_of_real (f x))"
+  NSdifferentiable :: [real=>real,real] => bool   (infixl 60)
+  "f NSdifferentiable x == (EX D. NSDERIV f x :> D)"
 
-      isUCont :: (real=>real) => bool
-      "isUCont f ==  (ALL r. #0 < r --> 
-                          (EX s. #0 < s & (ALL x y. abs(x + -y) < s
-                                --> abs(f x + -f y) < r)))"
+  increment :: [real=>real,real,hypreal] => hypreal
+  "increment f x h == (@inc. f NSdifferentiable x & 
+		       inc = (*f* f)(hypreal_of_real x + h) + -hypreal_of_real (f x))"
 
-      isNSUCont :: (real=>real) => bool
-      "isNSUCont f == (ALL x y. x @= y --> (*f* f) x @= (*f* f) y)"
+  isUCont :: (real=>real) => bool
+  "isUCont f ==  (ALL r. #0 < r --> 
+		      (EX s. #0 < s & (ALL x y. abs(x + -y) < s
+			    --> abs(f x + -f y) < r)))"
+
+  isNSUCont :: (real=>real) => bool
+  "isNSUCont f == (ALL x y. x @= y --> (*f* f) x @= (*f* f) y)"
+
 end
 
