@@ -225,7 +225,7 @@ fun ext_axclass int prep_axm (raw_class, raw_super_classes) raw_axioms old_thy =
       (map inclass super_classes @ map (int_axm o snd) axioms, inclass class);
   in
     thy
-    |> PureThy.add_axioms_i (map Attribute.none ((raw_class ^ "I", intro_axm) :: abs_axioms))
+    |> PureThy.add_axioms_i (map Thm.no_attributes ((raw_class ^ "I", intro_axm) :: abs_axioms))
   end;
 
 
