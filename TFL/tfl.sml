@@ -339,7 +339,7 @@ fun wfrec_definition0 thy fid R (functional as Abs(Name, Ty, _)) =
 	 Sign.infer_types (sign_of thy) (K None) (K None) [] false
 	       ([Const("==",dummyT) $ Const(Name,Ty) $ wfrec_R_M], 
 		propT)
-  in  PureThy.add_store_defs_i [(def_name, def_term)] thy  end
+  in  PureThy.add_defs_i [Attribute.none (def_name, def_term)] thy  end
 end;
 
 
@@ -459,8 +459,9 @@ fun lazyR_def ss thy eqns =
      val full_rqt = WFR::TCs
      val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
      val R'abs = S.rand R'
-     val theory = PureThy.add_store_defs_i [(Name ^ "_def", subst_free[(R1,R')] proto_def)]
-	                     thy
+     val theory =
+       thy
+       |> PureThy.add_defs_i [Attribute.none (Name ^ "_def", subst_free[(R1,R')] proto_def)];
      val def = freezeT((get_axiom theory (Name ^ "_def")) RS meta_eq_to_obj_eq)
      val fconst = #lhs(S.dest_eq(concl def)) 
      val tych = Thry.typecheck theory
