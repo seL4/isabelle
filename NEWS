@@ -107,4 +107,85 @@ New in Isabelle94-5
 * non-curried (1994) version of HOL is no longer distributed;
 
 
+
+New in Isabelle94-4
+-------------------
+
+* greatly space requirements;
+
+* theory files (.thy) no longer require \...\ escapes at line breaks;
+
+* searchable theorem database (see the section "Retrieving theorems" on 
+page 8 of the Reference Manual);
+
+* new examples, including Grabczewski's monumental case study of the
+Axiom of Choice;
+
+* The previous version of HOL renamed to Old_HOL;
+
+* The new version of HOL (previously called CHOL) uses a curried syntax 
+for functions.  Application looks like f a b instead of f(a,b);
+
+* Mutually recursive inductive definitions finally work in HOL;
+
+* In ZF, pattern-matching on tuples is now available in all abstractions and
+translates to the operator "split";
+
+
+
+New in Isabelle94-3
+-------------------
+
+* new infix operator, addss, allowing the classical reasoner to 
+perform simplification at each step of its search.  Example:
+	fast_tac (cs addss ss)
+
+* a new logic, CHOL, the same as HOL, but with a curried syntax 
+for functions.  Application looks like f a b instead of f(a,b).  Also pairs 
+look like (a,b) instead of <a,b>;
+
+* PLEASE NOTE: CHOL will eventually replace HOL!
+
+* In CHOL, pattern-matching on tuples is now available in all abstractions.
+It translates to the operator "split".  A new theory of integers is available;
+
+* In ZF, integer numerals now denote two's-complement binary integers.
+Arithmetic operations can be performed by rewriting.  See ZF/ex/Bin.ML;
+
+* Many new examples: I/O automata, Church-Rosser theorem, equivalents 
+of the Axiom of Choice;
+
+
+
+New in Isabelle94-2
+-------------------
+
+* Significantly faster resolution;  
+
+* the different sections in a .thy file can now be mixed and repeated
+freely;
+
+* Database of theorems for FOL, HOL and ZF.  New
+commands including qed, qed_goal and bind_thm store theorems in the database.
+
+* Simple database queries: return a named theorem (get_thm) or all theorems of
+a given theory (thms_of), or find out what theory a theorem was proved in
+(theory_of_thm);
+
+* Bugs fixed in the inductive definition and datatype packages;
+
+* The classical reasoner provides deepen_tac and depth_tac, making FOL_dup_cs
+and HOL_dup_cs obsolete;
+
+* Syntactic ambiguities caused by the new treatment of syntax in Isabelle94-1
+have been removed;
+
+* Simpler definition of function space in ZF;
+
+* new results about cardinal and ordinal arithmetic in ZF;
+
+* 'subtype' facility in HOL for introducing new types as subsets of existing
+types;
+
+
 $Id$
