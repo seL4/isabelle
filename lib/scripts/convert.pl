@@ -60,7 +60,7 @@ sub process_tac {
   s/ ?\( ?\)/\(\)/g;      # remove space before and inside empty tuples
   s/\(\)([^ ])/\(\) $1/g; # possibly add space after empty tuples
 
-  if(s/^\(EVERY\'\[(.*?)\]\s*(\d+)\)$/\($1 $2\)/) {
+  if(s/^\(EVERY\'\[(.*?)\] *(\d+)\)$/\($1 $2\)/) {
     $goal = $2;
     s/,/ $goal,/g;
   }
@@ -252,6 +252,7 @@ while (<>) { # main loop
     goto nlc;
   }
   $_=$line;
+  if(!($head =~ m/^\n/)) { $head = "\n$head"; }
   s/^Goalw *(\[[\w\'\.\s,]*\]|[\w\'\. \[,\]]+) *(.+)/
     "lemma ".lemmaname().": $2$head"."apply (unfold ".thmlist($1).")"/se;
   s/^Goal *(.+)/"lemma ".lemmaname().": $1"/se;
