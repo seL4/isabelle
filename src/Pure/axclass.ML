@@ -271,13 +271,13 @@ fun prove term_of str_of thy sig_prop thms usr_tac =
     prove_goalw_cterm [] goal (K [tac])
   end
   handle ERROR => error ("The error(s) above occurred while trying to prove "
-    ^ quote (str_of sig_prop));
+    ^ quote (str_of (sign_of thy, sig_prop)));
 
 val prove_subclass =
-  prove mk_classrel (fn (c1, c2) => c1 ^ " < " ^ c2);
+  prove mk_classrel (fn (sg, c1_c2) => Sign.str_of_classrel sg c1_c2);
 
 val prove_arity =
-  prove mk_arity (fn (t, ss, c) => Sorts.str_of_arity (t, ss, [c]));
+  prove mk_arity (fn (sg, (t, Ss, c)) => Sign.str_of_arity sg (t, Ss, [c]));
 
 
 (* make goals (for interactive use) *)
@@ -297,7 +297,8 @@ fun ext_inst_subclass int raw_c1_c2 axms thms usr_tac thy =
     val intrn = if int then pairself (Sign.intern_class (sign_of thy)) else I;
     val c1_c2 = intrn raw_c1_c2;
   in
-    writeln ("Proving class inclusion " ^ quote (Sorts.str_of_classrel c1_c2) ^ " ...");
+    writeln ("Proving class inclusion " ^
+      quote (Sign.str_of_classrel (sign_of thy) c1_c2) ^ " ...");
     add_classrel_thms
       [prove_subclass thy c1_c2 (witnesses thy axms thms) usr_tac] thy
   end;
@@ -314,8 +315,9 @@ fun ext_inst_arity int (raw_t, raw_Ss, raw_cs) axms thms usr_tac thy =
       else (raw_t, raw_Ss, raw_cs);
     val wthms = witnesses thy axms thms;
     fun prove c =
-     (writeln ("Proving type arity " ^ quote (Sorts.str_of_arity (t, Ss, [c])) ^ " ...");
-      prove_arity thy (t, Ss, c) wthms usr_tac);
+     (writeln ("Proving type arity " ^
+        quote (Sign.str_of_arity sign (t, Ss, [c])) ^ " ...");
+        prove_arity thy (t, Ss, c) wthms usr_tac);
   in
     add_arity_thms (map prove cs) thy
   end;
