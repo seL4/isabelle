@@ -90,6 +90,7 @@ signature BLAST =
   val Blast_tac 	: int -> tactic
   val overloaded 	: string * (Term.typ -> Term.typ) -> unit
   (*debugging tools*)
+  val stats	        : bool ref
   val trace	        : bool ref
   val fullTrace	        : branch list list ref
   val fromType	        : (indexname * term) list ref -> Term.typ -> term
@@ -113,7 +114,8 @@ struct
 
 type claset = Data.claset;
 
-val trace = ref false;
+val trace = ref false
+and stats = ref false;   (*for runtime and search statistics*)
 
 datatype term = 
     Const of string
@@ -879,15 +881,25 @@ fun match (Var _) u   = true
 val nclosed = ref 0
 and ntried  = ref 1;
 
+fun printStats (b, start) =
+  if b then
+    writeln (endTiming start ^ " for search.  Closed: " 
+	     ^ Int.toString (!nclosed) ^
+             " tried: " ^ Int.toString (!ntried))
+  else ();
+
+
 (*Tableau prover based on leanTaP.  Argument is a list of branches.  Each 
   branch contains a list of unexpanded formulae, a list of literals, and a 
   bound on unsafe expansions.*)
 fun prove (sign, cs, brs, cont) =
- let val {safe0_netpair, safep_netpair, haz_netpair, ...} = Data.rep_claset cs
+ let val start = startTiming()
+     val {safe0_netpair, safep_netpair, haz_netpair, ...} = Data.rep_claset cs
      val safeList = [safe0_netpair, safep_netpair]
      and hazList  = [haz_netpair]
      fun prv (tacs, trs, choices, []) = 
-	         cont (tacs, trs, choices)   (*all branches closed!*)
+	        (printStats (!trace orelse !stats, start); 
+		 cont (tacs, trs, choices))   (*all branches closed!*)
        | prv (tacs, trs, choices, 
 	      brs0 as (((G,md)::br, haz)::pairs, lits, vars, lim) :: brs) =
    	     (*apply a safe rule only (possibly allowing instantiation);
@@ -1172,31 +1184,29 @@ fun initialize() =
      nclosed := 0;  ntried := 1);
 
 
-fun printStats b =
-  if b then
-    (writeln ("Branches closed: " ^ Int.toString (!nclosed));
-     writeln ("Branches tried:  " ^ Int.toString (!ntried)))
-  else ();
-
-
 (*Tactic using tableau engine and proof reconstruction.  
  "lim" is depth limit.*)
 fun depth_tac cs lim i st = 
-    (initialize();
-     let val {sign,...} = rep_thm st
-	 val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
-         val hyps  = strip_imp_prems skoprem
-         and concl = strip_imp_concl skoprem
-         fun cont (tacs,_,choices) = 
-	     (case Seq.pull(EVERY' (rev tacs) i st) of
-		  None => (writeln ("PROOF FAILED for depth " ^
-				    Int.toString lim);
-			   backtrack choices)
-		| cell => Seq.make(fn()=> cell))
-     in #1 (prove (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], cont),
-	    printStats (!trace))
-     end
-     handle PROVE     => Seq.empty);
+ (initialize();
+  let val {sign,...} = rep_thm st
+      val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
+      val hyps  = strip_imp_prems skoprem
+      and concl = strip_imp_concl skoprem
+      fun cont (tacs,_,choices) = 
+	  let val start = startTiming()
+	  in
+	  case Seq.pull(EVERY' (rev tacs) i st) of
+	      None => (writeln ("PROOF FAILED for depth " ^
+				Int.toString lim);
+		       backtrack choices)
+	    | cell => (if (!trace orelse !stats)
+		       then writeln (endTiming start ^ " for reconstruction")
+		       else ();
+		       Seq.make(fn()=> cell))
+          end
+  in prove (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], cont) 
+  end
+  handle PROVE     => Seq.empty);
 
 fun blast_tac cs i st = (DEEPEN (1,20) (depth_tac cs) 0) i st
      handle TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
@@ -1215,9 +1225,7 @@ fun trygl cs lim i =
 	 val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
          val hyps  = strip_imp_prems skoprem
          and concl = strip_imp_concl skoprem
-     in #1 (timeap prove
-	    (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], I),
-	    printStats true)
+     in timeap prove (sign, cs, [initBranch (mkGoal concl :: hyps, lim)], I)
      end
      handle Subscript => error("There is no subgoal " ^ Int.toString i));
 
@@ -1229,11 +1237,10 @@ fun readGoal sign s = read_cterm sign (s,propT) |>
 
 fun tryInThy thy lim s = 
     (initialize();
-     #1 (timeap prove (sign_of thy, 
-		       Data.claset(), 
-		       [initBranch ([readGoal (sign_of thy) s], lim)], 
-		       I),
-	    printStats true));
+     timeap prove (sign_of thy, 
+		   Data.claset(), 
+		   [initBranch ([readGoal (sign_of thy) s], lim)], 
+		   I));
 
 
 end;
