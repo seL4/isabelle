@@ -36,10 +36,13 @@ sig
   val breaks: T list -> T list
   val fbreaks: T list -> T list
   val block: T list -> T
+  val strs: string list -> T
   val parents: string -> string -> T list -> T
   val list: string -> string -> T list -> T
   val str_list: string -> string -> string list -> T
+  val big_list: string -> T list -> T
   val string_of: T -> string
+  val writeln: T -> unit
   val str_of: T -> string
   val pprint: T -> pprint_args -> unit
   val setdepth: int -> unit
@@ -165,6 +168,8 @@ fun fbreaks prts = separate fbrk prts;
 
 fun block prts = blk (2, prts);
 
+val strs = block o breaks o (map str);
+
 fun parents lpar rpar prts =
   block (str lpar :: (prts @ [str rpar]));
 
@@ -173,6 +178,9 @@ fun list lpar rpar prts =
 
 fun str_list lpar rpar strs =
   list lpar rpar (map str strs);
+
+fun big_list name prts =
+  block (fbreaks (str name :: prts));
 
 
 
@@ -192,6 +200,8 @@ fun prune dp e = if dp>0 then pruning dp e else e;
 
 
 fun string_of e = #tx (format ([prune (!depth) e], 0, 0) emptytext);
+
+val writeln = writeln o string_of;
 
 
 (*Create a single flat string: no line breaking*)
