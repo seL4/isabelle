@@ -31,14 +31,6 @@ qed "left_zadd_zmult_distrib";
 
 (** For cancel_numerals **)
 
-Goal "!!i::int. ((i*u + m) - (j*u + n)) = (((i-j)*u + m) - n)";
-by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]) 1);
-qed "diff_add_eq1";
-
-Goal "!!i::int. ((i*u + m) - (j*u + n)) = (m - ((j-i)*u + n))";
-by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]) 1);
-qed "diff_add_eq2";
-
 val rel_iff_rel_0_rls = map (inst "y" "?u+?v")
                           [zless_iff_zdiff_zless_0, eq_iff_zdiff_eq_0, 
 			   zle_iff_zdiff_zle_0] @
@@ -171,8 +163,7 @@ val add_0s = [zadd_0, zadd_0_right];
 val mult_1s = [zmult_1, zmult_1_right, zmult_minus1, zmult_minus1_right];
 
 (*To perform binary arithmetic*)
-val bin_simps = [number_of_add RS sym, add_number_of_left] @ 
-                bin_arith_simps @ bin_rel_simps;
+val bin_simps = [add_number_of_left] @ bin_arith_simps @ bin_rel_simps;
 
 (*To evaluate binary negations of coefficients*)
 val zminus_simps = NCons_simps @
@@ -478,32 +469,10 @@ by (fast_arith_tac 1);
 
 (** Simplification of inequalities involving numerical constants **)
 
-Goal "(w <= z + (#1::int)) = (w<=z | w = z + (#1::int))";
-by (arith_tac 1);
-qed "zle_add1_eq";
-
 Goal "(w <= z - (#1::int)) = (w<(z::int))";
 by (arith_tac 1);
 qed "zle_diff1_eq";
 Addsimps [zle_diff1_eq];
-
-(*2nd premise can be proved automatically if v is a literal*)
-Goal "[| w <= z; #0 <= v |] ==> w <= z + (v::int)";
-by (fast_arith_tac 1);
-qed "zle_imp_zle_zadd";
-
-Goal "w <= z ==> w <= z + (#1::int)";
-by (fast_arith_tac 1);
-qed "zle_imp_zle_zadd1";
-
-(*2nd premise can be proved automatically if v is a literal*)
-Goal "[| w < z; #0 <= v |] ==> w < z + (v::int)";
-by (fast_arith_tac 1);
-qed "zless_imp_zless_zadd";
-
-Goal "w < z ==> w < z + (#1::int)";
-by (fast_arith_tac 1);
-qed "zless_imp_zless_zadd1";
 
 Goal "(w < z + #1) = (w<=(z::int))";
 by (arith_tac 1);
@@ -514,20 +483,6 @@ Goal "(z = z + w) = (w = (#0::int))";
 by (arith_tac 1);
 qed "zadd_left_cancel0";
 Addsimps [zadd_left_cancel0];
-
-(*LOOPS as a simprule!*)
-Goal "[| w + v < z; #0 <= v |] ==> w < (z::int)";
-by (fast_arith_tac 1);
-qed "zless_zadd_imp_zless";
-
-(*LOOPS as a simprule!  Analogous to Suc_lessD*)
-Goal "w + #1 < z ==> w < (z::int)";
-by (fast_arith_tac 1);
-qed "zless_zadd1_imp_zless";
-
-Goal "w + #-1 = w - (#1::int)";
-by (Simp_tac 1);
-qed "zplus_minus1_conv";
 
 
 (* nat *)
@@ -602,62 +557,53 @@ by Auto_tac;
 qed_spec_mp "zdiff_int";
 
 
-(** Products of signs **)
+(*** Some convenient biconditionals for products of signs ***)
 
-Goal "(m::int) < #0 ==> (#0 < m*n) = (n < #0)";
-by Auto_tac;
-by (force_tac (claset() addDs [zmult_zless_mono1_neg], simpset()) 2);
-by (eres_inst_tac [("P", "#0 < m * n")] rev_mp 1);
-by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
-by (force_tac (claset() addDs [inst "k" "m" zmult_zless_mono1_neg], 
-	       simpset()addsimps [order_le_less, zmult_commute]) 1);
-qed "neg_imp_zmult_pos_iff";
+Goal "[| (#0::int) < i; #0 < j |] ==> #0 < i*j";
+by (dtac zmult_zless_mono1 1);
+by Auto_tac; 
+qed "zmult_pos";
 
-Goal "(m::int) < #0 ==> (m*n < #0) = (#0 < n)";
-by Auto_tac;
-by (force_tac (claset() addDs [zmult_zless_mono1], simpset()) 2);
-by (eres_inst_tac [("P", "m * n < #0")] rev_mp 1);
-by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
-by (force_tac (claset() addDs [zmult_zless_mono1_neg], 
-	       simpset() addsimps [order_le_less]) 1);
-qed "neg_imp_zmult_neg_iff";
+Goal "[| i < (#0::int); j < #0 |] ==> #0 < i*j";
+by (dtac zmult_zless_mono1_neg 1);
+by Auto_tac; 
+qed "zmult_neg";
 
-Goal "#0 < (m::int) ==> (m*n < #0) = (n < #0)";
-by Auto_tac;
-by (force_tac (claset() addDs [zmult_zless_mono1_neg], simpset()) 2);
-by (eres_inst_tac [("P", "m * n < #0")] rev_mp 1);
-by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
-by (force_tac (claset() addDs [zmult_zless_mono1], 
-	       simpset() addsimps [order_le_less]) 1);
-qed "pos_imp_zmult_neg_iff";
+Goal "[| (#0::int) < i; j < #0 |] ==> i*j < #0";
+by (dtac zmult_zless_mono1_neg 1);
+by Auto_tac; 
+qed "zmult_pos_neg";
 
-Goal "#0 < (m::int) ==> (#0 < m*n) = (#0 < n)";
-by Auto_tac;
-by (force_tac (claset() addDs [zmult_zless_mono1], simpset()) 2);
-by (eres_inst_tac [("P", "#0 < m * n")] rev_mp 1);
-by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
-by (force_tac (claset() addDs [inst "k" "m" zmult_zless_mono1], 
-	       simpset() addsimps [order_le_less, zmult_commute]) 1);
-qed "pos_imp_zmult_pos_iff";
+Goal "((#0::int) < x*y) = (#0 < x & #0 < y | x < #0 & y < #0)";
+by (auto_tac (claset(), 
+              simpset() addsimps [order_le_less, linorder_not_less,
+	                          zmult_pos, zmult_neg]));
+by (ALLGOALS (rtac ccontr)); 
+by (auto_tac (claset(), 
+	      simpset() addsimps [order_le_less, linorder_not_less]));
+by (ALLGOALS (etac rev_mp)); 
+by (ALLGOALS (dtac zmult_pos_neg THEN' assume_tac));
+by (auto_tac (claset() addDs [order_less_not_sym], 
+              simpset() addsimps [zmult_commute]));  
+qed "int_0_less_mult_iff";
 
-(** <= versions of the theorems above **)
+Goal "((#0::int) <= x*y) = (#0 <= x & #0 <= y | x <= #0 & y <= #0)";
+by (auto_tac (claset(), 
+              simpset() addsimps [order_le_less, linorder_not_less,  
+                                  int_0_less_mult_iff]));
+qed "int_0_le_mult_iff";
 
-Goal "(m::int) < #0 ==> (m*n <= #0) = (#0 <= n)";
-by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym,
-				      neg_imp_zmult_pos_iff]) 1);
-qed "neg_imp_zmult_nonpos_iff";
+Goal "(x*y < (#0::int)) = (#0 < x & y < #0 | x < #0 & #0 < y)";
+by (auto_tac (claset(), 
+              simpset() addsimps [int_0_le_mult_iff, 
+                                  linorder_not_le RS sym]));
+by (auto_tac (claset() addDs [order_less_not_sym],  
+              simpset() addsimps [linorder_not_le]));
+qed "zmult_less_0_iff";
 
-Goal "(m::int) < #0 ==> (#0 <= m*n) = (n <= #0)";
-by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym,
-				      neg_imp_zmult_neg_iff]) 1);
-qed "neg_imp_zmult_nonneg_iff";
+Goal "(x*y <= (#0::int)) = (#0 <= x & y <= #0 | x <= #0 & #0 <= y)";
+by (auto_tac (claset() addDs [order_less_not_sym], 
+              simpset() addsimps [int_0_less_mult_iff, 
+                                  linorder_not_less RS sym]));
+qed "zmult_le_0_iff";
 
-Goal "#0 < (m::int) ==> (m*n <= #0) = (n <= #0)";
-by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym,
-				      pos_imp_zmult_pos_iff]) 1);
-qed "pos_imp_zmult_nonpos_iff";
-
-Goal "#0 < (m::int) ==> (#0 <= m*n) = (#0 <= n)";
-by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym,
-				      pos_imp_zmult_neg_iff]) 1);
-qed "pos_imp_zmult_nonneg_iff";

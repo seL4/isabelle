@@ -115,9 +115,7 @@ val posDivAlg_induct = lemma RS posDivAlg.induct;
 Goal "#0 <= a --> #0 < b --> quorem ((a, b), posDivAlg (a, b))";
 by (res_inst_tac [("u", "a"), ("v", "b")] posDivAlg_induct 1);
 by Auto_tac;
-by (ALLGOALS 
-    (asm_full_simp_tac (simpset() addsimps [quorem_def,
-					    pos_imp_zmult_pos_iff])));
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [quorem_def])));
 (*base case: a<b*)
 by (asm_full_simp_tac (simpset() addsimps [posDivAlg_eqn]) 1);
 (*main argument*)
@@ -156,9 +154,7 @@ val negDivAlg_induct = lemma RS negDivAlg.induct;
 Goal "a < #0 --> #0 < b --> quorem ((a, b), negDivAlg (a, b))";
 by (res_inst_tac [("u", "a"), ("v", "b")] negDivAlg_induct 1);
 by Auto_tac;
-by (ALLGOALS 
-    (asm_full_simp_tac (simpset() addsimps [quorem_def,
-					    pos_imp_zmult_pos_iff])));
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [quorem_def])));
 (*base case: 0<=a+b*)
 by (asm_full_simp_tac (simpset() addsimps [negDivAlg_eqn]) 1);
 (*main argument*)
@@ -325,13 +321,13 @@ Addsimps [zmod_zminus_zminus];
 Goal "[| (#0::int) < a; a = r + a*q; r < a |] ==> #1 <= q";
 by (subgoal_tac "#0 < a*q" 1);
 by (arith_tac 2);
-by (asm_full_simp_tac (simpset() addsimps [pos_imp_zmult_pos_iff]) 1);
+by (asm_full_simp_tac (simpset() addsimps [int_0_less_mult_iff]) 1);
 val lemma1 = result();
 
 Goal "[| (#0::int) < a; a = r + a*q; #0 <= r |] ==> q <= #1";
 by (subgoal_tac "#0 <= a*(#1-q)" 1);
 by (asm_simp_tac (simpset() addsimps [zdiff_zmult_distrib2]) 2);
-by (asm_full_simp_tac (simpset() addsimps [pos_imp_zmult_nonneg_iff]) 1);
+by (asm_full_simp_tac (simpset() addsimps [int_0_le_mult_iff]) 1);
 val lemma2 = result();
 
 Goal "[| quorem((a,a),(q,r));  a ~= (#0::int) |] ==> q = #1";
@@ -494,7 +490,7 @@ Goal "[| b*q + r = b'*q' + r';  #0 <= b'*q' + r';  \
 by (subgoal_tac "#0 <= q'" 1);
  by (subgoal_tac "#0 < b'*(q' + #1)" 2);
   by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 3);
- by (asm_full_simp_tac (simpset() addsimps [pos_imp_zmult_pos_iff]) 2);
+ by (asm_full_simp_tac (simpset() addsimps [int_0_less_mult_iff]) 2);
 by (subgoal_tac "b*q < b*(q' + #1)" 1);
  by (Asm_full_simp_tac 1);
 by (subgoal_tac "b*q = r' - r + b'*q'" 1);
@@ -523,7 +519,7 @@ Goal "[| b*q + r = b'*q' + r';  b'*q' + r' < #0;  \
 by (subgoal_tac "q' < #0" 1);
  by (subgoal_tac "b'*q' < #0" 2);
   by (arith_tac 3);
- by (asm_full_simp_tac (simpset() addsimps [pos_imp_zmult_neg_iff]) 2);
+ by (asm_full_simp_tac (simpset() addsimps [zmult_less_0_iff]) 2);
 by (subgoal_tac "b*q' < b*(q + #1)" 1);
  by (Asm_full_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 1);
@@ -683,15 +679,13 @@ val lemma1 = result();
 Goal "[| (#0::int) < c;   b < r;  r <= #0 |] ==> b * (q mod c) + r <= #0";
 by (subgoal_tac "b * (q mod c) <= #0" 1);
 by (arith_tac 1);
-by (asm_simp_tac (simpset() addsimps [neg_imp_zmult_nonpos_iff, 
-				      pos_mod_sign]) 1);
+by (asm_simp_tac (simpset() addsimps [zmult_le_0_iff, pos_mod_sign]) 1);
 val lemma2 = result();
 
 Goal "[| (#0::int) < c;  #0 <= r;  r < b |] ==> #0 <= b * (q mod c) + r";
 by (subgoal_tac "#0 <= b * (q mod c)" 1);
 by (arith_tac 1);
-by (asm_simp_tac
-    (simpset() addsimps [pos_imp_zmult_nonneg_iff, pos_mod_sign]) 1);
+by (asm_simp_tac (simpset() addsimps [int_0_le_mult_iff, pos_mod_sign]) 1);
 val lemma3 = result();
 
 Goal "[| (#0::int) < c; #0 <= r; r < b |] ==> b * (q mod c) + r < b * c";
@@ -712,8 +706,7 @@ by (auto_tac
     (claset(),
      simpset() addsimps zmult_ac@
                         [zmod_zdiv_equality, quorem_def, linorder_neq_iff,
-			 pos_imp_zmult_pos_iff,
-			 neg_imp_zmult_pos_iff,
+			 int_0_less_mult_iff,
 			 zadd_zmult_distrib2 RS sym,
 			 lemma1, lemma2, lemma3, lemma4]));
 val lemma = result();
@@ -816,12 +809,12 @@ by (auto_tac (claset(),
 by (subgoal_tac "#0 <= b mod a" 1);
  by (asm_simp_tac (simpset() addsimps [pos_mod_sign]) 2);
 by (arith_tac 1);
-qed "pos_zdiv_times_2";
+qed "pos_zdiv_mult_2";
 
 
 Goal "a <= (#0::int) ==> (#1 + #2*b) div (#2*a) = (b+#1) div a";
 by (subgoal_tac "(#1 + #2*(-b-#1)) div (#2 * (-a)) = (-b-#1) div (-a)" 1);
-by (rtac pos_zdiv_times_2 2);
+by (rtac pos_zdiv_mult_2 2);
 by (auto_tac (claset(),
 	      simpset() addsimps [zmult_zminus_right]));
 by (subgoal_tac "(#-1 - (#2 * b)) = - (#1 + (#2 * b))" 1);
@@ -829,7 +822,7 @@ by (Simp_tac 2);
 by (asm_full_simp_tac (HOL_ss
 		       addsimps [zdiv_zminus_zminus, zdiff_def,
 				 zminus_zadd_distrib RS sym]) 1);
-qed "neg_zdiv_times_2";
+qed "neg_zdiv_mult_2";
 
 
 (*Not clear why this must be proved separately; probably number_of causes
@@ -847,7 +840,7 @@ by (simp_tac (simpset_of Int.thy
 by (asm_simp_tac (simpset()
                   delsimps bin_arith_extra_simps@bin_rel_simps
 		  addsimps [zdiv_zmult_zmult1,
-			    pos_zdiv_times_2, lemma, neg_zdiv_times_2]) 1);
+			    pos_zdiv_mult_2, lemma, neg_zdiv_mult_2]) 1);
 qed "zdiv_number_of_BIT";
 
 Addsimps [zdiv_number_of_BIT];
@@ -878,13 +871,13 @@ by (auto_tac (claset(),
 by (subgoal_tac "#0 <= b mod a" 1);
  by (asm_simp_tac (simpset() addsimps [pos_mod_sign]) 2);
 by (arith_tac 1);
-qed "pos_zmod_times_2";
+qed "pos_zmod_mult_2";
 
 
 Goal "a <= (#0::int) ==> (#1 + #2*b) mod (#2*a) = #2 * ((b+#1) mod a) - #1";
 by (subgoal_tac 
     "(#1 + #2*(-b-#1)) mod (#2*(-a)) = #1 + #2*((-b-#1) mod (-a))" 1);
-by (rtac pos_zmod_times_2 2);
+by (rtac pos_zmod_mult_2 2);
 by (auto_tac (claset(),
 	      simpset() addsimps [zmult_zminus_right]));
 by (subgoal_tac "(#-1 - (#2 * b)) = - (#1 + (#2 * b))" 1);
@@ -894,7 +887,7 @@ by (asm_full_simp_tac (HOL_ss
 				 zminus_zadd_distrib RS sym]) 1);
 by (dtac (zminus_equation RS iffD1 RS sym) 1);
 by Auto_tac;
-qed "neg_zmod_times_2";
+qed "neg_zmod_mult_2";
 
 Goal "number_of (v BIT b) mod number_of (w BIT False) = \
 \         (if b then \
@@ -907,7 +900,7 @@ by (simp_tac (simpset_of Int.thy
 by (asm_simp_tac (simpset()
 		  delsimps bin_arith_extra_simps@bin_rel_simps
 		  addsimps [zmod_zmult_zmult1,
-			    pos_zmod_times_2, lemma, neg_zmod_times_2]) 1);
+			    pos_zmod_mult_2, lemma, neg_zmod_mult_2]) 1);
 qed "zmod_number_of_BIT";
 
 Addsimps [zmod_number_of_BIT];
