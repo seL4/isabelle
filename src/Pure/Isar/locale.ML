@@ -11,6 +11,12 @@ locales, but uses the richer infrastructure of Isar instead of the raw
 meta-logic.  Furthermore, we provide structured import of contexts
 (with merge and rename operations), as well as type-inference of the
 signature parts, and predicate definitions of the specification text.
+
+See also:
+
+[1] Clemens Ballarin. Locales and Locale Expressions in Isabelle/Isar.
+    In Stefano Berardi et al., Types for Proofs and Programs: International
+    Workshop, TYPES 2003, Torino, Italy, pages ??-??, in press.
 *)
 
 signature LOCALE =
@@ -90,14 +96,22 @@ type 'att element_i = (typ, term, thm list, 'att) elem_expr;
 
 type locale =
  {view: cterm list * thm list,
-    (* If locale <loc> contains assumptions these are encoded in the
-       predicate <loc>.  If these assumptions are accumulated
-       fragments via import, the context generated when entering the
-       locale will contain a list of assumptions corresponding to the
-       assumptions of all locale fragments.
-       The first part of view (called statement) represents these assumptions,
-       the second part (called axioms) contains projections from <loc> to the
-       assumption fragments. *)
+    (* If locale "loc" contains assumptions, either via import or in the
+       locale body, a locale predicate "loc" is defined capturing all the
+       assumptions.  If both import and body contain assumptions, additionally
+       a delta predicate "loc_axioms" is defined that abbreviates the
+       assumptions of the body.
+       The context generated when entering "loc" contains not (necessarily) a
+       single assumption "loc", but a list of assumptions of all locale
+       predicates of locales without import and all delta predicates of
+       locales with import from the import hierarchy (duplicates removed,
+       cf. [1], normalisation of locale expressions).
+
+       The first part of view in the above definition (also called statement)
+       represents this list of assumptions.  The second part (also called
+       axioms) contains projections from the predicate "loc" to these
+       assumptions.
+     *)
   import: expr,                                                         (*dynamic import*)
   elems: ((typ, term, thm list, context attribute) elem * stamp) list,  (*static content*)
   params: (string * typ option) list * string list};                  (*all/local params*)
@@ -654,6 +668,12 @@ fun intern_expr sg (Locale xname) = Locale (intern sg xname)
 (* attributes *)
 
 local fun read_att attrib (x, srcs) = (x, map attrib srcs) in
+
+(* Map attrib over
+   * A context element: add attrib to attribute lists of assumptions,
+     definitions and facts (on both sides for facts).
+   * Locale expression: no effect. *)
+
 
 fun attribute _ (Elem (Fixes fixes)) = Elem (Fixes fixes)
   | attribute attrib (Elem (Assumes asms)) = Elem (Assumes (map (apfst (read_att attrib)) asms))
