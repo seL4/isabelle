@@ -38,16 +38,18 @@ structure PureIsar =
 struct
   structure ProofContext = ProofContext;
   structure Proof = Proof;
+  structure ProofHistory = ProofHistory;
   structure Args = Args;
   structure Attrib = Attrib;
   structure Method = Method;
+  structure Comment = Comment;
   structure OuterLex = OuterLex;
   structure OuterParse = OuterParse;
-  structure ProofHistory = ProofHistory;
   structure Toplevel = Toplevel;
-  structure OuterSyntax = OuterSyntax;
+  structure Session = Session;
   structure IsarThy = IsarThy;
   structure IsarCmd = IsarCmd;
+  structure OuterSyntax = OuterSyntax;
   structure IsarSyn = IsarSyn;
   structure Isar = Isar;
 end;

@@ -29,12 +29,12 @@ struct
   structure NameSpace = NameSpace;
   structure Position = Position;
   structure Scan = Scan;
+  structure Source = Source;
   structure Symbol = Symbol;
   structure Path = Path;
   structure Url = Url;
   structure File = File;
   structure Buffer = Buffer;
   structure History = History;
-  structure Source = Source;
   structure Pretty = Pretty;
 end;
