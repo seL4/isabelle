@@ -9,7 +9,7 @@ consts
     id          :: "('a * 'a)set"               (*the identity relation*)
     O           :: "[('b * 'c)set, ('a * 'b)set] => ('a * 'c)set" (infixr 60)
     trans       :: "('a * 'a)set => bool"       (*transitivity predicate*)
-    inverse    :: "('a*'b) set => ('b*'a) set"     ("(_^-1)" [1000] 1000)
+    inverse    :: "('a*'b) set => ('b*'a) set"     ("(_^-1)" [1000] 999)
     "^^"        :: "[('a*'b) set,'a set] => 'b set" (infixl 90)
     Domain      :: "('a*'b) set => 'a set"
     Range       :: "('a*'b) set => 'b set"

@@ -16,14 +16,14 @@ These postfix operators have MAXIMUM PRIORITY, forcing their operands to be
 Trancl = Lfp + Relation + 
 
 constdefs
-  rtrancl :: "('a * 'a)set => ('a * 'a)set"   ("(_^*)" [1000] 1000)
+  rtrancl :: "('a * 'a)set => ('a * 'a)set"   ("(_^*)" [1000] 999)
   "r^*  ==  lfp(%s. id Un (r O s))"
 
-  trancl  :: "('a * 'a)set => ('a * 'a)set"   ("(_^+)" [1000] 1000)
+  trancl  :: "('a * 'a)set => ('a * 'a)set"   ("(_^+)" [1000] 999)
   "r^+  ==  r O rtrancl(r)"
 
 syntax
-  reflcl  :: "('a*'a)set => ('a*'a)set"       ("(_^=)" [1000] 1000)
+  reflcl  :: "('a*'a)set => ('a*'a)set"       ("(_^=)" [1000] 999)
 
 translations
   "r^=" == "r Un id"
