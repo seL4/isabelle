@@ -770,7 +770,8 @@ fun finish_global state =
     val ts = flat tss;
     val locale_results =
       prep_result state ts raw_thm |> map (export goal_ctxt locale_ctxt);
-    val results = locale_results |> map (export locale_ctxt theory_ctxt);
+    val results = locale_results
+      |> map (Drule.strip_shyps_warning o export locale_ctxt theory_ctxt);
 
     val (k, locale, attss) =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
