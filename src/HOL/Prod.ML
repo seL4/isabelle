@@ -58,12 +58,12 @@ by (sstac [fst_conv, snd_conv] 1);
 by (rtac refl 1);
 qed "split";
 
-val prod_ss = set_ss addsimps [fst_conv, snd_conv, split, Pair_eq];
+Addsimps [fst_conv, snd_conv, split, Pair_eq];
 
 goal Prod.thy "(s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
 by (res_inst_tac[("p","s")] PairE 1);
 by (res_inst_tac[("p","t")] PairE 1);
-by (asm_simp_tac prod_ss 1);
+by (Asm_simp_tac 1);
 qed "Pair_fst_snd_eq";
 
 (*Prevents simplification of c: much faster*)
@@ -74,12 +74,12 @@ qed_goal "split_weak_cong" Prod.thy
 (* Do not add as rewrite rule: invalidates some proofs in IMP *)
 goal Prod.thy "p = (fst(p),snd(p))";
 by (res_inst_tac [("p","p")] PairE 1);
-by (asm_simp_tac prod_ss 1);
+by (Asm_simp_tac 1);
 qed "surjective_pairing";
 
 goal Prod.thy "p = split (%x y.(x,y)) p";
 by (res_inst_tac [("p","p")] PairE 1);
-by (asm_simp_tac prod_ss 1);
+by (Asm_simp_tac 1);
 qed "surjective_pairing2";
 
 (*For use with split_tac and the simplifier*)
@@ -95,7 +95,7 @@ qed "expand_split";
   Could instead call simp_tac/asm_full_simp_tac using split as rewrite.*)
 
 goal Prod.thy "!!a b c. c a b ==> split c (a,b)";
-by (asm_simp_tac prod_ss 1);
+by (Asm_simp_tac 1);
 qed "splitI";
 
 val prems = goalw Prod.thy [split_def]
@@ -108,7 +108,7 @@ by (etac (split RS iffD1) 1);
 qed "splitD";
 
 goal Prod.thy "!!a b c. z: c a b ==> z: split c (a,b)";
-by (asm_simp_tac prod_ss 1);
+by (Asm_simp_tac 1);
 qed "mem_splitI";
 
 val prems = goalw Prod.thy [split_def]
@@ -126,13 +126,13 @@ goal Prod.thy
     "prod_fun (f1 o f2) (g1 o g2) = ((prod_fun f1 g1) o (prod_fun f2 g2))";
 by (rtac ext 1);
 by (res_inst_tac [("p","x")] PairE 1);
-by (asm_simp_tac (prod_ss addsimps [prod_fun,o_def]) 1);
+by (asm_simp_tac (!simpset addsimps [prod_fun,o_def]) 1);
 qed "prod_fun_compose";
 
 goal Prod.thy "prod_fun (%x.x) (%y.y) = (%z.z)";
 by (rtac ext 1);
 by (res_inst_tac [("p","z")] PairE 1);
-by (asm_simp_tac (prod_ss addsimps [prod_fun]) 1);
+by (asm_simp_tac (!simpset addsimps [prod_fun]) 1);
 qed "prod_fun_ident";
 
 val prems = goal Prod.thy "(a,b):r ==> (f(a),g(b)) : (prod_fun f g)``r";

@@ -83,7 +83,7 @@ qed "transD";
 (** Natural deduction for converse(r) **)
 
 goalw Relation.thy [converse_def] "!!a b r. (a,b):r ==> (b,a):converse(r)";
-by (simp_tac prod_ss 1);
+by (Simp_tac 1);
 by (fast_tac set_cs 1);
 qed "converseI";
 
@@ -170,4 +170,4 @@ val rel_cs = converse_cs addSIs [converseI]
 
 val rel_eq_cs = rel_cs addSIs [equalityI];
 
-val rel_ss = prod_ss addsimps [pair_in_id_conv];
+Addsimps [pair_in_id_conv];

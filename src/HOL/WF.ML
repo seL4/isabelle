@@ -69,12 +69,12 @@ qed "wf_trancl";
   H_cong to expose the equality*)
 goalw WF.thy [cut_def]
     "(cut f r x = cut g r x) = (!y. (y,x):r --> f(y)=g(y))";
-by(simp_tac (HOL_ss addsimps [expand_fun_eq]
-                    setloop (split_tac [expand_if])) 1);
+by(simp_tac (!simpset addsimps [expand_fun_eq]
+                        setloop (split_tac [expand_if])) 1);
 qed "cut_cut_eq";
 
 goalw WF.thy [cut_def] "!!x. (x,a):r ==> (cut f r a)(x) = f(x)";
-by(asm_simp_tac HOL_ss 1);
+by(Asm_simp_tac 1);
 qed "cut_apply";
 
 
@@ -83,7 +83,7 @@ qed "cut_apply";
 goalw WF.thy [is_recfun_def,cut_def]
     "!!f. [| is_recfun r a H f;  ~(b,a):r |] ==> f(b) = (@z.True)";
 by (etac ssubst 1);
-by(asm_simp_tac HOL_ss 1);
+by(Asm_simp_tac 1);
 qed "is_recfun_undef";
 
 (*eresolve_tac transD solves (a,b):r using transitivity AT MOST ONCE
@@ -100,7 +100,7 @@ fun indhyp_tac hyps =
     (cut_facts_tac hyps THEN'
        DEPTH_SOLVE_1 o (ares_tac [TrueI] ORELSE'
 		        eresolve_tac [transD, mp, allE]));
-val wf_super_ss = HOL_ss setsolver indhyp_tac;
+val wf_super_ss = !simpset setsolver indhyp_tac;
 
 val prems = goalw WF.thy [is_recfun_def,cut_def]
     "[| wf(r);  trans(r);  is_recfun r a H f;  is_recfun r b H g |] ==> \
@@ -168,7 +168,7 @@ goalw WF.thy [wftrec_def]
 \    wftrec r a H = H a (cut (%x.wftrec r x H) r a)";
 by (EVERY1 [stac (rewrite_rule [is_recfun_def] unfold_the_recfun),
 	    REPEAT o atac, rtac H_cong1]);
-by (asm_simp_tac (HOL_ss addsimps [cut_cut_eq,the_recfun_cut]) 1);
+by (asm_simp_tac (!simpset addsimps [cut_cut_eq,the_recfun_cut]) 1);
 qed "wftrec";
 
 (*Unused but perhaps interesting*)
@@ -186,7 +186,7 @@ goalw WF.thy [wfrec_def]
 by (etac (wf_trancl RS wftrec RS ssubst) 1);
 by (rtac trans_trancl 1);
 by (rtac (refl RS H_cong) 1);    (*expose the equality of cuts*)
-by (simp_tac (HOL_ss addsimps [cut_cut_eq, cut_apply, r_into_trancl]) 1);
+by (simp_tac (!simpset addsimps [cut_cut_eq, cut_apply, r_into_trancl]) 1);
 qed "wfrec";
 
 (*This form avoids giant explosions in proofs.  NOTE USE OF == *)

@@ -98,6 +98,8 @@ val if_bool_eq = prove_goal HOL.thy
 infix 4 addcongs;
 fun ss addcongs congs = ss addeqcongs (congs RL [eq_reflection]);
 
+fun Addcongs congs = (simpset := !simpset addcongs congs);
+
 (*Add a simpset to a classical set!*)
 infix 4 addss;
 fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;

@@ -1,4 +1,4 @@
-(*  Title:      CHOL/ROOT.ML
+(*  Title:      HOL/ROOT.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1993  University of Cambridge
@@ -18,7 +18,6 @@ use "../Pure/section_utils.ML";
 use "thy_syntax.ML";
 
 use_thy "HOL";
-use "../Provers/simplifier.ML";
 use "../Provers/splitter.ML";
 use "../Provers/hypsubst.ML";
 use "../Provers/classical.ML";
@@ -64,7 +63,6 @@ val HOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I]
 use     "simpdata.ML";
 use_thy "Ord";
 use_thy "subset";
-use_thy "equalities";
 use     "hologic.ML";
 use     "subtype.ML";
 use_thy "Prod";

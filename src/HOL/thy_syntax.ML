@@ -134,7 +134,8 @@ local
     \ val recs =" ^ mk_rules tname cons "_rec_" ^ ";\n\
     \ val simps = inject @ distinct @ cases @ recs;\n\
     \ fun induct_tac a = res_inst_tac [(" ^ quote tname ^ ", a)] induct;\n\
-    \end;\n");
+    \end;\n\
+    \val dummy = Addsimps " ^ tname ^ ".simps;\n");
 
   (*parsers*)
   val tvars = type_args >> map (cat "dtVar");
@@ -159,11 +160,14 @@ end;
 fun mk_primrec_decl ((fname, tname), axms) =
   let
     fun mk_prove (name, eqn) =
-      "val " ^ name ^ " = store_thm (" ^ quote name ^ ", prove_goalw thy [get_def thy " 
-      ^ fname ^ "] " ^ eqn ^ "\n\
-      \  (fn _ => [simp_tac (HOL_ss addsimps " ^ tname ^ ".recs) 1]));";
+      "val " ^ name ^ " = store_thm (" ^ quote name
+      ^ ", prove_goalw thy [get_def thy " ^ fname ^ "] " ^ eqn ^ "\n\
+      \  (fn _ => [Simp_tac 1]));";
+
     val axs = mk_list (map (fn (n, a) => mk_pair (quote n, a)) axms);
-  in ("|> " ^ tname ^ "_add_primrec " ^ axs, cat_lines (map mk_prove axms)) end;
+  in ("|> " ^ tname ^ "_add_primrec " ^ axs, cat_lines (map mk_prove axms)
+      ^ "\nval dummy = Addsimps " ^ mk_list (map fst axms) ^ ";")
+  end;
 
 val primrec_decl =
   name -- long_id -- repeat1 (ident -- string) >> mk_primrec_decl;

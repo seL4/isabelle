@@ -126,7 +126,7 @@ fun con_elim_tac defs =
 fun con_elim_tac simps =
   let val elim_tac = REPEAT o (eresolve_tac (elim_rls@sumprod_free_SEs))
   in ALLGOALS(EVERY'[elim_tac,
-                     asm_full_simp_tac (nat_ss addsimps simps),
+                     asm_full_simp_tac (simpset_of "Nat" addsimps simps),
                      elim_tac,
                      REPEAT o bound_hyp_subst_tac])
      THEN prune_params_tac

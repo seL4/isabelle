@@ -87,11 +87,8 @@ val pred_sexp_trans1 = pred_sexp_t1 RSN (2, trans_trancl RS transD)
 and pred_sexp_trans2 = pred_sexp_t2 RSN (2, trans_trancl RS transD);
 
 (*Proves goals of the form (M,N):pred_sexp^+ provided M,N:sexp*)
-val pred_sexp_simps =
-            sexp.intrs @
-	    [pred_sexp_t1, pred_sexp_t2,
-	     pred_sexp_trans1, pred_sexp_trans2, cut_apply];
-val pred_sexp_ss = HOL_ss addsimps pred_sexp_simps;
+Addsimps (sexp.intrs @ [pred_sexp_t1, pred_sexp_t2,
+	                pred_sexp_trans1, pred_sexp_trans2, cut_apply]);
 
 val major::prems = goalw Sexp.thy [pred_sexp_def]
     "[| p : pred_sexp;  \
@@ -130,6 +127,6 @@ qed "sexp_rec_Numb";
 goal Sexp.thy "!!M. [| M: sexp;  N: sexp |] ==> \
 \    sexp_rec (M$N) c d h = h M N (sexp_rec M c d h) (sexp_rec N c d h)";
 by (rtac (sexp_rec_unfold RS trans) 1);
-by (asm_simp_tac(HOL_ss addsimps
-               [sexp_case_Scons,pred_sexpI1,pred_sexpI2,cut_apply])1);
+by (asm_simp_tac (!simpset addsimps [sexp_case_Scons,pred_sexpI1,pred_sexpI2])
+    1);
 qed "sexp_rec_Scons";

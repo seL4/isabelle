@@ -242,7 +242,7 @@ val Numb_neq_Scons = sym RS Scons_neq_Numb;
 (** Leaf vs Numb **)
 
 goalw Univ.thy [Leaf_def,Numb_def] "Leaf(a) ~= Numb(k)";
-by (simp_tac (HOL_ss addsimps [Atom_Atom_eq,Inl_not_Inr]) 1);
+by (simp_tac (!simpset addsimps [Atom_Atom_eq,Inl_not_Inr]) 1);
 qed "Leaf_not_Numb";
 bind_thm ("Numb_not_Leaf", (Leaf_not_Numb RS not_sym));
 
@@ -252,8 +252,7 @@ val Numb_neq_Leaf = sym RS Leaf_neq_Numb;
 
 (*** ndepth -- the depth of a node ***)
 
-val univ_simps = [apfst_conv,Scons_not_Atom,Atom_not_Scons,Scons_Scons_eq];
-val univ_ss = nat_ss addsimps univ_simps;
+Addsimps [apfst_conv,Scons_not_Atom,Atom_not_Scons,Scons_Scons_eq];
 
 
 goalw Univ.thy [ndepth_def] "ndepth (Abs_Node((%k.0, x))) = 0";
@@ -265,7 +264,7 @@ qed "ndepth_K0";
 
 goal Univ.thy "k < Suc(LEAST x. f(x)=0) --> nat_case (Suc i) f k ~= 0";
 by (nat_ind_tac "k" 1);
-by (ALLGOALS (simp_tac nat_ss));
+by (ALLGOALS Simp_tac);
 by (rtac impI 1);
 by (etac not_less_Least 1);
 qed "ndepth_Push_lemma";
@@ -276,7 +275,7 @@ by (stac (Rep_Node RS Node_Push_I RS Abs_Node_inverse) 1);
 by (cut_facts_tac [rewrite_rule [Node_def] Rep_Node] 1);
 by (safe_tac set_cs);
 be ssubst 1;  (*instantiates type variables!*)
-by (simp_tac univ_ss 1);
+by (Simp_tac 1);
 by (rtac Least_equality 1);
 by (rewtac Push_def);
 by (rtac (nat_case_Suc RS trans) 1);
@@ -317,25 +316,25 @@ qed "ntrunc_Scons";
 (** Injection nodes **)
 
 goalw Univ.thy [In0_def] "ntrunc (Suc 0) (In0 M) = {}";
-by (simp_tac (univ_ss addsimps [ntrunc_Scons,ntrunc_0]) 1);
+by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_0]) 1);
 by (rewtac Scons_def);
 by (safe_tac (set_cs addSIs [equalityI]));
 qed "ntrunc_one_In0";
 
 goalw Univ.thy [In0_def]
     "ntrunc (Suc (Suc k)) (In0 M) = In0 (ntrunc (Suc k) M)";
-by (simp_tac (univ_ss addsimps [ntrunc_Scons,ntrunc_Numb]) 1);
+by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_Numb]) 1);
 qed "ntrunc_In0";
 
 goalw Univ.thy [In1_def] "ntrunc (Suc 0) (In1 M) = {}";
-by (simp_tac (univ_ss addsimps [ntrunc_Scons,ntrunc_0]) 1);
+by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_0]) 1);
 by (rewtac Scons_def);
 by (safe_tac (set_cs addSIs [equalityI]));
 qed "ntrunc_one_In1";
 
 goalw Univ.thy [In1_def]
     "ntrunc (Suc (Suc k)) (In1 M) = In1 (ntrunc (Suc k) M)";
-by (simp_tac (univ_ss addsimps [ntrunc_Scons,ntrunc_Numb]) 1);
+by (simp_tac (!simpset addsimps [ntrunc_Scons,ntrunc_Numb]) 1);
 qed "ntrunc_In1";
 
 
@@ -611,5 +610,4 @@ by (fast_tac (prod_cs addIs [equalityI, usum_In0I, usum_In1I,
                      addSEs [usumE, dsumE]) 1);
 qed "fst_image_dsum";
 
-val fst_image_simps = [fst_image_diag, fst_image_dprod, fst_image_dsum];
-val fst_image_ss = univ_ss addsimps fst_image_simps;
+Addsimps [fst_image_diag, fst_image_dprod, fst_image_dsum];

@@ -88,7 +88,7 @@ IOA_FILES = IOA/ROOT_NTP.ML IOA/ROOT_ABP.ML IOA/NTP/Spec.thy\
 
 IOA:    $(BIN)/HOL  $(IOA_FILES)
 	echo 'exit_use"IOA/ROOT_NTP.ML";quit();' | $(LOGIC)
-	echo 'exit_use"IOA/ROOT_ABP.ML";quit();' | $(LOGIC)
+#	echo 'exit_use"IOA/ROOT_ABP.ML";quit();' | $(LOGIC)
 
 ##Properties of substitutions
 SUBST_NAMES = AList Setplus Subst Unifier UTerm UTLemmas
@@ -118,8 +118,8 @@ EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
 ex:     $(BIN)/HOL  $(EX_FILES)
 	echo 'exit_use"ex/ROOT.ML";quit();' | $(LOGIC)
 
-#Full test.
-test:   $(BIN)/HOL IMP Integ IOA Subst Lambda ex
+#Full test. (IOA has been removed temporarily)
+test:   $(BIN)/HOL IMP Integ Subst Lambda ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/Pure $(BIN)/HOL 

@@ -110,7 +110,7 @@ by (dtac (inj_Suc_Rep RS injD) 1);
 by (etac (inj_Rep_Nat RS injD) 1);
 qed "inj_Suc";
 
-val Suc_inject = inj_Suc RS injD;;
+val Suc_inject = inj_Suc RS injD;
 
 goal Nat.thy "(Suc(m)=Suc(n)) = (m=n)";
 by (EVERY1 [rtac iffI, etac Suc_inject, etac arg_cong]); 
@@ -118,7 +118,7 @@ qed "Suc_Suc_eq";
 
 goal Nat.thy "n ~= Suc(n)";
 by (nat_ind_tac "n" 1);
-by (ALLGOALS(asm_simp_tac (HOL_ss addsimps [Zero_not_Suc,Suc_Suc_eq])));
+by (ALLGOALS(asm_simp_tac (!simpset addsimps [Zero_not_Suc,Suc_Suc_eq])));
 qed "n_not_Suc_n";
 
 val Suc_n_not_n = n_not_Suc_n RS not_sym;
@@ -164,12 +164,12 @@ bind_thm ("nat_rec_unfold", (wf_pred_nat RS (nat_rec_def RS def_wfrec)));
 
 goal Nat.thy "nat_rec 0 c h = c";
 by (rtac (nat_rec_unfold RS trans) 1);
-by (simp_tac (HOL_ss addsimps [nat_case_0]) 1);
+by (simp_tac (!simpset addsimps [nat_case_0]) 1);
 qed "nat_rec_0";
 
 goal Nat.thy "nat_rec (Suc n) c h = h n (nat_rec n c h)";
 by (rtac (nat_rec_unfold RS trans) 1);
-by (simp_tac (HOL_ss addsimps [nat_case_Suc, pred_natI, cut_apply]) 1);
+by (simp_tac (!simpset addsimps [nat_case_Suc, pred_natI, cut_apply]) 1);
 qed "nat_rec_Suc";
 
 (*These 2 rules ease the use of primitive recursion.  NOTE USE OF == *)
@@ -328,7 +328,7 @@ qed "less_linear";
 (*Can be used with less_Suc_eq to get n=m | n<m *)
 goal Nat.thy "(~ m < n) = (n < Suc(m))";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by(ALLGOALS(asm_simp_tac (HOL_ss addsimps
+by(ALLGOALS(asm_simp_tac (!simpset addsimps
                           [not_less0,zero_less_Suc,Suc_less_eq])));
 qed "not_less_eq";
 
@@ -346,13 +346,11 @@ goalw Nat.thy [le_def] "0 <= n";
 by (rtac not_less0 1);
 qed "le0";
 
-val nat_simps = [not_less0, less_not_refl, zero_less_Suc, lessI, 
-		 Suc_less_eq, less_Suc_eq, le0, not_Suc_n_less_n,
-		 Suc_not_Zero, Zero_not_Suc, Suc_Suc_eq,
-		 n_not_Suc_n, Suc_n_not_n,
-		 nat_case_0, nat_case_Suc, nat_rec_0, nat_rec_Suc];
-
-val nat_ss0 = sum_ss  addsimps  nat_simps;
+Addsimps [not_less0, less_not_refl, zero_less_Suc, lessI, 
+          Suc_less_eq, less_Suc_eq, le0, not_Suc_n_less_n,
+          Suc_not_Zero, Zero_not_Suc, Suc_Suc_eq,
+          n_not_Suc_n, Suc_n_not_n,
+          nat_case_0, nat_case_Suc, nat_rec_0, nat_rec_Suc];
 
 (*Prevents simplification of f and g: much faster*)
 qed_goal "nat_case_weak_cong" Nat.thy
@@ -378,12 +376,12 @@ by (fast_tac HOL_cs 1);
 qed "not_leE";
 
 goalw Nat.thy [le_def] "!!m. m < n ==> Suc(m) <= n";
-by(simp_tac nat_ss0 1);
+by(Simp_tac 1);
 by (fast_tac (HOL_cs addEs [less_anti_refl,less_asym]) 1);
 qed "lessD";
 
 goalw Nat.thy [le_def] "!!m. Suc(m) <= n ==> m <= n";
-by(asm_full_simp_tac nat_ss0 1);
+by(Asm_full_simp_tac 1);
 by(fast_tac HOL_cs 1);
 qed "Suc_leD";
 
@@ -407,7 +405,7 @@ by (REPEAT(ares_tac [iffI,less_or_eq_imp_le,le_imp_less_or_eq] 1));
 qed "le_eq_less_or_eq";
 
 goal Nat.thy "n <= (n::nat)";
-by(simp_tac (HOL_ss addsimps [le_eq_less_or_eq]) 1);
+by(simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
 qed "le_refl";
 
 val prems = goal Nat.thy "!!i. [| i <= j; j < k |] ==> i < (k::nat)";
@@ -431,7 +429,7 @@ by (EVERY1[dtac le_imp_less_or_eq, dtac le_imp_less_or_eq,
 qed "le_anti_sym";
 
 goal Nat.thy "(Suc(n) <= Suc(m)) = (n <= m)";
-by (simp_tac (nat_ss0 addsimps [le_eq_less_or_eq]) 1);
+by (simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
 qed "Suc_le_mono";
 
-val nat_ss = nat_ss0 addsimps [le_refl,Suc_le_mono];
+Addsimps [le_refl,Suc_le_mono];

@@ -44,11 +44,11 @@ bind_thm ("Inl_neq_Inr", (Inl_not_Inr RS notE));
 val Inr_neq_Inl = sym RS Inl_neq_Inr;
 
 goal Sum.thy "(Inl(a)=Inr(b)) = False";
-by (simp_tac (HOL_ss addsimps [Inl_not_Inr]) 1);
+by (simp_tac (!simpset addsimps [Inl_not_Inr]) 1);
 qed "Inl_Inr_eq";
 
 goal Sum.thy "(Inr(b)=Inl(a))  =  False";
-by (simp_tac (HOL_ss addsimps [Inl_not_Inr RS not_sym]) 1);
+by (simp_tac (!simpset addsimps [Inl_not_Inr RS not_sym]) 1);
 qed "Inr_Inl_eq";
 
 
@@ -157,8 +157,7 @@ by (stac sum_case_Inr 1);
 by (fast_tac (set_cs addSEs [make_elim Inr_inject, Inr_neq_Inl]) 1);
 qed "expand_sum_case";
 
-val sum_ss = prod_ss addsimps [Inl_eq, Inr_eq, Inl_Inr_eq, Inr_Inl_eq, 
-			       sum_case_Inl, sum_case_Inr];
+Addsimps [Inl_eq, Inr_eq, Inl_Inr_eq, Inr_Inl_eq,  sum_case_Inl, sum_case_Inr];
 
 (*Prevents simplification of f and g: much faster*)
 qed_goal "sum_case_weak_cong" Sum.thy

@@ -6,10 +6,12 @@
 Lemmas about functions.
 *)
 
+simpset := HOL_ss;
+
 goal Fun.thy "(f = g) = (!x. f(x)=g(x))";
 by (rtac iffI 1);
-by(asm_simp_tac HOL_ss 1);
-by(rtac ext 1 THEN asm_simp_tac HOL_ss 1);
+by (Asm_simp_tac 1);
+by (rtac ext 1 THEN Asm_simp_tac 1);
 qed "expand_fun_eq";
 
 val prems = goal Fun.thy
@@ -194,7 +196,6 @@ val mem_simps = map prover
 
 val mksimps_pairs = ("Ball",[bspec]) :: mksimps_pairs;
 
-val set_ss =
-  HOL_ss addsimps mem_simps
-         addcongs [ball_cong,bex_cong]
-         setmksimps (mksimps mksimps_pairs);
+simpset := !simpset addsimps mem_simps
+                    addcongs [ball_cong,bex_cong]
+                    setmksimps (mksimps mksimps_pairs);

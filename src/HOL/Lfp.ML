@@ -59,7 +59,7 @@ br (major RS induct) 1;
 brs prems 1;
 by(res_inst_tac[("p","x")]PairE 1);
 by(hyp_subst_tac 1);
-by(asm_simp_tac (prod_ss addsimps prems) 1);
+by(asm_simp_tac (!simpset addsimps prems) 1);
 qed"induct2";
 
 (*** Fixpoint induction a la David Park ***)

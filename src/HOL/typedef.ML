@@ -45,7 +45,7 @@ fun prove_nonempty cset thms usr_tac =
 
 fun ext_subtype prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
   let
-    val _ = require_thy thy "Set" "subtype definitions";
+    val dummy = require_thy thy "Set" "subtype definitions";
     val sign = sign_of thy;
 
     (*rhs*)

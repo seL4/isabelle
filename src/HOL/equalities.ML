@@ -337,7 +337,7 @@ goal Set.thy "A - (B Int C) = (A-B) Un (A-C)";
 by (fast_tac eq_cs 1);
 qed "Diff_Int";
 
-val set_ss = set_ss addsimps
+Addsimps
   [in_empty,in_insert,insert_subset,
    insert_not_empty,empty_not_insert,
    Int_absorb,Int_empty_left,Int_empty_right,

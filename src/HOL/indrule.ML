@@ -87,7 +87,7 @@ val quant_induct =
       (fn prems =>
        [rtac (impI RS allI) 1,
 	DETERM (etac raw_induct 1),
-	asm_full_simp_tac (HOL_ss addsimps [Part_Collect]) 1,
+	asm_full_simp_tac (!simpset addsimps [Part_Collect]) 1,
 	REPEAT (FIRSTGOAL (eresolve_tac [IntE, CollectE, exE, conjE, disjE] 
 			   ORELSE' hyp_subst_tac)),
 	ind_tac (rev prems) (length prems)])
@@ -141,7 +141,8 @@ val lemma = (*makes the link between the two induction rules*)
 
 (*Simplification largely reduces the mutual induction rule to the 
   standard rule*)
-val mut_ss = set_ss addsimps [Inl_Inr_eq, Inr_Inl_eq, Inl_eq, Inr_eq];
+val mut_ss = simpset_of "Fun"
+             addsimps [Inl_Inr_eq, Inr_Inl_eq, Inl_eq, Inr_eq];
 
 val all_defs = con_defs@part_rec_defs;
 
