@@ -1,0 +1,149 @@
+\chapter*{Preface}
+\markboth{Preface}{Preface}   %or Preface ?
+\addcontentsline{toc}{chapter}{Preface} 
+
+\index{Isabelle!object-logics supported}
+
+Most theorem provers support a fixed logic, such as first-order or
+equational logic.  They bring sophisticated proof procedures to bear upon
+the conjectured formula.  An impressive example is the resolution prover
+Otter, which Quaife~\cite{quaife-book} has used to formalize a body of
+mathematics.
+
+ALF~\cite{alf}, Coq~\cite{coq} and Nuprl~\cite{constable86} each support a
+fixed logic too, but one far removed from first-order logic.  They are
+explicitly concerned with computation.  A diverse collection of logics ---
+type theories, process calculi, $\lambda$-calculi --- may be found in the
+Computer Science literature.  Such logics require proof support.  Few proof
+procedures exist, but the theorem prover can at least check that each
+inference is valid.
+
+A {\bf generic} theorem prover is one that can support many different
+logics.  Most of these \cite{dawson90,mural,sawamura92} work by
+implementing a syntactic framework that can express the features of typical
+inference rules.  Isabelle's distinctive feature is its representation of
+logics using a meta-logic.  This meta-logic is just a fragment of
+higher-order logic; known proof theory may be used to demonstrate that the
+representation is correct~\cite{paulson89}.  The representation has much in
+common with the Edinburgh Logical Framework~\cite{harper-jacm} and with 
+Felty's~\cite{felty93} use of $\lambda$Prolog to implement logics.
+
+An inference rule in Isabelle is a generalized Horn clause.  Rules are
+joined to make proofs by resolving such clauses.  Logical variables in
+goals can be instantiated incrementally.  But Isabelle is not a resolution
+theorem prover like Otter.  Isabelle's clauses are drawn from a richer,
+higher-order language and a fully automatic search would be impractical.
+Isabelle does not join clauses automatically, but under strict user
+control.  You can conduct single-step proofs, use Isabelle's built-in proof
+procedures, or develop new proof procedures using tactics and tacticals.
+
+Isabelle's meta-logic is higher-order, based on the typed
+$\lambda$-calculus.  So resolution cannot use ordinary unification, but
+higher-order unification~\cite{huet75}.  This complicated procedure gives
+Isabelle strong support for many logical formalisms involving variable
+binding.
+
+The diagram below illustrates some of the logics distributed with Isabelle.
+These include first-order logic (intuitionistic and classical), the sequent
+calculus, higher-order logic, Zermelo-Fraenkel set theory~\cite{suppes72},
+a version of Constructive Type Theory~\cite{nordstrom90}, several modal
+logics, and a Logic for Computable Functions.  Several experimental
+logics are also available, such a term assignment calculus for linear
+logic.  
+
+\centerline{\epsfbox{Isa-logics.eps}}
+
+
+\section*{How to read this book}
+Isabelle is a large system, but beginners can get by with a few commands
+and a basic knowledge of how Isabelle works.  Some knowledge of
+Standard~\ML{} is essential because \ML{} is Isabelle's user interface.
+Advanced Isabelle theorem proving can involve writing \ML{} code, possibly
+with Isabelle's sources at hand.  My book on~\ML{}~\cite{paulson91} covers
+much material connected with Isabelle, including a simple theorem prover.
+
+The Isabelle documentation is divided into three parts, which serve
+distinct purposes:
+\begin{itemize}
+\item {\em Introduction to Isabelle\/} describes the basic features of
+  Isabelle.  This part is intended to be read through.  If you are
+  impatient to get started, you might skip the first chapter, which
+  describes Isabelle's meta-logic in some detail.  The other chapters
+  present on-line sessions of increasing difficulty.  It also explains how
+  to derive rules define theories, and concludes with an extended example:
+  a Prolog interpreter.
+
+\item {\em The Isabelle Reference Manual\/} contains information about most
+  of the facilities of Isabelle, apart from particular object-logics.  This
+  part would make boring reading, though browsing might be useful.  Mostly
+  you should use it to locate facts quickly.
+
+\item {\em Isabelle's Object-Logics\/} describes the various logics
+  distributed with Isabelle.  Its final chapter explains how to define new
+  logics.  The other chapters are intended for reference only.
+\end{itemize}
+This book should not be read from start to finish.  Instead you might read
+a couple of chapters from {\em Introduction to Isabelle}, then try some
+examples referring to the other parts, return to the {\em Introduction},
+and so forth.  Starred sections discuss obscure matters and may be skipped
+on a first reading.
+
+
+
+\section*{Releases of Isabelle}\index{Isabelle!release history}
+Isabelle was first distributed in 1986.  The 1987 version introduced a
+higher-order meta-logic with an improved treatment of quantifiers.  The
+1988 version added limited polymorphism and support for natural deduction.
+The 1989 version included a parser and pretty printer generator.  The 1992
+version introduced type classes, to support many-sorted and higher-order
+logics.  The 1993 version provides greater support for theories and is
+much faster.  
+
+Isabelle is still under development.  Projects under consideration include
+better support for inductive definitions, some means of recording proofs, a
+graphical user interface, and developments in the standard object-logics.
+I hope but cannot promise to maintain upwards compatibility.
+
+Isabelle is available by anonymous ftp:
+\begin{itemize}
+\item University of Cambridge\\
+        host {\tt ftp.cl.cam.ac.uk}\\
+        directory {\tt ml}
+
+\item Technical University of Munich\\
+        host {\tt ftp.informatik.tu-muenchen.de}\\
+        directory {\tt local/lehrstuhl/nipkow}
+\end{itemize}
+My electronic mail address is {\tt lcp\at cl.cam.ac.uk}.  Please report any
+errors you find in this book and your problems or successes with Isabelle.
+
+
+\subsection*{Acknowledgements} 
+Tobias Nipkow has made immense contributions to Isabelle, including the
+parser generator, type classes, the simplifier, and several object-logics.
+He also arranged for several of his students to help.  Carsten Clasohm
+implemented the theory database; Markus Wenzel implemented macros; Sonia
+Mahjoub and Karin Nimmermann also contributed.  
+
+Nipkow and his students wrote much of the documentation underlying this
+book.  Nipkow wrote the first versions of \S\ref{sec:defining-theories},
+Chap.\ts\ref{simp-chap}, Chap.\ts\ref{Defining-Logics} and part of
+Chap.\ts\ref{theories}, and App.\ts\ref{app:TheorySyntax}.  Carsten Clasohm
+contributed to Chap.\ts\ref{theories}.  Markus Wenzel contributed to
+Chap.\ts\ref{Defining-Logics}.
+
+David Aspinall, Sara Kalvala, Ina Kraan, Zhenyu Qian, Norbert Voelker and
+Markus Wenzel suggested changes and corrections to the documentation.
+
+Martin Coen, Rajeev Gor\'e, Philippe de Groote and Philippe No\"el helped
+to develop Isabelle's standard object-logics.  David Aspinall performed
+some useful research into theories and implemented an Isabelle Emacs mode.
+Isabelle was developed using Dave Matthews's Standard~{\sc ml} compiler,
+Poly/{\sc ml}.  
+
+The research has been funded by numerous SERC grants dating from the Alvey
+programme (grants GR/E0355.7, GR/G53279, GR/H40570) and by ESPRIT (projects
+3245: Logical Frameworks and 6453: Types).
+
+
+\index{ML}

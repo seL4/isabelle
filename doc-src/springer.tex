@@ -1,0 +1,96 @@
+\documentstyle[12pt,rail,proof,iman,epsf,mathsing]{book}
+%%%\includeonly{preface}
+%%% to index ids: \[\\tt \([a-zA-Z0-9][a-zA-Z0-9_'.]*\)    [\\ttindexbold{\1}
+%% run    sedindex springer    to prepare index file
+
+\sloppy%%%????????????????????????????????????????????????????????????????
+
+\title{Isabelle\\A Generic Theorem Prover}
+\author{Lawrence C. Paulson\\[2ex] With Contributions by Tobias Nipkow}
+
+\date{} 
+\makeindex
+\let\idx=\ttindexbold
+\def\S{Sect.\thinspace}%This is how Springer like it
+
+\underscoreoff
+
+\setcounter{secnumdepth}{1} \setcounter{tocdepth}{1}
+
+\binperiod     %%%treat . like a binary operator
+
+\begin{document}
+\maketitle
+
+\pagenumbering{Roman}
+\include{preface}
+
+\tableofcontents
+\newpage
+
+\pagenumbering{arabic}
+
+\markboth{}{}
+\newfont{\sanssi}{cmssi12}
+\vspace*{2.5cm}
+\begin{quote}
+\raggedleft
+{\sanssi
+You can only find truth with logic\\
+if you have already found truth without it.}\\
+\bigskip
+
+G.K. Chesterton, {\em The Man who was Orthodox}
+\end{quote}
+
+
+\index{definitions|see{rewriting, meta-level}}
+\index{rewriting!object-level|see{simplification}}
+\index{rules!meta-level|see{meta-rules}}
+\index{scheme variables|see{unknowns}}
+\index{AST|see{trees, abstract syntax}}
+
+\part{Introduction to Isabelle}   
+
+\begingroup
+\newcommand\qeq{\stackrel{?}{\equiv}}  %for disagreement pairs in unification
+\newcommand{\nand}{\mathbin{\lnot\&}} 
+\newcommand{\xor}{\mathbin{\#}}
+\let\part=\chapter
+\include{Intro/foundations}
+\include{Intro/getting}
+\include{Intro/advanced}
+\endgroup
+
+\part{The Isabelle Reference Manual} 
+\include{Ref/introduction}
+\include{Ref/goals}
+\include{Ref/tactic}
+\include{Ref/tctical}
+\include{Ref/thm}
+\include{Ref/theories}
+\include{Ref/substitution}
+\include{Ref/simplifier}
+\include{Ref/classical}
+
+\part{Isabelle's Object-Logics} 
+\newcommand\subcaption[1]{\par {\centering\normalsize\sc#1\par}\bigskip
+  \hrule\bigskip}
+\include{Logics/intro}
+\include{Logics/FOL}
+\include{Logics/ZF}
+\include{Logics/HOL}
+\include{Logics/LK}
+\include{Logics/CTT}
+\include{Logics/defining}
+
+\include{Ref/theory-syntax}
+
+%%seealso's must be last so that they appear last in the index entries
+\index{rewriting!meta-level|seealso{tactics, theorems}}
+
+\bibliographystyle{springer} \small\raggedright\frenchspacing
+\bibliography{string-abbrv,atp,funprog,general,isabelle,logicprog,theory}
+
+\input{springer.ind}
+\end{document}
