@@ -25,14 +25,14 @@ AddSEs evaln_elim_cases;
 
 (* evaluation of com is deterministic *)
 Goal "<c,s> -c-> t ==> (!u. <c,s> -c-> u --> u=t)";
-be evalc.induct 1;
+by (etac evalc.induct 1);
 by (thin_tac "<?c,s1> -c-> s2" 8);
 (*blast_tac needs Unify.search_bound := 40*)
 by (ALLGOALS (best_tac (claset() addEs [evalc_WHILE_case])));
 qed_spec_mp "com_det";
 
 Goal "<c,s> -n-> t ==> <c,s> -c-> t";
-be evaln.induct 1;
+by (etac evaln.induct 1);
 by (ALLGOALS (resolve_tac evalc.intrs THEN_ALL_NEW atac));
 qed "evaln_evalc";
 
@@ -49,13 +49,13 @@ by (eresolve_tac (premises()) 1);
 qed "Suc_le_D_lemma";
 
 Goal "<c,s> -n-> t ==> !m. n<=m --> <c,s> -m-> t";
-be evaln.induct 1;
+by (etac evaln.induct 1);
 by (ALLGOALS (EVERY'[strip_tac,TRY o etac Suc_le_D_lemma, REPEAT o smp_tac 1]));
 by (ALLGOALS (resolve_tac evaln.intrs THEN_ALL_NEW atac));
 qed_spec_mp "evaln_nonstrict";
 
 Goal "<c,s> -n-> s' ==> <c,s> -Suc n-> s'";
-be evaln_nonstrict 1;
+by (etac evaln_nonstrict 1);
 by Auto_tac;
 qed "evaln_Suc";
 
@@ -66,7 +66,7 @@ by (blast_tac (claset() addDs [evaln_nonstrict]) 1);
 qed "evaln_max2";
 
 Goal "<c,s> -c-> t ==> ? n. <c,s> -n-> t";
-be evalc.induct 1;
+by (etac evalc.induct 1);
 by (ALLGOALS (REPEAT o etac exE));
 by (TRYALL(EVERY'[datac evaln_max2 1, REPEAT o eresolve_tac [exE, conjE]]));
 by (ALLGOALS (rtac exI THEN' resolve_tac evaln.intrs THEN_ALL_NEW atac));

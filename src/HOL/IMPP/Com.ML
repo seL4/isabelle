@@ -1,11 +1,11 @@
 val make_imp_tac = EVERY'[rtac mp, fn i => atac (i+1), etac thin_rl];
 
 Goalw [body_def] "finite (dom body)";
-br finite_dom_map_of 1;
+by (rtac finite_dom_map_of 1);
 qed "finite_dom_body";
 
 Goalw [WT_bodies_def, body_def] "[| WT_bodies; body pn = Some b |] ==> WT b";
-bd map_of_SomeD 1;
+by (dtac map_of_SomeD 1);
 by (Fast_tac 1);
 qed "WT_bodiesD";
 

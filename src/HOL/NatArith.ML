@@ -40,10 +40,6 @@ Goal "k <= j ==> (i <= j-k) = (i+k <= (j::nat))";
 by (arith_tac 1);
 qed "le_diff_conv2";
 
-Goal "Suc i <= n ==> Suc (n - Suc i) = n - i";
-by (arith_tac 1);
-qed "Suc_diff_Suc";
-
 Goal "i <= (n::nat) ==> n - (n - i) = i";
 by (arith_tac 1);
 qed "diff_diff_cancel";
@@ -53,60 +49,12 @@ Goal "k <= (n::nat) ==> m <= n + m - k";
 by (arith_tac 1);
 qed "le_add_diff";
 
-Goal "m-1 < n ==> m <= n";
-by (arith_tac 1);
-qed "pred_less_imp_le";
-
-Goal "j<=i ==> i - j < Suc i - j";
-by (arith_tac 1);
-qed "diff_less_Suc_diff";
-
-Goal "i - j <= Suc i - j";
-by (arith_tac 1);
-qed "diff_le_Suc_diff";
-AddIffs [diff_le_Suc_diff];
-
-Goal "n - Suc i <= n - i";
-by (arith_tac 1);
-qed "diff_Suc_le_diff";
-AddIffs [diff_Suc_le_diff];
-
-Goal "!!m::nat. 0 < n ==> (m <= n-1) = (m<n)";
-by (arith_tac 1);
-qed "le_pred_eq";
-
-Goal "!!m::nat. 0 < n ==> (m-1 < n) = (m<=n)";
-by (arith_tac 1);
-qed "less_pred_eq";
-
 (*Replaces the previous diff_less and le_diff_less, which had the stronger
   second premise n<=m*)
 Goal "!!m::nat. [| 0<n; 0<m |] ==> m - n < m";
 by (arith_tac 1);
 qed "diff_less";
 
-Goal "j <= (k::nat) ==> (j+i)-k = i-(k-j)";
-by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
-qed "diff_add_assoc_diff";
-
-
-(*** Reducing subtraction to addition ***)
-
-Goal "n<=(l::nat) --> Suc l - n + m = Suc (l - n + m)";
-by (simp_tac (simpset() addsplits [nat_diff_split]) 1);
-qed_spec_mp "Suc_diff_add_le";
-
-Goal "i<n ==> n - Suc i < n - i";
-by (asm_simp_tac (simpset() addsplits [nat_diff_split]) 1);
-qed "diff_Suc_less_diff";
-
-Goal "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
-by (simp_tac (simpset() addsplits [nat_diff_split]) 1);
-qed "if_Suc_diff_le";
-
-Goal "Suc(m)-n <= Suc(m-n)";
-by (simp_tac (simpset() addsplits [nat_diff_split]) 1);
-qed "diff_Suc_le_Suc_diff";
 
 (** Simplification of relational expressions involving subtraction **)
 

@@ -47,7 +47,7 @@ Addsimps[getlocs_setlocs];
 
 Goal "getlocs (setlocs s (getlocs s')[Y::=k]) = getlocs (s'[Y::=k])";
 by (induct_tac "Y" 1);
-br ext 2;
+by (rtac ext 2);
 by Auto_tac;
 qed "getlocs_setlocs_lemma";
 
@@ -59,7 +59,7 @@ by (full_simp_tac (simpset() addsimps [triple_valid_def2]) 1);
 by (Clarsimp_tac 1);
 by (dres_inst_tac [("x","s<Y>")] spec 1);
 by (smp_tac 1 1);
-bd spec 1;
+by (dtac spec 1);
 by (dres_inst_tac [("x","s[Loc Y::=a s]")] spec 1);
 by (Full_simp_tac 1);
 by (mp_tac 1);
@@ -69,56 +69,56 @@ qed "classic_Local_valid";
 
 Goal "!v. G|-{%Z s. P Z (s[Loc Y::=v]) & s<Y> = a (s[Loc Y::=v])}. \
 \ c .{%Z s. Q Z (s[Loc Y::=v])} ==> G|-{P}. LOCAL Y:=a IN c .{Q}";
-br export_s 1;
+by (rtac export_s 1);
 (*variant 1*)
-br (hoare_derivs.Local RS conseq1) 1;
-be  spec 1;
+by (rtac (hoare_derivs.Local RS conseq1) 1);
+by (etac spec 1);
 by (Force_tac 1);
 (*variant 2
 by (res_inst_tac [("P'","%Z s. s' = s & P Z (s[Loc Y::=a s][Loc Y::=s'<Y>]) & (s[Loc Y::=a s])<Y> = a (s[Loc Y::=a s][Loc Y::=s'<Y>])")] conseq1 1);
 by  (Clarsimp_tac 2);
-br hoare_derivs.Local 1;
-be spec 1;
+by (rtac hoare_derivs.Local 1);
+by (etac spec 1);
 *)
 qed "classic_Local";
 
 Goal "[| Y~=Y'; G|-{P}. c .{%Z s. s<Y'>=d} |] ==> \
 \ G|-{%Z s. P Z (s[Loc Y::=a s])}. LOCAL Y:=a IN c .{%Z s. s<Y'>=d}";
-br classic_Local 1;
+by (rtac classic_Local 1);
 by (ALLGOALS Clarsimp_tac);
-be conseq12 1;
+by (etac conseq12 1);
 by (Clarsimp_tac 1);
-bd sym 1;
+by (dtac sym 1);
 by (Asm_full_simp_tac 1);
 qed "classic_Local_indep";
 
 Goal "[| Y~=Y'; G|-{P}. c .{%Z s. s<Y'>=d} |] ==> \
 \ G|-{%Z s. P Z (s[Loc Y::=a s])}. LOCAL Y:=a IN c .{%Z s. s<Y'>=d}";
-br export_s 1;
-br hoare_derivs.Local 1;
+by (rtac export_s 1);
+by (rtac hoare_derivs.Local 1);
 by (Clarsimp_tac 1);
 qed "Local_indep";
 
 Goal "[| Y'~=Y; G|-{P}. c .{%Z s. s<Y'>=d} |] ==> \
 \ G|-{%Z s. P Z (s[Loc Y::=a s])}. LOCAL Y:=a IN c .{%Z s. s<Y'>=d}";
-br weak_Local 1;
+by (rtac weak_Local 1);
 by (ALLGOALS Clarsimp_tac);
 qed "weak_Local_indep";
 
 
 Goal "G|-{%Z s. Z = s<Y>}. LOCAL Y:=a IN c .{%Z s. Z = s<Y>}";
-br export_s 1;
+by (rtac export_s 1);
 by (res_inst_tac [("P'","%Z s. s'=s & True"), ("Q'","%Z s. s'<Y> = s<Y>")] (conseq12) 1);
 by  (Clarsimp_tac 2);
-br hoare_derivs.Local 1;
+by (rtac hoare_derivs.Local 1);
 by (Clarsimp_tac 1);
-br trueI 1;
+by (rtac trueI 1);
 qed "export_Local_invariant";
 
 Goal "G|-{%Z s. Z = s<Y>}. LOCAL Y:=a IN c .{%Z s. Z = s<Y>}";
-br classic_Local 1;
+by (rtac classic_Local 1);
 by (Clarsimp_tac 1);
-br (trueI RS conseq12) 1;
+by (rtac (trueI RS conseq12) 1);
 by (Clarsimp_tac 1);
 qed "classic_Local_invariant";
 

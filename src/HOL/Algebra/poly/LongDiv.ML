@@ -10,14 +10,13 @@ Goal
 \       coeff (deg r) p = - (coeff (deg r) q); deg r ~= 0 |] ==> \
 \    deg (p + q) < deg r";
 by (res_inst_tac [("j", "deg r - 1")] le_less_trans 1);
+by (arith_tac 2);
 by (rtac deg_aboveI 1);
 by (strip_tac 1);
-by (dtac pred_less_imp_le 1);
 by (case_tac "deg r = m" 1);
 by (Clarify_tac 1);
 by (Asm_full_simp_tac 1);
 (* case "deg q ~= m" *)
-by (arith_tac 2);
 by (subgoal_tac "deg p < m & deg q < m" 1);
 by (asm_simp_tac (simpset() addsimps [deg_aboveD]) 1);
 by (arith_tac 1);

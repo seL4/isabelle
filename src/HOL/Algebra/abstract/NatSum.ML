@@ -17,8 +17,7 @@ qed "SUM_Suc";
 
 Addsimps [SUM_0, SUM_Suc];
 
-Goal
-  "SUM (Suc n) f = (SUM n (%i. f (Suc i)) + f 0::'a::ring)";
+Goal "SUM (Suc n) f = (SUM n (%i. f (Suc i)) + f 0::'a::ring)";
 by (induct_tac "n" 1);
 (* Base case *)
 by (Simp_tac 1);
@@ -28,18 +27,11 @@ qed "SUM_Suc2";
 
 (* Congruence rules *)
 
-val [p_equal, p_context] = goal NatSum.thy
-  "[| m = n; !!i. i <= n ==> f i = g i |] ==> SUM m f = (SUM n g::'a::ring)";
-by (simp_tac (simpset() addsimps [p_equal]) 1);
-by (cut_inst_tac [("n", "n")] le_refl 1);
-by (etac rev_mp 1);
-by (res_inst_tac [("P", "%k. k <= n --> SUM k f = SUM k g")] nat_induct 1);
-(* Base case *)
-by (simp_tac (simpset() addsimps [p_context]) 1);
-(* Induction step *)
-by (asm_simp_tac (simpset() addsimps [p_context]) 1);
-qed "SUM_cong";
-
+Goal "ALL j'. j=j' --> (ALL i. i<=j' --> f i = (f' i :: 'a :: ring)) \
+\     --> SUM j f = SUM j' f'";
+by (induct_tac "j" 1);
+by Auto_tac;  
+bind_thm ("SUM_cong", (impI RS allI) RSN (2, result() RS spec RS mp RS mp));
 Addcongs [SUM_cong];
 
 (* Results needed for the development of polynomials *)
@@ -72,8 +64,7 @@ by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [l_distr]) 1);
 qed "SUM_ldistr";
 
-Goal
-  "!!a::'a::ring. a * SUM n f = SUM n (%i. a * f i)";
+Goal "!!a::'a::ring. a * SUM n f = SUM n (%i. a * f i)";
 by (induct_tac "n" 1);
 (* Base case *)
 by (Simp_tac 1);
@@ -110,12 +101,13 @@ qed "poly_assoc_lemma";
 Goal
   "!! a::nat=>'a::ring. j <= n --> \
 \    SUM j (%i. a i * b (n-i)) = SUM j (%i. a (n-i-(n-j)) * b (i+(n-j)))";
+by (Simp_tac 1); 
 by (induct_tac "j" 1);
 (* Base case *)
 by (Simp_tac 1);
 (* Induction step *)
 by (stac SUM_Suc2 1);
-by (asm_simp_tac (simpset() addsimps [Suc_diff_Suc, a_comm]) 1);
+by (asm_simp_tac (simpset() addsimps [a_comm]) 1);
 qed "poly_comm_lemma1";
 
 Goal

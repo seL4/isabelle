@@ -175,6 +175,10 @@ that the elements between u and l are equal to pivot.
 Ambiguity warnings of parser are due to := being used
 both for assignment and list update.
 *)
+Goal "m - 1 < n ==> m < Suc n";
+by (arith_tac 1);
+qed "lemma";
+
 Goal
 "[| leq == %A i. !k. k<i --> A!k <= pivot; \
 \   geq == %A i. !k. i<k & k<length A --> pivot <= A!k |] ==> \
@@ -198,8 +202,8 @@ by (REPEAT (etac thin_rl 1));
 by (hoare_tac Asm_full_simp_tac 1);
     by (force_tac (claset(), simpset() addsimps [neq_Nil_conv]) 1);
    by (blast_tac (claset() addSEs [less_SucE] addIs [Suc_leI]) 1);
-  by (blast_tac (claset() addSEs [less_SucE] addIs [less_imp_diff_less]
-                          addDs [pred_less_imp_le RS le_imp_less_Suc] ) 1);
+  by (blast_tac (claset() addSEs [less_SucE] 
+                          addIs [less_imp_diff_less] addDs [lemma]) 1);
  by (force_tac (claset(), simpset() addsimps [nth_list_update]) 1);
 by (auto_tac (claset() addIs [order_antisym], simpset()));
 qed "Partition";
