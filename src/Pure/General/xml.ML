@@ -5,6 +5,8 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Basic support for XML input and output.
+
+FIXME da: missing input raises FAIL (scan.ML), should give error message.
 *)
 
 signature XML =
@@ -14,6 +16,7 @@ sig
     | Text of string
   val element: string -> (string * string) list -> string list -> string
   val text: string -> string
+  val cdata: string -> string
   val header: string
   val string_of_tree: tree -> string
   val tree_of_string: string -> tree
@@ -43,6 +46,10 @@ fun decode "&lt;" = "<"
 
 val text = String.translate (encode o String.str);
 
+val cdata_open  = "<![CDATA["
+val cdata_close = "]]>"
+
+fun cdata s = cdata_open ^ s ^ cdata_close;
 
 (* elements *)
 
@@ -50,7 +57,7 @@ datatype tree =
     Elem of string * (string * string) list * tree list
   | Text of string;
 
-fun attribute (a, x) = a ^ " = " ^ Library.quote (text x);
+fun attribute (a, x) = a ^ " = " ^ "\"" (text x) "\"";
 
 fun element name atts cs =
   let val elem = space_implode " " (name :: map attribute atts) in
@@ -70,7 +77,7 @@ val header = "<?xml version=\"1.0\"?>\n";
 fun err s (xs, _) = "XML parsing error: " ^ s ^ "\nfound:\n" ^
   implode (take (100, xs));
 
-val scan_whspc = Scan.repeat ($$ " " || $$ "\n");
+val scan_whspc = Scan.repeat ($$ " " || $$ "\n" || $$ "\t");
 
 val literal = Scan.literal o Scan.make_lexicon o single o explode;
 
