@@ -19,12 +19,12 @@ result();
 (** Examples for the Blast_tac paper **)
 
 (*Union-image, called Un_Union_image on equalities.ML*)
-Goal "(UN x:C. A(x) Un B(x)) = Union(A``C)  Un  Union(B``C)";
+Goal "(UN x:C. f(x) Un g(x)) = Union(f``C)  Un  Union(g``C)";
 by (Blast_tac 1);
 result();
 
 (*Inter-image, called Int_Inter_image on equalities.ML*)
-Goal "(INT x:C. A(x) Int B(x)) = Inter(A``C) Int Inter(B``C)";
+Goal "(INT x:C. f(x) Int g(x)) = Inter(f``C) Int Inter(g``C)";
 by (Blast_tac 1);
 result();
 
