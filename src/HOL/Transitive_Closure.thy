@@ -95,6 +95,36 @@ lemma Not_Domain_rtrancl:
  apply (auto)
  by (erule rev_mp, erule rtrancl_induct, auto)
 
+(* more about converse rtrancl and trancl, should be merged with main body *)
+
+lemma converse_rtrancl_into_rtrancl: "(a,b) \<in> R \<Longrightarrow> (b,c) \<in> R^* \<Longrightarrow> (a,c) \<in> R^*"
+  by (erule rtrancl_induct) (fast intro: rtrancl_into_rtrancl)+
+
+lemma r_r_into_trancl: "(a,b) \<in> R \<Longrightarrow> (b,c) \<in> R \<Longrightarrow> (a,c) \<in> R^+"
+  by (fast intro: trancl_trans)
+
+lemma trancl_into_trancl [rule_format]:
+  "(a,b) \<in> r\<^sup>+ \<Longrightarrow> (b,c) \<in> r \<longrightarrow> (a,c) \<in> r\<^sup>+"
+  apply (erule trancl_induct)   
+   apply (fast intro: r_r_into_trancl)
+  apply (fast intro: r_r_into_trancl trancl_trans)
+  done
+
+lemma trancl_rtrancl_trancl:
+  "(a,b) \<in> r\<^sup>+ \<Longrightarrow> (b,c) \<in> r\<^sup>* \<Longrightarrow> (a,c) \<in> r\<^sup>+"
+  apply (drule tranclD)
+  apply (erule exE, erule conjE)
+  apply (drule rtrancl_trans, assumption)
+  apply (drule rtrancl_into_trancl2, assumption)
+  apply assumption
+  done
+
+lemmas [trans] = r_r_into_trancl trancl_trans rtrancl_trans 
+                 trancl_into_trancl trancl_into_trancl2
+                 rtrancl_into_rtrancl converse_rtrancl_into_rtrancl
+                 rtrancl_trancl_trancl trancl_rtrancl_trancl
+
+declare trancl_into_rtrancl [elim]
 
 declare rtrancl_induct [induct set: rtrancl]
 declare rtranclE [cases set: rtrancl]
