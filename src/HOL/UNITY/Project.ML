@@ -531,7 +531,7 @@ by (auto_tac (claset(),
 by (dtac act_subset_imp_project_act_subset 1);
 by (subgoal_tac
     "project_act h (Restrict C act) ^^ (project_set h C Int (A - B)) <= {}" 1);
-by (rewrite_goals_tac [Restrict_def, project_set_def, extend_set_def, project_act_def]);
+by (rewrite_goals_tac [project_set_def, extend_set_def, project_act_def]);
 (*using Int_greatest actually slows the next step!*)
 by (Blast_tac 2);
 by (force_tac (claset(), 
