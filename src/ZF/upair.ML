@@ -261,6 +261,20 @@ qed_goal "expand_if" ZF.thy
            (Asm_simp_tac 1),
            (Asm_simp_tac 1) ]);
 
+(** Rewrite rules for boolean case-splitting: faster than 
+	setloop split_tac[expand_if]
+**)
+
+bind_thm ("expand_if_eq1", read_instantiate [("P", "%x. x = ?b")] expand_if);
+bind_thm ("expand_if_eq2", read_instantiate [("P", "%x. ?a = x")] expand_if);
+
+bind_thm ("expand_if_mem1", read_instantiate [("P", "%x. x : ?b")] expand_if);
+bind_thm ("expand_if_mem2", read_instantiate [("P", "%x. ?a : x")] expand_if);
+
+val expand_ifs = [expand_if_eq1, expand_if_eq2,
+		  expand_if_mem1, expand_if_mem2];
+
+(*Logically equivalent to expand_if_mem2*)
 qed_goal "if_iff" ZF.thy "a: if(P,x,y) <-> P & a:x | ~P & a:y"
  (fn _=> [ (simp_tac (!simpset setloop split_tac [expand_if]) 1) ]);
 
