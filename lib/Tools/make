@@ -25,7 +25,6 @@ function usage()
 
 
 . $ISABELLE_HOME/lib/scripts/getplatform
-
 export ISABELLE_OUTPUT_DIR="$ISABELLE_OUTPUT/$ML_SYSTEM-$PLATFORM"
 
 exec make -f IsaMakefile "$@"
