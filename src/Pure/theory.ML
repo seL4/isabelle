@@ -377,8 +377,8 @@ fun err_in_defn sg name msg =
   (error_msg msg;
     error ("The error(s) above occurred in definition " ^ quote (Sign.full_name sg name)));
 
-fun cycle_msg namess =
-  "Cyclic dependency of constants:\n" ^ cat_lines (map (space_implode " -> " o map quote) namess);
+fun cycle_msg namess = "Cyclic dependency of constants:\n" ^
+  cat_lines (map (space_implode " -> " o map quote o rev) namess);
 
 fun add_deps (c, cs) deps =
   let fun declare (G, x) = Graph.new_node (x, ()) G handle Graph.DUP _ => G

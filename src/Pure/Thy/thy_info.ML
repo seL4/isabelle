@@ -76,13 +76,13 @@ fun gen_msg txt [] = txt
 fun loader_msg txt names = gen_msg ("Theory loader: " ^ txt) names;
 
 val show_path = space_implode " via " o map quote;
-fun cycle_msg name names = loader_msg ("cyclic dependency of " ^ show_path (name :: names)) [];
+fun cycle_msg names = loader_msg ("cyclic dependency of " ^ show_path names) [];
 
 
 (* derived graph operations *)
 
 fun add_deps name parents G = Graph.add_deps_acyclic (name, parents) G
-  handle Graph.CYCLES namess => error (cat_lines (map (cycle_msg name) namess));
+  handle Graph.CYCLES namess => error (cat_lines (map cycle_msg namess));
 
 fun upd_deps name entry G =
   foldl (fn (H, parent) => Graph.del_edge (parent, name) H) (G, Graph.imm_preds G name)
@@ -311,7 +311,7 @@ fun require_thy ml time strict keep_strict initiators prfx (visited, str) =
     val path = Path.expand (Path.unpack str);
     val name = Path.pack (Path.base path);
   in
-    if name mem_string initiators then error (cycle_msg name initiators) else ();
+    if name mem_string initiators then error (cycle_msg initiators) else ();
     if known_thy name andalso is_finished name orelse name mem_string visited then
       (visited, (true, name))
     else
