@@ -205,3 +205,14 @@ qed"execfrag_prefixclosed";
 
 bind_thm ("exec_prefixclosed",conjI RS (execfrag_prefixclosed RS spec RS spec RS mp));
 
+
+(* second prefix notion for Finite x *)
+
+goal thy "! y s.is_execution_fragment A (s,x@@y) --> is_execution_fragment A (s,x)";
+by (pair_induct_tac "x" [is_execution_fragment_def] 1);
+by (strip_tac 1);
+by (Seq_case_simp_tac "s" 1);
+by (pair_tac "a" 1);
+auto();
+qed_spec_mp"exec_prefix2closed";
+

@@ -7,14 +7,6 @@ Compositionality on Trace level.
 *) 
 
 
-fun thin_tac' j =
-  rotate_tac (j - 1) THEN'
-  etac thin_rl THEN' 
-  rotate_tac (~ (j - 1));
-
-
-
-
 
 (* ---------------------------------------------------------------- *)
                    section "mksch rewrite rules";
@@ -458,28 +450,10 @@ by (asm_full_simp_tac (!simpset addsimps [Conc_Conc_eq]) 1);
 
 
 
-by (asm_full_simp_tac (!simpset addsimps [Conc_Conc_eq]) 1);
-
-
-
-(* FIX: should be same as nil_is_Conc2 when all nils are turned to right side !! *)
-goal thy "(nil = x @@ y) = ((x::'a Seq)= nil & y = nil)";
-by (Seq_case_simp_tac "x" 1);
-auto();
-qed"nil_is_Conc";
-
-goal thy "(x @@ y = nil) = ((x::'a Seq)= nil & y = nil)";
-by (Seq_case_simp_tac "x" 1);
-auto();
-qed"nil_is_Conc2";
-
-
 goal thy "(x>>xs = y @@ z) = ((y=nil & x>>xs=z) | (? ys. y=x>>ys & xs=ys@@z))";
 by (Seq_case_simp_tac "y" 1);
 auto();
 qed"Conc_Conc_eq";
-
-
 
 goal thy "!! (y::'a Seq).Finite y ==> ~ y= x@@UU";
 be Seq_Finite_ind 1;
@@ -488,13 +462,10 @@ by (Seq_case_simp_tac "x" 1);
 auto();
 qed"FiniteConcUU1";
 
-
 goal thy "~ Finite ((x::'a Seq)@@UU)";
 br (FiniteConcUU1 COMP rev_contrapos) 1;
 auto();
 qed"FiniteConcUU";
-
-
 
 finiteR_mksch
   "Finite (mksch A B`tr`x`y) --> Finite tr"

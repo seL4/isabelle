@@ -33,7 +33,7 @@ Addsimps [UU_neq_nil];
 
 bind_thm ("smap_unfold", fix_prover2 thy smap_def 
    "smap = (LAM f tr. case tr of  \
- \                         nil   => nil \
+ \                         nil  => nil \
  \                       | x##xs => f`x ## smap`f`xs)");
 
 goal thy "smap`f`nil=nil"; 

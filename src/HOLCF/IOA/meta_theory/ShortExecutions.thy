@@ -49,8 +49,8 @@ oraclebuild_def
 
 rules
 
-execThruCut
-  "is_execution_fragment A (s,ex) ==> is_execution_fragment A (s,Cut P ex)"
+Cut_prefixcl_Finite
+  "Finite s ==> (? y. s = Cut P s @@ y)"
 
 LastActExtsmall1
   "LastActExtsch A sch ==> LastActExtsch A (TL`(Dropwhile P`sch))"

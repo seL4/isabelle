@@ -11,6 +11,11 @@ that has the same trace as ex, but its schedule ends with an external action.
 *) 
 
 
+fun thin_tac' j =
+  rotate_tac (j - 1) THEN'
+  etac thin_rl THEN' 
+  rotate_tac (~ (j - 1));
+
 
 
 (* ---------------------------------------------------------------- *)
@@ -146,6 +151,75 @@ br take_reduction 1;
 auto();
 qed"MapCut";
 
+
+goal thy "~Finite s --> Cut P s << s";
+by (strip_tac 1);
+br (take_lemma_less RS iffD1) 1;
+by (strip_tac 1);
+br mp 1;
+ba 2;
+by (thin_tac' 1 1);
+by (res_inst_tac [("x","s")] spec 1);
+br less_induct 1;
+by (strip_tac 1);
+ren "na n s" 1;
+by (case_tac "Forall (%x. ~ P x) s" 1);
+br (take_lemma_less RS iffD2 RS spec) 1;
+by (asm_full_simp_tac (!simpset addsimps [Cut_UU]) 1);
+(* main case *)
+bd divide_Seq3 1;
+by (REPEAT (etac exE 1));
+by (REPEAT (etac conjE 1));
+by (hyp_subst_tac 1);
+by (asm_full_simp_tac (!simpset addsimps [Cut_Cons]) 1);
+br take_reduction_less 1;
+(* auto makes also reasoning about Finiteness of parts of s ! *)
+auto();
+qed_spec_mp"Cut_prefixcl_nFinite";
+
+
+
+(*
+
+goal thy "Finite s --> (? y. s = Cut P s @@ y)";
+by (strip_tac 1);
+by (rtac exI 1);
+br seq.take_lemma 1;
+br mp 1;
+ba 2;
+by (thin_tac' 1 1);
+by (res_inst_tac [("x","s")] spec 1);
+br less_induct 1;
+by (strip_tac 1);
+ren "na n s" 1;
+by (case_tac "Forall (%x. ~ P x) s" 1);
+br (seq_take_lemma RS iffD2 RS spec) 1;
+by (asm_full_simp_tac (!simpset addsimps [Cut_nil]) 1);
+(* main case *)
+bd divide_Seq3 1;
+by (REPEAT (etac exE 1));
+by (REPEAT (etac conjE 1));
+by (hyp_subst_tac 1);
+by (asm_full_simp_tac (!simpset addsimps [Cut_Cons,Conc_assoc]) 1);
+br take_reduction 1;
+
+qed_spec_mp"Cut_prefixcl_Finite";
+
+*)
+
+
+
+goal thy "!!ex .is_execution_fragment A (s,ex) ==> is_execution_fragment A (s,Cut P ex)";
+by (case_tac "Finite ex" 1);
+by (cut_inst_tac [("s","ex"),("P","P")] Cut_prefixcl_Finite 1);
+ba 1;
+be exE 1;
+br exec_prefix2closed 1;
+by (eres_inst_tac [("s","ex"),("t","Cut P ex @@ y")] subst 1);
+ba 1;
+be exec_prefixclosed 1;
+be Cut_prefixcl_nFinite 1;
+qed"execThruCut";
 
 
 

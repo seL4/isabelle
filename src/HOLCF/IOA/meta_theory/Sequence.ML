@@ -7,6 +7,19 @@ Theorems about Sequences over flat domains with lifted elements
 
 *)
 
+(* FIX: Put into Fix.ML to adm_lemmas !!! *)
+
+goal thy "!! P. [| adm (%x. P x --> Q x); adm (%x.Q x --> P x) |] \
+\           ==> adm (%x. P x = Q x)";
+by (res_inst_tac [("P2","(%x.(P x --> Q x) & (Q x --> P x))")] (adm_cong RS iffD1) 1);
+by (Fast_tac 1);
+be adm_conj 1;
+ba 1;
+qed"adm_iff";
+
+Addsimps [adm_iff];
+
+
 
 Addsimps [andalso_and,andalso_or];
 
@@ -460,6 +473,43 @@ br refl 1;
 be FiniteMap1 1;
 qed"Map2Finite";
 
+(* ----------------------------------------------------------------------------------- *)
+
+
+section "admissibility";
+
+(* Finite x is proven to be adm: Finite_flat shows that there are only chains of length one.
+   Then the assumption that an _infinite_ chain exists (from admI) is set to a contradiction 
+   to Finite_flat *)
+
+goal thy "!! (x:: 'a Seq). Finite x ==> !y. Finite (y:: 'a Seq) & x<<y --> x=y";
+by (Seq_Finite_induct_tac 1);
+by (strip_tac 1);
+be conjE 1;
+be nil_less_is_nil 1;
+(* main case *)
+auto();
+by (Seq_case_simp_tac "y" 1);
+auto();
+qed_spec_mp"Finite_flat";
+
+
+goal thy "adm(%(x:: 'a Seq).Finite x)";
+br admI 1;
+by (eres_inst_tac [("x","0")] allE 1);
+back();
+be exE 1;
+by (REPEAT (etac conjE 1));
+by (res_inst_tac [("x","0")] allE 1);
+ba 1;
+by (eres_inst_tac [("x","j")] allE 1);
+by (cut_inst_tac [("x","Y 0"),("y","Y j")] Finite_flat 1);
+(* Generates a contradiction in subgoal 3 *)
+auto();
+qed"adm_Finite";
+
+Addsimps [adm_Finite];
+
 
 (* ------------------------------------------------------------------------------------ *)
 
@@ -482,6 +532,17 @@ by (Asm_full_simp_tac 1);
 qed"nilConc";
 
 Addsimps [nilConc];
+
+(* FIX: should be same as nil_is_Conc2 when all nils are turned to right side !! *)
+goal thy "(nil = x @@ y) = ((x::'a Seq)= nil & y = nil)";
+by (Seq_case_simp_tac "x" 1);
+auto();
+qed"nil_is_Conc";
+
+goal thy "(x @@ y = nil) = ((x::'a Seq)= nil & y = nil)";
+by (Seq_case_simp_tac "x" 1);
+auto();
+qed"nil_is_Conc2";
 
 
 (* ------------------------------------------------------------------------------------ *)
@@ -536,24 +597,12 @@ goal thy "nil = (Map f`s) --> s= nil";
 by (Seq_case_simp_tac "s" 1);
 qed"nilMap";
 
-goal thy "Forall P (Map f`s) --> Forall (P o f) s";
-by (Seq_induct_tac "s" [Forall_def,sforall_def] 1);
-auto();
-qed"ForallMap1";
 
-
-goal thy "Forall (P o f) s --> Forall P (Map f`s) ";
-by (Seq_induct_tac "s" [Forall_def,sforall_def] 1);
-auto();
-qed"ForallMap2";
-
-(* FIX: should be proved directly. Therefore adm lemma for equalitys on _bools_ has 
-    to be added to !simpset *)
 goal thy "Forall P (Map f`s) = Forall (P o f) s";
-auto();
-be (ForallMap1 RS mp) 1;
-be (ForallMap2 RS mp) 1;
+by (Seq_induct_tac "s" [Forall_def,sforall_def] 1);
 qed"ForallMap";
+
+
 
 
 (* ------------------------------------------------------------------------------------ *)
@@ -646,15 +695,7 @@ bind_thm ("ForallnPFilterPnil",ForallnPFilterPnil1 RS mp);
 (* holds also in other direction *)
 goal thy   "!! P. ~Finite ys & Forall (%x. ~P x) ys \
 \                  --> Filter P`ys = UU ";
-by (res_inst_tac[("x","ys")] Seq_induct 1);
-(* adm *)
-(* FIX: cont ~Finite behandeln *)
-br adm_all 1;
-(* base cases *)
-by (Simp_tac 1);
-by (Simp_tac 1);
-(* main case *)
-by (asm_full_simp_tac (!simpset setloop split_tac [expand_if] ) 1);
+by (Seq_induct_tac "ys" [Forall_def,sforall_def] 1);
 qed"ForallnPFilterPUU1";
 
 bind_thm ("ForallnPFilterPUU",conjI RS (ForallnPFilterPUU1 RS mp));
@@ -666,7 +707,7 @@ goal thy "!! ys . Filter P`ys = nil --> \
 \   (Forall (%x. ~P x) ys & Finite ys)";
 by (res_inst_tac[("x","ys")] Seq_induct 1);
 (* adm *)
-(* FIX: cont Finite behandeln *)
+(* FIX: not admissible, search other proof!! *)
 br adm_all 1;
 (* base cases *)
 by (Simp_tac 1);
@@ -677,23 +718,25 @@ qed"FilternPnilForallP1";
 
 bind_thm ("FilternPnilForallP",FilternPnilForallP1 RS mp);
 
-(* inverse of ForallnPFilterPUU *)
-(* FIX: will not be admissable, search other way of proof *)
+(* inverse of ForallnPFilterPUU. proved by 2 lemmas because of adm problems *)
 
-goal thy   "!! P. Filter P`ys = UU --> \
-\                (Forall (%x. ~P x) ys  & ~Finite ys)";
-by (res_inst_tac[("x","ys")] Seq_induct 1);
-(* adm *)
-(* FIX: cont ~Finite behandeln *)
-br adm_all 1;
-(* base cases *)
-by (Simp_tac 1);
-by (Simp_tac 1);
-(* main case *)
+goal thy "!! ys. Finite ys ==> Filter P`ys ~= UU";
+by (Seq_Finite_induct_tac 1);
 by (asm_full_simp_tac (!simpset setloop split_tac [expand_if] ) 1);
-qed"FilternPUUForallP1";
+qed"FilterUU_nFinite_lemma1";
 
-bind_thm ("FilternPUUForallP",FilternPUUForallP1 RS mp);
+goal thy "~ Forall (%x. ~P x) ys --> Filter P`ys ~= UU";
+by (Seq_induct_tac "ys" [Forall_def,sforall_def] 1);
+by (asm_full_simp_tac (!simpset setloop split_tac [expand_if] ) 1);
+qed"FilterUU_nFinite_lemma2";
+
+goal thy   "!! P. Filter P`ys = UU ==> \
+\                (Forall (%x. ~P x) ys  & ~Finite ys)";
+by (rtac conjI 1);
+by (cut_inst_tac [] (FilterUU_nFinite_lemma2 RS mp COMP rev_contrapos) 1);
+auto();
+by (blast_tac (!claset addSDs [FilterUU_nFinite_lemma1]) 1);
+qed"FilternPUUForallP";
 
 
 goal thy  "!! Q P.[| Forall Q ys; Finite ys; !!x. Q x ==> ~P x|] \
@@ -776,18 +819,7 @@ qed"DropwhileConc1";
 
 bind_thm("DropwhileConc",DropwhileConc1 RS mp);
 
-(* ----------------------------------------------------------------------------------- *)
 
-
-(*
-section "admissibility";
-
-goal thy "adm(%x.Finite x)";
-br admI 1;
-bd spec 1;
-be contrapos 1;
-
-*)
 
 (* ----------------------------------------------------------------------------------- *)
 
@@ -886,6 +918,56 @@ goal thy "!! n.[| x=y; s=t;!! k.k<n ==> seq_take k`y1 = seq_take k`y2|] \
 by (auto_tac (!claset addSIs [take_reduction1 RS spec RS mp],!simpset));
 qed"take_reduction";
 
+(* ------------------------------------------------------------------
+          take-lemma and take_reduction for << instead of = 
+   ------------------------------------------------------------------ *)
+
+goal thy 
+"  ! n. ((! k. k < n --> seq_take k`y1 << seq_take k`y2) \
+\   --> seq_take n`(x @@ (t>>y1)) <<  seq_take n`(x @@ (t>>y2)))";
+by (Seq_induct_tac "x" [] 1);
+by (strip_tac 1);
+by (res_inst_tac [("n","n")] natE 1);
+auto();
+by (res_inst_tac [("n","n")] natE 1);
+auto();
+qed"take_reduction_less1";
+
+
+goal thy "!! n.[| x=y; s=t;!! k.k<n ==> seq_take k`y1 << seq_take k`y2|] \
+\ ==> seq_take n`(x @@ (s>>y1)) <<  seq_take n`(y @@ (t>>y2))";
+by (auto_tac (!claset addSIs [take_reduction_less1 RS spec RS mp],!simpset));
+qed"take_reduction_less";
+
+
+val prems = goalw thy [seq.take_def]
+"(!! n. seq_take n`s1 << seq_take n`s2)  ==> s1<<s2";
+
+by (res_inst_tac [("t","s1")] (seq.reach RS subst)  1);
+by (res_inst_tac [("t","s2")] (seq.reach RS subst)  1);
+by (rtac (fix_def2 RS ssubst ) 1);
+by (rtac (contlub_cfun_fun RS ssubst) 1);
+by (rtac is_chain_iterate 1);
+by (rtac (contlub_cfun_fun RS ssubst) 1);
+by (rtac is_chain_iterate 1);
+by (rtac lub_mono 1);
+by (rtac (is_chain_iterate RS ch2ch_fappL) 1);
+by (rtac (is_chain_iterate RS ch2ch_fappL) 1);
+by (rtac allI 1);
+by (resolve_tac prems 1);
+qed"take_lemma_less1";
+
+
+goal thy "(!n. seq_take n`x << seq_take n`x') = (x << x')";
+by (rtac iffI 1);
+br take_lemma_less1 1;
+auto();
+be monofun_cfun_arg 1;
+qed"take_lemma_less";
+
+(* ------------------------------------------------------------------
+          take-lemma proof principles
+   ------------------------------------------------------------------ *)
 
 goal thy "!! Q. [|!! s. [| Forall Q s; A s |] ==> (f s) = (g s) ; \
 \           !! s1 s2 y. [| Forall Q s1; Finite s1; ~ Q y; A (s1 @@ y>>s2)|] \
