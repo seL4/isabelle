@@ -3,8 +3,8 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-  the abstract types "sg" (signatures)
-  and "cterm" (certified terms under a signature)
+The abstract types "sg" (signatures) and "cterm" / "ctyp" (certified terms /
+typs under a signature).
 *)
 
 signature SIGN =
@@ -12,7 +12,7 @@ sig
   structure Type: TYPE
   structure Symtab: SYMTAB
   structure Syntax: SYNTAX
-  sharing Symtab=Type.Symtab
+  sharing Symtab = Type.Symtab
   type sg
   type cterm
   type ctyp
@@ -52,20 +52,23 @@ sig
   val pretty_term: sg -> term -> Syntax.Pretty.T
 end;
 
-
-functor SignFun (structure Type:TYPE and Syntax:SYNTAX) : SIGN =
+functor SignFun(structure Type: TYPE and Syntax: SYNTAX): SIGN =
 struct
+
 structure Type = Type;
 structure Symtab = Type.Symtab;
 structure Syntax = Syntax;
 structure Pretty = Syntax.Pretty
 
-(*Signatures of theories. *)
+
+(* Signatures of theories. *)
+
 datatype sg =
-  Sg of {tsig: Type.type_sig,           (* order-sorted signature of types *)
-         const_tab: typ Symtab.table,   (*types of constants*)
-         syn: Syntax.syntax,            (*Parsing and printing operations*)
-         stamps: string ref list        (*unique theory indentifier*)  };
+  Sg of {
+    tsig: Type.type_sig,            (*order-sorted signature of types*)
+    const_tab: typ Symtab.table,    (*types of constants*)
+    syn: Syntax.syntax,             (*syntax for parsing and printing*)
+    stamps: string ref list};       (*unique theory indentifier*)
 
 
 fun rep_sg (Sg args) = args;
@@ -100,13 +103,13 @@ in  terrs  end;
 
 (** The Extend operation **)
 
-
 (*Reset TVar indices to zero, renaming to preserve distinctness*)
 fun zero_tvar_indices tsig T =
   let val inxSs = typ_tvars T;
       val nms' = variantlist(map (#1 o #1) inxSs,[]);
       val tye = map (fn ((v,S),a) => (v, TVar((a,0),S))) (inxSs ~~ nms')
   in typ_subst_TVars tye T end
+
 
 (*Check that all types mentioned in the list of declarations are valid.
   If errors found then raise exception.
@@ -132,48 +135,60 @@ in read end;
 (*Extend a signature: may add classes, types and constants.
   Replaces syntax with "syn".
   The "ref" in stamps ensures that no two signatures are identical --
-  it is impossible to forge a signature.  *)
-fun extend (Sg{tsig, const_tab, syn, stamps, ...}) signame
-           (newclasses, newdefault, otypes, newtypes, const_decs, osext) : sg =
-let val tsig' = Type.extend(tsig,newclasses,newdefault,otypes,newtypes);
-    val S = Type.defaultS tsig';
-    val roots = filter (Type.logical_type tsig')
-                       (distinct(flat(map #1 newtypes)))
+  it is impossible to forge a signature. *)
+
+fun extend (Sg {tsig, const_tab, syn, stamps}) signame
+  (newclasses, newdefault, otypes, newtypes, const_decs, osext) =
+  let
+    (* FIXME abbr *)
+    val tsig' = Type.extend (tsig, newclasses, newdefault, otypes, newtypes);
+
+    (* FIXME expand_typ, check typ *)
+    val read_ty = Syntax.read_typ syn (K (Type.defaultS tsig'));
+
+    val roots = filter (Type.logical_type tsig') (distinct (flat (map #1 newtypes)));
     val xconsts = map #1 newclasses @ flat (map #1 otypes) @ flat (map #1 const_decs);
     val syn' =
-      case osext of
-        Some sext => Syntax.extend (syn, K S) (roots, xconsts, sext)
-      | None => if null roots andalso null xconsts then syn
-                else Syntax.extend (syn, K S) (roots, xconsts, Syntax.empty_sext);
-    val sconsts = case osext of
-                    Some(sext) => Syntax.constants sext
-                  | None => [];
-    val const_decs' = read_consts(tsig',syn') (sconsts @ const_decs)
-in Sg{tsig= tsig',
-      const_tab= Symtab.st_of_declist (const_decs', const_tab)
-                 handle Symtab.DUPLICATE(a) =>
-                 error("Constant " ^ quote a ^ " declared twice"),
-      syn=syn', stamps= ref signame :: stamps}
-end;
+      (case osext of
+        Some sext => Syntax.extend syn read_ty (roots, xconsts, sext)
+      | None =>
+          if null roots andalso null xconsts then syn
+          else Syntax.extend syn read_ty (roots, xconsts, Syntax.empty_sext));
+    val sconsts =
+      (case osext of
+        Some sext => Syntax.constants sext
+      | None => []);
+    val const_decs' = read_consts (tsig', syn') (sconsts @ const_decs);
+  in
+    Sg {
+      tsig = tsig',
+      const_tab = Symtab.st_of_declist (const_decs', const_tab)
+        handle Symtab.DUPLICATE a => error ("Constant " ^ quote a ^ " declared twice"),
+      syn = syn',
+      stamps = ref signame :: stamps}
+  end;
 
 
 (* The empty signature *)
-val sg0 = Sg{tsig= Type.tsig0, const_tab= Symtab.null,
-             syn=Syntax.type_syn,  stamps= []};
 
-(*The pure signature*)
-val pure : sg = extend sg0 "Pure"
+val sg0 = Sg {tsig = Type.tsig0,
+  const_tab = Symtab.null, syn = Syntax.type_syn, stamps= []};
+
+
+(* The pure signature *)
+
+val pure = extend sg0 "Pure"
 ([("logic", [])],
  ["logic"],
- [(["fun"],2),
-  (["prop"],0),
-  (Syntax.syntax_types,0)],
+ [(["fun"], 2),
+  (["prop"], 0),
+  (Syntax.syntax_types, 0)],
  [(["fun"],  ([["logic"], ["logic"]], "logic")),
   (["prop"], ([], "logic"))],
  [(["*NORMALIZED*"], "'a::{} => 'a"),
-  ([Syntax.constrainC], "'a::logic => 'a")],
- Some(Syntax.pure_sext)
-);
+  ([Syntax.constrainC], "'a::logic => 'a")],  (* MMW FIXME replace logic by {} (?) *)
+ Some Syntax.pure_sext);
+
 
 
 (** The Merge operation **)
@@ -330,3 +345,4 @@ let fun split([],tvs,vs) = (tvs,vs)
 in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye', cterms) end;
 
 end;
+
