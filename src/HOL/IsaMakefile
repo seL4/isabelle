@@ -15,7 +15,6 @@ test: \
   HOL-Algebra \
   HOL-Auth \
   HOL-AxClasses \
-  HOL-BCV \
   HOL-CTL \
       HOL-Real-HahnBanach \
       HOL-Real-ex \
@@ -448,19 +447,6 @@ $(LOG)/HOL-MicroJava.gz: $(OUT)/HOL MicroJava/ROOT.ML \
 	@$(ISATOOL) usedir $(OUT)/HOL MicroJava
 
 
-## HOL-BCV
-
-HOL-BCV: HOL $(LOG)/HOL-BCV.gz
-
-$(LOG)/HOL-BCV.gz: $(OUT)/HOL \
-  BCV/DFA_Framework.thy BCV/DFA_Framework.ML BCV/Err.thy BCV/Err.ML \
-  BCV/JType.ML BCV/JType.thy BCV/JVM.ML BCV/JVM.thy \
-  BCV/Kildall.ML BCV/Kildall.thy BCV/Listn.ML BCV/Listn.thy \
-  BCV/Opt.ML BCV/Opt.thy BCV/ROOT.ML BCV/Semilat.ML BCV/Semilat.thy \
-  BCV/Product.ML BCV/Product.thy
-	@$(ISATOOL) usedir $(OUT)/HOL BCV
-
-
 ## HOL-CTL
 
 HOL-CTL: HOL $(LOG)/HOL-CTL.gz
@@ -590,7 +576,7 @@ clean:
 		$(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
 		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
 		$(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz \
-		$(LOG)/HOL-BCV.gz $(LOG)/HOL-CTL.gz $(LOG)/HOL-MicroJava.gz \
+		$(LOG)/HOL-CTL.gz $(LOG)/HOL-MicroJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Real-ex.gz \
 		$(LOG)/HOL-Real-HahnBanach.gz $(LOG)/TLA-Inc.gz \
