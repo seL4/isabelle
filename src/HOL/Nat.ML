@@ -54,6 +54,12 @@ by (rtac iffI 1);
 qed "not_gr0";
 AddIffs [not_gr0];
 
+(*Useful in certain inductive arguments*)
+Goal "(m < Suc n) = (m=0 | (EX j. m = Suc j & j < n))";
+by (exhaust_tac "m" 1);
+by Auto_tac;
+qed "less_Suc_eq_0_disj";
+
 qed_goalw "Least_Suc" thy [Least_nat_def]
  "!!P. [| ? n. P(Suc n); ~ P 0 |] ==> (LEAST n. P n) = Suc (LEAST m. P(Suc m))"
  (fn _ => [
