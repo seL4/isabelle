@@ -8,8 +8,9 @@ User level interface to thm database (see also Pure/pure_thy.ML).
 signature BASIC_THM_DATABASE =
 sig
   val store_thm: string * thm -> thm
-  val qed_thm: thm option ref
+  val store_thms: string * thm list -> thm list
   val bind_thm: string * thm -> unit
+  val bind_thms: string * thm list -> unit
   val qed: string -> unit
   val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
   val qed_goalw: string -> theory -> thm list -> string -> (thm list -> tactic list) -> unit
@@ -23,7 +24,9 @@ end;
 signature THM_DATABASE =
 sig
   include BASIC_THM_DATABASE
+  val qed_thms: thm list ref
   val ml_store_thm: string * thm -> unit
+  val ml_store_thms: string * thm list -> unit
   val is_ml_identifier: string -> bool
 end;
 
@@ -35,13 +38,17 @@ struct
 (* store in theory and generate HTML *)
 
 fun store_thm (name, thm) =
-  let val thm' = PureThy.smart_store_thm (name, thm)
+  let val thm' = hd (PureThy.smart_store_thms (name, [thm]))
   in Present.theorem name thm'; thm' end;
+
+fun store_thms (name, thms) =
+  let val thms' = PureThy.smart_store_thms (name, thms)
+  in Present.theorems name thms'; thms' end;
 
 
 (* store on ML toplevel *)
 
-val qed_thm: thm option ref = ref None;
+val qed_thms: thm list ref = ref [];
 
 val ml_reserved =
  ["abstype", "and", "andalso", "as", "case", "do", "datatype", "else",
@@ -54,16 +61,25 @@ val ml_reserved =
 fun is_ml_identifier name =
   Syntax.is_identifier name andalso not (name mem ml_reserved);
 
+fun warn_ml name =
+  if is_ml_identifier name then false
+  else (warning ("Cannot bind theorem(s) " ^ quote name ^ " as ML value"); true);
+
 fun ml_store_thm (name, thm) =
   let val thm' = store_thm (name, thm) in
-    if is_ml_identifier name then
-      (qed_thm := Some thm';
-        use_text true ("val " ^ name ^ " = the (! ThmDatabase.qed_thm);"))
-    else warning ("Cannot bind thm " ^ quote name ^ " as ML value")
+    if warn_ml name then ()
+    else (qed_thms := [thm]; use_text true ("val " ^ name ^ " = hd (! ThmDatabase.qed_thms);"))
+  end;
+
+fun ml_store_thms (name, thms) =
+  let val thms' = store_thms (name, thms) in
+    if warn_ml name then ()
+    else (qed_thms := thms; use_text true ("val " ^ name ^ " = ! ThmDatabase.qed_thms;"))
   end;
 
 fun bind_thm (name, thm) = ml_store_thm (name, standard thm);
-fun qed name = ml_store_thm (name, result ());
+fun bind_thms (name, thms) = ml_store_thms (name, map standard thms);
+fun qed name = ml_store_thm (name, Goals.result ());
 fun qed_goal name thy goal tacsf = ml_store_thm (name, prove_goal thy goal tacsf);
 fun qed_goalw name thy rews goal tacsf = ml_store_thm (name, prove_goalw thy rews goal tacsf);
 
@@ -140,7 +156,7 @@ fun select_match(obj, signobj, named_thms, extract) =
             let val Some pat = extract prop
                 val (_,subst) = Pattern.match tsig (pat,obj)
             in foldl op+
-		(0, map (fn (_,t) => size_of_term t) subst)
+                (0, map (fn (_,t) => size_of_term t) subst)
             end
 
       fun thm_ord ((p0,s0,_),(p1,s1,_)) =
@@ -152,12 +168,12 @@ fun select_match(obj, signobj, named_thms, extract) =
                       if Sign.subsig(sign, signobj) andalso
                          matches(prop,#tsig(Sign.rep_sg signobj))
                       then
-			(nprems_of thm,substsize(prop,#tsig(Sign.rep_sg signobj)),p)::sels
+                        (nprems_of thm,substsize(prop,#tsig(Sign.rep_sg signobj)),p)::sels
                       else sels)
             end
         | select([],sels) = sels
 
-  in map (fn (_,_,t) => t) (sort thm_ord (select(named_thms, []))) end; 
+  in map (fn (_,_,t) => t) (sort thm_ord (select(named_thms, []))) end;
 
 fun find_matching(prop,sign,index,extract) =
   (case top_const prop of
