@@ -959,10 +959,6 @@ preparation, for example).
 
 \indexisarcmd{apply}\indexisarcmd{done}\indexisarcmd{apply-end}
 \indexisarcmd{defer}\indexisarcmd{prefer}\indexisarcmd{back}
-\indexisarmeth{tactic}\indexisarmeth{insert}
-\indexisarmeth{res-inst-tac}\indexisarmeth{eres-inst-tac}
-\indexisarmeth{dres-inst-tac}\indexisarmeth{forw-inst-tac}
-\indexisarmeth{subgoal-tac}
 \begin{matharray}{rcl}
   \isarcmd{apply}^* & : & \isartrans{proof(prove)}{proof(prove)} \\
   \isarcmd{done}^* & : & \isartrans{proof(prove)}{proof(state)} \\
@@ -970,32 +966,10 @@ preparation, for example).
   \isarcmd{defer}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{prefer}^* & : & \isartrans{proof}{proof} \\
   \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
-  tactic^* & : & \isarmeth \\
-  insert^* & : & \isarmeth \\
-  res_inst_tac^* & : & \isarmeth \\
-  eres_inst_tac^* & : & \isarmeth \\
-  dres_inst_tac^* & : & \isarmeth \\
-  forw_inst_tac^* & : & \isarmeth \\
-  subgoal_tac^* & : & \isarmeth \\
 \end{matharray}
 
 \railalias{applyend}{apply\_end}
 \railterm{applyend}
-
-\railalias{resinsttac}{res\_inst\_tac}
-\railterm{resinsttac}
-
-\railalias{eresinsttac}{eres\_inst\_tac}
-\railterm{eresinsttac}
-
-\railalias{dresinsttac}{dres\_inst\_tac}
-\railterm{dresinsttac}
-
-\railalias{forwinsttac}{forw\_inst\_tac}
-\railterm{forwinsttac}
-
-\railalias{subgoaltac}{subgoal\_tac}
-\railterm{subgoaltac}
 
 \begin{rail}
   'apply' method comment?
@@ -1007,14 +981,6 @@ preparation, for example).
   'defer' nat? comment?
   ;
   'prefer' nat comment?
-  ;
-  'tactic' text
-  ;
-  'insert' thmrefs
-  ;
-  ( resinsttac | eresinsttac | dresinsttac | forwinsttac ) goalspec? ((name '=' term) + 'and')
-  ;
-  subgoaltac goalspec? prop
   ;
 \end{rail}
 
@@ -1046,10 +1012,60 @@ preparation, for example).
   the latest proof command.\footnote{Unlike the ML function \texttt{back}
     \cite{isabelle-ref}, the Isar command does not search upwards for further
     branch points.} Basically, any proof command may return multiple results.
+\end{descr}
+
+Any proper Isar proof method may be used with tactic script commands such as
+$\isarkeyword{apply}$.  A few additional emulations of actual tactics are
+provided as well; these would be never used in actual structured proofs, of
+course.
+
+\indexisarmeth{tactic}\indexisarmeth{insert}
+\indexisarmeth{res-inst-tac}\indexisarmeth{eres-inst-tac}
+\indexisarmeth{dres-inst-tac}\indexisarmeth{forw-inst-tac}
+\indexisarmeth{subgoal-tac}
+\begin{matharray}{rcl}
+  tactic^* & : & \isarmeth \\
+  insert^* & : & \isarmeth \\
+  res_inst_tac^* & : & \isarmeth \\
+  eres_inst_tac^* & : & \isarmeth \\
+  dres_inst_tac^* & : & \isarmeth \\
+  forw_inst_tac^* & : & \isarmeth \\
+  subgoal_tac^* & : & \isarmeth \\
+\end{matharray}
+
+\railalias{resinsttac}{res\_inst\_tac}
+\railterm{resinsttac}
+
+\railalias{eresinsttac}{eres\_inst\_tac}
+\railterm{eresinsttac}
+
+\railalias{dresinsttac}{dres\_inst\_tac}
+\railterm{dresinsttac}
+
+\railalias{forwinsttac}{forw\_inst\_tac}
+\railterm{forwinsttac}
+
+\railalias{subgoaltac}{subgoal\_tac}
+\railterm{subgoaltac}
+
+\begin{rail}
+  'tactic' text
+  ;
+  'insert' thmrefs
+  ;
+  ( resinsttac | eresinsttac | dresinsttac | forwinsttac ) goalspec? \\
+    ((name '=' term) + 'and') 'in' thmref
+  ;
+  subgoaltac goalspec? prop
+  ;
+\end{rail}
+
+\begin{descr}
 \item [$tactic~text$] produces a proof method from any ML text of type
   \texttt{tactic}.  Apart from the usual ML environment and the current
   implicit theory context, the ML code may refer to the following locally
   bound values:
+
 %%FIXME ttbox produces too much trailing space (why?)
 {\footnotesize\begin{verbatim}
 val ctxt  : Proof.context
