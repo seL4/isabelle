@@ -303,15 +303,38 @@ fun subst_bounds (args: term list, t) : term =
 	| subst (t,lev) = t
   in   case args of [] => t  | _ => subst (t,0)  end;
 
+(*Special case: one argument*)
+fun subst_bound (arg, t) : term = 
+  let fun subst (t as Bound i, lev) =
+ 	    if i<lev then  t    (*var is locally bound*)
+	    else  if i=lev then incr_boundvars lev arg
+		           else Bound(i-1)  (*loose: change it*)
+	| subst (Abs(a,T,body), lev) = Abs(a, T,  subst(body,lev+1))
+	| subst (f$t, lev) =  subst(f,lev)  $  subst(t,lev)
+	| subst (t,lev) = t
+  in  subst (t,0)  end;
+
 (*beta-reduce if possible, else form application*)
-fun betapply (Abs(_,_,t), u) = subst_bounds([u],t)
+fun betapply (Abs(_,_,t), u) = subst_bound (u,t)
   | betapply (f,u) = f$u;
+
+(** Equality, membership and insertion of indexnames (string*ints) **)
+
+(*optimized equality test for indexnames.  Yields a huge gain under Poly/ML*)
+fun eq_ix ((a:string, i:int), (a',i')) = (a=a') andalso i=i';
+
+(*membership in a list, optimized version for indexnames*)
+fun mem_ix (x:string*int, []) = false
+  | mem_ix (x, y :: ys) = eq_ix(x,y) orelse mem_ix (x, ys);
+
+(*insertion into list, optimized version for indexnames*)
+fun ins_ix (x,xs) = if mem_ix (x, xs) then xs else x :: xs;
 
 (*Tests whether 2 terms are alpha-convertible and have same type.
   Note that constants and Vars may have more than one type.*)
 fun (Const(a,T)) aconv (Const(b,U)) = a=b  andalso  T=U
   | (Free(a,T)) aconv (Free(b,U)) = a=b  andalso  T=U
-  | (Var(v,T)) aconv (Var(w,U)) =   v=w  andalso  T=U
+  | (Var(v,T)) aconv (Var(w,U)) =   eq_ix(v,w)  andalso  T=U
   | (Bound i) aconv (Bound j)  =   i=j
   | (Abs(_,T,t)) aconv (Abs(_,U,u)) = t aconv u  andalso  T=U
   | (f$t) aconv (g$u) = (f aconv g) andalso (t aconv u)
@@ -333,18 +356,6 @@ fun ins_term(t,ts) = if mem_term(t,ts) then ts else t :: ts;
 fun union_term (xs, []) = xs
   | union_term ([], ys) = ys
   | union_term ((x :: xs), ys) = union_term (xs, ins_term (x, ys));
-
-(** Equality, membership and insertion of indexnames (string*ints) **)
-
-(*optimized equality test for indexnames.  Yields a huge gain under Poly/ML*)
-fun eq_ix ((a:string, i:int), (a',i')) = (a=a') andalso i=i';
-
-(*membership in a list, optimized version for indexnames*)
-fun mem_ix (x:string*int, []) = false
-  | mem_ix (x, y :: ys) = eq_ix(x,y) orelse mem_ix (x, ys);
-
-(*insertion into list, optimized version for indexnames*)
-fun ins_ix (x,xs) = if mem_ix (x, xs) then xs else x :: xs;
 
 (** Equality, membership and insertion of sorts (string lists) **)
 
@@ -635,7 +646,7 @@ fun term_frees t = add_term_frees(t,[]);
   having a unique name. *)
 fun variant_abs (a,T,P) =
   let val b = variant (add_term_names(P,[])) a
-  in  (b,  subst_bounds ([Free(b,T)], P))  end;
+  in  (b,  subst_bound (Free(b,T), P))  end;
 
 (* renames and reverses the strings in vars away from names *)
 fun rename_aTs names vars : (string*typ)list =
