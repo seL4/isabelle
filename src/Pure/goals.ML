@@ -133,7 +133,7 @@ fun prepare_proof rths chorn =
       and st0 = c_rew (trivial (Sign.cterm_of sign B))
       fun result_error state msg = 
         (writeln ("Bad final proof state:");
- 	 print_goals (!goals_limit) state;
+ 	 !print_goals_ref (!goals_limit) state;
 	 error msg)
       (*discharges assumptions from state in the order they appear in goal;
 	checks (if requested) that resulting theorem is equivalent to goal. *)
@@ -226,7 +226,7 @@ fun pop [] = error"Cannot go back past the beginning of the proof!"
 (*Print a level of the goal stack.*)
 fun print_top ((th,_), pairs) = 
    (prs("Level " ^ string_of_int(length pairs) ^ "\n"); 
-    print_goals (!goals_limit) th);
+    !print_goals_ref (!goals_limit) th);
 
 (*Printing can raise exceptions, so the assignment occurs last.
   Can do   setstate[(st,Sequence.null)]  to set st as the state.  *)
