@@ -1539,7 +1539,6 @@ in your theory file to tell Isabelle that $ty$ is in class \texttt{term}, the
 class of all \HOL\ types.
 \end{warn}
 
-
 \section{Record types}
 
 At a first approximation, records are just a minor generalization of tuples,
@@ -1575,7 +1574,7 @@ definitions is shown in Fig.~\ref{fig:HOL:record}.  For the definition of
 \subsection{Proof tools}
 
 
-\section{Datatype declarations}
+\section{Datatype definitions}
 \label{sec:HOL:datatype}
 \index{*datatype|(}
 
@@ -1583,8 +1582,9 @@ Inductive datatypes, similar to those of \ML, frequently appear in
 non-trivial applications of \HOL.  In principle, such types could be
 defined by hand via \texttt{typedef} (see \S\ref{sec:typedef}), but
 this would be far too tedious.  The \ttindex{datatype} definition
-package of \HOL\ automates such chores.  It generates freeness theorems
-and induction rules from a very simple description of the new type
+package of \HOL\ automates such chores.  It generates and proves
+freeness theorems and induction rules, as well as theorems for
+recursion and case combinators from a very simple description of the new type
 provided by the user.
 
 
@@ -1593,76 +1593,168 @@ provided by the user.
 
 The general \HOL\ \texttt{datatype} definition is of the following form:
 \[
-\mathtt{datatype}~(\alpha@1, \dots, \alpha@n) \, t ~=~
-C@1~\tau@{11}~\dots~\tau@{1k@1} ~\mid~ \dots ~\mid~
-C@m~\tau@{m1}~\dots~\tau@{mk@m}
+\begin{array}{llcl}
+\mathtt{datatype} & (\alpha@1,\ldots,\alpha@h)t@1 & = &
+  C^1@1~\tau^1@{1,1}~\ldots~\tau^1@{1,m^1@1} ~\mid~ \ldots ~\mid~
+    C^1@{k@1}~\tau^1@{k@1,1}~\ldots~\tau^1@{k@1,m^1@{k@1}} \\
+ & & \vdots \\
+\mathtt{and} & (\alpha@1,\ldots,\alpha@h)t@n & = &
+  C^n@1~\tau^n@{1,1}~\ldots~\tau^n@{1,m^n@1} ~\mid~ \ldots ~\mid~
+    C^n@{k@n}~\tau^n@{k@n,1}~\ldots~\tau^n@{k@n,m^n@{k@n}}
+\end{array}
 \]
-where $\alpha@i$ are type variables, $C@i$ are distinct constructor
-names and $\tau@{ij}$ are types.  The latter may be one of the
-following:
+where $\alpha@i$ are type variables, $C^j@i$ are distinct constructor
+names and $\tau^j@{i,i'}$ are {\em admissible} types containing at
+most the type variables $\alpha@1, \ldots, \alpha@h$. A type $\tau$
+occurring in a \texttt{datatype} definition is {\em admissible} if
 \begin{itemize}
-\item type variables $\alpha@1, \dots, \alpha@n$,
-
-\item types $(\beta@1, \dots, \beta@l) \, t'$ where $t'$ is a
-  previously declared type constructor or type synonym and $\{\beta@1,
-  \dots, \beta@l\} \subseteq \{\alpha@1, \dots, \alpha@n\}$,
-  
-\item the newly defined type $(\alpha@1, \dots, \alpha@n) \, t$.
+\item $\tau$ is non-recursive, i.e. $\tau$ does not contain any of the
+newly defined type constructors $t@1,\ldots,t@n$, or
+\item $\tau = (\alpha@1,\ldots,\alpha@h)t@{j'}$ where $1 \leq j' \leq n$, or
+\item $\tau = (\tau'@1,\ldots,\tau'@{h'})t'$, where $t'$ is
+the type constructor of an already existing datatype and $\tau'@1,\ldots,\tau'@{h'}$
+are admissible types.
 \end{itemize}
-Recursive occurences of $(\alpha@1, \dots, \alpha@n) \, t$ are quite
-restricted.  To ensure that the new type is non-empty, at least one
-constructor must consist of only non-recursive type components.  If
-you would like one of the $\tau@{ij}$ to be a complex type expression
-$\tau$ you need to declare a new type synonym $syn = \tau$ first and
-use $syn$ in place of $\tau$.  Of course this does not work if $\tau$
-mentions the recursive type itself, thus ruling out problematic cases
-like $\mathtt{datatype}~ t ~=~ C \, (t \To t)$, but also unproblematic
-ones like $\mathtt{datatype}~ t ~=~ C \, (t~list)$.
+If some $(\alpha@1,\ldots,\alpha@h)t@{j'}$ occurs in a type $\tau^j@{i,i'}$
+of the form
+\[
+(\ldots,\ldots ~ (\alpha@1,\ldots,\alpha@h)t@{j'} ~ \ldots,\ldots)t'
+\]
+this is called a {\em nested} occurrence. A very simple example of a datatype
+is the type {\tt list}, which can be defined by
+\begin{ttbox}
+datatype 'a list = Nil
+                 | Cons 'a ('a list)
+\end{ttbox}
+Arithmetic expressions {\tt aexp} and boolean expressions {\tt bexp} can be modelled
+by the mutually recursive datatype definition
+\begin{ttbox}
+datatype 'a aexp = If_then_else ('a bexp) ('a aexp) ('a aexp)
+                 | Sum ('a aexp) ('a aexp)
+                 | Diff ('a aexp) ('a aexp)
+                 | Var 'a
+                 | Num nat
+and      'a bexp = Less ('a aexp) ('a aexp)
+                 | And ('a bexp) ('a bexp)
+                 | Or ('a bexp) ('a bexp)
+\end{ttbox}
+The datatype {\tt term}, which is defined by
+\begin{ttbox}
+datatype ('a, 'b) term = Var 'a
+                       | App 'b ((('a, 'b) term) list)
+\end{ttbox}
+is an example for a datatype with nested recursion.
+
+Types in HOL must be nonempty. Each of the new datatypes
+$(\alpha@1,\ldots,\alpha@h)t@j$ with $1 \le j \le n$ is nonempty iff
+it has a constructor $C^j@i$ with the following property: For all
+argument types $\tau^j@{i,i'}$ of the form $(\alpha@1,\ldots,\alpha@h)t@{j'}$
+the datatype $(\alpha@1,\ldots,\alpha@h)t@{j'}$ is nonempty.
+
+If there are no nested occurrences of the newly defined datatypes,
+obviously at least one of the newly defined datatypes
+$(\alpha@1,\ldots,\alpha@h)t@j$ must have a constructor $C^j@i$ without
+recursive arguments -- a so-called {\em base case} -- to ensure that
+the new types are nonempty. If there are nested occurrences, a datatype
+can even be nonempty without having a base case itself: Since {\tt list}
+is a nonempty datatype, {\tt datatype t = C (t list)} is nonempty
+as well.
 
 The constructors are automatically defined as functions of their respective
 type:
-\[ C@j :: [\tau@{j1},\dots,\tau@{jk@j}] \To (\alpha@1,\dots,\alpha@n)t \]
+\[ C^j@i :: [\tau^j@{i,1},\dots,\tau^j@{i,m^j@i}] \To (\alpha@1,\dots,\alpha@h)t@j \]
 These functions have certain {\em freeness} properties --- they are
 distinct:
 \[
-C@i~x@1~\dots~x@{k@i} \neq C@j~y@1~\dots~y@{k@j} \qquad
-\mbox{for all}~ i \neq j.
+C^j@i~x@1~\dots~x@{m^j@i} \neq C^j@{i'}~y@1~\dots~y@{m^j@{i'}} \qquad
+\mbox{for all}~ i \neq i'.
 \]
 and they are injective:
 \[
-(C@j~x@1~\dots~x@{k@j} = C@j~y@1~\dots~y@{k@j}) =
-(x@1 = y@1 \land \dots \land x@{k@j} = y@{k@j})
+(C^j@i~x@1~\dots~x@{m^j@i} = C^j@i~y@1~\dots~y@{m^j@i}) =
+(x@1 = y@1 \land \dots \land x@{m^j@i} = y@{m^j@i})
 \]
 Because the number of inequalities is quadratic in the number of
 constructors, a different representation is used if there are $7$ or
 more of them.  In that case every constructor term is mapped to a
 natural number:
 \[
-t_ord \, (C@i \, x@1 \, \dots \, x@{k@i}) = i - 1
+t@j_ord \, (C^j@i \, x@1 \, \dots \, x@{m^j@i}) = i - 1
 \]
 Then distinctness of constructor terms is expressed by:
 \[
-t_ord \, x \neq t_ord \, y \Imp x \neq y.
+t@j_ord \, x \neq t@j_ord \, y \Imp x \neq y.
 \]
 
-\medskip Generally, the following structural induction rule is
-provided:
+\medskip For datatypes without nested recursion, the following
+structural induction rule is provided:
 \[
-\infer{P \, x}
-{\begin{array}{lcl}
-\Forall x@1\dots x@{k@1}.
-  \List{P~x@{r@{11}}; \dots; P~x@{r@{1l@1}}} &
-  \Imp  & P \, (C@1~x@1~\dots~x@{k@1}) \\
- & \vdots & \\
-\Forall x@1\dots x@{k@m}.
-  \List{P~x@{r@{m1}}; \dots; P~x@{r@{ml@m}}} &
-  \Imp & P \, (C@m~x@1~\dots~x@{k@m})
-\end{array}}
+\infer{P@1~x@1 \wedge \dots \wedge P@n~x@n}
+  {\begin{array}{lcl}
+     \Forall x@1 \dots x@{m^1@1}.
+       \List{P@{s^1@{1,1}}~x@{r^1@{1,1}}; \dots;
+         P@{s^1@{1,l^1@1}}~x@{r^1@{1,l^1@1}}} & \Imp &
+           P@1~\left(C^1@1~x@1~\dots~x@{m^1@1}\right) \\
+     & \vdots \\
+     \Forall x@1 \dots x@{m^1@{k@1}}.
+       \List{P@{s^1@{k@1,1}}~x@{r^1@{k@1,1}}; \dots;
+         P@{s^1@{k@1,l^1@{k@1}}}~x@{r^1@{k@1,l^1@{k@1}}}} & \Imp &
+           P@1~\left(C^1@{k@1}~x@1~\ldots~x@{m^1@{k@1}}\right) \\
+     & \vdots \\
+     \Forall x@1 \dots x@{m^n@1}.
+       \List{P@{s^n@{1,1}}~x@{r^n@{1,1}}; \dots;
+         P@{s^n@{1,l^n@1}}~x@{r^n@{1,l^n@1}}} & \Imp &
+           P@n~\left(C^n@1~x@1~\ldots~x@{m^n@1}\right) \\
+     & \vdots \\
+     \Forall x@1 \dots x@{m^n@{k@n}}.
+       \List{P@{s^n@{k@n,1}}~x@{r^n@{k@n,1}}; \dots
+         P@{s^n@{k@n,l^n@{k@n}}}~x@{r^n@{k@n,l^n@{k@n}}}} & \Imp &
+           P@n~\left(C^n@{k@n}~x@1~\ldots~x@{m^n@{k@n}}\right)
+   \end{array}}
 \]
-where $\{r@{j1},\dots,r@{jl@j}\} = \{i \in \{1,\dots k@j\} ~\mid~ \tau@{ji}
-= (\alpha@1,\dots,\alpha@n)t \} =: Rec@j$, i.e.\ the property $P$ can be
-assumed for all arguments of the recursive type.
+where
+\[
+\begin{array}{rcl}
+Rec^j@i & := &
+   \left\{\left(r^j@{i,1},s^j@{i,1}\right),\ldots,
+     \left(r^j@{i,l^j@i},s^j@{i,l^j@i}\right)\right\} = \\[2ex]
+&& \left\{(i',i'')~\left|~
+     1\leq i' \leq m^j@i \wedge 1 \leq i'' \leq n \wedge
+       \tau^j@{i,i'} = (\alpha@1,\ldots,\alpha@h)t@{i''}\right.\right\}
+\end{array}
+\]
+i.e.\ the properties $P@j$ can be assumed for all recursive arguments. For
+datatypes with nested recursion such as {\tt term}, things are a bit more
+complicated. Isabelle's datatype package unfolds the definition
+\begin{ttbox}
+datatype ('a, 'b) term = Var 'a
+                       | App 'b ((('a, 'b) term) list)
+\end{ttbox}
+to the equivalent definition
+\begin{ttbox}
+datatype ('a, 'b) term      = Var
+                            | App 'b (('a, 'b) term_list)
+and      ('a, 'b) term_list = Nil'
+                            | Cons' (('a,'b) term) (('a,'b) term_list)
+\end{ttbox}
+having no nestings. However, note that the type {\tt ('a,'b) term_list}
+and the constructors {\tt Nil'} and {\tt Cons'} are not really introduced by the datatype
+package. Instead, you can simply use the -- isomorphic -- type {\tt (('a, 'b) term) list}
+and the constructors {\tt Nil} and {\tt Cons}. Thus, the structural induction rule
+for {\tt term} has the form
+\[
+\infer{P@1~x@1 \wedge P@2~x@2}
+  {\begin{array}{l}
+     \Forall x.~P@1~(\mathtt{Var}~x) \\
+     \Forall x@1~x@2.~P@2~x@2 \Imp P@1~(\mathtt{App}~x@1~x@2) \\
+     P@2~\mathtt{Nil} \\
+     \Forall x@1~x@2. \List{P@1~x@1; P@2~x@2} \Imp P@2~(\mathtt{Cons}~x@1~x@2)
+   \end{array}}
+\]
+Note that there are two predicates $P@1$ and $P@2$, one for the type {\tt ('a,'b) term}
+and one for the type {\tt (('a, 'b) term) list}.
 
+\medskip
 For convenience, the following additional constructions are predefined for
 each datatype.
 
@@ -1671,12 +1763,12 @@ each datatype.
 The type comes with an \ML-like \texttt{case}-construct:
 \[
 \begin{array}{rrcl}
-\mbox{\tt case}~e~\mbox{\tt of} & C@1~x@{11}~\dots~x@{1k@1} & \To & e@1 \\
+\mbox{\tt case}~e~\mbox{\tt of} & C^j@1~x@{1,1}~\dots~x@{1,m^j@1} & \To & e@1 \\
                            \vdots \\
-                           \mid & C@m~x@{m1}~\dots~x@{mk@m} & \To & e@m
+                           \mid & C^j@{k@j}~x@{k@j,1}~\dots~x@{k@j,m^j@{k@j}} & \To & e@{k@j}
 \end{array}
 \]
-where the $x@{ij}$ are either identifiers or nested tuple patterns as in
+where the $x@{i,j}$ are either identifiers or nested tuple patterns as in
 \S\ref{subsec:prod-sum}.
 \begin{warn}
 In contrast to \ML, {\em all} constructors must be present, their order is
@@ -1685,18 +1777,18 @@ Violating this restriction results in strange error messages.
 \end{warn}
 
 To perform case distinction on a goal containing a \texttt{case}-construct,
-the theorem \texttt{split_}$t$\texttt{_case}\tdx{split_$t$_case} is provided:
+the theorem $t@j.$\texttt{split} is provided:
 \[
 \begin{array}{@{}rcl@{}}
-P(t_\mathtt{case}~f@1~\dots~f@m~e) &=&
-((\forall x@1 \dots x@{k@1}. e = C@1~x@1\dots x@{k@1} \to
-                             P(f@1~~x@1\dots x@{k@1})) \\
-&& ~\land~ \dots ~\land \\
-&&~ (\forall x@1 \dots x@{k@m}. e = C@m~x@1\dots x@{k@m} \to
-                             P(f@m~~x@1\dots x@{k@m})))
+P(t@j_\mathtt{case}~f@1~\dots~f@{k@j}~e) &\!\!\!=&
+\!\!\! ((\forall x@1 \dots x@{m^j@1}. e = C^j@1~x@1\dots x@{m^j@1} \to
+                             P(f@1~x@1\dots x@{m^j@1})) \\
+&&\!\!\! ~\land~ \dots ~\land \\
+&&~\!\!\! (\forall x@1 \dots x@{m^j@{k@j}}. e = C^j@{k@j}~x@1\dots x@{m^j@{k@j}} \to
+                             P(f@{k@j}~x@1\dots x@{m^j@{k@j}})))
 \end{array}
 \]
-where $t$\texttt{_case} is the internal name of the \texttt{case}-construct.
+where $t@j$\texttt{_case} is the internal name of the \texttt{case}-construct.
 This theorem can be added to a simpset via \ttindex{addsplits}
 (see~\S\ref{subsec:HOL:case:splitting}).
 
@@ -1706,35 +1798,41 @@ Theory \texttt{Arith} declares an overloaded function \texttt{size} of type
 $\alpha\To nat$.  Each datatype defines a particular instance of \texttt{size}
 according to the following scheme:
 \[
-size(C@j~x@{j1}~\dots~x@{jk@1}) =
+size(C^j@i~x@1~\dots~x@{m^j@i}) = \!
 \left\{
 \begin{array}{ll}
-0 & \mbox{if $Rec@j = \emptyset$} \\
-size(x@{r@{j1}}) + \cdots + size(x@{r@{jl@j}}) + 1 &
- \mbox{if $Rec@j = \{r@{j1},\dots,r@{jl@j}\}$}
+0 & \!\mbox{if $Rec^j@i = \emptyset$} \\
+\!\!\begin{array}{l}
+size~x@{r^j@{i,1}} + \cdots \\
+\cdots + size~x@{r^j@{i,l^j@i}} + 1
+\end{array} &
+ \!\mbox{if $Rec^j@i = \left\{\left(r^j@{i,1},s^j@{i,1}\right),\ldots,
+  \left(r^j@{i,l^j@i},s^j@{i,l^j@i}\right)\right\}$}
 \end{array}
 \right.
 \]
-where $Rec@j$ is defined above.  Viewing datatypes as generalized trees, the
+where $Rec^j@i$ is defined above.  Viewing datatypes as generalized trees, the
 size of a leaf is 0 and the size of a node is the sum of the sizes of its
 subtrees $+1$.
 
 \subsection{Defining datatypes}
 
-A datatype is defined in a theory definition file using the keyword
+Datatypes are defined in a theory definition file using the keyword
 {\tt datatype}.  The definition following this must conform to the
 syntax of {\em typedecl} specified in Fig.~\ref{datatype-grammar} and
 must obey the rules in the previous section.  As a result the theory is
-extended with the new type, the constructors, and the theorems listed
+extended with the new types, the constructors, and the theorems listed
 in the previous section.
 
 \begin{figure}
 \begin{rail}
-typedecl : typevarlist id '=' (cons + '|')
+typedecl : ( type '=' (cons + '|') ) + 'and'
          ;
-cons     : name (typ *) ( () | mixfix )
+type     : typevarlist id ( () | '(' infix ')' )
          ;
-typ      : id | tid | ('(' typevarlist id ')')
+cons     : name (argtype *) ( () | ( '(' mixfix ')' ) )
+         ;
+argtype  : id | tid | ('(' typevarlist id ')')
          ;
 \end{rail}
 \caption{Syntax of datatype declarations}
@@ -1743,30 +1841,34 @@ typ      : id | tid | ('(' typevarlist id ')')
 
 \begin{warn}
   Every theory containing a datatype declaration must be based, directly or
-  indirectly, on the theory \texttt{Arith}, if necessary by including it
+  indirectly, on the theory \texttt{Datatype}, if necessary by including it
   explicitly as a parent.
 \end{warn}
 
-Most of the theorems about the datatype become part of the default simpset
+Most of the theorems about the datatypes become part of the default simpset
 and you never need to see them again because the simplifier applies them
 automatically.  Only induction is invoked by hand:
 \begin{ttdescription}
 \item[\ttindexbold{induct_tac} {\tt"}$x${\tt"} $i$]
  applies structural induction on variable $x$ to subgoal $i$, provided the
- type of $x$ is a datatype or type \tydx{nat}.
+ type of $x$ is a datatype.
+\item[\ttindexbold{mutual_induct_tac} {\tt["}$x@1${\tt",}$\ldots${\tt,"}$x@n${\tt"]} $i$]
+ applies simultaneous structural induction on the variables $x@1,\ldots,x@n$ to subgoal $i$.
+ This is needed to prove properties of mutually recursive datatypes such as {\tt aexp} and
+ {\tt bexp} or datatypes with nested recursion such as {\tt term}.
 \end{ttdescription}
 In some cases, induction is overkill and a case distinction over all
 constructors of the datatype suffices:
 \begin{ttdescription}
 \item[\ttindexbold{exhaust_tac} {\tt"}$u${\tt"} $i$]
  performs an exhaustive case analysis for the term $u$ whose type
- must be a datatype or type \tydx{nat}.  If the datatype has $n$ constructors
- $C@1$, \dots $C@n$, subgoal $i$ is replaced by $n$ new subgoals which
- contain the additional assumption $u = C@j~x@1~\dots~x@{k@j}$ for
- $j=1$, $\dots$,~$n$.
+ must be a datatype.  If the datatype has $k@j$ constructors
+ $C^j@1$, \dots $C^j@{k@j}$, subgoal $i$ is replaced by $k@j$ new subgoals which
+ contain the additional assumption $u = C^j@{i'}~x@1~\dots~x@{m^j@{i'}}$ for
+ $i'=1$, $\dots$,~$k@j$.
 \end{ttdescription}
 \begin{warn}
-  Induction is only allowed on a free variable that should not occur among
+  Induction is only allowed on free variables that should not occur among
   the premises of the subgoal.  Exhaustion works for arbitrary terms.
 \end{warn}
 \bigskip
@@ -1781,15 +1883,40 @@ elements:
 val distinct : thm list
 val inject : thm list
 val induct : thm
+val exhaust : thm
 val cases : thm list
+val split : thm
+val split_asm : thm
+val recs : thm list
+val size : thm list
 val simps : thm list
-val induct_tac : string -> int -> tactic
 \end{ttbox}
-{\tt distinct}, \texttt{inject} and \texttt{induct} contain the theorems
+{\tt distinct}, \texttt{inject}, \texttt{induct}, {\tt size}
+and {\tt split} contain the theorems
 described above.  For user convenience, \texttt{distinct} contains
 inequalities in both directions.  The reduction rules of the {\tt
   case}-construct are in \texttt{cases}.  All theorems from {\tt
   distinct}, \texttt{inject} and \texttt{cases} are combined in \texttt{simps}.
+In case of mutually recursive datatypes, {\tt recs}, {\tt size}, {\tt induct}
+and {\tt simps} are contained in a separate structure named $t@1_\ldots_t@n$.
+
+\subsection{Representing types as datatypes}
+For technical reasons, some types such as {\tt nat}, {\tt *}, {\tt +},
+{\tt bool} and {\tt unit} are not directly defined in a {\tt datatype}
+section. To be able to use the tactics {\tt induct_tac} and
+{\tt exhaust_tac} and to define functions by primitive recursion
+on these types, they have to be represented as datatypes.
+This is done by specifying an induction rule, as well as theorems
+stating the distinctness and injectivity of constructors
+in a {\tt rep_datatype} section, e.g.
+\begin{ttbox}
+rep_datatype nat
+  distinct Suc_not_Zero, Zero_not_Suc
+  inject   Suc_Suc_eq
+  induct   nat_induct
+\end{ttbox}
+The datatype package automatically derives additional theorems
+for recursion and case combinators from these rules.
 
 \subsection{Examples}
 
@@ -1798,9 +1925,9 @@ inequalities in both directions.  The reduction rules of the {\tt
 We want to define the type $\alpha~mylist$.\footnote{This is just an
   example, there is already a list type in \HOL, of course.} To do
 this we have to build a new theory that contains the type definition.
-We start from the theory of arithmetic.
+We start from the theory \texttt{Datatype}.
 \begin{ttbox}
-MyList = Arith +
+MyList = Datatype +
   datatype 'a mylist = Nil | Cons 'a ('a mylist)
 end
 \end{ttbox}
@@ -1859,7 +1986,7 @@ we want to write \texttt{[]} for \texttt{Nil} and we want to use infix
 notation \verb|#| for \texttt{Cons}.  To do this we simply add mixfix
 annotations after the constructor declarations as follows:
 \begin{ttbox}
-MyList = Arith +
+MyList = Datatype +
   datatype 'a mylist =
     Nil ("[]")  |
     Cons 'a ('a mylist)  (infixr "#" 70)
@@ -1877,8 +2004,7 @@ Days = Main +
   datatype days = Mon | Tue | Wed | Thu | Fri | Sat | Sun
 end
 \end{ttbox}
-Because there are more than 6 constructors, the theory must be based
-on \texttt{Arith}.  Inequality is expressed via a function
+Because there are more than 6 constructors, inequality is expressed via a function
 \verb|days_ord|.  The theorem \verb|Mon ~= Tue| is not directly
 contained among the distinctness theorems, but the simplifier can
 prove it thanks to rewrite rules inherited from theory \texttt{Arith}:
@@ -1950,7 +2076,7 @@ recursive functions on datatypes:
 \begin{ttbox}
 Append = MyList +
 consts app :: ['a mylist, 'a mylist] => 'a mylist
-primrec app MyList.mylist
+primrec
    "app [] ys = ys"
    "app (x#xs) ys = x#app xs ys"
 end
@@ -1958,7 +2084,7 @@ end
 Isabelle will now check that the two rules do indeed form a primitive
 recursive definition, preserving consistency.  For example
 \begin{ttbox}
-primrec app MyList.mylist
+primrec
     "app [] ys = us"
 \end{ttbox}
 is rejected with an error message \texttt{Extra variables on rhs}.
@@ -1967,37 +2093,28 @@ is rejected with an error message \texttt{Extra variables on rhs}.
 
 The general form of a primitive recursive definition is
 \begin{ttbox}
-primrec {\it function} {\it type}
+primrec
     {\it reduction rules}
 \end{ttbox}
-where
-\begin{itemize}
-\item \textit{function} is the name of the function, either as an \textit{id}
-  or a \textit{string}.
-\item \textit{type} is the name of the datatype, either as an \textit{id} or
-  in the long form \texttt{$T$. $t$} ($T$ is the name of the theory
-  where the datatype has been declared, $t$ the name of the datatype).
-  The long form is required if the \texttt{datatype} and the {\tt
-    primrec} sections are in different theories.
-\item \textit{reduction rules} specify one or more equations of the form
-  \[ f \, x@1 \, \dots \, x@m \, (C \, y@1 \, \dots \, y@k) \, z@1 \,
-  \dots \, z@n = r \] such that $C$ is a constructor of the datatype,
-  $r$ contains only the free variables on the left-hand side, and all
-  recursive calls in $r$ are of the form $f \, \dots \, y@i \, \dots$
-  for some $i$.  There must be exactly one reduction rule for each
-  constructor.  The order is immaterial.  Also note that all reduction
-  rules are added to the default simpset!
+where \textit{reduction rules} specify one or more equations of the form
+\[ f \, x@1 \, \dots \, x@m \, (C \, y@1 \, \dots \, y@k) \, z@1 \,
+\dots \, z@n = r \] such that $C$ is a constructor of the datatype,
+$r$ contains only the free variables on the left-hand side, and all
+recursive calls in $r$ are of the form $f \, \dots \, y@i \, \dots$
+for some $i$.  There must be at most one reduction rule for each
+constructor.  The order is immaterial.  For missing constructors,
+the function is defined to return an arbitrary value.
+Also note that all reduction rules are added to the default simpset.
   
-  If you would like to refer to some rule by name, then you must prefix
-  \emph{each} rule with an identifier.  These identifiers, like those in the
-  \texttt{rules} section of a theory, will be visible at the \ML\ level.
-\end{itemize}
+If you would like to refer to some rule by name, then you must prefix
+the rule with an identifier.  These identifiers, like those in the
+\texttt{rules} section of a theory, will be visible at the \ML\ level.
 
 The primitive recursive function can have infix or mixfix syntax:
 \begin{ttbox}\underscoreon
 Append = MyList +
 consts "@"  :: ['a mylist, 'a mylist] => 'a mylist  (infixr 60)
-primrec "op @" MyList.mylist
+primrec
    "[] @ ys = ys"
    "(x#xs) @ ys = x#(xs @ ys)"
 end
@@ -2009,6 +2126,102 @@ leads to short proofs:
 Goal "(xs @ ys) @ zs = xs @ (ys @ zs)";
 by (induct\_tac "xs" 1);
 by (ALLGOALS Asm\_simp\_tac);
+\end{ttbox}
+
+\subsubsection{Example: Evaluation of expressions}
+Using mutual primitive recursion, we can define evaluation functions {\tt eval_aexp}
+and {\tt eval_bexp} for the datatypes of arithmetic and boolean expressions mentioned in
+\S\ref{subsec:datatype:basics}:
+\begin{ttbox}
+consts
+  eval_aexp :: "['a => nat, 'a aexp] => nat"
+  eval_bexp :: "['a => nat, 'a bexp] => bool"
+
+primrec
+  "eval_aexp env (If_then_else b a1 a2) =
+     (if eval_bexp env b then eval_aexp env a1 else eval_aexp env a2)"
+  "eval_aexp env (Sum a1 a2) = eval_aexp env a1 + eval_aexp env a2"
+  "eval_aexp env (Diff a1 a2) = eval_aexp env a1 - eval_aexp env a2"
+  "eval_aexp env (Var v) = env v"
+  "eval_aexp env (Num n) = n"
+
+  "eval_bexp env (Less a1 a2) = (eval_aexp env a1 < eval_aexp env a2)"
+  "eval_bexp env (And b1 b2) = (eval_bexp env b1 & eval_bexp env b2)"
+  "eval_bexp env (Or b1 b2) = (eval_bexp env b1 & eval_bexp env b2)"
+\end{ttbox}
+Since the value of an expression depends on the value of its variables,
+the functions {\tt eval_aexp} and {\tt eval_bexp} take an additional
+parameter, an {\em environment} of type {\tt 'a => nat}, which maps
+variables to their values.
+
+Similarly, we may define substitution functions {\tt subst_aexp}
+and {\tt subst_bexp} for expressions: The mapping {\tt f} of type
+{\tt 'a => 'a aexp} given as a parameter is lifted canonically
+on the types {'a aexp} and {'a bexp}:
+\begin{ttbox}
+consts
+  subst_aexp :: "['a => 'b aexp, 'a aexp] => 'b aexp"
+  subst_bexp :: "['a => 'b aexp, 'a bexp] => 'b bexp"
+
+primrec
+  "subst_aexp f (If_then_else b a1 a2) =
+     If_then_else (subst_bexp f b) (subst_aexp f a1) (subst_aexp f a2)"
+  "subst_aexp f (Sum a1 a2) = Sum (subst_aexp f a1) (subst_aexp f a2)"
+  "subst_aexp f (Diff a1 a2) = Diff (subst_aexp f a1) (subst_aexp f a2)"
+  "subst_aexp f (Var v) = f v"
+  "subst_aexp f (Num n) = Num n"
+
+  "subst_bexp f (Less a1 a2) = Less (subst_aexp f a1) (subst_aexp f a2)"
+  "subst_bexp f (And b1 b2) = And (subst_bexp f b1) (subst_bexp f b2)"
+  "subst_bexp f (Or b1 b2) = Or (subst_bexp f b1) (subst_bexp f b2)"
+\end{ttbox}
+In textbooks about semantics one often finds {\em substitution theorems},
+which express the relationship between substitution and evaluation. For
+{'a aexp} and {'a bexp}, we can prove such a theorem by mutual induction,
+followed by simplification:
+\begin{ttbox}
+Goal
+  "eval_aexp env (subst_aexp (Var(v := a')) a) =
+     eval_aexp (env(v := eval_aexp env a')) a &
+   eval_bexp env (subst_bexp (Var(v := a')) b) =
+     eval_bexp (env(v := eval_aexp env a')) b";
+by (mutual_induct_tac ["a","b"] 1);
+by (ALLGOALS Asm_full_simp_tac);
+\end{ttbox}
+
+\subsubsection{Example: A substitution function for terms}
+Functions on datatypes with nested recursion, such as the type
+{\tt term} mentioned in \S\ref{subsec:datatype:basics}, are
+also defined by mutual primitive recursion. A substitution
+function {\tt subst_term} on type {\tt term}, similar to the functions
+{\tt subst_aexp} and {\tt subst_bexp} described above, can
+be defined as follows:
+\begin{ttbox}
+consts
+  subst_term :: "['a => ('a, 'b) term, ('a, 'b) term] => ('a, 'b) term"
+  subst_term_list ::
+    "['a => ('a, 'b) term, ('a, 'b) term list] => ('a, 'b) term list"
+
+primrec
+  "subst_term f (Var a) = f a"
+  "subst_term f (App b ts) = App b (subst_term_list f ts)"
+
+  "subst_term_list f [] = []"
+  "subst_term_list f (t # ts) =
+     subst_term f t # subst_term_list f ts"
+\end{ttbox}
+Since datatypes with nested recursion are unfolded, the recursion scheme
+follows the structure of the unfolded definition of type {\tt term}
+shown in \S\ref{subsec:datatype:basics}. To prove properties of this
+substitution function, mutual induction is needed:
+\begin{ttbox}
+Goal
+  "(subst_term ((subst_term f1) o f2) t) =
+     (subst_term f1 (subst_term f2 t)) &
+   (subst_term_list ((subst_term f1) o f2) ts) =
+     (subst_term_list f1 (subst_term_list f2 ts))";
+by (mutual_induct_tac ["t", "ts"] 1);
+by (ALLGOALS Asm_full_simp_tac);
 \end{ttbox}
 
 \index{recursion!primitive|)}
@@ -2219,8 +2432,6 @@ package does not use inference rules for type-checking.
 Many of the result structure's components have been discussed in the paper;
 others are self-explanatory.
 \begin{description}
-\item[\tt thy] is the new theory containing the recursive sets.
-
 \item[\tt defs] is the list of definitions of the recursive sets.
 
 \item[\tt mono] is a monotonicity theorem for the fixedpoint operator.
@@ -2232,15 +2443,16 @@ the recursive sets, in the case of mutual recursion).
 the recursive sets.  The rules are also available individually, using the
 names given them in the theory file. 
 
-\item[\tt elim] is the elimination rule.
+\item[\tt elims] is the list of elimination rule.
+
+\item[\tt elim] is the head of the list {\tt elims}.
 
 \item[\tt mk_cases] is a function to create simplified instances of {\tt
 elim}, using freeness reasoning on some underlying datatype.
 \end{description}
 
-For an inductive definition, the result structure contains two induction
-rules, \texttt{induct} and \verb|mutual_induct|.  (To save storage, the latter
-rule is just \texttt{True} unless more than one set is being defined.)  For a
+For an inductive definition, the result structure contains the
+rule \texttt{induct}.  For a
 coinductive definition, it contains the rule \verb|coinduct|.
 
 Figure~\ref{def-result-fig} summarizes the two result signatures,
@@ -2249,16 +2461,15 @@ specifying the types of all these components.
 \begin{figure}
 \begin{ttbox}
 sig
-val thy          : theory
 val defs         : thm list
 val mono         : thm
 val unfold       : thm
 val intrs        : thm list
+val elims        : thm list
 val elim         : thm
 val mk_cases     : thm list -> string -> thm
 {\it(Inductive definitions only)} 
 val induct       : thm
-val mutual_induct: thm
 {\it(Coinductive definitions only)}
 val coinduct    : thm
 end
@@ -2279,11 +2490,7 @@ A coinductive definition is identical, except that it starts with the keyword
 {\tt coinductive}.  
 
 The \texttt{monos} and \texttt{con_defs} sections are optional.  If present,
-each is specified as a string, which must be a valid \ML{} expression
-of type \texttt{thm list}.  It is simply inserted into the generated
-\ML{} file that is generated from the theory definition; if it is
-ill-formed, it will trigger ML error messages.  You can then inspect
-the file on your directory.
+each is specified by a list of identifiers.
 
 \begin{itemize}
 \item The \textit{inductive sets} are specified by one or more strings.
@@ -2308,9 +2515,6 @@ The package has a few notable restrictions:
   
 \item The names of the recursive sets must be alphanumeric
   identifiers.
-
-\item Side-conditions must not be conjunctions.  However, an introduction rule
-may contain any number of side-conditions.
 
 \item Side-conditions of the form $x=t$, where the variable~$x$ does not
   occur in~$t$, will be substituted through the rule \verb|mutual_induct|.
@@ -2347,7 +2551,7 @@ defs   pred_def  "pred x r == {y. (y,x):r}"
 inductive "acc r"
   intrs
      pred "pred a r: Pow(acc r) ==> a: acc r"
-  monos   "[Pow_mono]"
+  monos   Pow_mono
 end
 \end{ttbox}
 The \HOL{} distribution contains many other inductive definitions.
@@ -2394,7 +2598,7 @@ theory~\cite{mw81}.  It demonstrates a complicated use of \texttt{recdef},
 with nested recursion.
 
 Directory \texttt{HOL/Induct} presents simple examples of (co)inductive
-definitions.  
+definitions and datatypes.
 \begin{itemize}
 \item Theory \texttt{PropLog} proves the soundness and completeness of
   classical propositional logic, given a truth table semantics.  The only
@@ -2402,11 +2606,10 @@ definitions.
   set of theorems defined inductively.  A similar proof in \ZF{} is
   described elsewhere~\cite{paulson-set-II}.
 
-\item Theory \texttt{Term} develops an experimental recursive type definition;
-  the recursion goes through the type constructor~\tydx{list}.
+\item Theory \texttt{Term} defines the datatype {\tt term}.
 
-\item Theory \texttt{Simult} constructs mutually recursive sets of trees and
-  forests, including induction and recursion rules.
+\item Theory \texttt{ABexp} defines arithmetic and boolean expressions
+ as mutually recursive datatypes.
 
 \item The definition of lazy lists demonstrates methods for handling
   infinite data structures and coinduction in higher-order
