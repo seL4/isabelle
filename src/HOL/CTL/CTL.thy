@@ -4,8 +4,8 @@ theory CTL = Main:
 section {* CTL formulae *}
 
 text {*
-  \tweakskip We formalize basic concepts of Computational Tree Logic
-  (CTL) \cite{McMillan-PhDThesis,McMillan-LectureNotes} within the
+  We formalize basic concepts of Computational Tree Logic (CTL)
+  \cite{McMillan-PhDThesis,McMillan-LectureNotes} within the
   simply-typed set theory of HOL.
 
   By using the common technique of ``shallow embedding'', a CTL
@@ -74,8 +74,7 @@ lemmas [simp] = EX_def EG_def AX_def EF_def AF_def AG_def
 section {* Basic fixed point properties *}
 
 text {*
-  \tweakskip First of all, we use the de-Morgan property of fixed
-  points
+  First of all, we use the de-Morgan property of fixed points
 *}
 
 lemma lfp_gfp: "lfp f = - gfp (\<lambda>s . - (f (- s)))"
@@ -183,10 +182,10 @@ lemma AG_I: "q \<subseteq> p \<inter> \<AX> q \<Longrightarrow> q \<subseteq> \<
 section {* The tree induction principle \label{sec:calc-ctl-tree-induct} *}
 
 text {*
-  \tweakskip With the most basic facts available, we are now able to
-  establish a few more interesting results, leading to the \emph{tree
-  induction} principle for @{text AG} (see below).  We will use some
-  elementary monotonicity and distributivity rules.
+  With the most basic facts available, we are now able to establish a
+  few more interesting results, leading to the \emph{tree induction}
+  principle for @{text AG} (see below).  We will use some elementary
+  monotonicity and distributivity rules.
 *}
 
 lemma AX_int: "\<AX> (p \<inter> q) = \<AX> p \<inter> \<AX> q" by auto 
@@ -279,7 +278,7 @@ qed
 section {* An application of tree induction \label{sec:calc-ctl-commute} *}
 
 text {*
-  \tweakskip Further interesting properties of CTL expressions may be
+  Further interesting properties of CTL expressions may be
   demonstrated with the help of tree induction; here we show that
   @{text \<AX>} and @{text \<AG>} commute.
 *}
