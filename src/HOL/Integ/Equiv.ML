@@ -19,39 +19,9 @@ goalw Equiv.thy [trans_def,sym_def,converse_def]
 by (fast_tac (comp_cs addSEs [converseD]) 1);
 qed "sym_trans_comp_subset";
 
-val [major,minor]=goal Equiv.thy "[|(x,y):r; z=(x,y)|] ==>  z:r";
-by (simp_tac (prod_ss addsimps [minor]) 1);
-by (rtac major 1);
-qed "BreakPair";
-
-val [major]=goal Equiv.thy "[|? x y. (x,y):r & z=(x,y)|] ==>  z:r";
-by (resolve_tac [major RS exE] 1);
-by (etac exE 1);
-by (etac conjE 1);
-by (asm_simp_tac (prod_ss addsimps [minor]) 1);
-qed "BreakPair1";
-
-val [major,minor]=goal Equiv.thy "[|z:r; z=(x,y)|] ==> (x,y):r";
-by (simp_tac (prod_ss addsimps [minor RS sym]) 1);
-by (rtac major 1);
-qed "BuildPair";
-
-val [major]=goal Equiv.thy "[|? z:r. (x,y)=z|] ==> (x,y):r";
-by (resolve_tac [major RS bexE] 1);
-by (asm_simp_tac (prod_ss addsimps []) 1);
-qed "BuildPair1";
-
-val rel_pair_cs = rel_cs addIs [BuildPair1] 
-                         addEs [BreakPair1];
-
-goalw Equiv.thy [refl_def,converse_def]
+goalw Equiv.thy [refl_def]
     "!!A r. refl A r ==> r <= converse(r) O r";
-by (step_tac comp_cs 1);
-by (dtac subsetD 1);
-by (assume_tac 1);
-by (etac SigmaE 1);
-by (rtac BreakPair1 1);
-by (fast_tac comp_cs 1);
+by (fast_tac (rel_cs addIs [compI]) 1);
 qed "refl_comp_subset";
 
 goalw Equiv.thy [equiv_def]
@@ -68,16 +38,7 @@ by (etac equalityE 1);
 by (subgoal_tac "ALL x y. (x,y) : r --> (y,x) : r" 1);
 by (safe_tac set_cs);
 by (fast_tac (set_cs addSIs [converseI] addIs [compI]) 3);
-by (fast_tac (set_cs addSIs [converseI] addIs [compI] addSEs [DomainE]) 2);
-by (fast_tac (rel_pair_cs addSEs [SigmaE] addSIs [SigmaI]) 1);
-by (dtac subsetD 1);
-by (dtac subsetD 1);
-by (fast_tac rel_cs 1);
-by (fast_tac rel_cs 1);
-by flexflex_tac;
-by (dtac subsetD 1);
-by (fast_tac converse_cs 2);
-by (fast_tac converse_cs 1);
+by (ALLGOALS (fast_tac (rel_cs addIs [compI] addSEs [compE])));
 qed "comp_equivI";
 
 (** Equivalence classes **)
