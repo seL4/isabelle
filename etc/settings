@@ -135,3 +135,9 @@ PROOFGENERAL_OPTIONS=""
 #SVC_HOME=
 #SVC_MACHINE=i386-redhat-linux
 #SVC_MACHINE=sparc-sun-solaris
+
+# Mucke (mu-calculus model checker)
+#MUCKE_HOME=/usr/local/bin
+
+# Einhoven model checker
+#EINDHOVEN_HOME=/usr/local/bin
