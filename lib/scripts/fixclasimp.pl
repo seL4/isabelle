@@ -13,7 +13,7 @@ sub fixclasimp {
 
     $_ = $text;
 
-    s/set_current_thy\s"([^"]*)"/context $1.thy/sg;
+    s/set_current_thy\s*"([^"]*)"/context $1.thy/sg;
 
     s/!\s*simpset/simpset()/sg;
     s/simpset\s*:=/simpset_ref() :=/sg;
