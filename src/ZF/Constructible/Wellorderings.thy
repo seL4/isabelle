@@ -85,6 +85,16 @@ lemma (in M_axioms) wellfounded_on_imp_wellfounded:
      "[|wellfounded_on(M,A,r); r \<subseteq> A*A|] ==> wellfounded(M,r)"
 by (simp add: wellfounded_on_iff_wellfounded subset_Int_iff)
 
+(*Consider the least z in domain(r) such that P(z) does not hold...*)
+lemma (in M_axioms) wellfounded_induct: 
+     "[| wellfounded(M,r); M(a); M(r); separation(M, \<lambda>x. ~P(x));  
+         \<forall>x. M(x) & (\<forall>y. <y,x> \<in> r --> P(y)) --> P(x) |]
+      ==> P(a)";
+apply (simp (no_asm_use) add: wellfounded_def)
+apply (drule_tac x="{z \<in> domain(r). ~P(z)}" in spec)
+apply (blast dest: transM)
+done
+
 lemma (in M_axioms) wellfounded_on_induct: 
      "[| a\<in>A;  wellfounded_on(M,A,r);  M(A);  
        separation(M, \<lambda>x. x\<in>A --> ~P(x));  

@@ -432,7 +432,7 @@ locale M_axioms =
   and is_recfun_separation:
      --{*for well-founded recursion.  NEEDS RELATIVIZATION*}
      "[| M(A); M(f); M(g); M(a); M(b) |] 
-     ==> separation(M, \<lambda>x. x \<in> A --> \<langle>x,a\<rangle> \<in> r & \<langle>x,b\<rangle> \<in> r & f`x \<noteq> g`x)"
+     ==> separation(M, \<lambda>x. \<langle>x,a\<rangle> \<in> r & \<langle>x,b\<rangle> \<in> r & f`x \<noteq> g`x)"
   and omap_replacement:
      "[| M(A); M(r) |] 
       ==> strong_replacement(M,
