@@ -21,13 +21,13 @@ B &\to& b S \mid a B B \nonumber
 At the end we say a few words about the relationship of the formalization
 and the text in the book~\cite[p.\ 81]{HopcroftUllman}.
 
-We start by fixing the alpgabet, which consists only of \isa{a}'s
+We start by fixing the alphabet, which consists only of \isa{a}'s
 and \isa{b}'s:%
 \end{isamarkuptext}%
 \isacommand{datatype}\ alfa\ {\isacharequal}\ a\ {\isacharbar}\ b%
 \begin{isamarkuptext}%
 \noindent
-For convenience we includ the following easy lemmas as simplification rules:%
+For convenience we include the following easy lemmas as simplification rules:%
 \end{isamarkuptext}%
 \isacommand{lemma}\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}x\ {\isasymnoteq}\ a{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ b{\isacharparenright}\ {\isasymand}\ {\isacharparenleft}x\ {\isasymnoteq}\ b{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharequal}\ a{\isacharparenright}{\isachardoublequote}\isanewline
 \isacommand{apply}{\isacharparenleft}case{\isacharunderscore}tac\ x{\isacharparenright}\isanewline
