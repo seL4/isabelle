@@ -81,6 +81,7 @@ sig
                  -> unit
   val get_thm       : theory -> string -> thm
   val thms_of       : theory -> (string * thm) list
+  val delete_thms   : string -> unit
 
   val add_thydata   : theory -> string * thy_methods -> unit
   val get_thydata   : theory -> string -> exn option
@@ -344,6 +345,29 @@ fun mark_outdated tname =
        end
   end;
 
+(*Remove theorems associated with a theory from theory and theorem database*)
+fun delete_thms tname =
+  let
+    val tinfo = case get_thyinfo tname of
+        Some (ThyInfo {path, children, parents, thy_time, ml_time, theory,
+                       methods, data, ...}) =>
+          ThyInfo {path = path, children = children, parents = parents,
+                   thy_time = thy_time, ml_time = ml_time,
+                   theory = theory, thms = Symtab.null,
+                   methods = methods, data = data}
+      | None => ThyInfo {path = "", children = [], parents = [],
+                         thy_time = None, ml_time = None,
+                         theory = None, thms = Symtab.null,
+                         methods = Symtab.null,
+                         data = (Symtab.null, Symtab.null)};
+
+    val ThyInfo {theory, ...} = tinfo;
+  in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys);
+     case theory of
+         Some t => delete_thm_db t
+       | None => ()
+  end;
+
 (*Make head of HTML dependency charts
   Parameters are:
     file: HTML file
@@ -590,29 +614,6 @@ fun use_thy name =
          seq mark_outdated present
       end;
 
-    (*Remove theorems associated with a theory*)
-    fun delete_thms () =
-      let
-        val tinfo = case get_thyinfo tname of
-            Some (ThyInfo {path, children, parents, thy_time, ml_time, theory,
-                           methods, data, ...}) =>
-              ThyInfo {path = path, children = children, parents = parents,
-                       thy_time = thy_time, ml_time = ml_time,
-                       theory = theory, thms = Symtab.null,
-                       methods = methods, data = data}
-          | None => ThyInfo {path = "", children = [], parents = [],
-                             thy_time = None, ml_time = None,
-                             theory = None, thms = Symtab.null,
-                             methods = Symtab.null,
-                             data = (Symtab.null, Symtab.null)};
-
-        val ThyInfo {theory, ...} = tinfo;
-      in loaded_thys := Symtab.update ((tname, tinfo), !loaded_thys);
-         case theory of
-             Some t => delete_thm_db t
-           | None => ()
-      end;
-
     (*Invoke every get method stored in the methods table and store result in
       data table*)
     fun save_data thy_only =
@@ -702,7 +703,7 @@ fun use_thy name =
        else
          (writeln ("Reading \"" ^ name ^ ".thy\"");
 
-          delete_thms ();
+          delete_thms tname;
           read_thy tname thy_file;
           use (out_name tname);
           save_data true;
