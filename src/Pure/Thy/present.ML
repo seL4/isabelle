@@ -359,7 +359,7 @@ fun old_symbol_source name mk_text =
   with_session () (fn _ => add_tex_source name (Latex.old_symbol_source name (mk_text ())));
 
 fun theory_output name s =
-  with_session () (fn _ => add_tex_source name (Latex.isabelle_file s));
+  with_session () (fn _ => add_tex_source name (Latex.isabelle_file name s));
 
 
 fun parent_link remote_path curr_session name =
