@@ -17,33 +17,36 @@ goal thy "!!t. t: tiling A ==> \
 by (etac tiling.induct 1);
 by (Simp_tac 1);
 by (fast_tac (!claset addIs tiling.intrs
-	             addss (HOL_ss addsimps [Un_assoc,
-					     subset_empty_iff RS sym])) 1);
-bind_thm ("tiling_UnI", result() RS mp RS mp);
+	              addss (HOL_ss addsimps [Un_assoc,
+					      subset_empty_iff RS sym])) 1);
+qed_spec_mp "tiling_UnI";
 
 
 (*** Chess boards ***)
 
 val [below_0, below_Suc] = nat_recs below_def;
-Addsimps [below_0];
-(*below_Suc should NOT be added, or Sigma_Suc1,2 cannot be used*)
+Addsimps [below_0, below_Suc];
 
-goal thy "(i: below k) = (i<k)";
-by (res_inst_tac [("x", "i")] spec 1);
+goal thy "ALL i. (i: below k) = (i<k)";
 by (nat_ind_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [below_Suc, less_Suc_eq])));
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [less_Suc_eq])));
 by (Fast_tac 1);
-qed "below_less_iff";
+qed_spec_mp "below_less_iff";
+
+Addsimps [below_less_iff];
 
 goal thy "below(Suc n) Times B = ({n} Times B) Un ((below n) Times B)";
-by (simp_tac (!simpset addsimps [below_Suc]) 1);
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Simp_tac 1);
+by (Fast_tac 1);
 qed "Sigma_Suc1";
 
 goal thy "A Times below(Suc n) = (A Times {n}) Un (A Times (below n))";
-by (simp_tac (!simpset addsimps [below_Suc]) 1);
-by (fast_tac (!claset addIs [equalityI]) 1);
+by (Simp_tac 1);
+by (Fast_tac 1);
 qed "Sigma_Suc2";
+
+(*Deletion is essential to allow use of Sigma_Suc1,2*)
+Delsimps [below_Suc];
 
 goal thy "{i} Times below(n + n) : tiling domino";
 by (nat_ind_tac "n" 1);
@@ -53,7 +56,7 @@ by (assume_tac 2);
 by (subgoal_tac    (*seems the easiest way of turning one to the other*)
     "({i} Times {Suc(n1+n1)}) Un ({i} Times {n1+n1}) = \
 \    {(i, n1+n1), (i, Suc(n1+n1))}" 1);
-by (fast_tac (!claset addIs [equalityI]) 2);
+by (Fast_tac 2);
 by (asm_simp_tac (!simpset addsimps [domino.horiz]) 1);
 by (fast_tac (!claset addIs [equalityI, lessI] addEs [less_irrefl, less_asym]
                       addDs [below_less_iff RS iffD1]) 1);
@@ -108,15 +111,15 @@ by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 2);
 by (res_inst_tac [("k1", "i+j")] (mod2_cases RS disjE) 1);
 by (REPEAT_FIRST assume_tac);
 (*Four similar cases: case (i+j) mod 2 = b, 2#-b, ...*)
-by (REPEAT (asm_simp_tac (!simpset addsimps
-                          [evnodd_insert, evnodd_empty, mod_Suc] 
+by (REPEAT (asm_full_simp_tac (!simpset addsimps
+                          [less_Suc_eq, evnodd_insert, evnodd_empty, mod_Suc] 
                           setloop split_tac [expand_if]) 1
            THEN Fast_tac 1));
 qed "domino_singleton";
 
 goal thy "!!d. d:domino ==> finite d";
 by (fast_tac (!claset addSIs [finite_insertI, finite_emptyI] 
-                     addEs [domino.elim]) 1);
+                      addEs [domino.elim]) 1);
 qed "domino_finite";
 
 
@@ -165,6 +168,6 @@ by (REPEAT
      THEN
      asm_simp_tac (!simpset addsimps [tiling_domino_finite, finite_evnodd]) 1 
      THEN
-     asm_simp_tac (!simpset addsimps [mod_less, evnodd_iff, below_less_iff]) 1));
+     asm_simp_tac (!simpset addsimps [mod_less, evnodd_iff]) 1));
 qed "mutil_not_tiling";
 
