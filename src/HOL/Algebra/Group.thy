@@ -20,14 +20,6 @@ section {* From Magmas to Groups *}
 
 subsection {* Definitions *}
 
-(* The following may be unnecessary. *)
-text {*
-  We write groups additively.  This simplifies notation for rings.
-  All rings have an additive inverse, only fields have a
-  multiplicative one.  This definitions reduces the need for
-  qualifiers.
-*}
-
 record 'a semigroup =
   carrier :: "'a set"
   mult :: "['a, 'a] => 'a" (infixl "\<otimes>\<index>" 70)
@@ -104,6 +96,14 @@ next
   then show "y \<otimes> x = z \<otimes> x" by simp
 qed
 
+lemma (in group) inv_one [simp]:
+  "inv \<one> = \<one>"
+proof -
+  have "inv \<one> = \<one> \<otimes> (inv \<one>)" by simp
+  moreover have "... = \<one>" by (simp add: r_inv)
+  finally show ?thesis .
+qed
+
 lemma (in group) inv_inv [simp]:
   "x \<in> carrier G ==> inv (inv x) = x"
 proof -
@@ -112,7 +112,7 @@ proof -
   with x show ?thesis by simp
 qed
 
-lemma (in group) inv_mult:
+lemma (in group) inv_mult_group:
   "[| x \<in> carrier G; y \<in> carrier G |] ==> inv (x \<otimes> y) = inv y \<otimes> inv x"
 proof -
   assume G: "x \<in> carrier G" "y \<in> carrier G"
@@ -245,21 +245,21 @@ subsection {* Direct Products *}
 
 constdefs
   DirProdSemigroup ::
-    "[('a, 'c) semigroup_scheme, ('b, 'd) semigroup_scheme]
+    "[('a, 'm) semigroup_scheme, ('b, 'n) semigroup_scheme]
     => ('a \<times> 'b) semigroup"
     (infixr "\<times>\<^sub>s" 80)
   "G \<times>\<^sub>s H == (| carrier = carrier G \<times> carrier H,
     mult = (%(xg, xh) (yg, yh). (mult G xg yg, mult H xh yh)) |)"
 
   DirProdMonoid ::
-    "[('a, 'c) monoid_scheme, ('b, 'd) monoid_scheme] => ('a \<times> 'b) monoid"
+    "[('a, 'm) monoid_scheme, ('b, 'n) monoid_scheme] => ('a \<times> 'b) monoid"
     (infixr "\<times>\<^sub>m" 80)
   "G \<times>\<^sub>m H == (| carrier = carrier (G \<times>\<^sub>s H),
     mult = mult (G \<times>\<^sub>s H),
     one = (one G, one H) |)"
 
   DirProdGroup ::
-    "[('a, 'c) group_scheme, ('b, 'd) group_scheme] => ('a \<times> 'b) group"
+    "[('a, 'm) group_scheme, ('b, 'n) group_scheme] => ('a \<times> 'b) group"
     (infixr "\<times>\<^sub>g" 80)
   "G \<times>\<^sub>g H == (| carrier = carrier (G \<times>\<^sub>m H),
     mult = mult (G \<times>\<^sub>m H),
@@ -408,5 +408,9 @@ proof -
 qed
 
 locale abelian_group = abelian_monoid + group
+
+lemma (in abelian_group) inv_mult:
+  "[| x \<in> carrier G; y \<in> carrier G |] ==> inv (x \<otimes> y) = inv x \<otimes> inv y"
+  by (simp add: ac inv_mult_group)
 
 end
