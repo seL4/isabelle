@@ -122,4 +122,16 @@ Proof General interface for Isabelle/Isar.  Note that there is a
 separate option in the Proof General <em>Options</em> menu to enable
 X-Symbol.
 
+<h3>Running Isabelle on Windows</h3>
+
+Windows is not an officially supported platform for runnning Isabelle,
+but a friendly user, Norbert Völker, <a
+href="http://cswww.essex.ac.uk/Research/FSS/projects/isawin/">provides
+a page with tips</a> on how to get the core system working anyway.
+
+<p> 
+
+For a complete system we recommend to run some recent version of
+Linux.
+
 <p>
