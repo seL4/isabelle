@@ -173,3 +173,7 @@ val conj_comms = [conj_commute, conj_left_commute];
 
 prove "conj_disj_distribL" "(P&(Q|R)) = (P&Q | P&R)";
 prove "conj_disj_distribR" "((P|Q)&R) = (P&R | Q&R)";
+
+prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
+prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
+

@@ -82,7 +82,7 @@ by(fast_tac (HOL_cs addbefore split_all_tac 1) 1);
 qed "split_paired_All";
 
 goalw Prod.thy [split_def] "split c (a,b) = c a b";
-by (sstac [fst_conv, snd_conv] 1);
+by (EVERY1[stac fst_conv, stac snd_conv]);
 by (rtac refl 1);
 qed "split";
 

@@ -266,9 +266,32 @@ fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 (** Standard abbreviations **)
 
 fun stac th = rtac(th RS ssubst);
-fun sstac ths = EVERY' (map stac ths);
 fun strip_tac i = REPEAT(resolve_tac [impI,allI] i); 
 
+(** strip proved goal while preserving !-bound var names **)
+
+local
+
+(* work around instantiation bug *)
+val myspec = read_instantiate [("P","?XXX")] spec;
+val _ $ (_ $ (vx as Var(_,vxT))) = concl_of myspec;
+val cvx = cterm_of (#sign(rep_thm myspec)) vx;
+val aspec = forall_intr cvx myspec;
+
+fun specf th a =
+  let val ca = cterm_of (#sign(rep_thm th)) (Var((a,0),vxT))
+  in th RS forall_elim ca aspec end;
+
+fun spec_mpf th = case concl_of th of
+                    _ $ (Const("All",_) $ Abs(a,_,_)) => spec_mpf (specf th a)
+                  | _ $ (Const("op -->",_)$_$_) => spec_mpf (th RS mp)
+                  | _ => th
+
+in
+
+fun qed_spec_mp name = bind_thm(name, spec_mpf(result()));
+
+end;
 
 (*** Load simpdata.ML to be able to initialize HOL's simpset ***)
 

@@ -252,10 +252,7 @@ qed "less_imp_diff_is_0";
 val prems = goal Arith.thy "m-n = 0  -->  n-m = 0  -->  m=n";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (REPEAT(Simp_tac 1 THEN TRY(atac 1)));
-qed "diffs0_imp_equal_lemma";
-
-(*  [| m-n = 0;  n-m = 0 |] ==> m=n  *)
-bind_thm ("diffs0_imp_equal", (diffs0_imp_equal_lemma RS mp RS mp));
+qed_spec_mp "diffs0_imp_equal";
 
 val [prem] = goal Arith.thy "m<n ==> 0<n-m";
 by (rtac (prem RS rev_mp) 1);
@@ -298,11 +295,7 @@ by (Simp_tac 2);
 by (safe_tac HOL_cs);
 by (res_inst_tac [("x","Suc(k)")] exI 1);
 by (Simp_tac 1);
-val less_eq_Suc_add_lemma = result();
-
-(*"m<n ==> ? k. n = Suc(m+k)"*)
-bind_thm ("less_eq_Suc_add", less_eq_Suc_add_lemma RS mp);
-
+qed_spec_mp "less_eq_Suc_add";
 
 goal Arith.thy "n <= ((m + n)::nat)";
 by (nat_ind_tac "m" 1);
@@ -352,8 +345,7 @@ goal Arith.thy "m+k<=n --> m<=(n::nat)";
 by (nat_ind_tac "k" 1);
 by (ALLGOALS Asm_simp_tac);
 by (fast_tac (HOL_cs addDs [Suc_leD]) 1);
-val add_leD1_lemma = result();
-bind_thm ("add_leD1", add_leD1_lemma RS mp);
+qed_spec_mp "add_leD1";
 
 goal Arith.thy "!!k l::nat. [| k<l; m+l = k+n |] ==> m<n";
 by (safe_tac (HOL_cs addSDs [less_eq_Suc_add]));

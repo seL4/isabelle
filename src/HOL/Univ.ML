@@ -256,7 +256,7 @@ Addsimps [apfst_conv,Scons_not_Atom,Atom_not_Scons,Scons_Scons_eq];
 
 
 goalw Univ.thy [ndepth_def] "ndepth (Abs_Node((%k.0, x))) = 0";
-by (sstac [Node_K0_I RS Abs_Node_inverse, split] 1);
+by (EVERY1[stac (Node_K0_I RS Abs_Node_inverse), stac split]);
 by (rtac Least_equality 1);
 by (rtac refl 1);
 by (etac less_zeroE 1);

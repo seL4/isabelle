@@ -100,8 +100,7 @@ by (cut_facts_tac prems 1);
 by (etac wf_induct 1);
 by (REPEAT (rtac impI 1 ORELSE etac ssubst 1));
 by (asm_simp_tac (wf_super_ss addcongs [if_cong]) 1);
-qed "is_recfun_equal_lemma";
-bind_thm ("is_recfun_equal", (is_recfun_equal_lemma RS mp RS mp));
+qed_spec_mp "is_recfun_equal";
 
 
 val prems as [wfr,transr,recfa,recgb,_] = goalw WF.thy [cut_def]
@@ -191,7 +190,7 @@ by (rtac H_cong 1);    (*expose the equality of cuts*)
 by (rtac refl 2);
 by (simp_tac (HOL_ss addsimps [cuts_eq, cut_apply, r_into_trancl]) 1);
 by (strip_tac 1);
-by (res_inst_tac [("r2","r^+")] (is_recfun_equal_lemma RS mp RS mp) 1);
+by (res_inst_tac [("r","r^+")] is_recfun_equal 1);
 by (atac 1);
 by (rtac trans_trancl 1);
 by (rtac unfold_the_recfun 1);

@@ -343,7 +343,7 @@ goal Nat.thy "!!i. i<j ==> j<k --> Suc i < k";
 by(nat_ind_tac "k" 1);
 by(ALLGOALS (asm_simp_tac (!simpset addsimps [less_Suc_eq])));
 by(fast_tac (HOL_cs addDs [Suc_lessD]) 1);
-bind_thm("less_trans_Suc",result() RS mp);
+qed_spec_mp "less_trans_Suc";
 
 (*"Less than" is a linear ordering*)
 goal Nat.thy "m<n | m=n | n<(m::nat)";
