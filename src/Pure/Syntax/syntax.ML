@@ -39,6 +39,7 @@ sig
     (string * (term list -> term)) list *
     (string * (ast list -> ast)) list -> syntax
   val extend_trfunsT: syntax -> (string * (typ -> term list -> term)) list -> syntax
+  val extend_tokentrfuns: syntax -> (string * string * (string -> string * int)) list -> syntax
   val extend_trrules: syntax -> (string * string) trrule list -> syntax
   val extend_trrules_i: syntax -> ast trrule list -> syntax
   val merge_syntaxes: syntax -> syntax -> syntax
@@ -69,7 +70,6 @@ open Lexicon SynExt Ast Parser TypeExt SynTrans Mixfix Printer;
 
 (** tables of translation functions **)
 
-(*the ref serves as unique id*)
 (*does not subsume typed print translations*)
 type 'a trtab = (('a list -> 'a) * stamp) Symtab.table;
 
@@ -93,6 +93,41 @@ fun extend_trtab tab trfuns name =
 fun merge_trtabs tab1 tab2 name =
   Symtab.merge eq_snd (tab1, tab2)
     handle Symtab.DUPS cs => err_dup_trfuns name cs;
+
+
+
+(** tables of token translation functions **)
+
+fun lookup_tokentr tabs modes =
+  let val trs = gen_distinct eq_fst (flat (map (assocs tabs) (modes @ [""])))
+  in fn c => apsome fst (assoc (trs, c)) end;
+
+fun merge_tokentrtabs tabs1 tabs2 =
+  let
+    fun eq_tr ((c1, (_, s1)), (c2, (_, s2))) = c1 = c2 andalso s1 = s2;
+
+    fun merge mode =
+      let
+        val trs1 = assocs tabs1 mode;
+        val trs2 = assocs tabs2 mode;
+        val trs = gen_distinct eq_tr (trs1 @ trs2);
+      in
+        (case gen_duplicates eq_fst trs of
+          [] => (mode, trs)
+        | dups => error ("More than one token translation function in mode " ^
+            quote mode ^ " for " ^ commas_quote (map fst dups)))
+      end;
+  in
+    map merge (distinct (map fst (tabs1 @ tabs2)))
+  end;
+
+fun extend_tokentrtab tabs tokentrs =
+  let
+    fun ins_tokentr (ts, (m, c, f)) =
+      overwrite (ts, (m, ("_" ^ c, (f, stamp ())) :: assocs ts m));
+  in
+    merge_tokentrtabs tabs (foldl ins_tokentr ([], tokentrs))
+  end;
 
 
 
@@ -137,6 +172,7 @@ datatype syntax =
     print_trtab: ((typ -> term list -> term) * stamp) Symtab.table,
     print_ruletab: ruletab,
     print_ast_trtab: ast trtab,
+    tokentrtab: (string * (string * ((string -> string * int) * stamp)) list) list,
     prtabs: prtabs};
 
 
@@ -154,6 +190,7 @@ val empty_syntax =
     print_trtab = empty_trtab,
     print_ruletab = empty_ruletab,
     print_ast_trtab = empty_trtab,
+    tokentrtab = [],
     prtabs = empty_prtabs};
 
 
@@ -163,10 +200,10 @@ fun extend_syntax (mode, inout) (Syntax tabs) syn_ext =
   let
     val {lexicon, logtypes = logtypes1, gram, consts = consts1,
       parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
-      print_ast_trtab, prtabs} = tabs;
+      print_ast_trtab, tokentrtab, prtabs} = tabs;
     val SynExt {logtypes = logtypes2, xprods, consts = consts2, parse_ast_translation,
       parse_rules, parse_translation, print_translation, print_rules,
-      print_ast_translation} = syn_ext;
+      print_ast_translation, token_translation} = syn_ext;
   in
     Syntax {
       lexicon = if inout then extend_lexicon lexicon (delims_of xprods) else lexicon,
@@ -181,6 +218,7 @@ fun extend_syntax (mode, inout) (Syntax tabs) syn_ext =
       print_ruletab = extend_ruletab print_ruletab print_rules,
       print_ast_trtab =
         extend_trtab print_ast_trtab print_ast_translation "print ast translation",
+      tokentrtab = extend_tokentrtab tokentrtab token_translation,
       prtabs = extend_prtabs prtabs mode xprods}
   end;
 
@@ -193,13 +231,13 @@ fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
       consts = consts1, parse_ast_trtab = parse_ast_trtab1, parse_ruletab = parse_ruletab1,
       parse_trtab = parse_trtab1, print_trtab = print_trtab1,
       print_ruletab = print_ruletab1, print_ast_trtab = print_ast_trtab1,
-      prtabs = prtabs1} = tabs1;
+      tokentrtab = tokentrtab1, prtabs = prtabs1} = tabs1;
 
     val {lexicon = lexicon2, logtypes = logtypes2, gram = gram2,
       consts = consts2, parse_ast_trtab = parse_ast_trtab2, parse_ruletab = parse_ruletab2,
       parse_trtab = parse_trtab2, print_trtab = print_trtab2,
       print_ruletab = print_ruletab2, print_ast_trtab = print_ast_trtab2,
-      prtabs = prtabs2} = tabs2;
+      tokentrtab = tokentrtab2, prtabs = prtabs2} = tabs2;
   in
     Syntax {
       lexicon = merge_lexicons lexicon1 lexicon2,
@@ -214,13 +252,16 @@ fun merge_syntaxes (Syntax tabs1) (Syntax tabs2) =
       print_ruletab = merge_ruletabs print_ruletab1 print_ruletab2,
       print_ast_trtab =
         merge_trtabs print_ast_trtab1 print_ast_trtab2 "print ast translation",
+      tokentrtab = merge_tokentrtabs tokentrtab1 tokentrtab2,
       prtabs = merge_prtabs prtabs1 prtabs2}
   end;
 
 
 (* type_syn *)
 
-val type_syn = extend_syntax ("", true) empty_syntax type_ext;
+val type_syn =
+  extend_syntax ("", true) empty_syntax type_ext;
+
 val pure_syn = extend_syntax ("", true) type_syn pure_ext;
 
 
@@ -401,10 +442,11 @@ fun prep_rules rd_pat raw_rules =
 
 fun pretty_t t_to_ast prt_t curried (syn as Syntax tabs) t =
   let
-    val {print_trtab, print_ruletab, print_ast_trtab, prtabs, ...} = tabs;
+    val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
     val ast = t_to_ast (lookup_trtab print_trtab) t;
   in
     prt_t curried prtabs (lookup_trtab print_ast_trtab)
+      (lookup_tokentr tokentrtab (! print_mode))
       (normalize_ast (lookup_ruletab print_ruletab) ast)
   end;
 
@@ -438,6 +480,8 @@ val extend_consts = ext_syntax syn_ext_const_names ("", true);
 val extend_trfuns = ext_syntax syn_ext_trfuns ("", true);
 
 val extend_trfunsT = ext_syntax syn_ext_trfunsT ("", true);
+
+val extend_tokentrfuns = ext_syntax syn_ext_tokentrfuns ("", true);
 
 fun extend_trrules syn rules =
   ext_syntax syn_ext_rules ("", true) syn (prep_rules (read_pattern syn) rules);
