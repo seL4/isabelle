@@ -210,7 +210,14 @@ theorem conjI_realizer:
   by simp
 
 theorem exI_realizer:
-  "P x y \<Longrightarrow> P (fst (x, y)) (snd (x, y))" by simp
+  "P y x \<Longrightarrow> P (snd (x, y)) (fst (x, y))" by simp
+
+theorem exE_realizer: "P (snd p) (fst p) \<Longrightarrow>
+  (\<And>x y. P y x \<Longrightarrow> Q (f x y)) \<Longrightarrow> Q (case p of (x, y) \<Rightarrow> f x y)"
+  by (cases p) simp
+
+theorem exE_realizer': "P (snd p) (fst p) \<Longrightarrow>
+  (\<And>x y. P y x \<Longrightarrow> Q) \<Longrightarrow> Q" by (cases p) simp
 
 realizers
   impI (P, Q): "\<lambda>pq. pq"
@@ -241,15 +248,15 @@ realizers
 
   spec: "Null" "spec"
 
-  exI (P): "\<lambda>x p. (x, p)" "\<Lambda>P. exI_realizer \<cdot> _"
+  exI (P): "\<lambda>x p. (x, p)" "\<Lambda>P x p. exI_realizer \<cdot> P \<cdot> p \<cdot> x"
 
   exI: "\<lambda>x. x" "\<Lambda>P x (h: _). h"
 
-  exE (P, Q): "\<lambda>p pq. pq (fst p) (snd p)"
-    "\<Lambda>P Q p (h1: _) pq (h2: _). h2 \<cdot> (fst p) \<cdot> (snd p) \<bullet> h1"
+  exE (P, Q): "\<lambda>p pq. case p of (x, y) \<Rightarrow> pq x y"
+    "\<Lambda>P Q p (h: _) pq. exE_realizer \<cdot> P \<cdot> p \<cdot> Q \<cdot> pq \<bullet> h"
 
   exE (P): "Null"
-    "\<Lambda>P Q p (h1: _) (h2: _). h2 \<cdot> (fst p) \<cdot> (snd p) \<bullet> h1"
+    "\<Lambda>P Q p. exE_realizer' \<cdot> _ \<cdot> _ \<cdot> _"
 
   exE (Q): "\<lambda>x pq. pq x"
     "\<Lambda>P Q x (h1: _) pq (h2: _). h2 \<cdot> x \<bullet> h1"
