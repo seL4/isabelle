@@ -10,7 +10,8 @@ TODO:
 
 signature TYPE_EXT0 =
 sig
-  val typ_of_term: (indexname -> sort) -> term -> typ
+  val raw_term_sorts: term -> (indexname * sort) list
+  val typ_of_term: (indexname * sort) list -> (indexname -> sort) -> term -> typ
 end;
 
 signature TYPE_EXT =
@@ -31,80 +32,70 @@ structure SynExt = SynExt;
 open Lexicon SynExt SynExt.Ast;
 
 
-(** typ_of_term **)
+(** raw_term_sorts **)
 
-fun typ_of_term def_sort t =
+fun raw_term_sorts tm =
   let
-    fun sort_err (xi as (x, i)) =
-      error ("Inconsistent sort constraints for type variable " ^
-        quote (if i < 0 then x else string_of_vname xi));
-
-    fun put_sort scs xi s =
-      (case assoc (scs, xi) of
-        None => (xi, s) :: scs
-      | Some s' =>  if s = s' then scs else sort_err xi);
-
-    fun insert x [] = [x: string]
-      | insert x (lst as y :: ys) =
-          if x > y then y :: insert x ys
-          else if x = y then lst
-          else x :: lst;
+    fun show_var (xi as (x, i)) = if i < 0 then x else string_of_vname xi;
 
     fun classes (Const (c, _)) = [c]
       | classes (Free (c, _)) = [c]
-      | classes (Const ("_classes", _) $ Const (c, _) $ cls) =
-          insert c (classes cls)
-      | classes (Const ("_classes", _) $ Free (c, _) $ cls) =
-          insert c (classes cls)
-      | classes tm = raise_term "typ_of_term: bad encoding of classes" [tm];
+      | classes (Const ("_classes", _) $ Const (c, _) $ cls) = c :: classes cls
+      | classes (Const ("_classes", _) $ Free (c, _) $ cls) = c :: classes cls
+      | classes tm = raise_term "raw_term_sorts: bad encoding of classes" [tm];
 
     fun sort (Const ("_emptysort", _)) = []
       | sort (Const (s, _)) = [s]
       | sort (Free (s, _)) = [s]
       | sort (Const ("_sort", _) $ cls) = classes cls
-      | sort tm = raise_term "typ_of_term: bad encoding of sort" [tm];
+      | sort tm = raise_term "raw_term_sorts: bad encoding of sort" [tm];
 
-    fun typ (Free (x, _), scs) =
-          (if is_tid x then TFree (x, []) else Type (x, []), scs)
-      | typ (Var (xi, _), scs) = (TVar (xi, []), scs)
-      | typ (Const ("_ofsort", _) $ Free (x, _) $ st, scs) =
-          (TFree (x, []), put_sort scs (x, ~1) (sort st))
-      | typ (Const ("_ofsort", _) $ Var (xi, _) $ st, scs) =
-          (TVar (xi, []), put_sort scs xi (sort st))
-      | typ (Const (a, _), scs) = (Type (a, []), scs)
-      | typ (tm as _ $ _, scs) =
+    fun env_of (Const ("_ofsort", _) $ Free (x, _) $ srt) = [((x, ~1), sort srt)]
+      | env_of (Const ("_ofsort", _) $ Var (xi, _) $ srt) = [(xi, sort srt)]
+      | env_of (Abs (_, _, t)) = env_of t
+      | env_of (t1 $ t2) = env_of t1 @ env_of t2
+      | env_of t = [];
+
+    val env = distinct (env_of tm);
+  in
+    (case gen_duplicates eq_fst env of
+      [] => env
+    | dups => error ("Inconsistent sort constraints for type variable(s) " ^
+        commas (map (quote o show_var o #1) dups)))
+  end;
+
+
+
+(** typ_of_term **)
+
+fun typ_of_term sort_env def_sort t =
+  let
+    fun get_sort xi =
+      (case assoc (sort_env, xi) of
+        None => def_sort xi
+      | Some s => s);
+
+    fun typ_of (Free (x, _)) =
+          if is_tid x then TFree (x, get_sort (x, ~1))
+          else Type (x, [])
+      | typ_of (Var (xi, _)) = TVar (xi, get_sort xi)
+      | typ_of (Const ("_ofsort", _) $ Free (x, _) $ _) =
+          TFree (x, get_sort (x, ~1))
+      | typ_of (Const ("_ofsort", _) $ Var (xi, _) $ _) =
+          TVar (xi, get_sort xi)
+      | typ_of tm =
           let
             val (t, ts) = strip_comb tm;
             val a =
               (case t of
                 Const (x, _) => x
               | Free (x, _) => x
-              | _ => raise_term "typ_of_term: bad type application" [tm]);
-            val (tys, scs') = typs (ts, scs);
+              | _ => raise_term "typ_of_term: bad encoding of type" [tm]);
           in
-            (Type (a, tys), scs')
-          end
-      | typ (tm, _) = raise_term "typ_of_term: bad encoding of typ" [tm]
-    and typs (t :: ts, scs) =
-          let
-            val (ty, scs') = typ (t, scs);
-            val (tys, scs'') = typs (ts, scs');
-          in (ty :: tys, scs'') end
-      | typs ([], scs) = ([], scs);
-
-
-    val (ty, scs) = typ (t, []);
-
-    fun get_sort xi =
-      (case assoc (scs, xi) of
-        None => def_sort xi
-      | Some s => s);
-
-    fun add_sorts (Type (a, tys)) = Type (a, map add_sorts tys)
-      | add_sorts (TVar (xi, _)) = TVar (xi, get_sort xi)
-      | add_sorts (TFree (x, _)) = TFree (x, get_sort (x, ~1));
+            Type (a, map typ_of ts)
+          end;
   in
-    add_sorts ty
+    typ_of t
   end;
 
 
@@ -113,10 +104,6 @@ fun typ_of_term def_sort t =
 
 fun term_of_typ show_sorts ty =
   let
-    fun const x = Const (x, dummyT);
-    fun free x = Free (x, dummyT);
-    fun var xi = Var (xi, dummyT);
-
     fun classes [] = raise Match
       | classes [c] = free c
       | classes (c :: cs) = const "_classes" $ free c $ classes cs;
