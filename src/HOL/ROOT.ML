@@ -27,7 +27,6 @@ use "~~/src/Provers/blast.ML";
 use "~~/src/Provers/clasimp.ML";
 use "~~/src/Provers/Arith/fast_lin_arith.ML";
 use "~~/src/Provers/Arith/cancel_sums.ML";
-use "~~/src/Provers/Arith/cancel_factor.ML";
 use "~~/src/Provers/Arith/abel_cancel.ML";
 use "~~/src/Provers/Arith/assoc_fold.ML";
 use "~~/src/Provers/quantifier1.ML";

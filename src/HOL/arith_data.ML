@@ -13,8 +13,6 @@ signature ARITH_DATA =
 sig
   val nat_cancel_sums_add: simproc list
   val nat_cancel_sums: simproc list
-  val nat_cancel_factor: simproc list
-  val nat_cancel: simproc list
 end;
 
 structure ArithData: ARITH_DATA =
@@ -138,84 +136,30 @@ end);
 
 
 
-(** cancel common factor **)
-
-structure Factor =
-struct
-  val mk_sum = mk_norm_sum;
-  val dest_sum = dest_sum;
-  val prove_conv = prove_conv;
-  val norm_tac = simp_all (add_rules @ mult_rules) THEN simp_all add_ac;
-end;
-
-fun mk_cnat n = cterm_of (Theory.sign_of (the_context ())) (HOLogic.mk_nat n);
-
-fun gen_multiply_tac rule k =
-  if k > 0 then
-    rtac (instantiate' [] [None, Some (mk_cnat (k - 1))] (rule RS subst_equals)) 1
-  else no_tac;
-
-
-(* nat eq *)
-
-structure EqCancelFactor = CancelFactorFun
-(struct
-  open Factor;
-  val mk_bal = HOLogic.mk_eq;
-  val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT;
-  val multiply_tac = gen_multiply_tac Suc_mult_cancel1;
-end);
-
-
-(* nat less *)
-
-structure LessCancelFactor = CancelFactorFun
-(struct
-  open Factor;
-  val mk_bal = HOLogic.mk_binrel "op <";
-  val dest_bal = HOLogic.dest_bin "op <" HOLogic.natT;
-  val multiply_tac = gen_multiply_tac Suc_mult_less_cancel1;
-end);
-
-
-(* nat le *)
-
-structure LeCancelFactor = CancelFactorFun
-(struct
-  open Factor;
-  val mk_bal = HOLogic.mk_binrel "op <=";
-  val dest_bal = HOLogic.dest_bin "op <=" HOLogic.natT;
-  val multiply_tac = gen_multiply_tac Suc_mult_le_cancel1;
-end);
-
-
-
 (** prepare nat_cancel simprocs **)
 
-fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context ())) (s, HOLogic.termT);
+fun prep_pat s = Thm.read_cterm (Theory.sign_of (the_context ())) 
+                                (s, HOLogic.termT);
 val prep_pats = map prep_pat;
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
 
-val eq_pats = prep_pats ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m = Suc n"];
-val less_pats = prep_pats ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"];
-val le_pats = prep_pats ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"];
-val diff_pats = prep_pats ["((l::nat) + m) - n", "(l::nat) - (m + n)", "Suc m - n", "m - Suc n"];
+val eq_pats = prep_pats ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", 
+                         "m = Suc n"];
+val less_pats = prep_pats ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n",
+                           "m < Suc n"];
+val le_pats = prep_pats ["(l::nat) + m <= n", "(l::nat) <= m + n", 
+                         "Suc m <= n", "m <= Suc n"];
+val diff_pats = prep_pats ["((l::nat) + m) - n", "(l::nat) - (m + n)", 
+                           "Suc m - n", "m - Suc n"];
 
 val nat_cancel_sums_add = map prep_simproc
-  [("nateq_cancel_sums", eq_pats, EqCancelSums.proc),
+  [("nateq_cancel_sums",   eq_pats,   EqCancelSums.proc),
    ("natless_cancel_sums", less_pats, LessCancelSums.proc),
-   ("natle_cancel_sums", le_pats, LeCancelSums.proc)];
+   ("natle_cancel_sums",   le_pats,   LeCancelSums.proc)];
 
 val nat_cancel_sums = nat_cancel_sums_add @
   [prep_simproc("natdiff_cancel_sums", diff_pats, DiffCancelSums.proc)];
-
-val nat_cancel_factor = map prep_simproc
-  [("nateq_cancel_factor", eq_pats, EqCancelFactor.proc),
-   ("natless_cancel_factor", less_pats, LessCancelFactor.proc),
-   ("natle_cancel_factor", le_pats, LeCancelFactor.proc)];
-
-val nat_cancel = nat_cancel_factor @ nat_cancel_sums;
 
 
 end;
@@ -482,7 +426,7 @@ end;
 (* theory setup *)
 
 val arith_setup =
- [Simplifier.change_simpset_of (op addsimprocs) nat_cancel] @
+ [Simplifier.change_simpset_of (op addsimprocs) nat_cancel_sums] @
   init_lin_arith_data @
   [Simplifier.change_simpset_of (op addSolver)
    (mk_solver "lin. arith." Fast_Arith.cut_lin_arith_tac),
