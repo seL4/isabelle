@@ -94,7 +94,7 @@ uniformly via the \texttt{isatool} wrapper.  See the \emph{System
 \begin{ttbox} 
 quit    : unit -> unit
 exit    : int -> unit
-commit  : unit -> unit
+commit  : unit -> bool
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{quit}();] ends the Isabelle session, without saving
@@ -104,7 +104,8 @@ commit  : unit -> unit
   code \(i\) to the operating system.
 
 \item[\ttindexbold{commit}();] saves the current state without ending
-  the session, provided that the logic image is opened read-write.
+  the session, provided that the logic image is opened read-write;
+  return value {\tt false} indicates an error.
 \end{ttdescription}
 
 Typing control-D also finishes the session in essentially the same way
