@@ -465,7 +465,8 @@ fun merge_theories (thy1, thy2) = merge_thy_list false [thy1, thy2];
 (** sort contexts **)
 
 (*account for lost sort constraints*)
-fun fix_shyps ths Ts th =
+fun fix_shyps ths Ts th = th;
+(* FIXME
   let
     fun thm_sorts (Thm {shyps, hyps, prop, ...}) =
       unions (shyps :: term_sorts prop :: map term_sorts hyps);
@@ -476,7 +477,7 @@ fun fix_shyps ths Ts th =
     Thm {sign = sign, maxidx = maxidx,
       shyps = lost_sorts @ shyps, hyps = hyps, prop = prop}
   end;
-
+*)
 (*remove sorts that are known to be non-empty (syntactically)*)
 val force_strip_shyps = ref true;  (* FIXME tmp *)
 fun strip_shyps th =
