@@ -5,10 +5,10 @@
 The abstract type "sg" of signatures.
 *)
 
-(*raw base names*)
-type rstring = string;
-type rclass = class;
-(*external pruned forms*)
+(*base names*)
+type bstring = string;
+type bclass = class;
+(*external forms -- partially qualified names*)
 type xstring = string;
 type xclass = class;
 type xsort = sort;
@@ -40,8 +40,8 @@ sig
   val classK: string
   val typeK: string
   val constK: string
-  val full_name: sg -> rstring -> string
-  val base_name: string -> rstring
+  val full_name: sg -> bstring -> string
+  val base_name: string -> bstring
   val intern: sg -> string -> xstring -> string
   val extern: sg -> string -> string -> xstring
   val cond_extern: sg -> string -> string -> xstring
@@ -72,30 +72,30 @@ sig
   val infer_types: sg -> (indexname -> typ option) ->
     (indexname -> sort option) -> string list -> bool
     -> xterm list * typ -> int * term * (indexname * typ) list
-  val add_classes: (rclass * xclass list) list -> sg -> sg
-  val add_classes_i: (rclass * class list) list -> sg -> sg
+  val add_classes: (bclass * xclass list) list -> sg -> sg
+  val add_classes_i: (bclass * class list) list -> sg -> sg
   val add_classrel: (xclass * xclass) list -> sg -> sg
   val add_classrel_i: (class * class) list -> sg -> sg
   val add_defsort: xsort -> sg -> sg
   val add_defsort_i: sort -> sg -> sg
-  val add_types: (rstring * int * mixfix) list -> sg -> sg
-  val add_tyabbrs: (rstring * string list * string * mixfix) list -> sg -> sg
-  val add_tyabbrs_i: (rstring * string list * typ * mixfix) list -> sg -> sg
+  val add_types: (bstring * int * mixfix) list -> sg -> sg
+  val add_tyabbrs: (bstring * string list * string * mixfix) list -> sg -> sg
+  val add_tyabbrs_i: (bstring * string list * typ * mixfix) list -> sg -> sg
   val add_arities: (xstring * xsort list * xsort) list -> sg -> sg
   val add_arities_i: (string * sort list * sort) list -> sg -> sg
-  val add_consts: (rstring * string * mixfix) list -> sg -> sg
-  val add_consts_i: (rstring * typ * mixfix) list -> sg -> sg
-  val add_syntax: (rstring * string * mixfix) list -> sg -> sg
-  val add_syntax_i: (rstring * typ * mixfix) list -> sg -> sg
-  val add_modesyntax: (string * bool) * (rstring * string * mixfix) list -> sg -> sg
-  val add_modesyntax_i: (string * bool) * (rstring * typ * mixfix) list -> sg -> sg
+  val add_consts: (bstring * string * mixfix) list -> sg -> sg
+  val add_consts_i: (bstring * typ * mixfix) list -> sg -> sg
+  val add_syntax: (bstring * string * mixfix) list -> sg -> sg
+  val add_syntax_i: (bstring * typ * mixfix) list -> sg -> sg
+  val add_modesyntax: (string * bool) * (bstring * string * mixfix) list -> sg -> sg
+  val add_modesyntax_i: (string * bool) * (bstring * typ * mixfix) list -> sg -> sg
   val add_trfuns:
-    (string * (ast list -> ast)) list *
-    (string * (term list -> term)) list *
-    (string * (term list -> term)) list *
-    (string * (ast list -> ast)) list -> sg -> sg
+    (bstring * (ast list -> ast)) list *
+    (bstring * (term list -> term)) list *
+    (bstring * (term list -> term)) list *
+    (bstring * (ast list -> ast)) list -> sg -> sg
   val add_trfunsT:
-    (string * (typ -> term list -> term)) list -> sg -> sg
+    (bstring * (typ -> term list -> term)) list -> sg -> sg
   val add_tokentrfuns:
     (string * string * (string -> string * int)) list -> sg -> sg
   val add_trrules: (string * string) Syntax.trrule list -> sg -> sg

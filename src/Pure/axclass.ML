@@ -10,9 +10,9 @@ sig
   val add_thms_as_axms: (string * thm) list -> theory -> theory
   val add_classrel_thms: thm list -> theory -> theory
   val add_arity_thms: thm list -> theory -> theory
-  val add_axclass: rclass * xclass list -> (string * string) list
+  val add_axclass: bclass * xclass list -> (string * string) list
     -> theory -> theory
-  val add_axclass_i: rclass * class list -> (string * term) list
+  val add_axclass_i: bclass * class list -> (string * term) list
     -> theory -> theory
   val add_inst_subclass: xclass * xclass -> string list -> thm list
     -> tactic option -> theory -> theory
