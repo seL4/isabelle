@@ -23,6 +23,9 @@ New in Isabelle??? (FIXME)
 
 *** HOL ***
 
+* split_all_tac now fails if there is nothing to split
+  split_all_tac has moved within claset() from usafe wrappers to safe wrappers
+
 * added disj_not1 = "(~P | Q) = (P --> Q)" to the default simpset
 
 * HOL/Arithmetic: removed 'pred' (predecessor) function; and generalized
