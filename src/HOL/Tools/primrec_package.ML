@@ -303,14 +303,14 @@ fun add_primrec_i alt_name eqns_atts thy =
     val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names1 ^ " ...");
     val simps = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (Theory.sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;
-    val (thy'', [simps']) = thy'
-      |> PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])]
-      |>> (#1 o PureThy.add_thms ((map fst eqns ~~ simps) ~~ atts))
-      |>> (#1 o PureThy.add_thms [(("induct", prepare_induct (#2 (hd dts)) rec_eqns), [])])
-      |>> Theory.parent_path
+    val (thy'', simps') = PureThy.add_thms ((map fst eqns ~~ simps) ~~ atts) thy';
+    val thy''' = thy''
+      |> (#1 o PureThy.add_thmss [(("simps", simps'), [Simplifier.simp_add_global])])
+      |> (#1 o PureThy.add_thms [(("induct", prepare_induct (#2 (hd dts)) rec_eqns), [])])
+      |> Theory.parent_path
   in
     (foldl (fn (thy, (fname, _, _, tname)) =>
-       put_primrec fname (tname, simps') thy) (thy'', defs), simps')
+       put_primrec fname (tname, simps') thy) (thy''', defs), simps')
   end;
 
 
