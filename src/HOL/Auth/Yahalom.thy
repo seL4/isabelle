@@ -59,4 +59,12 @@ inductive "yahalom lost"
              Says A B {|Agent A, Nonce NA|} : set_of_list evs |]
           ==> Says A B {|X, Crypt (Nonce NB) K|} # evs : yahalom lost"
 
+         (*This message models possible leaks of session keys.  The Nonces
+           identify the protocol run.*)
+    Revl "[| evs: yahalom lost;  A ~= Spy;
+             Says S A {|Crypt {|Agent B, Key K, Nonce NA, Nonce NB|} (shrK A),
+                        X|}
+               : set_of_list evs |]
+          ==> Says A Spy {|Nonce NA, Nonce NB, Key K|} # evs : yahalom lost"
+
 end
