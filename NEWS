@@ -5,6 +5,8 @@ Isabelle NEWS -- history of user-visible changes
 New in Isabelle???? (DATE ????)
 -------------------------------
 
+* HOL/Lists: the function "set_of_list" has been renamed "set"
+
 * removed old README and Makefiles;
 
 * removed obsolete init_pps and init_database;
@@ -18,7 +20,6 @@ New in Isabelle???? (DATE ????)
 
 * added simplification meta rules
     (asm_)(full_)simplify: simpset -> thm -> thm;
-
 
 New in Isabelle94-8 (May 1997)
 ------------------------------
