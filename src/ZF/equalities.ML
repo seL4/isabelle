@@ -461,6 +461,20 @@ qed "image_Int_square";
 
 Addsimps [image_0, image_Un];
 
+(*Image laws for special relations*)
+goal ZF.thy "0``A = 0";
+by (Blast_tac 1);
+qed "image_0_left";
+Addsimps [image_0_left];
+
+goal ZF.thy "(r Un s)``A = (r``A) Un (s``A)";
+by (Blast_tac 1);
+qed "image_Un_left";
+
+goal ZF.thy "(r Int s)``A <= (r``A) Int (s``A)";
+by (Blast_tac 1);
+qed "image_Int_subset_left";
+
 
 (** Inverse Image **)
 
@@ -495,6 +509,21 @@ by (Blast_tac 1);
 qed "vimage_Int_square";
 
 Addsimps [vimage_0, vimage_Un];
+
+
+(*Invese image laws for special relations*)
+goal ZF.thy "0-``A = 0";
+by (Blast_tac 1);
+qed "vimage_0_left";
+Addsimps [vimage_0_left];
+
+goal ZF.thy "(r Un s)-``A = (r-``A) Un (s-``A)";
+by (Blast_tac 1);
+qed "vimage_Un_left";
+
+goal ZF.thy "(r Int s)-``A <= (r-``A) Int (s-``A)";
+by (Blast_tac 1);
+qed "vimage_Int_subset_left";
 
 
 (** Converse **)
