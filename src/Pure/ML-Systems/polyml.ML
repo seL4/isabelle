@@ -16,6 +16,7 @@ structure String =
   struct
   fun substring (s,i,j) = StringBuiltIns.substring (s, i+1, j)
                           handle Substring => raise Subscript
+  val concat = implode
   end;
 
 
