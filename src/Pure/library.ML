@@ -241,6 +241,13 @@ sig
   val sort_wrt: ('a -> string) -> 'a list -> 'a list
   val unique_strings: string list -> string list
 
+  (*random numbers*)
+  exception RANDOM
+  val random: unit -> real
+  val random_range: int -> int -> int
+  val one_of: 'a list -> 'a
+  val frequency: (int * 'a) list -> 'a
+
   (*I/O and diagnostics*)
   val cd: string -> unit
   val pwd: unit -> string
@@ -1133,6 +1140,38 @@ fun unique_strings ([]: string list) = []
   | unique_strings (x :: y :: ys) =
       if x = y then unique_strings (y :: ys)
       else x :: unique_strings (y :: ys);
+
+
+(** random numbers **)
+
+exception RANDOM;
+
+fun rmod x y = x - y * real (Real.floor (x / y));
+
+local
+  val a = 16807.0;
+  val m = 2147483647.0;
+  val random_seed = ref 1.0;
+in
+
+fun random () =
+  let val r = rmod (a * !random_seed) m
+  in (random_seed := r; r) end;
+
+end;
+
+fun random_range l h =
+  if h < l orelse l < 0 then raise RANDOM
+  else l + Real.floor (rmod (random ()) (real (h - l + 1)));
+
+fun one_of xs = nth_elem (random_range 0 (length xs - 1), xs);
+
+fun frequency xs =
+  let
+    val sum = foldl op + (0, map fst xs);
+    fun pick n ((k, x) :: xs) =
+      if n <= k then x else pick (n - k) xs
+  in pick (random_range 1 sum) xs end;
 
 
 (** input / output and diagnostics **)
