@@ -77,21 +77,6 @@ by (res_inst_tac [("x", "%z. ?R z & ~ ?Q z")] exI 1);
 by (deepen_tac (set_cs addSIs [equalityI]) 0 1);
 qed "givenBy_DiffI";
 
-Goal "givenBy (v o f) = extend_set h `` (givenBy v)";
-by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
-by (Deepen_tac 0 1);
-qed "givenBy_o_eq_extend_set";
-
-Goal "givenBy f = range (extend_set h)";
-by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
-by (Deepen_tac 0 1);
-qed "givenBy_eq_extend_set";
-
-Goal "D : givenBy v ==> extend_set h D : givenBy (v o f)";
-by (full_simp_tac (simpset() addsimps [givenBy_eq_all]) 1);
-by (Blast_tac 1);
-qed "extend_set_givenBy_I";
-
 
 (** Standard leadsTo rules **)
 
@@ -232,17 +217,6 @@ by (blast_tac (claset() addIs [leadsETo_Un, leadsETo_weaken]) 1);
 qed "leadsETo_Diff";
 
 
-(** Meta or object quantifier ???
-    see ball_constrains_UN in UNITY.ML***)
-
-val prems = goal thy
-   "[| !! i. i:I ==> F : (A i) leadsTo[CC] (A' i) |] \
-\   ==> F : (UN i:I. A i) leadsTo[CC] (UN i:I. A' i)";
-by (simp_tac (HOL_ss addsimps [Union_image_eq RS sym]) 1);
-by (blast_tac (claset() addIs [leadsETo_Union, leadsETo_weaken_R] 
-                        addIs prems) 1);
-qed "leadsETo_UN_UN";
-
 (*Binary union version*)
 Goal "[| F : A leadsTo[CC] A';  F : B leadsTo[CC] B' |] \
 \     ==> F : (A Un B) leadsTo[CC] (A' Un B')";
@@ -258,13 +232,6 @@ Goal "[| F : A leadsTo[CC] (A' Un B); F : B leadsTo[CC] B' |] \
 by (blast_tac (claset() addIs [leadsETo_Un_Un, 
 			       subset_imp_leadsETo, leadsETo_Trans]) 1);
 qed "leadsETo_cancel2";
-
-Goal "[| F : A leadsTo[CC] (A' Un B); F : (B-A') leadsTo[CC] B' |] \
-\     ==> F : A leadsTo[CC] (A' Un B')";
-by (rtac leadsETo_cancel2 1);
-by (assume_tac 2);
-by (ALLGOALS Asm_simp_tac);
-qed "leadsETo_cancel_Diff2";
 
 Goal "[| F : A leadsTo[CC] (B Un A'); F : B leadsTo[CC] B' |] \
 \   ==> F : A leadsTo[CC] (B' Un A')";
@@ -509,6 +476,23 @@ qed "LeadsETo_UNIV_eq_LeadsTo";
 
 Open_locale "Extend";
 
+(*givenBy laws that need to be in the locale*)
+
+Goal "givenBy (v o f) = extend_set h `` (givenBy v)";
+by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
+by (Deepen_tac 0 1);
+qed "givenBy_o_eq_extend_set";
+
+Goal "givenBy f = range (extend_set h)";
+by (simp_tac (simpset() addsimps [givenBy_eq_Collect]) 1);
+by (Deepen_tac 0 1);
+qed "givenBy_eq_extend_set";
+
+Goal "D : givenBy v ==> extend_set h D : givenBy (v o f)";
+by (full_simp_tac (simpset() addsimps [givenBy_eq_all]) 1);
+by (Blast_tac 1);
+qed "extend_set_givenBy_I";
+
 Goal "F : A leadsTo[CC] B \
 \     ==> extend h F : (extend_set h A) leadsTo[extend_set h `` CC] \
 \                      (extend_set h B)";
@@ -544,6 +528,18 @@ by (stac (Int_extend_set_lemma RS sym) 1);
 by (rtac Join_project_ensures 1);
 by (auto_tac (claset(), simpset() addsimps [Int_Diff]));
 qed "Join_project_ensures_strong";
+
+(*Generalizes preserves_project_transient_empty*)
+Goal "[| G : preserves (v o f);  \
+\        project h C G : transient (C' Int D);  \
+\        project h C G : stable C';  D : givenBy v |]    \
+\     ==> C' Int D = {}";
+by (rtac stable_transient_empty 1);
+by (assume_tac 2);
+(*If addIs then PROOF FAILED at depth 3*)
+by (blast_tac (claset() addSIs [stable_Int, preserves_givenBy_imp_stable,
+				project_preserves_I]) 1);
+qed "preserves_o_project_transient_empty";
 
 Goal "[| extend h F Join G : stable C;  \
 \        F Join project h C G : (project_set h C Int A) leadsTo[(%D. project_set h C Int D)``givenBy v] B;  \

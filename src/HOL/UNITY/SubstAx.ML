@@ -376,25 +376,6 @@ qed "GreaterThan_bounded_induct";
 
 (*** Completion: Binary and General Finite versions ***)
 
-Goal "[| F : A LeadsTo A';  F : Stable A';   \
-\        F : B LeadsTo B';  F : Stable B' |] \
-\     ==> F : (A Int B) LeadsTo (A' Int B')";
-by (full_simp_tac
-    (simpset() addsimps [LeadsTo_eq_leadsTo, Stable_eq_stable]) 1);
-by (blast_tac (claset() addIs [stable_completion, leadsTo_weaken]) 1);
-qed "Stable_completion";
-
-
-Goal "finite I      \
-\     ==> (ALL i:I. F : (A i) LeadsTo (A' i)) -->  \
-\         (ALL i:I. F : Stable (A' i)) -->         \
-\         F : (INT i:I. A i) LeadsTo (INT i:I. A' i)";
-by (etac finite_induct 1);
-by (Asm_simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [Stable_completion, ball_Stable_INT]) 1);
-qed_spec_mp "Finite_stable_completion";
-
-
 Goal "[| F : A LeadsTo (A' Un C);  F : A' Co (A' Un C); \
 \        F : B LeadsTo (B' Un C);  F : B' Co (B' Un C) |] \
 \     ==> F : (A Int B) LeadsTo ((A' Int B') Un C)";
@@ -404,17 +385,43 @@ by (full_simp_tac
 by (blast_tac (claset() addIs [completion, leadsTo_weaken]) 1);
 qed "Completion";
 
-
 Goal "finite I \
 \     ==> (ALL i:I. F : (A i) LeadsTo (A' i Un C)) -->  \
 \         (ALL i:I. F : (A' i) Co (A' i Un C)) --> \
 \         F : (INT i:I. A i) LeadsTo ((INT i:I. A' i) Un C)";
 by (etac finite_induct 1);
+by Auto_tac;
+by (rtac Completion 1);
+by (simp_tac (HOL_ss addsimps (INT_simps RL [sym])) 4); 
+by (rtac Constrains_INT 4);
+by Auto_tac;
+val lemma = result();
+
+val prems = Goal
+     "[| finite I;  \
+\        !!i. i:I ==> F : (A i) LeadsTo (A' i Un C); \
+\        !!i. i:I ==> F : (A' i) Co (A' i Un C) |]   \
+\     ==> F : (INT i:I. A i) LeadsTo ((INT i:I. A' i) Un C)";
+by (blast_tac (claset() addIs (lemma RS mp RS mp)::prems) 1);
+qed "Finite_completion";
+
+Goalw [Stable_def]
+     "[| F : A LeadsTo A';  F : Stable A';   \
+\        F : B LeadsTo B';  F : Stable B' |] \
+\     ==> F : (A Int B) LeadsTo (A' Int B')";
+by (res_inst_tac [("C1", "{}")] (Completion RS LeadsTo_weaken_R) 1);
+by (REPEAT (Force_tac 1));
+qed "Stable_completion";
+
+val prems = Goalw [Stable_def]
+     "[| finite I;  \
+\        !!i. i:I ==> F : (A i) LeadsTo (A' i); \
+\        !!i. i:I ==> F : Stable (A' i) |]   \
+\     ==> F : (INT i:I. A i) LeadsTo (INT i:I. A' i)";
+by (res_inst_tac [("C1", "{}")] (Finite_completion RS LeadsTo_weaken_R) 1);
 by (ALLGOALS Asm_simp_tac);
-by (Clarify_tac 1);
-by (dtac ball_Constrains_INT 1);
-by (asm_full_simp_tac (simpset() addsimps [Completion]) 1); 
-qed_spec_mp "Finite_completion";
+by (ALLGOALS (blast_tac (claset() addIs prems)));
+qed "Finite_stable_completion";
 
 
 (*proves "ensures/leadsTo" properties when the program is specified*)

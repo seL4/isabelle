@@ -240,10 +240,6 @@ Goal "[| F : (A-B) leadsTo C; F : B leadsTo C |]   ==> F : A leadsTo C";
 by (blast_tac (claset() addIs [leadsTo_Un, leadsTo_weaken]) 1);
 qed "leadsTo_Diff";
 
-
-(** Meta or object quantifier ???
-    see ball_constrains_UN in UNITY.ML***)
-
 val prems = goal thy
    "(!! i. i:I ==> F : (A i) leadsTo (A' i)) \
 \   ==> F : (UN i:I. A i) leadsTo (UN i:I. A' i)";
@@ -467,22 +463,22 @@ val lemma1 = result();
 
 
 (*Lemma (1,2,3) of Misra's draft book, Chapter 4, "Progress"*)
-Goal "F : A leadsTo A' ==> \
-\     EX B. A<=B & F : B leadsTo A' & F : (B-A') co (B Un A')";
+Goal "F : A leadsTo A' \
+\     ==> EX B. A<=B & F : B leadsTo A' & F : (B-A') co (B Un A')";
 by (etac leadsTo_induct 1);
 (*Basis*)
-by (blast_tac (claset() addIs [leadsTo_Basis]
-                        addDs [ensuresD]) 1);
+by (blast_tac (claset() addIs [leadsTo_Basis] addDs [ensuresD]) 1);
 (*Trans*)
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "Ba Un Bb")] exI 1);
 by (blast_tac (claset() addIs [lemma1, leadsTo_Un_Un, leadsTo_cancel1,
 			       leadsTo_Un_duplicate]) 1);
 (*Union*)
-by (clarify_tac (claset() addSDs [ball_conj_distrib RS iffD1,
-				  bchoice, ball_constrains_UN]) 1);;
+by (clarify_tac (claset() addSDs [ball_conj_distrib RS iffD1, bchoice]) 1);;
 by (res_inst_tac [("x", "UN A:S. f A")] exI 1);
-by (blast_tac (claset() addIs [leadsTo_UN, constrains_weaken]) 1);
+by (auto_tac (claset() addIs [leadsTo_UN], simpset()));
+(*Blast_tac says PROOF FAILED*)
+by (deepen_tac (claset() addIs [constrains_UN RS constrains_weaken]) 0 1);
 qed "leadsTo_123";
 
 
@@ -531,10 +527,19 @@ Goal "finite I ==> (ALL i:I. F : (A i) leadsTo (A' i Un C)) -->  \
 \                  F : (INT i:I. A i) leadsTo ((INT i:I. A' i) Un C)";
 by (etac finite_induct 1);
 by Auto_tac;
-by (dtac ball_constrains_INT 1);
-by (asm_full_simp_tac (simpset() addsimps [completion]) 1); 
-qed_spec_mp "finite_completion";
+by (rtac completion 1);
+by (simp_tac (HOL_ss addsimps (INT_simps RL [sym])) 4); 
+by (rtac constrains_INT 4);
+by Auto_tac;
+val lemma = result();
 
+val prems = Goal
+     "[| finite I;  \
+\        !!i. i:I ==> F : (A i) leadsTo (A' i Un C); \
+\        !!i. i:I ==> F : (A' i) co (A' i Un C) |]   \
+\     ==> F : (INT i:I. A i) leadsTo ((INT i:I. A' i) Un C)";
+by (blast_tac (claset() addIs (lemma RS mp RS mp)::prems) 1);
+qed "finite_completion";
 
 Goalw [stable_def]
      "[| F : A leadsTo A';  F : stable A';   \
@@ -544,13 +549,14 @@ by (res_inst_tac [("C1", "{}")] (completion RS leadsTo_weaken_R) 1);
 by (REPEAT (Force_tac 1));
 qed "stable_completion";
 
-Goalw [stable_def]
+val prems = Goalw [stable_def]
      "[| finite I;  \
-\        ALL i:I. F : (A i) leadsTo (A' i);  \
-\        ALL i:I. F : stable (A' i) |]       \
+\        !!i. i:I ==> F : (A i) leadsTo (A' i); \
+\        !!i. i:I ==> F : stable (A' i) |]   \
 \     ==> F : (INT i:I. A i) leadsTo (INT i:I. A' i)";
 by (res_inst_tac [("C1", "{}")] (finite_completion RS leadsTo_weaken_R) 1);
-by (REPEAT (Force_tac 1));
-qed_spec_mp "finite_stable_completion";
+by (ALLGOALS Asm_simp_tac);
+by (ALLGOALS (blast_tac (claset() addIs prems)));
+qed "finite_stable_completion";
 
 

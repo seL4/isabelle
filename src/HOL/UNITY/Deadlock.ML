@@ -65,13 +65,13 @@ qed "INT_le_Suc_equals_Int";
 
 
 (*The final deadlock example*)
-val [zeroprem, allprem] = goalw thy [stable_def]
+val [zeroprem, allprem] = Goalw [stable_def]
     "[| F : (A 0 Int A (Suc n)) co (A 0);  \
-\       ALL i: atMost n. F : (A(Suc i) Int A i) co \
-\                            (-A i Un A(Suc i)) |] \
+\       !!i. i: atMost n ==> F : (A(Suc i) Int A i) co (-A i Un A(Suc i)) |] \
 \    ==> F : stable (INT i: atMost (Suc n). A i)";
-by (rtac ([zeroprem, allprem RS ball_constrains_INT] MRS 
+by (rtac ([zeroprem, constrains_INT] MRS 
 	  constrains_Int RS constrains_weaken) 1);
+by (etac allprem 1);
 by (simp_tac (simpset() addsimps [Collect_le_Int_equals, 
 				  Int_assoc, INT_absorb]) 1);
 by (simp_tac (simpset() addsimps [INT_le_Suc_equals_Int]) 1);

@@ -186,7 +186,7 @@ qed "constrains_Un";
 Goalw [constrains_def]
     "ALL i:I. F : (A i) co (A' i) ==> F : (UN i:I. A i) co (UN i:I. A' i)";
 by (Blast_tac 1);
-qed "ball_constrains_UN";
+bind_thm ("constrains_UN", ballI RS result());
 
 Goalw [constrains_def] "(A Un B) co C = (A co C) Int (B co C)";
 by (Blast_tac 1);
@@ -214,7 +214,7 @@ qed "constrains_Int";
 Goalw [constrains_def]
     "ALL i:I. F : (A i) co (A' i) ==> F : (INT i:I. A i) co (INT i:I. A' i)";
 by (Blast_tac 1);
-qed "ball_constrains_INT";
+bind_thm ("constrains_INT", ballI RS result());
 
 Goalw [constrains_def] "F : A co A' ==> A <= A'";
 by Auto_tac;
@@ -269,8 +269,8 @@ qed "stable_Un";
 
 Goalw [stable_def]
     "ALL i:I. F : stable (A i) ==> F : stable (UN i:I. A i)";
-by (blast_tac (claset() addIs [ball_constrains_UN]) 1);
-qed "ball_stable_UN";
+by (blast_tac (claset() addIs [constrains_UN]) 1);
+bind_thm ("stable_UN", ballI RS result());
 
 (** Intersection **)
 
@@ -281,8 +281,8 @@ qed "stable_Int";
 
 Goalw [stable_def]
     "ALL i:I. F : stable (A i) ==> F : stable (INT i:I. A i)";
-by (blast_tac (claset() addIs [ball_constrains_INT]) 1);
-qed "ball_stable_INT";
+by (blast_tac (claset() addIs [constrains_INT]) 1);
+bind_thm ("stable_INT", ballI RS result());
 
 Goalw [stable_def, constrains_def]
     "[| F : stable C; F : A co (C Un A') |] ==> F : (C Un A) co (C Un A')";

@@ -25,10 +25,11 @@ time_use_thy "Lift";
 time_use_thy "Comp";
 (*Allocator example*)
 time_use_thy "Client";
-time_use_thy "Extend";
+time_use_thy "ELT";  (*obsolete*)
 time_use_thy "PPROD";
 time_use_thy "TimerArray";
 time_use_thy "Alloc";
+time_use_thy "Reachability";
 
 add_path "../Auth";	(*to find Public.thy*)
 use_thy"NSP_Bad";

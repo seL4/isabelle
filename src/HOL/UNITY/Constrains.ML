@@ -108,12 +108,13 @@ Goalw [Constrains_def]
 by (blast_tac (claset() addIs [constrains_Un RS constrains_weaken]) 1);
 qed "Constrains_Un";
 
-Goal "ALL i:I. F : (A i) Co (A' i) \
+val [prem] = Goalw [Constrains_def]
+     "(!!i. i:I ==> F : (A i) Co (A' i)) \
 \     ==> F : (UN i:I. A i) Co (UN i:I. A' i)";
-by (asm_full_simp_tac (simpset() addsimps [Constrains_def]) 1);
-by (dtac ball_constrains_UN 1);
-by (blast_tac (claset() addIs [constrains_weaken]) 1);
-qed "ball_Constrains_UN";
+by (rtac CollectI 1);
+by (rtac (prem RS CollectD RS constrains_UN RS constrains_weaken) 1);
+by Auto_tac;
+qed "Constrains_UN";
 
 (** Intersection **)
 
@@ -123,13 +124,13 @@ Goalw [Constrains_def]
 by (blast_tac (claset() addIs [constrains_Int RS constrains_weaken]) 1);
 qed "Constrains_Int";
 
-Goal "ALL i:I. F : (A i) Co (A' i)   \
+val [prem] = Goalw [Constrains_def]
+     "(!!i. i:I ==> F : (A i) Co (A' i)) \
 \     ==> F : (INT i:I. A i) Co (INT i:I. A' i)";
-by (asm_full_simp_tac (simpset() addsimps [Constrains_def]) 1);
-by (dtac ball_constrains_INT 1);
-by (dtac constrains_reachable_Int 1);
-by (blast_tac (claset() addIs [constrains_weaken]) 1);
-qed "ball_Constrains_INT";
+by (rtac CollectI 1);
+by (rtac (prem RS CollectD RS constrains_INT RS constrains_weaken) 1);
+by Auto_tac;
+qed "Constrains_INT";
 
 Goal "F : A Co A' ==> reachable F Int A <= A'";
 by (asm_full_simp_tac (simpset() addsimps [constrains_imp_subset, 
@@ -149,6 +150,11 @@ qed "Constrains_cancel";
 
 
 (*** Stable ***)
+
+(*Useful because there's no Stable_weaken.  [Tanja Vos]*)
+Goal "[| F: Stable A; A = B |] ==> F : Stable B";
+by (Blast_tac 1);
+qed "Stable_eq";
 
 Goal "(F : Stable A) = (F : stable (reachable F Int A))";
 by (simp_tac (simpset() addsimps [Stable_def, Constrains_eq_constrains, 
@@ -185,15 +191,17 @@ Goalw [Stable_def]
 by (blast_tac (claset() addIs [Constrains_Int RS Constrains_weaken]) 1);
 qed "Stable_Constrains_Int";
 
-Goalw [Stable_def]
-    "(ALL i:I. F : Stable (A i)) ==> F : Stable (UN i:I. A i)";
-by (etac ball_Constrains_UN 1);
-qed "ball_Stable_UN";
+val [prem] = Goalw [Stable_def]
+    "(!!i. i:I ==> F : Stable (A i)) ==> F : Stable (UN i:I. A i)";
+by (rtac (prem RS Constrains_UN) 1);
+by (assume_tac 1);
+qed "Stable_UN";
 
-Goalw [Stable_def]
-    "(ALL i:I. F : Stable (A i)) ==> F : Stable (INT i:I. A i)";
-by (etac ball_Constrains_INT 1);
-qed "ball_Stable_INT";
+val [prem] = Goalw [Stable_def]
+    "(!!i. i:I ==> F : Stable (A i)) ==> F : Stable (INT i:I. A i)";
+by (rtac (prem RS Constrains_INT) 1);
+by (assume_tac 1);
+qed "Stable_INT";
 
 Goal "F : Stable (reachable F)";
 by (simp_tac (simpset() addsimps [Stable_eq_stable]) 1);
@@ -257,6 +265,7 @@ by (asm_full_simp_tac (simpset() addsimps [Always_def]) 1);
 qed "AlwaysD";
 
 bind_thm ("AlwaysE", AlwaysD RS conjE);
+bind_thm ("Always_imp_Stable", AlwaysD RS conjunct2);
 
 
 (*The set of all reachable states is Always*)

@@ -74,11 +74,12 @@ qed "FP_fixedpoint";
 
 Goal "- fixedpoint = (UN (u,v): edges. {s. s u & ~ s v})";
 by (simp_tac (simpset() addsimps
-	      ([Compl_FP, UN_UN_flatten, FP_fixedpoint RS sym, Rprg_def])) 1);
+	      [Compl_FP, UN_UN_flatten, FP_fixedpoint RS sym, Rprg_def]) 1);
 by Auto_tac;
- by (ALLGOALS (dtac bspec THEN' atac));
- by (rtac fun_upd_idem 1);
- by (auto_tac (claset(),simpset() addsimps [fun_upd_idem_iff]));
+by (rtac fun_upd_idem 1);
+by Auto_tac;
+by (force_tac (claset() addSIs [rev_bexI], 
+	       simpset() addsimps [fun_upd_idem_iff]) 1);
 qed "Compl_fixedpoint";
 
 Goal "A - fixedpoint = (UN (u,v): edges. A Int {s. s u & ~ s v})";

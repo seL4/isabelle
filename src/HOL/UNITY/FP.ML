@@ -10,8 +10,7 @@ From Misra, "A Logic for Concurrent Programming", 1994
 
 Goalw [FP_Orig_def, stable_def] "F : stable (FP_Orig F Int B)";
 by (stac Int_Union2 1);
-by (rtac ball_constrains_UN 1);
-by (Simp_tac 1);
+by (blast_tac (claset() addIs [constrains_UN]) 1);
 qed "stable_FP_Orig_Int";
 
 
@@ -26,7 +25,7 @@ by (subgoal_tac "FP F Int B = (UN x:B. FP F Int {x})" 1);
 by (Blast_tac 2);
 by (asm_simp_tac (simpset() addsimps [Int_insert_right]) 1);
 by (rewrite_goals_tac [FP_def, stable_def]);
-by (rtac ball_constrains_UN 1);
+by (rtac constrains_UN 1);
 by (Simp_tac 1);
 qed "stable_FP_Int";
 
