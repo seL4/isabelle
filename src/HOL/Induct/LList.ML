@@ -10,7 +10,7 @@ bind_thm ("UN1_I", UNIV_I RS UN_I);
 
 (** Simplification **)
 
-Addsplits [split_split, split_sum_case];
+Addsplits [option.split];
 
 (*This justifies using llist in other recursive type definitions*)
 Goalw llist.defs "A<=B ==> llist(A) <= llist(B)";
@@ -22,7 +22,7 @@ qed "llist_mono";
 Goal "llist(A) = {Numb(0)} <+> (A <*> llist(A))";
 let val rew = rewrite_rule [NIL_def, CONS_def] in  
 by (fast_tac (claset() addSIs (map rew llist.intrs)
-                      addEs [rew llist.elim]) 1)
+                       addEs [rew llist.elim]) 1)
 end;
 qed "llist_unfold";
 
@@ -63,9 +63,8 @@ Goalw [CONS_def] "CONS M (UN x. f(x)) = (UN x. CONS M (f x))";
 by (simp_tac (simpset() addsimps [In1_UN1, Scons_UN1_y]) 1);
 qed "CONS_UN1";
 
-val prems = goalw LList.thy [CONS_def]
-    "[| M<=M';  N<=N' |] ==> CONS M N <= CONS M' N'";
-by (REPEAT (resolve_tac ([In1_mono,Scons_mono]@prems) 1));
+Goalw [CONS_def] "[| M<=M';  N<=N' |] ==> CONS M N <= CONS M' N'";
+by (REPEAT (ares_tac [In1_mono,Scons_mono] 1));
 qed "CONS_mono";
 
 Addsimps [LList_corec_fun_def RS def_nat_rec_0,
@@ -74,8 +73,8 @@ Addsimps [LList_corec_fun_def RS def_nat_rec_0,
 (** The directions of the equality are proved separately **)
 
 Goalw [LList_corec_def]
-    "LList_corec a f <= sum_case (%u. NIL) \
-\                          (split(%z w. CONS z (LList_corec w f))) (f a)";
+    "LList_corec a f <= \
+\    (case f a of None => NIL | Some(z,w) => CONS z (LList_corec w f))";
 by (rtac UN_least 1);
 by (exhaust_tac "k" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -84,7 +83,7 @@ by (REPEAT (resolve_tac [allI, impI, subset_refl RS CONS_mono,
 qed "LList_corec_subset1";
 
 Goalw [LList_corec_def]
-    "sum_case (%u. NIL) (split(%z w. CONS z (LList_corec w f))) (f a) <= \
+    "(case f a of None => NIL | Some(z,w) => CONS z (LList_corec w f)) <= \
 \    LList_corec a f";
 by (simp_tac (simpset() addsimps [CONS_UN1]) 1);
 by Safe_tac;
@@ -93,16 +92,16 @@ by (ALLGOALS Asm_simp_tac);
 qed "LList_corec_subset2";
 
 (*the recursion equation for LList_corec -- NOT SUITABLE FOR REWRITING!*)
-Goal "LList_corec a f = sum_case (%u. NIL) \
-\                           (split(%z w. CONS z (LList_corec w f))) (f a)";
+Goal "LList_corec a f =  \
+\     (case f a of None => NIL | Some(z,w) => CONS z (LList_corec w f))";
 by (REPEAT (resolve_tac [equalityI, LList_corec_subset1, 
                          LList_corec_subset2] 1));
 qed "LList_corec";
 
 (*definitional version of same*)
-val [rew] = goal LList.thy
-    "[| !!x. h(x) == LList_corec x f |] ==>     \
-\    h(a) = sum_case (%u. NIL) (split(%z w. CONS z (h w))) (f a)";
+val [rew] = 
+Goal "[| !!x. h(x) == LList_corec x f |]     \
+\     ==> h(a) = (case f a of None => NIL | Some(z,w) => CONS z (h w))";
 by (rewtac rew);
 by (rtac LList_corec 1);
 qed "def_LList_corec";
@@ -117,16 +116,6 @@ by (stac LList_corec 1);
 by (Simp_tac 1);
 qed "LList_corec_type";
 
-(*Lemma for the proof of llist_corec*)
-Goal "LList_corec a (%z. sum_case Inl (split(%v w. Inr((Leaf(v),w)))) (f z)) : \
-\   llist(range Leaf)";
-by (res_inst_tac [("X", "range(%x. LList_corec x ?g)")] llist_coinduct 1);
-by (rtac rangeI 1);
-by Safe_tac;
-by (stac LList_corec 1);
-by (Asm_simp_tac 1);
-qed "LList_corec_type2";
-
 
 (**** llist equality as a gfp; the bisimulation principle ****)
 
@@ -140,9 +129,9 @@ qed "LListD_unfold";
 
 Goal "!M N. (M,N) : LListD(diag A) --> ntrunc k M = ntrunc k N";
 by (res_inst_tac [("n", "k")] less_induct 1);
-by (safe_tac ((claset_of Fun.thy) delrules [equalityI]));
+by (safe_tac (claset() delrules [equalityI]));
 by (etac LListD.elim 1);
-by (safe_tac (claset_of Prod.thy delrules [equalityI] addSEs [diagE]));
+by (safe_tac (claset() delrules [equalityI]));
 by (exhaust_tac "n" 1);
 by (Asm_simp_tac 1);
 by (rename_tac "n'" 1);
@@ -251,9 +240,10 @@ qed "LList_equalityI";
 Delsimps [Pair_eq];
 
 (*abstract proof using a bisimulation*)
-val [prem1,prem2] = goal LList.thy
- "[| !!x. h1(x) = sum_case (%u. NIL) (split(%z w. CONS z (h1 w))) (f x);  \
-\    !!x. h2(x) = sum_case (%u. NIL) (split(%z w. CONS z (h2 w))) (f x) |]\
+val [prem1,prem2] = 
+Goal
+ "[| !!x. h1(x) = (case f x of None => NIL | Some(z,w) => CONS z (h1 w));  \
+\    !!x. h2(x) = (case f x of None => NIL | Some(z,w) => CONS z (h2 w)) |]\
 \ ==> h1=h2";
 by (rtac ext 1);
 (*next step avoids an unknown (and flexflex pair) in simplification*)
@@ -267,8 +257,9 @@ by (simp_tac (simpset() addsimps [LListD_Fun_NIL_I,
 				  CollectI RS LListD_Fun_CONS_I]) 1);
 qed "LList_corec_unique";
 
-val [prem] = goal LList.thy
- "[| !!x. h(x) = sum_case (%u. NIL) (split(%z w. CONS z (h w))) (f x) |] \
+val [prem] = 
+Goal 
+ "[| !!x. h(x) = (case f x of None => NIL | Some(z,w) => CONS z (h w)) |] \
 \ ==> h = (%x. LList_corec x f)";
 by (rtac (LList_corec RS (prem RS LList_corec_unique)) 1);
 qed "equals_LList_corec";
@@ -288,9 +279,10 @@ qed "ntrunc_CONS";
 Addsimps [ntrunc_one_CONS, ntrunc_CONS];
 
 
-val [prem1,prem2] = goal LList.thy
- "[| !!x. h1(x) = sum_case (%u. NIL) (split(%z w. CONS z (h1 w))) (f x);  \
-\    !!x. h2(x) = sum_case (%u. NIL) (split(%z w. CONS z (h2 w))) (f x) |]\
+val [prem1,prem2] = 
+Goal 
+ "[| !!x. h1(x) = (case f x of None => NIL | Some(z,w) => CONS z (h1 w));  \
+\    !!x. h2(x) = (case f x of None => NIL | Some(z,w) => CONS z (h2 w)) |]\
 \ ==> h1=h2";
 by (rtac (ntrunc_equality RS ext) 1);
 by (rename_tac "x k" 1);
@@ -328,14 +320,14 @@ by (res_inst_tac [("P", "%u. u: ?A")] (Lconst RS ssubst) 1);
 by (REPEAT (ares_tac [list_Fun_CONS_I, singletonI, UnI1] 1));
 qed "Lconst_type";
 
-Goal "Lconst(M) = LList_corec M (%x. Inr((x,x)))";
+Goal "Lconst(M) = LList_corec M (%x. Some((x,x)))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (Simp_tac 1);
 by (rtac Lconst 1);
 qed "Lconst_eq_LList_corec";
 
 (*Thus we could have used gfp in the definition of Lconst*)
-Goal "gfp(%N. CONS M N) = LList_corec M (%x. Inr((x,x)))";
+Goal "gfp(%N. CONS M N) = LList_corec M (%x. Some((x,x)))";
 by (rtac (equals_LList_corec RS fun_cong) 1);
 by (Simp_tac 1);
 by (rtac (Lconst_fun_mono RS gfp_Tarski) 1);
@@ -344,21 +336,31 @@ qed "gfp_Lconst_eq_LList_corec";
 
 (*** Isomorphisms ***)
 
-Goal "inj(Rep_llist)";
+Goal "inj Rep_LList";
 by (rtac inj_inverseI 1);
-by (rtac Rep_llist_inverse 1);
-qed "inj_Rep_llist";
+by (rtac Rep_LList_inverse 1);
+qed "inj_Rep_LList";
 
-Goal "inj_on Abs_llist (llist(range Leaf))";
+Goal "inj_on Abs_LList LList";
 by (rtac inj_on_inverseI 1);
-by (etac Abs_llist_inverse 1);
-qed "inj_on_Abs_llist";
+by (etac Abs_LList_inverse 1);
+qed "inj_on_Abs_LList";
+
+Goalw [LList_def] "x : llist (range Leaf) ==> x : LList";
+by (Asm_simp_tac 1);
+qed "LListI";
+
+Goalw [LList_def] "x : LList ==> x : llist (range Leaf)";
+by (Asm_simp_tac 1);
+qed "LListD";
+
 
 (** Distinctness of constructors **)
 
 Goalw [LNil_def,LCons_def] "~ LCons x xs = LNil";
-by (rtac (CONS_not_NIL RS (inj_on_Abs_llist RS inj_on_contraD)) 1);
-by (REPEAT (resolve_tac (llist.intrs @ [rangeI, Rep_llist]) 1));
+by (rtac (CONS_not_NIL RS (inj_on_Abs_LList RS inj_on_contraD)) 1);
+by (REPEAT (resolve_tac (llist.intrs @
+			 [rangeI, LListI, Rep_LList RS LListD]) 1));
 qed "LCons_not_LNil";
 
 bind_thm ("LNil_not_LCons", LCons_not_LNil RS not_sym);
@@ -368,16 +370,14 @@ AddIffs [LCons_not_LNil, LNil_not_LCons];
 
 (** llist constructors **)
 
-Goalw [LNil_def]
-    "Rep_llist(LNil) = NIL";
-by (rtac (llist.NIL_I RS Abs_llist_inverse) 1);
-qed "Rep_llist_LNil";
+Goalw [LNil_def] "Rep_LList LNil = NIL";
+by (rtac (llist.NIL_I RS LListI RS Abs_LList_inverse) 1);
+qed "Rep_LList_LNil";
 
-Goalw [LCons_def]
-    "Rep_llist(LCons x l) = CONS (Leaf x) (Rep_llist l)";
-by (REPEAT (resolve_tac [llist.CONS_I RS Abs_llist_inverse,
-                         rangeI, Rep_llist] 1));
-qed "Rep_llist_LCons";
+Goalw [LCons_def] "Rep_LList(LCons x l) = CONS (Leaf x) (Rep_LList l)";
+by (REPEAT (resolve_tac [llist.CONS_I RS LListI RS Abs_LList_inverse,
+                         rangeI, Rep_LList RS LListD] 1));
+qed "Rep_LList_LCons";
 
 (** Injectiveness of CONS and LCons **)
 
@@ -385,14 +385,16 @@ Goalw [CONS_def] "(CONS M N=CONS M' N') = (M=M' & N=N')";
 by (fast_tac (claset() addSEs [Scons_inject]) 1);
 qed "CONS_CONS_eq2";
 
-bind_thm ("CONS_inject", (CONS_CONS_eq RS iffD1 RS conjE));
+bind_thm ("CONS_inject", CONS_CONS_eq RS iffD1 RS conjE);
 
 
 (*For reasoning about abstract llist constructors*)
 
-AddIs ([Rep_llist]@llist.intrs);
-AddSDs [inj_on_Abs_llist RS inj_onD,
-        inj_Rep_llist RS injD, Leaf_inject];
+AddIs [Rep_LList RS LListD, LListI];
+AddIs llist.intrs;
+
+AddSDs [inj_on_Abs_LList RS inj_onD,
+        inj_Rep_LList RS injD];
 
 Goalw [LCons_def] "(LCons x xs=LCons y ys) = (x=y & xs=ys)";
 by (Fast_tac 1);
@@ -400,8 +402,8 @@ qed "LCons_LCons_eq";
 
 AddIffs [LCons_LCons_eq];
 
-val [major] = goal LList.thy "CONS M N: llist(A) ==> M: A & N: llist(A)";
-by (rtac (major RS llist.elim) 1);
+Goal "CONS M N: llist(A) ==> M: A & N: llist(A)";
+by (etac llist.elim 1);
 by (etac CONS_neq_NIL 1);
 by (Fast_tac 1);
 qed "CONS_D2";
@@ -412,7 +414,8 @@ qed "CONS_D2";
 Addsimps [List_case_NIL, List_case_CONS];
 
 (*A special case of list_equality for functions over lazy lists*)
-val [Mlist,gMlist,NILcase,CONScase] = goal LList.thy
+val [Mlist,gMlist,NILcase,CONScase] = 
+Goal
  "[| M: llist(A); g(NIL): llist(A);                             \
 \    f(NIL)=g(NIL);                                             \
 \    !!x l. [| x:A;  l: llist(A) |] ==>                         \
@@ -447,8 +450,8 @@ qed "Lmap_CONS";
 Addsimps [Lmap_NIL, Lmap_CONS];
 
 (*Another type-checking proof by coinduction*)
-val [major,minor] = goal LList.thy
-    "[| M: llist(A);  !!x. x:A ==> f(x):B |] ==> Lmap f M: llist(B)";
+val [major,minor] = 
+Goal "[| M: llist(A);  !!x. x:A ==> f(x):B |] ==> Lmap f M: llist(B)";
 by (rtac (major RS imageI RS llist_coinduct) 1);
 by Safe_tac;
 by (etac llist.elim 1);
@@ -458,16 +461,16 @@ by (REPEAT (ares_tac [list_Fun_NIL_I, list_Fun_CONS_I,
 qed "Lmap_type";
 
 (*This type checking rule synthesises a sufficiently large set for f*)
-val [major] = goal LList.thy  "M: llist(A) ==> Lmap f M: llist(f``A)";
-by (rtac (major RS Lmap_type) 1);
+Goal "M: llist(A) ==> Lmap f M: llist(f``A)";
+by (etac Lmap_type 1);
 by (etac imageI 1);
 qed "Lmap_type2";
 
 (** Two easy results about Lmap **)
 
-val [prem] = goalw LList.thy [o_def]
-    "M: llist(A) ==> Lmap (f o g) M = Lmap f (Lmap g M)";
-by (rtac (prem RS imageI RS LList_equalityI) 1);
+Goalw [o_def] "M: llist(A) ==> Lmap (f o g) M = Lmap f (Lmap g M)";
+by (dtac imageI 1);
+by (etac LList_equalityI 1);
 by Safe_tac;
 by (etac llist.elim 1);
 by (ALLGOALS Asm_simp_tac);
@@ -475,8 +478,9 @@ by (REPEAT (ares_tac [LListD_Fun_NIL_I, imageI, UnI1,
                       rangeI RS LListD_Fun_CONS_I] 1));
 qed "Lmap_compose";
 
-val [prem] = goal LList.thy "M: llist(A) ==> Lmap (%x. x) M = M";
-by (rtac (prem RS imageI RS LList_equalityI) 1);
+Goal "M: llist(A) ==> Lmap (%x. x) M = M";
+by (dtac imageI 1);
+by (etac LList_equalityI 1);
 by Safe_tac;
 by (etac llist.elim 1);
 by (ALLGOALS Asm_simp_tac);
@@ -549,8 +553,8 @@ qed "Lappend_type";
 
 (** llist_case: case analysis for 'a llist **)
 
-Addsimps ([Abs_llist_inverse, Rep_llist_inverse,
-           Rep_llist, rangeI, inj_Leaf, inv_f_f] @ llist.intrs);
+Addsimps ([LListI RS Abs_LList_inverse, Rep_LList_inverse,
+           Rep_LList RS LListD, rangeI, inj_Leaf, inv_f_f] @ llist.intrs);
 
 Goalw [llist_case_def,LNil_def]  "llist_case c d LNil = c";
 by (Simp_tac 1);
@@ -562,39 +566,47 @@ by (Simp_tac 1);
 qed "llist_case_LCons";
 
 (*Elimination is case analysis, not induction.*)
-val [prem1,prem2] = goalw LList.thy [NIL_def,CONS_def]
-    "[| l=LNil ==> P;  !!x l'. l=LCons x l' ==> P \
-\    |] ==> P";
-by (rtac (Rep_llist RS llist.elim) 1);
-by (rtac (inj_Rep_llist RS injD RS prem1) 1);
-by (stac Rep_llist_LNil 1);
+val [prem1,prem2] = 
+Goalw [NIL_def,CONS_def]
+     "[| l=LNil ==> P;  !!x l'. l=LCons x l' ==> P |] ==> P";
+by (rtac (Rep_LList RS LListD RS llist.elim) 1);
+by (rtac (inj_Rep_LList RS injD RS prem1) 1);
+by (stac Rep_LList_LNil 1);
 by (assume_tac 1);
 by (etac rangeE 1);
-by (rtac (inj_Rep_llist RS injD RS prem2) 1);
+by (rtac (inj_Rep_LList RS injD RS prem2) 1);
 by (asm_simp_tac (simpset() delsimps [CONS_CONS_eq] 
-		            addsimps [Rep_llist_LCons]) 1);
-by (etac (Abs_llist_inverse RS ssubst) 1);
+		            addsimps [Rep_LList_LCons]) 1);
+by (etac (LListI RS Abs_LList_inverse RS ssubst) 1);
 by (rtac refl 1);
 qed "llistE";
 
 (** llist_corec: corecursion for 'a llist **)
 
-Goalw [llist_corec_def,LNil_def,LCons_def]
-    "llist_corec a f = sum_case (%u. LNil) \
-\                           (split(%z w. LCons z (llist_corec w f))) (f a)";
+(*Lemma for the proof of llist_corec*)
+Goal "LList_corec a \
+\          (%z. case f z of None => None | Some(v,w) => Some(Leaf(v),w)) : \
+\       llist(range Leaf)";
+by (res_inst_tac [("X", "range(%x. LList_corec x ?g)")] llist_coinduct 1);
+by (rtac rangeI 1);
+by Safe_tac;
 by (stac LList_corec 1);
-by (res_inst_tac [("s","f(a)")] sumE 1);
+by (Force_tac 1);
+qed "LList_corec_type2";
+
+Goalw [llist_corec_def,LNil_def,LCons_def]
+    "llist_corec a f =  \
+\    (case f a of None => LNil | Some(z,w) => LCons z (llist_corec w f))";
+by (stac LList_corec 1);
+by (exhaust_tac "f a" 1);
 by (asm_simp_tac (simpset() addsimps [LList_corec_type2]) 1);
-by (res_inst_tac [("p","y")] PairE 1);
-by (asm_simp_tac (simpset() addsimps [LList_corec_type2]) 1);
-(*FIXME: correct case splits usd to be found automatically:
-by (ASM_SIMP_TAC(simpset() addsimps [LList_corec_type2]) 1);*)
+by (force_tac (claset(), simpset() addsimps [LList_corec_type2]) 1);
 qed "llist_corec";
 
 (*definitional version of same*)
-val [rew] = goal LList.thy
-    "[| !!x. h(x) == llist_corec x f |] ==>     \
-\    h(a) = sum_case (%u. LNil) (split(%z w. LCons z (h w))) (f a)";
+val [rew] = 
+Goal "[| !!x. h(x) == llist_corec x f |] ==>     \
+\     h(a) = (case f a of None => LNil | Some(z,w) => LCons z (h w))";
 by (rewtac rew);
 by (rtac llist_corec 1);
 qed "def_llist_corec";
@@ -611,48 +623,47 @@ by (simp_tac (simpset() addsimps [NIL_def, CONS_def]) 1);
 by (Fast_tac 1);
 qed "LListD_Fun_subset_Sigma_llist";
 
-Goal "prod_fun Rep_llist Rep_llist `` r <= \
+Goal "prod_fun Rep_LList Rep_LList `` r <= \
 \    (llist(range Leaf)) Times (llist(range Leaf))";
 by (fast_tac (claset() delrules [image_subsetI]
-		       addIs [Rep_llist]) 1);
+		       addIs [Rep_LList RS LListD]) 1);
 qed "subset_Sigma_llist";
 
-val [prem] = goal LList.thy
-    "r <= (llist(range Leaf)) Times (llist(range Leaf)) ==> \
-\    prod_fun (Rep_llist o Abs_llist) (Rep_llist o Abs_llist) `` r <= r";
+Goal "r <= (llist(range Leaf)) Times (llist(range Leaf)) ==> \
+\    prod_fun (Rep_LList o Abs_LList) (Rep_LList o Abs_LList) `` r <= r";
 by Safe_tac;
-by (rtac (prem RS subsetD RS SigmaE2) 1);
+by (etac (subsetD RS SigmaE2) 1);
 by (assume_tac 1);
-by (asm_simp_tac (simpset() addsimps [Abs_llist_inverse]) 1);
+by (asm_simp_tac (simpset() addsimps [LListI RS Abs_LList_inverse]) 1);
 qed "prod_fun_lemma";
 
-Goal "prod_fun Rep_llist  Rep_llist `` range(%x. (x, x)) = \
+Goal "prod_fun Rep_LList  Rep_LList `` range(%x. (x, x)) = \
 \    diag(llist(range Leaf))";
 by (rtac equalityI 1);
-by (fast_tac (claset() addIs [Rep_llist]) 1);
+by (Blast_tac 1);
 by (fast_tac (claset() delSWrapper "split_all_tac"
-		       addSEs [Abs_llist_inverse RS subst]) 1);
+		       addSEs [LListI RS Abs_LList_inverse RS subst]) 1);
 qed "prod_fun_range_eq_diag";
 
-(*Surprisingly hard to prove.  Used with lfilter*)
+(*Used with lfilter*)
 Goalw [llistD_Fun_def, prod_fun_def]
     "A<=B ==> llistD_Fun A <= llistD_Fun B";
 by Auto_tac;
 by (rtac image_eqI 1);
-by (fast_tac (claset() addss (simpset())) 1);
-by (blast_tac (claset() addIs [impOfSubs LListD_Fun_mono]) 1);
+by (blast_tac (claset() addIs [impOfSubs LListD_Fun_mono]) 2);
+by (Force_tac 1);
 qed "llistD_Fun_mono";
 
 (** To show two llists are equal, exhibit a bisimulation! 
       [also admits true equality] **)
-val [prem1,prem2] = goalw LList.thy [llistD_Fun_def]
+Goalw [llistD_Fun_def]
     "[| (l1,l2) : r;  r <= llistD_Fun(r Un range(%x.(x,x))) |] ==> l1=l2";
-by (rtac (inj_Rep_llist RS injD) 1);
-by (res_inst_tac [("r", "prod_fun Rep_llist Rep_llist ``r"),
+by (rtac (inj_Rep_LList RS injD) 1);
+by (res_inst_tac [("r", "prod_fun Rep_LList Rep_LList ``r"),
                   ("A", "range(Leaf)")] 
         LList_equalityI 1);
-by (rtac (prem1 RS prod_fun_imageI) 1);
-by (rtac (prem2 RS image_mono RS subset_trans) 1);
+by (etac prod_fun_imageI 1);
+by (etac (image_mono RS subset_trans) 1);
 by (rtac (image_compose RS subst) 1);
 by (rtac (prod_fun_compose RS subst) 1);
 by (stac image_Un 1);
@@ -667,28 +678,27 @@ Goalw [llistD_Fun_def,LNil_def] "(LNil,LNil) : llistD_Fun(r)";
 by (rtac (LListD_Fun_NIL_I RS prod_fun_imageI) 1);
 qed "llistD_Fun_LNil_I";
 
-val [prem] = goalw LList.thy [llistD_Fun_def,LCons_def]
+Goalw [llistD_Fun_def,LCons_def]
     "(l1,l2):r ==> (LCons x l1, LCons x l2) : llistD_Fun(r)";
 by (rtac (rangeI RS LListD_Fun_CONS_I RS prod_fun_imageI) 1);
-by (rtac (prem RS prod_fun_imageI) 1);
+by (etac prod_fun_imageI 1);
 qed "llistD_Fun_LCons_I";
 
 (*Utilise the "strong" part, i.e. gfp(f)*)
-Goalw [llistD_Fun_def]
-     "(l,l) : llistD_Fun(r Un range(%x.(x,x)))";
-by (rtac (Rep_llist_inverse RS subst) 1);
+Goalw [llistD_Fun_def] "(l,l) : llistD_Fun(r Un range(%x.(x,x)))";
+by (rtac (Rep_LList_inverse RS subst) 1);
 by (rtac prod_fun_imageI 1);
 by (stac image_Un 1);
 by (stac prod_fun_range_eq_diag 1);
-by (rtac (Rep_llist RS LListD_Fun_diag_I) 1);
+by (rtac (Rep_LList RS LListD RS LListD_Fun_diag_I) 1);
 qed "llistD_Fun_range_I";
 
 (*A special case of list_equality for functions over lazy lists*)
-val [prem1,prem2] = goal LList.thy
-    "[| f(LNil)=g(LNil);                                                \
-\       !!x l. (f(LCons x l),g(LCons x l)) :                            \
-\              llistD_Fun(range(%u. (f(u),g(u))) Un range(%v. (v,v)))   \
-\    |] ==> f(l) = (g(l :: 'a llist) :: 'b llist)";
+val [prem1,prem2] =
+Goal "[| f(LNil)=g(LNil);                                                \
+\        !!x l. (f(LCons x l),g(LCons x l)) :                            \
+\               llistD_Fun(range(%u. (f(u),g(u))) Un range(%v. (v,v)))   \
+\     |] ==> f(l) = (g(l :: 'a llist) :: 'b llist)";
 by (res_inst_tac [("r", "range(%u. (f(u),g(u)))")] llist_equalityI 1);
 by (rtac rangeI 1);
 by (rtac subsetI 1);
@@ -777,8 +787,7 @@ val Pair_cong = read_instantiate_sg (sign_of Prod.thy)
 
 (*The bisimulation consists of {(lmap(f)^n (h(u)), lmap(f)^n (iterates(f,u)))}
   for all u and all n::nat.*)
-val [prem] = goal LList.thy
-    "(!!x. h(x) = LCons x (lmap f (h x))) ==> h = iterates(f)";
+val [prem] = Goal "(!!x. h(x) = LCons x (lmap f (h x))) ==> h = iterates(f)";
 by (rtac ext 1);
 by (res_inst_tac [("r", 
    "UN u. range(%n. (nat_rec (h u) (%m y. lmap f y) n, \

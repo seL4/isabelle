@@ -23,7 +23,7 @@ constdefs
 
   lfilter	:: ['a => bool, 'a llist] => 'a llist
     "lfilter p l == llist_corec l (%l. case find p l of
-                                            LNil => Inl ()
-                                          | LCons y z => Inr(y,z))"
+                                            LNil => None
+                                          | LCons y z => Some(y,z))"
 
 end

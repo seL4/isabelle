@@ -6,6 +6,15 @@
 Definition of type 'a list by a least fixed point
 *)
 
+
+Goalw [List_def] "x : list (range Leaf) ==> x : List";
+by (Asm_simp_tac 1);
+qed "ListI";
+
+Goalw [List_def] "x : List ==> x : list (range Leaf)";
+by (Asm_simp_tac 1);
+qed "ListD";
+
 val list_con_defs = [NIL_def, CONS_def];
 
 Goal "list(A) = {Numb(0)} <+> (A <*> list(A))";
@@ -28,16 +37,17 @@ by (fast_tac (claset() addIs sexp.intrs@[sexp_In0I,sexp_In1I]) 1);
 qed "list_sexp";
 
 (* A <= sexp ==> list(A) <= sexp *)
-bind_thm ("list_subset_sexp", ([list_mono, list_sexp] MRS subset_trans));
+bind_thm ("list_subset_sexp", [list_mono, list_sexp] MRS subset_trans);
 
 (*Induction for the type 'a list *)
-val prems = goalw SList.thy [Nil_def,Cons_def]
+val prems = Goalw [Nil_def,Cons_def]
     "[| P(Nil);   \
 \       !!x xs. P(xs) ==> P(x # xs) |]  ==> P(l)";
-by (rtac (Rep_list_inverse RS subst) 1);   (*types force good instantiation*)
-by (rtac (Rep_list RS list.induct) 1);
+by (rtac (Rep_List_inverse RS subst) 1);   (*types force good instantiation*)
+by (rtac (Rep_List RS ListD RS list.induct) 1);
 by (REPEAT (ares_tac prems 1
-     ORELSE eresolve_tac [rangeE, ssubst, Abs_list_inverse RS subst] 1));
+     ORELSE eresolve_tac [rangeE, ssubst, 
+			  ListI RS Abs_List_inverse RS subst] 1));
 qed "list_induct2";
 
 (*Perform induction on xs. *)
@@ -47,15 +57,15 @@ fun list_ind_tac a M =
 
 (*** Isomorphisms ***)
 
-Goal "inj(Rep_list)";
+Goal "inj Rep_List";
 by (rtac inj_inverseI 1);
-by (rtac Rep_list_inverse 1);
-qed "inj_Rep_list";
+by (rtac Rep_List_inverse 1);
+qed "inj_Rep_List";
 
-Goal "inj_on Abs_list (list(range Leaf))";
+Goal "inj_on Abs_List List";
 by (rtac inj_on_inverseI 1);
-by (etac Abs_list_inverse 1);
-qed "inj_on_Abs_list";
+by (etac Abs_List_inverse 1);
+qed "inj_on_Abs_List";
 
 (** Distinctness of constructors **)
 
@@ -68,8 +78,8 @@ bind_thm ("CONS_neq_NIL", (CONS_not_NIL RS notE));
 val NIL_neq_CONS = sym RS CONS_neq_NIL;
 
 Goalw [Nil_def,Cons_def] "x # xs ~= Nil";
-by (rtac (CONS_not_NIL RS (inj_on_Abs_list RS inj_on_contraD)) 1);
-by (REPEAT (resolve_tac (list.intrs @ [rangeI, Rep_list]) 1));
+by (rtac (CONS_not_NIL RS (inj_on_Abs_List RS inj_on_contraD)) 1);
+by (REPEAT (resolve_tac (list.intrs @ [rangeI, Rep_List RS ListD, ListI]) 1));
 qed "Cons_not_Nil";
 
 bind_thm ("Nil_not_Cons", Cons_not_Nil RS not_sym);
@@ -81,27 +91,26 @@ by (fast_tac (claset() addSEs [Scons_inject, make_elim In1_inject]) 1);
 qed "CONS_CONS_eq";
 
 (*For reasoning about abstract list constructors*)
-AddIs ([Rep_list] @ list.intrs);
+AddIs [Rep_List RS ListD, ListI];
+AddIs list.intrs;
 
 AddIffs [CONS_not_NIL, NIL_not_CONS, CONS_CONS_eq];
 
-AddSDs [inj_on_Abs_list RS inj_onD,
-        inj_Rep_list RS injD, Leaf_inject];
+AddSDs [inj_on_Abs_List RS inj_onD,
+        inj_Rep_List RS injD, Leaf_inject];
 
 Goalw [Cons_def] "(x#xs=y#ys) = (x=y & xs=ys)";
 by (Fast_tac 1);
 qed "Cons_Cons_eq";
-bind_thm ("Cons_inject2", (Cons_Cons_eq RS iffD1 RS conjE));
+bind_thm ("Cons_inject2", Cons_Cons_eq RS iffD1 RS conjE);
 
-val [major] = goal SList.thy "CONS M N: list(A) ==> M: A & N: list(A)";
-by (rtac (major RS setup_induction) 1);
+Goal "CONS M N: list(A) ==> M: A & N: list(A)";
+by (etac setup_induction 1);
 by (etac list.induct 1);
-by (ALLGOALS (Fast_tac));
+by (ALLGOALS Fast_tac);
 qed "CONS_D";
 
-val prems = goalw SList.thy [CONS_def,In1_def]
-    "CONS M N: sexp ==> M: sexp & N: sexp";
-by (cut_facts_tac prems 1);
+Goalw [CONS_def,In1_def] "CONS M N: sexp ==> M: sexp & N: sexp";
 by (fast_tac (claset() addSDs [Scons_D]) 1);
 qed "sexp_CONS_D";
 
@@ -199,13 +208,14 @@ Addsimps [List_rec_NIL, List_rec_CONS];
 
 (*** list_rec -- by List_rec ***)
 
-val Rep_list_in_sexp =
-    [range_Leaf_subset_sexp RS list_subset_sexp, Rep_list] MRS subsetD;
+val Rep_List_in_sexp =
+    [range_Leaf_subset_sexp RS list_subset_sexp, Rep_List RS ListD] 
+    MRS subsetD;
 
 local
-  val list_rec_simps = [Abs_list_inverse, Rep_list_inverse,
-                        Rep_list, rangeI, inj_Leaf, inv_f_f,
-                        sexp.LeafI, Rep_list_in_sexp]
+  val list_rec_simps = [ListI RS Abs_List_inverse, Rep_List_inverse,
+                        Rep_List RS ListD, rangeI, inj_Leaf, inv_f_f,
+                        sexp.LeafI, Rep_List_in_sexp]
 in
   val list_rec_Nil = prove_goalw SList.thy [list_rec_def, Nil_def]
       "list_rec Nil c h = c"
@@ -220,12 +230,12 @@ Addsimps [List_rec_NIL, List_rec_CONS, list_rec_Nil, list_rec_Cons];
 
 
 (*Type checking.  Useful?*)
-val major::A_subset_sexp::prems = goal SList.thy
-    "[| M: list(A);     \
-\       A<=sexp;        \
-\       c: C(NIL);      \
-\       !!x y r. [| x: A;  y: list(A);  r: C(y) |] ==> h x y r: C(CONS x y) \
-\    |] ==> List_rec M c h : C(M :: 'a item)";
+val major::A_subset_sexp::prems = 
+Goal "[| M: list(A);     \
+\        A<=sexp;        \
+\        c: C(NIL);      \
+\        !!x y r. [| x: A;  y: list(A);  r: C(y) |] ==> h x y r: C(CONS x y) \
+\     |] ==> List_rec M c h : C(M :: 'a item)";
 val sexp_ListA_I = A_subset_sexp RS list_subset_sexp RS subsetD;
 val sexp_A_I = A_subset_sexp RS subsetD;
 by (rtac (major RS list.induct) 1);
@@ -238,8 +248,7 @@ Goalw [Rep_map_def] "Rep_map f Nil = NIL";
 by (rtac list_rec_Nil 1);
 qed "Rep_map_Nil";
 
-Goalw [Rep_map_def]
-    "Rep_map f (x#xs) = CONS (f x) (Rep_map f xs)";
+Goalw [Rep_map_def] "Rep_map f (x#xs) = CONS (f x) (Rep_map f xs)";
 by (rtac list_rec_Cons 1);
 qed "Rep_map_Cons";
 
@@ -252,21 +261,20 @@ Goalw [Abs_map_def] "Abs_map g NIL = Nil";
 by (rtac List_rec_NIL 1);
 qed "Abs_map_NIL";
 
-val prems = goalw SList.thy [Abs_map_def]
-    "[| M: sexp;  N: sexp |] ==> \
-\    Abs_map g (CONS M N) = g(M) # Abs_map g N";
-by (REPEAT (resolve_tac (List_rec_CONS::prems) 1));
+Goalw [Abs_map_def]
+    "[| M: sexp;  N: sexp |] ==> Abs_map g (CONS M N) = g(M) # Abs_map g N";
+by (REPEAT (ares_tac [List_rec_CONS] 1));
 qed "Abs_map_CONS";
 
 (*These 2 rules ease the use of primitive recursion.  NOTE USE OF == *)
-val [rew] = goal SList.thy
-    "[| !!xs. f(xs) == list_rec xs c h |] ==> f([]) = c";
+val [rew] = 
+Goal "[| !!xs. f(xs) == list_rec xs c h |] ==> f([]) = c";
 by (rewtac rew);
 by (rtac list_rec_Nil 1);
 qed "def_list_rec_Nil";
 
-val [rew] = goal SList.thy
-    "[| !!xs. f(xs) == list_rec xs c h |] ==> f(x#xs) = h x xs (f xs)";
+val [rew] = 
+Goal "[| !!xs. f(xs) == list_rec xs c h |] ==> f(x#xs) = h x xs (f xs)";
 by (rewtac rew);
 by (rtac list_rec_Cons 1);
 qed "def_list_rec_Cons";
@@ -327,11 +335,12 @@ qed "mem_filter2";
 
 Addsimps [Rep_map_Nil, Rep_map_Cons, Abs_map_NIL, Abs_map_CONS];
 
-val [major,A_subset_sexp,minor] = goal SList.thy 
-    "[| M: list(A);  A<=sexp;  !!z. z: A ==> f(g(z)) = z |] \
-\    ==> Rep_map f (Abs_map g M) = M";
+val [major,A_subset_sexp,minor] = 
+Goal "[| M: list(A);  A<=sexp;  !!z. z: A ==> f(g(z)) = z |] \
+\     ==> Rep_map f (Abs_map g M) = M";
 by (rtac (major RS list.induct) 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [sexp_A_I,sexp_ListA_I,minor])));
+by (ALLGOALS 
+    (asm_simp_tac (simpset() addsimps [sexp_A_I,sexp_ListA_I,minor])));
 qed "Abs_map_inverse";
 
 (*Rep_map_inverse is obtained via Abs_Rep_map and map_ident*)
@@ -339,7 +348,7 @@ qed "Abs_map_inverse";
 (** list_case **)
 
 Goal "P(list_case a f xs) = ((xs=[] --> P(a)) & \
-\                        (!y ys. xs=y#ys --> P(f y ys)))";
+\                           (!y ys. xs=y#ys --> P(f y ys)))";
 by (list_ind_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "split_list_case2";
