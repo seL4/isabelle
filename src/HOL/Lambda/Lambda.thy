@@ -48,7 +48,7 @@ translations
   "s -> t"  == "(s,t) : beta"
   "s ->> t" == "(s,t) : beta^*"
 
-inductive "beta"
+inductive beta
 intrs
    beta  "(Fun s) @ t -> s[t/0]"
    appL  "s -> t ==> s@u -> t@u"

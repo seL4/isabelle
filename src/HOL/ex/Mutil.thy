@@ -15,7 +15,7 @@ consts
   below   :: nat => nat set
   evnodd  :: "[(nat*nat)set, nat] => (nat*nat)set"
 
-inductive "domino"
+inductive domino
   intrs
     horiz  "{(i, j), (i, Suc j)} : domino"
     vertl  "{(i, j), (Suc i, j)} : domino"

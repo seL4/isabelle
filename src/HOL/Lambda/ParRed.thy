@@ -15,7 +15,7 @@ syntax  "=>" :: [db,db] => bool (infixl 50)
 translations
   "s => t" == "(s,t) : par_beta"
 
-inductive "par_beta"
+inductive par_beta
   intrs
     var   "Var n => Var n"
     abs   "s => t ==> Fun s => Fun t"

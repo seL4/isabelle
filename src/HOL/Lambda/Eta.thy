@@ -27,7 +27,7 @@ primrec free Lambda.db
 defs
   decr_def "decr t i == t[Var i/i]"
 
-inductive "eta"
+inductive eta
 intrs
    eta  "~free s 0 ==> Fun(s @ Var 0) -e> decr s 0"
    appL  "s -e> t ==> s@u -e> t@u"

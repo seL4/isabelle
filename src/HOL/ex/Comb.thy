@@ -32,7 +32,7 @@ translations
   "x -1-> y" == "(x,y) : contract"
   "x ---> y" == "(x,y) : contract^*"
 
-inductive "contract"
+inductive contract
   intrs
     K     "K#x#y -1-> x"
     S     "S#x#y#z -1-> (x#z)#(y#z)"
@@ -52,7 +52,7 @@ translations
   "x =1=> y" == "(x,y) : parcontract"
   "x ===> y" == "(x,y) : parcontract^*"
 
-inductive "parcontract"
+inductive parcontract
   intrs
     refl  "x =1=> x"
     K     "K#x#y =1=> x"

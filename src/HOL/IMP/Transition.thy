@@ -25,7 +25,7 @@ translations
 	"cs0 -*-> cs1" == "(cs0,cs1) : evalc1 ^*"
 
 
-inductive "evalc1"
+inductive evalc1
   intrs
     Assign "(x := a,s) -1-> (SKIP,s[a s / x])"
 

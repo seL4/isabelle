@@ -14,7 +14,7 @@ syntax "@perm"  :: ['a list, 'a list] => bool ("_ <~~> _"  [50,50] 50)
 translations
     "x <~~> y" == "(x,y) : perm"
 
-inductive "perm"
+inductive perm
   intrs
     Nil   "[] <~~> []"
     swap  "y#x#l <~~> x#y#l"

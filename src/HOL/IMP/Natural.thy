@@ -18,7 +18,7 @@ constdefs assign :: [state,val,loc] => state    ("_[_'/_]" [95,0,0] 95)
   "s[m/x] ==  (%y. if y=x then m else s y)"
 
 
-inductive "evalc"
+inductive evalc
   intrs
     Skip    "<SKIP,s> -c-> s"
 

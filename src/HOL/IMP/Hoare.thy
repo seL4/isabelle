@@ -17,7 +17,7 @@ consts hoare :: "(assn * com * assn) set"
 syntax "@hoare" :: [bool,com,bool] => bool ("|- ({(1_)}/ (_)/ {(1_)})" 50)
 translations "|- {P}c{Q}" == "(P,c,Q) : hoare"
 
-inductive "hoare"
+inductive hoare
 intrs
   skip "|- {P}SKIP{P}"
   ass  "|- {%s.P(s[a s/x])} x:=a {P}"

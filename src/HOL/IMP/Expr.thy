@@ -28,7 +28,7 @@ consts  evala    :: "((aexp*state) * nat) set"
        "-a->"    :: "[aexp*state,nat] => bool"         (infixl 50)
 translations
     "aesig -a-> n" == "(aesig,n) : evala"
-inductive "evala"
+inductive evala
   intrs 
     N   "(N(n),s) -a-> n"
     X   "(X(x),s) -a-> s(x)"
@@ -55,7 +55,7 @@ consts evalb    :: "((bexp*state) * bool)set"
 translations
     "besig -b-> b" == "(besig,b) : evalb"
 
-inductive "evalb"
+inductive evalb
  intrs (*avoid clash with ML constructors true, false*)
     tru   "(true,s) -b-> True"
     fls   "(false,s) -b-> False"
