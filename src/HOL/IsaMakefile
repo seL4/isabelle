@@ -231,7 +231,7 @@ $(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/Com.thy IMP/Compiler.thy \
   IMP/Natural.thy IMP/Examples.thy \
   IMP/Transition.thy IMP/VC.thy IMP/ROOT.ML IMP/document/root.tex \
   IMP/document/root.bib
-	@$(ISATOOL) usedir $(OUT)/HOL IMP
+	@$(ISATOOL) usedir -g true $(OUT)/HOL IMP
 
 
 ## HOL-IMPP
