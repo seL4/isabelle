@@ -5,16 +5,15 @@
 Extensible records with structural subtyping in HOL.
 *)
 
-
 signature BASIC_RECORD_PACKAGE =
 sig
   val record_simproc: simproc
   val record_eq_simproc: simproc
   val record_upd_simproc: simproc
-  val record_split_simproc: (term -> bool) -> simproc
+  val record_split_simproc: (term -> int) -> simproc
   val record_ex_sel_eq_simproc: simproc
   val record_split_tac: int -> tactic
-  val record_split_simp_tac: thm list -> (term -> bool) -> int -> tactic
+  val record_split_simp_tac: thm list -> (term -> int) -> int -> tactic
   val record_split_name: string
   val record_split_wrapper: string * wrapper
   val print_record_type_abbr: bool ref
@@ -179,7 +178,10 @@ fun last_extT T =
       | Some l => Some l)
   end handle TYPE _ => None
 
-fun rec_id T = foldl (fn (s,(c,T)) => s ^ c) ("",dest_recTs T);
+fun rec_id i T = 
+  let val rTs = dest_recTs T
+      val rTs' = if i < 0 then rTs else take (i,rTs)
+  in foldl (fn (s,(c,T)) => s ^ c) ("",rTs') end;
 
 (*** extend theory by record definition ***)
 
@@ -706,21 +708,37 @@ fun record_type_abbr_tr' default_tr' abbr alphas zeta lastExt schemeT sg tm =
                              Some s => s 
                            | None => Sign.defaultS sg);
 
-      val T = Sign.intern_typ sg (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts tm)) I tm) 
+      (* WORKAROUND:
+       * If a record type occurs in an error message of type inference there  
+       * may be some internal frees donoted by ??:
+       * (Const "_tfree",_)$Free ("??'a",_). 
+         
+       * This will unfortunately be translated to Type ("??'a",[]) instead of 
+       * TFree ("??'a",_) by typ_of_term, which will confuse unify below. 
+       * fixT works around.
+       *)
+      fun fixT (T as Type (x,[])) = 
+            if String.isPrefix "??'" x then TFree (x,Sign.defaultS sg) else T
+        | fixT (Type (x,xs)) = Type (x,map fixT xs)
+        | fixT T = T;
+      
+      val T = fixT (Sign.intern_typ sg 
+                      (Syntax.typ_of_term (get_sort (Syntax.raw_term_sorts tm)) I tm)); 
       val tsig = Sign.tsig_of sg
 
       fun mk_type_abbr subst name alphas = 
           let val abbrT = Type (name, map (fn a => TVar ((a, 0), [])) alphas);
           in Syntax.term_of_typ (! Syntax.show_sorts) (Envir.norm_type subst abbrT) end;    
 
-      fun unify rT T = fst (Type.unify tsig (Vartab.empty,0) (Type.varifyT rT,T))
+      fun unify rT T = fst (Type.unify tsig (Vartab.empty,0) (Type.varifyT rT,T));
 
    in if !print_record_type_abbr
       then (case last_extT T of
              Some (name,_) 
               => if name = lastExt 
                  then
-		  (let val subst = unify schemeT T 
+		  (let 
+                       val subst = unify schemeT T 
                    in 
                     if HOLogic.is_unitT (Envir.norm_type subst (TVar((zeta,0),Sign.defaultS sg)))
                     then mk_type_abbr subst abbr alphas
@@ -824,7 +842,7 @@ fun prove_split_simp sg T prop =
     val extsplits = 
             foldl (fn (thms,(n,_)) => (list (Symtab.lookup (extsplit,n)))@thms) 
                     ([],dest_recTs T);
-    val thms = (case get_splits sg (rec_id T) of
+    val thms = (case get_splits sg (rec_id (~1) T) of
                    Some (all_thm,_,_,_) => 
                      all_thm::(case extsplits of [thm] => [] | _ => extsplits)
                               (* [thm] is the same as all_thm *)
@@ -1028,7 +1046,7 @@ val record_eq_simproc =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_eq_simp" ["r = s"]
     (fn sg => fn _ => fn t =>
       (case t of Const ("op =", Type (_, [T, _])) $ _ $ _ =>
-        (case rec_id T of
+        (case rec_id (~1) T of
            "" => None
          | name => (case get_equalities sg name of
                                 None => None
@@ -1038,25 +1056,30 @@ val record_eq_simproc =
 (* record_split_simproc *)
 (* splits quantified occurrences of records, for which P holds. P can peek on the 
  * subterm starting at the quantified occurrence of the record (including the quantifier)
+ * P t = 0: do not split
+ * P t = ~1: completely split
+ * P t > 0: split up to given bound of record extensions
  *)
 fun record_split_simproc P =
   Simplifier.simproc (Theory.sign_of HOL.thy) "record_split_simp" ["(a t)"]
     (fn sg => fn _ => fn t =>
       (case t of (Const (quantifier, Type (_, [Type (_, [T, _]), _])))$trm =>
          if quantifier = "All" orelse quantifier = "all" orelse quantifier = "Ex"
-         then (case rec_id T of
+         then (case rec_id (~1) T of
                  "" => None
                | name
-                  => if P t 
-                     then (case get_splits sg name of
-                             None => None
-                           | Some (all_thm, All_thm, Ex_thm,_) 
-                              => Some (case quantifier of
-                                         "all" => all_thm
-                                       | "All" => All_thm RS HOL.eq_reflection
-                                       | "Ex"  => Ex_thm RS HOL.eq_reflection
-                                       | _     => error "record_split_simproc"))
-                     else None)
+                  => let val split = P t 
+                     in if split <> 0 then 
+                        (case get_splits sg (rec_id split T) of
+                              None => None
+                            | Some (all_thm, All_thm, Ex_thm,_) 
+                               => Some (case quantifier of
+                                          "all" => all_thm
+                                        | "All" => All_thm RS HOL.eq_reflection
+                                        | "Ex"  => Ex_thm RS HOL.eq_reflection
+                                        | _     => error "record_split_simproc"))
+                        else None
+                      end)
          else None
        | _ => None))
 
@@ -1066,7 +1089,7 @@ val record_ex_sel_eq_simproc =
        let 
          fun prove prop = (quick_and_dirty_prove true sg [] prop 
                              (fn _ => (simp_tac ((get_simpset sg) addsimps simp_thms
-                                        addsimprocs [record_split_simproc (K true)]) 1)));
+                                        addsimprocs [record_split_simproc (K ~1)]) 1)));
 
          fun mkeq (lr,Teq,(sel,Tsel),x) i =
               (case get_selectors sg sel of Some () =>
@@ -1107,7 +1130,10 @@ in
 (* splits (and simplifies) all records in the goal for which P holds. 
  * For quantified occurrences of a record
  * P can peek on the whole subterm (including the quantifier); for free variables P
- * can only peek on the variable itself. 
+ * can only peek on the variable itself.
+ * P t = 0: do not split
+ * P t = ~1: completely split
+ * P t > 0: split up to given bound of record extensions 
  *)
 fun record_split_simp_tac thms P i st =
   let
@@ -1134,14 +1160,16 @@ fun record_split_simp_tac thms P i st =
 	end;
 
     fun split_free_tac P i (free as Free (n,T)) = 
-	(case rec_id T of
+	(case rec_id (~1) T of
            "" => None
-         | name => if P free 
-                   then (case get_splits sg name of
-                           None => None
-                         | Some (_,_,_,induct_thm)
-                             => Some (mk_split_free_tac free induct_thm i))
-                   else None)
+         | name => let val split = P free 
+                   in if split <> 0 then 
+                      (case get_splits sg (rec_id split T) of
+                             None => None
+                           | Some (_,_,_,induct_thm)
+                               => Some (mk_split_free_tac free induct_thm i))
+                      else None
+                   end)
      | split_free_tac _ _ _ = None;
 
     val split_frees_tacs = mapfilter (split_free_tac P i) frees;
@@ -1169,8 +1197,8 @@ fun record_split_tac i st =
 
     fun is_all t =
       (case t of (Const (quantifier, _)$_) =>
-         quantifier = "All" orelse quantifier = "all"
-       | _ => false);
+         if quantifier = "All" orelse quantifier = "all" then ~1 else 0
+       | _ => 0);
  
   in if has_rec goal 
      then Simplifier.full_simp_tac 
