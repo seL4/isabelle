@@ -51,16 +51,27 @@ fun pack (File p) = pack_path p
 
 (* unpack *)
 
+local
+
+fun gen_host quant = (quant (not_equal "/" andf Symbol.not_eof) >> implode) --|
+  Scan.ahead ($$ "/" || Scan.one Symbol.is_eof);
+
+val scan_host = gen_host Scan.any;
+val scan_host1 = gen_host Scan.any1;
 val scan_path = Scan.any Symbol.not_eof >> (Path.unpack o implode);
-val scan_host = Scan.any1 (not_equal "/" andf Symbol.not_eof) >> implode;
 
 val scan_url =
   Scan.unless (Scan.this_string "file:" ||
     Scan.this_string "http:" || Scan.this_string "ftp:") scan_path >> File ||
-  Scan.this_string "file://" |-- scan_host -- scan_path >> RemoteFile ||
-  Scan.this_string "http://" |-- scan_host -- scan_path >> Http ||
-  Scan.this_string "ftp://" |-- scan_host -- scan_path >> Ftp;
+  Scan.this_string "file://" |--
+    (scan_host >> (fn "localhost" => "" | h => h)) -- scan_path >> RemoteFile ||
+  Scan.this_string "http://" |-- scan_host1 -- scan_path >> Http ||
+  Scan.this_string "ftp://" |-- scan_host1 -- scan_path >> Ftp;
+
+in
 
 fun unpack s = Symbol.scanner "Malformed URL" scan_url (Symbol.explode s);
+
+end;
 
 end;
