@@ -84,7 +84,7 @@ fun print_outer_syntax () =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     val (int_cmds, cmds) = partition (#1 o #2 o #2) (Symtab.dest (! global_parsers));
   in
-    Pretty.writeln (Pretty.strs ("keywords:" :: map quote keywords));
+    Pretty.writeln (Pretty.strs ("syntax keywords:" :: map quote keywords));
     Pretty.writeln (Pretty.big_list "proper commands:" (map pretty_cmd cmds));
     Pretty.writeln (Pretty.big_list "improper commands (interactive-only):"
       (map pretty_cmd int_cmds))
