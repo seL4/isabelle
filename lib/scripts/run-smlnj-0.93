@@ -50,7 +50,7 @@ MLEXIT="commit();"
 START_SML="$INFILE $ML_OPTIONS"
 
 if [ -n "$TERMINATE" ]; then
-  { echo "$MLTEXT" "$MLEXIT" } | $START_SML
+  echo "$MLTEXT" "$MLEXIT" | $START_SML
   RC=$?
 elif [ -z "$MLTEXT" ]; then
   sh -c "{ $ISABELLE_HOME/lib/scripts/ucat; echo '$MLEXIT'; } | $START_SML"
