@@ -905,11 +905,8 @@ apply (clarsimp simp: setsum_def)
 apply (erule finite_induct, auto simp:ACf.fold_insert [OF ACf_add])
 done
 
-lemma setsum_0': "ALL a:F. f a = 0 ==> setsum f F = 0"
-  apply (subgoal_tac "setsum f F = setsum (%x. 0) F")
-  apply (erule ssubst, rule setsum_0)
-  apply (rule setsum_cong, auto)
-  done
+lemma setsum_0': "ALL a:A. f a = 0 ==> setsum f A = 0"
+by(simp add:setsum_cong)
 
 lemma setsum_Un_Int: "finite A ==> finite B ==>
   setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
@@ -954,7 +951,7 @@ apply (cases "finite A")
  apply (cases "finite B") 
   apply (simp add: setsum_Sigma)
  apply (cases "A={}", simp)
- apply (simp add: setsum_0) 
+ apply (simp) 
 apply (auto simp add: setsum_def
             dest: finite_cartesian_productD1 finite_cartesian_productD2) 
 done

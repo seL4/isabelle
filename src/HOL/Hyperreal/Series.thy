@@ -11,13 +11,13 @@ header{*Finite Summation and Infinite Series*}
 theory Series
 imports SEQ Lim
 begin
-
+thm atLeastLessThan_empty
 (* FIXME why not globally? *)
 declare atLeastLessThan_empty[simp];
 declare atLeastLessThan_iff[iff]
 
 constdefs
-   sums  :: "[nat=>real,real] => bool"     (infixr "sums" 80)
+   sums  :: "(nat => real) => real => bool"     (infixr "sums" 80)
    "f sums s  == (%n. setsum f {0..<n}) ----> s"
 
    summable :: "(nat=>real) => bool"
@@ -42,17 +42,8 @@ by (auto simp:real_of_nat_def)
 
 (* Generalize from real to some algebraic structure? *)
 lemma sumr_minus_one_realpow_zero [simp]:
-  "setsum (%i. (-1) ^ Suc i) {0..<2*n} = (0::real)"
+  "(\<Sum>i=0..<2*n. (-1) ^ Suc i) = (0::real)"
 by (induct "n", auto)
-
-(* FIXME get rid of this one! *)
-lemma Suc_le_imp_diff_ge2:
-     "[|\<forall>n \<ge> N. f (Suc n) = 0; Suc N \<le> m|] ==> setsum f {m..<n} = 0"
-apply (rule setsum_0')
-apply (case_tac "n", auto)
-apply(erule_tac x = "a - 1" in allE)
-apply (simp split:nat_diff_split)
-done
 
 (* FIXME this is an awful lemma! *)
 lemma sumr_one_lb_realpow_zero [simp]:
@@ -61,10 +52,9 @@ apply (induct "n")
 apply (case_tac [2] "n", auto)
 done
 
-(* FIXME a bit specialized for [simp]! *)
-lemma sumr_group [simp]:
+lemma sumr_group:
      "(\<Sum>m=0..<n::nat. setsum f {m * k ..< m*k + k}) = setsum f {0 ..< n * k}"
-apply (subgoal_tac "k = 0 | 0 < k", auto simp:setsum_0')
+apply (subgoal_tac "k = 0 | 0 < k", auto)
 apply (induct "n")
 apply (simp_all add: setsum_add_nat_ivl add_commute)
 done
@@ -132,7 +122,7 @@ by (auto simp add: sums_def intro!: LIMSEQ_minus simp add: setsum_negf)
 lemma sums_group:
      "[|summable f; 0 < k |] ==> (%n. setsum f {n*k..<n*k+k}) sums (suminf f)"
 apply (drule summable_sums)
-apply (auto simp add: sums_def LIMSEQ_def)
+apply (auto simp add: sums_def LIMSEQ_def sumr_group)
 apply (drule_tac x = r in spec, safe)
 apply (rule_tac x = no in exI, safe)
 apply (drule_tac x = "n*k" in spec)
@@ -263,7 +253,7 @@ lemma summable_rabs_comparison_test:
      "[| \<exists>N. \<forall>n \<ge> N. abs(f n) \<le> g n; summable g |] 
       ==> summable (%k. abs (f k))"
 apply (rule summable_comparison_test)
-apply (auto simp add: abs_idempotent)
+apply (auto)
 done
 
 text{*Limit comparison property for series (c.f. jrh)*}
@@ -321,10 +311,14 @@ lemma ratio_test_lemma2:
       ==> 0 < c | summable f"
 apply (simp (no_asm) add: linorder_not_le [symmetric])
 apply (simp add: summable_Cauchy)
-apply (safe, subgoal_tac "\<forall>n. N \<le> n --> f (Suc n) = 0")
-prefer 2 apply (blast intro: rabs_ratiotest_lemma)
+apply (safe, subgoal_tac "\<forall>n. N < n --> f (n) = 0")
+ prefer 2
+ apply clarify
+ apply(erule_tac x = "n - 1" in allE)
+ apply (simp add:diff_Suc split:nat.splits)
+ apply (blast intro: rabs_ratiotest_lemma)
 apply (rule_tac x = "Suc N" in exI, clarify)
-apply (drule_tac n=n in Suc_le_imp_diff_ge2, auto) 
+apply(simp cong:setsum_ivl_cong)
 done
 
 lemma ratio_test:
@@ -363,7 +357,6 @@ val summable_def = thm"summable_def";
 val suminf_def = thm"suminf_def";
 
 val sumr_minus_one_realpow_zero = thm "sumr_minus_one_realpow_zero";
-val Suc_le_imp_diff_ge2 = thm "Suc_le_imp_diff_ge2";
 val sumr_one_lb_realpow_zero = thm "sumr_one_lb_realpow_zero";
 val sumr_group = thm "sumr_group";
 val sums_summable = thm "sums_summable";

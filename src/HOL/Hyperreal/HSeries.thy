@@ -232,7 +232,7 @@ lemma NSsummable_rabs_comparison_test:
      "[| \<exists>N. \<forall>n. N \<le> n --> abs(f n) \<le> g n; NSsummable g |]
       ==> NSsummable (%k. abs (f k))"
 apply (rule NSsummable_comparison_test)
-apply (auto simp add: abs_idempotent)
+apply (auto)
 done
 
 ML
