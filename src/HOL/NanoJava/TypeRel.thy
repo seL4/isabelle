@@ -133,10 +133,10 @@ done
 
 
 --{* Fields of a class, with inheritance and hiding *}
-defs field_def: "field C \<equiv> class_rec C fields"
+defs field_def: "field C \<equiv> class_rec C flds"
 
-lemma fields_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
-field C = (if C=Object then empty else field (super m)) ++ map_of (fields m)"
+lemma flds_rec: "\<lbrakk>class C = Some m; ws_prog\<rbrakk> \<Longrightarrow>
+field C = (if C=Object then empty else field (super m)) ++ map_of (flds m)"
 apply (unfold field_def)
 apply (erule (1) class_rec [THEN trans]);
 apply simp

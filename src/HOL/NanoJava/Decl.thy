@@ -28,7 +28,7 @@ types	mdecl
 
 record	class
 	= super   :: cname
-          fields  ::"fdecl list"
+          flds    ::"fdecl list"
           methods ::"mdecl list"
 
 text{* Class declaration *}
