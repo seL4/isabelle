@@ -36,6 +36,14 @@ val typedef_decl =
 
 
 
+(** record **)
+
+val record_decl =
+  name --$$ "=" -- optional (name --$$ "+" >> (parens o cat "Some")) "None" --
+  repeat1 ((name --$$ "::" -- typ) >> mk_pair)
+  >> (fn ((x, y), zs) => space_implode " " [x, y, mk_list zs]);
+
+
 (** (co)inductive **)
 
 (*co is either "" or "Co"*)
@@ -122,7 +130,7 @@ local
     ^ mk_triple (mk_list ts, quote tname, mk_list (mk_cons cons)) ^ " thy\n\
     \val thy = ("^tname^"_add_primrec "^tname^"_size_eqns thy)"
     ,
-    "val _ = deny (" ^ quote tname ^ " mem  map ! (stamps_of_thy thy))\n\
+    "val _ = deny (" ^ quote tname ^ " mem (Sign.stamp_names_of (sign_of thy)))\n\
     \   (\"Datatype \\\""^tname^"\\\" would clash with the theory of the same name!\");\n\
     \structure " ^ tname ^ " =\n\
     \struct\n\
@@ -269,6 +277,7 @@ in
 val _ = ThySyn.add_syntax
  ["intrs", "monos", "con_defs", "congs", "simpset", "|"]
  [axm_section "typedef" "|> Typedef.add_typedef" typedef_decl,
+  (section "record" "|> Record.add_record" record_decl),
   ("inductive", inductive_decl ""),
   ("coinductive", inductive_decl "Co"),
   ("datatype", datatype_decl),
