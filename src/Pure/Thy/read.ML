@@ -277,7 +277,7 @@ fun use_thy name =
          (*Remove temporary files*)
          if not (!delete_tmpfiles) orelse (thy_file = "") orelse thy_uptodate 
            then ()
-         else delete_file (out_name name);
+         else delete_file (out_name thy_name);
          delete_file ".tmp.ML"
         )
     end;
