@@ -770,7 +770,7 @@ fun warning s = !warning_fn s;
 
 (*print error message and abort to top level*)
 exception ERROR;
-fun error_msg s = !error_fn s;
+fun error_msg s = !error_fn s;			(*promise to raise ERROR later!*)
 fun error s = (error_msg s; raise ERROR);
 fun sys_error msg = (error_msg " !! SYSTEM ERROR !!\n"; error msg);
 
