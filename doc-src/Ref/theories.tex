@@ -935,7 +935,7 @@ depends upon oracle calls.
 
 \begin{ttbox}
      invoke_oracle : theory * Sign.sg * exn -> thm
-     set_oracle    : Sign.sg -> typ -> string
+     set_oracle    : (Sign.sg * exn -> term) -> theory -> theory
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{invoke_oracle} ($thy$, $sign$, $exn$)] invokes the oracle
