@@ -1007,10 +1007,10 @@ by (auto simp add: declared_in_def cdeclaredmethd_def cdeclaredfield_def
             split: memberdecl.splits)
 
 lemma unique_member_of: 
- (assumes n: "G\<turnstile>n member_of C" and  
+  assumes n: "G\<turnstile>n member_of C" and  
           m: "G\<turnstile>m member_of C" and
        eqid: "memberid n = memberid m"
- ) "n=m"
+  shows "n=m"
 proof -
   from n m eqid  
   show "n=m"
@@ -1173,9 +1173,9 @@ lemma permits_acc_static_declC:
 by (cases "accmodi m") (auto simp add: permits_acc_def)
 
 lemma dyn_accessible_from_static_declC: 
-  (assumes  acc_C: "G\<turnstile>m in C dyn_accessible_from accC" and
+  assumes  acc_C: "G\<turnstile>m in C dyn_accessible_from accC" and
            static: "is_static m"
-  ) "G\<turnstile>m in (declclass m) dyn_accessible_from accC"
+  shows "G\<turnstile>m in (declclass m) dyn_accessible_from accC"
 proof -
   from acc_C static
   show "G\<turnstile>m in (declclass m) dyn_accessible_from accC"
@@ -1304,11 +1304,11 @@ lemma member_of_subclseq_declC:
 by (induct set: members) (auto dest: r_into_rtrancl intro: rtrancl_trans)
 
 lemma member_of_inheritance:
-  (assumes    m: "G\<turnstile>m member_of D" and 
+  assumes       m: "G\<turnstile>m member_of D" and
      subclseq_D_C: "G\<turnstile>D \<preceq>\<^sub>C C" and
      subclseq_C_m: "G\<turnstile>C \<preceq>\<^sub>C declclass m" and
                ws: "ws_prog G" 
-  ) "G\<turnstile>m member_of C"
+  shows "G\<turnstile>m member_of C"
 proof -
   from m subclseq_D_C subclseq_C_m
   show ?thesis
@@ -1352,13 +1352,13 @@ proof -
 qed
 
 lemma member_of_subcls:
-  (assumes    old: "G\<turnstile>old member_of C" and 
+  assumes     old: "G\<turnstile>old member_of C" and 
               new: "G\<turnstile>new member_of D" and
              eqid: "memberid new = memberid old" and
      subclseq_D_C: "G\<turnstile>D \<preceq>\<^sub>C C" and 
    subcls_new_old: "G\<turnstile>declclass new \<prec>\<^sub>C declclass old" and
                ws: "ws_prog G"
-  ) "G\<turnstile>D \<prec>\<^sub>C C"
+  shows "G\<turnstile>D \<prec>\<^sub>C C"
 proof -
   from old 
   have subclseq_C_old: "G\<turnstile>C \<preceq>\<^sub>C declclass old"
@@ -1423,10 +1423,10 @@ by (drule stat_overrides_commonD) (auto intro: member_of_subcls)
 
 
 lemma inherited_field_access: 
- (assumes stat_acc: "G\<turnstile>membr of statC accessible_from accC" and
+  assumes stat_acc: "G\<turnstile>membr of statC accessible_from accC" and
           is_field: "is_field membr" and 
           subclseq: "G \<turnstile> dynC \<preceq>\<^sub>C statC"
- ) "G\<turnstile>membr in dynC dyn_accessible_from accC"
+  shows "G\<turnstile>membr in dynC dyn_accessible_from accC"
 proof -
   from stat_acc is_field subclseq 
   show ?thesis
@@ -1437,11 +1437,11 @@ proof -
 qed
 
 lemma accessible_inheritance:
- (assumes stat_acc: "G\<turnstile>m of statC accessible_from accC" and
+  assumes stat_acc: "G\<turnstile>m of statC accessible_from accC" and
           subclseq: "G\<turnstile>dynC \<preceq>\<^sub>C statC" and
        member_dynC: "G\<turnstile>m member_of dynC" and
           dynC_acc: "G\<turnstile>(Class dynC) accessible_in (pid accC)"
- ) "G\<turnstile>m of dynC accessible_from accC"
+  shows "G\<turnstile>m of dynC accessible_from accC"
 proof -
   from stat_acc
   have member_statC: "G\<turnstile>m member_of statC" 
@@ -1664,13 +1664,13 @@ apply (force elim: imethds_norec intro: rtrancl_into_rtrancl2)
 done
 
 lemma imethds_cases [consumes 3, case_names NewMethod InheritedMethod]:
- (assumes im: "im \<in> imethds G I sig" and  
+  assumes im: "im \<in> imethds G I sig" and  
          ifI: "iface G I = Some i" and
           ws: "ws_prog G" and
      hyp_new:  "table_of (map (\<lambda>(s, mh). (s, I, mh)) (imethods i)) sig 
                 = Some im \<Longrightarrow> P" and
      hyp_inh: "\<And> J. \<lbrakk>J \<in> set (isuperIfs i); im \<in> imethds G J sig\<rbrakk> \<Longrightarrow> P"
-  ) "P"
+  shows P
 proof -
   from ifI ws im hyp_new hyp_inh
   show "P"
@@ -1756,9 +1756,9 @@ lemma methd_declared_in_declclass:
 by (auto dest: methd_declC method_declared_inI)
 
 lemma member_methd:
- (assumes member_of: "G\<turnstile>Methd sig m member_of C" and
+  assumes member_of: "G\<turnstile>Methd sig m member_of C" and
                  ws: "ws_prog G"
- ) "methd G C sig = Some m"
+  shows "methd G C sig = Some m"
 proof -
   from member_of 
   have iscls_C: "is_class G C" 
@@ -2013,13 +2013,13 @@ apply rotate_tac
 by (auto simp add: dynmethd_rec)
  
 lemma dynmethd_Some_cases [consumes 3, case_names Static Overrides]:
-  (assumes dynM: "dynmethd G statC dynC sig = Some dynM" and
+  assumes      dynM: "dynmethd G statC dynC sig = Some dynM" and
         is_cls_dynC: "is_class G dynC" and
                  ws: "ws_prog G" and
          hyp_static: "methd G statC sig = Some dynM \<Longrightarrow> P" and
        hyp_override: "\<And> statM. \<lbrakk>methd G statC sig = Some statM;dynM\<noteq>statM;
                        G,sig\<turnstile>dynM overrides statM\<rbrakk> \<Longrightarrow> P"
-   ) "P"
+  shows P
 proof -
   from is_cls_dynC obtain dc where clsDynC: "class G dynC = Some dc" by blast
   from clsDynC ws dynM hyp_static hyp_override
@@ -2037,13 +2037,12 @@ proof -
 qed
 
 lemma no_override_in_Object:
-  (assumes     dynM: "dynmethd G statC dynC sig = Some dynM" and
+  assumes          dynM: "dynmethd G statC dynC sig = Some dynM" and
             is_cls_dynC: "is_class G dynC" and
                      ws: "ws_prog G" and
                   statM: "methd G statC sig = Some statM" and
          neq_dynM_statM: "dynM\<noteq>statM"
-   )
-   "dynC \<noteq> Object"
+  shows "dynC \<noteq> Object"
 proof -
   from is_cls_dynC obtain dc where clsDynC: "class G dynC = Some dc" by blast
   from clsDynC ws dynM statM neq_dynM_statM 
@@ -2063,7 +2062,7 @@ qed
 
 lemma dynmethd_Some_rec_cases [consumes 3, 
                                case_names Static Override  Recursion]:
-(assumes     dynM: "dynmethd G statC dynC sig = Some dynM" and
+  assumes          dynM: "dynmethd G statC dynC sig = Some dynM" and
                 clsDynC: "class G dynC = Some c" and
                      ws: "ws_prog G" and
              hyp_static: "methd G statC sig = Some dynM \<Longrightarrow> P" and
@@ -2072,8 +2071,8 @@ lemma dynmethd_Some_rec_cases [consumes 3,
                                      G,sig\<turnstile> dynM overrides statM\<rbrakk> \<Longrightarrow> P" and
 
           hyp_recursion: "\<lbrakk>dynC\<noteq>Object;
-                           dynmethd G statC (super c) sig = Some dynM\<rbrakk> \<Longrightarrow> P" 
-  ) "P"
+                           dynmethd G statC (super c) sig = Some dynM\<rbrakk> \<Longrightarrow> P"
+  shows P
 proof -
   from clsDynC have "is_class G dynC" by simp
   note no_override_in_Object' = no_override_in_Object [OF dynM this ws]
@@ -2139,12 +2138,12 @@ proof -
 qed
 
 lemma methd_Some_dynmethd_Some:
-  (assumes    statM: "methd G statC sig = Some statM" and 
+  assumes     statM: "methd G statC sig = Some statM" and
            subclseq: "G\<turnstile>dynC \<preceq>\<^sub>C statC" and
        is_cls_statC: "is_class G statC" and
                  ws: "ws_prog G"
-   ) "\<exists> dynM. dynmethd G statC dynC sig = Some dynM"
-   (is "?P dynC")
+  shows "\<exists> dynM. dynmethd G statC dynC sig = Some dynM"
+    (is "?P dynC")
 proof -
   from subclseq is_cls_statC 
   have is_cls_dynC: "is_class G dynC" by (rule subcls_is_class2)
@@ -2185,7 +2184,7 @@ proof -
 qed
 
 lemma dynmethd_cases [consumes 4, case_names Static Overrides]:
-  (assumes    statM: "methd G statC sig = Some statM" and 
+  assumes     statM: "methd G statC sig = Some statM" and 
            subclseq: "G\<turnstile>dynC \<preceq>\<^sub>C statC" and
        is_cls_statC: "is_class G statC" and
                  ws: "ws_prog G" and
@@ -2193,7 +2192,7 @@ lemma dynmethd_cases [consumes 4, case_names Static Overrides]:
        hyp_override: "\<And> dynM. \<lbrakk>dynmethd G statC dynC sig = Some dynM;
                                  dynM\<noteq>statM;
                            G,sig\<turnstile>dynM overrides statM\<rbrakk> \<Longrightarrow> P"
-   ) "P"
+  shows P
 proof -
   from subclseq is_cls_statC 
   have is_cls_dynC: "is_class G dynC" by (rule subcls_is_class2)
@@ -2215,13 +2214,13 @@ proof -
 qed
 
 lemma ws_dynmethd:
-  (assumes statM: "methd G statC sig = Some statM" and
+  assumes  statM: "methd G statC sig = Some statM" and
         subclseq: "G\<turnstile>dynC \<preceq>\<^sub>C statC" and
     is_cls_statC: "is_class G statC" and
               ws: "ws_prog G"
-   )
-   "\<exists> dynM. dynmethd G statC dynC sig = Some dynM \<and>
-            is_static dynM = is_static statM \<and> G\<turnstile>resTy dynM\<preceq>resTy statM"
+  shows
+    "\<exists> dynM. dynmethd G statC dynC sig = Some dynM \<and>
+             is_static dynM = is_static statM \<and> G\<turnstile>resTy dynM\<preceq>resTy statM"
 proof - 
   from statM subclseq is_cls_statC ws
   show ?thesis

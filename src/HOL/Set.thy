@@ -212,7 +212,7 @@ lemma CollectI: "P(a) ==> a : {x. P(x)}"
 lemma CollectD: "a : {x. P(x)} ==> P(a)"
   by simp
 
-lemma set_ext: (assumes prem: "(!!x. (x:A) = (x:B))") "A = B"
+lemma set_ext: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
   apply (rule prem [THEN ext, THEN arg_cong, THEN box_equals])
    apply (rule Collect_mem_eq)
   apply (rule Collect_mem_eq)

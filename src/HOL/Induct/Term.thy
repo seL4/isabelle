@@ -42,9 +42,9 @@ and "subst_term_list (subst_term f1 \<circ> f2) ts =
 text {* \medskip Alternative induction rule *}
 
 lemma
-  (assumes var: "!!v. P (Var v)"
-    and app: "!!f ts. list_all P ts ==> P (App f ts)")
-  term_induct2: "P t"
+  assumes var: "!!v. P (Var v)"
+    and app: "!!f ts. list_all P ts ==> P (App f ts)"
+  shows term_induct2: "P t"
 and "list_all P ts"
   apply (induct t and ts)
      apply (rule var)

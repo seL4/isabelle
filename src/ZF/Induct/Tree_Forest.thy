@@ -53,9 +53,11 @@ lemma TF_equals_Un: "tree(A) \<union> forest(A) = tree_forest(A)"
   apply (auto intro!: equalityI tree_forest.intros elim: tree_forest.cases)
   done
 
-lemma (notes rews = tree_forest.con_defs tree_def forest_def)
-  tree_forest_unfold: "tree_forest(A) =
-    (A \<times> forest(A)) + ({0} + tree(A) \<times> forest(A))"
+lemma
+  notes rews = tree_forest.con_defs tree_def forest_def
+  shows
+    tree_forest_unfold: "tree_forest(A) =
+      (A \<times> forest(A)) + ({0} + tree(A) \<times> forest(A))"
     -- {* NOT useful, but interesting \dots *}
   apply (unfold tree_def forest_def)
   apply (fast intro!: tree_forest.intros [unfolded rews, THEN PartD1]
@@ -169,9 +171,10 @@ text {*
   \medskip @{text map}.
 *}
 
-lemma (assumes h_type: "!!x. x \<in> A ==> h(x): B")
-    map_tree_type: "t \<in> tree(A) ==> map(h,t) \<in> tree(B)"
-  and map_forest_type: "f \<in> forest(A) ==> map(h,f) \<in> forest(B)"
+lemma
+  assumes h_type: "!!x. x \<in> A ==> h(x): B"
+  shows map_tree_type: "t \<in> tree(A) ==> map(h,t) \<in> tree(B)"
+    and map_forest_type: "f \<in> forest(A) ==> map(h,f) \<in> forest(B)"
   apply (induct rule: tree_forest.mutual_induct)
     apply (insert h_type)
     apply simp_all

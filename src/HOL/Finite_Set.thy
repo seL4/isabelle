@@ -265,10 +265,10 @@ lemma finite_converse [iff]: "finite (r^-1) = finite r"
   apply simp
   done
 
-lemma finite_lessThan [iff]: (fixes k :: nat) "finite {..k(}"
+lemma finite_lessThan [iff]: fixes k :: nat shows "finite {..k(}"
   by (induct k) (simp_all add: lessThan_Suc)
 
-lemma finite_atMost [iff]: (fixes k :: nat) "finite {..k}"
+lemma finite_atMost [iff]: fixes k :: nat shows "finite {..k}"
   by (induct k) (simp_all add: atMost_Suc)
 
 lemma bounded_nat_set_is_finite:
@@ -814,10 +814,12 @@ lemma setsum_Un_disjoint: "finite A ==> finite B
     apply auto
   done
 
-lemma setsum_UN_disjoint: (fixes f :: "'a => 'b::plus_ac0")
-  "finite I ==> (ALL i:I. finite (A i)) ==>
-      (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
-    setsum f (UNION I A) = setsum (\<lambda>i. setsum f (A i)) I"
+lemma setsum_UN_disjoint:
+  fixes f :: "'a => 'b::plus_ac0"
+  shows
+    "finite I ==> (ALL i:I. finite (A i)) ==>
+        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
+      setsum f (UNION I A) = setsum (\<lambda>i. setsum f (A i)) I"
   apply (induct set: Finites)
    apply simp
   apply atomize
@@ -939,7 +941,7 @@ lemma n_sub_lemma:
   apply (blast intro: finite_Pow_iff [THEN iffD2, THEN [2] finite_subset])
   done
 
-theorem n_subsets: "finite A ==> card {B. B <= A & card(B) = k} = (card A choose k)"
+theorem n_subsets: "finite A ==> card {B. B <= A & card B = k} = (card A choose k)"
   by (simp add: n_sub_lemma)
 
 end

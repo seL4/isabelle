@@ -723,12 +723,12 @@ proof -
 qed
 
 lemma ws_interface_induct [consumes 2, case_names Step]:
- (assumes is_if_I: "is_iface G I" and 
+  assumes is_if_I: "is_iface G I" and 
                ws: "ws_prog G" and
           hyp_sub: "\<And>I i. \<lbrakk>iface G I = Some i; 
                             \<forall> J \<in> set (isuperIfs i).
                                  (I,J)\<in>subint1 G \<and> P J \<and> is_iface G J\<rbrakk> \<Longrightarrow> P I"
- ) "P I"
+  shows "P I"
 proof -
   from is_if_I ws 
   show "P I"

@@ -718,7 +718,8 @@ proof -
 qed
 
 lemma wf_prog_hidesD:
- (assumes hides: "G \<turnstile>new hides old" and wf: "wf_prog G") 
+  assumes hides: "G \<turnstile>new hides old" and wf: "wf_prog G"
+  shows
    "accmodi old \<le> accmodi new \<and>
     is_static old"
 proof -
@@ -759,7 +760,8 @@ restriction for dynamic overriding, too. See lemma
 @{text wf_prog_dyn_override_prop}.
 *}
 lemma wf_prog_stat_overridesD:
- (assumes stat_override: "G \<turnstile>new overrides\<^sub>S old" and wf: "wf_prog G") 
+  assumes stat_override: "G \<turnstile>new overrides\<^sub>S old" and wf: "wf_prog G"
+  shows
    "G\<turnstile>resTy new\<preceq>resTy old \<and>
     accmodi old \<le> accmodi new \<and>
     \<not> is_static old"
@@ -790,8 +792,8 @@ proof -
 qed
     
 lemma static_to_dynamic_overriding: 
-  (assumes stat_override: "G\<turnstile>new overrides\<^sub>S old" and wf : "wf_prog G")
-   "G\<turnstile>new overrides old"
+  assumes stat_override: "G\<turnstile>new overrides\<^sub>S old" and wf : "wf_prog G"
+  shows "G\<turnstile>new overrides old"
 proof -
   from stat_override 
   show ?thesis (is "?Overrides new old")
@@ -827,14 +829,14 @@ proof -
 qed
 
 lemma non_Package_instance_method_inheritance:
-(assumes old_inheritable: "G\<turnstile>Method old inheritable_in (pid C)" and
-             accmodi_old: "accmodi old \<noteq> Package" and 
-         instance_method: "\<not> is_static old" and
-                  subcls: "G\<turnstile>C \<prec>\<^sub>C declclass old" and
-            old_declared: "G\<turnstile>Method old declared_in (declclass old)" and
-                      wf: "wf_prog G"
-) "G\<turnstile>Method old member_of C \<or>
-   (\<exists> new. G\<turnstile> new overrides\<^sub>S old \<and>  G\<turnstile>Method new member_of C)"
+  assumes old_inheritable: "G\<turnstile>Method old inheritable_in (pid C)" and
+              accmodi_old: "accmodi old \<noteq> Package" and 
+          instance_method: "\<not> is_static old" and
+                   subcls: "G\<turnstile>C \<prec>\<^sub>C declclass old" and
+             old_declared: "G\<turnstile>Method old declared_in (declclass old)" and
+                       wf: "wf_prog G"
+  shows "G\<turnstile>Method old member_of C \<or>
+   (\<exists> new. G\<turnstile> new overrides\<^sub>S old \<and> G\<turnstile>Method new member_of C)"
 proof -
   from wf have ws: "ws_prog G" by auto
   from old_declared have iscls_declC_old: "is_class G (declclass old)"
@@ -989,17 +991,17 @@ qed
 
 lemma non_Package_instance_method_inheritance_cases [consumes 6,
          case_names Inheritance Overriding]:
-(assumes old_inheritable: "G\<turnstile>Method old inheritable_in (pid C)" and
-             accmodi_old: "accmodi old \<noteq> Package" and 
-         instance_method: "\<not> is_static old" and
-                  subcls: "G\<turnstile>C \<prec>\<^sub>C declclass old" and
-            old_declared: "G\<turnstile>Method old declared_in (declclass old)" and
-                      wf: "wf_prog G" and
-             inheritance: "G\<turnstile>Method old member_of C \<Longrightarrow> P" and
-             overriding:  "\<And> new. 
+  assumes old_inheritable: "G\<turnstile>Method old inheritable_in (pid C)" and
+              accmodi_old: "accmodi old \<noteq> Package" and 
+          instance_method: "\<not> is_static old" and
+                   subcls: "G\<turnstile>C \<prec>\<^sub>C declclass old" and
+             old_declared: "G\<turnstile>Method old declared_in (declclass old)" and
+                       wf: "wf_prog G" and
+              inheritance: "G\<turnstile>Method old member_of C \<Longrightarrow> P" and
+               overriding: "\<And> new.
                            \<lbrakk>G\<turnstile> new overrides\<^sub>S old;G\<turnstile>Method new member_of C\<rbrakk>
                            \<Longrightarrow> P"
-) "P"
+  shows P
 proof -
   from old_inheritable accmodi_old instance_method subcls old_declared wf 
        inheritance overriding
@@ -1008,10 +1010,10 @@ proof -
 qed
 
 lemma dynamic_to_static_overriding:
-(assumes dyn_override: "G\<turnstile> new overrides old" and
-          accmodi_old: "accmodi old \<noteq> Package" and
-                   wf: "wf_prog G"
-) "G\<turnstile> new overrides\<^sub>S old"  
+  assumes dyn_override: "G\<turnstile> new overrides old" and
+           accmodi_old: "accmodi old \<noteq> Package" and
+                    wf: "wf_prog G"
+  shows "G\<turnstile> new overrides\<^sub>S old"  
 proof - 
   from dyn_override accmodi_old
   show ?thesis (is "?Overrides new old")
@@ -1101,9 +1103,9 @@ proof -
 qed
 
 lemma wf_prog_dyn_override_prop:
- (assumes dyn_override: "G \<turnstile> new overrides old" and
+  assumes dyn_override: "G \<turnstile> new overrides old" and
                     wf: "wf_prog G"
- ) "accmodi old \<le> accmodi new"
+  shows "accmodi old \<le> accmodi new"
 proof (cases "accmodi old = Package")
   case True
   note old_Package = this
@@ -1130,10 +1132,10 @@ next
 qed 
 
 lemma overrides_Package_old: 
-(assumes dyn_override: "G \<turnstile> new overrides old" and 
-          accmodi_new: "accmodi new = Package" and
-                   wf: "wf_prog G "
-) "accmodi old = Package"
+  assumes dyn_override: "G \<turnstile> new overrides old" and 
+           accmodi_new: "accmodi new = Package" and
+                    wf: "wf_prog G "
+  shows "accmodi old = Package"
 proof (cases "accmodi old")
   case Private
   with dyn_override show ?thesis
@@ -1166,11 +1168,11 @@ next
 qed
 
 lemma dyn_override_Package:
- (assumes dyn_override: "G \<turnstile> new overrides old" and
-          accmodi_old: "accmodi old = Package" and 
-          accmodi_new: "accmodi new = Package" and
+  assumes dyn_override: "G \<turnstile> new overrides old" and
+           accmodi_old: "accmodi old = Package" and 
+           accmodi_new: "accmodi new = Package" and
                     wf: "wf_prog G"
- ) "pid (declclass old) = pid (declclass new)"
+  shows "pid (declclass old) = pid (declclass new)"
 proof - 
   from dyn_override accmodi_old accmodi_new
   show ?thesis (is "?EqPid old new")
@@ -1195,11 +1197,11 @@ proof -
 qed
 
 lemma dyn_override_Package_escape:
- (assumes dyn_override: "G \<turnstile> new overrides old" and
-          accmodi_old: "accmodi old = Package" and 
-         outside_pack: "pid (declclass old) \<noteq> pid (declclass new)" and
+  assumes dyn_override: "G \<turnstile> new overrides old" and
+           accmodi_old: "accmodi old = Package" and 
+          outside_pack: "pid (declclass old) \<noteq> pid (declclass new)" and
                     wf: "wf_prog G"
- ) "\<exists> inter. G \<turnstile> new overrides inter \<and> G \<turnstile> inter overrides old \<and>
+  shows "\<exists> inter. G \<turnstile> new overrides inter \<and> G \<turnstile> inter overrides old \<and>
              pid (declclass old) = pid (declclass inter) \<and>
              Protected \<le> accmodi inter"
 proof -
@@ -1373,10 +1375,11 @@ proof -
 qed
 
 lemma methd_rec_Some_cases [consumes 4, case_names NewMethod InheritedMethod]:
-(assumes methd_C: "methd G C sig = Some m" and
-                    ws: "ws_prog G" and
-                  clsC: "class G C = Some c" and
-             neq_C_Obj: "C\<noteq>Object" )  
+  assumes methd_C: "methd G C sig = Some m" and
+               ws: "ws_prog G" and
+             clsC: "class G C = Some c" and
+        neq_C_Obj: "C\<noteq>Object"
+  shows
 "\<lbrakk>table_of (map (\<lambda>(s, m). (s, C, m)) (methods c)) sig = Some m \<Longrightarrow> P;
   \<lbrakk>G\<turnstile>C inherits (method sig m); methd G (super c) sig = Some m\<rbrakk> \<Longrightarrow> P 
  \<rbrakk> \<Longrightarrow> P"
@@ -1406,8 +1409,9 @@ qed
 
   
 lemma methd_member_of:
- (assumes wf: "wf_prog G") 
-  "\<lbrakk>is_class G C; methd G C sig = Some m\<rbrakk> \<Longrightarrow> G\<turnstile>Methd sig m member_of C" 
+  assumes wf: "wf_prog G"
+  shows
+    "\<lbrakk>is_class G C; methd G C sig = Some m\<rbrakk> \<Longrightarrow> G\<turnstile>Methd sig m member_of C" 
   (is "?Class C \<Longrightarrow> ?Method C \<Longrightarrow> ?MemberOf C") 
 proof -
   from wf   have   ws: "ws_prog G" ..
@@ -1452,13 +1456,13 @@ by (auto simp add: methd_rec
             intro: filter_tab_SomeI override_find_right table_of_map_SomeI)
 
 lemma wf_prog_staticD:
- (assumes     wf: "wf_prog G" and 
+  assumes     wf: "wf_prog G" and
             clsC: "class G C = Some c" and
        neq_C_Obj: "C \<noteq> Object" and 
              old: "methd G (super c) sig = Some old" and 
      accmodi_old: "Protected \<le> accmodi old" and
              new: "table_of (methods c) sig = Some new"
- ) "is_static new = is_static old"
+  shows "is_static new = is_static old"
 proof -
   from clsC wf 
   have wf_cdecl: "wf_cdecl G (C,c)" by (rule wf_prog_cdecl)
@@ -1508,13 +1512,13 @@ proof -
 qed
 
 lemma inheritable_instance_methd: 
- (assumes subclseq_C_D: "G\<turnstile>C \<preceq>\<^sub>C D" and
+  assumes subclseq_C_D: "G\<turnstile>C \<preceq>\<^sub>C D" and
               is_cls_D: "is_class G D" and
                     wf: "wf_prog G" and 
                    old: "methd G D sig = Some old" and
            accmodi_old: "Protected \<le> accmodi old" and  
         not_static_old: "\<not> is_static old"
- )  
+  shows
   "\<exists>new. methd G C sig = Some new \<and>
          (new = old \<or> G,sig\<turnstile>new overrides\<^sub>S old)"
  (is "(\<exists>new. (?Constraint C new old))")
@@ -1644,7 +1648,7 @@ qed
 
 lemma inheritable_instance_methd_cases [consumes 6
                                        , case_names Inheritance Overriding]: 
- (assumes subclseq_C_D: "G\<turnstile>C \<preceq>\<^sub>C D" and
+  assumes subclseq_C_D: "G\<turnstile>C \<preceq>\<^sub>C D" and
               is_cls_D: "is_class G D" and
                     wf: "wf_prog G" and 
                    old: "methd G D sig = Some old" and
@@ -1654,7 +1658,7 @@ lemma inheritable_instance_methd_cases [consumes 6
             overriding:  "\<And> new. \<lbrakk>methd G C sig = Some new;
                                    G,sig\<turnstile>new overrides\<^sub>S old\<rbrakk> \<Longrightarrow> P"
         
- ) "P"
+  shows P
 proof -
 from subclseq_C_D is_cls_D wf old accmodi_old not_static_old 
 show ?thesis
@@ -1662,13 +1666,13 @@ show ?thesis
 qed
 
 lemma inheritable_instance_methd_props: 
- (assumes subclseq_C_D: "G\<turnstile>C \<preceq>\<^sub>C D" and
+  assumes subclseq_C_D: "G\<turnstile>C \<preceq>\<^sub>C D" and
               is_cls_D: "is_class G D" and
                     wf: "wf_prog G" and 
                    old: "methd G D sig = Some old" and
            accmodi_old: "Protected \<le> accmodi old" and  
         not_static_old: "\<not> is_static old"
- )  
+  shows
   "\<exists>new. methd G C sig = Some new \<and>
           \<not> is_static new \<and> G\<turnstile>resTy new\<preceq>resTy old \<and> accmodi old \<le>accmodi new"
  (is "(\<exists>new. (?Constraint C new old))")
@@ -1976,11 +1980,11 @@ done
 *)
 
 lemma dynmethd_Object:
- (assumes statM: "methd G Object sig = Some statM" and
+  assumes statM: "methd G Object sig = Some statM" and
         private: "accmodi statM = Private" and 
        is_cls_C: "is_class G C" and
              wf: "wf_prog G"
- ) "dynmethd G Object C sig = Some statM"
+  shows "dynmethd G Object C sig = Some statM"
 proof -
   from is_cls_C wf 
   have subclseq: "G\<turnstile>C \<preceq>\<^sub>C Object" 
@@ -2002,12 +2006,12 @@ proof -
 qed
 
 lemma wf_imethds_hiding_objmethdsD: 
-  (assumes     old: "methd G Object sig = Some old" and
-           is_if_I: "is_iface G I" and
-                wf: "wf_prog G" and    
-       not_private: "accmodi old \<noteq> Private" and
-               new: "new \<in> imethds G I sig" 
-  ) "G\<turnstile>resTy new\<preceq>resTy old \<and> is_static new = is_static old" (is "?P new")
+  assumes     old: "methd G Object sig = Some old" and
+          is_if_I: "is_iface G I" and
+               wf: "wf_prog G" and    
+      not_private: "accmodi old \<noteq> Private" and
+              new: "new \<in> imethds G I sig" 
+  shows "G\<turnstile>resTy new\<preceq>resTy old \<and> is_static new = is_static old" (is "?P new")
 proof -
   from wf have ws: "ws_prog G" by simp
   {
@@ -2102,10 +2106,10 @@ primrec
 "G,ArrayT T \<turnstile> dynC valid_lookup_cls_for static_membr = (dynC=Object)"
 
 lemma valid_lookup_cls_is_class:
- (assumes dynC: "G,statT \<turnstile> dynC valid_lookup_cls_for static_membr" and
+  assumes dynC: "G,statT \<turnstile> dynC valid_lookup_cls_for static_membr" and
       ty_statT: "isrtype G statT" and
             wf: "wf_prog G"
- ) "is_class G dynC"
+  shows "is_class G dynC"
 proof (cases statT)
   case NullT
   with dynC ty_statT show ?thesis
@@ -2503,10 +2507,10 @@ qed (auto intro: dyn_accessible_fromR.intros
                  static_to_dynamic_overriding)
 
 lemma static_to_dynamic_accessible_from:
- (assumes stat_acc: "G\<turnstile>m of statC accessible_from accC" and
+  assumes stat_acc: "G\<turnstile>m of statC accessible_from accC" and
           subclseq: "G\<turnstile>dynC \<preceq>\<^sub>C statC" and
                 wf: "wf_prog G"
- ) "G\<turnstile>m in dynC dyn_accessible_from accC"
+  shows "G\<turnstile>m in dynC dyn_accessible_from accC"
 proof - 
   from stat_acc subclseq 
   show ?thesis (is "?Dyn_accessible m")
@@ -2528,10 +2532,10 @@ proof -
 qed
 
 lemma static_to_dynamic_accessible_from_static:
- (assumes stat_acc: "G\<turnstile>m of statC accessible_from accC" and
+  assumes stat_acc: "G\<turnstile>m of statC accessible_from accC" and
             static: "is_static m" and
                 wf: "wf_prog G"
- ) "G\<turnstile>m in (declclass m) dyn_accessible_from accC"
+  shows "G\<turnstile>m in (declclass m) dyn_accessible_from accC"
 proof -
   from stat_acc wf 
   have "G\<turnstile>m in statC dyn_accessible_from accC"
@@ -2542,10 +2546,10 @@ proof -
 qed
 
 lemma dynmethd_member_in:
- (assumes    m: "dynmethd G statC dynC sig = Some m" and
+  assumes    m: "dynmethd G statC dynC sig = Some m" and
    iscls_statC: "is_class G statC" and
             wf: "wf_prog G"
- ) "G\<turnstile>Methd sig m member_in dynC"
+  shows "G\<turnstile>Methd sig m member_in dynC"
 proof -
   from m 
   have subclseq: "G\<turnstile>dynC \<preceq>\<^sub>C statC"
@@ -2563,11 +2567,11 @@ proof -
 qed
 
 lemma dynmethd_access_prop:
-  (assumes statM: "methd G statC sig = Some statM" and
-        stat_acc: "G\<turnstile>Methd sig statM of statC accessible_from accC" and
-            dynM: "dynmethd G statC dynC sig = Some dynM" and
-              wf: "wf_prog G" 
-   ) "G\<turnstile>Methd sig dynM in dynC dyn_accessible_from accC"
+  assumes statM: "methd G statC sig = Some statM" and
+       stat_acc: "G\<turnstile>Methd sig statM of statC accessible_from accC" and
+           dynM: "dynmethd G statC dynC sig = Some dynM" and
+             wf: "wf_prog G" 
+  shows "G\<turnstile>Methd sig dynM in dynC dyn_accessible_from accC"
 proof -
   from wf have ws: "ws_prog G" ..
   from dynM 
@@ -2638,12 +2642,12 @@ proof -
 qed
 
 lemma implmt_methd_access:
-(fixes accC::qtname
- assumes iface_methd: "imethds G I sig \<noteq> {}" and
+  fixes accC::qtname
+  assumes iface_methd: "imethds G I sig \<noteq> {}" and
            implements: "G\<turnstile>dynC\<leadsto>I"  and
                isif_I: "is_iface G I" and
                    wf: "wf_prog G" 
- ) "\<exists> dynM. methd G dynC sig = Some dynM \<and> 
+  shows "\<exists> dynM. methd G dynC sig = Some dynM \<and> 
             G\<turnstile>Methd sig dynM in dynC dyn_accessible_from accC"
 proof -
   from implements 
@@ -2668,12 +2672,12 @@ proof -
 qed
 
 corollary implmt_dynimethd_access:
-(fixes accC::qtname
- assumes iface_methd: "imethds G I sig \<noteq> {}" and
+  fixes accC::qtname
+  assumes iface_methd: "imethds G I sig \<noteq> {}" and
            implements: "G\<turnstile>dynC\<leadsto>I"  and
                isif_I: "is_iface G I" and
                    wf: "wf_prog G" 
- ) "\<exists> dynM. dynimethd G I dynC sig = Some dynM \<and> 
+  shows "\<exists> dynM. dynimethd G I dynC sig = Some dynM \<and> 
             G\<turnstile>Methd sig dynM in dynC dyn_accessible_from accC"
 proof -
   from iface_methd
@@ -2686,12 +2690,12 @@ proof -
 qed
 
 lemma dynlookup_access_prop:
- (assumes emh: "emh \<in> mheads G accC statT sig" and
+  assumes emh: "emh \<in> mheads G accC statT sig" and
          dynM: "dynlookup G statT dynC sig = Some dynM" and
     dynC_prop: "G,statT \<turnstile> dynC valid_lookup_cls_for is_static emh" and
     isT_statT: "isrtype G statT" and
            wf: "wf_prog G"
- ) "G \<turnstile>Methd sig dynM in dynC dyn_accessible_from accC"
+  shows "G \<turnstile>Methd sig dynM in dynC dyn_accessible_from accC"
 proof -
   from emh wf
   have statT_acc: "G\<turnstile>RefT statT accessible_in (pid accC)"
@@ -2835,11 +2839,11 @@ proof -
 qed
 
 lemma dynlookup_access:
- (assumes emh: "emh \<in> mheads G accC statT sig" and
+  assumes emh: "emh \<in> mheads G accC statT sig" and
     dynC_prop: "G,statT \<turnstile> dynC valid_lookup_cls_for (is_static emh) " and
     isT_statT: "isrtype G statT" and
            wf: "wf_prog G"
- ) "\<exists> dynM. dynlookup G statT dynC sig = Some dynM \<and> 
+  shows "\<exists> dynM. dynlookup G statT dynC sig = Some dynM \<and> 
             G\<turnstile>Methd sig dynM in dynC dyn_accessible_from accC"
 proof - 
   from dynC_prop isT_statT wf
@@ -2855,10 +2859,10 @@ proof -
 qed
 
 lemma stat_overrides_Package_old: 
-(assumes stat_override: "G \<turnstile> new overrides\<^sub>S old" and 
+  assumes stat_override: "G \<turnstile> new overrides\<^sub>S old" and 
           accmodi_new: "accmodi new = Package" and
                    wf: "wf_prog G "
-) "accmodi old = Package"
+  shows "accmodi old = Package"
 proof -
   from stat_override wf 
   have "accmodi old \<le> accmodi new"
@@ -2916,12 +2920,12 @@ text {* @{text dyn_accessible_instance_field_Protected} only works for fields
 since methods can break the package bounds due to overriding
 *}
 lemma dyn_accessible_instance_field_Protected:
- (assumes dyn_acc: "G \<turnstile> f in C dyn_accessible_from accC" and
+  assumes dyn_acc: "G \<turnstile> f in C dyn_accessible_from accC" and
              prot: "accmodi f = Protected" and
             field: "is_field f" and
    instance_field: "\<not> is_static f" and
           outside: "pid (declclass f) \<noteq> pid accC"
- ) "G\<turnstile> C \<preceq>\<^sub>C accC"
+  shows "G\<turnstile> C \<preceq>\<^sub>C accC"
 proof -
   from dyn_acc prot field instance_field outside
   show ?thesis
@@ -2941,12 +2945,12 @@ proof -
 qed
    
 lemma dyn_accessible_static_field_Protected:
- (assumes dyn_acc: "G \<turnstile> f in C dyn_accessible_from accC" and
+  assumes dyn_acc: "G \<turnstile> f in C dyn_accessible_from accC" and
              prot: "accmodi f = Protected" and
             field: "is_field f" and
      static_field: "is_static f" and
           outside: "pid (declclass f) \<noteq> pid accC"
- ) "G\<turnstile> accC \<preceq>\<^sub>C declclass f  \<and> G\<turnstile>C \<preceq>\<^sub>C declclass f"
+  shows "G\<turnstile> accC \<preceq>\<^sub>C declclass f  \<and> G\<turnstile>C \<preceq>\<^sub>C declclass f"
 proof -
   from dyn_acc prot field static_field outside
   show ?thesis

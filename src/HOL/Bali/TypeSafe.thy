@@ -10,9 +10,9 @@ theory TypeSafe = Eval + WellForm + Conform:
 section "error free"
  
 lemma error_free_halloc:
- (assumes halloc: "G\<turnstile>s0 \<midarrow>halloc oi\<succ>a\<rightarrow> s1" and
+  assumes halloc: "G\<turnstile>s0 \<midarrow>halloc oi\<succ>a\<rightarrow> s1" and
           error_free_s0: "error_free s0"
- ) "error_free s1"
+  shows "error_free s1"
 proof -
   from halloc error_free_s0
   obtain abrupt0 store0 abrupt1 store1
@@ -37,8 +37,8 @@ proof -
 qed
 
 lemma error_free_sxalloc:
- (assumes sxalloc: "G\<turnstile>s0 \<midarrow>sxalloc\<rightarrow> s1" and error_free_s0: "error_free s0") 
- "error_free s1"
+  assumes sxalloc: "G\<turnstile>s0 \<midarrow>sxalloc\<rightarrow> s1" and error_free_s0: "error_free s0"
+  shows "error_free s1"
 proof -
   from sxalloc error_free_s0
   obtain abrupt0 store0 abrupt1 store1
@@ -857,17 +857,17 @@ subsection "accessibility"
 
 (* #### stat raus und gleich is_static f schreiben *) 
 theorem dynamic_field_access_ok:
-  (assumes wf: "wf_prog G" and
-     not_Null: "\<not> stat \<longrightarrow> a\<noteq>Null" and
-    conform_a: "G,(store s)\<turnstile>a\<Colon>\<preceq> Class statC" and
-    conform_s: "s\<Colon>\<preceq>(G, L)" and 
-     normal_s: "normal s" and
-         wt_e: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>e\<Colon>-Class statC" and
-            f: "accfield G accC statC fn = Some f" and
-         dynC: "if stat then dynC=declclass f  
-                        else dynC=obj_class (lookup_obj (store s) a)" and
-         stat: "if stat then (is_static f) else (\<not> is_static f)"
-  ) "table_of (DeclConcepts.fields G dynC) (fn,declclass f) = Some (fld f) \<and> 
+  assumes wf: "wf_prog G" and
+    not_Null: "\<not> stat \<longrightarrow> a\<noteq>Null" and
+   conform_a: "G,(store s)\<turnstile>a\<Colon>\<preceq> Class statC" and
+   conform_s: "s\<Colon>\<preceq>(G, L)" and 
+    normal_s: "normal s" and
+        wt_e: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>e\<Colon>-Class statC" and
+           f: "accfield G accC statC fn = Some f" and
+        dynC: "if stat then dynC=declclass f  
+                       else dynC=obj_class (lookup_obj (store s) a)" and
+        stat: "if stat then (is_static f) else (\<not> is_static f)"
+  shows "table_of (DeclConcepts.fields G dynC) (fn,declclass f) = Some (fld f) \<and> 
      G\<turnstile>Field fn f in dynC dyn_accessible_from accC"
 proof (cases "stat")
   case True
@@ -1017,7 +1017,7 @@ qed
 *)
 
 lemma error_free_field_access:
- (assumes accfield: "accfield G accC statC fn = Some (statDeclC, f)" and
+  assumes accfield: "accfield G accC statC fn = Some (statDeclC, f)" and
               wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-Class statC" and
          eval_init: "G\<turnstile>Norm s0 \<midarrow>Init statDeclC\<rightarrow> s1" and
             eval_e: "G\<turnstile>s1 \<midarrow>e-\<succ>a\<rightarrow> s2" and
@@ -1025,7 +1025,7 @@ lemma error_free_field_access:
             conf_a: "normal s2 \<Longrightarrow> G, store s2\<turnstile>a\<Colon>\<preceq>Class statC" and
               fvar: "(v,s2')=fvar statDeclC (is_static f) fn a s2" and
                 wf: "wf_prog G"   
- ) "check_field_access G accC statDeclC fn (is_static f) a s2' = s2'"
+  shows "check_field_access G accC statDeclC fn (is_static f) a s2' = s2'"
 proof -
   from fvar
   have store_s2': "store s2'=store s2"
@@ -1066,12 +1066,12 @@ proof -
 qed
 
 lemma call_access_ok:
-(assumes invC_prop: "G\<turnstile>invmode statM e\<rightarrow>invC\<preceq>statT" 
-     and        wf: "wf_prog G" 
-     and      wt_e: "\<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>e\<Colon>-RefT statT"
-     and     statM: "(statDeclT,statM) \<in> mheads G accC statT sig" 
-     and      invC: "invC = invocation_class (invmode statM e) s a statT"
-)"\<exists> dynM. dynlookup G statT invC sig = Some dynM \<and>
+  assumes invC_prop: "G\<turnstile>invmode statM e\<rightarrow>invC\<preceq>statT" 
+      and        wf: "wf_prog G" 
+      and      wt_e: "\<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>e\<Colon>-RefT statT"
+      and     statM: "(statDeclT,statM) \<in> mheads G accC statT sig" 
+      and      invC: "invC = invocation_class (invmode statM e) s a statT"
+  shows "\<exists> dynM. dynlookup G statT invC sig = Some dynM \<and>
   G\<turnstile>Methd sig dynM in invC dyn_accessible_from accC"
 proof -
   from wt_e wf have type_statT: "is_type G (RefT statT)"
@@ -1123,7 +1123,7 @@ proof -
 qed
 
 lemma error_free_call_access:
- (assumes     
+  assumes
    eval_args: "G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<rightarrow> s2" and
         wt_e: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>e\<Colon>-(RefT statT)" and  
        statM: "max_spec G accC statT \<lparr>name = mn, parTs = pTs\<rparr> 
@@ -1138,7 +1138,7 @@ lemma error_free_call_access:
     invDeclC: "invDeclC = invocation_declclass G (invmode statM e) (store s2) 
                              a statT \<lparr>name = mn, parTs = pTs'\<rparr>" and
           wf: "wf_prog G"
- )"check_method_access G accC statT (invmode statM e) \<lparr>name=mn,parTs=pTs'\<rparr> a s3
+  shows "check_method_access G accC statT (invmode statM e) \<lparr>name=mn,parTs=pTs'\<rparr> a s3
    = s3"
 proof (cases "normal s2")
   case False
@@ -1198,11 +1198,11 @@ qed
 section "main proof of type safety"
 
 lemma eval_type_sound:
-      (assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" and
-                 wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and
-                 wf: "wf_prog G" and 
-            conf_s0: "s0\<Colon>\<preceq>(G,L)"           
-      ) "s1\<Colon>\<preceq>(G,L) \<and>  (normal s1 \<longrightarrow> G,L,store s1\<turnstile>t\<succ>v\<Colon>\<preceq>T) \<and> 
+  assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" and
+            wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and
+            wf: "wf_prog G" and 
+       conf_s0: "s0\<Colon>\<preceq>(G,L)"           
+  shows "s1\<Colon>\<preceq>(G,L) \<and>  (normal s1 \<longrightarrow> G,L,store s1\<turnstile>t\<succ>v\<Colon>\<preceq>T) \<and> 
          (error_free s0 = error_free s1)"
 proof -
   from eval 

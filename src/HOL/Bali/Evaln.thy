@@ -324,12 +324,12 @@ apply auto
 done
 
 lemma evaln_eval:  
- (assumes evaln: "G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)" and
+  assumes evaln: "G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)" and
              wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and  
         conf_s0: "s0\<Colon>\<preceq>(G, L)" and
              wf: "wf_prog G" 
        
- )  "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)"
+  shows "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)"
 proof -
   from evaln 
   show "\<And> L accC T. \<lbrakk>s0\<Colon>\<preceq>(G, L);\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T\<rbrakk>
@@ -477,8 +477,9 @@ proof -
   next
     case (Call invDeclC a' accC' args e mn mode n pTs' s0 s1 s2 s4 statT 
            v vs L accC T)
-    (* Repeats large parts of the type soundness proof. One should factor
-       out some lemmata about the relations and conformance of s2, s3 and s3'*)
+    txt {* Repeats large parts of the type soundness proof. One should factor
+      out some lemmata about the relations and conformance of @{text
+      s2}, @{text s3} and @{text s3'} *}
     have evaln_e: "G\<turnstile>Norm s0 \<midarrow>e-\<succ>a'\<midarrow>n\<rightarrow> s1" .
     have evaln_args: "G\<turnstile>s1 \<midarrow>args\<doteq>\<succ>vs\<midarrow>n\<rightarrow> s2" .
     have invDeclC: "invDeclC 
@@ -934,8 +935,7 @@ proof -
       show ?thesis
 	by simp
     qed
-    from cls this
-    show ?case
+    with cls show ?case
       by (rule eval.Init)
   qed 
 qed
@@ -994,13 +994,14 @@ proof -
   show ?thesis .
 qed
 
+text {* *} (* FIXME *)
 
 lemma eval_evaln: 
- (assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" and
-          wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and  
-     conf_s0: "s0\<Colon>\<preceq>(G, L)" and
-          wf: "wf_prog G"  
- )  "\<exists>n. G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)"
+  assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" and
+            wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and  
+       conf_s0: "s0\<Colon>\<preceq>(G, L)" and
+            wf: "wf_prog G"  
+  shows  "\<exists>n. G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)"
 proof -
   from eval 
   show "\<And> L accC T. \<lbrakk>s0\<Colon>\<preceq>(G, L);\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T\<rbrakk>
@@ -1185,7 +1186,7 @@ proof -
 	with xcpt_s2 conf_s2 wf 
 	have "new_xcpt_var vn s2\<Colon>\<preceq>(G, L(VName vn\<mapsto>Class catchC))"
 	  by (auto dest: Try_lemma)
-	(* FIXME extract lemma for this conformance, also usefull for
+	(* FIXME extract lemma for this conformance, also useful for
                eval_type_sound and evaln_eval *)
 	from this wt_c2
 	obtain m where "G\<turnstile>new_xcpt_var vn s2 \<midarrow>c2\<midarrow>m\<rightarrow> s3"

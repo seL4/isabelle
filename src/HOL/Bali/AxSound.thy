@@ -247,11 +247,11 @@ apply (force dest!: evaln_eval eval_gext' elim: conforms_return
 done
 
 corollary evaln_type_sound:
-      (assumes evaln: "G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)" and
-                  wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and
-             conf_s0: "s0\<Colon>\<preceq>(G,L)" and
-                  wf: "wf_prog G"                         
-      ) "s1\<Colon>\<preceq>(G,L) \<and>  (normal s1 \<longrightarrow> G,L,store s1\<turnstile>t\<succ>v\<Colon>\<preceq>T) \<and> 
+  assumes evaln: "G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)" and
+             wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and
+        conf_s0: "s0\<Colon>\<preceq>(G,L)" and
+             wf: "wf_prog G"                         
+  shows "s1\<Colon>\<preceq>(G,L) \<and>  (normal s1 \<longrightarrow> G,L,store s1\<turnstile>t\<succ>v\<Colon>\<preceq>T) \<and> 
          (error_free s0 = error_free s1)"
 proof -
   from evaln wt conf_s0 wf

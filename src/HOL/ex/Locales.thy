@@ -143,8 +143,8 @@ text {*
 *}
 
 theorem (in group_context)
-  (assumes eq: "e \<cdot> x = x")
-  one_equality: "\<one> = e"
+  assumes eq: "e \<cdot> x = x"
+  shows one_equality: "\<one> = e"
 proof -
   have "\<one> = x \<cdot> x\<inv>" by (simp only: right_inv)
   also have "\<dots> = (e \<cdot> x) \<cdot> x\<inv>" by (simp only: eq)
@@ -155,8 +155,8 @@ proof -
 qed
 
 theorem (in group_context)
-  (assumes eq: "x' \<cdot> x = \<one>")
-  inv_equality: "x\<inv> = x'"
+  assumes eq: "x' \<cdot> x = \<one>"
+  shows inv_equality: "x\<inv> = x'"
 proof -
   have "x\<inv> = \<one> \<cdot> x\<inv>" by (simp only: left_one)
   also have "\<dots> = (x' \<cdot> x) \<cdot> x\<inv>" by (simp only: eq)
@@ -214,8 +214,8 @@ proof (rule inv_equality)
 qed
 
 theorem (in group_context)
-  (assumes eq: "x\<inv> = y\<inv>")
-  inv_inject: "x = y"
+  assumes eq: "x\<inv> = y\<inv>"
+  shows inv_inject: "x = y"
 proof -
   have "x = x \<cdot> \<one>" by (simp only: right_one)
   also have "\<dots> = x \<cdot> (y\<inv> \<cdot> y)" by (simp only: left_inv)
@@ -335,8 +335,9 @@ text {*
   versions of the @{text group} locale above.
 *}
 
-lemma (uses group G + group H)
-  "x \<cdot> y \<cdot> \<one> = prod G (prod G x y) (one G)" and
+lemma
+  uses group G + group H
+  shows "x \<cdot> y \<cdot> \<one> = prod G (prod G x y) (one G)" and
   "x \<cdot>\<^sub>2 y \<cdot>\<^sub>2 \<one>\<^sub>2 = prod H (prod H x y) (one H)" and
   "x \<cdot> \<one>\<^sub>2 = prod G x (one H)" by (rule refl)+
 

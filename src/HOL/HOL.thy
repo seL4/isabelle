@@ -201,7 +201,10 @@ theorems case_split = case_split_thm [case_names True False]
 subsubsection {* Intuitionistic Reasoning *}
 
 lemma impE':
-  (assumes 1: "P --> Q" and 2: "Q ==> R" and 3: "P --> Q ==> P") R
+  assumes 1: "P --> Q"
+    and 2: "Q ==> R"
+    and 3: "P --> Q ==> P"
+  shows R
 proof -
   from 3 and 1 have P .
   with 1 have Q by (rule impE)
@@ -209,13 +212,18 @@ proof -
 qed
 
 lemma allE':
-  (assumes 1: "ALL x. P x" and 2: "P x ==> ALL x. P x ==> Q") Q
+  assumes 1: "ALL x. P x"
+    and 2: "P x ==> ALL x. P x ==> Q"
+  shows Q
 proof -
   from 1 have "P x" by (rule spec)
   from this and 1 show Q by (rule 2)
 qed
 
-lemma notE': (assumes 1: "~ P" and 2: "~ P ==> P") R
+lemma notE':
+  assumes 1: "~ P"
+    and 2: "~ P ==> P"
+  shows R
 proof -
   from 2 and 1 have P .
   with 1 show R by (rule notE)
@@ -309,7 +317,8 @@ qed
 lemma eta_contract_eq: "(%s. f s) = f" ..
 
 lemma simp_thms:
-  (not_not: "(~ ~ P) = P" and
+  shows not_not: "(~ ~ P) = P"
+  and
     "(P ~= Q) = (P = (~Q))"
     "(P | ~P) = True"    "(~P | P) = True"
     "((~P) = (~Q)) = (P=Q)"
@@ -333,7 +342,7 @@ lemma simp_thms:
     "!!P. (EX x. x=t & P(x)) = P(t)"
     "!!P. (EX x. t=x & P(x)) = P(t)"
     "!!P. (ALL x. x=t --> P(x)) = P(t)"
-    "!!P. (ALL x. t=x --> P(x)) = P(t)")
+    "!!P. (ALL x. t=x --> P(x)) = P(t)"
   by (blast, blast, blast, blast, blast, rules+)
  
 lemma imp_cong: "(P = P') ==> (P' ==> (Q = Q')) ==> ((P --> Q) = (P' --> Q'))"
@@ -360,19 +369,19 @@ lemma all_simps:
   by (rules | blast)+
 
 lemma eq_ac:
- (eq_commute: "(a=b) = (b=a)" and
-  eq_left_commute: "(P=(Q=R)) = (Q=(P=R))" and
-  eq_assoc: "((P=Q)=R) = (P=(Q=R))") by (rules, blast+)
+  shows eq_commute: "(a=b) = (b=a)"
+    and eq_left_commute: "(P=(Q=R)) = (Q=(P=R))"
+    and eq_assoc: "((P=Q)=R) = (P=(Q=R))" by (rules, blast+)
 lemma neq_commute: "(a~=b) = (b~=a)" by rules
 
 lemma conj_comms:
- (conj_commute: "(P&Q) = (Q&P)" and
-  conj_left_commute: "(P&(Q&R)) = (Q&(P&R))") by rules+
+  shows conj_commute: "(P&Q) = (Q&P)"
+    and conj_left_commute: "(P&(Q&R)) = (Q&(P&R))" by rules+
 lemma conj_assoc: "((P&Q)&R) = (P&(Q&R))" by rules
 
 lemma disj_comms:
- (disj_commute: "(P|Q) = (Q|P)" and
-  disj_left_commute: "(P|(Q|R)) = (Q|(P|R))") by rules+
+  shows disj_commute: "(P|Q) = (Q|P)"
+    and disj_left_commute: "(P|(Q|R)) = (Q|(P|R))" by rules+
 lemma disj_assoc: "((P|Q)|R) = (P|(Q|R))" by rules
 
 lemma conj_disj_distribL: "(P&(Q|R)) = (P&Q | P&R)" by rules

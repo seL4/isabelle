@@ -58,9 +58,9 @@ lemma rtrancl_mono: "r \<subseteq> s ==> r^* \<subseteq> s^*"
   done
 
 theorem rtrancl_induct [consumes 1, induct set: rtrancl]:
-  (assumes a: "(a, b) : r^*"
-    and cases: "P a" "!!y z. [| (a, y) : r^*; (y, z) : r; P y |] ==> P z")
-  "P b"
+  assumes a: "(a, b) : r^*"
+    and cases: "P a" "!!y z. [| (a, y) : r^*; (y, z) : r; P y |] ==> P z"
+  shows "P b"
 proof -
   from a have "a = a --> P b"
     by (induct "%x y. x = a --> P y" a b) (rules intro: cases)+
@@ -151,14 +151,16 @@ lemma rtrancl_r_diff_Id: "(r - Id)^* = r^*"
   done
 
 theorem rtrancl_converseD:
-  (assumes r: "(x, y) \<in> (r^-1)^*") "(y, x) \<in> r^*"
+  assumes r: "(x, y) \<in> (r^-1)^*"
+  shows "(y, x) \<in> r^*"
 proof -
   from r show ?thesis
     by induct (rules intro: rtrancl_trans dest!: converseD)+
 qed
 
 theorem rtrancl_converseI:
-  (assumes r: "(y, x) \<in> r^*") "(x, y) \<in> (r^-1)^*"
+  assumes r: "(y, x) \<in> r^*"
+  shows "(x, y) \<in> (r^-1)^*"
 proof -
   from r show ?thesis
     by induct (rules intro: rtrancl_trans converseI)+
@@ -168,9 +170,9 @@ lemma rtrancl_converse: "(r^-1)^* = (r^*)^-1"
   by (fast dest!: rtrancl_converseD intro!: rtrancl_converseI)
 
 theorem converse_rtrancl_induct:
-  (assumes major: "(a, b) : r^*"
-   and cases: "P b" "!!y z. [| (y, z) : r; (z, b) : r^*; P z |] ==> P y")
-    "P a"
+  assumes major: "(a, b) : r^*"
+    and cases: "P b" "!!y z. [| (y, z) : r; (z, b) : r^*; P z |] ==> P y"
+  shows "P a"
 proof -
   from rtrancl_converseI [OF major]
   show ?thesis
