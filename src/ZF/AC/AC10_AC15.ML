@@ -187,10 +187,9 @@ by (rtac impI 1);
 by (mp_tac 1);
 by (etac exE 1);
 by (res_inst_tac [("x","lam x:A. {f`x}")] exI 1);
-by (asm_full_simp_tac (simpset() addsimps
-                [singleton_eqpoll_1 RS eqpoll_imp_lepoll,
-                singletonI RS not_emptyI]) 1);
-by (fast_tac (claset() addSEs [apply_type]) 1);
+by (asm_simp_tac (simpset() addsimps
+		  [singleton_eqpoll_1 RS eqpoll_imp_lepoll,
+		   singletonI RS not_emptyI]) 1);
 qed "AC1_AC13";
 
 (* ********************************************************************** *)
@@ -235,13 +234,12 @@ by (fast_tac (claset() addSEs [not_emptyE, lepoll_1_is_sing]) 1);
 qed "lemma_aux";
 
 Goal "ALL B:A. f(B)~=0 & f(B)<=B & f(B) lepoll 1  \
-\               ==> (lam x:A. THE y. f(x)={y}) : (PROD X:A. X)";
+\     ==> (lam x:A. THE y. f(x)={y}) : (PROD X:A. X)";
 by (rtac lam_type 1);
 by (dtac bspec 1 THEN (assume_tac 1));
 by (REPEAT (etac conjE 1));
 by (eresolve_tac [lemma_aux RS exE] 1 THEN (assume_tac 1));
 by (asm_full_simp_tac (simpset() addsimps [the_element]) 1);
-by (fast_tac (claset() addEs [ssubst]) 1);
 val lemma = result();
 
 Goalw AC_defs "AC13(1) ==> AC1";

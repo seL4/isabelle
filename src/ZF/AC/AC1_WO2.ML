@@ -5,8 +5,6 @@
 The proof of AC1 ==> WO2
 *)
 
-open AC1_WO2;
-
 (*Establishing the existence of a bijection -- hence the need for uresult*)
 val [prem] = goal thy "f : (PROD X:Pow(x) - {0}. X) ==>  \
 \       ?g(f) : bij(x, LEAST i. HH(lam X:Pow(x)-{0}. {f`X}, x, i) = {x})";
