@@ -191,28 +191,17 @@ by (induct_tac "n" 1);
 by (Auto_tac);
 qed "sumr_zero";
 
-Goal "Suc N <= n --> N <= n - 1";
-by (induct_tac "n" 1);
-by (Auto_tac);
-qed_spec_mp "Suc_le_imp_diff_ge";
-
 Goal "ALL n. N <= n --> f (Suc n) = #0 \
 \     ==> ALL m n. Suc N <= m --> sumr m n f = #0";   
 by (rtac sumr_zero 1 THEN Step_tac 1);
-by (subgoal_tac "0 < n" 1);
-by (dtac Suc_le_imp_diff_ge 1);
-by (Auto_tac);
+by (case_tac "n" 1);
+by Auto_tac; 
 qed "Suc_le_imp_diff_ge2";
 
-(* proved elsewhere? *)
-Goal "(0 < n) = (EX m. n = Suc m)";
+Goal "sumr 1' n (%n. f(n) * #0 ^ n) = #0";
 by (induct_tac "n" 1);
-by (Auto_tac);
-qed "gt_zero_eq_Ex";
-
-Goal "sumr 1 n (%n. f(n) * #0 ^ n) = #0";
-by (induct_tac "n" 1);
-by (auto_tac (claset(),simpset() addsimps [gt_zero_eq_Ex]));
+by (case_tac "n" 2);
+by Auto_tac; 
 qed "sumr_one_lb_realpow_zero";
 Addsimps [sumr_one_lb_realpow_zero];
 
@@ -220,7 +209,7 @@ Goalw [real_diff_def] "sumr m n f - sumr m n g = sumr m n (%n. f n - g n)";
 by (simp_tac (simpset() addsimps [sumr_add RS sym,sumr_minus]) 1);
 qed "sumr_diff";
 
-Goal "(ALL p. (m <= p & p < m + n --> (f p = g p))) --> sumr m n f = sumr m n g";
+Goal "(ALL p. m <= p & p < m+n --> (f p = g p)) --> sumr m n f = sumr m n g";
 by (induct_tac "n" 1);
 by (Auto_tac);
 qed_spec_mp "sumr_subst";
@@ -564,7 +553,8 @@ by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
 by (asm_full_simp_tac (simpset() addsimps [summable_Cauchy]) 1);
 by (Step_tac 1 THEN subgoal_tac "ALL n. N <= n --> f (Suc n) = #0" 1);
 by (blast_tac (claset() addIs [rabs_ratiotest_lemma]) 2);
-by (res_inst_tac [("x","Suc N")] exI 1 THEN Step_tac 1);
+by (res_inst_tac [("x","Suc N")] exI 1);
+by (Clarify_tac 1); 
 by (dtac Suc_le_imp_diff_ge2 1 THEN Auto_tac);
 qed "ratio_test_lemma2";
 

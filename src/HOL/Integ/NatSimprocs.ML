@@ -14,15 +14,12 @@ qed "Suc_diff_eq_diff_pred";
 
 (*Now just instantiating n to (number_of v) does the right simplification,
   but with some redundant inequality tests.*)
-(*
 Goal "neg (number_of (bin_pred v)) = (number_of v = (0::nat))";
-by (subgoal_tac "neg (number_of (bin_pred v)) = (number_of v < 1)" 1);
-by (Asm_simp_tac 1);
+by (subgoal_tac "neg (number_of (bin_pred v)) = (number_of v < 1')" 1);
+by (asm_simp_tac (HOL_ss addsimps [less_Suc_eq_le, le_0_eq]) 1); 
 by (stac less_number_of_Suc 1);
 by (Simp_tac 1);
 qed "neg_number_of_bin_pred_iff_0";
-*)
-val neg_number_of_bin_pred_iff_0 = thm "neg_number_of_bin_pred_iff_0";
 
 Goal "neg (number_of (bin_minus v)) ==> \
 \     Suc m - (number_of v) = m - (number_of (bin_pred v))";

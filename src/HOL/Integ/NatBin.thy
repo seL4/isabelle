@@ -18,10 +18,6 @@ defs
     "number_of v == nat (number_of v)"
      (*::bin=>nat        ::bin=>int*)
 
-axioms
-neg_number_of_bin_pred_iff_0:
-  "neg (number_of (bin_pred v)) = (number_of v = (0::nat))"
-
 use "nat_bin.ML"	setup nat_bin_arith_setup
 
 end

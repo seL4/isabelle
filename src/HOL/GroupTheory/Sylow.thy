@@ -36,7 +36,7 @@ locale sylow_central = sylow +
     M1 :: "'a set"
   assumes
     M_in_quot "M \\<in> calM // RelM"
-    not_dvd_M "~(p ^ (exponent p m + 1) dvd card(M))"
+    not_dvd_M "~(p ^ Suc(exponent p m) dvd card(M))"
     M1_in_M   "M1 \\<in> M"
   defines
    H_def "H == {g. g\\<in>carrier G & M1 #> g = M1}"

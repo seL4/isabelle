@@ -18,8 +18,8 @@ text {*
 
 consts fib :: "nat => nat"
 recdef fib  less_than
-  zero: "fib 0 = 0"
-  one:  "fib 1 = 1"
+  zero: "fib 0  = 0"
+  one:  "fib 1' = 1'"
   Suc_Suc: "fib (Suc (Suc x)) = fib x + fib (Suc x)"
 
 text {*
@@ -81,7 +81,7 @@ lemma fib_Cassini: "int (fib (Suc (Suc n)) * fib n) =
 
 text {* \medskip Towards Law 6.111 of Concrete Mathematics *}
 
-lemma gcd_fib_Suc_eq_1: "gcd (fib n, fib (Suc n)) = 1"
+lemma gcd_fib_Suc_eq_1: "gcd (fib n, fib (Suc n)) = 1'"
   apply (induct n rule: fib.induct)
     prefer 3
     apply (simp add: gcd_commute fib_Suc3)

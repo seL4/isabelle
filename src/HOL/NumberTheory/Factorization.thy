@@ -26,7 +26,7 @@ primrec
   "nondec (x # xs) = (case xs of [] => True | y # ys => x \<le> y \<and> nondec xs)"
 
 primrec
-  "prod [] = 1"
+  "prod [] = 1'"
   "prod (x # xs) = x * prod xs"
 
 primrec
@@ -40,12 +40,12 @@ primrec
 
 subsection {* Arithmetic *}
 
-lemma one_less_m: "(m::nat) \<noteq> m * k ==> m \<noteq> 1 ==> 1 < m"
+lemma one_less_m: "(m::nat) \<noteq> m * k ==> m \<noteq> 1' ==> 1' < m"
   apply (case_tac m)
    apply auto
   done
 
-lemma one_less_k: "(m::nat) \<noteq> m * k ==> 1 < m * k ==> 1 < k"
+lemma one_less_k: "(m::nat) \<noteq> m * k ==> 1' < m * k ==> 1' < k"
   apply (case_tac k)
    apply auto
   done
@@ -54,13 +54,13 @@ lemma mult_left_cancel: "(0::nat) < k ==> k * n = k * m ==> n = m"
   apply auto
   done
 
-lemma mn_eq_m_one: "(0::nat) < m ==> m * n = m ==> n = 1"
+lemma mn_eq_m_one: "(0::nat) < m ==> m * n = m ==> n = 1'"
   apply (case_tac n)
    apply auto
   done
 
 lemma prod_mn_less_k:
-    "(0::nat) < n ==> 0 < k ==> 1 < m ==> m * n = k ==> n < k"
+    "(0::nat) < n ==> 0 < k ==> 1' < m ==> m * n = k ==> n < k"
   apply (induct m)
    apply auto
   done
@@ -88,7 +88,7 @@ lemma prime_primel: "n \<in> prime ==> primel [n] \<and> prod [n] = n"
   apply auto
   done
 
-lemma prime_nd_one: "p \<in> prime ==> \<not> p dvd 1"
+lemma prime_nd_one: "p \<in> prime ==> \<not> p dvd 1'"
   apply (unfold prime_def dvd_def)
   apply auto
   done
@@ -115,13 +115,13 @@ lemma primes_eq: "p \<in> prime ==> q \<in> prime ==> p dvd q ==> p = q"
   apply auto
   done
 
-lemma primel_one_empty: "primel xs ==> prod xs = 1 ==> xs = []"
+lemma primel_one_empty: "primel xs ==> prod xs = 1' ==> xs = []"
   apply (unfold primel_def prime_def)
   apply (case_tac xs)
    apply simp_all
   done
 
-lemma prime_g_one: "p \<in> prime ==> 1 < p"
+lemma prime_g_one: "p \<in> prime ==> 1' < p"
   apply (unfold prime_def)
   apply auto
   done
@@ -132,7 +132,7 @@ lemma prime_g_zero: "p \<in> prime ==> 0 < p"
   done
 
 lemma primel_nempty_g_one [rule_format]:
-    "primel xs --> xs \<noteq> [] --> 1 < prod xs"
+    "primel xs --> xs \<noteq> [] --> 1' < prod xs"
   apply (unfold primel_def prime_def)
   apply (induct xs)
    apply (auto elim: one_less_mult)
@@ -223,8 +223,8 @@ lemma ex_nondec_lemma:
   done
 
 lemma not_prime_ex_mk:
-  "1 < n \<and> n \<notin> prime ==>
-    \<exists>m k. 1 < m \<and> 1 < k \<and> m < n \<and> k < n \<and> n = m * k"
+  "1' < n \<and> n \<notin> prime ==>
+    \<exists>m k. 1' < m \<and> 1' < k \<and> m < n \<and> k < n \<and> n = m * k"
   apply (unfold prime_def dvd_def)
   apply (auto intro: n_less_m_mult_n n_less_n_mult_m one_less_m one_less_k)
   done
@@ -237,7 +237,7 @@ lemma split_primel:
   apply (simp add: primel_append)
   done
 
-lemma factor_exists [rule_format]: "1 < n --> (\<exists>l. primel l \<and> prod l = n)"
+lemma factor_exists [rule_format]: "1' < n --> (\<exists>l. primel l \<and> prod l = n)"
   apply (induct n rule: nat_less_induct)
   apply (rule impI)
   apply (case_tac "n \<in> prime")
@@ -247,7 +247,7 @@ lemma factor_exists [rule_format]: "1 < n --> (\<exists>l. primel l \<and> prod 
    apply (auto intro!: split_primel)
   done
 
-lemma nondec_factor_exists: "1 < n ==> \<exists>l. primel l \<and> nondec l \<and> prod l = n"
+lemma nondec_factor_exists: "1' < n ==> \<exists>l. primel l \<and> nondec l \<and> prod l = n"
   apply (erule factor_exists [THEN exE])
   apply (blast intro!: ex_nondec_lemma)
   done
@@ -349,7 +349,7 @@ lemma perm_nondec_unique:
   done
 
 lemma unique_prime_factorization [rule_format]:
-    "\<forall>n. 1 < n --> (\<exists>!l. primel l \<and> nondec l \<and> prod l = n)"
+    "\<forall>n. 1' < n --> (\<exists>!l. primel l \<and> nondec l \<and> prod l = n)"
   apply safe
    apply (erule nondec_factor_exists)
   apply (rule perm_nondec_unique)

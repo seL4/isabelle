@@ -127,7 +127,7 @@ by (simp_tac (simpset() addsimps [card_calM, zero_less_binomial,
                                   le_extend_mult, zero_less_m]) 1); 
 qed "zero_less_card_calM";
 
-Goal "~(p ^ (exponent p m+ 1) dvd card(calM))";
+Goal "~ (p ^ Suc(exponent p m) dvd card(calM))";
 by (subgoal_tac "exponent p m = exponent p (card calM)" 1);
  by (asm_full_simp_tac (simpset() addsimps [card_calM, 
                            zero_less_m RS const_p_fac]) 2);
@@ -140,7 +140,7 @@ by (res_inst_tac [("B", "Pow (carrier G)")] finite_subset 1);
 by Auto_tac; 
 qed "finite_calM";
 
-Goal "\\<exists>M \\<in> calM // RelM. ~(p ^ ((exponent p m)+ 1) dvd card(M))";
+Goal "\\<exists>M \\<in> calM // RelM. ~ (p ^ Suc(exponent p m) dvd card(M))";
 by (rtac (max_p_div_calM RS contrapos_np) 1); 
 by (asm_full_simp_tac (simpset() addsimps [finite_calM, 
                           RelM_equiv RSN(2, equiv_imp_dvd_card)]) 1); 

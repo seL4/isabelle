@@ -56,9 +56,9 @@ defs
 
   mhf_def:
     "mhf mf n i ==
-      if i = 0 then funprod mf 1 (n - 1)
-      else if i = n then funprod mf 0 (n - 1)
-      else funprod mf 0 (i - 1) * funprod mf (i + 1) (n - 1 - i)"
+      if i = 0 then funprod mf 1' (n - 1')
+      else if i = n then funprod mf 0 (n - 1')
+      else funprod mf 0 (i - 1') * funprod mf (Suc i) (n - 1' - i)"
 
   xilin_sol_def:
     "xilin_sol i n kf bf mf ==

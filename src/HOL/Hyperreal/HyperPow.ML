@@ -33,7 +33,7 @@ by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps hypreal_mult_ac));
 qed "hrealpow_add";
 
-Goal "(r::hypreal) ^ 1 = r";
+Goal "(r::hypreal) ^ 1' = r";
 by (Simp_tac 1);
 qed "hrealpow_one";
 Addsimps [hrealpow_one];

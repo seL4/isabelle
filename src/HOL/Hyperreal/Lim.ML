@@ -1294,7 +1294,7 @@ by (simp_tac (simpset() addsimps [NSDERIV_DERIV_iff]) 1);
 qed "NSDERIV_cmult_Id";
 Addsimps [NSDERIV_cmult_Id];
 
-Goal "DERIV (%x. x ^ n) x :> real n * (x ^ (n - 1))";
+Goal "DERIV (%x. x ^ n) x :> real n * (x ^ (n - 1'))";
 by (induct_tac "n" 1);
 by (dtac (DERIV_Id RS DERIV_mult) 2);
 by (auto_tac (claset(), 
@@ -1306,7 +1306,7 @@ by (auto_tac (claset(),
 qed "DERIV_pow";
 
 (* NS version *)
-Goal "NSDERIV (%x. x ^ n) x :> real n * (x ^ (n - 1))";
+Goal "NSDERIV (%x. x ^ n) x :> real n * (x ^ (n - 1'))";
 by (simp_tac (simpset() addsimps [NSDERIV_DERIV_iff, DERIV_pow]) 1);
 qed "NSDERIV_pow";
 

@@ -682,7 +682,7 @@ qed "hypnat_le_mult_order";
 Goalw [hypnat_one_def,hypnat_zero_def,hypnat_less_def] 
       "(0::hypnat) < 1hn";
 by (res_inst_tac [("x","%n. 0")] exI 1);
-by (res_inst_tac [("x","%n. 1")] exI 1);
+by (res_inst_tac [("x","%n. 1'")] exI 1);
 by Auto_tac;
 qed "hypnat_zero_less_one";
 
@@ -806,11 +806,11 @@ Goalw [hypnat_le_def,le_def]
 by Auto_tac;
 qed "hypnat_of_nat_le_iff";
 
-Goalw [hypnat_of_nat_def,hypnat_one_def] "hypnat_of_nat  1 = 1hn";
+Goalw [hypnat_of_nat_def,hypnat_one_def] "hypnat_of_nat 1' = 1hn";
 by (Simp_tac 1);
 qed "hypnat_of_nat_one";
 
-Goalw [hypnat_of_nat_def,hypnat_zero_def] "hypnat_of_nat  0 = 0";
+Goalw [hypnat_of_nat_def,hypnat_zero_def] "hypnat_of_nat 0 = 0";
 by (Simp_tac 1);
 qed "hypnat_of_nat_zero";
 
@@ -903,7 +903,7 @@ by (Blast_tac 1);
 qed "SHNat_hypnat_of_nat";
 Addsimps [SHNat_hypnat_of_nat];
 
-Goal "hypnat_of_nat 1 : Nats";
+Goal "hypnat_of_nat 1' : Nats";
 by (Simp_tac 1);
 qed "SHNat_hypnat_of_nat_one";
 
