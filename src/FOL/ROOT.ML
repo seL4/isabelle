@@ -63,7 +63,7 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
 val FOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I] 
                      addSEs [exE,ex1E] addEs [allE];
 
-val ex1_functional = prove_goal FOL.thy
+qed_goal "ex1_functional" FOL.thy
     "!!a b c. [| EX! z. P(a,z);  P(a,b);  P(a,c) |] ==> b = c"
  (fn _ => [ (deepen_tac FOL_cs 0 1) ]);
 
