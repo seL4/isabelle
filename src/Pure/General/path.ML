@@ -27,6 +27,7 @@ sig
   val ext: string -> T -> T
   val dir: T -> T
   val expand: T -> T
+  val position: T -> Position.T
 end;
 
 structure Path: PATH =
@@ -154,6 +155,8 @@ fun evaluate env (Path xs) =
   Path (norm (flat (map (eval env) xs)));
 
 val expand = evaluate (unpack o getenv);
+
+val position = Position.line_name 1 o quote o pack o expand;
 
 
 end;
