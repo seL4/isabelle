@@ -30,4 +30,6 @@ loadpath := ["Subst"];
 
 use_thy "Unifier";
 
+make_chart ();   (*make HTML chart*)
+
 writeln"END: Root file for Substitutions and Unification";

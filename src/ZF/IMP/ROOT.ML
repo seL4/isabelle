@@ -18,3 +18,5 @@ writeln"Root file for ZF/IMP";
 proof_timing := true;
 loadpath := [".","IMP"];
 time_use_thy "Equiv";
+
+make_chart ();   (*make HTML chart*)

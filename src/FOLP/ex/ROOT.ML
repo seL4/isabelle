@@ -32,4 +32,6 @@ val thy = FOLP.thy  and  tac = Cla.fast_tac FOLP_cs 1;
 time_use     "ex/prop.ML";
 time_use     "ex/quant.ML";
 
+make_chart ();   (*make HTML chart*)
+
 maketest"END: Root file for FOLP examples";

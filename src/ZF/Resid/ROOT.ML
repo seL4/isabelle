@@ -21,4 +21,6 @@ loadpath := [".", "Resid"];
 
 time_use_thy "Confluence";
 
+make_chart ();   (*make HTML chart*)
+
 writeln"END: Root file for ZF/Resid";

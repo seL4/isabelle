@@ -22,3 +22,5 @@ loadpath := [".","IMP"];
 time_use_thy "Properties";
 time_use_thy "Equiv";
 time_use_thy "Hoare";
+
+make_chart ();   (*make HTML chart*)

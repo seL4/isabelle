@@ -1,4 +1,4 @@
-#  $Id$
+# $Id$
 #########################################################################
 #									#
 # 			Makefile for Isabelle (FOL)			#
@@ -6,9 +6,11 @@
 #########################################################################
 
 #To make the system, cd to this directory and type  
-#	make -f Makefile 
+#	make
 #To make the system and test it on standard examples, type  
-#	make -f Makefile test
+#	make test
+#To generate HTML files for every theory, set the environment variable
+#MAKE_HTML or add the parameter "MAKE_HTML=".
 
 #Environment variable ISABELLECOMP specifies the compiler.
 #Environment variable ISABELLEBIN specifies the destination directory.
@@ -35,10 +37,18 @@ $(BIN)/FOL:   $(BIN)/Pure  $(FILES)
                 	exit 1; \
            	fi;\
 	case "$(COMP)" in \
-	poly*)	echo 'make_database"$(BIN)/FOL"; quit();'  \
-			| $(COMP) $(BIN)/Pure;\
-		echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/FOL;;\
-	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/FOL" banner;' | $(BIN)/Pure;;\
+	poly*)	echo 'make_database"$(BIN)/FOL"; quit();' \
+		  | $(COMP) $(BIN)/Pure;\
+                if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; init_html (); exit_use"ROOT";' \
+                       | $(COMP) $(BIN)/FOL;\
+		else echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/FOL;\
+                fi;;\
+	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'init_html (); exit_use"ROOT.ML";                                               xML"$(BIN)/FOL" banner;' | $(BIN)/Pure;\
+                else echo 'exit_use"ROOT.ML"; xML"$(BIN)/FOL" banner;' \
+                       | $(BIN)/Pure;\
+                fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac

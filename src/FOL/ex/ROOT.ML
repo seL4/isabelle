@@ -37,4 +37,6 @@ writeln"\n** Simplification examples **\n";
 time_use_thy "ex/Nat2";
 time_use_thy "ex/List";
 
+make_chart ();   (*make HTML chart*)
+
 maketest"END: Root file for FOL examples";

@@ -40,4 +40,6 @@ time_use_thy "AC/AC18_AC19";
 
 time_use_thy "AC/DC";
 
+make_chart ();   (*make HTML chart*)
+
 writeln"END: Root file for ZF/AC";

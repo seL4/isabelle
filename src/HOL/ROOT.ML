@@ -85,4 +85,6 @@ use_thy "List";
 init_pps ();
 print_depth 8;
 
+make_chart ();   (*make HTML chart*)
+
 val HOL_build_completed = ();   (*indicate successful build*)

@@ -19,3 +19,5 @@ writeln"Root file for ZF/Coind";
 proof_timing := true;
 loadpath     := [".","Coind"];
 time_use_thy "MT";
+
+make_chart ();   (*make HTML chart*)

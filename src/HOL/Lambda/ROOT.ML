@@ -19,4 +19,7 @@ HOL_build_completed;	(*Make examples fail if HOL did*)
 
 writeln"Root file for HOL/Lambda";
 loadpath := [".","Lambda"];
+
 time_use_thy "Eta";
+
+make_chart ();   (*make HTML chart*)

@@ -30,4 +30,7 @@ time_use_thy "PropLog";
 time_use_thy "Term";
 time_use_thy "Simult";
 time_use_thy "MT";
+
+make_chart ();   (*make HTML chart*)
+
 writeln "END: Root file for HOL examples";

@@ -33,3 +33,5 @@ use_thy "ProdGroupInsts";
 
 use_thy "Product";
 use_thy "ProductInsts";
+
+make_chart ();   (*make HTML chart*)

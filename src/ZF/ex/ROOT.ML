@@ -42,4 +42,6 @@ time_use_thy "ex/Primrec";	(*Primitive recursive functions*)
 time_use_thy "ex/LList";
 time_use_thy "ex/CoUnit";
 
+make_chart ();   (*make HTML chart*)
+
 writeln"END: Root file for ZF Set Theory examples";

@@ -1,3 +1,4 @@
+# $Id$
 #########################################################################
 #									#
 # 			Makefile for Isabelle (LCF)			#
@@ -8,6 +9,8 @@
 #	make 
 #To make the system and test it on standard examples, type  
 #	make test
+#To generate HTML files for every theory, set the environment variable
+#MAKE_HTML or add the parameter "MAKE_HTML=".
 
 #Environment variable ISABELLECOMP specifies the compiler.
 #Environment variable ISABELLEBIN specifies the destination directory.
@@ -24,8 +27,16 @@ FILES =  ROOT.ML LCF.thy LCF.ML simpdata.ML pair.ML fix.ML
 $(BIN)/LCF:   $(BIN)/FOL  $(FILES) 
 	case "$(COMP)" in \
 	poly*)	cp $(BIN)/FOL $(BIN)/LCF;\
-		echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/LCF ;;\
-	sml*)	echo 'exit_use"ROOT.ML"; xML"$(BIN)/LCF" banner;' | $(BIN)/FOL;;\
+                if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; init_html (); exit_use"ROOT";' \
+                       | $(COMP) $(BIN)/LCF;\
+		else echo 'open PolyML; exit_use"ROOT";' | $(COMP) $(BIN)/LCF;\
+                fi;;\
+	sml*)	if [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'init_html (); exit_use"ROOT.ML";                                               xML"$(BIN)/LCF" banner;' | $(BIN)/FOL;\
+                else echo 'exit_use"ROOT.ML"; xML"$(BIN)/LCF" banner;' \
+                       | $(BIN)/FOL;\
+                fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
