@@ -1,4 +1,3 @@
-
 Isabelle NEWS -- history of user-visible changes
 ================================================
 
@@ -143,6 +142,9 @@ may also be iterated as in f(a:=b,c:=d,...);
 
 * HOL/Relation: renamed the relational operator r^-1 "converse"
 instead of "inverse";
+
+* HOL/Set: added the predicate "disjoint A B" that stands for "A <= Compl B".
+  This is much better than "A Int B = {}" for Fast/Blast_tac.
 
 * directory HOL/Real: a construction of the reals using Dedekind cuts
 (not included by default);
