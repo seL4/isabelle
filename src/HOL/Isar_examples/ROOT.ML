@@ -12,9 +12,9 @@ time_use_thy "ExprCompiler";
 time_use_thy "Group";
 time_use_thy "Summation";
 time_use_thy "KnasterTarski";
-(*TEMPORARILY DELETED time_use_thy "MutilatedCheckerboard";*)
+time_use_thy "MutilatedCheckerboard";
 with_path "../Induct" time_use_thy "MultisetOrder";
 with_path "../W0" time_use_thy "W_correct";
-(*TEMPORARILY DELETED with_path "../ex" time_use_thy "Fibonacci";*)
+with_path "../ex" time_use_thy "Fibonacci";
 time_use_thy "Puzzle";
 time_use_thy "NestedDatatype";

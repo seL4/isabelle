@@ -30,7 +30,7 @@ consts fib :: "nat => nat";
 recdef fib less_than
  "fib 0 = 0"
  "fib 1 = 1"
- "fib (Suc (Suc x)) = fib x + fib(Suc x)";
+ "fib (Suc (Suc x)) = fib x + fib (Suc x)";
 
 lemma [simp]: "0 < fib (Suc n)";
   by (induct n rule: fib.induct) (simp+);
@@ -76,8 +76,8 @@ proof (induct ?P n rule: fib_induct);
   fix n; 
   have "fib (n + 2 + 1) = fib (n + 1) + fib (n + 2)"; 
     by simp;
-  also; have "gcd (fib (n + 2), ...) = gcd (fib (n + 2), fib (n + 1))"; 
-    by (simp add: gcd_add2);
+  also; have "gcd (fib (n + 2), ...) = gcd (fib (n + 2), fib (n + 1))";
+    by (simp only: gcd_add2);
   also; have "... = gcd (fib (n + 1), fib (n + 1 + 1))";
     by (simp add: gcd_commute);
   also; assume "... = 1";
@@ -94,9 +94,9 @@ proof -;
 qed;
 
 lemma gcd_fib_add: "gcd (fib m, fib (n + m)) = gcd (fib m, fib n)"; 
-proof (rule nat.exhaust [of m]);
+proof (cases m);
   assume "m = 0";
-  thus "gcd (fib m, fib (n + m)) = gcd (fib m, fib n)"; by simp;
+  thus ?thesis; by simp;
 next;
   fix k; assume "m = Suc k"; 
   hence "gcd (fib m, fib (n + m)) = gcd (fib (n + k + 1), fib (k + 1))";
@@ -123,7 +123,7 @@ proof -;
   finally; show ?thesis; .;
 qed;
 
-lemma if_cases: 
+lemma if_cases:    (* FIXME move to HOL.thy (!?) *)
   "[| Q ==> P x; ~ Q ==> P y |] ==> P (if Q then x else y)"; by simp;
 
 lemma gcd_fib_mod: 

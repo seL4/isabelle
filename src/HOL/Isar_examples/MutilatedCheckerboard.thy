@@ -23,7 +23,7 @@ consts
 inductive "tiling A"
   intrs
     empty: "{} : tiling A"
-    Un:    "[| a : A;  t : tiling A;  a <= - t |]
+    Un:    "a : A ==> t : tiling A ==> a <= - t
               ==> a Un t : tiling A";
 
 
@@ -67,12 +67,12 @@ lemma below_0: "below 0 = {}";
   by (simp add: below_def);
 
 lemma Sigma_Suc1:
-    "below (Suc n) <*> B = ({n} <*> B) Un (below n <*> B)";
+    "m = n + 1 ==> below m <*> B = ({n} <*> B) Un (below n <*> B)";
   by (simp add: below_def less_Suc_eq) blast;
 
 lemma Sigma_Suc2:
-    "A <*> below (Suc n) = (A <*> {n}) Un (A <*> (below n))";
-  by (simp add: below_def less_Suc_eq) blast;
+    "m = n + 2 ==> A <*> below m = (A <*> {n}) Un (A <*> {n + 1}) Un (A <*> below n)";
+  by (auto simp add: below_def) arith;
 
 lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2;
 
@@ -81,10 +81,10 @@ subsection {* Basic properties of ``evnodd'' *};
 
 constdefs
   evnodd :: "(nat * nat) set => nat => (nat * nat) set"
-  "evnodd A b == A Int {(i, j). (i + j) mod 2 = b}";
+  "evnodd A b == A Int {(i, j). (i + j) mod #2 = b}";
 
 lemma evnodd_iff:
-    "(i, j): evnodd A b = ((i, j): A  & (i + j) mod 2 = b)";
+    "(i, j): evnodd A b = ((i, j): A  & (i + j) mod #2 = b)";
   by (simp add: evnodd_def);
 
 lemma evnodd_subset: "evnodd A b <= A";
@@ -106,7 +106,7 @@ lemma evnodd_empty: "evnodd {} b = {}";
   by (simp add: evnodd_def);
 
 lemma evnodd_insert: "evnodd (insert (i, j) C) b =
-    (if (i + j) mod 2 = b
+    (if (i + j) mod #2 = b
       then insert (i, j) (evnodd C b) else evnodd C b)";
   by (simp add: evnodd_def) blast;
 
@@ -130,7 +130,8 @@ proof (induct n);
   fix n; assume hyp: "?P n";
   let ?a = "{i} <*> {2 * n + 1} Un {i} <*> {2 * n}";
 
-  have "?B (Suc n) = ?a Un ?B n"; by (simp add: Sigma_Suc Un_assoc);
+  have "?B (Suc n) = ?a Un ?B n";
+    by (auto simp add: Sigma_Suc Un_assoc);
   also; have "... : ?T";
   proof (rule tiling.Un);
     have "{(i, 2 * n), (i, 2 * n + 1)} : domino";
@@ -163,7 +164,7 @@ proof (induct m);
 qed;
 
 lemma domino_singleton:
-  "[| d : domino; b < 2 |] ==> EX i j. evnodd d b = {(i, j)}";
+  "d : domino ==> b < 2 ==> EX i j. evnodd d b = {(i, j)}";
 proof -;
   assume b: "b < 2";
   assume "d : domino";
