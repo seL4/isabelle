@@ -22,7 +22,8 @@ function usage()
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -c BOOL      tell ML system to compress output image (default true)"
   echo "    -d FORMAT    build document as FORMAT (default false)"
-  echo "    -i BOOL      generate theory browser information (default false)"
+  echo "    -g BOOL      generate session graph image for document (default false)"
+  echo "    -i BOOL      generate HTML and graph browser information (default false)"
   echo "    -m MODE      add print mode for output"
   echo "    -p LEVEL     set level of detail for proof objects"
   echo "    -r           reset session path"
@@ -63,6 +64,7 @@ RPATH=""
 BUILD=""
 COMPRESS=true
 DOCUMENT=false
+DOCUMENT_GRAPH=false
 INFO=false
 MODES=""
 RESET=false
@@ -73,7 +75,7 @@ VERBOSE=false
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:P:bc:d:i:m:p:rs:v:" OPT
+  while getopts "D:P:bc:d:g:i:m:p:rs:v:" OPT
   do
     case "$OPT" in
       D)
@@ -91,6 +93,10 @@ function getoptions()
         ;;
       d)
         DOCUMENT="$OPTARG"
+        ;;
+      g)
+        check_bool "$OPTARG"
+        DOCUMENT_GRAPH="$OPTARG"
         ;;
       i)
         check_bool "$OPTARG"
@@ -164,9 +170,8 @@ PARENT=$(basename "$LOGIC")
 
 [ -z "$BUILD" ] && cd "$NAME"
 
-if [ "$DOCUMENT" != false -a -d document ]; then
+if [ "$DOCUMENT" != false ]; then
   DOC="$DOCUMENT"
-  [ -n "$DUMP" -a -d "$DUMP" ] && "$ISATOOL" latex -o sty "$DUMP/root.tex" >/dev/null
 else
   DOC=""
 fi
@@ -183,7 +188,7 @@ if [ -n "$BUILD" ]; then
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE;" \
+    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE;" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
@@ -192,7 +197,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE; quit();" \
+    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\" $PROOFS $VERBOSE; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..
