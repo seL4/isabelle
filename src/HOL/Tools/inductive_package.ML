@@ -109,8 +109,8 @@ fun put_inductives names info thy =
 
 (** monotonicity rules **)
 
-val get_monos = snd o InductiveData.get;
-fun put_monos thms thy = InductiveData.put (fst (InductiveData.get thy), thms) thy;
+val get_monos = #2 o InductiveData.get;
+fun map_monos f = InductiveData.map (Library.apsnd f);
 
 fun mk_mono thm =
   let
@@ -130,19 +130,8 @@ fun mk_mono thm =
 
 (* attributes *)
 
-local
-
-fun map_rules_global f thy = put_monos (f (get_monos thy)) thy;
-
-fun add_mono thm rules = Library.gen_union Thm.eq_thm (mk_mono thm, rules);
-fun del_mono thm rules = Library.gen_rems Thm.eq_thm (rules, mk_mono thm);
-
-fun mk_att f g (x, thm) = (f (g thm) x, thm);
-
-in
-  val mono_add_global = mk_att map_rules_global add_mono;
-  val mono_del_global = mk_att map_rules_global del_mono;
-end;
+fun mono_add_global (thy, thm) = (map_monos (Drule.add_rules (mk_mono thm)) thy, thm);
+fun mono_del_global (thy, thm) = (map_monos (Drule.del_rules (mk_mono thm)) thy, thm);
 
 val mono_attr =
  (Attrib.add_del_args mono_add_global mono_del_global,
