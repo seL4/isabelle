@@ -476,7 +476,8 @@ fun mk_base bases child =
 
       val base_thy =
        (writeln ("Loading theory " ^ quote child);
-        Theory.prep_ext_merge (map theory_of mergelist));
+         if null mergelist then ProtoPure.thy
+         else Theory.prep_ext_merge (map theory_of mergelist));
 
       val datas =
         let fun get_data t =
