@@ -31,7 +31,7 @@ struct
   val eq_reflection	= eq_reflection
 
   val thy	= IntDef.thy
-  val T		= Type ("IntDef.int", [])
+  val T		= HOLogic.intT
   val zero	= Const ("IntDef.int", HOLogic.natT --> T) $ HOLogic.zero
   val add_cancel_21	= zadd_cancel_21
   val add_cancel_end	= zadd_cancel_end
