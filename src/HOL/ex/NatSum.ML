@@ -19,16 +19,14 @@ by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "sum_of_naturals";
 
-Goal
-  "Suc(Suc(Suc(Suc 2)))*sum (%i. i*i) (Suc n) = n*Suc(n)*Suc(2*n)";
+Goal "Suc(Suc(Suc(Suc 2)))*sum (%i. i*i) (Suc n) = n*Suc(n)*Suc(2*n)";
 by (Simp_tac 1);
 by (induct_tac "n" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
 qed "sum_of_squares";
 
-Goal
-  "Suc(Suc 2)*sum (%i. i*i*i) (Suc n) = n*n*Suc(n)*Suc(n)";
+Goal "Suc(Suc 2)*sum (%i. i*i*i) (Suc n) = n*n*Suc(n)*Suc(n)";
 by (Simp_tac 1);
 by (induct_tac "n" 1);
 by (Simp_tac 1);
