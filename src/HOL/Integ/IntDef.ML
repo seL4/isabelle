@@ -149,7 +149,6 @@ Addsimps [zminus_nat0];
 
 Goalw [neg_def, int_def] "~ neg(int n)";
 by (Simp_tac 1);
-by Safe_tac;
 qed "not_neg_nat";
 
 Goalw [neg_def, int_def] "neg(- (int (Suc n)))";

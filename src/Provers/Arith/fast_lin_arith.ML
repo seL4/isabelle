@@ -27,9 +27,9 @@ sig
   val sym:		thm (* x = y ==> y = x *)
   val decomp: term ->
              ((term * int)list * int * string * (term * int)list * int)option
-  val mkEqTrue: thm -> thm
+  val mk_Eq: thm -> thm
   val mk_Trueprop: term -> term
-  val neg_prop: term -> term * bool
+  val neg_prop: term -> term
   val simp: thm -> thm
   val is_False: thm -> bool
   val is_nat: typ list * term -> bool
@@ -41,12 +41,13 @@ decomp(`x Rel y') should yield (p,i,Rel,q,j)
          p/q is the decomposition of the sum terms x/y into a list
          of summand * multiplicity pairs and a constant summand.
 
-mkEqTrue(P) = `P == True'
+mk_Eq(~in) = `in == False'
+mk_Eq(in) = `in == True'
+where `in' is an (in)equality.
 
-neg_prop(t) = (nt,neg) if t is wrapped up in Trueprop and
+neg_prop(t) = neg if t is wrapped up in Trueprop and
   nt is the (logically) negated version of t, where the negation
   of a negative term is the term itself (no double negation!);
-  neg = `t is already negated'.
 
 simp must reduce contradictory <= to False.
    It should also cancel common summands to keep <= reduced;
@@ -360,17 +361,17 @@ val lin_arith_tac = SUBGOAL (fn (A,n) =>
 
 fun cut_lin_arith_tac thms i = cut_facts_tac thms i THEN lin_arith_tac i;
 
-fun prover1(just,sg,thms,concl) =
-let val (nconcl,neg) = LA_Data.neg_prop concl
+fun prover1(just,sg,thms,concl,pos) =
+let val nconcl = LA_Data.neg_prop concl
     val cnconcl = cterm_of sg nconcl
     val Fthm = mkthm sg (thms @ [assume cnconcl]) just
-    val contr = if neg then LA_Data.notI else LA_Data.ccontr
-in Some(LA_Data.mkEqTrue ((implies_intr cnconcl Fthm) COMP contr)) end
+    val contr = if pos then LA_Data.ccontr else LA_Data.notI
+in Some(LA_Data.mk_Eq ((implies_intr cnconcl Fthm) COMP contr)) end
 handle _ => None;
 
 (* handle thm with equality conclusion *)
 fun prover2(just1,just2,sg,thms,concl) =
-let val (nconcl,_) = LA_Data.neg_prop concl (* m ~= n *)
+let val nconcl = LA_Data.neg_prop concl (* m ~= n *)
     val cnconcl = cterm_of sg nconcl
     val neqthm = assume cnconcl
     val casethm = neqthm COMP LA_Data.neqE (* [|m<n ==> R; n<m ==> R|] ==> R *)
@@ -382,17 +383,22 @@ let val (nconcl,_) = LA_Data.neg_prop concl (* m ~= n *)
     and thm2 = mkthm sg (thms @ [assume cless2]) just2
     val dthm1 = implies_intr cless1 thm1 and dthm2 = implies_intr cless2 thm2
     val thm = dthm2 COMP (dthm1 COMP casethm)
-in Some(LA_Data.mkEqTrue ((implies_intr cnconcl thm) COMP LA_Data.ccontr)) end
+in Some(LA_Data.mk_Eq ((implies_intr cnconcl thm) COMP LA_Data.ccontr)) end
 handle _ => None;
 
-(* FIXME: forward proof of equalities missing! *)
+(* PRE: concl is not negated! *)
 fun lin_arith_prover sg thms concl =
 let val Hs = map (#prop o rep_thm) thms
     val Tconcl = LA_Data.mk_Trueprop concl
 in case prove([],Hs,Tconcl) of
-     [j] => prover1(j,sg,thms,Tconcl)
+     [j] => prover1(j,sg,thms,Tconcl,true)
    | [j1,j2] => prover2(j1,j2,sg,thms,Tconcl)
-   | _ => None
+   | _ => let val nTconcl = LA_Data.neg_prop Tconcl
+          in case prove([],Hs,nTconcl) of
+               [j] => prover1(j,sg,thms,nTconcl,false)
+               (* [_,_] impossible because of negation *)
+             | _ => None
+          end
 end;
 
 end;

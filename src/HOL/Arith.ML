@@ -855,12 +855,11 @@ val not_leD = not_leE RS Suc_leI;
 val not_lessD = leI;
 val sym = sym;
 
-fun mkEqTrue thm = thm RS (eqTrueI RS eq_reflection);
+val mk_Eq = mk_eq;
 val mk_Trueprop = HOLogic.mk_Trueprop;
 
-fun neg_prop(TP$(Const("Not",_)$t)) = (TP$t, true)
-  | neg_prop(TP$t) =
-      (TP $ (Const("Not",HOLogic.boolT-->HOLogic.boolT)$t), false);
+fun neg_prop(TP$(Const("Not",_)$t)) = TP$t
+  | neg_prop(TP$t) = TP $ (Const("Not",HOLogic.boolT-->HOLogic.boolT)$t);
 
 (* Turn term into list of summand * multiplicity plus a constant *)
 fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))
