@@ -601,8 +601,7 @@ qed "lemma_simp_induct";
 (* ********************************************************************** *)
 
 
-Goalw [AC16_def]
-        "!!n k. [| WO2; 0<m; k:nat; m:nat |] ==> AC16(k #+ m,k)";
+Goalw [AC16_def] "[| WO2; 0<m; k:nat; m:nat |] ==> AC16(k #+ m,k)";
 by (rtac allI 1);
 by (rtac impI 1);
 by (forward_tac [WO2_infinite_subsets_eqpoll_X] 1 

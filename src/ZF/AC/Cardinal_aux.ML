@@ -57,8 +57,7 @@ by (resolve_tac [Inf_Ord_imp_InfCard_cardinal RSN (2, well_ord_Memrel RS
 qed "Un_eqpoll_Inf_Ord";
 
 
-(*bijection is inferred!*)
-Goal "(lam u:{{y,z} . y: x}. THE y. {y,z} = u) : bij({{y,z}. y:x}, x)";
+Goal "?f : bij({{y,z}. y:x}, x)";
 by (rtac RepFun_bijective 1);
 by (simp_tac (simpset() addsimps [doubleton_eq_iff]) 1);
 by (Blast_tac 1);

@@ -158,16 +158,16 @@ qed "gg1_lepoll_m";
 (* ********************************************************************** *)
 
 Goalw [uu_def] "[| b<a;  g<a;  f`b~=0;  f`g~=0;        \
-\                           y*y <= y;  (UN b<a. f`b)=y          \
-\                        |] ==> EX d<a. uu(f,b,g,d) ~= 0";
+\                  y*y <= y;  (UN b<a. f`b)=y          \
+\               |] ==> EX d<a. uu(f,b,g,d) ~= 0";
 by (fast_tac (claset() addSIs [not_emptyI] 
                     addSDs [SigmaI RSN (2, subsetD)]
                     addSEs [not_emptyE]) 1);
 qed "ex_d_uu_not_empty";
 
 Goal "[| b<a; g<a; f`b~=0; f`g~=0;  \
-\                       y*y<=y; (UN b<a. f`b)=y |]  \
-\               ==> uu(f,b,g,LEAST d. (uu(f,b,g,d) ~= 0)) ~= 0";
+\        y*y<=y; (UN b<a. f`b)=y |]  \
+\     ==> uu(f,b,g,LEAST d. (uu(f,b,g,d) ~= 0)) ~= 0";
 by (dtac ex_d_uu_not_empty 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (claset() addSEs [LeastI, lt_Ord]) 1);
 qed "uu_not_empty";
@@ -178,8 +178,8 @@ by (REPEAT (eresolve_tac [asm_rl, not_emptyE, subsetD RS SigmaE,
 qed "not_empty_rel_imp_domain";
 
 Goal "[| b<a; g<a; f`b~=0; f`g~=0;  \
-\                       y*y <= y; (UN b<a. f`b)=y |]  \
-\               ==> (LEAST d. uu(f,b,g,d) ~= 0) < a";
+\        y*y <= y; (UN b<a. f`b)=y |]  \
+\     ==> (LEAST d. uu(f,b,g,d) ~= 0) < a";
 by (eresolve_tac [ex_d_uu_not_empty RS oexE] 1
         THEN REPEAT (assume_tac 1));
 by (resolve_tac [Least_le RS lt_trans1] 1
@@ -259,8 +259,7 @@ qed "domain_gg2";
 (* every value of defined function is less than or equipollent to m       *)
 (* ********************************************************************** *)
 
-Goalw [vv2_def]
-    "!!m. [| m:nat; m~=0 |] ==> vv2(f,b,g,s) lepoll m";
+Goalw [vv2_def] "[| m:nat; m~=0 |] ==> vv2(f,b,g,s) lepoll m";
 by (asm_simp_tac (simpset() addsimps [empty_lepollI]) 1);
 by (fast_tac (claset()
         addSDs [le_imp_subset RS subset_imp_lepoll RS lepoll_0_is_0]
@@ -270,8 +269,8 @@ by (fast_tac (claset()
 qed "vv2_lepoll";
 
 Goalw [ww2_def]
-    "!!m. [| ALL b<a. f`b lepoll succ(m);  g<a;  m:nat;  vv2(f,b,g,d) <= f`g  \
-\         |] ==> ww2(f,b,g,d) lepoll m";
+    "[| ALL b<a. f`b lepoll succ(m);  g<a;  m:nat;  vv2(f,b,g,d) <= f`g |] \
+\    ==> ww2(f,b,g,d) lepoll m";
 by (excluded_middle_tac "f`g = 0" 1);
 by (asm_simp_tac (simpset() addsimps [empty_lepollI]) 2);
 by (dtac ospec 1 THEN (assume_tac 1));
@@ -294,8 +293,7 @@ qed "gg2_lepoll_m";
 (* ********************************************************************** *)
 (* lemma ii                                                               *)
 (* ********************************************************************** *)
-Goalw [NN_def]
-        "!!y. [| succ(m) : NN(y); y*y <= y; m:nat; m~=0 |] ==> m : NN(y)";
+Goalw [NN_def] "[| succ(m) : NN(y); y*y <= y; m:nat; m~=0 |] ==> m : NN(y)";
 by (REPEAT (eresolve_tac [CollectE, exE, conjE] 1));
 by (resolve_tac [quant_domain_uu_lepoll_m RS cases RS disjE] 1
     THEN (assume_tac 1));
@@ -332,7 +330,7 @@ by (fast_tac (claset() addIs [rec_succ RS ssubst]) 1);
 qed "z_n_subset_z_succ_n";
 
 Goal "[| ALL n:nat. f(n)<=f(succ(n)); n le m; n : nat; m: nat |]  \
-\              ==> f(n)<=f(m)";
+\     ==> f(n)<=f(m)";
 by (eres_inst_tac [("P","n le m")] rev_mp 1);
 by (res_inst_tac [("P","%z. n le z --> f(n) <= f(z)")] nat_induct 1);
 by (REPEAT (fast_tac le_cs 1));
@@ -373,7 +371,7 @@ qed "lemma_iv";
 (*      WO6 ==> NN(y) ~= 0                                                *)
 (* ********************************************************************** *)
 
-Goalw [WO6_def, NN_def] "!!y. WO6 ==> NN(y) ~= 0";
+Goalw [WO6_def, NN_def] "WO6 ==> NN(y) ~= 0";
 by (fast_tac ZF_cs 1);  (*SLOW if current claset is used*)
 qed "WO6_imp_NN_not_empty";
 
@@ -382,12 +380,12 @@ qed "WO6_imp_NN_not_empty";
 (* ********************************************************************** *)
 
 Goal "[| (UN b<a. f`b)=y; x:y; ALL b<a. f`b lepoll 1; Ord(a) |]  \
-\               ==> EX c<a. f`c = {x}";
+\     ==> EX c<a. f`c = {x}";
 by (fast_tac (claset() addSEs [lepoll_1_is_sing]) 1);
 val lemma1 = result();
 
 Goal "[| (UN b<a. f`b)=y; x:y; ALL b<a. f`b lepoll 1; Ord(a) |]  \
-\               ==> f` (LEAST i. f`i = {x}) = {x}";
+\     ==> f` (LEAST i. f`i = {x}) = {x}";
 by (dtac lemma1 1 THEN REPEAT (assume_tac 1));
 by (fast_tac (claset() addSEs [lt_Ord] addIs [LeastI]) 1);
 val lemma2 = result();
@@ -425,10 +423,10 @@ by (Blast_tac 2);
 by (fast_tac (claset() addSIs [prem2]) 1);
 qed "rev_induct_lemma";
 
-val prems = goal thy
-        "[| P(n); n:nat; n~=0;  \
-\       !!m. [| m:nat; m~=0; P(succ(m)) |] ==> P(m) |]  \
-\       ==> P(1)";
+val prems = 
+Goal    "[| P(n); n:nat; n~=0;  \
+\           !!m. [| m:nat; m~=0; P(succ(m)) |] ==> P(m) |]  \
+\        ==> P(1)";
 by (resolve_tac [rev_induct_lemma RS impE] 1);
 by (etac impE 4 THEN (assume_tac 5));
 by (REPEAT (ares_tac prems 1));
@@ -450,7 +448,7 @@ val lemma3 = result();
 (* another helpful lemma *)
 Goalw [NN_def] "0:NN(y) ==> y=0";
 by (fast_tac (claset() addSIs [equalityI] 
-                    addSDs [lepoll_0_is_0] addEs [subst]) 1);
+                       addSDs [lepoll_0_is_0] addEs [subst]) 1);
 qed "NN_y_0";
 
 Goalw [WO1_def] "WO6 ==> WO1";
