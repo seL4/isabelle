@@ -1,9 +1,9 @@
-(*  Title:      HOL/WF.ML
+(*  Title:      HOL/wf.ML
     ID:         $Id$
-    Author:     Tobias Nipkow
-    Copyright   1992  University of Cambridge
+    Author:     Tobias Nipkow, with minor changes by Konrad Slind
+    Copyright   1992  University of Cambridge/1995 TU Munich
 
-For WF.thy.  Well-founded Recursion
+For WF.thy.  Wellfoundedness, induction, and  recursion
 *)
 
 open WF;
@@ -48,7 +48,7 @@ by (rtac wf_asym 1);
 by (REPEAT (resolve_tac prems 1));
 qed "wf_anti_refl";
 
-(*transitive closure of a WF relation is WF!*)
+(*transitive closure of a wf relation is wf! *)
 val [prem] = goal WF.thy "wf(r) ==> wf(r^+)";
 by (rewtac wf_def);
 by (strip_tac 1);
@@ -69,30 +69,21 @@ qed "wf_trancl";
   H_cong to expose the equality*)
 goalw WF.thy [cut_def]
     "(cut f r x = cut g r x) = (!y. (y,x):r --> f(y)=g(y))";
-by(simp_tac (!simpset addsimps [expand_fun_eq]
-                        setloop (split_tac [expand_if])) 1);
-qed "cut_cut_eq";
+by(simp_tac (HOL_ss addsimps [expand_fun_eq]
+                    setloop (split_tac [expand_if])) 1);
+qed "cuts_eq";
 
 goalw WF.thy [cut_def] "!!x. (x,a):r ==> (cut f r a)(x) = f(x)";
-by(Asm_simp_tac 1);
+by(asm_simp_tac HOL_ss 1);
 qed "cut_apply";
-
 
 (*** is_recfun ***)
 
 goalw WF.thy [is_recfun_def,cut_def]
-    "!!f. [| is_recfun r a H f;  ~(b,a):r |] ==> f(b) = (@z.True)";
+    "!!f. [| is_recfun r H a f;  ~(b,a):r |] ==> f(b) = (@z.True)";
 by (etac ssubst 1);
-by(Asm_simp_tac 1);
+by(asm_simp_tac HOL_ss 1);
 qed "is_recfun_undef";
-
-(*eresolve_tac transD solves (a,b):r using transitivity AT MOST ONCE
-  mp amd allE  instantiate induction hypotheses*)
-fun indhyp_tac hyps =
-    ares_tac (TrueI::hyps) ORELSE' 
-    (cut_facts_tac hyps THEN'
-       DEPTH_SOLVE_1 o (ares_tac [TrueI] ORELSE'
-                        eresolve_tac [transD, mp, allE]));
 
 (*** NOTE! some simplifications need a different finish_tac!! ***)
 fun indhyp_tac hyps =
@@ -100,10 +91,10 @@ fun indhyp_tac hyps =
     (cut_facts_tac hyps THEN'
        DEPTH_SOLVE_1 o (ares_tac [TrueI] ORELSE'
                         eresolve_tac [transD, mp, allE]));
-val wf_super_ss = !simpset setsolver indhyp_tac;
+val wf_super_ss = HOL_ss setsolver indhyp_tac;
 
 val prems = goalw WF.thy [is_recfun_def,cut_def]
-    "[| wf(r);  trans(r);  is_recfun r a H f;  is_recfun r b H g |] ==> \
+    "[| wf(r);  trans(r);  is_recfun r H a f;  is_recfun r H b g |] ==> \
     \ (x,a):r --> (x,b):r --> f(x)=g(x)";
 by (cut_facts_tac prems 1);
 by (etac wf_induct 1);
@@ -115,7 +106,7 @@ bind_thm ("is_recfun_equal", (is_recfun_equal_lemma RS mp RS mp));
 
 val prems as [wfr,transr,recfa,recgb,_] = goalw WF.thy [cut_def]
     "[| wf(r);  trans(r); \
-\       is_recfun r a H f;  is_recfun r b H g;  (b,a):r |] ==> \
+\       is_recfun r H a f;  is_recfun r H b g;  (b,a):r |] ==> \
 \    cut f r b = g";
 val gundef = recgb RS is_recfun_undef
 and fisg   = recgb RS (recfa RS (transr RS (wfr RS is_recfun_equal)));
@@ -128,70 +119,112 @@ qed "is_recfun_cut";
 (*** Main Existence Lemma -- Basic Properties of the_recfun ***)
 
 val prems = goalw WF.thy [the_recfun_def]
-    "is_recfun r a H f ==> is_recfun r a H (the_recfun r a H)";
-by (res_inst_tac [("P", "is_recfun r a H")] selectI 1);
+    "is_recfun r H a f ==> is_recfun r H a (the_recfun r H a)";
+by (res_inst_tac [("P", "is_recfun r H a")] selectI 1);
 by (resolve_tac prems 1);
 qed "is_the_recfun";
 
 val prems = goal WF.thy
-    "[| wf(r);  trans(r) |] ==> is_recfun r a H (the_recfun r a H)";
-by (cut_facts_tac prems 1);
-by (wf_ind_tac "a" prems 1);
-by (res_inst_tac [("f", "cut (%y. wftrec r y H) r a1")] is_the_recfun 1);
-by (rewrite_goals_tac [is_recfun_def, wftrec_def]);
-by (rtac (cut_cut_eq RS ssubst) 1);
-(*Applying the substitution: must keep the quantified assumption!!*)
-by (EVERY1 [strip_tac, rtac H_cong1, rtac allE, atac,
-            etac (mp RS ssubst), atac]);
-by (fold_tac [is_recfun_def]);
-by (asm_simp_tac (wf_super_ss addsimps[cut_apply,is_recfun_cut,cut_cut_eq]) 1);
+ "[| wf(r);  trans(r) |] ==> is_recfun r H a (the_recfun r H a)";
+  by (cut_facts_tac prems 1);
+  by (wf_ind_tac "a" prems 1);
+  by (res_inst_tac [("f","cut (%y. H (the_recfun r H y) y) r a1")]
+                   is_the_recfun 1);
+  by (rewrite_goals_tac [is_recfun_def]);
+  by (rtac (cuts_eq RS ssubst) 1);
+  by (rtac allI 1);
+  by (rtac impI 1);
+  by (res_inst_tac [("f1","H"),("x","y")](arg_cong RS fun_cong) 1);
+  by (subgoal_tac
+         "the_recfun r H y = cut(%x. H(cut(the_recfun r H y) r x) x) r y" 1);
+  by (etac allE 2);
+  by (dtac impE 2);
+  by (atac 2);
+  by (atac 3);
+  by (atac 2);
+  by (etac ssubst 1);
+  by (simp_tac (HOL_ss addsimps [cuts_eq]) 1);
+  by (rtac allI 1);
+  by (rtac impI 1);
+  by (asm_simp_tac (wf_super_ss addsimps[cut_apply,is_recfun_cut,cuts_eq]) 1);
+  by (res_inst_tac [("f1","H"),("x","ya")](arg_cong RS fun_cong) 1);
+  by (fold_tac [is_recfun_def]);
+  by (asm_simp_tac (wf_super_ss addsimps[cut_apply,is_recfun_cut,cuts_eq]) 1);
 qed "unfold_the_recfun";
 
+val unwind1_the_recfun = rewrite_rule[is_recfun_def] unfold_the_recfun;
 
-(*Beware incompleteness of unification!*)
+(*--------------Old proof-----------------------------------------------------
 val prems = goal WF.thy
-    "[| wf(r);  trans(r);  (c,a):r;  (c,b):r |] \
-\    ==> the_recfun r a H c = the_recfun r b H c";
-by (DEPTH_SOLVE (ares_tac (prems@[is_recfun_equal,unfold_the_recfun]) 1));
-qed "the_recfun_equal";
-
-val prems = goal WF.thy
-    "[| wf(r); trans(r); (b,a):r |] \
-\    ==> cut (the_recfun r a H) r b = the_recfun r b H";
-by (REPEAT (ares_tac (prems@[is_recfun_cut,unfold_the_recfun]) 1));
-qed "the_recfun_cut";
-
-(*** Unfolding wftrec ***)
-
-goalw WF.thy [wftrec_def]
-    "!!r. [| wf(r);  trans(r) |] ==> \
-\    wftrec r a H = H a (cut (%x.wftrec r x H) r a)";
-by (EVERY1 [stac (rewrite_rule [is_recfun_def] unfold_the_recfun),
-            REPEAT o atac, rtac H_cong1]);
-by (asm_simp_tac (!simpset addsimps [cut_cut_eq,the_recfun_cut]) 1);
-qed "wftrec";
-
-(*Unused but perhaps interesting*)
-val prems = goal WF.thy
-    "[| wf(r);  trans(r);  !!f x. H x (cut f r x) = H x f |] ==> \
-\               wftrec r a H = H a (%x.wftrec r x H)";
-by (rtac (wftrec RS trans) 1);
-by (REPEAT (resolve_tac prems 1));
-qed "wftrec2";
+    "[| wf(r);  trans(r) |] ==> is_recfun r H a (the_recfun r H a)";
+by (cut_facts_tac prems 1);
+by (wf_ind_tac "a" prems 1);
+by (res_inst_tac [("f", "cut (%y. wftrec r H y) r a1")] is_the_recfun 1); 
+by (rewrite_goals_tac [is_recfun_def, wftrec_def]);
+by (rtac (cuts_eq RS ssubst) 1);
+(*Applying the substitution: must keep the quantified assumption!!*)
+by (EVERY1 [strip_tac, rtac H_cong1, rtac allE, atac,
+            etac (mp RS ssubst), atac]); 
+by (fold_tac [is_recfun_def]);
+by (asm_simp_tac (wf_super_ss addsimps[cut_apply,is_recfun_cut,cuts_eq]) 1);
+qed "unfold_the_recfun";
+---------------------------------------------------------------------------*)
 
 (** Removal of the premise trans(r) **)
+val th = rewrite_rule[is_recfun_def]
+                     (trans_trancl RSN (2,(wf_trancl RS unfold_the_recfun)));
 
 goalw WF.thy [wfrec_def]
-    "!!r. wf(r) ==> wfrec r a H = H a (cut (%x.wfrec r x H) r a)";
+    "!!r. wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
+by (rtac H_cong 1);
+by (rtac refl 2);
+by (simp_tac (HOL_ss addsimps [cuts_eq]) 1);
+by (rtac allI 1);
+by (rtac impI 1);
+by (simp_tac(HOL_ss addsimps [wfrec_def]) 1);
+by (res_inst_tac [("a1","a")] (th RS ssubst) 1);
+by (atac 1);
+by (forward_tac[wf_trancl] 1);
+by (forward_tac[r_into_trancl] 1);
+by (asm_simp_tac (HOL_ss addsimps [cut_apply]) 1);
+by (rtac H_cong 1);    (*expose the equality of cuts*)
+by (rtac refl 2);
+by (simp_tac (HOL_ss addsimps [cuts_eq, cut_apply, r_into_trancl]) 1);
+by (strip_tac 1);
+by (res_inst_tac [("r2","r^+")] (is_recfun_equal_lemma RS mp RS mp) 1);
+by (atac 1);
+by (rtac trans_trancl 1);
+by (rtac unfold_the_recfun 1);
+by (atac 1);
+by (rtac trans_trancl 1);
+by (rtac unfold_the_recfun 1);
+by (atac 1);
+by (rtac trans_trancl 1);
+by (rtac transD 1);
+by (rtac trans_trancl 1);
+by (forw_inst_tac [("a","ya")] r_into_trancl 1);
+by (atac 1);
+by (atac 1);
+by (forw_inst_tac [("a","ya")] r_into_trancl 1);
+by (atac 1);
+qed "wfrec";
+
+(*--------------Old proof-----------------------------------------------------
+goalw WF.thy [wfrec_def]
+    "!!r. wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
 by (etac (wf_trancl RS wftrec RS ssubst) 1);
 by (rtac trans_trancl 1);
 by (rtac (refl RS H_cong) 1);    (*expose the equality of cuts*)
-by (simp_tac (!simpset addsimps [cut_cut_eq, cut_apply, r_into_trancl]) 1);
+by (simp_tac (HOL_ss addsimps [cuts_eq, cut_apply, r_into_trancl]) 1);
 qed "wfrec";
+---------------------------------------------------------------------------*)
 
-(*This form avoids giant explosions in proofs.  NOTE USE OF == *)
+(*---------------------------------------------------------------------------
+ * This form avoids giant explosions in proofs.  NOTE USE OF == 
+ *---------------------------------------------------------------------------*)
 val rew::prems = goal WF.thy
-    "[| !!x. f(x)==wfrec r x H;  wf(r) |] ==> f(a) = H a (cut (%x.f(x)) r a)";
+    "[| f==wfrec r H;  wf(r) |] ==> f(a) = H (cut f r a) a";
 by (rewtac rew);
 by (REPEAT (resolve_tac (prems@[wfrec]) 1));
 qed "def_wfrec";
+

@@ -33,7 +33,7 @@ rules
 
 (* type definition *)
 
-subtype (Nat)
+typedef (Nat)
   nat = "lfp(%X. {Zero_Rep} Un (Suc_Rep``X))"   (lfp_def)
 
 instance
@@ -65,6 +65,5 @@ defs
 
   le_def   "m<=(n::nat) == ~(n<m)"
 
-  nat_rec_def   "nat_rec n c d == wfrec pred_nat n  
-                        (nat_case (%g.c) (%m g.(d m (g m))))"
+nat_rec_def"nat_rec n c d == wfrec pred_nat (%f. nat_case c (%m. d m (f m))) n"
 end

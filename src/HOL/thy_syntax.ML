@@ -17,9 +17,9 @@ struct
 open ThyParse;
 
 
-(** subtype **)
+(** typedef **)
 
-fun mk_subtype_decl (((((opt_name, vs), t), mx), rhs), wt) =
+fun mk_typedef_decl (((((opt_name, vs), t), mx), rhs), wt) =
   let
     val name' = if_none opt_name t;
     val name = strip_quotes name';
@@ -29,10 +29,10 @@ fun mk_subtype_decl (((((opt_name, vs), t), mx), rhs), wt) =
         "Abs_" ^ name ^ "_inverse"])
   end;
 
-val subtype_decl =
+val typedef_decl =
   optional ("(" $$-- name --$$ ")" >> Some) None --
   type_args -- name -- opt_infix --$$ "=" -- string -- opt_witness
-  >> mk_subtype_decl;
+  >> mk_typedef_decl;
 
 
 
@@ -191,7 +191,7 @@ val primrec_decl =
 val user_keywords = ["intrs", "monos", "con_defs", "|"];
 
 val user_sections =
- [axm_section "subtype" "|> Subtype.add_subtype" subtype_decl,
+ [axm_section "typedef" "|> Typedef.add_typedef" typedef_decl,
   ("inductive", inductive_decl ""),
   ("coinductive", inductive_decl "Co"),
   ("datatype", datatype_decl),

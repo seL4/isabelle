@@ -1,20 +1,20 @@
-(*  Title:      HOL/subtype.ML
+(*  Title:      HOL/typedef.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Internal interface for subtype definitions.
+Internal interface for typedef definitions.
 *)
 
-signature SUBTYPE =
+signature TYPEDEF =
 sig
   val prove_nonempty: cterm -> thm list -> tactic option -> thm
-  val add_subtype: string -> string * string list * mixfix ->
+  val add_typedef: string -> string * string list * mixfix ->
     string -> string list -> thm list -> tactic option -> theory -> theory
-  val add_subtype_i: string -> string * string list * mixfix ->
+  val add_typedef_i: string -> string * string list * mixfix ->
     term -> string list -> thm list -> tactic option -> theory -> theory
 end;
 
-structure Subtype: SUBTYPE =
+structure Typedef: TYPEDEF =
 struct
 
 open Syntax Logic HOLogic;
@@ -41,11 +41,11 @@ fun prove_nonempty cset thms usr_tac =
     error ("Failed to prove non-emptyness of " ^ quote (string_of_cterm cset));
 
 
-(* ext_subtype *)
+(* ext_typedef *)
 
-fun ext_subtype prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
+fun ext_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
   let
-    val dummy = require_thy thy "Set" "subtype definitions";
+    val dummy = require_thy thy "Set" "typedef definitions";
     val sign = sign_of thy;
 
     (*rhs*)
@@ -122,7 +122,7 @@ fun ext_subtype prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
       (Abs_name ^ "_inverse", abs_type_inv)]
   end
   handle ERROR =>
-    error ("The error(s) above occurred in subtype definition " ^ quote name);
+    error ("The error(s) above occurred in typedef definition " ^ quote name);
 
 
 (* external interfaces *)
@@ -133,8 +133,8 @@ fun cert_term sg tm =
 fun read_term sg str =
   read_cterm sg (str, termTVar);
 
-val add_subtype = ext_subtype read_term;
-val add_subtype_i = ext_subtype cert_term;
+val add_typedef = ext_typedef read_term;
+val add_typedef_i = ext_typedef cert_term;
 
 
 end;

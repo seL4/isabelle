@@ -19,7 +19,7 @@ consts
 defs
   Pair_Rep_def  "Pair_Rep == (%a b. %x y. x=a & y=b)"
 
-subtype (Prod)
+typedef (Prod)
   ('a, 'b) "*"          (infixr 20)
     = "{f. ? a b. f = Pair_Rep (a::'a) (b::'b)}"
 
@@ -61,7 +61,7 @@ defs
 
 (** Unit **)
 
-subtype (Unit)
+typedef (Unit)
   unit = "{p. p = True}"
 
 consts

@@ -15,7 +15,7 @@ Univ = Arith + Sum +
 
 (** lists, trees will be sets of nodes **)
 
-subtype (Node)
+typedef (Node)
   'a node = "{p. EX f x k. p = (f::nat=>nat, x::'a+nat) & f(k)=0}"
 
 types

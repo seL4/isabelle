@@ -18,7 +18,7 @@ defs
   Inl_Rep_def   "Inl_Rep == (%a. %x y p. x=a & p)"
   Inr_Rep_def   "Inr_Rep == (%b. %x y p. y=b & ~p)"
 
-subtype (Sum)
+typedef (Sum)
   ('a, 'b) "+"          (infixr 10)
     = "{f. (? a. f = Inl_Rep(a::'a)) | (? b. f = Inr_Rep(b::'b))}"
 

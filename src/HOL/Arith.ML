@@ -197,26 +197,36 @@ goalw Nat.thy [less_def] "(m,n) : pred_nat^+ = (m<n)";
 by (rtac refl 1);
 qed "less_eq";
 
+goal Arith.thy "(%m. m mod n) = wfrec (trancl pred_nat) \
+             \                      (%f j. if j<n then j else f (j-n))";
+by (simp_tac (HOL_ss addsimps [mod_def]) 1);
+val mod_def1 = result() RS eq_reflection;
+
 goal Arith.thy "!!m. m<n ==> m mod n = m";
-by (rtac (mod_def RS wf_less_trans) 1);
+by (rtac (mod_def1 RS wf_less_trans) 1);
 by(Asm_simp_tac 1);
 qed "mod_less";
 
 goal Arith.thy "!!m. [| 0<n;  ~m<n |] ==> m mod n = (m-n) mod n";
-by (rtac (mod_def RS wf_less_trans) 1);
+by (rtac (mod_def1 RS wf_less_trans) 1);
 by(asm_simp_tac (!simpset addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "mod_geq";
 
 
 (*** Quotient ***)
 
+goal Arith.thy "(%m. m div n) = wfrec (trancl pred_nat) \
+                        \            (%f j. if j<n then 0 else Suc (f (j-n)))";
+by (simp_tac (HOL_ss addsimps [div_def]) 1);
+val div_def1 = result() RS eq_reflection;
+
 goal Arith.thy "!!m. m<n ==> m div n = 0";
-by (rtac (div_def RS wf_less_trans) 1);
+by (rtac (div_def1 RS wf_less_trans) 1);
 by(Asm_simp_tac 1);
 qed "div_less";
 
 goal Arith.thy "!!M. [| 0<n;  ~m<n |] ==> m div n = Suc((m-n) div n)";
-by (rtac (div_def RS wf_less_trans) 1);
+by (rtac (div_def1 RS wf_less_trans) 1);
 by(asm_simp_tac (!simpset addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "div_geq";
 
@@ -322,20 +332,20 @@ bind_thm ("trans_less_add1", le_add1 RSN (2,less_le_trans));
 bind_thm ("trans_less_add2", le_add2 RSN (2,less_le_trans));
 
 goal Arith.thy "!!i. i+j < (k::nat) ==> i<k";
-by (etac rev_mp 1);
+be rev_mp 1;
 by(nat_ind_tac "j" 1);
 by (ALLGOALS Asm_simp_tac);
 by(fast_tac (HOL_cs addDs [Suc_lessD]) 1);
 qed "add_lessD1";
 
 goal Arith.thy "!!k::nat. m <= n ==> m <= n+k";
-by (etac le_trans 1);
-by (rtac le_add1 1);
+by (eresolve_tac [le_trans] 1);
+by (resolve_tac [le_add1] 1);
 qed "le_imp_add_le";
 
 goal Arith.thy "!!k::nat. m < n ==> m < n+k";
-by (etac less_le_trans 1);
-by (rtac le_add1 1);
+by (eresolve_tac [less_le_trans] 1);
+by (resolve_tac [le_add1] 1);
 qed "less_imp_add_less";
 
 goal Arith.thy "m+k<=n --> m<=(n::nat)";
@@ -350,7 +360,7 @@ by (safe_tac (HOL_cs addSDs [less_eq_Suc_add]));
 by (asm_full_simp_tac
     (!simpset delsimps [add_Suc_right]
                 addsimps ([add_Suc_right RS sym, add_left_cancel] @add_ac)) 1);
-by (etac subst 1);
+by (eresolve_tac [subst] 1);
 by (simp_tac (!simpset addsimps [less_add_Suc1]) 1);
 qed "less_add_eq_less";
 
@@ -386,7 +396,7 @@ qed "less_mono_imp_le_mono";
 (*non-strict, in 1st argument*)
 goal Arith.thy "!!i j k::nat. i<=j ==> i + k <= j + k";
 by (res_inst_tac [("f", "%j.j+k")] less_mono_imp_le_mono 1);
-by (etac add_less_mono1 1);
+by (eresolve_tac [add_less_mono1] 1);
 by (assume_tac 1);
 qed "add_le_mono1";
 
@@ -395,5 +405,5 @@ goal Arith.thy "!!k l::nat. [|i<=j;  k<=l |] ==> i + k <= j + l";
 by (etac (add_le_mono1 RS le_trans) 1);
 by (simp_tac (!simpset addsimps [add_commute]) 1);
 (*j moves to the end because it is free while k, l are bound*)
-by (etac add_le_mono1 1);
+by (eresolve_tac [add_le_mono1] 1);
 qed "add_le_mono";

@@ -160,7 +160,17 @@ qed "wf_pred_nat";
 
 (*** nat_rec -- by wf recursion on pred_nat ***)
 
-bind_thm ("nat_rec_unfold", (wf_pred_nat RS (nat_rec_def RS def_wfrec)));
+(* The unrolling rule for nat_rec *)
+goal Nat.thy
+   "(%n. nat_rec n c d) = wfrec pred_nat (%f. nat_case ?c (%m. ?d m (f m)))";
+  by (simp_tac (HOL_ss addsimps [nat_rec_def]) 1);
+bind_thm("nat_rec_unfold", wf_pred_nat RS 
+                            ((result() RS eq_reflection) RS def_wfrec));
+
+(*---------------------------------------------------------------------------
+ * Old:
+ * bind_thm ("nat_rec_unfold", (wf_pred_nat RS (nat_rec_def RS def_wfrec))); 
+ *---------------------------------------------------------------------------*)
 
 (** conversion rules **)
 
