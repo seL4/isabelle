@@ -1,0 +1,26 @@
+import
+
+import_segment "hol4"
+
+type_maps
+  "num" > "nat"
+
+const_maps
+  "SUC" > "Suc"
+  "0" > "0" :: "nat"
+
+thm_maps
+  "NOT_SUC" > "Nat.nat.simps_1"
+  "INV_SUC" > "Nat.Suc_inject"
+  "INDUCTION" > "List.lexn.induct"
+
+ignore_thms
+  "num_TY_DEF"
+  "num_ISO_DEF"
+  "ZERO_REP_DEF"
+  "ZERO_DEF"
+  "SUC_REP_DEF"
+  "SUC_DEF"
+  "IS_NUM_REP"
+
+end

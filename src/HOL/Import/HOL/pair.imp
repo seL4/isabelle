@@ -1,0 +1,70 @@
+import
+
+import_segment "hol4"
+
+def_maps
+  "RPROD" > "RPROD_def"
+  "LEX" > "LEX_def"
+
+type_maps
+  "prod" > "*"
+
+const_maps
+  "pair_case" > "split"
+  "UNCURRY" > "split"
+  "SND" > "snd"
+  "RPROD" > "HOL4Base.pair.RPROD"
+  "LEX" > "HOL4Base.pair.LEX"
+  "FST" > "fst"
+  "CURRY" > "curry"
+  "," > "Pair"
+  "##" > "prod_fun"
+
+thm_maps
+  "pair_induction" > "Product_Type.prod_induct"
+  "pair_case_thm" > "Product_Type.split"
+  "pair_case_def" > "HOL4Compat.pair_case_def"
+  "pair_case_cong" > "HOL4Base.pair.pair_case_cong"
+  "pair_Axiom" > "HOL4Base.pair.pair_Axiom"
+  "WF_RPROD" > "HOL4Base.pair.WF_RPROD"
+  "WF_LEX" > "HOL4Base.pair.WF_LEX"
+  "UNCURRY_VAR" > "Product_Type.split_beta"
+  "UNCURRY_ONE_ONE_THM" > "HOL4Base.pair.UNCURRY_ONE_ONE_THM"
+  "UNCURRY_DEF" > "Product_Type.split"
+  "UNCURRY_CURRY_THM" > "Product_Type.split_curry"
+  "UNCURRY_CONG" > "HOL4Base.pair.UNCURRY_CONG"
+  "UNCURRY" > "Product_Type.split_beta"
+  "SND" > "Product_Type.snd_conv"
+  "RPROD_def" > "HOL4Base.pair.RPROD_def"
+  "RPROD_DEF" > "HOL4Base.pair.RPROD_DEF"
+  "PFORALL_THM" > "HOL4Base.pair.PFORALL_THM"
+  "PEXISTS_THM" > "HOL4Base.pair.PEXISTS_THM"
+  "PAIR_MAP_THM" > "Product_Type.prod_fun"
+  "PAIR_MAP" > "HOL4Compat.PAIR_MAP"
+  "PAIR_EQ" > "Product_Type.Pair_eq"
+  "PAIR" > "HOL4Compat.PAIR"
+  "LEX_def" > "HOL4Base.pair.LEX_def"
+  "LEX_DEF" > "HOL4Base.pair.LEX_DEF"
+  "LET2_RATOR" > "HOL4Base.pair.LET2_RATOR"
+  "LET2_RAND" > "HOL4Base.pair.LET2_RAND"
+  "LAMBDA_PROD" > "Product_Type.split_eta"
+  "FST" > "Product_Type.fst_conv"
+  "FORALL_PROD" > "Product_Type.split_paired_All"
+  "EXISTS_PROD" > "Product_Type.split_paired_Ex"
+  "ELIM_UNCURRY" > "Product_Type.split_beta"
+  "ELIM_PFORALL" > "HOL4Base.pair.ELIM_PFORALL"
+  "ELIM_PEXISTS" > "HOL4Base.pair.ELIM_PEXISTS"
+  "CURRY_UNCURRY_THM" > "Product_Type.curry_split"
+  "CURRY_ONE_ONE_THM" > "HOL4Base.pair.CURRY_ONE_ONE_THM"
+  "CURRY_DEF" > "Product_Type.curry_conv"
+  "CLOSED_PAIR_EQ" > "Product_Type.Pair_eq"
+  "ABS_PAIR_THM" > "Product_Type.surj_pair"
+
+ignore_thms
+  "prod_TY_DEF"
+  "MK_PAIR_DEF"
+  "IS_PAIR_DEF"
+  "COMMA_DEF"
+  "ABS_REP_prod"
+
+end

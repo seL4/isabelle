@@ -1,0 +1,35 @@
+import
+
+import_segment "hol4"
+
+def_maps
+  "NWORD" > "NWORD_def"
+  "NVAL" > "NVAL_def"
+  "NLIST" > "NLIST_def"
+  "LVAL" > "LVAL_def"
+
+const_maps
+  "NWORD" > "HOL4Vec.word_num.NWORD"
+  "LVAL" > "HOL4Vec.word_num.LVAL"
+
+thm_maps
+  "NWORD_def" > "HOL4Vec.word_num.NWORD_def"
+  "NWORD_PWORDLEN" > "HOL4Vec.word_num.NWORD_PWORDLEN"
+  "NWORD_LENGTH" > "HOL4Vec.word_num.NWORD_LENGTH"
+  "NWORD_DEF" > "HOL4Vec.word_num.NWORD_DEF"
+  "NVAL_WORDLEN_0" > "HOL4Vec.word_num.NVAL_WORDLEN_0"
+  "NVAL_WCAT2" > "HOL4Vec.word_num.NVAL_WCAT2"
+  "NVAL_WCAT1" > "HOL4Vec.word_num.NVAL_WCAT1"
+  "NVAL_WCAT" > "HOL4Vec.word_num.NVAL_WCAT"
+  "NVAL_MAX" > "HOL4Vec.word_num.NVAL_MAX"
+  "NVAL_DEF" > "HOL4Vec.word_num.NVAL_DEF"
+  "NVAL1" > "HOL4Vec.word_num.NVAL1"
+  "NVAL0" > "HOL4Vec.word_num.NVAL0"
+  "NLIST_DEF" > "HOL4Vec.word_num.NLIST_DEF"
+  "LVAL_def" > "HOL4Vec.word_num.LVAL_def"
+  "LVAL_SNOC" > "HOL4Vec.word_num.LVAL_SNOC"
+  "LVAL_MAX" > "HOL4Vec.word_num.LVAL_MAX"
+  "LVAL_DEF" > "HOL4Vec.word_num.LVAL_DEF"
+  "LVAL" > "HOL4Vec.word_num.LVAL"
+
+end

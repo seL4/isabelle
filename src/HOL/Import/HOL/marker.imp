@@ -1,0 +1,19 @@
+import
+
+import_segment "hol4"
+
+def_maps
+  "stmarker" > "stmarker_primdef"
+
+const_maps
+  "stmarker" > "HOL4Base.marker.stmarker"
+
+thm_maps
+  "stmarker_primdef" > "HOL4Base.marker.stmarker_primdef"
+  "stmarker_def" > "HOL4Base.marker.stmarker_def"
+  "move_right_disj" > "HOL4Base.marker.move_right_disj"
+  "move_right_conj" > "HOL4Base.marker.move_right_conj"
+  "move_left_disj" > "HOL4Base.marker.move_left_disj"
+  "move_left_conj" > "HOL4Base.marker.move_left_conj"
+
+end

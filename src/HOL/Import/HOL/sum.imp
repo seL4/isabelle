@@ -1,0 +1,43 @@
+import
+
+import_segment "hol4"
+
+type_maps
+  "sum" > "+"
+
+const_maps
+  "sum_case" > "Datatype.sum.sum_case"
+  "OUTR" > "HOL4Compat.OUTR"
+  "OUTL" > "HOL4Compat.OUTL"
+  "ISR" > "HOL4Compat.ISR"
+  "ISL" > "HOL4Compat.ISL"
+  "INR" > "Inr"
+  "INL" > "Inl"
+
+thm_maps
+  "sum_distinct1" > "Sum_Type.Inr_not_Inl"
+  "sum_distinct" > "Sum_Type.Inl_not_Inr"
+  "sum_case_def" > "HOL4Compat.sum_case_def"
+  "sum_case_cong" > "HOL4Base.sum.sum_case_cong"
+  "sum_INDUCT" > "HOL4Compat.OUTR.induct"
+  "sum_CASES" > "Datatype.sum.nchotomy"
+  "OUTR" > "HOL4Compat.OUTR"
+  "OUTL" > "HOL4Compat.OUTL"
+  "ISR" > "HOL4Compat.ISR"
+  "ISL_OR_ISR" > "HOL4Base.sum.ISL_OR_ISR"
+  "ISL" > "HOL4Compat.ISL"
+  "INR_neq_INL" > "Sum_Type.Inr_not_Inl"
+  "INR_INL_11" > "HOL4Compat.INR_INL_11"
+  "INR" > "HOL4Base.sum.INR"
+  "INL" > "HOL4Base.sum.INL"
+
+ignore_thms
+  "sum_axiom"
+  "sum_TY_DEF"
+  "sum_ISO_DEF"
+  "sum_Axiom"
+  "IS_SUM_REP"
+  "INR_DEF"
+  "INL_DEF"
+
+end

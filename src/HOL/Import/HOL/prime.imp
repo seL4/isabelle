@@ -1,0 +1,17 @@
+import
+
+import_segment "hol4"
+
+def_maps
+  "prime" > "prime_primdef"
+
+const_maps
+  "prime" > "HOL4Base.prime.prime"
+
+thm_maps
+  "prime_primdef" > "HOL4Base.prime.prime_primdef"
+  "prime_def" > "HOL4Base.prime.prime_def"
+  "NOT_PRIME_1" > "HOL4Base.prime.NOT_PRIME_1"
+  "NOT_PRIME_0" > "HOL4Base.prime.NOT_PRIME_0"
+
+end

@@ -1,0 +1,30 @@
+import
+
+import_segment "hol4"
+
+def_maps
+  "diffs" > "diffs_def"
+
+const_maps
+  "diffs" > "HOL4Real.powser.diffs"
+
+thm_maps
+  "diffs_def" > "HOL4Real.powser.diffs_def"
+  "diffs" > "HOL4Real.powser.diffs"
+  "TERMDIFF_LEMMA5" > "HOL4Real.powser.TERMDIFF_LEMMA5"
+  "TERMDIFF_LEMMA4" > "HOL4Real.powser.TERMDIFF_LEMMA4"
+  "TERMDIFF_LEMMA3" > "HOL4Real.powser.TERMDIFF_LEMMA3"
+  "TERMDIFF_LEMMA2" > "HOL4Real.powser.TERMDIFF_LEMMA2"
+  "TERMDIFF_LEMMA1" > "HOL4Real.powser.TERMDIFF_LEMMA1"
+  "TERMDIFF" > "HOL4Real.powser.TERMDIFF"
+  "POWSER_INSIDEA" > "HOL4Real.powser.POWSER_INSIDEA"
+  "POWSER_INSIDE" > "HOL4Real.powser.POWSER_INSIDE"
+  "POWREV" > "HOL4Real.powser.POWREV"
+  "POWDIFF_LEMMA" > "HOL4Real.powser.POWDIFF_LEMMA"
+  "POWDIFF" > "HOL4Real.powser.POWDIFF"
+  "DIFFS_NEG" > "HOL4Real.powser.DIFFS_NEG"
+  "DIFFS_LEMMA2" > "HOL4Real.powser.DIFFS_LEMMA2"
+  "DIFFS_LEMMA" > "HOL4Real.powser.DIFFS_LEMMA"
+  "DIFFS_EQUIV" > "HOL4Real.powser.DIFFS_EQUIV"
+
+end

@@ -1,0 +1,24 @@
+import
+
+import_segment "hol4"
+
+const_maps
+  "divides" > "Divides.op dvd" :: "nat => nat => bool"
+
+thm_maps
+  "divides_def" > "HOL4Compat.divides_def"
+  "ONE_DIVIDES_ALL" > "HOL4Base.divides.ONE_DIVIDES_ALL"
+  "NOT_LT_DIV" > "HOL4Base.divides.NOT_LT_DIV"
+  "DIVIDES_TRANS" > "Divides.dvd_trans"
+  "DIVIDES_SUB" > "Divides.dvd_diff"
+  "DIVIDES_REFL" > "Divides.dvd_refl"
+  "DIVIDES_MULT_LEFT" > "HOL4Base.divides.DIVIDES_MULT_LEFT"
+  "DIVIDES_MULT" > "Divides.dvd_mult2"
+  "DIVIDES_LE" > "Divides.dvd_imp_le"
+  "DIVIDES_FACT" > "HOL4Base.divides.DIVIDES_FACT"
+  "DIVIDES_ANTISYM" > "Divides.dvd_anti_sym"
+  "DIVIDES_ADD_2" > "HOL4Base.divides.DIVIDES_ADD_2"
+  "DIVIDES_ADD_1" > "Divides.dvd_add"
+  "ALL_DIVIDES_0" > "Divides.dvd_0_right"
+
+end

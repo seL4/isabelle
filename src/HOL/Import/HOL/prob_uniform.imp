@@ -1,0 +1,57 @@
+import
+
+import_segment "hol4"
+
+def_maps
+  "uniform_tupled" > "uniform_tupled_def"
+  "uniform" > "uniform_primdef"
+  "unif_tupled" > "unif_tupled_def"
+  "unif_bound" > "unif_bound_primdef"
+  "unif" > "unif_primdef"
+
+const_maps
+  "uniform_tupled" > "HOL4Prob.prob_uniform.uniform_tupled"
+  "uniform" > "HOL4Prob.prob_uniform.uniform"
+  "unif_tupled" > "HOL4Prob.prob_uniform.unif_tupled"
+  "unif_bound" > "HOL4Prob.prob_uniform.unif_bound"
+  "unif" > "HOL4Prob.prob_uniform.unif"
+
+thm_maps
+  "uniform_tupled_primitive_def" > "HOL4Prob.prob_uniform.uniform_tupled_primitive_def"
+  "uniform_tupled_def" > "HOL4Prob.prob_uniform.uniform_tupled_def"
+  "uniform_primdef" > "HOL4Prob.prob_uniform.uniform_primdef"
+  "uniform_ind" > "HOL4Prob.prob_uniform.uniform_ind"
+  "uniform_def" > "HOL4Prob.prob_uniform.uniform_def"
+  "uniform_curried_def" > "HOL4Prob.prob_uniform.uniform_curried_def"
+  "unif_tupled_primitive_def" > "HOL4Prob.prob_uniform.unif_tupled_primitive_def"
+  "unif_tupled_def" > "HOL4Prob.prob_uniform.unif_tupled_def"
+  "unif_primdef" > "HOL4Prob.prob_uniform.unif_primdef"
+  "unif_ind" > "HOL4Prob.prob_uniform.unif_ind"
+  "unif_def" > "HOL4Prob.prob_uniform.unif_def"
+  "unif_curried_def" > "HOL4Prob.prob_uniform.unif_curried_def"
+  "unif_bound_primitive_def" > "HOL4Prob.prob_uniform.unif_bound_primitive_def"
+  "unif_bound_primdef" > "HOL4Prob.prob_uniform.unif_bound_primdef"
+  "unif_bound_ind" > "HOL4Prob.prob_uniform.unif_bound_ind"
+  "unif_bound_def" > "HOL4Prob.prob_uniform.unif_bound_def"
+  "UNIF_RANGE" > "HOL4Prob.prob_uniform.UNIF_RANGE"
+  "UNIF_DEF_MONAD" > "HOL4Prob.prob_uniform.UNIF_DEF_MONAD"
+  "UNIF_BOUND_UPPER_SUC" > "HOL4Prob.prob_uniform.UNIF_BOUND_UPPER_SUC"
+  "UNIF_BOUND_UPPER" > "HOL4Prob.prob_uniform.UNIF_BOUND_UPPER"
+  "UNIF_BOUND_LOWER_SUC" > "HOL4Prob.prob_uniform.UNIF_BOUND_LOWER_SUC"
+  "UNIF_BOUND_LOWER" > "HOL4Prob.prob_uniform.UNIF_BOUND_LOWER"
+  "UNIFORM_RANGE" > "HOL4Prob.prob_uniform.UNIFORM_RANGE"
+  "UNIFORM_DEF_MONAD" > "HOL4Prob.prob_uniform.UNIFORM_DEF_MONAD"
+  "SUC_DIV_TWO_ZERO" > "HOL4Prob.prob_uniform.SUC_DIV_TWO_ZERO"
+  "PROB_UNIF_PAIR" > "HOL4Prob.prob_uniform.PROB_UNIF_PAIR"
+  "PROB_UNIF_GOOD" > "HOL4Prob.prob_uniform.PROB_UNIF_GOOD"
+  "PROB_UNIF_BOUND" > "HOL4Prob.prob_uniform.PROB_UNIF_BOUND"
+  "PROB_UNIFORM_UPPER_BOUND" > "HOL4Prob.prob_uniform.PROB_UNIFORM_UPPER_BOUND"
+  "PROB_UNIFORM_SUC" > "HOL4Prob.prob_uniform.PROB_UNIFORM_SUC"
+  "PROB_UNIFORM_PAIR_SUC" > "HOL4Prob.prob_uniform.PROB_UNIFORM_PAIR_SUC"
+  "PROB_UNIFORM_LOWER_BOUND" > "HOL4Prob.prob_uniform.PROB_UNIFORM_LOWER_BOUND"
+  "PROB_UNIFORM" > "HOL4Prob.prob_uniform.PROB_UNIFORM"
+  "PROB_UNIF" > "HOL4Prob.prob_uniform.PROB_UNIF"
+  "INDEP_UNIFORM" > "HOL4Prob.prob_uniform.INDEP_UNIFORM"
+  "INDEP_UNIF" > "HOL4Prob.prob_uniform.INDEP_UNIF"
+
+end

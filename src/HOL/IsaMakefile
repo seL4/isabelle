@@ -19,6 +19,7 @@ test: \
   HOL-CTL \
   HOL-Extraction \
       HOL-Complex-HahnBanach \
+      HOL-Complex-Import \
   HOL-Hoare \
   HOL-HoareParallel \
   HOL-IMP \
@@ -234,6 +235,51 @@ $(LOG)/HOL-IMPP.gz: $(OUT)/HOL IMPP/ROOT.ML IMPP/Com.thy IMPP/Com.ML \
   IMPP/Natural.thy IMPP/Natural.ML IMPP/Hoare.thy IMPP/Hoare.ML \
   IMPP/Misc.thy IMPP/Misc.ML IMPP/EvenOdd.thy IMPP/EvenOdd.ML
 	@$(ISATOOL) usedir $(OUT)/HOL IMPP
+
+
+## HOL-Complex-Import
+
+IMPORTER_FILES = Import/proof_kernel.ML Import/replay.ML \
+  Import/shuffler.ML Import/MakeEqual.thy Import/HOL4Setup.thy \
+  Import/HOL4Syntax.thy Import/HOL4Compat.thy Import/import_syntax.ML \
+  Import/hol4rews.ML Import/import_package.ML Import/ROOT.ML
+
+HOL-Complex-Import: HOL-Complex $(LOG)/HOL-Complex-Import.gz
+
+$(LOG)/HOL-Complex-Import.gz: $(OUT)/HOL-Complex $(IMPORTER_FILES)
+	@$(ISATOOL) usedir $(OUT)/HOL-Complex Import
+
+
+## HOL-Complex-Generate-HOL
+
+HOL-Complex-Generate-HOL: HOL-Complex $(LOG)/HOL-Complex-Generate-HOL.gz
+
+$(LOG)/HOL-Complex-Generate-HOL.gz: $(OUT)/HOL-Complex $(IMPORTER_FILES)  \
+  Import/Generate-HOL/GenHOL4Base.thy Import/Generate-HOL/GenHOL4Prob.thy \
+  Import/Generate-HOL/GenHOL4Real.thy Import/Generate-HOL/GenHOL4Vec.thy  \
+  Import/Generate-HOL/GenHOL4Word32.thy Import/Generate-HOL/ROOT.ML
+	@cd Import; $(ISATOOL) usedir $(OUT)/HOL-Complex Generate-HOL
+
+
+## HOL-Import-HOL
+
+HOL-Import-HOL: HOL-Complex $(LOG)/HOL-Import-HOL.gz
+
+HOL_IMPORT_FILES = arithmetic.imp bits.imp boolean_sequence.imp bool.imp \
+  bword_arith.imp bword_bitop.imp bword_num.imp combin.imp divides.imp \
+  hrat.imp hreal.imp ind_type.imp lim.imp list.imp marker.imp nets.imp \
+  numeral.imp num.imp one.imp operator.imp option.imp pair.imp poly.imp \
+  powser.imp pred_set.imp prime.imp prim_rec.imp prob_algebra.imp \
+  prob_canon.imp prob_extra.imp prob.imp prob_indep.imp prob_pseudo.imp \
+  prob_uniform.imp realax.imp real.imp relation.imp res_quan.imp rich_list.imp \
+  seq.imp state_transformer.imp sum.imp topology.imp transc.imp word32.imp \
+  word_base.imp word_bitop.imp word_num.imp
+
+$(LOG)/HOL-Import-HOL.gz: $(OUT)/HOL-Complex $(IMPORTER_FILES) \
+  $(HOL_IMPORT_FILES:%=Import/HOL/%) Import/HOL/HOL4Base.thy \
+  Import/HOL/HOL4Prob.thy Import/HOL/HOL4Real.thy Import/HOL/HOL4Vec.thy \
+  Import/HOL/HOL4Word32.thy Import/HOL/HOL4.thy Import/HOL/ROOT.ML
+	@cd Import/HOL; $(ISATOOL) usedir -b $(OUT)/HOL-Complex HOL-Import-HOL
 
 
 ## HOL-NumberTheory

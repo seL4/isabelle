@@ -1,0 +1,26 @@
+import
+
+import_segment "hol4"
+
+def_maps
+  "pseudo_linear_tl" > "pseudo_linear_tl_primdef"
+  "pseudo_linear_hd" > "pseudo_linear_hd_primdef"
+  "pseudo_linear1" > "pseudo_linear1_primdef"
+  "pseudo" > "pseudo_primdef"
+
+const_maps
+  "pseudo_linear_tl" > "HOL4Prob.prob_pseudo.pseudo_linear_tl"
+  "pseudo_linear_hd" > "HOL4Prob.prob_pseudo.pseudo_linear_hd"
+  "pseudo" > "HOL4Prob.prob_pseudo.pseudo"
+
+thm_maps
+  "pseudo_primdef" > "HOL4Prob.prob_pseudo.pseudo_primdef"
+  "pseudo_linear_tl_primdef" > "HOL4Prob.prob_pseudo.pseudo_linear_tl_primdef"
+  "pseudo_linear_tl_def" > "HOL4Prob.prob_pseudo.pseudo_linear_tl_def"
+  "pseudo_linear_hd_primdef" > "HOL4Prob.prob_pseudo.pseudo_linear_hd_primdef"
+  "pseudo_linear_hd_def" > "HOL4Prob.prob_pseudo.pseudo_linear_hd_def"
+  "pseudo_linear1_def" > "HOL4Prob.prob_pseudo.pseudo_linear1_def"
+  "pseudo_def" > "HOL4Prob.prob_pseudo.pseudo_def"
+  "PSEUDO_LINEAR1_EXECUTE" > "HOL4Prob.prob_pseudo.PSEUDO_LINEAR1_EXECUTE"
+
+end

@@ -1,0 +1,3 @@
+All the files in this directory (except this README, HOL4.thy, and
+ROOT.ML) are automatically generated.  Edit the files in
+../Generate-HOL, if something needs to be changed.

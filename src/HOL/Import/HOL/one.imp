@@ -1,0 +1,20 @@
+import
+
+import_segment "hol4"
+
+type_maps
+  "one" > "Product_Type.unit"
+
+const_maps
+  "one" > "Product_Type.Unity"
+
+thm_maps
+  "one" > "HOL4Compat.one"
+
+ignore_thms
+  "one_axiom"
+  "one_TY_DEF"
+  "one_DEF"
+  "one_Axiom"
+
+end

@@ -1,0 +1,45 @@
+import
+
+import_segment "hol4"
+
+type_maps
+  "option" > "Datatype.option"
+
+const_maps
+  "option_case" > "Datatype.option.option_case"
+  "THE" > "Datatype.the"
+  "SOME" > "Datatype.option.Some"
+  "OPTION_MAP" > "Datatype.option_map"
+  "OPTION_JOIN" > "HOL4Compat.OPTION_JOIN"
+  "NONE" > "Datatype.option.None"
+  "IS_SOME" > "HOL4Compat.IS_SOME"
+  "IS_NONE" > "HOL4Compat.IS_NONE"
+
+thm_maps
+  "option_nchotomy" > "Datatype.option.nchotomy"
+  "option_induction" > "HOL4Compat.OPTION_JOIN.induct"
+  "option_case_def" > "HOL4Compat.option_case_def"
+  "option_case_cong" > "HOL4Base.option.option_case_cong"
+  "option_case_compute" > "HOL4Base.option.option_case_compute"
+  "option_CLAUSES" > "HOL4Base.option.option_CLAUSES"
+  "THE_DEF" > "Datatype.the.simps"
+  "SOME_11" > "Datatype.option.simps_3"
+  "OPTION_MAP_EQ_SOME" > "HOL4Base.option.OPTION_MAP_EQ_SOME"
+  "OPTION_MAP_EQ_NONE" > "Datatype.option_map_is_None"
+  "OPTION_MAP_DEF" > "HOL4Compat.OPTION_MAP_DEF"
+  "OPTION_JOIN_EQ_SOME" > "HOL4Base.option.OPTION_JOIN_EQ_SOME"
+  "OPTION_JOIN_DEF" > "HOL4Compat.OPTION_JOIN_DEF"
+  "NOT_SOME_NONE" > "Datatype.option.simps_2"
+  "NOT_NONE_SOME" > "Datatype.option.simps_1"
+  "IS_SOME_DEF" > "HOL4Compat.IS_SOME_DEF"
+  "IS_NONE_DEF" > "HOL4Compat.IS_NONE_DEF"
+
+ignore_thms
+  "option_axiom"
+  "option_TY_DEF"
+  "option_REP_ABS_DEF"
+  "option_Axiom"
+  "SOME_DEF"
+  "NONE_DEF"
+
+end

@@ -1,0 +1,23 @@
+import
+
+import_segment "hol4"
+
+def_maps
+  "WXOR" > "WXOR_def"
+  "WOR" > "WOR_def"
+  "WNOT" > "WNOT_def"
+  "WAND" > "WAND_def"
+
+thm_maps
+  "WXOR_DEF" > "HOL4Vec.bword_bitop.WXOR_DEF"
+  "WOR_DEF" > "HOL4Vec.bword_bitop.WOR_DEF"
+  "WNOT_WNOT" > "HOL4Vec.bword_bitop.WNOT_WNOT"
+  "WNOT_DEF" > "HOL4Vec.bword_bitop.WNOT_DEF"
+  "WCAT_WNOT" > "HOL4Vec.bword_bitop.WCAT_WNOT"
+  "WAND_DEF" > "HOL4Vec.bword_bitop.WAND_DEF"
+  "PBITOP_WNOT" > "HOL4Vec.bword_bitop.PBITOP_WNOT"
+  "PBITBOP_WXOR" > "HOL4Vec.bword_bitop.PBITBOP_WXOR"
+  "PBITBOP_WOR" > "HOL4Vec.bword_bitop.PBITBOP_WOR"
+  "PBITBOP_WAND" > "HOL4Vec.bword_bitop.PBITBOP_WAND"
+
+end
