@@ -87,6 +87,9 @@ fi
 cd $DISTPREFIX >> $DISTLOG 2>&1
 $TAR xvzf `cat $DISTPREFIX/ISABELLE_DIST` >> $DISTLOG 2>&1
 
+echo "### generating development snapshot web page" >> $DISTLOG 2>&1
+(cd ~/devel-page; make)
+
 echo ------------------- prepared test successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 gzip -f $DISTLOG
 
