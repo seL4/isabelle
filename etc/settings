@@ -151,6 +151,7 @@ ISABELLE_INTERFACE=$(choosefrom \
   "$ISABELLE_HOME/../ProofGeneral/isar/interface" \
   "/usr/share/ProofGeneral/isar/interface" \
   "/usr/local/ProofGeneral/isar/interface" \
+  "/usr/share/emacs/ProofGeneral/isar/interface" \
   "$ISABELLE_INTERFACE")
 PROOFGENERAL_OPTIONS=""
 
