@@ -69,20 +69,25 @@ ML
 (* name_in_term:bool (name:string,trm:term) bestimmt, ob in trm der Name name als Konstante,
    freie Var., scheme-Variable oder als Name fuer eine Lambda-Abstraktion vorkommt *)
 
-fun name_in_term (name,Const (s,t))     =(name=s)
-  | name_in_term (name,Free (s,t))      =(name=s)
-  | name_in_term (name,Var ((s,i),t))   =(name=s ^ Int.toString i)
-  | name_in_term (name,Abs (s,t,trm))   =(name=s) orelse (name_in_term (name,trm))
-  | name_in_term (name,trm1 $ trm2)     =(name_in_term (name,trm1)) orelse (name_in_term (name,trm2))
-  | name_in_term (_,_)                  =false;
+fun name_in_term (name,Const (s,t))    = (name=s)
+  | name_in_term (name,Free (s,t))     = (name=s)
+  | name_in_term (name,Var (ix,t))  = (name= string_of_indexname ix)
+  | name_in_term (name,Abs (s,t,trm))  = (name=s) orelse
+                                         (name_in_term (name,trm))
+  | name_in_term (name,trm1 $ trm2)    = (name_in_term (name,trm1)) orelse
+                                         (name_in_term (name,trm2))
+  | name_in_term (_,_)                 = false;
 
-(* variant_name:string (name:string,trm:term) liefert einen von name abgewandelten Namen (durch Anhaengen
-   von genuegend vielen "_"), der nicht in trm vorkommt. Im Gegensatz zu variant_abs beruecktsichtigt es
-   auch Namen von scheme-Variablen und von Lambda-Abstraktionen in trm *)
+(* variant_name:string (name:string,trm:term) liefert einen von name
+   abgewandelten Namen (durch Anhaengen von genuegend vielen "_"), der nicht
+   in trm vorkommt. Im Gegensatz zu variant_abs beruecktsichtigt es auch Namen
+   von scheme-Variablen und von Lambda-Abstraktionen in trm *)
 
-fun variant_name (name,trm)     =if name_in_term (name,trm)
-                                        then variant_name (name ^ "_",trm)
-                                        else name;
+(*This could be done more simply by calling Term.variant, supplying a list of
+  all free, bound and scheme variables in the term.*)
+fun variant_name (name,trm) = if name_in_term (name,trm)
+			      then variant_name (name ^ "_",trm)
+                              else name;
 
 (* subst_term:term (von:term,nach:term,trm:term) liefert den Term, der aus
 trm entsteht, wenn alle Teilterme, die gleich von sind, durch nach ersetzt
@@ -164,23 +169,28 @@ val parse_translation = [("@Spec",spec_tr)];
    entsprechende freie Variablen, welche die pvarID zu pvar darstellen. Beispiel:
         bei name="s" und dem Term "s(0)=s(Suc(0)) & s(0)=X" wird der Term "a=b & a=X" geliefert *)
 
-fun term_tr' (name,Free (s,t) $ trm)    =if name=s
-                                                then Syntax.free (pvar2pvarID trm)
-                                                else Free (s,t) $ term_tr' (name,trm)
-  | term_tr' (name,Abs (s,t,trm))       =Abs (s,t,term_tr' (name,trm))
-  | term_tr' (name,trm1 $ trm2)         =term_tr' (name,trm1) $ term_tr' (name,trm2)
-  | term_tr' (name,trm)                 =trm;
+fun term_tr' (name,Free (s,t) $ trm) =
+      if name=s then Syntax.free (pvar2pvarID trm)
+      else Free (s,t) $ term_tr' (name,trm)
+  | term_tr' (name,Abs (s,t,trm)) = Abs (s,t,term_tr' (name,trm))
+  | term_tr' (name,trm1 $ trm2) = term_tr' (name,trm1) $ term_tr' (name,trm2)
+  | term_tr' (name,trm) = trm;
 
-fun bexp_tr' (Abs(_,_,b))       =term_tr' (variant_abs ("s",dummyT,b));
+fun bexp_tr' (Abs(_,_,b)) = term_tr' (variant_abs ("s",dummyT,b));
 
-fun exp_tr' (Abs(_,_,e))        =term_tr' (variant_abs ("s",dummyT,e));
+fun exp_tr' (Abs(_,_,e)) = term_tr' (variant_abs ("s",dummyT,e));
 
-fun com_tr' (Const ("Skip",_))                  =Syntax.const "@Skip"
-  | com_tr' (Const ("Assign",_) $ v $ e)                =Syntax.const "@Assign" $ Syntax.free (pvar2pvarID v) $ exp_tr' e
-  | com_tr' (Const ("Seq",_) $ c $ c')          =Syntax.const "@Seq" $ com_tr' c $ com_tr' c'
-  | com_tr' (Const ("Cond",_) $ b $ c $ c')             =Syntax.const "@If" $ bexp_tr' b $ com_tr' c $ com_tr' c'
-  | com_tr' (Const ("While",_) $ b $ inv $ c)   =Syntax.const "@While" $ bexp_tr' b $ bexp_tr' inv $ com_tr' c;
+fun com_tr' (Const ("Skip",_)) = Syntax.const "@Skip"
+  | com_tr' (Const ("Assign",_) $ v $ e) =
+      Syntax.const "@Assign" $ Syntax.free (pvar2pvarID v) $ exp_tr' e
+  | com_tr' (Const ("Seq",_) $ c $ c') =
+      Syntax.const "@Seq" $ com_tr' c $ com_tr' c'
+  | com_tr' (Const ("Cond",_) $ b $ c $ c') =
+       Syntax.const "@If" $ bexp_tr' b $ com_tr' c $ com_tr' c'
+  | com_tr' (Const ("While",_) $ b $ inv $ c) =
+       Syntax.const "@While" $ bexp_tr' b $ bexp_tr' inv $ com_tr' c;
 
-fun spec_tr' [p,c,q]            =Syntax.const "@Spec" $ bexp_tr' p $ com_tr' c $ bexp_tr' q;
+fun spec_tr' [p,c,q] =
+       Syntax.const "@Spec" $ bexp_tr' p $ com_tr' c $ bexp_tr' q;
 
-val print_translation   =[("Spec",spec_tr')];
+val print_translation = [("Spec",spec_tr')];
