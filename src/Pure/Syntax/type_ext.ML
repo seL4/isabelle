@@ -3,9 +3,6 @@
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 The concrete syntax of types (used to bootstrap Pure).
-
-TODO:
-  term_of_typ: prune sorts
 *)
 
 signature TYPE_EXT0 =
