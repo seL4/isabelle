@@ -5,47 +5,48 @@
 
 The theory~\thydx{HOL} implements higher-order logic.  It is based on
 Gordon's~{\sc hol} system~\cite{mgordon-hol}, which itself is based on
-Church's original paper~\cite{church40}.  Andrews's book~\cite{andrews86} is a
-full description of higher-order logic.  Experience with the {\sc hol} system
-has demonstrated that higher-order logic is useful for hardware verification;
-beyond this, it is widely applicable in many areas of mathematics.  It is
-weaker than {\ZF} set theory but for most applications this does not matter.
-If you prefer {\ML} to Lisp, you will probably prefer \HOL\ to~{\ZF}.
+Church's original paper~\cite{church40}.  Andrews's book~\cite{andrews86} is
+a full description of higher-order logic.  Experience with the {\sc hol}
+system has demonstrated that higher-order logic is widely applicable in many
+areas of mathematics and computer science, not just hardware verification,
+{\sc hol}'s original {\it raison d'\^etre\/}.  It is weaker than {\ZF} set
+theory but for most applications this does not matter.  If you prefer {\ML}
+to Lisp, you will probably prefer \HOL\ to~{\ZF}.
 
-The syntax of Isabelle's \HOL\ has recently been changed to look more like the
-traditional syntax of higher-order logic.  Function application is now
-curried.  To apply the function~$f$ to the arguments~$a$ and~$b$ in \HOL, you
-must write $f\,a\,b$.  Note that $f(a,b)$ means ``$f$ applied to the pair
-$(a,b)$'' in \HOL.  We write ordered pairs as $(a,b)$, not $\langle
-a,b\rangle$ as in {\ZF} and earlier versions of \HOL.  Early releases of
-Isabelle included still another version of~\HOL, with explicit type inference
-rules~\cite{paulson-COLOG}.  This version no longer exists, but \thydx{ZF}
-supports a similar style of reasoning.
+The syntax of \HOL\footnote{Earlier versions of Isabelle's \HOL\ used a
+different syntax. Ancient releases of Isabelle included still another version
+of~\HOL, with explicit type inference rules~\cite{paulson-COLOG}.  This
+version no longer exists, but \thydx{ZF} supports a similar style of
+reasoning.} follows $\lambda$-calculus and functional programming.  Function
+application is curried.  To apply the function~$f$ of type
+$\tau@1\To\tau@2\To\tau@3$ to the arguments~$a$ and~$b$ in \HOL, you simply
+write $f\,a\,b$. There is no `apply' operator as in \thydx{ZF}. Note that
+$f(a,b)$ means ``$f$ applied to the pair $(a,b)$'' in \HOL.  We write ordered
+pairs as $(a,b)$, not $\langle a,b\rangle$ as in {\ZF}.
 
 \HOL\ has a distinct feel, compared with {\ZF} and {\CTT}.  It
 identifies object-level types with meta-level types, taking advantage of
 Isabelle's built-in type checker.  It identifies object-level functions
 with meta-level functions, so it uses Isabelle's operations for abstraction
-and application.  There is no `apply' operator: function applications are
-written as simply~$f~a$ rather than $f{\tt`}a$.
+and application.
 
 These identifications allow Isabelle to support \HOL\ particularly nicely,
 but they also mean that \HOL\ requires more sophistication from the user
 --- in particular, an understanding of Isabelle's type system.  Beginners
-should work with {\tt show_types} set to {\tt true}.  Gain experience by
-working in first-order logic before attempting to use higher-order logic.
-This chapter assumes familiarity with~{\FOL{}}.
+should work with {\tt show_types} set to {\tt true}.
+%  Gain experience by
+%working in first-order logic before attempting to use higher-order logic.
+%This chapter assumes familiarity with~{\FOL{}}.
 
 
-\begin{figure} 
+\begin{figure}
 \begin{constants}
-  \it name      &\it meta-type  & \it description \\ 
+  \it name      &\it meta-type  & \it description \\
   \cdx{Trueprop}& $bool\To prop$                & coercion to $prop$\\
-  \cdx{not}     & $bool\To bool$                & negation ($\neg$) \\
+  \cdx{Not}     & $bool\To bool$                & negation ($\neg$) \\
   \cdx{True}    & $bool$                        & tautology ($\top$) \\
   \cdx{False}   & $bool$                        & absurdity ($\bot$) \\
-  \cdx{If}      & $[bool,\alpha,\alpha]\To\alpha::term$ & conditional \\
-  \cdx{Inv}     & $(\alpha\To\beta)\To(\beta\To\alpha)$ & function inversion\\
+  \cdx{If}      & $[bool,\alpha,\alpha]\To\alpha$ & conditional \\
   \cdx{Let}     & $[\alpha,\alpha\To\beta]\To\beta$ & let binder
 \end{constants}
 \subcaption{Constants}
@@ -55,14 +56,16 @@ This chapter assumes familiarity with~{\FOL{}}.
 \index{*"! symbol}\index{*"? symbol}
 \index{*"?"! symbol}\index{*"E"X"! symbol}
   \it symbol &\it name     &\it meta-type & \it description \\
-  \tt\at & \cdx{Eps}  & $(\alpha\To bool)\To\alpha::term$ & 
-        Hilbert description ($\epsilon$) \\
-  {\tt!~} or \sdx{ALL}  & \cdx{All}  & $(\alpha::term\To bool)\To bool$ & 
+  \tt\at & \cdx{Eps}  & $(\alpha\To bool)\To\alpha$ & 
+        Hilbert description ($\varepsilon$) \\
+  {\tt!~} or \sdx{ALL}  & \cdx{All}  & $(\alpha\To bool)\To bool$ & 
         universal quantifier ($\forall$) \\
-  {\tt?~} or \sdx{EX}   & \cdx{Ex}   & $(\alpha::term\To bool)\To bool$ & 
+  {\tt?~} or \sdx{EX}   & \cdx{Ex}   & $(\alpha\To bool)\To bool$ & 
         existential quantifier ($\exists$) \\
-  {\tt?!} or {\tt EX!}  & \cdx{Ex1}  & $(\alpha::term\To bool)\To bool$ & 
-        unique existence ($\exists!$)
+  {\tt?!} or {\tt EX!}  & \cdx{Ex1}  & $(\alpha\To bool)\To bool$ & 
+        unique existence ($\exists!$)\\
+  {\tt LEAST}  & \cdx{Least}  & $(\alpha\To bool)\To\alpha$ & 
+        least element
 \end{constants}
 \subcaption{Binders} 
 
@@ -74,7 +77,7 @@ This chapter assumes familiarity with~{\FOL{}}.
   \it symbol    & \it meta-type & \it priority & \it description \\ 
   \sdx{o}       & $[\beta\To\gamma,\alpha\To\beta]\To (\alpha\To\gamma)$ & 
         Left 55 & composition ($\circ$) \\
-  \tt =         & $[\alpha::term,\alpha]\To bool$ & Left 50 & equality ($=$) \\
+  \tt =         & $[\alpha,\alpha]\To bool$ & Left 50 & equality ($=$) \\
   \tt <         & $[\alpha::ord,\alpha]\To bool$ & Left 50 & less than ($<$) \\
   \tt <=        & $[\alpha::ord,\alpha]\To bool$ & Left 50 & 
                 less than or equals ($\leq$)\\
@@ -93,11 +96,12 @@ This chapter assumes familiarity with~{\FOL{}}.
 \dquotes
 \[\begin{array}{rclcl}
     term & = & \hbox{expression of class~$term$} \\
-         & | & "\at~" id~id^* " . " formula \\
+         & | & "\at~" id " . " formula \\
          & | & 
     \multicolumn{3}{l}{"let"~id~"="~term";"\dots";"~id~"="~term~"in"~term} \\
          & | & 
-    \multicolumn{3}{l}{"if"~formula~"then"~term~"else"~term} \\[2ex]
+    \multicolumn{3}{l}{"if"~formula~"then"~term~"else"~term} \\
+         & | & "LEAST"~ id " . " formula \\[2ex]
  formula & = & \hbox{expression of type~$bool$} \\
          & | & term " = " term \\
          & | & term " \ttilde= " term \\
@@ -120,19 +124,6 @@ This chapter assumes familiarity with~{\FOL{}}.
 
 
 \section{Syntax}
-The type class of higher-order terms is called~\cldx{term}.  Type variables
-range over this class by default.  The equality symbol and quantifiers are
-polymorphic over class {\tt term}.
-
-Class \cldx{ord} consists of all ordered types; the relations $<$ and
-$\leq$ are polymorphic over this class, as are the functions
-\cdx{mono}, \cdx{min} and \cdx{max}.  Three other
-type classes --- \cldx{plus}, \cldx{minus} and \cldx{times} --- permit
-overloading of the operators {\tt+}, {\tt-} and {\tt*}.  In particular,
-{\tt-} is overloaded for set difference and subtraction.
-\index{*"+ symbol}
-\index{*"- symbol}
-\index{*"* symbol}
 
 Figure~\ref{hol-constants} lists the constants (including infixes and
 binders), while Fig.\ts\ref{hol-grammar} presents the grammar of
@@ -148,132 +139,39 @@ $\neg(a=b)$.
   parentheses.
 \end{warn}
 
-\subsection{Types}\label{hol-types}
+\subsection{Types and classes}
+The type class of higher-order terms is called~\cldx{term}.  By default,
+explicit type variables have class \cldx{term}.  In particular the equality
+symbol and quantifiers are polymorphic over class {\tt term}.
+
 The type of formulae, \tydx{bool}, belongs to class \cldx{term}; thus,
 formulae are terms.  The built-in type~\tydx{fun}, which constructs function
 types, is overloaded with arity {\tt(term,term)term}.  Thus, $\sigma\To\tau$
 belongs to class~{\tt term} if $\sigma$ and~$\tau$ do, allowing quantification
 over functions.
 
-HOL offers various methods for introducing new types. For details
-see~\S\ref{sec:HOL:Types} and~\S\ref{sec:HOL:datatype}.
+HOL offers various methods for introducing new
+types. See~\S\ref{sec:HOL:Types} and~\S\ref{sec:HOL:datatype}.
 
+Theory \thydx{Ord} defines the class \cldx{ord} of all ordered types; the
+relations $<$ and $\leq$ are polymorphic over this class, as are the functions
+\cdx{mono}, \cdx{min} and \cdx{max}, and the least element operator
+\cdx{LEAST}. \thydx{Ord} also defines the subclass \cldx{order} of \cldx{ord}
+which axiomatizes partially ordered types (w.r.t.\ $\le$). 
 
-\subsection{Binders}
-Hilbert's {\bf description} operator~$\epsilon x.P[x]$ stands for some~$a$
-satisfying~$P[a]$, if such exists.  Since all terms in \HOL\ denote
-something, a description is always meaningful, but we do not know its value
-unless $P[x]$ defines it uniquely.  We may write descriptions as
-\cdx{Eps}($P$) or use the syntax
-\hbox{\tt \at $x$.$P[x]$}.
+Three other type classes --- \cldx{plus}, \cldx{minus} and \cldx{times} ---
+permit overloading of the operators {\tt+},\index{*"+ symbol}
+{\tt-}\index{*"- symbol} and {\tt*}.\index{*"* symbol} In particular, {\tt-}
+is overloaded for set difference and subtraction.
 
-Existential quantification is defined by
-\[ \exists x.P~x \;\equiv\; P(\epsilon x.P~x). \]
-The unique existence quantifier, $\exists!x.P[x]$, is defined in terms
-of~$\exists$ and~$\forall$.  An Isabelle binder, it admits nested
-quantifications.  For instance, $\exists!x y.P~x~y$ abbreviates
-$\exists!x. \exists!y.P~x~y$; note that this does not mean that there
-exists a unique pair $(x,y)$ satisfying~$P~x~y$.
-
-\index{*"! symbol}\index{*"? symbol}\index{HOL system@{\sc hol} system}
-Quantifiers have two notations.  As in Gordon's {\sc hol} system, \HOL\
-uses~{\tt!}\ and~{\tt?}\ to stand for $\forall$ and $\exists$.  The
-existential quantifier must be followed by a space; thus {\tt?x} is an
-unknown, while \verb'? x.f x=y' is a quantification.  Isabelle's usual
-notation for quantifiers, \sdx{ALL} and \sdx{EX}, is also
-available.  Both notations are accepted for input.  The {\ML} reference
-\ttindexbold{HOL_quantifiers} governs the output notation.  If set to {\tt
-true}, then~{\tt!}\ and~{\tt?}\ are displayed; this is the default.  If set
-to {\tt false}, then~{\tt ALL} and~{\tt EX} are displayed.
-
-All these binders have priority 10. 
-
-
-\subsection{The \sdx{let} and \sdx{case} constructions}
-Local abbreviations can be introduced by a {\tt let} construct whose
-syntax appears in Fig.\ts\ref{hol-grammar}.  Internally it is translated into
-the constant~\cdx{Let}.  It can be expanded by rewriting with its
-definition, \tdx{Let_def}.
-
-\HOL\ also defines the basic syntax
-\[\dquotes"case"~e~"of"~c@1~"=>"~e@1~"|" \dots "|"~c@n~"=>"~e@n\] 
-as a uniform means of expressing {\tt case} constructs.  Therefore {\tt case}
-and \sdx{of} are reserved words.  Initially, this is mere syntax and has no
-logical meaning.  By declaring translations, you can cause instances of the
-{\tt case} construct to denote applications of particular case operators.
-This is what happens automatically for each {\tt datatype} declaration. For
-example \verb$datatype nat = Z | S nat$ declares a translation between
-\verb$case x of Z => a | S n => b$ and \verb$nat_case a (%n.b) x$, where
-\verb$nat_case$ is some appropriate function.
-
-
-\begin{figure}
-\begin{ttbox}\makeatother
-\tdx{refl}           t = t
-\tdx{subst}          [| s=t; P s |] ==> P t
-\tdx{ext}            (!!x. f x = g x) ==> (\%x.f x) = (\%x.g x)
-\tdx{impI}           (P ==> Q) ==> P-->Q
-\tdx{mp}             [| P-->Q;  P |] ==> Q
-\tdx{iff}            (P-->Q) --> (Q-->P) --> (P=Q)
-\tdx{selectI}        P(x) ==> P(@x.P x)
-\tdx{True_or_False}  (P=True) | (P=False)
-\end{ttbox}
-\caption{The {\tt HOL} rules} \label{hol-rules}
-\end{figure}
-
-
-\begin{figure}\hfuzz=4pt%suppress "Overfull \hbox" message
-\begin{ttbox}\makeatother
-\tdx{True_def}   True     == ((\%x::bool.x)=(\%x.x))
-\tdx{All_def}    All      == (\%P. P = (\%x.True))
-\tdx{Ex_def}     Ex       == (\%P. P(@x.P x))
-\tdx{False_def}  False    == (!P.P)
-\tdx{not_def}    not      == (\%P. P-->False)
-\tdx{and_def}    op &     == (\%P Q. !R. (P-->Q-->R) --> R)
-\tdx{or_def}     op |     == (\%P Q. !R. (P-->R) --> (Q-->R) --> R)
-\tdx{Ex1_def}    Ex1      == (\%P. ? x. P x & (! y. P y --> y=x))
-
-\tdx{Inv_def}    Inv      == (\%f y. @x. f x = y)
-\tdx{o_def}      op o     == (\%f g x. f(g x))
-\tdx{if_def}     If P x y == (\%P x y.@z.(P=True --> z=x) & (P=False --> z=y))
-\tdx{Let_def}    Let s f  == f s
-\end{ttbox}
-\caption{The {\tt HOL} definitions} \label{hol-defs}
-\end{figure}
-
-
-\section{Rules of inference}
-Figure~\ref{hol-rules} shows the inference rules of~\HOL{}, with
-their~{\ML} names.  Some of the rules deserve additional comments:
-\begin{ttdescription}
-\item[\tdx{ext}] expresses extensionality of functions.
-\item[\tdx{iff}] asserts that logically equivalent formulae are
-  equal.
-\item[\tdx{selectI}] gives the defining property of the Hilbert
-  $\epsilon$-operator.  It is a form of the Axiom of Choice.  The derived rule
-  \tdx{select_equality} (see below) is often easier to use.
-\item[\tdx{True_or_False}] makes the logic classical.\footnote{In
-    fact, the $\epsilon$-operator already makes the logic classical, as
-    shown by Diaconescu; see Paulson~\cite{paulson-COLOG} for details.}
-\end{ttdescription}
-
-\HOL{} follows standard practice in higher-order logic: only a few
-connectives are taken as primitive, with the remainder defined obscurely
-(Fig.\ts\ref{hol-defs}).  Gordon's {\sc hol} system expresses the
-corresponding definitions \cite[page~270]{mgordon-hol} using
-object-equality~({\tt=}), which is possible because equality in
-higher-order logic may equate formulae and even functions over formulae.
-But theory~\HOL{}, like all other Isabelle theories, uses
-meta-equality~({\tt==}) for definitions.
-
-Some of the rules mention type variables; for example, {\tt refl}
-mentions the type variable~{\tt'a}.  This allows you to instantiate
-type variables explicitly by calling {\tt res_inst_tac}.  By default,
-explicit type variables have class \cldx{term}.
-
-Include type constraints whenever you state a polymorphic goal.  Type
-inference may otherwise make the goal more polymorphic than you intended,
-with confusing results.
+If you state a goal containing overloaded functions, you may need to include
+type constraints.  Type inference may otherwise make the goal more
+polymorphic than you intended, with confusing results. For example, the
+variables $i$, $j$ and $k$ in the goal $i \le j \Imp i \le j+k$ have type
+$\alpha::\{ord,plus\}$, although you may have expected them to have some
+numeric type, e.g. $nat$. Instead you should have stated the goal as
+$(i::nat) \le j \Imp i \le j+k$, which causes all three variables to have
+type $nat$.
 
 \begin{warn}
   If resolution fails for no obvious reason, try setting
@@ -289,6 +187,140 @@ with confusing results.
   \ttindex{Unify.trace_types} to {\tt true} causes Isabelle to report
   omitted search paths during unification.\index{tracing!of unification}
 \end{warn}
+
+
+\subsection{Binders}
+Hilbert's {\bf description} operator~$\varepsilon x.P$ stands for some~$x$
+satisfying~$P$, if such exists.  Since all terms in \HOL\ denote
+something, a description is always meaningful, but we do not know its value
+unless $P$ defines it uniquely.  We may write descriptions as
+\cdx{Eps}($\lambda x.P$) or use the syntax \hbox{\tt \at $x$.$P$}.
+
+Existential quantification is defined by
+\[ \exists x.P~x \;\equiv\; P(\varepsilon x.P~x). \]
+The unique existence quantifier, $\exists!x.P$, is defined in terms
+of~$\exists$ and~$\forall$.  An Isabelle binder, it admits nested
+quantifications.  For instance, $\exists!x\,y.P\,x\,y$ abbreviates
+$\exists!x. \exists!y.P~x~y$; note that this does not mean that there
+exists a unique pair $(x,y)$ satisfying~$P~x~y$.
+
+\index{*"! symbol}\index{*"? symbol}\index{HOL system@{\sc hol} system}
+Quantifiers have two notations.  As in Gordon's {\sc hol} system, \HOL\
+uses~{\tt!}\ and~{\tt?}\ to stand for $\forall$ and $\exists$.  The
+existential quantifier must be followed by a space; thus {\tt?x} is an
+unknown, while \verb'? x.f x=y' is a quantification.  Isabelle's usual
+notation for quantifiers, \sdx{ALL} and \sdx{EX}, is also
+available.  Both notations are accepted for input.  The {\ML} reference
+\ttindexbold{HOL_quantifiers} governs the output notation.  If set to {\tt
+true}, then~{\tt!}\ and~{\tt?}\ are displayed; this is the default.  If set
+to {\tt false}, then~{\tt ALL} and~{\tt EX} are displayed.
+
+If $\tau$ is a type of class \cldx{ord}, $P$ a formula and $x$ a variable of
+type $\tau$, then the term \cdx{LEAST}~$x.P~x$ denotes the least (w.r.t.\
+$\le$) $x$ such that $P~x$ holds (see Fig.~\ref{hol-defs}). Note that
+unless $\le$ is a linear order, the result is not uniquely defined.
+
+All these binders have priority 10. 
+
+\begin{warn}
+The low priority of binders means that they need to be enclosed in
+parenthesis when they occur in the context of other operations. For example,
+instead of $P \land \forall x.Q$ you need to write $P \land (\forall x.Q)$.
+\end{warn}
+
+
+\subsection{The \sdx{let} and \sdx{case} constructions}
+Local abbreviations can be introduced by a {\tt let} construct whose
+syntax appears in Fig.\ts\ref{hol-grammar}.  Internally it is translated into
+the constant~\cdx{Let}.  It can be expanded by rewriting with its
+definition, \tdx{Let_def}.
+
+\HOL\ also defines the basic syntax
+\[\dquotes"case"~e~"of"~c@1~"=>"~e@1~"|" \dots "|"~c@n~"=>"~e@n\] 
+as a uniform means of expressing {\tt case} constructs.  Therefore {\tt case}
+and \sdx{of} are reserved words.  Initially, this is mere syntax and has no
+logical meaning.  By declaring translations, you can cause instances of the
+{\tt case} construct to denote applications of particular case operators.
+This is what happens automatically for each {\tt datatype} declaration
+(see~\S\ref{sec:HOL:datatype}).
+
+\begin{warn}
+Both {\tt if} and {\tt case} constructs have as low a priority as
+quantifiers, which requires additional enclosing parenthesis in the context
+of most other operations. For example, instead of $f~x = if \dots then \dots
+else \dots$ you need to write $f~x = (if \dots then \dots else
+\dots)$.
+\end{warn}
+
+\section{Rules of inference}
+
+\begin{figure}
+\begin{ttbox}\makeatother
+\tdx{refl}           t = t
+\tdx{subst}          [| s=t; P s |] ==> P t
+\tdx{ext}            (!!x. f x = g x) ==> (\%x.f x) = (\%x.g x)
+\tdx{impI}           (P ==> Q) ==> P-->Q
+\tdx{mp}             [| P-->Q;  P |] ==> Q
+\tdx{iff}            (P-->Q) --> (Q-->P) --> (P=Q)
+\tdx{selectI}        P(x) ==> P(@x.P x)
+\tdx{True_or_False}  (P=True) | (P=False)
+\end{ttbox}
+\caption{The {\tt HOL} rules} \label{hol-rules}
+\end{figure}
+
+Figure~\ref{hol-rules} shows the inference rules of~\HOL{}, with their~{\ML}
+names.  Some of the rules deserve additional comments:
+\begin{ttdescription}
+\item[\tdx{ext}] expresses extensionality of functions.
+\item[\tdx{iff}] asserts that logically equivalent formulae are
+  equal.
+\item[\tdx{selectI}] gives the defining property of the Hilbert
+  $\varepsilon$-operator.  It is a form of the Axiom of Choice.  The derived rule
+  \tdx{select_equality} (see below) is often easier to use.
+\item[\tdx{True_or_False}] makes the logic classical.\footnote{In
+    fact, the $\varepsilon$-operator already makes the logic classical, as
+    shown by Diaconescu; see Paulson~\cite{paulson-COLOG} for details.}
+\end{ttdescription}
+
+
+\begin{figure}\hfuzz=4pt%suppress "Overfull \hbox" message
+\begin{ttbox}\makeatother
+\tdx{True_def}   True     == ((\%x::bool.x)=(\%x.x))
+\tdx{All_def}    All      == (\%P. P = (\%x.True))
+\tdx{Ex_def}     Ex       == (\%P. P(@x.P x))
+\tdx{False_def}  False    == (!P.P)
+\tdx{not_def}    not      == (\%P. P-->False)
+\tdx{and_def}    op &     == (\%P Q. !R. (P-->Q-->R) --> R)
+\tdx{or_def}     op |     == (\%P Q. !R. (P-->R) --> (Q-->R) --> R)
+\tdx{Ex1_def}    Ex1      == (\%P. ? x. P x & (! y. P y --> y=x))
+
+\tdx{o_def}      op o     == (\%f g x. f(g x))
+\tdx{if_def}     If P x y == (\%P x y.@z.(P=True --> z=x) & (P=False --> z=y))
+\tdx{Let_def}    Let s f  == f s
+\tdx{Least_def}  Least P  == @x. P(x) & (ALL y. y<x --> ~P(y))
+\end{ttbox}
+\caption{The {\tt HOL} definitions} \label{hol-defs}
+\end{figure}
+
+
+\HOL{} follows standard practice in higher-order logic: only a few
+connectives are taken as primitive, with the remainder defined obscurely
+(Fig.\ts\ref{hol-defs}).  Gordon's {\sc hol} system expresses the
+corresponding definitions \cite[page~270]{mgordon-hol} using
+object-equality~({\tt=}), which is possible because equality in
+higher-order logic may equate formulae and even functions over formulae.
+But theory~\HOL{}, like all other Isabelle theories, uses
+meta-equality~({\tt==}) for definitions.
+\begin{warn}
+The above definitions should never be expanded and are shown for completeness
+only. Instead users should reason in terms of the derived rules shown below
+or, better still, using high-level tactics
+(see~\S\ref{sec:HOL:generic-packages}).
+\end{warn}
+
+Some of the rules mention type variables; for example, {\tt refl}
+mentions the type variable~{\tt'a}.  This allows you to instantiate
+type variables explicitly by calling {\tt res_inst_tac}.
 
 
 \begin{figure}
@@ -373,7 +405,6 @@ with confusing results.
 \caption{More derived rules} \label{hol-lemmas2}
 \end{figure}
 
-
 Some derived rules are shown in Figures~\ref{hol-lemmas1}
 and~\ref{hol-lemmas2}, with their {\ML} names.  These include natural rules
 for the logical connectives, as well as sequent-style elimination rules for
@@ -419,13 +450,7 @@ The following simple tactics are occasionally useful:
   \cdx{range}   & $(\alpha\To\beta )\To\beta\,set$
         & range of a function \\[1ex]
   \cdx{Ball}~~\cdx{Bex} & $[\alpha\,set,\alpha\To bool]\To bool$
-        & bounded quantifiers \\
-  \cdx{mono}    & $(\alpha\,set\To\beta\,set)\To bool$
-        & monotonicity \\
-  \cdx{inj}~~\cdx{surj}& $(\alpha\To\beta )\To bool$
-        & injective/surjective \\
-  \cdx{inj_onto}        & $[\alpha\To\beta ,\alpha\,set]\To bool$
-        & injective over subset
+        & bounded quantifiers
 \end{tabular}
 \end{center}
 \subcaption{Constants}
@@ -534,16 +559,13 @@ Finite unions and intersections have the same behaviour in \HOL\ as they
 do in~{\ZF}.  In \HOL\ the intersection of the empty set is well-defined,
 denoting the universal set for the given type.
 
-% FIXME: define set via typedef
 \subsection{Syntax of set theory}\index{*set type}
 \HOL's set theory is called \thydx{Set}.  The type $\alpha\,set$ is
 essentially the same as $\alpha\To bool$.  The new type is defined for
 clarity and to avoid complications involving function types in unification.
-Since Isabelle does not support type definitions (as mentioned in
-\S\ref{hol-types}), the isomorphisms between the two types are declared
-explicitly.  Here they are natural: {\tt Collect} maps $\alpha\To bool$ to
-$\alpha\,set$, while \hbox{\tt op :} maps in the other direction (ignoring
-argument order).
+The isomorphisms between the two types are declared explicitly.  They are
+very natural: {\tt Collect} maps $\alpha\To bool$ to $\alpha\,set$, while
+\hbox{\tt op :} maps in the other direction (ignoring argument order).
 
 Figure~\ref{hol-set-syntax} lists the constants, infixes, and syntax
 translations.  Figure~\ref{hol-set-syntax2} presents the grammar of the new
@@ -595,7 +617,7 @@ not binders, but are equal to $\bigcup@{x\in A}x$ and $\bigcap@{x\in A}x$,
 respectively.
 
 
-% FIXME: remove the two laws connecting mem and Collect
+
 \begin{figure} \underscoreon
 \begin{ttbox}
 \tdx{mem_Collect_eq}    (a : \{x.P x\}) = P a
@@ -619,10 +641,6 @@ respectively.
 \tdx{Pow_def}           Pow A       == \{B. B <= A\}
 \tdx{image_def}         f``A        == \{y. ? x:A. y=f x\}
 \tdx{range_def}         range f     == \{y. ? x. y=f x\}
-\tdx{mono_def}          mono f      == !A B. A <= B --> f A <= f B
-\tdx{inj_def}           inj f       == ! x y. f x=f y --> x=y
-\tdx{surj_def}          surj f      == ! y. ? x. y=f x
-\tdx{inj_onto_def}      inj_onto f A == !x:A. !y:A. f x=f y --> x=y
 \end{ttbox}
 \caption{Rules of the theory {\tt Set}} \label{hol-set-rules}
 \end{figure}
@@ -701,6 +719,12 @@ respectively.
 
 \tdx{PowI}     A<=B ==> A: Pow B
 \tdx{PowD}     A: Pow B ==> A<=B
+
+\tdx{imageI}   [| x:A |] ==> f x : f``A
+\tdx{imageE}   [| b : f``A;  !!x.[| b=f x;  x:A |] ==> P |] ==> P
+
+\tdx{rangeI}   f x : range f
+\tdx{rangeE}   [| b : range f;  !!x.[| b=f x |] ==> P |] ==> P
 \end{ttbox}
 \caption{Further derived rules for set theory} \label{hol-set2}
 \end{figure}
@@ -714,47 +738,41 @@ course, \hbox{\tt op :} also serves as the membership relation.
 
 All the other axioms are definitions.  They include the empty set, bounded
 quantifiers, unions, intersections, complements and the subset relation.
-They also include straightforward properties of functions: image~({\tt``}) and
-{\tt range}, and predicates concerning monotonicity, injectiveness and
-surjectiveness.  
+They also include straightforward constructions on functions: image~({\tt``})
+and {\tt range}.
 
-The predicate \cdx{inj_onto} is used for simulating type definitions.
-The statement ${\tt inj_onto}~f~A$ asserts that $f$ is injective on the
-set~$A$, which specifies a subset of its domain type.  In a type
-definition, $f$ is the abstraction function and $A$ is the set of valid
-representations; we should not expect $f$ to be injective outside of~$A$.
+%The predicate \cdx{inj_onto} is used for simulating type definitions.
+%The statement ${\tt inj_onto}~f~A$ asserts that $f$ is injective on the
+%set~$A$, which specifies a subset of its domain type.  In a type
+%definition, $f$ is the abstraction function and $A$ is the set of valid
+%representations; we should not expect $f$ to be injective outside of~$A$.
 
-\begin{figure} \underscoreon
-\begin{ttbox}
-\tdx{Inv_f_f}    inj f ==> Inv f (f x) = x
-\tdx{f_Inv_f}    y : range f ==> f(Inv f y) = y
-
+%\begin{figure} \underscoreon
+%\begin{ttbox}
+%\tdx{Inv_f_f}    inj f ==> Inv f (f x) = x
+%\tdx{f_Inv_f}    y : range f ==> f(Inv f y) = y
+%
 %\tdx{Inv_injective}
 %    [| Inv f x=Inv f y; x: range f;  y: range f |] ==> x=y
 %
-\tdx{imageI}     [| x:A |] ==> f x : f``A
-\tdx{imageE}     [| b : f``A;  !!x.[| b=f x;  x:A |] ==> P |] ==> P
-
-\tdx{rangeI}     f x : range f
-\tdx{rangeE}     [| b : range f;  !!x.[| b=f x |] ==> P |] ==> P
-
-\tdx{monoI}      [| !!A B. A <= B ==> f A <= f B |] ==> mono f
-\tdx{monoD}      [| mono f;  A <= B |] ==> f A <= f B
-
-\tdx{injI}       [| !! x y. f x = f y ==> x=y |] ==> inj f
-\tdx{inj_inverseI}              (!!x. g(f x) = x) ==> inj f
-\tdx{injD}       [| inj f; f x = f y |] ==> x=y
-
-\tdx{inj_ontoI}  (!!x y. [| f x=f y; x:A; y:A |] ==> x=y) ==> inj_onto f A
-\tdx{inj_ontoD}  [| inj_onto f A;  f x=f y;  x:A;  y:A |] ==> x=y
-
-\tdx{inj_onto_inverseI}
-    (!!x. x:A ==> g(f x) = x) ==> inj_onto f A
-\tdx{inj_onto_contraD}
-    [| inj_onto f A;  x~=y;  x:A;  y:A |] ==> ~ f x=f y
-\end{ttbox}
-\caption{Derived rules involving functions} \label{hol-fun}
-\end{figure}
+%
+%\tdx{monoI}      [| !!A B. A <= B ==> f A <= f B |] ==> mono f
+%\tdx{monoD}      [| mono f;  A <= B |] ==> f A <= f B
+%
+%\tdx{injI}       [| !! x y. f x = f y ==> x=y |] ==> inj f
+%\tdx{inj_inverseI}              (!!x. g(f x) = x) ==> inj f
+%\tdx{injD}       [| inj f; f x = f y |] ==> x=y
+%
+%\tdx{inj_ontoI}  (!!x y. [| f x=f y; x:A; y:A |] ==> x=y) ==> inj_onto f A
+%\tdx{inj_ontoD}  [| inj_onto f A;  f x=f y;  x:A;  y:A |] ==> x=y
+%
+%\tdx{inj_onto_inverseI}
+%    (!!x. x:A ==> g(f x) = x) ==> inj_onto f A
+%\tdx{inj_onto_contraD}
+%    [| inj_onto f A;  x~=y;  x:A;  y:A |] ==> ~ f x=f y
+%\end{ttbox}
+%\caption{Derived rules involving functions} \label{hol-fun}
+%\end{figure}
 
 
 \begin{figure} \underscoreon
@@ -817,15 +835,6 @@ strictly necessary but yield more natural proofs.  Similarly,
 after the fashion of \tdx{iffCE}.  See the file {\tt HOL/Set.ML} for
 proofs pertaining to set theory.
 
-Figure~\ref{hol-fun} presents derived inference rules involving functions.
-They also include rules for \cdx{Inv}, which is defined in theory~{\tt
-  HOL}; note that ${\tt Inv}~f$ applies the Axiom of Choice to yield an
-inverse of~$f$.  They also include natural deduction rules for the image
-and range operators, and for the predicates {\tt inj} and {\tt inj_onto}.
-Reasoning about function composition (the operator~\sdx{o}) and the
-predicate~\cdx{surj} is done simply by expanding the definitions.  See
-the file {\tt HOL/fun.ML} for a complete listing of the derived rules.
-
 Figure~\ref{hol-subset} presents lattice properties of the subset relation.
 Unions form least upper bounds; non-empty intersections form greatest lower
 bounds.  Reasoning directly about subsets often yields clearer proofs than
@@ -833,25 +842,63 @@ reasoning about the membership relation.  See the file {\tt HOL/subset.ML}.
 
 Figure~\ref{hol-equalities} presents many common set equalities.  They
 include commutative, associative and distributive laws involving unions,
-intersections and complements.  The proofs are mostly trivial, using the
-classical reasoner; see file {\tt HOL/equalities.ML}.
+intersections and complements.  For a complete listing see the file {\tt
+HOL/equalities.ML}.
 
+\begin{warn}
+Many set theoretic theorems are proved automatically by {\tt Fast_tac}.
+Hence you rarely need to refer to the above theorems explicitly.
+\end{warn}
+
+\begin{figure}
+\begin{center}
+\begin{tabular}{rrr}
+  \it name      &\it meta-type  & \it description \\ 
+  \cdx{inj}~~\cdx{surj}& $(\alpha\To\beta )\To bool$
+        & injective/surjective \\
+  \cdx{inj_onto}        & $[\alpha\To\beta ,\alpha\,set]\To bool$
+        & injective over subset\\
+  \cdx{inv} & $(\alpha\To\beta)\To(\beta\To\alpha)$ & inverse function
+\end{tabular}
+\end{center}
+
+\underscoreon
+\begin{ttbox}
+\tdx{inj_def}           inj f        == ! x y. f x=f y --> x=y
+\tdx{surj_def}          surj f       == ! y. ? x. y=f x
+\tdx{inj_onto_def}      inj_onto f A == !x:A. !y:A. f x=f y --> x=y
+\tdx{inv_def}           inv f        == (\%y. @x. f(x)=y)
+\end{ttbox}
+\caption{Theory \thydx{Fun}} \label{fig:HOL:Fun}
+\end{figure}
+
+\subsection{Properties of functions}\nopagebreak
+Figure~\ref{fig:HOL:Fun} presents a theory of simple properties of functions.
+Note that ${\tt inv}~f$ uses Hilbert's $\varepsilon$ to yield an inverse
+of~$f$. See the file {\tt HOL/Fun.ML} for a complete listing of the derived
+rules.  Reasoning about function composition (the operator~\sdx{o}) and the
+predicate~\cdx{surj} is done simply by expanding the definitions.
+
+There is also a large collection of monotonicity theorems for constructions
+on sets in the file {\tt HOL/mono.ML}.
 
 \section{Generic packages}
+\label{sec:HOL:generic-packages}
+
 \HOL\ instantiates most of Isabelle's generic packages.
 
 \subsection{Substitution and simplification}
 
-Because it includes a general substitution rule, \HOL\ instantiates the
-tactic {\tt hyp_subst_tac}, which substitutes for an equality throughout a
-subgoal and its hypotheses.
+%Because it includes a general substitution rule, \HOL\ instantiates the
+%tactic {\tt hyp_subst_tac}, which substitutes for an equality throughout a
+%subgoal and its hypotheses.
 
 It instantiates the simplifier.  Tactics such as {\tt Asm_simp_tac} and {\tt
 Full_simp_tac} use the default simpset ({\tt!simpset}), which works for most
 purposes.  A minimal simplification set for higher-order logic
 is~\ttindexbold{HOL_ss}.  Equality~($=$), which also expresses logical
 equivalence, may be used for rewriting.  See the file {\tt HOL/simpdata.ML}
-for a complete listing of the simplification rules.
+for a complete listing of the basic simplification rules.
 
 See \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
 {Chaps.\ts\ref{substitution} and~\ref{simp-chap}} for details of substitution
@@ -873,7 +920,14 @@ provides {\tt stac}:
   replaces in subgoal $i$ instances of $lhs$ by corresponding instances of
   $rhs$. In case of multiple instances of $lhs$ in subgoal $i$, backtracking
   may be necessary to select the desired ones.
+
+If $thm$ is a conditional equality, the instantiated condition becomes an
+additional (first) subgoal.
 \end{ttdescription}
+
+Because \HOL\ includes a general substitution rule, the tactic {\tt
+hyp_subst_tac}, which substitutes for an equality throughout a subgoal and
+its hypotheses, is also available.
 
 
 \subsection{Classical reasoning}
@@ -885,13 +939,10 @@ rule; recall Fig.\ts\ref{hol-lemmas2} above.
 The classical reasoner is installed.  Tactics such as {\tt Fast_tac} and {\tt
 Best_tac} use the default claset ({\tt!claset}), which works for most
 purposes.  Named clasets include \ttindexbold{prop_cs}, which includes the
-propositional rules, \ttindexbold{HOL_cs}, which also includes quantifier
-rules, and \ttindexbold{set_cs}, which also includes rules for subsets,
-comprehensions, unions and intersections, etc.  See the file 
-{\tt HOL/cladata.ML} for lists of the classical rules, and
-\iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
-        {Chap.\ts\ref{chap:classical}} 
-for more discussion of classical proof methods.
+propositional rules, and \ttindexbold{HOL_cs}, which also includes quantifier
+rules.  See the file {\tt HOL/cladata.ML} for lists of the classical rules,
+and \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
+{Chap.\ts\ref{chap:classical}} for more discussion of classical proof methods.
 
 
 \section{Types}\label{sec:HOL:Types}
@@ -902,7 +953,7 @@ type construction, the {\tt datatype}, is treated separately in
 
 \subsection{Product and sum types}\index{*"* type}\index{*"+ type}
 
-\begin{figure}
+\begin{figure}[htbp]
 \begin{constants}
   \it symbol    & \it meta-type &           & \it description \\ 
   \cdx{Pair}    & $[\alpha,\beta]\To \alpha\times\beta$
@@ -921,9 +972,9 @@ type construction, the {\tt datatype}, is treated separately in
 %\tdx{split_def}    split c p == c (fst p) (snd p)
 \tdx{Sigma_def}    Sigma A B == UN x:A. UN y:B x. \{(x,y)\}
 
+\tdx{Pair_eq}      ((a,b) = (a',b')) = (a=a' & b=b')
 \tdx{Pair_inject}  [| (a, b) = (a',b');  [| a=a';  b=b' |] ==> R |] ==> R
 \tdx{PairE}        [| !!x y. p = (x,y) ==> Q |] ==> Q
-\tdx{Pair_eq}      ((a,b) = (a',b')) = (a=a' & b=b')
 
 \tdx{fst_conv}     fst (a,b) = a
 \tdx{snd_conv}     snd (a,b) = b
@@ -933,8 +984,7 @@ type construction, the {\tt datatype}, is treated separately in
 \tdx{expand_split} R(split c p) = (! x y. p = (x,y) --> R(c x y))
 
 \tdx{SigmaI}       [| a:A;  b:B a |] ==> (a,b) : Sigma A B
-\tdx{SigmaE}       [| c: Sigma A B;  
-                !!x y.[| x:A; y:B x; c=(x,y) |] ==> P |] ==> P
+\tdx{SigmaE}       [| c:Sigma A B; !!x y.[| x:A; y:B x; c=(x,y) |] ==> P |] ==> P
 \end{ttbox}
 \caption{Type $\alpha\times\beta$}\label{hol-prod}
 \end{figure} 
@@ -958,16 +1008,16 @@ as patterns in abstractions:
 \begin{center}
 {\tt\%($x$,$y$).$t$} \quad stands for\quad {\tt split(\%$x$ $y$.$t$)} 
 \end{center}
-Nested patterns are possible and are translated stepwise:
+Nested patterns are also supported. They are translated stepwise:
 {\tt\%($x$,$y$,$z$).$t$} $\leadsto$ {\tt\%($x$,($y$,$z$)).$t$} $\leadsto$
 {\tt split(\%$x$.\%($y$,$z$).$t$)} $\leadsto$ {\tt split(\%$x$.split(\%$y$
   $z$.$t$))}. The reverse translation is performed upon printing.
 \begin{warn}
   The translation between patterns and {\tt split} is performed automatically
   by the parser and printer.  Thus the internal and external form of a term
-  may differ, whichs affects proofs.  For example the term {\tt
-    (\%(x,y).(y,x))(a,b)} requires the theorem {\tt split} to rewrite to
-  {\tt(b,a)}.
+  may differ, which can affects proofs.  For example the term {\tt
+  (\%(x,y).(y,x))(a,b)} requires the theorem {\tt split} (which is in the
+  default simpset) to rewrite to {\tt(b,a)}.
 \end{warn}
 In addition to explicit $\lambda$-abstractions, patterns can be used in any
 variable binding construct which is internally described by a
@@ -1047,10 +1097,9 @@ The constructions are fairly standard and can be found in the respective {\tt
   \it symbol    & \it meta-type & \it priority & \it description \\ 
   \cdx{0}       & $nat$         & & zero \\
   \cdx{Suc}     & $nat \To nat$ & & successor function\\
-  \cdx{nat_case} & $[\alpha, nat\To\alpha, nat] \To\alpha$
-        & & conditional\\
-  \cdx{nat_rec} & $[nat, \alpha, [nat, \alpha]\To\alpha] \To \alpha$
-        & & primitive recursor\\
+% \cdx{nat_case} & $[\alpha, nat\To\alpha, nat] \To\alpha$ & & conditional\\
+% \cdx{nat_rec} & $[nat, \alpha, [nat, \alpha]\To\alpha] \To \alpha$
+%        & & primitive recursor\\
   \tt *         & $[nat,nat]\To nat$    &  Left 70      & multiplication \\
   \tt div       & $[nat,nat]\To nat$    &  Left 70      & division\\
   \tt mod       & $[nat,nat]\To nat$    &  Left 70      & modulus\\
@@ -1067,59 +1116,58 @@ The constructions are fairly standard and can be found in the respective {\tt
 \tdx{n_not_Suc_n}    n~=Suc n
 \subcaption{Basic properties}
 \end{ttbox}
-\caption{Defining {\tt nat}, the type of natural numbers} \label{hol-nat1}
+\caption{The type of natural numbers, {\tt nat}} \label{hol-nat1}
 \end{figure}
 
 
 \begin{figure}
 \begin{ttbox}\makeatother
-\tdx{nat_case_0}     nat_case a f 0 = a
-\tdx{nat_case_Suc}   nat_case a f (Suc k) = f k
+%\tdx{nat_case_0}     nat_case a f 0 = a
+%\tdx{nat_case_Suc}   nat_case a f (Suc k) = f k
+%
+%\tdx{nat_rec_0}      nat_rec 0 c h = c
+%\tdx{nat_rec_Suc}    nat_rec (Suc n) c h = h n (nat_rec n c h)
+%
+              0+n           = n
+              (Suc m)+n     = Suc(m+n)
+              m-0           = m
+              0-n           = n
+              Suc(m)-Suc(n) = m-n
+              0*n           = 0
+              Suc(m)*n      = n + m*n
 
-\tdx{nat_rec_0}      nat_rec 0 c h = c
-\tdx{nat_rec_Suc}    nat_rec (Suc n) c h = h n (nat_rec n c h)
-
-\tdx{add_0}        0+n           = n
-\tdx{add_Suc}      (Suc m)+n     = Suc(m+n)
-\tdx{diff_0}       m-0           = m
-\tdx{diff_0_eq_0}  0-n           = n
-\tdx{diff_Suc_Suc} Suc(m)-Suc(n) = m-n
-\tdx{mult_def}     0*n           = 0
-\tdx{mult_Suc}     Suc(m)*n      = n + m*n
-
-\tdx{mod_less}     m<n ==> m mod n = m
-\tdx{mod_geq}      [| 0<n;  ~m<n |] ==> m mod n = (m-n) mod n
-\tdx{div_less}     m<n ==> m div n = 0
-\tdx{div_geq}      [| 0<n;  ~m<n |] ==> m div n = Suc((m-n) div n)
-\subcaption{Recursion equations}
-
-\tdx{less_trans}     [| i<j;  j<k |] ==> i<k
-\tdx{lessI}          n < Suc n
-\tdx{zero_less_Suc}  0 < Suc n
-
-\tdx{less_not_sym}   n<m --> ~ m<n 
-\tdx{less_not_refl}  ~ n<n
-\tdx{not_less0}      ~ n<0
-
-\tdx{Suc_less_eq}    (Suc m < Suc n) = (m<n)
-\tdx{less_induct}    [| !!n. [| ! m. m<n --> P m |] ==> P n |]  ==>  P n
-
-\tdx{less_linear}    m<n | m=n | n<m
-\subcaption{The less-than relation}
+\tdx{mod_less}      m<n ==> m mod n = m
+\tdx{mod_geq}       [| 0<n;  ~m<n |] ==> m mod n = (m-n) mod n
+\tdx{div_less}      m<n ==> m div n = 0
+\tdx{div_geq}       [| 0<n;  ~m<n |] ==> m div n = Suc((m-n) div n)
+%\subcaption{Recursion equations}
+%
+%\tdx{less_trans}     [| i<j;  j<k |] ==> i<k
+%\tdx{lessI}          n < Suc n
+%\tdx{zero_less_Suc}  0 < Suc n
+%
+%\tdx{less_not_sym}   n<m --> ~ m<n 
+%\tdx{less_not_refl}  ~ n<n
+%\tdx{not_less0}      ~ n<0
+%
+%\tdx{Suc_less_eq}    (Suc m < Suc n) = (m<n)
+%\tdx{less_induct}    [| !!n. [| ! m. m<n --> P m |] ==> P n |]  ==>  P n
+%
+%\tdx{less_linear}    m<n | m=n | n<m
+%\subcaption{The less-than relation}
 \end{ttbox}
-\caption{Derived rules for {\tt nat}} \label{hol-nat2}
+\caption{Recursion equations for {\tt nat}} \label{hol-nat2}
 \end{figure}
 
 \subsection{The type of natural numbers, {\tt nat}}
-%FIXME: introduce separate type proto_nat
 
-The theory \thydx{Nat} defines the natural numbers in a roundabout but
+The theory \thydx{NatDef} defines the natural numbers in a roundabout but
 traditional way.  The axiom of infinity postulates an type~\tydx{ind} of
 individuals, which is non-empty and closed under an injective operation.
 The natural numbers are inductively generated by choosing an arbitrary
 individual for~0 and using the injective operation to take successors.  As
 usual, the isomorphisms between~\tydx{nat} and its representation are made
-explicitly. For details see the file {\tt Nat.thy}.
+explicitly. For details see the file {\tt NatDef.thy}.
 
 %The definition makes use of a least fixed point operator \cdx{lfp},
 %defined using the Knaster-Tarski theorem.  This is used to define the
@@ -1129,17 +1177,42 @@ explicitly. For details see the file {\tt Nat.thy}.
 %called {\tt Lfp}, {\tt Trancl} and {\tt WF}\@.  Elsewhere I have described
 %similar constructions in the context of set theory~\cite{paulson-set-II}.
 
-Type~\tydx{nat} is postulated to belong to class~\cldx{ord}, which
-overloads $<$ and $\leq$ on the natural numbers.
+Type~\tydx{nat} is an instance of class~\cldx{ord}, which makes the
+overloaded functions of this class (esp.\ \cdx{<} and \cdx{<=}, but also
+\cdx{min}, \cdx{max} and \cdx{LEAST}) available on {\tt nat}. Theory
+\thydx{Nat} builds on {\tt NatDef} and shows that {\tt<=} is a partial order,
+i.e.\ {\tt nat} is an instance of class {\tt order}.
 
 Theory \thydx{Arith} develops arithmetic on the natural numbers.  It
 defines addition, multiplication, subtraction, division, and remainder.
 Many of their properties are proved: commutative, associative and
-distributive laws, identity and cancellation laws, etc.  The most
-interesting result is perhaps the theorem $a \bmod b + (a/b)\times b = a$.
+distributive laws, identity and cancellation laws, etc.
+%  The most
+%interesting result is perhaps the theorem $a \bmod b + (a/b)\times b = a$.
 Division and remainder are defined by repeated subtraction, which requires
 well-founded rather than primitive recursion.  See Figs.\ts\ref{hol-nat1}
-and~\ref{hol-nat2}.
+and~\ref{hol-nat2}. The recursion equations for the operators {\tt +}, {\tt
+-} and {\tt *} are part of the default simpset.
+
+Functions on {\tt nat} can be defined by primitive recursion, for example
+addition:
+\begin{ttbox}
+\sdx{primrec} "op +" nat 
+  "0 + n = n"
+  "Suc m + n = Suc(m + n)"
+\end{ttbox}
+(Remember that the name of an infix operator $\oplus$ is {\tt op}~$\oplus$.)
+The general format for defining primitive recursive functions on {\tt nat}
+follows the rules for primitive recursive functions on datatypes
+(see~\S\ref{sec:HOL:primrec}).
+There is also a \sdx{case}-construct of the form
+\begin{ttbox}
+case \(e\) of 0 => \(a\) | Suc \(m\) => \(b\)
+\end{ttbox}
+Note that Isabelle insists on precisely this format; you may not even change
+the order of the two cases.
+Both {\tt primrec} and {\tt case} are realized by a recursion operator
+\cdx{nat_rec}, the details of which can be found in theory {\tt NatDef}.
 
 %The predecessor relation, \cdx{pred_nat}, is shown to be well-founded.
 %Recursion along this relation resembles primitive recursion, but is
@@ -1150,36 +1223,67 @@ and~\ref{hol-nat2}.
 %natural numbers are most easily expressed using recursion along~$<$.
 
 The tactic {\tt\ttindex{nat_ind_tac} "$n$" $i$} performs induction over the
-variable~$n$ in subgoal~$i$.
+variable~$n$ in subgoal~$i$ using theorem {\tt nat_induct}. There is also the
+derived theorem \tdx{less_induct}
+\begin{ttbox}
+[| !!n. [| ! m. m<n --> P m |] ==> P n |]  ==>  P n
+\end{ttbox}
 
-%FIXME add nth
+
+Reasoning about arithmetic inequalities can be tedious. A minimal amount of
+automation is provided by the tactic \ttindex{trans_tac} of type {\tt int ->
+tactic} that deals with simple inequalities. Note that it only knows about
+{\tt 0}, {\tt Suc}, {\tt<} and {\tt<=}. The following goals are all solved by
+{\tt trans_tac 1}:
+\begin{ttbox}
+{\out  1. [| \dots |] ==> m <= Suc(Suc m)}
+{\out  1. [| \dots i <= j \dots Suc j <= k \dots |] ==> i < k}
+{\out  1. [| \dots Suc m <= n \dots ~ m < n \dots |] ==> \dots}
+\end{ttbox}
+For a complete description of the limitations of the tactic and how to avoid
+some of them, see the comments at the start of the file {\tt
+Provers/nat_transitive.ML}.
+
+If {\tt trans_tac} fails you, try to find relevant arithmetic results in the
+library. The theory {\tt NatDef} contains theorems about {\tt<} and {\tt<=},
+the theory {\tt Arith} contains theorems about {\tt +}, {\tt -}, {\tt *},
+{\tt div} and {\tt mod}. Since specific results may be hard to find, we
+recommend the {\tt find}-functions (see the {\em Reference Manual\/}).
+
 \begin{figure}
 \index{#@{\tt[]} symbol}
 \index{#@{\tt\#} symbol}
 \index{"@@{\tt\at} symbol}
 \begin{constants}
   \it symbol & \it meta-type & \it priority & \it description \\
-  \tt[]    & $\alpha list$ & & empty list\\
-  \tt \#   & $[\alpha,\alpha list]\To \alpha list$ & Right 65 & 
+  \tt[]    & $\alpha\,list$ & & empty list\\
+  \tt \#   & $[\alpha,\alpha\,list]\To \alpha\,list$ & Right 65 & 
         list constructor \\
-  \cdx{null}    & $\alpha list \To bool$ & & emptiness test\\
-  \cdx{hd}      & $\alpha list \To \alpha$ & & head \\
-  \cdx{tl}      & $\alpha list \To \alpha list$ & & tail \\
-  \cdx{ttl}     & $\alpha list \To \alpha list$ & & total tail \\
-  \tt\at  & $[\alpha list,\alpha list]\To \alpha list$ & Left 65 & append \\
-  \cdx{map}     & $(\alpha\To\beta) \To (\alpha list \To \beta list)$
+  \cdx{null}    & $\alpha\,list \To bool$ & & emptiness test\\
+  \cdx{hd}      & $\alpha\,list \To \alpha$ & & head \\
+  \cdx{tl}      & $\alpha\,list \To \alpha\,list$ & & tail \\
+  \cdx{ttl}     & $\alpha\,list \To \alpha\,list$ & & total tail \\
+  \tt\at  & $[\alpha\,list,\alpha\,list]\To \alpha\,list$ & Left 65 & append \\
+  \cdx{map}     & $(\alpha\To\beta) \To (\alpha\,list \To \beta\,list)$
         & & mapping functional\\
-  \cdx{filter}  & $(\alpha \To bool) \To (\alpha list \To \alpha list)$
+  \cdx{filter}  & $(\alpha \To bool) \To (\alpha\,list \To \alpha\,list)$
         & & filter functional\\
-  \cdx{list_all}& $(\alpha \To bool) \To (\alpha list \To bool)$
+  \cdx{list_all}& $(\alpha \To bool) \To (\alpha\,list \To bool)$
         & & forall functional\\
-  \sdx{mem}  & $[\alpha,\alpha list]\To bool$    &  Left 55   & membership\\
-  \cdx{length}  & $\alpha list \To nat$ & & length \\
-%  \cdx{nth}  & $nat \To \alpha list \To \alpha$ & & indexing \\
-  \cdx{foldl}   & $(\beta\To\alpha\To\beta) \To \beta \To \alpha list \To \beta$ &
+  \cdx{set_of_list}& $\alpha\,list \To \alpha\,set$ & & elements\\
+  \sdx{mem}  & $[\alpha,\alpha\,list]\To bool$    &  Left 55   & membership\\
+  \cdx{foldl}   & $(\beta\To\alpha\To\beta) \To \beta \To \alpha\,list \To \beta$ &
   & iteration \\
-  \cdx{flat}   & $(\alpha list) list\To \alpha list$ & & flattening \\
-  \cdx{rev}     & $\alpha list \To \alpha list$ & & reverse \\
+  \cdx{concat}   & $(\alpha\,list)list\To \alpha\,list$ & & concatenation \\
+  \cdx{rev}     & $\alpha\,list \To \alpha\,list$ & & reverse \\
+  \cdx{length}  & $\alpha\,list \To nat$ & & length \\
+  \cdx{nth}  & $nat \To \alpha\,list \To \alpha$ & & indexing \\
+  \cdx{take}, \cdx{drop} & $nat \To \alpha\,list \To \alpha\,list$ &&
+    take/drop prefix \\
+  \cdx{takeWhile},\\
+  \cdx{dropWhile} &
+    $(\alpha \To bool) \To \alpha\,list \To \alpha\,list$ &&
+    take/drop prefix
 \end{constants}
 \subcaption{Constants and infixes}
 
@@ -1199,43 +1303,62 @@ variable~$n$ in subgoal~$i$.
 
 \begin{figure}
 \begin{ttbox}\makeatother
-\tdx{null_Nil}        null [] = True
-\tdx{null_Cons}       null (x#xs) = False
+null [] = True
+null (x#xs) = False
 
-\tdx{hd_Cons}         hd (x#xs) = x
-\tdx{tl_Cons}         tl (x#xs) = xs
+hd (x#xs) = x
+tl (x#xs) = xs
+%
+%ttl [] = []
+%ttl (x#xs) = xs
 
-\tdx{ttl_Nil}         ttl [] = []
-\tdx{ttl_Cons}        ttl (x#xs) = xs
+[] @ ys = ys
+(x#xs) @ ys = x # xs @ ys
 
-\tdx{append_Nil}      [] @ ys = ys
-\tdx{append_Cons}     (x#xs) @ ys = x # xs @ ys
+map f [] = []
+map f (x#xs) = f x # map f xs
 
-\tdx{map_Nil}         map f [] = []
-\tdx{map_Cons}        map f (x#xs) = f x # map f xs
+filter P [] = []
+filter P (x#xs) = (if P x then x#filter P xs else filter P xs)
 
-\tdx{filter_Nil}      filter P [] = []
-\tdx{filter_Cons}     filter P (x#xs) = (if P x then x#filter P xs else filter P xs)
+list_all P [] = True
+list_all P (x#xs) = (P x & list_all P xs)
 
-\tdx{list_all_Nil}    list_all P [] = True
-\tdx{list_all_Cons}   list_all P (x#xs) = (P x & list_all P xs)
+set_of_list [] = \{\}
+set_of_list (x#xs) = insert x (set_of_list xs)
 
-\tdx{mem_Nil}         x mem [] = False
-\tdx{mem_Cons}        x mem (y#ys) = (if y=x then True else x mem ys)
+x mem [] = False
+x mem (y#ys) = (if y=x then True else x mem ys)
 
-\tdx{length_Nil}      length([]) = 0
-\tdx{length_Cons}     length(x#xs) = Suc(length(xs))
+foldl f a [] = a
+foldl f a (x#xs) = foldl f (f a x) xs
 
-\tdx{foldl_Nil}       foldl f a [] = a
-\tdx{foldl_Cons}      foldl f a (x#xs) = foldl f (f a x) xs
+concat([]) = []
+concat(x#xs) = x @ concat(xs)
 
-\tdx{flat_Nil}        flat([]) = []
-\tdx{flat_Cons}       flat(x#xs) = x @ flat(xs)
+rev([]) = []
+rev(x#xs) = rev(xs) @ [x]
 
-\tdx{rev_Nil}         rev([]) = []
-\tdx{rev_Cons}        rev(x#xs) = rev(xs) @ [x]
+length([]) = 0
+length(x#xs) = Suc(length(xs))
+
+nth 0 xs = hd xs
+nth (Suc n) xs = nth n (tl xs)
+
+take n [] = []
+take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)
+
+drop n [] = []
+drop n (x#xs) = (case n of 0 => x#xs | Suc(m) => drop m xs)
+
+takeWhile P [] = []
+takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])
+
+dropWhile P [] = []
+dropWhile P (x#xs) = (if P x then dropWhile P xs else xs)
 \end{ttbox}
-\caption{Rewrite rules for lists} \label{fig:HOL:list-simps}
+\caption{Recursions equations for list processing functions}
+\label{fig:HOL:list-simps}
 \end{figure}
 
 
@@ -1245,11 +1368,10 @@ variable~$n$ in subgoal~$i$.
 Figure~\ref{hol-list} presents the theory \thydx{List}: the basic list
 operations with their types and syntax. The type constructor {\tt list} is
 defined as a {\tt datatype} with the constructors {\tt[]} and {\tt\#}.  This
-yields an induction tactic {\tt list.induct_tac} and a list of freeness
-theorems {\tt list.simps}.
-A \sdx{case} construct of the form
+yields an induction tactic {\tt list.induct_tac} of type {\tt string -> int
+-> tactic}. A \sdx{case} construct of the form
 \begin{center}\tt
-case $e$ of [] => $a$  |  x\#xs => b
+case $e$ of [] => $a$  |  \(x\)\#\(xs\) => b
 \end{center}
 is defined by translation. For details see~\S\ref{sec:HOL:datatype}.
 
@@ -1273,7 +1395,7 @@ A \bfindex{type definition} identifies the new type with a subset of an
 existing type. More precisely, the new type is defined by exhibiting an
 existing type~$\tau$, a set~$A::(\tau)set$, and a theorem of the form $x:A$.
 Thus~$A$ is a non-empty subset of~$\tau$, and the new type denotes this
-subset.  New functions are generated to establish an isomorphism between the
+subset.  New functions are defined that establish an isomorphism between the
 new type and the subset.  If type~$\tau$ involves type variables $\alpha@1$,
 \ldots, $\alpha@n$, then the type definition creates a type constructor
 $(\alpha@1,\ldots,\alpha@n)ty$ rather than a particular type.
@@ -1291,7 +1413,7 @@ witness : () | '(' id ')';
 \end{figure}
 
 The syntax for type definitions is shown in Fig.~\ref{fig:HOL:typedef}. For
-the definition of ``typevarlist'' and ``infix'' see
+the definition of `typevarlist' and `infix' see
 \iflabelundefined{chap:classical}
 {the appendix of the {\em Reference Manual\/}}%
 {Appendix~\ref{app:TheorySyntax}}. The remaining nonterminals have the
@@ -1307,8 +1429,8 @@ following meaning:
   non-emptiness automatically.
 \end{description}
 If all context conditions are met (no duplicate type variables in
-'typevarlist', no extra type variables in 'set', and no free term variables
-in 'set'), the following components are added to the theory:
+`typevarlist', no extra type variables in `set', and no free term variables
+in `set'), the following components are added to the theory:
 \begin{itemize}
 \item a type $ty :: (term,\dots)term$;
 \item constants
@@ -1331,7 +1453,7 @@ and its inverse $Abs_T$.
 \end{itemize}
 Here are two simple examples where emptiness is proved automatically:
 \begin{ttbox}
-typedef unit = "\{False\}"
+typedef unit = "\{True\}"
 
 typedef (prod)
   ('a, 'b) "*"    (infixr 20)
@@ -1358,23 +1480,23 @@ should make sure the type has a non-empty model. You must also have a clause
 \begin{ttbox}
 arities \(ty\): (term,\(\dots\),term)term
 \end{ttbox}
-in your theory file to tell Isabelle that elements of type $ty$ are in class
-{\tt term}, the class of all HOL terms.
+in your theory file to tell Isabelle that $ty$ is in class {\tt term}, the
+class of all HOL types.
 \end{warn}
 
 \section{Datatype declarations}
 \label{sec:HOL:datatype}
 \index{*datatype|(}
 
-\underscoreon
-
 It is often necessary to extend a theory with \ML-like datatypes.  This
 extension consists of the new type, declarations of its constructors and
 rules that describe the new type. The theory definition section {\tt
-  datatype} represents a compact way of doing this.
+datatype} automates this.
 
 
 \subsection{Foundations}
+
+\underscoreon
 
 A datatype declaration has the following general structure:
 \[ \mbox{\tt datatype}~ (\alpha_1,\dots,\alpha_n)t ~=~
@@ -1416,7 +1538,7 @@ These functions have certain {\em freeness} properties:
 \end{description}
 Because the number of inequalities is quadratic in the number of
 constructors, a different method is used if their number exceeds
-a certain value, currently 4. In that case every constructor is mapped to a
+a certain value, currently 6. In that case every constructor is mapped to a
 natural number
 \[
 \begin{array}{lcl}
@@ -1454,9 +1576,13 @@ The type also comes with an \ML-like \sdx{case}-construct:
                            \mid & C_m~x_{m1}~\dots~x_{mk_m} & \To & e_m
 \end{array}
 \]
+\begin{warn}
 In contrast to \ML, {\em all} constructors must be present, their order is
-fixed, and nested patterns are not supported.
+fixed, and nested patterns are not supported. Violating this restriction
+results in strange error messages.
+\end{warn}
 
+\underscoreoff
 
 \subsection{Defining datatypes}
 
@@ -1480,6 +1606,22 @@ typ      : id | tid | ('(' typevarlist id ')')
 \label{datatype-grammar}
 \end{figure}
 
+\begin{warn}
+  If there are 7 or more constructors, the {\it t\_ord} scheme is used for
+  distinctness theorems.  In this case the theory {\tt Arith} must be
+  contained in the current theory, if necessary by including it explicitly.
+\end{warn}
+
+Most of the theorems about the datatype become part of the default simpset
+and you never need to see them again because the simplifier applies them
+automatically. Only induction is invoked by hand. Loading a theory containing
+a datatype $t$ defines $t${\tt.induct_tac}:
+\begin{ttdescription}
+\item[$t$.\ttindexbold{induct_tac} {\tt"}$x${\tt"} $i$]
+ applies structural induction over variable $x$ to subgoal $i$.
+\end{ttdescription}
+
+For the technically minded, we give a more detailed description.
 Reading the theory file produces a structure which, in addition to the usual
 components, contains a structure named $t$ for each datatype $t$ defined in
 the file.\footnote{Otherwise multiple datatypes in the same theory file would
@@ -1494,18 +1636,9 @@ val induct_tac : string -> int -> tactic
 \end{ttbox}
 {\tt distinct}, {\tt inject} and {\tt induct} contain the theorems described
 above. For convenience {\tt distinct} contains inequalities in both
-directions.
-\begin{warn}
-  If there are five or more constructors, the {\em t\_ord} scheme is used for
-  {\tt distinct}.  In this case the theory {\tt Arith} must be contained
-  in the current theory, if necessary by including it explicitly.
-\end{warn}
-The reduction rules of the {\tt case}-construct are in {\tt cases}.  All
-theorems from {\tt distinct}, {\tt inject} and {\tt cases} are combined in
-{\tt simps} for use with the simplifier. The tactic {\verb$induct_tac$~{\em
-    var i}\/} applies structural induction over variable {\em var} to
-subgoal {\em i}.
-
+directions.  The reduction rules of the {\tt case}-construct are in {\tt
+cases}.  All theorems from {\tt distinct}, {\tt inject} and {\tt cases} are
+combined in {\tt simps}.
 
 \subsection{Examples}
 
@@ -1580,17 +1713,17 @@ proof is the same.
 
 \subsubsection{A datatype for weekdays}
 
-This example shows a datatype that consists of more than four constructors:
+This example shows a datatype that consists of more than 6 constructors:
 \begin{ttbox}
 Days = Arith +
   datatype days = Mo | Tu | We | Th | Fr | Sa | So
 end
 \end{ttbox}
-Because there are more than four constructors, the theory must be based on
-{\tt Arith}.  Inequality is defined via a function \verb|days_ord|. 
-The expression \verb|Mo ~= Tu| is not directly contained in {\tt distinct},
-but the simplifier can prove it thanks to rewrite rules inherited from theory
-{\tt Arith}.
+Because there are more than 6 constructors, the theory must be based on
+{\tt Arith}.  Inequality is defined via a function \verb|days_ord|.  The
+theorem \verb|Mo ~= Tu| is not directly contained among the distinctness
+theorems, but the simplifier can prove it thanks to rewrite rules inherited
+from theory {\tt Arith}.
 \begin{ttbox}
 goal Days.thy "Mo ~= Tu";
 by (Simp_tac 1);
@@ -1622,16 +1755,16 @@ datatypes can be defined with a special syntax:
 Append = MyList +
 consts app :: ['a list,'a list] => 'a list
 primrec app MyList.list
-   app_Nil   "app [] ys = ys"
-   app_Cons  "app (x#xs) ys = x#app xs ys"
+   "app [] ys = ys"
+   "app (x#xs) ys = x#app xs ys"
 end
 \end{ttbox}
-The system will now check that the two rules \verb$app_Nil$ and
-\verb$app_Cons$ do indeed form a primitive recursive definition, thus
-ensuring that consistency is maintained. For example
+Isabelle will now check that the two rules do indeed form a primitive
+recursive definition, thus ensuring that consistency is maintained. For
+example
 \begin{ttbox}
 primrec app MyList.list
-    app_Nil   "app [] ys = us"
+    "app [] ys = us"
 \end{ttbox}
 is rejected:
 \begin{ttbox}
@@ -1653,42 +1786,43 @@ where
   datatype was declared in, and $t$ the name of the datatype. The long form
   is required if the {\tt datatype} and the {\tt primrec} sections are in
   different theories.
-\item {\it reduction rules} specify one or more named equations of the form
-  {\it id\/}~{\it string}, where the identifier gives the name of the rule in
-  the result structure, and {\it string} is a reduction rule of the form \[
-  f~x_1~\dots~x_m~(C~y_1~\dots~y_k)~z_1~\dots~z_n = r \] such that $C$ is a
+\item {\it reduction rules} specify one or more equations of the form \[
+  f~x@1~\dots~x@m~(C~y@1~\dots~y@k)~z@1~\dots~z@n = r \] such that $C$ is a
   constructor of the datatype, $r$ contains only the free variables on the
   left-hand side, and all recursive calls in $r$ are of the form
-  $f~\dots~y_i~\dots$ for some $i$. There must be exactly one reduction
-  rule for each constructor. Since these reduction rules are mainly used via
-  the implicit simpset, their names may be omitted.
+  $f~\dots~y@i~\dots$ for some $i$. There must be exactly one reduction rule
+  for each constructor. The order is immaterial. {\em All reduction rules are
+  added to the default {\tt simpset}.}
+
+  If you would like to refer to some rule explicitly, you have to prefix each
+  rule with an identifier (like in the {\tt rules} section of the first {\tt
+  Append} theory above) that will serve as the name of the corresponding
+  theorem at the \ML\ level.
 \end{itemize}
 A theory file may contain any number of {\tt primrec} sections which may be
 intermixed with other declarations.
 
-For the consistency-sensitive user it may be reassuring to know that {\tt
+For the consistency-conscious user it may be reassuring to know that {\tt
   primrec} does not assert the reduction rules as new axioms but derives them
 as theorems from an explicit definition of the recursive function in terms of
 a recursion operator on the datatype.
 
 The primitive recursive function can have infix or mixfix syntax:
-\begin{ttbox}
+\begin{ttbox}\underscoreon
 Append = MyList +
 consts "@"  :: ['a list,'a list] => 'a list  (infixr 60)
 primrec "op @" MyList.list
-   app_Nil   "[] @ ys = ys"
-   app_Cons  "(x#xs) @ ys = x#(xs @ ys)"
+   "[] @ ys = ys"
+   "(x#xs) @ ys = x#(xs @ ys)"
 end
 \end{ttbox}
 
-The reduction rules become part of the ML structure \verb$Append$ and can
-be used to prove theorems about the function.  The defining equations for
-primitive recursive functions are automatically provided to the simplifier 
-(via the default simpset).
-\begin{ttbox}
+The reduction rules for {\tt\at} become part of the default simpset, which
+leads to short proofs:
+\begin{ttbox}\underscoreon
 goal Append.thy "(xs @ ys) @ zs = xs @ (ys @ zs)";
-by (MyList.list.induct_tac "xs" 1);
-by (ALLGOALS Asm_simp_tac);
+by (MyList.list.induct\_tac "xs" 1);
+by (ALLGOALS Asm\_simp\_tac);
 \end{ttbox}
 
 %Note that underdefined primitive recursive functions are allowed:
@@ -1755,7 +1889,7 @@ names given them in the theory file.
 
 \item[\tt elim] is the elimination rule.
 
-\item[\tt mk\_cases] is a function to create simplified instances of {\tt
+\item[\tt mk_cases] is a function to create simplified instances of {\tt
 elim}, using freeness reasoning on some underlying datatype.
 \end{description}
 
@@ -1798,7 +1932,7 @@ inductive    {\it inductive sets}
 A coinductive definition is identical, except that it starts with the keyword
 {\tt coinductive}.  
 
-The {\tt monos} and {\tt con\_defs} sections are optional.  If present,
+The {\tt monos} and {\tt con_defs} sections are optional.  If present,
 each is specified as a string, which must be a valid ML expression of type
 {\tt thm list}.  It is simply inserted into the {\tt .thy.ML} file; if it
 is ill-formed, it will trigger ML error messages.  You can then inspect the
@@ -1814,7 +1948,7 @@ file on your directory.
 \item The {\it monotonicity theorems} are required for each operator
   applied to a recursive set in the introduction rules.  There {\bf must}
   be a theorem of the form $A\subseteq B\Imp M(A)\subseteq M(B)$, for each
-  premise $t\in M(R_i)$ in an introduction rule!
+  premise $t\in M(R@i)$ in an introduction rule!
 
 \item The {\it constructor definitions} contain definitions of constants
   appearing in the introduction rules.  In most cases it can be omitted.
@@ -1872,25 +2006,40 @@ The HOL distribution contains many other inductive definitions, such as the
 theory {\tt HOL/ex/PropLog.thy} and the directory {\tt HOL/IMP}.  The
 theory {\tt HOL/ex/LList.thy} contains coinductive definitions.
 
-\index{*coinductive|)} \index{*inductive|)} \underscoreoff
+\index{*coinductive|)} \index{*inductive|)}
 
 
 \section{The examples directories}
+
+Directory {\tt HOL/Auth} contains theories for proving the correctness of 
+cryptographic protocols.  The approach is based upon operational 
+semantics~\cite{paulson-security} rather than the more usual belief logics.
+On the same directory are proofs for some standard examples, such as the 
+Needham-Schroeder public-key authentication protocol~\cite{paulson-ns} 
+and the Otway-Rees protocol.
+
+Directory {\tt HOL/IMP} contains a formalization of various denotational,
+operational and axiomatic semantics of a simple while-language, the necessary
+equivalence proofs, soundness and completeness of the Hoare rules w.r.t.\ the
+denotational semantics, and soundness and completeness of a verification
+condition generator. Much of development is taken from
+Winskel~\cite{winskel93}. For details see~\cite{Nipkow-FSTTCS-96}.
+
+Directory {\tt HOL/Hoare} contains a user friendly surface syntax for Hoare
+logic, including a tactic for generating verification-conditions.
+
+Directory {\tt HOL/MiniML} contains a formalization of the type system of the
+core functional language Mini-ML and a correctness proof for its type
+inference algorithm $\cal W$~\cite{milner78,nazareth-nipkow}.
+
+Directory {\tt HOL/Lambda} contains a formalization of untyped
+$\lambda$-calculus in de~Bruijn notation and Church-Rosser proofs for $\beta$
+and $\eta$ reduction~\cite{Nipkow-CR}.
+
 Directory {\tt HOL/Subst} contains Martin Coen's mechanisation of a theory of
 substitutions and unifiers.  It is based on Paulson's previous
 mechanisation in {\LCF}~\cite{paulson85} of Manna and Waldinger's
 theory~\cite{mw81}. 
-
-Directory {\tt HOL/IMP} contains a formalization of the denotational,
-operational and axiomatic semantics of a simple while-language, including an
-equivalence proof between denotational and operational semantics and a
-soundness and part of a completeness proof of the Hoare rules w.r.t.\ the
-denotational semantics. The whole development is taken from
-Winskel~\cite{winskel93}.  In addition, a verification-condition-generator is
-proved sound and complete w.r.t. the Hoare rules.
-
-Directory {\tt HOL/Hoare} contains a user friendly surface syntax for Hoare
-logic, including a tactic for generating verification-conditions.
 
 Directory {\tt HOL/ex} contains other examples and experimental proofs in
 {\HOL}.  Here is an overview of the more interesting files.
@@ -2019,7 +2168,7 @@ by (assume_tac 1);
 {\out No subgoals!}
 \end{ttbox}
 How much creativity is required?  As it happens, Isabelle can prove this
-theorem automatically.  The classical set \ttindex{set_cs} contains rules
+theorem automatically.  The default classical set {\tt!claset} contains rules
 for most of the constructs of \HOL's set theory.  We must augment it with
 \tdx{equalityCE} to break up set equalities, and then apply best-first
 search.  Depth-first search would diverge, but best-first search
@@ -2031,10 +2180,13 @@ choplev 0;
 {\out ~ ?S : range f}
 {\out  1. ~ ?S : range f}
 \ttbreak
-by (best_tac (set_cs addSEs [equalityCE]) 1);
+by (best_tac (!claset addSEs [equalityCE]) 1);
 {\out Level 1}
 {\out ~ \{x. ~ x : f x\} : range f}
 {\out No subgoals!}
 \end{ttbox}
-
+If you run this example interactively, make sure your current theory contains
+theory {\tt Set}, for example by executing
+\ttindex{set_current_thy}~{\tt"Set"}. Otherwise the default claset may not
+contain the rules for set theory.
 \index{higher-order logic|)}
