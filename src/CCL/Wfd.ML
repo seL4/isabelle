@@ -26,7 +26,7 @@ val [p1,p2,p3] = goal Wfd.thy
     "[| !!x y.<x,y> : R ==> Q(x); \
 \       ALL x. (ALL y. <y,x> : R --> y : P) --> x : P; \
 \       !!x.Q(x) ==> x:P |] ==> a:P";
-br (p2 RS  spec  RS mp) 1;
+by (rtac (p2 RS  spec  RS mp) 1);
 by (fast_tac (set_cs addSIs [p1 RS p3]) 1);
 val wfd_strengthen_lemma = result();
 
@@ -36,7 +36,7 @@ fun wfd_strengthen_tac s i = res_inst_tac [("Q",s)] wfd_strengthen_lemma i THEN
 val wfd::prems = goal Wfd.thy "[| Wfd(r);  <a,x>:r;  <x,a>:r |] ==> P";
 by (subgoal_tac "ALL x. <a,x>:r --> <x,a>:r --> P" 1);
 by (fast_tac (FOL_cs addIs prems) 1);
-br (wfd RS  wfd_induct) 1;
+by (rtac (wfd RS  wfd_induct) 1);
 by (ALLGOALS (fast_tac (ccl_cs addSIs prems)));
 val wf_anti_sym = result();
 
@@ -53,11 +53,11 @@ by (REPEAT (ares_tac [allI,ballI,impI] 1));
 (*must retain the universal formula for later use!*)
 by (rtac allE 1 THEN assume_tac 1);
 by (etac mp 1);
-br (prem RS wfd_induct) 1;
+by (rtac (prem RS wfd_induct) 1);
 by (rtac (impI RS allI) 1);
 by (etac tranclE 1);
 by (fast_tac ccl_cs 1);
-be (spec RS mp RS spec RS mp) 1;
+by (etac (spec RS mp RS spec RS mp) 1);
 by (REPEAT (atac 1));
 val trancl_wf = result();
 
@@ -83,27 +83,27 @@ val major::prems = goal Wfd.thy
 \    !!a a' b b'.[| <a,a'> : ra; p=<<a,b>,<a',b'>> |] ==> R;  \
 \    !!a b b'.[| <b,b'> : rb;  p = <<a,b>,<a,b'>> |] ==> R  |] ==> \
 \ R";
-br (major RS (lexXH RS iffD1) RS exE) 1;
+by (rtac (major RS (lexXH RS iffD1) RS exE) 1);
 by (REPEAT_SOME (eresolve_tac ([exE,conjE,disjE]@prems)));
 by (ALLGOALS (fast_tac ccl_cs));
 val lexE = result();
 
 val [major,minor] = goal Wfd.thy
  "[| p : r**s;  !!a a' b b'. p = <<a,b>,<a',b'>> ==> P |] ==>P";
-br (major RS lexE) 1;
+by (rtac (major RS lexE) 1);
 by (ALLGOALS (fast_tac (set_cs addSEs [minor])));
 val lex_pair = result();
 
 val [wfa,wfb] = goal Wfd.thy
  "[| Wfd(R); Wfd(S) |] ==> Wfd(R**S)";
-bw Wfd_def;
+by (rewtac Wfd_def);
 by (safe_tac ccl_cs);
 by (wfd_strengthen_tac "%x.EX a b.x=<a,b>" 1);
 by (fast_tac (term_cs addSEs [lex_pair]) 1);
 by (subgoal_tac "ALL a b.<a,b>:P" 1);
 by (fast_tac ccl_cs 1);
-br (wfa RS wfd_induct RS allI) 1;
-br (wfb RS wfd_induct RS allI) 1;back();
+by (rtac (wfa RS wfd_induct RS allI) 1);
+by (rtac (wfb RS wfd_induct RS allI) 1);back();
 by (fast_tac (type_cs addSEs [lexE]) 1);
 val lex_wf = result();
 
@@ -121,40 +121,40 @@ val wmapI = result();
 
 val major::prems = goal Wfd.thy
  "[| p : wmap(f,r);  !!a b.[| <f(a),f(b)> : r;  p=<a,b> |] ==> R |] ==> R";
-br (major RS (wmapXH RS iffD1) RS exE) 1;
+by (rtac (major RS (wmapXH RS iffD1) RS exE) 1);
 by (REPEAT_SOME (eresolve_tac ([exE,conjE,disjE]@prems)));
 by (ALLGOALS (fast_tac ccl_cs));
 val wmapE = result();
 
 val [wf] = goal Wfd.thy
  "Wfd(r) ==> Wfd(wmap(f,r))";
-bw Wfd_def;
+by (rewtac Wfd_def);
 by (safe_tac ccl_cs);
 by (subgoal_tac "ALL b.ALL a.f(a)=b-->a:P" 1);
 by (fast_tac ccl_cs 1);
-br (wf RS wfd_induct RS allI) 1;
+by (rtac (wf RS wfd_induct RS allI) 1);
 by (safe_tac ccl_cs);
-be (spec RS mp) 1;
+by (etac (spec RS mp) 1);
 by (safe_tac (ccl_cs addSEs [wmapE]));
-be (spec RS mp RS spec RS mp) 1;
-ba 1;
-br refl 1;
+by (etac (spec RS mp RS spec RS mp) 1);
+by (assume_tac 1);
+by (rtac refl 1);
 val wmap_wf = result();
 
 (* Projections *)
 
 val prems = goal Wfd.thy "<xa,ya> : r ==> <<xa,xb>,<ya,yb>> : wmap(fst,r)";
-br wmapI 1;
+by (rtac wmapI 1);
 by (simp_tac (term_ss addsimps prems) 1);
 val wfstI = result();
 
 val prems = goal Wfd.thy "<xb,yb> : r ==> <<xa,xb>,<ya,yb>> : wmap(snd,r)";
-br wmapI 1;
+by (rtac wmapI 1);
 by (simp_tac (term_ss addsimps prems) 1);
 val wsndI = result();
 
 val prems = goal Wfd.thy "<xc,yc> : r ==> <<xa,<xb,xc>>,<ya,<yb,yc>>> : wmap(thd,r)";
-br wmapI 1;
+by (rtac wmapI 1);
 by (simp_tac (term_ss addsimps prems) 1);
 val wthdI = result();
 
@@ -172,7 +172,7 @@ val Empty_wf = result();
 val prems = goalw Wfd.thy [wf_def] "Wfd(wf(R))";
 by (res_inst_tac [("Q","Wfd(R)")] (excluded_middle RS disjE) 1);
 by (ALLGOALS (asm_simp_tac CCL_ss));
-br Empty_wf 1;
+by (rtac Empty_wf 1);
 val wf_wf = result();
 
 goalw Wfd.thy [NatPR_def]  "p : NatPR <-> (EX x:Nat.p=<x,succ(x)>)";
@@ -190,7 +190,7 @@ goalw Wfd.thy [Wfd_def]  "Wfd(NatPR)";
 by (safe_tac set_cs);
 by (wfd_strengthen_tac "%x.x:Nat" 1);
 by (fast_tac (type_cs addSEs [XH_to_E NatPRXH]) 1);
-be Nat_ind 1;
+by (etac Nat_ind 1);
 by (ALLGOALS (fast_tac (type_cs addEs [XH_to_E NatPRXH])));
 val NatPR_wf = result();
 
@@ -198,7 +198,7 @@ goalw Wfd.thy [Wfd_def]  "Wfd(ListPR(A))";
 by (safe_tac set_cs);
 by (wfd_strengthen_tac "%x.x:List(A)" 1);
 by (fast_tac (type_cs addSEs [XH_to_E ListPRXH]) 1);
-be List_ind 1;
+by (etac List_ind 1);
 by (ALLGOALS (fast_tac (type_cs addEs [XH_to_E ListPRXH])));
 val ListPR_wf = result();
 

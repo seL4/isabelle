@@ -117,7 +117,7 @@ val subset_refl = prove_goal Set.thy "A <= A"
  (fn _=> [ (REPEAT (ares_tac [subsetI] 1)) ]);
 
 goal Set.thy "!!A B C. [| A<=B;  B<=C |] ==> A<=C";
-br subsetI 1;
+by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, subsetD] 1));
 val subset_trans = result();
 
@@ -164,7 +164,7 @@ by (REPEAT (resolve_tac (refl::prems) 1));
 val setup_induction = result();
 
 goal Set.thy "{x.x:A} = A";
-by (REPEAT (ares_tac [equalityI,subsetI,CollectI] 1  ORELSE eresolve_tac [CollectD] 1));
+by (REPEAT (ares_tac [equalityI,subsetI,CollectI] 1  ORELSE etac CollectD 1));
 val trivial_set = result();
 
 (*** Rules for binary union -- Un ***)
@@ -235,7 +235,7 @@ val ComplE = make_elim ComplD;
 (*** Empty sets ***)
 
 goalw Set.thy [empty_def] "{x.False} = {}";
-br refl 1;
+by (rtac refl 1);
 val empty_eq = result();
 
 val [prem] = goalw Set.thy [empty_def] "a : {} ==> P";
@@ -245,8 +245,8 @@ val emptyD = result();
 val emptyE = make_elim emptyD;
 
 val [prem] = goal Set.thy "~ A={} ==> (EX x.x:A)";
-br (prem RS swap) 1;
-br equalityI 1;
+by (rtac (prem RS swap) 1);
+by (rtac equalityI 1);
 by (ALLGOALS (fast_tac (FOL_cs addSIs [subsetI] addSEs [emptyD])));
 val not_emptyD = result();
 

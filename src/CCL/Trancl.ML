@@ -86,14 +86,14 @@ val rtrancl_unfold = rtrancl_fun_mono RS (rtrancl_def RS def_lfp_Tarski);
 
 (*Reflexivity of rtrancl*)
 goal Trancl.thy "<a,a> : r^*";
-br (rtrancl_unfold RS ssubst) 1;
+by (rtac (rtrancl_unfold RS ssubst) 1);
 by (fast_tac comp_cs 1);
 val rtrancl_refl = result();
 
 (*Closure under composition with r*)
 val prems = goal Trancl.thy
     "[| <a,b> : r^*;  <b,c> : r |] ==> <a,c> : r^*";
-br (rtrancl_unfold RS ssubst) 1;
+by (rtac (rtrancl_unfold RS ssubst) 1);
 by (fast_tac (comp_cs addIs prems) 1);
 val rtrancl_into_rtrancl = result();
 

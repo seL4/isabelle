@@ -60,10 +60,11 @@ by (rtac Un_upper2 1);
 val coinduct2_lemma = result();
 
 (*strong version, thanks to Martin Coen*)
-val prems = goal Gfp.thy
+val ainA::prems = goal Gfp.thy
     "[| a: A;  A <= f(A) Un gfp(f);  mono(f) |] ==> a : gfp(f)";
-by (rtac (coinduct2_lemma RSN (2,coinduct)) 1);
-by (REPEAT (resolve_tac (prems@[UnI1]) 1));
+by (rtac coinduct 1);
+by (rtac (prems MRS coinduct2_lemma) 2);
+by (resolve_tac [ainA RS UnI1] 1);
 val coinduct2 = result();
 
 (***  Even Stronger version of coinduct  [by Martin Coen]
@@ -78,22 +79,22 @@ val [prem,mono] = goal Gfp.thy
     "[| A <= f(lfp(%x.f(x) Un A Un gfp(f)));  mono(f) |] ==> \
 \    lfp(%x.f(x) Un A Un gfp(f)) <= f(lfp(%x.f(x) Un A Un gfp(f)))";
 by (rtac subset_trans 1);
-br (mono RS coinduct3_mono_lemma RS lfp_lemma3) 1;
+by (rtac (mono RS coinduct3_mono_lemma RS lfp_lemma3) 1);
 by (rtac (Un_least RS Un_least) 1);
-br subset_refl 1;
-br prem 1;
-br (mono RS gfp_Tarski RS equalityD1 RS subset_trans) 1;
+by (rtac subset_refl 1);
+by (rtac prem 1);
+by (rtac (mono RS gfp_Tarski RS equalityD1 RS subset_trans) 1);
 by (rtac (mono RS monoD) 1);
 by (rtac (mono RS coinduct3_mono_lemma RS lfp_Tarski RS ssubst) 1);
 by (rtac Un_upper2 1);
 val coinduct3_lemma = result();
 
-val prems = goal Gfp.thy
+val ainA::prems = goal Gfp.thy
     "[| a:A;  A <= f(lfp(%x.f(x) Un A Un gfp(f))); mono(f) |] ==> a : gfp(f)";
-by (rtac (coinduct3_lemma RSN (2,coinduct)) 1);
-brs (prems RL [coinduct3_mono_lemma RS lfp_Tarski RS ssubst]) 1;
-br (UnI2 RS UnI1) 1;
-by (REPEAT (resolve_tac prems 1));
+by (rtac coinduct 1);
+by (rtac (prems MRS coinduct3_lemma) 2);
+by (resolve_tac (prems RL [coinduct3_mono_lemma RS lfp_Tarski RS ssubst]) 1);
+by (rtac (ainA RS UnI2 RS UnI1) 1);
 val coinduct3 = result();
 
 

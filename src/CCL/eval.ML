@@ -22,16 +22,16 @@ EVal_rls := !EVal_rls @ [applyV];
 
 val major::prems = goalw thy [let_def]
    "[| t ---> a;  f(a) ---> c |] ==> let x be t in f(x) ---> c";
-br (major RS canonical) 1;
+by (rtac (major RS canonical) 1);
 by (REPEAT (DEPTH_SOLVE_1 (resolve_tac ([major]@prems@(!EVal_rls)) 1 ORELSE
-                           eresolve_tac [substitute] 1)));
+                           etac substitute 1)));
 val letV = result();
 
 val prems = goalw thy [fix_def]
    "f(fix(f)) ---> c ==> fix(f) ---> c";
-br applyV 1;
-br lamV 1;
-brs prems 1;
+by (rtac applyV 1);
+by (rtac lamV 1);
+by (resolve_tac prems 1);
 val fixV = result();
 
 val prems = goalw thy [letrec_def]

@@ -13,7 +13,7 @@
 val Subtype_canTs = 
        let fun tac prems = cut_facts_tac prems 1 THEN
                 REPEAT (ares_tac (SubtypeI::canTs@icanTs) 1 ORELSE
-                        eresolve_tac [SubtypeE] 1)
+                        etac SubtypeE 1)
            fun solve s = prove_goal Type.thy s (fn prems => [tac prems])
        in map solve
            ["P(one) ==> one : {x:Unit.P(x)}",
@@ -31,7 +31,7 @@ val Subtype_canTs =
 val Subtype_canTs = 
        let fun tac prems = cut_facts_tac prems 1 THEN
                 REPEAT (ares_tac (SubtypeI::canTs@icanTs) 1 ORELSE
-                        eresolve_tac [SubtypeE] 1)
+                        etac SubtypeE 1)
            fun solve s = prove_goal Type.thy s (fn prems => [tac prems])
        in map solve
            ["a : {x:A. b:{y:B(a).P(<x,y>)}} ==> <a,b> : {x:Sigma(A,B).P(x)}",
@@ -44,8 +44,8 @@ val Subtype_canTs =
 val prems = goal Type.thy
      "[| f(t):B;  ~t=bot  |] ==> let x be t in f(x) : B";
 by (cut_facts_tac prems 1);
-be (letB RS ssubst) 1;
-ba 1;
+by (etac (letB RS ssubst) 1);
+by (assume_tac 1);
 val letT = result();
 
 val prems = goal Type.thy

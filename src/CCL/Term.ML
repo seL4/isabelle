@@ -27,11 +27,11 @@ by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])
 val letB = result() RS mp;
 
 goalw Term.thy [let_def] "let x be bot in f(x) = bot";
-br caseBbot 1;
+by (rtac caseBbot 1);
 val letBabot = result();
 
 goalw Term.thy [let_def] "let x be t in bot = bot";
-brs ([caseBbot] RL [term_case]) 1;
+by (resolve_tac ([caseBbot] RL [term_case]) 1);
 by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])));
 val letBbbot = result();
 
@@ -40,17 +40,17 @@ by (ALLGOALS(simp_tac(CCL_ss addsimps [caseBtrue,caseBfalse,caseBpair,caseBlam])
 val applyB = result();
 
 goalw Term.thy [apply_def] "bot ` a = bot";
-br caseBbot 1;
+by (rtac caseBbot 1);
 val applyBbot = result();
 
 goalw Term.thy [fix_def] "fix(f) = f(fix(f))";
-by (resolve_tac [applyB RS ssubst] 1 THEN resolve_tac [refl] 1);
+by (resolve_tac [applyB RS ssubst] 1 THEN rtac refl 1);
 val fixB = result();
 
 goalw Term.thy [letrec_def]
       "letrec g x be h(x,g) in g(a) = h(a,%y.letrec g x be h(x,g) in g(y))";
 by (resolve_tac [fixB RS ssubst] 1 THEN 
-    resolve_tac [applyB RS ssubst] 1 THEN resolve_tac [refl] 1);
+    resolve_tac [applyB RS ssubst] 1 THEN rtac refl 1);
 val letrecB = result();
 
 val rawBs = caseBs @ [applyB,applyBbot];

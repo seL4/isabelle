@@ -13,7 +13,7 @@ fun type_of_terms (Const("Trueprop",_) $ (Const("op =",(Type ("fun", [t,_])))$_$
 (*** Hereditary Termination ***)
 
 goalw Hered.thy [HTTgen_def]  "mono(%X.HTTgen(X))";
-br monoI 1;
+by (rtac monoI 1);
 by (fast_tac set_cs 1);
 val HTTgen_mono = result();
 
@@ -46,12 +46,12 @@ by (fast_tac (term_cs addIs [XH_to_I HTTXH]) 1);
 val HTT_false = result();
 
 goal Hered.thy "<a,b> : HTT <->  a : HTT  & b : HTT";
-br (HTTXH RS iff_trans) 1;
+by (rtac (HTTXH RS iff_trans) 1);
 by (fast_tac term_cs 1);
 val HTT_pair = result();
 
 goal Hered.thy "lam x.f(x) : HTT <-> (ALL x. f(x) : HTT)";
-br (HTTXH RS iff_trans) 1;
+by (rtac (HTTXH RS iff_trans) 1);
 by (simp_tac term_ss 1);
 by (safe_tac term_cs);
 by (asm_simp_tac term_ss 1);
@@ -78,7 +78,7 @@ val HTT_Is = HTT_rews @ (HTT_rews RL [iffD2]);
 (*** Coinduction for HTT ***)
 
 val prems = goal Hered.thy "[|  t : R;  R <= HTTgen(R) |] ==> t : HTT";
-br (HTT_def RS def_coinduct) 1;
+by (rtac (HTT_def RS def_coinduct) 1);
 by (REPEAT (ares_tac prems 1));
 val HTT_coinduct = result();
 
@@ -86,7 +86,7 @@ fun HTT_coinduct_tac s i = res_inst_tac [("R",s)] HTT_coinduct i;
 
 val prems = goal Hered.thy 
     "[|  t : R;   R <= HTTgen(lfp(%x. HTTgen(x) Un R Un HTT)) |] ==> t : HTT";
-br (HTTgen_mono RSN(3,HTT_def RS def_coinduct3)) 1;
+by (rtac (HTTgen_mono RSN(3,HTT_def RS def_coinduct3)) 1);
 by (REPEAT (ares_tac prems 1));
 val HTT_coinduct3 = result();
 val HTT_coinduct3_raw = rewrite_rule [HTTgen_def] HTT_coinduct3;
@@ -139,20 +139,20 @@ val SigmaF = result();
 goal Hered.thy "Nat <= HTT";
 by (simp_tac (term_ss addsimps [subsetXH]) 1);
 by (safe_tac set_cs);
-be Nat_ind 1;
+by (etac Nat_ind 1);
 by (ALLGOALS (fast_tac (set_cs addIs HTT_Is @ (prems RL [subsetD]))));
 val NatF = result();
 
 goal Hered.thy "Nat <= HTT";
 by (safe_tac set_cs);
-be HTT_coinduct3 1;
+by (etac HTT_coinduct3 1);
 by (fast_tac (set_cs addIs HTTgenIs 
                  addSEs [HTTgen_mono RS ci3_RI] addEs [XH_to_E NatXH]) 1);
 val NatF = result();
 
 val [prem] = goal Hered.thy "A <= HTT ==> List(A) <= HTT";
 by (safe_tac set_cs);
-be HTT_coinduct3 1;
+by (etac HTT_coinduct3 1);
 by (fast_tac (set_cs addSIs HTTgenIs 
                  addSEs [HTTgen_mono RS ci3_RI,prem RS subsetD RS (HTTgen_mono RS ci3_AI)] 
                  addEs [XH_to_E ListXH]) 1);
@@ -160,7 +160,7 @@ val ListF = result();
 
 val [prem] = goal Hered.thy "A <= HTT ==> Lists(A) <= HTT";
 by (safe_tac set_cs);
-be HTT_coinduct3 1;
+by (etac HTT_coinduct3 1);
 by (fast_tac (set_cs addSIs HTTgenIs 
                  addSEs [HTTgen_mono RS ci3_RI,prem RS subsetD RS (HTTgen_mono RS ci3_AI)] 
                  addEs [XH_to_E ListsXH]) 1);
@@ -168,7 +168,7 @@ val ListsF = result();
 
 val [prem] = goal Hered.thy "A <= HTT ==> ILists(A) <= HTT";
 by (safe_tac set_cs);
-be HTT_coinduct3 1;
+by (etac HTT_coinduct3 1);
 by (fast_tac (set_cs addSIs HTTgenIs 
                  addSEs [HTTgen_mono RS ci3_RI,prem RS subsetD RS (HTTgen_mono RS ci3_AI)] 
                  addEs [XH_to_E IListsXH]) 1);
@@ -181,7 +181,7 @@ val prems = goal Hered.thy "[| t : HTT;  t [= u |] ==> u [= t";
 by (po_coinduct_tac "{p. EX a b.p=<a,b> & b : HTT & b [= a}" 1);
 by (fast_tac (ccl_cs addIs prems) 1);
 by (safe_tac ccl_cs);
-bd (poXH RS iffD1) 1;
+by (dtac (poXH RS iffD1) 1);
 by (safe_tac (set_cs addSEs [HTT_bot RS notE]));
 by (REPEAT_SOME (rtac (POgenXH RS iffD2) ORELSE' etac rev_mp));
 by (ALLGOALS (simp_tac (term_ss addsimps HTT_rews)));

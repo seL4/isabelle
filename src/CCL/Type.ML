@@ -67,7 +67,7 @@ fun mk_ncanT_tac thy defs top_crls crls s = prove_goalw thy defs s
                        (REPEAT_SOME (eresolve_tac (crls @ [exE,bexE,conjE,disjE]))),
                        (ALLGOALS (asm_simp_tac term_ss)),
                        (ALLGOALS (ares_tac (prems RL [lemma]) ORELSE' 
-                                  eresolve_tac [bspec])),
+                                  etac bspec )),
                        (safe_tac (ccl_cs addSIs prems))]);
 end;
 
@@ -118,13 +118,13 @@ val constM = result();
 
 val major::prems = goal Type.thy
     "mono(%X.A(X)) ==> mono(%X.[A(X)])";
-br (subsetI RS monoI) 1;
-bd (LiftXH RS iffD1) 1;
-be disjE 1;
-be (disjI1 RS (LiftXH RS iffD2)) 1;
-br (disjI2 RS (LiftXH RS iffD2)) 1;
-be (major RS monoD RS subsetD) 1;
-ba 1;
+by (rtac (subsetI RS monoI) 1);
+by (dtac (LiftXH RS iffD1) 1);
+by (etac disjE 1);
+by (etac (disjI1 RS (LiftXH RS iffD2)) 1);
+by (rtac (disjI2 RS (LiftXH RS iffD2)) 1);
+by (etac (major RS monoD RS subsetD) 1);
+by (assume_tac 1);
 val LiftM = result();
 
 val prems = goal Type.thy
@@ -261,8 +261,8 @@ val precTs = [nrecT,lrecT];
 val [major,minor] = goal Type.thy
     "[| <a,b> : Sigma(A,B);  [| a:A;  b:B(a) |] ==> P   \
 \    |] ==> P";
-br (major RS (XH_to_E SgXH)) 1;
-br minor 1;
+by (rtac (major RS (XH_to_E SgXH)) 1);
+by (rtac minor 1);
 by (ALLGOALS (fast_tac term_cs));
 val SgE2 = result();
 
@@ -277,15 +277,15 @@ val type_cs = term_cs addSIs (SubtypeI::(canTs @ icanTs))
 (*** Infinite Data Types ***)
 
 val [mono] = goal Type.thy "mono(f) ==> lfp(f) <= gfp(f)";
-br (lfp_lowerbound RS subset_trans) 1;
-br (mono RS gfp_lemma3) 1;
-br subset_refl 1;
+by (rtac (lfp_lowerbound RS subset_trans) 1);
+by (rtac (mono RS gfp_lemma3) 1);
+by (rtac subset_refl 1);
 val lfp_subset_gfp = result();
 
 val prems = goal Type.thy
     "[| a:A;  !!x X.[| x:A;  ALL y:A.t(y):X |] ==> t(x) : B(X) |] ==> \
 \    t(a) : gfp(B)";
-br coinduct 1;
+by (rtac coinduct 1);
 by (res_inst_tac [("P","%x.EX y:A.x=t(y)")] CollectI 1);
 by (ALLGOALS (fast_tac (ccl_cs addSIs prems)));
 val gfpI = result();
@@ -302,7 +302,7 @@ val def_gfpI = result();
 val prems = goal Type.thy 
     "letrec g x be zero$g(x) in g(bot) : Lists(Nat)";
 by (rtac (refl RS (XH_to_I UnitXH) RS (Lists_def RS def_gfpI)) 1);
-br (letrecB RS ssubst) 1;
-bw cons_def;
+by (rtac (letrecB RS ssubst) 1);
+by (rewtac cons_def);
 by (fast_tac type_cs 1);
 result();

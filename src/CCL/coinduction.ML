@@ -7,8 +7,8 @@ Lemmas and tactics for using the rule coinduct3 on [= and =.
 *)
 
 val [mono,prem] = goal Lfp.thy "[| mono(f);  a : f(lfp(f)) |] ==> a : lfp(f)";
-br ((mono RS lfp_Tarski) RS ssubst) 1;
-br prem 1;
+by (rtac ((mono RS lfp_Tarski) RS ssubst) 1);
+by (rtac prem 1);
 val lfpI = result();
 
 val prems = goal CCL.thy "[| a=a';  a' : A |] ==> a : A";
@@ -41,7 +41,7 @@ fun mk_genIs thy defs genXH gen_mono s = prove_goalw thy defs s
 (** POgen **)
 
 goal Term.thy "<a,a> : PO";
-br (po_refl RS (XH_to_D PO_iff)) 1;
+by (rtac (po_refl RS (XH_to_D PO_iff)) 1);
 val PO_refl = result();
 
 val POgenIs = map (mk_genIs Term.thy data_defs POgenXH POgen_mono)
@@ -71,7 +71,7 @@ fun POgen_tac (rla,rlb) i =
 (** EQgen **)
 
 goal Term.thy "<a,a> : EQ";
-br (refl RS (EQ_iff RS iffD1)) 1;
+by (rtac (refl RS (EQ_iff RS iffD1)) 1);
 val EQ_refl = result();
 
 val EQgenIs = map (mk_genIs Term.thy data_defs EQgenXH EQgen_mono)
