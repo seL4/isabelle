@@ -192,6 +192,10 @@ default in Arith.thy -- this COULD MAKE EXISTING PROOFS FAIL;
 * HOL/Set: The operator (UN x.B x) now abbreviates (UN x:UNIV. B x) and its
   specialist theorems (like UN1_I) are gone.  Similarly for (INT x.B x);
 
+* HOL/record: extensible records with schematic structural subtyping
+(single inheritance); EXPERIMENTAL version demonstrating the encoding,
+still lacks various theorems and concrete record syntax;
+
 
 *** HOLCF ***
 
