@@ -464,7 +464,7 @@ qed "analz_insert_Decrypt";
 
 (*Case analysis: either the message is secure, or it is not!
   Effective, but can cause subgoals to blow up!
-  Use with expand_if;  apparently split_tac does not cope with patterns
+  Use with split_if;  apparently split_tac does not cope with patterns
   such as "analz (insert (Crypt K X) H)" *)
 goal thy "analz (insert (Crypt K X) H) =                \
 \         (if (Key (invKey K) : analz H)                \
