@@ -2,15 +2,14 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Token translations for xterm, emacs and latex output.
-
-TODO:
-  - elim this file, move stuff to individual print/presentation modes (!?);
+Token translations for xterm output.
 *)
 
 signature TOKEN_TRANS0 =
 sig
   val standard_token_classes: string list
+  val tokentrans_mode: string -> (string * (string -> string * real)) list ->
+    (string * string * (string -> string * real)) list
 end;
 
 signature TOKEN_TRANS =
@@ -49,7 +48,7 @@ struct
 
 (** misc utils **)
 
-fun trans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
+fun tokentrans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
 
 val standard_token_classes =
   ["class", "tfree", "tvar", "free", "bound", "var", "xnum", "xstr"];
@@ -94,14 +93,14 @@ val xterm_color_bound = ref green;
 val xterm_color_var = ref blue;
 
 val xterm_trans =
- trans_mode "xterm"
+ tokentrans_mode "xterm"
   [("class", style xterm_class),
    ("tfree", style xterm_tfree),
    ("tvar", style xterm_tvar),
    ("free", style xterm_free),
    ("bound", style xterm_bound),
    ("var", style xterm_var)] @
- trans_mode "xterm_color"
+ tokentrans_mode "xterm_color"
   [("class", style xterm_color_class),
    ("tfree", style xterm_color_tfree),
    ("tvar", style xterm_color_tvar),
@@ -111,81 +110,11 @@ val xterm_trans =
 
 
 
-(** emacs output (Isamode) **)
-
-local
-
-val end_tag = "\^A0";
-val tclass_tag = "\^A1";
-val tfree_tag = "\^A2";
-val tvar_tag = "\^A3";
-val free_tag = "\^A4";
-val bound_tag = "\^A5";
-val var_tag = "\^A6";
-
-fun tagit p x = (p ^ x ^ end_tag, real (size x));
-
-in
-
-val emacs_trans =
- trans_mode "emacs"
-  [("class", tagit tclass_tag),
-   ("tfree", tagit tfree_tag),
-   ("tvar", tagit tvar_tag),
-   ("free", tagit free_tag),
-   ("bound", tagit bound_tag),
-   ("var", tagit var_tag)];
-
-end;
-
-
-
-(** ProofGeneral output **)
-
-local
-
-val end_tag = oct_char "350";
-val tclass_tag = oct_char "351";
-val tfree_tag = oct_char "352";
-val tvar_tag = oct_char "353";
-val free_tag = oct_char "354";
-val bound_tag = oct_char "355";
-val var_tag = oct_char "356";
-
-fun tagit p x = (p ^ x ^ end_tag, real (size x));
-
-in
-
-val proof_general_trans =
- trans_mode "ProofGeneral"
-  [("class", tagit tclass_tag),
-   ("tfree", tagit tfree_tag),
-   ("tvar", tagit tvar_tag),
-   ("free", tagit free_tag),
-   ("bound", tagit bound_tag),
-   ("var", tagit var_tag)];
-
-end;
-
-
-
-(** LaTeX output **)
-
-(* FIXME 'a -> \alpha etc. *)
-
-val latex_trans =
- trans_mode "latex" [] : (string * string * (string -> string * real)) list;
-
-
-
 (** standard token translations **)
 
 val token_translation =
   map (fn s => ("", s, fn x => (x, real (size x)))) standard_token_classes @
-  xterm_trans @
-  emacs_trans @
-  proof_general_trans @
-  latex_trans;
+  xterm_trans;
 
 
 end;
