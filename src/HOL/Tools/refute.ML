@@ -376,6 +376,26 @@ struct
 (* ------------------------------------------------------------------------- *)
 
 (* ------------------------------------------------------------------------- *)
+(* typ_of_dtyp: converts a data type ('DatatypeAux.dtyp') into a type        *)
+(*              ('Term.typ'), given type parameters for the data type's type *)
+(*              arguments                                                    *)
+(* ------------------------------------------------------------------------- *)
+
+	(* DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list -> DatatypeAux.dtyp -> Term.typ *)
+
+	fun typ_of_dtyp descr typ_assoc (DatatypeAux.DtTFree a) =
+		(* replace a 'DtTFree' variable by the associated type *)
+		(the o assoc) (typ_assoc, DatatypeAux.DtTFree a)
+	  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtRec i) =
+		let
+			val (s, ds, _) = (the o assoc) (descr, i)
+		in
+			Type (s, map (typ_of_dtyp descr typ_assoc) ds)
+		end
+	  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtType (s, ds)) =
+		Type (s, map (typ_of_dtyp descr typ_assoc) ds);
+
+(* ------------------------------------------------------------------------- *)
 (* collect_axioms: collects (monomorphic, universally quantified versions    *)
 (*                 of) all HOL axioms that are relevant w.r.t 't'            *)
 (* ------------------------------------------------------------------------- *)
@@ -691,18 +711,6 @@ struct
 									raise REFUTE ("ground_types", "datatype argument (for type " ^ Sign.string_of_typ (sign_of thy) (Type (s, Ts)) ^ ") is not a variable")
 								else
 									())
-							(* DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list -> DatatypeAux.dtyp -> Term.typ *)
-							fun typ_of_dtyp descr typ_assoc (DatatypeAux.DtTFree a) =
-								(* replace a 'DtTFree' variable by the associated type *)
-								(the o assoc) (typ_assoc, DatatypeAux.DtTFree a)
-							  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtRec i) =
-								let
-									val (s, ds, _) = (the o assoc) (descr, i)
-								in
-									Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-								end
-							  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtType (s, ds)) =
-								Type (s, map (typ_of_dtyp descr typ_assoc) ds)
 							(* if the current type is a recursive IDT (i.e. a depth is required), add it to 'acc' *)
 							val acc' = (if Library.exists (fn (_, ds) => Library.exists DatatypeAux.is_rec_type ds) constrs then
 									T ins acc
@@ -1128,6 +1136,40 @@ struct
 			(take (i, Ts), list_comb (t, map Bound (i-1 downto 0)))
 	end;
 
+(* ------------------------------------------------------------------------- *)
+(* sum: returns the sum of a list 'xs' of integers                           *)
+(* ------------------------------------------------------------------------- *)
+
+	(* int list -> int *)
+
+	fun sum xs = foldl op+ (0, xs);
+
+(* ------------------------------------------------------------------------- *)
+(* product: returns the product of a list 'xs' of integers                   *)
+(* ------------------------------------------------------------------------- *)
+
+	(* int list -> int *)
+
+	fun product xs = foldl op* (1, xs);
+
+(* ------------------------------------------------------------------------- *)
+(* size_of_dtyp: the size of (an initial fragment of) a data type is the sum *)
+(*               (over its constructors) of the product (over their          *)
+(*               arguments) of the size of the argument types                *)
+(* ------------------------------------------------------------------------- *)
+
+	(* theory -> (Term.typ * int) list -> DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list -> (string * DatatypeAux.dtyp list) list -> int *)
+
+	fun size_of_dtyp thy typ_sizes descr typ_assoc constructors =
+		sum (map (fn (_, dtyps) =>
+			product (map (fn dtyp =>
+				let
+					val T         = typ_of_dtyp descr typ_assoc dtyp
+					val (i, _, _) = interpret thy (typ_sizes, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
+				in
+					size_of_type i
+				end) dtyps)) constructors);
+
 
 (* ------------------------------------------------------------------------- *)
 (* INTERPRETERS: Actual Interpreters                                         *)
@@ -1437,34 +1479,6 @@ struct
 	fun IDT_interpreter thy model args t =
 	let
 		val (typs, terms) = model
-		(* DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list -> DatatypeAux.dtyp -> Term.typ *)
-		fun typ_of_dtyp descr typ_assoc (DatatypeAux.DtTFree a) =
-			(* replace a 'DtTFree' variable by the associated type *)
-			(the o assoc) (typ_assoc, DatatypeAux.DtTFree a)
-		  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtRec i) =
-			let
-				val (s, ds, _) = (the o assoc) (descr, i)
-			in
-				Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-			end
-		  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtType (s, ds)) =
-			Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-		(* int list -> int *)
-		fun sum xs = foldl op+ (0, xs)
-		(* int list -> int *)
-		fun product xs = foldl op* (1, xs)
-		(* the size of an IDT is the sum (over its constructors) of the        *)
-		(* product (over their arguments) of the size of the argument type     *)
-		(* (Term.typ * int) list -> DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list -> (string * DatatypeAux.dtyp list) list -> int *)
-		fun size_of_dtyp typs descr typ_assoc constrs =
-			sum (map (fn (_, ds) =>
-				product (map (fn d =>
-					let
-						val T         = typ_of_dtyp descr typ_assoc d
-						val (i, _, _) = interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-					in
-						size_of_type i
-					end) ds)) constrs)
 		(* Term.typ -> (interpretation * model * arguments) option *)
 		fun interpret_variable (Type (s, Ts)) =
 			(case DatatypePackage.datatype_info thy s of
@@ -1493,7 +1507,7 @@ struct
 							(* if the model specifies a depth for the current type, decrement it to avoid infinite recursion *)
 							val typs'    = (case depth of None => typs | Some n => overwrite (typs, (Type (s, Ts), n-1)))
 							(* recursively compute the size of the datatype *)
-							val size     = size_of_dtyp typs' descr typ_assoc constrs
+							val size     = size_of_dtyp thy typs' descr typ_assoc constrs
 							val next_idx = #next_idx args
 							val next     = (if size=1 then next_idx else if size=2 then next_idx+1 else next_idx+size)  (* optimization for types with size 1 or size 2 *)
 							val _        = (if next-1>(#maxvars args) andalso (#maxvars args)>0 then raise MAXVARS_EXCEEDED else ())  (* check if 'maxvars' is large enough *)
@@ -1563,9 +1577,9 @@ struct
 											val depth = assoc (typs, Type (s', Ts'))
 											val typs' = (case depth of None => typs | Some n => overwrite (typs, (Type (s', Ts'), n-1)))
 											(* constructors before 'Const (s, T)' generate elements of the datatype *)
-											val offset  = size_of_dtyp typs' descr typ_assoc constrs1
+											val offset  = size_of_dtyp thy typs' descr typ_assoc constrs1
 											(* 'Const (s, T)' and constructors after it generate elements of the datatype *)
-											val total   = offset + (size_of_dtyp typs' descr typ_assoc constrs2)
+											val total   = offset + (size_of_dtyp thy typs' descr typ_assoc constrs2)
 											(* create an interpretation that corresponds to the constructor 'Const (s, T)' *)
 											(* by recursion over its argument types                                        *)
 											(* DatatypeAux.dtyp list -> interpretation *)
@@ -1811,34 +1825,6 @@ struct
 					(* int option -- only recursive IDTs have an associated depth *)
 					val depth = assoc (typs, Type (s, Ts))
 					val typs' = (case depth of None => typs | Some n => overwrite (typs, (Type (s, Ts), n-1)))
-					(* DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list -> DatatypeAux.dtyp -> Term.typ *)
-					fun typ_of_dtyp descr typ_assoc (DatatypeAux.DtTFree a) =
-						(* replace a 'DtTFree' variable by the associated type *)
-						(the o assoc) (typ_assoc, DatatypeAux.DtTFree a)
-					  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtRec i) =
-						let
-							val (s, ds, _) = (the o assoc) (descr, i)
-						in
-							Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-						end
-					  | typ_of_dtyp descr typ_assoc (DatatypeAux.DtType (s, ds)) =
-						Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-					(* int list -> int *)
-					fun sum xs = foldl op+ (0, xs)
-					(* int list -> int *)
-					fun product xs = foldl op* (1, xs)
-					(* the size of an IDT is the sum (over its constructors) of the        *)
-					(* product (over their arguments) of the size of the argument type     *)
-					(* (Term.typ * int) list -> DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list -> (string * DatatypeAux.dtyp list) list -> int *)
-					fun size_of_dtyp typs descr typ_assoc xs =
-						sum (map (fn (_, ds) =>
-							product (map (fn d =>
-								let
-									val T         = typ_of_dtyp descr typ_assoc d
-									val (i, _, _) = interpret thy (typs, []) {maxvars=0, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", T))
-					in
-						size_of_type i
-					end) ds)) xs)
 					(* int -> DatatypeAux.dtyp list -> Term.term list *)
 					fun make_args n [] =
 						if n<>0 then
@@ -1861,7 +1847,7 @@ struct
 						raise REFUTE ("IDT_printer", "invalid interpretation (value too large - not enough constructors)")
 					  | make_term n (c::cs) =
 						let
-							val c_size = size_of_dtyp typs' descr typ_assoc [c]
+							val c_size = size_of_dtyp thy typs' descr typ_assoc [c]
 						in
 							if n<c_size then
 								let
