@@ -45,11 +45,11 @@ if [ -z "$OUTFILE" ]; then
 elif [ "$INFILE" -ef "$OUTFILE" ]; then
   DB="$INFILE"
 elif [ -n "$COPYDB" ]; then
-  cp "$INFILE" "$OUTFILE" || fail_out
+  cp -f "$INFILE" "$OUTFILE" || fail_out
   chmod +w "$OUTFILE" || fail_out
   DB="$OUTFILE"
 else
-  [ -f "$OUTFILE" ] && { rm "$OUTFILE" || fail_out }
+  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out }
   echo "PolyML.make_database \"$OUTFILE\"; PolyML.quit();" | $POLY -r "$INFILE"
   [ -f "$OUTFILE" ] || fail_out
   DB="$OUTFILE"
@@ -60,6 +60,7 @@ fi
 ## run it!
 
 START_POLY="$POLY $ML_OPTIONS $DB"
+DB_INFO=$(ls -l $DB)
 
 [ -n "$MLINIT" ] && MLTEXT="$MLINIT $MLTEXT"
 
@@ -74,6 +75,7 @@ else
   RC=$?
 fi
 
-[ $RC -eq 0 -a -n "$OUTFILE" ] && $DISCGARB "$OUTFILE"
+NEW_DB_INFO=$(ls -l $DB)
+[ $RC -eq 0 -a -n "$OUTFILE" -a "$DB_INFO" != "$NEW_DB_INFO" ] && $DISCGARB "$OUTFILE"
 
 exit $RC
