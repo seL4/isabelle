@@ -122,6 +122,12 @@ Proof General interface for Isabelle/Isar.  Note that there is a
 separate option in the Proof General <em>Options</em> menu to enable
 X-Symbol.
 
+<p>
+
+If Emacs appears to hang when the prover process is started, see the 
+<A HREF="http://proofgeneral.inf.ed.ac.uk/FAQ">Proof General FAQ</a> 
+for advice.
+
 <h3>Running Isabelle on Windows</h3>
 
 Windows is not an officially supported platform for runnning Isabelle,
