@@ -206,6 +206,10 @@ end;
 
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
+val silent_undoP =	(* FIXME same name for compatibility with PG/Isabelle99 *)
+  OuterSyntax.improper_command "undo" "undo last command (no output)" K.control
+    (Scan.succeed IsarCmd.undo);
+
 val context_thy_onlyP =
   OuterSyntax.improper_command "ProofGeneral.context_thy_only" "(internal)" K.control
     (P.name >> IsarThy.init_context update_thy_only);
@@ -231,7 +235,7 @@ val inform_file_retractedP =
     (P.name >> (fn name => Toplevel.imperative (fn () => inform_file_retracted name)));
 
 fun init_outer_syntax () = OuterSyntax.add_parsers
- [restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
+ [silent_undoP, restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
   inform_file_processedP, inform_file_retractedP];
 
 end;
@@ -240,13 +244,13 @@ end;
 (* init *)
 
 fun init isar =
- (setup_xsymbols_output ();
+ (if isar then init_outer_syntax () else ();
+  setup_xsymbols_output ();
   setup_messages ();
   setup_state ();
   setup_thy_loader ();
   print_mode := [proof_generalN];
   set quick_and_dirty;
-  if isar then init_outer_syntax () else ();
   ml_prompts ("> " ^ oct_char "372") ("- " ^ oct_char "373");
   if isar then Isar.sync_main () else isa_restart ());
 
