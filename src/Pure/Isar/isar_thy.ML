@@ -7,6 +7,7 @@ Pure/Isar derived theory operations.
 
 signature ISAR_THY =
 sig
+  val add_txt: Comment.text -> ProofHistory.T -> ProofHistory.T
   val add_text: Comment.text -> theory -> theory
   val add_title: Comment.text -> Comment.text -> Comment.text -> theory -> theory
   val add_chapter: Comment.text -> theory -> theory
@@ -154,6 +155,7 @@ struct
 
 (* formal comments *)
 
+fun add_txt comment prf = prf;
 fun add_text comment thy = thy;
 fun add_title title author date thy = thy;
 val add_chapter = add_text;
