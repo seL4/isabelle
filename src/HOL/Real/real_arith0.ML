@@ -11,6 +11,7 @@ local
 (* reduce contradictory <= to False *)
 val add_rules = 
     [order_less_irrefl, real_numeral_0_eq_0, real_numeral_1_eq_1,
+     real_minus_1_eq_m1, 
      add_real_number_of, minus_real_number_of, diff_real_number_of,
      mult_real_number_of, eq_real_number_of, less_real_number_of,
      le_real_number_of_eq_not_less, real_diff_def,
@@ -118,4 +119,17 @@ Goal "!!a::real. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> 6*a <= 5*l+i";
 by (fast_arith_tac 1);
 qed "";
+
+Goal "a<=b ==> a < b+(1::real)";
+by (fast_arith_tac 1);
+qed "";
+
+Goal "a<=b ==> a-(3::real) < b";
+by (fast_arith_tac 1);
+qed "";
+
+Goal "a<=b ==> a-(1::real) < b";
+by (fast_arith_tac 1);
+qed "";
+
 *)
