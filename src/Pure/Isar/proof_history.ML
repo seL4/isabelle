@@ -14,6 +14,8 @@ sig
   val clear: T -> T
   val undo: T -> T
   val redo: T -> T
+  val undos: int -> T -> T
+  val redos: int -> T -> T
   val position: T -> int
   val nesting: T -> int
   val prev: T -> T
@@ -56,6 +58,9 @@ fun current (ProofHistory prf) = fst (fst (fst (History.current prf)));
 val clear = app History.clear;
 val undo = app History.undo;
 val redo = app History.redo;
+
+fun undos n = funpow n undo;
+fun redos n = funpow n redo;
 
 
 (* navigate *)

@@ -365,6 +365,14 @@ val redoP =
   OuterSyntax.parser true "redo" "redo proof command"
     (Scan.succeed (Toplevel.print o Toplevel.proof ProofHistory.redo));
 
+val undosP =
+  OuterSyntax.parser true "undos" "undo proof commands"
+    (nat >> (fn n => Toplevel.print o Toplevel.proof (ProofHistory.undos n)));
+
+val redosP =
+  OuterSyntax.parser true "redos" "redo proof commands"
+    (nat >> (fn n => Toplevel.print o Toplevel.proof (ProofHistory.redos n)));
+
 val backP =
   OuterSyntax.parser true "back" "backtracking of proof command"
     (Scan.succeed (Toplevel.print o Toplevel.proof ProofHistory.back));
@@ -501,7 +509,8 @@ val parsers = [
   theoremP, lemmaP, showP, haveP, assumeP, fixP, letP, thenP, fromP,
   factsP, beginP, nextP, qedP, qed_withP, kill_proofP, refineP,
   then_refineP, proofP, terminal_proofP, trivial_proofP,
-  default_proofP, clear_undoP, undoP, redoP, backP, prevP, upP, topP,
+  default_proofP, clear_undoP, undoP, redoP, undosP, redosP, backP,
+  prevP, upP, topP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
