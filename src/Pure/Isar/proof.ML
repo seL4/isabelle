@@ -31,8 +31,9 @@ sig
   val bind_i: (indexname * term) list -> state -> state
   val match_bind: (string list * string) list -> state -> state
   val match_bind_i: (term list * term) list -> state -> state
-  val have_thmss: string -> context attribute list ->
+  val have_thmss: thm list -> string -> context attribute list ->
     (thm list * context attribute list) list -> state -> state
+  val simple_have_thms: string -> thm list -> state -> state
   val assume: (int -> tactic) -> string -> context attribute list -> (string * string list) list
     -> state -> state
   val assume_i: (int -> tactic) -> string -> context attribute list -> (term * term list) list
@@ -436,11 +437,13 @@ val match_bind_i = gen_bind ProofContext.match_binds_i;
 
 (* have_thmss *)
 
-fun have_thmss name atts ths_atts state =
+fun have_thmss ths name atts ths_atts state =
   state
   |> assert_forward
-  |> map_context_result (ProofContext.have_thmss (PureThy.default_name name) atts ths_atts)
+  |> map_context_result (ProofContext.have_thmss ths (PureThy.default_name name) atts ths_atts)
   |> these_facts;
+
+fun simple_have_thms name thms = have_thmss [] name [] [(thms, [])];
 
 
 (* fix *)
@@ -619,7 +622,7 @@ fun finish_local print_result state =
     state
     |> close_block
     |> auto_bind_facts name [t]
-    |> have_thmss name atts [Thm.no_attributes [result]]
+    |> have_thmss [] name atts [Thm.no_attributes [result]]
     |> opt_solve
   end;
 
