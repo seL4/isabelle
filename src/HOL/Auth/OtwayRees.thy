@@ -341,7 +341,6 @@ lemma A_gets_good_key:
 by (blast dest!: A_trusts_OR4 Spy_not_see_encrypted_key)
 
 
-
 subsection{*Authenticity properties relating to NB*}
 
 text{*Only OR2 can have caused such a part of a message to appear.  We do not

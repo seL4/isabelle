@@ -208,10 +208,9 @@ apply blast+  --{*OR3 and OR4*}
 done
 
 
-subsection{*Crucial secrecy property: Spy does not see the keys sent in msg OR3
+text{*Crucial secrecy property: Spy does not see the keys sent in msg OR3
     Does not in itself guarantee security: an attack could violate
     the premises, e.g. by having @{term "A=Spy"} *}
-
 lemma secrecy_lemma:
  "[| A \<notin> bad;  B \<notin> bad;  evs \<in> otway |]
   ==> Says Server B
