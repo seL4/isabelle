@@ -46,6 +46,8 @@ the current theory context;
 
 *** HOL ***
 
+* HOL/Real: a construction of the reals using Dedekind cuts
+
 * HOL/record: now includes concrete syntax for record terms (still
 lacks important theorems, like surjective pairing and split);
 
