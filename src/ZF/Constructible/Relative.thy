@@ -569,16 +569,12 @@ text{*Probably the premise and conclusion are equivalent*}
 lemma (in M_axioms) strong_replacementI [rule_format]:
     "[| \<forall>A. M(A) --> separation(M, %u. \<exists>x\<in>A. P(x,u)) |]
      ==> strong_replacement(M,P)"
-apply (simp add: strong_replacement_def) 
-apply (clarify ); 
-apply (frule replacementD [OF replacement]) 
-apply assumption
-apply (clarify ); 
-apply (drule_tac x=A in spec)
-apply (clarify );  
-apply (drule_tac z=Y in separationD) 
-apply assumption; 
-apply (clarify ); 
+apply (simp add: strong_replacement_def, clarify) 
+apply (frule replacementD [OF replacement], assumption)
+apply clarify 
+apply (drule_tac x=A in spec, clarify)  
+apply (drule_tac z=Y in separationD, assumption)
+apply clarify 
 apply (blast dest: transM) 
 done
 
@@ -586,17 +582,16 @@ done
 (*The last premise expresses that P takes M to M*)
 lemma (in M_axioms) strong_replacement_closed [intro,simp]:
      "[| strong_replacement(M,P); M(A); univalent(M,A,P); 
-       !!x y. [| P(x,y); M(x) |] ==> M(y) |] ==> M(Replace(A,P))"
+       !!x y. [| x\<in>A; P(x,y); M(x) |] ==> M(y) |] ==> M(Replace(A,P))"
 apply (simp add: strong_replacement_def) 
 apply (drule spec [THEN mp], auto) 
 apply (subgoal_tac "Replace(A,P) = Y")
- apply (simp add: ); 
+ apply simp 
 apply (rule equality_iffI) 
-apply (simp add: Replace_iff) 
-apply safe;
+apply (simp add: Replace_iff, safe)
  apply (blast dest: transM) 
 apply (frule transM, assumption) 
- apply (simp add: univalent_def);
+ apply (simp add: univalent_def)
  apply (drule spec [THEN mp, THEN iffD1], assumption, assumption)
  apply (blast dest: transM) 
 done
@@ -609,12 +604,17 @@ done
   even for f : M -> M.
 *)
 lemma (in M_axioms) RepFun_closed [intro,simp]:
-     "[| strong_replacement(M, \<lambda>x y. y = f(x)); M(A); \<forall>x. M(x) --> M(f(x)) |]
+     "[| strong_replacement(M, \<lambda>x y. y = f(x)); M(A); \<forall>x\<in>A. M(f(x)) |]
       ==> M(RepFun(A,f))"
 apply (simp add: RepFun_def) 
 apply (rule strong_replacement_closed) 
 apply (auto dest: transM  simp add: univalent_def) 
 done
+
+lemma (in M_axioms) lam_closed [intro,simp]:
+     "[| strong_replacement(M, \<lambda>x y. y = <x,b(x)>); M(A); \<forall>x\<in>A. M(b(x)) |]
+      ==> M(\<lambda>x\<in>A. b(x))"
+by (simp add: lam_def, blast dest: transM) 
 
 lemma (in M_axioms) converse_abs [simp]: 
      "[| M(r); M(z) |] ==> is_converse(M,r,z) <-> z = converse(r)"
@@ -800,7 +800,7 @@ done
 lemma (in M_axioms) injection_abs [simp]: 
      "[| M(A); M(f) |] ==> injection(M,A,B,f) <-> f \<in> inj(A,B)"
 apply (simp add: injection_def apply_iff inj_def apply_closed)
-apply (blast dest: transM [of _ A]); 
+apply (blast dest: transM [of _ A]) 
 done
 
 lemma (in M_axioms) surjection_abs [simp]: 
@@ -846,8 +846,8 @@ lemma (in M_axioms) M_comp_iff:
                 xz = \<langle>x,z\<rangle> & \<langle>x,y\<rangle> \<in> s & \<langle>y,z\<rangle> \<in> r))}"
 apply (simp add: comp_def)
 apply (rule equalityI) 
- apply (clarify ); 
- apply (simp add: ); 
+ apply clarify 
+ apply simp 
  apply  (blast dest:  transM)+
 done
 
@@ -860,7 +860,7 @@ done
 lemma (in M_axioms) composition_abs [simp]: 
      "[| M(r); M(s); M(t) |] 
       ==> composition(M,r,s,t) <-> t = r O s"
-apply safe;
+apply safe
  txt{*Proving @{term "composition(M, r, s, r O s)"}*}
  prefer 2 
  apply (simp add: composition_def comp_def)
@@ -896,7 +896,7 @@ by (insert Inter_separation, simp add: Inter_def)
 lemma (in M_axioms) Int_closed [intro,simp]:
      "[| M(A); M(B) |] ==> M(A Int B)"
 apply (subgoal_tac "M({A,B})")
-apply (frule Inter_closed, force+); 
+apply (frule Inter_closed, force+) 
 done
 
 text{*M contains all finite functions*}

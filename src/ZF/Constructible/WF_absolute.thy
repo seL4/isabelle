@@ -1,5 +1,60 @@
 theory WF_absolute = WFrec:
 
+subsection{*Every well-founded relation is a subset of some inverse image of 
+      an ordinal*}
+
+lemma wf_rvimage_Ord: "Ord(i) \<Longrightarrow> wf(rvimage(A, f, Memrel(i)))"
+by (blast intro: wf_rvimage wf_Memrel )
+
+
+constdefs
+  wfrank :: "[i,i]=>i"
+    "wfrank(r,a) == wfrec(r, a, %x f. \<Union>y \<in> r-``{x}. succ(f`y))"
+
+constdefs
+  wftype :: "i=>i"
+    "wftype(r) == \<Union>y \<in> range(r). succ(wfrank(r,y))"
+
+lemma wfrank: "wf(r) ==> wfrank(r,a) = (\<Union>y \<in> r-``{a}. succ(wfrank(r,y)))"
+by (subst wfrank_def [THEN def_wfrec], simp_all)
+
+lemma Ord_wfrank: "wf(r) ==> Ord(wfrank(r,a))"
+apply (rule_tac a="a" in wf_induct, assumption)
+apply (subst wfrank, assumption)
+apply (rule Ord_succ [THEN Ord_UN], blast) 
+done
+
+lemma wfrank_lt: "[|wf(r); <a,b> \<in> r|] ==> wfrank(r,a) < wfrank(r,b)"
+apply (rule_tac a1 = "b" in wfrank [THEN ssubst], assumption)
+apply (rule UN_I [THEN ltI])
+apply (simp add: Ord_wfrank vimage_iff)+
+done
+
+lemma Ord_wftype: "wf(r) ==> Ord(wftype(r))"
+by (simp add: wftype_def Ord_wfrank)
+
+lemma wftypeI: "\<lbrakk>wf(r);  x \<in> field(r)\<rbrakk> \<Longrightarrow> wfrank(r,x) \<in> wftype(r)"
+apply (simp add: wftype_def) 
+apply (blast intro: wfrank_lt [THEN ltD]) 
+done
+
+
+lemma wf_imp_subset_rvimage:
+     "[|wf(r); r \<subseteq> A*A|] ==> \<exists>i f. Ord(i) & r <= rvimage(A, f, Memrel(i))"
+apply (rule_tac x="wftype(r)" in exI) 
+apply (rule_tac x="\<lambda>x\<in>A. wfrank(r,x)" in exI) 
+apply (simp add: Ord_wftype, clarify) 
+apply (frule subsetD, assumption, clarify) 
+apply (simp add: rvimage_iff wfrank_lt [THEN ltD])
+apply (blast intro: wftypeI  ) 
+done
+
+theorem wf_iff_subset_rvimage:
+  "relation(r) ==> wf(r) <-> (\<exists>i f A. Ord(i) & r <= rvimage(A, f, Memrel(i)))"
+by (blast dest!: relation_field_times_field wf_imp_subset_rvimage
+          intro: wf_rvimage_Ord [THEN wf_subset])
+
+
 subsection{*Transitive closure without fixedpoints*}
 
 constdefs
@@ -127,8 +182,7 @@ apply (simp add: rtran_closure_def rtrancl_alt_eq_rtrancl [symmetric]
  prefer 2 apply assumption
  prefer 2 apply blast
 apply (rule iffI, clarify) 
-apply (simp add: nat_0_le [THEN ltD]  apply_funtype, blast, clarify)  
-apply simp 
+apply (simp add: nat_0_le [THEN ltD]  apply_funtype, blast, clarify, simp) 
  apply (rename_tac n f) 
  apply (rule_tac x=n in bexI) 
   apply (rule_tac x=f in exI)
@@ -274,8 +328,7 @@ apply (rule OrdI [OF _ Ord_is_Transset])
  txt{*by our previous result the range consists of ordinals.*} 
  apply (blast intro: Ord_wfrank_range) 
 txt{*We still must show that the range is a transitive set.*}
-apply (simp add: Transset_def, clarify)
-apply simp
+apply (simp add: Transset_def, clarify, simp)
 apply (rename_tac x i f u)   
 apply (frule is_recfun_imp_in_r, assumption) 
 apply (subgoal_tac "M(u) & M(i) & M(x)") 
@@ -310,14 +363,12 @@ lemma (in M_recursion) domain_wellfoundedrank:
 apply (simp add: wellfoundedrank_def function_def) 
 apply (rule equalityI, auto)
 apply (frule transM, assumption)  
-apply (frule exists_wfrank, assumption+)
-apply clarify 
+apply (frule exists_wfrank, assumption+, clarify) 
 apply (rule domainI) 
 apply (rule ReplaceI)
 apply (rule_tac x="range(f)" in exI)
 apply simp  
-apply (rule_tac x=f in exI, blast)
-apply assumption
+apply (rule_tac x=f in exI, blast, assumption)
 txt{*Uniqueness (for Replacement): repeated above!*}
 apply clarify
 apply (drule is_recfun_functional, assumption)
@@ -361,5 +412,65 @@ apply (drule is_recfun_functional, assumption)
                          trans_trancl [THEN trans_imp_trans_on])
 apply (blast dest: transM) 
 done
+
+
+lemma (in M_recursion) wellfoundedrank_lt:
+     "[| <a,b> \<in> r;
+         wellfounded(M,r); r \<subseteq> A*A;  M(r); M(A)|] 
+      ==> wellfoundedrank(M,r,A) ` a < wellfoundedrank(M,r,A) ` b"
+apply (subgoal_tac "wellfounded_on(M, A, r^+)") 
+ prefer 2
+ apply (blast intro: wellfounded_on_trancl wellfounded_imp_wellfounded_on)
+apply (subgoal_tac "a\<in>A & b\<in>A")
+ prefer 2 apply blast
+apply (simp add: lt_def Ord_wellfoundedrank, clarify)   
+apply (frule exists_wfrank [of concl: _ b], assumption+, clarify) 
+apply (rename_tac fb)
+apply (frule is_recfun_restrict [of concl: _ a])
+    apply (rule trans_on_trancl, assumption)
+   apply (simp_all add: r_into_trancl trancl_subset_times) 
+txt{*Still the same goal, but with new @{text is_recfun} assumptions.*}
+apply (simp add: wellfoundedrank_eq) 
+apply (frule_tac a=a in wellfoundedrank_eq, assumption+)
+   apply (simp_all add: transM [of a])
+txt{*We have used equations for wellfoundedrank and now must use some
+    for  @{text is_recfun}. *}
+apply (rule_tac a=a in rangeI) 
+apply (simp add: is_recfun_type [THEN apply_iff] vimage_singleton_iff 
+                 r_into_trancl apply_recfun r_into_trancl)  
+done
+
+
+lemma (in M_recursion) wellfounded_imp_subset_rvimage:
+     "[|wellfounded(M,r); r \<subseteq> A*A; M(r); M(A)|] 
+      ==> \<exists>i f. Ord(i) & r <= rvimage(A, f, Memrel(i))"
+apply (rule_tac x="range(wellfoundedrank(M,r,A))" in exI)
+apply (rule_tac x="wellfoundedrank(M,r,A)" in exI)
+apply (simp add: Ord_range_wellfoundedrank, clarify) 
+apply (frule subsetD, assumption, clarify) 
+apply (simp add: rvimage_iff wellfoundedrank_lt [THEN ltD])
+apply (blast intro: apply_rangeI wellfoundedrank_type) 
+done
+
+lemma (in M_recursion) wellfounded_imp_wf: 
+     "[|wellfounded(M,r); relation(r); M(r)|] ==> wf(r)" 
+by (blast dest!: relation_field_times_field wellfounded_imp_subset_rvimage
+          intro: wf_rvimage_Ord [THEN wf_subset])
+
+lemma (in M_recursion) wellfounded_on_imp_wf_on: 
+     "[|wellfounded_on(M,A,r); relation(r); M(r); M(A)|] ==> wf[A](r)" 
+apply (simp add: wellfounded_on_iff_wellfounded wf_on_def) 
+apply (rule wellfounded_imp_wf)
+apply (simp_all add: relation_def)  
+done
+
+
+theorem (in M_recursion) wf_abs [simp]: 
+     "[|relation(r); M(r)|] ==> wellfounded(M,r) <-> wf(r)"
+by (blast intro: wellfounded_imp_wf wf_imp_relativized) 
+
+theorem (in M_recursion) wf_on_abs [simp]: 
+     "[|relation(r); M(r); M(A)|] ==> wellfounded_on(M,A,r) <-> wf[A](r)"
+by (blast intro: wellfounded_on_imp_wf_on wf_on_imp_relativized) 
 
 end

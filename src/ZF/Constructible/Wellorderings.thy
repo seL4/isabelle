@@ -81,6 +81,10 @@ apply (simp add: wellfounded_on_def wellfounded_def, safe)
 apply (drule_tac x=x in spec, blast) 
 done
 
+lemma (in M_axioms) wellfounded_on_imp_wellfounded:
+     "[|wellfounded_on(M,A,r); r \<subseteq> A*A|] ==> wellfounded(M,r)"
+by (simp add: wellfounded_on_iff_wellfounded subset_Int_iff)
+
 lemma (in M_axioms) wellfounded_on_induct: 
      "[| a\<in>A;  wellfounded_on(M,A,r);  M(A);  
        separation(M, \<lambda>x. x\<in>A --> ~P(x));  
