@@ -48,11 +48,11 @@ val show_no_free_types = ref false;
 
 (* apply print (ast) translation function *)
 
-fun apply_first [] x = raise Match
-  | apply_first (f :: fs) x = f x handle Match => apply_first fs x;
+fun apply_last [] x = raise Match
+  | apply_last (f :: fs) x = apply_last fs x handle Match => f x;
 
 fun apply_trans name a fs args =
-  (apply_first fs args handle
+  (apply_last fs args handle
     Match => raise Match
   | exn => (priority ("Error in " ^ name ^ " for " ^ quote a); raise exn));
 
