@@ -6,7 +6,7 @@
 A summation operator. sum(f,n+1) is the sum of all f(i), i=0...n.
 *)
 
-NatSum = Arith +
+NatSum = Main +
 consts sum     :: [nat=>nat, nat] => nat
 primrec 
   "sum f 0 = 0"

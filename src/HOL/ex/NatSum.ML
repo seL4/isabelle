@@ -7,30 +7,23 @@ Summing natural numbers, squares and cubes.  Could be continued...
 Demonstrates permutative rewriting.
 *)
 
-Delsimprocs nat_cancel;
 Addsimps add_ac;
 Addsimps [add_mult_distrib, add_mult_distrib2];
 
 (*The sum of the first n positive integers equals n(n+1)/2.*)
-Goal "2*sum (%i. i) (Suc n) = n*Suc(n)";
-by (Simp_tac 1);
+Goal "2 * sum id (Suc n) = n*Suc(n)";
 by (induct_tac "n" 1);
-by (Simp_tac 1);
-by (Asm_simp_tac 1);
+by Auto_tac;
 qed "sum_of_naturals";
 
 Goal "Suc(Suc(Suc(Suc 2)))*sum (%i. i*i) (Suc n) = n*Suc(n)*Suc(2*n)";
-by (Simp_tac 1);
 by (induct_tac "n" 1);
-by (Simp_tac 1);
-by (Asm_simp_tac 1);
+by Auto_tac;
 qed "sum_of_squares";
 
 Goal "Suc(Suc 2)*sum (%i. i*i*i) (Suc n) = n*n*Suc(n)*Suc(n)";
-by (Simp_tac 1);
 by (induct_tac "n" 1);
-by (Simp_tac 1);
-by (Asm_simp_tac 1);
+by Auto_tac;
 qed "sum_of_cubes";
 
 (*The sum of the first n odd numbers equals n squared.*)
