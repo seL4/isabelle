@@ -601,9 +601,7 @@ AddEs  [InterD, InterE];
 val prems = goalw thy [image_def] "[| b=f(x);  x:A |] ==> b : f``A";
 by (REPEAT (resolve_tac (prems @ [CollectI,bexI,prem]) 1));
 qed "image_eqI";
-(* Addsimps [image_eqI];
-   breaks Auth: together with shrK_neq in Shared.ML it loops.  :-(
-*)
+Addsimps [image_eqI];
 
 bind_thm ("imageI", refl RS image_eqI);
 
