@@ -130,8 +130,8 @@ by (blast_tac (claset() addIs [eqpoll_0_is_0, eqpoll_refl]) 1);
 qed "eqpoll_0_iff";
 
 Goalw [eqpoll_def] 
-    "[| A eqpoll B;  C eqpoll D;  A Int C = 0;  B Int D = 0 |] ==> \
-\         A Un C eqpoll B Un D";
+    "[| A eqpoll B;  C eqpoll D;  A Int C = 0;  B Int D = 0 |]  \
+\    ==> A Un C eqpoll B Un D";
 by (blast_tac (claset() addIs [bij_disjoint_Un]) 1);
 qed "eqpoll_disjoint_Un";
 
@@ -423,6 +423,22 @@ by (assume_tac 1);
 by (etac Ord_cardinal_le 1);
 qed "lepoll_cardinal_le";
 
+Goal "[| A lepoll i; Ord(i) |] ==> |A| eqpoll A";
+by (blast_tac (claset() addIs [lepoll_cardinal_le, well_ord_Memrel,
+                                well_ord_cardinal_eqpoll]
+                        addSDs [lepoll_well_ord]) 1);
+qed "lepoll_Ord_imp_eqpoll";
+
+Goalw [lesspoll_def]
+     "[| A lesspoll i; Ord(i) |] ==> |A| eqpoll A";
+by (blast_tac (claset() addIs [lepoll_Ord_imp_eqpoll]) 1);
+qed "lesspoll_imp_eqpoll";
+
+Goalw [lesspoll_def]
+     "[| A lesspoll i; Ord(i) |] ==> |A| eqpoll A";
+by (blast_tac (claset() addIs [lepoll_Ord_imp_eqpoll]) 1);
+qed "lesspoll_imp_eqpoll";
+
 
 (*** The finite cardinals ***)
 
@@ -487,7 +503,7 @@ qed "succ_lepoll_natE";
 (** lepoll, lesspoll and natural numbers **)
 
 Goalw [lesspoll_def]
-      "[| A lepoll m; m:nat |] ==> A lesspoll succ(m)";
+     "[| A lepoll m; m:nat |] ==> A lesspoll succ(m)";
 by (rtac conjI 1);
 by (blast_tac (claset() addIs [subset_imp_lepoll RSN (2,lepoll_trans)]) 1);
 by (rtac notI 1);
@@ -497,18 +513,17 @@ by (etac succ_lepoll_natE 1 THEN assume_tac 1);
 qed "lepoll_imp_lesspoll_succ";
 
 Goalw [lesspoll_def, lepoll_def, eqpoll_def, bij_def]
-      "[| A lesspoll succ(m); m:nat |] ==> A lepoll m";
+     "[| A lesspoll succ(m); m:nat |] ==> A lepoll m";
 by (Clarify_tac 1);
 by (blast_tac (claset() addSIs [inj_not_surj_succ]) 1);
 qed "lesspoll_succ_imp_lepoll";
 
 Goal "m:nat ==> A lesspoll succ(m) <-> A lepoll m";
 by (blast_tac (claset() addSIs [lepoll_imp_lesspoll_succ, 
-                            lesspoll_succ_imp_lepoll]) 1);
+				lesspoll_succ_imp_lepoll]) 1);
 qed "lesspoll_succ_iff";
 
-Goal "[| A lepoll succ(m);  m:nat |] ==>  \
-\                         A lepoll m | A eqpoll succ(m)";
+Goal "[| A lepoll succ(m);  m:nat |] ==> A lepoll m | A eqpoll succ(m)";
 by (rtac disjCI 1);
 by (rtac lesspoll_succ_imp_lepoll 1);
 by (assume_tac 2);
@@ -702,6 +717,12 @@ by (etac nat_induct 1);
 by (blast_tac (claset() addSDs [lepoll_0_is_0] addSIs [eqpoll_refl,nat_0I]) 1);
 by (blast_tac (claset() addSDs [lepoll_succ_disj]) 1);
 qed "lepoll_nat_imp_Finite";
+
+Goalw [Finite_def]
+     "A lesspoll nat ==> Finite(A)";
+by (blast_tac (claset() addDs [ltD, lesspoll_cardinal_lt,
+	       lesspoll_imp_eqpoll RS eqpoll_sym]) 1);;
+qed "lesspoll_nat_is_Finite";
 
 Goalw [Finite_def]
      "[| Y lepoll X;  Finite(X) |] ==> Finite(Y)";
