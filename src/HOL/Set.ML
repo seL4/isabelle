@@ -19,8 +19,6 @@ Goal "a : {x. P(x)} ==> P(a)";
 by (Asm_full_simp_tac 1);
 qed "CollectD";
 
-bind_thm ("CollectE", make_elim CollectD);
-
 val [prem] = Goal "[| !!x. (x:A) = (x:B) |] ==> A = B";
 by (rtac (prem RS ext RS arg_cong RS box_equals) 1);
 by (rtac Collect_mem_eq 1);
