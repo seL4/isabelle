@@ -213,7 +213,7 @@ by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (simpset() addsimps (expand_ifs@pushes)
+     (simpset() addsimps (split_ifs@pushes)
 	        addsimps [analz_insert_eq, analz_insert_freshK])));
 (*Oops*)
 by (blast_tac (claset() addDs [unique_session_keys]) 3);
@@ -384,7 +384,7 @@ by (REPEAT_FIRST (rtac Nonce_secrecy_lemma));
 by (ALLGOALS  (*12 seconds*)
     (asm_simp_tac 
      (analz_image_freshK_ss 
-       addsimps expand_ifs
+       addsimps split_ifs
        addsimps [all_conj_distrib, analz_image_freshK,
 		 KeyWithNonce_Says, KeyWithNonce_Notes,
 		 fresh_not_KeyWithNonce, 
@@ -499,7 +499,7 @@ by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (simpset() addsimps (expand_ifs@pushes)
+     (simpset() addsimps (split_ifs@pushes)
 	        addsimps [analz_insert_eq, analz_insert_freshK])));
 (*Prove YM3 by showing that no NB can also be an NA*)
 by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj]

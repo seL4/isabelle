@@ -46,8 +46,8 @@ AddIs [rtrancl_beta_App];
 (*** subst and lift ***)
 
 fun addsplit ss = ss addsimps [subst_Var]
-                     delsplits [expand_if]
-                     setloop (split_inside_tac [expand_if]);
+                     delsplits [split_if]
+                     setloop (split_inside_tac [split_if]);
 
 goal Lambda.thy "(Var k)[u/k] = u";
 by (asm_full_simp_tac(addsplit(simpset())) 1);
@@ -76,7 +76,7 @@ goal Lambda.thy "!i j s. j < Suc i --> \
 \         lift (t[s/j]) i = (lift t (Suc i)) [lift s i / j]";
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [diff_Suc,subst_Var,lift_lift]
-                                addsplits [expand_nat_case]
+                                addsplits [split_nat_case]
                                 addSolver cut_trans_tac)));
 by (safe_tac HOL_cs);
 by (ALLGOALS trans_tac);
@@ -105,9 +105,9 @@ goal Lambda.thy "!i j u v. i < Suc j --> \
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac
       (simpset() addsimps [diff_Suc,subst_Var,lift_lift RS sym,lift_subst_lt]
-                 delsplits [expand_if]
-                 addsplits [expand_nat_case]
-                 addloop ("if",split_inside_tac[expand_if])
+                 delsplits [split_if]
+                 addsplits [split_nat_case]
+                 addloop ("if",split_inside_tac[split_if])
                 addSolver cut_trans_tac)));
 by (safe_tac (HOL_cs addSEs [nat_neqE]));
 by (ALLGOALS trans_tac);

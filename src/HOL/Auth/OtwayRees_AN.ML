@@ -256,7 +256,7 @@ by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac (simpset() addcongs [conj_cong, if_weak_cong] 
                              addsimps [analz_insert_eq, analz_insert_freshK]
-                             addsimps (pushes@expand_ifs))));
+                             addsimps (pushes@split_ifs))));
 (*Oops*)
 by (blast_tac (claset() addSDs [unique_session_keys]) 4);
 (*OR4*) 

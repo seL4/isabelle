@@ -409,7 +409,7 @@ by (forward_tac [respond_imp_not_used] 2);
 by (ALLGOALS (*6 seconds*)
     (asm_simp_tac 
      (analz_image_freshK_ss 
-        addsimps expand_ifs
+        addsimps split_ifs
 	addsimps 
           [shrK_in_analz_respond, resp_analz_image_freshK, parts_insert2])));
 by (ALLGOALS (simp_tac (simpset() addsimps [ex_disj_distrib])));
@@ -438,7 +438,7 @@ by (etac recur.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac
-     (simpset() addsimps (expand_ifs @
+     (simpset() addsimps (split_ifs @
 			 [analz_insert_eq, analz_insert_freshK]))));
 (*RA4*)
 by (spy_analz_tac 5);

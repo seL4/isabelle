@@ -101,7 +101,7 @@ qed "imp_false";
 
 (*This formulation is required for strong induction hypotheses*)
 goal PropLog.thy "hyps p tt |- (if tt[p] then p else p->false)";
-by (rtac (expand_if RS iffD2) 1);
+by (rtac (split_if RS iffD2) 1);
 by (PropLog.pl.induct_tac "p" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [thms_I, thms.H])));
 by (fast_tac (claset() addIs [weaken_left_Un1, weaken_left_Un2, 

@@ -79,12 +79,12 @@ goalw Integ.thy  [Integ_def,intrel_def,quotient_def] "intrel^^{(x,y)}:Integ";
 by (Fast_tac 1);
 qed "intrel_in_integ";
 
-goal Integ.thy "inj_onto Abs_Integ Integ";
-by (rtac inj_onto_inverseI 1);
+goal Integ.thy "inj_on Abs_Integ Integ";
+by (rtac inj_on_inverseI 1);
 by (etac Abs_Integ_inverse 1);
-qed "inj_onto_Abs_Integ";
+qed "inj_on_Abs_Integ";
 
-Addsimps [equiv_intrel_iff, inj_onto_Abs_Integ RS inj_onto_iff,
+Addsimps [equiv_intrel_iff, inj_on_Abs_Integ RS inj_on_iff,
           intrel_iff, intrel_in_integ, Abs_Integ_inverse];
 
 goal Integ.thy "inj(Rep_Integ)";
@@ -100,7 +100,7 @@ qed "inj_Rep_Integ";
 goal Integ.thy "inj(znat)";
 by (rtac injI 1);
 by (rewtac znat_def);
-by (dtac (inj_onto_Abs_Integ RS inj_ontoD) 1);
+by (dtac (inj_on_Abs_Integ RS inj_onD) 1);
 by (REPEAT (rtac intrel_in_integ 1));
 by (dtac eq_equiv_class 1);
 by (rtac equiv_intrel 1);

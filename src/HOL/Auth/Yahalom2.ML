@@ -215,7 +215,7 @@ by (etac yahalom.induct 1);
 by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
-     (simpset() addsimps expand_ifs
+     (simpset() addsimps split_ifs
 	        addsimps [analz_insert_eq, analz_insert_freshK])));
 (*Oops*)
 by (blast_tac (claset() addDs [unique_session_keys]) 3);

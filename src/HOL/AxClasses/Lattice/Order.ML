@@ -115,7 +115,7 @@ qed "is_sup_assoc";
 (** limits in linear orders **)
 
 goalw thy [minimum_def, is_inf_def] "is_inf (x::'a::linear_order) y (minimum x y)";
-  by (stac expand_if 1);
+  by (stac split_if 1);
   by (REPEAT_FIRST (resolve_tac [conjI, impI]));
   (*case "x [= y"*)
     by (rtac le_refl 1);
@@ -131,7 +131,7 @@ goalw thy [minimum_def, is_inf_def] "is_inf (x::'a::linear_order) y (minimum x y
 qed "min_is_inf";
 
 goalw thy [maximum_def, is_sup_def] "is_sup (x::'a::linear_order) y (maximum x y)";
-  by (stac expand_if 1);
+  by (stac split_if 1);
   by (REPEAT_FIRST (resolve_tac [conjI, impI]));
   (*case "x [= y"*)
     by (assume_tac 1);

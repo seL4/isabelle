@@ -32,7 +32,7 @@ goal IOA.thy "filter_oseq p (filter_oseq p s) = filter_oseq p s";
   by (rtac ext 1);
   by (exhaust_tac "s(i)" 1);
   by (Asm_simp_tac 1);
-  by (asm_simp_tac (simpset() addsplits [expand_if]) 1);
+  by (Asm_simp_tac 1);
 qed "filter_oseq_idemp";
 
 goalw IOA.thy [mk_trace_def,filter_oseq_def]
@@ -42,7 +42,7 @@ goalw IOA.thy [mk_trace_def,filter_oseq_def]
 \  (mk_trace A s n = Some(a)) =                                   \
 \   (s(n)=Some(a) & a : externals(asig_of(A)))";
   by (exhaust_tac "s(n)" 1);
-  by (ALLGOALS (asm_simp_tac (simpset() addsplits [expand_if])));
+  by (ALLGOALS Asm_simp_tac);
   by (Fast_tac 1);
 qed "mk_trace_thm";
 
@@ -138,8 +138,7 @@ goal IOA.thy
 \     (snd(snd(snd(s))),a,snd(snd(snd(t)))):trans_of(D)                      \
 \   else snd(snd(snd(t)))=snd(snd(snd(s)))))";
   by (simp_tac (simpset() addsimps ([par_def,actions_asig_comp,Pair_fst_snd_eq]@
-                            ioa_projections)
-                  addsplits [expand_if]) 1);
+                            ioa_projections)) 1);
 qed "trans_of_par4";
 
 goal IOA.thy "starts_of(restrict ioa acts) = starts_of(ioa) &     \

@@ -102,7 +102,7 @@ by (asm_full_simp_tac
                 addsplits [split_option_case]) 1);
 qed"comp2_reachable";
 
-Delsplits [expand_if];
+Delsplits [split_if];
 
 (* Composition of possibility-mappings *)
 goalw Solve.thy [is_weak_pmap_def] "!!f g.[| is_weak_pmap f C1 A1 & \
@@ -121,7 +121,7 @@ by (REPEAT(etac conjE 1));
 by (simp_tac (simpset() addsimps [externals_of_par_extra]) 1);
 by (simp_tac (simpset() addsimps [par_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [trans_of_def]) 1);
-by (stac expand_if 1);
+by (stac split_if 1);
 by (rtac conjI 1);
 by (rtac impI 1); 
 by (etac disjE 1);
@@ -142,7 +142,7 @@ by (subgoal_tac "a~:externals(asig_of(A1)) & a~:externals(asig_of(A2))" 1);
 by (Asm_full_simp_tac 2);
 by (Fast_tac 2);
 by (simp_tac (simpset() addsimps [conj_disj_distribR] addcongs [conj_cong]
-                 addsplits [expand_if]) 1);
+                 addsplits [split_if]) 1);
 by (REPEAT((resolve_tac [conjI,impI] 1 ORELSE etac conjE 1) THEN
         asm_full_simp_tac(simpset() addsimps[comp1_reachable,
                                       comp2_reachable])1));
@@ -176,7 +176,7 @@ by (rtac imp_conj_lemma 1);
 by (simp_tac (simpset() addsimps [rename_def]) 1);
 by (asm_full_simp_tac (simpset() addsimps [externals_def,asig_inputs_def,asig_outputs_def,asig_of_def,trans_of_def]) 1);
 by Safe_tac;
-by (stac expand_if 1);
+by (stac split_if 1);
  by (rtac conjI 1);
  by (rtac impI 1);
  by (etac disjE 1);
@@ -209,4 +209,4 @@ by (cut_inst_tac [("C","C"),("g","g"),("s","s")] reachable_rename_ioa 1);
 by Auto_tac;
 qed"rename_through_pmap";
 
-Addsplits [expand_if];
+Addsplits [split_if];

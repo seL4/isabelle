@@ -54,10 +54,10 @@ by (rtac inj_inverseI 1);
 by (rtac Rep_list_inverse 1);
 qed "inj_Rep_list";
 
-goal SList.thy "inj_onto Abs_list (list(range Leaf))";
-by (rtac inj_onto_inverseI 1);
+goal SList.thy "inj_on Abs_list (list(range Leaf))";
+by (rtac inj_on_inverseI 1);
 by (etac Abs_list_inverse 1);
-qed "inj_onto_Abs_list";
+qed "inj_on_Abs_list";
 
 (** Distinctness of constructors **)
 
@@ -70,7 +70,7 @@ bind_thm ("CONS_neq_NIL", (CONS_not_NIL RS notE));
 val NIL_neq_CONS = sym RS CONS_neq_NIL;
 
 goalw SList.thy [Nil_def,Cons_def] "x # xs ~= Nil";
-by (rtac (CONS_not_NIL RS (inj_onto_Abs_list RS inj_onto_contraD)) 1);
+by (rtac (CONS_not_NIL RS (inj_on_Abs_list RS inj_on_contraD)) 1);
 by (REPEAT (resolve_tac (list.intrs @ [rangeI, Rep_list]) 1));
 qed "Cons_not_Nil";
 
@@ -87,7 +87,7 @@ AddIs ([Rep_list] @ list.intrs);
 
 AddIffs [CONS_not_NIL, NIL_not_CONS, CONS_CONS_eq];
 
-AddSDs [inj_onto_Abs_list RS inj_ontoD,
+AddSDs [inj_on_Abs_list RS inj_onD,
         inj_Rep_list RS injD, Leaf_inject];
 
 goalw SList.thy [Cons_def] "(x#xs=y#ys) = (x=y & xs=ys)";
@@ -346,7 +346,7 @@ goal SList.thy
 \                        (!y ys. xs=y#ys --> P(f y ys)))";
 by (list_ind_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-qed "expand_list_case2";
+qed "split_list_case2";
 
 
 (** Additional mapping lemmas **)

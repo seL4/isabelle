@@ -109,20 +109,20 @@ by (rtac inj_inverseI 1);
 by (rtac Rep_Tree_inverse 1);
 qed "inj_Rep_Tree";
 
-goal Simult.thy "inj_onto Abs_Tree (Part (TF(range Leaf)) In0)";
-by (rtac inj_onto_inverseI 1);
+goal Simult.thy "inj_on Abs_Tree (Part (TF(range Leaf)) In0)";
+by (rtac inj_on_inverseI 1);
 by (etac Abs_Tree_inverse 1);
-qed "inj_onto_Abs_Tree";
+qed "inj_on_Abs_Tree";
 
 goal Simult.thy "inj(Rep_Forest)";
 by (rtac inj_inverseI 1);
 by (rtac Rep_Forest_inverse 1);
 qed "inj_Rep_Forest";
 
-goal Simult.thy "inj_onto Abs_Forest (Part (TF(range Leaf)) In1)";
-by (rtac inj_onto_inverseI 1);
+goal Simult.thy "inj_on Abs_Forest (Part (TF(range Leaf)) In1)";
+by (rtac inj_on_inverseI 1);
 by (etac Abs_Forest_inverse 1);
-qed "inj_onto_Abs_Forest";
+qed "inj_on_Abs_Forest";
 
 (** Introduction rules for constructors **)
 
@@ -199,8 +199,8 @@ AddSEs [TCONS_inject, FCONS_inject,
                            TCONS_neq_FNIL, FNIL_neq_TCONS,
                            FCONS_neq_FNIL, FNIL_neq_FCONS,
                            TCONS_neq_FCONS, FCONS_neq_TCONS];
-AddSDs [inj_onto_Abs_Tree RS inj_ontoD,
-                           inj_onto_Abs_Forest RS inj_ontoD,
+AddSDs [inj_on_Abs_Tree RS inj_onD,
+                           inj_on_Abs_Forest RS inj_onD,
                            inj_Rep_Tree RS injD, inj_Rep_Forest RS injD,
                            Leaf_inject];
 

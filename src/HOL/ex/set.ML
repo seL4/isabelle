@@ -101,7 +101,7 @@ by (rtac (X_Un_Compl RS allI) 1);
 qed "surj_if_then_else";
 
 val [injf,injg,compl,bij] = goal Lfp.thy
-    "[| inj_onto f X;  inj_onto g (Compl X);  Compl(f``X) = g``Compl(X); \
+    "[| inj_on f X;  inj_on g (Compl X);  Compl(f``X) = g``Compl(X); \
 \       bij = (%z. if z:X then f(z) else g(z)) |] ==> \
 \       inj(bij) & surj(bij)";
 val f_eq_gE = make_elim (compl RS disj_lemma);
@@ -110,10 +110,10 @@ by (rtac conjI 1);
 by (rtac (compl RS surj_if_then_else) 2);
 by (rewtac inj_def);
 by (cut_facts_tac [injf,injg] 1);
-by (EVERY1 [rtac allI, rtac allI, stac expand_if, rtac conjI, stac expand_if]);
-by (fast_tac (claset() addEs  [inj_ontoD, sym RS f_eq_gE]) 1);
-by (stac expand_if 1);
-by (fast_tac (claset() addEs  [inj_ontoD, f_eq_gE]) 1);
+by (EVERY1 [rtac allI, rtac allI, stac split_if, rtac conjI, stac split_if]);
+by (fast_tac (claset() addEs  [inj_onD, sym RS f_eq_gE]) 1);
+by (stac split_if 1);
+by (fast_tac (claset() addEs  [inj_onD, f_eq_gE]) 1);
 qed "bij_if_then_else";
 
 goal Lfp.thy "? X. X = Compl(g``Compl((f:: 'a=>'b)``X))";
@@ -129,7 +129,7 @@ by (rtac (decomposition RS exE) 1);
 by (rtac exI 1);
 by (rtac bij_if_then_else 1);
 by (EVERY [rtac refl 4, rtac (injf RS inj_imp) 1,
-           rtac (injg RS inj_onto_inv) 1]);
+           rtac (injg RS inj_on_inv) 1]);
 by (EVERY1 [etac ssubst, stac double_complement, rtac subsetI,
             etac imageE, etac ssubst, rtac rangeI]);
 by (EVERY1 [etac ssubst, stac double_complement, 

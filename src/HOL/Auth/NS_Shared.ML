@@ -265,7 +265,7 @@ by analz_spies_tac;
 by (ALLGOALS 
     (asm_simp_tac 
      (simpset() addsimps ([analz_insert_eq, analz_insert_freshK] @ 
-			  pushes @ expand_ifs))));
+			  pushes @ split_ifs))));
 (*Oops*)
 by (blast_tac (claset() addSDs [unique_session_keys]) 5);
 (*NS3, replay sub-case*) 

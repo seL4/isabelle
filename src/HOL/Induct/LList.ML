@@ -6,13 +6,11 @@
 SHOULD LListD_Fun_CONS_I, etc., be equations (for rewriting)?
 *)
 
-open LList;
-
 bind_thm ("UN1_I", UNIV_I RS UN_I);
 
 (** Simplification **)
 
-simpset_ref() := simpset() addsplits [expand_split, expand_sum_case];
+simpset_ref() := simpset() addsplits [split_split, split_sum_case];
 
 
 (*This justifies using llist in other recursive type definitions*)
@@ -68,11 +66,11 @@ qed "CONS_UN1";
 
 (*UNUSED; obsolete?
 goal Prod.thy "split p (%x y. UN z. f x y z) = (UN z. split p (%x y. f x y z))";
-by (simp_tac (simpset() addsplits [expand_split]) 1);
+by (Simp_tac 1);
 qed "split_UN1";
 
 goal Sum.thy "sum_case s f (%y. UN z. g y z) = (UN z. sum_case s f (%y. g y z))";
-by (simp_tac (simpset() addsplits [expand_sum_case]) 1);
+by (Simp_tac 1);
 qed "sum_case2_UN1";
 *)
 
@@ -318,7 +316,7 @@ by (rtac allI 1);
 by (rename_tac "y" 1);
 by (stac prem1 1);
 by (stac prem2 1);
-by (simp_tac (simpset() addsplits [expand_sum_case]) 1);
+by (Simp_tac 1);
 by (strip_tac 1);
 by (res_inst_tac [("n", "n")] natE 1);
 by (rename_tac "m" 2);
@@ -366,15 +364,15 @@ by (rtac inj_inverseI 1);
 by (rtac Rep_llist_inverse 1);
 qed "inj_Rep_llist";
 
-goal LList.thy "inj_onto Abs_llist (llist(range Leaf))";
-by (rtac inj_onto_inverseI 1);
+goal LList.thy "inj_on Abs_llist (llist(range Leaf))";
+by (rtac inj_on_inverseI 1);
 by (etac Abs_llist_inverse 1);
-qed "inj_onto_Abs_llist";
+qed "inj_on_Abs_llist";
 
 (** Distinctness of constructors **)
 
 goalw LList.thy [LNil_def,LCons_def] "~ LCons x xs = LNil";
-by (rtac (CONS_not_NIL RS (inj_onto_Abs_llist RS inj_onto_contraD)) 1);
+by (rtac (CONS_not_NIL RS (inj_on_Abs_llist RS inj_on_contraD)) 1);
 by (REPEAT (resolve_tac (llist.intrs @ [rangeI, Rep_llist]) 1));
 qed "LCons_not_LNil";
 
@@ -408,7 +406,7 @@ bind_thm ("CONS_inject", (CONS_CONS_eq RS iffD1 RS conjE));
 (*For reasoning about abstract llist constructors*)
 
 AddIs ([Rep_llist]@llist.intrs);
-AddSDs [inj_onto_Abs_llist RS inj_ontoD,
+AddSDs [inj_on_Abs_llist RS inj_onD,
         inj_Rep_llist RS injD, Leaf_inject];
 
 goalw LList.thy [LCons_def] "(LCons x xs=LCons y ys) = (x=y & xs=ys)";

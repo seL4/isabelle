@@ -37,7 +37,7 @@ goal Eta.thy "!i k. free (lift t k) i = \
 by (dB.induct_tac "t" 1);
 by (ALLGOALS(asm_full_simp_tac (addsplit (simpset()) addcongs [conj_cong])));
 by (Blast_tac 2);
-by (simp_tac (simpset() addsimps [diff_Suc] addsplits [expand_nat_case]) 1);
+by (simp_tac (simpset() addsimps [diff_Suc] addsplits [split_nat_case]) 1);
 by (safe_tac HOL_cs);
 by (ALLGOALS trans_tac);
 qed "free_lift";
@@ -50,7 +50,7 @@ by (Asm_simp_tac 2);
 by (Blast_tac 2);
 by (asm_full_simp_tac (addsplit (simpset())) 2);
 by (simp_tac (simpset() addsimps [diff_Suc,subst_Var]
-                      addsplits [expand_nat_case]) 1);
+                      addsplits [split_nat_case]) 1);
 by (safe_tac (HOL_cs addSEs [nat_neqE]));
 by (ALLGOALS trans_tac);
 qed "free_subst";

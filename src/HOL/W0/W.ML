@@ -17,12 +17,12 @@ by (expr.induct_tac "e" 1);
 by (Asm_simp_tac 1);
 (* case Abs e *)
 by (asm_full_simp_tac (simpset() addsimps [app_subst_list]
-                        addsplits [expand_bind]) 1);
+                        addsplits [split_bind]) 1);
 by (strip_tac 1);
 by (dtac sym 1);
 by (fast_tac (HOL_cs addss simpset()) 1);
 (* case App e1 e2 *)
-by (simp_tac (simpset() addsplits [expand_bind]) 1);
+by (simp_tac (simpset() addsplits [split_bind]) 1);
 by (strip_tac 1);
 by ( rename_tac "sa ta na sb tb nb sc" 1);
 by (res_inst_tac [("t2.0","$ sc tb")] has_type.AppI 1);
@@ -47,10 +47,10 @@ by (expr.induct_tac "e" 1);
 (* case Var(n) *)
 by (fast_tac (HOL_cs addss simpset()) 1);
 (* case Abs e *)
-by (simp_tac (simpset() addsplits [expand_bind]) 1);
+by (simp_tac (simpset() addsplits [split_bind]) 1);
 by (fast_tac (HOL_cs addDs [Suc_leD]) 1);
 (* case App e1 e2 *)
-by (simp_tac (simpset() addsplits [expand_bind]) 1);
+by (simp_tac (simpset() addsplits [split_bind]) 1);
 by (strip_tac 1);
 by (rename_tac "s t na sa ta nb sb sc tb m" 1);
 by (eres_inst_tac [("x","a")] allE 1);
@@ -94,7 +94,7 @@ by (fast_tac (HOL_cs addDs [list_all_nth] addss (simpset()
         addsimps [id_subst_def,new_tv_list,new_tv_subst])) 1);
 (* case Abs e *)
 by (simp_tac (simpset() addsimps [new_tv_subst,new_tv_Suc_list] 
-    addsplits [expand_bind]) 1);
+    addsplits [split_bind]) 1);
 by (strip_tac 1);
 by (eres_inst_tac [("x","Suc n")] allE 1);
 by (eres_inst_tac [("x","(TVar n)#a")] allE 1);
@@ -102,7 +102,7 @@ by (fast_tac (HOL_cs addss (simpset()
               addsimps [new_tv_subst,new_tv_Suc_list])) 1);
 
 (* case App e1 e2 *)
-by (simp_tac (simpset() addsplits [expand_bind]) 1);
+by (simp_tac (simpset() addsplits [split_bind]) 1);
 by (strip_tac 1);
 by (rename_tac "s t na sa ta nb sb sc tb m" 1);
 by (eres_inst_tac [("x","n")] allE 1);
@@ -162,7 +162,7 @@ by (fast_tac (HOL_cs addIs [nth_mem,subsetD,ftv_mem_sub_ftv_list]
 
 (* case Abs e *)
 by (asm_full_simp_tac (simpset() addsimps
-    [free_tv_subst] addsplits [expand_bind]) 1);
+    [free_tv_subst] addsplits [split_bind]) 1);
 by (strip_tac 1);
 by (rename_tac "s t na sa ta m v" 1);
 by (eres_inst_tac [("x","Suc n")] allE 1);
@@ -176,7 +176,7 @@ by (fast_tac (HOL_cs addSEs [allE]
                      addss (simpset() addsimps [less_Suc_eq])) 1);
 (** LEVEL 12 **)
 (* case App e1 e2 *)
-by (simp_tac (simpset() addsplits [expand_bind]) 1);
+by (simp_tac (simpset() addsplits [split_bind]) 1);
 by (strip_tac 1); 
 by (rename_tac "s t na sa ta nb sb sc tb m v" 1);
 by (eres_inst_tac [("x","n")] allE 1);
@@ -239,7 +239,7 @@ by (eres_inst_tac [("x","(TVar n)#a")] allE 1);
 by (eres_inst_tac [("x","t2")] allE 1);
 by (eres_inst_tac [("x","Suc n")] allE 1);
 by (fast_tac (HOL_cs addss (simpset() addcongs [conj_cong]
-                            addsplits [expand_bind])) 1);
+                            addsplits [split_bind])) 1);
 
 (** LEVEL 17 **)
 (* case App e1 e2 *)
@@ -321,7 +321,7 @@ by (fast_tac (HOL_cs addIs [free_tv_W,free_tv_le_new_tv] addDs [new_tv_W]) 2);
 by (asm_full_simp_tac (simpset() addsimps [free_tv_subst,dom_def]) 2);
 by (Fast_tac 2);
 (** LEVEL 76 **)
-by (asm_simp_tac (simpset() addsplits [expand_bind]) 1);
+by (asm_simp_tac (simpset() addsplits [split_bind]) 1);
 by (safe_tac HOL_cs);
 by (dtac mgu_Ok 1);
 by ( fast_tac (HOL_cs addss simpset()) 1);
