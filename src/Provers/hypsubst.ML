@@ -261,22 +261,11 @@ val hyp_subst_meth =
   Method.no_args (Method.SIMPLE_METHOD' HEADGOAL (CHANGED_PROP o hyp_subst_tac));
 
 
-(* attributes *)
-
-fun symmetric_rule thm =
-  thm RS Drule.symmetric_thm handle THM _ =>
-  thm RS Data.sym handle THM _ => error "Failed to apply symmetry of == or =";
-
-fun gen_symmetric x = Drule.rule_attribute (K symmetric_rule);
-
-
 (* theory setup *)
 
 val hypsubst_setup =
  [Method.add_methods
   [("hypsubst", hyp_subst_meth, "substitution using an assumption (improper)"),
-   ("subst", subst_meth, "substitution")],
-  Attrib.add_attributes
-  [("symmetric", (gen_symmetric, gen_symmetric), "resolution with symmetry of == or =")]];
+   ("subst", subst_meth, "substitution")]];
 
 end;
