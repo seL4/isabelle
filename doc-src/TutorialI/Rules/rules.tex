@@ -1008,13 +1008,53 @@ be identical to the conclusion, provided the two formulas are unifiable.%
 \index{quantifiers!universal|)}  
 
 
+\subsection{The Existential Quantifier}
+
+\index{quantifiers!existential|(}%
+The concepts just presented also apply
+to the existential quantifier, whose introduction rule looks like this in
+Isabelle: 
+\begin{isabelle}
+?P\ ?x\ \isasymLongrightarrow\ {\isasymexists}x.\ ?P\ x\rulename{exI}
+\end{isabelle}
+If we can exhibit some $x$ such that $P(x)$ is true, then $\exists x.
+P(x)$ is also true.  It is a dual of the universal elimination rule, and
+logic texts present it using the same notation for substitution.
+
+The existential
+elimination rule looks like this
+in a logic text: 
+\[ \infer{Q}{\exists x.\,P & \infer*{Q}{[P]}} \]
+%
+It looks like this in Isabelle: 
+\begin{isabelle}
+\isasymlbrakk{\isasymexists}x.\ ?P\ x;\ \isasymAnd x.\ ?P\ x\ \isasymLongrightarrow\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?Q\rulename{exE}
+\end{isabelle}
+%
+Given an existentially quantified theorem and some
+formula $Q$ to prove, it creates a new assumption by removing the quantifier.  As with
+the universal introduction  rule, the textbook version imposes a proviso on the
+quantified variable, which Isabelle expresses using its meta-logic.  Note that it is
+enough to have a universal quantifier in the meta-logic; we do not need an existential
+quantifier to be built in as well.
+ 
+
+\begin{exercise}
+Prove the lemma
+\[ \exists x.\, P\conj Q(x)\Imp P\conj(\exists x.\, Q(x)). \]
+\emph{Hint}: the proof is similar 
+to the one just above for the universal quantifier. 
+\end{exercise}
+\index{quantifiers|)}\index{quantifiers!existential|)}
+
+
 \subsection{Renaming an Assumption: {\tt\slshape rename_tac}}
 
 \index{assumptions!renaming|(}\index{*rename_tac|(}%
 When you apply a rule such as \isa{allI}, the quantified variable
 becomes a new bound variable of the new subgoal.  Isabelle tries to avoid
 changing its name, but sometimes it has to choose a new name in order to
-avoid a clash.  Here is a contrived example:
+avoid a clash.  The result may not be ideal:
 \begin{isabelle}
 \isacommand{lemma}\ "x\ <\ y\ \isasymLongrightarrow \ \isasymforall x\ y.\ P\ x\
 (f\ y)"\isanewline
@@ -1097,48 +1137,107 @@ would not work: it would add a second copy of \isa{P(h~a)} instead
 of the desired assumption, \isa{P(h(h~a))}.  The \isacommand{by}
 command forces Isabelle to backtrack until it finds the correct one.
 Alternatively, we could have used the \isacommand{apply} command and bundled the
-\isa{drule mp} with \emph{two} calls of \isa{assumption}.%
+\isa{drule mp} with \emph{two} calls of \isa{assumption}.  Or, of course,
+we could have given the entire proof to \isa{auto}.%
 \index{assumptions!reusing|)}\index{*frule|)}
 
 
-\subsection{The Existential Quantifier}
 
-\index{quantifiers!existential|(}%
-The concepts just presented also apply
-to the existential quantifier, whose introduction rule looks like this in
-Isabelle: 
+\subsection{Instantiating a Quantifier Explicitly}
+\index{quantifiers!instantiating}
+
+We can prove a theorem of the form $\exists x.\,P\, x$ by exhibiting a
+suitable term~$t$ such that $P\,t$ is true.  Dually, we can use an
+assumption of the form $\forall x.\,P\, x$ by exhibiting a
+suitable term~$t$ such that $P\,t$ is false, or (more generally)
+that contributes in some way to the proof at hand.  In many cases, 
+Isabelle makes the correct choice automatically, constructing the term by
+unification.  In other cases, the required term is not obvious and we must
+specify it ourselves.  Suitable methods are \isa{rule_tac}, \isa{drule_tac}
+and \isa{erule_tac}.
+
+We have just seen a proof of this lemma:
 \begin{isabelle}
-?P\ ?x\ \isasymLongrightarrow\ {\isasymexists}x.\ ?P\ x\rulename{exI}
+\isacommand{lemma}\ "\isasymlbrakk \isasymforall x.\ P\ x\
+\isasymlongrightarrow \ P\ (h\ x);\ P\ a\isasymrbrakk \
+\isasymLongrightarrow \ P(h\ (h\ a))"
 \end{isabelle}
-If we can exhibit some $x$ such that $P(x)$ is true, then $\exists x.
-P(x)$ is also true.  It is a dual of the universal elimination rule, and
-logic texts present it using the same notation for substitution.
-
-The existential
-elimination rule looks like this
-in a logic text: 
-\[ \infer{Q}{\exists x.\,P & \infer*{Q}{[P]}} \]
-%
-It looks like this in Isabelle: 
+We had reached this subgoal:
 \begin{isabelle}
-\isasymlbrakk{\isasymexists}x.\ ?P\ x;\ \isasymAnd x.\ ?P\ x\ \isasymLongrightarrow\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?Q\rulename{exE}
+\ 1.\ \isasymlbrakk{\isasymforall}x.\ P\ x\ \isasymlongrightarrow\ P\ (h\
+x);\ P\ a;\ P\ (h\ a)\isasymrbrakk\ \isasymLongrightarrow\ P\ (h\ (h\ a))
 \end{isabelle}
 %
-Given an existentially quantified theorem and some
-formula $Q$ to prove, it creates a new assumption by removing the quantifier.  As with
-the universal introduction  rule, the textbook version imposes a proviso on the
-quantified variable, which Isabelle expresses using its meta-logic.  Note that it is
-enough to have a universal quantifier in the meta-logic; we do not need an existential
-quantifier to be built in as well.
- 
+The proof requires instantiating the quantified assumption with the
+term~\isa{h~a}.
+\begin{isabelle}
+\isacommand{apply}\ (drule_tac\ x\ =\ "h\ a"\ \isakeyword{in}\
+spec)\isanewline
+\ 1.\ \isasymlbrakk P\ a;\ P\ (h\ a);\ P\ (h\ a)\ \isasymlongrightarrow \
+P\ (h\ (h\ a))\isasymrbrakk \ \isasymLongrightarrow \ P\ (h\ (h\ a))
+\end{isabelle}
+We have forced the desired instantiation.
 
-\begin{exercise}
-Prove the lemma
-\[ \exists x.\, P\conj Q(x)\Imp P\conj(\exists x.\, Q(x)). \]
-\emph{Hint}: the proof is similar 
-to the one just above for the universal quantifier. 
-\end{exercise}
-\index{quantifiers|)}\index{quantifiers!existential|)}
+\medskip
+Existential formulas can be instantiated too.  The next example uses the 
+\emph{divides} relation of number theory: 
+\begin{isabelle}
+?m\ dvd\ ?n\ \isasymequiv\ {\isasymexists}k.\ ?n\ =\ ?m\ *\ k
+\rulename{dvd_def}
+\end{isabelle}
+
+Let us prove that multiplication of natural numbers is monotone with
+respect to the divides relation:
+\begin{isabelle}
+\isacommand{lemma}\ mult_dvd_mono:\ "{\isasymlbrakk}i\ dvd\ m;\ j\ dvd\
+n\isasymrbrakk\ \isasymLongrightarrow\ i*j\ dvd\ (m*n\ ::\ nat)"\isanewline
+\isacommand{apply}\ (simp\ add:\ dvd_def)
+\end{isabelle}
+%
+Opening the definition of divides leaves this subgoal:
+\begin{isabelle}
+\ 1.\ \isasymlbrakk \isasymexists k.\ m\ =\ i\ *\ k;\ \isasymexists k.\ n\
+=\ j\ *\ k\isasymrbrakk \ \isasymLongrightarrow \ \isasymexists k.\ m\ *\
+n\ =\ i\ *\ j\ *\ k%
+\isanewline
+\isacommand{apply}\ (erule\ exE)\isanewline
+\ 1.\ \isasymAnd k.\ \isasymlbrakk \isasymexists k.\ n\ =\ j\ *\ k;\ m\ =\
+i\ *\ k\isasymrbrakk \ \isasymLongrightarrow \ \isasymexists k.\ m\ *\ n\
+=\ i\ *\ j\ *\ k%
+\isanewline
+\isacommand{apply}\ (erule\ exE)
+\end{isabelle}
+%
+Eliminating the two existential quantifiers in the assumptions leaves this
+subgoal:
+\begin{isabelle}
+\ 1.\ \isasymAnd k\ ka.\ \isasymlbrakk m\ =\ i\ *\ k;\ n\ =\ j\ *\
+ka\isasymrbrakk \ \isasymLongrightarrow \ \isasymexists k.\ m\ *\ n\ =\ i\
+*\ j\ *\ k
+\end{isabelle}
+%
+The term needed to instantiate the remaining quantifier is~\isa{k*ka}:
+\begin{isabelle}
+\isacommand{apply}\ (rule_tac\ x="k*ka"\ \isakeyword{in}\ exI)\ \isanewline
+\ 1.\ \isasymAnd k\ ka.\ \isasymlbrakk m\ =\ i\ *\ k;\ n\ =\ j\ *\
+ka\isasymrbrakk \ \isasymLongrightarrow \ m\ *\ n\ =\ i\
+*\ j\ *\ (k\ *\ ka)
+\end{isabelle}
+%
+The rest is automatic, by arithmetic.
+\begin{isabelle}
+\isacommand{apply}\ simp\isanewline
+\isacommand{done}\isanewline
+\end{isabelle}
+
+\begin{warn}
+References to automatically-generated names like~\isa{ka} can make a proof
+brittle, especially if the proof is long.  Small changes to your theory can
+cause these names to change.  Robust proofs replace
+automatically-generated names by ones chosen using
+\isa{rename_tac} before giving them to \isa{rule_tac}.
+\end{warn}
+
 
 
 \section{Hilbert's Epsilon-Operator}
@@ -1824,8 +1923,8 @@ Recall that \isa{of} generates an instance of a
 rule by specifying values for its variables.  Analogous is \isa{OF}, which
 generates an instance of a rule by specifying facts for its premises.  
 
-Below we shall need the 
-\emph{divides} relation of number theory: 
+We again need the 
+\emph{divides} relation of number theory, which as we recall is defined by 
 \begin{isabelle}
 ?m\ dvd\ ?n\ \isasymequiv\ {\isasymexists}k.\ ?n\ =\ ?m\ *\ k
 \rulename{dvd_def}

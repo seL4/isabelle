@@ -223,9 +223,49 @@ apply (drule spec)
 	--{* @{subgoals[display,indent=0,margin=65]} *}
 by (drule mp)
 
-
 lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (f x); P a\<rbrakk> \<Longrightarrow> P(f (f a))"
 by blast
+
+
+text{*
+the existential quantifier*}
+
+text {*
+@{thm[display]"exI"}
+\rulename{exI}
+
+@{thm[display]"exE"}
+\rulename{exE}
+*};
+
+
+text{*
+instantiating quantifiers explicitly by rule_tac and erule_tac*}
+
+lemma "\<lbrakk>\<forall>x. P x \<longrightarrow> P (h x); P a\<rbrakk> \<Longrightarrow> P(h (h a))"
+apply (frule spec)
+	--{* @{subgoals[display,indent=0,margin=65]} *}
+apply (drule mp, assumption)
+	--{* @{subgoals[display,indent=0,margin=65]} *}
+apply (drule_tac x = "h a" in spec)
+	--{* @{subgoals[display,indent=0,margin=65]} *}
+by (drule mp)
+
+text {*
+@{thm[display]"dvd_def"}
+\rulename{dvd_def}
+*};
+
+lemma mult_dvd_mono: "\<lbrakk>i dvd m; j dvd n\<rbrakk> \<Longrightarrow> i*j dvd (m*n :: nat)"
+apply (simp add: dvd_def)
+	--{* @{subgoals[display,indent=0,margin=65]} *}
+apply (erule exE) 
+	--{* @{subgoals[display,indent=0,margin=65]} *}
+apply (erule exE) 
+	--{* @{subgoals[display,indent=0,margin=65]} *}
+apply (rule_tac x="k*ka" in exI) 
+apply simp
+done
 
 text{*
 Hilbert-epsilon theorems*}

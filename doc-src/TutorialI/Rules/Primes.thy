@@ -15,11 +15,9 @@ ML "Pretty.setmargin 64"
 ML "IsarOutput.indent := 5"  (*that is, Doc/TutorialI/settings.ML*)
 
 
-text {*
-\begin{quote}
+text {*Now in Basic.thy!
 @{thm[display]"dvd_def"}
 \rulename{dvd_def}
-\end{quote}
 *};
 
 
