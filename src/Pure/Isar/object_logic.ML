@@ -139,7 +139,7 @@ fun atomize_goal i st =
 
 fun gen_rulify full thm =
   Tactic.simplify full (get_rulify (Thm.sign_of_thm thm)) thm
-  |> Drule.forall_elim_vars_safe |> Drule.strip_shyps_warning |> Drule.zero_var_indexes;
+  |> Drule.gen_all |> Drule.strip_shyps_warning |> Drule.zero_var_indexes;
 
 val rulify = gen_rulify true;
 val rulify_no_asm = gen_rulify false;

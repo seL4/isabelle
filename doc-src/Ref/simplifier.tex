@@ -1335,7 +1335,7 @@ occurs whenever rewrite rules are added, whether by user command or
 automatically.  Preprocessing involves extracting atomic rewrites at the
 object-level, then reflecting them to the meta-level.
 
-To start, the function \texttt{forall_elim_vars_safe} strips any meta-level
+To start, the function \texttt{gen_all} strips any meta-level
 quantifiers from the front of the given theorem.
 
 The function \texttt{atomize} analyses a theorem in order to extract
@@ -1398,7 +1398,7 @@ fun mk_eq th = case concl_of th of
   | _                           => th RS iff_reflection_T;
 \end{ttbox}
 The 
-three functions \texttt{forall_elim_vars_safe}, \texttt{atomize} and \texttt{mk_eq} 
+three functions \texttt{gen_all}, \texttt{atomize} and \texttt{mk_eq} 
 will be composed together and supplied below to \texttt{setmksimps}.
 
 
@@ -1427,7 +1427,7 @@ fun mk_meta_cong rl = standard (mk_meta_eq (mk_meta_prems rl));
 %
 The basic simpset for intuitionistic FOL is \ttindexbold{FOL_basic_ss}.  It
 preprocess rewrites using 
-{\tt forall_elim_vars_safe}, \texttt{atomize} and \texttt{mk_eq}.
+{\tt gen_all}, \texttt{atomize} and \texttt{mk_eq}.
 It solves simplified subgoals using \texttt{triv_rls} and assumptions, and by
 detecting contradictions.  It uses \ttindex{asm_simp_tac} to tackle subgoals
 of conditional rewrites.
@@ -1451,7 +1451,7 @@ val FOL_basic_ss =
                addsimprocs [defALL_regroup, defEX_regroup]
                setSSolver   safe_solver
                setSolver  unsafe_solver
-               setmksimps (map mk_eq o atomize o forall_elim_vars_safe)
+               setmksimps (map mk_eq o atomize o gen_all)
                setmkcong mk_meta_cong;
 
 val IFOL_ss = 

@@ -221,7 +221,7 @@ fun mk_atomize pairs =
   in atoms end;
 
 fun mksimps pairs =
-  (mapfilter (try mk_eq) o mk_atomize pairs o forall_elim_vars_safe);
+  (mapfilter (try mk_eq) o mk_atomize pairs o gen_all);
 
 fun unsafe_solver_tac prems =
   FIRST'[resolve_tac(reflexive_thm::TrueI::refl::prems), atac, etac FalseE];

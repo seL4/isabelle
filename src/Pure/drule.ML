@@ -31,7 +31,7 @@ sig
   val forall_elim_list  : cterm list -> thm -> thm
   val forall_elim_var   : int -> thm -> thm
   val forall_elim_vars  : int -> thm -> thm
-  val forall_elim_vars_safe  : thm -> thm
+  val gen_all           : thm -> thm
   val freeze_thaw       : thm -> thm * (thm -> thm)
   val implies_elim_list : thm -> thm list -> thm
   val implies_intr_list : cterm list -> thm -> thm
@@ -315,7 +315,7 @@ fun forall_intr_frees th =
 val forall_elim_var = PureThy.forall_elim_var;
 val forall_elim_vars = PureThy.forall_elim_vars;
 
-fun forall_elim_vars_safe thm =
+fun gen_all thm =
   let
     val {sign, prop, maxidx, ...} = Thm.rep_thm thm;
     fun elim (th, (x, T)) = Thm.forall_elim (Thm.cterm_of sign (Var ((x, maxidx + 1), T))) th;

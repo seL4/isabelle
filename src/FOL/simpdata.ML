@@ -121,7 +121,7 @@ fun mk_atomize pairs =
          | _ => [th])
   in atoms end;
 
-fun mksimps pairs = (map mk_eq o mk_atomize pairs o forall_elim_vars_safe);
+fun mksimps pairs = (map mk_eq o mk_atomize pairs o gen_all);
 
 (*** Classical laws ***)
 

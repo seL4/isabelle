@@ -240,7 +240,7 @@ val LK_basic_ss =
   empty_ss setsubgoaler asm_simp_tac
     setSSolver (mk_solver "safe" safe_solver)
     setSolver (mk_solver "unsafe" unsafe_solver)
-    setmksimps (map mk_meta_eq o atomize o forall_elim_vars_safe)
+    setmksimps (map mk_meta_eq o atomize o gen_all)
     setmkcong mk_meta_cong;
 
 val LK_simps =

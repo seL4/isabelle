@@ -524,7 +524,7 @@ fun rewtac def = rewrite_goals_tac [def];
 
 fun norm_hhf th =
   (if Logic.is_norm_hhf (#prop (Thm.rep_thm th)) then th else rewrite_rule [Drule.norm_hhf_eq] th)
-  |> Drule.forall_elim_vars_safe;
+  |> Drule.gen_all;
 
 val norm_hhf_tac = SUBGOAL (fn (t, i) =>
   if Logic.is_norm_hhf t then all_tac
