@@ -3,8 +3,9 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
-The abstract types "theory" and "thm".
-Also "cterm" / "ctyp" (certified terms / typs under a signature).
+The core of Isabelle's Meta Logic: certified types and terms, meta
+theorems, theories, meta rules (including resolution and
+simplification).
 *)
 
 signature THM =
@@ -12,25 +13,57 @@ sig
   structure Envir 	: ENVIR
   structure Sequence 	: SEQUENCE
   structure Sign 	: SIGN
+
+  (*certified types*)
   type ctyp
-  type cterm
-  type thm
-  type theory
-  type meta_simpset
-  exception THM of string * int * thm list
-  exception THEORY of string * theory list
-  exception SIMPLIFIER of string * thm
-  (*certified terms/types; previously in sign.ML*)
-  val cterm_of		: Sign.sg -> term -> cterm
+  val rep_ctyp		: ctyp -> {sign: Sign.sg, T: typ}
+  val typ_of		: ctyp -> typ
   val ctyp_of		: Sign.sg -> typ -> ctyp
   val read_ctyp		: Sign.sg -> string -> ctyp
-  val read_cterm	: Sign.sg -> string * typ -> cterm
-  val rep_cterm		: cterm -> {T:typ, t:term, sign:Sign.sg, maxidx:int}
-  val rep_ctyp		: ctyp -> {T: typ, sign: Sign.sg}
+
+  (*certified terms*)
+  type cterm
+  val rep_cterm		: cterm -> {sign: Sign.sg, t: term, T: typ, maxidx: int}
   val term_of		: cterm -> term
-  val typ_of		: ctyp -> typ
+  val cterm_of		: Sign.sg -> term -> cterm
+  val read_cterm	: Sign.sg -> string * typ -> cterm
   val cterm_fun		: (term -> term) -> (cterm -> cterm)
-  (*end of cterm/ctyp functions*)
+  val dest_cimplies	: cterm -> cterm * cterm
+  val read_def_cterm 	:
+    Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
+    string list -> bool -> string * typ -> cterm * (indexname * typ) list
+
+  (*meta theorems*)
+  type thm
+  exception THM of string * int * thm list
+  val rep_thm		: thm ->
+    {sign: Sign.sg, maxidx: int, hyps: term list, prop: term};
+  val stamps_of_thm	: thm -> string ref list
+  val tpairs_of		: thm -> (term * term) list
+  val prems_of		: thm -> term list
+  val nprems_of		: thm -> int
+  val concl_of		: thm -> term
+  val cprop_of		: thm -> cterm
+  val cert_axm		: Sign.sg -> string * term -> string * term
+  val read_axm		: Sign.sg -> string * string -> string * term
+  val inferT_axm	: Sign.sg -> string * term -> string * term
+
+  (*theories*)
+  type theory
+  exception THEORY of string * theory list
+  val rep_theory	: theory ->
+    {sign: Sign.sg, new_axioms: term Sign.Symtab.table, parents: theory list}
+  val sign_of		: theory -> Sign.sg
+  val syn_of		: theory -> Sign.Syntax.syntax
+  val stamps_of_thy	: theory -> string ref list
+  val parents_of	: theory -> theory list
+  val subthy		: theory * theory -> bool
+  val eq_thy		: theory * theory -> bool
+  val get_axiom		: theory -> string -> thm
+  val axioms_of		: theory -> (string * thm) list
+  val proto_pure_thy	: theory
+  val pure_thy		: theory
+  val cpure_thy		: theory
   local open Sign.Syntax in
     val add_classes	: (class * class list) list -> theory -> theory
     val add_classrel	: (class * class) list -> theory -> theory
@@ -50,86 +83,65 @@ sig
       (string * (term list -> term)) list *
       (string * (term list -> term)) list *
       (string * (ast list -> ast)) list -> theory -> theory
-    val add_trrules	: xrule list -> theory -> theory
+    val add_trrules	: (string * string) trrule list -> theory -> theory
+    val add_trrules_i	: ast trrule list -> theory -> theory
     val add_axioms	: (string * string) list -> theory -> theory
     val add_axioms_i	: (string * term) list -> theory -> theory
     val add_thyname	: string -> theory -> theory
   end
-  val cert_axm		: Sign.sg -> string * term -> string * term
-  val read_axm		: Sign.sg -> string * string -> string * term
-  val inferT_axm	: Sign.sg -> string * term -> string * term
-  val abstract_rule	: string -> cterm -> thm -> thm
-  val add_congs		: meta_simpset * thm list -> meta_simpset
-  val add_prems		: meta_simpset * thm list -> meta_simpset
-  val add_simps		: meta_simpset * thm list -> meta_simpset
-  val assume		: cterm -> thm
-  val assumption	: int -> thm -> thm Sequence.seq
-  val axioms_of		: theory -> (string * thm) list
-  val beta_conversion	: cterm -> thm
-  val bicompose		: bool -> bool * thm * int -> int -> thm -> 
-                          thm Sequence.seq
-  val biresolution	: bool -> (bool*thm)list -> int -> thm -> 
-                          thm Sequence.seq
-  val combination	: thm -> thm -> thm
-  val concl_of		: thm -> term
-  val cprop_of		: thm -> cterm
-  val del_simps		: meta_simpset * thm list -> meta_simpset
-  val dest_cimplies	: cterm -> cterm*cterm
-  val dest_state	: thm*int -> (term*term)list * term list * term * term
-  val empty_mss		: meta_simpset
-  val eq_assumption	: int -> thm -> thm
-  val equal_intr	: thm -> thm -> thm
-  val equal_elim	: thm -> thm -> thm
-  val extensional	: thm -> thm
-  val flexflex_rule	: thm -> thm Sequence.seq
-  val flexpair_def	: thm
-  val forall_elim	: cterm -> thm -> thm
-  val forall_intr	: cterm -> thm -> thm
-  val freezeT		: thm -> thm
-  val get_axiom		: theory -> string -> thm
-  val implies_elim	: thm -> thm -> thm
-  val implies_intr	: cterm -> thm -> thm
-  val implies_intr_hyps	: thm -> thm
-  val instantiate	: (indexname*ctyp)list * (cterm*cterm)list -> 
-                          thm -> thm
-  val lift_rule		: (thm * int) -> thm -> thm
   val merge_theories	: theory * theory -> theory
   val merge_thy_list	: bool -> theory list -> theory
-  val mk_rews_of_mss	: meta_simpset -> thm -> thm list
-  val mss_of		: thm list -> meta_simpset
-  val nprems_of		: thm -> int
-  val parents_of	: theory -> theory list
-  val prems_of		: thm -> term list
-  val prems_of_mss	: meta_simpset -> thm list
-  val proto_pure_thy	: theory
-  val pure_thy		: theory
-  val cpure_thy		: theory
-  val read_def_cterm 	:
-         Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
-         string list -> bool -> string * typ -> cterm * (indexname * typ) list
-   val reflexive	: cterm -> thm
-  val rename_params_rule: string list * int -> thm -> thm
-  val rep_thm		: thm -> {prop: term, hyps: term list, 
-				  maxidx: int, sign: Sign.sg}
-  val rewrite_cterm	: bool*bool -> meta_simpset -> 
-      (meta_simpset -> thm -> thm option) -> cterm -> thm
-  val set_mk_rews	: meta_simpset * (thm -> thm list) -> meta_simpset
-  val rep_theory	: theory -> {sign: Sign.sg, 
-				     new_axioms: term Sign.Symtab.table,
-				     parents: theory list}
-  val subthy		: theory * theory -> bool
-  val eq_thy		: theory * theory -> bool
-  val sign_of		: theory -> Sign.sg
-  val syn_of		: theory -> Sign.Syntax.syntax
-  val stamps_of_thm	: thm -> string ref list
-  val stamps_of_thy	: theory -> string ref list
+
+  (*meta rules*)
+  val assume		: cterm -> thm
+  val implies_intr	: cterm -> thm -> thm
+  val implies_elim	: thm -> thm -> thm
+  val forall_intr	: cterm -> thm -> thm
+  val forall_elim	: cterm -> thm -> thm
+  val flexpair_def	: thm
+  val reflexive		: cterm -> thm
   val symmetric		: thm -> thm
-  val tpairs_of		: thm -> (term*term)list
-  val trace_simp	: bool ref
   val transitive	: thm -> thm -> thm
+  val beta_conversion	: cterm -> thm
+  val extensional	: thm -> thm
+  val abstract_rule	: string -> cterm -> thm -> thm
+  val combination	: thm -> thm -> thm
+  val equal_intr	: thm -> thm -> thm
+  val equal_elim	: thm -> thm -> thm
+  val implies_intr_hyps	: thm -> thm
+  val flexflex_rule	: thm -> thm Sequence.seq
+  val instantiate	:
+    (indexname * ctyp) list * (cterm * cterm) list -> thm -> thm
   val trivial		: cterm -> thm
   val class_triv	: theory -> class -> thm
   val varifyT		: thm -> thm
+  val freezeT		: thm -> thm
+  val dest_state	: thm * int ->
+    (term * term) list * term list * term * term
+  val lift_rule		: (thm * int) -> thm -> thm
+  val assumption	: int -> thm -> thm Sequence.seq
+  val eq_assumption	: int -> thm -> thm
+  val rename_params_rule: string list * int -> thm -> thm
+  val bicompose		: bool -> bool * thm * int ->
+    int -> thm -> thm Sequence.seq
+  val biresolution	: bool -> (bool * thm) list ->
+    int -> thm -> thm Sequence.seq
+
+  (*meta simplification*)
+  type meta_simpset
+  exception SIMPLIFIER of string * thm
+  val empty_mss		: meta_simpset
+  val add_simps		: meta_simpset * thm list -> meta_simpset
+  val del_simps		: meta_simpset * thm list -> meta_simpset
+  val mss_of		: thm list -> meta_simpset
+  val add_congs		: meta_simpset * thm list -> meta_simpset
+  val add_prems		: meta_simpset * thm list -> meta_simpset
+  val prems_of_mss	: meta_simpset -> thm list
+  val set_mk_rews	: meta_simpset * (thm -> thm list) -> meta_simpset
+  val mk_rews_of_mss	: meta_simpset -> thm -> thm list
+  val trace_simp	: bool ref
+  val rewrite_cterm	: bool * bool -> meta_simpset ->
+    (meta_simpset -> thm -> thm option) -> cterm -> thm
 end;
 
 functor ThmFun (structure Logic: LOGIC and Unify: UNIFY and Pattern: PATTERN
@@ -243,7 +255,7 @@ fun nprems_of (Thm {prop, ...}) =
 fun concl_of (Thm {prop, ...}) = Logic.strip_imp_concl prop;
 
 (*the statement of any thm is a cterm*)
-fun cprop_of (Thm {sign, maxidx, hyps, prop}) =
+fun cprop_of (Thm {sign, maxidx, prop, ...}) =
   Cterm {sign = sign, maxidx = maxidx, T = propT, t = prop};
 
 
@@ -345,6 +357,7 @@ val add_syntax    = ext_sg Sign.add_syntax;
 val add_syntax_i  = ext_sg Sign.add_syntax_i;
 val add_trfuns    = ext_sg Sign.add_trfuns;
 val add_trrules   = ext_sg Sign.add_trrules;
+val add_trrules_i = ext_sg Sign.add_trrules_i;
 val add_thyname   = ext_sg Sign.add_name;
 
 
@@ -544,7 +557,7 @@ fun transitive th1 th2 =
      | _ =>  err"premises"
   end;
 
-(*Beta-conversion: maps (%(x)t)(u) to the theorem  (%(x)t)(u) == t[u/x]   *)
+(*Beta-conversion: maps (%x.t)(u) to the theorem (%x.t)(u) == t[u/x] *)
 fun beta_conversion ct =
   let val {sign, t, T, maxidx} = rep_cterm ct
   in  case t of
@@ -738,9 +751,8 @@ fun trivial ct : thm =
       else Thm{sign= sign, maxidx= maxidx, hyps= [], prop= implies$A$A}
   end;
 
-(*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)".
-  Is weaker than some definition of c_class, e.g. "c_class == %x.T";
-  may be interpreted as an instance of A==>A.*)
+(*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)" --
+  essentially an instance of A==>A.*)
 fun class_triv thy c =
   let
     val sign = sign_of thy;
@@ -1019,7 +1031,7 @@ fun biresolution match brules i state =
         fun res [] = Sequence.null
           | res ((eres_flg, rule)::brules) =
               if could_bires (Hs, B, eres_flg, rule)
-              then Sequence.seqof (*delay processing remainder til needed*)
+              then Sequence.seqof (*delay processing remainder till needed*)
                   (fn()=> Some(comp (eres_flg, lift rule, nprems_of rule),
                                res brules))
               else res brules
