@@ -47,7 +47,8 @@ sig
                  swrappers: (string * wrapper) list,
                  uwrappers: (string * wrapper) list,
                  safe0_netpair: netpair, safep_netpair: netpair,
-                 haz_netpair: netpair, dup_netpair: netpair, xtra_netpair: netpair}
+                 haz_netpair: netpair, dup_netpair: netpair,
+                 xtra_netpair: ContextRules.netpair}
   val merge_cs          : claset * claset -> claset
   val addDs             : claset * thm list -> claset
   val addEs             : claset * thm list -> claset
@@ -189,6 +190,7 @@ val swap =
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
 fun swapify intrs = intrs RLN (2, [swap]);
+fun swapped x = Attrib.no_args (fn (x, th) => (x, th RSN (2, swap))) x;
 
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
@@ -213,17 +215,17 @@ fun dup_elim th =
 (**** Classical rule sets ****)
 
 datatype claset =
-  CS of {safeIs         : thm list,             (*safe introduction rules*)
-         safeEs         : thm list,             (*safe elimination rules*)
-         hazIs          : thm list,             (*unsafe introduction rules*)
-         hazEs          : thm list,             (*unsafe elimination rules*)
-         swrappers      : (string * wrapper) list, (*for transf. safe_step_tac*)
+  CS of {safeIs         : thm list,                (*safe introduction rules*)
+         safeEs         : thm list,                (*safe elimination rules*)
+         hazIs          : thm list,                (*unsafe introduction rules*)
+         hazEs          : thm list,                (*unsafe elimination rules*)
+         swrappers      : (string * wrapper) list, (*for transforming safe_step_tac*)
          uwrappers      : (string * wrapper) list, (*for transforming step_tac*)
-         safe0_netpair  : netpair,              (*nets for trivial cases*)
-         safep_netpair  : netpair,              (*nets for >0 subgoals*)
-         haz_netpair    : netpair,              (*nets for unsafe rules*)
-         dup_netpair    : netpair,              (*nets for duplication*)
-         xtra_netpair   : netpair};             (*nets for extra rules*)
+         safe0_netpair  : netpair,                 (*nets for trivial cases*)
+         safep_netpair  : netpair,                 (*nets for >0 subgoals*)
+         haz_netpair    : netpair,                 (*nets for unsafe rules*)
+         dup_netpair    : netpair,                 (*nets for duplication*)
+         xtra_netpair   : ContextRules.netpair};   (*nets for extra rules*)
 
 (*Desired invariants are
         safe0_netpair = build safe0_brls,
@@ -283,7 +285,7 @@ end;
 fun joinrules (intrs, elims) =
   (map (pair true) (elims @ swapify intrs) @ map (pair false) intrs);
 
-fun joinrules_simple (intrs, elims) =
+fun joinrules' (intrs, elims) =
   (map (pair true) elims @ map (pair false) intrs);
 
 (*Priority: prefer rules with fewest subgoals,
@@ -293,8 +295,8 @@ fun tag_brls k [] = []
       (1000000*subgoals_of_brl brl + k, brl) ::
       tag_brls (k+1) brls;
 
-fun tag_brls_simple k [] = []
-  | tag_brls_simple k (brl::brls) = (k, brl) :: tag_brls_simple (k+1) brls;
+fun tag_brls' _ _ [] = []
+  | tag_brls' w k (brl::brls) = ((w, k), brl) :: tag_brls' w (k + 1) brls;
 
 fun insert_tagged_list kbrls netpr = foldr Tactic.insert_tagged_brl (kbrls, netpr);
 
@@ -302,11 +304,11 @@ fun insert_tagged_list kbrls netpr = foldr Tactic.insert_tagged_brl (kbrls, netp
   Count the intr rules double (to account for swapify).  Negate to give the
   new insertions the lowest priority.*)
 fun insert (nI, nE) = insert_tagged_list o (tag_brls (~(2*nI+nE))) o joinrules;
-fun insert_simple (nI, nE) = insert_tagged_list o tag_brls_simple (~(nI + nE)) o joinrules_simple;
+fun insert' w (nI, nE) = insert_tagged_list o tag_brls' w (~(nI + nE)) o joinrules';
 
 fun delete_tagged_list brls netpr = foldr Tactic.delete_tagged_brl (brls, netpr);
 fun delete x = delete_tagged_list (joinrules x);
-fun delete_simple x = delete_tagged_list (joinrules_simple x);
+fun delete' x = delete_tagged_list (joinrules' x);
 
 val mem_thm = gen_mem eq_thm
 and rem_thm = gen_rem eq_thm;
@@ -349,7 +351,7 @@ fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
         uwrappers    = uwrappers,
         haz_netpair  = haz_netpair,
         dup_netpair  = dup_netpair,
-        xtra_netpair = insert_simple (nI,nE) ([th], []) xtra_netpair}
+        xtra_netpair = insert' 0 (nI,nE) ([th], []) xtra_netpair}
   end;
 
 fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
@@ -374,7 +376,7 @@ fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
         uwrappers    = uwrappers,
         haz_netpair  = haz_netpair,
         dup_netpair  = dup_netpair,
-        xtra_netpair = insert_simple (nI,nE) ([], [th]) xtra_netpair}
+        xtra_netpair = insert' 0 (nI,nE) ([], [th]) xtra_netpair}
   end;
 
 fun rev_foldl f (e, l) = foldl f (e, rev l);
@@ -407,7 +409,7 @@ fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
         uwrappers     = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        xtra_netpair = insert_simple (nI,nE) ([th], []) xtra_netpair}
+        xtra_netpair = insert' 1 (nI,nE) ([th], []) xtra_netpair}
   end;
 
 fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
@@ -430,7 +432,7 @@ fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
         uwrappers     = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        xtra_netpair = insert_simple (nI,nE) ([], [th]) xtra_netpair}
+        xtra_netpair = insert' 1 (nI,nE) ([], [th]) xtra_netpair}
   end;
 
 val op addIs = rev_foldl addI;
@@ -461,7 +463,7 @@ fun delSI th
          uwrappers    = uwrappers,
          haz_netpair  = haz_netpair,
          dup_netpair  = dup_netpair,
-         xtra_netpair = delete_simple ([th], []) xtra_netpair}
+         xtra_netpair = delete' ([th], []) xtra_netpair}
    end
  else cs;
 
@@ -480,7 +482,7 @@ fun delSE th
          uwrappers    = uwrappers,
          haz_netpair  = haz_netpair,
          dup_netpair  = dup_netpair,
-         xtra_netpair = delete_simple ([], [th]) xtra_netpair}
+         xtra_netpair = delete' ([], [th]) xtra_netpair}
    end
  else cs;
 
@@ -499,7 +501,7 @@ fun delI th
         uwrappers     = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        xtra_netpair = delete_simple ([th], []) xtra_netpair}
+        xtra_netpair = delete' ([th], []) xtra_netpair}
  else cs;
 
 fun delE th
@@ -516,7 +518,7 @@ fun delE th
         uwrappers     = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        xtra_netpair = delete_simple ([], [th]) xtra_netpair}
+        xtra_netpair = delete' ([], [th]) xtra_netpair}
  else cs;
 
 
@@ -902,6 +904,7 @@ fun elim_format x = Attrib.no_args (Drule.rule_attribute (K Data.make_elim)) x;
 val setup_attrs = Attrib.add_attributes
  [("elim_format", (elim_format, elim_format),
     "destruct rule turned into elimination rule format (classical)"),
+  ("swapped", (swapped, swapped), "classical swap of introduction rule"),
   (destN,
    (add_rule ContextRules.dest_query_global haz_dest_global safe_dest_global,
     add_rule ContextRules.dest_query_local haz_dest_local safe_dest_local),
@@ -929,17 +932,10 @@ fun METHOD_CLASET' tac ctxt =
 
 local
 
-fun may_unify t net = map snd (Tactic.orderlist (Net.unify_term net t));
-
-fun find_erules [] = K []
-  | find_erules (fact :: _) = may_unify (Logic.strip_assums_concl (#prop (Thm.rep_thm fact)));
-fun find_irules goal = may_unify (Logic.strip_assums_concl goal);
-fun find_rules (inet, enet) facts goal = find_erules facts enet @ find_irules goal inet;
-
 fun some_rule_tac ctxt (CS {xtra_netpair, ...}) facts = SUBGOAL (fn (goal, i) =>
   let
-    val [rules1, rules2, rules4] = ContextRules.find_rules ctxt facts goal;
-    val rules3 = find_rules xtra_netpair facts goal;
+    val [rules1, rules2, rules4] = ContextRules.find_rules false facts goal ctxt;
+    val rules3 = ContextRules.find_rules_netpair true facts goal xtra_netpair;
     val rules = rules1 @ rules2 @ rules3 @ rules4;
     val ruleq = Method.multi_resolves facts rules;
   in
