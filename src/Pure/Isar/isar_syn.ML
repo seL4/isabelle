@@ -469,7 +469,7 @@ val use_thyP =
 
 val update_thyP =
   OuterSyntax.parser true "update_thy" "update theory file"
-    (name >> IsarCmd.use_thy);
+    (name >> IsarCmd.update_thy);
 
 val prP =
   OuterSyntax.parser true "pr" "print current toplevel state"
