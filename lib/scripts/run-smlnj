@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# SML/NJ startup script (for 1.06 or later).
+#
+# $Id$
+#
+# Global vars: INFILE OUTFILE COPYDB MLTEXT OPTIONS TERMINATE,
+# and from settings
+#
+# MMW 30-Nov-1996
+
+
+## diagnostics
+
+function fail()
+{
+  echo "$1"
+  exit 2
+}
+
+
+## locations and settings
+
+SML="$ML_HOME/bin/sml"
+
+
+## prepare databases
+
+function fail_out()
+{
+  fail "Unable to create output heap file: \"$OUTFILE\""
+}
+
+if [ -z "$OUTFILE" ]; then
+  DB="$INFILE"
+  COMMIT="fun commit() = output (std_out, \"Error - Database is not opened for writing.\\n\");"
+elif [ -n "$INFILE" -a "$INFILE" != "$OUTFILE" ]; then           # FIXME ! -ef !?
+  [ -f "$OUTFILE" ] && { rm -f "$OUTFILE" || fail_out }
+  cp "$INFILE" "$OUTFILE" || fail_out
+  chmod +w "$OUTFILE"
+  DB="$INFILE"
+  COMMIT="fun commit() = (exportML\"$OUTFILE\"; ());"
+else
+  DB="$INFILE"
+  COMMIT="fun commit() = (exportML\"$OUTFILE\"; ());"
+fi
+
+[ -n "$DB" ] && DB="@SMLload=$DB"
+MLTEXT="$COMMIT $MLTEXT"
+
+
+## run it!
+
+START_SML="$SML $ML_OPTIONS $OPTIONS $DB"
+
+if [ -n "$TERMINATE" ]; then
+  echo "$MLTEXT" | $START_SML
+  RC=$?
+elif [ -z "$MLTEXT" ]; then
+  $START_SML
+  RC=$?
+else
+  TMP_FILE=/tmp/mltext-$$
+  echo "$MLTEXT" >$TMP_FILE
+  cat $TMP_FILE - | $START_SML
+  RC=$?
+  rm $TMP_FILE
+fi
+
+exit $RC
