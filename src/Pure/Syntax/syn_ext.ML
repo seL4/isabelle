@@ -6,69 +6,64 @@ Syntax extension (internal interface).
 *)
 
 signature SYN_EXT0 =
-sig
+  sig
   val typeT: typ
   val constrainC: string
-end;
+  end;
 
 signature SYN_EXT =
-sig
+  sig
   include SYN_EXT0
-  structure Ast: AST
-  local open Ast in
-    val logic: string
-    val args: string
-    val cargs: string
-    val any: string
-    val sprop: string
-    val typ_to_nonterm: typ -> string
-    datatype xsymb =
-      Delim of string |
-      Argument of string * int |
-      Space of string |
-      Bg of int | Brk of int | En
-    datatype xprod = XProd of string * xsymb list * string * int
-    val max_pri: int
-    val chain_pri: int
-    val delims_of: xprod list -> string list
-    datatype mfix = Mfix of string * typ * string * int list * int
-    datatype syn_ext =
-      SynExt of {
-        logtypes: string list,
-        xprods: xprod list,
-        consts: string list,
-        parse_ast_translation: (string * (ast list -> ast)) list,
-        parse_rules: (ast * ast) list,
-        parse_translation: (string * (term list -> term)) list,
-        print_translation: (string * (term list -> term)) list,
-        print_rules: (ast * ast) list,
-        print_ast_translation: (string * (ast list -> ast)) list}
-    val mk_syn_ext: bool -> string list -> mfix list ->
-      string list -> (string * (ast list -> ast)) list *
-      (string * (term list -> term)) list *
-      (string * (term list -> term)) list * (string * (ast list -> ast)) list
-      -> (ast * ast) list * (ast * ast) list -> syn_ext
-    val syn_ext: string list -> mfix list -> string list ->
-      (string * (ast list -> ast)) list * (string * (term list -> term)) list *
-      (string * (term list -> term)) list * (string * (ast list -> ast)) list
-      -> (ast * ast) list * (ast * ast) list -> syn_ext
-    val syn_ext_logtypes: string list -> syn_ext
-    val syn_ext_const_names: string list -> string list -> syn_ext
-    val syn_ext_rules: string list -> (ast * ast) list * (ast * ast) list -> syn_ext
-    val syn_ext_trfuns: string list ->
-      (string * (ast list -> ast)) list * (string * (term list -> term)) list *
-      (string * (term list -> term)) list * (string * (ast list -> ast)) list
-      -> syn_ext
-    val pure_ext: syn_ext
-  end
-end;
+  val logic: string
+  val args: string
+  val cargs: string
+  val any: string
+  val sprop: string
+  val typ_to_nonterm: typ -> string
+  datatype xsymb =
+    Delim of string |
+    Argument of string * int |
+    Space of string |
+    Bg of int | Brk of int | En
+  datatype xprod = XProd of string * xsymb list * string * int
+  val max_pri: int
+  val chain_pri: int
+  val delims_of: xprod list -> string list
+  datatype mfix = Mfix of string * typ * string * int list * int
+  datatype syn_ext =
+    SynExt of {
+      logtypes: string list,
+      xprods: xprod list,
+      consts: string list,
+      parse_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
+      parse_rules: (Ast.ast * Ast.ast) list,
+      parse_translation: (string * (term list -> term)) list,
+      print_translation: (string * (term list -> term)) list,
+      print_rules: (Ast.ast * Ast.ast) list,
+      print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list}
+  val mk_syn_ext: bool -> string list -> mfix list ->
+    string list -> (string * (Ast.ast list -> Ast.ast)) list *
+    (string * (term list -> term)) list *
+    (string * (term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
+    -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
+  val syn_ext: string list -> mfix list -> string list ->
+    (string * (Ast.ast list -> Ast.ast)) list * (string * (term list -> term)) list *
+    (string * (term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
+    -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
+  val syn_ext_logtypes: string list -> syn_ext
+  val syn_ext_const_names: string list -> string list -> syn_ext
+  val syn_ext_rules: string list -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
+  val syn_ext_trfuns: string list ->
+    (string * (Ast.ast list -> Ast.ast)) list * (string * (term list -> term)) list *
+    (string * (term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
+    -> syn_ext
+  val pure_ext: syn_ext
+  end;
 
-functor SynExtFun(structure Lexicon: LEXICON and Ast: AST): SYN_EXT =
+structure SynExt : SYN_EXT =
 struct
 
-structure Ast = Ast;
 open Lexicon Ast;
-
 
 (** misc definitions **)
 
@@ -277,12 +272,12 @@ datatype syn_ext =
     logtypes: string list,
     xprods: xprod list,
     consts: string list,
-    parse_ast_translation: (string * (ast list -> ast)) list,
-    parse_rules: (ast * ast) list,
+    parse_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
+    parse_rules: (Ast.ast * Ast.ast) list,
     parse_translation: (string * (term list -> term)) list,
     print_translation: (string * (term list -> term)) list,
-    print_rules: (ast * ast) list,
-    print_ast_translation: (string * (ast list -> ast)) list};
+    print_rules: (Ast.ast * Ast.ast) list,
+    print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list};
 
 
 (* syn_ext *)
@@ -338,3 +333,4 @@ val pure_ext = mk_syn_ext false []
   ([], []);
 
 end;
+
