@@ -34,7 +34,7 @@ by (etac Fin_induct 1);
 by (ALLGOALS(asm_full_simp_tac 
          (simpset() addsimps [OK_cons_iff])));
 (* Auto_tac proves the goal in one step *)
-by Safe_tac;
+by (safe_tac (claset() addSEs [not_emptyE]));
 by (ALLGOALS(Asm_full_simp_tac));
 by (Fast_tac 1);
 qed_spec_mp "ex1";

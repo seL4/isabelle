@@ -831,6 +831,12 @@ apply (induct_tac "xs", simp_all, clarify)
 apply (erule_tac n = i in natE, simp_all)
 done
 
+lemma length_take:
+     "l\<in>list(A) ==> \<forall>n\<in>nat. length(take(n,l)) = min(n, length(l))"
+apply (induct_tac "l", safe, simp_all)
+apply (erule natE, simp_all)
+done
+
 subsection{*The function zip*}
 
 text{*Crafty definition to eliminate a type argument*}

@@ -164,12 +164,11 @@ Goalw [JOIN_def] "JOIN(0, F) = SKIP";
 by Auto_tac;
 qed "JN_empty";
 AddIffs [JN_empty];
-AddSEs [not_emptyE];
 Addsimps [Inter_0];
 
 Goal "Init(JN i:I. F(i)) = (if I=0 then state else (INT i:I. Init(F(i))))";
 by (simp_tac (simpset() addsimps [JOIN_def]) 1);
-by (auto_tac (claset(), simpset() addsimps [INT_Int_distrib]));
+by (auto_tac (claset() addSEs [not_emptyE], simpset() addsimps [INT_Int_distrib]));
 qed "Init_JN";
 
 Goalw [JOIN_def]
@@ -183,7 +182,7 @@ Goalw [JOIN_def]
 "AllowedActs(JN i:I. F(i)) = (if I=0 then Pow(state*state) else (INT i:I. AllowedActs(F(i))))";
 by Auto_tac;
 by (rtac equalityI 1);
-by (auto_tac (claset() addDs [AllowedActs_type RS subsetD], simpset()));
+by (auto_tac (claset()  addSEs [not_emptyE] addDs [AllowedActs_type RS subsetD], simpset()));
 qed "AllowedActs_JN";
 AddIffs [Init_JN, Acts_JN, AllowedActs_JN];
 
@@ -225,22 +224,21 @@ qed "JN_constant";
 Goal "(JN i:I. F(i) Join G(i)) = (JN i:I. F(i))  Join  (JN i:I. G(i))";
 by (rtac program_equalityI 1);
 by (ALLGOALS(simp_tac (simpset() addsimps [Int_absorb])));
-by Safe_tac;
+by (safe_tac (claset() addSEs [not_emptyE]));
 by (ALLGOALS(asm_full_simp_tac (simpset() addsimps 
               [INT_Int_distrib, Int_absorb])));
 by (Force_tac 1);
 qed "JN_Join_distrib";
 
 Goal "(JN i:I. F(i) Join G) = ((JN i:I. F(i) Join G))";
-by (asm_simp_tac (simpset() 
-    addsimps [JN_Join_distrib, JN_constant]) 1);
+by (asm_simp_tac (simpset() addsimps [JN_Join_distrib, JN_constant]) 1);
 qed "JN_Join_miniscope";
 
 (*Used to prove guarantees_JN_I*)
 
 Goal "i:I==>F(i) Join JOIN(I - {i}, F) = JOIN(I, F)";
 by (rtac program_equalityI 1);
-by Auto_tac;
+by (auto_tac (claset() addSEs [not_emptyE], simpset()));
 qed "JN_Join_diff";
 
 (*** Safety: co, stable, FP ***)
@@ -309,9 +307,7 @@ qed "JN_stable";
 val [major, minor] = Goalw [initially_def]
  "[| (!!i. i:I ==>F(i):initially(A)); i:I |] ==> (JN i:I. F(i)):initially(A)";
 by (cut_facts_tac [minor] 1);
-by (Asm_full_simp_tac 1);
-by Safe_tac;
-by (asm_full_simp_tac (simpset() addsimps [Inter_iff]) 1);
+by (auto_tac (claset() addSEs [not_emptyE], simpset() addsimps [Inter_iff]));
 by (forw_inst_tac [("i", "x")] major 1);
 by Auto_tac;
 qed "initially_JN_I";
@@ -500,13 +496,13 @@ by (auto_tac (claset(), simpset() addsimps [ok_def]));
 qed "ok_Join_commute_I";
 
 Goal "F ok JOIN(I,G) <-> (ALL i:I. F ok G(i))";
-by (auto_tac (claset(), simpset() addsimps [ok_def]));
+by (auto_tac (claset() addSEs [not_emptyE], simpset() addsimps [ok_def]));
 by (blast_tac (claset() addDs [Acts_type RS subsetD]) 1);
 qed "ok_JN_iff1";
 
 
 Goal "JOIN(I,G) ok F   <->  (ALL i:I. G(i) ok F)";
-by (auto_tac (claset(), simpset() addsimps [ok_def]));
+by (auto_tac (claset() addSEs [not_emptyE], simpset() addsimps [ok_def]));
 by (blast_tac (claset() addDs [Acts_type RS subsetD]) 1);
 qed "ok_JN_iff2";
 AddIffs [ok_JN_iff1, ok_JN_iff2];

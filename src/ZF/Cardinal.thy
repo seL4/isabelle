@@ -1019,6 +1019,15 @@ apply (unfold Finite_def)
 apply (fast intro!: eqpoll_refl)
 done
 
+lemma nat_not_Finite: "~Finite(nat)"
+apply (unfold Finite_def, clarify) 
+apply (drule eqpoll_imp_lepoll [THEN lepoll_cardinal_le], simp) 
+apply (insert Card_nat) 
+apply (simp add: Card_def)
+apply (drule le_imp_subset)
+apply (blast elim: mem_irrefl)
+done
+
 ML
 {*
 val Least_def = thm "Least_def";

@@ -394,10 +394,11 @@ apply (rule mono_length)
 apply (simp_all add: refl_prefix Le_def comp_def length_type)
 done
 
-(* Lemma 51, page 29.
+
+text{*Lemma 51, page 29.
   This theorem states as invariant that if the number of
   tokens given does not exceed the number returned, then the upper limit
-  (NbT) does not exceed the number currently available.*)
+  (@{term NbT}) does not exceed the number currently available.*}
 lemma alloc_prog_Always_lemma:
 "[| G \<in> program; alloc_prog ok G;
     alloc_prog \<squnion> G \<in> Incr(lift(ask));
@@ -405,21 +406,23 @@ lemma alloc_prog_Always_lemma:
   ==> alloc_prog \<squnion> G \<in>
         Always({s\<in>state. tokens(s`giv) \<le> tokens(take(s`NbR, s`rel)) -->
                 NbT \<le> s`available_tok})"
-apply (subgoal_tac "alloc_prog \<squnion> G \<in> Always ({s\<in>state. s`NbR \<le> length(s`rel) } \<inter> {s\<in>state. s`available_tok #+ tokens(s`giv) = NbT #+ tokens(take (s`NbR, s`rel))}) ")
+apply (subgoal_tac
+       "alloc_prog \<squnion> G
+          \<in> Always ({s\<in>state. s`NbR \<le> length(s`rel) } \<inter>
+                    {s\<in>state. s`available_tok #+ tokens(s`giv) = 
+                              NbT #+ tokens(take (s`NbR, s`rel))})")
 apply (rule_tac [2] AlwaysI)
 apply (rule_tac [3] giv_Bounded_lemma2, auto)
 apply (rule Always_weaken, assumption, auto)
 apply (subgoal_tac "0 \<le> tokens(take (x ` NbR, x ` rel)) #- tokens(x`giv) ")
-apply (rule_tac [2] nat_diff_split [THEN iffD2])
- prefer 2 apply force
+ prefer 2 apply (force)
 apply (subgoal_tac "x`available_tok =
                     NbT #+ (tokens(take(x`NbR,x`rel)) #- tokens(x`giv))")
-apply (simp (no_asm_simp))
-apply (rule nat_diff_split [THEN iffD2], auto)
-apply (drule_tac j = "tokens(x ` giv)" in lt_trans2)
-apply assumption
-apply auto
+apply (simp add: );
+apply (auto split add: nat_diff_split dest: lt_trans2)
 done
+
+
 
 subsubsection{* Main lemmas towards proving property (31)*}
 

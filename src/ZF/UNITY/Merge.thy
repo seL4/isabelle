@@ -87,14 +87,12 @@ done
 
 lemma (in merge) Out_value_type [TC,simp]: "s \<in> state ==> s`Out \<in> list(A)"
 apply (unfold state_def)
-apply (drule_tac a = "Out" in apply_type)
-apply auto
+apply (drule_tac a = Out in apply_type, auto)
 done
 
 lemma (in merge) iOut_value_type [TC,simp]: "s \<in> state ==> s`iOut \<in> list(nat)"
 apply (unfold state_def)
-apply (drule_tac a = "iOut" in apply_type)
-apply auto
+apply (drule_tac a = iOut in apply_type, auto)
 done
 
 lemma (in merge) M_in_program [intro,simp]: "M \<in> program"
@@ -123,7 +121,7 @@ lemma (in merge) merge_Always_Out_eq_iOut:
       ==> M \<squnion> G \<in> Always({s \<in> state. length(s`Out)=length(s`iOut)})"
 apply (frule preserves_type [THEN subsetD])
 apply (subgoal_tac "G \<in> program")
- prefer 2 apply (assumption)
+ prefer 2 apply assumption
 apply (frule M_ok_iff)
 apply (cut_tac merge_spec)
 apply (force dest: guaranteesD simp add: merge_spec_def merge_eq_Out_def)
@@ -148,8 +146,7 @@ lemma (in merge) merge_bag_Follows_lemma:
                    Nclients, A) = bag_of(s`Out)})"
 apply (rule Always_Diff_Un_eq [THEN iffD1]) 
 apply (rule_tac [2] state_AlwaysI [THEN Always_weaken]) 
-apply (rule Always_Int_I [OF merge_Always_Out_eq_iOut merge_Bounded]) 
-apply auto
+apply (rule Always_Int_I [OF merge_Always_Out_eq_iOut merge_Bounded], auto)
 apply (subst bag_of_sublist_UN_disjoint [symmetric])
 apply (auto simp add: nat_into_Finite set_of_list_conv_nth  [OF iOut_value_type])
 apply (subgoal_tac " (\<Union>i \<in> Nclients. {k \<in> nat. k < length (x`iOut) & nth (k, x`iOut) = i}) = length (x`iOut) ")
@@ -158,10 +155,9 @@ apply (auto simp add: sublist_upt_eq_take [OF Out_value_type]
                       take_all [OF _ Out_value_type] 
                       length_type [OF iOut_value_type])
 apply (rule equalityI)
-apply (blast dest: ltD)
-apply clarify
+apply (blast dest: ltD, clarify)
 apply (subgoal_tac "length (x ` iOut) \<in> nat")
- prefer 2 apply (simp add: length_type [OF iOut_value_type]); 
+ prefer 2 apply (simp add: length_type [OF iOut_value_type]) 
 apply (subgoal_tac "xa \<in> nat")
 apply (simp_all add: Ord_mem_iff_lt)
 prefer 2 apply (blast intro: lt_trans)
@@ -177,19 +173,15 @@ theorem (in merge) merge_bag_Follows:
       (%s. msetsum(%i. bag_of(s`In(i)),Nclients, A)) Wrt MultLe(A, r)/Mult(A)"
 apply (cut_tac merge_spec)
 apply (rule merge_bag_Follows_lemma [THEN Always_Follows1, THEN guaranteesI])
-     apply (simp_all add: M_ok_iff)
-apply clarify
+     apply (simp_all add: M_ok_iff, clarify)
 apply (rule Follows_state_ofD1 [OF Follows_msetsum_UN])
    apply (simp_all add: nat_into_Finite bag_of_multiset [of _ A])
-apply (simp add: INT_iff merge_spec_def merge_follows_def)
-apply clarify
+apply (simp add: INT_iff merge_spec_def merge_follows_def, clarify)
 apply (cut_tac merge_spec)
 apply (subgoal_tac "M ok G")
  prefer 2 apply (force intro: M_ok_iff [THEN iffD2])
-apply (drule guaranteesD)
-apply assumption
-  apply (simp add: merge_spec_def merge_follows_def)
- apply blast
+apply (drule guaranteesD, assumption)
+  apply (simp add: merge_spec_def merge_follows_def, blast)
 apply (simp cong add: Follows_cong
     add: refl_prefix
        mono_bag_of [THEN subset_Follows_comp, THEN subsetD, unfolded comp_def])

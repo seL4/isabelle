@@ -238,6 +238,9 @@ lemma Int_cons_right:
      "A Int cons(a, B) = (if a : A then cons(a, A Int B) else A Int B)"
 by auto
 
+lemma cons_Int_distrib: "cons(x, A \<inter> B) = cons(x, A) \<inter> cons(x, B)"
+by auto
+
 subsection{*Binary Union*}
 
 (** Union is the least upper bound of two sets *)

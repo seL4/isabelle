@@ -2,41 +2,43 @@
     ID:         $Id$
     Author:     Lawrence C Paulson and Martin D Coen, CU Computer Laboratory
     Copyright   1993  University of Cambridge
-
-Zermelo-Fraenkel Set Theory
 *)
+
+header{*Zermelo-Fraenkel Set Theory*}
 
 theory ZF = FOL:
 
 global
 
-typedecl
-  i
-
-arities
-  i :: "term"
+typedecl i
+arities  i :: "term"
 
 consts
 
-  "0"         :: "i"                  ("0")   (*the empty set*)
-  Pow         :: "i => i"                     (*power sets*)
-  Inf         :: "i"                          (*infinite set*)
+  "0"         :: "i"                  ("0")   --{*the empty set*}
+  Pow         :: "i => i"                     --{*power sets*}
+  Inf         :: "i"                          --{*infinite set*}
 
-  (* Bounded Quantifiers *)
+text {*Bounded Quantifiers *}
+consts
   Ball   :: "[i, i => o] => o"
   Bex   :: "[i, i => o] => o"
 
-  (* General Union and Intersection *)
+text {*General Union and Intersection *}
+consts
   Union :: "i => i"
   Inter :: "i => i"
 
-  (* Variations on Replacement *)
+text {*Variations on Replacement *}
+consts
   PrimReplace :: "[i, [i, i] => o] => i"
   Replace     :: "[i, [i, i] => o] => i"
   RepFun      :: "[i, i => i] => i"
   Collect     :: "[i, i => o] => i"
 
-  (* Descriptions *)
+
+text {*Descriptions *}
+consts
   The         :: "(i => o) => i"      (binder "THE " 10)
   If          :: "[o, i, i] => i"     ("(if (_)/ then (_)/ else (_))" [10] 10)
 
@@ -47,46 +49,49 @@ translations
   "if(P,a,b)" => "If(P,a,b)"
 
 
-consts
 
-  (* Finite Sets *)
+text {*Finite Sets *}
+consts
   Upair :: "[i, i] => i"
   cons  :: "[i, i] => i"
   succ  :: "i => i"
 
-  (* Ordered Pairing *)
+text {*Ordered Pairing *}
+consts
   Pair  :: "[i, i] => i"
   fst   :: "i => i"
   snd   :: "i => i"
-  split :: "[[i, i] => 'a, i] => 'a::logic"  (*for pattern-matching*)
+  split :: "[[i, i] => 'a, i] => 'a::logic"  --{*for pattern-matching*}
 
-  (* Sigma and Pi Operators *)
+text {*Sigma and Pi Operators *}
+consts
   Sigma :: "[i, i => i] => i"
   Pi    :: "[i, i => i] => i"
 
-  (* Relations and Functions *)
-
-  "domain"      :: "i => i"
+text {*Relations and Functions *}
+consts
+  "domain"    :: "i => i"
   range       :: "i => i"
   field       :: "i => i"
   converse    :: "i => i"
-  relation    :: "i => o"         (*recognizes sets of pairs*)
-  function    :: "i => o"         (*recognizes functions; can have non-pairs*)
+  relation    :: "i => o"        --{*recognizes sets of pairs*}
+  function    :: "i => o"        --{*recognizes functions; can have non-pairs*}
   Lambda      :: "[i, i => i] => i"
   restrict    :: "[i, i] => i"
 
-  (* Infixes in order of decreasing precedence *)
+text {*Infixes in order of decreasing precedence *}
+consts
 
-  "``"        :: "[i, i] => i"    (infixl 90) (*image*)
-  "-``"       :: "[i, i] => i"    (infixl 90) (*inverse image*)
-  "`"         :: "[i, i] => i"    (infixl 90) (*function application*)
+  "``"        :: "[i, i] => i"    (infixl 90) --{*image*}
+  "-``"       :: "[i, i] => i"    (infixl 90) --{*inverse image*}
+  "`"         :: "[i, i] => i"    (infixl 90) --{*function application*}
 (*"*"         :: "[i, i] => i"    (infixr 80) [virtual] Cartesian product*)
-  "Int"       :: "[i, i] => i"    (infixl 70) (*binary intersection*)
-  "Un"        :: "[i, i] => i"    (infixl 65) (*binary union*)
-  "-"         :: "[i, i] => i"    (infixl 65) (*set difference*)
+  "Int"       :: "[i, i] => i"    (infixl 70) --{*binary intersection*}
+  "Un"        :: "[i, i] => i"    (infixl 65) --{*binary union*}
+  "-"         :: "[i, i] => i"    (infixl 65) --{*set difference*}
 (*"->"        :: "[i, i] => i"    (infixr 60) [virtual] function spac\<epsilon>*)
-  "<="        :: "[i, i] => o"    (infixl 50) (*subset relation*)
-  ":"         :: "[i, i] => o"    (infixl 50) (*membership relation*)
+  "<="        :: "[i, i] => o"    (infixl 50) --{*subset relation*}
+  ":"         :: "[i, i] => o"    (infixl 50) --{*membership relation*}
 (*"~:"        :: "[i, i] => o"    (infixl 50) (*negated membership relation*)*)
 
 
