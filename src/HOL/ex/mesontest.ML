@@ -33,7 +33,7 @@ by (best_prolog_tac size_of_subgoals horns);
 
 writeln"File HOL/ex/meson-test.";
 
-context Fun.thy;
+context Main.thy;
 
 (*Deep unifications can be required, esp. during transformation to clauses*)
 val orig_trace_bound = !Unify.trace_bound

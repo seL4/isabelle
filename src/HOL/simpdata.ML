@@ -96,17 +96,6 @@ val all_simps = map prover
                  "(ALL x. P --> Q x) = (P --> (ALL x. Q x))"];
 
 
-(* elimination of existential quantifiers in assumptions *)
-
-val ex_all_equiv =
-  let val lemma1 = prove_goal (the_context ())
-        "(? x. P(x) ==> PROP Q) ==> (!!x. P(x) ==> PROP Q)"
-        (fn prems => [resolve_tac prems 1, etac exI 1]);
-      val lemma2 = prove_goalw (the_context ()) [Ex_def]
-        "(!!x. P(x) ==> PROP Q) ==> (? x. P(x) ==> PROP Q)"
-        (fn prems => [(REPEAT(resolve_tac prems 1))])
-  in equal_intr lemma1 lemma2 end;
-
 end;
 
 bind_thms ("ex_simps", ex_simps);
@@ -391,7 +380,7 @@ val HOL_ss =
        if_True, if_False, if_cancel, if_eq_cancel,
        imp_disjL, conj_assoc, disj_assoc,
        de_Morgan_conj, de_Morgan_disj, imp_disj1, imp_disj2, not_imp,
-       disj_not1, not_all, not_ex, cases_simp, some_eq_trivial, some_sym_eq_trivial,
+       disj_not1, not_all, not_ex, cases_simp,
        thm "the_eq_trivial", the_sym_eq_trivial, thm "plus_ac0.zero", thm "plus_ac0_zero_right"]
      @ ex_simps @ all_simps @ simp_thms)
      addsimprocs [defALL_regroup,defEX_regroup]

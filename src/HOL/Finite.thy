@@ -37,7 +37,7 @@ intrs
 
 constdefs
   card :: 'a set => nat
- "card A == @n. (A,n) : cardR"
+ "card A == THE n. (A,n) : cardR"
 
 (*
 A "fold" functional for finite sets.  For n non-negative we have
@@ -56,7 +56,7 @@ inductive "foldSet f e"
 
 constdefs
    fold :: "[['b,'a] => 'a, 'a, 'b set] => 'a"
-  "fold f e A == @x. (A,x) : foldSet f e"
+  "fold f e A == THE x. (A,x) : foldSet f e"
 
    setsum :: "('a => 'b) => 'a set => ('b::{plus, zero})"
   "setsum f A == if finite A then fold (op+ o f) 0 A else 0"

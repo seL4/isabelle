@@ -15,7 +15,6 @@ val eq_reflection = thm "eq_reflection";
 val refl = thm "refl";
 val subst = thm "subst";
 val ext = thm "ext";
-val someI = thm "someI";
 val impI = thm "impI";
 val mp = thm "mp";
 val True_def = thm "True_def";
@@ -222,12 +221,18 @@ qed "rev_contrapos";
 section "Existential quantifier";
 
 Goalw [Ex_def] "P x ==> EX x::'a. P x";
-by (etac someI 1) ;
+by (rtac allI 1); 
+by (rtac impI 1); 
+by (etac allE 1); 
+by (etac mp 1) ;
+by (assume_tac 1); 
 qed "exI";
 
 val [major,minor] =
 Goalw [Ex_def] "[| EX x::'a. P(x); !!x. P(x) ==> Q |] ==> Q";
-by (rtac (major RS minor) 1);
+by (rtac (major RS spec RS mp) 1); 
+by (rtac (impI RS allI) 1); 
+by (etac minor 1); 
 qed "exE";
 
 
@@ -342,66 +347,6 @@ by (etac ex1E 1);
 by (rtac exI 1);
 by (assume_tac 1);
 qed "ex1_implies_ex";
-
-
-section "SOME: Hilbert's Epsilon-operator";
-
-(*Easier to apply than someI if witness ?a comes from an EX-formula*)
-Goal "EX x. P x ==> P (SOME x. P x)";
-by (etac exE 1);
-by (etac someI 1);
-qed "someI_ex";
-
-(*Easier to apply than someI: conclusion has only one occurrence of P*)
-val prems = Goal "[| P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)";
-by (resolve_tac prems 1);
-by (rtac someI 1);
-by (resolve_tac prems 1) ;
-qed "someI2";
-
-(*Easier to apply than someI2 if witness ?a comes from an EX-formula*)
-val [major,minor] = Goal "[| EX a. P a; !!x. P x ==> Q x |] ==> Q (SOME x. P x)";
-by (rtac (major RS exE) 1);
-by (etac someI2 1 THEN etac minor 1);
-qed "someI2_ex";
-
-val prems = Goal "[| P a;  !!x. P x ==> x=a |] ==> (SOME x. P x) = a";
-by (rtac someI2 1);
-by (REPEAT (ares_tac prems 1)) ;
-qed "some_equality";
-
-Goal "[| EX!x. P x; P a |] ==> (SOME x. P x) = a";
-by (rtac some_equality 1);
-by  (atac 1);
-by (etac ex1E 1);
-by (etac all_dupE 1);
-by (dtac mp 1);
-by  (atac 1);
-by (etac ssubst 1);
-by (etac allE 1);
-by (etac mp 1);
-by (atac 1);
-qed "some1_equality";
-
-Goal "P (SOME x. P x) =  (EX x. P x)";
-by (rtac iffI 1);
-by (etac exI 1);
-by (etac exE 1);
-by (etac someI 1);
-qed "some_eq_ex";
-
-Goal "(SOME y. y=x) = x";
-by (rtac some_equality 1);
-by (rtac refl 1);
-by (atac 1);
-qed "some_eq_trivial";
-
-Goal "(SOME y. x=y) = x";
-by (rtac some_equality 1);
-by (rtac refl 1);
-by (etac sym 1);
-qed "some_sym_eq_trivial";
-
 
 
 section "THE: definite description operator";

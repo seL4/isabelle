@@ -30,9 +30,9 @@ proof
 qed
 
 syntax (symbols)
-  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
+  "*"      :: "[type, type] => type"         ("(_ \\<times>/ _)" [21, 20] 20)
 syntax (HTML output)
-  "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
+  "*"      :: "[type, type] => type"         ("(_ \\<times>/ _)" [21, 20] 20)
 
 
 (* abstract constants and syntax *)
@@ -74,8 +74,8 @@ translations
   "A <*> B"      => "Sigma A (_K B)"
 
 syntax (symbols)
-  "@Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3\<Sigma> _\<in>_./ _)"   10)
-  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \<times> _" [81, 80] 80)
+  "@Sigma" :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"  ("(3\\<Sigma> _\\<in>_./ _)"   10)
+  "@Times" :: "['a set,  'a => 'b set] => ('a * 'b) set"  ("_ \\<times> _" [81, 80] 80)
 
 print_translation {* [("Sigma", dependent_tr' ("@Sigma", "@Times"))] *}
 
@@ -86,8 +86,8 @@ local
 
 defs
   Pair_def:     "Pair a b == Abs_Prod(Pair_Rep a b)"
-  fst_def:      "fst p == SOME a. EX b. p = (a, b)"
-  snd_def:      "snd p == SOME b. EX a. p = (a, b)"
+  fst_def:      "fst p == THE a. EX b. p = (a, b)"
+  snd_def:      "snd p == THE b. EX a. p = (a, b)"
   split_def:    "split == (%c p. c (fst p) (snd p))"
   prod_fun_def: "prod_fun f g == split(%x y.(f(x), g(y)))"
   Sigma_def:    "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"

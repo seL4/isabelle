@@ -12,7 +12,6 @@ struct
   val refl = refl;
   val subst = subst;
   val ext = ext;
-  val someI = someI;
   val impI = impI;
   val mp = mp;
   val True_def = True_def;
@@ -31,6 +30,6 @@ struct
 end;
 
 AddXIs [equal_intr_rule, disjI1, disjI2, ext];
-AddXEs [ex1_implies_ex, someI_ex, sym];
+AddXEs [ex1_implies_ex, sym];
 
 open HOL;

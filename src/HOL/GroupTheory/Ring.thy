@@ -1,4 +1,4 @@
-(*  Title:      HOL/GroupTheory/Bij
+(*  Title:      HOL/GroupTheory/Ring
     ID:         $Id$
     Author:     Florian Kammueller, with new proofs by L C Paulson
     Copyright   1998-2001  University of Cambridge

@@ -6,7 +6,7 @@
 Well-founded Recursion
 *)
 
-Wellfounded_Recursion = Transitive_Closure +
+Wellfounded_Recursion = Transitive_Closure + 
 
 consts
   wfrec_rel :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => ('a * 'b) set"
@@ -31,7 +31,7 @@ constdefs
      (ALL z. (z, x) : R --> f z = g z) --> F f x = F g x"
 
   wfrec :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b"
-  "wfrec R F == %x. @y. (x, y) : wfrec_rel R (%f x. F (cut f R x) x)"
+  "wfrec R F == %x. THE y. (x, y) : wfrec_rel R (%f x. F (cut f R x) x)"
 
 axclass
   wellorder < linorder

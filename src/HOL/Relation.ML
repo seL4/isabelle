@@ -333,7 +333,7 @@ qed "Range_Union";
 
 overload_1st_set "Relation.Image";
 
-Goalw [Image_def] "b : r``A = (? x:A. (x,b):r)";
+Goalw [Image_def] "b : r``A = (EX x:A. (x,b):r)";
 by (Blast_tac 1);
 qed "Image_iff";
 
@@ -422,7 +422,7 @@ qed "Image_subset_eq";
 section "single_valued";
 
 Goalw [single_valued_def]
-     "!x y. (x,y):r --> (!z. (x,z):r --> y=z) ==> single_valued r";
+     "ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z) ==> single_valued r";
 by (assume_tac 1);
 qed "single_valuedI";
 
@@ -454,26 +454,18 @@ Goalw [fun_rel_comp_def] "A <= B ==> fun_rel_comp f A <= fun_rel_comp f B";
 by (Fast_tac 1);
 qed "fun_rel_comp_mono";
 
-Goalw [fun_rel_comp_def] "! x. ?! y. (f x, y) : R ==> ?! g. g : fun_rel_comp f R";
-by (res_inst_tac [("a","%x. @y. (f x, y) : R")] ex1I 1);
-by (rtac CollectI 1);
-by (rtac allI 1);
-by (etac allE 1);
-by (rtac (some_eq_ex RS iffD2) 1);
-by (etac ex1_implies_ex 1);
-by (rtac ext 1);
-by (etac CollectE 1);
-by (REPEAT (etac allE 1));
-by (rtac (some1_equality RS sym) 1);
-by (atac 1);
-by (atac 1);
+Goalw [fun_rel_comp_def]
+     "ALL x. EX! y. (f x, y) : R ==> EX! g. g : fun_rel_comp f R";
+by (res_inst_tac [("a","%x. THE y. (f x, y) : R")] ex1I 1);
+by (fast_tac (claset() addSDs [theI']) 1); 
+by (fast_tac (claset() addIs [ext, the1_equality RS sym]) 1);
 qed "fun_rel_comp_unique";
 
 
 section "inverse image";
 
 Goalw [trans_def,inv_image_def]
-    "!!r. trans r ==> trans (inv_image r f)";
+    "trans r ==> trans (inv_image r f)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "trans_inv_image";

@@ -6,6 +6,9 @@
 MORE and MUCH HARDER test data for the MESON proof procedure
 
 Courtesy John Harrison 
+
+WARNING: there are many potential conflicts between variables used below
+and constants declared in HOL!
 *)
 
 (*All but the fastest are ignored to reduce build time*)
@@ -16,6 +19,8 @@ fun prove (s,tac) = prove_goal (the_context ()) s (fn [] => [tac]);
 fun prove_hard arg = if even_hard_ones then prove arg else TrueI;
 
 set timing;
+
+context Main.thy;
 
 (* ========================================================================= *)
 (* 100 problems selected from the TPTP library                               *)
@@ -155,10 +160,10 @@ val BOO003_1 = prove_hard
 \  (! Y Z V1 V2 X V3 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(X::'a,V3,V4)) &    \
 \  (! Y Z V3 X V1 V2 V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & sum(V3::'a,X,V4) --> product(V1::'a,V2,V4)) &    \
 \  (! Y Z V1 V2 V3 X V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(V3::'a,X,V4)) &    \
-\  (! X. sum(inverse(X),X,multiplicative_identity)) &   \
-\  (! X. sum(X::'a,inverse(X),multiplicative_identity)) &   \
-\  (! X. product(inverse(X),X,additive_identity)) &     \
-\  (! X. product(X::'a,inverse(X),additive_identity)) &     \
+\  (! X. sum(INVERSE(X),X,multiplicative_identity)) &   \
+\  (! X. sum(X::'a,INVERSE(X),multiplicative_identity)) &   \
+\  (! X. product(INVERSE(X),X,additive_identity)) &     \
+\  (! X. product(X::'a,INVERSE(X),additive_identity)) &     \
 \  (! X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
 \  (! X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
 \  (! X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
@@ -171,7 +176,7 @@ val BOO003_1 = prove_hard
 \  (! X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
 \  (! X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
+\  (! X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
 \  (~product(x::'a,x,x)) --> False",
   meson_tac 1);
 
@@ -198,10 +203,10 @@ val BOO004_1 = prove_hard
 \  (! Y Z V1 V2 X V3 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(X::'a,V3,V4)) &    \
 \  (! Y Z V3 X V1 V2 V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & sum(V3::'a,X,V4) --> product(V1::'a,V2,V4)) &    \
 \  (! Y Z V1 V2 V3 X V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(V3::'a,X,V4)) &    \
-\  (! X. sum(inverse(X),X,multiplicative_identity)) &   \
-\  (! X. sum(X::'a,inverse(X),multiplicative_identity)) &   \
-\  (! X. product(inverse(X),X,additive_identity)) &     \
-\  (! X. product(X::'a,inverse(X),additive_identity)) &     \
+\  (! X. sum(INVERSE(X),X,multiplicative_identity)) &   \
+\  (! X. sum(X::'a,INVERSE(X),multiplicative_identity)) &   \
+\  (! X. product(INVERSE(X),X,additive_identity)) &     \
+\  (! X. product(X::'a,INVERSE(X),additive_identity)) &     \
 \  (! X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
 \  (! X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
 \  (! X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
@@ -214,7 +219,7 @@ val BOO004_1 = prove_hard
 \  (! X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
 \  (! X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
+\  (! X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
 \  (~sum(x::'a,x,x)) --> False",
   meson_tac 1);
 
@@ -239,10 +244,10 @@ val BOO005_1 = prove_hard
 \  (! Y Z V1 V2 X V3 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(X::'a,V3,V4)) &    \
 \  (! Y Z V3 X V1 V2 V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & sum(V3::'a,X,V4) --> product(V1::'a,V2,V4)) &    \
 \  (! Y Z V1 V2 V3 X V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(V3::'a,X,V4)) &    \
-\  (! X. sum(inverse(X),X,multiplicative_identity)) &   \
-\  (! X. sum(X::'a,inverse(X),multiplicative_identity)) &   \
-\  (! X. product(inverse(X),X,additive_identity)) &     \
-\  (! X. product(X::'a,inverse(X),additive_identity)) &     \
+\  (! X. sum(INVERSE(X),X,multiplicative_identity)) &   \
+\  (! X. sum(X::'a,INVERSE(X),multiplicative_identity)) &   \
+\  (! X. product(INVERSE(X),X,additive_identity)) &     \
+\  (! X. product(X::'a,INVERSE(X),additive_identity)) &     \
 \  (! X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
 \  (! X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
 \  (! X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
@@ -255,7 +260,7 @@ val BOO005_1 = prove_hard
 \  (! X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
 \  (! X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
+\  (! X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
 \  (~sum(x::'a,multiplicative_identity,multiplicative_identity)) --> False",
   meson_tac 1);
 
@@ -280,10 +285,10 @@ val BOO006_1 = prove_hard
 \  (! Y Z V1 V2 X V3 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(X::'a,V3,V4)) &    \
 \  (! Y Z V3 X V1 V2 V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & sum(V3::'a,X,V4) --> product(V1::'a,V2,V4)) &    \
 \  (! Y Z V1 V2 V3 X V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(V3::'a,X,V4)) &    \
-\  (! X. sum(inverse(X),X,multiplicative_identity)) &   \
-\  (! X. sum(X::'a,inverse(X),multiplicative_identity)) &   \
-\  (! X. product(inverse(X),X,additive_identity)) &     \
-\  (! X. product(X::'a,inverse(X),additive_identity)) &     \
+\  (! X. sum(INVERSE(X),X,multiplicative_identity)) &   \
+\  (! X. sum(X::'a,INVERSE(X),multiplicative_identity)) &   \
+\  (! X. product(INVERSE(X),X,additive_identity)) &     \
+\  (! X. product(X::'a,INVERSE(X),additive_identity)) &     \
 \  (! X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
 \  (! X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
 \  (! X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
@@ -296,7 +301,7 @@ val BOO006_1 = prove_hard
 \  (! X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
 \  (! X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
+\  (! X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
 \  (~product(x::'a,additive_identity,additive_identity)) --> False",
   meson_tac 1);
 
@@ -321,10 +326,10 @@ val BOO011_1 = prove
 \  (! Y Z V1 V2 X V3 V4. sum(X::'a,Y,V1) & sum(X::'a,Z,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(X::'a,V3,V4)) &    \
 \  (! Y Z V3 X V1 V2 V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & sum(V3::'a,X,V4) --> product(V1::'a,V2,V4)) &    \
 \  (! Y Z V1 V2 V3 X V4. sum(Y::'a,X,V1) & sum(Z::'a,X,V2) & product(Y::'a,Z,V3) & product(V1::'a,V2,V4) --> sum(V3::'a,X,V4)) &    \
-\  (! X. sum(inverse(X),X,multiplicative_identity)) &   \
-\  (! X. sum(X::'a,inverse(X),multiplicative_identity)) &   \
-\  (! X. product(inverse(X),X,additive_identity)) &     \
-\  (! X. product(X::'a,inverse(X),additive_identity)) &     \
+\  (! X. sum(INVERSE(X),X,multiplicative_identity)) &   \
+\  (! X. sum(X::'a,INVERSE(X),multiplicative_identity)) &   \
+\  (! X. product(INVERSE(X),X,additive_identity)) &     \
+\  (! X. product(X::'a,INVERSE(X),additive_identity)) &     \
 \  (! X Y U V. sum(X::'a,Y,U) & sum(X::'a,Y,V) --> equal(U::'a,V)) &        \
 \  (! X Y U V. product(X::'a,Y,U) & product(X::'a,Y,V) --> equal(U::'a,V)) &        \
 \  (! X Y W Z. equal(X::'a,Y) & sum(X::'a,W,Z) --> sum(Y::'a,W,Z)) &        \
@@ -337,8 +342,8 @@ val BOO011_1 = prove
 \  (! X W Y. equal(X::'a,Y) --> equal(add(W::'a,X),add(W::'a,Y))) & \
 \  (! X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
-\  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
-\  (~equal(inverse(additive_identity),multiplicative_identity)) --> False",
+\  (! X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
+\  (~equal(INVERSE(additive_identity),multiplicative_identity)) --> False",
   meson_tac 1);
 
 (*4007 inferences so far.  Searching to depth 9.  13 secs*)
@@ -736,11 +741,11 @@ val COM004_1 = prove
 \  (! E1 G1 F1. equal(E1::'a,F1) & failure_node(G1::'a,E1) --> failure_node(G1::'a,F1)) &   \
 \  (! H1 I1 J1. equal(H1::'a,I1) & siblings(H1::'a,J1) --> siblings(I1::'a,J1)) &   \
 \  (! K1 M1 L1. equal(K1::'a,L1) & siblings(M1::'a,K1) --> siblings(M1::'a,L1)) &   \
-\  (failure_node(n_left::'a,or(empty::'a,atom))) &      \
-\  (failure_node(n_right::'a,or(empty::'a,negate(atom)))) &     \
+\  (failure_node(n_left::'a,or(EMPTY::'a,atom))) &      \
+\  (failure_node(n_right::'a,or(EMPTY::'a,negate(atom)))) &     \
 \  (equal(n_left::'a,left_child_of(n))) &   \
 \  (equal(n_right::'a,right_child_of(n))) & \
-\  (! Z. ~failure_node(Z::'a,or(empty::'a,empty))) --> False",
+\  (! Z. ~failure_node(Z::'a,or(EMPTY::'a,EMPTY))) --> False",
   meson_tac 1);
 ****************)
 
@@ -1012,7 +1017,7 @@ val GEO058_2 = prove_hard
 (*0 inferences so far.  Searching to depth 0.  0.2 secs*)
 val GEO079_1 = prove
  ("(! U V W X Y Z. right_angle(U::'a,V,W) & right_angle(X::'a,Y,Z) --> eq(U::'a,V,W,X,Y,Z)) &       \
-\  (! U V W X Y Z. congruent(U::'a,V,W,X,Y,Z) --> eq(U::'a,V,W,X,Y,Z)) &        \
+\  (! U V W X Y Z. CONGRUENT(U::'a,V,W,X,Y,Z) --> eq(U::'a,V,W,X,Y,Z)) &        \
 \  (! V W U X. trapezoid(U::'a,V,W,X) --> parallel(V::'a,W,U,X)) &      \
 \  (! U V X Y. parallel(U::'a,V,X,Y) --> eq(X::'a,V,U,V,X,Y)) & \
 \  (trapezoid(a::'a,b,c,d)) &       \
@@ -1027,13 +1032,13 @@ val GRP001_1 = prove_hard
 \  (! Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
 \  (! X. product(identity::'a,X,X)) &       \
 \  (! X. product(X::'a,identity,X)) &       \
-\  (! X. product(inverse(X),X,identity)) &      \
-\  (! X. product(X::'a,inverse(X),identity)) &      \
+\  (! X. product(INVERSE(X),X,identity)) &      \
+\  (! X. product(X::'a,INVERSE(X),identity)) &      \
 \  (! X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
 \  (! X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
 \  (! Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
 \  (! Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
+\  (! X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
 \  (! X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
 \  (! X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
@@ -1052,13 +1057,13 @@ val GRP008_1 = prove_hard
 \  (! Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
 \  (! X. product(identity::'a,X,X)) &       \
 \  (! X. product(X::'a,identity,X)) &       \
-\  (! X. product(inverse(X),X,identity)) &      \
-\  (! X. product(X::'a,inverse(X),identity)) &      \
+\  (! X. product(INVERSE(X),X,identity)) &      \
+\  (! X. product(X::'a,INVERSE(X),identity)) &      \
 \  (! X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
 \  (! X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
 \  (! Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
 \  (! Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
+\  (! X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
 \  (! X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
 \  (! X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
@@ -1080,13 +1085,13 @@ val GRP013_1 = prove_hard
 \  (! Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
 \  (! X. product(identity::'a,X,X)) &       \
 \  (! X. product(X::'a,identity,X)) &       \
-\  (! X. product(inverse(X),X,identity)) &      \
-\  (! X. product(X::'a,inverse(X),identity)) &      \
+\  (! X. product(INVERSE(X),X,identity)) &      \
+\  (! X. product(X::'a,INVERSE(X),identity)) &      \
 \  (! X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
 \  (! X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
 \  (! Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
 \  (! Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
+\  (! X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
 \  (! X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
 \  (! X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
@@ -1094,8 +1099,8 @@ val GRP013_1 = prove_hard
 \  (! X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
 \  (! A. product(A::'a,A,identity)) &       \
 \  (product(a::'a,b,c)) &   \
-\  (product(inverse(a),inverse(b),d)) & \
-\  (! A C B. product(inverse(A),inverse(B),C) --> product(A::'a,C,B)) &     \
+\  (product(INVERSE(a),INVERSE(b),d)) & \
+\  (! A C B. product(INVERSE(A),INVERSE(B),C) --> product(A::'a,C,B)) &     \
 \  (~product(c::'a,d,identity)) --> False",
   meson_tac 1);
 
@@ -1106,19 +1111,19 @@ val GRP037_3 = prove_hard
 \  (! Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
 \  (! X. product(identity::'a,X,X)) &       \
 \  (! X. product(X::'a,identity,X)) &       \
-\  (! X. product(inverse(X),X,identity)) &      \
-\  (! X. product(X::'a,inverse(X),identity)) &      \
+\  (! X. product(INVERSE(X),X,identity)) &      \
+\  (! X. product(X::'a,INVERSE(X),identity)) &      \
 \  (! X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
 \  (! X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
 \  (! Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
 \  (! Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (! X Y. equal(X::'a,Y) --> equal(inverse(X),inverse(Y))) &       \
+\  (! X Y. equal(X::'a,Y) --> equal(INVERSE(X),INVERSE(Y))) &       \
 \  (! X Y W. equal(X::'a,Y) --> equal(multiply(X::'a,W),multiply(Y::'a,W))) &       \
 \  (! X W Y. equal(X::'a,Y) --> equal(multiply(W::'a,X),multiply(W::'a,Y))) &       \
 \  (! X Y W Z. equal(X::'a,Y) & product(X::'a,W,Z) --> product(Y::'a,W,Z)) &        \
 \  (! X W Y Z. equal(X::'a,Y) & product(W::'a,X,Z) --> product(W::'a,Y,Z)) &        \
 \  (! X W Z Y. equal(X::'a,Y) & product(W::'a,Z,X) --> product(W::'a,Z,Y)) &        \
-\  (! A B C. subgroup_member(A) & subgroup_member(B) & product(A::'a,inverse(B),C) --> subgroup_member(C)) &        \
+\  (! A B C. subgroup_member(A) & subgroup_member(B) & product(A::'a,INVERSE(B),C) --> subgroup_member(C)) &        \
 \  (! A B. equal(A::'a,B) & subgroup_member(A) --> subgroup_member(B)) &    \
 \  (! A. subgroup_member(A) --> product(another_identity::'a,A,A)) &        \
 \  (! A. subgroup_member(A) --> product(A::'a,another_identity,A)) &        \
@@ -1130,7 +1135,7 @@ val GRP037_3 = prove_hard
 \  (! B C D A. product(A::'a,B,C) & product(D::'a,B,C) --> equal(D::'a,A)) &        \
 \  (subgroup_member(a)) &       \
 \  (subgroup_member(another_identity)) &        \
-\  (~equal(inverse(a),another_inverse(a))) --> False",
+\  (~equal(INVERSE(a),another_inverse(a))) --> False",
   meson_tac 1);
 
 (*163 inferences so far.  Searching to depth 11.  0.3 secs*)
@@ -1139,7 +1144,7 @@ val GRP031_2 = prove
 \  (! X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
 \  (! Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
 \  (! Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (! A. product(A::'a,inverse(A),identity)) &      \
+\  (! A. product(A::'a,INVERSE(A),identity)) &      \
 \  (! A. product(A::'a,identity,A)) &       \
 \  (! A. ~product(A::'a,a,identity)) --> False",
   meson_tac 1);
@@ -1149,18 +1154,18 @@ val GRP034_4 = prove
  ("(! X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
 \  (! X. product(identity::'a,X,X)) &       \
 \  (! X. product(X::'a,identity,X)) &       \
-\  (! X. product(X::'a,inverse(X),identity)) &      \
+\  (! X. product(X::'a,INVERSE(X),identity)) &      \
 \  (! Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
 \  (! Y X V U Z W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(X::'a,V,W) --> product(U::'a,Z,W)) &       \
-\  (! B A C. subgroup_member(A) & subgroup_member(B) & product(B::'a,inverse(A),C) --> subgroup_member(C)) &        \
+\  (! B A C. subgroup_member(A) & subgroup_member(B) & product(B::'a,INVERSE(A),C) --> subgroup_member(C)) &        \
 \  (subgroup_member(a)) &       \
-\  (~subgroup_member(inverse(a))) --> False",
+\  (~subgroup_member(INVERSE(a))) --> False",
   meson_tac 1);
 
 (*3287 inferences so far.  Searching to depth 14.  3.5 secs*)
 val GRP047_2 = prove_hard
  ("(! X. product(identity::'a,X,X)) &       \
-\  (! X. product(inverse(X),X,identity)) &      \
+\  (! X. product(INVERSE(X),X,identity)) &      \
 \  (! X Y. product(X::'a,Y,multiply(X::'a,Y))) &        \
 \  (! X Y Z W. product(X::'a,Y,Z) & product(X::'a,Y,W) --> equal(Z::'a,W)) &        \
 \  (! Y U Z X V W. product(X::'a,Y,U) & product(Y::'a,Z,V) & product(U::'a,Z,W) --> product(X::'a,V,W)) &       \
@@ -1189,9 +1194,9 @@ val GRP156_1 = prove_hard
 \  (! Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
 \  (! Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
 \  (! X. equal(multiply(identity::'a,X),X)) &       \
-\  (! X. equal(multiply(inverse(X),X),identity)) &      \
+\  (! X. equal(multiply(INVERSE(X),X),identity)) &      \
 \  (! X Y Z. equal(multiply(multiply(X::'a,Y),Z),multiply(X::'a,multiply(Y::'a,Z)))) &      \
-\  (! A B. equal(A::'a,B) --> equal(inverse(A),inverse(B))) &       \
+\  (! A B. equal(A::'a,B) --> equal(INVERSE(A),INVERSE(B))) &       \
 \  (! C D E. equal(C::'a,D) --> equal(multiply(C::'a,E),multiply(D::'a,E))) &       \
 \  (! F' H G. equal(F'::'a,G) --> equal(multiply(H::'a,F'),multiply(H::'a,G))) &    \
 \  (! Y X. equal(greatest_lower_bound(X::'a,Y),greatest_lower_bound(Y::'a,X))) &        \
@@ -1222,9 +1227,9 @@ val GRP168_1 = prove_hard
 \  (! Y X. equal(X::'a,Y) --> equal(Y::'a,X)) & \
 \  (! Y X Z. equal(X::'a,Y) & equal(Y::'a,Z) --> equal(X::'a,Z)) &  \
 \  (! X. equal(multiply(identity::'a,X),X)) &       \
-\  (! X. equal(multiply(inverse(X),X),identity)) &      \
+\  (! X. equal(multiply(INVERSE(X),X),identity)) &      \
 \  (! X Y Z. equal(multiply(multiply(X::'a,Y),Z),multiply(X::'a,multiply(Y::'a,Z)))) &      \
-\  (! A B. equal(A::'a,B) --> equal(inverse(A),inverse(B))) &       \
+\  (! A B. equal(A::'a,B) --> equal(INVERSE(A),INVERSE(B))) &       \
 \  (! C D E. equal(C::'a,D) --> equal(multiply(C::'a,E),multiply(D::'a,E))) &       \
 \  (! F' H G. equal(F'::'a,G) --> equal(multiply(H::'a,F'),multiply(H::'a,G))) &    \
 \  (! Y X. equal(greatest_lower_bound(X::'a,Y),greatest_lower_bound(Y::'a,X))) &        \
@@ -1246,7 +1251,7 @@ val GRP168_1 = prove_hard
 \  (! A B C. equal(A::'a,B) --> equal(multiply(A::'a,C),multiply(B::'a,C))) &       \
 \  (! A C B. equal(A::'a,B) --> equal(multiply(C::'a,A),multiply(C::'a,B))) &       \
 \  (equal(least_upper_bound(a::'a,b),b)) &  \
-\  (~equal(least_upper_bound(multiply(inverse(c),multiply(a::'a,c)),multiply(inverse(c),multiply(b::'a,c))),multiply(inverse(c),multiply(b::'a,c)))) --> False",
+\  (~equal(least_upper_bound(multiply(INVERSE(c),multiply(a::'a,c)),multiply(INVERSE(c),multiply(b::'a,c))),multiply(INVERSE(c),multiply(b::'a,c)))) --> False",
   meson_tac 1);
 
 (*250258 inferences so far.  Searching to depth 16.  406.2 secs*)
@@ -1664,8 +1669,8 @@ val NUM180_1 = prove_hard
 \  (! X. subclass(flip(X),cross_product(cross_product(universal_class::'a,universal_class),universal_class))) &     \
 \  (! V U W X. member(ordered_pair(ordered_pair(U::'a,V),W),flip(X)) --> member(ordered_pair(ordered_pair(V::'a,U),W),X)) &     \
 \  (! U V W X. member(ordered_pair(ordered_pair(V::'a,U),W),X) & member(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> member(ordered_pair(ordered_pair(U::'a,V),W),flip(X))) &   \
-\  (! Y. equal(domain_of(flip(cross_product(Y::'a,universal_class))),inverse(Y))) & \
-\  (! Z. equal(domain_of(inverse(Z)),range_of(Z))) &    \
+\  (! Y. equal(domain_of(flip(cross_product(Y::'a,universal_class))),INVERSE(Y))) & \
+\  (! Z. equal(domain_of(INVERSE(Z)),range_of(Z))) &    \
 \  (! Z X Y. equal(first(not_subclass_element(restrct(Z::'a,X,singleton(Y)),null_class)),domain(Z::'a,X,Y))) & \
 \  (! Z X Y. equal(second(not_subclass_element(restrct(Z::'a,singleton(X),Y),null_class)),rng(Z::'a,X,Y))) & \
 \  (! Xr X. equal(range_of(restrct(Xr::'a,X,universal_class)),image_(Xr::'a,X))) &      \
@@ -1686,11 +1691,11 @@ val NUM180_1 = prove_hard
 \  (! Yr Xr. subclass(compos(Yr::'a,Xr),cross_product(universal_class::'a,universal_class))) & \
 \  (! Z Yr Xr Y. member(ordered_pair(Y::'a,Z),compos(Yr::'a,Xr)) --> member(Z::'a,image_(Yr::'a,image_(Xr::'a,singleton(Y))))) &     \
 \  (! Y Z Yr Xr. member(Z::'a,image_(Yr::'a,image_(Xr::'a,singleton(Y)))) & member(ordered_pair(Y::'a,Z),cross_product(universal_class::'a,universal_class)) --> member(ordered_pair(Y::'a,Z),compos(Yr::'a,Xr))) &  \
-\  (! X. single_valued_class(X) --> subclass(compos(X::'a,inverse(X)),identity_relation)) &        \
-\  (! X. subclass(compos(X::'a,inverse(X)),identity_relation) --> single_valued_class(X)) &        \
+\  (! X. single_valued_class(X) --> subclass(compos(X::'a,INVERSE(X)),identity_relation)) &        \
+\  (! X. subclass(compos(X::'a,INVERSE(X)),identity_relation) --> single_valued_class(X)) &        \
 \  (! Xf. function(Xf) --> subclass(Xf::'a,cross_product(universal_class::'a,universal_class))) &       \
-\  (! Xf. function(Xf) --> subclass(compos(Xf::'a,inverse(Xf)),identity_relation)) &       \
-\  (! Xf. subclass(Xf::'a,cross_product(universal_class::'a,universal_class)) & subclass(compos(Xf::'a,inverse(Xf)),identity_relation) --> function(Xf)) & \
+\  (! Xf. function(Xf) --> subclass(compos(Xf::'a,INVERSE(Xf)),identity_relation)) &       \
+\  (! Xf. subclass(Xf::'a,cross_product(universal_class::'a,universal_class)) & subclass(compos(Xf::'a,INVERSE(Xf)),identity_relation) --> function(Xf)) & \
 \  (! Xf X. function(Xf) & member(X::'a,universal_class) --> member(image_(Xf::'a,X),universal_class)) & \
 \  (! X. equal(X::'a,null_class) | member(regular(X),X)) & \
 \  (! X. equal(X::'a,null_class) | equal(intersection(X::'a,regular(X)),null_class)) & \
@@ -1698,12 +1703,12 @@ val NUM180_1 = prove_hard
 \  (function(choice)) & \
 \  (! Y. member(Y::'a,universal_class) --> equal(Y::'a,null_class) | member(apply(choice::'a,Y),Y)) &      \
 \  (! Xf. one_to_one(Xf) --> function(Xf)) &    \
-\  (! Xf. one_to_one(Xf) --> function(inverse(Xf))) &   \
-\  (! Xf. function(inverse(Xf)) & function(Xf) --> one_to_one(Xf)) &    \
-\  (equal(intersection(cross_product(universal_class::'a,universal_class),intersection(cross_product(universal_class::'a,universal_class),complement(compos(complement(element_relation),inverse(element_relation))))),subset_relation)) &     \
-\  (equal(intersection(inverse(subset_relation),subset_relation),identity_relation)) &  \
+\  (! Xf. one_to_one(Xf) --> function(INVERSE(Xf))) &   \
+\  (! Xf. function(INVERSE(Xf)) & function(Xf) --> one_to_one(Xf)) &    \
+\  (equal(intersection(cross_product(universal_class::'a,universal_class),intersection(cross_product(universal_class::'a,universal_class),complement(compos(complement(element_relation),INVERSE(element_relation))))),subset_relation)) &     \
+\  (equal(intersection(INVERSE(subset_relation),subset_relation),identity_relation)) &  \
 \  (! Xr. equal(complement(domain_of(intersection(Xr::'a,identity_relation))),diagonalise(Xr))) &   \
-\  (! X. equal(intersection(domain_of(X),diagonalise(compos(inverse(element_relation),X))),cantor(X))) &       \
+\  (! X. equal(intersection(domain_of(X),diagonalise(compos(INVERSE(element_relation),X))),cantor(X))) &       \
 \  (! Xf. operation(Xf) --> function(Xf)) &     \
 \  (! Xf. operation(Xf) --> equal(cross_product(domain_of(domain_of(Xf)),domain_of(domain_of(Xf))),domain_of(Xf))) &    \
 \  (! Xf. operation(Xf) --> subclass(range_of(Xf),domain_of(domain_of(Xf)))) &  \
@@ -1739,7 +1744,7 @@ val NUM180_1 = prove_hard
 \  (! C2 E2 D2. equal(C2::'a,D2) --> equal(image_(E2::'a,C2),image_(E2::'a,D2))) &    \
 \  (! F2 G2 H2. equal(F2::'a,G2) --> equal(intersection(F2::'a,H2),intersection(G2::'a,H2))) &      \
 \  (! I2 K2 J2. equal(I2::'a,J2) --> equal(intersection(K2::'a,I2),intersection(K2::'a,J2))) &      \
-\  (! L2 M2. equal(L2::'a,M2) --> equal(inverse(L2),inverse(M2))) & \
+\  (! L2 M2. equal(L2::'a,M2) --> equal(INVERSE(L2),INVERSE(M2))) & \
 \  (! N2 O2 P2 Q2. equal(N2::'a,O2) --> equal(not_homomorphism1(N2::'a,P2,Q2),not_homomorphism1(O2::'a,P2,Q2))) &   \
 \  (! R2 T2 S2 U2. equal(R2::'a,S2) --> equal(not_homomorphism1(T2::'a,R2,U2),not_homomorphism1(T2::'a,S2,U2))) &   \
 \  (! V2 X2 Y2 W2. equal(V2::'a,W2) --> equal(not_homomorphism1(X2::'a,Y2,V2),not_homomorphism1(X2::'a,Y2,W2))) &   \
@@ -1792,9 +1797,9 @@ val NUM180_1 = prove_hard
 \  (subclass(domain_relation::'a,cross_product(universal_class::'a,universal_class))) & \
 \  (! X Y. member(ordered_pair(X::'a,Y),domain_relation) --> equal(domain_of(X),Y)) &       \
 \  (! X. member(X::'a,universal_class) --> member(ordered_pair(X::'a,domain_of(X)),domain_relation)) &  \
-\  (! X. equal(first(not_subclass_element(compos(X::'a,inverse(X)),identity_relation)),single_valued1(X))) &       \
-\  (! X. equal(second(not_subclass_element(compos(X::'a,inverse(X)),identity_relation)),single_valued2(X))) &      \
-\  (! X. equal(domain(X::'a,image_(inverse(X),singleton(single_valued1(X))),single_valued2(X)),single_valued3(X))) & \
+\  (! X. equal(first(not_subclass_element(compos(X::'a,INVERSE(X)),identity_relation)),single_valued1(X))) &       \
+\  (! X. equal(second(not_subclass_element(compos(X::'a,INVERSE(X)),identity_relation)),single_valued2(X))) &      \
+\  (! X. equal(domain(X::'a,image_(INVERSE(X),singleton(single_valued1(X))),single_valued2(X)),single_valued3(X))) & \
 \  (equal(intersection(complement(compos(element_relation::'a,complement(identity_relation))),element_relation),singleton_relation)) &     \
 \  (subclass(application_function::'a,cross_product(universal_class::'a,cross_product(universal_class::'a,universal_class)))) &     \
 \  (! Z Y X. member(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),application_function) --> member(Y::'a,domain_of(X))) &       \
@@ -1811,15 +1816,15 @@ val NUM180_1 = prove_hard
 \  (! X2 Y2 Z2 A3. equal(X2::'a,Y2) & maps(X2::'a,Z2,A3) --> maps(Y2::'a,Z2,A3)) &  \
 \  (! B3 D3 C3 E3. equal(B3::'a,C3) & maps(D3::'a,B3,E3) --> maps(D3::'a,C3,E3)) &  \
 \  (! F3 H3 I3 G3. equal(F3::'a,G3) & maps(H3::'a,I3,F3) --> maps(H3::'a,I3,G3)) &  \
-\  (! X. equal(union(X::'a,inverse(X)),symmetrization_of(X))) &     \
+\  (! X. equal(union(X::'a,INVERSE(X)),symmetrization_of(X))) &     \
 \  (! X Y. irreflexive(X::'a,Y) --> subclass(restrct(X::'a,Y,Y),complement(identity_relation))) &      \
 \  (! X Y. subclass(restrct(X::'a,Y,Y),complement(identity_relation)) --> irreflexive(X::'a,Y)) &      \
 \  (! Y X. connected(X::'a,Y) --> subclass(cross_product(Y::'a,Y),union(identity_relation::'a,symmetrization_of(X)))) &     \
 \  (! X Y. subclass(cross_product(Y::'a,Y),union(identity_relation::'a,symmetrization_of(X))) --> connected(X::'a,Y)) &     \
 \  (! Xr Y. transitive(Xr::'a,Y) --> subclass(compos(restrct(Xr::'a,Y,Y),restrct(Xr::'a,Y,Y)),restrct(Xr::'a,Y,Y))) &       \
 \  (! Xr Y. subclass(compos(restrct(Xr::'a,Y,Y),restrct(Xr::'a,Y,Y)),restrct(Xr::'a,Y,Y)) --> transitive(Xr::'a,Y)) &       \
-\  (! Xr Y. asymmetric(Xr::'a,Y) --> equal(restrct(intersection(Xr::'a,inverse(Xr)),Y,Y),null_class)) &        \
-\  (! Xr Y. equal(restrct(intersection(Xr::'a,inverse(Xr)),Y,Y),null_class) --> asymmetric(Xr::'a,Y)) &        \
+\  (! Xr Y. asymmetric(Xr::'a,Y) --> equal(restrct(intersection(Xr::'a,INVERSE(Xr)),Y,Y),null_class)) &        \
+\  (! Xr Y. equal(restrct(intersection(Xr::'a,INVERSE(Xr)),Y,Y),null_class) --> asymmetric(Xr::'a,Y)) &        \
 \  (! Xr Y Z. equal(segment(Xr::'a,Y,Z),domain_of(restrct(Xr::'a,Y,singleton(Z))))) &  \
 \  (! X Y. well_ordering(X::'a,Y) --> connected(X::'a,Y)) &     \
 \  (! Y Xr U. well_ordering(Xr::'a,Y) & subclass(U::'a,Y) --> equal(U::'a,null_class) | member(least(Xr::'a,U),U)) &   \
@@ -1934,8 +1939,8 @@ val NUM228_1 = prove_hard
 \  (! X. subclass(flip(X),cross_product(cross_product(universal_class::'a,universal_class),universal_class))) &     \
 \  (! V U W X. member(ordered_pair(ordered_pair(U::'a,V),W),flip(X)) --> member(ordered_pair(ordered_pair(V::'a,U),W),X)) &     \
 \  (! U V W X. member(ordered_pair(ordered_pair(V::'a,U),W),X) & member(ordered_pair(ordered_pair(U::'a,V),W),cross_product(cross_product(universal_class::'a,universal_class),universal_class)) --> member(ordered_pair(ordered_pair(U::'a,V),W),flip(X))) &   \
-\  (! Y. equal(domain_of(flip(cross_product(Y::'a,universal_class))),inverse(Y))) & \
-\  (! Z. equal(domain_of(inverse(Z)),range_of(Z))) &    \
+\  (! Y. equal(domain_of(flip(cross_product(Y::'a,universal_class))),INVERSE(Y))) & \
+\  (! Z. equal(domain_of(INVERSE(Z)),range_of(Z))) &    \
 \  (! Z X Y. equal(first(not_subclass_element(restrct(Z::'a,X,singleton(Y)),null_class)),domain(Z::'a,X,Y))) & \
 \  (! Z X Y. equal(second(not_subclass_element(restrct(Z::'a,singleton(X),Y),null_class)),rng(Z::'a,X,Y))) & \
 \  (! Xr X. equal(range_of(restrct(Xr::'a,X,universal_class)),image_(Xr::'a,X))) &      \
@@ -1956,11 +1961,11 @@ val NUM228_1 = prove_hard
 \  (! Yr Xr. subclass(compos(Yr::'a,Xr),cross_product(universal_class::'a,universal_class))) & \
 \  (! Z Yr Xr Y. member(ordered_pair(Y::'a,Z),compos(Yr::'a,Xr)) --> member(Z::'a,image_(Yr::'a,image_(Xr::'a,singleton(Y))))) &     \
 \  (! Y Z Yr Xr. member(Z::'a,image_(Yr::'a,image_(Xr::'a,singleton(Y)))) & member(ordered_pair(Y::'a,Z),cross_product(universal_class::'a,universal_class)) --> member(ordered_pair(Y::'a,Z),compos(Yr::'a,Xr))) &  \
-\  (! X. single_valued_class(X) --> subclass(compos(X::'a,inverse(X)),identity_relation)) &        \
-\  (! X. subclass(compos(X::'a,inverse(X)),identity_relation) --> single_valued_class(X)) &        \
+\  (! X. single_valued_class(X) --> subclass(compos(X::'a,INVERSE(X)),identity_relation)) &        \
+\  (! X. subclass(compos(X::'a,INVERSE(X)),identity_relation) --> single_valued_class(X)) &        \
 \  (! Xf. function(Xf) --> subclass(Xf::'a,cross_product(universal_class::'a,universal_class))) &       \
-\  (! Xf. function(Xf) --> subclass(compos(Xf::'a,inverse(Xf)),identity_relation)) &       \
-\  (! Xf. subclass(Xf::'a,cross_product(universal_class::'a,universal_class)) & subclass(compos(Xf::'a,inverse(Xf)),identity_relation) --> function(Xf)) & \
+\  (! Xf. function(Xf) --> subclass(compos(Xf::'a,INVERSE(Xf)),identity_relation)) &       \
+\  (! Xf. subclass(Xf::'a,cross_product(universal_class::'a,universal_class)) & subclass(compos(Xf::'a,INVERSE(Xf)),identity_relation) --> function(Xf)) & \
 \  (! Xf X. function(Xf) & member(X::'a,universal_class) --> member(image_(Xf::'a,X),universal_class)) & \
 \  (! X. equal(X::'a,null_class) | member(regular(X),X)) & \
 \  (! X. equal(X::'a,null_class) | equal(intersection(X::'a,regular(X)),null_class)) & \
@@ -1968,12 +1973,12 @@ val NUM228_1 = prove_hard
 \  (function(choice)) & \
 \  (! Y. member(Y::'a,universal_class) --> equal(Y::'a,null_class) | member(apply(choice::'a,Y),Y)) &      \
 \  (! Xf. one_to_one(Xf) --> function(Xf)) &    \
-\  (! Xf. one_to_one(Xf) --> function(inverse(Xf))) &   \
-\  (! Xf. function(inverse(Xf)) & function(Xf) --> one_to_one(Xf)) &    \
-\  (equal(intersection(cross_product(universal_class::'a,universal_class),intersection(cross_product(universal_class::'a,universal_class),complement(compos(complement(element_relation),inverse(element_relation))))),subset_relation)) &     \
-\  (equal(intersection(inverse(subset_relation),subset_relation),identity_relation)) &  \
+\  (! Xf. one_to_one(Xf) --> function(INVERSE(Xf))) &   \
+\  (! Xf. function(INVERSE(Xf)) & function(Xf) --> one_to_one(Xf)) &    \
+\  (equal(intersection(cross_product(universal_class::'a,universal_class),intersection(cross_product(universal_class::'a,universal_class),complement(compos(complement(element_relation),INVERSE(element_relation))))),subset_relation)) &     \
+\  (equal(intersection(INVERSE(subset_relation),subset_relation),identity_relation)) &  \
 \  (! Xr. equal(complement(domain_of(intersection(Xr::'a,identity_relation))),diagonalise(Xr))) &   \
-\  (! X. equal(intersection(domain_of(X),diagonalise(compos(inverse(element_relation),X))),cantor(X))) &       \
+\  (! X. equal(intersection(domain_of(X),diagonalise(compos(INVERSE(element_relation),X))),cantor(X))) &       \
 \  (! Xf. operation(Xf) --> function(Xf)) &     \
 \  (! Xf. operation(Xf) --> equal(cross_product(domain_of(domain_of(Xf)),domain_of(domain_of(Xf))),domain_of(Xf))) &    \
 \  (! Xf. operation(Xf) --> subclass(range_of(Xf),domain_of(domain_of(Xf)))) &  \
@@ -2009,7 +2014,7 @@ val NUM228_1 = prove_hard
 \  (! C2 E2 D2. equal(C2::'a,D2) --> equal(image_(E2::'a,C2),image_(E2::'a,D2))) &    \
 \  (! F2 G2 H2. equal(F2::'a,G2) --> equal(intersection(F2::'a,H2),intersection(G2::'a,H2))) &      \
 \  (! I2 K2 J2. equal(I2::'a,J2) --> equal(intersection(K2::'a,I2),intersection(K2::'a,J2))) &      \
-\  (! L2 M2. equal(L2::'a,M2) --> equal(inverse(L2),inverse(M2))) & \
+\  (! L2 M2. equal(L2::'a,M2) --> equal(INVERSE(L2),INVERSE(M2))) & \
 \  (! N2 O2 P2 Q2. equal(N2::'a,O2) --> equal(not_homomorphism1(N2::'a,P2,Q2),not_homomorphism1(O2::'a,P2,Q2))) &   \
 \  (! R2 T2 S2 U2. equal(R2::'a,S2) --> equal(not_homomorphism1(T2::'a,R2,U2),not_homomorphism1(T2::'a,S2,U2))) &   \
 \  (! V2 X2 Y2 W2. equal(V2::'a,W2) --> equal(not_homomorphism1(X2::'a,Y2,V2),not_homomorphism1(X2::'a,Y2,W2))) &   \
@@ -2062,9 +2067,9 @@ val NUM228_1 = prove_hard
 \  (subclass(domain_relation::'a,cross_product(universal_class::'a,universal_class))) & \
 \  (! X Y. member(ordered_pair(X::'a,Y),domain_relation) --> equal(domain_of(X),Y)) &       \
 \  (! X. member(X::'a,universal_class) --> member(ordered_pair(X::'a,domain_of(X)),domain_relation)) &  \
-\  (! X. equal(first(not_subclass_element(compos(X::'a,inverse(X)),identity_relation)),single_valued1(X))) &       \
-\  (! X. equal(second(not_subclass_element(compos(X::'a,inverse(X)),identity_relation)),single_valued2(X))) &      \
-\  (! X. equal(domain(X::'a,image_(inverse(X),singleton(single_valued1(X))),single_valued2(X)),single_valued3(X))) & \
+\  (! X. equal(first(not_subclass_element(compos(X::'a,INVERSE(X)),identity_relation)),single_valued1(X))) &       \
+\  (! X. equal(second(not_subclass_element(compos(X::'a,INVERSE(X)),identity_relation)),single_valued2(X))) &      \
+\  (! X. equal(domain(X::'a,image_(INVERSE(X),singleton(single_valued1(X))),single_valued2(X)),single_valued3(X))) & \
 \  (equal(intersection(complement(compos(element_relation::'a,complement(identity_relation))),element_relation),singleton_relation)) &     \
 \  (subclass(application_function::'a,cross_product(universal_class::'a,cross_product(universal_class::'a,universal_class)))) &     \
 \  (! Z Y X. member(ordered_pair(X::'a,ordered_pair(Y::'a,Z)),application_function) --> member(Y::'a,domain_of(X))) &       \
@@ -2081,15 +2086,15 @@ val NUM228_1 = prove_hard
 \  (! X2 Y2 Z2 A3. equal(X2::'a,Y2) & maps(X2::'a,Z2,A3) --> maps(Y2::'a,Z2,A3)) &  \
 \  (! B3 D3 C3 E3. equal(B3::'a,C3) & maps(D3::'a,B3,E3) --> maps(D3::'a,C3,E3)) &  \
 \  (! F3 H3 I3 G3. equal(F3::'a,G3) & maps(H3::'a,I3,F3) --> maps(H3::'a,I3,G3)) &  \
-\  (! X. equal(union(X::'a,inverse(X)),symmetrization_of(X))) &     \
+\  (! X. equal(union(X::'a,INVERSE(X)),symmetrization_of(X))) &     \
 \  (! X Y. irreflexive(X::'a,Y) --> subclass(restrct(X::'a,Y,Y),complement(identity_relation))) &      \
 \  (! X Y. subclass(restrct(X::'a,Y,Y),complement(identity_relation)) --> irreflexive(X::'a,Y)) &      \
 \  (! Y X. connected(X::'a,Y) --> subclass(cross_product(Y::'a,Y),union(identity_relation::'a,symmetrization_of(X)))) &     \
 \  (! X Y. subclass(cross_product(Y::'a,Y),union(identity_relation::'a,symmetrization_of(X))) --> connected(X::'a,Y)) &     \
 \  (! Xr Y. transitive(Xr::'a,Y) --> subclass(compos(restrct(Xr::'a,Y,Y),restrct(Xr::'a,Y,Y)),restrct(Xr::'a,Y,Y))) &       \
 \  (! Xr Y. subclass(compos(restrct(Xr::'a,Y,Y),restrct(Xr::'a,Y,Y)),restrct(Xr::'a,Y,Y)) --> transitive(Xr::'a,Y)) &       \
-\  (! Xr Y. asymmetric(Xr::'a,Y) --> equal(restrct(intersection(Xr::'a,inverse(Xr)),Y,Y),null_class)) &        \
-\  (! Xr Y. equal(restrct(intersection(Xr::'a,inverse(Xr)),Y,Y),null_class) --> asymmetric(Xr::'a,Y)) &        \
+\  (! Xr Y. asymmetric(Xr::'a,Y) --> equal(restrct(intersection(Xr::'a,INVERSE(Xr)),Y,Y),null_class)) &        \
+\  (! Xr Y. equal(restrct(intersection(Xr::'a,INVERSE(Xr)),Y,Y),null_class) --> asymmetric(Xr::'a,Y)) &        \
 \  (! Xr Y Z. equal(segment(Xr::'a,Y,Z),domain_of(restrct(Xr::'a,Y,singleton(Z))))) &  \
 \  (! X Y. well_ordering(X::'a,Y) --> connected(X::'a,Y)) &     \
 \  (! Y Xr U. well_ordering(Xr::'a,Y) & subclass(U::'a,Y) --> equal(U::'a,null_class) | member(least(Xr::'a,U),U)) &   \
@@ -2187,11 +2192,11 @@ val PLA002_1 = prove_hard
 (*190 inferences so far.  Searching to depth 10.  0.6 secs*)
 val PLA006_1 = prove
  ("(! X Y State. holds(X::'a,State) & holds(Y::'a,State) --> holds(and'(X::'a,Y),State)) &  \
-\  (! State X. holds(empty::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
-\  (! Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(empty::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
+\  (! State X. holds(EMPTY::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
+\  (! Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(EMPTY::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
 \  (! Y State X Z. holds(on(X::'a,Y),State) & differ(X::'a,Z) --> holds(on(X::'a,Y),do(pickup(Z),State))) & \
 \  (! State X Z. holds(clear(X),State) & differ(X::'a,Z) --> holds(clear(X),do(pickup(Z),State))) & \
-\  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(empty::'a,do(putdown(X::'a,Y),State))) &     \
+\  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(EMPTY::'a,do(putdown(X::'a,Y),State))) &     \
 \  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(on(X::'a,Y),do(putdown(X::'a,Y),State))) &   \
 \  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(clear(X),do(putdown(X::'a,Y),State))) &  \
 \  (! Z W X Y State. holds(on(X::'a,Y),State) --> holds(on(X::'a,Y),do(putdown(Z::'a,W),State))) &  \
@@ -2214,7 +2219,7 @@ val PLA006_1 = prove
 \  (holds(clear(a),s0)) &       \
 \  (holds(clear(b),s0)) &       \
 \  (holds(clear(c),s0)) &       \
-\  (holds(empty::'a,s0)) &  \
+\  (holds(EMPTY::'a,s0)) &  \
 \  (! State. holds(clear(table),State)) &       \
 \  (! State. ~holds(on(c::'a,table),State)) --> False",
   meson_tac 1);
@@ -2222,11 +2227,11 @@ val PLA006_1 = prove
 (*190 inferences so far.  Searching to depth 10.  0.5 secs*)
 val PLA017_1 = prove
  ("(! X Y State. holds(X::'a,State) & holds(Y::'a,State) --> holds(and'(X::'a,Y),State)) &  \
-\  (! State X. holds(empty::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
-\  (! Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(empty::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
+\  (! State X. holds(EMPTY::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
+\  (! Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(EMPTY::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
 \  (! Y State X Z. holds(on(X::'a,Y),State) & differ(X::'a,Z) --> holds(on(X::'a,Y),do(pickup(Z),State))) & \
 \  (! State X Z. holds(clear(X),State) & differ(X::'a,Z) --> holds(clear(X),do(pickup(Z),State))) & \
-\  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(empty::'a,do(putdown(X::'a,Y),State))) &     \
+\  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(EMPTY::'a,do(putdown(X::'a,Y),State))) &     \
 \  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(on(X::'a,Y),do(putdown(X::'a,Y),State))) &   \
 \  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(clear(X),do(putdown(X::'a,Y),State))) &  \
 \  (! Z W X Y State. holds(on(X::'a,Y),State) --> holds(on(X::'a,Y),do(putdown(Z::'a,W),State))) &  \
@@ -2249,7 +2254,7 @@ val PLA017_1 = prove
 \  (holds(clear(a),s0)) &       \
 \  (holds(clear(b),s0)) &       \
 \  (holds(clear(c),s0)) &       \
-\  (holds(empty::'a,s0)) &  \
+\  (holds(EMPTY::'a,s0)) &  \
 \  (! State. holds(clear(table),State)) &       \
 \  (! State. ~holds(on(a::'a,c),State)) --> False",
   meson_tac 1);
@@ -2257,11 +2262,11 @@ val PLA017_1 = prove
 (*13732 inferences so far.  Searching to depth 16.  9.8 secs*)
 val PLA022_1 = prove_hard
  ("(! X Y State. holds(X::'a,State) & holds(Y::'a,State) --> holds(and'(X::'a,Y),State)) &  \
-\  (! State X. holds(empty::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
-\  (! Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(empty::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
+\  (! State X. holds(EMPTY::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
+\  (! Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(EMPTY::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
 \  (! Y State X Z. holds(on(X::'a,Y),State) & differ(X::'a,Z) --> holds(on(X::'a,Y),do(pickup(Z),State))) & \
 \  (! State X Z. holds(clear(X),State) & differ(X::'a,Z) --> holds(clear(X),do(pickup(Z),State))) & \
-\  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(empty::'a,do(putdown(X::'a,Y),State))) &     \
+\  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(EMPTY::'a,do(putdown(X::'a,Y),State))) &     \
 \  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(on(X::'a,Y),do(putdown(X::'a,Y),State))) &   \
 \  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(clear(X),do(putdown(X::'a,Y),State))) &  \
 \  (! Z W X Y State. holds(on(X::'a,Y),State) --> holds(on(X::'a,Y),do(putdown(Z::'a,W),State))) &  \
@@ -2284,7 +2289,7 @@ val PLA022_1 = prove_hard
 \  (holds(clear(a),s0)) &       \
 \  (holds(clear(b),s0)) &       \
 \  (holds(clear(c),s0)) &       \
-\  (holds(empty::'a,s0)) &  \
+\  (holds(EMPTY::'a,s0)) &  \
 \  (! State. holds(clear(table),State)) &       \
 \  (! State. ~holds(and'(on(c::'a,d),on(a::'a,c)),State)) --> False",
   meson_tac 1);
@@ -2292,11 +2297,11 @@ val PLA022_1 = prove_hard
 (*217 inferences so far.  Searching to depth 13.  0.7 secs*)
 val PLA022_2 = prove
  ("(! X Y State. holds(X::'a,State) & holds(Y::'a,State) --> holds(and'(X::'a,Y),State)) &  \
-\  (! State X. holds(empty::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
-\  (! Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(empty::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
+\  (! State X. holds(EMPTY::'a,State) & holds(clear(X),State) & differ(X::'a,table) --> holds(holding(X),do(pickup(X),State))) &        \
+\  (! Y X State. holds(on(X::'a,Y),State) & holds(clear(X),State) & holds(EMPTY::'a,State) --> holds(clear(Y),do(pickup(X),State))) &   \
 \  (! Y State X Z. holds(on(X::'a,Y),State) & differ(X::'a,Z) --> holds(on(X::'a,Y),do(pickup(Z),State))) & \
 \  (! State X Z. holds(clear(X),State) & differ(X::'a,Z) --> holds(clear(X),do(pickup(Z),State))) & \
-\  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(empty::'a,do(putdown(X::'a,Y),State))) &     \
+\  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(EMPTY::'a,do(putdown(X::'a,Y),State))) &     \
 \  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(on(X::'a,Y),do(putdown(X::'a,Y),State))) &   \
 \  (! X Y State. holds(holding(X),State) & holds(clear(Y),State) --> holds(clear(X),do(putdown(X::'a,Y),State))) &  \
 \  (! Z W X Y State. holds(on(X::'a,Y),State) --> holds(on(X::'a,Y),do(putdown(Z::'a,W),State))) &  \
@@ -2319,7 +2324,7 @@ val PLA022_2 = prove
 \  (holds(clear(a),s0)) &       \
 \  (holds(clear(b),s0)) &       \
 \  (holds(clear(c),s0)) &       \
-\  (holds(empty::'a,s0)) &  \
+\  (holds(EMPTY::'a,s0)) &  \
 \  (! State. holds(clear(table),State)) &       \
 \  (! State. ~holds(and'(on(a::'a,c),on(c::'a,d)),State)) --> False",
   meson_tac 1);
@@ -2351,26 +2356,26 @@ val PRV003_1 = prove
 \  (! X. equal(successor(predecessor(X)),X)) &  \
 \  (! X Y. equal(predecessor(X),predecessor(Y)) --> equal(X::'a,Y)) &       \
 \  (! X Y. equal(successor(X),successor(Y)) --> equal(X::'a,Y)) &   \
-\  (! X. less_than(predecessor(X),X)) & \
-\  (! X. less_than(X::'a,successor(X))) &   \
-\  (! X Y Z. less_than(X::'a,Y) & less_than(Y::'a,Z) --> less_than(X::'a,Z)) &      \
-\  (! X Y. less_than(X::'a,Y) | less_than(Y::'a,X) | equal(X::'a,Y)) &    \
-\  (! X. ~less_than(X::'a,X)) &     \
-\  (! Y X. ~(less_than(X::'a,Y) & less_than(Y::'a,X))) &        \
-\  (! Y X Z. equal(X::'a,Y) & less_than(X::'a,Z) --> less_than(Y::'a,Z)) &  \
-\  (! Y Z X. equal(X::'a,Y) & less_than(Z::'a,X) --> less_than(Z::'a,Y)) &  \
+\  (! X. LESS_THAN(predecessor(X),X)) & \
+\  (! X. LESS_THAN(X::'a,successor(X))) &   \
+\  (! X Y Z. LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,Z) --> LESS_THAN(X::'a,Z)) &      \
+\  (! X Y. LESS_THAN(X::'a,Y) | LESS_THAN(Y::'a,X) | equal(X::'a,Y)) &    \
+\  (! X. ~LESS_THAN(X::'a,X)) &     \
+\  (! Y X. ~(LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,X))) &        \
+\  (! Y X Z. equal(X::'a,Y) & LESS_THAN(X::'a,Z) --> LESS_THAN(Y::'a,Z)) &  \
+\  (! Y Z X. equal(X::'a,Y) & LESS_THAN(Z::'a,X) --> LESS_THAN(Z::'a,Y)) &  \
 \  (! X Y. equal(X::'a,Y) --> equal(predecessor(X),predecessor(Y))) &       \
 \  (! X Y. equal(X::'a,Y) --> equal(successor(X),successor(Y))) &   \
 \  (! X Y. equal(X::'a,Y) --> equal(a(X),a(Y))) &   \
-\  (~less_than(n::'a,j)) &  \
-\  (less_than(k::'a,j)) &   \
-\  (~less_than(k::'a,i)) &  \
-\  (less_than(i::'a,n)) &   \
-\  (less_than(a(j),a(k))) &     \
-\  (! X. less_than(X::'a,j) & less_than(a(X),a(k)) --> less_than(X::'a,i)) &    \
-\  (! X. less_than(one::'a,i) & less_than(a(X),a(predecessor(i))) --> less_than(X::'a,i) | less_than(n::'a,X)) &   \
-\  (! X. ~(less_than(one::'a,X) & less_than(X::'a,i) & less_than(a(X),a(predecessor(X))))) &    \
-\  (less_than(j::'a,i)) --> False",
+\  (~LESS_THAN(n::'a,j)) &  \
+\  (LESS_THAN(k::'a,j)) &   \
+\  (~LESS_THAN(k::'a,i)) &  \
+\  (LESS_THAN(i::'a,n)) &   \
+\  (LESS_THAN(a(j),a(k))) &     \
+\  (! X. LESS_THAN(X::'a,j) & LESS_THAN(a(X),a(k)) --> LESS_THAN(X::'a,i)) &    \
+\  (! X. LESS_THAN(one::'a,i) & LESS_THAN(a(X),a(predecessor(i))) --> LESS_THAN(X::'a,i) | LESS_THAN(n::'a,X)) &   \
+\  (! X. ~(LESS_THAN(one::'a,X) & LESS_THAN(X::'a,i) & LESS_THAN(a(X),a(predecessor(X))))) &    \
+\  (LESS_THAN(j::'a,i)) --> False",
   meson_tac 1);
 
 (*584 inferences so far.  Searching to depth 7.  1.1 secs*)
@@ -2382,26 +2387,26 @@ val PRV005_1 = prove
 \  (! X. equal(successor(predecessor(X)),X)) &  \
 \  (! X Y. equal(predecessor(X),predecessor(Y)) --> equal(X::'a,Y)) &       \
 \  (! X Y. equal(successor(X),successor(Y)) --> equal(X::'a,Y)) &   \
-\  (! X. less_than(predecessor(X),X)) & \
-\  (! X. less_than(X::'a,successor(X))) &   \
-\  (! X Y Z. less_than(X::'a,Y) & less_than(Y::'a,Z) --> less_than(X::'a,Z)) &      \
-\  (! X Y. less_than(X::'a,Y) | less_than(Y::'a,X) | equal(X::'a,Y)) &    \
-\  (! X. ~less_than(X::'a,X)) &     \
-\  (! Y X. ~(less_than(X::'a,Y) & less_than(Y::'a,X))) &        \
-\  (! Y X Z. equal(X::'a,Y) & less_than(X::'a,Z) --> less_than(Y::'a,Z)) &  \
-\  (! Y Z X. equal(X::'a,Y) & less_than(Z::'a,X) --> less_than(Z::'a,Y)) &  \
+\  (! X. LESS_THAN(predecessor(X),X)) & \
+\  (! X. LESS_THAN(X::'a,successor(X))) &   \
+\  (! X Y Z. LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,Z) --> LESS_THAN(X::'a,Z)) &      \
+\  (! X Y. LESS_THAN(X::'a,Y) | LESS_THAN(Y::'a,X) | equal(X::'a,Y)) &    \
+\  (! X. ~LESS_THAN(X::'a,X)) &     \
+\  (! Y X. ~(LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,X))) &        \
+\  (! Y X Z. equal(X::'a,Y) & LESS_THAN(X::'a,Z) --> LESS_THAN(Y::'a,Z)) &  \
+\  (! Y Z X. equal(X::'a,Y) & LESS_THAN(Z::'a,X) --> LESS_THAN(Z::'a,Y)) &  \
 \  (! X Y. equal(X::'a,Y) --> equal(predecessor(X),predecessor(Y))) &       \
 \  (! X Y. equal(X::'a,Y) --> equal(successor(X),successor(Y))) &   \
 \  (! X Y. equal(X::'a,Y) --> equal(a(X),a(Y))) &   \
-\  (~less_than(n::'a,k)) &  \
-\  (~less_than(k::'a,l)) &  \
-\  (~less_than(k::'a,i)) &  \
-\  (less_than(l::'a,n)) &   \
-\  (less_than(one::'a,l)) & \
-\  (less_than(a(k),a(predecessor(l)))) &        \
-\  (! X. less_than(X::'a,successor(n)) & less_than(a(X),a(k)) --> less_than(X::'a,l)) & \
-\  (! X. less_than(one::'a,l) & less_than(a(X),a(predecessor(l))) --> less_than(X::'a,l) | less_than(n::'a,X)) &   \
-\  (! X. ~(less_than(one::'a,X) & less_than(X::'a,l) & less_than(a(X),a(predecessor(X))))) --> False",
+\  (~LESS_THAN(n::'a,k)) &  \
+\  (~LESS_THAN(k::'a,l)) &  \
+\  (~LESS_THAN(k::'a,i)) &  \
+\  (LESS_THAN(l::'a,n)) &   \
+\  (LESS_THAN(one::'a,l)) & \
+\  (LESS_THAN(a(k),a(predecessor(l)))) &        \
+\  (! X. LESS_THAN(X::'a,successor(n)) & LESS_THAN(a(X),a(k)) --> LESS_THAN(X::'a,l)) & \
+\  (! X. LESS_THAN(one::'a,l) & LESS_THAN(a(X),a(predecessor(l))) --> LESS_THAN(X::'a,l) | LESS_THAN(n::'a,X)) &   \
+\  (! X. ~(LESS_THAN(one::'a,X) & LESS_THAN(X::'a,l) & LESS_THAN(a(X),a(predecessor(X))))) --> False",
   meson_tac 1);
 
 (*2343 inferences so far.  Searching to depth 8.  3.5 secs*)
@@ -2413,25 +2418,25 @@ val PRV006_1 = prove_hard
 \  (! X. equal(successor(predecessor(X)),X)) &  \
 \  (! X Y. equal(predecessor(X),predecessor(Y)) --> equal(X::'a,Y)) &       \
 \  (! X Y. equal(successor(X),successor(Y)) --> equal(X::'a,Y)) &   \
-\  (! X. less_than(predecessor(X),X)) & \
-\  (! X. less_than(X::'a,successor(X))) &   \
-\  (! X Y Z. less_than(X::'a,Y) & less_than(Y::'a,Z) --> less_than(X::'a,Z)) &      \
-\  (! X Y. less_than(X::'a,Y) | less_than(Y::'a,X) | equal(X::'a,Y)) &    \
-\  (! X. ~less_than(X::'a,X)) &     \
-\  (! Y X. ~(less_than(X::'a,Y) & less_than(Y::'a,X))) &        \
-\  (! Y X Z. equal(X::'a,Y) & less_than(X::'a,Z) --> less_than(Y::'a,Z)) &  \
-\  (! Y Z X. equal(X::'a,Y) & less_than(Z::'a,X) --> less_than(Z::'a,Y)) &  \
+\  (! X. LESS_THAN(predecessor(X),X)) & \
+\  (! X. LESS_THAN(X::'a,successor(X))) &   \
+\  (! X Y Z. LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,Z) --> LESS_THAN(X::'a,Z)) &      \
+\  (! X Y. LESS_THAN(X::'a,Y) | LESS_THAN(Y::'a,X) | equal(X::'a,Y)) &    \
+\  (! X. ~LESS_THAN(X::'a,X)) &     \
+\  (! Y X. ~(LESS_THAN(X::'a,Y) & LESS_THAN(Y::'a,X))) &        \
+\  (! Y X Z. equal(X::'a,Y) & LESS_THAN(X::'a,Z) --> LESS_THAN(Y::'a,Z)) &  \
+\  (! Y Z X. equal(X::'a,Y) & LESS_THAN(Z::'a,X) --> LESS_THAN(Z::'a,Y)) &  \
 \  (! X Y. equal(X::'a,Y) --> equal(predecessor(X),predecessor(Y))) &       \
 \  (! X Y. equal(X::'a,Y) --> equal(successor(X),successor(Y))) &   \
 \  (! X Y. equal(X::'a,Y) --> equal(a(X),a(Y))) &   \
-\  (~less_than(n::'a,m)) &  \
-\  (less_than(i::'a,m)) &   \
-\  (less_than(i::'a,n)) &   \
-\  (~less_than(i::'a,one)) &        \
-\  (less_than(a(i),a(m))) &     \
-\  (! X. less_than(X::'a,successor(n)) & less_than(a(X),a(m)) --> less_than(X::'a,i)) & \
-\  (! X. less_than(one::'a,i) & less_than(a(X),a(predecessor(i))) --> less_than(X::'a,i) | less_than(n::'a,X)) &   \
-\  (! X. ~(less_than(one::'a,X) & less_than(X::'a,i) & less_than(a(X),a(predecessor(X))))) --> False",
+\  (~LESS_THAN(n::'a,m)) &  \
+\  (LESS_THAN(i::'a,m)) &   \
+\  (LESS_THAN(i::'a,n)) &   \
+\  (~LESS_THAN(i::'a,one)) &        \
+\  (LESS_THAN(a(i),a(m))) &     \
+\  (! X. LESS_THAN(X::'a,successor(n)) & LESS_THAN(a(X),a(m)) --> LESS_THAN(X::'a,i)) & \
+\  (! X. LESS_THAN(one::'a,i) & LESS_THAN(a(X),a(predecessor(i))) --> LESS_THAN(X::'a,i) | LESS_THAN(n::'a,X)) &   \
+\  (! X. ~(LESS_THAN(one::'a,X) & LESS_THAN(X::'a,i) & LESS_THAN(a(X),a(predecessor(X))))) --> False",
   meson_tac 1);
 
 (*86 inferences so far.  Searching to depth 14.  0.1 secs*)

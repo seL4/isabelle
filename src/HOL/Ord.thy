@@ -25,8 +25,8 @@ consts
 local
 
 syntax (symbols)
-  "op <="       :: "['a::ord, 'a] => bool"             ("op \<le>")
-  "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \<le> _)"  [50, 51] 50)
+  "op <="       :: "['a::ord, 'a] => bool"             ("op \\<le>")
+  "op <="       :: "['a::ord, 'a] => bool"             ("(_/ \\<le> _)"  [50, 51] 50)
 
 (*Tell Blast_tac about overloading of < and <= to reduce the risk of
   its applying a rule for the wrong type*)
@@ -73,57 +73,6 @@ done
 lemma max_of_mono: 
   "!x y. (f x <= f y) = (x <= y) ==> max (f m) (f n) = f (max m n)"
 apply (simp add: max_def)
-done
-
-
-(** Least value operator **)
-
-constdefs
-  LeastM   :: "['a => 'b::ord, 'a => bool] => 'a"
-              "LeastM m P == @x. P x & (!y. P y --> m x <= m y)"
-  Least    :: "('a::ord => bool) => 'a"               (binder "LEAST " 10)
-              "Least     == LeastM (%x. x)"
-
-syntax
- "@LeastM" :: "[pttrn, 'a=>'b::ord, bool] => 'a" ("LEAST _ WRT _. _" [0,4,10]10)
-translations
-                "LEAST x WRT m. P" == "LeastM m (%x. P)"
-
-lemma LeastMI2: "[| P x; !!y. P y ==> m x <= m y;
- !!x. [| P x; \<forall>y. P y --> m x \<le> m y |] ==> Q x
-		 |] ==> Q (LeastM m P)";
-apply (unfold LeastM_def)
-apply (rule someI2_ex)
-apply  blast
-apply blast
-done
-
-
-(** Greatest value operator **)
-
-constdefs
-  GreatestM   :: "['a => 'b::ord, 'a => bool] => 'a"
-              "GreatestM m P == @x. P x & (!y. P y --> m y <= m x)"
-  
-  Greatest    :: "('a::ord => bool) => 'a"         (binder "GREATEST " 10)
-              "Greatest     == GreatestM (%x. x)"
-
-syntax
- "@GreatestM" :: "[pttrn, 'a=>'b::ord, bool] => 'a"
-                                        ("GREATEST _ WRT _. _" [0,4,10]10)
-
-translations
-              "GREATEST x WRT m. P" == "GreatestM m (%x. P)"
-
-lemma GreatestMI2:
-     "[| P x;
-	 !!y. P y ==> m y <= m x;
-         !!x. [| P x; \<forall>y. P y --> m y \<le> m x |] ==> Q x |]
-      ==> Q (GreatestM m P)";
-apply (unfold GreatestM_def)
-apply (rule someI2_ex)
-apply  blast
-apply blast
 done
 
 
@@ -216,36 +165,19 @@ apply (simp add: max_def)
 apply (blast intro: order_antisym)
 done
 
-lemma LeastM_equality:
- "[| P k; !!x. P x ==> m k <= m x |] ==> m (LEAST x WRT m. P x) = 
-     (m k::'a::order)";
-apply (rule LeastMI2)
-apply   assumption
-apply  blast
-apply (blast intro!: order_antisym) 
-done
+
+(** Least value operator **)
+
+(*We can no longer use LeastM because the latter requires Hilbert-AC*)
+constdefs
+  Least    :: "('a::ord => bool) => 'a"               (binder "LEAST " 10)
+    "Least P == THE x. P x & (ALL y. P y --> x <= y)"
 
 lemma Least_equality:
   "[| P (k::'a::order); !!x. P x ==> k <= x |] ==> (LEAST x. P x) = k";
-apply (unfold Least_def)
-apply (erule LeastM_equality)
-apply blast
-done
-
-lemma GreatestM_equality:
- "[| P k;  !!x. P x ==> m x <= m k |]
-  ==> m (GREATEST x WRT m. P x) = (m k::'a::order)";
-apply (rule_tac m=m in GreatestMI2)
-apply   assumption
-apply  blast
-apply (blast intro!: order_antisym) 
-done
-
-lemma Greatest_equality:
-  "[| P (k::'a::order); !!x. P x ==> x <= k |] ==> (GREATEST x. P x) = k";
-apply (unfold Greatest_def)
-apply (erule GreatestM_equality)
-apply blast
+apply (simp add: Least_def)
+apply (rule the_equality)
+apply (auto intro!: order_antisym) 
 done
 
 
@@ -381,10 +313,10 @@ syntax
   "_leEx"    :: "[idt, 'a, bool] => bool"  ("(3EX _<=_./ _)" [0, 0, 10] 10)
 
 syntax (symbols)
-  "_lessAll" :: "[idt, 'a, bool] => bool"  ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
-  "_lessEx"  :: "[idt, 'a, bool] => bool"  ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
-  "_leAll"   :: "[idt, 'a, bool] => bool"  ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
-  "_leEx"    :: "[idt, 'a, bool] => bool"  ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
+  "_lessAll" :: "[idt, 'a, bool] => bool"  ("(3\\<forall>_<_./ _)"  [0, 0, 10] 10)
+  "_lessEx"  :: "[idt, 'a, bool] => bool"  ("(3\\<exists>_<_./ _)"  [0, 0, 10] 10)
+  "_leAll"   :: "[idt, 'a, bool] => bool"  ("(3\\<forall>_\\<le>_./ _)" [0, 0, 10] 10)
+  "_leEx"    :: "[idt, 'a, bool] => bool"  ("(3\\<exists>_\\<le>_./ _)" [0, 0, 10] 10)
 
 syntax (HOL)
   "_lessAll" :: "[idt, 'a, bool] => bool"  ("(3! _<_./ _)"  [0, 0, 10] 10)
@@ -401,6 +333,8 @@ translations
 
 ML
 {*
+val Least_def = thm "Least_def";
+val Least_equality = thm "Least_equality";
 val mono_def = thm "mono_def";
 val monoI = thm "monoI";
 val monoD = thm "monoD";
@@ -410,15 +344,6 @@ val max_def = thm "max_def";
 val max_of_mono = thm "max_of_mono";
 val min_leastL = thm "min_leastL";
 val max_leastL = thm "max_leastL";
-val LeastMI2 = thm "LeastMI2";
-val LeastM_equality = thm "LeastM_equality";
-val Least_def = thm "Least_def";
-val Least_equality = thm "Least_equality";
-val GreatestM_def = thm "GreatestM_def";
-val GreatestMI2 = thm "GreatestMI2";
-val GreatestM_equality = thm "GreatestM_equality";
-val Greatest_def = thm "Greatest_def";
-val Greatest_equality = thm "Greatest_equality";
 val min_leastR = thm "min_leastR";
 val max_leastR = thm "max_leastR";
 val order_eq_refl = thm "order_eq_refl";

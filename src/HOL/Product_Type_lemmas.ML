@@ -192,13 +192,13 @@ by (Simp_tac 1);
 qed "split_Pair_apply";
 
 (*Can't be added to simpset: loops!*)
-Goal "(SOME x. P x) = (SOME (a,b). P(a,b))";
+Goal "(THE x. P x) = (THE (a,b). P(a,b))";
 by (simp_tac (simpset() addsimps [split_Pair_apply]) 1);
-qed "split_paired_Eps";
+qed "split_paired_The";
 
-Goalw [split_def] "Eps (split P) = (SOME xy. P (fst xy) (snd xy))";
+Goalw [split_def] "The (split P) = (THE xy. P (fst xy) (snd xy))";
 by (rtac refl 1);
-qed "Eps_split";
+qed "The_split";
 
 Goal "!!s t. (s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
 by (split_all_tac 1);
@@ -385,10 +385,10 @@ by (Blast_tac 1);
 qed "split_part";
 Addsimps [split_part];
 
-Goal "(@(x',y'). x = x' & y = y') = (x,y)";
+Goal "(THE (x',y'). x = x' & y = y') = (x,y)";
 by (Blast_tac 1);
-qed "Eps_split_eq";
-Addsimps [Eps_split_eq];
+qed "The_split_eq";
+Addsimps [The_split_eq];
 (*
 the following  would be slightly more general,
 but cannot be used as rewrite rule:
@@ -399,7 +399,7 @@ by (rtac some_equality 1);
 by ( Simp_tac 1);
 by (split_all_tac 1);
 by (Asm_full_simp_tac 1);
-qed "Eps_split_eq";
+qed "The_split_eq";
 *)
 
 Goal "!!x y. [|fst x = fst y; snd x = snd y|] ==> x = y";

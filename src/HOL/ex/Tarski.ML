@@ -84,12 +84,14 @@ val simp_CL = simplify (simpset() addsimps [CompleteLattice_def])
                        (thm "cl_co");
 Addsimps [simp_CL, thm "cl_co"];
 
-Goalw [Ex_def] "(EX L. islub S cl L) = islub S cl (lub S cl)";
-by (simp_tac (simpset() addsimps [lub_def, least_def, islub_def]) 1);
+Goal "(EX L. islub S cl L) = islub S cl (lub S cl)";
+by (simp_tac (simpset() addsimps [lub_def, least_def, islub_def, 
+                                  some_eq_ex RS sym]) 1);
 qed "islub_lub";
 
-Goalw [Ex_def] "(EX G. isglb S cl G) = isglb S cl (glb S cl)";
-by (simp_tac (simpset() addsimps [glb_def, greatest_def, isglb_def]) 1);
+Goal "(EX G. isglb S cl G) = isglb S cl (glb S cl)";
+by (simp_tac (simpset() addsimps [glb_def, greatest_def, isglb_def, 
+                                  some_eq_ex RS sym]) 1);
 qed "isglb_glb";
 
 Goal "isglb S cl = islub S (dual cl)";

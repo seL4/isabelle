@@ -104,17 +104,6 @@ qed "Int_Collect_mono";
 val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
                    ex_mono, Collect_mono, in_mono];
 
-(* Courtesy of Stephan Merz *)
-Goalw [Least_def] 
-"[| mono (f::'a::order => 'b::order); ? x:S. ! y:S. x <= y |] \
-\  ==> (LEAST y. y : f`S) = f(LEAST x. x : S)";
-by (Clarify_tac 1);
-by (eres_inst_tac [("P","%x. x : S")] LeastMI2 1);
-by  (Fast_tac 1);
-by (rtac LeastMI2 1);
-by (auto_tac (claset() addEs [monoD] addSIs [thm "order_antisym"], simpset()));
-qed "Least_mono";
-
 Goal "[| a = b; c = d; b --> d |] ==> a --> c";
 by (Fast_tac 1);
 qed "eq_to_mono";

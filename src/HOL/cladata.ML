@@ -66,7 +66,7 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
                        addSEs [conjE,disjE,impCE,FalseE,iffCE];
 
 (*Quantifier rules*)
-val HOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI, some_equality, the_equality] 
+val HOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI, the_equality] 
                      addSEs [exE] addEs [allE];
 
 val clasetup = [fn thy => (claset_ref_of thy := HOL_cs; thy)];

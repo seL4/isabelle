@@ -7,8 +7,7 @@ Higher-Order Logic.
 *)
 
 theory HOL = CPure
-files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML")
-  ("meson_lemmas.ML") ("Tools/meson.ML"):
+files ("HOL_lemmas.ML") ("cladata.ML") ("blastdata.ML") ("simpdata.ML"):
 
 
 (** Core syntax **)
@@ -37,7 +36,6 @@ consts
 
   (* Binders *)
 
-  Eps           :: "('a => bool) => 'a"
   The           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
   Ex            :: "('a => bool) => bool"           (binder "EX " 10)
@@ -79,9 +77,9 @@ consts
   divide        :: "['a::inverse, 'a] => 'a"        (infixl "'/" 70)
 
 syntax (xsymbols)
-  abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
+  abs :: "'a::minus => 'a"    ("\\<bar>_\\<bar>")
 syntax (HTML output)
-  abs :: "'a::minus => 'a"    ("\<bar>_\<bar>")
+  abs :: "'a::minus => 'a"    ("\\<bar>_\\<bar>")
 
 axclass plus_ac0 < plus, zero
   commute: "x + y = y + x"
@@ -97,7 +95,6 @@ nonterminals
 
 syntax
   ~=            :: "['a, 'a] => bool"                    (infixl 50)
-  "_Eps"        :: "[pttrn, bool] => 'a"                 ("(3SOME _./ _)" [0, 10] 10)
   "_The"        :: "[pttrn, bool] => 'a"                 ("(3THE _./ _)" [0, 10] 10)
 
   (* Let expressions *)
@@ -116,7 +113,6 @@ syntax
 
 translations
   "x ~= y"                == "~ (x = y)"
-  "SOME x. P"             == "Eps (%x. P)"
   "THE x. P"              == "The (%x. P)"
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "Let a (%x. e)"
@@ -126,31 +122,27 @@ syntax ("" output)
   "op ~="       :: "['a, 'a] => bool"                    ("(_ ~=/ _)" [51, 51] 50)
 
 syntax (symbols)
-  Not           :: "bool => bool"                        ("\<not> _" [40] 40)
-  "op &"        :: "[bool, bool] => bool"                (infixr "\<and>" 35)
-  "op |"        :: "[bool, bool] => bool"                (infixr "\<or>" 30)
-  "op -->"      :: "[bool, bool] => bool"                (infixr "\<midarrow>\<rightarrow>" 25)
-  "op ~="       :: "['a, 'a] => bool"                    (infixl "\<noteq>" 50)
-  "ALL "        :: "[idts, bool] => bool"                ("(3\<forall>_./ _)" [0, 10] 10)
-  "EX "         :: "[idts, bool] => bool"                ("(3\<exists>_./ _)" [0, 10] 10)
-  "EX! "        :: "[idts, bool] => bool"                ("(3\<exists>!_./ _)" [0, 10] 10)
-  "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
+  Not           :: "bool => bool"                        ("\\<not> _" [40] 40)
+  "op &"        :: "[bool, bool] => bool"                (infixr "\\<and>" 35)
+  "op |"        :: "[bool, bool] => bool"                (infixr "\\<or>" 30)
+  "op -->"      :: "[bool, bool] => bool"                (infixr "\\<midarrow>\\<rightarrow>" 25)
+  "op ~="       :: "['a, 'a] => bool"                    (infixl "\\<noteq>" 50)
+  "ALL "        :: "[idts, bool] => bool"                ("(3\\<forall>_./ _)" [0, 10] 10)
+  "EX "         :: "[idts, bool] => bool"                ("(3\\<exists>_./ _)" [0, 10] 10)
+  "EX! "        :: "[idts, bool] => bool"                ("(3\\<exists>!_./ _)" [0, 10] 10)
+  "_case1"      :: "['a, 'b] => case_syn"                ("(2_ \\<Rightarrow>/ _)" 10)
 (*"_case2"      :: "[case_syn, cases_syn] => cases_syn"  ("_/ \\<orelse> _")*)
 
-syntax (input)
-  "_Eps"        :: "[pttrn, bool] => 'a"                 ("(3\<epsilon>_./ _)" [0, 10] 10)
-
 syntax (symbols output)
-  "op ~="       :: "['a, 'a] => bool"                    ("(_ \<noteq>/ _)" [51, 51] 50)
+  "op ~="       :: "['a, 'a] => bool"                    ("(_ \\<noteq>/ _)" [51, 51] 50)
 
 syntax (xsymbols)
-  "op -->"      :: "[bool, bool] => bool"                (infixr "\<longrightarrow>" 25)
+  "op -->"      :: "[bool, bool] => bool"                (infixr "\\<longrightarrow>" 25)
 
 syntax (HTML output)
-  Not           :: "bool => bool"                        ("\<not> _" [40] 40)
+  Not           :: "bool => bool"                        ("\\<not> _" [40] 40)
 
 syntax (HOL)
-  "_Eps"        :: "[pttrn, bool] => 'a"                 ("(3@ _./ _)" [0, 10] 10)
   "ALL "        :: "[idts, bool] => bool"                ("(3! _./ _)" [0, 10] 10)
   "EX "         :: "[idts, bool] => bool"                ("(3? _./ _)" [0, 10] 10)
   "EX! "        :: "[idts, bool] => bool"                ("(3?! _./ _)" [0, 10] 10)
@@ -173,7 +165,6 @@ axioms
     rule, and similar to the ABS rule of HOL.*)
   ext:          "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
 
-  someI:        "P (x::'a) ==> P (SOME x. P x)"
   the_eq_trivial: "(THE x. x = a) = (a::'a)"
 
   impI:         "(P ==> Q) ==> P-->Q"
@@ -183,7 +174,7 @@ defs
 
   True_def:     "True      == ((%x::bool. x) = (%x. x))"
   All_def:      "All(P)    == (P = (%x. True))"
-  Ex_def:       "Ex(P)     == P (SOME x. P x)"
+  Ex_def:       "Ex(P)     == !Q. (!x. P x --> Q) --> Q"
   False_def:    "False     == (!P. P)"
   not_def:      "~ P       == P-->False"
   and_def:      "P & Q     == !R. (P-->Q-->R) --> R"
@@ -199,11 +190,11 @@ axioms
 defs
   (*misc definitions*)
   Let_def:      "Let s f == f(s)"
-  if_def:       "If P x y == SOME z::'a. (P=True --> z=x) & (P=False --> z=y)"
+  if_def:       "If P x y == THE z::'a. (P=True --> z=x) & (P=False --> z=y)"
 
   (*arbitrary is completely unspecified, but is made to appear as a
     definition syntactically*)
-  arbitrary_def:  "False ==> arbitrary == (SOME x. False)"
+  arbitrary_def:  "False ==> arbitrary == (THE x. False)"
 
 
 
@@ -255,9 +246,5 @@ use "simpdata.ML"
 setup Simplifier.setup
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
-
-use "meson_lemmas.ML"
-use "Tools/meson.ML"
-setup meson_setup
 
 end

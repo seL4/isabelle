@@ -333,9 +333,8 @@ by (Blast_tac 1);
 qed "card_empty";
 Addsimps [card_empty];
 
-Goal "x ~: A ==> \
-\     ((insert x A, n) : cardR) =  \
-\     (EX m. (A, m) : cardR & n = Suc m)";
+Goal "x ~: A \
+\     ==> ((insert x A, n) : cardR)  =  (EX m. (A, m) : cardR & n = Suc m)";
 by Auto_tac;
 by (res_inst_tac [("A1", "A")] (finite_imp_cardR RS exE) 1);
 by (force_tac (claset() addDs [cardR_imp_finite], simpset()) 1);
@@ -345,7 +344,7 @@ val lemma = result();
 Goalw [card_def]
      "[| finite A; x ~: A |] ==> card (insert x A) = Suc(card A)";
 by (asm_simp_tac (simpset() addsimps [lemma]) 1);
-by (rtac some_equality 1);
+by (rtac the_equality 1);
 by (auto_tac (claset() addIs [finite_imp_cardR],
 	      simpset() addcongs [conj_cong]
 		        addsimps [symmetric card_def,
@@ -624,7 +623,7 @@ val lemma = result();
 Goalw [fold_def]
      "[| finite A; x ~: A |] ==> fold f e (insert x A) = f x (fold f e A)";
 by (asm_simp_tac (simpset() addsimps [lemma]) 1);
-by (rtac some_equality 1);
+by (rtac the_equality 1);
 by (auto_tac (claset() addIs [finite_imp_foldSet],
 	      simpset() addcongs [conj_cong]
 		        addsimps [symmetric fold_def,

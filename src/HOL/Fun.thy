@@ -43,9 +43,6 @@ constdefs
   o  :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl 55)
     "f o g == %x. f(g(x))"
 
-  inv :: ('a => 'b) => ('b => 'a)
-    "inv(f::'a=>'b) == % y. @x. f(x)=y"
-
   inj_on :: ['a => 'b, 'a set] => bool
     "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
 
@@ -70,17 +67,20 @@ constdefs
   
 constdefs
   Pi      :: "['a set, 'a => 'b set] => ('a => 'b) set"
-    "Pi A B == {f. ! x. if x:A then f(x) : B(x) else f(x) = (@ y. True)}"
+    "Pi A B == {f. ! x. if x:A then f(x) : B(x) else f(x) = arbitrary}"
 
   restrict :: "['a => 'b, 'a set] => ('a => 'b)"
-    "restrict f A == (%x. if x : A then f x else (@ y. True))"
+    "restrict f A == (%x. if x : A then f x else arbitrary)"
 
 syntax
-  "@Pi"  :: "[idt, 'a set, 'b set] => ('a => 'b) set"  ("(3PI _:_./ _)" 10)
+  "@Pi"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PI _:_./ _)" 10)
   funcset :: "['a set, 'b set] => ('a => 'b) set"      (infixr 60) 
   "@lam" :: "[pttrn, 'a set, 'a => 'b] => ('a => 'b)"  ("(3lam _:_./ _)" 10)
 
-  (*Giving funcset the nice arrow syntax -> clashes with existing theories*)
+  (*Giving funcset the arrow syntax (namely ->) clashes with other theories*)
+
+syntax (symbols)
+  "@Pi" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\\<Pi> _\\<in>_./ _)"   10)
 
 translations
   "PI x:A. B" => "Pi A (%x. B)"
@@ -91,8 +91,6 @@ constdefs
   compose :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)"
     "compose A g f == lam x : A. g(f x)"
 
-  Inv    :: "['a set, 'a => 'b] => ('b => 'a)"
-    "Inv A f == (% x. (@ y. y : A & f y = x))"
 
   
 end

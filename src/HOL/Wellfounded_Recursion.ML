@@ -253,20 +253,15 @@ qed "cut_apply";
 (*** John Harrison, "Inductive definitions: automation and application" ***)
 
 Goalw [adm_wf_def]
-  "[| wf R; adm_wf R F |] ==> EX! y. (x, y) : wfrec_rel R F";
+  "[| adm_wf R F; wf R |] ==> EX! y. (x, y) : wfrec_rel R F";
 by (wf_ind_tac "x" [] 1);
 by (rtac ex1I 1);
-by (res_inst_tac [("g","%x. @y. (x, y) : wfrec_rel R F")] wfrec_rel.wfrecI 1);
-by (strip_tac 1);
-byev [etac allE 1, etac impE 1, atac 1];
-by (rtac (some_eq_ex RS ssubst) 1);
-by (etac ex1_implies_ex 1);
+by (res_inst_tac [("g","%x. THE y. (x, y) : wfrec_rel R F")] wfrec_rel.wfrecI 1);
+by (fast_tac (claset() addSDs [theI']) 1); 
 by (etac wfrec_rel.elim 1);
 by (Asm_full_simp_tac 1);
 byev [etac allE 1, etac allE 1, etac allE 1, etac mp 1];
-by (strip_tac 1);
-by (rtac (some_equality RS ssubst) 1);
-by (ALLGOALS Blast_tac);
+by (fast_tac (claset() addIs [the_equality RS sym]) 1);
 qed "wfrec_unique";
 
 Goalw [adm_wf_def] "adm_wf R (%f x. F (cut f R x) x)";
@@ -278,14 +273,13 @@ qed "adm_lemma";
 
 Goalw [wfrec_def]
     "wf(r) ==> wfrec r H a = H (cut (wfrec r H) r a) a";
-by (rtac (adm_lemma RSN (2, wfrec_unique) RS some1_equality) 1);
+by (rtac (adm_lemma RS wfrec_unique RS the1_equality) 1);
 by (atac 1);
 by (rtac wfrec_rel.wfrecI 1);
 by (strip_tac 1);
-by (rtac (some_eq_ex RS iffD2) 1);
-by (rtac (adm_lemma RSN (2, wfrec_unique) RS ex1_implies_ex) 1);
-by (atac 1);
+by (etac (adm_lemma RS wfrec_unique RS theI') 1);
 qed "wfrec";
+
 
 (*---------------------------------------------------------------------------
  * This form avoids giant explosions in proofs.  NOTE USE OF == 

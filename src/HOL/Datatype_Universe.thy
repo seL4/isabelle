@@ -9,7 +9,7 @@ Defines "Cartesian Product" and "Disjoint Sum" as set operations.
 Could <*> be generalized to a general summation (Sigma)?
 *)
 
-Datatype_Universe = NatArith + Sum_Type +
+Datatype_Universe = NatArith + Sum_Type + Hilbert_Choice +
 
 
 (** lists, trees will be sets of nodes **)
@@ -86,10 +86,10 @@ defs
   usum_def   "usum A B == In0`A Un In1`B"
 
   (*the corresponding eliminators*)
-  Split_def  "Split c M == @u. ? x y. M = Scons x y & u = c x y"
+  Split_def  "Split c M == THE u. EX x y. M = Scons x y & u = c x y"
 
-  Case_def   "Case c d M == @u.  (? x . M = In0(x) & u = c(x)) 
-                               | (? y . M = In1(y) & u = d(y))"
+  Case_def   "Case c d M == THE u.  (EX x . M = In0(x) & u = c(x)) 
+                                  | (EX y . M = In1(y) & u = d(y))"
 
 
   (** equality for the "universe" **)
