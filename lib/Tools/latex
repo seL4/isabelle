@@ -14,7 +14,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps, ps.gz,"
-  echo "                 pdf, bbl, png"
+  echo "                 pdf, bbl, png, sty"
   echo
   echo "  Run LaTeX (and related tools) on FILE (default root.tex),"
   echo "  producing the specified output format."
@@ -60,7 +60,7 @@ FILE="root.tex"
 
 ## main
 
-# check file
+# root file
 
 DIR=$(dirname "$FILE")
 if [ "$DIR" = . ]; then
@@ -69,7 +69,7 @@ else
   FILEBASE=$DIR/$(basename "$FILE" .tex)
 fi
 
-[ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'"
+function check_root () { [ -f "$FILEBASE.tex" ] || fail "Bad file '$FILE'" }
 
 
 # operations
@@ -80,40 +80,60 @@ function run_bibtex () { $ISABELLE_BIBTEX </dev/null "$FILEBASE"; }
 function run_dvips () { $ISABELLE_DVIPS -o "$FILEBASE.ps" "$FILEBASE.dvi"; }
 function run_thumbpdf () { [ -n "$ISABELLE_THUMBPDF" ] && $ISABELLE_THUMBPDF "$FILEBASE"; }
 
-
-# process file
+function update_styles ()
+{
+  for NAME in $ISABELLE_HOME/lib/texinputs/*.sty
+  do
+    BNAME=$(basename "$NAME")
+    if [ ! -e "$BNAME" -o "$NAME" -nt "$BNAME" ]; then
+      echo "updating $BNAME"
+      cp -f "$NAME" "$BNAME"
+    fi
+  done
+}
 
 case "$OUTFORMAT" in
   dvi)
+    check_root && \
     run_latex
     RC=$?
     ;;
   dvi.gz)
+    check_root && \
     run_latex && \
     gzip -f "$FILEBASE.dvi"
     RC=$?
     ;;
   ps)
+    check_root && \
     run_latex && \
     run_dvips &&
     RC=$?
     ;;
   ps.gz)
+    check_root && \
     run_latex && \
     run_dvips &&
     gzip -f "$FILEBASE.ps"
     RC=$?
     ;;
   pdf)
+    check_root && \
     run_pdflatex
     RC=$?
     ;;
   bbl)
+    check_root && \
     run_bibtex
     RC=$?
     ;;
   png)
+    check_root && \
     run_thumbpdf
+    RC=$?
+    ;;
+  sty)
+    update_styles
     RC=$?
     ;;
   *)
