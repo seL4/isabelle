@@ -560,15 +560,29 @@ qed_spec_mp "zdiff_int";
 
 (*** abs: absolute value, as an integer ****)
 
-Goalw [zabs_def] "abs(abs(x::int)) = abs(x)";
+(* Simpler: use zabs_def as rewrite rule;
+   but arith_tac is not parameterized by such simp rules
+*)
+Goalw [zabs_def]
+ "P(abs(i::int)) = ((#0 <= i --> P i) & (i < #0 --> P(-i)))";
 by(Simp_tac 1);
+qed "zabs_split";
+
+arith_tac_split_thms := !arith_tac_split_thms @ [zabs_split];
+
+Goal "abs(abs(x::int)) = abs(x)";
+by(arith_tac 1);
 qed "abs_abs";
 Addsimps [abs_abs];
 
-Goalw [zabs_def] "abs(-(x::int)) = abs(x)";
-by(Simp_tac 1);
+Goal "abs(-(x::int)) = abs(x)";
+by(arith_tac 1);
 qed "abs_minus";
 Addsimps [abs_minus];
+
+Goal "abs(x+y) <= abs(x) + abs(y::int)";
+by(arith_tac 1);
+qed "triangle_ineq";
 
 
 (*** Some convenient biconditionals for products of signs ***)
