@@ -243,12 +243,11 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
              |>> add_recursor
              |>> Theory.parent_path
 
+  val intr_names = map #2 (flat con_ty_lists);
   val (thy1, ind_result) =
-         thy0  |> Ind_Package.add_inductive_i
-                    false (rec_tms, dom_sum) (map (fn tm => (("", tm), [])) intr_tms)
-                           (monos, con_defs,
-                           type_intrs @ Datatype_Arg.intrs,
-                           type_elims @ Datatype_Arg.elims)
+    thy0 |> Ind_Package.add_inductive_i
+      false (rec_tms, dom_sum) (map Thm.no_attributes (intr_names ~~ intr_tms))
+      (monos, con_defs, type_intrs @ Datatype_Arg.intrs, type_elims @ Datatype_Arg.elims);
 
   (**** Now prove the datatype theorems in this theory ****)
 
@@ -282,7 +281,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
            (cterm_of (sign_of thy1) (mk_case_eqn arg)))
         (case_tacsf con_def);
 
-  val free_iffs = con_defs RL [Ind_Syntax.def_swap_iff];
+  val free_iffs = map standard (con_defs RL [Ind_Syntax.def_swap_iff]);
 
   val case_eqns =
       map prove_case_eqn
@@ -333,7 +332,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val constructors =
       map (head_of o #1 o Logic.dest_equals o #prop o rep_thm) (tl con_defs);
 
-  val free_SEs = Ind_Syntax.mk_free_SEs free_iffs;
+  val free_SEs = map standard (Ind_Syntax.mk_free_SEs free_iffs);
 
   val {intrs, elim, induct, mutual_induct, ...} = ind_result
 
@@ -372,7 +371,12 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (thy1 |> Theory.add_path big_rec_base_name
         |> (#1 o PureThy.add_thmss
          [(("simps", simps), [Simplifier.simp_add_global]),
-          (("", intrs), [Classical.safe_intro_global])])
+          (("", intrs), [Classical.safe_intro_global]),
+          (("con_defs", con_defs), []),
+          (("case_eqns", case_eqns), []),
+          (("recursor_eqns", recursor_eqns), []),
+          (("free_iffs", free_iffs), []),
+          (("free_elims", free_SEs), [])])
         |> DatatypesData.map (fn tab => Symtab.update ((big_rec_name, dt_info), tab))
         |> ConstructorsData.map (fn tab => foldr Symtab.update (con_pairs, tab))
         |> Theory.parent_path,
