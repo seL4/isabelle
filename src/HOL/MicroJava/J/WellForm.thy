@@ -70,6 +70,15 @@ apply (unfold is_class_def)
 apply (simp (no_asm_simp))
 done
 
+lemma is_class_xcpt [simp]: "wf_prog wf_mb G \<Longrightarrow> is_class G (Xcpt x)"
+  apply (simp add: wf_prog_def wf_syscls_def)
+  apply (simp add: is_class_def class_def)
+  apply clarify
+  apply (erule_tac x = x in allE)
+  apply clarify
+  apply (auto intro!: map_of_SomeI)
+  done
+
 lemma subcls1_wfD: "[|G\<turnstile>C\<prec>C1D; wf_prog wf_mb G|] ==> D \<noteq> C \<and> \<not>(D,C)\<in>(subcls1 G)^+"
 apply( frule r_into_trancl)
 apply( drule subcls1D)
