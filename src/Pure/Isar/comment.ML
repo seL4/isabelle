@@ -9,7 +9,7 @@ signature COMMENT =
 sig
   type text
   val string_of: text -> string
-  val plain: string -> text
+  val plain: string list -> text
   val none: text
   val ignore: 'a * text -> 'a
   type interest
@@ -25,11 +25,11 @@ struct
 
 (** text **)
 
-datatype text = Text of string;
+datatype text = Text of string list;
 
-fun string_of (Text s) = s;
+fun string_of (Text ss) = cat_lines ss;
 val plain = Text;
-val none = plain "";
+val none = plain [];
 
 fun ignore (x, _) = x;
 
