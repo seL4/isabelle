@@ -60,6 +60,8 @@ signature SIGN =
     (string * (ast list -> ast)) list -> sg -> sg
   val add_trfunsT:
     (string * (typ -> term list -> term)) list -> sg -> sg
+  val add_tokentrfuns:
+    (string * string * (string -> string * int)) list -> sg -> sg
   val add_trrules: (string * string) Syntax.trrule list -> sg -> sg
   val add_trrules_i: ast Syntax.trrule list -> sg -> sg
   val add_name: string -> sg -> sg
@@ -552,6 +554,7 @@ val add_modesyntax   = extend_sign ext_modesyntax "#";
 val add_modesyntax_i = extend_sign ext_modesyntax_i "#";
 val add_trfuns       = extend_sign (ext_syn Syntax.extend_trfuns) "#";
 val add_trfunsT      = extend_sign (ext_syn Syntax.extend_trfunsT) "#";
+val add_tokentrfuns  = extend_sign (ext_syn Syntax.extend_tokentrfuns) "#";
 val add_trrules      = extend_sign (ext_syn Syntax.extend_trrules) "#";
 val add_trrules_i    = extend_sign (ext_syn Syntax.extend_trrules_i) "#";
 
@@ -616,6 +619,7 @@ val proto_pure =
   |> add_syntax Syntax.pure_syntax
   |> add_modesyntax (("symbols", true), Syntax.pure_sym_syntax)
   |> add_trfuns Syntax.pure_trfuns
+  |> add_trfunsT Syntax.pure_trfunsT
   |> add_consts
    [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),
     ("=?=", "['a::{}, 'a] => prop", InfixrName ("=?=", 2)),
