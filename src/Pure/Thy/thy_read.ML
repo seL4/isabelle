@@ -478,7 +478,12 @@ fun store_thm (name, thm) =
     val (thy_name, ThyInfo {path, children, thy_time, ml_time, theory, thms}) =
       thyinfo_of_sign (#sign (rep_thm thm));
     val thms' = Symtab.update_new ((name, thm), thms)
-      handle Symtab.DUPLICATE s => error ("Duplicate theorem name " ^ quote s);
+      handle Symtab.DUPLICATE s => 
+        (if eq_thm (the (Symtab.lookup (thms, name)), thm) then 
+           (writeln ("Warning: Theorem database already contains copy of\
+                     \ theorem " ^ quote name);
+            thms)
+         else error ("Duplicate theorem name " ^ quote s));
   in
     loaded_thys := Symtab.update
      ((thy_name, ThyInfo {path = path, children = children,
