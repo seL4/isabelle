@@ -16,20 +16,16 @@ loadpath := [".", "ex"];
 time_use     "ex/misc.ML";
 time_use_thy "ex/Ramsey";
 
-(*Equivalence classes and integers*)
-time_use_thy "ex/Equiv";
-time_use_thy "ex/Integ";
-(*Binary integer arithmetic*)
-use          "ex/twos_compl.ML";
+(*Equivalence classes; integers; Binary integer arithmetic*)
 time_use_thy "ex/Bin";
 
 (** Datatypes **)
 time_use_thy "ex/BT";		(*binary trees*)
+time_use_thy "ex/Data";		(*Sample datatype*)
 time_use_thy "ex/Term";		(*terms: recursion over the list functor*)
 time_use_thy "ex/TF";		(*trees/forests: mutual recursion*)
 time_use_thy "ex/Ntree";	(*variable-branching trees; function demo*)
-time_use_thy "ex/Brouwer";	(*Brouwer ordinals: infinite-branching trees*)
-time_use_thy "ex/Data";		(*Sample datatype*)
+time_use_thy "ex/Brouwer";	(*Infinite-branching trees*)
 time_use_thy "ex/Enum";		(*Enormous enumeration type*)
 
 (** Inductive definitions **)
@@ -39,10 +35,10 @@ time_use_thy "ex/PropLog";	(*completeness of propositional logic*)
 time_use_thy "ex/ListN";
 time_use_thy "ex/Acc";
 time_use_thy "ex/Comb";		(*Combinatory Logic example*)
-time_use_thy "ex/Primrec";
+time_use_thy "ex/Primrec";	(*Primitive recursive functions*)
 
 (** CoDatatypes **)
 time_use_thy "ex/LList";
-time_use     "ex/CoUnit.ML";
+time_use_thy "ex/CoUnit";
 
 maketest"END: Root file for ZF Set Theory examples";
