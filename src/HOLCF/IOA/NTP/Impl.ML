@@ -278,14 +278,6 @@ val tac3 = asm_full_simp_tac (ss addsimps [inv3_def]
   by (rtac impI 1);
   by (forward_tac [rewrite_rule [Impl.inv2_def] (inv2 RS invariantE)] 1);
   by (Asm_full_simp_tac 1);
-  by (REPEAT (etac conjE 1));
-  by (dtac mp 1);
-  by (assume_tac 1);
-  by (etac allE 1);
-  by (dtac (imp_or_lem RS iffD1) 1);
-  by (dtac mp 1);
-  by (assume_tac 1);
-  by (assume_tac 1);
 qed "inv3";
 
 
@@ -308,7 +300,7 @@ val tac4 =  asm_full_simp_tac (ss addsimps [inv4_def]
   (* 10 - 2 *)
   
   by (EVERY1[tac4,tac4,tac4,tac4,tac4,tac4,tac4,tac4,tac4]);
- 
+
  (* 2 b *)
  
   by (strip_tac  1 THEN REPEAT (etac conjE 1));
