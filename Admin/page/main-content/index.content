@@ -5,9 +5,8 @@ Isabelle
 
 <p>
 
-<h2>Isabelle</h2> 
-is a popular generic theorem proving
-environment developed at Cambridge University (<a
+Isabelle is a popular generic theorem proving environment developed at
+Cambridge University (<a
 href="http://www.cl.cam.ac.uk/users/lcp/">Larry Paulson</a>) and TU
 Munich (<a href="http://www.in.tum.de/~nipkow/">Tobias Nipkow</a>).
 
@@ -31,29 +30,24 @@ See there for information on projects done with Isabelle, mailing list
 archives, research papers, the Isabelle bibliography, and Isabelle
 workshops and courses.
 
-<p>
-&nbsp;
 
 <h2>Obtaining Isabelle</h2>
 
-See the <a href="dist/">download page</a>.
-<p>
-
 Several mirror sites provide the Isabelle <a
-href="dist/">distribution</a>, which includes source and binary <a
-href="dist/packages.html">packages</a> and browsable <a
+href="dist/index.html">distribution</a>, which includes source and
+binary <a href="dist/packages.html">packages</a> and browsable <a
 href="dist/docs.html">documentation</a>.  The current version is
 <strong><!-- _GP_ distname --></strong>.
 
 <p>
 
-You can also browse the Isabelle theory <a href="library">library</a>;
-the main logics are <a href="library/HOL/">HOL</a>, <a
-href="library/HOLCF/">HOLCF</a>, <a href="library/FOL/">FOL</a> and <a
-href="library/ZF/">ZF</a>.
+You can also browse the <a href="library/index.html">Isabelle theory
+library</a>; the main logics are <a
+href="library/HOL/index.html">HOL</a>, <a
+href="library/HOLCF/index.html">HOLCF</a>, <a
+href="library/FOL/index.html">FOL</a> and <a
+href="library/ZF/index.html">ZF</a>.
 
-<p>
-&nbsp;
 
 <h2>Mailing list</h2>
 

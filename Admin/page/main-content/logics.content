@@ -2,7 +2,6 @@
 Isabelle's Logics
 
 %body%
-<h3>What is Isabelle?</h3>
 
 Isabelle can be viewed from two main perspectives.  On the one hand it
 may serve as a generic framework for rapid prototyping of deductive
@@ -19,20 +18,24 @@ library</a>).
 
 <dl>
 
-<dt><a href="library/HOL/"><strong>Isabelle/HOL</strong></a><dd> is a
-version of classical higher-order logic resembling that of the <A
+<dt><a
+href="library/HOL/index.html"><strong>Isabelle/HOL</strong></a><dd> is
+a version of classical higher-order logic resembling that of the <A
 HREF="http://www.cl.cam.ac.uk/Research/HVG/HOL/HOL.html">HOL
 System</A>.
 
-<dt><a href="library/HOLCF/"><strong>Isabelle/HOLCF</strong></a><dd>
+<dt><a
+href="library/HOLCF/index.html"><strong>Isabelle/HOLCF</strong></a><dd>
 adds Scott's Logic for Computable Functions (domain theory) to HOL.
 
-<dt><a href="library/FOL/"><strong>Isabelle/FOL</strong></a><dd>
+<dt><a
+href="library/FOL/index.html"><strong>Isabelle/FOL</strong></a><dd>
 provides basic classical and intuitionistic first-order logic.  It is
 polymorphic.
 
-<dt><a href="library/ZF/"><strong>Isabelle/ZF</strong></a><dd> offers
-a formulation of Zermelo-Fraenkel set theory on top of FOL.
+<dt><a
+href="library/ZF/index.html"><strong>Isabelle/ZF</strong></a><dd>
+offers a formulation of Zermelo-Fraenkel set theory on top of FOL.
 
 </dl>
 
@@ -43,8 +46,9 @@ an extensive library of (concrete) mathematics, and various packages
 for advanced definitional concepts (like (co-)inductive sets and
 types, well-founded recursion etc.).  The distribution also includes
 some large applications, for example correctness proofs of
-cryptographic protocols (<a href="library/HOL/Auth/">HOL/Auth</a>) or
-communication protocols (<a href="library/HOLCF/IOA/">HOLCF/IOA</a>).
+cryptographic protocols (<a
+href="library/HOL/Auth/index.html">HOL/Auth</a>) or communication
+protocols (<a href="library/HOLCF/IOA/index.html">HOLCF/IOA</a>).
 
 <p>
 
@@ -56,11 +60,12 @@ constructions for sets than simply-typed HOL.
 <p>
 
 There are a few minor object logics that may serve as further
-examples: <a href="library/CTT/">CTT</a> is an extensional version of
-Martin-L&ouml;f's Type Theory, <a href="library/Cube/">Cube</a> is
-Barendregt's Lambda Cube.  There are also some sequent calculus
-examples under <a href="library/Sequents/">Sequents</a>, including
-modal and linear logics.  Again see the <a href="library/">Isabelle
+examples: <a href="library/CTT/index.html">CTT</a> is an extensional
+version of Martin-L&ouml;f's Type Theory, <a
+href="library/Cube/index.html">Cube</a> is Barendregt's Lambda Cube.
+There are also some sequent calculus examples under <a
+href="library/Sequents/index.html">Sequents</a>, including modal and
+linear logics.  Again see the <a href="library/index.html">Isabelle
 theory library</a> for other examples.
 
 
