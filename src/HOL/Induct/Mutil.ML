@@ -6,8 +6,6 @@
 The Mutilated Chess Board Problem, formalized inductively
 *)
 
-open Mutil;
-
 Addsimps tiling.intrs;
 
 (** The union of two disjoint tilings is a tiling **)
