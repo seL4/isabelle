@@ -283,7 +283,7 @@ lemmas stable_constrains_stable = stable_constrains_Int[THEN stableI, standard]
 lemma invariantI: "[| Init F \<subseteq> A;  F \<in> stable A |] ==> F \<in> invariant A"
 by (simp add: invariant_def)
 
-text{*Could also say "invariant A \<inter> invariant B \<subseteq> invariant (A \<inter> B)"*}
+text{*Could also say @{term "invariant A \<inter> invariant B \<subseteq> invariant(A \<inter> B)"}*}
 lemma invariant_Int:
      "[| F \<in> invariant A;  F \<in> invariant B |] ==> F \<in> invariant (A \<inter> B)"
 by (auto simp add: invariant_def stable_Int)

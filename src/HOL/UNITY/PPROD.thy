@@ -119,10 +119,11 @@ by (simp add: PLam_def lift_preserves_snd_I)
 
 (*** guarantees properties ***)
 
-text{*This rule looks unsatisfactory because it refers to "lift".  One must use
-  lift_guarantees_eq_lift_inv to rewrite the first subgoal and
-  something like lift_preserves_sub to rewrite the third.  However there's
-  no obvious way to alternative for the third premise.*}
+text{*This rule looks unsatisfactory because it refers to @{term lift}. 
+  One must use
+  @{text lift_guarantees_eq_lift_inv} to rewrite the first subgoal and
+  something like @{text lift_preserves_sub} to rewrite the third.  However
+  there's no obvious alternative for the third premise.*}
 lemma guarantees_PLam_I:
     "[| lift i (F i): X guarantees Y;  i \<in> I;
         OK I (%i. lift i (F i)) |]

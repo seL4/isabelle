@@ -155,7 +155,7 @@ constdefs
 
 lemma closedD:
    "[|closed F T B L; act \<in> Acts F; B\<subseteq>M; T\<inter>M \<in> L|] 
-    ==> T \<inter> (B \<union> wp act M) \<in> L"
+    ==> T \<inter> (B \<union> wp act M) \<in> L" 
 by (simp add: closed_def) 
 
 text{*Note: the formalization below replaces Meier's @{term q} by @{term B}
@@ -600,6 +600,7 @@ done
 
 
 subsection {*Monotonicity*}
+text{*From Meier's thesis, section 4.5.7, page 110*}
 (*to be continued?*)
 
 end

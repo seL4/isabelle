@@ -369,7 +369,8 @@ $(LOG)/HOL-Auth.gz: $(OUT)/HOL Library/NatPair.thy \
   Auth/Guard/Guard.thy Auth/Guard/List_Msg.thy \
   Auth/Guard/NS_Public.thy Auth/Guard/OtwayRees.thy \
   Auth/Guard/P1.thy Auth/Guard/P2.thy \
-  Auth/Guard/Proto.thy Auth/Guard/Yahalom.thy
+  Auth/Guard/Proto.thy Auth/Guard/Yahalom.thy\
+  Auth/document/root.tex 
 	@$(ISATOOL) usedir -g true $(OUT)/HOL Auth
 
 
@@ -394,8 +395,9 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML \
   UNITY/Comp/Counter.thy UNITY/Comp/Counterc.thy UNITY/Comp/Handshake.thy \
   UNITY/Comp/PriorityAux.thy \
   UNITY/Comp/Priority.thy UNITY/Comp/Progress.thy \
-  UNITY/Comp/TimerArray.thy
-	@$(ISATOOL) usedir $(OUT)/HOL UNITY
+  UNITY/Comp/TimerArray.thy\
+  UNITY/document/root.tex 
+	@$(ISATOOL) usedir -g true $(OUT)/HOL UNITY
 
 
 ## HOL-Unix

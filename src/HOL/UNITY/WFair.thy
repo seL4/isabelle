@@ -310,7 +310,7 @@ lemma leadsTo_weaken:
 by (blast intro: leadsTo_weaken_R leadsTo_weaken_L leadsTo_Trans)
 
 
-(*Set difference: maybe combine with leadsTo_weaken_L?*)
+text{*Set difference: maybe combine with @{text leadsTo_weaken_L}??*}
 lemma leadsTo_Diff:
      "[| F \<in> (A-B) leadsTo C; F \<in> B leadsTo C |]   ==> F \<in> A leadsTo C"
 by (blast intro: leadsTo_Un leadsTo_weaken)

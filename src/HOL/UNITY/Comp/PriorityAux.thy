@@ -55,7 +55,7 @@ declare derive_def [simp] derive1_def [simp] symcl_def [simp]
         above_def [simp] reach_def [simp] 
         reverse_def [simp] neighbors_def [simp]
 
-text{*All vertex sets are finite \<dots>*}
+text{*All vertex sets are finite*}
 declare finite_subset [OF subset_UNIV finite_vertex_univ, iff]
 
 text{* and relatons over vertex are finite too *}

@@ -156,7 +156,7 @@ done
 lemmas Join_ac = Join_assoc Join_left_absorb Join_commute Join_left_commute
 
 
-subsection{*\<Squnion>laws*}
+subsection{*Laws Governing @{text "\<Squnion>"}*}
 
 (*Also follows by JN_insert and insert_absorb, but the proof is longer*)
 lemma JN_absorb: "k \<in> I ==> F k\<squnion>(\<Squnion>i \<in> I. F i) = (\<Squnion>i \<in> I. F i)"

@@ -55,7 +55,7 @@ declare Rprg_def [THEN def_prg_Init, simp]
 
 declare asgt_def [THEN def_act_simp,simp]
 
-(*All vertex sets are finite*)
+text{*All vertex sets are finite*}
 declare finite_subset [OF subset_UNIV finite_graph, iff]
 
 declare reach_invariant_def [THEN def_set_simp, simp]

@@ -182,7 +182,7 @@ apply (rule Always_LeadsToI, assumption)
 apply (blast intro: EnsuresI LeadsTo_Basis Always_ConstrainsD [THEN Constrains_weaken] transient_strengthen)
 done
 
-text{*Set difference: maybe combine with leadsTo_weaken_L??
+text{*Set difference: maybe combine with @{text leadsTo_weaken_L}??
   This is the most useful form of the "disjunction" rule*}
 lemma LeadsTo_Diff:
      "[| F \<in> (A-B) LeadsTo C;  F \<in> (A \<inter> B) LeadsTo C |]  
