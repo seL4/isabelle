@@ -19,5 +19,5 @@ time_use_thy "PropLog";
 time_use_thy "SList";
 time_use_thy "LFilter";
 time_use_thy "Term";
-time_use_thy "Simult";
+time_use_thy "ABexp";
 time_use_thy "Exp";
