@@ -607,10 +607,12 @@ generate them in your home directory, the absolute {\tt base_path} is
 not correct if you use someone else's database or a database derived
 from it.
 
-In that case you first have to set {\tt base_path} to the value of
-{\em your} Isabelle main directory, i.e. the directory that contains
-the subdirectories where standard logics like {\tt FOL} and {\tt HOL}
-or your own logics are stored.
+In that case you first should set {\tt base_path} to the value of {\em
+your} Isabelle main directory, i.e. the directory that contains the
+subdirectories where standard logics like {\tt FOL} and {\tt HOL} or
+your own logics are stored. If you do not do this, the generated HTML
+files will still be usable but may contain incomplete titles and lack
+some hypertext links.
 
 It's also a good idea to set {\tt gif_path} which points to the
 directory containing two GIF images used in the HTML
@@ -621,7 +623,7 @@ changing the location of the HTML files (as they contain relative
 paths) and also causes trouble if the database's maker (re)moves the
 GIFs.
 
-Here's what you have to do before invoking {\tt init_html} using
+Here's what you should do before invoking {\tt init_html} using
 someone else's \ML{} database:
 
 \begin{ttbox}
