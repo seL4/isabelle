@@ -45,7 +45,7 @@ by (rtac constrainsI 1);
 by (dtac ([rs_AB, nondec_idle] MRS constrains_Int RS constrainsD) 1);
 by (assume_tac 1);
 by (ALLGOALS Asm_full_simp_tac);
-by (blast_tac (claset() delrules [le0]) 1);
+by (blast_tac (HOL_cs addIs [order_refl]) 1);
 by (Clarify_tac 1);
 by (subgoals_tac ["s' (Aproc, Rcvd) = s (Aproc, Rcvd)",
 		  "s' (Bproc, Rcvd) = s (Bproc, Rcvd)"] 1);
