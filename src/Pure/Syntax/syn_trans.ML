@@ -25,14 +25,14 @@ sig
       (string * (term list -> term)) list *
       (string * (term list -> term)) list *
       (string * (Ast.ast list -> Ast.ast)) list
-  val pure_trfunsT: (string * (typ -> term list -> term)) list
+  val pure_trfunsT: (string * (bool -> typ -> term list -> term)) list
 end;
 
 signature SYN_TRANS =
 sig
   include SYN_TRANS1
   val abs_tr': term -> term
-  val prop_tr': bool -> term -> term
+  val prop_tr': term -> term
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val pt_to_ast: (string -> (Ast.ast list -> Ast.ast) option) -> Parser.parsetree -> Ast.ast
@@ -116,6 +116,12 @@ fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
       fold_ast_p "==>" (unfold_ast "_asms" asms, concl)
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise AST ("bigimpl_ast_tr", asts);
 
+
+(* type reflection *)
+
+fun type_tr (*"_TYPE"*) [ty] =
+      const constrainC $ const "TYPE" $ (const "itself" $ ty)
+  | type_tr (*"_TYPE"*) ts = raise TERM ("type_tr", ts);
 
 
 (** print (ast) translations **)
@@ -215,10 +221,9 @@ fun idtyp_ast_tr' a [Appl [Constant c, x, ty], xs] =
 
 (* meta propositions *)
 
-fun prop_tr' show_sorts tm =
+fun prop_tr' tm =
   let
     fun aprop t = const "_aprop" $ t;
-    val mk_ofclass = if show_sorts then "_mk_ofclassS" else "_mk_ofclass";
 
     fun is_prop Ts t =
       fastype_of1 (Ts, t) = propT handle TERM _ => false;
@@ -232,7 +237,7 @@ fun prop_tr' show_sorts tm =
           if is_prop Ts t then aprop t else t
       | tr' Ts (Abs (x, T, t)) = Abs (x, T, tr' (T :: Ts) t)
       | tr' Ts (t as t1 $ (t2 as Const ("TYPE", Type ("itself", [T])))) =
-          if is_prop Ts t then Const (mk_ofclass, T) $ tr' Ts t1
+          if is_prop Ts t then Const ("_mk_ofclass", T) $ tr' Ts t1
           else tr' Ts t1 $ tr' Ts t2
       | tr' Ts (t as t1 $ t2) =
           (if is_Const (head_of t) orelse not (is_prop Ts t)
@@ -241,14 +246,9 @@ fun prop_tr' show_sorts tm =
     tr' [] tm
   end;
 
-
-fun mk_ofclass_tr' (*"_mk_ofclass"*) T [t] =
-      const "_ofclass" $ term_of_typ false T $ t
-  | mk_ofclass_tr' (*"_mk_ofclass"*) T ts = raise TYPE ("mk_ofclass_tr'", [T], ts);
-
-fun mk_ofclassS_tr' (*"_mk_ofclassS"*) T [t] =
-      const "_ofclass" $ term_of_typ true T $ t
-  | mk_ofclassS_tr' (*"_mk_ofclassS"*) T ts = raise TYPE ("mk_ofclassS_tr'", [T], ts);
+fun mk_ofclass_tr' show_sorts (*"_mk_ofclass"*) T [t] =
+      const "_ofclass" $ term_of_typ show_sorts T $ t
+  | mk_ofclass_tr' _ (*"_mk_ofclass"*) T ts = raise TYPE ("mk_ofclass_tr'", [T], ts);
 
 
 (* meta implication *)
@@ -258,6 +258,13 @@ fun impl_ast_tr' (*"==>"*) asts =
     (asms as _ :: _ :: _, concl)
       => Appl [Constant "_bigimpl", fold_ast "_asms" asms, concl]
   | _ => raise Match);
+
+
+(* type reflection *)
+
+fun type_tr' show_sorts (*"TYPE"*) (Type ("itself", [T])) ts =
+      list_comb (const "_TYPE" $ term_of_typ show_sorts T, ts)
+  | type_tr' _ _ _ = raise Match;
 
 
 (* dependent / nondependent quantifiers *)
@@ -283,13 +290,13 @@ val pure_trfuns =
    ("_lambda", lambda_ast_tr), ("_idtyp", idtyp_ast_tr),
    ("_bigimpl", bigimpl_ast_tr)],
   [("_abs", abs_tr), ("_aprop", aprop_tr), ("_ofclass", ofclass_tr),
-   ("_K", k_tr)],
+   ("_TYPE", type_tr), ("_K", k_tr)],
   []: (string * (term list -> term)) list,
   [("_abs", abs_ast_tr'), ("_idts", idtyp_ast_tr' "_idts"),
    ("_pttrns", idtyp_ast_tr' "_pttrns"), ("==>", impl_ast_tr')]);
 
 val pure_trfunsT =
-  [("_mk_ofclass", mk_ofclass_tr'), ("_mk_ofclassS", mk_ofclassS_tr')];
+  [("_mk_ofclass", mk_ofclass_tr'), ("TYPE", type_tr')];
 
 
 
