@@ -22,8 +22,8 @@ lemma "P \<and> Q"
   refute 2  -- {* refutes @{term "Q"} *}
   refute    -- {* equivalent to 'refute 1' *}
     -- {* here 'refute 3' would cause an exception, since we only have 2 subgoals *}
-  refute [maxsize=5]           -- {* we can override parameters \<dots> *}
-  refute [satsolver="dpll"] 2  -- {* \<dots> and specify a subgoal at the same time *}
+  refute [maxsize=5]           -- {* we can override parameters ... *}
+  refute [satsolver="dpll"] 2  -- {* ... and specify a subgoal at the same time *}
 oops
 
 refute_params
@@ -175,14 +175,14 @@ lemma "\<lbrakk> \<forall>x. P x x; \<forall>x y. P x y \<longrightarrow> P y x 
   (* refute -- works well with ZChaff, but the internal solver is too slow *)
 oops
 
-text {* The "Drinker's theorem" \<dots> *}
+text {* The "Drinker's theorem" ... *}
 
 lemma "\<exists>x. f x = g x \<longrightarrow> f = g"
   refute [maxsize=4]  (* [maxsize=6] works well with ZChaff *)
   apply (auto simp add: ext)
 done
 
-text {* \<dots> and an incorrect version of it *}
+text {* ... and an incorrect version of it *}
 
 lemma "(\<exists>x. f x = g x) \<longrightarrow> f = g"
   refute
@@ -285,13 +285,13 @@ lemma "\<exists>f. f x = x"
   apply simp
 done
 
-text {* Axiom of Choice: first an incorrect version \<dots> *}
+text {* Axiom of Choice: first an incorrect version ... *}
 
 lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (EX!f. \<forall>x. P x (f x))"
   refute
 oops
 
-text {* \<dots> and now two correct ones *}
+text {* ... and now two correct ones *}
 
 lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>f. \<forall>x. P x (f x))"
   refute [maxsize=5]
