@@ -25,12 +25,22 @@ case `uname -s` in
       i?86)
         PLATFORM=x86-linux
         ;;
+      Power* | power* | ppc)
+        PLATFORM=ppc-linux
+        ;;
     esac
     ;;
   FreeBSD|NetBSD)
     case `uname -m` in
       i?86)
         PLATFORM=x86-bsd
+        ;;
+    esac
+    ;;
+  Darwin)
+    case `uname -m` in
+      Power* | power* | ppc)
+        PLATFORM=ppc-bsd
         ;;
     esac
     ;;
