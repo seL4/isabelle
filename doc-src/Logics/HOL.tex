@@ -260,9 +260,9 @@ This is what happens automatically for each \texttt{datatype} definition
 \begin{warn}
 Both \texttt{if} and \texttt{case} constructs have as low a priority as
 quantifiers, which requires additional enclosing parentheses in the context
-of most other operations.  For example, instead of $f~x = if \dots then \dots
-else \dots$ you need to write $f~x = (if \dots then \dots else
-\dots)$.
+of most other operations.  For example, instead of $f~x = {\tt if\dots
+then\dots else}\dots$ you need to write $f~x = ({\tt if\dots then\dots
+else\dots})$.
 \end{warn}
 
 \section{Rules of inference}
@@ -942,6 +942,46 @@ additional (first) subgoal.
   for an equality throughout a subgoal and its hypotheses.  This tactic uses
   \HOL's general substitution rule.
 
+\subsubsection{Case splitting}
+\label{subsec:HOL:case:splitting}
+
+\HOL{} also provides convenient means for case splitting during
+  rewriting. Goals containing a subterm of the form {\tt if}~$b$~{\tt
+then\dots else\dots} often require a case distinction on $b$. This is
+expressed by the theorem \tdx{expand_if}:
+$$
+\Var{P}(\mbox{\tt if}~\Var{b}~{\tt then}~\Var{x}~\mbox{\tt else}~\Var{y})~=~
+((\Var{b} \to \Var{P}(\Var{x})) \land (\neg \Var{b} \to \Var{P}(\Var{y})))
+\eqno{(*)}
+$$
+For example, a simple instance of $(*)$ is
+\[
+x \in (\mbox{\tt if}~x \in A~{\tt then}~A~\mbox{\tt else}~\{x\})~=~
+((x \in A \to x \in A) \land (x \notin A \to x \in \{x\}))
+\]
+Because $(*)$ is too general as a rewrite rule for the simplifier (the
+left-hand side is not a higher-order pattern in the sense of
+\iflabelundefined{chap:simplification}{the {\em Reference Manual\/}}%
+{Chap.\ts\ref{chap:simplification}}), there is a special infix function 
+\ttindexbold{addsplits} (analogous to \texttt{addsimps}) of type
+\texttt{simpset * thm list -> simpset} that adds rules such as $(*)$ to a
+simpset, as in
+\begin{ttbox}
+by(simp_tac (!simpset addsplits [expand_if]) 1);
+\end{ttbox}
+The effect is that after each round of simplification, one occurrence of
+\texttt{if} is split acording to \texttt{expand_if}, until all occurences of
+\texttt{if} have been eliminated.
+
+In general, \texttt{addsplits} accepts rules of the form
+\[
+\Var{P}(c~\Var{x@1}~\dots~\Var{x@n})~=~ rhs
+\]
+where $c$ is a constant and $rhs$ is arbitrary. Note that $(*)$ is of the
+right form because internally the left-hand side is
+$\Var{P}(\mathtt{If}~\Var{b}~\Var{x}~~\Var{y})$. Important further examples
+are splitting rules for \texttt{case} expressions (see~\S\ref{subsec:list}
+and~\S\ref{subsec:datatype:basics}).
 
 \subsection{Classical reasoning}
 
@@ -1345,6 +1385,7 @@ dropWhile P (x#xs) = (if P x then dropWhile P xs else xs)
 
 
 \subsection{The type constructor for lists, \textit{list}}
+\label{subsec:list}
 \index{list@{\textit{list}} type|(}
 
 Figure~\ref{hol-list} presents the theory \thydx{List}: the basic list
@@ -1356,7 +1397,18 @@ lists.  A \sdx{case} construct of the form
 \begin{center}\tt
 case $e$ of [] => $a$  |  \(x\)\#\(xs\) => b
 \end{center}
-is defined by translation.  For details see~\S\ref{sec:HOL:datatype}.
+is defined by translation.  For details see~\S\ref{sec:HOL:datatype}. There
+is also a case splitting rule \tdx{expand_list_case}
+\[
+\begin{array}{l}
+P(\mathtt{case}~e~\mathtt{of}~\texttt{[] =>}~a ~\texttt{|}~
+               x\texttt{\#}xs~\texttt{=>}~f~x~xs) ~= \\
+((e = \texttt{[]} \to P(a)) \land
+ (\forall x~ xs. e = x\texttt{\#}xs \to P(f~x~xs)))
+\end{array}
+\]
+which can be fed to \ttindex{addsplits} just like
+\texttt{expand_if} (see~\S\ref{subsec:HOL:case:splitting}).
 
 {\tt List} provides a basic library of list processing functions defined by
 primitive recursion (see~\S\ref{sec:HOL:primrec}).  The recursion equations
@@ -1484,6 +1536,7 @@ provided by the user.
 
 
 \subsection{Basics}
+\label{subsec:datatype:basics}
 
 The general \HOL\ \texttt{datatype} definition is of the following form:
 \[
