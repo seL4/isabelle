@@ -1,22 +1,21 @@
+
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
 *** Overview of INCOMPATIBILITIES ***
 
 * HOL/Real: "rinv" and "hrinv" replaced by overloaded "inverse"
-function;
+operation;
 
 * HOL: induct renamed to lfp_induct;
 
 * HOL: contrapos, contrapos2 renamed to contrapos_nn, contrapos_pp;
 
-* HOL: infix "dvd" now has priority 50 rather than 70
-  (because it is a relation)
-  infix ^^ has been renamed ``
-  infix `` has been renamed `
-  "univalent" has been renamed "single_valued"
+* HOL: infix "dvd" now has priority 50 rather than 70 (because it is a
+relation); infix "^^" has been renamed "``"; infix "``" has been
+renamed "`"; "univalent" has been renamed "single_valued";
 
-* HOLCF: infix ` has been renamed $
+* HOLCF: infix "`" has been renamed "$";
 
 * Isar: 'obtain' no longer declares "that" fact as simp/intro;
 
@@ -31,8 +30,17 @@ consequence, it is no longer monotonic wrt. the local goal context
 (should now use \isamath{...} and \isatext{...} in custom symbol
 definitions);
 
+* \isabellestyle{NAME} selects version of Isabelle output (currently
+available: are "it" for near math-mode best-style output, "sl" for
+slanted text style, and "tt" for plain type-writer; if no
+\isabellestyle command is given, output is according to slanted
+type-writer);
+
 * support sub/super scripts (for single symbols only), input syntax is
 like this: "A\<^sup>*" or "A\<^sup>\<star>";
+
+* some more standard symbols; see Appendix A of the system manual for
+the complete list;
 
 * antiquotation @{goals} and @{subgoals} for output of *dynamic* goals
 state; Note that presentation of goal states does not conform to
@@ -62,12 +70,22 @@ instance proofs may be performed by "..";
 * Pure: ?thesis / ?this / "..." now work for pure meta-level
 statements as well;
 
+* Pure: the builtin notion of 'finished' goal now includes the ==-refl
+rule (as well as the assumption rule);
+
+* Pure: 'thm_deps' command visualizes dependencies of theorems and
+lemmas, using the graph browser tool;
+
 * HOL: improved method 'induct' --- now handles non-atomic goals
 (potential INCOMPATIBILITY); tuned error handling;
 
 * HOL: cases and induct rules now provide explicit hints about the
 number of facts to be consumed (0 for "type" and 1 for "set" rules);
 any remaining facts are inserted into the goal verbatim;
+
+* HOL: local contexts (aka cases) may now contain term bindings as
+well; the 'cases' and 'induct' methods new provide a ?case binding for
+the result to be shown in each case;
 
 * HOL: added 'recdef_tc' command;
 
@@ -91,6 +109,7 @@ HOL/subset.thy);
 Fleuriot's mechanization of analysis;
 
 * HOL-Real, HOL-Hyperreals: improved arithmetic simplification;
+
 
 *** CTT ***
 

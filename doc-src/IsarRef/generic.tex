@@ -43,7 +43,10 @@ Isabelle documentation.
   classes involved.  After finishing the proof, the theory will be augmented
   by a type signature declaration corresponding to the resulting theorem.
 \item [$intro_classes$] repeatedly expands all class introduction rules of
-  this theory.
+  this theory.  Note that this method usually needs not be named explicitly,
+  as it is already included in the default proof step (of $\PROOFNAME$,
+  $\BYNAME$, etc.).  In particular, instantiation of trivial (syntactic)
+  classes may be performed by a single ``$\DDOT$'' proof step.
 \end{descr}
 
 
@@ -737,10 +740,7 @@ while the Simplifier is the canonical tool for automated normalization (see
 \begin{descr}
 \item [$blast$] refers to the classical tableau prover (see \texttt{blast_tac}
   in \cite[\S11]{isabelle-ref}).  The optional argument specifies a
-  user-supplied search bound (default 20).  Note that $blast$ is the only
-  classical proof procedure in Isabelle that can handle actual object-logic
-  rules as local assumptions ($fast$ etc.\ would just ignore non-atomic
-  facts).
+  user-supplied search bound (default 20).
 \item [$fast$, $slow$, $best$, $safe$, and $clarify$] refer to the generic
   classical reasoner.  See \texttt{fast_tac}, \texttt{slow_tac},
   \texttt{best_tac}, \texttt{safe_tac}, and \texttt{clarify_tac} in

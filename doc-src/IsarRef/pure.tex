@@ -418,7 +418,7 @@ following commands provide some way to do so.
   
 \item [$\isarkeyword{ML}~text$ and $\isarkeyword{ML_command}~text$] execute ML
   commands from $text$.  The theory context is passed in the same way as for
-  $\isarkeyword{use}$, but may not be changed.  Note that
+  $\isarkeyword{use}$, but may not be changed.  Note that the output of
   $\isarkeyword{ML_command}$ is less verbose than plain $\isarkeyword{ML}$.
   
 \item [$\isarkeyword{ML_setup}~text$] executes ML commands from $text$.  The
@@ -543,7 +543,7 @@ of operation:
 \item [$proof(prove)$] means that a new goal has just been stated that is now
   to be \emph{proven}; the next command may refine it by some proof method,
   and enter a sub-proof to establish the actual result.
-\item [$proof(state)$] is like an internal theory mode: the context may be
+\item [$proof(state)$] is like a nested theory mode: the context may be
   augmented by \emph{stating} additional assumptions, intermediate results
   etc.
 \item [$proof(chain)$] is intermediate between $proof(state)$ and
@@ -693,7 +693,7 @@ $this$\indexisarthm{this} refers to the most recently established facts.
   of facts in automated proof search.
 \item [$\FROM{\vec b}$] abbreviates $\NOTE{}{\vec b}~\THEN$; thus $\THEN$ is
   equivalent to $\FROM{this}$.
-\item [$\WITH{\vec b}$] abbreviates $\FROM{\vec b~facts}$; thus the forward
+\item [$\WITH{\vec b}$] abbreviates $\FROM{\vec b~this}$; thus the forward
   chaining is from earlier facts together with the current ones.
 \end{descr}
 
@@ -1187,7 +1187,8 @@ the opening of the proof.
 
 \subsection{Diagnostics}
 
-\indexisarcmd{pr}\indexisarcmd{thm}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{typ}
+\indexisarcmd{pr}\indexisarcmd{thm}\indexisarcmd{term}
+\indexisarcmd{prop}\indexisarcmd{typ}
 \begin{matharray}{rcl}
   \isarcmd{pr}^* & : & \isarkeep{\cdot} \\
   \isarcmd{thm}^* & : & \isarkeep{theory~|~proof} \\
@@ -1252,18 +1253,36 @@ way to include formal items into the printed text document.
 \indexisarcmd{print-facts}\indexisarcmd{print-binds}
 \indexisarcmd{print-commands}\indexisarcmd{print-syntax}
 \indexisarcmd{print-methods}\indexisarcmd{print-attributes}
+\indexisarcmd{thms-containing}\indexisarcmd{thm-deps}
+\indexisarcmd{print-theorems}
 \begin{matharray}{rcl}
   \isarcmd{print_commands}^* & : & \isarkeep{\cdot} \\
   \isarcmd{print_syntax}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_methods}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_attributes}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_theorems}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{thms_containing}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{thms_deps}^* & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_facts}^* & : & \isarkeep{proof} \\
   \isarcmd{print_binds}^* & : & \isarkeep{proof} \\
 \end{matharray}
 
-These commands print parts of the theory and proof context.  Note that there
-are some further ones available, such as for the set of rules declared for
-simplifications.
+\railalias{thmscontaining}{thms\_containing}
+\railterm{thmscontaining}
+
+\railalias{thmdeps}{thm\_deps}
+\railterm{thmdeps}
+
+\begin{rail}
+  thmscontaining (name * )
+  ;
+  thmdeps thmrefs
+  ;
+\end{rail}
+
+These commands print certain parts of the theory and proof context.  Note that
+there are some further ones available, such as for the set of rules declared
+for simplifications.
 
 \begin{descr}
 \item [$\isarkeyword{print_commands}$] prints Isabelle's outer theory syntax,
@@ -1272,10 +1291,20 @@ simplifications.
   terms, depending on the current context.  The output can be very verbose,
   including grammar tables and syntax translation rules.  See \cite[\S7,
   \S8]{isabelle-ref} for further information on Isabelle's inner syntax.
-\item [$\isarkeyword{print_methods}$] all proof methods available in the
-  current theory context.
-\item [$\isarkeyword{print_attributes}$] all attributes available in the
-  current theory context.
+\item [$\isarkeyword{print_methods}$] prints all proof methods available in
+  the current theory context.
+\item [$\isarkeyword{print_attributes}$] prints all attributes available in
+  the current theory context.
+\item [$\isarkeyword{print_theorems}$] prints theorems available in the
+  current theory context.  In interactive mode this actually refers to the
+  theorems left by the last transaction; this allows to inspect the result of
+  advanced definitional packages, such as $\isarkeyword{datatype}$.
+\item [$\isarkeyword{thms_containing}~\vec c$] retrieves theorems from the
+  theory context containing all of the constants $\vec c$.  Note that giving
+  the empty list yields \emph{all} theorems of the current theory.
+\item [$\isarkeyword{thm_deps}~\vec a$] visualizes dependencies of theorems
+  and lemmas, using Isabelle's graph browser tool (see also
+  \cite{isabelle-sys}).
 \item [$\isarkeyword{print_facts}$] prints any named facts of the current
   context, including assumptions and local results.
 \item [$\isarkeyword{print_binds}$] prints all term abbreviations present in
@@ -1295,7 +1324,7 @@ simplifications.
 The Isabelle/Isar top-level maintains a two-stage history, for theory and
 proof state transformation.  Basically, any command can be undone using
 $\isarkeyword{undo}$, excluding mere diagnostic elements.  Its effect may be
-revoked via $\isarkeyword{redo}$, unless the corresponding the
+revoked via $\isarkeyword{redo}$, unless the corresponding
 $\isarkeyword{undo}$ step has crossed the beginning of a proof or theory.  The
 $\isarkeyword{kill}$ command aborts the current history node altogether,
 discontinuing a proof or even the whole theory.  This operation is \emph{not}
