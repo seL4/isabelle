@@ -61,13 +61,11 @@ sig
   val syn_ext_logtypes: string list -> syn_ext
   val syn_ext_const_names: string list -> string list -> syn_ext
   val syn_ext_rules: string list -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
-  val fix_tr': (term list -> term) -> bool -> typ -> term list -> term
   val syn_ext_trfuns: string list ->
-    (string * (Ast.ast list -> Ast.ast)) list * (string * (term list -> term)) list *
-    (string * (term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
-    -> syn_ext
-  val syn_ext_trfunsT: string list ->
-    (string * (bool -> typ -> term list -> term)) list -> syn_ext
+    (string * (Ast.ast list -> Ast.ast)) list *
+    (string * (term list -> term)) list *
+    (string * (bool -> typ -> term list -> term)) list *
+    (string * (Ast.ast list -> Ast.ast)) list -> syn_ext
   val syn_ext_tokentrfuns: string list
     -> (string * string * (string -> string * real)) list -> syn_ext
   val pure_ext: syn_ext
@@ -364,13 +362,8 @@ fun syn_ext_const_names logtypes cs =
 fun syn_ext_rules logtypes rules =
   syn_ext logtypes [] [] ([], [], [], []) [] rules;
 
-fun fix_tr' f _ _ ts = f ts;
-
-fun syn_ext_trfuns logtypes (atrs, trs, tr's, atr's) =
-  syn_ext logtypes [] [] (atrs, trs, map (apsnd fix_tr') tr's, atr's) [] ([], []);
-
-fun syn_ext_trfunsT logtypes tr's =
-  syn_ext logtypes [] [] ([], [], tr's, []) [] ([], []);
+fun syn_ext_trfuns logtypes trfuns =
+  syn_ext logtypes [] [] trfuns [] ([], []);
 
 fun syn_ext_tokentrfuns logtypes tokentrfuns =
   syn_ext logtypes [] [] ([], [], [], []) tokentrfuns ([], []);

@@ -27,6 +27,8 @@ end;
 signature SYN_TRANS1 =
 sig
   include SYN_TRANS0
+  val non_typed_tr': (term list -> term) -> bool -> typ -> term list -> term
+  val non_typed_tr'': ('a -> term list -> term) -> 'a -> bool -> typ -> term list -> term
   val constrainAbsC: string
   val pure_trfuns:
       (string * (Ast.ast list -> Ast.ast)) list *
@@ -171,6 +173,12 @@ fun indexvar_ast_tr [] = Ast.Variable "some_index"
 
 
 (** print (ast) translations **)
+
+(* types *)
+
+fun non_typed_tr' f _ _ ts = f ts;
+fun non_typed_tr'' f x _ _ ts = f x ts;
+
 
 (* application *)
 
