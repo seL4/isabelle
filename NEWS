@@ -61,6 +61,11 @@ method anyway;
 additional print modes to be specified; e.g. "pr(latex)" will print
 proof state according to the Isabelle LaTeX style;
 
+* improved support for emulating tactic scripts, including proof
+methods 'tactic', 'res_inst_tac' etc., 'subgoal_tac', and 'case_tac' /
+'induct_tac' (for HOL datatypes);
+
+
 
 *** HOL ***
 
