@@ -432,8 +432,8 @@ val commas_quote = commas o map quote;
 (*concatenate messages, one per line, into a string*)
 val cat_lines = space_implode "\n";
 
-(*space_explode "." "h.e..l.lo"; gives ["h", "e", "l", "lo"]*)
-fun space_explode sep s =
+(*BAD_space_explode "." "h.e..l.lo"; gives ["h", "e", "l", "lo"]*)
+fun BAD_space_explode sep s =
   let fun divide [] "" = []
         | divide [] part = [part]
         | divide (c::s) part =
@@ -441,6 +441,19 @@ fun space_explode sep s =
               (if part = "" then divide s "" else part :: divide s "")
             else divide s (part ^ c)
   in divide (explode s) "" end;
+
+(*space_explode "." "h.e..l.lo"; gives ["h", "e", "", "l", "lo"]*)
+fun space_explode _ "" = []
+  | space_explode sep str =
+      let
+        fun expl chs =
+          (case take_prefix (not_equal sep) chs of
+            (cs, []) => [implode cs]
+          | (cs, _ :: cs') => implode cs :: expl cs');
+      in expl (explode str) end;
+
+val split_lines = space_explode "\n";
+
 
 
 (** lists as sets **)
@@ -739,13 +752,8 @@ local
   fun out s =
     (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
 
-  fun lines cs =
-    (case take_prefix (not_equal "\n") cs of
-      (cs', []) => [implode cs']
-    | (cs', _ :: cs'') => implode cs' :: lines cs'');
-
   fun prefix_lines prfx txt =
-    txt |> explode |> lines |> map (fn s => prfx ^ s ^ "\n") |> implode;
+    txt |> split_lines |> map (fn s => prfx ^ s ^ "\n") |> implode;
 in
 
 (*hooks for output channels: normal, warning, error*)
@@ -897,15 +905,15 @@ fun relative_path cur_path dest_path =
         dest_path = "" orelse hd (explode dest_path) <> "/" then
        error "Relative or empty path passed to relative_path"
      else ();
-     space_implode "/" (mk_relative (space_explode "/" cur_path)
-                                    (space_explode "/" dest_path))
+     space_implode "/" (mk_relative (BAD_space_explode "/" cur_path)
+                                    (BAD_space_explode "/" dest_path))
   end;
 
 (*Determine if absolute path1 is a subdirectory of absolute path2*)
 fun path1 subdir_of path2 =
   if hd (explode path1) <> "/" orelse hd (explode path2) <> "/" then
     error "Relative or empty path passed to subdir_of"
-  else (space_explode "/" path2) prefix (space_explode "/" path1);
+  else (BAD_space_explode "/" path2) prefix (BAD_space_explode "/" path1);
 
 fun absolute_path cwd file =
   let fun rm_points [] result = rev result
@@ -915,7 +923,7 @@ fun absolute_path cwd file =
   in if file = "" then ""
      else if hd (explode file) = "/" then file
      else "/" ^ space_implode "/"
-                  (rm_points (space_explode "/" (tack_on cwd file)) [])
+                  (rm_points (BAD_space_explode "/" (tack_on cwd file)) [])
   end;
 
 fun file_exists file = (file_info file <> "");
