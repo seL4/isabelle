@@ -16,7 +16,6 @@ eta_contract:=false;
 print_depth 1;
 
 (*Add user sections for inductive/datatype definitions*)
-use     "~~/src/Pure/section_utils";
 use     "thy_syntax";
 
 use_thy "Let";

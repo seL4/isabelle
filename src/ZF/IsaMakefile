@@ -26,26 +26,24 @@ ZF: FOL $(OUT)/ZF
 FOL:
 	@cd $(SRC)/FOL; $(ISATOOL) make FOL
 
-$(OUT)/ZF: $(OUT)/FOL $(SRC)/Pure/section_utils.ML AC.ML AC.thy \
-  Arith.ML Arith.thy Bool.ML Bool.thy Cardinal.ML Cardinal.thy \
-  CardinalArith.ML CardinalArith.thy Cardinal_AC.ML Cardinal_AC.thy \
-  Datatype.ML Datatype.thy Epsilon.ML Epsilon.thy \
-  Finite.ML Finite.thy Fixedpt.ML Fixedpt.thy \
-  Inductive.ML Inductive.thy InfDatatype.ML InfDatatype.thy \
-  Let.ML Let.thy List.ML List.thy Main.thy Nat.ML Nat.thy \
-  Order.ML Order.thy OrderArith.ML \
-  OrderArith.thy OrderType.ML OrderType.thy Ordinal.ML Ordinal.thy \
-  Perm.ML Perm.thy QPair.ML QPair.thy QUniv.ML QUniv.thy ROOT.ML Rel.ML \
-  Rel.thy Sum.ML Sum.thy Trancl.ML Trancl.thy \
-  Update.ML Update.thy Univ.ML Univ.thy WF.ML WF.thy \
-  ZF.ML ZF.thy Zorn.ML Zorn.thy domrange.ML \
-  domrange.thy equalities.ML equalities.thy func.ML func.thy \
-  ind_syntax.ML mono.ML mono.thy pair.ML pair.thy simpdata.ML subset.ML \
-  subset.thy thy_syntax.ML upair.ML upair.thy \
-  Tools/cartprod.ML Tools/datatype_package.ML Tools/inductive_package.ML \
-  Tools/primrec_package.ML Tools/induct_tacs.ML Tools/typechk.ML \
-  Integ/EquivClass.ML Integ/EquivClass.thy Integ/Int.ML Integ/Int.thy \
-  Integ/twos_compl.ML Integ/Bin.ML Integ/Bin.thy 
+$(OUT)/ZF: $(OUT)/FOL AC.ML AC.thy Arith.ML Arith.thy Bool.ML Bool.thy	\
+  Cardinal.ML Cardinal.thy CardinalArith.ML CardinalArith.thy		\
+  Cardinal_AC.ML Cardinal_AC.thy Datatype.ML Datatype.thy Epsilon.ML	\
+  Epsilon.thy Finite.ML Finite.thy Fixedpt.ML Fixedpt.thy Inductive.ML	\
+  Inductive.thy InfDatatype.ML InfDatatype.thy Integ/Bin.ML		\
+  Integ/Bin.thy Integ/EquivClass.ML Integ/EquivClass.thy Integ/Int.ML	\
+  Integ/Int.thy Integ/twos_compl.ML Let.ML Let.thy List.ML List.thy	\
+  Main.thy Nat.ML Nat.thy Order.ML Order.thy OrderArith.ML		\
+  OrderArith.thy OrderType.ML OrderType.thy Ordinal.ML Ordinal.thy	\
+  Perm.ML Perm.thy QPair.ML QPair.thy QUniv.ML QUniv.thy ROOT.ML	\
+  Rel.ML Rel.thy Sum.ML Sum.thy Tools/cartprod.ML			\
+  Tools/datatype_package.ML Tools/induct_tacs.ML			\
+  Tools/inductive_package.ML Tools/primrec_package.ML Tools/typechk.ML	\
+  Trancl.ML Trancl.thy Univ.ML Univ.thy Update.ML Update.thy WF.ML	\
+  WF.thy ZF.ML ZF.thy Zorn.ML Zorn.thy domrange.ML domrange.thy		\
+  equalities.ML equalities.thy func.ML func.thy ind_syntax.ML mono.ML	\
+  mono.thy pair.ML pair.thy simpdata.ML subset.ML subset.thy		\
+  thy_syntax.ML upair.ML upair.thy
 	@$(ISATOOL) usedir -b -r $(OUT)/FOL ZF
 
 

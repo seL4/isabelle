@@ -12,7 +12,6 @@ writeln banner;
 print_depth 1;
 
 (*old-style theory syntax*)
-use "~~/src/Pure/section_utils.ML";
 use "thy_syntax.ML";
 
 use "hologic.ML";
