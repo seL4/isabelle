@@ -174,7 +174,8 @@ fun ultimately print = collect true print;
 (** theory setup **)
 
 val setup = [GlobalCalculation.init, LocalCalculation.init,
-  Attrib.add_attributes [("trans", trans_attr, "declaration of transitivity rule")]];
+  Attrib.add_attributes [("trans", trans_attr, "declaration of transitivity rule")],
+  #1 o PureThy.add_thms [(("", transitive_thm), [trans_add_global])]];
 
 
 end;
