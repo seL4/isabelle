@@ -125,7 +125,8 @@ fun calculate final opt_rules print state =
   let
     val facts = Proof.the_facts state;
 
-    val eq_prop = op aconv o pairself (Pattern.eta_contract o #prop o Thm.rep_thm);
+    val strip_assums_concl = Logic.strip_assums_concl o #prop o Thm.rep_thm;
+    val eq_prop = op aconv o pairself (Pattern.eta_contract o strip_assums_concl);
     fun differ thms thms' = not (Library.equal_lists eq_prop (thms, thms'));
 
     fun combine thms =
@@ -134,7 +135,7 @@ fun calculate final opt_rules print state =
         val rs = get_local_rules state;
         val rules =
           (case ths of [] => NetRules.rules rs
-          | th :: _ => NetRules.may_unify rs (Logic.strip_assums_concl (#prop (Thm.rep_thm th))));
+          | th :: _ => NetRules.may_unify rs (strip_assums_concl th));
         val ruleq = Seq.of_list (if_none opt_rules [] @ rules);
       in Seq.map Library.single (Seq.flat (Seq.map (Method.multi_resolve ths) ruleq)) end;
 
