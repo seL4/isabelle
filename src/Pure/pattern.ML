@@ -32,7 +32,8 @@ signature PATTERN =
   val unify             : sg * env * (term * term)list -> env
   val first_order       : term -> bool
   val pattern           : term -> bool
-  val rewrite_term      : type_sig -> (term * term) list -> term -> term
+  val rewrite_term      : type_sig -> (term * term) list -> (term -> term option) list
+                          -> term -> term
   exception Unif
   exception MATCH
   exception Pattern
@@ -409,10 +410,13 @@ fun pattern(Abs(_,_,t)) = pattern t
 
 (* rewriting -- simple but fast *)
 
-fun rewrite_term tsig rules tm =
+fun rewrite_term tsig rules procs tm =
   let
+    val skel0 = Bound 0;
+
     val rhs_names =
       foldr (fn ((_, rhs), names) => add_term_free_names (rhs, names)) (rules, []);
+
     fun variant_absfree (x, T, t) =
       let
         val x' = variant (add_term_free_names (t, rhs_names)) x;
@@ -420,38 +424,51 @@ fun rewrite_term tsig rules tm =
       in (fn u => Abs (x, T, abstract_over (Free (x', T), u)), t') end;
 
     fun match_rew tm (tm1, tm2) =
-      Some (subst_vars (match tsig (tm1, tm)) (if_none (Term.rename_abs tm1 tm tm2) tm2))
-        handle MATCH => None;
-    fun rew (Abs (_, _, body) $ t) = Some (subst_bound (t, body))
-      | rew tm = get_first (match_rew tm) rules;
+      let val rtm = if_none (Term.rename_abs tm1 tm tm2) tm2
+      in Some (subst_vars (match tsig (tm1, tm)) rtm, rtm)
+        handle MATCH => None
+      end;
 
-    fun rew1 tm = (case rew2 tm of
+    fun rew (Abs (_, _, body) $ t) = Some (subst_bound (t, body), skel0)
+      | rew tm = (case get_first (match_rew tm) rules of
+          None => apsome (rpair skel0) (get_first (fn p => p tm) procs)
+        | x => x);
+
+    fun rew1 (Var _) _ = None
+      | rew1 skel tm = (case rew2 skel tm of
           Some tm1 => (case rew tm1 of
-              Some tm2 => Some (if_none (rew1 tm2) tm2)
+              Some (tm2, skel') => Some (if_none (rew1 skel' tm2) tm2)
             | None => Some tm1)
         | None => (case rew tm of
-              Some tm1 => Some (if_none (rew1 tm1) tm1)
+              Some (tm1, skel') => Some (if_none (rew1 skel' tm1) tm1)
             | None => None))
 
-    and rew2 (tm1 $ tm2) = (case tm1 of
+    and rew2 skel (tm1 $ tm2) = (case tm1 of
             Abs (_, _, body) =>
               let val tm' = subst_bound (tm2, body)
-              in Some (if_none (rew2 tm') tm') end
-          | _ => (case rew1 tm1 of
-              Some tm1' => (case rew1 tm2 of
-                  Some tm2' => Some (tm1' $ tm2')
-                | None => Some (tm1' $ tm2))
-            | None => (case rew1 tm2 of
-                  Some tm2' => Some (tm1 $ tm2')
-                | None => None)))
-      | rew2 (Abs (x, T, tm)) =
-          let val (abs, tm') = variant_absfree (x, T, tm) in
-            (case rew1 tm' of
+              in Some (if_none (rew2 skel0 tm') tm') end
+          | _ => 
+            let val (skel1, skel2) = (case skel of
+                skel1 $ skel2 => (skel1, skel2)
+              | _ => (skel0, skel0))
+            in case rew1 skel1 tm1 of
+                Some tm1' => (case rew1 skel2 tm2 of
+                    Some tm2' => Some (tm1' $ tm2')
+                  | None => Some (tm1' $ tm2))
+              | None => (case rew1 skel2 tm2 of
+                    Some tm2' => Some (tm1 $ tm2')
+                  | None => None)
+            end)
+      | rew2 skel (Abs (x, T, tm)) =
+          let
+            val (abs, tm') = variant_absfree (x, T, tm);
+            val skel' = (case skel of Abs (_, _, skel') => skel' | _ => skel0)
+          in case rew1 skel' tm' of
               Some tm'' => Some (abs tm'')
-            | None => None)
+            | None => None
           end
-      | rew2 _ = None
+      | rew2 _ _ = None
 
-  in if_none (rew1 tm) tm end;
+  in if_none (rew1 skel0 tm) tm end;
 
 end;
