@@ -1067,7 +1067,7 @@ fun var_perm(t,u) = vperm(t,u) andalso
 (*simple test for looping rewrite*)
 fun loops sign prems (lhs,rhs) =
   is_Var(lhs) orelse
-  (is_Free(lhs) andalso (lhs mem (foldr add_term_frees (rhs::prems,[])))) orelse
+  (is_Free(lhs) andalso (exists (apl(lhs, Logic.occs)) (rhs::prems))) orelse
   (null(prems) andalso
    Pattern.matches (#tsig(Sign.rep_sg sign)) (lhs,rhs));
 
