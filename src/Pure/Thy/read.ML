@@ -269,19 +269,19 @@ fun use_thy name =
              close_out outstream 
          end;
          use ".tmp.ML";
-         delete_file ".tmp.ML";
 
-         (*Now set the correct info.*)
+         (*Now set the correct info*)
          set_info (file_info thy_file) (file_info ml_file) thy_name;
          set_path ();
 
-         (*Mark theories that have to be reloaded.*)
+         (*Mark theories that have to be reloaded*)
          mark_children thy_name;
 
-         if not (!delete_tmpfiles) orelse (thy_file = "") 
-            orelse thy_uptodate 
-         then ()
-         else delete_file (out_name thyl)
+         (*Remove temporary files*)
+         if not (!delete_tmpfiles) orelse (thy_file = "") orelse thy_uptodate 
+           then ()
+         else delete_file (out_name thyl);
+         delete_file ".tmp.ML"
         )
     end;
 
