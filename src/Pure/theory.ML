@@ -77,7 +77,11 @@ sig
   val add_path: string -> theory -> theory
   val parent_path: theory -> theory
   val root_path: theory -> theory
-  val add_space: string * string list -> theory -> theory
+  val hide_space: string * xstring list -> theory -> theory
+  val hide_space_i: string * string list -> theory -> theory
+  val hide_classes: string list -> theory -> theory
+  val hide_types: string list -> theory -> theory
+  val hide_consts: string list -> theory -> theory
   val add_name: string -> theory -> theory
   val copy: theory -> theory
   val prep_ext: theory -> theory
@@ -147,7 +151,7 @@ val pre_pure = make_theory Sign.pre_pure Symtab.empty Symtab.empty [] [];
 
 (** extend theory **)
 
-(*name space kinds*)
+(*name spaces*)
 val axiomK = "axiom";
 val oracleK = "oracle";
 
@@ -209,6 +213,11 @@ val add_path         = ext_sign Sign.add_path;
 val parent_path      = add_path "..";
 val root_path        = add_path "/";
 val add_space        = ext_sign Sign.add_space;
+val hide_space       = ext_sign Sign.hide_space;
+val hide_space_i     = ext_sign Sign.hide_space_i;
+val hide_classes     = curry hide_space_i Sign.classK;
+val hide_types       = curry hide_space_i Sign.typeK;
+val hide_consts      = curry hide_space_i Sign.constK;
 val add_name         = ext_sign Sign.add_name;
 val copy             = ext_sign (K Sign.copy) ();
 val prep_ext         = ext_sign (K Sign.prep_ext) ();

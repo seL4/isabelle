@@ -125,6 +125,8 @@ sig
   val add_trrules_i: ast Syntax.trrule list -> sg -> sg
   val add_path: string -> sg -> sg
   val add_space: string * string list -> sg -> sg
+  val hide_space: string * string list -> sg -> sg
+  val hide_space_i: string * string list -> sg -> sg
   val add_name: string -> sg -> sg
   val data_kinds: data -> string list
   val merge_refs: sg_ref * sg_ref -> sg_ref
@@ -407,7 +409,7 @@ val typeK = "type";
 val constK = "const";
 
 
-(* add and retrieve names *)
+(* declare and retrieve names *)
 
 fun space_of spaces kind =
   if_none (assoc (spaces, kind)) NameSpace.empty;
@@ -418,16 +420,15 @@ fun extrn spaces kind = NameSpace.extern (space_of spaces kind);
 fun cond_extrn spaces kind = NameSpace.cond_extern (space_of spaces kind);
 fun cond_extrn_table spaces kind tab = NameSpace.cond_extern_table (space_of spaces kind) tab;
 
-(*add names*)
-fun add_names spaces kind names =
-  let val space' = NameSpace.extend (space_of spaces kind, names) in
-    overwrite (spaces, (kind, space'))
-  end;
+(*add / hide names*)
+fun change_space f spaces kind x = overwrite (spaces, (kind, f (space_of spaces kind, x)));
+val add_names = change_space NameSpace.extend;
+val hide_names = change_space NameSpace.hide;
 
 (*make full names*)
 fun full path name =
   if name = "" then error "Attempt to declare empty name \"\""
-  else if NameSpace.qualified name then
+  else if NameSpace.is_qualified name then
     error ("Attempt to declare qualified name " ^ quote name)
   else NameSpace.pack (path @ [name]);
 
@@ -616,10 +617,8 @@ fun nodup_vars tm =
 (*compute and check type of the term*)
 fun type_check sg tm =
   let
-    val prt =
-      setmp Syntax.show_brackets true
-        (setmp NameSpace.long_names true (pretty_term sg));
-    val prT = setmp NameSpace.long_names true (pretty_typ sg);
+    val prt = setmp Syntax.show_brackets true (pretty_term sg);
+    val prT = pretty_typ sg;
 
     fun err_appl why bs t T u U =
       let
@@ -690,10 +689,8 @@ fun certify_term sg tm =
 fun infer_types_simult sg def_type def_sort used freeze args =
   let
     val tsig = tsig_of sg;
-    val prt =
-      setmp Syntax.show_brackets true
-        (setmp NameSpace.long_names true (pretty_term sg));
-    val prT = setmp NameSpace.long_names true (pretty_typ sg);
+    val prt = setmp Syntax.show_brackets true (pretty_term sg);
+    val prT = pretty_typ sg;
 
     val termss = foldr multiply (map fst args, [[]]);
     val typs =
@@ -923,10 +920,16 @@ fun ext_path (syn, tsig, ctab, (path, spaces), data) elems =
   end;      
 
 
-(* add to name space *)
+(* change name space *)
 
-fun ext_space (syn, tsig, ctab, (path, spaces), data) (kind, names) =
+fun ext_add_space (syn, tsig, ctab, (path, spaces), data) (kind, names) =
   (syn, tsig, ctab, (path, add_names spaces kind names), data);
+
+fun ext_hide_space (syn, tsig, ctab, (path, spaces), data) (kind, xnames) =
+  (syn, tsig, ctab, (path, hide_names spaces kind (map (intrn spaces kind) xnames)), data);
+
+fun ext_hide_space_i (syn, tsig, ctab, (path, spaces), data) (kind, names) =
+  (syn, tsig, ctab, (path, hide_names spaces kind names), data);
 
 
 (* signature data *)
@@ -976,7 +979,9 @@ val add_tokentrfuns   = extend_sign true (ext_syn Syntax.extend_tokentrfuns) "#"
 val add_trrules       = extend_sign true ext_trrules "#";
 val add_trrules_i     = extend_sign true (ext_syn Syntax.extend_trrules_i) "#";
 val add_path          = extend_sign true ext_path "#";
-val add_space         = extend_sign true ext_space "#";
+val add_space         = extend_sign true ext_add_space "#";
+val hide_space        = extend_sign true ext_hide_space "#";
+val hide_space_i      = extend_sign true ext_hide_space_i "#";
 fun init_data arg sg  = extend_sign true (ext_init_data sg) "#" arg sg;
 fun put_data k f x sg = extend_sign true (ext_put_data sg) "#" (k, f, x) sg;
 fun add_name name sg  = extend_sign true K name () sg;
