@@ -1,0 +1,43 @@
+# $Id$
+# This Makefile allows the common theory for security logics to be
+#	built separately.
+#
+BIN = $(ISABELLEBIN)
+COMP = $(ISABELLECOMP)
+NAMES = Message Shared
+
+FILES = ROOT.ML $(NAMES:%=%.thy) $(NAMES:%=%.ML)
+
+$(BIN)/Auth:   $(BIN)/HOL  $(FILES) 
+	if [ -d $${ISABELLEBIN:?}/Pure ];\
+           	then echo Bad value for ISABELLEBIN: \
+                	$(BIN) is the Isabelle source directory; \
+                	exit 1; \
+           	fi;\
+	case "$(COMP)" in \
+	poly*)	echo 'make_database"$(BIN)/Auth"; quit();'  \
+		  | $(COMP) $(BIN)/HOL;\
+                if [ "$${MAKE_HTML}" = "true" ]; \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
+                       | $(COMP) $(BIN)/Auth;\
+		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/Auth;\
+                else echo 'open PolyML; exit_use_dir".";' \
+                       | $(COMP) $(BIN)/Auth;\
+                fi;;\
+	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
+                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/Auth" banner;' | $(BIN)/HOL;\
+                elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
+                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/Auth" banner;' \
+                       | $(BIN)/HOL;\
+                else echo 'exit_use_dir"."; xML"$(BIN)/Auth" banner;' \
+                       | $(BIN)/HOL;\
+                fi;;\
+	*)	echo Bad value for ISABELLECOMP: \
+                	$(COMP) is not poly or sml; exit 1;;\
+	esac
+
+$(BIN)/HOL:
+	cd ..;  $(MAKE)
+
+.PRECIOUS:  $(BIN)/HOL $(BIN)/Auth 
