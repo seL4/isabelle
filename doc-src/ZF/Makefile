@@ -1,34 +1,29 @@
-#  $Id$
-#########################################################################
-#									#
-#	Makefile for the report "Isabelle's Logics: FOL and ZF"		#
-#									#
-#########################################################################
+#
+# $Id$
+#
+
+## targets
+
+default: dvi
+dist: dvi
 
 
-FILES =  logics-ZF.tex ../Logics/syntax.tex FOL.tex ZF.tex\
-	 ../rail.sty ../proof.sty ../iman.sty ../extra.sty
+## dependencies
 
-logics-ZF.dvi.gz:   $(FILES) 
-	test -r isabelle_zf.eps || ln -s ../gfx/isabelle_zf.eps .
-	-rm logics-ZF.dvi*
-	latex logics-ZF
-	rail logics-ZF
-	bibtex logics-ZF
-	latex logics-ZF
-	latex logics-ZF
-	../sedindex logics-ZF
-	latex logics-ZF
-	gzip -f logics-ZF.dvi
+include ../Makefile.in
 
-dist:   $(FILES) 
-	test -r isabelle_zf.eps || ln -s ../gfx/isabelle_zf.eps .
-	-rm logics-ZF.dvi*
-	latex logics-ZF
-	latex logics-ZF
-	../sedindex logics-ZF
-	latex logics-ZF
+NAME = logics-ZF
+FILES = logics-ZF.tex ../Logics/syntax.tex FOL.tex ZF.tex \
+	../rail.sty ../proof.sty ../iman.sty ../extra.sty
 
-clean:
-	@rm *.aux *.log *.toc *.idx *.rai
+dvi: $(NAME).dvi
 
+$(NAME).dvi: $(FILES) isabelle_zf.eps
+	touch $(NAME).ind
+	$(LATEX) $(NAME)
+	$(RAIL) $(NAME)
+	$(BIBTEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(LATEX) $(NAME)
+	$(SEDINDEX) $(NAME)
+	$(LATEX) $(NAME)
