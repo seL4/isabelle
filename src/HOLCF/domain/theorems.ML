@@ -323,7 +323,7 @@ val copy_stricts = map (fn (con,args) => pg [] (mk_trp(dc_copy`UU`
                         (filter (fn (_,args)=>exists is_nonlazy_rec args) cons);
 val copy_rews = copy_strict::copy_apps @ copy_stricts;
 in thy |> Theory.add_path (Sign.base_name dname)
-       |> PureThy.store_thmss [
+       |> (PureThy.add_tthmss o map Attribute.no_attrss) [
 		("iso_rews" , iso_rews  ),
 		("exhaust"  , [exhaust] ),
 		("casedist" , [casedist]),
@@ -336,7 +336,7 @@ in thy |> Theory.add_path (Sign.base_name dname)
 		("inverts" , inverts ),
 		("injects" , injects ),
 		("copy_rews", copy_rews)]
-       |> Theory.add_path ".."
+       |> Theory.parent_path
 end; (* let *)
 
 fun comp_theorems (comp_dnam, eqs: eq list) thy =
@@ -598,14 +598,14 @@ end; (* local *)
 
 
 in thy |> Theory.add_path comp_dnam
-       |> PureThy.store_thmss [
+       |> (PureThy.add_tthmss o map Attribute.no_attrss) [
 		("take_rews"  , take_rews  ),
 		("take_lemmas", take_lemmas),
 		("finites"    , finites    ),
 		("finite_ind", [finite_ind]),
 		("ind"       , [ind       ]),
 		("coind"     , [coind     ])]
-       |> Theory.add_path ".."
+       |> Theory.parent_path
 end; (* let *)
 end; (* local *)
 end; (* struct *)
