@@ -19,9 +19,12 @@ struct
 
 fun statement_binds (name, prop) =
   let
-    val concl = Logic.strip_imp_concl prop;
-    val env = [(name ^ "_prop", prop), (name ^ "_concl", concl)] @
-      (case concl of Const ("Trueprop", _) $ t => [(name, t)] | _ => []);
+    val concl = Logic.strip_assums_concl prop;
+    val parms = Logic.strip_params prop;
+    fun list_abs tm = foldr (fn ((x, T), t) => Abs (x, T, t)) (parms, tm);
+
+    val env = [(name ^ "_prop", prop), (name ^ "_concl", list_abs concl)] @
+      (case concl of Const ("Trueprop", _) $ t => [(name, list_abs t)] | _ => []);
   in map (fn (s, t) => ((Syntax.binding s, 0), t)) env end;
 
 fun goal prop = statement_binds ("thesis", prop);
