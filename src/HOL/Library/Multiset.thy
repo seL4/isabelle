@@ -309,7 +309,7 @@ proof -
     apply (subgoal_tac "{x. x \<noteq> a \<and> 0 < f x} = {x. 0 < f x} - {a}")
      prefer 2
      apply blast
-    apply (simp add: le_imp_diff_is_add setsum_diff1 cong: conj_cong)
+    apply (simp add: le_imp_diff_is_add setsum_diff1_nat cong: conj_cong)
     done
 qed
 
