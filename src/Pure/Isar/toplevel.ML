@@ -87,6 +87,7 @@ datatype state = State of (node * (node -> unit)) list;
 exception UNDEF;
 
 val toplevel = State [];
+fun append_states (State ns) (State ms) = State (ns @ ms);
 
 fun print_state (State []) = ()
   | print_state (State [(node, _)]) = print_node node
@@ -301,10 +302,11 @@ fun apply int tr state =
   Some (transform_interrupt_state (transform_error (app int tr)) state, None)
     handle
       TERMINATE => None
+    | FAIL (exn_info as (BREAK break_state, _)) =>
+        Some (append_states break_state state, Some exn_info)
     | FAIL exn_info => Some (state, Some exn_info)
     | PureThy.ROLLBACK (copy_thy, opt_exn) =>
         Some (rollback tr copy_thy state, apsome (fn exn => (exn, at_command tr)) opt_exn)
-    | exn as BREAK break_state => Some (break_state, Some (exn, at_command tr))
     | exn => Some (state, Some (exn, at_command tr));
 
 
