@@ -62,8 +62,7 @@ diff -r Isamode-2.6/elisp/isa-load.el Isamode/elisp/isa-load.el
 244c244
 <       (list (isa-getenv "ISABELLE") "-msymbols" logic-name)
 ---
->       (list (isa-getenv "ISABELLE") "-misabelle_font" "-msymbols"
-logic-name)
+>       (list (isa-getenv "ISABELLE") "-misabelle_font" "-msymbols" logic-name)
 diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 181c181
 < (defconst proofstate-proofstart-regexp "^Level [0-9]+$"
