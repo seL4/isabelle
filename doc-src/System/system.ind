@@ -50,8 +50,12 @@
 
   \indexspace
 
+  \item {\tt logo} tool, 11
+
+  \indexspace
+
   \item {\tt make} tool, 11
-  \item {\tt makeall} tool, 11
+  \item {\tt makeall} tool, 12
   \item {\tt ML_HOME} setting, 3
   \item {\tt ML_OPTIONS} setting, 3
   \item {\tt ML_SYSTEM} setting, 3

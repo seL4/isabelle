@@ -114,7 +114,6 @@ each path component. This is a special feature of
 
 
 \section{Installing standalone Isabelle binaries -- \texttt{isatool install}}
-\label{sec:tool-install}
 
 Usually, the Isabelle binaries (\texttt{isabelle}, \texttt{isatool}
 etc.) are just run from their location within the distribution
@@ -145,6 +144,25 @@ is moved somewhere else.  Here is an example use of \texttt{install}:
 \begin{ttbox}
   isatool install /usr/local/bin
 \end{ttbox}
+
+
+\section{Creating instances of the Isabelle logo -- \texttt{isatool
+    logo}}
+
+The \tooldx{logo} utility creates any instance of the generic Isabelle logo as
+an Encapsuled Postscript file (EPS):
+\begin{ttbox}
+Usage: logo [OPTIONS] NAME
+
+  Create instance NAME of the Isabelle logo (as EPS).
+
+  Options are:
+    -o OUTFILE   set output file (default determined from NAME)
+    -q           quiet mode
+\end{ttbox}
+You are encouraged to use this to create a derived logo for your Isabelle
+project.  For example, \texttt{isatool logo HOOL} creates
+\texttt{isabelle_hool.eps}.
 
 
 \section{Isabelle's version of make --- \texttt{isatool make}}
