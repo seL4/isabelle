@@ -19,8 +19,8 @@ inductive ns_public
          (*The spy MAY say anything he CAN say.  We do not expect him to
            invent new nonces here, but he can also use NS1.  Common to
            all similar protocols.*)
-   Fake: "\<lbrakk>evs \<in> ns_public;  X \<in> synth (analz (spies evs))\<rbrakk>
-          \<Longrightarrow> Says Spy B X  # evs \<in> ns_public"
+   Fake: "\<lbrakk>evsf \<in> ns_public;  X \<in> synth (analz (spies evsf))\<rbrakk>
+          \<Longrightarrow> Says Spy B X  # evsf \<in> ns_public"
 
          (*Alice initiates a protocol run, sending a nonce to Bob*)
    NS1:  "\<lbrakk>evs1 \<in> ns_public;  Nonce NA \<notin> used evs1\<rbrakk>
