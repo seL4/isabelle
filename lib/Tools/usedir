@@ -22,8 +22,8 @@ function usage()
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -c BOOL      tell ML system to compress output image (default true)"
   echo "    -d FORMAT    build document as FORMAT (default false)"
-  echo "    -i BOOL      generate theory browsing information,"
-  echo "                 i.e. HTML / graph data (default false)"
+  echo "    -i BOOL      generate theory browser information (default false)"
+  echo "    -m MODE      add print mode for output"
   echo "    -r           reset session path"
   echo "    -s NAME      override session NAME"
   echo
@@ -46,13 +46,14 @@ BUILD=""
 COMPRESS=true
 DOCUMENT=false
 INFO=false
+MODES=""
 RESET=false
 SESSION=""
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "D:P:bc:d:i:rs:" OPT
+  while getopts "D:P:bc:d:i:m:rs:" OPT
   do
     case "$OPT" in
       D)
@@ -72,6 +73,13 @@ function getoptions()
         ;;
       i)
         INFO="$OPTARG"
+        ;;
+      m)
+        if [ -z "$MODES" ]; then
+          MODES="\"$OPTARG\""
+        else
+          MODES="$MODES, \"$OPTARG\""
+        fi
         ;;
       r)
         RESET=true
@@ -145,7 +153,7 @@ if [ -n "$BUILD" ]; then
   [ "$COMPRESS" = true ] && OPT_C="-c"
 
   "$ISABELLE" \
-    -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\";" \
+    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\";" \
     $OPT_C -q -w $LOGIC $NAME > "$LOG" 2>&1
   RC="$?"
 else
@@ -154,7 +162,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE" \
-    -e "Session.use_dir $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\"; quit();" \
+    -e "Session.use_dir [$MODES] $RESET $INFO \"$DOC\" \"$PARENT\" \"$SESSION\" \"$DUMP\" \"$RPATH\"; quit();" \
     -r -q "$LOGIC" > "$LOG" 2>&1
   RC="$?"
   cd ..
