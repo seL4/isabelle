@@ -35,7 +35,7 @@ $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy \
   Fixedpt.thy Inductive.ML Inductive.thy 	\
   InfDatatype.thy Integ/Bin.ML Integ/Bin.thy Integ/EquivClass.ML	\
   Integ/EquivClass.thy Integ/Int.ML Integ/Int.thy Integ/IntArith.thy	\
-  Integ/IntDiv.ML Integ/IntDiv.thy Integ/int_arith.ML			\
+  Integ/IntDiv.thy Integ/int_arith.ML			\
   Let.ML Let.thy List.thy Main.ML Main.thy	\
   Main_ZFC.ML Main_ZFC.thy Nat.thy Order.thy OrderArith.thy	\
   OrderType.thy Ordinal.thy OrdQuant.thy Perm.thy	\
