@@ -44,6 +44,7 @@ sig
   val force_tac	  : clasimpset  -> int -> tactic
   val Force_tac	  : int -> tactic
   val force	  : int -> unit
+  val setup	  : (theory -> theory) list
 end;
 
 functor ClasimpFun(Data: CLASIMP_DATA): CLASIMP =
@@ -144,6 +145,27 @@ fun force_tac (cs,ss) = let val cs' = cs addss ss in SELECT_GOAL (EVERY [
 	ALLGOALS (Classical.best_tac cs')]) end;
 fun Force_tac i = force_tac (Classical.claset(), Simplifier.simpset()) i;
 fun force i = by (Force_tac i);
+
+
+(* methods *)
+
+fun get_local_clasimpset ctxt = (Classical.get_local_claset ctxt, Simplifier.get_local_simpset ctxt);
+
+val clasimp_modifiers = Classical.cla_modifiers @ Simplifier.simp_modifiers;
+val clasimp_args = Method.only_sectioned_args clasimp_modifiers;
+
+fun clasimp_meth tac ctxt = Method.METHOD0 (tac (get_local_clasimpset ctxt));
+fun clasimp_meth' tac ctxt = Method.METHOD0 (FIRSTGOAL (tac (get_local_clasimpset ctxt)));
+
+val clasimp_method = clasimp_args o clasimp_meth;
+val clasimp_method' = clasimp_args o clasimp_meth';
+
+
+val setup =
+ [Method.add_methods
+   [("clarsimp", clasimp_method' clarsimp_tac, "clarsimp"),
+    ("auto", clasimp_method auto_tac, "auto"),
+    ("force", clasimp_method' force_tac, "force")]];
 
 
 end;

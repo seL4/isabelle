@@ -66,6 +66,7 @@ signature BLAST_DATA =
 		 uwrappers: (string * wrapper) list,
 		 safe0_netpair: netpair, safep_netpair: netpair,
 		 haz_netpair: netpair, dup_netpair: netpair}
+  val cla_method': (claset -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
   end;
 
 
@@ -87,6 +88,7 @@ signature BLAST =
   val blast_tac 	: claset -> int -> tactic
   val Blast_tac 	: int -> tactic
   val overloaded 	: string * (Term.typ -> Term.typ) -> unit
+  val setup		: (theory -> theory) list
   (*debugging tools*)
   val stats	        : bool ref
   val trace	        : bool ref
@@ -1320,6 +1322,11 @@ fun tryInThy thy lim s =
 		   Data.claset(), 
 		   [initBranch ([readGoal (sign_of thy) s], lim)], 
 		   I));
+
+
+(** method setup **)
+
+val setup = [Method.add_methods [("blast", Data.cla_method' blast_tac, "blast")]];
 
 
 end;
