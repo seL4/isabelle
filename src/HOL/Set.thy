@@ -247,6 +247,7 @@ lemma bspec [dest?]: "ALL x:A. P x ==> x:A ==> P x"
 
 lemma ballE [elim]: "ALL x:A. P x ==> (P x ==> Q) ==> (x ~: A ==> Q) ==> Q"
   by (unfold Ball_def) blast
+ML {* bind_thm("rev_ballE",permute_prems 1 1 (thm "ballE")) *}
 
 text {*
   \medskip This tactic takes assumptions @{prop "ALL x:A. P x"} and
