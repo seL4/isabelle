@@ -10,7 +10,9 @@ sig
   val get_session: unit -> string list
   val add_session: string -> unit
   val reset_session: unit -> unit
-  val get_context: unit -> theory
+  val get_context: unit -> theory option
+  val set_context: theory option -> unit
+  val the_context: unit -> theory
   val context: theory -> unit
   val reset_context: unit -> unit
   val thm: xstring -> thm
@@ -47,33 +49,38 @@ fun welcome () =
 
 (** theory context **)
 
-val current_theory = ref (None: theory option);
+local
+  val current_theory = ref (None: theory option);
+in
+  fun get_context () = ! current_theory;
+  fun set_context opt_thy = current_theory := opt_thy;
+end;
 
-fun get_context () =
-  (case current_theory of
-    ref (Some thy) => thy
+fun the_context () =
+  (case get_context () of
+    Some thy => thy
   | _ => error "Unknown theory context");
 
-fun context thy = current_theory := Some thy;
-fun reset_context () = current_theory := None;
+fun context thy = set_context (Some thy);
+fun reset_context () = set_context None;
 
 
 (* map context *)
 
 nonfix >>;
-fun >> f = current_theory := Some (f (get_context ()));
+fun >> f = set_context (Some (f (the_context ())));
 
 
 (* retrieve thms *)
 
-fun thm name = PureThy.get_thm (get_context ()) name;
-fun thms name = PureThy.get_thms (get_context ()) name;
+fun thm name = PureThy.get_thm (the_context ()) name;
+fun thms name = PureThy.get_thms (the_context ()) name;
 
 
 (* shortcut goal commands *)
 
-fun Goal s = Goals.goal (get_context ()) s;
-fun Goalw thms s = Goals.goalw (get_context ()) thms s;
+fun Goal s = Goals.goal (the_context ()) s;
+fun Goalw thms s = Goals.goalw (the_context ()) thms s;
 
 
 end;
