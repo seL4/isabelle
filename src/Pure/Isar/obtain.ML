@@ -9,23 +9,25 @@ proof texts.
   <chain_facts>
   obtain x where "P x" <proof> ==
 
-  {
+  have "!!thesis. (!!x. P x ==> thesis) ==> thesis"
+  proof succeed
     fix thesis
-    assume that [intro]: "!!x. P x ==> thesis"
-    <chain_facts> have thesis <proof (insert that)>
-  }
+    assume that [intro?]: "!!x. P x ==> thesis"
+    <chain_facts> show thesis <proof (insert that)>
+  qed
   fix x assm (obtained) "P x"
-
 *)
 
 signature OBTAIN =
 sig
   val obtain: (string list * string option) list ->
     ((string * Proof.context attribute list) * (string * (string list * string list)) list) list
-    -> Proof.state -> Proof.state Seq.seq
+    -> (Proof.context -> string * (string * thm list) list -> unit) *
+      (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
   val obtain_i: (string list * typ option) list ->
     ((string * Proof.context attribute list) * (term * (term list * term list)) list) list
-    -> Proof.state -> Proof.state Seq.seq
+    -> (Proof.context -> string * (string * thm list) list -> unit) *
+      (Proof.context -> thm -> unit) -> Proof.state -> Proof.state Seq.seq
 end;
 
 structure Obtain: OBTAIN =
@@ -62,7 +64,7 @@ fun export_obtain state parms rule _ cprops thm =
 
 val thatN = "that";
 
-fun gen_obtain prep_vars prep_propp raw_vars raw_asms state =
+fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val chain_facts = if Proof.is_chain state then Proof.the_facts state else [];
@@ -81,10 +83,15 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms state =
 
     val _ = ProofContext.warn_extra_tfrees fix_ctxt asms_ctxt;
 
-    (*that_prop*)
+    (*obtain statements*)
     val thesisN = Term.variant xs (Syntax.internal AutoBind.thesisN);
-    val bound_thesis =
-      ProofContext.bind_skolem fix_ctxt [thesisN] (ObjectLogic.fixed_judgment sign thesisN);
+    val bind_thesis = ProofContext.bind_skolem fix_ctxt [thesisN];
+    val bound_thesis = bind_thesis (ObjectLogic.fixed_judgment sign thesisN);
+    val bound_thesis_raw as (bound_thesis_name, _) =
+      Term.dest_Free (bind_thesis (Free (thesisN, propT)));
+    val bound_thesis_var =
+      foldl_aterms (fn (v, Free (x, T)) => if x = bound_thesis_name then (x, T) else v
+        | (v, t) => v) (bound_thesis_raw, bound_thesis);
 
     fun occs_var x = Library.get_first (fn t =>
       ProofContext.find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;
@@ -96,27 +103,30 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms state =
     val that_prop =
       Term.list_all_free (map #1 parm_names, Logic.list_implies (asm_props, bound_thesis))
       |> Library.curry Logic.list_rename_params (map #2 parm_names);
+    val obtain_prop =
+      Logic.list_rename_params ([AutoBind.thesisN],
+        Term.list_all_free ([bound_thesis_var], Logic.mk_implies (that_prop, bound_thesis)));
 
     fun after_qed st = st
-      |> Proof.end_block
+      |> Method.local_qed false None print
       |> Seq.map (fn st' => st'
         |> Proof.fix_i vars
         |> Proof.assm_i (export_obtain state parms (Proof.the_fact st')) asms);
   in
     state
     |> Proof.enter_forward
-    |> Proof.begin_block
+    |> Proof.have_i Seq.single true [(("", []), [(obtain_prop, ([], []))])]
+    |> Method.proof (Some (Method.Basic (K Method.succeed))) |> Seq.hd
     |> Proof.fix_i [([thesisN], None)]
     |> Proof.assume_i [((thatN, [ContextRules.intro_query_local None]), [(that_prop, ([], []))])]
     |> (fn state' =>
-      state'
-      |> Proof.from_facts chain_facts
-      |> Proof.have_i after_qed [(("", []), [(bound_thesis, ([], []))])]
-      |> Method.refine (Method.Basic (K (Method.insert (Proof.the_facts state')))))
+        state'
+        |> Proof.from_facts chain_facts
+        |> Proof.show_i (K I) after_qed false [(("", []), [(bound_thesis, ([], []))])] false
+        |> Method.refine (Method.Basic (K (Method.insert (Proof.the_facts state')))))
   end;
 
 val obtain = gen_obtain ProofContext.read_vars ProofContext.read_propp;
 val obtain_i = gen_obtain ProofContext.cert_vars ProofContext.cert_propp;
-
 
 end;
