@@ -29,6 +29,10 @@ $(OUT)/Pure: $(FILES)
 RAW: $(FILES)
 	@./mk -r
 
-test: Pure
+test: $(OUT)/Pure
+
+clean:
+	@rm -f $(OUT)/Pure $(OUT)/RAW
+
 
 .PRECIOUS: $(OUT)/Pure $(OUT)/RAW
