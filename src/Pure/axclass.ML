@@ -423,7 +423,7 @@ fun inst_attribute add_thms (thy, thm) = (add_thms [thm] thy, thm);
 
 fun inst_proof mk_prop add_thms (sig_prop, comment) int thy =
   thy
-  |> IsarThy.theorem_i Drule.internalK None ((("", [inst_attribute add_thms]),
+  |> IsarThy.theorem_i Drule.internalK (None, []) ((("", [inst_attribute add_thms]),
     (mk_prop (Theory.sign_of thy) sig_prop, ([], []))), comment) int;
 
 val instance_subclass_proof = inst_proof (mk_classrel oo read_classrel) add_classrel_thms;
