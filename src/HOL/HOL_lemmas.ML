@@ -131,13 +131,16 @@ qed "eqTrueE";
 (** Universal quantifier **)
 section "!";
 
-qed_goalw "allI" (the_context ()) [All_def] "(!!x::'a. P(x)) ==> !x. P(x)"
- (fn prems => [(resolve_tac (prems RL [eqTrueI RS ext]) 1)]);
+val prems = Goalw [All_def] "(!!x::'a. P(x)) ==> ! x. P(x)";
+by (resolve_tac (prems RL [eqTrueI RS ext]) 1);
+qed "allI";
 
-qed_goalw "spec" (the_context ()) [All_def] "! x::'a. P(x) ==> P(x)"
- (fn prems => [rtac eqTrueE 1, resolve_tac (prems RL [fun_cong]) 1]);
+Goalw [All_def] "! x::'a. P(x) ==> P(x)";
+by (rtac eqTrueE 1);
+by (etac fun_cong 1);
+qed "spec";
 
-val major::prems= goal (the_context ()) "[| !x. P(x);  P(x) ==> R |] ==> R";
+val major::prems= goal (the_context ()) "[| ! x. P(x);  P(x) ==> R |] ==> R";
 by (REPEAT (resolve_tac (prems @ [major RS spec]) 1)) ;
 qed "allE";
 
@@ -151,32 +154,45 @@ qed "all_dupE";
              before quantifiers! **)
 section "False";
 
-qed_goalw "FalseE" (the_context ()) [False_def] "False ==> P"
- (fn [major] => [rtac (major RS spec) 1]);
+Goalw [False_def] "False ==> P";
+by (etac spec 1);
+qed "FalseE";
 
-qed_goal "False_neq_True" (the_context ()) "False=True ==> P"
- (fn [prem] => [rtac (prem RS eqTrueE RS FalseE) 1]);
+Goal "False=True ==> P";
+by (etac (eqTrueE RS FalseE) 1);
+qed "False_neq_True";
 
 
 (** Negation **)
 section "~";
 
-qed_goalw "notI" (the_context ()) [not_def] "(P ==> False) ==> ~P"
- (fn prems=> [rtac impI 1, eresolve_tac prems 1]);
+val prems = Goalw [not_def] "(P ==> False) ==> ~P";
+by (rtac impI 1);
+by (eresolve_tac prems 1);
+qed "notI";
 
-qed_goal "False_not_True" (the_context ()) "False ~= True"
-  (fn _ => [rtac notI 1, etac False_neq_True 1]);
+Goal "False ~= True";
+by (rtac notI 1);
+by (etac False_neq_True 1);
+qed "False_not_True";
 
-qed_goal "True_not_False" (the_context ()) "True ~= False"
-  (fn _ => [rtac notI 1, dtac sym 1, etac False_neq_True 1]);
+Goal "True ~= False";
+by (rtac notI 1);
+by (dtac sym 1);
+by (etac False_neq_True 1);
+qed "True_not_False";
 
-qed_goalw "notE" (the_context ()) [not_def] "[| ~P;  P |] ==> R"
- (fn prems => [rtac (prems MRS mp RS FalseE) 1]);
+Goalw [not_def] "[| ~P;  P |] ==> R";
+by (etac (mp RS FalseE) 1);
+by (assume_tac 1);
+qed "notE";
 
 bind_thm ("classical2", notE RS notI);
 
-qed_goal "rev_notE" (the_context ()) "!!P R. [| P; ~P |] ==> R"
- (fn _ => [REPEAT (ares_tac [notE] 1)]);
+Goal "[| P; ~P |] ==> R";
+by (etac notE 1);
+by (assume_tac 1);
+qed "rev_notE";
 
 
 (** Implication **)
@@ -208,61 +224,80 @@ bind_thm("not_sym", sym COMP rev_contrapos);
 (** Existential quantifier **)
 section "?";
 
-qed_goalw "exI" (the_context ()) [Ex_def] "P x ==> ? x::'a. P x"
- (fn prems => [rtac selectI 1, resolve_tac prems 1]);
+Goalw [Ex_def] "P x ==> ? x::'a. P x";
+by (etac selectI 1) ;
+qed "exI";
 
-qed_goalw "exE" (the_context ()) [Ex_def]
-  "[| ? x::'a. P(x); !!x. P(x) ==> Q |] ==> Q"
-  (fn prems => [REPEAT(resolve_tac prems 1)]);
+val [major,minor] = 
+Goalw [Ex_def] "[| ? x::'a. P(x); !!x. P(x) ==> Q |] ==> Q";
+by (rtac (major RS minor) 1);
+qed "exE";
 
 
 (** Conjunction **)
 section "&";
 
-qed_goalw "conjI" (the_context ()) [and_def] "[| P; Q |] ==> P&Q"
- (fn prems =>
-  [REPEAT (resolve_tac (prems@[allI,impI]) 1 ORELSE etac (mp RS mp) 1)]);
+Goalw [and_def] "[| P; Q |] ==> P&Q";
+by (rtac (impI RS allI) 1);
+by (etac (mp RS mp) 1);
+by (REPEAT (assume_tac 1));
+qed "conjI";
 
-qed_goalw "conjunct1" (the_context ()) [and_def] "[| P & Q |] ==> P"
- (fn prems =>
-   [resolve_tac (prems RL [spec] RL [mp]) 1, REPEAT(ares_tac [impI] 1)]);
+Goalw [and_def] "[| P & Q |] ==> P";
+by (dtac spec 1) ;
+by (etac mp 1);
+by (REPEAT (ares_tac [impI] 1));
+qed "conjunct1";
 
-qed_goalw "conjunct2" (the_context ()) [and_def] "[| P & Q |] ==> Q"
- (fn prems =>
-   [resolve_tac (prems RL [spec] RL [mp]) 1, REPEAT(ares_tac [impI] 1)]);
+Goalw [and_def] "[| P & Q |] ==> Q";
+by (dtac spec 1) ;
+by (etac mp 1);
+by (REPEAT (ares_tac [impI] 1));
+qed "conjunct2";
 
-qed_goal "conjE" (the_context ()) "[| P&Q;  [| P; Q |] ==> R |] ==> R"
- (fn prems =>
-         [cut_facts_tac prems 1, resolve_tac prems 1,
-          etac conjunct1 1, etac conjunct2 1]);
+val [major,minor] =
+Goal "[| P&Q;  [| P; Q |] ==> R |] ==> R";
+by (rtac minor 1);
+by (rtac (major RS conjunct1) 1);
+by (rtac (major RS conjunct2) 1);
+qed "conjE";
 
-qed_goal "context_conjI" (the_context ())  "[| P; P ==> Q |] ==> P & Q"
- (fn prems => [REPEAT(resolve_tac (conjI::prems) 1)]);
+val prems =
+Goal "[| P; P ==> Q |] ==> P & Q";
+by (REPEAT (resolve_tac (conjI::prems) 1));
+qed "context_conjI";
 
 
 (** Disjunction *)
 section "|";
 
-qed_goalw "disjI1" (the_context ()) [or_def] "P ==> P|Q"
- (fn [prem] => [REPEAT(ares_tac [allI,impI, prem RSN (2,mp)] 1)]);
+Goalw [or_def] "P ==> P|Q";
+by (REPEAT (resolve_tac [allI,impI] 1));
+by (etac mp 1 THEN assume_tac 1);
+qed "disjI1";
 
-qed_goalw "disjI2" (the_context ()) [or_def] "Q ==> P|Q"
- (fn [prem] => [REPEAT(ares_tac [allI,impI, prem RSN (2,mp)] 1)]);
+Goalw [or_def] "Q ==> P|Q";
+by (REPEAT (resolve_tac [allI,impI] 1));
+by (etac mp 1 THEN assume_tac 1);
+qed "disjI2";
 
-qed_goalw "disjE" (the_context ()) [or_def] "[| P | Q; P ==> R; Q ==> R |] ==> R"
- (fn [a1,a2,a3] =>
-        [rtac (mp RS mp) 1, rtac spec 1, rtac a1 1,
-         rtac (a2 RS impI) 1, assume_tac 1, rtac (a3 RS impI) 1, assume_tac 1]);
+val [major,minorP,minorQ] =
+Goalw [or_def]  "[| P | Q; P ==> R; Q ==> R |] ==> R";
+by (rtac (major RS spec RS mp RS mp) 1);
+by (DEPTH_SOLVE (ares_tac [impI,minorP,minorQ] 1));
+qed "disjE";
 
 
 (** CCONTR -- classical logic **)
 section "classical logic";
 
-qed_goalw "classical" (the_context ()) [not_def]  "(~P ==> P) ==> P"
- (fn [prem] =>
-   [rtac (True_or_False RS (disjE RS eqTrueE)) 1,  assume_tac 1,
-    rtac (impI RS prem RS eqTrueI) 1,
-    etac subst 1,  assume_tac 1]);
+val [prem] = Goal  "(~P ==> P) ==> P";
+by (rtac (True_or_False RS disjE RS eqTrueE) 1);
+by (assume_tac 1);
+by (rtac (notI RS prem RS eqTrueI) 1);
+by (etac subst 1);
+by (assume_tac 1);
+qed "classical";
 
 bind_thm ("ccontr", FalseE RS classical);
 
@@ -290,22 +325,22 @@ qed "swap2";
 (** Unique existence **)
 section "?!";
 
-qed_goalw "ex1I" (the_context ()) [Ex1_def]
-            "[| P(a);  !!x. P(x) ==> x=a |] ==> ?! x. P(x)"
- (fn prems =>
-  [REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)]);
+val prems = Goalw [Ex1_def] "[| P(a);  !!x. P(x) ==> x=a |] ==> ?! x. P(x)";
+by (REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1));
+qed "ex1I";
 
 (*Sometimes easier to use: the premises have no shared variables.  Safe!*)
-val [ex,eq] = Goal
+val [ex_prem,eq] = Goal
     "[| ? x. P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> ?! x. P(x)";
-by (rtac (ex RS exE) 1);
+by (rtac (ex_prem RS exE) 1);
 by (REPEAT (ares_tac [ex1I,eq] 1)) ;
 qed "ex_ex1I";
 
-qed_goalw "ex1E" (the_context ()) [Ex1_def]
-    "[| ?! x. P(x);  !!x. [| P(x);  ! y. P(y) --> y=x |] ==> R |] ==> R"
- (fn major::prems =>
-  [rtac (major RS exE) 1, REPEAT (etac conjE 1 ORELSE ares_tac prems 1)]);
+val major::prems = Goalw [Ex1_def]
+    "[| ?! x. P(x);  !!x. [| P(x);  ! y. P(y) --> y=x |] ==> R |] ==> R";
+by (rtac (major RS exE) 1);
+by (REPEAT (etac conjE 1 ORELSE ares_tac prems 1));
+qed "ex1E";
 
 Goal "?! x. P x ==> ? x. P x";
 by (etac ex1E 1);
@@ -326,9 +361,10 @@ by (resolve_tac prems 1) ;
 qed "selectI2";
 
 (*Easier to apply than selectI2 if witness ?a comes from an EX-formula*)
-qed_goal "selectI2EX" (the_context ())
-  "[| ? a. P a; !!x. P x ==> Q x |] ==> Q (Eps P)"
-(fn [major,minor] => [rtac (major RS exE) 1, etac selectI2 1, etac minor 1]);
+val [major,minor] = Goal "[| ? a. P a;  !!x. P x ==> Q x |] ==> Q (Eps P)";
+by (rtac (major RS exE) 1);
+by (etac selectI2 1 THEN etac minor 1);
+qed "selectI2EX";
 
 val prems = Goal
     "[| P a;  !!x. P x ==> x=a |] ==> (@x. P x) = a";
@@ -418,9 +454,11 @@ qed "exCI";
 
 (* case distinction *)
 
-qed_goal "case_split_thm" (the_context ()) "[| P ==> Q; ~P ==> Q |] ==> Q"
-  (fn [p1,p2] => [rtac (excluded_middle RS disjE) 1,
-                  etac p2 1, etac p1 1]);
+val [prem1,prem2] = Goal "[| P ==> Q; ~P ==> Q |] ==> Q";
+by (rtac (excluded_middle RS disjE) 1);
+by (etac prem2 1);
+by (etac prem1 1);
+qed "case_split_thm";
 
 fun case_tac a = res_inst_tac [("P",a)] case_split_thm;
 

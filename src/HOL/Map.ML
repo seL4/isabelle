@@ -16,9 +16,10 @@ Addsimps [empty_def2];
 
 section "map_upd";
 
-qed_goal "map_upd_triv" thy "!!X. t k = Some x ==> t(k|->x) = t"
-	(K [rtac ext 1, Asm_simp_tac 1]);
-(*Addsimps [map_upd_triv];*)
+Goal "t k = Some x ==> t(k|->x) = t";
+by (rtac ext 1);
+by (Asm_simp_tac 1);
+qed "map_upd_triv";
 
 Goalw [image_def] "finite (range f) ==> finite (range (f(a|->b)))";
 by (full_simp_tac (simpset() addsimps [full_SetCompr_eq]) 1);
@@ -44,10 +45,14 @@ Addsimps [map_upds_twist];
 
 section "chg_map";
 
-qed_goalw "chg_map_new" thy [chg_map_def]
-	"!!s. m a = None   ==> chg_map f a m = m"          (K [Auto_tac]);
-qed_goalw "chg_map_upd" thy [chg_map_def]
-	"!!s. m a = Some b ==> chg_map f a m = m(a|->f b)" (K [Auto_tac]);
+Goalw [chg_map_def] "m a = None   ==> chg_map f a m = m";
+by Auto_tac;
+qed "chg_map_new";
+
+Goalw [chg_map_def] "m a = Some b ==> chg_map f a m = m(a|->f b)";
+by Auto_tac;
+qed "chg_map_upd";
+
 Addsimps[chg_map_new, chg_map_upd];
 
 
@@ -78,12 +83,16 @@ qed "finite_range_map_of";
 
 section "option_map related";
 
-qed_goal "option_map_o_empty" thy 
-         "option_map f o empty = empty" (K [rtac ext 1, Simp_tac 1]);
+Goal "option_map f o empty = empty";
+by (rtac ext 1);
+by (Simp_tac 1);
+qed "option_map_o_empty";
 
-qed_goal "option_map_o_map_upd" thy 
-	 "option_map f o m(a|->b) = (option_map f o m)(a|->f b)" 
-	(K [rtac ext 1, Simp_tac 1]);
+Goal "option_map f o m(a|->b) = (option_map f o m)(a|->f b)";
+by (rtac ext 1);
+by (Simp_tac 1);
+qed "option_map_o_map_upd";
+
 Addsimps[option_map_o_empty, option_map_o_map_upd];
 
 section "++";
@@ -168,15 +177,14 @@ by (Blast_tac 1);
 qed "dom_map_upd";
 Addsimps [dom_map_upd];
 
-qed_goalw "finite_dom_map_of" Map.thy [dom_def] "finite (dom (map_of l))" (K[
-	induct_tac "l" 1,
-	 ALLGOALS Simp_tac,
-	stac (insert_Collect RS sym) 1,
-	Asm_full_simp_tac 1]);
+Goalw [dom_def] "finite (dom (map_of l))";
+by (induct_tac "l" 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [insert_Collect RS sym]));
+qed "finite_dom_map_of";
 
 Goalw [dom_def] "dom(m++n) = dom n Un dom m";
-by (Simp_tac 1);
-by (Blast_tac 1);
+by Auto_tac;
 qed "dom_override";
 Addsimps [dom_override];
 
