@@ -87,4 +87,14 @@ lemma preallocated_start:
   apply (auto simp add: blank_def)
   done
 
+
+text {*
+  Only program counters that are mentioned in the exception table
+  can be returned by @{term match_exception_table}:
+*}
+lemma match_exception_table_in_et:
+  "match_exception_table G C pc et = Some pc' \<Longrightarrow> \<exists>e \<in> set et. pc' = fst (snd (snd e))"
+  by (induct et) (auto split: split_if_asm)
+
+
 end
