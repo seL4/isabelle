@@ -29,6 +29,7 @@ sig
   val query_colon: T list -> string * T list
   val bang_colon: T list -> string * T list
   val parens: (T list -> 'a * T list) -> T list -> 'a * T list
+  val bracks: (T list -> 'a * T list) -> T list -> 'a * T list
   val mode: string -> 'a * T list -> bool * ('a * T list)
   val name: T list -> string * T list
   val name_dummy: T list -> string option * T list
@@ -131,6 +132,7 @@ val query_colon = $$$ "?:";
 val bang_colon = $$$ "!:";
 
 fun parens scan = $$$ "(" |-- scan --| $$$ ")";
+fun bracks scan = $$$ "[" |-- scan --| $$$ "]";
 fun mode s = Scan.lift (Scan.optional (parens ($$$$ s) >> K true) false);
 
 val name = Scan.one (fn Arg (k, (x, _)) => k = Ident orelse k = String) >> val_of;
