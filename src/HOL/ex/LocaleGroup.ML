@@ -139,7 +139,7 @@ by (asm_simp_tac (simpset() delsimps [inv_ax1]
 by (asm_simp_tac (simpset() addsimps [binop_assoc]) 1);
 qed "right_cancellation";
 
-Close_locale();
+Close_locale "groups";
 
 (* example what happens if export *)
 val Left_cancellation = export left_cancellation;

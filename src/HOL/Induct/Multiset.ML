@@ -431,7 +431,7 @@ by(res_inst_tac [("M","M")] multiset_induct 1);
 by(blast_tac (claset() addDs [export lemma3]) 1);
 qed "all_accessible";
 
-Close_locale();
+Close_locale "MSOrd";
 
 Goal "wf(r) ==> wf(mult1 r)";
 by(blast_tac (claset() addIs [acc_wfI, export all_accessible]) 1);

@@ -435,4 +435,4 @@ by (ALLGOALS Asm_full_simp_tac);
 by (Blast_tac 1);
 qed "lift_1";
 
-Close_locale();
+Close_locale "floor";

@@ -675,7 +675,7 @@ Delsimps [foldSet_imp_finite];
 Delrules [empty_foldSetE];
 Delrules foldSet.intrs;
 
-Close_locale();
+Close_locale "LC";
 
 Open_locale "ACe"; 
 
@@ -722,7 +722,7 @@ by (asm_full_simp_tac (simpset() addsimps f_ac @ f_idents @
            [export fold_insert,insert_absorb, Int_insert_left]) 1);
 qed "fold_Un_disjoint2";
 
-Close_locale();
+Close_locale "ACe";
 
 Delrules ([empty_foldSetE] @ foldSet.intrs);
 Delsimps [foldSet_imp_finite];

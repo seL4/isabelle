@@ -552,6 +552,6 @@ qed "FreeUltrafilter_ex";
 
 val FreeUltrafilter_Ex  = export FreeUltrafilter_ex;
 
-Close_locale();
+Close_locale "UFT";
 
 
