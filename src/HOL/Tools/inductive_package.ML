@@ -384,13 +384,17 @@ fun project_rules [name] rule = [(name, rule)]
 
 fun add_cases_induct no_elim no_ind names elims induct induct_cases =
   let
-    fun cases_spec (name, elim) = (("", elim), [InductMethod.cases_set_global name]);
+    fun cases_spec (name, elim) thy =
+      thy
+      |> Theory.add_path (Sign.base_name name)
+      |> (#1 o PureThy.add_thms [(("cases", elim), [InductMethod.cases_set_global name])])
+      |> Theory.parent_path;
     val cases_specs = if no_elim then [] else map2 cases_spec (names, elims);
 
-    fun induct_spec (name, th) =
-      (("", th), [RuleCases.case_names induct_cases, InductMethod.induct_set_global name]);
+    fun induct_spec (name, th) = (#1 o PureThy.add_thms
+      [(("", th), [RuleCases.case_names induct_cases, InductMethod.induct_set_global name])]);
     val induct_specs = if no_ind then [] else map induct_spec (project_rules names induct);
-  in #1 o PureThy.add_thms (cases_specs @ induct_specs) end;
+  in Library.apply (cases_specs @ induct_specs) end;
 
 
 
@@ -782,14 +786,13 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
     val _ = seq (check_rule sign cs o snd o fst) intros;
     val induct_cases = map (#1 o #1) intros;
 
-    val (thy1, result) =
+    val (thy1, result as {elims, induct, ...}) =
       (if ! quick_and_dirty then add_ind_axm else add_ind_def)
         verbose declare_consts alt_name coind no_elim no_ind cs atts intros monos
         con_defs thy params paramTs cTs cnames induct_cases;
     val thy2 = thy1
       |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result)
-      |> add_cases_induct no_elim (no_ind orelse coind) full_cnames
-          (#elims result) (#induct result) induct_cases;
+      |> add_cases_induct no_elim (no_ind orelse coind) full_cnames elims induct induct_cases;
   in (thy2, result) end;
 
 
@@ -803,7 +806,9 @@ fun add_inductive verbose coind c_strings srcs intro_srcs raw_monos raw_con_defs
 
     val atts = map (Attrib.global_attribute thy) srcs;
     val intr_names = map (fst o fst) intro_srcs;
-    val intr_ts = map (term_of o Thm.read_cterm sign o rpair propT o snd o fst) intro_srcs;
+    fun read_rule s = Thm.read_cterm sign (s, propT)
+      handle ERROR => error ("The error(s) above occurred for " ^ s);
+    val intr_ts = map (Thm.term_of o read_rule o snd o fst) intro_srcs;
     val intr_atts = map (map (Attrib.global_attribute thy) o snd) intro_srcs;
     val (cs', intr_ts') = unify_consts sign cs intr_ts;
 
