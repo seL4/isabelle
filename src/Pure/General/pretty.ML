@@ -149,7 +149,7 @@ fun length (Block (_, _, len)) = len
 
 fun str s = String (s, size s);
 fun strlen s len = String (s, len);
-fun sym s = String (s, Symbol.size s);
+val sym = String o apsnd Real.round o Symbol.output_width;
 
 fun spc n = str (repstring " " n);
 
