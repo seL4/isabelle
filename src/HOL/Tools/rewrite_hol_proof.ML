@@ -138,6 +138,14 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
  \    (iffD2 % A % B %% prf1 %% (conjunct1 % B % D %% prf3)) %%  \
  \    (iffD2 % C % D %% prf2 %% (conjunct2 % B % D %% prf3)))",
 
+   "(cong % TYPE(bool) % TYPE(bool) % op & A % op & A % B % C %%  \
+ \    (refl % TYPE(bool=>bool) % op & A)) ==  \
+ \  (cong % TYPE(bool) % TYPE(bool) % op & A % op & A % B % C %%  \
+ \    (cong % TYPE(bool=>bool) % TYPE(bool) %  \
+ \      (op & :: bool=>bool=>bool) % (op & :: bool=>bool=>bool) % A % A %%  \
+ \        (refl % TYPE(bool=>bool=>bool) % (op & :: bool=>bool=>bool)) %%  \
+ \        (refl % TYPE(bool) % A)))",
+
    (* | *)
 
    "(iffD1 % A | C % B | D %% (cong % TYPE('T1) % TYPE('T2) % x1 % x2 % C % D %%  \
@@ -154,6 +162,14 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
  \    (Lam H : B. disjI1 % A % C %% (iffD2 % A % B %% prf1 %% H)) %%  \
  \    (Lam H : D. disjI2 % C % A %% (iffD2 % C % D %% prf2 %% H)))",
 
+   "(cong % TYPE(bool) % TYPE(bool) % op | A % op | A % B % C %%  \
+ \    (refl % TYPE(bool=>bool) % op | A)) ==  \
+ \  (cong % TYPE(bool) % TYPE(bool) % op | A % op | A % B % C %%  \
+ \    (cong % TYPE(bool=>bool) % TYPE(bool) %  \
+ \      (op | :: bool=>bool=>bool) % (op | :: bool=>bool=>bool) % A % A %%  \
+ \        (refl % TYPE(bool=>bool=>bool) % (op | :: bool=>bool=>bool)) %%  \
+ \        (refl % TYPE(bool) % A)))",
+
    (* --> *)
 
    "(iffD1 % A --> C % B --> D %% (cong % TYPE('T1) % TYPE('T2) % x1 % x2 % C % D %%  \
@@ -167,6 +183,14 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
  \      (refl % TYPE('T5) % op --> ) %% prf1) %% prf2) %% prf3) ==  \
  \  (impI % A % C %% (Lam H: A. iffD2 % C % D %% prf2 %%  \
  \    (mp % B % D %% prf3 %% (iffD1 % A % B %% prf1 %% H))))",
+
+   "(cong % TYPE(bool) % TYPE(bool) % op --> A % op --> A % B % C %%  \
+ \    (refl % TYPE(bool=>bool) % op --> A)) ==  \
+ \  (cong % TYPE(bool) % TYPE(bool) % op --> A % op --> A % B % C %%  \
+ \    (cong % TYPE(bool=>bool) % TYPE(bool) %  \
+ \      (op --> :: bool=>bool=>bool) % (op --> :: bool=>bool=>bool) % A % A %%  \
+ \        (refl % TYPE(bool=>bool=>bool) % (op --> :: bool=>bool=>bool)) %%  \
+ \        (refl % TYPE(bool) % A)))",
 
    (* ~ *)
 
@@ -211,12 +235,12 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
  \    (iffD2 % B % D %% prf3 %% (iffD1 % C % D %% prf2 %% prf4)))",
 
    "(cong % TYPE(bool) % TYPE(bool) % op = A % op = A % B % C %%  \
- \    (refl % TYPE(bool) % op = A)) ==  \
+ \    (refl % TYPE(bool=>bool) % op = A)) ==  \
  \  (cong % TYPE(bool) % TYPE(bool) % op = A % op = A % B % C %%  \
  \    (cong % TYPE(bool=>bool) % TYPE(bool) %  \
  \      (op = :: bool=>bool=>bool) % (op = :: bool=>bool=>bool) % A % A %%  \
  \        (refl % TYPE(bool=>bool=>bool) % (op = :: bool=>bool=>bool)) %%  \
- \        (refl % TYPE(bool) % A % A)))",
+ \        (refl % TYPE(bool) % A)))",
 
    "(iffD1 % A % C %% (trans % TYPE(bool) % A % B % C %% prf1 %% prf2) %% prf3) ==  \
  \  (iffD1 % B % C %% prf2 %% (iffD1 % A % B %% prf1 %% prf3))",
@@ -228,6 +252,10 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
 
    "(iffD2 % A % A %% (refl % TYPE(bool) % A) %% prf) == prf",
 
+   "(iffD1 % A % B %% (sym % TYPE(bool) % B % A %% prf)) == (iffD2 % B % A %% prf)",
+
+   "(iffD2 % A % B %% (sym % TYPE(bool) % B % A %% prf)) == (iffD1 % B % A %% prf)",
+
    (** normalization of HOL proofs **)
 
    "(mp % A % B %% (impI % A % B %% prf)) == prf",
@@ -237,6 +265,10 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) Symtab.empt
    "(spec % TYPE('a) % P % x %% (allI % TYPE('a) % P %% prf)) == prf % x",
 
    "(allI % TYPE('a) % P %% (Lam x::'a. spec % TYPE('a) % P % x %% prf)) == prf",
+
+   "(exE % TYPE('a) % P % Q %% (exI % TYPE('a) % P % x %% prf1) %% prf2) == (prf2 % x %% prf1)",
+
+   "(exE % TYPE('a) % P % Q %% prf %% (exI % TYPE('a) % P)) == prf",
 
    "(disjE % P % Q % R %% (disjI1 % P % Q %% prf1) %% prf2 %% prf3) == (prf2 %% prf1)",
 
