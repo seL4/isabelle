@@ -39,8 +39,8 @@ consts
  exec_mr :: "[meth_ret,opstack,frame list] \\<Rightarrow> frame list"
 primrec
   "exec_mr Return stk0 frs =
-	 (let val = hd stk0; (stk,loc,cn,met,pc) = hd frs
-	  in
-	  (val#stk,loc,cn,met,pc)#tl frs)"
+	(if frs=[] then []
+         else let val = hd stk0; (stk,loc,cn,met,pc) = hd frs
+	      in (val#stk,loc,cn,met,pc)#tl frs)"
 
 end

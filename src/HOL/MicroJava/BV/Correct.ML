@@ -253,10 +253,10 @@ qed_spec_mp "hconf_imp_hconf_field_update";
 
 Delsimps [fun_upd_apply]; 
 Goal
-"\\<forall>rT C ml. correct_frames G hp phi rT C ml frs \\<longrightarrow> \
+"\\<forall>rT C sig. correct_frames G hp phi rT sig frs \\<longrightarrow> \
 \    hp a = Some (cn,od) \\<longrightarrow> map_of (fields (G, cn)) fl = Some fd \\<longrightarrow> \
 \    G,hp\\<turnstile>v\\<Colon>\\<preceq>fd \
-\ \\<longrightarrow> correct_frames G (hp(a \\<mapsto> (cn, od(fl\\<mapsto>v)))) phi rT C ml frs";
+\ \\<longrightarrow> correct_frames G (hp(a \\<mapsto> (cn, od(fl\\<mapsto>v)))) phi rT sig frs";
 by (induct_tac "frs" 1);
  by (Asm_full_simp_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [split_def,correct_frame_def]) 1);
@@ -267,9 +267,9 @@ qed_spec_mp "correct_frames_imp_correct_frames_field_update";
 
 
 Goal
-"\\<forall>rT C ml. hp x = None \\<longrightarrow> correct_frames G hp phi rT C ml frs \\<and> \
+"\\<forall>rT C sig. hp x = None \\<longrightarrow> correct_frames G hp phi rT sig frs \\<and> \
 \    oconf G hp obj \
-\ \\<longrightarrow> correct_frames G (hp(newref hp \\<mapsto> obj)) phi rT C ml frs";
+\ \\<longrightarrow> correct_frames G (hp(newref hp \\<mapsto> obj)) phi rT sig frs";
 by (induct_tac "frs" 1);
 by  (asm_full_simp_tac (simpset() addsimps []) 1);
 by (asm_full_simp_tac (simpset() addsimps [split_def,correct_frame_def]) 1);

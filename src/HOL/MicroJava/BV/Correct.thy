@@ -20,31 +20,31 @@ constdefs
 "approx_stk G hp stk ST \\<equiv> approx_loc G hp stk (map Some ST)"
 
  correct_frame  :: "[jvm_prog,aheap,state_type,nat,bytecode] \\<Rightarrow> frame \\<Rightarrow> bool"
-"correct_frame G hp \\<equiv> \\<lambda>(ST,LT) maxl ins (stk,loc,C,ml,pc).
+"correct_frame G hp \\<equiv> \\<lambda>(ST,LT) maxl ins (stk,loc,C,sig,pc).
    approx_stk G hp stk ST  \\<and> approx_loc G hp loc LT \\<and> 
-   pc < length ins \\<and> length loc=length(snd ml)+maxl+1"
+   pc < length ins \\<and> length loc=length(snd sig)+maxl+1"
 
 consts
- correct_frames  :: "[jvm_prog,aheap,prog_type,ty,cname,sig,frame list] \\<Rightarrow> bool"
+ correct_frames  :: "[jvm_prog,aheap,prog_type,ty,sig,frame list] \\<Rightarrow> bool"
 primrec
-"correct_frames G hp phi rT0 C0 ml0 [] = False"
+"correct_frames G hp phi rT0 sig0 [] = True"
 
-"correct_frames G hp phi rT0 C0 ml0 (f#frs) =
-	(let (stk,loc,C,ml,pc) = f;
-	     (ST,LT) = (phi C ml) ! pc
+"correct_frames G hp phi rT0 sig0 (f#frs) =
+	(let (stk,loc,C,sig,pc) = f;
+	     (ST,LT) = (phi C sig) ! pc
 	 in
          (\\<exists>rT maxl ins.
-         method (G,C) ml = Some(C,rT,(maxl,ins)) \\<and>
+         method (G,C) sig = Some(C,rT,(maxl,ins)) \\<and>
 	 (\\<exists>mn pTs k. pc = k+1 \\<and> ins!k = MI(Invoke mn pTs) \\<and>
-         (mn,pTs) = ml0 \\<and> 
+         (mn,pTs) = sig0 \\<and> 
          (\\<exists>apTs D ST'.
-         fst((phi C ml)!k) = (rev apTs) @ (Class D) # ST' \\<and>
+         fst((phi C sig)!k) = (rev apTs) @ (Class D) # ST' \\<and>
          length apTs = length pTs \\<and>
          (\\<exists>D' rT' maxl' ins'.
            method (G,D) (mn,pTs) = Some(D',rT',(maxl',ins')) \\<and>
            G \\<turnstile> rT0 \\<preceq> rT') \\<and>
 	 correct_frame G hp (tl ST, LT) maxl ins f \\<and> 
-	 correct_frames G hp phi rT C ml frs))))"
+	 correct_frames G hp phi rT sig frs))))"
 
 
 constdefs
@@ -54,13 +54,13 @@ constdefs
    case xp of
      None \\<Rightarrow> (case frs of
 	           [] \\<Rightarrow> True
-             | (f#fs) \\<Rightarrow> (let (stk,loc,C,ml,pc) = f
+             | (f#fs) \\<Rightarrow> G\\<turnstile>h hp\\<surd> \\<and>
+			(let (stk,loc,C,sig,pc) = f
 		         in
                          \\<exists>rT maxl ins.
-                         method (G,C) ml = Some(C,rT,(maxl,ins)) \\<and>
-		         G\\<turnstile>h hp\\<surd> \\<and> 
-			 correct_frame G hp ((phi C ml) ! pc) maxl ins f \\<and> 
-		         correct_frames G hp phi rT C ml fs))
+                         method (G,C) sig = Some(C,rT,(maxl,ins)) \\<and>
+			 correct_frame G hp ((phi C sig) ! pc) maxl ins f \\<and> 
+		         correct_frames G hp phi rT sig fs))
    | Some x \\<Rightarrow> True" 
 
 end
