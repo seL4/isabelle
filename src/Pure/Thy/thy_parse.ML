@@ -244,7 +244,7 @@ fun ident_no_colon _ [] = eof_err()
   | ident_no_colon _ ((k, s, n) :: _) =
       syn_err (name_of_kind Ident) (quote s) n;
 
-(*Type used in types, consts and syntax sections*)
+(*type used in types, consts and syntax sections*)
 fun const_type allow_comma toks =
   let val simple_type =
         (ident ||
@@ -344,16 +344,6 @@ val trfun_defs =
 val trfun_args =
   "(parse_ast_translation, parse_translation, \
   \print_translation, print_ast_translation)";
-
-fun mk_mltrans txt =
-  "let\n"
-  ^ trfun_defs ^ "\n"
-  ^ txt ^ "\n\
-  \in\n\
-  \ " ^ trfun_args ^ "\n\
-  \end";
-
-val mltrans = verbatim >> mk_mltrans;
 
 
 (* axioms *)
@@ -551,8 +541,6 @@ val pure_sections =
   section "consts" "|> add_consts" const_decls,
   section "syntax" "|> add_modesyntax" syntax_decls,
   section "translations" "|> add_trrules" trans_decls,
-  section "MLtrans" "|> add_trfuns" mltrans,
-  section "MLtext" "" verbatim,
   axm_section "rules" "|> add_axioms" axiom_decls,
   axm_section "defs" "|> add_defs" axiom_decls,
   axm_section "constdefs" "|> add_consts" constaxiom_decls,
