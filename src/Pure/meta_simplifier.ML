@@ -91,9 +91,12 @@ fun trace_term warn a sign t = if !trace_simp then prtm warn a sign t else ();
 fun trace_cterm warn a t = if !trace_simp then prctm warn a t else ();
 fun debug_term warn a sign t = if !debug_simp then prtm warn a sign t else ();
 
-fun trace_thm warn a thm =
+fun trace_thm a thm =
   let val {sign, prop, ...} = rep_thm thm
-  in trace_term warn a sign prop end;
+  in trace_term false a sign prop end;
+
+fun trace_named_thm a thm =
+  trace_thm (a ^ " " ^ quote(Thm.name_of_thm thm) ^ ":") thm;
 
 end;
 
@@ -233,7 +236,7 @@ fun mk_rrule2{thm,lhs,elhs,perm} =
 
 fun insert_rrule(mss as Mss {rules,...},
                  rrule as {thm,lhs,elhs,perm}) =
-  (trace_thm false "Adding rewrite rule:" thm;
+  (trace_named_thm "Adding rewrite rule" thm;
    let val rrule2 as {elhs,...} = mk_rrule2 rrule
        val rules' = Net.insert_term ((term_of elhs, rrule2), rules, eq_rrule)
    in upd_rules(mss,rules') end
@@ -530,11 +533,11 @@ fun check_conv msg thm thm' =
   let
     val thm'' = transitive thm (transitive
       (symmetric (beta_eta_conversion (lhs_of thm'))) thm')
-  in (if msg then trace_thm false "SUCCEEDED" thm' else (); Some thm'') end
+  in (if msg then trace_thm "SUCCEEDED" thm' else (); Some thm'') end
   handle THM _ =>
     let val {sign, prop = _ $ _ $ prop0, ...} = rep_thm thm;
     in
-      (trace_thm false "Proved wrong thm (Check subgoaler?)" thm';
+      (trace_thm "Proved wrong thm (Check subgoaler?)" thm';
        trace_term false "Should have proved:" sign prop0;
        None)
     end;
@@ -612,19 +615,19 @@ fun rewritec (prover, signt, maxt)
         val (lhs', rhs') = Logic.dest_equals (Logic.strip_imp_concl prop')
       in
         if perm andalso not (termless (rhs', lhs'))
-        then (trace_thm false "Cannot apply permutative rewrite rule:" thm;
-              trace_thm false "Term does not become smaller:" thm'; None)
-        else (trace_thm false "Applying instance of rewrite rule:" thm;
+        then (trace_named_thm "Cannot apply permutative rewrite rule" thm;
+              trace_thm "Term does not become smaller:" thm'; None)
+        else (trace_named_thm "Applying instance of rewrite rule" thm;
            if unconditional
            then
-             (trace_thm false "Rewriting:" thm';
+             (trace_thm "Rewriting:" thm';
               let val lr = Logic.dest_equals prop;
                   val Some thm'' = check_conv false eta_thm thm'
               in Some (thm'', uncond_skel (congs, lr)) end)
            else
-             (trace_thm false "Trying to rewrite:" thm';
+             (trace_thm "Trying to rewrite:" thm';
               case prover (incr_depth mss) thm' of
-                None       => (trace_thm false "FAILED" thm'; None)
+                None       => (trace_thm "FAILED" thm'; None)
               | Some thm2 =>
                   (case check_conv true eta_thm thm2 of
                      None => None |
@@ -657,7 +660,7 @@ fun rewritec (prover, signt, maxt)
                  (fn () => proc signt prems eta_t) () of
                None => (debug false "FAILED"; proc_rews ps)
              | Some raw_thm =>
-                 (trace_thm false ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
+                 (trace_thm ("Procedure " ^ quote name ^ " produced rewrite rule:") raw_thm;
                   (case rews (mk_procrule raw_thm) of
                     None => (trace_cterm true ("IGNORED result of simproc " ^ quote name ^
                       " -- does not match") t; proc_rews ps)
@@ -684,7 +687,7 @@ fun congc (prover,signt,maxt) {thm=cong,lhs=lhs} t =
       (* Pattern.match can raise Pattern.MATCH;
          is handled when congc is called *)
       val thm' = Thm.instantiate insts (Thm.rename_boundvars (term_of rlhs) (term_of t) rthm);
-      val unit = trace_thm false "Applying congruence rule:" thm';
+      val unit = trace_thm "Applying congruence rule:" thm';
       fun err (msg, thm) = (prthm false msg thm; error "Failed congruence proof!")
   in case prover thm' of
        None => err ("Could not prove", thm')
