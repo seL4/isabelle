@@ -5,6 +5,7 @@
 Type classes and sorts. Type signatures. Type unification and inference.
 
 TODO:
+  improve nonempty_sort!
   move type unification and inference to type_unify.ML (TypeUnify) (?)
 *)
 
@@ -955,7 +956,7 @@ fun constrainAbs (Abs (a, _, body), T) = Abs (a, T, body)
     bound variables of the same name but different types.
 *)
 
-(* FIXME consitency of sort_env / sorts (!?) *)
+(* FIXME consistency of sort_env / sorts (!?) *)
 
 fun attach_types (tsig, const_type, types, sorts) tm =
   let
