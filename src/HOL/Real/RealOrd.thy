@@ -380,6 +380,7 @@ lemma real_inverse_less_0: "x < 0 ==> inverse (x::real) < 0"
 lemma real_mult_less_mono1: "[| (0::real) < z; x < y |] ==> x*z < y*z"
  by (rule Ring_and_Field.mult_strict_right_mono)
 
+text{*The precondition could be weakened to @{term "0\<le>x"}*}
 lemma real_mult_less_mono:
      "[| u<v;  x<y;  (0::real) < v;  0 < x |] ==> u*x < v* y"
  by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
@@ -395,14 +396,10 @@ lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<
   by (force elim: order_less_asym
             simp add: Ring_and_Field.mult_le_cancel_left)
 
+text{*Only two uses?*}
 lemma real_mult_less_mono':
      "[| x < y;  r1 < r2;  (0::real) \<le> r1;  0 \<le> x|] ==> r1 * x < r2 * y"
-apply (subgoal_tac "0<r2")
- prefer 2 apply (blast intro: order_le_less_trans)
-apply (case_tac "x=0")
-apply (auto dest!: order_le_imp_less_or_eq 
-            intro: real_mult_less_mono real_mult_order)
-done
+ by (rule Ring_and_Field.mult_strict_mono')
 
 lemma real_inverse_less_swap:
      "[| 0 < r; r < x |] ==> inverse x < inverse (r::real)"
@@ -443,13 +440,13 @@ lemma real_0_less_mult_iff: "((0::real) < x*y) = (0<x & 0<y | x<0 & y<0)"
   by (rule Ring_and_Field.zero_less_mult_iff) 
 
 lemma real_0_le_mult_iff: "((0::real)\<le>x*y) = (0\<le>x & 0\<le>y | x\<le>0 & y\<le>0)"
-  by (rule zero_le_mult_iff) 
+  by (rule Ring_and_Field.zero_le_mult_iff) 
 
 lemma real_mult_less_0_iff: "(x*y < (0::real)) = (0<x & y<0 | x<0 & 0<y)"
-  by (rule mult_less_0_iff) 
+  by (rule Ring_and_Field.mult_less_0_iff) 
 
 lemma real_mult_le_0_iff: "(x*y \<le> (0::real)) = (0\<le>x & y\<le>0 | x\<le>0 & 0\<le>y)"
-  by (rule mult_le_0_iff) 
+  by (rule Ring_and_Field.mult_le_0_iff) 
 
 subsection{*Hardly Used Theorems to be Deleted*}
 
@@ -728,6 +725,13 @@ apply (case_tac "n", simp)
 apply (simp add: real_of_nat_Suc add_commute)
 done
 
+lemma real_mult_self_sum_ge_zero: "(0::real) \<le> x*x + y*y"
+proof -
+  have "0 + 0 \<le> x*x + y*y" by (blast intro: add_mono zero_le_square)
+  thus ?thesis by simp
+qed
+
+declare real_mult_self_sum_ge_zero [simp]
 
 ML
 {*
@@ -929,6 +933,7 @@ val real_of_nat_num_if = thm "real_of_nat_num_if";
 
 val real_minus_add_distrib = thm"real_minus_add_distrib";
 val real_add_left_cancel = thm"real_add_left_cancel";
+val real_mult_self_sum_ge_zero = thm "real_mult_self_sum_ge_zero";
 *}
 
 end

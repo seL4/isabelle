@@ -342,7 +342,7 @@ apply (auto simp add: real_squared_diff_one_factored)
 done
 declare real_mult_is_one [iff]
 
-lemma real_le_add_half_cancel: "(x + y/2 <= (y::real)) = (x <= y /2)"
+lemma real_le_add_half_cancel: "(x + y/2 \<le> (y::real)) = (x \<le> y /2)"
 apply auto
 done
 declare real_le_add_half_cancel [simp]
@@ -372,7 +372,7 @@ apply auto
 done
 declare inverse_real_of_nat_gt_zero [simp]
 
-lemma inverse_real_of_nat_ge_zero: "0 <= inverse (real (Suc n))"
+lemma inverse_real_of_nat_ge_zero: "0 \<le> inverse (real (Suc n))"
 apply auto
 done
 declare inverse_real_of_nat_ge_zero [simp]
@@ -401,12 +401,12 @@ apply (unfold real_divide_def)
 apply (auto simp add: realpow_mult realpow_inverse)
 done
 
-lemma realpow_ge_zero2 [rule_format (no_asm)]: "(0::real) <= r --> 0 <= r ^ n"
+lemma realpow_ge_zero2 [rule_format (no_asm)]: "(0::real) \<le> r --> 0 \<le> r ^ n"
 apply (induct_tac "n")
 apply (auto simp add: real_0_le_mult_iff)
 done
 
-lemma realpow_le2 [rule_format (no_asm)]: "(0::real) <= x & x <= y --> x ^ n <= y ^ n"
+lemma realpow_le2 [rule_format (no_asm)]: "(0::real) \<le> x & x \<le> y --> x ^ n \<le> y ^ n"
 apply (induct_tac "n")
 apply (auto intro!: real_mult_le_mono simp add: realpow_ge_zero2)
 done
@@ -425,24 +425,17 @@ apply (auto intro: real_sum_squares_cancel real_sum_squares_cancel2 simp add: nu
 done
 declare realpow_two_sum_zero_iff [simp]
 
-lemma realpow_two_le_add_order: "(0::real) <= u ^ 2 + v ^ 2"
+lemma realpow_two_le_add_order: "(0::real) \<le> u ^ 2 + v ^ 2"
 apply (rule real_le_add_order)
 apply (auto simp add: numeral_2_eq_2)
 done
 declare realpow_two_le_add_order [simp]
 
-lemma realpow_two_le_add_order2: "(0::real) <= u ^ 2 + v ^ 2 + w ^ 2"
+lemma realpow_two_le_add_order2: "(0::real) \<le> u ^ 2 + v ^ 2 + w ^ 2"
 apply (rule real_le_add_order)+
 apply (auto simp add: numeral_2_eq_2)
 done
 declare realpow_two_le_add_order2 [simp]
-
-lemma real_mult_self_sum_ge_zero: "(0::real) <= x*x + y*y"
-apply (cut_tac u = "x" and v = "y" in realpow_two_le_add_order)
-apply (auto simp add: numeral_2_eq_2)
-done
-declare real_mult_self_sum_ge_zero [simp]
-declare real_mult_self_sum_ge_zero [THEN abs_eqI1, simp]
 
 lemma real_sum_square_gt_zero: "x ~= 0 ==> (0::real) < x * x + y * y"
 apply (cut_tac x = "x" and y = "y" in real_mult_self_sum_ge_zero)
@@ -456,13 +449,13 @@ apply (rule real_add_commute [THEN subst])
 apply (erule real_sum_square_gt_zero)
 done
 
-lemma real_minus_mult_self_le: "-(u * u) <= (x * (x::real))"
+lemma real_minus_mult_self_le: "-(u * u) \<le> (x * (x::real))"
 apply (rule_tac j = "0" in real_le_trans)
 apply auto
 done
 declare real_minus_mult_self_le [simp]
 
-lemma realpow_square_minus_le: "-(u ^ 2) <= (x::real) ^ 2"
+lemma realpow_square_minus_le: "-(u ^ 2) \<le> (x::real) ^ 2"
 apply (auto simp add: numeral_2_eq_2)
 done
 declare realpow_square_minus_le [simp]
@@ -494,7 +487,7 @@ apply (simp (no_asm) add: realpow_num_eq_if)
 done
 declare lemma_realpow_16 [simp]
 
-lemma zero_le_x_squared: "(0::real) <= x^2"
+lemma zero_le_x_squared: "(0::real) \<le> x^2"
 apply (simp add: numeral_2_eq_2)
 done
 declare zero_le_x_squared [simp]
@@ -588,7 +581,6 @@ val realpow_Suc_gt_one = thm "realpow_Suc_gt_one";
 val realpow_two_sum_zero_iff = thm "realpow_two_sum_zero_iff";
 val realpow_two_le_add_order = thm "realpow_two_le_add_order";
 val realpow_two_le_add_order2 = thm "realpow_two_le_add_order2";
-val real_mult_self_sum_ge_zero = thm "real_mult_self_sum_ge_zero";
 val real_sum_square_gt_zero = thm "real_sum_square_gt_zero";
 val real_sum_square_gt_zero2 = thm "real_sum_square_gt_zero2";
 val real_minus_mult_self_le = thm "real_minus_mult_self_le";

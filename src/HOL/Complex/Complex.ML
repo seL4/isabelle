@@ -823,7 +823,7 @@ Goal "cmod(z * cnj(z)) = cmod(z) ^ 2";
 by (res_inst_tac [("z","z")] eq_Abs_complex 1);
 by (asm_simp_tac (simpset() addsimps [complex_mod,complex_cnj,
     complex_mult, CLAIM "0 ^ 2 = (0::real)"]) 1);
-by (simp_tac (simpset() addsimps [realpow_two_eq_mult]) 1);
+by (simp_tac (simpset() addsimps [realpow_two_eq_mult, real_abs_def]) 1);
 qed "complex_mod_mult_cnj";
 
 Goalw [cmod_def] "cmod(Abs_complex(x,y)) ^ 2 = x ^ 2 + y ^ 2";
