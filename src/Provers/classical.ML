@@ -47,6 +47,7 @@ sig
   type claset
   val empty_cs: claset
   val print_cs: claset -> unit
+  val print_claset: theory -> unit
   val rep_claset:
     claset -> {safeIs: thm list, safeEs: thm list,
 		 hazIs: thm list, hazEs: thm list,
@@ -735,6 +736,8 @@ end;
 
 
 (* access claset *)
+
+fun print_claset thy = Display.print_data thy clasetK;
 
 fun claset_ref_of_sg sg =
   (case Sign.get_data sg clasetK of
