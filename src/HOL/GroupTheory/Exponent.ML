@@ -229,14 +229,14 @@ qed "power_dvd_bound";
 
 Goal "[|p^k dvd n;  p\\<in>prime;  0<n|] ==> k <= exponent p n";
 by (asm_full_simp_tac (simpset() addsimps [exponent_def]) 1); 
-by (etac Greatest_le 1);
+by (etac (thm "Greatest_le") 1);
 by (blast_tac (claset() addDs [prime_imp_one_less, power_dvd_bound]) 1);  
 qed_spec_mp "exponent_ge";
 
 Goal "0<s ==> (p ^ exponent p s) dvd s";
 by (simp_tac (simpset() addsimps [exponent_def]) 1); 
 by (Clarify_tac 1); 
-by (res_inst_tac [("k","0")] GreatestI 1);
+by (res_inst_tac [("k","0")] (thm "GreatestI") 1);
 by (blast_tac (claset() addDs [prime_imp_one_less, power_dvd_bound]) 2);  
 by (Asm_full_simp_tac 1); 
 qed "power_exponent_dvd";
@@ -251,7 +251,7 @@ qed "power_Suc_exponent_Not_dvd";
 
 Goal "p\\<in>prime ==> exponent p (p^a) = a";
 by (asm_simp_tac (simpset() addsimps [exponent_def]) 1);
-by (rtac Greatest_equality 1); 
+by (rtac (thm "Greatest_equality") 1); 
 by (Asm_full_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [prime_imp_one_less, power_dvd_imp_le]) 1); 
 qed "exponent_power_eq";

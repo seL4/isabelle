@@ -14,7 +14,7 @@ consts
 
 
 syntax (input)
-  "_Eps"        :: "[pttrn, bool] => 'a"                 ("(3\\<epsilon>_./ _)" [0, 10] 10)
+  "_Eps"        :: "[pttrn, bool] => 'a"                 ("(3\<epsilon>_./ _)" [0, 10] 10)
 
 syntax (HOL)
   "_Eps"        :: "[pttrn, bool] => 'a"                 ("(3@ _./ _)" [0, 10] 10)
@@ -30,7 +30,7 @@ axioms
 
 
 (*used in TFL*)
-lemma tfl_some: "\\<forall>P x. P x --> P (Eps P)"
+lemma tfl_some: "\<forall>P x. P x --> P (Eps P)"
   by (blast intro: someI)
 
 
@@ -59,7 +59,7 @@ translations
 
 lemma LeastMI2:
   "[| P x; !!y. P y ==> m x <= m y;
-           !!x. [| P x; \\<forall>y. P y --> m x \\<le> m y |] ==> Q x |]
+           !!x. [| P x; \<forall>y. P y --> m x \<le> m y |] ==> Q x |]
    ==> Q (LeastM m P)";
 apply (unfold LeastM_def)
 apply (rule someI2_ex)
@@ -128,7 +128,7 @@ translations
 lemma GreatestMI2:
      "[| P x;
 	 !!y. P y ==> m y <= m x;
-         !!x. [| P x; \\<forall>y. P y --> m y \\<le> m x |] ==> Q x |]
+         !!x. [| P x; \<forall>y. P y --> m y \<le> m x |] ==> Q x |]
       ==> Q (GreatestM m P)";
 apply (unfold GreatestM_def)
 apply (rule someI2_ex)
@@ -202,20 +202,6 @@ apply (rule GreatestM_nat_le)
 apply auto
 done
 
-
-ML {*
-val LeastMI2 = thm "LeastMI2";
-val LeastM_equality = thm "LeastM_equality";
-val GreatestM_def = thm "GreatestM_def";
-val GreatestMI2 = thm "GreatestMI2";
-val GreatestM_equality = thm "GreatestM_equality";
-val Greatest_def = thm "Greatest_def";
-val Greatest_equality = thm "Greatest_equality";
-val GreatestM_natI = thm "GreatestM_natI";
-val GreatestM_nat_le = thm "GreatestM_nat_le";
-val GreatestI = thm "GreatestI";
-val Greatest_le = thm "Greatest_le";
-*}
 
 use "meson_lemmas.ML"
 use "Tools/meson.ML"
