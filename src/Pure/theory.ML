@@ -24,8 +24,8 @@ sig
   val subthy: theory * theory -> bool
   val eq_thy: theory * theory -> bool
   val cert_axm: Sign.sg -> string * term -> string * term
-  val read_def_axm: Sign.sg * (indexname -> typ option) * (indexname -> sort option) -> string list ->
-    string * string -> string * term
+  val read_def_axm: Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
+    string list -> string * string -> string * term
   val read_axm: Sign.sg -> string * string -> string * term
   val inferT_axm: Sign.sg -> string * term -> string * term
   val merge_theories: string -> theory * theory -> theory
@@ -65,7 +65,9 @@ sig
   val add_trfunsT:
     (string * (bool -> typ -> term list -> term)) list -> theory -> theory
   val add_tokentrfuns:
-    (string * string * (string -> string * int)) list -> theory -> theory
+    (string * string * (string -> string * real)) list -> theory -> theory
+  val add_mode_tokentrfuns: string -> (string * (string -> string * real)) list
+    -> theory -> theory
   val add_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
   val add_trrules_i: Syntax.ast Syntax.trrule list -> theory -> theory
   val add_axioms: (bstring * string) list -> theory -> theory
@@ -196,6 +198,7 @@ val add_modesyntax_i = curry (ext_sign Sign.add_modesyntax_i);
 val add_trfuns       = ext_sign Sign.add_trfuns;
 val add_trfunsT      = ext_sign Sign.add_trfunsT;
 val add_tokentrfuns  = ext_sign Sign.add_tokentrfuns;
+fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
 val add_trrules      = ext_sign Sign.add_trrules;
 val add_trrules_i    = ext_sign Sign.add_trrules_i;
 val add_path         = ext_sign Sign.add_path;
@@ -205,6 +208,7 @@ val add_space        = ext_sign Sign.add_space;
 val add_name         = ext_sign Sign.add_name;
 val prep_ext         = ext_sign (K Sign.prep_ext) ();
 val copy             = prep_ext;	(*an approximation ...*)
+
 
 
 (** add axioms **)

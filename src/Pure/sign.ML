@@ -114,7 +114,7 @@ sig
   val add_trfunsT:
     (string * (bool -> typ -> term list -> term)) list -> sg -> sg
   val add_tokentrfuns:
-    (string * string * (string -> string * int)) list -> sg -> sg
+    (string * string * (string -> string * real)) list -> sg -> sg
   val add_trrules: (xstring * string) Syntax.trrule list -> sg -> sg
   val add_trrules_i: ast Syntax.trrule list -> sg -> sg
   val add_path: string -> sg -> sg
