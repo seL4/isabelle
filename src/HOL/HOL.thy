@@ -821,7 +821,7 @@ lemma max_less_iff_conj [simp]:
 
 lemma le_min_iff_conj [simp]:
     "!!z::'a::linorder. (z <= min x y) = (z <= x & z <= y)"
-    -- {* @{text "[iff]"} screws up a Q{text blast} in MiniML *}
+    -- {* @{text "[iff]"} screws up a @{text blast} in MiniML *}
   apply (simp add: min_def)
   apply (insert linorder_linear)
   apply (blast intro: order_trans)
