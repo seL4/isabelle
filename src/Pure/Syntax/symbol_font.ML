@@ -10,7 +10,8 @@ sig
   val char: string -> string option
   val name: string -> string option
   val read_charnames: string list -> string list
-  val write_charnames:  string list -> string list
+  val write_charnames:  string list -> string list	(*normal backslashes*)
+  val write_charnames':  string list -> string list	(*escaped backslashes*)
 end;
 
 
@@ -76,12 +77,13 @@ end;
 
 (* write_charnames *)
 
-fun write_char ch =
+fun write_char prfx ch =
   (case name ch of
     None => ch
-  | Some nm => "\\<" ^ nm ^ ">");
+  | Some nm => prfx ^ "\\<" ^ nm ^ ">");
 
-val write_charnames = map write_char;
+val write_charnames = map (write_char "");
+val write_charnames' = map (write_char "\\");
 
 
 end;
