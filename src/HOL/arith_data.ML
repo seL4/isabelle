@@ -406,12 +406,22 @@ solver all the time rather than add the additional check. *)
    (max m n + k <= r) = (m+k <= r & n+k <= r)
    (l <= min m n + k) = (l <= m+k & l <= n+k)
 *)
-fun arith_tac i st =
+local
+
+val atomize_tac = Method.atomize_tac (thms "atomize'");
+
+fun raw_arith_tac i st =
   refute_tac (K true) (REPEAT o split_tac (#splits (ArithTheoryData.get_sg (Thm.sign_of_thm st))))
              ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac) i st;
 
+in
+
+val arith_tac = atomize_tac THEN' raw_arith_tac;
+
 fun arith_method prems =
   Method.METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac));
+
+end;
 
 
 (* theory setup *)
