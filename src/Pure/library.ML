@@ -138,6 +138,7 @@ sig
   val std_output: string -> unit
   val prefix_lines: string -> string -> string
   val split_lines: string -> string list
+  val untabify: string list -> string list
   val suffix: string -> string -> string
   val unsuffix: string -> string -> string
 
@@ -711,6 +712,19 @@ fun space_explode _ "" = []
       in expl (explode str) end;
 
 val split_lines = space_explode "\n";
+
+(*untabify*)
+fun untabify chs =
+  let
+    val tab_width = 8;
+
+    fun untab (_, "\n") = (0, ["\n"])
+      | untab (pos, "\t") = let val d = tab_width - (pos mod tab_width) in (pos + d, replicate d " ") end
+      | untab (pos, c) = (pos + 1, [c]);
+  in
+    if not (exists (equal "\t") chs) then chs
+    else flat (#2 (foldl_map untab (0, chs)))
+  end;
 
 (*append suffix*)
 fun suffix sfx s = s ^ sfx;
