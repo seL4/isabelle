@@ -227,7 +227,6 @@ use "simpdata.ML"
 setup Simplifier.setup
 setup "Simplifier.method_setup Splitter.split_modifiers" setup simpsetup
 setup Splitter.setup setup Clasimp.setup
-setup rulify_attrib_setup
 
 use "meson_lemmas.ML"
 use "Tools/meson.ML"
