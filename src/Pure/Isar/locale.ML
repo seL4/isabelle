@@ -61,10 +61,6 @@ sig
   val setup: (theory -> theory) list
 end;
 
-(* FIXME
-fun u() = use "locale";
-*)
-
 structure Locale: LOCALE =
 struct
 
