@@ -11,45 +11,6 @@ open LK;
 (*Higher precedence than := facilitates use of references*)
 infix 4 add_safes add_unsafes;
 
-signature LK_RESOLVE = 
-  sig
-  datatype pack = Pack of thm list * thm list
-  val add_safes:   pack * thm list -> pack
-  val add_unsafes: pack * thm list -> pack
-  val allL_thin: thm
-  val best_tac: pack -> int -> tactic
-  val could_res: term * term -> bool
-  val could_resolve_seq: term * term -> bool
-  val cutL_tac: string -> int -> tactic
-  val cutR_tac: string -> int -> tactic
-  val conL: thm
-  val conR: thm
-  val empty_pack: pack
-  val exR_thin: thm
-  val fast_tac: pack -> int -> tactic
-  val filseq_resolve_tac: thm list -> int -> int -> tactic
-  val forms_of_seq: term -> term list
-  val has_prems: int -> thm -> bool   
-  val iffL: thm
-  val iffR: thm
-  val less: thm * thm -> bool
-  val LK_dup_pack: pack
-  val LK_pack: pack
-  val pc_tac: pack -> int -> tactic
-  val prop_pack: pack
-  val repeat_goal_tac: pack -> int -> tactic
-  val reresolve_tac: thm list -> int -> tactic   
-  val RESOLVE_THEN: thm list -> (int -> tactic) -> int -> tactic   
-  val safe_goal_tac: pack -> int -> tactic
-  val step_tac: pack -> int -> tactic
-  val symL: thm
-  val TrueR: thm
-  end;
-
-
-structure LK_Resolve : LK_RESOLVE = 
-struct
-
 (*Cut and thin, replacing the right-side formula*)
 fun cutR_tac (sP: string) i = 
     res_inst_tac [ ("P",sP) ] cut i  THEN  rtac thinR i;
@@ -60,31 +21,31 @@ fun cutL_tac (sP: string) i =
 
 
 (** If-and-only-if rules **)
-val iffR = prove_goalw LK.thy [iff_def]
+qed_goalw "iffR" LK.thy [iff_def]
     "[| $H,P |- $E,Q,$F;  $H,Q |- $E,P,$F |] ==> $H |- $E, P <-> Q, $F"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[conjR,impR]) 1)) ]);
 
-val iffL = prove_goalw LK.thy [iff_def]
+qed_goalw "iffL" LK.thy [iff_def]
    "[| $H,$G |- $E,P,Q;  $H,Q,P,$G |- $E |] ==> $H, P <-> Q, $G |- $E"
  (fn prems=> [ (REPEAT (resolve_tac (prems@[conjL,impL,basic]) 1)) ]);
 
-val TrueR = prove_goalw LK.thy [True_def]
+qed_goalw "TrueR" LK.thy [True_def]
     "$H |- $E, True, $F"
  (fn _=> [ rtac impR 1, rtac basic 1 ]);
 
 
 (** Weakened quantifier rules.  Incomplete, they let the search terminate.**)
 
-val allL_thin = prove_goal LK.thy 
+qed_goal "allL_thin" LK.thy 
     "$H, P(x), $G |- $E ==> $H, ALL x.P(x), $G |- $E"
  (fn prems=> [ (rtac allL 1), (rtac thinL 1), (resolve_tac prems 1) ]);
 
-val exR_thin = prove_goal LK.thy 
+qed_goal "exR_thin" LK.thy 
     "$H |- $E, P(x), $F ==> $H |- $E, EX x.P(x), $F"
  (fn prems=> [ (rtac exR 1), (rtac thinR 1), (resolve_tac prems 1) ]);
 
 (* Symmetry of equality in hypotheses *)
-val symL = prove_goal LK.thy 
+qed_goal "symL" LK.thy 
     "$H, $G, B = A |- $E ==> $H, A = B, $G |- $E" 
  (fn prems=>
   [ (rtac cut 1),
@@ -222,16 +183,12 @@ fun best_tac thm_pack  =
 
 (** Contraction.  Useful since some rules are not complete. **)
 
-val conR = prove_goal LK.thy 
+qed_goal "conR" LK.thy 
     "$H |- $E, P, $F, P ==> $H |- $E, P, $F"
  (fn prems=>
   [ (rtac cut 1), (REPEAT (resolve_tac (prems@[basic]) 1)) ]);
 
-val conL = prove_goal LK.thy 
+qed_goal "conL" LK.thy 
     "$H, P, $G, P |- $E ==> $H, P, $G |- $E"
  (fn prems=>
   [ (rtac cut 1), (REPEAT (resolve_tac (prems@[basic]) 1)) ]);
-
-end;
-
-open LK_Resolve;
