@@ -293,13 +293,12 @@ by (stac if_not_P 1);
 by (ALLGOALS (Blast_tac));
 qed "split_if";
 
-(* for backwards compatibility: *)
-val expand_if = split_if;
-
 Goal "P(if Q then x else y) = (~((Q & ~P x) | (~Q & ~P y)))";
 by (stac split_if 1);
 by (Blast_tac 1);
 qed "split_if_asm";
+
+bind_thms ("if_splits", [split_if, split_if_asm]);
 
 Goal "(if c then x else x) = x";
 by (stac split_if 1);
