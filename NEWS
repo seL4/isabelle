@@ -79,6 +79,9 @@ hints on converting existing sources:
 
   - remove all special provisions on numerals in proofs;
 
+* HOL: concrete setsum syntax "\<Sum>i:A. b" == "setsum (%i. b) A"
+(beware of argument permutation!);
+
 * HOL: linorder_less_split superseded by linorder_cases;
 
 * HOL: added "The" definite description operator; move Hilbert's "Eps"
