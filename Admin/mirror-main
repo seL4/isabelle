@@ -2,6 +2,12 @@
 #
 # $Id$
 #
+# Mirrors the Isabelle home page (those directly on http://isabelle.in.tum.de)
+# It does *not* mirror the Isabelle distribution pages and downloads. There
+# is a separate utility (mirror-dist) for that.
+#
+# Usage: mirror-main
+#
 
 HOST=$(hostname)
 
