@@ -33,8 +33,8 @@ text {*
 (*                                                                           *)
 (* I strongly recommend that you install a stand-alone SAT solver if you     *)
 (* want to use 'refute'.  For details see 'HOL/Tools/sat_solver.ML'.  If you *)
-(* have installed ZChaff Version 2003.12.04, simply set 'ZCHAFF_HOME' in     *)
-(* 'etc/settings'.                                                           *)
+(* have installed (a supported version of) zChaff, simply set 'ZCHAFF_HOME'  *)
+(* in 'etc/settings'.                                                        *)
 (* ------------------------------------------------------------------------- *)
 
 (* ------------------------------------------------------------------------- *)
