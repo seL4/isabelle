@@ -1,4 +1,9 @@
-open Maybe;
+(* Title:     HOL/W0/Maybe.ML
+   ID:        $Id$
+   Author:    Dieter Nazareth and Tobias Nipkow
+   Copyright  1995 TU Muenchen
+*)
+
 
 (* constructor laws for bind *)
 goalw thy [bind_def] "(Ok s) bind f = (f s)";

@@ -1,8 +1,9 @@
-(*   Title:         MiniML.thy
-     Author:        Thomas Stauner
-     Copyright      1995 TU Muenchen
+(* Title:     HOL/W0/I.thy
+   ID:        $Id$
+   Author:    Thomas Stauner
+   Copyright  1995 TU Muenchen
 
-     Recursive definition of type inference algorithm I for Mini_ML.
+   Recursive definition of type inference algorithm I for Mini_ML.
 *)
 
 I = W +

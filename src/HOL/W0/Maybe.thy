@@ -1,4 +1,4 @@
-(* Title:     HOL/MiniML/Maybe.thy
+(* Title:     HOL/W0/Maybe.thy
    ID:        $Id$
    Author:    Dieter Nazareth and Tobias Nipkow
    Copyright  1995 TU Muenchen

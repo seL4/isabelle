@@ -1,12 +1,10 @@
-(* Title:     HOL/MiniML/W.ML
+(* Title:     HOL/W0/W.ML
    ID:        $Id$
    Author:    Dieter Nazareth and Tobias Nipkow
    Copyright  1995 TU Muenchen
 
 Correctness and completeness of type inference algorithm W
 *)
-
-open W;
 
 Addsimps [Suc_le_lessD];
 Delsimps (ex_simps @ all_simps);
@@ -176,9 +174,10 @@ by (eres_inst_tac [("x","s")] allE 1);
 by (eres_inst_tac [("x","t")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
-by (fast_tac (HOL_cs addIs [cod_app_subst]
+by (fast_tac (HOL_cs addSEs [allE]
+	             addIs [cod_app_subst]
                      addss (!simpset addsimps [less_Suc_eq])) 1);
-
+(** LEVEL 12 **)
 (* case App e1 e2 *)
 by (simp_tac (!simpset setloop (split_tac [expand_bind])) 1);
 by (strip_tac 1); 
@@ -190,6 +189,7 @@ by (eres_inst_tac [("x","t")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (eres_inst_tac [("x","na")] allE 1);
 by (eres_inst_tac [("x","v")] allE 1);
+(** LEVEL 22 **)
 (* second case *)
 by (eres_inst_tac [("x","$ s a")] allE 1);
 by (eres_inst_tac [("x","sa")] allE 1);
@@ -201,6 +201,7 @@ by (asm_full_simp_tac (!simpset addsimps [rotate_Ok,o_def]) 1);
 by (dtac W_var_geD 1);
 by (dtac W_var_geD 1);
 by ( (forward_tac [less_le_trans] 1) THEN (assume_tac 1) );
+(** LEVEL 32 **)
 by (fast_tac (HOL_cs addDs [free_tv_comp_subst RS subsetD,sym RS mgu_free, 
     codD,free_tv_app_subst_te RS subsetD,free_tv_app_subst_tel RS subsetD,
     less_le_trans,less_not_refl2,subsetD]
@@ -211,10 +212,11 @@ by (dtac (sym RS W_var_geD) 1);
 by (dtac (sym RS W_var_geD) 1);
 by ( (forward_tac [less_le_trans] 1) THEN (assume_tac 1) );
 by (fast_tac (HOL_cs addDs [mgu_free, codD,free_tv_subst_var RS subsetD,
-    free_tv_app_subst_te RS subsetD,free_tv_app_subst_tel RS subsetD,
-    less_le_trans,subsetD]
-  addEs [UnE]
-  addss !simpset) 1); 
+			    free_tv_app_subst_te RS subsetD,
+			    free_tv_app_subst_tel RS subsetD,
+			    less_le_trans,subsetD]
+	             addSEs [UnE]
+		     addss !simpset) 1); 
 qed_spec_mp "free_tv_W"; 
 
 

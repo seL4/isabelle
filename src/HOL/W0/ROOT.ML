@@ -1,4 +1,4 @@
-(*  Title:      HOL/MiniML/ROOT.ML
+(*  Title:      HOL/W0/ROOT.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1995 TUM

@@ -1,3 +1,11 @@
+(* Title:     HOL/W0/I.ML
+   ID:        $Id$
+   Author:    Thomas Stauner
+   Copyright  1995 TU Muenchen
+
+Equivalence of W and I.
+*)
+
 open I;
 
 goal thy
