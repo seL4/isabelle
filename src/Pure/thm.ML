@@ -27,6 +27,7 @@ sig
   val term_of           : cterm -> term
   val cterm_of          : Sign.sg -> term -> cterm
   val read_cterm        : Sign.sg -> string * typ -> cterm
+  val read_cterms       : Sign.sg -> string list * typ list -> cterm list
   val cterm_fun         : (term -> term) -> (cterm -> cterm)
   val dest_cimplies     : cterm -> cterm * cterm
   val read_def_cterm    :
@@ -191,9 +192,8 @@ fun term_of (Cterm {t, ...}) = t;
 (*create a cterm by checking a "raw" term with respect to a signature*)
 fun cterm_of sign tm =
   let val (t, T, maxidx) = Sign.certify_term sign tm
-  in Cterm {sign = sign, t = t, T = T, maxidx = maxidx}
-  end handle TYPE (msg, _, _)
-    => raise TERM ("Term not in signature\n" ^ msg, [tm]);
+  in  Cterm {sign = sign, t = t, T = T, maxidx = maxidx}
+  end;
 
 fun cterm_fun f (Cterm {sign, t, ...}) = cterm_of sign (f t);
 
@@ -217,10 +217,30 @@ fun read_def_cterm (sign, types, sorts) used freeze (a, T) =
     val (_, t', tye) =
           Sign.infer_types sign types sorts used freeze (ts, T');
     val ct = cterm_of sign t'
-      handle TERM (msg, _) => error msg;
+      handle TYPE arg => error (Sign.exn_type_msg sign arg)
+	   | TERM (msg, _) => error msg;
   in (ct, tye) end;
 
 fun read_cterm sign = #1 o read_def_cterm (sign, K None, K None) [] true;
+
+(*read a list of terms, matching them against a list of expected types.
+  NO disambiguation of alternative parses via type-checking -- it is just
+  not practical.*)
+fun read_cterms sign (bs, Ts) =
+  let
+    val {tsig, syn, ...} = Sign.rep_sg sign
+    fun read (b,T) =
+	case Syntax.read syn T b of
+	    [t] => t
+	  | _   => error("Error or ambiguity in parsing of " ^ b)
+    val (us,_) = Type.infer_types(tsig, Sign.const_type sign, 
+				  K None, K None, 
+				  [], true, 
+				  map (Sign.certify_typ sign) Ts, 
+				  map read (bs~~Ts))
+  in  map (cterm_of sign) us  end
+  handle TYPE arg => error (Sign.exn_type_msg sign arg)
+       | TERM (msg, _) => error msg;
 
 
 
@@ -484,7 +504,8 @@ fun no_vars tm =
 fun cert_axm sg (name, raw_tm) =
   let
     val Cterm {t, T, ...} = cterm_of sg raw_tm
-      handle TERM (msg, _) => error msg;
+      handle TYPE arg => error (Sign.exn_type_msg sg arg)
+	   | TERM (msg, _) => error msg;
   in
     assert (T = propT) "Term not of type prop";
     (name, no_vars t)
