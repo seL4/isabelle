@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+#
+# $Id$
+# Author: Markus Wenzel, TU Muenchen
+# License: GPL (GNU GENERAL PUBLIC LICENSE)
+#
+# DESCRIPTION: print document
+
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [OPTIONS] FILE"
+  echo
+  echo "  Options are:"
+  echo "    -c           cleanup -- remove FILE after use"
+  echo
+  echo "  Print document FILE."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+CLEAN=""
+
+while getopts "c" OPT
+do
+  case "$OPT" in
+    c)
+      CLEAN=true
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -ne 1 ] && usage
+
+FILE="$1"; shift
+
+
+## main
+
+[ -f "$FILE" ] || fail "Bad file: $FILE"
+$PRINT_COMMAND "$FILE"
+[ -n "$CLEAN" ] && rm -f "$FILE"
