@@ -1,8 +1,9 @@
-(*  Title:      Substitutions/AList.ML
+(*  Title:      Subst/AList.ML
+    ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-For AList.thy.
+Association lists.
 *)
 
 open AList;

@@ -1,9 +1,9 @@
-(*  Title:      HOL/Subst/subst.ML
+(*  Title:      HOL/Subst/Subst.ML
     ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-For subst.thy.  
+Substitutions on uterms
 *)
 
 open Subst;

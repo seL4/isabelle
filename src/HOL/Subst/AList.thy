@@ -1,4 +1,5 @@
-(*  Title:      Substitutions/alist.thy
+(*  Title:      Subst/AList.thy
+    ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 

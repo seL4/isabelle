@@ -1,4 +1,5 @@
-(*  Title:      Subst/unifier.thy
+(*  Title:      Subst/Unifier.thy
+    ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
