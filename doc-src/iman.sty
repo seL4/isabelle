@@ -36,8 +36,8 @@
 
 \newcommand\tooldx[1]{{\tt#1}\index{#1@{\tt#1} tool}}
 \newcommand\settdx[1]{{\tt#1}\index{#1@{\tt#1} setting}}
-\newcommand\attdx[1]{{\tt#1}\index{#1@{\tt#1} attribute}}
-\newcommand\methdx[1]{{\tt#1}\index{#1@{\tt#1} proof method}}
+\newcommand\attdx[1]{$#1$\index{#1@$#1$ attribute}}
+\newcommand\methdx[1]{$#1$\index{#1@$#1$ proof method}}
 
 %for cross-references: 2nd argument (page number) is ignored
 \newcommand\see[2]{{\it see \/}{#1}}
@@ -143,6 +143,11 @@
 %redefinition of \sloppy and \fussy to use \emergencystretch
 \def\sloppy{\tolerance2000 \hfuzz.5pt \vfuzz.5pt \emergencystretch=15pt}
 \def\fussy{\tolerance200 \hfuzz.1pt \vfuzz.1pt \emergencystretch=0pt}
+
+%non-bf version of description
+\def\descrlabel#1{\hspace\labelsep #1}
+\def\descr{\list{}{\labelwidth\z@ \itemindent-\leftmargin\let\makelabel\descrlabel}}
+\let\enddescr\endlist
 
 %%%% \tt things
 
