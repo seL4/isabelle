@@ -8,6 +8,7 @@ LaTeX presentation primitives (based on outer lexical syntax).
 
 signature LATEX =
 sig
+  val output_symbols: Symbol.symbol list -> string
   datatype token = Basic of OuterLex.token | Markup of string | MarkupEnv of string | Verbatim
   val output_tokens: (token * string) list -> string
   val tex_trailer: string
