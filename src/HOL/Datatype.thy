@@ -4,11 +4,11 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {* Datatype package setup -- final stage *}
+header {* Final stage of datatype setup *}
 
 theory Datatype = Datatype_Universe:
 
-(*belongs to theory Datatype_Universe; hides popular names *)
+text {* Belongs to theory @{text Datatype_Universe}; hides popular names. *}
 hide const Node Atom Leaf Numb Lim Funs Split Case
 hide type node item
 
@@ -21,7 +21,6 @@ rep_datatype bool
 
 declare case_split [cases type: bool]
   -- "prefer plain propositional version"
-
 
 rep_datatype sum
   distinct Inl_not_Inr Inr_not_Inl
