@@ -126,13 +126,13 @@ constdefs
       \<forall>n[M]. n\<in>nat --> 
          wfrec_replacement(M, iterates_MH(M,isF,v), Memrel(succ(n)))"
 
-lemma (in M_axioms) iterates_MH_abs:
+lemma (in M_basic) iterates_MH_abs:
   "[| relativize1(M,isF,F); M(n); M(g); M(z) |] 
    ==> iterates_MH(M,isF,v,n,g,z) <-> z = nat_case(v, \<lambda>m. F(g`m), n)"
 by (simp add: nat_case_abs [of _ "\<lambda>m. F(g ` m)"]
               relativize1_def iterates_MH_def)  
 
-lemma (in M_axioms) iterates_imp_wfrec_replacement:
+lemma (in M_basic) iterates_imp_wfrec_replacement:
   "[|relativize1(M,isF,F); n \<in> nat; iterates_replacement(M,isF,v)|] 
    ==> wfrec_replacement(M, \<lambda>n f z. z = nat_case(v, \<lambda>m. F(f`m), n), 
                        Memrel(succ(n)))" 
@@ -210,7 +210,7 @@ constdefs
         \<exists>n1[M]. \<exists>AX[M]. 
          number1(M,n1) & cartprod(M,A,X,AX) & is_sum(M,n1,AX,Z)"
 
-lemma (in M_axioms) list_functor_abs [simp]: 
+lemma (in M_basic) list_functor_abs [simp]: 
      "[| M(A); M(X); M(Z) |] ==> is_list_functor(M,A,X,Z) <-> (Z = {0} + A*X)"
 by (simp add: is_list_functor_def singleton_0 nat_into_M)
 
@@ -266,7 +266,7 @@ constdefs
           cartprod(M,X,X,XX) & is_sum(M,XX,X,X3) & 
           is_sum(M,natnatsum,X3,Z)"
 
-lemma (in M_axioms) formula_functor_abs [simp]: 
+lemma (in M_basic) formula_functor_abs [simp]: 
      "[| M(X); M(Z) |] 
       ==> is_formula_functor(M,X,Z) <-> 
           Z = ((nat*nat) + (nat*nat)) + (X*X + X)"
@@ -323,7 +323,7 @@ done
   
 text{*Express @{term list_rec} without using @{term rank} or @{term Vset},
 neither of which is absolute.*}
-lemma (in M_triv_axioms) list_rec_eq:
+lemma (in M_trivial) list_rec_eq:
   "l \<in> list(A) ==>
    list_rec(a,g,l) = 
    transrec (succ(length(l)),
@@ -728,7 +728,7 @@ apply (blast intro: list_imp_list_N nat_into_Ord list_N_imp_eq_length
 done
 
 text{*Proof is trivial since @{term length} returns natural numbers.*}
-lemma (in M_triv_axioms) length_closed [intro,simp]:
+lemma (in M_trivial) length_closed [intro,simp]:
      "l \<in> list(A) ==> M(length(l))"
 by (simp add: nat_into_M) 
 
@@ -744,7 +744,7 @@ apply (simp add: hd'_Cons)
 apply (simp add: tl'_Cons iterates_commute) 
 done
 
-lemma (in M_axioms) iterates_tl'_closed:
+lemma (in M_basic) iterates_tl'_closed:
      "[|n \<in> nat; M(x)|] ==> M(tl'^n (x))"
 apply (induct_tac n, simp) 
 apply (simp add: tl'_Cons tl'_closed) 
@@ -785,11 +785,11 @@ constdefs
     "is_Member(M,x,y,Z) ==
 	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inl(M,u,Z)"
 
-lemma (in M_triv_axioms) Member_abs [simp]:
+lemma (in M_trivial) Member_abs [simp]:
      "[|M(x); M(y); M(Z)|] ==> is_Member(M,x,y,Z) <-> (Z = Member(x,y))"
 by (simp add: is_Member_def Member_def)
 
-lemma (in M_triv_axioms) Member_in_M_iff [iff]:
+lemma (in M_trivial) Member_in_M_iff [iff]:
      "M(Member(x,y)) <-> M(x) & M(y)"
 by (simp add: Member_def) 
 
@@ -799,11 +799,11 @@ constdefs
     "is_Equal(M,x,y,Z) ==
 	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inr(M,p,u) & is_Inl(M,u,Z)"
 
-lemma (in M_triv_axioms) Equal_abs [simp]:
+lemma (in M_trivial) Equal_abs [simp]:
      "[|M(x); M(y); M(Z)|] ==> is_Equal(M,x,y,Z) <-> (Z = Equal(x,y))"
 by (simp add: is_Equal_def Equal_def)
 
-lemma (in M_triv_axioms) Equal_in_M_iff [iff]: "M(Equal(x,y)) <-> M(x) & M(y)"
+lemma (in M_trivial) Equal_in_M_iff [iff]: "M(Equal(x,y)) <-> M(x) & M(y)"
 by (simp add: Equal_def) 
 
 constdefs
@@ -812,11 +812,11 @@ constdefs
     "is_Nand(M,x,y,Z) ==
 	\<exists>p[M]. \<exists>u[M]. pair(M,x,y,p) & is_Inl(M,p,u) & is_Inr(M,u,Z)"
 
-lemma (in M_triv_axioms) Nand_abs [simp]:
+lemma (in M_trivial) Nand_abs [simp]:
      "[|M(x); M(y); M(Z)|] ==> is_Nand(M,x,y,Z) <-> (Z = Nand(x,y))"
 by (simp add: is_Nand_def Nand_def)
 
-lemma (in M_triv_axioms) Nand_in_M_iff [iff]: "M(Nand(x,y)) <-> M(x) & M(y)"
+lemma (in M_trivial) Nand_in_M_iff [iff]: "M(Nand(x,y)) <-> M(x) & M(y)"
 by (simp add: Nand_def) 
 
 constdefs
@@ -824,11 +824,11 @@ constdefs
      --{* because @{term "Forall(x) \<equiv> Inr(Inr(p))"}*}
     "is_Forall(M,p,Z) == \<exists>u[M]. is_Inr(M,p,u) & is_Inr(M,u,Z)"
 
-lemma (in M_triv_axioms) Forall_abs [simp]:
+lemma (in M_trivial) Forall_abs [simp]:
      "[|M(x); M(Z)|] ==> is_Forall(M,x,Z) <-> (Z = Forall(x))"
 by (simp add: is_Forall_def Forall_def)
 
-lemma (in M_triv_axioms) Forall_in_M_iff [iff]: "M(Forall(x)) <-> M(x)"
+lemma (in M_trivial) Forall_in_M_iff [iff]: "M(Forall(x)) <-> M(x)"
 by (simp add: Forall_def)
 
 
@@ -890,7 +890,7 @@ apply (blast intro: formula_imp_formula_N nat_into_Ord formula_N_imp_eq_depth
 done
 
 text{*Proof is trivial since @{term depth} returns natural numbers.*}
-lemma (in M_triv_axioms) depth_closed [intro,simp]:
+lemma (in M_trivial) depth_closed [intro,simp]:
      "p \<in> formula ==> M(depth(p))"
 by (simp add: nat_into_M) 
 
@@ -916,7 +916,7 @@ constdefs
 text{*Unfold @{term formula_rec} to @{term formula_rec_case}.
      Express @{term formula_rec} without using @{term rank} or @{term Vset},
 neither of which is absolute.*}
-lemma (in M_triv_axioms) formula_rec_eq:
+lemma (in M_trivial) formula_rec_eq:
   "p \<in> formula ==>
    formula_rec(a,b,c,d,p) = 
    transrec (succ(depth(p)),

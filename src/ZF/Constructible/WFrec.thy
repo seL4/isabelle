@@ -74,7 +74,7 @@ done
 
 subsection{*Reworking of the Recursion Theory Within @{term M}*}
 
-lemma (in M_axioms) is_recfun_separation':
+lemma (in M_basic) is_recfun_separation':
     "[| f \<in> r -`` {a} \<rightarrow> range(f); g \<in> r -`` {b} \<rightarrow> range(g);
         M(r); M(f); M(g); M(a); M(b) |] 
      ==> separation(M, \<lambda>x. \<not> (\<langle>x, a\<rangle> \<in> r \<longrightarrow> \<langle>x, b\<rangle> \<in> r \<longrightarrow> f ` x = g ` x))"
@@ -89,7 +89,7 @@ text{*Stated using @{term "trans(r)"} rather than
       The last three M-premises are redundant because of @{term "M(r)"}, 
       but without them we'd have to undertake
       more work to set up the induction formula.*}
-lemma (in M_axioms) is_recfun_equal [rule_format]: 
+lemma (in M_basic) is_recfun_equal [rule_format]: 
     "[|is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  
        wellfounded(M,r);  trans(r);
        M(f); M(g); M(r); M(x); M(a); M(b) |] 
@@ -112,7 +112,7 @@ apply (simp add: apply_iff)
 apply (blast intro: transD sym) 
 done
 
-lemma (in M_axioms) is_recfun_cut: 
+lemma (in M_basic) is_recfun_cut: 
     "[|is_recfun(r,a,H,f);  is_recfun(r,b,H,g);  
        wellfounded(M,r); trans(r); 
        M(f); M(g); M(r); <b,a> \<in> r |]   
@@ -124,7 +124,7 @@ apply (erule is_recfun_type, simp)
 apply (blast intro: is_recfun_equal transD dest: transM) 
 done
 
-lemma (in M_axioms) is_recfun_functional:
+lemma (in M_basic) is_recfun_functional:
      "[|is_recfun(r,a,H,f);  is_recfun(r,a,H,g);  
        wellfounded(M,r); trans(r); M(f); M(g); M(r) |] ==> f=g"
 apply (rule fun_extension)
@@ -133,7 +133,7 @@ apply (blast intro!: is_recfun_equal dest: transM)
 done 
 
 text{*Tells us that @{text is_recfun} can (in principle) be relativized.*}
-lemma (in M_axioms) is_recfun_relativize:
+lemma (in M_basic) is_recfun_relativize:
   "[| M(r); M(f); \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |] 
    ==> is_recfun(r,a,H,f) <->
        (\<forall>z[M]. z \<in> f <-> 
@@ -154,7 +154,7 @@ apply (frule pair_components_in_M, assumption)
 apply (simp add: is_recfun_imp_function function_restrictI) 
 done
 
-lemma (in M_axioms) is_recfun_restrict:
+lemma (in M_basic) is_recfun_restrict:
      "[| wellfounded(M,r); trans(r); is_recfun(r,x,H,f); \<langle>y,x\<rangle> \<in> r; 
        M(r); M(f); 
        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)) |]
@@ -171,7 +171,7 @@ apply safe
 apply (blast intro: apply_recfun dest: transD)
 done
  
-lemma (in M_axioms) restrict_Y_lemma:
+lemma (in M_basic) restrict_Y_lemma:
    "[| wellfounded(M,r); trans(r); M(r);
        \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));  M(Y);
        \<forall>b[M]. 
@@ -201,7 +201,7 @@ apply (simp_all add: is_recfun_restrict
 done
 
 text{*For typical applications of Replacement for recursive definitions*}
-lemma (in M_axioms) univalent_is_recfun:
+lemma (in M_basic) univalent_is_recfun:
      "[|wellfounded(M,r); trans(r); M(r)|]
       ==> univalent (M, A, \<lambda>x p. 
               \<exists>y[M]. p = \<langle>x,y\<rangle> & (\<exists>f[M]. is_recfun(r,x,H,f) & y = H(x,f)))"
@@ -212,7 +212,7 @@ done
 
 text{*Proof of the inductive step for @{text exists_is_recfun}, since
       we must prove two versions.*}
-lemma (in M_axioms) exists_is_recfun_indstep:
+lemma (in M_basic) exists_is_recfun_indstep:
     "[|\<forall>y. \<langle>y, a1\<rangle> \<in> r --> (\<exists>f[M]. is_recfun(r, y, H, f)); 
        wellfounded(M,r); trans(r); M(r); M(a1);
        strong_replacement(M, \<lambda>x z. 
@@ -245,7 +245,7 @@ done
 
 text{*Relativized version, when we have the (currently weaker) premise
       @{term "wellfounded(M,r)"}*}
-lemma (in M_axioms) wellfounded_exists_is_recfun:
+lemma (in M_basic) wellfounded_exists_is_recfun:
     "[|wellfounded(M,r);  trans(r);  
        separation(M, \<lambda>x. ~ (\<exists>f[M]. is_recfun(r, x, H, f)));
        strong_replacement(M, \<lambda>x z. 
@@ -257,7 +257,7 @@ apply (rule wellfounded_induct, assumption+, clarify)
 apply (rule exists_is_recfun_indstep, assumption+)
 done
 
-lemma (in M_axioms) wf_exists_is_recfun [rule_format]:
+lemma (in M_basic) wf_exists_is_recfun [rule_format]:
     "[|wf(r);  trans(r);  M(r);  
        strong_replacement(M, \<lambda>x z. 
          \<exists>y[M]. \<exists>g[M]. pair(M,x,y,z) & is_recfun(r,x,H,g) & y = H(x,g)); 
@@ -291,7 +291,7 @@ constdefs
         strong_replacement(M, 
              \<lambda>x z. \<exists>y[M]. pair(M,x,y,z) & is_wfrec(M,MH,r,x,y))"
 
-lemma (in M_axioms) is_recfun_abs:
+lemma (in M_basic) is_recfun_abs:
      "[| \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g));  M(r); M(a); M(f); 
          relativize2(M,MH,H) |] 
       ==> M_is_recfun(M,MH,r,a,f) <-> is_recfun(r,a,H,f)"
@@ -306,7 +306,7 @@ lemma M_is_recfun_cong [cong]:
       ==> M_is_recfun(M,MH,r,a,f) <-> M_is_recfun(M,MH',r',a',f')"
 by (simp add: M_is_recfun_def) 
 
-lemma (in M_axioms) is_wfrec_abs:
+lemma (in M_basic) is_wfrec_abs:
      "[| \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)); 
          relativize2(M,MH,H);  M(r); M(a); M(z) |]
       ==> is_wfrec(M,MH,r,a,z) <-> 
@@ -314,7 +314,7 @@ lemma (in M_axioms) is_wfrec_abs:
 by (simp add: is_wfrec_def relativize2_def is_recfun_abs)
 
 text{*Relating @{term wfrec_replacement} to native constructs*}
-lemma (in M_axioms) wfrec_replacement':
+lemma (in M_basic) wfrec_replacement':
   "[|wfrec_replacement(M,MH,r);
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g)); 
      relativize2(M,MH,H);  M(r)|] 
@@ -381,7 +381,7 @@ constdefs
                   fun_apply(M,f,j,fj) & fj = k"
 
 
-locale M_ord_arith = M_axioms +
+locale M_ord_arith = M_basic +
   assumes oadd_strong_replacement:
    "[| M(i); M(j) |] ==>
     strong_replacement(M, 

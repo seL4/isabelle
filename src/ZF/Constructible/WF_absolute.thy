@@ -139,7 +139,7 @@ constdefs
     "tran_closure(M,r,t) ==
          \<exists>s[M]. rtran_closure(M,r,s) & composition(M,r,s,t)"
 
-lemma (in M_axioms) rtran_closure_mem_iff:
+lemma (in M_basic) rtran_closure_mem_iff:
      "[|M(A); M(r); M(p)|]
       ==> rtran_closure_mem(M,A,r,p) <->
           (\<exists>n[M]. n\<in>nat & 
@@ -149,7 +149,7 @@ lemma (in M_axioms) rtran_closure_mem_iff:
 by (simp add: rtran_closure_mem_def Ord_succ_mem_iff nat_0_le [THEN ltD]) 
 
 
-locale M_trancl = M_axioms +
+locale M_trancl = M_basic +
   assumes rtrancl_separation:
 	 "[| M(r); M(A) |] ==> separation (M, rtran_closure_mem(M,A,r))"
       and wellfounded_trancl_separation:

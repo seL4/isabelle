@@ -212,7 +212,7 @@ lemma M_trancl_axioms_L: "M_trancl_axioms(L)"
 
 theorem M_trancl_L: "PROP M_trancl(L)"
 by (rule M_trancl.intro
-         [OF M_triv_axioms_L M_axioms_axioms_L M_trancl_axioms_L])
+         [OF M_trivial_L M_basic_axioms_L M_trancl_axioms_L])
 
 lemmas iterates_abs = M_trancl.iterates_abs [OF M_trancl_L]
   and rtran_closure_rtrancl = M_trancl.rtran_closure_rtrancl [OF M_trancl_L]

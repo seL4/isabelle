@@ -8,7 +8,7 @@ header {* The ZF Axioms (Except Separation) in L *}
 
 theory L_axioms = Formula + Relative + Reflection + MetaExists:
 
-text {* The class L satisfies the premises of locale @{text M_triv_axioms} *}
+text {* The class L satisfies the premises of locale @{text M_trivial} *}
 
 lemma transL: "[| y\<in>x; L(x) |] ==> L(y)"
 apply (insert Transset_Lset)
@@ -80,7 +80,7 @@ apply (rule_tac x=Y in rexI)
 apply (simp_all add: Replace_iff univalent_def, blast)
 done
 
-subsection{*Instantiating the locale @{text M_triv_axioms}*}
+subsection{*Instantiating the locale @{text M_trivial}*}
 text{*No instances of Separation yet.*}
 
 lemma Lset_mono_le: "mono_le_subset(Lset)"
@@ -93,8 +93,8 @@ lemmas Pair_in_Lset = Formula.Pair_in_LLimit
 
 lemmas L_nat = Ord_in_L [OF Ord_nat]
 
-theorem M_triv_axioms_L: "PROP M_triv_axioms(L)"
-  apply (rule M_triv_axioms.intro)
+theorem M_trivial_L: "PROP M_trivial(L)"
+  apply (rule M_trivial.intro)
         apply (erule (1) transL)
        apply (rule nonempty)
       apply (rule upair_ax)
@@ -104,50 +104,50 @@ theorem M_triv_axioms_L: "PROP M_triv_axioms(L)"
   apply (rule L_nat)
   done
 
-lemmas rall_abs = M_triv_axioms.rall_abs [OF M_triv_axioms_L]
-  and rex_abs = M_triv_axioms.rex_abs [OF M_triv_axioms_L]
-  and ball_iff_equiv = M_triv_axioms.ball_iff_equiv [OF M_triv_axioms_L]
-  and M_equalityI = M_triv_axioms.M_equalityI [OF M_triv_axioms_L]
-  and empty_abs = M_triv_axioms.empty_abs [OF M_triv_axioms_L]
-  and subset_abs = M_triv_axioms.subset_abs [OF M_triv_axioms_L]
-  and upair_abs = M_triv_axioms.upair_abs [OF M_triv_axioms_L]
-  and upair_in_M_iff = M_triv_axioms.upair_in_M_iff [OF M_triv_axioms_L]
-  and singleton_in_M_iff = M_triv_axioms.singleton_in_M_iff [OF M_triv_axioms_L]
-  and pair_abs = M_triv_axioms.pair_abs [OF M_triv_axioms_L]
-  and pair_in_M_iff = M_triv_axioms.pair_in_M_iff [OF M_triv_axioms_L]
-  and pair_components_in_M = M_triv_axioms.pair_components_in_M [OF M_triv_axioms_L]
-  and cartprod_abs = M_triv_axioms.cartprod_abs [OF M_triv_axioms_L]
-  and union_abs = M_triv_axioms.union_abs [OF M_triv_axioms_L]
-  and inter_abs = M_triv_axioms.inter_abs [OF M_triv_axioms_L]
-  and setdiff_abs = M_triv_axioms.setdiff_abs [OF M_triv_axioms_L]
-  and Union_abs = M_triv_axioms.Union_abs [OF M_triv_axioms_L]
-  and Union_closed = M_triv_axioms.Union_closed [OF M_triv_axioms_L]
-  and Un_closed = M_triv_axioms.Un_closed [OF M_triv_axioms_L]
-  and cons_closed = M_triv_axioms.cons_closed [OF M_triv_axioms_L]
-  and successor_abs = M_triv_axioms.successor_abs [OF M_triv_axioms_L]
-  and succ_in_M_iff = M_triv_axioms.succ_in_M_iff [OF M_triv_axioms_L]
-  and separation_closed = M_triv_axioms.separation_closed [OF M_triv_axioms_L]
-  and strong_replacementI = M_triv_axioms.strong_replacementI [OF M_triv_axioms_L]
-  and strong_replacement_closed = M_triv_axioms.strong_replacement_closed [OF M_triv_axioms_L]
-  and RepFun_closed = M_triv_axioms.RepFun_closed [OF M_triv_axioms_L]
-  and lam_closed = M_triv_axioms.lam_closed [OF M_triv_axioms_L]
-  and image_abs = M_triv_axioms.image_abs [OF M_triv_axioms_L]
-  and powerset_Pow = M_triv_axioms.powerset_Pow [OF M_triv_axioms_L]
-  and powerset_imp_subset_Pow = M_triv_axioms.powerset_imp_subset_Pow [OF M_triv_axioms_L]
-  and nat_into_M = M_triv_axioms.nat_into_M [OF M_triv_axioms_L]
-  and nat_case_closed = M_triv_axioms.nat_case_closed [OF M_triv_axioms_L]
-  and Inl_in_M_iff = M_triv_axioms.Inl_in_M_iff [OF M_triv_axioms_L]
-  and Inr_in_M_iff = M_triv_axioms.Inr_in_M_iff [OF M_triv_axioms_L]
-  and lt_closed = M_triv_axioms.lt_closed [OF M_triv_axioms_L]
-  and transitive_set_abs = M_triv_axioms.transitive_set_abs [OF M_triv_axioms_L]
-  and ordinal_abs = M_triv_axioms.ordinal_abs [OF M_triv_axioms_L]
-  and limit_ordinal_abs = M_triv_axioms.limit_ordinal_abs [OF M_triv_axioms_L]
-  and successor_ordinal_abs = M_triv_axioms.successor_ordinal_abs [OF M_triv_axioms_L]
-  and finite_ordinal_abs = M_triv_axioms.finite_ordinal_abs [OF M_triv_axioms_L]
-  and omega_abs = M_triv_axioms.omega_abs [OF M_triv_axioms_L]
-  and number1_abs = M_triv_axioms.number1_abs [OF M_triv_axioms_L]
-  and number2_abs = M_triv_axioms.number2_abs [OF M_triv_axioms_L]
-  and number3_abs = M_triv_axioms.number3_abs [OF M_triv_axioms_L]
+lemmas rall_abs = M_trivial.rall_abs [OF M_trivial_L]
+  and rex_abs = M_trivial.rex_abs [OF M_trivial_L]
+  and ball_iff_equiv = M_trivial.ball_iff_equiv [OF M_trivial_L]
+  and M_equalityI = M_trivial.M_equalityI [OF M_trivial_L]
+  and empty_abs = M_trivial.empty_abs [OF M_trivial_L]
+  and subset_abs = M_trivial.subset_abs [OF M_trivial_L]
+  and upair_abs = M_trivial.upair_abs [OF M_trivial_L]
+  and upair_in_M_iff = M_trivial.upair_in_M_iff [OF M_trivial_L]
+  and singleton_in_M_iff = M_trivial.singleton_in_M_iff [OF M_trivial_L]
+  and pair_abs = M_trivial.pair_abs [OF M_trivial_L]
+  and pair_in_M_iff = M_trivial.pair_in_M_iff [OF M_trivial_L]
+  and pair_components_in_M = M_trivial.pair_components_in_M [OF M_trivial_L]
+  and cartprod_abs = M_trivial.cartprod_abs [OF M_trivial_L]
+  and union_abs = M_trivial.union_abs [OF M_trivial_L]
+  and inter_abs = M_trivial.inter_abs [OF M_trivial_L]
+  and setdiff_abs = M_trivial.setdiff_abs [OF M_trivial_L]
+  and Union_abs = M_trivial.Union_abs [OF M_trivial_L]
+  and Union_closed = M_trivial.Union_closed [OF M_trivial_L]
+  and Un_closed = M_trivial.Un_closed [OF M_trivial_L]
+  and cons_closed = M_trivial.cons_closed [OF M_trivial_L]
+  and successor_abs = M_trivial.successor_abs [OF M_trivial_L]
+  and succ_in_M_iff = M_trivial.succ_in_M_iff [OF M_trivial_L]
+  and separation_closed = M_trivial.separation_closed [OF M_trivial_L]
+  and strong_replacementI = M_trivial.strong_replacementI [OF M_trivial_L]
+  and strong_replacement_closed = M_trivial.strong_replacement_closed [OF M_trivial_L]
+  and RepFun_closed = M_trivial.RepFun_closed [OF M_trivial_L]
+  and lam_closed = M_trivial.lam_closed [OF M_trivial_L]
+  and image_abs = M_trivial.image_abs [OF M_trivial_L]
+  and powerset_Pow = M_trivial.powerset_Pow [OF M_trivial_L]
+  and powerset_imp_subset_Pow = M_trivial.powerset_imp_subset_Pow [OF M_trivial_L]
+  and nat_into_M = M_trivial.nat_into_M [OF M_trivial_L]
+  and nat_case_closed = M_trivial.nat_case_closed [OF M_trivial_L]
+  and Inl_in_M_iff = M_trivial.Inl_in_M_iff [OF M_trivial_L]
+  and Inr_in_M_iff = M_trivial.Inr_in_M_iff [OF M_trivial_L]
+  and lt_closed = M_trivial.lt_closed [OF M_trivial_L]
+  and transitive_set_abs = M_trivial.transitive_set_abs [OF M_trivial_L]
+  and ordinal_abs = M_trivial.ordinal_abs [OF M_trivial_L]
+  and limit_ordinal_abs = M_trivial.limit_ordinal_abs [OF M_trivial_L]
+  and successor_ordinal_abs = M_trivial.successor_ordinal_abs [OF M_trivial_L]
+  and finite_ordinal_abs = M_trivial.finite_ordinal_abs [OF M_trivial_L]
+  and omega_abs = M_trivial.omega_abs [OF M_trivial_L]
+  and number1_abs = M_trivial.number1_abs [OF M_trivial_L]
+  and number2_abs = M_trivial.number2_abs [OF M_trivial_L]
+  and number3_abs = M_trivial.number3_abs [OF M_trivial_L]
 
 declare rall_abs [simp]
 declare rex_abs [simp]

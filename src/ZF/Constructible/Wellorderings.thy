@@ -49,63 +49,63 @@ constdefs
 
 subsubsection {*Trivial absoluteness proofs*}
 
-lemma (in M_axioms) irreflexive_abs [simp]: 
+lemma (in M_basic) irreflexive_abs [simp]: 
      "M(A) ==> irreflexive(M,A,r) <-> irrefl(A,r)"
 by (simp add: irreflexive_def irrefl_def)
 
-lemma (in M_axioms) transitive_rel_abs [simp]: 
+lemma (in M_basic) transitive_rel_abs [simp]: 
      "M(A) ==> transitive_rel(M,A,r) <-> trans[A](r)"
 by (simp add: transitive_rel_def trans_on_def)
 
-lemma (in M_axioms) linear_rel_abs [simp]: 
+lemma (in M_basic) linear_rel_abs [simp]: 
      "M(A) ==> linear_rel(M,A,r) <-> linear(A,r)"
 by (simp add: linear_rel_def linear_def)
 
-lemma (in M_axioms) wellordered_is_trans_on: 
+lemma (in M_basic) wellordered_is_trans_on: 
     "[| wellordered(M,A,r); M(A) |] ==> trans[A](r)"
 by (auto simp add: wellordered_def)
 
-lemma (in M_axioms) wellordered_is_linear: 
+lemma (in M_basic) wellordered_is_linear: 
     "[| wellordered(M,A,r); M(A) |] ==> linear(A,r)"
 by (auto simp add: wellordered_def)
 
-lemma (in M_axioms) wellordered_is_wellfounded_on: 
+lemma (in M_basic) wellordered_is_wellfounded_on: 
     "[| wellordered(M,A,r); M(A) |] ==> wellfounded_on(M,A,r)"
 by (auto simp add: wellordered_def)
 
-lemma (in M_axioms) wellfounded_imp_wellfounded_on: 
+lemma (in M_basic) wellfounded_imp_wellfounded_on: 
     "[| wellfounded(M,r); M(A) |] ==> wellfounded_on(M,A,r)"
 by (auto simp add: wellfounded_def wellfounded_on_def)
 
-lemma (in M_axioms) wellfounded_on_subset_A:
+lemma (in M_basic) wellfounded_on_subset_A:
      "[| wellfounded_on(M,A,r);  B<=A |] ==> wellfounded_on(M,B,r)"
 by (simp add: wellfounded_on_def, blast)
 
 
 subsubsection {*Well-founded relations*}
 
-lemma  (in M_axioms) wellfounded_on_iff_wellfounded:
+lemma  (in M_basic) wellfounded_on_iff_wellfounded:
      "wellfounded_on(M,A,r) <-> wellfounded(M, r \<inter> A*A)"
 apply (simp add: wellfounded_on_def wellfounded_def, safe)
  apply blast 
 apply (drule_tac x=x in rspec, assumption, blast) 
 done
 
-lemma (in M_axioms) wellfounded_on_imp_wellfounded:
+lemma (in M_basic) wellfounded_on_imp_wellfounded:
      "[|wellfounded_on(M,A,r); r \<subseteq> A*A|] ==> wellfounded(M,r)"
 by (simp add: wellfounded_on_iff_wellfounded subset_Int_iff)
 
-lemma (in M_axioms) wellfounded_on_field_imp_wellfounded:
+lemma (in M_basic) wellfounded_on_field_imp_wellfounded:
      "wellfounded_on(M, field(r), r) ==> wellfounded(M,r)"
 by (simp add: wellfounded_def wellfounded_on_iff_wellfounded, fast)
 
-lemma (in M_axioms) wellfounded_iff_wellfounded_on_field:
+lemma (in M_basic) wellfounded_iff_wellfounded_on_field:
      "M(r) ==> wellfounded(M,r) <-> wellfounded_on(M, field(r), r)"
 by (blast intro: wellfounded_imp_wellfounded_on
                  wellfounded_on_field_imp_wellfounded)
 
 (*Consider the least z in domain(r) such that P(z) does not hold...*)
-lemma (in M_axioms) wellfounded_induct: 
+lemma (in M_basic) wellfounded_induct: 
      "[| wellfounded(M,r); M(a); M(r); separation(M, \<lambda>x. ~P(x));  
          \<forall>x. M(x) & (\<forall>y. <y,x> \<in> r --> P(y)) --> P(x) |]
       ==> P(a)";
@@ -114,7 +114,7 @@ apply (drule_tac x="{z \<in> domain(r). ~P(z)}" in rspec)
 apply (blast dest: transM)+
 done
 
-lemma (in M_axioms) wellfounded_on_induct: 
+lemma (in M_basic) wellfounded_on_induct: 
      "[| a\<in>A;  wellfounded_on(M,A,r);  M(A);  
        separation(M, \<lambda>x. x\<in>A --> ~P(x));  
        \<forall>x\<in>A. M(x) & (\<forall>y\<in>A. <y,x> \<in> r --> P(y)) --> P(x) |]
@@ -126,7 +126,7 @@ done
 
 text{*The assumption @{term "r \<subseteq> A*A"} justifies strengthening the induction
       hypothesis by removing the restriction to @{term A}.*}
-lemma (in M_axioms) wellfounded_on_induct2: 
+lemma (in M_basic) wellfounded_on_induct2: 
      "[| a\<in>A;  wellfounded_on(M,A,r);  M(A);  r \<subseteq> A*A;  
        separation(M, \<lambda>x. x\<in>A --> ~P(x));  
        \<forall>x\<in>A. M(x) & (\<forall>y. <y,x> \<in> r --> P(y)) --> P(x) |]
@@ -136,27 +136,27 @@ by (rule wellfounded_on_induct, assumption+, blast)
 
 subsubsection {*Kunen's lemma IV 3.14, page 123*}
 
-lemma (in M_axioms) linear_imp_relativized: 
+lemma (in M_basic) linear_imp_relativized: 
      "linear(A,r) ==> linear_rel(M,A,r)" 
 by (simp add: linear_def linear_rel_def) 
 
-lemma (in M_axioms) trans_on_imp_relativized: 
+lemma (in M_basic) trans_on_imp_relativized: 
      "trans[A](r) ==> transitive_rel(M,A,r)" 
 by (unfold transitive_rel_def trans_on_def, blast) 
 
-lemma (in M_axioms) wf_on_imp_relativized: 
+lemma (in M_basic) wf_on_imp_relativized: 
      "wf[A](r) ==> wellfounded_on(M,A,r)" 
 apply (simp add: wellfounded_on_def wf_def wf_on_def, clarify) 
 apply (drule_tac x=x in spec, blast) 
 done
 
-lemma (in M_axioms) wf_imp_relativized: 
+lemma (in M_basic) wf_imp_relativized: 
      "wf(r) ==> wellfounded(M,r)" 
 apply (simp add: wellfounded_def wf_def, clarify) 
 apply (drule_tac x=x in spec, blast) 
 done
 
-lemma (in M_axioms) well_ord_imp_relativized: 
+lemma (in M_basic) well_ord_imp_relativized: 
      "well_ord(A,r) ==> wellordered(M,A,r)" 
 by (simp add: wellordered_def well_ord_def tot_ord_def part_ord_def
        linear_imp_relativized trans_on_imp_relativized wf_on_imp_relativized)
@@ -164,24 +164,24 @@ by (simp add: wellordered_def well_ord_def tot_ord_def part_ord_def
 
 subsection{* Relativized versions of order-isomorphisms and order types *}
 
-lemma (in M_axioms) order_isomorphism_abs [simp]: 
+lemma (in M_basic) order_isomorphism_abs [simp]: 
      "[| M(A); M(B); M(f) |] 
       ==> order_isomorphism(M,A,r,B,s,f) <-> f \<in> ord_iso(A,r,B,s)"
 by (simp add: apply_closed order_isomorphism_def ord_iso_def)
 
-lemma (in M_axioms) pred_set_abs [simp]: 
+lemma (in M_basic) pred_set_abs [simp]: 
      "[| M(r); M(B) |] ==> pred_set(M,A,x,r,B) <-> B = Order.pred(A,x,r)"
 apply (simp add: pred_set_def Order.pred_def)
 apply (blast dest: transM) 
 done
 
-lemma (in M_axioms) pred_closed [intro,simp]: 
+lemma (in M_basic) pred_closed [intro,simp]: 
      "[| M(A); M(r); M(x) |] ==> M(Order.pred(A,x,r))"
 apply (simp add: Order.pred_def) 
 apply (insert pred_separation [of r x], simp) 
 done
 
-lemma (in M_axioms) membership_abs [simp]: 
+lemma (in M_basic) membership_abs [simp]: 
      "[| M(r); M(A) |] ==> membership(M,A,r) <-> r = Memrel(A)"
 apply (simp add: membership_def Memrel_def, safe)
   apply (rule equalityI) 
@@ -194,14 +194,14 @@ apply (simp add: membership_def Memrel_def, safe)
  apply auto 
 done
 
-lemma (in M_axioms) M_Memrel_iff:
+lemma (in M_basic) M_Memrel_iff:
      "M(A) ==> 
       Memrel(A) = {z \<in> A*A. \<exists>x[M]. \<exists>y[M]. z = \<langle>x,y\<rangle> & x \<in> y}"
 apply (simp add: Memrel_def) 
 apply (blast dest: transM)
 done 
 
-lemma (in M_axioms) Memrel_closed [intro,simp]: 
+lemma (in M_basic) Memrel_closed [intro,simp]: 
      "M(A) ==> M(Memrel(A))"
 apply (simp add: M_Memrel_iff) 
 apply (insert Memrel_separation, simp)
@@ -233,7 +233,7 @@ done
 
 text{*Inductive argument for Kunen's Lemma 6.1, etc.
       Simple proof from Halmos, page 72*}
-lemma  (in M_axioms) wellordered_iso_subset_lemma: 
+lemma  (in M_basic) wellordered_iso_subset_lemma: 
      "[| wellordered(M,A,r);  f \<in> ord_iso(A,r, A',r);  A'<= A;  y \<in> A;  
        M(A);  M(f);  M(r) |] ==> ~ <f`y, y> \<in> r"
 apply (unfold wellordered_def ord_iso_def)
@@ -247,7 +247,7 @@ done
 
 text{*Kunen's Lemma 6.1: there's no order-isomorphism to an initial segment
       of a well-ordering*}
-lemma (in M_axioms) wellordered_iso_predD:
+lemma (in M_basic) wellordered_iso_predD:
      "[| wellordered(M,A,r);  f \<in> ord_iso(A, r, Order.pred(A,x,r), r);  
        M(A);  M(f);  M(r) |] ==> x \<notin> A"
 apply (rule notI) 
@@ -260,7 +260,7 @@ apply (simp add: Order.pred_def)
 done
 
 
-lemma (in M_axioms) wellordered_iso_pred_eq_lemma:
+lemma (in M_basic) wellordered_iso_pred_eq_lemma:
      "[| f \<in> \<langle>Order.pred(A,y,r), r\<rangle> \<cong> \<langle>Order.pred(A,x,r), r\<rangle>;
        wellordered(M,A,r); x\<in>A; y\<in>A; M(A); M(f); M(r) |] ==> <x,y> \<notin> r"
 apply (frule wellordered_is_trans_on, assumption)
@@ -273,7 +273,7 @@ done
 
 
 text{*Simple consequence of Lemma 6.1*}
-lemma (in M_axioms) wellordered_iso_pred_eq:
+lemma (in M_basic) wellordered_iso_pred_eq:
      "[| wellordered(M,A,r);
        f \<in> ord_iso(Order.pred(A,a,r), r, Order.pred(A,c,r), r);   
        M(A);  M(f);  M(r);  a\<in>A;  c\<in>A |] ==> a=c"
@@ -285,21 +285,21 @@ apply (drule ord_iso_sym)
 apply (blast dest: wellordered_iso_pred_eq_lemma)+ 
 done
 
-lemma (in M_axioms) wellfounded_on_asym:
+lemma (in M_basic) wellfounded_on_asym:
      "[| wellfounded_on(M,A,r);  <a,x>\<in>r;  a\<in>A; x\<in>A;  M(A) |] ==> <x,a>\<notin>r"
 apply (simp add: wellfounded_on_def) 
 apply (drule_tac x="{x,a}" in rspec) 
 apply (blast dest: transM)+
 done
 
-lemma (in M_axioms) wellordered_asym:
+lemma (in M_basic) wellordered_asym:
      "[| wellordered(M,A,r);  <a,x>\<in>r;  a\<in>A; x\<in>A;  M(A) |] ==> <x,a>\<notin>r"
 by (simp add: wellordered_def, blast dest: wellfounded_on_asym)
 
 
 text{*Surely a shorter proof using lemmas in @{text Order}?
      Like @{text well_ord_iso_preserving}?*}
-lemma (in M_axioms) ord_iso_pred_imp_lt:
+lemma (in M_basic) ord_iso_pred_imp_lt:
      "[| f \<in> ord_iso(Order.pred(A,x,r), r, i, Memrel(i));
        g \<in> ord_iso(Order.pred(A,y,r), r, j, Memrel(j));
        wellordered(M,A,r);  x \<in> A;  y \<in> A; M(A); M(r); M(f); M(g); M(j);
@@ -372,7 +372,7 @@ constdefs
 
 
 
-lemma (in M_axioms) obase_iff:
+lemma (in M_basic) obase_iff:
      "[| M(A); M(r); M(z) |] 
       ==> obase(M,A,r,z) <-> 
           z = {a\<in>A. \<exists>x[M]. \<exists>g[M]. Ord(x) & 
@@ -387,7 +387,7 @@ done
 
 text{*Can also be proved with the premise @{term "M(z)"} instead of
       @{term "M(f)"}, but that version is less useful.*}
-lemma (in M_axioms) omap_iff:
+lemma (in M_basic) omap_iff:
      "[| omap(M,A,r,f); M(A); M(r); M(f) |] 
       ==> z \<in> f <->
       (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
@@ -400,18 +400,18 @@ apply (rule iffI)
  apply (blast dest: transM)+
 done
 
-lemma (in M_axioms) omap_unique:
+lemma (in M_basic) omap_unique:
      "[| omap(M,A,r,f); omap(M,A,r,f'); M(A); M(r); M(f); M(f') |] ==> f' = f" 
 apply (rule equality_iffI) 
 apply (simp add: omap_iff) 
 done
 
-lemma (in M_axioms) omap_yields_Ord:
+lemma (in M_basic) omap_yields_Ord:
      "[| omap(M,A,r,f); \<langle>a,x\<rangle> \<in> f; M(a); M(x) |]  ==> Ord(x)"
 apply (simp add: omap_def, blast) 
 done
 
-lemma (in M_axioms) otype_iff:
+lemma (in M_basic) otype_iff:
      "[| otype(M,A,r,i); M(A); M(r); M(i) |] 
       ==> x \<in> i <-> 
           (M(x) & Ord(x) & 
@@ -423,7 +423,7 @@ apply (frule transM, assumption)
 apply (simp add: omap_iff, blast)
 done
 
-lemma (in M_axioms) otype_eq_range:
+lemma (in M_basic) otype_eq_range:
      "[| omap(M,A,r,f); otype(M,A,r,i); M(A); M(r); M(f); M(i) |] 
       ==> i = range(f)"
 apply (auto simp add: otype_def omap_iff)
@@ -431,7 +431,7 @@ apply (blast dest: omap_unique)
 done
 
 
-lemma (in M_axioms) Ord_otype:
+lemma (in M_basic) Ord_otype:
      "[| otype(M,A,r,i); trans[A](r); M(A); M(r); M(i) |] ==> Ord(i)"
 apply (rotate_tac 1) 
 apply (rule OrdI) 
@@ -452,7 +452,7 @@ apply (safe elim!: predE)
 apply (blast intro: restrict_ord_iso ord_iso_sym ltI dest: transM)
 done
 
-lemma (in M_axioms) domain_omap:
+lemma (in M_basic) domain_omap:
      "[| omap(M,A,r,f);  obase(M,A,r,B); M(A); M(r); M(B); M(f) |] 
       ==> domain(f) = B"
 apply (rotate_tac 2) 
@@ -461,7 +461,7 @@ apply (rule equality_iffI)
 apply (simp add: domain_iff omap_iff, blast) 
 done
 
-lemma (in M_axioms) omap_subset: 
+lemma (in M_basic) omap_subset: 
      "[| omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i); 
        M(A); M(r); M(f); M(B); M(i) |] ==> f \<subseteq> B * i"
 apply (rotate_tac 3, clarify) 
@@ -469,7 +469,7 @@ apply (simp add: omap_iff obase_iff)
 apply (force simp add: otype_iff) 
 done
 
-lemma (in M_axioms) omap_funtype: 
+lemma (in M_basic) omap_funtype: 
      "[| omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i); 
        M(A); M(r); M(f); M(B); M(i) |] ==> f \<in> B -> i"
 apply (rotate_tac 3) 
@@ -478,7 +478,7 @@ apply (blast intro: Ord_iso_implies_eq ord_iso_sym ord_iso_trans)
 done
 
 
-lemma (in M_axioms) wellordered_omap_bij:
+lemma (in M_basic) wellordered_omap_bij:
      "[| wellordered(M,A,r); omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i); 
        M(A); M(r); M(f); M(B); M(i) |] ==> f \<in> bij(B,i)"
 apply (insert omap_funtype [of A r f B i]) 
@@ -492,7 +492,7 @@ done
 
 
 text{*This is not the final result: we must show @{term "oB(A,r) = A"}*}
-lemma (in M_axioms) omap_ord_iso:
+lemma (in M_basic) omap_ord_iso:
      "[| wellordered(M,A,r); omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i); 
        M(A); M(r); M(f); M(B); M(i) |] ==> f \<in> ord_iso(B,r,i,Memrel(i))"
 apply (rule ord_isoI)
@@ -513,7 +513,7 @@ txt{*the case @{term "\<langle>y,x\<rangle> \<in> r"}: handle like the opposite 
 apply (blast dest: ord_iso_pred_imp_lt ltD elim: mem_asym) 
 done
 
-lemma (in M_axioms) Ord_omap_image_pred:
+lemma (in M_basic) Ord_omap_image_pred:
      "[| wellordered(M,A,r); omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i); 
        M(A); M(r); M(f); M(B); M(i); b \<in> A |] ==> Ord(f `` Order.pred(A,b,r))"
 apply (frule wellordered_is_trans_on, assumption)
@@ -539,7 +539,7 @@ apply (intro predI conjI)
 apply (auto simp add: obase_iff)
 done
 
-lemma (in M_axioms) restrict_omap_ord_iso:
+lemma (in M_basic) restrict_omap_ord_iso:
      "[| wellordered(M,A,r); omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i); 
        D \<subseteq> B; M(A); M(r); M(f); M(B); M(i) |] 
       ==> restrict(f,D) \<in> (\<langle>D,r\<rangle> \<cong> \<langle>f``D, Memrel(f``D)\<rangle>)"
@@ -550,7 +550,7 @@ apply (blast dest: subsetD [OF omap_subset])
 apply (drule ord_iso_sym, simp) 
 done
 
-lemma (in M_axioms) obase_equals: 
+lemma (in M_basic) obase_equals: 
      "[| wellordered(M,A,r); omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i);
        M(A); M(r); M(f); M(B); M(i) |] ==> B = A"
 apply (rotate_tac 4)
@@ -570,21 +570,21 @@ done
 
 text{*Main result: @{term om} gives the order-isomorphism 
       @{term "\<langle>A,r\<rangle> \<cong> \<langle>i, Memrel(i)\<rangle>"} *}
-theorem (in M_axioms) omap_ord_iso_otype:
+theorem (in M_basic) omap_ord_iso_otype:
      "[| wellordered(M,A,r); omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i);
        M(A); M(r); M(f); M(B); M(i) |] ==> f \<in> ord_iso(A, r, i, Memrel(i))"
 apply (frule omap_ord_iso, assumption+) 
 apply (frule obase_equals, assumption+, blast) 
 done 
 
-lemma (in M_axioms) obase_exists:
+lemma (in M_basic) obase_exists:
      "[| M(A); M(r) |] ==> \<exists>z[M]. obase(M,A,r,z)"
 apply (simp add: obase_def) 
 apply (insert obase_separation [of A r])
 apply (simp add: separation_def)  
 done
 
-lemma (in M_axioms) omap_exists:
+lemma (in M_basic) omap_exists:
      "[| M(A); M(r) |] ==> \<exists>z[M]. omap(M,A,r,z)"
 apply (insert obase_exists [of A r]) 
 apply (simp add: omap_def) 
@@ -601,7 +601,7 @@ done
 
 declare rall_simps [simp] rex_simps [simp]
 
-lemma (in M_axioms) otype_exists:
+lemma (in M_basic) otype_exists:
      "[| wellordered(M,A,r); M(A); M(r) |] ==> \<exists>i[M]. otype(M,A,r,i)"
 apply (insert omap_exists [of A r])  
 apply (simp add: otype_def, safe)
@@ -609,7 +609,7 @@ apply (rule_tac x="range(x)" in rexI)
 apply blast+
 done
 
-theorem (in M_axioms) omap_ord_iso_otype':
+theorem (in M_basic) omap_ord_iso_otype':
      "[| wellordered(M,A,r); M(A); M(r) |]
       ==> \<exists>f[M]. (\<exists>i[M]. Ord(i) & f \<in> ord_iso(A, r, i, Memrel(i)))"
 apply (insert obase_exists [of A r] omap_exists [of A r] otype_exists [of A r], simp, clarify)
@@ -620,7 +620,7 @@ apply (rule Ord_otype)
    apply (simp_all add: wellordered_is_trans_on) 
 done
 
-lemma (in M_axioms) ordertype_exists:
+lemma (in M_basic) ordertype_exists:
      "[| wellordered(M,A,r); M(A); M(r) |]
       ==> \<exists>f[M]. (\<exists>i[M]. Ord(i) & f \<in> ord_iso(A, r, i, Memrel(i)))"
 apply (insert obase_exists [of A r] omap_exists [of A r] otype_exists [of A r], simp, clarify)
@@ -632,7 +632,7 @@ apply (rule Ord_otype)
 done
 
 
-lemma (in M_axioms) relativized_imp_well_ord: 
+lemma (in M_basic) relativized_imp_well_ord: 
      "[| wellordered(M,A,r); M(A); M(r) |] ==> well_ord(A,r)" 
 apply (insert ordertype_exists [of A r], simp)
 apply (blast intro: well_ord_ord_iso well_ord_Memrel)  
@@ -641,13 +641,13 @@ done
 subsection {*Kunen's theorem 5.4, poage 127*}
 
 text{*(a) The notion of Wellordering is absolute*}
-theorem (in M_axioms) well_ord_abs [simp]: 
+theorem (in M_basic) well_ord_abs [simp]: 
      "[| M(A); M(r) |] ==> wellordered(M,A,r) <-> well_ord(A,r)" 
 by (blast intro: well_ord_imp_relativized relativized_imp_well_ord)  
 
 
 text{*(b) Order types are absolute*}
-lemma (in M_axioms) 
+lemma (in M_basic) 
      "[| wellordered(M,A,r); f \<in> ord_iso(A, r, i, Memrel(i));
        M(A); M(r); M(f); M(i); Ord(i) |] ==> i = ordertype(A,r)"
 by (blast intro: Ord_ordertype relativized_imp_well_ord ordertype_ord_iso

@@ -465,7 +465,7 @@ subsection{*Introducing a Transitive Class Model*}
 
 text{*The class M is assumed to be transitive and to satisfy some
       relativized ZF axioms*}
-locale M_triv_axioms =
+locale M_trivial =
   fixes M
   assumes transM:           "[| y\<in>x; M(x) |] ==> M(y)"
       and nonempty [simp]:  "M(0)"
@@ -475,73 +475,73 @@ locale M_triv_axioms =
       and replacement:      "replacement(M,P)"
       and M_nat [iff]:      "M(nat)"           (*i.e. the axiom of infinity*)
 
-lemma (in M_triv_axioms) rall_abs [simp]: 
+lemma (in M_trivial) rall_abs [simp]: 
      "M(A) ==> (\<forall>x[M]. x\<in>A --> P(x)) <-> (\<forall>x\<in>A. P(x))" 
 by (blast intro: transM) 
 
-lemma (in M_triv_axioms) rex_abs [simp]: 
+lemma (in M_trivial) rex_abs [simp]: 
      "M(A) ==> (\<exists>x[M]. x\<in>A & P(x)) <-> (\<exists>x\<in>A. P(x))" 
 by (blast intro: transM) 
 
-lemma (in M_triv_axioms) ball_iff_equiv: 
+lemma (in M_trivial) ball_iff_equiv: 
      "M(A) ==> (\<forall>x[M]. (x\<in>A <-> P(x))) <-> 
                (\<forall>x\<in>A. P(x)) & (\<forall>x. P(x) --> M(x) --> x\<in>A)" 
 by (blast intro: transM)
 
 text{*Simplifies proofs of equalities when there's an iff-equality
       available for rewriting, universally quantified over M. *}
-lemma (in M_triv_axioms) M_equalityI: 
+lemma (in M_trivial) M_equalityI: 
      "[| !!x. M(x) ==> x\<in>A <-> x\<in>B; M(A); M(B) |] ==> A=B"
 by (blast intro!: equalityI dest: transM) 
 
 
 subsubsection{*Trivial Absoluteness Proofs: Empty Set, Pairs, etc.*}
 
-lemma (in M_triv_axioms) empty_abs [simp]: 
+lemma (in M_trivial) empty_abs [simp]: 
      "M(z) ==> empty(M,z) <-> z=0"
 apply (simp add: empty_def)
 apply (blast intro: transM) 
 done
 
-lemma (in M_triv_axioms) subset_abs [simp]: 
+lemma (in M_trivial) subset_abs [simp]: 
      "M(A) ==> subset(M,A,B) <-> A \<subseteq> B"
 apply (simp add: subset_def) 
 apply (blast intro: transM) 
 done
 
-lemma (in M_triv_axioms) upair_abs [simp]: 
+lemma (in M_trivial) upair_abs [simp]: 
      "M(z) ==> upair(M,a,b,z) <-> z={a,b}"
 apply (simp add: upair_def) 
 apply (blast intro: transM) 
 done
 
-lemma (in M_triv_axioms) upair_in_M_iff [iff]:
+lemma (in M_trivial) upair_in_M_iff [iff]:
      "M({a,b}) <-> M(a) & M(b)"
 apply (insert upair_ax, simp add: upair_ax_def) 
 apply (blast intro: transM) 
 done
 
-lemma (in M_triv_axioms) singleton_in_M_iff [iff]:
+lemma (in M_trivial) singleton_in_M_iff [iff]:
      "M({a}) <-> M(a)"
 by (insert upair_in_M_iff [of a a], simp) 
 
-lemma (in M_triv_axioms) pair_abs [simp]: 
+lemma (in M_trivial) pair_abs [simp]: 
      "M(z) ==> pair(M,a,b,z) <-> z=<a,b>"
 apply (simp add: pair_def ZF.Pair_def)
 apply (blast intro: transM) 
 done
 
-lemma (in M_triv_axioms) pair_in_M_iff [iff]:
+lemma (in M_trivial) pair_in_M_iff [iff]:
      "M(<a,b>) <-> M(a) & M(b)"
 by (simp add: ZF.Pair_def)
 
-lemma (in M_triv_axioms) pair_components_in_M:
+lemma (in M_trivial) pair_components_in_M:
      "[| <x,y> \<in> A; M(A) |] ==> M(x) & M(y)"
 apply (simp add: Pair_def)
 apply (blast dest: transM) 
 done
 
-lemma (in M_triv_axioms) cartprod_abs [simp]: 
+lemma (in M_trivial) cartprod_abs [simp]: 
      "[| M(A); M(B); M(z) |] ==> cartprod(M,A,B,z) <-> z = A*B"
 apply (simp add: cartprod_def)
 apply (rule iffI) 
@@ -551,51 +551,51 @@ done
 
 subsubsection{*Absoluteness for Unions and Intersections*}
 
-lemma (in M_triv_axioms) union_abs [simp]: 
+lemma (in M_trivial) union_abs [simp]: 
      "[| M(a); M(b); M(z) |] ==> union(M,a,b,z) <-> z = a Un b"
 apply (simp add: union_def) 
 apply (blast intro: transM) 
 done
 
-lemma (in M_triv_axioms) inter_abs [simp]: 
+lemma (in M_trivial) inter_abs [simp]: 
      "[| M(a); M(b); M(z) |] ==> inter(M,a,b,z) <-> z = a Int b"
 apply (simp add: inter_def) 
 apply (blast intro: transM) 
 done
 
-lemma (in M_triv_axioms) setdiff_abs [simp]: 
+lemma (in M_trivial) setdiff_abs [simp]: 
      "[| M(a); M(b); M(z) |] ==> setdiff(M,a,b,z) <-> z = a-b"
 apply (simp add: setdiff_def) 
 apply (blast intro: transM) 
 done
 
-lemma (in M_triv_axioms) Union_abs [simp]: 
+lemma (in M_trivial) Union_abs [simp]: 
      "[| M(A); M(z) |] ==> big_union(M,A,z) <-> z = Union(A)"
 apply (simp add: big_union_def) 
 apply (blast intro!: equalityI dest: transM) 
 done
 
-lemma (in M_triv_axioms) Union_closed [intro,simp]:
+lemma (in M_trivial) Union_closed [intro,simp]:
      "M(A) ==> M(Union(A))"
 by (insert Union_ax, simp add: Union_ax_def) 
 
-lemma (in M_triv_axioms) Un_closed [intro,simp]:
+lemma (in M_trivial) Un_closed [intro,simp]:
      "[| M(A); M(B) |] ==> M(A Un B)"
 by (simp only: Un_eq_Union, blast) 
 
-lemma (in M_triv_axioms) cons_closed [intro,simp]:
+lemma (in M_trivial) cons_closed [intro,simp]:
      "[| M(a); M(A) |] ==> M(cons(a,A))"
 by (subst cons_eq [symmetric], blast) 
 
-lemma (in M_triv_axioms) cons_abs [simp]: 
+lemma (in M_trivial) cons_abs [simp]: 
      "[| M(b); M(z) |] ==> is_cons(M,a,b,z) <-> z = cons(a,b)"
 by (simp add: is_cons_def, blast intro: transM)  
 
-lemma (in M_triv_axioms) successor_abs [simp]: 
+lemma (in M_trivial) successor_abs [simp]: 
      "[| M(a); M(z) |] ==> successor(M,a,z) <-> z = succ(a)"
 by (simp add: successor_def, blast)  
 
-lemma (in M_triv_axioms) succ_in_M_iff [iff]:
+lemma (in M_trivial) succ_in_M_iff [iff]:
      "M(succ(a)) <-> M(a)"
 apply (simp add: succ_def) 
 apply (blast intro: transM) 
@@ -603,7 +603,7 @@ done
 
 subsubsection{*Absoluteness for Separation and Replacement*}
 
-lemma (in M_triv_axioms) separation_closed [intro,simp]:
+lemma (in M_trivial) separation_closed [intro,simp]:
      "[| separation(M,P); M(A) |] ==> M(Collect(A,P))"
 apply (insert separation, simp add: separation_def) 
 apply (drule rspec, assumption, clarify) 
@@ -615,14 +615,14 @@ lemma separation_iff:
      "separation(M,P) <-> (\<forall>z[M]. \<exists>y[M]. is_Collect(M,z,P,y))"
 by (simp add: separation_def is_Collect_def) 
 
-lemma (in M_triv_axioms) Collect_abs [simp]: 
+lemma (in M_trivial) Collect_abs [simp]: 
      "[| M(A); M(z) |] ==> is_Collect(M,A,P,z) <-> z = Collect(A,P)"
 apply (simp add: is_Collect_def)
 apply (blast intro!: equalityI dest: transM)
 done
 
 text{*Probably the premise and conclusion are equivalent*}
-lemma (in M_triv_axioms) strong_replacementI [rule_format]:
+lemma (in M_trivial) strong_replacementI [rule_format]:
     "[| \<forall>A[M]. separation(M, %u. \<exists>x[M]. x\<in>A & P(x,u)) |]
      ==> strong_replacement(M,P)"
 apply (simp add: strong_replacement_def, clarify) 
@@ -645,7 +645,7 @@ lemma is_Replace_cong [cong]:
           is_Replace(M, A', %x y. P'(x,y), z')" 
 by (simp add: is_Replace_def) 
 
-lemma (in M_triv_axioms) univalent_Replace_iff: 
+lemma (in M_trivial) univalent_Replace_iff: 
      "[| M(A); univalent(M,A,P);
          !!x y. [| x\<in>A; P(x,y) |] ==> M(y) |] 
       ==> u \<in> Replace(A,P) <-> (\<exists>x. x\<in>A & P(x,u))"
@@ -654,7 +654,7 @@ apply (blast dest: transM)
 done
 
 (*The last premise expresses that P takes M to M*)
-lemma (in M_triv_axioms) strong_replacement_closed [intro,simp]:
+lemma (in M_trivial) strong_replacement_closed [intro,simp]:
      "[| strong_replacement(M,P); M(A); univalent(M,A,P); 
          !!x y. [| x\<in>A; P(x,y) |] ==> M(y) |] ==> M(Replace(A,P))"
 apply (simp add: strong_replacement_def) 
@@ -666,7 +666,7 @@ apply (simp add: univalent_Replace_iff)
 apply (blast dest: transM) 
 done
 
-lemma (in M_triv_axioms) Replace_abs: 
+lemma (in M_trivial) Replace_abs: 
      "[| M(A); M(z); univalent(M,A,P); strong_replacement(M, P);
          !!x y. [| x\<in>A; P(x,y) |] ==> M(y)  |] 
       ==> is_Replace(M,A,P,z) <-> z = Replace(A,P)"
@@ -683,7 +683,7 @@ done
   nonconstructible set.  So we cannot assume that M(X) implies M(RepFun(X,f))
   even for f : M -> M.
 *)
-lemma (in M_triv_axioms) RepFun_closed:
+lemma (in M_trivial) RepFun_closed:
      "[| strong_replacement(M, \<lambda>x y. y = f(x)); M(A); \<forall>x\<in>A. M(f(x)) |]
       ==> M(RepFun(A,f))"
 apply (simp add: RepFun_def) 
@@ -696,7 +696,7 @@ by simp
 
 text{*Better than @{text RepFun_closed} when having the formula @{term "x\<in>A"}
       makes relativization easier.*}
-lemma (in M_triv_axioms) RepFun_closed2:
+lemma (in M_trivial) RepFun_closed2:
      "[| strong_replacement(M, \<lambda>x y. x\<in>A & y = f(x)); M(A); \<forall>x\<in>A. M(f(x)) |]
       ==> M(RepFun(A, %x. f(x)))"
 apply (simp add: RepFun_def)
@@ -712,20 +712,20 @@ constdefs
        \<forall>p[M]. p \<in> z <->
         (\<exists>u[M]. \<exists>v[M]. u\<in>A & pair(M,u,v,p) & is_b(u,v))"
 
-lemma (in M_triv_axioms) lam_closed:
+lemma (in M_trivial) lam_closed:
      "[| strong_replacement(M, \<lambda>x y. y = <x,b(x)>); M(A); \<forall>x\<in>A. M(b(x)) |]
       ==> M(\<lambda>x\<in>A. b(x))"
 by (simp add: lam_def, blast intro: RepFun_closed dest: transM) 
 
 text{*Better than @{text lam_closed}: has the formula @{term "x\<in>A"}*}
-lemma (in M_triv_axioms) lam_closed2:
+lemma (in M_trivial) lam_closed2:
   "[|strong_replacement(M, \<lambda>x y. x\<in>A & y = \<langle>x, b(x)\<rangle>);
      M(A); \<forall>m[M]. m\<in>A --> M(b(m))|] ==> M(Lambda(A,b))"
 apply (simp add: lam_def)
 apply (blast intro: RepFun_closed2 dest: transM)  
 done
 
-lemma (in M_triv_axioms) lambda_abs2 [simp]: 
+lemma (in M_trivial) lambda_abs2 [simp]: 
      "[| strong_replacement(M, \<lambda>x y. x\<in>A & y = \<langle>x, b(x)\<rangle>);
          Relativize1(M,A,is_b,b); M(A); \<forall>m[M]. m\<in>A --> M(b(m)); M(z) |] 
       ==> is_lambda(M,A,is_b,z) <-> z = Lambda(A,b)"
@@ -744,7 +744,7 @@ lemma is_lambda_cong [cong]:
           is_lambda(M, A', %x y. is_b'(x,y), z')" 
 by (simp add: is_lambda_def) 
 
-lemma (in M_triv_axioms) image_abs [simp]: 
+lemma (in M_trivial) image_abs [simp]: 
      "[| M(r); M(A); M(z) |] ==> image(M,r,A,z) <-> z = r``A"
 apply (simp add: image_def)
 apply (rule iffI) 
@@ -754,13 +754,13 @@ done
 text{*What about @{text Pow_abs}?  Powerset is NOT absolute!
       This result is one direction of absoluteness.*}
 
-lemma (in M_triv_axioms) powerset_Pow: 
+lemma (in M_trivial) powerset_Pow: 
      "powerset(M, x, Pow(x))"
 by (simp add: powerset_def)
 
 text{*But we can't prove that the powerset in @{text M} includes the
       real powerset.*}
-lemma (in M_triv_axioms) powerset_imp_subset_Pow: 
+lemma (in M_trivial) powerset_imp_subset_Pow: 
      "[| powerset(M,x,y); M(y) |] ==> y <= Pow(x)"
 apply (simp add: powerset_def) 
 apply (blast dest: transM) 
@@ -768,22 +768,22 @@ done
 
 subsubsection{*Absoluteness for the Natural Numbers*}
 
-lemma (in M_triv_axioms) nat_into_M [intro]:
+lemma (in M_trivial) nat_into_M [intro]:
      "n \<in> nat ==> M(n)"
 by (induct n rule: nat_induct, simp_all)
 
-lemma (in M_triv_axioms) nat_case_closed [intro,simp]:
+lemma (in M_trivial) nat_case_closed [intro,simp]:
   "[|M(k); M(a); \<forall>m[M]. M(b(m))|] ==> M(nat_case(a,b,k))"
 apply (case_tac "k=0", simp) 
 apply (case_tac "\<exists>m. k = succ(m)", force)
 apply (simp add: nat_case_def) 
 done
 
-lemma (in M_triv_axioms) quasinat_abs [simp]: 
+lemma (in M_trivial) quasinat_abs [simp]: 
      "M(z) ==> is_quasinat(M,z) <-> quasinat(z)"
 by (auto simp add: is_quasinat_def quasinat_def)
 
-lemma (in M_triv_axioms) nat_case_abs [simp]: 
+lemma (in M_trivial) nat_case_abs [simp]: 
      "[| relativize1(M,is_b,b); M(k); M(z) |] 
       ==> is_nat_case(M,a,is_b,k,z) <-> z = nat_case(a,b,k)"
 apply (case_tac "quasinat(k)") 
@@ -808,26 +808,26 @@ by (simp add: is_nat_case_def)
 subsection{*Absoluteness for Ordinals*}
 text{*These results constitute Theorem IV 5.1 of Kunen (page 126).*}
 
-lemma (in M_triv_axioms) lt_closed:
+lemma (in M_trivial) lt_closed:
      "[| j<i; M(i) |] ==> M(j)" 
 by (blast dest: ltD intro: transM) 
 
-lemma (in M_triv_axioms) transitive_set_abs [simp]: 
+lemma (in M_trivial) transitive_set_abs [simp]: 
      "M(a) ==> transitive_set(M,a) <-> Transset(a)"
 by (simp add: transitive_set_def Transset_def)
 
-lemma (in M_triv_axioms) ordinal_abs [simp]: 
+lemma (in M_trivial) ordinal_abs [simp]: 
      "M(a) ==> ordinal(M,a) <-> Ord(a)"
 by (simp add: ordinal_def Ord_def)
 
-lemma (in M_triv_axioms) limit_ordinal_abs [simp]: 
+lemma (in M_trivial) limit_ordinal_abs [simp]: 
      "M(a) ==> limit_ordinal(M,a) <-> Limit(a)" 
 apply (unfold Limit_def limit_ordinal_def) 
 apply (simp add: Ord_0_lt_iff) 
 apply (simp add: lt_def, blast) 
 done
 
-lemma (in M_triv_axioms) successor_ordinal_abs [simp]: 
+lemma (in M_trivial) successor_ordinal_abs [simp]: 
      "M(a) ==> successor_ordinal(M,a) <-> Ord(a) & (\<exists>b[M]. a = succ(b))"
 apply (simp add: successor_ordinal_def, safe)
 apply (drule Ord_cases_disj, auto) 
@@ -840,7 +840,7 @@ by (induct a rule: trans_induct3, simp_all)
 lemma naturals_not_limit: "a \<in> nat ==> ~ Limit(a)"
 by (induct a rule: nat_induct, auto)
 
-lemma (in M_triv_axioms) finite_ordinal_abs [simp]: 
+lemma (in M_trivial) finite_ordinal_abs [simp]: 
      "M(a) ==> finite_ordinal(M,a) <-> a \<in> nat"
 apply (simp add: finite_ordinal_def)
 apply (blast intro: finite_Ord_is_nat intro: nat_into_Ord 
@@ -856,21 +856,21 @@ apply (rule all_lt_imp_le, blast, blast intro: Limit_is_Ord)
 apply (erule nat_le_Limit)
 done
 
-lemma (in M_triv_axioms) omega_abs [simp]: 
+lemma (in M_trivial) omega_abs [simp]: 
      "M(a) ==> omega(M,a) <-> a = nat"
 apply (simp add: omega_def) 
 apply (blast intro: Limit_non_Limit_implies_nat dest: naturals_not_limit)
 done
 
-lemma (in M_triv_axioms) number1_abs [simp]: 
+lemma (in M_trivial) number1_abs [simp]: 
      "M(a) ==> number1(M,a) <-> a = 1"
 by (simp add: number1_def) 
 
-lemma (in M_triv_axioms) number2_abs [simp]: 
+lemma (in M_trivial) number2_abs [simp]: 
      "M(a) ==> number2(M,a) <-> a = succ(1)"
 by (simp add: number2_def) 
 
-lemma (in M_triv_axioms) number3_abs [simp]: 
+lemma (in M_trivial) number3_abs [simp]: 
      "M(a) ==> number3(M,a) <-> a = succ(succ(1))"
 by (simp add: number3_def) 
 
@@ -893,13 +893,13 @@ text{*Kunen continued to 20...*}
     natnumber :: "[i=>o,i,i] => o"
       "natnumber(M,n,x) == natnumber_aux(M,n)`x = 1"
 
-  lemma (in M_triv_axioms) [simp]: 
+  lemma (in M_trivial) [simp]: 
        "natnumber(M,0,x) == x=0"
 *)
 
 subsection{*Some instances of separation and strong replacement*}
 
-locale M_axioms = M_triv_axioms +
+locale M_basic = M_trivial +
 assumes Inter_separation:
      "M(A) ==> separation(M, \<lambda>x. \<forall>y[M]. y\<in>A --> x\<in>y)"
   and Diff_separation:
@@ -960,7 +960,7 @@ assumes Inter_separation:
                 (\<exists>fx[M]. \<exists>gx[M]. fun_apply(M,f,x,fx) & fun_apply(M,g,x,gx) & 
                                    fx \<noteq> gx))"
 
-lemma (in M_axioms) cartprod_iff_lemma:
+lemma (in M_basic) cartprod_iff_lemma:
      "[| M(C);  \<forall>u[M]. u \<in> C <-> (\<exists>x\<in>A. \<exists>y\<in>B. u = {{x}, {x,y}}); 
          powerset(M, A \<union> B, p1); powerset(M, p1, p2);  M(p2) |]
        ==> C = {u \<in> p2 . \<exists>x\<in>A. \<exists>y\<in>B. u = {{x}, {x,y}}}"
@@ -973,7 +973,7 @@ apply clarify
 apply (frule transM, assumption, force) 
 done
 
-lemma (in M_axioms) cartprod_iff:
+lemma (in M_basic) cartprod_iff:
      "[| M(A); M(B); M(C) |] 
       ==> cartprod(M,A,B,C) <-> 
           (\<exists>p1 p2. M(p1) & M(p2) & powerset(M,A Un B,p1) & powerset(M,p1,p2) &
@@ -991,7 +991,7 @@ apply assumption
 apply (blast intro: cartprod_iff_lemma) 
 done
 
-lemma (in M_axioms) cartprod_closed_lemma:
+lemma (in M_basic) cartprod_closed_lemma:
      "[| M(A); M(B) |] ==> \<exists>C[M]. cartprod(M,A,B,C)"
 apply (simp del: cartprod_abs add: cartprod_iff)
 apply (insert power_ax, simp add: power_ax_def) 
@@ -1008,38 +1008,38 @@ done
 
 text{*All the lemmas above are necessary because Powerset is not absolute.
       I should have used Replacement instead!*}
-lemma (in M_axioms) cartprod_closed [intro,simp]: 
+lemma (in M_basic) cartprod_closed [intro,simp]: 
      "[| M(A); M(B) |] ==> M(A*B)"
 by (frule cartprod_closed_lemma, assumption, force)
 
-lemma (in M_axioms) sum_closed [intro,simp]: 
+lemma (in M_basic) sum_closed [intro,simp]: 
      "[| M(A); M(B) |] ==> M(A+B)"
 by (simp add: sum_def)
 
-lemma (in M_axioms) sum_abs [simp]:
+lemma (in M_basic) sum_abs [simp]:
      "[| M(A); M(B); M(Z) |] ==> is_sum(M,A,B,Z) <-> (Z = A+B)"
 by (simp add: is_sum_def sum_def singleton_0 nat_into_M)
 
-lemma (in M_triv_axioms) Inl_in_M_iff [iff]:
+lemma (in M_trivial) Inl_in_M_iff [iff]:
      "M(Inl(a)) <-> M(a)"
 by (simp add: Inl_def) 
 
-lemma (in M_triv_axioms) Inl_abs [simp]:
+lemma (in M_trivial) Inl_abs [simp]:
      "M(Z) ==> is_Inl(M,a,Z) <-> (Z = Inl(a))"
 by (simp add: is_Inl_def Inl_def)
 
-lemma (in M_triv_axioms) Inr_in_M_iff [iff]:
+lemma (in M_trivial) Inr_in_M_iff [iff]:
      "M(Inr(a)) <-> M(a)"
 by (simp add: Inr_def) 
 
-lemma (in M_triv_axioms) Inr_abs [simp]:
+lemma (in M_trivial) Inr_abs [simp]:
      "M(Z) ==> is_Inr(M,a,Z) <-> (Z = Inr(a))"
 by (simp add: is_Inr_def Inr_def)
 
 
 subsubsection {*converse of a relation*}
 
-lemma (in M_axioms) M_converse_iff:
+lemma (in M_basic) M_converse_iff:
      "M(r) ==> 
       converse(r) = 
       {z \<in> Union(Union(r)) * Union(Union(r)). 
@@ -1050,13 +1050,13 @@ apply (simp add: Pair_def)
 apply (blast dest: transM) 
 done
 
-lemma (in M_axioms) converse_closed [intro,simp]: 
+lemma (in M_basic) converse_closed [intro,simp]: 
      "M(r) ==> M(converse(r))"
 apply (simp add: M_converse_iff)
 apply (insert converse_separation [of r], simp)
 done
 
-lemma (in M_axioms) converse_abs [simp]: 
+lemma (in M_basic) converse_abs [simp]: 
      "[| M(r); M(z) |] ==> is_converse(M,r,z) <-> z = converse(r)"
 apply (simp add: is_converse_def)
 apply (rule iffI)
@@ -1069,105 +1069,105 @@ done
 
 subsubsection {*image, preimage, domain, range*}
 
-lemma (in M_axioms) image_closed [intro,simp]: 
+lemma (in M_basic) image_closed [intro,simp]: 
      "[| M(A); M(r) |] ==> M(r``A)"
 apply (simp add: image_iff_Collect)
 apply (insert image_separation [of A r], simp) 
 done
 
-lemma (in M_axioms) vimage_abs [simp]: 
+lemma (in M_basic) vimage_abs [simp]: 
      "[| M(r); M(A); M(z) |] ==> pre_image(M,r,A,z) <-> z = r-``A"
 apply (simp add: pre_image_def)
 apply (rule iffI) 
  apply (blast intro!: equalityI dest: transM, blast) 
 done
 
-lemma (in M_axioms) vimage_closed [intro,simp]: 
+lemma (in M_basic) vimage_closed [intro,simp]: 
      "[| M(A); M(r) |] ==> M(r-``A)"
 by (simp add: vimage_def)
 
 
 subsubsection{*Domain, range and field*}
 
-lemma (in M_axioms) domain_abs [simp]: 
+lemma (in M_basic) domain_abs [simp]: 
      "[| M(r); M(z) |] ==> is_domain(M,r,z) <-> z = domain(r)"
 apply (simp add: is_domain_def) 
 apply (blast intro!: equalityI dest: transM) 
 done
 
-lemma (in M_axioms) domain_closed [intro,simp]: 
+lemma (in M_basic) domain_closed [intro,simp]: 
      "M(r) ==> M(domain(r))"
 apply (simp add: domain_eq_vimage)
 done
 
-lemma (in M_axioms) range_abs [simp]: 
+lemma (in M_basic) range_abs [simp]: 
      "[| M(r); M(z) |] ==> is_range(M,r,z) <-> z = range(r)"
 apply (simp add: is_range_def)
 apply (blast intro!: equalityI dest: transM)
 done
 
-lemma (in M_axioms) range_closed [intro,simp]: 
+lemma (in M_basic) range_closed [intro,simp]: 
      "M(r) ==> M(range(r))"
 apply (simp add: range_eq_image)
 done
 
-lemma (in M_axioms) field_abs [simp]: 
+lemma (in M_basic) field_abs [simp]: 
      "[| M(r); M(z) |] ==> is_field(M,r,z) <-> z = field(r)"
 by (simp add: domain_closed range_closed is_field_def field_def)
 
-lemma (in M_axioms) field_closed [intro,simp]: 
+lemma (in M_basic) field_closed [intro,simp]: 
      "M(r) ==> M(field(r))"
 by (simp add: domain_closed range_closed Un_closed field_def) 
 
 
 subsubsection{*Relations, functions and application*}
 
-lemma (in M_axioms) relation_abs [simp]: 
+lemma (in M_basic) relation_abs [simp]: 
      "M(r) ==> is_relation(M,r) <-> relation(r)"
 apply (simp add: is_relation_def relation_def) 
 apply (blast dest!: bspec dest: pair_components_in_M)+
 done
 
-lemma (in M_axioms) function_abs [simp]: 
+lemma (in M_basic) function_abs [simp]: 
      "M(r) ==> is_function(M,r) <-> function(r)"
 apply (simp add: is_function_def function_def, safe) 
    apply (frule transM, assumption) 
   apply (blast dest: pair_components_in_M)+
 done
 
-lemma (in M_axioms) apply_closed [intro,simp]: 
+lemma (in M_basic) apply_closed [intro,simp]: 
      "[|M(f); M(a)|] ==> M(f`a)"
 by (simp add: apply_def)
 
-lemma (in M_axioms) apply_abs [simp]: 
+lemma (in M_basic) apply_abs [simp]: 
      "[| M(f); M(x); M(y) |] ==> fun_apply(M,f,x,y) <-> f`x = y"
 apply (simp add: fun_apply_def apply_def, blast) 
 done
 
-lemma (in M_axioms) typed_function_abs [simp]: 
+lemma (in M_basic) typed_function_abs [simp]: 
      "[| M(A); M(f) |] ==> typed_function(M,A,B,f) <-> f \<in> A -> B"
 apply (auto simp add: typed_function_def relation_def Pi_iff) 
 apply (blast dest: pair_components_in_M)+
 done
 
-lemma (in M_axioms) injection_abs [simp]: 
+lemma (in M_basic) injection_abs [simp]: 
      "[| M(A); M(f) |] ==> injection(M,A,B,f) <-> f \<in> inj(A,B)"
 apply (simp add: injection_def apply_iff inj_def apply_closed)
 apply (blast dest: transM [of _ A]) 
 done
 
-lemma (in M_axioms) surjection_abs [simp]: 
+lemma (in M_basic) surjection_abs [simp]: 
      "[| M(A); M(B); M(f) |] ==> surjection(M,A,B,f) <-> f \<in> surj(A,B)"
 by (simp add: surjection_def surj_def)
 
-lemma (in M_axioms) bijection_abs [simp]: 
+lemma (in M_basic) bijection_abs [simp]: 
      "[| M(A); M(B); M(f) |] ==> bijection(M,A,B,f) <-> f \<in> bij(A,B)"
 by (simp add: bijection_def bij_def)
 
 
 subsubsection{*Composition of relations*}
 
-lemma (in M_axioms) M_comp_iff:
+lemma (in M_basic) M_comp_iff:
      "[| M(r); M(s) |] 
       ==> r O s = 
           {xz \<in> domain(s) * range(r).  
@@ -1179,13 +1179,13 @@ apply (rule equalityI)
  apply  (blast dest:  transM)+
 done
 
-lemma (in M_axioms) comp_closed [intro,simp]: 
+lemma (in M_basic) comp_closed [intro,simp]: 
      "[| M(r); M(s) |] ==> M(r O s)"
 apply (simp add: M_comp_iff)
 apply (insert comp_separation [of r s], simp) 
 done
 
-lemma (in M_axioms) composition_abs [simp]: 
+lemma (in M_basic) composition_abs [simp]: 
      "[| M(r); M(s); M(t) |] 
       ==> composition(M,r,s,t) <-> t = r O s"
 apply safe
@@ -1200,7 +1200,7 @@ apply (rule M_equalityI)
 done
 
 text{*no longer needed*}
-lemma (in M_axioms) restriction_is_function: 
+lemma (in M_basic) restriction_is_function: 
      "[| restriction(M,f,A,z); function(f); M(f); M(A); M(z) |] 
       ==> function(z)"
 apply (rotate_tac 1)
@@ -1208,7 +1208,7 @@ apply (simp add: restriction_def ball_iff_equiv)
 apply (unfold function_def, blast) 
 done
 
-lemma (in M_axioms) restriction_abs [simp]: 
+lemma (in M_basic) restriction_abs [simp]: 
      "[| M(f); M(A); M(z) |] 
       ==> restriction(M,f,A,z) <-> z = restrict(f,A)"
 apply (simp add: ball_iff_equiv restriction_def restrict_def)
@@ -1216,39 +1216,39 @@ apply (blast intro!: equalityI dest: transM)
 done
 
 
-lemma (in M_axioms) M_restrict_iff:
+lemma (in M_basic) M_restrict_iff:
      "M(r) ==> restrict(r,A) = {z \<in> r . \<exists>x\<in>A. \<exists>y[M]. z = \<langle>x, y\<rangle>}"
 by (simp add: restrict_def, blast dest: transM)
 
-lemma (in M_axioms) restrict_closed [intro,simp]: 
+lemma (in M_basic) restrict_closed [intro,simp]: 
      "[| M(A); M(r) |] ==> M(restrict(r,A))"
 apply (simp add: M_restrict_iff)
 apply (insert restrict_separation [of A], simp) 
 done
 
-lemma (in M_axioms) Inter_abs [simp]: 
+lemma (in M_basic) Inter_abs [simp]: 
      "[| M(A); M(z) |] ==> big_inter(M,A,z) <-> z = Inter(A)"
 apply (simp add: big_inter_def Inter_def) 
 apply (blast intro!: equalityI dest: transM) 
 done
 
-lemma (in M_axioms) Inter_closed [intro,simp]:
+lemma (in M_basic) Inter_closed [intro,simp]:
      "M(A) ==> M(Inter(A))"
 by (insert Inter_separation, simp add: Inter_def)
 
-lemma (in M_axioms) Int_closed [intro,simp]:
+lemma (in M_basic) Int_closed [intro,simp]:
      "[| M(A); M(B) |] ==> M(A Int B)"
 apply (subgoal_tac "M({A,B})")
 apply (frule Inter_closed, force+) 
 done
 
-lemma (in M_axioms) Diff_closed [intro,simp]:
+lemma (in M_basic) Diff_closed [intro,simp]:
      "[|M(A); M(B)|] ==> M(A-B)"
 by (insert Diff_separation, simp add: Diff_def)
 
 subsubsection{*Some Facts About Separation Axioms*}
 
-lemma (in M_axioms) separation_conj:
+lemma (in M_basic) separation_conj:
      "[|separation(M,P); separation(M,Q)|] ==> separation(M, \<lambda>z. P(z) & Q(z))"
 by (simp del: separation_closed
          add: separation_iff Collect_Int_Collect_eq [symmetric]) 
@@ -1262,24 +1262,24 @@ lemma Diff_Collect_eq:
      "A - Collect(A,P) = Collect(A, %x. ~ P(x))"
 by blast
 
-lemma (in M_triv_axioms) Collect_rall_eq:
+lemma (in M_trivial) Collect_rall_eq:
      "M(Y) ==> Collect(A, %x. \<forall>y[M]. y\<in>Y --> P(x,y)) = 
                (if Y=0 then A else (\<Inter>y \<in> Y. {x \<in> A. P(x,y)}))"
 apply simp 
 apply (blast intro!: equalityI dest: transM) 
 done
 
-lemma (in M_axioms) separation_disj:
+lemma (in M_basic) separation_disj:
      "[|separation(M,P); separation(M,Q)|] ==> separation(M, \<lambda>z. P(z) | Q(z))"
 by (simp del: separation_closed
          add: separation_iff Collect_Un_Collect_eq [symmetric]) 
 
-lemma (in M_axioms) separation_neg:
+lemma (in M_basic) separation_neg:
      "separation(M,P) ==> separation(M, \<lambda>z. ~P(z))"
 by (simp del: separation_closed
          add: separation_iff Diff_Collect_eq [symmetric]) 
 
-lemma (in M_axioms) separation_imp:
+lemma (in M_basic) separation_imp:
      "[|separation(M,P); separation(M,Q)|] 
       ==> separation(M, \<lambda>z. P(z) --> Q(z))"
 by (simp add: separation_neg separation_disj not_disj_iff_imp [symmetric]) 
@@ -1287,7 +1287,7 @@ by (simp add: separation_neg separation_disj not_disj_iff_imp [symmetric])
 text{*This result is a hint of how little can be done without the Reflection 
   Theorem.  The quantifier has to be bounded by a set.  We also need another
   instance of Separation!*}
-lemma (in M_axioms) separation_rall:
+lemma (in M_basic) separation_rall:
      "[|M(Y); \<forall>y[M]. separation(M, \<lambda>x. P(x,y)); 
         \<forall>z[M]. strong_replacement(M, \<lambda>x y. y = {u \<in> z . P(u,x)})|]
       ==> separation(M, \<lambda>x. \<forall>y[M]. y\<in>Y --> P(x,y))" 
@@ -1300,7 +1300,7 @@ done
 subsubsection{*Functions and function space*}
 
 text{*M contains all finite functions*}
-lemma (in M_axioms) finite_fun_closed_lemma [rule_format]: 
+lemma (in M_basic) finite_fun_closed_lemma [rule_format]: 
      "[| n \<in> nat; M(A) |] ==> \<forall>f \<in> n -> A. M(f)"
 apply (induct_tac n, simp)
 apply (rule ballI)  
@@ -1312,13 +1312,13 @@ apply (subgoal_tac "M(f`x) & restrict(f,x) \<in> x -> A")
 apply (blast intro: apply_funtype transM restrict_type2) 
 done
 
-lemma (in M_axioms) finite_fun_closed [rule_format]: 
+lemma (in M_basic) finite_fun_closed [rule_format]: 
      "[| f \<in> n -> A; n \<in> nat; M(A) |] ==> M(f)"
 by (blast intro: finite_fun_closed_lemma) 
 
 text{*The assumption @{term "M(A->B)"} is unusual, but essential: in 
 all but trivial cases, A->B cannot be expected to belong to @{term M}.*}
-lemma (in M_axioms) is_funspace_abs [simp]:
+lemma (in M_basic) is_funspace_abs [simp]:
      "[|M(A); M(B); M(F); M(A->B)|] ==> is_funspace(M,A,B,F) <-> F = A->B";
 apply (simp add: is_funspace_def)
 apply (rule iffI)
@@ -1327,7 +1327,7 @@ apply (rule M_equalityI)
   apply simp_all
 done
 
-lemma (in M_axioms) succ_fun_eq2:
+lemma (in M_basic) succ_fun_eq2:
      "[|M(B); M(n->B)|] ==>
       succ(n) -> B = 
       \<Union>{z. p \<in> (n->B)*B, \<exists>f[M]. \<exists>b[M]. p = <f,b> & z = {cons(<n,b>, f)}}"
@@ -1335,7 +1335,7 @@ apply (simp add: succ_fun_eq)
 apply (blast dest: transM)  
 done
 
-lemma (in M_axioms) funspace_succ:
+lemma (in M_basic) funspace_succ:
      "[|M(n); M(B); M(n->B) |] ==> M(succ(n) -> B)"
 apply (insert funspace_succ_replacement [of n], simp) 
 apply (force simp add: succ_fun_eq2 univalent_def) 
@@ -1343,7 +1343,7 @@ done
 
 text{*@{term M} contains all finite function spaces.  Needed to prove the
 absoluteness of transitive closure.*}
-lemma (in M_axioms) finite_funspace_closed [intro,simp]:
+lemma (in M_basic) finite_funspace_closed [intro,simp]:
      "[|n\<in>nat; M(B)|] ==> M(n->B)"
 apply (induct_tac n, simp)
 apply (simp add: funspace_succ nat_into_M) 
@@ -1368,37 +1368,37 @@ constdefs
    "is_or(M,a,b,z) == (number1(M,a)  & number1(M,z)) | 
                       (~number1(M,a) & z=b)"
 
-lemma (in M_triv_axioms) bool_of_o_abs [simp]: 
+lemma (in M_trivial) bool_of_o_abs [simp]: 
      "M(z) ==> is_bool_of_o(M,P,z) <-> z = bool_of_o(P)" 
 by (simp add: is_bool_of_o_def bool_of_o_def) 
 
 
-lemma (in M_triv_axioms) not_abs [simp]: 
+lemma (in M_trivial) not_abs [simp]: 
      "[| M(a); M(z)|] ==> is_not(M,a,z) <-> z = not(a)"
 by (simp add: Bool.not_def cond_def is_not_def) 
 
-lemma (in M_triv_axioms) and_abs [simp]: 
+lemma (in M_trivial) and_abs [simp]: 
      "[| M(a); M(b); M(z)|] ==> is_and(M,a,b,z) <-> z = a and b"
 by (simp add: Bool.and_def cond_def is_and_def) 
 
-lemma (in M_triv_axioms) or_abs [simp]: 
+lemma (in M_trivial) or_abs [simp]: 
      "[| M(a); M(b); M(z)|] ==> is_or(M,a,b,z) <-> z = a or b"
 by (simp add: Bool.or_def cond_def is_or_def)
 
 
-lemma (in M_triv_axioms) bool_of_o_closed [intro,simp]:
+lemma (in M_trivial) bool_of_o_closed [intro,simp]:
      "M(bool_of_o(P))"
 by (simp add: bool_of_o_def) 
 
-lemma (in M_triv_axioms) and_closed [intro,simp]:
+lemma (in M_trivial) and_closed [intro,simp]:
      "[| M(p); M(q) |] ==> M(p and q)"
 by (simp add: and_def cond_def) 
 
-lemma (in M_triv_axioms) or_closed [intro,simp]:
+lemma (in M_trivial) or_closed [intro,simp]:
      "[| M(p); M(q) |] ==> M(p or q)"
 by (simp add: or_def cond_def) 
 
-lemma (in M_triv_axioms) not_closed [intro,simp]:
+lemma (in M_trivial) not_closed [intro,simp]:
      "M(p) ==> M(not(p))"
 by (simp add: Bool.not_def cond_def) 
 
@@ -1416,16 +1416,16 @@ constdefs
     "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)"
 
 
-lemma (in M_triv_axioms) Nil_in_M [intro,simp]: "M(Nil)"
+lemma (in M_trivial) Nil_in_M [intro,simp]: "M(Nil)"
 by (simp add: Nil_def)
 
-lemma (in M_triv_axioms) Nil_abs [simp]: "M(Z) ==> is_Nil(M,Z) <-> (Z = Nil)"
+lemma (in M_trivial) Nil_abs [simp]: "M(Z) ==> is_Nil(M,Z) <-> (Z = Nil)"
 by (simp add: is_Nil_def Nil_def)
 
-lemma (in M_triv_axioms) Cons_in_M_iff [iff]: "M(Cons(a,l)) <-> M(a) & M(l)"
+lemma (in M_trivial) Cons_in_M_iff [iff]: "M(Cons(a,l)) <-> M(a) & M(l)"
 by (simp add: Cons_def) 
 
-lemma (in M_triv_axioms) Cons_abs [simp]:
+lemma (in M_trivial) Cons_abs [simp]:
      "[|M(a); M(l); M(Z)|] ==> is_Cons(M,a,l,Z) <-> (Z = Cons(a,l))"
 by (simp add: is_Cons_def Cons_def)
 
@@ -1499,18 +1499,18 @@ lemma list_case'_eq_list_case [simp]:
      "xs \<in> list(A) ==>list_case'(a,b,xs) = list_case(a,b,xs)"
 by (erule list.cases, simp_all)
 
-lemma (in M_axioms) list_case'_closed [intro,simp]:
+lemma (in M_basic) list_case'_closed [intro,simp]:
   "[|M(k); M(a); \<forall>x[M]. \<forall>y[M]. M(b(x,y))|] ==> M(list_case'(a,b,k))"
 apply (case_tac "quasilist(k)") 
  apply (simp add: quasilist_def, force) 
 apply (simp add: non_list_case) 
 done
 
-lemma (in M_triv_axioms) quasilist_abs [simp]: 
+lemma (in M_trivial) quasilist_abs [simp]: 
      "M(z) ==> is_quasilist(M,z) <-> quasilist(z)"
 by (auto simp add: is_quasilist_def quasilist_def)
 
-lemma (in M_triv_axioms) list_case_abs [simp]: 
+lemma (in M_trivial) list_case_abs [simp]: 
      "[| relativize2(M,is_b,b); M(k); M(z) |] 
       ==> is_list_case(M,a,is_b,k,z) <-> z = list_case'(a,b,k)"
 apply (case_tac "quasilist(k)") 
@@ -1525,14 +1525,14 @@ done
 
 subsubsection{*The Modified Operators @{term hd'} and @{term tl'}*}
 
-lemma (in M_triv_axioms) is_hd_Nil: "is_hd(M,[],Z) <-> empty(M,Z)"
+lemma (in M_trivial) is_hd_Nil: "is_hd(M,[],Z) <-> empty(M,Z)"
 by (simp add: is_hd_def)
 
-lemma (in M_triv_axioms) is_hd_Cons:
+lemma (in M_trivial) is_hd_Cons:
      "[|M(a); M(l)|] ==> is_hd(M,Cons(a,l),Z) <-> Z = a"
 by (force simp add: is_hd_def) 
 
-lemma (in M_triv_axioms) hd_abs [simp]:
+lemma (in M_trivial) hd_abs [simp]:
      "[|M(x); M(y)|] ==> is_hd(M,x,y) <-> y = hd'(x)"
 apply (simp add: hd'_def)
 apply (intro impI conjI)
@@ -1541,14 +1541,14 @@ apply (simp add: quasilist_def is_hd_def)
 apply (elim disjE exE, auto)
 done 
 
-lemma (in M_triv_axioms) is_tl_Nil: "is_tl(M,[],Z) <-> Z = []"
+lemma (in M_trivial) is_tl_Nil: "is_tl(M,[],Z) <-> Z = []"
 by (simp add: is_tl_def)
 
-lemma (in M_triv_axioms) is_tl_Cons:
+lemma (in M_trivial) is_tl_Cons:
      "[|M(a); M(l)|] ==> is_tl(M,Cons(a,l),Z) <-> Z = l"
 by (force simp add: is_tl_def) 
 
-lemma (in M_triv_axioms) tl_abs [simp]:
+lemma (in M_trivial) tl_abs [simp]:
      "[|M(x); M(y)|] ==> is_tl(M,x,y) <-> y = tl'(x)"
 apply (simp add: tl'_def)
 apply (intro impI conjI)
@@ -1557,7 +1557,7 @@ apply (simp add: quasilist_def is_tl_def)
 apply (elim disjE exE, auto)
 done 
 
-lemma (in M_triv_axioms) relativize1_tl: "relativize1(M, is_tl(M), tl')"  
+lemma (in M_trivial) relativize1_tl: "relativize1(M, is_tl(M), tl')"  
 by (simp add: relativize1_def)
 
 lemma hd'_Nil: "hd'([]) = 0"
@@ -1577,7 +1577,7 @@ apply (induct_tac n)
 apply (simp_all add: tl'_Nil) 
 done
 
-lemma (in M_axioms) tl'_closed: "M(x) ==> M(tl'(x))"
+lemma (in M_basic) tl'_closed: "M(x) ==> M(tl'(x))"
 apply (simp add: tl'_def)
 apply (force simp add: quasilist_def)
 done
