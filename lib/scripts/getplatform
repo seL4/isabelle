@@ -4,7 +4,7 @@
 # getplatform - bash source script to augment current env.
 #
 
-#get bash-style platform info
+#get bash-style platform info -- has to work around some tricky features
 unset HOSTTYPE
 unset OSTYPE
-PLATFORM=$(bash -norc -c 'echo $HOSTTYPE-$OSTYPE')
+PLATFORM=$(unset ENV; unset BASH_ENV; bash -norc -c 'echo $HOSTTYPE-$OSTYPE')
