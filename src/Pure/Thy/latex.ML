@@ -87,7 +87,7 @@ val output_tokens = implode o map output_tok;
 (* theory presentation *)
 
 fun token_source toks =
-  "\\begin{isabellesimple}\n" ^ output_tokens toks ^ "\\end{isabellesimple}\n";
+  "\\begin{isabellesimple}%\n" ^ output_tokens toks ^ "\\end{isabellesimple}\n";
 
 fun theory_entry name = "\\input{" ^ name ^ ".tex}\n";
 
