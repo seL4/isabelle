@@ -20,9 +20,11 @@ function usage()
   echo
   echo "Usage: $PRG TOOL [ARGS ...]"
   echo
-  echo "  Start Isabelle utility program TOOL with ARGS."
+  echo "  Start Isabelle utility program TOOL with ARGS. Pass \"-?\" to TOOL"
+  echo "  for specific help."
   echo
   echo "  Availabe tools are:"
+  echo
   (
     cd "$ISABELLE_HOME/lib/Tools"
     for T in *
