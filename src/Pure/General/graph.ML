@@ -10,7 +10,9 @@ signature GRAPH =
 sig
   type key
   type 'a T
-  exception UNDEFINED of key
+  exception UNDEF of key
+  exception DUP of key
+  exception DUPS of key list
   val empty: 'a T
   val keys: 'a T -> key list
   val map_nodes: ('a -> 'b) -> 'a T -> 'b T
@@ -21,13 +23,15 @@ sig
   val all_preds: 'a T -> key list -> key list
   val all_succs: 'a T -> key list -> key list
   val find_paths: 'a T -> key * key -> key list list
-  exception DUPLICATE of key
   val new_node: key * 'a -> 'a T -> 'a T
   val del_nodes: key list -> 'a T -> 'a T
+  val edges: 'a T -> (key * key) list
   val add_edge: key * key -> 'a T -> 'a T
   val del_edge: key * key -> 'a T -> 'a T
   exception CYCLES of key list list
   val add_edge_acyclic: key * key -> 'a T -> 'a T
+  val add_deps_acyclic: key * key list -> 'a T -> 'a T
+  val merge_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T
 end;
 
 functor GraphFun(Key: KEY): GRAPH =
@@ -71,7 +75,9 @@ fun x ins_keys tab = if x mem_keys tab then tab else Table.update ((x, ()), tab)
 
 datatype 'a T = Graph of ('a * (key list * key list)) Table.table;
 
-exception UNDEFINED of key;
+exception UNDEF of key;
+exception DUP = Table.DUP;
+exception DUPS = Table.DUPS;
 
 val empty = Graph Table.empty;
 fun keys (Graph tab) = Table.keys tab;
@@ -79,7 +85,7 @@ fun keys (Graph tab) = Table.keys tab;
 fun get_entry (Graph tab) x =
   (case Table.lookup (tab, x) of
     Some entry => entry
-  | None => raise UNDEFINED x);
+  | None => raise UNDEF x);
 
 fun map_entry x f (G as Graph tab) = Graph (Table.update ((x, f (get_entry G x)), tab));
 
@@ -124,13 +130,12 @@ fun find_paths G (x, y) =
   in get_entry G y; if y mem_keys X then (paths [] y) else [] end;
 
 
-(* build graphs *)
+(* nodes *)
 
 exception DUPLICATE of key;
 
 fun new_node (x, info) (Graph tab) =
-  Graph (Table.update_new ((x, (info, ([], []))), tab)
-    handle Table.DUP key => raise DUPLICATE key);
+  Graph (Table.update_new ((x, (info, ([], []))), tab));
 
 fun del_nodes xs (Graph tab) =
   let
@@ -139,6 +144,11 @@ fun del_nodes xs (Graph tab) =
       else Some (x, (i, (preds del_keys xs, succs del_keys xs)));
   in Graph (Table.make (mapfilter del (Table.dest tab))) end;
 
+
+(* edges *)
+
+fun edges (Graph tab) =
+  flat (map (fn (x, (_, (_, succs))) => (map (pair x) succs)) (Table.dest tab));
 
 fun add_edge (x, y) =
   map_entry x (fn (i, (preds, succs)) => (i, (preds, y ins_key succs))) o
@@ -155,6 +165,16 @@ fun add_edge_acyclic (x, y) G =
   (case find_paths G (y, x) of
     [] => add_edge (x, y) G
   | cycles => raise CYCLES (map (cons x) cycles));
+
+fun add_deps_acyclic (y, xs) G =
+  foldl (fn (H, x) => add_edge_acyclic (x, y) H) (G, xs);
+
+
+(* merge_acyclic *)
+
+fun merge_acyclic eq (Graph tab1, G2 as Graph tab2) =
+  foldl (fn (G, xy) => add_edge_acyclic xy G)
+    (Graph (Table.merge (fn ((i1, _), (i2, _)) => eq (i1, i2)) (tab1, tab2)), edges G2);
 
 
 end;
