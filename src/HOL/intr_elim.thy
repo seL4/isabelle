@@ -1,1 +1,1 @@
-intr_elim = Pure
+intr_elim = CPure
