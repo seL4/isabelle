@@ -35,7 +35,9 @@ sig
   val name: token list -> bstring * token list
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
-  val comment: token list -> string * token list
+  val comment: token list -> Comment.text * token list
+  val marg_comment: token list -> Comment.text * token list
+  val interest: token list -> Comment.interest * token list
   val sort: token list -> xsort * token list
   val arity: token list -> (xsort list * xsort) * token list
   val simple_arity: token list -> (xsort list * xclass) * token list
@@ -148,8 +150,14 @@ fun and_list scan = enum "and" scan;
 
 val name = group "name declaration" (short_ident || sym_ident || string);
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string);
-val text = group "text" (short_ident || long_ident || string || verbatim);
-val comment = Scan.optional ($$$ "--" |-- text) "";
+val text = group "text" (short_ident || long_ident || sym_ident || string || verbatim);
+
+
+(* formal comments *)
+
+val comment = text >> Comment.plain;
+val marg_comment = Scan.optional ($$$ "--" |-- comment) Comment.empty;
+val interest = Scan.optional ($$$ "%" >> K Comment.no_interest) Comment.default_interest;
 
 
 (* sorts and arities *)
@@ -167,7 +175,7 @@ val simple_arity = gen_arity name;
 (* types *)
 
 val typ =
-  group "type" (short_ident || long_ident || type_ident || type_var || string);
+  group "type" (short_ident || long_ident || sym_ident || type_ident || type_var || string);
 
 val type_args =
   type_ident >> single ||
@@ -207,7 +215,7 @@ val const =
 
 (* terms *)
 
-val trm = short_ident || long_ident || term_var || text_var || string;
+val trm = short_ident || long_ident || sym_ident || term_var || text_var || string;
 
 val term = group "term" trm;
 val prop = group "proposition" trm;
@@ -270,7 +278,7 @@ and meth2 x =
 and meth1 x = (enum1 "," meth2 >> (fn [m] => m | ms => Method.Then ms)) x
 and meth0 x = (enum1 "|" meth1 >> (fn [m] => m | ms => Method.Orelse ms)) x;
 
-val method = meth3;
+val method = meth4;
 
 
 end;
