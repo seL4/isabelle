@@ -128,10 +128,10 @@ syntax (input)
   "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>_\<in>_./ _)" 10)
 
 syntax (xsymbols)
-  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>()\<^bsub>_\<^esub>/ _)" 10)
-  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>()\<^bsub>_\<^esub>/ _)" 10)
-  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>()\<^bsub>_\<in>_\<^esub>/ _)" 10)
-  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>()\<^bsub>_\<in>_\<^esub>/ _)" 10)
+  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>(00\<^bsub>_\<^esub>)/ _)" 10)
+  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>(00\<^bsub>_\<^esub>)/ _)" 10)
+  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>(00\<^bsub>_\<in>_\<^esub>)/ _)" 10)
+  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>(00\<^bsub>_\<in>_\<^esub>)/ _)" 10)
 
 
 translations
