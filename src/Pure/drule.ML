@@ -13,8 +13,10 @@ sig
   val mk_implies        : cterm * cterm -> cterm
   val list_implies      : cterm list * cterm -> cterm
   val dest_implies      : cterm -> cterm * cterm
+  val dest_equals       : cterm -> cterm * cterm
   val skip_flexpairs    : cterm -> cterm
   val strip_imp_prems   : cterm -> cterm list
+  val strip_imp_concl   : cterm -> cterm
   val cprems_of         : thm -> cterm list
   val read_insts        :
           Sign.sg -> (indexname -> typ option) * (indexname -> sort option)
@@ -59,17 +61,8 @@ sig
   val transitive_thm    : thm
   val refl_implies      : thm
   val symmetric_fun     : thm -> thm
-  val rewrite_rule_aux  : (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
-  val rewrite_thm       : bool * bool * bool
-                          -> (meta_simpset -> thm -> thm option)
-                          -> meta_simpset -> thm -> thm
-  val rewrite_cterm     : bool * bool * bool
-                          -> (meta_simpset -> thm -> thm option)
-                          -> meta_simpset -> cterm -> thm
-  val rewrite_goals_rule_aux: (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
-  val rewrite_goal_rule : bool* bool * bool
-                          -> (meta_simpset -> thm -> thm option)
-                          -> meta_simpset -> int -> thm -> thm
+  val imp_cong          : thm
+  val swap_prems_eq     : thm
   val equal_abs_elim    : cterm  -> thm -> thm
   val equal_abs_elim_list: cterm list -> thm -> thm
   val flexpair_abs_elim_list: cterm list -> thm -> thm
@@ -82,7 +75,6 @@ sig
   val equal_intr_rule   : thm
   val inst              : string -> string -> thm -> thm
   val instantiate'      : ctyp option list -> cterm option list -> thm -> thm
-  val incr_indexes      : int -> thm -> thm
   val incr_indexes_wrt  : int list -> ctyp list -> cterm list -> thm list -> thm -> thm
 end;
 
@@ -133,6 +125,13 @@ fun dest_implies ct =
             let val (ct1,ct2) = dest_comb ct
             in  (#2 (dest_comb ct1), ct2)  end
       | _ => raise TERM ("dest_implies", [term_of ct]) ;
+
+fun dest_equals ct =
+    case term_of ct of
+        (Const("==", _) $ _ $ _) =>
+            let val (ct1,ct2) = dest_comb ct
+            in  (#2 (dest_comb ct1), ct2)  end
+      | _ => raise TERM ("dest_equals", [term_of ct]) ;
 
 
 (*Discard flexflex pairs; return a cterm*)
@@ -482,47 +481,37 @@ val transitive_thm =
 
 fun symmetric_fun thm = thm RS symmetric_thm;
 
-(** Below, a "conversion" has type cterm -> thm **)
+val imp_cong =
+  let
+    val ABC = read_prop "PROP A ==> PROP B == PROP C"
+    val AB = read_prop "PROP A ==> PROP B"
+    val AC = read_prop "PROP A ==> PROP C"
+    val A = read_prop "PROP A"
+  in
+    store_standard_thm "imp_cong2" (implies_intr ABC (equal_intr
+      (implies_intr AB (implies_intr A
+        (equal_elim (implies_elim (assume ABC) (assume A))
+          (implies_elim (assume AB) (assume A)))))
+      (implies_intr AC (implies_intr A
+        (equal_elim (symmetric (implies_elim (assume ABC) (assume A)))
+          (implies_elim (assume AC) (assume A)))))))
+  end;
+
+val swap_prems_eq =
+  let
+    val ABC = read_prop "PROP A ==> PROP B ==> PROP C"
+    val BAC = read_prop "PROP B ==> PROP A ==> PROP C"
+    val A = read_prop "PROP A"
+    val B = read_prop "PROP B"
+  in
+    store_standard_thm "swap_prems_eq" (equal_intr
+      (implies_intr ABC (implies_intr B (implies_intr A
+        (implies_elim (implies_elim (assume ABC) (assume A)) (assume B)))))
+      (implies_intr BAC (implies_intr A (implies_intr B
+        (implies_elim (implies_elim (assume BAC) (assume B)) (assume A))))))
+  end;
 
 val refl_implies = reflexive implies;
-
-(*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
-(*Do not rewrite flex-flex pairs*)
-fun goals_conv pred cv =
-  let fun gconv i ct =
-        let val (A,B) = dest_implies ct
-            val (thA,j) = case term_of A of
-                  Const("=?=",_)$_$_ => (reflexive A, i)
-                | _ => (if pred i then cv A else reflexive A, i+1)
-        in  combination (combination refl_implies thA) (gconv j B) end
-        handle TERM _ => reflexive ct
-  in gconv 1 end;
-
-(*Use a conversion to transform a theorem*)
-fun fconv_rule cv th = equal_elim (cv (cprop_of th)) th;
-
-(*rewriting conversion*)
-fun rew_conv mode prover mss = rewrite_cterm mode mss prover;
-
-(*Rewrite a theorem*)
-fun rewrite_rule_aux _ [] = (fn th => th)
-  | rewrite_rule_aux prover thms =
-      fconv_rule (rew_conv (true,false,false) prover (Thm.mss_of thms));
-
-fun rewrite_thm mode prover mss = fconv_rule (rew_conv mode prover mss);
-fun rewrite_cterm mode prover mss = Thm.rewrite_cterm mode mss prover;
-
-(*Rewrite the subgoals of a proof state (represented by a theorem) *)
-fun rewrite_goals_rule_aux _ []   th = th
-  | rewrite_goals_rule_aux prover thms th =
-      fconv_rule (goals_conv (K true) (rew_conv (true, true, false) prover
-        (Thm.mss_of thms))) th;
-
-(*Rewrite the subgoal of a proof state (represented by a theorem) *)
-fun rewrite_goal_rule mode prover mss i thm =
-  if 0 < i  andalso  i <= nprems_of thm
-  then fconv_rule (goals_conv (fn j => j=i) (rew_conv mode prover mss)) thm
-  else raise THM("rewrite_goal_rule",i,[thm]);
 
 
 (*** Some useful meta-theorems ***)
@@ -678,8 +667,8 @@ fun equal_abs_elim ca eqth =
       val {sign,prop,...} = rep_thm eqth
       val (abst,absu) = Logic.dest_equals prop
       val cterm = cterm_of (Sign.merge (sign,signa))
-  in  transitive (symmetric (beta_conversion (cterm (abst$a))))
-           (transitive combth (beta_conversion (cterm (absu$a))))
+  in  transitive (symmetric (beta_conversion false (cterm (abst$a))))
+           (transitive combth (beta_conversion false (cterm (absu$a))))
   end
   handle THM _ => raise THM("equal_abs_elim", 0, [eqth]);
 
@@ -803,17 +792,6 @@ fun tvars_intr_list tfrees thm =
 
 (* increment var indexes *)
 
-fun incr_indexes 0 thm = thm
-  | incr_indexes inc thm =
-      let
-        val sign = Thm.sign_of_thm thm;
-
-        fun inc_tvar ((x, i), S) = Some (Thm.ctyp_of sign (TVar ((x, i + inc), S)));
-        fun inc_var ((x, i), T) = Some (Thm.cterm_of sign (Var ((x, i + inc), T)));
-        val thm' = instantiate' (map inc_tvar (tvars_of thm)) [] thm;
-        val thm'' = instantiate' [] (map inc_var (vars_of thm')) thm';
-      in thm'' end;
-
 fun incr_indexes_wrt is cTs cts thms =
   let
     val maxidx =
@@ -821,7 +799,7 @@ fun incr_indexes_wrt is cTs cts thms =
         map (maxidx_of_typ o #T o Thm.rep_ctyp) cTs @
         map (#maxidx o Thm.rep_cterm) cts @
         map (#maxidx o Thm.rep_thm) thms);
-  in incr_indexes (maxidx + 1) end;
+  in Thm.incr_indexes (maxidx + 1) end;
 
 
 (* freeze_all *)
