@@ -24,9 +24,15 @@ qed_goal "update_triv" thy "!!X. t k = Some x ==> t[k|->x] = t"
 	(K [rtac ext 1, Asm_simp_tac 1]);
 (*Addsimps [update_same, update_other, update_triv];*)
 
+section "option_map";
+
+qed_goal "option_map_o_empty" thy 
+         "option_map f o empty = empty" (K [rtac ext 1, Simp_tac 1]);
+
 qed_goal "option_map_o_update" thy 
-	"option_map f o m[a|->b] = (option_map f o m)[a|->f b]" 
-	(K [rtac ext 1,Auto_tac]);
+	 "option_map f o m[a|->b] = (option_map f o m)[a|->f b]" 
+	(K [rtac ext 1, Simp_tac 1]);
+Addsimps[option_map_o_empty, option_map_o_update];
 
 section "++";
 
