@@ -30,6 +30,10 @@ val implode = SML90.implode;
 
 use "ML-Systems/cpu-timer-basis.ML";
 
+(* bounded time execution *)
+
+use "ML-Systems/polyml-time-limit.ML";
+
 (* prompts *)
 
 fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
