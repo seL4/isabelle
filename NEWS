@@ -152,8 +152,31 @@ New in this Isabelle release
   Moreover, the mathematically important symbolic identifier
   \<epsilon> becomes available as variable, constant etc.
 
-* HOL: Summation over nat with syntax '\<Sum>i<k. e' is now just a
-  translation into 'setsum'.
+* HOL/SetInterval: The syntax for open intervals has changed:
+
+  Old         New
+  {..n(}   -> {..<n}
+  {)n..}   -> {n<..}
+  {m..n(}  -> {m..<n}
+  {)m..n}  -> {m<..n}
+  {)m..n(} -> {m<..<n}
+
+  The old syntax is still supported but will disappear in the future.
+  For conversion use the following emacs search and replace patterns:
+
+  {)\([^\.]*\)\.\.  ->  {\1<\.\.}
+  \.\.\([^(}]*\)(}  ->  \.\.<\1}
+
+  They are not perfect but work quite well.
+
+* HOL: There is new syntax for summation over finite sets:
+
+  '\<Sum>x | P. e' is the same as 'setsum (%x. e) {x. P}'
+  '\<Sum>x<k. e'   is the same as 'setsum (%x. e) {..<k}'
+
+  Function 'Summation' over nat is gone, its syntax '\<Sum>i<k. e'
+  now translates into 'setsum' as above.
+
 
 *** HOLCF ***
 
