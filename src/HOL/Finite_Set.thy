@@ -765,25 +765,29 @@ text{* Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
 written @{text"\<Sum>x\<in>A. e"}. *}
 
 syntax
-  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_:_. _)" [0, 51, 10] 10)
+  "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3SUM _:_. _)" [0, 51, 10] 10)
 syntax (xsymbols)
   "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
 syntax (HTML output)
   "_setsum" :: "idt => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
-translations
-  "\<Sum>i:A. b" == "setsum (%i. b) A"  -- {* Beware of argument permutation! *}
+
+translations -- {* Beware of argument permutation! *}
+  "SUM i:A. b" == "setsum (%i. b) A"
+  "\<Sum>i\<in>A. b" == "setsum (%i. b) A"
 
 text{* Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
  @{text"\<Sum>x|P. e"}. *}
 
 syntax
-  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ | / _./ _)" [0,0,10] 10)
+  "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SUM _ |/ _./ _)" [0,0,10] 10)
 syntax (xsymbols)
   "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
 syntax (HTML output)
   "_qsetsum" :: "idt \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
 
-translations "\<Sum>x|P. t" => "setsum (%x. t) {x. P}"
+translations
+  "SUM x|P. t" => "setsum (%x. t) {x. P}"
+  "\<Sum>x|P. t" => "setsum (%x. t) {x. P}"
 
 print_translation {*
 let
@@ -894,8 +898,8 @@ lemma setsum_Union_disjoint:
   done
 
 lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
-    (\<Sum>x:A. (\<Sum>y:B x. f x y)) =
-    (\<Sum>z:(SIGMA x:A. B x). f (fst z) (snd z))"
+    (\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) =
+    (\<Sum>z\<in>(SIGMA x:A. B x). f (fst z) (snd z))"
   apply (subst Sigma_def)
   apply (subst setsum_UN_disjoint)
   apply assumption
@@ -911,8 +915,8 @@ lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
   done
 
 lemma setsum_cartesian_product: "finite A ==> finite B ==>
-    (\<Sum>x:A. (\<Sum>y:B. f x y)) =
-    (\<Sum>z:A <*> B. f (fst z) (snd z))"
+    (\<Sum>x\<in>A. (\<Sum>y\<in>B. f x y)) =
+    (\<Sum>z\<in>A <*> B. f (fst z) (snd z))"
   by (erule setsum_Sigma, auto);
 
 lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
@@ -936,7 +940,7 @@ lemma setsum_eq_0_iff [simp]:
   by (induct set: Finites) auto
 
 lemma setsum_constant_nat:
-    "finite A ==> (\<Sum>x: A. y) = (card A) * y"
+    "finite A ==> (\<Sum>x\<in>A. y) = (card A) * y"
   -- {* Generalized to any @{text comm_semiring_1_cancel} in
         @{text IntDef} as @{text setsum_constant}. *}
   by (erule finite_induct, auto)
@@ -1047,7 +1051,7 @@ lemma card_cartesian_product_singleton: "finite A ==>
 
 lemma card_SigmaI [rule_format,simp]: "finite A ==>
   (ALL a:A. finite (B a)) -->
-  card (SIGMA x: A. B x) = (\<Sum>a: A. card (B a))"
+  card (SIGMA x: A. B x) = (\<Sum>a\<in>A. card (B a))"
   apply (erule finite_induct, auto)
   apply (subst SigmaI_insert, assumption)
   apply (subst card_Un_disjoint)

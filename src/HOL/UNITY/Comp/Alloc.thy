@@ -52,8 +52,8 @@ constdefs
   (*spec (1)*)
   system_safety :: 'a systemState program set
     "system_safety ==
-     Always {s. (\\<Sum>i: lessThan Nclients. (tokens o giv o sub i o client)s)
-     <= NbT + (\\<Sum>i: lessThan Nclients. (tokens o rel o sub i o client)s)}"
+     Always {s. (SUM i: lessThan Nclients. (tokens o giv o sub i o client)s)
+     <= NbT + (SUM i: lessThan Nclients. (tokens o rel o sub i o client)s)}"
 
   (*spec (2)*)
   system_progress :: 'a systemState program set
@@ -111,8 +111,8 @@ constdefs
     "alloc_safety ==
 	 (INT i : lessThan Nclients. Increasing (sub i o allocRel))
          guarantees
-	 Always {s. (\\<Sum>i: lessThan Nclients. (tokens o sub i o allocGiv)s)
-         <= NbT + (\\<Sum>i: lessThan Nclients. (tokens o sub i o allocRel)s)}"
+	 Always {s. (SUM i: lessThan Nclients. (tokens o sub i o allocGiv)s)
+         <= NbT + (SUM i: lessThan Nclients. (tokens o sub i o allocRel)s)}"
 
   (*spec (8)*)
   alloc_progress :: 'a allocState_d program set

@@ -353,7 +353,7 @@ subsection{*Theorems for Allocator*}
 
 lemma alloc_refinement_lemma:
      "!!f::nat=>nat. (\<Inter>i \<in> lessThan n. {s. f i \<le> g i s})
-      \<subseteq> {s. (\<Sum>x \<in> lessThan n. f x) \<le> (\<Sum>x: lessThan n. g x s)}"
+      \<subseteq> {s. (SUM x: lessThan n. f x) \<le> (SUM x: lessThan n. g x s)}"
 apply (induct_tac "n")
 apply (auto simp add: lessThan_Suc)
 done
