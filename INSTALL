@@ -51,8 +51,13 @@ like:
 
 This starts an interactive Isabelle session within your current text
 terminal.  You may want to put [ISABELLE_HOME]/bin into your shell's
-search PATH. Please do *not* copy (or link) the Isabelle scripts
-somewhere else -- or they just won't work!
+search PATH.
+
+Please do *not* copy (or link) the Isabelle scripts anywhere else --
+or they just won't work!  If you really feel the urge to install
+independent Isabelle binaries somewhere use
+[ISABELLE_HOME]/bin/isatool install (see the system manual for more
+information).
 
 
 $Id$
