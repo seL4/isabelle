@@ -421,7 +421,7 @@ fun mk_indrule cs cTs params intr_ts =
           val ps = if_none (assoc (factors, P)) [];
           val Ts = prodT_factors [] ps T;
           val (frees, x') = foldr (fn (T', (fs, s)) =>
-            ((Free (s, T'))::fs, bump_string s)) (Ts, ([], x));
+            ((Free (s, T'))::fs, Symbol.bump_string s)) (Ts, ([], x));
           val tuple = mk_tuple [] ps T frees;
       in ((HOLogic.mk_binop "op -->"
         (HOLogic.mk_mem (tuple, c), P $ tuple))::ts, x')

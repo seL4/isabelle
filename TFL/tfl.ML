@@ -82,7 +82,7 @@ fun gvvariant names =
       val vname = ref "u"
       fun new() =
          if !vname mem_string (!slist)
-         then (vname := bump_string (!vname);  new())
+         then (vname := Symbol.bump_string (!vname);  new())
          else (slist := !vname :: !slist;  !vname)
   in
   fn ty => Free(new(), ty)

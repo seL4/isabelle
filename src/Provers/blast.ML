@@ -415,12 +415,12 @@ fun fromTerm t =
 (*A debugging function: replaces all Vars by dummy Frees for visual inspection
   of whether they are distinct.  Function revert undoes the assignments.*)
 fun instVars t =
-  let val name = ref "A"
+  let val name = ref "a"
       val updated = ref []
       fun inst (TConst(a,t)) = inst t
 	| inst (Var(v as ref None)) = (updated := v :: (!updated);
 				       v       := Some (Free ("?" ^ !name)); 
-				       name    := bump_string (!name))
+				       name    := Symbol.bump_string (!name))
 	| inst (Abs(a,t))    = inst t
 	| inst (f $ u)       = (inst f; inst u)
 	| inst _             = ()

@@ -57,7 +57,7 @@ val co_prefix = if coind then "co" else "";
 
 (*make distinct individual variables a1, a2, a3, ..., an. *)
 fun mk_frees a [] = []
-  | mk_frees a (T::Ts) = Free(a,T) :: mk_frees (bump_string a) Ts;
+  | mk_frees a (T::Ts) = Free(a,T) :: mk_frees (Symbol.bump_string a) Ts;
 
 
 (* add_inductive(_i) *)

@@ -306,7 +306,7 @@ fun set_rename_prefix a =
     then res_inst_tac would not work properly.*)
 fun rename_vars (a, []) = []
   | rename_vars (a, (_,T)::vars) =
-        (a,T) :: rename_vars (bump_string a, vars);
+        (a,T) :: rename_vars (Symbol.bump_string a, vars);
 
 (*Move all parameters to the front of the subgoal, renaming them apart;
   if n>0 then deletes assumption n. *)

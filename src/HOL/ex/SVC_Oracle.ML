@@ -30,7 +30,7 @@ fun svc_abstract t =
 	let val T = fastype_of t
             val v = Unify.combound (Var ((!vname,0), Us--->T),
 				    0, nPar)
-	in  vname := bump_string (!vname); 
+	in  vname := Symbol.bump_string (!vname); 
 	    pairs := (t, v) :: !pairs;
 	    v
 	end;

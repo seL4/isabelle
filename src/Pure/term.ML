@@ -738,7 +738,7 @@ val oct_char = chr o octal;
 fun variant bs name =
   let
     val (c, u) = pairself implode (Library.take_suffix (equal "_") (Symbol.explode name));
-    fun vary2 c = if ((c ^ u) mem_string bs) then vary2 (bump_string c) else c;
+    fun vary2 c = if ((c ^ u) mem_string bs) then vary2 (Symbol.bump_string c) else c;
     fun vary1 c = if ((c ^ u) mem_string bs) then vary2 (c ^ "a") else c;
   in vary1 (if c = "" then "u" else c) ^ u end;
 
