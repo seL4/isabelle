@@ -489,16 +489,16 @@ fun setup_goal opt_block prepp kind name atts raw_propp state =
       |> enter_forward
       |> opt_block
       |> map_context_result (fn c => prepp (c, raw_propp));
+    val cterm_of = Thm.cterm_of (sign_of state);
 
     val casms = map (#prop o Thm.crep_thm) (ProofContext.assumptions (context_of state'));
-    val asms = map Thm.term_of casms;
-
-    val prop = Logic.list_implies (asms, concl);
-    val cprop = Thm.cterm_of (sign_of state') prop;
+    val cprems = map cterm_of (Logic.strip_imp_prems concl);
+    val prop = Logic.list_implies (map Thm.term_of casms, concl);
+    val cprop = cterm_of prop;
     val thm = Drule.mk_triv_goal cprop;
   in
     state'
-    |> put_goal (Some ((kind atts, (PureThy.default_name name), casms, prop), ([], thm)))
+    |> put_goal (Some ((kind atts, (PureThy.default_name name), casms @ cprems, prop), ([], thm)))
     |> bind_props [("thesis", prop)]
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
