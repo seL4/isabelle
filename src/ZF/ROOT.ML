@@ -30,7 +30,7 @@ fun DO_GOAL tfs = SELECT_GOAL (CHECK_SOLVED (EVERY1 tfs));
 print_depth 1;
 
 (*Add user sections for inductive/datatype definitions*)
-use     "../Pure/section_utils.ML";
+use     "$ISABELLE_HOME/src/Pure/section_utils.ML";
 use     "thy_syntax.ML";
 
 use_thy "Let";
