@@ -14,7 +14,7 @@ sig
   val boolean: string -> bool
   val integer: string -> int
   val args: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
-    (Proof.context -> 'a -> string) -> Args.src -> Proof.context -> string
+    (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Proof.context -> string
   datatype markup = Markup | MarkupEnv | Verbatim
   val interest_level: int ref
   val parse_thy: (markup -> OuterLex.token list -> OuterLex.token * OuterLex.token list) ->
@@ -23,6 +23,7 @@ sig
   val display: bool ref
   val quotes: bool ref
   val indent: int ref
+  val source: bool ref
 end;
 
 structure IsarOutput: ISAR_OUTPUT =
@@ -103,7 +104,7 @@ fun syntax (scan: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T l
 
 fun args scan f src ctxt : string =
   let val (ctxt', x) = syntax scan src ctxt
-  in f ctxt' x end;
+  in f src ctxt' x end;
 
 
 (* outer syntax *)
@@ -245,6 +246,7 @@ end;
 val display = ref false;
 val quotes = ref false;
 val indent = ref 0;
+val source = ref false;
 
 val _ = add_options
  [("show_types", Library.setmp Syntax.show_types o boolean),
@@ -255,7 +257,8 @@ val _ = add_options
   ("quotes", Library.setmp quotes o boolean),
   ("mode", fn s => fn f => fn () => Library.setmp print_mode (s :: ! print_mode) f ()),
   ("margin", Pretty.setmp_margin o integer),
-  ("indent", Library.setmp indent o integer)];
+  ("indent", Library.setmp indent o integer),
+  ("source", Library.setmp source o boolean)];
 
 
 (* commands *)
@@ -273,8 +276,11 @@ fun cond_display prt =
     Pretty.str_of prt
     |> enclose "\\isa{" "}";
 
-val string_of = cond_display o cond_quote;
 
+val pretty_text = Pretty.chunks o map Pretty.str o Library.split_lines;
+
+val pretty_source =
+  pretty_text o space_implode " " o map Args.string_of o #2 o #1 o Args.dest_src;
 
 fun pretty_typ ctxt T =
   Sign.pretty_typ (ProofContext.sign_of ctxt) T;
@@ -285,17 +291,21 @@ fun pretty_term ctxt t =
 fun pretty_thm ctxt thms =
   Pretty.chunks (map (pretty_term ctxt o #prop o Thm.rep_thm) thms);
 
-fun pretty_name _ s =
-  Pretty.chunks (map Pretty.str (Library.split_lines s));
+
+fun output_with pretty src ctxt x =
+  let
+    val prt = pretty ctxt x;      (*always pretty!*)
+    val prt' = if ! source then pretty_source src else prt;
+  in cond_display (cond_quote prt') end;
 
 in
 
 val _ = add_commands
- [("name", args (Scan.lift Args.name) (string_of oo pretty_name)),
-  ("thm", args Attrib.local_thms (string_of oo pretty_thm)),
-  ("prop", args Args.local_prop (string_of oo pretty_term)),
-  ("term", args Args.local_term (string_of oo pretty_term)),
-  ("typ", args Args.local_typ_no_norm (string_of oo pretty_typ))];
+ [("text", args (Scan.lift Args.name) (output_with (K pretty_text))),
+  ("thm", args Attrib.local_thms (output_with pretty_thm)),
+  ("prop", args Args.local_prop (output_with pretty_term)),
+  ("term", args Args.local_term (output_with pretty_term)),
+  ("typ", args Args.local_typ_no_norm (output_with pretty_typ))];
 
 end;
 
