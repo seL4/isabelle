@@ -18,10 +18,11 @@ by (Force_tac 1);
 qed "Collect_const";
 Addsimps [Collect_const];
 
+(*If added as a simprule it can cause looping when equalityE is also present:
+  A={} goes to {}<=A and A<={} and then back to A={} !*)
 Goal "(A <= {}) = (A = {})";
 by (Blast_tac 1);
 qed "subset_empty";
-Addsimps [subset_empty];
 
 Goalw [psubset_def] "~ (A < {})";
 by (Blast_tac 1);
