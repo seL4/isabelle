@@ -30,7 +30,7 @@ constdefs
     be a cardinal*)
   jump_cardinal :: "i=>i"
     "jump_cardinal(K) ==   
-         UN X:Pow(K). {z. r: Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
+         \<Union>X\<in>Pow(K). {z. r: Pow(K*K), well_ord(X,r) & z = ordertype(X,r)}"
   
   (*needed because jump_cardinal(K) might not be the successor of K*)
   csucc         :: "i=>i"
@@ -55,11 +55,11 @@ apply (blast intro: subset_imp_lepoll)
 done
 
 lemma Card_UN:
-     "(!!x. x:A ==> Card(K(x))) ==> Card(UN x:A. K(x))" 
+     "(!!x. x:A ==> Card(K(x))) ==> Card(\<Union>x\<in>A. K(x))" 
 by (blast intro: Card_Union) 
 
 lemma Card_OUN [simp,intro,TC]:
-     "(!!x. x:A ==> Card(K(x))) ==> Card(UN x<A. K(x))"
+     "(!!x. x:A ==> Card(K(x))) ==> Card(\<Union>x<A. K(x))"
 by (simp add: OUnion_def Card_0) 
 
 lemma n_lesspoll_nat: "n \<in> nat ==> n \<prec> nat"
@@ -850,16 +850,15 @@ done
 lemma Finite_Diff_sing_eq_diff_1: "[| Finite(A); x:A |] ==> |A-{x}| = |A| #- 1"
 apply (rule succ_inject)
 apply (rule_tac b = "|A|" in trans)
-apply (simp add: Finite_imp_succ_cardinal_Diff)
+ apply (simp add: Finite_imp_succ_cardinal_Diff)
 apply (subgoal_tac "1 \<lesssim> A")
  prefer 2 apply (blast intro: not_0_is_lepoll_1)
 apply (frule Finite_imp_well_ord, clarify)
-apply (rotate_tac -1)
 apply (drule well_ord_lepoll_imp_Card_le)
-apply (auto simp add: cardinal_1)
+ apply (auto simp add: cardinal_1)
 apply (rule trans)
-apply (rule_tac [2] diff_succ)
-apply (auto simp add: Finite_cardinal_in_nat)
+ apply (rule_tac [2] diff_succ)
+  apply (auto simp add: Finite_cardinal_in_nat)
 done
 
 lemma cardinal_lt_imp_Diff_not_0 [rule_format]:

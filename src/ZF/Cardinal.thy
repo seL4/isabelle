@@ -917,8 +917,7 @@ lemma Diff_Finite [rule_format]: "Finite(B) ==> Finite(A-B) --> Finite(A)"
 apply (erule Finite_induct, auto)
 apply (case_tac "x:A")
  apply (subgoal_tac [2] "A-cons (x, B) = A - B")
-apply (subgoal_tac "A - cons (x, B) = (A - B) - {x}")
-apply (rotate_tac -1, simp)
+apply (subgoal_tac "A - cons (x, B) = (A - B) - {x}", simp)
 apply (drule Diff_sing_Finite, auto)
 done
 

@@ -143,7 +143,7 @@ apply (safe intro!: equalityI)
    apply (drule equalityD1 [THEN subsetD], assumption) 
    apply (blast dest: pair_components_in_M) 
   apply (blast elim!: equalityE dest: pair_components_in_M)
- apply (frule transM, assumption, rotate_tac -1) 
+ apply (frule transM, assumption) 
  apply simp  
  apply blast
 apply (subgoal_tac "is_function(M,f)")
@@ -187,7 +187,6 @@ apply (subgoal_tac "\<forall>y \<in> r-``{x}. \<forall>z. <y,z>:Y <-> <y,z>:f")
 apply (frule pair_components_in_M, assumption, clarify) 
 apply (rule iffI)
  apply (frule_tac y="<y,z>" in transM, assumption)
- apply (rotate_tac -1)   
  apply (clarsimp simp add: vimage_singleton_iff is_recfun_type [THEN apply_iff]
 			   apply_recfun is_recfun_cut) 
 txt{*Opposite inclusion: something in f, show in Y*}
@@ -320,9 +319,7 @@ lemma (in M_basic) wfrec_replacement':
      relativize2(M,MH,H);  M(r)|] 
    ==> strong_replacement(M, \<lambda>x z. \<exists>y[M]. 
                 pair(M,x,y,z) & (\<exists>g[M]. is_recfun(r,x,H,g) & y = H(x,g)))"
-apply (rotate_tac 1) 
-apply (simp add: wfrec_replacement_def is_wfrec_abs) 
-done
+by (simp add: wfrec_replacement_def is_wfrec_abs) 
 
 lemma wfrec_replacement_cong [cong]:
      "[| !!x y z. [| M(x); M(y); M(z) |] ==> MH(x,y,z) <-> MH'(x,y,z);

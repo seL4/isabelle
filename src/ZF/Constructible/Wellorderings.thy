@@ -381,7 +381,7 @@ apply (simp add: obase_def Memrel_closed pred_closed)
 apply (rule iffI) 
  prefer 2 apply blast 
 apply (rule equalityI) 
- apply (clarify, frule transM, assumption, rotate_tac -1, simp) 
+ apply (clarify, frule transM, assumption, simp) 
 apply (clarify, frule transM, assumption, force)
 done
 
@@ -392,7 +392,6 @@ lemma (in M_basic) omap_iff:
       ==> z \<in> f <->
       (\<exists>a\<in>A. \<exists>x[M]. \<exists>g[M]. z = <a,x> & Ord(x) & 
                         g \<in> ord_iso(Order.pred(A,a,r),r,x,Memrel(x)))"
-apply (rotate_tac 1) 
 apply (simp add: omap_def Memrel_closed pred_closed) 
 apply (rule iffI)
  apply (drule_tac [2] x=z in rspec)
@@ -432,7 +431,6 @@ done
 
 lemma (in M_basic) Ord_otype:
      "[| otype(M,A,r,i); trans[A](r); M(A); M(r); M(i) |] ==> Ord(i)"
-apply (rotate_tac 1) 
 apply (rule OrdI) 
 prefer 2 
     apply (simp add: Ord_def otype_def omap_def) 
@@ -454,7 +452,6 @@ done
 lemma (in M_basic) domain_omap:
      "[| omap(M,A,r,f);  obase(M,A,r,B); M(A); M(r); M(B); M(f) |] 
       ==> domain(f) = B"
-apply (rotate_tac 2) 
 apply (simp add: domain_closed obase_iff) 
 apply (rule equality_iffI) 
 apply (simp add: domain_iff omap_iff, blast) 
@@ -463,7 +460,7 @@ done
 lemma (in M_basic) omap_subset: 
      "[| omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i); 
        M(A); M(r); M(f); M(B); M(i) |] ==> f \<subseteq> B * i"
-apply (rotate_tac 3, clarify) 
+apply clarify 
 apply (simp add: omap_iff obase_iff) 
 apply (force simp add: otype_iff) 
 done
@@ -471,7 +468,6 @@ done
 lemma (in M_basic) omap_funtype: 
      "[| omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i); 
        M(A); M(r); M(f); M(B); M(i) |] ==> f \<in> B -> i"
-apply (rotate_tac 3) 
 apply (simp add: domain_omap omap_subset Pi_iff function_def omap_iff) 
 apply (blast intro: Ord_iso_implies_eq ord_iso_sym ord_iso_trans) 
 done
@@ -519,7 +515,6 @@ apply (frule wellordered_is_trans_on, assumption)
 apply (rule OrdI) 
 	prefer 2 apply (simp add: image_iff omap_iff Ord_def, blast) 
 txt{*Hard part is to show that the image is a transitive set.*}
-apply (rotate_tac 3)
 apply (simp add: Transset_def, clarify) 
 apply (simp add: image_iff pred_iff apply_iff [OF omap_funtype [of A r f B i]])
 apply (rename_tac c j, clarify)
@@ -552,7 +547,6 @@ done
 lemma (in M_basic) obase_equals: 
      "[| wellordered(M,A,r); omap(M,A,r,f); obase(M,A,r,B); otype(M,A,r,i);
        M(A); M(r); M(f); M(B); M(i) |] ==> B = A"
-apply (rotate_tac 4)
 apply (rule equalityI, force simp add: obase_iff, clarify) 
 apply (subst obase_iff [of A r B, THEN iffD1], assumption+, simp) 
 apply (frule wellordered_is_wellfounded_on, assumption)

@@ -11,13 +11,13 @@ theory Epsilon = Nat:
 
 constdefs
   eclose    :: "i=>i"
-    "eclose(A) == UN n:nat. nat_rec(n, A, %m r. Union(r))"
+    "eclose(A) == \<Union>n\<in>nat. nat_rec(n, A, %m r. Union(r))"
 
   transrec  :: "[i, [i,i]=>i] =>i"
     "transrec(a,H) == wfrec(Memrel(eclose({a})), a, H)"
  
   rank      :: "i=>i"
-    "rank(a) == transrec(a, %x f. UN y:x. succ(f`y))"
+    "rank(a) == transrec(a, %x f. \<Union>y\<in>x. succ(f`y))"
 
   transrec2 :: "[i, i, [i,i]=>i] =>i"
     "transrec2(k, a, b) ==                     
@@ -25,7 +25,7 @@ constdefs
                 %i r. if(i=0, a, 
                         if(EX j. i=succ(j),        
                            b(THE j. i=succ(j), r`(THE j. i=succ(j))),   
-                           UN j<i. r`j)))"
+                           \<Union>j<i. r`j)))"
 
   recursor  :: "[i, [i,i]=>i, i]=>i"
     "recursor(a,b,k) ==  transrec(k, %n f. nat_case(a, %m. b(m, f`m), n))"
@@ -216,7 +216,7 @@ done
 subsection{*Rank*}
 
 (*NOT SUITABLE FOR REWRITING -- RECURSIVE!*)
-lemma rank: "rank(a) = (UN y:a. succ(rank(y)))"
+lemma rank: "rank(a) = (\<Union>y\<in>a. succ(rank(y)))"
 by (subst rank_def [THEN def_transrec], simp)
 
 lemma Ord_rank [simp]: "Ord(rank(a))"
@@ -268,7 +268,7 @@ apply (erule succE, blast)
 apply (erule rank_lt [THEN leI, THEN succ_leI, THEN le_imp_subset])
 done
 
-lemma rank_Union: "rank(Union(A)) = (UN x:A. rank(x))"
+lemma rank_Union: "rank(Union(A)) = (\<Union>x\<in>A. rank(x))"
 apply (rule equalityI)
 apply (rule_tac [2] rank_mono [THEN le_imp_subset, THEN UN_least])
 apply (erule_tac [2] Union_upper)
@@ -350,7 +350,7 @@ apply (simp add: the_equality if_P)
 done
 
 lemma transrec2_Limit:
-     "Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))"
+     "Limit(i) ==> transrec2(i,a,b) = (\<Union>j<i. transrec2(j,a,b))"
 apply (rule transrec2_def [THEN def_transrec, THEN trans])
 apply (auto simp add: OUnion_def) 
 done
@@ -359,7 +359,7 @@ lemma def_transrec2:
      "(!!x. f(x)==transrec2(x,a,b))
       ==> f(0) = a & 
           f(succ(i)) = b(i, f(i)) & 
-          (Limit(K) --> f(K) = (UN j<K. f(j)))"
+          (Limit(K) --> f(K) = (\<Union>j<K. f(j)))"
 by (simp add: transrec2_Limit)
 
 

@@ -514,13 +514,12 @@ lemma nat_diff_split:
       (P(a #- b)) <-> ((a < b -->P(0)) & (ALL d:nat. a = b #+ d --> P(d)))"
 apply (case_tac "a < b")
  apply (force simp add: nat_lt_imp_diff_eq_0)
-apply (rule iffI, simp_all) 
- apply clarify 
- apply (rotate_tac -1) 
- apply simp 
+apply (rule iffI, force) 
+apply simp 
 apply (drule_tac x="a#-b" in bspec)
 apply (simp_all add: Ordinal.not_lt_iff_le add_diff_inverse) 
 done
+
 
 ML
 {*

@@ -20,7 +20,7 @@ constdefs
 
   (* Ordinal Union *)
   OUnion :: "[i, i => i] => i"
-    "OUnion(i,B) == {z: UN x:i. B(x). Ord(i)}"
+    "OUnion(i,B) == {z: \<Union>x\<in>i. B(x). Ord(i)}"
 
 syntax
   "@oall"     :: "[idt, i, o] => o"        ("(3ALL _<_./ _)" 10)
@@ -77,31 +77,31 @@ apply (rule UN_upper_le )
 apply (auto simp add: lt_def)
 done
 
-lemma Limit_OUN_eq: "Limit(i) ==> (UN x<i. x) = i"
+lemma Limit_OUN_eq: "Limit(i) ==> (\<Union>x<i. x) = i"
 by (simp add: OUnion_def Limit_Union_eq Limit_is_Ord)
 
-(* No < version; consider (UN i:nat.i)=nat *)
+(* No < version; consider (\<Union>i\<in>nat.i)=nat *)
 lemma OUN_least:
-     "(!!x. x<A ==> B(x) \<subseteq> C) ==> (UN x<A. B(x)) \<subseteq> C"
+     "(!!x. x<A ==> B(x) \<subseteq> C) ==> (\<Union>x<A. B(x)) \<subseteq> C"
 by (simp add: OUnion_def UN_least ltI)
 
-(* No < version; consider (UN i:nat.i)=nat *)
+(* No < version; consider (\<Union>i\<in>nat.i)=nat *)
 lemma OUN_least_le:
-     "[| Ord(i);  !!x. x<A ==> b(x) \<le> i |] ==> (UN x<A. b(x)) \<le> i"
+     "[| Ord(i);  !!x. x<A ==> b(x) \<le> i |] ==> (\<Union>x<A. b(x)) \<le> i"
 by (simp add: OUnion_def UN_least_le ltI Ord_0_le)
 
 lemma le_implies_OUN_le_OUN:
-     "[| !!x. x<A ==> c(x) \<le> d(x) |] ==> (UN x<A. c(x)) \<le> (UN x<A. d(x))"
+     "[| !!x. x<A ==> c(x) \<le> d(x) |] ==> (\<Union>x<A. c(x)) \<le> (\<Union>x<A. d(x))"
 by (blast intro: OUN_least_le OUN_upper_le le_Ord2 Ord_OUN)
 
 lemma OUN_UN_eq:
      "(!!x. x:A ==> Ord(B(x)))
-      ==> (UN z < (UN x:A. B(x)). C(z)) = (UN  x:A. UN z < B(x). C(z))"
+      ==> (\<Union>z < (\<Union>x\<in>A. B(x)). C(z)) = (\<Union>x\<in>A. \<Union>z < B(x). C(z))"
 by (simp add: OUnion_def)
 
 lemma OUN_Union_eq:
      "(!!x. x:X ==> Ord(x))
-      ==> (UN z < Union(X). C(z)) = (UN x:X. UN z < x. C(z))"
+      ==> (\<Union>z < Union(X). C(z)) = (\<Union>x\<in>X. \<Union>z < x. C(z))"
 by (simp add: OUnion_def)
 
 (*So that rule_format will get rid of ALL x<A...*)
@@ -165,19 +165,19 @@ done
 
 subsubsection {*Rules for Ordinal-Indexed Unions*}
 
-lemma OUN_I [intro]: "[| a<i;  b: B(a) |] ==> b: (UN z<i. B(z))"
+lemma OUN_I [intro]: "[| a<i;  b: B(a) |] ==> b: (\<Union>z<i. B(z))"
 by (unfold OUnion_def lt_def, blast)
 
 lemma OUN_E [elim!]:
-    "[| b : (UN z<i. B(z));  !!a.[| b: B(a);  a<i |] ==> R |] ==> R"
+    "[| b : (\<Union>z<i. B(z));  !!a.[| b: B(a);  a<i |] ==> R |] ==> R"
 apply (unfold OUnion_def lt_def, blast)
 done
 
-lemma OUN_iff: "b : (UN x<i. B(x)) <-> (EX x<i. b : B(x))"
+lemma OUN_iff: "b : (\<Union>x<i. B(x)) <-> (EX x<i. b : B(x))"
 by (unfold OUnion_def oex_def lt_def, blast)
 
 lemma OUN_cong [cong]:
-    "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (UN x<i. C(x)) = (UN x<j. D(x))"
+    "[| i=j;  !!x. x<j ==> C(x)=D(x) |] ==> (\<Union>x<i. C(x)) = (\<Union>x<j. D(x))"
 by (simp add: OUnion_def lt_def OUN_iff)
 
 lemma lt_induct:

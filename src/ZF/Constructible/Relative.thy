@@ -1203,7 +1203,6 @@ text{*no longer needed*}
 lemma (in M_basic) restriction_is_function: 
      "[| restriction(M,f,A,z); function(f); M(f); M(A); M(z) |] 
       ==> function(z)"
-apply (rotate_tac 1)
 apply (simp add: restriction_def ball_iff_equiv) 
 apply (unfold function_def, blast) 
 done

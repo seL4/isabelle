@@ -261,7 +261,7 @@ apply (blast dest: function_apply_equality intro: apply_0 [symmetric])
 done
 
 (*For this lemma and the next, the right-hand side could equivalently 
-  be written UN x:C. {f`x} *)
+  be written \<Union>x\<in>C. {f`x} *)
 lemma image_function:
      "[| function(f);  C <= domain(f) |] ==> f``C = {f`x. x:C}";
 by (simp add: Repfun_function_if) 
@@ -505,7 +505,7 @@ lemma Union_mono: "A<=B ==> Union(A) <= Union(B)"
 by blast
 
 lemma UN_mono:
-    "[| A<=C;  !!x. x:A ==> B(x)<=D(x) |] ==> (UN x:A. B(x)) <= (UN x:C. D(x))"
+    "[| A<=C;  !!x. x:A ==> B(x)<=D(x) |] ==> (\<Union>x\<in>A. B(x)) <= (\<Union>x\<in>C. D(x))"
 by blast  
 
 (*Intersection is ANTI-monotonic.  There are TWO premises! *)

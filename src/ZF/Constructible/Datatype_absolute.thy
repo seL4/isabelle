@@ -683,10 +683,8 @@ theorem (in M_eclose) transrec_abs:
      Ord(i);  M(i);  M(z);
      \<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
    ==> is_transrec(M,MH,i,z) <-> z = transrec(i,H)" 
-apply (rotate_tac 2) 
-apply (simp add: trans_wfrec_abs transrec_replacement_def is_transrec_def
+by (simp add: trans_wfrec_abs transrec_replacement_def is_transrec_def
        transrec_def eclose_sing_Ord_eq wf_Memrel trans_Memrel relation_Memrel)
-done
 
 
 theorem (in M_eclose) transrec_closed:
@@ -694,10 +692,9 @@ theorem (in M_eclose) transrec_closed:
 	Ord(i);  M(i);  
 	\<forall>x[M]. \<forall>g[M]. function(g) --> M(H(x,g))|] 
       ==> M(transrec(i,H))"
-apply (rotate_tac 2) 
-apply (simp add: trans_wfrec_closed transrec_replacement_def is_transrec_def
-       transrec_def eclose_sing_Ord_eq wf_Memrel trans_Memrel relation_Memrel)
-done
+by (simp add: trans_wfrec_closed transrec_replacement_def is_transrec_def
+        transrec_def eclose_sing_Ord_eq wf_Memrel trans_Memrel relation_Memrel)
+
 
 text{*Helps to prove instances of @{term transrec_replacement}*}
 lemma (in M_eclose) transrec_replacementI: 

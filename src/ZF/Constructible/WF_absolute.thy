@@ -225,7 +225,6 @@ done
 
 lemma (in M_trancl) wellfounded_trancl:
      "[|wellfounded(M,r); M(r)|] ==> wellfounded(M,r^+)"
-apply (rotate_tac -1)
 apply (simp add: wellfounded_iff_wellfounded_on_field)
 apply (rule wellfounded_on_subset_A, erule wellfounded_on_trancl)
    apply blast

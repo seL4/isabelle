@@ -567,7 +567,7 @@ apply (rule_tac [2] sum_ord_iso_cong [OF ord_iso_refl ordertype_ord_iso])
 apply (blast intro: Ord_ordertype well_ord_radd well_ord_Memrel)+
 done
 
-lemma oadd_unfold: "[| Ord(i);  Ord(j) |] ==> i++j = i Un (UN k:j. {i++k})"
+lemma oadd_unfold: "[| Ord(i);  Ord(j) |] ==> i++j = i Un (\<Union>k\<in>j. {i++k})"
 apply (rule subsetI [THEN equalityI])
 apply (erule ltI [THEN lt_oadd_disj, THEN disjE])
 apply (blast intro: Ord_oadd) 
@@ -592,12 +592,12 @@ done
 
 lemma oadd_UN:
      "[| !!x. x:A ==> Ord(j(x));  a:A |]
-      ==> i ++ (UN x:A. j(x)) = (UN x:A. i++j(x))"
+      ==> i ++ (\<Union>x\<in>A. j(x)) = (\<Union>x\<in>A. i++j(x))"
 by (blast intro: ltI Ord_UN Ord_oadd lt_oadd1 [THEN ltD] 
                  oadd_lt_mono2 [THEN ltD] 
           elim!: ltE dest!: ltI [THEN lt_oadd_disj])
 
-lemma oadd_Limit: "Limit(j) ==> i++j = (UN k:j. i++k)"
+lemma oadd_Limit: "Limit(j) ==> i++j = (\<Union>k\<in>j. i++k)"
 apply (frule Limit_has_0 [THEN ltD])
 apply (simp add: Limit_is_Ord [THEN Ord_in_Ord] oadd_UN [symmetric] 
                  Union_eq_UN [symmetric] Limit_Union_eq)
@@ -818,7 +818,7 @@ apply (simp add: lt_Ord lt_Ord2 raw_oadd_eq_oadd)
 done
 
 lemma omult_unfold:
-     "[| Ord(i);  Ord(j) |] ==> j**i = (UN j':j. UN i':i. {j**i' ++ j'})"
+     "[| Ord(i);  Ord(j) |] ==> j**i = (\<Union>j'\<in>j. \<Union>i'\<in>i. {j**i' ++ j'})"
 apply (rule subsetI [THEN equalityI])
 apply (rule lt_omult [THEN exE])
 apply (erule_tac [3] ltI)
@@ -901,10 +901,10 @@ done
 
 lemma omult_UN: 
      "[| Ord(i);  !!x. x:A ==> Ord(j(x)) |]
-      ==> i ** (UN x:A. j(x)) = (UN x:A. i**j(x))"
+      ==> i ** (\<Union>x\<in>A. j(x)) = (\<Union>x\<in>A. i**j(x))"
 by (simp (no_asm_simp) add: Ord_UN omult_unfold, blast)
 
-lemma omult_Limit: "[| Ord(i);  Limit(j) |] ==> i**j = (UN k:j. i**k)"
+lemma omult_Limit: "[| Ord(i);  Limit(j) |] ==> i**j = (\<Union>k\<in>j. i**k)"
 by (simp add: Limit_is_Ord [THEN Ord_in_Ord] omult_UN [symmetric] 
               Union_eq_UN [symmetric] Limit_Union_eq)
 

@@ -189,7 +189,7 @@ lemmas QPair_Int_Vset_subset_trans =
      subset_trans [OF Transset_0 [THEN QPair_Int_Vfrom_subset] QPair_mono]
 
 lemma QPair_Int_Vset_subset_UN:
-     "Ord(i) ==> <a;b> Int Vset(i) <= (UN j:i. <a Int Vset(j); b Int Vset(j)>)"
+     "Ord(i) ==> <a;b> Int Vset(i) <= (\<Union>j\<in>i. <a Int Vset(j); b Int Vset(j)>)"
 apply (erule Ord_cases)
 (*0 case*)
 apply (simp add: Vfrom_0)

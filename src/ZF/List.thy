@@ -721,8 +721,7 @@ lemma take_take [rule_format]:
 apply (induct_tac "m", auto)
 apply (erule_tac a = xs in list.cases)
 apply (auto simp add: take_Nil)
-apply (rotate_tac 1)
-apply (erule natE)
+apply (erule_tac n=n in natE)
 apply (auto intro: take_0 take_type)
 done
 

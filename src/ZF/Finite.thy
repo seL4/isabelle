@@ -172,7 +172,6 @@ lemma fun_FiniteFunI [rule_format]: "A:Fin(X) ==> ALL f. f:A->B --> f:A-||>B"
 apply (erule Fin.induct)
  apply (simp add: FiniteFun.intros, clarify)
 apply (case_tac "a:b")
- apply (rotate_tac -1)
  apply (simp add: cons_absorb)
 apply (subgoal_tac "restrict (f,b) : b -||> B")
  prefer 2 apply (blast intro: restrict_type2)

@@ -15,7 +15,7 @@ lemmas fun_Limit_VfromE =
 lemma fun_Vcsucc_lemma:
      "[| f: D -> Vfrom(A,csucc(K));  |D| le K;  InfCard(K) |]   
       ==> EX j. f: D -> Vfrom(A,j) & j < csucc(K)"
-apply (rule_tac x = "UN d:D. LEAST i. f`d : Vfrom (A,i) " in exI)
+apply (rule_tac x = "\<Union>d\<in>D. LEAST i. f`d : Vfrom (A,i) " in exI)
 apply (rule conjI)
 apply (rule_tac [2] le_UN_Ord_lt_csucc) 
 apply (rule_tac [4] ballI, erule_tac [4] fun_Limit_VfromE, simp_all) 

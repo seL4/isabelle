@@ -62,10 +62,10 @@ lemma ball_Un: "(\<forall>x \<in> A\<union>B. P(x)) <-> (\<forall>x \<in> A. P(x
 lemma bex_Un: "(\<exists>x \<in> A\<union>B. P(x)) <-> (\<exists>x \<in> A. P(x)) | (\<exists>x \<in> B. P(x))";
   by blast
 
-lemma ball_UN: "(\<forall>z \<in> (UN x:A. B(x)). P(z)) <-> (\<forall>x\<in>A. \<forall>z \<in> B(x). P(z))"
+lemma ball_UN: "(\<forall>z \<in> (\<Union>x\<in>A. B(x)). P(z)) <-> (\<forall>x\<in>A. \<forall>z \<in> B(x). P(z))"
   by blast
 
-lemma bex_UN: "(\<exists>z \<in> (UN x:A. B(x)). P(z)) <-> (\<exists>x\<in>A. \<exists>z\<in>B(x). P(z))"
+lemma bex_UN: "(\<exists>z \<in> (\<Union>x\<in>A. B(x)). P(z)) <-> (\<exists>x\<in>A. \<exists>z\<in>B(x). P(z))"
   by blast
 
 subsection{*Converse of a Relation*}
@@ -136,7 +136,7 @@ by blast
 lemma cons_Diff: "a: B ==> cons(a, B-{a}) = B"
 by blast
 
-lemma equal_singleton [rule_format]: "[| a: C;  ALL y:C. y=b |] ==> C = {b}"
+lemma equal_singleton [rule_format]: "[| a: C;  \<forall>y\<in>C. y=b |] ==> C = {b}"
 by blast
 
 lemma [simp]: "cons(a,cons(a,B)) = cons(a,B)"
@@ -354,7 +354,7 @@ subsection{*Big Union and Intersection*}
 
 (** Big Union is the least upper bound of a set  **)
 
-lemma Union_subset_iff: "Union(A) <= C <-> (ALL x:A. x <= C)"
+lemma Union_subset_iff: "Union(A) <= C <-> (\<forall>x\<in>A. x <= C)"
 by blast
 
 lemma Union_upper: "B:A ==> B <= Union(A)"
@@ -372,15 +372,15 @@ by blast
 lemma Union_Int_subset: "Union(A Int B) <= Union(A) Int Union(B)"
 by blast
 
-lemma Union_disjoint: "Union(C) Int A = 0 <-> (ALL B:C. B Int A = 0)"
+lemma Union_disjoint: "Union(C) Int A = 0 <-> (\<forall>B\<in>C. B Int A = 0)"
 by (blast elim!: equalityE)
 
-lemma Union_empty_iff: "Union(A) = 0 <-> (ALL B:A. B=0)"
+lemma Union_empty_iff: "Union(A) = 0 <-> (\<forall>B\<in>A. B=0)"
 by blast
 
 (** Big Intersection is the greatest lower bound of a nonempty set **)
 
-lemma Inter_subset_iff: "a: A  ==>  C <= Inter(A) <-> (ALL x:A. C <= x)"
+lemma Inter_subset_iff: "a: A  ==>  C <= Inter(A) <-> (\<forall>x\<in>A. C <= x)"
 by blast
 
 lemma Inter_lower: "B:A ==> Inter(A) <= B"
@@ -391,11 +391,11 @@ by blast
 
 (** Intersection of a family of sets  **)
 
-lemma INT_lower: "x:A ==> (INT x:A. B(x)) <= B(x)"
+lemma INT_lower: "x:A ==> (\<Inter>x\<in>A. B(x)) <= B(x)"
 by blast
 
 lemma INT_greatest: 
-    "[| a:A;  !!x. x:A ==> C<=B(x) |] ==> C <= (INT x:A. B(x))"
+    "[| a:A;  !!x. x:A ==> C<=B(x) |] ==> C <= (\<Inter>x\<in>A. B(x))"
 by blast 
 
 lemma Inter_0: "Inter(0) = 0"
@@ -422,80 +422,80 @@ by force
 
 subsection{*Unions and Intersections of Families*}
 
-lemma subset_UN_iff_eq: "A <= (UN i:I. B(i)) <-> A = (UN i:I. A Int B(i))"
+lemma subset_UN_iff_eq: "A <= (\<Union>i\<in>I. B(i)) <-> A = (\<Union>i\<in>I. A Int B(i))"
 by (blast elim!: equalityE)
 
-lemma UN_subset_iff: "(UN x:A. B(x)) <= C <-> (ALL x:A. B(x) <= C)"
+lemma UN_subset_iff: "(\<Union>x\<in>A. B(x)) <= C <-> (\<forall>x\<in>A. B(x) <= C)"
 by blast
 
-lemma UN_upper: "x:A ==> B(x) <= (UN x:A. B(x))"
+lemma UN_upper: "x:A ==> B(x) <= (\<Union>x\<in>A. B(x))"
 by (erule RepFunI [THEN Union_upper])
 
-lemma UN_least: "[| !!x. x:A ==> B(x)<=C |] ==> (UN x:A. B(x)) <= C"
+lemma UN_least: "[| !!x. x:A ==> B(x)<=C |] ==> (\<Union>x\<in>A. B(x)) <= C"
 by blast
 
-lemma Union_eq_UN: "Union(A) = (UN x:A. x)"
+lemma Union_eq_UN: "Union(A) = (\<Union>x\<in>A. x)"
 by blast
 
-lemma Inter_eq_INT: "Inter(A) = (INT x:A. x)"
+lemma Inter_eq_INT: "Inter(A) = (\<Inter>x\<in>A. x)"
 by (unfold Inter_def, blast)
 
-lemma UN_0 [simp]: "(UN i:0. A(i)) = 0"
+lemma UN_0 [simp]: "(\<Union>i\<in>0. A(i)) = 0"
 by blast
 
-lemma UN_singleton: "(UN x:A. {x}) = A"
+lemma UN_singleton: "(\<Union>x\<in>A. {x}) = A"
 by blast
 
-lemma UN_Un: "(UN i: A Un B. C(i)) = (UN i: A. C(i)) Un (UN i:B. C(i))"
+lemma UN_Un: "(\<Union>i\<in> A Un B. C(i)) = (\<Union>i\<in> A. C(i)) Un (\<Union>i\<in>B. C(i))"
 by blast
 
-lemma INT_Un: "(INT i:I Un J. A(i)) = (if I=0 then INT j:J. A(j)  
-                              else if J=0 then INT i:I. A(i)  
-                              else ((INT i:I. A(i)) Int  (INT j:J. A(j))))"
+lemma INT_Un: "(\<Inter>i\<in>I Un J. A(i)) = (if I=0 then \<Inter>j\<in>J. A(j)  
+                              else if J=0 then \<Inter>i\<in>I. A(i)  
+                              else ((\<Inter>i\<in>I. A(i)) Int  (\<Inter>j\<in>J. A(j))))"
 apply simp
 apply (blast intro!: equalityI)
 done
 
-lemma UN_UN_flatten: "(UN x : (UN y:A. B(y)). C(x)) = (UN y:A. UN x: B(y). C(x))"
+lemma UN_UN_flatten: "(\<Union>x \<in> (\<Union>y\<in>A. B(y)). C(x)) = (\<Union>y\<in>A. \<Union>x\<in> B(y). C(x))"
 by blast
 
 (*Halmos, Naive Set Theory, page 35.*)
-lemma Int_UN_distrib: "B Int (UN i:I. A(i)) = (UN i:I. B Int A(i))"
+lemma Int_UN_distrib: "B Int (\<Union>i\<in>I. A(i)) = (\<Union>i\<in>I. B Int A(i))"
 by blast
 
-lemma Un_INT_distrib: "i:I ==> B Un (INT i:I. A(i)) = (INT i:I. B Un A(i))"
+lemma Un_INT_distrib: "i:I ==> B Un (\<Inter>i\<in>I. A(i)) = (\<Inter>i\<in>I. B Un A(i))"
 by blast
 
 lemma Int_UN_distrib2:
-     "(UN i:I. A(i)) Int (UN j:J. B(j)) = (UN i:I. UN j:J. A(i) Int B(j))"
+     "(\<Union>i\<in>I. A(i)) Int (\<Union>j\<in>J. B(j)) = (\<Union>i\<in>I. \<Union>j\<in>J. A(i) Int B(j))"
 by blast
 
 lemma Un_INT_distrib2: "[| i:I;  j:J |] ==>  
-      (INT i:I. A(i)) Un (INT j:J. B(j)) = (INT i:I. INT j:J. A(i) Un B(j))"
+      (\<Inter>i\<in>I. A(i)) Un (\<Inter>j\<in>J. B(j)) = (\<Inter>i\<in>I. \<Inter>j\<in>J. A(i) Un B(j))"
 by blast
 
-lemma UN_constant: "a: A ==> (UN y:A. c) = c"
+lemma UN_constant: "a: A ==> (\<Union>y\<in>A. c) = c"
 by blast
 
-lemma INT_constant: "a: A ==> (INT y:A. c) = c"
+lemma INT_constant: "a: A ==> (\<Inter>y\<in>A. c) = c"
 by blast
 
-lemma UN_RepFun [simp]: "(UN y: RepFun(A,f). B(y)) = (UN x:A. B(f(x)))"
+lemma UN_RepFun [simp]: "(\<Union>y\<in> RepFun(A,f). B(y)) = (\<Union>x\<in>A. B(f(x)))"
 by blast
 
-lemma INT_RepFun [simp]: "(INT x:RepFun(A,f). B(x))    = (INT a:A. B(f(a)))"
+lemma INT_RepFun [simp]: "(\<Inter>x\<in>RepFun(A,f). B(x))    = (\<Inter>a\<in>A. B(f(a)))"
 by (auto simp add: Inter_def)
 
 lemma INT_Union_eq:
-     "0 ~: A ==> (INT x: Union(A). B(x)) = (INT y:A. INT x:y. B(x))"
-apply (simp add: Inter_def)
-apply (subgoal_tac "ALL x:A. x~=0")
-prefer 2 apply blast
-apply (tactic "first_best_tac (claset() addss' simpset()) 1")
+     "0 ~: A ==> (\<Inter>x\<in> Union(A). B(x)) = (\<Inter>y\<in>A. \<Inter>x\<in>y. B(x))"
+apply (subgoal_tac "\<forall>x\<in>A. x~=0")
+ prefer 2 apply blast
+apply (force simp add: Inter_def ball_conj_distrib) 
 done
 
-lemma INT_UN_eq: "(ALL x:A. B(x) ~= 0)  
-      ==> (INT z: (UN x:A. B(x)). C(z)) = (INT x:A. INT z: B(x). C(z))"
+lemma INT_UN_eq:
+     "(\<forall>x\<in>A. B(x) ~= 0)  
+      ==> (\<Inter>z\<in> (\<Union>x\<in>A. B(x)). C(z)) = (\<Inter>x\<in>A. \<Inter>z\<in> B(x). C(z))"
 apply (subst INT_Union_eq, blast)
 apply (simp add: Inter_def)
 done
@@ -505,23 +505,23 @@ done
     Union of a family of unions **)
 
 lemma UN_Un_distrib:
-     "(UN i:I. A(i) Un B(i)) = (UN i:I. A(i))  Un  (UN i:I. B(i))"
+     "(\<Union>i\<in>I. A(i) Un B(i)) = (\<Union>i\<in>I. A(i))  Un  (\<Union>i\<in>I. B(i))"
 by blast
 
 lemma INT_Int_distrib:
-     "i:I ==> (INT i:I. A(i) Int B(i)) = (INT i:I. A(i)) Int (INT i:I. B(i))"
+     "i:I ==> (\<Inter>i\<in>I. A(i) Int B(i)) = (\<Inter>i\<in>I. A(i)) Int (\<Inter>i\<in>I. B(i))"
 by blast
 
 lemma UN_Int_subset:
-     "(UN z:I Int J. A(z)) <= (UN z:I. A(z)) Int (UN z:J. A(z))"
+     "(\<Union>z\<in>I Int J. A(z)) <= (\<Union>z\<in>I. A(z)) Int (\<Union>z\<in>J. A(z))"
 by blast
 
 (** Devlin, page 12, exercise 5: Complements **)
 
-lemma Diff_UN: "i:I ==> B - (UN i:I. A(i)) = (INT i:I. B - A(i))"
+lemma Diff_UN: "i:I ==> B - (\<Union>i\<in>I. A(i)) = (\<Inter>i\<in>I. B - A(i))"
 by blast
 
-lemma Diff_INT: "i:I ==> B - (INT i:I. A(i)) = (UN i:I. B - A(i))"
+lemma Diff_INT: "i:I ==> B - (\<Inter>i\<in>I. A(i)) = (\<Union>i\<in>I. B - A(i))"
 by blast
 
 (** Unions and Intersections with General Sum **)
@@ -541,11 +541,11 @@ lemma Sigma_succ2: "A * succ(B) = A*{B} Un A*B"
 by blast
 
 lemma SUM_UN_distrib1:
-     "(SUM x:(UN y:A. C(y)). B(x)) = (UN y:A. SUM x:C(y). B(x))"
+     "(SUM x:(\<Union>y\<in>A. C(y)). B(x)) = (\<Union>y\<in>A. SUM x:C(y). B(x))"
 by blast
 
 lemma SUM_UN_distrib2:
-     "(SUM i:I. UN j:J. C(i,j)) = (UN j:J. SUM i:I. C(i,j))"
+     "(SUM i:I. \<Union>j\<in>J. C(i,j)) = (\<Union>j\<in>J. SUM i:I. C(i,j))"
 by blast
 
 lemma SUM_Un_distrib1:
@@ -573,7 +573,7 @@ lemma prod_Int_distrib2: "I * (A Int B) = I*A Int I*B"
 by (rule SUM_Int_distrib2)
 
 (*Cf Aczel, Non-Well-Founded Sets, page 115*)
-lemma SUM_eq_UN: "(SUM i:I. A(i)) = (UN i:I. {i} * A(i))"
+lemma SUM_eq_UN: "(SUM i:I. A(i)) = (\<Union>i\<in>I. {i} * A(i))"
 by blast
 
 lemma times_subset_iff:
@@ -617,10 +617,10 @@ by blast
 lemma domain_Diff_subset: "domain(A) - domain(B) <= domain(A - B)"
 by blast
 
-lemma domain_UN: "domain(UN x:A. B(x)) = (UN x:A. domain(B(x)))"
+lemma domain_UN: "domain(\<Union>x\<in>A. B(x)) = (\<Union>x\<in>A. domain(B(x)))"
 by blast
 
-lemma domain_Union: "domain(Union(A)) = (UN x:A. domain(x))"
+lemma domain_Union: "domain(Union(A)) = (\<Union>x\<in>A. domain(x))"
 by blast
 
 
@@ -728,7 +728,7 @@ lemma field_converse [simp]: "field(converse(r)) = field(r)"
 by blast
 
 (** The Union of a set of relations is a relation -- Lemma for fun_Union **)
-lemma rel_Union: "(ALL x:S. EX A B. x <= A*B) ==>   
+lemma rel_Union: "(\<forall>x\<in>S. EX A B. x <= A*B) ==>   
                   Union(S) <= domain(Union(S)) * range(Union(S))"
 by blast
 
@@ -745,7 +745,7 @@ by blast
 
 subsection{*Image of a Set under a Function or Relation*}
 
-lemma image_iff: "b : r``A <-> (EX x:A. <x,b>:r)"
+lemma image_iff: "b : r``A <-> (\<exists>x\<in>A. <x,b>:r)"
 by (unfold image_def, blast)
 
 lemma image_singleton_iff: "b : r``{a} <-> <a,b>:r"
@@ -791,7 +791,7 @@ by blast
 subsection{*Inverse Image of a Set under a Function or Relation*}
 
 lemma vimage_iff: 
-    "a : r-``B <-> (EX y:B. <a,y>:r)"
+    "a : r-``B <-> (\<exists>y\<in>B. <a,y>:r)"
 by (unfold vimage_def image_def converse_def, blast)
 
 lemma vimage_singleton_iff: "a : r-``{b} <-> <a,b>:r"
@@ -820,7 +820,7 @@ lemma vimage_Int_subset: "r-``(A Int B) <= (r-``A) Int (r-``B)"
 by blast
 
 (*NOT suitable for rewriting*)
-lemma vimage_eq_UN: "f -``B = (UN y:B. f-``{y})"
+lemma vimage_eq_UN: "f -``B = (\<Union>y\<in>B. f-``{y})"
 by blast
 
 lemma function_vimage_Int:
@@ -863,12 +863,12 @@ by blast
 lemma converse_Diff [simp]: "converse(A - B) = converse(A) - converse(B)"
 by blast
 
-lemma converse_UN [simp]: "converse(UN x:A. B(x)) = (UN x:A. converse(B(x)))"
+lemma converse_UN [simp]: "converse(\<Union>x\<in>A. B(x)) = (\<Union>x\<in>A. converse(B(x)))"
 by blast
 
 (*Unfolding Inter avoids using excluded middle on A=0*)
 lemma converse_INT [simp]:
-     "converse(INT x:A. B(x)) = (INT x:A. converse(B(x)))"
+     "converse(\<Inter>x\<in>A. B(x)) = (\<Inter>x\<in>A. converse(B(x)))"
 apply (unfold Inter_def, blast)
 done
 
@@ -887,7 +887,7 @@ done
 lemma Un_Pow_subset: "Pow(A) Un Pow(B) <= Pow(A Un B)"
 by blast
 
-lemma UN_Pow_subset: "(UN x:A. Pow(B(x))) <= Pow(UN x:A. B(x))"
+lemma UN_Pow_subset: "(\<Union>x\<in>A. Pow(B(x))) <= Pow(\<Union>x\<in>A. B(x))"
 by blast
 
 lemma subset_Pow_Union: "A <= Pow(Union(A))"
@@ -899,7 +899,7 @@ by blast
 lemma Pow_Int_eq [simp]: "Pow(A Int B) = Pow(A) Int Pow(B)"
 by blast
 
-lemma Pow_INT_eq: "x:A ==> Pow(INT x:A. B(x)) = (INT x:A. Pow(B(x)))"
+lemma Pow_INT_eq: "x:A ==> Pow(\<Inter>x\<in>A. B(x)) = (\<Inter>x\<in>A. Pow(B(x)))"
 by blast
 
 

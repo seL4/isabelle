@@ -1139,11 +1139,8 @@ lemma subcpo_cpo: "[|subcpo(D,E); cpo(E)|] ==> cpo(D)"
 apply (assumption | rule cpoI poI)+
 apply (simp add: subcpo_rel_eq)
 apply (assumption | rule cpo_refl subcpo_subset [THEN subsetD])+
-apply (rotate_tac -3)
 apply (simp add: subcpo_rel_eq)
 apply (blast intro: subcpo_subset [THEN subsetD] cpo_trans)
-(* Changing the order of the assumptions, otherwise simp doesn't work. *)
-apply (rotate_tac -2)
 apply (simp add: subcpo_rel_eq)
 apply (blast intro: cpo_antisym subcpo_subset [THEN subsetD])
 apply (fast intro: islub_subcpo)

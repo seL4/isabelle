@@ -658,18 +658,16 @@ subsection{* Existence shown by proving the division algorithm to be correct *}
 
 (*the case a=0*)
 lemma quorem_0: "[|b \<noteq> #0;  b \<in> int|] ==> quorem (<#0,b>, <#0,#0>)"
-apply (rotate_tac -1)
-apply (auto simp add: quorem_def neq_iff_zless)
-done
+by (force simp add: quorem_def neq_iff_zless)
 
 lemma posDivAlg_zero_divisor: "posDivAlg(<a,#0>) = <#0,a>"
 apply (subst posDivAlg_unfold)
-apply (simp (no_asm))
+apply simp
 done
 
 lemma posDivAlg_0 [simp]: "posDivAlg (<#0,b>) = <#0,#0>"
 apply (subst posDivAlg_unfold)
-apply (simp (no_asm) add: not_zle_iff_zless)
+apply (simp add: not_zle_iff_zless)
 done
 
 
@@ -710,7 +708,6 @@ done
 
 lemma divAlg_correct:
      "[|b \<noteq> #0;  a \<in> int;  b \<in> int|] ==> quorem (<a,b>, divAlg(<a,b>))"
-apply (rotate_tac 1)
 apply (auto simp add: quorem_0 divAlg_def)
 apply (safe intro!: quorem_neg posDivAlg_correct negDivAlg_correct
                     posDivAlg_type negDivAlg_type) 
@@ -810,7 +807,6 @@ lemma quorem_div_mod:
      "[|b \<noteq> #0;  a \<in> int;  b \<in> int |]  
       ==> quorem (<a,b>, <a zdiv b, a zmod b>)"
 apply (cut_tac a = "a" and b = "b" in zmod_zdiv_equality)
-apply (rotate_tac 1)
 apply (auto simp add: quorem_def neq_iff_zless pos_mod_sign pos_mod_bound 
                       neg_mod_sign neg_mod_bound)
 done

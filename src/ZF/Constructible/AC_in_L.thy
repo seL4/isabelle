@@ -240,7 +240,6 @@ apply (rule equalityI)
  apply safe
  apply (subgoal_tac "Ord(y)")
   prefer 2 apply (blast intro: Ord_in_Ord Limit_is_Ord)
- apply (rotate_tac -1) 
  apply (simp_all add: Limit_is_Ord Lset_iff_lrank_lt Lset_new_def 
                       Ord_mem_iff_lt) 
  apply (blast intro: lt_trans) 

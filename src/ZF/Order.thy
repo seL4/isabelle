@@ -38,7 +38,7 @@ constdefs
 
   ord_iso_map :: "[i,i,i,i]=>i"      	(*Construction for linearity theorem*)
    "ord_iso_map(A,r,B,s) ==
-     UN x:A. UN y:B. UN f: ord_iso(pred(A,x,r), r, pred(B,y,s), s). {<x,y>}"
+     \<Union>x\<in>A. \<Union>y\<in>B. \<Union>f \<in> ord_iso(pred(A,x,r), r, pred(B,y,s), s). {<x,y>}"
 
   first :: "[i, i, i] => o"
     "first(u, X, R) == u:X & (ALL v:X. v~=u --> <u,v> : R)"

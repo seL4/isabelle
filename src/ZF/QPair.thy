@@ -38,7 +38,7 @@ constdefs
     "qconverse(r) == {z. w:r, EX x y. w=<x;y> & z=<y;x>}"
 
   QSigma    :: "[i, i => i] => i"
-    "QSigma(A,B)  ==  UN x:A. UN y:B(x). {<x;y>}"
+    "QSigma(A,B)  ==  \<Union>x\<in>A. \<Union>y\<in>B(x). {<x;y>}"
 
 syntax
   "@QSUM"   :: "[idt, i, i] => i"               ("(3QSUM _:_./ _)" 10)

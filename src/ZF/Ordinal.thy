@@ -102,11 +102,11 @@ lemma Transset_Inter_family:
 by (unfold Inter_def Transset_def, blast)
 
 lemma Transset_UN:
-     "(!!x. x \<in> A ==> Transset(B(x))) ==> Transset (UN x:A. B(x))"
+     "(!!x. x \<in> A ==> Transset(B(x))) ==> Transset (\<Union>x\<in>A. B(x))"
 by (rule Transset_Union_family, auto) 
 
 lemma Transset_INT:
-     "(!!x. x \<in> A ==> Transset(B(x))) ==> Transset (INT x:A. B(x))"
+     "(!!x. x \<in> A ==> Transset(B(x))) ==> Transset (\<Inter>x\<in>A. B(x))"
 by (rule Transset_Inter_family, auto) 
 
 
@@ -555,7 +555,7 @@ apply (blast intro: Ord_contains_Transset)+
 done
 
 lemma Ord_UN [intro,simp,TC]:
-     "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(UN x:A. B(x))"
+     "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(\<Union>x\<in>A. B(x))"
 by (rule Ord_Union, blast)
 
 lemma Ord_Inter [intro,simp,TC]:
@@ -567,19 +567,19 @@ apply (blast intro: Ord_contains_Transset)
 done
 
 lemma Ord_INT [intro,simp,TC]:
-    "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(INT x:A. B(x))"
+    "[| !!x. x:A ==> Ord(B(x)) |] ==> Ord(\<Inter>x\<in>A. B(x))"
 by (rule Ord_Inter, blast) 
 
 
-(* No < version; consider (UN i:nat.i)=nat *)
+(* No < version; consider (\<Union>i\<in>nat.i)=nat *)
 lemma UN_least_le:
-    "[| Ord(i);  !!x. x:A ==> b(x) le i |] ==> (UN x:A. b(x)) le i"
+    "[| Ord(i);  !!x. x:A ==> b(x) le i |] ==> (\<Union>x\<in>A. b(x)) le i"
 apply (rule le_imp_subset [THEN UN_least, THEN subset_imp_le])
 apply (blast intro: Ord_UN elim: ltE)+
 done
 
 lemma UN_succ_least_lt:
-    "[| j<i;  !!x. x:A ==> b(x)<j |] ==> (UN x:A. succ(b(x))) < i"
+    "[| j<i;  !!x. x:A ==> b(x)<j |] ==> (\<Union>x\<in>A. succ(b(x))) < i"
 apply (rule ltE, assumption)
 apply (rule UN_least_le [THEN lt_trans2])
 apply (blast intro: succ_leI)+
@@ -590,7 +590,7 @@ lemma UN_upper_lt:
 by (unfold lt_def, blast) 
 
 lemma UN_upper_le:
-     "[| a: A;  i le b(a);  Ord(UN x:A. b(x)) |] ==> i le (UN x:A. b(x))"
+     "[| a: A;  i le b(a);  Ord(\<Union>x\<in>A. b(x)) |] ==> i le (\<Union>x\<in>A. b(x))"
 apply (frule ltD)
 apply (rule le_imp_subset [THEN subset_trans, THEN subset_imp_le])
 apply (blast intro: lt_Ord UN_upper)+
@@ -606,13 +606,13 @@ apply (rule UN_upper_le, auto)
 done
 
 lemma le_implies_UN_le_UN:
-    "[| !!x. x:A ==> c(x) le d(x) |] ==> (UN x:A. c(x)) le (UN x:A. d(x))"
+    "[| !!x. x:A ==> c(x) le d(x) |] ==> (\<Union>x\<in>A. c(x)) le (\<Union>x\<in>A. d(x))"
 apply (rule UN_least_le)
 apply (rule_tac [2] UN_upper_le)
 apply (blast intro: Ord_UN le_Ord2)+ 
 done
 
-lemma Ord_equality: "Ord(i) ==> (UN y:i. succ(y)) = i"
+lemma Ord_equality: "Ord(i) ==> (\<Union>y\<in>i. succ(y)) = i"
 by (blast intro: Ord_trans)
 
 (*Holds for all transitive sets, not just ordinals*)

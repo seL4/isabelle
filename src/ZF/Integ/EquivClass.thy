@@ -149,18 +149,15 @@ lemma UN_equiv_class_inject:
      ==> X=Y"
 apply (unfold quotient_def, safe)
 apply (rule equiv_class_eq, assumption)
-apply (rotate_tac -2) 
 apply (simp add: UN_equiv_class [of A r b])  
 done
 
 
 subsection{*Defining Binary Operations upon Equivalence Classes*}
 
-
 lemma congruent2_implies_congruent:
     "[| equiv(A,r);  congruent2(r,b);  a: A |] ==> congruent(r,b(a))"
-apply (unfold congruent_def congruent2_def equiv_def refl_def, blast)
-done
+by (unfold congruent_def congruent2_def equiv_def refl_def, blast)
 
 lemma congruent2_implies_congruent_UN:
     "[| equiv(A,r);  congruent2(r,b);  a: A |] ==>
