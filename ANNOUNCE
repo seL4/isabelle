@@ -39,10 +39,11 @@ Isabelle2003.  The most prominent highlights of Isabelle2004 are as follows
   allowed in identifiers.
 
 
-You may get Isabelle2003 from the following mirror sites:
+You may get Isabelle2004 from the following mirror sites:
 
-  Cambridge (UK)    http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/
-  Munich (Germany)  http://isabelle.in.tum.de/dist/
+  Cambridge (UK)       http://www.cl.cam.ac.uk/Research/HVG/Isabelle/dist/
+  Munich (Germany)     http://isabelle.in.tum.de/dist/
+  Sydney (Australia)   http://mirror.cse.unsw.edu.au/pub/isabelle/
 
 Gerwin Klein
 Tobias Nipkow
