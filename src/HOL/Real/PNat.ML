@@ -1,11 +1,10 @@
 (*  Title       : PNat.ML
+    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Description : The positive naturals -- proofs 
                 : mainly as in Nat.thy
 *)
-
-open PNat;
 
 Goal "mono(%X. {1} Un (Suc``X))";
 by (REPEAT (ares_tac [monoI, subset_refl, image_mono, Un_mono] 1));

@@ -1,4 +1,5 @@
 (*  Title       : Zorn.thy
+    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Description : Zorn's Lemma -- See lcp's Zorn.thy in ZF

@@ -1,4 +1,5 @@
 (*  Title:       Real/Real.thy
+    ID          : $Id$
     Author:      Lawrence C. Paulson
                  Jacques D. Fleuriot
     Copyright:   1998  University of Cambridge

@@ -1,4 +1,5 @@
 (*  Title:       HOL/Real/Real.ML
+    ID:          $Id$
     Author:      Lawrence C. Paulson
                  Jacques D. Fleuriot
     Copyright:   1998  University of Cambridge

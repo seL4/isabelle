@@ -1,18 +1,16 @@
 (*  Title       : PRat.ML
+    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Description : The positive rationals
 *) 
-
-open PRat;
 
 Delrules [equalityI];
 
 (*** Many theorems similar to those in Integ.thy ***)
 (*** Proving that ratrel is an equivalence relation ***)
 
-Goal
-    "[| (x1::pnat) * y2 = x2 * y1; x2 * y3 = x3 * y2 |] \
+Goal "[| (x1::pnat) * y2 = x2 * y1; x2 * y3 = x3 * y2 |] \
 \            ==> x1 * y3 = x3 * y1";        
 by (res_inst_tac [("k1","y2")] (pnat_mult_cancel1 RS iffD1) 1);
 by (auto_tac (claset(), simpset() addsimps [pnat_mult_assoc RS sym]));
@@ -155,8 +153,7 @@ by (res_inst_tac [("y1","x1")] (pnat_mult_left_commute RS ssubst) 1);
 by (auto_tac (claset(),simpset() addsimps [pnat_mult_assoc RS sym]));
 qed "prat_add_congruent2_lemma";
 
-Goal 
-    "congruent2 ratrel (%p1 p2.                  \
+Goal "congruent2 ratrel (%p1 p2.                  \
 \         split (%x1 y1. split (%x2 y2. ratrel^^{(x1*y2 + x2*y1, y1*y2)}) p2) p1)";
 by (rtac (equiv_ratrel RS congruent2_commuteI) 1);
 by Safe_tac;
@@ -451,8 +448,7 @@ by (res_inst_tac [("x","T")] exI 1);
 by (auto_tac (claset(),simpset() addsimps prat_add_ac));
 qed "prat_add_less2_mono1";
 
-Goal  
-      "!!(q1::prat). q1 < q2 ==> x + q1 < x + q2";
+Goal "!!(q1::prat). q1 < q2 ==> x + q1 < x + q2";
 by (auto_tac (claset() addIs [prat_add_less2_mono1],
     simpset() addsimps [prat_add_commute]));
 qed "prat_add_less2_mono2";
@@ -509,16 +505,14 @@ by (asm_full_simp_tac (simpset() addsimps [prat_add,
 by (asm_full_simp_tac (simpset() addsimps pnat_mult_ac) 1);
 qed "prat_linear";
 
-Goal
-    "!!(q1::prat). [| q1 < q2 ==> P;  q1 = q2 ==> P; \
+Goal "!!(q1::prat). [| q1 < q2 ==> P;  q1 = q2 ==> P; \
 \          q2 < q1 ==> P |] ==> P";
 by (cut_inst_tac [("q1.0","q1"),("q2.0","q2")] prat_linear 1);
 by Auto_tac;
 qed "prat_linear_less2";
 
 (* Gleason p. 120 -- 9-2.6 (iv) *)
-Goal 
- "!!(q1::prat). [| q1 < q2; qinv(q1) = qinv(q2) |] ==> P";
+Goal "!!(q1::prat). [| q1 < q2; qinv(q1) = qinv(q2) |] ==> P";
 by (cut_inst_tac [("x","qinv (q2)"),("q1.0","q1"),
    ("q2.0","q2")] prat_mult_less2_mono1 1);
 by (assume_tac 1);
@@ -526,8 +520,7 @@ by (Asm_full_simp_tac 1 THEN dtac sym 1);
 by (auto_tac (claset(),simpset() addsimps [prat_less_not_refl]));
 qed "lemma1_qinv_prat_less";
 
-Goal 
- "!!(q1::prat). [| q1 < q2; qinv(q1) < qinv(q2) |] ==> P";
+Goal "!!(q1::prat). [| q1 < q2; qinv(q1) < qinv(q2) |] ==> P";
 by (cut_inst_tac [("x","qinv (q2)"),("q1.0","q1"),
    ("q2.0","q2")] prat_mult_less2_mono1 1);
 by (assume_tac 1);
@@ -539,8 +532,7 @@ by (auto_tac (claset(),simpset() addsimps
     [prat_less_not_refl]));
 qed "lemma2_qinv_prat_less";
 
-Goal 
-      "!!(q1::prat). q1 < q2  ==> qinv (q2) < qinv (q1)";
+Goal "!!(q1::prat). q1 < q2  ==> qinv (q2) < qinv (q1)";
 by (res_inst_tac [("q2.0","qinv q1"),
          ("q1.0","qinv q2")] prat_linear_less2 1);
 by (auto_tac (claset() addEs [lemma1_qinv_prat_less,
@@ -693,8 +685,7 @@ by (auto_tac (claset() addDs [prat_mult_left_le2_mono1],
     simpset() addsimps [prat_mult_commute]));
 qed "prat_mult_le2_mono1";
 
-Goal 
-      "!!(q1::prat). q1 <= q2  ==> qinv (q2) <= qinv (q1)";
+Goal "!!(q1::prat). q1 <= q2  ==> qinv (q2) <= qinv (q1)";
 by (dtac prat_le_imp_less_or_eq 1);
 by (Step_tac 1);
 by (auto_tac (claset() addSIs [prat_le_refl,

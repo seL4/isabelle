@@ -1,4 +1,5 @@
-(*   Title       : PReal.thy
+(*  Title       : PReal.thy
+    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Description : The positive reals as Dedekind sections of positive

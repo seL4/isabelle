@@ -1,11 +1,10 @@
 (*  Title       : Lubs.ML
+    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Description : Completeness of the reals. A few of the 
                   definitions suggested by James Margetson
 *) 
-
-open Lubs;
 
 (*------------------------------------------------------------------------
                         Rules for *<= and <=*

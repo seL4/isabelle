@@ -1,10 +1,9 @@
 (*  Title       : Zorn.ML
+    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Description : Zorn's Lemma -- adapted proofs from lcp's ZF/Zorn.ML
 *) 
-
-open Zorn;
 
 (*---------------------------------------------------------------
       Section 1.  Mathematical Preamble 

@@ -1,4 +1,5 @@
 (*  Title       : PReal.ML
+    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Description : The positive reals as Dedekind sections of positive
@@ -7,8 +8,6 @@
 *)
 
 claset_ref() := claset() delWrapper "bspec";
-
-open PReal;
 
 Goal "inj_on Abs_preal preal";
 by (rtac inj_on_inverseI 1);

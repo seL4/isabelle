@@ -1,4 +1,5 @@
 (*  Title       : RealAbs.ML
+    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Description : Absolute value function for the reals
