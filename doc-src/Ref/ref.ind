@@ -27,7 +27,7 @@
   \item {\tt abstract_rule}, \bold{45}
   \item {\tt aconv}, \bold{61}
   \item {\tt addaltern}, \bold{134}
-  \item {\tt addbefore}, \bold{134}
+  \item {\tt addbefore}, \bold{133}
   \item {\tt Addcongs}, \bold{105}
   \item {\tt addcongs}, \bold{109}, 124, 125
   \item {\tt AddDs}, \bold{138}
@@ -52,8 +52,10 @@
   \item {\tt addSIs}, \bold{132}
   \item {\tt addSolver}, \bold{111}
   \item {\tt addsplits}, \bold{112}, 124, 126
-  \item {\tt addss}, \bold{133}, 134
+  \item {\tt addss}, \bold{134}, 135
   \item {\tt addSSolver}, \bold{111}
+  \item {\tt addSWrapper}, \bold{133}
+  \item {\tt addWrapper}, \bold{133}
   \item {\tt all_tac}, \bold{31}
   \item {\tt ALLGOALS}, \bold{35}, 116, 119
   \item ambiguity
@@ -97,6 +99,7 @@
     \subitem made from terms, 86
   \item {\tt atac}, \bold{20}
   \item {\tt Auto_tac}, \bold{138}
+  \item {\tt auto_tac} $(cs,ss)$, \bold{136}
   \item {\tt axclass} section, 53
   \item axiomatic type class, 53
   \item axioms
@@ -148,7 +151,7 @@
   \item {\tt Clarify_tac}, \bold{138}
   \item {\tt clarify_tac}, \bold{134}
   \item claset
-    \subitem current, 137
+    \subitem current, 138
   \item {\tt claset} ML type, 131
   \item classes
     \subitem context conditions, 54
@@ -162,8 +165,6 @@
   \item {\tt COMP}, \bold{47}
   \item {\tt compose}, \bold{47}
   \item {\tt compose_tac}, \bold{24}
-  \item {\tt compSWrapper}, \bold{133}
-  \item {\tt compWrapper}, \bold{134}
   \item {\tt concl_of}, \bold{41}
   \item {\tt COND}, \bold{33}
   \item congruence rules, 109
@@ -193,7 +194,7 @@
 
   \item {\tt datatype}, 105
   \item {\tt Deepen_tac}, \bold{138}
-  \item {\tt deepen_tac}, \bold{136}
+  \item {\tt deepen_tac}, \bold{137}
   \item {\tt defer_tac}, \bold{21}
   \item definitions, \see{rewriting, meta-level}{1}, 21, \bold{54}
     \subitem unfolding, 8, 9
@@ -207,11 +208,13 @@
   \item {\tt delsimprocs}, \bold{108}
   \item {\tt Delsimps}, \bold{105}
   \item {\tt delsimps}, \bold{108}
+  \item {\tt delSWrapper}, \bold{133}
+  \item {\tt delWrapper}, \bold{134}
   \item {\tt dependent_tr'}, 94, \bold{96}
   \item {\tt DEPTH_FIRST}, \bold{32}
   \item {\tt DEPTH_SOLVE}, \bold{32}
   \item {\tt DEPTH_SOLVE_1}, \bold{32}
-  \item {\tt depth_tac}, \bold{136}
+  \item {\tt depth_tac}, \bold{137}
   \item {\tt Deriv.drop}, \bold{49}
   \item {\tt Deriv.linear}, \bold{49}
   \item {\tt Deriv.size}, \bold{49}
@@ -239,10 +242,10 @@
   \item {\tt ematch_tac}, \bold{18}
   \item {\tt empty} constant, 92
   \item {\tt empty_cs}, \bold{132}
-  \item {\tt empty_ss}, \bold{106}
+  \item {\tt empty_ss}, \bold{107}
   \item {\tt eq_assume_tac}, \bold{18}, 131
   \item {\tt eq_assumption}, \bold{47}
-  \item {\tt eq_mp_tac}, \bold{138}
+  \item {\tt eq_mp_tac}, \bold{139}
   \item {\tt eq_reflection} theorem, \bold{102}, 122
   \item {\tt eq_thm}, \bold{33}
   \item {\tt eq_thy}, \bold{58}
@@ -308,6 +311,8 @@
   \item {\tt forall_intr_frees}, \bold{46}
   \item {\tt forall_intr_list}, \bold{46}
   \item {\tt force_strip_shyps}, \bold{41}
+  \item {\tt Force_tac}, \bold{138}
+  \item {\tt force_tac}, \bold{136}
   \item {\tt forw_inst_tac}, \bold{19}
   \item forward proof, 18, 38
   \item {\tt forward_tac}, \bold{18}
@@ -337,7 +342,7 @@
 
   \item {\tt has_fewer_prems}, \bold{33}
   \item higher-order pattern, \bold{108}
-  \item {\tt HOL_basic_ss}, \bold{106}
+  \item {\tt HOL_basic_ss}, \bold{107}
   \item {\tt hyp_subst_tac}, \bold{100}
   \item {\tt hyp_subst_tacs}, \bold{140}
   \item {\tt HypsubstFun}, 101, 140
@@ -420,21 +425,21 @@
   \item {\tt ML} section, 53, 95, 97
   \item model checkers, 79
   \item {\tt mp} theorem, \bold{139}
-  \item {\tt mp_tac}, \bold{138}
+  \item {\tt mp_tac}, \bold{139}
   \item {\tt MRL}, \bold{38}
   \item {\tt MRS}, \bold{38}
 
   \indexspace
 
   \item name tokens, \bold{70}
-  \item {\tt nat_cancel}, \bold{108}
+  \item {\tt nat_cancel}, \bold{109}
   \item {\tt net_bimatch_tac}, \bold{25}
   \item {\tt net_biresolve_tac}, \bold{25}
   \item {\tt net_match_tac}, \bold{25}
   \item {\tt net_resolve_tac}, \bold{25}
   \item {\tt no_tac}, \bold{31}
   \item {\tt None}, \bold{27}
-  \item {\tt not_elim} theorem, \bold{139}
+  \item {\tt not_elim} theorem, \bold{140}
   \item {\tt nprems_of}, \bold{41}
   \item numerals, 70
 
@@ -608,13 +613,11 @@
   \item sessions, 1--6
   \item {\tt set}, 3
   \item {\tt setloop}, \bold{112}
-  \item {\tt setmksimps}, 107, \bold{123}, 125
+  \item {\tt setmksimps}, 108, \bold{123}, 125
   \item {\tt setSolver}, \bold{111}, 125
   \item {\tt setSSolver}, \bold{111}, 125
   \item {\tt setsubgoaler}, \bold{110}, 125
-  \item {\tt setSWrapper}, \bold{133}
   \item {\tt settermless}, \bold{117}
-  \item {\tt setWrapper}, \bold{134}
   \item shortcuts
     \subitem for tactics, 20
     \subitem for {\tt by} commands, 11
@@ -636,7 +639,7 @@
   \item {\tt simp_tac}, \bold{112}
   \item simplification, 103--126
     \subitem forward rules, 113
-    \subitem from classical reasoner, 133
+    \subitem from classical reasoner, 134
     \subitem setting up, 121
     \subitem tactics, 112
   \item simplification sets, 106
@@ -650,8 +653,8 @@
   \item {\tt simpset_ref}, \bold{107}
   \item {\tt simpset_ref_of}, \bold{107}
   \item {\tt simpset_thy_data}, \bold{126}
-  \item {\tt size_of_thm}, 32, \bold{33}, 139
-  \item {\tt sizef}, \bold{139}
+  \item {\tt size_of_thm}, 32, \bold{33}, 140
+  \item {\tt sizef}, \bold{140}
   \item {\tt slow_best_tac}, \bold{136}
   \item {\tt slow_step_tac}, 133, \bold{137}
   \item {\tt slow_tac}, \bold{136}
@@ -684,8 +687,8 @@
   \item substitution
     \subitem rules, 99
   \item {\tt subthy}, \bold{58}
-  \item {\tt swap} theorem, \bold{139}
-  \item {\tt swap_res_tac}, \bold{138}
+  \item {\tt swap} theorem, \bold{140}
+  \item {\tt swap_res_tac}, \bold{139}
   \item {\tt swapify}, \bold{139}
   \item {\tt sym} theorem, 100, \bold{102}
   \item {\tt symmetric}, \bold{45}
@@ -802,7 +805,7 @@
     \subitem of classical prover, 135
     \subitem of macros, 92
     \subitem of searching tacticals, 32
-    \subitem of simplification, 104, 115--116
+    \subitem of simplification, 105, 115--116
     \subitem of tactics, 27
     \subitem of unification, 42
   \item {\tt transfer}, \bold{58}
