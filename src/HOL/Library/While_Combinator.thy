@@ -92,9 +92,9 @@ proof -
 qed
 
 theorem while_rule:
-  "\<lbrakk> P s; \<And>s. \<lbrakk> P s; b s \<rbrakk> \<Longrightarrow> P(c s);
-    \<And>s.\<lbrakk> P s; \<not> b s \<rbrakk> \<Longrightarrow> Q s;
-    wf r;  \<And>s. \<lbrakk> P s; b s \<rbrakk> \<Longrightarrow> (c s,s) \<in> r \<rbrakk> \<Longrightarrow>
+  "[| P s; !!s. [| P s; b s  |] ==> P (c s);
+    !!s. [| P s; \<not> b s  |] ==> Q s;
+    wf r;  !!s. [| P s; b s  |] ==> (c s, s) \<in> r |] ==>
     Q (while b c s)"
 apply (rule while_rule_lemma)
 prefer 4 apply assumption
