@@ -42,27 +42,34 @@ HILITE=bold
 PASS=""
 SYMBOLS="true"
 
-while getopts "g:h:p:s:" OPT
-do
-  case "$OPT" in
-    g)
-      MAINGEOM="$OPTARG"
-      ;;
-    h)
-      HILITE="$OPTARG"
-      ;;
-    p)
-      PASS="$PASS $OPTARG"
-      ;;
-    s)
-      SYMBOLS="$OPTARG"
-      ;;
-    \?)
-      usage
-      ;;
-  esac
-done
+function getoptions()
+{
+  OPTIND=1
+  while getopts "g:h:p:s:" OPT
+  do
+    case "$OPT" in
+      g)
+        MAINGEOM="$OPTARG"
+        ;;
+      h)
+        HILITE="$OPTARG"
+        ;;
+      p)
+        PASS="$PASS $OPTARG"
+        ;;
+      s)
+        SYMBOLS="$OPTARG"
+        ;;
+      \?)
+        usage
+        ;;
+    esac
+  done
+}
 
+getoptions $ISABELLE_XTERM_OPTIONS
+
+getoptions "$@"
 shift $(($OPTIND - 1))
 
 

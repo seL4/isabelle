@@ -15,8 +15,9 @@ function usage()
   echo "Usage: $PRG [OPTIONS]"
   echo
   echo "  Options are:"
-# echo "    -g GEOM      main window geometry (default 80x20)"
-  echo "  (currently none)"
+  echo "    -g GEOM      main window geometry (default none)"
+  echo "    -p NAME      Emacs program name (default xemacs)"
+  echo "    -u BOOL      use .emacs file (default false)"
   echo
   echo "Starts Emacs and Isamode."
   exit 1
@@ -33,21 +34,36 @@ function fail()
 
 # options
 
-#MAINGEOM="80x20"
+MAINGEOM=""
+PROGNAME=xemacs
+INITFILE=false
 
-#while getopts "g:" OPT
-#do
-#  case "$OPT" in
-#    g)
-#      MAINGEOM="$OPTARG"
-#      ;;
-#    \?)
-#      usage
-#      ;;
-#  esac
-#done
+function getoptions()
+{
+  OPTIND=1
+  while getopts "g:p:u:" OPT
+  do
+    case "$OPT" in
+      g)
+        MAINGEOM="$OPTARG"
+        ;;
+      p)
+        PROGNAME="$OPTARG"
+        ;;
+      u)
+        INITFILE="$OPTARG"
+        ;;
+      \?)
+        usage
+        ;;
+    esac
+  done
+}
 
-#shift $(($OPTIND - 1))
+getoptions $ISAMODE_OPTIONS
+
+getoptions "$@"
+shift $(($OPTIND - 1))
 
 
 # args
@@ -57,16 +73,21 @@ function fail()
 
 ## main
 
-CMDS="-l $ISAMODE_HOME/elisp/isa-site.el"
+ARGS=""
+
+[ -n "$MAINGEOM" ] && ARGS="$ARGS -geometry $MAINGEOM"
+[ "$INITFILE" = false ] && ARGS="$ARGS -q"
+
+
+ARGS="$ARGS -l $ISAMODE_HOME/elisp/isa-site.el"
 
 for FILE in "$ISABELLE_HOME/etc/isa-settings.el" \
     "$ISABELLE_HOME_USER/etc/isa-settings.el"
 do
-  [ -f "$FILE" ] && CMDS="$CMDS -l $FILE"
+  [ -f "$FILE" ] && ARGS="$ARGS -l $FILE"
 done
 
-CMDS="$CMDS -f isabelle"
+ARGS="$ARGS -f isabelle"
 
 
- exec $ISAMODE_EMACS -T "Isabelle" $CMDS
-#exec $ISAMODE_EMACS -T "Isabelle" -geometry $MAINGEOM $CMDS
+exec $PROGNAME -T "Isabelle" -geometry $MAINGEOM $ARGS
