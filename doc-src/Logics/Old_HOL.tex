@@ -847,7 +847,7 @@ classical reasoner; see file {\tt HOL/equalities.ML}.
         & & ordered pairs $\langle a,b\rangle$ \\
   \cdx{fst}     & $\alpha\times\beta \To \alpha$        & & first projection\\
   \cdx{snd}     & $\alpha\times\beta \To \beta$         & & second projection\\
-  \cdx{split}   & $[\alpha\times\beta, [\alpha,\beta]\To\gamma] \To \gamma$ 
+  \cdx{split}   & $[[\alpha,\beta]\To\gamma, \alpha\times\beta] \To \gamma$ 
         & & generalized projection\\
   \cdx{Sigma}  & 
         $[\alpha\,set, \alpha\To\beta\,set]\To(\alpha\times\beta)set$ &
@@ -856,14 +856,14 @@ classical reasoner; see file {\tt HOL/equalities.ML}.
 \begin{ttbox}\makeatletter
 \tdx{fst_def}      fst(p)     == @a. ? b. p = <a,b>
 \tdx{snd_def}      snd(p)     == @b. ? a. p = <a,b>
-\tdx{split_def}    split(p,c) == c(fst(p),snd(p))
+\tdx{split_def}    split(c,p) == c(fst(p),snd(p))
 \tdx{Sigma_def}    Sigma(A,B) == UN x:A. UN y:B(x). \{<x,y>\}
 
 
 \tdx{Pair_inject}  [| <a, b> = <a',b'>;  [| a=a';  b=b' |] ==> R |] ==> R
 \tdx{fst_conv}     fst(<a,b>) = a
 \tdx{snd_conv}     snd(<a,b>) = b
-\tdx{split}        split(<a,b>, c) = c(a,b)
+\tdx{split}        split(c, <a,b>) = c(a,b)
 
 \tdx{surjective_pairing}  p = <fst(p),snd(p)>
 
@@ -881,11 +881,11 @@ classical reasoner; see file {\tt HOL/equalities.ML}.
   \it symbol    & \it meta-type &           & \it description \\ 
   \cdx{Inl}     & $\alpha \To \alpha+\beta$    & & first injection\\
   \cdx{Inr}     & $\beta \To \alpha+\beta$     & & second injection\\
-  \cdx{sum_case} & $[\alpha+\beta, \alpha\To\gamma, \beta\To\gamma] \To\gamma$
+  \cdx{sum_case} & $[\alpha\To\gamma, \beta\To\gamma, \alpha+\beta] \To\gamma$
         & & conditional
 \end{constants}
 \begin{ttbox}\makeatletter
-\tdx{sum_case_def}   sum_case == (\%p f g. @z. (!x. p=Inl(x) --> z=f(x)) &
+\tdx{sum_case_def}   sum_case == (\%f g p. @z. (!x. p=Inl(x) --> z=f(x)) &
                                         (!y. p=Inr(y) --> z=g(y)))
 
 \tdx{Inl_not_Inr}    ~ Inl(a)=Inr(b)
@@ -895,10 +895,10 @@ classical reasoner; see file {\tt HOL/equalities.ML}.
 
 \tdx{sumE}           [| !!x::'a. P(Inl(x));  !!y::'b. P(Inr(y)) |] ==> P(s)
 
-\tdx{sum_case_Inl}   sum_case(Inl(x), f, g) = f(x)
-\tdx{sum_case_Inr}   sum_case(Inr(x), f, g) = g(x)
+\tdx{sum_case_Inl}   sum_case(f, g, Inl(x)) = f(x)
+\tdx{sum_case_Inr}   sum_case(f, g, Inr(x)) = g(x)
 
-\tdx{surjective_sum} sum_case(s, \%x::'a. f(Inl(x)), \%y::'b. f(Inr(y))) = f(s)
+\tdx{surjective_sum} sum_case(\%x::'a. f(Inl(x)), \%y::'b. f(Inr(y)), s) = f(s)
 \end{ttbox}
 \caption{Type $\alpha+\beta$}\label{hol-sum}
 \end{figure}
@@ -932,7 +932,6 @@ as {\tt step_tac}, {\tt fast_tac}, {\tt best_tac}, etc., refer to it.
 \begin{ttbox} 
 prop_cs    : claset
 HOL_cs     : claset
-HOL_dup_cs : claset
 set_cs     : claset
 \end{ttbox}
 \begin{ttdescription}
@@ -945,13 +944,6 @@ along with the rule~{\tt refl}.
   and~{\tt exI}, as well as rules for unique existence.  Search using
   this classical set is incomplete: quantified formulae are used at most
   once.
-
-\item[\ttindexbold{HOL_dup_cs}] extends {\tt prop_cs} with the safe rules
-  {\tt allI} and~{\tt exE} and the unsafe rules \tdx{all_dupE}
-  and~\tdx{exCI}, as well as rules for unique existence.  Search using
-  this is complete --- quantified formulae may be duplicated --- but
-  frequently fails to terminate.  It is generally unsuitable for
-  depth-first search.
 
 \item[\ttindexbold{set_cs}] extends {\tt HOL_cs} with rules for the bounded
   quantifiers, subsets, comprehensions, unions and intersections,
@@ -994,7 +986,7 @@ proved using \tdx{select_equality}.
   \it symbol    & \it meta-type & \it priority & \it description \\ 
   \cdx{0}       & $nat$         & & zero \\
   \cdx{Suc}     & $nat \To nat$ & & successor function\\
-  \cdx{nat_case} & $[nat, \alpha, nat\To\alpha] \To\alpha$
+  \cdx{nat_case} & $[\alpha, nat\To\alpha, nat] \To\alpha$
         & & conditional\\
   \cdx{nat_rec} & $[nat, \alpha, [nat, \alpha]\To\alpha] \To \alpha$
         & & primitive recursor\\
@@ -1008,12 +1000,12 @@ proved using \tdx{select_equality}.
 \subcaption{Constants and infixes}
 
 \begin{ttbox}\makeatother
-\tdx{nat_case_def}  nat_case == (\%n a f. @z. (n=0 --> z=a) & 
+\tdx{nat_case_def}  nat_case == (\%a f n. @z. (n=0 --> z=a) & 
                                        (!x. n=Suc(x) --> z=f(x)))
 \tdx{pred_nat_def}  pred_nat == \{p. ? n. p = <n, Suc(n)>\} 
 \tdx{less_def}      m<n      == <m,n>:pred_nat^+
 \tdx{nat_rec_def}   nat_rec(n,c,d) == 
-               wfrec(pred_nat, n, \%l g.nat_case(l, c, \%m.d(m,g(m))))
+               wfrec(pred_nat, n, nat_case(\%g.c, \%m g. d(m,g(m))))
 
 \tdx{add_def}   m+n     == nat_rec(m, n, \%u v.Suc(v))
 \tdx{diff_def}  m-n     == nat_rec(n, m, \%u v. nat_rec(v, 0, \%x y.x))
@@ -1040,8 +1032,8 @@ proved using \tdx{select_equality}.
 \tdx{pred_natE}
     [| p : pred_nat;  !!x n. [| p = <n, Suc(n)> |] ==> R |] ==> R
 
-\tdx{nat_case_0}     nat_case(0, a, f) = a
-\tdx{nat_case_Suc}   nat_case(Suc(k), a, f) = f(k)
+\tdx{nat_case_0}     nat_case(a, f, 0) = a
+\tdx{nat_case_Suc}   nat_case(a, f, Suc(k)) = f(k)
 
 \tdx{wf_pred_nat}    wf(pred_nat)
 \tdx{nat_rec_0}      nat_rec(0,c,h) = c
@@ -1164,8 +1156,8 @@ variable~$n$ in subgoal~$i$.
 \tdx{list_rec_Nil}    list_rec([],c,h) = c  
 \tdx{list_rec_Cons}   list_rec(a#l, c, h) = h(a, l, list_rec(l,c,h))
 
-\tdx{list_case_Nil}   list_case([],c,h) = c 
-\tdx{list_case_Cons}  list_case(x#xs, c, h) = h(x, xs)
+\tdx{list_case_Nil}   list_case(c, h, []) = c 
+\tdx{list_case_Cons}  list_case(c, h, x#xs) = h(x, xs)
 
 \tdx{map_Nil}         map(f,[]) = []
 \tdx{map_Cons}        map(f, x \# xs) = f(x) \# map(f,xs)
@@ -1210,7 +1202,7 @@ The \sdx{case} construct is defined by the following translation:
               "|" & x"\#"xs & " => " b
   \end{array} 
   & \equiv &
-  "list_case"(e, a, \lambda x\;xs.b)
+  "list_case"(a, \lambda x\;xs.b, e)
 \end{eqnarray*}}%
 The theory includes \cdx{list_rec}, a primitive recursion operator
 for lists.  It is derived from well-founded recursion, a general principle
