@@ -17,6 +17,8 @@ function usage()
   echo "  Recursively find .thy/.ML files, patching them to ensure that"
   echo "  dots in formulas are followed by non-idents."
   echo
+  echo "  Renames old versions of FILES by appending \"~~\"."
+  echo
   exit 1
 }
 
