@@ -1,27 +1,27 @@
 \begin{theindex}
 
-  \item {\tt !!} symbol, 25
+  \item {\tt !!} symbol, 26
     \subitem in main goal, 46
   \item {\tt\%} symbol, 25
   \item {\tt ::} symbol, 25
-  \item {\tt ==} symbol, 25
-  \item {\tt ==>} symbol, 25
+  \item {\tt ==} symbol, 26
+  \item {\tt ==>} symbol, 26
   \item {\tt =>} symbol, 25
-  \item {\tt =?=} symbol, 25
+  \item {\tt =?=} symbol, 26
   \item {\tt [} symbol, 25
-  \item {\tt [|} symbol, 25
+  \item {\tt [|} symbol, 26
   \item {\tt ]} symbol, 25
   \item {\tt\ttlbrace} symbol, 25
   \item {\tt\ttrbrace} symbol, 25
-  \item {\tt |]} symbol, 25
+  \item {\tt |]} symbol, 26
 
   \indexspace
 
-  \item {\tt allI} theorem, 37
+  \item {\tt allI} theorem, 38
   \item arities
     \subitem declaring, 4, \bold{49}
   \item {\tt Asm_simp_tac}, 60
-  \item {\tt assume_tac}, 30, 32, 37, 47
+  \item {\tt assume_tac}, 30, 32, 38, 47
   \item assumptions
     \subitem deleting, 20
     \subitem discharge of, 7
@@ -39,13 +39,13 @@
     \subitem Prolog style, 62
   \item {\tt bd}, 31
   \item {\tt be}, 31
-  \item {\tt Blast_tac}, 39
+  \item {\tt Blast_tac}, 39, 40
   \item {\tt br}, 31
-  \item {\tt by}, 30
+  \item {\tt by}, 31
 
   \indexspace
 
-  \item {\tt choplev}, 37, 65
+  \item {\tt choplev}, 37, 38, 65
   \item classes, 3
     \subitem built-in, \bold{25}
   \item classical reasoner, 39
@@ -65,7 +65,7 @@
   \item destruct-resolution, 22, 30
   \item {\tt disjE} theorem, 31
   \item {\tt dres_inst_tac}, 57
-  \item {\tt dresolve_tac}, 30, 32, 33, 38
+  \item {\tt dresolve_tac}, 30, 33, 39
 
   \indexspace
 
@@ -74,22 +74,22 @@
   \item equality
     \subitem polymorphic, 3
   \item {\tt eres_inst_tac}, 57
-  \item {\tt eresolve_tac}, 30, 32, 33, 39, 47
+  \item {\tt eresolve_tac}, 30, 33, 39, 47
   \item examples
     \subitem of deriving rules, 41
     \subitem of induction, 57, 58
     \subitem of simplification, 60
     \subitem of tacticals, 37
     \subitem of theories, 48, 50--54, 56, 61
-    \subitem propositional, 17, 31, 32
-    \subitem with quantifiers, 18, 34, 35, 38
+    \subitem propositional, 17, 31, 33
+    \subitem with quantifiers, 18, 34, 36, 38
   \item {\tt exE} theorem, 38
 
   \indexspace
 
   \item {\tt FalseE} theorem, 45
   \item first-order logic, 1
-  \item flex-flex constraints, 6, 25, \bold{28}
+  \item flex-flex constraints, 6, 26, \bold{29}
   \item {\tt flexflex_rule}, 29
   \item forward proof, 21, 24--30
   \item {\tt fun} type, 1, 4
@@ -132,9 +132,9 @@
   \item {\tt Match} exception, 42
   \item meta-assumptions
     \subitem syntax of, 22
-  \item meta-equality, \bold{5}, 25
-  \item meta-implication, \bold{5}, 7, 25
-  \item meta-quantifiers, \bold{5}, 8, 25
+  \item meta-equality, \bold{5}, 26
+  \item meta-implication, \bold{5}, 7, 26
+  \item meta-quantifiers, \bold{5}, 8, 26
   \item meta-rewriting, 43
   \item mixfix declarations, 52, 53, 56
   \item ML, i
@@ -181,7 +181,7 @@
 
   \item {\tt read_instantiate}, 29
   \item {\tt refl} theorem, 29
-  \item {\tt REPEAT}, 33, 38, 62, 64
+  \item {\tt REPEAT}, 34, 38, 62, 64
   \item {\tt res_inst_tac}, 57, 60
   \item reserved words, 24
   \item resolution, 10, \bold{12}
@@ -213,7 +213,7 @@
   \item simplification sets, 60
   \item sort constraints, 25
   \item sorts, \bold{5}
-  \item {\tt spec} theorem, 28, 36, 37
+  \item {\tt spec} theorem, 28, 36, 38
   \item {\tt standard}, 27
   \item substitution, \bold{8}
   \item {\tt Suc_inject}, 58
@@ -237,10 +237,10 @@
     \subitem defining, 47--57
   \item {\tt thm} ML type, 27
   \item {\tt topthm}, 42
-  \item {\tt Trueprop} constant, 6, 7, 25
+  \item {\tt Trueprop} constant, 6, 7, 26
   \item type constraints, 25
   \item type constructors, 1
-  \item type identifiers, 24
+  \item type identifiers, 25
   \item type synonyms, \bold{51}
   \item types
     \subitem declaring, \bold{49}
@@ -252,12 +252,12 @@
 
   \indexspace
 
-  \item {\tt undo}, 30
+  \item {\tt undo}, 31
   \item unification
     \subitem higher-order, \bold{11}, 58
     \subitem incompleteness of, 11
-  \item unknowns, 10, 24, 34
-    \subitem function, \bold{11}, 28, 34
+  \item unknowns, 10, 25, 34
+    \subitem function, \bold{11}, 29, 34
   \item {\tt use_thy}, \bold{47, 48}
 
   \indexspace

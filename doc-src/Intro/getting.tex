@@ -17,9 +17,17 @@ These data structures have the corresponding \ML{} types {\tt typ},
 tacticals have function types such as {\tt tactic->tactic}.  Isabelle
 users can operate on these data structures by writing \ML{} programs.
 
+
 \section{Forward proof}\label{sec:forward} \index{forward proof|(}
 This section describes the concrete syntax for types, terms and theorems,
-and demonstrates forward proof.
+and demonstrates forward proof.  The examples are set in first-order logic.
+The command to start Isabelle running first-order logic is
+\begin{ttbox}
+isabelle FOL
+\end{ttbox}
+Note that just typing \texttt{isabelle} usually brings up higher-order logic
+(\HOL) by default.
+
 
 \subsection{Lexical matters}
 \index{identifiers}\index{reserved words} 
@@ -76,16 +84,15 @@ classes or sorts, for example {\tt 'a::term} and {\tt ?'b::\ttlbrace
 \index{*:: symbol}\index{*=> symbol}
 \index{{}@{\tt\ttlbrace} symbol}\index{{}@{\tt\ttrbrace} symbol}
 \index{*[ symbol}\index{*] symbol}
-\begin{array}{lll}
-    \multicolumn{3}{c}{\hbox{ASCII Notation for Types}} \\ \hline
-  \alpha "::" C              & \alpha :: C        & \hbox{class constraint} \\
+\begin{array}{ll}
+    \multicolumn{2}{c}{\hbox{ASCII Notation for Types}} \\ \hline
+  \alpha "::" C              & \hbox{class constraint} \\
   \alpha "::" "\ttlbrace" C@1 "," \ldots "," C@n "\ttrbrace" &
-     \alpha :: \{C@1,\dots,C@n\}             & \hbox{sort constraint} \\
-  \sigma " => " \tau        & \sigma\To\tau & \hbox{function type} \\
-  "[" \sigma@1 "," \ldots "," \sigma@n "] => " \tau &
-     [\sigma@1,\ldots,\sigma@n] \To\tau & \hbox{curried function type} \\
-  "(" \tau@1"," \ldots "," \tau@n ")" tycon & 
-     (\tau@1, \ldots, \tau@n)tycon      & \hbox{type construction}
+        \hbox{sort constraint} \\
+  \sigma " => " \tau        & \hbox{function type } \sigma\To\tau \\
+  "[" \sigma@1 "," \ldots "," \sigma@n "] => " \tau 
+       & \hbox{$n$-argument function type} \\
+  "(" \tau@1"," \ldots "," \tau@n ")" tycon & \hbox{type construction}
 \end{array} 
 \]
 Terms are those of the typed $\lambda$-calculus.
@@ -93,16 +100,19 @@ Terms are those of the typed $\lambda$-calculus.
 \[\dquotes
 \index{%@{\tt\%} symbol}\index{lambda abs@$\lambda$-abstractions}
 \index{*:: symbol}
-\begin{array}{lll}
-    \multicolumn{3}{c}{\hbox{ASCII Notation for Terms}} \\ \hline
-  t "::" \sigma         & t :: \sigma   & \hbox{type constraint} \\
-  "\%" x "." t          & \lambda x.t   & \hbox{abstraction} \\
-  "\%" x@1\ldots x@n "." t  & \lambda x@1\ldots x@n.t & 
-     \hbox{curried abstraction} \\
-  t "(" u@1"," \ldots "," u@n ")" & 
-  t (u@1, \ldots, u@n) & \hbox{curried application}
+\begin{array}{ll}
+    \multicolumn{2}{c}{\hbox{ASCII Notation for Terms}} \\ \hline
+  t "::" \sigma         & \hbox{type constraint} \\
+  "\%" x "." t          & \hbox{abstraction } \lambda x.t \\
+  "\%" x@1\ldots x@n "." t  & \hbox{abstraction over several arguments} \\
+  t "(" u@1"," \ldots "," u@n ")" &
+     \hbox{application to several arguments (FOL and ZF)} \\
+  t\; u@1 \ldots\; u@n & \hbox{application to several arguments (HOL)}
 \end{array}  
 \]
+Note that \HOL{} uses its traditional ``higher-order'' syntax for application,
+which differs from that used in \FOL\@.
+
 The theorems and rules of an object-logic are represented by theorems in
 the meta-logic, which are expressed using meta-formulae.  Since the
 meta-logic is higher-order, meta-formulae~$\phi$, $\psi$, $\theta$,~\ldots{}
