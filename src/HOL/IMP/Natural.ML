@@ -20,5 +20,6 @@ AddSEs evalc_elim_cases;
 goal Natural.thy "!!c s t. <c,s> -c-> t ==> (!u. <c,s> -c-> u --> u=t)";
 by (etac evalc.induct 1);
 by (thin_tac "<?c,s2> -c-> s1" 7);
-by (ALLGOALS (deepen_tac (claset() addEs [evalc_WHILE_case]) 4));
+(*blast_tac needs Unify.search_bound, trace_bound := 40*)
+by (ALLGOALS (best_tac (claset() addEs [evalc_WHILE_case])));
 qed_spec_mp "com_det";
