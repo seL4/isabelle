@@ -6,9 +6,9 @@
 \subsection{Terminal sessions}
 
 Isar is already part of Isabelle (as of version Isabelle99, or later).  The
-\texttt{isabelle} binary provides option \texttt{-I} to run the Isar
-interaction loop at startup, rather than the plain ML top-level.  Thus the
-quickest way to do \emph{anything} with Isabelle/Isar is as follows:
+\texttt{isabelle} binary provides option \texttt{-I} to run the Isabelle/Isar
+interaction loop at startup, rather than the raw ML top-level.  So the
+quickest way to do anything with Isabelle/Isar is as follows:
 \begin{ttbox}
 isabelle -I HOL\medskip
 \out{> Welcome to Isabelle/HOL (Isabelle99-1)}\medskip
@@ -101,11 +101,10 @@ tar xzf .../x-symbol-pkg.tar.gz
 Using proper mathematical symbols in Isabelle theories can be very convenient
 for readability of large formulas.  On the other hand, the plain ASCII sources
 easily become somewhat unintelligible.  For example, $\forall$ will appear as
-\verb,\\<forall>, according the default set of Isabelle symbols.
-Nevertheless, the Isabelle document preparation system (see
-\S\ref{sec:document-prep}) will be happy to print non-ASCII symbols properly.
-It is even possible to invent additional notation beyond the display
-capabilities of XEmacs and X-Symbol.
+\verb,\<forall>, according the default set of Isabelle symbols.  Nevertheless,
+the Isabelle document preparation system (see \S\ref{sec:document-prep}) will
+be happy to print non-ASCII symbols properly.  It is even possible to invent
+additional notation beyond the display capabilities of XEmacs and X-Symbol.
 
 
 \section{Isabelle/Isar theories}
