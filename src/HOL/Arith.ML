@@ -388,6 +388,13 @@ by (simp_tac (!simpset addsimps [diff_add_assoc]) 1);
 qed "diff_add_inverse2";
 Addsimps [diff_add_inverse2];
 
+goal Arith.thy "!!i j k::nat. i<=j ==> (j-i=k) = (j=k+i)";
+by (Step_tac 1);
+by (ALLGOALS 
+    (asm_simp_tac
+     (!simpset addsimps [add_diff_inverse, not_less_iff_le, add_commute])));
+qed "le_imp_diff_is_add";
+
 val [prem] = goal Arith.thy "m < Suc(n) ==> m-n = 0";
 by (rtac (prem RS rev_mp) 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
@@ -470,154 +477,6 @@ qed "diff_mult_distrib2" ;
 (*NOT added as rewrites, since sometimes they are used from right-to-left*)
 
 
-(** Less-then properties **)
-
-(*In ordinary notation: if 0<n and n<=m then m-n < m *)
-goal Arith.thy "!!m. [| 0<n; ~ m<n |] ==> m - n < m";
-by (subgoal_tac "0<n --> ~ m<n --> m - n < m" 1);
-by (Blast_tac 1);
-by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS(asm_simp_tac(!simpset addsimps [diff_less_Suc])));
-qed "diff_less";
-
-val wf_less_trans = [eq_reflection, wf_pred_nat RS wf_trancl] MRS 
-                    def_wfrec RS trans;
-
-goalw Nat.thy [less_def] "(m,n) : pred_nat^+ = (m<n)";
-by (rtac refl 1);
-qed "less_eq";
-
-(*** Remainder ***)
-
-goal Arith.thy "(%m. m mod n) = wfrec (trancl pred_nat) \
-             \                      (%f j. if j<n then j else f (j-n))";
-by (simp_tac (!simpset addsimps [mod_def]) 1);
-qed "mod_eq";
-
-goal Arith.thy "!!m. m<n ==> m mod n = m";
-by (rtac (mod_eq RS wf_less_trans) 1);
-by (Asm_simp_tac 1);
-qed "mod_less";
-
-goal Arith.thy "!!m. [| 0<n;  ~m<n |] ==> m mod n = (m-n) mod n";
-by (rtac (mod_eq RS wf_less_trans) 1);
-by (asm_simp_tac (!simpset addsimps [diff_less, cut_apply, less_eq]) 1);
-qed "mod_geq";
-
-goal thy "!!n. 0<n ==> n mod n = 0";
-by (rtac (mod_eq RS wf_less_trans) 1);
-by (asm_simp_tac (!simpset addsimps [mod_less, diff_self_eq_0,
-				     cut_def, less_eq]) 1);
-qed "mod_nn_is_0";
-
-goal thy "!!n. 0<n ==> (m+n) mod n = m mod n";
-by (subgoal_tac "(n + m) mod n = (n+m-n) mod n" 1);
-by (stac (mod_geq RS sym) 2);
-by (ALLGOALS (asm_full_simp_tac (!simpset addsimps [add_commute])));
-qed "mod_eq_add";
-
-goal thy "!!n. 0<n ==> m*n mod n = 0";
-by (induct_tac "m" 1);
-by (asm_simp_tac (!simpset addsimps [mod_less]) 1);
-by (dres_inst_tac [("m","m*n")] mod_eq_add 1);
-by (asm_full_simp_tac (!simpset addsimps [add_commute]) 1);
-qed "mod_prod_nn_is_0";
-
-
-(*** Quotient ***)
-
-goal Arith.thy "(%m. m div n) = wfrec (trancl pred_nat) \
-                        \            (%f j. if j<n then 0 else Suc (f (j-n)))";
-by (simp_tac (!simpset addsimps [div_def]) 1);
-qed "div_eq";
-
-goal Arith.thy "!!m. m<n ==> m div n = 0";
-by (rtac (div_eq RS wf_less_trans) 1);
-by (Asm_simp_tac 1);
-qed "div_less";
-
-goal Arith.thy "!!M. [| 0<n;  ~m<n |] ==> m div n = Suc((m-n) div n)";
-by (rtac (div_eq RS wf_less_trans) 1);
-by (asm_simp_tac (!simpset addsimps [diff_less, cut_apply, less_eq]) 1);
-qed "div_geq";
-
-(*Main Result about quotient and remainder.*)
-goal Arith.thy "!!m. 0<n ==> (m div n)*n + m mod n = m";
-by (res_inst_tac [("n","m")] less_induct 1);
-by (rename_tac "k" 1);    (*Variable name used in line below*)
-by (case_tac "k<n" 1);
-by (ALLGOALS (asm_simp_tac(!simpset addsimps ([add_assoc] @
-                       [mod_less, mod_geq, div_less, div_geq,
-                        add_diff_inverse, diff_less]))));
-qed "mod_div_equality";
-
-
-(*** Further facts about mod (mainly for the mutilated chess board ***)
-
-goal Arith.thy
-    "!!m n. 0<n ==> \
-\           Suc(m) mod n = (if Suc(m mod n) = n then 0 else Suc(m mod n))";
-by (res_inst_tac [("n","m")] less_induct 1);
-by (excluded_middle_tac "Suc(na)<n" 1);
-(* case Suc(na) < n *)
-by (forward_tac [lessI RS less_trans] 2);
-by (asm_simp_tac (!simpset addsimps [mod_less, less_not_refl2 RS not_sym]) 2);
-(* case n <= Suc(na) *)
-by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le, mod_geq]) 1);
-by (etac (le_imp_less_or_eq RS disjE) 1);
-by (asm_simp_tac (!simpset addsimps [Suc_diff_n]) 1);
-by (asm_full_simp_tac (!simpset addsimps [not_less_eq RS sym, 
-                                          diff_less, mod_geq]) 1);
-by (asm_simp_tac (!simpset addsimps [mod_less]) 1);
-qed "mod_Suc";
-
-goal Arith.thy "!!m n. 0<n ==> m mod n < n";
-by (res_inst_tac [("n","m")] less_induct 1);
-by (excluded_middle_tac "na<n" 1);
-(*case na<n*)
-by (asm_simp_tac (!simpset addsimps [mod_less]) 2);
-(*case n le na*)
-by (asm_full_simp_tac (!simpset addsimps [mod_geq, diff_less]) 1);
-qed "mod_less_divisor";
-
-
-(** Evens and Odds **)
-
-(*With less_zeroE, causes case analysis on b<2*)
-AddSEs [less_SucE];
-
-goal thy "!!k b. b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
-by (subgoal_tac "k mod 2 < 2" 1);
-by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
-by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
-by (Blast_tac 1);
-qed "mod2_cases";
-
-goal thy "Suc(Suc(m)) mod 2 = m mod 2";
-by (subgoal_tac "m mod 2 < 2" 1);
-by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
-by (Step_tac 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [mod_Suc])));
-qed "mod2_Suc_Suc";
-Addsimps [mod2_Suc_Suc];
-
-goal Arith.thy "!!m. m mod 2 ~= 0 ==> m mod 2 = 1";
-by (subgoal_tac "m mod 2 < 2" 1);
-by (asm_simp_tac (!simpset addsimps [mod_less_divisor]) 2);
-by (safe_tac (!claset addSEs [lessE]));
-by (ALLGOALS (blast_tac (!claset addIs [sym])));
-qed "mod2_neq_0";
-
-goal thy "(m+m) mod 2 = 0";
-by (induct_tac "m" 1);
-by (simp_tac (!simpset addsimps [mod_less]) 1);
-by (asm_simp_tac (!simpset addsimps [mod2_Suc_Suc, add_Suc_right]) 1);
-qed "mod2_add_self";
-Addsimps [mod2_add_self];
-
-Delrules [less_SucE];
-
-
 (*** Monotonicity of Multiplication ***)
 
 goal Arith.thy "!!i::nat. i<=j ==> i*k<=j*k";
@@ -686,44 +545,6 @@ bd mult_cancel2 1;
 by (asm_full_simp_tac (!simpset addsimps [mult_commute]) 1);
 qed "mult_cancel1";
 Addsimps [mult_cancel1, mult_cancel2];
-
-
-(*** More division laws ***)
-
-goal thy "!!n. 0<n ==> m*n div n = m";
-by (cut_inst_tac [("m", "m*n")] mod_div_equality 1);
-ba 1;
-by (asm_full_simp_tac (!simpset addsimps [mod_prod_nn_is_0]) 1);
-qed "div_prod_nn_is_m";
-Addsimps [div_prod_nn_is_m];
-
-(*Cancellation law for division*)
-goal Arith.thy "!!k. [| 0<n; 0<k |] ==> (k*m) div (k*n) = m div n";
-by (res_inst_tac [("n","m")] less_induct 1);
-by (case_tac "na<n" 1);
-by (asm_simp_tac (!simpset addsimps [div_less, zero_less_mult_iff, 
-                                     mult_less_mono2]) 1);
-by (subgoal_tac "~ k*na < k*n" 1);
-by (asm_simp_tac
-     (!simpset addsimps [zero_less_mult_iff, div_geq,
-                         diff_mult_distrib2 RS sym, diff_less]) 1);
-by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le, 
-                                          le_refl RS mult_le_mono]) 1);
-qed "div_cancel";
-Addsimps [div_cancel];
-
-goal Arith.thy "!!k. [| 0<n; 0<k |] ==> (k*m) mod (k*n) = k * (m mod n)";
-by (res_inst_tac [("n","m")] less_induct 1);
-by (case_tac "na<n" 1);
-by (asm_simp_tac (!simpset addsimps [mod_less, zero_less_mult_iff, 
-                                     mult_less_mono2]) 1);
-by (subgoal_tac "~ k*na < k*n" 1);
-by (asm_simp_tac
-     (!simpset addsimps [zero_less_mult_iff, mod_geq,
-                         diff_mult_distrib2 RS sym, diff_less]) 1);
-by (asm_full_simp_tac (!simpset addsimps [not_less_iff_le, 
-                                          le_refl RS mult_le_mono]) 1);
-qed "mult_mod_distrib";
 
 
 (** Lemma for gcd **)
