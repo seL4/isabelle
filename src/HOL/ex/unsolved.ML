@@ -6,65 +6,49 @@
 Problems that currently defeat the MESON procedure as well as best_tac
 *)
 
-(*from Vladimir Lifschitz, What Is the Inverse Method?, JAR 5 (1989), 1--23*)
-goal HOL.thy "? x x'. ! y. ? z z'. (~P(y,y) | P(x,x) | ~S(z,x)) & \
-\                                       (S(x,y) | ~S(y,z) | Q(z',z'))  & \
-\                                       (Q(x',y) | ~Q(y,z') | S(x',x'))";
+(*from Vladimir Lifschitz, What Is the Inverse Method?, JAR 5  1989.  1--23*)
+	(*27 clauses; 81 Horn clauses*)
+goal HOL.thy "? x x'. ! y. ? z z'. (~P y y | P x x | ~S z x) & \
+\                                  (S x y | ~S y z | Q z' z')  & \
+\                                  (Q x' y | ~Q y z' | S x' x')";
 
-
-writeln"Problem 47  Schubert's Steamroller";
-goal HOL.thy
-    "(! x. P1(x) --> P0(x)) & (? x.P1(x)) &     \
-\    (! x. P2(x) --> P0(x)) & (? x.P2(x)) &     \
-\    (! x. P3(x) --> P0(x)) & (? x.P3(x)) &     \
-\    (! x. P4(x) --> P0(x)) & (? x.P4(x)) &     \
-\    (! x. P5(x) --> P0(x)) & (? x.P5(x)) &     \
-\    (! x. Q1(x) --> Q0(x)) & (? x.Q1(x)) &     \
-\    (! x. P0(x) --> ((! y.Q0(y)-->R(x,y)) |    \
-\                     (! y.P0(y) & S(y,x) &     \
-\                          (? z.Q0(z)&R(y,z)) --> R(x,y)))) &   \
-\    (! x y. P3(y) & (P5(x)|P4(x)) --> S(x,y)) &        \
-\    (! x y. P3(x) & P2(y) --> S(x,y)) &        \
-\    (! x y. P2(x) & P1(y) --> S(x,y)) &        \
-\    (! x y. P1(x) & (P2(y)|Q1(y)) --> ~R(x,y)) &       \
-\    (! x y. P3(x) & P4(y) --> R(x,y)) &        \
-\    (! x y. P3(x) & P5(y) --> ~R(x,y)) &       \
-\    (! x. (P4(x)|P5(x)) --> (? y.Q0(y) & R(x,y)))      \
-\    --> (? x y. P0(x) & P0(y) & (? z. Q1(z) & R(y,z) & R(x,y)))";
 
 
 writeln"Problem 55";
 
-(*Original, equational version by Len Schubert, via Pelletier *)
+(*Original, equational version by Len Schubert [via Pelletier] *)
 goal HOL.thy
-  "(? x. lives(x) & killed(x,agatha)) & \
-\  lives(agatha) & lives(butler) & lives(charles) & \
-\  (! x. lives(x) --> x=agatha | x=butler | x=charles) & \
-\  (! x y. killed(x,y) --> hates(x,y)) & \
-\  (! x y. killed(x,y) --> ~richer(x,y)) & \
-\  (! x. hates(agatha,x) --> ~hates(charles,x)) & \
-\  (! x. ~ x=butler --> hates(agatha,x)) & \
-\  (! x. ~richer(x,agatha) --> hates(butler,x)) & \
-\  (! x. hates(agatha,x) --> hates(butler,x)) & \
-\  (! x. ? y. ~hates(x,y)) & \
+  "(? x. lives x & killed x agatha) & \
+\  lives agatha & lives butler & lives charles & \
+\  (! x. lives x --> x=agatha | x=butler | x=charles) & \
+\  (! x y. killed x y --> hates x y) & \
+\  (! x y. killed x y --> ~richer x y) & \
+\  (! x. hates agatha x --> ~hates charles x) & \
+\  (! x. ~ x=butler --> hates agatha x) & \
+\  (! x. ~richer x agatha --> hates butler x) & \
+\  (! x. hates agatha x --> hates butler x) & \
+\  (! x. ? y. ~hates x y) & \
 \  ~ agatha=butler --> \
-\  killed(agatha,agatha)";
+\  killed agatha agatha";
 
-(** Charles Morgan's problems **)
-
-val axa = "! x y.   T(i(x, i(y,x)))";
-val axb = "! x y z. T(i(i(x, i(y,z)), i(i(x,y), i(x,z))))";
-val axc = "! x y.   T(i(i(n(x), n(y)), i(y,x)))";
-val axd = "! x y.   T(i(x,y)) & T(x) --> T(y)";
-
-fun axjoin ([],   q) = q
-  | axjoin(p::ps, q) = "(" ^ p ^ ") --> (" ^ axjoin(ps,q) ^ ")";
-
-goal HOL.thy (axjoin([axa,axb,axd], "! x. T(i(x,x))"));
-
-writeln"Problem 66";
-goal HOL.thy (axjoin([axa,axb,axc,axd], "! x. T(i(x, n(n(x))))"));
-
-writeln"Problem 67";
-goal HOL.thy (axjoin([axa,axb,axc,axd], "! x. T(i(n(n(x)), x))"));
+(*Halting problem: Formulation of Li Dafa (AAR Newsletter 27, Oct 1994.)
+	author U. Egly;  46 clauses; 264 Horn clauses*)
+goal HOL.thy
+ "((EX X. (a X) & (ALL Y. (c Y) --> (ALL Z. (d X Y Z)))) -->  \
+\  (EX W. (c W) & (ALL Y. (c Y) --> (ALL Z. (d W Y Z)))))     \
+\ &                                                          \
+\ (ALL W. (c W) & (ALL U. (c U) --> (ALL V. (d W U V))) -->       \
+\       (ALL Y Z.                                               \
+\           ((c Y) & (h2 Y Z) --> (h3 W Y Z) & (oo W g)) &       \
+\           ((c Y) & ~(h2 Y Z) --> (h3 W Y Z) & (oo W b))))  \
+\ &                    \
+\ (ALL W. (c W) &       \
+\   (ALL Y Z.          \
+\       ((c Y) & (h2 Y Z) --> (h3 W Y Z) & (oo W g)) &       \
+\       ((c Y) & ~(h2 Y Z) --> (h3 W Y Z) & (oo W b))) -->       \
+\   (EX V. (c V) &       \
+\         (ALL Y. (((c Y) & (h3 W Y Y)) & (oo W g) --> ~(h2 V Y)) &       \
+\                 (((c Y) & (h3 W Y Y)) & (oo W b) --> (h2 V Y) & (oo V b))))) \
+\  -->                  \
+\  ~ (EX X. (a X) & (ALL Y. (c Y) --> (ALL Z. (d X Y Z))))";
 
