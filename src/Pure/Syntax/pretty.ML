@@ -29,6 +29,7 @@ signature PRETTY =
   val str: string -> T
   val strlen: string -> int -> T
   val sym: string -> T
+  val spc: int -> T
   val brk: int -> T
   val fbrk: T
   val blk: int * T list -> T
@@ -149,6 +150,8 @@ fun length (Block (_, _, len)) = len
 fun str s = String (s, size s);
 fun strlen s len = String (s, len);
 fun sym s = String (s, Symbol.size s);
+
+fun spc n = str (repstring " " n);
 
 fun brk wd = Break (false, wd);
 val fbrk = Break (true, 0);
