@@ -1,5 +1,8 @@
 # --- uses $DISTNAME environment variable 
 
+# -- makefile for Isabelle web pages (dist and main)
+# -- $Id$
+
 # --- perl scripts used in this makefile
 
 GENPAGE   = bin/genpage
