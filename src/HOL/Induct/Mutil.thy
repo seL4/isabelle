@@ -10,23 +10,23 @@ The Mutilated Chess Board Problem, formalized inductively
 
 Mutil = Main +
 
-consts    domino :: "(nat*nat)set set"
-inductive domino
-  intrs
-    horiz  "{(i, j), (i, Suc j)} : domino"
-    vertl  "{(i, j), (Suc i, j)} : domino"
-
 consts     tiling :: "'a set set => 'a set set"
 inductive "tiling A"
   intrs
     empty  "{} : tiling A"
     Un     "[| a: A;  t: tiling A;  a <= -t |] ==> a Un t : tiling A"
 
+consts    domino :: "(nat*nat)set set"
+inductive domino
+  intrs
+    horiz  "{(i, j), (i, Suc j)} : domino"
+    vertl  "{(i, j), (Suc i, j)} : domino"
+
 constdefs
   below   :: "nat => nat set"
    "below n    == {i. i<n}"
   
-  evnodd  :: "[(nat*nat)set, nat] => (nat*nat)set"
-   "evnodd A b == A Int {(i,j). (i+j) mod 2 = b}"
+  colored  :: "[nat, (nat*nat)set] => (nat*nat)set"
+   "colored b A == A Int {(i,j). (i+j) mod 2 = b}"
 
 end
