@@ -55,8 +55,7 @@ val setup = [Theory.add_tokentrfuns isamode_trans];
 (** run-time initialization **)
 
 fun init isamode =
-  if isamode then print_mode := [Symbol.isabelle_fontN, Symbol.symbolsN, isamodeN]
-  else print_mode := [Symbol.isabelle_fontN, Symbol.symbolsN];
+  if isamode then print_mode := isamodeN :: ! print_mode else ();
 
 
 end;
