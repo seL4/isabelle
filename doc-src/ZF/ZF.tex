@@ -1393,7 +1393,12 @@ and induction rules automatically, as well as the constructors, case operator
 list functions by primitive recursion.  See theory \texttt{List}.
 
 
-\section{Simplification and classical reasoning}
+\section{Automatic Tools}
+
+{\ZF} provides the simplifier and the classical reasoner.   Moreover it
+supplies a specialized tool to infer `types' of terms.
+
+\subsection{Simplification}
 
 {\ZF} inherits simplification from {\FOL} but adopts it for set theory.  The
 extraction of rewrite rules takes the {\ZF} primitives into account.  It can
@@ -1411,6 +1416,9 @@ operators of {\ZF}\@.  It contains all the conversion rules, such as
 \texttt{fst} and \texttt{snd}, as well as the rewrites shown in
 Fig.\ts\ref{zf-simpdata}.  See the file \texttt{ZF/simpdata.ML} for a fuller
 list.
+
+
+\subsection{Classical Reasoning}
 
 As for the classical reasoner, tactics such as \texttt{Blast_tac} and {\tt
   Best_tac} refer to the default claset (\texttt{claset()}).  This works for
@@ -1435,6 +1443,77 @@ clasets.  See \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
 \end{eqnarray*}
 \caption{Some rewrite rules for set theory} \label{zf-simpdata}
 \end{figure}
+
+
+\subsection{Type-Checking Tactics}
+\index{type-checking tactics}
+
+Isabelle/{\ZF} provides simple tactics to help automate those proofs that are
+essentially type-checking.  Such proofs are built by applying rules such as
+these:
+\begin{ttbox}
+[| ?P ==> ?a : ?A; ~ ?P ==> ?b : ?A |] ==> (if ?P then ?a else ?b) : ?A
+
+[| ?m : nat; ?n : nat |] ==> ?m #+ ?n : nat
+
+?a : ?A ==> Inl(?a) : ?A + ?B  
+\end{ttbox}
+In typical applications, the goal has the form $t\in\Var{A}$: in other words,
+we have a specific term~$t$ and need to infer its `type' by instantiating the
+set variable~$\Var{A}$.  Neither the simplifier nor the classical reasoner
+does this job well.  The if-then-else rule, and many similar ones, can make
+the classical reasoner loop.  The simplifier refuses (on principle) to
+instantiate variables during rewriting, so goals such as \texttt{i\#+j :\ ?A}
+are left unsolved.
+
+The simplifier calls the type-checker to solve rewritten subgoals: this stage
+can indeed instantiate variables.  If you have defined new constants and
+proved type-checking rules for them, then insert the rules using
+\texttt{AddTCs} and the rest should be automatic.  In particular, the
+simplifier will use type-checking to help satisfy conditional rewrite rules.
+Call the tactic \ttindex{Typecheck_tac} to break down all subgoals using
+type-checking rules.
+
+Though the easiest way to invoke the type-checker is via the simplifier,
+specialized applications may require more detailed knowledge of
+the type-checking primitives.  They are modelled on the simplifier's:
+\begin{ttdescription}
+\item[\ttindexbold{tcset}] is the type of tcsets: sets of type-checking rules.
+
+\item[\ttindexbold{addTCs}] is an infix operator to add type-checking rules to
+  a tcset.
+  
+\item[\ttindexbold{delTCs}] is an infix operator to remove type-checking rules
+  from a tcset.
+
+\item[\ttindexbold{typecheck_tac}] is a tactic for attempting to prove all
+  subgoals using the rules given in its argument, a tcset.
+\end{ttdescription}
+
+Tcsets, like simpsets, are associated with theories and are merged when
+theories are merged.  There are further primitives that use the default tcset.
+\begin{ttdescription}
+\item[\ttindexbold{tcset}] is a function to return the default tcset; use the
+  expression \texttt{tcset()}.
+
+\item[\ttindexbold{AddTCs}] adds type-checking rules to the default tcset.
+  
+\item[\ttindexbold{DelTCs}] removes type-checking rules from the default
+  tcset.
+
+\item[\ttindexbold{Typecheck_tac}] calls \texttt{typecheck_tac} using the
+  default tcset.
+\end{ttdescription}
+
+To supply some type-checking rules temporarily, using \texttt{Addrules} and
+later \texttt{Delrules} is the simplest way.  There is also a high-tech
+approach.  Call the simplifier with a new solver expressed using
+\ttindexbold{type_solver_tac} and your temporary type-checking rules.
+\begin{ttbox}
+by (asm_simp_tac 
+     (simpset() setSolver type_solver_tac (tcset() addTCs prems)) 2);
+\end{ttbox}
+
 
 
 \section{Datatype definitions}
@@ -1804,6 +1883,7 @@ of them automatically.
 \subsection{Recursive function definitions}\label{sec:ZF:recursive}
 \index{recursive functions|see{recursion}}
 \index{*primrec|(}
+\index{recursion!primitive|(}
 
 Datatypes come with a uniform way of defining functions, {\bf primitive
   recursion}.  Such definitions rely on the recursion operator defined by the
@@ -2039,7 +2119,7 @@ lfp(Pow(A),
   Proving monotonicity...
 \ttbreak
   Proving the introduction rules...
-The typechecking subgoal:
+The type-checking subgoal:
 0 : Fin(A)
  1. 0 : Pow(A)
 \ttbreak
@@ -2052,7 +2132,7 @@ We see the need to supply theorems to let the package prove
 $\emptyset\in\texttt{Pow}(A)$.  Restoring the \texttt{type_intrs} but not the
 \texttt{type_elims}, we again get an error message:
 \begin{ttbox}
-The typechecking subgoal:
+The type-checking subgoal:
 0 : Fin(A)
  1. 0 : Pow(A)
 \ttbreak
@@ -2060,7 +2140,7 @@ The subgoal after monos, type_elims:
 0 : Fin(A)
  1. 0 : Pow(A)
 \ttbreak
-The typechecking subgoal:
+The type-checking subgoal:
 cons(a, b) : Fin(A)
  1. [| a : A; b : Fin(A) |] ==> cons(a, b) : Pow(A)
 \ttbreak
