@@ -24,6 +24,8 @@ sig
   val const_name: string -> mixfix -> string
   val pure_types: (string * int * mixfix) list
   val pure_syntax: (string * string * mixfix) list
+  val pure_appl_syntax: (string * string * mixfix) list
+  val pure_applC_syntax: (string * string * mixfix) list
 end;
 
 signature MIXFIX =
@@ -164,4 +166,21 @@ val pure_syntax =
   ("",          "id => logic",                    Delimfix "_"),
   ("",          "var => logic",                   Delimfix "_")]
 
+val pure_appl_syntax =
+ [("_appl",     "[('b => 'a), args] => logic",    Mixfix ("(1_/(1'(_')))",
+                                                    [max_pri, 0], max_pri)),
+  ("_appl",     "[('b => 'a), args] => aprop",    Mixfix ("(1_/(1'(_')))",
+                                                    [max_pri, 0], max_pri))];
+
+val pure_applC_syntax =
+ [("",           "'a => cargs",                   Delimfix "_"),
+  ("_cargs",     "['a, cargs] => cargs",          Mixfix ("_/ _",
+                                                   [max_pri, max_pri],
+                                                   max_pri)),
+  ("_applC",     "[('b => 'a), cargs] => logic",  Mixfix ("(1_/ _)",
+                                                   [max_pri, max_pri],
+                                                   max_pri-1)),
+  ("_applC",     "[('b => 'a), cargs] => aprop",  Mixfix ("(1_/ _)",
+                                                   [max_pri, max_pri],
+                                                   max_pri-1))];
 end;
