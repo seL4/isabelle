@@ -8,32 +8,34 @@ Functions in Zermelo-Fraenkel Set Theory
 
 (*** The Pi operator -- dependent function space ***)
 
-val prems = goalw ZF.thy [Pi_def]
-    "[| f <= Sigma(A,B);  !!x. x:A ==> EX! y. <x,y>: f |] ==> \
-\     f: Pi(A,B)";  
-by (REPEAT (ares_tac (prems @ [CollectI,PowI,ballI,impI]) 1));
-val PiI = result();
+goalw ZF.thy [Pi_def]
+    "f: Pi(A,B) <-> function(f) & f<=Sigma(A,B) & A<=domain(f)";
+by (fast_tac ZF_cs 1);
+val Pi_iff = result();
+
+(*For upward compatibility with the former definition*)
+goalw ZF.thy [Pi_def, function_def]
+    "f: Pi(A,B) <-> f<=Sigma(A,B) & (ALL x:A. EX! y. <x,y>: f)";
+by (safe_tac ZF_cs);
+by (best_tac ZF_cs 1);
+by (best_tac ZF_cs 1);
+by (set_mp_tac 1);
+by (deepen_tac ZF_cs 3 1);
+val Pi_iff_old = result();
+
+goal ZF.thy "!!f. f: Pi(A,B) ==> function(f)";
+by (asm_full_simp_tac (FOL_ss addsimps [Pi_iff]) 1);
+val fun_is_function = result();
 
 (**Two "destruct" rules for Pi **)
 
 val [major] = goalw ZF.thy [Pi_def] "f: Pi(A,B) ==> f <= Sigma(A,B)";  
-by (rtac (major RS CollectE) 1);
-by (etac PowD 1);
+by (rtac (major RS CollectD1 RS PowD) 1);
 val fun_is_rel = result();
 
-val major::prems = goalw ZF.thy [Pi_def]
-    "[| f: Pi(A,B);  a:A |] ==> EX! y. <a,y>: f";  
-by (rtac (major RS CollectE) 1);
-by (etac bspec 1);
-by (resolve_tac prems 1);
+goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> EX! y. <a,y>: f";  
+by (fast_tac (ZF_cs addSDs [Pi_iff_old RS iffD1]) 1);
 val fun_unique_Pair = result();
-
-val prems = goal ZF.thy
-    "[| f: Pi(A,B); \
-\       [| f <= Sigma(A,B);  ALL x:A. EX! y. <x,y>: f |] ==> P \
-\    |] ==> P";  
-by (REPEAT (ares_tac (prems@[ballI,fun_is_rel,fun_unique_Pair]) 1));
-val PiE = result();
 
 val prems = goalw ZF.thy [Pi_def]
     "[| A=A';  !!x. x:A' ==> B(x)=B'(x) |] ==> Pi(A,B) = Pi(A',B')";
@@ -42,13 +44,11 @@ val Pi_cong = result();
 
 (*Weakening one function type to another; see also Pi_type*)
 goalw ZF.thy [Pi_def] "!!f. [| f: A->B;  B<=D |] ==> f: A->D";
-by (safe_tac ZF_cs);
-by (set_mp_tac 1);
-by (fast_tac ZF_cs 1);
+by (best_tac ZF_cs 1);
 val fun_weaken_type = result();
 
 (*Empty function spaces*)
-goalw ZF.thy [Pi_def] "Pi(0,A) = {0}";
+goalw ZF.thy [Pi_def, function_def] "Pi(0,A) = {0}";
 by (fast_tac eq_cs 1);
 val Pi_empty1 = result();
 
@@ -57,22 +57,20 @@ by (fast_tac eq_cs 1);
 val Pi_empty2 = result();
 
 (*The empty function*)
-goal ZF.thy "0: 0->A";
-by (fast_tac (ZF_cs addIs [PiI]) 1);
+goalw ZF.thy [Pi_def, function_def] "0: 0->A";
+by (fast_tac ZF_cs 1);
 val empty_fun = result();
 
 (*The singleton function*)
-goalw ZF.thy [Pi_def] "{<a,b>} : {a} -> {b}";
+goalw ZF.thy [Pi_def, function_def] "{<a,b>} : {a} -> {b}";
 by (fast_tac eq_cs 1);
 val single_fun = result();
 
 (*** Function Application ***)
 
-goal ZF.thy "!!a b f. [| <a,b>: f;  <a,c>: f;  f: Pi(A,B) |] ==> b=c";
-by (etac PiE 1);
-by (etac (bspec RS ex1_equalsE) 1);
-by (etac (subsetD RS SigmaD1) 1);
-by (REPEAT (assume_tac 1));
+goalw ZF.thy [Pi_def, function_def]
+     "!!a b f. [| <a,b>: f;  <a,c>: f;  f: Pi(A,B) |] ==> b=c";
+by (deepen_tac ZF_cs 3 1);
 val apply_equality2 = result();
 
 goalw ZF.thy [apply_def] "!!a b f. [| <a,b>: f;  f: Pi(A,B) |] ==> f`a = b";
@@ -88,31 +86,10 @@ by (rtac the_0 1);
 by (fast_tac ZF_cs 1);
 val apply_0 = result();
 
-val prems = goal ZF.thy
-    "[| f: Pi(A,B);   c: f;   !!x. [| x:A;  c = <x,f`x> |] ==> P  \
-\    |] ==> P";
-by (cut_facts_tac prems 1);
-by (etac (fun_is_rel RS subsetD RS SigmaE) 1);
-by (REPEAT (ares_tac prems 1));
-by (hyp_subst_tac 1);
-by (etac (apply_equality RS ssubst) 1);
-by (resolve_tac prems 1);
-by (rtac refl 1);
-val memberPiE = result();
-
-(*Conclusion is flexible -- use res_inst_tac or else apply_funtype below!*)
-goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> f`a : B(a)"; 
-by (rtac (fun_unique_Pair RS ex1E) 1);
-by (REPEAT (assume_tac 1));
-by (rtac (fun_is_rel RS subsetD RS SigmaE2) 1);
-by (etac (apply_equality RS ssubst) 3);
-by (REPEAT (assume_tac 1));
-val apply_type = result();
-
-(*This version is acceptable to the simplifier*)
-goal ZF.thy "!!f. [| f: A->B;  a:A |] ==> f`a : B"; 
-by (REPEAT (ares_tac [apply_type] 1));
-val apply_funtype = result();
+goal ZF.thy "!!f. [| f: Pi(A,B);  c: f |] ==> EX x:A.  c = <x,f`x>";
+by (forward_tac [fun_is_rel] 1);
+by (fast_tac (ZF_cs addDs [apply_equality]) 1);
+val Pi_memberD = result();
 
 goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> <a,f`a>: f";
 by (rtac (fun_unique_Pair RS ex1E) 1);
@@ -120,20 +97,30 @@ by (resolve_tac [apply_equality RS ssubst] 3);
 by (REPEAT (assume_tac 1));
 val apply_Pair = result();
 
+(*Conclusion is flexible -- use res_inst_tac or else apply_funtype below!*)
+goal ZF.thy "!!f. [| f: Pi(A,B);  a:A |] ==> f`a : B(a)"; 
+by (rtac (fun_is_rel RS subsetD RS SigmaE2) 1);
+by (REPEAT (ares_tac [apply_Pair] 1));
+val apply_type = result();
+
+(*This version is acceptable to the simplifier*)
+goal ZF.thy "!!f. [| f: A->B;  a:A |] ==> f`a : B"; 
+by (REPEAT (ares_tac [apply_type] 1));
+val apply_funtype = result();
+
 val [major] = goal ZF.thy
     "f: Pi(A,B) ==> <a,b>: f <-> a:A & f`a = b";
-by (rtac (major RS PiE) 1);
+by (cut_facts_tac [major RS fun_is_rel] 1);
 by (fast_tac (ZF_cs addSIs [major RS apply_Pair, 
 			    major RSN (2,apply_equality)]) 1);
 val apply_iff = result();
 
 (*Refining one Pi type to another*)
-val prems = goal ZF.thy
+val pi_prem::prems = goal ZF.thy
     "[| f: Pi(A,C);  !!x. x:A ==> f`x : B(x) |] ==> f : Pi(A,B)";
-by (rtac (subsetI RS PiI) 1);
-by (eresolve_tac (prems RL [memberPiE]) 1);
-by (etac ssubst 1);
-by (REPEAT (ares_tac (prems@[SigmaI,fun_unique_Pair]) 1));
+by (cut_facts_tac [pi_prem] 1);
+by (asm_full_simp_tac (FOL_ss addsimps [Pi_iff]) 1);
+by (fast_tac (ZF_cs addIs prems addSDs [pi_prem RS Pi_memberD]) 1);
 val Pi_type = result();
 
 
@@ -174,9 +161,9 @@ goal ZF.thy "!!a b c. [| <a,c>: (lam x:A. b(x)) |] ==> c = b(a)";
 by (REPEAT (eresolve_tac [asm_rl,lamE,Pair_inject,ssubst] 1));
 val lamD = result();
 
-val prems = goalw ZF.thy [lam_def]
+val prems = goalw ZF.thy [lam_def, Pi_def, function_def]
     "[| !!x. x:A ==> b(x): B(x) |] ==> (lam x:A.b(x)) : Pi(A,B)";  
-by (fast_tac (ZF_cs addIs (PiI::prems)) 1);
+by (fast_tac (ZF_cs addIs prems) 1);
 val lam_type = result();
 
 goal ZF.thy "(lam x:A.b(x)) : A -> {b(x). x:A}";
@@ -210,7 +197,7 @@ val prems = goal ZF.thy
     "[| f : Pi(A,B);  g: Pi(C,D);  A<=C; \
 \       !!x. x:A ==> f`x = g`x       |] ==> f<=g";
 by (rtac subsetI 1);
-by (eresolve_tac (prems RL [memberPiE]) 1);
+by (eresolve_tac (prems RL [Pi_memberD RS bexE]) 1);
 by (etac ssubst 1);
 by (resolve_tac (prems RL [ssubst]) 1);
 by (REPEAT (ares_tac (prems@[apply_Pair,subsetD]) 1));
@@ -281,9 +268,8 @@ val prems = goalw ZF.thy [restrict_def]
 by (REPEAT (ares_tac (prems@[lam_cong]) 1));
 val restrict_eqI = result();
 
-goalw ZF.thy [restrict_def] "domain(restrict(f,C)) = C";
-by (REPEAT (ares_tac [equalityI,subsetI,domainI,lamI] 1
-     ORELSE eresolve_tac [domainE,lamE,Pair_inject,ssubst] 1));
+goalw ZF.thy [restrict_def, lam_def] "domain(restrict(f,C)) = C";
+by (fast_tac eq_cs 1);
 val domain_restrict = result();
 
 val [prem] = goalw ZF.thy [restrict_def]
@@ -297,62 +283,62 @@ val restrict_lam_eq = result();
 (*** Unions of functions ***)
 
 (** The Union of a set of COMPATIBLE functions is a function **)
-val [ex_prem,disj_prem] = goal ZF.thy
-    "[| ALL x:S. EX C D. x:C->D; \
-\       !!x y. [| x:S;  y:S |] ==> x<=y | y<=x  |] ==>  \
-\    Union(S) : domain(Union(S)) -> range(Union(S))";
-val premE = ex_prem RS bspec RS exE;
-by (REPEAT (eresolve_tac [exE,PiE,premE] 1 
-     ORELSE ares_tac [PiI, ballI RS rel_Union, exI] 1));
-by (REPEAT (eresolve_tac [asm_rl,domainE,UnionE,exE] 1 
-     ORELSE ares_tac [allI,impI,ex1I,UnionI] 1));
-by (res_inst_tac [ ("x1","B") ] premE 1);
-by (res_inst_tac [ ("x1","Ba") ] premE 2);
-by (REPEAT (eresolve_tac [asm_rl,exE] 1));
-by (eresolve_tac [disj_prem RS disjE] 1);
-by (DEPTH_SOLVE (set_mp_tac 1
-		 ORELSE eresolve_tac [asm_rl, apply_equality2] 1));
+
+goalw ZF.thy [function_def]
+    "!!S. [| ALL x:S. function(x); \
+\            ALL x:S. ALL y:S. x<=y | y<=x  |] ==>  \
+\         function(Union(S))";
+by (fast_tac (ZF_cs addSDs [bspec RS bspec]) 1);
+val function_Union = result();
+
+goalw ZF.thy [Pi_def]
+    "!!S. [| ALL f:S. EX C D. f:C->D; \
+\            ALL f:S. ALL y:S. f<=y | y<=f  |] ==>  \
+\         Union(S) : domain(Union(S)) -> range(Union(S))";
+by (fast_tac (subset_cs addSIs [rel_Union, function_Union]) 1);
 val fun_Union = result();
 
 
 (** The Union of 2 disjoint functions is a function **)
 
-val prems = goal ZF.thy
-    "[| f: A->B;  g: C->D;  A Int C = 0  |] ==>  \
-\    (f Un g) : (A Un C) -> (B Un D)";
-     (*Contradiction if A Int C = 0, a:A, a:B*)
-val [disjoint] = prems RL ([IntI] RLN (2, [equals0D]));
-val Pair_UnE = read_instantiate [("c","<?a,?b>")] UnE;  (* ignores x: A Un C *)
-by (cut_facts_tac prems 1);
-by (rtac PiI 1);
-by (REPEAT (ares_tac [rel_Un, fun_is_rel] 1));
-by (rtac ex_ex1I 1);
-by (fast_tac (ZF_cs addDs [apply_Pair]) 1);
-by (REPEAT_FIRST (eresolve_tac [asm_rl, Pair_UnE, sym RS trans]
-	     ORELSE' eresolve_tac [Pair_mem_PiE,disjoint] THEN' atac));
+val Un_rls = [Un_subset_iff, domain_Un_eq, SUM_Un_distrib1, prod_Un_distrib2, 
+	      Un_upper1 RSN (2, subset_trans), 
+	      Un_upper2 RSN (2, subset_trans)];
+
+goal ZF.thy
+    "!!f. [| f: A->B;  g: C->D;  A Int C = 0  |] ==>  \
+\         (f Un g) : (A Un C) -> (B Un D)";
+(*Solve the product and domain subgoals using distributive laws*)
+by (asm_full_simp_tac (FOL_ss addsimps [Pi_iff,extension]@Un_rls) 1);
+by (asm_simp_tac (FOL_ss addsimps [function_def]) 1);
+by (safe_tac ZF_cs);
+(*Solve the two cases that contradict A Int C = 0*)
+by (deepen_tac ZF_cs 2 2);
+by (deepen_tac ZF_cs 2 2);
+bw function_def;
+by (REPEAT_FIRST (dtac (spec RS spec)));
+by (deepen_tac ZF_cs 1 1);
+by (deepen_tac ZF_cs 1 1);
 val fun_disjoint_Un = result();
 
 goal ZF.thy
     "!!f g a. [| a:A;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \
 \             (f Un g)`a = f`a";
-by (REPEAT (ares_tac [apply_equality,UnI1,apply_Pair,
-		      fun_disjoint_Un] 1));
+by (rtac (apply_Pair RS UnI1 RS apply_equality) 1);
+by (REPEAT (ares_tac [fun_disjoint_Un] 1));
 val fun_disjoint_apply1 = result();
 
 goal ZF.thy
     "!!f g c. [| c:C;  f: A->B;  g: C->D;  A Int C = 0 |] ==>  \
 \             (f Un g)`c = g`c";
-by (REPEAT (ares_tac [apply_equality,UnI2,apply_Pair,
-		      fun_disjoint_Un] 1));
+by (rtac (apply_Pair RS UnI2 RS apply_equality) 1);
+by (REPEAT (ares_tac [fun_disjoint_Un] 1));
 val fun_disjoint_apply2 = result();
 
 (** Domain and range of a function/relation **)
 
-val [major] = goal ZF.thy "f : Pi(A,B) ==> domain(f)=A";
-by (rtac equalityI 1);
-by (fast_tac (ZF_cs addIs [major RS apply_Pair]) 2);
-by (rtac (major RS PiE) 1);
-by (fast_tac ZF_cs 1);
+goalw ZF.thy [Pi_def] "!!f. f : Pi(A,B) ==> domain(f)=A";
+by (fast_tac eq_cs 1);
 val domain_of_fun = result();
 
 goal ZF.thy "!!f. [| f : Pi(A,B);  a: A |] ==> f`a : range(f)";
