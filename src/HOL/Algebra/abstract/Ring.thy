@@ -24,11 +24,11 @@ consts
 
   (* Fields *)
   inverse	:: 'a::ringS => 'a
-  "'/'/"	:: ['a, 'a] => 'a::ringS		(infixl 70)
+  "'/"		:: ['a, 'a] => 'a::ringS		(infixl 70)
 
 translations
   "a -- b" 	== "a + (-b)"
-  "a // b"	== "a * inverse b"
+  "a / b"	== "a * inverse b"
 
 (* Class ring and ring axioms *)
 

@@ -4,8 +4,6 @@
     Author: Clemens Ballarin, started 9 December 1996
 *)
 
-open Ring;
-
 Blast.overloaded ("Divides.op dvd", domain_type);
 
 section "Rings";
@@ -21,11 +19,15 @@ qed_goal "a_lcomm" Ring.thy "!!a::'a::ring. a+(b+c) = b+(a+c)"
 
 val a_ac = [a_assoc, a_comm, a_lcomm];
 
-qed_goal "r_zero" Ring.thy "!!a::'a::ring. a + <0> = a"
-  (fn _ => [rtac (a_comm RS trans) 1, rtac l_zero 1]);
+Goal "!!a::'a::ring. a + <0> = a";
+by (rtac (a_comm RS trans) 1);
+by (rtac l_zero 1);
+qed "r_zero";
 
-qed_goal "r_neg" Ring.thy "!!a::'a::ring. a + (-a) = <0>"
-  (fn _ => [rtac (a_comm RS trans) 1, rtac l_neg 1]);
+Goal "!!a::'a::ring. a + (-a) = <0>";
+by (rtac (a_comm RS trans) 1);
+by (rtac l_neg 1);
+qed "r_neg";
 
 Goal "!! a::'a::ring. a + b = a + c ==> b = c";
 by (rtac box_equals 1);
@@ -74,8 +76,10 @@ qed_goal "m_lcomm" Ring.thy "!!a::'a::ring. a*(b*c) = b*(a*c)"
 
 val m_ac = [m_assoc, m_comm, m_lcomm];
 
-qed_goal "r_one" Ring.thy "!!a::'a::ring. a * <1> = a"
-  (fn _ => [rtac (m_comm RS trans) 1, rtac l_one 1]);
+Goal "!!a::'a::ring. a * <1> = a";
+by (rtac (m_comm RS trans) 1);
+by (rtac l_one 1);
+qed "r_one";
 
 (* distributive and derived *)
 
@@ -96,8 +100,10 @@ by (rtac (l_distr RS sym RS trans) 1);
 by (simp_tac (simpset() addsimps [r_zero]) 1);
 qed "l_null";
 
-qed_goal "r_null" Ring.thy "!!a::'a::ring. a * <0> = <0>"
-  (fn _ => [rtac (m_comm RS trans) 1, rtac l_null 1]);
+Goal "!!a::'a::ring. a * <0> = <0>";
+by (rtac (m_comm RS trans) 1);
+by (rtac l_null 1);
+qed "r_null";
 
 Goal "!!a::'a::ring. (-a) * b = - (a * b)";
 by (rtac a_lcancel 1);
@@ -117,12 +123,14 @@ val m_minus = [l_minus, r_minus];
 
 (* one and zero are distinct *)
 
-qed_goal "zero_not_one" Ring.thy "<0> ~= (<1>::'a::ring)"
-  (fn _ => [rtac not_sym 1, rtac one_not_zero 1]);
+Goal "<0> ~= (<1>::'a::ring)";
+by (rtac not_sym 1);
+by (rtac one_not_zero 1);
+qed "zero_not_one";
 
 Addsimps [l_zero, r_zero, l_neg, r_neg, minus_minus, minus0, 
-  l_one, r_one, l_null, r_null,
-  one_not_zero, zero_not_one];
+	  l_one, r_one, l_null, r_null,
+	  one_not_zero, zero_not_one];
 
 (* further rules *)
 
@@ -293,20 +301,17 @@ qed "l_inverse_ring";
 
 section "Integral domains";
 
-Goal
-  "!! a. [| a * b = <0>; a ~= <0> |] ==> (b::'a::domain) = <0>";
+Goal "[| a * b = <0>; a ~= <0> |] ==> (b::'a::domain) = <0>";
 by (dtac integral 1);
 by (Fast_tac 1);
 qed "r_integral";
 
-Goal
-  "!! a. [| a * b = <0>; b ~= <0> |] ==> (a::'a::domain) = <0>";
+Goal "[| a * b = <0>; b ~= <0> |] ==> (a::'a::domain) = <0>";
 by (dtac integral 1);
 by (Fast_tac 1);
 qed "l_integral";
 
-Goal
-  "!! a::'a::domain. [| a ~= <0>; b ~= <0> |] ==> a * b ~= <0>";
+Goal "!! a::'a::domain. [| a ~= <0>; b ~= <0> |] ==> a * b ~= <0>";
 by (etac contrapos 1);
 by (rtac l_integral 1);
 by (assume_tac 1);
@@ -389,6 +394,3 @@ qed "field_integral";
 Goalw [prime_def, irred_def] "!! a::'a::field. irred a ==> prime a";
 by (blast_tac (claset() addIs [field_ax]) 1);
 qed "field_fact_prime";
-
-
-
