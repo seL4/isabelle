@@ -543,6 +543,27 @@ apply (erule mp, clarify)
 apply (frule ok, assumption+, blast) 
 done
 
+subsubsection{*Bijections involving Powersets*}
+
+lemma Pow_sum_bij:
+    "(\<lambda>Z \<in> Pow(A+B). <{x \<in> A. Inl(x) \<in> Z}, {y \<in> B. Inr(y) \<in> Z}>)  
+     \<in> bij(Pow(A+B), Pow(A)*Pow(B))"
+apply (rule_tac d = "%<X,Y>. {Inl (x). x \<in> X} Un {Inr (y). y \<in> Y}" 
+       in lam_bijective)
+apply force+
+done
+
+text{*As a special case, we have @{term "bij(Pow(A*B), A -> Pow(B))"} *}
+lemma Pow_Sigma_bij:
+    "(\<lambda>r \<in> Pow(Sigma(A,B)). \<lambda>x \<in> A. r``{x})  
+     \<in> bij(Pow(Sigma(A,B)), \<Pi>x \<in> A. Pow(B(x)))"
+apply (rule_tac d = "%f. \<Union>x \<in> A. \<Union>y \<in> f`x. {<x,y>}" in lam_bijective)
+apply (blast intro: lam_type)
+apply (blast dest: apply_type, simp_all)
+apply fast (*strange, but blast can't do it*)
+apply (rule fun_extension, auto)
+by blast
+
 
 ML {*
 val measure_def = thm "measure_def";
