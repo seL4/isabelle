@@ -671,9 +671,9 @@ fun use_thy name =
 
                 val fname = tack_on path ("." ^ t ^ "_sub.html");
                 val out = if file_exists fname then
-                            open_append fname  handle Io s =>
-                              (warning ("Unable to write to file ." ^
-                                        fname); raise Io s)
+                            open_append fname  handle e  =>
+                              (warning ("Unable to write to file " ^
+                                        fname); raise e)
                           else raise MK_HTML;
             in output (out,
                  " |\n \\__<A HREF=\"" ^
