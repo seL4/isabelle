@@ -71,6 +71,7 @@ sig
   val rewrite_goals_tac: thm list -> tactic
   val rewrite_tac: thm list -> tactic
   val rewtac: thm -> tactic
+  val rotate_tac: int -> int -> tactic
   val rtac: thm -> int -> tactic
   val rule_by_tactic: tactic -> thm -> thm
   val subgoal_tac: string -> int -> tactic
@@ -468,6 +469,15 @@ fun rename_last_tac a sufs i =
 
 (*Prunes all redundant parameters from the proof state by rewriting*)
 val prune_params_tac = rewrite_tac [triv_forall_equality];
+
+(* rotate_tac n i: rotate the assumptions of subgoal i by n positions, from
+ * right to left if n is positive, and from left to right if n is negative.
+ *)
+fun rotate_tac n =
+  let fun rot(n) = EVERY'(replicate n (dtac asm_rl));
+  in if n >= 0 then rot n
+     else SUBGOAL (fn (t,i) => rot(length(Logic.strip_assums_hyp t)+n) i)
+  end;
 
 end;
 end;
