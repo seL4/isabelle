@@ -119,9 +119,10 @@ fun orl [] = false
 fun andl [] = true
   | andl (x :: xs) = x andalso andl xs;
 
-(*Needed because several object-logics declare the theory, therefore structure,
-  List.*)
-structure List_ = List;
+(*Several object-logics declare theories named List or Option, hiding the
+  eponymous basis library structures.*)
+structure List_ = List
+and       Option_ = Option;
 
 (*exists pred [x1, ..., xn] ===> pred x1 orelse ... orelse pred xn*)
 fun exists (pred: 'a -> bool) : 'a list -> bool =
@@ -742,7 +743,8 @@ fun warning s = !warning_fn ("Warning: " ^ s);
 
 (*print error message and abort to top level*)
 
-val error_fn = ref(fn s => TextIO.output (TextIO.stdOut, s ^ "\n"));
+val error_fn = ref(fn s => TextIO.output 
+		            (TextIO.stdOut, "\n*** " ^ s ^ "\n\n"));
 
 exception ERROR;
 fun error msg = (!error_fn msg; raise ERROR);
