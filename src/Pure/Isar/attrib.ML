@@ -271,6 +271,12 @@ val global_fold = syntax (global_thmss >> gen_rewrite Tactic.fold_rule);
 val local_fold = syntax (local_thmss >> gen_rewrite Tactic.fold_rule);
 
 
+(* rule cases *)
+
+fun case_names x = syntax (Scan.lift (Scan.repeat1 Args.name) >> RuleCases.case_names) x;
+fun params x = syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name)) >> RuleCases.params) x;
+
+
 (* misc rules *)
 
 fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
@@ -297,6 +303,8 @@ val pure_attributes =
   ("fold", (global_fold, local_fold), "fold definitions"),
   ("standard", (standard, standard), "put theorem into standard form"),
   ("elimify", (elimify, elimify), "turn destruct rule into elimination rule"),
+  ("case_names", (case_names, case_names), "name rule cases"),
+  ("params", (params, params), "name rule parameters"),
   ("transfer", (global_transfer, local_transfer), "transfer theorem to this theory"),
   ("export", (global_export, local_export), "export theorem from context")];
 
