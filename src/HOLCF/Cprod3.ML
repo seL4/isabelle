@@ -27,9 +27,9 @@ qed_goal "Cprod3_lemma1" Cprod3.thy
 	(rtac (monofun_pair1 RS ch2ch_monofun) 1),
 	(atac 1),
 	(rtac allI 1),
-	(simp_tac prod_ss 1),
+	(Simp_tac 1),
 	(rtac sym 1),
-	(simp_tac prod_ss 1),
+	(Simp_tac 1),
 	(rtac (lub_const RS thelubI) 1)
 	]);
 
@@ -58,7 +58,7 @@ qed_goal "Cprod3_lemma2" Cprod3.thy
 	(cut_facts_tac prems 1),
 	(res_inst_tac [("f1","Pair")] (arg_cong RS cong) 1),
 	(rtac sym 1),
-	(simp_tac prod_ss 1),
+	(Simp_tac 1),
 	(rtac (lub_const RS thelubI) 1),
 	(rtac lub_equal 1),
 	(atac 1),
@@ -66,7 +66,7 @@ qed_goal "Cprod3_lemma2" Cprod3.thy
 	(rtac (monofun_pair2 RS ch2ch_monofun) 1),
 	(atac 1),
 	(rtac allI 1),
-	(simp_tac prod_ss 1)
+	(Simp_tac 1)
 	]);
 
 qed_goal "contlub_pair2" Cprod3.thy "contlub(Pair(x))"
@@ -103,7 +103,7 @@ qed_goal "contlub_fst" Cprod3.thy "contlub(fst)"
 	(strip_tac 1),
 	(rtac (lub_cprod RS thelubI RS ssubst) 1),
 	(atac 1),
-	(simp_tac prod_ss 1)
+	(Simp_tac 1)
 	]);
 
 qed_goal "contlub_snd" Cprod3.thy "contlub(snd)"
@@ -113,7 +113,7 @@ qed_goal "contlub_snd" Cprod3.thy "contlub(snd)"
 	(strip_tac 1),
 	(rtac (lub_cprod RS thelubI RS ssubst) 1),
 	(atac 1),
-	(simp_tac prod_ss 1)
+	(Simp_tac 1)
 	]);
 
 qed_goal "cont_fst" Cprod3.thy "cont(fst)"
@@ -214,7 +214,7 @@ qed_goalw "cfst2" Cprod3.thy [cfst_def,cpair_def]
 	(rtac (beta_cfun_cprod RS ssubst) 1),
 	(rtac (beta_cfun RS ssubst) 1),
 	(rtac cont_fst 1),
-	(simp_tac prod_ss  1)
+	(Simp_tac  1)
 	]);
 
 qed_goalw "csnd2" Cprod3.thy [csnd_def,cpair_def] 
@@ -225,7 +225,7 @@ qed_goalw "csnd2" Cprod3.thy [csnd_def,cpair_def]
 	(rtac (beta_cfun_cprod RS ssubst) 1),
 	(rtac (beta_cfun RS ssubst) 1),
 	(rtac cont_snd 1),
-	(simp_tac prod_ss  1)
+	(Simp_tac  1)
 	]);
 
 qed_goalw "surjective_pairing_Cprod2" Cprod3.thy 
@@ -295,8 +295,8 @@ qed_goalw "csplit2" Cprod3.thy [csplit_def]
 	[
 	(rtac (beta_cfun RS ssubst) 1),
 	(cont_tacR 1),
-	(simp_tac Cfun_ss 1),
-	(simp_tac (Cfun_ss addsimps [cfst2,csnd2]) 1)
+	(Simp_tac 1),
+	(simp_tac (!simpset addsimps [cfst2,csnd2]) 1)
 	]);
 
 qed_goalw "csplit3" Cprod3.thy [csplit_def]
@@ -305,14 +305,12 @@ qed_goalw "csplit3" Cprod3.thy [csplit_def]
 	[
 	(rtac (beta_cfun RS ssubst) 1),
 	(cont_tacR 1),
-	(simp_tac (Cfun_ss addsimps [surjective_pairing_Cprod2]) 1)
+	(simp_tac (!simpset addsimps [surjective_pairing_Cprod2]) 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)
 (* install simplifier for Cprod                                             *)
 (* ------------------------------------------------------------------------ *)
 
-val Cprod_rews = [cfst2,csnd2,csplit2];
-
-val Cprod_ss = Cfun_ss addsimps Cprod_rews;
+Addsimps [cfst2,csnd2,csplit2];
 

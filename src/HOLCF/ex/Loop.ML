@@ -16,14 +16,14 @@ val step_def2 = prove_goalw Loop.thy [step_def]
 "step`b`g`x = If b`x then g`x else x fi"
  (fn prems =>
 	[
-	(simp_tac Cfun_ss 1)
+	(Simp_tac 1)
 	]);
 
 val while_def2 = prove_goalw Loop.thy [while_def]
 "while`b`g = fix`(LAM f x. If b`x then f`(g`x) else x fi)"
  (fn prems =>
 	[
-	(simp_tac Cfun_ss 1)
+	(Simp_tac 1)
 	]);
 
 
@@ -36,15 +36,17 @@ val while_unfold = prove_goal Loop.thy
  (fn prems =>
 	[
 	(fix_tac5  while_def2 1),
-	(simp_tac Cfun_ss 1)
+	(Simp_tac 1)
 	]);
+
+val HOLCF_ss = simpset_of "HOLCF";
 
 val while_unfold2 = prove_goal Loop.thy 
 	"!x.while`b`g`x = while`b`g`(iterate k (step`b`g) x)"
  (fn prems =>
 	[
 	(nat_ind_tac "k" 1),
-	(simp_tac (HOLCF_ss addsimps [iterate_0,iterate_Suc]) 1),
+	(simp_tac HOLCF_ss 1),
 	(rtac allI 1),
 	(rtac trans 1),
 	(rtac (while_unfold RS ssubst) 1),
@@ -74,7 +76,7 @@ val while_unfold3 = prove_goal Loop.thy
 	(res_inst_tac [("s",
 		"while`b`g`(iterate (Suc 0) (step`b`g) x)")] trans 1),
 	(rtac (while_unfold2 RS spec) 1),
-	(simp_tac iterate_ss 1)
+	(Simp_tac 1)
 	]);
 
 
@@ -87,7 +89,7 @@ val loop_lemma1 = prove_goal Loop.thy
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(rtac trans 1),
 	(rtac step_def2 1),
 	(asm_simp_tac HOLCF_ss 1),
@@ -117,21 +119,23 @@ val loop_lemma3 = prove_goal Loop.thy
 	[
 	(cut_facts_tac prems 1),
 	(nat_ind_tac "k" 1),
-	(asm_simp_tac iterate_ss 1),
+	(Asm_simp_tac 1),
 	(strip_tac 1),
-	(simp_tac (iterate_ss addsimps [step_def2]) 1),
+	(simp_tac (!simpset addsimps [step_def2]) 1),
 	(res_inst_tac [("p","b`(iterate k1 (step`b`g) x)")] trE 1),
 	(etac notE 1),
-	(asm_simp_tac (HOLCF_ss addsimps [step_def2,iterate_Suc] ) 1),
-	(asm_simp_tac HOLCF_ss  1),
+	(asm_simp_tac (HOLCF_ss addsimps [step_def2] ) 1),
+	(asm_simp_tac HOLCF_ss 1),
 	(rtac mp 1),
-	(etac spec  1),
-	(asm_simp_tac (HOLCF_ss addsimps [loop_lemma2] ) 1),
+	(etac spec 1),
+	(asm_simp_tac (HOLCF_ss delsimps [iterate_Suc]
+                                addsimps [loop_lemma2] ) 1),
 	(res_inst_tac [("s","iterate (Suc k1) (step`b`g) x"),
 		("t","g`(iterate k1 (step`b`g) x)")] ssubst 1),
 	(atac 2),
-	(asm_simp_tac (HOLCF_ss addsimps [iterate_Suc,step_def2] ) 1),
-	(asm_simp_tac (HOLCF_ss addsimps [loop_lemma2] ) 1)
+	(asm_simp_tac (HOLCF_ss addsimps [step_def2] ) 1),
+	(asm_simp_tac (HOLCF_ss delsimps [iterate_Suc]
+                                addsimps [loop_lemma2] ) 1)
 	]);
 
 
@@ -140,16 +144,16 @@ val loop_lemma4 = prove_goal Loop.thy
  (fn prems =>
 	[
 	(nat_ind_tac "k" 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(strip_tac 1),
 	(rtac (while_unfold RS ssubst) 1),
-	(asm_simp_tac HOLCF_ss  1),
+	(asm_simp_tac HOLCF_ss 1),
 	(rtac allI 1),
 	(rtac (iterate_Suc2 RS ssubst) 1),
 	(strip_tac 1),
 	(rtac trans 1),
 	(rtac while_unfold3 1),
-	(asm_simp_tac HOLCF_ss  1)
+	(asm_simp_tac HOLCF_ss 1)
 	]);
 
 val loop_lemma5 = prove_goal Loop.thy
@@ -163,12 +167,12 @@ val loop_lemma5 = prove_goal Loop.thy
 	(rtac (allI RS adm_all) 1),
 	(rtac adm_eq 1),
 	(cont_tacR 1),
-	(simp_tac HOLCF_ss  1),
+	(Simp_tac  1),
 	(rtac allI 1),
-	(simp_tac HOLCF_ss  1),
+	(Simp_tac  1),
 	(res_inst_tac [("p","b`(iterate m (step`b`g) x)")] trE 1),
-	(asm_simp_tac HOLCF_ss  1),
-	(asm_simp_tac HOLCF_ss  1),
+	(asm_simp_tac HOLCF_ss 1),
+	(asm_simp_tac HOLCF_ss 1),
 	(res_inst_tac [("s","xa`(iterate (Suc m) (step`b`g) x)")] trans 1),
 	(etac spec 2),
 	(rtac cfun_arg_cong 1),

@@ -87,8 +87,7 @@ qed_goal "assoc_oo" ccc1.thy "f oo (g oo h) = (f oo g) oo h"
 (* Merge the different rewrite rules for the simplifier                     *)
 (* ------------------------------------------------------------------------ *)
 
-val ccc1_ss = Cfun_ss addsimps Cprod_rews addsimps Sprod_rews addsimps
-		 Ssum_rews addsimps lift_rews addsimps [ID1,ID2,ID3,cfcomp2];
+Addsimps (lift_rews @ [ID1,ID2,ID3,cfcomp2]);
 
 
 

@@ -97,10 +97,10 @@ qed_goalw "monofun_Iwhen1" Ssum2.thy [monofun] "monofun(Iwhen)"
 	(strip_tac 1),
 	(res_inst_tac [("p","xb")] IssumE 1),
 	(hyp_subst_tac 1),
-	(asm_simp_tac Ssum_ss 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
 	(etac monofun_cfun_fun 1),
-	(asm_simp_tac Ssum_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 qed_goalw "monofun_Iwhen2" Ssum2.thy [monofun] "monofun(Iwhen(f))"
@@ -111,9 +111,9 @@ qed_goalw "monofun_Iwhen2" Ssum2.thy [monofun] "monofun(Iwhen(f))"
 	(strip_tac 1),
 	(res_inst_tac [("p","xa")] IssumE 1),
 	(hyp_subst_tac 1),
-	(asm_simp_tac Ssum_ss 1),
-	(asm_simp_tac Ssum_ss 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
 	(etac monofun_cfun_fun 1)
 	]);
 
@@ -123,36 +123,36 @@ qed_goalw "monofun_Iwhen3" Ssum2.thy [monofun] "monofun(Iwhen(f)(g))"
 	(strip_tac 1),
 	(res_inst_tac [("p","x")] IssumE 1),
 	(hyp_subst_tac 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(hyp_subst_tac 1),
 	(res_inst_tac [("p","y")] IssumE 1),
 	(hyp_subst_tac 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(res_inst_tac  [("P","xa=UU")] notE 1),
 	(atac 1),
 	(rtac UU_I 1),
 	(rtac (less_ssum3a  RS iffD1) 1),
 	(atac 1),
 	(hyp_subst_tac 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(rtac monofun_cfun_arg 1),
 	(etac (less_ssum3a  RS iffD1) 1),
 	(hyp_subst_tac 1),
 	(res_inst_tac [("s","UU"),("t","xa")] subst 1),
 	(etac (less_ssum3c  RS iffD1 RS sym) 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(hyp_subst_tac 1),
 	(res_inst_tac [("p","y")] IssumE 1),
 	(hyp_subst_tac 1),
 	(res_inst_tac [("s","UU"),("t","ya")] subst 1),
 	(etac (less_ssum3d  RS iffD1 RS sym) 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(hyp_subst_tac 1),
 	(res_inst_tac [("s","UU"),("t","ya")] subst 1),
 	(etac (less_ssum3d  RS iffD1 RS sym) 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(hyp_subst_tac 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(rtac monofun_cfun_arg 1),
 	(etac (less_ssum3b  RS iffD1) 1)
 	]);
@@ -247,8 +247,8 @@ qed_goal "ssum_lemma5" Ssum2.thy
 	(cut_facts_tac prems 1),
 	(hyp_subst_tac 1),
 	(res_inst_tac [("Q","x=UU")] classical2 1),
-	(asm_simp_tac Ssum_ss 1),
-	(asm_simp_tac Ssum_ss 1)
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)
@@ -262,8 +262,8 @@ qed_goal "ssum_lemma6" Ssum2.thy
 	(cut_facts_tac prems 1),
 	(hyp_subst_tac 1),
 	(res_inst_tac [("Q","x=UU")] classical2 1),
-	(asm_simp_tac Ssum_ss 1),
-	(asm_simp_tac Ssum_ss 1)
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)
@@ -339,8 +339,8 @@ qed_goal "lub_ssum1a" Ssum2.thy
 	(rtac chain_UU_I_inverse 1),
 	(rtac allI 1),
 	(res_inst_tac [("p","Y(i)")] IssumE 1),
-	(asm_simp_tac Ssum_ss 1),
-	(asm_simp_tac Ssum_ss 2),
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 2),
 	(etac notE 1),
 	(rtac (less_ssum3c RS iffD1) 1),
 	(res_inst_tac [("t","Isinl(x)")] subst 1),
@@ -374,8 +374,8 @@ qed_goal "lub_ssum1b" Ssum2.thy
 	(rtac chain_UU_I_inverse 1),
 	(rtac allI 1),
 	(res_inst_tac [("p","Y(i)")] IssumE 1),
-	(asm_simp_tac Ssum_ss 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
 	(etac notE 1),
 	(rtac (less_ssum3d RS iffD1) 1),
 	(res_inst_tac [("t","Isinr(y)")] subst 1),

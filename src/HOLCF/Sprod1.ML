@@ -18,7 +18,7 @@ qed_goalw "less_sprod1a" Sprod1.thy [less_sprod_def]
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac HOL_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 qed_goalw "less_sprod1b" Sprod1.thy [less_sprod_def]
@@ -27,7 +27,7 @@ qed_goalw "less_sprod1b" Sprod1.thy [less_sprod_def]
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac HOL_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 qed_goal "less_sprod2a" Sprod1.thy
@@ -45,7 +45,7 @@ qed_goal "less_sprod2a" Sprod1.thy
 	(fast_tac HOL_cs 1),
 	(fast_tac HOL_cs 1),
 	(res_inst_tac [("s","Isfst(Ispair UU UU)"),("t","UU")] subst 1),
-	(simp_tac Sprod_ss 1),
+	(Simp_tac 1),
 	(rtac (defined_Ispair RS less_sprod1b RS iffD1 RS conjunct1) 1),
 	(REPEAT (fast_tac HOL_cs 1))
 	]);
@@ -69,21 +69,21 @@ qed_goal "less_sprod2c" Sprod1.thy
 	[
 	(rtac conjI 1),
 	(res_inst_tac [("s","Isfst(Ispair xa ya)"),("t","xa")] subst 1),
-	(simp_tac (Sprod_ss addsimps prems)1),
+	(simp_tac (!simpset addsimps prems)1),
 	(res_inst_tac [("s","Isfst(Ispair x y)"),("t","x")] subst 1),
-	(simp_tac (Sprod_ss addsimps prems)1),
+	(simp_tac (!simpset addsimps prems)1),
 	(rtac (defined_Ispair RS less_sprod1b RS iffD1 RS conjunct1) 1),
 	(resolve_tac prems 1),
 	(resolve_tac prems 1),
-	(simp_tac (Sprod_ss addsimps prems)1),
+	(simp_tac (!simpset addsimps prems)1),
 	(res_inst_tac [("s","Issnd(Ispair xa ya)"),("t","ya")] subst 1),
-	(simp_tac (Sprod_ss addsimps prems)1),
+	(simp_tac (!simpset addsimps prems)1),
 	(res_inst_tac [("s","Issnd(Ispair x y)"),("t","y")] subst 1),
-	(simp_tac (Sprod_ss addsimps prems)1),
+	(simp_tac (!simpset addsimps prems)1),
 	(rtac (defined_Ispair RS less_sprod1b RS iffD1 RS conjunct2) 1),
 	(resolve_tac prems 1),
 	(resolve_tac prems 1),
-	(simp_tac (Sprod_ss addsimps prems)1)
+	(simp_tac (!simpset addsimps prems)1)
 	]);
 
 (* ------------------------------------------------------------------------ *)
@@ -123,11 +123,11 @@ qed_goal "antisym_less_sprod" Sprod1.thy
 	(hyp_subst_tac 1),
 	(res_inst_tac [("x1","x"),("y1","xa"),("x","y"),("y","ya")] (arg_cong RS cong) 1),
 	(rtac antisym_less 1),
-	(asm_simp_tac (HOL_ss addsimps [less_sprod2c RS conjunct1]) 1),
-	(asm_simp_tac (HOL_ss addsimps [less_sprod2c RS conjunct1]) 1),
+	(asm_simp_tac (!simpset addsimps [less_sprod2c RS conjunct1]) 1),
+	(asm_simp_tac (!simpset addsimps [less_sprod2c RS conjunct1]) 1),
 	(rtac antisym_less 1),
-	(asm_simp_tac (HOL_ss addsimps [less_sprod2c RS conjunct2]) 1),
-	(asm_simp_tac (HOL_ss addsimps [less_sprod2c RS conjunct2]) 1)
+	(asm_simp_tac (!simpset addsimps [less_sprod2c RS conjunct2]) 1),
+	(asm_simp_tac (!simpset addsimps [less_sprod2c RS conjunct2]) 1)
 	]);
 
 qed_goal "trans_less_sprod" Sprod1.thy 

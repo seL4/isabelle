@@ -6,16 +6,5 @@
 
 open HOLCF;
 
-val HOLCF_ss = ccc1_ss 
-		addsimps one_when 
-		addsimps dist_less_one
-		addsimps dist_eq_one 
-		addsimps dist_less_tr
-		addsimps dist_eq_tr
-		addsimps tr_when
-		addsimps andalso_thms
-		addsimps orelse_thms
-                addsimps neg_thms
-		addsimps ifte_thms;
-
-
+Addsimps (one_when @ dist_less_one @ dist_eq_one @ dist_less_tr @ dist_eq_tr
+          @ tr_when @ andalso_thms @ orelse_thms @ neg_thms @ ifte_thms);

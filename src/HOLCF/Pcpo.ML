@@ -105,7 +105,7 @@ qed_goal "lub_mono2" Pcpo.thy
 	(atac 1),
 	(res_inst_tac [("s","Y(Suc(x))"),("t","X(Suc(x))")] subst 1),
 	(rtac sym 1),
-	(asm_simp_tac nat_ss 1),
+	(Asm_simp_tac 1),
 	(rtac is_ub_thelub 1),
 	(resolve_tac prems 1)
 	]);

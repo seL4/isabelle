@@ -224,7 +224,7 @@ qed_goalw "Istrictify1" Cfun3.thy [Istrictify_def]
 	"Istrictify(f)(UU)= (UU)"
  (fn prems =>
 	[
-	(simp_tac HOL_ss 1)
+	(Simp_tac 1)
 	]);
 
 qed_goalw "Istrictify2" Cfun3.thy [Istrictify_def]
@@ -232,7 +232,7 @@ qed_goalw "Istrictify2" Cfun3.thy [Istrictify_def]
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac HOL_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 qed_goal "monofun_Istrictify1" Cfun3.thy "monofun(Istrictify)"
@@ -384,16 +384,14 @@ qed_goalw "strictify2" Cfun3.thy [strictify_def]
 (* Instantiate the simplifier                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val Cfun_rews  = [minimal,refl_less,beta_cfun,strict_fapp1,strictify1,
-		strictify2];
+Addsimps [minimal,refl_less,beta_cfun,strict_fapp1,strictify1, strictify2];
+
 
 (* ------------------------------------------------------------------------ *)
 (* use cont_tac as autotac.                                                *)
 (* ------------------------------------------------------------------------ *)
 
-val Cfun_ss = HOL_ss 
-	addsimps  Cfun_rews 
-	setsolver 
-	(fn thms => (resolve_tac (TrueI::refl::thms)) ORELSE' atac ORELSE'
-		    (fn i => DEPTH_SOLVE_1 (cont_tac i))
-	);
+simpset := !simpset setsolver 
+           (fn thms => (resolve_tac (TrueI::refl::thms)) ORELSE' atac ORELSE'
+                       (fn i => DEPTH_SOLVE_1 (cont_tac i))
+           );

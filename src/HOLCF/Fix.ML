@@ -24,14 +24,14 @@ qed_goal "iterate_Suc" Fix.thy "iterate (Suc n) F x  = F`(iterate n F x)"
 	(resolve_tac (nat_recs iterate_def) 1)
 	]);
 
-val iterate_ss = Cfun_ss addsimps [iterate_0,iterate_Suc];
+Addsimps [iterate_0, iterate_Suc];
 
 qed_goal "iterate_Suc2" Fix.thy "iterate (Suc n) F x = iterate n F (F`x)"
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
-	(simp_tac iterate_ss 1),
-	(asm_simp_tac iterate_ss 1)
+	(Simp_tac 1),
+	(Asm_simp_tac 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)
@@ -45,10 +45,10 @@ qed_goalw "is_chain_iterate2" Fix.thy [is_chain]
 	[
 	(cut_facts_tac prems 1),
 	(strip_tac 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(nat_ind_tac "i" 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac iterate_ss 1),
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
 	(etac monofun_cfun_arg 1)
 	]);
 
@@ -101,8 +101,8 @@ qed_goalw "Ifix_least" Fix.thy [Ifix_def] "F`x=x ==> Ifix(F) << x"
 	(rtac ub_rangeI 1),
 	(strip_tac 1),
 	(nat_ind_tac "i" 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac iterate_ss 1),
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
 	(res_inst_tac [("t","x")] subst 1),
 	(atac 1),
 	(etac monofun_cfun_arg 1)
@@ -118,8 +118,8 @@ qed_goalw "monofun_iterate" Fix.thy  [monofun] "monofun(iterate(i))"
 	[
 	(strip_tac 1),
 	(nat_ind_tac "i" 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac iterate_ss 1),
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
 	(rtac (less_fun RS iffD2) 1),
 	(rtac allI 1),
 	(rtac monofun_cfun 1),
@@ -139,9 +139,9 @@ qed_goalw "contlub_iterate" Fix.thy  [contlub] "contlub(iterate(i))"
 	[
 	(strip_tac 1),
 	(nat_ind_tac "i" 1),
-	(asm_simp_tac iterate_ss 1),
+	(Asm_simp_tac 1),
 	(rtac (lub_const RS thelubI RS sym) 1),
-	(asm_simp_tac iterate_ss 1),
+	(Asm_simp_tac 1),
 	(rtac ext 1),
 	(rtac (thelub_fun RS ssubst) 1),
 	(rtac is_chainI 1),
@@ -183,8 +183,8 @@ qed_goal "monofun_iterate2" Fix.thy "monofun(iterate n F)"
 	(rtac monofunI 1),
 	(strip_tac 1),
 	(nat_ind_tac "n" 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac iterate_ss 1),
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
 	(etac monofun_cfun_arg 1)
 	]);
 
@@ -194,8 +194,8 @@ qed_goal "contlub_iterate2" Fix.thy "contlub(iterate n F)"
 	(rtac contlubI 1),
 	(strip_tac 1),
 	(nat_ind_tac "n" 1),
-	(simp_tac iterate_ss 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
+	(Simp_tac 1),
 	(res_inst_tac [("t","iterate n1 F (lub(range(%u. Y u)))"),
 	("s","lub(range(%i. iterate n1 F (Y i)))")] ssubst 1),
 	(atac 1),
@@ -328,7 +328,7 @@ qed_goal "cont_Ifix" Fix.thy "cont(Ifix)"
 qed_goalw "fix_eq" Fix.thy  [fix_def] "fix`F = F`(fix`F)"
  (fn prems =>
 	[
-	(asm_simp_tac (Cfun_ss addsimps [cont_Ifix]) 1),
+	(asm_simp_tac (!simpset addsimps [cont_Ifix]) 1),
 	(rtac Ifix_eq 1)
 	]);
 
@@ -336,7 +336,7 @@ qed_goalw "fix_least" Fix.thy [fix_def] "F`x = x ==> fix`F << x"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac (Cfun_ss addsimps [cont_Ifix]) 1),
+	(asm_simp_tac (!simpset addsimps [cont_Ifix]) 1),
 	(etac Ifix_least 1)
 	]);
 
@@ -421,7 +421,7 @@ qed_goalw "fix_def2" Fix.thy [fix_def]
  (fn prems =>
 	[
 	(fold_goals_tac [Ifix_def]),
-	(asm_simp_tac (Cfun_ss addsimps [cont_Ifix]) 1)
+	(asm_simp_tac (!simpset addsimps [cont_Ifix]) 1)
 	]);
 
 
@@ -567,7 +567,7 @@ qed_goalw "flat_imp_chain_finite"  Fix.thy  [flat_def,chain_finite_def]
 	(atac 2),
 	(rtac mp 1),
 	(etac spec 1),
-	(asm_simp_tac nat_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 
@@ -836,7 +836,7 @@ qed_goal "adm_UU_not_less"  Fix.thy "adm(%x.~ UU << t(x))"
  (fn prems =>
 	[
 	(res_inst_tac [("P2","%x.False")] (adm_cong RS iffD1) 1),
-	(asm_simp_tac Cfun_ss 1),
+	(Asm_simp_tac 1),
 	(rtac adm_not_free 1)
 	]);
 
@@ -927,19 +927,17 @@ qed_goal "adm_disj_lemma3"  Fix.thy
 	(atac 1),
 	(atac 1),
 	(res_inst_tac [("s","False"),("t","Suc(ia) < Suc(i)")] ssubst 1),
-	(asm_simp_tac nat_ss  1),
+	(Asm_simp_tac  1),
 	(rtac iffI 1),
 	(etac FalseE 2),
 	(rtac notE 1),
 	(etac less_not_sym 1),	
 	(atac 1),
-	(asm_simp_tac Cfun_ss  1),
+	(Asm_simp_tac 1),
 	(etac (is_chainE RS spec) 1),
 	(hyp_subst_tac 1),
-	(asm_simp_tac nat_ss 1),
-	(rtac refl_less 1),
-	(asm_simp_tac nat_ss 1),
-	(rtac refl_less 1)
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1)
 	]);
 
 qed_goal "adm_disj_lemma4"  Fix.thy
@@ -951,18 +949,18 @@ qed_goal "adm_disj_lemma4"  Fix.thy
 	(rtac allI 1),
 	(res_inst_tac [("m","n"),("n","Suc(i)")] nat_less_cases 1),
 	(res_inst_tac[("s","Y(Suc(i))"),("t","if n<Suc(i) then Y(Suc(i)) else Y n")] ssubst 1),
-	(asm_simp_tac nat_ss 1),
+	(Asm_simp_tac 1),
 	(etac allE 1),
 	(rtac mp 1),
 	(atac 1),
-	(asm_simp_tac nat_ss 1),
+	(Asm_simp_tac 1),
 	(res_inst_tac[("s","Y(n)"),("t","if n<Suc(i) then Y(Suc(i)) else Y(n)")] ssubst 1),
-	(asm_simp_tac nat_ss 1),
+	(Asm_simp_tac 1),
 	(hyp_subst_tac 1),
 	(dtac spec 1),
 	(rtac mp 1),
 	(atac 1),
-	(asm_simp_tac nat_ss 1),
+	(Asm_simp_tac 1),
 	(res_inst_tac [("s","Y(n)"),("t","if n < Suc(i) then Y(Suc(i)) else Y(n)")] ssubst 1),
 	(res_inst_tac [("s","False"),("t","n < Suc(i)")] ssubst 1),
 	(rtac iffI 1),
@@ -970,7 +968,7 @@ qed_goal "adm_disj_lemma4"  Fix.thy
 	(rtac notE 1),
 	(etac less_not_sym 1),	
 	(atac 1),
-	(asm_simp_tac nat_ss 1),
+	(Asm_simp_tac 1),
 	(dtac spec 1),
 	(rtac mp 1),
 	(atac 1),

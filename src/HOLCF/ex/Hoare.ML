@@ -124,7 +124,7 @@ val p_def3 = prove_goal Hoare.thy
  (fn prems =>
 	[
 	(fix_tac3 p_def 1),
-	(simp_tac HOLCF_ss 1)
+	(Simp_tac 1)
 	]);
 
 val q_def3 = prove_goal Hoare.thy 
@@ -132,10 +132,12 @@ val q_def3 = prove_goal Hoare.thy
  (fn prems =>
 	[
 	(fix_tac3 q_def 1),
-	(simp_tac HOLCF_ss 1)
+	(Simp_tac 1)
 	]);
 
 (** --------- proves about iterations of p and q ---------- **)
+
+val HOLCF_ss = simpset_of "HOLCF";
 
 val hoare_lemma9 = prove_goal Hoare.thy 
 "(! m. m< Suc k --> b1`(iterate m g x)=TT) -->\
@@ -143,8 +145,8 @@ val hoare_lemma9 = prove_goal Hoare.thy
  (fn prems =>
 	[
 	(nat_ind_tac "k" 1),
-	(simp_tac iterate_ss 1),
-	(simp_tac iterate_ss 1),
+	(simp_tac (!simpset delsimps [less_Suc_eq]) 1),
+	(simp_tac (!simpset delsimps [less_Suc_eq]) 1),
 	(strip_tac 1),
 	(res_inst_tac [("s","p`(iterate k1 g x)")] trans 1),
 	(rtac trans 1),
@@ -152,24 +154,24 @@ val hoare_lemma9 = prove_goal Hoare.thy
 	(res_inst_tac [("s","TT"),("t","b1`(iterate k1 g x)")] ssubst 1),
 	(rtac mp 1),
 	(etac spec 1),
-	(simp_tac nat_ss 1),
+	(Simp_tac 1),
 	(simp_tac HOLCF_ss 1),
 	(etac mp 1),
 	(strip_tac 1),
 	(rtac mp 1),
 	(etac spec 1),
 	(etac less_trans 1),
-	(simp_tac nat_ss 1)
+	(Simp_tac 1)
 	]);
-
+trace_simp := false;
 val hoare_lemma24 = prove_goal Hoare.thy 
 "(! m. m< Suc k --> b1`(iterate m g x)=TT) --> \
 \ q`(iterate k g x)=q`x"
  (fn prems =>
 	[
 	(nat_ind_tac "k" 1),
-	(simp_tac iterate_ss 1),
-	(simp_tac iterate_ss 1),
+	(simp_tac (!simpset delsimps [less_Suc_eq]) 1),
+	(simp_tac (!simpset delsimps [less_Suc_eq]) 1),
 	(strip_tac 1),
 	(res_inst_tac [("s","q`(iterate k1 g x)")] trans 1),
 	(rtac trans 1),
@@ -177,14 +179,14 @@ val hoare_lemma24 = prove_goal Hoare.thy
 	(res_inst_tac [("s","TT"),("t","b1`(iterate k1 g x)")] ssubst 1),
 	(rtac mp 1),
 	(etac spec 1),
-	(simp_tac nat_ss 1),
+	(Simp_tac 1),
 	(simp_tac HOLCF_ss 1),
 	(etac mp 1),
 	(strip_tac 1),
 	(rtac mp 1),
 	(etac spec 1),
 	(etac less_trans 1),
-	(simp_tac nat_ss 1)
+	(Simp_tac 1)
 	]);
 
 (* -------- results about p for case (? k. b1`(iterate k g x)~=TT) ------- *)
@@ -207,15 +209,15 @@ val hoare_lemma11 = prove_goal Hoare.thy
 	(cut_facts_tac prems 1),
 	(res_inst_tac [("n","k")] natE 1),
 	(hyp_subst_tac 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(strip_tac 1),
 	(etac conjE 1),
 	(rtac trans 1),
 	(rtac p_def3 1),
-	(asm_simp_tac HOLCF_ss  1),
-	(eres_inst_tac [("s","0"),("t","theleast(%n. b1`(iterate n g x) ~= TT)")]
-	subst 1),
-	(simp_tac iterate_ss 1),
+	(asm_simp_tac HOLCF_ss 1),
+	(eres_inst_tac
+           [("s","0"),("t","theleast(%n. b1`(iterate n g x) ~= TT)")] subst 1),
+	(Simp_tac 1),
 	(hyp_subst_tac 1),
 	(strip_tac 1),
 	(etac conjE 1),
@@ -228,12 +230,13 @@ val hoare_lemma11 = prove_goal Hoare.thy
 	(rtac (hoare_lemma8 RS spec RS mp) 1),
 	(atac 1),
 	(atac 1),
-	(simp_tac nat_ss 1),
+	(Simp_tac 1),
 	(simp_tac HOLCF_ss 1),
 	(rtac trans 1),
 	(rtac p_def3 1),
-	(simp_tac (HOLCF_ss addsimps [iterate_Suc RS sym]) 1),
-	(eres_inst_tac [("s","FF")]	ssubst 1),
+	(simp_tac (!simpset delsimps [iterate_Suc]
+                            addsimps [iterate_Suc RS sym]) 1),
+	(eres_inst_tac [("s","FF")] ssubst 1),
 	(simp_tac HOLCF_ss 1)
 	]);
 
@@ -246,14 +249,14 @@ val hoare_lemma12 = prove_goal Hoare.thy
 	(cut_facts_tac prems 1),
 	(res_inst_tac [("n","k")] natE 1),
 	(hyp_subst_tac 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(strip_tac 1),
 	(etac conjE 1),
 	(rtac trans 1),
 	(rtac p_def3 1),
-	(asm_simp_tac HOLCF_ss  1),
+	(asm_simp_tac HOLCF_ss 1),
 	(hyp_subst_tac 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(strip_tac 1),
 	(etac conjE 1),
 	(rtac trans 1),
@@ -266,11 +269,11 @@ val hoare_lemma12 = prove_goal Hoare.thy
 	(rtac (hoare_lemma8 RS spec RS mp) 1),
 	(atac 1),
 	(atac 1),
-	(simp_tac nat_ss 1),
-	(asm_simp_tac HOLCF_ss  1),
+	(Simp_tac 1),
+	(asm_simp_tac HOLCF_ss 1),
 	(rtac trans 1),
 	(rtac p_def3 1),
-	(asm_simp_tac HOLCF_ss  1)
+	(asm_simp_tac HOLCF_ss 1)
 	]);
 
 (* -------- results about p for case  (! k. b1`(iterate k g x)=TT) ------- *)
@@ -289,7 +292,7 @@ val fernpass_lemma = prove_goal Hoare.thy
 	(rtac allI 1),
 	(rtac (strict_fapp1 RS ssubst) 1),
 	(rtac refl 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(rtac allI 1),
 	(res_inst_tac [("s","TT"),("t","b1`(iterate k g x)")] ssubst 1),
 	(etac spec 1),
@@ -324,10 +327,10 @@ val hoare_lemma17 = prove_goal Hoare.thy
 	(rtac (strict_fapp1 RS ssubst) 1),
 	(rtac refl 1),
 	(rtac allI 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(res_inst_tac [("s","TT"),("t","b1`(iterate k g x)")] ssubst 1),
 	(etac spec 1),
-	(asm_simp_tac HOLCF_ss  1),
+	(asm_simp_tac HOLCF_ss 1),
 	(rtac (iterate_Suc RS subst) 1),
 	(etac spec 1)
 	]);
@@ -366,10 +369,10 @@ val hoare_lemma20 = prove_goal Hoare.thy
 	(rtac (strict_fapp1 RS ssubst) 1),
 	(rtac refl 1),
 	(rtac allI 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(res_inst_tac [("s","TT"),("t","b1`(iterate k g (x::'a))")] ssubst 1),
 	(etac spec 1),
-	(asm_simp_tac HOLCF_ss  1),
+	(asm_simp_tac HOLCF_ss 1),
 	(rtac (iterate_Suc RS subst) 1),
 	(etac spec 1)
 	]);
@@ -389,7 +392,7 @@ val hoare_lemma22 = prove_goal Hoare.thy
 	[
 	(cut_facts_tac prems 1),
 	(rtac (q_def3 RS ssubst) 1),
-	(asm_simp_tac HOLCF_ss  1)
+	(asm_simp_tac HOLCF_ss 1)
 	]);
 
 (* -------- results about q for case (? k. b1`(iterate k g x) ~= TT) ------- *)
@@ -411,7 +414,7 @@ val hoare_lemma26 = prove_goal Hoare.thy
 	(res_inst_tac [("n","k")] natE 1),
 	(hyp_subst_tac 1),
 	(strip_tac 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(hyp_subst_tac 1),
 	(strip_tac 1),
 	(etac conjE 1),
@@ -425,8 +428,8 @@ val hoare_lemma26 = prove_goal Hoare.thy
 	(rtac (hoare_lemma8 RS spec RS mp) 1),
 	(atac 1),
 	(atac 1),
-	(simp_tac nat_ss 1),
-	(simp_tac (HOLCF_ss addsimps [iterate_Suc]) 1)
+	(Simp_tac 1),
+	(simp_tac HOLCF_ss 1)
 	]);
 
 
@@ -439,13 +442,13 @@ val hoare_lemma27 = prove_goal Hoare.thy
 	(cut_facts_tac prems 1),
 	(res_inst_tac [("n","k")] natE 1),
 	(hyp_subst_tac 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(strip_tac 1),
 	(etac conjE 1),
 	(rtac (q_def3 RS ssubst) 1),
-	(asm_simp_tac HOLCF_ss  1),
+	(asm_simp_tac HOLCF_ss 1),
 	(hyp_subst_tac 1),
-	(simp_tac iterate_ss 1),
+	(Simp_tac 1),
 	(strip_tac 1),
 	(etac conjE 1),
 	(rtac trans 1),
@@ -458,11 +461,11 @@ val hoare_lemma27 = prove_goal Hoare.thy
 	(rtac (hoare_lemma8 RS spec RS mp) 1),
 	(atac 1),
 	(atac 1),
-	(simp_tac nat_ss 1),
+	(Simp_tac 1),
 	(asm_simp_tac HOLCF_ss 1),
 	(rtac trans 1),
 	(rtac q_def3 1),
-	(asm_simp_tac HOLCF_ss  1)
+	(asm_simp_tac HOLCF_ss 1)
 	]);
 
 (* ------- (! k. b1`(iterate k g x)=TT) ==> q o p = q   ----- *)

@@ -252,7 +252,7 @@ qed_goal "minimal_void" Porder.thy  	"UU_void << x"
 	[
 	(rtac (inst_void_po RS ssubst) 1),
 	(rewrite_goals_tac [less_void_def]),
-	(simp_tac (HOL_ss addsimps [unique_void]) 1)
+	(simp_tac (!simpset addsimps [unique_void]) 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)
@@ -267,7 +267,7 @@ qed_goalw "lub_void"  Porder.thy [is_lub] "M <<| UU_void"
 	(strip_tac 1),
 	(rtac (inst_void_po RS ssubst) 1),
 	(rewrite_goals_tac [less_void_def]),
-	(simp_tac (HOL_ss addsimps [unique_void]) 1),
+	(simp_tac (!simpset addsimps [unique_void]) 1),
 	(strip_tac 1),
 	(rtac minimal_void 1)
 	]);
@@ -341,8 +341,8 @@ qed_goal "bin_chain" Porder.thy "x<<y ==> is_chain (%i. if i=0 then x else y)"
 	(rtac is_chainI 1),
 	(rtac allI 1),
 	(nat_ind_tac "i" 1),
-	(asm_simp_tac nat_ss 1),
-	(asm_simp_tac nat_ss 1),
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
 	(rtac refl_less 1)
 	]);
 
@@ -353,8 +353,8 @@ qed_goalw "bin_chainmax" Porder.thy [max_in_chain_def,le_def]
 	(cut_facts_tac prems 1),
 	(rtac allI 1),
 	(nat_ind_tac "j" 1),
-	(asm_simp_tac nat_ss 1),
-	(asm_simp_tac nat_ss 1)
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1)
 	]);
 
 qed_goal "lub_bin_chain" Porder.thy 
@@ -365,7 +365,7 @@ qed_goal "lub_bin_chain" Porder.thy
 	(rtac lub_finch1 2),
 	(etac bin_chain 2),
 	(etac bin_chainmax 2),
-	(simp_tac nat_ss  1)
+	(Simp_tac  1)
 	]);
 
 (* ------------------------------------------------------------------------ *)

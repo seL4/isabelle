@@ -15,7 +15,7 @@ open Tr2;
 fun prover s =  prove_goalw Tr2.thy [andalso_def] s
  (fn prems =>
 	[
-	(simp_tac (ccc1_ss addsimps tr_when) 1)
+	(simp_tac (!simpset addsimps tr_when) 1)
 	]);
 
 val andalso_thms = map prover [
@@ -29,9 +29,9 @@ val andalso_thms = andalso_thms @
  (fn prems =>
 	[
 	(res_inst_tac [("p","x")] trE 1),
-	(asm_simp_tac (ccc1_ss addsimps tr_when) 1),
-	(asm_simp_tac (ccc1_ss addsimps tr_when) 1),
-	(asm_simp_tac (ccc1_ss addsimps tr_when) 1)
+	(asm_simp_tac (!simpset addsimps tr_when) 1),
+	(asm_simp_tac (!simpset addsimps tr_when) 1),
+	(asm_simp_tac (!simpset addsimps tr_when) 1)
 	])];
 
 (* ------------------------------------------------------------------------ *) 
@@ -41,7 +41,7 @@ val andalso_thms = andalso_thms @
 fun prover s =  prove_goalw Tr2.thy [orelse_def] s
  (fn prems =>
 	[
-	(simp_tac (ccc1_ss addsimps tr_when) 1)
+	(simp_tac (!simpset addsimps tr_when) 1)
 	]);
 
 val orelse_thms = map prover [
@@ -55,9 +55,9 @@ val orelse_thms = orelse_thms @
  (fn prems =>
 	[
 	(res_inst_tac [("p","x")] trE 1),
-	(asm_simp_tac (ccc1_ss addsimps tr_when) 1),
-	(asm_simp_tac (ccc1_ss addsimps tr_when) 1),
-	(asm_simp_tac (ccc1_ss addsimps tr_when) 1)
+	(asm_simp_tac (!simpset addsimps tr_when) 1),
+	(asm_simp_tac (!simpset addsimps tr_when) 1),
+	(asm_simp_tac (!simpset addsimps tr_when) 1)
 	])];
 
 
@@ -68,7 +68,7 @@ val orelse_thms = orelse_thms @
 fun prover s =  prove_goalw Tr2.thy [neg_def] s
  (fn prems =>
 	[
-	(simp_tac (ccc1_ss addsimps tr_when) 1)
+	(simp_tac (!simpset addsimps tr_when) 1)
 	]);
 
 val neg_thms = map prover [
@@ -84,7 +84,7 @@ val neg_thms = map prover [
 fun prover s =  prove_goalw Tr2.thy [ifte_def] s
  (fn prems =>
 	[
-	(simp_tac (ccc1_ss addsimps tr_when) 1)
+	(simp_tac (!simpset addsimps tr_when) 1)
 	]);
 
 val ifte_thms = map prover [

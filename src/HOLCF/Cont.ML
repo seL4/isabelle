@@ -147,7 +147,7 @@ qed_goalw "cont2mono" Cont.thy [monofun]
 	(rtac (binchain_cont RS is_ub_lub) 2),
 	(atac 2),
 	(atac 2),
-	(simp_tac nat_ss 1)
+	(Simp_tac 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)

@@ -25,7 +25,7 @@ val dlist_rews = [dlist_iso_strict RS conjunct1,
 val temp = prove_goalw Dlist.thy  [dlist_copy_def] "dlist_copy`f`UU=UU"
  (fn prems =>
 	[
-	(asm_simp_tac (HOLCF_ss addsimps 
+	(asm_simp_tac (!simpset addsimps 
 		(dlist_rews @ [dlist_abs_iso,dlist_rep_iso])) 1)
 	]);
 
@@ -36,7 +36,7 @@ val temp = prove_goalw Dlist.thy  [dlist_copy_def,dnil_def]
     "dlist_copy`f`dnil=dnil"
  (fn prems =>
 	[
-	(asm_simp_tac (HOLCF_ss addsimps 
+	(asm_simp_tac (!simpset addsimps 
 		(dlist_rews @ [dlist_abs_iso,dlist_rep_iso])) 1)
 	]);
 
@@ -48,11 +48,11 @@ val temp = prove_goalw Dlist.thy  [dlist_copy_def,dcons_def]
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps 
+	(asm_simp_tac (!simpset addsimps 
 		(dlist_rews @ [dlist_abs_iso,dlist_rep_iso])) 1),
 	(res_inst_tac [("Q","x=UU")] classical2 1),
-	(asm_simp_tac HOLCF_ss  1),
-	(asm_simp_tac (HOLCF_ss addsimps [defined_spair]) 1)
+	(Asm_simp_tac  1),
+	(asm_simp_tac (!simpset addsimps [defined_spair]) 1)
 	]);
 
 val dlist_copy = temp :: dlist_copy;
@@ -67,23 +67,23 @@ qed_goalw "Exh_dlist" Dlist.thy [dcons_def,dnil_def]
 	"l = UU | l = dnil | (? x xl. x~=UU &xl~=UU & l = dcons`x`xl)"
  (fn prems =>
 	[
-	(simp_tac HOLCF_ss  1),
+	(Simp_tac 1),
 	(rtac (dlist_rep_iso RS subst) 1),
 	(res_inst_tac [("p","dlist_rep`l")] ssumE 1),
 	(rtac disjI1 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(rtac disjI2 1),
 	(rtac disjI1 1),
 	(res_inst_tac [("p","x")] oneE 1),
 	(contr_tac 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(rtac disjI2 1),
 	(rtac disjI2 1),
 	(res_inst_tac [("p","y")] sprodE 1),
 	(contr_tac 1),
 	(rtac exI 1),
 	(rtac exI 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(fast_tac HOL_cs 1)
 	]);
 
@@ -111,7 +111,7 @@ qed_goal "dlistE" Dlist.thy
 val temp = prove_goalw  Dlist.thy  [dlist_when_def] "dlist_when`f1`f2`UU=UU"
  (fn prems =>
 	[
-	(asm_simp_tac (HOLCF_ss addsimps [dlist_iso_strict]) 1)
+	(asm_simp_tac (!simpset addsimps [dlist_iso_strict]) 1)
 	]);
 
 val dlist_when = [temp];
@@ -120,7 +120,7 @@ val temp = prove_goalw  Dlist.thy [dlist_when_def,dnil_def]
  "dlist_when`f1`f2`dnil= f1"
  (fn prems =>
 	[
-	(asm_simp_tac (HOLCF_ss addsimps [dlist_abs_iso]) 1)
+	(asm_simp_tac (!simpset addsimps [dlist_abs_iso]) 1)
 	]);
 
 val dlist_when = temp::dlist_when;
@@ -130,7 +130,7 @@ val temp = prove_goalw  Dlist.thy [dlist_when_def,dcons_def]
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps [dlist_abs_iso,defined_spair]) 1)
+	(asm_simp_tac (!simpset addsimps [dlist_abs_iso,defined_spair]) 1)
 	]);
 
 val dlist_when = temp::dlist_when;
@@ -144,7 +144,7 @@ val dlist_rews = dlist_when @ dlist_rews;
 fun prover defs thm = prove_goalw Dlist.thy defs thm
  (fn prems =>
 	[
-	(simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 val dlist_discsel = [
@@ -158,7 +158,7 @@ fun prover defs thm = prove_goalw Dlist.thy defs thm
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 val dlist_discsel = [
@@ -189,10 +189,10 @@ fun prover contr thm = prove_goal Dlist.thy thm
  (fn prems =>
 	[
 	(res_inst_tac [("P1",contr)] classical3 1),
-	(simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(simp_tac (!simpset addsimps dlist_rews) 1),
 	(dtac sym 1),
-	(asm_simp_tac HOLCF_ss  1),
-	(simp_tac (HOLCF_ss addsimps (prems @ dlist_rews)) 1)
+	(Asm_simp_tac  1),
+	(simp_tac (!simpset addsimps (prems @ dlist_rews)) 1)
 	]);
 
 
@@ -206,7 +206,7 @@ prover "is_dcons`(UU::'a dlist) ~= UU"
 fun prover defs thm = prove_goalw Dlist.thy defs thm
  (fn prems =>
 	[
-	(simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 val dlist_constrdef = [
@@ -228,12 +228,12 @@ val temp = prove_goal Dlist.thy  "~dnil << dcons`(x::'a)`xl"
 	(resolve_tac dist_less_tr 1),
 	(dres_inst_tac [("fo5","is_dnil")] monofun_cfun_arg 1),
 	(etac box_less 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(res_inst_tac [("Q","(x::'a)=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(res_inst_tac [("Q","(xl ::'a dlist)=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 val dlist_dist_less = [temp];
@@ -246,8 +246,8 @@ val temp = prove_goal Dlist.thy  "[|x~=UU;xl~=UU|]==>~ dcons`x`xl << dnil"
 	(resolve_tac dist_less_tr 1),
 	(dres_inst_tac [("fo5","is_dcons")] monofun_cfun_arg 1),
 	(etac box_less 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 val dlist_dist_less = temp::dlist_dist_less;
@@ -256,15 +256,15 @@ val temp = prove_goal Dlist.thy  "dnil ~= dcons`x`xl"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","x=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(res_inst_tac [("Q","xl=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(res_inst_tac [("P1","TT = FF")] classical3 1),
 	(resolve_tac dist_eq_tr 1),
 	(dres_inst_tac [("f","is_dnil")] cfun_arg_cong 1),
 	(etac box_equals 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 val dlist_dist_eq = [temp,temp RS not_sym];
@@ -283,12 +283,12 @@ val temp = prove_goal Dlist.thy "[|x1~=UU; y1~=UU;x2~=UU; y2~=UU;\
 	(rtac conjI 1),
 	(dres_inst_tac [("fo5","dlist_when`UU`(LAM x l.x)")] monofun_cfun_arg 1),
 	(etac box_less 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
+	(asm_simp_tac (!simpset addsimps dlist_when) 1),
+	(asm_simp_tac (!simpset addsimps dlist_when) 1),
 	(dres_inst_tac [("fo5","dlist_when`UU`(LAM x l.l)")] monofun_cfun_arg 1),
 	(etac box_less 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1)
+	(asm_simp_tac (!simpset addsimps dlist_when) 1),
+	(asm_simp_tac (!simpset addsimps dlist_when) 1)
 	]);
 
 val dlist_invert =[temp];
@@ -305,12 +305,12 @@ val temp = prove_goal Dlist.thy "[|x1~=UU; y1~=UU;x2~=UU; y2~=UU;\
 	(rtac conjI 1),
 	(dres_inst_tac [("f","dlist_when`UU`(LAM x l.x)")] cfun_arg_cong 1),
 	(etac box_equals 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
+	(asm_simp_tac (!simpset addsimps dlist_when) 1),
+	(asm_simp_tac (!simpset addsimps dlist_when) 1),
 	(dres_inst_tac [("f","dlist_when`UU`(LAM x l.l)")] cfun_arg_cong 1),
 	(etac box_equals 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_when) 1)
+	(asm_simp_tac (!simpset addsimps dlist_when) 1),
+	(asm_simp_tac (!simpset addsimps dlist_when) 1)
 	]);
 
 val dlist_inject = [temp];
@@ -326,7 +326,7 @@ fun prover thm = prove_goal Dlist.thy thm
 	(cut_facts_tac prems 1),
 	(rtac dlistE 1),
 	(contr_tac 1),
-	(REPEAT (asm_simp_tac (HOLCF_ss addsimps dlist_discsel) 1))
+	(REPEAT (asm_simp_tac (!simpset addsimps dlist_discsel) 1))
 	]);
 
 val dlist_discsel_def = 
@@ -346,8 +346,8 @@ qed_goal "dhd2" Dlist.thy "xl~=UU ==> dhd`(dcons`x`xl)=x"
 	[
 	(cut_facts_tac prems 1),
 	(res_inst_tac [("Q","x=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 qed_goal "dtl2" Dlist.thy "x~=UU ==> dtl`(dcons`x`xl)=xl"
@@ -355,8 +355,8 @@ qed_goal "dtl2" Dlist.thy "x~=UU ==> dtl`(dcons`x`xl)=xl"
 	[
 	(cut_facts_tac prems 1),
 	(res_inst_tac [("Q","xl=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 val dlist_rews = dhd2 :: dtl2 :: dlist_rews;
@@ -369,9 +369,9 @@ val temp = prove_goalw Dlist.thy [dlist_take_def] "dlist_take n`UU=UU"
  (fn prems =>
 	[
 	(res_inst_tac [("n","n")] natE 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac iterate_ss 1),
-	(simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
+	(simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 val dlist_take = [temp];
@@ -379,7 +379,7 @@ val dlist_take = [temp];
 val temp = prove_goalw Dlist.thy [dlist_take_def] "dlist_take 0`xs=UU"
  (fn prems =>
 	[
-	(asm_simp_tac iterate_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 val dlist_take = temp::dlist_take;
@@ -388,8 +388,8 @@ val temp = prove_goalw Dlist.thy [dlist_take_def]
 	"dlist_take (Suc n)`dnil=dnil"
  (fn prems =>
 	[
-	(asm_simp_tac iterate_ss 1),
-	(simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(Asm_simp_tac 1),
+	(simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 val dlist_take = temp::dlist_take;
@@ -399,19 +399,19 @@ val temp = prove_goalw Dlist.thy [dlist_take_def]
  (fn prems =>
 	[
 	(res_inst_tac [("Q","x=UU")] classical2 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(Asm_simp_tac 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(res_inst_tac [("Q","xl=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(Asm_simp_tac 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(res_inst_tac [("n","n")] natE 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(Asm_simp_tac 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(Asm_simp_tac 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(Asm_simp_tac 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 val dlist_take = temp::dlist_take;
@@ -453,17 +453,17 @@ qed_goalw "dlist_coind_lemma" Dlist.thy [dlist_bisim_def]
 	[
 	(cut_facts_tac prems 1),
 	(nat_ind_tac "n" 1),
-	(simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(simp_tac (!simpset addsimps dlist_rews) 1),
 	(strip_tac 1),
 	((etac allE 1) THEN (etac allE 1) THEN (etac (mp RS disjE) 1)),
 	(atac 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(etac disjE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(etac exE 1),
 	(etac exE 1),
 	(etac exE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(REPEAT (etac conjE 1)),
 	(rtac cfun_arg_cong 1),
 	(fast_tac HOL_cs 1)
@@ -489,17 +489,17 @@ qed_goal "dlist_finite_ind" Dlist.thy
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
-	(simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(simp_tac (!simpset addsimps dlist_rews) 1),
 	(resolve_tac prems 1),
 	(rtac allI 1),
 	(res_inst_tac [("l","l")] dlistE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(resolve_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(resolve_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(res_inst_tac [("Q","dlist_take n1`xl=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(resolve_tac prems 1),
 	(resolve_tac prems 1),
 	(atac 1),
@@ -512,28 +512,28 @@ qed_goal "dlist_all_finite_lemma1" Dlist.thy
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
-	(simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(simp_tac (!simpset addsimps dlist_rews) 1),
 	(rtac allI 1),
 	(res_inst_tac [("l","l")] dlistE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(eres_inst_tac [("x","xl")] allE 1),
 	(etac disjE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1)
 	]);
 
 qed_goal "dlist_all_finite_lemma2" Dlist.thy "? n.dlist_take n`l=l"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","l=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(subgoal_tac "(!n.dlist_take n`l=UU) |(? n.dlist_take n`l = l)" 1),
 	(etac disjE 1),
 	(eres_inst_tac [("P","l=UU")] notE 1),
 	(rtac dlist_take_lemma 1),
-	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
+	(asm_simp_tac (!simpset addsimps dlist_rews) 1),
 	(atac 1),
 	(subgoal_tac "!n.!l.dlist_take n`l=UU |dlist_take n`l=l" 1),
 	(fast_tac HOL_cs 1),

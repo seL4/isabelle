@@ -28,7 +28,7 @@ qed_goal "sprod3_lemma1" Sprod3.thy
 	(rtac (monofun_Ispair1 RS ch2ch_monofun) 1),
 	(atac 1),
 	(rtac allI 1),
-	(asm_simp_tac Sprod_ss 1),
+	(Asm_simp_tac 1),
 	(rtac sym 1),
 	(rtac lub_chain_maxelem 1),
 	(res_inst_tac [("P","%j.~Y(j)=UU")] exE 1),
@@ -41,12 +41,10 @@ qed_goal "sprod3_lemma1" Sprod3.thy
 	(etac Issnd2 1),
 	(rtac allI 1),
 	(res_inst_tac [("Q","Y(i)=UU")] (excluded_middle RS disjE) 1),
-	(asm_simp_tac Sprod_ss  1),
-	(rtac refl_less 1),
+	(Asm_simp_tac 1),
 	(res_inst_tac [("s","UU"),("t","Y(i)")] subst 1),
 	(etac sym 1),
-	(asm_simp_tac Sprod_ss  1),
-	(rtac minimal 1)
+	(Asm_simp_tac 1)
 	]);
 
 qed_goal "sprod3_lemma2" Sprod3.thy 
@@ -65,7 +63,7 @@ qed_goal "sprod3_lemma2" Sprod3.thy
 	(rtac disjI1 1),
 	(rtac chain_UU_I_inverse 1),
 	(rtac allI 1),
-	(asm_simp_tac Sprod_ss  1),
+	(Asm_simp_tac  1),
 	(etac (chain_UU_I RS spec) 1),
 	(atac 1)
 	]);
@@ -87,7 +85,7 @@ qed_goal "sprod3_lemma3" Sprod3.thy
 	(rtac disjI1 1),
 	(rtac chain_UU_I_inverse 1),
 	(rtac allI 1),
-	(simp_tac Sprod_ss  1)
+	(Simp_tac  1)
 	]);
 
 
@@ -138,19 +136,17 @@ qed_goal "sprod3_lemma4" Sprod3.thy
 	(etac Isfst2 1),
 	(rtac allI 1),
 	(res_inst_tac [("Q","Y(i)=UU")] (excluded_middle RS disjE) 1),
-	(asm_simp_tac Sprod_ss 1),
-	(rtac refl_less 1),
+	(Asm_simp_tac 1),
 	(res_inst_tac [("s","UU"),("t","Y(i)")] subst 1),
 	(etac sym 1),
-	(asm_simp_tac Sprod_ss  1),
-	(rtac minimal 1),
+	(Asm_simp_tac  1),
 	(rtac lub_equal 1),
 	(atac 1),
 	(rtac (monofun_Issnd RS ch2ch_monofun) 1),
 	(rtac (monofun_Ispair2 RS ch2ch_monofun) 1),
 	(atac 1),
 	(rtac allI 1),
-	(asm_simp_tac Sprod_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 qed_goal "sprod3_lemma5" Sprod3.thy 
@@ -169,7 +165,7 @@ qed_goal "sprod3_lemma5" Sprod3.thy
 	(rtac disjI2 1),
 	(rtac chain_UU_I_inverse 1),
 	(rtac allI 1),
-	(asm_simp_tac Sprod_ss  1),
+	(Asm_simp_tac  1),
 	(etac (chain_UU_I RS spec) 1),
 	(atac 1)
 	]);
@@ -190,7 +186,7 @@ qed_goal "sprod3_lemma6" Sprod3.thy
 	(rtac disjI1 1),
 	(rtac chain_UU_I_inverse 1),
 	(rtac allI 1),
-	(simp_tac Sprod_ss  1)
+	(Simp_tac 1)
 	]);
 
 qed_goal "contlub_Ispair2" Sprod3.thy "contlub(Ispair(x))"
@@ -241,12 +237,12 @@ qed_goal "contlub_Isfst" Sprod3.thy "contlub(Isfst)"
 	(atac 1),
 	(res_inst_tac [("Q","lub(range(%i. Issnd(Y(i))))=UU")]	
 		(excluded_middle RS disjE) 1),
-	(asm_simp_tac Sprod_ss  1),
+	(Asm_simp_tac  1),
 	(res_inst_tac [("s","UU"),("t","lub(range(%i. Issnd(Y(i))))")]
 		ssubst 1),
 	(atac 1),
 	(rtac trans 1),
-	(asm_simp_tac Sprod_ss  1),
+	(Asm_simp_tac  1),
 	(rtac sym 1),
 	(rtac chain_UU_I_inverse 1),
 	(rtac allI 1),
@@ -270,11 +266,11 @@ qed_goal "contlub_Issnd" Sprod3.thy "contlub(Issnd)"
 	(atac 1),
 	(res_inst_tac [("Q","lub(range(%i. Isfst(Y(i))))=UU")]
 	 (excluded_middle RS disjE) 1),
-	(asm_simp_tac Sprod_ss  1),
+	(Asm_simp_tac  1),
 	(res_inst_tac [("s","UU"),("t","lub(range(%i. Isfst(Y(i))))")] 
 		ssubst 1),
 	(atac 1),
-	(asm_simp_tac Sprod_ss  1),
+	(Asm_simp_tac  1),
 	(rtac sym 1),
 	(rtac chain_UU_I_inverse 1),
 	(rtac allI 1),
@@ -679,10 +675,8 @@ qed_goalw "ssplit3" Sprod3.thy [ssplit_def]
 (* install simplifier for Sprod                                             *)
 (* ------------------------------------------------------------------------ *)
 
-val Sprod_rews = [strict_spair1,strict_spair2,strict_sfst1,strict_sfst2,
-		strict_ssnd1,strict_ssnd2,sfst2,ssnd2,
-		ssplit1,ssplit2];
-
-val Sprod_ss = Cfun_ss addsimps Sprod_rews;
+Addsimps [strict_spair1,strict_spair2,strict_sfst1,strict_sfst2,
+	  strict_ssnd1,strict_ssnd2,sfst2,ssnd2,
+	  ssplit1,ssplit2];
 
 

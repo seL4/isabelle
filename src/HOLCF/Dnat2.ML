@@ -24,14 +24,14 @@ qed_goal "iterator1" Dnat2.thy "iterator`UU`f`x = UU"
  (fn prems =>
 	[
 	(rtac (iterator_def2 RS ssubst) 1),
-	(simp_tac (HOLCF_ss addsimps dnat_when) 1)
+	(simp_tac (!simpset addsimps dnat_when) 1)
 	]);
 
 qed_goal "iterator2" Dnat2.thy "iterator`dzero`f`x = x"
  (fn prems =>
 	[
 	(rtac (iterator_def2 RS ssubst) 1),
-	(simp_tac (HOLCF_ss addsimps dnat_when) 1)
+	(simp_tac (!simpset addsimps dnat_when) 1)
 	]);
 
 qed_goal "iterator3" Dnat2.thy 
@@ -41,7 +41,7 @@ qed_goal "iterator3" Dnat2.thy
 	(cut_facts_tac prems 1),
 	(rtac trans 1),
 	(rtac (iterator_def2 RS ssubst) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(rtac refl 1)
 	]);
 

@@ -129,15 +129,15 @@ qed_goalw "flat_tr" Tr1.thy [flat_def] "flat(TT)"
 	(rtac allI 1),
 	(rtac allI 1),
 	(res_inst_tac [("p","x")] trE 1),
-	(asm_simp_tac ccc1_ss 1),
+	(Asm_simp_tac 1),
 	(res_inst_tac [("p","y")] trE 1),
-	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1),
-	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1),
-	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1),
+	(asm_simp_tac (!simpset addsimps dist_less_tr) 1),
+	(asm_simp_tac (!simpset addsimps dist_less_tr) 1),
+	(asm_simp_tac (!simpset addsimps dist_less_tr) 1),
 	(res_inst_tac [("p","y")] trE 1),
-	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1),
-	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1),
-	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1)
+	(asm_simp_tac (!simpset addsimps dist_less_tr) 1),
+	(asm_simp_tac (!simpset addsimps dist_less_tr) 1),
+	(asm_simp_tac (!simpset addsimps dist_less_tr) 1)
 	]);
 
 
@@ -148,8 +148,8 @@ qed_goalw "flat_tr" Tr1.thy [flat_def] "flat(TT)"
 fun prover s =  prove_goalw Tr1.thy [tr_when_def,TT_def,FF_def] s
  (fn prems =>
 	[
-	(simp_tac Cfun_ss 1),
-	(simp_tac (Ssum_ss addsimps [(rep_tr_iso ),
+	(Simp_tac 1),
+	(simp_tac (!simpset addsimps [(rep_tr_iso ),
 		(abs_tr_iso RS allI) RS ((rep_tr_iso RS allI) 
 		RS iso_strict) RS conjunct1]@dist_eq_one)1)
 	]);

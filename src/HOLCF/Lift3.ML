@@ -44,7 +44,7 @@ qed_goal "contlub_Iup" Lift3.thy "contlub(Iup)"
 	(atac 1),
 	(rtac (monofun_Ilift2 RS ch2ch_monofun) 1),
 	(etac (monofun_Iup RS ch2ch_monofun) 1),
-	(asm_simp_tac Lift_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 qed_goal "cont_Iup" Lift3.thy "cont(Iup)"
@@ -70,9 +70,9 @@ qed_goal "contlub_Ilift1" Lift3.thy "contlub(Ilift)"
 	(etac (monofun_Ilift1 RS ch2ch_monofun) 2),
 	(rtac ext 1),
 	(res_inst_tac [("p","x")] liftE 1),
-	(asm_simp_tac Lift_ss 1),
+	(Asm_simp_tac 1),
 	(rtac (lub_const RS thelubI RS sym) 1),
-	(asm_simp_tac Lift_ss 1),
+	(Asm_simp_tac 1),
 	(etac contlub_cfun_fun 1)
 	]);
 
@@ -86,16 +86,16 @@ qed_goal "contlub_Ilift2" Lift3.thy "contlub(Ilift(f))"
 	(rtac (thelub_lift1a RS ssubst) 2),
 	(atac 2),
 	(atac 2),
-	(asm_simp_tac Lift_ss 2),
+	(Asm_simp_tac 2),
 	(rtac (thelub_lift1b RS ssubst) 3),
 	(atac 3),
 	(atac 3),
 	(fast_tac HOL_cs 1),
-	(asm_simp_tac Lift_ss 2),
+	(Asm_simp_tac 2),
 	(rtac (chain_UU_I_inverse RS sym) 2),
 	(rtac allI 2),
 	(res_inst_tac [("p","Y(i)")] liftE 2),
-	(asm_simp_tac Lift_ss 2),
+	(Asm_simp_tac 2),
 	(rtac notE 2),
 	(dtac spec 2),
 	(etac spec 2),
@@ -117,7 +117,7 @@ qed_goal "contlub_Ilift2" Lift3.thy "contlub(Ilift(f))"
 	(rtac exI 1),
 	(strip_tac 1),
 	(res_inst_tac [("p","Y(i)")] liftE 1),
-	(asm_simp_tac Lift_ss 2),
+	(Asm_simp_tac 2),
 	(res_inst_tac [("P","Y(i) = UU")] notE 1),
 	(fast_tac HOL_cs 1),
 	(rtac (inst_lift_pcpo RS ssubst) 1),
@@ -148,7 +148,7 @@ qed_goal "cont_Ilift2" Lift3.thy "cont(Ilift(f))"
 qed_goalw "Exh_Lift1" Lift3.thy [up_def] "z = UU | (? x. z = up`x)"
  (fn prems =>
 	[
-	(simp_tac (Lift_ss addsimps [cont_Iup]) 1),
+	(simp_tac (!simpset addsimps [cont_Iup]) 1),
 	(rtac (inst_lift_pcpo RS ssubst) 1),
 	(rtac Exh_Lift 1)
 	]);
@@ -159,14 +159,14 @@ qed_goalw "inject_up" Lift3.thy [up_def] "up`x=up`y ==> x=y"
 	(cut_facts_tac prems 1),
 	(rtac inject_Iup 1),
 	(etac box_equals 1),
-	(simp_tac (Lift_ss addsimps [cont_Iup]) 1),
-	(simp_tac (Lift_ss addsimps [cont_Iup]) 1)
+	(simp_tac (!simpset addsimps [cont_Iup]) 1),
+	(simp_tac (!simpset addsimps [cont_Iup]) 1)
 	]);
 
 qed_goalw "defined_up" Lift3.thy [up_def] " up`x ~= UU"
  (fn prems =>
 	[
-	(simp_tac (Lift_ss addsimps [cont_Iup]) 1),
+	(simp_tac (!simpset addsimps [cont_Iup]) 1),
 	(rtac defined_Iup2 1)
 	]);
 
@@ -178,7 +178,7 @@ qed_goalw "liftE1" Lift3.thy [up_def]
 	(resolve_tac prems 1),
 	(etac (inst_lift_pcpo RS ssubst) 1),
 	(resolve_tac (tl prems) 1),
-	(asm_simp_tac (Lift_ss addsimps [cont_Iup]) 1)
+	(asm_simp_tac (!simpset addsimps [cont_Iup]) 1)
 	]);
 
 
@@ -192,7 +192,7 @@ qed_goalw "lift1" Lift3.thy [up_def,lift_def] "lift`f`UU=UU"
 	(rtac (beta_cfun RS ssubst) 1),
 	(REPEAT (resolve_tac (cont_lemmas @ [cont_Iup,cont_Ilift1,
 		cont_Ilift2,cont2cont_CF1L]) 1)),
-	(simp_tac (Lift_ss addsimps [cont_Iup,cont_Ilift1,cont_Ilift2]) 1)
+	(simp_tac (!simpset addsimps [cont_Iup,cont_Ilift1,cont_Ilift2]) 1)
 	]);
 
 qed_goalw "lift2" Lift3.thy [up_def,lift_def] "lift`f`(up`x)=f`x"
@@ -205,13 +205,13 @@ qed_goalw "lift2" Lift3.thy [up_def,lift_def] "lift`f`(up`x)=f`x"
 		cont_Ilift2,cont2cont_CF1L]) 1)),
 	(rtac (beta_cfun RS ssubst) 1),
 	(rtac cont_Ilift2 1),
-	(simp_tac (Lift_ss addsimps [cont_Iup,cont_Ilift1,cont_Ilift2]) 1)
+	(simp_tac (!simpset addsimps [cont_Iup,cont_Ilift1,cont_Ilift2]) 1)
 	]);
 
 qed_goalw "less_lift4b" Lift3.thy [up_def,lift_def] "~ up`x << UU"
  (fn prems =>
 	[
-	(simp_tac (Lift_ss addsimps [cont_Iup]) 1),
+	(simp_tac (!simpset addsimps [cont_Iup]) 1),
 	(rtac less_lift3b 1)
 	]);
 
@@ -219,7 +219,7 @@ qed_goalw "less_lift4c" Lift3.thy [up_def,lift_def]
 	 "(up`x << up`y) = (x<<y)"
  (fn prems =>
 	[
-	(simp_tac (Lift_ss addsimps [cont_Iup]) 1),
+	(simp_tac (!simpset addsimps [cont_Iup]) 1),
 	(rtac less_lift2c 1)
 	]);
 
@@ -247,7 +247,7 @@ qed_goalw "thelub_lift2a" Lift3.thy [up_def,lift_def]
 	(rtac exI 1),
 	(etac box_equals 1),
 	(rtac refl 1),
-	(simp_tac (Lift_ss addsimps [cont_Iup]) 1)
+	(simp_tac (!simpset addsimps [cont_Iup]) 1)
 	]);
 
 
@@ -268,7 +268,7 @@ qed_goalw "thelub_lift2b" Lift3.thy [up_def,lift_def]
 	(dtac notnotD 1),
 	(etac box_equals 1),
 	(rtac refl 1),
-	(simp_tac (Lift_ss addsimps [cont_Iup]) 1)
+	(simp_tac (!simpset addsimps [cont_Iup]) 1)
 	]);
 
 
@@ -338,8 +338,8 @@ qed_goal "lift3" Lift3.thy "lift`up`x=x"
  (fn prems =>
 	[
 	(res_inst_tac [("p","x")] liftE1 1),
-	(asm_simp_tac (Cfun_ss addsimps [lift1,lift2]) 1),
-	(asm_simp_tac (Cfun_ss addsimps [lift1,lift2]) 1)
+	(asm_simp_tac (!simpset addsimps [lift1,lift2]) 1),
+	(asm_simp_tac (!simpset addsimps [lift1,lift2]) 1)
 	]);
 
 (* ------------------------------------------------------------------------ *)

@@ -340,10 +340,8 @@ qed_goal "Issnd2" Sprod0.thy "~x=UU ==>Issnd(Ispair x y)=y"
 (* instantiate the simplifier                                               *)
 (* ------------------------------------------------------------------------ *)
 
-val Sprod_ss = 
-	HOL_ss 
-	addsimps [strict_Isfst1,strict_Isfst2,strict_Issnd1,strict_Issnd2,
-		 Isfst2,Issnd2];
+Addsimps [strict_Isfst1,strict_Isfst2,strict_Issnd1,strict_Issnd2,
+	  Isfst2,Issnd2];
 
 
 qed_goal "defined_IsfstIssnd" Sprod0.thy 
@@ -355,8 +353,8 @@ qed_goal "defined_IsfstIssnd" Sprod0.thy
 	(contr_tac 1),
 	(hyp_subst_tac 1),
 	(rtac conjI 1),
-	(asm_simp_tac Sprod_ss 1),
-	(asm_simp_tac Sprod_ss 1)
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1)
 	]);
 
 
@@ -369,10 +367,10 @@ qed_goal "surjective_pairing_Sprod" Sprod0.thy
 (fn prems =>
 	[
 	(res_inst_tac [("z1","z")] (Exh_Sprod RS disjE) 1),
-	(asm_simp_tac Sprod_ss 1),
+	(Asm_simp_tac 1),
 	(etac exE 1),
 	(etac exE 1),
-	(asm_simp_tac Sprod_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 

@@ -41,8 +41,8 @@ qed_goal "contlub_Isinl" Ssum3.thy "contlub(Isinl)"
 	(etac (monofun_Isinl RS ch2ch_monofun) 1),
 	(rtac allI 1),
 	(res_inst_tac [("Q","Y(k)=UU")] classical2 1),
-	(asm_simp_tac Ssum_ss 1),
-	(asm_simp_tac Ssum_ss 1)
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1)
 	]);
 
 qed_goal "contlub_Isinr" Ssum3.thy "contlub(Isinr)"
@@ -72,8 +72,8 @@ qed_goal "contlub_Isinr" Ssum3.thy "contlub(Isinr)"
 	(etac (monofun_Isinr RS ch2ch_monofun) 1),
 	(rtac allI 1),
 	(res_inst_tac [("Q","Y(k)=UU")] classical2 1),
-	(asm_simp_tac Ssum_ss 1),
-	(asm_simp_tac Ssum_ss 1)
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1)
 	]);
 
 qed_goal "cont_Isinl" Ssum3.thy "cont(Isinl)"
@@ -114,11 +114,11 @@ qed_goal "contlub_Iwhen1" Ssum3.thy "contlub(Iwhen)"
 	(rtac (expand_fun_eq RS iffD2) 1),
 	(strip_tac 1),
 	(res_inst_tac [("p","xa")] IssumE 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(rtac (lub_const RS thelubI RS sym) 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(etac contlub_cfun_fun 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(rtac (lub_const RS thelubI RS sym) 1)
 	]);
 
@@ -133,11 +133,11 @@ qed_goal "contlub_Iwhen2" Ssum3.thy "contlub(Iwhen(f))"
 	(rtac (expand_fun_eq RS iffD2) 1),
 	(strip_tac 1),
 	(res_inst_tac [("p","x")] IssumE 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(rtac (lub_const RS thelubI RS sym) 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(rtac (lub_const RS thelubI RS sym) 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(etac contlub_cfun_fun 1)
 	]);
 
@@ -192,7 +192,7 @@ qed_goal "ssum_lemma11" Ssum3.thy
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(rtac (chain_UU_I_inverse RS sym) 1),
 	(rtac allI 1),
 	(res_inst_tac [("s","Isinl(UU)"),("t","Y(i)")] subst 1),
@@ -200,7 +200,7 @@ qed_goal "ssum_lemma11" Ssum3.thy
 	(rtac (chain_UU_I RS spec RS sym) 1),
 	(atac 1),
 	(etac (inst_ssum_pcpo RS ssubst) 1),
-	(asm_simp_tac Ssum_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 qed_goal "ssum_lemma12" Ssum3.thy 
@@ -209,7 +209,7 @@ qed_goal "ssum_lemma12" Ssum3.thy
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(res_inst_tac [("t","x")] subst 1),
 	(rtac inject_Isinl 1),
 	(rtac trans 1),
@@ -255,7 +255,7 @@ qed_goal "ssum_lemma12" Ssum3.thy
 	(res_inst_tac [("t","Y(i)")] ssubst 1),
 	(atac 1),
 	(fast_tac HOL_cs 1),
-	(simp_tac Cfun_ss 1),
+	(Simp_tac 1),
 	(rtac (monofun_fapp2 RS ch2ch_monofun) 1),
 	(etac (monofun_Iwhen3 RS ch2ch_monofun) 1),
 	(etac (monofun_Iwhen3 RS ch2ch_monofun) 1)
@@ -268,7 +268,7 @@ qed_goal "ssum_lemma13" Ssum3.thy
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac Ssum_ss 1),
+	(Asm_simp_tac 1),
 	(res_inst_tac [("t","x")] subst 1),
 	(rtac inject_Isinr 1),
 	(rtac trans 1),
@@ -319,7 +319,7 @@ qed_goal "ssum_lemma13" Ssum3.thy
 	(res_inst_tac [("t","Y(i)")] ssubst 1),
 	(atac 1),
 	(fast_tac HOL_cs 1),
-	(simp_tac Cfun_ss 1),
+	(Simp_tac 1),
 	(rtac (monofun_fapp2 RS ch2ch_monofun) 1),
 	(etac (monofun_Iwhen3 RS ch2ch_monofun) 1),
 	(etac (monofun_Iwhen3 RS ch2ch_monofun) 1)
@@ -373,14 +373,14 @@ qed_goal "cont_Iwhen3" Ssum3.thy "cont(Iwhen(f)(g))"
 qed_goalw "strict_sinl" Ssum3.thy [sinl_def] "sinl`UU =UU"
  (fn prems =>
 	[
-	(simp_tac (Ssum_ss addsimps [cont_Isinl]) 1),
+	(simp_tac (!simpset addsimps [cont_Isinl]) 1),
 	(rtac (inst_ssum_pcpo RS sym) 1)
 	]);
 
 qed_goalw "strict_sinr" Ssum3.thy [sinr_def] "sinr`UU=UU"
  (fn prems =>
 	[
-	(simp_tac (Ssum_ss addsimps [cont_Isinr]) 1),
+	(simp_tac (!simpset addsimps [cont_Isinr]) 1),
 	(rtac (inst_ssum_pcpo RS sym) 1)
 	]);
 
@@ -391,8 +391,8 @@ qed_goalw "noteq_sinlsinr" Ssum3.thy [sinl_def,sinr_def]
 	(cut_facts_tac prems 1),
 	(rtac noteq_IsinlIsinr 1),
 	(etac box_equals 1),
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinr,cont_Isinl]) 1),
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinr,cont_Isinl]) 1)
+	(asm_simp_tac (!simpset addsimps [cont_Isinr,cont_Isinl]) 1),
+	(asm_simp_tac (!simpset addsimps [cont_Isinr,cont_Isinl]) 1)
 	]);
 
 qed_goalw "inject_sinl" Ssum3.thy [sinl_def,sinr_def] 
@@ -402,8 +402,8 @@ qed_goalw "inject_sinl" Ssum3.thy [sinl_def,sinr_def]
 	(cut_facts_tac prems 1),
 	(rtac inject_Isinl 1),
 	(etac box_equals 1),
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinr,cont_Isinl]) 1),
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinr,cont_Isinl]) 1)
+	(asm_simp_tac (!simpset addsimps [cont_Isinr,cont_Isinl]) 1),
+	(asm_simp_tac (!simpset addsimps [cont_Isinr,cont_Isinl]) 1)
 	]);
 
 qed_goalw "inject_sinr" Ssum3.thy [sinl_def,sinr_def] 
@@ -413,8 +413,8 @@ qed_goalw "inject_sinr" Ssum3.thy [sinl_def,sinr_def]
 	(cut_facts_tac prems 1),
 	(rtac inject_Isinr 1),
 	(etac box_equals 1),
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinr,cont_Isinl]) 1),
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinr,cont_Isinl]) 1)
+	(asm_simp_tac (!simpset addsimps [cont_Isinr,cont_Isinl]) 1),
+	(asm_simp_tac (!simpset addsimps [cont_Isinr,cont_Isinl]) 1)
 	]);
 
 
@@ -444,7 +444,7 @@ qed_goalw "Exh_Ssum1" Ssum3.thy [sinl_def,sinr_def]
 	"z=UU | (? a. z=sinl`a & a~=UU) | (? b. z=sinr`b & b~=UU)"
  (fn prems =>
 	[
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinr,cont_Isinl]) 1),
+	(asm_simp_tac (!simpset addsimps [cont_Isinr,cont_Isinl]) 1),
 	(rtac (inst_ssum_pcpo RS ssubst) 1),
 	(rtac Exh_Ssum 1)
 	]);
@@ -462,10 +462,10 @@ qed_goalw "ssumE" Ssum3.thy [sinl_def,sinr_def]
 	(atac 1),
 	(resolve_tac prems 1),
 	(atac 2),
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinr,cont_Isinl]) 1),
+	(asm_simp_tac (!simpset addsimps [cont_Isinr,cont_Isinl]) 1),
 	(resolve_tac prems 1),
 	(atac 2),
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinr,cont_Isinl]) 1)
+	(asm_simp_tac (!simpset addsimps [cont_Isinr,cont_Isinl]) 1)
 	]);
 
 
@@ -499,7 +499,7 @@ qed_goalw "sswhen1" Ssum3.thy [sswhen_def,sinl_def,sinr_def]
 	(rtac (beta_cfun RS ssubst) 1),
 	(REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
 		cont_Iwhen3,cont2cont_CF1L]) 1)),
-	(simp_tac Ssum_ss  1)
+	(Simp_tac 1)
 	]);
 
 qed_goalw "sswhen2" Ssum3.thy [sswhen_def,sinl_def,sinr_def] 
@@ -519,7 +519,7 @@ qed_goalw "sswhen2" Ssum3.thy [sswhen_def,sinl_def,sinr_def]
 	(rtac (beta_cfun RS ssubst) 1),
 	(REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
 		cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-	(asm_simp_tac Ssum_ss  1)
+	(Asm_simp_tac  1)
 	]);
 
 
@@ -541,7 +541,7 @@ qed_goalw "sswhen3" Ssum3.thy [sswhen_def,sinl_def,sinr_def]
 	(rtac (beta_cfun RS ssubst) 1),
 	(REPEAT (resolve_tac (cont_lemmas @ [cont_Iwhen1,cont_Iwhen2,
 		cont_Iwhen3,cont_Isinl,cont_Isinr,cont2cont_CF1L]) 1)),
-	(asm_simp_tac Ssum_ss  1)
+	(Asm_simp_tac 1)
 	]);
 
 
@@ -602,7 +602,7 @@ qed_goalw "ssum_chainE" Ssum3.thy [sinl_def,sinr_def]
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinr,cont_Isinl]) 1),
+	(asm_simp_tac (!simpset addsimps [cont_Isinr,cont_Isinl]) 1),
 	(etac ssum_lemma4 1)
 	]);
 
@@ -629,7 +629,7 @@ qed_goalw "thelub_ssum2a" Ssum3.thy [sinl_def,sinr_def,sswhen_def]
 	(rtac exI 1),
 	(etac box_equals 1),
 	(rtac refl 1),
-	(asm_simp_tac (Ssum_ss addsimps [cont_Isinl]) 1)
+	(asm_simp_tac (!simpset addsimps [cont_Isinl]) 1)
 	]);
 
 qed_goalw "thelub_ssum2b" Ssum3.thy [sinl_def,sinr_def,sswhen_def] 
@@ -658,7 +658,7 @@ qed_goalw "thelub_ssum2b" Ssum3.thy [sinl_def,sinr_def,sswhen_def]
 	(rtac exI 1),
 	(etac box_equals 1),
 	(rtac refl 1),
-	(asm_simp_tac (Ssum_ss addsimps 
+	(asm_simp_tac (!simpset addsimps 
 	[cont_Isinr,cont_Isinl,cont_Iwhen1,cont_Iwhen2,
 	cont_Iwhen3]) 1)
 	]);
@@ -668,11 +668,11 @@ qed_goalw "thelub_ssum2a_rev" Ssum3.thy [sinl_def,sinr_def]
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac (Ssum_ss addsimps 
+	(asm_simp_tac (!simpset addsimps 
 	[cont_Isinr,cont_Isinl,cont_Iwhen1,cont_Iwhen2,
 	cont_Iwhen3]) 1),
 	(etac ssum_lemma9 1),
-	(asm_simp_tac (Ssum_ss addsimps 
+	(asm_simp_tac (!simpset addsimps 
 	[cont_Isinr,cont_Isinl,cont_Iwhen1,cont_Iwhen2,
 	cont_Iwhen3]) 1)
 	]);
@@ -682,11 +682,11 @@ qed_goalw "thelub_ssum2b_rev" Ssum3.thy [sinl_def,sinr_def]
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac (Ssum_ss addsimps 
+	(asm_simp_tac (!simpset addsimps 
 	[cont_Isinr,cont_Isinl,cont_Iwhen1,cont_Iwhen2,
 	cont_Iwhen3]) 1),
 	(etac ssum_lemma10 1),
-	(asm_simp_tac (Ssum_ss addsimps 
+	(asm_simp_tac (!simpset addsimps 
 	[cont_Isinr,cont_Isinl,cont_Iwhen1,cont_Iwhen2,
 	cont_Iwhen3]) 1)
 	]);
@@ -714,9 +714,9 @@ qed_goal "sswhen4" Ssum3.thy
  (fn prems =>
 	[
 	(res_inst_tac [("p","z")] ssumE 1),
-	(asm_simp_tac (Cfun_ss addsimps [sswhen1,sswhen2,sswhen3]) 1),
-	(asm_simp_tac (Cfun_ss addsimps [sswhen1,sswhen2,sswhen3]) 1),
-	(asm_simp_tac (Cfun_ss addsimps [sswhen1,sswhen2,sswhen3]) 1)
+	(asm_simp_tac (!simpset addsimps [sswhen1,sswhen2,sswhen3]) 1),
+	(asm_simp_tac (!simpset addsimps [sswhen1,sswhen2,sswhen3]) 1),
+	(asm_simp_tac (!simpset addsimps [sswhen1,sswhen2,sswhen3]) 1)
 	]);
 
 
@@ -724,5 +724,4 @@ qed_goal "sswhen4" Ssum3.thy
 (* install simplifier for Ssum                                              *)
 (* ------------------------------------------------------------------------ *)
 
-val Ssum_rews = [strict_sinl,strict_sinr,sswhen1,sswhen2,sswhen3];
-val Ssum_ss = Cfun_ss addsimps Ssum_rews;
+Addsimps [strict_sinl,strict_sinr,sswhen1,sswhen2,sswhen3];

@@ -74,10 +74,10 @@ qed_goalw "flat_one" One.thy [flat_def] "flat(one)"
 	(rtac allI 1),
 	(rtac allI 1),
 	(res_inst_tac [("p","x")] oneE 1),
-	(asm_simp_tac ccc1_ss  1),
+	(Asm_simp_tac 1),
 	(res_inst_tac [("p","y")] oneE 1),
-	(asm_simp_tac (ccc1_ss addsimps dist_less_one) 1),
-	(asm_simp_tac ccc1_ss  1)
+	(asm_simp_tac (!simpset addsimps dist_less_one) 1),
+	(Asm_simp_tac 1)
 	]);
 
 
@@ -89,7 +89,7 @@ qed_goalw "flat_one" One.thy [flat_def] "flat(one)"
 fun prover s =  prove_goalw One.thy [one_when_def,one_def] s
  (fn prems =>
 	[
-	(simp_tac (ccc1_ss addsimps [(rep_one_iso ),
+	(simp_tac (!simpset addsimps [(rep_one_iso ),
 	(abs_one_iso RS allI) RS ((rep_one_iso RS allI) 
 	RS iso_strict) RS conjunct1] )1)
 	]);

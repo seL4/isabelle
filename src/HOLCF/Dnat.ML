@@ -26,7 +26,7 @@ fun prover defs thm =  prove_goalw Dnat.thy defs thm
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps 
+	(asm_simp_tac (!simpset addsimps 
 		(dnat_rews @ [dnat_abs_iso,dnat_rep_iso])) 1)
 	]);
 
@@ -48,18 +48,18 @@ qed_goalw "Exh_dnat" Dnat.thy [dsucc_def,dzero_def]
 	"n = UU | n = dzero | (? x . x~=UU & n = dsucc`x)"
  (fn prems =>
 	[
-	(simp_tac HOLCF_ss  1),
+	(Simp_tac  1),
 	(rtac (dnat_rep_iso RS subst) 1),
 	(res_inst_tac [("p","dnat_rep`n")] ssumE 1),
 	(rtac disjI1 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(rtac (disjI1 RS disjI2) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(res_inst_tac [("p","x")] oneE 1),
 	(contr_tac 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(rtac (disjI2 RS disjI2) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(fast_tac HOL_cs 1)
 	]);
 
@@ -85,7 +85,7 @@ fun prover defs thm =  prove_goalw Dnat.thy defs thm
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps 
+	(asm_simp_tac (!simpset addsimps 
 		(dnat_rews @ [dnat_abs_iso,dnat_rep_iso])) 1)
 	]);
 
@@ -106,7 +106,7 @@ val dnat_rews = dnat_when @ dnat_rews;
 fun prover defs thm = prove_goalw Dnat.thy defs thm
  (fn prems =>
 	[
-	(simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(simp_tac (!simpset addsimps dnat_rews) 1)
 	]);
 
 val dnat_discsel = [
@@ -120,7 +120,7 @@ fun prover defs thm = prove_goalw Dnat.thy defs thm
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1)
 	]);
 
 val dnat_discsel = [
@@ -142,10 +142,10 @@ fun prover contr thm = prove_goal Dnat.thy thm
  (fn prems =>
 	[
 	(res_inst_tac [("P1",contr)] classical3 1),
-	(simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(simp_tac (!simpset addsimps dnat_rews) 1),
 	(dtac sym 1),
-	(asm_simp_tac HOLCF_ss  1),
-	(simp_tac (HOLCF_ss addsimps (prems @ dnat_rews)) 1)
+	(Asm_simp_tac  1),
+	(simp_tac (!simpset addsimps (prems @ dnat_rews)) 1)
 	]);
 
 val dnat_constrdef = [
@@ -157,7 +157,7 @@ val dnat_constrdef = [
 fun prover defs thm = prove_goalw Dnat.thy defs thm
  (fn prems =>
 	[
-	(simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(simp_tac (!simpset addsimps dnat_rews) 1)
 	]);
 
 val dnat_constrdef = [
@@ -178,10 +178,10 @@ val temp = prove_goal Dnat.thy  "~dzero << dsucc`n"
 	(resolve_tac dist_less_tr 1),
 	(dres_inst_tac [("fo5","is_dzero")] monofun_cfun_arg 1),
 	(etac box_less 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(res_inst_tac [("Q","n=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1)
 	]);
 
 val dnat_dist_less = [temp];
@@ -194,8 +194,8 @@ val temp = prove_goal Dnat.thy  "n~=UU ==> ~dsucc`n << dzero"
 	(resolve_tac dist_less_tr 1),
 	(dres_inst_tac [("fo5","is_dsucc")] monofun_cfun_arg 1),
 	(etac box_less 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1)
 	]);
 
 val dnat_dist_less = temp::dnat_dist_less;
@@ -204,13 +204,13 @@ val temp = prove_goal Dnat.thy   "dzero ~= dsucc`n"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","n=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(res_inst_tac [("P1","TT = FF")] classical3 1),
 	(resolve_tac dist_eq_tr 1),
 	(dres_inst_tac [("f","is_dzero")] cfun_arg_cong 1),
 	(etac box_equals 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1)
 	]);
 
 val dnat_dist_eq = [temp, temp RS not_sym];
@@ -230,8 +230,8 @@ prove_goal Dnat.thy
 	(cut_facts_tac prems 1),
 	(dres_inst_tac [("fo5","dnat_when`c`(LAM x.x)")] monofun_cfun_arg 1),
 	(etac box_less 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1)
 	])
 	];
 
@@ -248,8 +248,8 @@ prove_goal Dnat.thy
 	(cut_facts_tac prems 1),
 	(dres_inst_tac [("f","dnat_when`c`(LAM x.x)")] cfun_arg_cong 1),
 	(etac box_equals 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1)
 	])
 	];
 
@@ -264,7 +264,7 @@ fun prover thm = prove_goal Dnat.thy thm
 	(cut_facts_tac prems 1),
 	(rtac dnatE 1),
 	(contr_tac 1),
-	(REPEAT (asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1))
+	(REPEAT (asm_simp_tac (!simpset addsimps dnat_rews) 1))
 	]);
 
 val dnat_discsel_def = 
@@ -283,9 +283,9 @@ val temp = prove_goalw Dnat.thy [dnat_take_def] "dnat_take n`UU = UU"
  (fn prems =>
 	[
 	(res_inst_tac [("n","n")] natE 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac iterate_ss 1),
-	(simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(Asm_simp_tac 1),
+	(Asm_simp_tac 1),
+	(simp_tac (!simpset addsimps dnat_rews) 1)
 	]);
 
 val dnat_take = [temp];
@@ -293,7 +293,7 @@ val dnat_take = [temp];
 val temp = prove_goalw Dnat.thy [dnat_take_def] "dnat_take 0`xs = UU"
  (fn prems =>
 	[
-	(asm_simp_tac iterate_ss 1)
+	(Asm_simp_tac 1)
 	]);
 
 val dnat_take = temp::dnat_take;
@@ -302,8 +302,8 @@ val temp = prove_goalw Dnat.thy [dnat_take_def]
 	"dnat_take (Suc n)`dzero=dzero"
  (fn prems =>
 	[
-	(asm_simp_tac iterate_ss 1),
-	(simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(Asm_simp_tac 1),
+	(simp_tac (!simpset addsimps dnat_rews) 1)
 	]);
 
 val dnat_take = temp::dnat_take;
@@ -313,16 +313,16 @@ val temp = prove_goalw Dnat.thy [dnat_take_def]
  (fn prems =>
 	[
 	(res_inst_tac [("Q","xs=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(Asm_simp_tac 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(res_inst_tac [("n","n")] natE 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac iterate_ss 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(Asm_simp_tac 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(Asm_simp_tac 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(Asm_simp_tac 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1)
 	]);
 
 val dnat_take = temp::dnat_take;
@@ -365,16 +365,16 @@ qed_goalw "dnat_coind_lemma" Dnat.thy [dnat_bisim_def]
 	[
 	(cut_facts_tac prems 1),
 	(nat_ind_tac "n" 1),
-	(simp_tac (HOLCF_ss addsimps dnat_take) 1),
+	(simp_tac (!simpset addsimps dnat_take) 1),
 	(strip_tac 1),
 	((etac allE 1) THEN (etac allE 1) THEN (etac (mp RS disjE) 1)),
 	(atac 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_take) 1),
+	(asm_simp_tac (!simpset addsimps dnat_take) 1),
 	(etac disjE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_take) 1),
+	(asm_simp_tac (!simpset addsimps dnat_take) 1),
 	(etac exE 1),
 	(etac exE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_take) 1),
+	(asm_simp_tac (!simpset addsimps dnat_take) 1),
 	(REPEAT (etac conjE 1)),
 	(rtac cfun_arg_cong 1),
 	(fast_tac HOL_cs 1)
@@ -409,17 +409,17 @@ qed_goal "dnat_ind" Dnat.thy
 	(rtac adm_subst 1),
 	(cont_tacR 1),
 	(resolve_tac prems 1),
-	(simp_tac HOLCF_ss 1),
+	(Simp_tac 1),
 	(resolve_tac prems 1),
 	(strip_tac 1),
 	(res_inst_tac [("n","xa")] dnatE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_copy) 1),
+	(asm_simp_tac (!simpset addsimps dnat_copy) 1),
 	(resolve_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_copy) 1),
+	(asm_simp_tac (!simpset addsimps dnat_copy) 1),
 	(resolve_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_copy) 1),
+	(asm_simp_tac (!simpset addsimps dnat_copy) 1),
 	(res_inst_tac [("Q","x`xb=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(resolve_tac prems 1),
 	(eresolve_tac prems 1),
 	(etac spec 1)
@@ -433,17 +433,17 @@ qed_goal "dnat_finite_ind" Dnat.thy
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
-	(simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(simp_tac (!simpset addsimps dnat_rews) 1),
 	(resolve_tac prems 1),
 	(rtac allI 1),
 	(res_inst_tac [("n","s")] dnatE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(resolve_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(resolve_tac prems 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(res_inst_tac [("Q","dnat_take n1`x=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(resolve_tac prems 1),
 	(resolve_tac prems 1),
 	(atac 1),
@@ -455,28 +455,28 @@ qed_goal "dnat_all_finite_lemma1" Dnat.thy
  (fn prems =>
 	[
 	(nat_ind_tac "n" 1),
-	(simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(simp_tac (!simpset addsimps dnat_rews) 1),
 	(rtac allI 1),
 	(res_inst_tac [("n","s")] dnatE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(eres_inst_tac [("x","x")] allE 1),
 	(etac disjE 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1)
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1)
 	]);
 
 qed_goal "dnat_all_finite_lemma2" Dnat.thy "? n.dnat_take n`s=s"
  (fn prems =>
 	[
 	(res_inst_tac [("Q","s=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(subgoal_tac "(!n.dnat_take(n)`s=UU) |(? n.dnat_take(n)`s=s)" 1),
 	(etac disjE 1),
 	(eres_inst_tac [("P","s=UU")] notE 1),
 	(rtac dnat_take_lemma 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(atac 1),
 	(subgoal_tac "!n.!s.dnat_take(n)`s=UU |dnat_take(n)`s=s" 1),
 	(fast_tac HOL_cs 1),
@@ -508,13 +508,13 @@ qed_goalw "dnat_flat" Dnat.thy [flat_def] "flat(dzero)"
 	(rtac allI 1),
 	(res_inst_tac [("n","y")] dnatE 1),
 	(fast_tac (HOL_cs addSIs [UU_I]) 1),
-	(asm_simp_tac HOLCF_ss 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_dist_less) 1),
+	(Asm_simp_tac 1),
+	(asm_simp_tac (!simpset addsimps dnat_dist_less) 1),
 	(rtac allI 1),
 	(res_inst_tac [("n","y")] dnatE 1),
 	(fast_tac (HOL_cs addSIs [UU_I]) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_dist_less) 1),
-	(asm_simp_tac (HOLCF_ss addsimps dnat_rews) 1),
+	(asm_simp_tac (!simpset addsimps dnat_dist_less) 1),
+	(asm_simp_tac (!simpset addsimps dnat_rews) 1),
 	(strip_tac 1),
 	(subgoal_tac "s1<<xa" 1),
 	(etac allE 1),
@@ -522,7 +522,7 @@ qed_goalw "dnat_flat" Dnat.thy [flat_def] "flat(dzero)"
 	(atac 1),
 	(etac disjE 1),
 	(contr_tac 1),
-	(asm_simp_tac HOLCF_ss 1),
+	(Asm_simp_tac 1),
 	(resolve_tac  dnat_invert 1),
 	(REPEAT (atac 1))
 	]);

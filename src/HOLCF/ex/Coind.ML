@@ -29,7 +29,7 @@ val from = prove_goal Coind.thy "from`n = scons`n`(from`(dsucc`n))"
 	[
 	(rtac trans 1),
 	(rtac (from_def2 RS ssubst) 1),
-	(simp_tac HOLCF_ss  1),
+	(Simp_tac 1),
 	(rtac refl 1)
 	]);
 
@@ -58,19 +58,19 @@ val coind_lemma1 = prove_goal Coind.thy "iterator`n`(smap`dsucc)`nats =\
  (fn prems =>
 	[
 	(res_inst_tac [("s","n")] dnat_ind 1),
-	(simp_tac (HOLCF_ss addsimps (coind_rews @ stream_rews)) 1),
-	(simp_tac (HOLCF_ss addsimps (coind_rews @ stream_rews)) 1),
+	(simp_tac (!simpset addsimps (coind_rews @ stream_rews)) 1),
+	(simp_tac (!simpset addsimps (coind_rews @ stream_rews)) 1),
 	(rtac trans 1),
 	(rtac nats_def2 1),
-	(simp_tac (HOLCF_ss addsimps (coind_rews @ dnat_rews)) 1),
+	(simp_tac (!simpset addsimps (coind_rews @ dnat_rews)) 1),
 	(rtac trans 1),
 	(etac iterator3 1),
 	(rtac trans 1),
-	(asm_simp_tac HOLCF_ss 1),
+	(Asm_simp_tac 1),
 	(rtac trans 1),
 	(etac smap2 1),
 	(rtac cfun_arg_cong 1),
-	(asm_simp_tac (HOLCF_ss addsimps ([iterator3 RS sym] @ dnat_rews)) 1)
+	(asm_simp_tac (!simpset addsimps ([iterator3 RS sym] @ dnat_rews)) 1)
 	]);
 
 
@@ -80,13 +80,13 @@ val nats_eq_from = prove_goal Coind.thy "nats = from`dzero"
 	(res_inst_tac [("R",
 "% p q.? n. p = iterator`n`(smap`dsucc)`nats & q = from`n")] stream_coind 1),
 	(res_inst_tac [("x","dzero")] exI 2),
-	(asm_simp_tac (HOLCF_ss addsimps coind_rews) 2),
+	(asm_simp_tac (!simpset addsimps coind_rews) 2),
 	(rewrite_goals_tac [stream_bisim_def]),
 	(strip_tac 1),
 	(etac exE 1),
 	(res_inst_tac [("Q","n=UU")] classical2 1),
 	(rtac disjI1 1),
-	(asm_simp_tac (HOLCF_ss addsimps coind_rews) 1),
+	(asm_simp_tac (!simpset addsimps coind_rews) 1),
 	(rtac disjI2 1),
 	(etac conjE 1),
 	(hyp_subst_tac 1),
@@ -113,26 +113,26 @@ val nats_eq_from = prove_goal Coind.thy "nats = from`dzero"
 	(strip_tac 1),
 	(etac exE 1),
 	(res_inst_tac [("Q","n=UU")] classical2 1),
-	(asm_simp_tac (HOLCF_ss addsimps coind_rews) 1),
+	(asm_simp_tac (!simpset addsimps coind_rews) 1),
 	(res_inst_tac [("x","UU::dnat")] exI 1),
-	(simp_tac (HOLCF_ss addsimps coind_rews addsimps stream_rews) 1),
+	(simp_tac (!simpset addsimps coind_rews addsimps stream_rews) 1),
 	(etac conjE 1),
 	(hyp_subst_tac 1),
 	(rtac conjI 1),
 	(rtac (coind_lemma1 RS ssubst) 1),
 	(rtac (from RS ssubst) 1),
-	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1),
+	(asm_simp_tac (!simpset addsimps stream_rews) 1),
 	(res_inst_tac [("x","dsucc`n")] exI 1),
 	(rtac conjI 1),
 	(rtac trans 1),
 	(rtac (coind_lemma1 RS ssubst) 1),
-	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1),
+	(asm_simp_tac (!simpset addsimps stream_rews) 1),
 	(rtac refl 1),
 	(rtac trans 1),
 	(rtac (from RS ssubst) 1),
-	(asm_simp_tac (HOLCF_ss addsimps stream_rews) 1),
+	(asm_simp_tac (!simpset addsimps stream_rews) 1),
 	(rtac refl 1),
 	(res_inst_tac [("x","dzero")] exI 1),
-	(asm_simp_tac (HOLCF_ss addsimps coind_rews) 1)
+	(asm_simp_tac (!simpset addsimps coind_rews) 1)
 	]);
 
