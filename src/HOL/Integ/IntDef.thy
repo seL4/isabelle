@@ -23,15 +23,15 @@ defs
 
 constdefs
 
-  int :: nat => int                                  ("$# _" [80] 80)
-  "$# m == Abs_Integ(intrel ^^ {(m,0)})"
+  int :: nat => int
+  "int m == Abs_Integ(intrel ^^ {(m,0)})"
 
   neg   :: int => bool
   "neg(Z) == EX x y. x<y & (x,y::nat):Rep_Integ(Z)"
 
   (*For simplifying equalities*)
   iszero :: int => bool
-  "iszero z == z = $# 0"
+  "iszero z == z = int 0"
   
 defs
   zadd_def

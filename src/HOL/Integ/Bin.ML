@@ -104,12 +104,12 @@ qed_goal "integ_of_NCons" Bin.thy
 Addsimps [integ_of_NCons];
 
 qed_goal "integ_of_succ" Bin.thy
-    "integ_of(bin_succ w) = $#1 + integ_of w"
+    "integ_of(bin_succ w) = int 1 + integ_of w"
  (fn _ =>[(rtac bin.induct 1),
           (ALLGOALS(asm_simp_tac (simpset() addsimps zadd_ac))) ]);
 
 qed_goal "integ_of_pred" Bin.thy
-    "integ_of(bin_pred w) = - ($#1) + integ_of w"
+    "integ_of(bin_pred w) = - (int 1) + integ_of w"
  (fn _ =>[(rtac bin.induct 1),
           (ALLGOALS(asm_simp_tac (simpset() addsimps zadd_ac))) ]);
 
@@ -166,7 +166,7 @@ Goal "(- z) + z = #0";
 by (Simp_tac 1);
 qed "zadd_zminus_inverse2";
 
-(*These rewrite to $# 0.  Henceforth we should rewrite to #0  *)
+(*These rewrite to int 0.  Henceforth we should rewrite to #0  *)
 Delsimps [zadd_zminus_inverse_nat, zadd_zminus_inverse_nat2];
 
 Addsimps [zadd_0, zadd_0_right, zadd_zminus_inverse, zadd_zminus_inverse2];
@@ -176,6 +176,21 @@ by (Simp_tac 1);
 qed "zminus_0";
 
 Addsimps [zminus_0];
+
+
+Goal "#0 - x = -x";
+by (simp_tac (simpset() addsimps [zdiff_def]) 1);
+qed "zdiff0";
+
+Goal "x - #0 = x";
+by (simp_tac (simpset() addsimps [zdiff_def]) 1);
+qed "zdiff0_right";
+
+Goal "x - x = #0";
+by (simp_tac (simpset() addsimps [zdiff_def]) 1);
+qed "zdiff_self";
+
+Addsimps [zdiff0, zdiff0_right, zdiff_self];
 
 Goal "#0 * z = #0";
 by (Simp_tac 1);
@@ -218,9 +233,14 @@ Goal "neg x = (x < #0)";
 by (simp_tac (simpset() addsimps [neg_eq_less_nat0]) 1); 
 qed "neg_eq_less_0"; 
 
-Goal "(~neg x) = ($# 0 <= x)";
+Goal "(~neg x) = (int 0 <= x)";
 by (simp_tac (simpset() addsimps [not_neg_eq_ge_nat0]) 1); 
 qed "not_neg_eq_ge_0"; 
+
+Goal "#0 <= int m";
+by (Simp_tac 1);
+qed "zero_zle_int";
+AddIffs [zero_zle_int];
 
 
 
@@ -250,7 +270,7 @@ by (int_case_tac "integ_of w" 1);
 by (ALLGOALS (asm_simp_tac 
 	      (simpset() addsimps zcompare_rls @ 
 				  [zminus_zadd_distrib RS sym, 
-				   add_nat]))); 
+				   zadd_int]))); 
 qed "iszero_integ_of_BIT"; 
 
 
@@ -274,7 +294,7 @@ Goal "neg (integ_of (w BIT x)) = neg (integ_of w)";
 by (Asm_simp_tac 1); 
 by (int_case_tac "integ_of w" 1); 
 by (ALLGOALS (asm_simp_tac 
-	      (simpset() addsimps [add_nat, neg_eq_less_nat0, 
+	      (simpset() addsimps [zadd_int, neg_eq_less_nat0, 
 				   symmetric zdiff_def] @ zcompare_rls))); 
 qed "neg_integ_of_BIT"; 
 
@@ -382,20 +402,13 @@ by (Simp_tac 1);
 qed "zless_zadd1_imp_zless";
 
 Goal "w + #-1 = w - #1";
-by (simp_tac (simpset() addsimps zadd_ac@zcompare_0_rls) 1);
+by (Simp_tac 1);
 qed "zplus_minus1_conv";
-
-(*Eliminates neg from the subgoal, introduced e.g. by zcompare_0_rls*)
-val no_neg_ss = 
-    simpset()
-      delsimps [less_integ_of_eq_neg]  (*loops: it introduces neg*)
-      addsimps [zadd_assoc RS sym, zplus_minus1_conv,
-		neg_eq_less_0, iszero_def] @ zcompare_rls;
 
 
 (*** nat ***)
 
-Goal "#0 <= z ==> $# (nat z) = z"; 
+Goal "#0 <= z ==> int (nat z) = z"; 
 by (asm_full_simp_tac
     (simpset() addsimps [neg_eq_less_0, zle_def, not_neg_nat]) 1); 
 qed "nat_0_le"; 
@@ -407,14 +420,14 @@ qed "nat_less_0";
 
 Addsimps [nat_0_le, nat_less_0];
 
-Goal "#0 <= w ==> (nat w = m) = (w = $# m)";
+Goal "#0 <= w ==> (nat w = m) = (w = int m)";
 by Auto_tac;
 qed "nat_eq_iff";
 
-Goal "#0 <= w ==> (nat w < m) = (w < $# m)";
+Goal "#0 <= w ==> (nat w < m) = (w < int m)";
 by (rtac iffI 1);
 by (asm_full_simp_tac 
-    (simpset() delsimps [zless_eq_less] addsimps [zless_eq_less RS sym]) 2);
+    (simpset() delsimps [zless_int] addsimps [zless_int RS sym]) 2);
 by (etac (nat_0_le RS subst) 1);
 by (Simp_tac 1);
 qed "nat_less_iff";
@@ -428,7 +441,7 @@ qed "nat_less_eq_zless";
 
 Goal "#0 <= w ==> (nat w < nat z) = (w<z)";
 by (stac nat_less_iff 1);
-ba 1;
+by (assume_tac 1);
 by (case_tac "neg z" 1);
 by (auto_tac (claset(), simpset() addsimps [not_neg_nat, neg_nat]));
 by (auto_tac (claset(), 
@@ -438,11 +451,11 @@ qed "nat_less_eq_zless";
 
 
 (**Can these be generalized without evaluating large numbers?**)
-Goal "($# k = #0) = (k=0)";
+Goal "(int k = #0) = (k=0)";
 by (simp_tac (simpset() addsimps [integ_of_Pls]) 1);
 qed "nat_eq_0_conv";
 
-Goal "(#0 = $# k) = (k=0)";
+Goal "(#0 = int k) = (k=0)";
 by (auto_tac (claset(), simpset() addsimps [integ_of_Pls]));
 qed "nat_eq_0_conv'";
 

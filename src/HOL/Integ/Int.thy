@@ -13,6 +13,6 @@ instance int :: linorder (zle_linear)
 
 constdefs
   nat  :: int => nat
-  "nat(Z) == if neg Z then 0 else (@ m. Z = $# m)"
+  "nat(Z) == if neg Z then 0 else (@ m. Z = int m)"
 
 end

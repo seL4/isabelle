@@ -48,9 +48,9 @@ primrec
   NCons_BIT "NCons (w BIT x) b = (w BIT x) BIT b"
  
 primrec
-  integ_of_Pls  "integ_of Pls = $# 0"
-  integ_of_Min  "integ_of Min = - ($# 1)"
-  integ_of_BIT  "integ_of(w BIT x) = (if x then $# 1 else $# 0) +
+  integ_of_Pls  "integ_of Pls = int 0"
+  integ_of_Min  "integ_of Min = - (int 1)"
+  integ_of_BIT  "integ_of(w BIT x) = (if x then int 1 else int 0) +
 	                             (integ_of w) + (integ_of w)" 
 
 primrec
