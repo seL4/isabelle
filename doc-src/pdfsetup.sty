@@ -1,12 +1,12 @@
 \message{pdfsetup.sty v0.1 11/7/2001}
 \@ifundefined{pdfoutput}{\message{No PDF output}%
   \usepackage{../url}%
-  \newcommand{\hfootref}[2]{#2\footnote{#1}}}%
+  \newcommand{\hfootref}[2]{#2\footnote{\url{#1}}}}%
 {\message{Generating PDF output}%
   \usepackage{color}\definecolor{darkblue}{rgb}{0,0,0.5}%
   \usepackage[pdftex,colorlinks=true,linkcolor=darkblue,citecolor=darkblue,filecolor=darkblue,pagecolor=darkblue,urlcolor=darkblue]{hyperref}%
               %no a4paper because overall style sets this (not for Springer!)
-  \newcommand{\hfootref}[2]{\href{#1}{#2}\footnote{#1}}%
+  \newcommand{\hfootref}[2]{\href{#1}{#2}\footnote{\url{#1}}}%
   \gdef\fnote#1{\hyperpage{#1}n}%
   \gdef\bold#1{\textbf{\hyperpage{#1}}}}
 
