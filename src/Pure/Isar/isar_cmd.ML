@@ -29,9 +29,11 @@ sig
   val undo_theory: Toplevel.transition -> Toplevel.transition
   val undo: Toplevel.transition -> Toplevel.transition
   val kill: Toplevel.transition -> Toplevel.transition
-  val use: string -> Toplevel.transition -> Toplevel.transition
-  val use_mltext_theory: string -> Toplevel.transition -> Toplevel.transition
-  val use_mltext: bool -> string -> Toplevel.transition -> Toplevel.transition
+  val back: bool * Comment.text -> Toplevel.transition -> Toplevel.transition
+  val use: string * Comment.text -> Toplevel.transition -> Toplevel.transition
+  val use_mltext_theory: string * Comment.text -> Toplevel.transition -> Toplevel.transition
+  val use_mltext: bool -> string * Comment.text -> Toplevel.transition -> Toplevel.transition
+  val use_setup: string * Comment.text -> theory -> theory
   val use_commit: Toplevel.transition -> Toplevel.transition
   val cd: string -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
@@ -120,21 +122,25 @@ val undo_theory = Toplevel.history (fn hist =>
 val undo = Toplevel.kill o undo_theory o undos_proof 1;
 val kill = Toplevel.kill o kill_proof;
 
+val back = Toplevel.proof o ProofHistory.back o Comment.ignore;
+
 
 (* use ML text *)
 
-fun use name = Toplevel.keep (fn state =>
+fun use (name, comment_ignore) = Toplevel.keep (fn state =>
   Context.setmp (try Toplevel.theory_of state) ThyInfo.use name);
 
 (*passes changes of theory context*)
-val use_mltext_theory = Toplevel.theory' o Context.use_mltext_theory;
+val use_mltext_theory = Toplevel.theory' o Context.use_mltext_theory o Comment.ignore;
 
 (*ignore result theory context*)
-fun use_mltext v txt = Toplevel.keep' (fn verb => fn state =>
+fun use_mltext v (txt, comment_ignore) = Toplevel.keep' (fn verb => fn state =>
   (Context.use_mltext txt (v andalso verb) (try Toplevel.theory_of state)));
 
+val use_setup = Context.use_setup o Comment.ignore;
+
 (*Note: commit is dynamically bound*)
-val use_commit = use_mltext false "commit();";
+val use_commit = use_mltext false ("commit();", Comment.none);
 
 
 (* current working directory *)

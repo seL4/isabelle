@@ -211,23 +211,23 @@ val hideP =
 
 val useP =
   OuterSyntax.command "use" "eval ML text from file" K.diag
-    (P.name >> (Toplevel.no_timing oo IsarCmd.use));
+    (P.name -- P.marg_comment >> (Toplevel.no_timing oo IsarCmd.use));
 
 val mlP =
   OuterSyntax.command "ML" "eval ML text (diagnostic)" K.diag
-    (P.text >> IsarCmd.use_mltext true);
+    (P.text -- P.marg_comment >> IsarCmd.use_mltext true);
 
 val ml_commandP =
   OuterSyntax.command "ML_command" "eval ML text" K.diag
-    (P.text >> IsarCmd.use_mltext false);
+    (P.text -- P.marg_comment >> IsarCmd.use_mltext false);
 
 val ml_setupP =
   OuterSyntax.command "ML_setup" "eval ML text (may change theory)" K.thy_decl
-    (P.text >> IsarCmd.use_mltext_theory);
+    (P.text -- P.marg_comment >> IsarCmd.use_mltext_theory);
 
 val setupP =
   OuterSyntax.command "setup" "apply ML theory setup" K.thy_decl
-    (P.text >> (Toplevel.theory o Context.use_setup));
+    (P.text -- P.marg_comment >> (Toplevel.theory o IsarCmd.use_setup));
 
 val method_setupP =
   OuterSyntax.command "method_setup" "define proof method in ML" K.thy_decl
@@ -239,27 +239,27 @@ val method_setupP =
 
 val parse_ast_translationP =
   OuterSyntax.command "parse_ast_translation" "install parse ast translation functions" K.thy_decl
-    (P.text >> (Toplevel.theory o IsarThy.parse_ast_translation));
+    (P.text -- P.marg_comment >> (Toplevel.theory o IsarThy.parse_ast_translation));
 
 val parse_translationP =
   OuterSyntax.command "parse_translation" "install parse translation functions" K.thy_decl
-    (P.text >> (Toplevel.theory o IsarThy.parse_translation));
+    (P.text -- P.marg_comment >> (Toplevel.theory o IsarThy.parse_translation));
 
 val print_translationP =
   OuterSyntax.command "print_translation" "install print translation functions" K.thy_decl
-    (P.text >> (Toplevel.theory o IsarThy.print_translation));
+    (P.text -- P.marg_comment >> (Toplevel.theory o IsarThy.print_translation));
 
 val typed_print_translationP =
   OuterSyntax.command "typed_print_translation" "install typed print translation functions"
-    K.thy_decl (P.text >> (Toplevel.theory o IsarThy.typed_print_translation));
+    K.thy_decl (P.text -- P.marg_comment >> (Toplevel.theory o IsarThy.typed_print_translation));
 
 val print_ast_translationP =
   OuterSyntax.command "print_ast_translation" "install print ast translation functions" K.thy_decl
-    (P.text >> (Toplevel.theory o IsarThy.print_ast_translation));
+    (P.text -- P.marg_comment >> (Toplevel.theory o IsarThy.print_ast_translation));
 
 val token_translationP =
   OuterSyntax.command "token_translation" "install token translation functions" K.thy_decl
-    (P.text >> (Toplevel.theory o IsarThy.token_translation));
+    (P.text -- P.marg_comment >> (Toplevel.theory o IsarThy.token_translation));
 
 
 (* oracles *)
@@ -453,8 +453,8 @@ val ultimatelyP =
 
 val backP =
   OuterSyntax.command "back" "backtracking of proof command" K.prf_script
-    (Scan.optional (P.$$$ "!" >> K true) false >>
-      (Toplevel.print oo (Toplevel.proof o ProofHistory.back)));
+    (Scan.optional (P.$$$ "!" >> K true) false -- P.marg_comment >>
+      (Toplevel.print oo IsarCmd.back));
 
 
 (* history *)

@@ -151,12 +151,12 @@ sig
     -> Toplevel.transition -> Toplevel.transition
   val moreover: Comment.text -> Toplevel.transition -> Toplevel.transition
   val ultimately: Comment.text -> Toplevel.transition -> Toplevel.transition
-  val parse_ast_translation: string -> theory -> theory
-  val parse_translation: string -> theory -> theory
-  val print_translation: string -> theory -> theory
-  val typed_print_translation: string -> theory -> theory
-  val print_ast_translation: string -> theory -> theory
-  val token_translation: string -> theory -> theory
+  val parse_ast_translation: string * Comment.text -> theory -> theory
+  val parse_translation: string * Comment.text -> theory -> theory
+  val print_translation: string * Comment.text -> theory -> theory
+  val typed_print_translation: string * Comment.text -> theory -> theory
+  val print_ast_translation: string * Comment.text -> theory -> theory
+  val token_translation: string * Comment.text -> theory -> theory
   val method_setup: (bstring * string * string) * Comment.text -> theory -> theory
   val add_oracle: (bstring * string) * Comment.text -> theory -> theory
   val begin_theory: string -> string list -> (string * bool) list -> theory
@@ -516,27 +516,27 @@ end;
 
 val parse_ast_translation =
   Context.use_let "parse_ast_translation: (string * (Syntax.ast list -> Syntax.ast)) list"
-    "Theory.add_trfuns (parse_ast_translation, [], [], [])";
+    "Theory.add_trfuns (parse_ast_translation, [], [], [])" o Comment.ignore;
 
 val parse_translation =
   Context.use_let "parse_translation: (string * (term list -> term)) list"
-    "Theory.add_trfuns ([], parse_translation, [], [])";
+    "Theory.add_trfuns ([], parse_translation, [], [])" o Comment.ignore;
 
 val print_translation =
   Context.use_let "print_translation: (string * (term list -> term)) list"
-    "Theory.add_trfuns ([], [], print_translation, [])";
+    "Theory.add_trfuns ([], [], print_translation, [])" o Comment.ignore;
 
 val print_ast_translation =
   Context.use_let "print_ast_translation: (string * (Syntax.ast list -> Syntax.ast)) list"
-    "Theory.add_trfuns ([], [], [], print_ast_translation)";
+    "Theory.add_trfuns ([], [], [], print_ast_translation)" o Comment.ignore;
 
 val typed_print_translation =
   Context.use_let "typed_print_translation: (string * (bool -> typ -> term list -> term)) list"
-    "Theory.add_trfunsT typed_print_translation";
+    "Theory.add_trfunsT typed_print_translation" o Comment.ignore;
 
 val token_translation =
   Context.use_let "token_translation: (string * string * (string -> string * int)) list"
-    "Theory.add_tokentrfuns token_translation";
+    "Theory.add_tokentrfuns token_translation" o Comment.ignore;
 
 
 (* add method *)

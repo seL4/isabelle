@@ -384,9 +384,9 @@ following commands provide some way to do so.
 \railterm{MLcommand}
 
 \begin{rail}
-  'use' name
+  'use' name comment?
   ;
-  ('ML' | MLcommand | MLsetup | 'setup') text
+  ('ML' | MLcommand | MLsetup | 'setup') text comment?
   ;
   methodsetup name '=' text text comment?
   ;
@@ -450,6 +450,29 @@ applying the main tactic.
   \isarcmd{print_ast_translation} & : & \isartrans{theory}{theory} \\
   \isarcmd{token_translation} & : & \isartrans{theory}{theory} \\
 \end{matharray}
+
+\railalias{parseasttranslation}{parse\_ast\_translation}
+\railterm{parseasttranslation}
+
+\railalias{parsetranslation}{parse\_translation}
+\railterm{parsetranslation}
+
+\railalias{printtranslation}{print\_translation}
+\railterm{printtranslation}
+
+\railalias{typedprinttranslation}{typed\_print\_translation}
+\railterm{typedprinttranslation}
+
+\railalias{printasttranslation}{print\_ast\_translation}
+\railterm{printasttranslation}
+
+\railalias{tokentranslation}{token\_translation}
+\railterm{tokentranslation}
+
+\begin{rail}
+  ( parseasttranslation | parsetranslation | printtranslation | typedprinttranslation |
+  printasttranslation | tokentranslation ) text comment?
+\end{rail}
 
 Syntax translation functions written in ML admit almost arbitrary
 manipulations of Isabelle's inner syntax.  Any of the above commands have a
@@ -1028,6 +1051,8 @@ preparation, for example).
   'defer' nat? comment?
   ;
   'prefer' nat comment?
+  ;
+  'back' comment?
   ;
 \end{rail}
 
