@@ -315,46 +315,6 @@ and {\tt subgoal_tac}.
 
 \section{Obscure tactics}
 
-\subsection{Rotating assumptions}
-\index{assumptions!rotating}
-\begin{ttbox} 
-rotate_tac : int -> int -> tactic
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{rotate_tac} $n$ $i$]  
-rotates the assumptions of subgoal $i$ by $n$ positions: from right to left,
-if $n$ is positive, and from left to right, if $n$ is negative. Sometimes
-necessary in connection with \ttindex{asm_full_simp_tac}.
-
-\end{ttdescription}
-
-\subsection{Tidying the proof state}
-\index{parameters!removing unused}
-\index{flex-flex constraints}
-\begin{ttbox} 
-prune_params_tac : tactic
-flexflex_tac     : tactic
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{prune_params_tac}]  
-  removes unused parameters from all subgoals of the proof state.  It works
-  by rewriting with the theorem $(\Forall x. V)\equiv V$.  This tactic can
-  make the proof state more readable.  It is used with
-  \ttindex{rule_by_tactic} to simplify the resulting theorem.
-
-\item[\ttindexbold{flexflex_tac}]  
-  removes all flex-flex pairs from the proof state by applying the trivial
-  unifier.  This drastic step loses information, and should only be done as
-  the last step of a proof.
-
-  Flex-flex constraints arise from difficult cases of higher-order
-  unification.  To prevent this, use \ttindex{res_inst_tac} to instantiate
-  some variables in a rule~(\S\ref{res_inst_tac}).  Normally flex-flex
-  constraints can be ignored; they often disappear as unknowns get
-  instantiated.
-\end{ttdescription}
-
-
 \subsection{Renaming parameters in a goal} \index{parameters!renaming}
 \begin{ttbox} 
 rename_tac        : string -> int -> tactic
@@ -398,6 +358,56 @@ is {\tt"k"}.
 
 \item[\ttindexbold{Logic.auto_rename} := true;] 
 makes Isabelle generate uniform names for parameters. 
+\end{ttdescription}
+
+
+\subsection{Manipulating assumptions}
+\index{assumptions!rotating}
+\begin{ttbox} 
+thin_tac   : string -> int -> tactic
+rotate_tac : int -> int -> tactic
+\end{ttbox}
+\begin{ttdescription}
+\item[\ttindexbold{thin_tac} {\it formula} $i$]  
+\index{assumptions!deleting}
+deletes the specified assumption from subgoal $i$.  Often the assumption
+can be abbreviated, replacing subformul{\ae} by unknowns; the first matching
+assumption will be deleted.  Removing useless assumptions from a subgoal
+increases its readability and can make search tactics run faster.
+
+\item[\ttindexbold{rotate_tac} $n$ $i$]  
+\index{assumptions!rotating}
+rotates the assumptions of subgoal $i$ by $n$ positions: from right to left
+if $n$ is positive, and from left to right if $n$ is negative.  This is 
+sometimes necessary in connection with \ttindex{asm_full_simp_tac}, which 
+processes assumptions from left to right.
+\end{ttdescription}
+
+
+\subsection{Tidying the proof state}
+\index{parameters!removing unused}
+\index{flex-flex constraints}
+\begin{ttbox} 
+prune_params_tac : tactic
+flexflex_tac     : tactic
+\end{ttbox}
+\begin{ttdescription}
+\item[\ttindexbold{prune_params_tac}]  
+  removes unused parameters from all subgoals of the proof state.  It works
+  by rewriting with the theorem $(\Forall x. V)\equiv V$.  This tactic can
+  make the proof state more readable.  It is used with
+  \ttindex{rule_by_tactic} to simplify the resulting theorem.
+
+\item[\ttindexbold{flexflex_tac}]  
+  removes all flex-flex pairs from the proof state by applying the trivial
+  unifier.  This drastic step loses information, and should only be done as
+  the last step of a proof.
+
+  Flex-flex constraints arise from difficult cases of higher-order
+  unification.  To prevent this, use \ttindex{res_inst_tac} to instantiate
+  some variables in a rule~(\S\ref{res_inst_tac}).  Normally flex-flex
+  constraints can be ignored; they often disappear as unknowns get
+  instantiated.
 \end{ttdescription}
 
 
