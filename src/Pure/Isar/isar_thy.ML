@@ -5,19 +5,22 @@
 Derived theory operations.
 
 TODO:
-  - add_defs: handle empty name (pure_thy.ML (!?));
   - add_constdefs (atomic!);
-  - have_theorems, have_lemmas;
   - load theory;
   - 'methods' section (proof macros, ML method defs) (!?);
   - next_block: ProofHistory open / close (!?);
-  - from_facts: attribs, args (!?) (beware of termination!!);
 *)
 
 signature ISAR_THY =
 sig
   val add_axioms: ((bstring * string) * Args.src list) list -> theory -> theory
   val add_defs: ((bstring * string) * Args.src list) list -> theory -> theory
+  val have_theorems: (bstring * Args.src list) * (xstring * Args.src list) list
+    -> theory -> theory
+  val have_lemmas: (bstring * Args.src list) * (xstring * Args.src list) list
+    -> theory -> theory
+  val have_facts: (string * Args.src list) * (string * Args.src list) list
+    -> ProofHistory.T -> ProofHistory.T
   val fix: (string * string option) list -> ProofHistory.T -> ProofHistory.T
   val match_bind: (string * string) list -> ProofHistory.T -> ProofHistory.T
   val theorem: string -> Args.src list -> string -> theory -> ProofHistory.T
@@ -26,7 +29,7 @@ sig
   val show: string -> Args.src list -> string -> ProofHistory.T -> ProofHistory.T
   val have: string -> Args.src list -> string -> ProofHistory.T -> ProofHistory.T
   val chain: ProofHistory.T -> ProofHistory.T
-  val from_facts: string list -> ProofHistory.T -> ProofHistory.T
+  val from_facts: (string * Args.src list) list -> ProofHistory.T -> ProofHistory.T
   val begin_block: ProofHistory.T -> ProofHistory.T
   val next_block: ProofHistory.T -> ProofHistory.T
   val end_block: ProofHistory.T -> ProofHistory.T
@@ -62,10 +65,34 @@ struct
 
 (* axioms and defs *)
 
-fun attributize thy (x, srcs) = (x, map (Attrib.global_attribute thy) srcs);
+fun add_axms f args thy =
+  f (map (fn (x, srcs) => (x, map (Attrib.global_attribute thy) srcs)) args) thy;
 
-fun add_axioms axms thy = PureThy.add_axioms (map (attributize thy) axms) thy;
-fun add_defs defs thy = PureThy.add_defs (map (attributize thy) defs) thy;
+val add_axioms = add_axms PureThy.add_axioms;
+val add_defs = add_axms PureThy.add_defs;
+
+
+(* theorems *)
+
+fun gen_have_thmss get attrib f ((name, more_srcs), th_srcs) x =
+  f name (map (attrib x) more_srcs)
+    (map (fn (s, srcs) => (get x s, map (attrib x) srcs)) th_srcs) x;
+
+
+val have_theorems =
+  #1 oo gen_have_thmss PureThy.get_tthms Attrib.global_attribute PureThy.have_tthmss;
+
+val have_lemmas =
+  #1 oo gen_have_thmss PureThy.get_tthms Attrib.global_attribute
+    (fn name => fn more_atts => PureThy.have_tthmss name (more_atts @ [Attribute.tag_lemma]));
+
+
+val have_thmss =
+  gen_have_thmss (ProofContext.get_tthms o Proof.context_of)
+    (Attrib.local_attribute o Proof.theory_of) Proof.have_tthmss;
+
+val have_facts = ProofHistory.apply o have_thmss;
+val from_facts = ProofHistory.apply o (Proof.chain oo curry have_thmss ("", []));
 
 
 (* context *)
@@ -93,10 +120,6 @@ val have = local_statement Proof.have;
 (* forward chaining *)
 
 val chain = ProofHistory.apply Proof.chain;
-
-fun from_facts names = ProofHistory.apply (fn state =>
-  state
-  |> Proof.from_facts (ProofContext.get_tthmss (Proof.context_of state) names));
 
 
 (* end proof *)
@@ -161,7 +184,7 @@ fun use_let name body txt =
   use_context ("let val " ^ name ^ " = " ^ txt ^ " in\n" ^ body ^ " end");
 
 val use_setup =
-  use_let "setup: (theory -> theory) list" "Theory.apply setup";
+  use_let "setup: (theory -> theory) list" "Library.apply setup";
 
 
 (* translation functions *)
