@@ -41,7 +41,7 @@ fun decode "&lt;" = "<"
   | decode "&quot;" = "\""
   | decode c = c;
 
-val text = String.translate (encode o String.str);
+val text = Library.translate_string encode;
 
 val cdata_open  = "<![CDATA["
 val cdata_close = "]]>"
