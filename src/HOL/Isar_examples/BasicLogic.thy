@@ -170,7 +170,7 @@ text {*
  This may be avoided using \isacommand{from} to focus on $\idt{prems}$
  (i.e.\ the $A \conj B$ assumption) as the current facts, enabling the
  use of double-dot proofs.  Note that \isacommand{from} already
- involves forward-chaining.
+ does forward-chaining, involving the \name{conjE} rule.
 *};
 
 lemma "A & B --> B & A";
@@ -217,7 +217,7 @@ proof;
 qed;
 
 text {*
- We can still push forward reasoning a bit further, even at the danger
+ We can still push forward reasoning a bit further, even at the risk
  of getting ridiculous.  Note that we force the initial proof step to
  do nothing, by referring to the ``-'' proof method.
 *};
@@ -246,7 +246,7 @@ text {*
  is no single best way to arrange some pieces of formal reasoning, of
  course.  Depending on the actual applications, the intended audience
  etc., certain aspects such as rules~/ methods vs.\ facts have to be
- emphasised in an appropriate way.  This requires the proof writer to
+ emphasized in an appropriate way.  This requires the proof writer to
  develop good taste, and some practice, of course.
 *};
 
@@ -275,15 +275,58 @@ subsection {* A few examples from ``Introduction to Isabelle'' *};
 
 text {*
  We rephrase some of the basic reasoning examples of
- \cite{isabelle-intro}.
+ \cite{isabelle-intro} (using HOL rather than FOL).
 *};
 
-subsubsection {* Propositional proof *};
+subsubsection {* A propositional proof *};
+
+text {*
+ We consider the proposition $P \disj P \impl P$.  The proof below
+ involves forward-chaining from $P \disj P$, followed by an explicit
+ case-analysis on the two \emph{identical} cases.
+*};
 
 lemma "P | P --> P";
 proof;
   assume "P | P";
-  then; show P;
+  thus P;
+  proof                    -- {*
+    rule \name{disjE}: \smash{$\infer{C}{A \disj B & \infer*{C}{[A]} & \infer*{C}{[B]}}$}
+  *};
+    assume P; show P; .;
+  next;
+    assume P; show P; .;
+  qed;
+qed;
+
+text {*
+ Case splits are \emph{not} hardwired into the Isar language as a
+ special feature.  The \isacommand{next} command used to separate the
+ cases above is just a short form of managing block structure.
+
+ \medskip In general, applying proof methods may split up a goal into
+ separate ``cases'', i.e.\ new subgoals with individual local
+ assumptions.  The corresponding proof text typically mimics this by
+ establishing results in appropriate contexts, separated by blocks.
+
+ In order to avoid too much explicit bracketing, the Isar system
+ implicitly opens an additional block for any new goal, the
+ \isacommand{next} statement then closes one block level, opening a
+ new one.  The resulting behavior is what one might expect from
+ separating cases, only that it is more flexible.  E.g. an induction
+ base case (which does not introduce local assumptions) would
+ \emph{not} require \isacommand{next} to separate the subsequent step
+ case.
+
+ \medskip In our example the situation is even simpler, since the two
+ ``cases'' actually coincide.  Consequently the proof may be rephrased
+ as follows.
+*};
+
+lemma "P | P --> P";
+proof;
+  assume "P | P";
+  thus P;
   proof;
     assume P;
     show P; .;
@@ -291,61 +334,90 @@ proof;
   qed;
 qed;
 
+text {*
+ Again, the rather vacuous body of the proof may be collapsed.  Thus
+ the case analysis degenerates into two assumption steps, which
+ are implicitly performed when concluding the single rule step of the
+ double-dot proof below.
+*};
+
 lemma "P | P --> P";
 proof;
   assume "P | P";
-  then; show P; ..;
+  thus P; ..;
 qed;
 
 
-subsubsection {* Quantifier proof *};
+subsubsection {* A quantifier proof *};
 
-lemma "(EX x. P(f(x))) --> (EX x. P(x))";
+text {*
+ To illustrate quantifier reasoning, let us prove $(\ex x P \ap (f \ap
+ x)) \impl (\ex x P \ap x)$.  Informally, this holds because any $a$
+ with $P \ap (f \ap a)$ may be taken as a witness for the second
+ existential statement.
+
+ The first proof is rather verbose, exhibiting quite a lot of
+ (redundant) detail.  It gives explicit rules, even with some
+ instantiation.  Furthermore, we encounter two new language elements:
+ the \isacommand{fix} command augments the context by some new
+ ``arbitrary, but fixed'' element; the \isacommand{is} annotation
+ binds term abbreviations by higher-order pattern matching.
+*};
+
+lemma "(EX x. P (f x)) --> (EX x. P x)";
 proof;
-  assume "EX x. P(f(x))";
-  then; show "EX x. P(x)";
-  proof (rule exE);
+  assume "EX x. P (f x)";
+  thus "EX x. P x";
+  proof (rule exE)             -- {*
+    rule \name{exE}: \smash{$\infer{B}{\ex x A(x) & \infer*{B}{[A(x)]_x}}$}
+  *};
     fix a;
-    assume "P(f(a))" (is "P(?witness)");
+    assume "P (f a)" (is "P ?witness");
     show ?thesis; by (rule exI [of P ?witness]);
   qed;
 qed;
 
-lemma "(EX x. P(f(x))) --> (EX x. P(x))";
+text {*
+ While explicit rule instantiation may occasionally help to improve
+ the readability of certain aspects of reasoning it is usually quite
+ redundant.  Above, the basic proof outline gives already enough
+ structural clues for the system to infer both the rules and their
+ instances (by higher-order unification).  Thus we may as well prune
+ the text as follows.
+*};
+
+lemma "(EX x. P (f x)) --> (EX x. P x)";
 proof;
-  assume "EX x. P(f(x))";
-  then; show "EX x. P(x)";
+  assume "EX x. P (f x)";
+  thus "EX x. P x";
   proof;
     fix a;
-    assume "P(f(a))";
+    assume "P (f a)";
     show ?thesis; ..;
   qed;
 qed;
 
-lemma "(EX x. P(f(x))) --> (EX x. P(x))";
-  by blast;
-
 
 subsubsection {* Deriving rules in Isabelle *};
 
-text {* We derive the conjunction elimination rule from the
- projections.  The proof below follows the basic reasoning of the
- script given in the Isabelle Intro Manual closely.  Although, the
- actual underlying operations on rules and proof states are quite
- different: Isabelle/Isar supports non-atomic goals and assumptions
- fully transparently, while the original Isabelle classic script
- depends on the primitive goal command to decompose the rule into
- premises and conclusion, with the result emerging by discharging the
- context again later. *};
+text {*
+ We derive the conjunction elimination rule from the projections.  The
+ proof below follows is quite straight-forward, since Isabelle/Isar
+ supports non-atomic goals and assumptions fully transparently.  Note
+ that this is in contrast to classic Isabelle: the corresponding
+ tactic script given in \cite{isabelle-intro} depends on the primitive
+ goal command to decompose the rule into premises and conclusion, with
+ the result emerging by discharging the context again later.
+*};
 
 theorem conjE: "A & B ==> (A ==> B ==> C) ==> C";
 proof -;
-  assume ab: "A & B";
+  assume "A & B";
   assume ab_c: "A ==> B ==> C";
   show C;
   proof (rule ab_c);
-    from ab; show A; ..;
-    from ab; show B; ..;
+    show A; by (rule conjunct1);
+    show B; by (rule conjunct2);
   qed;
 qed;
 

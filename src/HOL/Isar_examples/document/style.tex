@@ -2,12 +2,12 @@
 %% $Id$
 
 \documentclass[11pt,a4paper]{article}
-\usepackage{comment,isabelle,pdfsetup}
+\usepackage{comment,proof,isabelle,pdfsetup}
 
 \renewcommand{\isamarkupheader}[1]{\section{#1}}
 \parindent 0pt \parskip 0.5ex
 
-\newcommand{\name}[1]{\textsf{#1}}
+\newcommand{\name}[1]{\textsl{#1}}
 
 \newcommand{\idt}[1]{{\mathord{\mathit{#1}}}}
 \newcommand{\var}[1]{{?\!#1}}
@@ -22,6 +22,7 @@
 \newcommand{\ex}[1]{\exists #1\dt\;}
 \newcommand{\impl}{\rightarrow}
 \newcommand{\conj}{\land}
+\newcommand{\disj}{\lor}
 
 
 %%% Local Variables: 
