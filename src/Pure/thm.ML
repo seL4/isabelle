@@ -646,13 +646,12 @@ fun compress (Thm {sign_ref, der, maxidx, shyps, hyps, prop}) =
   If this check must be made, recalculate maxidx in hope of preventing its
   recurrence.*)
 fun nodup_vars (thm as Thm{sign_ref, der, maxidx, shyps, hyps, prop}) s =
-  (Sign.nodup_vars prop; 
-   Thm {sign_ref = sign_ref, 
+  Thm {sign_ref = sign_ref, 
          der = der,     
          maxidx = maxidx_of_term prop,
          shyps = shyps, 
          hyps = hyps, 
-         prop = prop})
+         prop = Sign.nodup_vars prop}
   handle TYPE(msg,Ts,ts) => raise TYPE(s^": "^msg,Ts,ts);
 
 
