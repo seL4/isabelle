@@ -111,6 +111,13 @@ qed_goal "monofun_cfun" Cfun2.thy
         ]);
 
 
+qed_goal "strictI" Cfun2.thy "f`x = UU ==> f`UU = UU" (fn prems => [
+	cut_facts_tac prems 1,
+	rtac (eq_UU_iff RS iffD2) 1,
+	etac subst 1,
+	rtac (minimal RS monofun_cfun_arg) 1]);
+
+
 (* ------------------------------------------------------------------------ *)
 (* ch2ch - rules for the type 'a -> 'b                                      *)
 (* use MF2 lemmas from Cont.ML                                              *)
