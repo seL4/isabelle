@@ -85,8 +85,9 @@ fun print_outer_syntax () =
     val (int_cmds, cmds) = partition (#1 o #2 o #2) (Symtab.dest (! global_parsers));
   in
     Pretty.writeln (Pretty.strs ("keywords:" :: map quote keywords));
-    Pretty.writeln (Pretty.big_list "general commands:" (map pretty_cmd cmds));
-    Pretty.writeln (Pretty.big_list "interactive commands:" (map pretty_cmd int_cmds))
+    Pretty.writeln (Pretty.big_list "proper commands:" (map pretty_cmd cmds));
+    Pretty.writeln (Pretty.big_list "improper commands (interactive-only):"
+      (map pretty_cmd int_cmds))
   end;
 
 
