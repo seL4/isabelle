@@ -19,7 +19,7 @@ sig
   type state
   exception STATE of string * state
   val check_result: string -> state -> 'a Seq.seq -> 'a Seq.seq
-  val init_state: theory -> state
+  val init_state: theory -> string option -> state
   val context_of: state -> context
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
@@ -79,10 +79,10 @@ sig
   val def: string -> context attribute list -> string *  (string * string list) -> state -> state
   val def_i: string -> context attribute list -> string * (term * term list) -> state -> state
   val invoke_case: string * string option list * context attribute list -> state -> state
-  val theorem: string -> bstring -> theory attribute list -> string * (string list * string list)
-    -> theory -> state
-  val theorem_i: string -> bstring -> theory attribute list -> term * (term list * term list)
-    -> theory -> state
+  val theorem: string -> string option -> bstring -> theory attribute list
+    -> string * (string list * string list) -> theory -> state
+  val theorem_i: string -> string option -> bstring -> theory attribute list
+    -> term * (term list * term list) -> theory -> state
   val chain: state -> state
   val from_facts: thm list -> state -> state
   val show: (bool -> state -> state) -> (state -> state Seq.seq) -> string
@@ -121,11 +121,15 @@ type context = ProofContext.context;
 (* type goal *)
 
 datatype kind =
-  Theorem of string * theory attribute list |    (*top-level theorem*)
+  Theorem of string * string option * theory attribute list |    (*theorem with kind and locale*)
   Show of context attribute list |               (*intermediate result, solving subgoal*)
   Have of context attribute list;                (*intermediate result*)
 
-val kind_name = fn Theorem (s, _) => s | Show _ => "show" | Have _ => "have";
+val kind_name =
+  fn Theorem (s, None, _) => s
+   | Theorem (s, Some loc, _) => s ^ " (in " ^ loc ^ ")"    (* FIXME cond_extern *)
+   | Show _ => "show"
+   | Have _ => "have";
 
 type goal =
  (kind *        (*result kind*)
@@ -171,9 +175,6 @@ fun check_result msg state sq =
 
 fun map_current f (State (Node {context, facts, mode, goal}, nodes)) =
   State (make_node (f (context, facts, mode, goal)), nodes);
-
-fun init_state thy =
-  State (make_node (ProofContext.init thy, None, Forward, None), []);
 
 
 
@@ -276,7 +277,8 @@ val enter_backward = put_mode Backward;
 fun assert_mode pred state =
   let val mode = get_mode state in
     if pred mode then state
-    else raise STATE ("Illegal application of proof command in " ^ quote (mode_name mode) ^ " mode", state)
+    else raise STATE ("Illegal application of proof command in "
+      ^ quote (mode_name mode) ^ " mode", state)
   end;
 
 fun is_chain state = get_mode state = ForwardChain;
@@ -299,6 +301,13 @@ fun new_block state =
 
 fun close_block (state as State (_, node :: nodes)) = State (node, nodes)
   | close_block state = raise STATE ("Unbalanced block parentheses", state);
+
+
+(* init_state *)
+
+fun init_state thy locale =  (* FIXME locale unused *)
+  State (make_node (ProofContext.init thy, None, Forward, None), [])
+  |> open_block |> open_block;
 
 
 
@@ -344,7 +353,7 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
 
     val prts =
      [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
-        (if ! verbose then ", depth " ^ string_of_int (length nodes div 2)
+        (if ! verbose then ", depth " ^ string_of_int (length nodes div 2 - 1)
         else "")), Pretty.str ""] @
      (if null ctxt_prts then [] else ctxt_prts @ [Pretty.str ""]) @
      (if ! verbose orelse mode = Forward then
@@ -417,7 +426,7 @@ fun refine_tac rule =
 fun export_goal print_rule raw_rule inner state =
   let
     val (outer, (_, ((result, (facts, thm)), f))) = find_goal state;
-    val exp_tac = ProofContext.export_wrt true inner (Some outer);
+    val exp_tac = ProofContext.export true inner outer;
     fun exp_rule rule =
       let
         val _ = print_rule rule;
@@ -430,8 +439,7 @@ fun transfer_facts inner_state state =
     None => Seq.single (reset_facts state)
   | Some thms =>
       let
-        val exp_tac =
-          ProofContext.export_wrt false (context_of inner_state) (Some (context_of state));
+        val exp_tac = ProofContext.export false (context_of inner_state) (context_of state);
         val thmqs = map exp_tac thms;
       in Seq.map (fn ths => put_facts (Some ths) state) (Seq.commute thmqs) end);
 
@@ -586,7 +594,7 @@ fun from_facts facts state =
 
 val rule_contextN = "rule_context";
 
-fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
+fun setup_goal opt_block prepp autofix kind after_qed name raw_propp state =
   let
     val (state', ([[prop]], gen_binds)) =
       state
@@ -607,7 +615,8 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
     else warning ("Goal statement contains unbound schematic variable(s): " ^
       commas (map (Sign.string_of_term (sign_of state)) vars));
     state'
-    |> put_goal (Some (((kind atts, name, prop), ([], goal)), after_qed o map_context gen_binds))
+    |> map_context (autofix prop)
+    |> put_goal (Some (((kind, name, prop), ([], goal)), after_qed o map_context gen_binds))
     |> map_context (ProofContext.add_cases (RuleCases.make true goal [rule_contextN]))
     |> auto_bind_goal prop
     |> (if is_chain state then use_facts else reset_facts)
@@ -615,10 +624,14 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
     |> enter_backward
   end;
 
+fun autofix_frees t =
+  let val frees = foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs) ([], t)
+  in ProofContext.fix_direct (map (fn (x, T) => ([x], Some T)) frees) end;
 
 (*global goals*)
-fun global_goal prepp kind name atts x thy =
-  setup_goal I prepp (curry Theorem kind) Seq.single name atts x (init_state thy);
+fun global_goal prepp kind locale name atts x thy =
+  setup_goal I prepp autofix_frees (Theorem (kind, locale, atts))
+    Seq.single name x (init_state thy locale);
 
 val theorem = global_goal ProofContext.bind_propp_schematic;
 val theorem_i = global_goal ProofContext.bind_propp_schematic_i;
@@ -628,7 +641,7 @@ val theorem_i = global_goal ProofContext.bind_propp_schematic_i;
 fun local_goal' prepp kind (check: bool -> state -> state)
     f name atts args int state =
   state
-  |> setup_goal open_block prepp kind f name atts args
+  |> setup_goal open_block prepp (K I) (kind atts) f name args
   |> warn_extra_tfrees state
   |> check int;
 
@@ -655,11 +668,12 @@ fun assert_current_goal true (state as State (Node {goal = None, ...}, _)) =
       raise STATE ("Goal present in this block!", state)
   | assert_current_goal _ state = state;
 
-fun assert_bottom true (state as State (_, _ :: _)) =
-      raise STATE ("Not at bottom of proof!", state)
-  | assert_bottom false (state as State (_, [])) =
-      raise STATE ("Already at bottom of proof!", state)
-  | assert_bottom _ state = state;
+fun assert_bottom b (state as State (_, nodes)) =
+  let val bot = (length nodes <= 2) in
+    if b andalso not bot then raise STATE ("Not at bottom of proof!", state)
+    else if not b andalso bot then raise STATE ("Already at bottom of proof!", state)
+    else state
+  end;
 
 val at_bottom = can (assert_bottom true o close_block);
 
@@ -681,7 +695,7 @@ fun finish_local (print_result, print_rule) state =
     val outer_ctxt = context_of outer_state;
 
     val result = prep_result state t raw_thm;
-    val resultq = ProofContext.export_wrt false goal_ctxt (Some outer_ctxt) result;
+    val resultq = ProofContext.export false goal_ctxt outer_ctxt result;
 
     val (atts, opt_solve) =
       (case kind of
@@ -709,24 +723,33 @@ fun local_qed finalize print state =
 
 fun finish_global state =
   let
-    val (_, (((kind, name, t), (_, raw_thm)), _)) = current_goal state;   (*ignores after_qed!*)
-    val result =
-      prep_result state t raw_thm
-      |> Drule.standard |> Tactic.norm_hhf;
+    val (goal_ctxt, (((kind, name, t), (_, raw_thm)), _)) = current_goal state;
+    val full_name = if name = "" then "" else Sign.full_name (sign_of state) name;
+    val locale_context = context_of (state |> close_block);  (* FIXME unused *)
+    val theory_context = context_of (state |> close_block |> close_block);
 
-    val atts =
-      (case kind of Theorem (s, atts) => atts @ [Drule.kind s]
+    val result = prep_result state t raw_thm;
+    val resultq =
+      ProofContext.export false goal_ctxt theory_context result
+      |> Seq.map Drule.local_standard;
+
+    val (atts, opt_locale) =
+      (case kind of Theorem (s, loc, atts) => (atts @ [Drule.kind s], loc)
       | _ => err_malformed "finish_global" state);
-
-    val (thy', result') = PureThy.store_thm ((name, result), atts) (theory_of state);
-  in (thy', {kind = kind_name kind, name = name, thm = result'}) end;
+    val thy = theory_of state;
+  in
+    resultq |> Seq.map (fn res =>
+      let val (thy', res') = PureThy.store_thm ((name, res), atts) thy
+      in (thy', {kind = kind_name kind, name = name, thm = res'}) end)
+  end;
 
 (*note: clients should inspect first result only, as backtracking may destroy theory*)
 fun global_qed finalize state =
   state
   |> end_proof true
   |> finalize
-  |> Seq.map finish_global;
+  |> Seq.map finish_global
+  |> Seq.flat;
 
 
 
