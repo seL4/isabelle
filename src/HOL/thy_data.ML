@@ -11,6 +11,11 @@ fun simpset_of tname =
       None => empty_ss
     | Some (SS_DATA ss) => ss;
 
+fun claset_of tname =
+  case get_thydata tname "claset" of
+      None => empty_cs
+    | Some (CS_DATA cs) => cs;
+
 
 (** Information about datatypes **)
 
