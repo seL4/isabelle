@@ -11,8 +11,8 @@ sig
   val setup: (theory -> theory) list
   val update_thy_only: string -> unit
   val try_update_thy_only: string -> unit
-  val inform_file_processed: string -> unit
   val inform_file_retracted: string -> unit
+  val inform_file_processed: string -> unit
   val thms_containing: string list -> unit
   val help: unit -> unit
   val show_context: unit -> theory
@@ -202,14 +202,12 @@ fun try_update_thy_only file =
 
 (* get informed about files *)
 
-val touch_child_thys = ThyInfo.if_known_thy ThyInfo.touch_child_thys;
-
-val inform_file_processed = touch_child_thys o thy_name;
-val inform_file_retracted = touch_child_thys o thy_name;
+val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
+val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
 
 fun proper_inform_file_processed file state =
   let val name = thy_name file in
-    touch_child_thys name;
+    ThyInfo.if_known_thy ThyInfo.touch_child_thys name;
     if not (Toplevel.is_toplevel state) then
       warning ("Not at toplevel -- cannot register theory " ^ quote name)
     else Library.transform_error ThyInfo.pretend_use_thy_only name handle ERROR_MESSAGE msg =>
