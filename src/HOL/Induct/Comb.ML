@@ -29,16 +29,16 @@ by (etac rtrancl_induct 1);
 by (Blast_tac 1);
 by (slow_best_tac (set_cs addIs [r_into_rtrancl RSN (2, rtrancl_trans)]
                           addSDs [spec_mp]) 1);
-val diamond_strip_lemmaE = result() RS spec RS mp RS exE;
+qed_spec_mp "diamond_strip_lemmaE";
 
-val [major] = goal Comb.thy "diamond(r) ==> diamond(r^*)";
-by (rewtac diamond_def);  (*unfold only in goal, not in premise!*)
+Goal "diamond(r) ==> diamond(r^*)";
+by (stac diamond_def 1);  (*unfold only in goal, not in premise!*)
 by (rtac (impI RS allI RS allI) 1);
 by (etac rtrancl_induct 1);
 by (Blast_tac 1);
-by (slow_best_tac  (*Seems to be a brittle, undirected search*)
+by (best_tac  (*Seems to be a brittle, undirected search*)
     (set_cs addIs [r_into_rtrancl RSN (2, rtrancl_trans)]
-            addEs [major RS diamond_strip_lemmaE]) 1);
+            addEs [diamond_strip_lemmaE RS exE]) 1);
 qed "diamond_rtrancl";
 
 
