@@ -35,7 +35,7 @@ val lam_bb = get_axiom Lomega_thy "lam_bb";
 val pi_bb = get_axiom Lomega_thy "pi_bb";
 val Lomega = simple @ [lam_bb,pi_bb];
 
-val LOmega_thy = merge_theories(L2_thy,Lomega_thy);
+val LOmega_thy = merge_theories "LOmega" (L2_thy,Lomega_thy);
 val LOmega = simple @ [lam_bs,pi_bs,lam_bb,pi_bb];
 
 val LP_thy =
@@ -50,11 +50,11 @@ val lam_sb = get_axiom LP_thy "lam_sb";
 val pi_sb = get_axiom LP_thy "pi_sb";
 val LP = simple @ [lam_sb,pi_sb];
 
-val LP2_thy = merge_theories(L2_thy,LP_thy);
+val LP2_thy = merge_theories "LP2" (L2_thy,LP_thy);
 val LP2 = simple @ [lam_bs,pi_bs,lam_sb,pi_sb];
 
-val LPomega_thy = merge_theories(LP_thy,Lomega_thy);
+val LPomega_thy = merge_theories "LPomega" (LP_thy,Lomega_thy);
 val LPomega = simple @ [lam_bb,pi_bb,lam_sb,pi_sb];
 
-val CC_thy = merge_theories(L2_thy,LPomega_thy);
+val CC_thy = merge_theories "CC" (L2_thy,LPomega_thy);
 val CC = simple @ [lam_bs,pi_bs,lam_bb,pi_bb,lam_sb,pi_sb];
