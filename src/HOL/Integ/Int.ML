@@ -255,6 +255,11 @@ Goalw [zle_def] "(~neg x) = (int 0 <= x)";
 by (simp_tac (simpset() addsimps [neg_eq_less_int0]) 1); 
 qed "not_neg_eq_ge_int0"; 
 
+Goal "abs (int m) = int m";
+by (simp_tac (simpset() addsimps [zabs_def]) 1); 
+qed "abs_int_eq";
+Addsimps [abs_int_eq];
+
 
 (**** nat: magnitide of an integer, as a natural number ****)
 

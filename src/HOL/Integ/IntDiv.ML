@@ -297,7 +297,7 @@ qed "mod_pos_neg_trivial";
 (*There is no mod_neg_pos_trivial...*)
 
 
-(*Simpler laws such as -a div b = -(a div b) FAIL*)
+(*Simpler laws such as -a div b = -(a div b) FAIL, but see just below*)
 Goal "(-a) div (-b) = a div (b::int)";
 by (zdiv_undefined_case_tac "b = #0" 1);
 by (stac ((simplify(simpset()) (quorem_div_mod RS quorem_neg)) 
@@ -306,7 +306,7 @@ by Auto_tac;
 qed "zdiv_zminus_zminus";
 Addsimps [zdiv_zminus_zminus];
 
-(*Simpler laws such as -a mod b = -(a mod b) FAIL*)
+(*Simpler laws such as -a mod b = -(a mod b) FAIL, but see just below*)
 Goal "(-a) mod (-b) = - (a mod (b::int))";
 by (zdiv_undefined_case_tac "b = #0" 1);
 by (stac ((simplify(simpset()) (quorem_div_mod RS quorem_neg)) 
@@ -314,6 +314,50 @@ by (stac ((simplify(simpset()) (quorem_div_mod RS quorem_neg))
 by Auto_tac;
 qed "zmod_zminus_zminus";
 Addsimps [zmod_zminus_zminus];
+
+
+(*** div, mod and unary minus ***)
+
+Goal "quorem((a,b),(q,r)) \
+\     ==> quorem ((-a,b), (if r=#0 then -q else -q-#1), \
+\                         (if r=#0 then #0 else b-r))";
+by (auto_tac
+    (claset(),
+     simpset() addsimps split_ifs@
+                        [quorem_def, linorder_neq_iff, 
+			 zdiff_zmult_distrib2]));
+val lemma = result();
+
+Goal "b ~= (#0::int) \
+\     \\<Longrightarrow> (-a) div b = \
+\         (if a mod b = #0 then - (a div b) else  - (a div b) - #1)";
+by (blast_tac (claset() addIs [quorem_div_mod RS lemma RS quorem_div]) 1);
+qed "zdiv_zminus1_eq_if";
+
+Goal "(-a::int) mod b = (if a mod b = #0 then #0 else  b - (a mod b))";
+by (zdiv_undefined_case_tac "b = #0" 1);
+by (blast_tac (claset() addIs [quorem_div_mod RS lemma RS quorem_mod]) 1);
+qed "zmod_zminus1_eq_if";
+
+Goal "a div (-b) = (-a::int) div b";
+by (cut_inst_tac [("a","-a")] zdiv_zminus_zminus 1);
+by Auto_tac;  
+qed "zdiv_zminus2";
+
+Goal "a mod (-b) = - ((-a::int) mod b)";
+by (cut_inst_tac [("a","-a"),("b","b")] zmod_zminus_zminus 1);
+by Auto_tac;  
+qed "zmod_zminus2";
+
+Goal "b ~= (#0::int) \
+\     \\<Longrightarrow> a div (-b) = \
+\         (if a mod b = #0 then - (a div b) else  - (a div b) - #1)";
+by (asm_simp_tac (simpset() addsimps [zdiv_zminus1_eq_if, zdiv_zminus2]) 1); 
+qed "zdiv_zminus2_eq_if";
+
+Goal "a mod (-b::int) = (if a mod b = #0 then #0 else  (a mod b) - b)";
+by (asm_simp_tac (simpset() addsimps [zmod_zminus1_eq_if, zmod_zminus2]) 1); 
+qed "zmod_zminus2_eq_if";
 
 
 (*** division of a number by itself ***)

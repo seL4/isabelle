@@ -132,6 +132,12 @@ by (asm_simp_tac (simpset() addsimps [zmult_int RS sym,
 				      int_0_le_mult_iff]) 1);
 qed "nat_mult_distrib";
 
+Goal "z <= (#0::int) ==> nat(z*z') = nat(-z) * nat(-z')"; 
+by (rtac trans 1); 
+by (rtac nat_mult_distrib 2); 
+by Auto_tac;  
+qed "nat_mult_distrib_neg";
+
 Goal "(number_of v :: nat) * number_of v' = \
 \      (if neg (number_of v) then #0 else number_of (bin_mult v v'))";
 by (simp_tac
@@ -154,14 +160,15 @@ by (zdiv_undefined_case_tac "z' = #0" 1);
 by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
 by (rename_tac "m m'" 1);
 by (subgoal_tac "#0 <= int m div int m'" 1);
- by (asm_simp_tac (simpset() addsimps [nat_less_iff RS sym, numeral_0_eq_0, 
-				       pos_imp_zdiv_nonneg_iff]) 2);
+ by (asm_full_simp_tac 
+     (simpset() addsimps [numeral_0_eq_0, pos_imp_zdiv_nonneg_iff]) 2);
 by (rtac (inj_int RS injD) 1);
 by (Asm_simp_tac 1);
 by (res_inst_tac [("r", "int (m mod m')")] quorem_div 1);
  by (Force_tac 2);
-by (asm_simp_tac (simpset() addsimps [nat_less_iff RS sym, quorem_def, 
-				      numeral_0_eq_0, zadd_int, zmult_int]) 1);
+by (asm_full_simp_tac 
+    (simpset() addsimps [nat_less_iff RS sym, quorem_def, 
+	                 numeral_0_eq_0, zadd_int, zmult_int]) 1);
 by (rtac (mod_div_equality RS sym RS trans) 1);
 by (asm_simp_tac (simpset() addsimps add_ac@mult_ac) 1);
 qed "nat_div_distrib";
@@ -186,14 +193,15 @@ by (zdiv_undefined_case_tac "z' = #0" 1);
 by (auto_tac (claset() addSEs [nonneg_eq_int], simpset()));
 by (rename_tac "m m'" 1);
 by (subgoal_tac "#0 <= int m mod int m'" 1);
- by (asm_simp_tac (simpset() addsimps [nat_less_iff RS sym, numeral_0_eq_0, 
-				       pos_mod_sign]) 2);
+ by (asm_full_simp_tac 
+     (simpset() addsimps [nat_less_iff, numeral_0_eq_0, pos_mod_sign]) 2);
 by (rtac (inj_int RS injD) 1);
 by (Asm_simp_tac 1);
 by (res_inst_tac [("q", "int (m div m')")] quorem_mod 1);
  by (Force_tac 2);
-by (asm_simp_tac (simpset() addsimps [nat_less_iff RS sym, quorem_def, 
-				      numeral_0_eq_0, zadd_int, zmult_int]) 1);
+by (asm_full_simp_tac 
+     (simpset() addsimps [nat_less_iff RS sym, quorem_def, 
+		          numeral_0_eq_0, zadd_int, zmult_int]) 1);
 by (rtac (mod_div_equality RS sym RS trans) 1);
 by (asm_simp_tac (simpset() addsimps add_ac@mult_ac) 1);
 qed "nat_mod_distrib";
@@ -517,3 +525,14 @@ qed "eq_number_of_BIT_Min";
 Goal "(number_of Pls ::int) ~= number_of Min"; 
 by Auto_tac;
 qed "eq_number_of_Pls_Min"; 
+
+
+(*** Further lemmas about "nat" ***)
+
+Goal "nat (abs (w * z)) = nat (abs w) * nat (abs z)";
+by (case_tac "z=#0 | w=#0" 1);
+by Auto_tac;  
+by (simp_tac (simpset() addsimps [zabs_def, nat_mult_distrib RS sym, 
+                          nat_mult_distrib_neg RS sym, zmult_less_0_iff]) 1);
+by (arith_tac 1);
+qed "nat_abs_mult_distrib";

@@ -41,11 +41,11 @@ val [major,minor] = Goal "[| #0 <= z;  !!m. z = int m ==> P |] ==> P";
 by (rtac (major RS nat_0_le RS sym RS minor) 1);
 qed "nonneg_eq_int"; 
 
-Goal "#0 <= w ==> (nat w = m) = (w = int m)";
+Goal "(nat w = m) = (if #0 <= w then w = int m else m=0)";
 by Auto_tac;
 qed "nat_eq_iff";
 
-Goal "#0 <= w ==> (m = nat w) = (w = int m)";
+Goal "(m = nat w) = (if #0 <= w then w = int m else m=0)";
 by Auto_tac;
 qed "nat_eq_iff2";
 
@@ -56,6 +56,12 @@ by (asm_full_simp_tac
 by (etac (nat_0_le RS subst) 1);
 by (Simp_tac 1);
 qed "nat_less_iff";
+
+Goal "(int m = z) = (m = nat z & #0 \\<le> z)";
+by (auto_tac (claset(), simpset() addsimps [nat_eq_iff2]));  
+qed "int_eq_iff";
+
+Addsimps [inst "z" "number_of ?v" int_eq_iff];
 
 
 (*Users don't want to see (int 0), int(Suc 0) or w + - z*)
@@ -103,5 +109,10 @@ Goalw [zabs_def]
  "P(abs(i::int)) = ((#0 <= i --> P i) & (i < #0 --> P(-i)))";
 by(Simp_tac 1);
 qed "zabs_split";
+
+Goal "#0 <= abs (z::int)";
+by (simp_tac (simpset() addsimps [zabs_def]) 1); 
+qed "zero_le_zabs";
+AddIffs [zero_le_zabs];
 
 (*continued in IntArith.ML ...*)

@@ -329,7 +329,18 @@ Goal "(#0 = int k) = (k=0)";
 by Auto_tac;
 qed "int_eq_0_conv'";
 
-Addsimps [int_less_0_conv, int_le_0_conv, int_eq_0_conv, int_eq_0_conv'];
+Goal "(#0 < int k) = (0<k)";
+by (Simp_tac 1);
+qed "zero_less_int_conv";
+
+Addsimps [int_less_0_conv, int_le_0_conv, int_eq_0_conv, int_eq_0_conv',
+          zero_less_int_conv];
+
+Goal "(0 < nat z) = (#0 < z)";
+by (cut_inst_tac [("w","#0")] zless_nat_conj 1);
+by Auto_tac;  
+qed "zero_less_nat_eq";
+Addsimps [zero_less_nat_eq];
 
 
 (** Simplification rules for comparison of binary numbers (Norbert Voelker) **)
