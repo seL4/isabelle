@@ -84,17 +84,22 @@ fun gen_add_recdef tfl_fn prep_ss app_thms raw_name R eqs raw_ss raw_congs thy =
     val _ = message ("Defining recursive function " ^ quote name ^ " ...");
 
     val ss = (case raw_ss of None => Simplifier.simpset_of thy | Some x => prep_ss x);
-    val (thy1, congs) = thy |> app_thms raw_congs;
-    val (thy2, result as {rules, induct, tcs}) = 
-        tfl_fn thy1 name R (ss, congs) eqs
-    val thy3 =
-      thy2
+    val (thy, congs) = thy |> app_thms raw_congs;
+    val (thy, {rules, induct, tcs}) = tfl_fn thy name R (ss, congs) eqs;
+    val thy =
+      thy
       |> Theory.add_path bname
       |> PureThy.add_thmss [(("rules", rules), [])]
-      |> PureThy.add_thms [(("induct", induct), [])]
+      |> PureThy.add_thms [(("induct", induct), [])];
+    val result =
+     {rules = PureThy.get_thms thy "rules",
+      induct = PureThy.get_thm thy "induct",
+      tcs = tcs};
+    val thy =
+      thy
       |> put_recdef name result
       |> Theory.parent_path;
-  in (thy3, result) end;
+  in (thy, result) end;
 
 val add_recdef = gen_add_recdef Tfl.define I IsarThy.apply_theorems;
 val add_recdef_x = gen_add_recdef Tfl.define (Simplifier.simpset_of o ThyInfo.get_theory)

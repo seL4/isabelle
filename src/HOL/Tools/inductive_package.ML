@@ -677,16 +677,18 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
       |> (if no_ind then I else PureThy.add_thms
         [((coind_prefix coind ^ "induct", induct), [])])
       |> Theory.parent_path;
-
+    val intrs' = PureThy.get_thms thy'' "intrs";
+    val elims' = PureThy.get_thms thy'' "elims";
+    val induct' = PureThy.get_thm thy'' (coind_prefix coind ^ "induct");
   in (thy'',
     {defs = fp_def::rec_sets_defs,
      mono = mono,
      unfold = unfold,
-     intrs = intrs,
-     elims = elims,
-     mk_cases = mk_cases elims,
+     intrs = intrs',
+     elims = elims',
+     mk_cases = mk_cases elims',
      raw_induct = raw_induct,
-     induct = induct})
+     induct = induct'})
   end;
 
 
@@ -725,6 +727,7 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
       |> (if coind then I else PureThy.add_thms [(("induct", induct), [])])
       |> PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts)
       |> Theory.parent_path;
+    val induct' = if coind then raw_induct else PureThy.get_thm thy'' "induct";
   in (thy'',
     {defs = [],
      mono = TrueI,
@@ -733,7 +736,7 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
      elims = elims,
      mk_cases = mk_cases elims,
      raw_induct = raw_induct,
-     induct = induct})
+     induct = induct'})
   end;
 
 
