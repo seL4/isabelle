@@ -7,6 +7,7 @@ Isar -- Intelligible Semi-Automated Reasoning for Isabelle.
 
 (*basic proof engine*)
 use "auto_bind.ML";
+use "rule_cases.ML";
 use "proof_context.ML";
 use "proof.ML";
 use "proof_data.ML";
