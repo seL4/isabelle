@@ -36,9 +36,6 @@ sig
     {names: string list, coind: bool} * {defs: thm list, elims: thm list, raw_induct: thm,
       induct: thm, intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
   val print_inductives: theory -> unit
-  val cases_of: Sign.sg -> string -> thm
-  val all_cases: Sign.sg -> thm list
-  val all_inducts: Sign.sg -> thm list
   val mono_add_global: theory attribute
   val mono_del_global: theory attribute
   val get_monos: theory -> thm list
@@ -105,24 +102,6 @@ fun put_inductives names info thy =
       handle Symtab.DUP name => error ("Duplicate definition of (co)inductive set " ^ quote name);
   in InductiveData.put tab_monos thy end;
 
-
-(* cases and induct rules *)
-
-fun cases_of sg name =
-  let
-    fun find (None, (_, ({names, ...}, {elims, ...}): inductive_info)) =
-          assoc (names ~~ elims, name)
-      | find (some, _) = some;
-    val (tab, _) = InductiveData.get_sg sg;
-  in
-    (case Symtab.foldl find (None, tab) of
-      None => error ("Unknown (co)inductive set " ^ quote name)
-    | Some thm => thm)
-  end;
-
-fun all_cases sg = flat (map (#elims o #2 o #2) (Symtab.dest (#1 (InductiveData.get_sg sg))));
-fun all_inducts sg = map (#induct o #2 o #2) (Symtab.dest (#1 (InductiveData.get_sg sg)));
-      
 
 
 (** monotonicity rules **)
@@ -765,6 +744,12 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
 
 (** introduction of (co)inductive sets **)
 
+fun add_cases_induct names elims induct =
+  PureThy.add_thms
+    (map (fn name => (("", induct), [InductMethod.induct_set_global name])) names @
+     map2 (fn (name, elim) => (("", elim), [InductMethod.cases_set_global name])) (names, elims));
+
+
 fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
     atts intros monos con_defs thy =
   let
@@ -789,7 +774,9 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
       (if ! quick_and_dirty then add_ind_axm else add_ind_def)
         verbose declare_consts alt_name coind no_elim no_ind cs atts intros monos
         con_defs thy params paramTs cTs cnames;
-    val thy2 = thy1 |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result);
+    val thy2 = thy1
+      |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result)
+      |> add_cases_induct full_cnames (#elims result) (#induct result);
   in (thy2, result) end;
 
 
