@@ -9,6 +9,7 @@ signature ISAR_SYN =
 sig
   val keywords: string list
   val parsers: OuterSyntax.parser list
+  val hidden_commands: string list
 end;
 
 structure IsarSyn: ISAR_SYN =
@@ -798,9 +799,17 @@ val parsers = [
   kill_thyP, display_draftsP, print_draftsP, prP, disable_prP,
   enable_prP, commitP, quitP, exitP, init_toplevelP, welcomeP];
 
+(*these commands can be hidden in LaTeX output*)
+
+val hidden_commands = [
+  "use", "ML", "ML_command", "ML_setup", "setup", "method_setup",
+  "parse_ast_translation", "parse_translation", "print_translation",
+  "typed_print_translation", "print_ast_translation", "token_translation"];
+
 end;
 
 
 (*install the Pure outer syntax*)
 OuterSyntax.add_keywords IsarSyn.keywords;
 OuterSyntax.add_parsers IsarSyn.parsers;
+IsarOutput.add_hidden_commands IsarSyn.hidden_commands;
