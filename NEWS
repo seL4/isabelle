@@ -161,6 +161,9 @@ rules are added to the simpset, as in primrec; rules may be named
 individually as well, resulting in a separate list of theorems for
 each equation;
 
+* HOL: new (overloaded) notation for the set of elements below/above some
+element: {..u}, {..u(}, {l..}, {)l..}. See theory SetInterval.
+
 * HOL: theorems impI, allI, ballI bound as "strip";
 
 * theory Sexp now in HOL/Induct examples (used to be part of main HOL,
