@@ -230,35 +230,6 @@ val opt_mixfix = opt_syn (mixfix || infxl || infxr || binder);
 
 (* types *)
 
-fun mk_old_type_decl ((ts, n), syn) =
-  map (fn t => (mk_triple (t, n, syn), false)) ts;
-
-fun mk_type_decl (((xs, t), None), syn) =
-      [(mk_triple (t, string_of_int (length xs), syn), false)]
-  | mk_type_decl (((xs, t), Some rhs), syn) =
-      [(parens (commas [t, mk_list xs, rhs, syn]), true)];
-
-fun mk_type_decls tys =
-  "|> add_types\n" ^ mk_big_list (keyfilter tys false) ^ "\n\n\
-  \|> add_tyabbrs\n" ^ mk_big_list (keyfilter tys true);
-
-
-val old_type_decl = names1 -- nat -- opt_infix >> mk_old_type_decl;
-
-val type_args =
-  type_var >> (fn x => [x]) ||
-  "(" $$-- !! (list1 type_var --$$ ")") ||
-  empty >> K [];
-
-val type_decl = type_args -- name -- optional ("=" $$-- !! string >> Some) None
-  -- opt_infix >> mk_type_decl;
-
-val type_decls = repeat1 (old_type_decl || type_decl) >>
-                 (mk_type_decls o flat);
-
-
-(* consts *)
-
 (*Parse an identifier, but only if it is not followed by colons or a comma;
   the exclusion of a postfix comma can be controlled to allow expressions
   like "(id, id)" but disallow ones like "'a => id id,id :: ..."*)
@@ -272,6 +243,7 @@ fun ident_no_colon _ [] = eof_err()
   | ident_no_colon _ ((k, s, n) :: _) =
       syn_err (name_of_kind Ident) (quote s) n;
 
+(*Type used in types, consts and syntax sections*)
 fun const_type allow_comma toks =
   let val simple_type =
         (ident ||
@@ -296,6 +268,36 @@ fun const_type allow_comma toks =
       simple_type ||
       "(" $$-- const_type true --$$ ")" >> parens) toks
   end;
+
+fun mk_old_type_decl ((ts, n), syn) =
+  map (fn t => (mk_triple (t, n, syn), false)) ts;
+
+fun mk_type_decl (((xs, t), None), syn) =
+      [(mk_triple (t, string_of_int (length xs), syn), false)]
+  | mk_type_decl (((xs, t), Some rhs), syn) =
+      [(parens (commas [t, mk_list xs, rhs, syn]), true)];
+
+fun mk_type_decls tys =
+  "|> add_types\n" ^ mk_big_list (keyfilter tys false) ^ "\n\n\
+  \|> add_tyabbrs\n" ^ mk_big_list (keyfilter tys true);
+
+
+val old_type_decl = names1 -- nat -- opt_infix >> mk_old_type_decl;
+
+val type_args =
+  type_var >> (fn x => [x]) ||
+  "(" $$-- !! (list1 type_var --$$ ")") ||
+  empty >> K [];
+
+val type_decl = type_args -- name --
+  optional ("=" $$-- (string || (const_type false >> quote)) >> Some) None
+  -- opt_infix >> mk_type_decl;
+
+val type_decls = repeat1 (old_type_decl || type_decl) >>
+                 (mk_type_decls o flat);
+
+
+(* consts *)
 
 val const_decls = repeat1 (names1 --$$ "::" -- !!
                     ((string || const_type false >> quote) -- opt_mixfix)) >>
