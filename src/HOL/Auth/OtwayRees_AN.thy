@@ -33,41 +33,41 @@ inductive "otway"
           ==> Says Spy B X  # evs : otway"
 
          (*Alice initiates a protocol run*)
-    OR1  "[| evs: otway;  A ~= B;  B ~= Server |]
-          ==> Says A B {|Agent A, Agent B, Nonce NA|} # evs : otway"
+    OR1  "[| evs1: otway;  A ~= B;  B ~= Server |]
+          ==> Says A B {|Agent A, Agent B, Nonce NA|} # evs1 : otway"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
 	   the sender is, hence the A' in the sender field.*)
-    OR2  "[| evs: otway;  B ~= Server;
-             Says A' B {|Agent A, Agent B, Nonce NA|} : set evs |]
+    OR2  "[| evs2: otway;  B ~= Server;
+             Says A' B {|Agent A, Agent B, Nonce NA|} : set evs2 |]
           ==> Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
-                 # evs : otway"
+                 # evs2 : otway"
 
          (*The Server receives Bob's message.  Then he sends a new
            session key to Bob with a packet for forwarding to Alice.*)
-    OR3  "[| evs: otway;  B ~= Server;  A ~= B;  Key KAB ~: used evs;
+    OR3  "[| evs3: otway;  B ~= Server;  A ~= B;  Key KAB ~: used evs3;
              Says B' Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
-               : set evs |]
+               : set evs3 |]
           ==> Says Server B 
                {|Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key KAB|},
                  Crypt (shrK B) {|Nonce NB, Agent A, Agent B, Key KAB|}|}
-              # evs : otway"
+              # evs3 : otway"
 
          (*Bob receives the Server's (?) message and compares the Nonces with
 	   those in the message he previously sent the Server.*)
-    OR4  "[| evs: otway;  A ~= B;
-             Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|} : set evs;
+    OR4  "[| evs4: otway;  A ~= B;
+             Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|} : set evs4;
              Says S' B {|X, Crypt(shrK B){|Nonce NB,Agent A,Agent B,Key K|}|}
-               : set evs |]
-          ==> Says B A X # evs : otway"
+               : set evs4 |]
+          ==> Says B A X # evs4 : otway"
 
          (*This message models possible leaks of session keys.  The nonces
            identify the protocol run.  B is not assumed to know shrK A.*)
-    Oops "[| evs: otway;  B ~= Spy;
+    Oops "[| evso: otway;  B ~= Spy;
              Says Server B 
                       {|Crypt (shrK A) {|Nonce NA, Agent A, Agent B, Key K|}, 
                         Crypt (shrK B) {|Nonce NB, Agent A, Agent B, Key K|}|}
-               : set evs |]
-          ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evs : otway"
+               : set evso |]
+          ==> Says B Spy {|Nonce NA, Nonce NB, Key K|} # evso : otway"
 
 end

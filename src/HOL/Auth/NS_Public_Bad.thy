@@ -28,21 +28,21 @@ inductive ns_public
           ==> Says Spy B X  # evs : ns_public"
 
          (*Alice initiates a protocol run, sending a nonce to Bob*)
-    NS1  "[| evs: ns_public;  A ~= B;  Nonce NA ~: used evs |]
+    NS1  "[| evs1: ns_public;  A ~= B;  Nonce NA ~: used evs1 |]
           ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|})
-                # evs  :  ns_public"
+                # evs1  :  ns_public"
 
          (*Bob responds to Alice's message with a further nonce*)
-    NS2  "[| evs: ns_public;  A ~= B;  Nonce NB ~: used evs;
-             Says A' B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs |]
+    NS2  "[| evs2: ns_public;  A ~= B;  Nonce NB ~: used evs2;
+             Says A' B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs2 |]
           ==> Says B A (Crypt (pubK A) {|Nonce NA, Nonce NB|})
-                # evs  :  ns_public"
+                # evs2  :  ns_public"
 
          (*Alice proves her existence by sending NB back to Bob.*)
-    NS3  "[| evs: ns_public;
-             Says A  B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs;
-             Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs |]
-          ==> Says A B (Crypt (pubK B) (Nonce NB)) # evs : ns_public"
+    NS3  "[| evs3: ns_public;
+             Says A  B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs3;
+             Says B' A (Crypt (pubK A) {|Nonce NA, Nonce NB|}) : set evs3 |]
+          ==> Says A B (Crypt (pubK B) (Nonce NB)) # evs3 : ns_public"
 
   (**Oops message??**)
 
