@@ -268,14 +268,14 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
 
     fun change_name T ext =
       let val Type (name, ts) = T
-      in Type (implode [name, ext], ts) end;
+      in Type (name ^ ext, ts) end;
 
     (* Append "_H" to lhs if production is not a copy or chain production *)
     fun hide_xprod roots (XProd (lhs, symbs, const, pri)) =
       let fun is_delim (Delim _) = true
             | is_delim _ = false
       in if const <> "" andalso lhs mem roots andalso exists is_delim symbs then
-           XProd (implode [lhs, "_H"], symbs, const, pri)
+           XProd (lhs ^ "_H", symbs, const, pri)
          else XProd (lhs, symbs, const, pri)
       end;
 
