@@ -145,7 +145,7 @@ by (ALLGOALS (asm_full_simp_tac
 	      (!simpset addsimps [srange_iff, set_eq_subset]))); 
 by (ALLGOALS
     (fast_tac (!claset addEs [Var_intro RS disjE]
-	               unsafe_addss (!simpset addsimps [srange_iff]))));
+	               addss (!simpset addsimps [srange_iff]))));
 qed "var_elimR";
 
 
