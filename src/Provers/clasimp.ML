@@ -55,17 +55,10 @@ in
   fun op delcongs2 arg = pair_upd2 (op delcongs) arg;
 end;
 
-(*an unsatisfactory fix for the incomplete safe_asm_full_simp_tac!
-  better: asm_really_full_simp_tac, a yet to be implemented version of
-			asm_full_simp_tac that applies all equalities in the
-			premises to all the premises *)
-fun safe_asm_more_full_simp_tac ss = TRY o rot_eq_tac THEN' 
-				     safe_asm_full_simp_tac ss;
-
 (*Add a simpset to a classical set!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
-fun cs addSss ss = cs addSaltern ("safe_asm_more_full_simp_tac",
-			CHANGED o (safe_asm_more_full_simp_tac ss));
+fun cs addSss ss = cs addSaltern ("safe_asm_full_simp_tac",
+			CHANGED o (safe_asm_full_simp_tac ss));
 fun cs addss  ss = cs addbefore  (     "asm_full_simp_tac",
 					asm_full_simp_tac ss);
 
@@ -117,7 +110,7 @@ fun auto () = by Auto_tac;
 fun force_tac (cs,ss) = let val cs' = cs addss ss in SELECT_GOAL (EVERY [
 	clarify_tac cs' 1,
 	IF_UNSOLVED (asm_full_simp_tac ss 1),
-	ALLGOALS (fast_tac cs')]) end;
+	ALLGOALS (best_tac cs')]) end;
 fun Force_tac i = force_tac (claset(), simpset()) i;
 fun force i = by (Force_tac i);
 

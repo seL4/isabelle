@@ -158,7 +158,7 @@ qed "relprime_dvd_mult";
 
 goalw thy [prime_def] "!!p. [| p: prime;  ~ p dvd n |] ==> gcd (p, n) = 1";
 by (cut_inst_tac [("m","p"),("n","n")] gcd_dvd_both 1);
-by (fast_tac (claset() addSss (simpset())) 1);
+by (fast_tac (claset() addss (simpset())) 1);
 qed "prime_imp_relprime";
 
 (*This theorem leads immediately to a proof of the uniqueness of factorization.
