@@ -213,21 +213,24 @@ by (Simp_tac 1);
 qed "finite_converse";
 AddIffs [finite_converse];
 
+Goal "finite (lessThan (k::nat))";
+by (induct_tac "k" 1);
+by (simp_tac (simpset() addsimps [lessThan_Suc]) 2);
+by Auto_tac;
+qed "finite_lessThan";
+
+Goal "finite (atMost (k::nat))";
+by (induct_tac "k" 1);
+by (simp_tac (simpset() addsimps [atMost_Suc]) 2);
+by Auto_tac;
+qed "finite_atMost";
+
 (* A bounded set of natural numbers is finite *)
-Goal "!N. (!i:N. i<(n::nat)) --> finite N";
-by (induct_tac "n" 1);
- by (Simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
-by (rtac allI 1);
-by (case_tac "n : N" 1);
- by (ftac insert_Diff 1);
- by (etac subst 1);
- by (rtac impI 1);
- by (rtac (finite_insert RS iffD2) 1);
- by (EVERY1[etac allE, etac mp]);
- by (Blast_tac 1);
-by (Blast_tac 1);
-qed_spec_mp "bounded_nat_set_is_finite";
+Goal "(!i:N. i<(n::nat)) ==> finite N";
+by (rtac finite_subset 1);
+ by (rtac finite_lessThan 2);
+by Auto_tac;
+qed "bounded_nat_set_is_finite";
 
 
 section "Finite cardinality -- 'card'";
@@ -800,7 +803,8 @@ Addsimps [setsum_empty];
 
 Goalw [setsum_def]
  "[| finite F; a ~: F |] ==> setsum f (insert a F) = f(a) + setsum f F";
-by (asm_simp_tac (simpset() addsimps [export fold_insert]) 1);
+by (asm_simp_tac (simpset() addsimps [export fold_insert,
+				      thm "plus_ac0_left_commute"]) 1);
 qed "setsum_insert";
 Addsimps [setsum_insert];
 
@@ -814,18 +818,20 @@ Goal "[| finite A; finite B |] \
 \     ==> setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B";
 by (etac finite_induct 1);
 by (Simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [Int_insert_left, insert_absorb,
-					   add_commute]) 1);
+by (asm_full_simp_tac (simpset() addsimps (thms "plus_ac0") @ 
+                                          [Int_insert_left, insert_absorb]) 1);
 qed "setsum_Un_Int";
 
 Goal "[| finite A; finite B |] \
-\     ==> setsum f (A Un B) = setsum f A + setsum f B - setsum f (A Int B)";
+\     ==> (setsum f (A Un B) :: nat) = \
+\         setsum f A + setsum f B - setsum f (A Int B)";
 by (stac (setsum_Un_Int RS sym) 1);
 by Auto_tac;
 qed "setsum_Un";
 
 Goal "finite F \
-\     ==> setsum f (F-{a}) = (if a:F then setsum f F - f a else setsum f F)";
+\     ==> (setsum f (F-{a}) :: nat) = \
+\         (if a:F then setsum f F - f a else setsum f F)";
 by (etac finite_induct 1);
 by (auto_tac (claset(), simpset() addsimps [insert_Diff_if]));
 by (dres_inst_tac [("a","a")] mk_disjoint_insert 1);
@@ -835,6 +841,7 @@ qed_spec_mp "setsum_diff1";
 Goal "finite A ==> setsum (%x. f x + g x) A = setsum f A + setsum g A";
 by (etac finite_induct 1);
 by Auto_tac;
+by (simp_tac (simpset() addsimps (thms "plus_ac0")) 1);
 qed "setsum_addf";
 
 
