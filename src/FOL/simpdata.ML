@@ -188,8 +188,6 @@ val meta_eq_to_obj_eq = prove_goal IFOL.thy "x==y ==> x=y"
   (fn [prem] => [rewtac prem, rtac refl 1]);
 
 
-open Simplifier;
-
 (** make simplification procedures for quantifier elimination **)
 structure Quantifier1 = Quantifier1Fun(
 struct

@@ -3,12 +3,10 @@
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 
-Instantiation of the generic simplifier
+Instantiation of the generic simplifier.
 *)
 
 section "Simplifier";
-
-open Simplifier;
 
 (*** Addition of rules to simpsets and clasets simultaneously ***)
 
@@ -447,9 +445,6 @@ fun expand_case_tac P i =
 (* install implicit simpset *)
 
 simpset_ref() := HOL_ss;
-
-
-
 
 
 
