@@ -110,6 +110,9 @@ syntax (symbols output)
   "*Ball"       :: [pttrn, 'a set, bool] => bool      ("(3\\<forall> _\\<in>_./ _)" [0, 0, 10] 10)
   "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3\\<exists> _\\<in>_./ _)" [0, 0, 10] 10)
 
+translations
+  "op \\<subseteq>" => "op <="
+
 
 
 (** Rules and definitions **)
