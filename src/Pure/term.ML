@@ -175,7 +175,12 @@ end;
 signature TERM =
 sig
   include BASIC_TERM
-  val invent_names: int -> string -> string list
+  val invent_names: string list -> string -> int -> string list
+  val invent_type_names: string list -> int -> string list
+  val add_tvarsT: (indexname * sort) list * typ -> (indexname * sort) list
+  val add_tvars: (indexname * sort) list * term -> (indexname * sort) list
+  val add_vars: (indexname * typ) list * term -> (indexname * typ) list
+  val add_frees: (string * typ) list * term -> (string * typ) list
   val indexname_ord: indexname * indexname -> order
   val typ_ord: typ * typ -> order
   val typs_ord: typ list * typ list -> order
@@ -742,7 +747,8 @@ fun variantlist ([], used) = []
       let val b' = variant used b
       in  b' :: variantlist (bs, b'::used)  end;
 
-fun invent_names n prfx = Library.tl (variantlist (Library.replicate (n + 1) prfx, []));
+fun invent_names used prfx n = variantlist (Library.replicate n prfx, prfx :: used);
+fun invent_type_names used = invent_names used "'";
 
 
 
@@ -933,6 +939,12 @@ fun foldl_term_types f (x, t as Const (_, T)) = f t (x, T)
   | foldl_term_types f (x, t $ u) = foldl_term_types f (foldl_term_types f (x, t), u);
 
 fun foldl_types f = foldl_term_types (fn _ => f);
+
+(*collect variables*)
+val add_tvarsT = foldl_atyps (fn (vs, TVar v) => v ins vs | (vs, _) => vs);
+val add_tvars = foldl_types add_tvarsT;
+val add_vars = foldl_aterms (fn (vs, Var v) => v ins vs | (vs, _) => vs);
+val add_frees = foldl_aterms (fn (vs, Free v) => v ins vs | (vs, _) => vs);
 
 
 
