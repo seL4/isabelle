@@ -877,7 +877,7 @@ val ind_cases =
   >> (Toplevel.theory o inductive_cases);
 
 val inductive_casesP =
-  OuterSyntax.improper_command "inductive_cases"
+  OuterSyntax.command "inductive_cases"
     "create simplified instances of elimination rules (improper)" K.thy_script ind_cases;
 
 val _ = OuterSyntax.add_keywords ["intros", "monos", "con_defs"];
