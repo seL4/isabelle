@@ -1,4 +1,5 @@
-svc_test = Main +
+
+svc_test = SVC_Oracle +
 
 syntax
     "<->"         :: [bool, bool] => bool                  (infixr 25)
