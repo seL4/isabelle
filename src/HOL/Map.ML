@@ -147,7 +147,7 @@ AddIffs [override_None];
 
 Goalw [override_def] "f ++ g(x|->y) = (f ++ g)(x|->y)";
 by (rtac ext 1);
-by (auto_tac (claset_of Map.thy, simpset_of Map.thy));
+by (auto_tac (claset(), simpset()));
 qed "override_upd";
 Addsimps[override_upd];
 
