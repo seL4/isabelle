@@ -44,16 +44,18 @@ sig
   val delete_tmpfiles: bool ref
 
   val use_thy        : string -> unit
-  val update         : unit -> unit
   val time_use_thy   : string -> unit
+  val use_dir        : string -> unit
+  val exit_use_dir   : string -> unit
+  val update         : unit -> unit
   val unlink_thy     : string -> unit
   val mk_base        : basetype list -> string -> bool -> theory
   val store_theory   : theory * string -> unit
 
-  val theory_of_sign: Sign.sg -> theory
-  val theory_of_thm: thm -> theory
-  val children_of: string -> string list
-  val parents_of: string -> string list
+  val theory_of_sign : Sign.sg -> theory
+  val theory_of_thm  : thm -> theory
+  val children_of    : string -> string list
+  val parents_of     : string -> string list
 
   val store_thm: string * thm -> thm
   val bind_thm: string * thm -> unit
@@ -62,16 +64,18 @@ sig
   val qed_goal: string -> theory -> string -> (thm list -> tactic list) -> unit
   val qed_goalw: string -> theory->thm list->string->(thm list->tactic list)
                  -> unit
-  val get_thm: theory -> string -> thm
-  val thms_of: theory -> (string * thm) list
-  val simpset_of: string -> Simplifier.simpset
-  val print_theory: theory -> unit
+  val get_thm       : theory -> string -> thm
+  val thms_of       : theory -> (string * thm) list
+  val simpset_of    : string -> Simplifier.simpset
+  val print_theory  : theory -> unit
 
-  val gif_path       : string ref
-  val index_path   : string ref
-  val make_html      : bool ref
-  val init_html: unit -> unit
-  val make_chart: unit -> unit
+  val base_path     : string ref
+  val gif_path      : string ref
+  val index_path    : string ref
+  val pure_subchart : string option ref
+  val make_html     : bool ref
+  val init_html     : unit -> unit
+  val make_chart    : unit -> unit
 end;
 
 
@@ -120,15 +124,34 @@ val gif_path = ref (tack_on ("/" ^
   space_implode "/" (rev (tl (tl (rev (space_explode "/" (pwd ())))))))
   "Tools");
 
-(*Location of theory-list.txt and index.html (normally set by init_html)*)
-val index_path = ref "";     
+(*Path of Isabelle's main directory*)
+val base_path = ref (
+  "/" ^ space_implode "/" (rev (tl (tl (rev (space_explode "/" (pwd ())))))));
 
-val make_html = ref false;      (*don't make HTML versions of loaded theories*)
+
+(** HTML variables **)
+
+(*Location of .theory-list.txt and index.html (set by init_html)*)
+val index_path = ref "";
+
+(*Location of .Pure_sub.html and .CPure_sub.html*)
+val pure_subchart = ref (None : string option);
+
+(*Controls whether HTML files should be generated*)
+val make_html = ref false;
 
 (*HTML file of theory currently being read
   (Initialized by thyfile2html; used by use_thy and store_thm)*)
 val cur_htmlfile = ref None : outstream option ref;
-                                   
+
+(*Boolean variable which indicates if the title "Theorems proved in foo.ML"
+  has already been inserted into the current HTML file*)
+val cur_has_title = ref false;
+
+(*Name of theory currently being read*)
+val cur_name = ref "";
+
+
 
 (*Make name of the output ML file for a theory *)
 fun out_name tname = "." ^ tname ^ ".thy.ML";
@@ -221,8 +244,15 @@ fun find_file "" name =
 (*Get absolute pathnames for a new or already loaded theory *)
 fun get_filenames path name =
   let fun make_absolute file =
-        if file = "" then "" else
-            if hd (explode file) = "/" then file else tack_on (pwd ()) file;
+        let fun rm_points [] result = rev result
+              | rm_points (".."::ds) result = rm_points ds (tl result)
+              | rm_points ("."::ds) result = rm_points ds result
+              | rm_points (d::ds) result = rm_points ds (d::result);
+        in if file = "" then ""
+           else if hd (explode file) = "/" then file
+           else "/" ^ space_implode "/"
+                     (rm_points (space_explode "/" (tack_on (pwd ()) file)) [])
+        end;
 
       fun new_filename () =
         let val found = find_file path (name ^ ".thy")
@@ -320,20 +350,19 @@ fun mk_charthead file tname title repeats gif_path index_path package =
    \\" ALT = /\\></A> stands for supertheories (parent theories)\n" ^
    (if not repeats then "" else
       "<BR><TT>...</TT> stands for repeated subtrees") ^
-   "<P><A HREF = \"" ^ tack_on index_path "index.html\
-   \\">Back</A> to the main theory chart of " ^ package ^ ".\n<HR>\n<PRE>");
+   "<P>\n<A HREF = \"" ^ tack_on index_path "index.html\
+   \\">Back</A> to the index of " ^ package ^ "\n<HR>\n<PRE>");
 
 (*Convert .thy file to HTML and make chart of its super-theories*)
 fun thyfile2html tpath tname =
   let
     val gif_path = relative_path tpath (!gif_path);
     val package =
-      case rev (space_explode "/" (!index_path)) of
-          x::xs => x
-        | _ => error "index_path is empty. \
-                     \Please use 'init_html()' instead of \
-                     \'make_html := true'";
-    val index_path = relative_path tpath (!index_path);
+      if (!index_path) = "" then
+        error "index_path is empty. Please use 'init_html()' instead of \
+              \'make_html := true'"
+      else relative_path (!base_path) (!index_path);
+    val rel_index_path = relative_path tpath (!index_path);
 
     (*Make list of all theories and all theories that own a .thy file*)
     fun list_theories [] theories thy_files = (theories, thy_files)
@@ -408,11 +437,10 @@ fun thyfile2html tpath tname =
           in (implode pre ^ ancestors, body) end;
       in "<HTML><HEAD><TITLE>" ^ tname ^ ".thy</TITLE></HEAD>\n\n<BODY>\n" ^
          "<H2>" ^ tname ^ ".thy</H2>\n<A HREF = \"" ^
-         tack_on index_path "index.html\
-         \\">Back</A> to the main theory chart of " ^ package ^
-         ".\n<HR>\n\n<PRE>\n" ^ comment ^ ancestors ^ body ^
-         "</PRE>\n<HR><H2>Theorems proved in <A HREF = \"" ^ tname ^
-         ".ML\">" ^ tname ^ ".ML</A>:</H2>\n"
+         tack_on rel_index_path "index.html\
+         \\">Back</A> to the index of " ^ package ^
+         "\n<HR>\n\n<PRE>\n" ^ comment ^ ancestors ^ body ^
+         "</PRE>\n"
       end;
 
     (** Make chart of super-theories **)
@@ -427,16 +455,16 @@ fun thyfile2html tpath tname =
       filter (fn s => s mem thy_files orelse s = "Pure" orelse s = "CPure")
              theories;
 
-    (*Make nested list of theories*)
+    (*Make tree of theory dependencies*)
     fun list_ancestors tname level continued =
       let
         fun mk_entry [] = ()
           | mk_entry (t::ts) =
             let
               val is_pure = t = "Pure" orelse t = "CPure";
-              val path = path_of t;
-              val rel_path = if is_pure then index_path
-                             else relative_path tpath path;
+              val path = if is_pure then (the (!pure_subchart))
+                         else path_of t;
+              val rel_path = relative_path tpath path;
               val repeated = t mem (!listed) andalso not (null (parents_of t));
 
               fun mk_offset [] cur =
@@ -474,9 +502,12 @@ fun thyfile2html tpath tname =
        error "thyfile2html: Last theory's HTML file has not been closed."
      else ();
      cur_htmlfile := Some (open_out (tack_on tpath ("." ^ tname ^ ".html")));
+     cur_has_title := false;
+     cur_name := tname;
      output (the (!cur_htmlfile), gettext (tack_on tpath tname ^ ".thy"));
 
-     mk_charthead sup_out tname "Ancestors" true gif_path index_path package;
+     mk_charthead sup_out tname "Ancestors" true gif_path rel_index_path
+                  package;
      output(sup_out,
        "<A HREF=\"." ^ tname ^ ".html\">" ^ tname ^ "</A> \
        \<A HREF = \"." ^ tname ^
@@ -486,7 +517,8 @@ fun thyfile2html tpath tname =
      output (sup_out, "</PRE><HR></BODY></HTML>");
      close_out sup_out;
 
-     mk_charthead sub_out tname "Children" false gif_path index_path package;
+     mk_charthead sub_out tname "Children" false gif_path rel_index_path
+                  package;
      output(sub_out,
        "<A HREF=\"." ^ tname ^ ".html\">" ^ tname ^ "</A> \
        \<A HREF = \"." ^ tname ^ "_sup.html\"><IMG SRC = \"" ^
@@ -591,8 +623,9 @@ fun use_thy name =
 
          (*Add child to parents' sub-theory charts*)
          fun add_to_parents t =
-           let val is_pure = t = "Pure" orelse t = "CPure";
-               val path = if is_pure then (!index_path) else path_of t;
+           let val path = if t = "Pure" orelse t = "CPure" then
+                            (the (!pure_subchart))
+                          else path_of t;
 
                val gif_path = relative_path path (!gif_path);
                val rel_path = relative_path path abs_path;
@@ -905,9 +938,16 @@ fun store_thm (name, thm) =
             | escape (c::s)   = c ^ escape s;
       in case !cur_htmlfile of
              Some out =>
-               output (out, "<EM>" ^ name ^ "</EM>\n<PRE>" ^
-                            escape (explode (string_of_thm (freeze thm))) ^
-                            "</PRE><P>\n")
+               (if not (!cur_has_title) then
+                  (cur_has_title := true;
+                   output (out, "<HR><H2>Theorems proved in <A HREF = \"" ^
+                                (!cur_name) ^ ".ML\">" ^ (!cur_name) ^
+                                ".ML</A>:</H2>\n"))
+                else ();
+                output (out, "<EM>" ^ name ^ "</EM>\n<PRE>" ^
+                             escape (explode (string_of_thm (freeze thm))) ^
+                             "</PRE><P>\n")
+               )
            | None => ()
       end;
   in
@@ -1000,71 +1040,94 @@ fun print_theory thy = (Drule.print_theory thy; print_thms thy);
 
 (*Init HTML generator by setting paths and creating new files*)
 fun init_html () =
-  let val pure_out = open_out ".Pure_sub.html";
-      val cpure_out = open_out ".CPure_sub.html";
+  let val cwd = pwd();
+
       val theory_list = close_out (open_out ".theory_list.txt");
 
-      val rel_gif_path = relative_path (pwd ()) (!gif_path);
-      val package = hd (rev (space_explode "/" (pwd ())));
+      val rel_gif_path = relative_path cwd (!gif_path);
+      val package = relative_path (!base_path) cwd;
+
+      (*Make new HTML files for Pure and CPure*)
+      fun init_pure_html () =
+        let val pure_out = open_out ".Pure_sub.html";
+            val cpure_out = open_out ".CPure_sub.html";
+        in mk_charthead pure_out "Pure" "Children" false rel_gif_path ""
+                        package;
+           mk_charthead cpure_out "CPure" "Children" false rel_gif_path ""
+                        package;
+           output (pure_out, "Pure\n");
+           output (cpure_out, "CPure\n");
+           close_out pure_out;
+           close_out cpure_out;
+           pure_subchart := Some cwd
+        end;
   in make_html := true;
-     index_path := pwd();
-     writeln ("Setting path for index.html to " ^ quote (!index_path) ^
+     index_path := cwd;
+
+     writeln ("Setting path for index.html to " ^ quote cwd ^
               "\nGIF path has been set to " ^ quote (!gif_path));
 
-     mk_charthead pure_out "Pure" "Children" false rel_gif_path "" package;
-     mk_charthead cpure_out "CPure" "Children" false rel_gif_path "" package;
-     output (pure_out, "Pure\n");
-     output (cpure_out, "CPure\n");
-     close_out pure_out;
-     close_out cpure_out
+     if is_none (!pure_subchart) then init_pure_html()
+     else ()
   end;
 
 (*Generate index.html*)
 fun make_chart () = if not (!make_html) then () else
-  let val theory_list = open_in (tack_on (!index_path) ".theory_list.txt");
+  let val tlist_path = tack_on (!index_path) ".theory_list.txt";
+      val theory_list = open_in tlist_path;
       val theories = space_explode "\n" (input (theory_list, 999999));
-      val dummy = close_in theory_list;
-
-      (*Path to Isabelle's main directory = $gif_path/.. *)
-      val base_path = "/" ^
-        space_implode "/" (rev (tl (rev (space_explode "/" (!gif_path)))));
+      val dummy = (close_in theory_list; delete_file tlist_path);
 
       val gif_path = relative_path (!index_path) (!gif_path);
 
       (*Make entry for main chart of all theories.*)
-      fun main_entries [] curdir =
-            implode (replicate (length curdir -1) "</UL>\n")
-        | main_entries (t::ts) curdir =
-            let
-              val (name, path) = take_prefix (not_equal " ") (explode t);
+      fun main_entry t =
+        let
+          val (name, path) = take_prefix (not_equal " ") (explode t);
 
-              val tname = implode name
-              val tpath =
-                tack_on (relative_path (!index_path) (implode (tl path)))
-                        ("." ^ tname);
-              val subdir = space_explode "/"
-                                 (relative_path base_path (implode (tl path)));
-              val level_diff = length subdir - length curdir;
-            in "\n" ^
-               (if subdir <> curdir then
-                  (implode (if level_diff > 0 then
-                              replicate level_diff "<UL>\n"
-                            else if level_diff < 0 then
-                              replicate (~level_diff) "</UL>\n"
-                            else []) ^
-                  "<H3>" ^ space_implode "/" subdir ^ "</H3>\n")
-                else "") ^
-               "<A HREF = \"" ^ tpath ^ "_sub.html\"><IMG SRC = \"" ^
-               tack_on gif_path "red_arrow.gif\" BORDER=0 ALT = \\/></A>" ^
-               "<A HREF = \"" ^ tpath ^ "_sup.html\"><IMG SRC = \"" ^
-               tack_on gif_path "blue_arrow.gif\
-               \\" BORDER=0 ALT = /\\></A> <A HREF = \"" ^ tpath ^
-               ".html\">" ^ tname ^ "</A><BR>\n" ^
-               main_entries ts subdir
-            end;
+          val tname = implode name
+          val tpath = tack_on (relative_path (!index_path) (implode (tl path)))
+                              ("." ^ tname);
+        in "<A HREF = \"" ^ tpath ^ "_sub.html\"><IMG SRC = \"" ^
+           tack_on gif_path "red_arrow.gif\" BORDER=0 ALT = \\/></A>" ^
+           "<A HREF = \"" ^ tpath ^ "_sup.html\"><IMG SRC = \"" ^
+           tack_on gif_path "blue_arrow.gif\
+           \\" BORDER=0 ALT = /\\></A> <A HREF = \"" ^ tpath ^
+           ".html\">" ^ tname ^ "</A><BR>\n"
+        end;
 
       val out = open_out (tack_on (!index_path) "index.html");
-      val subdir = relative_path base_path (!index_path);
+      val subdir = relative_path (!base_path) (!index_path);
+      val subdirs = space_explode "/" subdir;
+
+      (*Look for index.html in superdirectories*)
+      fun find_super_index [] _ =
+            error "make_chart: Unable to find super index file."
+        | find_super_index (p::ps) n =
+          let val index_path = "/" ^ space_implode "/" (rev ps);
+          in if file_exists (index_path ^ "/index.html") then (index_path, n)
+             else find_super_index ps (n+1)
+          end;
+      val (super_index, level_diff) =
+        find_super_index (rev (space_explode "/" (!index_path))) 1;
+      val level = length subdirs - level_diff;
+
+      (*Add link to current directory to 'super' index.html*)
+      fun link_directory () =
+        let val old_index = open_in (super_index ^ "/index.html");
+            val content = rev (explode (input (old_index, 999999)));
+            val dummy = close_in old_index;
+
+            val out = open_append (super_index ^ "/index.html");
+            val rel_path = space_implode "/" (drop (level, subdirs));
+        in 
+           output (out,
+             (if nth_elem (3, content) <> "!" then ""
+              else "\n<HR><H3>Subdirectories:</H3>\n") ^
+             "<H3><A HREF = \"" ^ rel_path ^ "/index.html\">" ^ rel_path ^
+             "</A></H3>\n");
+           close_out out
+        end;
   in output (out,
        "<HTML><HEAD><TITLE>Isabelle/" ^ subdir ^ "</TITLE></HEAD>\n\
        \<BODY><H2>Isabelle/" ^ subdir ^ "</H2>\n\
@@ -1072,17 +1135,33 @@ fun make_chart () = if not (!make_html) then () else
        \<IMG SRC = \"" ^ tack_on gif_path "red_arrow.gif\
        \\" ALT = \\/></A> stands for subtheories (child theories)<BR>\n\
        \<IMG SRC = \"" ^ tack_on gif_path "blue_arrow.gif\
-       \\" ALT = /\\></A> stands for supertheories (parent theories)\n\
-       \<P><A HREF = \"" ^
-       tack_on (relative_path (!index_path) base_path) "index.html\">\
-       \Back</A> to the index of Isabelle logics.\n" ^
-       (if file_exists "README.html" then
+       \\" ALT = /\\></A> stands for supertheories (parent theories)\
+       \<P>\n<A HREF = \"" ^ relative_path (!index_path) super_index ^ 
+       "/index.html\">Back</A> to the index of " ^
+       (if level = 0 then "Isabelle logics"
+        else space_implode "/" (take (level, subdirs))) ^
+       "\n" ^
+       (if file_exists (tack_on (!index_path) "README.html") then
           "<BR>View the <A HREF = \"README.html\">ReadMe</A> file.\n"
-        else if file_exists "README" then
+        else if file_exists (tack_on (!index_path) "README") then
           "<BR>View the <A HREF = \"README\">ReadMe</A> file.\n"
         else "") ^
-       "<HR>" ^ main_entries theories (space_explode "/" base_path) ^
-       "</BODY></HTML>\n");
-     close_out out
+       "<HR>" ^ implode (map main_entry theories) ^ "<!-->");
+     close_out out;
+     if level = 0 then () else link_directory ()
   end;
+
+(*CD to a directory and load its ROOT.ML file*)
+fun use_dir dirname =
+  (cd dirname;
+   if !make_html then init_html() else ();
+   use "ROOT.ML";
+   make_chart());
+
+fun exit_use_dir dirname =
+  (cd dirname;
+   if !make_html then init_html() else ();
+   exit_use "ROOT.ML";
+   make_chart());
+
 end;
