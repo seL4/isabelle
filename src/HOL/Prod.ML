@@ -404,7 +404,8 @@ AddIs  [fst_imageI, snd_imageI, prod_fun_imageI];
 AddSEs [fst_imageE, snd_imageE, prod_fun_imageE];
 
 
-(*simplification procedure for unit_eq; cannot use this rule directly -- loops!*)
+(*simplification procedure for unit_eq.
+  Cannot use this rule directly -- it loops!*)
 local
   val unit_pat = Thm.cterm_of (sign_of thy) (Free ("x", HOLogic.unitT));
   val unit_meta_eq = standard (mk_meta_eq unit_eq);
@@ -416,6 +417,15 @@ in
 end;
 
 Addsimprocs [unit_eq_proc];
+
+
+(*This rewrite counters the effect of unit_eq_proc on (%u::unit. f u),
+  replacing it by f rather than by %u.f(). *)
+Goal "(%u::unit. f()) = f";
+by (rtac ext 1);
+by (Simp_tac 1);
+qed "unit_abs_eta_conv";
+Addsimps [unit_abs_eta_conv];
 
 
 structure Prod_Syntax =		(* FIXME eliminate (use HOLogic instead!) *)
