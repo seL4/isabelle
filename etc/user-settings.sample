@@ -1,7 +1,8 @@
 #
 # $Id$
 #
-# Isabelle user settings sample -- may be copied to ~/isabelle/etc/settings.
+# Isabelle user settings sample (everything commented out)
+#   -- some parts may be copied into ~/isabelle/etc/settings.
 #
 
 ###
