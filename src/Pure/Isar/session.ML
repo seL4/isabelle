@@ -8,7 +8,7 @@ Session management -- maintain state of logic images.
 signature SESSION =
 sig
   val welcome: unit -> string
-  val use_dir: bool -> bool -> string -> string -> unit
+  val use_dir: bool -> bool -> string -> string -> string -> unit
   val finish: unit -> unit
 end;
 
@@ -58,9 +58,9 @@ fun finish () =
 
 val root_file = ThyLoad.ml_path "ROOT";
 
-fun use_dir reset info parent name =
+fun use_dir reset info parent name rpath =
   (init reset parent name;
-    Present.init info (path ()) name;
+    Present.init info (path ()) name (if rpath = "" then None else Some (Url.unpack rpath));
     File.symbol_use root_file;
     finish ()) handle exn => (writeln (Toplevel.exn_message exn); exit 1);
 
