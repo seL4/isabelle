@@ -35,21 +35,14 @@ by (etac (insert_absorb RS ssubst) 3 THEN assume_tac 3);   (*backtracking!*)
 by (REPEAT (ares_tac prems 1));
 qed "finite_induct";
 
-val major::prems = goal Finite.thy 
-    "[| finite F; \
-\       P({}); \
-\       !!F a. [| finite F; a:A; a ~: F;  P(F) |] ==> P(insert a F) \
-\    |] ==> F <= A --> P(F)";
-by (rtac (major RS finite_induct) 1);
-by (ALLGOALS (blast_tac (claset() addIs prems)));
-val lemma = result();
-
-val prems = goal Finite.thy 
+val major::subs::prems = goal Finite.thy 
     "[| finite F;  F <= A; \
 \       P({}); \
 \       !!F a. [| finite F; a:A; a ~: F;  P(F) |] ==> P(insert a F) \
 \    |] ==> P(F)";
-by (blast_tac (HOL_cs addIs ((lemma RS mp)::prems)) 1);
+by (rtac (subs RS rev_mp) 1);
+by (rtac (major RS finite_induct) 1);
+by (ALLGOALS (blast_tac (claset() addIs prems)));
 qed "finite_subset_induct";
 
 Addsimps Finites.intrs;
