@@ -12,9 +12,6 @@ val version = "Isabelle repository version";    (*filled in automatically!*)
 
 print_depth 10;
 
-(*global flags*)
-val print_mode = ref ([]: string list);
-
 (*fake hiding of private structures*)
 structure Hidden = struct end;
 
@@ -24,6 +21,7 @@ cd "General"; use "ROOT.ML"; cd "..";
 
 (*fundamental structures*)
 use "term.ML";
+use "General/pretty.ML";
 use "sorts.ML";
 use "type.ML";
 
