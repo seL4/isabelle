@@ -99,9 +99,9 @@ sig
   val unvarify          : thm -> thm
   val rule_attribute    : ('a -> thm -> thm) -> 'a attribute
   val tag_rule          : tag -> thm -> thm
-  val untag_rule        : tag -> thm -> thm
+  val untag_rule        : string -> thm -> thm
   val tag               : tag -> 'a attribute
-  val untag             : tag -> 'a attribute
+  val untag             : string -> 'a attribute
   val tag_lemma         : 'a attribute
   val tag_assumption    : 'a attribute
   val tag_internal      : 'a attribute
@@ -752,10 +752,10 @@ fun map_tags f thm =
   Thm.put_name_tags (Thm.name_of_thm thm, f (#2 (Thm.get_name_tags thm))) thm;
 
 fun tag_rule tg = map_tags (fn tgs => if tg mem tgs then tgs else tgs @ [tg]);
-fun untag_rule tg = map_tags (fn tgs => tgs \ tg);
+fun untag_rule s = map_tags (filter_out (equal s o #1));
 
 fun tag tg x = rule_attribute (K (tag_rule tg)) x;
-fun untag tg x = rule_attribute (K (untag_rule tg)) x;
+fun untag s x = rule_attribute (K (untag_rule s)) x;
 
 fun simple_tag name x = tag (name, []) x;
 

@@ -169,7 +169,7 @@ fun no_args x = syntax (Scan.succeed x);
 (* tags *)
 
 fun gen_tag x = syntax (tag >> Drule.tag) x;
-fun gen_untag x = syntax (tag >> Drule.untag) x;
+fun gen_untag x = syntax (Scan.lift Args.name >> Drule.untag) x;
 
 
 (* transfer *)
