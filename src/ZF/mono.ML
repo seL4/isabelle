@@ -180,13 +180,13 @@ qed "imp_refl";
 val [PQimp] = goal IFOL.thy
     "[| !!x. P(x) --> Q(x) |] ==> (EX x.P(x)) --> (EX x.Q(x))";
 by IntPr.safe_tac;
-be (PQimp RS mp RS exI) 1;
+by (etac (PQimp RS mp RS exI) 1);
 qed "ex_mono";
 
 val [PQimp] = goal IFOL.thy
     "[| !!x. P(x) --> Q(x) |] ==> (ALL x.P(x)) --> (ALL x.Q(x))";
 by IntPr.safe_tac;
-be (spec RS (PQimp RS mp)) 1;
+by (etac (spec RS (PQimp RS mp)) 1);
 qed "all_mono";
 
 (*Used in intr_elim.ML and in individual datatype definitions*)
