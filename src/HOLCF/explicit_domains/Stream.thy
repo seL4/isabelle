@@ -3,6 +3,8 @@
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
+NOT SUPPORTED ANY MORE. USE HOLCF/ex/Stream.thy INSTEAD.
+
 Theory for streams without defined empty stream 
   'a stream = 'a ** ('a stream)u
 

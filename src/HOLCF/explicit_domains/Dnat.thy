@@ -3,6 +3,8 @@
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
+NOT SUPPORTED ANY MORE. USE HOLCF/ex/Dnat.thy INSTEAD.
+
 Theory for the domain of natural numbers  dnat = one ++ dnat
 
 The type is axiomatized as the least solution of the domain equation above.

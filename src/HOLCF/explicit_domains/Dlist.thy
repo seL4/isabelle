@@ -4,6 +4,8 @@
     ID:         $ $
     Copyright   1994 Technische Universitaet Muenchen
 
+NOT SUPPORTED ANY MORE. USE HOLCF/ex/Dlist.thy INSTEAD.
+
 Theory for finite lists  'a dlist = one ++ ('a ** 'a dlist)
 
 The type is axiomatized as the least solution of the domain equation above.

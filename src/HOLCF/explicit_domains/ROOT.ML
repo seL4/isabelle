@@ -16,9 +16,5 @@ time_use_thy "Stream";
 time_use_thy "Stream2";
 time_use_thy "Dlist";
 
-time_use_thy "Coind";
-time_use_thy "Dagstuhl";
-time_use_thy "Focus_ex";
-
 OS.FileSys.chDir "..";
 maketest "END: Root file for HOLCF examples: explicit domain axiomatization";

@@ -3,6 +3,8 @@
     Author:     Franz Regensburger
     Copyright   1993 Technische Universitaet Muenchen
 
+NOT SUPPORTED ANY MORE. USE HOLCF/ex/Dnat.thy INSTEAD.
+
 Additional constants for dnat
 
 *)
