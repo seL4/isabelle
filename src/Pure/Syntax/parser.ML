@@ -473,7 +473,8 @@ fun syntax_error toks allowed =
   ((if toks = [] then
       "error: unexpected end of input\n"
     else
-      "Syntax error at: " ^ quote (space_implode " " (map str_of_token toks))
+      "Syntax error at: " ^ quote (space_implode " " (map str_of_token 
+        ((rev o tl o rev) toks)))
       ^ "\n")
    ^ "Expected tokens: " 
    ^ space_implode ", " (map (quote o str_of_token) allowed));
@@ -495,10 +496,10 @@ fun produce stateset i indata prev_token =
               val NTs = map (fn (_, _, _, Nonterm (a, _) :: _, _, _) => a)
                             (filter (fn (_, _, _, Nonterm _ :: _, _, _) => true
                                      | _ => false) (Array.sub (stateset, i-1)));
-              val allowed = get_starts NTs union
+              val allowed = distinct (get_starts NTs @
                             (map (fn (_, _, _, Term a :: _, _, _) => a)
                             (filter (fn (_, _, _, Term _ :: _, _, _) => true
-                                    | _ => false) (Array.sub (stateset, i-1))));
+                                   | _ => false) (Array.sub (stateset, i-1)))));
                                              (*terminals have to be searched for
                                                because of lambda productions*)
           in syntax_error (if prev_token = EndToken then indata
