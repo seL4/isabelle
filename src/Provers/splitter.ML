@@ -412,21 +412,22 @@ val split_attr =
  (Attrib.add_del_args split_add_global split_del_global,
   Attrib.add_del_args split_add_local split_del_local);
 
-val setup_attrs =
-  Attrib.add_attributes [(splitN, split_attr, "declare splitter rule")];
 
-
-(* method modifiers *)
+(* methods *)
 
 val split_modifiers =
  [Args.$$$ splitN -- Args.colon >> K ((I, split_add_local): Method.modifier),
   Args.$$$ splitN -- Args.$$$ "add" -- Args.colon >> K (I, split_add_local),
   Args.$$$ splitN -- Args.$$$ "del" -- Args.colon >> K (I, split_del_local)];
 
+val split_meth = Method.thms_args (Method.SIMPLE_METHOD' HEADGOAL o split_tac);
+
 
 
 (** theory setup **)
 
-val setup = [setup_attrs];
+val setup =
+ [Attrib.add_attributes [(splitN, split_attr, "declare splitter rule")],
+  Method.add_methods [(splitN, split_meth, "apply splitter rule")]];
 
 end;

@@ -620,15 +620,18 @@ information.
 
 \section{Basic equational reasoning}
 
-\indexisarmeth{subst}\indexisarmeth{hypsubst}\indexisaratt{symmetric}
+\indexisarmeth{subst}\indexisarmeth{hypsubst}\indexisarmeth{split}\indexisaratt{symmetric}
 \begin{matharray}{rcl}
   subst & : & \isarmeth \\
   hypsubst^* & : & \isarmeth \\
+  split & : & \isarmeth \\
   symmetric & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
   'subst' thmref
+  ;
+  'split' thmrefs
   ;
 \end{rail}
 
@@ -642,6 +645,9 @@ while the Simplifier is the canonical tool for automated normalization (see
 \item [$subst~thm$] performs a single substitution step using rule $thm$,
   which may be either a meta or object equality.
 \item [$hypsubst$] performs substitution using some assumption.
+\item [$split~thms$] performs single-step case splitting using rules $thms$.
+  Note that the $simp$ method already involves repeated application of split
+  rules as declared in the current context (see \S\ref{sec:simp}).
 \item [$symmetric$] applies the symmetry rule of meta or object equality.
 \end{descr}
 
