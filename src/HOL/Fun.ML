@@ -174,7 +174,7 @@ qed "surjD";
 
 (*** Lemmas about injective functions and inv ***)
 
-Goalw [o_def] "[| inj_on f A;  inj_on g (range f) |] ==> inj_on (g o f) A";
+Goalw [o_def] "[| inj_on f A;  inj_on g (f``A) |] ==> inj_on (g o f) A";
 by (fast_tac (claset() addIs [inj_onI] addEs [inj_onD]) 1);
 qed "comp_inj_on";
 
