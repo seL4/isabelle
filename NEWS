@@ -5,6 +5,10 @@ Isabelle NEWS -- history of user-visible changes
 New in Isabelle??? (FIXME)
 --------------------------
 
+* Rewrite rules for case distinctions can now be added permanently to the
+  default simpset using Addsplits just like Addsimps. They can be removed via
+  Delsplits just like Delsimps. For applications see HOL below.
+
 * changed wrapper mechanism for the classical reasoner now allows for selected
   deletion of wrappers, by introduction of names for wrapper functionals.
   This implies that addbefore, addSbefore, addaltern, and addSaltern now take
@@ -16,6 +20,16 @@ New in Isabelle??? (FIXME)
   getWrapper is renamed to appWrappers, getSWrapper to appSWrappers;
 
 *** HOL ***
+
+* The rule expand_if is now part of the default simpset. This means that
+  the simplifier will eliminate all ocurrences of if-then-else in the
+  conclusion of a goal. To prevent this, you can either remove expand_if
+  completely from the default simpset by `Delsplits [expand_if]' or
+  remove it in a specific call of the simplifier using
+  `... delsplits [expand_if]'.
+  You can also add/delete other case splitting rules to/from the default
+  simpset: every datatype generates a suitable rule `split_t_case' (where t
+  is the name of the datatype).
 
 * New theory Vimage (inverse image of a function, syntax f-``B)
 
