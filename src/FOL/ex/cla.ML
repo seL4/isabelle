@@ -488,6 +488,14 @@ goal FOL.thy
 by (fast_tac FOL_cs 1);
 result();
 
+writeln"Problem 62 as corrected in AAR newletter #31";
+goal FOL.thy
+    "(ALL x. p(a) & (p(x) --> p(f(x))) --> p(f(f(x))))  <->	\
+\    (ALL x. (~p(a) | p(x) | p(f(f(x)))) &			\
+\            (~p(a) | ~p(f(x)) | p(f(f(x)))))";
+by (fast_tac FOL_cs 1);
+result();
+
 
 writeln"Reached end of file.";
 

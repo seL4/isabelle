@@ -496,6 +496,14 @@ goal HOL.thy "! x. P x (f x) = (? y. (! z. P z y --> P z (f x)) & P x y)";
 by (safe_meson_tac 1);
 result();
 
+writeln"Problem 62 as corrected in AAR newletter #31";
+goal HOL.thy
+    "(ALL x. p a & (p x --> p(f x)) --> p(f(f x)))  =	\
+\    (ALL x. (~ p a | p x | p(f(f x))) &			\
+\            (~ p a | ~ p(f x) | p(f(f x))))";
+by (safe_meson_tac 1);
+result();
+
 writeln"Reached end of file.";
 
 (*26 August 1992: loaded in 277 secs.  New Jersey v 75*)
