@@ -43,9 +43,9 @@ consts
 
 (*NCons inserts a bit, suppressing leading 0s and 1s*)
 primrec
-  norm_Pls "NCons Pls b = (if b then (Pls BIT b) else Pls)"
-  norm_Min "NCons Min b = (if b then Min else (Min BIT b))"
-  NCons    "NCons (w' BIT x') b = (w' BIT x') BIT b"
+  NCons_Pls "NCons Pls b = (if b then (Pls BIT b) else Pls)"
+  NCons_Min "NCons Min b = (if b then Min else (Min BIT b))"
+  NCons_BIT "NCons (w BIT x) b = (w BIT x) BIT b"
  
 primrec
   integ_of_Pls  "integ_of Pls = $# 0"
@@ -89,7 +89,7 @@ primrec
 primrec
   mult_Pls  "bin_mult Pls w = Pls"
   mult_Min  "bin_mult Min w = bin_minus w"
-  mult_BIT "bin_mult (v BIT x) w =
+  mult_BIT  "bin_mult (v BIT x) w =
 	        (if x then (bin_add (NCons (bin_mult v w) False) w)
 	              else (NCons (bin_mult v w) False))"
 
@@ -141,9 +141,13 @@ local
 
   fun dest_bin tm =
     let
-      fun bin_of (Const ("Pls", _)) = []
-        | bin_of (Const ("Min", _)) = [~1]
-        | bin_of (Const ("op BIT", _) $ bs $ b) = dest_bit b :: bin_of bs
+      (*We consider both "spellings", since Min might be declared elsewhere*)
+      fun bin_of (Const ("Pls", _))     = []
+        | bin_of (Const ("bin.Pls", _)) = []
+        | bin_of (Const ("Min", _))     = [~1]
+        | bin_of (Const ("bin.Min", _)) = [~1]
+        | bin_of (Const ("op BIT", _) $ bs $ b)     = dest_bit b :: bin_of bs
+        | bin_of (Const ("bin.op BIT", _) $ bs $ b) = dest_bit b :: bin_of bs
         | bin_of _ = raise Match;
 
       fun int_of [] = 0

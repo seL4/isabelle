@@ -25,10 +25,6 @@ qed_goal "NCons_Min_1" Bin.thy
     "NCons Min True = Min"
  (fn _ => [(Simp_tac 1)]);
 
-qed_goal "NCons_BIT" Bin.thy
-    "NCons (w BIT x) b = (w BIT x) BIT b"
- (fn _ => [(Simp_tac 1)]);
-
 qed_goal "bin_succ_1" Bin.thy
     "bin_succ(w BIT True) = (bin_succ w) BIT False"
  (fn _ => [(Simp_tac 1)]);
@@ -136,7 +132,7 @@ by (simp_tac (simpset() addsimps bin_add_simps) 1);
 by (simp_tac (simpset() addsimps bin_add_simps) 1);
 by (rtac allI 1);
 by (induct_tac "w" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps (bin_add_simps @ zadd_ac))));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps bin_add_simps @ zadd_ac)));
 qed_spec_mp "integ_of_add";
 
 val bin_mult_simps = [zmult_zminus, integ_of_minus, integ_of_add];
@@ -147,8 +143,7 @@ by (induct_tac "v" 1);
 by (simp_tac (simpset() addsimps bin_mult_simps) 1);
 by (simp_tac (simpset() addsimps bin_mult_simps) 1);
 by (asm_simp_tac
-    (simpset() addsimps (bin_mult_simps @ [zadd_zmult_distrib] @ 
-                                  zadd_ac)) 1);
+    (simpset() addsimps bin_mult_simps @ [zadd_zmult_distrib] @ zadd_ac) 1);
 qed "integ_of_mult";
 
 
@@ -218,13 +213,13 @@ by (simp_tac (simpset() addsimps [add_nat1_zle_eq]) 1);
 qed "add1_zle_eq";
 Addsimps [add1_zle_eq];
 
-Goal "znegative x = (x < #0)";
-by (simp_tac (simpset() addsimps [znegative_eq_less_nat0]) 1); 
-qed "znegative_eq_less_0"; 
+Goal "neg x = (x < #0)";
+by (simp_tac (simpset() addsimps [neg_eq_less_nat0]) 1); 
+qed "neg_eq_less_0"; 
 
-Goal "(~znegative x) = ($# 0 <= x)";
-by (simp_tac (simpset() addsimps [not_znegative_eq_ge_nat0]) 1); 
-qed "not_znegative_eq_ge_0"; 
+Goal "(~neg x) = ($# 0 <= x)";
+by (simp_tac (simpset() addsimps [not_neg_eq_ge_nat0]) 1); 
+qed "not_neg_eq_ge_0"; 
 
 
 
@@ -252,9 +247,9 @@ Goalw [iszero_def]
 by (Simp_tac 1);
 by (int_case_tac "integ_of w" 1); 
 by (ALLGOALS (asm_simp_tac 
-	      (simpset() addsimps (zcompare_rls @ 
-				   [zminus_zadd_distrib RS sym, 
-				    add_znat])))); 
+	      (simpset() addsimps zcompare_rls @ 
+				  [zminus_zadd_distrib RS sym, 
+				   add_nat]))); 
 qed "iszero_integ_of_BIT"; 
 
 
@@ -262,25 +257,24 @@ qed "iszero_integ_of_BIT";
 
 Goalw [zless_def,zdiff_def] 
     "integ_of x < integ_of y \
-\    = znegative (integ_of (bin_add x (bin_minus y)))";
+\    = neg (integ_of (bin_add x (bin_minus y)))";
 by (simp_tac (simpset() addsimps bin_mult_simps) 1);
-qed "less_integ_of_eq_zneg"; 
+qed "less_integ_of_eq_neg"; 
 
-Goal "~ znegative (integ_of Pls)"; 
+Goal "~ neg (integ_of Pls)"; 
 by (Simp_tac 1); 
 qed "not_neg_integ_of_Pls"; 
 
-Goal "znegative (integ_of Min)"; 
+Goal "neg (integ_of Min)"; 
 by (Simp_tac 1);
 qed "neg_integ_of_Min"; 
 
-Goal "znegative (integ_of (w BIT x)) = znegative (integ_of w)"; 
+Goal "neg (integ_of (w BIT x)) = neg (integ_of w)"; 
 by (Asm_simp_tac 1); 
 by (int_case_tac "integ_of w" 1); 
 by (ALLGOALS (asm_simp_tac 
-	      (simpset() addsimps ([add_znat, znegative_eq_less_nat0, 
-				    symmetric zdiff_def] @ 
-				   zcompare_rls)))); 
+	      (simpset() addsimps [add_nat, neg_eq_less_nat0, 
+				   symmetric zdiff_def] @ zcompare_rls))); 
 qed "neg_integ_of_BIT"; 
 
 
@@ -290,11 +284,12 @@ Goal "(integ_of x <= integ_of y) = (~ integ_of y < integ_of x)";
 by (simp_tac (simpset() addsimps [zle_def]) 1);
 qed "le_integ_of_eq_not_less"; 
 
+(*Delete the original rewrites, with their clumsy conditional expressions*)
+Delsimps [succ_BIT, pred_BIT, minus_BIT, 
+          NCons_Pls, NCons_Min, add_BIT, mult_BIT];
 
 (*Hide the binary representation of integer constants*)
-Delsimps [succ_BIT, pred_BIT, minus_BIT, add_BIT, mult_BIT, 
-          integ_of_Pls, integ_of_Min, integ_of_BIT, 
-          norm_Pls, norm_Min, NCons];
+Delsimps [integ_of_Pls, integ_of_Min, integ_of_BIT];
 
 (*Add simplification of arithmetic operations on integer constants*)
 Addsimps [integ_of_add RS sym,
@@ -313,7 +308,7 @@ Addsimps [integ_of_add RS sym,
 (*... and simplification of relational operations*)
 Addsimps [eq_integ_of_eq, iszero_integ_of_Pls, nonzero_integ_of_Min,
 	  iszero_integ_of_BIT,
-	  less_integ_of_eq_zneg,
+	  less_integ_of_eq_neg,
 	  not_neg_integ_of_Pls, neg_integ_of_Min, neg_integ_of_BIT,
 	  le_integ_of_eq_not_less];
 
@@ -329,7 +324,7 @@ Addsimps [diff_integ_of_eq];
 (** Simplification of inequalities involving numerical constants **)
 
 Goal "(w <= z + #1) = (w<=z | w = z + #1)";
-by (simp_tac (simpset() addsimps [zle_eq_zless_or_eq, zless_add1_eq]) 1);
+by (simp_tac (simpset() addsimps [integ_le_less, zless_add1_eq]) 1);
 qed "zle_add1_eq";
 
 Goal "(w <= z - #1) = (w<z)";
@@ -360,7 +355,7 @@ by (asm_simp_tac (simpset() addsimps [zless_imp_zless_zadd]) 1);
 qed "zless_imp_zless_zadd1";
 
 Goal "(w < z + #1) = (w<=z)";
-by (simp_tac (simpset() addsimps [zless_add1_eq, zle_eq_zless_or_eq]) 1);
+by (simp_tac (simpset() addsimps [zless_add1_eq, integ_le_less]) 1);
 qed "zle_add1_eq_le";
 Addsimps [zle_add1_eq_le];
 
@@ -378,10 +373,10 @@ by (assume_tac 1);
 by (full_simp_tac (simpset() addsimps zadd_ac) 1);
 qed "zless_zadd_imp_zless";
 
-(*LOOPS as a simprule!*)
+(*LOOPS as a simprule!  Analogous to Suc_lessD*)
 Goal "w + #1 < z ==> w < z";
-bd zless_zadd_imp_zless 1;
-ba 2;
+by (dtac zless_zadd_imp_zless 1);
+by (assume_tac 2);
 by (Simp_tac 1);
 qed "zless_zadd1_imp_zless";
 

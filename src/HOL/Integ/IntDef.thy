@@ -23,11 +23,11 @@ defs
 
 constdefs
 
-  znat        :: nat => int                                  ("$# _" [80] 80)
+  nat        :: nat => int                                  ("$# _" [80] 80)
   "$# m == Abs_Integ(intrel ^^ {(m,0)})"
 
-  znegative   :: int => bool
-  "znegative(Z) == EX x y. x<y & (x,y::nat):Rep_Integ(Z)"
+  neg   :: int => bool
+  "neg(Z) == EX x y. x<y & (x,y::nat):Rep_Integ(Z)"
 
   (*For simplifying equalities*)
   iszero :: int => bool
@@ -41,7 +41,7 @@ defs
 
   zdiff_def "Z1 - Z2 == Z1 + -(Z2::int)"
 
-  zless_def "Z1<Z2 == znegative(Z1 - Z2)"
+  zless_def "Z1<Z2 == neg(Z1 - Z2)"
 
   zle_def   "Z1 <= (Z2::int) == ~(Z2 < Z1)"
 
