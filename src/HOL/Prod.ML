@@ -30,11 +30,10 @@ by (rtac (inj_onto_Abs_Prod RS inj_ontoD RS Pair_Rep_inject RS conjE) 1);
 by (REPEAT (ares_tac (prems@[ProdI]) 1));
 qed "Pair_inject";
 
-AddSEs [Pair_inject];
-
 goal Prod.thy "((a,b) = (a',b')) = (a=a' & b=b')";
-by (Blast_tac 1);
+by (blast_tac (!claset addSEs [Pair_inject]) 1);
 qed "Pair_eq";
+AddIffs [Pair_eq];
 
 goalw Prod.thy [fst_def] "fst((a,b)) = a";
 by (blast_tac (!claset addIs [select_equality]) 1);
@@ -88,7 +87,7 @@ by (EVERY1[stac fst_conv, stac snd_conv]);
 by (rtac refl 1);
 qed "split";
 
-Addsimps [fst_conv, snd_conv, split_paired_All, split, Pair_eq];
+Addsimps [fst_conv, snd_conv, split_paired_All, split];
 
 goal Prod.thy "(s=t) = (fst(s)=fst(t) & snd(s)=snd(t))";
 by (res_inst_tac[("p","s")] PairE 1);
