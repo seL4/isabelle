@@ -458,7 +458,7 @@ type modifier = (Proof.context -> Proof.context) * Proof.context attribute;
 
 local
 
-fun sect ss = Scan.first (map (fn s => Scan.lift (s --| Args.$$$ ":")) ss);
+fun sect ss = Scan.first (map Scan.lift ss);
 fun thms ss = Scan.unless (sect ss) Attrib.local_thms;
 fun thmss ss = Scan.repeat (thms ss) >> flat;
 
