@@ -1,0 +1,23 @@
+	   CHOL: Higher-Order Logic with curried functions
+
+This directory contains the Standard ML sources of the Isabelle system for
+Higher-Order Logic with curried functions.  Important files include
+
+ROOT.ML -- loads all source files.  Enter an ML image containing Pure
+Isabelle and type:    use "ROOT.ML";
+
+Makefile -- compiles the files under Poly/ML or SML of New Jersey
+
+ex -- subdirectory containing examples.  To execute them, enter an ML image
+containing CHOL and type:    use "ex/ROOT.ML";
+
+Subst -- subdirectory defining a theory of substitution and unification.
+
+Useful references on Higher-Order Logic:
+
+	P. B. Andrews,
+	An Introduction to Mathematical Logic and Type Theory
+	(Academic Press, 1986).
+
+	J. Lambek and P. J. Scott,
+	Introduction to Higher Order Categorical Logic (CUP, 1986)

@@ -1,0 +1,244 @@
+(*  Title: 	HOL/add_ind_def.ML
+    ID:         $Id$
+    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1994  University of Cambridge
+
+Fixedpoint definition module -- for Inductive/Coinductive Definitions
+
+Features:
+* least or greatest fixedpoints
+* user-specified product and sum constructions
+* mutually recursive definitions
+* definitions involving arbitrary monotone operators
+* automatically proves introduction and elimination rules
+
+The recursive sets must *already* be declared as constants in parent theory!
+
+  Introduction rules have the form
+  [| ti:M(Sj), ..., P(x), ... |] ==> t: Sk |]
+  where M is some monotone operator (usually the identity)
+  P(x) is any (non-conjunctive) side condition on the free variables
+  ti, t are any terms
+  Sj, Sk are two of the sets being defined in mutual recursion
+
+Sums are used only for mutual recursion;
+Products are used only to derive "streamlined" induction rules for relations
+
+Nestings of disjoint sum types:
+   (a+(b+c)) for 3,  ((a+b)+(c+d)) for 4,  ((a+b)+(c+(d+e))) for 5,
+   ((a+(b+c))+(d+(e+f))) for 6
+*)
+
+signature FP =		(** Description of a fixed point operator **)
+  sig
+  val oper	: string * typ * term -> term	(*fixed point operator*)
+  val Tarski	: thm			(*Tarski's fixed point theorem*)
+  val induct	: thm			(*induction/coinduction rule*)
+  end;
+
+
+signature ADD_INDUCTIVE_DEF =
+  sig 
+  val add_fp_def_i : term list * term list -> theory -> theory
+  end;
+
+
+
+(*Declares functions to add fixedpoint/constructor defs to a theory*)
+functor Add_inductive_def_Fun (Fp: FP) : ADD_INDUCTIVE_DEF =
+struct
+open Logic Ind_Syntax;
+
+(*internal version*)
+fun add_fp_def_i (rec_tms, intr_tms) thy = 
+  let
+    val sign = sign_of thy;
+
+    (*recT and rec_params should agree for all mutually recursive components*)
+    val rec_hds = map head_of rec_tms;
+
+    val _ = assert_all is_Const rec_hds
+	    (fn t => "Recursive set not previously declared as constant: " ^ 
+	             Sign.string_of_term sign t);
+
+    (*Now we know they are all Consts, so get their names, type and params*)
+    val rec_names = map (#1 o dest_Const) rec_hds
+    and (Const(_,recT),rec_params) = strip_comb (hd rec_tms);
+
+    val _ = assert_all Syntax.is_identifier rec_names
+       (fn a => "Name of recursive set not an identifier: " ^ a);
+
+    local (*Checking the introduction rules*)
+      val intr_sets = map (#2 o rule_concl_msg sign) intr_tms;
+      fun intr_ok set =
+	  case head_of set of Const(a,_) => a mem rec_names | _ => false;
+    in
+      val _ =  assert_all intr_ok intr_sets
+	 (fn t => "Conclusion of rule does not name a recursive set: " ^ 
+		  Sign.string_of_term sign t);
+    end;
+
+    val _ = assert_all is_Free rec_params
+	(fn t => "Param in recursion term not a free variable: " ^
+		 Sign.string_of_term sign t);
+
+    (*** Construct the lfp definition ***)
+    val mk_variant = variant (foldr add_term_names (intr_tms,[]));
+
+    val z = mk_variant"z" and X = mk_variant"X" and w = mk_variant"w";
+
+    (*Probably INCORRECT for mutual recursion!*)
+    val domTs = summands(dest_setT (body_type recT));
+    val dom_sumT = fold_bal mk_sum domTs;
+    val dom_set   = mk_setT dom_sumT;
+
+    val freez   = Free(z, dom_sumT)
+    and freeX   = Free(X, dom_set);
+    (*type of w may be any of the domTs*)
+
+    fun dest_tprop (Const("Trueprop",_) $ P) = P
+      | dest_tprop Q = error ("Ill-formed premise of introduction rule: " ^ 
+			      Sign.string_of_term sign Q);
+
+    (*Makes a disjunct from an introduction rule*)
+    fun lfp_part intr = (*quantify over rule's free vars except parameters*)
+      let val prems = map dest_tprop (strip_imp_prems intr)
+	  val _ = seq (fn rec_hd => seq (chk_prem rec_hd) prems) rec_hds
+	  val exfrees = term_frees intr \\ rec_params
+	  val zeq = eq_const dom_sumT $ freez $ (#1 (rule_concl intr))
+      in foldr mk_exists (exfrees, fold_bal (app conj) (zeq::prems)) end;
+
+    (*The Part(A,h) terms -- compose injections to make h*)
+    fun mk_Part (Bound 0, _) = freeX	(*no mutual rec, no Part needed*)
+      | mk_Part (h, domT)    = 
+	  let val goodh = mend_sum_types (h, dom_sumT)
+              and Part_const = 
+		  Const("Part", [dom_set, domT-->dom_sumT]---> dom_set)
+          in  Part_const $ freeX $ Abs(w,domT,goodh)  end;
+
+    (*Access to balanced disjoint sums via injections*)
+    val parts = map mk_Part
+	        (accesses_bal (ap Inl, ap Inr, Bound 0) (length domTs) ~~
+		 domTs);
+
+    (*replace each set by the corresponding Part(A,h)*)
+    val part_intrs = map (subst_free (rec_tms ~~ parts) o lfp_part) intr_tms;
+
+    val lfp_rhs = Fp.oper(X, dom_sumT, 
+			  mk_Collect(z, dom_sumT, 
+				     fold_bal (app disj) part_intrs))
+
+    val _ = seq (fn rec_hd => deny (rec_hd occs lfp_rhs) 
+			       "Illegal occurrence of recursion operator")
+	     rec_hds;
+
+    (*** Make the new theory ***)
+
+    (*A key definition:
+      If no mutual recursion then it equals the one recursive set.
+      If mutual recursion then it differs from all the recursive sets. *)
+    val big_rec_name = space_implode "_" rec_names;
+
+    (*Big_rec... is the union of the mutually recursive sets*)
+    val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
+
+    (*The individual sets must already be declared*)
+    val axpairs = map mk_defpair 
+	  ((big_rec_tm, lfp_rhs) ::
+	   (case parts of 
+	       [_] => [] 			(*no mutual recursion*)
+	     | _ => rec_tms ~~		(*define the sets as Parts*)
+		    map (subst_atomic [(freeX, big_rec_tm)]) parts));
+
+    val _ = seq (writeln o Sign.string_of_term sign o #2) axpairs
+  
+  in  thy |> add_defs_i axpairs  end
+
+
+(****************************************************************OMITTED
+
+(*Expects the recursive sets to have been defined already.
+  con_ty_lists specifies the constructors in the form (name,prems,mixfix) *)
+fun add_constructs_def (rec_names, con_ty_lists) thy = 
+* let
+*   val _ = writeln"  Defining the constructor functions...";
+*   val case_name = "f";		(*name for case variables*)
+
+*   (** Define the constructors **)
+
+*   (*The empty tuple is 0*)
+*   fun mk_tuple [] = Const("0",iT)
+*     | mk_tuple args = foldr1 mk_Pair args;
+
+*   fun mk_inject n k u = access_bal(ap Inl, ap Inr, u) n k;
+
+*   val npart = length rec_names;	(*total # of mutually recursive parts*)
+
+*   (*Make constructor definition; kpart is # of this mutually recursive part*)
+*   fun mk_con_defs (kpart, con_ty_list) = 
+*     let val ncon = length con_ty_list	   (*number of constructors*)
+	  fun mk_def (((id,T,syn), name, args, prems), kcon) =
+		(*kcon is index of constructor*)
+	      mk_defpair (list_comb (Const(name,T), args),
+			  mk_inject npart kpart
+			  (mk_inject ncon kcon (mk_tuple args)))
+*     in  map mk_def (con_ty_list ~~ (1 upto ncon))  end;
+
+*   (** Define the case operator **)
+
+*   (*Combine split terms using case; yields the case operator for one part*)
+*   fun call_case case_list = 
+*     let fun call_f (free,args) = 
+	      ap_split T free (map (#2 o dest_Free) args)
+*     in  fold_bal (app sum_case) (map call_f case_list)  end;
+
+*   (** Generating function variables for the case definition
+	Non-identifiers (e.g. infixes) get a name of the form f_op_nnn. **)
+
+*   (*Treatment of a single constructor*)
+*   fun add_case (((id,T,syn), name, args, prems), (opno,cases)) =
+	if Syntax.is_identifier id
+	then (opno,   
+	      (Free(case_name ^ "_" ^ id, T), args) :: cases)
+	else (opno+1, 
+	      (Free(case_name ^ "_op_" ^ string_of_int opno, T), args) :: 
+	      cases)
+
+*   (*Treatment of a list of constructors, for one part*)
+*   fun add_case_list (con_ty_list, (opno,case_lists)) =
+	let val (opno',case_list) = foldr add_case (con_ty_list, (opno,[]))
+	in (opno', case_list :: case_lists) end;
+
+*   (*Treatment of all parts*)
+*   val (_, case_lists) = foldr add_case_list (con_ty_lists, (1,[]));
+
+*   val big_case_typ = flat (map (map (#2 o #1)) con_ty_lists) ---> (iT-->iT);
+
+*   val big_rec_name = space_implode "_" rec_names;
+
+*   val big_case_name = big_rec_name ^ "_case";
+
+*   (*The list of all the function variables*)
+*   val big_case_args = flat (map (map #1) case_lists);
+
+*   val big_case_tm = 
+	list_comb (Const(big_case_name, big_case_typ), big_case_args); 
+
+*   val big_case_def = mk_defpair  
+	(big_case_tm, fold_bal (app sum_case) (map call_case case_lists)); 
+
+*   (** Build the new theory **)
+
+*   val const_decs =
+	(big_case_name, big_case_typ, NoSyn) :: map #1 (flat con_ty_lists);
+
+*   val axpairs =
+	big_case_def :: flat (map mk_con_defs ((1 upto npart) ~~ con_ty_lists))
+
+*   in  thy |> add_consts_i const_decs |> add_defs_i axpairs  end;
+****************************************************************)
+end;
+
+
+
+

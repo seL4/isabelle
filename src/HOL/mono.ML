@@ -1,0 +1,123 @@
+(*  Title: 	HOL/mono
+    ID:         $Id$
+    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1991  University of Cambridge
+
+Monotonicity of various operations
+*)
+
+goal Set.thy "!!A B. A<=B ==> f``A <= f``B";
+by (fast_tac set_cs 1);
+qed "image_mono";
+
+goal Set.thy "!!A B. A<=B ==> Pow(A) <= Pow(B)";
+by (fast_tac set_cs 1);
+qed "Pow_mono";
+
+goal Set.thy "!!A B. A<=B ==> Union(A) <= Union(B)";
+by (fast_tac set_cs 1);
+qed "Union_mono";
+
+goal Set.thy "!!A B. B<=A ==> Inter(A) <= Inter(B)";
+by (fast_tac set_cs 1);
+qed "Inter_anti_mono";
+
+val prems = goal Set.thy
+    "[| A<=B;  !!x. x:A ==> f(x)<=g(x) |] ==> \
+\    (UN x:A. f(x)) <= (UN x:B. g(x))";
+by (fast_tac (set_cs addIs (prems RL [subsetD])) 1);
+qed "UN_mono";
+
+val [prem] = goal Set.thy
+    "[| !!x. f(x)<=g(x) |] ==> (UN x. f(x)) <= (UN x. g(x))";
+by (fast_tac (set_cs addIs [prem RS subsetD]) 1);
+qed "UN1_mono";
+
+val prems = goal Set.thy
+    "[| B<=A;  !!x. x:A ==> f(x)<=g(x) |] ==> \
+\    (INT x:A. f(x)) <= (INT x:A. g(x))";
+by (fast_tac (set_cs addIs (prems RL [subsetD])) 1);
+qed "INT_anti_mono";
+
+(*The inclusion is POSITIVE! *)
+val [prem] = goal Set.thy
+    "[| !!x. f(x)<=g(x) |] ==> (INT x. f(x)) <= (INT x. g(x))";
+by (fast_tac (set_cs addIs [prem RS subsetD]) 1);
+qed "INT1_mono";
+
+goal Set.thy "!!A B. [| A<=C;  B<=D |] ==> A Un B <= C Un D";
+by (fast_tac set_cs 1);
+qed "Un_mono";
+
+goal Set.thy "!!A B. [| A<=C;  B<=D |] ==> A Int B <= C Int D";
+by (fast_tac set_cs 1);
+qed "Int_mono";
+
+goal Set.thy "!!A::'a set. [| A<=C;  D<=B |] ==> A-B <= C-D";
+by (fast_tac set_cs 1);
+qed "Diff_mono";
+
+goal Set.thy "!!A B. A<=B ==> Compl(B) <= Compl(A)";
+by (fast_tac set_cs 1);
+qed "Compl_anti_mono";
+
+val prems = goal Prod.thy
+    "[| A<=C;  !!x. x:A ==> B<=D |] ==> Sigma A (%x.B) <= Sigma C (%x.D)";
+by (cut_facts_tac prems 1);
+by (fast_tac (set_cs addIs (prems RL [subsetD]) 
+                     addSIs [SigmaI] 
+                     addSEs [SigmaE]) 1);
+qed "Sigma_mono";
+
+
+(** Monotonicity of implications.  For inductive definitions **)
+
+goal Set.thy "!!A B x. A<=B ==> x:A --> x:B";
+by (rtac impI 1);
+by (etac subsetD 1);
+by (assume_tac 1);
+qed "in_mono";
+
+goal HOL.thy "!!P1 P2 Q1 Q2. [| P1-->Q1; P2-->Q2 |] ==> (P1&P2) --> (Q1&Q2)";
+by (fast_tac HOL_cs 1);
+qed "conj_mono";
+
+goal HOL.thy "!!P1 P2 Q1 Q2. [| P1-->Q1; P2-->Q2 |] ==> (P1|P2) --> (Q1|Q2)";
+by (fast_tac HOL_cs 1);
+qed "disj_mono";
+
+goal HOL.thy "!!P1 P2 Q1 Q2.[| Q1-->P1; P2-->Q2 |] ==> (P1-->P2)-->(Q1-->Q2)";
+by (fast_tac HOL_cs 1);
+qed "imp_mono";
+
+goal HOL.thy "P-->P";
+by (rtac impI 1);
+by (assume_tac 1);
+qed "imp_refl";
+
+val [PQimp] = goal HOL.thy
+    "[| !!x. P(x) --> Q(x) |] ==> (EX x.P(x)) --> (EX x.Q(x))";
+by (fast_tac (HOL_cs addIs [PQimp RS mp]) 1);
+qed "ex_mono";
+
+val [PQimp] = goal HOL.thy
+    "[| !!x. P(x) --> Q(x) |] ==> (ALL x.P(x)) --> (ALL x.Q(x))";
+by (fast_tac (HOL_cs addIs [PQimp RS mp]) 1);
+qed "all_mono";
+
+val [PQimp] = goal Set.thy
+    "[| !!x. P(x) --> Q(x) |] ==> Collect(P) <= Collect(Q)";
+by (fast_tac (set_cs addIs [PQimp RS mp]) 1);
+qed "Collect_mono";
+
+(*Used in indrule.ML*)
+val [subs,PQimp] = goal Set.thy
+    "[| A<=B;  !!x. x:A ==> P(x) --> Q(x) \
+\    |] ==> A Int Collect(P) <= B Int Collect(Q)";
+by (fast_tac (set_cs addIs [subs RS subsetD, PQimp RS mp]) 1);
+qed "Int_Collect_mono";
+
+(*Used in intr_elim.ML and in individual datatype definitions*)
+val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
+		   ex_mono, Collect_mono, Part_mono, in_mono];
+
