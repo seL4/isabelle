@@ -30,13 +30,17 @@ sig
   val cert_typ_no_norm: context -> typ -> typ
   val get_skolem: context -> string -> string
   val extern_skolem: context -> term -> term
-  val read_termTs: string list -> context -> (string * typ) list -> term list * (indexname * typ) list
-  val read_termTs_env: (indexname -> typ option) * (indexname -> sort option) * string list -> context -> (string * typ) list -> term list * (indexname * typ) list
+  val read_termTs: context -> (string -> bool) -> (indexname -> typ option)
+    -> (indexname -> sort option) -> string list -> (string * typ) list
+    -> term list * (indexname * typ) list
+  val read_termTs_schematic: context -> (string -> bool) -> (indexname -> typ option)
+    -> (indexname -> sort option) -> string list -> (string * typ) list
+    -> term list * (indexname * typ) list
+  val read_term_liberal: context -> string -> term
   val read_term: context -> string -> term
   val read_prop: context -> string -> term
   val read_prop_schematic: context -> string -> term
   val read_terms: context -> string list -> term list
-  val read_termT_pats: context -> (string * typ) list -> term list
   val read_term_pats: typ -> context -> string list -> term list
   val read_prop_pats: context -> string list -> term list
   val cert_term: context -> term -> term
@@ -101,12 +105,18 @@ sig
   val assume_i: exporter
     -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> context -> context * (bstring * thm list) list
-  val read_vars: context * (string list * string option) -> context * (string list * typ option)
-  val cert_vars: context * (string list * typ option) -> context * (string list * typ option)
+  val read_vars: context * (string list * string option)
+    -> context * (string list * typ option)
+  val cert_vars: context * (string list * typ option)
+    -> context * (string list * typ option)
+  val read_vars_liberal: context * (string list * string option)
+    -> context * (string list * typ option)
+  val cert_vars_liberal: context * (string list * typ option)
+    -> context * (string list * typ option)
   val fix: (string list * string option) list -> context -> context
   val fix_i: (string list * typ option) list -> context -> context
-  val fix_direct: (string list * typ option) list -> context -> context
   val add_fixes: (string * typ option * Syntax.mixfix option) list -> context -> context
+  val add_fixes_liberal: (string * typ option * Syntax.mixfix option) list -> context -> context
   val fix_frees: term list -> context -> context
   val bind_skolem: context -> string list -> term -> term
   val get_case: context -> string -> string option list -> RuleCases.T
@@ -333,8 +343,8 @@ fun mixfix_type mx = replicate (Syntax.mixfix_args mx) TypeInfer.logicT ---> Typ
 
 local
 
-fun mixfix x None mx = (fixedN ^ x, mixfix_type mx, mx)
-  | mixfix x (Some T) mx = (fixedN ^ x, T, mx);
+fun mixfix x None mx = (fixedN ^ x, mixfix_type mx, Syntax.fix_mixfix x mx)
+  | mixfix x (Some T) mx = (fixedN ^ x, T, Syntax.fix_mixfix x mx);
 
 fun prep_mixfix (_, _, None) = None
   | prep_mixfix (x, opt_T, Some mx) = Some (mixfix x opt_T mx);
@@ -373,10 +383,10 @@ end;
 
 fun def_sort (Context {defs = (_, sorts, _, _), ...}) xi = Vartab.lookup (sorts, xi);
 
-fun def_type (Context {binds, defs = (types, _, _, _), ...}) is_pat xi =
+fun def_type (Context {binds, defs = (types, _, _, _), ...}) pattern xi =
   (case Vartab.lookup (types, xi) of
     None =>
-      if is_pat then None else
+      if pattern then None else
         (case Vartab.lookup (binds, xi) of
           Some (Some (_, T)) => Some (TypeInfer.polymorphicT T)
         | _ => None)
@@ -423,15 +433,14 @@ fun no_skolem internal ctxt x =
     raise CONTEXT ("Illegal reference to internal variable: " ^ quote x, ctxt)
   else x;
 
-fun intern_skolem ctxt env =
-(* env contains names that are not to be internalised *)
+fun intern_skolem ctxt internal =
   let
     fun intern (t as Free (x, T)) =
-          (case env (x, ~1) of
-              Some _ => t
-            | None => (case lookup_skolem ctxt (no_skolem false ctxt x) of
-                  Some x' => Free (x', T)
-                | None => t))
+          if internal x then t
+          else
+            (case lookup_skolem ctxt (no_skolem false ctxt x) of
+              Some x' => Free (x', T)
+            | None => t)
       | intern (t $ u) = intern t $ intern u
       | intern (Abs (x, T, t)) = Abs (x, T, intern t)
       | intern a = a;
@@ -499,7 +508,7 @@ fun unifyT ctxt (T, U) =
   let val maxidx = Int.max (Term.maxidx_of_typ T, Term.maxidx_of_typ U)
   in #1 (Type.unify (Sign.tsig_of (sign_of ctxt)) (Vartab.empty, maxidx) (T, U)) end;
 
-fun norm_term (ctxt as Context {binds, ...}) schematic allow_vars =
+fun norm_term (ctxt as Context {binds, ...}) schematic =
   let
     (*raised when norm has no effect on a term, to do sharing instead of copying*)
     exception SAME;
@@ -514,7 +523,6 @@ fun norm_term (ctxt as Context {binds, ...}) schematic allow_vars =
               in norm u' handle SAME => u' end
           | _ =>
             if schematic then raise SAME
-            else if allow_vars then t
             else raise CONTEXT ("Unbound schematic variable: " ^ Syntax.string_of_vname xi, ctxt))
       | norm (Abs (a, T, body)) =  Abs (a, T, norm body)
       | norm (Abs (_, _, body) $ t) = normh (subst_bound (t, body))
@@ -539,61 +547,44 @@ fun reject_dummies ctxt t = Term.no_dummy_patterns t
 
 local
 
-fun gen_read read app env_opt allow_vars is_pat dummies schematic
-    (ctxt as Context {defs = (_, _, used, _), ...}) s =
+fun append_env e1 e2 x = (case e2 x of None => e1 x | some => some);
+
+fun gen_read' read app pattern dummies schematic
+    ctxt internal more_types more_sorts more_used s =
   let
-    (* Use environment of ctxt with the following modification:
-       bindings in env_opt take precedence (needed for rule_tac) *)
-    val types = def_type ctxt is_pat;
-    val types' = case env_opt of
-                     None => types
-                   | Some (env, _, _) =>
-                       (fn ixn => case env ixn of
-                                      None => types ixn
-                                    | some => some);
-    val sorts = def_sort ctxt;
-    val sorts' = case env_opt of
-                     None => sorts
-                   | Some (_, envT, _) =>
-                       (fn ixn => case envT ixn of
-                                      None => sorts ixn
-                                    | some => some);
-    val used' = case env_opt of
-                    None => used
-                  | Some (_, _, used'') => used @ used'';
+    val types = append_env (def_type ctxt pattern) more_types;
+    val sorts = append_env (def_sort ctxt) more_sorts;
+    val used = used_types ctxt @ more_used;
   in
-    (transform_error (read (syn_of ctxt)
-        (sign_of ctxt) (types', sorts', used')) s
+    (transform_error (read (syn_of ctxt) (sign_of ctxt) (types, sorts, used)) s
       handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
-      | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
-    |> app (intern_skolem ctxt (case env_opt of None => K None | Some (env, _, _) => env))
-    |> app (if is_pat then I else norm_term ctxt schematic allow_vars)
-    |> app (if is_pat then prepare_dummies
-         else if dummies then I else reject_dummies ctxt)
-  end
+        | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
+    |> app (intern_skolem ctxt internal)
+    |> app (if pattern then I else norm_term ctxt schematic)
+    |> app (if pattern then prepare_dummies else if dummies then I else reject_dummies ctxt)
+  end;
+
+fun gen_read read app pattern dummies schematic ctxt =
+  gen_read' read app pattern dummies schematic ctxt (K false) (K None) (K None) [];
+
 in
 
-(* For where attribute:
-   Type vars generated by read will be distinct from those in "used". *)
-fun read_termTs used =
-  gen_read (read_def_termTs false) (apfst o map) (Some (K None, K None, used)) false false false false;
-(* For rule_tac:
-   takes extra environment (types, sorts and used type vars) *)
-fun read_termTs_env env =
-  gen_read (read_def_termTs false) (apfst o map) (Some env) true false false false;
-val read_termT_pats =
-  #1 oo gen_read (read_def_termTs false) (apfst o map) None false true false false;
+val read_termTs           = gen_read' (read_def_termTs false) (apfst o map) false false false;
+val read_termTs_schematic = gen_read' (read_def_termTs false) (apfst o map) false false true;
 
-fun read_term_pats T ctxt pats = read_termT_pats ctxt (map (rpair T) pats);
+fun read_term_pats T ctxt =
+  #1 o gen_read (read_def_termTs false) (apfst o map) true false false ctxt o map (rpair T);
 val read_prop_pats = read_term_pats propT;
 
-val read_term = gen_read (read_term_sg true) I None false false false false;
-val read_term_dummies = gen_read (read_term_sg true) I None false false true false;
-val read_prop = gen_read (read_prop_sg true) I None false false false false;
-val read_prop_schematic =
-  gen_read (read_prop_sg true) I None false false false true;
-val read_terms = gen_read (read_terms_sg true) map None false false false false;
-val read_props = gen_read (read_props_sg true) map None false false false;
+fun read_term_liberal ctxt =
+  gen_read' (read_term_sg true) I false false false ctxt (K true) (K None) (K None) [];
+
+val read_term              = gen_read (read_term_sg true) I false false false;
+val read_term_dummies      = gen_read (read_term_sg true) I false true false;
+val read_prop              = gen_read (read_prop_sg true) I false false false;
+val read_prop_schematic    = gen_read (read_prop_sg true) I false false true;
+val read_terms             = gen_read (read_terms_sg true) map false false false;
+fun read_props schematic   = gen_read (read_props_sg true) map false false schematic;
 
 end;
 
@@ -602,8 +593,8 @@ end;
 
 local
 
-fun gen_cert cert is_pat schematic ctxt t = t
-  |> (if is_pat then I else norm_term ctxt schematic false)
+fun gen_cert cert pattern schematic ctxt t = t
+  |> (if pattern then I else norm_term ctxt schematic)
   |> (fn t' => cert (sign_of ctxt) t' handle TERM (msg, _) => raise CONTEXT (msg, ctxt));
 
 in
@@ -1121,13 +1112,14 @@ end;
 
 local
 
-fun prep_vars prep_typ internal (ctxt, (xs, raw_T)) =
+fun prep_vars prep_typ internal liberal (ctxt, (xs, raw_T)) =
   let
     fun cond_tvars T =
       if internal then T
       else Type.no_tvars T handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
 
-    val _ = (case filter (not o Syntax.is_identifier) (map (no_skolem internal ctxt) xs) of
+    val _ = if liberal then () else
+      (case filter (not o Syntax.is_identifier) (map (no_skolem internal ctxt) xs) of
       [] => () | bads => raise CONTEXT ("Bad variable name(s): " ^ commas_quote bads, ctxt));
 
     val opt_T = apsome (cond_tvars o prep_typ ctxt) raw_T;
@@ -1137,8 +1129,10 @@ fun prep_vars prep_typ internal (ctxt, (xs, raw_T)) =
 
 in
 
-val read_vars = prep_vars read_typ false;
-val cert_vars = prep_vars cert_typ true;
+val read_vars         = prep_vars read_typ false false;
+val cert_vars         = prep_vars cert_typ true false;
+val read_vars_liberal = prep_vars read_typ false true;
+val cert_vars_liberal = prep_vars cert_typ true true;
 
 end;
 
@@ -1190,8 +1184,12 @@ in
 
 val fix = gen_fix read_vars add_vars;
 val fix_i = gen_fix cert_vars add_vars;
-val fix_direct = gen_fix cert_vars add_vars_direct;
-fun add_fixes decls = add_syntax decls o fix_direct (map prep_type decls);
+
+fun fix_direct liberal =
+  gen_fix (if liberal then cert_vars_liberal else cert_vars) add_vars_direct;
+
+fun add_fixes decls = add_syntax decls o fix_direct false (map prep_type decls);
+fun add_fixes_liberal decls = add_syntax decls o fix_direct true (map prep_type decls);
 
 end;
 
@@ -1199,7 +1197,7 @@ fun fix_frees ts ctxt =
   let
     val frees = foldl Term.add_frees ([], ts);
     fun new (x, T) = if is_fixed ctxt x then None else Some ([x], Some T);
-  in fix_direct (rev (mapfilter new frees)) ctxt end;
+  in fix_direct false (rev (mapfilter new frees)) ctxt end;
 
 
 (*Note: improper use may result in variable capture / dynamic scoping!*)
