@@ -93,56 +93,50 @@ exception ABORT of string;              (*dead end*)
 (* scanner combinators *)
 
 (* dependent pairing *)
+
 fun (sc1 :-- sc2) toks =
-    let
-        val (x,toks2) = sc1 toks
-        val (y,toks3) = sc2 x toks2
-    in
-        ((x,y),toks3)
-    end
+  let
+    val (x, toks2) = sc1 toks
+    val (y, toks3) = sc2 x toks2
+  in ((x, y), toks3) end;
 
 (* sequential pairing *)
+
 fun (sc1 -- sc2) toks =
-    let
-        val (x,toks2) = sc1 toks
-        val (y,toks3) = sc2 toks2
-    in
-        ((x,y),toks3)
-    end
+  let
+    val (x, toks2) = sc1 toks
+    val (y, toks3) = sc2 toks2
+  in ((x, y), toks3) end;
 
 (* application *)
+
 fun (sc >> f) toks =
-    let
-        val (x,toks2) = sc toks
-    in
-        (f x,toks2)
-    end
+  let val (x, toks2) = sc toks
+  in (f x, toks2) end;
 
 (* forget snd *)
+
 fun (sc1 --| sc2) toks =
-    let
-        val (x,toks2) = sc1 toks
-        val (_,toks3) = sc2 toks2
-    in
-        (x,toks3)
-    end
+  let
+    val (x, toks2) = sc1 toks
+    val (_, toks3) = sc2 toks2
+  in (x, toks3) end;
 
 (* forget fst *)
+
 fun (sc1 |-- sc2) toks =
-    let
-        val (_,toks2) = sc1 toks
-    in
-        sc2 toks2
-    end
+  let val (_, toks2) = sc1 toks
+  in sc2 toks2 end;
 
 (* concatenation *)
+
 fun (sc1 ^^ sc2) toks =
-    let
-        val (x,toks2) = sc1 toks
-        val (y,toks3) = sc2 toks2
-    in
-        (x^y,toks3)
-    end
+  let
+    val (x, toks2) = sc1 toks
+    val (y, toks3) = sc2 toks2
+  in (x ^ y, toks3) end;
+
+(* alternative *)
 
 fun (scan1 || scan2) xs = scan1 xs handle FAIL _ => scan2 xs;
 
@@ -167,36 +161,24 @@ fun any _ [] = raise MORE None
       else ([], lst);
 
 fun any1 p toks =
-    let
-        val (x,toks2) = one p toks
-        val (xs,toks3) = any p toks2
-    in
-        (x::xs,toks3)
-    end
+  let
+    val (x, toks2) = one p toks
+    val (xs,toks3) = any p toks2
+  in (x :: xs, toks3) end;
 
 fun optional scan def =  scan || succeed def
 fun option scan = (scan >> Some) || succeed None
 
 fun repeat scan =
-    let
-        fun R xs toks =
-            let
-                val (x,toks2) = scan toks
-            in
-                R (x::xs) toks2
-            end
-            handle FAIL _ => (rev xs,toks)
-    in
-        R []
-    end
+  let fun rep ys xs = (case (Some (scan xs) handle FAIL _ => None) of
+    None => (rev ys, xs) | Some (y, xs') => rep (y :: ys) xs')
+  in rep [] end;
 
 fun repeat1 scan toks =
-    let
-        val (x,toks2) = scan toks
-        val (xs,toks3) = repeat scan toks2
-    in
-        (x::xs,toks3)
-    end
+  let
+    val (x, toks2) = scan toks
+    val (xs, toks3) = repeat scan toks2
+  in (x :: xs, toks3) end;
 
 fun max leq scan1 scan2 xs =
   (case (option scan1 xs, option scan2 xs) of
