@@ -38,6 +38,7 @@ signature THM =
   val extend_theory: theory -> string
 	-> (class * class list) list * sort
 	   * (string list * int)list
+           * (string * indexname list * string) list
 	   * (string list * (sort list * class))list
 	   * (string list * string)list * Sign.Syntax.sext option
 	-> (string*string)list -> theory
@@ -419,7 +420,6 @@ fun flexflex_rule (Thm{sign,maxidx,hyps,prop}) =
 	    (Unify.smash_unifiers(sign, Envir.empty maxidx, tpairs))
   end;
 
-
 (*Instantiation of Vars
 		      A
 	     --------------------
@@ -470,7 +470,6 @@ fun instantiate (vcTs,ctpairs)  (th as Thm{sign,maxidx,hyps,prop}) =
   handle TERM _ => 
            raise THM("instantiate: incompatible signatures",0,[th])
        | TYPE _ => raise THM("instantiate: type conflict", 0, [th]);
-
 
 (*The trivial implication A==>A, justified by assume and forall rules.
   A can contain Vars, not so for assume!   *)

@@ -22,6 +22,7 @@ sig
   val extend: sg -> string ->
         (class * class list) list * class list *
         (string list * int) list *
+        (string * indexname list * string) list *
         (string list * (sort list * class)) list *
         (string list * string)list * Syntax.sext option -> sg
   val merge: sg * sg -> sg
@@ -52,7 +53,7 @@ sig
   val pretty_term: sg -> term -> Syntax.Pretty.T
 end;
 
-functor SignFun(structure Type: TYPE and Syntax: SYNTAX): SIGN =
+functor SignFun(structure Type: TYPE and Syntax: SYNTAX) : SIGN =
 struct
 
 structure Type = Type;
@@ -85,18 +86,18 @@ fun valid_const tsig ctab (a,T) = case Symtab.lookup(ctab, a) of
 (*Check a term for errors.  Are all constants and types valid in signature?
   Does not check that term is well-typed!*)
 fun term_errors (sign as Sg{tsig,const_tab,...}) =
-let val showtyp = string_of_typ sign;
+let val showtyp = string_of_typ sign
     fun terrs (Const (a,T), errs) =
         if valid_const tsig const_tab (a,T)
-        then Type.type_errors (tsig,showtyp) (T,errs)
+        then Type.type_errors tsig (T,errs)
         else ("Illegal type for constant: " ^ a ^ ": " ^ showtyp T) :: errs
-      | terrs (Free (_,T), errs) = Type.type_errors (tsig,showtyp) (T,errs)
+      | terrs (Free (_,T), errs) = Type.type_errors tsig (T,errs)
       | terrs (Var  ((a,i),T), errs) =
-        if  i>=0  then  Type.type_errors (tsig,showtyp) (T,errs)
+        if  i>=0  then  Type.type_errors tsig (T,errs)
         else  ("Negative index for Var: " ^ a) :: errs
       | terrs (Bound _, errs) = errs (*loose bvars detected by type_of*)
       | terrs (Abs (_,T,t), errs) =
-            Type.type_errors(tsig,showtyp)(T,terrs(t,errs))
+            Type.type_errors tsig (T,terrs(t,errs))
       | terrs (f$t, errs) = terrs(f, terrs (t,errs))
 in  terrs  end;
 
@@ -109,7 +110,7 @@ in  terrs  end;
    forge a signature. *)
 
 fun extend (Sg {tsig, const_tab, syn, stamps}) name
-  (classes, default, types, arities, const_decs, opt_sext) =
+  (classes, default, types, abbr, arities, const_decs, opt_sext) =
   let
     fun err_in_typ s = error ("The error(s) above occurred in type " ^ quote s);
 
@@ -117,7 +118,7 @@ fun extend (Sg {tsig, const_tab, syn, stamps}) name
       Syntax.read_typ sy (K (Type.defaultS tsg)) s handle ERROR => err_in_typ s;
 
     fun check_typ tsg sy ty =
-      (case Type.type_errors (tsg, Syntax.string_of_typ sy) (ty, []) of
+      (case Type.type_errors tsg (ty, []) of
         [] => ty
       | errs => (prs (cat_lines errs); err_in_typ (Syntax.string_of_typ sy ty)));
 
@@ -135,32 +136,34 @@ fun extend (Sg {tsig, const_tab, syn, stamps}) name
     fun read_consts tsg sy (cs, s) =
       let val ty = zero_tvar_indices (Type.varifyT (read_typ tsg sy s));
       in
-        (case Type.type_errors (tsg, Syntax.string_of_typ sy) (ty, []) of
+        (case Type.type_errors tsg (ty, []) of
           [] => (cs, ty)
         | errs => error (cat_lines (("Error in type of constants " ^
             space_implode " " (map quote cs)) :: errs)))
       end;
 
-
-    (* FIXME abbr *)
     val tsig' = Type.extend (tsig, classes, default, types, arities);
 
-    (* FIXME *)
-    fun expand_typ _ ty = ty;
+    fun read_typ_abbr(a,v,s)=
+      let val T = Type.varifyT(read_typ tsig' syn s)
+      in (a,(v,T)) end handle ERROR => error("This error occured in abbreviation "^ quote a);
+
+    val abbr' = map read_typ_abbr abbr;
+    val tsig'' = Type.add_abbrs(tsig',abbr');
 
     val read_ty =
-      (expand_typ tsig') o (check_typ tsig' syn) o (read_typ tsig' syn);
-    val log_types = Type.logical_types tsig';
+      (Type.expand_typ tsig'') o (check_typ tsig'' syn) o (read_typ tsig'' syn);
+    val log_types = Type.logical_types tsig'';
     val xconsts = map #1 classes @ flat (map #1 types) @ flat (map #1 const_decs);
     val sext = case opt_sext of Some sx => sx | None => Syntax.empty_sext;
 
     val syn' = Syntax.extend syn read_ty (log_types, xconsts, sext);
 
     val const_decs' =
-      map (read_consts tsig' syn') (Syntax.constants sext @ const_decs);
+      map (read_consts tsig'' syn') (Syntax.constants sext @ const_decs);
   in
     Sg {
-      tsig = tsig',
+      tsig = tsig'',
       const_tab = Symtab.st_of_declist (const_decs', const_tab)
         handle Symtab.DUPLICATE a => error ("Constant " ^ quote a ^ " declared twice"),
       syn = syn',
@@ -182,6 +185,7 @@ val pure = extend sg0 "Pure"
  [(["fun"], 2),
   (["prop"], 0),
   (Syntax.syntax_types, 0)],
+ [],
  [(["fun"],  ([["logic"], ["logic"]], "logic")),
   (["prop"], ([], "logic"))],
  [([Syntax.constrainC], "'a::logic => 'a")],
@@ -241,7 +245,7 @@ fun rep_ctyp(Ctyp ctyp) = ctyp;
 fun typ_of (Ctyp{sign,T}) = T;
 
 fun ctyp_of (sign as Sg{tsig,...}) T =
-        case Type.type_errors (tsig,string_of_typ sign) (T,[]) of
+        case Type.type_errors tsig (T,[]) of
           [] => Ctyp{sign= sign,T= T}
         | errs =>  error (cat_lines ("Error in type:" :: errs));
 
@@ -341,12 +345,10 @@ let fun split([],tvs,vs) = (tvs,vs)
                       Some T => typ_subst_TVars tye T
                     | None => absent ixn;
             val (ct,tye2) = read_def_cterm (sign,types,sorts) (st,T);
-        in ((ixn,T,ct)::cts,tye2 @ tye) end
+            val cv = cterm_of sign (Var(ixn,typ_subst_TVars tye2 T))
+        in ((cv,ct)::cts,tye2 @ tye) end
     val (cterms,tye') = foldl add_cterm (([],tye), vs);
-in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye',
-    map (fn (ixn,T,ct)=> (cterm_of sign (Var(ixn,typ_subst_TVars tye' T)), ct))
-        cterms)
-end;
+in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye', cterms) end;
 
 end;
 
