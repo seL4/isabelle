@@ -428,7 +428,8 @@ val proto_pure =
   |> Theory.add_trfuns Syntax.pure_trfuns
   |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Theory.add_syntax
-   [("==>", "[prop, prop] => prop", Delimfix "op ==>")]
+   [("==>", "[prop, prop] => prop", Delimfix "op ==>"),
+    (dummy_patternN, "aprop", Delimfix "'_")]
   |> Theory.add_consts
    [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),
     ("=?=", "['a::{}, 'a] => prop", InfixrName ("=?=", 2)),
