@@ -1,4 +1,4 @@
-#
+# -*- shell-script -*-
 # $Id$
 # Author: Markus Wenzel, TU Muenchen
 # License: GPL (GNU GENERAL PUBLIC LICENSE)
@@ -16,8 +16,8 @@ ISABELLE_SETTINGS_PRESENT=true
 #normalize ISABELLE_HOME as passed by caller
 ISABELLE_HOME=$(cd "$ISABELLE_HOME"; echo "$PWD")
 
-#main executables
-ISABELLE="$ISABELLE_HOME/bin/isabelle"
+#key executables
+ISABELLE="$ISABELLE_HOME/bin/isabelle-process"
 ISATOOL="$ISABELLE_HOME/bin/isatool"
 
 #users tend to put strange things in here ...
