@@ -333,20 +333,22 @@ fun infer prt prT classrel arities =
     fun err_loose i =
       raise_type ("Loose bound variable: B." ^ string_of_int i) [] [];
 
-    fun err_appl msg bs t T U_to_V u U =
+    fun err_appl msg bs t T u U =
       let
-        val ([t', u'], [T', U_to_V', U']) = prep_output bs [t, u] [T, U_to_V, U];
+        val ([t', u'], [T', U']) = prep_output bs [t, u] [T, U];
+        val why =
+          (case T' of
+            Type ("fun", _) => "Incompatible operand type."
+          | _ => "Operator not of function type.");
         val text = cat_lines
          [unif_failed msg,
-          "Type error in application:",
+          "Type error in application: " ^ why,
           "",
-          str_of (Pretty.block [Pretty.str "operator:", Pretty.brk 2, prt t',
+          str_of (Pretty.block [Pretty.str "Operator:", Pretty.brk 2, prt t',
             Pretty.str " :: ", prT T']),
-          str_of (Pretty.block [Pretty.str "expected:", Pretty.brk 2, prT U_to_V']),
-          "",
-          str_of (Pretty.block [Pretty.str "operand:", Pretty.brk 3, prt u',
+          str_of (Pretty.block [Pretty.str "Operand:", Pretty.brk 3, prt u',
             Pretty.str " :: ", prT U']), ""];
-      in raise_type text [T', U_to_V', U'] [t', u'] end;
+      in raise_type text [T', U'] [t', u'] end;
 
     fun err_constraint msg bs t T U =
       let
@@ -355,9 +357,9 @@ fun infer prt prT classrel arities =
          [unif_failed msg,
           "Cannot meet type constraint:",
           "",
-          str_of (Pretty.block [Pretty.str "term:", Pretty.brk 2, prt t',
+          str_of (Pretty.block [Pretty.str "Term:", Pretty.brk 2, prt t',
             Pretty.str " :: ", prT T']),
-          str_of (Pretty.block [Pretty.str "type:", Pretty.brk 2, prT U']), ""];
+          str_of (Pretty.block [Pretty.str "Type:", Pretty.brk 2, prT U']), ""];
       in raise_type text [T', U'] [t'] end;
 
 
@@ -376,8 +378,7 @@ fun infer prt prT classrel arities =
             val U = inf bs u;
             val V = mk_param [];
             val U_to_V = PType ("fun", [U, V]);
-            val _ = unif U_to_V T handle NO_UNIFIER msg =>
-              err_appl msg bs t T U_to_V u U;
+            val _ = unif U_to_V T handle NO_UNIFIER msg => err_appl msg bs t T u U;
           in V end
       | inf bs (Constraint (t, U)) =
           let val T = inf bs t in
