@@ -87,12 +87,14 @@ fun file_info "" = ""
 
 (*** ML command execution ***)
 
-fun use_string commands = 
-   Compiler.Interact.use_stream (open_string (implode commands));
 
-(*For later versions of Standard ML of New Jersey use...
+(*For version 109.21 and later:
 val use_string = Compiler.Interact.useStream o TextIO.openString o implode;
 *)
+
+(*For versions prior to 109.21:*)
+fun use_string commands = 
+   Compiler.Interact.use_stream (open_string (implode commands));
 
 (*** System command execution ***)
 
