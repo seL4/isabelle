@@ -41,7 +41,7 @@ by (blast_tac (claset() addIs prems) 1);
 qed "transientE";
 
 Goalw [transient_def] "transient UNIV = {}";
-by Auto_tac;
+by (Blast_tac 1); 
 qed "transient_UNIV";
 
 Goalw [transient_def] "transient {} = UNIV";
