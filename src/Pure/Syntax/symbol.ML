@@ -2,12 +2,13 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Baroque characters.
+Generalized characters.
 *)
 
 signature SYMBOL =
 sig
   type symbol
+  val space: symbol
   val eof: symbol
   val is_eof: symbol -> bool
   val not_eof: symbol -> bool
@@ -161,10 +162,12 @@ fun symbol' c =
 
 type symbol = string;
 
+val space = " ";
+val eof = "";
+
 
 (* kinds *)
 
-val eof = "";
 fun is_eof s = s = eof;
 fun not_eof s = s <> eof;
 
@@ -213,7 +216,7 @@ fun no_syms [] = true
 
 fun sym_explode str =
   let val chs = explode str in
-    if no_syms chs then chs	(*tune trivial case*)
+    if no_syms chs then chs     (*tune trivial case*)
     else map symbol (#1 (Scan.error (Scan.finite eof (Scan.repeat scan)) chs))
   end;
 
