@@ -57,6 +57,7 @@ sig
   val method: token list -> Method.text * token list
   val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
   val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
+  val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
 end;
 
 structure OuterParse: OUTER_PARSE =
@@ -96,6 +97,7 @@ fun !!! scan =
 
 fun triple1 ((x, y), z) = (x, y, z);
 fun triple2 (x, (y, z)) = (x, y, z);
+fun triple_swap ((x, y), z) = ((x, z), y);
 
 
 (* tokens *)

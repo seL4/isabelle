@@ -646,7 +646,7 @@ fun add_inductive verbose coind c_strings intro_srcs raw_monos raw_con_defs thy 
 local open OuterParse in
 
 fun mk_ind coind (((sets, intrs), monos), con_defs) =
-  #1 o add_inductive true coind sets (map (fn ((x, y), z) => ((x, z), y)) intrs) monos con_defs;
+  #1 o add_inductive true coind sets (map triple_swap intrs) monos con_defs;
 
 fun ind_decl coind =
   Scan.repeat1 term --
