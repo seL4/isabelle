@@ -6,8 +6,6 @@
 Datatype definition of binary trees
 *)
 
-open BT;
-
 (** BT simplification **)
 
 Goal "n_leaves(reflect(t)) = n_leaves(t)";

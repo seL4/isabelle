@@ -10,8 +10,6 @@ See H. Davenport, "The Higher Arithmetic".  6th edition.  (CUP, 1992)
 
 eta_contract:=false;
 
-open Primes;
-
 (************************************************)
 (** Greatest Common Divisor                    **)
 (************************************************)

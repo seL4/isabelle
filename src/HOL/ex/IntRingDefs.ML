@@ -2,10 +2,7 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel
     Copyright   1996 TU Muenchen
-
 *)
-
-open IntRingDefs;
 
 Goalw [zero_int_def,zdiff_def] "(zero-x)+(x::int) = zero";
 by (Simp_tac 1);

@@ -6,8 +6,6 @@
 The instantiation of Lagrange's lemma for int.
 *)
 
-open IntRing;
-
 Goal "!!i1::int. \
 \  (sq i1 + sq i2 + sq i3 + sq i4) * (sq j1 + sq j2 + sq j3 + sq j4) = \
 \  sq(i1*j1 - i2*j2 - i3*j3 - i4*j4)  + \
