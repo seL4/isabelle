@@ -395,18 +395,17 @@ fun SUBGOAL goalfun i = Tactic(fn state =>
   The "main goal" of the new state will not be atomic, some tactics may fail!
   DOES NOT work if tactic affects the main goal other than by instantiation.*)
 
-(* (!!x. ?V) ==> ?V ;  used by protect_subgoal.*)
+(* (!!x. PROP ?V) ==> PROP ?V ;  contains NO TYPE VARIABLES.*)
 val dummy_quant_rl = 
   standard (forall_elim_var 0 (assume 
-                  (Sign.read_cterm Sign.pure ("!!x. PROP V",propT))));
+                  (Sign.read_cterm Sign.pure ("!!x::prop. PROP V",propT))));
 
 (* Prevent the subgoal's assumptions from becoming additional subgoals in the
    new proof state by enclosing them by a universal quantification *)
 fun protect_subgoal state i =
-  case Sequence.chop (1, bicompose false (false,dummy_quant_rl,1) i state)
-  of
+  case Sequence.chop (1, bicompose false (false,dummy_quant_rl,1) i state) of
       ([state'],_) => state'
-    | _ => error"SELECT_GOAL -- impossible error???";
+    | _            => error"SELECT_GOAL -- impossible error???";
 
 (*Does the work of SELECT_GOAL. *)
 fun select (Tactic tf) state i =
@@ -416,14 +415,12 @@ fun select (Tactic tf) state i =
   in  Sequence.flats (Sequence.maps next (tf st0))
   end;
 
-(*If i=1 and there is only one subgoal then do nothing!*)
 fun SELECT_GOAL tac i = Tactic (fn state =>
   case (i, drop(i-1, prems_of state)) of
       (_,[]) => Sequence.null
-    | (1,[_]) => tapply(tac,state)
+    | (1,[_]) => tapply(tac,state)  (*If i=1 and only one subgoal do nothing!*)
     | (_, (Const("==>",_)$_$_) :: _) => select tac (protect_subgoal state i) i
     | (_, _::_) => select tac state i);
-
 
 
 (*Strips assumptions in goal yielding  ( [x1,...,xm], [H1,...,Hn], B )
