@@ -100,6 +100,9 @@ defs
   inj_onto_def  "inj_onto f A   == ! x:A. ! y:A. f(x)=f(y) --> x=y"
   surj_def      "surj(f)        == ! y. ? x. y=f(x)"
 
+(* start 8bit 1 *)
+(* end 8bit 1 *)
+
 end
 
 ML

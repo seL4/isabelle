@@ -74,6 +74,9 @@ consts
 defs
   Unity_def     "() == Abs_Unit(True)"
 
+(* start 8bit 1 *)
+(* end 8bit 1 *)
+
 end
 (*
 ML

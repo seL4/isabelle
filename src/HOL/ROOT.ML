@@ -61,6 +61,7 @@ val HOL_cs = prop_cs addSIs [allI] addIs [exI,ex1I]
                      addSEs [exE,ex1E] addEs [allE];
 
 use     "simpdata.ML";
+
 use_thy "Ord";
 use_thy "subset";
 use     "hologic.ML";
