@@ -348,7 +348,7 @@ Goal
 \     (? us v. w = concat us @ v & \
 \              (!u:set us. accepts A u) & \
 \              (start A,r) : steps A v)";
-by (rev_induct_tac "w" 1);
+by (res_inst_tac [("xs","w")] rev_induct 1);
  by (Simp_tac 1);
  by (res_inst_tac [("x","[]")] exI 1);
  by (Simp_tac 1);
@@ -368,7 +368,7 @@ qed_spec_mp "start_steps_plusD";
 Goal
  "us ~= [] --> (!u : set us. accepts A u) --> accepts (plus A) (concat us)";
 by (simp_tac (simpset() addsimps [accepts_conv_steps]) 1);
-by (rev_induct_tac "us" 1);
+by (res_inst_tac [("xs","us")] rev_induct 1);
  by (Simp_tac 1);
 by (rename_tac "u us" 1);
 by (Simp_tac 1);

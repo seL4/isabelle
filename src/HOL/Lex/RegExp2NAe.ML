@@ -500,7 +500,7 @@ Goal
 \ (? us v. w = concat us @ v & \
 \             (!u:set us. accepts A u) & \
 \             (? r. (start A,r) : steps A v & rr = True#r))";
-by (rev_induct_tac "w" 1);
+by (res_inst_tac [("xs","w")] rev_induct 1);
  by (Asm_full_simp_tac 1);
  by (Clarify_tac 1);
  by (res_inst_tac [("x","[]")] exI 1);

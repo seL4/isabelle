@@ -56,7 +56,7 @@ qed "bag_of_sublist_lemma";
 
 Goal "bag_of (sublist l A) = \
 \     (\\<Sum>i: A Int lessThan (length l). {# l!i #})";
-by (rev_induct_tac "l" 1);
+by (res_inst_tac [("xs","l")] rev_induct 1);
 by (Simp_tac 1);
 by (asm_simp_tac
     (simpset() addsimps [sublist_append, Int_insert_right, lessThan_Suc, 

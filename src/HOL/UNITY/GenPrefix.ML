@@ -341,7 +341,7 @@ qed "prefix_snoc";
 Addsimps [prefix_snoc];
 
 Goal "(xs <= ys@zs) = (xs <= ys | (? us. xs = ys@us & us <= zs))";
-by (rev_induct_tac "zs" 1);
+by (res_inst_tac [("xs","zs")] rev_induct 1);
  by (Force_tac 1);
 by (asm_full_simp_tac (simpset() delsimps [append_assoc]
                                  addsimps [append_assoc RS sym])1);
@@ -351,7 +351,7 @@ qed "prefix_append_iff";
 (*Although the prefix ordering is not linear, the prefixes of a list
   are linearly ordered.*)
 Goal "!!zs::'a list. xs <= zs --> ys <= zs --> xs <= ys | ys <= xs";
-by (rev_induct_tac "zs" 1);
+by (res_inst_tac [("xs","zs")] rev_induct 1);
 by Auto_tac;
 qed_spec_mp "common_prefix_linear";
 
