@@ -29,7 +29,7 @@ subsection {* Fibonacci numbers *}
 consts fib :: "nat => nat"
 recdef fib less_than
  "fib 0 = 0"
- "fib 1 = 1"
+ "fib 1' = 1"
  "fib (Suc (Suc x)) = fib x + fib (Suc x)"
 
 lemma [simp]: "0 < fib (Suc n)"

@@ -54,7 +54,7 @@ lemma gcd_non_0: "0 < n ==> gcd (m, n) = gcd (n, m mod n)"
 
 declare gcd.simps [simp del]
 
-lemma gcd_1 [simp]: "gcd (m, 1) = 1"
+lemma gcd_1 [simp]: "gcd (m, 1') = 1"
   apply (simp add: gcd_non_0)
   done
 
@@ -140,8 +140,8 @@ lemma gcd_0_left [simp]: "gcd (0, m) = m"
   apply (simp add: gcd_commute [of 0])
   done
 
-lemma gcd_1_left [simp]: "gcd (1, m) = 1"
-  apply (simp add: gcd_commute [of 1])
+lemma gcd_1_left [simp]: "gcd (1', m) = 1"
+  apply (simp add: gcd_commute [of "1'"])
   done
 
 

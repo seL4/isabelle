@@ -52,10 +52,10 @@ inductive "exec eval"
     IfTrue "[| (e,s) -|[eval]-> (0,s');  (c0,s') -[eval]-> s1 |] 
             ==> (IF e THEN c0 ELSE c1, s) -[eval]-> s1"
 
-    IfFalse "[| (e,s) -|[eval]->  (1,s');  (c1,s') -[eval]-> s1 |] 
+    IfFalse "[| (e,s) -|[eval]->  (1',s');  (c1,s') -[eval]-> s1 |] 
              ==> (IF e THEN c0 ELSE c1, s) -[eval]-> s1"
 
-    WhileFalse "(e,s) -|[eval]-> (1,s1) ==> (WHILE e DO c, s) -[eval]-> s1"
+    WhileFalse "(e,s) -|[eval]-> (1',s1) ==> (WHILE e DO c, s) -[eval]-> s1"
 
     WhileTrue  "[| (e,s) -|[eval]-> (0,s1);
                 (c,s1) -[eval]-> s2;  (WHILE e DO c, s2) -[eval]-> s3 |] 

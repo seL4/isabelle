@@ -11,7 +11,7 @@ by (Simp_tac 1);
 qed "even_0";
 Addsimps [even_0];
 
-Goalw [even_def] "even 1 = False";
+Goalw [even_def] "even 1' = False";
 by (Simp_tac 1);
 qed "not_even_1";
 Addsimps [not_even_1];
@@ -50,7 +50,7 @@ Addsimps[body_Odd, body_Even];
 
 section "verification";
 
-Goalw [odd_def] "{{Z=Arg+0}. BODY Even .{Res_ok}}|-{Z=Arg+1}. odd .{Res_ok}";
+Goalw [odd_def] "{{Z=Arg+0}. BODY Even .{Res_ok}}|-{Z=Arg+1'}. odd .{Res_ok}";
 by (rtac hoare_derivs.If 1);
 by (rtac (hoare_derivs.Ass RS conseq1) 1);
 by  (clarsimp_tac Arg_Res_css 1);

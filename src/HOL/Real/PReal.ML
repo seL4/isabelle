@@ -30,7 +30,7 @@ bind_thm ("empty_not_mem_prealE", empty_not_mem_preal RS notE);
 
 Addsimps [empty_not_mem_preal];
 
-Goalw [preal_def] "{x::prat. x < prat_of_pnat (Abs_pnat 1)} : preal";
+Goalw [preal_def] "{x::prat. x < prat_of_pnat (Abs_pnat 1')} : preal";
 by (rtac preal_1 1);
 qed "one_set_mem_preal";
 
@@ -234,9 +234,9 @@ Goal "ALL y: {w. EX x: Rep_preal R. EX y: Rep_preal S. w = x + y}. \
 \         ALL z. z < y --> z : {w. EX x:Rep_preal R. EX y:Rep_preal S. w = x + y}";
 by Auto_tac;
 by (ftac prat_mult_qinv_less_1 1);
-by (forw_inst_tac [("x","x"),("q2.0","prat_of_pnat (Abs_pnat 1)")] 
+by (forw_inst_tac [("x","x"),("q2.0","prat_of_pnat (Abs_pnat 1')")] 
     prat_mult_less2_mono1 1);
-by (forw_inst_tac [("x","ya"),("q2.0","prat_of_pnat (Abs_pnat 1)")] 
+by (forw_inst_tac [("x","ya"),("q2.0","prat_of_pnat (Abs_pnat 1')")] 
     prat_mult_less2_mono1 1);
 by (Asm_full_simp_tac 1);
 by (REPEAT(dtac (Rep_preal RS prealE_lemma3a) 1));
@@ -367,7 +367,7 @@ bind_thms ("preal_mult_ac", [preal_mult_assoc,
 (* Positive Real 1 is the multiplicative identity element *) 
 (* long *)
 Goalw [preal_of_prat_def,preal_mult_def] 
-      "(preal_of_prat (prat_of_pnat (Abs_pnat 1))) * z = z";
+      "(preal_of_prat (prat_of_pnat (Abs_pnat 1'))) * z = z";
 by (rtac (Rep_preal_inverse RS subst) 1);
 by (res_inst_tac [("f","Abs_preal")] arg_cong 1);
 by (rtac (one_set_mem_preal RS Abs_preal_inverse RS ssubst) 1);
@@ -382,7 +382,7 @@ by (rtac exI 1 THEN Auto_tac THEN res_inst_tac [("x","u")] bexI 1);
 by (auto_tac (claset(),simpset() addsimps [prat_mult_assoc]));
 qed "preal_mult_1";
 
-Goal "z * (preal_of_prat (prat_of_pnat (Abs_pnat 1))) = z";
+Goal "z * (preal_of_prat (prat_of_pnat (Abs_pnat 1'))) = z";
 by (rtac (preal_mult_commute RS subst) 1);
 by (rtac preal_mult_1 1);
 qed "preal_mult_1_right";
@@ -563,7 +563,7 @@ qed "preal_mem_inv_set";
 
 (*more lemmas for inverse *)
 Goal "x: Rep_preal(pinv(A)*A) ==> \
-\     x: Rep_preal(preal_of_prat (prat_of_pnat (Abs_pnat 1)))";
+\     x: Rep_preal(preal_of_prat (prat_of_pnat (Abs_pnat 1')))";
 by (auto_tac (claset() addSDs [mem_Rep_preal_multD],
               simpset() addsimps [pinv_def,preal_of_prat_def] ));
 by (dtac (preal_mem_inv_set RS Abs_preal_inverse RS subst) 1);
@@ -583,8 +583,8 @@ by (auto_tac (claset(),simpset() addsimps [pnat_one_def,
 qed "lemma1_gleason9_34";
 
 Goal "Abs_prat (ratrel `` {(y, z)}) < xb + \
-\         Abs_prat (ratrel `` {(x*y, Abs_pnat 1)})*Abs_prat (ratrel `` {(w, x)})";
-by (res_inst_tac [("j","Abs_prat (ratrel `` {(x * y, Abs_pnat 1)}) *\
+\         Abs_prat (ratrel `` {(x*y, Abs_pnat 1')})*Abs_prat (ratrel `` {(w, x)})";
+by (res_inst_tac [("j","Abs_prat (ratrel `` {(x * y, Abs_pnat 1')}) *\
 \                   Abs_prat (ratrel `` {(w, x)})")] prat_le_less_trans 1);
 by (rtac prat_self_less_add_right 2);
 by (auto_tac (claset() addIs [lemma_Abs_prat_le3],
@@ -650,14 +650,14 @@ by (dres_inst_tac [("y","r*x")] (Rep_preal RS prealE_lemma3b) 1);
 by Auto_tac;
 qed "lemma_gleason9_36";
 
-Goal "prat_of_pnat (Abs_pnat 1) < x ==> \
+Goal "prat_of_pnat (Abs_pnat 1') < x ==> \
 \     EX r: Rep_preal(A). r*x ~: Rep_preal(A)";
 by (rtac lemma_gleason9_36 1);
 by (asm_simp_tac (simpset() addsimps [pnat_one_def]) 1);
 qed "lemma_gleason9_36a";
 
 (*** Part 2 of existence of inverse ***)
-Goal "x: Rep_preal(preal_of_prat (prat_of_pnat (Abs_pnat 1))) \
+Goal "x: Rep_preal(preal_of_prat (prat_of_pnat (Abs_pnat 1'))) \
 \     ==> x: Rep_preal(pinv(A)*A)";
 by (auto_tac (claset() addSIs [mem_Rep_preal_multI],
               simpset() addsimps [pinv_def,preal_of_prat_def] ));
@@ -677,12 +677,12 @@ by (auto_tac (claset(),simpset() addsimps [prat_mult_assoc,
     prat_mult_left_commute]));
 qed "preal_mem_mult_invI";
 
-Goal "pinv(A)*A = (preal_of_prat (prat_of_pnat (Abs_pnat 1)))";
+Goal "pinv(A)*A = (preal_of_prat (prat_of_pnat (Abs_pnat 1')))";
 by (rtac (inj_Rep_preal RS injD) 1);
 by (fast_tac (claset() addDs [preal_mem_mult_invD,preal_mem_mult_invI]) 1);
 qed "preal_mult_inv";
 
-Goal "A*pinv(A) = (preal_of_prat (prat_of_pnat (Abs_pnat 1)))";
+Goal "A*pinv(A) = (preal_of_prat (prat_of_pnat (Abs_pnat 1')))";
 by (rtac (preal_mult_commute RS subst) 1);
 by (rtac preal_mult_inv 1);
 qed "preal_mult_inv_right";

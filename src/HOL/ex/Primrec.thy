@@ -159,7 +159,7 @@ lemma less_ack1 [iff]: "i < ack (i, j)"
 
 text {* PROPERTY A 8 *}
 
-lemma ack_1 [simp]: "ack (1, j) = j + #2"
+lemma ack_1 [simp]: "ack (1', j) = j + #2"
   apply (induct j)
    apply simp_all
   done

@@ -9,7 +9,7 @@
 PNat = Main +
 
 typedef
-  pnat = "lfp(%X. {1} Un Suc`X)"   (lfp_def)
+  pnat = "lfp(%X. {1'} Un Suc`X)"   (lfp_def)
 
 instance
    pnat :: {ord, plus, times}
@@ -27,7 +27,7 @@ constdefs
 defs
 
   pnat_one_def      
-       "1p == Abs_pnat(1)"
+       "1p == Abs_pnat(1')"
   pnat_Suc_def      
        "pSuc == (%n. Abs_pnat(Suc(Rep_pnat(n))))"
 

@@ -30,7 +30,7 @@ by (etac contrapos_pp 1);
 by Auto_tac;  
 qed "power_eq_0D";
 
-Goal "!!i::nat. 1 <= i ==> 1 <= i^n";
+Goal "!!i::nat. 1 <= i ==> 1' <= i^n";
 by (induct_tac "n" 1);
 by Auto_tac;
 qed "one_le_power";
@@ -120,7 +120,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "binomial_Suc_n";
 Addsimps [binomial_Suc_n];
 
-Goal "(n choose 1) = n";
+Goal "(n choose 1') = n";
 by (induct_tac "n" 1);
 by (ALLGOALS Asm_simp_tac);
 qed "binomial_1";

@@ -299,6 +299,7 @@ fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
       else poly(s,m,poly(t,ratneg m,pi))
   | poly(Const("uminus",_) $ t, m, pi) = poly(t,ratneg m,pi)
   | poly(Const("0",_), _, pi) = pi
+  | poly(Const("1",_), m, (p,i)) = (p,ratadd(i,m))
   | poly(Const("Suc",_)$t, m, (p,i)) = poly(t, m, (p,ratadd(i,m)))
   | poly(t as Const("op *",_) $ _ $ _, m, pi as (p,i)) =
       (case demult(t,m) of
@@ -363,7 +364,7 @@ local
 (* reduce contradictory <= to False.
    Most of the work is done by the cancel tactics.
 *)
-val add_rules = [add_0,add_0_right,Zero_not_Suc,Suc_not_Zero,le_0_eq];
+val add_rules = [add_0,add_0_right,Zero_not_Suc,Suc_not_Zero,le_0_eq,One_def];
 
 val add_mono_thms_nat = map (fn s => prove_goal (the_context ()) s
  (fn prems => [cut_facts_tac prems 1,

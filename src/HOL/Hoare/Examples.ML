@@ -175,7 +175,7 @@ that the elements between u and l are equal to pivot.
 Ambiguity warnings of parser are due to := being used
 both for assignment and list update.
 *)
-Goal "m - 1 < n ==> m < Suc n";
+Goal "m - 1' < n ==> m < Suc n";
 by (arith_tac 1);
 qed "lemma";
 
@@ -184,7 +184,7 @@ Goal
 \   geq == %A i. !k. i<k & k<length A --> pivot <= A!k |] ==> \
 \ |- VARS A u l.\
 \ {0 < length(A::('a::order)list)} \
-\ l := 0; u := length A - 1; \
+\ l := 0; u := length A - 1'; \
 \ WHILE l <= u \
 \  INV {leq A l & geq A u & u<length A & l<=length A} \
 \  DO WHILE l < length A & A!l <= pivot \

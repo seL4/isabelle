@@ -326,7 +326,7 @@ by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zmult]) 1);
 qed "zmult_int0";
 
-Goalw [int_def] "int 1 * z = z";
+Goalw [int_def] "int 1' * z = z";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zmult]) 1);
 qed "zmult_int1";
@@ -335,7 +335,7 @@ Goal "z * int 0 = int 0";
 by (rtac ([zmult_commute, zmult_int0] MRS trans) 1);
 qed "zmult_int0_right";
 
-Goal "z * int 1 = z";
+Goal "z * int 1' = z";
 by (rtac ([zmult_commute, zmult_int1] MRS trans) 1);
 qed "zmult_int1_right";
 

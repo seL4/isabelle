@@ -55,14 +55,15 @@ instance
 consts
   Suc       :: nat => nat
   pred_nat  :: "(nat * nat) set"
+  "1"       :: nat                ("1")
 
 syntax
-  "1"       :: nat                ("1")
+  "1'"       :: nat                ("1'")
   "2"       :: nat                ("2")
 
 translations
-  "1"  == "Suc 0"
-  "2"  == "Suc 1"
+  "1'"  == "Suc 0"
+  "2"  == "Suc 1'"
 
 
 local
@@ -70,6 +71,7 @@ local
 defs
   Zero_def      "0 == Abs_Nat(Zero_Rep)"
   Suc_def       "Suc == (%n. Abs_Nat(Suc_Rep(Rep_Nat(n))))"
+  One_def	"1 == 1'"
 
   (*nat operations*)
   pred_nat_def  "pred_nat == {(m,n). n = Suc m}"

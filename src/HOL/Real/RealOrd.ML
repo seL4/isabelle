@@ -269,7 +269,7 @@ by (simp_tac (simpset() addsimps [pnat_one_iff RS sym,real_of_preal_def,
                        symmetric real_one_def]) 1);
 qed "real_of_posnat_one";
 
-Goalw [real_of_posnat_def] "real_of_posnat 1 = 1r + 1r";
+Goalw [real_of_posnat_def] "real_of_posnat 1' = 1r + 1r";
 by (simp_tac (simpset() addsimps [real_of_preal_def,real_one_def,
                                pnat_two_eq,real_add,prat_of_pnat_add RS sym,
                                preal_of_prat_add RS sym] @ pnat_add_ac) 1);
@@ -306,7 +306,7 @@ Goalw [real_of_nat_def] "real (0::nat) = 0";
 by (simp_tac (simpset() addsimps [real_of_posnat_one]) 1);
 qed "real_of_nat_zero";
 
-Goalw [real_of_nat_def] "real (1::nat) = 1r";
+Goalw [real_of_nat_def] "real (1') = 1r";
 by (simp_tac (simpset() addsimps [real_of_posnat_two, real_add_assoc]) 1);
 qed "real_of_nat_one";
 Addsimps [real_of_nat_zero, real_of_nat_one];

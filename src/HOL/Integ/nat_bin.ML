@@ -495,7 +495,7 @@ Goal "(m+m = n+n) = (m = (n::int))";
 by Auto_tac;
 val lemma1 = result();
 
-Goal "m+m ~= int 1 + n + n";
+Goal "m+m ~= int 1' + n + n";
 by Auto_tac;
 by (dres_inst_tac [("f", "%x. x mod #2")] arg_cong 1);
 by (full_simp_tac (simpset() addsimps [zmod_zadd1_eq]) 1); 

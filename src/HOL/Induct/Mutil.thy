@@ -110,7 +110,7 @@ declare
   Diff_Int_distrib [simp]
 
 lemma tiling_domino_0_1:
-  "t \<in> tiling domino ==> card (coloured 0 \<inter> t) = card (coloured 1 \<inter> t)"
+  "t \<in> tiling domino ==> card (coloured 0 \<inter> t) = card (coloured 1' \<inter> t)"
   apply (erule tiling.induct)
    apply (drule_tac [2] domino_singletons)
    apply auto
@@ -131,7 +131,7 @@ theorem gen_mutil_not_tiling:
   apply (rule notI)
   apply (subgoal_tac
     "card (coloured 0 \<inter> (t - {(i, j)} - {(m, n)})) <
-      card (coloured 1 \<inter> (t - {(i, j)} - {(m, n)}))")
+      card (coloured 1' \<inter> (t - {(i, j)} - {(m, n)}))")
    apply (force simp only: tiling_domino_0_1)
   apply (simp add: tiling_domino_0_1 [symmetric])
   apply (simp add: coloured_def card_Diff2_less)

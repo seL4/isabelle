@@ -4,6 +4,8 @@
     Copyright   1991  University of Cambridge
 *)
 
+Addsimps [One_def];
+
 val rew = rewrite_rule [symmetric Nat_def];
 
 (*** Induction ***)
