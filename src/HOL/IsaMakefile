@@ -10,7 +10,7 @@ OUT = $(ISABELLE_OUTPUT)
 
 NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF WF_Rel \
 	mono Lfp Gfp NatDef Nat intr_elim indrule Inductive Finite Arith \
-	Divides Sexp Univ List RelPow Option
+	Divides Power Sexp Univ List RelPow Option
 
 PROVERS = hypsubst.ML classical.ML blast.ML \
 	simplifier.ML splitter.ML nat_transitive.ML 
