@@ -1,9 +1,9 @@
-
+% $Id$
 This section describes advanced features of inductive definitions. 
 The premises of introduction rules may contain universal quantifiers and
 monotonic functions.  Theorems may be proved by rule inversion.
 
-\subsection{Universal quantifiers in introduction rules}
+\subsection{Universal Quantifiers in Introduction Rules}
 \label{sec:gterm-datatype}
 
 As a running example, this section develops the theory of \textbf{ground
@@ -54,7 +54,7 @@ To demonstrate a proof from this definition, let us
 show that the function \isa{gterms}
 is \textbf{monotonic}.  We shall need this concept shortly.
 \begin{isabelle}
-\isacommand{lemma}\ "F\isasymsubseteq G\ \isasymLongrightarrow \ gterms\ F\ \isasymsubseteq \ gterms\ G"\isanewline
+\isacommand{lemma}\ gterms_mono:\ "F\isasymsubseteq G\ \isasymLongrightarrow \ gterms\ F\ \isasymsubseteq \ gterms\ G"\isanewline
 \isacommand{apply}\ clarify\isanewline
 \isacommand{apply}\ (erule\ gterms.induct)\isanewline
 \isacommand{apply}\ blast\isanewline
@@ -67,22 +67,25 @@ First we use the \isa{clarify} method to assume the existence of an element of
 \isa{terms~F}.  (We could have used \isa{intro subsetI}.)  We then
 apply rule induction. Here is the resulting subgoal: 
 \begin{isabelle}
-1.\ \isasymAnd x\ f\ args.\isanewline
-\ \ \ \ \ \ \isasymlbrakk F\ \isasymsubseteq \ G;\ \isasymforall t\isasymin set\ args.\ t\ \isasymin \ gterms\ F\ \isasymand \ t\ \isasymin \ gterms\ G;\ f\ \isasymin \ F\isasymrbrakk \isanewline
-\ \ \ \ \ \ \isasymLongrightarrow \ Apply\ f\ args\ \isasymin \ gterms\ G%
+\ 1.\ \isasymAnd x\ args\ f.\isanewline
+\ \ \ \ \ \ \ \isasymlbrakk F\ \isasymsubseteq \ G;\ \isasymforall t\isasymin set\ args.\ t\ \isasymin \ gterms\ F\ \isasymand \ t\ \isasymin \ gterms\ G;\ f\ \isasymin \ F\isasymrbrakk \isanewline
+\ \ \ \ \ \ \ \isasymLongrightarrow \ Apply\ f\ args\ \isasymin \ gterms\ G%
 \end{isabelle}
 %
 The assumptions state that \isa{f} belongs 
 to~\isa{F}, which is included in~\isa{G}, and that every element of the list \isa{args} is
 a ground term over~\isa{G}.  The \isa{blast} method finds this chain of reasoning easily.  
 
-\textit{Remark}: why do we call this function \isa{gterms} instead 
-of {\isa{gterm}}? Isabelle maintains separate name spaces for types 
-and constants, so there is no danger of confusion. However, name 
-clashes could arise in the theorems that Isabelle generates. 
-Our choice of names keeps {\isa{gterms.induct}} separate from {\isa{gterm.induct}}.
+\begin{warn}
+Why do we call this function \isa{gterms} instead 
+of {\isa{gterm}}?  A constant may have the same name as a type.  However,
+name  clashes could arise in the theorems that Isabelle generates. 
+Our choice of names keeps {\isa{gterms.induct}} separate from 
+{\isa{gterm.induct}}.
+\end{warn}
 
-\subsection{Rule inversion}\label{sec:rule-inversion}
+
+\subsection{Rule Inversion}\label{sec:rule-inversion}
 
 Case analysis on an inductive definition is called \textbf{rule inversion}. 
 It is frequently used in proofs about operational semantics.  It can be
@@ -147,7 +150,7 @@ Suc (Suc\ n)\ \isasymin \ even\ \isasymLongrightarrow \ n\ \isasymin \
 even
 \end{isabelle}
 %
-In \S\ref{sec:gen-rule-induction} we devoted some effort to proving precisely
+In {\S}\ref{sec:gen-rule-induction} we devoted some effort to proving precisely
 this result.  Yet we could have obtained it by a one-line declaration. 
 This example also justifies the terminology \textbf{rule inversion}: the new
 rule inverts the introduction rule \isa{even.step}.
@@ -225,11 +228,11 @@ applies an instance of the \isa{cases}
 rule.
 
 
-\subsection{Continuing the `ground terms' example}
+\subsection{Continuing the Ground Terms Example}
 
 Call a term \textbf{well-formed} if each symbol occurring in it has 
 the correct number of arguments. To formalize this concept, we 
-introduce a function mapping each symbol to its arity, a natural 
+introduce a function mapping each symbol to its \textbf{arity}, a natural 
 number. 
 
 Let us define the set of well-formed ground terms. 
@@ -252,15 +255,15 @@ It is just an elaboration of the previous one, consisting of a single
 introduction rule. The universal quantification over the
 \isa{set} of arguments expresses that all of them are well-formed.
 
-\subsection{Alternative definition using a monotonic function}
+\subsection{Alternative Definition Using a Monotonic Function}
 
 An inductive definition may refer to the inductively defined 
 set through an arbitrary monotonic function.  To demonstrate this
 powerful feature, let us
 change the  inductive definition above, replacing the
 quantifier by a use of the function \isa{lists}. This
-function, from the Isabelle library, is analogous to the
-function \isa{gterms} declared above. If \isa{A} is a set then
+function, from the Isabelle theory of lists, is analogous to the
+function \isa{gterms} declared above: if \isa{A} is a set then
 {\isa{lists A}} is the set of lists whose elements belong to
 \isa{A}.  
 
@@ -323,9 +326,9 @@ Further lists of well-formed
 terms become available and none are taken away.
 
 
-\subsection{A proof of equivalence}
+\subsection{A Proof of Equivalence}
 
-We naturally hope that these two inductive definitions of `well-formed' 
+We naturally hope that these two inductive definitions of ``well-formed'' 
 coincide.  The equality can be proved by separate inclusions in 
 each direction.  Each is a trivial rule induction. 
 \begin{isabelle}
@@ -348,7 +351,7 @@ induction.  The resulting subgoal can be proved automatically:
 \end{isabelle}
 %
 This proof resembles the one given in
-\S\ref{sec:gterm-datatype} above, especially in the form of the
+{\S}\ref{sec:gterm-datatype} above, especially in the form of the
 induction hypothesis.  Next, we consider the opposite inclusion:
 \begin{isabelle}
 \isacommand{lemma}\ "well_formed_gterm'\ arity\ \isasymsubseteq \ well_formed_gterm\ arity"\isanewline
@@ -410,7 +413,7 @@ previous instances of the inductively defined set.
 
 \begin{exercise}
 Prove this theorem, one direction of which was proved in
-\S\ref{sec:rule-inversion} above.
+{\S}\ref{sec:rule-inversion} above.
 \begin{isabelle}
 \isacommand{lemma}\ gterms_Int_eq\ [simp]:\ "gterms\ (F\isasyminter G)\ =\
 gterms\ F\ \isasyminter \ gterms\ G"\isanewline
