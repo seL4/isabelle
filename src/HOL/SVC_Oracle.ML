@@ -11,13 +11,14 @@ Based upon the work of Søren T. Heilmann
 (*Present the entire subgoal to the oracle, assumptions and all, but possibly
   abstracted.  Use via compose_tac, which performs no lifting but will
   instantiate variables.*)
-val svc_tac = SUBGOAL
-  (fn (prem,i) => 
-   let val (svc_prem, insts) = Svc.abstract prem
-       val th = invoke_oracle thy "svc_oracle" 
-	             (sign_of thy, Svc.OracleExn svc_prem)
-
-    in compose_tac (false, th, 0) i
-    end handle Svc.OracleExn _ => no_tac);
+fun svc_tac i st = 
+  let val prem = List.nth (prems_of st, i-1)
+      val th = invoke_oracle thy "svc_oracle" 
+	             (#sign (rep_thm st), Svc.OracleExn prem)
+   in 
+      compose_tac (false, th, 0) i st
+   end 
+   handle Svc.OracleExn _ => Seq.empty
+	| Subscript       => Seq.empty;
 
 
