@@ -150,6 +150,15 @@ by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "finite_imageI";
 
+(*The powerset of a finite set is finite*)
+goal Finite.thy "!!A. finite A ==> finite(Pow A)";
+by (etac finite_induct 1);
+by (ALLGOALS 
+    (asm_simp_tac
+     (!simpset addsimps [finite_UnI, finite_imageI, Pow_insert])));
+qed "finite_PowI";
+AddSIs [finite_PowI];
+
 val major::prems = goalw Finite.thy [finite_def]
     "[| finite A;                                       \
 \       P(A);                                           \
@@ -308,6 +317,19 @@ by (Blast_tac 1);
 by (asm_simp_tac (!simpset addsimps [major RS card_insert_disjoint]) 1);
 qed "card_insert";
 Addsimps [card_insert];
+
+
+goal Finite.thy "!!A. finite(A) ==> inj_onto f A --> card (f `` A) = card A";
+by (etac finite_induct 1);
+by (ALLGOALS Asm_simp_tac);
+by (Step_tac 1);
+bw inj_onto_def;
+by (Blast_tac 1);
+by (stac card_insert_disjoint 1);
+by (etac finite_imageI 1);
+by (Blast_tac 1);
+by (Blast_tac 1);
+qed_spec_mp "card_image";
 
 
 goal Finite.thy  "!!A. finite A ==> !B. B <= A --> card(B) <= card(A)";
