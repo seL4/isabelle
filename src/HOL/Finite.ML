@@ -492,9 +492,9 @@ by (case_tac "A=F" 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "psubset_card" ;
 
-Goal "[| finite B; A <= B; card A = card B |] ==> A = B";
+Goal "!!X. [| A <= B; card B <= card A; finite B |] ==> A = B";
 by (case_tac "A < B" 1);
-by ((dtac psubset_card 1) THEN (atac 1));
+by (datac psubset_card 1 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [psubset_eq])));
 qed "card_seteq";
 
@@ -524,7 +524,9 @@ by (Blast_tac 1);
 qed_spec_mp "card_image";
 
 Goal "[| finite A; f``A <= A; inj_on f A |] ==> f``A = A";
-by (REPEAT (ares_tac [card_seteq,card_image] 1));
+by (etac card_seteq 1);
+by (dtac (card_image RS sym) 1);
+by Auto_tac;
 qed "endo_inj_surj";
 
 (*** Cardinality of the Powerset ***)
