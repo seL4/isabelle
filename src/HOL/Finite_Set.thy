@@ -900,7 +900,7 @@ lemma setsum_reindex_cong:
       ==> setsum h B = setsum g A"
   by (simp add: setsum_reindex cong: setsum_cong)
 
-lemma setsum_0: "setsum (%i. 0) A = 0"
+lemma setsum_0[simp]: "setsum (%i. 0) A = 0"
 apply (clarsimp simp: setsum_def)
 apply (erule finite_induct, auto simp:ACf.fold_insert [OF ACf_add])
 done
@@ -1119,18 +1119,7 @@ proof -
   also have "A \<union> (B-A) = B" using sub by blast
   finally show ?thesis .
 qed
-(*
-lemma setsum_mono2_nat:
-  assumes fin: "finite B" and sub: "A \<subseteq> B"
-shows "setsum f A \<le> (setsum f B :: nat)"
-proof -
-  have "setsum f A \<le> setsum f A + setsum f (B-A)" by arith
-  also have "\<dots> = setsum f (A \<union> (B-A))" using fin finite_subset[OF sub fin]
-    by (simp add:setsum_Un_disjoint del:Un_Diff_cancel)
-  also have "A \<union> (B-A) = B" using sub by blast
-  finally show ?thesis .
-qed
-*)
+
 lemma setsum_mult: 
   fixes f :: "'a => ('b::semiring_0_cancel)"
   shows "r * setsum f A = setsum (%n. r * f n) A"
@@ -1541,6 +1530,16 @@ lemma setprod_constant: "finite A ==> (\<Prod>x: A. (y::'a::recpower)) = y^(card
   apply (erule finite_induct)
   apply (auto simp add: power_Suc)
   done
+
+lemma setsum_bounded:
+  assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> (K::'a::{comm_semiring_1_cancel, pordered_ab_semigroup_add})"
+  shows "setsum f A \<le> of_nat(card A) * K"
+proof (cases "finite A")
+  case True
+  thus ?thesis using le setsum_mono[where K=A and g = "%x. K"] by simp
+next
+  case False thus ?thesis by (simp add: setsum_def)
+qed
 
 
 subsubsection {* Cardinality of unions *}

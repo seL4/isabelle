@@ -503,13 +503,6 @@ apply (auto simp add: setsum_mult lemma_realpow_diff_sumr2 mult_ac simp
                  del: setsum_Suc realpow_Suc)
 done
 
-(* FIXME move *)
-lemma sumr_bound2 [rule_format (no_asm)]:
-     "(\<forall>p. 0 \<le> p & p < n --> (f(p) \<le> K))  
-      --> setsum f {0..<n::nat} \<le> (real n * K)"
-using setsum_bounded[where A = "{0..<n}"]
-by (auto simp:real_of_nat_def)
-
 lemma lemma_termdiff3:
      "[| h \<noteq> 0; \<bar>z\<bar> \<le> K; \<bar>z + h\<bar> \<le> K |]  
       ==> abs (((z + h) ^ n - z ^ n) * inverse h - real n * z ^ (n - Suc 0))  
@@ -520,7 +513,7 @@ apply (simp add: mult_commute [of _ "K ^ (n - 2)"])
 apply (rule setsum_abs [THEN real_le_trans])
 apply (simp add: mult_assoc [symmetric])
 apply (simp add: mult_commute [of _ "real (n - Suc 0)"])
-apply (auto intro!: sumr_bound2)
+apply (auto intro!: real_setsum_nat_ivl_bounded)
 apply (case_tac "n", auto)
 apply (drule less_add_one)
 (*CLAIM_SIMP " (a * b * c = a * (c * (b::real))" mult_ac]*)
@@ -535,7 +528,7 @@ apply (subgoal_tac [2] "0 \<le> K")
 apply (drule_tac [2] n = d in zero_le_power)
 apply (auto simp del: setsum_Suc)
 apply (rule setsum_abs [THEN real_le_trans])
-apply (rule sumr_bound2, auto dest!: less_add_one intro!: mult_mono simp add: power_add)
+apply (rule real_setsum_nat_ivl_bounded, auto dest!: less_add_one intro!: mult_mono simp add: power_add)
 apply (auto intro!: power_mono zero_le_power simp add: power_abs, arith+)
 done
 

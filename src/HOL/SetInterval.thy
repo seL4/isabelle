@@ -534,6 +534,24 @@ lemma ivl_disj_int_two:
 
 lemmas ivl_disj_int = ivl_disj_int_singleton ivl_disj_int_one ivl_disj_int_two
 
+subsubsection {* Some Differences *}
+
+lemma ivl_diff[simp]:
+ "i \<le> n \<Longrightarrow> {i..<m} - {i..<n} = {n..<(m::'a::linorder)}"
+by(auto)
+
+
+subsubsection {* Some Subset Conditions *}
+
+lemma ivl_subset[simp]:
+ "({i..<j} \<subseteq> {m..<n}) = (j \<le> i | m \<le> i & j \<le> (n::'a::linorder))"
+apply(auto simp:linorder_not_le)
+apply(rule ccontr)
+apply(insert linorder_le_less_linear[of i n])
+apply(clarsimp simp:linorder_not_le)
+apply(fastsimp)
+done
+
 
 subsection {* Summation indexed over intervals *}
 
@@ -585,6 +603,17 @@ Note that for uniformity on @{typ nat} it is better to use
 not provide all lemmas available for @{term"{m..<n}"} also in the
 special form for @{term"{..<n}"}. *}
 
+(* FIXME change the simplifier's treatment of congruence rules?? *)
+
+text{* This congruence rule should be used for sums over intervals as
+the standard theorem @{text[source]setsum_cong} does not work well
+with the simplifier who adds the unsimplified premise @{term"x:B"} to
+the context. *}
+
+lemma setsum_ivl_cong:
+ "\<lbrakk>a = c; b = d; !!x. \<lbrakk> c \<le> x; x < d \<rbrakk> \<Longrightarrow> f x = g x \<rbrakk> \<Longrightarrow>
+ setsum f {a..<b} = setsum g {c..<d}"
+by(rule setsum_cong, simp_all)
 
 lemma Summation_Suc[simp]: "(\<Sum>i < Suc n. b i) = b n + (\<Sum>i < n. b i)"
 by (simp add:lessThan_Suc)

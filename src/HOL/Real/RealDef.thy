@@ -353,7 +353,7 @@ apply (auto intro: real_le_lemma)
 done
 
 lemma real_le_anti_sym: "[| z \<le> w; w \<le> z |] ==> z = (w::real)"
-by (cases z, cases w, simp add: real_le order_antisym)
+by (cases z, cases w, simp add: real_le)
 
 lemma real_trans_lemma:
   assumes "x + v \<le> u + y"
@@ -368,7 +368,7 @@ proof -
     by (simp add: preal_add_le_cancel_left prems) 
   also have "... = (u'+y) + (u+v)"  by (simp add: preal_add_ac)
   finally show ?thesis by (simp add: preal_add_le_cancel_right)
-qed						 
+qed
 
 lemma real_le_trans: "[| i \<le> j; j \<le> k |] ==> i \<le> (k::real)"
 apply (cases i, cases j, cases k)
@@ -401,7 +401,7 @@ apply (cases x, cases y)
 apply (auto simp add: real_le real_zero_def real_diff_def real_add real_minus
                       preal_add_ac)
 apply (simp_all add: preal_add_assoc [symmetric] preal_cancels)
-done 
+done
 
 lemma real_add_left_mono: 
   assumes le: "x \<le> y" shows "z + x \<le> z + (y::real)"

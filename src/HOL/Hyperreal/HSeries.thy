@@ -147,12 +147,6 @@ by (simp del: realpow_Suc
          add: sumhr hypnat_add nat_mult_2 [symmetric] hypreal_zero_def 
               hypnat_zero_def hypnat_omega_def)
 
-(* FIXME move *)
-lemma setsum_ivl_cong:
- "i = m \<Longrightarrow> j = n \<Longrightarrow> (!!x. m <= x \<Longrightarrow> x < n \<Longrightarrow> f x = g x) \<Longrightarrow>
- setsum f {i..<j} = setsum g {m..<n}"
-by(rule setsum_cong, simp_all)
-
 lemma sumhr_interval_const:
      "(\<forall>n. m \<le> Suc n --> f n = r) & m \<le> na  
       ==> sumhr(hypnat_of_nat m,hypnat_of_nat na,f) =  
