@@ -15,6 +15,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [--] [CMDLINE]"
   echo
   echo "  Options are:"
+  echo "    -I           startup Isar interaction mode"
   echo "    -g GEOM      main window geometry (default 80x60)"
   echo "    -h MODE      highlight mode, may be false, bold (default), color"
   echo "    -m MODE      pass print mode"
@@ -51,9 +52,12 @@ XTERM="xterm"
 function getoptions()
 {
   OPTIND=1
-  while getopts "g:h:m:p:s:x:" OPT
+  while getopts "Ig:h:m:p:s:x:" OPT
   do
     case "$OPT" in
+      I)
+        PASS="$PASS -I"
+        ;;
       g)
         MAINGEOM="$OPTARG"
         ;;
