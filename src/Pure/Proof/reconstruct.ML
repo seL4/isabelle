@@ -299,10 +299,6 @@ fun reconstruct_proof sg prop cprf =
     thawf (norm_proof env' prf)
   end;
 
-fun full_prf_of thm =
-  let val {prop, der = (_, prf), sign, ...} = rep_thm thm
-  in reconstruct_proof sign prop prf end;
-
 
 (********************************************************************************
   expand and reconstruct subproofs
@@ -310,38 +306,43 @@ fun full_prf_of thm =
 
 fun expand_proof sg names prf =
   let
-    fun expand prfs (AbsP (s, t, prf)) = 
-          let val (prfs', prf') = expand prfs prf
-          in (prfs', AbsP (s, t, prf')) end
-      | expand prfs (Abst (s, T, prf)) = 
-          let val (prfs', prf') = expand prfs prf
-          in (prfs', Abst (s, T, prf')) end
-      | expand prfs (prf1 %% prf2) =
+    fun expand maxidx prfs (AbsP (s, t, prf)) = 
+          let val (maxidx', prfs', prf') = expand maxidx prfs prf
+          in (maxidx', prfs', AbsP (s, t, prf')) end
+      | expand maxidx prfs (Abst (s, T, prf)) = 
+          let val (maxidx', prfs', prf') = expand maxidx prfs prf
+          in (maxidx', prfs', Abst (s, T, prf')) end
+      | expand maxidx prfs (prf1 %% prf2) =
           let
-            val (prfs', prf1') = expand prfs prf1;
-            val (prfs'', prf2') = expand prfs' prf2;
-          in (prfs'', prf1' %% prf2') end
-      | expand prfs (prf % t) =
-          let val (prfs', prf') = expand prfs prf
-          in (prfs', prf' % t) end
-      | expand prfs (prf as PThm ((a, _), cprf, prop, Some Ts)) =
-          if not (a mem names) then (prfs, prf) else
+            val (maxidx', prfs', prf1') = expand maxidx prfs prf1;
+            val (maxidx'', prfs'', prf2') = expand maxidx' prfs' prf2;
+          in (maxidx'', prfs'', prf1' %% prf2') end
+      | expand maxidx prfs (prf % t) =
+          let val (maxidx', prfs', prf') = expand maxidx prfs prf
+          in (maxidx', prfs', prf' % t) end
+      | expand maxidx prfs (prf as PThm ((a, _), cprf, prop, Some Ts)) =
+          if not (a mem names) then (maxidx, prfs, prf) else
           let
-            val (prf, prfs') = (case assoc (prfs, (a, prop)) of
+            val (maxidx', (i, prf), prfs') = (case assoc (prfs, (a, prop)) of
                 None =>
                   let
                     val _ = message ("Reconstructing proof of " ^ a);
                     val _ = message (Sign.string_of_term sg prop);
-                    val (prfs', prf) = expand prfs (forall_intr_vfs_prf prop
-                      (reconstruct_proof sg prop cprf))
-                  in (prf, ((a, prop), prf) :: prfs') end
-              | Some prf => (prf, prfs));
-            val tye = map fst (term_tvars prop) ~~ Ts
+                    val i = maxidx + 1;
+                    val prf' = map_proof_terms (Logic.incr_indexes ([], i))
+                      (incr_tvar i) (forall_intr_vfs_prf prop
+                        (reconstruct_proof sg prop cprf));
+                    val (maxidx', prfs', prf) = expand
+                      (maxidx_of_proof prf') prfs prf'
+                  in (maxidx', (i, prf), ((a, prop), (i, prf)) :: prfs') end
+              | Some p => (maxidx, p, prfs));
+            val tye = map (fn ((s, j), _) => (s, i + j)) (term_tvars prop) ~~ Ts
           in
-            (prfs', map_proof_terms (subst_TVars tye) (typ_subst_TVars tye) prf)
+            (maxidx', prfs',
+             map_proof_terms (subst_TVars tye) (typ_subst_TVars tye) prf)
           end
-      | expand prfs prf = (prfs, prf);
+      | expand maxidx prfs prf = (maxidx, prfs, prf);
 
-  in snd (expand [] prf) end;
+  in #3 (expand (maxidx_of_proof prf) [] prf) end;
 
 end;
