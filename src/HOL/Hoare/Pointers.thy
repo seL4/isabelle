@@ -94,13 +94,27 @@ by(simp add:list_hd_not_in_tl)
 
 section"Hoare logic"
 
-(* This should already be done in Hoare.thy, which should be converted to
-Isar *)
+consts fac :: "nat \<Rightarrow> nat"
+primrec
+"fac 0 = 1"
+"fac (Suc n) = Suc n * fac n"
 
-method_setup vcg_simp_tac = {*
-  Method.no_args
-    (Method.SIMPLE_METHOD' HEADGOAL (hoare_tac Asm_full_simp_tac)) *}
-  "verification condition generator plus simplification"
+lemma [simp]: "1 \<le> i \<Longrightarrow> fac (i - Suc 0) * i = fac i"
+by(induct i, simp_all)
+
+lemma "|- VARS i f.
+ {True}
+ i := (1::nat); f := 1;
+ WHILE i <= n INV {f = fac(i - 1) & 1 <= i & i <= n+1}
+ DO f := f*i; i := i+1 OD
+ {f = fac n}"
+apply vcg_simp
+apply(subgoal_tac "i = Suc n")
+apply simp
+apply arith
+done
+
+
 
 subsection"List reversal"
 
@@ -111,7 +125,7 @@ lemma "|- VARS tl p q r.
                  rev As' @ Bs' = rev As @ Bs}
   DO r := p; p := tl(the p); tl := tl(the r := q); q := r OD
   {list tl q (rev As @ Bs)}"
-apply vcg_simp_tac
+apply vcg_simp
 
 apply(rule_tac x = As in exI)
 apply simp
@@ -144,7 +158,7 @@ lemma "|- VARS tl p.
   INV {p ~= None & (\<exists>As'. list tl p As' \<and> X \<in> set As')}
   DO p := tl(the p) OD
   {p = Some X}"
-apply vcg_simp_tac
+apply vcg_simp
   apply(case_tac p)
    apply clarsimp
   apply fastsimp
@@ -162,7 +176,7 @@ lemma "|- VARS tl p.
   INV {p ~= None & (\<exists>As'. path tl p As' (Some X))}
   DO p := tl(the p) OD
   {p = Some X}"
-apply vcg_simp_tac
+apply vcg_simp
   apply(case_tac p)
    apply clarsimp
   apply(rule conjI)
@@ -195,7 +209,7 @@ lemma "|- VARS tl p.
   INV {p ~= None & Some X \<in> ({(Some x,tl x) |x. True}^* `` {p})}
   DO p := tl(the p) OD
   {p = Some X}"
-apply vcg_simp_tac
+apply vcg_simp
   apply(case_tac p)
    apply(simp add:lem1 eq_sym_conv)
   apply simp
@@ -214,7 +228,7 @@ lemma "|- VARS tl p.
   INV {p ~= None & X \<in> ({(x,y). tl x = Some y}^* `` {the p})}
   DO p := tl(the p) OD
   {p = Some X}"
-apply vcg_simp_tac
+apply vcg_simp
  apply clarsimp
  apply(erule converse_rtranclE)
   apply simp

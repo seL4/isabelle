@@ -9,34 +9,34 @@ following Mike Gordon) would suffice. Maybe the datatype com comes in useful
 later.
 *)
 
-Hoare  = Main +
+theory Hoare  = Main
+files ("Hoare.ML"):
 
 types
-    'a bexp = 'a set
-    'a assn = 'a set
-    'a fexp = 'a =>'a
+    'a bexp = "'a set"
+    'a assn = "'a set"
 
 datatype
- 'a com = Basic ('a fexp)         
-   | Seq ('a com) ('a com)               ("(_;/ _)"      [61,60] 60)
-   | Cond ('a bexp) ('a com) ('a com)    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)
-   | While ('a bexp) ('a assn) ('a com)  ("(1WHILE _/ INV {_} //DO _ /OD)"  [0,0,0] 61)
+ 'a com = Basic "'a \<Rightarrow> 'a"         
+   | Seq "'a com" "'a com"               ("(_;/ _)"      [61,60] 60)
+   | Cond "'a bexp" "'a com" "'a com"    ("(1IF _/ THEN _ / ELSE _/ FI)"  [0,0,0] 61)
+   | While "'a bexp" "'a assn" "'a com"  ("(1WHILE _/ INV {_} //DO _ /OD)"  [0,0,0] 61)
   
 syntax
-  "@assign"  :: id => 'b => 'a com        ("(2_ :=/ _)" [70,65] 61)
-  "@annskip" :: 'a com                    ("SKIP")
+  "@assign"  :: "id => 'b => 'a com"        ("(2_ :=/ _)" [70,65] 61)
+  "@annskip" :: "'a com"                    ("SKIP")
 
 translations
             "SKIP" == "Basic id"
 
-types 'a sem = 'a => 'a => bool
+types 'a sem = "'a => 'a => bool"
 
-consts iter :: nat => 'a bexp => 'a sem => 'a sem
+consts iter :: "nat => 'a bexp => 'a sem => 'a sem"
 primrec
 "iter 0 b S = (%s s'. s ~: b & (s=s'))"
 "iter (Suc n) b S = (%s s'. s : b & (? s''. S s s'' & iter n b S s'' s'))"
 
-consts Sem :: 'a com => 'a sem
+consts Sem :: "'a com => 'a sem"
 primrec
 "Sem(Basic f) s s' = (s' = f s)"
 "Sem(c1;c2) s s' = (? s''. Sem c1 s s'' & Sem c2 s'' s')"
@@ -44,7 +44,7 @@ primrec
                                       (s ~: b --> Sem c2 s s'))"
 "Sem(While b x c) s s' = (? n. iter n b (Sem c) s s')"
 
-constdefs Valid :: ['a bexp, 'a com, 'a bexp] => bool
+constdefs Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"
   "Valid p c q == !s s'. Sem c s s' --> s : p --> s' : q"
 
 
@@ -56,18 +56,15 @@ syntax
   "_vars" 	     :: "[id, vars] => vars"	       ("_ _")
 
 syntax
- "@hoare_vars" :: [vars, 'a assn,'a com,'a assn] => bool
+ "@hoare_vars" :: "[vars, 'a assn,'a com,'a assn] => bool"
                  ("|- VARS _.// {_} // _ // {_}" [0,0,55,0] 50)
 syntax ("" output)
- "@hoare"      :: ['a assn,'a com,'a assn] => bool
+ "@hoare"      :: "['a assn,'a com,'a assn] => bool"
                  ("|- {_} // _ // {_}" [0,55,0] 50)
-
-end
-
-ML
 
 (** parse translations **)
 
+ML{*
 fun mk_abstuple []     body = absfree ("x", dummyT, body)
   | mk_abstuple [v]    body = absfree ((fst o dest_Free) v, dummyT, body)
   | mk_abstuple (v::w) body = Syntax.const "split" $
@@ -80,19 +77,20 @@ fun mk_fbody v e []      = Syntax.const "Unity"
                            mk_fbody v e xs;
 
 fun mk_fexp v e xs = mk_abstuple xs (mk_fbody v e xs);
-
+*}
 
 (* bexp_tr & assn_tr *)
 (*all meta-variables for bexp except for TRUE are translated as if they
   were boolean expressions*)
-  
+ML{*
 fun bexp_tr (Const ("TRUE", _)) xs = Syntax.const "TRUE"
   | bexp_tr b xs = Syntax.const "Collect" $ mk_abstuple xs b;
   
 fun assn_tr r xs = Syntax.const "Collect" $ mk_abstuple xs r;
+*}
 
 (* com_tr *)
-  
+ML{*
 fun assign_tr [Free (V,_),E] xs = Syntax.const "Basic" $
                                       mk_fexp (Free(V,dummyT)) E xs
   | assign_tr ts _ = raise TERM ("assign_tr", ts);
@@ -107,9 +105,10 @@ fun com_tr (Const("@assign",_) $ Free (V,_) $ E) xs =
   | com_tr (Const ("While",_) $ b $ I $ c) xs = Syntax.const "While" $
                                          bexp_tr b xs $ assn_tr I xs $ com_tr c xs
   | com_tr trm _ = trm;
+*}
 
 (* triple_tr *)
-
+ML{*
 fun vars_tr (x as Free _) = [x]
   | vars_tr (Const ("_vars", _) $ (x as Free _) $ vars) = x :: vars_tr vars
   | vars_tr t = raise TERM ("vars_tr", [t]);
@@ -120,16 +119,15 @@ fun hoare_vars_tr [vars, pre, prg, post] =
            assn_tr pre xs $ com_tr prg xs $ assn_tr post xs
       end
   | hoare_vars_tr ts = raise TERM ("hoare_vars_tr", ts);
-  
+*}
 
-
-val parse_translation = [("@hoare_vars", hoare_vars_tr)];
+parse_translation {* [("@hoare_vars", hoare_vars_tr)] *}
 
 
 (*****************************************************************************)
 
 (*** print translations ***)
-
+ML{*
 fun dest_abstuple (Const ("split",_) $ (Abs(v,_, body))) =
                             subst_bound (Syntax.free v, dest_abstuple body)
   | dest_abstuple (Abs(v,_, body)) = subst_bound (Syntax.free v, body)
@@ -156,9 +154,10 @@ fun find_ch [] i xs = (false, (Syntax.free "not_ch",Syntax.free "not_ch" ))
 fun is_f (Const ("split",_) $ (Abs(x,_,t))) = true
   | is_f (Abs(x,_,t)) = true
   | is_f t = false;
-  
+*}
+
 (* assn_tr' & bexp_tr'*)
-  
+ML{*  
 fun assn_tr' (Const ("Collect",_) $ T) = dest_abstuple T
   | assn_tr' (Const ("op Int",_) $ (Const ("Collect",_) $ T1) $ 
                                    (Const ("Collect",_) $ T2)) =  
@@ -167,9 +166,10 @@ fun assn_tr' (Const ("Collect",_) $ T) = dest_abstuple T
 
 fun bexp_tr' (Const ("Collect",_) $ T) = dest_abstuple T 
   | bexp_tr' t = t;
+*}
 
 (*com_tr' *)
-
+ML{*
 fun mk_assign f =
   let val (vs, ts) = mk_vts f;
       val (ch, which) = find_ch (vs~~ts) ((length vs)-1) (rev vs)
@@ -189,5 +189,21 @@ fun com_tr' (Const ("Basic",_) $ f) = if is_f f then mk_assign f
 
 fun spec_tr' [p, c, q] =
   Syntax.const "@hoare" $ assn_tr' p $ com_tr' c $ assn_tr' q
- 
-val print_translation = [("Valid", spec_tr')];
+*}
+
+print_translation {* [("Valid", spec_tr')] *}
+
+use "Hoare.ML"
+
+method_setup vcg = {*
+  Method.no_args
+    (Method.SIMPLE_METHOD' HEADGOAL (hoare_tac (K all_tac))) *}
+  "verification condition generator"
+
+method_setup vcg_simp = {*
+  Method.ctxt_args (fn ctxt =>
+    Method.METHOD (fn facts => 
+      hoare_tac (asm_full_simp_tac (Simplifier.get_local_simpset ctxt))1)) *}
+  "verification condition generator plus simplification"
+
+end
