@@ -432,9 +432,7 @@ $(LOG)/HOL-Prolog.gz: $(OUT)/HOL Prolog/ROOT.ML Prolog/HOHH.ML Prolog/HOHH.thy \
 
 HOL-W0: HOL $(LOG)/HOL-W0.gz
 
-$(LOG)/HOL-W0.gz: $(OUT)/HOL W0/I.ML W0/I.thy W0/Maybe.ML W0/Maybe.thy \
-  W0/MiniML.ML W0/MiniML.thy W0/ROOT.ML W0/Type.ML W0/Type.thy W0/W.ML \
-  W0/W.thy
+$(LOG)/HOL-W0.gz: $(OUT)/HOL W0/ROOT.ML W0/W0.thy W0/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL W0
 
 
@@ -568,9 +566,9 @@ $(LOG)/HOL-Isar_examples.gz: $(OUT)/HOL Isar_examples/BasicLogic.thy \
   Isar_examples/KnasterTarski.thy Isar_examples/MutilatedCheckerboard.thy \
   Isar_examples/NestedDatatype.thy Isar_examples/Peirce.thy \
   Isar_examples/Puzzle.thy Isar_examples/Summation.thy \
-  Isar_examples/ROOT.ML Isar_examples/W_correct.thy \
-  Isar_examples/document/proof.sty Isar_examples/document/root.bib \
-  Isar_examples/document/root.tex Isar_examples/document/style.tex
+  Isar_examples/ROOT.ML Isar_examples/document/proof.sty \
+  Isar_examples/document/root.bib Isar_examples/document/root.tex \
+  Isar_examples/document/style.tex
 	@$(ISATOOL) usedir $(OUT)/HOL Isar_examples
 
 

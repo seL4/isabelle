@@ -13,8 +13,6 @@ time_use_thy "Group";
 time_use_thy "Summation";
 time_use_thy "KnasterTarski";
 time_use_thy "MutilatedCheckerboard";
-with_path "../W0" (no_document time_use_thy) "Type";
-with_path "../W0" time_use_thy "W_correct";
 with_path "../NumberTheory" (no_document time_use_thy) "Primes";
 with_path "../NumberTheory" time_use_thy "Fibonacci";
 time_use_thy "Puzzle";
