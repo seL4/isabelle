@@ -136,6 +136,21 @@ AddIffs [wf_insert];
  * Wellfoundedness of `disjoint union'
  *---------------------------------------------------------------------------*)
 
+(*Intuition behind this proof for the case of binary union:
+
+  Goal: find an (R u S)-min element of a nonempty subset A.
+  by case distinction:
+  1. There is a step a -R-> b with a,b : A.
+     Pick an R-min element z of the (nonempty) set {a:A | EX b:A. a -R-> b}.
+     By definition, there is z':A s.t. z -R-> z'. Because z is R-min in the
+     subset, z' must be R-min in A. Because z' has an R-predecessor, it cannot
+     have an S-successor and is thus S-min in A as well.
+  2. There is no such step.
+     Pick an S-min element of A. In this case it must be an R-min
+     element of A as well.
+
+*)
+
 Goal "[| !i:I. wf(r i); \
 \        !i:I.!j:I. r i ~= r j --> Domain(r i) Int Range(r j) = {} & \
 \                                  Domain(r j) Int Range(r i) = {} \
