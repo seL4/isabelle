@@ -106,8 +106,9 @@ fun extend (NameSpace tab, names) = NameSpace (foldr extend_aux (names, tab));
 
 (* merge *)             (*1st preferred over 2nd*)
 
-fun merge_aux (tab, (xname, (names, names'))) =
-  foldr (change add xname) (names, foldr (change' add xname) (names', tab));
+fun merge_aux (tab, (xname, (names1, names1'))) =
+  map_space (fn (names2, names2') =>
+    (merge_lists' names2 names1, merge_lists' names2' names1')) xname tab;
 
 fun merge (NameSpace tab1, NameSpace tab2) =
   NameSpace (Symtab.foldl merge_aux (tab2, tab1));
