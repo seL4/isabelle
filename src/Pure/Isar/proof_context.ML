@@ -48,7 +48,7 @@ sig
   val generalize: context -> context -> term list -> term list
   val find_free: term -> string -> term option
   val export: bool -> context -> context -> thm -> thm Seq.seq
-  val export_standard: context -> context -> thm -> thm
+  val export_standard: cterm option -> context -> context -> thm -> thm
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -77,7 +77,8 @@ sig
   val get_thms: context -> string -> thm list
   val get_thms_closure: context -> string -> thm list
   val cond_extern: context -> string -> xstring
-  val qualified_result: (context -> context * 'a) -> context -> context * 'a
+  val qualified: bool -> context -> context
+  val restore_qualified: context -> context -> context
   val put_thm: string * thm -> context -> context
   val put_thms: string * thm list -> context -> context
   val put_thmss: (string * thm list) list -> context -> context
@@ -730,7 +731,7 @@ fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
 
 fun find_free t x = foldl_aterms (get_free x) (None, t);
 
-fun export is_goal inner outer =
+fun export0 view is_goal inner outer =
   let
     val gen = generalize_tfrees inner outer;
     val fixes = fixed_names_of inner \\ fixed_names_of outer;
@@ -739,6 +740,7 @@ fun export is_goal inner outer =
   in fn thm => thm
     |> Tactic.norm_hhf_rule
     |> Seq.EVERY (rev exp_asms)
+    |> Seq.map (case view of None => I | Some A => Thm.implies_intr A)
     |> Seq.map (fn rule =>
       let
         val {sign, prop, ...} = Thm.rep_thm rule;
@@ -752,8 +754,10 @@ fun export is_goal inner outer =
       end)
   end;
 
-fun export_standard inner outer =
-  let val exp = export false inner outer in
+val export = export0 None;
+
+fun export_standard view inner outer =
+  let val exp = export0 view false inner outer in
     fn th =>
       (case Seq.pull (exp th) of
         Some (th', _) => th' |> Drule.local_standard
@@ -946,12 +950,11 @@ val get_thms_closure = retrieve_thms PureThy.get_thms_closure (K I);
 
 fun cond_extern (Context {thms = (_, space, _, _), ...}) = NameSpace.cond_extern space;
 
-fun set_qual q = map_context (fn (thy, syntax, data, asms, binds,
+fun qualified q = map_context (fn (thy, syntax, data, asms, binds,
     (_, space, tab, index), cases, defs) =>
   (thy, syntax, data, asms, binds, (q, space, tab, index), cases, defs));
 
-fun qualified_result f (ctxt as Context {thms, ...}) =
-  ctxt |> set_qual true |> f |>> set_qual (#1 thms);
+fun restore_qualified (Context {thms, ...}) = qualified (#1 thms);
 
 
 (* put_thm(s) *)
