@@ -11,12 +11,12 @@ Reference Manual.
   hypsubst.ML           tactic to substitute in the hypotheses
   ind.ML                a simple induction package
   induct_method.ML      proof by cases and induction on sets and types (Isar)
+  linorder.ML		transitivity reasoner for linear (total) orders
   quantifier1.ML	simplification procedures for "1 point rules"
   simp.ML               powerful but slow simplifier
   simplifier.ML         fast simplifier
   split_paired_all.ML	turn surjective pairing into split rule
   splitter.ML           performs case splits for simplifier.ML
-  trans.ML              transitivity reasoner for linear (total) orders
   typedsimp.ML          basic simplifier for explicitly typed logics
 
 directory Arith:
