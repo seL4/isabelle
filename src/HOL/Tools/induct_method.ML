@@ -15,6 +15,7 @@ sig
     {type_cases: (string * thm) list, set_cases: (string * thm) list,
       type_induct: (string * thm) list, set_induct: (string * thm) list}
   val print_local_rules: Proof.context -> unit
+  val vars_of: term -> term list
   val cases_type_global: string -> theory attribute
   val cases_set_global: string -> theory attribute
   val cases_type_local: string -> Proof.context attribute
