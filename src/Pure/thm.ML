@@ -104,6 +104,7 @@ signature BASIC_THM =
   val strip_shyps       : thm -> thm
   val implies_intr_shyps: thm -> thm
   val get_axiom         : theory -> xstring -> thm
+  val def_name		: string -> string
   val get_def           : theory -> xstring -> thm
   val axioms_of         : theory -> (string * thm) list
 
@@ -128,7 +129,7 @@ signature BASIC_THM =
   val instantiate       :
     (indexname * ctyp) list * (cterm * cterm) list -> thm -> thm
   val trivial           : cterm -> thm
-  val class_triv        : theory -> class -> thm
+  val class_triv        : Sign.sg -> class -> thm
   val varifyT           : thm -> thm
   val freezeT           : thm -> thm
   val dest_state        : thm * int ->
@@ -619,7 +620,8 @@ fun get_axiom theory raw_name =
     | None => raise THEORY ("No axiom " ^ quote name, [theory]))
   end;
 
-fun get_def thy name = get_axiom thy (name ^ "_def");
+fun def_name name = name ^ "_def";
+fun get_def thy = get_axiom thy o def_name;
 
 
 (*return additional axioms of this theory node*)
@@ -1123,11 +1125,10 @@ fun trivial ct : thm =
   end;
 
 (*Axiom-scheme reflecting signature contents: "OFCLASS(?'a::c, c_class)" *)
-fun class_triv thy c =
-  let val sign = sign_of thy;
-      val Cterm {sign_ref, t, maxidx, ...} =
-          cterm_of sign (Logic.mk_inclass (TVar (("'a", 0), [c]), c))
-            handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
+fun class_triv sign c =
+  let val Cterm {sign_ref, t, maxidx, ...} =
+    cterm_of sign (Logic.mk_inclass (TVar (("'a", 0), [c]), c))
+      handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
   in
     fix_shyps [] []
       (Thm {sign_ref = sign_ref, 
