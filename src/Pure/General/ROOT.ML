@@ -4,6 +4,7 @@
 General tools.
 *)
 
+use "heap.ML";
 use "table.ML";
 use "graph.ML";
 use "object.ML";

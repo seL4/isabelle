@@ -22,3 +22,6 @@ exported.
   Buffer	(simple string buffers)
   History       (histories of values, with undo and redo)
   Pretty        (generic pretty printing module)
+
+Functor LeftistHeap implements heaps, which are used for best-first search.
+It must be instantiated with a linearly ordered type.
