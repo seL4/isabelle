@@ -91,11 +91,15 @@
 \newcommand{\isamarkupcmt}[1]{{\isastylecmt--- #1}}
 
 
-% alternative styles -- default is "tt"
+% alternative styles
 
 \newcommand{\isabellestyle}{}
 \def\isabellestyle#1{\csname isabellestyle#1\endcsname}
 
+\newcommand{\isabellestylett}{%
+\renewcommand{\isastyle}{\small\tt}%
+\renewcommand{\isastyleminor}{\tt}%
+}
 \newcommand{\isabellestyleit}{%
 \renewcommand{\isastyle}{\small\it}%
 \renewcommand{\isastyleminor}{\it}%
