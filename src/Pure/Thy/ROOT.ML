@@ -9,8 +9,8 @@ use "thy_load.ML";
 use "thy_info.ML";
 
 (*theory presentation*)
-(*use "html.ML";*)
-(*use "browser_info.ML";*)	(* FIXME *)
+use "html.ML";
+use "browser_info.ML";
 use "present.ML";
 use "thm_database.ML";
 
