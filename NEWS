@@ -242,6 +242,9 @@ if(P,x,y);
 
 *** Internal programming interfaces ***
 
+* structures Vartab / Termtab (instances of TableFun) offer efficient
+tables indexed by indexname_ord / term_ord (compatible with aconv);
+
 * AxClass.axclass_tac lost the theory argument;
 
 * tuned current_goals_markers semantics: begin / end goal avoids
