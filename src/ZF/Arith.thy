@@ -21,6 +21,6 @@ rules
     add_def  "m#+n == rec(m, n, %u v.succ(v))"
     diff_def "m#-n == rec(n, m, %u v. rec(v, 0, %x y.x))"
     mult_def "m#*n == rec(m, 0, %u v. n #+ v)"
-    mod_def  "m mod n == transrec(m, %j f. if(j:n, j, f`(j#-n)))"
-    div_def  "m div n == transrec(m, %j f. if(j:n, 0, succ(f`(j#-n))))"
+    mod_def  "m mod n == transrec(m, %j f. if(j<n, j, f`(j#-n)))"
+    div_def  "m div n == transrec(m, %j f. if(j<n, 0, succ(f`(j#-n))))"
 end

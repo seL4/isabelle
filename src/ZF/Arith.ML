@@ -42,9 +42,14 @@ by (ALLGOALS
     (asm_simp_tac (ZF_ss addsimps (prems@[rec_0,rec_succ]))));
 val rec_type = result();
 
-val nat_typechecks = [rec_type,nat_0I,nat_1I,nat_succI,Ord_nat];
+val nat_le_refl = naturals_are_ordinals RS le_refl;
 
-val nat_ss = ZF_ss addsimps ([rec_0,rec_succ] @ nat_typechecks);
+val nat_typechecks = [rec_type, nat_0I, nat_1I, nat_succI, Ord_nat];
+
+val nat_simps = [rec_0, rec_succ, not_lt0, nat_0_le, le0_iff, succ_le_iff,
+		 nat_le_refl];
+
+val nat_ss = ZF_ss addsimps (nat_simps @ nat_typechecks);
 
 
 (** Addition **)
@@ -101,27 +106,24 @@ val diff_succ_succ = prove_goalw Arith.thy [diff_def]
     (nat_ind_tac "n" prems 1),
     (ALLGOALS (asm_simp_tac (nat_ss addsimps prems))) ]);
 
-(*The conclusion is equivalent to m#-n <= m *)
 val prems = goal Arith.thy 
-    "[| m:nat;  n:nat |] ==> m #- n : succ(m)";
-by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (resolve_tac prems 1);
-by (resolve_tac prems 1);
-by (etac succE 3);
+    "[| m:nat;  n:nat |] ==> m #- n le m";
+by (rtac (prems MRS diff_induct) 1);
+by (etac leE 3);
 by (ALLGOALS
     (asm_simp_tac
-     (nat_ss addsimps (prems @ [succ_iff, diff_0, diff_0_eq_0, 
-				diff_succ_succ]))));
-val diff_less_succ = result();
+     (nat_ss addsimps (prems @ [le_iff, diff_0, diff_0_eq_0, 
+				diff_succ_succ, naturals_are_ordinals]))));
+val diff_le_self = result();
 
 (*** Simplification over add, mult, diff ***)
 
 val arith_typechecks = [add_type, mult_type, diff_type];
-val arith_rews = [add_0, add_succ,
-		  mult_0, mult_succ,
-		  diff_0, diff_0_eq_0, diff_succ_succ];
+val arith_simps = [add_0, add_succ,
+		   mult_0, mult_succ,
+		   diff_0, diff_0_eq_0, diff_succ_succ];
 
-val arith_ss = nat_ss addsimps (arith_rews@arith_typechecks);
+val arith_ss = nat_ss addsimps (arith_simps@arith_typechecks);
 
 (*** Addition ***)
 
@@ -223,18 +225,14 @@ val diff_self_eq_0 = prove_goal Arith.thy
   [ (nat_ind_tac "m" prems 1),
     (ALLGOALS (asm_simp_tac (arith_ss addsimps prems))) ]);
 
-(*Addition is the inverse of subtraction: if n<=m then n+(m-n) = m. *)
-val notless::prems = goal Arith.thy
-    "[| ~m:n;  m:nat;  n:nat |] ==> n #+ (m#-n) = m";
-by (rtac (notless RS rev_mp) 1);
+(*Addition is the inverse of subtraction*)
+goal Arith.thy "!!m n. [| n le m;  m:nat |] ==> n #+ (m#-n) = m";
+by (forward_tac [lt_nat_in_nat] 1);
+be nat_succI 1;
+by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (resolve_tac prems 1);
-by (resolve_tac prems 1);
-by (ALLGOALS (asm_simp_tac
-	      (arith_ss addsimps (prems@[succ_mem_succ_iff, nat_0_in_succ,
-					 naturals_are_ordinals]))));
+by (ALLGOALS (asm_simp_tac arith_ss));
 val add_diff_inverse = result();
-
 
 (*Subtraction is the inverse of addition. *)
 val [mnat,nnat] = goal Arith.thy
@@ -252,148 +250,129 @@ val diff_add_0 = result();
 
 (*** Remainder ***)
 
-(*In ordinary notation: if 0<n and n<=m then m-n < m *)
-goal Arith.thy "!!m n. [| 0:n; ~ m:n;  m:nat;  n:nat |] ==> m #- n : m";
+goal Arith.thy "!!m n. [| 0<n;  n le m;  m:nat |] ==> m #- n < m";
+by (forward_tac [lt_nat_in_nat] 1 THEN etac nat_succI 1);
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
-by (ALLGOALS (asm_simp_tac (nat_ss addsimps [diff_less_succ,diff_succ_succ])));
+by (ALLGOALS (asm_simp_tac (nat_ss addsimps [diff_le_self,diff_succ_succ])));
 val div_termination = result();
 
-val div_rls =
-    [Ord_transrec_type, apply_type, div_termination, if_type] @ 
-    nat_typechecks;
+val div_rls =	(*for mod and div*)
+    nat_typechecks @
+    [Ord_transrec_type, apply_type, div_termination RS ltD, if_type,
+     naturals_are_ordinals, not_lt_iff_le RS iffD1];
+
+val div_ss = ZF_ss addsimps [naturals_are_ordinals, div_termination RS ltD,
+			     not_lt_iff_le RS iffD2];
 
 (*Type checking depends upon termination!*)
-val prems = goalw Arith.thy [mod_def]
-    "[| 0:n;  m:nat;  n:nat |] ==> m mod n : nat";
-by (REPEAT (ares_tac (prems @ div_rls) 1 ORELSE etac Ord_trans 1));
+goalw Arith.thy [mod_def] "!!m n. [| 0<n;  m:nat;  n:nat |] ==> m mod n : nat";
+by (REPEAT (ares_tac div_rls 1 ORELSE etac lt_trans 1));
 val mod_type = result();
 
-val div_ss = ZF_ss addsimps [naturals_are_ordinals,div_termination];
-
-val prems = goal Arith.thy "[| 0:n;  m:n;  m:nat;  n:nat |] ==> m mod n = m";
+goal Arith.thy "!!m n. [| 0<n;  m<n |] ==> m mod n = m";
 by (rtac (mod_def RS def_transrec RS trans) 1);
-by (simp_tac (div_ss addsimps prems) 1);
+by (asm_simp_tac div_ss 1);
 val mod_less = result();
 
-val prems = goal Arith.thy
-    "[| 0:n;  ~m:n;  m:nat;  n:nat |] ==> m mod n = (m#-n) mod n";
+goal Arith.thy "!!m n. [| 0<n;  n le m;  m:nat |] ==> m mod n = (m#-n) mod n";
+by (forward_tac [lt_nat_in_nat] 1 THEN etac nat_succI 1);
 by (rtac (mod_def RS def_transrec RS trans) 1);
-by (simp_tac (div_ss addsimps prems) 1);
+by (asm_simp_tac div_ss 1);
 val mod_geq = result();
 
 (*** Quotient ***)
 
 (*Type checking depends upon termination!*)
-val prems = goalw Arith.thy [div_def]
-    "[| 0:n;  m:nat;  n:nat |] ==> m div n : nat";
-by (REPEAT (ares_tac (prems @ div_rls) 1 ORELSE etac Ord_trans 1));
+goalw Arith.thy [div_def]
+    "!!m n. [| 0<n;  m:nat;  n:nat |] ==> m div n : nat";
+by (REPEAT (ares_tac div_rls 1 ORELSE etac lt_trans 1));
 val div_type = result();
 
-val prems = goal Arith.thy
-    "[| 0:n;  m:n;  m:nat;  n:nat |] ==> m div n = 0";
+goal Arith.thy "!!m n. [| 0<n;  m<n |] ==> m div n = 0";
 by (rtac (div_def RS def_transrec RS trans) 1);
-by (simp_tac (div_ss addsimps prems) 1);
+by (asm_simp_tac div_ss 1);
 val div_less = result();
 
-val prems = goal Arith.thy
-    "[| 0:n;  ~m:n;  m:nat;  n:nat |] ==> m div n = succ((m#-n) div n)";
+goal Arith.thy
+ "!!m n. [| 0<n;  n le m;  m:nat |] ==> m div n = succ((m#-n) div n)";
+by (forward_tac [lt_nat_in_nat] 1 THEN etac nat_succI 1);
 by (rtac (div_def RS def_transrec RS trans) 1);
-by (simp_tac (div_ss addsimps prems) 1);
+by (asm_simp_tac div_ss 1);
 val div_geq = result();
 
 (*Main Result.*)
-val prems = goal Arith.thy
-    "[| 0:n;  m:nat;  n:nat |] ==> (m div n)#*n #+ m mod n = m";
-by (res_inst_tac [("i","m")] complete_induct 1);
-by (resolve_tac prems 1);
-by (res_inst_tac [("Q","x:n")] (excluded_middle RS disjE) 1);
-by (ALLGOALS 
-    (asm_simp_tac
-     (arith_ss addsimps ([mod_type,div_type] @ prems @
-        [mod_less,mod_geq, div_less, div_geq,
-	 add_assoc, add_diff_inverse, div_termination]))));
+goal Arith.thy
+    "!!m n. [| 0<n;  m:nat;  n:nat |] ==> (m div n)#*n #+ m mod n = m";
+by (etac complete_induct 1);
+by (res_inst_tac [("Q","x<n")] (excluded_middle RS disjE) 1);
+(*case x<n*)
+by (asm_simp_tac (arith_ss addsimps [mod_less, div_less]) 2);
+(*case n le x*)
+by (asm_full_simp_tac
+     (arith_ss addsimps [not_lt_iff_le, naturals_are_ordinals,
+			 mod_geq, div_geq, add_assoc,
+			 div_termination RS ltD, add_diff_inverse]) 1);
 val mod_div_equality = result();
 
 
-(**** Additional theorems about "less than" ****)
+(**** Additional theorems about "le" ****)
 
-val [mnat,nnat] = goal Arith.thy
-    "[| m:nat;  n:nat |] ==> ~ (m #+ n) : n";
-by (rtac (mnat RS nat_induct) 1);
-by (ALLGOALS (asm_simp_tac (arith_ss addsimps [mem_not_refl])));
-by (rtac notI 1);
-by (etac notE 1);
-by (etac (succI1 RS Ord_trans) 1);
-by (rtac (nnat RS naturals_are_ordinals) 1);
-val add_not_less_self = result();
+goal Arith.thy "!!m n. [| m:nat;  n:nat |] ==> m le m #+ n";
+by (etac nat_induct 1);
+by (ALLGOALS (asm_simp_tac arith_ss));
+val add_le_self = result();
 
-val [mnat,nnat] = goal Arith.thy
-    "[| m:nat;  n:nat |] ==> m : succ(m #+ n)";
-by (rtac (mnat RS nat_induct) 1);
-(*May not simplify even with ZF_ss because it would expand m:succ(...) *)
-by (rtac (add_0 RS ssubst) 1);
-by (rtac (add_succ RS ssubst) 2);
-by (REPEAT (ares_tac [nnat, nat_0_in_succ, succ_mem_succI, 
-		      naturals_are_ordinals, nat_succI, add_type] 1));
-val add_less_succ_self = result();
-
-goal Arith.thy "!!m n. [| m:nat;  n:nat |] ==> m <= m #+ n";
-by (rtac (add_less_succ_self RS member_succD) 1);
-by (REPEAT (ares_tac [naturals_are_ordinals, add_type] 1));
-val add_leq_self = result();
-
-goal Arith.thy "!!m n. [| m:nat;  n:nat |] ==> m <= n #+ m";
+goal Arith.thy "!!m n. [| m:nat;  n:nat |] ==> m le n #+ m";
 by (rtac (add_commute RS ssubst) 1);
-by (REPEAT (ares_tac [add_leq_self] 1));
-val add_leq_self2 = result();
+by (REPEAT (ares_tac [add_le_self] 1));
+val add_le_self2 = result();
 
 (** Monotonicity of addition **)
 
 (*strict, in 1st argument*)
-goal Arith.thy "!!i j k. [| i:j; j:nat |] ==> i#+k : j#+k";
-by (etac succ_less_induct 1);
-by (ALLGOALS (asm_simp_tac (arith_ss addsimps [succ_iff])));
-val add_less_mono1 = result();
+goal Arith.thy "!!i j k. [| i<j; j:nat; k:nat |] ==> i#+k < j#+k";
+by (forward_tac [lt_nat_in_nat] 1);
+ba 1;
+by (etac succ_lt_induct 1);
+by (ALLGOALS (asm_simp_tac (arith_ss addsimps [leI])));
+val add_lt_mono1 = result();
 
 (*strict, in both arguments*)
-goal Arith.thy "!!i j k l. [| i:j; k:l; j:nat; l:nat |] ==> i#+k : j#+l";
-by (rtac (add_less_mono1 RS Ord_trans) 1);
-by (REPEAT_FIRST (ares_tac [add_type, naturals_are_ordinals]));
+goal Arith.thy "!!i j k l. [| i<j; k<l; j:nat; l:nat |] ==> i#+k < j#+l";
+by (rtac (add_lt_mono1 RS lt_trans) 1);
+by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat] 1));
 by (EVERY [rtac (add_commute RS ssubst) 1,
 	   rtac (add_commute RS ssubst) 3,
-	   rtac add_less_mono1 5]);
-by (REPEAT (ares_tac [Ord_nat RSN (3,Ord_trans)] 1));
-val add_less_mono = result();
+	   rtac add_lt_mono1 5]);
+by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat] 1));
+val add_lt_mono = result();
 
-(*A [clumsy] way of lifting < monotonictity to <= monotonicity *)
-val less_mono::ford::prems = goal Ord.thy
-     "[| !!i j. [| i:j; j:k |] ==> f(i) : f(j);	\
-\        !!i. i:k ==> f(i):k;			\
-\        i<=j;  i:k;  j:k;  Ord(k)		\
-\     |] ==> f(i) <= f(j)";
+(*A [clumsy] way of lifting < monotonicity to le monotonicity *)
+val lt_mono::ford::prems = goal Ord.thy
+     "[| !!i j. [| i<j; j:k |] ==> f(i) < f(j);	\
+\        !!i. i:k ==> Ord(f(i));		\
+\        i le j;  j:k				\
+\     |] ==> f(i) le f(j)";
 by (cut_facts_tac prems 1);
-by (rtac member_succD 1);
-by (dtac member_succI 1);
-by (fast_tac (ZF_cs addSIs [less_mono]) 3);
-by (REPEAT (ares_tac [ford,Ord_in_Ord] 1));
-val Ord_less_mono_imp_mono = result();
+by (fast_tac (lt_cs addSIs [lt_mono,ford] addSEs [leE]) 1);
+val Ord_lt_mono_imp_le_mono = result();
 
-(*<=, in 1st argument*)
+(*le monotonicity, 1st argument*)
 goal Arith.thy
-    "!!i j k. [| i<=j; i:nat; j:nat; k:nat |] ==> i#+k <= j#+k";
-by (res_inst_tac [("f", "%j.j#+k")] Ord_less_mono_imp_mono 1);
-by (REPEAT (ares_tac [add_less_mono1, add_type, Ord_nat] 1));
-val add_mono1 = result();
+    "!!i j k. [| i le j; j:nat; k:nat |] ==> i#+k le j#+k";
+by (res_inst_tac [("f", "%j.j#+k")] Ord_lt_mono_imp_le_mono 1);
+by (REPEAT (ares_tac [add_lt_mono1, add_type RS naturals_are_ordinals] 1));
+val add_le_mono1 = result();
 
-(*<=, in both arguments*)
+(* le monotonicity, BOTH arguments*)
 goal Arith.thy
-    "!!i j k. [| i<=j; k<=l; i:nat; j:nat; k:nat; l:nat |] ==> i#+k <= j#+l";
-by (rtac (add_mono1 RS subset_trans) 1);
-by (REPEAT (assume_tac 1));
+    "!!i j k. [| i le j; k le l; j:nat; l:nat |] ==> i#+k le j#+l";
+by (rtac (add_le_mono1 RS le_trans) 1);
+by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
 by (EVERY [rtac (add_commute RS ssubst) 1,
 	   rtac (add_commute RS ssubst) 3,
-	   rtac add_mono1 5]);
-by (REPEAT (assume_tac 1));
-val add_mono = result();
+	   rtac add_le_mono1 5]);
+by (REPEAT (eresolve_tac [asm_rl, lt_nat_in_nat, nat_succI] 1));
+val add_le_mono = result();

@@ -59,7 +59,7 @@ val list_rec_Nil = result();
 
 goal ListFn.thy "list_rec(Cons(a,l), c, h) = h(a, l, list_rec(l,c,h))";
 by (rtac (list_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (ZF_ss addsimps (List.case_eqns @ [Vset_rankI, rank_Cons2])) 1);
+by (simp_tac (rank_ss addsimps (rank_Cons2::List.case_eqns)) 1);
 val list_rec_Cons = result();
 
 (*Type checking -- proved by induction, as usual*)

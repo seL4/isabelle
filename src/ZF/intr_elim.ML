@@ -19,7 +19,7 @@ The recursive sets must *already* be declared as constants in parent theory!
   where M is some monotone operator (usually the identity)
   P(x) is any (non-conjunctive) side condition on the free variables
   ti, t are any terms
-  Sj, Sk are two of the sets being defiend in mutual recursion
+  Sj, Sk are two of the sets being defined in mutual recursion
 
 Sums are used only for mutual recursion;
 Products are used only to derive "streamlined" induction rules for relations

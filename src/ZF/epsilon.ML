@@ -195,35 +195,35 @@ by (rtac (rank RS ssubst) 1);
 by (asm_simp_tac (ZF_ss addsimps [Ord_equality]) 1);
 val rank_of_Ord = result();
 
-val [prem] = goal Epsilon.thy "a:b ==> rank(a) : rank(b)";
+goal Epsilon.thy "!!a b. a:b ==> rank(a) < rank(b)";
 by (res_inst_tac [("a1","b")] (rank RS ssubst) 1);
-by (rtac (prem RS UN_I) 1);
+be (UN_I RS ltI) 1;
 by (rtac succI1 1);
+by (REPEAT (ares_tac [Ord_UN, Ord_succ, Ord_rank] 1));
 val rank_lt = result();
 
-val [major] = goal Epsilon.thy "a: eclose(b) ==> rank(a) : rank(b)";
+val [major] = goal Epsilon.thy "a: eclose(b) ==> rank(a) < rank(b)";
 by (rtac (major RS eclose_induct_down) 1);
 by (etac rank_lt 1);
-by (etac (rank_lt RS Ord_trans) 1);
+by (etac (rank_lt RS lt_trans) 1);
 by (assume_tac 1);
-by (rtac Ord_rank 1);
 val eclose_rank_lt = result();
 
-goal Epsilon.thy "!!a b. a<=b ==> rank(a) <= rank(b)";
+goal Epsilon.thy "!!a b. a<=b ==> rank(a) le rank(b)";
+by (rtac subset_imp_le 1);
 by (rtac (rank RS ssubst) 1);
 by (rtac (rank RS ssubst) 1);
 by (etac UN_mono 1);
-by (rtac subset_refl 1);
+by (REPEAT (resolve_tac [subset_refl, Ord_rank] 1));
 val rank_mono = result();
 
 goal Epsilon.thy "rank(Pow(a)) = succ(rank(a))";
 by (rtac (rank RS trans) 1);
-by (rtac equalityI 1);
-by (fast_tac ZF_cs 2);
-by (rtac UN_least 1);
-by (etac (PowD RS rank_mono RS Ord_succ_mono) 1);
-by (rtac Ord_rank 1);
-by (rtac Ord_rank 1);
+by (rtac le_asym 1);
+by (DO_GOAL [rtac (Ord_rank RS Ord_succ RS UN_least_le),
+	     etac (PowD RS rank_mono RS succ_leI)] 1);
+by (DO_GOAL [rtac ([Pow_top, le_refl] MRS UN_upper_le),
+	     REPEAT o rtac (Ord_rank RS Ord_succ)] 1);
 val rank_Pow = result();
 
 goal Epsilon.thy "rank(0) = 0";
@@ -236,61 +236,46 @@ by (rtac (rank RS trans) 1);
 by (rtac ([UN_least, succI1 RS UN_upper] MRS equalityI) 1);
 by (etac succE 1);
 by (fast_tac ZF_cs 1);
-by (REPEAT (ares_tac [Ord_succ_mono,Ord_rank,OrdmemD,rank_lt] 1));
+be (rank_lt RS leI RS succ_leI RS le_imp_subset) 1;
 val rank_succ = result();
 
 goal Epsilon.thy "rank(Union(A)) = (UN x:A. rank(x))";
 by (rtac equalityI 1);
-by (rtac (rank_mono RS UN_least) 2);
+by (rtac (rank_mono RS le_imp_subset RS UN_least) 2);
 by (etac Union_upper 2);
 by (rtac (rank RS ssubst) 1);
 by (rtac UN_least 1);
 by (etac UnionE 1);
 by (rtac subset_trans 1);
 by (etac (RepFunI RS Union_upper) 2);
-by (etac (rank_lt RS Ord_succ_subsetI) 1);
-by (rtac Ord_rank 1);
+by (etac (rank_lt RS succ_leI RS le_imp_subset) 1);
 val rank_Union = result();
 
 goal Epsilon.thy "rank(eclose(a)) = rank(a)";
-by (rtac equalityI 1);
+by (rtac le_asym 1);
 by (rtac (arg_subset_eclose RS rank_mono) 2);
 by (res_inst_tac [("a1","eclose(a)")] (rank RS ssubst) 1);
-by (rtac UN_least 1);
-by (etac ([eclose_rank_lt, Ord_rank] MRS Ord_succ_subsetI) 1);
+by (rtac (Ord_rank RS UN_least_le) 1);
+by (etac (eclose_rank_lt RS succ_leI) 1);
 val rank_eclose = result();
 
-(*  [| i: j; j: rank(a) |] ==> i: rank(a)  *)
-val rank_trans = Ord_rank RSN (3, Ord_trans);
-
-goalw Epsilon.thy [Pair_def] "rank(a) : rank(<a,b>)";
-by (rtac (consI1 RS rank_lt RS Ord_trans) 1);
+goalw Epsilon.thy [Pair_def] "rank(a) < rank(<a,b>)";
+by (rtac (consI1 RS rank_lt RS lt_trans) 1);
 by (rtac (consI1 RS consI2 RS rank_lt) 1);
-by (rtac Ord_rank 1);
 val rank_pair1 = result();
 
-goalw Epsilon.thy [Pair_def] "rank(b) : rank(<a,b>)";
-by (rtac (consI1 RS consI2 RS rank_lt RS Ord_trans) 1);
+goalw Epsilon.thy [Pair_def] "rank(b) < rank(<a,b>)";
+by (rtac (consI1 RS consI2 RS rank_lt RS lt_trans) 1);
 by (rtac (consI1 RS consI2 RS rank_lt) 1);
-by (rtac Ord_rank 1);
 val rank_pair2 = result();
 
-goalw (merge_theories(Epsilon.thy,Sum.thy)) [Inl_def] "rank(a) : rank(Inl(a))";
+goalw (merge_theories(Epsilon.thy,Sum.thy)) [Inl_def] "rank(a) < rank(Inl(a))";
 by (rtac rank_pair2 1);
 val rank_Inl = result();
 
-goalw (merge_theories(Epsilon.thy,Sum.thy)) [Inr_def] "rank(a) : rank(Inr(a))";
+goalw (merge_theories(Epsilon.thy,Sum.thy)) [Inr_def] "rank(a) < rank(Inr(a))";
 by (rtac rank_pair2 1);
 val rank_Inr = result();
-
-val [major] = goal Epsilon.thy "i: rank(a) ==> (EX x:a. i<=rank(x))";
-by (resolve_tac ([major] RL [rank RS subst] RL [UN_E]) 1);
-by (rtac bexI 1);
-by (etac member_succD 1);
-by (rtac Ord_rank 1);
-by (assume_tac 1);
-val rank_implies_mem = result();
-
 
 (*** Corollaries of leastness ***)
 
