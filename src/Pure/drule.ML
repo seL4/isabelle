@@ -330,7 +330,8 @@ fun implies_elim_list impth ths = foldl (uncurry implies_elim) (impth,ths);
 
 (* maps |- B to A1,...,An |- B *)
 fun impose_hyps chyps th =
-  implies_elim_list (implies_intr_list chyps th) (map Thm.assume chyps);
+  let val chyps' = gen_rems (op aconv o apfst Thm.term_of) (chyps, #hyps (Thm.rep_thm th))
+  in implies_elim_list (implies_intr_list chyps' th) (map Thm.assume chyps') end;
 
 (*Reset Var indexes to zero, renaming to preserve distinctness*)
 fun zero_var_indexes th =
