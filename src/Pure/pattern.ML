@@ -223,10 +223,10 @@ fun unify(sg,env,tus) = (tsgr := #tsig(Sign.rep_sg sg);
 
 (*Perform eta-contractions upon a term*)
 fun eta_contract (Abs(a,T,body)) = 
-      (case eta_contract body  of
-        body' as (f $ Bound i) => 
-	  if i=0 andalso not (0 mem_int loose_bnos f) then incr_boundvars ~1 f 
-	  else Abs(a,T,body')
+      (case  eta_contract body  of
+        body' as (f $ Bound 0) => 
+	  if (0 mem_int loose_bnos f) then Abs(a,T,body')
+	  else incr_boundvars ~1 f 
       | body' => Abs(a,T,body'))
   | eta_contract(f$t) = eta_contract f $ eta_contract t
   | eta_contract t = t;
