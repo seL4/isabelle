@@ -703,7 +703,8 @@ fun next_block state =
   state
   |> assert_forward
   |> close_block
-  |> new_block;
+  |> new_block
+  |> reset_facts;
 
 
 end;
