@@ -5,13 +5,16 @@ Isabelle NEWS -- history of user-visible changes
 New in Isabelle???? (DATE ????)
 -------------------------------
 
+* replaced print_goals_ref hook by print_current_goals_fn and
+  result_error_fn;
+
 * HOL/simplifier: terms of the form
   `? x. P1(x) & ... & Pn(x) & x=t & Q1(x) & ... Qn(x)' (or t=x)
   are rewritten to
   `P1(t) & ... & Pn(t) & Q1(t) & ... Qn(t)'
 
 * HOL/Lists: the function "set_of_list" has been renamed "set" (and its 
-  theorems too)
+  theorems too);
 
 * removed old README and Makefiles;
 
