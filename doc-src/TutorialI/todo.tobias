@@ -86,13 +86,9 @@ recdef with nested recursion: either an example or at least a pointer to the
 literature. In Recdef/termination.thy, at the end.
 %FIXME, with one exception: nested recursion.
 
-Syntax section: syntax annotations nor just for consts but also for constdefs and datatype.
+Syntax section: syntax annotations not just for consts but also for constdefs and datatype.
 
 Appendix with list functions.
-
-Move section on rule inversion further to the front, and combine
-\subsection{Universal quantifiers in introduction rules}
-\subsection{Continuing the `ground terms' example}
 
 
 Minor additions to the tutorial, unclear where
