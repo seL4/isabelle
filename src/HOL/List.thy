@@ -1338,6 +1338,12 @@ by (induct xs) (auto simp add: insert_absorb)
 lemma distinct_remdups [iff]: "distinct (remdups xs)"
 by (induct xs) auto
 
+lemma remdups_eq_nil_iff [simp]: "(remdups x = []) = (x = [])"
+  by (induct_tac x, auto) 
+
+lemma remdups_eq_nil_right_iff [simp]: "([] = remdups x) = (x = [])"
+  by (induct_tac x, auto)
+
 lemma distinct_filter [simp]: "distinct xs ==> distinct (filter P xs)"
 by (induct xs) auto
 

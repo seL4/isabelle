@@ -28,7 +28,8 @@ by (induct l, auto)
 subsection {* Some examples of rule induction on permutations *}
 
 lemma xperm_empty_imp_aux: "xs <~~> ys ==> xs = [] --> ys = []"
-    -- {* the form of the premise lets the induction bind @{term xs} and @{term ys} *}
+    -- {*the form of the premise lets the induction bind @{term xs} 
+         and @{term ys} *}
   apply (erule perm.induct)
      apply (simp_all (no_asm_simp))
   done
@@ -69,10 +70,7 @@ lemma perm_append_swap: "xs @ ys <~~> ys @ xs"
   done
 
 lemma perm_append_single: "a # xs <~~> xs @ [a]"
-  apply (rule perm.trans)
-   prefer 2
-   apply (rule perm_append_swap, simp)
-  done
+  by (rule perm.trans [OF _ perm_append_swap], simp)
 
 lemma perm_rev: "rev xs <~~> xs"
   apply (induct xs, simp_all)
@@ -120,6 +118,10 @@ by (induct ys, auto)
 lemma remove_commute: "remove x (remove y l) = remove y (remove x l)"
 by (induct l, auto)
 
+lemma multiset_of_remove[simp]: 
+  "multiset_of (remove a x) = multiset_of x - {#a#}"
+  by (induct_tac x, auto simp: multiset_eq_conv_count_eq) 
+
 
 text {* \medskip Congruence rule *}
 
@@ -127,8 +129,7 @@ lemma perm_remove_perm: "xs <~~> ys ==> remove z xs <~~> remove z ys"
 by (erule perm.induct, auto)
 
 lemma remove_hd [simp]: "remove z (z # xs) = xs"
-  apply auto
-  done
+  by auto
 
 lemma cons_perm_imp_perm: "z # xs <~~> z # ys ==> xs <~~> ys"
 by (drule_tac z = z in perm_remove_perm, auto)
@@ -153,31 +154,11 @@ lemma perm_append2_eq [iff]: "(xs @ zs <~~> ys @ zs) = (xs <~~> ys)"
   apply (blast intro: perm_append_swap)
   done
 
-(****************** Norbert Voelker 17 June 2004 **************) 
-
-consts 
-  multiset_of :: "'a list \<Rightarrow> 'a multiset"
-primrec
-  "multiset_of [] = {#}"
-  "multiset_of (a # x) = multiset_of x + {# a #}"
-
-lemma multiset_of_zero_iff[simp]: "(multiset_of x = {#}) = (x = [])"
-  by (induct_tac x, auto) 
-
-lemma multiset_of_zero_iff_right[simp]: "({#} = multiset_of x) = (x = [])"
-  by (induct_tac x, auto)
-
-lemma set_of_multiset_of[simp]: "set_of(multiset_of x) = set x"
- by (induct_tac x, auto) 
-
-lemma multiset_of_remove[simp]: 
-  "multiset_of (remove a x) = multiset_of x - {#a#}"
-  by (induct_tac x, auto simp: multiset_eq_conv_count_eq) 
-
-lemma multiset_of_eq_perm:  "(multiset_of xs = multiset_of ys) = (xs <~~> ys) "
+lemma multiset_of_eq_perm: "(multiset_of xs = multiset_of ys) = (xs <~~> ys) "
   apply (rule iffI) 
   apply (erule_tac [2] perm.induct, simp_all add: union_ac) 
-  apply (erule rev_mp, rule_tac x=ys in spec, induct_tac xs, auto) 
+  apply (erule rev_mp, rule_tac x=ys in spec) 
+  apply (induct_tac xs, auto) 
   apply (erule_tac x = "remove a x" in allE, drule sym, simp) 
   apply (subgoal_tac "a \<in> set x") 
   apply (drule_tac z=a in perm.Cons) 
@@ -185,15 +166,11 @@ lemma multiset_of_eq_perm:  "(multiset_of xs = multiset_of ys) = (xs <~~> ys) "
   apply (drule_tac f=set_of in arg_cong, simp)
   done
 
-lemma set_count_multiset_of: "set x = {a. 0 < count (multiset_of x) a}"
-  by (induct_tac x, auto)  
-
-lemma distinct_count_multiset_of: 
-   "distinct x \<Longrightarrow> count (multiset_of x) a = (if a \<in> set x then 1 else 0)"
-  by (erule rev_mp, induct_tac x, auto) 
-
-lemma distinct_set_eq_iff_multiset_of_eq: 
-  "\<lbrakk>distinct x; distinct y\<rbrakk> \<Longrightarrow> (set x = set y) = (multiset_of x = multiset_of y)"
-  by (auto simp: multiset_eq_conv_count_eq distinct_count_multiset_of) 
+lemma multiset_of_le_perm_append: 
+  "(multiset_of xs \<le># multiset_of ys) = (\<exists> zs. xs @ zs <~~> ys)"; 
+  apply (auto simp: multiset_of_eq_perm[THEN sym] mset_le_exists_conv) 
+  apply (insert surj_multiset_of, drule surjD)
+  apply (blast intro: sym)+
+  done
 
 end
