@@ -143,14 +143,6 @@ for 'intros' (was found too confusing);
 * HOL: properly declared induction rules less_induct and
 wf_induct_rule;
 
-* HOLCF: domain package adapted to new-style theory format, e.g. see
-HOLCF/ex/Dnat.thy;
-
-* ZF: proper integration of logic-specific tools and packages,
-including theory commands '(co)inductive', '(co)datatype',
-'rep_datatype', 'inductive_cases', as well as methods 'ind_cases',
-'induct_tac', 'case_tac', and 'typecheck' (with attribute 'TC');
-
 
 *** HOL ***
 
@@ -252,7 +244,13 @@ some explanations (by Gerwin Klein);
 
 *** HOLCF ***
 
-* proper rep_datatype lift (see theory Lift) instead of ML hacks --
+* Isar: consts/constdefs supports mixfix syntax for continuous
+operations;
+
+* Isar: domain package adapted to new-style theory format, e.g. see
+HOLCF/ex/Dnat.thy;
+
+* theory Lift: proper use of rep_datatype lift instead of ML hacks --
 potential INCOMPATIBILITY; now use plain induct_tac instead of former
 lift.induct_tac, always use UU instead of Undef;
 
@@ -261,8 +259,16 @@ lift.induct_tac, always use UU instead of Undef;
 
 *** ZF ***
 
-* Theory Main no longer includes AC; for the Axiom of Choice, base your 
-theory on Main_ZFC;
+* Isar: proper integration of logic-specific tools and packages,
+including theory commands '(co)inductive', '(co)datatype',
+'rep_datatype', 'inductive_cases', as well as methods 'ind_cases',
+'induct_tac', 'case_tac', and 'typecheck' (with attribute 'TC');
+
+* theory Main no longer includes AC; for the Axiom of Choice, base
+your theory on Main_ZFC;
+
+* the integer library now covers quotients and remainders, with many
+laws relating division to addition, multiplication, etc.;
 
 * ZF/UNITY: Chandy and Misra's UNITY is now available in ZF, giving a
 typeless version of the formalism;
@@ -272,9 +278,6 @@ typeless version of the formalism;
 * ZF/Induct: new directory for examples of inductive definitions,
 including theory Multiset for multiset orderings; converted to
 new-style theory format;
-
-* ZF: the integer library now covers quotients and remainders, with
-many laws relating division to addition, multiplication, etc.;
 
 
 *** General ***
@@ -356,7 +359,7 @@ New in Isabelle99-2 (February 2001)
 
 * HOL: please note that theories in the Library and elsewhere often use the
 new-style (Isar) format; to refer to their theorems in an ML script you must
-bind them to ML identifers by e.g.	val thm_name = thm "thm_name";
+bind them to ML identifers by e.g.      val thm_name = thm "thm_name";
 
 * HOL: inductive package no longer splits induction rule aggressively,
 but only as far as specified by the introductions given; the old
