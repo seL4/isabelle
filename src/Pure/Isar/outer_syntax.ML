@@ -61,12 +61,12 @@ sig
   val deps_thy: string -> bool -> Path.T -> string list * Path.T list
   val load_thy: string -> bool -> bool -> Path.T -> unit
   val isar: bool -> bool -> unit Toplevel.isar
-  val scan: string -> OuterLex.token list
+  val scan: string -> OuterLex.token list  
   val read: OuterLex.token list -> 
 		(string * OuterLex.token list * Toplevel.transition) list
 end;
 
-structure OuterSyntax: OUTER_SYNTAX =
+structure OuterSyntax : OUTER_SYNTAX  =
 struct
 
 structure T = OuterLex;
@@ -270,7 +270,7 @@ fun isar term no_pos =
 fun scan str =
  Source.of_string str
  |> Symbol.source false
- |> T.source false get_lexicons Position.none
+ |> T.source true get_lexicons Position.none
  |> Source.exhaust
 
 fun read toks =

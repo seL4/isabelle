@@ -83,6 +83,7 @@ fun not_sync (Token (_, (Sync, _))) = false
   | not_sync _ = true;
 
 val malformed = Token (Position.none, (Malformed, ""));
+fun malformed_of xs = Token (Position.none, (Malformed, implode xs));
 
 
 (* eof token *)
@@ -277,7 +278,7 @@ fun scan (lex1, lex2) =
 (* token sources *)
 
 val is_junk = (not o Symbol.is_blank) andf Symbol.not_sync andf Symbol.not_eof;
-fun recover xs = (keep_line (Scan.any is_junk) >> K [malformed]) xs;
+fun recover xs = (keep_line (Scan.any is_junk) >> (fn ts => [malformed_of ts])) xs;
 
 fun source do_recover get_lex pos src =
   Source.source' pos Symbol.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
