@@ -17,10 +17,10 @@
 #ML_OPTIONS="-h 30000"
 
 # Poly/ML 3.1
-ML_SYSTEM=polyml-3.1
-ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
-ML_OPTIONS="-h 30000"
-LM_LICENSE_FILE=$ML_HOME/license.dat
+#ML_SYSTEM=polyml-3.1
+#ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
+#ML_OPTIONS="-h 30000"
+#LM_LICENSE_FILE=$ML_HOME/license.dat
 
 # Standard ML of New Jersey 0.93
 #ML_SYSTEM=smlnj-0.93
@@ -32,10 +32,10 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 #ML_HOME=/usr/local/sml107/bin
 #ML_OPTIONS="@SMLdebug=/dev/null"
 
-# Standard ML of New Jersey 1.09.27, or later
-#ML_SYSTEM=smlnj-1.09
-#ML_HOME=/usr/local/sml109.27/bin
-#ML_OPTIONS="@SMLdebug=/dev/null"
+# Standard ML of New Jersey 1.09.27, 1.09.28, or later
+ML_SYSTEM=smlnj-1.09
+ML_HOME=/usr/local/sml109.27/bin
+ML_OPTIONS="@SMLdebug=/dev/null"
 
 
 ###
