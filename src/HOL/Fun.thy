@@ -81,7 +81,7 @@ constdefs
   Applyall :: "[('a => 'b) set, 'a]=> 'b set"
     "Applyall F a == (%f. f a) `` F"
 
-  compose :: "['a set, 'a => 'b, 'b => 'c] => ('a => 'c)"
+  compose :: "['a set, 'b => 'c, 'a => 'b] => ('a => 'c)"
     "compose A g f == lam x : A. g(f x)"
 
   Inv    :: "['a set, 'a => 'b] => ('b => 'a)"
