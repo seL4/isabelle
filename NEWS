@@ -94,6 +94,11 @@ addSolver; added safe_asm_full_simp_tac;
 * a generic induction tactic `induct_tac' which works for all datatypes and
 also for type `nat';
 
+* a generic case distinction tactic `exhaust_tac' which works for all
+datatypes and also for type `nat';
+
+* each datatype comes with a function `size';
+
 * patterns in case expressions allow tuple patterns as arguments to
 constructors, for example `case x of [] => ... | (x,y,z)#ps => ...';
 
