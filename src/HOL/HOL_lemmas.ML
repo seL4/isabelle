@@ -346,34 +346,30 @@ by (etac someI 1);
 qed "someI_ex";
 
 (*Easier to apply than someI: conclusion has only one occurrence of P*)
-val prems = Goal
-    "[| P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)";
+val prems = Goal "[| P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)";
 by (resolve_tac prems 1);
 by (rtac someI 1);
 by (resolve_tac prems 1) ;
 qed "someI2";
 
 (*Easier to apply than someI2 if witness ?a comes from an EX-formula*)
-val [major,minor] = Goal "[| EX a. P a;  !!x. P x ==> Q x |] ==> Q (SOME x. P x)";
+val [major,minor] = Goal "[| EX a. P a; !!x. P x ==> Q x |] ==> Q (SOME x. P x)";
 by (rtac (major RS exE) 1);
 by (etac someI2 1 THEN etac minor 1);
 qed "someI2_ex";
 
-val prems = Goal
-    "[| P a;  !!x. P x ==> x=a |] ==> (SOME x. P x) = a";
+val prems = Goal "[| P a;  !!x. P x ==> x=a |] ==> (SOME x. P x) = a";
 by (rtac someI2 1);
 by (REPEAT (ares_tac prems 1)) ;
 qed "some_equality";
 
-Goalw [Ex1_def] "[| EX!x. P x; P a |] ==> (SOME x. P x) = a";
+Goal "[| EX!x. P x; P a |] ==> (SOME x. P x) = a";
 by (rtac some_equality 1);
-by (atac 1);
-by (etac exE 1);
-by (etac conjE 1);
-by (rtac allE 1);
-by (atac 1);
-by (etac impE 1);
-by (atac 1);
+by  (atac 1);
+by (etac ex1E 1);
+by (etac all_dupE 1);
+by (dtac mp 1);
+by  (atac 1);
 by (etac ssubst 1);
 by (etac allE 1);
 by (etac mp 1);
@@ -485,3 +481,4 @@ end;
 
 
 fun strip_tac i = REPEAT(resolve_tac [impI,allI] i);
+
