@@ -22,8 +22,8 @@ sig
   val cond_add_path: Path.T -> ('a -> 'b) -> 'a -> 'b
   val ml_path: string -> Path.T
   val thy_path: string -> Path.T
-  val check_file: Path.T -> (Path.T * File.info) option
-  val load_file: Path.T -> (Path.T * File.info)
+  val check_file: Path.T option -> Path.T -> (Path.T * File.info) option
+  val load_file: Path.T option -> Path.T -> (Path.T * File.info)
   eqtype master
   val get_thy: master -> Path.T * File.info
   val check_thy: Path.T -> string -> bool -> master
@@ -69,7 +69,7 @@ val thy_path = Path.ext "thy" o Path.basic;
 
 (* check_file *)
 
-fun check_file src_path =
+fun check_file current src_path =
   let
     val path = Path.expand src_path;
 
@@ -80,17 +80,20 @@ fun check_file src_path =
     fun find_dir dir =
       get_first (find_ext (Path.append dir path)) ml_exts;
 
+    fun add_current ps = (case current of None => ps
+          | (Some p) => if Path.is_current p then ps else p :: ps);
+
     val paths =
       if Path.is_current path then error "Bad file specification"
-      else if Path.is_basic path then ! load_path
-      else [Path.current];
+      else if Path.is_basic path then add_current (! load_path)
+      else add_current [Path.current];
   in get_first find_dir paths end;
 
 
 (* load_file *)
 
-fun load_file raw_path =
-  (case check_file raw_path of
+fun load_file current raw_path =
+  (case check_file current raw_path of
     None => error ("Could not find ML file " ^ quote (Path.pack raw_path))
   | Some (path, info) => (File.use path; (path, info)));
 
@@ -107,10 +110,10 @@ fun get_thy (Master (thy, _)) = thy;
 local
 
 fun check_thy_aux (name, ml) =
-  (case check_file (thy_path name) of
+  (case check_file None (thy_path name) of
     None => error ("Could not find theory file for " ^ quote name ^ " in dir(s) " ^
       commas_quote (show_path ()))
-  | Some thy_info => (thy_info, if ml then check_file (ml_path name) else None));
+  | Some thy_info => (thy_info, if ml then check_file None (ml_path name) else None));
 
 in
 
