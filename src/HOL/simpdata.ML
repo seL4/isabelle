@@ -277,6 +277,11 @@ Goal "a = b ==> (let x=a in t(x)) = (let x=b in t(x))";
 by (etac arg_cong 1);
 qed "let_weak_cong";
 
+(*To tidy up the result of a simproc.  Only the RHS will be simplified.*)
+Goal "u = u' ==> (t==u) == (t==u')";
+by (asm_simp_tac HOL_ss 1);
+qed "eq_cong2";
+
 Goal "f(if c then x else y) = (if c then f x else f y)";
 by (simp_tac (HOL_ss setloop (split_tac [split_if])) 1);
 qed "if_distrib";

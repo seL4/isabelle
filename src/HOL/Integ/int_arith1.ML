@@ -70,11 +70,6 @@ by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]
                                      @zadd_ac@rel_iff_rel_0_rls) 1);
 qed "le_add_iff2";
 
-(*To tidy up the result of a simproc.  Only the RHS will be simplified.*)
-Goal "u = u' ==> (t==u) == (t==u')";
-by Auto_tac;
-qed "eq_cong2";
-
 
 structure Int_Numeral_Simprocs =
 struct
@@ -206,8 +201,8 @@ fun trans_tac None      = all_tac
   | trans_tac (Some th) = ALLGOALS (rtac (th RS trans));
 
 fun simplify_meta_eq rules =
-    mk_meta_eq o
     simplify (HOL_basic_ss addeqcongs[eq_cong2] addsimps rules)
+    o mk_meta_eq;
 
 structure CancelNumeralsCommon =
   struct
