@@ -64,19 +64,19 @@ val PREC_succ = result();
 (*** Inductive definition of the PR functions ***)
 
 structure Primrec = Inductive_Fun
- (val thy = Primrec0.thy;
-  val rec_doms = [("primrec", "list(nat)->nat")];
-  val ext = None
-  val sintrs = 
+ (val thy        = Primrec0.thy
+  val rec_doms   = [("primrec", "list(nat)->nat")]
+  val sintrs     = 
       ["SC : primrec",
        "k: nat ==> CONST(k) : primrec",
        "i: nat ==> PROJ(i) : primrec",
-       "[| g: primrec;  fs: list(primrec) |] ==> COMP(g,fs): primrec",
-       "[| f: primrec;  g: primrec |] ==> PREC(f,g): primrec"];
-  val monos = [list_mono];
-  val con_defs = [SC_def,CONST_def,PROJ_def,COMP_def,PREC_def];
+       "[| g: primrec; fs: list(primrec) |] ==> COMP(g,fs): primrec",
+       "[| f: primrec; g: primrec |] ==> PREC(f,g): primrec"]
+  val monos      = [list_mono]
+  val con_defs   = [SC_def,CONST_def,PROJ_def,COMP_def,PREC_def]
   val type_intrs = pr0_typechecks
   val type_elims = []);
+
 
 (* c: primrec ==> c: list(nat) -> nat *)
 val primrec_into_fun = Primrec.dom_subset RS subsetD;

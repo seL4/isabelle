@@ -18,13 +18,12 @@ Fin(univ(A)) <= univ(A)
 *)
 
 structure Fin = Inductive_Fun
- (val thy = Arith.thy addconsts [(["Fin"],"i=>i")];
-  val rec_doms = [("Fin","Pow(A)")];
-  val sintrs = 
-	  ["0 : Fin(A)",
-	   "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"];
-  val monos = [];
-  val con_defs = [];
+ (val thy        = Arith.thy addconsts [(["Fin"],"i=>i")]
+  val rec_doms   = [("Fin","Pow(A)")]
+  val sintrs     = ["0 : Fin(A)",
+                    "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"]
+  val monos      = []
+  val con_defs   = []
   val type_intrs = [empty_subsetI, cons_subsetI, PowI]
   val type_elims = [make_elim PowD]);
 

@@ -11,14 +11,14 @@ Equality for llist(A) as a greatest fixed point
   a q/Q to the Sigma, Pair and converse rules.*)
 
 structure LList_Eq = CoInductive_Fun
- (val thy = LList.thy addconsts [(["lleq"],"i=>i")];
-  val rec_doms = [("lleq", "llist(A) * llist(A)")];
-  val sintrs = 
-      ["<LNil, LNil> : lleq(A)",
-       "[| a:A;  <l, l'>: lleq(A) |] ==> <LCons(a,l), LCons(a,l')> : lleq(A)"];
-  val monos = [];
-  val con_defs = [];
-  val type_intrs = LList.intrs@[SigmaI];
+ (val thy = LList.thy addconsts [(["lleq"],"i=>i")]
+  val rec_doms   = [("lleq", "llist(A) * llist(A)")]
+  val sintrs     = 
+        ["<LNil, LNil> : lleq(A)",
+         "[| a:A; <l,l'>: lleq(A) |] ==> <LCons(a,l), LCons(a,l')>: lleq(A)"]
+  val monos      = []
+  val con_defs   = []
+  val type_intrs = LList.intrs @ [SigmaI]
   val type_elims = [SigmaE2]);
 
 (** Alternatives for above:

@@ -86,9 +86,6 @@ fun atomize th =
       | _ $ A => tryrules atomize_pairs A
   end;
 
-fun ZF_mk_rew_rules th = map mk_meta_eq (atomize th);
-
-
 val ZF_simps = [empty_subsetI, consI1, succI1, ball_simp, if_true, if_false, 
 		beta, eta, restrict, fst_conv, snd_conv, split];
 
@@ -99,6 +96,6 @@ val ZF_congs =
    [ball_cong, bex_cong, Replace_cong, RepFun_cong, Collect_cong, lam_cong];
 
 val ZF_ss = FOL_ss 
-      setmksimps ZF_mk_rew_rules
+      setmksimps (map mk_meta_eq o atomize o gen_all)
       addsimps (ZF_simps @ mem_simps @ bquant_simps)
       addcongs ZF_congs;

@@ -10,14 +10,14 @@ Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
 structure ListN = Inductive_Fun
- (val thy = ListFn.thy addconsts [(["listn"],"i=>i")];
-  val rec_doms = [("listn", "nat*list(A)")];
-  val sintrs = 
-      ["<0,Nil> : listn(A)",
-       "[| a: A;  <n,l> : listn(A) |] ==> <succ(n), Cons(a,l)> : listn(A)"];
-  val monos = [];
-  val con_defs = [];
-  val type_intrs = nat_typechecks@List.intrs@[SigmaI]
+ (val thy        = ListFn.thy addconsts [(["listn"],"i=>i")]
+  val rec_doms   = [("listn", "nat*list(A)")]
+  val sintrs     = 
+          ["<0,Nil> : listn(A)",
+           "[| a: A;  <n,l> : listn(A) |] ==> <succ(n), Cons(a,l)> : listn(A)"]
+  val monos      = []
+  val con_defs   = []
+  val type_intrs = nat_typechecks @ List.intrs @ [SigmaI]
   val type_elims = [SigmaE2]);
 
 val listn_induct = standard 

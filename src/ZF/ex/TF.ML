@@ -7,20 +7,19 @@ Trees & forests, a mutually recursive type definition.
 *)
 
 structure TF = Datatype_Fun
- (val thy = Univ.thy;
-  val rec_specs = 
-      [("tree", "univ(A)",
-	  [(["Tcons"],	"[i,i]=>i")]),
-       ("forest", "univ(A)",
-	  [(["Fnil"],	"i"),
-	   (["Fcons"],	"[i,i]=>i")])];
-  val rec_styp = "i=>i";
-  val ext = None
-  val sintrs = 
-	  ["[| a:A;  f: forest(A) |] ==> Tcons(a,f) : tree(A)",
-	   "Fnil : forest(A)",
-	   "[| t: tree(A);  f: forest(A) |] ==> Fcons(t,f) : forest(A)"];
-  val monos = [];
+ (val thy        = Univ.thy
+  val rec_specs  = [("tree", "univ(A)",
+                       [(["Tcons"],  "[i,i]=>i")]),
+                    ("forest", "univ(A)",
+                       [(["Fnil"],   "i"),
+                        (["Fcons"],  "[i,i]=>i")])]
+  val rec_styp   = "i=>i"
+  val ext        = None
+  val sintrs     = 
+          ["[| a:A;  f: forest(A) |] ==> Tcons(a,f) : tree(A)",
+           "Fnil : forest(A)",
+           "[| t: tree(A);  f: forest(A) |] ==> Fcons(t,f) : forest(A)"]
+  val monos      = []
   val type_intrs = datatype_intrs
   val type_elims = datatype_elims);
 

@@ -7,20 +7,18 @@ Codatatype definition of Lazy Lists
 *)
 
 structure LList = CoDatatype_Fun
- (val thy = QUniv.thy;
-  val rec_specs = 
-      [("llist", "quniv(A)",
-	  [(["LNil"],	"i"), 
-	   (["LCons"],	"[i,i]=>i")])];
-  val rec_styp = "i=>i";
-  val ext = None
-  val sintrs = 
-      ["LNil : llist(A)",
-       "[| a: A;  l: llist(A) |] ==> LCons(a,l) : llist(A)"];
-  val monos = [];
+ (val thy        = QUniv.thy
+  val rec_specs  = [("llist", "quniv(A)",
+                      [(["LNil"],   "i"), 
+                       (["LCons"],  "[i,i]=>i")])]
+  val rec_styp   = "i=>i"
+  val ext        = None
+  val sintrs     = ["LNil : llist(A)",
+                    "[| a: A;  l: llist(A) |] ==> LCons(a,l) : llist(A)"]
+  val monos      = []
   val type_intrs = codatatype_intrs
   val type_elims = codatatype_elims);
-  
+
 val [LNilI, LConsI] = LList.intrs;
 
 (*An elimination rule, for type-checking*)

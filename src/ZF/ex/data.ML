@@ -8,21 +8,20 @@ It has four contructors, of arities 0-3, and two parameters A and B.
 *)
 
 structure Data = Datatype_Fun
- (val thy = Univ.thy;
-  val rec_specs = 
-      [("data", "univ(A Un B)",
-	  [(["Con0"],	"i"),
-	   (["Con1"],	"i=>i"),
-	   (["Con2"],	"[i,i]=>i"),
-	   (["Con3"],	"[i,i,i]=>i")])];
-  val rec_styp = "[i,i]=>i";
-  val ext = None
-  val sintrs = 
-	  ["Con0 : data(A,B)",
-	   "[| a: A |] ==> Con1(a) : data(A,B)",
-	   "[| a: A; b: B |] ==> Con2(a,b) : data(A,B)",
-	   "[| a: A; b: B;  d: data(A,B) |] ==> Con3(a,b,d) : data(A,B)"];
-  val monos = [];
+ (val thy        = Univ.thy
+  val rec_specs  = [("data", "univ(A Un B)",
+                       [(["Con0"],   "i"),
+                        (["Con1"],   "i=>i"),
+                        (["Con2"],   "[i,i]=>i"),
+                        (["Con3"],   "[i,i,i]=>i")])]
+  val rec_styp   = "[i,i]=>i"
+  val ext        = None
+  val sintrs     = 
+          ["Con0 : data(A,B)",
+           "[| a: A |] ==> Con1(a) : data(A,B)",
+           "[| a: A; b: B |] ==> Con2(a,b) : data(A,B)",
+           "[| a: A; b: B;  d: data(A,B) |] ==> Con3(a,b,d) : data(A,B)"]
+  val monos      = []
   val type_intrs = datatype_intrs
   val type_elims = datatype_elims);
 

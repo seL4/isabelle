@@ -7,17 +7,15 @@ Datatype definition of Lists
 *)
 
 structure List = Datatype_Fun
- (val thy = Univ.thy;
-  val rec_specs = 
-      [("list", "univ(A)",
-	  [(["Nil"],	"i"), 
-	   (["Cons"],	"[i,i]=>i")])];
-  val rec_styp = "i=>i";
-  val ext = None
-  val sintrs = 
-      ["Nil : list(A)",
-       "[| a: A;  l: list(A) |] ==> Cons(a,l) : list(A)"];
-  val monos = [];
+ (val thy        = Univ.thy
+  val rec_specs  = [("list", "univ(A)",
+                      [(["Nil"],    "i"), 
+                       (["Cons"],   "[i,i]=>i")])]
+  val rec_styp   = "i=>i"
+  val ext        = None
+  val sintrs     = ["Nil : list(A)",
+                    "[| a: A;  l: list(A) |] ==> Cons(a,l) : list(A)"]
+  val monos      = []
   val type_intrs = datatype_intrs
   val type_elims = datatype_elims);
 
