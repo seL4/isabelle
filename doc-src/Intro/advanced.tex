@@ -437,6 +437,19 @@ defs    nand_def "nand(P,Q) == ~(P & Q)"
 end
 \end{ttbox}
 
+\begin{warn}
+A common mistake when writing definitions is to introduce extra free variables
+on the right-hard side as in the following fictitious definition:
+\begin{ttbox}
+defs  prime_def "prime(p) == (m divides p) --> (m=1 | m=p)"
+\end{ttbox}
+Isabelle rejects this ``definition'' because of the extra {\tt m} on the
+right-hard side, which would introduce an inconsistency. What you should have
+written is
+\begin{ttbox}
+defs  prime_def "prime(p) == ALL m. (m divides p) --> (m=1 | m=p)"
+\end{ttbox}
+\end{warn}
 
 \subsection{Declaring type constructors}
 \indexbold{types!declaring}\indexbold{arities!declaring}
