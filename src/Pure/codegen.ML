@@ -10,6 +10,7 @@ signature CODEGEN =
 sig
   val quiet_mode : bool ref
   val message : string -> unit
+  val mode : string list ref
 
   datatype 'a mixfix =
       Arg
@@ -42,6 +43,8 @@ sig
   val parens: Pretty.T -> Pretty.T
   val mk_app: bool -> Pretty.T -> Pretty.T list -> Pretty.T
   val eta_expand: term -> term list -> int -> term
+  val mk_type: bool -> typ -> Pretty.T
+  val mk_term_of: Sign.sg -> bool -> typ -> Pretty.T
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
   val parsers: OuterSyntax.parser list
   val setup: (theory -> theory) list
@@ -52,6 +55,8 @@ struct
 
 val quiet_mode = ref true;
 fun message s = if !quiet_mode then () else writeln s;
+
+val mode = ref ([] : string list);
 
 (**** Mixfix syntax ****)
 
@@ -442,6 +447,29 @@ val generate_code = gen_generate_code
   (fn sg => term_of o read_cterm sg o rpair TypeInfer.logicT);
 
 
+(**** Reflection ****)
+
+val strip_tname = implode o tl o explode;
+
+fun pretty_list xs = Pretty.block (Pretty.str "[" ::
+  flat (separate [Pretty.str ",", Pretty.brk 1] (map single xs)) @
+  [Pretty.str "]"]);
+
+fun mk_type p (TVar ((s, i), _)) = Pretty.str
+      (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "T")
+  | mk_type p (TFree (s, _)) = Pretty.str (strip_tname s ^ "T")
+  | mk_type p (Type (s, Ts)) = (if p then parens else I) (Pretty.block
+      [Pretty.str "Type", Pretty.brk 1, Pretty.str ("(\"" ^ s ^ "\","),
+       Pretty.brk 1, pretty_list (map (mk_type false) Ts), Pretty.str ")"]);
+
+fun mk_term_of sg p (TVar ((s, i), _)) = Pretty.str
+      (strip_tname s ^ (if i = 0 then "" else string_of_int i) ^ "F")
+  | mk_term_of sg p (TFree (s, _)) = Pretty.str (strip_tname s ^ "F")
+  | mk_term_of sg p (Type (s, Ts)) = (if p then parens else I) (Pretty.block
+      (separate (Pretty.brk 1) (Pretty.str ("term_of_" ^ mk_type_id sg s) ::
+        flat (map (fn T => [mk_term_of sg true T, mk_type true T]) Ts))));
+
+
 (**** Interface ****)
 
 val str = setmp print_mode [] Pretty.str;
@@ -487,12 +515,13 @@ val assoc_constP =
 val generate_codeP =
   OuterSyntax.command "generate_code" "generates code for terms" K.thy_decl
     (Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") --
+     Scan.optional (P.$$$ "[" |-- P.enum "," P.xname --| P.$$$ "]") (!mode) --
      Scan.repeat1 (P.name --| P.$$$ "=" -- P.term) >>
-     (fn (opt_fname, xs) => Toplevel.theory (fn thy =>
+     (fn ((opt_fname, mode'), xs) => Toplevel.theory (fn thy =>
         ((case opt_fname of
             None => use_text Context.ml_output false
           | Some fname => File.write (Path.unpack fname))
-              (generate_code thy xs); thy))));
+              (setmp mode mode' (generate_code thy) xs); thy))));
 
 val parsers = [assoc_typeP, assoc_constP, generate_codeP];
 
