@@ -446,10 +446,11 @@ and mk_ind_def thy gr dep names intrs =
   let val ids = map (mk_const_id (sign_of thy)) names
   in Graph.add_edge (hd ids, dep) gr handle Graph.UNDEF _ =>
     let
-      fun dest_prem factors (_ $ (Const ("op :", _) $ t $ u)) =
+      fun dest_prem factors (_ $ (p as (Const ("op :", _) $ t $ u))) =
             (case head_of u of
-               Const (name, _) => Prem (split_prod []
-                 (the (assoc (factors, name))) t, u)
+               Const (name, _) => (case assoc (factors, name) of
+                   None => Sidecond p
+                 | Some f => Prem (split_prod [] f t, u))
              | Var ((name, _), _) => Prem (split_prod []
                  (the (assoc (factors, name))) t, u))
         | dest_prem factors (_ $ ((eq as Const ("op =", _)) $ t $ u)) =
@@ -467,8 +468,10 @@ and mk_ind_def thy gr dep names intrs =
         end;
 
       fun add_prod_factors extra_fs (fs, _ $ (Const ("op :", _) $ t $ u)) =
-            infer_factors (sign_of thy) extra_fs
-              (fs, (Some (FVar (prod_factors [] t)), u))
+          (case apsome (get_clauses thy o fst) (try dest_Const (head_of u)) of
+             Some None => fs
+           | _ => infer_factors (sign_of thy) extra_fs
+              (fs, (Some (FVar (prod_factors [] t)), u)))
         | add_prod_factors _ (fs, _) = fs;
 
       val intrs' = map (rename_term o #prop o rep_thm o standard) intrs;
