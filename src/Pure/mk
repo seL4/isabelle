@@ -87,6 +87,7 @@ if [ -z "$RAW" ]; then
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => exit 1;" \
     -q -w RAW_ML_SYSTEM Pure > $LOG 2>&1
+  RC=$?
 else
   ITEM="RAW"
   echo -n "Building $ITEM ... "
@@ -96,9 +97,8 @@ else
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "use\"$COMPAT\" handle _ => exit 1;;" \
     -q -w RAW_ML_SYSTEM RAW > $LOG 2>&1
+  RC=$?
 fi
-
-RC=$?
 
 ELAPSED=$($ISABELLE_HOME/lib/scripts/showtime $SECONDS)
 
