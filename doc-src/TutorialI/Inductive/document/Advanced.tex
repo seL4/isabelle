@@ -1,221 +1,218 @@
 %
-\begin{isabellebody}%
-\def\isabellecontext{Advanced}%
+\begin{isabelle}
+\def\isabellecontext{Advanced}
 \isanewline
-\isacommand{theory}\ Advanced\ {\isacharequal}\ Even{\isacharcolon}\isanewline
+\isacommand{theory}\ Advanced\ =\ Even:\isanewline
 \isanewline
 \isanewline
-\isacommand{datatype}\ {\isacharprime}f\ gterm\ {\isacharequal}\ Apply\ {\isacharprime}f\ {\isachardoublequote}{\isacharprime}f\ gterm\ list{\isachardoublequote}\isanewline
+\isacommand{datatype}\ 'f\ gterm\ =\ Apply\ 'f\ "'f\ gterm\ list"\isanewline
 \isanewline
-\isacommand{datatype}\ integer{\isacharunderscore}op\ {\isacharequal}\ Number\ int\ {\isacharbar}\ UnaryMinus\ {\isacharbar}\ Plus\isanewline
+\isacommand{datatype}\ integer_op\ =\ Number\ int\ |\ UnaryMinus\ |\ Plus\isanewline
 \isanewline
-\isacommand{consts}\ gterms\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharprime}f\ set\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequote}\isanewline
-\isacommand{inductive}\ {\isachardoublequote}gterms\ F{\isachardoublequote}\isanewline
+\isacommand{consts}\ gterms\ ::\ "'f\ set\ \isasymRightarrow \ 'f\ gterm\ set"\isanewline
+\isacommand{inductive}\ "gterms\ F"\isanewline
 \isakeyword{intros}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}{\isasymforall}t\ {\isasymin}\ set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ \ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ gterms\ F{\isachardoublequote}\isanewline
+step[intro!]:\ "\isasymlbrakk \isasymforall t\ \isasymin \ set\ args.\ t\ \isasymin \ gterms\ F;\ \ f\ \isasymin \ F\isasymrbrakk \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow \ (Apply\ f\ args)\ \isasymin \ gterms\ F"\isanewline
 \isanewline
-\isacommand{lemma}\ gterms{\isacharunderscore}mono{\isacharcolon}\ {\isachardoublequote}F{\isasymsubseteq}G\ {\isasymLongrightarrow}\ gterms\ F\ {\isasymsubseteq}\ gterms\ G{\isachardoublequote}\isanewline
+\isacommand{lemma}\ gterms_mono:\ "F\isasymsubseteq G\ \isasymLongrightarrow \ gterms\ F\ \isasymsubseteq \ gterms\ G"\isanewline
 \isacommand{apply}\ clarify\isanewline
-\isacommand{apply}\ {\isacharparenleft}erule\ gterms{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}F\ {\isasymsubseteq}\ G{\isacharsemicolon}\ {\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F\ {\isasymand}\ t\ {\isasymin}\ gterms\ G{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isacommand{apply}\ blast\isanewline
-\isacommand{done}%
-\begin{isamarkuptext}%
-\begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}a\ {\isasymin}\ even{\isacharsemicolon}\ a\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ {\isasymlbrakk}a\ {\isacharequal}\ Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharsemicolon}\ n\ {\isasymin}\ even{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\isacommand{apply}\ (erule\ gterms.induct)
+\begin{isamarkuptxt}
+\begin{isabelle}
+\ 1.\ \isasymAnd x\ args\ f.\isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymlbrakk F\ \isasymsubseteq \ G;\ \isasymforall t\isasymin set\ args.\ t\ \isasymin \ gterms\ F\ \isasymand \ t\ \isasymin \ gterms\ G;\ f\ \isasymin \ F\isasymrbrakk \isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymLongrightarrow \ Apply\ f\ args\ \isasymin \ gterms\ G%
 \end{isabelle}
+\end{isamarkuptxt}
+\isacommand{apply}\ blast\isanewline
+\isacommand{done}
+\begin{isamarkuptext}
+\begin{isabelle}
+\ \ \ \ \ \isasymlbrakk a\ \isasymin \ even;\ a\ =\ 0\ \isasymLongrightarrow \ P;\ \isasymAnd n.\ \isasymlbrakk a\ =\ Suc\ (Suc\ n);\ n\ \isasymin \ even\isasymrbrakk \ \isasymLongrightarrow \ P\isasymrbrakk \ \isasymLongrightarrow \ P%
 \rulename{even.cases}
+\end{isabelle}
 
 Just as a demo I include
 the two forms that Markus has made available. First the one for binding the
 result to a name%
-\end{isamarkuptext}%
-\isacommand{inductive{\isacharunderscore}cases}\ Suc{\isacharunderscore}Suc{\isacharunderscore}cases\ {\isacharbrackleft}elim{\isacharbang}{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequote}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequote}\isanewline
+\end{isamarkuptext}
+\isacommand{inductive_cases}\ Suc_Suc_cases\ [elim!]:\isanewline
+\ \ "Suc(Suc\ n)\ \isasymin \ even"\isanewline
 \isanewline
-\isacommand{thm}\ Suc{\isacharunderscore}Suc{\isacharunderscore}cases%
-\begin{isamarkuptext}%
-\begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isacharsemicolon}\ n\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
-\end{isabelle}
+\isacommand{thm}\ Suc_Suc_cases%
+\begin{isamarkuptext}
+\begin{isabelle}
+\ \ \ \ \ \isasymlbrakk Suc\ (Suc\ n)\ \isasymin \ even;\ n\ \isasymin \ even\ \isasymLongrightarrow \ P\isasymrbrakk \ \isasymLongrightarrow \ P%
 \rulename{Suc_Suc_cases}
+\end{isabelle}
 
 and now the one for local usage:%
-\end{isamarkuptext}%
-\isacommand{lemma}\ {\isachardoublequote}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even\ {\isasymLongrightarrow}\ P\ n{\isachardoublequote}\isanewline
-\isacommand{apply}\ {\isacharparenleft}ind{\isacharunderscore}cases\ {\isachardoublequote}Suc{\isacharparenleft}Suc\ n{\isacharparenright}\ {\isasymin}\ even{\isachardoublequote}{\isacharparenright}\isanewline
+\end{isamarkuptext}
+\isacommand{lemma}\ "Suc(Suc\ n)\ \isasymin \ even\ \isasymLongrightarrow \ P\ n"\isanewline
+\isacommand{apply}\ (ind_cases\ "Suc(Suc\ n)\ \isasymin \ even")\isanewline
 \isacommand{oops}\isanewline
 \isanewline
-\isacommand{inductive{\isacharunderscore}cases}\ gterm{\isacharunderscore}Apply{\isacharunderscore}elim\ {\isacharbrackleft}elim{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}Apply\ f\ args\ {\isasymin}\ gterms\ F{\isachardoublequote}%
-\begin{isamarkuptext}%
+\isacommand{inductive_cases}\ gterm_Apply_elim\ [elim!]:\ "Apply\ f\ args\ \isasymin \ gterms\ F"
+\begin{isamarkuptext}
 this is what we get:
 
-\begin{isabelle}%
-\ \ \ \ \ {\isasymlbrakk}Apply\ f\ args\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ {\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\ t\ {\isasymin}\ gterms\ F{\isacharsemicolon}\ f\ {\isasymin}\ F{\isasymrbrakk}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\begin{isabelle}
+\ \ \ \ \ \isasymlbrakk Apply\ f\ args\ \isasymin \ gterms\ F;\ \isasymlbrakk \isasymforall t\isasymin set\ args.\ t\ \isasymin \ gterms\ F;\ f\ \isasymin \ F\isasymrbrakk \ \isasymLongrightarrow \ P\isasymrbrakk \ \isasymLongrightarrow \ P%
+\rulename{gterm_Apply_elim}
 \end{isabelle}
-\rulename{gterm_Apply_elim}%
-\end{isamarkuptext}%
-\isacommand{lemma}\ gterms{\isacharunderscore}IntI\ {\isacharbrackleft}rule{\isacharunderscore}format{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ {\isachardoublequote}t\ {\isasymin}\ gterms\ F\ {\isasymLongrightarrow}\ t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F{\isasyminter}G{\isacharparenright}{\isachardoublequote}\isanewline
-\isacommand{apply}\ {\isacharparenleft}erule\ gterms{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptxt}%
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ gterms\ F\ {\isasymand}\ {\isacharparenleft}t\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\ t\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ \ \ }f\ {\isasymin}\ F{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ gterms\ G\ {\isasymlongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymLongrightarrow}\ }Apply\ f\ args\ {\isasymin}\ gterms\ {\isacharparenleft}F\ {\isasyminter}\ G{\isacharparenright}%
-\end{isabelle}%
-\end{isamarkuptxt}%
+\end{isamarkuptext}
+\isacommand{lemma}\ gterms_IntI\ [rule_format,\ intro!]:\isanewline
+\ \ \ \ \ "t\ \isasymin \ gterms\ F\ \isasymLongrightarrow \ t\ \isasymin \ gterms\ G\ \isasymlongrightarrow \ t\ \isasymin \ gterms\ (F\isasyminter G)"\isanewline
+\isacommand{apply}\ (erule\ gterms.induct)
+\begin{isamarkuptxt}
+\begin{isabelle}
+\ 1.\ \isasymAnd args\ f.\isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymlbrakk \isasymforall t\isasymin set\ args.\isanewline
+\isaindent{\ 1.\ \ \ \ \isasymlbrakk \ \ \ }t\ \isasymin \ gterms\ F\ \isasymand \ (t\ \isasymin \ gterms\ G\ \isasymlongrightarrow \ t\ \isasymin \ gterms\ (F\ \isasyminter \ G));\isanewline
+\isaindent{\ 1.\ \ \ \ \ \ \ }f\ \isasymin \ F\isasymrbrakk \isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymLongrightarrow \ Apply\ f\ args\ \isasymin \ gterms\ G\ \isasymlongrightarrow \isanewline
+\isaindent{\ 1.\ \ \ \ \isasymLongrightarrow \ }Apply\ f\ args\ \isasymin \ gterms\ (F\ \isasyminter \ G)
+\end{isabelle}
+\end{isamarkuptxt}
 \isacommand{apply}\ blast\isanewline
-\isacommand{done}%
-\begin{isamarkuptext}%
-\begin{isabelle}%
-\ \ \ \ \ mono\ f\ {\isasymLongrightarrow}\ f\ {\isacharparenleft}A\ {\isasyminter}\ B{\isacharparenright}\ {\isasymsubseteq}\ f\ A\ {\isasyminter}\ f\ B%
+\isacommand{done}
+\begin{isamarkuptext}
+\begin{isabelle}
+\ \ \ \ \ mono\ f\ \isasymLongrightarrow \ f\ (A\ \isasyminter \ B)\ \isasymsubseteq \ f\ A\ \isasyminter \ f\ B%
+\rulename{mono_Int}
 \end{isabelle}
-\rulename{mono_Int}%
-\end{isamarkuptext}%
-\isacommand{lemma}\ gterms{\isacharunderscore}Int{\isacharunderscore}eq\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ \ \ \ {\isachardoublequote}gterms\ {\isacharparenleft}F{\isasyminter}G{\isacharparenright}\ {\isacharequal}\ gterms\ F\ {\isasyminter}\ gterms\ G{\isachardoublequote}\isanewline
-\isacommand{apply}\ {\isacharparenleft}rule\ equalityI{\isacharparenright}\isanewline
-\isacommand{apply}\ {\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ mono{\isacharunderscore}Int\ monoI\ gterms{\isacharunderscore}mono{\isacharparenright}\isanewline
-\isacommand{apply}\ {\isacharparenleft}blast\ intro{\isacharbang}{\isacharcolon}\ gterms{\isacharunderscore}IntI{\isacharparenright}\isanewline
-\isacommand{done}\isanewline
+\end{isamarkuptext}
+\isacommand{lemma}\ gterms_Int_eq\ [simp]:\isanewline
+\ \ \ \ \ "gterms\ (F\isasyminter G)\ =\ gterms\ F\ \isasyminter \ gterms\ G"\isanewline
+\isacommand{by}\ (blast\ intro!:\ mono_Int\ monoI\ gterms_mono)\isanewline
 \isanewline
 \isanewline
-\isacommand{consts}\ integer{\isacharunderscore}arity\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}integer{\isacharunderscore}op\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
+\isacommand{consts}\ integer_arity\ ::\ "integer_op\ \isasymRightarrow \ nat"\isanewline
 \isacommand{primrec}\isanewline
-{\isachardoublequote}integer{\isacharunderscore}arity\ {\isacharparenleft}Number\ n{\isacharparenright}\ \ \ \ \ \ \ \ {\isacharequal}\ {\isacharhash}{\isadigit{0}}{\isachardoublequote}\isanewline
-{\isachardoublequote}integer{\isacharunderscore}arity\ UnaryMinus\ \ \ \ \ \ \ \ {\isacharequal}\ {\isacharhash}{\isadigit{1}}{\isachardoublequote}\isanewline
-{\isachardoublequote}integer{\isacharunderscore}arity\ Plus\ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharequal}\ {\isacharhash}{\isadigit{2}}{\isachardoublequote}\isanewline
+"integer_arity\ (Number\ n)\ \ \ \ \ \ \ \ =\ \#0"\isanewline
+"integer_arity\ UnaryMinus\ \ \ \ \ \ \ \ =\ \#1"\isanewline
+"integer_arity\ Plus\ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ \#2"\isanewline
 \isanewline
-\isacommand{consts}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequote}\isanewline
-\isacommand{inductive}\ {\isachardoublequote}well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isachardoublequote}\isanewline
+\isacommand{consts}\ well_formed_gterm\ ::\ "('f\ \isasymRightarrow \ nat)\ \isasymRightarrow \ 'f\ gterm\ set"\isanewline
+\isacommand{inductive}\ "well_formed_gterm\ arity"\isanewline
 \isakeyword{intros}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}{\isasymforall}t\ {\isasymin}\ set\ args{\isachardot}\ t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharsemicolon}\ \ \isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isachardoublequote}\isanewline
+step[intro!]:\ "\isasymlbrakk \isasymforall t\ \isasymin \ set\ args.\ t\ \isasymin \ well_formed_gterm\ arity;\ \ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ =\ arity\ f\isasymrbrakk \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow \ (Apply\ f\ args)\ \isasymin \ well_formed_gterm\ arity"\isanewline
 \isanewline
 \isanewline
-\isacommand{consts}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}f\ gterm\ set{\isachardoublequote}\isanewline
-\isacommand{inductive}\ {\isachardoublequote}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isachardoublequote}\isanewline
+\isacommand{consts}\ well_formed_gterm'\ ::\ "('f\ \isasymRightarrow \ nat)\ \isasymRightarrow \ 'f\ gterm\ set"\isanewline
+\isacommand{inductive}\ "well_formed_gterm'\ arity"\isanewline
 \isakeyword{intros}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ {\isachardoublequote}{\isasymlbrakk}args\ {\isasymin}\ lists\ {\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharparenright}{\isacharsemicolon}\ \ \isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ args{\isacharparenright}\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isachardoublequote}\isanewline
-\isakeyword{monos}\ lists{\isacharunderscore}mono\isanewline
+step[intro!]:\ "\isasymlbrakk args\ \isasymin \ lists\ (well_formed_gterm'\ arity);\ \ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ length\ args\ =\ arity\ f\isasymrbrakk \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow \ (Apply\ f\ args)\ \isasymin \ well_formed_gterm'\ arity"\isanewline
+\isakeyword{monos}\ lists_mono\isanewline
 \isanewline
-\isacommand{lemma}\ {\isachardoublequote}well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isachardoublequote}\isanewline
+\isacommand{lemma}\ "well_formed_gterm\ arity\ \isasymsubseteq \ well_formed_gterm'\ arity"\isanewline
 \isacommand{apply}\ clarify%
-\begin{isamarkuptxt}%
+\begin{isamarkuptxt}
 The situation after clarify
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ }x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isacommand{apply}\ {\isacharparenleft}erule\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptxt}%
+\begin{isabelle}
+\ 1.\ \isasymAnd x.\ x\ \isasymin \ well_formed_gterm\ arity\ \isasymLongrightarrow \isanewline
+\isaindent{\ 1.\ \isasymAnd x.\ }x\ \isasymin \ well_formed_gterm'\ arity%
+\end{isabelle}
+\end{isamarkuptxt}
+\isacommand{apply}\ (erule\ well_formed_gterm.induct)
+\begin{isamarkuptxt}
 note the induction hypothesis!
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}{\isasymforall}t{\isasymin}set\ args{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity\ {\isasymand}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}\ \ \ }t\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
+\begin{isabelle}
+\ 1.\ \isasymAnd x\ args\ f.\isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymlbrakk \isasymforall t\isasymin set\ args.\isanewline
+\isaindent{\ 1.\ \ \ \ \isasymlbrakk \ \ \ }t\ \isasymin \ well_formed_gterm\ arity\ \isasymand \isanewline
+\isaindent{\ 1.\ \ \ \ \isasymlbrakk \ \ \ }t\ \isasymin \ well_formed_gterm'\ arity;\isanewline
+\isaindent{\ 1.\ \ \ \ \ \ \ }length\ args\ =\ arity\ f\isasymrbrakk \isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymLongrightarrow \ Apply\ f\ args\ \isasymin \ well_formed_gterm'\ arity%
+\end{isabelle}
+\end{isamarkuptxt}
 \isacommand{apply}\ auto\isanewline
 \isacommand{done}\isanewline
 \isanewline
 \isanewline
 \isanewline
-\isacommand{lemma}\ {\isachardoublequote}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasymsubseteq}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isachardoublequote}\isanewline
+\isacommand{lemma}\ "well_formed_gterm'\ arity\ \isasymsubseteq \ well_formed_gterm\ arity"\isanewline
 \isacommand{apply}\ clarify%
-\begin{isamarkuptxt}%
+\begin{isamarkuptxt}
 The situation after clarify
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasymLongrightarrow}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ }x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
-\isacommand{apply}\ {\isacharparenleft}erule\ well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}{\isachardot}induct{\isacharparenright}%
-\begin{isamarkuptxt}%
+\begin{isabelle}
+\ 1.\ \isasymAnd x.\ x\ \isasymin \ well_formed_gterm'\ arity\ \isasymLongrightarrow \isanewline
+\isaindent{\ 1.\ \isasymAnd x.\ }x\ \isasymin \ well_formed_gterm\ arity%
+\end{isabelle}
+\end{isamarkuptxt}
+\isacommand{apply}\ (erule\ well_formed_gterm'.induct)
+\begin{isamarkuptxt}
 note the induction hypothesis!
-\begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x\ args\ f{\isachardot}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymlbrakk}args\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}}{\isasymin}\ lists\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ }{\isacharparenleft}well{\isacharunderscore}formed{\isacharunderscore}gterm{\isacharprime}\ arity\ {\isasyminter}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ {\isasymlbrakk}{\isasymin}\ \ {\isacharparenleft}}{\isacharbraceleft}x{\isachardot}\ x\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity{\isacharbraceright}{\isacharparenright}{\isacharsemicolon}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ \ \ \ }length\ args\ {\isacharequal}\ arity\ f{\isasymrbrakk}\isanewline
-\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isasymLongrightarrow}\ Apply\ f\ args\ {\isasymin}\ well{\isacharunderscore}formed{\isacharunderscore}gterm\ arity%
-\end{isabelle}%
-\end{isamarkuptxt}%
+\begin{isabelle}
+\ 1.\ \isasymAnd x\ args\ f.\isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymlbrakk args\isanewline
+\isaindent{\ 1.\ \ \ \ \isasymlbrakk }\isasymin \ lists\isanewline
+\isaindent{\ 1.\ \ \ \ \isasymlbrakk \isasymin \ \ }(well_formed_gterm'\ arity\ \isasyminter \isanewline
+\isaindent{\ 1.\ \ \ \ \isasymlbrakk \isasymin \ \ (}\isacharbraceleft x.\ x\ \isasymin \ well_formed_gterm\ arity\isacharbraceright );\isanewline
+\isaindent{\ 1.\ \ \ \ \ \ \ }length\ args\ =\ arity\ f\isasymrbrakk \isanewline
+\isaindent{\ 1.\ \ \ \ }\isasymLongrightarrow \ Apply\ f\ args\ \isasymin \ well_formed_gterm\ arity%
+\end{isabelle}
+\end{isamarkuptxt}
 \isacommand{apply}\ auto\isanewline
-\isacommand{done}%
-\begin{isamarkuptext}%
-\begin{isabelle}%
-\ \ \ \ \ lists\ {\isacharparenleft}A\ {\isasyminter}\ B{\isacharparenright}\ {\isacharequal}\ lists\ A\ {\isasyminter}\ lists\ B%
-\end{isabelle}%
-\end{isamarkuptext}%
+\isacommand{done}
+\begin{isamarkuptext}
+\begin{isabelle}
+\ \ \ \ \ lists\ (A\ \isasyminter \ B)\ =\ lists\ A\ \isasyminter \ lists\ B%
+\end{isabelle}
+\end{isamarkuptext}
 %
-\begin{isamarkuptext}%
+\begin{isamarkuptext}
 the rest isn't used: too complicated.  OK for an exercise though.%
-\end{isamarkuptext}%
-\isacommand{consts}\ integer{\isacharunderscore}signature\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}integer{\isacharunderscore}op\ {\isacharasterisk}\ {\isacharparenleft}unit\ list\ {\isacharasterisk}\ unit{\isacharparenright}{\isacharparenright}\ set{\isachardoublequote}\isanewline
-\isacommand{inductive}\ {\isachardoublequote}integer{\isacharunderscore}signature{\isachardoublequote}\isanewline
+\end{isamarkuptext}
+\isacommand{consts}\ integer_signature\ ::\ "(integer_op\ *\ (unit\ list\ *\ unit))\ set"\isanewline
+\isacommand{inductive}\ "integer_signature"\isanewline
 \isakeyword{intros}\isanewline
-Number{\isacharcolon}\ \ \ \ \ {\isachardoublequote}{\isacharparenleft}Number\ n{\isacharcomma}\ \ \ {\isacharparenleft}{\isacharbrackleft}{\isacharbrackright}{\isacharcomma}\ {\isacharparenleft}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ integer{\isacharunderscore}signature{\isachardoublequote}\isanewline
-UnaryMinus{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}UnaryMinus{\isacharcomma}\ {\isacharparenleft}{\isacharbrackleft}{\isacharparenleft}{\isacharparenright}{\isacharbrackright}{\isacharcomma}\ {\isacharparenleft}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ integer{\isacharunderscore}signature{\isachardoublequote}\isanewline
-Plus{\isacharcolon}\ \ \ \ \ \ \ {\isachardoublequote}{\isacharparenleft}Plus{\isacharcomma}\ \ \ \ \ \ \ {\isacharparenleft}{\isacharbrackleft}{\isacharparenleft}{\isacharparenright}{\isacharcomma}{\isacharparenleft}{\isacharparenright}{\isacharbrackright}{\isacharcomma}\ {\isacharparenleft}{\isacharparenright}{\isacharparenright}{\isacharparenright}\ {\isasymin}\ integer{\isacharunderscore}signature{\isachardoublequote}\isanewline
+Number:\ \ \ \ \ "(Number\ n,\ \ \ ([],\ ()))\ \isasymin \ integer_signature"\isanewline
+UnaryMinus:\ "(UnaryMinus,\ ([()],\ ()))\ \isasymin \ integer_signature"\isanewline
+Plus:\ \ \ \ \ \ \ "(Plus,\ \ \ \ \ \ \ ([(),()],\ ()))\ \isasymin \ integer_signature"\isanewline
 \isanewline
 \isanewline
-\isacommand{consts}\ well{\isacharunderscore}typed{\isacharunderscore}gterm\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}f\ gterm\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}set{\isachardoublequote}\isanewline
-\isacommand{inductive}\ {\isachardoublequote}well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig{\isachardoublequote}\isanewline
+\isacommand{consts}\ well_typed_gterm\ ::\ "('f\ \isasymRightarrow \ 't\ list\ *\ 't)\ \isasymRightarrow \ ('f\ gterm\ *\ 't)set"\isanewline
+\isacommand{inductive}\ "well_typed_gterm\ sig"\isanewline
 \isakeyword{intros}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ \isanewline
-\ \ \ \ {\isachardoublequote}{\isasymlbrakk}{\isasymforall}pair\ {\isasymin}\ set\ args{\isachardot}\ pair\ {\isasymin}\ well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig{\isacharsemicolon}\ \isanewline
-\ \ \ \ \ \ sig\ f\ {\isacharequal}\ {\isacharparenleft}map\ snd\ args{\isacharcomma}\ rtype{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ {\isacharparenleft}map\ fst\ args{\isacharparenright}{\isacharcomma}\ rtype{\isacharparenright}\ \isanewline
-\ \ \ \ \ \ \ \ \ {\isasymin}\ well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig{\isachardoublequote}\isanewline
+step[intro!]:\ \isanewline
+\ \ \ \ "\isasymlbrakk \isasymforall pair\ \isasymin \ set\ args.\ pair\ \isasymin \ well_typed_gterm\ sig;\ \isanewline
+\ \ \ \ \ \ sig\ f\ =\ (map\ snd\ args,\ rtype)\isasymrbrakk \isanewline
+\ \ \ \ \ \isasymLongrightarrow \ (Apply\ f\ (map\ fst\ args),\ rtype)\ \isanewline
+\ \ \ \ \ \ \ \ \ \isasymin \ well_typed_gterm\ sig"\isanewline
 \isanewline
-\isacommand{consts}\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}{\isacharparenleft}{\isacharprime}f\ {\isasymRightarrow}\ {\isacharprime}t\ list\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}f\ gterm\ {\isacharasterisk}\ {\isacharprime}t{\isacharparenright}set{\isachardoublequote}\isanewline
-\isacommand{inductive}\ {\isachardoublequote}well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig{\isachardoublequote}\isanewline
+\isacommand{consts}\ well_typed_gterm'\ ::\ "('f\ \isasymRightarrow \ 't\ list\ *\ 't)\ \isasymRightarrow \ ('f\ gterm\ *\ 't)set"\isanewline
+\isacommand{inductive}\ "well_typed_gterm'\ sig"\isanewline
 \isakeyword{intros}\isanewline
-step{\isacharbrackleft}intro{\isacharbang}{\isacharbrackright}{\isacharcolon}\ \isanewline
-\ \ \ \ {\isachardoublequote}{\isasymlbrakk}args\ {\isasymin}\ lists{\isacharparenleft}well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig{\isacharparenright}{\isacharsemicolon}\ \isanewline
-\ \ \ \ \ \ sig\ f\ {\isacharequal}\ {\isacharparenleft}map\ snd\ args{\isacharcomma}\ rtype{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}Apply\ f\ {\isacharparenleft}map\ fst\ args{\isacharparenright}{\isacharcomma}\ rtype{\isacharparenright}\ \isanewline
-\ \ \ \ \ \ \ \ \ {\isasymin}\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig{\isachardoublequote}\isanewline
-\isakeyword{monos}\ lists{\isacharunderscore}mono\isanewline
+step[intro!]:\ \isanewline
+\ \ \ \ "\isasymlbrakk args\ \isasymin \ lists(well_typed_gterm'\ sig);\ \isanewline
+\ \ \ \ \ \ sig\ f\ =\ (map\ snd\ args,\ rtype)\isasymrbrakk \isanewline
+\ \ \ \ \ \isasymLongrightarrow \ (Apply\ f\ (map\ fst\ args),\ rtype)\ \isanewline
+\ \ \ \ \ \ \ \ \ \isasymin \ well_typed_gterm'\ sig"\isanewline
+\isakeyword{monos}\ lists_mono\isanewline
 \isanewline
 \isanewline
-\isacommand{lemma}\ {\isachardoublequote}well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig\ {\isasymsubseteq}\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig{\isachardoublequote}\isanewline
+\isacommand{lemma}\ "well_typed_gterm\ sig\ \isasymsubseteq \ well_typed_gterm'\ sig"\isanewline
 \isacommand{apply}\ clarify\isanewline
-\isacommand{apply}\ {\isacharparenleft}erule\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\ (erule\ well_typed_gterm.induct)\isanewline
 \isacommand{apply}\ auto\isanewline
 \isacommand{done}\isanewline
 \isanewline
-\isacommand{lemma}\ {\isachardoublequote}well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}\ sig\ {\isasymsubseteq}\ well{\isacharunderscore}typed{\isacharunderscore}gterm\ sig{\isachardoublequote}\isanewline
+\isacommand{lemma}\ "well_typed_gterm'\ sig\ \isasymsubseteq \ well_typed_gterm\ sig"\isanewline
 \isacommand{apply}\ clarify\isanewline
-\isacommand{apply}\ {\isacharparenleft}erule\ well{\isacharunderscore}typed{\isacharunderscore}gterm{\isacharprime}{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\ (erule\ well_typed_gterm'.induct)\isanewline
 \isacommand{apply}\ auto\isanewline
 \isacommand{done}\isanewline
 \isanewline
 \isanewline
 \isacommand{end}\isanewline
 \isanewline
-\end{isabellebody}%
+\end{isabelle}
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "root"

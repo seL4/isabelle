@@ -56,7 +56,7 @@ text{*this is what we get:
 \rulename{gterm_Apply_elim}
 *}
 
-lemma gterms_IntI [rule_format]:
+lemma gterms_IntI [rule_format, intro!]:
      "t \<in> gterms F \<Longrightarrow> t \<in> gterms G \<longrightarrow> t \<in> gterms (F\<inter>G)"
 apply (erule gterms.induct)
 txt{*
@@ -73,10 +73,7 @@ text{*
 
 lemma gterms_Int_eq [simp]:
      "gterms (F\<inter>G) = gterms F \<inter> gterms G"
-apply (rule equalityI)
-apply (blast intro!: mono_Int monoI gterms_mono)
-apply (blast intro!: gterms_IntI)
-done
+by (blast intro!: mono_Int monoI gterms_mono)
 
 
 consts integer_arity :: "integer_op \<Rightarrow> nat"

@@ -1,7 +1,11 @@
 % $Id$
-This section describes advanced features of inductive definitions. 
 The premises of introduction rules may contain universal quantifiers and
-monotonic functions.  Theorems may be proved by rule inversion.
+monotone functions.  A universal quantifier lets the rule 
+refer to any number of instances of 
+the inductively defined set.  A monotone function lets the rule refer
+to existing constructions (such as ``list of'') over the inductively defined
+set.  The examples below show how to use the additional expressiveness
+and how to reason from the resulting definitions.
 
 \subsection{Universal Quantifiers in Introduction Rules}
 \label{sec:gterm-datatype}
@@ -40,7 +44,7 @@ defined set a fixed number of times, typically once or twice.
 A universal quantifier in the premise of the introduction rule 
 expresses that every element of \isa{args} belongs
 to our inductively defined set: is a ground term 
-over~\isa{F}.  The function {\isa{set}} denotes the set of elements in a given 
+over~\isa{F}.  The function \isa{set} denotes the set of elements in a given 
 list. 
 \begin{isabelle}
 \isacommand{consts}\ gterms\ ::\ "'f\ set\ \isasymRightarrow \ 'f\ gterm\ set"\isanewline
@@ -53,7 +57,7 @@ F"
 
 To demonstrate a proof from this definition, let us 
 show that the function \isa{gterms}
-is \textbf{monotonic}.  We shall need this concept shortly.
+is \textbf{monotone}.  We shall need this concept shortly.
 \begin{isabelle}
 \isacommand{lemma}\ gterms_mono:\ "F\isasymsubseteq G\ \isasymLongrightarrow \ gterms\ F\ \isasymsubseteq \ gterms\ G"\isanewline
 \isacommand{apply}\ clarify\isanewline
@@ -85,162 +89,16 @@ Our choice of names keeps {\isa{gterms.induct}} separate from
 {\isa{gterm.induct}}.
 \end{warn}
 
-
-\subsection{Rule Inversion}\label{sec:rule-inversion}
-
-Case analysis on an inductive definition is called \textbf{rule inversion}. 
-It is frequently used in proofs about operational semantics.  It can be
-highly effective when it is applied automatically.  Let us look at how rule
-inversion is done in Isabelle.
-
-Recall that \isa{even} is the minimal set closed under these two rules:
-\begin{isabelle}
-0\ \isasymin \ even\isanewline
-n\ \isasymin \ even\ \isasymLongrightarrow \ Suc\ (Suc\ n)\ \isasymin
-\ even
-\end{isabelle}
-Minimality means that \isa{even} contains only the elements that these
-rules force it to contain.  If we are told that \isa{a}
-belongs to
-\isa{even} then there are only two possibilities.  Either \isa{a} is \isa{0}
-or else \isa{a} has the form \isa{Suc(Suc~n)}, for some suitable \isa{n}
-that belongs to
-\isa{even}.  That is the gist of the \isa{cases} rule, which Isabelle proves
-for us when it accepts an inductive definition:
-\begin{isabelle}
-\isasymlbrakk a\ \isasymin \ even;\isanewline
-\ a\ =\ 0\ \isasymLongrightarrow \ P;\isanewline
-\ \isasymAnd n.\ \isasymlbrakk a\ =\ Suc(Suc\ n);\ n\ \isasymin \
-even\isasymrbrakk \ \isasymLongrightarrow \ P\isasymrbrakk \
-\isasymLongrightarrow \ P
-\rulename{even.cases}
-\end{isabelle}
-
-This general rule is less useful than instances of it for
-specific patterns.  For example, if \isa{a} has the form
-\isa{Suc(Suc~n)} then the first case becomes irrelevant, while the second
-case tells us that \isa{n} belongs to \isa{even}.  Isabelle will generate
-this instance for us:
-\begin{isabelle}
-\isacommand{inductive\_cases}\ Suc_Suc_cases\ [elim!]:
-\ "Suc(Suc\ n)\ \isasymin \ even"
-\end{isabelle}
-The \isacommand{inductive\_cases} command generates an instance of the
-\isa{cases} rule for the supplied pattern and gives it the supplied name:
-%
-\begin{isabelle}
-\isasymlbrakk Suc\ (Suc\ n)\ \isasymin \ even;\ n\ \isasymin \ even\
-\isasymLongrightarrow \ P\isasymrbrakk \ \isasymLongrightarrow \ P%
-\rulename{Suc_Suc_cases}
-\end{isabelle}
-%
-Applying this as an elimination rule yields one case where \isa{even.cases}
-would yield two.  Rule inversion works well when the conclusions of the
-introduction rules involve datatype constructors like \isa{Suc} and \isa{\#}
-(list ``cons''); freeness reasoning discards all but one or two cases.
-
-In the \isacommand{inductive\_cases} command we supplied an
-attribute, \isa{elim!}, indicating that this elimination rule can be applied
-aggressively.  The original
-\isa{cases} rule would loop if used in that manner because the
-pattern~\isa{a} matches everything.
-
-The rule \isa{Suc_Suc_cases} is equivalent to the following implication:
-\begin{isabelle}
-Suc (Suc\ n)\ \isasymin \ even\ \isasymLongrightarrow \ n\ \isasymin \
-even
-\end{isabelle}
-%
-In {\S}\ref{sec:gen-rule-induction} we devoted some effort to proving precisely
-this result.  Yet we could have obtained it by a one-line declaration. 
-This example also justifies the terminology \textbf{rule inversion}: the new
-rule inverts the introduction rule \isa{even.step}.
-
-For one-off applications of rule inversion, use the \isa{ind_cases} method. 
-Here is an example:
-\begin{isabelle}
-\isacommand{apply}\ (ind_cases\ "Suc(Suc\ n)\ \isasymin \ even")
-\end{isabelle}
-The specified instance of the \isa{cases} rule is generated, applied, and
-discarded.
-
-\medskip
-Let us try rule inversion on our ground terms example:
-\begin{isabelle}
-\isacommand{inductive\_cases}\ gterm_Apply_elim\ [elim!]:\ "Apply\ f\ args\
-\isasymin\ gterms\ F"
-\end{isabelle}
-%
-Here is the result.  No cases are discarded (there was only one to begin
-with) but the rule applies specifically to the pattern \isa{Apply\ f\ args}.
-It can be applied repeatedly as an elimination rule without looping, so we
-have given the
-\isa{elim!}\ attribute. 
-\begin{isabelle}
-\isasymlbrakk Apply\ f\ args\ \isasymin \ gterms\ F;\isanewline
-\ \isasymlbrakk
-\isasymforall t\isasymin set\ args.\ t\ \isasymin \ gterms\ F;\ f\ \isasymin
-\ F\isasymrbrakk \ \isasymLongrightarrow \ P\isasymrbrakk\isanewline
-\isasymLongrightarrow \ P%
-\rulename{gterm_Apply_elim}
-\end{isabelle}
-
-This rule replaces an assumption about \isa{Apply\ f\ args} by 
-assumptions about \isa{f} and~\isa{args}.  Here is a proof in which this
-inference is essential.  We show that if \isa{t} is a ground term over both
-of the sets
-\isa{F} and~\isa{G} then it is also a ground term over their intersection,
-\isa{F\isasyminter G}.
-\begin{isabelle}
-\isacommand{lemma}\ gterms_IntI\ [rule_format]:\isanewline
-\ \ \ \ \ "t\ \isasymin \ gterms\ F\ \isasymLongrightarrow \ t\ \isasymin \ gterms\ G\ \isasymlongrightarrow \ t\ \isasymin \ gterms\ (F\isasyminter G)"\isanewline
-\isacommand{apply}\ (erule\ gterms.induct)\isanewline
-\isacommand{apply}\ blast\isanewline
-\isacommand{done}
-\end{isabelle}
-%
-The proof begins with rule induction over the definition of
-\isa{gterms}, which leaves a single subgoal:  
-\begin{isabelle}
-1.\ \isasymAnd args\ f.\isanewline
-\ \ \ \ \ \ \isasymlbrakk \isasymforall t\isasymin set\ args.\ t\ \isasymin \ gterms\ F\ \isasymand\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (t\ \isasymin \ gterms\ G\ \isasymlongrightarrow \ t\ \isasymin \ gterms\ (F\ \isasyminter \ G));\isanewline
-\ \ \ \ \ \ \ f\ \isasymin \ F\isasymrbrakk \isanewline
-\ \ \ \ \ \ \isasymLongrightarrow \ Apply\ f\ args\ \isasymin \ gterms\ G\ \isasymlongrightarrow \ Apply\ f\ args\ \isasymin \ gterms\ (F\ \isasyminter \ G)
-\end{isabelle}
-%
-The induction hypothesis states that every element of \isa{args} belongs to 
-\isa{gterms\ (F\ \isasyminter \ G)} --- provided it already belongs to
-\isa{gterms\ G}.  How do we meet that condition?  
-
-By assuming (as we may) the formula \isa{Apply\ f\ args\ \isasymin \ gterms\
-G}.  Rule inversion, in the form of \isa{gterm_Apply_elim}, infers that every
-element of \isa{args} belongs to 
-\isa{gterms~G}.  It also yields \isa{f\ \isasymin \ G}, which will allow us
-to conclude \isa{f\ \isasymin \ F\ \isasyminter \ G}.  All of this reasoning
-is done by \isa{blast}.
-
-\medskip
-
-To summarize, every inductive definition produces a \isa{cases} rule.  The
-\isacommand{inductive\_cases} command stores an instance of the \isa{cases}
-rule for a given pattern.  Within a proof, the \isa{ind_cases} method
-applies an instance of the \isa{cases}
-rule.
-
-
-\subsection{Continuing the Ground Terms Example}
-
-Call a term \textbf{well-formed} if each symbol occurring in it has 
-the correct number of arguments. To formalize this concept, we 
-introduce a function mapping each symbol to its \textbf{arity}, a natural 
-number. 
-
-Let us define the set of well-formed ground terms. 
-Suppose we are given a function called \isa{arity}, specifying the arities to be used.
-In the inductive step, we have a list \isa{args} of such terms and a function 
-symbol~\isa{f}. If the length of the list matches the function's arity 
-then applying \isa{f} to \isa{args} yields a well-formed term. 
+Call a term \textbf{well-formed} if each symbol occurring in it is applied
+to the correct number of arguments.  (This number is called the symbol's
+\textbf{arity}.)  We can express well-formedness by
+generalizing the inductive definition of
+\isa{gterms}.
+Suppose we are given a function called \isa{arity}, specifying the arities
+of all symbols.  In the inductive step, we have a list \isa{args} of such
+terms and a function  symbol~\isa{f}. If the length of the list matches the
+function's arity  then applying \isa{f} to \isa{args} yields a well-formed
+term. 
 \begin{isabelle}
 \isacommand{consts}\ well_formed_gterm\ ::\ "('f\ \isasymRightarrow \ nat)\ \isasymRightarrow \ 'f\ gterm\ set"\isanewline
 \isacommand{inductive}\ "well_formed_gterm\ arity"\isanewline
@@ -252,14 +110,14 @@ arity"
 \end{isabelle}
 %
 The inductive definition neatly captures the reasoning above.
-It is just an elaboration of the previous one, consisting of a single 
-introduction rule. The universal quantification over the
+The universal quantification over the
 \isa{set} of arguments expresses that all of them are well-formed.
 
-\subsection{Alternative Definition Using a Monotonic Function}
+
+\subsection{Alternative Definition Using a monotone Function}
 
 An inductive definition may refer to the inductively defined 
-set through an arbitrary monotonic function.  To demonstrate this
+set through an arbitrary monotone function.  To demonstrate this
 powerful feature, let us
 change the  inductive definition above, replacing the
 quantifier by a use of the function \isa{lists}. This
@@ -289,7 +147,7 @@ A\ \isasymsubseteq\ B\ \isasymLongrightarrow \ lists\ A\ \isasymsubseteq
 \ lists\ B\rulename{lists_mono}
 \end{isabelle}
 %
-Why must the function be monotonic?  An inductive definition describes
+Why must the function be monotone?  An inductive definition describes
 an iterative construction: each element of the set is constructed by a
 finite number of introduction rule applications.  For example, the
 elements of \isa{even} are constructed by finitely many applications of
@@ -321,7 +179,7 @@ args\ \isasymin \ lists\ (well_formed_gterm'\ arity)
 \end{isabelle}
 To apply the rule we construct a list \isa{args} of previously
 constructed well-formed terms.  We obtain a
-new term, \isa{Apply\ f\ args}.  Because \isa{lists} is monotonic,
+new term, \isa{Apply\ f\ args}.  Because \isa{lists} is monotone,
 applications of the rule remain valid as new terms are constructed.
 Further lists of well-formed
 terms become available and none are taken away.
@@ -372,9 +230,9 @@ be surprising:
 \ \ \ \ \ \ \isasymLongrightarrow \ Apply\ f\ args\ \isasymin \ well_formed_gterm\ arity%
 \end{isabelle}
 The induction hypothesis contains an application of \isa{lists}.  Using a
-monotonic function in the inductive definition always has this effect.  The
-subgoal may look uninviting, but fortunately a useful rewrite rule concerning
-\isa{lists} is available:
+monotone function in the inductive definition always has this effect.  The
+subgoal may look uninviting, but fortunately 
+\isa{lists} distributes over intersection:
 \begin{isabelle}
 lists\ (A\ \isasyminter \ B)\ =\ lists\ A\ \isasyminter \ lists\ B
 \rulename{lists_Int_eq}
@@ -390,10 +248,9 @@ Invoking the rule \isa{well_formed_gterm.step} completes the proof.  The
 call to
 \isa{auto} does all this work.
 
-This example is typical of how monotonic functions can be used.  In
-particular, a rewrite rule analogous to \isa{lists_Int_eq} holds in most
-cases.  Monotonicity implies one direction of this set equality; we have
-this theorem:
+This example is typical of how monotone functions can be used.  In
+particular, many of them distribute over intersection.  Monotonicity
+implies one direction of this set equality; we have this theorem:
 \begin{isabelle}
 mono\ f\ \isasymLongrightarrow \ f\ (A\ \isasyminter \ B)\ \isasymsubseteq \
 f\ A\ \isasyminter \ f\ B%
@@ -401,15 +258,76 @@ f\ A\ \isasyminter \ f\ B%
 \end{isabelle}
 
 
-To summarize: a universal quantifier in an introduction rule 
-lets it refer to any number of instances of 
-the inductively defined set.  A monotonic function in an introduction 
-rule lets it refer to constructions over the inductively defined 
-set.  Each element of an inductively defined set is created 
-through finitely many applications of the introduction rules.  So each rule
-must be positive, and never can it refer to \textit{infinitely} many
-previous instances of the inductively defined set. 
+\subsection{Another Example of Rule Inversion}
 
+Does \isa{gterms} distribute over intersection?  We have proved that this
+function is monotone, so \isa{mono_Int} gives one of the inclusions.  The
+opposite inclusion asserts that if \isa{t} is a ground term over both of the
+sets
+\isa{F} and~\isa{G} then it is also a ground term over their intersection,
+\isa{F\isasyminter G}.
+
+Attempting this proof, we get the assumption 
+\isa{Apply\ f\ args\ \isasymin\ gterms\ F}, which cannot be broken down. 
+It looks like a job for rule inversion:
+\begin{isabelle}
+\isacommand{inductive\_cases}\ gterm_Apply_elim\ [elim!]:\ "Apply\ f\ args\
+\isasymin\ gterms\ F"
+\end{isabelle}
+%
+Here is the result.
+\begin{isabelle}
+\isasymlbrakk Apply\ f\ args\ \isasymin \ gterms\ F;\isanewline
+\ \isasymlbrakk
+\isasymforall t\isasymin set\ args.\ t\ \isasymin \ gterms\ F;\ f\ \isasymin
+\ F\isasymrbrakk \ \isasymLongrightarrow \ P\isasymrbrakk\isanewline
+\isasymLongrightarrow \ P%
+\rulename{gterm_Apply_elim}
+\end{isabelle}
+This rule replaces an assumption about \isa{Apply\ f\ args} by 
+assumptions about \isa{f} and~\isa{args}.  
+No cases are discarded (there was only one to begin
+with) but the rule applies specifically to the pattern \isa{Apply\ f\ args}.
+It can be applied repeatedly as an elimination rule without looping, so we
+have given the
+\isa{elim!}\ attribute. 
+
+Now we can prove the other half of that distributive law.
+\begin{isabelle}
+\isacommand{lemma}\ gterms_IntI\ [rule_format,\ intro!]:\isanewline
+\ \ \ \ \ "t\ \isasymin \ gterms\ F\ \isasymLongrightarrow \ t\ \isasymin \ gterms\ G\ \isasymlongrightarrow \ t\ \isasymin \ gterms\ (F\isasyminter G)"\isanewline
+\isacommand{apply}\ (erule\ gterms.induct)\isanewline
+\isacommand{apply}\ blast\isanewline
+\isacommand{done}
+\end{isabelle}
+%
+The proof begins with rule induction over the definition of
+\isa{gterms}, which leaves a single subgoal:  
+\begin{isabelle}
+1.\ \isasymAnd args\ f.\isanewline
+\ \ \ \ \ \ \isasymlbrakk \isasymforall t\isasymin set\ args.\ t\ \isasymin \ gterms\ F\ \isasymand\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (t\ \isasymin \ gterms\ G\ \isasymlongrightarrow \ t\ \isasymin \ gterms\ (F\ \isasyminter \ G));\isanewline
+\ \ \ \ \ \ \ f\ \isasymin \ F\isasymrbrakk \isanewline
+\ \ \ \ \ \ \isasymLongrightarrow \ Apply\ f\ args\ \isasymin \ gterms\ G\ \isasymlongrightarrow \ Apply\ f\ args\ \isasymin \ gterms\ (F\ \isasyminter \ G)
+\end{isabelle}
+%
+To prove this, we assume \isa{Apply\ f\ args\ \isasymin \
+gterms\ G}.  Rule inversion, in the form of \isa{gterm_Apply_elim}, infers
+that every element of \isa{args} belongs to 
+\isa{gterms~G}; hence (by the induction hypothesis) it belongs
+to \isa{gterms\ (F\ \isasyminter \ G)}.  Rule inversion also yields
+\isa{f\ \isasymin\ G} and hence \isa{f\ \isasymin \ F\ \isasyminter \ G}. 
+All of this reasoning is done by \isa{blast}.
+
+\smallskip
+Our distributive law is a trivial consequence of previously-proved results:
+\begin{isabelle}
+\isacommand{theorem}\ gterms_Int_eq\ [simp]:\isanewline
+\ \ \ \ \ "gterms\ (F\isasyminter G)\ =\ gterms\ F\ \isasyminter \ gterms\ G"\isanewline
+\isacommand{by}\ (blast\ intro!:\ mono_Int\ monoI\ gterms_mono)
+\end{isabelle}
+The \isa{intro!}\ attribute of \isa{gterms_IntI} makes it available for
+this proof.
 
 
 \begin{exercise}
