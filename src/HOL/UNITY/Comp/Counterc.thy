@@ -11,6 +11,8 @@ Examples of Program Composition Illustrating the Use of Universal Properties
    Spriner LNCS 1586 (1999), pages 1215-1227.
 *)
 
+header{*A Family of Similar Counters: Version with Compatibility*}
+
 theory Counterc =  UNITY_Main:
 
 typedecl state
@@ -62,7 +64,7 @@ lemma sum_ext [rule_format]:
 by (induct_tac "I", auto)
 
 lemma sumj_ext [rule_format]:
-     "(\<forall>j. j<I & j~=i --> c s' j =  c s j) --> (sumj I i s' = sumj I i s)"
+     "(\<forall>j. j<I & j\<noteq>i --> c s' j =  c s j) --> (sumj I i s' = sumj I i s)"
 apply (induct_tac "I", safe)
 apply (auto intro!: sum_ext)
 done
@@ -89,7 +91,7 @@ by (simp add: Component_def, constrains)
 
 lemma p3:
      "[| OK I Component; i\<in>I |]   
-      ==> Component i \<in> stable {s. \<forall>j\<in>I. j~=i --> c s j = c k j}"
+      ==> Component i \<in> stable {s. \<forall>j\<in>I. j\<noteq>i --> c s j = c k j}"
 apply simp
 apply (unfold Component_def mk_total_program_def)
 apply (simp (no_asm_use) add: stable_def constrains_def)
@@ -100,12 +102,12 @@ done
 lemma p2_p3_lemma1: 
      "[| OK {i. i<I} Component; i<I |] ==>  
       \<forall>k. Component i \<in> stable ({s. C s = c s i + sumj I i k} Int  
-	 	                {s. \<forall>j\<in>{i. i<I}. j~=i --> c s j = c k j})"
+	 	                {s. \<forall>j\<in>{i. i<I}. j\<noteq>i --> c s j = c k j})"
 by (blast intro: stable_Int [OF p2 p3])
 
 lemma p2_p3_lemma2:
      "(\<forall>k. F \<in> stable ({s. C s = (c s) i + sumj I i k} Int  
-                        {s. \<forall>j\<in>{i. i<I}. j~=i --> c s j = c k j}))   
+                        {s. \<forall>j\<in>{i. i<I}. j\<noteq>i --> c s j = c k j}))   
       ==> (F \<in> stable {s. C s = c s i + sumj I i s})"
 apply (simp add: constrains_def stable_def)
 apply (force intro!: sumj_ext)
@@ -122,8 +124,7 @@ by (blast intro: p2_p3_lemma1 [THEN p2_p3_lemma2])
 lemma safety: 
      "[| 0<I; OK {i. i<I} Component |]   
       ==> (\<Squnion>i\<in>{i. i<I}. (Component i)) \<in> invariant {s. C s = sum I s}"
-apply (unfold invariant_def)
-apply (simp (no_asm) add: JN_stable sum_sumj_eq2)
+apply (simp (no_asm) add: invariant_def JN_stable sum_sumj_eq2)
 apply (auto intro!: sum0 p2_p3)
 done
 
