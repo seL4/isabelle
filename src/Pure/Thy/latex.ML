@@ -126,7 +126,7 @@ val tex_trailer =
 
 fun isabelle_file name txt =
   "%\n\\begin{isabellebody}%\n\
-  \\\def\\isabellecontext{" ^ name ^ "}%\n" ^ txt ^
+  \\\def\\isabellecontext{" ^ output_syms name ^ "}%\n" ^ txt ^
   "\\end{isabellebody}%\n" ^ tex_trailer;
 
 fun old_symbol_source name syms =
