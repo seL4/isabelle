@@ -57,6 +57,11 @@ timing flag supersedes proof_timing and Toplevel.trace;
 
 *** Document preparation ***
 
+* formal comments (text blocks etc.) in new-style theories may now
+contain antiquotations of thm/prop/term/typ to be presented according
+to latex print mode; concrete syntax is like this: @{term[show_types]
+"f(x) = a + x"};
+
 * isatool mkdir provides easy setup of Isabelle session directories,
 including proper document sources;
 
@@ -105,6 +110,12 @@ name 'antecedent';
 * Pure: removed obsolete 'transfer' attribute (transfer of thms to the
 current context is now done automatically);
 
+* Pure: theory command 'hide' removes declarations from
+class/type/const name spaces;
+
+* Pure: theory command 'method_setup' provides a simple interface for
+definining proof methods in ML;
+
 * Provers: splitter support (via 'split' attribute and 'simp' method
 modifier); 'simp' method: 'only:' modifier removes loopers as well
 (including splits);
@@ -135,10 +146,7 @@ methods 'tactic', 'res_inst_tac' etc., 'subgoal_tac', and 'case_tac' /
 all goals, or explicit goal specifier (tactic emulation); thus 'proof
 method scripts' have to be in depth-first order;
 
-* tuned 'let' syntax: replace 'as' keyword by 'and';
-
-* theory command 'hide' removes declarations from class/type/const
-name spaces;
+* tuned 'let' syntax: replaced 'as' keyword by 'and';
 
 
 *** HOL ***
