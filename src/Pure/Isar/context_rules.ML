@@ -182,7 +182,7 @@ fun may_unify weighted t net =
   map snd ((if weighted then orderlist else orderlist_no_weight) (Net.unify_term net t));
 
 fun find_erules _ [] = K []
-  | find_erules w (fact :: _) = may_unify w (Logic.strip_assums_concl (#prop (Thm.rep_thm fact)));
+  | find_erules w (fact :: _) = may_unify w (Logic.strip_assums_concl (Thm.prop_of fact));
 fun find_irules w goal = may_unify w (Logic.strip_assums_concl goal);
 
 fun find_rules_netpair weighted facts goal (inet, enet) =

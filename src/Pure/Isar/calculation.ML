@@ -156,7 +156,7 @@ fun err_if state b msg = if b then raise Proof.STATE (msg, state) else ();
 
 fun calculate final opt_rules print state =
   let
-    val strip_assums_concl = Logic.strip_assums_concl o #prop o Thm.rep_thm;
+    val strip_assums_concl = Logic.strip_assums_concl o Thm.prop_of;
     val eq_prop = op aconv o pairself (Pattern.eta_contract o strip_assums_concl);
     fun projection ths th = Library.exists (Library.curry eq_prop th) ths;
 

@@ -295,7 +295,7 @@ val pretty_source =
 fun pretty_term ctxt = ProofContext.pretty_term ctxt o ProofContext.extern_skolem ctxt;
 
 fun pretty_thms ctxt thms =
-  Pretty.chunks (map (pretty_term ctxt o #prop o Thm.rep_thm) thms);
+  Pretty.chunks (map (pretty_term ctxt o Thm.prop_of) thms);
 
 fun pretty_prf full ctxt thms =    (* FIXME context syntax!? *)
   Pretty.chunks (map (ProofSyntax.pretty_proof_of full) thms);
