@@ -215,12 +215,28 @@ fun innermost_params i st =
   let val (_, _, Bi, _) = dest_state (st, i)
   in rename_wrt_term Bi (Logic.strip_params Bi) end;
 
+(*params of subgoal i as they are printed*)
+fun params_of_state st i =
+  let val (_, _, Bi, _) = dest_state(st,i)
+      val params = Logic.strip_params Bi
+  in rev(rename_wrt_term Bi params) end;
+  
+(*read instantiations with respect to subgoal i of proof state st*)
+fun read_insts_in_state (st, i, sinsts, rule) =
+	let val {sign,...} = rep_thm st
+	    and params = params_of_state st i
+	    and rts = types_sorts rule and (types,sorts) = types_sorts st
+	    fun types'(a,~1) = (case assoc(params,a) of None => types(a,~1) | sm => sm)
+	      | types'(ixn) = types ixn;
+	    val used = add_term_tvarnames
+	                  (prop_of st $ prop_of rule,[])
+	in read_insts sign rts (types',sorts) used sinsts end;
+
 (*Lift and instantiate a rule wrt the given state and subgoal number *)
 fun lift_inst_rule' (st, i, sinsts, rule) =
-let val {maxidx,sign,...} = rep_thm st
-    val (_, _, Bi, _) = dest_state(st,i)
-    val params = Logic.strip_params Bi          (*params of subgoal i*)
-    val params = rev(rename_wrt_term Bi params) (*as they are printed*)
+let val (Tinsts,insts) = read_insts_in_state (st, i, sinsts, rule)
+    and {maxidx,...} = rep_thm st
+    and params = params_of_state st i
     val paramTs = map #2 params
     and inc = maxidx+1
     fun liftvar (Var ((a,j), T)) = Var((a, j+inc), paramTs---> incr_tvar inc T)
@@ -232,12 +248,6 @@ let val {maxidx,sign,...} = rep_thm st
     fun lifttvar((a,i),ctyp) =
         let val {T,sign} = rep_ctyp ctyp
         in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
-    val rts = types_sorts rule and (types,sorts) = types_sorts st
-    fun types'(a,~1) = (case assoc(params,a) of None => types(a,~1) | sm => sm)
-      | types'(ixn) = types ixn;
-    val used = add_term_tvarnames
-                  (prop_of st $ prop_of rule,[])
-    val (Tinsts,insts) = read_insts sign rts (types',sorts) used sinsts
 in Drule.instantiate (map lifttvar Tinsts, map liftpair insts)
                      (lift_rule (st,i) rule)
 end;
@@ -262,9 +272,7 @@ NB: the types in insts must be correctly instantiated already,
 *)
 fun term_lift_inst_rule (st, i, Tinsts, insts, rule) =
 let val {maxidx,sign,...} = rep_thm st
-    val (_, _, Bi, _) = dest_state(st,i)
-    val params = Logic.strip_params Bi          (*params of subgoal i*)
-    val paramTs = map #2 params
+    val paramTs = map #2 (params_of_state st i)
     and inc = maxidx+1
     fun liftvar ((a,j), T) = Var((a, j+inc), paramTs---> incr_tvar inc T)
     (*lift only Var, not term, which must be lifted already*)
