@@ -100,17 +100,6 @@ qed "bex_triv";
 
 Addsimps [ball_triv, bex_triv];
 
-(* Blast cannot prove these (yet?).
-   Move somewhere else?
-Goal "(ALL x:A. x=a) = (A = {a})";
-by(Blast_tac 1);
-qed "ball_triv_one_point1";
-
-Goal "(ALL x:A. a=x) = (A = {a})";
-by(Blast_tac 1);
-qed "ball_triv_one_point2";
-*)
-
 Goal "(EX x:A. x=a) = (a:A)";
 by(Blast_tac 1);
 qed "bex_triv_one_point1";
