@@ -195,7 +195,7 @@ val pure_sym_syntax =
   ("_bracket", "[types, type] => type",           Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
   ("_lambda",  "[idts, 'a] => logic",             Mixfix ("(3\\<lambda>_./ _)", [], 0)),
   ("==>",      "[prop, prop] => prop",            InfixrName ("\\<Midarrow>\\<Rightarrow>", 1)),
-  ("_bigimpl", "[asms, prop] => prop",            Mixfix ("((3\\<lbrakk> _ \\<rbrakk>)/ \\<Midarrow>\\<Rightarrow> _)", [0, 1], 1)),
+  ("_bigimpl", "[asms, prop] => prop",            Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Midarrow>\\<Rightarrow> _)", [0, 1], 1)),
   ("==",       "['a::{}, 'a] => prop",            InfixrName ("\\<equiv>", 2)),
   ("!!",       "[idts, prop] => prop",            Mixfix ("(3\\<And>_./ _)", [0, 0], 0))];
 
