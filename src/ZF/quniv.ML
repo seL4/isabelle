@@ -31,6 +31,7 @@ by (rtac (Transset_iff_Pow RS iffD1) 1);
 by (rtac (Transset_eclose RS Transset_univ) 1);
 val univ_eclose_subset_quniv = result();
 
+(*Key property for proving A_subset_quniv; requires eclose in def of quniv*)
 goal QUniv.thy "univ(A) <= quniv(A)";
 by (rtac (arg_subset_eclose RS univ_mono RS subset_trans) 1);
 by (rtac univ_eclose_subset_quniv 1);
@@ -191,87 +192,9 @@ by (REPEAT (ares_tac [product_Int_Vfrom_subset RS subset_trans,
 		      [Int_lower1, subset_refl] MRS Sigma_mono] 1));
 val QPair_Int_Vfrom_succ_subset = result();
 
-(** Pairs in quniv -- for handling the base case **)
+(**** "Take-lemma" rules for proving a=b by coinduction and c: quniv(A) ****)
 
-goal QUniv.thy "!!X. <a,b> : quniv(X) ==> <a,b> : univ(eclose(X))";
-by (etac ([qunivD, Transset_eclose] MRS Transset_Pair_subset_univ) 1);
-val Pair_in_quniv_D = result();
-
-goal QUniv.thy "a*b Int quniv(A) = a*b Int univ(eclose(A))";
-by (rtac equalityI 1);
-by (rtac ([subset_refl, univ_eclose_subset_quniv] MRS Int_mono) 2);
-by (fast_tac (ZF_cs addSEs [Pair_in_quniv_D]) 1);
-val product_Int_quniv_eq = result();
-
-goalw QUniv.thy [QPair_def,sum_def]
-    "<a;b> Int quniv(A) = <a;b> Int univ(eclose(A))";
-by (simp_tac (ZF_ss addsimps [Int_Un_distrib, product_Int_quniv_eq]) 1);
-val QPair_Int_quniv_eq = result();
-
-(**** "Take-lemma" rules for proving c: quniv(A) ****)
-
-goalw QUniv.thy [quniv_def] "Transset(quniv(A))";
-by (rtac (Transset_eclose RS Transset_univ RS Transset_Pow) 1);
-val Transset_quniv = result();
-
-val [aprem, iprem] = goal QUniv.thy
-    "[| a: quniv(quniv(X));  	\
-\       !!i. i:nat ==> a Int Vfrom(quniv(X),i) : quniv(A) \
-\    |] ==> a : quniv(A)";
-by (rtac (univ_Int_Vfrom_subset RS qunivI) 1);
-by (rtac (aprem RS qunivD) 1);
-by (rtac (Transset_quniv RS Transset_eclose_eq_arg RS ssubst) 1);
-by (etac (iprem RS qunivD) 1);
-val quniv_Int_Vfrom = result();
-
-(** Rules for level 0 **)
-
-goal QUniv.thy "<a;b> Int quniv(A) : quniv(A)";
-by (rtac (QPair_Int_quniv_eq RS ssubst) 1);
-by (rtac (Int_lower2 RS qunivI) 1);
-val QPair_Int_quniv_in_quniv = result();
-
-(*Unused; kept as an example.  QInr rule is similar*)
-goalw QUniv.thy [QInl_def] "QInl(a) Int quniv(A) : quniv(A)";
-by (rtac QPair_Int_quniv_in_quniv 1);
-val QInl_Int_quniv_in_quniv = result();
-
-goal QUniv.thy "!!a A X. a : quniv(A) ==> a Int X : quniv(A)";
-by (etac ([Int_lower1, qunivD] MRS subset_trans RS qunivI) 1);
-val Int_quniv_in_quniv = result();
-
-goal QUniv.thy 
- "!!X. a Int X : quniv(A) ==> a Int Vfrom(X, 0) : quniv(A)";
-by (etac (Vfrom_0 RS ssubst) 1);
-val Int_Vfrom_0_in_quniv = result();
-
-(** Rules for level succ(i), decreasing it to i **)
-
-goal QUniv.thy 
- "!!X. [| a Int Vfrom(X,i) : quniv(A);	\
-\         b Int Vfrom(X,i) : quniv(A);	\
-\         Transset(X) 			\
-\      |] ==> <a;b> Int Vfrom(X, succ(i)) : quniv(A)";
-by (rtac (QPair_Int_Vfrom_succ_subset RS subset_trans RS qunivI) 1);
-by (rtac (QPair_in_quniv RS qunivD) 2);
-by (REPEAT (assume_tac 1));
-val QPair_Int_Vfrom_succ_in_quniv = result();
-
-val zero_Int_in_quniv = standard
-    ([Int_lower1,empty_subsetI] MRS subset_trans RS qunivI);
-
-val one_Int_in_quniv = standard
-    ([Int_lower1, one_in_quniv RS qunivD] MRS subset_trans RS qunivI);
-
-(*Unused; kept as an example.  QInr rule is similar*)
-goalw QUniv.thy [QInl_def]
- "!!X. [| a Int Vfrom(X,i) : quniv(A);	Transset(X) 		\
-\      |] ==> QInl(a) Int Vfrom(X, succ(i)) : quniv(A)";
-by (rtac QPair_Int_Vfrom_succ_in_quniv 1);
-by (REPEAT (ares_tac [zero_Int_in_quniv] 1));
-val QInl_Int_Vfrom_succ_in_quniv = result();
-
-(** Rules for level i -- preserving the level, not decreasing it **)
+(*Rule for level i -- preserving the level, not decreasing it*)
 
 goalw QUniv.thy [QPair_def]
  "!!X. Transset(X) ==> 		\
@@ -279,56 +202,21 @@ goalw QUniv.thy [QPair_def]
 by (etac (Transset_Vfrom RS Transset_sum_Int_subset) 1);
 val QPair_Int_Vfrom_subset = result();
 
+(*[| a Int Vset(i) <= c; b Int Vset(i) <= d |] ==> <a;b> Int Vset(i) <= <c;d>*)
+val QPair_Int_Vset_subset_trans = standard
+       ([Transset_0 RS QPair_Int_Vfrom_subset, QPair_mono] MRS subset_trans);
+
 goal QUniv.thy 
- "!!X. [| a Int Vfrom(X,i) : quniv(A);	\
-\         b Int Vfrom(X,i) : quniv(A);	\
-\         Transset(X) 			\
-\      |] ==> <a;b> Int Vfrom(X,i) : quniv(A)";
-by (rtac (QPair_Int_Vfrom_subset RS subset_trans RS qunivI) 1);
-by (rtac (QPair_in_quniv RS qunivD) 2);
-by (REPEAT (assume_tac 1));
-val QPair_Int_Vfrom_in_quniv = result();
-
-
-(**** "Take-lemma" rules for proving a=b by coinduction ****)
-
-(** Unfortunately, the technique used above does not apply here, since
-    the base case appears impossible to prove: it involves an intersection
-    with eclose(X) for arbitrary X.  So a=b is proved by transfinite induction
-    over ALL ordinals, using Vset(i) instead of Vfrom(X,i).
-**)
-
-(*Rule for level 0*)
-goal QUniv.thy "a Int Vset(0) <= b";
+ "!!i. [| Ord(i) \
+\      |] ==> <a;b> Int Vset(i)  <=  (UN j:i. <a Int Vset(j); b Int Vset(j)>)";
+by (etac Ord_cases 1 THEN REPEAT_FIRST hyp_subst_tac);
+(*0 case*)
 by (rtac (Vfrom_0 RS ssubst) 1);
 by (fast_tac ZF_cs 1);
-val Int_Vset_0_subset = result();
-
-(*Rule for level succ(i), decreasing it to i*)
-goal QUniv.thy 
- "!!i. [| a Int Vset(i) <= c;	\
-\         b Int Vset(i) <= d	\
-\      |] ==> <a;b> Int Vset(succ(i))  <=  <c;d>";
-by (rtac ([Transset_0 RS QPair_Int_Vfrom_succ_subset, QPair_mono] 
-	  MRS subset_trans) 1);
-by (REPEAT (assume_tac 1));
-val QPair_Int_Vset_succ_subset_trans = result();
-
-(*Unused; kept as an example.  QInr rule is similar*)
-goalw QUniv.thy [QInl_def] 
- "!!i. a Int Vset(i) <= b ==> QInl(a) Int Vset(succ(i)) <= QInl(b)";
-by (etac (Int_lower1 RS QPair_Int_Vset_succ_subset_trans) 1);
-val QInl_Int_Vset_succ_subset_trans = result();
-
-(*Rule for level i -- preserving the level, not decreasing it*)
-goal QUniv.thy 
- "!!i. [| a Int Vset(i) <= c;	\
-\         b Int Vset(i) <= d	\
-\      |] ==> <a;b> Int Vset(i)  <=  <c;d>";
-by (rtac ([Transset_0 RS QPair_Int_Vfrom_subset, QPair_mono] 
-	  MRS subset_trans) 1);
-by (REPEAT (assume_tac 1));
-val QPair_Int_Vset_subset_trans = result();
-
-
-
+(*succ(j) case*)
+by (rtac (Transset_0 RS QPair_Int_Vfrom_succ_subset RS subset_trans) 1);
+by (rtac (succI1 RS UN_upper) 1);
+(*Limit(i) case*)
+by (asm_simp_tac (ZF_ss addsimps [Limit_Vfrom_eq, Int_UN_distrib, subset_refl,
+				  UN_mono, QPair_Int_Vset_subset_trans]) 1);
+val QPair_Int_Vset_subset_UN = result();
