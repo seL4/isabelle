@@ -65,7 +65,8 @@ to auto_tac, but is aimed to solve the given subgoal totally;
 * added option_map_eq_Some to simpset() and claset()
 
 * New theory HOL/Update of function updates:
-  f[a:=b] == %x. if x=a then b else f x
+  f(a:=b) == %x. if x=a then b else f x
+  May also be iterated as in f(a:=b,c:=d,...).
 
 * New directory HOL/UNITY: Chandy and Misra's UNITY formalism
 
