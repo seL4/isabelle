@@ -21,9 +21,7 @@ qed "apply_inverse";
 
 (** "Axiom" of Choice, proved using the description operator **)
 
-Goal "!!Q. ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)";
-by (fast_tac (claset() addEs [selectI]) 1);
-qed "choice";
+(*"choice" is now proved in Tools/meson.ML*)
 
 Goal "!!S. ALL x:S. EX y. Q x y ==> EX f. ALL x:S. Q x (f x)";
 by (fast_tac (claset() addEs [selectI]) 1);
