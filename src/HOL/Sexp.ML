@@ -11,15 +11,15 @@ open Sexp;
 (** sexp_case **)
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Leaf a) = c(a)";
-by (blast_tac (claset() addSIs [select_equality]) 1);
+by (Blast_tac 1);
 qed "sexp_case_Leaf";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (Numb k) = d(k)";
-by (blast_tac (claset() addSIs [select_equality]) 1);
+by (Blast_tac 1);
 qed "sexp_case_Numb";
 
 goalw Sexp.thy [sexp_case_def] "sexp_case c d e (M$N) = e M N";
-by (blast_tac (claset() addSIs [select_equality]) 1);
+by (Blast_tac 1);
 qed "sexp_case_Scons";
 
 Addsimps [sexp_case_Leaf, sexp_case_Numb, sexp_case_Scons];

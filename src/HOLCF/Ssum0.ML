@@ -310,7 +310,7 @@ qed_goalw "Iwhen1" Ssum0.thy [Iwhen_def]
         "Iwhen f g (Isinl UU) = UU"
  (fn prems =>
         [
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (rtac conjI 1),
         (fast_tac HOL_cs  1),
         (rtac conjI 1),
@@ -336,7 +336,7 @@ qed_goalw "Iwhen2" Ssum0.thy [Iwhen_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (fast_tac HOL_cs  2),
         (rtac conjI 1),
         (strip_tac 1),
@@ -362,7 +362,7 @@ qed_goalw "Iwhen3" Ssum0.thy [Iwhen_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (fast_tac HOL_cs  2),
         (rtac conjI 1),
         (strip_tac 1),

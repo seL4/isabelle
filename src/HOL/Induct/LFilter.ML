@@ -69,12 +69,12 @@ qed "Domain_findRel_mono";
 (*** find: basic equations ***)
 
 goalw thy [find_def] "find p LNil = LNil";
-by (blast_tac (claset() addIs [select_equality]) 1);
+by (Blast_tac 1);
 qed "find_LNil";
 Addsimps [find_LNil];
 
 goalw thy [find_def] "!!p. (l,l') : findRel p ==> find p l = l'";
-by (blast_tac (claset() addIs [select_equality] addDs [findRel_functional]) 1);
+by (blast_tac (claset() addDs [findRel_functional]) 1);
 qed "findRel_imp_find";
 Addsimps [findRel_imp_find];
 
@@ -84,7 +84,7 @@ qed "find_LCons_found";
 Addsimps [find_LCons_found];
 
 goalw thy [find_def] "!!p. l ~: Domain(findRel p) ==> find p l = LNil";
-by (blast_tac (claset() addIs [select_equality]) 1);
+by (Blast_tac 1);
 qed "diverge_find_LNil";
 Addsimps [diverge_find_LNil];
 

@@ -47,7 +47,7 @@ val prop_cs = empty_cs addSIs [refl,TrueI,conjI,disjCI,impI,notI,iffI]
                        addSEs [conjE,disjE,impCE,FalseE,iffCE];
 
 (*Quantifier rules*)
-val HOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI] 
+val HOL_cs = prop_cs addSIs [allI,ex_ex1I] addIs [exI, select_equality] 
                      addSEs [exE] addEs [allE];
 
 claset_ref() := HOL_cs;

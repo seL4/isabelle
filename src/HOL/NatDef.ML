@@ -135,11 +135,11 @@ qed "not0_implies_Suc";
 (*** nat_case -- the selection operator for nat ***)
 
 goalw thy [nat_case_def] "nat_case a f 0 = a";
-by (blast_tac (claset() addIs [select_equality]) 1);
+by (Blast_tac 1);
 qed "nat_case_0";
 
 goalw thy [nat_case_def] "nat_case a f (Suc k) = f(k)";
-by (blast_tac (claset() addIs [select_equality]) 1);
+by (Blast_tac 1);
 qed "nat_case_Suc";
 
 goalw thy [wf_def, pred_nat_def] "wf(pred_nat)";

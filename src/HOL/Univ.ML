@@ -432,15 +432,15 @@ qed "In1_mono";
 (*** Split and Case ***)
 
 goalw Univ.thy [Split_def] "Split c (M$N) = c M N";
-by (blast_tac (claset() addIs [select_equality]) 1);
+by (Blast_tac  1);
 qed "Split";
 
 goalw Univ.thy [Case_def] "Case c d (In0 M) = c(M)";
-by (blast_tac (claset() addIs [select_equality]) 1);
+by (Blast_tac 1);
 qed "Case_In0";
 
 goalw Univ.thy [Case_def] "Case c d (In1 N) = d(N)";
-by (blast_tac (claset() addIs [select_equality]) 1);
+by (Blast_tac 1);
 qed "Case_In1";
 
 Addsimps [Split, Case_In0, Case_In1];

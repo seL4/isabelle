@@ -207,7 +207,7 @@ qed_goalw "strict_Isfst" Sprod0.thy [Isfst_def]
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (rtac conjI 1),
         (fast_tac HOL_cs  1),
         (strip_tac 1),
@@ -242,7 +242,7 @@ qed_goalw "strict_Issnd" Sprod0.thy [Issnd_def]
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (rtac conjI 1),
         (fast_tac HOL_cs  1),
         (strip_tac 1),
@@ -275,7 +275,7 @@ qed_goalw "Isfst" Sprod0.thy [Isfst_def]
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (rtac conjI 1),
         (strip_tac 1),
         (res_inst_tac [("P","Ispair x y = Ispair UU UU")] notE 1),
@@ -295,7 +295,7 @@ qed_goalw "Issnd" Sprod0.thy [Issnd_def]
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (rtac conjI 1),
         (strip_tac 1),
         (res_inst_tac [("P","Ispair x y = Ispair UU UU")] notE 1),

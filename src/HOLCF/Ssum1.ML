@@ -45,7 +45,7 @@ val less_ssum1a = prove_goalw thy [less_ssum_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (dtac conjunct1 2),
         (dtac spec 2),
         (dtac spec 2),
@@ -86,7 +86,7 @@ val less_ssum1b = prove_goalw thy [less_ssum_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (dtac conjunct2 2),
         (dtac conjunct1 2),
         (dtac spec 2),
@@ -128,7 +128,7 @@ val less_ssum1c = prove_goalw thy [less_ssum_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (rtac conjI 1),
         (strip_tac 1),
         (etac conjE 1),
@@ -170,7 +170,7 @@ val less_ssum1d = prove_goalw thy [less_ssum_def]
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac  select_equality 1),
+        (rtac select_equality 1),
         (dtac conjunct2 2),
         (dtac conjunct2 2),
         (dtac conjunct2 2),
