@@ -31,10 +31,6 @@ Unification algorithm
  * Deeper nestings require iteration of steps (3) and (4).
  *---------------------------------------------------------------------------*)
 
-open Unify;
-
-
-
 (*---------------------------------------------------------------------------
  * The non-nested TC plus the wellfoundedness of unifyRel.
  *---------------------------------------------------------------------------*)
