@@ -264,7 +264,7 @@ val enter_backward = put_mode Backward;
 fun assert_mode pred state =
   let val mode = get_mode state in
     if pred mode then state
-    else raise STATE ("Illegal application of proof command in " ^ mode_name mode ^ " mode", state)
+    else raise STATE ("Illegal application of command in " ^ mode_name mode ^ " mode", state)
   end;
 
 fun is_chain state = get_mode state = ForwardChain;
