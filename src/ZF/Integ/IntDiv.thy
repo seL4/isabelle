@@ -3,8 +3,6 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
-The division operators div and mod (borrowed from the HOL equivalent)
-
 Here is the division algorithm in ML:
 
     fun posDivAlg (a,b) =
@@ -30,6 +28,8 @@ Here is the division algorithm in ML:
 			  else        negateSnd (posDivAlg (~a,~b));
 
 *)
+
+header{*The Division Operators Div and Mod*}
 
 theory IntDiv = IntArith + OrderArith:
 

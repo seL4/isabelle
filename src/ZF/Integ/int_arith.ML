@@ -184,7 +184,8 @@ val mult_1s = [zmult_1_intify, zmult_1_right_intify,
                zmult_minus1, zmult_minus1_right];
 
 val tc_rules = [integ_of_type, intify_in_int,
-                int_of_type, zadd_type, zdiff_type, zmult_type] @ bin.intrs;
+                int_of_type, zadd_type, zdiff_type, zmult_type] @ 
+               thms "bin.intros";
 val intifys = [intify_ident, zadd_intify1, zadd_intify2,
                zdiff_intify1, zdiff_intify2, zmult_intify1, zmult_intify2,
                zless_intify1, zless_intify2, zle_intify1, zle_intify2];

@@ -33,8 +33,8 @@ $(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy \
   CardinalArith.thy Cardinal_AC.thy \
   Datatype.ML Datatype.thy Epsilon.thy Finite.thy	\
   Fixedpt.thy Inductive.ML Inductive.thy 	\
-  InfDatatype.thy Integ/Bin.ML Integ/Bin.thy Integ/EquivClass.ML	\
-  Integ/EquivClass.thy Integ/Int.ML Integ/Int.thy Integ/IntArith.thy	\
+  InfDatatype.thy Integ/Bin.thy Integ/EquivClass.ML	\
+  Integ/EquivClass.thy Integ/Int.thy Integ/IntArith.thy	\
   Integ/IntDiv.thy Integ/int_arith.ML			\
   Let.ML Let.thy List.thy Main.ML Main.thy	\
   Main_ZFC.ML Main_ZFC.thy Nat.thy Order.thy OrderArith.thy	\
