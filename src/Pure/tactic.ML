@@ -418,11 +418,12 @@ local
   fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Drule.eq_thm_prop (th, th')
 in
 fun delete_tagged_brl (brl as (eres, th), (inet, enet)) =
-  if eres then
+  (if eres then
     (case try Thm.major_prem_of th of
       Some prem => (inet, Net.delete_term ((prem, ((), brl)), enet, eq_kbrl))
     | None => (inet, enet))  (*no major premise: ignore*)
-  else (Net.delete_term ((Thm.concl_of th, ((), brl)), inet, eq_kbrl), enet);
+  else (Net.delete_term ((Thm.concl_of th, ((), brl)), inet, eq_kbrl), enet))
+  handle Net.DELETE => (inet,enet);
 end;
 
 
