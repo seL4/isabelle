@@ -99,15 +99,10 @@ exception Interrupt = SML90.Interrupt;
 
 local
 
-datatype 'a result =
-  Result of 'a |
-  Exn of exn;
+fun capture f x = ((f x): unit; NONE) handle exn => SOME exn;
 
-fun capture f x = Result (f x) handle exn => Exn exn;
-
-fun release (Result x) = x
-  | release (Exn exn) = raise exn;
-
+fun release NONE = ()
+  | release (SOME exn) = raise exn;
 
 val sig_int = 2;
 
@@ -125,8 +120,8 @@ in
 
 val _ = Signal.signal (sig_int, default_handler);
 
-fun mask_interrupt f = change_signal Signal.SIG_IGN f;
-fun exhibit_interrupt f = change_signal default_handler f;
+fun ignore_interrupt f = change_signal Signal.SIG_IGN f;
+fun raise_interrupt f = change_signal default_handler f;
 
 end;
 
