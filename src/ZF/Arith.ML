@@ -1,4 +1,4 @@
-(*  Title:      ZF/arith.ML
+(*  Title:      ZF/Arith.ML
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -197,6 +197,15 @@ qed_goal "mult_succ_right" Arith.thy
   [ (nat_ind_tac "m" [] 1),
     (ALLGOALS (asm_simp_tac (arith_ss addsimps add_ac))) ]);
 
+goal Arith.thy "!!n. n:nat ==> 1 #* n = n";
+by (asm_simp_tac (arith_ss addsimps [add_0_right]) 1);
+qed "mult_1";
+
+goal Arith.thy "!!n. n:nat ==> n #* 1 = n";
+by (asm_simp_tac (arith_ss addsimps [mult_0_right, add_0_right, 
+                                     mult_succ_right]) 1);
+qed "mult_1_right";
+
 (*Commutative law for multiplication*)
 qed_goal "mult_commute" Arith.thy 
     "[| m:nat;  n:nat |] ==> m #* n = n #* m"
@@ -308,7 +317,7 @@ goal Arith.thy
   "!!m. [| m:nat; n: nat; k:nat |] ==> k #* (m #- n) = (k #* m) #- (k #* n)";
 val mult_commute_k = read_instantiate [("m","k")] mult_commute;
 by (asm_simp_tac (arith_ss addsimps 
-		  [mult_commute_k, diff_mult_distrib]) 1);
+                  [mult_commute_k, diff_mult_distrib]) 1);
 qed "diff_mult_distrib2" ;
 
 (*** Remainder ***)
@@ -499,7 +508,7 @@ goal Arith.thy "!!i j k. [| i le j; j:nat; k:nat |] ==> i#*k le j#*k";
 by (forward_tac [lt_nat_in_nat] 1);
 by (nat_ind_tac "k" [] 2);
 by (ALLGOALS (asm_simp_tac (arith_ss addsimps [mult_0_right, mult_succ_right,
-					       add_le_mono])));
+                                               add_le_mono])));
 qed "mult_le_mono1";
 
 (* le monotonicity, BOTH arguments*)
@@ -515,7 +524,7 @@ qed "mult_le_mono";
 
 (*strict, in 1st argument; proof is by induction on k>0*)
 goal Arith.thy "!!i j k. [| i<j; 0<k; j:nat; k:nat |] ==> k#*i < k#*j";
-be zero_lt_natE 1;
+by (etac zero_lt_natE 1);
 by (forward_tac [lt_nat_in_nat] 2);
 by (ALLGOALS (asm_simp_tac arith_ss));
 by (nat_ind_tac "x" [] 1);
@@ -523,10 +532,12 @@ by (ALLGOALS (asm_simp_tac (arith_ss addsimps [add_0_right, add_lt_mono])));
 qed "mult_lt_mono2";
 
 goal Arith.thy "!!k. [| m: nat; n: nat |] ==> 0 < m#*n <-> 0<m & 0<n";
-by (etac nat_induct 1);
-by (etac nat_induct 2);
-by (ALLGOALS (asm_simp_tac (arith_ss addsimps [mult_0_right])));
+by (best_tac (ZF_cs addEs [natE] addss (arith_ss addsimps [mult_0_right])) 1);
 qed "zero_lt_mult_iff";
+
+goal Arith.thy "!!k. [| m: nat; n: nat |] ==> m#*n = 1 <-> m=1 & n=1";
+by (best_tac (ZF_cs addEs [natE] addss (arith_ss addsimps [mult_0_right])) 1);
+qed "mult_eq_1_iff";
 
 (*Cancellation law for division*)
 goal Arith.thy
@@ -534,12 +545,12 @@ goal Arith.thy
 by (eres_inst_tac [("i","m")] complete_induct 1);
 by (excluded_middle_tac "x<n" 1);
 by (asm_simp_tac (arith_ss addsimps [div_less, zero_lt_mult_iff, 
-				     mult_lt_mono2]) 2);
+                                     mult_lt_mono2]) 2);
 by (asm_full_simp_tac
      (arith_ss addsimps [not_lt_iff_le, nat_into_Ord,
                          zero_lt_mult_iff, le_refl RS mult_le_mono, div_geq,
                          diff_mult_distrib2 RS sym,
-			 div_termination RS ltD]) 1);
+                         div_termination RS ltD]) 1);
 qed "div_cancel";
 
 goal Arith.thy
@@ -548,18 +559,29 @@ goal Arith.thy
 by (eres_inst_tac [("i","m")] complete_induct 1);
 by (excluded_middle_tac "x<n" 1);
 by (asm_simp_tac (arith_ss addsimps [mod_less, zero_lt_mult_iff, 
-				     mult_lt_mono2]) 2);
+                                     mult_lt_mono2]) 2);
 by (asm_full_simp_tac
      (arith_ss addsimps [not_lt_iff_le, nat_into_Ord,
                          zero_lt_mult_iff, le_refl RS mult_le_mono, mod_geq,
                          diff_mult_distrib2 RS sym,
-			 div_termination RS ltD]) 1);
+                         div_termination RS ltD]) 1);
 qed "mult_mod_distrib";
 
+(** Lemma for gcd **)
 
+val mono_lemma = (nat_into_Ord RS Ord_0_lt) RSN (2,mult_lt_mono2);
+
+goal Arith.thy "!!m n. [| m = m#*n; m: nat; n: nat |] ==> n=1 | m=0";
+by (rtac disjCI 1);
+by (dtac sym 1);
+by (rtac Ord_linear_lt 1 THEN REPEAT_SOME (ares_tac [nat_into_Ord,nat_1I]));
+by (fast_tac (lt_cs addss (arith_ss addsimps [mult_0_right])) 1);
+by (fast_tac (lt_cs addDs [mono_lemma] 
+                    addss (arith_ss addsimps [mult_1_right])) 1);
+qed "mult_eq_self_implies_10";
 
 val arith_ss0 = arith_ss
 and arith_ss = arith_ss addsimps [add_0_right, add_succ_right,
                                   mult_0_right, mult_succ_right,
-				  mod_type, div_type,
+                                  mod_type, div_type,
                                   mod_less, mod_geq, div_less, div_geq];

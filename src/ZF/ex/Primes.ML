@@ -11,11 +11,11 @@ eta_contract:=false;
 open Primes;
 
 (************************************************)
-(** Divides Relation			       **)
+(** Divides Relation                           **)
 (************************************************)
 
 goalw thy [dvd_def] "!!m. m dvd n ==> m:nat & n:nat & (EX k:nat. n = m#*k)";
-ba 1;
+by (assume_tac 1);
 qed "dvdD";
 
 bind_thm ("dvd_imp_nat1", dvdD RS conjunct1);
@@ -40,7 +40,7 @@ qed "dvd_trans";
 
 goalw thy [dvd_def] "!!m n. [| m dvd n; n dvd m |] ==> m=n";
 by (fast_tac (ZF_cs addDs [mult_eq_self_implies_10]
-	            addss (arith_ss addsimps [mult_assoc, mult_eq_1_iff])) 1);
+                    addss (arith_ss addsimps [mult_assoc, mult_eq_1_iff])) 1);
 qed "dvd_anti_sym";
 
 
@@ -82,7 +82,7 @@ goal thy "!!k. [| k dvd b; k dvd (a mod b); 0 < b; a:nat |] ==> k dvd a";
 by (deepen_tac 
     (ZF_cs addIs [mod_div_equality RS subst]
            addDs [dvdD]
-	   addSIs [dvd_add, dvd_mult, mult_type,mod_type,div_type]) 0 1);
+           addSIs [dvd_add, dvd_mult, mult_type,mod_type,div_type]) 0 1);
 qed "gcd_ind";
 
 
@@ -90,7 +90,7 @@ qed "gcd_ind";
 
 goal thy "!!b. b:nat ==> ALL a:nat. egcd(a,b):nat";
 by (etac complete_induct 1);
-by (resolve_tac [ballI] 1);
+by (rtac ballI 1);
 by (excluded_middle_tac "x=0" 1);
 (* case x = 0 *)
 by (asm_simp_tac (arith_ss addsimps [egcd_0]) 2);
@@ -108,7 +108,7 @@ qed "egcd_type";
 goal thy "!!b. b:nat ==> ALL a: nat. (egcd(a,b) dvd a) & (egcd(a,b) dvd b)";
 by (res_inst_tac [("i","b")] complete_induct 1);
 by (assume_tac 1);
-by (resolve_tac [ballI] 1);
+by (rtac ballI 1);
 by (excluded_middle_tac "x=0" 1);
 (* case x = 0 *)
 by (asm_simp_tac (arith_ss addsimps [egcd_0,dvd_refl,dvd_0_right]) 2);
@@ -133,8 +133,8 @@ by (res_inst_tac
     [("x", "(((m div n)#*n #+ m mod n) #- ((f#*m) div (f#*n)) #* n)")] 
     bexI 1);
 by (asm_simp_tac (arith_ss addsimps [diff_mult_distrib2, div_cancel,
-				     mult_mod_distrib, add_mult_distrib_left,
-				     diff_add_inverse]) 1);
+                                     mult_mod_distrib, add_mult_distrib_left,
+                                     diff_add_inverse]) 1);
 by (asm_simp_tac arith_ss 1);
 qed "dvd_mod";
 
@@ -144,19 +144,19 @@ qed "dvd_mod";
 goal thy "!!b. [| b:nat; f:nat |] ==>    \
 \              ALL a. (f dvd a) & (f dvd b) --> f dvd egcd(a,b)";
 by (etac complete_induct 1);
-by (resolve_tac [allI] 1);
+by (rtac allI 1);
 by (excluded_middle_tac "x=0" 1);
 (* case x = 0 *)
 by (asm_simp_tac (arith_ss addsimps [egcd_0,dvd_refl,dvd_0_right,
-				     dvd_imp_nat2]) 2);
+                                     dvd_imp_nat2]) 2);
 (* case x > 0 *)
 by (safe_tac ZF_cs);
 by (asm_simp_tac (arith_ss addsimps [egcd_lt_0, nat_into_Ord RS Ord_0_lt,
-				     dvd_imp_nat2]) 1);
+                                     dvd_imp_nat2]) 1);
 by (eres_inst_tac [("x","a mod x")] ballE 1);
 by (asm_full_simp_tac 
     (arith_ss addsimps [mod_less_divisor RS ltD, dvd_imp_nat2, 
-			nat_into_Ord RS Ord_0_lt, egcd_lt_0]) 2);
+                        nat_into_Ord RS Ord_0_lt, egcd_lt_0]) 2);
 by (fast_tac (ZF_cs addSIs [dvd_mod, nat_into_Ord RS Ord_0_lt]) 1);
 qed "egcd_prop2";
 
