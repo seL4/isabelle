@@ -84,8 +84,8 @@ sig
   val thms_of        : theory -> (string * thm) list
   val delete_thms    : string -> unit
 
-  val add_thydata    : theory -> string * thy_methods -> unit
-  val get_thydata    : theory -> string -> exn option
+  val add_thydata    : string -> string * thy_methods -> unit
+  val get_thydata    : string -> string -> exn option
   val add_thy_reader_file: string -> unit
   val set_thy_reader_file: string -> unit
   val read_thy_reader_files: unit -> unit
@@ -1315,10 +1315,12 @@ fun print_theory thy = (Display.print_theory thy; print_thms thy);
 (*** Misc functions ***)
 
 (*Add data handling methods to theory*)
-fun add_thydata thy (new_methods as (id, ThyMethods {get, ...})) =
-  let val (tname, ThyInfo {path, children, parents, thy_time, ml_time, theory,
-                           thms, methods, data}) =
-        thyinfo_of_sign (sign_of thy);
+fun add_thydata tname (new_methods as (id, ThyMethods {get, ...})) =
+  let val ThyInfo {path, children, parents, thy_time, ml_time, theory,
+                   thms, methods, data} =
+        case get_thyinfo tname of
+            Some ti => ti
+          | None => error ("Theory " ^ tname ^ " not stored by loader");
   in loaded_thys := Symtab.update ((tname, ThyInfo {path = path,
        children = children, parents = parents, thy_time = thy_time,
        ml_time = ml_time, theory = theory, thms = thms,
@@ -1339,9 +1341,10 @@ fun read_thy_reader_files () = seq use (!thy_reader_files);
 
 
 (*Retrieve data associated with theory*)
-fun get_thydata thy id =
-  let val (tname, ThyInfo {data = (_, d2), ...}) =
-        thyinfo_of_sign (sign_of thy);
+fun get_thydata tname id =
+  let val d2 = case get_thyinfo tname of
+                   Some (ThyInfo {data, ...}) => snd data
+                 | None => error ("Theory " ^ tname ^ " not stored by loader");
   in Symtab.lookup (d2, id) end;
 
 
