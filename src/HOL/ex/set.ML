@@ -9,6 +9,16 @@ Cantor's Theorem; the Schroeder-Berstein Theorem.
 
 writeln"File HOL/ex/set.";
 
+set_current_thy"Set";
+
+(*Nice demonstration of blast_tac--and its overloading problems*)
+goal Set.thy "!!S::'a set set. ALL x:S. ALL y:S. x<=y ==> EX z. S <= {z}";
+let val insertCI' = read_instantiate [("'a", "?'a set")] insertCI
+in    (*Type instantiation is required so that blast_tac can apply equalityI
+        to the subgoal arising from insertCI*)
+by(blast_tac (!claset addSIs [insertCI']) 1)
+end;
+
 (*** A unique fixpoint theorem --- fast/best/meson all fail ***)
 
 val [prem] = goal HOL.thy "?!x.f(g(x))=x ==> ?!y.g(f(y))=y";
