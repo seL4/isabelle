@@ -480,7 +480,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
   ex/NatSum.thy ex/PER.thy ex/PiSets.ML ex/PiSets.thy ex/Primrec.ML \
   ex/Primrec.thy ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy \
   ex/ROOT.ML ex/Recdefs.ML ex/Recdefs.thy ex/Records.thy ex/Ring.ML \
-  ex/Ring.thy ex/StringEx.ML ex/StringEx.thy ex/Tarski.ML \
+  ex/Ring.thy ex/StringEx.thy ex/Tarski.ML \
   ex/Tarski.thy ex/Tuple.thy ex/cla.ML ex/mesontest.ML ex/mesontest2.ML \
   ex/mesontest2.thy ex/set.ML ex/set.thy ex/svc_test.ML ex/svc_test.thy
 	@$(ISATOOL) usedir $(OUT)/HOL ex
