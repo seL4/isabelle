@@ -3,11 +3,228 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Set Theory examples: Union, Intersection, Inclusion, etc.
+Converse, domain, range of a relation or function.
+
+And set theory equalities involving Union, Intersection, Inclusion, etc.
     (Thanks also to Philippe de Groote.)
 *)
 
-theory equalities = domrange:
+theory equalities = pair + subset:
+
+
+(*** converse ***)
+
+lemma converse_iff [iff]: "<a,b>: converse(r) <-> <b,a>:r"
+apply (unfold converse_def)
+apply blast
+done
+
+lemma converseI: "<a,b>:r ==> <b,a>:converse(r)"
+apply (unfold converse_def)
+apply blast
+done
+
+lemma converseD: "<a,b> : converse(r) ==> <b,a> : r"
+apply (unfold converse_def)
+apply blast
+done
+
+lemma converseE [elim!]:
+    "[| yx : converse(r);   
+        !!x y. [| yx=<y,x>;  <x,y>:r |] ==> P |]
+     ==> P"
+apply (unfold converse_def)
+apply (blast intro: elim:); 
+done
+
+lemma converse_converse: "r<=Sigma(A,B) ==> converse(converse(r)) = r"
+apply blast
+done
+
+lemma converse_type: "r<=A*B ==> converse(r)<=B*A"
+apply blast
+done
+
+lemma converse_prod [simp]: "converse(A*B) = B*A"
+apply blast
+done
+
+lemma converse_empty [simp]: "converse(0) = 0"
+apply blast
+done
+
+lemma converse_subset_iff: "A <= Sigma(X,Y) ==> converse(A) <= converse(B) <-> A <= B"
+apply blast
+done
+
+
+(*** domain ***)
+
+lemma domain_iff: "a: domain(r) <-> (EX y. <a,y>: r)"
+apply (unfold domain_def)
+apply blast
+done
+
+lemma domainI [intro]: "<a,b>: r ==> a: domain(r)"
+apply (unfold domain_def)
+apply blast
+done
+
+lemma domainE [elim!]:
+    "[| a : domain(r);  !!y. <a,y>: r ==> P |] ==> P"
+apply (unfold domain_def)
+apply blast
+done
+
+lemma domain_subset: "domain(Sigma(A,B)) <= A"
+apply blast
+done
+
+(*** range ***)
+
+lemma rangeI [intro]: "<a,b>: r ==> b : range(r)"
+apply (unfold range_def)
+apply (erule converseI [THEN domainI])
+done
+
+lemma rangeE [elim!]: "[| b : range(r);  !!x. <x,b>: r ==> P |] ==> P"
+apply (unfold range_def)
+apply (blast intro: elim:); 
+done
+
+lemma range_subset: "range(A*B) <= B"
+apply (unfold range_def)
+apply (subst converse_prod)
+apply (rule domain_subset)
+done
+
+
+(*** field ***)
+
+lemma fieldI1: "<a,b>: r ==> a : field(r)"
+apply (unfold field_def)
+apply blast
+done
+
+lemma fieldI2: "<a,b>: r ==> b : field(r)"
+apply (unfold field_def)
+apply blast
+done
+
+lemma fieldCI [intro]: 
+    "(~ <c,a>:r ==> <a,b>: r) ==> a : field(r)"
+apply (unfold field_def)
+apply blast
+done
+
+lemma fieldE [elim!]: 
+     "[| a : field(r);   
+         !!x. <a,x>: r ==> P;   
+         !!x. <x,a>: r ==> P        |] ==> P"
+apply (unfold field_def)
+apply blast
+done
+
+lemma field_subset: "field(A*B) <= A Un B"
+apply blast
+done
+
+lemma domain_subset_field: "domain(r) <= field(r)"
+apply (unfold field_def)
+apply (rule Un_upper1)
+done
+
+lemma range_subset_field: "range(r) <= field(r)"
+apply (unfold field_def)
+apply (rule Un_upper2)
+done
+
+lemma domain_times_range: "r <= Sigma(A,B) ==> r <= domain(r)*range(r)"
+apply blast
+done
+
+lemma field_times_field: "r <= Sigma(A,B) ==> r <= field(r)*field(r)"
+apply blast
+done
+
+
+(*** Image of a set under a function/relation ***)
+
+lemma image_iff: "b : r``A <-> (EX x:A. <x,b>:r)"
+apply (unfold image_def)
+apply blast
+done
+
+lemma image_singleton_iff: "b : r``{a} <-> <a,b>:r"
+apply (rule image_iff [THEN iff_trans])
+apply blast
+done
+
+lemma imageI [intro]: "[| <a,b>: r;  a:A |] ==> b : r``A"
+apply (unfold image_def)
+apply blast
+done
+
+lemma imageE [elim!]: 
+    "[| b: r``A;  !!x.[| <x,b>: r;  x:A |] ==> P |] ==> P"
+apply (unfold image_def)
+apply blast
+done
+
+lemma image_subset: "r <= A*B ==> r``C <= B"
+apply blast
+done
+
+
+(*** Inverse image of a set under a function/relation ***)
+
+lemma vimage_iff: 
+    "a : r-``B <-> (EX y:B. <a,y>:r)"
+apply (unfold vimage_def image_def converse_def)
+apply blast
+done
+
+lemma vimage_singleton_iff: "a : r-``{b} <-> <a,b>:r"
+apply (rule vimage_iff [THEN iff_trans])
+apply blast
+done
+
+lemma vimageI [intro]: "[| <a,b>: r;  b:B |] ==> a : r-``B"
+apply (unfold vimage_def)
+apply blast
+done
+
+lemma vimageE [elim!]: 
+    "[| a: r-``B;  !!x.[| <a,x>: r;  x:B |] ==> P |] ==> P"
+apply (unfold vimage_def)
+apply blast
+done
+
+lemma vimage_subset: "r <= A*B ==> r-``C <= A"
+apply (unfold vimage_def)
+apply (erule converse_type [THEN image_subset])
+done
+
+
+(** The Union of a set of relations is a relation -- Lemma for fun_Union **)
+lemma rel_Union: "(ALL x:S. EX A B. x <= A*B) ==>   
+                  Union(S) <= domain(Union(S)) * range(Union(S))"
+by blast
+
+(** The Union of 2 relations is a relation (Lemma for fun_Un)  **)
+lemma rel_Un: "[| r <= A*B;  s <= C*D |] ==> (r Un s) <= (A Un C) * (B Un D)"
+apply blast
+done
+
+lemma domain_Diff_eq: "[| <a,c> : r; c~=b |] ==> domain(r-{<a,b>}) = domain(r)"
+apply blast
+done
+
+lemma range_Diff_eq: "[| <c,b> : r; c~=a |] ==> range(r-{<a,b>}) = range(r)"
+apply blast
+done
+
+
 
 (** Finite Sets **)
 
@@ -593,6 +810,47 @@ by blast
 
 ML
 {*
+val ZF_cs = claset() delrules [equalityI];
+
+val converse_iff = thm "converse_iff";
+val converseI = thm "converseI";
+val converseD = thm "converseD";
+val converseE = thm "converseE";
+val converse_converse = thm "converse_converse";
+val converse_type = thm "converse_type";
+val converse_prod = thm "converse_prod";
+val converse_empty = thm "converse_empty";
+val converse_subset_iff = thm "converse_subset_iff";
+val domain_iff = thm "domain_iff";
+val domainI = thm "domainI";
+val domainE = thm "domainE";
+val domain_subset = thm "domain_subset";
+val rangeI = thm "rangeI";
+val rangeE = thm "rangeE";
+val range_subset = thm "range_subset";
+val fieldI1 = thm "fieldI1";
+val fieldI2 = thm "fieldI2";
+val fieldCI = thm "fieldCI";
+val fieldE = thm "fieldE";
+val field_subset = thm "field_subset";
+val domain_subset_field = thm "domain_subset_field";
+val range_subset_field = thm "range_subset_field";
+val domain_times_range = thm "domain_times_range";
+val field_times_field = thm "field_times_field";
+val image_iff = thm "image_iff";
+val image_singleton_iff = thm "image_singleton_iff";
+val imageI = thm "imageI";
+val imageE = thm "imageE";
+val image_subset = thm "image_subset";
+val vimage_iff = thm "vimage_iff";
+val vimage_singleton_iff = thm "vimage_singleton_iff";
+val vimageI = thm "vimageI";
+val vimageE = thm "vimageE";
+val vimage_subset = thm "vimage_subset";
+val rel_Union = thm "rel_Union";
+val rel_Un = thm "rel_Un";
+val domain_Diff_eq = thm "domain_Diff_eq";
+val range_Diff_eq = thm "range_Diff_eq";
 val cons_eq = thm "cons_eq";
 val cons_commute = thm "cons_commute";
 val cons_absorb = thm "cons_absorb";

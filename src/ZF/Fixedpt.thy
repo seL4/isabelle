@@ -6,7 +6,7 @@
 Least and greatest fixed points
 *)
 
-Fixedpt = domrange +
+Fixedpt = equalities +
 
 consts
   bnd_mono    :: [i,i=>i]=>o

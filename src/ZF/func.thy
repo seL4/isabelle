@@ -6,7 +6,7 @@
 Functions in Zermelo-Fraenkel Set Theory
 *)
 
-theory func = domrange + equalities:
+theory func = equalities:
 
 (*** The Pi operator -- dependent function space ***)
 
