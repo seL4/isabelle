@@ -293,6 +293,10 @@ fun remove_thy name =
 
 fun begin_theory name parents paths =
   let
+    val _ =
+      if is_some (lookup_thy name) andalso is_finished name then
+        error (loader_msg "cannot change finished theory" [name])
+      else ();
     val _ = (map Path.basic parents; seq weak_use_thy parents);
     val theory = PureThy.begin_theory name (map get_theory parents);
     val _ = change_thys (update_node name parents (init_deps [] [], Some theory));
