@@ -5,6 +5,7 @@
 # DESCRIPTION: make all Isabelle systems afresh
 #
 # FIXME TODO:
+#  - remove this tool (!?)
 #  - clean
 #  - usage
 #  - getopts (i.e. *short* options) (?)

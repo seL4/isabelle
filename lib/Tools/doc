@@ -3,9 +3,6 @@
 # $Id$
 #
 # DESCRIPTION: view Isabelle documentation
-#
-# TODO:
-#  - other formats than dvi (??)
 
 
 PRG=$(basename $0)
