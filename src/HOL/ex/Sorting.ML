@@ -23,7 +23,7 @@ goal Sorting.thy "set xs = {x.mset xs x ~= 0}";
 by (list.induct_tac "xs" 1);
 by (ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 by (Fast_tac 1);
-qed "set_of_list_via_mset";
+qed "set_via_mset";
 
 (* Equivalence of two definitions of `sorted' *)
 

@@ -19,11 +19,11 @@ by (ALLGOALS Asm_simp_tac);
 qed "insort_permutes";
 
 goal thy "set(ins f x xs) = insert x (set xs)";
-by (asm_simp_tac (!simpset addsimps [set_of_list_via_mset]
+by (asm_simp_tac (!simpset addsimps [set_via_mset]
                            setloop (split_tac [expand_if])) 1);
 by (Fast_tac 1);
-qed "set_of_list_ins";
-Addsimps [set_of_list_ins];
+qed "set_ins";
+Addsimps [set_ins];
 
 val prems = goalw InSort.thy [total_def,transf_def]
   "[| total(f); transf(f) |] ==>  sorted f (ins f x xs) = sorted f xs";

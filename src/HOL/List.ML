@@ -246,37 +246,37 @@ section "set";
 goal thy "set (xs@ys) = (set xs Un set ys)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-qed "set_of_list_append";
-Addsimps[set_of_list_append];
+qed "set_append";
+Addsimps[set_append];
 
 goal thy "(x mem xs) = (x: set xs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS (asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 by (Blast_tac 1);
-qed "set_of_list_mem_eq";
+qed "set_mem_eq";
 
 goal thy "set l <= set (x#l)";
 by (Simp_tac 1);
 by (Blast_tac 1);
-qed "set_of_list_subset_Cons";
+qed "set_subset_Cons";
 
 goal thy "(set xs = {}) = (xs = [])";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-qed "set_of_list_empty";
-Addsimps [set_of_list_empty];
+qed "set_empty";
+Addsimps [set_empty];
 
 goal thy "set(rev xs) = set(xs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-qed "set_of_list_rev";
-Addsimps [set_of_list_rev];
+qed "set_rev";
+Addsimps [set_rev];
 
 goal thy "set(map f xs) = f``(set xs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-qed "set_of_list_map";
-Addsimps [set_of_list_map];
+qed "set_map";
+Addsimps [set_map];
 
 
 (** list_all **)
@@ -331,8 +331,8 @@ Addsimps [concat_append];
 goal thy  "set(concat xs) = Union(set `` set xs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
-qed"set_of_list_concat";
-Addsimps [set_of_list_concat];
+qed"set_concat";
+Addsimps [set_concat];
 
 goal thy "map f (concat xs) = concat (map (map f) xs)"; 
 by (induct_tac "xs" 1);
@@ -625,7 +625,7 @@ goal thy "x:set(takeWhile P xs) --> x:set xs & P x";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (asm_full_simp_tac (!simpset setloop (split_tac[expand_if])) 1);
-qed_spec_mp"set_of_list_take_whileD";
+qed_spec_mp"set_take_whileD";
 
 (** replicate **)
 section "replicate";
