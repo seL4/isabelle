@@ -482,7 +482,7 @@ fun frozen_tvars ctxt Ts =
 fun unify_frozen ctxt maxidx Ts Us =
   let
     fun paramify (i, None) = (i, None)
-      | paramify (i, Some T) = apsnd Some (Type.paramify_dummies (i, T));
+      | paramify (i, Some T) = apsnd Some (TypeInfer.paramify_dummies (i, T));
 
     val (maxidx', Ts') = foldl_map paramify (maxidx, Ts);
     val (maxidx'', Us') = foldl_map paramify (maxidx', Us);
@@ -757,7 +757,7 @@ local
 
 fun declare_int_elem (ctxt, Fixes fixes) =
       (ctxt |> ProofContext.add_fixes (map (fn (x, T, mx) =>
-        (x, apsome (Term.map_type_tfree (Type.param 0)) T, mx)) fixes), [])
+        (x, apsome (Term.map_type_tfree (TypeInfer.param 0)) T, mx)) fixes), [])
   | declare_int_elem (ctxt, _) = (ctxt, []);
 
 fun declare_ext_elem prep_fixes (ctxt, Fixes fixes) =
