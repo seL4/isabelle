@@ -21,9 +21,6 @@
   \item \verb$^$\texttt{*}, \bold{207}
   \item \isasymAnd, \bold{12}, \bold{207}
   \item \ttAnd, \bold{207}
-  \item \isasymrightleftharpoons, 57
-  \item \isasymrightharpoonup, 57
-  \item \isasymleftharpoondown, 57
   \item \emph {$\Rightarrow $}, \bold{5}
   \item \ttlbr, \bold{207}
   \item \ttrbr, \bold{207}
@@ -107,7 +104,7 @@
   \item case splits, \bold{31}
   \item \isa {case_tac} (method), 19, 99, 155
   \item \isa {cases} (method), 160
-  \item \isacommand {chapter} (command), 59
+  \item \isacommand {chapter} (command), 60
   \item \isa {clarify} (method), 89, 90
   \item \isa {clarsimp} (method), 89, 90
   \item \isa {classical} (theorem), \bold{71}
@@ -244,7 +241,7 @@
   \indexspace
 
   \item \isa {hd} (constant), 17, 37
-  \item \isacommand {header} (command), 59
+  \item \isacommand {header} (command), 60
   \item Hilbert's $\varepsilon$-operator, 84
   \item HOLCF, 43
   \item Hopcroft, J. E., 143
@@ -265,7 +262,7 @@
   \item \isa {iff} (attribute), 88, 100, 128
   \item \isa {iffD1} (theorem), \bold{92}
   \item \isa {iffD2} (theorem), \bold{92}
-  \item ignored material, \bold{61}
+  \item ignored material, \bold{62}
   \item image
     \subitem under a function, \bold{109}
     \subitem under a relation, \bold{110}
@@ -359,7 +356,7 @@
   \item \isa {Main} (theory), 4
   \item major premise, \bold{73}
   \item \isa {make} (constant), 161
-  \item markup commands, \bold{59}
+  \item markup commands, \bold{60}
   \item \isa {max} (constant), 23, 24
   \item measure functions, 47, 112
   \item \isa {measure_def} (theorem), \bold{113}
@@ -500,8 +497,8 @@
 
   \item \isa {safe} (method), 89, 90
   \item safe rules, \bold{88}
-  \item \isacommand {sect} (command), 59
-  \item \isacommand {section} (command), 59
+  \item \isacommand {sect} (command), 60
+  \item \isacommand {section} (command), 60
   \item selector
     \subitem record, 157
   \item session, \bold{58}
@@ -550,23 +547,24 @@
   \item subgoal numbering, 46
   \item \isa {subgoal_tac} (method), 96
   \item subgoals, 12
-  \item \isacommand {subsect} (command), 59
-  \item \isacommand {subsection} (command), 59
+  \item \isacommand {subsect} (command), 60
+  \item \isacommand {subsection} (command), 60
   \item subset relation, \bold{104}
   \item \isa {subsetD} (theorem), \bold{104}
   \item \isa {subsetI} (theorem), \bold{104}
   \item \isa {subst} (method), 75
   \item substitution, 75--77
-  \item \isacommand {subsubsect} (command), 59
-  \item \isacommand {subsubsection} (command), 59
+  \item \isacommand {subsubsect} (command), 60
+  \item \isacommand {subsubsection} (command), 60
   \item \isa {Suc} (constant), 22
   \item \isa {surj_def} (theorem), \bold{108}
   \item surjections, 108
   \item \isa {sym} (theorem), \bold{92}
-  \item symbols, \bold{55}
+  \item symbols, \bold{54}
   \item syntax, 6, 11
-  \item \isacommand {syntax} (command), 56
-  \item syntax translations, 57
+  \item \isacommand {syntax} (command), 55
+  \item syntax (command), 57
+  \item syntax translations, \bold{57}
 
   \indexspace
 
@@ -620,7 +618,7 @@
   \item \isa {Un_subset_iff} (theorem), \bold{104}
   \item \isacommand {undo} (command), 16
   \item \isa {unfold} (method), \bold{31}
-  \item Unicode, 55
+  \item Unicode, 54
   \item unification, 74--77
   \item \isa {UNION} (constant), 107
   \item \texttt {Union}, \bold{207}
