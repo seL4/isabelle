@@ -8,7 +8,7 @@ HOL theory data: simpset, claset, records, datatypes.
 (*for records*)
 type record_info =
  {parent: string option,
-  selectors: (string * ctyp) list};
+  fields: (string * ctyp) list};
 
 (*for datatypes*)
 type datatype_info =
@@ -96,11 +96,11 @@ local
       fun pretty_parent None = []
         | pretty_parent (Some name) = [Pretty.str (name ^ " +")];
 
-      fun pretty_sel (c, T) = Pretty.block
+      fun pretty_field (c, T) = Pretty.block
         [Pretty.str (c ^ " :: "), Pretty.brk 1, Pretty.quote (Display.pretty_ctyp T)];
 
-      fun pretty_record (name, {parent, selectors}) =
-        Pretty.big_list (name ^ " =") (pretty_parent parent @ map pretty_sel selectors);
+      fun pretty_record (name, {parent, fields}) =
+        Pretty.big_list (name ^ " =") (pretty_parent parent @ map pretty_field fields);
     in
       seq (Pretty.writeln o pretty_record) (Symtab.dest tab)
     end;
