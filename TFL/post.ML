@@ -138,9 +138,16 @@ fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
                      if (solved th) then (th::So, Si, St)
                      else (So, th::Si, St)) nested_tcs ([],[],[])
               val simplified' = map join_assums simplified
+              val dummy = (Prim.trace_thms "solved =" solved;
+                           Prim.trace_thms "simplified' =" simplified')
               val rewr = full_simplify (ss addsimps (solved @ simplified'));
+              val dummy = Prim.trace_thms "Simplifying the induction rule..."
+                                          [induction]
               val induction' = rewr induction
-              and rules'     = rewr rules
+              val dummy = Prim.trace_thms "Simplifying the recursion rules..."
+                                          [rules]
+              val rules'     = rewr rules
+              val _ = message "... Postprocessing finished";
           in
           {induction = induction',
                rules = rules',
@@ -162,18 +169,25 @@ val meta_outer =
 (*Strip off the outer !P*)
 val spec'= read_instantiate [("x","P::?'b=>bool")] spec;
 
+fun tracing true _ = ()
+  | tracing false msg = writeln msg;
+
 fun simplify_defn strict thy cs ss congs wfs id pats def0 =
    let val def = freezeT def0 RS meta_eq_to_obj_eq
-       val {theory,rules,rows,TCs,full_pats_TCs} = Prim.post_definition congs (thy, (def,pats))
+       val {theory,rules,rows,TCs,full_pats_TCs} =
+           Prim.post_definition congs (thy, (def,pats))
        val {lhs=f,rhs} = S.dest_eq (concl def)
        val (_,[R,_]) = S.strip_comb rhs
+       val dummy = Prim.trace_thms "congs =" congs
+       (*the next step has caused simplifier looping in some cases*)
        val {induction, rules, tcs} =
              proof_stage strict cs ss wfs theory
                {f = f, R = R, rules = rules,
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
-       val rules' = map (standard o ObjectLogic.rulify_no_asm) (R.CONJUNCTS rules)
-   in  {induct = meta_outer (ObjectLogic.rulify_no_asm (induction RS spec')),
+       val rules' = map (standard o ObjectLogic.rulify_no_asm)
+                        (R.CONJUNCTS rules)
+         in  {induct = meta_outer (ObjectLogic.rulify_no_asm (induction RS spec')),
         rules = ListPair.zip(rules', rows),
         tcs = (termination_goals rules') @ tcs}
    end

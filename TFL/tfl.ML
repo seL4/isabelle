@@ -9,6 +9,8 @@ First part of main module.
 signature PRIM =
 sig
   val trace: bool ref
+  val trace_thms: string -> thm list -> unit
+  val trace_cterms: string -> cterm list -> unit
   type pattern
   val mk_functional: theory -> term list -> {functional: term, pats: pattern list}
   val wfrec_definition0: theory -> string -> term -> term -> theory * thm
@@ -914,6 +916,15 @@ fun elim_tc tcthm (rule,induction) =
    (R.MP rule tcthm, R.PROVE_HYP tcthm induction)
 
 
+fun trace_thms s L =
+  if !trace then writeln (cat_lines (s :: map string_of_thm L))
+  else ();
+
+fun trace_cterms s L =
+  if !trace then writeln (cat_lines (s :: map string_of_cterm L))
+  else ();;
+
+
 fun postprocess strict {wf_tac, terminator, simplifier} theory {rules,induction,TCs} =
 let val tych = Thry.typecheck theory
     val prove = R.prove strict;
@@ -937,19 +948,11 @@ let val tych = Thry.typecheck theory
     *   3. replace tc by tc' in both the rules and the induction theorem.
     *---------------------------------------------------------------------*)
 
-   fun print_thms s L =
-     if !trace then writeln (cat_lines (s :: map string_of_thm L))
-     else ();
-
-   fun print_cterms s L =
-     if !trace then writeln (cat_lines (s :: map string_of_cterm L))
-     else ();;
-
    fun simplify_tc tc (r,ind) =
        let val tc1 = tych tc
-           val _ = print_cterms "TC before simplification: " [tc1]
+           val _ = trace_cterms "TC before simplification: " [tc1]
            val tc_eq = simplifier tc1
-           val _ = print_thms "result: " [tc_eq]
+           val _ = trace_thms "result: " [tc_eq]
        in
        elim_tc (R.MATCH_MP Thms.eqT tc_eq) (r,ind)
        handle U.ERR _ =>
