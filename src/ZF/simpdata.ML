@@ -71,7 +71,9 @@ val ZF_mem_pairs =
    ("op Int",   [IntD1,IntD2])];
 
 val ZF_simps = 
-    [empty_subsetI, consI1, succI1, ball_simp, if_true, if_false, 
+    [empty_subsetI, consI1, cons_not_0, cons_not_0 RS not_sym,
+     succI1, succ_not_0, succ_not_0 RS not_sym, succ_inject_iff,
+     ball_simp, if_true, if_false, 
      beta, eta, restrict, fst_conv, snd_conv, split, Pair_iff, singleton_iff,
      Sigma_empty1, Sigma_empty2, triv_RepFun, subset_refl];
 
