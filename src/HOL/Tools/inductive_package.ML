@@ -33,6 +33,7 @@ signature INDUCTIVE_PACKAGE =
 sig
   val quiet_mode: bool ref
   val unify_consts: Sign.sg -> term list -> term list -> term list * term list
+  val split_rule_vars: term list -> thm -> thm
   val get_inductive: theory -> string -> ({names: string list, coind: bool} *
     {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
      intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}) option
@@ -228,6 +229,54 @@ fun mk_vimage cs sumT t c = if length cs < 2 then t else
       Abs ("y", cT, mk_inj cs sumT c (Bound 0)) $ t
   end;
 
+(** proper splitting **)
+
+fun prod_factors p (Const ("Pair", _) $ t $ u) =
+      p :: prod_factors (1::p) t @ prod_factors (2::p) u
+  | prod_factors p _ = [];
+
+fun mg_prod_factors ts (fs, t $ u) = if t mem ts then
+        let val f = prod_factors [] u
+        in overwrite (fs, (t, f inter if_none (assoc (fs, t)) f)) end
+      else mg_prod_factors ts (mg_prod_factors ts (fs, t), u)
+  | mg_prod_factors ts (fs, Abs (_, _, t)) = mg_prod_factors ts (fs, t)
+  | mg_prod_factors ts (fs, _) = fs;
+
+fun prodT_factors p ps (T as Type ("*", [T1, T2])) =
+      if p mem ps then prodT_factors (1::p) ps T1 @ prodT_factors (2::p) ps T2
+      else [T]
+  | prodT_factors _ _ T = [T];
+
+fun ap_split p ps (Type ("*", [T1, T2])) T3 u =
+      if p mem ps then HOLogic.split_const (T1, T2, T3) $
+        Abs ("v", T1, ap_split (2::p) ps T2 T3 (ap_split (1::p) ps T1
+          (prodT_factors (2::p) ps T2 ---> T3) (incr_boundvars 1 u) $ Bound 0))
+      else u
+  | ap_split _ _ _ _ u =  u;
+
+fun mk_tuple p ps (Type ("*", [T1, T2])) (tms as t::_) =
+      if p mem ps then HOLogic.mk_prod (mk_tuple (1::p) ps T1 tms, 
+        mk_tuple (2::p) ps T2 (drop (length (prodT_factors (1::p) ps T1), tms)))
+      else t
+  | mk_tuple _ _ _ (t::_) = t;
+
+fun split_rule_var' ((t as Var (v, Type ("fun", [T1, T2])), ps), rl) =
+      let val T' = prodT_factors [] ps T1 ---> T2
+          val newt = ap_split [] ps T1 T2 (Var (v, T'))
+          val cterm = Thm.cterm_of (#sign (rep_thm rl))
+      in
+          instantiate ([], [(cterm t, cterm newt)]) rl
+      end
+  | split_rule_var' (_, rl) = rl;
+
+val remove_split = rewrite_rule [split_conv RS eq_reflection];
+
+fun split_rule_vars vs rl = standard (remove_split (foldr split_rule_var'
+  (mg_prod_factors vs ([], #prop (rep_thm rl)), rl)));
+
+fun split_rule vs rl = standard (remove_split (foldr split_rule_var'
+  (mapfilter (fn (t as Var ((a, _), _)) =>
+    apsome (pair t) (assoc (vs, a))) (term_vars (#prop (rep_thm rl))), rl)));
 
 
 (** process rules **)
@@ -361,15 +410,17 @@ fun mk_indrule cs cTs params intr_ts =
       end;
 
     val ind_prems = map mk_ind_prem intr_ts;
+    val factors = foldl (mg_prod_factors preds) ([], ind_prems);
 
     (* make conclusions for induction rules *)
 
     fun mk_ind_concl ((c, P), (ts, x)) =
       let val T = HOLogic.dest_setT (fastype_of c);
-          val Ts = HOLogic.prodT_factors T;
+          val ps = if_none (assoc (factors, P)) [];
+          val Ts = prodT_factors [] ps T;
           val (frees, x') = foldr (fn (T', (fs, s)) =>
             ((Free (s, T'))::fs, bump_string s)) (Ts, ([], x));
-          val tuple = HOLogic.mk_tuple T frees;
+          val tuple = mk_tuple [] ps T frees;
       in ((HOLogic.mk_binop "op -->"
         (HOLogic.mk_mem (tuple, c), P $ tuple))::ts, x')
       end;
@@ -377,7 +428,8 @@ fun mk_indrule cs cTs params intr_ts =
     val mutual_ind_concl = HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
         (fst (foldr mk_ind_concl (cs ~~ preds, ([], "xa")))))
 
-  in (preds, ind_prems, mutual_ind_concl)
+  in (preds, ind_prems, mutual_ind_concl,
+    map (apfst (fst o dest_Free)) factors)
   end;
 
 
@@ -558,7 +610,8 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
         None => []
       | Some thy' => map mk_meta_eq (PureThy.get_thms thy' "sum.cases"));
 
-    val (preds, ind_prems, mutual_ind_concl) = mk_indrule cs cTs params intr_ts;
+    val (preds, ind_prems, mutual_ind_concl, factors) =
+      mk_indrule cs cTs params intr_ts;
 
     (* make predicate for instantiation of abstract induction rule *)
 
@@ -611,7 +664,7 @@ fun prove_indrule cs cTs sumT rec_const params intr_ts mono
             rewrite_goals_tac sum_case_rewrites,
             atac 1])])
 
-  in standard (split_rule (induct RS lemma)) end;
+  in standard (split_rule factors (induct RS lemma)) end;
 
 
 
