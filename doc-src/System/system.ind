@@ -40,7 +40,7 @@
   \item {\tt ISABELLE_INTERFACE} setting, 4, 7
   \item {\tt ISABELLE_LOGIC} setting, 4
   \item {\tt ISABELLE_OUTPUT} setting, 3, 4
-  \item {\tt ISABELLE_PATH} setting, 3
+  \item {\tt ISABELLE_PATH} setting, 3, 4
   \item {\tt ISABELLE_TMP_PREFIX} setting, 4
   \item {\tt ISABELLE_TOOLS} setting, 4
   \item {\tt ISABELLE_USEDIR_OPTIONS} setting, 4, 12, 17
@@ -57,6 +57,7 @@
   \item {\tt make} tool, 11
   \item {\tt makeall} tool, 12
   \item {\tt ML_HOME} setting, 3
+  \item {\tt ML_IDENTIFIER} setting, 3
   \item {\tt ML_OPTIONS} setting, 3
   \item {\tt ML_PLATFORM} setting, 3
   \item {\tt ML_SYSTEM} setting, 3

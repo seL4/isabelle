@@ -113,10 +113,10 @@ environment references should be kept at a minimum.
 \item \settdx{ISABELLE} and \settdx{ISATOOL} are set automatically to
   the absolute path names of the \texttt{isabelle} and
   \texttt{isatool} executables, respectively.
-
-\item \settdx{ISABELLE_PATH} and \settdx{ISABELLE_OUTPUT} will have
-  the {\ML} system identifier (as specified by \texttt{ML_SYSTEM})
-  automatically appended to their values.
+  
+\item \settdx{ISABELLE_PATH} and \settdx{ISABELLE_OUTPUT} will have the {\ML}
+  system identifier (according to \texttt{ML_IDENTIFIER} automatically
+  appended to their values.
 \end{itemize}
 
 \medskip The Isabelle settings scheme is basically quite simple, but
@@ -153,18 +153,19 @@ are marked with *.
   search path of the shell.
   
 \item[\settdx{ML_SYSTEM}, \settdx{ML_HOME}, \settdx{ML_OPTIONS},
-  \settdx{ML_PLATFORM}] specify the underlying {\ML} system to be used for
-  Isabelle.  The choice of \texttt{ML_SYSTEM} identifiers is quite fixed, see
-  the global \texttt{etc/settings} file for some examples. The actual compiler
-  binary will be run from directory \texttt{ML_HOME}, with \texttt{ML_OPTIONS}
-  as first arguments on the command line.  The optional \texttt{ML_PLATFORM}
-  specifies the binary format of ML heap images, which is useful for
-  cross-platform installations.
-
-\item[\settdx{ISABELLE_PATH}*] is a list of directories (separated by
-  colons) where Isabelle logic images may reside. Note that the
-  \texttt{ML_SYSTEM} identifier is appended to each component
-  automatically.
+  \settdx{ML_PLATFORM}, \settdx{ML_IDENTIFIER}*] specify the underlying {\ML}
+  system to be used for Isabelle.  The choice of \texttt{ML_SYSTEM}
+  identifiers is quite fixed, see the global \texttt{etc/settings} file for
+  some examples. The actual compiler binary will be run from directory
+  \texttt{ML_HOME}, with \texttt{ML_OPTIONS} as first arguments on the command
+  line.  The optional \texttt{ML_PLATFORM} specifies the binary format of ML
+  heap images, which is useful for cross-platform installations.  The value of
+  \texttt{ML_IDENTIFIER} is (automatically) obtained by composing
+  \texttt{ML_SYSTEM} and \texttt{ML_PLATFORM}.
+  
+\item[\settdx{ISABELLE_PATH}*] is a list of directories (separated by colons)
+  where Isabelle logic images may reside. Note that the value of
+  \texttt{ML_IDENTIFIER} is appended to each component automatically.
 
 \item[\settdx{ISABELLE_OUTPUT}*] is a directory where output heap
   files should be stored by default. The \texttt{ML_SYSTEM} identifier
