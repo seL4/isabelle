@@ -15,6 +15,7 @@ test: \
   HOL-Algebra \
   HOL-Auth \
   HOL-AxClasses \
+  HOL-Bali \
   HOL-CTL \
   HOL-GroupTheory \
       HOL-Real-HahnBanach \
@@ -489,6 +490,20 @@ $(LOG)/HOL-NanoJava.gz: $(OUT)/HOL NanoJava/ROOT.ML \
 	@$(ISATOOL) usedir -g true $(OUT)/HOL NanoJava
 
 
+## HOL-Bali
+
+HOL-Bali: HOL $(LOG)/HOL-Bali.gz
+
+$(LOG)/HOL-Bali.gz: $(OUT)/HOL Bali/AxCompl.thy Bali/AxExample.thy	\
+  Bali/AxSem.thy Bali/AxSound.thy Bali/Basis.thy Bali/Conform.thy	\
+  Bali/Decl.thy Bali/DeclConcepts.thy Bali/Eval.thy Bali/Evaln.thy	\
+  Bali/Example.thy Bali/Name.thy Bali/ROOT.ML Bali/State.thy		\
+  Bali/Table.thy Bali/Term.thy Bali/Trans.thy Bali/Type.thy		\
+  Bali/TypeRel.thy Bali/TypeSafe.thy Bali/Value.thy Bali/WellForm.thy	\
+  Bali/WellType.thy Bali/document/root.tex
+	@$(ISATOOL) usedir -g true $(OUT)/HOL Bali
+
+
 ## HOL-CTL
 
 HOL-CTL: HOL $(LOG)/HOL-CTL.gz
@@ -618,7 +633,8 @@ clean:
 		$(LOG)/HOL-Lex.gz $(LOG)/HOL-Algebra.gz \
 		$(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
 		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
-		$(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz $(LOG)/HOL-CTL.gz \
+		$(LOG)/HOL-W0.gz $(LOG)/HOL-MiniML.gz \
+                $(LOG)/HOL-Bali.gz $(LOG)/HOL-CTL.gz \
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
 		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
 		$(LOG)/HOL-Lattice $(LOG)/HOL-Real-ex.gz \
