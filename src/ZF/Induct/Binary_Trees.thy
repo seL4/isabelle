@@ -65,16 +65,32 @@ lemma bt_rec_type:
   done
 
 
-subsection {* Number of nodes *}
+subsection {* Number of nodes, with an example of tail-recursion *}
 
-consts
-  n_nodes :: "i => i"
+consts  n_nodes :: "i => i"
 primrec
   "n_nodes(Lf) = 0"
   "n_nodes(Br(a, l, r)) = succ(n_nodes(l) #+ n_nodes(r))"
 
 lemma n_nodes_type [simp]: "t \<in> bt(A) ==> n_nodes(t) \<in> nat"
   by (induct_tac t) auto
+
+consts  n_nodes_aux :: "i => i"
+primrec
+  "n_nodes_aux(Lf) = (\<lambda>k \<in> nat. k)"
+  "n_nodes_aux(Br(a, l, r)) = 
+      (\<lambda>k \<in> nat. n_nodes_aux(r) `  (n_nodes_aux(l) ` succ(k)))"
+
+lemma n_nodes_aux_eq [rule_format]:
+     "t \<in> bt(A) ==> \<forall>k \<in> nat. n_nodes_aux(t)`k = n_nodes(t) #+ k"
+  by (induct_tac t, simp_all) 
+
+constdefs
+  n_nodes_tail :: "i => i"
+   "n_nodes_tail(t) == n_nodes_aux(t) ` 0"
+
+lemma "t \<in> bt(A) ==> n_nodes_tail(t) = n_nodes(t)"
+ by (simp add: n_nodes_tail_def n_nodes_aux_eq) 
 
 
 subsection {* Number of leaves *}
