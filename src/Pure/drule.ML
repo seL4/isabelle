@@ -11,97 +11,98 @@ infix 0 RS RSN RL RLN MRS MRL COMP;
 signature BASIC_DRULE =
 sig
   val dest_implies      : cterm -> cterm * cterm
-  val skip_flexpairs	: cterm -> cterm
-  val strip_imp_prems	: cterm -> cterm list
-  val cprems_of		: thm -> cterm list
-  val read_insts	:
+  val skip_flexpairs    : cterm -> cterm
+  val strip_imp_prems   : cterm -> cterm list
+  val cprems_of         : thm -> cterm list
+  val read_insts        :
           Sign.sg -> (indexname -> typ option) * (indexname -> sort option)
                   -> (indexname -> typ option) * (indexname -> sort option)
                   -> string list -> (string*string)list
                   -> (indexname*ctyp)list * (cterm*cterm)list
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val strip_shyps_warning : thm -> thm
-  val forall_intr_list	: cterm list -> thm -> thm
-  val forall_intr_frees	: thm -> thm
-  val forall_intr_vars	: thm -> thm
-  val forall_elim_list	: cterm list -> thm -> thm
-  val forall_elim_var	: int -> thm -> thm
-  val forall_elim_vars	: int -> thm -> thm
-  val freeze_thaw	: thm -> thm * (thm -> thm)
-  val implies_elim_list	: thm -> thm list -> thm
-  val implies_intr_list	: cterm list -> thm -> thm
+  val forall_intr_list  : cterm list -> thm -> thm
+  val forall_intr_frees : thm -> thm
+  val forall_intr_vars  : thm -> thm
+  val forall_elim_list  : cterm list -> thm -> thm
+  val forall_elim_var   : int -> thm -> thm
+  val forall_elim_vars  : int -> thm -> thm
+  val freeze_thaw       : thm -> thm * (thm -> thm)
+  val implies_elim_list : thm -> thm list -> thm
+  val implies_intr_list : cterm list -> thm -> thm
   val instantiate       :
     (indexname * ctyp) list * (cterm * cterm) list -> thm -> thm
-  val zero_var_indexes	: thm -> thm
-  val standard		: thm -> thm
+  val zero_var_indexes  : thm -> thm
+  val standard          : thm -> thm
   val rotate_prems      : int -> thm -> thm
-  val assume_ax		: theory -> string -> thm
-  val RSN		: thm * (int * thm) -> thm
-  val RS		: thm * thm -> thm
-  val RLN		: thm list * (int * thm list) -> thm list
-  val RL		: thm list * thm list -> thm list
-  val MRS		: thm list * thm -> thm
-  val MRL		: thm list list * thm list -> thm list
-  val compose		: thm * int * thm -> thm list
-  val COMP		: thm * thm -> thm
+  val assume_ax         : theory -> string -> thm
+  val RSN               : thm * (int * thm) -> thm
+  val RS                : thm * thm -> thm
+  val RLN               : thm list * (int * thm list) -> thm list
+  val RL                : thm list * thm list -> thm list
+  val MRS               : thm list * thm -> thm
+  val MRL               : thm list list * thm list -> thm list
+  val compose           : thm * int * thm -> thm list
+  val COMP              : thm * thm -> thm
   val read_instantiate_sg: Sign.sg -> (string*string)list -> thm -> thm
-  val read_instantiate	: (string*string)list -> thm -> thm
-  val cterm_instantiate	: (cterm*cterm)list -> thm -> thm
-  val weak_eq_thm	: thm * thm -> bool
-  val eq_thm_sg		: thm * thm -> bool
-  val size_of_thm	: thm -> int
-  val reflexive_thm	: thm
-  val symmetric_thm	: thm
-  val transitive_thm	: thm
+  val read_instantiate  : (string*string)list -> thm -> thm
+  val cterm_instantiate : (cterm*cterm)list -> thm -> thm
+  val weak_eq_thm       : thm * thm -> bool
+  val eq_thm_sg         : thm * thm -> bool
+  val size_of_thm       : thm -> int
+  val reflexive_thm     : thm
+  val symmetric_thm     : thm
+  val transitive_thm    : thm
   val refl_implies      : thm
   val symmetric_fun     : thm -> thm
-  val rewrite_rule_aux	: (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
-  val rewrite_thm	: bool * bool * bool
+  val rewrite_rule_aux  : (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
+  val rewrite_thm       : bool * bool * bool
                           -> (meta_simpset -> thm -> thm option)
                           -> meta_simpset -> thm -> thm
-  val rewrite_cterm	: bool * bool * bool
+  val rewrite_cterm     : bool * bool * bool
                           -> (meta_simpset -> thm -> thm option)
                           -> meta_simpset -> cterm -> thm
   val rewrite_goals_rule_aux: (meta_simpset -> thm -> thm option) -> thm list -> thm -> thm
-  val rewrite_goal_rule	: bool* bool * bool
+  val rewrite_goal_rule : bool* bool * bool
                           -> (meta_simpset -> thm -> thm option)
                           -> meta_simpset -> int -> thm -> thm
-  val equal_abs_elim	: cterm  -> thm -> thm
+  val equal_abs_elim    : cterm  -> thm -> thm
   val equal_abs_elim_list: cterm list -> thm -> thm
   val flexpair_abs_elim_list: cterm list -> thm -> thm
-  val asm_rl		: thm
-  val cut_rl		: thm
-  val revcut_rl		: thm
-  val thin_rl		: thm
+  val asm_rl            : thm
+  val cut_rl            : thm
+  val revcut_rl         : thm
+  val thin_rl           : thm
   val triv_forall_equality: thm
   val swap_prems_rl     : thm
   val equal_intr_rule   : thm
-  val instantiate'	: ctyp option list -> cterm option list -> thm -> thm
-  val incr_indexes	: int -> thm -> thm
-  val incr_indexes_wrt	: int list -> ctyp list -> cterm list -> thm list -> thm -> thm
+  val instantiate'      : ctyp option list -> cterm option list -> thm -> thm
+  val incr_indexes      : int -> thm -> thm
+  val incr_indexes_wrt  : int list -> ctyp list -> cterm list -> thm list -> thm -> thm
 end;
 
 signature DRULE =
 sig
   include BASIC_DRULE
-  val compose_single	: thm * int * thm -> thm
-  val triv_goal		: thm
-  val rev_triv_goal	: thm
+  val compose_single    : thm * int * thm -> thm
+  val triv_goal         : thm
+  val rev_triv_goal     : thm
+  val freeze_all        : thm -> thm
   val mk_triv_goal      : cterm -> thm
-  val mk_cgoal		: cterm -> cterm
-  val assume_goal	: cterm -> thm
-  val tvars_of_terms	: term list -> (indexname * sort) list
-  val vars_of_terms	: term list -> (indexname * typ) list
-  val tvars_of		: thm -> (indexname * sort) list
-  val vars_of		: thm -> (indexname * typ) list
-  val unvarifyT		: thm -> thm
-  val unvarify		: thm -> thm
-  val rule_attribute	: ('a -> thm -> thm) -> 'a attribute
-  val tag		: tag -> 'a attribute
-  val untag		: tag -> 'a attribute
-  val tag_lemma		: 'a attribute
-  val tag_assumption	: 'a attribute
-  val tag_internal	: 'a attribute
+  val mk_cgoal          : cterm -> cterm
+  val assume_goal       : cterm -> thm
+  val tvars_of_terms    : term list -> (indexname * sort) list
+  val vars_of_terms     : term list -> (indexname * typ) list
+  val tvars_of          : thm -> (indexname * sort) list
+  val vars_of           : thm -> (indexname * typ) list
+  val unvarifyT         : thm -> thm
+  val unvarify          : thm -> thm
+  val rule_attribute    : ('a -> thm -> thm) -> 'a attribute
+  val tag               : tag -> 'a attribute
+  val untag             : tag -> 'a attribute
+  val tag_lemma         : 'a attribute
+  val tag_assumption    : 'a attribute
+  val tag_internal      : 'a attribute
 end;
 
 structure Drule: DRULE =
@@ -114,18 +115,18 @@ struct
 
 (*dest_implies for cterms. Note T=prop below*)
 fun dest_implies ct =
-    case term_of ct of 
-	(Const("==>", _) $ _ $ _) => 
-	    let val (ct1,ct2) = dest_comb ct
-	    in  (#2 (dest_comb ct1), ct2)  end	     
+    case term_of ct of
+        (Const("==>", _) $ _ $ _) =>
+            let val (ct1,ct2) = dest_comb ct
+            in  (#2 (dest_comb ct1), ct2)  end
       | _ => raise TERM ("dest_implies", [term_of ct]) ;
 
 
 (*Discard flexflex pairs; return a cterm*)
 fun skip_flexpairs ct =
     case term_of ct of
-	(Const("==>", _) $ (Const("=?=",_)$_$_) $ _) =>
-	    skip_flexpairs (#2 (dest_implies ct))
+        (Const("==>", _) $ (Const("=?=",_)$_$_) $ _) =>
+            skip_flexpairs (#2 (dest_implies ct))
       | _ => ct;
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
@@ -136,8 +137,8 @@ fun strip_imp_prems ct =
 
 (* A1==>...An==>B  goes to B, where B is not an implication *)
 fun strip_imp_concl ct =
-    case term_of ct of (Const("==>", _) $ _ $ _) => 
-	strip_imp_concl (#2 (dest_comb ct))
+    case term_of ct of (Const("==>", _) $ _ $ _) =>
+        strip_imp_concl (#2 (dest_comb ct))
   | _ => ct;
 
 (*The premises of a theorem, as a cterm list*)
@@ -249,7 +250,7 @@ fun zero_var_indexes th =
         val inrs = add_term_tvars(prop,[]);
         val nms' = rev(foldl add_new_id ([], map (#1 o #1) inrs));
         val tye = ListPair.map (fn ((v,rs),a) => (v, TVar((a,0),rs)))
-	             (inrs, nms')
+                     (inrs, nms')
         val ctye = map (fn (v,T) => (v,ctyp_of sign T)) tye;
         fun varpairs([],[]) = []
           | varpairs((var as Var(v,T)) :: vars, b::bs) =
@@ -273,7 +274,7 @@ fun standard th =
   end;
 
 
-(*Convert all Vars in a theorem to Frees.  Also return a function for 
+(*Convert all Vars in a theorem to Frees.  Also return a function for
   reversing that operation.  DOES NOT WORK FOR TYPE VARIABLES.
   Similar code in type/freeze_thaw*)
 fun freeze_thaw th =
@@ -283,19 +284,19 @@ fun freeze_thaw th =
    case term_vars prop of
        [] => (fth, fn x => x)
      | vars =>
-         let fun newName (Var(ix,_), (pairs,used)) = 
-		   let val v = variant used (string_of_indexname ix)
-		   in  ((ix,v)::pairs, v::used)  end;
-	     val (alist, _) = foldr newName
-		                (vars, ([], add_term_names (prop, [])))
-	     fun mk_inst (Var(v,T)) = 
-		 (cterm_of sign (Var(v,T)),
-		  cterm_of sign (Free(the (assoc(alist,v)), T)))
-	     val insts = map mk_inst vars
-	     fun thaw th' = 
-		 th' |> forall_intr_list (map #2 insts)
-	             |> forall_elim_list (map #1 insts)
-	 in  (Thm.instantiate ([],insts) fth, thaw)  end
+         let fun newName (Var(ix,_), (pairs,used)) =
+                   let val v = variant used (string_of_indexname ix)
+                   in  ((ix,v)::pairs, v::used)  end;
+             val (alist, _) = foldr newName
+                                (vars, ([], add_term_names (prop, [])))
+             fun mk_inst (Var(v,T)) =
+                 (cterm_of sign (Var(v,T)),
+                  cterm_of sign (Free(the (assoc(alist,v)), T)))
+             val insts = map mk_inst vars
+             fun thaw th' =
+                 th' |> forall_intr_list (map #2 insts)
+                     |> forall_elim_list (map #1 insts)
+         in  (Thm.instantiate ([],insts) fth, thaw)  end
  end;
 
 
@@ -405,7 +406,7 @@ val reflexive_thm =
 
 val symmetric_thm =
   let val xy = read_prop "x::'a::logic == y"
-  in store_thm "symmetric" 
+  in store_thm "symmetric"
       (Thm.implies_intr_hyps(Thm.symmetric(Thm.assume xy)))
    end;
 
@@ -518,7 +519,7 @@ val swap_prems_rl =
 
 (* [| PROP ?phi ==> PROP ?psi; PROP ?psi ==> PROP ?phi |]
    ==> PROP ?phi == PROP ?psi
-   Introduction rule for == as a meta-theorem.  
+   Introduction rule for == as a meta-theorem.
 *)
 val equal_intr_rule =
   let val PQ = read_prop "PROP phi ==> PROP psi"
@@ -706,6 +707,27 @@ fun incr_indexes_wrt is cTs cts thms =
         map (#maxidx o Thm.rep_cterm) cts @
         map (#maxidx o Thm.rep_thm) thms);
   in incr_indexes (maxidx + 1) end;
+
+
+(* freeze_all *)
+
+(*freeze all (T)Vars; assumes thm in standard form*)
+
+fun freeze_all_TVars thm =
+  (case tvars_of thm of
+    [] => thm
+  | tvars =>
+      let val cert = Thm.ctyp_of (Thm.sign_of_thm thm)
+      in instantiate' (map (fn ((x, _), S) => Some (cert (TFree (x, S)))) tvars) [] thm end);
+
+fun freeze_all_Vars thm =
+  (case vars_of thm of
+    [] => thm
+  | vars =>
+      let val cert = Thm.cterm_of (Thm.sign_of_thm thm)
+      in instantiate' [] (map (fn ((x, _), T) => Some (cert (Free (x, T)))) vars) thm end);
+
+val freeze_all = freeze_all_Vars o freeze_all_TVars;
 
 
 (* mk_triv_goal *)
