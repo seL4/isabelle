@@ -57,9 +57,7 @@ by Auto_tac;
 qed "prime_primel";
 
 Goalw [prime_def,dvd_def] "p:prime ==> ~(p dvd 1)";
-by Auto_tac;
-by (case_tac "k" 1);
-by Auto_tac;
+by Auto_tac;  
 qed "prime_nd_one";
 
 Goalw [dvd_def] "[| prod (x#xs) = prod ys |] ==> x dvd (prod ys)";
@@ -258,8 +256,8 @@ by (auto_tac (claset() addIs [prod_mn_less_k,prime_g_one,primel_prod_gz],
 qed "primel_prod_less";
 
 Goal "[| primel xs; p*prod xs = p; p:prime |] ==> xs=[]";
-by (auto_tac (claset() addIs [primel_one_empty,mn_eq_m_one,prime_g_zero], 
-	      simpset()));
+by (auto_tac (claset() addIs [primel_one_empty], 
+	      simpset() addsimps [prime_def]));
 qed "prod_one_empty";
 
 Goal "[| ALL m. m < prod ys --> (ALL xs ys. primel xs & primel ys & \

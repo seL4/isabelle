@@ -507,25 +507,21 @@ by (asm_simp_tac (simpset() addsimps [zmult_commute,zcong_cancel]) 1);
 qed "zcong_cancel2";
 
 Goalw [zcong_def,dvd_def]
-      "[| [a = b] (mod m); [a = b] (mod n); zgcd(m,n) = #1 |] \
+      "[| [a = b] (mod m);  [a = b] (mod n);  zgcd(m,n) = #1 |] \
 \     ==> [a=b](mod m*n)";
 by Auto_tac;
 by (subgoal_tac "m dvd (n*ka)" 1);
 by (subgoal_tac "m dvd ka" 1);
 by (case_tac "#0<=ka" 2);
 by (stac (zdvd_zminus_iff RS sym) 3);
+by (res_inst_tac [("n","n")] zrelprime_zdvd_zmult 3);
+by (asm_simp_tac (simpset() addsimps [zgcd_commute]) 3);
+by (asm_full_simp_tac (simpset() addsimps [zmult_commute,zdvd_zminus_iff]) 3);
 by (res_inst_tac [("n","n")] zrelprime_zdvd_zmult 2);
 by (asm_simp_tac (simpset() addsimps [zgcd_commute]) 2);
 by (asm_full_simp_tac (simpset() addsimps [zmult_commute]) 2);
-by (res_inst_tac [("n","n")] zrelprime_zdvd_zmult 2);
-by (asm_simp_tac (simpset() addsimps [zgcd_commute]) 2);
-by (asm_full_simp_tac (simpset() addsimps [zmult_commute,zdvd_zminus_iff]) 2);
-by (rewtac dvd_def);
-by Safe_tac;
-by (res_inst_tac [("x","kc")] exI 1);
-by (res_inst_tac [("x","k")] exI 2);
-by (simp_tac (simpset() addsimps zmult_ac) 1);
-by Auto_tac;
+by (auto_tac (claset(), simpset() addsimps [dvd_def]));  
+by (blast_tac (claset() addIs [sym]) 1); 
 qed "zcong_zgcd_zmult_zmod";
 
 Goalw [zcong_def,dvd_def] 

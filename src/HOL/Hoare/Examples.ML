@@ -89,11 +89,8 @@ Goal "|- VARS a b. \
 \ INV {fac A = b * fac a} \
 \ DO b := b*a; a := a-1 OD \
 \ {b = fac A}";
-by (hoare_tac Asm_full_simp_tac 1);
-by (Clarify_tac 1);
-by (case_tac "a" 1);
-by  (ALLGOALS (asm_simp_tac
-     (simpset() addsimps [add_mult_distrib,add_mult_distrib2,mult_assoc])));
+by (hoare_tac (asm_full_simp_tac (simpset() addsplits [nat_diff_split])) 1);
+by Auto_tac;  
 qed "factorial";
 
 (** Square root **)
@@ -199,10 +196,10 @@ Goal
 by (asm_simp_tac HOL_basic_ss 1);
 by (REPEAT (etac thin_rl 1));
 by (hoare_tac Asm_full_simp_tac 1);
-    by (SELECT_GOAL (auto_tac (claset(), simpset() addsimps [neq_Nil_conv])) 1);
+    by (force_tac (claset(), simpset() addsimps [neq_Nil_conv]) 1);
    by (blast_tac (claset() addSEs [less_SucE] addIs [Suc_leI]) 1);
   by (blast_tac (claset() addSEs [less_SucE] addIs [less_imp_diff_less]
                           addDs [pred_less_imp_le RS le_imp_less_Suc] ) 1);
- by (SELECT_GOAL (auto_tac (claset(), simpset() addsimps [nth_list_update])) 1);
-by (SELECT_GOAL (auto_tac (claset() addIs [order_antisym], simpset())) 1);
+ by (force_tac (claset(), simpset() addsimps [nth_list_update]) 1);
+by (auto_tac (claset() addIs [order_antisym], simpset()));
 qed "Partition";
