@@ -253,6 +253,8 @@ constdefs
    (                                    [], [Class list_name, Class list_name]),
    (                          [PrimT Void], [Class list_name, Class list_name])]"
 
+declare nat_number [simp]
+
 lemma wt_append [simp]:
   "wt_method E list_name [Class list_name] (PrimT Void) 3 0 append_ins
              [(Suc 0, 2, 8, Xcpt NullPointer)] \<phi>\<^sub>a"
@@ -348,7 +350,9 @@ constdefs
   Phi :: prog_type ("\<Phi>")
   "\<Phi> C sg \<equiv> if C = test_name \<and> sg = (makelist_name, []) then \<phi>\<^sub>m else          
              if C = list_name \<and> sg = (append_name, [Class list_name]) then \<phi>\<^sub>a else []"
-  
+
+declare nat_number [simp del]   
+
 lemma wf_prog:
   "wt_jvm_prog E \<Phi>" 
   apply (unfold wt_jvm_prog_def)
