@@ -38,6 +38,8 @@ types, constants, axioms, etc.
 
 Defining Logics
 
+
+
 page 127: type constraints ("::") now have a very low priority of 4.
 As in ML, they must usually be enclosed in paretheses.
 
@@ -47,12 +49,21 @@ page 145, line -5: delete repeated "the" in "before the the .thy file"
 
 Simplification
 
+page 157 display: Union operator is too big
+
 page 158, "!": Isabelle now permits more general left-hand sides, so called
 higher-order patterns.
 
+
 ISABELLE'S OBJECT-LOGICS
 
+First-Order Logic
+
+page 191: FOL_dup_cs is now deleted (use deepen_tac FOL_cs instead)
+
 Zermelo-Fraenkel Set Theory
+
+page 204: type i has class term, not (just) logic
 
 page 209: axioms have been renamed:
 	union_iff is now Union_iff
@@ -90,6 +101,8 @@ Definition modified accordingly
 
 page 252: sum_case now has type ['a=>'c,'b=>'c, 'a+'b] =>'c
 Definition and rules modified accordingly
+
+page 252: HOL_dup_cs is now deleted (use deepen_tac HOL_cs instead)
 
 page 254: nat_case now has type ['a, nat=>'a, nat] =>'a
 Definition modified accordingly
