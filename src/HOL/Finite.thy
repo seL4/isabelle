@@ -6,7 +6,7 @@
 Finite sets, their cardinality, and a fold functional.
 *)
 
-Finite = Divides + Power + Inductive +
+Finite = Divides + Power + Inductive + SetInterval +
 
 consts Finites :: 'a set set
 
@@ -57,8 +57,8 @@ inductive "foldSet f e"
 constdefs
    fold :: "[['b,'a] => 'a, 'a, 'b set] => 'a"
   "fold f e A == @x. (A,x) : foldSet f e"
-  (* A frequent instance: *)
-   setsum :: ('a => nat) => 'a set => nat
+
+   setsum :: "('a => 'b) => 'a set => ('b::plus_ac0)"
   "setsum f == fold (op+ o f) 0"
 
 locale LC =
