@@ -303,11 +303,10 @@ $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy \
 
 HOL-Lambda: HOL $(LOG)/HOL-Lambda.gz
 
-$(LOG)/HOL-Lambda.gz: $(OUT)/HOL Lambda/Commutation.ML \
-  Lambda/Commutation.thy Lambda/Eta.ML Lambda/Eta.thy \
-  Lambda/InductTermi.thy Lambda/Lambda.ML Lambda/Lambda.thy \
+$(LOG)/HOL-Lambda.gz: $(OUT)/HOL Induct/Acc.thy Lambda/Commutation.thy \
+  Lambda/Eta.thy Lambda/InductTermi.thy Lambda/Lambda.thy \
   Lambda/ListApplication.thy Lambda/ListBeta.thy Lambda/ListOrder.thy \
-  Lambda/ParRed.ML Lambda/ParRed.thy Lambda/Type.thy Lambda/ROOT.ML
+  Lambda/ParRed.thy Lambda/Type.thy Lambda/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL Lambda
 
 

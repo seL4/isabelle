@@ -2,11 +2,15 @@
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1998 TU Muenchen
-
-Lifting beta-reduction to lists of terms, reducing exactly one element
 *)
 
+header {* Lifting beta-reduction to lists *}
+
 theory ListBeta = ListApplication + ListOrder:
+
+text {*
+  Lifting beta-reduction to lists of terms, reducing exactly one element.
+*}
 
 syntax
   "_list_beta" :: "dB => dB => bool"   (infixl "=>" 50)
@@ -27,7 +31,6 @@ lemma head_Var_reduction_aux:
     apply (auto 0 3 intro: disjI2 [THEN append_step1I])
   done
 
-
 lemma head_Var_reduction:
   "Var n $$ rs -> v ==> (\<exists>ss. rs => ss \<and> v = Var n $$ ss)"
   apply (drule head_Var_reduction_aux)
@@ -44,33 +47,33 @@ lemma apps_betasE_aux:
      apply (case_tac r)
        apply simp
       apply (simp add: App_eq_foldl_conv)
-      apply (simp only: split: split_if_asm)
+      apply (split (asm) split_if_asm)
        apply simp
        apply blast
       apply simp
      apply (simp add: App_eq_foldl_conv)
-     apply (simp only: split: split_if_asm)
+     apply (split (asm) split_if_asm)
       apply simp
      apply simp
     apply (clarify del: disjCI)
     apply (drule App_eq_foldl_conv [THEN iffD1])
-    apply (simp only: split: split_if_asm)
+    apply (split (asm) split_if_asm)
      apply simp
      apply blast
     apply (force intro: disjI1 [THEN append_step1I])
    apply (clarify del: disjCI)
    apply (drule App_eq_foldl_conv [THEN iffD1])
-   apply (simp only: split: split_if_asm)
+   apply (split (asm) split_if_asm)
     apply simp
     apply blast
    apply (auto 0 3 intro: disjI2 [THEN append_step1I])
   done
 
 lemma apps_betasE [elim!]:
-"[| r $$ rs -> s; !!r'. [| r -> r'; s = r' $$ rs |] ==> R;
-        !!rs'. [| rs => rs'; s = r $$ rs' |] ==> R;
-        !!t u us. [| r = Abs t; rs = u # us; s = t[u/0] $$ us |] ==> R |]
-     ==> R"
+  "[| r $$ rs -> s; !!r'. [| r -> r'; s = r' $$ rs |] ==> R;
+    !!rs'. [| rs => rs'; s = r $$ rs' |] ==> R;
+    !!t u us. [| r = Abs t; rs = u # us; s = t[u/0] $$ us |] ==> R |]
+  ==> R"
 proof -
   assume major: "r $$ rs -> s"
   case antecedent
@@ -94,7 +97,7 @@ lemma apps_preserves_beta2 [simp]:
   done
 
 lemma apps_preserves_betas [rulify, simp]:
-  "\<forall>ss. rs => ss --> r $$ rs -> r $$ ss"
+    "\<forall>ss. rs => ss --> r $$ rs -> r $$ ss"
   apply (induct_tac rs rule: rev_induct)
    apply simp
   apply simp

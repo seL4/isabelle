@@ -2,16 +2,22 @@
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1998 TU Muenchen
-
-Lifting an order to lists of elements, relating exactly one element
 *)
 
+header {* Lifting an order to lists of elements *}
+
 theory ListOrder = Acc:
+
+text {*
+  Lifting an order to lists of elements, relating exactly one
+  element.
+*}
 
 constdefs
   step1 :: "('a \<times> 'a) set => ('a list \<times> 'a list) set"
   "step1 r ==
-    {(ys, xs). \<exists>us z z' vs. xs = us @ z # vs \<and> (z', z) \<in> r \<and> ys = us @ z' # vs}"
+    {(ys, xs). \<exists>us z z' vs. xs = us @ z # vs \<and> (z', z) \<in> r \<and> ys =
+      us @ z' # vs}"
 
 
 lemma step1_converse [simp]: "step1 (r^-1) = (step1 r)^-1"
@@ -34,7 +40,8 @@ lemma not_step1_Nil [iff]: "(xs, []) \<notin> step1 r"
   done
 
 lemma Cons_step1_Cons [iff]:
-  "((y # ys, x # xs) \<in> step1 r) = ((y, x) \<in> r \<and> xs = ys \<or> x = y \<and> (ys, xs) \<in> step1 r)"
+    "((y # ys, x # xs) \<in> step1 r) =
+      ((y, x) \<in> r \<and> xs = ys \<or> x = y \<and> (ys, xs) \<in> step1 r)"
   apply (unfold step1_def)
   apply simp
   apply (rule iffI)
@@ -59,8 +66,8 @@ lemma append_step1I:
 
 lemma Cons_step1E [rulify_prems, elim!]:
   "[| (ys, x # xs) \<in> step1 r;
-      \<forall>y. ys = y # xs --> (y, x) \<in> r --> R;
-      \<forall>zs. ys = x # zs --> (zs, xs) : step1 r --> R
+    \<forall>y. ys = y # xs --> (y, x) \<in> r --> R;
+    \<forall>zs. ys = x # zs --> (zs, xs) \<in> step1 r --> R
    |] ==> R"
   apply (case_tac ys)
    apply (simp add: step1_def)
@@ -98,7 +105,8 @@ lemma lists_accD: "xs \<in> lists (acc r) ==> xs \<in> acc (step1 r)"
   apply (fast dest: acc_downward)
   done
 
-lemma ex_step1I: "[| x \<in> set xs; (y, x) \<in> r |]
+lemma ex_step1I:
+  "[| x \<in> set xs; (y, x) \<in> r |]
     ==> \<exists>ys. (ys, xs) \<in> step1 r \<and> y \<in> set ys"
   apply (unfold step1_def)
   apply (drule in_set_conv_decomp [THEN iffD1])

@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1998 TU Muenchen
-
-Application of a term to a list of terms
 *)
+
+header {* Application of a term to a list of terms *}
 
 theory ListApplication = Lambda:
 
@@ -12,7 +12,6 @@ syntax
   "_list_application" :: "dB => dB list => dB"   (infixl "$$" 150)
 translations
   "t $$ ts" == "foldl (op $) t ts"
-
 
 lemma apps_eq_tail_conv [iff]: "(r $$ ts = s $$ ts) = (r = s)"
   apply (induct_tac ts rule: rev_induct)
@@ -101,11 +100,12 @@ lemma lem0: "[| (0::nat) < k; m <= n |] ==> m < n + k"
   apply simp
   done
 
-text {* A customized induction schema for @{text "$$"} *}
+
+text {* \medskip A customized induction schema for @{text "$$"}. *}
 
 lemma lem [rulify]:
   "[| !!n ts. \<forall>t \<in> set ts. P t ==> P (Var n $$ ts);
-      !!u ts. [| P u; \<forall>t \<in> set ts. P t |] ==> P (Abs u $$ ts)
+    !!u ts. [| P u; \<forall>t \<in> set ts. P t |] ==> P (Abs u $$ ts)
   |] ==> \<forall>t. size t = n --> P t"
 proof -
   case antecedent
@@ -145,9 +145,9 @@ proof -
     done
 qed
 
-lemma Apps_dB_induct:
+theorem Apps_dB_induct:
   "[| !!n ts. \<forall>t \<in> set ts. P t ==> P (Var n $$ ts);
-      !!u ts. [| P u; \<forall>t \<in> set ts. P t |] ==> P (Abs u $$ ts)
+    !!u ts. [| P u; \<forall>t \<in> set ts. P t |] ==> P (Abs u $$ ts)
   |] ==> P t"
 proof -
   case antecedent

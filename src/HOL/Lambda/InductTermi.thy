@@ -3,13 +3,16 @@
     Author:     Tobias Nipkow
     Copyright   1998 TU Muenchen
 
-Inductive characterization of terminating lambda terms.
-Goes back to
-Raamsdonk & Severi. On normalization. CWI TR CS-R9545, 1995.
-Also rediscovered by Matthes and Joachimski.
+Inductive characterization of terminating lambda terms.  Goes back to
+Raamsdonk & Severi. On normalization. CWI TR CS-R9545, 1995.  Also
+rediscovered by Matthes and Joachimski.
 *)
 
+header {* Inductive characterization of terminating lambda terms *}
+
 theory InductTermi = ListBeta:
+
+subsection {* Terminating lambda terms *}
 
 consts
   IT :: "dB set"
@@ -18,10 +21,10 @@ inductive IT
   intros
     Var: "rs : lists IT ==> Var n $$ rs : IT"
     Lambda: "r : IT ==> Abs r : IT"
-    Beta: "[| (r[s/0])$$ss : IT; s : IT |] ==> (Abs r $ s)$$ss : IT"
+    Beta: "[| (r[s/0]) $$ ss : IT; s : IT |] ==> (Abs r $ s) $$ ss : IT"
 
 
-text {* Every term in IT terminates. *}
+subsection {* Every term in IT terminates *}
 
 lemma double_induction_lemma [rulify]:
   "s : termi beta ==> \<forall>t. t : termi beta -->
@@ -58,7 +61,7 @@ lemma IT_implies_termi: "t : IT ==> t : termi beta"
   done
 
 
-text {* Every terminating term is in IT *}
+subsection {* Every terminating term is in IT *}
 
 declare Var_apps_neq_Abs_apps [THEN not_sym, simp]
 
@@ -67,7 +70,7 @@ lemma [simp, THEN not_sym, simp]: "Var n $$ ss ~= Abs r $ s $$ ts"
   done
 
 lemma [simp]:
-  "(Abs r $ s $$ ss = Abs r' $ s' $$ ss') = (r=r' \<and> s=s' \<and> ss=ss')"
+  "(Abs r $ s $$ ss = Abs r' $ s' $$ ss') = (r = r' \<and> s = s' \<and> ss = ss')"
   apply (simp add: foldl_Cons [symmetric] del: foldl_Cons)
   done
 
@@ -75,7 +78,6 @@ inductive_cases [elim!]:
   "Var n $$ ss : IT"
   "Abs t : IT"
   "Abs r $ s $$ ts : IT"
-
 
 theorem termi_implies_IT: "r : termi beta ==> r : IT"
   apply (erule acc_induct)
