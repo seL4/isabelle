@@ -1,236 +1,317 @@
 (*  Title:      Pure/sign.ML
     ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1994  University of Cambridge
+    Author:     Lawrence C Paulson and Markus Wenzel
 
-The abstract types "sg" of signatures
+The abstract type "sg" of signatures.
+
+TODO:
+  a clean modular sequential Sign.extend (using sg_ext list);
 *)
 
 signature SIGN =
 sig
-  structure Type: TYPE
   structure Symtab: SYMTAB
   structure Syntax: SYNTAX
+  structure Type: TYPE
   sharing Symtab = Type.Symtab
-  type sg
-  val extend: sg -> string ->
-        (class * class list) list * class list *
-        (string list * int) list *
-        (string * indexname list * string) list *
-        (string list * (sort list * class)) list *
-        (string list * string)list * Syntax.sext option -> sg
-  val merge: sg * sg -> sg
-  val pure: sg
-  val read_typ: sg * (indexname -> sort option) -> string -> typ
-  val rep_sg: sg -> {tsig: Type.type_sig,
-                     const_tab: typ Symtab.table,
-                     syn: Syntax.syntax,
-                     stamps: string ref list}
-  val string_of_term: sg -> term -> string
-  val string_of_typ: sg -> typ -> string
-  val subsig: sg * sg -> bool
-  val pprint_term: sg -> term -> pprint_args -> unit
-  val pprint_typ: sg -> typ -> pprint_args -> unit
-  val pretty_term: sg -> term -> Syntax.Pretty.T
-  val term_errors: sg -> term -> string list
+  local open Type in
+    type sg
+    val rep_sg: sg ->
+      {tsig: type_sig,
+       const_tab: typ Symtab.table,
+       syn: Syntax.syntax,
+       stamps: string ref list}
+    val subsig: sg * sg -> bool
+    val eq_sg: sg * sg -> bool
+    val print_sg: sg -> unit
+    val pprint_sg: sg -> pprint_args -> unit
+    val pretty_term: sg -> term -> Syntax.Pretty.T
+    val pretty_typ: sg -> typ -> Syntax.Pretty.T
+    val string_of_term: sg -> term -> string
+    val string_of_typ: sg -> typ -> string
+    val pprint_term: sg -> term -> pprint_args -> unit
+    val pprint_typ: sg -> typ -> pprint_args -> unit
+    val certify_typ: sg -> typ -> typ
+    val certify_term: sg -> term -> term * typ * int
+    val read_typ: sg * (indexname -> sort option) -> string -> typ
+    val extend: sg -> string ->
+      (class * class list) list * class list *
+      (string list * int) list *
+      (string * string list * string) list *
+      (string list * (sort list * class)) list *
+      (string list * string) list * Syntax.sext option -> sg
+    val merge: sg * sg -> sg
+    val pure: sg
+  end
 end;
 
-functor SignFun(structure Type: TYPE and Syntax: SYNTAX) : SIGN =
+functor SignFun(structure Syntax: SYNTAX and Type: TYPE): SIGN =
 struct
 
-structure Type = Type;
 structure Symtab = Type.Symtab;
 structure Syntax = Syntax;
-structure Pretty = Syntax.Pretty
+structure Pretty = Syntax.Pretty;
+structure Type = Type;
+open Type;
 
 
-(* Signatures of theories. *)
+(** datatype sg **)
+
+(*the "ref" in stamps ensures that no two signatures are identical -- it is
+  impossible to forge a signature*)
 
 datatype sg =
   Sg of {
-    tsig: Type.type_sig,            (*order-sorted signature of types*)
+    tsig: type_sig,                 (*order-sorted signature of types*)
     const_tab: typ Symtab.table,    (*types of constants*)
     syn: Syntax.syntax,             (*syntax for parsing and printing*)
     stamps: string ref list};       (*unique theory indentifier*)
 
-
 fun rep_sg (Sg args) = args;
 
-fun subsig(Sg{stamps=s1,...},Sg{stamps=s2,...}) = s1 subset s2;
 
-fun string_of_typ(Sg{tsig,syn,...}) = Syntax.string_of_typ syn;
+fun subsig (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = s1 subset s2;
 
-fun pprint_typ(Sg{syn,...}) = Pretty.pprint o Pretty.quote o (Syntax.pretty_typ syn);
-
-(*Is constant present in table with more generic type?*)
-fun valid_const tsig ctab (a,T) = case Symtab.lookup(ctab, a) of
-        Some U => Type.typ_instance(tsig,T,U) | _ => false;
-
-
-(*Check a term for errors.  Are all constants and types valid in signature?
-  Does not check that term is well-typed!*)
-fun term_errors (sign as Sg{tsig,const_tab,...}) =
-  let val showtyp = string_of_typ sign
-      fun terrs (Const (a,T), errs) =
-	  if valid_const tsig const_tab (a,T)
-	  then Type.type_errors tsig (T,errs)
-	  else ("Illegal type for constant: " ^ a ^ ": " ^ showtyp T) :: errs
-	| terrs (Free (_,T), errs) = Type.type_errors tsig (T,errs)
-	| terrs (Var  ((a,i),T), errs) =
-	  if  i>=0  then  Type.type_errors tsig (T,errs)
-	  else  ("Negative index for Var: " ^ a) :: errs
-	| terrs (Bound _, errs) = errs (*loose bvars detected by type_of*)
-	| terrs (Abs (_,T,t), errs) =
-	      Type.type_errors tsig (T,terrs(t,errs))
-	| terrs (f$t, errs) = terrs(f, terrs (t,errs))
-  in  fn t => terrs(t,[])  end;
+fun eq_sg (sg1, sg2) = subsig (sg1, sg2) andalso subsig (sg2, sg1);
 
 
 
-(** The Extend operation **)
+(** print signature **)
 
-(* Extend a signature: may add classes, types and constants. The "ref" in
-   stamps ensures that no two signatures are identical -- it is impossible to
-   forge a signature. *)
-
-fun extend (Sg {tsig, const_tab, syn, stamps}) name
-  (classes, default, types, abbr, arities, const_decs, opt_sext) =
+fun print_sg sg =
   let
-    fun err_in_typ s = error ("The error(s) above occurred in type " ^ quote s);
+    fun prt_typ syn ty = Pretty.quote (Syntax.pretty_typ syn ty);
 
-    fun read_typ tsg sy s =
-      Syntax.read_typ sy (K (Type.defaultS tsg)) s handle ERROR => err_in_typ s;
+    fun pretty_sort [cl] = Pretty.str cl
+      | pretty_sort cls = Pretty.str_list "{" "}" cls;
 
-    fun check_typ tsg sy ty =
-      (case Type.type_errors tsg (ty, []) of
-        [] => ty
-      | errs => (prs (cat_lines errs); err_in_typ (Syntax.string_of_typ sy ty)));
+    fun pretty_subclass (cl, cls) = Pretty.block
+      [Pretty.str (cl ^ " <"), Pretty.brk 1, pretty_sort cls];
 
-    (*reset TVar indices to zero, renaming to preserve distinctness*)
-    fun zero_tvar_indices T =
+    fun pretty_default cls = Pretty.block
+      [Pretty.str "default:", Pretty.brk 1, pretty_sort cls];
+
+    fun pretty_arg (ty, n) = Pretty.str (ty ^ " " ^ string_of_int n);
+
+    fun pretty_abbr syn (ty, (vs, rhs)) = Pretty.block
+      [prt_typ syn (Type (ty, map (fn v => TVar (v, [])) vs)),
+        Pretty.str " =", Pretty.brk 1, prt_typ syn rhs];
+
+    fun pretty_arity ty (cl, []) = Pretty.block
+          [Pretty.str (ty ^ " ::"), Pretty.brk 1, Pretty.str cl]
+      | pretty_arity ty (cl, srts) = Pretty.block
+          [Pretty.str (ty ^ " ::"), Pretty.brk 1,
+            Pretty.list "(" ")" (map pretty_sort srts),
+            Pretty.brk 1, Pretty.str cl];
+
+    fun pretty_coreg (ty, ars) = map (pretty_arity ty) ars;
+
+    fun pretty_const syn (c, ty) = Pretty.block
+      [Pretty.str (c ^ " ::"), Pretty.brk 1, prt_typ syn ty];
+
+
+    val Sg {tsig, const_tab, syn, stamps} = sg;
+    val {classes, subclass, default, args, abbrs, coreg} = rep_tsig tsig;
+  in
+    Pretty.writeln (Pretty.strs ("stamps:" :: map ! stamps));
+    Pretty.writeln (Pretty.strs ("classes:" :: classes));
+    Pretty.writeln (Pretty.big_list "subclass:" (map pretty_subclass subclass));
+    Pretty.writeln (pretty_default default);
+    Pretty.writeln (Pretty.big_list "types:" (map pretty_arg args));
+    Pretty.writeln (Pretty.big_list "abbrs:" (map (pretty_abbr syn) abbrs));
+    Pretty.writeln (Pretty.big_list "coreg:" (flat (map pretty_coreg coreg)));
+    Pretty.writeln (Pretty.big_list "consts:"
+      (map (pretty_const syn) (Symtab.alist_of const_tab)))
+  end;
+
+
+fun pprint_sg (Sg {stamps, ...}) =
+  Pretty.pprint (Pretty.str_list "{" "}" (map ! stamps));
+
+
+
+(** pretty printing of terms and types **)
+
+fun pretty_term (Sg {syn, ...}) = Syntax.pretty_term syn;
+fun pretty_typ (Sg {syn, ...}) = Syntax.pretty_typ syn;
+
+fun string_of_term (Sg {syn, ...}) = Syntax.string_of_term syn;
+fun string_of_typ (Sg {syn, ...}) = Syntax.string_of_typ syn;
+
+fun pprint_term sg = Pretty.pprint o Pretty.quote o (pretty_term sg);
+fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
+
+
+
+(** certify types and terms **)
+
+(*errors are indicated by exception TYPE*)
+
+fun certify_typ (Sg {tsig, ...}) ty = cert_typ tsig ty;
+
+
+(* FIXME -> term.ML (?) *)
+fun mapfilter_atoms f (Abs (_, _, t)) = mapfilter_atoms f t
+  | mapfilter_atoms f (t $ u) = mapfilter_atoms f t @ mapfilter_atoms f u
+  | mapfilter_atoms f a = (case f a of Some y => [y] | None => []);
+
+fun certify_term (sg as Sg {tsig, const_tab, ...}) tm =
+  let
+    fun valid_const a T =
+      (case Symtab.lookup (const_tab, a) of
+        Some U => typ_instance (tsig, T, U)
+      | _ => false);
+
+    fun atom_err (Const (a, T)) =
+          if valid_const a T then None
+          else Some ("Illegal type for constant " ^ quote a ^ " :: " ^
+            quote (string_of_typ sg T))
+      | atom_err (Var ((x, i), _)) =
+          if i < 0 then Some ("Negative index for Var " ^ quote x) else None
+      | atom_err _ = None;
+
+
+    val norm_tm =
+      (case it_term_types (typ_errors tsig) (tm, []) of
+        [] => map_term_types (norm_typ tsig) tm
+      | errs => raise_type (cat_lines errs) [] [tm]);
+  in
+    (case mapfilter_atoms atom_err norm_tm of
+      [] => (norm_tm, type_of norm_tm, maxidx_of_term norm_tm)
+    | errs => raise_type (cat_lines errs) [] [norm_tm])
+  end;
+
+
+
+(** read types **)
+
+(*read and certify typ wrt a signature; errors are indicated by
+  exception ERROR (with messages already printed)*)
+
+fun rd_typ tsig syn sort_of s =
+  let
+    val def_sort = defaultS tsig;
+    val raw_ty =        (*this may raise ERROR, too!*)
+      Syntax.read_typ syn (fn x => if_none (sort_of x) def_sort) s;
+  in
+    cert_typ tsig raw_ty
+      handle TYPE (msg, _, _) => error msg
+  end
+  handle ERROR => error ("The error(s) above occurred in type " ^ quote s);
+
+fun read_typ (Sg {tsig, syn, ...}, sort_of) s = rd_typ tsig syn sort_of s;
+
+
+
+(** extend signature **)
+
+(*errors are indicated by exception ERROR (with messages already printed)*)
+
+fun extend sg name (classes, default, types, abbrs, arities, consts, opt_sext) =
+  let
+    (*reset TVar indices to 0, renaming to preserve distinctness*)
+    fun zero_tvar_idxs T =
       let
         val inxSs = typ_tvars T;
         val nms' = variantlist (map (#1 o #1) inxSs, []);
-        val tye = map (fn ((v, S), a) => (v, TVar ((a, 0), S))) (inxSs ~~ nms');
-      in typ_subst_TVars tye T end;
+        val tye = map2 (fn ((v, S), a) => (v, TVar ((a, 0), S))) (inxSs, nms');
+      in
+        typ_subst_TVars tye T
+      end;
 
     (*read and check the type mentioned in a const declaration; zero type var
       indices because type inference requires it*)
+    fun read_const tsig syn (c, s) =
+      (c, zero_tvar_idxs (varifyT (rd_typ tsig syn (K None) s)))
+        handle ERROR => error ("in declaration of constant " ^ quote c);
 
-    fun read_consts tsg sy (cs, s) =
-      let val ty = zero_tvar_indices (Type.varifyT (read_typ tsg sy s));
-      in
-        (case Type.type_errors tsg (ty, []) of
-          [] => (cs, ty)
-        | errs => error (cat_lines (("Error in type of constants " ^
-            space_implode " " (map quote cs)) :: errs)))
-      end;
+    fun read_abbr tsig syn (c, vs, rhs_src) =
+      (c, (map (rpair 0) vs, varifyT (rd_typ tsig syn (K None) rhs_src)
+        handle ERROR => error ("in type abbreviation " ^ quote c)));
 
-    val tsig' = Type.extend (tsig, classes, default, types, arities);
 
-    fun read_typ_abbr(a,v,s)=
-      let val T = Type.varifyT(read_typ tsig' syn s)
-      in (a,(v,T)) end handle ERROR => error("This error occured in abbreviation "^ quote a);
+    val Sg {tsig, const_tab, syn, stamps} = sg;
+    val xconsts = map #1 classes @ flat (map #1 types) @ map #1 abbrs @
+      flat (map #1 consts);
+    val sext = if_none opt_sext Syntax.empty_sext;
 
-    val abbr' = map read_typ_abbr abbr;
-    val tsig'' = Type.add_abbrs(tsig',abbr');
+    val tsig' = extend_tsig tsig (classes, default, types, arities);
+    val tsig1 = ext_tsig_abbrs tsig' (map (read_abbr tsig' syn) abbrs);
 
-    val read_ty =
-      (Type.expand_typ tsig'') o (check_typ tsig'' syn) o (read_typ tsig'' syn);
-    val log_types = Type.logical_types tsig'';
-    val xconsts = map #1 classes @ flat (map #1 types) @ flat (map #1 const_decs);
-    val sext = case opt_sext of Some sx => sx | None => Syntax.empty_sext;
+    val syn1 = Syntax.extend syn (rd_typ tsig1 syn (K None))
+      (logical_types tsig1, xconsts, sext);
 
-    val syn' = Syntax.extend syn read_ty (log_types, xconsts, sext);
+    val all_consts = flat (map (fn (cs, s) => map (rpair s) cs)
+      (Syntax.constants sext @ consts));
 
-    val const_decs' =
-      map (read_consts tsig'' syn') (Syntax.constants sext @ const_decs);
+    val const_tab1 =                              (* FIXME bug: vvvv should be syn *)
+      Symtab.extend (K false) (const_tab, map (read_const tsig1 syn1) all_consts)
+        handle Symtab.DUPLICATE c
+          => error ("Constant " ^ quote c ^ " declared twice");
+
+    val stamps1 =
+      if exists (equal name o !) stamps then
+        error ("Theory already contains a " ^ quote name ^ " component")
+      else stamps @ [ref name];
   in
-    Sg {
-      tsig = tsig'',
-      const_tab = Symtab.st_of_declist (const_decs', const_tab)
-        handle Symtab.DUPLICATE a => error ("Constant " ^ quote a ^ " declared twice"),
-      syn = syn',
-      stamps = ref name :: stamps}
+    Sg {tsig = tsig1, const_tab = const_tab1, syn = syn1, stamps = stamps1}
   end;
 
 
-(* The empty signature *)
 
-val sg0 = Sg {tsig = Type.tsig0, const_tab = Symtab.null,
+(** merge signatures **)
+
+(*errors are indicated by exception TERM*)
+
+fun check_stamps stamps =
+  (case duplicates (map ! stamps) of
+    [] => stamps
+  | dups => raise_term ("Attempt to merge different versions of theories " ^
+      commas (map quote dups)) []);
+
+fun merge (sg1, sg2) =
+  if subsig (sg2, sg1) then sg1
+  else if subsig (sg1, sg2) then sg2
+  else
+    (*neither is union already; must form union*)
+    let
+      val Sg {tsig = tsig1, const_tab = const_tab1, syn = syn1,
+        stamps = stamps1} = sg1;
+      val Sg {tsig = tsig2, const_tab = const_tab2, syn = syn2,
+        stamps = stamps2} = sg2;
+
+      val tsig = merge_tsigs (tsig1, tsig2);
+
+      val const_tab = Symtab.merge (op =) (const_tab1, const_tab2)
+        handle Symtab.DUPLICATE c =>
+          raise_term ("Incompatible types for constant " ^ quote c) [];
+
+      val syn = Syntax.merge (logical_types tsig) syn1 syn2;
+
+      val stamps = check_stamps (merge_lists stamps1 stamps2);
+    in
+      Sg {tsig = tsig, const_tab = const_tab, syn = syn, stamps = stamps}
+    end;
+
+
+
+(** the Pure signature **)
+
+val sg0 = Sg {tsig = tsig0, const_tab = Symtab.null,
   syn = Syntax.type_syn, stamps = []};
 
-
-(* The pure signature *)
-
 val pure = extend sg0 "Pure"
-([("logic", [])],
- ["logic"],
- [(["fun"], 2),
-  (["prop"], 0),
-  (Syntax.syntax_types, 0)],
- [],
- [(["fun"],  ([["logic"], ["logic"]], "logic")),
-  (["prop"], ([], "logic"))],
- [([Syntax.constrainC], "'a::logic => 'a")],
- Some Syntax.pure_sext);
+  ([("logic", [])],
+   ["logic"],
+   [(["fun"], 2),
+    (["prop"], 0),
+    (Syntax.syntax_types, 0)],
+   [],
+   [(["fun"],  ([["logic"], ["logic"]], "logic")),
+    (["prop"], ([], "logic"))],
+   ([Syntax.constrainC], "'a::{} => 'a") :: Syntax.syntax_consts,
+   Some Syntax.pure_sext);
 
-
-
-(** The Merge operation **)
-
-(*Update table with (a,x) providing any existing asgt to "a" equals x. *)
-fun update_eq ((a,x),tab) =
-    case Symtab.lookup(tab,a) of
-        None => Symtab.update((a,x), tab)
-      | Some y => if x=y then tab
-            else  raise TERM ("Incompatible types for constant: "^a, []);
-
-(*Combine tables, updating tab2 by tab1 and checking.*)
-fun merge_tabs (tab1,tab2) =
-    Symtab.balance (foldr update_eq (Symtab.alist_of tab1, tab2));
-
-(*Combine tables, overwriting tab2 with tab1.*)
-fun smash_tabs (tab1,tab2) =
-    Symtab.balance (foldr Symtab.update (Symtab.alist_of tab1, tab2));
-
-(*Combine stamps, checking that theory names are disjoint. *)
-fun merge_stamps (stamps1,stamps2) =
-  let val stamps = stamps1 union stamps2 in
-  case findrep (map ! stamps) of
-     a::_ => error ("Attempt to merge different versions of theory: " ^ a)
-   | [] => stamps
-  end;
-
-(*Merge two signatures.  Forms unions of tables.  Prefers sign1. *)
-fun merge
-  (sign1 as Sg {tsig = tsig1, const_tab = ctab1, stamps = stamps1, syn = syn1},
-   sign2 as Sg {tsig = tsig2, const_tab = ctab2, stamps = stamps2, syn = syn2}) =
-    if stamps2 subset stamps1 then sign1
-    else if stamps1 subset stamps2 then sign2
-    else (*neither is union already; must form union*)
-      let val tsig = Type.merge (tsig1, tsig2);
-      in
-        Sg {tsig = tsig, const_tab = merge_tabs (ctab1, ctab2),
-          stamps = merge_stamps (stamps1, stamps2),
-          syn = Syntax.merge (Type.logical_types tsig) syn1 syn2}
-      end;
-
-
-
-fun read_typ(Sg{tsig,syn,...}, defS) s =
-    let val term = Syntax.read syn Syntax.typeT s;
-        val S0 = Type.defaultS tsig;
-        fun defS0 s = case defS s of Some S => S | None => S0;
-    in Syntax.typ_of_term defS0 term end;
-
-(** pretty printing of terms **)
-
-fun pretty_term (Sg{tsig,syn,...}) = Syntax.pretty_term syn;
-
-fun string_of_term sign t = Pretty.string_of (pretty_term sign t);
-
-fun pprint_term sign = Pretty.pprint o Pretty.quote o (pretty_term sign);
 
 end;
 
