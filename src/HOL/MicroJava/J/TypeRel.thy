@@ -32,8 +32,8 @@ defs
   
 consts
 
-  cmethd	:: "'c prog \\<times> cname \\<Rightarrow> ( sig   \\<leadsto> cname \\<times> ty \\<times> 'c)"
-  cfield	:: "'c prog \\<times> cname \\<Rightarrow> ( vname \\<leadsto> cname \\<times> ty)"
+  method	:: "'c prog \\<times> cname \\<Rightarrow> ( sig   \\<leadsto> cname \\<times> ty \\<times> 'c)"
+  field	:: "'c prog \\<times> cname \\<Rightarrow> ( vname \\<leadsto> cname \\<times> ty)"
   fields	:: "'c prog \\<times> cname \\<Rightarrow> ((vname \\<times> cname) \\<times>  ty) list"
 
 constdefs       (* auxiliary relations for recursive definitions below *)
@@ -42,10 +42,10 @@ constdefs       (* auxiliary relations for recursive definitions below *)
  "subcls1_rel \\<equiv> {((G,C),(G',C')). G = G' \\<and>  wf ((subcls1 G)^-1) \\<and>  G\\<turnstile>C'\\<prec>C1C}"
 
 (* methods of a class, with inheritance, overriding and hiding, cf. 8.4.6 *)
-recdef cmethd "subcls1_rel"
- "cmethd (G,C) = (if wf((subcls1 G)^-1) then (case class G C of None \\<Rightarrow> empty
+recdef method "subcls1_rel"
+ "method (G,C) = (if wf((subcls1 G)^-1) then (case class G C of None \\<Rightarrow> empty
                    | Some (sc,fs,ms) \\<Rightarrow> (case sc of None \\<Rightarrow> empty | Some D \\<Rightarrow> 
-                                           if is_class G D then cmethd (G,D) 
+                                           if is_class G D then method (G,D) 
                                                            else arbitrary) \\<oplus>
                                            map_of (map (\\<lambda>(s,  m ). 
                                                         (s,(C,m))) ms))
@@ -61,7 +61,7 @@ recdef fields  "subcls1_rel"
                   else arbitrary)"
 defs
 
-  cfield_def "cfield \\<equiv> map_of o (map (\\<lambda>((fn,fd),ft). (fn,(fd,ft)))) o fields"
+  field_def "field \\<equiv> map_of o (map (\\<lambda>((fn,fd),ft). (fn,(fd,ft)))) o fields"
 
 inductive "widen G" intrs (*widening, viz. method invocation conversion, cf. 5.3
 			     i.e. sort of syntactic subtyping *)

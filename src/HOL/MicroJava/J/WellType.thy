@@ -43,7 +43,7 @@ consts
 defs
 
   m_head_def  "m_head G t sig \\<equiv> case t of NullT \\<Rightarrow> None | ClassT C \\<Rightarrow>
-		 option_map (\\<lambda>(md,(rT,mb)). (Class md,rT)) (cmethd (G,C) sig)"
+		 option_map (\\<lambda>(md,(rT,mb)). (Class md,rT)) (method (G,C) sig)"
                                                                
   more_spec_def	  "more_spec G \\<equiv> \\<lambda>((d,h),pTs). \\<lambda>((d',h'),pTs'). G\\<turnstile>d\\<preceq>d' \\<and>
 		                  list_all2 (\\<lambda>T T'. G\\<turnstile>T\\<preceq>T') pTs pTs'"
@@ -118,7 +118,7 @@ inductive "ty_expr E" "ty_exprs E" "wt_stmt E" intrs
 
   (* cf. 15.10.1 *)
   FAcc	"\\<lbrakk>E\\<turnstile>a\\<Colon>Class C; 
-	  cfield (prg E,C) fn = Some (fd,fT)\\<rbrakk> \\<Longrightarrow>
+	  field (prg E,C) fn = Some (fd,fT)\\<rbrakk> \\<Longrightarrow>
 						 E\\<turnstile>{fd}a..fn\\<Colon>fT"
 
   (* cf. 15.25, 15.25.1 *)

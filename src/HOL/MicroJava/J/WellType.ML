@@ -6,7 +6,7 @@
 
 Goalw [m_head_def]
 "\\<lbrakk> m_head G T sig = Some (md,rT); wf_prog wtm G; G\\<turnstile>Class T''\\<preceq>RefT T\\<rbrakk> \\<Longrightarrow> \
-\\\<exists>md' rT' b'. cmethd (G,T'') sig = Some (md',rT',b') \\<and>  G\\<turnstile>rT'\\<preceq>rT";
+\\\<exists>md' rT' b'. method (G,T'') sig = Some (md',rT',b') \\<and>  G\\<turnstile>rT'\\<preceq>rT";
 by( forward_tac [widen_Class_RefT] 1);
 by( etac exE 1);
 by( hyp_subst_tac 1);
@@ -25,13 +25,13 @@ qed "widen_methd";
 
 Goal
 "\\<lbrakk>m_head G T sig = Some (md,rT); G\\<turnstile>Class T''\\<preceq>RefT T; wf_prog wtm G\\<rbrakk> \\<Longrightarrow> \
-\ \\<exists>T' rT' b. cmethd (G,T'') sig = Some (T',rT',b) \\<and> \
+\ \\<exists>T' rT' b. method (G,T'') sig = Some (T',rT',b) \\<and> \
 \ G\\<turnstile>rT'\\<preceq>rT \\<and> G\\<turnstile>Class T''\\<preceq>Class T' \\<and> wf_mhead G sig rT' \\<and> wtm G T' (sig,rT',b)";
 by( dtac widen_methd 1);
 by(   atac 1);
 by(  atac 1);
 by( Clarsimp_tac 1);
-by( dtac cmethd_wf_mdecl 1);
+by( dtac method_wf_mdecl 1);
 by(  atac 1);
 by( rewtac wf_mdecl_def);
 by Auto_tac;

@@ -30,39 +30,38 @@ recdef exec "{}"
  "exec (G, xp, hp, []) = None"
 
  "exec (G, None, hp, (stk,loc,cn,ml,pc)#frs) = 
-   Some (case snd(snd(snd(the(cmethd (G,cn) ml)))) ! pc of
-      LS ins \\<Rightarrow> (let (stk',loc',pc') = exec_las ins stk loc pc
+   Some (case snd(snd(snd(the(method (G,cn) ml)))) ! pc of
+      LS ins \\<Rightarrow> let (stk',loc',pc') = exec_las ins stk loc pc
 		in
-		(None,hp,(stk',loc',cn,ml,pc')#frs))
+		(None,hp,(stk',loc',cn,ml,pc')#frs)
 
-    | CO ins \\<Rightarrow> (let (xp',hp',stk',pc') = exec_co ins G hp stk pc
+    | CO ins \\<Rightarrow> let (xp',hp',stk',pc') = exec_co ins G hp stk pc
 		in
-		(xp',hp',(stk',loc,cn,ml,pc')#frs))	    
+		(xp',hp',(stk',loc,cn,ml,pc')#frs)	    
 
-    | MO ins \\<Rightarrow> (let (xp',hp',stk',pc') = exec_mo ins hp stk pc
+    | MO ins \\<Rightarrow> let (xp',hp',stk',pc') = exec_mo ins hp stk pc
 		in
-		(xp',hp',(stk',loc,cn,ml,pc')#frs))	
+		(xp',hp',(stk',loc,cn,ml,pc')#frs)
 
-    | CH ins \\<Rightarrow> (let (xp',stk',pc') = exec_ch ins G hp stk pc
+    | CH ins \\<Rightarrow> let (xp',stk',pc') = exec_ch ins G hp stk pc
 		in
-		(xp',hp,(stk',loc,cn,ml,pc')#frs))
+		(xp',hp,(stk',loc,cn,ml,pc')#frs)
 
-    | MI ins \\<Rightarrow> (let (xp',frs',stk',pc') = exec_mi ins G hp stk pc 
+    | MI ins \\<Rightarrow> let (xp',frs',stk',pc') = exec_mi ins G hp stk pc 
 		in
-		(xp',hp,frs'@(stk',loc,cn,ml,pc')#frs))
+		(xp',hp,frs'@(stk',loc,cn,ml,pc')#frs)
 
-    | MR ins \\<Rightarrow> (let frs' = exec_mr ins stk frs in
-		(None,hp,frs'))
+    | MR ins \\<Rightarrow> let frs' = exec_mr ins stk frs in (None,hp,frs')
 
-    | OS ins \\<Rightarrow> (let (stk',pc') = exec_os ins stk pc
+    | OS ins \\<Rightarrow> let (stk',pc') = exec_os ins stk pc
 		in
-		(None,hp,(stk',loc,cn,ml,pc')#frs))
+		(None,hp,(stk',loc,cn,ml,pc')#frs)
 
-    | BR ins \\<Rightarrow> (let (stk',pc') = exec_br ins stk pc
+    | BR ins \\<Rightarrow> let (stk',pc') = exec_br ins stk pc
 		in
-		(None,hp,(stk',loc,cn,ml,pc')#frs)))"
+		(None,hp,(stk',loc,cn,ml,pc')#frs))"
 
- "exec (G, Some xp, hp, f#frs) = Some (Some xp, hp, [])"
+ "exec (G, Some xp, hp, f#frs) = None"
 
 
 constdefs

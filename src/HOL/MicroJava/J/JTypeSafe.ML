@@ -44,7 +44,7 @@ by(  ALLGOALS (rtac conf_AddrI));
 by     Auto_tac;
 qed "Cast_conf";
 
-Goal "\\<lbrakk> wf_prog wtm G; cfield (G,C) fn = Some (fd, ft); (h,l)\\<Colon>\\<preceq>(G,lT); \
+Goal "\\<lbrakk> wf_prog wtm G; field (G,C) fn = Some (fd, ft); (h,l)\\<Colon>\\<preceq>(G,lT); \
 \    x' = None \\<longrightarrow> G,h\\<turnstile>a'\\<Colon>\\<preceq>Class C; np a' x' = None \\<rbrakk> \\<Longrightarrow> \
 \ G,h\\<turnstile>the (snd (the (h (the_Addr a'))) (fn, fd))\\<Colon>\\<preceq>ft";
 by( dtac np_NoneD 1);
@@ -66,7 +66,7 @@ Goal
  "\\<lbrakk> wf_prog wtm G; a = the_Addr a'; (c, fs) = the (h a); \
 \   (G, lT)\\<turnstile>v\\<Colon>T'; G\\<turnstile>T'\\<preceq>ft; \
 \   (G, lT)\\<turnstile>aa\\<Colon>Class C; \
-\   cfield (G,C) fn = Some (fd, ft); h''\\<le>|h'; \
+\   field (G,C) fn = Some (fd, ft); h''\\<le>|h'; \
 \   x' = None \\<longrightarrow> G,h'\\<turnstile>a'\\<Colon>\\<preceq>Class C; h'\\<le>|h; \
 \   (h, l)\\<Colon>\\<preceq>(G, lT); G,h\\<turnstile>x\\<Colon>\\<preceq>T'; np a' x' = None\\<rbrakk> \\<Longrightarrow> \
 \ h''\\<le>|h(a\\<mapsto>(c,(fs((fn,fd)\\<mapsto>x)))) \\<and>  \
@@ -126,7 +126,7 @@ Goalw [wf_java_prog_def]
 \    max_spec G T (mn,pTsa) = {((mda,rTa),pTs')}; xc\\<le>|xh; xh\\<le>|h; \
 \    list_all2 (conf G h) pvs pTsa;\
 \    (md, rT, pns, lvars, blk, res) = \
-\              the (cmethd (G,fst (the (h (the_Addr a')))) (mn, pTs'));\
+\              the (method (G,fst (the (h (the_Addr a')))) (mn, pTs'));\
 \ \\<forall>lT. (h, init_vars lvars(pns[\\<mapsto>]pvs)(This\\<mapsto>a'))\\<Colon>\\<preceq>(G, lT) \\<longrightarrow> \
 \ (G, lT)\\<turnstile>blk\\<surd> \\<longrightarrow>  h\\<le>|xi \\<and>  (xi, xl)\\<Colon>\\<preceq>(G, lT); \
 \ \\<forall>lT. (xi, xl)\\<Colon>\\<preceq>(G, lT) \\<longrightarrow> (\\<forall>T. (G, lT)\\<turnstile>res\\<Colon>T \\<longrightarrow> \
@@ -146,7 +146,7 @@ by( EVERY'[forward_tac [hext_objD], atac] 1);
 by( Clarsimp_tac 1);
 by( EVERY'[dtac Call_lemma, atac, atac] 1);
 by( clarsimp_tac (claset(),simpset() addsimps [wt_java_mdecl_def])1);
-by( thin_tac "cmethd ?sig ?x = ?y" 1);
+by( thin_tac "method ?sig ?x = ?y" 1);
 by( EVERY'[dtac spec, etac impE] 1);
 by(  mp_tac 2);
 by(  rtac conformsI 1);
@@ -326,7 +326,7 @@ qed "exec_type_sound";
 
 Goal "\\<lbrakk>G=prg E; wf_java_prog G; G\\<turnstile>(x,s) -e\\<succ>a'\\<rightarrow> Norm s'; a' \\<noteq> Null;\
 \         s\\<Colon>\\<preceq>E; E\\<turnstile>e\\<Colon>RefT T; m_head G T sig \\<noteq> None\\<rbrakk> \\<Longrightarrow> \
-\ cmethd (G,fst (the (heap s' (the_Addr a')))) sig \\<noteq> None";
+\ method (G,fst (the (heap s' (the_Addr a')))) sig \\<noteq> None";
 by( dtac eval_type_sound 1);
 by(     atac 1);
 by(    atac 1);

@@ -52,7 +52,7 @@ primrec
 	 in
 	 pc+1 < max_pc \\<and>
 	 is_class G C \\<and>
-	 (\\<exists>T oT ST'. cfield (G,C) F = Some(C,T) \\<and>
+	 (\\<exists>T oT ST'. field (G,C) F = Some(C,T) \\<and>
                        ST = oT # ST' \\<and> 
 		       G \\<turnstile> oT \\<preceq> (Class C) \\<and>
 		       G \\<turnstile> (T # ST' , LT) <=s phi ! (pc+1)))"
@@ -63,7 +63,7 @@ primrec
 	 pc+1 < max_pc \\<and>
 	 is_class G C \\<and> 
 	 (\\<exists>T vT oT ST'.
-             cfield (G,C) F = Some(C,T) \\<and>
+             field (G,C) F = Some(C,T) \\<and>
              ST = vT # oT # ST' \\<and> 
              G \\<turnstile> oT \\<preceq> (Class C) \\<and>
 	     G \\<turnstile> vT \\<preceq> T  \\<and>
@@ -155,7 +155,7 @@ primrec
          (\\<exists>apTs C ST'. ST = (rev apTs) @ (Class C # ST') \\<and>
          length apTs = length fpTs \\<and>
          (\\<forall>(aT,fT)\\<in>set(zip apTs fpTs). G \\<turnstile> aT \\<preceq> fT) \\<and>
-         (\\<exists>D rT b. cmethd (G,C) (mn,fpTs) = Some(D,rT,b) \\<and>
+         (\\<exists>D rT b. method (G,C) (mn,fpTs) = Some(D,rT,b) \\<and>
          G \\<turnstile> (rT # ST' , LT) <=s phi ! (pc+1))))"
 
 consts

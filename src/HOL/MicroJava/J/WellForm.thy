@@ -38,7 +38,7 @@ constdefs
          | Some D \\<Rightarrow>
              is_class G D \\<and>  \\<not>  G\\<turnstile>D\\<prec>C C \\<and>
              (\\<forall>(sig,rT,b)\\<in>set ms. \\<forall>D' rT' b'.
-                 cmethd(G,D) sig = Some(D',rT',b') \\<longrightarrow> G\\<turnstile>rT\\<preceq>rT'))"
+                 method(G,D) sig = Some(D',rT',b') \\<longrightarrow> G\\<turnstile>rT\\<preceq>rT'))"
 
  wf_prog	:: "'c wtm \\<Rightarrow> 'c prog \\<Rightarrow> bool"
 "wf_prog wtm G \\<equiv>

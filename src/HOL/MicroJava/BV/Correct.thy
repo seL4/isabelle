@@ -34,14 +34,14 @@ primrec
 	     (ST,LT) = (phi C ml) ! pc
 	 in
          (\\<exists>rT maxl ins.
-         cmethd (G,C) ml = Some(C,rT,(maxl,ins)) \\<and>
+         method (G,C) ml = Some(C,rT,(maxl,ins)) \\<and>
 	 (\\<exists>mn pTs k. pc = k+1 \\<and> ins!k = MI(Invoke mn pTs) \\<and>
          (mn,pTs) = ml0 \\<and> 
          (\\<exists>apTs D ST'.
          fst((phi C ml)!k) = (rev apTs) @ (Class D) # ST' \\<and>
          length apTs = length pTs \\<and>
          (\\<exists>D' rT' maxl' ins'.
-           cmethd (G,D) (mn,pTs) = Some(D',rT',(maxl',ins')) \\<and>
+           method (G,D) (mn,pTs) = Some(D',rT',(maxl',ins')) \\<and>
            G \\<turnstile> rT0 \\<preceq> rT') \\<and>
 	 correct_frame G hp (tl ST, LT) maxl ins f \\<and> 
 	 correct_frames G hp phi rT C ml frs))))"
@@ -57,7 +57,7 @@ constdefs
              | (f#fs) \\<Rightarrow> (let (stk,loc,C,ml,pc) = f
 		         in
                          \\<exists>rT maxl ins.
-                         cmethd (G,C) ml = Some(C,rT,(maxl,ins)) \\<and>
+                         method (G,C) ml = Some(C,rT,(maxl,ins)) \\<and>
 		         G\\<turnstile>h hp\\<surd> \\<and> 
 			 correct_frame G hp ((phi C ml) ! pc) maxl ins f \\<and> 
 		         correct_frames G hp phi rT C ml fs))

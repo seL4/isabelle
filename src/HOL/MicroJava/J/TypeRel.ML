@@ -76,8 +76,8 @@ by(rtac (wf_rel_lemma RS wf_subset) 1);
 by(Force_tac 1);
 val wf_subcls1_rel = result();
 
-val cmethd_TC = prove_goalw_cterm [subcls1_rel_def]
- (cterm_of (sign_of thy) (HOLogic.mk_Trueprop (hd (tl (cmethd.tcs)))))
+val method_TC = prove_goalw_cterm [subcls1_rel_def]
+ (cterm_of (sign_of thy) (HOLogic.mk_Trueprop (hd (tl (method.tcs)))))
  (K [auto_tac (claset() addIs [subcls1I], simpset())]);
 
 val fields_TC = prove_goalw_cterm [subcls1_rel_def]

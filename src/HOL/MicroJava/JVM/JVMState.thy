@@ -35,21 +35,10 @@ constdefs
  raise_xcpt :: "bool \\<Rightarrow> xcpt \\<Rightarrow> xcpt option"
 "raise_xcpt c x \\<equiv> (if c then Some x else None)"
 
- heap_update :: "[xcpt option,aheap,aheap] \\<Rightarrow> aheap"
-"heap_update xp hp' hp \\<equiv> if xp=None then hp' else hp"
-
- stk_update :: "[xcpt option,opstack,opstack] \\<Rightarrow> opstack"
-"stk_update xp stk' stk \\<equiv> if xp=None then stk' else stk"
-
- xcpt_update :: "[xcpt option,'a,'a] \\<Rightarrow> 'a"
-"xcpt_update xp y' y \\<equiv> if xp=None then y' else y"
-
 (** runtime state **)
 
 types
- jvm_state = "xcpt option \\<times>		
-	      aheap \\<times>				
-	      frame list"	
+ jvm_state = "xcpt option \\<times> aheap \\<times> frame list"	
 
 
 
@@ -57,5 +46,5 @@ types
 
 constdefs
  dyn_class	:: "'code prog \\<times> sig \\<times> cname \\<Rightarrow> cname"
-"dyn_class \\<equiv> \\<lambda>(G,sig,C). fst(the(cmethd(G,C) sig))"
+"dyn_class \\<equiv> \\<lambda>(G,sig,C). fst(the(method(G,C) sig))"
 end

@@ -111,11 +111,11 @@ by(  fast_tac (HOL_cs addIs [r_into_trancl]) 1);
 by( etac subcls1I 1);
 qed "subcls1_induct";
 
-Goal "wf_prog wtm G \\<Longrightarrow> cmethd (G,C) = \
+Goal "wf_prog wtm G \\<Longrightarrow> method (G,C) = \
 \ (case class G C of None \\<Rightarrow> empty | Some (sc,fs,ms) \\<Rightarrow> \
-\ (case sc of None \\<Rightarrow> empty | Some D \\<Rightarrow> cmethd (G,D)) \\<oplus> \
+\ (case sc of None \\<Rightarrow> empty | Some D \\<Rightarrow> method (G,D)) \\<oplus> \
 \ map_of (map (\\<lambda>(s,m). (s,(C,m))) ms))";
-by( stac (cmethd_TC RS (wf_subcls1_rel RS (hd cmethd.rules))) 1);
+by( stac (method_TC RS (wf_subcls1_rel RS (hd method.rules))) 1);
 by( clarsimp_tac (claset(), simpset() addsimps [wf_subcls1,empty_def] 
 		addsplits [option.split]) 1);
 by( case_tac "C = Object" 1);
@@ -125,7 +125,7 @@ by(  atac 1);
 by( dtac wf_cdecl_supD 1);
 by(  atac 1);
 by( Asm_full_simp_tac 1);
-val cmethd_rec = result();
+val method_rec = result();
 
 Goal "\\<lbrakk>class G C = Some (sc,fs,ms); wf_prog wtm G\\<rbrakk> \\<Longrightarrow> fields (G,C) = \
 \ map (\\<lambda>(fn,ft). ((fn,C),ft)) fs @ \
@@ -144,14 +144,14 @@ by(  atac 1);
 by( Asm_full_simp_tac 1);
 val fields_rec = result();
 
-val cmethd_Object = prove_goal thy "\\<And>X. wf_prog wtm G \\<Longrightarrow> cmethd (G,Object) = empty"
-	(K [stac cmethd_rec 1,Auto_tac]);
+val method_Object = prove_goal thy "\\<And>X. wf_prog wtm G \\<Longrightarrow> method (G,Object) = empty"
+	(K [stac method_rec 1,Auto_tac]);
 val fields_Object = prove_goal thy "\\<And>X. wf_prog wtm G \\<Longrightarrow> fields (G,Object) = []"(K [
 	stac fields_rec 1,Auto_tac]);
-Addsimps [cmethd_Object, fields_Object];
-val cfield_Object = prove_goalw thy [cfield_def]
- "\\<And>X. wf_prog wtm G \\<Longrightarrow> cfield (G,Object) = empty" (K [Asm_simp_tac 1]);
-Addsimps [cfield_Object];
+Addsimps [method_Object, fields_Object];
+val field_Object = prove_goalw thy [field_def]
+ "\\<And>X. wf_prog wtm G \\<Longrightarrow> field (G,Object) = empty" (K [Asm_simp_tac 1]);
+Addsimps [field_Object];
 
 val subcls_C_Object = prove_goal thy 
 	"\\<And>X. \\<lbrakk>is_class G C; wf_prog wtm G \\<rbrakk> \\<Longrightarrow> C \\<noteq> Object \\<longrightarrow> G\\<turnstile>C\\<prec>C Object" (K [
@@ -264,24 +264,24 @@ by( fast_tac (HOL_cs addEs [fields_mono]) 1);
 val widen_fields_mono = result();
 
 
-val cfs_fields_lemma = prove_goalw thy [cfield_def] 
-"\\<And>X. cfield (G,C) fn = Some (fd, fT) \\<Longrightarrow> map_of(fields (G,C)) (fn, fd) = Some fT"
+val cfs_fields_lemma = prove_goalw thy [field_def] 
+"\\<And>X. field (G,C) fn = Some (fd, fT) \\<Longrightarrow> map_of(fields (G,C)) (fn, fd) = Some fT"
 (K [rtac table_map_Some 1, Asm_full_simp_tac 1]);
 
-val widen_cfs_fields = prove_goal thy "\\<And>X. \\<lbrakk>cfield (G,C) fn = Some (fd, fT);\
+val widen_cfs_fields = prove_goal thy "\\<And>X. \\<lbrakk>field (G,C) fn = Some (fd, fT);\
 \  G\\<turnstile>Class C'\\<preceq>Class C; wf_prog wtm G\\<rbrakk> \\<Longrightarrow> map_of (fields (G,C')) (fn, fd) = Some fT" (K[
 fast_tac (HOL_cs addIs [widen_fields_mono, cfs_fields_lemma]) 1]);
 
-Goal "wf_prog wtm G \\<Longrightarrow> cmethd (G,C) sig = Some (md,mh,m)\
+Goal "wf_prog wtm G \\<Longrightarrow> method (G,C) sig = Some (md,mh,m)\
 \  \\<longrightarrow> G\\<turnstile>Class C\\<preceq>Class md \\<and> wf_mdecl wtm G md (sig,(mh,m))";
 by( case_tac "is_class G C" 1);
-by(  forw_inst_tac [("C","C")] cmethd_rec 2);
+by(  forw_inst_tac [("C","C")] method_rec 2);
 by(    asm_full_simp_tac (simpset() addsimps [is_class_def] 
 	delsimps [not_None_eq]) 2);
 by( etac subcls1_induct 1);
 by(   atac 1);
 by(  Force_tac 1);
-by( forw_inst_tac [("C","C")] cmethd_rec 1);
+by( forw_inst_tac [("C","C")] method_rec 1);
 by( strip_tac1 1);
 by( rotate_tac ~1 1);
 by( Asm_full_simp_tac 1);
@@ -300,11 +300,11 @@ by( strip_tac1 1);
 by( Asm_full_simp_tac 1);
 by( rewtac wf_cdecl_def);
 by( Asm_full_simp_tac 1);
-val cmethd_wf_mdecl = result() RS mp;
+val method_wf_mdecl = result() RS mp;
 
 Goal "\\<lbrakk>G\\<turnstile>T\\<prec>C T'; wf_prog wt G\\<rbrakk> \\<Longrightarrow> \
-\  \\<forall>D rT b. cmethd (G,T') sig = Some (D,rT ,b) \\<longrightarrow>\
-\ (\\<exists>D' rT' b'. cmethd (G,T) sig = Some (D',rT',b') \\<and> G\\<turnstile>rT'\\<preceq>rT)";
+\  \\<forall>D rT b. method (G,T') sig = Some (D,rT ,b) \\<longrightarrow>\
+\ (\\<exists>D' rT' b'. method (G,T) sig = Some (D',rT',b') \\<and> G\\<turnstile>rT'\\<preceq>rT)";
 by( etac trancl_trans_induct 1);
 by(  strip_tac1 2);
 by(  EVERY[dtac spec 2, dtac spec 2, dtac spec 2, mp_tac 2]);
@@ -312,7 +312,7 @@ by(  fast_tac (HOL_cs addEs [widen_trans]) 2);
 by( strip_tac1 1);
 by( dtac subcls1D 1);
 by( strip_tac1 1);
-by( stac cmethd_rec 1);
+by( stac method_rec 1);
 by(  atac 1);
 by( rewtac override_def);
 by( asm_simp_tac (simpset() delsimps [split_paired_Ex]) 1);
@@ -334,33 +334,33 @@ qed_spec_mp "subcls_widen_methd";
 
 Goal
  "\\<lbrakk> G\\<turnstile>Class C\\<preceq>Class D; wf_prog wt G; \
-\    cmethd (G,D) sig = Some (md, rT, b) \\<rbrakk> \
-\ \\<Longrightarrow> \\<exists>mD' rT' b'. cmethd (G,C) sig= Some(mD',rT',b') \\<and> G\\<turnstile>rT'\\<preceq>rT";
+\    method (G,D) sig = Some (md, rT, b) \\<rbrakk> \
+\ \\<Longrightarrow> \\<exists>mD' rT' b'. method (G,C) sig= Some(mD',rT',b') \\<and> G\\<turnstile>rT'\\<preceq>rT";
 by(auto_tac (claset() addSDs [widen_Class_Class]
-                      addDs [subcls_widen_methd,cmethd_wf_mdecl],
+                      addDs [subcls_widen_methd,method_wf_mdecl],
              simpset() addsimps [wf_mdecl_def,wf_mhead_def,split_def]));
 qed "subtype_widen_methd";
 
 
-Goal "wf_prog wt G \\<Longrightarrow> \\<forall>D. cmethd (G,C) sig = Some(D,mh,code) \\<longrightarrow> is_class G D \\<and> cmethd (G,D) sig = Some(D,mh,code)";
+Goal "wf_prog wt G \\<Longrightarrow> \\<forall>D. method (G,C) sig = Some(D,mh,code) \\<longrightarrow> is_class G D \\<and> method (G,D) sig = Some(D,mh,code)";
 by( case_tac "is_class G C" 1);
-by(  forw_inst_tac [("C","C")] cmethd_rec 2);
+by(  forw_inst_tac [("C","C")] method_rec 2);
 by(    asm_full_simp_tac (simpset() addsimps [is_class_def] 
 	delsimps [not_None_eq]) 2);
 by (etac subcls1_induct 1);
   ba 1;
  by (Asm_full_simp_tac 1);
-by (stac cmethd_rec 1);
+by (stac method_rec 1);
  ba 1;
 by (Clarify_tac 1);
 by (eres_inst_tac [("x","Da")] allE 1);
 by (Clarsimp_tac 1);
  by (asm_full_simp_tac (simpset() addsimps [map_of_map]) 1);
  by (Clarify_tac 1);
- by (stac cmethd_rec 1);
+ by (stac method_rec 1);
   ba 1;
  by (asm_full_simp_tac (simpset() addsimps [override_def,map_of_map] addsplits [option.split]) 1);
-qed_spec_mp "cmethd_in_md";
+qed_spec_mp "method_in_md";
 
 writeln"OK";
 

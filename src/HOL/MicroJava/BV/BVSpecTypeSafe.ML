@@ -9,7 +9,7 @@ val defs1 = exec.rules@[split_def,sup_state_def,correct_state_def,
 
 Goalw [correct_state_def,Let_def,correct_frame_def,split_def]
 "\\<lbrakk> wt_jvm_prog G phi; \
-\   cmethd (G,C) sig = Some (C,rT,maxl,ins); \
+\   method (G,C) sig = Some (C,rT,maxl,ins); \
 \   G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> wt_instr (ins!pc) G rT (phi C sig) (length ins) pc";
 by (Asm_full_simp_tac 1);
@@ -24,7 +24,7 @@ Delsimps [split_paired_All];
 
 Goal
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = LS(Load idx); \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs); \
@@ -38,7 +38,7 @@ qed "Load_correct";
 
 Goal 
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = LS(Store idx); \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
@@ -56,7 +56,7 @@ AddIffs [conf_Intg_Integer];
 
 Goal
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = LS(Bipush i); \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
@@ -80,7 +80,7 @@ qed "NT_subtype_conv";
 
 Goal 
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = LS Aconst_null; \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
@@ -93,7 +93,7 @@ qed "Aconst_null_correct";
 
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = LS ls_com; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
@@ -127,14 +127,14 @@ qed "Cast_conf2";
 
 Goal
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = CH (Checkcast D); \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs); \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM (xp',hp',frs')\\<surd>";
 by (asm_full_simp_tac (simpset() addsimps [sup_loc_Cons,map_eq_Cons,approx_stk_Cons,
-		xcpt_update_def,raise_xcpt_def]@defs1 addsplits [option.split]) 1);
+		raise_xcpt_def]@defs1 addsplits [option.split]) 1);
 by (fast_tac (claset() addDs [approx_stk_Cons_lemma] 
 	addIs [approx_stk_imp_approx_stk_sup,approx_loc_imp_approx_loc_sup,Cast_conf2] 
 	addss (simpset() addsimps [sup_loc_Cons,map_eq_Cons,approx_stk_Cons,approx_val_def])) 1);
@@ -143,7 +143,7 @@ qed "Checkcast_correct";
 
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = CH ch_com; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
@@ -160,13 +160,13 @@ qed "CH_correct";
 (******* MO *******)
 Goal
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = MO (Getfield F D); \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs); \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM (xp',hp',frs')\\<surd>";
-by (asm_full_simp_tac (simpset() addsimps [xcpt_update_def,raise_xcpt_def]@defs1 addsplits [option.split]) 1);
+by (asm_full_simp_tac (simpset() addsimps [raise_xcpt_def]@defs1 addsplits [option.split]) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [sup_state_def,sup_loc_Cons,map_eq_Cons]) 1);
 by (Clarify_tac 1);
@@ -199,13 +199,13 @@ qed "Getfield_correct";
 
 Goal
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = MO (Putfield F D); \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs); \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
 \\\<Longrightarrow> G,phi \\<turnstile>JVM (xp',hp',frs')\\<surd>";
-by (asm_full_simp_tac (simpset() addsimps [xcpt_update_def,raise_xcpt_def]@defs1 addsplits [option.split]) 1);
+by (asm_full_simp_tac (simpset() addsimps [raise_xcpt_def]@defs1 addsplits [option.split]) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [sup_state_def,sup_loc_Cons,map_eq_Cons]) 1);
 by (Clarify_tac 1);
@@ -228,7 +228,7 @@ qed "Putfield_correct";
 
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = MO mo_com; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
@@ -250,7 +250,7 @@ qed "collapse_paired_All";
 
 Goal
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = CO(New cl_idx); \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
@@ -262,13 +262,13 @@ by (fast_tac (claset() addSDs [collapse_paired_All RS iffD1]addIs [sup_heap_newr
 		hconf_imp_hconf_newref,correct_frames_imp_correct_frames_newref,
 		rewrite_rule [split_def] correct_init_obj]
 	addss (simpset() addsimps [NT_subtype_conv,approx_stk_Cons,approx_val_def,conf_def,
-		fun_upd_apply,sup_loc_Cons,map_eq_Cons,is_class_def,xcpt_update_def,raise_xcpt_def,init_vars_def]@defs1 
+		fun_upd_apply,sup_loc_Cons,map_eq_Cons,is_class_def,raise_xcpt_def,init_vars_def]@defs1 
 	addsplits [option.split])) 1);
 qed "New_correct";
 
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = CO co_com; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
@@ -286,7 +286,7 @@ qed "CO_correct";
 
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins ! pc = MI(Invoke mn pTs); \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
@@ -294,7 +294,7 @@ Goal
 \\\<Longrightarrow> G,phi \\<turnstile>JVM (xp',hp',frs')\\<surd>";
 by(forward_tac [wt_jvm_progD] 1);
 by(etac exE 1);
-by (asm_full_simp_tac (simpset()addsimps[xcpt_update_def,raise_xcpt_def]@defs1 
+by (asm_full_simp_tac (simpset()addsimps[raise_xcpt_def]@defs1 
 	addsplits [option.split]) 1);
 by (Clarify_tac 1);
 by (asm_full_simp_tac (simpset() addsimps []@defs1) 1);
@@ -315,11 +315,11 @@ be exE 1;
 by(rename_tac "oT'" 1);
 by (Clarify_tac 1);
 by(subgoal_tac "G \\<turnstile> Class oT \\<preceq> Class oT'" 1);
- by(forw_inst_tac [("C","oT")](standard(rotate_prems 1 cmethd_wf_mdecl)) 2);
+ by(forw_inst_tac [("C","oT")](standard(rotate_prems 1 method_wf_mdecl)) 2);
   ba 2;
  by(Blast_tac 2);
 by (asm_full_simp_tac (simpset() addsimps []@defs1) 1);
-by(forward_tac [cmethd_in_md] 1);
+by(forward_tac [method_in_md] 1);
  ba 1;
  back();
  back();
@@ -365,7 +365,7 @@ qed "Invoke_correct";
 
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = MI mi_com; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
@@ -394,7 +394,7 @@ qed_spec_mp "append_eq_conv_conj";
 Delsimps [map_append];
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins ! pc = MR Return; \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
@@ -423,7 +423,7 @@ Addsimps [map_append];
 
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = MR mr; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
@@ -438,7 +438,7 @@ qed "MR_correct";
 (****** BR ******)
 Goal 
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins ! pc = BR(Goto branch); \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
@@ -451,7 +451,7 @@ qed "Goto_correct";
 
 Goal 
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = BR(Ifcmpeq branch); \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
@@ -464,7 +464,7 @@ qed "Ifiacmpeq_correct";
 
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = BR br_com; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
@@ -482,7 +482,7 @@ qed "BR_correct";
 
 Goal 
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins ! pc = OS Pop; \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs); \
@@ -495,7 +495,7 @@ qed "Pop_correct";
 
 Goal 
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins ! pc = OS Dup; \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs); \
@@ -509,7 +509,7 @@ qed "Dup_correct";
 
 Goal 
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins ! pc = OS Dup_x1; \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs); \
@@ -522,7 +522,7 @@ qed "Dup_x1_correct";
 
 Goal 
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins ! pc = OS Dup_x2; \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs); \
@@ -535,7 +535,7 @@ qed "Dup_x2_correct";
 
 Goal 
 "\\<lbrakk> wf_prog wt G; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins ! pc = OS Swap; \
 \  wt_instr (ins!pc) G rT (phi C ml) (length ins) pc; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs); \
@@ -548,7 +548,7 @@ qed "Swap_correct";
 
 Goal
 "\\<lbrakk> wt_jvm_prog G phi; \
-\  cmethd (G,C) ml = Some (C,rT,maxl,ins); \
+\  method (G,C) ml = Some (C,rT,maxl,ins); \
 \  ins!pc = OS os_com; \
 \  Some (xp',hp',frs') = exec (G, None, hp, (stk,loc,C,ml,pc)#frs) ; \
 \  G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \\<rbrakk> \
@@ -565,10 +565,10 @@ qed "OS_correct";
 
 Goalw [correct_state_def,Let_def]
  "G,phi \\<turnstile>JVM (None, hp, (stk,loc,C,ml,pc)#frs)\\<surd> \
-\ \\<Longrightarrow> \\<exists>meth. cmethd (G,C) ml = Some(C,meth)";
+\ \\<Longrightarrow> \\<exists>meth. method (G,C) ml = Some(C,meth)";
 by(Asm_full_simp_tac 1);
 by(Blast_tac 1);
-qed "correct_state_impl_Some_cmethd";
+qed "correct_state_impl_Some_method";
 
 Goal
 "\\<And>state. \\<lbrakk> wt_jvm_prog G phi; G,phi \\<turnstile>JVM state\\<surd>\\<rbrakk> \
@@ -580,7 +580,7 @@ by (exhaust_tac "xp" 1);
   by (asm_full_simp_tac (simpset() addsimps exec.rules) 1);
  by(split_all_tac 1);
  by(hyp_subst_tac 1);
- by(forward_tac [correct_state_impl_Some_cmethd] 1);
+ by(forward_tac [correct_state_impl_Some_method] 1);
  by (force_tac (claset() addIs [LS_correct,CO_correct,MO_correct,CH_correct,MI_correct,MR_correct,OS_correct,
 	BR_correct], simpset() addsplits [instr.split,instr.split_asm] addsimps exec.rules@[split_def]) 1);
 by (exhaust_tac "frs" 1);

@@ -12,9 +12,9 @@ Conform provides notions for the type safety proof of the Bytecode Verifier.
 Store = Conform +  
 
 syntax
- value	:: "['a \\<leadsto> 'b,'a] \\<Rightarrow> 'b"			("_ \\<And> _")		
+ map_apply :: "['a \\<leadsto> 'b,'a] \\<Rightarrow> 'b"	("_ !! _")
 translations
- "t \\<And> x"  == "the (t x)"
+ "t !! x"  == "the (t x)"
 
 constdefs
  newref :: "('a \\<leadsto> 'b) \\<Rightarrow> 'a"

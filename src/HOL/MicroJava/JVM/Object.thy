@@ -21,8 +21,8 @@ primrec
 	(let xp'	= raise_xcpt (\\<forall>x. hp x \\<noteq> None) OutOfMemory;
 	     oref	= newref hp;
              fs		= init_vars (fields(G,C));
-	     hp'	= xcpt_update xp' (hp(oref \\<mapsto> (C,fs))) hp;
-	     stk'	= xcpt_update xp' ((Addr oref)#stk) stk
+	     hp'	= if xp'=None then hp(oref \\<mapsto> (C,fs)) else hp;
+	     stk'	= if xp'=None then (Addr oref)#stk else stk
 	 in (xp' , hp' , stk' , pc+1))"	
 
 
@@ -39,8 +39,8 @@ primrec
  "exec_mo (Getfield F C) hp stk pc = 
 	(let oref	= hd stk;
 	     xp'	= raise_xcpt (oref=Null) NullPointer;
-	     (oc,fs)	= hp \\<And> (the_Addr oref);
-	     stk'	= xcpt_update xp' ((fs\\<And>(F,C))#(tl stk)) (tl stk)
+	     (oc,fs)	= hp !! (the_Addr oref);
+	     stk'	= if xp'=None then (fs!!(F,C))#(tl stk) else tl stk
 	 in
          (xp' , hp , stk' , pc+1))"
 
@@ -48,8 +48,8 @@ primrec
 	(let (fval,oref)= (hd stk, hd(tl stk));
 	     xp'	= raise_xcpt (oref=Null) NullPointer;
 	     a		= the_Addr oref;
-	     (oc,fs)	= hp \\<And> a;
-	     hp'	= xcpt_update xp' (hp(a \\<mapsto> (oc, fs((F,C) \\<mapsto> fval)))) hp
+	     (oc,fs)	= hp !! a;
+	     hp'	= if xp'=None then hp(a \\<mapsto> (oc, fs((F,C) \\<mapsto> fval))) else hp
 	 in
          (xp' , hp' , tl (tl stk), pc+1))"				
 
@@ -66,7 +66,7 @@ primrec
   "exec_ch (Checkcast C) G hp stk pc =
 	(let oref	= hd stk;
 	     xp'	= raise_xcpt (\\<not> cast_ok G (Class C) hp oref) ClassCast;
-	     stk'	= xcpt_update xp' stk (tl stk)
+	     stk'	= if xp'=None then stk else tl stk
 	 in
 	 (xp' , stk' , pc+1))"
 

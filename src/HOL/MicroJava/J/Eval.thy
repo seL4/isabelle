@@ -72,7 +72,7 @@ inductive "eval G" "evals G" "exec G" intrs
   (* cf. 15.11.4.1, 15.11.4.2, 15.11.4.4, 15.11.4.5, 14.15 *)
   Call	"\\<lbrakk>G\\<turnstile>Norm s0 -e\\<succ>a'\\<rightarrow> s1; a = the_Addr a';
 	   G\\<turnstile>s1 -ps[\\<succ>]pvs\\<rightarrow> (x,(h,l)); dynT = fst (the (h a));
-	   (md,rT,pns,lvars,blk,res) = the (cmethd (G,dynT) (mn,pTs));
+	   (md,rT,pns,lvars,blk,res) = the (method (G,dynT) (mn,pTs));
 	   G\\<turnstile>(np a' x,(h,(init_vars lvars)(pns[\\<mapsto>]pvs)(This\\<mapsto>a'))) -blk\\<rightarrow> s3;
 	   G\\<turnstile>     s3 -res\\<succ>v \\<rightarrow> (x4,s4)\\<rbrakk> \\<Longrightarrow>
 			    G\\<turnstile>Norm s0 -e..mn({pTs}ps)\\<succ>v\\<rightarrow> (x4,(heap s4,l))"
