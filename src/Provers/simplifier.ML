@@ -17,8 +17,6 @@ sig
   type simproc
   val mk_simproc: string -> cterm list
     -> (Sign.sg -> thm list -> term -> thm option) -> simproc
-  val conv_prover: (term * term -> term) -> thm -> (thm -> thm)
-    -> tactic -> (int -> tactic) -> Sign.sg -> term -> term -> thm
   type simpset
   val empty_ss: simpset
   val rep_ss: simpset ->
@@ -92,25 +90,6 @@ fun mk_simproc name lhss proc =
   Simproc (name, map (Thm.cterm_fun Logic.varify) lhss, proc, stamp ());
 
 fun rep_simproc (Simproc args) = args;
-
-
-(* generic conversion prover *)
-
-fun conv_prover mk_eqv eqv_refl mk_meta_eq expand_tac norm_tac sg t u =
-  let
-    val X = Free (gensym "X.", fastype_of t);
-    val goal = Logic.mk_implies (mk_eqv (X, t), mk_eqv (X, u));
-    val pre_result =
-      prove_goalw_cterm [] (cterm_of sg goal)   (*goal: X=t ==> X=u*)
-        (fn prems => [
-          expand_tac,				(*expand u*)
-          ALLGOALS (cut_facts_tac prems),
-          ALLGOALS norm_tac]);			(*normalize both t and u*)
-  in
-    mk_meta_eq (eqv_refl RS pre_result)         (*final result: t==u*)
-  end
-  handle ERROR => error ("The error(s) above occurred while trying to prove " ^
-    (string_of_cterm (cterm_of sg (mk_eqv (t, u)))));
 
 
 
