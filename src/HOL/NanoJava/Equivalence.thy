@@ -89,7 +89,7 @@ done
 
 lemma Impl_sound_lemma: 
 "\<lbrakk>\<forall>z n. Ball (A \<union> B) (nvalid n) \<longrightarrow> Ball (f z ` Ms) (nvalid n); 
-Cm\<in>Ms; Ball A (nvalid na); Ball B (nvalid na)\<rbrakk> \<Longrightarrow> nvalid na (f z Cm)"
+  Cm\<in>Ms; Ball A (nvalid na); Ball B (nvalid na)\<rbrakk> \<Longrightarrow> nvalid na (f z Cm)"
 by blast
 
 lemma all_conjunct2: "\<forall>l. P' l \<and> P l \<Longrightarrow> \<forall>l. P l"

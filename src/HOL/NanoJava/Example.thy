@@ -134,9 +134,9 @@ done
 
 subsection "Proof(s) using the Hoare logic"
 
-theorem add_triang: 
+theorem add_homomorph_lb: 
   "{} \<turnstile> {\<lambda>s. s:s<This> \<ge> X \<and> s:s<Par> \<ge> Y} Meth(Nat,add) {\<lambda>s. s:s<Res> \<ge> X+Y}"
-apply (rule hoare_ehoare.Meth)
+apply (rule hoare_ehoare.Meth) (* 1 *)
 apply clarsimp
 apply (rule_tac P'= "\<lambda>Z s. (s:s<This> \<ge> fst Z \<and> s:s<Par> \<ge> snd Z) \<and> D=Nat" and 
                 Q'= "\<lambda>Z s. s:s<Res> \<ge> fst Z+snd Z" in Conseq)
@@ -145,7 +145,7 @@ apply  (clarsimp simp add: init_locs_def init_vars_def)
 apply rule
 apply (case_tac "D = Nat", simp_all, rule_tac [2] cFalse)
 apply (rule_tac P = "\<lambda>Z Cm s. s:s<This> \<ge> fst Z \<and> s:s<Par> \<ge> snd Z" in Impl1)
-apply (clarsimp simp add: body_def)
+apply (clarsimp simp add: body_def)  (* 4 *)
 apply (rename_tac n m)
 apply (rule_tac Q = "\<lambda>v s. (s:s<This> \<ge> n \<and> s:s<Par> \<ge> m) \<and> 
         (\<exists>a. s<This> = Addr a \<and> v = get_field s a pred)" in hoare_ehoare.Cond)
@@ -163,7 +163,7 @@ apply (rule hoare_ehoare.LAss)
 apply (rule_tac 
     Q = "\<lambda>v   s. (\<forall>m. n = Suc m \<longrightarrow> s:v \<ge> m) \<and> s:s<Par> \<ge> m" and 
     R = "\<lambda>T P s. (\<forall>m. n = Suc m \<longrightarrow> s:T \<ge> m) \<and> s:P  \<ge> Suc m" 
-    in hoare_ehoare.Call)
+    in hoare_ehoare.Call) (* 13 *)
 apply   (rule hoare_ehoare.FAcc)
 apply   (rule eConseq1)
 apply    (rule hoare_ehoare.LAcc)
@@ -172,26 +172,26 @@ apply   (drule sym, rotate_tac -1, frule (1) trans)
 apply   simp
 prefer 2
 apply  clarsimp
-apply  (rule hoare_ehoare.Meth)
+apply  (rule hoare_ehoare.Meth) (* 17 *)
 apply  clarsimp
 apply  (case_tac "D = Nat", simp_all, rule_tac [2] cFalse)
 apply  (rule Conseq)
 apply   rule
-apply   (rule hoare_ehoare.Asm)
+apply   (rule hoare_ehoare.Asm) (* 20 *)
 apply   (rule_tac a = "((case n of 0 \<Rightarrow> 0 | Suc m \<Rightarrow> m),m+1)" in UN_I, rule+)
 apply  (clarsimp split add: nat.split_asm dest!: Nat_atleast_mono)
 apply rule
-apply (rule hoare_ehoare.Call)
+apply (rule hoare_ehoare.Call) (* 21 *)
 apply   (rule hoare_ehoare.LAcc)
 apply  rule
 apply  (rule hoare_ehoare.LAcc)
 apply clarify
-apply (rule hoare_ehoare.Meth)
+apply (rule hoare_ehoare.Meth) (* 24 *)
 apply clarsimp
 apply  (case_tac "D = Nat", simp_all, rule_tac [2] cFalse)
 apply (rule Impl1)
 apply (clarsimp simp add: body_def)
-apply (rule hoare_ehoare.Comp)
+apply (rule hoare_ehoare.Comp) (* 26 *)
 prefer 2
 apply  (rule hoare_ehoare.FAss)
 prefer 2
@@ -200,7 +200,7 @@ apply   (rule hoare_ehoare.LAcc)
 apply  (rule hoare_ehoare.LAcc)
 apply (rule hoare_ehoare.LAss)
 apply (rule eConseq1)
-apply  (rule hoare_ehoare.NewC)
+apply  (rule hoare_ehoare.NewC) (* 32 *)
 apply (auto dest!: new_AddrD elim: Nat_atleast_newC)
 done
 
