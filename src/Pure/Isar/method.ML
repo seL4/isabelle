@@ -19,7 +19,7 @@ sig
   val fail: Proof.method
   val succeed: Proof.method
   val insert_tac: thm list -> int -> tactic
-  val insert: Proof.method
+  val insert_facts: Proof.method
   val fold: thm list -> Proof.method
   val unfold: thm list -> Proof.method
   val multi_resolve: thm list -> thm -> thm Seq.seq
@@ -28,7 +28,7 @@ sig
   val erule_tac: thm list -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
   val erule: thm list -> Proof.method
-  val assumption: Proof.method
+  val assumption: Proof.context -> Proof.method
   exception METHOD_FAIL of (string * Position.T) * exn
   val help_methods: theory -> unit
   val method: theory -> Args.src -> Proof.context -> Proof.method
@@ -36,15 +36,15 @@ sig
     -> theory -> theory
   val syntax: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
     Proof.context -> Args.src -> Proof.context * 'a
+  val ctxt_args: (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val no_args: Proof.method -> Args.src -> Proof.context -> Proof.method
   type modifier
   val sectioned_args: ((Args.T list -> modifier * Args.T list) list ->
       Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
     (Args.T list -> modifier * Args.T list) list ->
     ('a -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
-  val default_sectioned_args: modifier ->
-    (Args.T list -> modifier * Args.T list) list ->
-    (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+  val bang_sectioned_args: (Args.T list -> modifier * Args.T list) list ->
+    (thm list -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val only_sectioned_args: (Args.T list -> modifier * Args.T list) list ->
     (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   val thms_args: (thm list -> Proof.method) -> Args.src -> Proof.context -> Proof.method
@@ -102,22 +102,22 @@ fun cut_rule_tac raw_rule =
   let
     val rule = Drule.forall_intr_vars raw_rule;
     val revcut_rl = Drule.incr_indexes_wrt [] [] [] [rule] Drule.revcut_rl;
-  in Tactic.rtac (rule COMP revcut_rl) THEN' Tactic.rotate_tac ~1 end;
+  in Tactic.rtac (rule COMP revcut_rl) end;
 
 in
 
 fun insert_tac [] i = all_tac
   | insert_tac facts i = EVERY (map (fn th => cut_rule_tac th i) facts);
 
-val insert = METHOD (ALLGOALS o insert_tac);
+val insert_facts = METHOD (ALLGOALS o insert_tac);
 
 end;
 
 
 (* fold / unfold definitions *)
 
-fun fold thms = METHOD (fn _ => fold_goals_tac thms);
-fun unfold thms = METHOD (fn _ => rewrite_goals_tac thms);
+fun fold thms = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN fold_goals_tac thms);
+fun unfold thms = METHOD (fn facts => ALLGOALS (insert_tac facts) THEN rewrite_goals_tac thms);
 
 
 (* multi_resolve *)
@@ -160,13 +160,17 @@ fun erule rules = METHOD (FIRSTGOAL o erule_tac rules);
 end;
 
 
-(* assumption *)
+(* assumption / finish *)
 
-fun assumption_tac [] = assume_tac
-  | assumption_tac [fact] = resolve_tac [fact]
-  | assumption_tac _ = K no_tac;
+fun assm_tac ctxt =
+  assume_tac APPEND' resolve_tac (filter Thm.no_prems (ProofContext.prems_of ctxt));
 
-val assumption = METHOD (FIRSTGOAL o assumption_tac);
+fun assumption_tac ctxt [] = assm_tac ctxt
+  | assumption_tac _ [fact] = resolve_tac [fact]
+  | assumption_tac _ _ = K no_tac;
+
+fun assumption ctxt = METHOD (FIRSTGOAL o assumption_tac ctxt);
+fun finish ctxt = METHOD (K (FILTER Thm.no_prems (ALLGOALS (assm_tac ctxt))));
 
 
 
@@ -256,7 +260,10 @@ fun Method name meth cmt = Context.>> (add_methods [(name, meth, cmt)]);
 fun syntax (scan: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))) =
   Args.syntax "method" scan;
 
-fun no_args (x: Proof.method) src ctxt = #2 (syntax (Scan.succeed x) ctxt src);
+fun ctxt_args (f: Proof.context -> Proof.method) src ctxt =
+  #2 (syntax (Scan.succeed (f ctxt)) ctxt src);
+
+fun no_args m = ctxt_args (K m);
 
 
 (* sections *)
@@ -282,9 +289,7 @@ fun sectioned_args args ss f src ctxt =
   let val (ctxt', (x, _)) = syntax (sectioned args ss) ctxt src
   in f x ctxt' end;
 
-fun default_sectioned_args m ss f src ctxt =
-  sectioned_args thmss ss (fn ths => fn ctxt' => f (#1 (apply m (ctxt', ths)))) src ctxt;
-
+fun bang_sectioned_args ss f = sectioned_args (K Args.bang_facts) ss f;
 fun only_sectioned_args ss f = sectioned_args (K (Scan.succeed ())) ss (fn () => f);
 
 fun thms_args f = sectioned_args thmss [] (fn ths => fn _ => f ths);
@@ -326,20 +331,12 @@ fun refine_no_facts text state =
   |> refine text;
 
 
-(* finish *)
-
-val FINISHED = FILTER (equal 0 o Thm.nprems_of);
-val finish = METHOD (K (FINISHED (ALLGOALS assume_tac)));
-val basic_finish = Basic (K finish);
-
-fun finish_text None = basic_finish
-  | finish_text (Some txt) = Then [txt, basic_finish];
-
-
 (* structured proof steps *)
 
 val default_text = Source (Args.src (("default", []), Position.none));
-val assumption_text = Basic (K assumption);
+
+fun finish_text None = Basic finish
+  | finish_text (Some txt) = Then [txt, Basic finish];
 
 fun proof opt_text state =
   state
@@ -349,7 +346,7 @@ fun proof opt_text state =
 
 fun local_qed opt_text = Proof.local_qed (refine (finish_text opt_text));
 fun local_terminal_proof (text, opt_text) pr = Seq.THEN (proof (Some text), local_qed opt_text pr);
-val local_immediate_proof = local_terminal_proof (assumption_text, None);
+val local_immediate_proof = local_terminal_proof (Basic assumption, None);
 val local_default_proof = local_terminal_proof (default_text, None);
 
 
@@ -369,7 +366,7 @@ fun global_terminal_proof (text, opt_text) state =
   |> Proof.check_result "Failed to finish proof (after successful terminal method)" state
   |> Seq.hd;
 
-val global_immediate_proof = global_terminal_proof (assumption_text, None);
+val global_immediate_proof = global_terminal_proof (Basic assumption, None);
 val global_default_proof = global_terminal_proof (default_text, None);
 
 
@@ -381,12 +378,12 @@ val global_default_proof = global_terminal_proof (default_text, None);
 val pure_methods =
  [("fail", no_args fail, "force failure"),
   ("succeed", no_args succeed, "succeed"),
-  ("-", no_args insert, "insert facts, nothing else"),
-  ("fold", thms_args fold, "fold definitions"),
-  ("unfold", thms_args unfold, "unfold definitions"),
+  ("-", no_args insert_facts, "insert facts"),
+  ("fold", thms_args fold, "fold definitions, ignoring facts"),
+  ("unfold", thms_args unfold, "unfold definitions, ignoring facts"),
   ("rule", thms_args rule, "apply some rule"),
   ("erule", thms_args erule, "apply some erule (improper!)"),
-  ("assumption", no_args assumption, "proof by assumption")];
+  ("assumption", ctxt_args assumption, "proof by assumption, preferring facts")];
 
 
 (* setup *)
