@@ -440,7 +440,7 @@ qed "A_trust_OR4";
     the premises, e.g. by having A=Spy **)
 
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : otway lost;  evt : otway lost |] \
+ "!!evs. [| A ~: lost;  B ~: lost;  evs : otway lost |]                    \
 \        ==> Says Server B                                                 \
 \              {|NA, Crypt {|NA, Key K|} (shrK A),                         \
 \                Crypt {|NB, Key K|} (shrK B)|} : set_of_list evs -->      \
@@ -454,8 +454,7 @@ by (ALLGOALS
                           analz_insert_Key_newK] @ pushes)
                setloop split_tac [expand_if])));
 (*OR3*)
-by (fast_tac (!claset addSIs [parts_insertI]
-                      addEs [Says_imp_old_keys RS less_irrefl]
+by (fast_tac (!claset addEs [Says_imp_old_keys RS less_irrefl]
                       addss (!simpset addsimps [parts_insert2])) 3);
 (*OR4, OR2, Fake*) 
 by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));

@@ -144,23 +144,6 @@ by (fast_tac (!claset addSDs [new_keys_not_seen, Says_imp_sees_Spy]
 qed "Says_imp_old_keys";
 
 
-(*** Future nonces can't be seen or used! ***)
-
-goal thy "!!evs. evs : otway lost ==> \
-\                length evs <= length evt --> \
-\                Nonce (newN evt) ~: parts (sees lost Spy evs)";
-by (parts_induct_tac 1);
-by (REPEAT_FIRST (fast_tac (!claset 
-                              addSEs partsEs
-                              addSDs  [Says_imp_sees_Spy RS parts.Inj]
-                              addDs  [impOfSubs analz_subset_parts,
-                                      impOfSubs parts_insert_subset_Un,
-                                      Suc_leD]
-                              addss (!simpset))));
-qed_spec_mp "new_nonces_not_seen";
-Addsimps [new_nonces_not_seen];
-
-
 (*Nobody can have USED keys that will be generated in the future.
   ...very like new_keys_not_seen*)
 goal thy "!!evs. evs : otway lost ==> \
@@ -342,7 +325,7 @@ qed "A_trust_OR4";
     the premises, e.g. by having A=Spy **)
 
 goal thy 
- "!!evs. [| A ~: lost;  B ~: lost;  evs : otway lost;  evt : otway lost |] \
+ "!!evs. [| A ~: lost;  B ~: lost;  evs : otway lost |]                    \
 \        ==> Says Server B                                                 \
 \             {|Crypt {|NA, Agent A, Agent B, Key K|} (shrK A),            \
 \               Crypt {|NB, Agent A, Agent B, Key K|} (shrK B)|}           \
@@ -357,8 +340,7 @@ by (ALLGOALS
                           analz_insert_Key_newK] @ pushes)
                setloop split_tac [expand_if])));
 (*OR3*)
-by (fast_tac (!claset addSIs [parts_insertI]
-                      addEs [Says_imp_old_keys RS less_irrefl]
+by (fast_tac (!claset addEs [Says_imp_old_keys RS less_irrefl]
                       addss (!simpset addsimps [parts_insert2])) 2);
 (*OR4, Fake*) 
 by (REPEAT_FIRST (resolve_tac [conjI, impI] ORELSE' spy_analz_tac));
