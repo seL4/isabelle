@@ -280,8 +280,8 @@ where the result is treated as an assumption.
 \indexisarmeth{fail}\indexisarmeth{succeed}
 \begin{matharray}{rcl}
   unfold & : & \isarmeth \\
-  fold & : & \isarmeth \\[0.5ex]
-  insert^* & : & \isarmeth \\[0.5ex]
+  fold & : & \isarmeth \\
+  insert & : & \isarmeth \\[0.5ex]
   erule^* & : & \isarmeth \\
   drule^* & : & \isarmeth \\
   frule^* & : & \isarmeth \\[0.5ex]
@@ -290,7 +290,9 @@ where the result is treated as an assumption.
 \end{matharray}
 
 \begin{rail}
-  ('fold' | 'unfold' | 'insert' | 'erule' | 'drule' | 'frule') thmrefs
+  ('fold' | 'unfold' | 'insert') thmrefs
+  ;
+  ('erule' | 'drule' | 'frule') ('('nat')')? thmrefs
   ;
 \end{rail}
 
@@ -298,18 +300,20 @@ where the result is treated as an assumption.
 \item [$unfold~\vec a$ and $fold~\vec a$] expand and fold back again the given
   meta-level definitions throughout all goals; any facts provided are inserted
   into the goal and subject to rewriting as well.
+\item [$insert~\vec a$] inserts theorems as facts into all goals of the proof
+  state.  Note that current facts indicated for forward chaining are ignored.
 \item [$erule~\vec a$, $drule~\vec a$, and $frule~\vec a$] are similar to the
   basic $rule$ method (see \S\ref{sec:pure-meth-att}), but apply rules by
   elim-resolution, destruct-resolution, and forward-resolution, respectively
-  \cite{isabelle-ref}.  These are improper method, mainly for experimentation
-  and emulating tactic scripts.
-
-  Different modes of basic rule application are usually expressed in Isar at
-  the proof language level, rather than via implicit proof state
-  manipulations.  For example, a proper single-step elimination would be done
-  using the basic $rule$ method, with forward chaining of current facts.
-\item [$insert~\vec a$] inserts theorems as facts into all goals of the proof
-  state.  Note that current facts indicated for forward chaining are ignored.
+  \cite{isabelle-ref}.  The optional natural number argument (default $0$)
+  specifies additional assumption steps to be performed.
+  
+  Note that these methods are improper ones, mainly serving for
+  experimentation and tactic script emulation.  Different modes of basic rule
+  application are usually expressed in Isar at the proof language level,
+  rather than via implicit proof state manipulations.  For example, a proper
+  single-step elimination would be done using the basic $rule$ method, with
+  forward chaining of current facts.
 \item [$succeed$] yields a single (unchanged) result; it is the identity of
   the ``\texttt{,}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
 \item [$fail$] yields an empty result sequence; it is the identity of the
