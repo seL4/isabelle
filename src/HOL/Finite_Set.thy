@@ -9,65 +9,6 @@ header {* Finite sets *}
 
 theory Finite_Set = Divides + Power + Inductive:
 
-subsection {* Types Classes @{text plus_ac0} and @{text times_ac1} *}
-
-axclass plus_ac0 < plus, zero
-  commute:     "x + y = y + x"
-  assoc:       "(x + y) + z = x + (y + z)"
-  zero [simp]: "0 + x = x"
-
-lemma plus_ac0_left_commute: "x + (y+z) = y + ((x+z)::'a::plus_ac0)"
-apply (rule plus_ac0.commute [THEN trans])
-apply (rule plus_ac0.assoc [THEN trans])
-apply (rule plus_ac0.commute [THEN arg_cong])
-done
-
-lemma plus_ac0_zero_right [simp]: "x + 0 = (x ::'a::plus_ac0)"
-apply (rule plus_ac0.commute [THEN trans])
-apply (rule plus_ac0.zero)
-done
-
-lemmas plus_ac0 = plus_ac0.assoc plus_ac0.commute plus_ac0_left_commute
-                  plus_ac0.zero plus_ac0_zero_right
-
-instance almost_semiring < plus_ac0
-proof qed (rule add_commute add_assoc almost_semiring.add_0)+
-
-axclass times_ac1 < times, one
-  commute:     "x * y = y * x"
-  assoc:       "(x * y) * z = x * (y * z)"
-  one [simp]:  "1 * x = x"
-
-theorem times_ac1_left_commute: "(x::'a::times_ac1) * ((y::'a) * z) =
-  y * (x * z)"
-proof -
-  have "(x::'a::times_ac1) * (y * z) = (x * y) * z"
-    by (rule times_ac1.assoc [THEN sym])
-  also have "x * y = y * x"
-    by (rule times_ac1.commute)
-  also have "(y * x) * z = y * (x * z)"
-    by (rule times_ac1.assoc)
-  finally show ?thesis .
-qed
-
-theorem times_ac1_one_right [simp]: "(x::'a::times_ac1) * 1 = x"
-proof -
-  have "x * 1 = 1 * x"
-    by (rule times_ac1.commute)
-  also have "... = x"
-    by (rule times_ac1.one)
-  finally show ?thesis .
-qed
-
-instance almost_semiring < times_ac1
-  apply intro_classes
-  apply (rule mult_commute)
-  apply (rule mult_assoc, simp)
-  done
-
-theorems times_ac1 = times_ac1.assoc times_ac1.commute times_ac1_left_commute
-  times_ac1.one times_ac1_one_right
-
 subsection {* Collection of finite sets *}
 
 consts Finites :: "'a set set"
@@ -957,9 +898,7 @@ lemma setsum_Un: "finite A ==> finite B ==>
 lemma setsum_Un_ring: "finite A ==> finite B ==>
     (setsum f (A Un B) :: 'a :: ring) =
       setsum f A + setsum f B - setsum f (A Int B)"
-  apply (subst setsum_Un_Int [symmetric], auto)
-  apply (simp add: compare_rls)
-  done
+  by (subst setsum_Un_Int [symmetric], auto)
 
 lemma setsum_diff1: "(setsum f (A - {a}) :: nat) =
     (if a:A then setsum f A - f a else setsum f A)"

@@ -14,11 +14,66 @@ theory Ring_and_Field = Inductive:
 
 subsection {* Abstract algebraic structures *}
 
-text{*This class underlies both @{text semiring} and @{text ring}*}
-axclass almost_semiring \<subseteq> zero, one, plus, times
+subsection {* Types Classes @{text plus_ac0} and @{text times_ac1} *}
+
+axclass plus_ac0 \<subseteq> plus, zero
+  commute:     "x + y = y + x"
+  assoc:       "(x + y) + z = x + (y + z)"
+  zero [simp]: "0 + x = x"
+
+lemma plus_ac0_left_commute: "x + (y+z) = y + ((x+z)::'a::plus_ac0)"
+apply (rule plus_ac0.commute [THEN trans])
+apply (rule plus_ac0.assoc [THEN trans])
+apply (rule plus_ac0.commute [THEN arg_cong])
+done
+
+lemma plus_ac0_zero_right [simp]: "x + 0 = (x ::'a::plus_ac0)"
+apply (rule plus_ac0.commute [THEN trans])
+apply (rule plus_ac0.zero)
+done
+
+lemmas plus_ac0 = plus_ac0.assoc plus_ac0.commute plus_ac0_left_commute
+                  plus_ac0.zero plus_ac0_zero_right
+
+axclass times_ac1 \<subseteq> times, one
+  commute:     "x * y = y * x"
+  assoc:       "(x * y) * z = x * (y * z)"
+  one [simp]:  "1 * x = x"
+
+theorem times_ac1_left_commute: "(x::'a::times_ac1) * ((y::'a) * z) =
+  y * (x * z)"
+proof -
+  have "(x::'a::times_ac1) * (y * z) = (x * y) * z"
+    by (rule times_ac1.assoc [THEN sym])
+  also have "x * y = y * x"
+    by (rule times_ac1.commute)
+  also have "(y * x) * z = y * (x * z)"
+    by (rule times_ac1.assoc)
+  finally show ?thesis .
+qed
+
+theorem times_ac1_one_right [simp]: "(x::'a::times_ac1) * 1 = x"
+proof -
+  have "x * 1 = 1 * x"
+    by (rule times_ac1.commute)
+  also have "... = x"
+    by (rule times_ac1.one)
+  finally show ?thesis .
+qed
+
+theorems times_ac1 = times_ac1.assoc times_ac1.commute times_ac1_left_commute
+  times_ac1.one times_ac1_one_right
+
+
+text{*This class is the same as @{text plus_ac0}, while using the same axiom
+names as the other axclasses.*}
+axclass abelian_semigroup \<subseteq> zero, plus
   add_assoc: "(a + b) + c = a + (b + c)"
   add_commute: "a + b = b + a"
   add_0 [simp]: "0 + a = a"
+
+text{*This class underlies both @{text semiring} and @{text ring}*}
+axclass almost_semiring \<subseteq> abelian_semigroup, one, times
   mult_assoc: "(a * b) * c = a * (b * c)"
   mult_commute: "a * b = b * a"
   mult_1 [simp]: "1 * a = a"
@@ -26,15 +81,34 @@ axclass almost_semiring \<subseteq> zero, one, plus, times
   left_distrib: "(a + b) * c = a * c + b * c"
   zero_neq_one [simp]: "0 \<noteq> 1"
 
+
 axclass semiring \<subseteq> almost_semiring
   add_left_imp_eq: "a + b = a + c ==> b=c"
     --{*This axiom is needed for semirings only: for rings, etc., it is
         redundant. Including it allows many more of the following results
         to be proved for semirings too.*}
 
-axclass ring \<subseteq> almost_semiring, minus
-  left_minus [simp]: "- a + a = 0"
-  diff_minus: "a - b = a + (-b)"
+instance abelian_semigroup \<subseteq> plus_ac0
+proof
+  fix x y z :: 'a
+  show "x + y = y + x" by (rule add_commute)
+  show "x + y + z = x + (y + z)" by (rule add_assoc)
+  show "0+x = x" by (rule add_0)
+qed
+
+instance almost_semiring \<subseteq> times_ac1
+proof
+  fix x y z :: 'a
+  show "x * y = y * x" by (rule mult_commute)
+  show "x * y * z = x * (y * z)" by (rule mult_assoc)
+  show "1*x = x" by simp
+qed
+
+axclass abelian_group \<subseteq> abelian_semigroup, minus
+   left_minus [simp]: "-a + a = 0"
+   diff_minus: "a - b = a + -b"
+
+axclass ring \<subseteq> almost_semiring, abelian_group
 
 text{*Proving axiom @{text add_left_imp_eq} makes all @{text semiring}
       theorems available to members of @{term ring} *}
@@ -69,26 +143,26 @@ axclass division_by_zero \<subseteq> zero, inverse
 
 subsection {* Derived Rules for Addition *}
 
-lemma add_0_right [simp]: "a + 0 = (a::'a::almost_semiring)"
+lemma add_0_right [simp]: "a + 0 = (a::'a::plus_ac0)"
 proof -
-  have "a + 0 = 0 + a" by (simp only: add_commute)
+  have "a + 0 = 0 + a" by (rule plus_ac0.commute)
   also have "... = a" by simp
   finally show ?thesis .
 qed
 
-lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::almost_semiring))"
-  by (rule mk_left_commute [of "op +", OF add_assoc add_commute])
+lemma add_left_commute: "a + (b + c) = b + (a + (c::'a::plus_ac0))"
+  by (rule mk_left_commute [of "op +", OF plus_ac0.assoc plus_ac0.commute])
 
 theorems add_ac = add_assoc add_commute add_left_commute
 
-lemma right_minus [simp]: "a + -(a::'a::ring) = 0"
+lemma right_minus [simp]: "a + -(a::'a::abelian_group) = 0"
 proof -
   have "a + -a = -a + a" by (simp add: add_ac)
   also have "... = 0" by simp
   finally show ?thesis .
 qed
 
-lemma right_minus_eq: "(a - b = 0) = (a = (b::'a::ring))"
+lemma right_minus_eq: "(a - b = 0) = (a = (b::'a::abelian_group))"
 proof
   have "a = a - b + b" by (simp add: diff_minus add_ac)
   also assume "a - b = 0"
@@ -106,33 +180,32 @@ lemma add_right_cancel [simp]:
      "(b + a = c + a) = (b = (c::'a::semiring))"
   by (simp add: add_commute)
 
-lemma minus_minus [simp]: "- (- (a::'a::ring)) = a"
-proof (rule add_left_cancel [of "-a", THEN iffD1])
-  show "(-a + -(-a) = -a + a)"
-  by simp
-qed
+lemma minus_minus [simp]: "- (- (a::'a::abelian_group)) = a" 
+apply (rule right_minus_eq [THEN iffD1]) 
+apply (simp add: diff_minus) 
+done
 
-lemma equals_zero_I: "a+b = 0 ==> -a = (b::'a::ring)"
+lemma equals_zero_I: "a+b = 0 ==> -a = (b::'a::abelian_group)"
 apply (rule right_minus_eq [THEN iffD1, symmetric])
 apply (simp add: diff_minus add_commute) 
 done
 
-lemma minus_zero [simp]: "- 0 = (0::'a::ring)"
+lemma minus_zero [simp]: "- 0 = (0::'a::abelian_group)"
 by (simp add: equals_zero_I)
 
-lemma diff_self [simp]: "a - (a::'a::ring) = 0"
+lemma diff_self [simp]: "a - (a::'a::abelian_group) = 0"
   by (simp add: diff_minus)
 
-lemma diff_0 [simp]: "(0::'a::ring) - a = -a"
+lemma diff_0 [simp]: "(0::'a::abelian_group) - a = -a"
 by (simp add: diff_minus)
 
-lemma diff_0_right [simp]: "a - (0::'a::ring) = a" 
+lemma diff_0_right [simp]: "a - (0::'a::abelian_group) = a" 
 by (simp add: diff_minus)
 
-lemma diff_minus_eq_add [simp]: "a - - b = a + (b::'a::ring)"
+lemma diff_minus_eq_add [simp]: "a - - b = a + (b::'a::abelian_group)"
 by (simp add: diff_minus)
 
-lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::ring))" 
+lemma neg_equal_iff_equal [simp]: "(-a = -b) = (a = (b::'a::abelian_group))" 
 proof 
   assume "- a = - b"
   hence "- (- a) = - (- b)"
@@ -143,21 +216,33 @@ next
   thus "-a = -b" by simp
 qed
 
-lemma neg_equal_0_iff_equal [simp]: "(-a = 0) = (a = (0::'a::ring))"
+lemma neg_equal_0_iff_equal [simp]: "(-a = 0) = (a = (0::'a::abelian_group))"
 by (subst neg_equal_iff_equal [symmetric], simp)
 
-lemma neg_0_equal_iff_equal [simp]: "(0 = -a) = (0 = (a::'a::ring))"
+lemma neg_0_equal_iff_equal [simp]: "(0 = -a) = (0 = (a::'a::abelian_group))"
 by (subst neg_equal_iff_equal [symmetric], simp)
+
+lemma add_minus_self [simp]: "a + b - b = (a::'a::abelian_group)"; 
+  by (simp add: diff_minus add_assoc)
+
+lemma add_minus_self_left [simp]:  "a + (b - a)  = (b::'a::abelian_group)";
+by (simp add: diff_minus add_left_commute [of a]) 
+
+lemma add_minus_self_right  [simp]:  "a + b - a  = (b::'a::abelian_group)";
+by (simp add: diff_minus add_left_commute [of a] add_assoc) 
+
+lemma minus_add_self [simp]: "a - b + b = (a::'a::abelian_group)"; 
+by (simp add: diff_minus add_assoc) 
 
 text{*The next two equations can make the simplifier loop!*}
 
-lemma equation_minus_iff: "(a = - b) = (b = - (a::'a::ring))"
+lemma equation_minus_iff: "(a = - b) = (b = - (a::'a::abelian_group))"
 proof -
   have "(- (-a) = - b) = (- a = b)" by (rule neg_equal_iff_equal)
   thus ?thesis by (simp add: eq_commute)
 qed
 
-lemma minus_equation_iff: "(- a = b) = (- (b::'a::ring) = a)"
+lemma minus_equation_iff: "(- a = b) = (- (b::'a::abelian_group) = a)"
 proof -
   have "(- a = - (-b)) = (a = -b)" by (rule neg_equal_iff_equal)
   thus ?thesis by (simp add: eq_commute)
@@ -206,9 +291,9 @@ lemma combine_common_factor:
      "a*e + (b*e + c) = (a+b)*e + (c::'a::almost_semiring)"
 by (simp add: left_distrib add_ac)
 
-lemma minus_add_distrib [simp]: "- (a + b) = -a + -(b::'a::ring)"
+lemma minus_add_distrib [simp]: "- (a + b) = -a + -(b::'a::abelian_group)"
 apply (rule equals_zero_I)
-apply (simp add: add_ac) 
+apply (simp add: plus_ac0) 
 done
 
 lemma minus_mult_left: "- (a * b) = (-a) * (b::'a::ring)"
@@ -388,23 +473,23 @@ done
 
 subsection{*Subtraction Laws*}
 
-lemma add_diff_eq: "a + (b - c) = (a + b) - (c::'a::ring)"
-by (simp add: diff_minus add_ac)
+lemma add_diff_eq: "a + (b - c) = (a + b) - (c::'a::abelian_group)"
+by (simp add: diff_minus plus_ac0)
 
-lemma diff_add_eq: "(a - b) + c = (a + c) - (b::'a::ring)"
-by (simp add: diff_minus add_ac)
+lemma diff_add_eq: "(a - b) + c = (a + c) - (b::'a::abelian_group)"
+by (simp add: diff_minus plus_ac0)
 
-lemma diff_eq_eq: "(a-b = c) = (a = c + (b::'a::ring))"
+lemma diff_eq_eq: "(a-b = c) = (a = c + (b::'a::abelian_group))"
 by (auto simp add: diff_minus add_assoc)
 
-lemma eq_diff_eq: "(a = c-b) = (a + (b::'a::ring) = c)"
+lemma eq_diff_eq: "(a = c-b) = (a + (b::'a::abelian_group) = c)"
 by (auto simp add: diff_minus add_assoc)
 
-lemma diff_diff_eq: "(a - b) - c = a - (b + (c::'a::ring))"
-by (simp add: diff_minus add_ac)
+lemma diff_diff_eq: "(a - b) - c = a - (b + (c::'a::abelian_group))"
+by (simp add: diff_minus plus_ac0)
 
-lemma diff_diff_eq2: "a - (b - c) = (a + c) - (b::'a::ring)"
-by (simp add: diff_minus add_ac)
+lemma diff_diff_eq2: "a - (b - c) = (a + c) - (b::'a::abelian_group)"
+by (simp add: diff_minus plus_ac0)
 
 text{*Further subtraction laws for ordered rings*}
 
@@ -446,7 +531,7 @@ lemmas compare_rls =
 
 subsection{*Lemmas for the @{text cancel_numerals} simproc*}
 
-lemma eq_iff_diff_eq_0: "(a = b) = (a-b = (0::'a::ring))"
+lemma eq_iff_diff_eq_0: "(a = b) = (a-b = (0::'a::abelian_group))"
 by (simp add: compare_rls)
 
 lemma le_iff_diff_le_0: "(a \<le> b) = (a-b \<le> (0::'a::ordered_ring))"
