@@ -69,7 +69,7 @@ This defines exactly the same function as @{term"sep"} above, i.e.\
 *}
 consts sep2 :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a list";
 recdef sep2 "measure length"
-  "sep2 (x#y#zs) = (\<lambda>a. x # a # sep2 zs a)"
+  "sep2 (x#y#zs) = (\<lambda>a. x # a # sep2 (y#zs) a)"
   "sep2 xs       = (\<lambda>a. xs)";
 
 text{*

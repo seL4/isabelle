@@ -248,13 +248,10 @@ This time not even the base case is solved automatically:
 apply(auto);
 
 txt{*
-\begin{isabelle}
-~1.~rev~ys~=~rev~ys~@~[]\isanewline
-~2. \dots
-\end{isabelle}
-Again, we need to abandon this proof attempt and prove another simple lemma first.
-In the future the step of abandoning an incomplete proof before embarking on
-the proof of a lemma usually remains implicit.
+@{subgoals[display,indent=0,goals_limit=1]}
+Again, we need to abandon this proof attempt and prove another simple lemma
+first. In the future the step of abandoning an incomplete proof before
+embarking on the proof of a lemma usually remains implicit.
 *}
 (*<*)
 oops
@@ -273,11 +270,7 @@ apply(auto);
 txt{*
 \noindent
 leads to the desired message @{text"No subgoals!"}:
-\begin{isabelle}
-xs~@~[]~=~xs\isanewline
-No~subgoals!
-\end{isabelle}
-
+@{goals[display,indent=0]}
 We still need to confirm that the proof is now finished:
 *}
 
@@ -306,11 +299,7 @@ txt{*
 \noindent
 we find that this time @{text"auto"} solves the base case, but the
 induction step merely simplifies to
-\begin{isabelle}
-~1.~{\isasymAnd}a~list.\isanewline
-~~~~~~~rev~(list~@~ys)~=~rev~ys~@~rev~list~{\isasymLongrightarrow}\isanewline
-~~~~~~~(rev~ys~@~rev~list)~@~a~\#~[]~=~rev~ys~@~rev~list~@~a~\#~[]
-\end{isabelle}
+@{subgoals[display,indent=0,goals_limit=1]}
 Now we need to remember that @{text"@"} associates to the right, and that
 @{text"#"} and @{text"@"} have the same priority (namely the @{text"65"}
 in their \isacommand{infixr} annotation). Thus the conclusion really is

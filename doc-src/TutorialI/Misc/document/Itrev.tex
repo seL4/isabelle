@@ -84,10 +84,10 @@ the main source of complications in inductive proofs.
 Although we now have two variables, only \isa{xs} is suitable for
 induction, and we repeat our above proof attempt. Unfortunately, we are still
 not there:
-\begin{isabelle}\makeatother
-~1.~{\isasymAnd}a~list.\isanewline
-~~~~~~~itrev~list~ys~=~rev~list~@~ys~{\isasymLongrightarrow}\isanewline
-~~~~~~~itrev~list~(a~\#~ys)~=~rev~list~@~a~\#~ys
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
+\ \ \ \ \ \ \ itrev\ list\ ys\ {\isacharequal}\ rev\ list\ {\isacharat}\ ys\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ \ \ itrev\ list\ {\isacharparenleft}a\ {\isacharhash}\ ys{\isacharparenright}\ {\isacharequal}\ rev\ list\ {\isacharat}\ a\ {\isacharhash}\ ys%
 \end{isabelle}
 The induction hypothesis is still too weak, but this time it takes no
 intuition to generalize: the problem is that \isa{ys} is fixed throughout

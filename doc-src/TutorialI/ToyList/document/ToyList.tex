@@ -234,13 +234,12 @@ This time not even the base case is solved automatically:%
 \end{isamarkuptxt}%
 \isacommand{apply}{\isacharparenleft}auto{\isacharparenright}%
 \begin{isamarkuptxt}%
-\begin{isabelle}
-~1.~rev~ys~=~rev~ys~@~[]\isanewline
-~2. \dots
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ rev\ ys\ {\isacharequal}\ rev\ ys\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}%
 \end{isabelle}
-Again, we need to abandon this proof attempt and prove another simple lemma first.
-In the future the step of abandoning an incomplete proof before embarking on
-the proof of a lemma usually remains implicit.%
+Again, we need to abandon this proof attempt and prove another simple lemma
+first. In the future the step of abandoning an incomplete proof before
+embarking on the proof of a lemma usually remains implicit.%
 \end{isamarkuptxt}%
 %
 \isamarkupsubsubsection{Second lemma: \isa{xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs}}
@@ -254,11 +253,10 @@ This time the canonical proof procedure%
 \begin{isamarkuptxt}%
 \noindent
 leads to the desired message \isa{No\ subgoals{\isacharbang}}:
-\begin{isabelle}
-xs~@~[]~=~xs\isanewline
-No~subgoals!
+\begin{isabelle}%
+xs\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs\isanewline
+No\ subgoals{\isacharbang}%
 \end{isabelle}
-
 We still need to confirm that the proof is now finished:%
 \end{isamarkuptxt}%
 \isacommand{done}%
@@ -284,10 +282,10 @@ Going back to the proof of the first lemma%
 \noindent
 we find that this time \isa{auto} solves the base case, but the
 induction step merely simplifies to
-\begin{isabelle}
-~1.~{\isasymAnd}a~list.\isanewline
-~~~~~~~rev~(list~@~ys)~=~rev~ys~@~rev~list~{\isasymLongrightarrow}\isanewline
-~~~~~~~(rev~ys~@~rev~list)~@~a~\#~[]~=~rev~ys~@~rev~list~@~a~\#~[]
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
+\ \ \ \ \ \ \ rev\ {\isacharparenleft}list\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ rev\ ys\ {\isacharat}\ rev\ list\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ \ \ {\isacharparenleft}rev\ ys\ {\isacharat}\ rev\ list{\isacharparenright}\ {\isacharat}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ ys\ {\isacharat}\ rev\ list\ {\isacharat}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}%
 \end{isabelle}
 Now we need to remember that \isa{{\isacharat}} associates to the right, and that
 \isa{{\isacharhash}} and \isa{{\isacharat}} have the same priority (namely the \isa{{\isadigit{6}}{\isadigit{5}}}

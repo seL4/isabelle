@@ -142,7 +142,7 @@ $(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/ROOT.ML \
 
 HOL-Types: HOL $(LOG)/HOL-Types.gz
 
-$(LOG)/HOL-Types.gz: $(OUT)/HOL Types/ROOT.ML \
+$(LOG)/HOL-Types.gz: $(OUT)/HOL Types/ROOT.ML Types/Typedef.thy \
   Types/Overloading0.thy Types/Overloading1.thy Types/Overloading2.thy \
   Types/Overloading.thy Types/Axioms.thy
 	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Types

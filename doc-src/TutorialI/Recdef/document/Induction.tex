@@ -29,12 +29,12 @@ this lemma by recursion induction w.r.t. \isa{sep}:%
 \noindent
 The resulting proof state has three subgoals corresponding to the three
 clauses for \isa{sep}:
-\begin{isabelle}
-~1.~{\isasymAnd}a.~map~f~(sep~(a,~[]))~=~sep~(f~a,~map~f~[])\isanewline
-~2.~{\isasymAnd}a~x.~map~f~(sep~(a,~[x]))~=~sep~(f~a,~map~f~[x])\isanewline
-~3.~{\isasymAnd}a~x~y~zs.\isanewline
-~~~~~~~map~f~(sep~(a,~y~\#~zs))~=~sep~(f~a,~map~f~(y~\#~zs))~{\isasymLongrightarrow}\isanewline
-~~~~~~~map~f~(sep~(a,~x~\#~y~\#~zs))~=~sep~(f~a,~map~f~(x~\#~y~\#~zs))%
+\begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a{\isachardot}\ map\ f\ {\isacharparenleft}sep\ {\isacharparenleft}a{\isacharcomma}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharcomma}\ map\ f\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isasymAnd}a\ x{\isachardot}\ map\ f\ {\isacharparenleft}sep\ {\isacharparenleft}a{\isacharcomma}\ {\isacharbrackleft}x{\isacharbrackright}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharcomma}\ map\ f\ {\isacharbrackleft}x{\isacharbrackright}{\isacharparenright}\isanewline
+\ {\isadigit{3}}{\isachardot}\ {\isasymAnd}a\ x\ y\ zs{\isachardot}\isanewline
+\ \ \ \ \ \ \ map\ f\ {\isacharparenleft}sep\ {\isacharparenleft}a{\isacharcomma}\ y\ {\isacharhash}\ zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharcomma}\ map\ f\ {\isacharparenleft}y\ {\isacharhash}\ zs{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\isanewline
+\ \ \ \ \ \ \ map\ f\ {\isacharparenleft}sep\ {\isacharparenleft}a{\isacharcomma}\ x\ {\isacharhash}\ y\ {\isacharhash}\ zs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ sep\ {\isacharparenleft}f\ a{\isacharcomma}\ map\ f\ {\isacharparenleft}x\ {\isacharhash}\ y\ {\isacharhash}\ zs{\isacharparenright}{\isacharparenright}%
 \end{isabelle}
 The rest is pure simplification:%
 \end{isamarkuptxt}%

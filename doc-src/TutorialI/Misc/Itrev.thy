@@ -35,7 +35,7 @@ because it calls function @{text"@"} for each element of the list and
 gradually, using only @{text"#"}:
 *}
 
-consts itrev :: "'a list \\<Rightarrow> 'a list \\<Rightarrow> 'a list";
+consts itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list";
 primrec
 "itrev []     ys = ys"
 "itrev (x#xs) ys = itrev xs (x#ys)";
@@ -75,7 +75,7 @@ just not true---the correct generalization is
 *};
 (*<*)oops;(*>*)
 lemma "itrev xs ys = rev xs @ ys";
-
+(*<*)apply(induct_tac xs, simp_all)(*>*)
 txt{*\noindent
 If @{term"ys"} is replaced by @{term"[]"}, the right-hand side simplifies to
 @{term"rev xs"}, just as required.
@@ -87,11 +87,7 @@ the main source of complications in inductive proofs.
 Although we now have two variables, only @{term"xs"} is suitable for
 induction, and we repeat our above proof attempt. Unfortunately, we are still
 not there:
-\begin{isabelle}\makeatother
-~1.~{\isasymAnd}a~list.\isanewline
-~~~~~~~itrev~list~ys~=~rev~list~@~ys~{\isasymLongrightarrow}\isanewline
-~~~~~~~itrev~list~(a~\#~ys)~=~rev~list~@~a~\#~ys
-\end{isabelle}
+@{subgoals[display,indent=0,goals_limit=1]}
 The induction hypothesis is still too weak, but this time it takes no
 intuition to generalize: the problem is that @{term"ys"} is fixed throughout
 the subgoal, but the induction hypothesis needs to be applied with
@@ -99,7 +95,7 @@ the subgoal, but the induction hypothesis needs to be applied with
 for all @{term"ys"} instead of a fixed one:
 *};
 (*<*)oops;(*>*)
-lemma "\\<forall>ys. itrev xs ys = rev xs @ ys";
+lemma "\<forall>ys. itrev xs ys = rev xs @ ys";
 (*<*)
 by(induct_tac xs, simp_all);
 (*>*)

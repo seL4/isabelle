@@ -31,13 +31,7 @@ apply(induct_tac x xs rule: sep.induct);
 txt{*\noindent
 The resulting proof state has three subgoals corresponding to the three
 clauses for @{term"sep"}:
-\begin{isabelle}
-~1.~{\isasymAnd}a.~map~f~(sep~(a,~[]))~=~sep~(f~a,~map~f~[])\isanewline
-~2.~{\isasymAnd}a~x.~map~f~(sep~(a,~[x]))~=~sep~(f~a,~map~f~[x])\isanewline
-~3.~{\isasymAnd}a~x~y~zs.\isanewline
-~~~~~~~map~f~(sep~(a,~y~\#~zs))~=~sep~(f~a,~map~f~(y~\#~zs))~{\isasymLongrightarrow}\isanewline
-~~~~~~~map~f~(sep~(a,~x~\#~y~\#~zs))~=~sep~(f~a,~map~f~(x~\#~y~\#~zs))%
-\end{isabelle}
+@{subgoals[display,indent=0]}
 The rest is pure simplification:
 *}
 

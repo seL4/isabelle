@@ -154,9 +154,7 @@ apply(simp only:exor_def);
 
 txt{*\noindent
 In this particular case, the resulting goal
-\begin{isabelle}
-~1.~A~{\isasymand}~{\isasymnot}~{\isasymnot}~A~{\isasymor}~{\isasymnot}~A~{\isasymand}~{\isasymnot}~A%
-\end{isabelle}
+@{subgoals[display,indent=0]}
 can be proved by simplification. Thus we could have proved the lemma outright by
 *}(*<*)oops;lemma "exor A (\<not>A)";(*>*)
 apply(simp add: exor_def)
@@ -237,17 +235,13 @@ distinction on the condition of the @{text"if"}. For example the goal
 lemma "\<forall>xs. if xs = [] then rev xs = [] else rev xs \<noteq> []";
 
 txt{*\noindent
-can be split into
-\begin{isabelle}
-~1.~{\isasymforall}xs.~(xs~=~[]~{\isasymlongrightarrow}~rev~xs~=~[])~{\isasymand}~(xs~{\isasymnoteq}~[]~{\isasymlongrightarrow}~rev~xs~{\isasymnoteq}~[])
-\end{isabelle}
-by a degenerate form of simplification
+can be split by a degenerate form of simplification
 *}
 
 apply(simp only: split: split_if);
-(*<*)oops;(*>*)
 
-text{*\noindent
+txt{*\noindent
+@{subgoals[display,indent=0]}
 where no simplification rules are included (@{text"only:"} is followed by the
 empty list of theorems) but the rule \isaindexbold{split_if} for
 splitting @{text"if"}s is added (via the modifier @{text"split:"}). Because
@@ -256,28 +250,19 @@ simplifier performs it automatically. Try \isacommand{apply}@{text"(simp)"}
 on the initial goal above.
 
 This splitting idea generalizes from @{text"if"} to \isaindex{case}:
-*}
+*}(*<*)oops;(*>*)
 
 lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs";
-txt{*\noindent
-becomes
-\begin{isabelle}\makeatother
-~1.~(xs~=~[]~{\isasymlongrightarrow}~zs~=~xs~@~zs)~{\isasymand}\isanewline
-~~~~({\isasymforall}a~list.~xs~=~a~\#~list~{\isasymlongrightarrow}~a~\#~list~@~zs~=~xs~@~zs)
-\end{isabelle}
-by typing
-*}
-
 apply(simp only: split: list.split);
-(*<*)oops;(*>*)
 
-text{*\noindent
+txt{*
+@{subgoals[display,indent=0]}
 In contrast to @{text"if"}-expressions, the simplifier does not split
 @{text"case"}-expressions by default because this can lead to nontermination
 in case of recursive datatypes. Again, if the @{text"only:"} modifier is
 dropped, the above goal is solved,
 *}
-(*<*)
+(*<*)oops;
 lemma "(case xs of [] \<Rightarrow> zs | y#ys \<Rightarrow> y#(ys@zs)) = xs@zs";
 (*>*)
 apply(simp split: list.split);
@@ -317,17 +302,11 @@ $t$@{text".split_asm"}:
 
 lemma "if xs = [] then ys ~= [] else ys = [] ==> xs @ ys ~= []"
 apply(simp only: split: split_if_asm);
-(*<*)
-by(simp_all)
-(*>*)
 
-text{*\noindent
+txt{*\noindent
 In contrast to splitting the conclusion, this actually creates two
 separate subgoals (which are solved by @{text"simp_all"}):
-\begin{isabelle}
-\ \isadigit{1}{\isachardot}\ {\isasymlbrakk}\mbox{xs}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ \mbox{ys}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharat}\ \mbox{ys}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}\isanewline
-\ \isadigit{2}{\isachardot}\ {\isasymlbrakk}\mbox{xs}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}{\isacharsemicolon}\ \mbox{ys}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isasymrbrakk}\ {\isasymLongrightarrow}\ \mbox{xs}\ {\isacharat}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymnoteq}\ {\isacharbrackleft}{\isacharbrackright}
-\end{isabelle}
+@{subgoals[display,indent=0]}
 If you need to split both in the assumptions and the conclusion,
 use $t$@{text".splits"} which subsumes $t$@{text".split"} and
 $t$@{text".split_asm"}. Analogously, there is @{thm[source]if_splits}.
@@ -343,6 +322,9 @@ $t$@{text".split_asm"}. Analogously, there is @{thm[source]if_splits}.
 
 \index{*split|)}
 *}
+(*<*)
+by(simp_all)
+(*>*)
 
 
 subsubsection{*Arithmetic*}

@@ -59,7 +59,7 @@ apply intro_classes;
 txt{*\noindent
 This time @{text intro_classes} leaves us with the four axioms,
 specialized to type @{typ bool}, as subgoals:
-@{goals[display,show_types,indent=0]}
+@{subgoals[display,show_types,indent=0]}
 Fortunately, the proof is easy for blast, once we have unfolded the definitions
 of @{text"<<"} and @{text"<<="} at @{typ bool}:
 *}

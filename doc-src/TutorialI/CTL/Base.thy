@@ -2,7 +2,7 @@
 
 section{*Case study: Verified model checking*}
 
-text{*
+text{*\label{sec:VMC}
 Model checking is a very popular technique for the verification of finite
 state systems (implementations) w.r.t.\ temporal logic formulae
 (specifications) \cite{ClarkeGP-book,Huth-Ryan-book}. Its foundations are completely set theoretic
