@@ -8,14 +8,19 @@ Ordered pairs in Zermelo-Fraenkel Set Theory
 
 (** Lemmas for showing that <a,b> uniquely determines a and b **)
 
-qed_goal "doubleton_iff" ZF.thy
+qed_goal "singleton_eq_iff" ZF.thy
+    "{a} = {b} <-> a=b"
+ (fn _=> [ (resolve_tac [extension RS iff_trans] 1),
+           (fast_tac upair_cs 1) ]);
+
+qed_goal "doubleton_eq_iff" ZF.thy
     "{a,b} = {c,d} <-> (a=c & b=d) | (a=d & b=c)"
  (fn _=> [ (resolve_tac [extension RS iff_trans] 1),
            (fast_tac upair_cs 1) ]);
 
 qed_goalw "Pair_iff" ZF.thy [Pair_def]
     "<a,b> = <c,d> <-> a=c & b=d"
- (fn _=> [ (simp_tac (FOL_ss addsimps [doubleton_iff]) 1),
+ (fn _=> [ (simp_tac (FOL_ss addsimps [doubleton_eq_iff]) 1),
            (fast_tac FOL_cs 1) ]);
 
 bind_thm ("Pair_inject", (Pair_iff RS iffD1 RS conjE));
@@ -131,6 +136,21 @@ qed_goalw "fst_conv" ZF.thy [fst_def] "fst(<a,b>) = a"
 
 qed_goalw "snd_conv" ZF.thy [snd_def] "snd(<a,b>) = b"
  (fn _=> [ (rtac split 1) ]);
+
+qed_goalw "fst_type" ZF.thy [fst_def]
+    "!!p. p:Sigma(A,B) ==> fst(p) : A"
+ (fn _=> [ (etac split_type 1), (assume_tac 1) ]);
+
+qed_goalw "snd_type" ZF.thy [snd_def]
+    "!!p. p:Sigma(A,B) ==> snd(p) : B(fst(p))"
+ (fn _=> [ (etac split_type 1), 
+	   (asm_simp_tac (FOL_ss addsimps [fst_conv]) 1) ]);
+
+
+goal ZF.thy "!!a A B. a: Sigma(A,B) ==> <fst(a),snd(a)> = a";
+by (etac SigmaE 1);
+by (asm_simp_tac (FOL_ss addsimps [fst_conv,snd_conv]) 1);
+qed "Pair_fst_snd_eq";
 
 
 (*** split for predicates: result type o ***)
