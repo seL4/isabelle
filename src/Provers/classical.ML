@@ -172,6 +172,8 @@ sig
   val xtra_intro_local: Proof.context attribute
   val delrule_local: Proof.context attribute
   val cla_modifiers: (Args.T list -> (Proof.context attribute * Args.T list)) list
+  val cla_meth: (claset -> tactic) -> Proof.context -> Proof.method
+  val cla_meth': (claset -> int -> tactic) -> Proof.context -> Proof.method
   val cla_method: (claset -> tactic) -> Args.src -> Proof.context -> Proof.method
   val cla_method': (claset -> int -> tactic) -> Args.src -> Proof.context -> Proof.method
   val single_tac: claset -> thm list -> int -> tactic
