@@ -98,7 +98,7 @@ val premsN = "prems";
 val empty = {fixes = [], assumes = [], binds = []};
 
 fun nth_subgoal(i,prop) =
-  hd (#1 (Logic.strip_prems (i, [], Logic.skip_flexpairs prop)));
+  hd (#1 (Logic.strip_prems (i, [], prop)));
 
 fun hhf_nth_subgoal sg = Drule.norm_hhf sg o nth_subgoal
   
@@ -128,7 +128,7 @@ fun prep_case open_params split sg prop name i =
   in (name, {fixes = xs, assumes = named_asms, binds = [bind]}) end;
 
 fun make open_params split (sg, prop) names =
-  let val nprems = Logic.count_prems (Logic.skip_flexpairs prop, 0) in
+  let val nprems = Logic.count_prems (prop, 0) in
     foldr (fn (name, (cases, i)) => (prep_case open_params split sg prop name i :: cases, i - 1))
       (Library.drop (length names - nprems, names), ([], length names)) |> #1
   end;
