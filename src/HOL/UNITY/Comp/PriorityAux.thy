@@ -6,19 +6,21 @@
 Auxiliary definitions needed in Priority.thy
 *)
 
-theory PriorityAux = UNITY_Main:
+theory PriorityAux 
+imports "../UNITY_Main"
+begin
 
 typedecl vertex
 arities vertex :: type
   
 constdefs
-  (* symmetric closure: removes the orientation of a relation *)
   symcl :: "(vertex*vertex)set=>(vertex*vertex)set"
   "symcl r == r \<union> (r^-1)"
+    --{* symmetric closure: removes the orientation of a relation*}
 
-  (* Neighbors of a vertex i *)
   neighbors :: "[vertex, (vertex*vertex)set]=>vertex set"
- "neighbors i r == ((r \<union> r^-1)``{i}) - {i}"
+  "neighbors i r == ((r \<union> r^-1)``{i}) - {i}"
+    --{* Neighbors of a vertex i *}
 
   R :: "[vertex, (vertex*vertex)set]=>vertex set"
   "R i r == r``{i}"
@@ -26,9 +28,9 @@ constdefs
   A :: "[vertex, (vertex*vertex)set]=>vertex set"
   "A i r == (r^-1)``{i}"
 
-  (* reachable and above vertices: the original notation was R* and A* *)  
   reach :: "[vertex, (vertex*vertex)set]=> vertex set"
   "reach i r == (r^+)``{i}"
+    --{* reachable and above vertices: the original notation was R* and A* *}
 
   above :: "[vertex, (vertex*vertex)set]=> vertex set"
   "above i r == ((r^-1)^+)``{i}"  
@@ -36,19 +38,19 @@ constdefs
   reverse :: "[vertex, (vertex*vertex) set]=>(vertex*vertex)set"
   "reverse i r == (r - {(x,y). x=i | y=i} \<inter> r) \<union> ({(x,y). x=i|y=i} \<inter> r)^-1"
 
-  (* The original definition *)
   derive1 :: "[vertex, (vertex*vertex)set, (vertex*vertex)set]=>bool"
+    --{* The original definition *}
   "derive1 i r q == symcl r = symcl q &
                     (\<forall>k k'. k\<noteq>i & k'\<noteq>i -->((k,k'):r) = ((k,k'):q)) &
                     A i r = {} & R i q = {}"
 
-  (* Our alternative definition *)
   derive :: "[vertex, (vertex*vertex)set, (vertex*vertex)set]=>bool"
+    --{* Our alternative definition *}
   "derive i r q == A i r = {} & (q = reverse i r)"
 
 axioms
-  (* we assume that the universe of vertices is finite  *)
   finite_vertex_univ:  "finite (UNIV :: vertex set)"
+    --{* we assume that the universe of vertices is finite  *}
 
 declare derive_def [simp] derive1_def [simp] symcl_def [simp] 
         A_def [simp] R_def [simp] 

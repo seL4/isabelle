@@ -17,27 +17,30 @@ types state = "(vertex*vertex)set"
 types command = "vertex=>(state*state)set"
   
 consts
-  (* the initial state *)
   init :: "(vertex*vertex)set"  
+  --{* the initial state *}
+
+text{*Following the definitions given in section 4.4 *}
 
 constdefs
-  (* from the definitions given in section 4.4 *)
-  (* i has highest priority in r *)
   highest :: "[vertex, (vertex*vertex)set]=>bool"
   "highest i r == A i r = {}"
+    --{* i has highest priority in r *}
   
-  (* i has lowest priority in r *)
   lowest :: "[vertex, (vertex*vertex)set]=>bool"
   "lowest i r == R i r = {}"
+    --{* i has lowest priority in r *}
 
   act :: command
   "act i == {(s, s'). s'=reverse i s & highest i s}"
 
-  (* All components start with the same initial state *)
   Component :: "vertex=>state program"
   "Component i == mk_total_program({init}, {act i}, UNIV)"
+    --{* All components start with the same initial state *}
 
-  (* Abbreviations *)
+
+text{*Some Abbreviations *}
+constdefs
   Highest :: "vertex=>state set"
   "Highest i == {s. highest i s}"
 
@@ -47,12 +50,13 @@ constdefs
   Acyclic :: "state set"
   "Acyclic == {s. acyclic s}"
 
-  (* Every above set has a maximal vertex: two equivalent defs. *)
 
   Maximal :: "state set"
+    --{* Every ``above'' set has a maximal vertex*}
   "Maximal == \<Inter>i. {s. ~highest i s-->(\<exists>j \<in> above i  s. highest j s)}"
 
   Maximal' :: "state set"
+    --{* Maximal vertex: equivalent definition*}
   "Maximal' == \<Inter>i. Highest i Un (\<Union>j. {s. j \<in> above i s} Int Highest j)"
 
   
@@ -78,16 +82,16 @@ declare act_def [THEN def_act_simp, simp]
 
 subsection{*Component correctness proofs*}
 
-(* neighbors is stable  *)
+text{* neighbors is stable  *}
 lemma Component_neighbors_stable: "Component i \<in> stable {s. neighbors k s = n}"
 by (simp add: Component_def, constrains, auto)
 
-(* property 4 *)
+text{* property 4 *}
 lemma Component_waits_priority: "Component i: {s. ((i,j):s) = b} Int (- Highest i) co {s. ((i,j):s)=b}"
 by (simp add: Component_def, constrains)
 
-(* property 5: charpentier and Chandy mistakenly express it as
- 'transient Highest i'. Consider the case where i has neighbors *)
+text{* property 5: charpentier and Chandy mistakenly express it as
+ 'transient Highest i'. Consider the case where i has neighbors *}
 lemma Component_yields_priority: 
  "Component i: {s. neighbors i s \<noteq> {}} Int Highest i  
                ensures - Highest i"
@@ -95,23 +99,23 @@ apply (simp add: Component_def)
 apply (ensures_tac "act i", blast+) 
 done
 
-(* or better *)
+text{* or better *}
 lemma Component_yields_priority': "Component i \<in> Highest i ensures Lowest i"
 apply (simp add: Component_def)
 apply (ensures_tac "act i", blast+) 
 done
 
-(* property 6: Component doesn't introduce cycle *)
+text{* property 6: Component doesn't introduce cycle *}
 lemma Component_well_behaves: "Component i \<in> Highest i co Highest i Un Lowest i"
 by (simp add: Component_def, constrains, fast)
 
-(* property 7: local axiom *)
+text{* property 7: local axiom *}
 lemma locality: "Component i \<in> stable {s. \<forall>j k. j\<noteq>i & k\<noteq>i--> ((j,k):s) = b j k}"
 by (simp add: Component_def, constrains)
 
 
 subsection{*System  properties*}
-(* property 8: strictly universal *)
+text{* property 8: strictly universal *}
 
 lemma Safety: "system \<in> stable Safety"
 apply (unfold Safety_def)
@@ -119,12 +123,12 @@ apply (rule stable_INT)
 apply (simp add: system_def, constrains, fast)
 done
 
-(* property 13: universal *)
+text{* property 13: universal *}
 lemma p13: "system \<in> {s. s = q} co {s. s=q} Un {s. \<exists>i. derive i q s}"
 by (simp add: system_def Component_def mk_total_program_def totalize_JN, constrains, blast)
 
-(* property 14: the 'above set' of a Component that hasn't got 
-      priority doesn't increase *)
+text{* property 14: the 'above set' of a Component that hasn't got 
+      priority doesn't increase *}
 lemma above_not_increase: 
      "system \<in> -Highest i Int {s. j\<notin>above i s} co {s. j\<notin>above i s}"
 apply (insert reach_lemma [of concl: j])
@@ -141,7 +145,7 @@ done
 
 
 
-(* p15: universal property: all Components well behave  *)
+text{* p15: universal property: all Components well behave  *}
 lemma system_well_behaves [rule_format]:
      "\<forall>i. system \<in> Highest i co Highest i Un Lowest i"
 apply clarify
@@ -169,23 +173,23 @@ apply (unfold Acyclic_def Maximal_def, clarify)
 apply (drule above_lemma_b, auto)
 done
 
-(* property 17: original one is an invariant *)
+text{* property 17: original one is an invariant *}
 lemma Acyclic_Maximal_stable: "system \<in> stable (Acyclic Int Maximal)"
 by (simp add: Acyclic_subset_Maximal [THEN Int_absorb2] Acyclic_stable)
 
 
-(* propert 5: existential property *)
+text{* property 5: existential property *}
 
 lemma Highest_leadsTo_Lowest: "system \<in> Highest i leadsTo Lowest i"
 apply (simp add: system_def Component_def mk_total_program_def totalize_JN)
 apply (ensures_tac "act i", auto)
 done
 
-(* a lowest i can never be in any abover set *) 
+text{* a lowest i can never be in any abover set *} 
 lemma Lowest_above_subset: "Lowest i <= (\<Inter>k. {s. i\<notin>above k s})"
 by (auto simp add: image0_r_iff_image0_trancl trancl_converse)
 
-(* property 18: a simpler proof than the original, one which uses psp *)
+text{* property 18: a simpler proof than the original, one which uses psp *}
 lemma Highest_escapes_above: "system \<in> Highest i leadsTo (\<Inter>k. {s. i\<notin>above k s})"
 apply (rule leadsTo_weaken_R)
 apply (rule_tac [2] Lowest_above_subset)
@@ -196,8 +200,9 @@ lemma Highest_escapes_above':
      "system \<in> Highest j Int {s. j \<in> above i s} leadsTo {s. j\<notin>above i s}"
 by (blast intro: leadsTo_weaken [OF Highest_escapes_above Int_lower1 INT_lower])
 
-(*** The main result: above set decreases ***)
-(* The original proof of the following formula was wrong *)
+subsection{*The main result: above set decreases*}
+
+text{* The original proof of the following formula was wrong *}
 
 lemma Highest_iff_above0: "Highest i = {s. above i s ={}}"
 by (auto simp add: image0_trancl_iff_image0_r)
