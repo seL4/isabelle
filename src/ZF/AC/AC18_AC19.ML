@@ -85,7 +85,7 @@ by (etac exE 1);
 by (res_inst_tac
         [("x","lam a:A. if(f`(u_(a)) : a, f`(u_(a)), f`(u_(a))-{0})")] exI 1);
 by (rtac lam_type 1);
-by (split_tac [expand_if] 1);
+by (split_tac [split_if] 1);
 by (rtac conjI 1);
 by (Fast_tac 1);
 by (fast_tac (claset() addSEs [lemma1_2]) 1);

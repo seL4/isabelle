@@ -46,12 +46,12 @@ qed "is_true_Fls";
 
 Goalw [is_true_def] "is_true(#v,t) <-> v:t";
 by (simp_tac (simpset() addsimps [one_not_0 RS not_sym] 
-              setloop (split_tac [expand_if])) 1);
+              setloop (split_tac [split_if])) 1);
 qed "is_true_Var";
 
 Goalw [is_true_def]
     "is_true(p=>q,t) <-> (is_true(p,t)-->is_true(q,t))";
-by (simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (simp_tac (simpset() setloop (split_tac [split_if])) 1);
 qed "is_true_Imp";
 
 (** The function hyps **)
@@ -171,7 +171,7 @@ qed "Imp_Fls";
 (*Typical example of strengthening the induction formula*)
 val [major] = goal PropLog.thy 
     "p: prop ==> hyps(p,t) |- if(is_true(p,t), p, p=>Fls)";
-by (rtac (expand_if RS iffD2) 1);
+by (rtac (split_if RS iffD2) 1);
 by (rtac (major RS prop.induct) 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [thms_I, thms.H])));
 by (safe_tac (claset() addSEs [Fls_Imp RS weaken_left_Un1, 
@@ -216,7 +216,7 @@ val [major] = goal PropLog.thy
     "p: prop ==> hyps(p, t-{v}) <= cons(#v=>Fls, hyps(p,t)-{#v})";
 by (rtac (major RS prop.induct) 1);
 by (Simp_tac 1);
-by (asm_simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (asm_simp_tac (simpset() setloop (split_tac [split_if])) 1);
 by (fast_tac (claset() addSEs prop.free_SEs) 1);
 by (Asm_simp_tac 1);
 by (Fast_tac 1);
@@ -228,7 +228,7 @@ val [major] = goal PropLog.thy
     "p: prop ==> hyps(p, cons(v,t)) <= cons(#v, hyps(p,t)-{#v=>Fls})";
 by (rtac (major RS prop.induct) 1);
 by (Simp_tac 1);
-by (asm_simp_tac (simpset() setloop (split_tac [expand_if])) 1);
+by (asm_simp_tac (simpset() setloop (split_tac [split_if])) 1);
 by (fast_tac (claset() addSEs prop.free_SEs) 1);
 by (Asm_simp_tac 1);
 by (Fast_tac 1);
@@ -250,7 +250,7 @@ val [major] = goal PropLog.thy
     "p: prop ==> hyps(p,t) : Fin(UN v:nat. {#v, #v=>Fls})";
 by (rtac (major RS prop.induct) 1);
 by (asm_simp_tac (simpset() addsimps [UN_I]
-                  setloop (split_tac [expand_if])) 2);
+                  setloop (split_tac [split_if])) 2);
 by (ALLGOALS Asm_simp_tac);
 by (fast_tac (claset() addIs Fin.intrs) 1);
 qed "hyps_finite";

@@ -427,7 +427,7 @@ Goal
 by (subgoal_tac "k mod 2: 2" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less_divisor RS ltD]) 2);
 by (dtac ltD 1);
-by (asm_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (asm_simp_tac (simpset() addsplits [split_if]) 1);
 by (Blast_tac 1);
 qed "mod2_cases";
 

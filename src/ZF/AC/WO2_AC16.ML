@@ -206,7 +206,7 @@ by (asm_simp_tac (simpset() addsimps [recfunAC16_0,
 by (asm_simp_tac (simpset() addsimps [recfunAC16_Limit,
                 Diff_cancel, empty_subsetI RS subset_imp_lepoll]) 2);
 by (asm_simp_tac (simpset() addsimps [recfunAC16_succ]) 1);
-by (resolve_tac [conjI RS (expand_if RS iffD2)] 1);
+by (resolve_tac [conjI RS (split_if RS iffD2)] 1);
 by (fast_tac (claset() addSIs [empty_subsetI RS subset_imp_lepoll]
                 addSEs [Diff_UN_succ_empty RS ssubst]) 1);
 by (fast_tac (claset() addSEs [Diff_UN_succ_subset RS subset_imp_lepoll RS
@@ -259,7 +259,7 @@ by (etac trans_induct 1);
 by (etac Ord_cases 1);
 by (asm_simp_tac (simpset() addsimps [recfunAC16_0, lepoll_refl]) 1);
 by (asm_simp_tac (simpset() addsimps [recfunAC16_succ]) 1);
-by (fast_tac (claset() addIs [conjI RS (expand_if RS iffD2)]
+by (fast_tac (claset() addIs [conjI RS (split_if RS iffD2)]
         addSDs [succI1 RSN (2, bspec)]
         addSEs [subset_succI RS subset_imp_lepoll RSN (2, lepoll_trans),
                 Un_lepoll_succ]) 1);
@@ -509,7 +509,7 @@ by (fast_tac (FOL_cs addSEs [recfunAC16_mono]) 2);
 by (hyp_subst_tac 1);
 by (eresolve_tac [lemma6 RS conjE] 1 THEN (assume_tac 1));
 by (asm_simp_tac (simpset() addsimps [recfunAC16_succ]) 1);
-by (resolve_tac [conjI RS (expand_if RS iffD2)] 1);
+by (resolve_tac [conjI RS (split_if RS iffD2)] 1);
 by (etac lemma7 1 THEN (REPEAT (assume_tac 1)));
 by (rtac impI 1);
 by (resolve_tac [ex_next_Ord RS oexE] 1 

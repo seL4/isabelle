@@ -108,7 +108,7 @@ Goalw [subst_rec_def]
 by (asm_full_simp_tac (simpset()) 1);
 qed "subst_App";
 
-fun addsplit ss = (ss setloop (split_inside_tac [expand_if]) 
+fun addsplit ss = (ss setloop (split_inside_tac [split_if]) 
                 addsimps [lift_rec_Var,subst_Var]);
 
 

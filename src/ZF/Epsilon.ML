@@ -305,13 +305,13 @@ qed "THE_eq";
 Goal "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
 by (simp_tac (simpset() addsimps [succ_not_0, THE_eq, if_P]
-                    setloop split_tac [expand_if]) 1);
+                    addsplits [split_if]) 1);
 by (Blast_tac 1);
 qed "transrec2_succ";
 
 Goal "!!i. Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
-by (simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (simp_tac (simpset() addsplits [split_if]) 1);
 by (blast_tac (claset() addSDs [Limit_has_0] addSEs [succ_LimitE]) 1);
 qed "transrec2_Limit";
 

@@ -84,7 +84,7 @@ qed "UN_oadd";
 
 Goalw [vv1_def] "vv1(f,m,b) <= f`b";
 by (rtac (LetI RS LetI) 1);
-by (split_tac [expand_if] 1);
+by (split_tac [split_if] 1);
 by (simp_tac (simpset() addsimps [domain_uu_subset]) 1);
 qed "vv1_subset";
 
@@ -133,7 +133,7 @@ by (Asm_simp_tac 1);
 by (safe_tac (claset() addSEs [lt_oadd_odiff_cases]));
 (*Case b<a   : show vv1(f,m,b) lepoll m *)
 by (asm_simp_tac (simpset() addsimps [vv1_def, Let_def] 
-                        setloop split_tac [expand_if]) 1);
+                        addsplits [split_if]) 1);
 by (fast_tac (claset() addIs [nested_Least_instance RS conjunct2]
                 addSEs [lt_Ord]
                 addSIs [empty_lepollI]) 1);
@@ -231,7 +231,7 @@ Goalw [vv2_def]
 \            ALL b<a. f`b lepoll succ(m); y*y <= y;                     \
 \            (UN b<a. f`b)=y;  b<a;  g<a;  m:nat;  s:f`b                \
 \          |] ==> vv2(f,b,g,s) <= f`g";
-by (split_tac [expand_if] 1);
+by (split_tac [split_if] 1);
 by Safe_tac;
 by (etac (uu_Least_is_fun RS apply_type) 1);
 by (REPEAT_SOME (fast_tac (claset() addSIs [not_emptyI, singleton_subsetI])));
@@ -265,7 +265,7 @@ qed "domain_gg2";
 Goalw [vv2_def]
     "!!m. [| m:nat; m~=0 |] ==> vv2(f,b,g,s) lepoll m";
 by (asm_simp_tac (simpset() addsimps [empty_lepollI]
-                              setloop split_tac [expand_if]) 1);
+                              addsplits [split_if]) 1);
 by (fast_tac (claset()
         addSDs [le_imp_subset RS subset_imp_lepoll RS lepoll_0_is_0]
         addSIs [singleton_eqpoll_1 RS eqpoll_imp_lepoll RS lepoll_trans,
@@ -281,7 +281,7 @@ by (asm_simp_tac (simpset() addsimps [empty_lepollI]) 2);
 by (dtac ospec 1 THEN (assume_tac 1));
 by (rtac Diff_lepoll 1
         THEN (TRYALL assume_tac));
-by (asm_simp_tac (simpset() addsimps [vv2_def, expand_if, not_emptyI]) 1);
+by (asm_simp_tac (simpset() addsimps [vv2_def, split_if, not_emptyI]) 1);
 qed "ww2_lepoll";
 
 Goalw [gg2_def]

@@ -24,7 +24,7 @@ qed "HH_def_satisfies_eq";
 Goal "HH(f,x,a) : Pow(x)-{0} | HH(f,x,a)={x}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
 by (simp_tac (simpset() addsimps [Let_def, Diff_subset RS PowI] 
-                    setloop split_tac [expand_if]) 1);
+                    addsplits [split_if]) 1);
 by (Fast_tac 1);
 qed "HH_values";
 
@@ -76,8 +76,8 @@ Goal "!!a. HH(f,x,a) : Pow(x)-{0}   \
 by (dresolve_tac [HH_def_satisfies_eq RS subst] 1);
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
 by (asm_full_simp_tac (simpset() addsimps [Let_def, Diff_subset RS PowI]) 1);
-by (dresolve_tac [expand_if RS iffD1] 1);
-by (simp_tac (simpset() setloop split_tac [expand_if] ) 1);
+by (dresolve_tac [split_if RS iffD1] 1);
+by (simp_tac (simpset() addsplits [split_if] ) 1);
 by (fast_tac (subset_cs addSEs [mem_irrefl]) 1);
 qed "HH_subset_x_imp_subset_Diff_UN";
 
@@ -177,7 +177,7 @@ qed "f_subsets_imp_UN_HH_eq_x";
 Goal "HH(f,x,i)=f`(x - (UN j:i. HH(f,x,j))) | HH(f,x,i)={x}";
 by (resolve_tac [HH_def_satisfies_eq RS ssubst] 1);
 by (simp_tac (simpset() addsimps [Let_def, Diff_subset RS PowI]
-              setloop split_tac [expand_if]) 1);
+              addsplits [split_if]) 1);
 qed "HH_values2";
 
 Goal

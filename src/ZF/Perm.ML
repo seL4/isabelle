@@ -461,7 +461,7 @@ by (res_inst_tac [("d","%z. if(z:B, converse(f)`z, converse(g)`z)")]
         lam_injective 1);
 by (ALLGOALS 
     (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_type, left_inverse] 
-                         setloop (split_tac [expand_if] ORELSE' etac UnE))));
+                         setloop (split_tac [split_if] ORELSE' etac UnE))));
 by (blast_tac (claset() addIs [inj_is_fun RS apply_type] addDs [equals0D]) 1);
 qed "inj_disjoint_Un";
 

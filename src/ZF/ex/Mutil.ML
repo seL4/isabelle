@@ -34,7 +34,7 @@ Goalw [evnodd_def]
     "evnodd(cons(<i,j>,C), b) = \
 \    if((i#+j) mod 2 = b, cons(<i,j>, evnodd(C,b)), evnodd(C,b))";
 by (asm_simp_tac (simpset() addsimps [evnodd_def, Collect_cons] 
-                        setloop split_tac [expand_if]) 1);
+                        addsplits [split_if]) 1);
 qed "evnodd_cons";
 
 Goalw [evnodd_def] "evnodd(0, b) = 0";
@@ -56,7 +56,7 @@ by (res_inst_tac [("k1", "i#+j")] (mod2_cases RS disjE) 1);
 by (REPEAT_FIRST (ares_tac [add_type]));
 (*Four similar cases: case (i#+j) mod 2 = b, 2#-b, ...*)
 by (REPEAT (asm_simp_tac (simpset() addsimps [mod_succ, succ_neq_self] 
-                                   setloop split_tac [expand_if]) 1
+                                   addsplits [split_if]) 1
            THEN blast_tac (claset() addDs [ltD]) 1));
 qed "domino_singleton";
 

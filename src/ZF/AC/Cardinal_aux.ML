@@ -66,14 +66,14 @@ by (resolve_tac [Inf_Ord_imp_InfCard_cardinal RSN (2, well_ord_Memrel RS
 qed "Un_eqpoll_Inf_Ord";
 
 val ss = (simpset()) addsimps [inj_is_fun RS apply_type, left_inverse] 
-               setloop (split_tac [expand_if] ORELSE' etac UnE);
+               setloop (split_tac [split_if] ORELSE' etac UnE);
 
 goal ZF.thy "{x, y} - {y} = {x} - {y}";
 by (Fast_tac 1);
 qed "double_Diff_sing";
 
 goal ZF.thy "if({y,z}-{z}=0, z, THE w. {y,z}-{z}={w}) = y";
-by (split_tac [expand_if] 1);
+by (split_tac [split_if] 1);
 by (asm_full_simp_tac (simpset() addsimps [double_Diff_sing, Diff_eq_0_iff]) 1);
 by (fast_tac (claset() addSIs [the_equality] addEs [equalityE]) 1);
 qed "paired_bij_lemma";
@@ -190,7 +190,7 @@ by (res_inst_tac [("x","lam a:A Un B. if(a:A,Inl(a),Inr(a))")] exI 1);
 by (res_inst_tac [("d","%z. case(%x. x, %x. x, z)")] lam_bijective 1);
 by (fast_tac (claset() addSIs [if_type, InlI, InrI]) 1);
 by (TRYALL (etac sumE ));
-by (TRYALL (split_tac [expand_if]));
+by (TRYALL (split_tac [split_if]));
 by (TRYALL Asm_simp_tac);
 by (fast_tac (claset() addDs [equals0D]) 1);
 qed "disj_Un_eqpoll_sum";

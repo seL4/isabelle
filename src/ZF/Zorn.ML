@@ -199,13 +199,13 @@ by (assume_tac 1);
 by (rewtac increasing_def);
 by (rtac CollectI 1);
 by (rtac lam_type 1);
-by (asm_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (asm_simp_tac (simpset() addsplits [split_if]) 1);
 by (fast_tac (claset() addSIs [super_subset_chain RS subsetD,
 			      chain_subset_Pow RS subsetD,
 			      choice_super]) 1);
 (*Now, verify that it increases*)
 by (asm_simp_tac (simpset() addsimps [Pow_iff, subset_refl]
-                        setloop split_tac [expand_if]) 1);
+                        addsplits [split_if]) 1);
 by Safe_tac;
 by (dtac choice_super 1);
 by (REPEAT (assume_tac 1));
@@ -225,7 +225,7 @@ by (etac TFin_induct 1);
 by (asm_simp_tac 
     (simpset() addsimps [chain_subset_Pow RS subsetD, 
                      choice_super RS (super_subset_chain RS subsetD)]
-           setloop split_tac [expand_if]) 1);
+           addsplits [split_if]) 1);
 by (rewtac chain_def);
 by (rtac CollectI 1 THEN Blast_tac 1);
 by Safe_tac;
@@ -250,7 +250,7 @@ by (rtac refl 2);
 by (asm_full_simp_tac 
     (simpset() addsimps [subset_refl RS TFin_UnionI RS
                      (TFin.dom_subset RS subsetD)]
-           setloop split_tac [expand_if]) 1);
+           addsplits [split_if]) 1);
 by (eresolve_tac [choice_not_equals RS notE] 1);
 by (REPEAT (assume_tac 1));
 qed "Hausdorff";
@@ -359,10 +359,10 @@ by (rtac lam_type 1);
 by (rtac allI 2);
 by (rtac impI 2);
 by (asm_simp_tac (simpset() addsimps [Pow_iff, subset_consI, subset_refl]
-                        setloop split_tac [expand_if]) 2);
+                        addsplits [split_if]) 2);
 (*Type checking is surprisingly hard!*)
 by (asm_simp_tac (simpset() addsimps [Pow_iff, cons_subset_iff, subset_refl]
-                        setloop split_tac [expand_if]) 1);
+                        addsplits [split_if]) 1);
 by (blast_tac (claset() addSIs [choice_Diff RS DiffD1]) 1);
 qed "Zermelo_next_exists";
 
@@ -392,14 +392,14 @@ by (asm_simp_tac
               addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
                      Pow_iff, cons_subset_iff, subset_refl,
                      choice_Diff RS DiffD2]
-           setloop split_tac [expand_if]) 2);
+           addsplits [split_if]) 2);
 by (subgoal_tac "x : next ` Union({y: TFin(S,next). x~: y})" 1);
 by (blast_tac (subset_cs addSIs [Collect_subset RS TFin_UnionI, TFin_nextI]) 2);
 (*End of the lemmas!*)
 by (asm_full_simp_tac 
     (simpset() addsimps [Collect_subset RS TFin_UnionI RS TFin_is_subset,
                      Pow_iff, cons_subset_iff, subset_refl]
-           setloop split_tac [expand_if]) 1);
+           addsplits [split_if]) 1);
 by (REPEAT (eresolve_tac [asm_rl, consE, sym, notE] 1));
 qed "choice_imp_injection";
 

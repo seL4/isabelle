@@ -2028,7 +2028,7 @@ qed "emb_eps";
 val prems = goalw Limit.thy [eps_def]  (* eps_fun *)
     "[|emb_chain(DD,ee); m:nat; n:nat|] ==>   \
 \    eps(DD,ee,m,n): set(DD`m)->set(DD`n)";
-by (rtac (expand_if RS iffD2) 1);
+by (rtac (split_if RS iffD2) 1);
 by Safe_tac;
 brr((e_less_cont RS cont_fun)::prems) 1;
 brr((not_le_iff_lt RS iffD1 RS leI)::e_gr_fun::nat_into_Ord::prems) 1;
@@ -2050,7 +2050,7 @@ val shift_asm = imp_refl RS mp;
 
 val prems = goalw Limit.thy [eps_def]  (* eps_e_gr_add *)
     "[|n:nat; k:nat|] ==> eps(DD,ee,n#+k,n) = e_gr(DD,ee,n#+k,n)";
-by (rtac (expand_if RS iffD2) 1);
+by (rtac (split_if RS iffD2) 1);
 by Safe_tac;
 by (etac leE 1);
 (* Must control rewriting by instantiating a variable. *)
@@ -2363,7 +2363,7 @@ val lemma2 = result();
 val prems = goalw Limit.thy [eps_def] (* eps1 *)
     "[|emb_chain(DD,ee); x:set(Dinf(DD,ee)); m:nat; n:nat|] ==>   \
 \    rel(DD`n,eps(DD,ee,m,n)`(x`m),x`n)";
-by (split_tac [expand_if] 1);
+by (split_tac [split_if] 1);
 brr(conjI::impI::lemma1::
     (not_le_iff_lt RS iffD1 RS leI RS lemma2)::nat_into_Ord::prems) 1;
 qed "eps1";

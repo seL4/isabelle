@@ -114,7 +114,7 @@ by (rtac (excluded_middle RS disjE) 1);
 by (etac image_Sigma1 1);
 by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 1);
 by (asm_full_simp_tac
-    (simpset() addsimps [qbeta] setloop split_tac [expand_if]) 1);
+    (simpset() addsimps [qbeta] addsplits [split_if]) 1);
 by Safe_tac;
 by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 3);
 by (ALLGOALS Asm_full_simp_tac);

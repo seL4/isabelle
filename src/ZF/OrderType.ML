@@ -596,7 +596,7 @@ by (res_inst_tac [("d", "case(%x. x, %y. y)")] lam_bijective 1);
 by (blast_tac (claset() addSIs [if_type]) 1);
 by (fast_tac (claset() addSIs [case_type]) 1);
 by (etac sumE 2);
-by (ALLGOALS (asm_simp_tac (simpset() setloop split_tac [expand_if])));
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [split_if])));
 qed "bij_sum_Diff";
 
 Goal
@@ -608,7 +608,7 @@ by (resolve_tac [bij_sum_Diff RS ord_isoI RS ord_iso_sym RS ordertype_eq] 1);
 by (etac well_ord_Memrel 3);
 by (assume_tac 1);
 by (asm_simp_tac 
-     (simpset() setloop split_tac [expand_if] addsimps [Memrel_iff]) 1);
+     (simpset() addsplits [split_if] addsimps [Memrel_iff]) 1);
 by (forw_inst_tac [("j", "y")] Ord_in_Ord 1 THEN assume_tac 1);
 by (forw_inst_tac [("j", "x")] Ord_in_Ord 1 THEN assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [Ord_mem_iff_lt, lt_Ord, not_lt_iff_le]) 1);

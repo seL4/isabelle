@@ -142,7 +142,7 @@ by (res_inst_tac [("d", "%z. if(z:A, Inl(z), Inr(z))")]
 by (blast_tac (claset() addSIs [if_type]) 2);
 by (DEPTH_SOLVE_1 (eresolve_tac [case_type, UnI1, UnI2] 1));
 by Safe_tac;
-by (ALLGOALS (asm_simp_tac (simpset() setloop split_tac [expand_if])));
+by (ALLGOALS (asm_simp_tac (simpset() addsplits [split_if])));
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "sum_disjoint_bij";
 

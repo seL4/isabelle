@@ -601,7 +601,7 @@ by (Blast_tac 1);
 qed "Collect_Diff";
 
 goal ZF.thy "{x:cons(a,B). P(x)} = if(P(a), cons(a, {x:B. P(x)}), {x:B. P(x)})";
-by (simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (simp_tac (simpset() addsplits [split_if]) 1);
 by (Blast_tac 1);
 qed "Collect_cons";
 

@@ -326,7 +326,7 @@ by (asm_simp_tac
 			 inj_converse_fun RS apply_funtype,
 			 left_inverse, right_inverse, nat_0I, nat_succI, 
 			 nat_case_0, nat_case_succ]
-               setloop split_tac [expand_if]) 1);
+               addsplits [split_if]) 1);
 qed "nat_cons_lepoll";
 
 Goal "!!i. nat lepoll A ==> cons(u,A) eqpoll A";

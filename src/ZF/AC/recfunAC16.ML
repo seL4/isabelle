@@ -60,6 +60,6 @@ qed "transrec2_mono";
 Goalw [recfunAC16_def]
         "!!i. i le j ==> recfunAC16(f, g, i, a) <= recfunAC16(f, g, j, a)";
 by (rtac transrec2_mono 1);
-by (REPEAT (fast_tac (claset() addIs [expand_if RS iffD2]) 1));
+by (REPEAT (fast_tac (claset() addIs [split_if RS iffD2]) 1));
 qed "recfunAC16_mono";
 

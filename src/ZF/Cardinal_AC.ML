@@ -193,6 +193,6 @@ by (swap_res_tac [[inj_UN_subset, cardinal_UN_Ord_lt_csucc]
 by (REPEAT (assume_tac 1));
 by (blast_tac (claset() addSIs [Ord_UN] addEs [ltE]) 2);
 by (asm_simp_tac (simpset() addsimps [inj_converse_fun RS apply_type]
-                        setloop split_tac [expand_if]) 1);
+                        addsplits [split_if]) 1);
 qed "le_UN_Ord_lt_csucc";
 

@@ -162,7 +162,7 @@ by (res_inst_tac [("a", "lam z:A. if(f`z=m, y, f`z)")] CollectI 1);
 by (best_tac (claset() addSIs [if_type RS lam_type]
                        addEs [apply_funtype RS succE]) 1);
 (*Proving it's injective*)
-by (asm_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (asm_simp_tac (simpset() addsplits [split_if]) 1);
 by (blast_tac (claset() delrules [equalityI]) 1);
 qed "inj_not_surj_succ";
 
@@ -441,7 +441,7 @@ by (rtac (if_type RS lam_type) 1);
 by (blast_tac (claset() addEs [apply_funtype RS consE]) 1);
 by (blast_tac (claset() addSEs [mem_irrefl] addEs [apply_funtype RS consE]) 1);
 (*Proving it's injective*)
-by (asm_simp_tac (simpset() setloop split_tac [expand_if]) 1);
+by (asm_simp_tac (simpset() addsplits [split_if]) 1);
 by (Blast_tac 1);
 qed "cons_lepoll_consD";
 
@@ -631,12 +631,12 @@ by (res_inst_tac [("c", "%x. if(x:A, f`x, x)"),
 by (blast_tac (claset() addSIs [if_type, inj_is_fun RS apply_type]) 1);
 by (asm_simp_tac 
     (simpset() addsimps [inj_converse_fun RS apply_funtype]
-           setloop split_tac [expand_if]) 1);
+           addsplits [split_if]) 1);
 by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_rangeI, left_inverse]
                         setloop etac UnE') 1);
 by (asm_simp_tac 
     (simpset() addsimps [inj_converse_fun RS apply_funtype, right_inverse]
-           setloop split_tac [expand_if]) 1);
+           addsplits [split_if]) 1);
 by (blast_tac (claset() addEs [equals0D]) 1);
 qed "inj_disjoint_eqpoll";
 
@@ -677,10 +677,10 @@ qed "lepoll_1_is_sing";
 Goalw [lepoll_def] "A Un B lepoll A+B";
 by (res_inst_tac [("x","lam x: A Un B. if (x:A,Inl(x),Inr(x))")] exI 1);
 by (res_inst_tac [("d","%z. snd(z)")] lam_injective 1);
-by (split_tac [expand_if] 1);
+by (split_tac [split_if] 1);
 by (blast_tac (claset() addSIs [InlI, InrI]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Inl_def, Inr_def]
-                       setloop split_tac [expand_if]) 1);
+                       addsplits [split_if]) 1);
 qed "Un_lepoll_sum";
 
 
