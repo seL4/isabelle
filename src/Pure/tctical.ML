@@ -12,7 +12,7 @@ infix 0 THEN_ELSE;
 
 
 signature TACTICAL =
-  sig
+sig
   type tactic  (* = thm -> thm Seq.seq*)
   val all_tac           : tactic
   val ALLGOALS          : (int -> tactic) -> tactic   
@@ -40,6 +40,7 @@ signature TACTICAL =
   val ORELSE'           : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val pause_tac         : tactic
   val print_tac         : string -> tactic
+  val RANGE             : (int -> tactic) list -> int -> tactic
   val REPEAT            : tactic -> tactic
   val REPEAT1           : tactic -> tactic
   val REPEAT_FIRST      : (int -> tactic) -> tactic
@@ -65,7 +66,7 @@ signature TACTICAL =
   val trace_REPEAT      : bool ref
   val TRY               : tactic -> tactic
   val TRYALL            : (int -> tactic) -> tactic   
-  end;
+end;
 
 
 structure Tactical : TACTICAL = 
@@ -187,6 +188,10 @@ fun FIRST' tacs = foldr (op ORELSE') (tacs, K no_tac);
 
 (*Apply first tactic to 1*)
 fun FIRST1 tacs = FIRST' tacs 1;
+
+(*Apply tactics on consecutive subgoals*)
+fun RANGE [] _ = all_tac
+  | RANGE (tac :: tacs) i = RANGE tacs (i + 1) THEN tac i;
 
 
 (*** Tracing tactics ***)
