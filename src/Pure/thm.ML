@@ -103,6 +103,7 @@ signature THM =
   val strip_shyps       : thm -> thm
   val implies_intr_shyps: thm -> thm
   val get_axiom         : theory -> xstring -> thm
+  val get_def           : theory -> xstring -> thm
   val name_thm          : string * thm -> thm
   val name_of_thm	: thm -> string
   val axioms_of         : theory -> (string * thm) list
@@ -574,24 +575,29 @@ fun implies_intr_shyps thm =
 (*look up the named axiom in the theory*)
 fun get_axiom theory raw_name =
   let
-    val name = Sign.intern (sign_of theory) Theory.axiomK raw_name;
-    fun get_ax [] = raise Match
+    val name = Sign.intern (Theory.sign_of theory) Theory.axiomK raw_name;
+
+    fun get_ax [] = None
       | get_ax (thy :: thys) =
-          let val {sign, axioms, parents, ...} = rep_theory thy
-          in case Symtab.lookup (axioms, name) of
-                Some t => fix_shyps [] []
-                           (Thm {sign_ref = Sign.self_ref sign,
-                                 der = infer_derivs (Axiom name, []),
-                                 maxidx = maxidx_of_term t,
-                                 shyps = [], 
-                                 hyps = [], 
-                                 prop = t})
-              | None => get_ax parents handle Match => get_ax thys
+          let val {sign, axioms, ...} = Theory.rep_theory thy in
+            (case Symtab.lookup (axioms, name) of
+              Some t =>
+                Some (fix_shyps [] []
+                  (Thm {sign_ref = Sign.self_ref sign,
+                    der = infer_derivs (Axiom name, []),
+                    maxidx = maxidx_of_term t,
+                    shyps = [], 
+                    hyps = [], 
+                    prop = t}))
+            | None => get_ax thys)
           end;
   in
-    get_ax [theory] handle Match
-      => raise THEORY ("No axiom " ^ quote name, [theory])
+    (case get_ax (theory :: Theory.ancestors_of theory) of
+      Some thm => thm
+    | None => raise THEORY ("No axiom " ^ quote name, [theory]))
   end;
+
+fun get_def thy name = get_axiom thy (name ^ "_def");
 
 
 (*return additional axioms of this theory node*)
