@@ -21,6 +21,7 @@ sig
   val conj: term
   val disj: term
   val imp: term
+  val Not: term
   val mk_conj: term * term -> term
   val mk_disj: term * term -> term
   val mk_imp: term * term -> term
@@ -106,7 +107,8 @@ fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
 
 val conj = Const ("op &", [boolT, boolT] ---> boolT)
 and disj = Const ("op |", [boolT, boolT] ---> boolT)
-and imp = Const ("op -->", [boolT, boolT] ---> boolT);
+and imp = Const ("op -->", [boolT, boolT] ---> boolT)
+and Not = Const ("Not", boolT --> boolT);
 
 fun mk_conj (t1, t2) = conj $ t1 $ t2
 and mk_disj (t1, t2) = disj $ t1 $ t2
