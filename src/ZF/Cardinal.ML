@@ -635,7 +635,7 @@ by (asm_simp_tac (simpset() addsimps [inj_is_fun RS apply_rangeI, left_inverse]
                         setloop etac UnE') 1);
 by (asm_simp_tac 
     (simpset() addsimps [inj_converse_fun RS apply_funtype, right_inverse]) 1);
-by (blast_tac (claset() addEs [equals0D]) 1);
+by (blast_tac (claset() addEs [equals0E]) 1);
 qed "inj_disjoint_eqpoll";
 
 
@@ -679,6 +679,13 @@ by (split_tac [split_if] 1);
 by (blast_tac (claset() addSIs [InlI, InrI]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Inl_def, Inr_def]) 1);
 qed "Un_lepoll_sum";
+
+(*Krzysztof Grabczewski*)
+Goalw [eqpoll_def] "A Int B = 0 ==> A Un B eqpoll A + B";
+by (res_inst_tac [("x","lam a:A Un B. if(a:A,Inl(a),Inr(a))")] exI 1);
+by (res_inst_tac [("d","%z. case(%x. x, %x. x, z)")] lam_bijective 1);
+by (auto_tac (claset() addEs [equals0E], simpset()));
+qed "disj_Un_eqpoll_sum";
 
 
 (*** Finite and infinite sets ***)

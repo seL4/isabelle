@@ -16,7 +16,7 @@ Observe the order of dependence:
 
 val Pow_bottom = empty_subsetI RS PowI;         (* 0 : Pow(B) *)
 val Pow_top = subset_refl RS PowI;              (* A : Pow(A) *)
-val Pow_neq_0 = Pow_top RSN (2,equals0D);       (* Pow(a)=0 ==> P *) 
+val Pow_neq_0 = Pow_top RSN (2,equals0E);       (* Pow(a)=0 ==> P *) 
 
 
 (*** Unordered pairs - Upair ***)

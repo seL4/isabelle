@@ -444,7 +444,7 @@ Addsimps [empty_subsetI];
 qed_goal "equals0I" ZF.thy "[| !!y. y:A ==> False |] ==> A=0"
  (fn prems=> [ blast_tac (claset() addDs prems) 1 ]);
 
-qed_goal "equals0D" ZF.thy "!!P. [| A=0;  a:A |] ==> P"
+qed_goal "equals0E" ZF.thy "!!P. [| A=0;  a:A |] ==> P"
  (fn _=> [ Full_simp_tac 1, Blast_tac 1 ]);
 
 qed_goal "not_emptyI" ZF.thy "!!A a. a:A ==> A ~= 0"
