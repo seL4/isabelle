@@ -250,10 +250,11 @@ proof -
       obtain apTs X ST LT mD' rT' b' where
         s1: "s1 = (rev apTs @ X # ST, LT)" and
         l:  "length apTs = length list" and
+        c:  "is_class G cname" and
         C:  "G \<turnstile> X \<preceq> Class cname" and
         w:  "\<forall>x \<in> set (zip apTs list). x \<in> widen G" and
         m:  "method (G, cname) (mname, list) = Some (mD', rT', b')"
-        by (simp, elim exE conjE) (rule that)
+        by (simp del: not_None_eq, elim exE conjE) (rule that)
 
       obtain apTs' X' ST' LT' where
         s2: "s2 = (rev apTs' @ X' # ST', LT')" and
@@ -295,7 +296,7 @@ proof -
       have w': "\<forall>x \<in> set (zip apTs' list). x \<in> widen G"
         by (simp add: all_widen_is_sup_loc)
 
-      from Invoke s2 l' w' C' m
+      from Invoke s2 l' w' C' m c
       show ?thesis
         by (simp del: split_paired_Ex) blast
     qed
