@@ -14,7 +14,4 @@ use_thy "JVM";
 use_thy "BVSpecTypeSafe";
 use_thy "BVExample";
 use_thy "LBVCorrect";
-
-(* momentarily broken:
 use_thy "LBVComplete";
-*)
