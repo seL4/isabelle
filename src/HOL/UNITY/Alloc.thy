@@ -161,8 +161,6 @@ constdefs
 			      allocAsk = allocAsk s,
 			      allocRel = allocRel s,
 			      client   = y |)"
-(***    "sysOfAlloc == %(s,y). s(|client := y|)"  TYPE DOESN'T CHANGE***)
-
 
   sysOfClient :: "((nat => clientState) * allocState ) => systemState"
     "sysOfClient == %(x,y). sysOfAlloc(y,x)"
