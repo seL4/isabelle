@@ -56,10 +56,9 @@ This starts an interactive Isabelle session within your current text
 terminal.  You may want to put [ISABELLE_HOME]/bin into your shell's
 search PATH.
 
-Please do *not* copy (or link) the Isabelle scripts anywhere else --
-or they just won't work!  If you really feel the urge to install
-independent Isabelle binaries somewhere you should rather do it like
-this:
+Please do *not* copy (or link) the Isabelle scripts anywhere else, or
+they just won't work!  If you really feel the urge to install
+independent Isabelle binaries anywhere else do it like this:
 
   [ISABELLE_HOME]/bin/isatool install /usr/local/bin
 
