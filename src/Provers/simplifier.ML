@@ -250,7 +250,7 @@ fun merge_ss
 
 (* data kind simpset *)
 
-val simpsetK = "simpset";
+val simpsetK = "Provers/simpset";
 exception SimpsetData of simpset ref;
 
 local

@@ -42,7 +42,7 @@ struct
 
 (* data kind 'datatypes' *)
 
-val datatypesK = "datatypes";
+val datatypesK = "HOL/datatypes";
 exception DatatypeInfo of datatype_info Symtab.table;
 
 local
@@ -79,7 +79,7 @@ fun put_datatypes tab thy =
 
 (* data kind 'records' *)
 
-val recordsK = "records";
+val recordsK = "HOL/records";
 exception Records of record_info Symtab.table;
 
 

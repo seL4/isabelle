@@ -140,7 +140,7 @@ struct
 
 (* data kind claset -- forward declaration *)
 
-val clasetK = "claset";
+val clasetK = "Provers/claset";
 exception ClasetData of object ref;
 
 local
