@@ -801,7 +801,6 @@ theorem empty_leI [iff]: "{#} <= (M::'a::order multiset)"
     apply (rule one_step_implies_mult)
       apply (simp only: trans_def)
       apply auto
-  apply (blast intro: order_less_trans)
   done
 
 theorem union_upper1: "A <= A + (B::'a::order multiset)"

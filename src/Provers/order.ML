@@ -5,7 +5,7 @@
   Copyright:	TU Muenchen
 *)
 
-(* TODO: reduce number of input thms, reduce code duplication *)
+(* TODO: reduce number of input thms *)
 
 (*
 
@@ -73,7 +73,6 @@ functor Trans_Tac_Fun (Less: LESS_ARITH): TRANS_TAC =
 struct
 
 (* Extract subgoal with signature *)
-
 fun SUBGOAL goalfun i st =
   goalfun (List.nth(prems_of st, i-1),  i, sign_of_thm st) st
                              handle Subscript => Seq.empty;
@@ -84,7 +83,7 @@ datatype proof
   | Thm of proof list * thm; 
   
 exception Cannot;
-  (* Internal exception, raised if conclusion cannot be derived from
+ (* Internal exception, raised if conclusion cannot be derived from
      assumptions. *)
 exception Contr of proof;
   (* Internal exception, raised if contradiction ( x < x ) was derived *)
@@ -99,7 +98,6 @@ datatype less
    = Less  of term * term * proof 
    | Le    of term * term * proof
    | NotEq of term * term * proof; 
-
    
 (* Misc functions for datatype less *)
 fun lower (Less (x, _, _)) = x
@@ -113,7 +111,6 @@ fun upper (Less (_, y, _)) = y
 fun getprf   (Less (_, _, p)) = p
 |   getprf   (Le   (_, _, p)) = p
 |   getprf   (NotEq (_,_, p)) = p;
-
 
 (* ************************************************************************ *)
 (*                                                                          *)
@@ -138,12 +135,10 @@ fun mkasm_partial sign (t, n) =
     | "~="  => if (x aconv y) then 
                   raise Contr (Thm ([(Thm ([(Thm ([], Less.le_refl)) ,(Asm n)], Less.le_neq_trans))], Less.less_reflE))
                else [ NotEq (x, y, Asm n),
-                      NotEq (y, x,Thm ( [Asm n], thm "not_sym"))] (* Le (x, x, Thm ([],Less.le_refl))]*) 
+                      NotEq (y, x,Thm ( [Asm n], thm "not_sym"))] 
     | _     => error ("partial_tac: unknown relation symbol ``" ^ rel ^
                  "''returned by decomp_part."))
   | None => [];
-
-
 
 (* ************************************************************************ *)
 (*                                                                          *)
@@ -175,7 +170,6 @@ fun mkasm_linear sign (t, n) =
                  "''returned by decomp_lin."))
   | None => [];
 
-
 (* ************************************************************************ *)
 (*                                                                          *)
 (* mkconcl_partial sign t : Sign.sg -> Term.term -> less                    *)
@@ -195,7 +189,6 @@ fun mkconcl_partial sign t =
     | "~="  => ([NotEq (x,y, Asm ~1)], Asm 0)
     | _  => raise Cannot)
   | None => raise Cannot;
-
 
 (* ************************************************************************ *)
 (*                                                                          *)
@@ -219,8 +212,6 @@ fun mkconcl_linear sign t =
     | _  => raise Cannot)
   | None => raise Cannot;
  
-
-
 (* ******************************************************************* *)
 (*                                                                     *)
 (* mergeLess (less1,less2):  less * less -> less                       *)
@@ -342,32 +333,20 @@ fun triv_solv (Le (x, x', _)) =
 (*                                                                     *)
 (* Inequalities are represented by various types of graphs.            *)
 (*                                                                     *)
-(* 1. (Term.term * Term.term list) list                                *)
-(*    - Graph of this type is generated from the assumptions,          *)
-(*      does not contain information on which edge stems from which    *)
-(*      assumption.                                                    *)
-(*    - Used to compute strong components.                             *)
-(*                                                                     *)
-(* 2. (Term.term * (Term.term * less) list) list                       *)
+(* 1. (Term.term * (Term.term * less) list) list                       *)
 (*    - Graph of this type is generated from the assumptions,          *)
 (*      it does contain information on which edge stems from which     *)
 (*      assumption.                                                    *)
-(*    - Used to reconstruct paths.                                     *)
+(*    - Used to compute strongly connected components                  *)
+(*    - Used to compute component subgraphs                            *)
+(*    - Used for component subgraphs to reconstruct paths in components*)
 (*                                                                     *)
-(* 3. (int * (int * less) list ) list                                  *)
+(* 2. (int * (int * less) list ) list                                  *)
 (*    - Graph of this type is generated from the strong components of  *)
-(*      graph of type 2.  It consists of the strong components of      *)
-(*      graph 2, where nodes are indices of the components.            *)
+(*      graph of type 1.  It consists of the strong components of      *)
+(*      graph 1, where nodes are indices of the components.            *)
 (*      Only edges between components are part of this graph.          *)
 (*    - Used to reconstruct paths between several components.          *)
-(*                                                                     *)
-(* 4. (int * int list) list                                            *)
-(*    - Graph of this type is generated from graph of type 3, but      *)
-(*      edge information of type less is removed.                      *)
-(*    - Used to                                                        *)
-(*      - Compute transposed graphs of type 4.                         *)
-(*      - Compute list of components reachable from a component.       *)
-(*                                                                     *)
 (*                                                                     *)
 (* ******************************************************************* *)
 
@@ -376,104 +355,48 @@ fun triv_solv (Le (x, x', _)) =
 (* Functions for constructing graphs                           *)
 (* *********************************************************** *)
 
-fun addLessEdge (v,d,[]) = [(v,d)]
-|   addLessEdge (v,d,((u,dl)::el)) = if v aconv u then ((v,d@dl)::el)
-    else (u,dl):: (addLessEdge(v,d,el));
-
-fun addTermEdge (v,u,[]) = [(v,[u])]
-|   addTermEdge (v,u,((x,adj)::el)) = if v aconv x then (v,u::adj)::el
-    else    (x,adj) :: addTermEdge (v,u,el);
+fun addEdge (v,d,[]) = [(v,d)]
+|   addEdge (v,d,((u,dl)::el)) = if v aconv u then ((v,d@dl)::el)
+    else (u,dl):: (addEdge(v,d,el));
     
 (* ********************************************************************* *)
 (*                                                                       *)
-(* buildGraphs constructs three graphs from a list of type less:         *)
-(*   g1: graph for the <= relation                                       *)
-(*   g2: graph for the <= relation with additional information for       *)
-(*       proof reconstruction                                            *)
-(*   neqEdges: all edges that are candidates for a ~=                    *)
+(* mkGraphs constructs from a list of objects of type less a graph g,    *) 
+(* by taking all edges that are candidate for a <=, and a list neqE, by  *)
+(* taking all edges that are candiate for a ~=                           *)
 (*                                                                       *)
 (* ********************************************************************* *)
 
+fun mkGraphs [] = ([],[],[])
+|   mkGraphs lessList = 
+ let
 
-fun buildGraphs ([],g1,g2,neqEdges) = (g1, g2, neqEdges)
-|   buildGraphs (l::ls,g1,g2,neqEdges) = case l of 
-(Less (x,y,p)) =>(
-      let val g1' = addTermEdge (x,y,g1)
-       and g2' = addLessEdge (x,[(y,(Less (x, y, p)))],g2)
-      in buildGraphs (ls,g1',g2',l::neqEdges) end)
+fun buildGraphs ([],leqG,neqG,neqE) = (leqG, neqG, neqE)
+|   buildGraphs (l::ls, leqG,neqG, neqE) = case l of 
+  (Less (x,y,p)) =>    
+       buildGraphs (ls, addEdge (x,[(y,(Less (x, y, p)))],leqG) , 
+                        addEdge (x,[(y,(Less (x, y, p)))],neqG), l::neqE) 
 | (Le (x,y,p)) =>
-( let val g1' = addTermEdge (x,y,g1)
-       and g2' = addLessEdge (x,[(y,(Le (x, y,p)))],g2)
-  in buildGraphs (ls,g1',g2',neqEdges) end)
-| (NotEq  (x,y,p)) => (   buildGraphs (ls,g1,g2,l::neqEdges) )
+      buildGraphs (ls, addEdge (x,[(y,(Le (x, y,p)))],leqG) , neqG, neqE) 
+| (NotEq  (x,y,p)) => 
+      buildGraphs (ls, leqG , addEdge (x,[(y,(NotEq (x, y, p)))],neqG), l::neqE) ;
+
+  in buildGraphs (lessList, [], [], []) end;
 
 
 (* *********************************************************************** *)
 (*                                                                         *)
-(* adjacent_term g u : (Term.term * 'a list ) list -> Term.term -> 'a list *)
-(*                                                                         *)
-(*                                                                         *)
-(* *********************************************************************** *)
-
-fun adjacent_term ((v,adj)::el) u = 
-    if u aconv v then adj else adjacent_term el u
-|   adjacent_term nil _ = []
-
-(* *********************************************************************** *)
-(*                                                                         *)
-(* adjacent_term g u : (''a * 'b list ) list -> ''a -> 'b list             *)
+(* adjacent g u : (''a * 'b list ) list -> ''a -> 'b list                  *)
 (*                                                                         *)
 (* List of successors of u in graph g                                      *)
 (*                                                                         *)
 (* *********************************************************************** *)
  
-fun adjacent ((v,adj)::el) u = 
-    if u = v then adj else adjacent el u
-|   adjacent nil _ = []  
+fun adjacent eq_comp ((v,adj)::el) u = 
+    if eq_comp (u, v) then adj else adjacent eq_comp el u
+|   adjacent _  []  _ = []  
   
-
-(* *********************************************************************** *)
-(*                                                                         *)
-(* transpose_term g:                                                       *)
-(* (Term.term * Term.term list) list -> (Term.term * Term.term list) list  *)
-(*                                                                         *)
-(* Computes transposed graph g' from g                                     *)
-(* by reversing all edges u -> v to v -> u                                 *)
-(*                                                                         *)
-(* *********************************************************************** *)
-
- fun transpose_term g =
-  let
-   (* Compute list of reversed edges for each adjacency list *)
-   fun flip (u,v::el) = (v,u) :: flip (u,el)
-     | flip (_,nil) = nil
-
-   (* Compute adjacency list for node u from the list of edges
-      and return a likewise reduced list of edges.  The list of edges
-      is searches for edges starting from u, and these edges are removed. *)
-   fun gather (u,(v,w)::el) =
-    let
-     val (adj,edges) = gather (u,el)
-    in
-      if u aconv v then (w::adj,edges)
-      else (adj,(v,w)::edges)
-    end
-   | gather (_,nil) = (nil,nil)
-
-   (* For every node in the input graph, call gather to find all reachable
-      nodes in the list of edges *)
-   fun assemble ((u,_)::el) edges =
-       let val (adj,edges) = gather (u,edges)
-       in (u,adj) :: assemble el edges
-       end
-     | assemble nil _ = nil
-
-   (* Compute, for each adjacency list, the list with reversed edges,
-      and concatenate these lists. *)
-   val flipped = foldr (op @) ((map flip g),nil)
-      
- in assemble g flipped  end    
-      
+     
 (* *********************************************************************** *)
 (*                                                                         *)
 (* transpose g:                                                            *)
@@ -484,10 +407,10 @@ fun adjacent ((v,adj)::el) u =
 (*                                                                         *)
 (* *********************************************************************** *)
 
-fun transpose g =
+fun transpose eq_comp g =
   let
    (* Compute list of reversed edges for each adjacency list *)
-   fun flip (u,v::el) = (v,u) :: flip (u,el)
+   fun flip (u,(v,l)::el) = (v,(u,l)) :: flip (u,el)
      | flip (_,nil) = nil
    
    (* Compute adjacency list for node u from the list of edges
@@ -497,7 +420,7 @@ fun transpose g =
     let
      val (adj,edges) = gather (u,el)
     in
-     if u = v then (w::adj,edges)
+     if eq_comp (u, v) then (w::adj,edges)
      else (adj,(v,w)::edges)
     end
    | gather (_,nil) = (nil,nil)
@@ -516,16 +439,19 @@ fun transpose g =
  
  in assemble g flipped end    
       
-      
-(* scc_term : (term * term list) list -> term list list *)
+(* *********************************************************************** *)
+(*                                                                         *)      
+(* scc_term : (term * term list) list -> term list list                    *)
+(*                                                                         *)
+(* The following is based on the algorithm for finding strongly connected  *)
+(* components described in Introduction to Algorithms, by Cormon, Leiserson*)
+(* and Rivest, section 23.5. The input G is an adjacency list description  *)
+(* of a directed graph. The output is a list of the strongly connected     *)
+(* components (each a list of vertices).                                   *)          
+(*                                                                         *)   
+(*                                                                         *)
+(* *********************************************************************** *)
 
-(* The following is based on the algorithm for finding strongly
-   connected components described in Introduction to Algorithms,
-   by Cormon, Leiserson, and Rivest, section 23.5. The input G
-   is an adjacency list description of a directed graph. The
-   output is a list of the strongly connected components (each a
-   list of vertices). *)          
-     
 fun scc_term G =
      let
   (* Ordered list of the vertices that DFS has finished with;
@@ -547,9 +473,9 @@ fun scc_term G =
       let
    val _ = visited := u :: !visited
    val descendents =
-       foldr (fn (v,ds) => if been_visited v then ds
+       foldr (fn ((v,l),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
-        ((adjacent_term g u) ,nil)
+        ((adjacent (op aconv) g u) ,nil)
       in
    finish := u :: !finish;
    descendents
@@ -564,7 +490,7 @@ fun scc_term G =
   visited := nil;
 
   (* We don't reset finish because its value is used by
-     revfold below, and it will never be used again (even
+     foldl below, and it will never be used again (even
      though dfs_visit will continue to modify it). *)
 
   (* DFS on the transpose. The vertices returned by
@@ -573,7 +499,7 @@ fun scc_term G =
      list, which is what is returned. *)
   foldl (fn (comps,u) =>  
       if been_visited u then comps
-      else ((u :: dfs_visit (transpose_term G) u) :: comps))  (nil,(!finish))
+      else ((u :: dfs_visit (transpose (op aconv) G) u) :: comps))  (nil,(!finish))
 end;
 
 
@@ -586,7 +512,6 @@ end;
 (*                                                                         *)
 (* *********************************************************************** *)
 
-
 fun dfs_int_reachable g u = 
  let
   (* List of vertices which have been visited. *)
@@ -598,16 +523,16 @@ fun dfs_int_reachable g u =
       let
    val _ = visited := u :: !visited
    val descendents =
-       foldr (fn (v,ds) => if been_visited v then ds
+       foldr (fn ((v,l),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
-        ( ((adjacent g u)) ,nil)
+        ( ((adjacent (op =) g u)) ,nil)
    in  descendents end
  
  in u :: dfs_visit g u end;
 
     
 fun indexComps components = 
-    ListPair.map (fn (a,b) => (b,a)) (components, 0 upto (length components -1));
+    ListPair.map (fn (a,b) => (a,b)) (0 upto (length components -1), components);
 
 fun indexNodes IndexComp = 
     flat (map (fn (index, comp) => (map (fn v => (v,index)) comp)) IndexComp);
@@ -616,113 +541,35 @@ fun getIndex v [] = ~1
 |   getIndex v ((v',k)::vs) = if v aconv v' then k else getIndex v vs; 
     
 
-(* ***************************************************************** *)
-(*                                                                   *)
-(* evalcompgraph components g ntc :                                  *)
-(* Term.term list list ->                                            *)
-(* (Term.term * (Term.term * less) list) list ->                     *)
-(* (Term.term * int) list ->  (int * (int * less) list) list         *)
-(*                                                                   *)
-(*                                                                   *)
-(* Computes, from graph g, list of all its components and the list   *)
-(* ntc (nodes, index of component) a graph whose nodes are the       *)
-(* indices of the components of g.  Egdes of the new graph are       *)
-(* only the edges of g linking two components.                       *)
-(*                                                                   *)
-(* ***************************************************************** *)
-
-fun evalcompgraph components g ntc = 
-    let
-    (* Liste (Index der Komponente, Komponente *)
-    val IndexComp = indexComps components;
-
-    (* Compute new graph with the property that it only contains edges
-       between components. *)
-  
-    (* k is index of current start component. *)   
-       
-    fun processComponent (k, comp) = 
-     let
-         (* all edges pointing away from the component *)
-	   (* (Term.term * less) list *)
-	       val allEdges = flat (map (adjacent_term g) comp);
-
-		(* choose those edges pointing to nodes outside
-                   the current component *)
-		
-		fun selectEdges  [] = []
-		|   selectEdges  ((v,l)::es) = let val k' = getIndex v ntc in 
-		    if k' = k then selectEdges es else (k', l) :: (selectEdges  es) end;
-
-		 (* Insert edge into sorted list of edges, where edge is
-                    only added if
-                    - it is found for the first time
-                    - it is a <= edge and no parallel < edge was found earlier
-                    - it is a < edge
-                 *)
-		     
-		 fun insert (h,l) [] = [(h,l)]
-		 |   insert (h,l) ((k',l')::es) = if h = k' then (
-		     case l of (Less (_, _, _)) => (h,l)::es
-		     | _  => (case l' of (Less (_, _, _)) => (h,l')::es
-	                      | _ => (k',l)::es) )
-		     else (k',l'):: insert (h,l) es;
-
-		 (* Reorganise list of edges such that
-                    - duplicate edges are removed
-                    - if a < edge and a <= edge exist at the same time,
-                      remove <= edge *)
-		     
-		 fun sortEdges [] sorted = sorted: (int * less) list
-		 |   sortEdges (e::es) sorted = sortEdges es (insert e sorted); 
-		    
-     in 
-       (k, (sortEdges (selectEdges allEdges) []))
-     end; 
-     
-	     			       
-in map processComponent IndexComp end; 
-
-(* Remove ``less'' edge info from graph *)
-(* type ('a * ('a * less) list) list *)
-fun stripOffLess g = map (fn (v, desc) => (v,map (fn (u,l) => u) desc)) g;
-
-
 
 (* *********************************************************************** *)
 (*                                                                         *)
-(* dfs_term g u v:                                                         *)
-(* (Term.term  *(Term.term * less) list) list ->                           *)
-(* Term.term -> Term.term -> (bool * less list)                            *) 
+(* dfs eq_comp g u v:                                                       *)
+(* ('a * 'a -> bool) -> ('a  *( 'a * less) list) list ->                   *)
+(* 'a -> 'a -> (bool * ('a * less) list)                                   *) 
 (*                                                                         *)
 (* Depth first search of v from u.                                         *)
 (* Returns (true, path(u, v)) if successful, otherwise (false, []).        *)
 (*                                                                         *)
 (* *********************************************************************** *)
 
-
-fun dfs_term g u v = 
+fun dfs eq_comp g u v = 
  let 
-(* TODO: this comment is unclear *)
-    (* Liste der gegangenen Kanten, 
-       die Kante e die zum Vorgaenger eines Knoten u gehoert ist jene 
-       für die gilt (upper e) = u *)
-    val pred :  less list ref = ref nil;
-    val visited: term list ref = ref nil;
+    val pred = ref nil;
+    val visited = ref nil;
     
-    fun been_visited v = exists (fn w => w aconv v) (!visited)
+    fun been_visited v = exists (fn w => eq_comp (w, v)) (!visited)
     
     fun dfs_visit u' = 
     let val _ = visited := u' :: (!visited)
     
-    fun update l = let val _ = pred := l ::(!pred) in () end;
+    fun update (x,l) = let val _ = pred := (x,l) ::(!pred) in () end;
     
     in if been_visited v then () 
-       else (app (fn (v',l) => if been_visited v' then () else (
-        update l; 
-        dfs_visit v'; ()) )) (adjacent_term g u')
-    end
-   
+    else (app (fn (v',l) => if been_visited v' then () else (
+       update (v',l); 
+       dfs_visit v'; ()) )) (adjacent eq_comp g u')
+     end
   in 
     dfs_visit u; 
     if (been_visited v) then (true, (!pred)) else (false , [])   
@@ -743,11 +590,11 @@ fun dfs_term g u v =
 (* *********************************************************************** *)
 
   
-fun completeTermPath u v g = 
+fun completeTermPath u v g  = 
   let 
+   val (found, tmp) =  dfs (op aconv) g u v ;
+   val pred = map snd tmp;
    
-   val (found, pred) = dfs_term g u v;
-
    fun path x y  =
       let
  
@@ -771,56 +618,20 @@ fun completeTermPath u v g =
   else path u v ) else raise Cannot
 end;  
 
-
+      
 (* *********************************************************************** *)
 (*                                                                         *)
-(* dfs_int g u v:                                                          *)
-(* (int  *(int * less) list) list -> int -> int                            *)
-(* -> (bool *(int*  less) list)                                            *) 
+(* findProof (sccGraph, neqE, ntc, sccSubgraphs) subgoal:                  *)
 (*                                                                         *)
-(* Depth first search of v from u.                                         *)
-(* Returns (true, path(u, v)) if successful, otherwise (false, []).        *)
+(* (int * (int * less) list) list * less list *  (Term.term * int) list    *)
+(* * ((term * (term * less) list) list) list -> Less -> proof              *)
 (*                                                                         *)
-(* *********************************************************************** *)
-
-fun dfs_int g u v = 
- let 
-    val pred : (int * less ) list ref = ref nil;
-    val visited: int list ref = ref nil;
-    
-    fun been_visited v = exists (fn w => w = v) (!visited)
-    
-    fun dfs_visit u' = 
-    let val _ = visited := u' :: (!visited)
-    
-    fun update (x,l) = let val _ = pred := (x,l) ::(!pred) in () end;
-    
-    in if been_visited v then () 
-    else (app (fn (v',l) => if been_visited v' then () else (
-       update (v',l); 
-       dfs_visit v'; ()) )) (adjacent g u')
-    
-    end
-   
-  in 
-    dfs_visit u; 
-    if (been_visited v) then (true, (!pred)) else (false , [])   
-  end;
-  
-     
-(* *********************************************************************** *)
-(*                                                                         *)
-(* findProof (g2,  cg2, neqEdges, components, ntc) subgoal:                *)
-(* (Term.term * (Term.term * less) list) list *                            *)
-(* (int * (int * less) list) list * less list *  Term.term list list       *)
-(* * ( (Term.term * int) -> proof                                          *)
-(*                                                                         *)
-(* findProof constructs from graphs (g2, cg2) and neqEdges a proof for     *)
-(* subgoal.  Raises exception Cannot if this is not possible.              *)
+(* findProof constructs from graphs (sccGraph, sccSubgraphs) and neqE a    *)
+(* proof for subgoal.  Raises exception Cannot if this is not possible.    *)
 (*                                                                         *)
 (* *********************************************************************** *)
      
-fun findProof (g2, cg2, neqEdges, components, ntc ) subgoal =
+fun findProof (sccGraph, neqE, ntc, sccSubgraphs) subgoal =
 let
    
  (* complete path x y from component graph *)
@@ -838,13 +649,15 @@ let
 	       val v = upper edge
 	   in
              if (getIndex u ntc) = xi then 
-	       (completeTermPath x u g2)@[edge]@(completeTermPath v y' g2)
-	     else (rev_completeComponentPath u)@[edge]@(completeTermPath v y' g2)
+	       (completeTermPath x u (nth_elem(xi, sccSubgraphs)) )@[edge]
+	       @(completeTermPath v y' (nth_elem((getIndex y' ntc),sccSubgraphs)) )
+	     else (rev_completeComponentPath u)@[edge]
+	          @(completeTermPath v y' (nth_elem((getIndex y' ntc),sccSubgraphs)) )
            end
    in  
       if x aconv y then 
         [(Le (x, y, (Thm ([], Less.le_refl))))]
-      else ( if xi = yi then completeTermPath x y g2
+      else ( if xi = yi then completeTermPath x y (nth_elem(xi, sccSubgraphs))
              else rev_completeComponentPath y )  
    end;
 
@@ -854,23 +667,23 @@ let
 (* Find a path from x through e to y, of weight <                      *)
 (* ******************************************************************* *) 
  
- fun findLess e x y xi yi Xreachable Yreachable = 
+ fun findLess e x y xi yi xreachable yreachable = 
   let val u = lower e 
       val v = upper e
       val ui = getIndex u ntc
       val vi = getIndex v ntc
             
   in 
-      if ui mem Xreachable andalso vi mem Xreachable andalso 
-         ui mem Yreachable andalso vi mem Yreachable then (
+      if ui mem xreachable andalso vi mem xreachable andalso 
+         ui mem yreachable andalso vi mem yreachable then (
        
   (case e of (Less (_, _, _)) =>  
        let
-        val (xufound, xupred) = dfs_int cg2 xi (getIndex u ntc)
+        val (xufound, xupred) =  dfs (op =) sccGraph xi (getIndex u ntc)
 	    in 
 	     if xufound then (
 	      let 
-	       val (vyfound, vypred) = dfs_int cg2 (getIndex v ntc) yi 
+	       val (vyfound, vypred) =  dfs (op =) sccGraph (getIndex v ntc) yi  
 	      in 
 	       if vyfound then (
 	        let 
@@ -885,15 +698,15 @@ let
 	     else None
 	    end
        |  _   => 
-         let val (xufound, xupred) = dfs_int cg2 xi (getIndex u ntc)
+         let val (uvfound, uvpred) =  dfs (op =) sccGraph (getIndex u ntc) (getIndex v ntc) 
              in 
-	      if xufound then (
+	      if uvfound then (
 	       let 
-	        val (uvfound, uvpred) = dfs_int cg2 (getIndex u ntc) (getIndex v ntc)
+	        val (xufound, xupred) = dfs (op =) sccGraph xi (getIndex u ntc)
 	       in
-		if uvfound then (
+		if xufound then (
 		 let 
-		  val (vyfound, vypred) = dfs_int cg2 (getIndex v ntc) yi
+		  val (vyfound, vypred) =  dfs (op =) sccGraph (getIndex v ntc) yi
 		 in 
 		  if vyfound then (
 		   let
@@ -918,13 +731,12 @@ end;
 in
   (* looking for x <= y: any path from x to y is sufficient *)
   case subgoal of (Le (x, y, _)) => (
-  
+  if sccGraph = [] then raise Cannot else ( 
    let 
     val xi = getIndex x ntc
     val yi = getIndex y ntc
-    (* sucht im Komponentengraphen einen Weg von der Komponente in der x liegt
-       zu der in der y liegt *)
-    val (found, pred) = dfs_int cg2 xi yi
+    (* searches in sccGraph a path from xi to yi *)
+    val (found, pred) = dfs (op =) sccGraph xi yi
    in 
     if found then (
        let val xypath = completeComponentPath x y pred 
@@ -938,20 +750,20 @@ in
        end )
      else raise Cannot 
    end 
-   
+    )
    )
  (* looking for x < y: particular path required, which is not necessarily
     found by normal dfs *)
  |   (Less (x, y, _)) => (
+  if sccGraph = [] then raise Cannot else (
    let 
     val xi = getIndex x ntc
     val yi = getIndex y ntc
-    val cg2' = stripOffLess cg2
-    val cg2'_transpose = transpose cg2'
-    (* alle von x aus erreichbaren Komponenten *)
-    val xreachable = dfs_int_reachable cg2' xi
-    (* all comonents reachable from y in the transposed graph cg2' *)
-    val yreachable = dfs_int_reachable cg2'_transpose yi
+    val sccGraph_transpose = transpose (op =) sccGraph
+    (* all components that can be reached from component xi  *)
+    val xreachable = dfs_int_reachable sccGraph xi
+    (* all comonents reachable from y in the transposed graph sccGraph' *)
+    val yreachable = dfs_int_reachable sccGraph_transpose yi
     (* for all edges u ~= v or u < v check if they are part of path x < y *)
     fun processNeqEdges [] = raise Cannot 
     |   processNeqEdges (e::es) = 
@@ -959,18 +771,30 @@ in
       | _ => processNeqEdges es
         
     in 
-       processNeqEdges neqEdges 
+       processNeqEdges neqE 
     end
- 
+  )
  )
 | (NotEq (x, y, _)) => (
-  
-  let val xi = getIndex x ntc 
+  (* if there aren't any edges that are candidate for a ~= raise Cannot *)
+  if neqE = [] then raise Cannot
+  (* if there aren't any edges that are candidate for <= then just search a edge in neqE that implies the subgoal *)
+  else if sccSubgraphs = [] then (
+     (case (Library.find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
+       ( Some (NotEq (x, y, p)), NotEq (x', y', _)) =>
+          if  (x aconv x' andalso y aconv y') then p 
+	  else Thm ([p], thm "not_sym")
+     | ( Some (Less (x, y, p)), NotEq (x', y', _)) => 
+          if x aconv x' andalso y aconv y' then (Thm ([p], Less.less_imp_neq))
+          else (Thm ([(Thm ([p], Less.less_imp_neq))], thm "not_sym"))
+     | _ => raise Cannot) 
+   ) else (
+   
+   let  val xi = getIndex x ntc 
         val yi = getIndex y ntc
-	val cg2' = stripOffLess cg2
-	val cg2'_transpose = transpose cg2'
-        val xreachable = dfs_int_reachable cg2' xi
-	val yreachable = dfs_int_reachable cg2'_transpose yi
+	val sccGraph_transpose = transpose (op =) sccGraph
+        val xreachable = dfs_int_reachable sccGraph xi
+	val yreachable = dfs_int_reachable sccGraph_transpose yi
 	
 	fun processNeqEdges [] = raise Cannot  
   	|   processNeqEdges (e::es) = (
@@ -981,7 +805,7 @@ in
 		
 	    in  
 	        (* if x ~= y follows from edge e *)
-	    	         if e subsumes subgoal then (
+	    	if e subsumes subgoal then (
 		     case e of (Less (u, v, q)) => (
 		       if u aconv x andalso v aconv y then (Thm ([q], Less.less_imp_neq))
 		       else (Thm ([(Thm ([q], Less.less_imp_neq))], thm "not_sym"))
@@ -994,14 +818,15 @@ in
                 (* if SCC_x is linked to SCC_y via edge e *)
 		 else if ui = xi andalso vi = yi then (
                    case e of (Less (_, _,_)) => (
-		        let val xypath = (completeTermPath x u g2) @ [e] @ (completeTermPath v y g2)
+		        let val xypath = (completeTermPath x u (nth_elem(ui, sccSubgraphs)) ) @ [e] @ (completeTermPath v y (nth_elem(vi, sccSubgraphs)) )
 			    val xyLesss = transPath (tl xypath, hd xypath)
 			in  (Thm ([getprf xyLesss], Less.less_imp_neq)) end)
 		   | _ => (   
-		        let val xupath = completeTermPath x u g2
-			    val uxpath = completeTermPath u x g2
-			    val vypath = completeTermPath v y g2
-			    val yvpath = completeTermPath y v g2
+		        let 
+			    val xupath = completeTermPath x u  (nth_elem(ui, sccSubgraphs))
+			    val uxpath = completeTermPath u x  (nth_elem(ui, sccSubgraphs))
+			    val vypath = completeTermPath v y  (nth_elem(vi, sccSubgraphs))
+			    val yvpath = completeTermPath y v  (nth_elem(vi, sccSubgraphs))
 			    val xuLesss = transPath (tl xupath, hd xupath)     
 			    val uxLesss = transPath (tl uxpath, hd uxpath)			    
 			    val vyLesss = transPath (tl vypath, hd vypath)			
@@ -1014,15 +839,15 @@ in
 			)       
 		  ) else if ui = yi andalso vi = xi then (
 		     case e of (Less (_, _,_)) => (
-		        let val xypath = (completeTermPath y u g2) @ [e] @ (completeTermPath v x g2)
+		        let val xypath = (completeTermPath y u (nth_elem(ui, sccSubgraphs)) ) @ [e] @ (completeTermPath v x (nth_elem(vi, sccSubgraphs)) )
 			    val xyLesss = transPath (tl xypath, hd xypath)
 			in (Thm ([(Thm ([getprf xyLesss], Less.less_imp_neq))] , thm "not_sym")) end ) 
 		     | _ => (
 		        
-			let val yupath = completeTermPath y u g2
-			    val uypath = completeTermPath u y g2
-			    val vxpath = completeTermPath v x g2
-			    val xvpath = completeTermPath x v g2
+			let val yupath = completeTermPath y u (nth_elem(ui, sccSubgraphs))
+			    val uypath = completeTermPath u y (nth_elem(ui, sccSubgraphs))
+			    val vxpath = completeTermPath v x (nth_elem(vi, sccSubgraphs))
+			    val xvpath = completeTermPath x v (nth_elem(vi, sccSubgraphs))
 			    val yuLesss = transPath (tl yupath, hd yupath)     
 			    val uyLesss = transPath (tl uypath, hd uypath)			    
 			    val vxLesss = transPath (tl vxpath, hd vxpath)			
@@ -1040,43 +865,58 @@ in
 		              (Some prf) =>  (Thm ([prf], Less.less_imp_neq))  
                              | None =>  (
 		               let 
-		                val yr = dfs_int_reachable cg2' yi
-	                        val xr = dfs_int_reachable cg2'_transpose xi
+		                val yr = dfs_int_reachable sccGraph yi
+	                        val xr = dfs_int_reachable sccGraph_transpose xi
 		               in 
 		                case  (findLess e y x yi xi yr xr) of 
 		                      (Some prf) => (Thm ([(Thm ([prf], Less.less_imp_neq))], thm "not_sym")) 
                                       | _ => processNeqEdges es
 		               end)
 		 ) end) 
-     in processNeqEdges neqEdges end
+     in processNeqEdges neqE end)
   )    
 end;
 
 
-(* *********************************************************************** *)
-(*                                                                         *)
-(* checkComponents g components ntc neqEdges:                              *)
-(* (Term.term * (Term.term * less) list) list -> Term.term list list  ->   *)
-(* (Term.term * int) -> less list -> bool                                  *)
-(*                                                                         *)
-(* For each edge in the list neqEdges check if it leads to a contradiction.*)
-(* We have a contradiction for edge u ~= v and u < v if:                   *)
-(* - u and v are in the same component,                                    *)
-(*   that is, a path u <= v and a path v <= u exist, hence u = v.          *)
-(* From irreflexivity of < follows u < u or v < v.  Ex false quodlibet.    *)
-(*                                                                         *)
-(*                                                                         *)
-(* *********************************************************************** *)
+(* ******************************************************************* *)
+(*                                                                     *)
+(* mk_sccGraphs components leqG neqG ntc :                             *)
+(* Term.term list list ->                                              *)
+(* (Term.term * (Term.term * less) list) list ->                       *)
+(* (Term.term * (Term.term * less) list) list ->                       *)
+(* (Term.term * int)  list ->                                          *)
+(* (int * (int * less) list) list   *                                  *)
+(* ((Term.term * (Term.term * less) list) list) list                   *)
+(*                                                                     *)
+(*                                                                     *)
+(* Computes, from graph leqG, list of all its components and the list  *)
+(* ntc (nodes, index of component) a graph whose nodes are the         *)
+(* indices of the components of g.  Egdes of the new graph are         *)
+(* only the edges of g linking two components. Also computes for each  *)
+(* component the subgraph of leqG that forms this component.           *)
+(*                                                                     *)
+(* For each component SCC_i is checked if there exists a edge in neqG  *)
+(* that leads to a contradiction.                                      *)
+(*                                                                     *)
+(* We have a contradiction for edge u ~= v and u < v if:               *)
+(* - u and v are in the same component,                                *)
+(* that is, a path u <= v and a path v <= u exist, hence u = v.        *)
+(* From irreflexivity of < follows u < u or v < v. Ex false quodlibet. *)
+(*                                                                     *)
+(* ******************************************************************* *)
 
+fun mk_sccGraphs _ [] _ _ = ([],[])
+|   mk_sccGraphs components leqG neqG ntc = 
+    let
+    (* Liste (Index der Komponente, Komponente *)
+    val IndexComp = indexComps components;
 
-fun checkComponents g components ntc neqEdges = 
- let
-    (* Construct proof by contradiction for edge *)
-    fun handleContr edge  = 
+       
+    fun handleContr edge g = 
        (case edge of 
           (Less  (x, y, _)) => (
 	    let 
-	     val xxpath = edge :: (completeTermPath y x g)
+	     val xxpath = edge :: (completeTermPath y x g )
 	     val xxLesss = transPath (tl xxpath, hd xxpath)
 	     val q = getprf xxLesss
 	    in 
@@ -1085,8 +925,8 @@ fun checkComponents g components ntc neqEdges =
 	  )
         | (NotEq (x, y, _)) => (
 	    let 
-	     val xypath = (completeTermPath x y g)
-	     val yxpath = (completeTermPath y x g)
+	     val xypath = (completeTermPath x y g )
+	     val yxpath = (completeTermPath y x g )
 	     val xyLesss = transPath (tl xypath, hd xypath)
 	     val yxLesss = transPath (tl yxpath, hd yxpath)
              val q = getprf (mergeLess ((mergeLess (edge, xyLesss)),yxLesss )) 
@@ -1094,21 +934,75 @@ fun checkComponents g components ntc neqEdges =
 	     raise (Contr (Thm ([q], Less.less_reflE )))
 	    end  
 	 )
-	| _ =>  error "trans_tac/checkCompoents/handleContr: invalid Contradiction");
+	| _ =>  error "trans_tac/handleContr: invalid Contradiction");
+ 
+   	
+    (* k is index of the actual component *)   
+       
+    fun processComponent (k, comp) = 
+     let    
+        (* all edges with weight <= of the actual component *)  
+        val leqEdges = flat (map (adjacent (op aconv) leqG) comp);
+        (* all edges with weight ~= of the actual component *)  
+        val neqEdges = map snd (flat (map (adjacent (op aconv) neqG) comp));
 
-   (* Check each edge in neqEdges for contradiction.
-      If there is a contradiction, call handleContr, otherwise do nothing. *)
-    fun checkNeqEdges [] = () 
-    |   checkNeqEdges (e::es) = 
-        (case e of (Less (u, v, _)) => 
-	  if (getIndex u ntc) = (getIndex v ntc) then handleContr e g
-          else checkNeqEdges es
-        | (NotEq (u, v, _)) =>  
-	  if (getIndex u ntc) = (getIndex v ntc) then handleContr e g
-          else checkNeqEdges es
-        | _ => checkNeqEdges es)
-     
- in if g = [] then () else checkNeqEdges neqEdges end;
+       (* find an edge leading to a contradiction *)   
+       fun findContr [] = None
+       |   findContr (e::es) = 
+		    let val ui = (getIndex (lower e) ntc) 
+			val vi = (getIndex (upper e) ntc) 
+		    in 
+		        if ui = vi then  Some e
+		        else findContr es
+		    end; 
+		   
+		(* sort edges into component internal edges and 
+		   edges pointing away from the component *)
+		fun sortEdges  [] (intern,extern)  = (intern,extern)
+		|   sortEdges  ((v,l)::es) (intern, extern) = 
+		    let val k' = getIndex v ntc in 
+		        if k' = k then 
+			    sortEdges es (l::intern, extern)
+			else sortEdges  es (intern, (k',l)::extern) end;
+		
+		(* Insert edge into sorted list of edges, where edge is
+                    only added if
+                    - it is found for the first time
+                    - it is a <= edge and no parallel < edge was found earlier
+                    - it is a < edge
+                 *)
+          	 fun insert (h,l) [] = [(h,l)]
+		 |   insert (h,l) ((k',l')::es) = if h = k' then (
+		     case l of (Less (_, _, _)) => (h,l)::es
+		     | _  => (case l' of (Less (_, _, _)) => (h,l')::es
+	                      | _ => (k',l)::es) )
+		     else (k',l'):: insert (h,l) es;
+		
+		(* Reorganise list of edges such that
+                    - duplicate edges are removed
+                    - if a < edge and a <= edge exist at the same time,
+                      remove <= edge *)
+    		 fun reOrganizeEdges [] sorted = sorted: (int * less) list
+		 |   reOrganizeEdges (e::es) sorted = reOrganizeEdges es (insert e sorted); 
+	
+                 (* construct the subgraph forming the strongly connected component
+		    from the edge list *)    
+		 fun sccSubGraph [] g  = g
+		 |   sccSubGraph (l::ls) g = 
+		          sccSubGraph ls (addEdge ((lower l),[((upper l),l)],g))
+		 
+		 val (intern, extern) = sortEdges leqEdges ([], []);
+                 val subGraph = sccSubGraph intern [];
+		  
+     in  
+         case findContr neqEdges of Some e => handleContr e subGraph
+	 | _ => ((k, (reOrganizeEdges (extern) [])), subGraph)
+     end; 
+  
+    val tmp =  map processComponent IndexComp    
+in 
+     ( (map fst tmp), (map snd tmp))  
+end; 
 
 (* *********************************************************************** *)
 (*                                                                         *)
@@ -1121,17 +1015,15 @@ fun checkComponents g components ntc neqEdges =
 
 fun solvePartialOrder sign (asms, concl) =
  let 
-  val (g1, g2, neqEdges) = buildGraphs (asms, [], [],[])
-  val components = scc_term g1
+  val (leqG, neqG, neqE) = mkGraphs asms
+  val components = scc_term leqG
   val ntc = indexNodes (indexComps components)
-  val cg2 = evalcompgraph components g2 ntc
+  val (sccGraph, sccSubgraphs) = mk_sccGraphs components leqG neqG ntc 
  in
- (* Check for contradiction within assumptions  *)
-  checkComponents g2 components ntc neqEdges;
-  let 
+   let 
    val (subgoals, prf) = mkconcl_partial sign concl
    fun solve facts less =
-       (case triv_solv less of None => findProof (g2, cg2, neqEdges, components, ntc) less
+       (case triv_solv less of None => findProof (sccGraph, neqE, ntc, sccSubgraphs ) less
        | Some prf => prf )
   in
    map (solve asms) subgoals
@@ -1149,25 +1041,22 @@ fun solvePartialOrder sign (asms, concl) =
 
 fun solveTotalOrder sign (asms, concl) =
  let 
-  val (g1, g2, neqEdges) = buildGraphs (asms, [], [],[])
-  val components = scc_term g1   
+  val (leqG, neqG, neqE) = mkGraphs asms
+  val components = scc_term leqG   
   val ntc = indexNodes (indexComps components)
-  val cg2 = evalcompgraph components g2 ntc
+  val (sccGraph, sccSubgraphs) = mk_sccGraphs components leqG neqG ntc
  in
-  checkComponents g2 components ntc neqEdges;
-  let 
+   let 
    val (subgoals, prf) = mkconcl_linear sign concl
    fun solve facts less =
-      (case triv_solv less of None => findProof (g2, cg2, neqEdges, components, ntc) less
+      (case triv_solv less of None => findProof (sccGraph, neqE, ntc, sccSubgraphs) less
       | Some prf => prf )
   in
    map (solve asms) subgoals
   end
  end;
-
   
-(* partial_tac - solves linear/total orders *)
-  
+(* partial_tac - solves partial orders *)
 val partial_tac = SUBGOAL (fn (A, n, sign) =>
  let
   val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
@@ -1186,7 +1075,6 @@ val partial_tac = SUBGOAL (fn (A, n, sign) =>
       );
        
 (* linear_tac - solves linear/total orders *)
-  
 val linear_tac = SUBGOAL (fn (A, n, sign) =>
  let
   val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
@@ -1204,4 +1092,3 @@ val linear_tac = SUBGOAL (fn (A, n, sign) =>
       | Cannot  => no_tac);
        
 end;
-
