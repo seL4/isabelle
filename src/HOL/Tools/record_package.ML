@@ -76,7 +76,7 @@ fun get_defs thy specs = map (PureThy.get_tthm thy o fst) specs;
 fun prove_simp thy tacs simps =
   let
     val sign = Theory.sign_of thy;
-    val ss = Simplifier.addsimps (HOL_basic_ss, map Attribute.thm_of simps);
+    val ss = Simplifier.addsimps (HOL_basic_ss, Attribute.thms_of simps);
 
     fun prove goal =
       Attribute.tthm_of
@@ -523,7 +523,7 @@ fun field_definitions fields names zeta moreT more vars named_vars thy =
       thy
       |> field_type_defs fieldT_specs;
 
-    val datatype_simps = map Attribute.tthm_of simps;
+    val datatype_simps = Attribute.tthms_of simps;
 
 
     (* 2nd stage: defs_thy *)
