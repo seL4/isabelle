@@ -6,6 +6,19 @@ New in this Isabelle release
 
 *** General ***
 
+* Theory headers: the new header syntax for Isar theories is
+
+  theory <name>
+  import <theory1> ... <theoryn>
+  begin
+
+  optionally also with a "files" section. The old syntax
+
+  theory <name> = <theory1> + ... + <theoryn>:
+
+  will still be supported for some time but will eventually disappear.
+  The syntax of old-style theories has not changed.
+
 * Provers/quasi.ML:  new transitivity reasoners for transitivity only
   and quasi orders.
 
