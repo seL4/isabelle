@@ -1,11 +1,11 @@
 (*
-  Title:     Orders and Lattices
+  Title:     HOL/Algebra/Lattice.thy
   Id:        $Id$
   Author:    Clemens Ballarin, started 7 November 2003
   Copyright: Clemens Ballarin
 *)
 
-header {* Order and Lattices *}
+header {* Orders and Lattices *}
 
 theory Lattice = Group:
 

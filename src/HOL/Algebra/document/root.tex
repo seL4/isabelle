@@ -1,4 +1,6 @@
 
+% $Id$
+
 \documentclass[11pt,a4paper]{article}
 \usepackage{graphicx}
 \usepackage{isabelle,isabellesym}
@@ -10,21 +12,18 @@
 % this should be the last package used
 \usepackage{pdfsetup}
 
-% proper setup for best-style documents
 \urlstyle{rm}
 \isabellestyle{it}
-
-%\usepackage{substr}
-
-%\renewcommand{\isamarkupheader}[1]{%
-%  \IfSubStringInString{Chapter: }{#1}{%
-%    \chapter{\BehindSubString{Chapter: }{#1}}}{%
-%  \section{#1}}}
-
+\pagestyle{myheadings}
 
 \begin{document}
 
-\title{The Isabelle Algebra Library}
+\title{The Isabelle/HOL Algebra Library}
+\author{
+  Clemens Ballarin \\
+  Florian Kammu\"uller \\
+  Lawrence C Paulson \\
+}
 \maketitle
 
 \tableofcontents
@@ -35,8 +34,14 @@
 
 \clearpage
 
-\parindent 0pt\parskip 0.5ex
+\renewcommand{\isamarkupheader}[1]%
+{\section{\isabellecontext: #1}\markright{THEORY~``\isabellecontext''}}
 
+\parindent 0pt\parskip 0.5ex
 \input{session}
+
+\pagestyle{headings}
+\bibliographystyle{abbrv}
+\bibliography{root}
 
 \end{document}

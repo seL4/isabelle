@@ -1,16 +1,18 @@
 (*<*)
 theory Library =
-  Quotient +
-  Nat_Infinity +
-  List_Prefix +
-  Nested_Environment +
   Accessible_Part +
   Continuity +
+  FuncSet +
+  List_Prefix +
   Multiset +
-  Permutation +
   NatPair +
+  Nat_Infinity +
+  Nested_Environment +
+  Permutation +
   Primes +
+  Quotient +
+  While_Combinator +
   Word +
-  While_Combinator:
+  Zorn:
 end
 (*>*)

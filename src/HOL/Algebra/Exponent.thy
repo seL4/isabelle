@@ -1,4 +1,4 @@
-(*  Title:      HOL/GroupTheory/Exponent
+(*  Title:      HOL/Algebra/Exponent.thy
     ID:         $Id$
     Author:     Florian Kammueller, with new proofs by L C Paulson
 

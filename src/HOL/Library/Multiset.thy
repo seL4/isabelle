@@ -4,10 +4,7 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {*
- \title{Multisets}
- \author{Tobias Nipkow, Markus Wenzel, and Lawrence C Paulson}
-*}
+header {* Multisets *}
 
 theory Multiset = Accessible_Part:
 

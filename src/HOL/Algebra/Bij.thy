@@ -1,4 +1,4 @@
-(*  Title:      HOL/Algebra/Bij
+(*  Title:      HOL/Algebra/Bij.thy
     ID:         $Id$
     Author:     Florian Kammueller, with new proofs by L C Paulson
 *)

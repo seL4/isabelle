@@ -13,9 +13,9 @@ theory Group = FuncSet:
 section {* From Magmas to Groups *}
 
 text {*
-  Definitions follow Jacobson, Basic Algebra I, Freeman, 1985; with
-  the exception of \emph{magma} which, following Bourbaki, is a set
-  together with a binary, closed operation.
+  Definitions follow \cite{Jacobson:1985}; with the exception of
+  \emph{magma} which, following Bourbaki, is a set together with a
+  binary, closed operation.
 *}
 
 subsection {* Definitions *}

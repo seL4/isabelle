@@ -4,10 +4,7 @@
     Copyright   1994  University of Cambridge
 *)
 
-header {*
- \title{The accessible part of a relation}
- \author{Lawrence C Paulson}
-*}
+header {* The accessible part of a relation *}
 
 theory Accessible_Part = Main:
 

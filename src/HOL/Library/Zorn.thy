@@ -1,39 +1,40 @@
-(*  Title       : Zorn.thy
+(*  Title       : HOL/Library/Zorn.thy
     ID          : $Id$
     Author      : Jacques D. Fleuriot
-    Description : Zorn's Lemma -- See Larry Paulson's Zorn.thy in ZF
-*) 
+    Description : Zorn's Lemma -- see Larry Paulson's Zorn.thy in ZF
+*)
 
-header {*Zorn's Lemma*}
+header {* Zorn's Lemma *}
 
 theory Zorn = Main:
 
-text{*The lemma and section numbers refer to an unpublished article ``Towards
-the Mechanization of the Proofs of Some Classical Theorems of Set Theory,'' by
-Abrial and Laffitte.  *}
+text{*
+  The lemma and section numbers refer to an unpublished article
+  \cite{Abrial-Laffitte}.
+*}
 
 constdefs
   chain     ::  "'a set set => 'a set set set"
-    "chain S  == {F. F \<subseteq> S & (\<forall>x \<in> F. \<forall>y \<in> F. x \<subseteq> y | y \<subseteq> x)}" 
+  "chain S  == {F. F \<subseteq> S & (\<forall>x \<in> F. \<forall>y \<in> F. x \<subseteq> y | y \<subseteq> x)}"
 
   super     ::  "['a set set,'a set set] => 'a set set set"
-    "super S c == {d. d \<in> chain(S) & c < d}"
+  "super S c == {d. d \<in> chain S & c \<subset> d}"
 
   maxchain  ::  "'a set set => 'a set set set"
-    "maxchain S == {c. c \<in> chain S & super S c = {}}"
+  "maxchain S == {c. c \<in> chain S & super S c = {}}"
 
   succ      ::  "['a set set,'a set set] => 'a set set"
-    "succ S c == if (c \<notin> chain S| c \<in> maxchain S) 
-                 then c else (@c'. c': (super S c))" 
+  "succ S c ==
+    if c \<notin> chain S | c \<in> maxchain S
+    then c else SOME c'. c' \<in> super S c"
 
-consts 
-  "TFin" ::  "'a set set => 'a set set set"
+consts
+  TFin :: "'a set set => 'a set set set"
 
-inductive "TFin(S)"
+inductive "TFin S"
   intros
     succI:        "x \<in> TFin S ==> succ S x \<in> TFin S"
     Pow_UnionI:   "Y \<in> Pow(TFin S) ==> Union(Y) \<in> TFin S"
-           
   monos          Pow_mono
 
 
@@ -54,26 +55,26 @@ done
 
 lemmas TFin_UnionI = TFin.Pow_UnionI [OF PowI]
 
-lemma TFin_induct: 
-          "[| n \<in> TFin S;  
-             !!x. [| x \<in> TFin S; P(x) |] ==> P(succ S x);  
-             !!Y. [| Y \<subseteq> TFin S; Ball Y P |] ==> P(Union Y) |]  
+lemma TFin_induct:
+          "[| n \<in> TFin S;
+             !!x. [| x \<in> TFin S; P(x) |] ==> P(succ S x);
+             !!Y. [| Y \<subseteq> TFin S; Ball Y P |] ==> P(Union Y) |]
           ==> P(n)"
 apply (erule TFin.induct, blast+)
 done
 
 lemma succ_trans: "x \<subseteq> y ==> x \<subseteq> succ S y"
-apply (erule subset_trans) 
-apply (rule Abrial_axiom1) 
+apply (erule subset_trans)
+apply (rule Abrial_axiom1)
 done
 
 text{*Lemma 1 of section 3.1*}
 lemma TFin_linear_lemma1:
-     "[| n \<in> TFin S;  m \<in> TFin S;   
-         \<forall>x \<in> TFin S. x \<subseteq> m --> x = m | succ S x \<subseteq> m  
+     "[| n \<in> TFin S;  m \<in> TFin S;
+         \<forall>x \<in> TFin S. x \<subseteq> m --> x = m | succ S x \<subseteq> m
       |] ==> n \<subseteq> m | succ S m \<subseteq> n"
 apply (erule TFin_induct)
-apply (erule_tac [2] Union_lemma0) txt{*or just Blast_tac*}
+apply (erule_tac [2] Union_lemma0) (*or just blast*)
 apply (blast del: subsetI intro: succ_trans)
 done
 
@@ -82,20 +83,20 @@ lemma TFin_linear_lemma2:
      "m \<in> TFin S ==> \<forall>n \<in> TFin S. n \<subseteq> m --> n=m | succ S n \<subseteq> m"
 apply (erule TFin_induct)
 apply (rule impI [THEN ballI])
-txt{*case split using TFin_linear_lemma1*}
-apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE], 
+txt{*case split using @{text TFin_linear_lemma1}*}
+apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE],
        assumption+)
 apply (drule_tac x = n in bspec, assumption)
-apply (blast del: subsetI intro: succ_trans, blast) 
+apply (blast del: subsetI intro: succ_trans, blast)
 txt{*second induction step*}
 apply (rule impI [THEN ballI])
 apply (rule Union_lemma0 [THEN disjE])
 apply (rule_tac [3] disjI2)
- prefer 2 apply blast 
+ prefer 2 apply blast
 apply (rule ballI)
-apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE], 
-       assumption+, auto) 
-apply (blast intro!: Abrial_axiom1 [THEN subsetD])  
+apply (rule_tac n1 = n and m1 = x in TFin_linear_lemma1 [THEN disjE],
+       assumption+, auto)
+apply (blast intro!: Abrial_axiom1 [THEN subsetD])
 done
 
 text{*Re-ordering the premises of Lemma 2*}
@@ -107,10 +108,10 @@ done
 
 text{*Consequences from section 3.3 -- Property 3.2, the ordering is total*}
 lemma TFin_subset_linear: "[| m \<in> TFin S;  n \<in> TFin S|] ==> n \<subseteq> m | m \<subseteq> n"
-apply (rule disjE) 
+apply (rule disjE)
 apply (rule TFin_linear_lemma1 [OF _ _TFin_linear_lemma2])
 apply (assumption+, erule disjI2)
-apply (blast del: subsetI 
+apply (blast del: subsetI
              intro: subsetI Abrial_axiom1 [THEN subset_trans])
 done
 
@@ -130,12 +131,12 @@ apply (assumption+)
 apply (erule ssubst)
 apply (rule Abrial_axiom1 [THEN equalityI])
 apply (blast del: subsetI
-	     intro: subsetI TFin_UnionI TFin.succI)
+             intro: subsetI TFin_UnionI TFin.succI)
 done
 
 subsection{*Hausdorff's Theorem: Every Set Contains a Maximal Chain.*}
 
-text{*NB: We assume the partial ordering is @{text "\<subseteq>"}, 
+text{*NB: We assume the partial ordering is @{text "\<subseteq>"},
  the subset relation!*}
 
 lemma empty_set_mem_chain: "({} :: 'a set set) \<in> chain S"
@@ -150,13 +151,13 @@ by (unfold maxchain_def, fast)
 lemma mem_super_Ex: "c \<in> chain S - maxchain S ==> ? d. d \<in> super S c"
 by (unfold super_def maxchain_def, auto)
 
-lemma select_super: "c \<in> chain S - maxchain S ==>  
+lemma select_super: "c \<in> chain S - maxchain S ==>
                           (@c'. c': super S c): super S c"
 apply (erule mem_super_Ex [THEN exE])
 apply (rule someI2, auto)
 done
 
-lemma select_not_equals: "c \<in> chain S - maxchain S ==>  
+lemma select_not_equals: "c \<in> chain S - maxchain S ==>
                           (@c'. c': super S c) \<noteq> c"
 apply (rule notI)
 apply (drule select_super)
@@ -180,26 +181,26 @@ apply (simp add: succ_def select_super [THEN super_subset_chain[THEN subsetD]])
 apply (unfold chain_def)
 apply (rule CollectI, safe)
 apply (drule bspec, assumption)
-apply (rule_tac [2] m1 = Xa and n1 = X in TFin_subset_linear [THEN disjE], 
+apply (rule_tac [2] m1 = Xa and n1 = X in TFin_subset_linear [THEN disjE],
        blast+)
 done
- 
+
 theorem Hausdorff: "\<exists>c. (c :: 'a set set): maxchain S"
 apply (rule_tac x = "Union (TFin S) " in exI)
 apply (rule classical)
 apply (subgoal_tac "succ S (Union (TFin S)) = Union (TFin S) ")
  prefer 2
- apply (blast intro!: TFin_UnionI equal_succ_Union [THEN iffD2, symmetric]) 
+ apply (blast intro!: TFin_UnionI equal_succ_Union [THEN iffD2, symmetric])
 apply (cut_tac subset_refl [THEN TFin_UnionI, THEN TFin_chain_lemma4])
 apply (drule DiffI [THEN succ_not_equals], blast+)
 done
 
 
-subsection{*Zorn's Lemma: If All Chains Have Upper Bounds Then 
+subsection{*Zorn's Lemma: If All Chains Have Upper Bounds Then
                                There Is  a Maximal Element*}
 
-lemma chain_extend: 
-    "[| c \<in> chain S; z \<in> S;  
+lemma chain_extend:
+    "[| c \<in> chain S; z \<in> S;
         \<forall>x \<in> c. x<=(z:: 'a set) |] ==> {z} Un c \<in> chain S"
 by (unfold chain_def, blast)
 
@@ -237,16 +238,16 @@ lemma Zorn_Lemma2:
      "\<forall>c \<in> chain S. \<exists>y \<in> S. \<forall>x \<in> c. x \<subseteq> y
       ==> \<exists>y \<in> S. \<forall>x \<in> S. (y :: 'a set) \<subseteq> x --> y = x"
 apply (cut_tac Hausdorff maxchain_subset_chain)
-apply (erule exE) 
-apply (drule subsetD, assumption) 
-apply (drule bspec, assumption, erule bexE) 
+apply (erule exE)
+apply (drule subsetD, assumption)
+apply (drule bspec, assumption, erule bexE)
 apply (rule_tac x = y in bexI)
  prefer 2 apply assumption
-apply clarify 
-apply (rule ccontr) 
+apply clarify
+apply (rule ccontr)
 apply (frule_tac z = x in chain_extend)
 apply (assumption, blast)
-apply (unfold maxchain_def super_def psubset_def) 
+apply (unfold maxchain_def super_def psubset_def)
 apply (blast elim!: equalityCE)
 done
 
@@ -259,4 +260,3 @@ lemma chainD2: "!!(c :: 'a set set). c \<in> chain S ==> c \<subseteq> S"
 by (unfold chain_def, blast)
 
 end
-

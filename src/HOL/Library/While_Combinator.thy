@@ -4,10 +4,7 @@
     Copyright   2000 TU Muenchen
 *)
 
-header {*
- \title{A general ``while'' combinator}
- \author{Tobias Nipkow}
-*}
+header {* A general ``while'' combinator *}
 
 theory While_Combinator = Main:
 

@@ -4,10 +4,7 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {*
-  \title{Quotient types}
-  \author{Markus Wenzel}
-*}
+header {* Quotient types *}
 
 theory Quotient = Main:
 

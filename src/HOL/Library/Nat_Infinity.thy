@@ -4,10 +4,7 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {*
-  \title{Natural numbers with infinity}
-  \author{David von Oheimb}
-*}
+header {* Natural numbers with infinity *}
 
 theory Nat_Infinity = Main:
 

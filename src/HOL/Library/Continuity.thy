@@ -4,10 +4,7 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {*
-  \title{Continuity and iterations (of set transformers)}
-  \author{David von Oheimb}
-*}
+header {* Continuity and iterations (of set transformers) *}
 
 theory Continuity = Main:
 

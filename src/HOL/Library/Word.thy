@@ -3,10 +3,7 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-header {*
-  \title{Binary Words}
-  \author{Sebastian Skalberg}
-*}
+header {* Binary Words *}
 
 theory Word = Main files "word_setup.ML":
 

@@ -1,16 +1,15 @@
-(*  Title:      HOL/GroupTheory/Sylow
+(*  Title:      HOL/Algebra/Sylow.thy
     ID:         $Id$
     Author:     Florian Kammueller, with new proofs by L C Paulson
-
-See Florian Kamm\"uller and L. C. Paulson,
-    A Formal Proof of Sylow's theorem:
-        An Experiment in Abstract Algebra with Isabelle HOL
-    J. Automated Reasoning 23 (1999), 235-264
 *)
 
-header{*Sylow's theorem using locales*}
+header {* Sylow's theorem *}
 
 theory Sylow = Coset:
+
+text {*
+  See also \cite{Kammueller-Paulson:1999}.
+*}
 
 subsection {*Order of a Group and Lagrange's Theorem*}
 

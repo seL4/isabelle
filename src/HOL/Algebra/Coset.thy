@@ -1,4 +1,4 @@
-(*  Title:      HOL/GroupTheory/Coset
+(*  Title:      HOL/Algebra/Coset.thy
     ID:         $Id$
     Author:     Florian Kammueller, with new proofs by L C Paulson
 *)

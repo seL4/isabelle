@@ -15,6 +15,7 @@
 \title{The Supplemental Isabelle/HOL Library}
 \author{
   Gertrud Bauer \\
+  Jacques D Fleuriot \\
   Tobias Nipkow \\
   David von Oheimb \\
   Lawrence C Paulson \\
@@ -28,16 +29,8 @@
 \tableofcontents
 \newpage
 
-%now hack the "header" markup to support \title and \author
-\newcommand{\isabelletitle}{}\newcommand{\title}[1]{\gdef\isabelletitle{#1}}
-\newcommand{\isabelleauthor}{}\newcommand{\author}[1]{\gdef\isabelleauthor{#1}}
 \renewcommand{\isamarkupheader}[1]%
-{\title{***~Theory ``\isabellecontext'': unknown title}\author{}%
-#1%
-\ifthenelse{\equal{}{\isabelletitle}}{}{\newpage\section{\isabelletitle}}%
-\markright{THEORY~``\isabellecontext''}%
-\ifthenelse{\equal{}{\isabelleauthor}}{}%
-{{\flushright\footnotesize\sl (By \isabelleauthor)\par\bigskip}}}
+{\section{\isabellecontext: #1}\markright{THEORY~``\isabellecontext''}}
 
 \parindent 0pt \parskip 0.5ex
 \input{session}

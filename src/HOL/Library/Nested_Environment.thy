@@ -4,10 +4,7 @@
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
-header {*
-  \title{Nested environments}
-  \author{Markus Wenzel}
-*}
+header {* Nested environments *}
 
 theory Nested_Environment = Main:
 

@@ -1,11 +1,11 @@
-(*  Title:      Product Operator for Commutative Monoids
+(*  Title:      HOL/Algebra/FiniteProduct.thy
     ID:         $Id$
     Author:     Clemens Ballarin, started 19 November 2002
 
 This file is largely based on HOL/Finite_Set.thy.
 *)
 
-header {* Product Operator *}
+header {* Product Operator for Commutative Monoids *}
 
 theory FiniteProduct = Group:
 

@@ -1,16 +1,13 @@
 (*  Title:      HOL/Library/Permutation.thy
     ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson and Thomas M Rasmussen
     Copyright   1995  University of Cambridge
 
 TODO: it would be nice to prove (for "multiset", defined on
 HOL/ex/Sorting.thy) xs <~~> ys = (\<forall>x. multiset xs x = multiset ys x)
 *)
 
-header {*
- \title{Permutations}
- \author{Lawrence C Paulson and Thomas M Rasmussen}
-*}
+header {* Permutations *}
 
 theory Permutation = Main:
 

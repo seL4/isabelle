@@ -4,10 +4,7 @@
     Copyright   1996  University of Cambridge
 *)
 
-header {*
-  \title{The Greatest Common Divisor and Euclid's algorithm}
-  \author{Christophe Tabacznyj and Lawrence C Paulson}
-*}
+header {* The Greatest Common Divisor and Euclid's algorithm *}
 
 theory Primes = Main:
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Algebra/Module
+(*  Title:      HOL/Algebra/Module.thy
     ID:         $Id$
     Author:     Clemens Ballarin, started 15 April 2003
     Copyright:  Clemens Ballarin

@@ -1,5 +1,5 @@
 (*
-  Title:     Univariate Polynomials
+  Title:     HOL/Algebra/UnivPoly.thy
   Id:        $Id$
   Author:    Clemens Ballarin, started 9 December 1996
   Copyright: Clemens Ballarin
@@ -16,10 +16,9 @@ text {*
   carrier set is a set of bounded functions from Nat to the
   coefficient domain.  Bounded means that these functions return zero
   above a certain bound (the degree).  There is a chapter on the
-  formalisation of polynomials in my PhD thesis
-  (\url{http://www4.in.tum.de/~ballarin/publications/}), which was
-  implemented with axiomatic type classes.  This was later ported to
-  Locales.
+  formalisation of polynomials in the PhD thesis \cite{Ballarin:1999},
+  which was implemented with axiomatic type classes.  This was later
+  ported to Locales.
 *}
 
 
