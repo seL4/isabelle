@@ -35,7 +35,6 @@ goalw thy [evnodd_def]
 \    if((i#+j) mod 2 = b, cons(<i,j>, evnodd(C,b)), evnodd(C,b))";
 by (asm_simp_tac (ZF_ss addsimps [evnodd_def, Collect_cons] 
                         setloop split_tac [expand_if]) 1);
-by (fast_tac ZF_cs 1);
 qed "evnodd_cons";
 
 goalw thy [evnodd_def] "evnodd(0, b) = 0";
