@@ -256,11 +256,13 @@ infixes only, while $\CONSTS$ (see \S\ref{sec:consts}) and
 $\isarkeyword{syntax}$ (see \S\ref{sec:syn-trans}) support the full range of
 general mixfixes and binders.
 
-\indexouternonterm{infix}\indexouternonterm{mixfix}
+\indexouternonterm{infix}\indexouternonterm{mixfix}\indexouternonterm{structmixfix}
 \begin{rail}
   infix: '(' ('infix' | 'infixl' | 'infixr') string? nat ')'
   ;
   mixfix: infix | '(' string prios? nat? ')' | '(' 'binder' string prios? nat ')'
+  ;
+  structmixfix: mixfix | '(' 'structure' ')'
   ;
 
   prios: '[' (nat + ',') ']'

@@ -5,11 +5,6 @@
 
 \subsection{Axiomatic type classes}\label{sec:axclass}
 
-%FIXME
-% - qualified names
-% - class intro rules;
-% - class axioms;
-
 \indexisarcmd{axclass}\indexisarcmd{instance}\indexisarmeth{intro-classes}
 \begin{matharray}{rcl}
   \isarcmd{axclass} & : & \isartrans{theory}{theory} \\
@@ -36,8 +31,13 @@ Isabelle documentation.
   the intersection of existing classes, with additional axioms holding.  Class
   axioms may not contain more than one type variable.  The class axioms (with
   implicit sort constraints added) are bound to the given names.  Furthermore
-  a class introduction rule is generated, which is employed by method
-  $intro_classes$ to support instantiation proofs of this class.
+  a class introduction rule is generated (being bound as $c{.}intro$); this
+  rule is employed by method $intro_classes$ to support instantiation proofs
+  of this class.
+  
+  The ``axioms'' are stored as theorems according to the given name
+  specifications, adding the class name $c$ as name space prefix; these facts
+  are stored collectively as $c.axioms$, too.
   
 \item [$\INSTANCE~c@1 \subseteq c@2$ and $\INSTANCE~t :: (\vec s)c$] setup a
   goal stating a class relation or type arity.  The proof would usually
@@ -45,6 +45,7 @@ Isabelle documentation.
   of the type classes involved.  After finishing the proof, the theory will be
   augmented by a type signature declaration corresponding to the resulting
   theorem.
+
 \item [$intro_classes$] repeatedly expands all class introduction rules of
   this theory.  Note that this method usually needs not be named explicitly,
   as it is already included in the default proof step (of $\PROOFNAME$,
@@ -55,17 +56,141 @@ Isabelle documentation.
 
 \subsection{Locales and local contexts}\label{sec:locale}
 
-FIXME
+Locales are named local contexts, consisting of a declaration elements that
+are modeled after the Isar proof context (cf.\ \S\ref{sec:proof-context}).
 
-\indexouternonterm{locale}\indexouternonterm{contextelem}
+\subsubsection{Localized commands}
 
+Existing locales may be augmented later on by adding new facts.  Note that the
+actual context definition may not be changed!  Several theory commands that
+produce facts in some way are available in ``localized'' versions, referring
+to a named locale instead of the global theory context.
+
+\indexouternonterm{locale}
 \begin{rail}
   locale: '(' 'in' name ')'
   ;
-
-  contextelem: FIXME
-  ;  
 \end{rail}
+
+Emerging facts of localized commands are stored in two versions, both in the
+target locale and the theory (after export).  The latter view produces a
+qualified binding, using the locale name as a name space prefix.
+
+For example, ``$\LEMMAS~(\IN~loc)~a = \vec b$'' retrieves facts $\vec b$ from
+the locale context of $loc$ and augments its body by an appropriate
+``$\isarkeyword{notes}$'' element (see below).  The exported view of $a$,
+after discharging the locale context, is stored as $loc{.}a$ within the global
+theory.  A localized goal ``$\LEMMANAME~(\IN~loc)~a:~\phi$'' work similarly,
+only that the fact emerges through the subsequent proof,
+which may refer to the full infrastructure of the locale context (including
+local parameters with typing and concrete syntax, assumptions, definitions
+etc.).  Most notably, fact declarations of the locale are active during the
+proof, too (e.g.\ local $simp$ rules).
+
+
+\subsubsection{Locale specifications}
+
+\indexisarcmd{locale}\indexisarcmd{print-locale}\indexisarcmd{print-locales}
+\begin{matharray}{rcl}
+  \isarcmd{locale} & : & \isarkeep{theory} \\
+  \isarcmd{print_locale}^* & : & \isarkeep{theory~|~proof} \\
+  \isarcmd{print_locales}^* & : & \isarkeep{theory~|~proof} \\
+\end{matharray}
+
+\indexouternonterm{contextexpr}\indexouternonterm{contextelem}
+
+\railalias{printlocale}{print\_locale}
+\railterm{printlocale}
+
+\begin{rail}
+  'locale' name ('=' localeexpr)?
+  ;
+  printlocale localeexpr
+  ;
+  localeexpr: ((contextexpr '+' (contextelem+)) | contextexpr | (contextelem+))
+  ;
+
+  contextexpr: nameref | '(' contextexpr ')' |
+  (contextexpr (name+)) | (contextexpr + '+')
+  ;
+  contextelem: fixes | assumes | defines | notes | includes
+  ;
+  fixes: 'fixes' (name ('::' type)? structmixfix? + 'and')
+  ;
+  assumes: 'assumes' (thmdecl? props + 'and')
+  ;
+  defines: 'defines' (thmdecl? prop proppat? + 'and')
+  ;
+  notes: 'notes' (thmdef? thmrefs + 'and')
+  ;
+  includes: 'includes' contextexpr
+  ;
+\end{rail}
+
+\begin{descr}
+  
+\item [$\LOCALE~loc~=~import~+~body$] defines new locale $loc$ as a context
+  consisting of a certain view of existing locales ($import$) plus some
+  additional elements ($body$).  Both $import$ and $body$ are optional; the
+  trivial $\LOCALE~loc$ defines an empty locale, which may still be useful to
+  collect declarations of facts later on.  Type-inference on locale
+  expressions automatically takes care of the most general typing that the
+  combined context elements may acquire.
+  
+  The $import$ consists of a structured context expression, consisting of
+  references to existing locales, renamed contexts, or merged contexts.
+  Renaming uses positional notation: $c~\vec x$ means that (a prefix) the
+  fixed parameters of context $c$ are named according to $\vec x$; a
+  ``\texttt{_}'' (underscore).\indexisarthm{_@\texttt{_}} means to skip that
+  position.  Also note that concrete syntax only works with the original name.
+  Merging proceeds from left-to-right, suppressing any duplicates emerging
+  from different paths through an import hierarchy.
+  
+  The $body$ consists of basic context elements, further context expressions
+  may be included as well.
+
+  \begin{descr}
+    
+  \item [$\FIXES{~x::\tau~(mx)}$] declares a local parameter of type $\tau$
+    and mixfix annotation $mx$ (both are optional).  The special syntax
+    declaration $(structure)$ means that $x$ may be referenced
+    implicitly in this context. %see also FIXME
+    
+  \item [$\ASSUMES{a}{\vec\phi}$] introduces local premises, similar to
+    $\ASSUMENAME$ within a proof (cf.\ \S\ref{sec:proof-context}).
+    
+  \item [$\DEFINES{a}{x \equiv t}$] defines a previously declared parameter.
+    This is close to $\DEFNAME$ within a proof (cf.\ 
+    \S\ref{sec:proof-context}), but $\DEFINESNAME$ takes an equational
+    proposition instead of variable-term.  The left-hand side of the equation
+    may have additional arguments, e.g.\ $\DEFINES{}{f~\vec x \equiv t}$.
+    
+  \item [$\NOTES{a}{\vec b}$] reconsiders facts within a local context.  Most
+    notably, this may include arbitrary declarations in any attribute
+    specifications included here, e.g.\ a local $simp$ rule.
+    
+  \item [$\INCLUDES{c}$] copies the specified context in a statically scoped
+    manner.
+    
+    In contrast, the initial $import$ specification of a locale expression
+    maintains a dynamic relation to the locales being referenced (benefiting
+    from any later fact declarations in the obvious manner).
+  \end{descr}
+  
+  Note that $\IS{p}$ patterns given in the syntax of $\ASSUMESNAME$ and
+  $\DEFINESNAME$ above is actually illegal in locale definitions.  In the long
+  goal format of \S\ref{sec:goals}, term bindings may be included as expected.
+
+\item [$\isarkeyword{print_locale}~import~+~body$] prints the specified locale
+  expression in a flattened form.  The notable special case
+  $\isarkeyword{print_locale}~loc$ just prints the contents of the named
+  locale, but keep in mind that type-inference will normalize type variables
+  according to the usual alphabetical order.
+  
+\item [$\isarkeyword{print_locales}$] prints the names of all locales of the
+  current theory.
+
+\end{descr}
 
 
 \section{Derived proof schemes}
@@ -124,7 +249,8 @@ where the result is treated as an assumption.
 
 \indexisarcmd{also}\indexisarcmd{finally}
 \indexisarcmd{moreover}\indexisarcmd{ultimately}
-\indexisarcmd{print-trans-rules}\indexisaratt{trans}
+\indexisarcmd{print-trans-rules}
+\indexisaratt{trans}\indexisaratt{sym}\indexisaratt{symmetric}
 \begin{matharray}{rcl}
   \isarcmd{also} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{finally} & : & \isartrans{proof(state)}{proof(chain)} \\
@@ -132,6 +258,8 @@ where the result is treated as an assumption.
   \isarcmd{ultimately} & : & \isartrans{proof(state)}{proof(chain)} \\
   \isarcmd{print_trans_rules}^* & : & \isarkeep{theory~|~proof} \\
   trans & : & \isaratt \\
+  sym & : & \isaratt \\
+  symmetric & : & \isaratt \\
 \end{matharray}
 
 Calculational proof is forward reasoning with implicit application of
@@ -204,6 +332,17 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   symmetry) rules declared in the current context.
 
 \item [$trans$] declares theorems as transitivity rules.
+  
+\item [$sym$] declares symmetry rules, to be used either with the $symmetric$
+  operation (see below), or in canonical single-step eliminations (such as
+  ``$\ASSUME{}{x = y}~\HENCE{}{y = x}~\DDOT$'').
+  
+  Isabelle/Pure declares symmetry of $\equiv$, common object-logics add
+  further standard rules, such as symmetry of $=$ and $\not=$.
+  
+\item [$symmetric$] resolves a theorem with some rule declared as $sym$ in the
+  current context.  For example, ``$\ASSUME{[symmetric]}{x = y}$'' produces a
+  swapped fact derived from that assumption.
 
 \end{descr}
 
@@ -581,12 +720,11 @@ FIXME thmargs
 
 FIXME move?
 
-\indexisarmeth{subst}\indexisarmeth{hypsubst}\indexisarmeth{split}\indexisaratt{symmetric}
+\indexisarmeth{subst}\indexisarmeth{hypsubst}\indexisarmeth{split}
 \begin{matharray}{rcl}
   subst & : & \isarmeth \\
   hypsubst^* & : & \isarmeth \\
   split & : & \isarmeth \\
-  symmetric & : & \isaratt \\
 \end{matharray}
 
 \begin{rail}
@@ -612,8 +750,6 @@ while the Simplifier is the canonical tool for automated normalization (see
   
   Note that the $simp$ method already involves repeated application of split
   rules as declared in the current context (see \S\ref{sec:simp}).
-\item [$symmetric$] applies the symmetry rule of meta or object equality.
-  FIXME sym decl
 \end{descr}
 
 

@@ -319,11 +319,12 @@ preceding the actual theory definition.
 \begin{rail}
   'axioms' (axmdecl prop +)
   ;
-  ('lemmas' | 'theorems') (thmdef? thmrefs + 'and')
+  ('lemmas' | 'theorems') locale? (thmdef? thmrefs + 'and')
   ;
 \end{rail}
 
 \begin{descr}
+  
 \item [$\isarkeyword{axioms}~a: \phi$] introduces arbitrary statements as
   axioms of the meta-logic.  In fact, axioms are ``axiomatic theorems'', and
   may be referred later just as any other theorem.
@@ -331,11 +332,15 @@ preceding the actual theory definition.
   Axioms are usually only introduced when declaring new logical systems.
   Everyday work is typically done the hard way, with proper definitions and
   actual proven theorems.
-\item [$\isarkeyword{lemmas}~a = \vec b$] stores existing facts.  Typical
-  applications would also involve attributes, to declare Simplifier rules, for
-  example.
+  
+\item [$\isarkeyword{lemmas}~a = \vec b$] restrieves and stores existing facts
+  in the theory context, or the specified locale (see also
+  \S\ref{sec:locale}).  Typical applications would also involve attributes, to
+  declare Simplifier rules, for example.
+  
 \item [$\isarkeyword{theorems}$] is essentially the same as
   $\isarkeyword{lemmas}$, but marks the result as a different kind of facts.
+
 \end{descr}
 
 
@@ -721,7 +726,7 @@ before their usual operation.  Depending on the kind of procedure involved,
 the order of facts is less significant here.
 
 
-\subsection{Goal statements}
+\subsection{Goal statements}\label{sec:goals}
 
 \indexisarcmd{lemma}\indexisarcmd{theorem}\indexisarcmd{corollary}
 \indexisarcmd{have}\indexisarcmd{show}\indexisarcmd{hence}\indexisarcmd{thus}
@@ -1127,7 +1132,7 @@ used in scripts, too.
   ;
   'prefer' nat
   ;
-  'declare' thmrefs
+  'declare' locale? (thmrefs + 'and')
   ;
 \end{rail}
 
@@ -1163,10 +1168,11 @@ used in scripts, too.
     branch points.} Basically, any proof command may return multiple results.
   
 \item [$\isarkeyword{declare}~thms$] declares theorems to the current theory
-  context.  No theorem binding is involved here, unlike
-  $\isarkeyword{theorems}$ or $\isarkeyword{lemmas}$ (cf.\ 
-  \S\ref{sec:axms-thms}).  So $\isarkeyword{declare}$ only has the effect of
-  applying attributes as included in the theorem specification.
+  context (or the specified locale, see also \S\ref{sec:locale}).  No theorem
+  binding is involved here, unlike $\isarkeyword{theorems}$ or
+  $\isarkeyword{lemmas}$ (cf.\ \S\ref{sec:axms-thms}), so
+  $\isarkeyword{declare}$ only has the effect of applying attributes as
+  included in the theorem specification.
 \end{descr}
 
 Any proper Isar proof method may be used with tactic script commands such as
