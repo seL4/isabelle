@@ -738,6 +738,17 @@ fun path1 subdir_of path2 =
     error "Relative or empty path passed to subdir_of"
   else (space_explode "/" path2) prefix (space_explode "/" path1);
 
+fun absolute_path cwd file =
+  let fun rm_points [] result = rev result
+        | rm_points (".."::ds) result = rm_points ds (tl result)
+        | rm_points ("."::ds) result = rm_points ds result
+        | rm_points (d::ds) result = rm_points ds (d::result);
+  in if file = "" then ""
+     else if hd (explode file) = "/" then file
+     else "/" ^ space_implode "/"
+                  (rm_points (space_explode "/" (tack_on cwd file)) [])
+  end;
+
 
 (** misc functions **)
 
