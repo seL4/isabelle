@@ -40,6 +40,8 @@ X-Symbol;
 * HOL: 'inductive' now longer features separate (collective)
 attributes for 'intros';
 
+* HOL: canonical 'cases'/'induct' rules for n-tuples (n=3..7)
+
 
 *** HOL ***
 
