@@ -32,7 +32,6 @@ struct
 end;
 
 val Diff1_foldSet = thm "Diff1_foldSet";
-val bounded_nat_set_is_finite = thm "bounded_nat_set_is_finite";
 val cardR_SucD = thm "cardR_SucD";
 val cardR_determ = thm "cardR_determ";
 val cardR_emptyE = thm "cardR_emptyE";
@@ -83,7 +82,6 @@ val finite_UN = thm "finite_UN";
 val finite_UN_I = thm "finite_UN_I";
 val finite_Un = thm "finite_Un";
 val finite_UnI = thm "finite_UnI";
-val finite_atMost = thm "finite_atMost";
 val finite_converse = thm "finite_converse";
 val finite_empty_induct = thm "finite_empty_induct";
 val finite_imageD = thm "finite_imageD";
@@ -92,7 +90,6 @@ val finite_imp_cardR = thm "finite_imp_cardR";
 val finite_imp_foldSet = thm "finite_imp_foldSet";
 val finite_induct = thm "finite_induct";
 val finite_insert = thm "finite_insert";
-val finite_lessThan = thm "finite_lessThan";
 val finite_range_imageI = thm "finite_range_imageI";
 val finite_subset = thm "finite_subset";
 val finite_subset_induct = thm "finite_subset_induct";

@@ -49,3 +49,7 @@ val lessThan_Suc_atMost = thm "lessThan_Suc_atMost";
 val lessThan_def     = thm "lessThan_def";
 val lessThan_iff = thm "lessThan_iff";
 val single_Diff_lessThan = thm "single_Diff_lessThan";
+
+val bounded_nat_set_is_finite = thm "bounded_nat_set_is_finite";
+val finite_atMost = thm "finite_atMost";
+val finite_lessThan = thm "finite_lessThan";

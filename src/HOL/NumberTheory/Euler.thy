@@ -138,7 +138,7 @@ proof -;
     also have "... = int(setsum (%x.2) (SetS a p))";
       apply (insert prems)
       apply (auto simp add: SetS_elems_card SetS_finite SetS_elems_finite 
-        card_setsum_aux)
+        card_setsum_aux simp del: setsum_constant_nat)
     done
     also have "... = 2 * int(card( SetS a p))";
       by (auto simp add: prems SetS_finite setsum_const2)
@@ -342,4 +342,4 @@ theorem Euler_Criterion: "[| 2 < p; p \<in> zprime |] ==> [(Legendre a p) =
   apply (frule Euler_part1, auto simp add: zcong_sym)
 done
 
-end;
+end

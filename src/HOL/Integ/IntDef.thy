@@ -37,7 +37,7 @@ defs (overloaded)
   One_int_def:   "1 == int 1"
 
   minus_int_def:
-    "- z ==  contents (\<Union>(x,y) \<in> Rep_Integ(z). { Abs_Integ(intrel``{(y,x)}) })"
+    "- z == contents (\<Union>(x,y) \<in> Rep_Integ(z). { Abs_Integ(intrel``{(y,x)}) })"
 
   add_int_def:
    "z + w ==
@@ -82,13 +82,8 @@ done
 declare inj_on_Abs_Integ [THEN inj_on_iff, simp]
         Abs_Integ_inverse [simp]
 
-lemma inj_Rep_Integ: "inj(Rep_Integ)"
-apply (rule inj_on_inverseI)
-apply (rule Rep_Integ_inverse)
-done
-
 text{*Case analysis on the representation of an integer as an equivalence
-      class.*}
+      class of pairs of naturals.*}
 lemma eq_Abs_Integ [case_names Abs_Integ, cases type: int]:
      "(!!x y. z = Abs_Integ(intrel``{(x,y)}) ==> P) ==> P"
 apply (rule Rep_Integ [of z, unfolded Integ_def, THEN quotientE])
@@ -952,7 +947,6 @@ val equiv_intrel = thm "equiv_intrel";
 val equiv_intrel_iff = thm "equiv_intrel_iff";
 val intrel_in_integ = thm "intrel_in_integ";
 val inj_on_Abs_Integ = thm "inj_on_Abs_Integ";
-val inj_Rep_Integ = thm "inj_Rep_Integ";
 val inj_int = thm "inj_int";
 val zminus_zminus = thm "zminus_zminus";
 val zminus_0 = thm "zminus_0";

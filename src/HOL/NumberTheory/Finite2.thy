@@ -342,7 +342,7 @@ apply (subgoal_tac "finite (UNION A g)");
 apply (subgoal_tac "(\<Sum>x \<in> UNION A g. 1) = (\<Sum>x \<in> A. \<Sum>x \<in> g x. 1)");
 apply (auto simp only: card_eq_setsum)
 apply (erule setsum_same_function)
-by (auto simp add: card_eq_setsum)
+by auto;
 
 lemma int_card_indexed_union_disjoint_sets [rule_format]: "finite A ==> 
     ((\<forall>x \<in> A. finite (g x)) & 

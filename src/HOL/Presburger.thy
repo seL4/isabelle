@@ -7,7 +7,7 @@ File containing necessary theorems for the proof
 generation for Cooper Algorithm  
 *)
 
-theory Presburger = NatSimprocs
+theory Presburger = NatSimprocs + SetInterval
 files
   ("cooper_dec.ML")
   ("cooper_proof.ML")

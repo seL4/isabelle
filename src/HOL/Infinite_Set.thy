@@ -5,7 +5,7 @@
 
 header {* Infnite Sets and Related Concepts*}
 
-theory Infinite_Set = Hilbert_Choice + Finite_Set:
+theory Infinite_Set = Hilbert_Choice + Finite_Set + SetInterval:
 
 subsection "Infinite Sets"
 
