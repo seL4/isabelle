@@ -9,7 +9,6 @@
 
 ISABELLE_HOME=$(dirname $(dirname $0))
 . $ISABELLE_HOME/lib/scripts/getsettings || exit 2
-. $ISABELLE_HOME/lib/scripts/getplatform
 
 
 ## diagnostics

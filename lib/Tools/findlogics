@@ -23,8 +23,6 @@ function usage()
 [ $# -ne 0 ] && usage
 
 
-. $ISABELLE_HOME/lib/scripts/getplatform
-
 LOGICS=""
 
 for DIR in $(echo $ISABELLE_PATH | tr : " ")
