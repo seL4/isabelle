@@ -375,7 +375,7 @@ by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [Suc_diff_n]) 1);
 qed "diff_Suc_less_diff";
 
-Goal "!!n::nat. m - n <= Suc m - n";
+Goal "m - n <= Suc m - n";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
 qed "diff_le_Suc_diff";
@@ -429,20 +429,20 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (REPEAT(Simp_tac 1 THEN TRY(atac 1)));
 qed_spec_mp "diffs0_imp_equal";
 
-Goal "m<n ==> 0<n-m";
-by (etac rev_mp 1);
+Goal "(0<n-m) = (m<n)";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
-qed "less_imp_diff_positive";
+qed "zero_less_diff";
+Addsimps [zero_less_diff];
 
-Goal "!! (i::nat). i < j  ==> ? k. 0<k & i+k = j";
+Goal "i < j  ==> ? k. 0<k & i+k = j";
 by (res_inst_tac [("x","j - i")] exI 1);
-by (fast_tac (claset() addDs [less_trans, less_irrefl] 
-   	               addIs [less_imp_diff_positive, add_diff_inverse]) 1);
+by (asm_simp_tac (simpset() addsimps [add_diff_inverse, less_not_sym]) 1);
 qed "less_imp_add_positive";
 
 Goal "Suc(m)-n = (if m<n then 0 else Suc(m-n))";
-by (simp_tac (simpset() addsimps [less_imp_diff_is_0, not_less_eq, Suc_diff_n]) 1);
+by (simp_tac (simpset() addsimps [less_imp_diff_is_0,
+				  not_less_eq, Suc_diff_n]) 1);
 qed "if_Suc_diff_n";
 
 Goal "Suc(m)-n <= Suc(m-n)";
