@@ -1,4 +1,5 @@
 %% $Id$
+
 \part{Foundations} 
 The following sections discuss Isabelle's logical foundations in detail:
 representing logical syntax in the typed $\lambda$-calculus; expressing
@@ -642,8 +643,8 @@ conclusions as a sequence (lazy list).
 Resolution expects the rules to have no outer quantifiers~($\Forall$).
 It may rename or instantiate any schematic variables, but leaves free
 variables unchanged.  When constructing a theory, Isabelle puts the
-rules into a standard form containing only schematic variables;
-for instance, $({\imp}E)$ becomes
+rules into a standard form with all free variables converted into
+schematic ones; for instance, $({\imp}E)$ becomes
 \[ \List{\Var{P}\imp \Var{Q}; \Var{P}}  \Imp \Var{Q}. 
 \]
 When resolving two rules, the unknowns in the first rule are renamed, by

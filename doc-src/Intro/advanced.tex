@@ -368,7 +368,7 @@ $S@1$,~\ldots,~$S@n$.  New theories always extend one or more other
 theories, inheriting their types, constants, syntax, etc.  The theory
 \thydx{Pure} contains nothing but Isabelle's meta-logic. The variant
 \thydx{CPure} offers the more usual higher-order function application
-syntax $t\,u@1\ldots\,u@n$ instead of $t(u@1,\ldots,u@n)$.
+syntax $t\,u@1\ldots\,u@n$ instead of $t(u@1,\ldots,u@n)$ in \Pure.
 
 Each theory definition must reside in a separate file, whose name is
 the theory's with {\tt.thy} appended.  Calling
@@ -429,9 +429,9 @@ enclosed in quotation marks.
 the keyword {\tt defs} instead of {\tt rules}.  {\bf Definitions} are
 rules of the form $s \equiv t$, and should serve only as
 abbreviations. The simplest form of a definition is $f \equiv t$,
-where $f$ is a constant. Also allowed are $\eta$-equivalent forms,
-where the arguments of~$f$ appear applied on the left-hand side of the
-equation instead of abstracted on the right-hand side.
+where $f$ is a constant. Also allowed are $\eta$-equivalent forms of
+this, where the arguments of~$f$ appear applied on the left-hand side
+of the equation instead of abstracted on the right-hand side.
 
 Isabelle checks for common errors in definitions, such as extra
 variables on the right-hand side, but currently does not a complete
