@@ -33,10 +33,10 @@ inductive "ns_shared"
 	      the sender field.*)
   NS2:  "\<lbrakk>evs2 \<in> ns_shared;  Key KAB \<notin> used evs2;
 	  Says A' Server \<lbrace>Agent A, Agent B, Nonce NA\<rbrace> \<in> set evs2\<rbrakk>
-	 \<Longrightarrow> Says Server A 
+	 \<Longrightarrow> Says Server A
 	       (Crypt (shrK A)
 		  \<lbrace>Nonce NA, Agent B, Key KAB,
-		    (Crypt (shrK B) \<lbrace>Key KAB, Agent A\<rbrace>)\<rbrace>) 
+		    (Crypt (shrK B) \<lbrace>Key KAB, Agent A\<rbrace>)\<rbrace>)
 	       # evs2 \<in> ns_shared"
 
 	 (*We can't assume S=Server.  Agent A "remembers" her nonce.
@@ -57,7 +57,7 @@ inductive "ns_shared"
 	  We do NOT send NB-1 or similar as the Spy cannot spoof such things.
 	  Letting the Spy add or subtract 1 lets him send \<forall>nonces.
 	  Instead we distinguish the messages by sending the nonce twice.*)
-  NS5:  "\<lbrakk>evs5 \<in> ns_shared;  
+  NS5:  "\<lbrakk>evs5 \<in> ns_shared;
 	  Says B' A (Crypt K (Nonce NB)) \<in> set evs5;
 	  Says S  A (Crypt (shrK A) \<lbrace>Nonce NA, Agent B, Key K, X\<rbrace>)
 	    \<in> set evs5\<rbrakk>
@@ -97,13 +97,13 @@ lemma "A \<noteq> Server \<Longrightarrow> \<exists>evs \<in> ns_shared.
 
 (**** Inductive proofs about ns_shared ****)
 
-(*Forwarding lemmas, to aid simplification*)
+(** Forwarding lemmas, to aid simplification **)
 
 (*For reasoning about the encrypted portion of message NS3*)
 lemma NS3_msg_in_parts_spies:
      "Says S A (Crypt KA \<lbrace>N, B, K, X\<rbrace>) \<in> set evs \<Longrightarrow> X \<in> parts (spies evs)"
 by blast
-                              
+
 (*For reasoning about the Oops message*)
 lemma Oops_parts_spies:
      "Says Server A (Crypt (shrK A) \<lbrace>NA, B, K, X\<rbrace>) \<in> set evs
@@ -116,7 +116,7 @@ by blast
 (*Spy never sees another agent's shared key! (unless it's bad at start)*)
 lemma Spy_see_shrK [simp]:
      "evs \<in> ns_shared \<Longrightarrow> (Key (shrK A) \<in> parts (spies evs)) = (A \<in> bad)"
-apply (erule ns_shared.induct, force, frule_tac [4] NS3_msg_in_parts_spies)
+apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
 apply simp_all
 apply blast+;
 done
@@ -129,7 +129,7 @@ by auto
 (*Nobody can have used non-existent keys!*)
 lemma new_keys_not_used [rule_format, simp]:
     "evs \<in> ns_shared \<Longrightarrow> Key K \<notin> used evs \<longrightarrow> K \<notin> keysFor (parts (spies evs))"
-apply (erule ns_shared.induct, force, frule_tac [4] NS3_msg_in_parts_spies)
+apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
 apply simp_all
 (*Fake, NS2, NS4, NS5*)
 apply (blast dest!: keysFor_parts_insert)+
@@ -202,7 +202,7 @@ by (blast dest!: A_trusts_NS2 Says_Server_message_form)
 lemma  "\<lbrakk>evs \<in> ns_shared;  Kab \<notin> range shrK\<rbrakk> \<Longrightarrow>
          (Crypt KAB X) \<in> parts (spies evs) \<and>
          Key K \<in> parts {X} \<longrightarrow> Key K \<in> parts (spies evs)"
-apply (erule ns_shared.induct, force, frule_tac [4] NS3_msg_in_parts_spies)
+apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
 apply simp_all
 (*Fake*)
 apply (blast dest: parts_insert_subset_Un)
@@ -221,7 +221,7 @@ lemma analz_image_freshK [rule_format]:
              (Key K \<in> analz (Key`KK \<union> (spies evs))) =
              (K \<in> KK \<or> Key K \<in> analz (spies evs))"
 apply (erule ns_shared.induct, force)
-apply (frule_tac [7] Says_Server_message_form)
+apply (drule_tac [7] Says_Server_message_form)
 apply (erule_tac [4] Says_S_message_form [THEN disjE])
 apply analz_freshK
 apply spy_analz
@@ -264,13 +264,13 @@ apply (frule_tac [7] Says_Server_message_form)
 apply (frule_tac [4] Says_S_message_form)
 apply (erule_tac [5] disjE)
 apply (simp_all add: analz_insert_eq analz_insert_freshK pushes split_ifs)
-apply spy_analz  (*Fake*) 
+apply spy_analz  (*Fake*)
 apply blast      (*NS2*)
 (*NS3, Server sub-case*) (**LEVEL 8 **)
 apply (blast dest!: Crypt_Spy_analz_bad A_trusts_NS2
 	     dest:  Says_imp_knows_Spy analz.Inj unique_session_keys)
-(*NS3, Spy sub-case; also Oops*) 
-apply (blast dest: unique_session_keys)+ 
+(*NS3, Spy sub-case; also Oops*)
+apply (blast dest: unique_session_keys)+
 done
 
 
@@ -309,13 +309,13 @@ lemma A_trusts_NS4_lemma [rule_format]:
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
 apply (analz_mono_contra, simp_all)
 apply blast     (*Fake*)
-(*NS2: contradiction from the assumptions  
+(*NS2: contradiction from the assumptions
   Key K \<notin> used evs2  and Crypt K (Nonce NB) \<in> parts (spies evs2) *)
-apply (force dest!: Crypt_imp_keysFor) 
+apply (force dest!: Crypt_imp_keysFor)
 apply blast     (*NS3*)
 (*NS4*)
 apply (blast dest!: B_trusts_NS3
-	     dest: Says_imp_knows_Spy [THEN analz.Inj] 
+	     dest: Says_imp_knows_Spy [THEN analz.Inj]
                    Crypt_Spy_analz_bad unique_session_keys)
 done
 
@@ -326,14 +326,14 @@ lemma A_trusts_NS4:
        \<forall>NB. Notes Spy \<lbrace>NA, NB, Key K\<rbrace> \<notin> set evs;
        A \<notin> bad;  B \<notin> bad;  evs \<in> ns_shared\<rbrakk>
       \<Longrightarrow> Says B A (Crypt K (Nonce NB)) \<in> set evs"
-by (blast intro: A_trusts_NS4_lemma 
+by (blast intro: A_trusts_NS4_lemma
           dest: A_trusts_NS2 Spy_not_see_encrypted_key)
 
 (*If the session key has been used in NS4 then somebody has forwarded
-  component X in some instance of NS4.  Perhaps an interesting property, 
+  component X in some instance of NS4.  Perhaps an interesting property,
   but not needed (after all) for the proofs below.*)
 theorem NS4_implies_NS3 [rule_format]:
-  "evs \<in> ns_shared \<Longrightarrow> 
+  "evs \<in> ns_shared \<Longrightarrow>
      Key K \<notin> analz (spies evs) \<longrightarrow>
      Says Server A (Crypt (shrK A) \<lbrace>NA, Agent B, Key K, X\<rbrace>) \<in> set evs \<longrightarrow>
      Crypt K (Nonce NB) \<in> parts (spies evs) \<longrightarrow>
@@ -346,7 +346,7 @@ apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)  (*NS2*)
 apply blast  (*NS3*)
 (*NS4*)
 apply (blast dest!: B_trusts_NS3
-	     dest: Says_imp_knows_Spy [THEN analz.Inj] 
+	     dest: Says_imp_knows_Spy [THEN analz.Inj]
                    unique_session_keys Crypt_Spy_analz_bad)
 done
 
@@ -361,13 +361,13 @@ lemma B_trusts_NS5_lemma [rule_format]:
      Says A B (Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace>) \<in> set evs"
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
 apply analz_mono_contra
-apply simp_all 
+apply simp_all
 apply blast  (*Fake*)
 apply (blast dest!: new_keys_not_used Crypt_imp_keysFor)  (*NS2*)
 apply (blast dest!: cert_A_form) (*NS3*)
 (*NS5*)
 apply (blast dest!: A_trusts_NS2
-	     dest: Says_imp_knows_Spy [THEN analz.Inj] 
+	     dest: Says_imp_knows_Spy [THEN analz.Inj]
                    unique_session_keys Crypt_Spy_analz_bad)
 done
 
@@ -379,7 +379,7 @@ lemma B_trusts_NS5:
        \<forall>NA NB. Notes Spy \<lbrace>NA, NB, Key K\<rbrace> \<notin> set evs;
        A \<notin> bad;  B \<notin> bad;  evs \<in> ns_shared\<rbrakk>
       \<Longrightarrow> Says A B (Crypt K \<lbrace>Nonce NB, Nonce NB\<rbrace>) \<in> set evs"
-by (blast intro: B_trusts_NS5_lemma 
+by (blast intro: B_trusts_NS5_lemma
           dest: B_trusts_NS3 Spy_not_see_encrypted_key)
 
 end
