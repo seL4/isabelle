@@ -792,9 +792,6 @@ fun rewritec (prover, signt, maxt) ss t =
     fun rew {thm, name, lhs, elhs, fo, perm} =
       let
         val {sign, prop, maxidx, ...} = rep_thm thm;
-        val _ = if Sign.subsig (sign, signt) then ()
-                else (warn_thm "Ignoring rewrite rule from different theory:" thm;
-                      raise Pattern.MATCH);
         val (rthm, elhs') = if maxt = ~1 then (thm, elhs)
           else (Thm.incr_indexes (maxt+1) thm, Thm.cterm_incr_indexes (maxt+1) elhs);
         val insts = if fo then Thm.cterm_first_order_match (elhs', eta_t')
@@ -872,8 +869,6 @@ fun rewritec (prover, signt, maxt) ss t =
 
 fun congc (prover,signt,maxt) {thm=cong,lhs=lhs} t =
   let val sign = Thm.sign_of_thm cong
-      val _ = if Sign.subsig (sign, signt) then ()
-                 else error("Congruence rule from different theory")
       val rthm = if maxt = ~1 then cong else Thm.incr_indexes (maxt+1) cong;
       val rlhs = fst (Drule.dest_equals (Drule.strip_imp_concl (cprop_of rthm)));
       val insts = Thm.cterm_match (rlhs, t)
