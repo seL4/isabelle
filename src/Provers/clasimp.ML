@@ -193,10 +193,9 @@ val clasimp_method' = Method.bang_sectioned_args clasimp_modifiers o clasimp_met
 
 val setup =
  [Method.add_methods
-   [("clarsimp_tac", clasimp_method' clarsimp_tac, "clarsimp (improper!)"),
+   [("force", clasimp_method' force_tac, "force"),
     ("auto", clasimp_method (CHANGED o auto_tac), "auto"),
-    ("force", clasimp_method' force_tac, "force")]];
-    
+    ("clarsimp", clasimp_method' clarsimp_tac, "clarify simplified goal")]];
 
 
 end;
