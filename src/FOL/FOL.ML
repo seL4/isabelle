@@ -9,6 +9,8 @@ Tactics and lemmas for FOL.thy (classical First-Order Logic)
 open FOL;
 
 
+val ccontr = FalseE RS classical;
+
 (*** Classical introduction rules for | and EX ***)
 
 qed_goal "disjCI" FOL.thy 
