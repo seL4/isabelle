@@ -23,6 +23,7 @@ sig
     -> thm list -> tactic option -> theory -> theory
   val add_inst_arity_i: string * sort list * sort -> string list
     -> thm list -> tactic option -> theory -> theory
+  val default_intro_classes_tac: thm list -> int -> tactic
   val axclass_tac: thm list -> tactic
   val prove_subclass: theory -> class * class -> thm list
     -> tactic option -> thm
@@ -306,13 +307,25 @@ fun class_axms sign =
 
 (* intro_classes *)
 
-fun intro_classes_tac facts st =
-  HEADGOAL (Method.insert_tac facts THEN'
-      REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.sign_of_thm st)))) st;
+fun intro_classes_tac facts i st =
+  (Method.insert_tac facts THEN'
+    REPEAT_ALL_NEW (resolve_tac (class_axms (Thm.sign_of_thm st)))) i st;
 
 val intro_classes_method =
-  ("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
+  ("intro_classes", Method.no_args (Method.METHOD (HEADGOAL o intro_classes_tac)),
     "back-chain introduction rules of axiomatic type classes");
+
+
+(* default method *)
+
+fun default_intro_classes_tac [] = intro_classes_tac []
+  | default_intro_classes_tac _ = K Tactical.no_tac;    (*no error message!*)
+
+fun default_tac rules ctxt facts =
+  HEADGOAL (Method.some_rule_tac rules ctxt facts ORELSE' default_intro_classes_tac facts);
+
+val default_method =
+  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac), "apply some rule")
 
 
 (* axclass_tac *)
@@ -327,7 +340,7 @@ fun axclass_tac thms =
     val defs = filter is_def thms;
     val non_defs = filter_out is_def thms;
   in
-    intro_classes_tac [] THEN
+    HEADGOAL (intro_classes_tac []) THEN
     TRY (rewrite_goals_tac defs) THEN
     TRY (REPEAT_FIRST (fn i => assume_tac i ORELSE resolve_tac non_defs i))
   end;
@@ -442,7 +455,7 @@ val instance_arity_proof_i = inst_proof (mk_arity oo cert_simple_arity) add_arit
 
 val setup =
  [AxclassesData.init,
-  Method.add_methods [intro_classes_method]];
+  Method.add_methods [intro_classes_method, default_method]];
 
 
 (* outer syntax *)

@@ -12,8 +12,7 @@ theory RealPow = RealAbs:
 lemmas [arith_split] = abs_split
 
 
-instance real :: power
-  by intro_classes
+instance real :: power ..
 
 primrec (realpow)
      realpow_0:   "r ^ 0       = #1"

@@ -54,8 +54,7 @@ consts
 primrec
   undual_dual: "undual (dual x) = x"
 
-instance dual :: (leq) leq
-  by intro_classes
+instance dual :: (leq) leq ..
 
 defs (overloaded)
   leq_dual_def: "x' \<sqsubseteq> y' \<equiv> undual y' \<sqsubseteq> undual x'"
@@ -155,7 +154,7 @@ text {*
 *}
 
 instance dual :: (quasi_order) quasi_order
-proof intro_classes
+proof
   fix x' y' z' :: "'a::quasi_order dual"
   have "undual x' \<sqsubseteq> undual x'" .. thus "x' \<sqsubseteq> x'" ..
   assume "y' \<sqsubseteq> z'" hence "undual z' \<sqsubseteq> undual y'" ..
@@ -164,7 +163,7 @@ proof intro_classes
 qed
 
 instance dual :: (partial_order) partial_order
-proof intro_classes
+proof
   fix x' y' :: "'a::partial_order dual"
   assume "y' \<sqsubseteq> x'" hence "undual x' \<sqsubseteq> undual y'" ..
   also assume "x' \<sqsubseteq> y'" hence "undual y' \<sqsubseteq> undual x'" ..
@@ -172,7 +171,7 @@ proof intro_classes
 qed
 
 instance dual :: (linear_order) linear_order
-proof intro_classes
+proof
   fix x' y' :: "'a::linear_order dual"
   show "x' \<sqsubseteq> y' \<or> y' \<sqsubseteq> x'"
   proof (rule linear_order_cases)
@@ -193,8 +192,7 @@ text {*
   \emph{not} be linear in general.
 *}
 
-instance * :: (leq, leq) leq
-  by intro_classes
+instance * :: (leq, leq) leq ..
 
 defs (overloaded)
   leq_prod_def: "p \<sqsubseteq> q \<equiv> fst p \<sqsubseteq> fst q \<and> snd p \<sqsubseteq> snd q"
@@ -208,7 +206,7 @@ lemma leq_prodE [elim?]:
   by (unfold leq_prod_def) blast
 
 instance * :: (quasi_order, quasi_order) quasi_order
-proof intro_classes
+proof
   fix p q r :: "'a::quasi_order \<times> 'b::quasi_order"
   show "p \<sqsubseteq> p"
   proof
@@ -228,7 +226,7 @@ proof intro_classes
 qed
 
 instance * :: (partial_order, partial_order) partial_order
-proof intro_classes
+proof
   fix p q :: "'a::partial_order \<times> 'b::partial_order"
   assume pq: "p \<sqsubseteq> q" and qp: "q \<sqsubseteq> p"
   show "p = q"
@@ -251,8 +249,7 @@ text {*
   orders need \emph{not} be linear in general.
 *}
 
-instance fun :: ("term", leq) leq
-  by intro_classes
+instance fun :: ("term", leq) leq ..
 
 defs (overloaded)
   leq_fun_def: "f \<sqsubseteq> g \<equiv> \<forall>x. f x \<sqsubseteq> g x"
@@ -264,7 +261,7 @@ lemma leq_funD [dest?]: "f \<sqsubseteq> g \<Longrightarrow> f x \<sqsubseteq> g
   by (unfold leq_fun_def) blast
 
 instance fun :: ("term", quasi_order) quasi_order
-proof intro_classes
+proof
   fix f g h :: "'a \<Rightarrow> 'b::quasi_order"
   show "f \<sqsubseteq> f"
   proof
@@ -280,7 +277,7 @@ proof intro_classes
 qed
 
 instance fun :: ("term", partial_order) partial_order
-proof intro_classes
+proof
   fix f g :: "'a \<Rightarrow> 'b::partial_order"
   assume fg: "f \<sqsubseteq> g" and gf: "g \<sqsubseteq> f"
   show "f = g"

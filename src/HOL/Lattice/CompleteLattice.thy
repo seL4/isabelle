@@ -197,7 +197,7 @@ text {*
 *}
 
 instance dual :: (complete_lattice) complete_lattice
-proof intro_classes
+proof
   fix A' :: "'a::complete_lattice dual set"
   show "\<exists>inf'. is_Inf A' inf'"
   proof -
@@ -275,7 +275,7 @@ proof -
 qed
 
 instance complete_lattice < lattice
-proof intro_classes
+proof
   fix x y :: "'a::complete_lattice"
   from is_inf_binary show "\<exists>inf. is_inf x y inf" ..
   from is_sup_binary show "\<exists>sup. is_sup x y sup" ..

@@ -48,6 +48,7 @@ sig
     -> int -> thm -> (thm * (string * RuleCases.T) list) Seq.seq
   val rule_tac: thm list -> thm list -> int -> tactic
   val erule_tac: thm list -> thm list -> int -> tactic
+  val some_rule_tac: thm list -> Proof.context -> thm list -> int -> tactic
   val rule: thm list -> Proof.method
   val erule: thm list -> Proof.method
   val drule: thm list -> Proof.method
@@ -323,14 +324,15 @@ local
 fun gen_rule_tac tac rules [] = tac rules
   | gen_rule_tac tac erules facts = gen_resolveq_tac (tac o single) (multi_resolves facts erules);
 
-fun gen_rule tac rules = METHOD (HEADGOAL o tac rules);
-
-fun gen_rule' tac arg_rules ctxt = METHOD (fn facts =>
+fun gen_some_rule_tac tac arg_rules ctxt facts =
   let val rules =
     if not (null arg_rules) then arg_rules
     else if null facts then #1 (LocalRules.get ctxt)
     else op @ (LocalRules.get ctxt);
-  in HEADGOAL (tac rules facts) end);
+  in tac rules facts end;
+
+fun gen_rule tac rules = METHOD (HEADGOAL o tac rules);
+fun gen_rule' tac arg_rules ctxt = METHOD (HEADGOAL o gen_some_rule_tac tac arg_rules ctxt);
 
 fun setup raw_tac =
   let val tac = gen_rule_tac raw_tac
@@ -338,6 +340,7 @@ fun setup raw_tac =
 
 in
 
+val some_rule_tac = gen_some_rule_tac (gen_rule_tac Tactic.resolve_tac);
 val (rule_tac, rule, some_rule) = setup Tactic.resolve_tac;
 val (erule_tac, erule, some_erule) = setup Tactic.eresolve_tac;
 val (drule_tac, drule, some_drule) = setup Tactic.dresolve_tac;
@@ -648,7 +651,6 @@ val pure_methods =
   ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
   ("unfold", thms_args unfold, "unfold definitions"),
   ("fold", thms_args fold, "fold definitions"),
-  ("default", thms_ctxt_args some_rule, "apply some rule"),
   ("rule", thms_ctxt_args some_rule, "apply some rule"),
   ("erule", thms_ctxt_args some_erule, "apply some rule in elimination manner (improper)"),
   ("drule", thms_ctxt_args some_drule, "apply some rule in destruct manner (improper)"),

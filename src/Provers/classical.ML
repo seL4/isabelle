@@ -1111,8 +1111,12 @@ fun some_rule_tac cs facts =
 fun rule_tac [] cs facts = some_rule_tac cs facts
   | rule_tac rules _ facts = Method.rule_tac rules facts;
 
+fun default_tac rules cs facts =
+  rule_tac rules cs facts ORELSE' AxClass.default_intro_classes_tac facts;
+
 in
   val rule = METHOD_CLASET' o rule_tac;
+  val default = METHOD_CLASET' o default_tac;
 end;
 
 
@@ -1169,7 +1173,7 @@ val cla_method' = Method.bang_sectioned_args cla_modifiers o cla_meth';
 (** setup_methods **)
 
 val setup_methods = Method.add_methods
- [("default", Method.thms_ctxt_args rule, "apply some rule (classical)"),
+ [("default", Method.thms_ctxt_args default, "apply some rule (classical)"),
   ("rule", Method.thms_ctxt_args rule, "apply some rule (classical)"),
   ("contradiction", Method.no_args contradiction, "proof by contradiction"),
   ("intro", Method.thms_ctxt_args intro, "repeatedly apply introduction rules"),

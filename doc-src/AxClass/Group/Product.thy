@@ -41,8 +41,7 @@ text {*
  Constants @{text \<odot>} on some type @{text \<tau>} are rejected by the
  type-checker, unless the arity @{text "\<tau> \<Colon> product"} is part of the
  type signature.  In our example, this arity may be always added when
- required by means of an $\INSTANCE$ with the trivial proof
- $\BY{intro_classes}$.
+ required by means of an $\INSTANCE$ with the default proof $\DDOT$.
 
  \medskip Thus, we may observe the following discipline of using
  syntactic classes.  Overloaded polymorphic constants have their type
@@ -54,8 +53,7 @@ text {*
  follows.
 *}
 
-instance bool :: product
-  by intro_classes
+instance bool :: product ..
 defs (overloaded)
   product_bool_def: "x \<odot> y \<equiv> x \<and> y"
 

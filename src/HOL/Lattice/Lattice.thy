@@ -109,7 +109,7 @@ text {*
 *}
 
 instance dual :: (lattice) lattice
-proof intro_classes
+proof
   fix x' y' :: "'a::lattice dual"
   show "\<exists>inf'. is_inf x' y' inf'"
   proof -
@@ -361,7 +361,7 @@ proof
 qed
 
 instance linear_order < lattice
-proof intro_classes
+proof
   fix x y :: "'a::linear_order"
   from is_inf_minimum show "\<exists>inf. is_inf x y inf" ..
   from is_sup_maximum show "\<exists>sup. is_sup x y sup" ..
@@ -450,7 +450,7 @@ proof
 qed
 
 instance * :: (lattice, lattice) lattice
-proof intro_classes
+proof
   fix p q :: "'a::lattice \<times> 'b::lattice"
   from is_inf_prod show "\<exists>inf. is_inf p q inf" ..
   from is_sup_prod show "\<exists>sup. is_sup p q sup" ..
@@ -520,7 +520,7 @@ proof
 qed
 
 instance fun :: ("term", lattice) lattice
-proof intro_classes
+proof
   fix f g :: "'a \<Rightarrow> 'b::lattice"
   show "\<exists>inf. is_inf f g inf" by rule (rule is_inf_fun) (* FIXME @{text "from \<dots> show \<dots> .."} does not work!? unification incompleteness!? *)
   show "\<exists>sup. is_sup f g sup" by rule (rule is_sup_fun)

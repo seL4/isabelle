@@ -182,14 +182,14 @@ text {*
 *}
 
 instance monoid < semigroup
-proof intro_classes
+proof
   fix x y z :: "'a\<Colon>monoid"
   show "x \<odot> y \<odot> z = x \<odot> (y \<odot> z)"
     by (rule monoid.assoc)
 qed
 
 instance group < monoid
-proof intro_classes
+proof
   fix x y z :: "'a\<Colon>group"
   show "x \<odot> y \<odot> z = x \<odot> (y \<odot> z)"
     by (rule semigroup.assoc)
@@ -203,12 +203,12 @@ text {*
  \medskip The $\INSTANCE$ command sets up an appropriate goal that
  represents the class inclusion (or type arity, see
  \secref{sec:inst-arity}) to be proven (see also
- \cite{isabelle-isar-ref}).  The @{text intro_classes} proof method
- does back-chaining of class membership statements wrt.\ the hierarchy
- of any classes defined in the current theory; the effect is to reduce
- to the initial statement to a number of goals that directly
- correspond to any class axioms encountered on the path upwards
- through the class hierarchy.
+ \cite{isabelle-isar-ref}).  The initial proof step causes
+ back-chaining of class membership statements wrt.\ the hierarchy of
+ any classes defined in the current theory; the effect is to reduce to
+ the initial statement to a number of goals that directly correspond
+ to any class axioms encountered on the path upwards through the class
+ hierarchy.
 *}
 
 

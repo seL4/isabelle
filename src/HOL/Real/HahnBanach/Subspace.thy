@@ -212,7 +212,7 @@ subsection {* Sum of two vectorspaces *}
 text {* The \emph{sum} of two vectorspaces $U$ and $V$ is the set of
 all sums of elements from $U$ and $V$. *}
 
-instance set :: (plus) plus by intro_classes
+instance set :: (plus) plus ..
 
 defs vs_sum_def:
   "U + V == {u + v | u v. u \<in> U \<and> v \<in> V}" (***

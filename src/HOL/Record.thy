@@ -51,8 +51,7 @@ syntax (input)   (* FIXME (xsymbols) *)
 (* type class for record extensions *)
 
 axclass more < "term"
-instance unit :: more
-  by intro_classes
+instance unit :: more ..
 
 
 (* initialize the package *)
