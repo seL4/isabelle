@@ -1,6 +1,7 @@
 (*  Title:      HOL/HOL.thy
     ID:         $Id$
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* The basis of Higher-Order Logic *}
@@ -196,8 +197,38 @@ subsubsection {* Basic lemmas *}
 use "HOL_lemmas.ML"
 theorems case_split = case_split_thm [case_names True False]
 
-declare trans [trans]
-declare impE [CPure.elim]  iffD1 [CPure.elim]  iffD2 [CPure.elim]
+
+subsubsection {* Intuitionistic Reasoning *}
+
+lemma impE':
+  (assumes 1: "P --> Q" and 2: "Q ==> R" and 3: "P --> Q ==> P") R
+proof -
+  from 3 and 1 have P .
+  with 1 have Q by (rule impE)
+  with 2 show R .
+qed
+
+lemma allE':
+  (assumes 1: "ALL x. P x" and 2: "P x ==> ALL x. P x ==> Q") Q
+proof -
+  from 1 have "P x" by (rule spec)
+  from this and 1 show Q by (rule 2)
+qed
+
+lemma notE': (assumes 1: "~ P" and 2: "~ P ==> P") R
+proof -
+  from 2 and 1 have P .
+  with 1 show R by (rule notE)
+qed
+
+lemmas [CPure.elim!] = disjE iffE FalseE conjE exE
+  and [CPure.intro!] = iffI conjI impI TrueI notI allI refl
+  and [CPure.elim 2] = allE notE' impE'
+  and [CPure.intro] = exI disjI2 disjI1
+
+lemmas [trans] = trans
+  and [sym] = sym not_sym
+  and [CPure.elim?] = iffD1 iffD2 impE
 
 
 subsubsection {* Atomizing meta-level connectives *}
@@ -245,55 +276,26 @@ next
   qed
 qed
 
+lemmas [symmetric, rulify] = atomize_all atomize_imp
+
 
 subsubsection {* Classical Reasoner setup *}
 
 use "cladata.ML"
 setup hypsubst_setup
 
-declare atomize_all [symmetric, rulify]  atomize_imp [symmetric, rulify]
+ML_setup {*
+  Context.>> (ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac));
+*}
 
 setup Classical.setup
 setup clasetup
 
-declare ext [intro?]
-declare disjI1 [elim?]  disjI2 [elim?]  ex1_implies_ex [elim?]  sym [elim?]
+lemmas [intro?] = ext
+  and [elim?] = ex1_implies_ex
 
 use "blastdata.ML"
 setup Blast.setup
-
-
-subsubsection {* Intuitionistic Reasoning *}
-
-lemma impE':
-  (assumes 1: "P --> Q" and 2: "Q ==> R" and 3: "P --> Q ==> P") R
-proof -
-  from 3 and 1 have P .
-  with 1 have Q ..
-  with 2 show R .
-qed
-
-lemma allE':
-  (assumes 1: "ALL x. P x" and 2: "P x ==> ALL x. P x ==> Q") Q
-proof -
-  from 1 have "P x" ..
-  from this and 1 show Q by (rule 2)
-qed
-
-lemma notE': (assumes 1: "~ P" and 2: "~ P ==> P") R
-proof -
-  from 2 and 1 have P .
-  with 1 show R by (rule notE)
-qed
-
-lemmas [CPure.elim!] = disjE iffE FalseE conjE exE
-  and [CPure.intro!] = iffI conjI impI TrueI notI allI refl
-  and [CPure.elim 2] = allE notE' impE'
-  and [CPure.intro] = exI disjI2 disjI1
-
-ML_setup {*
-  Context.>> (ContextRules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac));
-*}
 
 
 subsubsection {* Simplifier setup *}
