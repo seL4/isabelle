@@ -28,6 +28,23 @@ an automatically converted script work again --- the success rate is around
 99\% for common ML scripts.
 
 
+\section{Displaying documents --- \texttt{isatool display}}
+
+The \tooldx{display} utility displays documents in DVI format:
+\begin{ttbox}
+Usage: display [OPTIONS] FILE
+
+  Options are:
+    -c           cleanup -- remove FILE after use
+
+  Display document FILE (in DVI format).
+\end{ttbox}
+
+The \texttt{-c} option causes the input file to be removed after use.  The
+program for viewing \texttt{dvi} files is determined by the
+\texttt{DVI_VIEWER} setting.
+
+
 \section{Viewing documentation --- \texttt{isatool doc}} \label{sec:tool-doc}
 
 The \tooldx{doc} utility displays online documentation:
@@ -230,6 +247,22 @@ Usage: makeall [ARGS ...]
 \end{ttbox}
 The arguments \texttt{ARGS} are just passed verbatim to each
 \texttt{make} invocation.
+
+
+\section{Printing documents --- \texttt{isatool print}}
+
+The \tooldx{print} utility prints documents:
+\begin{ttbox}
+Usage: print [OPTIONS] FILE
+
+  Options are:
+    -c           cleanup -- remove FILE after use
+
+  Print document FILE.
+\end{ttbox}
+
+The \texttt{-c} option causes the input file to be removed after use.  The
+printer spool command is determined by the \texttt{PRINT_COMMAND} setting.
 
 
 \section{Remove awkward symbol names from theory sources --- \texttt{isatool unsymbolize}}
