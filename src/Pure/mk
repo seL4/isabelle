@@ -1,4 +1,4 @@
-#!/bin/bash -norc
+#!/bin/bash
 #
 # $Id$
 #
@@ -19,7 +19,8 @@ function fail()
 ## main
 
 ML_SYSTEM_BASE=$(echo $ML_SYSTEM | cut -f1 -d-)
-[ -z "$ML_SYSTEM" ] && fail "Missing ML system settings! Probably not run via 'isatool make'?."
+[ -z "$ML_SYSTEM" ] && \
+  fail "Missing ML system settings! Probably not run via 'isatool make'?."
 
 COMPAT=""
 [ -f "ML-Systems/$ML_SYSTEM_BASE.ML" ] && COMPAT="ML-Systems/$ML_SYSTEM_BASE.ML"
@@ -29,6 +30,6 @@ COMPAT=""
 $ISABELLE \
   -e "val ml_system = \"$ML_SYSTEM\";" \
   -e "use\"$COMPAT\"; use\"ROOT.ML\" handle _ => exit 1;" \
-  -cq RAW_ML_SYSTEM Pure
+  -q RAW_ML_SYSTEM Pure
 
 chmod -w $ISABELLE_OUTPUT_DIR/Pure
