@@ -3022,9 +3022,9 @@ supports this.
 
 \begin{figure}
 \begin{rail}
-codegen : 'generate_code' ( () | '(' string ')') (code +);
+codegen : 'generate_code' ( () | '(' name ')') (code +);
 
-code : name '=' string;
+code : name '=' term;
 
 constscode : 'consts_code' (codespec +);
 
@@ -3064,7 +3064,7 @@ When generating code for a complex term, the code generator recursively
 calls itself for all subterms.
 When it arrives at a constant, the default strategy of the code
 generator is to look up its definition and try to generate code for it.
-Some primitive constants of a logic, which have no definitions that
+Constants which have no definitions that
 are immediately executable, may be associated with a piece of ML
 code manually using the \ttindex{consts_code} command
 (see Fig.~\ref{fig:HOL:codegen}).
@@ -3076,7 +3076,16 @@ The most notable difference is that terms may be included in the ML
 template using antiquotation brackets \verb|{*|~$\ldots$~\verb|*}|.
 A similar mechanism is available for
 types: \ttindex{types_code} associates type constructors with
-specific ML code.
+specific ML code. For example, the declaration
+\begin{ttbox}
+types_code
+  "*"     ("(_ */ _)")
+
+consts_code
+  "Pair"    ("(_,/ _)")
+\end{ttbox}
+in theory \texttt{Main} describes how the product type of Isabelle/HOL
+should be compiled to ML.
 
 Another possibility of configuring the code generator is to register
 theorems to be used for code generation. Theorems can be registered
@@ -3087,6 +3096,13 @@ is specified) and horn clauses (this is indicated by the name
 \texttt{ind}). The left-hand sides of equations may only contain
 constructors and distinct variables, whereas horn clauses must have
 the same format as introduction rules of inductive definitions.
+For example, the declaration
+\begin{ttbox}
+lemma [code]: "((n::nat) < 0) = False" by simp
+declare less_Suc_eq [code]
+\end{ttbox}
+in theory \texttt{Main} specifies two equations from which to generate
+code for \texttt{<} on natural numbers.
 
 \subsection{Specific HOL code generators}
 
@@ -3095,13 +3111,31 @@ already been extended with additional code generators for specific
 HOL constructs. These include datatypes, recursive functions and
 inductive relations. The code generator for inductive relations
 can handle expressions of the form $(t@1,\ldots,t@n) \in r$, where
-$r$ is an inductively defined relation. In case at least one of the
-$t@i$ is a dummy pattern $_$, the above expression evaluates to a
+$r$ is an inductively defined relation. If at least one of the
+$t@i$ is a dummy pattern ``$_$'', the above expression evaluates to a
 sequence of possible answers. If all of the $t@i$ are proper
-terms, the expression evaluates to a boolean value. The theory
-underlying the HOL code generator is described more detailed in
-\cite{Berghofer-Nipkow:2002}.
+terms, the expression evaluates to a boolean value.
+\begin{small}
+\begin{alltt}
+  theory Test = Lambda:
 
+  generate_code
+    test1 = "Abs (Var 0) \(\circ\) Var 0 -> Var 0"
+    test2 = "Abs (Abs (Var 0 \(\circ\) Var 0) \(\circ\) (Abs (Var 0) \(\circ\) Var 0)) -> _"
+\end{alltt}
+\end{small}
+In the above example, \texttt{test1} evaluates to the boolean
+value \texttt{true}, whereas \texttt{test2} is a sequence whose
+elements can be inspected using \texttt{Seq.pull} or similar functions.
+\begin{ttbox}
+ML \{* Seq.pull test2 *\}  -- \{* This is the first answer *\}
+ML \{* Seq.pull (snd (the it)) *\}  -- \{* This is the second answer *\}
+\end{ttbox}
+The theory
+underlying the HOL code generator is described more detailed in
+\cite{Berghofer-Nipkow:2002}. More examples that illustrate the usage
+of the code generator can be found e.g.~in theories
+\texttt{MicroJava/J/JListExample} and \texttt{MicroJava/JVM/JVMListExample}.
 
 \section{The examples directories}
 
