@@ -1110,7 +1110,7 @@ The constructions are fairly standard and can be found in the respective {\tt
 \subcaption{Constants and infixes}
 
 \begin{ttbox}\makeatother
-\tdx{nat_induct}     [| P 0; !!k. [| P k |] ==> P(Suc k) |]  ==> P n
+\tdx{nat_induct}     [| P 0; !!n. P n ==> P(Suc n) |]  ==> P n
 
 \tdx{Suc_not_Zero}   Suc m ~= 0
 \tdx{inj_Suc}        inj Suc
@@ -1223,9 +1223,9 @@ Both {\tt primrec} and {\tt case} are realized by a recursion operator
 %The transitive closure of \cdx{pred_nat} is~$<$.  Many functions on the
 %natural numbers are most easily expressed using recursion along~$<$.
 
-The tactic {\tt\ttindex{nat_ind_tac} "$n$" $i$} performs induction over the
-variable~$n$ in subgoal~$i$ using theorem {\tt nat_induct}. There is also the
-derived theorem \tdx{less_induct}
+Tactic {\tt\ttindex{induct_tac} "$n$" $i$} performs induction on variable~$n$
+in subgoal~$i$ using theorem {\tt nat_induct}. There is also the derived
+theorem \tdx{less_induct}
 \begin{ttbox}
 [| !!n. [| ! m. m<n --> P m |] ==> P n |]  ==>  P n
 \end{ttbox}
@@ -1368,9 +1368,9 @@ dropWhile P (x#xs) = (if P x then dropWhile P xs else xs)
 
 Figure~\ref{hol-list} presents the theory \thydx{List}: the basic list
 operations with their types and syntax. The type constructor {\tt list} is
-defined as a {\tt datatype} with the constructors {\tt[]} and {\tt\#}.  This
-yields an induction tactic {\tt list.induct_tac} of type {\tt string -> int
--> tactic}. A \sdx{case} construct of the form
+defined as a {\tt datatype} with the constructors {\tt[]} and {\tt\#}.  As a
+result the generic induction tactic \ttindex{induct_tac} also performs
+structural induction over lists. A \sdx{case} construct of the form
 \begin{center}\tt
 case $e$ of [] => $a$  |  \(x\)\#\(xs\) => b
 \end{center}
@@ -1617,11 +1617,11 @@ typ      : id | tid | ('(' typevarlist id ')')
 
 Most of the theorems about the datatype become part of the default simpset
 and you never need to see them again because the simplifier applies them
-automatically. Only induction is invoked by hand. Loading a theory containing
-a datatype $t$ defines $t${\tt.induct_tac}:
+automatically. Only induction is invoked by hand:
 \begin{ttdescription}
-\item[$t$.\ttindexbold{induct_tac} {\tt"}$x${\tt"} $i$]
- applies structural induction over variable $x$ to subgoal $i$.
+\item[\ttindexbold{induct_tac} {\tt"}$x${\tt"} $i$]
+ applies structural induction on variable $x$ to subgoal $i$, provided the
+ type of $x$ is a datatype or type {\tt nat}.
 \end{ttdescription}
 
 For the technically minded, we give a more detailed description.
@@ -1665,7 +1665,7 @@ goal MyList.thy "!x. Cons x xs ~= xs";
 \end{ttbox}
 This can be proved by the structural induction tactic:
 \begin{ttbox}
-by (MyList.list.induct_tac "xs" 1);
+by (induct_tac "xs" 1);
 {\out Level 1}
 {\out ! x. Cons x xs ~= xs}
 {\out  1. ! x. Cons x Nil ~= Nil}
@@ -1824,7 +1824,7 @@ The reduction rules for {\tt\at} become part of the default simpset, which
 leads to short proofs:
 \begin{ttbox}\underscoreon
 goal Append.thy "(xs @ ys) @ zs = xs @ (ys @ zs)";
-by (MyList.list.induct\_tac "xs" 1);
+by (induct\_tac "xs" 1);
 by (ALLGOALS Asm\_simp\_tac);
 \end{ttbox}
 
