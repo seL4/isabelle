@@ -5,6 +5,9 @@
 
 Installing the oracle for SVC (Stanford Validity Checker)
 
+The following code merely CALLS the oracle; 
+  the soundness-critical functions are at HOL/Tools/svc_funcs.ML
+
 Based upon the work of Søren T. Heilmann
 *)
 
@@ -13,6 +16,10 @@ Based upon the work of Søren T. Heilmann
   all subterms not intelligible to SVC.*)
 fun svc_abstract t =
   let
+    (*The oracle's result is given to the subgoal using compose_tac because
+      its premises are matched against the assumptions rather than used
+      to make subgoals.  Therefore , abstraction must copy the parameters
+      precisely and make them available to all generated Vars.*)
     val params = Term.strip_all_vars t
     and body   = Term.strip_all_body t
     val Us = map #2 params
@@ -21,7 +28,7 @@ fun svc_abstract t =
     val pairs = ref ([] : (term*term) list)
     fun insert t = 
 	let val T = fastype_of t
-	    val v = Unify.combound (Var ((!vname,0), Us--->T),
+            val v = Unify.combound (Var ((!vname,0), Us--->T),
 				    0, nPar)
 	in  vname := bump_string (!vname); 
 	    pairs := (t, v) :: !pairs;
@@ -31,7 +38,7 @@ fun svc_abstract t =
 	case t of
 	    Free _  => t  (*but not existing Vars, lest the names clash*)
 	  | Bound _ => t
-	  | _ => (case gen_assoc (op aconv) (!pairs, t) of
+	  | _ => (case gen_assoc Pattern.aeconv (!pairs, t) of
 		      Some v => v
 		    | None   => insert t)
     (*abstraction of a real/rational expression*)
@@ -72,9 +79,9 @@ fun svc_abstract t =
       | fm ((c as Const("Not", _)) $ p) = c $ (fm p)
       | fm ((c as Const("True", _))) = c
       | fm ((c as Const("False", _))) = c
-      | fm (t as Const("op =", Type ("fun", [T,_])) $ x $ y) = rel (T, t)
-      | fm (t as Const("op <", Type ("fun", [T,_])) $ x $ y) = rel (T, t)
-      | fm (t as Const("op <=", Type ("fun", [T,_])) $ x $ y) = rel (T, t)
+      | fm (t as Const("op =",  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
+      | fm (t as Const("op <",  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
+      | fm (t as Const("op <=", Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
       | fm t = replace t
     (*entry point, and abstraction of a meta-formula*)
     fun mt ((c as Const("Trueprop", _)) $ p) = c $ (fm p)
