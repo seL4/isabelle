@@ -19,12 +19,12 @@ by (fast_tac sum_cs 1);
 qed "radd_Inl_Inr_iff";
 
 goalw OrderArith.thy [radd_def] 
-    "<Inl(a'), Inl(a)> : radd(A,r,B,s)  <->  <a',a>:r & a':A & a:A";
+    "<Inl(a'), Inl(a)> : radd(A,r,B,s)  <->  a':A & a:A & <a',a>:r";
 by (fast_tac sum_cs 1);
 qed "radd_Inl_iff";
 
 goalw OrderArith.thy [radd_def] 
-    "<Inr(b'), Inr(b)> : radd(A,r,B,s) <->  <b',b>:s & b':B & b:B";
+    "<Inr(b'), Inr(b)> : radd(A,r,B,s) <->  b':B & b:B & <b',b>:s";
 by (fast_tac sum_cs 1);
 qed "radd_Inr_iff";
 
@@ -110,6 +110,69 @@ by (asm_full_simp_tac
     (ZF_ss addsimps [well_ord_def, tot_ord_def, linear_radd]) 1);
 qed "well_ord_radd";
 
+(** An ord_iso congruence law **)
+
+val case_ss = 
+    bij_inverse_ss addsimps [Inl_iff, Inl_Inr_iff, Inr_iff, Inr_Inl_iff,
+			     case_Inl, case_Inr, InlI, InrI];
+
+goal OrderArith.thy
+ "!!f g. [| f: bij(A,C);  g: bij(B,D) |] ==> \
+\        (lam z:A+B. case(%x. Inl(f`x), %y. Inr(g`y), z)) : bij(A+B, C+D)";
+by (res_inst_tac 
+        [("d", "case(%x. Inl(converse(f)`x), %y. Inr(converse(g)`y))")] 
+    lam_bijective 1);
+by (safe_tac (ZF_cs addSEs [sumE]));
+by (ALLGOALS (asm_simp_tac case_ss));
+qed "sum_bij";
+
+goalw OrderArith.thy [ord_iso_def]
+    "!!r s. [| f: ord_iso(A,r,A',r');  g: ord_iso(B,s,B',s') |] ==> 	\
+\           (lam z:A+B. case(%x. Inl(f`x), %y. Inr(g`y), z))		\
+\           : ord_iso(A+B, radd(A,r,B,s), A'+B', radd(A',r',B',s'))";
+by (safe_tac (ZF_cs addSIs [sum_bij]));
+(*Do the beta-reductions now*)
+by (ALLGOALS (asm_full_simp_tac ZF_ss));
+by (safe_tac sum_cs);
+(*8 subgoals!*)
+by (ALLGOALS
+    (asm_full_simp_tac 
+     (radd_ss addcongs [conj_cong] addsimps [bij_is_fun RS apply_type])));
+qed "sum_ord_iso_cong";
+
+(*Could we prove an ord_iso result?  Perhaps 
+     ord_iso(A+B, radd(A,r,B,s), A Un B, r Un s) *)
+goal OrderArith.thy
+    "!!A B. A Int B = 0 ==>	\
+\           (lam z:A+B. case(%x.x, %y.y, z)) : bij(A+B, A Un B)";
+by (res_inst_tac [("d", "%z. if(z:A, Inl(z), Inr(z))")] 
+    lam_bijective 1);
+by (fast_tac (sum_cs addSIs [if_type]) 2);
+by (DEPTH_SOLVE_1 (eresolve_tac [case_type, UnI1, UnI2] 1));
+by (safe_tac sum_cs);
+by (ALLGOALS (asm_simp_tac (sum_ss setloop split_tac [expand_if])));
+by (fast_tac (ZF_cs addEs [equalityE]) 1);
+qed "sum_disjoint_bij";
+
+(** Associativity **)
+
+goal OrderArith.thy
+ "(lam z:(A+B)+C. case(case(Inl, %y.Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
+\ : bij((A+B)+C, A+(B+C))";
+by (res_inst_tac [("d", "case(%x.Inl(Inl(x)), case(%x.Inl(Inr(x)), Inr))")] 
+    lam_bijective 1);
+by (ALLGOALS (asm_simp_tac (case_ss setloop etac sumE)));
+qed "sum_assoc_bij";
+
+goal OrderArith.thy
+ "(lam z:(A+B)+C. case(case(Inl, %y.Inr(Inl(y))), %y. Inr(Inr(y)), z)) \
+\ : ord_iso((A+B)+C, radd(A+B, radd(A,r,B,s), C, t),	\
+\           A+(B+C), radd(A, r, B+C, radd(B,s,C,t)))";
+by (resolve_tac [sum_assoc_bij RS ord_isoI] 1);
+by (REPEAT_FIRST (etac sumE));
+by (ALLGOALS (asm_simp_tac radd_ss));
+qed "sum_assoc_ord_iso";
+
 
 (**** Multiplication of relations -- lexicographic product ****)
 
@@ -186,6 +249,117 @@ by (asm_full_simp_tac
     (ZF_ss addsimps [well_ord_def, tot_ord_def, linear_rmult]) 1);
 qed "well_ord_rmult";
 
+
+(** An ord_iso congruence law **)
+
+goal OrderArith.thy
+ "!!f g. [| f: bij(A,C);  g: bij(B,D) |] ==> \
+\        (lam z:A*B. split(%x y. <f`x, g`y>, z)) : bij(A*B, C*D)";
+by (res_inst_tac [("d", "split(%x y. <converse(f)`x, converse(g)`y>)")] 
+    lam_bijective 1);
+by (safe_tac ZF_cs);
+by (ALLGOALS (asm_simp_tac bij_inverse_ss));
+qed "prod_bij";
+
+goalw OrderArith.thy [ord_iso_def]
+    "!!r s. [| f: ord_iso(A,r,A',r');  g: ord_iso(B,s,B',s') |] ==> 	\
+\           (lam z:A*B. split(%x y. <f`x, g`y>, z))			\
+\           : ord_iso(A*B, rmult(A,r,B,s), A'*B', rmult(A',r',B',s'))";
+by (safe_tac (ZF_cs addSIs [prod_bij]));
+by (ALLGOALS
+    (asm_full_simp_tac 
+     (ZF_ss addsimps [rmult_iff, bij_is_fun RS apply_type])));
+by (fast_tac ZF_cs 1);
+by (fast_tac (ZF_cs addSEs [bij_is_inj RS inj_apply_equality]) 1);
+qed "prod_ord_iso_cong";
+
+goal OrderArith.thy "(lam z:A. <x,z>) : bij(A, {x}*A)";
+by (res_inst_tac [("d", "snd")] lam_bijective 1);
+by (safe_tac ZF_cs);
+by (ALLGOALS (asm_simp_tac ZF_ss));
+qed "singleton_prod_bij";
+
+(*Used??*)
+goal OrderArith.thy
+ "!!x xr. well_ord({x},xr) ==>	\
+\         (lam z:A. <x,z>) : ord_iso(A, r, {x}*A, rmult({x}, xr, A, r))";
+by (resolve_tac [singleton_prod_bij RS ord_isoI] 1);
+by (asm_simp_tac (ZF_ss addsimps [rmult_iff]) 1);
+by (fast_tac (ZF_cs addEs [well_ord_is_wf RS wf_on_not_refl RS notE]) 1);
+qed "singleton_prod_ord_iso";
+
+(*Here we build a complicated function term, then simplify it using
+  case_cong, id_conv, comp_lam, case_case.*)
+goal OrderArith.thy
+ "!!a. a~:C ==> \
+\      (lam x:C*B + D. case(%x.x, %y.<a,y>, x)) \
+\      : bij(C*B + D, C*B Un {a}*D)";
+by (resolve_tac [subst_elem] 1);
+by (resolve_tac [id_bij RS sum_bij RS comp_bij] 1);
+by (resolve_tac [singleton_prod_bij] 1);
+by (resolve_tac [sum_disjoint_bij] 1);
+by (fast_tac eq_cs 1);
+by (asm_simp_tac (ZF_ss addcongs [case_cong] addsimps [id_conv]) 1);
+by (resolve_tac [comp_lam RS trans RS sym] 1);
+by (fast_tac (sum_cs addSEs [case_type]) 1);
+by (asm_simp_tac (ZF_ss addsimps [case_case]) 1);
+qed "prod_sum_singleton_bij";
+
+goal OrderArith.thy
+ "!!A. [| a:A;  well_ord(A,r) |] ==> \
+\   (lam x:pred(A,a,r)*B + pred(B,b,s). case(%x.x, %y.<a,y>, x)) \
+\   : ord_iso(pred(A,a,r)*B + pred(B,b,s), 		\
+\                 radd(A*B, rmult(A,r,B,s), B, s), 	\
+\             pred(A,a,r)*B Un {a}*pred(B,b,s), rmult(A,r,B,s))";
+by (resolve_tac [prod_sum_singleton_bij RS ord_isoI] 1);
+by (asm_simp_tac
+    (ZF_ss addsimps [pred_iff, well_ord_is_wf RS wf_on_not_refl]) 1);
+by (asm_simp_tac ZF_ss 1);
+by (REPEAT_FIRST (eresolve_tac [SigmaE, sumE, predE]));
+by (ALLGOALS (asm_simp_tac (radd_ss addsimps [rmult_iff])));
+by (ALLGOALS (fast_tac (ZF_cs addEs [well_ord_is_wf RS wf_on_asym])));
+qed "prod_sum_singleton_ord_iso";
+
+(** Distributive law **)
+
+goal OrderArith.thy
+ "(lam z:(A+B)*C. split(%x z. case(%y.Inl(<y,z>), %y.Inr(<y,z>), x), z)) \
+\ : bij((A+B)*C, (A*C)+(B*C))";
+by (res_inst_tac
+    [("d", "case(split(%x y.<Inl(x),y>), split(%x y.<Inr(x),y>))")] 
+    lam_bijective 1);
+by (safe_tac (ZF_cs addSEs [sumE]));
+by (ALLGOALS (asm_simp_tac case_ss));
+qed "sum_prod_distrib_bij";
+
+goal OrderArith.thy
+ "(lam z:(A+B)*C. split(%x z. case(%y.Inl(<y,z>), %y.Inr(<y,z>), x), z)) \
+\ : ord_iso((A+B)*C, rmult(A+B, radd(A,r,B,s), C, t), \
+\           (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))";
+by (resolve_tac [sum_prod_distrib_bij RS ord_isoI] 1);
+by (REPEAT_FIRST (eresolve_tac [SigmaE, sumE]));
+by (ALLGOALS (asm_simp_tac (radd_ss addsimps [rmult_iff])));
+qed "sum_prod_distrib_ord_iso";
+
+(** Associativity **)
+
+goal OrderArith.thy
+ "(lam z:(A*B)*C. split(%w z. split(%x y. <x,<y,z>>, w), z)) \
+\ : bij((A*B)*C, A*(B*C))";
+by (res_inst_tac [("d", "split(%x.   split(%y z. <<x,y>, z>))")] 
+    lam_bijective 1);
+by (ALLGOALS (asm_simp_tac (case_ss setloop etac SigmaE)));
+qed "prod_assoc_bij";
+
+goal OrderArith.thy
+ "(lam z:(A*B)*C. split(%w z. split(%x y. <x,<y,z>>, w), z)) \
+\ : ord_iso((A*B)*C, rmult(A*B, rmult(A,r,B,s), C, t),	\
+\           A*(B*C), rmult(A, r, B*C, rmult(B,s,C,t)))";
+by (resolve_tac [prod_assoc_bij RS ord_isoI] 1);
+by (REPEAT_FIRST (eresolve_tac [SigmaE, ssubst]));
+by (asm_simp_tac (ZF_ss addsimps [rmult_iff]) 1);
+by (fast_tac ZF_cs 1);
+qed "prod_assoc_ord_iso";
 
 (**** Inverse image of a relation ****)
 
