@@ -78,8 +78,7 @@ else
   if [ -z "$OUTFILE" ]; then
     java GraphBrowser.GraphBrowser "$GRAPHFILE"
   else
-    unset DISPLAY  #paranoia setting
-    java GraphBrowser.GraphBrowser "$GRAPHFILE" "$OUTFILE"
+    java GraphBrowser.Console "$GRAPHFILE" "$OUTFILE"
   fi
   RC="$?"
 
