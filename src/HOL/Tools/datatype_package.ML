@@ -10,6 +10,7 @@ signature BASIC_DATATYPE_PACKAGE =
 sig
   val induct_tac : string -> int -> tactic
   val exhaust_tac : string -> int -> tactic
+  val cases_tac : string -> int -> tactic
   val distinct_simproc : simproc
 end;
 
@@ -70,6 +71,7 @@ sig
   val constrs_of : theory -> string -> term list option
   val constrs_of_sg : Sign.sg -> string -> term list option
   val case_const_of : theory -> string -> term option
+  val cases_of: Sign.sg -> string -> thm
   val setup: (theory -> theory) list
 end;
 
@@ -128,6 +130,9 @@ fun constrs_of_sg sg tname = (case datatype_info_sg sg tname of
 
 val constrs_of = constrs_of_sg o Theory.sign_of;
 
+val exhaustion_of = #exhaustion oo datatype_info_sg_err
+fun cases_of sg name = if name = HOLogic.boolN then case_split_thm else exhaustion_of sg name;
+
 fun case_const_of thy tname = (case datatype_info thy tname of
    Some {case_name, ...} => Some (Const (case_name, the (Sign.const_type
      (Theory.sign_of thy) case_name)))
@@ -142,9 +147,10 @@ fun find_tname var Bi =
      | _ => error ("Cannot determine type of " ^ quote var)
   end;
 
-fun infer_tname state sign i aterm =
+fun infer_tname state i aterm =
   let
-    val (_, _, Bi, _) = dest_state (state, i)
+    val sign = Thm.sign_of_thm state;
+    val (_, _, Bi, _) = Thm.dest_state (state, i)
     val params = Logic.strip_params Bi;   (*params of subgoal i*)
     val params = rev (rename_wrt_term Bi params);   (*as they are printed*)
     val (types, sorts) = types_sorts state;
@@ -184,19 +190,20 @@ fun induct_tac s i state =
     occs_in_prems (res_inst_tac insts induction) vars i state
   end;
 
+
 (* generic exhaustion tactic for datatypes *)
 
-fun exhaust_tac aterm i state =
+fun gen_exhaust_tac get_rule aterm i state =
   let
-    val {sign, ...} = rep_thm state;
-    val tn = infer_tname state sign i aterm;
-    val {exhaustion, ...} = datatype_info_sg_err sign tn;
+    val rule = get_rule (Thm.sign_of_thm state) (infer_tname state i aterm);
     val _ $ Var (ixn, _) $ _ = HOLogic.dest_Trueprop
-      (hd (Logic.strip_assums_hyp (hd (prems_of exhaustion))));
+      (hd (Logic.strip_assums_hyp (hd (Thm.prems_of rule))));
     val exh_vname = implode (tl (explode (Syntax.string_of_vname ixn)))
-  in
-    res_inst_tac [(exh_vname, aterm)] exhaustion i state
-  end;
+  in res_inst_tac [(exh_vname, aterm)] rule i state end;
+
+val exhaust_tac = gen_exhaust_tac exhaustion_of;
+val cases_tac = gen_exhaust_tac cases_of;
+
 
 
 (**** simplification procedure for showing distinctness of constructors ****)
