@@ -123,12 +123,12 @@ constdefs
 	                             Increasing (sub i o allocRel))
          Int
          Always {s. ALL i : lessThan Nclients.
-		    ALL k : lessThan (length (allocAsk s i)).
-		    allocAsk s i ! k <= NbT}
+		     ALL elt : set ((sub i o allocAsk) s). elt <= NbT}
          Int
          (INT i : lessThan Nclients. 
 	  INT h. {s. h <= (sub i o allocGiv)s & h pfixGe (sub i o allocAsk)s}
-		  LeadsTo {s. tokens h <= (tokens o sub i o allocRel)s})
+		 LeadsTo
+	         {s. tokens h <= (tokens o sub i o allocRel)s})
          guarantees[allocGiv]
 	     (INT i : lessThan Nclients.
 	      INT h. {s. h <= (sub i o allocAsk) s}
@@ -148,28 +148,27 @@ constdefs
   (*spec (9.1)*)
   network_ask :: systemState program set
     "network_ask == INT i : lessThan Nclients.
-                    Increasing (ask o sub i o client)
-                    guarantees[allocAsk]
-                    ((sub i o allocAsk) Fols (ask o sub i o client))"
+			Increasing (ask o sub i o client)
+			guarantees[allocAsk]
+			((sub i o allocAsk) Fols (ask o sub i o client))"
 
   (*spec (9.2)*)
   network_giv :: systemState program set
     "network_giv == INT i : lessThan Nclients.
-                    Increasing (sub i o allocGiv)
-                    guarantees[giv o sub i o client]
-                    ((giv o sub i o client) Fols (sub i o allocGiv))"
+			Increasing (sub i o allocGiv)
+			guarantees[giv o sub i o client]
+			((giv o sub i o client) Fols (sub i o allocGiv))"
 
   (*spec (9.3)*)
   network_rel :: systemState program set
     "network_rel == INT i : lessThan Nclients.
-                    Increasing (rel o sub i o client)
-                    guarantees[allocRel]
-                    ((sub i o allocRel) Fols (rel o sub i o client))"
+			Increasing (rel o sub i o client)
+			guarantees[allocRel]
+			((sub i o allocRel) Fols (rel o sub i o client))"
 
   (*spec: preserves part*)
     network_preserves :: systemState program set
-    "network_preserves == preserves allocGiv
-                          Int
+    "network_preserves == preserves allocGiv  Int
                           (INT i : lessThan Nclients.
                            preserves (funPair rel ask o sub i o client))"
   
