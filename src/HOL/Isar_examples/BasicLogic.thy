@@ -401,6 +401,31 @@ proof;
   qed;
 qed;
 
+text {*
+ Explicit $\exists$-elimination as seen above can become quite
+ cumbersome in practice.  The derived Isar language element
+ ``\isakeyword{obtain}'' provides a more handsome way to do
+ generalized existence reasoning.
+*};
+
+lemma "(EX x. P (f x)) --> (EX x. P x)";
+proof;
+  assume "EX x. P (f x)";
+  then; obtain a where "P (f a)"; by blast;
+  thus "EX x. P x"; ..;
+qed;
+
+text {*
+ Technically, \isakeyword{obtain} is similar to \isakeyword{fix} and
+ \isakeyword{assume} together with a soundness proof of the
+ elimination involved.  Thus it behaves similar to any other forward
+ proof element.  Also note that due to the nature of general existence
+ reasoning involved here, any result exported from the context of an
+ \isakeyword{obtain} statement may \emph{not} refer to the parameters
+ introduced there.
+*};
+
+
 
 subsubsection {* Deriving rules in Isabelle *};
 
