@@ -348,7 +348,7 @@ lemma (in group) inv_comm:
   "[| x \<otimes> y = \<one>; x \<in> carrier G; y \<in> carrier G |] ==> y \<otimes> x = \<one>"
   by (rule Units_inv_comm) auto                          
 
-lemma (in group) m_inv_equality:
+lemma (in group) inv_equality:
      "[|y \<otimes> x = \<one>; x \<in> carrier G; y \<in> carrier G|] ==> inv x = y"
 apply (simp add: m_inv_def)
 apply (rule the_equality)
@@ -566,6 +566,27 @@ lemma DirProdGroup_group:
   by (rule groupI)
     (auto intro: G.m_assoc H.m_assoc G.l_inv H.l_inv
       simp add: DirProdGroup_def DirProdSemigroup_def)
+
+lemma carrier_DirProdGroup [simp]:
+     "carrier (G \<times>\<^sub>g H) = carrier G \<times> carrier H"
+  by (simp add: DirProdGroup_def DirProdSemigroup_def)
+
+lemma one_DirProdGroup [simp]:
+     "one (G \<times>\<^sub>g H) = (one G, one H)"
+  by (simp add: DirProdGroup_def DirProdSemigroup_def);
+
+lemma mult_DirProdGroup [simp]:
+     "mult (G \<times>\<^sub>g H) (g, h) (g', h') = (mult G g g', mult H h h')"
+  by (simp add: DirProdGroup_def DirProdSemigroup_def)
+
+lemma inv_DirProdGroup [simp]:
+  includes group G + group H
+  assumes g: "g \<in> carrier G"
+      and h: "h \<in> carrier H"
+  shows "m_inv (G \<times>\<^sub>g H) (g, h) = (m_inv G g, m_inv H h)"
+  apply (rule group.inv_equality [OF DirProdGroup_group])
+  apply (simp_all add: prems group_def group.l_inv)
+  done
 
 subsection {* Homomorphisms *}
 
