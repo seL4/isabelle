@@ -100,93 +100,118 @@ typed_print_translation {*
 
 
 primrec
-"hd(x#xs) = x"
+  "hd(x#xs) = x"
+
 primrec
-"tl([]) = []"
-"tl(x#xs) = xs"
+  "tl([]) = []"
+  "tl(x#xs) = xs"
+
 primrec
-"null([]) = True"
-"null(x#xs) = False"
+  "null([]) = True"
+  "null(x#xs) = False"
+
 primrec
-"last(x#xs) = (if xs=[] then x else last xs)"
+  "last(x#xs) = (if xs=[] then x else last xs)"
+
 primrec
-"butlast []= []"
-"butlast(x#xs) = (if xs=[] then [] else x#butlast xs)"
+  "butlast []= []"
+  "butlast(x#xs) = (if xs=[] then [] else x#butlast xs)"
+
 primrec
-"x mem [] = False"
-"x mem (y#ys) = (if y=x then True else x mem ys)"
+  "x mem [] = False"
+  "x mem (y#ys) = (if y=x then True else x mem ys)"
+
 primrec
-"set [] = {}"
-"set (x#xs) = insert x (set xs)"
+  "set [] = {}"
+  "set (x#xs) = insert x (set xs)"
+
 primrec
-list_all_Nil:"list_all P [] = True"
-list_all_Cons: "list_all P (x#xs) = (P(x) \<and> list_all P xs)"
+  list_all_Nil:"list_all P [] = True"
+  list_all_Cons: "list_all P (x#xs) = (P(x) \<and> list_all P xs)"
+
 primrec
-"map f [] = []"
-"map f (x#xs) = f(x)#map f xs"
+  "map f [] = []"
+  "map f (x#xs) = f(x)#map f xs"
+
 primrec
-append_Nil:"[]@ys = ys"
-append_Cons: "(x#xs)@ys = x#(xs@ys)"
+  append_Nil:"[]@ys = ys"
+  append_Cons: "(x#xs)@ys = x#(xs@ys)"
+
 primrec
-"rev([]) = []"
-"rev(x#xs) = rev(xs) @ [x]"
+  "rev([]) = []"
+  "rev(x#xs) = rev(xs) @ [x]"
+
 primrec
-"filter P [] = []"
-"filter P (x#xs) = (if P x then x#filter P xs else filter P xs)"
+  "filter P [] = []"
+  "filter P (x#xs) = (if P x then x#filter P xs else filter P xs)"
+
 primrec
-foldl_Nil:"foldl f a [] = a"
-foldl_Cons: "foldl f a (x#xs) = foldl f (f a x) xs"
+  foldl_Nil:"foldl f a [] = a"
+  foldl_Cons: "foldl f a (x#xs) = foldl f (f a x) xs"
+
 primrec
-"foldr f [] a = a"
-"foldr f (x#xs) a = f x (foldr f xs a)"
+  "foldr f [] a = a"
+  "foldr f (x#xs) a = f x (foldr f xs a)"
+
 primrec
-"concat([]) = []"
-"concat(x#xs) = x @ concat(xs)"
+  "concat([]) = []"
+  "concat(x#xs) = x @ concat(xs)"
+
 primrec
-drop_Nil:"drop n [] = []"
-drop_Cons: "drop n (x#xs) = (case n of 0 => x#xs | Suc(m) => drop m xs)"
--- {* Warning: simpset does not contain this definition *}
--- {* but separate theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
+  drop_Nil:"drop n [] = []"
+  drop_Cons: "drop n (x#xs) = (case n of 0 => x#xs | Suc(m) => drop m xs)"
+  -- {*Warning: simpset does not contain this definition, but separate
+       theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
+
 primrec
-take_Nil:"take n [] = []"
-take_Cons: "take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)"
--- {* Warning: simpset does not contain this definition *}
--- {* but separate theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
+  take_Nil:"take n [] = []"
+  take_Cons: "take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)"
+  -- {*Warning: simpset does not contain this definition, but separate
+       theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
+
 primrec
-nth_Cons:"(x#xs)!n = (case n of 0 => x | (Suc k) => xs!k)"
--- {* Warning: simpset does not contain this definition *}
--- {* but separate theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
+  nth_Cons:"(x#xs)!n = (case n of 0 => x | (Suc k) => xs!k)"
+  -- {*Warning: simpset does not contain this definition, but separate
+       theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
+
 primrec
-"[][i:=v] = []"
-"(x#xs)[i:=v] =
-(case i of 0 => v # xs
-| Suc j => x # xs[j:=v])"
+  "[][i:=v] = []"
+  "(x#xs)[i:=v] = (case i of 0 => v # xs | Suc j => x # xs[j:=v])"
+
 primrec
-"takeWhile P [] = []"
-"takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])"
+  "takeWhile P [] = []"
+  "takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])"
+
 primrec
-"dropWhile P [] = []"
-"dropWhile P (x#xs) = (if P x then dropWhile P xs else x#xs)"
+  "dropWhile P [] = []"
+  "dropWhile P (x#xs) = (if P x then dropWhile P xs else x#xs)"
+
 primrec
-"zip xs [] = []"
-zip_Cons: "zip xs (y#ys) = (case xs of [] => [] | z#zs => (z,y)#zip zs ys)"
--- {* Warning: simpset does not contain this definition *}
--- {* but separate theorems for @{text "xs = []"} and @{text "xs = z # zs"} *}
+  "zip xs [] = []"
+  zip_Cons: "zip xs (y#ys) = (case xs of [] => [] | z#zs => (z,y)#zip zs ys)"
+  -- {*Warning: simpset does not contain this definition, but separate
+       theorems for @{text "xs = []"} and @{text "xs = z # zs"} *}
+
 primrec
-upt_0: "[i..0(] = []"
-upt_Suc: "[i..(Suc j)(] = (if i <= j then [i..j(] @ [j] else [])"
+  upt_0: "[i..0(] = []"
+  upt_Suc: "[i..(Suc j)(] = (if i <= j then [i..j(] @ [j] else [])"
+
 primrec
-"distinct [] = True"
-"distinct (x#xs) = (x ~: set xs \<and> distinct xs)"
+  "distinct [] = True"
+  "distinct (x#xs) = (x ~: set xs \<and> distinct xs)"
+
 primrec
-"remdups [] = []"
-"remdups (x#xs) = (if x : set xs then remdups xs else x # remdups xs)"
+  "remdups [] = []"
+  "remdups (x#xs) = (if x : set xs then remdups xs else x # remdups xs)"
+
 primrec
-"remove1 x [] = []"
-"remove1 x (y#xs) = (if x=y then xs else y # remove1 x xs)"
+  "remove1 x [] = []"
+  "remove1 x (y#xs) = (if x=y then xs else y # remove1 x xs)"
+
 primrec
-replicate_0: "replicate 0 x = []"
-replicate_Suc: "replicate (Suc n) x = x # replicate n x"
+  replicate_0: "replicate 0 x = []"
+  replicate_Suc: "replicate (Suc n) x = x # replicate n x"
+
 defs
 rotate1_def: "rotate1 xs == (case xs of [] \<Rightarrow> [] | x#xs \<Rightarrow> xs @ [x])"
 rotate_def:  "rotate n == rotate1 ^ n"
