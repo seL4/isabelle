@@ -409,22 +409,24 @@ fun gen_split_tac [] = K no_tac
 
 (* addsplits / delsplits *)
 
-fun split_name sg (name, T) asm = "split " ^ 
-  (if asm then "asm " else "") ^ name ^ " :: " ^
-  Sign.string_of_typ sg (typ_subst_TVars
-    (map (rpair dummyT o fst) (typ_tvars T)) T);
+fun string_of_typ (Type (s, Ts)) = (if null Ts then ""
+      else enclose "(" ")" (commas (map string_of_typ Ts))) ^ s
+  | string_of_typ _ = "_";
+
+fun split_name (name, T) asm = "split " ^ 
+  (if asm then "asm " else "") ^ name ^ " :: " ^ string_of_typ T;
 
 fun ss addsplits splits =
   let fun addsplit (ss,split) =
         let val (name,asm) = split_thm_info split
-        in Simplifier.addloop (ss, (split_name (sign_of_thm split) name asm,
+        in Simplifier.addloop (ss, (split_name name asm,
 		       (if asm then split_asm_tac else split_tac) [split])) end
   in foldl addsplit (ss,splits) end;
 
 fun ss delsplits splits =
   let fun delsplit(ss,split) =
         let val (name,asm) = split_thm_info split
-        in Simplifier.delloop (ss, split_name (sign_of_thm split) name asm)
+        in Simplifier.delloop (ss, split_name name asm)
   end in foldl delsplit (ss,splits) end;
 
 fun Addsplits splits = (Simplifier.simpset_ref() := 
