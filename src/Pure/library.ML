@@ -756,8 +756,9 @@ fun warning s = !warning_fn s;
 
 (*print error message and abort to top level*)
 exception ERROR;
-fun error s = (!error_fn s; raise ERROR);
-fun sys_error msg = (!error_fn " !! SYSTEM ERROR !!\n"; error msg);
+fun error_msg s = !error_fn s;
+fun error s = (error_msg s; raise ERROR);
+fun sys_error msg = (error_msg " !! SYSTEM ERROR !!\n"; error msg);
 
 fun assert p msg = if p then () else error msg;
 fun deny p msg = if p then error msg else ();
