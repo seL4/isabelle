@@ -660,7 +660,7 @@ fun gen_assume prepp tac name attrs raw_prop_pats ctxt =
 
     val cprops = map (Thm.cterm_of sign) props;
     val cprops_tac = map (rpair tac) cprops;
-    val asms = map (Drule.forall_elim_vars (maxidx + 1) o Thm.assume) cprops;
+    val asms = map (Drule.forall_elim_vars (maxidx + 1) o Drule.assume_goal) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt'', (_, thms)) =

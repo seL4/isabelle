@@ -388,7 +388,7 @@ fun export fixes casms thm =
 fun export_wrt inner opt_outer =
   let
     val (fixes, asms) = diff_context inner opt_outer;
-    val casms = map #1 asms;
+    val casms = map (Drule.mk_cgoal o #1) asms;
     val tacs = map #2 asms;
   in (export fixes casms, tacs) end;
 
@@ -449,7 +449,7 @@ fun prep_result state t raw_thm =
     val tsig = Sign.tsig_of sign;
 
     val casms = map #1 (assumptions state);
-    val bad_hyps = Library.gen_rems Term.aconv (hyps, map Thm.term_of casms);
+    val bad_hyps = Library.gen_rems Term.aconv (hyps, map (Thm.term_of o Drule.mk_cgoal) casms);
   in
     if not (null bad_hyps) then
       err ("Additional hypotheses:\n" ^ cat_lines (map (Sign.string_of_term sign) bad_hyps))
@@ -538,10 +538,13 @@ fun gen_assume f tacs name atts props state =
 val assm = gen_assume ProofContext.assume;
 val assm_i = gen_assume ProofContext.assume_i;
 
-val assume = assm (assume_tac, K all_tac);
-val assume_i = assm_i (assume_tac, K all_tac);
-val presume = assm (K all_tac, K all_tac);
-val presume_i = assm_i (K all_tac, K all_tac);
+val hard_asm_tac = Tactic.etac Drule.triv_goal;
+val soft_asm_tac = Tactic.rtac Drule.triv_goal;
+
+val assume = assm (hard_asm_tac, soft_asm_tac);
+val assume_i = assm_i (hard_asm_tac, soft_asm_tac);
+val presume = assm (soft_asm_tac, soft_asm_tac);
+val presume_i = assm_i (soft_asm_tac, soft_asm_tac);
 
 
 
@@ -581,7 +584,7 @@ fun setup_goal opt_block prepp kind name atts raw_propp state =
     val casms = map #1 (assumptions state');
 
     val revcut_rl = Drule.incr_indexes_wrt [] [] (cprop :: casms) [] Drule.revcut_rl;
-    fun cut_asm (casm, thm) = Thm.rotate_rule ~1 1 ((Thm.assume casm COMP revcut_rl) RS thm);
+    fun cut_asm (casm, thm) = Thm.rotate_rule ~1 1 ((Drule.assume_goal casm COMP revcut_rl) RS thm);
     val goal = foldr cut_asm (casms, Drule.mk_triv_goal cprop);
   in
     state'
