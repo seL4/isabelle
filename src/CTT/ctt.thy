@@ -40,8 +40,8 @@ consts
   Eqelem    :: "[i,i,t]=>prop"      ("(3_ =/ _ :/ _)" [10,10,10] 5)
   Reduce    :: "[i,i]=>prop"        ("Reduce[_,_]")
   (*Types*)
-  "@PROD"   :: "[id,t,t]=>t"        ("(3PROD _:_./ _)" 10)
-  "@SUM"    :: "[id,t,t]=>t"        ("(3SUM _:_./ _)" 10)
+  "@PROD"   :: "[idt,t,t]=>t"       ("(3PROD _:_./ _)" 10)
+  "@SUM"    :: "[idt,t,t]=>t"       ("(3SUM _:_./ _)" 10)
   "+"       :: "[t,t]=>t"           (infixr 40)
   (*Invisible infixes!*)
   "@-->"    :: "[t,t]=>t"           ("(_ -->/ _)" [31,30] 30)
@@ -56,7 +56,9 @@ consts
 
 translations
   "PROD x:A. B" => "Prod(A, %x. B)"
+  "A --> B"     => "Prod(A, _K(B))"
   "SUM x:A. B"  => "Sum(A, %x. B)"
+  "A * B"       => "Sum(A, _K(B))"
 
 rules
 
@@ -243,9 +245,6 @@ end
 
 
 ML
-
-val parse_translation =
-  [("@-->", ndependent_tr "Prod"), ("@*", ndependent_tr "Sum")];
 
 val print_translation =
   [("Prod", dependent_tr' ("@PROD", "@-->")),
