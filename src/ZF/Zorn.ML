@@ -181,7 +181,7 @@ by (rewtac increasing_def);
 by (rtac CollectI 1);
 by (rtac lam_type 1);
 by (Asm_simp_tac 1);
-by (fast_tac (claset() addSIs [super_subset_chain RS subsetD,
+by (blast_tac (claset() addDs [super_subset_chain RS subsetD,
 			       chain_subset_Pow RS subsetD,
 			       choice_super]) 1);
 (*Now, verify that it increases*)
@@ -202,7 +202,7 @@ Goal " [| c: TFin(S,next);                              \
 \      |] ==> c: chain(S)";
 by (etac TFin_induct 1);
 by (asm_simp_tac 
-    (simpset() addsimps [chain_subset_Pow RS subsetD, 
+    (simpset() addsimps [chain_subset_Pow RS subsetD RS PowD, 
 			 choice_super RS (super_subset_chain RS subsetD)]) 1);
 by (rewtac chain_def);
 by (rtac CollectI 1 THEN Blast_tac 1);
@@ -227,9 +227,9 @@ by (assume_tac 2);
 by (rtac refl 2);
 by (asm_full_simp_tac 
     (simpset() addsimps [subset_refl RS TFin_UnionI RS
-			 (TFin.dom_subset RS subsetD)]) 1);
+			 (TFin.dom_subset RS subsetD RS PowD)]) 1);
 by (eresolve_tac [choice_not_equals RS notE] 1);
-by (REPEAT (assume_tac 1));
+by (REPEAT (assume_tac 1)); 
 qed "Hausdorff";
 
 

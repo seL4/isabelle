@@ -447,8 +447,7 @@ Goal "A : Pow(B)  ==>  A<=B";
 by (etac (Pow_iff RS iffD1) 1) ;
 qed "PowD";
 
-AddSIs [PowI];
-AddSDs [PowD];
+AddIffs [Pow_iff];
 
 
 (*** Rules for the empty set ***)

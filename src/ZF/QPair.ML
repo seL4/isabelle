@@ -110,10 +110,12 @@ Addsimps [qfst_conv, qsnd_conv];
 Goal "p:QSigma(A,B) ==> qfst(p) : A";
 by (Auto_tac) ;
 qed "qfst_type";
+AddTCs [qfst_type];
 
 Goal "p:QSigma(A,B) ==> qsnd(p) : B(qfst(p))";
 by (Auto_tac) ;
 qed "qsnd_type";
+AddTCs [qsnd_type];
 
 Goal "a: QSigma(A,B) ==> <qfst(a); qsnd(a)> = a";
 by Auto_tac;

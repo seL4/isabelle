@@ -134,10 +134,12 @@ Addsimps [fst_conv,snd_conv];
 Goal "p:Sigma(A,B) ==> fst(p) : A";
 by (Auto_tac) ;
 qed "fst_type";
+AddTCs [fst_type];
 
 Goal "p:Sigma(A,B) ==> snd(p) : B(fst(p))";
 by (Auto_tac) ;
 qed "snd_type";
+AddTCs [snd_type];
 
 Goal "a: Sigma(A,B) ==> <fst(a),snd(a)> = a";
 by (Auto_tac) ;
