@@ -1,2 +1,2 @@
 
-Real = RComplete + Complex_Numbers
+Real = RComplete + RealPow

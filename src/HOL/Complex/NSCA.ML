@@ -493,13 +493,13 @@ qed "bex_CInfinitesimal_iff2";
 Goal "[| y: CInfinitesimal; x + y = z |] ==> x @c= z";
 by (rtac (bex_CInfinitesimal_iff RS iffD1) 1);
 by (dtac (CInfinitesimal_minus_iff RS iffD2) 1);
-by (auto_tac (claset(), simpset() addsimps [hcomplex_add_assoc RS sym]));
+by (asm_full_simp_tac (simpset() addsimps eq_commute::compare_rls) 1); 
 qed "CInfinitesimal_add_capprox";
 
 Goal "y: CInfinitesimal ==> x @c= x + y";
 by (rtac (bex_CInfinitesimal_iff RS iffD1) 1);
 by (dtac (CInfinitesimal_minus_iff RS iffD2) 1);
-by (auto_tac (claset(), simpset() addsimps [hcomplex_add_assoc RS sym]));
+by (asm_full_simp_tac (simpset() addsimps eq_commute::compare_rls) 1);
 qed "CInfinitesimal_add_capprox_self";
 
 Goal "y: CInfinitesimal ==> x @c= y + x";
