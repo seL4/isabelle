@@ -126,6 +126,16 @@ bind_thm("linorder_neqE", linorder_neq_iff RS iffD1 RS disjE);
 
 (** min & max **)
 
+Goalw [min_def] "min (x::'a::order) x = x";
+by(Simp_tac 1);
+qed "min_same";
+Addsimps [min_same];
+
+Goalw [max_def] "max (x::'a::order) x = x";
+by(Simp_tac 1);
+qed "max_same";
+Addsimps [max_same];
+
 Goalw [max_def] "!!z::'a::linorder. (z <= max x y) = (z <= x | z <= y)";
 by (Simp_tac 1);
 by (cut_facts_tac [linorder_linear] 1);
@@ -145,6 +155,13 @@ by (blast_tac (claset() addIs [order_trans]) 1);
 qed "max_le_iff_conj";
 Addsimps [max_le_iff_conj];
 
+Goalw [max_def] "!!z::'a::linorder. (max x y < z) = (x < z & y < z)";
+by (simp_tac (simpset() addsimps [order_le_less]) 1);
+by (cut_facts_tac [linorder_less_linear] 1);
+by (blast_tac (claset() addIs [order_less_trans]) 1);
+qed "max_less_iff_conj";
+Addsimps [max_less_iff_conj];
+
 Goalw [min_def] "!!z::'a::linorder. (z <= min x y) = (z <= x & z <= y)";
 by (Simp_tac 1);
 by (cut_facts_tac [linorder_linear] 1);
@@ -152,6 +169,13 @@ by (blast_tac (claset() addIs [order_trans]) 1);
 qed "le_min_iff_conj";
 Addsimps [le_min_iff_conj];
 (* AddIffs screws up a blast_tac in MiniML *)
+
+Goalw [min_def] "!!z::'a::linorder. (z < min x y) = (z < x & z < y)";
+by (simp_tac (simpset() addsimps [order_le_less]) 1);
+by (cut_facts_tac [linorder_less_linear] 1);
+by (blast_tac (claset() addIs [order_less_trans]) 1);
+qed "min_less_iff_conj";
+Addsimps [min_less_iff_conj];
 
 Goalw [min_def] "!!z::'a::linorder. (min x y <= z) = (x <= z | y <= z)";
 by (Simp_tac 1);

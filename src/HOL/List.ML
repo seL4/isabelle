@@ -436,11 +436,31 @@ by Auto_tac;
 qed "set_map";
 Addsimps [set_map];
 
+Goal "set(filter P xs) = {x. x : set xs & P x}";
+by(induct_tac "xs" 1);
+by(Auto_tac);
+qed "set_filter";
+Addsimps [set_filter];
+(*
 Goal "(x : set (filter P xs)) = (x : set xs & P x)";
 by (induct_tac "xs" 1);
 by Auto_tac;
 qed "in_set_filter";
 Addsimps [in_set_filter];
+*)
+Goal "set[i..j(] = {k. i <= k & k < j}";
+by(induct_tac "j" 1);
+by(Auto_tac);
+by(arith_tac 1);
+qed "set_upt";
+Addsimps [set_upt];
+
+Goal "!i < size xs. set(xs[i := x]) <= insert x (set xs)";
+by(induct_tac "xs" 1);
+ by(Simp_tac 1);
+by(asm_simp_tac (simpset() addsplits [nat.split]) 1);
+by(Blast_tac 1);
+qed_spec_mp "set_list_update_subset";
 
 Goal "(x : set xs) = (? ys zs. xs = ys@x#zs)";
 by (induct_tac "xs" 1);
@@ -642,6 +662,20 @@ by (induct_tac "xs" 1);
  by (Simp_tac 1);
 by (auto_tac (claset(), simpset() addsimps [nth_Cons] addsplits [nat.split]));
 qed_spec_mp "nth_list_update";
+
+Goal "!i. i < size xs --> xs[i:=x, i:=y] = xs[i:=y]";
+by(induct_tac "xs" 1);
+ by(Simp_tac 1);
+by(asm_simp_tac (simpset() addsplits [nat.split]) 1);
+qed_spec_mp "list_update_overwrite";
+Addsimps [list_update_overwrite];
+
+Goal "!i < length xs. (xs[i := x] = xs) = (xs!i = x)";
+by(induct_tac "xs" 1);
+ by(Simp_tac 1);
+by(simp_tac (simpset() addsplits [nat.split]) 1);
+by(Blast_tac 1);
+qed_spec_mp "list_update_same_conv";
 
 
 (** last & butlast **)
@@ -932,6 +966,43 @@ by (subgoal_tac "n=i+k" 1);
 by (Asm_simp_tac 1);
 qed_spec_mp "nth_upt";
 Addsimps [nth_upt];
+
+Goal "!i. i+m <= n --> take m [i..n(] = [i..i+m(]";
+by(induct_tac "m" 1);
+ by(Simp_tac 1);
+by(Clarify_tac 1);
+by(stac upt_rec 1);
+br sym 1;
+by(stac upt_rec 1);
+by(asm_simp_tac (simpset() delsimps (thms"upt.simps")) 1);
+qed_spec_mp "take_upt";
+Addsimps [take_upt];
+
+Goal "!m i. i < n-m --> (map f [m..n(]) ! i = f(m+i)";
+by(induct_tac "n" 1);
+ by(Simp_tac 1);
+by(Clarify_tac 1);
+by(subgoal_tac "m < Suc n" 1);
+ by(arith_tac 2);
+by(stac upt_rec 1);
+by(asm_simp_tac (simpset() delsplits [split_if]) 1);
+by(split_tac [split_if] 1);
+br conjI 1;
+ by(simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
+ by(simp_tac (simpset() addsimps [nth_append] addsplits [nat.split]) 1);
+ by(Clarify_tac 1);
+ br conjI 1;
+  by(Clarify_tac 1);
+  by(subgoal_tac "Suc(m+nat) < n" 1);
+   by(arith_tac 2);
+  by(Asm_simp_tac 1);
+ by(Clarify_tac 1);
+ by(subgoal_tac "n = Suc(m+nat)" 1);
+  by(arith_tac 2);
+ by(Asm_simp_tac 1);
+by(simp_tac (simpset() addsimps [nth_Cons] addsplits [nat.split]) 1);
+by(arith_tac 1);
+qed_spec_mp "nth_map_upt";
 
 
 (** nodups & remdups **)

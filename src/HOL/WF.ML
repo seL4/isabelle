@@ -235,6 +235,10 @@ Goalw [acyclic_def] "acyclic(r^-1) = acyclic r";
 by (simp_tac (simpset() addsimps [trancl_converse]) 1);
 qed "acyclic_converse";
 
+Goalw [acyclic_def] "[| acyclic s; r <= s |] ==> acyclic r";
+by(blast_tac (claset() addIs [trancl_mono]) 1);
+qed "acyclic_subset";
+
 (** cut **)
 
 (*This rewrite rule works upon formulae; thus it requires explicit use of

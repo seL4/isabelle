@@ -195,6 +195,9 @@ qed_goal "conjE" HOL.thy "[| P&Q;  [| P; Q |] ==> R |] ==> R"
          [cut_facts_tac prems 1, resolve_tac prems 1,
           etac conjunct1 1, etac conjunct2 1]);
 
+qed_goal "context_conjI" HOL.thy  "[| P; P ==> Q |] ==> P & Q"
+ (fn prems => [REPEAT(resolve_tac (conjI::prems) 1)]);
+
 
 (** Disjunction *)
 section "|";

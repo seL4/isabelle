@@ -113,3 +113,17 @@ by (Simp_tac 1);
 qed "min_Suc_Suc";
 
 Addsimps [min_0L,min_0R,min_Suc_Suc];
+
+Goalw [max_def] "max 0 n = n";
+by (Simp_tac 1);
+qed "max_0L";
+
+Goalw [max_def] "max n 0 = n";
+by (Simp_tac 1);
+qed "max_0R";
+
+Goalw [max_def] "max (Suc m) (Suc n) = Suc(max m n)";
+by (Simp_tac 1);
+qed "max_Suc_Suc";
+
+Addsimps [max_0L,max_0R,max_Suc_Suc];
