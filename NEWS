@@ -216,6 +216,9 @@ may also be iterated as in f(a:=b,c:=d,...);
 * HOL/List:
   - new function list_update written xs[i:=v] that updates the i-th
     list position. May also be iterated as in xs[i:=a,j:=b,...].
+  - new function `upt' written [i..j(] which generates the list
+    [i,i+1,...,j-1], i.e. the upper bound is excluded. To include the upper
+    bound write [i..j], which is a shorthand for [i..j+1(].
   - new lexicographic orderings and corresponding wellfoundedness theorems.
 
 * HOL/Arith:
