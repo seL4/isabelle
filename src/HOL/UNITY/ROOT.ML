@@ -28,10 +28,8 @@ time_use_thy "Handshake";
 time_use_thy "Lift";
 time_use_thy "Comp";
 time_use_thy "Client";
-(**
 time_use_thy "Extend";
 time_use_thy "PPROD";
-**)
 
 add_path "../Auth";	(*to find Public.thy*)
 use_thy"NSP_Bad";

@@ -21,7 +21,13 @@ by Auto_tac;
 qed "lift_act_Id";
 Addsimps [lift_act_Id];
 
-Goalw [lift_prog_def] "Init (lift_prog i F) = {f. f i : Init F}";
+(*NEEDED????????????????????????????????????????????????????????????????*)
+Goal "Id : lift_act i `` Acts F";
+by (auto_tac (claset() addSIs [lift_act_Id RS sym], 
+	      simpset() addsimps [image_iff]));
+qed "Id_mem_lift_act";
+
+Goalw [lift_prog_def] "Init (lift_prog i F) = lift_set i (Init F)";
 by Auto_tac;
 qed "Init_lift_prog";
 Addsimps [Init_lift_prog];
@@ -41,24 +47,19 @@ by (Blast_tac 1);
 qed "lift_act_eq";
 AddIffs [lift_act_eq];
 
-Goal "i: I ==> Acts (PPROD I F) = (UN i:I. lift_act i `` Acts (F i))";
+Goal "Acts (PPROD I F) = insert Id (UN i:I. lift_act i `` Acts (F i))";
 by (auto_tac (claset(),
 	      simpset() addsimps [PPROD_def, Acts_lift_prog, Acts_JN]));
 qed "Acts_PPROD";
 
-Goal "PPROD {} F = SKIP UNIV";
-by (simp_tac (simpset() addsimps [PPROD_def]) 1);
-qed "Acts_PPROD";
-
-Goal "i : I ==> (PPI i: I. SKIP A) = SKIP (INT i:I. lift_set i A)";
-by (auto_tac (claset() addSIs [program_equalityI],
-	      simpset() addsimps [eqStates_def, Acts_lift_prog, 
-				  SKIP_def, Acts_PPROD]));
-qed "PPROD_SKIP";
-
 Goal "PPROD {} F = SKIP";
 by (simp_tac (simpset() addsimps [PPROD_def]) 1);
 qed "PPROD_empty";
+
+Goal "(PPI i: I. SKIP) = SKIP";
+by (auto_tac (claset() addSIs [program_equalityI],
+	      simpset() addsimps [Acts_lift_prog, SKIP_def, Acts_PPROD]));
+qed "PPROD_SKIP";
 
 Addsimps [PPROD_SKIP, PPROD_empty];
 
@@ -132,18 +133,21 @@ qed "PPROD_constrains_projection";
 
 (** invariant **)
 
+(*????????????????*)
 Goal "F : invariant A ==> lift_prog i F : invariant (lift_set i A)";
 by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def, lift_prog_stable_eq]));
 qed "invariant_imp_lift_prog_invariant";
 
+(*????????????????*)
 Goal "[| lift_prog i F : invariant (lift_set i A) |] ==> F : invariant A";
 by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def, lift_prog_stable_eq]));
 qed "lift_prog_invariant_imp_invariant";
 
 (*NOT clear that the previous lemmas help in proving this one.*)
-Goal "[| F i : invariant A;  i : I |] ==> PPROD I F : invariant (lift_set i A)";
+Goal "[| F i : invariant A;  i : I |] \
+\     ==> PPROD I F : invariant (lift_set i A)";
 by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def, PPROD_stable]));
 qed "invariant_imp_PPROD_invariant";
@@ -248,10 +252,10 @@ by (auto_tac (claset(),
 by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
 qed "Constrains_imp_PPROD_Constrains";
 
-Goal "[| ALL i:I. f0 i : R i;  i: I |] \
-\     ==> Applyall {f. (ALL i:I. f i : R i) & f i : A} i = R i Int A";
-by (force_tac (claset() addSIs [rinst [("x", "?ff(i := ?u)")] exI],
-	       simpset() addsimps [Applyall_def]) 1);
+Goal "[| ALL i:I. f0 i : R i;   i: I |] \
+\     ==> Applyall ({f. (ALL i:I. f i : R i)} Int lift_set i A) i = R i Int A";
+by (force_tac (claset() addSIs [rinst [("x", "?ff(i := ?u)")] image_eqI],
+	       simpset() addsimps [Applyall_def, lift_set_def]) 1);
 qed "Applyall_Int_depend";
 
 (*Again, we need the f0 premise because otherwise Constrains holds trivially
@@ -265,8 +269,7 @@ by (blast_tac (claset() addIs [reachable.Init]) 2);
 by (dtac PPROD_constrains_projection 1);
 by (assume_tac 1);
 by (asm_full_simp_tac
-    (simpset() addsimps [Applyall_Int_depend, Collect_conj_eq RS sym,
-			 reachable_PPROD_eq]) 1);
+    (simpset() addsimps [Applyall_Int_depend, reachable_PPROD_eq]) 1);
 qed "PPROD_Constrains_imp_Constrains";
 
 
@@ -286,7 +289,8 @@ qed "PPROD_Stable";
 
 (** PFUN (no dependence on i) doesn't require the f0 premise **)
 
-Goal "i: I ==> Applyall {f. (ALL i:I. f i : R) & f i : A} i = R Int A";
+Goal "i: I \
+\     ==> Applyall ({f. (ALL i:I. f i : R)} Int lift_set i A) i = R Int A";
 by (force_tac (claset(), simpset() addsimps [Applyall_def]) 1);
 qed "Applyall_Int";
 

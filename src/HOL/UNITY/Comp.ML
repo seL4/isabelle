@@ -181,7 +181,7 @@ by (blast_tac (claset() addIs prems) 1);
 qed "guaranteesI";
 
 Goalw [guarantees_def, component_def]
-     "[| F : X guarantees Y;  F Join G : X;  compatible{F,G} |] \
+     "[| F : X guarantees Y;  F Join G : X |] \
 \     ==> F Join G : Y";
 by (Blast_tac 1);
 qed "guaranteesD";

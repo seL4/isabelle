@@ -167,12 +167,6 @@ by (full_simp_tac (simpset() addsimps [constrains_def, Acts_JN]) 1);
 by (Blast_tac 1);
 qed "constrains_imp_JN_constrains";
 
-Goal "[| i : I;  compatible (F``I) |] \
-\     ==> (JN i:I. F i) : constrains A B = (ALL i:I. F i : constrains A B)";
-by (asm_simp_tac (simpset() addsimps [constrains_def, Acts_JN]) 1);
-by (Blast_tac 1);
-qed "constrains_JN";
-
     (**FAILS, I think; see 5.4.1, Substitution Axiom.
        The problem is to relate reachable (F Join G) with 
        reachable F and reachable G
