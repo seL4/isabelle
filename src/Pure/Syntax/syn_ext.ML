@@ -326,8 +326,7 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
       map (apr (descend1, logic1T)) (Troots') @
       flat (map unhide (Troots \\ [typeT]));
     val mfix_consts =
-      distinct (filter is_xid (map (fn (Mfix (_, _, c, _, _)) => c) 
-               (mfixes @ mfixes')));
+      distinct (map (fn (Mfix (_, _, c, _, _)) => c) (mfixes @ mfixes'));
     val xprods = map mfix_to_xprod mfixes;
     val xprods' = map mfix_to_xprod mfixes';
   in
@@ -336,7 +335,7 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
       xprods = (map (hide_xprod (all_roots \\ ["logic", "type"])) xprods) 
                @ xprods',    (* hide only productions that weren't created
                                 automatically *)
-      consts = consts union mfix_consts,
+      consts = filter is_xid (consts union mfix_consts),
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules,
       parse_translation = parse_translation,
