@@ -46,12 +46,18 @@ internally;
 
 * Isar: changed syntax of local blocks from {{ }} to { };
 
+* Provers: strengthened force_tac by using new first_best_tac
+
 * Provers: Blast_tac now warns of and ignores "weak elimination rules" e.g.
   [| inj ?f;          ?f ?x = ?f ?y; ?x = ?y ==> ?W |] ==> ?W
 use instead the strong form,
   [| inj ?f; ~ ?W ==> ?f ?x = ?f ?y; ?x = ?y ==> ?W |] ==> ?W
 In HOL, FOL and ZF the function cla_make_elim will create such rules
 from destruct-rules;
+
+* Provers: safe_asm_full_simp_tac is no longer in the simplifier signature. Use
+  val safe_asm_full_simp_tac = generic_simp_tac true (true,true,true);
+  if required.
 
 * ML: renamed flags Syntax.trace_norm_ast to Syntax.trace_ast; global
 timing flag supersedes proof_timing and Toplevel.trace;

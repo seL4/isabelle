@@ -84,10 +84,10 @@ by (dresolve_tac [nat_0I RSN (2, bspec)] 1);
 by (asm_full_simp_tac (simpset() addsimps [XX_def]) 1);
 by Safe_tac;
 by (rtac bexI 1 THEN (assume_tac 2));
-by (force_tac (claset() addIs [ltD]
+by (best_tac (claset() addIs [ltD]
                         addSEs [nat_0_le RS leE]
-			addEs [sym RS trans RS succ_neq_0, domain_of_fun], 
-	       simpset() addsimps [RR_def]) 1);
+			addEs [sym RS trans RS succ_neq_0, domain_of_fun]
+	       addss (simpset() addsimps [RR_def])) 1);
 (** LEVEL 7, other subgoal **)
 by (dresolve_tac [nat_succI RSN (2, bspec)] 1 THEN (assume_tac 1));
 by (subgoal_tac "f ` succ(succ(x)) : succ(k)->X" 1);

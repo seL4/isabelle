@@ -77,10 +77,13 @@ fun op addDs2    arg = pair_upd1 Classical.addDs arg;
 fun op addsimps2 arg = pair_upd2 Simplifier.addsimps arg;
 fun op delsimps2 arg = pair_upd2 Simplifier.delsimps arg;
 
+(*not totally safe: may instantiate unknowns that appear also in other subgoals*)
+val safe_asm_full_simp_tac = Simplifier.generic_simp_tac true (true,true,true);
+
 (*Add a simpset to a classical set!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
 fun cs addSss ss = Classical.addSaltern (cs, ("safe_asm_full_simp_tac",
-			    CHANGED o Simplifier.safe_asm_full_simp_tac ss));
+			    CHANGED o safe_asm_full_simp_tac ss));
 fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac", 
 			    CHANGED o Simplifier.asm_full_simp_tac ss));
 
@@ -93,7 +96,7 @@ fun CLASIMPSET' tacf i state =
   Classical.CLASET (fn cs => Simplifier.SIMPSET (fn ss => tacf (cs, ss) i)) state;
 
 
-fun clarsimp_tac (cs, ss) = Simplifier.safe_asm_full_simp_tac ss THEN_ALL_NEW
+fun clarsimp_tac (cs, ss) = safe_asm_full_simp_tac ss THEN_ALL_NEW
 			    Classical.clarify_tac (cs addSss ss);
 fun Clarsimp_tac i = clarsimp_tac (Classical.claset(), Simplifier.simpset()) i;
 
@@ -117,7 +120,7 @@ in fun nodup_depth_tac cs m i state = SELECT_GOAL
         )) i state;
 end;
 
-(*Designed to be idempotent, except if best_tac instantiates variables
+(*Designed to be idempotent, except if blast_depth_tac instantiates variables
   in some of the subgoals*)
 fun mk_auto_tac (cs, ss) m n =
     let val cs' = cs addss ss
@@ -138,14 +141,13 @@ fun Auto_tac st = auto_tac (Classical.claset(), Simplifier.simpset()) st;
 
 fun auto () = by Auto_tac;
 
-
 (* force_tac *)
 
 (* aimed to solve the given subgoal totally, using whatever tools possible *)
 fun force_tac (cs,ss) = let val cs' = cs addss ss in SELECT_GOAL (EVERY [
 	Classical.clarify_tac cs' 1,
 	IF_UNSOLVED (Simplifier.asm_full_simp_tac ss 1),
-	ALLGOALS (Classical.best_tac cs')]) end;
+	ALLGOALS (Classical.first_best_tac cs')]) end;
 fun Force_tac i = force_tac (Classical.claset(), Simplifier.simpset()) i;
 fun force i = by (Force_tac i);
 

@@ -88,6 +88,7 @@ sig
   val astar_tac		: claset -> int -> tactic
   val slow_astar_tac 	: claset -> int -> tactic
   val best_tac 		: claset -> int -> tactic
+  val first_best_tac	: claset -> int -> tactic
   val slow_best_tac 	: claset -> int -> tactic
   val depth_tac		: claset -> int -> int -> tactic
   val deepen_tac	: claset -> int -> int -> tactic
@@ -834,6 +835,10 @@ fun fast_tac cs = SELECT_GOAL (DEPTH_SOLVE (step_tac cs 1));
 (*Slower but smarter than fast_tac*)
 fun best_tac cs = 
   SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (step_tac cs 1));
+
+(*even a bit smarter than best_tac*)
+fun first_best_tac cs = 
+  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (FIRSTGOAL (step_tac cs)));
 
 fun slow_tac cs = SELECT_GOAL (DEPTH_SOLVE (slow_step_tac cs 1));
 
