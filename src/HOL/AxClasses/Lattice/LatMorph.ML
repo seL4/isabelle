@@ -1,6 +1,4 @@
 
-open LatMorph;
-
 
 (** monotone functions vs. "&&"- / "||"-semi-morphisms **)
 

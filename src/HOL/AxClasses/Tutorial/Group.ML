@@ -5,8 +5,6 @@
 Some basic theorems of group theory.
 *)
 
-open Group;
-
 fun sub r = standard (r RS subst);
 fun ssub r = standard (r RS ssubst);
 

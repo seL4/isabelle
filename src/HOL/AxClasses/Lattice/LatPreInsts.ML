@@ -1,6 +1,4 @@
 
-open LatPreInsts;
-
 
 (** complete lattices **)
 

@@ -1,6 +1,4 @@
 
-open OrdDefs;
-
 
 (** lifting of quasi / partial orders **)
 

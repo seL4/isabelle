@@ -1,6 +1,4 @@
 
-open Lattice;
-
 
 (** basic properties of "&&" and "||" **)
 

@@ -1,6 +1,4 @@
 
-open Order;
-
 
 (** basic properties of limits **)
 

@@ -1,6 +1,4 @@
 
-open LatInsts;
-
 
 Goal "Inf {x, y} = x && y";
   by (rtac (Inf_uniq RS mp) 1);

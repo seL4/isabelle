@@ -1,7 +1,4 @@
 
-open CLattice;
-
-
 (** basic properties of "Inf" and "Sup" **)
 
 (* unique existence *)
