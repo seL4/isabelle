@@ -343,23 +343,24 @@ val nextP =
 
 val qedP =
   OuterSyntax.command "qed" "conclude (sub-)proof" K.qed_block
-    (Scan.option (P.method -- P.interest) >> IsarThy.qed);
+    (Scan.option (P.method -- P.interest) -- P.marg_comment >> IsarThy.qed);
 
 val terminal_proofP =
   OuterSyntax.command "by" "terminal backward proof" K.qed
-    (P.method -- P.interest -- Scan.option (P.method -- P.interest) >> IsarThy.terminal_proof);
+    (P.method -- P.interest -- Scan.option (P.method -- P.interest)
+      -- P.marg_comment >> IsarThy.terminal_proof);
 
 val immediate_proofP =
   OuterSyntax.command "." "immediate proof" K.qed
-    (Scan.succeed IsarThy.immediate_proof);
+    (P.marg_comment >> IsarThy.immediate_proof);
 
 val default_proofP =
   OuterSyntax.command ".." "default proof" K.qed
-    (Scan.succeed IsarThy.default_proof);
+    (P.marg_comment >> IsarThy.default_proof);
 
 val skip_proofP =
   OuterSyntax.command "sorry" "skip proof (quick-and-dirty mode only!)" K.qed
-    (Scan.succeed IsarThy.skip_proof);
+    (P.marg_comment >> IsarThy.skip_proof);
 
 
 (* proof steps *)
@@ -374,7 +375,7 @@ val then_applyP =
 
 val proofP =
   OuterSyntax.command "proof" "backward proof" K.prf_block
-    (P.interest -- Scan.option (P.method -- P.interest)
+    (P.interest -- Scan.option (P.method -- P.interest) -- P.marg_comment
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.proof)));
 
 

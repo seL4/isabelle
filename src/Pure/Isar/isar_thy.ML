@@ -113,15 +113,16 @@ sig
   val end_block: ProofHistory.T -> ProofHistory.T
   val tac: Method.text -> ProofHistory.T -> ProofHistory.T
   val then_tac: Method.text -> ProofHistory.T -> ProofHistory.T
-  val proof: Comment.interest * (Method.text * Comment.interest) option
+  val proof: (Comment.interest * (Method.text * Comment.interest) option) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
   val kill_proof: ProofHistory.T -> theory
-  val qed: (Method.text * Comment.interest) option -> Toplevel.transition -> Toplevel.transition
-  val terminal_proof: (Method.text * Comment.interest) * (Method.text * Comment.interest) option
+  val qed: (Method.text * Comment.interest) option * Comment.text
     -> Toplevel.transition -> Toplevel.transition
-  val immediate_proof: Toplevel.transition -> Toplevel.transition
-  val default_proof: Toplevel.transition -> Toplevel.transition
-  val skip_proof: Toplevel.transition -> Toplevel.transition
+  val terminal_proof: ((Method.text * Comment.interest) * (Method.text * Comment.interest) option)
+    * Comment.text -> Toplevel.transition -> Toplevel.transition
+  val immediate_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
+  val default_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
+  val skip_proof: Comment.text -> Toplevel.transition -> Toplevel.transition
   val also: ((string * Args.src list) list * Comment.interest) option * Comment.text
     -> Toplevel.transition -> Toplevel.transition
   val also_i: (thm list * Comment.interest) option * Comment.text
@@ -309,8 +310,8 @@ val end_block = ProofHistory.applys Proof.end_block;
 val tac = ProofHistory.applys o Method.tac;
 val then_tac = ProofHistory.applys o Method.then_tac;
 
-val proof =
-  ProofHistory.applys o Method.proof o apsome Comment.ignore_interest o Comment.ignore_interest';
+val proof = ProofHistory.applys o Method.proof o
+  apsome Comment.ignore_interest o Comment.ignore_interest' o Comment.ignore;
 
 
 (* print result *)
@@ -365,11 +366,11 @@ val global_skip_proof = global_result SkipProof.global_skip_proof;
 
 (* common endings *)
 
-fun qed meth = local_qed meth o global_qed meth;
-fun terminal_proof meths = local_terminal_proof meths o global_terminal_proof meths;
-val immediate_proof = local_immediate_proof o global_immediate_proof;
-val default_proof = local_default_proof o global_default_proof;
-val skip_proof = local_skip_proof o global_skip_proof;
+fun qed (meth, comment) = local_qed meth o global_qed meth;
+fun terminal_proof (meths, comment) = local_terminal_proof meths o global_terminal_proof meths;
+fun immediate_proof comment = local_immediate_proof o global_immediate_proof;
+fun default_proof comment = local_default_proof o global_default_proof;
+fun skip_proof comment = local_skip_proof o global_skip_proof;
 
 
 (* calculational proof commands *)
