@@ -1,9 +1,7 @@
 (*  Title:      Relation.thy
     ID:         $Id$
-    Author:     Riccardo Mattolini, Dip. Sistemi e Informatica
-        and     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1994 Universita' di Firenze
-    Copyright   1993  University of Cambridge
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Copyright   1996  University of Cambridge
 *)
 
 Relation = Prod +
@@ -16,11 +14,11 @@ consts
     Domain      :: "('a*'b) set => 'a set"
     Range       :: "('a*'b) set => 'b set"
 defs
-    id_def      "id == {p. ? x. p = (x,x)}"
-    comp_def    "r O s == {(x,z). ? y. (x,y):s & (y,z):r}"
+    id_def        "id == {p. ? x. p = (x,x)}"
+    comp_def      "r O s == {(x,z). ? y. (x,y):s & (y,z):r}"
     trans_def     "trans(r) == (!x y z. (x,y):r --> (y,z):r --> (x,z):r)"
     converse_def  "converse(r) == {(y,x). (x,y):r}"
     Domain_def    "Domain(r) == {x. ? y. (x,y):r}"
     Range_def     "Range(r) == Domain(converse(r))"
-    Image_def     "r ^^ s == {y. y:Range(r) &  (? x:s. (x,y):r)}"
+    Image_def     "r ^^ s == {y. ? x:s. (x,y):r}"
 end
