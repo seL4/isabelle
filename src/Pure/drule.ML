@@ -566,7 +566,7 @@ val thin_rl =
 val triv_forall_equality =
   let val V  = read_prop "PROP V"
       and QV = read_prop "!!x::'a. PROP V"
-      and x  = read_cterm proto_sign ("x", TFree("'a",logicS));
+      and x  = read_cterm proto_sign ("x", TypeInfer.logicT);
   in
     store_thm "triv_forall_equality"
       (equal_intr (implies_intr QV (forall_elim x (assume QV)))

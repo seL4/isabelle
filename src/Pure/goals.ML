@@ -541,8 +541,7 @@ fun fa() = by (FIRSTGOAL (trace_goalno_tac assume_tac));
 
 fun top_sg() = #sign(rep_thm(topthm()));
 
-fun read s = term_of (read_cterm (top_sg())
-			                   (s, (TVar(("DUMMY",0),[]))));
+fun read s = term_of (read_cterm (top_sg()) (s, TypeInfer.logicT));
 
 (*Print a term under the current signature of the proof state*)
 fun prin t = writeln (Sign.string_of_term (top_sg()) t);
