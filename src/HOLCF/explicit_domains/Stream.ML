@@ -133,7 +133,7 @@ val stream_rews = stream_discsel @ stream_rews;
 fun prover contr thm = prove_goal Stream.thy thm
  (fn prems =>
         [
-        (res_inst_tac [("P1",contr)] classical3 1),
+        (res_inst_tac [("P1",contr)] classical2 1),
         (simp_tac (!simpset addsimps stream_rews) 1),
         (dtac sym 1),
         (Asm_simp_tac 1),
@@ -805,7 +805,7 @@ qed_goalw "adm_not_stream_finite" Stream.thy [adm_def]
  (fn prems =>
         [
         (strip_tac 1 ),
-        (res_inst_tac [("P1","!i. ~ stream_finite(Y(i))")] classical3 1),
+        (res_inst_tac [("P1","!i. ~ stream_finite(Y(i))")] classical2 1),
         (atac 2),
         (subgoal_tac "!i.stream_finite(Y(i))" 1),
         (fast_tac HOL_cs 1),

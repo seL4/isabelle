@@ -141,7 +141,7 @@ val dnat_rews = dnat_discsel @ dnat_rews;
 fun prover contr thm = prove_goal Dnat.thy thm
  (fn prems =>
         [
-        (res_inst_tac [("P1",contr)] classical3 1),
+        (res_inst_tac [("P1",contr)] classical2 1),
         (simp_tac (!simpset addsimps dnat_rews) 1),
         (dtac sym 1),
         (Asm_simp_tac  1),
@@ -174,7 +174,7 @@ val dnat_rews = dnat_constrdef @ dnat_rews;
 val temp = prove_goal Dnat.thy  "~dzero << dsucc`n"
  (fn prems =>
         [
-        (res_inst_tac [("P1","TT << FF")] classical3 1),
+        (res_inst_tac [("P1","TT << FF")] classical2 1),
         (resolve_tac dist_less_tr 1),
         (dres_inst_tac [("fo","is_dzero")] monofun_cfun_arg 1),
         (etac box_less 1),
@@ -190,7 +190,7 @@ val temp = prove_goal Dnat.thy  "n~=UU ==> ~dsucc`n << dzero"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (res_inst_tac [("P1","TT << FF")] classical3 1),
+        (res_inst_tac [("P1","TT << FF")] classical2 1),
         (resolve_tac dist_less_tr 1),
         (dres_inst_tac [("fo","is_dsucc")] monofun_cfun_arg 1),
         (etac box_less 1),
@@ -205,7 +205,7 @@ val temp = prove_goal Dnat.thy   "dzero ~= dsucc`n"
         [
         (case_tac "n=UU" 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
-        (res_inst_tac [("P1","TT = FF")] classical3 1),
+        (res_inst_tac [("P1","TT = FF")] classical2 1),
         (resolve_tac dist_eq_tr 1),
         (dres_inst_tac [("f","is_dzero")] cfun_arg_cong 1),
         (etac box_equals 1),
