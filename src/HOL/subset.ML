@@ -12,6 +12,10 @@ Union and Intersection as lattice operations
 qed_goal "subset_insertI" Set.thy "B <= insert a B"
  (fn _=> [ (rtac subsetI 1), (etac insertI2 1) ]);
 
+goal Set.thy "!!x. x ~: A ==> (A <= insert x B) = (A <= B)";
+by(fast_tac set_cs 1);
+qed "subset_insert";
+
 (*** Big Union -- least upper bound of a set  ***)
 
 val prems = goal Set.thy

@@ -22,8 +22,6 @@ types
   'a item = 'a node set
 
 consts
-  Least     :: (nat=>bool) => nat    (binder "LEAST " 10)
-
   apfst     :: "['a=>'c, 'a*'b] => 'c*'b"
   Push      :: [nat, nat=>nat] => (nat=>nat)
 
@@ -51,9 +49,6 @@ consts
            => ('a item * 'a item)set" (infixr 70)
 
 defs
-
-  (*least number operator*)
-  Least_def      "Least(P) == @k. P(k) & (ALL j. j<k --> ~P(j))"
 
   Push_Node_def  "Push_Node == (%n x. Abs_Node (apfst (Push n) (Rep_Node x)))"
 

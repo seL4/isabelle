@@ -257,7 +257,6 @@ qed_goal "DiffE" Set.thy
 qed_goal "Diff_iff" Set.thy "(c : A-B) = (c:A & c~:B)"
  (fn _ => [ (fast_tac (HOL_cs addSIs [DiffI] addSEs [DiffE]) 1) ]);
 
-
 (*** The empty set -- {} ***)
 
 qed_goalw "emptyE" Set.thy [empty_def] "a:{} ==> P"
@@ -319,6 +318,13 @@ val [major] = goal Set.thy "{a}={b} ==> a=b";
 by (rtac (major RS equalityD1 RS subsetD RS singletonD) 1);
 by (rtac singletonI 1);
 qed "singleton_inject";
+
+
+(*** UNIV - The universal set ***)
+
+qed_goal "subset_UNIV" Set.thy "A <= UNIV"
+  (fn _ => [rtac subsetI 1, rtac ComplI 1, etac emptyE 1]);
+
 
 (*** Unions of families -- UNION x:A. B(x) is Union(B``A)  ***)
 

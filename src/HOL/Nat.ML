@@ -475,3 +475,43 @@ by (simp_tac (!simpset addsimps [le_eq_less_or_eq]) 1);
 qed "Suc_le_mono";
 
 Addsimps [le_refl,Suc_le_mono];
+
+
+(** LEAST -- the least number operator **)
+
+val [prem1,prem2] = goalw Nat.thy [Least_def]
+    "[| P(k);  !!x. x<k ==> ~P(x) |] ==> (LEAST x.P(x)) = k";
+by (rtac select_equality 1);
+by (fast_tac (HOL_cs addSIs [prem1,prem2]) 1);
+by (cut_facts_tac [less_linear] 1);
+by (fast_tac (HOL_cs addSIs [prem1] addSDs [prem2]) 1);
+qed "Least_equality";
+
+val [prem] = goal Nat.thy "P(k) ==> P(LEAST x.P(x))";
+by (rtac (prem RS rev_mp) 1);
+by (res_inst_tac [("n","k")] less_induct 1);
+by (rtac impI 1);
+by (rtac classical 1);
+by (res_inst_tac [("s","n")] (Least_equality RS ssubst) 1);
+by (assume_tac 1);
+by (assume_tac 2);
+by (fast_tac HOL_cs 1);
+qed "LeastI";
+
+(*Proof is almost identical to the one above!*)
+val [prem] = goal Nat.thy "P(k) ==> (LEAST x.P(x)) <= k";
+by (rtac (prem RS rev_mp) 1);
+by (res_inst_tac [("n","k")] less_induct 1);
+by (rtac impI 1);
+by (rtac classical 1);
+by (res_inst_tac [("s","n")] (Least_equality RS ssubst) 1);
+by (assume_tac 1);
+by (rtac le_refl 2);
+by (fast_tac (HOL_cs addIs [less_imp_le,le_trans]) 1);
+qed "Least_le";
+
+val [prem] = goal Nat.thy "k < (LEAST x.P(x)) ==> ~P(k)";
+by (rtac notI 1);
+by (etac (rewrite_rule [le_def] Least_le RS notE) 1);
+by (rtac prem 1);
+qed "not_less_Least";

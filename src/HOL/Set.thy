@@ -37,6 +37,8 @@ consts
 
 syntax
 
+  UNIV         :: 'a set
+
   "~:"          :: ['a, 'a set] => bool             (infixl 50)
 
   "@Finset"     :: args => 'a set                   ("{(_)}")
@@ -57,6 +59,7 @@ syntax
   "*Bex"        :: [pttrn, 'a set, bool] => bool      ("(3EX _:_./ _)" 10)
 
 translations
+  "UNIV"        == "Compl {}"
   "x ~: y"      == "~ (x : y)"
   "{x, xs}"     == "insert x {xs}"
   "{x}"         == "insert x {}"

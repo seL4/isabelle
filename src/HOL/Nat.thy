@@ -43,11 +43,13 @@ instance
 (* abstract constants and syntax *)
 
 consts
-  "0"           :: nat                ("0")
-  Suc           :: nat => nat
-  nat_case      :: ['a, nat => 'a, nat] => 'a
-  pred_nat      :: "(nat * nat) set"
-  nat_rec       :: [nat, 'a, [nat, 'a] => 'a] => 'a
+  "0"       :: nat                ("0")
+  Suc       :: nat => nat
+  nat_case  :: ['a, nat => 'a, nat] => 'a
+  pred_nat  :: "(nat * nat) set"
+  nat_rec   :: [nat, 'a, [nat, 'a] => 'a] => 'a
+
+  Least     :: (nat=>bool) => nat    (binder "LEAST " 10)
 
 translations
   "case p of 0 => a | Suc(y) => b" == "nat_case a (%y.b) p"
@@ -61,9 +63,13 @@ defs
                                         & (!x. n=Suc(x) --> z=f(x))"
   pred_nat_def  "pred_nat == {p. ? n. p = (n, Suc(n))}"
 
-  less_def "m<n == (m,n):trancl(pred_nat)"
+  less_def      "m<n == (m,n):trancl(pred_nat)"
 
-  le_def   "m<=(n::nat) == ~(n<m)"
+  le_def        "m<=(n::nat) == ~(n<m)"
 
-nat_rec_def"nat_rec n c d == wfrec pred_nat (%f. nat_case c (%m. d m (f m))) n"
+  nat_rec_def   "nat_rec n c d ==
+		 wfrec pred_nat (%f. nat_case c (%m. d m (f m))) n"
+  (*least number operator*)
+  Least_def     "Least(P) == @k. P(k) & (ALL j. j<k --> ~P(j))"
+
 end
