@@ -10,7 +10,7 @@ sig
   val def: string -> Proof.context attribute list
     -> (string * string option) *  (string * string list) -> Proof.state -> Proof.state
   val def_i: string -> Proof.context attribute list
-    -> (string * typ) * (term * term list) -> Proof.state -> Proof.state
+    -> (string * typ option) * (term * term list) -> Proof.state -> Proof.state
 end;
 
 structure LocalDefs: LOCAL_DEFS =
@@ -33,10 +33,9 @@ fun gen_def fix prep_term match_binds raw_name atts ((x, raw_T), (raw_rhs, raw_p
     val lhs = ProofContext.cert_term ctxt' (Free (x, T));
     val eq = Logic.mk_equals (lhs, rhs);
   in
-    if lhs mem Term.add_term_frees (rhs, []) then
-      err "lhs occurs on rhs"
-    else if not (Term.term_tfrees rhs subset Term.typ_tfrees T) then
-      err "extra type variables on rhs"
+    if lhs mem Term.add_term_frees (rhs, []) then err "lhs occurs on rhs"
+(* FIXME    else if not (Term.term_tfrees rhs subset Term.typ_tfrees T) then
+      err "extra type variables on rhs"  *)
     else ();
     state'
     |> match_binds [(raw_pats, raw_rhs)]   (*note: raw_rhs prepared twice!*)
