@@ -78,6 +78,11 @@ by (Blast_tac 1);
 qed "UN_vimage";
 Addsimps [UN_vimage];
 
+(*NOT suitable for rewriting*)
+goal thy "f-``B = (UN y: B. f-``{y})";
+by (Blast_tac 1);
+qed "vimage_eq_UN";
+
 
 (** monotonicity **)
 
