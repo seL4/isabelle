@@ -11,7 +11,7 @@ goal CTT.thy "p : Sum(A,B) ==> split(p,pair) = p : Sum(A,B)";
 by (rtac EqE 1);
 by (resolve_tac elim_rls 1  THEN  resolve_tac prems 1);
 by (rew_tac prems);
-val split_eq = result();
+qed "split_eq";
 
 val prems =
 goal CTT.thy
@@ -19,7 +19,7 @@ goal CTT.thy
 by (rtac EqE 1);
 by (resolve_tac elim_rls 1  THEN  resolve_tac prems 1);
 by (rew_tac prems);
-val when_eq = result();
+qed "when_eq";
 
 
 (*in the "rec" formulation of addition, 0+n=n *)

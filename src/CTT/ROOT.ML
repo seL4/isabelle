@@ -23,4 +23,6 @@ use_thy "Bool";
 use "../Pure/install_pp.ML";
 print_depth 8;
 
+make_chart ();   (*make HTML chart*)
+
 val CTT_build_completed = ();	(*indicate successful build*)

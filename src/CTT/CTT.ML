@@ -8,51 +8,6 @@ Tactics and lemmas for ctt.thy (Constructive Type Theory)
 
 open CTT;
 
-signature CTT_RESOLVE = 
-  sig
-  val add_mp_tac: int -> tactic
-  val ASSUME: (int -> tactic) -> int -> tactic
-  val basic_defs: thm list
-  val comp_rls: thm list
-  val element_rls: thm list
-  val elimL_rls: thm list
-  val elim_rls: thm list
-  val eqintr_tac: tactic
-  val equal_tac: thm list -> tactic
-  val formL_rls: thm list
-  val form_rls: thm list
-  val form_tac: tactic
-  val intrL2_rls: thm list
-  val intrL_rls: thm list
-  val intr_rls: thm list
-  val intr_tac: thm list -> tactic
-  val mp_tac: int -> tactic
-  val NE_tac: string -> int -> tactic
-  val pc_tac: thm list -> int -> tactic
-  val PlusE_tac: string -> int -> tactic
-  val reduction_rls: thm list
-  val replace_type: thm
-  val routine_rls: thm list   
-  val routine_tac: thm list -> thm list -> int -> tactic
-  val safe_brls: (bool * thm) list
-  val safestep_tac: thm list -> int -> tactic
-  val safe_tac: thm list -> int -> tactic
-  val step_tac: thm list -> int -> tactic
-  val subst_eqtyparg: thm
-  val subst_prodE: thm
-  val SumE_fst: thm
-  val SumE_snd: thm
-  val SumE_tac: string -> int -> tactic
-  val SumIL2: thm
-  val test_assume_tac: int -> tactic
-  val typechk_tac: thm list -> tactic
-  val unsafe_brls: (bool * thm) list
-  end;
-
-
-structure CTT_Resolve : CTT_RESOLVE = 
-struct
-
 (*Formation rules*)
 val form_rls = [NF, ProdF, SumF, PlusF, EqF, FF, TF]
 and formL_rls = [ProdFL, SumFL, PlusFL, EqFL];
@@ -80,7 +35,7 @@ val element_rls = intr_rls @ elim_rls;
 val basic_defs = [fst_def,snd_def];
 
 (*Compare with standard version: B is applied to UNSIMPLIFIED expression! *)
-val SumIL2 = prove_goal CTT.thy
+qed_goal "SumIL2" CTT.thy
     "[| c=a : A;  d=b : B(a) |] ==> <c,d> = <a,b> : Sum(A,B)"
  (fn prems=>
   [ (resolve_tac [sym_elem] 1),
@@ -92,7 +47,7 @@ val intrL2_rls = [NI_succL, ProdIL, SumIL2, PlusI_inlL, PlusI_inrL];
 
 (*Exploit p:Prod(A,B) to create the assumption z:B(a).  
   A more natural form of product elimination. *)
-val subst_prodE = prove_goal CTT.thy
+qed_goal "subst_prodE" CTT.thy
     "[| p: Prod(A,B);  a: A;  !!z. z: B(a) ==> c(z): C(z) \
 \    |] ==> c(p`a): C(p`a)"
  (fn prems=>
@@ -145,7 +100,7 @@ fun equal_tac thms =
 (*** Simplification ***)
 
 (*To simplify the type in a goal*)
-val replace_type = prove_goal CTT.thy
+qed_goal "replace_type" CTT.thy
     "[| B = A;  a : A |] ==> a : B"
  (fn prems=>
   [ (resolve_tac [equal_types] 1),
@@ -153,7 +108,7 @@ val replace_type = prove_goal CTT.thy
     (ALLGOALS (resolve_tac prems)) ]);
 
 (*Simplify the parameter of a unary type operator.*)
-val subst_eqtyparg = prove_goal CTT.thy
+qed_goal "subst_eqtyparg" CTT.thy
     "a=c : A ==> (!!z.z:A ==> B(z) type) ==> B(a)=B(c)"
  (fn prems=>
   [ (resolve_tac [subst_typeL] 1),
@@ -222,21 +177,17 @@ fun pc_tac thms = DEPTH_SOLVE_1 o (step_tac thms);
 
 (** The elimination rules for fst/snd **)
 
-val SumE_fst = prove_goalw CTT.thy basic_defs
+qed_goalw "SumE_fst" CTT.thy basic_defs
     "p : Sum(A,B) ==> fst(p) : A"
  (fn [major] =>
   [ (rtac (major RS SumE) 1),
     (assume_tac 1) ]);
 
 (*The first premise must be p:Sum(A,B) !!*)
-val SumE_snd = prove_goalw CTT.thy basic_defs
+qed_goalw "SumE_snd" CTT.thy basic_defs
     "[| p: Sum(A,B);  A type;  !!x. x:A ==> B(x) type \
 \    |] ==> snd(p) : B(fst(p))"
  (fn major::prems=>
   [ (rtac (major RS SumE) 1),
     (resolve_tac [SumC RS subst_eqtyparg RS replace_type] 1),
     (typechk_tac prems) ]);
-
-end;
-
-open CTT_Resolve;
