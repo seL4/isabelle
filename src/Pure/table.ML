@@ -2,10 +2,11 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Generic tables (lacking delete operation).  Implemented as 2-3 trees.
+Generic tables and tables indexed by strings.  No delete operation.
+Implemented as balanced 2-3 trees.
 *)
 
-signature TABLE_DATA =
+signature KEY =
 sig
   type key
   val ord: key * key -> order
@@ -22,23 +23,23 @@ sig
   val dest: 'a table -> (key * 'a) list
   val lookup: 'a table * key -> 'a option
   val update: (key * 'a) * 'a table -> 'a table
-  val update_new: (key * 'a) * 'a table -> 'a table                     (*exception DUP*)
-  val make: (key * 'a) list -> 'a table                                 (*exception DUPS*)
-  val extend: 'a table * (key * 'a) list -> 'a table                    (*exception DUPS*)
-  val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table       (*exception DUPS*)
+  val update_new: (key * 'a) * 'a table -> 'a table                 (*exception DUP*)
+  val make: (key * 'a) list -> 'a table                             (*exception DUPS*)
+  val extend: 'a table * (key * 'a) list -> 'a table                (*exception DUPS*)
+  val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table   (*exception DUPS*)
   val lookup_multi: 'a list table * key -> 'a list
   val make_multi: (key * 'a) list -> 'a list table
   val dest_multi: 'a list table -> (key * 'a) list
   val map: ('a -> 'b) -> 'a table -> 'b table
 end;
 
-functor TableFun(Data: TABLE_DATA): TABLE =
+functor TableFun(Key: KEY): TABLE =
 struct
 
 
 (* datatype table *)
 
-type key = Data.key;
+type key = Key.key;
 
 datatype 'a table =
   Empty |
@@ -64,16 +65,16 @@ fun dest Empty = []
 
 fun lookup (Empty, _) = None
   | lookup (Branch2 (left, (k, x), right), key) =
-      (case Data.ord (key, k) of
+      (case Key.ord (key, k) of
         LESS => lookup (left, key)
       | EQUAL => Some x
       | GREATER => lookup (right, key))
   | lookup (Branch3 (left, (k1, x1), mid, (k2, x2), right), key) =
-      (case Data.ord (key, k1) of
+      (case Key.ord (key, k1) of
         LESS => lookup (left, key)
       | EQUAL => Some x1
       | GREATER =>
-          (case Data.ord (key, k2) of
+          (case Key.ord (key, k2) of
             LESS => lookup (mid, key)
           | EQUAL => Some x2
           | GREATER => lookup (right, key)));
@@ -81,7 +82,7 @@ fun lookup (Empty, _) = None
 
 (* update *)
 
-fun compare (k1, _) (k2, _) = Data.ord (k1, k2);
+fun compare (k1, _) (k2, _) = Key.ord (k1, k2);
 
 datatype 'a growth =
   Stay of 'a table |
@@ -128,9 +129,8 @@ fun update (pair, tab) =
   | Sprout br => Branch2 br);
 
 fun update_new (pair as (key, _), tab) =
-  (case lookup (tab, key) of
-    None => update (pair, tab)
-  | Some _ => raise DUP key);
+  if is_none (lookup (tab, key)) then update (pair, tab)
+  else raise DUP key;
 
 
 (* make, extend, merge tables *)
@@ -156,13 +156,13 @@ fun merge eq (tab1, tab2) = enter eq (tab1, dest tab2);
 
 fun lookup_multi tab_key = if_none (lookup tab_key) [];
 
-fun cons_entry ((key, entry), tab) =
-  update ((key, entry :: lookup_multi (tab, key)), tab);
+fun cons_entry ((key, x), tab) =
+  update ((key, x :: lookup_multi (tab, key)), tab);
 
 fun make_multi pairs = foldr cons_entry (pairs, empty);
 
 fun dest_multi tab =
-  flat (map (fn (key, xs) => map (pair key) xs) (dest tab));
+  flat (map (fn (key, xs) => map (Library.pair key) xs) (dest tab));
 
 
 (* map *)
@@ -179,8 +179,3 @@ end;
 
 (*tables indexed by strings*)
 structure Symtab = TableFun(type key = string val ord = string_ord);
-
-(* FIXME demo *)
-structure IntTab = TableFun(type key = int val ord = int_ord);
-val make = IntTab.make o map (rpair ());
-fun dest tab = IntTab.dest tab |> map fst;
