@@ -21,7 +21,6 @@ fun mk_tuple [p] = p
       flat (separate [Pretty.str ",", Pretty.brk 1] (map single ps)) @
         [Pretty.str ")"]);
 
-
 (**** datatype definition ****)
 
 fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
@@ -57,7 +56,34 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
                      flat ([Pretty.str " of", Pretty.brk 1] ::
                        separate [Pretty.str " *", Pretty.brk 1]
                          (map single ps'))))]) ps))) :: rest)
-          end
+          end;
+
+    fun mk_term_of_def prfx [] = []
+      | mk_term_of_def prfx ((_, (tname, dts, cs)) :: xs) =
+          let
+            val tvs = map DatatypeAux.dest_DtTFree dts;
+            val sorts = map (rpair []) tvs;
+            val cs' = map (apsnd (map (DatatypeAux.typ_of_dtyp descr sorts))) cs;
+            val dts' = map (DatatypeAux.typ_of_dtyp descr sorts) dts;
+            val T = Type (tname, dts');
+            val rest = mk_term_of_def "and " xs;
+            val (_, eqs) = foldl_map (fn (prfx, (cname, Ts)) =>
+              let val args = map (fn i =>
+                Pretty.str ("x" ^ string_of_int i)) (1 upto length Ts)
+              in ("  | ", Pretty.blk (4,
+                [Pretty.str prfx, mk_term_of sg false T, Pretty.brk 1,
+                 if null Ts then Pretty.str (mk_const_id sg cname)
+                 else parens (Pretty.block [Pretty.str (mk_const_id sg cname),
+                    Pretty.brk 1, mk_tuple args]),
+                 Pretty.str " =", Pretty.brk 1] @
+                 flat (separate [Pretty.str " $", Pretty.brk 1]
+                   ([Pretty.str ("Const (\"" ^ cname ^ "\","), Pretty.brk 1,
+                     mk_type false (Ts ---> T), Pretty.str ")"] ::
+                    map (fn (x, U) => [Pretty.block [mk_term_of sg false U,
+                      Pretty.brk 1, x]]) (args ~~ Ts)))))
+              end) (prfx, cs')
+          in eqs @ rest end
+
   in
     ((Graph.add_edge_acyclic (dname, dep) gr
         handle Graph.CYCLES _ => gr) handle Graph.UNDEF _ =>
@@ -68,7 +94,11 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
          in
            Graph.map_node dname (K (None,
              Pretty.string_of (Pretty.blk (0, separate Pretty.fbrk dtdef @
-               [Pretty.str ";"])) ^ "\n\n")) gr2
+               [Pretty.str ";"])) ^ "\n\n" ^
+             (if "term_of" mem !mode then
+                Pretty.string_of (Pretty.blk (0, separate Pretty.fbrk
+                  (mk_term_of_def "fun " descr')  @ [Pretty.str ";"])) ^ "\n\n"
+              else ""))) gr2
          end)
   end;
 
