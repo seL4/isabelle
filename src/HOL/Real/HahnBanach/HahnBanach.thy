@@ -86,15 +86,15 @@ txt {* Show that every non-empty chain $c$ in $M$ has an upper bound in $M$: $\U
   
 txt {* With Zorn's Lemma we can conclude that there is a maximal element $g$ in $M$. *};
 
-  hence "EX g:M. ALL x:M. g <= x --> g = x"; 
+  hence "EX g:M. ALL x:M. g <= x --> g = x";
   proof (rule Zorn's_Lemma);
-    txt{* We show that $M$ is non-empty: *};
+    txt {* We show that $M$ is non-empty: *};
     have "graph F f : norm_pres_extensions E p F f";
     proof (rule norm_pres_extensionI2);
       have "is_vectorspace F"; ..;
       thus "is_subspace F F"; ..;
     qed (blast!)+; 
-    thus  "graph F f : M"; by (simp!);
+    thus "graph F f : M"; by (simp!);
   qed;
   thus ?thesis;
   proof;
@@ -104,7 +104,10 @@ txt {* We take this maximal element $g$.  *};
     fix g; assume "g:M" "ALL x:M. g <= x --> g = x";
     show ?thesis;
 
-txt_raw {* \isamarkuptxt{$g$ is a norm-preserving extension of $f$, that is: $g$ is the graph of a linear form $h$, defined on a subspace $H$ of $E$, which is a superspace of $F$. $h$ is an extension of $f$ and $h$ is again bounded by $p$.}  *};
+      txt {* $g$ is a norm-preserving extension of $f$, that is: $g$
+      is the graph of a linear form $h$, defined on a subspace $H$ of
+      $E$, which is a superspace of $F$. $h$ is an extension of $f$
+      and $h$ is again bounded by $p$. *};
 
       obtain H h in "graph H h = g" and "is_linearform H h" 
         "is_subspace H E" "is_subspace F H" "graph F f <= graph H h" 
@@ -114,7 +117,7 @@ txt_raw {* \isamarkuptxt{$g$ is a norm-preserving extension of $f$, that is: $g$
           & is_subspace H E & is_subspace F H
           & graph F f <= graph H h
           & (ALL x:H. h x <= p x)"; by (simp! add: norm_pres_extension_D);
-        thus ?thesis; by (elim exE conjE) (rule that);
+        thus ?thesis; by blast;
       qed;
       have h: "is_vectorspace H"; ..;
 
@@ -123,7 +126,7 @@ txt {* We show that $h$ is defined on whole $E$ by classical contradiction.  *};
       have "H = E"; 
       proof (rule classical);
 
-txt_raw {* \isamarkuptxt{Assume $h$ is not defined on whole $E$.} *};
+	txt {* Assume $h$ is not defined on whole $E$. *};
 
         assume "H ~= E";
 
@@ -131,7 +134,7 @@ txt {* Then show that $h$ can be extended in a norm-preserving way to a function
 
         have "EX g_h0 : M. g <= g_h0 & g ~= g_h0"; 
 
-txt_raw {* \isamarkuptxt{Take $x_0 \in E \setminus H$.} *};
+	  txt {* Consider $x_0 \in E \setminus H$. *};
 
           obtain x0 in "x0:E" "x0~:H"; 
           proof -;
@@ -140,7 +143,7 @@ txt_raw {* \isamarkuptxt{Take $x_0 \in E \setminus H$.} *};
               have "H <= E"; ..;
               thus "H < E"; ..;
             qed;
-            thus ?thesis; by (elim bexE) (rule that);
+            thus ?thesis; by blast;
           qed;
           have x0: "x0 ~= <0>";
           proof (rule classical);
@@ -154,7 +157,9 @@ txt {* Define $H_0$ as the direct sum of $H$ and the linear closure of $x_0$.  *
           def H0 == "H + lin x0";
           show ?thesis;
 
-txt_raw {* \isamarkuptxt{Chose a real number $\xi$ that fulfills certain inequations, which will be used to establish that $h_0$ is a norm-preserving extension of $h$.} *};
+	    txt {* Pick a real number $\xi$ that fulfills certain
+	    inequations, which will be used to establish that $h_0$ is
+	    a norm-preserving extension of $h$. *};
 
             obtain xi in "ALL y:H. - p (y + x0) - h y <= xi 
                               & xi <= p (y + x0) - h y";
@@ -180,7 +185,7 @@ txt_raw {* \isamarkuptxt{Chose a real number $\xi$ that fulfills certain inequat
                 thus "- p (u + x0) - h u <= p (v + x0) - h v";
                   by (rule real_diff_ineq_swap);
               qed;
-              thus ?thesis; by (elim exE) (rule that);
+              thus ?thesis; by blast;
             qed;
 
 txt {* Define the extension $h_0$ of $h$ to $H_0$ using $\xi$.  *};

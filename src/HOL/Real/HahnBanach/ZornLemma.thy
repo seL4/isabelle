@@ -7,24 +7,22 @@ header {* Zorn's Lemma *};
 
 theory ZornLemma = Aux + Zorn:;
 
-text{* 
-Zorn's Lemmas states: if every linear ordered subset of an ordered set 
-$S$ has an upper bound in $S$, then there exists a maximal element in $S$.
-In our application, $S$ is a set of sets ordered by set inclusion. Since 
-the union of a chain of sets is an upper bound for all elements of the 
-chain, the conditions of Zorn's lemma can be modified:
-if $S$ is non-empty, it suffices to show that for every non-empty 
-chain $c$ in $S$ the union of $c$ also lies in $S$.
-*};
+text {* Zorn's Lemmas states: if every linear ordered subset of an
+ordered set $S$ has an upper bound in $S$, then there exists a maximal
+element in $S$.  In our application, $S$ is a set of sets ordered by
+set inclusion. Since the union of a chain of sets is an upper bound
+for all elements of the chain, the conditions of Zorn's lemma can be
+modified: if $S$ is non-empty, it suffices to show that for every
+non-empty chain $c$ in $S$ the union of $c$ also lies in $S$. *};
 
 theorem Zorn's_Lemma: 
-  "a:S ==> (!!c. c: chain S ==> EX x. x:c ==> Union c : S) 
+  "(!!c. c: chain S ==> EX x. x:c ==> Union c : S) ==> a:S
   ==>  EX y: S. ALL z: S. y <= z --> y = z";
 proof (rule Zorn_Lemma2);
-  txt_raw{* \footnote{See
+  txt_raw {* \footnote{See
   \url{http://isabelle.in.tum.de/library/HOL/HOL-Real/Zorn.html}}*};
-  assume aS: "a:S";
   assume r: "!!c. c: chain S ==> EX x. x:c ==> Union c : S";
+  assume aS: "a:S";
   show "ALL c:chain S. EX y:S. ALL z:c. z <= y";
   proof;
     fix c; assume "c:chain S"; 
