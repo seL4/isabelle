@@ -27,114 +27,82 @@ looks for subgoals of a particular form.  Terms and types may be
 \label{DefiningTheories}
 
 Theories can be defined either using concrete syntax or by calling certain
-\ML-functions (see \S\ref{BuildingATheory}).  Figure~\ref{TheorySyntax}
-presents the concrete syntax for theories.  This grammar employs the
+\ML-functions (see \S\ref{BuildingATheory}).  Appendix~\ref{TheorySyntax}
+presents the concrete syntax for theories.
+This grammar employs the
 following conventions: 
 \begin{itemize}
-\item Identifiers such as $theoryDef$ denote nonterminal symbols.
+\item Identifiers such as {\it theoryDef} denote nonterminal symbols.
 \item Text in {\tt typewriter font} denotes terminal symbols.
-\item \ldots{} indicates repetition of a phrase.
-\item A vertical bar~($|$) separates alternative phrases.
-\item Square [brackets] enclose optional phrases.
-\item $id$ stands for an Isabelle identifier.
-\item $string$ stands for an ML string, with its quotation marks.
-\item $k$ stands for a natural number.
+\item $id$ is an Isabelle identifier.
+\item $string$ is an ML string, with its quotation marks.
+\item $nat$ is for a natural number.
+\item $tfree$ is an Isabelle type variable, i.e.\ an identifier starting with
+  a prime.
 \item $text$ stands for arbitrary ML text.
 \end{itemize}
-
-\begin{figure}[hp]
-\begin{center}
-\begin{tabular}{rclc}
-$theoryDef$ &=& $id$ {\tt=} $name@1$ {\tt+} \dots {\tt+} $name@n$
-                            [{\tt+} $extension$]\\\\
-$extension$ &=& [$classes$] [$default$] [$types$] [$arities$] [$consts$]
-                [$trans$] [$rules$] {\tt end} [$ml$]\\\\
-$classes$ &=& \ttindex{classes} $class$ \dots $class$ \\\\
-$class$ &=& $id$ [{\tt<} $id@1${\tt,} \dots{\tt,} $id@n$] \\\\
-$default$ &=& \ttindex{default} $sort$ \\\\
-$sort$ &=& $id$ ~~$|$~~ {\tt\{} $id@1${\tt,} \dots{\tt,} $id@n$ {\tt\}} \\\\
-$name$ &=& $id$ ~~$|$~~ $string$ \\\\
-$types$ &=& \ttindex{types} $typeDecl$ \dots $typeDecl$ \\\\
-$typeDecl$ &=& $name${\tt,} \dots{\tt,} $name$ $k$
-               [{\tt(} $infix$ {\tt)}] \\\\
-$infix$ &=& \ttindex{infixl} $k$ ~~$|$~~ \ttindex{infixr} $k$ \\\\
-$arities$ &=& \ttindex{arities} $arityDecl$ \dots $arityDecl$ \\\\
-$arityDecl$ &=& $name${\tt,} \dots{\tt,} $name$ {\tt::} $arity$ \\\\
-$arity$ &=& [{\tt(} $sort${\tt,} \dots{\tt,} $sort$ {\tt)}] $id$ \\\\
-$consts$ &=& \ttindex{consts} $constDecl$ \dots $constDecl$ \\\\
-$constDecl$ &=& $name@1${\tt,} \dots{\tt,} $name@n$ {\tt::} $string$
-                [{\tt(} $mixfix$ {\tt)}] \\\\
-$mixfix$ &=& $string$
-             [ [\quad{\tt[} $k@1${\tt,} \dots{\tt,} $k@n$ {\tt]}\quad] $k$]\\
-       &$|$& $infix$ \\
-       &$|$& \ttindex{binder} $string$ $k$\\\\
-$trans$ &=& \ttindex{translations} $transDecl$ \dots $transDecl$ \\\\
-$transDecl$ &=& [ {\tt(}$string${\tt)} ] $string$ 
-  [ {\tt=>} $|$ {\tt<=} $|$ {\tt==} ] [ ($string$) ] $string$ \\\\
-$rules$ &=& \ttindex{rules} $rule$ \dots $rule$ \\\\
-$rule$ &=& $id$ $string$ \\\\
-$ml$ &=& \ttindex{ML} $text$
-\end{tabular}
-\end{center}
-\caption{Theory Syntax}
-\label{TheorySyntax}
-\end{figure}
-
 The different parts of a theory definition are interpreted as follows:
 \begin{description} 
-\item[$theoryDef$] A theory has a name $id$ and is an
-  extension of the union of theories $name@1$ \dots $name@n$ with new
-  classes, types, constants, syntax and axioms. The basic theory, which 
-  contains only the meta-logic, is called {\tt Pure}.
+\item[{\it theoryDef}] A theory has a name $id$ and is an extension of the
+  union of theories {\it name}, the {\em parent theories}, with new classes,
+  types, constants, syntax and axioms.  The basic theory, which contains only
+  the meta-logic, is called {\tt Pure}.
 
-  If $name@i$ is a string, then theory $name@i$ is {\em not} used in building
-  the base of theory $id$. Strings stand for ML-files rather than
-  theory-files and document the dependence if $id$ on additional files. This
-  is required because $name@1$ \dots $name@n$ are loaded automatically when
-  theory $id$ is (re)built. See Chapter~\ref{LoadingTheories} for details.
-\item[$class$] The new class $id$ is declared as a subclass of existing
-  classes $id@1$ \dots $id@n$.  This rules out cyclic class structures.
-  Isabelle automatically computes the transitive closure of subclass
-  hierarchies.  Hence it is not necessary to declare $c@1 < c@3$ in addition
-  to $c@1 < c@2$ and $c@2 < c@3$.
+  If {\it name} is a string, then theory {\it name} is {\em not} used in
+  building the base of theory $id$. Strings stand for ML-files rather than
+  theory-files and document the dependence of $id$ on additional files. This
+  enables all required files, namely those corresponding to {\it name}s, to
+  be loaded automatically when theory $id$ is (re)built. See
+  Chapter~\ref{LoadingTheories} for details.
+\item[$classes$] {\tt$id$ < $id@1$ \dots\ $id@n$} declares $id$ as a subclass
+  of existing classes $id@1\dots id@n$.  This rules out cyclic class
+  structures.  Isabelle automatically computes the transitive closure of
+  subclass hierarchies.  Hence it is not necessary to declare {\tt c < e} in
+  addition to {\tt c < d} and {\tt d < e}.
 \item[$default$] introduces $sort$ as the new default sort for type
   variables.  Unconstrained type variables in an input string are
   automatically constrained by $sort$; this does not apply to type variables
-  created internally during type inference.  If omitted,
-  the default sort is the same as in the parent theory.
-\item[$sort$] is a finite set $id@1$ \dots $id@n$ of classes; a single class
-  $id$ abbreviates the singleton set {\tt\{}$id${\tt\}}.
-\item[$name$] is either an alphanumeric identifier or an arbitrary string.
-\item[$typeDecl$] Each $name$ is declared as a new type constructor with
-  $k$ arguments.  Only binary type constructors can have infix status and
-  symbolic names ($string$).
+  created internally during type inference.  If omitted, the default sort is
+  the union of the default sorts of the parent theories.
+\item[$sort$] is a finite set of classes; a single class $id$ abbreviates the
+  singleton set {\tt\{}$id${\tt\}}.
+\item[$type$] is either the declaration of a new type (constructor) or type
+  synonym $name$. Only binary type constructors can have infix status and
+  symbolic names, e.g.\ {\tt ('a,'b)"+"}. Type constructors of $n$ arguments
+  are declared by {\tt ($\alpha@1$,\dots,$\alpha@n$)$name$}.  Type
+  synonyms\indexbold{type!synonym} are defined as in ML, except that the
+  right-hand side must be enclosed in quotation marks.
 \item[$infix$] declares a type or constant to be an infix operator of
-  precedence $k$ associating to the left ({\tt infixl}) or right ({\tt
+  precedence $nat$ associating to the left ({\tt infixl}) or right ({\tt
     infixr}).
-\item[$arityDecl$] Each existing type constructor $name@1$ \dots $name@n$
-  is given the additional arity $arity$.
-\item[$constDecl$] The new constants $name@1$ \dots $name@n$ are declared to
-  be of type $string$.  For display purposes they can be annotated with
-  $mixfix$ declarations.
-\item[$mixfix$] $string$ is a mixfix template of the form {\tt"}\dots{\tt\_}
-  \dots{\tt\_} \dots{\tt"} where the $i$-th underscore indicates the position
-  where the $i$-th argument should go, $k@i$ is the minimum precedence of
-  the $i$-th argument, and $k$ the precedence of the construct.  The list
-  \hbox{\tt[$k@1$, \dots, $k@n$]} is optional.
+\item[$arities$] Each $name$ must be an existing type constructor which is
+  given the additional arity $arity$.
+\item[$constDecl$] Each new constant $name$ is declared to be of type
+  $string$.  For display purposes they can be annotated with $mixfix$
+  declarations.
+\item[$mixfix$] There are three forms of syntactic annotations:
+  \begin{itemize}
+  \item A mixfix template given as a $string$ of the form
+    {\tt"}\dots{\tt\_}\dots{\tt\_}\dots{\tt"} where the $i$-th underscore
+    indicates the position where the $i$-th argument should go. The minimal
+    precedence of each argument is given by a list of natural numbers, the
+    precedence of the construct by the following natural number; precedences
+    are optional.
 
-  Binary constants can be given infix status.
+  \item Binary constants can be given infix status.
 
-  A constant $f$ {\tt::} $(\tau@1\To\tau@2)\To\tau@3$ can be given {\em
+  \item A constant $f$ {\tt::} $(\tau@1\To\tau@2)\To\tau@3$ can be given {\em
     binder} status: {\tt binder} $Q$ $p$ causes $Q\,x.F(x)$ to be treated
   like $f(F)$; $p$ is the precedence of the construct.
-\item[$transDecl$] Specifies a syntactic translation rule, that is a parse 
-  rule ({\tt =>}), a print rule ({\tt <=}), or both ({\tt ==}).
+  \end{itemize}
+\item[$trans$] Specifies syntactic translation rules, that is parse 
+  rules ({\tt =>}), print rules ({\tt <=}), or both ({\tt ==}).
 \item[$rule$] A rule consists of a name $id$ and a formula $string$.  Rule
   names must be distinct.
 \item[$ml$] This final part of a theory consists of ML code, 
   typically for parse and print translations.
 \end{description}
-The $mixfix$, $transDecl$ and $ml$ sections are explained in more detail in 
+The $mixfix$, $trans$ and $ml$ sections are explained in more detail in 
 the {\it Defining Logics} chapter of the {\it Logics} manual.
 
 
@@ -193,11 +161,13 @@ it exists; this file normally contains proofs involving the new theory.
 \subsection{Filenames and paths}
 \indexbold{filenames}
 
-The files defining the theory must have the lower case name of the theory
-with {\tt".thy"} or {\tt".ML"} appended.  On the other hand
-\ttindex{use_thy}'s parameter has to be the exact theory name.  Optionally
-the name can be preceded by a path to specify the directory where the
-files can be found.  If no path is provided the reference variable
+\begin{warn}
+  The files defining the theory must have the lower case name of the theory
+  with {\tt".thy"} or {\tt".ML"} appended.  On the other hand
+  \ttindex{use_thy}'s parameter has to be the exact theory name.
+\end{warn}
+Optionally the name can be preceded by a path to specify the directory where
+the files can be found.  If no path is provided the reference variable
 \ttindexbold{loadpath} is used which contains a list of paths that are
 searched in the given order.  After the {\tt".thy"}-file for a theory has
 been found, the same path is used to locate the (optional) {\tt".ML"}-file.
@@ -215,24 +185,27 @@ declaration is used.  See {\tt ZF/ex/llist.ML} for an example.
 \ttindex{use_thy} keeps track of all loaded theories and stores information
 about their files.  If it finds that the theory to be loaded was already read
 before, the following happens: first the theory's files are searched at the
-place they were located the last time they were read. If they are found, their
-time of last modification is compared to the internal data and {\tt use_thy}
-stops if they are equal. In case the files have been moved, {\tt use_thy}
-searches them the same way a new theory would be searched for.  After all these
-tests have been passed, the theory is reloaded and all theories that depend on
-it (those that have its name in their $theoryDef$) are marked as out-of-date.
-
-As changing a theory often makes it necessary to reload all theories that
-(indirectly) depend on it, \ttindexbold{update} should be used instead of {\tt
-use_thy} to read a modified theory.  This function reloads all changed
-theories and their descendants in the correct order.
+place they were located the last time they were read. If they are found,
+their time of last modification is compared to the internal data and {\tt
+  use_thy} stops if they are equal. In case the files have been moved, {\tt
+  use_thy} searches them the same way a new theory would be searched for.
+After all these tests have been passed, the theory is reloaded and all
+theories that depend on it (those that have its name in their {\it
+  theoryDef}) are marked as out-of-date.
+\begin{warn}
+  Changing a theory on disk often makes it necessary to reload all theories
+  that (indirectly) depend on it. However, {\tt use_thy} reads only one
+  theory, even if some of the parents are out of date. In this case
+  \ttindexbold{update}{\tt()} should be used.  This function reloads {\em all}
+  modified theories and their descendants in the correct order.
+\end{warn}
 
 
 \subsection{Pseudo theories}
 \indexbold{pseudo theories}
 
-There is a problem with \ttindex{update}: objects created in \ML-files that do
-not belong to a theory (see explanation of $theoryDef$ in
+There is a problem with \ttindex{update}: objects created in \ML-files that
+do not belong to a theory (see explanation of {\it theoryDef} in
 \ref{DefiningTheories}).  These files are read manually between {\tt use_thy}
 calls and define objects used in different theories.  As {\tt update} only
 knows about the theories there still exist objects with references to the old
@@ -244,7 +217,7 @@ Attempt to merge different versions of theory: $T$
 
 Therefore there is a way to link theories and the $orphaned$ \ML-files. The
 link from a theory to an \ML-file has been mentioned in
-Chapter~\ref{DefiningTheories} (strings in $theoryDef$).  But to make this
+Chapter~\ref{DefiningTheories} (strings in {\it theoryDef}).  But to make this
 work and to establish a link in the opposite direction we need to create a
 {\it pseudo theory}.  Let's assume we have an \ML-file named {\tt orphan.ML}
 that depends on theory $A$ and is itself used in theory $B$.  To link the
