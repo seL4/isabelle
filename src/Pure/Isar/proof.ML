@@ -5,6 +5,9 @@
 Proof states and methods.
 *)
 
+
+(*Jia Meng: added in atp_hook and modified enter_forward. *)
+
 signature BASIC_PROOF =
 sig
   val FINDGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
@@ -37,6 +40,7 @@ sig
   val assert_forward_or_chain: state -> state
   val assert_backward: state -> state
   val assert_no_chain: state -> state
+  val atp_hook: (Thm.thm list * Thm.thm -> unit) ref
   val enter_forward: state -> state
   val verbose: bool ref
   val show_main_goal: bool ref
@@ -121,11 +125,16 @@ sig
   val end_block: state -> state Seq.seq
   val next_block: state -> state
   val thisN: string
+  val call_atp: bool ref;
+
+
 end;
 
 structure Proof: PROOF =
 struct
 
+(*Jia Meng: by default, no ATP is called. *)
+val call_atp = ref false;
 
 (** proof state **)
 
@@ -298,7 +307,7 @@ fun use_facts state =
 fun get_mode (State (Node {mode, ...}, _)) = mode;
 fun put_mode mode = map_current (fn (ctxt, facts, _, goal) => (ctxt, facts, mode, goal));
 
-val enter_forward = put_mode Forward;
+val enter_forward_aux = put_mode Forward;
 val enter_forward_chain = put_mode ForwardChain;
 val enter_backward = put_mode Backward;
 
@@ -314,6 +323,31 @@ val assert_forward = assert_mode (equal Forward);
 val assert_forward_or_chain = assert_mode (equal Forward orf equal ForwardChain);
 val assert_backward = assert_mode (equal Backward);
 val assert_no_chain = assert_mode (not_equal ForwardChain);
+
+
+(*Jia Meng: a hook to be used for calling ATPs. *)
+val atp_hook = ref (fn (prems,state): (Thm.thm list * Thm.thm) => ());
+
+(*Jia Meng: the modified version of enter_forward. *)
+(*Jia Meng: atp: Proof.state -> unit *)
+local
+ fun atp state = 
+  let val (ctxt, (_, ((_, (_, thm)), _))) = find_goal state
+      val prems = ProofContext.prems_of ctxt  
+  in
+      (!atp_hook) (prems,thm)          
+  end;
+  
+
+in
+
+ fun enter_forward state = 
+   if (!call_atp) then 
+   ((atp state; enter_forward_aux state)
+                           handle (STATE _) => enter_forward_aux state)
+       else (enter_forward_aux state);
+
+end;
 
 
 (* blocks *)
