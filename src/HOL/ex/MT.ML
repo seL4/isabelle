@@ -17,6 +17,10 @@ NEEDS TO USE INDUCTIVE DEFS PACKAGE
 
 open MT;
 
+(*Limit cyclic unifications during monotonicity proofs*)
+val orig_search_bound = !Unify.search_bound;
+Unify.search_bound := 8;
+
 val prems = goal MT.thy "~a:{b} ==> ~a=b";
 by (cut_facts_tac prems 1);
 by (rtac notI 1);
@@ -793,3 +797,8 @@ by (rtac hasty_elim_const 1);
 by (dtac consistency 1);
 by (fast_tac (HOL_cs addSIs [basic_consistency_lem]) 1);
 qed "basic_consistency";
+
+
+Unify.search_bound := orig_search_bound;
+
+writeln"Reached end of file.";
