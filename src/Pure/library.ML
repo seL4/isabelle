@@ -122,6 +122,7 @@ sig
   val string_of_indexname: string * int -> string
 
   (*strings*)
+  val foldl_string: ('a * string -> 'a) -> 'a * string -> 'a
   val enclose: string -> string -> string -> string
   val quote: string -> string
   val space_implode: string -> string list -> string
@@ -651,6 +652,13 @@ fun string_of_indexname (a,0) = a
 
 
 (** strings **)
+
+(*tuned version of foldl for strings, avoids explode*)
+fun foldl_string f (x0, str) =
+  let
+    val n = size str;
+    fun fold (x, i) = if i < n then fold (f (x, String.substring (str, i, 1)), i + 1) else x
+  in fold (x0, 0) end;
 
 (*enclose in brackets*)
 fun enclose lpar rpar str = lpar ^ str ^ rpar;
