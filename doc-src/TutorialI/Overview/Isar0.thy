@@ -305,4 +305,22 @@ text {*
 theorem "EX S. S ~: range (f :: 'a => 'a set)"
   by best
 
+(* Finally, whole scripts may appear in the leaves of the proof tree,
+although this is best avoided. Here is a contrived example. *)
+
+lemma "A \<longrightarrow> (A \<longrightarrow>B) \<longrightarrow> B"
+proof
+  assume A: A
+  show "(A \<longrightarrow>B) \<longrightarrow> B"
+    apply(rule impI)
+    apply(erule impE)
+    apply(rule A)
+    apply assumption
+    done
+qed
+
+
+(* You may need to resort to this technique if an automatic step fails to
+prove the desired proposition. *)
+
 end
