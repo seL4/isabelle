@@ -142,7 +142,7 @@ fun xprod_to_fmt (XProd (_, _, "", _)) = None
 
         fun arg (s, p) =
           (if s = "type" then TypArg else Arg)
-          (if is_terminal s then 1000 else p);
+          (if is_terminal s then max_pri else p);
 
         fun xsyms_to_syms (Delim s :: xsyms) =
               apfst (cons_str s) (xsyms_to_syms xsyms)
@@ -197,6 +197,10 @@ fun merge_prtabs tab1 tab2 =
 
 (** pretty term or typ asts **)
 
+fun chain[Block(_,pr)] = chain(pr)
+  | chain[Arg _] = true
+  | chain _  = false;
+
 fun pretty prtab trf type_mode ast0 p0 =
   let
     val trans = apply_trans "print ast translation";
@@ -228,9 +232,12 @@ fun pretty prtab trf type_mode ast0 p0 =
       | synT (_ :: _, []) = sys_error "synT"
 
     and parT (pr, args, p, p': int) =
-      if p > p' orelse (!show_brackets andalso p' <> max_pri) then
-        #1 (synT ([Block (1, String "(" :: pr @ [String ")"])], args))
-      else #1 (synT (pr, args))
+          #1 (synT(if p > p' orelse
+                      (!show_brackets andalso p' <> max_pri andalso
+                       not(chain pr))
+                   then [Block (1, String "(" :: pr @ [String ")"])]
+                   else pr,
+                   args))
 
     and prefixT (_, a, [], _) = [Pretty.str a]
       | prefixT (c, _, args, p) = astT (appT (c, args), p)
