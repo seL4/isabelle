@@ -7,7 +7,7 @@ Simple LaTeX presentation primitives (based on outer lexical syntax).
 
 signature LATEX =
 sig
-  datatype token = Basic of OuterLex.token | Markup of string * string
+  datatype token = Basic of OuterLex.token | Markup of string * string | Verbatim of string
   val token_source: token list -> string
   val theory_entry: string -> string
 end;
@@ -51,7 +51,7 @@ val output_sym' = implode o map output_chr' o explode;
 
 structure T = OuterLex;
 
-datatype token = Basic of T.token | Markup of string * string;
+datatype token = Basic of T.token | Markup of string * string | Verbatim of string;
 
 
 val invisible_token = T.keyword_with (equal ";") orf T.is_kind T.Comment;
@@ -69,7 +69,8 @@ fun output_tok (Basic tok) =
         else if T.is_kind T.Verbatim tok then output_sym (enclose "{*" "*}" s)
         else output_sym s
       end
-  | output_tok (Markup (cmd, arg)) = "\n\\isamarkup" ^ cmd ^ "{" ^ strip_blanks arg ^ "}\n";
+  | output_tok (Markup (cmd, arg)) = "\n\\isamarkup" ^ cmd ^ "{" ^ strip_blanks arg ^ "}\n"
+  | output_tok (Verbatim txt) = "\n" ^ txt ^ "\n";
 
 
 val output_tokens = implode o map output_tok;

@@ -44,6 +44,8 @@ sig
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val markup_command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
+  val verbatim_command: string -> string -> string ->
+    (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val improper_command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val dest_keywords: unit -> string list
@@ -100,7 +102,7 @@ type token = T.token;
 type parser_fn = token list -> (Toplevel.transition -> Toplevel.transition) * token list;
 
 datatype parser =
-  Parser of string * (string * string * bool) * bool * parser_fn;
+  Parser of string * (string * string * bool option) * bool * parser_fn;
 
 fun parser int_only markup name comment kind parse =
   Parser (name, (comment, kind, markup), int_only, parse);
@@ -138,8 +140,8 @@ local
 
 val global_lexicons = ref (Scan.empty_lexicon, Scan.empty_lexicon);
 val global_parsers =
-  ref (Symtab.empty: (((string * string) * (bool * parser_fn)) * bool) Symtab.table);
-val global_markups = ref ([]: string list);
+  ref (Symtab.empty: (((string * string) * (bool * parser_fn)) * bool option) Symtab.table);
+val global_markups = ref ([]: (string * bool) list);
 
 fun change_lexicons f =
   let val lexs = f (! global_lexicons) in
@@ -148,8 +150,8 @@ fun change_lexicons f =
     | bads => error ("Clash of outer syntax commands and keywords: " ^ commas_quote bads))
   end;
 
-fun get_markup (names, (name, (_, true))) = name :: names
-  | get_markup (names, _) = names;
+fun get_markup (ms, (name, (_, Some m))) = (name, m) :: ms
+  | get_markup (ms, _) = ms;
 
 fun make_markups () = global_markups := Symtab.foldl get_markup ([], ! global_parsers);
 fun change_parsers f = (global_parsers := f (! global_parsers); make_markups ());
@@ -165,7 +167,10 @@ in
 fun get_lexicons () = ! global_lexicons;
 fun get_parsers () = ! global_parsers;
 fun get_parser () = apsome (#2 o #1) o curry Symtab.lookup (! global_parsers);
-fun is_markup name = name mem_string ! global_markups;
+
+fun lookup_markup name = assoc (! global_markups, name);
+fun is_markup name = if_none (lookup_markup name) false;
+fun is_verbatim name = if_none (apsome not (lookup_markup name)) false;
 
 
 (* augment syntax *)
@@ -335,11 +340,14 @@ local
 
 val improper = Scan.any (not o T.is_proper);
 val markup = Scan.one (T.is_kind T.Command andf is_markup o T.val_of) >> T.val_of;
+val verbatim = Scan.one (T.is_kind T.Command andf is_verbatim o T.val_of);
 
 val present_token =
   improper |-- markup -- (improper |-- P.text --| (improper -- Scan.option semicolon -- improper))
     >> Present.markup_token ||
   (P.$$$ "--" >> K "cmt") -- (improper |-- P.text) >> Present.markup_token ||
+  (improper -- verbatim -- improper) |-- P.text --| (improper -- Scan.option semicolon -- improper)
+    >> Present.verbatim_token ||
   Scan.one T.not_eof >> Present.basic_token;
 
 in
@@ -446,9 +454,10 @@ fun help () =
 
 
 (*final declarations of this structure!*)
-val command = parser false false;
-val markup_command = parser false true;
-val improper_command = parser true false;
+val command = parser false None;
+val markup_command = parser false (Some true);
+val verbatim_command = parser false (Some false);
+val improper_command = parser true None;
 
 
 end;

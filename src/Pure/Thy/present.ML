@@ -20,6 +20,7 @@ sig
   type token
   val basic_token: OuterLex.token -> token
   val markup_token: string * string -> token
+  val verbatim_token: string -> token
   val token_source: string -> (unit -> token list) -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory -> theory
   val result: string -> string -> thm -> unit
@@ -355,6 +356,7 @@ fun verbatim_source name mk_text =
 type token = Latex.token;
 val basic_token = Latex.Basic;
 val markup_token = Latex.Markup;
+val verbatim_token = Latex.Verbatim;
 
 fun token_source name mk_toks =
   with_session () (fn _ => add_tex_source name (Latex.token_source (mk_toks ())));
