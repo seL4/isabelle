@@ -12,30 +12,55 @@ The division operators div, mod and the divides relation "dvd"
 val wf_less_trans = [eq_reflection, wf_pred_nat RS wf_trancl] MRS 
                     def_wfrec RS trans;
 
-(*** Remainder ***)
-
 Goal "(%m. m mod n) = wfrec (trancl pred_nat) \
-\                           (%f j. if j<n then j else f (j-n))";
+\                           (%f j. if j<n | n=0 then j else f (j-n))";
 by (simp_tac (simpset() addsimps [mod_def]) 1);
 qed "mod_eq";
+
+Goal "(%m. m div n) = wfrec (trancl pred_nat) \
+\            (%f j. if j<n | n=0 then 0 else Suc (f (j-n)))";
+by (simp_tac (simpset() addsimps [div_def]) 1);
+qed "div_eq";
+
+
+(** Aribtrary definitions for division by zero.  Useful to simplify 
+    certain equations **)
+
+Goal "a div 0 = 0";
+by (rtac (div_eq RS wf_less_trans) 1);
+by (Asm_simp_tac 1);
+qed "DIVISION_BY_ZERO_DIV";  (*NOT for adding to default simpset*)
+
+Goal "a mod 0 = a";
+by (rtac (mod_eq RS wf_less_trans) 1);
+by (Asm_simp_tac 1);
+qed "DIVISION_BY_ZERO_MOD";  (*NOT for adding to default simpset*)
+
+fun div_undefined_case_tac s i =
+  case_tac s i THEN 
+  Full_simp_tac (i+1) THEN
+  asm_simp_tac (simpset() addsimps [DIVISION_BY_ZERO_DIV, 
+				    DIVISION_BY_ZERO_MOD]) i;
+
+(*** Remainder ***)
 
 Goal "m<n ==> m mod n = (m::nat)";
 by (rtac (mod_eq RS wf_less_trans) 1);
 by (Asm_simp_tac 1);
 qed "mod_less";
 
-Goal "[| 0<n;  ~m<n |] ==> m mod n = (m-n) mod n";
+Goal "~ m < (n::nat) ==> m mod n = (m-n) mod n";
+by (div_undefined_case_tac "n=0" 1);
 by (rtac (mod_eq RS wf_less_trans) 1);
 by (asm_simp_tac (simpset() addsimps [diff_less, cut_apply, less_eq]) 1);
 qed "mod_geq";
 
 (*Avoids the ugly ~m<n above*)
-Goal "[| 0<n;  n<=m |] ==> m mod n = (m-n) mod n";
+Goal "(n::nat) <= m ==> m mod n = (m-n) mod n";
 by (asm_simp_tac (simpset() addsimps [mod_geq, not_less_iff_le]) 1);
 qed "le_mod_geq";
 
-(*NOT suitable for rewriting: loops*)
-Goal "0<n ==> m mod n = (if m<n then m else (m-n) mod n)";
+Goal "m mod (n::nat) = (if m<n then m else (m-n) mod n)";
 by (asm_simp_tac (simpset() addsimps [mod_less, mod_geq]) 1);
 qed "mod_if";
 
@@ -45,32 +70,38 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [mod_less, mod_geq])));
 qed "mod_1";
 Addsimps [mod_1];
 
-Goal "0<n ==> n mod n = 0";
+Goal "n mod n = 0";
+by (div_undefined_case_tac "n=0" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less, mod_geq]) 1);
 qed "mod_self";
 
-Goal "0<n ==> (m+n) mod n = m mod n";
+Goal "(m+n) mod n = m mod (n::nat)";
 by (subgoal_tac "(n + m) mod n = (n+m-n) mod n" 1);
 by (stac (mod_geq RS sym) 2);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [add_commute])));
 qed "mod_add_self2";
 
-Goal "0<n ==> (n+m) mod n = m mod n";
+Goal "(n+m) mod n = m mod (n::nat)";
 by (asm_simp_tac (simpset() addsimps [add_commute, mod_add_self2]) 1);
 qed "mod_add_self1";
 
-Goal "!!n. 0<n ==> (m + k*n) mod n = m mod n";
+Goal "(m + k*n) mod n = m mod (n::nat)";
 by (induct_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps add_ac @ [mod_add_self1])));
+by (ALLGOALS
+    (asm_simp_tac 
+     (simpset() addsimps [read_instantiate [("y","n")] add_left_commute, 
+			  mod_add_self1])));
 qed "mod_mult_self1";
 
-Goal "0<n ==> (m + n*k) mod n = m mod n";
+Goal "(m + n*k) mod n = m mod (n::nat)";
 by (asm_simp_tac (simpset() addsimps [mult_commute, mod_mult_self1]) 1);
 qed "mod_mult_self2";
 
 Addsimps [mod_mult_self1, mod_mult_self2];
 
-Goal "[| 0<k; 0<n |] ==> (m mod n)*k = (m*k) mod (n*k)";
+Goal "(m mod n) * (k::nat) = (m*k) mod (n*k)";
+by (div_undefined_case_tac "n=0" 1);
+by (div_undefined_case_tac "k=0" 1);
 by (res_inst_tac [("n","m")] less_induct 1);
 by (stac mod_if 1);
 by (Asm_simp_tac 1);
@@ -78,28 +109,24 @@ by (asm_simp_tac (simpset() addsimps [mod_less, mod_geq,
 				      diff_less, diff_mult_distrib]) 1);
 qed "mod_mult_distrib";
 
-Goal "[| 0<k; 0<n |] ==> k*(m mod n) = (k*m) mod (k*n)";
-by (res_inst_tac [("n","m")] less_induct 1);
-by (stac mod_if 1);
-by (Asm_simp_tac 1);
-by (asm_simp_tac (simpset() addsimps [mod_less, mod_geq, 
-				      diff_less, diff_mult_distrib2]) 1);
+Goal "(k::nat) * (m mod n) = (k*m) mod (k*n)";
+by (asm_simp_tac 
+    (simpset() addsimps [read_instantiate [("m","k")] mult_commute, 
+			 mod_mult_distrib]) 1);
 qed "mod_mult_distrib2";
 
-Goal "0<n ==> m*n mod n = 0";
+Goal "(m*n) mod n = 0";
+by (div_undefined_case_tac "n=0" 1);
 by (induct_tac "m" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
-by (dres_inst_tac [("m","na*n")] mod_add_self2 1);
+by (rename_tac "k" 1);
+by (cut_inst_tac [("m","k*n"),("n","n")] mod_add_self2 1);
 by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);
 qed "mod_mult_self_is_0";
 Addsimps [mod_mult_self_is_0];
 
-(*** Quotient ***)
 
-Goal "(%m. m div n) = wfrec (trancl pred_nat) \
-\            (%f j. if j<n then 0 else Suc (f (j-n)))";
-by (simp_tac (simpset() addsimps [div_def]) 1);
-qed "div_eq";
+(*** Quotient ***)
 
 Goal "m<n ==> m div n = 0";
 by (rtac (div_eq RS wf_less_trans) 1);
@@ -120,8 +147,10 @@ Goal "0<n ==> m div n = (if m<n then 0 else Suc((m-n) div n))";
 by (asm_simp_tac (simpset() addsimps [div_less, div_geq]) 1);
 qed "div_if";
 
+
 (*Main Result about quotient and remainder.*)
-Goal "0<n ==> (m div n)*n + m mod n = m";
+Goal "(m div n)*n + m mod n = (m::nat)";
+by (div_undefined_case_tac "n=0" 1);
 by (res_inst_tac [("n","m")] less_induct 1);
 by (stac mod_if 1);
 by (ALLGOALS (asm_simp_tac 
@@ -130,8 +159,8 @@ by (ALLGOALS (asm_simp_tac
 qed "mod_div_equality";
 
 (* a simple rearrangement of mod_div_equality: *)
-Goal "0<k ==> k*(m div k) = m - (m mod k)";
-by (dres_inst_tac [("m","m")] mod_div_equality 1);
+Goal "(n::nat) * (m div n) = m - (m mod n)";
+by (cut_inst_tac [("m","m"),("n","n")] mod_div_equality 1);
 by (EVERY1[etac subst, simp_tac (simpset() addsimps mult_ac),
            K(IF_UNSOLVED no_tac)]);
 qed "mult_div_cancel";
@@ -168,9 +197,22 @@ qed "div_mult_self2";
 
 Addsimps [div_mult_self1, div_mult_self2];
 
+(** A dividend of zero **)
+
+Goal "0 div m = 0";
+by (div_undefined_case_tac "m=0" 1);
+by (asm_simp_tac (simpset() addsimps [div_less]) 1);
+qed "div_0"; 
+
+Goal "0 mod m = 0";
+by (div_undefined_case_tac "m=0" 1);
+by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
+qed "mod_0"; 
+Addsimps [div_0, mod_0];
 
 (* Monotonicity of div in first argument *)
-Goal "0<k ==> ALL m. m <= n --> (m div k) <= (n div k)";
+Goal "ALL m::nat. m <= n --> (m div k) <= (n div k)";
+by (div_undefined_case_tac "k=0" 1);
 by (res_inst_tac [("n","n")] less_induct 1);
 by (Clarify_tac 1);
 by (case_tac "n<k" 1);
@@ -184,7 +226,6 @@ by (asm_simp_tac (simpset() addsimps [div_less]) 1);
 by (asm_simp_tac (simpset() addsimps [div_geq, diff_less, diff_le_mono]) 1);
 qed_spec_mp "div_le_mono";
 
-
 (* Antimonotonicity of div in second argument *)
 Goal "[| 0<m; m<=n |] ==> (k div n) <= (k div m)";
 by (subgoal_tac "0<n" 1);
@@ -197,13 +238,14 @@ by (subgoal_tac "~(k<m)" 1);
  by (Asm_simp_tac 2);
 by (asm_simp_tac (simpset() addsimps [div_geq]) 1);
 by (subgoal_tac "(k-n) div n <= (k-m) div n" 1);
-by (REPEAT (eresolve_tac [div_le_mono,diff_le_mono2] 2));
+ by (REPEAT (ares_tac [div_le_mono,diff_le_mono2] 2));
 by (rtac le_trans 1);
 by (Asm_simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [diff_less]) 1);
 qed "div_le_mono2";
 
-Goal "0<n ==> m div n <= m";
+Goal "m div n <= (m::nat)";
+by (div_undefined_case_tac "n=0" 1);
 by (subgoal_tac "m div n <= m div 1" 1);
 by (Asm_full_simp_tac 1);
 by (rtac div_le_mono2 1);
@@ -264,7 +306,7 @@ qed "mod_less_divisor";
 (*With less_zeroE, causes case analysis on b<2*)
 AddSEs [less_SucE];
 
-Goal "b<2 ==> k mod 2 = b | k mod 2 = (if b=1 then 0 else 1)";
+Goal "b<2 ==> (k mod 2 = b) | (k mod 2 = (if b=1 then 0 else 1))";
 by (subgoal_tac "k mod 2 < 2" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less_divisor]) 2);
 by (Asm_simp_tac 1);
@@ -306,18 +348,18 @@ Delrules [less_SucE];
 (*** More division laws ***)
 
 Goal "0<n ==> (m*n) div n = m";
-by (cut_inst_tac [("m", "m*n")] mod_div_equality 1);
-by (assume_tac 1);
+by (cut_inst_tac [("m", "m*n"),("n","n")] mod_div_equality 1);
 by (asm_full_simp_tac (simpset() addsimps [mod_mult_self_is_0]) 1);
 qed "div_mult_self_is_m";
 Addsimps [div_mult_self_is_m];
 
 (*Cancellation law for division*)
-Goal "[| 0<n; 0<k |] ==> (k*m) div (k*n) = m div n";
+Goal "0<k ==> (k*m) div (k*n) = m div n";
+by (div_undefined_case_tac "n=0" 1);
 by (res_inst_tac [("n","m")] less_induct 1);
 by (case_tac "na<n" 1);
 by (asm_simp_tac (simpset() addsimps [div_less, zero_less_mult_iff, 
-                                     mult_less_mono2]) 1);
+				      mult_less_mono2]) 1);
 by (subgoal_tac "~ k*na < k*n" 1);
 by (asm_simp_tac
      (simpset() addsimps [zero_less_mult_iff, div_geq,
@@ -327,18 +369,7 @@ by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le,
 qed "div_cancel";
 Addsimps [div_cancel];
 
-Goal "[| 0<n; 0<k |] ==> (k*m) mod (k*n) = k * (m mod n)";
-by (res_inst_tac [("n","m")] less_induct 1);
-by (case_tac "na<n" 1);
-by (asm_simp_tac (simpset() addsimps [mod_less, zero_less_mult_iff, 
-                                     mult_less_mono2]) 1);
-by (subgoal_tac "~ k*na < k*n" 1);
-by (asm_simp_tac
-     (simpset() addsimps [zero_less_mult_iff, mod_geq,
-                         diff_mult_distrib2 RS sym, diff_less]) 1);
-by (asm_full_simp_tac (simpset() addsimps [not_less_iff_le, 
-                                          le_refl RS mult_le_mono]) 1);
-qed "mult_mod_distrib";
+(*mod_mult_distrib2 above is the counterpart for remainder*)
 
 
 (************************************************)
@@ -348,7 +379,7 @@ qed "mult_mod_distrib";
 Goalw [dvd_def] "m dvd 0";
 by (blast_tac (claset() addIs [mult_0_right RS sym]) 1);
 qed "dvd_0_right";
-Addsimps [dvd_0_right];
+AddIffs [dvd_0_right];
 
 Goalw [dvd_def] "0 dvd m ==> m = 0";
 by Auto_tac;
@@ -400,15 +431,16 @@ AddIffs [dvd_refl RS dvd_mult, dvd_refl RS dvd_mult2];
 
 Goalw [dvd_def] "[| f dvd m; f dvd n; 0<n |] ==> f dvd (m mod n)";
 by (Clarify_tac 1);
-by (full_simp_tac (simpset() addsimps [zero_less_mult_iff]) 1);
+by (Full_simp_tac 1);
 by (res_inst_tac 
     [("x", "(((k div ka)*ka + k mod ka) - ((f*k) div (f*ka)) * ka)")] 
     exI 1);
-by (asm_simp_tac (simpset() addsimps [diff_mult_distrib2, 
-                                     mult_mod_distrib, add_mult_distrib2]) 1);
+by (asm_simp_tac
+    (simpset() addsimps [diff_mult_distrib2, mod_mult_distrib2 RS sym, 
+			 add_mult_distrib2]) 1);
 qed "dvd_mod";
 
-Goal "[| k dvd (m mod n); k dvd n; 0<n |] ==> k dvd m";
+Goal "[| (k::nat) dvd (m mod n);  k dvd n |] ==> k dvd m";
 by (subgoal_tac "k dvd ((m div n)*n + m mod n)" 1);
 by (asm_simp_tac (simpset() addsimps [dvd_add, dvd_mult]) 2);
 by (asm_full_simp_tac (simpset() addsimps [mod_div_equality]) 1);
@@ -441,11 +473,11 @@ by (etac Suc_leI 2);
 by (Simp_tac 1);
 qed "dvd_imp_le";
 
-Goalw [dvd_def] "0<k ==> (k dvd n) = (n mod k = 0)";
+Goalw [dvd_def] "(k dvd n) = (n mod k = 0)";
+by (div_undefined_case_tac "k=0" 1);
 by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [mult_commute]) 1);
-by (eres_inst_tac [("t","n")] (mod_div_equality RS subst) 1);
+by (res_inst_tac [("t","n"),("n1","k")] (mod_div_equality RS subst) 1);
 by (stac mult_commute 1);
 by (Asm_simp_tac 1);
-by (Blast_tac 1);
 qed "dvd_eq_mod_eq_0";

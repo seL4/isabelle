@@ -28,10 +28,10 @@ consts
 defs
 
   mod_def   "m mod n == wfrec (trancl pred_nat)
-                          (%f j. if j<n then j else f (j-n)) m"
+                          (%f j. if j<n | n=0 then j else f (j-n)) m"
 
   div_def   "m div n == wfrec (trancl pred_nat) 
-                          (%f j. if j<n then 0 else Suc (f (j-n))) m"
+                          (%f j. if j<n | n=0 then 0 else Suc (f (j-n))) m"
 
 (*The definition of dvd is polymorphic!*)
   dvd_def   "m dvd n == EX k. n = m*k"
