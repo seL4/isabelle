@@ -26,7 +26,8 @@ echo
 $ISATOOL getenv ML_SYSTEM ML_HOME ML_OPTIONS
 
 echo
-echo "RETURN starts compilation of: $LOGICS"
+echo
+echo "Press RETURN to start compilation of: $LOGICS"
 read
 
 
