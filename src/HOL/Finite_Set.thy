@@ -756,7 +756,7 @@ lemma (in ACf) fold_insert[simp]:
 
 text{* A simplified version for idempotent functions: *}
 
-lemma (in ACIf) fold_insert2:
+lemma (in ACIf) fold_insert_idem:
 assumes finA: "finite A"
 shows "fold f g z (insert a A) = g a \<cdot> fold f g z A"
 proof cases
@@ -780,7 +780,7 @@ qed
 
 lemma (in ACIf) foldI_conv_id:
   "finite A \<Longrightarrow> fold f g z A = fold f id z (g ` A)"
-by(erule finite_induct)(simp_all add: fold_insert2 del: fold_insert)
+by(erule finite_induct)(simp_all add: fold_insert_idem del: fold_insert)
 
 subsubsection{*Lemmas about @{text fold}*}
 
@@ -1844,11 +1844,11 @@ apply (simp add: fold1_eq_fold)
 apply (subst fold1_eq_fold, auto) 
 done
 
-lemma (in ACIf) fold1_insert2 [simp]:
+lemma (in ACIf) fold1_insert_idem [simp]:
   "finite A ==> A \<noteq> {} \<Longrightarrow> fold1 f (insert x A) = f x (fold1 f A)"
 apply (induct A rule: finite_induct, force)
 apply (case_tac "xa=x") 
- prefer 2 apply (simp add: insert_commute fold1_eq_fold fold_insert2) 
+ prefer 2 apply (simp add: insert_commute fold1_eq_fold fold_insert_idem) 
 apply (case_tac "F={}") 
 apply (simp add: idem) 
 apply (simp add: fold1_insert assoc [symmetric] idem) 
@@ -1864,9 +1864,9 @@ lemma (in ACf) fold1_insert_def:
   "\<lbrakk> g \<equiv> fold1 f; finite A; x \<notin> A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g(insert x A) = x \<cdot> (g A)"
 by(simp add:fold1_insert)
 
-lemma (in ACIf) fold1_insert2_def:
+lemma (in ACIf) fold1_insert_idem_def:
   "\<lbrakk> g \<equiv> fold1 f; finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> g(insert x A) = x \<cdot> (g A)"
-by(simp add:fold1_insert2)
+by(simp add:fold1_insert_idem)
 
 subsubsection{* Determinacy for @{term fold1Set} *}
 
@@ -2004,9 +2004,9 @@ shows "finite B \<Longrightarrow> B \<noteq> {} \<Longrightarrow>
        fold1 f (A Un B) = f (fold1 f A) (fold1 f B)"
 using A
 proof(induct rule:finite_ne_induct)
-  case singleton thus ?case by(simp add:fold1_insert2)
+  case singleton thus ?case by(simp add:fold1_insert_idem)
 next
-  case insert thus ?case by (simp add:fold1_insert2 assoc)
+  case insert thus ?case by (simp add:fold1_insert_idem assoc)
 qed
 
 lemma (in ACf) fold1_in:
@@ -2230,7 +2230,7 @@ next
   also have "\<dots> = (x \<squnion> y) \<sqinter> (x \<squnion> \<Sqinter> A)" by(rule sup_inf_distrib1)
   also have "x \<squnion> \<Sqinter> A = \<Sqinter>{x \<squnion> a|a. a \<in> A}" using insert by simp
   also have "(x \<squnion> y) \<sqinter> \<dots> = \<Sqinter> (insert (x \<squnion> y) {x \<squnion> a |a. a \<in> A})"
-    using insert by(simp add:ACIf.fold1_insert2_def[OF ACIf_inf Inf_def fin])
+    using insert by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_inf Inf_def fin])
   also have "insert (x\<squnion>y) {x\<squnion>a |a. a \<in> A} = {x\<squnion>a |a. a \<in> insert y A}"
     by blast
   finally show ?case .
@@ -2255,7 +2255,7 @@ next
   qed
   have ne: "{a \<squnion> b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
   have "\<Sqinter>(insert x A) \<squnion> \<Sqinter>B = (x \<sqinter> \<Sqinter>A) \<squnion> \<Sqinter>B"
-    using insert by(simp add:ACIf.fold1_insert2_def[OF ACIf_inf Inf_def])
+    using insert by(simp add:ACIf.fold1_insert_idem_def[OF ACIf_inf Inf_def])
   also have "\<dots> = (x \<squnion> \<Sqinter>B) \<sqinter> (\<Sqinter>A \<squnion> \<Sqinter>B)" by(rule sup_inf_distrib2)
   also have "\<dots> = \<Sqinter>{x \<squnion> b|b. b \<in> B} \<sqinter> \<Sqinter>{a \<squnion> b|a b. a \<in> A \<and> b \<in> B}"
     using insert by(simp add:sup_Inf1_distrib[OF B])
@@ -2386,9 +2386,9 @@ simplification rules: *}
 
 declare
   fold1_singleton_def[OF Min_def, simp]
-  ACIf.fold1_insert2_def[OF ACIf_min Min_def, simp]
+  ACIf.fold1_insert_idem_def[OF ACIf_min Min_def, simp]
   fold1_singleton_def[OF Max_def, simp]
-  ACIf.fold1_insert2_def[OF ACIf_max Max_def, simp]
+  ACIf.fold1_insert_idem_def[OF ACIf_max Max_def, simp]
 
 text{* Now we instantiate some @{text fold1} properties: *}
 
