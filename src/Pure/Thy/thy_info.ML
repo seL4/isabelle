@@ -215,8 +215,8 @@ fun load_thy ml time initiators name parents =
     val missing_files = mapfilter (fn (path, None) => Some (Path.pack path) | _ => None) files;
   in
     if null missing_files then ()
-    else warning (loader_msg ("unresolved dependencies on file(s) " ^ commas_quote missing_files ^
-      "\nfor theory") [name]);
+    else warning (loader_msg "unresolved dependencies of theory" [name] ^
+      "\nfile(s): " ^ commas_quote missing_files);
     change_deps name (fn _ => Some (make_deps true false master files))
   end;
 
@@ -226,11 +226,10 @@ fun load_thy ml time initiators name parents =
 fun run_file path =
   let
     fun provide name info (deps as Some {present, outdated, master, files}) =
-          if present then deps
-          else if exists (equal path o #1) files then
+          if exists (equal path o #1) files then
             Some (make_deps present outdated master (overwrite (files, (path, Some info))))
           else (warning (loader_msg "undeclared dependency of theory" [name] ^
-            ": " ^ quote (Path.pack path)); deps)
+            "\nfile: " ^ quote (Path.pack path)); deps)
       | provide _ _ None = None;
   in
     (case apsome PureThy.get_name (Context.get_context ()) of
