@@ -12,7 +12,7 @@ test: HOL-Isar_examples HOL-Induct HOL-ex HOL-Subst HOL-IMP HOL-IMPP \
   HOL-Hoare HOL-Lex HOL-Algebra HOL-Auth HOL-UNITY HOL-Modelcheck \
   HOL-Lambda HOL-Prolog HOL-W0 HOL-MiniML HOL-BCV HOL-MicroJava \
   HOL-IOA HOL-AxClasses-Group HOL-AxClasses-Lattice \
-  HOL-AxClasses-Tutorial HOL-Quot HOL-Real-ex \
+  HOL-AxClasses-Tutorial HOL-Real-ex \
   HOL-Real-HahnBanach TLA-Inc TLA-Buffer TLA-Memory
 
 all: images test
@@ -409,16 +409,6 @@ $(LOG)/HOL-AxClasses-Tutorial.gz: $(OUT)/HOL \
   AxClasses/Tutorial/Group.thy AxClasses/Tutorial/Product.thy \
   AxClasses/Tutorial/ROOT.ML AxClasses/Tutorial/Semigroups.thy
 	@$(ISATOOL) usedir -s AxClasses-Tutorial $(OUT)/HOL AxClasses/Tutorial
-
-
-## HOL-Quot
-
-HOL-Quot: HOL $(LOG)/HOL-Quot.gz
-
-$(LOG)/HOL-Quot.gz: $(OUT)/HOL Quot/FRACT.ML Quot/FRACT.thy \
-  Quot/HQUOT.ML Quot/HQUOT.thy Quot/NPAIR.ML Quot/NPAIR.thy Quot/PER.ML \
-  Quot/PER.thy Quot/PER0.ML Quot/PER0.thy Quot/ROOT.ML
-	@$(ISATOOL) usedir $(OUT)/HOL Quot
 
 
 ## HOL-ex
