@@ -878,7 +878,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
         (("cases", cases), [RuleCases.case_names [fieldsN],
           InductAttrib.cases_type_global name])];
 
-    val simps = field_simps @ sel_convs' @ update_convs' @ [equality'];
+    val simps = sel_convs' @ update_convs' @ [equality'];
     val iffs = field_injects;
 
     val thms_thy' =
@@ -891,7 +891,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     val final_thy =
       thms_thy'
-      |> put_record name (make_record_info args parent fields simps induct_scheme' cases_scheme')
+      |> put_record name (make_record_info args parent fields (field_simps @ simps)
+          induct_scheme' cases_scheme')
       |> put_sel_upd (names @ [full_moreN]) (field_simps @ sel_defs' @ update_defs')
       |> Theory.parent_path;
 
