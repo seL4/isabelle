@@ -485,13 +485,6 @@ by (arith_tac 1);
 qed "set_upt";
 Addsimps [set_upt];
 
-Goal "!i < size xs. set(xs[i := x]) <= insert x (set xs)";
-by (induct_tac "xs" 1);
- by (Simp_tac 1);
-by (asm_simp_tac (simpset() addsplits [nat.split]) 1);
-by (Blast_tac 1);
-qed_spec_mp "set_list_update_subset";
-
 Goal "(x : set xs) = (? ys zs. xs = ys@x#zs)";
 by (induct_tac "xs" 1);
  by (Simp_tac 1);
@@ -744,8 +737,11 @@ by (induct_tac "xs" 1);
  by (asm_full_simp_tac (simpset() addsimps []) 1);
 by (asm_full_simp_tac (simpset() addsplits [nat.split]) 1);
 by (Fast_tac  1);
-qed_spec_mp "set_update_subset";
+qed_spec_mp "set_update_subset_insert";
 
+Goal "[| set xs <= A; x:A |] ==> set(xs[i := x]) <= A";
+by(fast_tac (claset() addSDs [set_update_subset_insert RS subsetD]) 1);
+qed "set_update_subsetI";
 
 (** last & butlast **)
 
