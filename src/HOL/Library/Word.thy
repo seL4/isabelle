@@ -3,6 +3,11 @@
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
+header {*
+  \title{Binary Words}
+  \author{Sebastian Skalberg}
+*}
+
 theory Word = Main files "word_setup.ML":
 
 subsection {* Auxilary Lemmas *}
@@ -235,7 +240,7 @@ lemma suc_zero_le: "[| 0 < x ; 0 < y |] ==> Suc 0 < x + y"
 lemma int_nat_two_exp: "2 ^ k = int (2 ^ k)"
   by (induct k,simp_all)
 
-section {* Bits *}
+subsection {* Bits *}
 
 datatype bit
   = Zero ("\<zero>")
@@ -294,7 +299,7 @@ lemma [simp]: "(b bitor b) = b"
 lemma [simp]: "(b bitxor b) = \<zero>"
   by (cases b,simp_all)
 
-section {* Bit Vectors *}
+subsection {* Bit Vectors *}
 
 text {* First, a couple of theorems expressing case analysis and
 induction principles for bit vectors. *}
@@ -1144,7 +1149,7 @@ proof (rule ccontr)
     by simp
 qed
 
-section {* Unsigned Arithmetic Operations *}
+subsection {* Unsigned Arithmetic Operations *}
 
 constdefs
   bv_add :: "[bit list, bit list ] => bit list"
@@ -1240,7 +1245,7 @@ proof (unfold bv_mult_def,rule length_nat_to_bv_upper_limit)
     by arith
 qed
 
-section {* Signed Vectors *}
+subsection {* Signed Vectors *}
 
 consts
   norm_signed :: "bit list => bit list"
@@ -1909,9 +1914,9 @@ proof (rule ccontr)
     by simp
 qed
 
-section {* Signed Arithmetic Operations *}
+subsection {* Signed Arithmetic Operations *}
 
-subsection {* Conversion from unsigned to signed *}
+subsubsection {* Conversion from unsigned to signed *}
 
 constdefs
   utos :: "bit list => bit list"
@@ -1935,7 +1940,7 @@ proof (simp add: utos_def norm_signed_Cons,safe)
     by simp
 qed
 
-subsection {* Unary minus *}
+subsubsection {* Unary minus *}
 
 constdefs
   bv_uminus :: "bit list => bit list"
@@ -2546,7 +2551,7 @@ qed
 lemma bv_smult_sym: "bv_smult w1 w2 = bv_smult w2 w1"
   by (simp add: bv_smult_def zmult_ac)
 
-section {* Structural operations *}
+subsection {* Structural operations *}
 
 constdefs
   bv_select :: "[bit list,nat] => bit"

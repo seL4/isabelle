@@ -6,6 +6,25 @@
 Basic setup and documentation for the 'refute' (and 'refute_params') command.
 *)
 
+header {* Refute *}
+
+theory Refute = Map
+
+files "Tools/prop_logic.ML"
+      "Tools/sat_solver.ML"
+      "Tools/refute.ML"
+      "Tools/refute_isar.ML":
+
+use "Tools/prop_logic.ML"
+use "Tools/sat_solver.ML"
+use "Tools/refute.ML"
+use "Tools/refute_isar.ML"
+
+setup Refute.setup
+
+text {*
+\small
+\begin{verbatim}
 (* ------------------------------------------------------------------------- *)
 (* REFUTE                                                                    *)
 (*                                                                           *)
@@ -83,21 +102,7 @@ Basic setup and documentation for the 'refute' (and 'refute_params') command.
 (* HOL/Main.thy               Sets default parameters                        *)
 (* HOL/ex/RefuteExamples.thy  Examples                                       *)
 (* ------------------------------------------------------------------------- *)
-
-header {* Refute *}
-
-theory Refute = Map
-
-files "Tools/prop_logic.ML"
-      "Tools/sat_solver.ML"
-      "Tools/refute.ML"
-      "Tools/refute_isar.ML":
-
-use "Tools/prop_logic.ML"
-use "Tools/sat_solver.ML"
-use "Tools/refute.ML"
-use "Tools/refute_isar.ML"
-
-setup Refute.setup
+\end{verbatim}
+*}
 
 end

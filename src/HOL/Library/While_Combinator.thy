@@ -141,12 +141,11 @@ done
 
 
 text {*
- An example of using the @{term while} combinator.\footnote{It is safe
- to keep the example here, since there is no effect on the current
- theory.}
+ An example of using the @{term while} combinator.
 *}
 
-theorem "P (lfp (\<lambda>N::int set. {0} \<union> {(n + 2) mod 6 | n. n \<in> N})) = P {0, 4, 2}"
+theorem "P (lfp (\<lambda>N::int set. {0} \<union> {(n + 2) mod 6 | n. n \<in> N})) =
+  P {0, 4, 2}"
 proof -
   have aux: "!!f A B. {f n | n. A n \<or> B n} = {f n | n. A n} \<union> {f n | n. B n}"
     apply blast

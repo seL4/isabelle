@@ -76,7 +76,7 @@ syntax (HTML output)
 
 
 text {*
-  Function @{text size} is overloaded for all datatypes.Users may
+  Function @{text size} is overloaded for all datatypes. Users may
   refer to the list version as @{text length}. *}
 
 syntax length :: "'a list => nat"
@@ -793,7 +793,6 @@ by(simp add:last_append)
 
 lemma last_appendR[simp]: "ys \<noteq> [] \<Longrightarrow> last(xs @ ys) = last ys"
 by(simp add:last_append)
-
 
 
 lemma length_butlast [simp]: "length (butlast xs) = length xs - 1"
