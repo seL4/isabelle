@@ -6,6 +6,7 @@
 parser for domain section
 *)
 
+
 structure ThySynData: THY_SYN_DATA = (* overwrites old version of ThySynData !!!!!! *)
 
 struct

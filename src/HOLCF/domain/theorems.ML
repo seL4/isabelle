@@ -6,6 +6,7 @@
 proof generator for domain section
 *)
 
+
 structure Domain_Theorems = struct
 
 local

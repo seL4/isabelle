@@ -6,6 +6,7 @@
 theory extender for domain section
 *)
 
+
 structure Domain_Extender =
 struct
 

@@ -6,6 +6,7 @@
 syntax generator for domain section
 *)
 
+
 structure Domain_Syntax = struct 
 
 local 
