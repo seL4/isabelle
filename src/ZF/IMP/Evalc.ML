@@ -12,17 +12,19 @@ structure Evalc = Inductive_Fun
   val sintrs =
       [
 	"[| sigma: loc -> nat |] ==> <skip,sigma> -c-> sigma",
-       	"[| m: nat; x: loc; <a,sigma> -a-> m |] ==> \
+       	"[| m: nat; x: loc; a:aexp; <a,sigma> -a-> m |] ==> \
 \          <X(x) := a,sigma> -c-> sigma[m/x]" , 
        "[| <c0,sigma> -c-> sigma2; <c1,sigma2> -c-> sigma1 |] ==> \
 \          <c0 ; c1, sigma> -c-> sigma1",
-       "[| c1: com; <b,sigma> -b-> 1; <c0,sigma> -c-> sigma1 |] ==> \
-\          <ifc b then c0 else c1, sigma> -c-> sigma1 ",
-       "[| c0 : com; <b,sigma> -b-> 0; <c1,sigma> -c-> sigma1 |] ==> \
-\          <ifc b then c0 else c1, sigma> -c-> sigma1 ",
-       "[| c: com; <b, sigma> -b-> 0 |] ==> \
+       "[| b:bexp; c1:com; sigma:loc->nat;\
+\          <b,sigma> -b-> 1; <c0,sigma> -c-> sigma1 |] ==> \
+\       <ifc b then c0 else c1, sigma> -c-> sigma1 ",
+       "[| b:bexp; c0:com; sigma:loc->nat;\
+\          <b,sigma> -b-> 0; <c1,sigma> -c-> sigma1 |] ==> \
+\       <ifc b then c0 else c1, sigma> -c-> sigma1 ",
+       "[| b:bexp; c:com; <b, sigma> -b-> 0 |] ==> \
 \          <while b do c,sigma> -c-> sigma ",
-       "[| c : com; <b,sigma> -b-> 1; <c,sigma> -c-> sigma2; \
+       "[| b:bexp; c:com; <b,sigma> -b-> 1; <c,sigma> -c-> sigma2; \
 \          <while b do c, sigma2> -c-> sigma1 |] ==> \
 \          <while b do c, sigma> -c-> sigma1 "];
 
