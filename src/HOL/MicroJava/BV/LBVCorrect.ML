@@ -5,12 +5,7 @@
 *)
 
 
-Goalw[fits_def,fits_partial_def] "fits_partial phi 0 is G rT s0 s2 cert = fits phi is G rT s0 s2 cert";
-by (Simp_tac 1);
-qed "fits_eq_fits_partial";
-
-
-Goal "\\<exists> l. n = length l";
+Goal "\\<exists> l. n < length l";
 by (induct_tac "n" 1);
 by Auto_tac;
 by (res_inst_tac [("x","x#l")] exI 1);
@@ -19,7 +14,7 @@ qed "exists_list";
 
 
 Goal "\\<forall> s0 pc. wtl_inst_list is G rT s0 s2 cert (pc+length is) pc \
-\     \\<longrightarrow> (\\<exists> phi. pc + length is = length phi \\<and> fits_partial phi pc is G rT s0 s2 cert)";
+\     \\<longrightarrow> (\\<exists> phi. pc + length is < length phi \\<and> fits_partial phi pc is G rT s0 s2 cert)";
 by (induct_tac "is" 1);
  by (asm_full_simp_tac (simpset() addsimps [fits_partial_def, exists_list]) 1);
 by (Clarify_tac 1);
@@ -68,21 +63,21 @@ ba 1;
 bind_thm ("exists_phi_partial", result() RS spec RS spec);
 
 
-Goal "wtl_inst_list is G rT s0 s2 cert (length is) 0 \\<Longrightarrow> \\<exists> phi. fits phi is G rT s0 s2 cert";
+Goal "wtl_inst_list is G rT s0 s2 cert (length is) 0 \\<Longrightarrow> \\<exists> phi. fits phi is G rT s0 s2 cert \\<and> length is < length phi";
 by (cut_inst_tac [("is","is"),("G","G"),("rT","rT"),("s2.0","s2"),("x","0"),("xa","s0"),("cert","cert")] exists_phi_partial 1);
-by (asm_full_simp_tac (simpset() addsimps [fits_eq_fits_partial]) 1);
+by (asm_full_simp_tac (simpset() addsimps [fits_def]) 1);
 by (Force_tac 1);
 qed "exists_phi";
 
 
 Goal "\\<lbrakk>wtl_inst_list is G rT s0 s3 cert (length is) 0; \
-\fits phi is G rT s0 s3 cert\\<rbrakk> \\<Longrightarrow> \ 
-\ \\<forall> pc t. pc < length is \\<longrightarrow> (cert ! pc) = Some t \\<longrightarrow> (phi ! pc) = t";
+\      fits phi is G rT s0 s3 cert\\<rbrakk> \\<Longrightarrow> \ 
+\     \\<forall> pc t. pc < length is \\<longrightarrow> (cert ! pc) = Some t \\<longrightarrow> (phi ! pc) = t";
 by (Clarify_tac 1);
 by (forward_tac [wtl_partial] 1);
 ba 1;
 by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [fits_def,neq_Nil_conv]) 1);
+by (asm_full_simp_tac (simpset() addsimps [fits_def, fits_partial_def ,neq_Nil_conv]) 1);
 by (Clarify_tac 1);
 by (eres_inst_tac [("x","aa")] allE 1);
 by (eres_inst_tac [("x","ys")] allE 1);
@@ -106,7 +101,7 @@ by (Clarify_tac 1);
 by (Asm_full_simp_tac 1);
 by (Clarify_tac 1);
 by (exhaust_tac "cert!(Suc (length a))" 1);
- by (asm_full_simp_tac (simpset() addsimps [fits_def]) 1);
+ by (asm_full_simp_tac (simpset() addsimps [fits_def, fits_partial_def]) 1);
  by (eres_inst_tac [("x","a@[i]")] allE 1);
  by (eres_inst_tac [("x","ys")] allE 1);
  by (eres_inst_tac [("x","y")] allE 1);
@@ -116,7 +111,7 @@ by (exhaust_tac "cert!(Suc (length a))" 1);
  be impE 1;
   by (Force_tac 1);
  by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [fits_def]) 1);
+by (asm_full_simp_tac (simpset() addsimps [fits_def, fits_partial_def]) 1);
 by (eres_inst_tac [("x","a@[i]")] allE 1);
 by (eres_inst_tac [("x","ys")] allE 1);
 by (eres_inst_tac [("x","y")] allE 1);
@@ -130,22 +125,25 @@ by (asm_full_simp_tac (simpset() addsimps [wtl_inst_option_def]) 1);
 qed "wtl_suc_pc";
 
 
-Goalw[fits_def] "\\<lbrakk>wtl_inst_list a G rT s0 s1 cert (length (a@i#b)) 0; \
+Goal "\\<lbrakk>wtl_inst_list a G rT s0 s1 cert (length (a@i#b)) 0; \
 \      wtl_inst_option i G rT s1 s2 cert (length (a@i#b)) (length a); \
 \      fits phi (a@i#b) G rT s0 s3 cert; cert!(length a) = None; \
 \      wtl_inst_list b G rT s2 s3 cert (length (a@i#b)) (Suc (length a))\\<rbrakk> \
 \    \\<Longrightarrow>  phi!(length a) = s1";
+by (asm_full_simp_tac (simpset() addsimps [fits_def, fits_partial_def]) 1);
 by (eres_inst_tac [("x","a")] allE 1);
 by (eres_inst_tac [("x","b")] allE 1);
 by (eres_inst_tac [("x","i")] allE 1);
-by (eres_inst_tac [("x","s1")] allE 1);
+by (Asm_full_simp_tac 1);
+by (pair_tac "s1" 1);
+by (eres_inst_tac [("x","x")] allE 1);
+by (eres_inst_tac [("x","y")] allE 1);
 by (Asm_full_simp_tac 1);
 be impE 1;
  by (pair_tac "s2" 1);
  by (Force_tac 1);
 ba 1;
 qed "fits_lemma2";
-
 
 fun ls g1 g2 = if g1 > g2 then ls g2 g1
                else if g1 = g2 then [g1]
@@ -177,7 +175,9 @@ by (exhaust_tac "cert!(length i1)" 1);
     by (thin_tac "\\<forall>pc t.\
 \                 pc < length (i1 @ i # i2) \\<longrightarrow> \
 \                 cert ! pc = Some t \\<longrightarrow> phi ! pc = t" 1);
-    by (force_tac (claset(), simpset() addsimps [wt_instr_def,wtl_inst_option_def]) 1);
+    by (pair_tac "s1" 1);
+    by (asm_full_simp_tac (simpset() addsimps [wt_instr_def,wtl_inst_option_def]) 1);    
+    by (Force_tac 1);
    by (exhaust_tac "meth_ret" 1);
    by (asm_full_simp_tac (simpset() addsimps [wt_instr_def,wtl_inst_option_def]) 1);
   by (exhaust_tac "branch" 2);
@@ -230,14 +230,12 @@ ba 1;
 by (Force_tac 1);
 qed "wtl_inst_list_correct";
 
-Goalw[fits_def] "\\<lbrakk>is \\<noteq> []; wtl_inst_list is G rT s0 s2 cert (length is) 0; \
-\                 fits phi is G rT s0 s2 cert\\<rbrakk> \\<Longrightarrow> G \\<turnstile> s0 <=s phi ! 0";
+Goal "\\<lbrakk>is \\<noteq> []; wtl_inst_list is G rT s0 s2 cert (length is) 0; \
+\     fits phi is G rT s0 s2 cert\\<rbrakk> \\<Longrightarrow> G \\<turnstile> s0 <=s phi ! 0";
 by (forw_inst_tac [("pc'","0")] wtl_partial 1);
 by (Asm_full_simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [neq_Nil_conv]) 1);
-by (Clarify_tac 1);
-by (Asm_full_simp_tac 1);
-by (Clarify_tac 1);
+by (asm_full_simp_tac (simpset() addsimps [fits_def, fits_partial_def, neq_Nil_conv]) 1);
+by (Clarsimp_tac 1);
 by (eres_inst_tac [("x","[]")] allE 1);
 by (eres_inst_tac [("x","ys")] allE 1);
 by (eres_inst_tac [("x","y")] allE 1);

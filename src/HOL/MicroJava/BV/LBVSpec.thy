@@ -6,7 +6,7 @@
 Specification of a lightweight bytecode verifier
 *)
 
-LBVSpec = Convert + BVSpec +
+LBVSpec = BVSpec +
 
 types
   certificate       = "state_type option list" 
@@ -53,9 +53,9 @@ primrec
 	 pc+1 < max_pc \\<and>
 	 is_class G C \\<and>
 	 (\\<exists>T oT ST'. field (G,C) F = Some(C,T) \\<and>
-                       ST = oT # ST' \\<and> 
-		       G \\<turnstile> oT \\<preceq> (Class C) \\<and>
-		       (T # ST' , LT) = s'))"
+                          ST = oT # ST'  \\<and> 
+		                  G \\<turnstile> oT \\<preceq> (Class C) \\<and>
+		          (T # ST' , LT) = s'))"
 
 "wtl_MO (Putfield F C) G s s' max_pc pc =
 	(let (ST,LT) = s
@@ -66,7 +66,7 @@ primrec
              field (G,C) F = Some(C,T) \\<and>
              ST = vT # oT # ST' \\<and> 
              G \\<turnstile> oT \\<preceq> (Class C) \\<and>
-	     G \\<turnstile> vT \\<preceq> T  \\<and>
+             G \\<turnstile> vT \\<preceq> T  \\<and>
              (ST' , LT) = s'))"
 
 
@@ -136,7 +136,9 @@ primrec
 	(let (ST,LT) = s
 	 in
 	 pc+1 < max_pc \\<and> (nat(int pc+branch)) < max_pc \\<and> 
-	 (\\<exists>ts ts' ST'. ST = ts # ts' # ST' \\<and>  (G \\<turnstile> ts \\<preceq> ts' \\<or> G \\<turnstile> ts' \\<preceq> ts) \\<and>
+	 (\\<exists>ts ts' ST'. ST = ts # ts' # ST' \\<and>
+          ((\\<exists>p. ts = PrimT p \\<and> ts' = PrimT p) \\<or>
+           (\\<exists>r r'. ts = RefT r \\<and> ts' = RefT r')) \\<and>
 		       ((ST' , LT) = s') \\<and>
             cert ! (nat(int pc+branch)) \\<noteq> None \\<and>
 		       G \\<turnstile> (ST' , LT) <=s the (cert ! (nat(int pc+branch)))))"
@@ -147,22 +149,22 @@ primrec
 	 (nat(int pc+branch)) < max_pc \\<and> cert ! (nat(int pc+branch)) \\<noteq> None \\<and>
 	 G \\<turnstile> (ST , LT) <=s the (cert ! (nat(int pc+branch)))) \\<and>
    (cert ! (pc+1) = Some s'))"
-   
-   (* (pc+1 < max_pc \\<longrightarrow> ((cert ! (pc+1)) \\<noteq> None \\<and> s' = the (cert ! (pc+1)))) \\<and> 
-  (\\<not> pc+1 < max_pc \\<longrightarrow> s = s'))" *) 
   
 consts
- wtl_MI :: "[meth_inv,jvm_prog,state_type,state_type,p_count,p_count] \\<Rightarrow> bool" 
+ wtl_MI :: "[meth_inv,jvm_prog,state_type,state_type,certificate,p_count,p_count] \\<Rightarrow> bool" 
 primrec
-"wtl_MI (Invoke mn fpTs) G s s' max_pc pc =
+"wtl_MI (Invoke mn fpTs) G s s' cert max_pc pc =
 	(let (ST,LT) = s
 	 in
          pc+1 < max_pc \\<and>
-         (\\<exists>apTs C ST'. ST = (rev apTs) @ (Class C # ST') \\<and>
+         (\\<exists>apTs X ST'. ST = (rev apTs) @ (X # ST') \\<and>
          length apTs = length fpTs \\<and>
-         (\\<forall>(aT,fT)\\<in>set(zip apTs fpTs). G \\<turnstile> aT \\<preceq> fT) \\<and>
-         (\\<exists>D rT b. method (G,C) (mn,fpTs) = Some(D,rT,b) \\<and>
-         (rT # ST' , LT) = s')))"
+         (\\<exists>s''. cert ! (pc+1) = Some s'' \\<and> 
+         ((s'' = s' \\<and> X = NT) \\<or>
+          ((G \\<turnstile> s' <=s s'') \\<and> (\\<exists>C. X = Class C \\<and>  
+          (\\<forall>(aT,fT)\\<in>set(zip apTs fpTs). G \\<turnstile> aT \\<preceq> fT) \\<and> 
+          (\\<exists>D rT b. method (G,C) (mn,fpTs) = Some(D,rT,b) \\<and>
+          (rT # ST' , LT) = s')))))))"
 
 consts
  wtl_MR	:: "[meth_ret,jvm_prog,ty,state_type,state_type,certificate,p_count,p_count] \\<Rightarrow> bool"
@@ -172,9 +174,6 @@ primrec
 	 in
 	 (\\<exists>T ST'. ST = T # ST' \\<and> G \\<turnstile> T \\<preceq> rT)) \\<and>
    (cert ! (pc+1) = Some s'))"
-(*   
-  (pc+1 < max_pc \\<longrightarrow> ((cert ! (pc+1)) \\<noteq> None \\<and> s' = the (cert ! (pc+1)))) \\<and>
-  (\\<not> pc+1 < max_pc \\<longrightarrow> s' = s))" *)
 
 
 consts 
@@ -184,7 +183,7 @@ consts
  "wtl_inst (CO ins) G rT s s' cert max_pc pc = wtl_CO ins G s s' max_pc pc"
  "wtl_inst (MO ins) G rT s s' cert max_pc pc = wtl_MO ins G s s' max_pc pc"
  "wtl_inst (CH ins) G rT s s' cert max_pc pc = wtl_CH ins G s s' max_pc pc"
- "wtl_inst (MI ins) G rT s s' cert max_pc pc = wtl_MI ins G s s' max_pc pc"
+ "wtl_inst (MI ins) G rT s s' cert max_pc pc = wtl_MI ins G s s' cert max_pc pc"
  "wtl_inst (MR ins) G rT s s' cert max_pc pc = wtl_MR ins G rT s s' cert max_pc pc"
  "wtl_inst (OS ins) G rT s s' cert max_pc pc = wtl_OS ins s s' max_pc pc"
  "wtl_inst (BR ins) G rT s s' cert max_pc pc = wtl_BR ins G s s' cert max_pc pc"
@@ -202,9 +201,6 @@ consts
  wtl_inst_list :: "[instr list,jvm_prog,ty,state_type,state_type,certificate,p_count,p_count] \\<Rightarrow> bool"
 primrec
   "wtl_inst_list [] G rT s0 s2 cert max_pc pc = (s0 = s2)"
-
-  (*  None     \\<Rightarrow> (s0  = s2)
-     | Some s0' \\<Rightarrow> (s0' = s2))" *)
 
   "wtl_inst_list (instr#is) G rT s0 s2 cert max_pc pc =
      (\\<exists>s1. wtl_inst_option instr G rT s0 s1 cert max_pc pc \\<and> 
