@@ -41,8 +41,8 @@ term ".(f \<acute>x \<acute>y z)."
 
 text {* advanced examples *}
 term ".(.(\<acute>\<acute>x + \<acute>y).)."
-term ".(.(\<acute>\<acute>x + \<acute>y). o \<acute>f)."
-term ".(\<acute>(f o \<acute>g))."
-term ".(.( \<acute>\<acute>(f o \<acute>g) ).)."
+term ".(.(\<acute>\<acute>x + \<acute>y). \<circ> \<acute>f)."
+term ".(\<acute>(f \<circ> \<acute>g))."
+term ".(.( \<acute>\<acute>(f \<circ> \<acute>g) ).)."
 
 end

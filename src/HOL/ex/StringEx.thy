@@ -1,4 +1,6 @@
 
+header {* String examples *}
+
 theory StringEx = Main:
 
 lemma "hd ''ABCD'' = CHR ''A''"

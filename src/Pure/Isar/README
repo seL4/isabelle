@@ -4,6 +4,7 @@
 This directory contains the Isabelle/Isar subsystem -- Intelligible
 Semi-Automated Reasoning for Isabelle.  Interesting modules include:
 
+  ProofContext  (structure of Isar proof contexts)
   Proof		(core of the Isar/VM interpreter)
   Args		(concrete argument syntax of attributes and methods)
   Method	(proof methods)
@@ -11,7 +12,7 @@ Semi-Automated Reasoning for Isabelle.  Interesting modules include:
 
   LocalDefs	(local definitions)
   Calculation	(calculational proofs)
-  ObtainFun     (generalized existence reasoning)
+  Obtain        (generalized existence reasoning)
 
   Toplevel	(the Isabelle/Isar toplevel)
   IsarThy	(Isar derived theory operations)
