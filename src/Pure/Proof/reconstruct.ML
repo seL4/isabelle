@@ -106,17 +106,25 @@ fun infer_type sg (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
       end
   | infer_type sg env Ts vTs (t as Bound i) = (t, nth_elem (i, Ts), vTs, env);
 
-fun decompose sg env Ts t u = case (Envir.head_norm env t, Envir.head_norm env u) of
-    (Const ("all", _) $ t, Const ("all", _) $ u) => decompose sg env Ts t u
-  | (Const ("==>", _) $ t1 $ t2, Const ("==>", _) $ u1 $ u2) =>
-      let val (env', cs) = decompose sg env Ts t1 u1
-      in apsnd (curry op @ cs) (decompose sg env' Ts t2 u2) end
-  | (Abs (_, T, t), Abs (_, U, u)) =>
-      decompose sg (unifyT sg env T U) (T::Ts) t u
-  | (t, u) => (env, [(mk_abs Ts t, mk_abs Ts u)]);
-
-fun cantunify sg t u = error ("Non-unifiable terms:\n" ^
+fun cantunify sg (t, u) = error ("Non-unifiable terms:\n" ^
   Sign.string_of_term sg t ^ "\n\n" ^ Sign.string_of_term sg u);
+
+fun decompose sg Ts (env, p as (t, u)) =
+  let fun rigrig (a, T) (b, U) uT ts us = if a <> b then cantunify sg p
+    else apsnd flat (foldl_map (decompose sg Ts) (uT env T U, ts ~~ us))
+  in case pairself (strip_comb o Envir.head_norm env) p of
+      ((Const c, ts), (Const d, us)) => rigrig c d (unifyT sg) ts us
+    | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT sg) ts us
+    | ((Bound i, ts), (Bound j, us)) =>
+        rigrig (i, dummyT) (j, dummyT) (K o K) ts us
+    | ((Abs (_, T, t), []), (Abs (_, U, u), [])) =>
+        decompose sg (T::Ts) (unifyT sg env T U, (t, u))
+    | ((Abs (_, T, t), []), _) =>
+        decompose sg (T::Ts) (env, (t, incr_boundvars 1 u $ Bound 0))
+    | (_, (Abs (_, T, u), [])) =>
+        decompose sg (T::Ts) (env, (incr_boundvars 1 t $ Bound 0, u))
+    | _ => (env, [(mk_abs Ts t, mk_abs Ts u)])
+  end;
 
 fun make_constraints_cprf sg env cprf =
   let
@@ -127,10 +135,10 @@ fun make_constraints_cprf sg env cprf =
       in
         (prop, prf, cs, Pattern.unify (sg, env, [(t', u')]), vTs)
         handle Pattern.Pattern =>
-            let val (env', cs') = decompose sg env [] t' u'
+            let val (env', cs') = decompose sg [] (env, (t', u'))
             in (prop, prf, cs @ cs', env', vTs) end
         | Pattern.Unif =>
-            cantunify sg (Envir.norm_term env t') (Envir.norm_term env u')
+            cantunify sg (Envir.norm_term env t', Envir.norm_term env u')
       end;
 
     fun mk_cnstrts_atom env vTs prop opTs prf =
@@ -267,9 +275,9 @@ fun solve _ [] bigenv = bigenv
                 in
                   if Pattern.pattern tn1 andalso Pattern.pattern tn2 then
                     ((Pattern.unify (sg, env, [(tn1, tn2)]), ps) handle Pattern.Unif =>
-                       cantunify sg tn1 tn2)
+                       cantunify sg (tn1, tn2))
                   else
-                    let val (env', cs') = decompose sg env [] tn1 tn2
+                    let val (env', cs') = decompose sg [] (env, (tn1, tn2))
                     in if cs' = [(tn1, tn2)] then
                          apsnd (cons (false, (tn1, tn2), vs)) (search env ps)
                        else search env' (map (fn q => (true, q, vs)) cs' @ ps)
