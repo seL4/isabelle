@@ -2,6 +2,4 @@
 #rm-logfiles: remove useless files from subdirectories
 rm log */make*.log */make*.log.gz
 rm */test
-rm */.*.thy.ML
-rm */ex/.*.thy.ML
-rm HOL/Subst/.*.thy.ML
+find . -name '.*.thy.ML' -print -exec rm {} \;
