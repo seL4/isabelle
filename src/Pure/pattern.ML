@@ -420,7 +420,8 @@ fun rewrite_term tsig rules tm =
       in (fn u => Abs (x, T, abstract_over (Free (x', T), u)), t') end;
 
     fun match_rew tm (tm1, tm2) =
-      Some (subst_vars (match tsig (tm1, tm)) tm2) handle MATCH => None;
+      Some (subst_vars (match tsig (tm1, tm)) (if_none (Term.rename_abs tm1 tm tm2) tm2))
+        handle MATCH => None;
     fun rew (Abs (_, _, body) $ t) = Some (subst_bound (t, body))
       | rew tm = get_first (match_rew tm) rules;
 
