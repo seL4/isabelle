@@ -105,7 +105,7 @@ fun syn_ext_types logtypes type_decls =
     val mfix = mapfilter mfix_of type_decls;
     val xconsts = map name_of type_decls;
   in
-    syn_ext logtypes mfix xconsts ([], [], [], []) ([], [])
+    syn_ext logtypes mfix xconsts ([], [], [], []) [] ([], [])
   end;
 
 
@@ -146,7 +146,7 @@ fun syn_ext_consts logtypes const_decls =
     val binder_trs = map mk_binder_tr binders;
     val binder_trs' = map (apsnd fix_tr' o mk_binder_tr' o swap) binders;
   in
-    syn_ext logtypes mfix xconsts ([], binder_trs, binder_trs', []) ([], [])
+    syn_ext logtypes mfix xconsts ([], binder_trs, binder_trs', []) [] ([], [])
   end;
 
 
@@ -159,44 +159,46 @@ val pure_types =
       "pttrn", "idt", "idts", "aprop", "asms", any, sprop, "dummy"]);
 
 val pure_syntax =
- [("_lambda",   "[idts, 'a] => logic",            Mixfix ("(3%_./ _)", [], 0)),
-  ("_abs",      "'a",                             NoSyn),
-  ("",          "'a => " ^ args,                  Delimfix "_"),
-  ("_args",     "['a, " ^ args ^ "] => " ^ args,  Delimfix "_,/ _"),
-  ("",          "id => idt",                      Delimfix "_"),
-  ("_idtyp",    "[id, type] => idt",              Mixfix ("_::_", [], 0)),
-  ("",          "idt => idt",                     Delimfix "'(_')"),
-  ("",          "idt => pttrn",                   Delimfix "_"),
-  ("",          "pttrn => idts",                  Delimfix "_"),
-  ("_idts",     "[pttrn, idts] => idts",          Mixfix ("_/ _", [1, 0], 0)),
-  ("",          "id => aprop",                    Delimfix "_"),
-  ("",          "var => aprop",                   Delimfix "_"),
-  ("_aprop",    "aprop => prop",                  Delimfix "PROP _"),
-  ("",          "prop => asms",                   Delimfix "_"),
-  ("_asms",     "[prop, asms] => asms",           Delimfix "_;/ _"),
-  ("_bigimpl",  "[asms, prop] => prop",           Mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
-  ("_ofclass",  "[type, logic] => prop",          Delimfix "(1OFCLASS/(1'(_,/ _')))"),
-  ("_K",        "'a",                             NoSyn),
-  ("",          "id => logic",                    Delimfix "_"),
-  ("",          "var => logic",                   Delimfix "_")];
+ [("_lambda",      "[idts, 'a] => logic",           Mixfix ("(3%_./ _)", [], 0)),
+  ("_abs",         "'a",                            NoSyn),
+  ("",             "'a => " ^ args,                 Delimfix "_"),
+  ("_args",        "['a, " ^ args ^ "] => " ^ args, Delimfix "_,/ _"),
+  ("",             "id => idt",                     Delimfix "_"),
+  ("_idtyp",       "[id, type] => idt",             Mixfix ("_::_", [], 0)),
+  ("",             "idt => idt",                    Delimfix "'(_')"),
+  ("",             "idt => pttrn",                  Delimfix "_"),
+  ("",             "pttrn => idts",                 Delimfix "_"),
+  ("_idts",        "[pttrn, idts] => idts",         Mixfix ("_/ _", [1, 0], 0)),
+  ("",             "id => aprop",                   Delimfix "_"),
+  ("",             "var => aprop",                  Delimfix "_"),
+  ("_aprop",       "aprop => prop",                 Delimfix "PROP _"),
+  ("",             "prop => asms",                  Delimfix "_"),
+  ("_asms",        "[prop, asms] => asms",          Delimfix "_;/ _"),
+  ("_bigimpl",     "[asms, prop] => prop",          Mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
+  ("_ofclass",     "[type, logic] => prop",         Delimfix "(1OFCLASS/(1'(_,/ _')))"),
+  ("_mk_ofclass",  "_",                             NoSyn),
+  ("_mk_ofclassS", "_",                             NoSyn),
+  ("_K",           "_",                             NoSyn),
+  ("",             "id => logic",                   Delimfix "_"),
+  ("",             "var => logic",                  Delimfix "_")];
 
 val pure_appl_syntax =
- [("_appl",     "[('b => 'a), args] => logic",    Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri)),
-  ("_appl",     "[('b => 'a), args] => aprop",    Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri))];
+ [("_appl", "[('b => 'a), args] => logic", Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri)),
+  ("_appl", "[('b => 'a), args] => aprop", Mixfix ("(1_/(1'(_')))", [max_pri, 0], max_pri))];
 
 val pure_applC_syntax =
- [("",           "'a => cargs",                   Delimfix "_"),
-  ("_cargs",     "['a, cargs] => cargs",          Mixfix ("_/ _", [max_pri, max_pri], max_pri)),
-  ("_applC",     "[('b => 'a), cargs] => logic",  Mixfix ("(1_/ _)", [max_pri, max_pri], max_pri - 1)),
-  ("_applC",     "[('b => 'a), cargs] => aprop",  Mixfix ("(1_/ _)", [max_pri, max_pri], max_pri - 1))];
+ [("",       "'a => cargs",                  Delimfix "_"),
+  ("_cargs", "['a, cargs] => cargs",         Mixfix ("_/ _", [max_pri, max_pri], max_pri)),
+  ("_applC", "[('b => 'a), cargs] => logic", Mixfix ("(1_/ _)", [max_pri, max_pri], max_pri - 1)),
+  ("_applC", "[('b => 'a), cargs] => aprop", Mixfix ("(1_/ _)", [max_pri, max_pri], max_pri - 1))];
 
 val pure_sym_syntax =
- [("fun",      "[type, type] => type",            Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
-  ("_bracket", "[types, type] => type",           Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
-  ("_lambda",  "[idts, 'a] => logic",             Mixfix ("(3\\<lambda>_./ _)", [], 0)),
-  ("==>",      "[prop, prop] => prop",            InfixrName ("\\<Midarrow>\\<Rightarrow>", 1)),
-  ("_bigimpl", "[asms, prop] => prop",            Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Midarrow>\\<Rightarrow> _)", [0, 1], 1)),
-  ("==",       "['a::{}, 'a] => prop",            InfixrName ("\\<equiv>", 2)),
-  ("!!",       "[idts, prop] => prop",            Mixfix ("(3\\<And>_./ _)", [0, 0], 0))];
+ [("fun",      "[type, type] => type",  Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
+  ("_bracket", "[types, type] => type", Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
+  ("_lambda",  "[idts, 'a] => logic",   Mixfix ("(3\\<lambda>_./ _)", [], 0)),
+  ("==>",      "[prop, prop] => prop",  InfixrName ("\\<Midarrow>\\<Rightarrow>", 1)),
+  ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Midarrow>\\<Rightarrow> _)", [0, 1], 1)),
+  ("==",       "['a::{}, 'a] => prop",  InfixrName ("\\<equiv>", 2)),
+  ("!!",       "[idts, prop] => prop",  Mixfix ("(3\\<And>_./ _)", [0, 0], 0))];
 
 end;
