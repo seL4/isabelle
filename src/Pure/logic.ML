@@ -256,6 +256,7 @@ fun strip_params (Const("==>", _) $ H $ B) = strip_params B
 fun has_meta_prems prop i =
   let
     fun is_meta (Const ("==>", _) $ _ $ _) = true
+      | is_meta (Const ("==", _) $ _ $ _) = true
       | is_meta (Const ("all", _) $ _) = true
       | is_meta _ = false;
     val horn = skip_flexpairs prop;
