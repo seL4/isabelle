@@ -297,7 +297,12 @@ qed_goal "select_eq_Ex" HOL.thy "P (@ x. P x) =  (? x. P x)" (K [
         etac exE 1,
         etac selectI 1]);
 
-qed_goal "Eps_eq" HOL.thy "(Eps (op = x)) = x" (K [
+qed_goal "Eps_eq" HOL.thy "(@y. y=x) = x" (K [
+	rtac select_equality 1,
+	rtac refl 1,
+	atac 1]);
+
+qed_goal "Eps_sym_eq" HOL.thy "(Eps (op = x)) = x" (K [
 	rtac select_equality 1,
 	rtac refl 1,
 	etac sym 1]);
