@@ -33,18 +33,15 @@ sig
   datatype 'a error = Error of string | OK of 'a
   val get_error: 'a error -> string option
   val get_ok: 'a error -> 'a option
-  datatype 'a result = Result of 'a | Exn of exn
-  val get_result: 'a result -> 'a option
-  val get_exn: 'a result -> exn option
   val handle_error: ('a -> 'b) -> 'a -> 'b error
   exception ERROR_MESSAGE of string
   val transform_error: ('a -> 'b) -> 'a -> 'b
   val transform_failure: (exn -> exn) -> ('a -> 'b) -> 'a -> 'b
+  val timing: bool ref
   val cond_timeit: bool -> (unit -> 'a) -> 'a
   val timeit: (unit -> 'a) -> 'a
   val timeap: ('a -> 'b) -> 'a -> 'b
   val timeap_msg: string -> ('a -> 'b) -> 'a -> 'b
-  val timing: bool ref
 end;
 
 signature OUTPUT =
@@ -151,23 +148,13 @@ fun get_error (Error msg) = Some msg
 fun get_ok (OK x) = Some x
   | get_ok _ = None;
 
-datatype 'a result =
-  Result of 'a |
-  Exn of exn;
-
-fun get_result (Result x) = Some x
-  | get_result _ = None;
-
-fun get_exn (Exn exn) = Some exn
-  | get_exn _ = None;
-
 fun handle_error f x =
   let
     val buffer = ref ([]: string list);
-    fun capture s = buffer := ! buffer @ [s];
+    fun store_msg s = buffer := ! buffer @ [s];
     fun err_msg () = if not (null (! buffer)) then error_msg (cat_lines (! buffer)) else ();
   in
-    (case Result (setmp error_fn capture f x) handle exn => Exn exn of
+    (case Result (setmp error_fn store_msg f x) handle exn => Exn exn of
       Result y => (err_msg (); OK y)
     | Exn ERROR => Error (cat_lines (! buffer))
     | Exn exn => (err_msg (); raise exn))
@@ -193,6 +180,9 @@ fun transform_failure exn f x =
 
 (** timing **)
 
+(*global timing mode*)
+val timing = ref false;
+
 (*a conditional timing function: applies f to () and, if the flag is true,
   prints its runtime on warning channel*)
 fun cond_timeit flag f =
@@ -208,9 +198,6 @@ fun timeit x = cond_timeit true x;
 (*timed application function*)
 fun timeap f x = timeit (fn () => f x);
 fun timeap_msg s f x = (warning s; timeap f x);
-
-(*global timing mode*)
-val timing = ref false;
 
 end;
 
