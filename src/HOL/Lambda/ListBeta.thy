@@ -60,13 +60,13 @@ lemma apps_betasE_aux:
     apply (split split_if_asm)
      apply simp
      apply blast
-    apply (force intro: disjI1 [THEN append_step1I])
+    apply (force intro!: disjI1 [THEN append_step1I])
    apply (clarify del: disjCI)
    apply (drule App_eq_foldl_conv [THEN iffD1])
    apply (split split_if_asm)
     apply simp
     apply blast
-   apply (auto 0 3 intro: disjI2 [THEN append_step1I])
+   apply (clarify, auto 0 3 intro!: exI intro: append_step1I)
   done
 
 lemma apps_betasE [elim!]:

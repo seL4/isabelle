@@ -163,7 +163,7 @@ lemma rtrancl_eta_subst [rule_format]:
     "\<forall>s t i. s -e> t --> u[s/i] -e>> u[t/i]"
   apply (induct_tac u)
     apply (simp_all add: subst_Var)
-    apply (blast intro: r_into_rtrancl)
+    apply (blast)
    apply (blast intro: rtrancl_eta_App)
   apply (blast intro!: rtrancl_eta_Abs eta_lift)
   done
@@ -172,10 +172,11 @@ lemma square_beta_eta: "square beta eta (eta^*) (beta^=)"
   apply (unfold square_def)
   apply (rule impI [THEN allI [THEN allI]])
   apply (erule beta.induct)
-     apply (slowsimp intro: r_into_rtrancl rtrancl_eta_subst eta_subst)
-    apply (blast intro: r_into_rtrancl rtrancl_eta_AppL)
-   apply (blast intro: r_into_rtrancl rtrancl_eta_AppR)
-  apply (slowsimp intro: r_into_rtrancl rtrancl_eta_Abs free_beta
+     apply (slowsimp intro: rtrancl_eta_subst eta_subst)
+    apply (blast intro: rtrancl_eta_AppL)
+   apply (blast intro: rtrancl_eta_AppR)
+  apply simp;
+  apply (slowsimp intro: rtrancl_eta_Abs free_beta
     iff del: dB.distinct simp: dB.distinct)    (*23 seconds?*)
   done
 
