@@ -17,6 +17,7 @@ sig
   val pack: string list -> string
   val base: string -> string
   val qualified: string -> bool
+  val accesses: string -> string list
   type T
   val empty: T
   val extend: T * string list -> T
@@ -57,9 +58,7 @@ fun accesses name =
     val (q, b) = split_last uname;
     val sfxs = suffixes1 uname;
     val pfxs = map (fn x => x @ [b]) (prefixes1 q);
-  in
-    map (rpair name o pack) (sfxs @ pfxs)
-  end;
+  in map pack (sfxs @ pfxs) end;
 
 
 
@@ -78,7 +77,7 @@ val empty = NameSpace Symtab.empty;
 fun add (tab, entry) = Symtab.update (entry, tab);
 
 fun extend (NameSpace tab, names) =
-  NameSpace (foldl add (tab, flat (map accesses names)));
+  NameSpace (foldl add (tab, flat (map (fn name => map (rpair name) (accesses name)) names)));
 
 fun merge (NameSpace tab1, NameSpace tab2) =    (*2nd overrides 1st*)
   NameSpace (foldl add (tab1, Symtab.dest tab2));
