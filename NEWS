@@ -35,13 +35,14 @@ uses the default simpset instead of a supplied list of theorems.
 
 * Provers/Arith/fast_lin_arith.ML contains a functor for creating a
 decision procedure for linear arithmetic. Currently it is used for
-types `nat' and `int' in HOL (see below) but can, should and will be
-instantiated for other types and logics as well.
+types `nat', `int', and `real' in HOL (see below); it can, should and
+will be instantiated for other types and logics as well.
 
 * The simplifier now accepts rewrite rules with flexible heads, eg
      hom ?f ==> ?f(?x+?y) = ?f ?x + ?f ?y
   They are applied like any rule with a non-pattern lhs, i.e. by first-order
   matching.
+
 
 *** General ***
 
@@ -65,7 +66,8 @@ proper interface for user theories (via -P option);
 * theory loader rewritten from scratch (may not be fully
 bug-compatible); old loadpath variable has been replaced by show_path,
 add_path, del_path, reset_path functions; new operations such as
-update_thy, touch_thy, remove_thy (see also isatool doc ref);
+update_thy, touch_thy, remove_thy, use/update_thy_only (see also
+isatool doc ref);
 
 * improved isatool install: option -k creates KDE application icon,
 option -p DIR installs standalone binaries;
@@ -102,7 +104,12 @@ diff -r Isabelle-2.6/elisp/isa-proofstate.el Isamode/elisp/isa-proofstate.el
 
 * function bind_thms stores lists of theorems (cf. bind_thm);
 
-* new shorthand tactics ftac, eatac, datac, fatac
+* new shorthand tactics ftac, eatac, datac, fatac;
+
+* qed (and friends) now accept "" as result name; in that case the
+result is not stored, but proper checks and presentation of the result
+still apply;
+
 
 *** HOL ***
 
