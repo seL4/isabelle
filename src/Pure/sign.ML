@@ -235,7 +235,7 @@ fun err_in_type s =
   error ("The error(s) above occurred in type " ^ quote s);
 
 fun read_raw_typ syn tsig sort_of str =
-  Syntax.read_typ syn (fn x => if_none (sort_of x) (Type.defaultS tsig)) str
+  Syntax.read_typ syn (Type.eq_sort tsig) (Type.get_sort tsig sort_of) str
     handle ERROR => err_in_type str;
 
 (*read and certify typ wrt a signature*)
