@@ -203,7 +203,7 @@ reduces @{prop"n\<le>2"} to the three cases @{prop"n\<le>0"}, @{prop"n=1"} and
 @{prop"n=2"} which are trivial for simplification:
 *}
 
-apply(simp add: three_def numerals)
+apply(simp add: three_def numerals)   (* FIXME !? *)
 apply((erule le_SucE)+)
 apply simp_all
 done
