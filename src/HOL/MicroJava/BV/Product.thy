@@ -78,14 +78,14 @@ proof -
   have plus_le_conv2:
     "\<And>r f z. \<lbrakk> z : err A; semilat (err A, r, f); OK x : err A; OK y : err A;
                  OK x +_f OK y <=_r z\<rbrakk> \<Longrightarrow> OK x <=_r z \<and> OK y <=_r z"
-    by (rule plus_le_conv [THEN iffD1])
+    by (rule semilat.plus_le_conv [THEN iffD1])
   case rule_context
   thus ?thesis
   apply (rule_tac iffI)
    apply clarify
    apply (drule OK_le_err_OK [THEN iffD2])
    apply (drule OK_le_err_OK [THEN iffD2])
-   apply (drule semilat_lub)
+   apply (drule semilat.lub[of _ _ _ "OK x" _ "OK y"])
         apply assumption
        apply assumption
       apply simp
@@ -101,7 +101,7 @@ proof -
       apply simp
       apply blast
      apply simp
-    apply (blast dest: semilatDorderI order_refl)
+    apply (blast dest: semilat.orderI order_refl)
    apply blast
   apply (erule subst)
   apply (unfold semilat_def err_def closed_def)
@@ -115,15 +115,15 @@ apply (unfold esl_def Err.sl_def)
 apply (simp (no_asm_simp) only: split_tupled_all)
 apply simp
 apply (simp (no_asm) only: semilat_Def)
-apply (simp (no_asm_simp) only: semilatDclosedI closed_lift2_sup)
+apply (simp (no_asm_simp) only: semilat.closedI closed_lift2_sup)
 apply (simp (no_asm) only: unfold_lesub_err Err.le_def unfold_plussub_lift2 sup_def)
 apply (auto elim: semilat_le_err_OK1 semilat_le_err_OK2
             simp add: lift2_def  split: err.split)
-apply (blast dest: semilatDorderI)
-apply (blast dest: semilatDorderI)
+apply (blast dest: semilat.orderI)
+apply (blast dest: semilat.orderI)
 
 apply (rule OK_le_err_OK [THEN iffD1])
-apply (erule subst, subst OK_lift2_OK [symmetric], rule semilat_lub)
+apply (erule subst, subst OK_lift2_OK [symmetric], rule semilat.lub)
 apply simp
 apply simp
 apply simp
@@ -132,7 +132,7 @@ apply simp
 apply simp
 
 apply (rule OK_le_err_OK [THEN iffD1])
-apply (erule subst, subst OK_lift2_OK [symmetric], rule semilat_lub)
+apply (erule subst, subst OK_lift2_OK [symmetric], rule semilat.lub)
 apply simp
 apply simp
 apply simp

@@ -135,19 +135,23 @@ lemma not_Err_less [rule_format, iff]:
   "~(Err <_(le r) x)"
   by (simp add: lesssub_def lesub_def le_def split: err.split)
 
-lemma semilat_errI [intro]:
-  "semilat(A,r,f) \<Longrightarrow> semilat(err A, Err.le r, lift2(%x y. OK(f x y)))"
+lemma semilat_errI [intro]: includes semilat
+shows "semilat(err A, Err.le r, lift2(%x y. OK(f x y)))"
+apply(insert semilat)
 apply (unfold semilat_Def closed_def plussub_def lesub_def 
               lift2_def Err.le_def err_def)
 apply (simp split: err.split)
 done
 
-lemma err_semilat_eslI [intro, simp]: 
-  "\<And>L. semilat L \<Longrightarrow> err_semilat(esl L)"
+lemma err_semilat_eslI_aux:
+includes semilat shows "err_semilat(esl(A,r,f))"
 apply (unfold sl_def esl_def)
-apply (simp (no_asm_simp) only: split_tupled_all)
-apply (simp add: semilat_errI)
+apply (simp add: semilat_errI[OF semilat])
 done
+
+lemma err_semilat_eslI [intro, simp]:
+ "\<And>L. semilat L \<Longrightarrow> err_semilat(esl L)"
+by(simp add: err_semilat_eslI_aux split_tupled_all)
 
 lemma acc_err [simp, intro!]:  "acc r \<Longrightarrow> acc(le r)"
 apply (unfold acc_def lesub_def le_def lesssub_def)
@@ -222,27 +226,29 @@ section {* semilat (err A) (le r) f *}
 
 lemma semilat_le_err_Err_plus [simp]:
   "\<lbrakk> x: err A; semilat(err A, le r, f) \<rbrakk> \<Longrightarrow> Err +_f x = Err"
-  by (blast intro: le_iff_plus_unchanged [THEN iffD1] le_iff_plus_unchanged2 [THEN iffD1])
+  by (blast intro: semilat.le_iff_plus_unchanged [THEN iffD1]
+                   semilat.le_iff_plus_unchanged2 [THEN iffD1])
 
 lemma semilat_le_err_plus_Err [simp]:
   "\<lbrakk> x: err A; semilat(err A, le r, f) \<rbrakk> \<Longrightarrow> x +_f Err = Err"
-  by (blast intro: le_iff_plus_unchanged [THEN iffD1] le_iff_plus_unchanged2 [THEN iffD1])
+  by (blast intro: semilat.le_iff_plus_unchanged [THEN iffD1]
+                   semilat.le_iff_plus_unchanged2 [THEN iffD1])
 
 lemma semilat_le_err_OK1:
   "\<lbrakk> x:A; y:A; semilat(err A, le r, f); OK x +_f OK y = OK z \<rbrakk> 
   \<Longrightarrow> x <=_r z";
 apply (rule OK_le_err_OK [THEN iffD1])
 apply (erule subst)
-apply simp
-done 
+apply (simp add:semilat.ub1)
+done
 
 lemma semilat_le_err_OK2:
   "\<lbrakk> x:A; y:A; semilat(err A, le r, f); OK x +_f OK y = OK z \<rbrakk> 
   \<Longrightarrow> y <=_r z"
 apply (rule OK_le_err_OK [THEN iffD1])
 apply (erule subst)
-apply simp
-done 
+apply (simp add:semilat.ub2)
+done
 
 lemma eq_order_le:
   "\<lbrakk> x=y; order r \<rbrakk> \<Longrightarrow> x <=_r y"
@@ -257,14 +263,14 @@ proof -
   have plus_le_conv3: "\<And>A x y z f r. 
     \<lbrakk> semilat (A,r,f); x +_f y <=_r z; x:A; y:A; z:A \<rbrakk> 
     \<Longrightarrow> x <=_r z \<and> y <=_r z"
-    by (rule plus_le_conv [THEN iffD1])
+    by (rule semilat.plus_le_conv [THEN iffD1])
   case rule_context
   thus ?thesis
   apply (rule_tac iffI)
    apply clarify
    apply (drule OK_le_err_OK [THEN iffD2])
    apply (drule OK_le_err_OK [THEN iffD2])
-   apply (drule semilat_lub)
+   apply (drule semilat.lub[of _ _ _ "OK x" _ "OK y"])
         apply assumption
        apply assumption
       apply simp
@@ -276,10 +282,10 @@ proof -
   apply (rename_tac z)
   apply (subgoal_tac "OK z: err A")
   apply (drule eq_order_le)
-    apply blast
+    apply (erule semilat.orderI)
    apply (blast dest: plus_le_conv3) 
   apply (erule subst)
-  apply (blast intro: closedD)
+  apply (blast intro: semilat.closedI closedD)
   done 
 qed
 

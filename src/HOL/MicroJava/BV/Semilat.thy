@@ -61,8 +61,13 @@ constdefs
 "is_lub r x y u == is_ub r x y u & (!z. is_ub r x y z \<longrightarrow> (u,z):r)"
 
  some_lub :: "('a*'a)set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-"some_lub r x y == SOME z. is_lub r x y z"
+"some_lub r x y == SOME z. is_lub r x y z";
 
+locale semilat =
+  fixes A :: "'a set"
+    and r :: "'a ord"
+    and f :: "'a binop"
+  assumes semilat: "semilat(A,r,f)"
 
 lemma order_refl [simp, intro]:
   "order r \<Longrightarrow> x <=_r x";
@@ -71,7 +76,7 @@ lemma order_refl [simp, intro]:
 lemma order_antisym:
   "\<lbrakk> order r; x <=_r y; y <=_r x \<rbrakk> \<Longrightarrow> x = y"
 apply (unfold order_def)
-apply (simp (no_asm_simp))  
+apply (simp (no_asm_simp))
 done
 
 lemma order_trans:
@@ -109,48 +114,44 @@ apply (unfold semilat_def split_conv [THEN eq_reflection])
 apply (rule refl [THEN eq_reflection])
 done
 
-lemma semilatDorderI [simp, intro]:
-  "semilat(A,r,f) \<Longrightarrow> order r"
-  by (simp add: semilat_Def)
+lemma (in semilat) orderI [simp, intro]:
+  "order r"
+  by (insert semilat) (simp add: semilat_Def)
 
-lemma semilatDclosedI [simp, intro]:
-  "semilat(A,r,f) \<Longrightarrow> closed A f"
-apply (unfold semilat_Def)
-apply simp
+lemma (in semilat) closedI [simp, intro]:
+  "closed A f"
+  by (insert semilat) (simp add: semilat_Def)
+
+lemma (in semilat) ub1 [simp]:
+  "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> x <=_r x +_f y"
+  by (insert semilat) (unfold semilat_Def, simp)
+
+lemma (in semilat) ub2 [simp]:
+  "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> y <=_r x +_f y"
+  by (insert semilat) (unfold semilat_Def, simp)
+
+lemma (in semilat) lub [simp]:
+ "\<lbrakk> x <=_r z; y <=_r z; x:A; y:A; z:A \<rbrakk> \<Longrightarrow> x +_f y <=_r z";
+  by (insert semilat) (unfold semilat_Def, simp)
+
+
+lemma (in semilat) plus_le_conv [simp]:
+  "\<lbrakk> x:A; y:A; z:A \<rbrakk> \<Longrightarrow> (x +_f y <=_r z) = (x <=_r z & y <=_r z)"
+apply (blast intro: ub1 ub2 lub order_trans)
 done
 
-lemma semilat_ub1 [simp]:
-  "\<lbrakk> semilat(A,r,f); x:A; y:A \<rbrakk> \<Longrightarrow> x <=_r x +_f y"
-  by (unfold semilat_Def, simp)
-
-lemma semilat_ub2 [simp]:
-  "\<lbrakk> semilat(A,r,f); x:A; y:A \<rbrakk> \<Longrightarrow> y <=_r x +_f y"
-  by (unfold semilat_Def, simp)
-
-lemma semilat_lub [simp]:
- "\<lbrakk> x <=_r z; y <=_r z; semilat(A,r,f); x:A; y:A; z:A \<rbrakk> \<Longrightarrow> x +_f y <=_r z";
-  by (unfold semilat_Def, simp)
-
-
-lemma plus_le_conv [simp]:
-  "\<lbrakk> x:A; y:A; z:A; semilat(A,r,f) \<rbrakk> 
-  \<Longrightarrow> (x +_f y <=_r z) = (x <=_r z & y <=_r z)"
-apply (unfold semilat_Def)
-apply (blast intro: semilat_ub1 semilat_ub2 semilat_lub order_trans)
-done
-
-lemma le_iff_plus_unchanged:
-  "\<lbrakk> x:A; y:A; semilat(A,r,f) \<rbrakk> \<Longrightarrow> (x <=_r y) = (x +_f y = y)"
+lemma (in semilat) le_iff_plus_unchanged:
+  "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> (x <=_r y) = (x +_f y = y)"
 apply (rule iffI)
- apply (intro semilatDorderI order_antisym semilat_lub order_refl semilat_ub2, assumption+)
+ apply (blast intro: order_antisym lub order_refl ub2);
 apply (erule subst)
 apply simp
-done 
+done
 
-lemma le_iff_plus_unchanged2:
-  "\<lbrakk> x:A; y:A; semilat(A,r,f) \<rbrakk> \<Longrightarrow> (x <=_r y) = (y +_f x = y)"
+lemma (in semilat) le_iff_plus_unchanged2:
+  "\<lbrakk> x:A; y:A \<rbrakk> \<Longrightarrow> (x <=_r y) = (y +_f x = y)"
 apply (rule iffI)
- apply (intro semilatDorderI order_antisym semilat_lub order_refl semilat_ub1, assumption+)
+ apply (blast intro: order_antisym lub order_refl ub1)
 apply (erule subst)
 apply simp
 done 
@@ -160,23 +161,22 @@ lemma closedD:
   "\<lbrakk> closed A f; x:A; y:A \<rbrakk> \<Longrightarrow> x +_f y : A"
 apply (unfold closed_def)
 apply blast
-done 
+done
 
 lemma closed_UNIV [simp]: "closed UNIV f"
   by (simp add: closed_def)
 
 
-lemma plus_assoc [simp]:
-  assumes semi: "semilat (A,r,f)"
+lemma (in semilat) plus_assoc [simp]:
   assumes a: "a \<in> A" and b: "b \<in> A" and c: "c \<in> A"
   shows "a +_f (b +_f c) = a +_f b +_f c"
 proof -
   have order: "order r" ..
   note order_trans [OF order,trans]
-  note closedD [OF semilatDclosedI [OF semi], intro]
-  note semilat_ub1 [OF semi, intro]
-  note semilat_ub2 [OF semi, intro]
-  note semilat_lub [OF _ _ semi, intro]
+  note closedD [OF closedI, intro]
+  note ub1 [intro]
+  note ub2 [intro]
+  note lub [intro]
 
   from a b have ab: "a +_f b \<in> A" ..
   from this c have abc: "(a +_f b) +_f c \<in> A" ..
@@ -186,7 +186,7 @@ proof -
   from order show ?thesis
   proof (rule order_antisym)
     show "a +_f (b +_f c) <=_r (a +_f b) +_f c"
-    proof -      
+    proof -
       from a b have "a <=_r a +_f b" .. 
       also from ab c have "\<dots> <=_r \<dots> +_f c" ..
       finally have "a<": "a <=_r (a +_f b) +_f c" .
@@ -212,28 +212,24 @@ proof -
   qed
 qed
 
-lemma plus_com_lemma:
-  "\<lbrakk>semilat (A,r,f); a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> a +_f b <=_r b +_f a"
+lemma (in semilat) plus_com_lemma:
+  "\<lbrakk>a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> a +_f b <=_r b +_f a"
 proof -
-  assume semi: "semilat (A,r,f)" and a: "a \<in> A" and b: "b \<in> A"  
-  from semi b a have "a <=_r b +_f a" by (rule semilat_ub2)
+  assume a: "a \<in> A" and b: "b \<in> A"  
+  from b a have "a <=_r b +_f a" by (rule ub2)
   moreover
-  from semi b a have "b <=_r b +_f a" by (rule semilat_ub1)
+  from b a have "b <=_r b +_f a" by (rule ub1)
   moreover
-  note semi a b
+  note a b
   moreover
-  from semi b a have "b +_f a \<in> A" by (rule closedD [OF semilatDclosedI])
+  from b a have "b +_f a \<in> A" by (rule closedD [OF closedI])
   ultimately
-  show ?thesis by (rule semilat_lub)
+  show ?thesis by (rule lub)
 qed
 
-lemma plus_commutative:
-  "\<lbrakk>semilat (A,r,f); a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> a +_f b = b +_f a"
-  apply (frule semilatDorderI)
-  apply (erule order_antisym)
-  apply (rule plus_com_lemma, assumption+)
-  apply (rule plus_com_lemma, assumption+)
-  done
+lemma (in semilat) plus_commutative:
+  "\<lbrakk>a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> a +_f b = b +_f a"
+by(blast intro: order_antisym plus_com_lemma)
 
 lemma is_lubD:
   "is_lub r x y u \<Longrightarrow> is_ub r x y u & (!z. is_ub r x y z \<longrightarrow> (u,z):r)"

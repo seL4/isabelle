@@ -279,15 +279,15 @@ proof -
   have
     "(\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). x <=_(le (subtype G)) x +_(lift2 (sup G)) y) \<and> 
      (\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). y <=_(le (subtype G)) x +_(lift2 (sup G)) y)"
-    by (auto simp add: lesub_def plussub_def le_def lift2_def sup_subtype_greater split: err.split)
+    by (auto simp add: lesub_def plussub_def Err.le_def lift2_def sup_subtype_greater split: err.split)
 
-  moreover    
+  moreover
 
   from wf_prog single_valued acyclic 
   have
     "\<forall>x\<in>err (types G). \<forall>y\<in>err (types G). \<forall>z\<in>err (types G). 
     x <=_(le (subtype G)) z \<and> y <=_(le (subtype G)) z \<longrightarrow> x +_(lift2 (sup G)) y <=_(le (subtype G)) z"
-    by (unfold lift2_def plussub_def lesub_def le_def)
+    by (unfold lift2_def plussub_def lesub_def Err.le_def)
        (auto intro: sup_subtype_smallest sup_exists split: err.split)
 
   ultimately

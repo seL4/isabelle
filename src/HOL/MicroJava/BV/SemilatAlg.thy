@@ -62,79 +62,71 @@ lemma list_update_le_listI [rule_format]:
   done
 
 
-lemma plusplus_closed: 
-  "\<And>y. \<lbrakk>semilat (A, r, f); set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> x ++_f y \<in> A"
+lemma plusplus_closed: includes semilat shows
+  "\<And>y. \<lbrakk> set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> x ++_f y \<in> A"
 proof (induct x)
   show "\<And>y. y \<in> A \<Longrightarrow> [] ++_f y \<in> A" by simp
   fix y x xs
-  assume sl: "semilat (A, r, f)" and y: "y \<in> A" and xs: "set (x#xs) \<subseteq> A"
-  assume IH: "\<And>y. \<lbrakk>semilat (A, r, f); set xs \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> xs ++_f y \<in> A"
-  from xs obtain x: "x \<in> A" and "set xs \<subseteq> A" by simp  
-  from sl x y have "(x +_f y) \<in> A" by (simp add: closedD)
-  with sl xs have "xs ++_f (x +_f y) \<in> A" by - (rule IH)
+  assume y: "y \<in> A" and xs: "set (x#xs) \<subseteq> A"
+  assume IH: "\<And>y. \<lbrakk> set xs \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> xs ++_f y \<in> A"
+  from xs obtain x: "x \<in> A" and "set xs \<subseteq> A" by simp
+  from semilat x y have "(x +_f y) \<in> A" by (simp add: closedD)
+  with semilat xs have "xs ++_f (x +_f y) \<in> A" by - (rule IH)
   thus "(x#xs) ++_f y \<in> A" by simp
 qed
 
-lemma ub2: "\<And>y. \<lbrakk>semilat (A, r, f); set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> y <=_r x ++_f y"
+lemma (in semilat) pp_ub2:
+ "\<And>y. \<lbrakk> set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> y <=_r x ++_f y"
 proof (induct x)
-  show "\<And>y. semilat(A, r, f) \<Longrightarrow> y <=_r [] ++_f y" by simp 
+  from semilat show "\<And>y. y <=_r [] ++_f y" by simp
   
   fix y a l
-  assume sl: "semilat (A, r, f)"
   assume y:  "y \<in> A"
   assume "set (a#l) \<subseteq> A"
-  then obtain a: "a \<in> A" and x: "set l \<subseteq> A" by simp 
-  assume "\<And>y. \<lbrakk>semilat (A, r, f); set l \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> y <=_r l ++_f y"
+  then obtain a: "a \<in> A" and x: "set l \<subseteq> A" by simp
+  assume "\<And>y. \<lbrakk>set l \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> y <=_r l ++_f y"
   hence IH: "\<And>y. y \<in> A \<Longrightarrow> y <=_r l ++_f y" .
 
-  from sl have "order r" .. note order_trans [OF this, trans]  
-  
-  from sl a y have "y <=_r a +_f y" by (rule semilat_ub2)
-  also
-  from sl a y have "a +_f y \<in> A" by (simp add: closedD)
+  have "order r" .. note order_trans [OF this, trans]
+
+  from a y have "y <=_r a +_f y" by (rule ub2)
+  also from a y have "a +_f y \<in> A" by (simp add: closedD)
   hence "(a +_f y) <=_r l ++_f (a +_f y)" by (rule IH)
-  finally
-  have "y <=_r l ++_f (a +_f y)" .
+  finally have "y <=_r l ++_f (a +_f y)" .
   thus "y <=_r (a#l) ++_f y" by simp
 qed
 
 
-lemma ub1: 
-  "\<And>y. \<lbrakk>semilat (A, r, f); set ls \<subseteq> A; y \<in> A; x \<in> set ls\<rbrakk> \<Longrightarrow> x <=_r ls ++_f y"
+lemma (in semilat) pp_ub1:
+shows "\<And>y. \<lbrakk>set ls \<subseteq> A; y \<in> A; x \<in> set ls\<rbrakk> \<Longrightarrow> x <=_r ls ++_f y"
 proof (induct ls)
   show "\<And>y. x \<in> set [] \<Longrightarrow> x <=_r [] ++_f y" by simp
-  
+
   fix y s ls
-  assume sl: "semilat (A, r, f)" 
-  hence "order r" .. note order_trans [OF this, trans]
+  have "order r" .. note order_trans [OF this, trans]
   assume "set (s#ls) \<subseteq> A"
   then obtain s: "s \<in> A" and ls: "set ls \<subseteq> A" by simp
   assume y: "y \<in> A" 
 
   assume 
-    "\<And>y. \<lbrakk>semilat (A, r, f); set ls \<subseteq> A; y \<in> A; x \<in> set ls\<rbrakk> \<Longrightarrow> x <=_r ls ++_f y"
+    "\<And>y. \<lbrakk>set ls \<subseteq> A; y \<in> A; x \<in> set ls\<rbrakk> \<Longrightarrow> x <=_r ls ++_f y"
   hence IH: "\<And>y. x \<in> set ls \<Longrightarrow> y \<in> A \<Longrightarrow> x <=_r ls ++_f y" .
 
   assume "x \<in> set (s#ls)"
   then obtain xls: "x = s \<or> x \<in> set ls" by simp
   moreover {
     assume xs: "x = s"
-    from sl s y have "s <=_r s +_f y" by (rule semilat_ub1)
-    also
-    from sl s y have "s +_f y \<in> A" by (simp add: closedD)
-    with sl ls have "(s +_f y) <=_r ls ++_f (s +_f y)" by (rule ub2)
-    finally 
-    have "s <=_r ls ++_f (s +_f y)" .
+    from s y have "s <=_r s +_f y" by (rule ub1)
+    also from s y have "s +_f y \<in> A" by (simp add: closedD)
+    with ls have "(s +_f y) <=_r ls ++_f (s +_f y)" by (rule pp_ub2)
+    finally have "s <=_r ls ++_f (s +_f y)" .
     with xs have "x <=_r ls ++_f (s +_f y)" by simp
   } 
   moreover {
     assume "x \<in> set ls"
     hence "\<And>y. y \<in> A \<Longrightarrow> x <=_r ls ++_f y" by (rule IH)
-    moreover
-    from sl s y
-    have "s +_f y \<in> A" by (simp add: closedD)
-    ultimately 
-    have "x <=_r ls ++_f (s +_f y)" .
+    moreover from s y have "s +_f y \<in> A" by (simp add: closedD)
+    ultimately have "x <=_r ls ++_f (s +_f y)" .
   }
   ultimately 
   have "x <=_r ls ++_f (s +_f y)" by blast
@@ -142,8 +134,8 @@ proof (induct ls)
 qed
 
 
-lemma lub:
-  assumes sl: "semilat (A, r, f)" and "z \<in> A"
+lemma (in semilat) pp_lub:
+  assumes "z \<in> A"
   shows 
   "\<And>y. y \<in> A \<Longrightarrow> set xs \<subseteq> A \<Longrightarrow> \<forall>x \<in> set xs. x <=_r z \<Longrightarrow> y <=_r z \<Longrightarrow> xs ++_f y <=_r z"
 proof (induct xs)
@@ -153,25 +145,25 @@ next
   then obtain l: "l \<in> A" and ls: "set ls \<subseteq> A" by auto
   assume "\<forall>x \<in> set (l#ls). x <=_r z"
   then obtain "l <=_r z" and lsz: "\<forall>x \<in> set ls. x <=_r z" by auto
-  assume "y <=_r z" have "l +_f y <=_r z" by (rule semilat_lub) 
+  assume "y <=_r z" have "l +_f y <=_r z" by (rule lub)
   moreover
-  from sl l y have "l +_f y \<in> A" by (fast intro: closedD)
+  from l y have "l +_f y \<in> A" by (fast intro: closedD)
   moreover
   assume "\<And>y. y \<in> A \<Longrightarrow> set ls \<subseteq> A \<Longrightarrow> \<forall>x \<in> set ls. x <=_r z \<Longrightarrow> y <=_r z
           \<Longrightarrow> ls ++_f y <=_r z"
   ultimately
-  have "ls ++_f (l +_f y) <=_r z" using ls lsz by - assumption
+  have "ls ++_f (l +_f y) <=_r z" by - (insert ls lsz)
   thus "(l#ls) ++_f y <=_r z" by simp
 qed
 
 
-lemma ub1': 
-  "\<lbrakk>semilat (A, r, f); \<forall>(p,s) \<in> set S. s \<in> A; y \<in> A; (a,b) \<in> set S\<rbrakk> 
+lemma ub1': includes semilat
+shows "\<lbrakk>\<forall>(p,s) \<in> set S. s \<in> A; y \<in> A; (a,b) \<in> set S\<rbrakk> 
   \<Longrightarrow> b <=_r map snd [(p', t')\<in>S. p' = a] ++_f y" 
 proof -
   let "b <=_r ?map ++_f y" = ?thesis
 
-  assume "semilat (A, r, f)" "y \<in> A"
+  assume "y \<in> A"
   moreover
   assume "\<forall>(p,s) \<in> set S. s \<in> A"
   hence "set ?map \<subseteq> A" by auto
@@ -179,7 +171,7 @@ proof -
   assume "(a,b) \<in> set S"
   hence "b \<in> set ?map" by (induct S, auto)
   ultimately
-  show ?thesis by - (rule ub1)
+  show ?thesis by - (rule pp_ub1)
 qed
     
  

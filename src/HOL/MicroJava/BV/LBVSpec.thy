@@ -105,7 +105,7 @@ lemma err_semilatDorderI [simp, intro]:
   "err_semilat (A,r,f) \<Longrightarrow> order r"
   apply (simp add: Err.sl_def)
   apply (rule order_le_err [THEN iffD1])
-  apply (rule semilatDorderI)
+  apply (rule semilat.orderI)
   apply assumption
   done
 
@@ -175,7 +175,8 @@ next
   also have "\<dots> = ?if ls ?if'" 
   proof -
     from l have "s' \<in> err (opt A)" by simp
-    with x semi have "(s' +|f x) \<in> err (opt A)" by (fast intro: closedD)
+    with x semi have "(s' +|f x) \<in> err (opt A)"
+      by (fast intro: semilat.closedI closedD)
     with x have "?if' \<in> err (opt A)" by auto
     hence "?P ls ?if'" by (rule IH) thus ?thesis by simp
   qed

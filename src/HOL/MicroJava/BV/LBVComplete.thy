@@ -110,8 +110,8 @@ proof-
     moreover    
     have mapD: "\<And>x ss. x \<in> set (?map ss) \<Longrightarrow> \<exists>p. (p,x) \<in> set ss \<and> p=pc+1" by auto
     from eosl x map1 
-    have "\<forall>x \<in> set (?map ss1). x \<le>|r (?sum ss1)" 
-      by clarify (rule ub1, simp add: Err.sl_def)
+    have "\<forall>x \<in> set (?map ss1). x \<le>|r (?sum ss1)"
+      by clarify (rule semilat.pp_ub1, simp add: Err.sl_def)
     with sum have "\<forall>x \<in> set (?map ss1). x \<le>|r (OK s1)" by simp
     with less have "\<forall>x \<in> set (?map ss2). x \<le>|r (OK s1)"
       apply clarify
@@ -127,7 +127,7 @@ proof-
       done
     moreover 
     from eosl map1 x have "x \<le>|r (?sum ss1)" 
-      by - (rule ub2, simp add: Err.sl_def)
+      by - (rule semilat.pp_ub2, simp add: Err.sl_def)
     with sum have "x \<le>|r (OK s1)" by simp
     moreover {
       have "set (?map ss2) \<subseteq> snd`(set ss2)" by auto
@@ -135,7 +135,7 @@ proof-
       finally have "set (?map ss2) \<subseteq> err (opt A)" . }
     ultimately
     have "?sum ss2 \<le>|r (OK s1)" using eosl x
-      by - (rule lub, simp add: Err.sl_def)
+      by - (rule semilat.pp_lub, simp add: Err.sl_def)
     also obtain s2 where sum2: "?sum ss2 = s2" by blast
     finally have "s2 \<le>|r (OK s1)" . 
     with sum2 have "\<exists>s2. ?sum ss2 = s2 \<and> s2 \<le>|r (OK s1)" by blast
@@ -295,7 +295,8 @@ proof -
     have "OK (cert!Suc pc) \<le>|r OK (phi!Suc pc)"     
       by (cases "cert!Suc pc") (simp, blast dest: fitsD2) 
     ultimately
-    have "?map ++|f OK (cert!Suc pc) \<le>|r OK (phi!Suc pc)" by (rule lub)
+    have "?map ++|f OK (cert!Suc pc) \<le>|r OK (phi!Suc pc)"
+      by (rule semilat.pp_lub)
     thus ?thesis by auto
   qed
   ultimately
@@ -386,7 +387,7 @@ proof -
     have "OK (cert!Suc pc) \<le>|r OK (phi!Suc pc)"     
       by (cases "cert!Suc pc") (simp, blast dest: fitsD2) 
     ultimately
-    have "?sum \<le>|r OK (phi!Suc pc)" by (rule lub)
+    have "?sum \<le>|r OK (phi!Suc pc)" by (rule semilat.pp_lub)
   }
   finally show ?thesis .
 qed

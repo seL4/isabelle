@@ -288,8 +288,8 @@ theorem semilat_JVM_slI:
   apply (rule err_semilat_upto_esl)
   apply (rule err_semilat_JType_esl, assumption+)
   apply (rule err_semilat_eslI)
-  apply (rule semilat_Listn_sl)
-  apply (rule err_semilat_JType_esl, assumption+)  
+  apply (rule Listn_sl)
+  apply (rule err_semilat_JType_esl, assumption+)
   done
 
 lemma sl_triple_conv:

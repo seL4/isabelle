@@ -283,30 +283,30 @@ apply (force simp add: nth_Cons split: list.split nat.split)
 done
 
 
-lemma plus_list_ub1 [rule_format]:
-  "\<lbrakk> semilat(A,r,f); set xs <= A; set ys <= A; size xs = size ys \<rbrakk> 
+lemma (in semilat) plus_list_ub1 [rule_format]:
+ "\<lbrakk> set xs <= A; set ys <= A; size xs = size ys \<rbrakk> 
   \<Longrightarrow> xs <=[r] xs +[f] ys"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
 done
 
-lemma plus_list_ub2:
-  "\<lbrakk> semilat(A,r,f); set xs <= A; set ys <= A; size xs = size ys \<rbrakk>
+lemma (in semilat) plus_list_ub2:
+ "\<lbrakk>set xs <= A; set ys <= A; size xs = size ys \<rbrakk>
   \<Longrightarrow> ys <=[r] xs +[f] ys"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
-done 
+done
 
-lemma plus_list_lub [rule_format]:
-  "semilat(A,r,f) \<Longrightarrow> !xs ys zs. set xs <= A \<longrightarrow> set ys <= A \<longrightarrow> set zs <= A 
+lemma (in semilat) plus_list_lub [rule_format]:
+shows "!xs ys zs. set xs <= A \<longrightarrow> set ys <= A \<longrightarrow> set zs <= A 
   \<longrightarrow> size xs = n & size ys = n \<longrightarrow> 
   xs <=[r] zs & ys <=[r] zs \<longrightarrow> xs +[f] ys <=[r] zs"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
-done 
+done
 
-lemma list_update_incr [rule_format]:
-  "\<lbrakk> semilat(A,r,f); x:A \<rbrakk> \<Longrightarrow> set xs <= A \<longrightarrow> 
+lemma (in semilat) list_update_incr [rule_format]:
+ "x:A \<Longrightarrow> set xs <= A \<longrightarrow> 
   (!i. i<size xs \<longrightarrow> xs <=[r] xs[i := x +_f xs!i])"
 apply (unfold unfold_lesub_list)
 apply (simp add: Listn.le_def list_all2_conv_all_nth)
@@ -315,7 +315,7 @@ apply (induct xs)
 apply (simp add: in_list_Suc_iff)
 apply clarify
 apply (simp add: nth_Cons split: nat.split)
-done 
+done
 
 lemma acc_le_listI [intro!]:
   "\<lbrakk> order r; acc r \<rbrakk> \<Longrightarrow> acc(Listn.le r)"
@@ -376,22 +376,23 @@ apply clarify
 apply (simp add: in_list_Suc_iff)
 apply clarify
 apply simp
-done 
+done
 
 
-lemma semilat_Listn_sl:
-  "\<And>L. semilat L \<Longrightarrow> semilat (Listn.sl n L)"
+lemma Listn_sl_aux:
+includes semilat shows "semilat (Listn.sl n (A,r,f))"
 apply (unfold Listn.sl_def)
-apply (simp (no_asm_simp) only: split_tupled_all)
 apply (simp (no_asm) only: semilat_Def split_conv)
 apply (rule conjI)
  apply simp
 apply (rule conjI)
- apply (simp only: semilatDclosedI closed_listI)
+ apply (simp only: closedI closed_listI)
 apply (simp (no_asm) only: list_def)
 apply (simp (no_asm_simp) add: plus_list_ub1 plus_list_ub2 plus_list_lub)
-done  
+done
 
+lemma Listn_sl: "\<And>L. semilat L \<Longrightarrow> semilat (Listn.sl n L)"
+ by(simp add: Listn_sl_aux split_tupled_all)
 
 lemma coalesce_in_err_list [rule_format]:
   "!xes. xes : list n (err A) \<longrightarrow> coalesce xes : err(list n A)"
@@ -443,7 +444,7 @@ apply (rotate_tac -3)
 apply (erule thin_rl)
 apply (erule thin_rl)
 apply force
-done 
+done
 
 lemma coalesce_eq_OK_ub_D [rule_format]:
   "semilat(err A, Err.le r, lift2 f) \<Longrightarrow> 
@@ -500,7 +501,7 @@ apply clarify
 apply (simp add: in_list_Suc_iff)
 apply clarify
 apply (simp add: plussub_def closed_err_lift2_conv)
-done 
+done
 
 lemma closed_lift2_sup:
   "closed (err A) (lift2 f) \<Longrightarrow> 
@@ -515,9 +516,9 @@ lemma err_semilat_sup:
 apply (unfold Err.sl_def)
 apply (simp only: split_conv)
 apply (simp (no_asm) only: semilat_Def plussub_def)
-apply (simp (no_asm_simp) only: semilatDclosedI closed_lift2_sup)
+apply (simp (no_asm_simp) only: semilat.closedI closed_lift2_sup)
 apply (rule conjI)
- apply (drule semilatDorderI)
+ apply (drule semilat.orderI)
  apply simp
 apply (simp (no_asm) only: unfold_lesub_err Err.le_def err_def sup_def lift2_def)
 apply (simp (no_asm_simp) add: coalesce_eq_OK1_D coalesce_eq_OK2_D split: err.split)

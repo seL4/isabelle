@@ -43,36 +43,34 @@ primrec
 "merges f (p'#ps) ss = (let (p,s) = p' in merges f ps (ss[p := s +_f ss!p]))"
 
 
-lemmas [simp] = Let_def le_iff_plus_unchanged [symmetric]
+lemmas [simp] = Let_def semilat.le_iff_plus_unchanged [symmetric]
 
 
-lemma nth_merges:
-  "\<And>ss. \<lbrakk> semilat (A, r, f); p < length ss; ss \<in> list n A; 
-            \<forall>(p,t)\<in>set ps. p<n \<and> t\<in>A \<rbrakk> \<Longrightarrow>
+lemma (in semilat) nth_merges:
+ "\<And>ss. \<lbrakk>p < length ss; ss \<in> list n A; \<forall>(p,t)\<in>set ps. p<n \<and> t\<in>A \<rbrakk> \<Longrightarrow>
   (merges f ps ss)!p = map snd [(p',t') \<in> ps. p'=p] ++_f ss!p"
-  (is "\<And>ss. _ \<Longrightarrow> _ \<Longrightarrow> _ \<Longrightarrow> ?steptype ps \<Longrightarrow> ?P ss ps")
+  (is "\<And>ss. \<lbrakk>_; _; ?steptype ps\<rbrakk> \<Longrightarrow> ?P ss ps")
 proof (induct ps)
   show "\<And>ss. ?P ss []" by simp
 
   fix ss p' ps'
-  assume sl: "semilat (A, r, f)"
   assume ss: "ss \<in> list n A"
   assume l:  "p < length ss"
   assume "?steptype (p'#ps')"
   then obtain a b where
     p': "p'=(a,b)" and ab: "a<n" "b\<in>A" and "?steptype ps'"
     by (cases p', auto)
-  assume "\<And>ss. semilat (A,r,f) \<Longrightarrow> p < length ss \<Longrightarrow> ss \<in> list n A \<Longrightarrow> ?steptype ps' \<Longrightarrow> ?P ss ps'"
+  assume "\<And>ss. p< length ss \<Longrightarrow> ss \<in> list n A \<Longrightarrow> ?steptype ps' \<Longrightarrow> ?P ss ps'"
   hence IH: "\<And>ss. ss \<in> list n A \<Longrightarrow> p < length ss \<Longrightarrow> ?P ss ps'" .
 
-  from sl ss ab
+  from ss ab
   have "ss[a := b +_f ss!a] \<in> list n A" by (simp add: closedD)
   moreover
   from calculation
   have "p < length (ss[a := b +_f ss!a])" by simp
   ultimately
   have "?P (ss[a := b +_f ss!a]) ps'" by (rule IH)
-  with p' l 
+  with p' l
   show "?P ss (p'#ps')" by simp
 qed
 
@@ -84,47 +82,43 @@ lemma length_merges [rule_format, simp]:
   by (induct_tac ps, auto)
 
 
-lemma merges_preserves_type_lemma: 
-  "semilat(A,r,f) \<Longrightarrow>
-     \<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x) \<in> set ps. p<n \<and> x\<in>A)
-          \<longrightarrow> merges f ps xs \<in> list n A" 
-  apply (frule semilatDclosedI) 
-  apply (unfold closed_def) 
-  apply (induct_tac ps)
-   apply simp
-  apply clarsimp
-  done
+lemma (in semilat) merges_preserves_type_lemma:
+shows "\<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x) \<in> set ps. p<n \<and> x\<in>A)
+          \<longrightarrow> merges f ps xs \<in> list n A"
+apply (insert closedI)
+apply (unfold closed_def)
+apply (induct_tac ps)
+ apply simp
+apply clarsimp
+done
 
-lemma merges_preserves_type [simp]:
-  "\<lbrakk> semilat(A,r,f); xs \<in> list n A; \<forall>(p,x) \<in> set ps. p<n \<and> x\<in>A \<rbrakk>
+lemma (in semilat) merges_preserves_type [simp]:
+ "\<lbrakk> xs \<in> list n A; \<forall>(p,x) \<in> set ps. p<n \<and> x\<in>A \<rbrakk>
   \<Longrightarrow> merges f ps xs \<in> list n A"
-  by (simp add: merges_preserves_type_lemma)
-  
-lemma merges_incr_lemma:
-  "semilat(A,r,f) \<Longrightarrow> 
-     \<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x)\<in>set ps. p<size xs \<and> x \<in> A) \<longrightarrow> xs <=[r] merges f ps xs"
-  apply (induct_tac ps)
-   apply simp
-  apply simp
-  apply clarify
-  apply (rule order_trans)
-    apply simp
-   apply (erule list_update_incr)
-     apply assumption
-    apply simp
-   apply simp
-  apply (blast intro!: listE_set intro: closedD listE_length [THEN nth_in])
-  done
+by (simp add: merges_preserves_type_lemma)
 
-lemma merges_incr:
-  "\<lbrakk> semilat(A,r,f); xs \<in> list n A; \<forall>(p,x)\<in>set ps. p<size xs \<and> x \<in> A \<rbrakk> 
+lemma (in semilat) merges_incr_lemma:
+ "\<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x)\<in>set ps. p<size xs \<and> x \<in> A) \<longrightarrow> xs <=[r] merges f ps xs"
+apply (induct_tac ps)
+ apply simp
+apply simp
+apply clarify
+apply (rule order_trans)
+  apply simp
+ apply (erule list_update_incr)
+  apply simp
+ apply simp
+apply (blast intro!: listE_set intro: closedD listE_length [THEN nth_in])
+done
+
+lemma (in semilat) merges_incr:
+ "\<lbrakk> xs \<in> list n A; \<forall>(p,x)\<in>set ps. p<size xs \<and> x \<in> A \<rbrakk> 
   \<Longrightarrow> xs <=[r] merges f ps xs"
   by (simp add: merges_incr_lemma)
 
 
-lemma merges_same_conv [rule_format]:
-  "semilat(A,r,f) \<Longrightarrow> 
-     (\<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x)\<in>set ps. p<size xs \<and> x\<in>A) \<longrightarrow> 
+lemma (in semilat) merges_same_conv [rule_format]:
+ "(\<forall>xs. xs \<in> list n A \<longrightarrow> (\<forall>(p,x)\<in>set ps. p<size xs \<and> x\<in>A) \<longrightarrow> 
      (merges f ps xs = xs) = (\<forall>(p,x)\<in>set ps. x <=_r xs!p))"
   apply (induct_tac ps)
    apply simp
@@ -135,7 +129,6 @@ lemma merges_same_conv [rule_format]:
     apply (subgoal_tac "xs[p := x +_f xs!p] <=[r] xs")
      apply (force dest!: le_listD simp add: nth_list_update)
     apply (erule subst, rule merges_incr)
-        apply assumption
        apply (blast intro!: listE_set intro: closedD listE_length [THEN nth_in])
       apply clarify
       apply (rule conjI)
@@ -158,24 +151,22 @@ lemma merges_same_conv [rule_format]:
   done
 
 
-lemma list_update_le_listI [rule_format]:
+lemma (in semilat) list_update_le_listI [rule_format]:
   "set xs <= A \<longrightarrow> set ys <= A \<longrightarrow> xs <=[r] ys \<longrightarrow> p < size xs \<longrightarrow>  
-   x <=_r ys!p \<longrightarrow> semilat(A,r,f) \<longrightarrow> x\<in>A \<longrightarrow> 
-   xs[p := x +_f xs!p] <=[r] ys"
+   x <=_r ys!p \<longrightarrow> x\<in>A \<longrightarrow> xs[p := x +_f xs!p] <=[r] ys"
+  apply(insert semilat)
   apply (unfold Listn.le_def lesub_def semilat_def)
   apply (simp add: list_all2_conv_all_nth nth_list_update)
   done
 
-lemma merges_pres_le_ub:
-  "\<lbrakk> semilat(A,r,f); set ts <= A; set ss <= A; 
-     \<forall>(p,t)\<in>set ps. t <=_r ts!p \<and> t \<in> A \<and> p < size ts; 
-     ss <=[r] ts \<rbrakk> 
+lemma (in semilat) merges_pres_le_ub:
+shows "\<lbrakk> set ts <= A; set ss <= A;
+         \<forall>(p,t)\<in>set ps. t <=_r ts!p \<and> t \<in> A \<and> p < size ts; ss <=[r] ts \<rbrakk>
   \<Longrightarrow> merges f ps ss <=[r] ts"
 proof -
-  { fix A r f t ts ps
+  { fix t ts ps
     have
-    "\<And>qs. \<lbrakk> semilat(A,r,f); set ts <= A; 
-              \<forall>(p,t)\<in>set ps. t <=_r ts!p \<and> t \<in> A \<and> p < size ts \<rbrakk> \<Longrightarrow> 
+    "\<And>qs. \<lbrakk>set ts <= A; \<forall>(p,t)\<in>set ps. t <=_r ts!p \<and> t \<in> A \<and> p< size ts \<rbrakk> \<Longrightarrow>
     set qs <= set ps  \<longrightarrow> 
     (\<forall>ss. set ss <= A \<longrightarrow> ss <=[r] ts \<longrightarrow> merges f qs ss <=[r] ts)"
     apply (induct_tac qs)
@@ -218,8 +209,8 @@ lemma decomp_propa:
 
 (** iter **)
 
-lemma stable_pres_lemma:
-  "\<lbrakk> semilat (A,r,f); pres_type step n A; bounded step n; 
+lemma (in semilat) stable_pres_lemma:
+shows "\<lbrakk>pres_type step n A; bounded step n; 
      ss \<in> list n A; p \<in> w; \<forall>q\<in>w. q < n; 
      \<forall>q. q < n \<longrightarrow> q \<notin> w \<longrightarrow> stable r step ss q; q < n; 
      \<forall>s'. (q,s') \<in> set (step p (ss ! p)) \<longrightarrow> s' +_f ss ! q = ss ! q; 
@@ -237,8 +228,7 @@ lemma stable_pres_lemma:
    apply simp
   apply simp
   apply clarify
-  apply (subst nth_merges) 
-        apply assumption
+  apply (subst nth_merges)
        apply simp
        apply (blast dest: boundedD)
       apply assumption
@@ -248,10 +238,11 @@ lemma stable_pres_lemma:
      apply (erule pres_typeD)
        prefer 3 apply assumption
       apply simp
-     apply simp 
-  apply (frule nth_merges [of _ _ _ q _ _ "step p (ss!p)"]) (* fixme: why does method subst not work?? *)
-    prefer 2 apply assumption
-   apply simp
+     apply simp
+apply(subgoal_tac "q < length ss")
+prefer 2 apply simp
+  apply (frule nth_merges [of q _ _ "step p (ss!p)"]) (* fixme: why does method subst not work?? *)
+apply assumption
   apply clarify
   apply (rule conjI)
    apply (blast dest: boundedD)
@@ -281,8 +272,8 @@ lemma stable_pres_lemma:
  apply (rule order_trans)
    apply simp
   defer
- apply (rule ub2)
-    apply assumption
+ apply (rule pp_ub2)(*
+    apply assumption*)
    apply simp
    apply clarify
    apply simp
@@ -294,16 +285,15 @@ lemma stable_pres_lemma:
   apply (blast intro: listE_nth_in dest: boundedD)
  apply blast
  done
- 
-  
-lemma merges_bounded_lemma:
-  "\<lbrakk> semilat (A,r,f); mono r step n A; bounded step n; 
-     \<forall>(p',s') \<in> set (step p (ss!p)). s' \<in> A; ss \<in> list n A; ts \<in> list n A; p < n; 
-     ss <=[r] ts; \<forall>p. p < n \<longrightarrow> stable r step ts p \<rbrakk> 
+
+
+lemma (in semilat) merges_bounded_lemma:
+ "\<lbrakk> mono r step n A; bounded step n; 
+    \<forall>(p',s') \<in> set (step p (ss!p)). s' \<in> A; ss \<in> list n A; ts \<in> list n A; p < n; 
+    ss <=[r] ts; \<forall>p. p < n \<longrightarrow> stable r step ts p \<rbrakk> 
   \<Longrightarrow> merges f (step p (ss!p)) ss <=[r] ts" 
   apply (unfold stable_def)
   apply (rule merges_pres_le_ub)
-      apply assumption
      apply simp
     apply simp
    prefer 2 apply assumption
@@ -326,10 +316,11 @@ lemma merges_bounded_lemma:
   apply (blast intro: order_trans)
   done
 
-lemma termination_lemma:  
-  "\<lbrakk> semilat(A,r,f); ss \<in> list n A; \<forall>(q,t)\<in>set qs. q<n \<and> t\<in>A; p\<in>w \<rbrakk> \<Longrightarrow> 
+lemma termination_lemma: includes semilat
+shows "\<lbrakk> ss \<in> list n A; \<forall>(q,t)\<in>set qs. q<n \<and> t\<in>A; p\<in>w \<rbrakk> \<Longrightarrow> 
       ss <[r] merges f qs ss \<or> 
   merges f qs ss = ss \<and> {q. \<exists>t. (q,t)\<in>set qs \<and> t +_f ss!q \<noteq> ss!q} Un (w-{p}) < w"
+apply(insert semilat)
   apply (unfold lesssub_def)
   apply (simp (no_asm_simp) add: merges_incr)
   apply (rule impI)
@@ -346,14 +337,15 @@ lemma termination_lemma:
    apply clarsimp
   done 
 
-lemma iter_properties[rule_format]:
-  "\<lbrakk> semilat(A,r,f); acc r ; pres_type step n A; mono r step n A;
+lemma iter_properties[rule_format]: includes semilat
+shows "\<lbrakk> acc r ; pres_type step n A; mono r step n A;
      bounded step n; \<forall>p\<in>w0. p < n; ss0 \<in> list n A;
      \<forall>p<n. p \<notin> w0 \<longrightarrow> stable r step ss0 p \<rbrakk> \<Longrightarrow>
    iter f step ss0 w0 = (ss',w')
    \<longrightarrow>
    ss' \<in> list n A \<and> stables r step ss' \<and> ss0 <=[r] ss' \<and>
    (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step ts \<longrightarrow> ss' <=[r] ts)"
+apply(insert semilat)
 apply (unfold iter_def stables_def)
 apply (rule_tac P = "%(ss,w).
  ss \<in> list n A \<and> (\<forall>p<n. p \<notin> w \<longrightarrow> stable r step ss p) \<and> ss0 <=[r] ss \<and>
@@ -363,7 +355,7 @@ apply (rule_tac P = "%(ss,w).
        in while_rule)
 
 -- "Invariant holds initially:"
-apply (simp add:stables_def) 
+apply (simp add:stables_def)
 
 -- "Invariant is preserved:"
 apply(simp add: stables_def split_paired_all)
@@ -385,8 +377,8 @@ apply (subst decomp_propa)
  apply blast
 apply simp
 apply (rule conjI)
- apply (erule merges_preserves_type)
- apply blast 
+ apply (rule merges_preserves_type)
+ apply blast
  apply clarify
  apply (rule conjI)
   apply(clarsimp, blast dest!: boundedD)
@@ -396,10 +388,10 @@ apply (rule conjI)
   apply (erule listE_nth_in)
   apply blast
  apply blast
-apply (rule conjI) 
- apply clarify 
+apply (rule conjI)
+ apply clarify
  apply (blast intro!: stable_pres_lemma)
-apply (rule conjI) 
+apply (rule conjI)
  apply (blast intro!: merges_incr intro: le_list_trans)
 apply (rule conjI)
  apply clarsimp
@@ -408,11 +400,11 @@ apply (blast dest!: boundedD)
 
 
 -- "Postcondition holds upon termination:"
-apply(clarsimp simp add: stables_def split_paired_all) 
+apply(clarsimp simp add: stables_def split_paired_all)
 
 -- "Well-foundedness of the termination relation:"
 apply (rule wf_lex_prod)
- apply (drule (1) semilatDorderI [THEN acc_le_listI])
+ apply (insert orderI [THEN acc_le_listI])
  apply (simp only: acc_def lesssub_def)
 apply (rule wf_finite_psubset) 
 
@@ -434,7 +426,7 @@ apply(subgoal_tac "\<forall>(q,t) \<in> set (step (SOME p. p \<in> w) (ss ! (SOM
  apply blast
 apply (subst decomp_propa)
  apply blast
-apply clarify 
+apply clarify
 apply (simp del: listE_length
     add: lex_prod_def finite_psubset_def 
          bounded_nat_set_is_finite)
@@ -444,11 +436,11 @@ defer
 apply assumption
 apply clarsimp
 apply (blast dest!: boundedD)
-done   
+done
 
 
-lemma kildall_properties:
-  "\<lbrakk> semilat(A,r,f); acc r; pres_type step n A; mono r step n A;
+lemma kildall_properties: includes semilat
+shows "\<lbrakk> acc r; pres_type step n A; mono r step n A;
      bounded step n; ss0 \<in> list n A \<rbrakk> \<Longrightarrow>
   kildall r f step ss0 \<in> list n A \<and>
   stables r step (kildall r f step ss0) \<and>
@@ -459,16 +451,14 @@ apply (unfold kildall_def)
 apply(case_tac "iter f step ss0 (unstables r step ss0)")
 apply(simp)
 apply (rule iter_properties)
-apply (simp_all add: unstables_def stable_def)
-done
+by (simp_all add: unstables_def stable_def)
 
-lemma is_bcv_kildall:
-  "\<lbrakk> semilat(A,r,f); acc r; top r T; 
-      pres_type step n A; bounded step n; 
-      mono r step n A \<rbrakk>
+
+lemma is_bcv_kildall: includes semilat
+shows "\<lbrakk> acc r; top r T; pres_type step n A; bounded step n; mono r step n A \<rbrakk>
   \<Longrightarrow> is_bcv r T step n A (kildall r f step)"
 apply(unfold is_bcv_def wt_step_def)
-apply(insert kildall_properties[of A])
+apply(insert semilat kildall_properties[of A])
 apply(simp add:stables_def)
 apply clarify
 apply(subgoal_tac "kildall r f step ss \<in> list n A")
@@ -476,9 +466,9 @@ apply(subgoal_tac "kildall r f step ss \<in> list n A")
 apply (rule iffI)
  apply (rule_tac x = "kildall r f step ss" in bexI) 
   apply (rule conjI)
-   apply blast
+   apply (blast)
   apply (simp  (no_asm_simp))
- apply assumption
+ apply(assumption)
 apply clarify
 apply(subgoal_tac "kildall r f step ss!p <=_r ts!p")
  apply simp
