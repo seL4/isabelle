@@ -1,20 +1,20 @@
 %!PS-Adobe-3.0 EPSF-3.0
-%%BoundingBox: 116 648 289 789
-%%Title: (set-I figures-Layer#1)
-%%Creator: (MacDraw II 1.1: LaserWriter 8 8.1.1)
-%%CreationDate: (11:19 am Sunday, January 9, 1994)
-%%For: ()
+%%BoundingBox: 106 651 274 788
+%%Title: (Isa-logics)
+%%Creator: (ClarisDraw: LaserWriter 8 8.1.1)
+%%CreationDate: (9:19 pm Wednesday, April 24, 1996)
+%%For: (Larry)
 %%Pages: 1
-%%DocumentFonts: Helvetica
-%%DocumentNeededFonts: Helvetica
+%%DocumentFonts: Times-Roman
+%%DocumentNeededFonts: Times-Roman
 %%DocumentSuppliedFonts:
 %%DocumentData: Clean7Bit
 %%PageOrder: Ascend
 %%Orientation: Portrait
-%ADO_PaperArea: -129 -117 3379 2362
-%ADO_ImageableArea: 0 0 3254 2242
+%ADO_PaperArea: -124 -112 3244 2268
+%ADO_ImageableArea: 0 0 3124 2152
 %%EndComments
-/md 150 dict def md begin
+/md 148 dict def md begin
 /currentpacking where {pop /sc_oldpacking currentpacking def true setpacking}if
 %%BeginFile: adobe_psp_basic
 %%Copyright: Copyright 1990-1993 Adobe Systems Incorporated. All Rights Reserved.
@@ -522,53 +522,231 @@ end		% md
 %%EndProlog
 %%BeginSetup
 md begin
-/pT[1 0 0 -1 28.079 810.927]def/mT[.24 0 0 -.24 28.079 810.927]def
+/pT[1 0 0 -1 28 811]def/mT[.25 0 0 -.25 28 811]def
 /sD 16 dict def
-%%IncludeFont: Helvetica
-/f0_1/Helvetica :mre
-/f0_42 f0_1 42 scf
+%%IncludeFont: Times-Roman
+/f0_1/Times-Roman :mre
+/f0_40 f0_1 40 scf
 /Courier findfont[10 0 0 -10 0 0]:mf setfont
+%PostScript Hack by Mike Brors 12/7/90
+/DisableNextSetRGBColor
+	{
+	userdict begin
+	/setrgbcolor 
+		{
+		pop
+		pop
+		pop
+		userdict begin
+		/setrgbcolor systemdict /setrgbcolor get def
+		end
+		} def
+	end
+} bind def
+/bcarray where {
+	pop
+	bcarray 2 {
+		/da 4 ps div def
+		df setfont gsave cs wi
+		1 index 0 ne{exch da add exch}if grestore setcharwidth
+		cs 0 0 smc da 0 smc da da smc 0 da smc c
+		gray
+		{ gl}
+		{1 setgray}ifelse
+		da 2. div dup moveto show
+	}bind put
+} if
+%
+% Used to snap to device pixels, 1/4th of the pixel in.
+/stp {  % x y  pl  x y                % Snap To Pixel, pixel  (auto stroke adjust)
+	transform
+	0.25 sub round 0.25 add exch
+	0.25 sub round 0.25 add exch
+	itransform
+} bind def
+
+/snapmoveto { % x y  m  -             % moveto, auto stroke adjust
+	stp  moveto
+} bind def
+
+/snaplineto { % x y  l  -             % lineto, auto stroke adjust
+	stp lineto
+} bind def
 %%EndSetup
 %%Page: 1 1
 %%BeginPageSetup
 initializepage
 %%EndPageSetup
-gS 0 0 2242 3254 rC
+gS 0 0 2152 3124 rC
 0 0 :M
-0 setlinecap
-currentscreen
-3 1 roll pop pop 60 45 3 -1 roll setscreen
-601 638 :M
-f0_42 sf
--.005(Pure Isabelle)A
+.25 0 translate
+/DrawObject_save_matrix_0 matrix currentmatrix def
+0 0 2152 2912 rC
+-40 -12 :M
+DrawObject_save_matrix_0 setmatrix
+/DrawObject_save_matrix_0 matrix currentmatrix def
+-40 -12 :M
+/DrawObject_save_matrix_1 matrix currentmatrix def
+0 0 2152 2911 rC
+-40 -12 :M
+/DrawObject_save_matrix_2 matrix currentmatrix def
+-40 -12 :M
+DrawObject_save_matrix_2 setmatrix
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+558 556 208 48 rC
+558 556 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+gR
+gS 553 520 218 84 rC
+558 592 :M
+f0_40 sf
+-.055(Pure Isabelle)A
+gR
+gS 0 0 2152 2912 rC
 4 lw
-563 563 900 675 35.5 @s
-486 452 -4 4 602 561 4 486 448 @a
--4 -4 865 565 4 4 973 448 @b
-654 452 -4 4 677 561 4 654 448 @a
--4 -4 790 565 4 4 804 448 @b
-434 434 :M
--.447(IFOL)A
-622 434 :M
--.816(CTT)A
-772 434 :M
--.669(HOL)A
-959 434 :M
--1.362(LK)A
--4 -4 996 377 4 4 992 298 @b
-392 152 -4 4 452 223 4 392 148 @a
--4 -4 490 227 4 4 542 148 @b
-376 134 :M
--1.311(ZF)A
-509 134 :M
--.662(LCF)A
-939 225 :M
--.335(Modal)A
-939 279 :M
--.268(logics)A
--4 -4 471 377 4 4 467 298 @b
-434 284 :M
--.836(FOL)A
+518 528 806 636 32 @s
+168 24 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+426 422 -4 4 538 526 4 426 418 @a
+426 418 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+-4 -4 790 530 4 4 894 418 @b
+786 526 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+588 422 -4 4 610 526 4 588 418 @a
+588 418 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+-4 -4 718 530 4 4 732 418 @b
+714 526 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+376 364 92 48 rC
+376 364 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+gR
+gS 371 328 102 84 rC
+376 400 :M
+f0_40 sf
+-.286(IFOL)A
+gR
+gS 556 364 76 48 rC
+556 364 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+gR
+gS 551 328 86 84 rC
+556 400 :M
+f0_40 sf
+-.273(CTT)A
+gR
+gS 700 364 84 48 rC
+700 364 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+gR
+gS 695 328 94 84 rC
+700 400 :M
+f0_40 sf
+-.094(HOL)A
+gR
+gS 880 364 56 48 rC
+880 364 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+gR
+gS 875 328 66 84 rC
+880 400 :M
+f0_40 sf
+-.311(LK)A
+gR
+gS 0 0 2152 2912 rC
+-4 -4 916 361 4 4 912 285 @b
+4 lw
+912 357 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+320 94 :M
+/DrawObject_save_matrix_2 matrix currentmatrix def
+336 152 -4 4 394 220 4 336 148 @a
+336 148 :M
+DrawObject_save_matrix_2 setmatrix
+/DrawObject_save_matrix_2 matrix currentmatrix def
+-4 -4 430 224 4 4 480 148 @b
+426 220 :M
+DrawObject_save_matrix_2 setmatrix
+/DrawObject_save_matrix_2 matrix currentmatrix def
+320 94 48 48 rC
+320 94 :M
+DrawObject_save_matrix_2 setmatrix
+/DrawObject_save_matrix_2 matrix currentmatrix def
+gR
+gS 315 58 58 84 rC
+320 130 :M
+f0_40 sf
+-.67(ZF)A
+gR
+gS 448 94 76 48 rC
+448 94 :M
+DrawObject_save_matrix_2 setmatrix
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+gR
+gS 443 58 86 84 rC
+448 130 :M
+f0_40 sf
+-.175(LCF)A
+gR
+gS 860 178 116 96 rC
+gR
+gS 855 142 126 132 rC
+860 214 :M
+f0_40 sf
+-.106(Modal)A
+975 262 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+860 262 :M
+-.077(  logics)A
+gR
+gS 0 0 2152 2912 rC
+-4 -4 412 360 4 4 408 284 @b
+4 lw
+408 356 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+376 228 76 48 rC
+376 228 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+gR
+gS 371 192 86 84 rC
+376 264 :M
+f0_40 sf
+-.273(FOL)A
+gR
+gS 680 230 132 48 rC
+680 230 :M
+DrawObject_save_matrix_1 setmatrix
+/DrawObject_save_matrix_1 matrix currentmatrix def
+gR
+gS 675 194 142 84 rC
+680 266 :M
+f0_40 sf
+-.026(HOLCF)A
+gR
+gS 0 0 2152 2912 rC
+-4 -4 748 361 4 4 744 285 @b
+4 lw
+744 357 :M
+DrawObject_save_matrix_1 setmatrix
+DrawObject_save_matrix_0 setmatrix
 endp
 %%Trailer
 end		% md
