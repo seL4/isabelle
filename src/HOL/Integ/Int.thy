@@ -235,7 +235,7 @@ apply (drule sym)
 apply (simp_all (no_asm_simp))
 done
 
-lemma zle_iff_zadd: "(w \<le> z) = (EX n. z = w + int n)"
+lemma zle_iff_zadd: "(w \<le> z) = (\<exists>n. z = w + int n)"
 by (force intro: exI [of _ "0::nat"] 
             intro!: not_sym [THEN not0_implies_Suc]
             simp add: zless_iff_Suc_zadd int_le_less)
@@ -321,44 +321,9 @@ lemma zmult_cancel1 [simp]: "(k*m = k*n) = (k = (0::int) | m=n)"
  by (rule Ring_and_Field.mult_cancel_left)
 
 
-subsection{*For the @{text abel_cancel} Simproc (DELETE)*}
-
-(* Lemmas needed for the simprocs *)
-
-(** The idea is to cancel like terms on opposite sides by subtraction **)
-
-lemma zless_eqI: "(x::int) - y = x' - y' ==> (x<y) = (x'<y')"
-by (simp add: zless_def)
-
-lemma zle_eqI: "(x::int) - y = x' - y' ==> (y<=x) = (y'<=x')"
-apply (drule zless_eqI)
-apply (simp (no_asm_simp) add: zle_def)
-done
-
-lemma zeq_eqI: "(x::int) - y = x' - y' ==> (x=y) = (x'=y')"
-apply safe
-apply (simp_all add: eq_diff_eq diff_eq_eq)
-done
-
-(*Deletion of other terms in the formula, seeking the -x at the front of z*)
-lemma zadd_cancel_21: "((x::int) + (y + z) = y + u) = ((x + z) = u)"
-apply (subst zadd_left_commute)
-apply (rule zadd_left_cancel)
-done
-
-(*A further rule to deal with the case that
-  everything gets cancelled on the right.*)
-lemma zadd_cancel_end: "((x::int) + (y + z) = y) = (x = -z)"
-apply (subst zadd_left_commute)
-apply (rule_tac t = y in zadd_0_right [THEN subst], subst zadd_left_cancel)
-apply (simp add: eq_diff_eq [symmetric])
-done
-
-
-
 text{*A case theorem distinguishing non-negative and negative int*}
 
-lemma negD: "neg x ==> EX n. x = - (int (Suc n))"
+lemma negD: "neg x ==> \<exists>n. x = - (int (Suc n))"
 by (auto simp add: neg_eq_less_0 zless_iff_Suc_zadd 
                    diff_eq_eq [symmetric] zdiff_def)
 
@@ -375,10 +340,6 @@ ML
 {*
 val zabs_def = thm "zabs_def"
 val nat_def  = thm "nat_def"
-
-val zless_eqI = thm "zless_eqI";
-val zle_eqI = thm "zle_eqI";
-val zeq_eqI = thm "zeq_eqI";
 
 val int_0 = thm "int_0";
 val int_1 = thm "int_1";

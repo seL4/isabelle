@@ -85,7 +85,7 @@ done
 declare real_of_int_mult [symmetric, simp]
 
 lemma real_of_int_Suc: "real (int (Suc n)) = real (int n) + (1::real)"
-by (simp add: real_of_one [symmetric] zadd_int zadd_ac)
+by (simp add: real_of_one [symmetric] zadd_int add_ac)
 
 declare real_of_one [simp]
 
@@ -105,6 +105,10 @@ by (auto intro: inj_real_of_int [THEN injD]
 lemma real_of_int_less_cancel: "real (x::int) < real y ==> x < y"
 apply (rule ccontr, drule linorder_not_less [THEN iffD1])
 apply (auto simp add: zle_iff_zadd real_of_int_add [symmetric] real_of_int_real_of_nat linorder_not_le [symmetric])
+apply (subgoal_tac "~ real y + 0 \<le> real y + real n") 
+ prefer 2 apply (simp add: ); 
+apply (simp only: add_le_cancel_left) 
+apply (simp add: ); 
 done
 
 lemma real_of_int_inject [iff]: "(real (x::int) = real y) = (x = y)"

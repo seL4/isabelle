@@ -1,9 +1,6 @@
 theory RealArith = RealArith0
 files ("real_arith.ML"):
 
-lemma real_divide_1: "(x::real)/1 = x"
-by (simp add: real_divide_def)
-
 use "real_arith.ML"
 
 setup real_arith_setup
@@ -283,6 +280,7 @@ apply (rule_tac x1 = y in real_add_left_commute [THEN ssubst])
 apply (rule real_add_assoc [THEN subst])
 apply (rule abs_triangle_ineq)
 done
+
 
 
 ML

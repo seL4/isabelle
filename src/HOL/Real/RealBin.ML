@@ -156,11 +156,11 @@ AddIffs [real_of_nat_zero_iff];
 (** Simplification of arithmetic when nested to the right **)
 
 Goal "number_of v + (number_of w + z) = (number_of(bin_add v w) + z::real)";
-by Auto_tac;
+by (asm_full_simp_tac (simpset() addsimps [add_assoc RS sym]) 1); 
 qed "real_add_number_of_left";
 
 Goal "number_of v * (number_of w * z) = (number_of(bin_mult v w) * z::real)";
-by (simp_tac (simpset() addsimps [real_mult_assoc RS sym]) 1);
+by (simp_tac (simpset() addsimps [mult_assoc RS sym]) 1);
 qed "real_mult_number_of_left";
 
 Goalw [real_diff_def]
@@ -171,7 +171,7 @@ qed "real_add_number_of_diff1";
 Goal "number_of v + (c - number_of w) = \
 \     number_of (bin_add v (bin_minus w)) + (c::real)";
 by (stac (diff_real_number_of RS sym) 1);
-by Auto_tac;
+by (asm_full_simp_tac (HOL_ss addsimps [real_diff_def]@add_ac) 1); 
 qed "real_add_number_of_diff2";
 
 Addsimps [real_add_number_of_left, real_mult_number_of_left,
@@ -206,7 +206,7 @@ qed "real_le_iff_diff_le_0";
 (** For combine_numerals **)
 
 Goal "i*u + (j*u + k) = (i+j)*u + (k::real)";
-by (asm_simp_tac (simpset() addsimps [real_add_mult_distrib]) 1);
+by (asm_simp_tac (simpset() addsimps [real_add_mult_distrib] @ add_ac) 1);
 qed "left_real_add_mult_distrib";
 
 
@@ -543,9 +543,6 @@ end;
 Addsimprocs Real_Numeral_Simprocs.eval_numerals;
 Addsimprocs Real_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Real_Numeral_Simprocs.combine_numerals];
-
-(*The Abel_Cancel simprocs are now obsolete*)
-Delsimprocs [Real_Cancel.sum_conv, Real_Cancel.rel_conv];
 
 (*examples:
 print_depth 22;

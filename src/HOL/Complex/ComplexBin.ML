@@ -427,10 +427,6 @@ Addsimprocs Complex_Numeral_Simprocs.eval_numerals;
 Addsimprocs Complex_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Complex_Numeral_Simprocs.combine_numerals];
 
-(*The Abel_Cancel simprocs are now obsolete
-Delsimprocs [Complex_Cancel.sum_conv, Complex_Cancel.rel_conv];
-*)
-
 (*examples:
 print_depth 22;
 set timing;
