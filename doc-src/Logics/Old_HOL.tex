@@ -1268,13 +1268,13 @@ type:
 \[ c_j : [\tau_{j1},\dots,\tau_{jk_j}] \To (\alpha_1,\dots,\alpha_n)t \]
 These functions have certain {\em freeness} properties:
 \begin{description}
+\item[\tt distinct] They are distinct:
+\[ c_i(x_1,\dots,x_{k_i}) \neq c_j(y_1,\dots,y_{k_j}) \qquad
+   \mbox{for all}~ i \neq j.
+\]
 \item[\tt inject] They are injective:
 \[ (c_j(x_1,\dots,x_{k_j}) = c_j(y_1,\dots,y_{k_j})) =
    (x_1 = y_1 \land \dots \land x_{k_j} = y_{k_j})
-\]
-\item[\tt ineq] They are distinct:
-\[ c_i(x_1,\dots,x_{k_i}) \neq c_j(y_1,\dots,y_{k_j}) \qquad
-   \mbox{for all}~ i \neq j.
 \]
 \end{description}
 Because the number of inequalities is quadratic in the number of
@@ -1288,7 +1288,7 @@ natural number
 \mbox{\it t\_ord}(c_m(x_1,\dots,x_{k_m})) & = & m-1
 \end{array}
 \]
-and inequality of constructors is expressed by:
+and distinctness of constructors is expressed by:
 \[
 \mbox{\it t\_ord}(x) \neq \mbox{\it t\_ord}(y) \Imp x \neq y.
 \]
@@ -1309,12 +1309,12 @@ where $\{r_{j1},\dots,r_{jl_j}\} = \{i \in \{1,\dots k_j\} ~\mid~ \tau_{ji}
 = (\alpha_1,\dots,\alpha_n)t \}$, i.e.\ the property $P$ can be assumed for
 all arguments of the recursive type.
 
-The type also comes with an \ML-like {\tt case}-construct:
+The type also comes with an \ML-like \sdx{case}-construct:
 \[
 \begin{array}{rrcl}
-\mbox{\tt case}~e~\mbox{\tt of} & c_1(y_{11},\dots,y_{1k_1}) & \To & e_1 \\
+\mbox{\tt case}~e~\mbox{\tt of} & c_1(x_{11},\dots,x_{1k_1}) & \To & e_1 \\
                            \vdots \\
-                           \mid & c_m(y_{m1},\dots,y_{mk_m}) & \To & e_m
+                           \mid & c_m(x_{m1},\dots,x_{mk_m}) & \To & e_m
 \end{array}
 \]
 In contrast to \ML, {\em all} constructors must be present, their order is
@@ -1346,27 +1346,28 @@ typevarlist : () | tid | '(' (tid + ',') ')'
 \label{datatype-grammar}
 \end{figure}
 
-Reading the theory file produces a structure which, in addtion to the usual
+Reading the theory file produces a structure which, in addition to the usual
 components, contains a structure named $t$ for each datatype $t$ defined in
-the file\footnote{Otherwise multiple datatypes in the same theory file would
-  lead to name clashes.}. Each structure $t$ contains the following elements:
+the file.\footnote{Otherwise multiple datatypes in the same theory file would
+  lead to name clashes.} Each structure $t$ contains the following elements:
 \begin{ttbox}
-val induct : thm
+val distinct : thm list
 val inject : thm list
-val ineq : thm list
+val induct : thm
 val cases : thm list
 val simps : thm list
 val induct_tac : string -> int -> tactic
 \end{ttbox}
-{\tt induct}, {\tt inject} and {\tt ineq} contain the theorems described
-above. For convenience {\tt ineq} contains inequalities in both directions.
+{\tt distinct}, {\tt inject} and {\tt induct} contain the theorems described
+above. For convenience {\tt distinct} contains inequalities in both
+directions.
 \begin{warn}
   If there are five or more constructors, the {\em t\_ord} scheme is used for
-  {\tt ineq}.  In this case the theory {\tt Arith} must be contained
-  in the current theory, if necessary by adding it explicitly.
+  {\tt distinct}.  In this case the theory {\tt Arith} must be contained
+  in the current theory, if necessary by including it explicitly.
 \end{warn}
-The reduction rules of the {\tt case}-construct can be found in {\tt cases}.
-All theorems from {\tt inject}, {\tt ineq} and {\tt cases} are combined in
+The reduction rules of the {\tt case}-construct are in {\tt cases}.  All
+theorems from {\tt distinct}, {\tt inject} and {\tt cases} are combined in
 {\tt simps} for use with the simplifier. The tactic ``{\verb$induct_tac$~{\em
     var i}\/}'' applies structural induction over variable {\em var} to
 subgoal {\em i}.
@@ -1376,19 +1377,16 @@ subgoal {\em i}.
 
 \subsubsection{The datatype $\alpha~list$}
 
-We want to define the type $\alpha~list$.\footnote{Of course there is
-a list type in HOL already. But for now let us assume that we have to define
-a new type.} To do this we have to build a new theory that contains the
-type definition. We start from {\tt HOL}.
+We want to define the type $\alpha~list$.\footnote{Of course there is a list
+  type in HOL already. This is only an example.} To do this we have to build
+a new theory that contains the type definition. We start from {\tt HOL}.
 \begin{ttbox}
 MyList = HOL +
   datatype 'a list = Nil | Cons ('a, 'a list)
 end
 \end{ttbox}
-After loading the theory with \verb$use_thy "MyList"$, we can prove
-$Cons(x,xs)\neq xs$ using the new theory.  First we build a suitable simpset
-for the simplifier:
-
+After loading the theory (\verb$use_thy "MyList"$), we can prove
+$Cons(x,xs)\neq xs$.  First we build a suitable simpset for the simplifier:
 \begin{ttbox}
 val mylist_ss = HOL_ss addsimps MyList.list.simps;
 goal MyList.thy "!x. Cons(x,xs) ~= xs";
@@ -1406,8 +1404,8 @@ by (MyList.list.induct_tac "xs" 1);
 {\out        ! x. Cons(x, list) ~= list ==>}
 {\out        ! x. Cons(x, Cons(a, list)) ~= Cons(a, list)}
 \end{ttbox}
-The first subgoal can be proved with the simplifier and the {\tt ineq} axiom
-that is part of \verb$mylist_ss$.
+The first subgoal can be proved with the simplifier and the distinctness
+axioms which are part of \verb$mylist_ss$.
 \begin{ttbox}
 by (simp_tac mylist_ss 1);
 {\out Level 2}
@@ -1416,7 +1414,7 @@ by (simp_tac mylist_ss 1);
 {\out        ! x. Cons(x, list) ~= list ==>}
 {\out        ! x. Cons(x, Cons(a, list)) ~= Cons(a, list)}
 \end{ttbox}
-Using the {\tt inject} axiom we can quickly prove the remaining goal.
+Using the freeness axioms we can quickly prove the remaining goal.
 \begin{ttbox}
 by (asm_simp_tac mylist_ss 1);
 {\out Level 3}
@@ -1450,8 +1448,7 @@ proof is the same.
 Normally one wants to define functions dealing with a newly defined type and
 prove properties of these functions. As an example let us define \verb|@| for
 concatenation and {\tt ttl} for the (total) tail of a list, i.e.\ the list
-without its first element. We do this in theory \verb|List_fun| which is an
-extension of {\tt MyList}:
+without its first element:
 \begin{ttbox}
 List_fun = MyList +
 consts ttl  :: "'a list => 'a list"
@@ -1513,8 +1510,8 @@ end
 \end{ttbox}
 Because there are more than four constructors, the theory must be based on
 {\tt Arith}. Inequality is defined via a function \verb|days_ord|. Although
-the expression \verb|Mo ~= Tu| is not directly contained in {\tt ineq}, it
-can be proved by the simplifier if \verb$arith_ss$ is used:
+the expression \verb|Mo ~= Tu| is not directly contained in {\tt distinct},
+it can be proved by the simplifier if \verb$arith_ss$ is used:
 \begin{ttbox}
 val days_ss = arith_ss addsimps Days.days.simps;
 
