@@ -21,7 +21,19 @@ qed "perm_refl";
 val perm_induct = standard (perm.mutual_induct RS spec RS spec RSN (2,rev_mp));
 
 
-(** Two examples of rule induction on permutations **)
+(** Some examples of rule induction on permutations **)
+
+(*The form of the premise lets the induction bind xs and ys.*)
+goal Perm.thy "!!xs. xs <~~> ys ==> xs=[] --> ys=[]";
+by (etac perm_induct 1);
+by (ALLGOALS (asm_simp_tac (HOL_ss addsimps list.simps)));
+qed "perm_Nil_lemma";
+
+(*A more general version is actually easier to understand!*)
+goal Perm.thy "!!xs. xs <~~> ys ==> length(xs) = length(ys)";
+by (etac perm_induct 1);
+by (ALLGOALS (asm_simp_tac list_ss));
+qed "perm_length";
 
 goal Perm.thy "!!xs. xs <~~> ys ==> ys <~~> xs";
 by (etac perm_induct 1);
