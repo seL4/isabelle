@@ -181,9 +181,8 @@ and norm_term2(asol,iTs,t) : term =
 	      | None => raise SAME)
       and normTh T = ((normT T) handle SAME => T)
       and normTs([]) = raise SAME
-	| normTs(T::Ts) = ((normT T :: normTsh Ts)
+	| normTs(T::Ts) = ((normT T :: (normTs Ts handle SAME => Ts))
 			   handle SAME => T :: normTs Ts)
-      and normTsh Ts = ((normTs Ts) handle SAME => Ts)
       and norm(Const(a,T)) = Const(a, normT T)
 	| norm(Free(a,T)) = Free(a, normT T)
 	| norm(Var (w,T)) =
