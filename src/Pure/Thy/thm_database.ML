@@ -6,9 +6,12 @@
 
 signature THMDB =
 sig
+  type thm_db_type
+
+  val thm_db: thm_db_type
   val store_thm_db: string * thm -> thm
   val thms_containing: string list -> (string * thm) list
-  val thms_resolving_with: term * Sign.sg -> (string * thm) list
+(*val thms_resolving_with: term * Sign.sg -> (string * thm) list*)
 end;
 
 
@@ -16,11 +19,13 @@ functor ThmdbFUN(val ignore: string list): THMDB =
                (*ignore: constants that must not be used for theorem indexing*)
 struct
 
+type thm_db_type = (int * ((int * (string * thm)) list) Symtab.table) ref;
+
 (*Symtab which associates a constant with a list of theorems that contain the
   constant (theorems are represented as numbers)*)
-val thm_db =
-      ref (Symtab.make ([] : (string * ((int * (string * thm)) list)) list));
-val thm_num = ref 0;                                 (*number of next theorem*)
+val thm_db = ref (0,
+           (Symtab.make ([] : (string * ((int * (string * thm)) list)) list)));
+                      (*number of next theorem and symtab containing theorems*)
 
 (*list all relevant constants a term contains*)
 fun list_consts t =
@@ -38,20 +43,21 @@ fun store_thm_db (named_thm as (name, t)) =
 
       val consts = distinct (flat (map list_consts (prop :: hyps)));
 
-      val tagged_thm = (!thm_num + 1, named_thm);
+      val (num, db) = !thm_db;
 
-      fun update_db [] = ()
-        | update_db (c :: cs) =
-            let val old_thms = Symtab.lookup_multi (!thm_db, c);
-            in thm_db := Symtab.update ((c, tagged_thm :: old_thms), !thm_db);
-               update_db cs
+      val tagged_thm = (num + 1, named_thm);
+
+      fun update_db [] result = result
+        | update_db (c :: cs) result =
+            let val old_thms = Symtab.lookup_multi (result, c);
+            in update_db cs (Symtab.update ((c, tagged_thm :: old_thms),
+                                            result))
             end;
   in if consts = [] then writeln ("Warning: Theorem " ^ name ^
                                   " cannot be stored in ThmDB\n\t because it \
                                   \contains no or only ignored constants.")
                     else ();
-     update_db consts;
-     thm_num := !thm_num+1;
+     thm_db := (num+1, update_db consts db);
      t
   end;
 
@@ -68,7 +74,7 @@ fun ([] : (int*'a) list) desc_inter (ys : (int*'a) list) = []
 fun thms_containing constants =
   let fun collect [] _ result = map snd result
         | collect (c :: cs) first result =
-            let val new_thms = Symtab.lookup_multi (!thm_db, c);
+            let val new_thms = Symtab.lookup_multi (snd (!thm_db), c);
             in collect cs false (if first then new_thms
                                           else (result desc_inter new_thms))
             end;
@@ -80,7 +86,7 @@ fun thms_containing constants =
      else ();
      collect look_for true [] end;
 
-
+(*This will probably be changed or removed:
 (*get all theorems which can be unified with term t*)
 fun thms_unifying_with(t:term, signt:Sign.sg, thms:(string*thm) list) =
   let val maxt = maxidx_of_term t
@@ -103,4 +109,5 @@ fun thms_unifying_with(t:term, signt:Sign.sg, thms:(string*thm) list) =
 fun thms_resolving_with (t, sg) =
   let val thms = thms_containing (list_consts t);
   in thms_unifying_with (t, sg, thms) end;
+*)
 end;

@@ -18,6 +18,9 @@ use "thm_database.ML";
 use "thy_read.ML";
 
 structure ThySyn = ThySynFun(val user_keywords = [] and user_sections = []);
+structure ThmDB = ThmdbFUN(val ignore = ["Trueprop", "all", "==>", "=="]);
+structure Readthy = ReadthyFUN(structure ThySyn = ThySyn and ThmDB = ThmDB);
+open ThmDB Readthy;
 
 (* hide functors; saves space in PolyML *)
 functor ThyScanFun() = struct end;
@@ -29,4 +32,7 @@ fun init_thy_reader () =
     \ThmdbFUN(val ignore = [\"Trueprop\",\"all\",\"==>\",\"==\"]);",
     "structure Readthy = ReadthyFUN(structure ThySyn = ThySyn \
                                    \and ThmDB = ThmDB);",
+    "Readthy.loaded_thys := !loaded_thys;",
+    "ThmDB.thm_db := !thm_db;",
+    "val first_init_readthy = false;",
     "open Readthy ThmDB;"];
