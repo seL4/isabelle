@@ -88,7 +88,7 @@ fun xsymbols_output s =
     let val syms = Symbol.explode s
     in (implode (map (fn "\\" => "\\\\" | c => c) syms), real (Symbol.length syms)) end;
 
-fun setup_xsymbols_output () = Symbol.add_mode "xsymbols" xsymbols_output;
+fun setup_xsymbols_output () = Symbol.add_mode "xsymbols" (xsymbols_output, Symbol.default_indent);
 
 
 (* messages *)
@@ -318,6 +318,5 @@ end;
 
 end;
 
-(*this hack avoids problems with escapes in ML commands; required for
-  Proof General 3.2*)
+(*a hack for Proof General 3.2 to avoid problems with escapes in ML commands*)
 infix \\\\ val op \\\\ = op \\;
