@@ -21,6 +21,7 @@ sig
   val keyword_with: (string -> bool) -> token -> bool
   val name_of: token -> string
   val is_proper: token -> bool
+  val is_indent: token -> bool
   val val_of: token -> string
   val is_sid: string -> bool
   val scan: (Scan.lexicon * Scan.lexicon) ->
@@ -97,6 +98,11 @@ fun name_of (Token (_, (k, _))) = str_of_kind k;
 fun is_proper (Token (_, (Space, _))) = false
   | is_proper (Token (_, (Comment, _))) = false
   | is_proper _ = true;
+
+(*indentations; note that space tokens obey lines*)
+fun is_indent (Token (_, (Space, s))) =
+      let val n = size s in n > 0 andalso String.substring (s, n - 1, 1) <> "\n" end
+  | is_indent _ = false;
 
 
 (* value of token *)
