@@ -12,6 +12,7 @@ TODO:
   - improve transactions; only in interactive mode!
   - init / exit proof;
   - display stack size in prompt (prompt: state -> string (hook));
+  - excursion: more robust checking of begin / end theory match (including correct name);
 *)
 
 signature TOPLEVEL =
