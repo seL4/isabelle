@@ -2,7 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Simple LaTeX presentation primitives (based on outer lexical syntax).
+LaTeX presentation primitives (based on outer lexical syntax).
 *)
 
 signature LATEX =
@@ -88,12 +88,21 @@ val output_tokens = implode o map output_tok;
 
 (* theory presentation *)
 
-val isabelle_simple = enclose "\\begin{isabellesimple}%\n" "\\end{isabellesimple}%\n";
+val isabelle_env = enclose "\\begin{isabelle}%\n" "\\end{isabelle}%\n";
 
-val old_symbol_source = isabelle_simple o output_symbols;
-val token_source = isabelle_simple o output_tokens;
+val old_symbol_source = isabelle_env o output_symbols;
+val token_source = isabelle_env o output_tokens;
 
 fun theory_entry name = "\\input{" ^ name ^ ".tex}\n";
+
+
+(* print mode *)
+
+fun latex_output str =
+  let val syms = Symbol.explode str
+  in (output_symbols syms, real (Symbol.length syms)) end;
+
+val _ = Symbol.add_mode "latex" latex_output;
 
 
 end;
