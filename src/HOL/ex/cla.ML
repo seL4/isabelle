@@ -464,13 +464,21 @@ goal HOL.thy
 by (Blast_tac 1);
 result();
 
+(*From Davis, Obvious Logical Inferences, IJCAI-81, 530-531
+  Fast_tac indeed copes!*)
+goal Prod.thy "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) & \
+\             (EX x. K(x) & F(x) & (ALL y. H(x,y) --> K(y))) &   \
+\             (ALL x. K(x) --> ~G(x))  -->  (EX x. K(x) & J(x))";
+by (Fast_tac 1);
+result();
+
 (*From Rudnicki, Obvious Inferences, JAR 3 (1987), 383-393.  
   It does seem obvious!*)
 goal Prod.thy
     "(ALL x. F(x) & ~G(x) --> (EX y. H(x,y) & J(y))) &        \
 \    (EX x. K(x) & F(x) & (ALL y. H(x,y) --> K(y)))  &        \
 \    (ALL x. K(x) --> ~G(x))   -->   (EX x. K(x) --> ~G(x))";
-by (Blast_tac 1);
+by (Fast_tac 1);
 result();
 
 goal Prod.thy
