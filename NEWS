@@ -31,13 +31,15 @@ called `inj_on';
 
 *** Proof tools ***
 
-* Simplifier: Asm_full_simp_tac is now more aggressive.
-  1. It will sometimes reorient premises if that increases their power to
-     simplify.
-  2. It does no longer proceed strictly from left to right but may also
-     rotate premises to achieve further simplification.
-  For compatibility reasons there is now Asm_lr_simp_tac which is like the
-  old Asm_full_simp_tac in that it does not rotate premises.
+* Simplifier:
+  1. Asm_full_simp_tac is now more aggressive.
+     1. It will sometimes reorient premises if that increases their power to
+        simplify.
+     2. It does no longer proceed strictly from left to right but may also
+        rotate premises to achieve further simplification.
+     For compatibility reasons there is now Asm_lr_simp_tac which is like the
+     old Asm_full_simp_tac in that it does not rotate premises.
+  2. The simplifier now knows a little bit about nat-arithmetic.
 
 * Classical reasoner: wrapper mechanism for the classical reasoner now
 allows for selected deletion of wrappers, by introduction of names for
