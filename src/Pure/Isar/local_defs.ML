@@ -18,30 +18,20 @@ structure LocalDefs: LOCAL_DEFS =
 struct
 
 
-(* export_defs *)
-
-local
-
-val refl_tac = Tactic.rtac (Drule.reflexive_thm RS Drule.triv_goal);
+(* export_def *)
 
 fun dest_lhs cprop =
-  let val x = #1 (Logic.dest_equals (Logic.dest_goal (Thm.term_of cprop)))
+  let val x = #1 (Logic.dest_equals (Thm.term_of cprop))
   in Term.dest_Free x; Thm.cterm_of (Thm.sign_of_cterm cprop) x end
   handle TERM _ => raise TERM ("Malformed definitional assumption encountered:\n" ^
       quote (Display.string_of_cterm cprop), []);
 
-fun disch_defs cprops thm =
+fun export_def _ cprops thm =
   thm
   |> Drule.implies_intr_list cprops
   |> Drule.forall_intr_list (map dest_lhs cprops)
   |> Drule.forall_elim_vars 0
-  |> RANGE (replicate (length cprops) refl_tac) 1;
-
-in
-
-val export_defs = (disch_defs, fn _ => fn _ => []);
-
-end;
+  |> RANGE (replicate (length cprops) (Tactic.rtac Drule.reflexive_thm)) 1;
 
 
 (* def(_i) *)
@@ -63,7 +53,7 @@ fun gen_def fix prep_term prep_pats raw_name atts (x, (raw_rhs, raw_pats)) state
     state
     |> fix [([x], None)]
     |> Proof.match_bind_i [(pats, rhs)]
-    |> Proof.assm_i export_defs [((name, atts), [(Logic.mk_equals (lhs, rhs), ([], []))])]
+    |> Proof.assm_i export_def [((name, atts), [(Logic.mk_equals (lhs, rhs), ([], []))])]
   end;
 
 val def = gen_def Proof.fix ProofContext.read_term ProofContext.read_term_pats;

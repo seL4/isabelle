@@ -62,8 +62,6 @@ sig
     (thm list * context attribute list) list) list -> state -> state
   val fix: (string list * string option) list -> state -> state
   val fix_i: (string list * typ option) list -> state -> state
-  val hard_asm_tac: int -> tactic
-  val soft_asm_tac: int -> tactic
   val assm: ProofContext.exporter
     -> ((string * context attribute list) * (string * (string list * string list)) list) list
     -> state -> state
@@ -413,20 +411,26 @@ fun HEADGOAL tac = tac 1;
 
 (* export results *)
 
+fun refine_tac rule =
+  Tactic.rtac rule THEN_ALL_NEW (SUBGOAL (fn (goal, i) =>
+    if can Logic.dest_goal (Logic.strip_assums_concl goal) then
+      Tactic.etac Drule.triv_goal i
+    else all_tac));
+
 fun export_goal print_rule raw_rule inner state =
   let
     val (outer, (_, ((result, (facts, thm)), f))) = find_goal state;
-    val (exp_tac, tacs) = ProofContext.export_wrt true inner (Some outer);
+    val exp_tac = ProofContext.export_wrt true inner (Some outer);
     fun exp_rule rule =
       let
         val _ = print_rule rule;
-        val thmq = FINDGOAL (Tactic.rtac rule THEN' RANGE tacs) thm;
+        val thmq = FINDGOAL (refine_tac rule) thm;
       in Seq.map (fn th => map_goal I (K ((result, (facts, th)), f)) state) thmq end;
   in raw_rule |> exp_tac |> (Seq.flat o Seq.map exp_rule) end;
 
 fun export_thm inner thm =
-  let val (exp_tac, tacs) = ProofContext.export_wrt false inner None in
-    (case Seq.chop (2, (exp_tac THEN RANGE tacs 1) thm) of
+  let val exp_tac = ProofContext.export_wrt false inner None in
+    (case Seq.chop (2, exp_tac thm) of
       ([thm'], _) => thm'
     | ([], _) => raise THM ("export: failed", 0, [thm])
     | _ => raise THM ("export: more than one result", 0, [thm]))
@@ -437,9 +441,9 @@ fun transfer_facts inner_state state =
     None => Seq.single (reset_facts state)
   | Some thms =>
       let
-        val (exp_tac, tacs) =
+        val exp_tac =
           ProofContext.export_wrt false (context_of inner_state) (Some (context_of state));
-        val thmqs = map (exp_tac THEN RANGE tacs 1) thms;
+        val thmqs = map exp_tac thms;
       in Seq.map (fn ths => put_facts (Some ths) state) (Seq.commute thmqs) end);
 
 
@@ -460,7 +464,7 @@ fun prep_result state t raw_thm =
     val tsig = Sign.tsig_of sign;
 
     val casms = flat (map #1 (assumptions state));
-    val bad_hyps = Library.gen_rems Term.aconv (hyps, map (Thm.term_of o Drule.mk_cgoal) casms);
+    val bad_hyps = Library.gen_rems Term.aconv (hyps, map Thm.term_of casms);
   in
     if not (null bad_hyps) then
       err ("Additional hypotheses:\n" ^ cat_lines (map (Sign.string_of_term sign) bad_hyps))
@@ -518,9 +522,6 @@ val fix_i = gen_fix ProofContext.fix_i;
 
 (* assume *)
 
-val hard_asm_tac = Tactic.etac Drule.triv_goal;
-val soft_asm_tac = Tactic.rtac Drule.triv_goal THEN' Tactic.norm_hhf_tac;
-
 local
 
 fun gen_assume f exp args state =
@@ -531,18 +532,19 @@ fun gen_assume f exp args state =
     these_factss (st, factss)
     |> put_thms ("prems", prems));
 
-fun simple_exporter tac1 tac2 =
-  (Seq.single oo Drule.implies_intr_list, fn is_goal => fn n =>
-    replicate n (Tactic.norm_hhf_tac THEN' (if is_goal then tac1 else tac2)));
+fun export_assume true = Seq.single oo Drule.implies_intr_goals
+  | export_assume false = Seq.single oo Drule.implies_intr_list;
+
+fun export_presume _ = export_assume false;
 
 in
 
 val assm = gen_assume ProofContext.assume;
 val assm_i = gen_assume ProofContext.assume_i;
-val assume = assm (simple_exporter hard_asm_tac soft_asm_tac);
-val assume_i = assm_i (simple_exporter hard_asm_tac soft_asm_tac);
-val presume = assm (simple_exporter soft_asm_tac soft_asm_tac);
-val presume_i = assm_i (simple_exporter soft_asm_tac soft_asm_tac);
+val assume = assm export_assume;
+val assume_i = assm_i export_assume;
+val presume = assm export_presume;
+val presume_i = assm_i export_presume;
 
 end;
 
@@ -676,7 +678,7 @@ fun finish_local (print_result, print_rule) state =
     val outer_ctxt = context_of outer_state;
 
     val result = prep_result state t raw_thm;
-    val resultq = #1 (ProofContext.export_wrt false goal_ctxt (Some outer_ctxt)) result;
+    val resultq = ProofContext.export_wrt false goal_ctxt (Some outer_ctxt) result;
 
     val (atts, opt_solve) =
       (case kind of

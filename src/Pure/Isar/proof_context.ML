@@ -42,7 +42,7 @@ sig
   val generalizeT: context -> context -> typ -> typ
   val generalize: context -> context -> term -> term
   val find_free: term -> string -> term option
-  val export_wrt: bool -> context -> context option -> (thm -> thm Seq.seq) * (int -> tactic) list
+  val export_wrt: bool -> context -> context option -> thm -> thm Seq.seq
   val drop_schematic: indexname * term option -> indexname * term option
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
@@ -120,8 +120,7 @@ struct
 
 (** datatype context **)
 
-type exporter =
-  (cterm list -> thm -> thm Seq.seq) * (bool -> int -> (int -> tactic) list);
+type exporter = bool -> cterm list -> thm -> thm Seq.seq;
 
 datatype context =
   Context of
@@ -578,40 +577,31 @@ fun get_free x (None, t as Free (y, _)) = if x = y then Some t else None
 
 fun find_free t x = foldl_aterms (get_free x) (None, t);
 
-
-local
-
-fun export tfrees fixes goal_asms thm =
-  thm
-  |> Tactic.norm_hhf
-  |> Seq.EVERY (rev (map op |> goal_asms))
-  |> Seq.map (fn rule =>
-    let
-      val {sign, prop, maxidx, ...} = Thm.rep_thm rule;
-      val frees = map (Thm.cterm_of sign) (mapfilter (find_free prop) fixes);
-    in
-      rule
-      |> Drule.forall_intr_list frees
-      |> Tactic.norm_hhf
-      |> Drule.tvars_intr_list tfrees
-    end);
-
 fun diff_context inner None = (gen_tfrees inner None, fixed_names inner, assumptions inner)
   | diff_context inner (Some outer) =
       (gen_tfrees inner (Some outer),
         fixed_names inner \\ fixed_names outer,
         Library.drop (length (assumptions outer), assumptions inner));
 
-in
-
 fun export_wrt is_goal inner opt_outer =
   let
     val (tfrees, fixes, asms) = diff_context inner opt_outer;
-    val goal_asms = map (fn (cprops, (exp, _)) => (map Drule.mk_cgoal cprops, exp)) asms;
-    val tacs = flat (map (fn (cprops, (_, f)) => f is_goal (length cprops)) asms);
-  in (export tfrees fixes goal_asms, tacs) end;
-
-end;
+    val exp_asms = map (fn (cprops, exp) => exp is_goal cprops) asms;
+  in fn thm =>
+    thm
+    |> Tactic.norm_hhf
+    |> Seq.EVERY (rev exp_asms)
+    |> Seq.map (fn rule =>
+      let
+        val {sign, prop, ...} = Thm.rep_thm rule;
+        val frees = map (Thm.cterm_of sign) (mapfilter (find_free prop) fixes);
+      in
+        rule
+        |> Drule.forall_intr_list frees
+        |> Tactic.norm_hhf
+        |> Drule.tvars_intr_list tfrees
+      end)
+  end;
 
 
 
@@ -849,7 +839,7 @@ local
 fun add_assm (ctxt, ((name, attrs), props)) =
   let
     val cprops = map (Thm.cterm_of (sign_of ctxt)) props;
-    val asms = map (Tactic.norm_hhf o Drule.assume_goal) cprops;
+    val asms = map (Tactic.norm_hhf o Thm.assume) cprops;
 
     val ths = map (fn th => ([th], [])) asms;
     val (ctxt', [(_, thms)]) =

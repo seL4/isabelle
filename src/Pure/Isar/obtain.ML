@@ -32,18 +32,18 @@ structure Obtain: OBTAIN =
 struct
 
 
-(** disch_obtained **)
+(** export_obtain **)
 
-fun disch_obtained state parms rule cprops thm =
+fun export_obtain state parms rule _ cprops thm =
   let
     val {sign, prop, maxidx, ...} = Thm.rep_thm thm;
     val cparms = map (Thm.cterm_of sign) parms;
 
     val thm' = thm
-      |> Drule.implies_intr_list cprops
+      |> Drule.implies_intr_goals cprops
       |> Drule.forall_intr_list cparms
       |> Drule.forall_elim_vars (maxidx + 1);
-    val elim_tacs = replicate (length cprops) Proof.hard_asm_tac;
+    val elim_tacs = replicate (length cprops) (Tactic.etac Drule.triv_goal);
 
     val concl = Logic.strip_assums_concl prop;
     val bads = parms inter (Term.term_frees concl);
@@ -100,14 +100,11 @@ fun gen_obtain prep_vars prep_propp prep_att (raw_vars, raw_asms) state =
       Term.list_all_free (map #1 parm_names, Logic.list_implies (asm_props, bound_thesis))
       |> Library.curry Logic.list_rename_params (map #2 parm_names);
 
-    fun export_obtained rule =
-      (disch_obtained state parms rule, fn _ => fn _ => []);
-
     fun after_qed st = st
       |> Proof.end_block
       |> Seq.map (fn st' => st'
         |> Proof.fix_i vars
-        |> Proof.assm_i (export_obtained (Proof.the_fact st')) asms);
+        |> Proof.assm_i (export_obtain state parms (Proof.the_fact st')) asms);
   in
     state
     |> Proof.enter_forward
