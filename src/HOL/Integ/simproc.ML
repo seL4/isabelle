@@ -28,8 +28,7 @@ val zadd_cancel_end = prove_goal IntDef.thy
 structure Int_Cancel_Data =
 struct
   val ss		= HOL_ss
-  val mk_eq		= HOLogic.mk_Trueprop o HOLogic.mk_eq
-  fun mk_meta_eq r	= r RS eq_reflection
+  val eq_reflection	= eq_reflection
 
   val thy	= IntDef.thy
   val T		= Type ("IntDef.int", [])

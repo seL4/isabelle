@@ -12,22 +12,21 @@ Simplification procedures for abelian groups (e.g. integers, reals)
 
 signature ABEL_CANCEL =
 sig
-  val ss	: simpset		(*basic simpset of object-logtic*)
-  val mk_eq     : term * term -> term	(*create an equality proposition*)
-  val mk_meta_eq: thm -> thm		(*object-equality to meta-equality*)
+  val ss		: simpset	(*basic simpset of object-logtic*)
+  val eq_reflection	: thm		(*object-equality to meta-equality*)
 
-  val thy	: theory		(*the theory of the group*)
-  val T		: typ			(*the type of group elements*)
+  val thy		: theory	(*the theory of the group*)
+  val T			: typ		(*the type of group elements*)
 
-  val zero	: term
+  val zero		: term
   val add_cancel_21	: thm
   val add_cancel_end	: thm
   val add_left_cancel	: thm
-  val add_assoc	: thm
-  val add_commute : thm
-  val add_left_commute : thm
-  val add_0 : thm
-  val add_0_right : thm
+  val add_assoc		: thm
+  val add_commute 	: thm
+  val add_left_commute 	: thm
+  val add_0 		: thm
+  val add_0_right 	: thm
 
   val eq_diff_eq 	: thm
   val eqI_rules		: thm list
@@ -113,15 +112,16 @@ struct
        val _ = if !trace then 
 		 writeln ("RHS = " ^ string_of_cterm (Thm.cterm_of sg rhs))
 	       else ()
-       val ct = Thm.cterm_of sg (Data.mk_eq (lhs, rhs))
+       val ct = Thm.cterm_of sg (Logic.mk_equals (lhs, rhs))
        val thm = prove ct 
-		   (fn _ => [simp_tac prepare_ss 1,
+		   (fn _ => [rtac eq_reflection 1,
+			     simp_tac prepare_ss 1,
 			     IF_UNSOLVED (simp_tac cancel_ss 1),
 			     IF_UNSOLVED (simp_tac inverse_ss 1)])
 	 handle ERROR =>
 	 error("cancel_sums simproc:\nfailed to prove " ^
 	       string_of_cterm ct)
-   in Some (Data.mk_meta_eq thm) end
+   in Some thm end
    handle Cancel => None;
 
 
@@ -170,17 +170,18 @@ struct
        val _ = if !trace then 
 		 writeln ("RHS = " ^ string_of_cterm (Thm.cterm_of sg rhs))
 	       else ()
-       val ct = Thm.cterm_of sg (Data.mk_eq (lhs,rhs))
+       val ct = Thm.cterm_of sg (Logic.mk_equals (lhs,rhs))
 
        val thm = prove ct 
-		   (fn _ => [resolve_tac eqI_rules 1,
+		   (fn _ => [rtac eq_reflection 1,
+			     resolve_tac eqI_rules 1,
 			     simp_tac prepare_ss 1,
 			     simp_tac sum_cancel_ss 1,
 			     IF_UNSOLVED (simp_tac add_ac_ss 1)])
 	 handle ERROR =>
 	 error("cancel_relations simproc:\nfailed to prove " ^
 	       string_of_cterm ct)
-   in Some (Data.mk_meta_eq thm) end
+   in Some thm end
    handle Cancel => None;
 
  val rel_conv = 

@@ -27,8 +27,7 @@ val real_add_cancel_end = prove_goal RealDef.thy
 structure Real_Cancel_Data =
 struct
   val ss		= HOL_ss
-  val mk_eq		= HOLogic.mk_Trueprop o HOLogic.mk_eq
-  fun mk_meta_eq r	= r RS eq_reflection
+  val eq_reflection	= eq_reflection
 
   val thy		= RealDef.thy
   val T			= Type ("RealDef.real", [])
