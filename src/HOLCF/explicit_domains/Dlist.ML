@@ -50,7 +50,7 @@ val temp = prove_goalw Dlist.thy  [dlist_copy_def,dcons_def]
         (cut_facts_tac prems 1),
         (asm_simp_tac (!simpset addsimps 
                 (dlist_rews @ [dlist_abs_iso,dlist_rep_iso])) 1),
-        (res_inst_tac [("Q","x=UU")] classical2 1),
+        (case_tac "x=UU" 1),
         (Asm_simp_tac  1),
         (asm_simp_tac (!simpset addsimps [defined_spair]) 1)
         ]);
@@ -229,9 +229,9 @@ val temp = prove_goal Dlist.thy  "~dnil << dcons`(x::'a)`xl"
         (dres_inst_tac [("fo5","is_dnil")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
-        (res_inst_tac [("Q","(x::'a)=UU")] classical2 1),
+        (case_tac "(x::'a)=UU" 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
-        (res_inst_tac [("Q","(xl ::'a dlist)=UU")] classical2 1),
+        (case_tac "(xl ::'a dlist)=UU" 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1)
         ]);
@@ -255,9 +255,9 @@ val dlist_dist_less = temp::dlist_dist_less;
 val temp = prove_goal Dlist.thy  "dnil ~= dcons`x`xl"
  (fn prems =>
         [
-        (res_inst_tac [("Q","x=UU")] classical2 1),
+        (case_tac "x=UU" 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
-        (res_inst_tac [("Q","xl=UU")] classical2 1),
+        (case_tac "xl=UU" 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
         (res_inst_tac [("P1","TT = FF")] classical3 1),
         (resolve_tac dist_eq_tr 1),
@@ -345,7 +345,7 @@ qed_goal "dhd2" Dlist.thy "xl~=UU ==> dhd`(dcons`x`xl)=x"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (res_inst_tac [("Q","x=UU")] classical2 1),
+        (case_tac "x=UU" 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1)
         ]);
@@ -354,7 +354,7 @@ qed_goal "dtl2" Dlist.thy "x~=UU ==> dtl`(dcons`x`xl)=xl"
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (res_inst_tac [("Q","xl=UU")] classical2 1),
+        (case_tac "xl=UU" 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1)
         ]);
@@ -398,10 +398,10 @@ val temp = prove_goalw Dlist.thy [dlist_take_def]
   "dlist_take (Suc n)`(dcons`x`xl)= dcons`x`(dlist_take n`xl)"
  (fn prems =>
         [
-        (res_inst_tac [("Q","x=UU")] classical2 1),
+        (case_tac "x=UU" 1),
         (Asm_simp_tac 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
-        (res_inst_tac [("Q","xl=UU")] classical2 1),
+        (case_tac "xl=UU" 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
         (Asm_simp_tac 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
@@ -498,7 +498,7 @@ qed_goal "dlist_finite_ind" Dlist.thy
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
         (resolve_tac prems 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
-        (res_inst_tac [("Q","dlist_take n1`xl=UU")] classical2 1),
+        (case_tac "dlist_take n1`xl=UU" 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
         (resolve_tac prems 1),
         (resolve_tac prems 1),
@@ -527,7 +527,7 @@ qed_goal "dlist_all_finite_lemma1" Dlist.thy
 qed_goal "dlist_all_finite_lemma2" Dlist.thy "? n.dlist_take n`l=l"
  (fn prems =>
         [
-        (res_inst_tac [("Q","l=UU")] classical2 1),
+        (case_tac "l=UU" 1),
         (asm_simp_tac (!simpset addsimps dlist_rews) 1),
         (subgoal_tac "(!n.dlist_take n`l=UU) |(? n.dlist_take n`l = l)" 1),
         (etac disjE 1),

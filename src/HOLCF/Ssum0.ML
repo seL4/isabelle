@@ -68,13 +68,13 @@ qed_goalw "noteq_SinlSinr_Rep" Ssum0.thy [Sinl_Rep_def,Sinr_Rep_def]
  (fn prems =>
         [
         (rtac conjI 1),
-        (res_inst_tac [("Q","a=UU")] classical2 1),
+        (case_tac "a=UU" 1),
         (atac 1),
         (rtac ((hd prems) RS fun_cong RS fun_cong RS fun_cong RS iffD2 
         RS mp RS conjunct1 RS sym) 1),
         (fast_tac HOL_cs 1),
         (atac 1),
-        (res_inst_tac [("Q","b=UU")] classical2 1),
+        (case_tac "b=UU" 1),
         (atac 1),
         (rtac ((hd prems) RS fun_cong RS fun_cong RS fun_cong RS iffD1 
         RS mp RS conjunct1 RS sym) 1),
@@ -104,7 +104,7 @@ qed_goalw "inject_Sinl_Rep1" Ssum0.thy [Sinl_Rep_def]
  "(Sinl_Rep(a) = Sinl_Rep(UU)) ==> a=UU"
  (fn prems =>
         [
-        (res_inst_tac [("Q","a=UU")] classical2 1),
+        (case_tac "a=UU" 1),
         (atac 1),
         (rtac ((hd prems) RS fun_cong RS fun_cong RS fun_cong 
         RS iffD2 RS mp RS conjunct1 RS sym) 1),
@@ -116,7 +116,7 @@ qed_goalw "inject_Sinr_Rep1" Ssum0.thy [Sinr_Rep_def]
  "(Sinr_Rep(b) = Sinr_Rep(UU)) ==> b=UU"
  (fn prems =>
         [
-        (res_inst_tac [("Q","b=UU")] classical2 1),
+        (case_tac "b=UU" 1),
         (atac 1),
         (rtac ((hd prems) RS fun_cong RS fun_cong RS fun_cong 
         RS iffD2 RS mp RS conjunct1 RS sym) 1),
@@ -149,11 +149,11 @@ qed_goal "inject_Sinl_Rep" Ssum0.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (res_inst_tac [("Q","a1=UU")] classical2 1),
+        (case_tac "a1=UU" 1),
         (hyp_subst_tac 1),
         (rtac (inject_Sinl_Rep1 RS sym) 1),
         (etac sym 1),
-        (res_inst_tac [("Q","a2=UU")] classical2 1),
+        (case_tac "a2=UU" 1),
         (hyp_subst_tac 1),
         (etac inject_Sinl_Rep1 1),
         (etac inject_Sinl_Rep2 1),
@@ -166,11 +166,11 @@ qed_goal "inject_Sinr_Rep" Ssum0.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (res_inst_tac [("Q","b1=UU")] classical2 1),
+        (case_tac "b1=UU" 1),
         (hyp_subst_tac 1),
         (rtac (inject_Sinr_Rep1 RS sym) 1),
         (etac sym 1),
-        (res_inst_tac [("Q","b2=UU")] classical2 1),
+        (case_tac "b2=UU" 1),
         (hyp_subst_tac 1),
         (etac inject_Sinr_Rep1 1),
         (etac inject_Sinr_Rep2 1),
@@ -232,7 +232,7 @@ qed_goalw "Exh_Ssum" Ssum0.thy [Isinl_def,Isinr_def]
         (rtac (rewrite_rule [Ssum_def] Rep_Ssum RS CollectE) 1),
         (etac disjE 1),
         (etac exE 1),
-        (res_inst_tac [("Q","z= Abs_Ssum(Sinl_Rep(UU))")] classical2 1),
+        (case_tac "z= Abs_Ssum(Sinl_Rep(UU))" 1),
         (etac disjI1 1),
         (rtac disjI2 1),
         (rtac disjI1 1),
@@ -248,7 +248,7 @@ qed_goalw "Exh_Ssum" Ssum0.thy [Isinl_def,Isinr_def]
         (etac arg_cong 1),
         (etac arg_cong 1),
         (etac exE 1),
-        (res_inst_tac [("Q","z= Abs_Ssum(Sinl_Rep(UU))")] classical2 1),
+        (case_tac "z= Abs_Ssum(Sinl_Rep(UU))" 1),
         (etac disjI1 1),
         (rtac disjI2 1),
         (rtac disjI2 1),

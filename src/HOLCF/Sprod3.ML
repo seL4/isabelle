@@ -32,7 +32,7 @@ qed_goal "sprod3_lemma1" Sprod3.thy
         (rtac sym 1),
         (rtac lub_chain_maxelem 1),
         (res_inst_tac [("P","%j.~Y(j)=UU")] exE 1),
-        (rtac (notall2ex RS iffD1) 1),
+        (rtac (not_all RS iffD1) 1),
         (res_inst_tac [("Q","lub(range(Y)) = UU")] contrapos 1),
         (atac 1),
         (rtac chain_UU_I_inverse 1),
@@ -129,7 +129,7 @@ qed_goal "sprod3_lemma4" Sprod3.thy
         (rtac sym 1),
         (rtac lub_chain_maxelem 1),
         (res_inst_tac [("P","%j.Y(j)~=UU")] exE 1),
-        (rtac (notall2ex RS iffD1) 1),
+        (rtac (not_all RS iffD1) 1),
         (res_inst_tac [("Q","lub(range(Y)) = UU")] contrapos 1),
         (atac 1),
         (rtac chain_UU_I_inverse 1),
@@ -253,13 +253,9 @@ qed_goal "contlub_Isfst" Sprod3.thy "contlub(Isfst)"
         (rtac strict_Isfst 1),
         (rtac swap 1),
         (etac (defined_IsfstIssnd RS conjunct2) 2),
-        (rtac notnotI 1),
-        (rtac (chain_UU_I RS spec) 1),
-        (rtac (monofun_Issnd RS ch2ch_monofun) 1),
-        (atac 1),
-        (atac 1)
-        ]);
-
+	(fast_tac (HOL_cs addSDs [monofun_Issnd RS ch2ch_monofun RS 
+				  chain_UU_I RS spec]) 1)
+	]);
 
 qed_goal "contlub_Issnd" Sprod3.thy "contlub(Issnd)"
 (fn prems =>
@@ -281,13 +277,9 @@ qed_goal "contlub_Issnd" Sprod3.thy "contlub(Issnd)"
         (rtac strict_Issnd 1),
         (rtac swap 1),
         (etac (defined_IsfstIssnd RS conjunct1) 2),
-        (rtac notnotI 1),
-        (rtac (chain_UU_I RS spec) 1),
-        (rtac (monofun_Isfst RS ch2ch_monofun) 1),
-        (atac 1),
-        (atac 1)
-        ]);
-
+        (fast_tac (HOL_cs addSDs [monofun_Isfst RS ch2ch_monofun RS
+				  chain_UU_I RS spec]) 1)
+	]);
 
 qed_goal "cont_Isfst" Sprod3.thy "cont(Isfst)"
 (fn prems =>
@@ -663,7 +655,7 @@ qed_goalw "ssplit3" Sprod3.thy [ssplit_def]
         [
         (rtac (beta_cfun RS ssubst) 1),
         (cont_tacR 1),
-        (res_inst_tac [("Q","z=UU")] classical2 1),
+        (case_tac "z=UU" 1),
         (hyp_subst_tac 1),
         (rtac strictify1 1),
         (rtac trans 1),

@@ -35,7 +35,7 @@ FILES = ROOT.ML Porder0.thy  $(THYS) $(THYS:.thy=.ML)
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/HOLCF:   $(BIN)/HOL  $(FILES) 
 	case "$(COMP)" in \
-	poly*)  cp $(BIN)/HOL $(BIN)/HOLCF;\
+	poly*)  cp $(BIN)/HOL $(BIN)/HOLCF; chmod u+w $(BIN)/HOLCF;\
                 if [ "$${MAKE_HTML}" = "true" ]; \
                 then echo 'open PolyML; make_html := true; exit_use_dir".";' \
                        | $(COMP) $(BIN)/HOLCF;\

@@ -306,7 +306,7 @@ qed_goal "contlub_Istrictify2" Cfun3.thy "contlub(Istrictify(f::'a -> 'b))"
         [
         (rtac contlubI 1),
         (strip_tac 1),
-        (res_inst_tac [("Q","lub(range(Y))=(UU::'a)")] classical2 1),
+        (case_tac "lub(range(Y))=(UU::'a)" 1),
         (res_inst_tac [("t","lub(range(Y))")] subst 1),
         (rtac sym 1),
         (atac 1),

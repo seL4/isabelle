@@ -50,7 +50,7 @@ qed_goalw "defined_Spair_Rep_rev" Sprod0.thy [Spair_Rep_def]
  "(Spair_Rep a b) = (Spair_Rep UU UU) ==> (a=UU | b=UU)"
  (fn prems =>
         [
-        (res_inst_tac [("Q","a=UU|b=UU")] classical2 1),
+        (case_tac "a=UU|b=UU" 1),
         (atac 1),
         (rtac disjI1 1),
         (rtac ((hd prems) RS fun_cong RS fun_cong RS iffD2 RS mp RS 
@@ -124,7 +124,7 @@ qed_goal "strict_Ispair_rev" Sprod0.thy
 (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (de_morgan1 RS ssubst) 1),
+        (rtac (de_Morgan_disj RS subst) 1),
         (etac contrapos 1),
         (etac strict_Ispair 1)
         ]);
@@ -148,7 +148,7 @@ qed_goal "defined_Ispair" Sprod0.thy
         (cut_facts_tac prems 1),
         (rtac contrapos 1),
         (etac defined_Ispair_rev 2),
-        (rtac (de_morgan1 RS iffD1) 1),
+        (rtac (de_Morgan_disj RS iffD2) 1),
         (etac conjI 1),
         (atac 1)
         ]);
@@ -172,7 +172,7 @@ qed_goalw "Exh_Sprod" Sprod0.thy [Ispair_def]
         (rtac conjI 1),
         (rtac (Rep_Sprod_inverse RS sym RS trans) 1),
         (etac arg_cong 1),
-        (rtac (de_morgan1 RS ssubst) 1),
+        (rtac (de_Morgan_disj RS subst) 1),
         (atac 1),
         (rtac disjI1 1),
         (rtac (Rep_Sprod_inverse RS sym RS trans) 1),

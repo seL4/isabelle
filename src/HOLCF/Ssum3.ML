@@ -24,7 +24,7 @@ qed_goal "contlub_Isinl" Ssum3.thy "contlub(Isinl)"
         (rtac exI 3),
         (rtac refl 3),
         (etac (monofun_Isinl RS ch2ch_monofun) 2),
-        (res_inst_tac [("Q","lub(range(Y))=UU")] classical2 1),
+        (case_tac "lub(range(Y))=UU" 1),
         (res_inst_tac [("s","UU"),("t","lub(range(Y))")] ssubst 1),
         (atac 1),
         (res_inst_tac [("f","Isinl")] arg_cong  1),
@@ -40,7 +40,7 @@ qed_goal "contlub_Isinl" Ssum3.thy "contlub(Isinl)"
         (rtac (monofun_Iwhen3 RS ch2ch_monofun) 1),
         (etac (monofun_Isinl RS ch2ch_monofun) 1),
         (rtac allI 1),
-        (res_inst_tac [("Q","Y(k)=UU")] classical2 1),
+        (case_tac "Y(k)=UU" 1),
         (asm_simp_tac Ssum0_ss 1),
         (asm_simp_tac Ssum0_ss 1)
         ]);
@@ -56,7 +56,7 @@ qed_goal "contlub_Isinr" Ssum3.thy "contlub(Isinr)"
         (rtac exI 3),
         (rtac refl 3),
         (etac (monofun_Isinr RS ch2ch_monofun) 2),
-        (res_inst_tac [("Q","lub(range(Y))=UU")] classical2 1),
+        (case_tac "lub(range(Y))=UU" 1),
         (res_inst_tac [("s","UU"),("t","lub(range(Y))")] ssubst 1),
         (atac 1),
         ((rtac arg_cong 1) THEN (rtac (chain_UU_I_inverse RS sym) 1)),
@@ -71,7 +71,7 @@ qed_goal "contlub_Isinr" Ssum3.thy "contlub(Isinr)"
         (rtac (monofun_Iwhen3 RS ch2ch_monofun) 1),
         (etac (monofun_Isinr RS ch2ch_monofun) 1),
         (rtac allI 1),
-        (res_inst_tac [("Q","Y(k)=UU")] classical2 1),
+        (case_tac "Y(k)=UU" 1),
         (asm_simp_tac Ssum0_ss 1),
         (asm_simp_tac Ssum0_ss 1)
         ]);

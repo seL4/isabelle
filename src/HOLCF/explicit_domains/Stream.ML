@@ -273,7 +273,7 @@ qed_goal "stream_copy2" Stream.thy
      "stream_copy`f`(scons`x`xs) = scons`x`(f`xs)"
  (fn prems =>
         [
-        (res_inst_tac [("Q","x=UU")] classical2 1),
+        (case_tac "x=UU" 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1)
         ]);
@@ -281,7 +281,7 @@ qed_goal "stream_copy2" Stream.thy
 qed_goal "shd2" Stream.thy "shd`(scons`x`xs) = x"
  (fn prems =>
         [
-        (res_inst_tac [("Q","x=UU")] classical2 1),
+        (case_tac "x=UU" 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1)
         ]);
@@ -290,7 +290,7 @@ qed_goal "stream_take2" Stream.thy
  "stream_take (Suc n)`(scons`x`xs) = scons`x`(stream_take n`xs)"
  (fn prems =>
         [
-        (res_inst_tac [("Q","x=UU")] classical2 1),
+        (case_tac "x=UU" 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1),
         (asm_simp_tac (!simpset addsimps stream_rews) 1)
         ]);
@@ -489,7 +489,7 @@ qed_goalw "stream_coind_lemma2" Stream.thy [stream_bisim_def]
         (dtac mp 1),
         (atac 1),
         (etac conjE 1),
-        (res_inst_tac [("Q","s1 = UU & s2 = UU")] classical2 1),
+        (case_tac "s1 = UU & s2 = UU" 1),
         (rtac disjI1 1),
         (fast_tac HOL_cs 1),
         (rtac disjI2 1),

@@ -306,13 +306,10 @@ qed_goal "thelub_lift2b_rev" Lift3.thy
         [
         (cut_facts_tac prems 1),
         (rtac allI 1),
-        (rtac (notex2all RS iffD1) 1),
+        (rtac (not_ex RS iffD1) 1),
         (rtac contrapos 1),
         (etac (lift_lemma2 RS iffD1) 2),
-        (rtac notnotI 1),
-        (rtac (chain_UU_I RS spec) 1),
-        (atac 1),
-        (atac 1)
+        (fast_tac (HOL_cs addSDs [chain_UU_I RS spec]) 1)
         ]);
 
 

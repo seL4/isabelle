@@ -1,10 +1,10 @@
 (*  Title:      HOLCF/holcfb.ML
     ID:         $Id$
     Author:     Franz Regensburger
+    Changed by: David von Oheimb
     Copyright   1993  Technische Universitaet Muenchen
-
-Lemmas for Holcfb.thy 
 *)
+
 
 open Holcfb;
 
@@ -12,6 +12,7 @@ open Holcfb;
 (* <::nat=>nat=>bool is a well-ordering                                     *)
 (* ------------------------------------------------------------------------ *)
 
+(*
 qed_goal "well_ordering_nat"  Nat.thy 
         "!P. P(x::nat) --> (? y. P(y) & (! x. P(x) --> y <= x))"
  (fn prems =>
@@ -34,12 +35,13 @@ qed_goal "well_ordering_nat"  Nat.thy
         (rtac leI  1),
         (fast_tac HOL_cs 1)
         ]);
-
+*)
 
 (* ------------------------------------------------------------------------ *)
 (* Lemmas for selecting the least element in a nonempty set                 *)
 (* ------------------------------------------------------------------------ *)
 
+(*
 qed_goalw "theleast"  Holcfb.thy [theleast_def] 
 "P(x) ==> P(theleast(P)) & (!x.P(x)--> theleast(P) <= x)"
  (fn prems =>
@@ -50,10 +52,17 @@ qed_goalw "theleast"  Holcfb.thy [theleast_def]
         (rtac selectI 1),
         (atac 1)
         ]);
+*)
 
+
+(* val theleast1 = LeastI "?P ?k ךכ ?P (´x. ?P x)" *)
+(*
 val theleast1= theleast RS conjunct1;
 (* ?P1(?x1) ==> ?P1(theleast(?P1)) *)
+*)
 
+(* val theleast2 = Least_le "?P ?k ךכ (´x. ?P x) <= ?k" *)
+(*
 qed_goal "theleast2"  Holcfb.thy  "P(x) ==> theleast(P) <= x"
  (fn prems =>
         [
@@ -61,81 +70,39 @@ qed_goal "theleast2"  Holcfb.thy  "P(x) ==> theleast(P) <= x"
         (resolve_tac prems 1),
         (resolve_tac prems 1)
         ]);
-
+*)
 
 (* ------------------------------------------------------------------------ *)
 (* Some lemmas in HOL.thy                                                   *)
 (* ------------------------------------------------------------------------ *)
 
 
-qed_goal "de_morgan1" HOL.thy "(~a & ~b)=(~(a | b))"
-(fn prems =>
-        [
-        (rtac iffI 1),
-        (fast_tac HOL_cs 1),
-        (fast_tac HOL_cs 1)
-        ]);
+(* val de_morgan1 = de_Morgan_disj RS sym;   "(~a & ~b)=(~(a | b))" *)
 
-qed_goal "de_morgan2" HOL.thy "(~a | ~b)=(~(a & b))"
-(fn prems =>
-        [
-        (rtac iffI 1),
-        (fast_tac HOL_cs 1),
-        (fast_tac HOL_cs 1)
-        ]);
+(* val de_morgan2 = de_Morgan_conj RS sym;   "(~a | ~b)=(~(a & b))" *)
 
 
-qed_goal "notall2ex" HOL.thy "(~ (!x.P(x))) = (? x.~P(x))"
-(fn prems =>
-        [
-        (rtac iffI 1),
-        (fast_tac HOL_cs 1),
-        (fast_tac HOL_cs 1)
-        ]);
+(* val notall2ex = not_all 		     "(~ (!x.P(x))) = (? x.~P(x))" *)
 
-qed_goal "notex2all" HOL.thy "(~ (? x.P(x))) = (!x.~P(x))"
-(fn prems =>
-        [
-        (rtac iffI 1),
-        (fast_tac HOL_cs 1),
-        (fast_tac HOL_cs 1)
-        ]);
+(* val notex2all = not_ex		     "(~ (? x.P(x))) = (!x.~P(x))" *)
 
 
-qed_goal "selectI3" HOL.thy "(? x. P(x)) ==> P(@ x.P(x))"
-(fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (etac exE 1),
-        (etac selectI 1)
-        ]);
+(* val selectI3 =  select_eq_Ex RS iffD2   "(? x. P(x)) ==> P(@ x.P(x))" *)
 
-qed_goal "selectE" HOL.thy "P(@ x.P(x)) ==> (? x. P(x))"
-(fn prems =>
-        [
-        (cut_facts_tac prems 1),
-        (etac exI 1)
-        ]);
-
-qed_goal "select_eq_Ex" HOL.thy "(P(@ x.P(x))) =  (? x. P(x))"
-(fn prems =>
-        [
-        (rtac (iff RS mp  RS mp) 1),
-        (strip_tac 1),
-        (etac selectE 1),
-        (strip_tac 1),
-        (etac selectI3 1)
-        ]);
+(* val selectE =   select_eq_Ex RS iffD1   "P(@ x.P(x)) ==> (? x. P(x))" *)
 
 
+(*
 qed_goal "notnotI" HOL.thy "P ==> ~~P"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
         (fast_tac HOL_cs 1)
         ]);
+*)
 
-
+(* val classical2 = case_split_thm;        "[|Q ==> R; ~Q ==> R|]==>R" *)
+(*
 qed_goal "classical2" HOL.thy "[|Q ==> R; ~Q ==> R|]==>R"
  (fn prems =>
         [
@@ -144,13 +111,17 @@ qed_goal "classical2" HOL.thy "[|Q ==> R; ~Q ==> R|]==>R"
         (eresolve_tac prems 1),
         (eresolve_tac prems 1)
         ]);
+*)
+(*
+fun case_tac s = res_inst_tac [("Q",s)] classical2;
+*)
 
 
 
 val classical3 = (notE RS notI);
 (* [| ?P ==> ~ ?P1; ?P ==> ?P1 |] ==> ~ ?P *)
 
-
+(*
 qed_goal "nat_less_cases" Nat.thy 
     "[| (m::nat) < n ==> P(n,m); m=n ==> P(n,m);n < m ==> P(n,m)|]==>P(n,m)"
 ( fn prems =>
@@ -161,10 +132,9 @@ qed_goal "nat_less_cases" Nat.thy
         (etac (sym RS hd (tl prems)) 1),
         (etac (hd prems) 1)
         ]);
+*)
 
-
-
-
-
-
-
+(*
+qed_goal "Suc_less_mono" Nat.thy "Suc n < Suc m = (n < m)" (fn _ => [
+	fast_tac (HOL_cs addIs [Suc_mono] addDs [Suc_less_SucD]) 1]);
+*)

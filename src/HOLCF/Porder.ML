@@ -125,7 +125,7 @@ qed_goal "lubI" Porder.thy "(? x. M <<| x) ==> M <<| lub(M)"
         [
         (cut_facts_tac prems 1),
         (rtac (lub RS ssubst) 1),
-        (etac selectI3 1)
+        (etac (select_eq_Ex RS iffD2) 1)
         ]);
 
 qed_goal "lubE" Porder.thy " M <<| lub(M) ==>  ? x. M <<| x"
@@ -329,7 +329,7 @@ qed_goalw "lub_finch2" Porder.thy [finite_chain_def]
         (cut_facts_tac prems 1),
         (rtac lub_finch1 1),
         (etac conjunct1 1),
-        (rtac selectI3 1),
+        (rtac (select_eq_Ex RS iffD2) 1),
         (etac conjunct2 1)
         ]);
 

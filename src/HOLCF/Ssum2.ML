@@ -227,7 +227,7 @@ qed_goal "ssum_lemma4" Ssum2.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac classical2 1),
+        (rtac case_split_thm 1),
         (etac disjI1 1),
         (rtac disjI2 1),
         (etac ssum_lemma3 1),
@@ -246,7 +246,7 @@ qed_goal "ssum_lemma5" Ssum2.thy
         [
         (cut_facts_tac prems 1),
         (hyp_subst_tac 1),
-        (res_inst_tac [("Q","x=UU")] classical2 1),
+        (case_tac "x=UU" 1),
         (asm_simp_tac Ssum0_ss 1),
         (asm_simp_tac Ssum0_ss 1)
         ]);
@@ -261,7 +261,7 @@ qed_goal "ssum_lemma6" Ssum2.thy
         [
         (cut_facts_tac prems 1),
         (hyp_subst_tac 1),
-        (res_inst_tac [("Q","x=UU")] classical2 1),
+        (case_tac "x=UU" 1),
         (asm_simp_tac Ssum0_ss 1),
         (asm_simp_tac Ssum0_ss 1)
         ]);

@@ -92,7 +92,7 @@ qed_goal "lub_mono2" Pcpo.thy
         (resolve_tac prems 1),
         (rtac ub_rangeI 1),
         (strip_tac 1),
-        (res_inst_tac [("Q","x<i")] classical2 1),
+        (case_tac "x<i" 1),
         (res_inst_tac [("s","Y(i)"),("t","X(i)")] subst 1),
         (rtac sym 1),
         (fast_tac HOL_cs 1),
@@ -207,7 +207,7 @@ qed_goal "chain_UU_I_inverse2" Pcpo.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (rtac (notall2ex RS iffD1) 1),
+        (rtac (not_all RS iffD1) 1),
         (rtac swap 1),
         (rtac chain_UU_I_inverse 2),
         (etac notnotD 2),

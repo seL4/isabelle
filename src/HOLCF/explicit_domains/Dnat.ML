@@ -179,7 +179,7 @@ val temp = prove_goal Dnat.thy  "~dzero << dsucc`n"
         (dres_inst_tac [("fo5","is_dzero")] monofun_cfun_arg 1),
         (etac box_less 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
-        (res_inst_tac [("Q","n=UU")] classical2 1),
+        (case_tac "n=UU" 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1)
         ]);
@@ -203,7 +203,7 @@ val dnat_dist_less = temp::dnat_dist_less;
 val temp = prove_goal Dnat.thy   "dzero ~= dsucc`n"
  (fn prems =>
         [
-        (res_inst_tac [("Q","n=UU")] classical2 1),
+        (case_tac "n=UU" 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
         (res_inst_tac [("P1","TT = FF")] classical3 1),
         (resolve_tac dist_eq_tr 1),
@@ -312,7 +312,7 @@ val temp = prove_goalw Dnat.thy [dnat_take_def]
   "dnat_take (Suc n)`(dsucc`xs)=dsucc`(dnat_take n ` xs)"
  (fn prems =>
         [
-        (res_inst_tac [("Q","xs=UU")] classical2 1),
+        (case_tac "xs=UU" 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
         (Asm_simp_tac 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
@@ -418,7 +418,7 @@ qed_goal "dnat_ind" Dnat.thy
         (asm_simp_tac (!simpset addsimps dnat_copy) 1),
         (resolve_tac prems 1),
         (asm_simp_tac (!simpset addsimps dnat_copy) 1),
-        (res_inst_tac [("Q","x`xb=UU")] classical2 1),
+        (case_tac "x`xb=UU" 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
         (resolve_tac prems 1),
         (eresolve_tac prems 1),
@@ -442,7 +442,7 @@ qed_goal "dnat_finite_ind" Dnat.thy
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
         (resolve_tac prems 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
-        (res_inst_tac [("Q","dnat_take n1`x=UU")] classical2 1),
+        (case_tac "dnat_take n1`x=UU" 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
         (resolve_tac prems 1),
         (resolve_tac prems 1),
@@ -470,7 +470,7 @@ qed_goal "dnat_all_finite_lemma1" Dnat.thy
 qed_goal "dnat_all_finite_lemma2" Dnat.thy "? n.dnat_take n`s=s"
  (fn prems =>
         [
-        (res_inst_tac [("Q","s=UU")] classical2 1),
+        (case_tac "s=UU" 1),
         (asm_simp_tac (!simpset addsimps dnat_rews) 1),
         (subgoal_tac "(!n.dnat_take(n)`s=UU) |(? n.dnat_take(n)`s=s)" 1),
         (etac disjE 1),
