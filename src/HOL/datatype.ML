@@ -209,7 +209,7 @@ fun trans_recs _ _ [] = error("No primrec equations.")
 in
   fun add_datatype (typevars, tname, cons_list') thy = 
     let
-      val dummy = Theory.require thy "Arith" "datatype definitions";
+      val dummy = Theory.requires thy "Arith" "datatype definitions";
       
       fun typid(dtRek(_,id)) = id
         | typid(dtVar s) = implode (tl (explode s))

@@ -84,7 +84,7 @@ sig
   val put_data: string * object -> theory -> theory
   val prep_ext: theory -> theory
   val prep_ext_merge: theory list -> theory
-  val require: theory -> string -> string -> unit
+  val requires: theory -> string -> string -> unit
   val pre_pure: theory
 end;
 
@@ -125,7 +125,7 @@ val subthy = Sign.subsig o pairself sign_of;
 val eq_thy = Sign.eq_sg o pairself sign_of;
 
 (*check for some named theory*)
-fun require thy name what =
+fun requires thy name what =
   if exists (equal name) (Sign.stamp_names_of (sign_of thy)) then ()
   else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
 

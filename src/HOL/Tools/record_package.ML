@@ -621,7 +621,7 @@ fun cert_typ sign (env, raw_T) =
 
 fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_fields thy =
   let
-    val _ = Theory.require thy "Record" "record definitions";
+    val _ = Theory.requires thy "Record" "record definitions";
     val sign = Theory.sign_of thy;
     val _ = writeln ("Defining record " ^ quote bname ^ " ...");
 

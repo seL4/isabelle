@@ -43,7 +43,7 @@ fun prove_nonempty cset thms usr_tac =
 
 fun gen_add_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
   let
-    val _ = Theory.require thy "Set" "typedefs";
+    val _ = Theory.requires thy "Set" "typedefs";
     val sign = sign_of thy;
     val full_name = Sign.full_name sign;
 
