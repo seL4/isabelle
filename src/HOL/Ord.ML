@@ -104,6 +104,28 @@ by (cut_facts_tac [linorder_linear] 1);
 by (Blast_tac 1);
 qed "linorder_less_linear";
 
+Goal "!!x::'a::linorder. (~ x < y) = (y <= x)";
+by (simp_tac (simpset() addsimps [order_less_le]) 1);
+by (cut_facts_tac [linorder_linear] 1);
+by (blast_tac (claset() addIs [order_antisym]) 1);
+qed "linorder_not_less";
+
+Goal "!!x::'a::linorder. (~ x <= y) = (y < x)";
+by (simp_tac (simpset() addsimps [order_less_le]) 1);
+by (cut_facts_tac [linorder_linear] 1);
+by (blast_tac (claset() addIs [order_antisym]) 1);
+qed "linorder_not_le";
+
+Goal "!!x::'a::linorder. (x ~= y) = (x<y | y<x)";
+by (cut_inst_tac [("x","x"),("y","y")] linorder_less_linear 1);
+by Auto_tac;
+qed "linorder_neq_iff";
+
+(* eliminates ~= in premises *)
+bind_thm("linorder_neqE", linorder_neq_iff RS iffD1 RS disjE);
+
+(** min & max **)
+
 Goalw [max_def] "!!z::'a::linorder. (z <= max x y) = (z <= x | z <= y)";
 by (Simp_tac 1);
 by (cut_facts_tac [linorder_linear] 1);
@@ -136,17 +158,3 @@ by (Simp_tac 1);
 by (cut_facts_tac [linorder_linear] 1);
 by (blast_tac (claset() addIs [order_trans]) 1);
 qed "min_le_iff_disj";
-
-Goal "!!x::'a::linorder. (x ~= y) = (x<y | y<x)";
-by (cut_inst_tac [("x","x"),("y","y")] linorder_less_linear 1);
-by Auto_tac;
-qed "linorder_neq_iff";
-
-(*** eliminates ~= in premises ***)
-bind_thm("linorder_neqE", linorder_neq_iff RS iffD1 RS disjE);
-
-Goal "!!x::'a::linorder. (~ x < y) = (y <= x)";
-by (simp_tac (simpset() addsimps [order_less_le]) 1);
-by (cut_facts_tac [linorder_linear] 1);
-by (blast_tac (claset() addIs [order_antisym]) 1);
-qed "linorder_not_less";

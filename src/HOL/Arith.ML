@@ -853,8 +853,11 @@ val neqE = linorder_neqE;
 val notI = notI;
 val sym = sym;
 val not_lessD = linorder_not_less RS iffD1;
+val not_leD = linorder_not_le RS iffD1;
 
-val mk_Eq = mk_eq;
+
+fun mk_Eq thm = (thm RS Eq_FalseI) handle _ => (thm RS Eq_TrueI);
+
 val mk_Trueprop = HOLogic.mk_Trueprop;
 
 fun neg_prop(TP$(Const("Not",_)$t)) = TP$t
@@ -864,13 +867,18 @@ fun is_False thm =
   let val _ $ t = #prop(rep_thm thm)
   in t = Const("False",HOLogic.boolT) end;
 
+fun is_nat(t) = fastype_of1 t = HOLogic.natT;
+
+fun mk_nat_thm sg t =
+  let val ct = cterm_of sg t  and cn = cterm_of sg (Var(("n",0),HOLogic.natT))
+  in instantiate ([],[(cn,ct)]) le0 end;
+
 end;
 
-structure Nat_LA_Data: LIN_ARITH_DATA =
+structure Nat_LA_Data (* : LIN_ARITH_DATA *) =
 struct
 
-val lessD = Suc_leI;
-val not_leD = not_leE RS Suc_leI;
+val lessD = [Suc_leI];
 
 (* Turn term into list of summand * multiplicity plus a constant *)
 fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))
@@ -882,8 +890,7 @@ fun poly(Const("Suc",_)$t, (p,i)) = poly(t, (p,i+1))
 
 fun nnb T = T = ([HOLogic.natT,HOLogic.natT] ---> HOLogic.boolT);
 
-fun decomp2(rel,T,lhs,rhs) =
-  if not(nnb T) then None else
+fun decomp2(rel,lhs,rhs) =
   let val (p,i) = poly(lhs,([],0)) and (q,j) = poly(rhs,([],0))
   in case rel of
        "op <"  => Some(p,i,"<",q,j)
@@ -895,9 +902,11 @@ fun decomp2(rel,T,lhs,rhs) =
 fun negate(Some(x,i,rel,y,j)) = Some(x,i,"~"^rel,y,j)
   | negate None = None;
 
-fun decomp(_$(Const(rel,T)$lhs$rhs)) = decomp2(rel,T,lhs,rhs)
+fun decomp1(T,xxx) = if nnb T then decomp2 xxx else None;
+
+fun decomp(_$(Const(rel,T)$lhs$rhs)) = decomp1(T,(rel,lhs,rhs))
   | decomp(_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
-      negate(decomp2(rel,T,lhs,rhs))
+      negate(decomp1(T,(rel,lhs,rhs)))
   | decomp _ = None
 
 (* reduce contradictory <= to False.
@@ -919,29 +928,27 @@ val add_mono_thms = map (fn s => prove_goal Arith.thy s
  "(i  = j) & (k  = l) ==> i + k  = j + (l::nat)"
 ];
 
-fun is_nat(t) = fastype_of1 t = HOLogic.natT;
-
-fun mk_nat_thm sg t =
-  let val ct = cterm_of sg t  and cn = cterm_of sg (Var(("n",0),HOLogic.natT))
-  in instantiate ([],[(cn,ct)]) le0 end;
-
 end;
 
-structure Fast_Nat_Arith =
-  Fast_Lin_Arith(structure LA_Logic=LA_Logic and LA_Data=Nat_LA_Data);
-
-val fast_nat_arith_tac = Fast_Nat_Arith.lin_arith_tac;
-
-local
-fun prep_pat s = Thm.read_cterm (sign_of Arith.thy) (s, HOLogic.boolT);
-
-val pats = map prep_pat
-  ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"]
-
-in
-val fast_nat_arith_simproc =
-  mk_simproc "fast_nat_arith" pats Fast_Nat_Arith.lin_arith_prover;
+structure LA_Data_Ref =
+struct
+  val add_mono_thms = ref Nat_LA_Data.add_mono_thms
+  val lessD = ref Nat_LA_Data.lessD
+  val decomp = ref Nat_LA_Data.decomp
+  val simp = ref Nat_LA_Data.simp
 end;
+
+structure Fast_Arith =
+  Fast_Lin_Arith(structure LA_Logic=LA_Logic and LA_Data=LA_Data_Ref);
+
+val fast_arith_tac = Fast_Arith.lin_arith_tac;
+
+val nat_arith_simproc_pats =
+  map (fn s => Thm.read_cterm (sign_of Arith.thy) (s, HOLogic.boolT))
+      ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"];
+
+val fast_nat_arith_simproc = mk_simproc "fast_nat_arith" nat_arith_simproc_pats
+                                        Fast_Arith.lin_arith_prover;
 
 Addsimprocs [fast_nat_arith_simproc];
 
@@ -951,7 +958,7 @@ useful to detect inconsistencies among the premises for subgoals which are
 fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
 solver all the time rather than add the additional check. *)
 
-simpset_ref () := (simpset() addSolver Fast_Nat_Arith.cut_lin_arith_tac);
+simpset_ref () := (simpset() addSolver Fast_Arith.cut_lin_arith_tac);
 
 (* Elimination of `-' on nat due to John Harrison *)
 Goal "P(a - b::nat) = (!d. (b = a + d --> P 0) & (a = b + d --> P d))";
@@ -964,9 +971,9 @@ qed "nat_diff_split";
 (* FIXME: K true should be replaced by a sensible test to speed things up
    in case there are lots of irrelevant terms involved
 *)
-val nat_arith_tac =
+val arith_tac =
   refute_tac (K true) (REPEAT o split_tac[nat_diff_split])
-             ((REPEAT_DETERM o etac nat_neqE) THEN' fast_nat_arith_tac);
+             ((REPEAT_DETERM o etac nat_neqE) THEN' fast_arith_tac);
 
 (*---------------------------------------------------------------------------*)
 (* End of proof procedures. Now go and USE them!                             *)
@@ -975,75 +982,75 @@ val nat_arith_tac =
 (*** Subtraction laws -- mostly from Clemens Ballarin ***)
 
 Goal "[| a < (b::nat); c <= a |] ==> a-c < b-c";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "diff_less_mono";
 
 Goal "a+b < (c::nat) ==> a < c-b";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "add_less_imp_less_diff";
 
 Goal "(i < j-k) = (i+k < (j::nat))";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "less_diff_conv";
 
 Goal "(j-k <= (i::nat)) = (j <= i+k)";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "le_diff_conv";
 
 Goal "k <= j ==> (i <= j-k) = (i+k <= (j::nat))";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "le_diff_conv2";
 
 Goal "Suc i <= n ==> Suc (n - Suc i) = n - i";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "Suc_diff_Suc";
 
 Goal "i <= (n::nat) ==> n - (n - i) = i";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "diff_diff_cancel";
 Addsimps [diff_diff_cancel];
 
 Goal "k <= (n::nat) ==> m <= n + m - k";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "le_add_diff";
 
 Goal "[| 0<k; j<i |] ==> j+k-i < k";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "add_diff_less";
 
 Goal "m-1 < n ==> m <= n";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "pred_less_imp_le";
 
 Goal "j<=i ==> i - j < Suc i - j";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "diff_less_Suc_diff";
 
 Goal "i - j <= Suc i - j";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "diff_le_Suc_diff";
 AddIffs [diff_le_Suc_diff];
 
 Goal "n - Suc i <= n - i";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "diff_Suc_le_diff";
 AddIffs [diff_Suc_le_diff];
 
 Goal "0 < n ==> (m <= n-1) = (m<n)";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "le_pred_eq";
 
 Goal "0 < n ==> (m-1 < n) = (m<=n)";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "less_pred_eq";
 
 (*In ordinary notation: if 0<n and n<=m then m-n < m *)
 Goal "[| 0<n; ~ m<n |] ==> m - n < m";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "diff_less";
 
 Goal "[| 0<n; n<=m |] ==> m - n < m";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "le_diff_less";
 
 
@@ -1052,19 +1059,19 @@ qed "le_diff_less";
 
 (* Monotonicity of subtraction in first argument *)
 Goal "m <= (n::nat) ==> (m-l) <= (n-l)";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "diff_le_mono";
 
 Goal "m <= (n::nat) ==> (l-n) <= (l-m)";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "diff_le_mono2";
 
 
 (*This proof requires natdiff_cancel_sums*)
 Goal "[| m < (n::nat); m<l |] ==> (l-n) < (l-m)";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "diff_less_mono2";
 
 Goal "[| m-n = 0; n-m = 0 |] ==>  m=n";
-by(nat_arith_tac 1);
+by(arith_tac 1);
 qed "diffs0_imp_equal";

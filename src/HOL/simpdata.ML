@@ -64,31 +64,28 @@ local
 
   fun prover s = prove_goal HOL.thy s (K [Blast_tac 1]);
 
-  val P_imp_P_iff_True = prover "P --> (P = True)" RS mp;
-  val P_imp_P_eq_True = P_imp_P_iff_True RS eq_reflection;
-
-  val not_P_imp_P_iff_F = prover "~P --> (P = False)" RS mp;
-  val not_P_imp_P_eq_False = not_P_imp_P_iff_F RS eq_reflection;
-
 in
 
 (*Make meta-equalities.  The operator below is Trueprop*)
 
-  fun mk_meta_eq r = r RS eq_reflection;
+fun mk_meta_eq r = r RS eq_reflection;
 
-  fun mk_eq th = case concl_of th of
-          Const("==",_)$_$_       => th
-      |   _$(Const("op =",_)$_$_) => mk_meta_eq th
-      |   _$(Const("Not",_)$_)    => th RS not_P_imp_P_eq_False
-      |   _                       => th RS P_imp_P_eq_True;
-  (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
+val Eq_TrueI  = mk_meta_eq(prover  "P --> (P = True)"  RS mp);
+val Eq_FalseI = mk_meta_eq(prover "~P --> (P = False)" RS mp);
 
-  fun mk_eq_True r = Some(r RS meta_eq_to_obj_eq RS P_imp_P_eq_True);
+fun mk_eq th = case concl_of th of
+        Const("==",_)$_$_       => th
+    |   _$(Const("op =",_)$_$_) => mk_meta_eq th
+    |   _$(Const("Not",_)$_)    => th RS Eq_FalseI
+    |   _                       => th RS Eq_TrueI;
+(* last 2 lines requires all formulae to be of the from Trueprop(.) *)
 
-  fun mk_meta_cong rl =
-    standard(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
-    handle THM _ =>
-    error("Premises and conclusion of congruence rules must be =-equalities");
+fun mk_eq_True r = Some(r RS meta_eq_to_obj_eq RS Eq_TrueI);
+
+fun mk_meta_cong rl =
+  standard(mk_meta_eq(replicate (nprems_of rl) meta_eq_to_obj_eq MRS rl))
+  handle THM _ =>
+  error("Premises and conclusion of congruence rules must be =-equalities");
 
 val not_not = prover "(~ ~ P) = P";
 
@@ -505,6 +502,6 @@ fun refute_tac test prep_tac ref_tac =
                eresolve_tac [disjE] 1) THEN
         ref_tac 1;
   in EVERY'[TRY o filter_prems_tac test,
-            REPEAT o etac rev_mp, prep_tac, rtac ccontr, prem_nnf_tac,
+            DETERM o REPEAT o etac rev_mp, prep_tac, rtac ccontr, prem_nnf_tac,
             SELECT_GOAL (DEPTH_SOLVE refute_prems_tac)]
   end;

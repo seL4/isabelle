@@ -29,7 +29,7 @@ Addsimps [subst_not_free RS eqTrueI];
 Goal "!i k. free (lift t k) i = (i < k & free t i | k < i & free t (i-1))";
 by (induct_tac "t" 1);
   by (ALLGOALS(asm_full_simp_tac (addsplit (simpset()) addcongs [conj_cong])));
- by(nat_arith_tac 1);
+ by(arith_tac 1);
 by(Auto_tac);
 qed "free_lift";
 Addsimps [free_lift];

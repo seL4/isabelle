@@ -399,13 +399,10 @@ include rules for turning multiplication with constants into addition.
 (The latter option is very inefficient!)
 *)
 
-structure Int_LA_Data: LIN_ARITH_DATA =
+structure Int_LA_Data(*: LIN_ARITH_DATA*) =
 struct
 
-val lessD = add1_zle_eq RS iffD2;
-val not_leD = not_zleE RS lessD;
-
-val intT = Type("IntDef.int",[]);
+val lessD = Nat_LA_Data.lessD @ [add1_zle_eq RS iffD2];
 
 (* borrowed from Bin.thy: *)
 fun dest_bit (Const ("False", _)) = 0
@@ -437,10 +434,7 @@ fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
      ((p,i + m*dest_bin t) handle Match => add_atom(all,m,(p,i)))
   | poly x  = add_atom x;
 
-fun iib T = T = ([intT,intT] ---> HOLogic.boolT);
-
-fun decomp2(rel,T,lhs,rhs) =
-  if not(iib T) then None else
+fun decomp2(rel,lhs,rhs) =
   let val (p,i) = poly(lhs,1,([],0)) and (q,j) = poly(rhs,1,([],0))
   in case rel of
        "op <"  => Some(p,i,"<",q,j)
@@ -449,80 +443,89 @@ fun decomp2(rel,T,lhs,rhs) =
      | _       => None
   end;
 
-fun negate(Some(x,i,rel,y,j)) = Some(x,i,"~"^rel,y,j)
-  | negate None = None;
+val intT = Type("IntDef.int",[]);
+fun iib T = T = ([intT,intT] ---> HOLogic.boolT);
 
-fun decomp(_$(Const(rel,T)$lhs$rhs)) = decomp2(rel,T,lhs,rhs)
+fun decomp1(T,xxx) =
+  if iib T then decomp2 xxx else Nat_LA_Data.decomp1(T,xxx);
+
+fun decomp(_$(Const(rel,T)$lhs$rhs)) = decomp1(T,(rel,lhs,rhs))
   | decomp(_$(Const("Not",_)$(Const(rel,T)$lhs$rhs))) =
-      negate(decomp2(rel,T,lhs,rhs))
+      Nat_LA_Data.negate(decomp1(T,(rel,lhs,rhs)))
   | decomp _ = None
 
 (* reduce contradictory <= to False *)
 val add_rules = simp_thms@bin_arith_simps@bin_rel_simps@[int_0];
 
-val cancel_sums_ss = HOL_basic_ss addsimps add_rules
+val cancel_sums_ss = Nat_LA_Data.cancel_sums_ss addsimps add_rules
           addsimprocs [Int_Cancel.sum_conv, Int_Cancel.rel_conv];
 
 val simp = simplify cancel_sums_ss;
 
-val add_mono_thms = map (fn s => prove_goal Int.thy s
- (fn prems => [cut_facts_tac prems 1,
-               asm_simp_tac (simpset() addsimps [zadd_zle_mono]) 1]))
-["(i <= j) & (k <= l) ==> i + k <= j + (l::int)",
- "(i  = j) & (k <= l) ==> i + k <= j + (l::int)",
- "(i <= j) & (k  = l) ==> i + k <= j + (l::int)",
- "(i  = j) & (k  = l) ==> i + k  = j + (l::int)"
-];
-
-fun is_nat(t) = false;
-
-fun mk_nat_thm sg t = sys_error "Int/mk_nat_thm";
+val add_mono_thms = Nat_LA_Data.add_mono_thms @
+  map (fn s => prove_goal Int.thy s
+                 (fn prems => [cut_facts_tac prems 1,
+                      asm_simp_tac (simpset() addsimps [zadd_zle_mono]) 1]))
+    ["(i <= j) & (k <= l) ==> i + k <= j + (l::int)",
+     "(i  = j) & (k <= l) ==> i + k <= j + (l::int)",
+     "(i <= j) & (k  = l) ==> i + k <= j + (l::int)",
+     "(i  = j) & (k  = l) ==> i + k  = j + (l::int)"
+    ];
 
 end;
 
-structure Fast_Int_Arith =
-  Fast_Lin_Arith(structure LA_Logic=LA_Logic and LA_Data=Int_LA_Data);
+(* Update parameters of arithmetic prover *)
+LA_Data_Ref.add_mono_thms := Int_LA_Data.add_mono_thms;
+LA_Data_Ref.lessD :=         Int_LA_Data.lessD;
+LA_Data_Ref.decomp :=        Int_LA_Data.decomp;
+LA_Data_Ref.simp :=          Int_LA_Data.simp;
 
-val fast_int_arith_tac = Fast_Int_Arith.lin_arith_tac;
 
-simpset_ref () := (simpset() addSolver Fast_Int_Arith.cut_lin_arith_tac);
+val int_arith_simproc_pats =
+  map (fn s => Thm.read_cterm (sign_of Int.thy) (s, HOLogic.boolT))
+      ["(m::int) < n","(m::int) <= n", "(m::int) = n"];
+
+val fast_int_arith_simproc = mk_simproc "fast_int_arith" int_arith_simproc_pats
+                                        Fast_Arith.lin_arith_prover;
+
+Addsimprocs [fast_int_arith_simproc];
 
 (* FIXME: K true should be replaced by a sensible test to speed things up
    in case there are lots of irrelevant terms involved.
 *)
-val int_arith_tac =
-  refute_tac (K true) (K all_tac)
-             ((REPEAT o etac int_neqE) THEN' fast_int_arith_tac);
+val arith_tac =
+  refute_tac (K true) (REPEAT o split_tac[nat_diff_split])
+             ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac);
 
 (* Some test data
 Goal "!!a::int. [| a <= b; c <= d; x+y<z |] ==> a+c <= b+d";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 Goal "!!a::int. [| a < b; c < d |] ==> a-d+ #2 <= b+(-c)";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 Goal "!!a::int. [| a < b; c < d |] ==> a+c+ #1 < b+d";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 Goal "!!a::int. [| a <= b; b+b <= c |] ==> a+a <= c";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 Goal "!!a::int. [| a+b <= i+j; a<=b; i<=j |] \
 \     ==> a+a <= j+j";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 Goal "!!a::int. [| a+b < i+j; a<b; i<j |] \
 \     ==> a+a - - #-1 < j+j - #3";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 Goal "!!a::int. a+b+c <= i+j+k & a<=b & b<=c & i<=j & j<=k --> a+a+a <= k+k+k";
-by(int_arith_tac 1);
+by(arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a <= l";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a <= l+l+l+l";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a+a <= l+l+l+l+i";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 Goal "!!a::int. [| a+b+c+d <= i+j+k+l; a<=b; b<=c; c<=d; i<=j; j<=k; k<=l |] \
 \     ==> a+a+a+a+a+a <= l+l+l+l+i+l";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 *)
 
 (*---------------------------------------------------------------------------*)
@@ -544,50 +547,50 @@ Addsimps [add_integ_of_left, mult_integ_of_left];
 (** Simplification of inequalities involving numerical constants **)
 
 Goal "(w <= z + #1) = (w<=z | w = z + #1)";
-by(int_arith_tac 1);
+by(arith_tac 1);
 qed "zle_add1_eq";
 
 Goal "(w <= z - #1) = (w<z)";
-by(int_arith_tac 1);
+by(arith_tac 1);
 qed "zle_diff1_eq";
 Addsimps [zle_diff1_eq];
 
 (*2nd premise can be proved automatically if v is a literal*)
 Goal "[| w <= z; #0 <= v |] ==> w <= z + v";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 qed "zle_imp_zle_zadd";
 
 Goal "w <= z ==> w <= z + #1";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 qed "zle_imp_zle_zadd1";
 
 (*2nd premise can be proved automatically if v is a literal*)
 Goal "[| w < z; #0 <= v |] ==> w < z + v";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 qed "zless_imp_zless_zadd";
 
 Goal "w < z ==> w < z + #1";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 qed "zless_imp_zless_zadd1";
 
 Goal "(w < z + #1) = (w<=z)";
-by(int_arith_tac 1);
+by(arith_tac 1);
 qed "zle_add1_eq_le";
 Addsimps [zle_add1_eq_le];
 
 Goal "(z = z + w) = (w = #0)";
-by(int_arith_tac 1);
+by(arith_tac 1);
 qed "zadd_left_cancel0";
 Addsimps [zadd_left_cancel0];
 
 (*LOOPS as a simprule!*)
 Goal "[| w + v < z; #0 <= v |] ==> w < z";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 qed "zless_zadd_imp_zless";
 
 (*LOOPS as a simprule!  Analogous to Suc_lessD*)
 Goal "w + #1 < z ==> w < z";
-by(fast_int_arith_tac 1);
+by(fast_arith_tac 1);
 qed "zless_zadd1_imp_zless";
 
 Goal "w + #-1 = w - #1";

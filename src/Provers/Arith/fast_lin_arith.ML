@@ -26,11 +26,14 @@ sig
   val neqE:             thm (* [| m ~= n; m < n ==> P; n < m ==> P |] ==> P *)
   val notI:             thm (* (P ==> False) ==> ~ P *)
   val not_lessD:        thm (* ~(m < n) ==> n <= m *)
+  val not_leD:          thm (* ~(m <= n) ==> n < m *)
   val sym:		thm (* x = y ==> y = x *)
   val mk_Eq: thm -> thm
   val mk_Trueprop: term -> term
   val neg_prop: term -> term
   val is_False: thm -> bool
+  val is_nat: typ list * term -> bool
+  val mk_nat_thm: Sign.sg -> term -> thm
 end;
 (*
 mk_Eq(~in) = `in == False'
@@ -40,19 +43,20 @@ where `in' is an (in)equality.
 neg_prop(t) = neg if t is wrapped up in Trueprop and
   nt is the (logically) negated version of t, where the negation
   of a negative term is the term itself (no double negation!);
+
+is_nat(parameter-types,t) =  t:nat
+mk_nat_thm(t) = "0 <= t"
 *)
 
 signature LIN_ARITH_DATA =
 sig
-  val add_mono_thms:    thm list
+  val add_mono_thms:    thm list ref
                             (* [| i rel1 j; m rel2 n |] ==> i + m rel3 j + n *)
-  val lessD:            thm (* m < n ==> Suc m <= n *)
-  val not_leD:          thm (* ~(m <= n) ==> Suc n <= m *)
-  val decomp: term ->
-             ((term * int)list * int * string * (term * int)list * int)option
-  val simp: thm -> thm
-  val is_nat: typ list * term -> bool
-  val mk_nat_thm: Sign.sg -> term -> thm
+  val lessD:            thm list ref (* m < n ==> m+1 <= n *)
+  val decomp:
+    (term -> ((term * int)list * int * string * (term * int)list * int)option)
+    ref
+  val simp: (thm -> thm) ref
 end;
 (*
 decomp(`x Rel y') should yield (p,i,Rel,q,j)
@@ -63,9 +67,6 @@ decomp(`x Rel y') should yield (p,i,Rel,q,j)
 simp must reduce contradictory <= to False.
    It should also cancel common summands to keep <= reduced;
    otherwise <= can grow to massive proportions.
-
-is_nat(parameter-types,t) =  t:nat
-mk_nat_thm(t) = "0 <= t"
 *)
 
 signature FAST_LIN_ARITH =
@@ -90,7 +91,9 @@ datatype lineq_type = Eq | Le | Lt;
 
 datatype injust = Asm of int
                 | Nat of int (* index of atom *)
-                | Fwd of injust * thm
+                | LessD of injust
+                | NotLessD of injust
+                | NotLeD of injust
                 | Multiplied of int * injust
                 | Added of injust * injust;
 
@@ -250,12 +253,12 @@ in
 fun mkthm sg asms just =
   let val atoms = foldl (fn (ats,(lhs,_,_,rhs,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
-                        ([], mapfilter (LA_Data.decomp o concl_of) asms)
+                        ([], mapfilter (!LA_Data.decomp o concl_of) asms)
 
       fun addthms thm1 thm2 =
         let val conj = thm1 RS (thm2 RS LA_Logic.conjI)
         in the(get_first (fn th => Some(conj RS th) handle _ => None)
-                         LA_Data.add_mono_thms)
+                         (!LA_Data.add_mono_thms))
         end;
 
       fun multn(n,thm) =
@@ -263,16 +266,18 @@ fun mkthm sg asms just =
         in if n < 0 then mul(~n,thm) RS LA_Logic.sym else mul(n,thm) end;
 
       fun simp thm =
-        let val thm' = LA_Data.simp thm
+        let val thm' = !LA_Data.simp thm
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
       fun mk(Asm i) = nth_elem(i,asms)
-        | mk(Nat(i)) = LA_Data.mk_nat_thm sg (nth_elem(i,atoms))
-        | mk(Fwd(j,thm)) = mk j RS thm
+        | mk(Nat(i)) = LA_Logic.mk_nat_thm sg (nth_elem(i,atoms))
+        | mk(LessD(j)) = hd([mk j] RL !LA_Data.lessD)
+        | mk(NotLeD(j)) = hd([mk j RS LA_Logic.not_leD] RL !LA_Data.lessD)
+        | mk(NotLessD(j)) = mk j RS LA_Logic.not_lessD
         | mk(Added(j1,j2)) = simp(addthms (mk j1) (mk j2))
         | mk(Multiplied(n,j)) = multn(n,mk j)
 
-  in LA_Data.simp(mk just) handle FalseE thm => thm end
+  in !LA_Data.simp(mk just) handle FalseE thm => thm end
 end;
 
 fun coeff poly atom = case assoc(poly,atom) of None => 0 | Some i => i;
@@ -287,9 +292,9 @@ fun mklineq atoms =
         val just = Asm k
     in case rel of
         "<="   => Some(Lineq(c,Le,diff,just))
-       | "~<=" => Some(Lineq(1-c,Le,map (op ~) diff,Fwd(just,LA_Data.not_leD)))
-       | "<"   => Some(Lineq(c+1,Le,diff,Fwd(just,LA_Data.lessD)))
-       | "~<"  => Some(Lineq(~c,Le,map (op~) diff,Fwd(just,LA_Logic.not_lessD)))
+       | "~<=" => Some(Lineq(1-c,Le,map (op ~) diff,NotLeD(just)))
+       | "<"   => Some(Lineq(c+1,Le,diff,LessD(just)))
+       | "~<"  => Some(Lineq(~c,Le,map (op~) diff,NotLessD(just)))
        | "="   => Some(Lineq(c,Eq,diff,just))
        | "~="  => None
        | _     => sys_error("mklineq" ^ rel)   
@@ -297,7 +302,7 @@ fun mklineq atoms =
   end;
 
 fun mknat pTs ixs (atom,i) =
-  if LA_Data.is_nat(pTs,atom)
+  if LA_Logic.is_nat(pTs,atom)
   then let val l = map (fn j => if j=i then 1 else 0) ixs
        in Some(Lineq(0,Le,l,Nat(i))) end
   else None
@@ -345,9 +350,9 @@ fun refute2_tac(i,just1,just2) =
 fun prove(pTs,Hs,concl) =
 let val nHs = length Hs
     val ixHs = Hs ~~ (0 upto (nHs-1))
-    val Hitems = mapfilter (fn (h,i) => case LA_Data.decomp h of
+    val Hitems = mapfilter (fn (h,i) => case !LA_Data.decomp h of
                                  None => None | Some(it) => Some(it,i)) ixHs
-in case LA_Data.decomp concl of
+in case !LA_Data.decomp concl of
      None => if null Hitems then [] else refute1(pTs,Hitems)
    | Some(citem as (r,i,rel,l,j)) =>
        if rel = "="

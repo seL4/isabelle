@@ -275,8 +275,7 @@ by (ALLGOALS
     (asm_simp_tac (simpset() addsimps [zle_def]@metric_simps @ zcompare_rls)));
 (** LEVEL 5 **)
 by (dres_inst_tac [("w1","Min")] (zle_iff_zadd RS iffD1) 1);
-by Auto_tac;
-by (full_simp_tac (simpset() addsimps [zadd_int_left]) 1);
+by (Blast_tac 1);
 qed "E_thm16a";
 
 (*lem_lift_5_1 has ~goingup instead of goingdown*)
@@ -292,10 +291,7 @@ by (ALLGOALS
 		                      metric_simps @ zcompare_rls)));
 (** LEVEL 5 **)
 by (dres_inst_tac [("z1","Max")] (zle_iff_zadd RS iffD1) 1);
-by (etac exE 1);  
-by (etac ssubst 1);
-by Auto_tac;
-by (full_simp_tac (simpset() addsimps [zadd_int_left]) 1);
+by (Blast_tac 1);
 qed "E_thm16b";
 
 
