@@ -117,6 +117,14 @@ simpset_ref() := simpset() setmksimps (map mk_eq o ZF_atomize o gen_all)
 		           addsplits [split_if]
                            setSolver (mk_solver "types" Type_solver_tac);
 
+(** Splitting IFs in the assumptions **)
+
+Goal "P(if Q then x else y) <-> (~((Q & ~P(x)) | (~Q & ~P(y))))";
+by (Simp_tac 1); 
+qed "split_if_asm";   
+
+bind_thms ("if_splits", [split_if, split_if_asm]);
+
 (** One-point rule for bounded quantifiers: see HOL/Set.ML **)
 
 Goal "(EX x:A. x=a) <-> (a:A)";
