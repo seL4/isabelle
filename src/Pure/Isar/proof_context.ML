@@ -21,6 +21,7 @@ sig
   val print_binds: context -> unit
   val print_thms: context -> unit
   val print_cases: context -> unit
+  val prems_limit: int ref
   val pretty_prems: context -> Pretty.T list
   val pretty_context: context -> Pretty.T list
   val print_proof_data: theory -> unit
@@ -214,12 +215,22 @@ fun pretty_cases (ctxt as Context {cases, ...}) =
 val print_cases = Pretty.writeln o Pretty.chunks o pretty_cases;
 
 
-(* main context *)
+(* prems *)
+
+val prems_limit = ref 10;
 
 fun pretty_prems ctxt =
-  (case prems_of ctxt of
-    [] => []
-  | prems => [Pretty.big_list "prems:" (map pretty_thm prems)]);
+  let
+    val limit = ! prems_limit;
+    val prems = prems_of ctxt;
+    val len = length prems;
+    val prt_prems =
+      (if len <= limit then [] else [Pretty.str "..."]) @
+      map pretty_thm (Library.drop (len - limit, prems));
+  in if null prems then [] else [Pretty.big_list "prems:" prt_prems] end;
+
+
+(* main context *)
 
 fun pretty_context (ctxt as Context {asms = (_, (fixes, _)), cases,
     defs = (types, sorts, (used, _)), ...}) =
