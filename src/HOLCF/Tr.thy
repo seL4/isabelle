@@ -8,10 +8,11 @@ Introduce infix if_then_else_fi and boolean connectives andalso, orelse
 
 Tr = Lift +
 
-syntax
-  tr	:: "type"
+types
+  tr = "bool lift"
+
 translations
-  "tr" == (type) "bool lift" 
+  "tr" <= (type) "bool lift" 
 
 consts
 	TT,FF           :: "tr"
