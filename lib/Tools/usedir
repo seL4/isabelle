@@ -135,6 +135,7 @@ PARENT=$(basename "$LOGIC")
 
 DOC=""
 [ "$DOCUMENT" != false -a -d document ] && DOC="$DOCUMENT"
+[ -n "$DUMP" ] && $ISATOOL latex -o sty "$DUMP/root.tex" >/dev/null
 
 
 SECONDS=0
