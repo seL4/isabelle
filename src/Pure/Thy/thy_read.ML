@@ -389,7 +389,7 @@ fun thyfile2html tpath tname =
                   fun make_link t =
                     let val path = path_of t;
                     in "<A HREF = \"" ^
-                       tack_on (relative_path tpath path) t ^
+                       tack_on (relative_path tpath path) ("." ^ t) ^
                        ".html\">" ^ t ^ "</A>" end;
               in if not (id mem theories) then (result, implode l)
                  else if id mem thy_files then
@@ -417,8 +417,8 @@ fun thyfile2html tpath tname =
 
     (** Make chart of super-theories **)
 
-    val sup_out = open_out (tack_on tpath tname ^ "_sup.html");
-    val sub_out = open_out (tack_on tpath tname ^ "_sub.html");
+    val sup_out = open_out (tack_on tpath ("." ^ tname ^ "_sup.html"));
+    val sub_out = open_out (tack_on tpath ("." ^ tname ^ "_sub.html"));
 
     (*Theories that already have been listed in this chart*)
     val listed = ref [];
@@ -447,14 +447,15 @@ fun thyfile2html tpath tname =
                     mk_offset ls (l+1);
             in output (sup_out,
                  " " ^ mk_offset continued 0 ^
-                 "\\__" ^ (if is_pure then t else "<A HREF=\"" ^ 
-                             tack_on rel_path t ^ ".html\">" ^ t ^ "</A>") ^
+                 "\\__" ^ (if is_pure then t else
+                             "<A HREF=\"" ^ tack_on rel_path ("." ^ t) ^
+                             ".html\">" ^ t ^ "</A>") ^
                  (if repeated then "..." else " ") ^
-                 "<A HREF = \"" ^ tack_on rel_path t ^
+                 "<A HREF = \"" ^ tack_on rel_path ("." ^ t) ^
                  "_sub.html\"><IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
                  tack_on gif_path "red_arrow.gif\" ALT = \\/></A>" ^
                  (if is_pure then ""
-                  else "<A HREF = \"" ^ tack_on rel_path t ^
+                  else "<A HREF = \"" ^ tack_on rel_path ("." ^ t) ^
                        "_sup.html\"><IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
                        tack_on gif_path "blue_arrow.gif\
                        \\" ALT = /\\></A>") ^
@@ -470,15 +471,15 @@ fun thyfile2html tpath tname =
           filter (fn s => s mem wanted_theories) (parents_of tname);
       in mk_entry relatives end;
   in if is_some (!cur_htmlfile) then
-       error "thyfile2html: Last theory's HTML has not been closed."
+       error "thyfile2html: Last theory's HTML file has not been closed."
      else ();
-     cur_htmlfile := Some (open_out (tack_on tpath tname ^ ".html"));
+     cur_htmlfile := Some (open_out (tack_on tpath ("." ^ tname ^ ".html")));
      output (the (!cur_htmlfile), gettext (tack_on tpath tname ^ ".thy"));
 
      mk_charthead sup_out tname "Ancestors" true gif_path index_path package;
      output(sup_out,
-       "<A HREF=\"" ^ tname ^ ".html\">" ^ tname ^ "</A> \
-       \<A HREF = \"" ^ tname ^
+       "<A HREF=\"." ^ tname ^ ".html\">" ^ tname ^ "</A> \
+       \<A HREF = \"." ^ tname ^
        "_sub.html\"><IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
        tack_on gif_path "red_arrow.gif\" ALT = \\/></A>\n");
      list_ancestors tname 0 [];
@@ -487,8 +488,8 @@ fun thyfile2html tpath tname =
 
      mk_charthead sub_out tname "Children" false gif_path index_path package;
      output(sub_out,
-       "<A HREF=\"" ^ tname ^ ".html\">" ^ tname ^ "</A> \
-       \<A HREF = \"" ^ tname ^ "_sup.html\"><IMG SRC = \"" ^
+       "<A HREF=\"." ^ tname ^ ".html\">" ^ tname ^ "</A> \
+       \<A HREF = \"." ^ tname ^ "_sup.html\"><IMG SRC = \"" ^
        tack_on gif_path "blue_arrow.gif\" BORDER=0 ALT = \\/></A>\n");
      close_out sub_out
   end;
@@ -595,22 +596,23 @@ fun use_thy name =
 
                val gif_path = relative_path path (!gif_path);
                val rel_path = relative_path path abs_path;
+               val tpath = tack_on rel_path ("." ^ tname);
 
-               val out = open_append (tack_on path t ^ "_sub.html");
+               val out = open_append (tack_on path ("." ^ t ^ "_sub.html"));
            in output (out,
-                " |\n \\__<A HREF=\"" ^ tack_on rel_path tname ^ ".html\">" ^
-                tname ^ "</A> <A HREF = \"" ^
-                tack_on rel_path tname ^
-                "_sub.html\"><IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
+                " |\n \\__<A HREF=\"" ^
+                tack_on rel_path ("." ^ tname) ^ ".html\">" ^ tname ^
+                "</A> <A HREF = \"" ^ tpath ^ "_sub.html\">\
+                \<IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
                 tack_on gif_path "red_arrow.gif\" ALT = \\/></A>\
-                \<A HREF = \"" ^ tack_on rel_path tname ^ "_sup.html\">\
+                \<A HREF = \"" ^ tpath ^ "_sup.html\">\
                 \<IMG ALIGN=BOTTOM BORDER=0 SRC = \"" ^
                 tack_on gif_path "blue_arrow.gif\" ALT = /\\></A>\n");
               close_out out
            end;
 
          val theory_list =
-           open_append (tack_on (!index_path) "theory_list.txt");
+           open_append (tack_on (!index_path) ".theory_list.txt");
      in output (theory_list, tname ^ " " ^ abs_path ^ "\n");
         close_out theory_list;
 
@@ -998,9 +1000,9 @@ fun print_theory thy = (Drule.print_theory thy; print_thms thy);
 
 (*Init HTML generator by setting paths and creating new files*)
 fun init_html () =
-  let val pure_out = open_out "Pure_sub.html";
-      val cpure_out = open_out "CPure_sub.html";
-      val theory_list = close_out (open_out "theory_list.txt");
+  let val pure_out = open_out ".Pure_sub.html";
+      val cpure_out = open_out ".CPure_sub.html";
+      val theory_list = close_out (open_out ".theory_list.txt");
 
       val rel_gif_path = relative_path (pwd ()) (!gif_path);
       val package = hd (rev (space_explode "/" (pwd ())));
@@ -1019,7 +1021,7 @@ fun init_html () =
 
 (*Generate index.html*)
 fun make_chart () = if not (!make_html) then () else
-  let val theory_list = open_in (tack_on (!index_path) "theory_list.txt");
+  let val theory_list = open_in (tack_on (!index_path) ".theory_list.txt");
       val theories = space_explode "\n" (input (theory_list, 999999));
       val dummy = close_in theory_list;
 
@@ -1039,7 +1041,7 @@ fun make_chart () = if not (!make_html) then () else
               val tname = implode name
               val tpath =
                 tack_on (relative_path (!index_path) (implode (tl path)))
-                        tname;
+                        ("." ^ tname);
               val subdir = space_explode "/"
                                  (relative_path base_path (implode (tl path)));
               val level_diff = length subdir - length curdir;
