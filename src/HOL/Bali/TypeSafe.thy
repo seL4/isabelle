@@ -854,6 +854,10 @@ simpset_ref() := simpset() addloop ("split_all_tac", split_all_tac)
 
 subsection "accessibility"
 
+text {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
 
 (* #### stat raus und gleich is_static f schreiben *) 
 theorem dynamic_field_access_ok:
@@ -1707,7 +1711,9 @@ proof -
   next
     case (BinOp binop e1 e2 s0 s1 s2 v1 v2 L accC T)
     have hyp_e1: "PROP ?TypeSafe (Norm s0) s1 (In1l e1) (In1 v1)" .
-    have hyp_e2: "PROP ?TypeSafe       s1  s2 (In1l e2) (In1 v2)" .
+    have hyp_e2: "PROP ?TypeSafe       s1  s2 
+                   (if need_second_arg binop v1 then In1l e2 else In1r Skip) 
+                   (In1 v2)" .
     have conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" .
     have      wt: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1l (BinOp binop e1 e2)\<Colon>T" .
     then obtain e1T e2T where
@@ -1716,20 +1722,22 @@ proof -
       wt_binop: "wt_binop G binop e1T e2T" and
              T: "T=Inl (PrimT (binop_type binop))"
       by (auto elim!: wt_elim_cases)
+    have wt_Skip: "\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>Skip\<Colon>\<surd>"
+      by simp
     from conf_s0 wt_e1 
     obtain      conf_s1: "s1\<Colon>\<preceq>(G, L)"  and
                   wt_v1: "normal s1 \<longrightarrow> G,store s1\<turnstile>v1\<Colon>\<preceq>e1T" and
           error_free_s1: "error_free s1"
       by (auto dest!: hyp_e1)
-    from conf_s1 wt_e2 error_free_s1
+    from conf_s1 wt_e2 wt_Skip error_free_s1
     obtain      conf_s2: "s2\<Colon>\<preceq>(G, L)"  and
-                  wt_v2: "normal s2 \<longrightarrow> G,store s2\<turnstile>v2\<Colon>\<preceq>e2T" and
           error_free_s2: "error_free s2"
-      by (auto dest!: hyp_e2)
-    from wt_v1 wt_v2 wt_binop T
+      by (cases "need_second_arg binop v1")
+         (auto dest!: hyp_e2 )
+    from wt_binop T
     have "G,L,snd s2\<turnstile>In1l (BinOp binop e1 e2)\<succ>In1 (eval_binop binop v1 v2)\<Colon>\<preceq>T"
       by (cases binop) auto
-    with conf_s2 error_free_s2
+    with conf_s2 conf_s1 error_free_s2 error_free_s1
     show "s2\<Colon>\<preceq>(G, L) \<and>
           (normal s2 \<longrightarrow>
         G,L,snd s2\<turnstile>In1l (BinOp binop e1 e2)\<succ>In1 (eval_binop binop v1 v2)\<Colon>\<preceq>T) \<and>
@@ -2364,6 +2372,12 @@ proof -
   qed
   then show ?thesis .
 qed
+
+text {* 
+
+
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
  
 corollary eval_ts: 
  "\<lbrakk>G\<turnstile>s \<midarrow>e-\<succ>v \<rightarrow> s'; wf_prog G; s\<Colon>\<preceq>(G,L); \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>e\<Colon>-T\<rbrakk> 
@@ -2395,4 +2409,22 @@ theorem exec_ts:
 apply (drule (3) eval_type_sound)
 apply clarsimp
 done
+
+lemma wf_eval_Fin: 
+  assumes wf:    "wf_prog G" and
+          wt_c1: "\<lparr>prg = G, cls = C, lcl = L\<rparr>\<turnstile>In1r c1\<Colon>Inl (PrimT Void)" and
+        conf_s0: "Norm s0\<Colon>\<preceq>(G, L)" and
+        eval_c1: "G\<turnstile>Norm s0 \<midarrow>c1\<rightarrow> (x1,s1)" and
+        eval_c2: "G\<turnstile>Norm s1 \<midarrow>c2\<rightarrow> s2" and
+            s3: "s3=abupd (abrupt_if (x1\<noteq>None) x1) s2"
+  shows "G\<turnstile>Norm s0 \<midarrow>c1 Finally c2\<rightarrow> s3"
+proof -
+  from eval_c1 wt_c1 wf conf_s0
+  have "error_free (x1,s1)"
+    by (auto dest: eval_type_sound)
+  with eval_c1 eval_c2 s3
+  show ?thesis
+    by - (rule eval.Fin, auto simp add: error_free_def)
+qed
+
 end

@@ -483,7 +483,6 @@ simpset_ref() := simpset() delloop "split_all_tac";
 claset_ref () := claset () delSWrapper "split_all_tac"
 *}
 
-
 inductive "ax_derivs G" intros
 
   empty: " G,A|\<turnstile>{}"
@@ -542,7 +541,9 @@ inductive "ax_derivs G" intros
 
   BinOp:
    "\<lbrakk>G,A\<turnstile>{Normal P} e1-\<succ> {Q};
-     \<forall>v1. G,A\<turnstile>{Q\<leftarrow>Val v1} e2-\<succ> {\<lambda>Val:v2:. R\<leftarrow>Val (eval_binop binop v1 v2)}\<rbrakk>
+     \<forall>v1. G,A\<turnstile>{Q\<leftarrow>Val v1} 
+               (if need_second_arg binop v1 then (In1l e2) else (In1r Skip))\<succ>
+               {\<lambda>Val:v2:. R\<leftarrow>Val (eval_binop binop v1 v2)}\<rbrakk>
     \<Longrightarrow>
     G,A\<turnstile>{Normal P} BinOp binop e1 e2-\<succ> {R}" 
 

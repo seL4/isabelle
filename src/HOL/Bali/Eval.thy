@@ -455,8 +455,6 @@ primrec
 "eval_unop UNot    v = Bool (\<not> the_Bool v)"
 
 consts eval_binop :: "binop \<Rightarrow> val \<Rightarrow> val \<Rightarrow> val"
-
-
 primrec
 "eval_binop Mul     v1 v2 = Intg ((the_Intg v1) * (the_Intg v2))" 
 "eval_binop Div     v1 v2 = Intg ((the_Intg v1) div (the_Intg v2))"
@@ -482,7 +480,25 @@ primrec
 "eval_binop Xor     v1 v2 = Bool ((the_Bool v1) \<noteq> (the_Bool v2))"
 "eval_binop BitOr   v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
 "eval_binop Or      v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
+"eval_binop CondAnd v1 v2 = Bool ((the_Bool v1) \<and> (the_Bool v2))"
+"eval_binop CondOr  v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
 
+constdefs need_second_arg :: "binop \<Rightarrow> val \<Rightarrow> bool"
+"need_second_arg binop v1 \<equiv> \<not> ((binop=CondAnd \<and>  \<not> the_Bool v1) \<or>
+                               (binop=CondOr  \<and> the_Bool v1))"
+text {* @{term CondAnd} and @{term CondOr} only evalulate the second argument
+ if the value isn't already determined by the first argument*}
+
+lemma need_second_arg_CondAnd [simp]: "need_second_arg CondAnd (Bool b) = b" 
+by (simp add: need_second_arg_def)
+
+lemma need_second_arg_CondOr [simp]: "need_second_arg CondOr (Bool b) = (\<not> b)" 
+by (simp add: need_second_arg_def)
+
+lemma need_second_arg_strict[simp]: 
+ "\<lbrakk>binop\<noteq>CondAnd; binop\<noteq>CondOr\<rbrakk> \<Longrightarrow> need_second_arg binop b"
+by (cases binop) 
+   (simp_all add: need_second_arg_def)
 
 consts
   eval   :: "prog \<Rightarrow> (state \<times> term    \<times> vals \<times> state) set"
@@ -549,6 +565,11 @@ inductive "sxalloc G" intros (* allocating exception objects for
 
   SXcpt: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>halloc (CInst (SXcpt xn))\<succ>a\<rightarrow> (x,s1)\<rbrakk> \<Longrightarrow>
 	  G\<turnstile>(Some (Xcpt (Std xn)),s0) \<midarrow>sxalloc\<rightarrow> (Some (Xcpt (Loc a)),s1)"
+
+text {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
 
 inductive "eval G" intros
 
@@ -671,8 +692,11 @@ inductive "eval G" intros
 
   UnOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<rbrakk> 
          \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>UnOp unop e-\<succ>(eval_unop unop v)\<rightarrow> s1"
-
-  BinOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e2-\<succ>v2\<rightarrow> s2\<rbrakk> 
+ 
+  BinOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1; 
+          G\<turnstile>s1 \<midarrow>(if need_second_arg binop v1 then (In1l e2) else (In1r Skip))
+                \<succ>\<rightarrow> (In1 v2,s2)
+          \<rbrakk> 
          \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>(eval_binop binop v1 v2)\<rightarrow> s2"
    
   (* cf. 15.10.2 *)
@@ -764,6 +788,10 @@ bind_thm ("eval_induct_", rearrange_prems
 *}
 
 
+text {* 
+\par
+*} (* dummy text command to break paragraph for latex;
+              large paragraphs exhaust memory of debian pdflatex *)
 
 lemmas eval_induct = eval_induct_ [split_format and and and and and and and and
    and and and and and and s1 (* Acc *) and and s2 (* Comp *) and and and and 
@@ -1103,6 +1131,31 @@ apply (erule eval.Methd)
 apply (drule eval_abrupt_lemma)
 apply force
 done
+
+lemma eval_binop_arg2_indep:
+"\<not> need_second_arg binop v1 \<Longrightarrow> eval_binop binop v1 x = eval_binop binop v1 y"
+by (cases binop)
+   (simp_all add: need_second_arg_def)
+
+
+lemma eval_BinOp_arg2_indepI:
+  assumes eval_e1: "G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1" and
+          no_need: "\<not> need_second_arg binop v1" 
+  shows "G\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>(eval_binop binop v1 v2)\<rightarrow> s1"
+         (is "?EvalBinOp v2")
+proof -
+  from eval_e1 
+  have "?EvalBinOp Unit" 
+    by (rule eval.BinOp)
+       (simp add: no_need)
+  moreover
+  from no_need 
+  have "eval_binop binop v1 Unit = eval_binop binop v1 v2"
+    by (simp add: eval_binop_arg2_indep)
+  ultimately
+  show ?thesis
+    by simp
+qed
 
 
 section "single valued"

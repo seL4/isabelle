@@ -11,7 +11,6 @@ PRELIMINARY!!!!!!!!
 
 theory Trans = Evaln:
 
-
 constdefs groundVar:: "var \<Rightarrow> bool"
 "groundVar v \<equiv> (case v of
                    LVar ln \<Rightarrow> True
@@ -162,13 +161,19 @@ UnOp:   "G\<turnstile>(\<langle>UnOp unop (Lit v)\<rangle>,Norm s) \<mapsto>1 (\
 BinOpE1:  "\<lbrakk>G\<turnstile>(\<langle>e1\<rangle>,Norm s) \<mapsto>1 (\<langle>e1'\<rangle>,s') \<rbrakk>
            \<Longrightarrow> 
            G\<turnstile>(\<langle>BinOp binop e1 e2\<rangle>,Norm s) \<mapsto>1 (\<langle>BinOp binop e1' e2\<rangle>,s')"
-BinOpE2:  "\<lbrakk>G\<turnstile>(\<langle>e2\<rangle>,Norm s) \<mapsto>1 (\<langle>e2'\<rangle>,s') \<rbrakk>
+BinOpE2:  "\<lbrakk>need_second_arg binop v1; G\<turnstile>(\<langle>e2\<rangle>,Norm s) \<mapsto>1 (\<langle>e2'\<rangle>,s') \<rbrakk>
            \<Longrightarrow> 
            G\<turnstile>(\<langle>BinOp binop (Lit v1) e2\<rangle>,Norm s) 
             \<mapsto>1 (\<langle>BinOp binop (Lit v1) e2'\<rangle>,s')"
+BinOpTerm:  "\<lbrakk>\<not> need_second_arg binop v1\<rbrakk>
+             \<Longrightarrow> 
+             G\<turnstile>(\<langle>BinOp binop (Lit v1) e2\<rangle>,Norm s) 
+              \<mapsto>1 (\<langle>Lit v1\<rangle>,Norm s)"
 BinOp:    "G\<turnstile>(\<langle>BinOp binop (Lit v1) (Lit v2)\<rangle>,Norm s) 
             \<mapsto>1 (\<langle>Lit (eval_binop binop v1 v2)\<rangle>,Norm s)"
-
+(* Maybe its more convenient to add: need_second_arg as precondition to BinOp 
+   to make the choice between BinOpTerm and BinOp deterministic *)
+   
 Super: "G\<turnstile>(\<langle>Super\<rangle>,Norm s) \<mapsto>1 (\<langle>Lit (val_this s)\<rangle>,Norm s)"
 
 AccVA: "\<lbrakk>G\<turnstile>(\<langle>va\<rangle>,Norm s) \<mapsto>1 (\<langle>va'\<rangle>,s') \<rbrakk>

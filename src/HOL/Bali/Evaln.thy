@@ -106,7 +106,9 @@ inductive "evaln G" intros
   UnOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<midarrow>n\<rightarrow> s1\<rbrakk> 
          \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>UnOp unop e-\<succ>(eval_unop unop v)\<midarrow>n\<rightarrow> s1"
 
-  BinOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<midarrow>n\<rightarrow> s1; G\<turnstile>s1 \<midarrow>e2-\<succ>v2\<midarrow>n\<rightarrow> s2\<rbrakk> 
+  BinOp: "\<lbrakk>G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<midarrow>n\<rightarrow> s1; 
+           G\<turnstile>s1 \<midarrow>(if need_second_arg binop v1 then (In1l e2) else (In1r Skip))
+            \<succ>\<midarrow>n\<rightarrow> (In1 v2,s2)\<rbrakk> 
          \<Longrightarrow> G\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>(eval_binop binop v1 v2)\<midarrow>n\<rightarrow> s2"
 
   Super:		   "G\<turnstile>Norm s \<midarrow>Super-\<succ>val_this s\<midarrow>n\<rightarrow> Norm s"
@@ -388,6 +390,21 @@ lemma evaln_Skip_eq [simp]: "G\<turnstile>s \<midarrow>Skip\<midarrow>n\<rightar
 apply auto
 done
 
+(* ##### FIXME: To WellType *)
+lemma wt_elim_BinOp:
+  "\<lbrakk>E,dt\<Turnstile>In1l (BinOp binop e1 e2)\<Colon>T;
+    \<And>T1 T2 T3.
+       \<lbrakk>E,dt\<Turnstile>e1\<Colon>-T1; E,dt\<Turnstile>e2\<Colon>-T2; wt_binop (prg E) binop T1 T2;
+          E,dt\<Turnstile>(if b then In1l e2 else In1r Skip)\<Colon>T3;
+          T = Inl (PrimT (binop_type binop))\<rbrakk>
+       \<Longrightarrow> P\<rbrakk>
+\<Longrightarrow> P"
+apply (erule wt_elim_cases)
+apply (cases b)
+apply auto
+done
+
+section {* evaln implies eval *}
 lemma evaln_eval:  
   assumes evaln: "G\<turnstile>s0 \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v,s1)" and
              wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and  
@@ -507,8 +524,8 @@ proof -
       by - (erule wt_elim_cases, rule eval.UnOp,auto dest: eval_type_sound)
   next
     case BinOp
-    with wf show ?case
-      by - (erule wt_elim_cases, blast intro!: eval.BinOp dest: eval_type_sound)
+    with wf show ?case 
+      by - (erule wt_elim_BinOp, blast intro!: eval.BinOp dest: eval_type_sound)
   next
     case Super
     show ?case by (rule eval.Super)
@@ -1085,6 +1102,7 @@ proof -
   show ?thesis .
 qed
 
+section {* eval implies evaln *}
 lemma eval_evaln: 
   assumes eval: "G\<turnstile>s0 \<midarrow>t\<succ>\<rightarrow> (v,s1)" and
             wt: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>t\<Colon>T" and  
@@ -1446,8 +1464,9 @@ proof -
     case (BinOp binop e1 e2 s0 s1 s2 v1 v2 L accC T)
     with wf obtain n1 n2 where 
       "G\<turnstile>Norm s0 \<midarrow>e1-\<succ>v1\<midarrow>n1\<rightarrow> s1"
-      "G\<turnstile>s1 \<midarrow>e2-\<succ>v2\<midarrow>n2\<rightarrow> s2"    
-      by (blast elim!: wt_elim_cases dest: eval_type_sound)
+      "G\<turnstile>s1 \<midarrow>(if need_second_arg binop v1 then In1l e2
+               else In1r Skip)\<succ>\<midarrow>n2\<rightarrow> (In1 v2, s2)"    
+      by (blast elim!: wt_elim_BinOp dest: eval_type_sound)
     hence "G\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>(eval_binop binop v1 v2)\<midarrow>max n1 n2
            \<rightarrow> s2"
       by (blast intro!: evaln.BinOp dest: evaln_max2)

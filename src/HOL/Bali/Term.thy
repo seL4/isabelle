@@ -60,26 +60,26 @@ simplifications:
 
 
 
-types locals = "(lname, val) table"  (* local variables *)
+types locals = "(lname, val) table"  --{* local variables *}
 
 
 datatype jump
-        = Break label (* break *)
-        | Cont label  (* continue *)
-        | Ret         (* return from method *)
+        = Break label --{* break *}
+        | Cont label  --{* continue *}
+        | Ret         --{* return from method *}
 
-datatype xcpt        (* exception *)
-	= Loc loc    (* location of allocated execption object *)
-	| Std xname  (* intermediate standard exception, see Eval.thy *)
+datatype xcpt        --{* exception *}
+	= Loc loc    --{* location of allocated execption object *}
+	| Std xname  --{* intermediate standard exception, see Eval.thy *}
 
 datatype error
-       = AccessViolation (* Access to a member that isn't permitted *)
+       = AccessViolation --{* Access to a member that isn't permitted *}
 
-datatype abrupt      (* abrupt completion *) 
-        = Xcpt xcpt  (* exception *)
-        | Jump jump  (* break, continue, return *)
-        | Error error (* runtime errors, we wan't to detect and proof absent
-                         in welltyped programms *)
+datatype abrupt       --{* abrupt completion *} 
+        = Xcpt xcpt   --{* exception *}
+        | Jump jump   --{* break, continue, return *}
+        | Error error -- {* runtime errors, we wan't to detect and proof absent
+                            in welltyped programms *}
 types
   abopt  = "abrupt option"
 
@@ -92,93 +92,132 @@ statement *}
 translations
  "locals" <= (type) "(lname, val) table"
 
-datatype inv_mode                  (* invocation mode for method calls *)
-	= Static                   (* static *)
-	| SuperM                   (* super  *)
-	| IntVir                   (* interface or virtual *)
+datatype inv_mode                  --{* invocation mode for method calls *}
+	= Static                   --{* static *}
+	| SuperM                   --{* super  *}
+	| IntVir                   --{* interface or virtual *}
 
-record  sig =            (* signature of a method, cf. 8.4.2  *)
-	  name ::"mname"      (* acutally belongs to Decl.thy *)
+record  sig =              --{* signature of a method, cf. 8.4.2  *}
+	  name ::"mname"   --{* acutally belongs to Decl.thy *}
           parTs::"ty list"        
 
 translations
   "sig" <= (type) "\<lparr>name::mname,parTs::ty list\<rparr>"
   "sig" <= (type) "\<lparr>name::mname,parTs::ty list,\<dots>::'a\<rparr>"
 
--- "function codes for unary operations"
-datatype unop =  UPlus    
-               | UMinus   
-               | UBitNot  
-               | UNot     
+--{* function codes for unary operations *}
+datatype unop =  UPlus    -- {*{\tt +} unary plus*} 
+               | UMinus   -- {*{\tt -} unary minus*}
+               | UBitNot  -- {*{\tt ~} bitwise NOT*}
+               | UNot     -- {*{\tt !} logical complement*}
 
--- "function codes for binary operations"
-datatype binop = Mul     
-               | Div     
-               | Mod     
-               | Plus    
-               | Minus   
-               | LShift  
-               | RShift  
-               | RShiftU 
-               | Less    
-               | Le      
-               | Greater 
-               | Ge      
-               | Eq      
-               | Neq     
-               | BitAnd  
-               | And     
-               | BitXor  
-               | Xor     
-               | BitOr   
-               | Or      
+--{* function codes for binary operations *}
+datatype binop = Mul     -- {*{\tt * }   multiplication*}
+               | Div     -- {*{\tt /}   division*}
+               | Mod     -- {*{\tt \%}   remainder*}
+               | Plus    -- {*{\tt +}   addition*}
+               | Minus   -- {*{\tt -}   subtraction*}
+               | LShift  -- {*{\tt <<}  left shift*}
+               | RShift  -- {*{\tt >>}  signed right shift*}
+               | RShiftU -- {*{\tt >>>} unsigned right shift*}
+               | Less    -- {*{\tt <}   less than*}
+               | Le      -- {*{\tt <=}  less than or equal*}
+               | Greater -- {*{\tt >}   greater than*}
+               | Ge      -- {*{\tt >=}  greater than or equal*}
+               | Eq      -- {*{\tt ==}  equal*}
+               | Neq     -- {*{\tt !=}  not equal*}
+               | BitAnd  -- {*{\tt \&}   bitwise AND*}
+               | And     -- {*{\tt \&}   boolean AND*}
+               | BitXor  -- {*{\texttt \^}   bitwise Xor*}
+               | Xor     -- {*{\texttt \^}   boolean Xor*}
+               | BitOr   -- {*{\tt |}   bitwise Or*}
+               | Or      -- {*{\tt |}   boolean Or*}
+               | CondAnd -- {*{\tt \&\&}  conditional And*}
+               | CondOr  -- {*{\tt ||}  conditional Or *}
+text{* The boolean operators {\tt \&} and {\tt |} strictly evaluate both
+of their arguments. The conditional operators {\tt \&\&} and {\tt ||} only 
+evaluate the second argument if the value of the whole expression isn't 
+allready determined by the first argument.
+e.g.: {\tt false \&\& e} e is not evaluated;  
+      {\tt true || e} e is not evaluated; 
+*}
 
 datatype var
-	= LVar                  lname(* local variable (incl. parameters) *)
-        | FVar qtname qtname bool expr vname
-                                (*class field*)("{_,_,_}_.._"[10,10,10,85,99]90)
-	| AVar expr expr    (* array component *) ("_.[_]"[90,10   ]90)
-        | InsInitV stmt var (* insertion of initialization before
-                                   evaluation of var (for smallstep sem.) *)
+	= LVar lname --{* local variable (incl. parameters) *}
+        | FVar qtname qtname bool expr vname ("{_,_,_}_.._"[10,10,10,85,99]90)
+                     --{* class field *}
+                     --{* @{term "{accC,statDeclC,stat}e..fn"}   *}
+                     --{* @{text accC}: accessing class (static class were *}
+                     --{* the code is declared. Annotation only needed for *}
+                     --{* evaluation to check accessibility) *}
+                     --{* @{text statDeclC}: static declaration class of field*}
+                     --{* @{text stat}: static or instance field?*}
+                     --{* @{text e}: reference to object*}
+                     --{* @{text fn}: field name*}
+	| AVar expr expr ("_.[_]"[90,10   ]90)
+                     --{* array component *}
+                     --{* @{term "e1.[e2]"}: e1 array reference; e2 index *}
+        | InsInitV stmt var 
+                     --{* insertion of initialization before evaluation   *}
+                     --{* of var (technical term for smallstep semantics.)*}
 
 and expr
-	= NewC qtname         (* class instance creation *)
-	| NewA ty expr        (* array creation *) ("New _[_]"[99,10   ]85)
-	| Cast ty expr        (* type cast  *)
-	| Inst expr ref_ty    (* instanceof *)     ("_ InstOf _"[85,99] 85)
-	| Lit  val            (* literal value, references not allowed *)
-        | UnOp unop expr        (* unary operation *)
-        | BinOp binop expr expr (* binary operation *)
+	= NewC qtname         --{* class instance creation *}
+	| NewA ty expr ("New _[_]"[99,10   ]85) 
+                              --{* array creation *} 
+	| Cast ty expr        --{* type cast  *}
+	| Inst expr ref_ty ("_ InstOf _"[85,99] 85)   
+                              --{* instanceof *}     
+	| Lit  val              --{* literal value, references not allowed *}
+        | UnOp unop expr        --{* unary operation *}
+        | BinOp binop expr expr --{* binary operation *}
         
-	| Super               (* special Super keyword *)
-	| Acc  var            (* variable access *)
-	| Ass  var expr       (* variable assign *) ("_:=_"   [90,85   ]85)
-	| Cond expr expr expr (* conditional *)  ("_ ? _ : _" [85,85,80]80)
-        | Call qtname ref_ty inv_mode expr mname "(ty list)" 
-               "(expr list)"  (* method call *) 
-                              ("{_,_,_}_\<cdot>_'( {_}_')"[10,10,10,85,99,10,10]85)
-        | Methd qtname sig    (*   (folded) method (see below) *)
-        | Body qtname stmt    (* (unfolded) method body *)
-        | InsInitE stmt expr      (* insertion of initialization before
-                                   evaluation of expr (for smallstep sem.) *)
-        | Callee locals expr      (* save Callers locals in Callee-Frame
-                                     (for smallstep semantics) *)
+	| Super               --{* special Super keyword *}
+	| Acc  var            --{* variable access *}
+	| Ass  var expr       ("_:=_"   [90,85   ]85)
+                              --{* variable assign *} 
+	| Cond expr expr expr ("_ ? _ : _" [85,85,80]80) --{* conditional *}  
+        | Call qtname ref_ty inv_mode expr mname "(ty list)" "(expr list)"  
+            ("{_,_,_}_\<cdot>_'( {_}_')"[10,10,10,85,99,10,10]85) 
+                    --{* method call *} 
+                    --{* @{term "{accC,statT,mode}e\<cdot>mn({pTs}args)"} " *}
+                    --{* @{text accC}: accessing class (static class were *}
+                    --{* the call code is declared. Annotation only needed for*}
+                    --{* evaluation to check accessibility) *}
+                    --{* @{text statT}: static declaration class/interface of *}
+                    --{* method *}
+                    --{* @{text mode}: invocation mode *}
+                    --{* @{text e}: reference to object*}
+                    --{* @{text mn}: field name*}   
+                    --{* @{text pTs}: types of parameters *}
+                    --{* @{text args}: the actual parameters/arguments *} 
+        | Methd qtname sig    --{*   (folded) method (see below) *}
+        | Body qtname stmt    --{* (unfolded) method body *}
+        | InsInitE stmt expr  
+                 --{* insertion of initialization before *}
+                 --{* evaluation of expr (technical term for smallstep sem.) *}
+        | Callee locals expr  --{* save callers locals in callee-Frame *}
+                              --{* (technical term for smallstep semantics) *}
 and  stmt
-	= Skip                  (* empty      statement *)
-	| Expr  expr            (* expression statement *)
-        | Lab   jump stmt       ("_\<bullet> _"(* labeled statement*)[      99,66]66)
-                                (* handles break *)
+	= Skip                  --{* empty      statement *}
+	| Expr  expr            --{* expression statement *}
+        | Lab   jump stmt       ("_\<bullet> _" [      99,66]66)
+                                --{* labeled statement; handles break *}
 	| Comp  stmt stmt       ("_;; _"                  [      66,65]65)
-	| If_   expr stmt stmt  ("If'(_') _ Else _"          [   80,79,79]70)
-	| Loop  label expr stmt ("_\<bullet> While'(_') _"           [   99,80,79]70)
-        | Do jump               (* break, continue, return *)
+	| If_   expr stmt stmt  ("If'(_') _ Else _"       [   80,79,79]70)
+	| Loop  label expr stmt ("_\<bullet> While'(_') _"        [   99,80,79]70)
+        | Do jump               --{* break, continue, return *}
 	| Throw expr
-        | TryC  stmt
-	     qtname vname stmt ("Try _ Catch'(_ _') _"     [79,99,80,79]70)
+        | TryC  stmt qtname vname stmt ("Try _ Catch'(_ _') _"  [79,99,80,79]70)
+             --{* @{term "Try c1 Catch(C vn) c2"} *} 
+             --{* @{text c1}: block were exception may be thrown *}
+             --{* @{text C}:  execption class to catch *}
+             --{* @{text vn}: local name for exception used in @{text c2}*}
+             --{* @{text c2}: block to execute when exception is cateched*}
 	| Fin  stmt  stmt        ("_ Finally _"               [      79,79]70)
-        | FinA abopt stmt        (* Save abruption of first statement 
-                                    (for smallstep sem.) *)
-	| Init  qtname              (* class initialization *)
+        | FinA abopt stmt       --{* Save abruption of first statement *} 
+                                --{* technical term  for smallstep sem.) *}
+	| Init  qtname          --{* class initialization *}
 
 
 text {*
@@ -220,7 +259,7 @@ translations
  "!!v"        == "Acc (LVar (EName (VNam v)))"
  "v:==e"      == "Expr (Ass (LVar (EName (VNam  v))) e)"
  "Return e"   == "Expr (Ass (LVar (EName Res)) e);; Do Ret" 
-                                                   (* Res := e;; Do Ret *)
+                  --{* \tt Res := e;; Do Ret *}
  "StatRef rt" == "Cast (RefT rt) (Lit Null)"
   
 constdefs

@@ -391,6 +391,9 @@ apply (erule (1) halloc_conforms, simp, simp, simp add: is_acc_type_def)
 
 (* BinOp *)
 apply (tactic "sound_forw_hyp_tac 1")
+apply (case_tac "need_second_arg binop v1")
+apply   fastsimp
+apply   simp
 
 (* Ass *)
 apply (tactic "sound_forw_hyp_tac 1")

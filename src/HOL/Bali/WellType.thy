@@ -216,6 +216,8 @@ primrec
 "binop_type Xor      = Boolean"
 "binop_type BitOr    = Integer"
 "binop_type Or       = Boolean"
+"binop_type CondAnd  = Boolean"
+"binop_type CondOr   = Boolean"
 
 consts wt_binop :: "prog \<Rightarrow> binop \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool"
 primrec
@@ -239,8 +241,10 @@ primrec
 "wt_binop G Xor     t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
 "wt_binop G BitOr   t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
 "wt_binop G Or      t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
+"wt_binop G CondAnd t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
+"wt_binop G CondOr  t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
 
-      
+
 types tys  =        "ty + ty list"
 translations
   "tys"   <= (type) "ty + ty list"
