@@ -1,4 +1,4 @@
-(*  Title: 	tactic
+(*  Title: 	Pure/tactic.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
@@ -72,6 +72,8 @@ signature TACTIC =
   val resolve_from_net_tac	: (int*thm) Net.net -> int -> tactic
   val resolve_tac	: thm list -> int -> tactic
   val res_inst_tac	: (string*string)list -> thm -> int -> tactic   
+  val rewrite_goals_rule: thm list -> thm -> thm
+  val rewrite_rule	: thm list -> thm -> thm
   val rewrite_goals_tac	: thm list -> tactic
   val rewrite_tac	: thm list -> tactic
   val rewtac		: thm -> tactic
@@ -472,6 +474,13 @@ fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 
 fun result1 tacf mss thm =
   apsome fst (Sequence.pull (tacf mss thm));
+
+val simple_prover =
+  result1 (fn mss => ALLGOALS (resolve_tac (prems_of_mss mss)));
+
+val rewrite_rule = Drule.rewrite_rule_aux simple_prover;
+val rewrite_goals_rule = Drule.rewrite_goals_rule_aux simple_prover;
+
 
 (*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
 fun asm_rewrite_goal_tac mode prover_tac mss =
