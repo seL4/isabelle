@@ -6,7 +6,6 @@ Theory loader database: theory and file dependencies, theory values
 and user data.
 
 TODO:
-  - check all these versions of 'use' (!!);
   - data: ThyInfoFun;
   - remove operation (GC!?);
   - update_all operation (!?);
@@ -15,9 +14,8 @@ TODO:
       . allow for undef entry only;
       . elim (via theory_ref);
   - stronger handling of missing files (!?!?);
-  - register_theory: do not require finished parents (!?) (no?);
+  - register_theory: do not require final parents (!?) (no?);
   - observe verbose flag;
-  - touch_thy: msg;
 *)
 
 signature BASIC_THY_INFO =
@@ -25,6 +23,8 @@ sig
   val theory: string -> theory
   val theory_of_sign: Sign.sg -> theory
   val theory_of_thm: thm -> theory
+(*val use: string -> unit*)             (*exported later*)
+  val time_use: string -> unit
   val touch_thy: string -> unit
   val use_thy: string -> unit
   val update_thy: string -> unit
@@ -38,12 +38,13 @@ sig
   val names: unit -> string list
   val get_theory: string -> theory
   val put_theory: theory -> unit
-  val load_file: Path.T -> unit
-  val time_load_file: Path.T -> unit
+  val loaded_files: string -> (Path.T * File.info) list
+  val load_file: bool -> Path.T -> unit
+  val use: string -> unit
   val use_thy_only: string -> unit
   val begin_theory: string -> string list -> theory
   val end_theory: theory -> theory
-  val finish_all: unit -> unit
+  val finalize_all: unit -> unit
   val register_theory: theory -> unit
 end;
 
@@ -83,7 +84,7 @@ val verbose = ref false;
 fun if_verbose f x = if ! verbose then f x else ();
 
 
-(* derived graph operations *)		(* FIXME more abstract (!?) *)
+(* derived graph operations *)          (* FIXME more abstract (!?) *)
 
 fun add_deps name parents G =
   foldl (fn (H, parent) => Graph.add_edge_acyclic (parent, name) H) (G, parents)
@@ -101,12 +102,12 @@ fun update_node name parents entry G =
 
 type deps =
   {present: bool, outdated: bool,
-    master: (Path.T * File.info) list, files: (Path.T * (Path.T * File.info) option) list} option;
+    master: (Path.T * File.info) list, files: (Path.T * (Path.T * File.info) option) list};
 
-fun make_depends present outdated master files =
-  Some {present = present, outdated = outdated, master = master, files = files}: deps;
+fun make_deps present outdated master files =
+  {present = present, outdated = outdated, master = master, files = files}: deps;
 
-type thy = deps * (theory * Object.T Symtab.table) option;
+type thy = deps option * (theory * Object.T Symtab.table) option;
 type kind = Object.kind * (Object.T * (Object.T -> unit));
 
 
@@ -146,8 +147,9 @@ val lookup_deps = apsome #1 o lookup_thy;
 val get_deps = #1 o get_thy;
 fun change_deps name f = change_thy name (fn (deps, x) => (f deps, x));
 
+fun is_final name = is_none (get_deps name);
 fun get_files name = (case get_deps name of Some {files, ...} => files | _ => []);
-fun is_finished name = is_none (get_deps name);
+val loaded_files = mapfilter #2 o get_files;
 
 
 (* access theory *)
@@ -164,22 +166,36 @@ fun put_theory theory =
   change_thy (PureThy.get_name theory) (fn (deps, _) => (deps, (Some (theory, Symtab.empty))));
 
 
-
 (** thy data **)  (* FIXME *)
 
 
 
 (** thy operations **)
 
-fun FIXME msg = writeln ("DEBUG:\n" ^ msg);
+(* maintain 'outdated' flag *)
 
+fun is_outdated name =
+  (case lookup_deps name of
+    Some (Some {outdated, ...}) => outdated
+  | _ => false);
 
-(* touch_thy -- mark as outdated *)
+fun outdate_thy name =
+  if is_final name then ()
+  else change_deps name (apsome (fn {present, outdated = _, master, files} =>
+    make_deps present true master files));
 
-fun touch_thy name = change_deps name
-  (fn None => (warning (loader_msg "tried to touch finished theory" [name]); None)
-    | Some {present, outdated = _, master, files} =>
-        make_depends present true master files);
+fun touch_thy name =
+  if is_outdated name then ()
+  else if is_final name then warning (loader_msg "tried to touch final theory" [name])
+  else
+    (case filter_out is_outdated (thy_graph Graph.all_succs [name]) \ name of
+      [] => outdate_thy name
+    | names =>
+       (warning (loader_msg "the following theories become out-of-date:" names);
+        seq outdate_thy names; outdate_thy name));
+
+val untouch_deps = apsome (fn {present, outdated = _, master, files}: deps =>
+  make_deps present false master files);
 
 
 (* load_thy *)
@@ -201,19 +217,20 @@ fun load_thy ml time initiators name parents =
     if null missing_files then ()
     else warning (loader_msg ("unresolved dependencies on file(s) " ^ commas_quote missing_files ^
       "\nfor theory") [name]);
-    change_deps name (fn _ => make_depends true false master files)
+    change_deps name (fn _ => Some (make_deps true false master files))
   end;
 
 
 (* load_file *)
 
-fun load_file path =
+fun run_file path =
   let
     fun provide name info (deps as Some {present, outdated, master, files}) =
-          if exists (equal path o #1) files then
-            make_depends present outdated master (overwrite (files, (path, Some info)))
-          else (warning (loader_msg ("undeclared dependency on file " ^ quote (Path.pack path) ^
-            "\nfor theory") [name]); deps)
+          if present then deps
+          else if exists (equal path o #1) files then
+            Some (make_deps present outdated master (overwrite (files, (path, Some info))))
+          else (warning (loader_msg "undeclared dependency of theory" [name] ^
+            ": " ^ quote (Path.pack path)); deps)
       | provide _ _ None = None;
   in
     (case apsome PureThy.get_name (Context.get_context ()) of
@@ -223,18 +240,22 @@ fun load_file path =
         else (ThyLoad.load_file path; ()))
   end;
 
+fun load_file false path = run_file path
+  | load_file true path =
+      let val name = Path.pack path in
+        timeit (fn () =>
+         (writeln ("\n**** Starting file " ^ quote name ^ " ****");
+          run_file path;
+          writeln ("**** Finished file " ^ quote name ^ " ****\n")))
+      end;
 
-fun time_load_file path =
-  let val s = Path.pack path in
-    timeit (fn () =>
-     (writeln ("\n**** Starting " ^ s ^ " ****"); load_file path;
-      writeln ("\n**** Finished " ^ s ^ " ****")))
-  end;
+val use = load_file false o Path.unpack;
+val time_use = load_file true o Path.unpack;
 
 
 (* require_thy *)
 
-fun init_deps master files = make_depends false false master (map (rpair None) files);
+fun init_deps master files = Some (make_deps false false master (map (rpair None) files));
 
 fun load_deps name ml =
   let val (master, (parents, files)) = ThyLoad.deps_thy name ml
@@ -259,39 +280,34 @@ fun current_deps ml strict name =
               end)
       end);
 
-fun outdated name =
-  (case lookup_deps name of Some (Some {outdated, ...}) => outdated | _ => false);
-
-fun untouch None = None
-  | untouch (Some {present, outdated = _, master, files}) =
-      make_depends present false master files;
-
 fun require_thy ml time strict keep_strict initiators name =
   let
     val require_parent =
       require_thy ml time (strict andalso keep_strict) keep_strict (name :: initiators);
     val (current, (new_deps, parents)) = current_deps ml strict name handle ERROR =>
-      error (loader_msg "The error(s) above occurred while examining theory" [name] ^ "\n" ^
-        required_by initiators);
+      error (loader_msg "The error(s) above occurred while examining theory" [name] ^
+        (if null initiators then "" else "\n" ^ required_by initiators));
     val parents_current = map require_parent parents;
   in
     if current andalso forall I parents_current then true
     else
       ((case new_deps of
-        Some deps => change_thys (update_node name parents (untouch deps, None))
+        Some deps => change_thys (update_node name parents (untouch_deps deps, None))
       | None => ());
         load_thy ml time initiators name parents;
         false)
   end;
 
-val weak_use_thy = K () o require_thy true false false false [];
-val use_thy      = K () o require_thy true false true false [];
-val update_thy   = K () o require_thy true false true true [];
-val time_use_thy = K () o require_thy true true true false [];
-val use_thy_only = K () o require_thy false false true false [];
+fun gen_use_thy f name = (f name; Context.context (get_theory name));
+
+val weak_use_thy = gen_use_thy (require_thy true false false false []);
+val use_thy      = gen_use_thy (require_thy true false true false []);
+val update_thy   = gen_use_thy (require_thy true false true true []);
+val time_use_thy = gen_use_thy (require_thy true true true false []);
+val use_thy_only = gen_use_thy (require_thy false false true false []);
 
 
-(* begin / end theory *)		(* FIXME tune *)
+(* begin / end theory *)                (* FIXME tune *)
 
 fun begin_theory name parents =
   let
@@ -305,7 +321,7 @@ fun end_theory theory =
   in put_theory theory'; theory' end;
 
 
-(* finish entries *)
+(* finalize entries *)
 
 (* FIXME
 fun finishs names =
@@ -327,7 +343,7 @@ fun finish name = finishs [name];
 
 fun update_all () = ();         (* FIXME fake *)
 
-fun finish_all () =
+fun finalize_all () =
   (update_all (); change_thys (Graph.map_nodes (fn (_, entry) => (None, entry))));
 
 
@@ -342,7 +358,7 @@ fun register_theory theory =
     fun err txt bads =
       error (loader_msg txt bads ^ "\n" ^ gen_msg "cannot register theory" [name]);
 
-    val unfinished = filter_out is_finished parent_names;
+    val nonfinal = filter_out is_final parent_names;
     fun get_variant (x, y_name) =
       if Theory.eq_thy (x, get_theory y_name) then None
       else Some y_name;
@@ -353,7 +369,7 @@ fun register_theory theory =
         handle Graph.DUPLICATE _ => err "duplicate theory entry" [])
       |> add_deps name parent_names;
   in
-    if not (null unfinished) then err "unfinished parent theories" unfinished
+    if not (null nonfinal) then err "non-final parent theories" nonfinal
     else if not (null variants) then err "different versions of parent theories" variants
     else change_thys register
   end;
