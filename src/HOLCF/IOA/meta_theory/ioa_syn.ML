@@ -151,7 +151,7 @@ val ioa_decl =
                 ("to" $$-- (enum1 "," string)))) >> mk_restriction_decl)
 ||
   (name -- ("=" $$--
-	("rename" $$-- name -- ("using" $$-- string))) >> mk_rename_decl)
+	("rename" $$-- name -- ("to" $$-- string))) >> mk_rename_decl)
 ;
 
 in
@@ -164,7 +164,7 @@ in
 val _ = ThySyn.add_syntax
  ["signature","actions","inputs", "outputs", "internals", "states", "initially",
   "transitions", "pre", "post", "transrel",":=",
-"compose","hide_action","in","restrict","to","rename","using"]
+"compose","hide_action","in","restrict","to","rename"]
  [axm_section "automaton" "" ioa_decl];
 
 end; 
