@@ -1,6 +1,7 @@
 (*  Title:      Pure/Thy/thy_load.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory loader primitives.
 *)

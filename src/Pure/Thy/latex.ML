@@ -1,6 +1,7 @@
 (*  Title:      Pure/Thy/latex.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 LaTeX presentation primitives (based on outer lexical syntax).
 *)

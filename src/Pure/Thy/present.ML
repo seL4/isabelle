@@ -1,6 +1,7 @@
 (*  Title:      Pure/Thy/present.ML
     ID:         $Id$
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory presentation (HTML, graph files, (PDF)LaTeX documents).
 *)
