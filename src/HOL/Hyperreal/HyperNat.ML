@@ -1308,3 +1308,22 @@ Addsimps [hypnat_le_one_eq_one];
 
 
 
+(*MOVE UP*)
+Goal "n : HNatInfinite ==> inverse (hypreal_of_hypnat n) : Infinitesimal";
+by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
+by (auto_tac (claset(),simpset() addsimps [hypreal_of_hypnat,hypreal_inverse,
+    HNatInfinite_FreeUltrafilterNat_iff,Infinitesimal_FreeUltrafilterNat_iff2]));
+by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
+by Auto_tac;
+by (dres_inst_tac [("x","m + 1")] spec 1);
+by (Ultra_tac 1);
+by (subgoal_tac "abs(inverse (real (Y x))) = inverse(real (Y x))" 1);
+by (auto_tac (claset() addSIs [abs_eqI2],simpset()));
+qed "HNatInfinite_inverse_Infinitesimal";
+Addsimps [HNatInfinite_inverse_Infinitesimal];
+
+Goal "n : HNatInfinite ==> inverse (hypreal_of_hypnat n) ~= 0";
+by (auto_tac (claset() addSIs [hypreal_inverse_not_zero],simpset()));
+qed "HNatInfinite_inverse_not_zero";
+Addsimps [HNatInfinite_inverse_not_zero];
+

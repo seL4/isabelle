@@ -5,6 +5,13 @@
     Description : Power Series
 *)
 
+fun multr_by_tac x i = 
+       let val cancel_thm = 
+           CLAIM "[| (0::real)<z; x*z<y*z |] ==> x<y" 
+       in
+           res_inst_tac [("z",x)] cancel_thm i 
+       end;
+
 Goalw [root_def] "root (Suc n) 0 = 0";
 by (safe_tac (claset() addSIs [some_equality,realpow_zero] 
     addSEs [realpow_zero_zero]));

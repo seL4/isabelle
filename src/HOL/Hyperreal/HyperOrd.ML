@@ -523,3 +523,7 @@ by (auto_tac (claset() addDs [order_less_not_sym],
                                   linorder_not_less RS sym]));
 qed "hypreal_mult_le_0_iff";
 
+Goal "[| (0::hypreal) < x; y < 0 |] ==> y*x < 0";
+by (auto_tac (claset(),simpset() addsimps [hypreal_mult_commute,
+    hypreal_mult_less_zero]));
+qed "hypreal_mult_less_zero2";

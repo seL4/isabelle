@@ -661,7 +661,7 @@ by (fold_tac [real_le_def]);
 by (dtac lemma_converg3 1);
 by (dtac isLub_le_isUb 1 THEN assume_tac 1);
 by (auto_tac (claset() addDs [order_less_le_trans],
-              simpset() addsimps [real_minus_zero_le_iff]));
+              simpset()));
 val lemma_converg4 = result();
 
 (*-------------------------------------------------------------------

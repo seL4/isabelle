@@ -1238,3 +1238,20 @@ by (ALLGOALS
      (simpset() addsimps [hypreal_eq_diff_eq, hypreal_diff_eq_eq])));
 qed "hypreal_eq_eqI";
 
+
+(*MOVE UP*)
+Goal "0 = Abs_hypreal (hyprel `` {%n. 0})";
+by (simp_tac (simpset() addsimps [hypreal_zero_def RS meta_eq_to_obj_eq RS sym]) 1);
+qed "hypreal_zero_num";
+
+Goal "1 = Abs_hypreal (hyprel `` {%n. 1})";
+by (simp_tac (simpset() addsimps [hypreal_one_def RS meta_eq_to_obj_eq RS sym]) 1);
+qed "hypreal_one_num";
+
+
+(*MOVE UP*)
+
+Goalw [omega_def] "0 < omega";
+by (auto_tac (claset(),simpset() addsimps [hypreal_less,hypreal_zero_num]));
+qed "hypreal_omega_gt_zero";
+Addsimps [hypreal_omega_gt_zero];

@@ -393,11 +393,6 @@ lemma zmult_zle_mono:
 lemma zmult_zless_mono1: "[| i<j;  (0::int) < k |] ==> i*k < j*k"
   by (rule Ring_and_Field.mult_strict_right_mono)
 
-(* < monotonicity, BOTH arguments*)
-lemma zmult_zless_mono:
-     "[| i < j;  k < l;  (0::int) < j;  (0::int) < k |] ==> i*k < j*l"
-  by (rule Ring_and_Field.mult_strict_mono)
-
 lemma zmult_zless_mono1_neg: "[| i<j;  k < (0::int) |] ==> j*k < i*k"
   by (rule Ring_and_Field.mult_strict_right_mono_neg)
 
@@ -501,7 +496,6 @@ val zmult_zle_mono2_neg = thm "zmult_zle_mono2_neg";
 val zmult_zle_mono = thm "zmult_zle_mono";
 val zmult_zless_mono2 = thm "zmult_zless_mono2";
 val zmult_zless_mono1 = thm "zmult_zless_mono1";
-val zmult_zless_mono = thm "zmult_zless_mono";
 val zmult_zless_mono1_neg = thm "zmult_zless_mono1_neg";
 val zmult_zless_mono2_neg = thm "zmult_zless_mono2_neg";
 val zmult_eq_0_iff = thm "zmult_eq_0_iff";

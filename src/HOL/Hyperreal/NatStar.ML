@@ -479,3 +479,15 @@ by (rtac ext 1 THEN rtac ccontr 1);
 by (dres_inst_tac [("x","hypnat_of_nat(x)")] fun_cong 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat,hypnat_of_nat_def]));
 qed "starfun_eq_iff";
+
+
+
+(*MOVE UP*)
+
+Goal "N : HNatInfinite \
+\     ==> ( *fNat* (%x. inverse (real x))) N : Infinitesimal";
+by (res_inst_tac [("f1","inverse")]  (starfun_stafunNat_o2 RS subst) 1);
+by (subgoal_tac "hypreal_of_hypnat N ~= 0" 1);
+by (auto_tac (claset(),simpset() addsimps [starfunNat_real_of_nat]));
+qed "starfunNat_inverse_real_of_nat_Infinitesimal";
+Addsimps [starfunNat_inverse_real_of_nat_Infinitesimal];

@@ -5,4 +5,4 @@
                    http://www.math.unl.edu/~webnotes
 *)
 
-NthRoot = SEQ + ExtraThms2
+NthRoot = SEQ + HSeries

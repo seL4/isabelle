@@ -533,3 +533,20 @@ by (auto_tac (claset() addSIs [Infinitesimal_hyperpow],
                         hypnat_of_nat_less_iff,hypnat_of_nat_zero] 
               delsimps [hypnat_of_nat_less_iff RS sym]));
 qed "Infinitesimal_hrealpow";
+
+(* MOVE UP *)
+Goal "(0::hypreal) <= x * x";
+by (auto_tac (claset(),simpset() addsimps 
+    [hypreal_0_le_mult_iff]));
+qed "hypreal_mult_self_ge_zero";
+Addsimps [hypreal_mult_self_ge_zero];
+
+Goal "[|(0::hypreal) <= x; 0 <= y; x ^ Suc n = y ^ Suc n |] ==> x = y";
+by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
+by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
+by (auto_tac (claset(),simpset() addsimps 
+    [hrealpow,hypreal_mult,hypreal_le,hypreal_zero_num]));
+by (ultra_tac (claset() addIs [realpow_Suc_cancel_eq],
+    simpset()) 1);
+qed "hrealpow_Suc_cancel_eq";
+

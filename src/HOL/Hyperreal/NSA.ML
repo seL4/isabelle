@@ -2177,6 +2177,7 @@ by Auto_tac;
 by (simp_tac (simpset() addsimps [real_of_nat_Suc, real_diff_less_eq RS sym,
                                   FreeUltrafilterNat_omega]) 1);
 qed "HInfinite_omega";
+Addsimps [HInfinite_omega];
 
 (*-----------------------------------------------
        Epsilon is a member of Infinitesimal
@@ -2324,3 +2325,62 @@ by (auto_tac (claset() addSIs [bexI]
             [Infinitesimal_FreeUltrafilterNat_iff,hypreal_minus,hypreal_add,
              hypreal_inverse]));
 qed "real_seq_to_hypreal_Infinitesimal2";
+
+
+
+
+
+(*MOVE UP*)
+Goal "[| x + y : HInfinite; y: HFinite |] ==> x : HInfinite";
+by (rtac ccontr 1);
+by (dtac (HFinite_HInfinite_iff RS iffD2) 1);
+by (auto_tac (claset() addDs [HFinite_add],simpset() 
+    addsimps [HInfinite_HFinite_iff]));
+qed "HInfinite_HFinite_add_cancel";
+
+Goal "[| x : HInfinite; y : HFinite |] ==> x + y : HInfinite";
+by (res_inst_tac [("y","-y")] HInfinite_HFinite_add_cancel 1);
+by (auto_tac (claset(),simpset() addsimps [hypreal_add_assoc,
+    HFinite_minus_iff]));
+qed "HInfinite_HFinite_add";
+
+Goal "[| x : HInfinite; x <= y; 0 <= x |] ==> y : HInfinite";
+by (auto_tac (claset() addIs [HFinite_bounded],simpset() 
+    addsimps [HInfinite_HFinite_iff]));
+qed "HInfinite_ge_HInfinite";
+
+Goal "[| x : Infinitesimal; x ~= 0 |] ==> inverse x : HInfinite";
+by (rtac ccontr 1 THEN dtac (HFinite_HInfinite_iff RS iffD2) 1);
+by (auto_tac (claset() addDs [Infinitesimal_HFinite_mult2],simpset()));
+qed "Infinitesimal_inverse_HInfinite";
+
+Goal "[| x : HInfinite; y : HFinite - Infinitesimal |] \
+\     ==> x * y : HInfinite";
+by (rtac ccontr 1 THEN dtac (HFinite_HInfinite_iff RS iffD2) 1); 
+by (ftac HFinite_Infinitesimal_not_zero 1);
+by (dtac HFinite_not_Infinitesimal_inverse 1);
+by (Step_tac 1 THEN dtac HFinite_mult 1);
+by (auto_tac (claset(),simpset() addsimps [hypreal_mult_assoc,
+    HFinite_HInfinite_iff]));
+qed "HInfinite_HFinite_not_Infinitesimal_mult";
+
+Goal "[| x : HInfinite; y : HFinite - Infinitesimal |] \
+\     ==> y * x : HInfinite";
+by (auto_tac (claset(),simpset() addsimps [hypreal_mult_commute,
+    HInfinite_HFinite_not_Infinitesimal_mult]));
+qed "HInfinite_HFinite_not_Infinitesimal_mult2";
+
+Goal "[| x : HInfinite; 0 < x; y : Reals |] ==> y < x";
+by (auto_tac (claset() addSDs [bspec],simpset() addsimps 
+    [HInfinite_def,hrabs_def,order_less_imp_le]));
+qed "HInfinite_gt_SReal";
+
+Goal "[| x : HInfinite; 0 < x |] ==> 1 < x";
+by (auto_tac (claset() addIs [HInfinite_gt_SReal],simpset()));
+qed "HInfinite_gt_zero_gt_one";
+
+
+Goal "1 ~: HInfinite";
+by (simp_tac (simpset() addsimps [HInfinite_HFinite_iff]) 1);
+qed "not_HInfinite_one";
+Addsimps [not_HInfinite_one];

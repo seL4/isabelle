@@ -497,7 +497,7 @@ qed "INVERSE_ZERO";
 
 Goal "a / (0::real) = 0";
 by (simp_tac (simpset() addsimps [real_divide_def, INVERSE_ZERO]) 1);
-qed "DIVISION_BY_ZERO";  (*NOT for adding to default simpset*)
+qed "DIVISION_BY_ZERO"; 
 
 fun real_div_undefined_case_tac s i =
   case_tac s i THEN 

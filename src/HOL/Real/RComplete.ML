@@ -238,10 +238,16 @@ by (ftac (real_inverse_gt_0 RS reals_Archimedean) 1);
 by (Step_tac 1 THEN res_inst_tac [("x","Suc n")] exI 1);
 by (forw_inst_tac [("y","inverse x")] real_mult_less_mono1 1);
 by Auto_tac;  
-by (dres_inst_tac [("y","1"),("z","real (Suc n)")]
-    (rotate_prems 1 real_mult_less_mono2) 1);
-by (auto_tac (claset(),
-	      simpset() addsimps [real_of_nat_Suc_gt_zero,
-				  real_not_refl2 RS not_sym,
-				  real_mult_assoc RS sym]));
+by (rtac (thm "less_imp_inverse_less") 1); 
+by (assume_tac 1); 
+by (assume_tac 1); 
 qed "reals_Archimedean2";
+
+Goal "0 < x ==> ALL y. EX (n::nat). y < real n * x";
+by (Step_tac 1);
+by (cut_inst_tac [("x","y*inverse(x)")] reals_Archimedean2 1);
+by (Step_tac 1);
+by (forw_inst_tac [("x","y * inverse x")] (real_mult_less_mono1) 1);
+by (auto_tac (claset(),simpset() addsimps [real_mult_assoc,real_of_nat_def]));
+qed "reals_Archimedean3";
+

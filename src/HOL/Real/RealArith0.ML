@@ -79,8 +79,6 @@ Addsimps [inst "x" "number_of ?w" real_divide_le_0_iff];
 
 Goal "(inverse(x::real) = 0) = (x = 0)";
 by (auto_tac (claset(), simpset() addsimps [INVERSE_ZERO]));
-by (rtac ccontr 1);
-by (blast_tac (claset() addDs [real_inverse_not_zero]) 1);
 qed "real_inverse_zero_iff";
 Addsimps [real_inverse_zero_iff];
 
@@ -480,14 +478,8 @@ by (auto_tac (claset(),
                                   real_eq_divide_eq, real_mult_eq_cancel1]));
 qed "real_divide_eq_cancel1";
 
-(*Moved from RealOrd.ML to use 0 *)
 Goal "[| 0 < r; 0 < x|] ==> (inverse x < inverse (r::real)) = (r < x)";
 by (auto_tac (claset() addIs [real_inverse_less_swap], simpset()));
-by (res_inst_tac [("t","r")] (real_inverse_inverse RS subst) 1);
-by (res_inst_tac [("t","x")] (real_inverse_inverse RS subst) 1);
-by (auto_tac (claset() addIs [real_inverse_less_swap],
-              simpset() delsimps [real_inverse_inverse]
-                        addsimps [real_inverse_gt_0]));
 qed "real_inverse_less_iff";
 
 Goal "[| 0 < r; 0 < x|] ==> (inverse x <= inverse r) = (r <= (x::real))";
