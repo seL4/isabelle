@@ -101,7 +101,8 @@ qed "moving_down";
 
 Goal "Lift : Always bounded";
 by (rtac AlwaysI 1);
-by (rtac (Always_Int_rule [moving_up, moving_down] RS Always_StableI) 2);
+by (rtac (Always_Int_rule [moving_up, moving_down] RS 
+	  Always_ConstrainsI RS StableI) 2);
 by (Force_tac 1);
 by (constrains_tac 1);
 by (ALLGOALS Clarify_tac);

@@ -75,7 +75,7 @@ val ns_induct_tac =
      [rtac AlwaysI 1,
       Force_tac 1,
       (*"reachable" gets in here*)
-      rtac (Always_reachable RS Always_StableI) 1,
+      rtac (Always_reachable RS Always_ConstrainsI RS StableI) 1,
       ns_constrains_tac 1];
 
 
