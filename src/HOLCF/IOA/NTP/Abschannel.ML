@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/NTP/Abschannel.ML
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1994  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Derived rules
+Derived rules.
 *)
 
 open Abschannel;

@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/NTP/Correctness.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The main correctness proof: Impl implements Spec
+The main correctness proof: Impl implements Spec.
 *)
 
 (* repeated from Traces.ML *)

@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/ABP/Abschannel.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The transmission channel 
+The transmission channel.
 *)
 
 Abschannel = IOA + Action + Lemmas + List +

@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/ABP/Correctness.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The main correctness proof: System_fin implements System
+The main correctness proof: System_fin implements System.
 *)
 
 Correctness = IOA + Env + Impl + Impl_finite + 

@@ -1,10 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/LiveIOA.ML
     ID:         $Id$
-    Author:     Olaf M"uller
-    Copyright   1997  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Live I/O Automata
-
+Live I/O Automata.
 *)   
 
 Delsimps [split_paired_Ex];

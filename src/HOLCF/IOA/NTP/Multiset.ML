@@ -1,7 +1,7 @@
 (*  Title:      HOL/IOA/NTP/Multiset.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Axiomatic multisets.
 Should be done as a subtype and moved to a global place.

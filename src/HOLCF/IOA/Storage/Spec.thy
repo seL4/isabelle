@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/example/Spec.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1997  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The specification of a memory
+The specification of a memory.
 *)
 
 Spec = IOA + Action +

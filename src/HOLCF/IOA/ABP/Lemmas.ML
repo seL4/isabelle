@@ -1,8 +1,7 @@
 (*  Title:      HOLCF/IOA/ABP/Lemmas.ML
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1995  TU Muenchen
-
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 (* Logic *)

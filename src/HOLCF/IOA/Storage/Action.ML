@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/ABP/Action.ML
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1997  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Derived rules for actions
+Derived rules for actions.
 *)
 
 Goal "!!x. x = y ==> action_case a b c x =     \

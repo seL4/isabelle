@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/RefMappings.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1996  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Refinement Mappings in HOLCF/IOA
+Refinement Mappings in HOLCF/IOA.
 *)
 
 RefMappings = Traces  +

@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/ABP/Action.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The set of all actions of the system
+The set of all actions of the system.
 *)
 
 Action = Packet + Datatype +

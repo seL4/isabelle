@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/NTP/Correctness.thy
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The main correctness proof: Impl implements Spec
+The main correctness proof: Impl implements Spec.
 *)
 
 Correctness = Impl + Spec +

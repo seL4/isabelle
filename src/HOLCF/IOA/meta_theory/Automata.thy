@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/IOA/meta_theory/Automata.thy
     ID:         $Id$
-    Author:     Olaf M"uller, Konrad Slind, Tobias Nipkow
-    Copyright   1995, 1996  TU Muenchen
+    Author:     Olaf Müller, Konrad Slind, Tobias Nipkow
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The I/O automata of Lynch and Tuttle in HOLCF.
 *)   

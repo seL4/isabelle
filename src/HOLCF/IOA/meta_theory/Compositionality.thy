@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/Compositionality.thy
     ID:         $Id$
-    Author:     Olaf M"uller
-    Copyright   1997  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Compositionality of I/O automata
+Compositionality of I/O automata.
 *) 
 
 Compositionality = CompoTraces

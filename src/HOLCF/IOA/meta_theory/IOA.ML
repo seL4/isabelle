@@ -1,7 +1,7 @@
 (*  Title:      HOLCF/IOA/meta_theory/IOA.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1996,1997  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The theory of I/O automata in HOLCF.
 *)  

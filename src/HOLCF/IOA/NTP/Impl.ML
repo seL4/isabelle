@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/NTP/Impl.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The implementation --- Invariants
+The implementation --- Invariants.
 *)
 
 

@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/SimCorrectness.ML
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1996  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Correctness of Simulations in HOLCF/IOA
+Correctness of Simulations in HOLCF/IOA.
 *)
 
 

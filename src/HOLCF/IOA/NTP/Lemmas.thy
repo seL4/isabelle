@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/NTP/Lemmas.thy
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Arithmetic lemmas
+Arithmetic lemmas.
 *)
 
 Lemmas = NatArith

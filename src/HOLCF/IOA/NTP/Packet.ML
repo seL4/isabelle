@@ -1,11 +1,10 @@
 (*  Title:      HOL/IOA/NTP/Packet.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Packets
+Packets.
 *)
-
 
 (* Instantiation of a tautology? *)
 Goal "!x. x = packet --> hdr(x) = hdr(packet)";

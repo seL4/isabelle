@@ -1,6 +1,7 @@
 (*  Title:      HOLCF/IOA/Modelcheck/ROOT.ML
     ID:         $Id$
-    Author:     Olaf Mueller and Tobias Hamberger, TU Muenchen
+    Author:     Olaf Müller and Tobias Hamberger, TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Modelchecker setup for I/O automata.
 *)

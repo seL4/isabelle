@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/Simulations.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1997  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Simulations in HOLCF/IOA
+Simulations in HOLCF/IOA.
 *)
 
 Simulations = RefCorrectness  +

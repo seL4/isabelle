@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/NTP/Abschannel.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1994  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The (faulty) transmission channel (both directions)
+The (faulty) transmission channel (both directions).
 *)
 
 Abschannel = IOA + Action + 

@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/ABP/Impl.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The environment
+The environment.
 *)
 
 Env = IOA + Action +

@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/NTP/Spec.thy
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The specification of reliable transmission
+The specification of reliable transmission.
 *)
 
 Spec = List + IOA + Action +

@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/meta_theory/Asig.thy
     ID:         $Id$
-    Author:     Olaf Mueller, Tobias Nipkow & Konrad Slind
-    Copyright   1994, 1996 TU Muenchen
+    Author:     Olaf Müller, Tobias Nipkow & Konrad Slind
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Action signatures
+Action signatures.
 *)
 
 Asig = Main +

@@ -1,12 +1,10 @@
 (*  Title:      HOLCF/IOA/meta_theory/Abstraction.thy
     ID:         $Id$
-    Author:     Olaf M"uller
-    Copyright   1997  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Abstraction Theory -- tailored for I/O automata
+Abstraction Theory -- tailored for I/O automata.
 *)   
-
-
 
 section "cex_abs";
 	

@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/NTP/Receiver.thy
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The implementation: receiver
+The implementation: receiver.
 *)
 
 Receiver = List + IOA + Action + 

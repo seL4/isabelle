@@ -1,9 +1,9 @@
 (*  Title:      HOL/IOA/NTP/Action.thy
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The set of all actions of the system
+The set of all actions of the system.
 *)
 
 Action = Packet + Datatype +

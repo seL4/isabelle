@@ -1,7 +1,7 @@
 (*  Title:      HOL/IOA/NTP/Receiver.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 Goal

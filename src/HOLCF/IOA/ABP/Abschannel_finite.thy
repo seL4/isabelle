@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/ABP/Abschannels.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-The transmission channel -- finite version
+The transmission channel -- finite version.
 *)
 
 Abschannel_finite = Abschannel+ IOA + Action + Lemmas + List +

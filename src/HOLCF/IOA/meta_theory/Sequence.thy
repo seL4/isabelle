@@ -1,10 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/Sequence.thy
     ID:         $Id$
-    Author:     Olaf M"uller
-    Copyright   1996  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Sequences over flat domains with lifted elements
-
+Sequences over flat domains with lifted elements.
 *)  
 
 Sequence = Seq + 

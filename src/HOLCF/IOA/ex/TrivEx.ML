@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/TrivEx.thy
     ID:         $Id$
-    Author:     Olaf Mueller
-    Copyright   1995  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Trivial Abstraction Example
+Trivial Abstraction Example.
 *)
 
 val prems = goal HOL.thy "(P ==> Q-->R) ==> P&Q --> R";

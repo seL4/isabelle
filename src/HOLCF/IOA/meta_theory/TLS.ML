@@ -1,9 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/TLS.ML
     ID:         $Id$
-    Author:     Olaf M"uller
-    Copyright   1997  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Temporal Logic of Steps -- tailored for I/O automata
+Temporal Logic of Steps -- tailored for I/O automata.
 *)    
 
 (* global changes to simpset() and claset(), repeated from Traces.ML *)

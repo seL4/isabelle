@@ -1,13 +1,12 @@
 (*  Title:      HOLCF/IOA/meta_theory/ShortExecutions.thy
     ID:         $Id$
-    Author:     Olaf M"uller
-    Copyright   1997  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Some properties about (Cut ex), defined as follows:
 
 For every execution ex there is another shorter execution (Cut ex) 
 that has the same trace as ex, but its schedule ends with an external action.
-
 *) 
 
 

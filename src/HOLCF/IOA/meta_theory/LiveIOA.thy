@@ -1,10 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/LiveIOA.thy
     ID:         $Id$
-    Author:     Olaf M"uller
-    Copyright   1997  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Live I/O automata -- specified by temproal formulas
-
+Live I/O automata -- specified by temproal formulas.
 *) 
   
 LiveIOA = TLS + 

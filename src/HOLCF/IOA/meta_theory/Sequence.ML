@@ -1,10 +1,9 @@
 (*  Title:      HOLCF/IOA/meta_theory/Sequence.ML
     ID:         $Id$
-    Author:     Olaf M"uller
-    Copyright   1996  TU Muenchen
+    Author:     Olaf Müller
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Theorems about Sequences over flat domains with lifted elements
-
+Theorems about Sequences over flat domains with lifted elements.
 *)
 
 
