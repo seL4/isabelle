@@ -13,7 +13,7 @@
 (** Natural deduction for hypnatrel - similar to hyprel! **)
 
 Goalw [hypnatrel_def]
-   "((X,Y): hypnatrel) = ({n. X n = Y n}: FreeUltrafilterNat)";
+     "((X,Y): hypnatrel) = ({n. X n = Y n}: FreeUltrafilterNat)";
 by (Fast_tac 1);
 qed "hypnatrel_iff";
 
@@ -28,10 +28,11 @@ Goalw [hypnatrel_def]
 by (Fast_tac 1);
 qed "hypnatrelE_lemma";
 
-val [major,minor] = goal thy
+val [major,minor] = Goal
   "[| p: hypnatrel;  \
-\     !!X Y. [| p = (X,Y); {n. X n = Y n}: FreeUltrafilterNat\
-\            |] ==> Q |] ==> Q";
+\     !!X Y. [| p = (X,Y); {n. X n = Y n}: FreeUltrafilterNat |] \
+\            ==> Q |] \
+\  ==> Q";
 by (cut_facts_tac [major RS (hypnatrelE_lemma RS mp)] 1);
 by (REPEAT (eresolve_tac [asm_rl,exE,conjE,minor] 1));
 qed "hypnatrelE";
@@ -44,26 +45,25 @@ by (Auto_tac);
 qed "hypnatrel_refl";
 
 Goalw [hypnatrel_def] "(x,y): hypnatrel --> (y,x):hypnatrel";
-by (auto_tac (claset() addIs [lemma_perm RS subst],simpset()));
+by (auto_tac (claset() addIs [lemma_perm RS subst], simpset()));
 qed_spec_mp "hypnatrel_sym";
 
 Goalw [hypnatrel_def]
-      "(x,y): hypnatrel --> (y,z):hypnatrel --> (x,z):hypnatrel";
+     "(x,y): hypnatrel --> (y,z):hypnatrel --> (x,z):hypnatrel";
 by (Auto_tac);
 by (Fuf_tac 1);
 qed_spec_mp "hypnatrel_trans";
 
 Goalw [equiv_def, refl_def, sym_def, trans_def]
-    "equiv {x::nat=>nat. True} hypnatrel";
-by (auto_tac (claset() addSIs [hypnatrel_refl] addSEs 
-    [hypnatrel_sym,hypnatrel_trans] delrules [hypnatrelI,hypnatrelE],
-    simpset()));
+     "equiv UNIV hypnatrel";
+by (auto_tac (claset() addSIs [hypnatrel_refl] 
+                       addSEs [hypnatrel_sym,hypnatrel_trans] 
+                       delrules [hypnatrelI,hypnatrelE],
+              simpset()));
 qed "equiv_hypnatrel";
 
 val equiv_hypnatrel_iff =
-    [TrueI, TrueI] MRS 
-    ([CollectI, CollectI] MRS 
-    (equiv_hypnatrel RS eq_equiv_class_iff));
+    [UNIV_I, UNIV_I] MRS (equiv_hypnatrel RS eq_equiv_class_iff);
 
 Goalw  [hypnat_def,hypnatrel_def,quotient_def] "hypnatrel^^{x}:hypnat";
 by (Blast_tac 1);
@@ -120,7 +120,7 @@ by (rtac ccontr 1 THEN rotate_tac 1 1);
 by (Auto_tac);
 qed "inj_hypnat_of_nat";
 
-val [prem] = goal thy
+val [prem] = Goal
     "(!!x. z = Abs_hypnat(hypnatrel^^{x}) ==> P) ==> P";
 by (res_inst_tac [("x1","z")] 
     (rewrite_rule [hypnat_def] Rep_hypnat RS quotientE) 1);
@@ -133,7 +133,7 @@ qed "eq_Abs_hypnat";
    Addition for hyper naturals: hypnat_add 
  -----------------------------------------------------------*)
 Goalw [congruent2_def]
-    "congruent2 hypnatrel (%X Y. hypnatrel^^{%n. X n + Y n})";
+     "congruent2 hypnatrel (%X Y. hypnatrel^^{%n. X n + Y n})";
 by Safe_tac;
 by (ALLGOALS(Fuf_tac));
 qed "hypnat_add_congruent2";
@@ -172,8 +172,7 @@ val hypnat_add_ac = [hypnat_add_assoc,hypnat_add_commute,
 
 Goalw [hypnat_zero_def] "(0::hypnat) + z = z";
 by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
-by (asm_full_simp_tac (simpset() addsimps 
-    [hypnat_add]) 1);
+by (asm_full_simp_tac (simpset() addsimps [hypnat_add]) 1);
 qed "hypnat_add_zero_left";
 
 Goal "z + (0::hypnat) = z";
@@ -216,8 +215,8 @@ Goalw [hypnat_zero_def] "(m+n = (0::hypnat)) = (m=0 & n=0)";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
 by (auto_tac (claset() addIs [FreeUltrafilterNat_subset]
-    addDs [FreeUltrafilterNat_Int],
-    simpset() addsimps [hypnat_add] ));
+                       addDs [FreeUltrafilterNat_Int],
+              simpset() addsimps [hypnat_add] ));
 qed "hypnat_add_is_0";
 
 AddIffs [hypnat_add_is_0];
@@ -238,16 +237,14 @@ qed "hypnat_diff_commute";
 Goal "!!n::hypnat. (n+m) - n = m";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
-by (asm_full_simp_tac (simpset() addsimps 
-    [hypnat_minus,hypnat_add]) 1);
+by (asm_full_simp_tac (simpset() addsimps [hypnat_minus,hypnat_add]) 1);
 qed "hypnat_diff_add_inverse";
 Addsimps [hypnat_diff_add_inverse];
 
 Goal "!!n::hypnat.(m+n) - n = m";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
-by (asm_full_simp_tac (simpset() addsimps 
-    [hypnat_minus,hypnat_add]) 1);
+by (asm_full_simp_tac (simpset() addsimps [hypnat_minus,hypnat_add]) 1);
 qed "hypnat_diff_add_inverse2";
 Addsimps [hypnat_diff_add_inverse2];
 
@@ -255,8 +252,7 @@ Goal "!!k::hypnat. (k+m) - (k+n) = m - n";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","k")] eq_Abs_hypnat 1);
-by (asm_full_simp_tac (simpset() addsimps 
-    [hypnat_minus,hypnat_add]) 1);
+by (asm_full_simp_tac (simpset() addsimps [hypnat_minus,hypnat_add]) 1);
 qed "hypnat_diff_cancel";
 Addsimps [hypnat_diff_cancel];
 
@@ -269,8 +265,7 @@ Addsimps [hypnat_diff_cancel2];
 Goalw [hypnat_zero_def] "!!n::hypnat. n - (n+m) = (0::hypnat)";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","m")] eq_Abs_hypnat 1);
-by (asm_full_simp_tac (simpset() addsimps 
-    [hypnat_minus,hypnat_add]) 1);
+by (asm_full_simp_tac (simpset() addsimps [hypnat_minus,hypnat_add]) 1);
 qed "hypnat_diff_add_0";
 Addsimps [hypnat_diff_add_0];
 
@@ -304,14 +299,16 @@ by (res_inst_tac [("z","z3")] eq_Abs_hypnat 1);
 by (asm_simp_tac (simpset() addsimps [hypnat_mult,mult_assoc]) 1);
 qed "hypnat_mult_assoc";
 
-qed_goal "hypnat_mult_left_commute" thy
-    "(z1::hypnat) * (z2 * z3) = z2 * (z1 * z3)"
- (fn _ => [rtac (hypnat_mult_commute RS trans) 1, rtac (hypnat_mult_assoc RS trans) 1,
-           rtac (hypnat_mult_commute RS arg_cong) 1]);
+
+Goal "(z1::hypnat) * (z2 * z3) = z2 * (z1 * z3)";
+by (rtac (hypnat_mult_commute RS trans) 1);
+by (rtac (hypnat_mult_assoc RS trans) 1);
+by (rtac (hypnat_mult_commute RS arg_cong) 1);
+qed "hypnat_mult_left_commute";
 
 (* hypnat multiplication is an AC operator *)
 val hypnat_mult_ac = [hypnat_mult_assoc, hypnat_mult_commute, 
-                       hypnat_mult_left_commute];
+                      hypnat_mult_left_commute];
 
 Goalw [hypnat_one_def] "1hn * z = z";
 by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
@@ -346,26 +343,27 @@ qed "hypnat_diff_mult_distrib" ;
 Goal "!!m::hypnat. k * (m - n) = (k * m) - (k * n)";
 val hypnat_mult_commute_k = read_instantiate [("z","k")] hypnat_mult_commute;
 by (simp_tac (simpset() addsimps [hypnat_diff_mult_distrib, 
-    hypnat_mult_commute_k]) 1);
+                                  hypnat_mult_commute_k]) 1);
 qed "hypnat_diff_mult_distrib2" ;
 
 (*--------------------------
     A Few more theorems
  -------------------------*)
-qed_goal "hypnat_add_assoc_cong" thy
-    "!!z. (z::hypnat) + v = z' + v' ==> z + (v + w) = z' + (v' + w)"
- (fn _ => [(asm_simp_tac (simpset() addsimps [hypnat_add_assoc RS sym]) 1)]);
 
-qed_goal "hypnat_add_assoc_swap" thy 
-          "(z::hypnat) + (v + w) = v + (z + w)"
- (fn _ => [(REPEAT (ares_tac [hypnat_add_commute RS hypnat_add_assoc_cong] 1))]);
+Goal "(z::hypnat) + v = z' + v' ==> z + (v + w) = z' + (v' + w)";
+by (asm_simp_tac (simpset() addsimps [hypnat_add_assoc RS sym]) 1);
+qed "hypnat_add_assoc_cong";
+
+Goal "(z::hypnat) + (v + w) = v + (z + w)";
+by (REPEAT (ares_tac [hypnat_add_commute RS hypnat_add_assoc_cong] 1));
+qed "hypnat_add_assoc_swap";
 
 Goal "((z1::hypnat) + z2) * w = (z1 * w) + (z2 * w)";
 by (res_inst_tac [("z","z1")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","z2")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","w")] eq_Abs_hypnat 1);
 by (asm_simp_tac (simpset() addsimps [hypnat_mult,hypnat_add,
-     add_mult_distrib]) 1);
+                                      add_mult_distrib]) 1);
 qed "hypnat_add_mult_distrib";
 Addsimps [hypnat_add_mult_distrib];
 
@@ -436,9 +434,6 @@ qed "hypnat_less_not_refl";
 Addsimps [hypnat_less_not_refl];
 
 bind_thm("hypnat_less_irrefl",hypnat_less_not_refl RS notE);
-
-qed_goal "hypnat_not_refl2" thy 
-    "!!(x::hypnat). x < y ==> x ~= y" (fn _ => [Auto_tac]);
 
 Goalw [hypnat_less_def,hypnat_zero_def] "~ n<(0::hypnat)";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
@@ -1275,16 +1270,18 @@ by (auto_tac (claset() addDs [inj_hypnat_of_nat RS injD],
 qed "hypnat_of_nat_eq_cancel";
 Addsimps [hypnat_of_nat_eq_cancel];
 
-Goalw [hypreal_zero_def,hypnat_zero_def] 
-           "hypreal_of_hypnat  0 = 0";
-by (simp_tac (simpset() addsimps [hypreal_of_hypnat,
-    real_of_nat_zero]) 1);
+Goalw [hypnat_zero_def] 
+     "hypreal_of_hypnat 0 = #0";
+by (simp_tac (HOL_ss addsimps
+             [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
+by (simp_tac (simpset() addsimps [hypreal_of_hypnat, real_of_nat_zero]) 1);
 qed "hypreal_of_hypnat_zero";
 
-Goalw [hypreal_one_def,hypnat_one_def] 
-           "hypreal_of_hypnat  1hn = 1hr";
-by (simp_tac (simpset() addsimps [hypreal_of_hypnat,
-    real_of_nat_one]) 1);
+Goalw [hypnat_one_def] 
+     "hypreal_of_hypnat 1hn = #1";
+by (simp_tac (HOL_ss addsimps
+             [one_eq_numeral_1 RS sym, hypreal_one_def]) 1); 
+by (simp_tac (simpset() addsimps [hypreal_of_hypnat, real_of_nat_one]) 1);
 qed "hypreal_of_hypnat_one";
 
 Goal "hypreal_of_hypnat n1 + hypreal_of_hypnat n2 = hypreal_of_hypnat (n1 + n2)";
@@ -1309,7 +1306,7 @@ by (asm_simp_tac (simpset() addsimps
 qed "hypreal_of_hypnat_less_iff";
 Addsimps [hypreal_of_hypnat_less_iff];
 
-Goal "(hypreal_of_hypnat N = 0) = (N = 0)";
+Goal "(hypreal_of_hypnat N = #0) = (N = 0)";
 by (simp_tac (simpset() addsimps [hypreal_of_hypnat_zero RS sym]) 1);
 qed "hypreal_of_hypnat_eq_zero_iff";
 Addsimps [hypreal_of_hypnat_eq_zero_iff];

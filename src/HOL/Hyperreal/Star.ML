@@ -175,14 +175,16 @@ by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by Auto_tac;
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
-by (auto_tac (claset() addSDs [spec],simpset() addsimps [hypreal_minus,hrabs_def,
-    hypreal_zero_def,hypreal_le_def,hypreal_less_def]));
+by (auto_tac (claset() addSDs [spec],
+              simpset() addsimps [hypreal_minus,hrabs_def,
+                rename_numerals hypreal_zero_def,
+                hypreal_le_def, hypreal_less_def]));
 by (TRYALL(Ultra_tac));
 by (TRYALL(arith_tac));
 qed "hrabs_is_starext_rabs";
 
 Goal "[| X: Rep_hypreal z; Y: Rep_hypreal z |] \
-\              ==> {n. X n = Y n} : FreeUltrafilterNat";
+\     ==> {n. X n = Y n} : FreeUltrafilterNat";
 by (res_inst_tac [("z","z")] eq_Abs_hypreal 1);
 by (Auto_tac THEN Fuf_tac 1);
 qed "Rep_hypreal_FreeUltrafilterNat";

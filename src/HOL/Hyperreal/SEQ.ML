@@ -12,12 +12,13 @@
 
 Goalw [hypnat_omega_def] 
       "(*fNat* (%n::nat. inverse(real_of_posnat n))) whn : Infinitesimal";
-by (auto_tac (claset(),simpset() addsimps 
-    [Infinitesimal_FreeUltrafilterNat_iff,starfunNat]));
+by (auto_tac (claset(),
+      simpset() addsimps [Infinitesimal_FreeUltrafilterNat_iff,starfunNat]));
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
-by (auto_tac (claset(),simpset() addsimps (map rename_numerals) 
-    [real_of_posnat_gt_zero,real_inverse_gt_zero,abs_eqI2,
-     FreeUltrafilterNat_inverse_real_of_posnat]));
+by (auto_tac (claset(),
+       simpset() addsimps (map rename_numerals) 
+         [real_of_posnat_gt_zero,real_inverse_gt_zero,abs_eqI2,
+          FreeUltrafilterNat_inverse_real_of_posnat]));
 qed "SEQ_Infinitesimal";
 
 (*--------------------------------------------------------------------------
@@ -51,22 +52,22 @@ qed "LIMSEQ_iff";
 
 (*** NSLIMSEQ ***)
 Goalw [NSLIMSEQ_def] 
-      "X ----NS> L ==> ALL N: HNatInfinite. (*fNat* X) N @= hypreal_of_real L";
+     "X ----NS> L ==> ALL N: HNatInfinite. (*fNat* X) N @= hypreal_of_real L";
 by (Asm_simp_tac 1);
 qed "NSLIMSEQD1";
 
 Goalw [NSLIMSEQ_def] 
-      "[| X ----NS> L; N: HNatInfinite |] ==> (*fNat* X) N @= hypreal_of_real L";
+    "[| X ----NS> L; N: HNatInfinite |] ==> (*fNat* X) N @= hypreal_of_real L";
 by (Asm_simp_tac 1);
 qed "NSLIMSEQD2";
 
 Goalw [NSLIMSEQ_def] 
-      "ALL N: HNatInfinite. (*fNat* X) N @= hypreal_of_real L ==> X ----NS> L";
+     "ALL N: HNatInfinite. (*fNat* X) N @= hypreal_of_real L ==> X ----NS> L";
 by (Asm_simp_tac 1);
 qed "NSLIMSEQI";
 
 Goalw [NSLIMSEQ_def] 
-      "(X ----NS> L) = (ALL N: HNatInfinite. (*fNat* X) N @= hypreal_of_real L)";
+    "(X ----NS> L) = (ALL N: HNatInfinite. (*fNat* X) N @= hypreal_of_real L)";
 by (Simp_tac 1);
 qed "NSLIMSEQ_iff";
 
@@ -150,10 +151,9 @@ qed "HNatInfinite_NSLIMSEQ";
 val lemmaLIM = CLAIM  "{n. X (f n) + - L = Y n} Int {n. abs (Y n) < r} <= \
 \         {n. abs (X (f n) + - L) < r}";
 
-Goal "{n. abs (X (f n) + - L) < r} Int \
-\         {n. r <= abs (X (f n) + - (L::real))} = {}";
-by (auto_tac (claset() addDs [real_less_le_trans] 
-    addIs [real_less_irrefl], simpset()));
+Goal "{n. abs (X (f n) + - L) < r} Int {n. r <= abs (X (f n) + - (L::real))} \
+\     = {}";
+by Auto_tac;  
 val lemmaLIM2 = result();
 
 Goal "[| #0 < r; ALL n. r <= abs (X (f n) + - L); \
@@ -170,7 +170,7 @@ by (dtac FreeUltrafilterNat_all 1);
 by (thin_tac "{n. abs (Y n) < r} : FreeUltrafilterNat" 1);
 by (dtac FreeUltrafilterNat_Int 1 THEN assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [lemmaLIM2,
-    FreeUltrafilterNat_empty]) 1);
+                                  FreeUltrafilterNat_empty]) 1);
 val lemmaLIM3 = result();
 
 Goalw [LIMSEQ_def,NSLIMSEQ_def] 
@@ -379,16 +379,15 @@ qed "subseq_Suc_iff";
 Goalw [monoseq_def]
    "monoseq X = ((ALL n. X n <= X (Suc n)) \
 \                | (ALL n. X (Suc n) <= X n))";
-by (auto_tac (claset () addSDs [le_imp_less_or_eq],
-    simpset() addsimps [real_le_refl]));
+by (auto_tac (claset () addSDs [le_imp_less_or_eq], simpset()));
 by (auto_tac (claset() addSIs [lessI RS less_imp_le]
                        addSDs [less_imp_Suc_add], 
     simpset()));
 by (induct_tac "ka" 1);
-by (auto_tac (claset() addIs [real_le_trans], simpset()));
+by (auto_tac (claset() addIs [order_trans], simpset()));
 by (EVERY1[rtac ccontr, rtac swap, Simp_tac]);
 by (induct_tac "k" 1);
-by (auto_tac (claset() addIs [real_le_trans], simpset()));
+by (auto_tac (claset() addIs [order_trans], simpset()));
 qed "monoseq_Suc";
 
 Goalw [monoseq_def] 
@@ -428,8 +427,7 @@ Goal "(EX K. #0 < K & (ALL n. abs(X n) <= K)) = \
 by (auto_tac (claset(),simpset() addsimps 
     (map rename_numerals) [real_gt_zero_preal_Ex,real_of_posnat_gt_zero]));
 by (cut_inst_tac [("x","real_of_preal y")] reals_Archimedean2 1);
-by (blast_tac (claset() addIs [real_le_less_trans,
-    real_less_imp_le]) 1);
+by (blast_tac (claset() addIs [order_le_less_trans, order_less_imp_le]) 1);
 by (auto_tac (claset(),simpset() addsimps [real_of_posnat_def]));
 qed "lemma_NBseq_def";
 
@@ -440,14 +438,13 @@ by (simp_tac (simpset() addsimps [lemma_NBseq_def]) 1);
 qed "Bseq_iff";
 
 Goal "(EX K. #0 < K & (ALL n. abs(X n) <= K)) = \
-\         (EX N. ALL n. abs(X n) < real_of_posnat N)";
+\     (EX N. ALL n. abs(X n) < real_of_posnat N)";
 by (auto_tac (claset(),simpset() addsimps 
     (map rename_numerals) [real_gt_zero_preal_Ex,real_of_posnat_gt_zero]));
 by (cut_inst_tac [("x","real_of_preal y")] reals_Archimedean2 1);
-by (blast_tac (claset() addIs [real_less_trans,
-    real_le_less_trans]) 1);
-by (auto_tac (claset() addIs [real_less_imp_le],
-    simpset() addsimps [real_of_posnat_def]));
+by (blast_tac (claset() addIs [order_less_trans, order_le_less_trans]) 1);
+by (auto_tac (claset() addIs [order_less_imp_le],
+              simpset() addsimps [real_of_posnat_def]));
 qed "lemma_NBseq_def2";
 
 (* yet another definition for Bseq *)
@@ -523,9 +520,8 @@ by (auto_tac (claset(),simpset() addsimps
 by (EVERY[rtac bexI 1, rtac lemma_hyprel_refl 2, 
     Step_tac 1]);
 by (cut_inst_tac [("u","u")] FreeUltrafilterNat_nat_gt_real 1);
-by (blast_tac (claset() addDs [FreeUltrafilterNat_all,
-    FreeUltrafilterNat_Int] addIs [real_less_trans,
-    FreeUltrafilterNat_subset]) 1);
+by (blast_tac (claset() addDs [FreeUltrafilterNat_all, FreeUltrafilterNat_Int] 
+                        addIs [order_less_trans, FreeUltrafilterNat_subset]) 1);
 qed "real_seq_to_hypreal_HInfinite";
 
 (*--------------------------------------------------------------------------------
@@ -679,12 +675,10 @@ qed "Bmonoseq_NSLIMSEQ";
 
 (* a few more lemmas *)
 Goal "!!(X::nat=>real). \
-\              [| ALL m. X m ~= U; \
-\                 isLub UNIV {x. EX n. X n = x} U \
-\              |] ==> ALL m. X m < U";
+\ [| ALL m. X m ~= U;  isLub UNIV {x. EX n. X n = x} U |] ==> ALL m. X m < U";
 by (Step_tac 1);
 by (dres_inst_tac [("y","X m")] isLubD2 1);
-by (auto_tac (claset() addSDs [real_le_imp_less_or_eq],
+by (auto_tac (claset() addSDs [order_le_imp_less_or_eq],
               simpset()));
 val lemma_converg2 = result();
 
@@ -706,8 +700,8 @@ by (rtac ccontr 1 THEN Asm_full_simp_tac 1);
 by (fold_tac [real_le_def]);
 by (dtac lemma_converg3 1);
 by (dtac isLub_le_isUb 1 THEN assume_tac 1);
-by (auto_tac (claset() addDs [real_less_le_trans],
-    simpset() addsimps [real_minus_zero_le_iff]));
+by (auto_tac (claset() addDs [order_less_le_trans],
+              simpset() addsimps [real_minus_zero_le_iff]));
 val lemma_converg4 = result();
 
 (*-------------------------------------------------------------------
@@ -915,10 +909,8 @@ by (Step_tac 1);
 by (ALLGOALS(eres_inst_tac [("m1","na")] 
     (le_imp_less_or_eq RS disjE)));
 by (ALLGOALS(asm_full_simp_tac (simpset() addsimps 
-    [real_le_refl,less_Suc_cancel_iff,
-     real_less_imp_le])));
-by (blast_tac (claset() addIs [real_le_less_trans RS
-    real_less_imp_le]) 1);
+    [less_Suc_cancel_iff, order_less_imp_le])));
+by (blast_tac (claset() addIs [order_le_less_trans RS order_less_imp_le]) 1);
 qed "SUP_rabs_subseq";
 
 (* lemmas to help proof - mostly trivial *)
@@ -931,18 +923,15 @@ by (auto_tac (claset() addEs [less_asym],
     simpset() addsimps [le_def]));
 val lemma_Nat_covered = result();
 
-Goal "[| ALL n. n <= M --> abs ((X::nat=>real) n) <= a; \
-\        a < b |] \
+Goal "[| ALL n. n <= M --> abs ((X::nat=>real) n) <= a;  a < b |] \
 \     ==> ALL n. n <= M --> abs(X n) <= b";
-by (blast_tac (claset() addIs [real_le_less_trans RS 
-               real_less_imp_le]) 1);
+by (blast_tac (claset() addIs [order_le_less_trans RS order_less_imp_le]) 1);
 val lemma_trans1 = result();
 
 Goal "[| ALL n. M <= n --> abs ((X::nat=>real) n) < a; \
 \        a < b |] \
 \     ==> ALL n. M <= n --> abs(X n)<= b";
-by (blast_tac (claset() addIs [real_less_trans RS 
-               real_less_imp_le]) 1);
+by (blast_tac (claset() addIs [order_less_trans RS order_less_imp_le]) 1);
 val lemma_trans2 = result();
 
 Goal "[| ALL n. n <= M --> abs (X n) <= a; \
@@ -953,7 +942,7 @@ val lemma_trans3 = result();
 
 Goal "ALL n. M <= n --> abs ((X::nat=>real) n) < a \
 \             ==>  ALL n. M <= n --> abs (X n) <= a";
-by (blast_tac (claset() addIs [real_less_imp_le]) 1);
+by (blast_tac (claset() addIs [order_less_imp_le]) 1);
 val lemma_trans4 = result();
 
 (*---------------------------------------------------------- 
@@ -975,7 +964,7 @@ by (Step_tac 1);
 by (dtac lemma_trans1 1 THEN assume_tac 1);
 by (dtac lemma_trans2 3 THEN assume_tac 3);
 by (dtac lemma_trans3 2 THEN assume_tac 2);
-by (dtac (abs_add_one_gt_zero RS real_less_trans) 3);
+by (dtac (abs_add_one_gt_zero RS order_less_trans) 3);
 by (dtac lemma_trans4 1);
 by (dtac lemma_trans4 2);
 by (res_inst_tac [("x","#1 + abs(X M)")] exI 1);
@@ -1174,9 +1163,9 @@ by (Step_tac 1 THEN Asm_full_simp_tac 1);
 by (dres_inst_tac [("x","inverse r")] spec 1 THEN Step_tac 1);
 by (res_inst_tac [("x","N")] exI 1 THEN Step_tac 1);
 by (dtac spec 1 THEN Auto_tac);
-by (forward_tac [rename_numerals real_inverse_gt_zero] 1);
-by (forward_tac [real_less_trans] 1 THEN assume_tac 1);
-by (forw_inst_tac [("x","f n")] (rename_numerals real_inverse_gt_zero) 1);
+by (forward_tac [real_inverse_gt_0] 1);
+by (forward_tac [order_less_trans] 1 THEN assume_tac 1);
+by (forw_inst_tac [("x","f n")] real_inverse_gt_0 1);
 by (asm_simp_tac (simpset() addsimps [abs_eqI2]) 1);
 by (res_inst_tac [("t","r")] (real_inverse_inverse RS subst) 1);
 by (auto_tac (claset() addIs [real_inverse_less_iff RS iffD2], 
@@ -1198,7 +1187,7 @@ by (cut_inst_tac [("x","y")] reals_Archimedean2 1);
 by (Step_tac 1 THEN res_inst_tac [("x","n")] exI 1);
 by (Step_tac 1 THEN etac (le_imp_less_or_eq RS disjE) 1);
 by (dtac (real_of_posnat_less_iff RS iffD2) 1);
-by (auto_tac (claset() addEs [real_less_trans], simpset()));
+by (auto_tac (claset() addEs [order_less_trans], simpset()));
 qed "LIMSEQ_inverse_real_of_posnat";
 
 Goal "(%n. inverse(real_of_posnat n)) ----NS> #0";
@@ -1270,8 +1259,8 @@ Goalw [Bseq_def]
       "[| #0 <= x; x < #1 |] ==> Bseq (%n. x ^ n)";
 by (res_inst_tac [("x","#1")] exI 1);
 by (auto_tac (claset() addDs [conjI RS realpow_le2] 
-    addIs [real_less_imp_le], simpset() addsimps 
-    [real_zero_less_one,abs_eqI1,realpow_abs RS sym] ));
+                       addIs [order_less_imp_le], 
+       simpset() addsimps [real_zero_less_one,abs_eqI1,realpow_abs RS sym] ));
 qed "Bseq_realpow";
 
 Goal "[| #0 <= x; x < #1 |] ==> monoseq (%n. x ^ n)";
@@ -1280,7 +1269,7 @@ qed "monoseq_realpow";
 
 Goal "[| #0 <= x; x < #1 |] ==> convergent (%n. x ^ n)";
 by (blast_tac (claset() addSIs [Bseq_monoseq_convergent,
-    Bseq_realpow,monoseq_realpow]) 1);
+                                Bseq_realpow,monoseq_realpow]) 1);
 qed "convergent_realpow";
 
 (* We now use NS criterion to bring proof of theorem through *)

@@ -7,7 +7,7 @@
 ## targets
 
 default: HOL
-images: HOL HOL-Real TLA
+images: HOL HOL-Real HOL-Hyperreal TLA
 
 #Note: keep targets sorted (except for HOL-Library)
 test: \
@@ -108,21 +108,9 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
 
 HOL-Real: HOL $(OUT)/HOL-Real
 
-$(OUT)/HOL-Real: $(OUT)/HOL Real/Hyperreal/Filter.ML \
-  Real/Hyperreal/Filter.thy Real/Hyperreal/HRealAbs.ML \
-  Real/Hyperreal/HRealAbs.thy Real/Hyperreal/HyperDef.ML \
-  Real/Hyperreal/HyperDef.thy Real/Hyperreal/HyperNat.ML \
-  Real/Hyperreal/HyperNat.thy Real/Hyperreal/HyperOrd.ML \
-  Real/Hyperreal/HyperOrd.thy Real/Hyperreal/HyperPow.ML \
-  Real/Hyperreal/HyperPow.thy Real/Hyperreal/Hyperreal.thy \
-  Real/Hyperreal/Lim.ML Real/Hyperreal/Lim.thy Real/Hyperreal/NSA.ML \
-  Real/Hyperreal/NSA.thy Real/Hyperreal/NatStar.ML \
-  Real/Hyperreal/NatStar.thy Real/Hyperreal/SEQ.ML \
-  Real/Hyperreal/SEQ.thy Real/Hyperreal/Series.ML \
-  Real/Hyperreal/Series.thy Real/Hyperreal/Star.ML \
-  Real/Hyperreal/Star.thy Real/Hyperreal/Zorn.ML \
-  Real/Hyperreal/Zorn.thy Real/Hyperreal/fuf.ML Real/Lubs.ML \
-  Real/Lubs.thy Real/PNat.ML Real/PNat.thy Real/PRat.ML Real/PRat.thy \
+$(OUT)/HOL-Real: $(OUT)/HOL \
+  Real/Lubs.ML Real/Lubs.thy Real/PNat.ML Real/PNat.thy \
+  Real/PRat.ML Real/PRat.thy \
   Real/PReal.ML Real/PReal.thy Real/RComplete.ML Real/RComplete.thy \
   Real/ROOT.ML Real/Real.thy Real/RealAbs.ML Real/RealAbs.thy \
   Real/RealArith0.ML Real/RealArith0.thy Real/real_arith0.ML \
@@ -131,6 +119,29 @@ $(OUT)/HOL-Real: $(OUT)/HOL Real/Hyperreal/Filter.ML \
   Real/RealInt.thy Real/RealOrd.ML Real/RealOrd.thy Real/RealPow.ML \
   Real/RealPow.thy Real/real_arith.ML
 	@cd Real; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Real
+
+## HOL-Hyperreal
+
+HOL-Hyperreal: HOL-Real $(OUT)/HOL-Hyperreal
+
+$(OUT)/HOL-Hyperreal: $(OUT)/HOL-Real \
+  Hyperreal/Filter.ML Hyperreal/Filter.thy \
+  Hyperreal/HRealAbs.ML Hyperreal/HRealAbs.thy \
+  Hyperreal/HyperArith0.ML Hyperreal/HyperArith0.thy Hyperreal/HyperArith.thy \
+  Hyperreal/hypreal_arith0.ML Hyperreal/hypreal_arith.ML \
+  Hyperreal/HyperBin.ML Hyperreal/HyperBin.thy \
+  Hyperreal/HyperDef.ML Hyperreal/HyperDef.thy Hyperreal/HyperNat.ML \
+  Hyperreal/HyperNat.thy Hyperreal/HyperOrd.ML \
+  Hyperreal/HyperOrd.thy Hyperreal/HyperPow.ML \
+  Hyperreal/HyperPow.thy Hyperreal/Hyperreal.thy \
+  Hyperreal/Lim.ML Hyperreal/Lim.thy Hyperreal/NSA.ML \
+  Hyperreal/NSA.thy Hyperreal/NatStar.ML \
+  Hyperreal/NatStar.thy Hyperreal/SEQ.ML \
+  Hyperreal/SEQ.thy Hyperreal/Series.ML \
+  Hyperreal/Series.thy Hyperreal/Star.ML \
+  Hyperreal/Star.thy Hyperreal/Zorn.ML \
+  Hyperreal/Zorn.thy Hyperreal/fuf.ML
+	@cd Hyperreal; $(ISATOOL) usedir -b $(OUT)/HOL-Real HOL-Hyperreal
 
 
 ## HOL-Real-ex

@@ -54,8 +54,9 @@ qed "sumr_split_add_minus";
 
 Goal "abs(sumr m n f) <= sumr m n (%i. abs(f i))";
 by (induct_tac "n" 1);
-by (auto_tac (claset() addIs [(abs_triangle_ineq 
-    RS real_le_trans),real_add_le_mono1], simpset()));
+by (auto_tac (claset() addIs [abs_triangle_ineq RS order_trans,
+                              real_add_le_mono1], 
+              simpset()));
 qed "sumr_rabs";
 
 Goal "!!f g. (ALL r. m <= r & r < n --> f r = g r) \
@@ -150,8 +151,7 @@ by (ALLGOALS(dres_inst_tac [("x","n")] spec));
 by (Step_tac 1);
 by (dtac le_imp_less_or_eq 1 THEN Step_tac 1);
 by (dtac real_add_le_mono 2);
-by (dres_inst_tac [("i","sumr 0 m f")] 
-    (real_le_refl RS real_add_le_mono) 1);
+by (dres_inst_tac [("i","sumr 0 m f")] (order_refl RS real_add_le_mono) 1);
 by (Auto_tac);
 qed_spec_mp "sumr_le";
 
@@ -367,7 +367,7 @@ by (Auto_tac);
 by (rtac ccontr 2 THEN dtac real_leI 2);
 by (subgoal_tac "sumr 0 (n + 2) f <= sumr 0 (2 * (Suc no) + n) f" 2);
 by (induct_tac "no" 3 THEN Simp_tac 3);
-by (res_inst_tac [("j","sumr 0 (2*(Suc na)+n) f")] real_le_trans 3);
+by (res_inst_tac [("y","sumr 0 (2*(Suc na)+n) f")] order_trans 3);
 by (assume_tac 3);
 by (dres_inst_tac [("x","Suc na")] spec 3);
 by (dres_inst_tac [("x","0")] spec 1);
@@ -377,12 +377,12 @@ by (rotate_tac 1 1 THEN dres_inst_tac [("x","2 * (Suc no) + n")] spec 1);
 by (Step_tac 1 THEN Asm_full_simp_tac 1);
 by (subgoal_tac "suminf f + (f(n) + f(n + 1)) <= \
 \                 sumr 0 (2 * (Suc no) + n) f" 1);
-by (res_inst_tac [("j","sumr 0 (n+2) f")] real_le_trans 2);
+by (res_inst_tac [("y","sumr 0 (n+2) f")] order_trans 2);
 by (assume_tac 3);
-by (res_inst_tac [("j","sumr 0 n f + (f(n) + f(n + 1))")] real_le_trans 2);
+by (res_inst_tac [("y","sumr 0 n f + (f(n) + f(n + 1))")] order_trans 2);
 by (REPEAT(Asm_simp_tac 2));
 by (subgoal_tac "suminf f <= sumr 0 (2 * (Suc no) + n) f" 1);
-by (res_inst_tac [("j","suminf f + (f(n) + f(n + 1))")] real_le_trans 2);
+by (res_inst_tac [("y","suminf f + (f(n) + f(n + 1))")] order_trans 2);
 by (assume_tac 3);
 by (dres_inst_tac [("x","0")] spec 2);
 by (Asm_full_simp_tac 2);
@@ -409,7 +409,7 @@ qed "series_pos_le";
 
 Goal "[| summable f; ALL m. n <= m --> #0 < f(m) |] \
 \          ==> sumr 0 n f < suminf f";
-by (res_inst_tac [("j","sumr 0 (Suc n) f")] real_less_le_trans 1);
+by (res_inst_tac [("y","sumr 0 (Suc n) f")] order_less_le_trans 1);
 by (rtac series_pos_le 2);
 by (Auto_tac);
 by (dres_inst_tac [("x","m")] spec 1);
@@ -434,7 +434,7 @@ qed "sumr_geometric";
 Goal "abs(x) < #1 ==> (%n. x ^ n) sums (#1/(#1 - x))";
 by (case_tac "x = #1" 1);
 by (auto_tac (claset() addSDs [LIMSEQ_rabs_realpow_zero2],
-             simpset() addsimps [sumr_geometric ,abs_one, sums_def,
+             simpset() addsimps [sumr_geometric ,sums_def,
                                  real_diff_def, real_add_divide_distrib]));
 by (subgoal_tac "#1 / (#1 + - x) = #0/(x-#1) + - #1/(x-#1)" 1);
 by (asm_full_simp_tac (simpset() addsimps [real_divide_eq_cancel1,
@@ -487,9 +487,9 @@ by (res_inst_tac [("x","N + Na")] exI 1 THEN Auto_tac);
 by (rotate_tac 2 1);
 by (dres_inst_tac [("x","m")] spec 1);
 by (Auto_tac THEN rotate_tac 2 1 THEN dres_inst_tac [("x","n")] spec 1);
-by (res_inst_tac [("j","sumr m n (%k. abs(f k))")] real_le_less_trans 1);
+by (res_inst_tac [("y","sumr m n (%k. abs(f k))")] order_le_less_trans 1);
 by (rtac sumr_rabs 1);
-by (res_inst_tac [("j","sumr m n g")] real_le_less_trans 1);
+by (res_inst_tac [("y","sumr m n g")] order_le_less_trans 1);
 by (auto_tac (claset() addIs [sumr_le2],
     simpset() addsimps [abs_interval_iff]));
 qed "summable_comparison_test";
@@ -527,7 +527,7 @@ by (auto_tac (claset(),simpset() addsimps [sumr_rabs,summable_Cauchy]));
 by (dtac spec 1 THEN Auto_tac);
 by (res_inst_tac [("x","N")] exI 1 THEN Auto_tac);
 by (dtac spec 1 THEN Auto_tac);
-by (res_inst_tac [("j","sumr m n (%n. abs(f n))")] real_le_less_trans 1);
+by (res_inst_tac [("y","sumr m n (%n. abs(f n))")] order_le_less_trans 1);
 by (auto_tac (claset() addIs [sumr_rabs], simpset()));
 qed "summable_rabs_cancel";
 
@@ -536,19 +536,20 @@ qed "summable_rabs_cancel";
  -------------------------------------------------------------------*)
 Goal "summable (%n. abs (f n)) ==> abs(suminf f) <= suminf (%n. abs(f n))";
 by (auto_tac (claset() addIs [LIMSEQ_le,LIMSEQ_imp_rabs,summable_rabs_cancel,
-    summable_sumr_LIMSEQ_suminf,sumr_rabs], simpset()));
+                              summable_sumr_LIMSEQ_suminf,sumr_rabs], 
+              simpset()));
 qed "summable_rabs";
 
 (*-------------------------------------------------------------------
                         The ratio test
  -------------------------------------------------------------------*)
 Goal "[| c <= #0; abs x <= c * abs y |] ==> x = (#0::real)";
-by (dtac real_le_imp_less_or_eq 1);
-by (Auto_tac);
-by (dres_inst_tac [("x1","y")] (abs_ge_zero RS 
-    rename_numerals real_mult_le_zero) 1);
+by (dtac order_le_imp_less_or_eq 1);
+by Auto_tac;
+by (dres_inst_tac [("x1","y")] 
+    (abs_ge_zero RS rename_numerals real_mult_le_zero) 1);
 by (asm_full_simp_tac (simpset() addsimps [real_mult_commute]) 1);
-by (dtac real_le_trans 1 THEN assume_tac 1);
+by (dtac order_trans 1 THEN assume_tac 1);
 by (TRYALL(arith_tac));
 qed "rabs_ratiotest_lemma";
 
@@ -586,7 +587,7 @@ by (dtac (le_Suc_ex_iff RS iffD1) 1);
 by (auto_tac (claset(),simpset() addsimps [realpow_add,
     rename_numerals realpow_not_zero]));
 by (induct_tac "na" 1 THEN Auto_tac);
-by (res_inst_tac [("j","c*abs(f(N + n))")] real_le_trans 1);
+by (res_inst_tac [("y","c*abs(f(N + n))")] order_trans 1);
 by (auto_tac (claset() addIs [real_mult_le_le_mono1],
     simpset() addsimps [summable_def]));
 by (asm_full_simp_tac (simpset() addsimps real_mult_ac) 1);

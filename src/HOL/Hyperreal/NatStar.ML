@@ -216,31 +216,31 @@ qed "starfunNat2";
 (*---------------------------------------------
   multiplication: ( *f ) x ( *g ) = *(f x g)  
  ---------------------------------------------*)
-Goal "(*fNat* f) xa * (*fNat* g) xa = (*fNat* (%x. f x * g x)) xa";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNat* f) z * (*fNat* g) z = (*fNat* (%x. f x * g x)) z";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat,hypreal_mult]));
 qed "starfunNat_mult";
 
-Goal "(*fNat2* f) xa * (*fNat2* g) xa = (*fNat2* (%x. f x * g x)) xa";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNat2* f) z * (*fNat2* g) z = (*fNat2* (%x. f x * g x)) z";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat2,hypnat_mult]));
 qed "starfunNat2_mult";
 
 (*---------------------------------------
   addition: ( *f ) + ( *g ) = *(f + g)  
  ---------------------------------------*)
-Goal "(*fNat* f) xa + (*fNat* g) xa = (*fNat* (%x. f x + g x)) xa";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNat* f) z + (*fNat* g) z = (*fNat* (%x. f x + g x)) z";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat,hypreal_add]));
 qed "starfunNat_add";
 
-Goal "(*fNat2* f) xa + (*fNat2* g) xa = (*fNat2* (%x. f x + g x)) xa";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNat2* f) z + (*fNat2* g) z = (*fNat2* (%x. f x + g x)) z";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat2,hypnat_add]));
 qed "starfunNat2_add";
 
-Goal "(*fNat2* f) xa - (*fNat2* g) xa = (*fNat2* (%x. f x - g x)) xa";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNat2* f) z - (*fNat2* g) z = (*fNat2* (%x. f x - g x)) z";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat2, hypnat_minus]));
 qed "starfunNat2_minus";
 
@@ -281,14 +281,14 @@ qed "starfun_stafunNat_o2";
 (*--------------------------------------
   NS extension of constant function
  --------------------------------------*)
-Goal "(*fNat* (%x. k)) xa = hypreal_of_real k";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNat* (%x. k)) z = hypreal_of_real k";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat, hypreal_of_real_def]));
 qed "starfunNat_const_fun";
 Addsimps [starfunNat_const_fun];
 
-Goal "(*fNat2* (%x. k)) xa = hypnat_of_nat  k";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNat2* (%x. k)) z = hypnat_of_nat  k";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat2, hypnat_of_nat_def]));
 qed "starfunNat2_const_fun";
 
@@ -402,9 +402,9 @@ by (auto_tac (claset(), simpset() addsimps [hypreal_of_hypnat,starfunNat]));
 qed "starfunNat_real_of_nat";
 
 Goal "N : HNatInfinite \
-\     ==> (*fNat* (%x. inverse (real_of_nat x))) N = inverse(hypreal_of_hypnat N)";
+\  ==> (*fNat* (%x. inverse(real_of_nat x))) N = inverse(hypreal_of_hypnat N)";
 by (res_inst_tac [("f1","inverse")]  (starfun_stafunNat_o2 RS subst) 1);
-by (subgoal_tac "hypreal_of_hypnat N ~= 0" 1);
+by (subgoal_tac "hypreal_of_hypnat N ~= #0" 1);
 by (auto_tac (claset(), 
        simpset() addsimps [starfunNat_real_of_nat, starfun_inverse_inverse]));
 qed "starfunNat_inverse_real_of_nat_eq";
@@ -419,8 +419,8 @@ by (ALLGOALS(Fuf_tac));
 qed "starfunNat_n_congruent";
 
 Goalw [starfunNat_n_def]
-      "(*fNatn* f) (Abs_hypnat(hypnatrel^^{%n. X n})) = \
-\      Abs_hypreal(hyprel ^^ {%n. f n (X n)})";
+     "(*fNatn* f) (Abs_hypnat(hypnatrel^^{%n. X n})) = \
+\     Abs_hypreal(hyprel ^^ {%n. f n (X n)})";
 by (res_inst_tac [("f","Abs_hypreal")] arg_cong 1);
 by Auto_tac;
 by (Ultra_tac 1);
@@ -429,27 +429,24 @@ qed "starfunNat_n";
 (*-------------------------------------------------
   multiplication: ( *fn ) x ( *gn ) = *(fn x gn)  
  -------------------------------------------------*)
-Goal "(*fNatn* f) xa * (*fNatn* g) xa = \
-\         (*fNatn* (% i x. f i x * g i x)) xa";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNatn* f) z * (*fNatn* g) z = (*fNatn* (% i x. f i x * g i x)) z";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat_n,hypreal_mult]));
 qed "starfunNat_n_mult";
 
 (*-----------------------------------------------
   addition: ( *fn ) + ( *gn ) = *(fn + gn)  
  -----------------------------------------------*)
-Goal "(*fNatn* f) xa + (*fNatn* g) xa = \
-\         (*fNatn* (%i x. f i x + g i x)) xa";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNatn* f) z + (*fNatn* g) z = (*fNatn* (%i x. f i x + g i x)) z";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat_n,hypreal_add]));
 qed "starfunNat_n_add";
 
 (*-------------------------------------------------
   subtraction: ( *fn ) + -( *gn ) = *(fn + -gn)  
  -------------------------------------------------*)
-Goal "(*fNatn* f) xa + -(*fNatn* g) xa = \
-\         (*fNatn* (%i x. f i x + -g i x)) xa";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNatn* f) z + -(*fNatn* g) z = (*fNatn* (%i x. f i x + -g i x)) z";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), 
           simpset() addsimps [starfunNat_n, hypreal_minus,hypreal_add]));
 qed "starfunNat_n_add_minus";
@@ -458,8 +455,8 @@ qed "starfunNat_n_add_minus";
   composition: ( *fn ) o ( *gn ) = *(fn o gn)  
  -------------------------------------------------*)
  
-Goal "(*fNatn* (%i x. k)) xa = hypreal_of_real  k";
-by (res_inst_tac [("z","xa")] eq_Abs_hypnat 1);
+Goal "(*fNatn* (%i x. k)) z = hypreal_of_real  k";
+by (res_inst_tac [("z","z")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), 
        simpset() addsimps [starfunNat_n, hypreal_of_real_def]));
 qed "starfunNat_n_const_fun";
@@ -471,8 +468,7 @@ by (res_inst_tac [("z","x")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat_n, hypreal_minus]));
 qed "starfunNat_n_minus";
 
-Goal "(*fNatn* f) (hypnat_of_nat n) = \
-\         Abs_hypreal(hyprel ^^ {%i. f i n})";
+Goal "(*fNatn* f) (hypnat_of_nat n) = Abs_hypreal(hyprel ^^ {%i. f i n})";
 by (auto_tac (claset(), simpset() addsimps [starfunNat_n,hypnat_of_nat_def]));
 qed "starfunNat_n_eq";
 Addsimps [starfunNat_n_eq];
@@ -483,8 +479,3 @@ by (rtac ext 1 THEN rtac ccontr 1);
 by (dres_inst_tac [("x","hypnat_of_nat(x)")] fun_cong 1);
 by (auto_tac (claset(), simpset() addsimps [starfunNat,hypnat_of_nat_def]));
 qed "starfun_eq_iff";
-
-
-
-
-

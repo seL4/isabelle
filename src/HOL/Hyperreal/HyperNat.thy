@@ -9,10 +9,10 @@ HyperNat = Star +
 
 constdefs
     hypnatrel :: "((nat=>nat)*(nat=>nat)) set"
-    "hypnatrel == {p. ? X Y. p = ((X::nat=>nat),Y) & 
-                   {n::nat. X(n) = Y(n)}: FreeUltrafilterNat}"
+    "hypnatrel == {p. EX X Y. p = ((X::nat=>nat),Y) & 
+                       {n::nat. X(n) = Y(n)} : FreeUltrafilterNat}"
 
-typedef hypnat = "{x::nat=>nat. True}//hypnatrel"              (Equiv.quotient_def)
+typedef hypnat = "UNIV//hypnatrel"              (Equiv.quotient_def)
 
 instance
    hypnat  :: {ord,zero,plus,times,minus}
@@ -33,7 +33,7 @@ defs
 constdefs
 
   (* embedding the naturals in the hypernaturals *)
-  hypnat_of_nat   :: nat => hypnat		  ("**# _" [80] 80)	 
+  hypnat_of_nat   :: nat => hypnat
   "hypnat_of_nat m  == Abs_hypnat(hypnatrel^^{%n::nat. m})"
 
   (* set of naturals embedded in the hypernaturals*)
@@ -54,7 +54,7 @@ constdefs
   "HNatInfinite == {n. n ~: SHNat}"
 
   (* explicit embedding of the hypernaturals in the hyperreals *)    
-  hypreal_of_hypnat :: hypnat => hypreal    ("&H# _" [80] 80)
+  hypreal_of_hypnat :: hypnat => hypreal
   "hypreal_of_hypnat N  == Abs_hypreal(UN X: Rep_hypnat(N). 
                             hyprel^^{%n::nat. real_of_nat (X n)})"
   
