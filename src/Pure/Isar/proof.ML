@@ -24,8 +24,7 @@ sig
   val print_state: state -> unit
   val level: state -> int
   type method
-  val method: (thm list -> thm ->
-    (thm * (indexname * term) list * (string * thm list) list) Seq.seq) -> method
+  val method: (thm list -> tactic) -> method
   val refine: (context -> method) -> state -> state Seq.seq
   val bind: (indexname * string) list -> state -> state
   val bind_i: (indexname * term) list -> state -> state
@@ -33,8 +32,10 @@ sig
   val match_bind_i: (term list * term) list -> state -> state
   val have_thmss: string -> context attribute list ->
     (thm list * context attribute list) list -> state -> state
-  val assume: string -> context attribute list -> (string * string list) list -> state -> state
-  val assume_i: string -> context attribute list -> (term * term list) list -> state -> state
+  val assume: (int -> tactic) -> string -> context attribute list -> (string * string list) list
+    -> state -> state
+  val assume_i: (int -> tactic) -> string -> context attribute list -> (term * term list) list
+    -> state -> state
   val fix: (string * string option) list -> state -> state
   val fix_i: (string * typ) list -> state -> state
   val theorem: bstring -> theory attribute list -> string * string list -> theory -> state
@@ -84,12 +85,13 @@ val kind_name =
   fn Theorem _ => "theorem" | Lemma _ => "lemma" | Goal _ => "show" | Aux _ => "have";
 
 type goal =
- (kind *                (*result kind*)
-  string *              (*result name*)
-  cterm list *          (*result assumptions*)
-  term) *               (*result statement*)
- (thm list *            (*use facts*)
-  thm);                 (*goal: subgoals ==> statement*)
+ (kind *               		(*result kind*)
+  string *                      (*result name*)
+  cterm list *			(*result assumptions*)
+  (int -> tactic) list *      	(*tactics to solve result assumptions*)
+  term) *                       (*result statement*)
+ (thm list *                    (*use facts*)
+  thm);                         (*goal: subgoals ==> statement*)
 
 
 (* type mode *)
@@ -167,6 +169,8 @@ fun the_fact state =
   (case the_facts state of
     [fact] => fact
   | _ => raise STATE ("Single fact expected", state));
+
+fun assert_facts state = (the_facts state; state);
 
 fun put_facts facts state =
   state
@@ -262,18 +266,19 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
     fun levels_up 0 = ""
       | levels_up i = " (" ^ string_of_int i ^ " levels up)";
 
-    fun print_goal (i, ((kind, name, _, _), (goal_facts, thm))) =
+    fun print_goal (i, ((kind, name, _, _, _), (goal_facts, thm))) =
       (print_facts "Using" (if null goal_facts then None else Some goal_facts);
         writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 2) ^ ":");
         Locale.print_goals_marker begin_goal (! goals_limit) thm);
+
+    val ctxt_strings = ProofContext.strings_of_context context;
   in
     writeln ("Nesting level: " ^ string_of_int (length nodes div 2));
     writeln "";
     writeln (mode_name mode ^ " mode");
     writeln "";
     if ! verbose orelse mode = Forward then
-      (ProofContext.print_context context;
-        writeln "";
+      (if null ctxt_strings then () else (seq writeln ctxt_strings; writeln "");
         print_facts "Current" facts;
         print_goal (find_goal 0 state))
     else if mode = ForwardChain then print_facts "Picking" facts
@@ -286,14 +291,7 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
 
 (* datatype method *)
 
-datatype method = Method of
-  thm list ->                           (*use facts*)
-  thm                                   (*goal: subgoals ==> statement*)
-    -> (thm *                           (*refined goal*)
-       (indexname * term) list *        (*new bindings*)
-       (string * thm list) list)        (*new thms*)
-         Seq.seq;
-
+datatype method = Method of thm list -> tactic;
 val method = Method;
 
 
@@ -304,17 +302,15 @@ fun check_sign sg state =
   else raise STATE ("Bad signature of result: " ^ Sign.str_of_sg sg, state);
 
 fun refine meth_fun (state as State ({context, ...}, _)) =
-      let
-        val Method meth = meth_fun context;
-        val (_, (result, (facts, thm))) = find_goal 0 state;
+  let
+    val Method meth = meth_fun context;
+    val (_, (result, (facts, thm))) = find_goal 0 state;
 
-        fun refn (thm', new_binds, new_thms) =
-          state
-          |> check_sign (sign_of_thm thm')
-          |> map_goal (K (result, (facts, thm')))
-          |> add_binds new_binds
-          |> put_thmss new_thms;
-      in Seq.map refn (meth facts thm) end;
+    fun refn thm' =
+      state
+      |> check_sign (Thm.sign_of_thm thm')
+      |> map_goal (K (result, (facts, thm')));
+  in Seq.map refn (meth facts thm) end;
 
 
 (* prepare result *)
@@ -343,6 +339,7 @@ fun varify_tfrees thm =
 
 fun implies_elim_hyps thm =
   foldl (uncurry Thm.implies_elim) (thm, map Thm.assume (Drule.cprems_of thm));
+
 
 fun prep_result state asms t raw_thm =
   let
@@ -401,10 +398,16 @@ fun final_result state pre_thm =
 
 (* solve goal *)
 
-fun solve_goal rule state =
+fun REV_RANGE _ [] = all_tac
+  | REV_RANGE k (tac :: tacs) = tac k THEN REV_RANGE (k - 1) tacs;
+
+fun solve_goal rule tacs state =
   let
+    val rev_tacs = rev tacs;
+    val n = length rev_tacs - 1;
+
     val (_, (result, (facts, thm))) = find_goal 0 state;
-    val thms' = FIRSTGOAL (rtac rule THEN_ALL_NEW (TRY o assume_tac)) thm;
+    val thms' = FIRSTGOAL (rtac rule THEN' (fn i => REV_RANGE (i + n) rev_tacs)) thm;
   in Seq.map (fn thm' => map_goal (K (result, (facts, thm'))) state) thms' end;
 
 
@@ -451,10 +454,10 @@ val fix_i = gen_fix ProofContext.fix_i;
 
 (* assume *)
 
-fun gen_assume f name atts props state =
+fun gen_assume f tac name atts props state =
   state
   |> assert_forward
-  |> map_context_result (f (PureThy.default_name name) atts props)
+  |> map_context_result (f tac (PureThy.default_name name) atts props)
   |> (fn (st, (facts, prems)) =>
     (st, facts)
     |> these_facts
@@ -472,6 +475,7 @@ val assume_i = gen_assume ProofContext.assume_i;
 fun chain state =
   state
   |> assert_forward
+  |> assert_facts
   |> enter_forward_chain;
 
 fun from_facts facts state =
@@ -492,14 +496,17 @@ fun setup_goal opt_block prepp kind name atts raw_propp state =
       |> map_context_result (fn c => prepp (c, raw_propp));
     val cterm_of = Thm.cterm_of (sign_of state);
 
-    val casms = ProofContext.assumptions (context_of state');
+    val (casms, asm_tacs) = Library.split_list (ProofContext.assumptions (context_of state'));
     val cprems = map cterm_of (Logic.strip_imp_prems concl);
+    val prem_tacs = replicate (length cprems) (K all_tac);
+
     val prop = Logic.list_implies (map Thm.term_of casms, concl);
     val cprop = cterm_of prop;
     val thm = Drule.mk_triv_goal cprop;
   in
     state'
-    |> put_goal (Some ((kind atts, (PureThy.default_name name), casms @ cprems, prop), ([], thm)))
+    |> put_goal (Some ((kind atts, (PureThy.default_name name), casms @ cprems,
+        asm_tacs @ prem_tacs, prop), ([], thm)))
     |> auto_bind_goal prop
     |> (if is_chain state then use_facts else reset_facts)
     |> new_block
@@ -604,11 +611,11 @@ fun end_block state =
 
 fun finish_local print_result state =
   let
-    val ((kind, name, asms, t), (_, raw_thm)) = current_goal state;
+    val ((kind, name, asms, tacs, t), (_, raw_thm)) = current_goal state;
     val (result, result_prop) = prep_result state asms t raw_thm;
     val (atts, opt_solve) =
       (case kind of
-        Goal atts => (atts, solve_goal result)
+        Goal atts => (atts, solve_goal result tacs)
       | Aux atts => (atts, Seq.single)
       | _ => raise STATE ("No local goal!", state));
   in
@@ -630,7 +637,7 @@ fun local_qed finalize print_result state =
 
 fun finish_global alt_name alt_atts state =
   let
-    val ((kind, def_name, asms, t), (_, raw_thm)) = current_goal state;
+    val ((kind, def_name, asms, _, t), (_, raw_thm)) = current_goal state;
     val result = final_result state (#1 (prep_result state asms t raw_thm));
 
     val name = if_none alt_name def_name;
