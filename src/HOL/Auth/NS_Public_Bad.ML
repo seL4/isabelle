@@ -16,6 +16,10 @@ open NS_Public_Bad;
 set proof_timing;
 HOL_quantifiers := false;
 
+AddEs spies_partsEs;
+AddDs [impOfSubs analz_subset_parts];
+AddDs [impOfSubs Fake_parts_insert];
+
 AddIffs [Spy_in_bad];
 
 (*A "possibility property": there are traces that reach the end*)
@@ -57,13 +61,13 @@ fun parts_induct_tac i =
 goal thy 
  "!!A. evs: ns_public ==> (Key (priK A) : parts (spies evs)) = (A : bad)";
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 qed "Spy_see_priK";
 Addsimps [Spy_see_priK];
 
 goal thy 
  "!!A. evs: ns_public ==> (Key (priK A) : analz (spies evs)) = (A : bad)";
-by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
+by Auto_tac;
 qed "Spy_analz_priK";
 Addsimps [Spy_analz_priK];
 
@@ -82,12 +86,11 @@ goal thy
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-(*NS3*)
-by (blast_tac (claset() addSEs partsEs) 3);
-(*NS2*)
-by (blast_tac (claset() addSEs partsEs) 2);
-by (Fake_parts_insert_tac 1);
+by (ALLGOALS Blast_tac);
 qed "no_nonce_NS1_NS2";
+
+(*Adding it to the claset slows down proofs...*)
+val nonce_NS1_NS2_E = no_nonce_NS1_NS2 RSN (2, rev_notE);
 
 
 (*Unicity for NS1: nonce NA identifies agents A and B*)
@@ -98,15 +101,12 @@ goal thy
 \      A=A' & B=B'";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [all_conj_distrib, 
-				       parts_insert_spies])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 (*NS1*)
-by (expand_case_tac "NA = ?y" 2 THEN blast_tac (claset() addSEs partsEs) 2);
+by (expand_case_tac "NA = ?y" 2 THEN Blast_tac 2);
 (*Fake*)
 by (Clarify_tac 1);
-by (ex_strip_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 val lemma = result();
 
 goal thy 
@@ -133,15 +133,11 @@ goal thy
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
 (*NS3*)
-by (blast_tac (claset() addDs  [Says_imp_spies RS parts.Inj]
-                        addEs  [no_nonce_NS1_NS2 RSN (2, rev_notE)]) 4);
+by (blast_tac (claset() addEs [nonce_NS1_NS2_E]) 4);
 (*NS2*)
-by (blast_tac (claset() addSEs [MPair_parts]
-		       addDs  [Says_imp_spies RS parts.Inj,
-			       parts.Body, unique_NA]) 3);
+by (blast_tac (claset() addDs [unique_NA]) 3);
 (*NS1*)
-by (blast_tac (claset() addSEs spies_partsEs
-                       addIs  [impOfSubs analz_subset_parts]) 2);
+by (Blast_tac 2);
 (*Fake*)
 by (spy_analz_tac 1);
 qed "Spy_not_see_NA";
@@ -161,15 +157,13 @@ by (etac ns_public.induct 1);
 by (ALLGOALS Asm_simp_tac);
 by (ALLGOALS Clarify_tac);
 (*NS2*)
-by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj,
-			      Spy_not_see_NA, unique_NA]) 3);
+by (blast_tac (claset() addDs [Spy_not_see_NA, unique_NA]) 3);
 (*NS1*)
-by (blast_tac (claset() addSEs spies_partsEs) 2);
+by (Blast_tac 2);
 (*Fake*)
-by (blast_tac (claset() addSDs [impOfSubs Fake_parts_insert]
-                       addDs  [Spy_not_see_NA, 
-			       impOfSubs analz_subset_parts]) 1);
+by (blast_tac (claset() addDs [Spy_not_see_NA]) 1);
 qed "A_trusts_NS2";
+
 
 (*If the encrypted message appears then it originated with Alice in NS1*)
 goal thy 
@@ -180,30 +174,27 @@ goal thy
 by (etac rev_mp 1);
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 qed "B_trusts_NS1";
 
 
 
 (**** Authenticity properties obtained from NS2 ****)
 
-(*Unicity for NS2: nonce NB identifies agent A and nonce NA
+(*Unicity for NS2: nonce NB identifies nonce NA and agent A
   [proof closely follows that for unique_NA] *)
 goal thy 
- "!!evs. [| Nonce NB ~: analz (spies evs);  evs : ns_public |]  \
-\ ==> EX A' NA'. ALL A NA.                                      \
-\      Crypt (pubK A) {|Nonce NA, Nonce NB|}                    \
-\        : parts (spies evs)  -->  A=A' & NA=NA'";
+ "!!evs. [| Nonce NB ~: analz (spies evs);  evs : ns_public |]            \
+\ ==> EX A' NA'. ALL A NA.                                                \
+\      Crypt (pubK A) {|Nonce NA, Nonce NB|} : parts (spies evs)          \
+\         -->  A=A' & NA=NA'";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [all_conj_distrib, parts_insert_spies])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 (*NS2*)
-by (expand_case_tac "NB = ?y" 2 THEN blast_tac (claset() addSEs partsEs) 2);
+by (expand_case_tac "NB = ?y" 2 THEN Blast_tac 2);
 (*Fake*)
-by (Clarify_tac 1);
-by (ex_strip_tac 1);
-by (Fake_parts_insert_tac 1);
+by (Blast_tac 1);
 val lemma = result();
 
 goal thy 
@@ -228,14 +219,11 @@ by (analz_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 by (ALLGOALS Clarify_tac);
 (*NS3: because NB determines A*)
-by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj, unique_NB]) 4);
+by (blast_tac (claset() addDs [unique_NB]) 4);
 (*NS2: by freshness and unicity of NB*)
-by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj]
-                       addEs [no_nonce_NS1_NS2 RSN (2, rev_notE)]
-                       addEs partsEs
-		       addIs [impOfSubs analz_subset_parts]) 3);
+by (blast_tac (claset() addEs [nonce_NS1_NS2_E]) 3);
 (*NS1: by freshness*)
-by (blast_tac (claset() addSEs spies_partsEs) 2);
+by (Blast_tac 2);
 (*Fake*)
 by (spy_analz_tac 1);
 qed "Spy_not_see_NB";
@@ -256,14 +244,12 @@ by (parts_induct_tac 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [ex_disj_distrib])));
 by (ALLGOALS Clarify_tac);
 (*NS3: because NB determines A (this use of unique_NB is more robust) *)
-by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj, Spy_not_see_NB]
+by (blast_tac (claset() addDs [Spy_not_see_NB]
 			addIs [unique_NB RS conjunct1]) 3);
 (*NS1: by freshness*)
-by (blast_tac (claset() addSEs spies_partsEs) 2);
+by (Blast_tac 2);
 (*Fake*)
-by (blast_tac (claset() addSDs [impOfSubs Fake_parts_insert]
-                       addDs  [Spy_not_see_NB, 
-			       impOfSubs analz_subset_parts]) 1);
+by (blast_tac (claset() addDs [Spy_not_see_NB]) 1);
 qed "B_trusts_NS3";
 
 
@@ -275,12 +261,9 @@ goal thy
 by (analz_induct_tac 1);
 by (ALLGOALS Clarify_tac);
 (*NS2: by freshness and unicity of NB*)
-by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj]
-                       addEs [no_nonce_NS1_NS2 RSN (2, rev_notE)]
-                       addEs partsEs
-		       addIs [impOfSubs analz_subset_parts]) 3);
+by (blast_tac (claset() addEs [nonce_NS1_NS2_E]) 3);
 (*NS1: by freshness*)
-by (blast_tac (claset() addSEs spies_partsEs) 2);
+by (Blast_tac 2);
 (*Fake*)
 by (spy_analz_tac 1);
 (*NS3: unicity of NB identifies A and NA, but not B*)

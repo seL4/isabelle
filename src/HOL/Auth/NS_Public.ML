@@ -5,9 +5,6 @@
 
 Inductive relation "ns_public" for the Needham-Schroeder Public-Key protocol.
 Version incorporating Lowe's fix (inclusion of B's identify in round 2).
-
-This version is experimental.  It adds many more rules to the claset and even
-replaces Fake_parts_insert_tac by Blast_tac.
 *)
 
 open NS_Public;
@@ -80,8 +77,7 @@ AddSDs [Spy_see_priK RSN (2, rev_iffD1),
   is secret.  (Honest users generate fresh nonces.)*)
 goal thy 
  "!!evs. [| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies evs); \
-\           Nonce NA ~: analz (spies evs);       \
-\           evs : ns_public |]                      \
+\           Nonce NA ~: analz (spies evs);   evs : ns_public |]       \
 \ ==> Crypt (pubK C) {|NA', Nonce NA, Agent D|} ~: parts (spies evs)";
 by (etac rev_mp 1);
 by (etac rev_mp 1);
@@ -101,14 +97,11 @@ goal thy
 \      A=A' & B=B'";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [all_conj_distrib,
-				       parts_insert_spies])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 (*NS1*)
 by (expand_case_tac "NA = ?y" 2 THEN Blast_tac 2);
 (*Fake*)
 by (Clarify_tac 1);
-by (ex_strip_tac 1);
 by (Blast_tac 1);
 val lemma = result();
 
@@ -130,8 +123,8 @@ fun analz_induct_tac i =
 
 (*Secrecy: Spy does not see the nonce sent in msg NS1 if A and B are secure*)
 goal thy 
- "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;         \
-\           A ~: bad;  B ~: bad;  evs : ns_public |]                        \
+ "!!evs. [| Says A B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;   \
+\           A ~: bad;  B ~: bad;  evs : ns_public |]                    \
 \        ==>  Nonce NA ~: analz (spies evs)";
 by (etac rev_mp 1);
 by (analz_induct_tac 1);
@@ -149,10 +142,10 @@ qed "Spy_not_see_NA";
 (*Authentication for A: if she receives message 2 and has used NA
   to start a run, then B has sent message 2.*)
 goal thy 
- "!!evs. [| Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs;  \
+ "!!evs. [| Says A  B (Crypt(pubK B) {|Nonce NA, Agent A|}) : set evs;  \
 \           Says B' A (Crypt(pubK A) {|Nonce NA, Nonce NB, Agent B|})   \
 \             : set evs;                                                \
-\           A ~: bad;  B ~: bad;  evs : ns_public |]                  \
+\           A ~: bad;  B ~: bad;  evs : ns_public |]                    \
 \        ==> Says B A (Crypt(pubK A) {|Nonce NA, Nonce NB, Agent B|})   \
 \              : set evs";
 by (etac rev_mp 1);
@@ -166,11 +159,12 @@ by (Blast_tac 2);
 by (blast_tac (claset() addDs [Spy_not_see_NA]) 1);
 qed "A_trusts_NS2";
 
+
 (*If the encrypted message appears then it originated with Alice in NS1*)
 goal thy 
  "!!evs. [| Crypt (pubK B) {|Nonce NA, Agent A|} : parts (spies evs); \
-\           Nonce NA ~: analz (spies evs);                 \
-\           evs : ns_public |]                             \
+\           Nonce NA ~: analz (spies evs);                            \
+\           evs : ns_public |]                                        \
 \   ==> Says A B (Crypt (pubK B) {|Nonce NA, Agent A|}) : set evs";
 by (etac rev_mp 1);
 by (etac rev_mp 1);
@@ -192,14 +186,11 @@ goal thy
 \         -->  A=A' & NA=NA' & B=B'";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (ALLGOALS
-    (asm_simp_tac (simpset() addsimps [all_conj_distrib, 
-				       parts_insert_spies])));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps [all_conj_distrib])));
 (*NS2*)
 by (expand_case_tac "NB = ?y" 2 THEN Blast_tac 2);
 (*Fake*)
 by (Clarify_tac 1);
-by (ex_strip_tac 1);
 by (Blast_tac 1);
 val lemma = result();
 

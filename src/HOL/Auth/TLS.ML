@@ -299,7 +299,6 @@ goal thy "!!evs. [| Nonce (PRF (PMS,NA,NB)) : parts (spies evs);  \
 \                ==> Nonce PMS : parts (spies evs)";
 by (etac rev_mp 1);
 by (parts_induct_tac 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps [parts_insert_spies])));
 by (Fake_parts_insert_tac 1);
 (*Six others, all trivial or by freshness*)
 by (REPEAT (blast_tac (claset() addSDs [Notes_Crypt_parts_spies]
@@ -446,7 +445,6 @@ by (analz_induct_tac 1);
 (*SpyKeys*)
 by (blast_tac (claset() addSEs spies_partsEs) 3);
 (*Fake*)
-by (simp_tac (simpset() addsimps [parts_insert_spies]) 2);
 by (Fake_parts_insert_tac 2);
 (** LEVEL 6 **)
 (*Oops*)

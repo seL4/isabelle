@@ -240,8 +240,8 @@ qed "parts_cut";
 
 goal thy "!!H. X: parts H ==> parts (insert X H) = parts H";
 by (fast_tac (claset() addSDs [parts_cut]
-                      addIs  [parts_insertI] 
-                      addss (simpset())) 1);
+                       addIs  [parts_insertI] 
+                       addss (simpset())) 1);
 qed "parts_cut_eq";
 
 Addsimps [parts_cut_eq];
@@ -472,7 +472,7 @@ goal thy "analz (insert (Crypt K X) H) =                \
 \          else insert (Crypt K X) (analz H))";
 by (case_tac "Key (invKey K)  : analz H " 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [analz_insert_Crypt, 
-                                               analz_insert_Decrypt])));
+						analz_insert_Decrypt])));
 qed "analz_Crypt_if";
 
 Addsimps [analz_insert_Agent, analz_insert_Nonce, 
@@ -551,7 +551,7 @@ qed "analz_cong";
 
 goal thy "!!H. analz H = analz H' ==> analz(insert X H) = analz(insert X H')";
 by (asm_simp_tac (simpset() addsimps [insert_def] delsimps [singleton_conv]
-                           setloop (rtac analz_cong)) 1);
+                            setloop (rtac analz_cong)) 1);
 qed "analz_insert_cong";
 
 (*If there are no pairs or encryptions then analz does nothing*)
@@ -675,7 +675,7 @@ by (rtac subsetI 1);
 by (etac parts.induct 1);
 by (ALLGOALS
     (blast_tac (claset() addIs ((synth_increasing RS parts_mono RS subsetD)
-                             ::parts.intrs))));
+				::parts.intrs))));
 qed "parts_synth";
 Addsimps [parts_synth];
 
@@ -706,29 +706,22 @@ by (rtac ([parts_mono, parts_Un_subset2] MRS subset_trans) 1);
 by (Blast_tac 1);
 qed "parts_insert_subset_Un";
 
-(*More specifically for Fake*)
-goal thy "!!H. X: synth (analz G) ==> \
-\              parts (insert X H) <= synth (analz G) Un parts G Un parts H";
+(*More specifically for Fake.  Very occasionally we could do with a version
+  of the form  parts{X} <= synth (analz H) Un parts H *)
+goal thy "!!H. X: synth (analz H) ==> \
+\              parts (insert X H) <= synth (analz H) Un parts H";
 by (dtac parts_insert_subset_Un 1);
 by (Full_simp_tac 1);
 by (Blast_tac 1);
 qed "Fake_parts_insert";
 
-goal thy
-     "!!H. [| Crypt K Y : parts (insert X H);  X: synth (analz G);  \
-\             Key K ~: analz G |]                                   \
-\          ==> Crypt K Y : parts G Un parts H";
-by (dtac (impOfSubs Fake_parts_insert) 1);
-by (assume_tac 1);
-by (blast_tac (claset() addDs [impOfSubs analz_subset_parts]) 1);
-qed "Crypt_Fake_parts_insert";
-
+(*H is sometimes (Key `` KK Un spies evs), so can't put G=H*)
 goal thy "!!H. X: synth (analz G) ==> \
 \              analz (insert X H) <= synth (analz G) Un analz (G Un H)";
 by (rtac subsetI 1);
 by (subgoal_tac "x : analz (synth (analz G) Un H)" 1);
 by (blast_tac (claset() addIs [impOfSubs analz_mono,
-			      impOfSubs (analz_mono RS synth_mono)]) 2);
+			       impOfSubs (analz_mono RS synth_mono)]) 2);
 by (Full_simp_tac 1);
 by (Blast_tac 1);
 qed "Fake_analz_insert";
@@ -875,8 +868,9 @@ fun prove_simple_subgoals_tac i =
     ALLGOALS Asm_simp_tac;
 
 fun Fake_parts_insert_tac i = 
-    blast_tac (claset() addDs [impOfSubs analz_subset_parts,
-			      impOfSubs Fake_parts_insert]) i;
+    blast_tac (claset() addIs [parts_insertI]
+			addDs [impOfSubs analz_subset_parts,
+			       impOfSubs Fake_parts_insert]) i;
 
 (*Apply rules to break down assumptions of the form
   Y : parts(insert X H)  and  Y : analz(insert X H)
@@ -909,7 +903,7 @@ fun spy_analz_tac i =
           THEN
           IF_UNSOLVED (Blast.depth_tac
 		       (claset() addIs [analz_insertI,
-				       impOfSubs analz_subset_parts]) 4 1))
+					impOfSubs analz_subset_parts]) 4 1))
        ]) i);
 
 (** Useful in many uniqueness proofs **)

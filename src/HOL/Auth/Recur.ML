@@ -268,7 +268,6 @@ by (parts_induct_tac 1);
 by (etac responses.induct 2);
 by (ALLGOALS Asm_simp_tac);
 (*Fake*)
-by (simp_tac (simpset() addsimps [parts_insert_spies]) 1);
 by (Fake_parts_insert_tac 1);
 qed "Hash_imp_body";
 
@@ -440,8 +439,7 @@ by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac
      (simpset() addsimps (expand_ifs @
-			 [analz_insert_eq, parts_insert_spies, 
-			  analz_insert_freshK]))));
+			 [analz_insert_eq, analz_insert_freshK]))));
 (*RA4*)
 by (spy_analz_tac 5);
 (*RA2*)
@@ -451,16 +449,16 @@ by (spy_analz_tac 2);
 (*Base*)
 by (Blast_tac 1);
 (*RA3 remains*)
+by (simp_tac (simpset() addsimps [parts_insert_spies]) 1);
 by (safe_tac (claset() delrules [impCE]));
 (*RA3, case 2: K is an old key*)
 by (blast_tac (claset() addSDs [resp_analz_insert]
-                       addSEs partsEs
-                       addDs  [Key_in_parts_respond]) 2);
+                        addSEs partsEs
+                        addDs  [Key_in_parts_respond]) 2);
 (*RA3, case 1: use lemma previously proved by induction*)
 by (blast_tac (claset() addSEs [respond_Spy_not_see_session_key RSN
 			       (2,rev_notE)]) 1);
 qed "Spy_not_see_session_key";
-
 
 (**** Authenticity properties for Agents ****)
 
