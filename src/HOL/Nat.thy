@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow
     Copyright   1997 TU Muenchen
 
-Nat is a partial order
+Type "nat" is a linear order, and a datatype
 *)
 
 Nat = NatDef + Inductive +
