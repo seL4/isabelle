@@ -217,7 +217,7 @@ fun mk_recdef_decl ((((fname, rel), congs), ss), axms) =
   let
     val fid = strip_quotes fname;
     val congs_text = mk_list (map (fn c => mk_pair (c, "[]")) congs);
-    val axms_text = mk_big_list (map (fn a => mk_pair (mk_pair (quote "", a), "[]")) axms);
+    val axms_text = mk_big_list axms;
   in
     ";\n\n\
     \local\n\
