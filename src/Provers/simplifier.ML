@@ -17,7 +17,8 @@ sig
   val addsimps: simpset * thm list -> simpset
   val delsimps: simpset * thm list -> simpset
   val asm_full_simp_tac: simpset -> int -> tactic
-  val asm_simp_tac: simpset -> int -> tactic
+  val     full_simp_tac: simpset -> int -> tactic
+  val      asm_simp_tac: simpset -> int -> tactic
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
   val prems_of_ss: simpset -> thm list
@@ -32,7 +33,8 @@ sig
   val Addsimps: thm list -> unit
   val Delsimps: thm list -> unit
   val Simp_tac: int -> tactic
-  val Asm_simp_tac: int -> tactic
+  val      Asm_simp_tac: int -> tactic
+  val     Full_simp_tac: int -> tactic
   val Asm_full_simp_tac: int -> tactic
 end;
 
@@ -165,12 +167,14 @@ fun gen_simp_tac mode =
       and looper i = TRY(NEWSUBGOALS (loop_tac i) (allsimp i))
   in simp_loop_tac end;
 
-val asm_full_simp_tac = gen_simp_tac (true,true);
-val asm_simp_tac = gen_simp_tac (false,true);
-val simp_tac = gen_simp_tac (false,false);
+val asm_full_simp_tac = gen_simp_tac (true ,true );
+val     full_simp_tac = gen_simp_tac (true ,false);
+val      asm_simp_tac = gen_simp_tac (false,true );
+val          simp_tac = gen_simp_tac (false,false);
 
 fun Asm_full_simp_tac i = asm_full_simp_tac (!simpset) i;
-fun Asm_simp_tac i = asm_simp_tac (!simpset) i;
-fun Simp_tac i = simp_tac (!simpset) i;
+fun     Full_simp_tac i =     full_simp_tac (!simpset) i;
+fun      Asm_simp_tac i =      asm_simp_tac (!simpset) i;
+fun          Simp_tac i =          simp_tac (!simpset) i;
 
 end;
