@@ -840,10 +840,11 @@ fun build_record (thy,(ty,cl),itac) =
      fun const s = Const(s, the(Sign.const_type sign s))
      val case_rewrites = map (fn c => get_fact thy (ty^"_case_"^c)) cl
      val {nchotomy,case_cong} = case_thms sign case_rewrites itac
-     fun induct_tac a i = itac a i THEN
+     fun induct_tac a i =
            COND (Datatype.occs_in_prems a i)
              (warning "Induction variable occurs also among premises!";
               all_tac) all_tac
+           THEN itac a i
  in
   (ty, {constructors = map(fn s => const s handle _ => const("op "^s)) cl,
         case_const = const (ty^"_case"),
