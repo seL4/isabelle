@@ -69,7 +69,7 @@ i.e.\ a node pointing to itself. Here is a first attempt:
 @{prop[display]"find(f,x) = (if f x = x then x else find(f, f x))"}
 This may be viewed as a fixed point finder or as one half of the well known
 \emph{Union-Find} algorithm.
-The snag is that it may not terminate if @{term f} has nontrivial cycles.
+The snag is that it may not terminate if @{term f} has non-trivial cycles.
 Phrased differently, the relation
 *}
 

@@ -5,7 +5,7 @@ section{*Pairs*}
 text{*\label{sec:products}
 Pairs were already introduced in \S\ref{sec:pairs}, but only with a minimal
 repertoire of operations: pairing and the two projections @{term fst} and
-@{term snd}. In any nontrivial application of pairs you will find that this
+@{term snd}. In any non-trivial application of pairs you will find that this
 quickly leads to unreadable formulae involvings nests of projections. This
 section is concerned with introducing some syntactic sugar to overcome this
 problem: pattern matching with tuples.
@@ -26,9 +26,6 @@ some typical examples:
 @{text"{(x,y,z). x=z}"}\\
 @{term"\<Union>(x,y)\<in>A. {x+y}"}
 \end{quote}
-*}
-
-text{*
 The intuitive meanings of these expressions should be obvious.
 Unfortunately, we need to know in more detail what the notation really stands
 for once we have to reason about it.  Abstraction
@@ -62,7 +59,7 @@ lemma "(\<lambda>(x,y).x) p = fst p"
 by(simp add:split_def)
 
 text{* This works well if rewriting with @{thm[source]split_def} finishes the
-proof, as it does above.  But if it doesn't, you end up with exactly what
+proof, as it does above.  But if it does not, you end up with exactly what
 we are trying to avoid: nests of @{term fst} and @{term snd}. Thus this
 approach is neither elegant nor very practical in large examples, although it
 can be effective in small ones.

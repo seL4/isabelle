@@ -206,7 +206,7 @@ two subgoals: \isa{{\isasymexists}a{\isachardot}\ {\isacharparenleft}s{\isacharc
 What is worth noting here is that we have used \isa{fast} rather than
 \isa{blast}.  The reason is that \isa{blast} would fail because it cannot
 cope with \isa{someI{\isadigit{2}}{\isacharunderscore}ex}: unifying its conclusion with the current
-subgoal is nontrivial because of the nested schematic variables. For
+subgoal is non-trivial because of the nested schematic variables. For
 efficiency reasons \isa{blast} does not even attempt such unifications.
 Although \isa{fast} can in principle cope with complicated unification
 problems, in practice the number of unifiers arising is often prohibitive and

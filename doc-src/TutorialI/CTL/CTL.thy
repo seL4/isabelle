@@ -247,7 +247,7 @@ txt{*\noindent
 What is worth noting here is that we have used @{text fast} rather than
 @{text blast}.  The reason is that @{text blast} would fail because it cannot
 cope with @{thm[source]someI2_ex}: unifying its conclusion with the current
-subgoal is nontrivial because of the nested schematic variables. For
+subgoal is non-trivial because of the nested schematic variables. For
 efficiency reasons @{text blast} does not even attempt such unifications.
 Although @{text fast} can in principle cope with complicated unification
 problems, in practice the number of unifiers arising is often prohibitive and
