@@ -920,7 +920,7 @@ fun rewrite_cterm mode prover mss ct =
   end
   handle THM (s, _, thms) =>
     error ("Exception THM was raised in simplifier:\n" ^ s ^ "\n" ^
-      Pretty.string_of (pretty_thms thms));
+      Pretty.string_of (Display.pretty_thms thms));
 
 (*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
 (*Do not rewrite flex-flex pairs*)
