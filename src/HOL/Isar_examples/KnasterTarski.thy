@@ -15,7 +15,7 @@ subsection {* Prose version *};
 text {*
  According to the book ``Introduction to Lattices and Order''
  \cite[pages 93--94]{davey-priestley}, the Knaster-Tarski fixpoint
- theorem is as follows.\footnote{We have dualized their argument, and
+ theorem is as follows.\footnote{We have dualized the argument, and
  tuned the notation a little bit.}
 
  \medskip \textbf{The Knaster-Tarski Fixpoint Theorem.}  Let $L$ be a

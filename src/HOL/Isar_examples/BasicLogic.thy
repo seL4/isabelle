@@ -69,8 +69,10 @@ qed;
 
 text {*
  In fact, concluding any (sub-)proof already involves solving any
- remaining goals by assumption.  Thus we may skip the rather vacuous
- body of the above proof as well.
+ remaining goals by assumption\footnote{This is not a completely
+ trivial operation.  As usual in Isabelle, proof by assumption
+ involves full higher-order unification.}.  Thus we may skip the
+ rather vacuous body of the above proof as well.
 *};
 
 lemma "A --> A";
@@ -96,8 +98,8 @@ lemma "A --> A"; ..;
 
 text {*
  Thus we have arrived at an adequate representation of the proof of a
- tautology that holds by a single standard rule.\footnote{Here the
- rule is implication introduction.}
+ tautology that holds by a single standard rule.\footnote{Apparently,
+ the rule is implication introduction.}
 *};
 
 text {*
@@ -130,13 +132,13 @@ text {*
  rule application, this may go too far in iteration.  Thus in
  practice, $\idt{intro}$ and $\idt{elim}$ would be typically
  restricted to certain structures by giving a few rules only, e.g.\
- $(\idt{intro}~\name{impI}~\name{allI})$ to strip implications and
- universal quantifiers.
+ \isacommand{proof}~($\idt{intro}$~\name{impI}~\name{allI}) to strip
+ implications and universal quantifiers.
 
  Such well-tuned iterated decomposition of certain structure is the
- prime application of $\idt{intro}$~/ $\idt{elim}$.  In general,
+ prime application of $\idt{intro}$ and $\idt{elim}$.  In general,
  terminal steps that solve a goal completely are typically performed
- by actual automated proof methods (e.g.\
+ by actual automated proof methods (such as
  \isacommand{by}~$\idt{blast}$).
 *};
 
@@ -309,7 +311,7 @@ text {*
  assumptions.  The corresponding proof text typically mimics this by
  establishing results in appropriate contexts, separated by blocks.
 
- In order to avoid too much explicit bracketing, the Isar system
+ In order to avoid too much explicit parentheses, the Isar system
  implicitly opens an additional block for any new goal, the
  \isacommand{next} statement then closes one block level, opening a
  new one.  The resulting behavior is what one might expect from
@@ -336,9 +338,9 @@ qed;
 
 text {*
  Again, the rather vacuous body of the proof may be collapsed.  Thus
- the case analysis degenerates into two assumption steps, which
- are implicitly performed when concluding the single rule step of the
- double-dot proof below.
+ the case analysis degenerates into two assumption steps, which are
+ implicitly performed when concluding the single rule step of the
+ double-dot proof as follows.
 *};
 
 lemma "P | P --> P";
@@ -379,7 +381,7 @@ qed;
 
 text {*
  While explicit rule instantiation may occasionally help to improve
- the readability of certain aspects of reasoning it is usually quite
+ the readability of certain aspects of reasoning, it is usually quite
  redundant.  Above, the basic proof outline gives already enough
  structural clues for the system to infer both the rules and their
  instances (by higher-order unification).  Thus we may as well prune
@@ -402,12 +404,8 @@ subsubsection {* Deriving rules in Isabelle *};
 
 text {*
  We derive the conjunction elimination rule from the projections.  The
- proof below follows is quite straight-forward, since Isabelle/Isar
- supports non-atomic goals and assumptions fully transparently.  Note
- that this is in contrast to classic Isabelle: the corresponding
- tactic script given in \cite{isabelle-intro} depends on the primitive
- goal command to decompose the rule into premises and conclusion, with
- the result emerging by discharging the context again later.
+ proof is quite straight-forward, since Isabelle/Isar supports
+ non-atomic goals and assumptions fully transparently.
 *};
 
 theorem conjE: "A & B ==> (A ==> B ==> C) ==> C";
@@ -420,5 +418,14 @@ proof -;
     show B; by (rule conjunct2);
   qed;
 qed;
+
+text {*
+ Note that classic Isabelle handles higher rules in a slightly
+ different way.  The tactic script as given in \cite{isabelle-intro}
+ for the same example of \name{conjE} depends on the primitive
+ \texttt{goal} command to decompose the rule into premises and
+ conclusion.  The proper result would then emerge by discharging of
+ the context at \texttt{qed} time.
+*};
 
 end;
