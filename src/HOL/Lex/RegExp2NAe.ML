@@ -50,43 +50,43 @@ qed "accepts_atom";
 
 
 (******************************************************)
-(*                      union                         *)
+(*                      or                            *)
 (******************************************************)
 
 (***** True/False ueber fin anheben *****)
 
-Goalw [union_def] 
- "!L R. fin (union L R) (True#p) = fin L p";
+Goalw [or_def] 
+ "!L R. fin (or L R) (True#p) = fin L p";
 by (Simp_tac 1);
-qed_spec_mp "fin_union_True";
+qed_spec_mp "fin_or_True";
 
-Goalw [union_def] 
- "!L R. fin (union L R) (False#p) = fin R p";
+Goalw [or_def] 
+ "!L R. fin (or L R) (False#p) = fin R p";
 by (Simp_tac 1);
-qed_spec_mp "fin_union_False";
+qed_spec_mp "fin_or_False";
 
-AddIffs [fin_union_True,fin_union_False];
+AddIffs [fin_or_True,fin_or_False];
 
 (***** True/False ueber step anheben *****)
 
-Goalw [union_def,step_def]
-"!L R. (True#p,q) : step (union L R) a = (? r. q = True#r & (p,r) : step L a)";
+Goalw [or_def,step_def]
+"!L R. (True#p,q) : step (or L R) a = (? r. q = True#r & (p,r) : step L a)";
 by (Simp_tac 1);
 by (Blast_tac 1);
-qed_spec_mp "True_in_step_union";
+qed_spec_mp "True_in_step_or";
 
-Goalw [union_def,step_def]
-"!L R. (False#p,q) : step (union L R) a = (? r. q = False#r & (p,r) : step R a)";
+Goalw [or_def,step_def]
+"!L R. (False#p,q) : step (or L R) a = (? r. q = False#r & (p,r) : step R a)";
 by (Simp_tac 1);
 by (Blast_tac 1);
-qed_spec_mp "False_in_step_union";
+qed_spec_mp "False_in_step_or";
 
-AddIffs [True_in_step_union,False_in_step_union];
+AddIffs [True_in_step_or,False_in_step_or];
 
 (***** True/False ueber epsclosure anheben *****)
 
 Goal
- "(tp,tq) : (eps(union L R))^* ==> \
+ "(tp,tq) : (eps(or L R))^* ==> \
 \ !p. tp = True#p --> (? q. (p,q) : (eps L)^* & tq = True#q)";
 by (etac rtrancl_induct 1);
  by (Blast_tac 1);
@@ -96,7 +96,7 @@ by (blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 val lemma1a = result();
 
 Goal
- "(tp,tq) : (eps(union L R))^* ==> \
+ "(tp,tq) : (eps(or L R))^* ==> \
 \ !p. tp = False#p --> (? q. (p,q) : (eps R)^* & tq = False#q)";
 by (etac rtrancl_induct 1);
  by (Blast_tac 1);
@@ -106,48 +106,48 @@ by (blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 val lemma1b = result();
 
 Goal
- "(p,q) : (eps L)^*  ==> (True#p, True#q) : (eps(union L R))^*";
+ "(p,q) : (eps L)^*  ==> (True#p, True#q) : (eps(or L R))^*";
 by (etac rtrancl_induct 1);
  by (Blast_tac 1);
 by (blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 val lemma2a = result();
 
 Goal
- "(p,q) : (eps R)^*  ==> (False#p, False#q) : (eps(union L R))^*";
+ "(p,q) : (eps R)^*  ==> (False#p, False#q) : (eps(or L R))^*";
 by (etac rtrancl_induct 1);
  by (Blast_tac 1);
 by (blast_tac (claset() addIs [rtrancl_into_rtrancl]) 1);
 val lemma2b = result();
 
 Goal
- "(True#p,q) : (eps(union L R))^* = (? r. q = True#r & (p,r) : (eps L)^*)";
+ "(True#p,q) : (eps(or L R))^* = (? r. q = True#r & (p,r) : (eps L)^*)";
 by (blast_tac (claset() addDs [lemma1a,lemma2a]) 1);
-qed "True_epsclosure_union";
+qed "True_epsclosure_or";
 
 Goal
- "(False#p,q) : (eps(union L R))^* = (? r. q = False#r & (p,r) : (eps R)^*)";
+ "(False#p,q) : (eps(or L R))^* = (? r. q = False#r & (p,r) : (eps R)^*)";
 by (blast_tac (claset() addDs [lemma1b,lemma2b]) 1);
-qed "False_epsclosure_union";
+qed "False_epsclosure_or";
 
-AddIffs [True_epsclosure_union,False_epsclosure_union];
+AddIffs [True_epsclosure_or,False_epsclosure_or];
 
 (***** True/False ueber steps anheben *****)
 
 Goal
- "!p. (True#p,q):steps (union L R) w = (? r. q = True # r & (p,r):steps L w)";
+ "!p. (True#p,q):steps (or L R) w = (? r. q = True # r & (p,r):steps L w)";
 by (induct_tac "w" 1);
  by Auto_tac;
 by (Force_tac 1);
-qed_spec_mp "lift_True_over_steps_union";
+qed_spec_mp "lift_True_over_steps_or";
 
 Goal 
- "!p. (False#p,q):steps (union L R) w = (? r. q = False#r & (p,r):steps R w)";
+ "!p. (False#p,q):steps (or L R) w = (? r. q = False#r & (p,r):steps R w)";
 by (induct_tac "w" 1);
  by Auto_tac;
 by (Force_tac 1);
-qed_spec_mp "lift_False_over_steps_union";
+qed_spec_mp "lift_False_over_steps_or";
 
-AddIffs [lift_True_over_steps_union,lift_False_over_steps_union];
+AddIffs [lift_True_over_steps_or,lift_False_over_steps_or];
 
 
 (***** Epsilonhuelle des Startzustands  *****)
@@ -169,26 +169,26 @@ by (rtac (unfold_rtrancl2 RS equalityE) 1);
 by (Blast_tac 1);
 qed "in_unfold_rtrancl2";
 
-val epsclosure_start_step_union =
-  read_instantiate [("p","start(union L R)")] in_unfold_rtrancl2;
-AddIffs [epsclosure_start_step_union];
+val epsclosure_start_step_or =
+  read_instantiate [("p","start(or L R)")] in_unfold_rtrancl2;
+AddIffs [epsclosure_start_step_or];
 
-Goalw [union_def,step_def]
- "!L R. (start(union L R),q) : eps(union L R) = \
+Goalw [or_def,step_def]
+ "!L R. (start(or L R),q) : eps(or L R) = \
 \       (q = True#start L | q = False#start R)";
 by (Simp_tac 1);
-qed_spec_mp "start_eps_union";
-AddIffs [start_eps_union];
+qed_spec_mp "start_eps_or";
+AddIffs [start_eps_or];
 
-Goalw [union_def,step_def]
- "!L R. (start(union L R),q) ~: step (union L R) (Some a)";
+Goalw [or_def,step_def]
+ "!L R. (start(or L R),q) ~: step (or L R) (Some a)";
 by (Simp_tac 1);
-qed_spec_mp "not_start_step_union_Some";
-AddIffs [not_start_step_union_Some];
+qed_spec_mp "not_start_step_or_Some";
+AddIffs [not_start_step_or_Some];
 
 Goal
- "(start(union L R), q) : steps (union L R) w = \
-\ ( (w = [] & q = start(union L R)) | \
+ "(start(or L R), q) : steps (or L R) w = \
+\ ( (w = [] & q = start(or L R)) | \
 \   (? p.  q = True  # p & (start L,p) : steps L w | \
 \          q = False # p & (start R,p) : steps R w) )";
 by (case_tac "w" 1);
@@ -196,23 +196,23 @@ by (case_tac "w" 1);
  by (Blast_tac 1);
 by (Asm_simp_tac 1);
 by (Blast_tac 1);
-qed "steps_union";
+qed "steps_or";
 
-Goalw [union_def]
- "!L R. ~ fin (union L R) (start(union L R))";
+Goalw [or_def]
+ "!L R. ~ fin (or L R) (start(or L R))";
 by (Simp_tac 1);
-qed_spec_mp "start_union_not_final";
-AddIffs [start_union_not_final];
+qed_spec_mp "start_or_not_final";
+AddIffs [start_or_not_final];
 
 Goalw [accepts_def]
- "accepts (union L R) w = (accepts L w | accepts R w)";
-by (simp_tac (simpset() addsimps [steps_union]) 1);
+ "accepts (or L R) w = (accepts L w | accepts R w)";
+by (simp_tac (simpset() addsimps [steps_or]) 1);
 by Auto_tac;
-qed "accepts_union";
+qed "accepts_or";
 
 
 (******************************************************)
-(*                      conc                        *)
+(*                      conc                          *)
 (******************************************************)
 
 (** True/False in fin **)
@@ -624,7 +624,7 @@ Goal
 by (induct_tac "r" 1);
     by (simp_tac (simpset() addsimps [accepts_def]) 1);
    by (simp_tac(simpset() addsimps [accepts_atom]) 1);
-  by (asm_simp_tac (simpset() addsimps [accepts_union]) 1);
+  by (asm_simp_tac (simpset() addsimps [accepts_or]) 1);
  by (asm_simp_tac (simpset() addsimps [accepts_conc,RegSet.conc_def]) 1);
 by (asm_simp_tac (simpset() addsimps [accepts_star,in_star]) 1);
 qed "accepts_rexp2nae";

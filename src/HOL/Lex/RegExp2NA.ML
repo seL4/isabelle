@@ -45,71 +45,71 @@ qed "accepts_atom";
 
 
 (******************************************************)
-(*                      union                         *)
+(*                      or                            *)
 (******************************************************)
 
 (***** True/False ueber fin anheben *****)
 
-Goalw [union_def] 
- "!L R. fin (union L R) (True#p) = fin L p";
+Goalw [or_def] 
+ "!L R. fin (or L R) (True#p) = fin L p";
 by (Simp_tac 1);
-qed_spec_mp "fin_union_True";
+qed_spec_mp "fin_or_True";
 
-Goalw [union_def] 
- "!L R. fin (union L R) (False#p) = fin R p";
+Goalw [or_def] 
+ "!L R. fin (or L R) (False#p) = fin R p";
 by (Simp_tac 1);
-qed_spec_mp "fin_union_False";
+qed_spec_mp "fin_or_False";
 
-AddIffs [fin_union_True,fin_union_False];
+AddIffs [fin_or_True,fin_or_False];
 
 (***** True/False ueber step anheben *****)
 
-Goalw [union_def,step_def]
-"!L R. (True#p,q) : step (union L R) a = (? r. q = True#r & (p,r) : step L a)";
+Goalw [or_def,step_def]
+"!L R. (True#p,q) : step (or L R) a = (? r. q = True#r & (p,r) : step L a)";
 by (Simp_tac 1);
 by (Blast_tac 1);
-qed_spec_mp "True_in_step_union";
+qed_spec_mp "True_in_step_or";
 
-Goalw [union_def,step_def]
-"!L R. (False#p,q) : step (union L R) a = (? r. q = False#r & (p,r) : step R a)";
+Goalw [or_def,step_def]
+"!L R. (False#p,q) : step (or L R) a = (? r. q = False#r & (p,r) : step R a)";
 by (Simp_tac 1);
 by (Blast_tac 1);
-qed_spec_mp "False_in_step_union";
+qed_spec_mp "False_in_step_or";
 
-AddIffs [True_in_step_union,False_in_step_union];
+AddIffs [True_in_step_or,False_in_step_or];
 
 
 (***** True/False ueber steps anheben *****)
 
 Goal
- "!p. (True#p,q):steps (union L R) w = (? r. q = True # r & (p,r):steps L w)";
+ "!p. (True#p,q):steps (or L R) w = (? r. q = True # r & (p,r):steps L w)";
 by (induct_tac "w" 1);
 by (ALLGOALS Force_tac);
-qed_spec_mp "lift_True_over_steps_union";
+qed_spec_mp "lift_True_over_steps_or";
 
 Goal 
- "!p. (False#p,q):steps (union L R) w = (? r. q = False#r & (p,r):steps R w)";
+ "!p. (False#p,q):steps (or L R) w = (? r. q = False#r & (p,r):steps R w)";
 by (induct_tac "w" 1);
 by (ALLGOALS Force_tac);
-qed_spec_mp "lift_False_over_steps_union";
+qed_spec_mp "lift_False_over_steps_or";
 
-AddIffs [lift_True_over_steps_union,lift_False_over_steps_union];
+AddIffs [lift_True_over_steps_or,lift_False_over_steps_or];
 
 
 (** From the start  **)
 
-Goalw [union_def,step_def]
- "!L R. (start(union L R),q) : step(union L R) a = \
+Goalw [or_def,step_def]
+ "!L R. (start(or L R),q) : step(or L R) a = \
 \       (? p. (q = True#p & (start L,p) : step L a) | \
 \             (q = False#p & (start R,p) : step R a))";
 by (Simp_tac 1);
 by (Blast_tac 1);
-qed_spec_mp "start_step_union";
-AddIffs [start_step_union];
+qed_spec_mp "start_step_or";
+AddIffs [start_step_or];
 
 Goal
- "(start(union L R), q) : steps (union L R) w = \
-\ ( (w = [] & q = start(union L R)) | \
+ "(start(or L R), q) : steps (or L R) w = \
+\ ( (w = [] & q = start(or L R)) | \
 \   (w ~= [] & (? p.  q = True  # p & (start L,p) : steps L w | \
 \                     q = False # p & (start R,p) : steps R w)))";
 by (case_tac "w" 1);
@@ -117,23 +117,23 @@ by (case_tac "w" 1);
  by (Blast_tac 1);
 by (Asm_simp_tac 1);
 by (Blast_tac 1);
-qed "steps_union";
+qed "steps_or";
 
-Goalw [union_def]
- "!L R. fin (union L R) (start(union L R)) = \
+Goalw [or_def]
+ "!L R. fin (or L R) (start(or L R)) = \
 \       (fin L (start L) | fin R (start R))";
 by (Simp_tac 1);
-qed_spec_mp "fin_start_union";
-AddIffs [fin_start_union];
+qed_spec_mp "fin_start_or";
+AddIffs [fin_start_or];
 
 Goal
- "accepts (union L R) w = (accepts L w | accepts R w)";
-by (simp_tac (simpset() addsimps [accepts_conv_steps,steps_union]) 1);
+ "accepts (or L R) w = (accepts L w | accepts R w)";
+by (simp_tac (simpset() addsimps [accepts_conv_steps,steps_or]) 1);
 (* get rid of case_tac: *)
 by (case_tac "w = []" 1);
 by (Auto_tac);
-qed "accepts_union";
-AddIffs [accepts_union];
+qed "accepts_or";
+AddIffs [accepts_or];
 
 (******************************************************)
 (*                      conc                        *)

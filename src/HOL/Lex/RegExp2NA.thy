@@ -20,8 +20,8 @@ constdefs
             %b s. if s=[True] & b=a then {[False]} else {},
             %s. s=[False])"
 
- union :: 'a bitsNA => 'a bitsNA => 'a bitsNA
-"union == %(ql,dl,fl)(qr,dr,fr).
+ or :: 'a bitsNA => 'a bitsNA => 'a bitsNA
+"or == %(ql,dl,fl)(qr,dr,fr).
    ([],
     %a s. case s of
             [] => (True ## dl a ql) Un (False ## dr a qr)
@@ -47,14 +47,14 @@ constdefs
 "plus == %(q,d,f). (q, %a s. d a s Un (if f s then d a q else {}), f)"
 
  star :: 'a bitsNA => 'a bitsNA
-"star A == union epsilon (plus A)"
+"star A == or epsilon (plus A)"
 
 consts rexp2na :: 'a rexp => 'a bitsNA
 primrec
 "rexp2na Empty      = ([], %a s. {}, %s. False)"
 "rexp2na(Atom a)    = atom a"
-"rexp2na(Union r s) = union (rexp2na r) (rexp2na s)"
-"rexp2na(Conc r s)  = conc  (rexp2na r) (rexp2na s)"
-"rexp2na(Star r)    = star  (rexp2na r)"
+"rexp2na(Or r s)    = or   (rexp2na r) (rexp2na s)"
+"rexp2na(Conc r s)  = conc (rexp2na r) (rexp2na s)"
+"rexp2na(Star r)    = star (rexp2na r)"
 
 end

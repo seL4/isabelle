@@ -20,8 +20,8 @@ constdefs
             %b s. if s=[True] & b=Some a then {[False]} else {},
             %s. s=[False])"
 
- union :: 'a bitsNAe => 'a bitsNAe => 'a bitsNAe
-"union == %(ql,dl,fl)(qr,dr,fr).
+ or :: 'a bitsNAe => 'a bitsNAe => 'a bitsNAe
+"or == %(ql,dl,fl)(qr,dr,fr).
    ([],
     %a s. case s of
             [] => if a=None then {True#ql,False#qr} else {}
@@ -53,8 +53,8 @@ consts rexp2nae :: 'a rexp => 'a bitsNAe
 primrec
 "rexp2nae Empty      = ([], %a s. {}, %s. False)"
 "rexp2nae(Atom a)    = atom a"
-"rexp2nae(Union r s) = union (rexp2nae r) (rexp2nae s)"
-"rexp2nae(Conc r s)  = conc  (rexp2nae r) (rexp2nae s)"
-"rexp2nae(Star r)    = star  (rexp2nae r)"
+"rexp2nae(Or r s)    = or   (rexp2nae r) (rexp2nae s)"
+"rexp2nae(Conc r s)  = conc (rexp2nae r) (rexp2nae s)"
+"rexp2nae(Star r)    = star (rexp2nae r)"
 
 end
