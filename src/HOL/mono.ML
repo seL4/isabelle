@@ -95,14 +95,13 @@ val [PQimp] = goal Set.thy
 by (blast_tac (claset() addIs [PQimp RS mp]) 1);
 qed "Collect_mono";
 
-(*Used in indrule.ML*)
 val [subs,PQimp] = goal Set.thy
     "[| A<=B;  !!x. x:A ==> P(x) --> Q(x) \
 \    |] ==> A Int Collect(P) <= B Int Collect(Q)";
 by (blast_tac (claset() addIs [subs RS subsetD, PQimp RS mp]) 1);
 qed "Int_Collect_mono";
 
-(*Used in intr_elim.ML and in individual datatype definitions*)
+(*Used in individual datatype definitions*)
 val basic_monos = [subset_refl, imp_refl, disj_mono, conj_mono, 
                    ex_mono, Collect_mono, in_mono];
 
