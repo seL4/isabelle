@@ -1455,62 +1455,6 @@ end
 Now the theorem in the previous example can be written \verb|x#xs ~= xs|. The
 proof is the same.
 
-\subsubsection{Defining functions on datatypes}
-
-Normally one wants to define functions dealing with a newly defined type and
-prove properties of these functions. As an example let us define \verb|@| for
-concatenation and {\tt ttl} for the (total) tail of a list, i.e.\ the list
-without its first element:
-\begin{ttbox}
-List_fun = MyList +
-consts ttl  :: "'a list => 'a list"
-       "@"  :: "['a list,'a list] => 'a list"  (infixr 60)
-rules 
-       ttl_def   "ttl (l)  == case l of [] => []  |  y#ys => ys"
-
-       app_Nil   "[] @ ys = ys"
-       app_Cons  "(x#xs) @ ys = x#(xs @ ys)"
-end
-\end{ttbox}
-Let us have a look at the use of {\tt case} in the definition of {\tt ttl}.
-The expression {\tt case e of [] => [] | y\#ys => ys} evaluates to {\tt []}
-if \verb|e=[]| and to {\tt ys} if \verb|e=y#ys|. These properties are
-trivial to derive by simplification:
-\begin{ttbox}
-val mylist_ss = HOL_ss addsimps MyList.list.simps;
-
-goalw List_fun.thy [List_fun.ttl_def] "ttl([]) = []";
-by (simp_tac mylist_ss 1);
-val ttl_Nil = result();
-
-goalw List_fun.thy [List_fun.ttl_def] "ttl(y#ys) = ys";
-by (simp_tac mylist_ss 1);
-val ttl_Cons = result();
-
-val list_fun_ss = mylist_ss addsimps
-      [ttl_Nil, ttl_Cons, List_fun.app_Nil, List_fun.app_Cons];
-\end{ttbox}
-Note that we include the derived properties in our simpset, not the original
-definition of {\tt ttl}. The former are better behaved because they only
-apply if the argument is already a constructor.
-
-One could have defined \verb$@$ with a single {\tt case}-construct
-\begin{ttbox}
-app_def "x @ y == case x of [] => y  |  z#zs => z # (zs @ y)"
-\end{ttbox}  
-and derived \verb$app_Nil$ and \verb$app_Cons$ from it. But \verb$app_def$ is
-not easy to work with: the left-hand side matches a subterm of the right-hand
-side, which causes the simplifier to loop.
-
-Here is a simple proof of the associativity of \verb$@$:
-\begin{ttbox}
-goal List_fun.thy "(x @ y) @ z = x @ (y @ z)";
-by (MyList.list.induct_tac "x" 1);
-by (simp_tac list_fun_ss 1);
-by (asm_simp_tac list_fun_ss 1);
-\end{ttbox}
-The last two steps can again be combined using {\tt ALLGOALS}.
-
 
 \subsubsection{A datatype for weekdays}
 
@@ -1533,7 +1477,109 @@ by (simp_tac days_ss 1);
 Note that usually it is not necessary to derive these inequalities explicitly
 because the simplifier will dispose of them automatically.
 
-\index{*datatype|)}
+\subsection{Primitive recursive functions}
+\index{primitive recursion|(}
+\index{*primrec|(}
+
+Datatypes come with a uniform way of defining functions, {\bf primitive
+  recursion}. Although it is possible to define primitive recursive functions
+by asserting their reduction rules as new axioms, e.g.\
+\begin{ttbox}
+Append = MyList +
+consts app :: "['a list,'a list] => 'a list"
+rules 
+   app_Nil   "app([],ys) = ys"
+   app_Cons  "app(x#xs, ys) = x#app(xs,ys)"
+end
+\end{ttbox}
+this carries with it the danger of accidentally asserting an inconsistency,
+as in \verb$app([],ys) = us$. Therefore primitive recursive functions on
+datatypes can be defined with a special syntax:
+\begin{ttbox}
+Append = MyList +
+consts app :: "['a list,'a list] => 'a list"
+primrec app MyList.list
+   app_Nil   "app([],ys) = ys"
+   app_Cons  "app(x#xs, ys) = x#app(xs,ys)"
+end
+\end{ttbox}
+The system will now check that the two rules \verb$app_Nil$ and
+\verb$app_Cons$ do indeed form a primitive recursive definition, thus
+ensuring that consistency is maintained. For example
+\begin{ttbox}
+primrec app MyList.list
+    app_Nil   "app([],ys) = us"
+\end{ttbox}
+is rejected:
+\begin{ttbox}
+Extra variables on rhs
+\end{ttbox}
+\bigskip
+
+The general form of a primitive recursive definition is
+\begin{ttbox}
+primrec {\it function} {\it type}
+    {\it reduction rules}
+\end{ttbox}
+where
+\begin{itemize}
+\item {\it function} is the name of the function, either as an {\it id} or a
+  {\it string}. The function must already have been declared.
+\item {\it type} is the name of the datatype, either as an {\it id} or in the
+  long form {\it Thy.t}, where {\it Thy} is the name of the parent theory the
+  datatype was declared in, and $t$ the name of the datatype. The long form
+  is required if the {\tt datatype} and the {\tt primrec} sections are in
+  different theories.
+\item {\it reduction rules} specify one or more named equations of the form
+  {\it id\/}~{\it string}, where the identifier gives the name of the rule in
+  the result structure, and {\it string} is a reduction rule of the form \[
+  f(x_1,\dots,x_m,C(y_1,\dots,y_k),z_1,\dots,z_n) = r \] such that $C$ is a
+  constructor of the datatype, $r$ contains only the free variables on the
+  left-hand side, and all recursive calls in $r$ are of the form
+  $f(\dots,y_i,\dots)$ for some $i$. There must be exactly one reduction
+  rule for each constructor.
+\end{itemize}
+A theory file may contain any number of {\tt primrec} sections which may be
+intermixed with other declarations.
+
+For the consistency-sensitive user it may be reassuring to know that {\tt
+  primrec} does not assert the reduction rules as new axioms but derives them
+as theorems from an explicit definition of the recursive function in terms of
+a recursion operator on the datatype.
+
+The primitive recursive function can also use infix or mixfix syntax:
+\begin{ttbox}
+Append = MyList +
+consts "@"  :: "['a list,'a list] => 'a list"  (infixr 60)
+primrec "op @" MyList.list
+   app_Nil   "[] @ ys = ys"
+   app_Cons  "(x#xs) @ ys = x#(xs @ ys)"
+end
+\end{ttbox}
+
+The reduction rules become part of the ML structure \verb$Append$ and can
+be used to prove theorems about the function:
+\begin{ttbox}
+val append_ss = HOL_ss addsimps [Append.app_Nil,Append.app_Cons];
+
+goal Append.thy "(xs @ ys) @ zs = xs @ (ys @ zs)";
+by (MyList.list.induct_tac "xs" 1);
+by (ALLGOALS(asm_simp_tac append_ss));
+\end{ttbox}
+
+%Note that underdefined primitive recursive functions are allowed:
+%\begin{ttbox}
+%Tl = MyList +
+%consts tl  :: "'a list => 'a list"
+%primrec tl MyList.list
+%   tl_Cons "tl(x#xs) = xs"
+%end
+%\end{ttbox}
+%Nevertheless {\tt tl} is total, although we do not know what the result of
+%\verb$tl([])$ is.
+
+\index{primitive recursion|)}
+\index{*primrec|)}
 
 
 \section{Inductive and coinductive definitions}
