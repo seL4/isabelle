@@ -206,7 +206,7 @@ done
 
 lemma (in sylow_central) M1_cardeq_rcosetGM1g:
      "g \<in> carrier G ==> card(M1 #> g) = card(M1)"
-by (simp (no_asm_simp) add: M1_subset_G card_cosets_equal setrcosI)
+by (simp (no_asm_simp) add: M1_subset_G card_cosets_equal rcosetsI)
 
 lemma (in sylow_central) M1_RelM_rcosetGM1g:
      "g \<in> carrier G ==> (M1, M1 #> g) \<in> RelM"
@@ -219,16 +219,14 @@ apply (simp_all add: coset_mult_assoc M1_subset_G)
 done
 
 
+subsection{*Equal Cardinalities of @{term M} and the Set of Cosets*}
 
-subsection{*Equal Cardinalities of @{term M} and @{term "rcosets G H"}*}
-
-text{*Injections between @{term M} and @{term "rcosets G H"} show that
+text{*Injections between @{term M} and @{term "rcosets\<^bsub>G\<^esub> H"} show that
  their cardinalities are equal.*}
 
 lemma ElemClassEquiv:
-     "[| equiv A r; C\<in>A // r |] ==> \<forall>x \<in> C. \<forall>y \<in> C. (x,y)\<in>r"
-apply (unfold equiv_def quotient_def sym_def trans_def, blast)
-done
+     "[| equiv A r; C \<in> A // r |] ==> \<forall>x \<in> C. \<forall>y \<in> C. (x,y)\<in>r"
+by (unfold equiv_def quotient_def sym_def trans_def, blast)
 
 lemma (in sylow_central) M_elem_map:
      "M2 \<in> M ==> \<exists>g. g \<in> carrier G & M1 #> g = M2"
@@ -243,16 +241,16 @@ lemmas (in sylow_central) M_elem_map_carrier =
 lemmas (in sylow_central) M_elem_map_eq =
         M_elem_map [THEN someI_ex, THEN conjunct2]
 
-lemma (in sylow_central) M_funcset_setrcos_H:
-     "(%x:M. H #> (SOME g. g \<in> carrier G & M1 #> g = x)) \<in> M \<rightarrow> rcosets G H"
-apply (rule setrcosI [THEN restrictI])
+lemma (in sylow_central) M_funcset_rcosets_H:
+     "(%x:M. H #> (SOME g. g \<in> carrier G & M1 #> g = x)) \<in> M \<rightarrow> rcosets H"
+apply (rule rcosetsI [THEN restrictI])
 apply (rule H_is_subgroup [THEN subgroup.subset])
 apply (erule M_elem_map_carrier)
 done
 
-lemma (in sylow_central) inj_M_GmodH: "\<exists>f \<in> M\<rightarrow>rcosets G H. inj_on f M"
+lemma (in sylow_central) inj_M_GmodH: "\<exists>f \<in> M\<rightarrow>rcosets H. inj_on f M"
 apply (rule bexI)
-apply (rule_tac [2] M_funcset_setrcos_H)
+apply (rule_tac [2] M_funcset_rcosets_H)
 apply (rule inj_onI, simp)
 apply (rule trans [OF _ M_elem_map_eq])
 prefer 2 apply assumption
@@ -267,11 +265,11 @@ apply (simp add: coset_mult_inv2 H_def M_elem_map_carrier subset_def)
 done
 
 
-(** the opposite injection **)
+subsubsection{*The opposite injection*}
 
 lemma (in sylow_central) H_elem_map:
-     "H1\<in>rcosets G H ==> \<exists>g. g \<in> carrier G & H #> g = H1"
-by (auto simp add: setrcos_eq)
+     "H1 \<in> rcosets H ==> \<exists>g. g \<in> carrier G & H #> g = H1"
+by (auto simp add: RCOSETS_def)
 
 lemmas (in sylow_central) H_elem_map_carrier =
         H_elem_map [THEN someI_ex, THEN conjunct1]
@@ -281,14 +279,13 @@ lemmas (in sylow_central) H_elem_map_eq =
 
 
 lemma EquivElemClass:
-     "[|equiv A r; M\<in>A // r; M1\<in>M; (M1, M2)\<in>r |] ==> M2\<in>M"
-apply (unfold equiv_def quotient_def sym_def trans_def, blast)
-done
+     "[|equiv A r; M \<in> A//r; M1\<in>M; (M1,M2) \<in> r |] ==> M2 \<in> M"
+by (unfold equiv_def quotient_def sym_def trans_def, blast)
 
-lemma (in sylow_central) setrcos_H_funcset_M:
-     "(\<lambda>C \<in> rcosets G H. M1 #> (@g. g \<in> carrier G \<and> H #> g = C))
-      \<in> rcosets G H \<rightarrow> M"
-apply (simp add: setrcos_eq)
+
+lemma (in sylow_central) rcosets_H_funcset_M:
+  "(\<lambda>C \<in> rcosets H. M1 #> (@g. g \<in> carrier G \<and> H #> g = C)) \<in> rcosets H \<rightarrow> M"
+apply (simp add: RCOSETS_def)
 apply (fast intro: someI2
             intro!: restrictI M1_in_M
               EquivElemClass [OF RelM_equiv M_in_quot _  M1_RelM_rcosetGM1g])
@@ -296,9 +293,9 @@ done
 
 text{*close to a duplicate of @{text inj_M_GmodH}*}
 lemma (in sylow_central) inj_GmodH_M:
-     "\<exists>g \<in> rcosets G H\<rightarrow>M. inj_on g (rcosets G H)"
+     "\<exists>g \<in> rcosets H\<rightarrow>M. inj_on g (rcosets H)"
 apply (rule bexI)
-apply (rule_tac [2] setrcos_H_funcset_M)
+apply (rule_tac [2] rcosets_H_funcset_M)
 apply (rule inj_onI)
 apply (simp)
 apply (rule trans [OF _ H_elem_map_eq])
@@ -323,10 +320,10 @@ apply (rule M_subset_calM [THEN subset_trans])
 apply (rule calM_subset_PowG, blast)
 done
 
-lemma (in sylow_central) cardMeqIndexH: "card(M) = card(rcosets G H)"
+lemma (in sylow_central) cardMeqIndexH: "card(M) = card(rcosets H)"
 apply (insert inj_M_GmodH inj_GmodH_M)
 apply (blast intro: card_bij finite_M H_is_subgroup
-             setrcos_subset_PowG [THEN finite_subset]
+             rcosets_subset_PowG [THEN finite_subset]
              finite_Pow_iff [THEN iffD2])
 done
 
@@ -373,3 +370,4 @@ apply (simp add: sylow_eq sylow_axioms_def)
 done
 
 end
+

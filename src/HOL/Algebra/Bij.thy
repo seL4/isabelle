@@ -8,39 +8,39 @@ header {* Bijections of a Set, Permutation Groups, Automorphism Groups *}
 theory Bij = Group:
 
 constdefs
-  Bij :: "'a set => ('a => 'a) set"
+  Bij :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) set"
     --{*Only extensional functions, since otherwise we get too many.*}
-  "Bij S == extensional S \<inter> {f. bij_betw f S S}"
+  "Bij S \<equiv> extensional S \<inter> {f. bij_betw f S S}"
 
-  BijGroup :: "'a set => ('a => 'a) monoid"
-  "BijGroup S ==
-    (| carrier = Bij S,
-      mult = %g: Bij S. %f: Bij S. compose S g f,
-      one = %x: S. x |)"
+  BijGroup :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) monoid"
+  "BijGroup S \<equiv>
+    \<lparr>carrier = Bij S,
+     mult = \<lambda>g \<in> Bij S. \<lambda>f \<in> Bij S. compose S g f,
+     one = \<lambda>x \<in> S. x\<rparr>"
 
 
 declare Id_compose [simp] compose_Id [simp]
 
-lemma Bij_imp_extensional: "f \<in> Bij S ==> f \<in> extensional S"
+lemma Bij_imp_extensional: "f \<in> Bij S \<Longrightarrow> f \<in> extensional S"
   by (simp add: Bij_def)
 
-lemma Bij_imp_funcset: "f \<in> Bij S ==> f \<in> S -> S"
+lemma Bij_imp_funcset: "f \<in> Bij S \<Longrightarrow> f \<in> S \<rightarrow> S"
   by (auto simp add: Bij_def bij_betw_imp_funcset)
 
 
 subsection {*Bijections Form a Group *}
 
-lemma restrict_Inv_Bij: "f \<in> Bij S ==> (%x:S. (Inv S f) x) \<in> Bij S"
+lemma restrict_Inv_Bij: "f \<in> Bij S \<Longrightarrow> (\<lambda>x \<in> S. (Inv S f) x) \<in> Bij S"
   by (simp add: Bij_def bij_betw_Inv)
 
 lemma id_Bij: "(\<lambda>x\<in>S. x) \<in> Bij S "
   by (auto simp add: Bij_def bij_betw_def inj_on_def)
 
-lemma compose_Bij: "[| x \<in> Bij S; y \<in> Bij S|] ==> compose S x y \<in> Bij S"
+lemma compose_Bij: "\<lbrakk>x \<in> Bij S; y \<in> Bij S\<rbrakk> \<Longrightarrow> compose S x y \<in> Bij S"
   by (auto simp add: Bij_def bij_betw_compose) 
 
 lemma Bij_compose_restrict_eq:
-     "f \<in> Bij S ==> compose S (restrict (Inv S f) S) f = (\<lambda>x\<in>S. x)"
+     "f \<in> Bij S \<Longrightarrow> compose S (restrict (Inv S f) S) f = (\<lambda>x\<in>S. x)"
   by (simp add: Bij_def compose_Inv_id)
 
 theorem group_BijGroup: "group (BijGroup S)"
@@ -57,62 +57,68 @@ done
 
 subsection{*Automorphisms Form a Group*}
 
-lemma Bij_Inv_mem: "[|  f \<in> Bij S;  x \<in> S |] ==> Inv S f x \<in> S"
+lemma Bij_Inv_mem: "\<lbrakk> f \<in> Bij S;  x \<in> S\<rbrakk> \<Longrightarrow> Inv S f x \<in> S"
 by (simp add: Bij_def bij_betw_def Inv_mem)
 
 lemma Bij_Inv_lemma:
- assumes eq: "!!x y. [|x \<in> S; y \<in> S|] ==> h(g x y) = g (h x) (h y)"
- shows "[| h \<in> Bij S;  g \<in> S \<rightarrow> S \<rightarrow> S;  x \<in> S;  y \<in> S |]
-        ==> Inv S h (g x y) = g (Inv S h x) (Inv S h y)"
+ assumes eq: "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> h(g x y) = g (h x) (h y)"
+ shows "\<lbrakk>h \<in> Bij S;  g \<in> S \<rightarrow> S \<rightarrow> S;  x \<in> S;  y \<in> S\<rbrakk>
+        \<Longrightarrow> Inv S h (g x y) = g (Inv S h x) (Inv S h y)"
 apply (simp add: Bij_def bij_betw_def)
 apply (subgoal_tac "\<exists>x'\<in>S. \<exists>y'\<in>S. x = h x' & y = h y'", clarify)
- apply (simp add: eq [symmetric] Inv_f_f funcset_mem [THEN funcset_mem], blast )
+ apply (simp add: eq [symmetric] Inv_f_f funcset_mem [THEN funcset_mem], blast)
 done
 
+
 constdefs
-  auto :: "('a, 'b) monoid_scheme => ('a => 'a) set"
-  "auto G == hom G G \<inter> Bij (carrier G)"
+  auto :: "('a, 'b) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) set"
+  "auto G \<equiv> hom G G \<inter> Bij (carrier G)"
 
-  AutoGroup :: "('a, 'c) monoid_scheme => ('a => 'a) monoid"
-  "AutoGroup G == BijGroup (carrier G) (|carrier := auto G |)"
+  AutoGroup :: "('a, 'c) monoid_scheme \<Rightarrow> ('a \<Rightarrow> 'a) monoid"
+  "AutoGroup G \<equiv> BijGroup (carrier G) \<lparr>carrier := auto G\<rparr>"
 
-lemma id_in_auto: "group G ==> (%x: carrier G. x) \<in> auto G"
+lemma (in group) id_in_auto: "(\<lambda>x \<in> carrier G. x) \<in> auto G"
   by (simp add: auto_def hom_def restrictI group.axioms id_Bij)
 
-lemma mult_funcset: "group G ==> mult G \<in> carrier G -> carrier G -> carrier G"
+lemma (in group) mult_funcset: "mult G \<in> carrier G \<rightarrow> carrier G \<rightarrow> carrier G"
   by (simp add:  Pi_I group.axioms)
 
-lemma restrict_Inv_hom:
-      "[|group G; h \<in> hom G G; h \<in> Bij (carrier G)|]
-       ==> restrict (Inv (carrier G) h) (carrier G) \<in> hom G G"
+lemma (in group) restrict_Inv_hom:
+      "\<lbrakk>h \<in> hom G G; h \<in> Bij (carrier G)\<rbrakk>
+       \<Longrightarrow> restrict (Inv (carrier G) h) (carrier G) \<in> hom G G"
   by (simp add: hom_def Bij_Inv_mem restrictI mult_funcset
                 group.axioms Bij_Inv_lemma)
 
 lemma inv_BijGroup:
-     "f \<in> Bij S ==> m_inv (BijGroup S) f = (%x: S. (Inv S f) x)"
+     "f \<in> Bij S \<Longrightarrow> m_inv (BijGroup S) f = (\<lambda>x \<in> S. (Inv S f) x)"
 apply (rule group.inv_equality)
 apply (rule group_BijGroup)
 apply (simp_all add: BijGroup_def restrict_Inv_Bij Bij_compose_restrict_eq)
 done
 
-lemma subgroup_auto:
-      "group G ==> subgroup (auto G) (BijGroup (carrier G))"
-apply (rule group.subgroupI)
-    apply (rule group_BijGroup)
-   apply (force simp add: auto_def BijGroup_def)
-  apply (blast dest: id_in_auto)
- apply (simp del: restrict_apply
+lemma (in group) subgroup_auto:
+      "subgroup (auto G) (BijGroup (carrier G))"
+proof (rule subgroup.intro)
+  show "auto G \<subseteq> carrier (BijGroup (carrier G))"
+    by (force simp add: auto_def BijGroup_def)
+next
+  fix x y
+  assume "x \<in> auto G" "y \<in> auto G" 
+  thus "x \<otimes>\<^bsub>BijGroup (carrier G)\<^esub> y \<in> auto G"
+    by (force simp add: BijGroup_def is_group auto_def Bij_imp_funcset 
+                        group.hom_compose compose_Bij)
+next
+  show "\<one>\<^bsub>BijGroup (carrier G)\<^esub> \<in> auto G" by (simp add:  BijGroup_def id_in_auto)
+next
+  fix x 
+  assume "x \<in> auto G" 
+  thus "inv\<^bsub>BijGroup (carrier G)\<^esub> x \<in> auto G"
+    by (simp del: restrict_apply
              add: inv_BijGroup auto_def restrict_Inv_Bij restrict_Inv_hom)
-apply (auto simp add: BijGroup_def auto_def Bij_imp_funcset group.hom_compose
-                      compose_Bij)
-done
+qed
 
-theorem AutoGroup: "group G ==> group (AutoGroup G)"
-apply (simp add: AutoGroup_def)
-apply (rule Group.subgroup.groupI)
-apply (erule subgroup_auto)
-apply (insert Bij.group_BijGroup [of "carrier G"])
-apply (simp_all add: group_def)
-done
+theorem (in group) AutoGroup: "group (AutoGroup G)"
+by (simp add: AutoGroup_def subgroup.subgroup_is_group subgroup_auto 
+              group_BijGroup)
 
 end

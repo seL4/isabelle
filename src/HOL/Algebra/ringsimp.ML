@@ -57,7 +57,7 @@ in
 
 fun ring_ord a =
   find_index_eq a ["CRing.ring.zero", "CRing.ring.add", "CRing.a_inv",
-  "CRing.minus", "Group.monoid.one", "Group.semigroup.mult"];
+  "CRing.minus", "Group.monoid.one", "Group.monoid.mult"];
 
 fun termless_ring (a, b) = (term_lpo ring_ord (a, b) = LESS);
 
@@ -69,7 +69,7 @@ fun cring_normalise ctxt = let
       | _ => [])
       handle TERM _ => [];
     fun comm_filter t = (case HOLogic.dest_Trueprop t of
-        Const ("Group.comm_semigroup_axioms", _) $ Free (s, _) => [s]
+        Const ("Group.comm_monoid_axioms", _) $ Free (s, _) => [s]
       | _ => [])
       handle TERM _ => [];
 

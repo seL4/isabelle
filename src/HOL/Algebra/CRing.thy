@@ -24,16 +24,18 @@ constdefs (structure R)
   "[| x \<in> carrier R; y \<in> carrier R |] ==> x \<ominus> y == x \<oplus> (\<ominus> y)"
 
 locale abelian_monoid = struct G +
-  assumes a_comm_monoid: "comm_monoid (| carrier = carrier G,
-      mult = add G, one = zero G |)"
+  assumes a_comm_monoid:
+     "comm_monoid (| carrier = carrier G, mult = add G, one = zero G |)"
+
 
 text {*
   The following definition is redundant but simple to use.
 *}
 
 locale abelian_group = abelian_monoid +
-  assumes a_comm_group: "comm_group (| carrier = carrier G,
-      mult = add G, one = zero G |)"
+  assumes a_comm_group:
+     "comm_group (| carrier = carrier G, mult = add G, one = zero G |)"
+
 
 subsection {* Basic Properties *}
 
@@ -66,35 +68,19 @@ lemma abelian_groupI:
       abelian_group_axioms.intro comm_monoidI comm_groupI
     intro: prems)
 
-(* TODO: The following thms are probably unnecessary. *)
-
-lemma (in abelian_monoid) a_magma:
-  "magma (| carrier = carrier G, mult = add G, one = zero G |)"
-  by (rule comm_monoid.axioms) (rule a_comm_monoid)
-
-lemma (in abelian_monoid) a_semigroup:
-  "semigroup (| carrier = carrier G, mult = add G, one = zero G |)"
-  by (unfold semigroup_def) (fast intro: comm_monoid.axioms a_comm_monoid)
-
 lemma (in abelian_monoid) a_monoid:
   "monoid (| carrier = carrier G, mult = add G, one = zero G |)"
-  by (unfold monoid_def) (fast intro: a_comm_monoid comm_monoid.axioms)
+by (rule comm_monoid.axioms, rule a_comm_monoid) 
 
 lemma (in abelian_group) a_group:
   "group (| carrier = carrier G, mult = add G, one = zero G |)"
-  by (unfold group_def semigroup_def)
-    (fast intro: comm_group.axioms a_comm_group)
+by (simp add: group_def a_monoid comm_group.axioms a_comm_group) 
 
-lemma (in abelian_monoid) a_comm_semigroup:
-  "comm_semigroup (| carrier = carrier G, mult = add G, one = zero G |)"
-  by (unfold comm_semigroup_def semigroup_def)
-    (fast intro: comm_monoid.axioms a_comm_monoid)
-
-lemmas monoid_record_simps = partial_object.simps semigroup.simps monoid.simps
+lemmas monoid_record_simps = partial_object.simps monoid.simps
 
 lemma (in abelian_monoid) a_closed [intro, simp]:
-  "[| x \<in> carrier G; y \<in> carrier G |] ==> x \<oplus> y \<in> carrier G"
-  by (rule magma.m_closed [OF a_magma, simplified monoid_record_simps]) 
+  "\<lbrakk> x \<in> carrier G; y \<in> carrier G \<rbrakk> \<Longrightarrow> x \<oplus> y \<in> carrier G"
+  by (rule monoid.m_closed [OF a_monoid, simplified monoid_record_simps]) 
 
 lemma (in abelian_monoid) zero_closed [intro, simp]:
   "\<zero> \<in> carrier G"
@@ -120,9 +106,9 @@ lemma (in abelian_group) a_r_cancel [simp]:
   by (rule group.r_cancel [OF a_group, simplified monoid_record_simps])
 
 lemma (in abelian_monoid) a_assoc:
-  "[| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
+  "\<lbrakk>x \<in> carrier G; y \<in> carrier G; z \<in> carrier G\<rbrakk> \<Longrightarrow>
   (x \<oplus> y) \<oplus> z = x \<oplus> (y \<oplus> z)"
-  by (rule semigroup.m_assoc [OF a_semigroup, simplified monoid_record_simps])
+  by (rule monoid.m_assoc [OF a_monoid, simplified monoid_record_simps])
 
 lemma (in abelian_monoid) l_zero [simp]:
   "x \<in> carrier G ==> \<zero> \<oplus> x = x"
@@ -134,15 +120,15 @@ lemma (in abelian_group) l_neg:
     group.l_inv [OF a_group, simplified monoid_record_simps])
 
 lemma (in abelian_monoid) a_comm:
-  "[| x \<in> carrier G; y \<in> carrier G |] ==> x \<oplus> y = y \<oplus> x"
-  by (rule comm_semigroup.m_comm [OF a_comm_semigroup,
+  "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk> \<Longrightarrow> x \<oplus> y = y \<oplus> x"
+  by (rule comm_monoid.m_comm [OF a_comm_monoid,
     simplified monoid_record_simps])
 
 lemma (in abelian_monoid) a_lcomm:
-  "[| x \<in> carrier G; y \<in> carrier G; z \<in> carrier G |] ==>
+  "\<lbrakk>x \<in> carrier G; y \<in> carrier G; z \<in> carrier G\<rbrakk> \<Longrightarrow>
    x \<oplus> (y \<oplus> z) = y \<oplus> (x \<oplus> z)"
-  by (rule comm_semigroup.m_lcomm [OF a_comm_semigroup,
-    simplified monoid_record_simps])
+  by (rule comm_monoid.m_lcomm [OF a_comm_monoid,
+                                simplified monoid_record_simps])
 
 lemma (in abelian_monoid) r_zero [simp]:
   "x \<in> carrier G ==> x \<oplus> \<zero> = x"
@@ -329,7 +315,7 @@ lemma ringI:
       ==> z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y"
   shows "ring R"
   by (auto intro: ring.intro
-    abelian_group.axioms monoid.axioms ring_axioms.intro prems)
+    abelian_group.axioms ring_axioms.intro prems)
 
 lemma (in ring) is_abelian_group:
   "abelian_group R"
@@ -356,13 +342,12 @@ lemma cringI:
       note [simp]= comm_monoid.axioms [OF comm_monoid]
         abelian_group.axioms [OF abelian_group]
         abelian_monoid.a_closed
-        magma.m_closed
         
       from R have "z \<otimes> (x \<oplus> y) = (x \<oplus> y) \<otimes> z"
-        by (simp add: comm_semigroup.m_comm [OF comm_semigroup.intro])
+        by (simp add: comm_monoid.m_comm [OF comm_monoid.intro])
       also from R have "... = x \<otimes> z \<oplus> y \<otimes> z" by (simp add: l_distr)
       also from R have "... = z \<otimes> x \<oplus> z \<otimes> y"
-        by (simp add: comm_semigroup.m_comm [OF comm_semigroup.intro])
+        by (simp add: comm_monoid.m_comm [OF comm_monoid.intro])
       finally show "z \<otimes> (x \<oplus> y) = z \<otimes> x \<oplus> z \<otimes> y" .
     qed
   qed (auto intro: cring.intro

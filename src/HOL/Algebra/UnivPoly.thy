@@ -402,11 +402,6 @@ lemma (in UP_cring) UP_monoid:
     UP_cring)
 (* TODO: provide cring.is_monoid *)
 
-lemma (in UP_cring) UP_comm_semigroup:
-  "comm_semigroup P"
-  by (fast intro!: cring.is_comm_monoid comm_monoid.axioms comm_semigroup.intro
-    UP_cring)
-
 lemma (in UP_cring) UP_comm_monoid:
   "comm_monoid P"
   by (fast intro!: cring.is_comm_monoid UP_cring)
@@ -441,7 +436,7 @@ lemmas (in UP_cring) UP_nat_pow_pow =
   monoid.nat_pow_pow [OF UP_monoid]
 
 lemmas (in UP_cring) UP_m_lcomm =
-  comm_semigroup.m_lcomm [OF UP_comm_semigroup]
+  comm_monoid.m_lcomm [OF UP_comm_monoid]
 
 lemmas (in UP_cring) UP_m_ac = UP_m_assoc UP_m_comm UP_m_lcomm
 
