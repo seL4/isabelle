@@ -12,14 +12,23 @@ infix 0 ||;
 
 signature BASIC_SCAN =
 sig
+  (* error msg handler *)
   val !! : ('a * string option -> string) -> ('a -> 'b) -> 'a -> 'b
+  (* apply function *)
   val >> : ('a -> 'b * 'c) * ('b -> 'd) -> 'a -> 'd * 'c
+  (* alternative *)
   val || : ('a -> 'b) * ('a -> 'b) -> 'a -> 'b
+  (* sequential pairing *)
   val -- : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> ('b * 'd) * 'e
+  (* dependent pairing *)
   val :-- : ('a -> 'b * 'c) * ('b -> 'c -> 'd * 'e) -> 'a -> ('b * 'd) * 'e
+  (* forget fst *)
   val |-- : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> 'd * 'e
+  (* forget snd *)                                
   val --| : ('a -> 'b * 'c) * ('c -> 'd * 'e) -> 'a -> 'b * 'e
+  (* concatenation *)
   val ^^ : ('a -> string * 'b) * ('b -> string * 'c) -> 'a -> string * 'c
+  (* one element literal *)
   val $$ : ''a -> ''a list -> ''a * ''a list
 end;
 
@@ -83,21 +92,59 @@ exception ABORT of string;              (*dead end*)
 
 (* scanner combinators *)
 
-fun (scan >> f) xs = apfst f (scan xs);
+(* dependent pairing *)
+fun (sc1 :-- sc2) toks =
+    let
+        val (x,toks2) = sc1 toks
+        val (y,toks3) = sc2 x toks2
+    in
+        ((x,y),toks3)
+    end
+
+(* sequential pairing *)
+fun (sc1 -- sc2) toks =
+    let
+        val (x,toks2) = sc1 toks
+        val (y,toks3) = sc2 toks2
+    in
+        ((x,y),toks3)
+    end
+
+(* application *)
+fun (sc >> f) toks =
+    let
+        val (x,toks2) = sc toks
+    in
+        (f x,toks2)
+    end
+
+(* forget snd *)
+fun (sc1 --| sc2) toks =
+    let
+        val (x,toks2) = sc1 toks
+        val (_,toks3) = sc2 toks2
+    in
+        (x,toks3)
+    end
+
+(* forget fst *)
+fun (sc1 |-- sc2) toks =
+    let
+        val (_,toks2) = sc1 toks
+    in
+        sc2 toks2
+    end
+
+(* concatenation *)
+fun (sc1 ^^ sc2) toks =
+    let
+        val (x,toks2) = sc1 toks
+        val (y,toks3) = sc2 toks2
+    in
+        (x^y,toks3)
+    end
 
 fun (scan1 || scan2) xs = scan1 xs handle FAIL _ => scan2 xs;
-
-(*dependent pairing*)
-fun (scan1 :-- scan2) xs =
-  let
-    val (x, ys) = scan1 xs;
-    val (y, zs) = scan2 x ys;
-  in ((x, y), zs) end;
-
-fun (scan1 -- scan2) = scan1 :-- (fn _ => scan2);
-fun (scan1 |-- scan2) = scan1 -- scan2 >> #2;
-fun (scan1 --| scan2) = scan1 -- scan2 >> #1;
-fun (scan1 ^^ scan2) = scan1 -- scan2 >> op ^;
 
 
 (* generic scanners *)
@@ -119,17 +166,37 @@ fun any _ [] = raise MORE None
       if pred x then apfst (cons x) (any pred xs)
       else ([], lst);
 
-fun any1 pred = one pred -- any pred >> op ::;
+fun any1 p toks =
+    let
+        val (x,toks2) = one p toks
+        val (xs,toks3) = any p toks2
+    in
+        (x::xs,toks3)
+    end
 
-fun optional scan def = scan || succeed def;
-fun option scan = optional (scan >> Some) None;
+fun optional scan def =  scan || succeed def
+fun option scan = (scan >> Some) || succeed None
 
 fun repeat scan =
-  let fun rep ys xs = (case (Some (scan xs) handle FAIL _ => None) of
-    None => (rev ys, xs) | Some (y, xs') => rep (y :: ys) xs')
-  in rep [] end;
+    let
+        fun R xs toks =
+            let
+                val (x,toks2) = scan toks
+            in
+                R (x::xs) toks2
+            end
+            handle FAIL _ => (rev xs,toks)
+    in
+        R []
+    end
 
-fun repeat1 scan = scan -- repeat scan >> op ::;
+fun repeat1 scan toks =
+    let
+        val (x,toks2) = scan toks
+        val (xs,toks3) = repeat scan toks2
+    in
+        (x::xs,toks3)
+    end
 
 fun max leq scan1 scan2 xs =
   (case (option scan1 xs, option scan2 xs) of
