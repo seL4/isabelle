@@ -332,11 +332,11 @@ fun ins_ix (x,xs) = if mem_ix (x, xs) then xs else x :: xs;
 (*Tests whether 2 terms are alpha-convertible and have same type.
   Note that constants and Vars may have more than one type.*)
 fun (Const(a,T)) aconv (Const(b,U)) = a=b  andalso  T=U
-  | (Free(a,T)) aconv (Free(b,U)) = a=b  andalso  T=U
-  | (Var(v,T)) aconv (Var(w,U)) =   eq_ix(v,w)  andalso  T=U
-  | (Bound i) aconv (Bound j)  =   i=j
+  | (Free(a,T))  aconv (Free(b,U))  = a=b  andalso  T=U
+  | (Var(v,T))   aconv (Var(w,U))   = eq_ix(v,w)  andalso  T=U
+  | (Bound i)    aconv (Bound j)    = i=j
   | (Abs(_,T,t)) aconv (Abs(_,U,u)) = t aconv u  andalso  T=U
-  | (f$t) aconv (g$u) = (f aconv g) andalso (t aconv u)
+  | (f$t)        aconv (g$u)        = (f aconv g) andalso (t aconv u)
   | _ aconv _  =  false;
 
 (** Membership, insertion, union for terms **)
