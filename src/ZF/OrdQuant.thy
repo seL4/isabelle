@@ -135,7 +135,8 @@ by blast
 
 (*Congruence rule for rewriting*)
 lemma oall_cong [cong]:
-    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] ==> oall(a,P) <-> oall(a',P')"
+    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] 
+     ==> oall(a, %x. P(x)) <-> oall(a', %x. P'(x))"
 by (simp add: oall_def)
 
 
@@ -158,7 +159,8 @@ apply (simp add: oex_def, blast)
 done
 
 lemma oex_cong [cong]:
-    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] ==> oex(a,P) <-> oex(a',P')"
+    "[| a=a';  !!x. x<a' ==> P(x) <-> P'(x) |] 
+     ==> oex(a, %x. P(x)) <-> oex(a', %x. P'(x))"
 apply (simp add: oex_def cong add: conj_cong)
 done
 
@@ -231,7 +233,8 @@ by (simp add: rall_def)
 
 (*Congruence rule for rewriting*)
 lemma rall_cong [cong]:
-    "(!!x. M(x) ==> P(x) <-> P'(x)) ==> rall(M,P) <-> rall(M,P')"
+    "(!!x. M(x) ==> P(x) <-> P'(x)) 
+     ==> rall(M, %x. P(x)) <-> rall(M, %x. P'(x))"
 by (simp add: rall_def)
 
 (*** Relativized existential quantifier ***)
@@ -255,8 +258,15 @@ lemma rex_triv [simp]: "(EX x[M]. P) <-> ((EX x. M(x)) & P)"
 by (simp add: rex_def)
 
 lemma rex_cong [cong]:
-    "(!!x. M(x) ==> P(x) <-> P'(x)) ==> rex(M,P) <-> rex(M,P')"
+    "(!!x. M(x) ==> P(x) <-> P'(x)) 
+     ==> rex(M, %x. P(x)) <-> rex(M, %x. P'(x))"
 by (simp add: rex_def cong: conj_cong)
+
+lemma rall_is_ball [simp]: "(\<forall>x[%z. z\<in>A]. P(x)) <-> (\<forall>x\<in>A. P(x))"
+by blast
+
+lemma rex_is_bex [simp]: "(\<exists>x[%z. z\<in>A]. P(x)) <-> (\<exists>x\<in>A. P(x))"
+by blast
 
 lemma atomize_rall: "(!!x. M(x) ==> P(x)) == Trueprop (ALL x[M]. P(x))";
 by (simp add: rall_def atomize_all atomize_imp)
@@ -276,7 +286,7 @@ lemma rall_simps2:
      "(ALL x[M]. P --> Q(x)) <-> (P --> (ALL x[M]. Q(x)))"
 by blast+
 
-lemmas rall_simps = rall_simps1 rall_simps2
+lemmas rall_simps [simp] = rall_simps1 rall_simps2
 
 lemma rall_conj_distrib:
     "(ALL x[M]. P(x) & Q(x)) <-> ((ALL x[M]. P(x)) & (ALL x[M]. Q(x)))"
@@ -295,7 +305,7 @@ lemma rex_simps2:
      "(EX x[M]. P --> Q(x)) <-> (((ALL x[M]. False) | P) --> (EX x[M]. Q(x)))"
 by blast+
 
-lemmas rex_simps = rex_simps1 rex_simps2
+lemmas rex_simps [simp] = rex_simps1 rex_simps2
 
 lemma rex_disj_distrib:
     "(EX x[M]. P(x) | Q(x)) <-> ((EX x[M]. P(x)) | (EX x[M]. Q(x)))"
