@@ -7,7 +7,7 @@ The "filter" functional for coinductive lists
   --defined by a combination of induction and coinduction
 *)
 
-LFilter = LList + Relation +
+LFilter = LList +
 
 consts
   findRel	:: "('a => bool) => ('a llist * 'a llist)set"

@@ -58,15 +58,15 @@ bind_thm ("thms_notE", (thms.MP RS thms_falseE));
 
 (** The function eval **)
 
-Goalw [eval_def] "tt[false] = False";
+Goalw [eval_def] "tt[[false]] = False";
 by (Simp_tac 1);
 qed "eval_false";
 
-Goalw [eval_def] "tt[#v] = (v:tt)";
+Goalw [eval_def] "tt[[#v]] = (v:tt)";
 by (Simp_tac 1);
 qed "eval_var";
 
-Goalw [eval_def] "tt[p->q] = (tt[p]-->tt[q])";
+Goalw [eval_def] "tt[[p->q]] = (tt[[p]]-->tt[[q]])";
 by (Simp_tac 1);
 qed "eval_imp";
 
@@ -98,7 +98,7 @@ by (rtac (premp RS weaken_left_insert) 1);
 qed "imp_false";
 
 (*This formulation is required for strong induction hypotheses*)
-Goal "hyps p tt |- (if tt[p] then p else p->false)";
+Goal "hyps p tt |- (if tt[[p]] then p else p->false)";
 by (rtac (split_if RS iffD2) 1);
 by (induct_tac "p" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [thms_I, thms.H])));

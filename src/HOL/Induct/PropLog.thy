@@ -6,7 +6,7 @@
 Inductive definition of propositional logic.
 *)
 
-PropLog = Finite + Datatype +
+PropLog = Main +
 
 datatype
     'a pl = false | var 'a ("#_" [1000]) | "->" ('a pl) ('a pl) (infixr 90)
@@ -15,7 +15,7 @@ consts
   "|-"  :: ['a pl set, 'a pl] => bool   (infixl 50)
   "|="  :: ['a pl set, 'a pl] => bool   (infixl 50)
   eval2 :: ['a pl, 'a set] => bool
-  eval  :: ['a set, 'a pl] => bool      ("_[_]" [100,0] 100)
+  eval  :: ['a set, 'a pl] => bool      ("_[[_]]" [100,0] 100)
   hyps  :: ['a pl, 'a set] => 'a pl set
 
 translations
@@ -30,8 +30,8 @@ inductive "thms(H)"
   MP  "[| H |- p->q; H |- p |] ==> H |- q"
 
 defs
-  sat_def  "H |= p  ==  (!tt. (!q:H. tt[q]) --> tt[p])"
-  eval_def "tt[p] == eval2 p tt"
+  sat_def  "H |= p  ==  (!tt. (!q:H. tt[[q]]) --> tt[[p]])"
+  eval_def "tt[[p]] == eval2 p tt"
 
 primrec
   "eval2(false) = (%x. False)"

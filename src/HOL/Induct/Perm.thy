@@ -6,7 +6,7 @@
 Permutations: example of an inductive definition
 *)
 
-Perm = List +
+Perm = Main +
 
 consts  perm    :: "('a list * 'a list) set"   
 syntax "@perm"  :: ['a list, 'a list] => bool ("_ <~~> _"  [50,50] 50)
