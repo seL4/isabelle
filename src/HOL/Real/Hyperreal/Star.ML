@@ -492,6 +492,12 @@ by (dres_inst_tac [("x","m")] spec 1);
 by (Fuf_tac 1);
 qed "inf_close_FreeUltrafilterNat_iff";
 
+Goal "inj starfun";
+by (rtac injI 1);
+by (rtac ext 1 THEN rtac ccontr 1);
+by (dres_inst_tac [("x","Abs_hypreal(hyprel ^^{%n. xa})")] fun_cong 1);
+by (auto_tac (claset(),simpset() addsimps [starfun]));
+qed "inj_starfun";
 
 
 
