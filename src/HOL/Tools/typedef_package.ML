@@ -13,6 +13,8 @@ sig
     string -> string list -> thm list -> tactic option -> theory -> theory
   val add_typedef_i: string -> bstring * string list * mixfix ->
     term -> string list -> thm list -> tactic option -> theory -> theory
+  val add_typedef_i_no_def: string -> bstring * string list * mixfix ->
+    term -> string list -> thm list -> tactic option -> theory -> theory
 end;
 
 structure TypedefPackage: TYPEDEF_PACKAGE =
@@ -60,7 +62,7 @@ fun prove_nonempty cset thms usr_tac =
 
 (* gen_add_typedef *)
 
-fun gen_add_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
+fun gen_add_typedef prep_term no_def name (t, vs, mx) raw_set axms thms usr_tac thy =
   let
     val _ = Theory.requires thy "Set" "typedefs";
     val sign = sign_of thy;
@@ -87,11 +89,12 @@ fun gen_add_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
     val AbsC = Const (full_name Abs_name, oldT --> newT);
     val x_new = Free ("x", newT);
     val y_old = Free ("y", oldT);
+    val set' = if no_def then set else setC;
 
     (*axioms*)
-    val rep_type = HOLogic.mk_Trueprop (HOLogic.mk_mem (RepC $ x_new, setC));
+    val rep_type = HOLogic.mk_Trueprop (HOLogic.mk_mem (RepC $ x_new, set'));
     val rep_type_inv = HOLogic.mk_Trueprop (HOLogic.mk_eq (AbsC $ (RepC $ x_new), x_new));
-    val abs_type_inv = Logic.mk_implies (HOLogic.mk_Trueprop (HOLogic.mk_mem (y_old, setC)),
+    val abs_type_inv = Logic.mk_implies (HOLogic.mk_Trueprop (HOLogic.mk_mem (y_old, set')),
       HOLogic.mk_Trueprop (HOLogic.mk_eq (RepC $ (AbsC $ y_old), y_old)));
 
 
@@ -128,11 +131,11 @@ fun gen_add_typedef prep_term name (t, vs, mx) raw_set axms thms usr_tac thy =
     |> Theory.add_arities_i
      [(full_name tname, replicate (length vs) HOLogic.termS, HOLogic.termS)]
     |> Theory.add_consts_i
-     [(name, setT, NoSyn),
-      (Rep_name, newT --> oldT, NoSyn),
-      (Abs_name, oldT --> newT, NoSyn)]
-    |> (PureThy.add_defs_i o map Attribute.none)
-     [(name ^ "_def", Logic.mk_equals (setC, set))]
+     ((if no_def then [] else [(name, setT, NoSyn)]) @
+      [(Rep_name, newT --> oldT, NoSyn),
+       (Abs_name, oldT --> newT, NoSyn)])
+    |> (if no_def then I else (PureThy.add_defs_i o map Attribute.none)
+     [(name ^ "_def", Logic.mk_equals (setC, set))])
     |> (PureThy.add_axioms_i o map Attribute.none)
      [(Rep_name, rep_type),
       (Rep_name ^ "_inverse", rep_type_inv),
@@ -150,8 +153,9 @@ fun read_term sg str =
 fun cert_term sg tm =
   cterm_of sg tm handle TERM (msg, _) => error msg;
 
-val add_typedef = gen_add_typedef read_term;
-val add_typedef_i = gen_add_typedef cert_term;
+val add_typedef = gen_add_typedef read_term false;
+val add_typedef_i = gen_add_typedef cert_term false;
+val add_typedef_i_no_def = gen_add_typedef cert_term true;
 
 
 end;
