@@ -237,63 +237,69 @@ declare trancl_abs [simp]
 
 subsection{*Well-Founded Recursion!*}
 
+
+text{*Alternative definition, minimizing nesting of quantifiers around MH*}
+lemma M_is_recfun_iff:
+   "M_is_recfun(M,MH,r,a,f) <->
+    (\<forall>z[M]. z \<in> f <-> 
+     (\<exists>x[M]. \<exists>f_r_sx[M]. \<exists>y[M]. 
+             MH(x, f_r_sx, y) & pair(M,x,y,z) &
+             (\<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. 
+                pair(M,x,a,xa) & upair(M,x,x,sx) &
+               pre_image(M,r,sx,r_sx) & restriction(M,f,r_sx,f_r_sx) &
+               xa \<in> r)))"
+apply (simp add: M_is_recfun_def)
+apply (rule rall_cong, blast) 
+done
+
+
 (* M_is_recfun :: "[i=>o, [i,i,i]=>o, i, i, i] => o"
    "M_is_recfun(M,MH,r,a,f) ==
      \<forall>z[M]. z \<in> f <->
-            5      4       3       2       1           0
-            (\<exists>x[M]. \<exists>y[M]. \<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. \<exists>f_r_sx[M].
-               pair(M,x,y,z) & pair(M,x,a,xa) & upair(M,x,x,sx) &
+               2      1           0
+new def     (\<exists>x[M]. \<exists>f_r_sx[M]. \<exists>y[M]. 
+             MH(x, f_r_sx, y) & pair(M,x,y,z) &
+             (\<exists>xa[M]. \<exists>sx[M]. \<exists>r_sx[M]. 
+                pair(M,x,a,xa) & upair(M,x,x,sx) &
                pre_image(M,r,sx,r_sx) & restriction(M,f,r_sx,f_r_sx) &
-               xa \<in> r & MH(x, f_r_sx, y))"
+               xa \<in> r)"
 *)
 
-text{*The three arguments of @{term p} are always 5, 0, 4.*}
+text{*The three arguments of @{term p} are always 2, 1, 0 and z*}
 constdefs is_recfun_fm :: "[i, i, i, i]=>i"
  "is_recfun_fm(p,r,a,f) == 
    Forall(Iff(Member(0,succ(f)),
-    Exists(Exists(Exists(Exists(Exists(Exists(
-     And(pair_fm(5,4,6),
-      And(pair_fm(5,a#+7,3),
-       And(upair_fm(5,5,2),
-        And(pre_image_fm(r#+7,2,1),
-         And(restriction_fm(f#+7,1,0),
-          And(Member(3,r#+7), p))))))))))))))"
-
+    Exists(Exists(Exists(
+     And(p, 
+      And(pair_fm(2,0,3),
+       Exists(Exists(Exists(
+	And(pair_fm(5,a#+7,2),
+	 And(upair_fm(5,5,1),
+	  And(pre_image_fm(r#+7,1,0),
+	   And(restriction_fm(f#+7,0,4), Member(2,r#+7)))))))))))))))"
 
 lemma is_recfun_type [TC]:
      "[| p \<in> formula; x \<in> nat; y \<in> nat; z \<in> nat |] 
       ==> is_recfun_fm(p,x,y,z) \<in> formula"
 by (simp add: is_recfun_fm_def)
 
+
 lemma sats_is_recfun_fm:
   assumes MH_iff_sats: 
-      "!!a0 a1 a2 a3 a4 a5 a6. 
-        [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A; a5\<in>A; a6\<in>A|] ==> 
-        MH(a5, a0, a4) <-> 
-       sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,Cons(a4,Cons(a5,Cons(a6,env))))))))"
+      "!!a0 a1 a2 a3. 
+        [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A|] 
+        ==> MH(a2, a1, a0) <-> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,env)))))"
   shows 
       "[|x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
        ==> sats(A, is_recfun_fm(p,x,y,z), env) <->
            M_is_recfun(**A, MH, nth(x,env), nth(y,env), nth(z,env))"
-by (simp add: is_recfun_fm_def M_is_recfun_def MH_iff_sats [THEN iff_sym])
-(*
-apply (rule ball_cong bex_cong iff_cong conj_cong refl iff_refl) +
- sats(A, p,
-   Cons(xf, Cons(xe, Cons(xd, Cons(xc, Cons(xb, Cons(xaa, Cons(xa, env)))))))) 
-\<longleftrightarrow> MH(xaa, xf, xb)
-
-MH(nth(5,env), nth(0,env), nth(4,env)) <-> sats(A, p, env);
-*)
-
-(*      "!!x y z. [|x\<in>A; y\<in>A; z\<in>A|] ==> MH(x,y,z) <-> sats(A, p, env)"
-*)
+by (simp add: is_recfun_fm_def M_is_recfun_iff MH_iff_sats [THEN iff_sym])
 
 lemma is_recfun_iff_sats:
   assumes MH_iff_sats: 
-      "!!a0 a1 a2 a3 a4 a5 a6. 
-        [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A; a5\<in>A; a6\<in>A|] ==> 
-        MH(a5, a0, a4) <-> 
-       sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,Cons(a4,Cons(a5,Cons(a6,env))))))))"
+      "!!a0 a1 a2 a3. 
+        [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A|] 
+        ==> MH(a2, a1, a0) <-> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,env)))))"
   shows
   "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
@@ -320,9 +326,56 @@ apply (intro FOL_reflections function_reflections
              restriction_reflection MH_reflection)
 done
 
-text{*Currently, @{text sats}-theorems for higher-order operators don't seem
-useful.  Reflection theorems do work, though.  This one avoids the repetition
-of the @{text MH}-term. *}
+subsubsection{*The Operator @{term is_wfrec}*}
+
+text{*The three arguments of @{term p} are always 2, 1, 0*}
+
+(* is_wfrec :: "[i=>o, i, [i,i,i]=>o, i, i] => o"
+    "is_wfrec(M,MH,r,a,z) == 
+      \<exists>f[M]. M_is_recfun(M,MH,r,a,f) & MH(a,f,z)" *)
+constdefs is_wfrec_fm :: "[i, i, i, i]=>i"
+ "is_wfrec_fm(p,r,a,z) == 
+    Exists(And(is_recfun_fm(p, succ(r), succ(a), 0),
+           Exists(Exists(Exists(Exists(
+             And(Equal(2,a#+5), And(Equal(1,4), And(Equal(0,z#+5), p)))))))))"
+
+text{*We call @{term p} with arguments a, f, z by equating them with 
+  the corresponding quantified variables with de Bruijn indices 2, 1, 0.*}
+
+text{*There's an additional existential quantifier to ensure that the
+      environments in both calls to MH have the same length.*}
+
+lemma is_wfrec_type [TC]:
+     "[| p \<in> formula; x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> is_wfrec_fm(p,x,y,z) \<in> formula"
+by (simp add: is_wfrec_fm_def) 
+
+lemma sats_is_wfrec_fm:
+  assumes MH_iff_sats: 
+      "!!a0 a1 a2 a3 a4. 
+        [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A|] 
+        ==> MH(a2, a1, a0) <-> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,Cons(a4,env))))))"
+  shows 
+      "[|x \<in> nat; y < length(env); z < length(env); env \<in> list(A)|]
+       ==> sats(A, is_wfrec_fm(p,x,y,z), env) <-> 
+           is_wfrec(**A, MH, nth(x,env), nth(y,env), nth(z,env))"
+apply (frule_tac x=z in lt_length_in_nat, assumption)  
+apply (frule lt_length_in_nat, assumption)  
+apply (simp add: is_wfrec_fm_def sats_is_recfun_fm is_wfrec_def MH_iff_sats [THEN iff_sym], blast) 
+done
+
+
+lemma is_wfrec_iff_sats:
+  assumes MH_iff_sats: 
+      "!!a0 a1 a2 a3 a4. 
+        [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A|] 
+        ==> MH(a2, a1, a0) <-> sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,Cons(a4,env))))))"
+  shows
+  "[|nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+      i \<in> nat; j < length(env); k < length(env); env \<in> list(A)|]
+   ==> is_wfrec(**A, MH, x, y, z) <-> sats(A, is_wfrec_fm(p,i,j,k), env)" 
+by (simp add: sats_is_wfrec_fm [OF MH_iff_sats])
+
 theorem is_wfrec_reflection:
   assumes MH_reflection:
     "!!f' f g h. REFLECTS[\<lambda>x. MH(L, f'(x), f(x), g(x), h(x)), 
@@ -360,6 +413,7 @@ apply (rule DPow_LsetI)
 apply (rename_tac u)
 apply (rule ball_iff_sats imp_iff_sats)+
 apply (rule_tac env="[rplus,u,r]" in tran_closure_iff_sats)
+apply (rule sep_rules | simp)+
 apply (rule sep_rules is_recfun_iff_sats | simp)+
 done
 
@@ -401,7 +455,7 @@ apply (rule DPow_LsetI)
 apply (rename_tac u)
 apply (rule bex_iff_sats ball_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[x,u,B,r]" in mem_iff_sats)
-apply (rule sep_rules tran_closure_iff_sats is_recfun_iff_sats | simp)+
+apply (rule sep_rules list.intros app_type tran_closure_iff_sats is_recfun_iff_sats | simp)+
 done
 
 
@@ -710,8 +764,7 @@ lemma iterates_MH_iff_sats:
        sats(A, iterates_MH_fm(p,i',i,j,k), env)"
 apply (rule iff_sym) 
 apply (rule iff_trans)
-apply (rule sats_iterates_MH_fm [of A is_F], blast)  
-apply simp_all 
+apply (rule sats_iterates_MH_fm [of A is_F], blast, simp_all) 
 done
 (*FIXME: surely proof can be improved?*)
 
@@ -790,6 +843,7 @@ lemma list_replacement1_Reflects:
 by (intro FOL_reflections function_reflections is_wfrec_reflection
           iterates_MH_reflection list_functor_reflection)
 
+
 lemma list_replacement1:
    "L(A) ==> iterates_replacement(L, is_list_functor(L,A), 0)"
 apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
@@ -809,11 +863,10 @@ apply (rule DPow_LsetI)
 apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,n,B,0,Memrel(succ(n))]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def)
 apply (rule sep_rules is_nat_case_iff_sats list_functor_iff_sats
-            is_recfun_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
+            is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
+
 
 lemma list_replacement2_Reflects:
  "REFLECTS
@@ -852,10 +905,8 @@ apply (rule DPow_LsetI)
 apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,B,0,nat]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def)
 apply (rule sep_rules is_nat_case_iff_sats list_functor_iff_sats
-            is_recfun_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
+            is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
 
 
@@ -934,10 +985,8 @@ apply (rule DPow_LsetI)
 apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,n,B,0,Memrel(succ(n))]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def)
 apply (rule sep_rules is_nat_case_iff_sats formula_functor_iff_sats
-            is_recfun_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
+            is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
 
 lemma formula_replacement2_Reflects:
@@ -977,10 +1026,8 @@ apply (rule DPow_LsetI)
 apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,B,0,nat]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def)
 apply (rule sep_rules is_nat_case_iff_sats formula_functor_iff_sats
-            is_recfun_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
+            is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
 
 text{*NB The proofs for type @{term formula} are virtually identical to those
@@ -1239,8 +1286,7 @@ theorem bool_of_o_reflection:
       REFLECTS[\<lambda>x. is_bool_of_o(L, P(L,x), f(x)),  
                \<lambda>i x. is_bool_of_o(**Lset(i), P(**Lset(i),x), f(x))]"
 apply (simp (no_asm) only: is_bool_of_o_def setclass_simps)
-apply (intro FOL_reflections function_reflections) 
-apply assumption+
+apply (intro FOL_reflections function_reflections, assumption+)
 done
 
 
@@ -1274,10 +1320,8 @@ apply (rule DPow_LsetI)
 apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,z,w,Memrel(succ(n))]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def)
 apply (rule sep_rules is_nat_case_iff_sats tl_iff_sats
-            is_recfun_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
+            is_wfrec_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
 
 
@@ -1295,7 +1339,7 @@ lemma M_datatypes_axioms_L: "M_datatypes_axioms(L)"
 theorem M_datatypes_L: "PROP M_datatypes(L)"
   apply (rule M_datatypes.intro)
       apply (rule M_wfrank.axioms [OF M_wfrank_L])+
- apply (rule M_datatypes_axioms_L); 
+ apply (rule M_datatypes_axioms_L) 
  done
 
 lemmas list_closed = M_datatypes.list_closed [OF M_datatypes_L]
@@ -1344,10 +1388,8 @@ apply (rule DPow_LsetI)
 apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,n,B,Memrel(succ(n))]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def)
 apply (rule sep_rules iterates_MH_iff_sats is_nat_case_iff_sats
-             is_recfun_iff_sats big_union_iff_sats quasinat_iff_sats | simp)+
+             is_wfrec_iff_sats big_union_iff_sats quasinat_iff_sats | simp)+
 done
 
 
@@ -1387,10 +1429,8 @@ apply (rule DPow_LsetI)
 apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,B,nat]" in mem_iff_sats)
-apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def)
 apply (rule sep_rules is_nat_case_iff_sats iterates_MH_iff_sats
-              is_recfun_iff_sats big_union_iff_sats quasinat_iff_sats | simp)+
+              is_wfrec_iff_sats big_union_iff_sats quasinat_iff_sats | simp)+
 done
 
 
