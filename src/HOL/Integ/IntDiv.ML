@@ -567,6 +567,18 @@ by (zdiv_undefined_case_tac "c = #0" 1);
 by (blast_tac (claset() addIs [quorem_div_mod RS lemma RS quorem_mod]) 1);
 qed "zmod_zmult1_eq";
 
+Goal "(a*b) mod (c::int) = ((a mod c) * b) mod c";
+by (rtac trans 1);
+by (res_inst_tac [("s","b*a mod c")] trans 1);
+by (rtac zmod_zmult1_eq 2);
+by (ALLGOALS (simp_tac (simpset() addsimps [zmult_commute])));
+qed "zmod_zmult1_eq'";
+
+Goal "(a*b) mod (c::int) = ((a mod c) * (b mod c)) mod c";
+by (rtac (zmod_zmult1_eq' RS trans) 1);
+by (rtac zmod_zmult1_eq 1);
+qed "zmod_zmult_distrib";
+
 Goal "b ~= (#0::int) ==> (a*b) div b = a";
 by (asm_simp_tac (simpset() addsimps [zdiv_zmult1_eq]) 1);
 qed "zdiv_zmult_self1";
@@ -615,7 +627,6 @@ by (blast_tac (claset() addIs [[quorem_div_mod,quorem_div_mod]
 			       MRS lemma RS quorem_mod]) 1);
 qed "zmod_zadd1_eq";
 
-
 Goal "(a mod b) div b = (#0::int)";
 by (zdiv_undefined_case_tac "b = #0" 1);
 by (auto_tac (claset(), 
@@ -633,6 +644,20 @@ by (auto_tac (claset(),
 			   neg_mod_sign, neg_mod_bound, mod_neg_neg_trivial]));
 qed "mod_mod_trivial";
 Addsimps [mod_mod_trivial];
+
+Goal "(a+b) mod (c::int) = ((a mod c) + b) mod c";
+by (rtac (trans RS sym) 1);
+by (rtac zmod_zadd1_eq 1);
+by (Simp_tac 1);
+by (rtac (zmod_zadd1_eq RS sym) 1);
+qed "zmod_zadd_left_eq";
+
+Goal "(a+b) mod (c::int) = (a + (b mod c)) mod c";
+by (rtac (trans RS sym) 1);
+by (rtac zmod_zadd1_eq 1);
+by (Simp_tac 1);
+by (rtac (zmod_zadd1_eq RS sym) 1);
+qed "zmod_zadd_right_eq";
 
 
 Goal "a ~= (#0::int) ==> (a+b) div a = b div a + #1";

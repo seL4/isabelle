@@ -8,7 +8,7 @@ Binary arithmetic for the natural numbers
 This case is simply reduced to that for the non-negative integers
 *)
 
-NatBin = IntDiv +
+NatBin = IntPower +
 
 instance
   nat :: number 
