@@ -47,7 +47,7 @@ lemma "exs P xs = Z"
 
 text {*
 Define a function @{term "is_in x xs"} that checks if @{term x} occurs in
-@{term xs} vorkommt. Now express @{text is_in} via @{term exs}:
+@{term xs}. Now express @{text is_in} via @{term exs}:
 *}
 lemma "is_in a xs = Z"
 (*<*)oops(*>*)
