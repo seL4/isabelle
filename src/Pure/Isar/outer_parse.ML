@@ -313,7 +313,7 @@ val locale_element = group "locale element"
   $$$ "defines" |-- !!! (and_list1 (opt_thm_name ":" -- propp'))
     >> Locale.Defines ||
   $$$ "notes" |-- !!! (and_list1 (opt_thm_name "=" -- xthms1)) >> Locale.Notes ||
-  $$$ "uses" |-- !!! xname >> Locale.Uses);
+  $$$ "uses" |-- !!! xname >> (Locale.Uses o Locale.Locale));
 
 
 (* proof methods *)
