@@ -114,9 +114,9 @@ fun message kind bg en prfx s =
   if pgml () then writeln_default (XML.element kind [] [prefix_lines prfx s])
   else decorated_output bg en prfx s;
 
-val notify = message "notify" (oct_char "360") (oct_char "361") "";
-
 in
+
+val notify = message "notify" (oct_char "360") (oct_char "361") "";
 
 fun setup_messages () =
  (writeln_fn := message "output" "" "" "";
@@ -156,6 +156,30 @@ fun setup_state () =
  (Display.print_current_goals_fn := print_current_goals;
   Toplevel.print_state_fn := print_state;
   Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default));
+
+end;
+
+
+(* result dependency output *)
+
+local
+
+fun tell_thm_deps ths =
+  let
+    val names = map Thm.name_of_thm ths;
+    val refs =
+      foldl (uncurry Proofterm.thms_of_proof) (Symtab.empty, map Thm.proof_of ths)
+      |> Symtab.keys;
+    val deps = refs \\ names \ "";
+  in
+    if null deps then ()
+    else notify ("Proof General, result dependencies are: " ^ space_implode " " (map quote deps))
+  end;
+
+in
+
+fun setup_present_hook () =
+  Present.add_hook (fn _ => fn res => tell_thm_deps (flat (map #2 res)));
 
 end;
 
@@ -311,6 +335,7 @@ fun init isar =
     setup_messages ();
     setup_state ();
     setup_thy_loader ();
+    setup_present_hook ();
     set initialized; ()));
   sync_thy_loader ();
   print_mode := proof_generalN :: (! print_mode \ proof_generalN);
