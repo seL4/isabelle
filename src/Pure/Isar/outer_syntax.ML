@@ -3,10 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 The global Isabelle/Isar outer syntax.
-
-TODO:
-  - cleanup;
-  - avoid string constants;
 *)
 
 signature BASIC_OUTER_SYNTAX =
@@ -46,7 +42,8 @@ sig
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
   val improper_command: string -> string -> string ->
     (token list -> (Toplevel.transition -> Toplevel.transition) * token list) -> parser
-  val dest_syntax: unit -> string list * (string * string) list
+  val dest_keywords: unit -> string list
+  val dest_parsers: unit -> (string * string * string * bool) list
   val print_outer_syntax: unit -> unit
   val add_keywords: string list -> unit
   val add_parsers: parser list -> unit
@@ -104,13 +101,10 @@ fun parser int_only name comment kind parse = Parser (name, (comment, kind), int
 
 local
 
-fun command_name cmd =
-  P.group "command"
-    (P.position (Scan.one (OuterLex.keyword_pred (is_some o cmd)) >> OuterLex.val_of));
-
 fun command_body cmd (name, _) =
-  let val (int_only, parse) = the (cmd name)
-  in P.!!! (Scan.prompt (name ^ "# ") (parse >> pair int_only)) end;
+  (case cmd name of
+    Some (int_only, parse) => P.!!! (Scan.prompt (name ^ "# ") (parse >> pair int_only))
+  | None => sys_error ("no parser for outer syntax command " ^ quote name));
 
 fun terminator false = Scan.succeed ()
   | terminator true = P.group "terminator" (Scan.option P.sync -- P.$$$ ";" >> K ());
@@ -120,7 +114,7 @@ in
 fun command term cmd =
   P.$$$ ";" >> K None ||
   P.sync >> K None ||
-  (command_name cmd :-- command_body cmd) --| terminator term
+  (P.position P.command :-- command_body cmd) --| terminator term
     >> (fn ((name, pos), (int_only, f)) =>
       Some (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
         Toplevel.interactive int_only |> f));
@@ -131,34 +125,36 @@ end;
 
 (** global syntax state **)
 
-val global_lexicon = ref Scan.empty_lexicon;
+local
+
+val global_lexicons = ref (Scan.empty_lexicon, Scan.empty_lexicon);
 val global_parsers = ref (Symtab.empty: ((string * string) * (bool * parser_fn)) Symtab.table);
 
-
-(* print syntax *)
-
-fun dest_syntax () =
-  (map implode (Scan.dest_lexicon (! global_lexicon)),
-    map (fn (name, ((_, kind), _)) => (name, kind)) (Symtab.dest (! global_parsers)));
-
-fun print_outer_syntax () =
-  let
-    val keywords = map implode (Scan.dest_lexicon (! global_lexicon));
-    fun pretty_cmd (name, ((comment, _), _)) =
-      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
-    val (int_cmds, cmds) = partition (#1 o #2 o #2) (Symtab.dest (! global_parsers));
-  in
-    Pretty.writeln (Pretty.strs ("syntax keywords:" :: map quote keywords));
-    Pretty.writeln (Pretty.big_list "proper commands:" (map pretty_cmd cmds));
-    Pretty.writeln (Pretty.big_list "improper commands (interactive-only):"
-      (map pretty_cmd int_cmds))
+fun change_lexicons f =
+  let val lexs = f (! global_lexicons) in
+    (case (op inter_string) (pairself Scan.dest_lexicon lexs) of
+      [] => global_lexicons := lexs
+    | bads => error ("Clash of outer syntax commands and keywords: " ^ commas_quote bads))
   end;
+
+fun change_parsers f = global_parsers := f (! global_parsers);
+
+in
+
+(* get current lexers / parsers *)
+
+(*Note: the syntax for files is statically determined at the very
+  beginning; for interactive processing it may change dynamically.*)
+
+fun get_lexicons () = ! global_lexicons;
+fun get_parsers () = ! global_parsers;
+fun get_parser () = apsome snd o curry Symtab.lookup (! global_parsers);
 
 
 (* augment syntax *)
 
-fun add_keywords keywords =
-  global_lexicon := Scan.extend_lexicon (! global_lexicon) (map Symbol.explode keywords);
+fun add_keywords keywords = change_lexicons (apfst (fn lex =>
+  (Scan.extend_lexicon lex (map Symbol.explode keywords))));
 
 fun add_parser (tab, Parser (name, comment, int_only, parse)) =
  (if is_none (Symtab.lookup (tab, name)) then ()
@@ -166,17 +162,32 @@ fun add_parser (tab, Parser (name, comment, int_only, parse)) =
   Symtab.update ((name, (comment, (int_only, parse))), tab));
 
 fun add_parsers parsers =
-  (global_parsers := foldl add_parser (! global_parsers, parsers);
-    add_keywords (map (fn Parser (name, _, _, _) => name) parsers));
+  (change_parsers (fn tab => foldl add_parser (tab, parsers));
+    change_lexicons (apsnd (fn lex => Scan.extend_lexicon lex
+      (map (fn Parser (name, _, _, _) => Symbol.explode name) parsers))));
+
+end;
 
 
-(* get current lexer / parser *)
+(* print syntax *)
 
-(*Note: the syntax for files is statically determined at the very
-  beginning; for interactive processing it may change dynamically.*)
+fun dest_keywords () = Scan.dest_lexicon (#1 (get_lexicons ()));
 
-fun get_lexicon () = ! global_lexicon;
-fun get_parser () = apsome snd o curry Symtab.lookup (! global_parsers);
+fun dest_parsers () =
+  map (fn (name, ((cmt, kind), (int_only, _))) => (name, cmt, kind, int_only))
+    (Symtab.dest (get_parsers ()));
+
+fun print_outer_syntax () =
+  let
+    fun pretty_cmd (name, comment, _, _) =
+      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
+    val (int_cmds, cmds) = partition #4 (dest_parsers ());
+  in
+    Pretty.writeln (Pretty.strs ("syntax keywords:" :: map quote (dest_keywords ())));
+    Pretty.writeln (Pretty.big_list "proper commands:" (map pretty_cmd cmds));
+    Pretty.writeln (Pretty.big_list "improper commands (interactive-only):"
+      (map pretty_cmd int_cmds))
+  end;
 
 
 
@@ -211,10 +222,10 @@ end;
 
 (* detect header *)
 
-fun scan_header get_lexicon scan (src, pos) =
+fun scan_header get_lex scan (src, pos) =
   src
   |> Symbol.source false
-  |> OuterLex.source false get_lexicon pos
+  |> OuterLex.source false (fn () => (get_lex (), Scan.empty_lexicon)) pos
   |> Source.source OuterLex.stopper (Scan.single scan) None
   |> (fst o the o Source.get_single);
 
@@ -237,7 +248,8 @@ val header_lexicon =
 
 local
 
-val file_name = (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) >> rpair false || P.name >> rpair true;
+val file_name =
+  (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) >> rpair false || P.name >> rpair true;
 
 val theory_head =
   (P.name -- (P.$$$ "=" |-- P.enum1 "+" P.name) --
@@ -291,7 +303,7 @@ fun parse_thy (src, pos) =
     val lex_src =
       src
       |> Symbol.source false
-      |> OuterLex.source false (K (get_lexicon ())) pos;
+      |> OuterLex.source false (K (get_lexicons ())) pos;
     val only_head =
       lex_src
       |> Source.source OuterLex.stopper (Scan.single (Scan.option only_header)) None
@@ -331,7 +343,7 @@ fun load_thy name ml time path =
 fun isar term =
   Source.tty
   |> Symbol.source true
-  |> OuterLex.source true get_lexicon (Position.line_name 1 "stdin")
+  |> OuterLex.source true get_lexicons (Position.line_name 1 "stdin")
   |> source term true get_parser;
 
 

@@ -8,8 +8,8 @@ Outer lexical syntax for Isabelle/Isar.
 signature OUTER_LEX =
 sig
   datatype token_kind =
-    Keyword | Ident | LongIdent | SymIdent | Var | TextVar | TypeIdent | TypeVar | Nat |
-    String | Verbatim | Ignore | Sync | EOF
+    Command | Keyword | Ident | LongIdent | SymIdent | Var | TextVar | TypeIdent | TypeVar |
+    Nat | String | Verbatim | Ignore | Sync | EOF
   type token
   val str_of_kind: token_kind -> string
   val stopper: token * (token -> bool)
@@ -18,14 +18,15 @@ sig
   val position_of: token -> Position.T
   val pos_of: token -> string
   val is_kind: token_kind -> token -> bool
-  val keyword_pred: (string -> bool) -> token -> bool
+  val keyword_with: (string -> bool) -> token -> bool
   val name_of: token -> string
   val is_proper: token -> bool
   val val_of: token -> string
   val is_sid: string -> bool
-  val scan: Scan.lexicon ->
+  val scan: (Scan.lexicon * Scan.lexicon) ->
     Position.T * Symbol.symbol list -> token * (Position.T * Symbol.symbol list)
-  val source: bool -> (unit -> Scan.lexicon) -> Position.T -> (Symbol.symbol, 'a) Source.source ->
+  val source: bool -> (unit -> (Scan.lexicon * Scan.lexicon)) ->
+    Position.T -> (Symbol.symbol, 'a) Source.source ->
     (token, (token, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
 end;
 
@@ -38,13 +39,14 @@ struct
 (* datatype token *)
 
 datatype token_kind =
-  Keyword | Ident | LongIdent | SymIdent | Var | TextVar | TypeIdent | TypeVar | Nat |
-  String | Verbatim | Ignore | Sync | EOF;
+  Command | Keyword | Ident | LongIdent | SymIdent | Var | TextVar | TypeIdent | TypeVar |
+  Nat | String | Verbatim | Ignore | Sync | EOF;
 
 datatype token = Token of Position.T * (token_kind * string);
 
 val str_of_kind =
- fn Keyword => "keyword"
+ fn Command => "command"
+  | Keyword => "keyword"
   | Ident => "identifier"
   | LongIdent => "long identifier"
   | SymIdent => "symbolic identifier"
@@ -87,8 +89,8 @@ val pos_of = Position.str_of o position_of;
 
 fun is_kind k (Token (_, (k', _))) = k = k';
 
-fun keyword_pred pred (Token (_, (Keyword, x))) = pred x
-  | keyword_pred _ _ = false;
+fun keyword_with pred (Token (_, (Keyword, x))) = pred x
+  | keyword_with _ _ = false;
 
 fun name_of (Token (_, (k, _))) = str_of_kind k;
 
@@ -189,7 +191,7 @@ val scan_comment =
 
 (* scan token *)
 
-fun scan lex (pos, cs) =
+fun scan (lex1, lex2) (pos, cs) =
   let
     fun token k x = Token (pos, (k, x));
     fun ignore _ = token Ignore "";
@@ -202,7 +204,9 @@ fun scan lex (pos, cs) =
       scan_comment >> ignore ||
       keep_line (Scan.one Symbol.is_sync >> sync) ||
       keep_line (Scan.max token_leq
-        (Scan.literal lex >> (token Keyword o implode))
+        (Scan.max token_leq
+          (Scan.literal lex1 >> (token Keyword o implode))
+          (Scan.literal lex2 >> (token Command o implode)))
         (Syntax.scan_longid >> token LongIdent ||
           Syntax.scan_id >> token Ident ||
           Syntax.scan_var >> token Var ||

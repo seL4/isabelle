@@ -12,6 +12,7 @@ sig
   val !!! : (token list -> 'a) -> token list -> 'a
   val $$$ : string -> token list -> string * token list
   val position: (token list -> 'a * 'b) -> token list -> ('a * Position.T) * 'b
+  val command: token list -> string * token list
   val keyword: token list -> string * token list
   val short_ident: token list -> string * token list
   val long_ident: token list -> string * token list
@@ -114,6 +115,7 @@ fun kind k =
   group (OuterLex.str_of_kind k)
     (Scan.one (OuterLex.is_kind k) >> OuterLex.val_of);
 
+val command = kind OuterLex.Command;
 val keyword = kind OuterLex.Keyword;
 val short_ident = kind OuterLex.Ident;
 val long_ident = kind OuterLex.LongIdent;
@@ -130,8 +132,7 @@ val eof = kind OuterLex.EOF;
 
 fun $$$ x =
   group (OuterLex.str_of_kind OuterLex.Keyword ^ " " ^ quote x)
-    (Scan.one (OuterLex.is_kind OuterLex.Keyword andf (equal x o OuterLex.val_of))
-      >> OuterLex.val_of);
+    (Scan.one (OuterLex.keyword_with (equal x)) >> OuterLex.val_of);
 
 val nat = number >> (fst o Term.read_int o Symbol.explode);
 
@@ -238,7 +239,7 @@ val termp = term -- Scan.optional ($$$ "(" |-- !!! (is_terms --| $$$ ")")) [];
 
 (* arguments *)
 
-fun keyword_symid is_symid = Scan.one (OuterLex.keyword_pred is_symid) >> OuterLex.val_of;
+fun keyword_symid is_symid = Scan.one (OuterLex.keyword_with is_symid) >> OuterLex.val_of;
 
 fun atom_arg is_symid blk =
   group "argument"
