@@ -1,7 +1,7 @@
-(*  Title: 	pattern
+(*  Title:      Pure/pattern.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow and Christine Heinzelmann, TU Muenchen
-    Copyright   1993  TU Muenchen
+    Author:     Tobias Nipkow, Christine Heinzelmann, and Stefan Berghofer
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Unification of Higher-Order Patterns.
 
@@ -32,6 +32,7 @@ signature PATTERN =
   val unify             : sg * env * (term * term)list -> env
   val first_order       : term -> bool
   val pattern           : term -> bool
+  val rewrite_term      : type_sig -> (term * term) list -> term -> term
   exception Unif
   exception MATCH
   exception Pattern
@@ -47,7 +48,7 @@ type env = Envir.env
 exception Unif;
 exception Pattern;
 
-fun occurs(F,t,env) = 
+fun occurs(F,t,env) =
     let fun occ(Var(G,_))   = (case Envir.lookup(env,G) of
                                  Some(t) => occ t
                                | None    => F=G)
@@ -71,14 +72,14 @@ fun at xs i = nth_elem (i,xs);
 
 fun mkabs (binders,is,t)  =
     let fun mk(i::is) = let val (x,T) = nth_elem(i,binders)
-                        in Abs(x,T,mk is) end 
+                        in Abs(x,T,mk is) end
           | mk []     = t
     in mk is end;
 
 val incr = mapbnd (fn i => i+1);
 
 fun ints_of []             = []
-  | ints_of (Bound i ::bs) = 
+  | ints_of (Bound i ::bs) =
       let val is = ints_of bs
       in if i mem_int is then raise Pattern else i::is end
   | ints_of _              = raise Pattern;
@@ -155,8 +156,8 @@ fun proj(s,env,binders,is) =
 
 
 (* mk_ff_list(is,js) = [ length(is) - k | 1 <= k <= |is| and is[k] = js[k] ] *)
-fun mk_ff_list(is,js) = 
-    let fun mk([],[],_)        = [] 
+fun mk_ff_list(is,js) =
+    let fun mk([],[],_)        = []
           | mk(i::is,j::js, k) = if i=j then k :: mk(is,js,k-1)
                                         else mk(is,js,k-1)
           | mk _               = error"mk_ff_list"
@@ -197,14 +198,14 @@ fun unif binders (env,(s,t)) = case (Envir.head_norm env s, Envir.head_norm env 
     | p => cases(binders,env,p)
 
 and cases(binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
-       ((Var(F,Fty),ss),(Var(G,Gty),ts)) => 
+       ((Var(F,Fty),ss),(Var(G,Gty),ts)) =>
          if F = G then flexflex1(env,binders,F,Fty,ints_of' env ss,ints_of' env ts)
                   else flexflex2(env,binders,F,Fty,ints_of' env ss,G,Gty,ints_of' env ts)
       | ((Var(F,_),ss),_)             => flexrigid(env,binders,F,ints_of' env ss,t)
       | (_,(Var(F,_),ts))             => flexrigid(env,binders,F,ints_of' env ts,s)
       | ((Const c,ss),(Const d,ts))   => rigidrigid(env,binders,c,d,ss,ts)
       | ((Free(f),ss),(Free(g),ts))   => rigidrigid(env,binders,f,g,ss,ts)
-      | ((Bound(i),ss),(Bound(j),ts)) => rigidrigidB (env,binders,i,j,ss,ts) 
+      | ((Bound(i),ss),(Bound(j),ts)) => rigidrigidB (env,binders,i,j,ss,ts)
       | ((Abs(_),_),_)                => raise Pattern
       | (_,(Abs(_),_))                => raise Pattern
       | _                             => raise Unif
@@ -228,11 +229,11 @@ fun unify(sg,env,tus) = (tsgr := #tsig(Sign.rep_sg sg);
 (*Eta-contract a term (fully)*)
 
 (* copying: *)
-fun eta_contract (Abs(a,T,body)) = 
+fun eta_contract (Abs(a,T,body)) =
       (case  eta_contract body  of
-        body' as (f $ Bound 0) => 
-	  if loose_bvar1(f,0) then Abs(a,T,body')
-	  else incr_boundvars ~1 f 
+        body' as (f $ Bound 0) =>
+          if loose_bvar1(f,0) then Abs(a,T,body')
+          else incr_boundvars ~1 f
       | body' => Abs(a,T,body'))
   | eta_contract(f$t) = eta_contract f $ eta_contract t
   | eta_contract t = t;
@@ -242,11 +243,11 @@ val beta_eta_contract = eta_contract o Envir.beta_norm;
 (*Eta-contract a term from outside: just enough to reduce it to an atom
 DOESN'T QUITE WORK!
 *)
-fun eta_contract_atom (t0 as Abs(a, T, body)) = 
+fun eta_contract_atom (t0 as Abs(a, T, body)) =
       (case  eta_contract2 body  of
-        body' as (f $ Bound 0) => 
-	    if loose_bvar1(f,0) then Abs(a,T,body')
-	    else eta_contract_atom (incr_boundvars ~1 f)
+        body' as (f $ Bound 0) =>
+            if loose_bvar1(f,0) then Abs(a,T,body')
+            else eta_contract_atom (incr_boundvars ~1 f)
       | _ => t0)
   | eta_contract_atom t = t
 and eta_contract2 (f$t) = f $ eta_contract_atom t
@@ -259,9 +260,9 @@ fun t aeconv u = aconv_aux (eta_contract_atom t, eta_contract_atom u)
 and aconv_aux (Const(a,T), Const(b,U)) = a=b  andalso  T=U
   | aconv_aux (Free(a,T),  Free(b,U))  = a=b  andalso  T=U
   | aconv_aux (Var(v,T),   Var(w,U))   = eq_ix(v,w) andalso  T=U
-  | aconv_aux (Bound i,	   Bound j)    = i=j
+  | aconv_aux (Bound i,    Bound j)    = i=j
   | aconv_aux (Abs(_,T,t), Abs(_,U,u)) = (t aeconv u)  andalso  T=U
-  | aconv_aux (f$t,	   g$u)        = (f aeconv g)  andalso (t aeconv u)
+  | aconv_aux (f$t,        g$u)        = (f aeconv g)  andalso (t aeconv u)
   | aconv_aux _ =  false;
 
 
@@ -283,18 +284,18 @@ fun fomatch tsig =
   let
     fun mtch (instsp as (tyinsts,insts)) = fn
         (Var(ixn,T), t)  =>
-	  if loose_bvar(t,0) then raise MATCH
-	  else (case assoc_string_int(insts,ixn) of
-		  None => (typ_match tsig (tyinsts, (T, fastype_of t)), 
-			   (ixn,t)::insts)
-		| Some u => if t aeconv u then instsp else raise MATCH)
+          if loose_bvar(t,0) then raise MATCH
+          else (case assoc_string_int(insts,ixn) of
+                  None => (typ_match tsig (tyinsts, (T, fastype_of t)),
+                           (ixn,t)::insts)
+                | Some u => if t aeconv u then instsp else raise MATCH)
       | (Free (a,T), Free (b,U)) =>
-	  if a=b then (typ_match tsig (tyinsts,(T,U)), insts) else raise MATCH
+          if a=b then (typ_match tsig (tyinsts,(T,U)), insts) else raise MATCH
       | (Const (a,T), Const (b,U))  =>
-	  if a=b then (typ_match tsig (tyinsts,(T,U)), insts) else raise MATCH
+          if a=b then (typ_match tsig (tyinsts,(T,U)), insts) else raise MATCH
       | (Bound i, Bound j)  =>  if  i=j  then  instsp  else raise MATCH
       | (Abs(_,T,t), Abs(_,U,u))  =>
-	  mtch (typ_match tsig (tyinsts,(T,U)),insts) (t,u)
+          mtch (typ_match tsig (tyinsts,(T,U)),insts) (t,u)
       | (f$t, g$u) => mtch (mtch instsp (f,g)) (t, u)
       | (t, Abs(_,U,u))  =>  mtch instsp ((incr t)$(Bound 0), u)
       | _ => raise MATCH
@@ -393,5 +394,49 @@ fun pattern(Abs(_,_,t)) = pattern t
                          handle Pattern => false
                     else forall pattern args
                  end;
+
+
+(* rewriting -- simple but fast *)
+
+fun rewrite_term tsig rules tm =
+  let
+    fun match_rew tm (tm1, tm2) =
+      Some (subst_vars (match tsig (tm1, tm)) tm2) handle MATCH => None;
+
+    fun rew (Abs (_, _, body) $ t) = Some (subst_bound (t, body))
+      | rew tm = get_first (match_rew tm) rules;
+
+    fun rew0 (tm as Abs (_, _, tm' $ Bound 0)) =
+          if loose_bvar1 (tm', 0) then rew tm
+          else
+            let val tm'' = incr_boundvars ~1 tm'
+            in Some (if_none (rew tm'') tm'') end
+      | rew0 tm = rew tm;
+
+    fun rew1 tm = (case rew2 tm of
+          Some tm1 => (case rew0 tm1 of
+              Some tm2 => Some (if_none (rew1 tm2) tm2)
+            | None => Some tm1)
+        | None => (case rew0 tm of
+              Some tm1 => Some (if_none (rew1 tm1) tm1)
+            | None => None))
+
+    and rew2 (tm1 $ tm2) = (case tm1 of
+            Abs (_, _, body) =>
+              let val tm' = subst_bound (tm2, body)
+              in Some (if_none (rew2 tm') tm') end
+          | _ => (case rew1 tm1 of
+              Some tm1' => (case rew1 tm2 of
+                  Some tm2' => Some (tm1' $ tm2')
+                | None => Some (tm1' $ tm2))
+            | None => (case rew1 tm2 of
+                  Some tm2' => Some (tm1 $ tm2')
+                | None => None)))
+      | rew2 (Abs (x, T, tm)) = (case rew1 tm of
+            Some tm' => Some (Abs (x, T, tm'))
+          | None => None)
+      | rew2 _ = None
+
+  in if_none (rew1 tm) tm end;
 
 end;
