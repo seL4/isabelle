@@ -55,11 +55,7 @@ open TypeExt Parser.Lexicon Parser.SynExt.Ast Parser.SynExt Parser;
 fun appl_ast_tr [f, args] = Appl (f :: unfold_ast "_args" args)
   | appl_ast_tr asts = raise_ast "appl_ast_tr" asts;
 
-fun applC_ast_tr [f, arg] =
-      let fun unfold_ast_c (y as Appl (Constant _ :: _)) = [y]
-            | unfold_ast_c (Appl xs) = xs
-            | unfold_ast_c y = [y];
-      in Appl ((unfold_ast_c f) @ [arg]) end
+fun applC_ast_tr (asts as (f::args)) = Appl asts
   | applC_ast_tr asts = raise_ast "applC_ast_tr" asts;
 
 
@@ -139,16 +135,6 @@ fun applC_ast_tr' (f, []) = raise_ast "applC_ast_tr'" [f]
             | fold (x :: xs) result =
                 fold xs (Appl [Constant "_applC", result, x]);
       in fold args (Appl [Constant "_applC", f, arg]) end;
-(*
-        f a b c  ()
-        ("_applC" f a)
-
-        b c      ("_applC" f a)
-	("_applC" ("_applC" f a) b)
-
-        c	 ("_applC" ("_applC" f a) b)
-	("_applC" ("_applC" ("_applC" f a) b) c)
-*)
 
 
 (* abstraction *)
@@ -297,12 +283,26 @@ fun pt_to_ast trf pt =
       (case trf a of
         None => mk_appl (Constant a) args
       | Some f => f args handle exn
-          => (writeln ("Error in parse ast translation for " ^ quote a); raise exn));
+          => (writeln ("Error in parse ast translation for " ^ quote a);
+              raise exn));
 
+    (*translate pt bottom-up*)
     fun ast_of (Node (a, pts)) = trans a (map ast_of pts)
       | ast_of (Tip tok) = Variable (str_of_token tok);
+
+    (*unfold curried application top-down (needed for CPure)*)
+    fun unfold_applC (Node ("_applC", pts)) =
+          let (*translate (applC(applC(f,a),b),c) to (f,a,b,c)*)
+              fun unfold [Node ("_applC", pts), arg] = (unfold pts) @ [arg]
+                | unfold n = n
+          in Node ("_applC", map unfold_applC (unfold pts))
+                                (*top "_applC" is removed by applC_ast_tr;
+                                  note that arguments are unfolded separately*)
+          end
+      | unfold_applC (Node (a, pts)) = Node (a, map unfold_applC pts)
+      | unfold_applC tip = tip
   in
-    ast_of pt
+    ast_of (unfold_applC pt)
   end;
 
 
@@ -315,7 +315,8 @@ fun ast_to_term trf ast =
       (case trf a of
         None => list_comb (const a, args)
       | Some f => f args handle exn
-          => (writeln ("Error in parse translation for " ^ quote a); raise exn));
+          => (writeln ("Error in parse translation for " ^ quote a);
+              raise exn));
 
     fun term_of (Constant a) = trans a []
       | term_of (Variable x) = scan_var x
@@ -330,4 +331,3 @@ fun ast_to_term trf ast =
 
 
 end;
-
