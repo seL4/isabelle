@@ -6,8 +6,8 @@
 
 Delsplits [split_if];
 goalw thy [is_maxpref_def] "!(ps::'a list) res. \
-\ (maxsplit P ps qs res = (xs,ys)) = \
-\ (if (? us. us <= qs & P(ps@us)) then xs@ys=ps@qs & is_maxpref P xs (ps@qs) \
+\ (maxsplit P res ps qs = (xs,ys)) = \
+\ (if ? us. us <= qs & P(ps@us) then xs@ys=ps@qs & is_maxpref P xs (ps@qs) \
 \  else (xs,ys)=res)";
 by(induct_tac "qs" 1);
  by(simp_tac (simpset() addsplits [split_if]) 1);
@@ -56,7 +56,7 @@ qed "is_maxpref_Nil";
 Addsimps [is_maxpref_Nil];
 
 goalw thy [is_maxsplitter_def]
- "is_maxsplitter P (%xs. maxsplit P [] xs ([],xs))";
+ "is_maxsplitter P (%xs. maxsplit P ([],xs) [] xs)";
 by(simp_tac (simpset() addsimps [maxsplit_lemma]) 1);
 by(fast_tac (claset() addss simpset()) 1);
 qed "is_maxsplitter_maxsplit";

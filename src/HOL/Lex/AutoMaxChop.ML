@@ -9,8 +9,8 @@ by(Simp_tac 1);
 qed "delta_snoc";
 
 goal thy
- "!q ps res. auto_split A (delta A ps q) ps xs res = \
-\            maxsplit (%ys. fin A (delta A ys q)) ps xs res";
+ "!q ps res. auto_split A (delta A ps q) res ps xs = \
+\            maxsplit (%ys. fin A (delta A ys q)) res ps xs";
 by(induct_tac "xs" 1);
 by(Simp_tac 1);
 by(asm_simp_tac (simpset() addsimps [delta_snoc RS sym]
@@ -18,14 +18,14 @@ by(asm_simp_tac (simpset() addsimps [delta_snoc RS sym]
 qed_spec_mp "auto_split_lemma";
 
 goalw thy [accepts_def]
- "auto_split A (start A) [] xs res = maxsplit (accepts A) [] xs res";
+ "auto_split A (start A) res [] xs = maxsplit (accepts A) res [] xs";
 by(stac ((read_instantiate [("s","start A")] delta_Nil) RS sym) 1);
 by(stac auto_split_lemma 1);
 by(Simp_tac 1);
 qed_spec_mp "auto_split_is_maxsplit";
 
 goal thy
- "is_maxsplitter (accepts A) (%xs. auto_split A (start A) [] xs ([],xs))";
+ "is_maxsplitter (accepts A) (%xs. auto_split A (start A) ([],xs) [] xs)";
 by(simp_tac (simpset() addsimps
         [auto_split_is_maxsplit,is_maxsplitter_maxsplit]) 1);
 qed "is_maxsplitter_auto_split";

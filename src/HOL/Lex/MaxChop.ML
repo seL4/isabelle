@@ -6,7 +6,7 @@
 
 (* Termination of chop *)
 
-goalw thy [reducing_def] "reducing(%qs. maxsplit P [] qs ([],qs))";
+goalw thy [reducing_def] "reducing(%qs. maxsplit P ([],qs) [] qs)";
 by(asm_full_simp_tac (simpset() addsimps [maxsplit_eq]) 1);
 qed "reducing_maxsplit";
 

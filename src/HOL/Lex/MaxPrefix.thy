@@ -18,10 +18,9 @@ constdefs
  (!xs ps qs. f xs = (ps,qs) = (xs=ps@qs & is_maxpref P ps xs))"
 
 consts
- maxsplit :: "('a list => bool) => 'a list => 'a list => 'a list * 'a list
-              => 'a list * 'a list"
+ maxsplit :: "('a list => bool) => 'a list * 'a list => 'a list => 'a splitter"
 primrec maxsplit list
-"maxsplit P ps []     res = (if P ps then (ps,[]) else res)"
-"maxsplit P ps (q#qs) res = maxsplit P (ps@[q]) qs
-                               (if P ps then (ps,q#qs) else res)"
+"maxsplit P res ps []     = (if P ps then (ps,[]) else res)"
+"maxsplit P res ps (q#qs) = maxsplit P (if P ps then (ps,q#qs) else res)
+                                     (ps@[q]) qs"
 end
