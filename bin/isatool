@@ -38,7 +38,7 @@ function usage()
       for T in *
       do
         if [ -f "$T" -a -x "$T" ]; then
-          DESCRLINE=$(grep DESCRIPTION: "$T" | sed -e 's/^.*DESCRIPTION: *//')
+          DESCRLINE=$(fgrep DESCRIPTION: "$T" | sed -e 's/^.*DESCRIPTION: *//')
           echo "    $T - $DESCRLINE"
         fi
       done
