@@ -182,7 +182,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val (thy1, {intrs = rec_intrs, elims = rec_elims, ...}) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (InductivePackage.add_inductive_i false true big_rec_name' false false true
-           rec_sets (map (fn x => (("", x), [])) rec_intr_ts) [fun_rel_comp_mono] []) thy0;
+           rec_sets (map (fn x => (("", x), [])) rec_intr_ts) [fun_rel_comp_mono]) thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 

@@ -54,7 +54,7 @@ fun inductive_decl coind =
     val no_atts = map (mk_pair o rpair "[]");
     fun mk_intr_name (s, _) =   (*the "op" cancels any infix status*)
       if Syntax.is_identifier s then "op " ^ s else "_";
-    fun mk_params (((recs, ipairs), monos), con_defs) =
+    fun mk_params ((recs, ipairs), monos) =
       let val big_rec_name = space_implode "_" (map (scan_to_id o unenclose) recs)
           and srec_tms = mk_list recs
           and sintrs   = mk_big_list (no_atts (map (mk_pair o apfst quote) ipairs))
@@ -64,7 +64,7 @@ fun inductive_decl coind =
         \val (thy, {defs, mono, unfold, intrs, elims, mk_cases, induct, ...}) =\n\
         \  InductivePackage.add_inductive true " ^
         (if coind then "true " else "false ") ^ srec_tms ^
-         sintrs ^ " " ^ mk_list (no_atts monos) ^ " " ^ mk_list (no_atts con_defs) ^ " thy;\n\
+         sintrs ^ " " ^ mk_list (no_atts monos) ^ " thy;\n\
         \in\n\
         \structure " ^ big_rec_name ^ " =\n\
         \struct\n\
@@ -83,10 +83,7 @@ fun inductive_decl coind =
       end
     val ipairs = "intrs" $$-- repeat1 (ident -- !! string)
     fun optlist s = optional (s $$-- list1 name) []
-  in
-    repeat1 name -- ipairs -- optlist "monos" -- optlist "con_defs"
-      >> mk_params
-  end;
+  in repeat1 name -- ipairs -- optlist "monos" >> mk_params end;
 
 
 
@@ -278,8 +275,7 @@ val defer_recdef_decl =
 in
 
 val _ = ThySyn.add_syntax
- ["intrs", "monos", "con_defs", "congs", "simpset", "|",
-  "and", "distinct", "inject", "induct"]
+ ["intrs", "monos", "congs", "simpset", "|", "and", "distinct", "inject", "induct"]
  [axm_section "typedef" "|> TypedefPackage.add_typedef_x" typedef_decl,
   section "record" "|> (#1 oooo RecordPackage.add_record)" record_decl,
   section "inductive" 	"" (inductive_decl false),

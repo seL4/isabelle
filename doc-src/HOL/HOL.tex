@@ -2915,13 +2915,12 @@ An inductive definition has the form
 inductive    {\it inductive sets}
   intrs      {\it introduction rules}
   monos      {\it monotonicity theorems}
-  con_defs   {\it constructor definitions}
 \end{ttbox}
 A coinductive definition is identical, except that it starts with the keyword
 \texttt{coinductive}.  
 
-The \texttt{monos} and \texttt{con_defs} sections are optional.  If present,
-each is specified by a list of identifiers.
+The \texttt{monos} section is optional; if present it is specified by a list
+of identifiers.
 
 \begin{itemize}
 \item The \textit{inductive sets} are specified by one or more strings.

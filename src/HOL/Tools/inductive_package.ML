@@ -48,13 +48,12 @@ sig
   val inductive_cases_i: ((bstring * theory attribute list) * term list) * Comment.text
     -> theory -> theory
   val add_inductive_i: bool -> bool -> bstring -> bool -> bool -> bool -> term list ->
-    ((bstring * term) * theory attribute list) list ->
-      thm list -> thm list -> theory -> theory *
+    ((bstring * term) * theory attribute list) list -> thm list -> theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
        intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
   val add_inductive: bool -> bool -> string list ->
     ((bstring * string) * Args.src list) list -> (xstring * Args.src list) list ->
-      (xstring * Args.src list) list -> theory -> theory *
+    theory -> theory *
       {defs: thm list, elims: thm list, raw_induct: thm, induct: thm,
        intrs: thm list, mk_cases: string -> thm, mono: thm, unfold: thm}
   val setup: (theory -> theory) list
@@ -485,7 +484,7 @@ fun prove_mono setT fp_fun monos thy =
 
 (* prove introduction rules *)
 
-fun prove_intrs coind mono fp_def intr_ts con_defs rec_sets_defs thy =
+fun prove_intrs coind mono fp_def intr_ts rec_sets_defs thy =
   let
     val _ = clean_message "  Proving the introduction rules ...";
 
@@ -508,7 +507,6 @@ fun prove_intrs coind mono fp_def intr_ts con_defs rec_sets_defs thy =
          backtracking may occur if the premises have extra variables!*)
        DEPTH_SOLVE_1 (resolve_tac [refl, exI, conjI] 1 APPEND assume_tac 1),
        (*Now solve the equations like Inl 0 = Inl ?b2*)
-       rewrite_goals_tac con_defs,
        REPEAT (rtac refl 1)])
       |> rulify) (1 upto (length intr_ts) ~~ intr_ts)
 
@@ -538,10 +536,6 @@ fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
 
 
 (* derivation of simplified elimination rules *)
-
-(*Applies freeness of the given constructors, which *must* be unfolded by
-  the given defs.  Cannot simply use the local con_defs because con_defs=[]
-  for inference systems. (??) *)
 
 local
 
@@ -692,7 +686,7 @@ fun cond_declare_consts declare_consts cs paramTs cnames =
     Theory.add_consts_i (map (fn (c, n) => (n, paramTs ---> fastype_of c, NoSyn)) (cs ~~ cnames))
   else I;
 
-fun mk_ind_def declare_consts alt_name coind cs intr_ts monos con_defs thy
+fun mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
       params paramTs cTs cnames =
   let
     val sumT = fold_bal (fn (T, U) => Type ("+", [T, U])) cTs;
@@ -755,7 +749,7 @@ fun mk_ind_def declare_consts alt_name coind cs intr_ts monos con_defs thy
   in (thy', mono, fp_def, rec_sets_defs, rec_const, sumT) end;
 
 fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
-    intros monos con_defs thy params paramTs cTs cnames induct_cases =
+    intros monos thy params paramTs cTs cnames induct_cases =
   let
     val _ =
       if verbose then message ("Proofs for " ^ coind_prefix coind ^ "inductive set(s) " ^
@@ -764,11 +758,10 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     val ((intr_names, intr_ts), intr_atts) = apfst split_list (split_list intros);
 
     val (thy1, mono, fp_def, rec_sets_defs, rec_const, sumT) =
-      mk_ind_def declare_consts alt_name coind cs intr_ts monos con_defs thy
+      mk_ind_def declare_consts alt_name coind cs intr_ts monos thy
         params paramTs cTs cnames;
 
-    val (intrs, unfold) = prove_intrs coind mono fp_def intr_ts con_defs
-      rec_sets_defs thy1;
+    val (intrs, unfold) = prove_intrs coind mono fp_def intr_ts rec_sets_defs thy1;
     val elims = if no_elim then [] else
       prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy1;
     val raw_induct = if no_ind then Drule.asm_rl else
@@ -812,8 +805,7 @@ fun try_term f msg sign t =
     Some x => x
   | None => error (msg ^ Sign.string_of_term sign t));
 
-fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
-    pre_intros monos con_defs thy =
+fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs pre_intros monos thy =
   let
     val _ = Theory.requires thy "Inductive" (coind_prefix coind ^ "inductive definitions");
     val sign = Theory.sign_of thy;
@@ -837,14 +829,14 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
 
     val (thy1, result as {elims, induct, ...}) =
       add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs intros monos
-        con_defs thy params paramTs cTs cnames induct_cases;
+        thy params paramTs cTs cnames induct_cases;
     val thy2 = thy1
       |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result)
       |> add_cases_induct no_elim (no_ind orelse coind orelse length cs > 1)
           full_cnames elims induct;
   in (thy2, result) end;
 
-fun add_inductive verbose coind c_strings intro_srcs raw_monos raw_con_defs thy =
+fun add_inductive verbose coind c_strings intro_srcs raw_monos thy =
   let
     val sign = Theory.sign_of thy;
     val cs = map (term_of o Thm.read_cterm sign o rpair HOLogic.termT) c_strings;
@@ -856,12 +848,10 @@ fun add_inductive verbose coind c_strings intro_srcs raw_monos raw_con_defs thy 
     val intr_atts = map (map (Attrib.global_attribute thy) o snd) intro_srcs;
     val (cs', intr_ts') = unify_consts sign cs intr_ts;
 
-    val (thy', (monos, con_defs)) = thy
-      |> IsarThy.apply_theorems raw_monos
-      |>>> IsarThy.apply_theorems raw_con_defs;
+    val (thy', monos) = thy |> IsarThy.apply_theorems raw_monos;
   in
     add_inductive_i verbose false "" coind false false cs'
-      ((intr_names ~~ intr_ts') ~~ intr_atts) monos con_defs thy'
+      ((intr_names ~~ intr_ts') ~~ intr_atts) monos thy'
   end;
 
 
@@ -881,15 +871,14 @@ val setup =
 
 local structure P = OuterParse and K = OuterSyntax.Keyword in
 
-fun mk_ind coind (((sets, intrs), monos), con_defs) =
-  #1 o add_inductive true coind sets (map P.triple_swap intrs) monos con_defs;
+fun mk_ind coind ((sets, intrs), monos) =
+  #1 o add_inductive true coind sets (map P.triple_swap intrs) monos;
 
 fun ind_decl coind =
   (Scan.repeat1 P.term --| P.marg_comment) --
   (P.$$$ "intros" |--
     P.!!! (Scan.repeat1 (P.opt_thm_name ":" -- P.prop --| P.marg_comment))) --
-  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1 --| P.marg_comment) [] --
-  Scan.optional (P.$$$ "con_defs" |-- P.!!! P.xthms1 --| P.marg_comment) []
+  Scan.optional (P.$$$ "monos" |-- P.!!! P.xthms1 --| P.marg_comment) []
   >> (Toplevel.theory o mk_ind coind);
 
 val inductiveP =
@@ -907,7 +896,7 @@ val inductive_casesP =
   OuterSyntax.command "inductive_cases"
     "create simplified instances of elimination rules (improper)" K.thy_script ind_cases;
 
-val _ = OuterSyntax.add_keywords ["intros", "monos", "con_defs"];
+val _ = OuterSyntax.add_keywords ["intros", "monos"];
 val _ = OuterSyntax.add_parsers [inductiveP, coinductiveP, inductive_casesP];
 
 end;
