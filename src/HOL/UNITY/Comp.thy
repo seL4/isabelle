@@ -199,7 +199,6 @@ apply (auto simp add: stable_def Stable_def Increasing_def Constrains_def all_co
 apply (blast intro: constrains_weaken)
 (*The G case remains*)
 apply (auto simp add: preserves_def stable_def constrains_def)
-apply (case_tac "act: Acts F", blast)
 (*We have a G-action, so delete assumptions about F-actions*)
 apply (erule_tac V = "\<forall>act \<in> Acts F. ?P act" in thin_rl)
 apply (erule_tac V = "\<forall>z. \<forall>act \<in> Acts F. ?P z act" in thin_rl)
