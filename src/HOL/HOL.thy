@@ -101,8 +101,7 @@ translations
   "EX xs. P"    => "? xs. P"
   "EX! xs. P"   => "?! xs. P"
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
-  "let x = a in e"          == "Let a (%x. e)"
-
+  "let x = a in e"        == "Let a (%x. e)"
 
 rules
 

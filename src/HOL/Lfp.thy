@@ -6,7 +6,7 @@
 The Knaster-Tarski Theorem
 *)
 
-Lfp = mono + 
+Lfp = mono + Prod +
 consts lfp :: "['a set=>'a set] => 'a set"
 defs
  (*least fixed point*)

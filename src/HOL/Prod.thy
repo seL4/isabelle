@@ -40,16 +40,16 @@ types pttrns
 syntax
   "@Tuple"      :: "['a, args] => 'a * 'b"            ("(1'(_,/ _'))")
 
-  "@pttrn"  :: "pttrns => pttrn"            ("'(_')")
-  ""        :: " pttrn           => pttrns" ("_")
-  "@pttrns" :: "[pttrn,pttrns]   => pttrns" ("_,/_")
+  "@pttrn"  :: "[pttrn,pttrns] => pttrn"              ("'(_,/_')")
+  ""        :: " pttrn         => pttrns"             ("_")
+  "@pttrns" :: "[pttrn,pttrns] => pttrns"             ("_,/_")
 
 translations
   "(x, y, z)"   == "(x, (y, z))"
   "(x, y)"      == "Pair x y"
 
-  "%(x,y,zs).b"   => "split(%x (y,zs).b)"
-  "%(x,y).b"      => "split(%x y.b)"
+  "%(x,y,zs).b"   == "split(%x (y,zs).b)"
+  "%(x,y).b"      == "split(%x y.b)"
 (* The <= direction fails if split has more than one argument because
    ast-matching fails. Otherwise it would work fine *)
 
@@ -75,12 +75,12 @@ defs
   Unity_def     "() == Abs_Unit(True)"
 
 end
-
+(*
 ML
 
 local open Syntax
 
-fun pttrn s = const"@pttrn" $ s;
+fun pttrn(_ $ s $ t) = const"@pttrn" $ s $ t;
 fun pttrns s t = const"@pttrns" $ s $ t;
 
 fun split2(Abs(x,T,t)) =
@@ -102,3 +102,4 @@ in
 val print_translation = [("split", split_tr')];
 
 end;
+*)

@@ -52,6 +52,17 @@ by (EVERY1 [rtac Int_greatest, rtac subset_trans,
 	    rtac (CollectI RS subsetI), rtac indhyp, atac]);
 qed "induct";
 
+val major::prems = goal Lfp.thy
+  "[| (a,b) : lfp f; mono f; \
+\     !!a b. (a,b) : f(lfp f Int Collect(split P)) ==> P a b |] ==> P a b";
+by(res_inst_tac [("c1","P")] (split RS subst) 1);
+br (major RS induct) 1;
+brs prems 1;
+by(res_inst_tac[("p","x")]PairE 1);
+by(hyp_subst_tac 1);
+by(asm_simp_tac (prod_ss addsimps prems) 1);
+qed"induct2";
+
 (** Definition forms of lfp_Tarski and induct, to control unfolding **)
 
 val [rew,mono] = goal Lfp.thy "[| h==lfp(f);  mono(f) |] ==> h = f(h)";
