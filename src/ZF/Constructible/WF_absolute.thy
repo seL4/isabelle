@@ -143,7 +143,7 @@ lemma (in M_axioms) rtran_closure_mem_iff:
 by (simp add: rtran_closure_mem_def Ord_succ_mem_iff nat_0_le [THEN ltD]) 
 
 
-locale M_trancl = M_axioms +
+locale (open) M_trancl = M_axioms +
   assumes rtrancl_separation:
 	 "[| M(r); M(A) |] ==> separation (M, rtran_closure_mem(M,A,r))"
       and wellfounded_trancl_separation:
@@ -231,7 +231,7 @@ inverse image of an ordinal.  Key step is the construction (in M) of a
 rank function.*}
 
 
-locale M_wfrank = M_trancl +
+locale (open) M_wfrank = M_trancl +
   assumes wfrank_separation:
      "M(r) ==>
       separation (M, \<lambda>x. 

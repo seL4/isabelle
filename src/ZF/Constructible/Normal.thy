@@ -72,7 +72,7 @@ subsubsection{*The intersection of any set-indexed family of c.u. classes is
       c.u.*}
 
 text{*The constructions below come from Kunen, \emph{Set Theory}, page 78.*}
-locale cub_family =
+locale (open) cub_family =
   fixes P and A
   fixes next_greater -- "the next ordinal satisfying class @{term A}"
   fixes sup_greater  -- "sup of those ordinals over all @{term A}"

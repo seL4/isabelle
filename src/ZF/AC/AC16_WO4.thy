@@ -203,7 +203,7 @@ by (blast intro: eqpoll_sym [THEN eqpoll_imp_lepoll, THEN lepoll_trans]
                  succ_lepoll_natE)
 
 
-locale AC16 =
+locale (open) AC16 =
   fixes x and y and k and l and m and t_n and R and MM and LL and GG and s 
   defines k_def:     "k   == succ(l)"
       and MM_def:    "MM  == {v \<in> t_n. succ(k) \<lesssim> v Int y}"

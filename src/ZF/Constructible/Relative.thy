@@ -410,7 +410,7 @@ subsection{*Absoluteness for a transitive class model*}
 
 text{*The class M is assumed to be transitive and to satisfy some
       relativized ZF axioms*}
-locale M_triv_axioms =
+locale (open) M_triv_axioms =
   fixes M
   assumes transM:           "[| y\<in>x; M(x) |] ==> M(y)"
       and nonempty [simp]:  "M(0)"
@@ -780,7 +780,7 @@ text{*Kunen continued to 20...*}
 
 subsection{*Some instances of separation and strong replacement*}
 
-locale M_axioms = M_triv_axioms +
+locale (open) M_axioms = M_triv_axioms +
 assumes Inter_separation:
      "M(A) ==> separation(M, \<lambda>x. \<forall>y[M]. y\<in>A --> x\<in>y)"
   and cartprod_separation:

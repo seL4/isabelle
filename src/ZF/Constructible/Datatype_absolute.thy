@@ -154,7 +154,7 @@ lemma (in M_axioms) list_functor_abs [simp]:
 by (simp add: is_list_functor_def singleton_0 nat_into_M)
 
 
-locale M_datatypes = M_wfrank +
+locale (open) M_datatypes = M_wfrank +
  assumes list_replacement1: 
    "M(A) ==> iterates_replacement(M, is_list_functor(M,A), 0)"
   and list_replacement2: 

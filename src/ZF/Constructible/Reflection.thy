@@ -25,7 +25,7 @@ uses of @{term Pair_in_Mset}.  But there isn't much point in doing so, since
 ultimately the @{text ex_reflection} proof is packaged up using the
 predicate @{text Reflects}.
 *}
-locale reflection =
+locale (open) reflection =
   fixes Mset and M and Reflects
   assumes Mset_mono_le : "mono_le_subset(Mset)"
       and Mset_cont    : "cont_Ord(Mset)"
@@ -124,7 +124,7 @@ done
 
 text{*Locale for the induction hypothesis*}
 
-locale ex_reflection = reflection +
+locale (open) ex_reflection = reflection +
   fixes P  --"the original formula"
   fixes Q  --"the reflected formula"
   fixes Cl --"the class of reflecting ordinals"
@@ -192,7 +192,7 @@ lemma (in reflection) Ex_reflection_0:
 apply (simp add: Reflects_def) 
 apply (intro conjI Closed_Unbounded_Int)
   apply blast 
- apply (rule reflection.Closed_Unbounded_ClEx [of Cl P0 Q0], blast, clarify) 
+ apply (rule Closed_Unbounded_ClEx [of Cl P0 Q0], blast, clarify) 
 apply (rule_tac Cl=Cl in  ClEx_iff, assumption+, blast) 
 done
 

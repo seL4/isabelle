@@ -94,7 +94,7 @@ constdefs
 	   transrec(b, %c r. THE x. first(x, {x \<in> X. <r``c, x> \<in> R}, Q))"
 
 
-locale DC0_imp =
+locale (open) DC0_imp =
   fixes XX and RR and X and R
 
   assumes all_ex: "\<forall>Y \<in> Pow(X). Y \<prec> nat --> (\<exists>x \<in> X. <Y, x> \<in> R)"
@@ -292,7 +292,7 @@ apply (force simp add: singleton_0 [symmetric]
 done
 
 
-locale imp_DC0 =
+locale (open) imp_DC0 =
   fixes XX and RR and x and R and f and allRR
   defines XX_def: "XX == (\<Union>n \<in> nat.
 		      {f \<in> succ(n)->domain(R). \<forall>k \<in> n. <f`k, f`succ(k)> \<in> R})"
