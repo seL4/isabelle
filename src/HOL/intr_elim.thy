@@ -1,1 +1,2 @@
-intr_elim = CPure
+
+intr_elim = Nat

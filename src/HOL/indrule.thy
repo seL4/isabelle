@@ -1,1 +1,2 @@
-indrule = "intr_elim"
+
+indrule = intr_elim
