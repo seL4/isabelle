@@ -39,6 +39,8 @@ by (split_all_tac 1);
 by (etac (rtrancl_refl RS rtrancl_into_rtrancl) 1);
 qed "r_into_rtrancl";
 
+AddIs [r_into_rtrancl];
+
 (*monotonicity of rtrancl*)
 Goalw [rtrancl_def] "r <= s ==> r^* <= s^*";
 by (REPEAT(ares_tac [lfp_mono,Un_mono,comp_mono,subset_refl] 1));
@@ -103,7 +105,6 @@ bind_thms("rtranclIs", [r_into_rtrancl, rtrancl_trans]);
 
 Goal "(r^*)^* = r^*";
 by Auto_tac;
-by (etac r_into_rtrancl 2);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
 by (blast_tac (claset() addIs rtranclIs) 1);
@@ -224,6 +225,7 @@ Goalw [trancl_def]
 by (split_all_tac 1);
 by (REPEAT (ares_tac [prem,compI,rtrancl_refl] 1));
 qed "r_into_trancl";
+AddIs [r_into_trancl];
 
 (*intro rule by definition: from rtrancl and r*)
 Goalw [trancl_def] "[| (a,b) : r^*;  (b,c) : r |]   ==>  (a,c) : r^+";
@@ -336,10 +338,7 @@ qed "converse_trancl_induct";
 Goal "(x,y):R^+ ==> ? z. (x,z):R & (z,y):R^*";
 be converse_trancl_induct 1;
 by Auto_tac;
-br exI 1;
-be conjI 1;
-be (r_into_rtrancl RS rtrancl_trans) 1;
-ba 1;
+by (blast_tac (claset() addIs [rtrancl_trans]) 1);
 qed "tranclD";
 
 (*Unused*)
