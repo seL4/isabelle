@@ -60,7 +60,7 @@ val safe_step_tac = FIRST' [eq_assume_tac,
 			    bimatch_tac safep_brls] ;
 
 (*Repeatedly attack subgoals using safe inferences -- it's deterministic!*)
-val safe_tac = DETERM (REPEAT_FIRST safe_step_tac);
+val safe_tac = REPEAT_DETERM_FIRST safe_step_tac;
 
 (*These steps could instantiate variables and are therefore unsafe.*)
 val inst_step_tac =
