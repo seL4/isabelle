@@ -882,6 +882,16 @@ apply (case_tac "b = 0")
 apply (simp_all add: nonzero_mult_divide_cancel_left)
 done
 
+lemma nonzero_mult_divide_cancel_right:
+     "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (b*c) = a/(b::'a::field)"
+by (simp add: mult_commute [of _ c] nonzero_mult_divide_cancel_left) 
+
+lemma mult_divide_cancel_right:
+     "c\<noteq>0 ==> (a*c) / (b*c) = a / (b::'a::{field,division_by_zero})"
+apply (case_tac "b = 0")
+apply (simp_all add: nonzero_mult_divide_cancel_right)
+done
+
 (*For ExtractCommonTerm*)
 lemma mult_divide_cancel_eq_if:
      "(c*a) / (c*b) = 

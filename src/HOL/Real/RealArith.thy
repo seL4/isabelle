@@ -47,7 +47,7 @@ It replaces x+-y by x-y.
 Addsimps [symmetric real_diff_def]
 *)
 
-subsubsection{*Division By @{term 1} and @{term "-1"}*}
+subsubsection{*Division By @{term "-1"}*}
 
 lemma real_divide_minus1 [simp]: "x/-1 = -(x::real)"
 by simp
