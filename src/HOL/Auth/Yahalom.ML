@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
-Inductive relation "otway" for the Yahalom protocol.
+Inductive relation "yahalom" for the Yahalom protocol.
 
 From page 257 of
   Burrows, Abadi and Needham.  A Logic of Authentication.
@@ -113,7 +113,7 @@ bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
 AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
 
 
-(*Nobody can have used non-existent keys!*)
+(*Nobody can have used non-existent keys!  Needed to apply analz_insert_Key*)
 goal thy "!!evs. evs : yahalom lost ==>          \
 \         Key K ~: used evs --> K ~: keysFor (parts (sees lost Spy evs))";
 by parts_induct_tac;
@@ -268,7 +268,7 @@ by (blast_tac (!claset addDs [unique_session_keys]) 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
 
 
-(*Final version: Server's message in the most abstract form*)
+(*Final version*)
 goal thy 
  "!!evs. [| Says Server A                                         \
 \              {|Crypt (shrK A) {|Agent B, Key K, NA, NB|},       \
@@ -282,6 +282,7 @@ by (blast_tac (!claset addSEs [lemma]) 1);
 qed "Spy_not_see_encrypted_key";
 
 
+(*And other agents don't see the key either.*)
 goal thy 
  "!!evs. [| C ~: {A,B,Server};                                    \
 \           Says Server A                                         \

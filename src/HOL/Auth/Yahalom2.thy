@@ -6,8 +6,7 @@
 Inductive relation "yahalom" for the Yahalom protocol, Variant 2.
 
 This version trades encryption of NB for additional explicitness in YM3.
-It also omits encryption in YM2.  The resulting protocol no longer guarantees
-that the other agent is present.
+Also in YM3, care is taken to make the two certificates distinct.
 
 From page 259 of
   Burrows, Abadi and Needham.  A Logic of Authentication.
@@ -37,14 +36,16 @@ inductive "yahalom lost"
 	   the sender is, hence the A' in the sender field.*)
     YM2  "[| evs: yahalom lost;  B ~= Server;  Nonce NB ~: used evs;
              Says A' B {|Agent A, Nonce NA|} : set_of_list evs |]
-          ==> Says B Server {|Agent A, Agent B, Nonce NA, Nonce NB|} # evs
-                : yahalom lost"
+          ==> Says B Server 
+                  {|Agent B, Nonce NB, Crypt (shrK B) {|Agent A, Nonce NA|}|}
+                # evs : yahalom lost"
 
          (*The Server receives Bob's message.  He responds by sending a
            new session key to Alice, with a packet for forwarding to Bob.
-           Fields are reversed in the 2nd packet to prevent attacks.*)
+           !! Fields are reversed in the 2nd packet to prevent attacks!! *)
     YM3  "[| evs: yahalom lost;  A ~= B;  A ~= Server;  Key KAB ~: used evs;
-             Says B' Server {|Agent A, Agent B, Nonce NA, Nonce NB|}
+             Says B' Server {|Agent B, Nonce NB,
+			      Crypt (shrK B) {|Agent A, Nonce NA|}|}
                : set_of_list evs |]
           ==> Says Server A
                {|Nonce NB, 
