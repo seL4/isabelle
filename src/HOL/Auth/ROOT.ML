@@ -14,6 +14,7 @@ goals_limit := 1;
 
 (*Shared-key protocols*)
 time_use_thy "NS_Shared";
+time_use_thy "Kerberos_BAN";
 time_use_thy "OtwayRees";
 time_use_thy "OtwayRees_AN";
 time_use_thy "OtwayRees_Bad";
