@@ -92,7 +92,7 @@ by (stac Un_eq_Union 1);
 by (blast_tac (claset() addIs [LeadsTo_Union]) 1);
 qed "LeadsTo_Un";
 
-Goal "[| A <= B |] ==> LeadsTo F A B";
+Goal "A <= B ==> LeadsTo F A B";
 by (simp_tac (simpset() addsimps [LeadsTo_def]) 1);
 by (blast_tac (claset() addIs [subset_imp_leadsTo]) 1);
 qed "subset_imp_LeadsTo";
@@ -178,11 +178,8 @@ Goal "[| Invariant F INV;      \
 \        LeadsTo F A A';   \
 \        INV Int B  <= A;  INV Int A' <= B' |] \
 \     ==> LeadsTo F B B'";
-by (rtac Invariant_LeadsToI 1);
-by (assume_tac 1);
-by (dtac Invariant_LeadsToD 1);
-by (assume_tac 1);
-by (blast_tac (claset()addIs [LeadsTo_weaken]) 1);
+by (REPEAT (ares_tac [Invariant_includes_reachable, 
+		      reachable_LeadsTo_weaken] 1));
 qed "Invariant_LeadsTo_weaken";
 
 
@@ -269,9 +266,8 @@ qed "LeadsTo_empty";
 
 (** PSP: Progress-Safety-Progress **)
 
-(*Special case of PSP: Misra's "stable conjunction".  Doesn't need id:Acts. *)
-Goal
-  "[| LeadsTo F A A';  Stable F B |] ==> LeadsTo F (A Int B) (A' Int B)";
+(*Special case of PSP: Misra's "stable conjunction"*)
+Goal "[| LeadsTo F A A';  Stable F B |] ==> LeadsTo F (A Int B) (A' Int B)";
 by (full_simp_tac (simpset() addsimps [LeadsTo_def, Stable_eq_stable]) 1);
 by (dtac psp_stable 1);
 by (assume_tac 1);

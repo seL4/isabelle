@@ -163,7 +163,7 @@ by (auto_tac (claset(),
 qed "ensures_Join";
 
 Goalw [stable_def, constrains_def, Join_def]
-    "[| stable (Acts F) A;  constrains (Acts G) A A';  Id: Acts G |] \
+    "[| stable (Acts F) A;  constrains (Acts G) A A' |] \
 \    ==> constrains (Acts (F Join G)) A A'";
 by (asm_simp_tac (simpset() addsimps [ball_Un]) 1);
 by (Blast_tac 1);
@@ -172,7 +172,7 @@ qed "stable_constrains_Join";
 (*Premises cannot use Invariant because  Stable F A  is weaker than
   stable (Acts G) A *)
 Goal "[| stable (Acts F) A;  Init G <= A;  stable (Acts G) A |] \
-\      ==> Invariant (F Join G) A";
+\     ==> Invariant (F Join G) A";
 by (simp_tac (simpset() addsimps [Invariant_def, Stable_eq_stable,
 				  stable_Join]) 1);
 by (force_tac(claset() addIs [stable_reachable, stable_Int],
