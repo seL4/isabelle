@@ -11,6 +11,8 @@ sig
     -> (string -> typ option) -> Sorts.classrel -> Sorts.arities
     -> string list -> bool -> (indexname -> bool) -> term list -> typ list
     -> term list * typ list * (indexname * typ) list
+  val appl_error: (term -> Pretty.T) -> (typ -> Pretty.T)
+    -> string -> term -> typ -> term -> typ -> string list
 end;
 
 structure TypeInfer: TYPE_INFER =
@@ -295,6 +297,17 @@ fun unify classrel arities =
 
 (** type inference **)
 
+fun appl_error prt prT why t T u U =
+  ["Type error in application: " ^ why,
+   "",
+   Pretty.string_of
+    (Pretty.block [Pretty.str "Operator:", Pretty.brk 2, prt t,
+                   Pretty.str " ::", Pretty.brk 1, prT T]),
+   Pretty.string_of
+     (Pretty.block [Pretty.str "Operand:", Pretty.brk 3, prt u,
+                    Pretty.str " ::", Pretty.brk 1, prT U]),
+   ""];
+
 (* infer *)                                     (*DESTRUCTIVE*)
 
 fun infer prt prT classrel arities =
@@ -303,8 +316,6 @@ fun infer prt prT classrel arities =
 
     fun unif_failed msg =
       "Type unification failed" ^ (if msg = "" then "." else ": " ^ msg) ^ "\n";
-
-    val str_of = Pretty.string_of;
 
     fun prep_output bs ts Ts =
       let
@@ -325,14 +336,8 @@ fun infer prt prT classrel arities =
           (case T' of
             Type ("fun", _) => "Incompatible operand type."
           | _ => "Operator not of function type.");
-        val text = cat_lines
-         [unif_failed msg,
-          "Type error in application: " ^ why,
-          "",
-          str_of (Pretty.block [Pretty.str "Operator:", Pretty.brk 2, prt t',
-            Pretty.str " ::", Pretty.brk 1, prT T']),
-          str_of (Pretty.block [Pretty.str "Operand:", Pretty.brk 3, prt u',
-            Pretty.str " ::", Pretty.brk 1, prT U']), ""];
+        val text = unif_failed msg ^
+                   cat_lines (appl_error prt prT why t' T' u' U');
       in raise TYPE (text, [T', U'], [t', u']) end;
 
     fun err_constraint msg bs t T U =
@@ -340,11 +345,12 @@ fun infer prt prT classrel arities =
         val ([t'], [T', U']) = prep_output bs [t] [T, U];
         val text = cat_lines
          [unif_failed msg,
-          "Cannot meet type constraint:",
-          "",
-          str_of (Pretty.block [Pretty.str "Term:", Pretty.brk 2, prt t',
-            Pretty.str " ::", Pretty.brk 1, prT T']),
-          str_of (Pretty.block [Pretty.str "Type:", Pretty.brk 2, prT U']), ""];
+          "Cannot meet type constraint:", "",
+          Pretty.string_of
+           (Pretty.block [Pretty.str "Term:", Pretty.brk 2, prt t',
+                          Pretty.str " ::", Pretty.brk 1, prT T']),
+          Pretty.string_of
+           (Pretty.block [Pretty.str "Type:", Pretty.brk 2, prT U']), ""];
       in raise TYPE (text, [T', U'], [t']) end;
 
 

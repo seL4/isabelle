@@ -602,15 +602,7 @@ fun type_check sg tm =
         val xs = map Free bs;		(*we do not rename here*)
         val t' = subst_bounds (xs, t);
         val u' = subst_bounds (xs, u);
-        val text = cat_lines
-         ["Type error in application: " ^ why,
-          "",
-          Pretty.string_of
-           (Pretty.block [Pretty.str "Operator:", Pretty.brk 2, prt t',
-                          Pretty.str " ::", Pretty.brk 1, prT T]),
-          Pretty.string_of
-           (Pretty.block [Pretty.str "Operand:", Pretty.brk 3, prt u',
-                          Pretty.str " ::", Pretty.brk 1, prT U]), ""];
+        val text = cat_lines(TypeInfer.appl_error prt prT why t' T u' U);
       in raise TYPE (text, [T, U], [t', u']) end;
 
     fun typ_of (_, Const (_, T)) = T
