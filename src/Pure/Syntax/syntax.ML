@@ -424,7 +424,8 @@ fun read_pattern syn (root, str) =
 
     fun constify (ast as Constant _) = ast
       | constify (ast as Variable x) =
-          if x mem consts then Constant x else ast
+          if x mem consts orelse NameSpace.qualified x then Constant x
+          else ast
       | constify (Appl asts) = Appl (map constify asts);
   in
     (case read_asts syn true root str of
