@@ -32,15 +32,16 @@ val evalb_simps = map (fn s => prove_goal Expr.thy s
    "((b0 ori b1,sigma) -b-> w) = \
 \   (? x. (b0,sigma) -b-> x & (? y. (b1,sigma) -b-> y & w = (x|y)))"];
 
-goal Expr.thy "!n. ((a,s) -a-> n) = (n = A a s)";
-by (aexp.induct_tac "a" 1);                               (* struct. ind. *)
-by (ALLGOALS Simp_tac);                                   (* rewr. Den.   *)
-by (TRYALL (fast_tac (claset() addSIs (evala.intrs@prems)
-                             addSEs evala_elim_cases)));
+goal Expr.thy "!n. ((a,s) -a-> n) = (A a s = n)";
+by (aexp.induct_tac "a" 1);
+by (ALLGOALS 
+    (fast_tac (claset() addSIs evala.intrs
+	                addSEs evala_elim_cases addss (simpset()))));
 qed_spec_mp "aexp_iff";
 
-goal Expr.thy "!w. ((b,s) -b-> w) = (w = B b s)";
+goal Expr.thy "!w. ((b,s) -b-> w) = (B b s = w)";
 by (bexp.induct_tac "b" 1);
-by (ALLGOALS(asm_simp_tac (simpset() addcongs [conj_cong]
-                                    addsimps (aexp_iff::evalb_simps))));
+by (ALLGOALS 
+    (fast_tac (claset() 
+	       addss (simpset() addsimps (aexp_iff::evalb_simps)))));
 qed_spec_mp "bexp_iff";
