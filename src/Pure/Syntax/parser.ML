@@ -40,11 +40,11 @@ datatype symb =
   Nonterminal of string * int;
 
 datatype refsymb = Term of token | Nonterm of rhss_ref * int
-                                (*reference to production list instead of name*)
+                               (*reference to production list instead of name*)
 and gram = Gram of (string * (symb list * string * int)) list *
                    (string * rhss_ref) list
-withtype rhss_ref = (token option * (refsymb list * string * int) list) list ref
-                                      (*lookahead table: token and productions*)
+withtype rhss_ref = (token option * (refsymb list * string *int) list) list ref
+                                     (*lookahead table: token and productions*)
 
 (* convert productions to reference grammar with lookaheads and eliminate
    chain productions *)
@@ -69,65 +69,59 @@ fun mk_gram prods =
             end;
 
       (*convert prod list to (string * rhss_ref) list
-        without computing lookaheads*)
-      fun mk_ref_gram [] ref_prods = ref_prods
-        | mk_ref_gram ((lhs, (rhs, name, prec)) :: ps) ref_prods =
+        without computing lookaheads; at the same time filter out chains*)
+      fun mk_ref_gram [] ref_prods chains = (ref_prods, chains)
+        | mk_ref_gram ((lhs, ([Nonterminal (id, ~1)], _, ~1)) :: ps)
+                      ref_prods chains =                   (*chain production*)
+            let val (rhss_ref, ref_prods') = get_rhss ref_prods lhs;
+                val (rhss_ref2, ref_prods'') = get_rhss ref_prods' id;
+            in mk_ref_gram ps ref_prods'' ((rhss_ref, rhss_ref2) :: chains)
+            end
+        | mk_ref_gram ((lhs, (rhs, name, prec)) :: ps) ref_prods chains =
             let val (rhs', ref_prods') = get_rhss ref_prods lhs;
                 val (dummy, rhss) = hd (!rhs');
                 val (ref_symbs, ref_prods'') = mk_refsymbs ref_prods' rhs [];
             in rhs' := [(dummy, (ref_symbs, name, prec) :: rhss)];
-               mk_ref_gram ps ref_prods''
+               mk_ref_gram ps ref_prods'' chains
             end;
 
-      (*eliminate chain productions*)
-      fun elim_chain ref_gram =
-        let (*make a list of pairs representing chain productions and delete
-              these productions*)
-            fun list_chain [] = []
-              | list_chain ((_, rhss_ref) :: ps) =
-                  let fun lists [] new_rhss chains = (new_rhss, chains)
-                        | lists (([Nonterm (id2, ~1)], _, ~1) :: rs) 
-                                new_rhss chains =
-                            lists rs new_rhss ((rhss_ref, id2) :: chains)
-                        | lists (rhs :: rs) new_rhss chains = 
-                            lists rs (rhs :: new_rhss) chains;
-
-                      val (dummy, rhss) = hd (!rhss_ref);
-
-                      val (new_rhss, chains) = lists rhss [] [];
-                  in rhss_ref := [(dummy, new_rhss)];
-                     chains @ (list_chain ps)
-                  end;
-
-            (*convert a list of pairs to an association list
+      (*expand chain productions*)
+      fun exp_chain (ref_gram, chains) =
+        let (*convert a list of pairs to an association list
               by using the first element as the key*)
             fun mk_assoc pairs =
-              let fun doit [] result = result
-                    | doit ((id1, id2) :: ps) result =
-                        doit ps 
-                        (overwrite (result, (id1, id2 :: (assocs result id1))));
-              in doit pairs [] end;
+              let fun mk [] result = result
+                    | mk ((id1, id2) :: ps) result =
+                       mk ps 
+                       (overwrite (result, (id1, id2 :: (assocs result id1))));
+              in mk pairs [] end;
 
-            (*replace reference by list of rhss in chain pairs*)
-            fun deref (id1, ids) =
-              let fun deref1 [] = []
-                    | deref1 (id :: ids) =
-                        let val (_, rhss) = hd (!id);
-                        in rhss @ (deref1 ids) end;
-              in (id1, deref1 ids) end;
+            (*sort chains in the order they have to be expanded *)
+            fun sort [] [] result = result
+              | sort [] todo result = sort todo [] result
+              | sort ((chain as (nt, nts)) :: chains) todo result =
+                  let fun occurs _ [] = false
+                        | occurs id ((_, nts) :: chains) =
+                            if id mem nts then true
+                            else occurs id chains
+                  in if occurs nt chains then
+                       sort chains (chain :: todo) result
+                     else
+                       sort chains todo (chain :: result)
+                  end;
 
-            val chain_pairs = 
-               map deref (transitive_closure (mk_assoc (list_chain ref_gram)));
+            (*replace reference by list of rhss*)
+            fun deref (id:rhss_ref) = #2 (hd (!id));
 
             (*add new rhss to productions*)
-            fun elim (rhss_ref, rhss) =
+            fun expand (rhss_ref, rhss) =
               let val (dummy, old_rhss) = hd (!rhss_ref);
-              in rhss_ref := [(dummy, old_rhss @ rhss)] end;
-        in map elim chain_pairs;
+              in rhss_ref := [(dummy, old_rhss @ (flat (map deref rhss)))] end;
+        in map expand (sort (mk_assoc chains) [] []);
            ref_gram
         end;
 
-      val ref_gram = elim_chain (mk_ref_gram prods []);
+      val ref_gram = exp_chain (mk_ref_gram prods [] []);
 
       (*make a list of all lambda NTs 
         (i.e. nonterminals that can produce lambda)*)
@@ -248,7 +242,6 @@ fun mk_gram prods =
 
              val (_, rhss) = hd (!rhss_ref);
         in rhss_ref := look_rhss rhss [] end;
-
   in map mk_lookahead ref_gram;
      Gram (prods, ref_gram)
   end;
