@@ -205,23 +205,26 @@ must be used, rather than \ttindex{resolve_tac}.  Even proof by assumption
 is unsafe if it instantiates unknowns shared with other subgoals --- thus
 \ttindex{eq_assume_tac} must be used, rather than \ttindex{assume_tac}.
 
+\subsection{Adding rules to classical sets}
 Classical rule sets belong to the abstract type \mltydx{claset}, which
 supports the following operations (provided the classical reasoner is
 installed!):
 \begin{ttbox} 
-empty_cs : claset
-addSIs   : claset * thm list -> claset                 \hfill{\bf infix 4}
-addSEs   : claset * thm list -> claset                 \hfill{\bf infix 4}
-addSDs   : claset * thm list -> claset                 \hfill{\bf infix 4}
-addIs    : claset * thm list -> claset                 \hfill{\bf infix 4}
-addEs    : claset * thm list -> claset                 \hfill{\bf infix 4}
-addDs    : claset * thm list -> claset                 \hfill{\bf infix 4}
-print_cs : claset -> unit
+empty_cs    : claset
+print_cs    : claset -> unit
+addSIs      : claset * thm list -> claset                 \hfill{\bf infix 4}
+addSEs      : claset * thm list -> claset                 \hfill{\bf infix 4}
+addSDs      : claset * thm list -> claset                 \hfill{\bf infix 4}
+addIs       : claset * thm list -> claset                 \hfill{\bf infix 4}
+addEs       : claset * thm list -> claset                 \hfill{\bf infix 4}
+addDs       : claset * thm list -> claset                 \hfill{\bf infix 4}
 \end{ttbox}
 There are no operations for deletion from a classical set.  The add
 operations do not check for repetitions.
 \begin{ttdescription}
 \item[\ttindexbold{empty_cs}] is the empty classical set.
+
+\item[\ttindexbold{print_cs} $cs$] prints the rules of~$cs$.
 
 \item[$cs$ addSIs $rules$] \indexbold{*addSIs}
 adds safe introduction~$rules$ to~$cs$.
@@ -240,8 +243,6 @@ adds unsafe elimination~$rules$ to~$cs$.
 
 \item[$cs$ addDs $rules$] \indexbold{*addDs}
 adds unsafe destruction~$rules$ to~$cs$.
-
-\item[\ttindexbold{print_cs} $cs$] prints the rules of~$cs$.
 \end{ttdescription}
 
 Introduction rules are those that can be applied using ordinary resolution.
@@ -251,12 +252,55 @@ elim-resolution.  In a classical set, rules are sorted by the number of new
 subgoals they will yield; rules that generate the fewest subgoals will be
 tried first (see \S\ref{biresolve_tac}).
 
+
+\subsection{Modifying the search step}
 For a given classical set, the proof strategy is simple.  Perform as many
 safe inferences as possible; or else, apply certain safe rules, allowing
 instantiation of unknowns; or else, apply an unsafe rule.  The tactics may
 also apply {\tt hyp_subst_tac}, if they have been set up to do so (see
 below).  They may perform a form of Modus Ponens: if there are assumptions
 $P\imp Q$ and~$P$, then replace $P\imp Q$ by~$Q$.
+
+The classical reasoner allows you to modify this basic proof strategy by
+applying an arbitrary {\bf wrapper tactical} to it.  This affects each step of
+the search.  Usually it is the identity tactical, but it could apply another
+tactic before or after the step tactic.  It affects \ttindex{step_tac},
+\ttindex{slow_step_tac} and the tactics that call them.
+
+\begin{ttbox} 
+addss       : claset * simpset -> claset                  \hfill{\bf infix 4}
+addbefore   : claset * tactic -> claset                   \hfill{\bf infix 4}
+addafter    : claset * tactic -> claset                   \hfill{\bf infix 4}
+setwrapper  : claset * (tactic->tactic) -> claset         \hfill{\bf infix 4}
+compwrapper : claset * (tactic->tactic) -> claset         \hfill{\bf infix 4}
+\end{ttbox}
+%
+\index{simplification!from classical reasoner} 
+The wrapper tactical underlies the operator \ttindex{addss}, which precedes
+each search step by simplification.  Strictly speaking, {\tt addss} is not
+part of the classical reasoner.  It should be defined (using {\tt addbefore})
+when the simplifier is installed.
+
+\begin{ttdescription}
+\item[$cs$ addss $ss$] \indexbold{*addss}
+adds the simpset~$ss$ to the classical set.  The assumptions and goal will be
+simplified before each step of the search.
+
+\item[$cs$ addbefore $tac$] \indexbold{*addbefore}
+changes the wrapper tactical to apply the given tactic {\em before}
+each step of the search.
+
+\item[$cs$ addafter $tac$] \indexbold{*addafter}
+changes the wrapper tactical to apply the given tactic {\em after}
+each step of the search.
+
+\item[$cs$ setwrapper $tactical$] \indexbold{*setwrapper}
+specifies a new wrapper tactical.  
+
+\item[$cs$ compwrapper $tactical$] \indexbold{*compwrapper}
+composes the $tactical$ with the existing wrapper tactical, to combine their
+effects. 
+\end{ttdescription}
 
 
 \section{The classical tactics}
@@ -301,7 +345,7 @@ deepen_tac : claset -> int -> int -> tactic
 \end{ttbox}
 These work by exhaustive search up to a specified depth.  Unsafe rules are
 modified to preserve the formula they act on, so that it be used repeatedly.
-They can prove more goals than {\tt fast_tac}, etc., can.  They are much
+They can prove more goals than {\tt fast_tac} can but are much
 slower, for example if the assumptions have many universal quantifiers.
 
 The depth limits the number of unsafe steps.  If you can estimate the minimum
@@ -339,9 +383,9 @@ can replicate certain quantifiers explicitly by applying appropriate rules.
 \item[\ttindexbold{inst_step_tac} $cs$ $i$] is like {\tt safe_step_tac},
 but allows unknowns to be instantiated.
 
-\item[\ttindexbold{step_tac} $cs$ $i$] tries {\tt safe_tac}.  If this
-fails, it tries {\tt inst_step_tac}, or applies an unsafe rule from~$cs$.
-This is the basic step of the proof procedure.
+\item[\ttindexbold{step_tac} $cs$ $i$] is the basic step of the proof
+  procedure.  The wrapper tactical is applied to a tactic that tries {\tt
+    safe_tac}, {\tt inst_step_tac}, or applies an unsafe rule from~$cs$.
 
 \item[\ttindexbold{slow_step_tac}] 
   resembles {\tt step_tac}, but allows backtracking between using safe
