@@ -17,7 +17,7 @@ HOL_quantifiers := false;
 Pretty.setdepth 20;
 
 
-(*Weak liveness: there are traces that reach the end*)
+(*A "possibility property": there are traces that reach the end*)
 goal thy 
  "!!A B. [| A ~= B; A ~= Server; B ~= Server |]   \
 \        ==> EX NB. EX evs: woolam.               \
@@ -137,7 +137,7 @@ goal thy
 by (fast_tac (!claset addSIs [NB_Crypt_imp_Alice_msg]
                       addSEs [MPair_parts]
                       addDs  [Says_imp_sees_Spy RS parts.Inj]) 1);
-qed "Server_trust_WL4";
+qed "Server_trusts_WL4";
 
 
 (*** WL5 ***)
@@ -179,9 +179,9 @@ goal thy
  "!!evs. [| Says S B (Crypt (shrK B) {|Agent A, Nonce NB|}): set_of_list evs; \
 \           A ~: lost;  B ~: lost;  evs : woolam  |] \
 \        ==> EX B. Says A B (Crypt (shrK A) (Nonce NB)) : set_of_list evs";
-by (fast_tac (!claset addIs  [Server_trust_WL4]
+by (fast_tac (!claset addIs  [Server_trusts_WL4]
                       addSDs [B_got_WL5 RS Server_sent_WL5]) 1);
-qed "B_trust_WL5";
+qed "B_trusts_WL5";
 
 
 (*B only issues challenges in response to WL1.  Useful??*)
