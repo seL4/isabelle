@@ -63,7 +63,7 @@ subsubsection {* Some lemmas about records *}
 text {* Basic simplifications. *}
 
 lemma "point.make a b = (| Xcoord = a, Ycoord = b |)"
-by simp -- "needed?? forget it"
+by (simp add: point.make_def) -- "needed?? forget it"
 
 lemma "Xcoord (| Xcoord = a, Ycoord = b |) = a"
 by simp -- "selection"
@@ -116,13 +116,13 @@ text {*
 *}
 
 constdefs
-  getX :: "('a::more) point_scheme \<Rightarrow> int"
+  getX :: "'a point_scheme \<Rightarrow> int"
    "getX r == Xcoord r"
-  setX :: "[('a::more) point_scheme, int] \<Rightarrow> 'a point_scheme"
+  setX :: "['a point_scheme, int] \<Rightarrow> 'a point_scheme"
    "setX r a == r (| Xcoord := a |)"
-  extendpt :: "'a \<Rightarrow> ('a::more) point_scheme"
+  extendpt :: "'a \<Rightarrow> 'a point_scheme"
    "extendpt ext == (| Xcoord = 15, Ycoord = 0, ... = ext |)"
-     text{*not sure what this is for!*}
+     text{*not sure what this is for!*}  (* FIXME use new point.make/extend/truncate *)
 
 
 text {*
@@ -137,11 +137,11 @@ text {* \medskip Manipulating the `...' (more) part.  beware: EACH record
    has its OWN more field, so a compound name is required! *}
 
 constdefs
-  incX :: "('a::more) point_scheme \<Rightarrow> 'a point_scheme"
+  incX :: "'a point_scheme \<Rightarrow> 'a point_scheme"
   "incX r == \<lparr>Xcoord = (Xcoord r) + 1, Ycoord = Ycoord r, \<dots> = point.more r\<rparr>"
 
 constdefs
-  setGreen :: "[colour, ('a::more) point_scheme] \<Rightarrow> cpoint"
+  setGreen :: "[colour, 'a point_scheme] \<Rightarrow> cpoint"
   "setGreen cl r == (| Xcoord = Xcoord r, Ycoord = Ycoord r, col = cl |)"
 
 
@@ -243,10 +243,9 @@ text {*
 So we replace the ugly manual proof by splitting.  These must be quantified: 
   the @{text "!!r"} is \emph{necessary}!  Note the occurrence of more, since
   r is polymorphic.
-*}
+*}  (* FIXME better us cases/induct *)
 lemma "!!r. r \<lparr>Xcoord := a\<rparr> = r \<lparr>Xcoord := a'\<rparr> \<Longrightarrow> a = a'"
 apply record_split --{* @{subgoals[display,indent=0,margin=65]} *}
-by simp 
-
+by simp
 
 end
