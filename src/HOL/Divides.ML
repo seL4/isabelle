@@ -505,13 +505,15 @@ qed "mod_Suc";
 (** Divides Relation                           **)
 (************************************************)
 
-Goalw [dvd_def] "n = m * k \\<Longrightarrow> m dvd n";
+Goalw [dvd_def] "n = m * k ==> m dvd n";
 by (Blast_tac 1); 
 qed "dvdI";
+AddXIs [dvdI];
 
 Goalw [dvd_def] "!!P. [|m dvd n;  !!k. n = m*k ==> P|] ==> P";
 by (Blast_tac 1); 
 qed "dvdE";
+AddXEs [dvdE];
 
 Goalw [dvd_def] "m dvd (0::nat)";
 by (blast_tac (claset() addIs [mult_0_right RS sym]) 1);
@@ -660,6 +662,12 @@ by (res_inst_tac [("t","n"),("n1","k")] (mod_div_equality RS subst) 1);
 by (stac mult_commute 1);
 by (Asm_simp_tac 1);
 qed "dvd_eq_mod_eq_0";
+
+Goal "n dvd m ==> n * (m div n) = (m::nat)";
+by (subgoal_tac "m mod n = 0" 1);
+ by (asm_full_simp_tac (simpset() addsimps [mult_div_cancel]) 1);
+by (asm_full_simp_tac (HOL_basic_ss addsimps [dvd_eq_mod_eq_0]) 1);
+qed "dvd_mult_div_cancel";
 
 Goal "(m mod d = 0) = (EX q::nat. m = d*q)";
 by (auto_tac (claset(), 
