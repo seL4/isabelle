@@ -454,7 +454,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
       else
         prove_indrule cs cTs sumT rec_const params intr_ts mono fp_def
           rec_sets_defs thy';
-    val induct = if coind orelse length cs > 1 then raw_induct
+    val induct = if coind orelse no_ind orelse length cs > 1 then raw_induct
       else standard (raw_induct RSN (2, rev_mp));
 
     val thy'' = thy' |>
