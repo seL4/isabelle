@@ -136,35 +136,67 @@ text {*
  on quotient types.
 *}
 
-theorem cong_definition1:
-  "(!!X. f X == g (pick X)) ==>
-    (!!x x'. x \<sim> x' ==> g x = g x') ==>
-    f \<lfloor>a\<rfloor> = g a"
+theorem quot_definition1:
+  "(!!X. f X == \<lfloor>g (pick X)\<rfloor>) ==>
+    (!!x x'. x \<sim> x' ==> g x \<sim> g x') ==>
+    f \<lfloor>a\<rfloor> = \<lfloor>g a\<rfloor>"
 proof -
-  assume cong: "!!x x'. x \<sim> x' ==> g x = g x'"
-  assume "!!X. f X == g (pick X)"
-  hence "f \<lfloor>a\<rfloor> = g (pick \<lfloor>a\<rfloor>)" by (simp only:)
-  also have "\<dots> = g a"
-  proof (rule cong)
-    show "pick \<lfloor>a\<rfloor> \<sim> a" ..
+  assume cong: "!!x x'. x \<sim> x' ==> g x \<sim> g x'"
+  assume "!!X. f X == \<lfloor>g (pick X)\<rfloor>"
+  hence "f \<lfloor>a\<rfloor> = \<lfloor>g (pick \<lfloor>a\<rfloor>)\<rfloor>" by (simp only:)
+  also have "\<dots> = \<lfloor>g a\<rfloor>"
+  proof
+    show "g (pick \<lfloor>a\<rfloor>) \<sim> g a"
+    proof (rule cong)
+      show "pick \<lfloor>a\<rfloor> \<sim> a" ..
+    qed
   qed
   finally show ?thesis .
 qed
 
-theorem cong_definition2:
-  "(!!X Y. f X Y == g (pick X) (pick Y)) ==>
-    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y = g x' y') ==>
-    f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
+theorem quot_definition2:
+  "(!!X Y. f X Y == \<lfloor>g (pick X) (pick Y)\<rfloor>) ==>
+    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y \<sim> g x' y') ==>
+    f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = \<lfloor>g a b\<rfloor>"
 proof -
-  assume cong: "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y = g x' y'"
-  assume "!!X Y. f X Y == g (pick X) (pick Y)"
-  hence "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)" by (simp only:)
-  also have "\<dots> = g a b"
-  proof (rule cong)
-    show "pick \<lfloor>a\<rfloor> \<sim> a" ..
-    show "pick \<lfloor>b\<rfloor> \<sim> b" ..
+  assume cong: "!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y \<sim> g x' y'"
+  assume "!!X Y. f X Y == \<lfloor>g (pick X) (pick Y)\<rfloor>"
+  hence "f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = \<lfloor>g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>)\<rfloor>" by (simp only:)
+  also have "\<dots> = \<lfloor>g a b\<rfloor>"
+  proof
+    show "g (pick \<lfloor>a\<rfloor>) (pick \<lfloor>b\<rfloor>) \<sim> g a b"
+    proof (rule cong)
+      show "pick \<lfloor>a\<rfloor> \<sim> a" ..
+      show "pick \<lfloor>b\<rfloor> \<sim> b" ..
+    qed
   qed
   finally show ?thesis .
 qed
+
+
+text {*
+ \medskip HOL's collection of overloaded standard operations is lifted
+ to quotient types in the canonical manner.
+*}
+
+instance quot :: (zero) zero ..
+instance quot :: (plus) plus ..
+instance quot :: (minus) minus ..
+instance quot :: (times) times ..
+instance quot :: (inverse) inverse ..
+instance quot :: (power) power ..
+instance quot :: (number) number ..
+
+defs (overloaded)
+  zero_quot_def: "0 == \<lfloor>0\<rfloor>"
+  add_quot_def: "X + Y == \<lfloor>pick X + pick Y\<rfloor>"
+  diff_quot_def: "X - Y == \<lfloor>pick X - pick Y\<rfloor>"
+  minus_quot_def: "- X == \<lfloor>- pick X\<rfloor>"
+  abs_quot_def: "abs X == \<lfloor>abs (pick X)\<rfloor>"
+  mult_quot_def: "X * Y == \<lfloor>pick X * pick Y\<rfloor>"
+  inverse_quot_def: "inverse X == \<lfloor>inverse (pick X)\<rfloor>"
+  divide_quot_def: "X / Y == \<lfloor>pick X / pick Y\<rfloor>"
+  power_quot_def: "X^n == \<lfloor>(pick X)^n\<rfloor>"
+  number_of_quot_def: "number_of b == \<lfloor>number_of b\<rfloor>"
 
 end
