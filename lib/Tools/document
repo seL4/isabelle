@@ -13,7 +13,7 @@ function usage()
   echo "Usage: $PRG [OPTIONS] [DIR]"
   echo
   echo "  Options are:"
-  echo "    -c           remove DIR after succesful run (!)"
+  echo "    -c           cleanup -- be aggressive in removing old stuff"
   echo "    -o FORMAT    specify output format: dvi (default), dvi.gz, ps,"
   echo "                 ps.gz, pdf"
   echo
@@ -81,7 +81,7 @@ esac
 function pre_latex ()
 {
   local FMT="$1"
-  rm -f *.aux *.out
+  [ -n "$CLEAN" ] && rm -f *.aux *.out
   if [ -f root.bib ]
   then
     $ISATOOL latex -o "$FMT" && \
@@ -94,6 +94,8 @@ function pre_latex ()
 
 (
   cd "$DIR" || fail "Bad directory '$DIR'"
+
+  [ -n "$CLEAN" ] && rm -f "../document.$OUTFORMAT"
 
   if [ -f IsaMakefile ]; then
     $ISATOOL make "$OUTFORMAT"
