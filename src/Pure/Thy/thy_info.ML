@@ -26,6 +26,7 @@ sig
   val use_thy: string -> unit
   val update_thy: string -> unit
   val time_use_thy: string -> unit
+  val use_thy_only: string -> unit
 end;
 
 signature THY_INFO =
@@ -38,7 +39,6 @@ sig
   val load_file: bool -> Path.T -> unit
   val use_path: Path.T -> unit
   val use: string -> unit
-  val use_thy_only: string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> theory
   val end_theory: theory -> theory
   val finalize_all: unit -> unit
