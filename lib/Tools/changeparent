@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -norc
 #
 # $Id$
 #
@@ -19,7 +19,7 @@ function usage()
 
 function fail()
 {
-  echo "$1"
+  echo "$1" >&2
   exit 2
 }
 
