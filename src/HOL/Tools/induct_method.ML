@@ -206,6 +206,8 @@ val rulify_tac =
 fun rulify_cases cert =
   map (apsnd (apsnd (map (Thm.term_of o rulify_cterm o cert)))) ooo RuleCases.make;
 
+val weak_strip_tac = REPEAT o Tactic.match_tac [impI, allI, ballI];
+
 
 infix 1 THEN_ALL_NEW_CASES;
 
@@ -278,10 +280,8 @@ fun induct_tac (ctxt, ((stripped, open_parms), args)) facts =
     val tac = Method.resolveq_cases_tac (rulify_cases cert open_parms)
       (Seq.flat (Seq.map prep_rule (Seq.of_list rules)));
   in
-    if stripped then
-      (warning "induct method: encountered deprecated 'stripped' option";
-        tac THEN_ALL_NEW_CASES (REPEAT o Tactic.match_tac [impI, allI, ballI]))
-    else (fn i => Seq.THEN (atomize_tac i, tac i)) THEN_ALL_NEW_CASES rulify_tac
+    (fn i => Seq.THEN (atomize_tac i, tac i)) THEN_ALL_NEW_CASES
+      (rulify_tac THEN' (if stripped then weak_strip_tac else K all_tac))
   end;
 
 in
