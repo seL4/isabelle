@@ -155,7 +155,7 @@ oops
 text {* A true statement (also testing names of free and bound variables being identical) *}
 
 lemma "(\<forall>x y. P x y \<longrightarrow> P y x) \<longrightarrow> (\<forall>x. P x y) \<longrightarrow> P y x"
-  refute [maxsize=5]
+  refute [maxsize=2]  (* [maxsize=5] works well with ZChaff *)
   apply fast
 done
 
@@ -172,13 +172,13 @@ oops
 text {* "Every reflexive and symmetric relation is transitive." *}
 
 lemma "\<lbrakk> \<forall>x. P x x; \<forall>x y. P x y \<longrightarrow> P y x \<rbrakk> \<Longrightarrow> P x y \<longrightarrow> P y z \<longrightarrow> P x z"
-  refute
+  (* refute -- works well with ZChaff, but the internal solver is too slow *)
 oops
 
 text {* The "Drinker's theorem" \<dots> *}
 
 lemma "\<exists>x. f x = g x \<longrightarrow> f = g"
-  refute [maxsize=6]
+  refute [maxsize=4]  (* [maxsize=6] works well with ZChaff *)
   apply (auto simp add: ext)
 done
 
@@ -262,7 +262,7 @@ lemma "(\<forall>x y. (P x y | R x y) \<longrightarrow> T x y) \<longrightarrow>
         \<longrightarrow> trans_closure TP P
         \<longrightarrow> trans_closure TR R
         \<longrightarrow> (T x y = (TP x y | TR x y))"
-  refute
+  (* refute -- works well with ZChaff, but the internal solver is too slow *)
 oops
 
 text {* "Every surjective function is invertible." *}
@@ -299,7 +299,7 @@ lemma "(\<forall>x. \<exists>y. P x y) \<longrightarrow> (\<exists>f. \<forall>x
 done
 
 lemma "(\<forall>x. EX!y. P x y) \<longrightarrow> (EX!f. \<forall>x. P x (f x))"
-  refute [maxsize=4]
+  refute [maxsize=3]  (* [maxsize=4] works well with ZChaff *)
   apply auto
     apply (simp add: ex1_implies_ex choice)
   apply (fast intro: ext)
@@ -361,7 +361,7 @@ lemma "P (A::'a set set)"
 oops
 
 lemma "{x. P x} = {y. P y}"
-  refute
+  refute [maxsize=2]  (* [maxsize=8] works well with ZChaff *)
   apply simp
 done
 
@@ -430,7 +430,7 @@ lemma "(THE x. x=y) = z"
 oops
 
 lemma "Ex P \<longrightarrow> P (The P)"
-  refute
+  (* refute -- works well with ZChaff, but the internal solver is too slow *)
 oops
 
 subsection {* Eps *}
@@ -452,7 +452,7 @@ lemma "(SOME x. x=y) = z"
 oops
 
 lemma "Ex P \<longrightarrow> P (Eps P)"
-  refute [maxsize=3]
+  refute [maxsize=2]  (* [maxsize=3] works well with ZChaff *)
   apply (auto simp add: someI)
 done
 
