@@ -1426,8 +1426,7 @@ will make it known to the classical reasoner (and to the simplifier).
 \end{isabelle}
 %
 This fact about multiplication is also appropriate for 
-the \isa{iff} attribute:\REMARK{the ?s are ugly here but we need
-  them again when talking about \isa{of}; we need a consistent style}
+the \isa{iff} attribute:
 \begin{isabelle}
 (\mbox{?m}\ *\ \mbox{?n}\ =\ 0)\ =\ (\mbox{?m}\ =\ 0\ \isasymor\ \mbox{?n}\ =\ 0)
 \end{isabelle}
@@ -1447,189 +1446,6 @@ simplification.  Simplification is deterministic: it applies rewrite rules
 repeatedly, as long as possible, in order to \emph{transform} a goal.  Classical
 reasoning uses search and backtracking in order to \emph{prove} a goal.%
 \index{*blast (method)|)}%
-
-
-
-\section{Proving the Correctness of Euclid's Algorithm}
-\label{sec:proving-euclid}
-
-\index{Euclid's algorithm|(}\index{*gcd (function)|(}%
-A brief development will illustrate the advanced use of  
-\isa{blast}.  We shall also see \isa{case_tac} used to perform a Boolean
-case split.
-
-In \S\ref{sec:recdef-simplification}, we declared the
-recursive function \isa{gcd}:
-\begin{isabelle}
-\isacommand{consts}\ gcd\ ::\ "nat*nat\ \isasymRightarrow\ nat"\isanewline
-\isacommand{recdef}\ gcd\ "measure\ ((\isasymlambda(m,n).n))"\isanewline
-\ \ \ \ "gcd\ (m,n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n))"
-\end{isabelle}
-Let us prove that it computes the greatest common
-divisor of its two arguments.  
-The theorem is expressed in terms of the familiar
-\emph{divides} relation from number theory: 
-\begin{isabelle}
-?m\ dvd\ ?n\ \isasymequiv\ {\isasymexists}k.\ ?n\ =\ ?m\ *\ k
-\rulename{dvd_def}
-\end{isabelle}
-%
-A simple induction proves the theorem.  Here \isa{gcd.induct} refers to the
-induction rule returned by \isa{recdef}.  The proof relies on the simplification
-rules proved in \S\ref{sec:recdef-simplification}, since rewriting by the
-definition of \isa{gcd} can cause looping.
-\begin{isabelle}
-\isacommand{lemma}\ gcd_dvd_both:\ "(gcd(m,n)\ dvd\ m)\ \isasymand\ (gcd(m,n)\ dvd\ n)"\isanewline
-\isacommand{apply}\ (induct_tac\ m\ n\ rule:\ gcd.induct)\isanewline
-\isacommand{apply}\ (case_tac\ "n=0")\isanewline
-\isacommand{apply}\ (simp_all)\isanewline
-\isacommand{apply}\ (blast\ dest:\ dvd_mod_imp_dvd)\isanewline
-\isacommand{done}%
-\end{isabelle}
-Notice that the induction formula 
-is a conjunction.  This is necessary: in the inductive step, each 
-half of the conjunction establishes the other. The first three proof steps 
-are applying induction, performing a case analysis on \isa{n}, 
-and simplifying.  Let us pass over these quickly --- we shall discuss
-\isa{case_tac} below --- and consider the use of \isa{blast}.  We have reached the
-following  subgoal: 
-\begin{isabelle}
-%gcd\ (m,\ n)\ dvd\ m\ \isasymand\ gcd\ (m,\ n)\ dvd\ n\isanewline
-\ 1.\ \isasymAnd m\ n.\ \isasymlbrakk0\ \isacharless\ n;\isanewline
- \ \ \ \ \ \ \ \ \ \ \ \ gcd\ (n,\ m\ mod\ n)\ dvd\ n\ \isasymand\ gcd\ (n,\ m\ mod\ n)\ dvd\ (m\ mod\ n)\isasymrbrakk\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow\ gcd\ (n,\ m\ mod\ n)\ dvd\ m
-\end{isabelle}
-%
-One of the assumptions, the induction hypothesis, is a conjunction. 
-The two divides relationships it asserts are enough to prove 
-the conclusion, for we have the following theorem at our disposal: 
-\begin{isabelle}
-\isasymlbrakk?k\ dvd\ (?m\ mod\ ?n){;}\ ?k\ dvd\ ?n\isasymrbrakk\ \isasymLongrightarrow\ ?k\ dvd\ ?m%
-\rulename{dvd_mod_imp_dvd}
-\end{isabelle}
-%
-This theorem can be applied in various ways.  As an introduction rule, it
-would cause backward chaining from  the conclusion (namely
-\isa{?k~dvd~?m}) to the two premises, which 
-also involve the divides relation. This process does not look promising
-and could easily loop.  More sensible is  to apply the rule in the forward
-direction; each step would eliminate an occurrence of the \isa{mod} symbol, so the
-process must terminate.  
-
-So the final proof step applies the \isa{blast} method.
-Attaching the {\isa{dest}} attribute to \isa{dvd_mod_imp_dvd} tells \isa{blast}
-to use it as destruction rule: in the forward direction.
-
-\medskip
-We have proved a conjunction.  Now, let us give names to each of the
-two halves:
-\begin{isabelle}
-\isacommand{lemmas}\ gcd_dvd1\ [iff]\ =\ gcd_dvd_both\ [THEN\ conjunct1]\isanewline
-\isacommand{lemmas}\ gcd_dvd2\ [iff]\ =\ gcd_dvd_both\ [THEN\ conjunct2]%
-\end{isabelle}
-
-Several things are happening here. The keyword \isacommand{lemmas}
-tells Isabelle to transform a theorem in some way and to
-give a name to the resulting theorem.  Attributes can be given,
-here \isa{iff}, which supplies the new theorems to the classical reasoner
-and the simplifier.  The directive \isa{THEN},\indexbold{*THEN (directive)}
-described in
-\S\ref{sec:forward} below, supplies the lemma 
-\isa{gcd_dvd_both} to the
-destruction rule \isa{conjunct1}.  The effect is to extract the first part:
-\begin{isabelle}
-\ \ \ \ \ gcd\ (?m1,\ ?n1)\ dvd\ ?m1
-\end{isabelle}
-The variable names \isa{?m1} and \isa{?n1} arise because
-Isabelle renames schematic variables to prevent 
-clashes.  The second \isacommand{lemmas} declaration yields
-\begin{isabelle}
-\ \ \ \ \ gcd\ (?m1,\ ?n1)\ dvd\ ?n1
-\end{isabelle}
-
-\medskip
-To complete the verification of the \isa{gcd} function, we must 
-prove that it returns the greatest of all the common divisors 
-of its arguments.  The proof is by induction, case analysis and simplification.
-\begin{isabelle}
-\isacommand{lemma}\ gcd_greatest\
-[rule_format]:\isanewline
-\ \ \ \ \ \ \ "k\ dvd\ m\ \isasymlongrightarrow\ k\ dvd\ n\ \isasymlongrightarrow\
-k\ dvd\ gcd(m,n)"\isanewline
-\isacommand{apply}\ (induct_tac\ m\ n\ rule:\ gcd.induct)\isanewline
-\isacommand{apply}\ (case_tac\ "n=0")\isanewline
-\isacommand{apply}\ (simp_all\ add:\ gcd_non_0\ dvd_mod)\isanewline
-\isacommand{done}
-\end{isabelle}
-
-The case analysis is performed by \isa{case_tac~"n=0"}: the operand has type
-\isa{bool}.  Until now, we have used \isa{case_tac} only with datatypes, and since
-\isa{nat} is a datatype, we could have written
-\isa{case_tac~"n"} with a similar effect.  However, the definition of \isa{gcd}
-makes a Boolean decision:
-\begin{isabelle}
-\ \ \ \ "gcd\ (m,n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n))"
-\end{isabelle}
-Proofs about a function frequently follow the function's definition, so we perform
-case analysis over the same formula.
-
-\begingroup\samepage
-\begin{isabelle}
-\ 1.\ \isasymAnd m\ n.\ \isasymlbrakk n\ \isasymnoteq \ 0\ \isasymlongrightarrow \isanewline
-\ \ \ \ \ \ \ \ \ \ \ k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ m\ mod\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (n,\ m\ mod\ n);\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ n\ =\ 0\isasymrbrakk \isanewline
-\ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow \ k\ dvd\ m\ \isasymlongrightarrow \ k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (m,\ n)
-\pagebreak[0]\isanewline
-\ 2.\ \isasymAnd m\ n.\ \isasymlbrakk n\ \isasymnoteq \ 0\ \isasymlongrightarrow \isanewline
-\ \ \ \ \ \ \ \ \ \ \ k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ m\ mod\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (n,\ m\ mod\ n);\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ n\ \isasymnoteq \ 0\isasymrbrakk \isanewline
-\ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow \ k\ dvd\ m\ \isasymlongrightarrow \ k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (m,\ n)
-\end{isabelle}
-\endgroup
-
-\begin{warn}
-Note that the theorem has been expressed using HOL implication,
-\isa{\isasymlongrightarrow}, because the induction affects the two
-preconditions.  The directive \isa{rule_format} tells Isabelle to replace
-each \isa{\isasymlongrightarrow} by \isa{\isasymLongrightarrow} before
-storing the theorem we have proved.  This directive can also remove outer
-universal quantifiers, converting a theorem into the usual format for
-inference rules.  (See \S\ref{sec:forward}.)
-\end{warn}
-
-The facts proved above can be summarized as a single logical 
-equivalence.  This step gives us a chance to see another application
-of \isa{blast}, and it is worth doing for sound logical reasons.
-\begin{isabelle}
-\isacommand{theorem}\ gcd_greatest_iff\ [iff]:\isanewline
-\ \ \ \ \ \ \ \ \ "(k\ dvd\ gcd(m,n))\ =\ (k\ dvd\ m\ \isasymand\ k\ dvd\
-n)"\isanewline
-\isacommand{by}\ (blast\ intro!:\ gcd_greatest\ intro:\ dvd_trans)
-\end{isabelle}
-This theorem concisely expresses the correctness of the \isa{gcd} 
-function. 
-We state it with the \isa{iff} attribute so that 
-Isabelle can use it to remove some occurrences of \isa{gcd}. 
-The theorem has a one-line 
-proof using \isa{blast} supplied with two additional introduction 
-rules. The exclamation mark 
-({\isa{intro}}{\isa{!}})\ signifies safe rules, which are 
-applied aggressively.  Rules given without the exclamation mark 
-are applied reluctantly and their uses can be undone if 
-the search backtracks.  Here the unsafe rule expresses transitivity  
-of the divides relation:
-\begin{isabelle}
-\isasymlbrakk?m\ dvd\ ?n;\ ?n\ dvd\ ?p\isasymrbrakk\ \isasymLongrightarrow\ ?m\ dvd\ ?p%
-\rulename{dvd_trans}
-\end{isabelle}
-Applying \isa{dvd_trans} as 
-an introduction rule entails a risk of looping, for it multiplies 
-occurrences of the divides symbol. However, this proof relies 
-on transitivity reasoning.  The rule {\isa{gcd\_greatest}} is safe to apply 
-aggressively because it yields simpler subgoals.  The proof implicitly
-uses \isa{gcd_dvd1} and \isa{gcd_dvd2} as safe rules, because they were
-declared using \isa{iff}.%
-\index{Euclid's algorithm|)}\index{*gcd (function)|)}
 
 
 \section{Other Classical Reasoning Methods}
@@ -1762,13 +1578,12 @@ subgoals, can help us find a difficult proof.  But it is
 not always the best way of presenting the proof so found.  Forward
 proof is particularly good for reasoning from the general
 to the specific.  For example, consider the following distributive law for
-the 
-\isa{gcd} function:
+the greatest common divisor:
 \[ k\times\gcd(m,n) = \gcd(k\times m,k\times n)\]
 
 Putting $m=1$ we get (since $\gcd(1,n)=1$ and $k\times1=k$) 
 \[ k = \gcd(k,k\times n)\]
-We have derived a new fact about \isa{gcd}; if re-oriented, it might be
+We have derived a new fact; if re-oriented, it might be
 useful for simplification.  After re-orienting it and putting $n=1$, we
 derive another useful law: 
 \[ \gcd(k,k)=k \]
@@ -1778,13 +1593,23 @@ an equation, so it too is a forward step.
 
 \subsection{The {\tt\slshape of} and {\tt\slshape THEN} Directives}
 
-Now let us reproduce our examples in Isabelle.  Here is the distributive
-law:
+Let us reproduce our examples in Isabelle.  Recall that in
+\S\ref{sec:recdef-simplification} we declared the recursive function
+\isa{gcd}:
+\begin{isabelle}
+\isacommand{consts}\ gcd\ ::\ "nat*nat\ \isasymRightarrow\ nat"\isanewline
+\isacommand{recdef}\ gcd\ "measure\ ((\isasymlambda(m,n).n))"\isanewline
+\ \ \ \ "gcd\ (m,n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n))"
+\end{isabelle}
+%
+From this definition, it is possible to prove the 
+distributive law.  
 \begin{isabelle}
 ?k\ *\ gcd\ (?m,\ ?n)\ =\ gcd\ (?k\ *\ ?m,\ ?k\ *\ ?n)
 \rulename{gcd_mult_distrib2}
-\end{isabelle}%
-The first step is to replace \isa{?m} by~1 in this law.  
+\end{isabelle}
+Now we can carry out the derivation shown above.
+The first step is to replace \isa{?m} by~1.  
 The \isa{of}\indexbold{*of (directive)}
 directive
 refers to variables not by name but by their order of occurrence in the theorem. 
@@ -1796,9 +1621,12 @@ by~\isa{1}.
 \isacommand{lemmas}\ gcd_mult_0\ =\ gcd_mult_distrib2\ [of\ k\ 1]
 \end{isabelle}
 %
+The keyword \isacommand{lemmas}\index{lemmas@\isacommand{lemmas}|bold}
+declares a new theorem, which can be derived
+from an existing one using attributes such as \isa{[of~k~1]}.
 The command 
 \isa{thm gcd_mult_0}
-displays the resulting theorem:
+displays the result:
 \begin{isabelle}
 \ \ \ \ \ k\ *\ gcd\ (1,\ ?n)\ =\ gcd\ (k\ *\ 1,\ k\ *\ ?n)
 \end{isabelle}
@@ -1819,8 +1647,7 @@ attribute takes a theorem
 and returns the result of simplifying it, with respect to the default
 simplification rules:
 \begin{isabelle}
-\isacommand{lemmas}\
-gcd_mult_1\ =\ gcd_mult_0\
+\isacommand{lemmas}\ gcd_mult_1\ =\ gcd_mult_0\
 [simplified]%
 \end{isabelle}
 %
@@ -1848,13 +1675,11 @@ Here is the result:
 \isa{THEN~sym}\indexbold{*THEN (directive)} gives the current theorem to the
 rule \isa{sym} and returns the resulting conclusion.  The effect is to
 exchange the two operands of the equality. Typically \isa{THEN} is used
-with destruction rules.  Above we have used
-\isa{THEN~conjunct1} to extract the first part of the theorem
-\isa{gcd_dvd_both}.  Also useful is \isa{THEN~spec}, which removes the quantifier
-from a theorem of the form $\forall x.\,P$, and \isa{THEN~mp}, which converts the
-implication $P\imp Q$ into the rule $\vcenter{\infer{Q}{P}}$.
-Similar to \isa{mp} are the following two rules, which extract 
-the two directions of reasoning about a boolean equivalence:
+with destruction rules.  Also useful is \isa{THEN~spec}, which removes the
+quantifier from a theorem of the form $\forall x.\,P$, and \isa{THEN~mp},
+which converts the implication $P\imp Q$ into the rule
+$\vcenter{\infer{Q}{P}}$. Similar to \isa{mp} are the following two rules,
+which extract  the two directions of reasoning about a boolean equivalence:
 \begin{isabelle}
 \isasymlbrakk?Q\ =\ ?P;\ ?Q\isasymrbrakk\ \isasymLongrightarrow\ ?P%
 \rulename{iffD1}%
@@ -1895,44 +1720,29 @@ is the Isabelle version:
 \isacommand{by}\ (rule\ gcd_mult\ [of\ k\ 1,\ simplified])
 \end{isabelle}
 
-\medskip
-The \isaindexbold{rule_format} directive replaces a common usage
-of \isa{THEN}\@.  It is needed in proofs by induction when the induction formula must be
-expressed using
-\isa{\isasymlongrightarrow} and \isa{\isasymforall}.  For example, in 
-Sect.\ts\ref{sec:proving-euclid} above we were able to write just this:
-\begin{isabelle}
-\isacommand{lemma}\ gcd_greatest\
-[rule_format]:\isanewline
-\ \ \ \ \ \ \ "k\ dvd\ m\ \isasymlongrightarrow\ k\ dvd\ n\ \isasymlongrightarrow\
-k\ dvd\ gcd(m,n)"
-\end{isabelle}
-%
-It replaces a clumsy use of \isa{THEN}:
-\begin{isabelle}
-\isacommand{lemma}\ gcd_greatest\
-[THEN mp, THEN mp]:\isanewline
-\ \ \ \ \ \ \ "k\ dvd\ m\ \isasymlongrightarrow\ k\ dvd\ n\ \isasymlongrightarrow\
-k\ dvd\ gcd(m,n)"
-\end{isabelle}
-%
-Through \isa{rule_format} we can replace any number of applications of \isa{THEN}
-with the rules \isa{mp} and \isa{spec}, eliminating the outermost occurrences of
-\isa{\isasymlongrightarrow} and \isa{\isasymforall}.
-
 
 \subsection{The {\tt\slshape OF} Directive}
 
 \index{*OF (directive)|(}%
 Recall that \isa{of} generates an instance of a
 rule by specifying values for its variables.  Analogous is \isa{OF}, which
-generates an instance of a rule by specifying facts for its premises.  Let
-us try it with this rule:
+generates an instance of a rule by specifying facts for its premises.  
+
+Below we shall need the 
+\emph{divides} relation of number theory: 
+\begin{isabelle}
+?m\ dvd\ ?n\ \isasymequiv\ {\isasymexists}k.\ ?n\ =\ ?m\ *\ k
+\rulename{dvd_def}
+\end{isabelle}
+%
+For example, this rule states that if $k$ and $n$ are relatively prime
+and if $k$ divides $m\times n$ then $k$ divides $m$.
 \begin{isabelle}
 \isasymlbrakk gcd(?k,?n){=}1;\ ?k\ dvd\ ?m * ?n\isasymrbrakk\
 \isasymLongrightarrow\ ?k\ dvd\ ?m
 \rulename{relprime_dvd_mult}
 \end{isabelle}
+We can use \isa{OF} to create an instance of this rule.
 First, we
 prove an instance of its first premise:
 \begin{isabelle}
@@ -1941,11 +1751,10 @@ prove an instance of its first premise:
 \end{isabelle}
 We have evaluated an application of the \isa{gcd} function by
 simplification.  Expression evaluation involving recursive functions is not
-guaranteed to terminate, and it certainly is not efficient; Isabelle
-performs arithmetic operations by  rewriting symbolic bit strings.  Here,
-however, the simplification above takes less than one second.  We can
-specify this new lemma to \isa{OF}, generating an instance of
-\isa{relprime_dvd_mult}.  The expression
+guaranteed to terminate, and it can be slow; Isabelle
+performs arithmetic by  rewriting symbolic bit strings.  Here,
+however, the simplification takes less than one second.  We can
+give this new lemma to \isa{OF}.  The expression
 \begin{isabelle}
 \ \ \ \ \ relprime_dvd_mult [OF relprime_20_81]
 \end{isabelle}
@@ -1997,9 +1806,11 @@ Here is a summary of some primitives for forward reasoning:
 \item \isa{OF} applies a rule to a list of theorems
 \item \isa{THEN} gives a theorem to a named rule and returns the
 conclusion 
-\item \isa{rule_format} puts a theorem into standard form
-  by removing \isa{\isasymlongrightarrow} and~\isa{\isasymforall}
+%\item \isa{rule_format} puts a theorem into standard form
+%  by removing \isa{\isasymlongrightarrow} and~\isa{\isasymforall}
 \item \isa{simplified} applies the simplifier to a theorem
+\item \isacommand{lemmas} assigns a name to the theorem produced by the
+attributes above
 \end{itemize}
 
 
@@ -2054,18 +1865,18 @@ Suc\ m\ mod\ n\ =\isanewline
 \rulename{mod_Suc}
 \end{isabelle}
 
-\medskip
+\subsection{The Method {\tt\slshape insert}}
+
 \index{*insert(method)|(}%
-The methods designed for supporting forward reasoning are 
-\isa{insert} and \isa{subgoal_tac}.  The \isa{insert} method
+The \isa{insert} method
 inserts a given theorem as a new assumption of the current subgoal.  This
 already is a forward step; moreover, we may (as always when using a
 theorem) apply
 \isa{of}, \isa{THEN} and other directives.  The new assumption can then
 be used to help prove the subgoal.
 
-For example, consider this theorem about the divides relation. 
-Only the first proof step is given; it inserts the distributive law for
+For example, consider this theorem about the divides relation.  The first
+proof step inserts the distributive law for
 \isa{gcd}.  We specify its variables as shown. 
 \begin{isabelle}
 \isacommand{lemma}\
@@ -2085,20 +1896,20 @@ inserted:
 =\ gcd\ (m\ *\ k,\ m\ *\ n)\isasymrbrakk\isanewline
 \ \ \ \ \isasymLongrightarrow\ k\ dvd\ m
 \end{isabelle}
-The next proof step, \isa{\isacommand{apply}(simp)}, 
-utilizes the assumption \isa{gcd(k,n)\ =\
-1}. Here is the result: 
+The next proof step utilizes the assumption \isa{gcd(k,n)\ =\ 1}: 
 \begin{isabelle}
-\ 1.\ \isasymlbrakk gcd\ (k,\ n)\ =\ 1;\ k\ dvd\ (m\ *\ n){;}
+\isacommand{apply}(simp)\isanewline
+\ 1.\ \isasymlbrakk gcd\ (k,\ n)\ =\ 1;\ k\ dvd\
+(m\ *\ n){;}
 \ m\ =\ gcd\ (m\ *\ k,\ m\ *\ n)\isasymrbrakk\isanewline
 \ \ \ \ \isasymLongrightarrow\ k\ dvd\ m
 \end{isabelle}
-Simplification has yielded an equation for \isa{m} that will be used to
-complete the proof. 
+Simplification has yielded an equation for~\isa{m}.  The rest of the proof
+is omitted.
 
 \medskip
-Here is another proof using \isa{insert}.  \REMARK{Effect with unknowns?}
-Division  and remainder obey a well-known law: 
+Here is another demonstration of \isa{insert}.  \REMARK{Effect with
+unknowns?} Division  and remainder obey a well-known law: 
 \begin{isabelle}
 (?m\ div\ ?n)\ *\ ?n\ +\ ?m\ mod\ ?n\ =\ ?m
 \rulename{mod_div_equality}
@@ -2131,8 +1942,10 @@ Then it cancels the factor~\isa{n} on both
 sides of the equation, proving the theorem.%
 \index{*insert(method)|)}
 
-\medskip
-A similar method is \isa{subgoal_tac}.\index{*subgoal_tac (method)}
+\subsection{The Method {\tt\slshape subgoal_tac}}
+
+\index{*subgoal_tac (method)}%
+A similar method is \isa{subgoal_tac}.
 Instead
 of inserting  a theorem as an assumption, it inserts an arbitrary formula. 
 This formula must be proved later as a separate subgoal. The 
@@ -2357,9 +2170,216 @@ subgoal to the last or first position
 \end{itemize}
 
 \begin{exercise}
-This proof uses \isa? and \isa+ to \ldots{} can you explain?
+Explain the use of \isa? and \isa+ in this proof.
 \begin{isabelle}
 \isacommand{lemma}\ "\isasymlbrakk P\isasymand Q\isasymlongrightarrow R;\ P\isasymlongrightarrow Q;\ P\isasymrbrakk \ \isasymLongrightarrow \ R"\isanewline
 \isacommand{by}\ (drule\ mp,\ intro?,\ assumption+)+
 \end{isabelle}
 \end{exercise}
+
+
+
+\section{Proving the Correctness of Euclid's Algorithm}
+\label{sec:proving-euclid}
+
+\index{Euclid's algorithm|(}\index{*gcd (function)|(}%
+A brief development will demonstrate the techniques of this chapter,
+including \isa{blast} applied with additional rules.  We shall also see
+\isa{case_tac} used to perform a Boolean case split.
+
+Let us prove that \isa{gcd} computes the greatest common
+divisor of its two arguments.  
+%
+We use induction: \isa{gcd.induct} is the
+induction rule returned by \isa{recdef}.  We simplify using
+rules proved in \S\ref{sec:recdef-simplification}, since rewriting by the
+definition of \isa{gcd} can loop.
+\begin{isabelle}
+\isacommand{lemma}\ gcd_dvd_both:\ "(gcd(m,n)\ dvd\ m)\ \isasymand\ (gcd(m,n)\ dvd\
+n)"
+\end{isabelle}
+The induction formula must be a conjunction.  In the
+inductive step, each conjunct establishes the other. 
+\begin{isabelle}
+\isacommand{apply}\ (induct_tac\ m\ n\ rule:\ gcd.induct)\isanewline
+\ 1.\ \isasymAnd m\ n.\ n\ \isasymnoteq \ 0\ \isasymlongrightarrow \isanewline
+\isaindent{\ 1.\ \isasymAnd m\ n.\ }gcd\ (n,\ m\ mod\ n)\ dvd\ n\ \isasymand
+\ gcd\ (n,\ m\ mod\ n)\ dvd\ m\ mod\ n\isanewline
+\isaindent{\ 1.\ \isasymAnd m\ n.\ }\isasymLongrightarrow\ gcd\ (m,\ n)\
+dvd\ m\ \isasymand \ gcd\ (m,\ n)\ dvd\ n%
+\end{isabelle}
+
+The conditional induction hypothesis suggests doing a case
+analysis on \isa{n=0}.  We apply \isa{case_tac} with type
+\isa{bool} --- and not with a datatype, as we have done until now.  Since
+\isa{nat} is a datatype, we could have written
+\isa{case_tac~"n"} instead of \isa{case_tac~"n=0"}.  However, the definition
+of \isa{gcd} makes a Boolean decision:
+\begin{isabelle}
+\ \ \ \ "gcd\ (m,n)\ =\ (if\ n=0\ then\ m\ else\ gcd(n,\ m\ mod\ n))"
+\end{isabelle}
+Proofs about a function frequently follow the function's definition, so we perform
+case analysis over the same formula.
+\begin{isabelle}
+\isacommand{apply}\ (case_tac\ "n=0")\isanewline
+\ 1.\ \isasymAnd m\ n.\ \isasymlbrakk n\ \isasymnoteq \ 0\ \isasymlongrightarrow \isanewline
+\isaindent{\ 1.\ \isasymAnd m\ n.\ \isasymlbrakk }gcd\ (n,\ m\ mod\ n)\ dvd\ n\ \isasymand \ gcd\ (n,\ m\ mod\ n)\ dvd\ m\ mod\ n;\isanewline
+\isaindent{\ 1.\ \isasymAnd m\ n.\ \ }n\ =\ 0\isasymrbrakk \isanewline
+\isaindent{\ 1.\ \isasymAnd m\ n.\ }\isasymLongrightarrow \ gcd\ (m,\ n)\ dvd\ m\ \isasymand \ gcd\ (m,\ n)\ dvd\ n\isanewline
+\ 2.\ \isasymAnd m\ n.\ \isasymlbrakk n\ \isasymnoteq \ 0\ \isasymlongrightarrow \isanewline
+\isaindent{\ 2.\ \isasymAnd m\ n.\ \isasymlbrakk }gcd\ (n,\ m\ mod\ n)\ dvd\ n\ \isasymand \ gcd\ (n,\ m\ mod\ n)\ dvd\ m\ mod\ n;\isanewline
+\isaindent{\ 2.\ \isasymAnd m\ n.\ \ }n\ \isasymnoteq \ 0\isasymrbrakk
+\isanewline
+\isaindent{\ 2.\ \isasymAnd m\ n.\ }\isasymLongrightarrow \ gcd\ (m,\ n)\ dvd\ m\ \isasymand \ gcd\ (m,\ n)\ dvd\ n%
+\end{isabelle}
+%
+Simplification leaves one subgoal: 
+\begin{isabelle}
+\isacommand{apply}\ (simp_all)\isanewline
+\ 1.\ \isasymAnd m\ n.\ \isasymlbrakk 0\ <\ n;\isanewline
+\isaindent{\ 1.\ \isasymAnd m\ n.\ \ }gcd\ (n,\ m\ mod\ n)\ dvd\ n\
+\isasymand \ gcd\ (n,\ m\ mod\ n)\ dvd\ m\ mod\
+n\isasymrbrakk \isanewline
+\isaindent{\ 1.\ \isasymAnd m\ n.\ }\isasymLongrightarrow \ gcd\ (n,\ m\ mod\ n)\ dvd\ m%
+\end{isabelle}
+%
+Here, we can use \isa{blast}.  
+One of the assumptions, the induction hypothesis, is a conjunction. 
+The two divides relationships it asserts are enough to prove 
+the conclusion, for we have the following theorem at our disposal: 
+\begin{isabelle}
+\isasymlbrakk?k\ dvd\ (?m\ mod\ ?n){;}\ ?k\ dvd\ ?n\isasymrbrakk\ \isasymLongrightarrow\ ?k\ dvd\ ?m%
+\rulename{dvd_mod_imp_dvd}
+\end{isabelle}
+%
+This theorem can be applied in various ways.  As an introduction rule, it
+would cause backward chaining from  the conclusion (namely
+\isa{?k~dvd~?m}) to the two premises, which 
+also involve the divides relation. This process does not look promising
+and could easily loop.  More sensible is  to apply the rule in the forward
+direction; each step would eliminate an occurrence of the \isa{mod} symbol, so the
+process must terminate.  
+\begin{isabelle}
+\isacommand{apply}\ (blast\ dest:\ dvd_mod_imp_dvd)\isanewline
+\isacommand{done}
+\end{isabelle}
+Attaching the {\isa{dest}} attribute to \isa{dvd_mod_imp_dvd} tells
+\isa{blast} to use it as destruction rule: in the forward direction.
+
+\medskip
+We have proved a conjunction.  Now, let us give names to each of the
+two halves:
+\begin{isabelle}
+\isacommand{lemmas}\ gcd_dvd1\ [iff]\ =\ gcd_dvd_both\ [THEN\ conjunct1]\isanewline
+\isacommand{lemmas}\ gcd_dvd2\ [iff]\ =\ gcd_dvd_both\ [THEN\ conjunct2]%
+\end{isabelle}
+Here we see \isacommand{lemmas}\index{lemmas@\isacommand{lemmas}}
+used with the \isa{iff} attribute, which supplies the new theorems to the
+classical reasoner and the simplifier.  Recall that \isa{THEN} is
+frequently used with destruction rules; \isa{THEN conjunct1} extracts the
+first half of a conjunctive theorem.  Given \isa{gcd_dvd_both} it yields
+\begin{isabelle}
+\ \ \ \ \ gcd\ (?m1,\ ?n1)\ dvd\ ?m1
+\end{isabelle}
+The variable names \isa{?m1} and \isa{?n1} arise because
+Isabelle renames schematic variables to prevent 
+clashes.  The second \isacommand{lemmas} declaration yields
+\begin{isabelle}
+\ \ \ \ \ gcd\ (?m1,\ ?n1)\ dvd\ ?n1
+\end{isabelle}
+
+\medskip
+To complete the verification of the \isa{gcd} function, we must 
+prove that it returns the greatest of all the common divisors 
+of its arguments.  The proof is by induction, case analysis and simplification.
+\begin{isabelle}
+\isacommand{lemma}\ gcd_greatest\
+[rule_format]:\isanewline
+\ \ \ \ \ \ \ "k\ dvd\ m\ \isasymlongrightarrow\ k\ dvd\ n\ \isasymlongrightarrow\
+k\ dvd\ gcd(m,n)"
+\end{isabelle}
+%
+The goal is expressed using HOL implication,
+\isa{\isasymlongrightarrow}, because the induction affects the two
+preconditions.  The directive \isa{rule_format} tells Isabelle to replace
+each \isa{\isasymlongrightarrow} by \isa{\isasymLongrightarrow} before
+storing the eventual theorem.  This directive can also remove outer
+universal quantifiers, converting the theorem into the usual format for
+inference rules.  It can replace any series of applications of
+\isa{THEN} to the rules \isa{mp} and \isa{spec}.  We did not have to
+write this:
+\begin{isabelle}
+\ \ \ \ \ \isacommand{lemma}\ gcd_greatest\
+[THEN mp, THEN mp]:\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ "k\ dvd\ m\ \isasymlongrightarrow\ k\ dvd\ n\
+\isasymlongrightarrow\ k\ dvd\ gcd(m,n)"
+\end{isabelle}
+
+Because we are again reasoning about \isa{gcd}, we perform the same
+induction and case analysis as in the previous proof:
+\begingroup\samepage
+\begin{isabelle}
+\isacommand{apply}\ (induct_tac\ m\ n\ rule:\ gcd.induct)\isanewline
+\isacommand{apply}\ (case_tac\ "n=0")\isanewline
+\ 1.\ \isasymAnd m\ n.\ \isasymlbrakk n\ \isasymnoteq \ 0\
+\isasymlongrightarrow \isanewline
+\isaindent{\ 1.\ \isasymAnd m\ n.\ \isasymlbrakk }k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ m\ mod\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (n,\ m\ mod\ n);\isanewline
+\isaindent{\ 1.\ \isasymAnd m\ n.\ \ }n\ =\ 0\isasymrbrakk \isanewline
+\isaindent{\ 1.\ \isasymAnd m\ n.\ }\isasymLongrightarrow \ k\ dvd\ m\ \isasymlongrightarrow \ k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (m,\ n)\isanewline
+\ 2.\ \isasymAnd m\ n.\ \isasymlbrakk n\ \isasymnoteq \ 0\ \isasymlongrightarrow \isanewline
+\isaindent{\ 2.\ \isasymAnd m\ n.\ \isasymlbrakk }k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ m\ mod\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (n,\ m\ mod\ n);\isanewline
+\isaindent{\ 2.\ \isasymAnd m\ n.\ \ }n\ \isasymnoteq \ 0\isasymrbrakk
+\isanewline
+\isaindent{\ 2.\ \isasymAnd m\ n.\ }\isasymLongrightarrow \ k\ dvd\ m\ \isasymlongrightarrow \ k\ dvd\ n\ \isasymlongrightarrow \ k\ dvd\ gcd\ (m,\ n)
+\end{isabelle}
+\endgroup
+
+\noindent Simplification proves both subgoals. 
+\begin{isabelle}
+\isacommand{apply}\ (simp_all\ add:\ dvd_mod)\isanewline
+\isacommand{done}
+\end{isabelle}
+In the first, where \isa{n=0}, the implication becomes trivial: \isa{k\ dvd\
+gcd\ (m,\ n)} goes to~\isa{k\ dvd\ m}.  The second subgoal is proved by
+an unfolding of \isa{gcd}, using this rule about divides:
+\begin{isabelle}
+\isasymlbrakk ?f\ dvd\ ?m;\ ?f\ dvd\ ?n\isasymrbrakk \
+\isasymLongrightarrow \ ?f\ dvd\ ?m\ mod\ ?n%
+\rulename{dvd_mod}
+\end{isabelle}
+
+
+\medskip
+The facts proved above can be summarized as a single logical 
+equivalence.  This step gives us a chance to see another application
+of \isa{blast}.
+\begin{isabelle}
+\isacommand{theorem}\ gcd_greatest_iff\ [iff]:\isanewline
+\ \ \ \ \ \ \ \ \ "(k\ dvd\ gcd(m,n))\ =\ (k\ dvd\ m\ \isasymand\ k\ dvd\
+n)"\isanewline
+\isacommand{by}\ (blast\ intro!:\ gcd_greatest\ intro:\ dvd_trans)
+\end{isabelle}
+This theorem concisely expresses the correctness of the \isa{gcd} 
+function. 
+We state it with the \isa{iff} attribute so that 
+Isabelle can use it to remove some occurrences of \isa{gcd}. 
+The theorem has a one-line 
+proof using \isa{blast} supplied with two additional introduction 
+rules. The exclamation mark 
+({\isa{intro}}{\isa{!}})\ signifies safe rules, which are 
+applied aggressively.  Rules given without the exclamation mark 
+are applied reluctantly and their uses can be undone if 
+the search backtracks.  Here the unsafe rule expresses transitivity  
+of the divides relation:
+\begin{isabelle}
+\isasymlbrakk?m\ dvd\ ?n;\ ?n\ dvd\ ?p\isasymrbrakk\ \isasymLongrightarrow\ ?m\ dvd\ ?p%
+\rulename{dvd_trans}
+\end{isabelle}
+Applying \isa{dvd_trans} as 
+an introduction rule entails a risk of looping, for it multiplies 
+occurrences of the divides symbol. However, this proof relies 
+on transitivity reasoning.  The rule {\isa{gcd\_greatest}} is safe to apply 
+aggressively because it yields simpler subgoals.  The proof implicitly
+uses \isa{gcd_dvd1} and \isa{gcd_dvd2} as safe rules, because they were
+declared using \isa{iff}.%
+\index{Euclid's algorithm|)}\index{*gcd (function)|)}

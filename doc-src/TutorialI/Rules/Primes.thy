@@ -1,7 +1,8 @@
 (* ID:         $Id$ *)
 (* EXTRACT from HOL/ex/Primes.thy*)
 
-(*Euclid's algorithm *)
+(*Euclid's algorithm 
+  This material now appears AFTER that of Forward.thy *)
 theory Primes = Main:
 consts
   gcd     :: "nat*nat \<Rightarrow> nat"
@@ -37,8 +38,13 @@ declare gcd.simps [simp del];
 (*gcd(m,n) divides m and n.  The conjunctions don't seem provable separately*)
 lemma gcd_dvd_both: "(gcd(m,n) dvd m) \<and> (gcd(m,n) dvd n)"
 apply (induct_tac m n rule: gcd.induct)
+  --{* @{subgoals[display,indent=0,margin=65]} *}
 apply (case_tac "n=0")
-apply (simp_all)
+txt{*subgoals after the case tac
+@{subgoals[display,indent=0,margin=65]}
+*};
+apply (simp_all) 
+  --{* @{subgoals[display,indent=0,margin=65]} *}
 by (blast dest: dvd_mod_imp_dvd)
 
 
@@ -49,17 +55,7 @@ text {*
 
 @{thm[display] dvd_trans}
 \rulename{dvd_trans}
-
-\begin{isabelle}
-proof\ (prove):\ step\ 3\isanewline
-\isanewline
-goal\ (lemma\ gcd_dvd_both):\isanewline
-gcd\ (m,\ n)\ dvd\ m\ \isasymand \ gcd\ (m,\ n)\ dvd\ n\isanewline
-\ 1.\ \isasymAnd m\ n.\ \isasymlbrakk 0\ <\ n;\ gcd\ (n,\ m\ mod\ n)\ dvd\ n\ \isasymand \ gcd\ (n,\ m\ mod\ n)\ dvd\ (m\ mod\ n)\isasymrbrakk \isanewline
-\ \ \ \ \ \ \ \ \ \ \isasymLongrightarrow \ gcd\ (n,\ m\ mod\ n)\ dvd\ m
-\end{isabelle}
-*};
-
+*}
 
 lemmas gcd_dvd1 [iff] = gcd_dvd_both [THEN conjunct1]
 lemmas gcd_dvd2 [iff] = gcd_dvd_both [THEN conjunct2];
@@ -87,11 +83,18 @@ txt{*subgoals after the case tac
 apply (simp_all add: dvd_mod)
 done
 
+text {*
+@{thm[display] dvd_mod}
+\rulename{dvd_mod}
+*}
+
 (*just checking the claim that case_tac "n" works too*)
 lemma "k dvd m \<longrightarrow> k dvd n \<longrightarrow> k dvd gcd(m,n)"
 apply (induct_tac m n rule: gcd.induct)
 apply (case_tac "n")
-by (simp_all add: dvd_mod)
+apply (simp_all add: dvd_mod)
+done
+
 
 theorem gcd_greatest_iff [iff]: 
         "(k dvd gcd(m,n)) = (k dvd m \<and> k dvd n)"

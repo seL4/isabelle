@@ -93,26 +93,26 @@ text{*
 
 text{*Relations.  transitive closure*}
 
-lemma rtrancl_converseD: "(x,y) \<in> (r^-1)^* \<Longrightarrow> (y,x) \<in> r^*"
+lemma rtrancl_converseD: "(x,y) \<in> (r\<inverse>)\<^sup>* \<Longrightarrow> (y,x) \<in> r\<^sup>*"
 apply (erule rtrancl_induct)
 txt{*
 @{subgoals[display,indent=0,margin=65]}
 *};
  apply (rule rtrancl_refl)
-apply (blast intro: r_into_rtrancl rtrancl_trans)
+apply (blast intro: rtrancl_trans)
 done
 
 
-lemma rtrancl_converseI: "(y,x) \<in> r^* \<Longrightarrow> (x,y) \<in> (r^-1)^*"
+lemma rtrancl_converseI: "(y,x) \<in> r\<^sup>* \<Longrightarrow> (x,y) \<in> (r\<inverse>)\<^sup>*"
 apply (erule rtrancl_induct)
  apply (rule rtrancl_refl)
-apply (blast intro: r_into_rtrancl rtrancl_trans)
+apply (blast intro: rtrancl_trans)
 done
 
-lemma rtrancl_converse: "(r^-1)^* = (r^*)^-1"
+lemma rtrancl_converse: "(r\<inverse>)\<^sup>* = (r\<^sup>*)\<inverse>"
 by (auto intro: rtrancl_converseI dest: rtrancl_converseD)
 
-lemma rtrancl_converse: "(r^-1)^* = (r^*)^-1"
+lemma rtrancl_converse: "(r\<inverse>)\<^sup>* = (r\<^sup>*)\<inverse>"
 apply (intro equalityI subsetI)
 txt{*
 after intro rules

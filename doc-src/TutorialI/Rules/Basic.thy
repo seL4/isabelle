@@ -124,6 +124,11 @@ apply intro
 	--{* @{subgoals[display,indent=0,margin=65]} *}
 by (erule notE)
 
+text {*
+@{thm[display] disjCI}
+\rulename{disjCI}
+*};
+
 lemma "(P \<or> Q) \<and> R \<Longrightarrow> P \<or> Q \<and> R"
 apply intro
 	--{* @{subgoals[display,indent=0,margin=65]} *}
@@ -145,6 +150,18 @@ goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
 
 text{*Quantifiers*}
 
+
+text {*
+@{thm[display] allI}
+\rulename{allI}
+
+@{thm[display] allE}
+\rulename{allE}
+
+@{thm[display] spec}
+\rulename{spec}
+*};
+
 lemma "\<forall>x. P x \<longrightarrow> P x"
 apply (rule allI)
 by (rule impI)
@@ -154,7 +171,7 @@ apply (rule impI, rule allI)
 apply (drule spec)
 by (drule mp)
 
-text{*NEW: rename_tac*}
+text{*rename_tac*}
 lemma "x < y \<Longrightarrow> \<forall>x y. P x (f y)"
 apply intro
 	--{* @{subgoals[display,indent=0,margin=65]} *}
@@ -188,6 +205,9 @@ text{*
 @{thm[display] someI2[no_vars]}
 \rulename{someI2}
 
+@{thm[display] someI_ex[no_vars]}
+\rulename{someI_ex}
+
 needed for examples
 
 @{thm[display] inv_def[no_vars]}
@@ -201,7 +221,7 @@ needed for examples
 *}
 
 
-lemma "inv Suc (Suc x) = x"
+lemma "inv Suc (Suc n) = n"
 by (simp add: inv_def)
 
 text{*but we know nothing about inv Suc 0*}
@@ -225,7 +245,7 @@ by (auto intro: order_antisym)
 
 
 theorem axiom_of_choice:
-     "(\<forall>x. \<exists> y. P x y) \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
+     "(\<forall>x. \<exists>y. P x y) \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
 apply (rule exI, rule allI)
 
 txt{*
@@ -249,7 +269,7 @@ lemma "[| P (k::nat);  \<forall>x. P x \<longrightarrow> k \<le> x |] ==> (LEAST
 apply (simp add: Least_def)
 by (blast intro: some_equality order_antisym);
 
-theorem axiom_of_choice: "(\<forall>x. \<exists> y. P x y) \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
+theorem axiom_of_choice: "(\<forall>x. \<exists>y. P x y) \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
 apply (rule exI [of _  "\<lambda>x. SOME y. P x y"])
 by (blast intro: someI);
 
@@ -298,10 +318,13 @@ apply (rule conjI)
  apply assumption
 oops
 
-lemma "\<forall> z. R z z \<Longrightarrow> \<exists>x. \<forall> y. R x y"
-apply (rule exI)
-apply (rule allI)
-apply (drule spec)
+lemma "\<forall> y. R y y \<Longrightarrow> \<exists>x. \<forall> y. R x y"
+apply (rule exI) 
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+apply (rule allI) 
+  --{* @{subgoals[display,indent=0,margin=65]} *}
+apply (drule spec) 
+  --{* @{subgoals[display,indent=0,margin=65]} *}
 oops
 
 lemma "\<forall>x. \<exists> y. x=y"
