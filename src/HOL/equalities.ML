@@ -29,7 +29,7 @@ by (Blast_tac 1);
 qed "not_psubset_empty";
 AddIffs [not_psubset_empty];
 
-Goal "(Collect P = {}) = (!x. ~ P x)";
+Goal "(Collect P = {}) = (ALL x. ~ P x)";
 by Auto_tac;
 qed "Collect_empty_eq";
 Addsimps[Collect_empty_eq];
@@ -99,12 +99,8 @@ by (Blast_tac 1);
 qed "insert_subset";
 Addsimps[insert_subset];
 
-Goal "insert a A ~= insert a B ==> A ~= B";
-by (Blast_tac 1);
-qed "insert_lim";
-
 (* use new B rather than (A-{a}) to avoid infinite unfolding *)
-Goal "a:A ==> ? B. A = insert a B & a ~: B";
+Goal "a:A ==> EX B. A = insert a B & a ~: B";
 by (res_inst_tac [("x","A-{a}")] exI 1);
 by (Blast_tac 1);
 qed "mk_disjoint_insert";
@@ -165,7 +161,7 @@ qed "image_cong";
 
 section "range";
 
-Goal "{u. ? x. u = f x} = range f";
+Goal "{u. EX x. u = f x} = range f";
 by Auto_tac;
 qed "full_SetCompr_eq";
 
@@ -466,7 +462,7 @@ by Auto_tac;
 qed "Union_empty_conv"; 
 AddIffs [Union_empty_conv];
 
-Goal "(Union(C) Int A = {}) = (! B:C. B Int A = {})";
+Goal "(Union(C) Int A = {}) = (ALL B:C. B Int A = {})";
 by (blast_tac (claset() addSEs [equalityCE]) 1);
 qed "Union_disjoint";
 
@@ -498,8 +494,6 @@ qed "Inter_Un_distrib";
 section "UN and INT";
 
 (*Basic identities*)
-
-bind_thm ("not_empty", prove_goal thy "(A ~= {}) = (? x. x:A)" (K [Blast_tac 1]));
 
 Goal "(UN x:{}. B x) = {}";
 by (Blast_tac 1);
@@ -587,12 +581,12 @@ by Auto_tac;
 qed "INT_constant";
 Addsimps[INT_constant];
 
-Goal "(UN x:A. B(x)) = Union({Y. ? x:A. Y=B(x)})";
+Goal "(UN x:A. B(x)) = Union({Y. EX x:A. Y=B(x)})";
 by (Blast_tac 1);
 qed "UN_eq";
 
 (*Look: it has an EXISTENTIAL quantifier*)
-Goal "(INT x:A. B(x)) = Inter({Y. ? x:A. Y=B(x)})";
+Goal "(INT x:A. B(x)) = Inter({Y. EX x:A. Y=B(x)})";
 by (Blast_tac 1);
 qed "INT_eq";
 
@@ -889,7 +883,7 @@ Goal "(A = B) = ((A <= (B::'a set)) & (B<=A))";
 by (Blast_tac 1);
 qed "set_eq_subset";
 
-Goal "A <= B =  (! t. t:A --> t:B)";
+Goal "A <= B =  (ALL t. t:A --> t:B)";
 by (Blast_tac 1);
 qed "subset_iff";
 
@@ -897,7 +891,7 @@ Goalw [psubset_def] "((A::'a set) <= B) = ((A < B) | (A=B))";
 by (Blast_tac 1);
 qed "subset_iff_psubset_eq";
 
-Goal "(!x. x ~: A) = (A={})";
+Goal "(ALL x. x ~: A) = (A={})";
 by (Blast_tac 1);
 qed "all_not_in_conv";
 AddIffs [all_not_in_conv];
