@@ -5,7 +5,7 @@
 #
 
 # for overriding proof objects in HOL image
-HOL_PROOF_OBJECTS="-p 2"
+HOL_PROOF_OBJECTS=-p 2
 
 ## targets
 
