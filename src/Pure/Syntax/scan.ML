@@ -189,7 +189,7 @@ fun drain def_prmpt get stopper scan ((state, xs), src) =
 
 fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
   let
-    val drain_with = drain def_prmpt get stopper;
+    fun drain_with scan = drain def_prmpt get stopper scan;
 
     fun drain_loop recover inp =
       drain_with (catch scanner) inp handle FAIL msg =>
