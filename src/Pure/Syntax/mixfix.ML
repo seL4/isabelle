@@ -240,7 +240,7 @@ val pure_syntax =
   ("_DDDOT",      "logic",                     Delimfix "..."),
   ("_constify",   "num => num_const",          Delimfix "_"),
   ("_indexnum",   "num_const => index",        Delimfix "\\<^sub>_"),
-  ("_index",      "logic => index",            Delimfix "\\<^bsub>_\\<^esub>"),
+  ("_index",      "logic => index",            Delimfix "(00\\<^bsub>_\\<^esub>)"),
   ("_indexdefault", "index",                   Delimfix ""),
   ("_indexvar",   "index",                     Delimfix "'\\<index>"),
   ("_struct",     "index => logic",            Mixfix ("\\<struct>_", [1000], 1000))];
