@@ -36,6 +36,7 @@ structure Option =
 
 structure Int =
   struct
+  type int = int
   fun toString (i: int) = makestring i;
   fun max (x, y) = if x < y then y else x : int;
   fun min (x, y) = if x < y then x else y : int;
