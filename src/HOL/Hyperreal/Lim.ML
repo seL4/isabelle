@@ -50,8 +50,9 @@ by (auto_tac (claset() addIs [real_add_less_mono],simpset()));
 qed "LIM_add";
 
 Goalw [LIM_def] "f -- a --> L ==> (%x. -f(x)) -- a --> -L";
-by (full_simp_tac (simpset() addsimps [real_minus_add_distrib RS sym] 
-                    delsimps [real_minus_add_distrib, real_minus_minus]) 1);
+by (subgoal_tac "ALL x. abs(- f x + L) = abs(f x + - L)" 1);
+by (Asm_full_simp_tac 1); 
+by (asm_full_simp_tac (simpset() addsimps [real_abs_def]) 1); 
 qed "LIM_minus";
 
 (*----------------------------------------------
@@ -1072,10 +1073,10 @@ qed "DERIV_cmult";
 Goal "NSDERIV f x :> D ==> NSDERIV (%x. -(f x)) x :> -D";
 by (asm_full_simp_tac (simpset() addsimps [NSDERIV_NSLIM_iff]) 1);
 by (res_inst_tac [("t","f x")] (real_minus_minus RS subst) 1);
-by (asm_simp_tac (simpset() addsimps [real_minus_add_distrib RS sym,
-                                      real_mult_minus_eq1] 
-                   delsimps [real_minus_add_distrib, real_minus_minus]) 1);
+by (subgoal_tac "(\\<lambda>h. (- f (x + h) + - (- f x)) / h) = (\\<lambda>h. - ((f (x + h) + - f x) / h))" 1);
+by (Asm_full_simp_tac 1); 
 by (etac NSLIM_minus 1);
+by (asm_full_simp_tac (simpset() addsimps [real_minus_divide_eq RS sym]) 1); 
 qed "NSDERIV_minus";
 
 Goal "DERIV f x :> D \
