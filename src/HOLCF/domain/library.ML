@@ -178,8 +178,6 @@ fun cont_eta_contract (Const("fabs",TT) $ Abs(a,T,body)) =
 |   cont_eta_contract t    = t;
 
 fun idx_name dnames s n = s^(if length dnames = 1 then "" else string_of_int n);
-fun when_funs cons = if length cons = 1 then ["f"] 
-		     else mapn (fn n => K("f"^(string_of_int n))) 1 cons;
 fun when_body cons funarg = let
 	fun one_fun n (_,[]  ) = /\ "dummy" (funarg(1,n))
 	|   one_fun n (_,args) = let
