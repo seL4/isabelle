@@ -92,13 +92,8 @@ by (auto_tac(claset() addDs [impOfSubs analz_subset_parts], simpset()));
 qed "Spy_analz_shrK";
 Addsimps [Spy_analz_shrK];
 
-goal thy  "!!A. [| Key (shrK A) : parts (spies evs);       \
-\                  evs : yahalom |] ==> A:bad";
-by (blast_tac (claset() addDs [Spy_see_shrK]) 1);
-qed "Spy_see_shrK_D";
-
-bind_thm ("Spy_analz_shrK_D", analz_subset_parts RS subsetD RS Spy_see_shrK_D);
-AddSDs [Spy_see_shrK_D, Spy_analz_shrK_D];
+AddSDs [Spy_see_shrK RSN (2, rev_iffD1), 
+	Spy_analz_shrK RSN (2, rev_iffD1)];
 
 
 (*Nobody can have used non-existent keys!  Needed to apply analz_insert_Key*)
