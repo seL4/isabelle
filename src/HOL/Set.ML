@@ -473,13 +473,9 @@ qed "insertCI";
 AddSIs [insertCI]; 
 AddSEs [insertE];
 
-Goal "A <= insert x B ==> A <= B & x ~: A | (EX B'. A = insert x B' & B' <= B)";
-by (case_tac "x:A" 1);
-by  (Fast_tac 2);
-by (rtac disjI2 1);
-by (res_inst_tac [("x","A-{x}")] exI 1);
-by (Fast_tac 1);
-qed "subset_insertD";
+Goal "(A <= insert x B) = (if x:A then A-{x} <= B else A<=B)";
+by Auto_tac; 
+qed "subset_insert_iff";
 
 section "Singletons, using insert";
 
@@ -755,9 +751,11 @@ by (Blast_tac 1);
 qed "psubsetI";
 AddSIs [psubsetI];
 
-Goalw [psubset_def] "A < insert x B ==> (x ~: A) & A<=B | x:A & A-{x}<B";
-by Auto_tac;
-qed "psubset_insertD";
+Goalw [psubset_def]
+  "(A < insert x B) = (if x:B then A<B else if x:A then A-{x} < B else A<=B)";
+by (asm_simp_tac (simpset() addsimps [subset_insert_iff]) 1);
+by (Blast_tac 1); 
+qed "psubset_insert_iff";
 
 bind_thm ("psubset_eq", psubset_def RS meta_eq_to_obj_eq);
 
