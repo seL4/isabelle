@@ -11,7 +11,7 @@ implicitely considered to be declared outermost.
 
 signature NAME_SPACE =
 sig
-  val separator: string         (*single char!*)
+  val separator: string                 (*single char*)
   val unpack: string -> string list
   val pack: string list -> string
   val base: string -> string
@@ -19,15 +19,24 @@ sig
   type T
   val dest: T -> string list
   val empty: T
-  val extend: string list * T -> T
-  val merge: T * T -> T
   val declared: T -> string -> bool
+  val extend: T * string list -> T
+  val merge: T * T -> T
   val intern: T -> string -> string
   val extern: T -> string -> string
 end;
 
 structure NameSpace: NAME_SPACE =
 struct
+
+
+(** utils **)
+
+fun prefixes1 [] = []
+  | prefixes1 (x :: xs) = map (cons x) ([] :: prefixes1 xs);
+
+fun suffixes1 xs = map rev (prefixes1 (rev xs));
+
 
 
 (** long identifiers **)
@@ -40,64 +49,50 @@ val pack = space_implode separator;
 val base = last_elem o unpack;
 fun qualified name = length (unpack name) > 1;
 
+fun accesses name =
+  let
+    val uname = unpack name;
+    val (q, b) = split_last uname;
+    val sfxs = suffixes1 uname;
+    val pfxs = map (fn x => x @ [b]) (prefixes1 q);
+  in
+    map (rpair name o pack) (sfxs @ pfxs)
+  end;
+
 
 
 (** name spaces **)
 
-(* utils *)
-
-fun prefixes1 [] = []
-  | prefixes1 (x :: xs) = map (cons x) ([] :: prefixes1 xs);
-
-fun suffixes1 xs = map rev (prefixes1 (rev xs));
-
-
 (* datatype T *)
 
 datatype T =
-  NameSpace of string list list * string Symtab.table;
+  NameSpace of string Symtab.table;
 
-fun entries_of (NameSpace (entries, _)) = entries;
-fun tab_of (NameSpace (_, tab)) = tab;
+val empty = NameSpace Symtab.empty;
 
-fun make entries =
-  let
-    fun accesses [] = []
-      | accesses entry =
-          let
-            val p = pack entry;
-            val (q, b) = split_last entry;
-            val sfxs = suffixes1 entry;
-            val pfxs = map (fn x => x @ [b]) (prefixes1 q);
-          in
-            map (rpair p o pack) (sfxs @ pfxs)
-          end;
-    val mapping = filter_out (op =) (distinct_fst_string (flat (map accesses entries)));
-  in
-    NameSpace (entries, Symtab.make mapping)
-  end;
+(* FIXME !? *)
+fun dest (NameSpace tab) = map (fn (x, y) => x ^ " -> " ^ y) (Symtab.dest tab);
+fun dest (NameSpace tab) = map fst (Symtab.dest tab);
 
-fun dest space = rev (map pack (entries_of space));
+(* FIXME !? *)
+fun declared (NameSpace tab) name = is_some (Symtab.lookup (tab, name));
 
 
+(* extend, merge operations *)
 
-(* empty, extend, merge operations *)
+fun add (tab, entry) = Symtab.update (entry, tab);
 
-val empty = make [];
+fun extend (NameSpace tab, names) =
+  NameSpace (foldl add (tab, flat (map accesses names)));
 
-fun extend (entries, space) =
-  make (map unpack (rev entries) @ entries_of space);
-
-fun merge (space1, space2) =    (*2nd overrides 1st*)
-  make (merge_lists (entries_of space2) (entries_of space1));
-
-fun declared space name = unpack name mem (entries_of space);
+fun merge (NameSpace tab1, NameSpace tab2) =    (*2nd overrides 1st*)
+  NameSpace (foldl add (tab1, Symtab.dest tab2));
 
 
 (* intern / extern names *)
 
-fun intern space name =
-  if_none (Symtab.lookup (tab_of space, name)) name;
+fun intern (NameSpace tab) name =
+  if_none (Symtab.lookup (tab, name)) name;
 
 fun extern space name =
   let
