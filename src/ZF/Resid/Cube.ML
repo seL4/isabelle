@@ -34,7 +34,7 @@ qed_spec_mp "prism_l";
 goal Cube.thy 
     "!!u.[|v <== u; regular(u); w~v|]==> \
 \       w |> u = (w|>v) |> (u|>v)";
-by (resolve_tac [prism_l] 1);
+by (rtac prism_l 1);
 by (rtac comp_trans 4);
 by (assume_tac 4);
 by (ALLGOALS(asm_simp_tac prism_ss));
@@ -48,9 +48,9 @@ qed "prism";
 goal Cube.thy 
     "!!u.[|u~v; regular(v); regular(u); w~u|]==>  \
 \          (w|>u) |> (v|>u) = (w|>v) |> (u|>v)";
-by (rtac (preservation RS ssubst) 1 
+by (stac preservation 1 
     THEN assume_tac 1 THEN assume_tac 1);
-by (rtac (preservation RS ssubst) 1 
+by (stac preservation 1 
     THEN etac comp_sym 1 THEN assume_tac 1);
 by (stac (prism RS sym) 1);
 by (asm_full_simp_tac (simpset() addsimps 

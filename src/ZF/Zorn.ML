@@ -206,7 +206,7 @@ by (fast_tac (claset() addSIs [super_subset_chain RS subsetD,
 (*Now, verify that it increases*)
 by (asm_simp_tac (simpset() addsimps [Pow_iff, subset_refl]
                         setloop split_tac [expand_if]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (dtac choice_super 1);
 by (REPEAT (assume_tac 1));
 by (rewtac super_def);
@@ -228,7 +228,7 @@ by (asm_simp_tac
            setloop split_tac [expand_if]) 1);
 by (rewtac chain_def);
 by (rtac CollectI 1 THEN Blast_tac 1);
-by (safe_tac(claset()));
+by Safe_tac;
 by (res_inst_tac  [("m1","B"), ("n1","Ba")] (TFin_subset_linear RS disjE) 1);
 by (ALLGOALS Fast_tac);
 qed "TFin_chain_lemma4";
@@ -272,13 +272,13 @@ by (asm_full_simp_tac (simpset() addsimps [maxchain_def]) 1);
 by (rename_tac "c" 1);
 by (res_inst_tac [("x", "Union(c)")] bexI 1);
 by (Blast_tac 2);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rename_tac "z" 1);
 by (rtac classical 1);
 by (subgoal_tac "cons(z,c): super(S,c)" 1);
 by (blast_tac (claset() addEs [equalityE]) 1);
 by (rewtac super_def);
-by (safe_tac (claset()));
+by Safe_tac;
 by (fast_tac (claset() addEs [chain_extend]) 1);
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "Zorn";

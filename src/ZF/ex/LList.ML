@@ -77,7 +77,7 @@ by (etac trans_induct 1);
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (etac lleq.elim 1);
 by (rewrite_goals_tac (QInr_def::llist.con_defs));
-by (safe_tac (claset()));
+by Safe_tac;
 by (fast_tac (subset_cs addSEs [Ord_trans, make_elim bspec]) 1);
 qed "lleq_Int_Vset_subset_lemma";
 
@@ -89,7 +89,7 @@ bind_thm ("lleq_Int_Vset_subset",
 val [prem] = goal LList.thy "<l,l'> : lleq(A) ==> <l',l> : lleq(A)";
 by (rtac (prem RS converseI RS lleq.coinduct) 1);
 by (rtac (lleq.dom_subset RS converse_type) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac lleq.elim 1);
 by (ALLGOALS Fast_tac);
 qed "lleq_symmetric";
@@ -104,7 +104,7 @@ val [eqprem,lprem] = goal LList.thy
     "[| l=l';  l: llist(A) |] ==> <l,l'> : lleq(A)";
 by (res_inst_tac [("X", "{<l,l>. l: llist(A)}")] lleq.coinduct 1);
 by (rtac (lprem RS RepFunI RS (eqprem RS subst)) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac llist.elim 1);
 by (ALLGOALS Fast_tac);
 qed "equal_llist_implies_leq";

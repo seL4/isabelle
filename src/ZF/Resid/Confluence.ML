@@ -53,7 +53,7 @@ bind_thm ("confluence_parallel_reduction",
 
 goalw Confluence.thy [confluence_def] 
     "!!u.[|confluence(Spar_red)|]==> confluence(Sred)";
-by(blast_tac (claset() addIs [par_red_red, red_par_red]) 1);
+by (blast_tac (claset() addIs [par_red_red, red_par_red]) 1);
 val lemma1 = result();
 
 bind_thm ("confluence_beta_reduction",

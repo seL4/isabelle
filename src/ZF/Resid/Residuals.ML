@@ -100,11 +100,11 @@ goal Residuals.thy
 by (etac Scomp.induct 1);
 by (ALLGOALS (asm_full_simp_tac 
              (simpset() addsimps [res_Var,res_Fun,res_App,res_redex] 
-              setloop (SELECT_GOAL (safe_tac (claset()))))));
+              setloop (SELECT_GOAL Safe_tac))));
 by (dres_inst_tac [("psi", "Fun(?u) |> ?v : redexes")] asm_rl 1);
 by (asm_full_simp_tac 
              (simpset() addsimps [res_Fun] 
-              setloop (SELECT_GOAL (safe_tac (claset())))) 1);
+              setloop (SELECT_GOAL Safe_tac)) 1);
 qed "resfunc_type";
 
 Addsimps ([res_Var, res_Fun, res_App, res_redex, lift_rec_preserve_comp,
@@ -112,7 +112,7 @@ Addsimps ([res_Var, res_Fun, res_App, res_redex, lift_rec_preserve_comp,
 	  subst_rec_preserve_reg] @
 	  redexes.free_iffs);
 
-val res1L_ss = simpset() setloop (SELECT_GOAL (safe_tac (claset())));
+val res1L_ss = simpset() setloop (SELECT_GOAL Safe_tac);
 
 (* ------------------------------------------------------------------------- *)
 (*     Commutation theorem                                                   *)
@@ -178,7 +178,7 @@ qed_spec_mp "residuals_preserve_comp";
 goal Residuals.thy 
     "!!u. u~v ==> regular(u) --> regular(v) --> regular(u|>v)";
 by (etac Scomp.induct 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (TRYALL (dres_inst_tac [("psi", "regular(Fun(?u) |> ?v)")] asm_rl));
 by (ALLGOALS (asm_full_simp_tac res1L_ss));
 qed "residuals_preserve_reg";
@@ -196,7 +196,7 @@ qed "union_preserve_comp";
 goal Residuals.thy 
     "!!u. u ~ v ==> regular(v) --> u|>v = (u un v)|>v";
 by (etac Scomp.induct 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (dres_inst_tac [("psi", "Fun(?u) |> ?v = ?w")] asm_rl 3);
 by (ALLGOALS (asm_full_simp_tac (res1L_ss addsimps 
                                  [union_preserve_comp,comp_sym_iff])));

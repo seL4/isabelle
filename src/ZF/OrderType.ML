@@ -103,13 +103,13 @@ fun ordermap_elim_tac i =
 
 goalw OrderType.thy [well_ord_def, tot_ord_def, part_ord_def]
     "!!r. [| well_ord(A,r);  x:A |] ==> Ord(ordermap(A,r) ` x)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (wf_on_ind_tac "x" [] 1);
 by (asm_simp_tac (simpset() addsimps [ordermap_pred_unfold]) 1);
 by (rtac (Ord_is_Transset RSN (2,OrdI)) 1);
 by (rewrite_goals_tac [pred_def,Transset_def]);
 by (Blast_tac 2);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ordermap_elim_tac 1);
 by (fast_tac (claset() addSEs [trans_onD]) 1);
 qed "Ord_ordermap";
@@ -120,7 +120,7 @@ by (stac ([ordermap_type, subset_refl] MRS image_fun) 1);
 by (rtac (Ord_is_Transset RSN (2,OrdI)) 1);
 by (blast_tac (claset() addIs [Ord_ordermap]) 2);
 by (rewrite_goals_tac [Transset_def,well_ord_def]);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ordermap_elim_tac 1);
 by (Blast_tac 1);
 qed "Ord_ordertype";
@@ -139,7 +139,7 @@ qed "ordermap_mono";
 goalw OrderType.thy [well_ord_def, tot_ord_def]
     "!!r. [| ordermap(A,r)`w : ordermap(A,r)`x;  well_ord(A,r);  \
 \            w: A; x: A |] ==> <w,x>: r";
-by (safe_tac (claset()));
+by Safe_tac;
 by (linear_case_tac 1);
 by (blast_tac (claset() addSEs [mem_not_refl RS notE]) 1);
 by (dtac ordermap_mono 1);
@@ -312,7 +312,7 @@ qed "Ord_alt_is_Ord";
 
 goal OrderType.thy "(lam z:A+0. case(%x. x, %y. y, z)) : bij(A+0, A)";
 by (res_inst_tac [("d", "Inl")] lam_bijective 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS Asm_simp_tac);
 qed "bij_sum_0";
 
@@ -325,7 +325,7 @@ qed "ordertype_sum_0_eq";
 
 goal OrderType.thy "(lam z:0+A. case(%x. x, %y. y, z)) : bij(0+A, A)";
 by (res_inst_tac [("d", "Inr")] lam_bijective 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS Asm_simp_tac);
 qed "bij_0_sum";
 
@@ -344,7 +344,7 @@ goalw OrderType.thy [pred_def]
 \        (lam x:pred(A,a,r). Inl(x))    \
 \        : bij(pred(A,a,r), pred(A+B, Inl(a), radd(A,r,B,s)))";
 by (res_inst_tac [("d", "case(%x. x, %y. y)")] lam_bijective 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS
     (asm_full_simp_tac 
      (simpset() addsimps [radd_Inl_iff, radd_Inr_Inl_iff])));
@@ -364,7 +364,7 @@ goalw OrderType.thy [pred_def, id_def]
 \        id(A+pred(B,b,s))      \
 \        : bij(A+pred(B,b,s), pred(A+B, Inr(b), radd(A,r,B,s)))";
 by (res_inst_tac [("d", "%z. z")] lam_bijective 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS (Asm_full_simp_tac));
 qed "pred_Inr_bij";
 
@@ -671,7 +671,7 @@ goalw OrderType.thy [pred_def]
 \        pred(A*B, <a,b>, rmult(A,r,B,s)) =     \
 \        pred(A,a,r)*B Un ({a} * pred(B,b,s))";
 by (rtac equalityI 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [rmult_iff])));
 by (ALLGOALS (Blast_tac));
 qed "pred_Pair_eq";
@@ -703,7 +703,7 @@ by (REPEAT_FIRST (eresolve_tac [SigmaE, sumE, ltE, ssubst]));
 by (REPEAT_FIRST (ares_tac [well_ord_rmult, well_ord_radd, well_ord_Memrel, 
                             Ord_ordertype]));
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Memrel_iff])));
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS (blast_tac (claset() addIs [Ord_trans])));
 qed "ordertype_pred_Pair_lemma";
 

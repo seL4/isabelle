@@ -69,7 +69,7 @@ qed "map_mono";
 (** map_emp **)
 
 goalw Map.thy [map_emp_def,PMap_def,TMap_def] "map_emp:PMap(A,B)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac image_02 1);
 qed "pmap_empI";
 
@@ -89,7 +89,7 @@ by (etac image_Sigma1 1);
 by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 1);
 by (asm_full_simp_tac
     (simpset() addsimps [qbeta] setloop split_tac [expand_if]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (dres_inst_tac [("psi", "?uu ~: B")] asm_rl 3);
 by (ALLGOALS Asm_full_simp_tac);
 by (Fast_tac 1);

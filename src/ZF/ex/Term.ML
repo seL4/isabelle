@@ -51,7 +51,7 @@ qed "term_mono";
 goalw Term.thy (term.defs@term.con_defs) "term(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
-by (safe_tac (claset()));
+by Safe_tac;
 by (REPEAT (ares_tac [Pair_in_univ, list_univ RS subsetD] 1));
 qed "term_univ";
 

@@ -263,7 +263,7 @@ val [premp,sat] = goal PropLog.thy
     "[| p: prop;  0 |= p |] ==> ALL t. hyps(p,t) - hyps(p,t0) |- p";
 by (rtac (premp RS hyps_finite RS Fin_induct) 1);
 by (simp_tac (simpset() addsimps [premp, sat, logcon_thms_p, Diff_0]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 (*Case hyps(p,t)-cons(#v,Y) |- p *)
 by (rtac thms_excluded_middle_rule 1);
 by (etac prop.Var_I 3);

@@ -44,12 +44,12 @@ qed "well_ordI";
 
 goalw Order.thy [well_ord_def]
     "!!r. well_ord(A,r) ==> wf[A](r)";
-by (safe_tac (claset()));
+by Safe_tac;
 qed "well_ord_is_wf";
 
 goalw Order.thy [well_ord_def, tot_ord_def, part_ord_def]
     "!!r. well_ord(A,r) ==> trans[A](r)";
-by (safe_tac (claset()));
+by Safe_tac;
 qed "well_ord_is_trans_on";
 
 goalw Order.thy [well_ord_def, tot_ord_def]
@@ -274,7 +274,7 @@ qed "ord_iso_trans";
 goalw Order.thy [ord_iso_def, mono_map_def]
     "!!f g. [| f: mono_map(A,r,B,s);  g: mono_map(B,s,A,r);     \
 \              f O g = id(B);  g O f = id(A) |] ==> f: ord_iso(A,r,B,s)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (REPEAT_FIRST (ares_tac [fg_imp_bijective]));
 by (Blast_tac 1);
 by (subgoal_tac "<g`(f`x), g`(f`y)> : r" 1);
@@ -305,7 +305,7 @@ qed "part_ord_ord_iso";
 goalw Order.thy [linear_def, ord_iso_def]
     "!!A B r. [| linear(B,s);  f: ord_iso(A,r,B,s) |] ==> linear(A,r)";
 by (Asm_simp_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (dres_inst_tac [("x1", "f`x"), ("x", "f`xa")] (bspec RS bspec) 1);
 by (safe_tac (claset() addSEs [bij_is_fun RS apply_type]));
 by (dres_inst_tac [("t", "op `(converse(f))")] subst_context 1);
@@ -316,7 +316,7 @@ goalw Order.thy [wf_on_def, wf_def, ord_iso_def]
     "!!A B r. [| wf[B](s);  f: ord_iso(A,r,B,s) |] ==> wf[A](r)";
 (*reversed &-congruence rule handles context of membership in A*)
 by (asm_full_simp_tac (simpset() addcongs [conj_cong2]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (dres_inst_tac [("x", "{f`z. z:Z Int A}")] spec 1);
 by (safe_tac (claset() addSIs [equalityI]));
 by (ALLGOALS (blast_tac
@@ -430,7 +430,7 @@ goal Order.thy
 by (forward_tac [well_ord_iso_subset_lemma] 1);
 by (res_inst_tac [("f","converse(f)"), ("g","g")] ord_iso_trans 1);
 by (REPEAT_FIRST (ares_tac [subset_refl, ord_iso_sym]));
-by (safe_tac (claset()));
+by Safe_tac;
 by (forward_tac [ord_iso_converse] 1);
 by (EVERY (map (blast_tac bij_apply_cs) [1,1,1]));
 by (asm_full_simp_tac bij_inverse_ss 1);
@@ -489,7 +489,7 @@ goalw Order.thy [mono_map_def]
 \          : mono_map(domain(ord_iso_map(A,r,B,s)), r,  \
 \                     range(ord_iso_map(A,r,B,s)), s)";
 by (asm_simp_tac (simpset() addsimps [ord_iso_map_fun]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (subgoals_tac ["x:A", "xa:A", "y:B", "ya:B"] 1);
 by (REPEAT 
     (blast_tac (claset() addSEs [ord_iso_map_subset RS subsetD RS SigmaE]) 2));

@@ -88,7 +88,7 @@ by (rename_tac "n" 1);          (*simplifier does NOT preserve bound names!*)
 by (nat_ind_tac "n" [] 1);
 by (fast_tac (claset() addSIs [Atleast0]) 1);
 by (asm_simp_tac (simpset() addsimps [add_succ_right]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac (Atleast_succD RS bexE) 1);
 by (etac UnE 1);
 (**case x:B.  Instantiate the 'ALL A B' induction hypothesis. **)
@@ -165,7 +165,7 @@ val ram1::ram2::prems = goalw Ramsey.thy [Ramsey_def]
    "[| Ramsey(succ(m), succ(i), j);  Ramsey(n, i, succ(j));  \
 \      m: nat;  n: nat |] ==> \
 \   Ramsey(succ(m#+n), succ(i), succ(j))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac (Atleast_succD RS bexE) 1);
 by (eres_inst_tac [("P1","%z.<x,z>:E")] (Atleast_partition RS disjE) 1);
 by (REPEAT (resolve_tac prems 1));
@@ -173,13 +173,13 @@ by (REPEAT (resolve_tac prems 1));
 by (rtac (ram1 RS spec RS spec RS mp RS disjE) 1);
 by (Fast_tac 1);
 by (fast_tac (claset() addEs [Clique_superset]) 1); (*easy -- given a Clique*)
-by (safe_tac (claset()));
+by Safe_tac;
 by (eresolve_tac (swapify [exI]) 1);             (*ignore main EX quantifier*)
 by (REPEAT (ares_tac [Indept_succ] 1));          (*make a bigger Indept*)
 (*case n*)
 by (rtac (ram2 RS spec RS spec RS mp RS disjE) 1);
 by (Fast_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac exI 1);
 by (REPEAT (ares_tac [Clique_succ] 1));          (*make a bigger Clique*)
 by (fast_tac (claset() addEs [Indept_superset]) 1); (*easy -- given an Indept*)

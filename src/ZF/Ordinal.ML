@@ -183,7 +183,7 @@ by (safe_tac (claset() addSEs [mem_irrefl]));
 by (swap_res_tac [Ord_is_Transset RSN (2,OrdI)] 1);
 by (Blast_tac 2);
 by (rewtac Transset_def);
-by (safe_tac (claset()));
+by Safe_tac;
 by (Asm_full_simp_tac 1);
 by (REPEAT (eresolve_tac [asm_rl, Ord_in_Ord] 1));
 qed "ON_class";

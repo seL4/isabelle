@@ -93,13 +93,13 @@ qed "subset_mem_Vfrom";
 
 goal Univ.thy "!!a. a: Vfrom(A,i) ==> {a} : Vfrom(A,succ(i))";
 by (rtac subset_mem_Vfrom 1);
-by (safe_tac (claset()));
+by Safe_tac;
 qed "singleton_in_Vfrom";
 
 goal Univ.thy
     "!!A. [| a: Vfrom(A,i);  b: Vfrom(A,i) |] ==> {a,b} : Vfrom(A,succ(i))";
 by (rtac subset_mem_Vfrom 1);
-by (safe_tac (claset()));
+by Safe_tac;
 qed "doubleton_in_Vfrom";
 
 goalw Univ.thy [Pair_def]
@@ -412,7 +412,7 @@ val Transset_Vset = Transset_0 RS Transset_Vfrom;
 val [ordi] = goal Univ.thy "Ord(i) ==> ALL b. b : Vset(i) --> rank(b) < i";
 by (rtac (ordi RS trans_induct) 1);
 by (stac Vset 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (stac rank 1);
 by (rtac UN_succ_least_lt 1);
 by (Blast_tac 2);
@@ -445,7 +445,7 @@ qed "Vset_rank_iff";
 goal Univ.thy "!!i. Ord(i) ==> rank(Vset(i)) = i";
 by (stac rank 1);
 by (rtac equalityI 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (EVERY' [rtac UN_I, 
             etac (i_subset_Vfrom RS subsetD),
             etac (Ord_in_Ord RS rank_of_Ord RS ssubst),
@@ -633,7 +633,7 @@ goal Univ.thy
    "!!i. [| b: Fin(Vfrom(A,i));  Limit(i) |] ==> EX j. b <= Vfrom(A,j) & j<i";
 by (etac Fin_induct 1);
 by (blast_tac (claset() addSDs [Limit_has_0]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac Limit_VfromE 1);
 by (assume_tac 1);
 by (blast_tac (claset() addSIs [Un_least_lt] addIs [Vfrom_UnI1, Vfrom_UnI2]) 1);
@@ -642,7 +642,7 @@ val Fin_Vfrom_lemma = result();
 goal Univ.thy "!!i. Limit(i) ==> Fin(Vfrom(A,i)) <= Vfrom(A,i)";
 by (rtac subsetI 1);
 by (dtac Fin_Vfrom_lemma 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (resolve_tac [Vfrom RS ssubst] 1);
 by (blast_tac (claset() addSDs [ltD]) 1);
 val Fin_VLimit = result();

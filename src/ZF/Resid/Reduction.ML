@@ -31,7 +31,7 @@ Addsimps (Sred1.intrs@[Sred.one_step, Sred.refl]@Spar_red1.intrs@
 	  [Spar_red.one_step, substL_type, redD1, redD2, par_redD1, 
 	   par_redD2, par_red1D2, unmark_type]);
 
-val reducL_ss = simpset() setloop (SELECT_GOAL (safe_tac (claset())));
+val reducL_ss = simpset() setloop (SELECT_GOAL Safe_tac);
 
 (* ------------------------------------------------------------------------- *)
 (*     Lemmas for reduction                                                  *)

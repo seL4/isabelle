@@ -141,7 +141,7 @@ qed "AC11_AC12";
 (* ********************************************************************** *)
 
 goalw thy AC_defs "!!Z. AC12 ==> AC15";
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac allE 1);
 by (etac impE 1);
 by (etac cons_times_nat_not_Finite 1);
@@ -167,7 +167,7 @@ qed "AC12_AC15";
 (* ********************************************************************** *)
 
 goalw thy AC_defs "!!n. [| n:nat; 1 le n; AC10(n) |] ==> AC13(n)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (fast_tac (empty_cs addSEs [allE, cons_times_nat_not_Finite RSN (2, impE),
                                 ex_fun_AC13_AC15]) 1);
 qed "AC10_AC13";

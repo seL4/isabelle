@@ -44,7 +44,7 @@ qed "lam_surjective";
 
 (*Cantor's theorem revisited*)
 goalw Perm.thy [surj_def] "f ~: surj(A,Pow(A))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (cut_facts_tac [cantor] 1);
 by (fast_tac subset_cs 1);
 qed "cantor_surj";
@@ -363,18 +363,18 @@ qed "comp_bij";
 
 goalw Perm.thy [inj_def]
     "!!f g. [| (f O g): inj(A,C);  g: A->B;  f: B->C |] ==> g: inj(A,B)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp] 1));
 by (asm_simp_tac (simpset() ) 1);
 qed "comp_mem_injD1";
 
 goalw Perm.thy [inj_def,surj_def]
     "!!f g. [| (f O g): inj(A,C);  g: surj(A,B);  f: B->C |] ==> f: inj(B,C)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (res_inst_tac [("x1", "x")] (bspec RS bexE) 1);
 by (eres_inst_tac [("x1", "w")] (bspec RS bexE) 3);
 by (REPEAT (assume_tac 1));
-by (safe_tac (claset()));
+by Safe_tac;
 by (res_inst_tac [("t", "op `(g)")] subst_context 1);
 by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp] 1));
 by (asm_simp_tac (simpset() ) 1);
@@ -392,7 +392,7 @@ qed "comp_fun_applyD";
 
 goalw Perm.thy [inj_def,surj_def]
     "!!f g. [| (f O g): surj(A,C);  g: A->B;  f: inj(B,C) |] ==> g: surj(A,B)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (eres_inst_tac [("x1", "f`y")] (bspec RS bexE) 1);
 by (REPEAT (ares_tac [apply_type] 1 ORELSE dtac comp_fun_applyD 1));
 by (blast_tac (claset() addSIs [apply_funtype]) 1);
@@ -426,7 +426,7 @@ qed "right_comp_inverse";
 goalw Perm.thy [id_def]
     "!!f A B. [| f: A->B;  g: B->A |] ==> \
 \             f O g = id(B) <-> (ALL y:B. f`(g`y)=y)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (dres_inst_tac [("t", "%h. h`y ")] subst_context 1);
 by (Asm_full_simp_tac 1);
 by (rtac fun_extension 1);

@@ -125,7 +125,7 @@ goalw OrderArith.thy [ord_iso_def]
 by (safe_tac (claset() addSIs [sum_bij]));
 (*Do the beta-reductions now*)
 by (ALLGOALS (Asm_full_simp_tac));
-by (safe_tac (claset()));
+by Safe_tac;
 (*8 subgoals!*)
 by (ALLGOALS
     (asm_full_simp_tac 
@@ -141,7 +141,7 @@ by (res_inst_tac [("d", "%z. if(z:A, Inl(z), Inr(z))")]
     lam_bijective 1);
 by (blast_tac (claset() addSIs [if_type]) 2);
 by (DEPTH_SOLVE_1 (eresolve_tac [case_type, UnI1, UnI2] 1));
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS (asm_simp_tac (simpset() setloop split_tac [expand_if])));
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "sum_disjoint_bij";
@@ -249,7 +249,7 @@ goal OrderArith.thy
 \        (lam <x,y>:A*B. <f`x, g`y>) : bij(A*B, C*D)";
 by (res_inst_tac [("d", "%<x,y>. <converse(f)`x, converse(g)`y>")] 
     lam_bijective 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS (asm_simp_tac bij_inverse_ss));
 qed "prod_bij";
 
@@ -266,7 +266,7 @@ qed "prod_ord_iso_cong";
 
 goal OrderArith.thy "(lam z:A. <x,z>) : bij(A, {x}*A)";
 by (res_inst_tac [("d", "snd")] lam_bijective 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS Asm_simp_tac);
 qed "singleton_prod_bij";
 

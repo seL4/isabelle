@@ -143,7 +143,7 @@ val prems = goalw EquivClass.thy [quotient_def]
 \       !!x.  x : A ==> b(x) : B |]     \
 \    ==> (UN x:X. b(x)) : B";
 by (cut_facts_tac prems 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_simp_tac (simpset() addsimps (UN_equiv_class::prems)) 1);
 qed "UN_equiv_class_type";
 
@@ -156,7 +156,7 @@ val prems = goalw EquivClass.thy [quotient_def]
 \       !!x y. [| x:A; y:A; b(x)=b(y) |] ==> <x,y>:r |]         \
 \    ==> X=Y";
 by (cut_facts_tac prems 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac equiv_class_eq 1);
 by (REPEAT (ares_tac prems 1));
 by (etac box_equals 1);
@@ -176,7 +176,7 @@ val equivA::prems = goalw EquivClass.thy [congruent_def]
     "[| equiv(A,r);  congruent2(r,b);  a: A |] ==> \
 \    congruent(r, %x1. UN x2:r``{a}. b(x1,x2))";
 by (cut_facts_tac (equivA::prems) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac (equivA RS equiv_type RS subsetD RS SigmaE2) 1);
 by (assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [equivA RS UN_equiv_class,
@@ -201,7 +201,7 @@ val prems = goalw EquivClass.thy [quotient_def]
 \       !!x1 x2.  [| x1: A; x2: A |] ==> b(x1,x2) : B   \
 \    |] ==> (UN x1:X1. UN x2:X2. b(x1,x2)) : B";
 by (cut_facts_tac prems 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (REPEAT (ares_tac (prems@[UN_equiv_class_type,
                              congruent2_implies_congruent_UN,
                              congruent2_implies_congruent, quotientI]) 1));
@@ -216,7 +216,7 @@ val prems = goalw EquivClass.thy [congruent2_def,equiv_def,refl_def]
 \       !! y z w. [| w: A;  <y,z> : r |] ==> b(w,y) = b(w,z)       \
 \    |] ==> congruent2(r,b)";
 by (cut_facts_tac prems 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac trans 1);
 by (REPEAT (ares_tac prems 1
      ORELSE etac (subsetD RS SigmaE2) 1 THEN assume_tac 2 THEN assume_tac 1));
@@ -244,7 +244,7 @@ val [equivA,ZinA,congt,commute] = goalw EquivClass.thy [quotient_def]
 val congt' = rewrite_rule [congruent_def] congt;
 by (cut_facts_tac [ZinA] 1);
 by (rewtac congruent_def);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac (equivA RS equiv_type RS subsetD RS SigmaE2) 1);
 by (assume_tac 1);
 by (asm_simp_tac (simpset() addsimps [commute,

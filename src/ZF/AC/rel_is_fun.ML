@@ -27,7 +27,7 @@ qed "lepoll_m_imp_domain_lepoll_m";
 goalw Cardinal.thy [function_def]
     "!!r. [| succ(m) lepoll domain(r); r lepoll succ(m); m:nat |] ==> \
 \         function(r)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (resolve_tac [excluded_middle RS disjE] 1 THEN (atac 2));
 by (fast_tac (claset() addSEs [lepoll_trans RS succ_lepoll_natE, 
                         Diff_sing_lepoll RSN (2, lepoll_m_imp_domain_lepoll_m)]

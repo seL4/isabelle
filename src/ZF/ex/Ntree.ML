@@ -58,7 +58,7 @@ qed "ntree_mono";
 goalw Ntree.thy (ntree.defs@ntree.con_defs) "ntree(univ(A)) <= univ(A)";
 by (rtac lfp_lowerbound 1);
 by (rtac (A_subset_univ RS univ_mono) 2);
-by (safe_tac (claset()));
+by Safe_tac;
 by (REPEAT (ares_tac [Pair_in_univ, nat_fun_univ RS subsetD] 1));
 qed "ntree_univ";
 

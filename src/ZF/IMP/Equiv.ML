@@ -90,7 +90,7 @@ val [prem] = goal Equiv.thy
     "c : com ==> ALL x:C(c). <c,fst(x)> -c-> snd(x)";
 by (rtac (prem RS com.induct) 1);
 by (rewrite_tac C_rewrite_rules);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS Asm_full_simp_tac);
 
 (* skip *)
@@ -107,7 +107,7 @@ by (Fast_tac 1);
 (* while *)
 by (EVERY1 [forward_tac [Gamma_bnd_mono], etac induct, atac]);
 by (rewtac Gamma_def);  
-by (safe_tac (claset()));
+by Safe_tac;
 by (EVERY1 [dtac bspec, atac]);
 by (ALLGOALS Asm_full_simp_tac);
 

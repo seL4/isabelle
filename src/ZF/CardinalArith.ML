@@ -140,7 +140,7 @@ goalw CardinalArith.thy [eqpoll_def] "A*B eqpoll B*A";
 by (rtac exI 1);
 by (res_inst_tac [("c", "%<x,y>.<y,x>"), ("d", "%<x,y>.<y,x>")] 
     lam_bijective 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS (Asm_simp_tac));
 qed "prod_commute_eqpoll";
 
@@ -192,7 +192,7 @@ qed "well_ord_cadd_cmult_distrib";
 goalw CardinalArith.thy [eqpoll_def] "0*A eqpoll 0";
 by (rtac exI 1);
 by (rtac lam_bijective 1);
-by (safe_tac (claset()));
+by Safe_tac;
 qed "prod_0_eqpoll";
 
 goalw CardinalArith.thy [cmult_def] "0 |*| i = 0";
@@ -604,7 +604,7 @@ by (blast_tac (claset() addSIs [Ord_ordertype]) 2);
 by (rewtac Transset_def);
 by (safe_tac subset_cs);
 by (asm_full_simp_tac (simpset() addsimps [ordertype_pred_unfold]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac UN_I 1);
 by (rtac ReplaceI 2);
 by (ALLGOALS (blast_tac (claset() addIs [well_ord_subset] addSEs [predE])));

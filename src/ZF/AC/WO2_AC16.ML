@@ -48,7 +48,7 @@ goal thy "!!a. [| ALL y<x. F(y) <= X &  \
 \               ==> ALL y<x. ALL z<a. z < y | (EX Y:F(y). fa(z) <= Y) -->  \
 \                       (EX! Y. Y : F(y) & fa(z) <= Y)";
 by (REPEAT (resolve_tac [oallI, impI] 1));
-by (dresolve_tac [ospec] 1 THEN (assume_tac 1));
+by (dtac ospec 1 THEN (assume_tac 1));
 by (fast_tac (FOL_cs addSEs [oallE]) 1);
 val lemma4 = result();
 
@@ -62,7 +62,7 @@ goal thy "!!a. [| ALL y<x. F(y) <= X &  \
 by (rtac conjI 1);
 by (rtac subsetI 1);
 by (etac OUN_E 1);
-by (dresolve_tac [ospec] 1 THEN (assume_tac 1));
+by (dtac ospec 1 THEN (assume_tac 1));
 by (Fast_tac 1);
 by (dtac lemma4 1 THEN (assume_tac 1));
 by (rtac oallI 1);
@@ -322,7 +322,7 @@ qed "Un_in_Collect";
 goal thy "!!j. [| ALL y<succ(j). F(y)<=X & (ALL x<a. x<y | P(x,y)  \
 \       --> Q(x,y)); succ(j)<a |]  \
 \       ==> F(j)<=X & (ALL x<a. x<j | P(x,j) --> Q(x,j))";
-by (dresolve_tac [ospec] 1);
+by (dtac ospec 1);
 by (resolve_tac [lt_Ord RS (succI1 RS ltI RS lt_Ord RS le_refl)] 1
         THEN (REPEAT (assume_tac 1)));
 val lemma6 = result();

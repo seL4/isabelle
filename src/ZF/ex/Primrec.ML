@@ -273,7 +273,7 @@ by (etac list.induct 1);
 by (DO_GOAL [res_inst_tac [("x","0")] bexI,
              asm_simp_tac (simpset() addsimps [lt_ack1, nat_0_le]),
              resolve_tac nat_typechecks] 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (Asm_simp_tac 1);
 by (rtac (ballI RS bexI) 1);
 by (rtac (add_lt_mono RS lt_trans) 1);
@@ -352,7 +352,7 @@ qed "PREC_case";
 goal Primrec.thy
     "!!f. f:primrec ==> EX k:nat. ALL l:list(nat). f`l < ack(k, list_add(l))";
 by (etac primrec.induct 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (DEPTH_SOLVE
     (ares_tac ([SC_case, CONST_case, PROJ_case, COMP_case, PREC_case,
                        bexI, ballI] @ nat_typechecks) 1));

@@ -239,7 +239,7 @@ qed "Least_0";
 
 goal Cardinal.thy "Ord(LEAST x. P(x))";
 by (excluded_middle_tac "EX i. Ord(i) & P(i)" 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac (Least_le RS ltE) 2);
 by (REPEAT_SOME assume_tac);
 by (etac (Least_0 RS ssubst) 1);
@@ -351,7 +351,7 @@ goalw Cardinal.thy [cardinal_def] "Card(|A|)";
 by (excluded_middle_tac "EX i. Ord(i) & i eqpoll A" 1);
 by (etac (Least_0 RS ssubst) 1 THEN rtac Card_0 1);
 by (rtac (Ord_Least RS CardI) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac less_LeastE 1);
 by (assume_tac 2);
 by (etac eqpoll_trans 1);
@@ -433,7 +433,7 @@ qed "lepoll_cardinal_le";
 
 goalw Cardinal.thy [lepoll_def, inj_def]
  "!!A B. [| cons(u,A) lepoll cons(v,B);  u~:A;  v~:B |] ==> A lepoll B";
-by (safe_tac (claset()));
+by Safe_tac;
 by (res_inst_tac [("x", "lam x:A. if(f`x=v, f`u, f`x)")] exI 1);
 by (rtac CollectI 1);
 (*Proving it's in the function space A->B*)
@@ -568,7 +568,7 @@ qed "nat_le_cardinal";
 (*Congruence law for  cons  under equipollence*)
 goalw Cardinal.thy [lepoll_def]
     "!!A B. [| A lepoll B;  b ~: B |] ==> cons(a,A) lepoll cons(b,B)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (res_inst_tac [("x", "lam y: cons(a,A).if(y=a, b, f`y)")] exI 1);
 by (res_inst_tac [("d","%z. if(z:B, converse(f)`z, a)")] 
     lam_injective 1);
@@ -650,7 +650,7 @@ goalw Cardinal.thy [succ_def]
 by (rtac cons_lepoll_consD 1);
 by (rtac mem_not_refl 3);
 by (eresolve_tac [cons_Diff RS ssubst] 1);
-by (safe_tac (claset()));
+by Safe_tac;
 qed "Diff_sing_lepoll";
 
 (*If A has at least n+1 elements then A-{a} has at least n.*)

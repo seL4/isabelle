@@ -76,7 +76,7 @@ qed_spec_mp "tiling_UnI";
 
 goal thy "!!t. t:tiling(domino) ==> Finite(t)";
 by (eresolve_tac [tiling.induct] 1);
-by (resolve_tac [Finite_0] 1);
+by (rtac Finite_0 1);
 by (blast_tac (claset() addSIs [Finite_Un] addIs [domino_Finite]) 1);
 qed "tiling_domino_Finite";
 
@@ -121,8 +121,8 @@ goal thy "!!m n. [| m: nat;  n: nat;  \
 \                   t = (succ(m)#+succ(m))*(succ(n)#+succ(n));  \
 \                   t' = t - {<0,0>} - {<succ(m#+m), succ(n#+n)>} |] ==> \
 \                t' ~: tiling(domino)";
-by (resolve_tac [notI] 1);
-by (dresolve_tac [tiling_domino_0_1] 1);
+by (rtac notI 1);
+by (dtac tiling_domino_0_1 1);
 by (subgoal_tac "|evnodd(t',0)| < |evnodd(t',1)|" 1);
 by (asm_full_simp_tac (simpset() addsimps [lt_not_refl]) 1);
 by (subgoal_tac "t : tiling(domino)" 1);
@@ -134,7 +134,7 @@ by (asm_simp_tac (simpset() addsimps add_ac) 2);
 by (asm_full_simp_tac 
     (simpset() addsimps [evnodd_Diff, mod2_add_self,
                         mod2_succ_succ, tiling_domino_0_1 RS sym]) 1);
-by (resolve_tac [lt_trans] 1);
+by (rtac lt_trans 1);
 by (REPEAT
     (rtac Finite_imp_cardinal_Diff 1 
      THEN

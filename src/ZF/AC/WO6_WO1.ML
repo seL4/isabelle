@@ -21,7 +21,7 @@ by (safe_tac (claset() addSEs [lt_Ord]));
 qed "lt_oadd_odiff_disj";
 
 (*The corresponding elimination rule*)
-val lt_oadd_odiff_cases = rule_by_tactic (safe_tac (claset()))
+val lt_oadd_odiff_cases = rule_by_tactic Safe_tac
                                          (lt_oadd_odiff_disj RS disjE);
 
 (* ********************************************************************** *)
@@ -353,7 +353,7 @@ qed "le_imp_rec_subset";
 
 goal thy "EX y. x Un y*y <= y";
 by (res_inst_tac [("x","UN n:nat. rec(n, x, %k r. r Un r*r)")] exI 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac (nat_0I RS UN_I) 1);
 by (Asm_simp_tac 1);
 by (res_inst_tac [("a","succ(n Un na)")] UN_I 1);

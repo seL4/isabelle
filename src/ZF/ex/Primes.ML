@@ -150,7 +150,7 @@ by (excluded_middle_tac "x=0" 1);
 by (asm_simp_tac (simpset() addsimps [egcd_0,dvd_refl,dvd_0_right,
                                      dvd_imp_nat2]) 2);
 (* case x > 0 *)
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [egcd_lt_0, nat_into_Ord RS Ord_0_lt,
                                      dvd_imp_nat2]) 1);
 by (eres_inst_tac [("x","a mod x")] ballE 1);

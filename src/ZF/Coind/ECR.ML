@@ -49,7 +49,7 @@ claset_ref() := mk_htr_cs (claset());
 goalw ECR.thy [hastyenv_def]
   "!!ve.[| ve:ValEnv; te:TyEnv; hastyenv(ve,te); <v,t>:HasTyRel |] ==> \
 \   hastyenv(ve_owr(ve,x,v),te_owr(te,x,t))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (stac ve_dom_owr 1);
 by (assume_tac 1);
 by (etac (HasTyRel.dom_subset RS subsetD RS SigmaD1 RS ValNEE) 1);
@@ -69,10 +69,10 @@ qed "hastyenv_owr";
 
 goalw ECR.thy  [isofenv_def,hastyenv_def]
   "!!ve.[| ve:ValEnv; te:TyEnv; isofenv(ve,te) |] ==> hastyenv(ve,te)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (dtac bspec 1);
 by (assume_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (dtac HasTyRel.htr_constI 1);
 by (assume_tac 2);
 by (etac te_appI 1);

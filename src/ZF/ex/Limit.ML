@@ -13,7 +13,7 @@ open Limit;
 (* Useful goal commands.                                                *)
 (*----------------------------------------------------------------------*)
 
-val brr = fn thl => fn n => by(REPEAT(ares_tac thl n));
+val brr = fn thl => fn n => by (REPEAT(ares_tac thl n));
 val trr = fn thl => fn n => (REPEAT(ares_tac thl n));
 fun rotate n i = EVERY(replicate n (etac revcut_rl i));    
 
@@ -70,7 +70,7 @@ val prems = goalw Limit.thy [po_def]
 \                rel(D,x,z);  \
 \       !!x y. [| rel(D,x,y); rel(D,y,x); x:set(D); y:set(D)|] ==> x=y |] ==> \
 \    po(D)";
-by (safe_tac (claset()));
+by Safe_tac;
 brr prems 1;
 qed "poI";
 
@@ -139,19 +139,19 @@ qed "islub_least";
 
 val prems = goalw Limit.thy [islub_def]  (* islubI *)
     "[|isub(D,X,x); !!y. isub(D,X,y) ==> rel(D,x,y)|] ==> islub(D,X,x)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (REPEAT(ares_tac prems 1));
 qed "islubI";
 
 val prems = goalw Limit.thy [isub_def]  (* isubI *)
     "[|x:set(D);  !!n. n:nat ==> rel(D,X`n,x)|] ==> isub(D,X,x)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (REPEAT(ares_tac prems 1));
 qed "isubI";
 
 val prems = goalw Limit.thy [isub_def]  (* isubE *)
     "!!z.[|isub(D,X,x);[|x:set(D);  !!n. n:nat==>rel(D,X`n,x)|] ==> P|] ==> P";
-by (safe_tac (claset()));
+by Safe_tac;
 by (Asm_simp_tac 1);
 qed "isubE";
 
@@ -236,7 +236,7 @@ by (rtac impE 1);  (* The first three steps prepare for the induction proof *)
 by (assume_tac 3);
 by (rtac (hd prems) 2);
 by (res_inst_tac [("n","m")] nat_induct 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps prems) 2);
 by (rtac cpo_trans 4);
 by (rtac (le_succ_eq RS subst) 3);
@@ -264,7 +264,7 @@ val prems = goalw Limit.thy [pcpo_def] (* pcpo_bot_ex1 *)
     "pcpo(D) ==> EX! x. x:set(D) & (ALL y:set(D). rel(D,x,y))";
 by (rtac (hd prems RS conjunct2 RS bexE) 1);
 by (rtac ex1I 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (assume_tac 1);
 by (etac bspec 1);
 by (assume_tac 1);
@@ -338,7 +338,7 @@ qed "lub_const";
 val prems = goalw Limit.thy [isub_def,suffix_def]  (* isub_suffix *)
     "[|chain(D,X); cpo(D); n:nat|] ==> isub(D,suffix(X,n),x) <-> isub(D,X,x)";
 by (simp_tac (simpset() addsimps prems) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (dtac bspec 2);
 by (assume_tac 3);      (* to instantiate unknowns properly *)
 by (rtac cpo_trans 1);
@@ -479,13 +479,13 @@ qed "fun_swap";
 
 val prems = goalw Limit.thy [matrix_def]  (* matrix_sym_axis *)
     "!!z. matrix(D,M) ==> matrix(D,lam m:nat. lam n:nat. M`n`m)";
-by (Simp_tac 1 THEN safe_tac (claset()) THEN 
+by (Simp_tac 1 THEN Safe_tac THEN 
 REPEAT(asm_simp_tac (simpset() addsimps [fun_swap]) 1));
 qed "matrix_sym_axis";
 
 val prems = goalw Limit.thy [chain_def]  (* matrix_chain_diag *)
     "matrix(D,M) ==> chain(D,lam n:nat. M`n`n)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac lam_type 1);
 by (rtac matrix_in 1);
 by (REPEAT(ares_tac prems 1));
@@ -496,7 +496,7 @@ qed "matrix_chain_diag";
 
 val prems = goalw Limit.thy [chain_def]  (* matrix_chain_left *)
     "[|matrix(D,M); n:nat|] ==> chain(D,M`n)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac apply_type 1);
 by (rtac matrix_fun 1);
 by (REPEAT(ares_tac prems 1));
@@ -506,7 +506,7 @@ qed "matrix_chain_left";
 
 val prems = goalw Limit.thy [chain_def]  (* matrix_chain_right *)
     "[|matrix(D,M); m:nat|] ==> chain(D,lam n:nat. M`n`m)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_simp_tac(simpset() addsimps prems) 2);
 brr(lam_type::matrix_in::matrix_rel_1_0::prems) 1;
 qed "matrix_chain_right";
@@ -537,7 +537,7 @@ val prems = goalw Limit.thy []  (* isub_lemma *)
     "[|isub(D,(lam n:nat. M`n`n),y); matrix(D,M); cpo(D)|] ==>  \
 \    isub(D,(lam n:nat. lub(D,lam m:nat. M`n`m)),y)";
 by (rewtac isub_def);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac isubD1 1);
 by (resolve_tac prems 1);
 by (Asm_simp_tac 1);
@@ -551,11 +551,11 @@ by (resolve_tac prems 1);
 by (assume_tac 1);
 by (resolve_tac prems 1);
 by (rewtac isub_def);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac isubD1 1);
 by (resolve_tac prems 1);
 by (cut_inst_tac[("P","n le na")]excluded_middle 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac cpo_trans 1);
 by (resolve_tac prems 1);
 by (rtac (not_le_iff_lt RS iffD1 RS leI RS chain_rel_gen) 1);
@@ -575,7 +575,7 @@ qed "isub_lemma";
 
 val prems = goalw Limit.thy [chain_def]  (* matrix_chain_lub *)
     "[|matrix(D,M); cpo(D)|] ==> chain(D,lam n:nat. lub(D,lam m:nat. M`n`m))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac lam_type 1);
 by (rtac islub_in 1);
 by (rtac cpo_lub 1);
@@ -722,7 +722,7 @@ val prems = goalw Limit.thy []  (* mono_chain *)
     "[|f:mono(D,E); chain(D,X)|] ==> chain(E,lam n:nat. f`(X`n))";
 by (rewtac chain_def);
 by (Simp_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac lam_type 1);
 by (rtac mono_map 1);
 by (resolve_tac prems 1);
@@ -768,7 +768,7 @@ val prems = goal Limit.thy
 \    rel(cf(D,E),f,g)";
 by (rtac rel_I 1);
 by (simp_tac (simpset() addsimps [cf_def]) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 brr prems 1;
 qed "rel_cfI";
 
@@ -1218,7 +1218,7 @@ qed "embRp_eq_thm";
 
 val prems = goalw Limit.thy [projpair_def]  (* projpair_id *)
     "cpo(D) ==> projpair(D,D,id(set(D)),id(set(D)))";
-by (safe_tac (claset()));
+by Safe_tac;
 brr(id_cont::id_comp::id_type::prems) 1;
 by (stac id_comp 1); (* Matches almost anything *)
 brr(id_cont::id_type::cpo_refl::cpo_cf::cont_cf::prems) 1;
@@ -1245,7 +1245,7 @@ qed "Rp_id";
 val prems = goalw Limit.thy [projpair_def]  (* lemma *)
     "[|emb(D,D',e); emb(D',E,e'); cpo(D); cpo(D'); cpo(E)|] ==>  \
 \    projpair(D,E,e' O e,(Rp(D,D',e)) O (Rp(D',E,e')))";
-by (safe_tac (claset()));
+by Safe_tac;
 brr(comp_pres_cont::Rp_cont::emb_cont::prems) 1;
 by (rtac (comp_assoc RS subst) 1);
 by (res_inst_tac[("t1","e'")](comp_assoc RS ssubst) 1);
@@ -1317,7 +1317,7 @@ val prems = goalw Limit.thy [iprod_def] (* rel_iprodI *)
 \      g:(PROD n:nat. set(DD`n))|] ==> rel(iprod(DD),f,g)";
 by (rtac rel_I 1);
 by (Simp_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 brr prems 1;
 qed "rel_iprodI";
 
@@ -1325,7 +1325,7 @@ val prems = goalw Limit.thy [iprod_def] (* rel_iprodE *)
     "[|rel(iprod(DD),f,g); n:nat|] ==> rel(DD`n,f`n,g`n)";
 by (cut_facts_tac[hd prems RS rel_E]1);
 by (Asm_full_simp_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac bspec 1);
 by (resolve_tac prems 1);
 qed "rel_iprodE";
@@ -1336,7 +1336,7 @@ qed "rel_iprodE";
 val prems = goalw Limit.thy [chain_def]  (* chain_iprod *)
     "[|chain(iprod(DD),X);  !!n. n:nat ==> cpo(DD`n); n:nat|] ==>  \
 \    chain(DD`n,lam m:nat. X`m`n)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac lam_type 1);
 by (rtac apply_type 1);
 by (rtac iprodE 1);
@@ -1351,7 +1351,7 @@ qed "chain_iprod";
 val prems = goalw Limit.thy [islub_def,isub_def]  (* islub_iprod *)
     "[|chain(iprod(DD),X);  !!n. n:nat ==> cpo(DD`n)|] ==>   \
 \    islub(iprod(DD),X,lam n:nat. lub(DD`n,lam m:nat. X`m`n))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac iprodI 1);
 by (rtac lam_type 1); 
 brr((chain_iprod RS cpo_lub RS islub_in)::prems) 1;
@@ -1366,7 +1366,7 @@ by (rtac rel_iprodI 1);
 by (Asm_simp_tac 1);
 brr(islub_least::(chain_iprod RS cpo_lub)::prems) 1;
 by (rewtac isub_def);
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac (iprodE RS apply_type) 1);
 by (assume_tac 1);
 by (Asm_simp_tac 1);
@@ -1403,7 +1403,7 @@ val prems = goalw Limit.thy [subcpo_def]  (* subcpoI *)
     "[|set(D)<=set(E);  \
 \      !!x y. [|x:set(D); y:set(D)|] ==> rel(D,x,y)<->rel(E,x,y);  \
 \      !!X. chain(D,X) ==> lub(E,X) : set(D)|] ==> subcpo(D,E)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_full_simp_tac(simpset() addsimps prems) 2);
 by (asm_simp_tac(simpset() addsimps prems) 2);
 brr(prems@[subsetD]) 1;
@@ -1564,7 +1564,7 @@ qed "subcpo_mkcpo";
 val prems = goalw Limit.thy [emb_chain_def]  (* emb_chainI *)
     "[|!!n. n:nat ==> cpo(DD`n);   \
 \      !!n. n:nat ==> emb(DD`n,DD`succ(n),ee`n)|] ==> emb_chain(DD,ee)";
-by (safe_tac (claset()));
+by Safe_tac;
 brr prems 1;
 qed "emb_chainI";
 
@@ -1702,7 +1702,7 @@ val prems = goal Limit.thy  (* succ_sub1 *)
 by (res_inst_tac[("n","x")]nat_induct 1);
 by (resolve_tac prems 1);
 by (Fast_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (Asm_simp_tac 1);
 by (Asm_simp_tac 1);
 qed "succ_sub1";
@@ -1713,7 +1713,7 @@ by (res_inst_tac[("n","m")]nat_induct 1);
 by (resolve_tac prems 1);
 by (rtac impI 1);
 by (asm_full_simp_tac(simpset() addsimps prems) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_full_simp_tac(simpset() addsimps prems) 1); (* Surprise, surprise. *)
 qed "succ_le_pos";
 
@@ -1721,7 +1721,7 @@ goal Limit.thy  (* lemma_le_exists *)
     "!!z. [|n:nat; m:nat|] ==> m le n --> (EX k:nat. n = m #+ k)";
 by (res_inst_tac[("n","m")]nat_induct 1);
 by (assume_tac 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (rtac bexI 1);
 by (rtac (add_0 RS sym) 1);
 by (assume_tac 1);
@@ -1828,7 +1828,7 @@ by (stac e_less_le 1);
 brr(add_le_mono::nat_le_refl::add_type::nat_succI::prems) 1;
 by (stac comp_assoc 1);
 brr(comp_mono_eq::refl::[]) 1;
-(* by(asm_simp_tac ZF_ss 1); *)
+(* by (asm_simp_tac ZF_ss 1); *)
 by (asm_simp_tac(ZF_ss addsimps(e_less_eq::add_type::nat_succI::prems)) 1);
 by (stac id_comp 1); (* simp cannot unify/inst right, use brr below(?). *)
 brr((emb_e_less_add RS emb_cont RS cont_fun)::refl::nat_succI::prems) 1;
@@ -2012,7 +2012,7 @@ brr(emb_chain_emb::add_type::emb_chain_cpo::nat_succI::prems) 1;
 by (stac id_comp 1);
 brr((e_less_cont RS cont_fun)::add_type::add_le_mono::nat_le_refl::refl::
     prems) 1;
-by(asm_full_simp_tac(ZF_ss addsimps(e_less_eq::nat_succI::add_type::prems)) 1);
+by (asm_full_simp_tac(ZF_ss addsimps(e_less_eq::nat_succI::add_type::prems)) 1);
 by (stac comp_id 1);
 brr((e_gr_cont RS cont_fun)::add_type::nat_succI::add_le_self::refl::prems) 1;
 qed "e_gr_e_less_split_add";
@@ -2029,7 +2029,7 @@ val prems = goalw Limit.thy [eps_def]  (* eps_fun *)
     "[|emb_chain(DD,ee); m:nat; n:nat|] ==>   \
 \    eps(DD,ee,m,n): set(DD`m)->set(DD`n)";
 by (rtac (expand_if RS iffD2) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 brr((e_less_cont RS cont_fun)::prems) 1;
 brr((not_le_iff_lt RS iffD1 RS leI)::e_gr_fun::nat_into_Ord::prems) 1;
 qed "eps_fun";
@@ -2051,7 +2051,7 @@ val shift_asm = imp_refl RS mp;
 val prems = goalw Limit.thy [eps_def]  (* eps_e_gr_add *)
     "[|n:nat; k:nat|] ==> eps(DD,ee,n#+k,n) = e_gr(DD,ee,n#+k,n)";
 by (rtac (expand_if RS iffD2) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (etac leE 1);
 (* Must control rewriting by instantiating a variable. *)
 by (asm_full_simp_tac(simpset() addsimps
@@ -2433,7 +2433,7 @@ val prems = goalw Limit.thy [commute_def]  (* commuteI *)
   "[| !!n. n:nat ==> emb(DD`n,E,r(n));   \
 \     !!m n. [|m le n; m:nat; n:nat|] ==> r(n) O eps(DD,ee,m,n) = r(m) |] ==>  \
 \  commute(DD,ee,E,r)";
-by (safe_tac (claset()));
+by Safe_tac;
 brr prems 1;
 qed "commuteI";
 
@@ -2663,7 +2663,7 @@ val prems = goalw Limit.thy [projpair_def,rho_proj_def] (* theta_projpair *)
 \   (E,G,   \
 \    lub(cf(E,G), lam n:nat. f(n) O Rp(DD`n,E,r(n))),  \
 \    lub(cf(G,E), lam n:nat. r(n) O Rp(DD`n,G,f(n))))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (stac comp_lubs 3);
 (* The following one line is 15 lines in HOL, and includes existentials. *)
 brr(cf_cont::islub_in::cpo_lub::cpo_cf::theta_chain::theta_proj_chain::prems) 1;
@@ -2759,7 +2759,7 @@ qed "suffix_lemma";
 
 val mediatingI = prove_goalw Limit.thy [mediating_def]
   "[|emb(E,G,t);  !!n. n:nat ==> f(n) = t O r(n) |]==>mediating(E,G,r,f,t)"
- (fn prems => [safe_tac (claset()),trr prems 1]);
+ (fn prems => [Safe_tac,trr prems 1]);
 
 val mediating_emb = prove_goalw Limit.thy [mediating_def]
   "!!z. mediating(E,G,r,f,t) ==> emb(E,G,t)"
@@ -2816,7 +2816,7 @@ val prems = goal Limit.thy (* Dinf_universal *)
 \  (ALL t. mediating(Dinf(DD,ee),G,rho_emb(DD,ee),f,t) -->  \
 \    t = lub(cf(Dinf(DD,ee),G),   \
 \        lam n:nat. f(n) O Rp(DD`n,Dinf(DD,ee),rho_emb(DD,ee,n))))";
-by (safe_tac (claset()));
+by Safe_tac;
 brr(lub_universal_mediating::rho_emb_commute::rho_emb_lub::cpo_Dinf::prems) 1;
 brr(lub_universal_unique::rho_emb_commute::rho_emb_lub::cpo_Dinf::prems) 1;
 qed "Dinf_universal";

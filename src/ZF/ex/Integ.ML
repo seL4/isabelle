@@ -94,7 +94,7 @@ qed "znat_inject";
 
 goalw Integ.thy [congruent_def]
     "congruent(intrel, %<x,y>. intrel``{<y,x>})";
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_full_simp_tac (simpset() addsimps add_ac) 1);
 qed "zminus_congruent";
 
@@ -110,7 +110,7 @@ qed "zminus_type";
 goalw Integ.thy [integ_def,zminus_def]
     "!!z w. [| $~z = $~w;  z: integ;  w: integ |] ==> z=w";
 by (etac (zminus_ize UN_equiv_class_inject) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 (*The setloop is only needed because assumptions are in the wrong order!*)
 by (asm_full_simp_tac (simpset() addsimps add_ac
                        setloop dtac eq_intrelD) 1);
@@ -135,7 +135,7 @@ qed "zminus_0";
 
 (*No natural number is negative!*)
 goalw Integ.thy [znegative_def, znat_def]  "~ znegative($# n)";
-by (safe_tac (claset()));
+by Safe_tac;
 by (dres_inst_tac [("psi", "?lhs=?rhs")] asm_rl 1);
 by (dres_inst_tac [("psi", "?lhs<?rhs")] asm_rl 1);
 by (fast_tac (claset() addss
@@ -155,7 +155,7 @@ qed "znegative_zminus_znat";
 
 goalw Integ.thy [congruent_def]
     "congruent(intrel, %<x,y>. (y#-x) #+ (x#-y))";
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS Asm_simp_tac);
 by (etac rev_mp 1);
 by (res_inst_tac [("m","x1"),("n","y1")] diff_induct 1 THEN 
@@ -209,7 +209,7 @@ goalw Integ.thy [congruent2_def]
 \         let <x1,y1>=z1; <x2,y2>=z2                 \
 \                           in intrel``{<x1#+x2, y1#+y2>})";
 (*Proof via congruent2_commuteI seems longer*)
-by (safe_tac (claset()));
+by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [add_assoc, Let_def]) 1);
 (*The rest should be trivial, but rearranging terms is hard;
   add_ac does not help rewriting with the assumptions.*)
@@ -305,7 +305,7 @@ goal Integ.thy
 \               split(%x1 y1. split(%x2 y2.     \
 \                   intrel``{<x1#*x2 #+ y1#*y2, x1#*y2 #+ y1#*x2>}, p2), p1))";
 by (rtac (equiv_intrel RS congruent2_commuteI) 1);
-by (safe_tac (claset()));
+by Safe_tac;
 by (ALLGOALS Asm_simp_tac);
 (*Proof that zmult is congruent in one argument*)
 by (asm_simp_tac 
