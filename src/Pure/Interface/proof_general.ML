@@ -212,7 +212,7 @@ val old_undoP = (* FIXME same name for compatibility with PG/Isabelle99 *)
     (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 
 val undoP =
-  OuterSyntax.improper_command "ProofGeneral.undo" "undo last command (no output)" K.control
+  OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" K.control
     (Scan.succeed (Toplevel.no_timing o IsarCmd.undo));
 
 val context_thy_onlyP =
