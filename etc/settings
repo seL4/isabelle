@@ -1,0 +1,61 @@
+#
+# Isabelle settings -- site defaults.
+#
+# $Id$
+#
+
+## user isabelle directory
+
+ISABELLE_HOME_USER=~/isabelle
+
+
+## machines to be selected randomly
+
+#ISABELLE_HOSTS="sunbroy49 sunbroy53"
+ISABELLE_HOSTS=""
+
+
+## logic images
+
+ISABELLE_PATH=$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps
+ISABELLE_OUTPUT=$ISABELLE_HOME_USER/heaps
+
+DEFAULT_LOGIC=HOL
+
+
+## interfaces
+
+#ISABELLE_INTERFACE=none
+#ISABELLE_INTERFACE_OPTIONS=""
+
+ISABELLE_INTERFACE=xterm
+ISABELLE_INTERFACE_OPTIONS="-geometry 80x55"
+ISABELLE_SYMBOLS=true
+
+#ISABELLE_INTERFACE=emacs
+#ISABELLE_INTERFACE_OPTIONS=""
+#ISABELLE_SYMBOLS=true
+
+
+## ML compilers and options
+
+#ML_SYSTEM=polyml-2.07
+#ML_HOME=/usr/local/ldist/DIR/polyml/polyml/solaris2
+#ML_OPTIONS="-h 30000"
+
+ML_SYSTEM=polyml-3.1
+ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
+ML_OPTIONS="-h 30000"
+
+#ML_SYSTEM=smlnj-0.93
+
+#ML_SYSTEM=smlnj-1.07
+#ML_HOME=/usr/local/sml107
+#ML_OPTIONS="@SMLdebug=/dev/null"
+
+#ML_SYSTEM=smlnj-1.09
+
+
+## misc
+
+DVI_VIEWER="xdvi -geometry 498x704 -expert -s 5"
