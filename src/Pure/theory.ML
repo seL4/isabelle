@@ -63,7 +63,7 @@ sig
     (string * (bool -> typ -> term list -> term)) list -> theory -> theory
   val add_tokentrfuns:
     (string * string * (string -> string * int)) list -> theory -> theory
-  val add_trrules: (string * string) Syntax.trrule list -> theory -> theory
+  val add_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
   val add_trrules_i: Syntax.ast Syntax.trrule list -> theory -> theory
   val add_axioms: (bstring * string) list -> theory -> theory
   val add_axioms_i: (bstring * term) list -> theory -> theory
