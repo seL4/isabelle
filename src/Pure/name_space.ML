@@ -11,7 +11,8 @@ implicitely considered to be declared outermost.
 
 signature NAME_SPACE =
 sig
-  val separator: string                 (*single char*)
+  val separator: string                 (*single char!*)
+  val append: string -> string -> string
   val unpack: string -> string list
   val pack: string list -> string
   val base: string -> string
@@ -41,6 +42,8 @@ fun suffixes1 xs = map rev (prefixes1 (rev xs));
 (** long identifiers **)
 
 val separator = ".";
+
+fun append name1 name2 = name1 ^ separator ^ name2;
 
 val unpack = space_explode separator;
 val pack = space_implode separator;
