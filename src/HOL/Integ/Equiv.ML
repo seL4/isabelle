@@ -8,6 +8,8 @@
 Equivalence relations in HOL Set Theory 
 *)
 
+val RSLIST = curry (op MRS);
+
 open Equiv;
 
 Delrules [equalityI];
