@@ -1,7 +1,7 @@
-\contentsline {chapter}{\numberline {1}Introduction}{1}
-\contentsline {section}{\numberline {1.1}Syntax definitions}{1}
+\contentsline {chapter}{\numberline {1}Basic Concepts}{1}
+\contentsline {section}{\numberline {1.1}Syntax definitions}{2}
 \contentsline {section}{\numberline {1.2}Proof procedures}{3}
-\contentsline {chapter}{\numberline {2}First-order logic}{4}
+\contentsline {chapter}{\numberline {2}First-Order Logic}{4}
 \contentsline {section}{\numberline {2.1}Syntax and rules of inference}{4}
 \contentsline {section}{\numberline {2.2}Generic packages}{8}
 \contentsline {section}{\numberline {2.3}Intuitionistic proof procedures}{8}
@@ -9,92 +9,67 @@
 \contentsline {section}{\numberline {2.5}An intuitionistic example}{11}
 \contentsline {section}{\numberline {2.6}An example of intuitionistic negation}{12}
 \contentsline {section}{\numberline {2.7}A classical example}{14}
-\contentsline {section}{\numberline {2.8}Derived rules and the classical tactics}{16}
-\contentsline {subsection}{Deriving the introduction rule}{17}
+\contentsline {section}{\numberline {2.8}Derived rules and the classical tactics}{15}
+\contentsline {subsection}{Deriving the introduction rule}{16}
 \contentsline {subsection}{Deriving the elimination rule}{17}
-\contentsline {subsection}{Using the derived rules}{18}
-\contentsline {subsection}{Derived rules versus definitions}{20}
-\contentsline {chapter}{\numberline {3}Zermelo-Fraenkel set theory}{23}
-\contentsline {section}{\numberline {3.1}Which version of axiomatic set theory?}{23}
-\contentsline {section}{\numberline {3.2}The syntax of set theory}{24}
-\contentsline {section}{\numberline {3.3}Binding operators}{26}
-\contentsline {section}{\numberline {3.4}The Zermelo-Fraenkel axioms}{28}
-\contentsline {section}{\numberline {3.5}From basic lemmas to function spaces}{33}
-\contentsline {subsection}{Fundamental lemmas}{34}
-\contentsline {subsection}{Unordered pairs and finite sets}{34}
-\contentsline {subsection}{Subset and lattice properties}{37}
-\contentsline {subsection}{Ordered pairs}{37}
-\contentsline {subsection}{Relations}{37}
-\contentsline {subsection}{Functions}{38}
-\contentsline {section}{\numberline {3.6}Further developments}{41}
-\contentsline {section}{\numberline {3.7}Simplification rules}{49}
-\contentsline {section}{\numberline {3.8}The examples directory}{49}
-\contentsline {section}{\numberline {3.9}A proof about powersets}{52}
-\contentsline {section}{\numberline {3.10}Monotonicity of the union operator}{54}
-\contentsline {section}{\numberline {3.11}Low-level reasoning about functions}{55}
-\contentsline {chapter}{\numberline {4}Higher-order logic}{58}
-\contentsline {section}{\numberline {4.1}Syntax}{58}
-\contentsline {subsection}{Types}{58}
-\contentsline {subsection}{Binders}{61}
-\contentsline {section}{\numberline {4.2}Rules of inference}{61}
-\contentsline {section}{\numberline {4.3}Generic packages}{65}
-\contentsline {section}{\numberline {4.4}A formulation of set theory}{66}
-\contentsline {subsection}{Syntax of set theory}{66}
-\contentsline {subsection}{Axioms and rules of set theory}{72}
-\contentsline {subsection}{Derived rules for sets}{72}
-\contentsline {section}{\numberline {4.5}Types}{72}
-\contentsline {subsection}{Product and sum types}{77}
-\contentsline {subsection}{The type of natural numbers, $nat$}{77}
-\contentsline {subsection}{The type constructor for lists, $\alpha \pcomma list$}{77}
-\contentsline {subsection}{The type constructor for lazy lists, $\alpha \pcomma llist$}{81}
-\contentsline {section}{\numberline {4.6}Classical proof procedures}{81}
-\contentsline {section}{\numberline {4.7}The examples directories}{81}
-\contentsline {section}{\numberline {4.8}Example: deriving the conjunction rules}{82}
-\contentsline {subsection}{The introduction rule}{82}
-\contentsline {subsection}{The elimination rule}{83}
-\contentsline {section}{\numberline {4.9}Example: Cantor's Theorem}{84}
-\contentsline {chapter}{\numberline {5}First-order sequent calculus}{87}
-\contentsline {section}{\numberline {5.1}Unification for lists}{87}
-\contentsline {section}{\numberline {5.2}Syntax and rules of inference}{88}
-\contentsline {section}{\numberline {5.3}Tactics for the cut rule}{88}
-\contentsline {section}{\numberline {5.4}Tactics for sequents}{93}
-\contentsline {section}{\numberline {5.5}Packaging sequent rules}{93}
-\contentsline {section}{\numberline {5.6}Proof procedures}{94}
-\contentsline {subsection}{Method A}{95}
-\contentsline {subsection}{Method B}{95}
-\contentsline {section}{\numberline {5.7}A simple example of classical reasoning}{95}
-\contentsline {section}{\numberline {5.8}A more complex proof}{97}
-\contentsline {chapter}{\numberline {6}Constructive Type Theory}{99}
-\contentsline {section}{\numberline {6.1}Syntax}{100}
-\contentsline {section}{\numberline {6.2}Rules of inference}{100}
-\contentsline {section}{\numberline {6.3}Rule lists}{105}
-\contentsline {section}{\numberline {6.4}Tactics for subgoal reordering}{108}
-\contentsline {section}{\numberline {6.5}Rewriting tactics}{109}
-\contentsline {section}{\numberline {6.6}Tactics for logical reasoning}{109}
-\contentsline {section}{\numberline {6.7}A theory of arithmetic}{110}
-\contentsline {section}{\numberline {6.8}The examples directory}{110}
-\contentsline {section}{\numberline {6.9}Example: type inference}{112}
-\contentsline {section}{\numberline {6.10}An example of logical reasoning}{113}
-\contentsline {section}{\numberline {6.11}Example: deriving a currying functional}{116}
-\contentsline {section}{\numberline {6.12}Example: proving the Axiom of Choice}{117}
-\contentsline {chapter}{\numberline {7}Defining Logics}{121}
-\contentsline {section}{\numberline {7.1}Precedence grammars}{121}
-\contentsline {section}{\numberline {7.2}Basic syntax}{122}
-\contentsline {subsection}{Logical types and default syntax}{123}
-\contentsline {subsection}{Lexical matters *}{124}
-\contentsline {subsection}{Inspecting syntax *}{124}
-\contentsline {section}{\numberline {7.3}Abstract syntax trees}{126}
-\contentsline {subsection}{Parse trees to asts}{128}
-\contentsline {subsection}{Asts to terms *}{129}
-\contentsline {subsection}{Printing of terms *}{129}
-\contentsline {section}{\numberline {7.4}Mixfix declarations}{130}
-\contentsline {subsection}{Infixes}{133}
-\contentsline {subsection}{Binders}{133}
-\contentsline {section}{\numberline {7.5}Syntactic translations (macros)}{134}
-\contentsline {subsection}{Specifying macros}{135}
-\contentsline {subsection}{Applying rules}{136}
-\contentsline {subsection}{Rewriting strategy}{138}
-\contentsline {subsection}{More examples}{138}
-\contentsline {section}{\numberline {7.6}Translation functions *}{141}
-\contentsline {subsection}{A simple example *}{142}
-\contentsline {section}{\numberline {7.7}Example: some minimal logics}{143}
+\contentsline {subsection}{Using the derived rules}{17}
+\contentsline {subsection}{Derived rules versus definitions}{19}
+\contentsline {chapter}{\numberline {3}Zermelo-Fraenkel Set Theory}{22}
+\contentsline {section}{\numberline {3.1}Which version of axiomatic set theory?}{22}
+\contentsline {section}{\numberline {3.2}The syntax of set theory}{23}
+\contentsline {section}{\numberline {3.3}Binding operators}{25}
+\contentsline {section}{\numberline {3.4}The Zermelo-Fraenkel axioms}{27}
+\contentsline {section}{\numberline {3.5}From basic lemmas to function spaces}{30}
+\contentsline {subsection}{Fundamental lemmas}{30}
+\contentsline {subsection}{Unordered pairs and finite sets}{32}
+\contentsline {subsection}{Subset and lattice properties}{32}
+\contentsline {subsection}{Ordered pairs}{36}
+\contentsline {subsection}{Relations}{36}
+\contentsline {subsection}{Functions}{37}
+\contentsline {section}{\numberline {3.6}Further developments}{38}
+\contentsline {section}{\numberline {3.7}Simplification rules}{47}
+\contentsline {section}{\numberline {3.8}The examples directory}{47}
+\contentsline {section}{\numberline {3.9}A proof about powersets}{48}
+\contentsline {section}{\numberline {3.10}Monotonicity of the union operator}{51}
+\contentsline {section}{\numberline {3.11}Low-level reasoning about functions}{52}
+\contentsline {chapter}{\numberline {4}Higher-Order Logic}{55}
+\contentsline {section}{\numberline {4.1}Syntax}{55}
+\contentsline {subsection}{Types}{57}
+\contentsline {subsection}{Binders}{58}
+\contentsline {subsection}{The {\ptt let} and {\ptt case} constructions}{58}
+\contentsline {section}{\numberline {4.2}Rules of inference}{58}
+\contentsline {section}{\numberline {4.3}A formulation of set theory}{60}
+\contentsline {subsection}{Syntax of set theory}{65}
+\contentsline {subsection}{Axioms and rules of set theory}{69}
+\contentsline {section}{\numberline {4.4}Generic packages and classical reasoning}{71}
+\contentsline {section}{\numberline {4.5}Types}{73}
+\contentsline {subsection}{Product and sum types}{73}
+\contentsline {subsection}{The type of natural numbers, {\ptt nat}}{73}
+\contentsline {subsection}{The type constructor for lists, {\ptt list}}{76}
+\contentsline {subsection}{The type constructor for lazy lists, {\ptt llist}}{76}
+\contentsline {section}{\numberline {4.6}The examples directories}{79}
+\contentsline {section}{\numberline {4.7}Example: Cantor's Theorem}{80}
+\contentsline {chapter}{\numberline {5}First-Order Sequent Calculus}{82}
+\contentsline {section}{\numberline {5.1}Unification for lists}{82}
+\contentsline {section}{\numberline {5.2}Syntax and rules of inference}{84}
+\contentsline {section}{\numberline {5.3}Tactics for the cut rule}{86}
+\contentsline {section}{\numberline {5.4}Tactics for sequents}{87}
+\contentsline {section}{\numberline {5.5}Packaging sequent rules}{88}
+\contentsline {section}{\numberline {5.6}Proof procedures}{88}
+\contentsline {subsection}{Method A}{89}
+\contentsline {subsection}{Method B}{89}
+\contentsline {section}{\numberline {5.7}A simple example of classical reasoning}{90}
+\contentsline {section}{\numberline {5.8}A more complex proof}{91}
+\contentsline {chapter}{\numberline {6}Constructive Type Theory}{93}
+\contentsline {section}{\numberline {6.1}Syntax}{95}
+\contentsline {section}{\numberline {6.2}Rules of inference}{95}
+\contentsline {section}{\numberline {6.3}Rule lists}{101}
+\contentsline {section}{\numberline {6.4}Tactics for subgoal reordering}{101}
+\contentsline {section}{\numberline {6.5}Rewriting tactics}{102}
+\contentsline {section}{\numberline {6.6}Tactics for logical reasoning}{103}
+\contentsline {section}{\numberline {6.7}A theory of arithmetic}{105}
+\contentsline {section}{\numberline {6.8}The examples directory}{105}
+\contentsline {section}{\numberline {6.9}Example: type inference}{105}
+\contentsline {section}{\numberline {6.10}An example of logical reasoning}{107}
+\contentsline {section}{\numberline {6.11}Example: deriving a currying functional}{110}
+\contentsline {section}{\numberline {6.12}Example: proving the Axiom of Choice}{111}

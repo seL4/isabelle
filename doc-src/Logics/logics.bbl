@@ -10,25 +10,46 @@ Peter~B. Andrews.
 David Basin and Matt Kaufmann.
 \newblock The {Boyer-Moore} prover and {Nuprl}: An experimental comparison.
 \newblock In {G\'erard} Huet and Gordon Plotkin, editors, {\em Logical
-  Frameworks}, pages 89--119. Cambridge University Press, 1991.
+  Frameworks}, pages 89--119. 1991.
 
 \bibitem{boyer86}
 Robert Boyer, Ewing Lusk, William McCune, Ross Overbeek, Mark Stickel, and
   Lawrence Wos.
 \newblock Set theory in first-order logic: Clauses for {G\"odel's} axioms.
-\newblock {\em Journal of Automated Reasoning}, 2(3):287--327, 1986.
+\newblock 2(3):287--327, 1986.
 
 \bibitem{camilleri92}
 J.~Camilleri and T.~F. Melham.
 \newblock Reasoning with inductively defined relations in the {HOL} theorem
   prover.
-\newblock Technical Report 265, University of Cambridge Computer Laboratory,
-  August 1992.
+\newblock Technical Report 265, August 1992.
 
 \bibitem{church40}
 Alonzo Church.
 \newblock A formulation of the simple theory of types.
-\newblock {\em Journal of Symbolic Logic}, 5:56--68, 1940.
+\newblock 5:56--68, 1940.
+
+\bibitem{coen92}
+Martin~D. Coen.
+\newblock {\em Interactive Program Derivation}.
+\newblock PhD thesis, University of Cambridge, 1992.
+\newblock Computer Laboratory Technical Report 272.
+
+\bibitem{constable86}
+R.~L. {Constable et al.}
+\newblock {\em Implementing Mathematics with the Nuprl Proof Development
+  System}.
+\newblock 1986.
+
+\bibitem{davey&priestley}
+B.~A. Davey and H.~A. Priestley.
+\newblock {\em Introduction to Lattices and Order}.
+\newblock 1990.
+
+\bibitem{devlin79}
+Keith~J. Devlin.
+\newblock {\em Fundamentals of Contemporary Set Theory}.
+\newblock Springer, 1979.
 
 \bibitem{dummett}
 Michael Dummett.
@@ -38,7 +59,7 @@ Michael Dummett.
 \bibitem{dyckhoff}
 Roy Dyckhoff.
 \newblock Contraction-free sequent calculi for intuitionistic logic.
-\newblock {\em Journal of Symbolic Logic}, 57(3):795--807, 1992.
+\newblock 57(3):795--807, 1992.
 
 \bibitem{felty91a}
 Amy Felty.
@@ -51,14 +72,7 @@ Amy Felty.
 \bibitem{frost93}
 Jacob Frost.
 \newblock A case study of co-induction in {Isabelle HOL}.
-\newblock Technical Report 308, University of Cambridge Computer Laboratory,
-  August 1993.
-
-\bibitem{OBJ}
-K.~Futatsugi, J.A. Goguen, Jean-Pierre Jouannaud, and J.~Meseguer.
-\newblock Principles of {OBJ2}.
-\newblock In {\em Symposium on Principles of Programming Languages}, pages
-  52--66, 1985.
+\newblock Technical Report 308, August 1993.
 
 \bibitem{gallier86}
 J.~H. Gallier.
@@ -66,12 +80,11 @@ J.~H. Gallier.
   Proving}.
 \newblock Harper \& Row, 1986.
 
-\bibitem{mgordon88a}
-Michael J.~C. Gordon.
-\newblock {HOL}: A proof generating system for higher-order logic.
-\newblock In Graham Birtwistle and P.~A. Subrahmanyam, editors, {\em {VLSI}
-  Specification, Verification and Synthesis}, pages 73--128. Kluwer Academic
-  Publishers, 1988.
+\bibitem{mgordon-hol}
+M.~J.~C. Gordon and T.~F. Melham.
+\newblock {\em Introduction to {HOL}: A Theorem Proving Environment for Higher
+  Order Logic}.
+\newblock 1993.
 
 \bibitem{halmos60}
 Paul~R. Halmos.
@@ -84,6 +97,13 @@ G.~P. Huet and B.~Lang.
   second-order patterns.
 \newblock {\em Acta Informatica}, 11:31--55, 1978.
 
+\bibitem{alf}
+Lena Magnusson and Bengt {Nordstr\"om}.
+\newblock The {ALF} proof editor and its proof engine.
+\newblock In {\em : International Workshop {TYPES '93}}, pages 213--237.
+  Springer, published 1994.
+\newblock LNCS 806.
+
 \bibitem{mw81}
 Zohar Manna and Richard Waldinger.
 \newblock Deductive synthesis of the unification algorithm.
@@ -94,6 +114,13 @@ Per Martin-L\"of.
 \newblock {\em Intuitionistic type theory}.
 \newblock Bibliopolis, 1984.
 
+\bibitem{melham89}
+Thomas~F. Melham.
+\newblock Automating recursive type definitions in higher order logic.
+\newblock In Graham Birtwistle and P.~A. Subrahmanyam, editors, {\em Current
+  Trends in Hardware Verification and Automated Theorem Proving}, pages
+  341--386. Springer, 1989.
+
 \bibitem{milner-coind}
 Robin Milner and Mads Tofte.
 \newblock Co-induction in relational semantics.
@@ -102,7 +129,7 @@ Robin Milner and Mads Tofte.
 \bibitem{noel}
 Philippe {No\"el}.
 \newblock Experimenting with {Isabelle} in {ZF} set theory.
-\newblock {\em Journal of Automated Reasoning}, 10(1):15--58, 1993.
+\newblock 10(1):15--58, 1993.
 
 \bibitem{nordstrom90}
 Bengt {Nordstr\"om}, Kent Petersson, and Jan Smith.
@@ -115,13 +142,6 @@ Christine Paulin-Mohring.
 \newblock Research Report 92-49, LIP, Ecole Normale Sup\'erieure de Lyon,
   December 1992.
 
-\bibitem{paulson-set-I}
-Lawrence~C. Paulson.
-\newblock Set theory for verification: {I}. {From} foundations to functions.
-\newblock {\em Journal of Automated Reasoning}.
-\newblock In press; draft available as Report 271, University of Cambridge
-  Computer Laboratory.
-
 \bibitem{paulson85}
 Lawrence~C. Paulson.
 \newblock Verifying the unification algorithm in {LCF}.
@@ -130,7 +150,7 @@ Lawrence~C. Paulson.
 \bibitem{paulson87}
 Lawrence~C. Paulson.
 \newblock {\em Logic and Computation: Interactive proof with Cambridge LCF}.
-\newblock Cambridge University Press, 1987.
+\newblock 1987.
 
 \bibitem{paulson-COLOG}
 Lawrence~C. Paulson.
@@ -140,44 +160,46 @@ Lawrence~C. Paulson.
   of Sciences, Springer.
 \newblock LNCS 417.
 
-\bibitem{paulson91}
-Lawrence~C. Paulson.
-\newblock {\em {ML} for the Working Programmer}.
-\newblock Cambridge University Press, 1991.
-
 \bibitem{paulson-coind}
 Lawrence~C. Paulson.
 \newblock Co-induction and co-recursion in higher-order logic.
-\newblock Technical Report 304, University of Cambridge Computer Laboratory,
-  July 1993.
+\newblock Technical Report 304, July 1993.
 
 \bibitem{paulson-fixedpt}
 Lawrence~C. Paulson.
-\newblock A fixedpoint approach to implementing (co-)inductive definitions.
-\newblock Technical report, University of Cambridge Computer Laboratory, 1993.
-\newblock Draft.
+\newblock A fixedpoint approach to implementing (co)inductive definitions.
+\newblock Technical Report 320, December 1993.
+
+\bibitem{paulson-set-I}
+Lawrence~C. Paulson.
+\newblock Set theory for verification: {I}. {From} foundations to functions.
+\newblock 11(3):353--389, 1993.
 
 \bibitem{paulson-set-II}
 Lawrence~C. Paulson.
 \newblock Set theory for verification: {II}. {Induction} and recursion.
-\newblock Technical Report 312, University of Cambridge Computer Laboratory,
-  1993.
+\newblock Technical Report 312, 1993.
+
+\bibitem{paulson-final}
+Lawrence~C. Paulson.
+\newblock A concrete final coalgebra theorem for {ZF} set theory.
+\newblock Technical report, 1994.
 
 \bibitem{pelletier86}
 F.~J. Pelletier.
 \newblock Seventy-five problems for testing automatic theorem provers.
-\newblock {\em Journal of Automated Reasoning}, 2:191--216, 1986.
+\newblock 2:191--216, 1986.
 \newblock Errata, JAR 4 (1988), 235--236.
 
 \bibitem{plaisted90}
 David~A. Plaisted.
 \newblock A sequent-style model elimination strategy and a positive refinement.
-\newblock {\em Journal of Automated Reasoning}, 6(4):389--402, 1990.
+\newblock 6(4):389--402, 1990.
 
 \bibitem{quaife92}
 Art Quaife.
 \newblock Automated deduction in {von Neumann-Bernays-G\"odel} set theory.
-\newblock {\em Journal of Automated Reasoning}, 8(1):91--147, 1992.
+\newblock 8(1):91--147, 1992.
 
 \bibitem{suppes72}
 Patrick Suppes.
@@ -197,7 +219,7 @@ Simon Thompson.
 \bibitem{principia}
 A.~N. Whitehead and B.~Russell.
 \newblock {\em Principia Mathematica}.
-\newblock Cambridge University Press, 1962.
+\newblock 1962.
 \newblock Paperback edition to *56, abridged from the 2nd edition (1927).
 
 \end{thebibliography}

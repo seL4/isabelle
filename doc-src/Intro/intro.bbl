@@ -5,28 +5,28 @@ Antony Galton.
 \newblock {\em Logic for Information Technology}.
 \newblock Wiley, 1990.
 
-\bibitem{gordon88a}
-Michael J.~C. Gordon.
-\newblock {HOL}: A proof generating system for higher-order logic.
-\newblock In Graham Birtwistle and P.~A. Subrahmanyam, editors, {\em {VLSI}
-  Specification, Verification and Synthesis}, pages 73--128. Kluwer Academic
-  Publishers, 1988.
+\bibitem{mgordon-hol}
+M.~J.~C. Gordon and T.~F. Melham.
+\newblock {\em Introduction to {HOL}: A Theorem Proving Environment for Higher
+  Order Logic}.
+\newblock Cambridge University Press, 1993.
 
-\bibitem{gordon79}
+\bibitem{mgordon79}
 Michael J.~C. Gordon, Robin Milner, and Christopher~P. Wadsworth.
 \newblock {\em Edinburgh {LCF}: A Mechanised Logic of Computation}.
-\newblock Springer LNCS 78, 1979.
+\newblock Springer, 1979.
+\newblock LNCS 78.
 
 \bibitem{haskell-tutorial}
 Paul Hudak and Joseph~H. Fasel.
 \newblock A gentle introduction to {Haskell}.
-\newblock {\em {ACM} {SIGPLAN} Notices}, 27(5), May 1992.
+\newblock {\em {SIGPLAN} Notices}, 27(5), May 1992.
 
 \bibitem{haskell-report}
 Paul Hudak, Simon~Peyton Jones, and Philip Wadler.
 \newblock Report on the programming language {Haskell}: A non-strict, purely
   functional language.
-\newblock {\em {ACM} {SIGPLAN} Notices}, 27(5), May 1992.
+\newblock {\em {SIGPLAN} Notices}, 27(5), May 1992.
 \newblock Version 1.2.
 
 \bibitem{huet75}
@@ -34,7 +34,7 @@ G.~P. Huet.
 \newblock A unification algorithm for typed $\lambda$-calculus.
 \newblock {\em Theoretical Computer Science}, 1:27--57, 1975.
 
-\bibitem{miller-jsc}
+\bibitem{miller-mixed}
 Dale Miller.
 \newblock Unification under a mixed prefix.
 \newblock {\em Journal of Symbolic Computation}, 14(4):321--358, 1992.
@@ -42,13 +42,15 @@ Dale Miller.
 \bibitem{nipkow-prehofer}
 Tobias Nipkow and Christian Prehofer.
 \newblock Type checking type classes.
-\newblock In {\em 20th ACM Symp.\ Principles of Programming Languages}, 1993.
-\newblock To appear.
+\newblock In {\em 20th Principles of Programming Languages}, pages 409--418.
+  ACM Press, 1993.
+\newblock Revised version to appear in \bgroup\em Journal of Functional
+  Programming\egroup.
 
 \bibitem{nordstrom90}
 Bengt {Nordstr\"om}, Kent Petersson, and Jan Smith.
 \newblock {\em Programming in {Martin-L\"of}'s Type Theory. An Introduction}.
-\newblock Oxford, 1990.
+\newblock Oxford University Press, 1990.
 
 \bibitem{paulson86}
 Lawrence~C. Paulson.
@@ -63,7 +65,7 @@ Lawrence~C. Paulson.
 \bibitem{paulson89}
 Lawrence~C. Paulson.
 \newblock The foundation of a generic theorem prover.
-\newblock {\em Journal of Automated Reasoning}, 5:363--397, 1989.
+\newblock {\em Journal of Automated Reasoning}, 5(3):363--397, 1989.
 
 \bibitem{paulson700}
 Lawrence~C. Paulson.

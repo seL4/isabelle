@@ -36,10 +36,10 @@ by (pc_tac prems 1);
 (*** Currying, from CTT/ex/elim.ML ***)
 
 val prems = goal CTT.thy
-    "[| A type; !!x. x:A ==> B(x) type; \
-\               !!z. z: (SUM x:A. B(x)) ==> C(z) type |] \
-\    ==> ?a : (PROD z : (SUM x:A . B(x)) . C(z)) \
-\         --> (PROD x:A . PROD y:B(x) . C(<x,y>))";
+    "[| A type; !!x. x:A ==> B(x) type; 			\
+\               !!z. z: (SUM x:A. B(x)) ==> C(z) type 		\
+\    |] ==> ?a : PROD f: (PROD z : (SUM x:A . B(x)) . C(z)).	\
+\                     (PROD x:A . PROD y:B(x) . C(<x,y>))";
 by (intr_tac prems);
 by (eresolve_tac [ProdE] 1);
 by (intr_tac prems);
@@ -50,8 +50,8 @@ by (intr_tac prems);
 val prems = goal CTT.thy   
     "[| A type;  !!x. x:A ==> B(x) type;  \
 \       !!x y.[| x:A;  y:B(x) |] ==> C(x,y) type  \
-\    |] ==> ?a :    (PROD x:A. SUM y:B(x). C(x,y))    \
-\               --> (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))";
+\    |] ==> ?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).    \
+\                        (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))";
 by (intr_tac prems);
 by (eresolve_tac [ProdE RS SumE_fst] 1);
 by (assume_tac 1);

@@ -2,7 +2,7 @@
 \contentsline {section}{\numberline {1}Formalizing logical syntax in Isabelle}{1}
 \contentsline {subsection}{\numberline {1.1}Simple types and constants}{1}
 \contentsline {subsection}{\numberline {1.2}Polymorphic types and constants}{3}
-\contentsline {subsection}{\numberline {1.3}Higher types and quantifiers}{4}
+\contentsline {subsection}{\numberline {1.3}Higher types and quantifiers}{5}
 \contentsline {section}{\numberline {2}Formalizing logical rules in Isabelle}{5}
 \contentsline {subsection}{\numberline {2.1}Expressing propositional rules}{6}
 \contentsline {subsection}{\numberline {2.2}Quantifier rules and substitution}{7}
@@ -10,58 +10,61 @@
 \contentsline {section}{\numberline {3}Proof construction in Isabelle}{9}
 \contentsline {subsection}{\numberline {3.1}Higher-order unification}{10}
 \contentsline {subsection}{\numberline {3.2}Joining rules by resolution}{11}
-\contentsline {subsection}{\numberline {3.3}Lifting a rule into a context}{13}
-\contentsline {subsubsection}{Lifting over assumptions}{13}
-\contentsline {subsubsection}{Lifting over parameters}{13}
-\contentsline {section}{\numberline {4}Backward proof by resolution}{14}
-\contentsline {subsection}{\numberline {4.1}Refinement by resolution}{15}
-\contentsline {subsection}{\numberline {4.2}Proof by assumption}{15}
-\contentsline {subsection}{\numberline {4.3}A propositional proof}{16}
-\contentsline {subsection}{\numberline {4.4}A quantifier proof}{17}
-\contentsline {subsection}{\numberline {4.5}Tactics and tacticals}{17}
-\contentsline {section}{\numberline {5}Variations on resolution}{18}
-\contentsline {subsection}{\numberline {5.1}Elim-resolution}{18}
-\contentsline {subsection}{\numberline {5.2}Destruction rules}{20}
-\contentsline {subsection}{\numberline {5.3}Deriving rules by resolution}{20}
-\contentsline {part}{\uppercase {ii}\phspace {1em}Getting started with Isabelle}{22}
-\contentsline {section}{\numberline {6}Forward proof}{22}
-\contentsline {subsection}{\numberline {6.1}Lexical matters}{22}
-\contentsline {subsection}{\numberline {6.2}Syntax of types and terms}{23}
-\contentsline {subsection}{\numberline {6.3}Basic operations on theorems}{24}
-\contentsline {subsection}{\numberline {6.4}Flex-flex equations}{26}
-\contentsline {section}{\numberline {7}Backward proof}{27}
-\contentsline {subsection}{\numberline {7.1}The basic tactics}{27}
-\contentsline {subsection}{\numberline {7.2}Commands for backward proof}{28}
-\contentsline {subsection}{\numberline {7.3}A trivial example in propositional logic}{28}
-\contentsline {subsection}{\numberline {7.4}Proving a distributive law}{30}
-\contentsline {section}{\numberline {8}Quantifier reasoning}{31}
-\contentsline {subsection}{\numberline {8.1}Two quantifier proofs, successful and not}{31}
-\contentsline {subsubsection}{The successful proof}{31}
-\contentsline {subsubsection}{The unsuccessful proof}{32}
-\contentsline {subsection}{\numberline {8.2}Nested quantifiers}{33}
-\contentsline {subsubsection}{The wrong approach}{33}
-\contentsline {subsubsection}{The right approach}{34}
-\contentsline {subsubsection}{A one-step proof using tacticals}{35}
-\contentsline {subsection}{\numberline {8.3}A realistic quantifier proof}{35}
-\contentsline {subsection}{\numberline {8.4}The classical reasoning package}{36}
-\contentsline {part}{\uppercase {iii}\phspace {1em}Advanced methods}{38}
-\contentsline {section}{\numberline {9}Deriving rules in Isabelle}{38}
-\contentsline {subsection}{\numberline {9.1}Deriving a rule using tactics}{38}
-\contentsline {subsection}{\numberline {9.2}Definitions and derived rules}{40}
-\contentsline {subsubsection}{Deriving the introduction rule}{41}
-\contentsline {subsubsection}{Deriving the elimination rule}{42}
-\contentsline {section}{\numberline {10}Defining theories}{44}
-\contentsline {subsection}{\numberline {10.1}Declaring constants and rules}{45}
-\contentsline {subsection}{\numberline {10.2}Declaring type constructors}{46}
-\contentsline {subsection}{\numberline {10.3}Infixes and Mixfixes}{47}
-\contentsline {subsection}{\numberline {10.4}Overloading}{48}
-\contentsline {subsection}{\numberline {10.5}Extending first-order logic with the natural numbers}{50}
-\contentsline {subsection}{\numberline {10.6}Declaring the theory to Isabelle}{51}
-\contentsline {section}{\numberline {11}Refinement with explicit instantiation}{52}
-\contentsline {subsection}{\numberline {11.1}A simple proof by induction}{52}
-\contentsline {subsection}{\numberline {11.2}An example of ambiguity in {\ptt resolve_tac}}{53}
-\contentsline {subsection}{\numberline {11.3}Proving that addition is associative}{54}
-\contentsline {section}{\numberline {12}A {\psc Prolog} interpreter}{55}
-\contentsline {subsection}{\numberline {12.1}Simple executions}{56}
-\contentsline {subsection}{\numberline {12.2}Backtracking}{57}
-\contentsline {subsection}{\numberline {12.3}Depth-first search}{58}
+\contentsline {section}{\numberline {4}Lifting a rule into a context}{13}
+\contentsline {subsection}{\numberline {4.1}Lifting over assumptions}{13}
+\contentsline {subsection}{\numberline {4.2}Lifting over parameters}{14}
+\contentsline {section}{\numberline {5}Backward proof by resolution}{15}
+\contentsline {subsection}{\numberline {5.1}Refinement by resolution}{15}
+\contentsline {subsection}{\numberline {5.2}Proof by assumption}{16}
+\contentsline {subsection}{\numberline {5.3}A propositional proof}{16}
+\contentsline {subsection}{\numberline {5.4}A quantifier proof}{17}
+\contentsline {subsection}{\numberline {5.5}Tactics and tacticals}{18}
+\contentsline {section}{\numberline {6}Variations on resolution}{18}
+\contentsline {subsection}{\numberline {6.1}Elim-resolution}{19}
+\contentsline {subsection}{\numberline {6.2}Destruction rules}{20}
+\contentsline {subsection}{\numberline {6.3}Deriving rules by resolution}{21}
+\contentsline {part}{\uppercase {ii}\phspace {1em}Getting Started with Isabelle}{23}
+\contentsline {section}{\numberline {7}Forward proof}{23}
+\contentsline {subsection}{\numberline {7.1}Lexical matters}{23}
+\contentsline {subsection}{\numberline {7.2}Syntax of types and terms}{24}
+\contentsline {subsection}{\numberline {7.3}Basic operations on theorems}{25}
+\contentsline {subsection}{\numberline {7.4}*Flex-flex constraints}{27}
+\contentsline {section}{\numberline {8}Backward proof}{28}
+\contentsline {subsection}{\numberline {8.1}The basic tactics}{28}
+\contentsline {subsection}{\numberline {8.2}Commands for backward proof}{29}
+\contentsline {subsection}{\numberline {8.3}A trivial example in propositional logic}{29}
+\contentsline {subsection}{\numberline {8.4}Part of a distributive law}{31}
+\contentsline {section}{\numberline {9}Quantifier reasoning}{32}
+\contentsline {subsection}{\numberline {9.1}Two quantifier proofs: a success and a failure}{32}
+\contentsline {paragraph}{The successful proof.}{32}
+\contentsline {paragraph}{The unsuccessful proof.}{33}
+\contentsline {subsection}{\numberline {9.2}Nested quantifiers}{33}
+\contentsline {paragraph}{The wrong approach.}{34}
+\contentsline {paragraph}{The right approach.}{34}
+\contentsline {paragraph}{A one-step proof using tacticals.}{35}
+\contentsline {subsection}{\numberline {9.3}A realistic quantifier proof}{36}
+\contentsline {subsection}{\numberline {9.4}The classical reasoner}{37}
+\contentsline {part}{\uppercase {iii}\phspace {1em}Advanced Methods}{39}
+\contentsline {section}{\numberline {10}Deriving rules in Isabelle}{39}
+\contentsline {subsection}{\numberline {10.1}Deriving a rule using tactics and meta-level assumptions}{39}
+\contentsline {subsection}{\numberline {10.2}Definitions and derived rules}{41}
+\contentsline {subsection}{\numberline {10.3}Deriving the $\neg $ introduction rule}{41}
+\contentsline {subsection}{\numberline {10.4}Deriving the $\neg $ elimination rule}{42}
+\contentsline {section}{\numberline {11}Defining theories}{44}
+\contentsline {subsection}{\numberline {11.1}Declaring constants and rules}{46}
+\contentsline {subsection}{\numberline {11.2}Declaring type constructors}{46}
+\contentsline {subsection}{\numberline {11.3}Type synonyms}{48}
+\contentsline {subsection}{\numberline {11.4}Infix and mixfix operators}{48}
+\contentsline {subsection}{\numberline {11.5}Overloading}{50}
+\contentsline {section}{\numberline {12}Theory example: the natural numbers}{51}
+\contentsline {subsection}{\numberline {12.1}Extending first-order logic with the natural numbers}{51}
+\contentsline {subsection}{\numberline {12.2}Declaring the theory to Isabelle}{52}
+\contentsline {subsection}{\numberline {12.3}Proving some recursion equations}{52}
+\contentsline {section}{\numberline {13}Refinement with explicit instantiation}{53}
+\contentsline {subsection}{\numberline {13.1}A simple proof by induction}{53}
+\contentsline {subsection}{\numberline {13.2}An example of ambiguity in {\ptt resolve_tac}}{54}
+\contentsline {subsection}{\numberline {13.3}Proving that addition is associative}{55}
+\contentsline {section}{\numberline {14}A Prolog interpreter}{56}
+\contentsline {subsection}{\numberline {14.1}Simple executions}{57}
+\contentsline {subsection}{\numberline {14.2}Backtracking}{58}
+\contentsline {subsection}{\numberline {14.3}Depth-first search}{59}

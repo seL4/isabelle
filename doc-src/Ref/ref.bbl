@@ -1,5 +1,10 @@
 \begin{thebibliography}{1}
 
+\bibitem{bm88book}
+Robert~S. Boyer and J~Strother Moore.
+\newblock {\em A Computational Logic Handbook}.
+\newblock Academic Press, 1988.
+
 \bibitem{charniak80}
 E.~Charniak, C.~K. Riesbeck, and D.~V. McDermott.
 \newblock {\em Artificial Intelligence Programming}.
@@ -11,11 +16,30 @@ N.~G. de~Bruijn.
   formula manipulation, with application to the {Church-Rosser Theorem}.
 \newblock {\em Indagationes Mathematicae}, 34:381--392, 1972.
 
+\bibitem{OBJ}
+K.~Futatsugi, J.A. Goguen, Jean-Pierre Jouannaud, and J.~Meseguer.
+\newblock Principles of {OBJ2}.
+\newblock In {\em Principles of Programming Languages}, pages 52--66, 1985.
+
+\bibitem{martin-nipkow}
+Ursula Martin and Tobias Nipkow.
+\newblock Ordered rewriting and confluence.
+\newblock In M.~E. Stickel, editor, {\em 10th International Conference on
+  Automated Deduction}, pages 366--380. Springer, 1990.
+\newblock LNCS 449.
+
 \bibitem{nipkow-prehofer}
 Tobias Nipkow and Christian Prehofer.
 \newblock Type checking type classes.
-\newblock In {\em 20th ACM Symp.\ Principles of Programming Languages}, 1993.
-\newblock To appear.
+\newblock In {\em 20th Principles of Programming Languages}, pages 409--418.
+  ACM Press, 1993.
+\newblock Revised version to appear in \bgroup\em Journal of Functional
+  Programming\egroup.
+
+\bibitem{nordstrom90}
+Bengt {Nordstr\"om}, Kent Petersson, and Jan Smith.
+\newblock {\em Programming in {Martin-L\"of}'s Type Theory. An Introduction}.
+\newblock Oxford University Press, 1990.
 
 \bibitem{paulson91}
 Lawrence~C. Paulson.

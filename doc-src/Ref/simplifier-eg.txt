@@ -1,3 +1,5 @@
+Pretty.setmargin 70;
+
 > goal Nat.thy "m+0 = m";
 Level 0
 m + 0 = m
@@ -70,4 +72,40 @@ f(i + j) = i + f(j)
 > by (asm_simp_tac (f_ss addrews prems) 1);
 Level 3
 f(i + j) = i + f(j)
+No subgoals!
+
+
+
+> goal NatSum.thy "Suc(Suc(0))*sum(%i.i,Suc(n)) = n*Suc(n)";
+Level 0
+Suc(Suc(0)) * sum(%i. i, Suc(n)) = n * Suc(n)
+ 1. Suc(Suc(0)) * sum(%i. i, Suc(n)) = n * Suc(n)
+
+> by (simp_tac natsum_ss 1);
+Level 1
+Suc(Suc(0)) * sum(%i. i, Suc(n)) = n * Suc(n)
+ 1. n + (n + (sum(%i. i, n) + sum(%i. i, n))) = n + n * n
+
+> by (nat_ind_tac "n" 1);
+Level 2
+Suc(Suc(0)) * sum(%i. i, Suc(n)) = n * Suc(n)
+ 1. 0 + (0 + (sum(%i. i, 0) + sum(%i. i, 0))) = 0 + 0 * 0
+ 2. !!n1. n1 + (n1 + (sum(%i. i, n1) + sum(%i. i, n1))) =
+          n1 + n1 * n1 ==>
+          Suc(n1) +
+          (Suc(n1) + (sum(%i. i, Suc(n1)) + sum(%i. i, Suc(n1)))) =
+          Suc(n1) + Suc(n1) * Suc(n1)
+
+> by (simp_tac natsum_ss 1);
+Level 3
+Suc(Suc(0)) * sum(%i. i, Suc(n)) = n * Suc(n)
+ 1. !!n1. n1 + (n1 + (sum(%i. i, n1) + sum(%i. i, n1))) =
+          n1 + n1 * n1 ==>
+          Suc(n1) +
+          (Suc(n1) + (sum(%i. i, Suc(n1)) + sum(%i. i, Suc(n1)))) =
+          Suc(n1) + Suc(n1) * Suc(n1)
+
+> by (asm_simp_tac natsum_ss 1);
+Level 4
+Suc(Suc(0)) * sum(%i. i, Suc(n)) = n * Suc(n)
 No subgoals!
