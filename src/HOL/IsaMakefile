@@ -223,8 +223,8 @@ $(LOG)/HOL-Induct.gz: $(OUT)/HOL \
   Induct/Com.thy Induct/Comb.thy Induct/LFilter.thy \
   Induct/LList.thy Induct/Mutil.thy Induct/Ordinals.thy \
   Induct/PropLog.thy Induct/ROOT.ML \
-  Induct/Sexp.ML Induct/Sexp.thy Induct/Sigma_Algebra.thy \
-  Induct/SList.ML Induct/SList.thy Induct/ABexp.thy Induct/Term.thy \
+  Induct/Sexp.thy Induct/Sigma_Algebra.thy \
+  Induct/SList.thy Induct/ABexp.thy Induct/Term.thy \
   Induct/Tree.thy Induct/document/root.tex
 	@$(ISATOOL) usedir $(OUT)/HOL Induct
 
