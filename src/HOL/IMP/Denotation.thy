@@ -10,10 +10,10 @@ Denotation = Com +
 
 types com_den = "(state*state)set"
 consts
-  A     :: "aexp => state => nat"
-  B     :: "bexp => state => bool"
-  C     :: "com => com_den"
-  Gamma :: "[bexp,com_den] => (com_den => com_den)"
+  A     :: aexp => state => nat
+  B     :: bexp => state => bool
+  C     :: com => com_den
+  Gamma :: [bexp,com_den] => (com_den => com_den)
 
 primrec A aexp
   A_nat	"A(N(n)) = (%s. n)"

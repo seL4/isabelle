@@ -23,13 +23,13 @@ instance
   int :: {ord, plus, times, minus}
 
 consts
-  zNat        :: "nat set"
-  znat	      :: "nat => int"	   ("$# _" [80] 80)
-  zminus      :: "int => int"	   ("$~ _" [80] 80)
-  znegative   :: "int => bool"
-  zmagnitude  :: "int => int"
-  zdiv,zmod   :: "[int,int]=>int"  (infixl 70)
-  zpred,zsuc  :: "int=>int"
+  zNat        :: nat set
+  znat	      :: nat => int	   ("$# _" [80] 80)
+  zminus      :: int => int	   ("$~ _" [80] 80)
+  znegative   :: int => bool
+  zmagnitude  :: int => int
+  zdiv,zmod   :: [int,int]=>int  (infixl 70)
+  zpred,zsuc  :: int=>int
 
 defs
   zNat_def    "zNat == {x::nat. True}"

@@ -17,8 +17,8 @@ if the recursive calls in the penultimate argument are evaluated eagerly.
 AutoChopper = Auto + Chopper +
 
 consts
-  is_auto_chopper :: "(('a,'b)auto => 'a chopper) => bool"
-  auto_chopper :: "('a,'b)auto => 'a chopper"
+  is_auto_chopper :: (('a,'b)auto => 'a chopper) => bool
+  auto_chopper :: ('a,'b)auto => 'a chopper
   acc :: "['a list, 'b, 'a list, 'a list, 'a list list*'a list, ('a,'b)auto]
 	  => 'a list list * 'a list"
 

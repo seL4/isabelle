@@ -17,27 +17,27 @@ types
   'a com = "'a state => 'a state => bool" (* denotation of programs *)
 
 syntax
-  "@Skip"       :: "'a prog"				("SKIP")
-  "@Assign"	:: "[id, 'a] => 'a prog"		("_ := _")
-  "@Seq"	:: "['a prog, 'a prog] => 'a prog"	("_;//_" [0,1000] 999)
-  "@If"		:: "[bool, 'a prog, 'a prog] => 'a prog"
+  "@Skip"       :: 'a prog				("SKIP")
+  "@Assign"	:: [id, 'a] => 'a prog		("_ := _")
+  "@Seq"	:: ['a prog, 'a prog] => 'a prog	("_;//_" [0,1000] 999)
+  "@If"		:: [bool, 'a prog, 'a prog] => 'a prog
                    ("IF _//THEN//  (_)//ELSE//  (_)//END")
-  "@While"	:: "[bool, bool, 'a prog] => 'a prog"
+  "@While"	:: [bool, bool, 'a prog] => 'a prog
                    ("WHILE _//DO {_}//  (_)//END")
 
-  "@Spec"	:: "[bool, 'a prog, bool] => bool"	("{_}//_//{_}")
+  "@Spec"	:: [bool, 'a prog, bool] => bool	("{_}//_//{_}")
 
 consts
   (* semantics *)
 
-  Skip		:: "'a com"
-  Assign	:: "[pvar, 'a exp] => 'a com"
-  Seq		:: "['a com, 'a com] => 'a com"
-  Cond		:: "['a bexp, 'a com, 'a com] => 'a com"
-  While		:: "['a bexp, 'a bexp, 'a com] => 'a com"
-  Iter		:: "[nat, 'a bexp, 'a com] => 'a com"
+  Skip		:: 'a com
+  Assign	:: [pvar, 'a exp] => 'a com
+  Seq		:: ['a com, 'a com] => 'a com
+  Cond		:: ['a bexp, 'a com, 'a com] => 'a com
+  While		:: ['a bexp, 'a bexp, 'a com] => 'a com
+  Iter		:: [nat, 'a bexp, 'a com] => 'a com
 
-  Spec		:: "['a bexp, 'a com, 'a bexp] => bool"
+  Spec		:: ['a bexp, 'a com, 'a bexp] => bool
 
 defs
   (* denotational semantics *)

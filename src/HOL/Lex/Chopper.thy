@@ -20,7 +20,7 @@ Chopper = Prefix +
 types   'a chopper = "'a list => 'a list list * 'a list"
 
 consts
-  is_longest_prefix_chopper :: "['a list => bool, 'a chopper] => bool"
+  is_longest_prefix_chopper :: ['a list => bool, 'a chopper] => bool
 
 defs
   is_longest_prefix_chopper_def

@@ -14,7 +14,7 @@ consts
   ">>"       :: "[('a*('a uterm))list,('a*('a uterm))list] => bool" (infixr 52)
   MGUnifier  :: "[('a*('a uterm))list,'a uterm,'a uterm] => bool"
   MGIUnifier :: "[('a*('a uterm))list,'a uterm,'a uterm] => bool"
-  UWFD       :: "['a uterm,'a uterm,'a uterm,'a uterm] => bool"
+  UWFD       :: ['a uterm,'a uterm,'a uterm,'a uterm] => bool
 
 rules  (*Definitions*)
 

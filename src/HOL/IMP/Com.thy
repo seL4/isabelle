@@ -26,7 +26,7 @@ datatype
 
 (** Evaluation of arithmetic expressions **)
 consts  evala    :: "(aexp*state*nat)set"
-       "@evala"  :: "[aexp,state,nat] => bool" ("<_,_>/ -a-> _"  [0,0,50] 50)
+       "@evala"  :: [aexp,state,nat] => bool ("<_,_>/ -a-> _"  [0,0,50] 50)
 translations
     "<ae,sig> -a-> n" == "(ae,sig,n) : evala"
 inductive "evala"
@@ -51,7 +51,7 @@ datatype
 
 (** Evaluation of boolean expressions **)
 consts evalb	:: "(bexp*state*bool)set"	
-       "@evalb" :: "[bexp,state,bool] => bool" ("<_,_>/ -b-> _"  [0,0,50] 50)
+       "@evalb" :: [bexp,state,bool] => bool ("<_,_>/ -b-> _"  [0,0,50] 50)
 
 translations
     "<be,sig> -b-> b" == "(be,sig,b) : evalb"
@@ -79,8 +79,8 @@ datatype
 
 (** Execution of commands **)
 consts  evalc    :: "(com*state*state)set"
-        "@evalc" :: "[com,state,state] => bool" ("<_,_>/ -c-> _" [0,0,50] 50)
-	"assign" :: "[state,nat,loc] => state"  ("_[_'/_]"       [95,0,0] 95)
+        "@evalc" :: [com,state,state] => bool ("<_,_>/ -c-> _" [0,0,50] 50)
+	"assign" :: [state,nat,loc] => state  ("_[_'/_]"       [95,0,0] 95)
 
 translations
        "<ce,sig> -c-> s" == "(ce,sig,s) : evalc"

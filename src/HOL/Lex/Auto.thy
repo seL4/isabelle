@@ -17,12 +17,12 @@ Auto = Prefix +
 types ('a,'b)auto = "'b * ('b => 'a => 'b) * ('b => bool)"
 
 consts
-  start :: "('a, 'b)auto => 'b"
-  next  :: "('a, 'b)auto => ('b => 'a => 'b)"
-  fin   :: "('a, 'b)auto => ('b => bool)"
-  nexts :: "('a, 'b)auto => 'b => 'a list => 'b"
-  accepts :: "('a,'b) auto => 'a list => bool"  
-  acc_prefix :: "('a, 'b)auto => 'b => 'a list => bool"
+  start :: ('a, 'b)auto => 'b
+  next  :: ('a, 'b)auto => ('b => 'a => 'b)
+  fin   :: ('a, 'b)auto => ('b => bool)
+  nexts :: ('a, 'b)auto => 'b => 'a list => 'b
+  accepts :: ('a,'b) auto => 'a list => bool  
+  acc_prefix :: ('a, 'b)auto => 'b => 'a list => bool
 
 defs
   start_def "start(A) == fst(A)"

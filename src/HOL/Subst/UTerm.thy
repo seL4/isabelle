@@ -14,15 +14,15 @@ arities
   uterm     :: (term)term
 
 consts
-  uterm     :: "'a item set => 'a item set"
-  Rep_uterm :: "'a uterm => 'a item"
-  Abs_uterm :: "'a item => 'a uterm"
-  VAR       :: "'a item => 'a item"
-  CONST     :: "'a item => 'a item"
-  COMB      :: "['a item, 'a item] => 'a item"
-  Var       :: "'a => 'a uterm"
-  Const     :: "'a => 'a uterm"
-  Comb      :: "['a uterm, 'a uterm] => 'a uterm"
+  uterm     :: 'a item set => 'a item set
+  Rep_uterm :: 'a uterm => 'a item
+  Abs_uterm :: 'a item => 'a uterm
+  VAR       :: 'a item => 'a item
+  CONST     :: 'a item => 'a item
+  COMB      :: ['a item, 'a item] => 'a item
+  Var       :: 'a => 'a uterm
+  Const     :: 'a => 'a uterm
+  Comb      :: ['a uterm, 'a uterm] => 'a uterm
   UTerm_rec :: "['a item, 'a item => 'b, 'a item => 'b, 
                 ['a item , 'a item, 'b, 'b]=>'b] => 'b"
   uterm_rec :: "['a uterm, 'a => 'b, 'a => 'b, 

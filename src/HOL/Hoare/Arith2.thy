@@ -9,12 +9,12 @@ More arithmetic.
 Arith2 = Arith +
 
 consts
-  divides :: "[nat, nat] => bool"			(infixl 70)
-  cd	  :: "[nat, nat, nat] => bool"
-  gcd	  :: "[nat, nat] => nat"
+  divides :: [nat, nat] => bool			(infixl 70)
+  cd	  :: [nat, nat, nat] => bool
+  gcd	  :: [nat, nat] => nat
 
-  pow	  :: "[nat, nat] => nat"			(infixl 75)
-  fac	  :: "nat => nat"
+  pow	  :: [nat, nat] => nat			(infixl 75)
+  fac	  :: nat => nat
 
 defs
   divides_def	"x divides n == 0<n & 0<x & (n mod x) = 0"
