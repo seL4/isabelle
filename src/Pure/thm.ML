@@ -1066,10 +1066,12 @@ fun var_perm(t,u) = vperm(t,u) andalso
 
 (*simple test for looping rewrite*)
 fun loops sign prems (lhs,rhs) =
-  is_Var(lhs) orelse
-  (is_Free(lhs) andalso (exists (apl(lhs, Logic.occs)) (rhs::prems))) orelse
-  (null(prems) andalso
-   Pattern.matches (#tsig(Sign.rep_sg sign)) (lhs,rhs));
+   is_Var(lhs)
+  orelse
+   (exists (apl(lhs, Logic.occs)) (rhs::prems))
+  orelse
+   (null(prems) andalso
+    Pattern.matches (#tsig(Sign.rep_sg sign)) (lhs,rhs));
 
 fun mk_rrule (thm as Thm{hyps,sign,prop,maxidx,...}) =
   let val prems = Logic.strip_imp_prems prop
@@ -1230,7 +1232,8 @@ fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
             val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (lhs,etat)
             val prop' = ren_inst(insts,prop,lhs,t);
             val hyps' = hyps union hypst;
-            val thm' = Thm{sign=signt, hyps=hyps', prop=prop', maxidx=maxidx}
+            val thm' = Thm{sign=signt, hyps=hyps', prop=prop',
+                           maxidx=maxidx_of_term prop'}
             val (lhs',rhs') = Logic.dest_equals(Logic.strip_imp_concl prop')
         in if perm andalso not(termless(rhs',lhs')) then None else
            if Logic.count_prems(prop',0) = 0
@@ -1261,7 +1264,7 @@ fun congc (prover,signt) {thm=cong,lhs=lhs} (hypst,t) =
                   error("Congruence rule did not match")
       val prop' = ren_inst(insts,prop,lhs,t);
       val thm' = Thm{sign=signt, hyps=hyps union hypst,
-                     prop=prop', maxidx=maxidx}
+                     prop=prop', maxidx=maxidx_of_term prop'}
       val unit = trace_thm "Applying congruence rule" thm';
       fun err() = error("Failed congruence proof!")
 
