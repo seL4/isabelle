@@ -19,6 +19,8 @@ sig
   val mk_disj		: term * term -> term
   val mk_imp		: term * term -> term
   val dest_imp	       	: term -> term*term
+  val dest_conj         : term -> term list
+  val dest_concls       : term -> term list
   val mk_iff		: term * term -> term
   val dest_iff	       	: term -> term*term
   val all_const		: typ -> term
@@ -61,6 +63,12 @@ and mk_iff (t1, t2) = iff $ t1 $ t2;
 
 fun dest_imp (Const("op -->",_) $ A $ B) = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
+
+fun dest_conj (Const ("op &", _) $ t $ t') = t :: dest_conj t'
+  | dest_conj t = [t];
+
+fun imp_concl_of t = imp_concl_of (#2 (dest_imp t)) handle TERM _ => t;
+val dest_concls = map imp_concl_of o dest_conj o dest_Trueprop;
 
 fun dest_iff (Const("op <->",_) $ A $ B) = (A, B)
   | dest_iff  t = raise TERM ("dest_iff", [t]);
