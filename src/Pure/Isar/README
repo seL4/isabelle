@@ -20,3 +20,4 @@ Semi-Automated Reasoning for Isabelle.  Interesting modules include:
   OuterParse	(outer syntax parser combinators, see also
                  Pure/General/scan.ML)
   OuterSyntax   (outer syntax main)
+  IsarOutput    (token-level theory output)
