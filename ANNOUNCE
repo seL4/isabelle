@@ -4,15 +4,17 @@ To: isabelle-users@cl.cam.ac.uk
 
 Isabelle2002 is now available.
 
-This release provides major improvements.  The Isar language has reached a
-mature state; the treatment of numerals has been streamlined; several
-substantial case studies have been added.  This occasionally causes
-incompatibility with earlier versions.
+This release provides major improvements.  The Isar language has
+reached a mature state; the core engine is able to record full proof
+terms; many aspects of the library have been reworked; several
+substantial case studies have been added.  Some changes may cause
+incompatibility with earlier versions, but improve accessibility of
+Isabelle for new users.
 
 The most prominent highlights of Isabelle2002 are as follows (see the
 NEWS of the distribution for more details).
 
-  * The Isabelle/HOL tutorial has been published as LNCS 2283;
+  * The Isabelle/HOL tutorial is to be published as LNCS 2283;
     Isabelle2002 is the official version to go along with that book
     (by Tobias Nipkow, Larry Paulson, Markus Wenzel).
 
