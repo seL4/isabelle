@@ -1647,6 +1647,9 @@ lemma subset_iff_psubset_eq: "(A \<subseteq> B) = ((A \<subset> B) | (A = B))"
 lemma all_not_in_conv [iff]: "(\<forall>x. x \<notin> A) = (A = {})"
   by blast
 
+lemma ex_in_conv: "(\<exists>x. x \<in> A) = (A \<noteq> {})"
+  by blast
+
 lemma distinct_lemma: "f x \<noteq> f y ==> x \<noteq> y"
   by rules
 
