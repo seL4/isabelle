@@ -208,11 +208,10 @@ fun local_path comment_ignore = PureThy.local_path;
 local
 
 val kinds =
- [(Sign.classK, fn sg => fn c => c mem Sign.classes sg),
+ [(Sign.classK, can o Sign.certify_class),
   (Sign.typeK, fn sg => fn c =>
-    let val {tycons, abbrs, ...} = Type.rep_tsig (Sign.tsig_of sg)
-    in is_some (Symtab.lookup (tycons, c)) orelse is_some (Symtab.lookup (abbrs, c)) end),
-  (Sign.constK, is_some oo Sign.const_type)];
+    can (Sign.certify_tycon sg) c orelse can (Sign.certify_tyabbr sg) c),
+  (Sign.constK, can o Sign.certify_const)];
 
 fun gen_hide intern ((kind, xnames), comment_ignore) thy =
   (case assoc (kinds, kind) of
