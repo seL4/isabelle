@@ -143,7 +143,7 @@ val ioa_decl =
 	("compose" $$-- (enum1 "," name))) >> mk_composition_decl)
 ||
   (name -- ("=" $$--
-	("hide" $$-- (enum1 "," string) --
+	("hide_action" $$-- (enum1 "," string) --
 		("in" $$-- name))) >> mk_hiding_decl)
 ||
   (name -- ("=" $$--
@@ -164,7 +164,7 @@ in
 val _ = ThySyn.add_syntax
  ["signature","actions","inputs", "outputs", "internals", "states", "initially",
   "transitions", "pre", "post", "transrel",":=",
-"compose","hide","in","restrict","to","rename","using"]
+"compose","hide_action","in","restrict","to","rename","using"]
  [axm_section "automaton" "" ioa_decl];
 
 end; 

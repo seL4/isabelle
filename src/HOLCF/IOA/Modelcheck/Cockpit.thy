@@ -29,7 +29,7 @@ automaton cockpit =
       pre "(a=PonR --> APonR_incl) & (a=None --> ~APonR_incl)"
       post info:="None",APonR_incl:="if (a=PonR) then False else APonR_incl"
 
-automaton cockpit_hide = hide "Info a" in cockpit
+automaton cockpit_hide = hide_action "Info a" in cockpit
 
 
 (*Subsequent automata express the properties to be proved, see also
