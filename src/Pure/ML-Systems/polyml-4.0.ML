@@ -118,11 +118,14 @@ fun change_signal new_handler f x =
     val _ = Signal.signal (sig_int, old_handler);
   in release result end;
 
+val default_handler = Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ());
+
 in
 
+val _ = Signal.signal (sig_int, default_handler);
+
 fun mask_interrupt f = change_signal Signal.SIG_IGN f;
-fun exhibit_interrupt f =
-  change_signal (Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())) f;
+fun exhibit_interrupt f = change_signal default_handler f;
 
 end;
 
