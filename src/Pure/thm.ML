@@ -72,7 +72,7 @@ signature BASIC_THM =
     | Bicompose           of bool * bool * int * int * Envir.env
     | Flexflex_rule       of Envir.env            
     | Class_triv          of class       
-    | VarifyT
+    | VarifyT		  of string list
     | FreezeT
     | RewriteC            of cterm
     | CongC               of cterm
@@ -131,6 +131,7 @@ signature BASIC_THM =
   val trivial           : cterm -> thm
   val class_triv        : Sign.sg -> class -> thm
   val varifyT           : thm -> thm
+  val varifyT'          : string list -> thm -> thm
   val freezeT           : thm -> thm
   val dest_state        : thm * int ->
     (term * term) list * term list * term * term
@@ -347,7 +348,7 @@ datatype rule =
   | Flexflex_rule       of Envir.env            (*identifies unifier chosen*)
 (*other derived rules*)
   | Class_triv          of class
-  | VarifyT
+  | VarifyT		of string list
   | FreezeT
 (*for the simplifier*)
   | RewriteC            of cterm
@@ -1140,12 +1141,12 @@ fun class_triv sign c =
   end;
 
 
-(* Replace all TFrees not in the hyps by new TVars *)
-fun varifyT(Thm{sign_ref,der,maxidx,shyps,hyps,prop}) =
-  let val tfrees = foldr add_term_tfree_names (hyps,[])
+(* Replace all TFrees not fixed or in the hyps by new TVars *)
+fun varifyT' fixed (Thm{sign_ref,der,maxidx,shyps,hyps,prop}) =
+  let val tfrees = foldr add_term_tfree_names (hyps,fixed)
   in let val thm = (*no fix_shyps*)
     Thm{sign_ref = sign_ref, 
-        der = infer_derivs (VarifyT, [der]), 
+        der = infer_derivs (VarifyT fixed, [der]), 
         maxidx = Int.max(0,maxidx), 
         shyps = shyps, 
         hyps = hyps,
@@ -1154,6 +1155,8 @@ fun varifyT(Thm{sign_ref,der,maxidx,shyps,hyps,prop}) =
 (* this nodup_Vars check can be removed if thms are guaranteed not to contain
 duplicate TVars with differnt sorts *)
   end;
+
+val varifyT = varifyT' [];
 
 (* Replace all TVars by new TFrees *)
 fun freezeT(Thm{sign_ref,der,maxidx,shyps,hyps,prop}) =
