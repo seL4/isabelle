@@ -19,7 +19,7 @@ Goal "(%m. m mod n) = wfrec (trancl pred_nat) \
 by (simp_tac (simpset() addsimps [mod_def]) 1);
 qed "mod_eq";
 
-Goal "m<n ==> m mod n = m";
+Goal "m<n ==> m mod n = (m::nat)";
 by (rtac (mod_eq RS wf_less_trans) 1);
 by (Asm_simp_tac 1);
 qed "mod_less";
@@ -352,7 +352,7 @@ qed "dvd_0_right";
 Addsimps [dvd_0_right];
 
 Goalw [dvd_def] "0 dvd m ==> m = 0";
-by (fast_tac (claset() addss simpset()) 1);
+by Auto_tac;
 qed "dvd_0_left";
 
 Goalw [dvd_def] "1 dvd k";
@@ -360,38 +360,38 @@ by (Simp_tac 1);
 qed "dvd_1_left";
 AddIffs [dvd_1_left];
 
-Goalw [dvd_def] "m dvd m";
+Goalw [dvd_def] "m dvd (m::nat)";
 by (blast_tac (claset() addIs [mult_1_right RS sym]) 1);
 qed "dvd_refl";
 Addsimps [dvd_refl];
 
-Goalw [dvd_def] "[| m dvd n; n dvd p |] ==> m dvd p";
+Goalw [dvd_def] "[| m dvd n; n dvd p |] ==> m dvd (p::nat)";
 by (blast_tac (claset() addIs [mult_assoc] ) 1);
 qed "dvd_trans";
 
-Goalw [dvd_def] "[| m dvd n; n dvd m |] ==> m=n";
-by (fast_tac (claset() addDs [mult_eq_self_implies_10]
-                     addss (simpset() addsimps [mult_assoc, mult_eq_1_iff])) 1);
+Goalw [dvd_def] "[| m dvd n; n dvd m |] ==> m = (n::nat)";
+by (force_tac (claset() addDs [mult_eq_self_implies_10],
+	       simpset() addsimps [mult_assoc, mult_eq_1_iff]) 1);
 qed "dvd_anti_sym";
 
-Goalw [dvd_def] "[| k dvd m; k dvd n |] ==> k dvd (m + n)";
+Goalw [dvd_def] "[| k dvd m; k dvd n |] ==> k dvd (m+n :: nat)";
 by (blast_tac (claset() addIs [add_mult_distrib2 RS sym]) 1);
 qed "dvd_add";
 
-Goalw [dvd_def] "[| k dvd m; k dvd n |] ==> k dvd (m-n)";
+Goalw [dvd_def] "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)";
 by (blast_tac (claset() addIs [diff_mult_distrib2 RS sym]) 1);
 qed "dvd_diff";
 
-Goal "[| k dvd (m-n); k dvd n; n<=m |] ==> k dvd m";
+Goal "[| k dvd (m-n); k dvd n; n<=m |] ==> k dvd (m::nat)";
 by (etac (not_less_iff_le RS iffD2 RS add_diff_inverse RS subst) 1);
 by (blast_tac (claset() addIs [dvd_add]) 1);
 qed "dvd_diffD";
 
-Goalw [dvd_def] "k dvd n ==> k dvd (m*n)";
+Goalw [dvd_def] "k dvd n ==> k dvd (m*n :: nat)";
 by (blast_tac (claset() addIs [mult_left_commute]) 1);
 qed "dvd_mult";
 
-Goal "k dvd m ==> k dvd (m*n)";
+Goal "k dvd m ==> k dvd (m*n :: nat)";
 by (stac mult_commute 1);
 by (etac dvd_mult 1);
 qed "dvd_mult2";
@@ -415,19 +415,19 @@ by (asm_simp_tac (simpset() addsimps [dvd_add, dvd_mult]) 2);
 by (asm_full_simp_tac (simpset() addsimps [mod_div_equality]) 1);
 qed "dvd_mod_imp_dvd";
 
-Goalw [dvd_def]  "!!k. [| (k*m) dvd (k*n); 0<k |] ==> m dvd n";
+Goalw [dvd_def]  "!!k::nat. [| (k*m) dvd (k*n); 0<k |] ==> m dvd n";
 by (etac exE 1);
 by (asm_full_simp_tac (simpset() addsimps mult_ac) 1);
 by (Blast_tac 1);
 qed "dvd_mult_cancel";
 
-Goalw [dvd_def] "[| i dvd m; j dvd n|] ==> (i*j) dvd (m*n)";
+Goalw [dvd_def] "[| i dvd m; j dvd n|] ==> (i*j) dvd (m*n :: nat)";
 by (Clarify_tac 1);
 by (res_inst_tac [("x","k*ka")] exI 1);
 by (asm_simp_tac (simpset() addsimps mult_ac) 1);
 qed "mult_dvd_mono";
 
-Goalw [dvd_def] "(i*j) dvd k ==> i dvd k";
+Goalw [dvd_def] "(i*j :: nat) dvd k ==> i dvd k";
 by (full_simp_tac (simpset() addsimps [mult_assoc]) 1);
 by (Blast_tac 1);
 qed "dvd_mult_left";

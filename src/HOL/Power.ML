@@ -7,9 +7,6 @@ The (overloaded) exponentiation operator, ^ :: [nat,nat]=>nat
 Also binomial coefficents
 *)
 
-
-open Power;
-
 (*** Simple laws about Power ***)
 
 Goal "!!i::nat. i ^ (j+k) = (i^j) * (i^k)";
@@ -27,7 +24,7 @@ by (induct_tac "n" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [zero_less_mult_iff])));
 qed "zero_less_power";
 
-Goalw [dvd_def] "!!m::nat. m<=n ==> i^m dvd i^n";
+Goalw [dvd_def] "!!(m::nat) (i::nat). m<=n ==> i^m dvd i^n";
 by (etac (not_less_iff_le RS iffD2 RS add_diff_inverse RS subst) 1);
 by (asm_simp_tac (simpset() addsimps [power_add]) 1);
 by (Blast_tac 1);
@@ -40,7 +37,7 @@ by (etac zero_less_power 1);
 by (contr_tac 1);
 qed "power_less_imp_less";
 
-Goal "k^j dvd n --> i<j --> k^i dvd n";
+Goal "k^j dvd n --> i<j --> k^i dvd (n::nat)";
 by (induct_tac "j" 1);
 by (ALLGOALS (simp_tac (simpset() addsimps [less_Suc_eq])));
 by (stac mult_commute 1);
