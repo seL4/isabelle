@@ -480,12 +480,11 @@ Goal "f(if c then x else y) = (if c then f x else f y)";
 by (simp_tac (HOL_ss setloop (split_tac [split_if])) 1);
 qed "if_distrib";
 
-
 (*For expand_case_tac*)
-val prems = goal (the_context ()) "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
+val prems = Goal "[| P ==> Q(True); ~P ==> Q(False) |] ==> Q(P)";
 by (case_tac "P" 1);
 by (ALLGOALS (asm_simp_tac (HOL_ss addsimps prems)));
-val expand_case = result();
+qed "expand_case";
 
 (*Used in Auth proofs.  Typically P contains Vars that become instantiated
   during unification.*)
@@ -494,9 +493,16 @@ fun expand_case_tac P i =
     Simp_tac (i+1) THEN 
     Simp_tac i;
 
+(*This lemma restricts the effect of the rewrite rule u=v to the left-hand
+  side of an equality.  Used in {Integ,Real}/simproc.ML*)
+Goal "x=y ==> (x=z) = (y=z)";
+by (asm_simp_tac HOL_ss 1);
+qed "restrict_to_left";
 
 (* default simpset *)
-val simpsetup = [fn thy => (simpset_ref_of thy := HOL_ss addcongs [if_weak_cong]; thy)];
+val simpsetup = 
+    [fn thy => (simpset_ref_of thy := HOL_ss addcongs [if_weak_cong]; 
+		thy)];
 
 
 (*** integration of simplifier with classical reasoner ***)
