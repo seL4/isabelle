@@ -229,8 +229,13 @@ but was unused);
 * fewer consts declared as global (e.g. have to refer to "Lfp.lfp"
 instead of "lfp" internally; affects ML packages only);
 
+* tuned AST representation of nested pairs, avoiding bogus output in
+case of overlap with user translations (e.g. judgements over tuples);
+
 
 *** General ***
+
+* AST translation rules no longer require constant head on LHS;
 
 * improved name spaces: ambiguous output is qualified; support for
 hiding of names;
