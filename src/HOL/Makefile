@@ -98,7 +98,7 @@ Hoare:	$(BIN)/HOL  $(Hoare_FILES)
 	fi
 
 ##The integers in HOL
-INTEG_NAMES = Equiv Integ 
+INTEG_NAMES = Equiv Integ Group Ring Lagrange IntRingDefs IntRing
 
 INTEG_FILES = Integ/ROOT.ML \
 	      $(INTEG_NAMES:%=Integ/%.thy) $(INTEG_NAMES:%=Integ/%.ML)
@@ -198,7 +198,7 @@ Lex:	$(BIN)/HOL  $(LEX_FILES)
 	fi
 
 ##Miscellaneous examples
-EX_NAMES = String BT Perm Comb InSort Qsort LexProd Group Ring Lagrange \
+EX_NAMES = String BT Perm Comb InSort Qsort LexProd \
 	   Puzzle Mutil Primes NatSum SList LList Acc PropLog Term Simult MT
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
