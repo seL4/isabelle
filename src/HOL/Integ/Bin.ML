@@ -157,6 +157,15 @@ by (asm_simp_tac
 qed "number_of_mult";
 
 
+(*The correctness of shifting.  But it doesn't seem to give a measurable
+  speed-up.*)
+Goal "(#2::int) * number_of w = number_of (w BIT False)";
+by (induct_tac "w" 1);
+by (ALLGOALS (asm_simp_tac
+    (simpset() addsimps bin_mult_simps @ [zadd_zmult_distrib] @ zadd_ac)));
+qed "double_number_of_BIT";
+
+
 (** Simplification rules with integer constants **)
 
 Goal "#0 + z = (z::int)";
@@ -279,29 +288,6 @@ Goal "#0 <= int m";
 by (Simp_tac 1);
 qed "zero_zle_int";
 AddIffs [zero_zle_int];
-
-
-(** Products of signs  **)
-
-Goal "[| (m::int) < #0;  n < #0 |] ==> #0 < m*n";
-by (dtac zmult_zless_mono1_neg 1);
-by Auto_tac;
-qed "neg_times_neg_is_pos";
-
-Goal "[| (m::int) < #0;  #0 < n |] ==> m*n < #0";
-by (dtac zmult_zless_mono1 1);
-by Auto_tac;
-qed "neg_times_pos_is_neg";
-
-Goal "[| #0 < (m::int);  n < #0 |] ==> m*n < #0";
-by (dtac zmult_zless_mono1_neg 1);
-by Auto_tac;
-qed "pos_times_neg_is_neg";
-
-Goal "[| #0 < (m::int);  #0 < n |] ==> #0 < m*n";
-by (dtac zmult_zless_mono1 1);
-by Auto_tac;
-qed "pos_times_pos_is_pos";
 
 
 (** Needed because (int 0) rewrites to #0.
@@ -720,3 +706,43 @@ qed "nat_less_eq_zless";
 Addsimps zadd_ac;
 Addsimps zmult_ac;
 Addsimps [zmult_zminus, zmult_zminus_right];
+
+
+
+(** Products of signs **)
+
+Goal "(m::int) < #0 ==> (#0 < m*n) = (n < #0)";
+by Auto_tac;
+by (force_tac (claset() addDs [zmult_zless_mono1_neg], simpset()) 2);
+by (eres_inst_tac [("P", "#0 < m * n")] rev_mp 1);
+by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
+by (force_tac (claset() addDs [zmult_zless_mono1_neg], 
+	       simpset() addsimps [order_le_less]) 1);
+qed "neg_imp_zmult_pos_iff";
+
+Goal "(m::int) < #0 ==> (m*n < #0) = (#0 < n)";
+by Auto_tac;
+by (force_tac (claset() addDs [zmult_zless_mono1], simpset()) 2);
+by (eres_inst_tac [("P", "m * n < #0")] rev_mp 1);
+by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
+by (force_tac (claset() addDs [zmult_zless_mono1_neg], 
+	       simpset() addsimps [order_le_less]) 1);
+qed "neg_imp_zmult_neg_iff";
+
+Goal "#0 < (m::int) ==> (m*n < #0) = (n < #0)";
+by Auto_tac;
+by (force_tac (claset() addDs [zmult_zless_mono1_neg], simpset()) 2);
+by (eres_inst_tac [("P", "m * n < #0")] rev_mp 1);
+by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
+by (force_tac (claset() addDs [zmult_zless_mono1], 
+	       simpset() addsimps [order_le_less]) 1);
+qed "pos_imp_zmult_neg_iff";
+
+Goal "#0 < (m::int) ==> (#0 < m*n) = (#0 < n)";
+by Auto_tac;
+by (force_tac (claset() addDs [zmult_zless_mono1], simpset()) 2);
+by (eres_inst_tac [("P", "#0 < m * n")] rev_mp 1);
+by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
+by (force_tac (claset() addDs [zmult_zless_mono1], 
+	       simpset() addsimps [order_le_less]) 1);
+qed "pos_imp_zmult_pos_iff";
