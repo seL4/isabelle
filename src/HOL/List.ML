@@ -180,6 +180,18 @@ AddSIs
 AddSDs
  [same_append_eq RS iffD1, append1_eq_conv RS iffD1, append_same_eq RS iffD1];
 
+goal thy "(xs @ ys = ys) = (xs=[])";
+by(cut_inst_tac [("zs","[]")] append_same_eq 1);
+by(Asm_full_simp_tac 1);
+qed "append_self_conv2";
+
+goal thy "(ys = xs @ ys) = (xs=[])";
+by(simp_tac (simpset() addsimps
+     [simplify (simpset()) (read_instantiate[("ys","[]")]append_same_eq)]) 1);
+by(Blast_tac 1);
+qed "self_append_conv2";
+AddIffs [append_self_conv2,self_append_conv2];
+
 goal thy "xs ~= [] --> hd xs # tl xs = xs";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);

@@ -17,7 +17,7 @@ val list_cases = result();
 goalw thy [prefix_def] "xs <= (xs::'a list)";
 by(Simp_tac 1);
 qed "prefix_refl";
-Addsimps[prefix_refl];
+AddIffs[prefix_refl];
 
 goalw thy [prefix_def] "!!xs::'a list. [| xs <= ys; ys <= zs |] ==> xs <= zs";
 by(Clarify_tac 1);
@@ -34,7 +34,7 @@ qed "prefix_antisym";
 goalw Prefix.thy [prefix_def] "[] <= xs";
 by (simp_tac (simpset() addsimps [eq_sym_conv]) 1);
 qed "Nil_prefix";
-Addsimps[Nil_prefix];
+AddIffs[Nil_prefix];
 
 goalw Prefix.thy [prefix_def] "(xs <= []) = (xs = [])";
 by (list.induct_tac "xs" 1);
@@ -65,6 +65,15 @@ by (Fast_tac 1);
 qed"Cons_prefix_Cons";
 Addsimps [Cons_prefix_Cons];
 
+goal thy "(xs@ys <= xs@zs) = (ys <= zs)";
+by (induct_tac "xs" 1);
+by(ALLGOALS Asm_simp_tac);
+qed "same_prefix_prefix";
+Addsimps [same_prefix_prefix];
+
+AddIffs
+ [simplify (simpset()) (read_instantiate [("zs","[]")] same_prefix_prefix)];
+
 goalw thy [prefix_def] "!!xs. xs <= ys ==> xs <= ys@zs";
 by(Clarify_tac 1);
 by (Simp_tac 1);
@@ -79,3 +88,13 @@ by (Simp_tac 1);
 by (Simp_tac 1);
 by (Fast_tac 1);
 qed "prefix_Cons";
+
+goal thy "(xs <= ys@zs) = (xs <= ys | (? us. xs = ys@us & us <= zs))";
+by(res_inst_tac [("xs","zs")] snoc_induct 1);
+ by(Simp_tac 1);
+ by(Blast_tac 1);
+by(asm_full_simp_tac (simpset() delsimps [append_assoc]
+                                addsimps [append_assoc RS sym])1);
+by(Simp_tac 1);
+by(Blast_tac 1);
+qed "prefix_append";
