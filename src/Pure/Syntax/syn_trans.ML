@@ -11,7 +11,11 @@ sig
   val mk_binder_tr: string * string -> string * (term list -> term)
   val mk_binder_tr': string * string -> string * (term list -> term)
   val dependent_tr': string * string -> term list -> term
+  val antiquote_tr: string -> term -> term
+  val quote_tr: string -> term -> term
   val quote_antiquote_tr: string -> string -> string -> string * (term list -> term)
+  val antiquote_tr': string -> term -> term
+  val quote_tr': string -> term -> term
   val quote_antiquote_tr': string -> string -> string -> string * (term list -> term)
   val mark_bound: string -> term
   val mark_boundT: string * typ -> term
@@ -133,19 +137,23 @@ fun dddot_tr (*"_DDDOT"*) [] = Lexicon.var SynExt.dddot_indexname
 
 (* quote / antiquote *)
 
+fun antiquote_tr name =
+  let
+    fun tr i ((t as Const (c, _)) $ u) =
+          if c = name then tr i u $ Bound i
+          else tr i t $ tr i u
+      | tr i (t $ u) = tr i t $ tr i u
+      | tr i (Abs (x, T, t)) = Abs (x, T, tr (i + 1) t)
+      | tr _ a = a;
+  in tr 0 end;
+
+fun quote_tr name t = Abs ("s", dummyT, antiquote_tr name (Term.incr_boundvars 1 t));
+
 fun quote_antiquote_tr quoteN antiquoteN name =
   let
-    fun antiquote_tr i ((a as Const (c, _)) $ t) =
-          if c = antiquoteN then t $ Bound i
-          else a $ antiquote_tr i t
-      | antiquote_tr i (t $ u) = antiquote_tr i t $ antiquote_tr i u
-      | antiquote_tr i (Abs (x, T, t)) = Abs (x, T, antiquote_tr (i + 1) t)
-      | antiquote_tr _ a = a;
-
-    fun quote_tr [t] = Lexicon.const name $
-          Abs ("uu", dummyT, antiquote_tr 0 (Term.incr_boundvars 1 t))
-      | quote_tr ts = raise TERM ("quote_tr", ts);
-  in (quoteN, quote_tr) end;
+    fun tr [t] = Lexicon.const name $ quote_tr antiquoteN t
+      | tr ts = raise TERM ("quote_tr", ts);
+  in (quoteN, tr) end;
 
 
 
@@ -305,18 +313,23 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
 
 (* quote / antiquote *)
 
+fun antiquote_tr' name =
+  let
+    fun tr' i (t $ u) =
+      if u = Bound i then Lexicon.const name $ tr' i t
+      else tr' i t $ tr' i u
+      | tr' i (Abs (x, T, t)) = Abs (x, T, tr' (i + 1) t)
+      | tr' i a = if a = Bound i then raise Match else a;
+  in tr' 0 end;
+
+fun quote_tr' name (Abs (_, _, t)) = Term.incr_boundvars ~1 (antiquote_tr' name t)
+  | quote_tr' _ _ = raise Match;
+
 fun quote_antiquote_tr' quoteN antiquoteN name =
   let
-    fun antiquote_tr' i (t $ u) =
-          if u = Bound i then Lexicon.const antiquoteN $ antiquote_tr' i t
-          else antiquote_tr' i t $ antiquote_tr' i u
-      | antiquote_tr' i (Abs (x, T, t)) = Abs (x, T, antiquote_tr' (i + 1) t)
-      | antiquote_tr' i a = if a = Bound i then raise Match else a;
-
-    fun quote_tr' (Abs (x, T, t) :: ts) =
-          Term.list_comb (Lexicon.const quoteN $ Term.incr_boundvars ~1 (antiquote_tr' 0 t), ts)
-      | quote_tr' _ = raise Match;
-  in (name, quote_tr') end;
+    fun tr' (t :: ts) = Term.list_comb (Lexicon.const quoteN $ quote_tr' antiquoteN t, ts)
+      | tr' _ = raise Match;
+  in (name, tr') end;
 
 
 
