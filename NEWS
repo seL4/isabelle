@@ -32,6 +32,8 @@ X-Symbol;
 
 * Pure: fixed 'token_translation' command;
 
+* HOL: 'typedef' now allows alternative names for Rep/Abs morphisms;
+
 * HOL: 'recdef' now fails on unfinished automated proofs, use
 "(permissive)" option to recover old behavior;
 
