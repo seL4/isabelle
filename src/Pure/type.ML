@@ -58,8 +58,7 @@ sig
 
   (*type unification*)
   exception TUNIFY
-  val unify: type_sig -> int -> typ Vartab.table -> (typ * typ)
-    -> typ Vartab.table * int
+  val unify: type_sig -> int -> typ Vartab.table -> typ * typ -> typ Vartab.table * int
   val raw_unify: typ * typ -> bool
 
   (*type inference*)
@@ -874,9 +873,7 @@ fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm 
           else constrain (Var (xi, certT T)) (get_type xi)
       | decode (t as Bound _) = t
       | decode (Const (c, T)) = Const (map_const c, certT T);
-  in
-    decode tm
-  end;
+  in decode tm end;
 
 
 (* infer_types *)
