@@ -347,7 +347,7 @@ fun mk_prop_equals(t,u) = capply (capply prop_equals t) u;
   It is paired with a function to undo the transformation.  If ct contains
   Vars then it returns ct==>ct.*)
 fun eq_trivial ct =
-  let val xfree = cterm_of Sign.proto_pure (Free (gensym"X", propT))
+  let val xfree = cterm_of Sign.proto_pure (Free (gensym"EQ_TRIVIAL_", propT))
       val ct_eq_x = mk_prop_equals (ct, xfree)
       and refl_ct = reflexive ct
       fun restore th = 
