@@ -47,7 +47,7 @@ goalw thy [prefix_def] "(xs <= ys@[y]) = (xs = ys@[y] | xs <= ys)";
 br iffI 1;
  be exE 1;
  by(rename_tac "zs" 1);
- by(res_inst_tac [("xs","zs")] snoc_eq_cases 1);
+ by(res_inst_tac [("xs","zs")] rev_exhaust 1);
   by(Asm_full_simp_tac 1);
  by(hyp_subst_tac 1);
  by(asm_full_simp_tac (simpset() delsimps [append_assoc]
@@ -90,7 +90,7 @@ by (Fast_tac 1);
 qed "prefix_Cons";
 
 goal thy "(xs <= ys@zs) = (xs <= ys | (? us. xs = ys@us & us <= zs))";
-by(res_inst_tac [("xs","zs")] snoc_induct 1);
+by(res_inst_tac [("xs","zs")] rev_induct 1);
  by(Simp_tac 1);
  by(Blast_tac 1);
 by(asm_full_simp_tac (simpset() delsimps [append_assoc]

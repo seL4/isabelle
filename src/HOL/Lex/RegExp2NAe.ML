@@ -541,7 +541,7 @@ goal thy
 \ (? us v. w = concat us @ v & \
 \             (!u:set us. accepts A u) & \
 \             (? r. (start A,r) : steps A v & rr = True#r))";
-by(res_inst_tac [("xs","w")] snoc_induct 1);
+by(res_inst_tac [("xs","w")] rev_induct 1);
  by (Asm_full_simp_tac 1);
  by (Clarify_tac 1);
  by(res_inst_tac [("x","[]")] exI 1);
@@ -649,7 +649,7 @@ br iffI 1;
  by(asm_full_simp_tac (simpset() addsimps [accepts_def]) 1);
  by(Blast_tac 1);
 by (Clarify_tac 1);
-by(res_inst_tac [("xs","us")] snoc_exhaust 1);
+by(res_inst_tac [("xs","us")] rev_exhaust 1);
  by(Asm_simp_tac 1);
  by(Blast_tac 1);
 by (Clarify_tac 1);
