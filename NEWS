@@ -12,7 +12,7 @@ etc.); new lexical class 'longid' (e.g. Foo.bar.x) may render much of
 old input syntactically incorrect (e.g. "%x.x"); isatool fixdots
 ensures space after dots (e.g. "%x. x"); set long_names for fully
 qualified output names; NOTE: in case of severe problems with backward
-campatibility try settin 'global_names' at compile time to disable
+campatibility try setting 'global_names' at compile time to disable
 qualified names for theories; may also fine tune theories via 'global'
 and 'local' section;
 
@@ -71,7 +71,7 @@ logics (again);
 
 *** Syntax ***
 
-* no longer handles consts with name "" -- use syntax instead;
+* no longer handles consts with name "" -- declare as 'syntax' instead;
 
 * pretty printer: changed order of mixfix annotation preference (again!);
 
@@ -79,6 +79,12 @@ logics (again);
 
 
 *** HOL ***
+
+* HOL/TLA: Stephan Merz's formalization of Lamport's Temporal Logic of
+Actions;
+
+* HOL/Auth: new protocol proofs including some for the Internet
+protocol TLS;
 
 * HOL/Map: new theory of `maps' a la VDM.
 
@@ -94,14 +100,10 @@ logics (again);
 * HOL/Lists: the function "set_of_list" has been renamed "set" (and
 its theorems too);
 
-* HOL/Auth: new protocol proofs including some for the Internet protocol TLS
-
-* HOL/TLA: Stephan Merz's formalization of Lamport's Temporal Logic of Actions
-
 
 *** HOLCF ***
 
-* HOLCF: fixed LAM <x,y,zs>.b syntax (may break some unusual cases);
+* HOLCF: fixed LAM <x,y,zs>.b syntax;
 
 * added extended adm_tac to simplifier in HOLCF -- can now discharge
 adm (%x. P (t x)), where P is chainfinite and t continuous;
