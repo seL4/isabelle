@@ -399,7 +399,8 @@ val finallyP =
 
 val backP =
   OuterSyntax.improper_command "back" "backtracking of proof command" K.prf_script
-    (Scan.succeed (Toplevel.print o Toplevel.proof ProofHistory.back));
+    (Scan.optional (P.$$$ "!" >> K true) false >>
+      (Toplevel.print oo (Toplevel.proof o ProofHistory.back)));
 
 
 (* history *)
@@ -438,7 +439,7 @@ val pretty_setmarginP =
 
 val print_commandsP =
   OuterSyntax.improper_command "help" "print outer syntax (global)" K.diag
-    (Scan.succeed (Toplevel.imperative OuterSyntax.print_outer_syntax));
+    (Scan.succeed OuterSyntax.print_help);
 
 val print_contextP =
   OuterSyntax.improper_command "print_context" "print theory context name" K.diag
