@@ -35,14 +35,18 @@ function fail()
 
 [ "$1" = "-?" ] && usage
 
+FAIL=""
+
 echo "Started at $(date) ($ML_IDENTIFIER on $(hostname))"
 
 for L in $ALL_LOGICS
 do
-  ( cd "$ISABELLE_HOME/src/$L"; "$ISATOOL" make "$@" ) || fail "Logic $L failed!"
+  ( cd "$ISABELLE_HOME/src/$L"; "$ISATOOL" make "$@" ) || FAIL="$FAIL$L "
 done
 
 echo -n "Finished at "; date
 
 ELAPSED=$("$ISABELLE_HOME/lib/scripts/showtime" "$SECONDS")
 echo "$ELAPSED total elapsed time"
+
+[ "$FAIL" == "" ] || fail "Logics ${FAIL}FAILED!"
