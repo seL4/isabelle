@@ -21,7 +21,5 @@ For Isabelle2005:
   NatArith.ML
   Relation_Power.ML
   Sum_Type.ML
-  Wellfounded_Recursion.ML
-  Wellfounded_Relations.ML
 
 - remove this file (Tobias)
