@@ -477,4 +477,19 @@ lemma ivl_disj_int_two:
 
 lemmas ivl_disj_int = ivl_disj_int_singleton ivl_disj_int_one ivl_disj_int_two
 
+
+subsection {* Summation indexed over natural numbers *}
+
+text{* Legacy, only used in HoareParallel and Isar-Examples. Really
+needed? Probably better to replace it with a more generic operator
+like ``SUM i = m..n. b''. *}
+
+syntax
+  "_Summation" :: "id => nat => 'a => nat"    ("\<Sum>_<_. _" [0, 51, 10] 10)
+translations
+  "\<Sum>i < n. b" == "setsum (\<lambda>i::nat. b) {..n(}"
+
+lemma Summation_Suc[simp]: "(\<Sum>i < Suc n. b i) = b n + (\<Sum>i < n. b i)"
+by (simp add:lessThan_Suc)
+
 end

@@ -36,7 +36,7 @@ TODO: use arith_tac for force_tac in Provers/clasimp.ML *)
 
 lemmas [arith_split] = nat_diff_split split_min split_max
 
-
+(*
 subsection {* Generic summation indexed over natural numbers *}
 
 consts
@@ -53,5 +53,5 @@ translations
 theorem Summation_step:
     "0 < n ==> (\<Sum>i < n. f i) = (\<Sum>i < n - 1. f i) + f (n - 1)"
   by (induct n) simp_all
-
+*)
 end

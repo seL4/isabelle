@@ -507,16 +507,16 @@ done
 lemma Example2_lemma2_aux2: 
   "!!b. j\<le> s \<Longrightarrow> (\<Sum>i<j. (b (s:=t)) i) = (\<Sum>i<j. b i)"
 apply(induct j)
- apply simp_all
+ apply (simp_all cong:setsum_cong)
 done
 
 lemma Example2_lemma2: 
  "!!b. \<lbrakk>j<n; b j=0\<rbrakk> \<Longrightarrow> Suc (\<Sum>i< n. b i)=(\<Sum>i< n. (b (j := Suc 0)) i)"
 apply(frule_tac b="(b (j:=(Suc 0)))" in Example2_lemma2_aux)
-apply(erule_tac  t="Summation (b(j := (Suc 0))) n" in ssubst)
+apply(erule_tac  t="setsum (b(j := (Suc 0))) {..n(}" in ssubst)
 apply(frule_tac b=b in Example2_lemma2_aux)
-apply(erule_tac  t="Summation b n" in ssubst)
-apply(subgoal_tac "Suc (Summation b j + b j + (\<Sum>i<n - Suc j. b (Suc j + i)))=(Summation b j + Suc (b j) + (\<Sum>i<n - Suc j. b (Suc j + i)))")
+apply(erule_tac  t="setsum b {..n(}" in ssubst)
+apply(subgoal_tac "Suc (setsum b {..j(} + b j + (\<Sum>i<n - Suc j. b (Suc j + i)))=(setsum b {..j(} + Suc (b j) + (\<Sum>i<n - Suc j. b (Suc j + i)))")
 apply(rotate_tac -1)
 apply(erule ssubst)
 apply(subgoal_tac "j\<le>j")
@@ -548,7 +548,6 @@ apply oghoare
 apply simp_all
 apply (tactic {* ALLGOALS Clarify_tac *})
 apply simp_all
-    apply(force elim:Example2_lemma1)
    apply(erule Example2_lemma2)
    apply simp
   apply(erule Example2_lemma2)
