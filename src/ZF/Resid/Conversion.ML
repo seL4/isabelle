@@ -19,7 +19,7 @@ qed "conv_sym";
 (*      Church_Rosser Theorem                                                *)
 (* ------------------------------------------------------------------------- *)
 
-Goal "m<--->n ==> EX p.(m --->p) & (n ---> p)";
+Goal "m<--->n ==> \\<exists>p.(m --->p) & (n ---> p)";
 by (etac Sconv.induct 1);
 by (etac Sconv1.induct 1);
 by (blast_tac (claset() addIs [red1D1,redD2]) 1);

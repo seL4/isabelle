@@ -29,7 +29,7 @@ inductive
   domains       "Sconv" <= "lambda*lambda"
   intrs
     one_step    "m<-1->n  ==> m<--->n"
-    refl        "m:lambda ==> m<--->m"
+    refl        "m \\<in> lambda ==> m<--->m"
     trans       "[|m<--->n; n<--->p|] ==> m<--->p"
   type_intrs    "[Sconv1.dom_subset RS subsetD]@lambda.intrs@bool_typechecks"
 end

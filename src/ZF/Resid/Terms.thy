@@ -18,9 +18,9 @@ translations
 inductive
   domains       "lambda" <= "redexes"
   intrs
-    Lambda_Var  "               n:nat ==>     Var(n):lambda"
-    Lambda_Fun  "            u:lambda ==>     Fun(u):lambda"
-    Lambda_App  "[|u:lambda; v:lambda|]==> Apl(u,v):lambda"
+    Lambda_Var  "               n \\<in> nat ==>     Var(n):lambda"
+    Lambda_Fun  "            u \\<in> lambda ==>     Fun(u):lambda"
+    Lambda_App  "[|u \\<in> lambda; v \\<in> lambda|]==> Apl(u,v):lambda"
   type_intrs    "redexes.intrs@bool_typechecks"
 
 primrec

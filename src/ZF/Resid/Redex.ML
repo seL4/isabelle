@@ -21,15 +21,15 @@ val regD = Sreg.dom_subset RS subsetD;
 (*    Equality rules for union                                               *)
 (* ------------------------------------------------------------------------- *)
 
-Goal "n:nat==>Var(n) un Var(n)=Var(n)";
+Goal "n \\<in> nat==>Var(n) un Var(n)=Var(n)";
 by (asm_simp_tac (simpset() addsimps [union_def]) 1);
 qed "union_Var";
 
-Goal "[|u:redexes; v:redexes|]==>Fun(u) un Fun(v)=Fun(u un v)";
+Goal "[|u \\<in> redexes; v \\<in> redexes|]==>Fun(u) un Fun(v)=Fun(u un v)";
 by (asm_simp_tac (simpset() addsimps [union_def]) 1);
 qed "union_Fun";
  
-Goal "[|b1:bool; b2:bool; u1:redexes; v1:redexes; u2:redexes; v2:redexes|]==> \
+Goal "[|b1 \\<in> bool; b2 \\<in> bool; u1 \\<in> redexes; v1 \\<in> redexes; u2 \\<in> redexes; v2 \\<in> redexes|]==> \
 \     App(b1,u1,v1) un App(b2,u2,v2)=App(b1 or b2,u1 un u2,v1 un v2)";
 by (asm_simp_tac (simpset() addsimps [union_def]) 1);
 qed "union_App";
@@ -58,7 +58,7 @@ AddSEs [Sreg.mk_cases "regular(App(b,f,a))",
 (*    comp proofs                                                            *)
 (* ------------------------------------------------------------------------- *)
 
-Goal "u:redexes ==> u ~ u";
+Goal "u \\<in> redexes ==> u ~ u";
 by (etac redexes.induct 1);
 by (ALLGOALS Fast_tac);
 qed "comp_refl";
@@ -73,7 +73,7 @@ by (fast_tac (claset() addIs [comp_sym]) 1);
 qed "comp_sym_iff";
 
 
-Goal "u ~ v ==> ALL w. v ~ w-->u ~ w";
+Goal "u ~ v ==> \\<forall>w. v ~ w-->u ~ w";
 by (etac Scomp.induct 1);
 by (ALLGOALS Fast_tac);
 qed_spec_mp "comp_trans";

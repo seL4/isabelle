@@ -39,13 +39,13 @@ by (resolve_tac [Sred.trans] 3);
 by (ALLGOALS (Asm_simp_tac ));
 qed "red_Fun";
 
-Goal "[|n:lambda; m ---> m'|]==> Apl(m,n)--->Apl(m',n)";
+Goal "[|n \\<in> lambda; m ---> m'|]==> Apl(m,n)--->Apl(m',n)";
 by (etac Sred.induct 1);
 by (resolve_tac [Sred.trans] 3);
 by (ALLGOALS (Asm_simp_tac ));
 qed "red_Apll";
 
-Goal "[|n:lambda; m ---> m'|]==> Apl(n,m)--->Apl(n,m')";
+Goal "[|n \\<in> lambda; m ---> m'|]==> Apl(n,m)--->Apl(n,m')";
 by (etac Sred.induct 1);
 by (resolve_tac [Sred.trans] 3);
 by (ALLGOALS (Asm_simp_tac ));
@@ -56,7 +56,7 @@ by (res_inst_tac [("n","Apl(m',n)")] Sred.trans 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [red_Apll,red_Aplr]) ));
 qed "red_Apl";
 
-Goal "[|m:lambda; m':lambda; n:lambda; n':lambda; m ---> m'; n--->n'|]==> \
+Goal "[|m \\<in> lambda; m':lambda; n \\<in> lambda; n':lambda; m ---> m'; n--->n'|]==> \
 \              Apl(Fun(m),n)---> n'/m'";
 by (res_inst_tac [("n","Apl(Fun(m'),n')")] Sred.trans 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [red_Apl,red_Fun]) ));
@@ -68,7 +68,7 @@ qed "red_beta";
 (* ------------------------------------------------------------------------- *)
 
 
-Goal "m:lambda==> m =1=> m";
+Goal "m \\<in> lambda==> m =1=> m";
 by (etac lambda.induct 1);
 by (ALLGOALS (Asm_simp_tac ));
 qed "refl_par_red1";
@@ -96,7 +96,7 @@ qed "par_red_red";
 (*      Simulation                                                           *)
 (* ------------------------------------------------------------------------- *)
 
-Goal "m=1=>n ==> EX v. m|>v = n & m~v & regular(v)";
+Goal "m=1=>n ==> \\<exists>v. m|>v = n & m~v & regular(v)";
 by (etac Spar_red1.induct 1);
 by Safe_tac;
 by (ALLGOALS (REPEAT o (resolve_tac [exI,conjI])));
@@ -109,12 +109,12 @@ qed "simulation";
 (*           commuting of unmark and subst                                   *)
 (* ------------------------------------------------------------------------- *)
 
-Goal "u:redexes ==> ALL k:nat. unmark(lift_rec(u,k)) = lift_rec(unmark(u),k)";
+Goal "u \\<in> redexes ==> \\<forall>k \\<in> nat. unmark(lift_rec(u,k)) = lift_rec(unmark(u),k)";
 by (etac redexes.induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [lift_rec_Var])));
 qed "unmmark_lift_rec";
 
-Goal "v:redexes ==> ALL k:nat. ALL u:redexes.  \
+Goal "v \\<in> redexes ==> \\<forall>k \\<in> nat. \\<forall>u \\<in> redexes.  \
 \         unmark(subst_rec(u,v,k)) = subst_rec(unmark(u),unmark(v),k)";
 by (etac redexes.induct 1);
 by (ALLGOALS (asm_simp_tac 
@@ -134,7 +134,7 @@ by (dres_inst_tac [("psi", "Fun(?u) =1=> ?w")] asm_rl 1);
 by Auto_tac;
 qed_spec_mp "completeness_l";
 
-Goal "[|u:lambda; u~v; regular(v)|]==> u =1=> unmark(u|>v)";
+Goal "[|u \\<in> lambda; u~v; regular(v)|]==> u =1=> unmark(u|>v)";
 by (dtac completeness_l 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [lambda_unmark]) ));
 qed "completeness";

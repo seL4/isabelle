@@ -15,7 +15,7 @@ Addsimps [commutation, residuals_preserve_comp, sub_preserve_reg,
 
 (* Having more assumptions than needed -- removed below  *)
 Goal "v<==u ==> \
-\   regular(u) --> (ALL w. w~v --> w~u -->  \
+\   regular(u) --> (\\<forall>w. w~v --> w~u -->  \
 \                          w |> u = (w|>v) |> (u|>v))";
 by (etac Ssub.induct 1);
 by Auto_tac;
@@ -56,7 +56,7 @@ qed "cube";
 (* ------------------------------------------------------------------------- *)
 
 Goal "[|w~u; w~v; regular(u); regular(v)|]==> \
-\          EX uv vu. (w|>u) |> vu = (w|>v) |> uv & (w|>u)~vu &\
+\          \\<exists>uv vu. (w|>u) |> vu = (w|>v) |> uv & (w|>u)~vu &\
 \            regular(vu) & (w|>v)~uv & regular(uv) ";
 by (subgoal_tac "u~v" 1);
 by (safe_tac (claset() addSIs [exI]));

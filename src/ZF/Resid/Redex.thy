@@ -10,9 +10,9 @@ consts
   redexes     :: i
 
 datatype
-  "redexes" = Var ("n: nat")            
-            | Fun ("t: redexes")
-            | App ("b:bool" ,"f:redexes" , "a:redexes")
+  "redexes" = Var ("n \\<in> nat")            
+            | Fun ("t \\<in> redexes")
+            | App ("b \\<in> bool" ,"f \\<in> redexes" , "a \\<in> redexes")
 
 
 consts
@@ -25,19 +25,19 @@ consts
 translations
   "a<==b"        == "<a,b>:Ssub"
   "a ~ b"        == "<a,b>:Scomp"
-  "regular(a)"   == "a:Sreg"
+  "regular(a)"   == "a \\<in> Sreg"
 
 
 primrec (*explicit lambda is required because both arguments of "un" vary*)
   "union_aux(Var(n)) =
-     (lam t:redexes. redexes_case(%j. Var(n), %x. 0, %b x y.0, t))"
+     (\\<lambda>t \\<in> redexes. redexes_case(%j. Var(n), %x. 0, %b x y.0, t))"
 
   "union_aux(Fun(u)) =
-     (lam t:redexes. redexes_case(%j. 0, %y. Fun(union_aux(u)`y),
+     (\\<lambda>t \\<in> redexes. redexes_case(%j. 0, %y. Fun(union_aux(u)`y),
 	 			  %b y z. 0, t))"
 
   "union_aux(App(b,f,a)) =
-     (lam t:redexes.
+     (\\<lambda>t \\<in> redexes.
         redexes_case(%j. 0, %y. 0,
 		     %c z u. App(b or c, union_aux(f)`z, union_aux(a)`u), t))"
 
@@ -48,9 +48,9 @@ defs
 inductive
   domains       "Ssub" <= "redexes*redexes"
   intrs
-    Sub_Var     "n:nat ==> Var(n)<== Var(n)"
+    Sub_Var     "n \\<in> nat ==> Var(n)<== Var(n)"
     Sub_Fun     "[|u<== v|]==> Fun(u)<== Fun(v)"
-    Sub_App1    "[|u1<== v1; u2<== v2; b:bool|]==>   
+    Sub_App1    "[|u1<== v1; u2<== v2; b \\<in> bool|]==>   
                      App(0,u1,u2)<== App(b,v1,v2)"
     Sub_App2    "[|u1<== v1; u2<== v2|]==>   
                      App(1,u1,u2)<== App(1,v1,v2)"
@@ -59,16 +59,16 @@ inductive
 inductive
   domains       "Scomp" <= "redexes*redexes"
   intrs
-    Comp_Var    "n:nat ==> Var(n) ~ Var(n)"
+    Comp_Var    "n \\<in> nat ==> Var(n) ~ Var(n)"
     Comp_Fun    "[|u ~ v|]==> Fun(u) ~ Fun(v)"
-    Comp_App    "[|u1 ~ v1; u2 ~ v2; b1:bool; b2:bool|]==>   
+    Comp_App    "[|u1 ~ v1; u2 ~ v2; b1 \\<in> bool; b2 \\<in> bool|]==>   
                      App(b1,u1,u2) ~ App(b2,v1,v2)"
   type_intrs    "redexes.intrs@bool_typechecks"
 
 inductive
   domains       "Sreg" <= "redexes"
   intrs
-    Reg_Var     "n:nat ==> regular(Var(n))"
+    Reg_Var     "n \\<in> nat ==> regular(Var(n))"
     Reg_Fun     "[|regular(u)|]==> regular(Fun(u))"
     Reg_App1    "[|regular(Fun(u)); regular(v) 
                      |]==>regular(App(1,Fun(u),v))"

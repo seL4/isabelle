@@ -29,23 +29,23 @@ translations
     in the recursive calls ***)
 
 primrec
-  "lift_aux(Var(i)) = (lam k:nat. if i<k then Var(i) else Var(succ(i)))"
+  "lift_aux(Var(i)) = (\\<lambda>k \\<in> nat. if i<k then Var(i) else Var(succ(i)))"
 
-  "lift_aux(Fun(t)) = (lam k:nat. Fun(lift_aux(t) ` succ(k)))"
+  "lift_aux(Fun(t)) = (\\<lambda>k \\<in> nat. Fun(lift_aux(t) ` succ(k)))"
 
-  "lift_aux(App(b,f,a)) = (lam k:nat. App(b, lift_aux(f)`k, lift_aux(a)`k))"
+  "lift_aux(App(b,f,a)) = (\\<lambda>k \\<in> nat. App(b, lift_aux(f)`k, lift_aux(a)`k))"
 
 
   
 primrec
   "subst_aux(Var(i)) =
-     (lam r:redexes. lam k:nat. if k<i then Var(i #- 1) 
+     (\\<lambda>r \\<in> redexes. \\<lambda>k \\<in> nat. if k<i then Var(i #- 1) 
 				else if k=i then r else Var(i))"
   "subst_aux(Fun(t)) =
-     (lam r:redexes. lam k:nat. Fun(subst_aux(t) ` lift(r) ` succ(k)))"
+     (\\<lambda>r \\<in> redexes. \\<lambda>k \\<in> nat. Fun(subst_aux(t) ` lift(r) ` succ(k)))"
 
   "subst_aux(App(b,f,a)) = 
-     (lam r:redexes. lam k:nat. App(b, subst_aux(f)`r`k, subst_aux(a)`r`k))"
+     (\\<lambda>r \\<in> redexes. \\<lambda>k \\<in> nat. App(b, subst_aux(f)`r`k, subst_aux(a)`r`k))"
 
 end
 
