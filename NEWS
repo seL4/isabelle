@@ -47,6 +47,9 @@ more complete, as multiple instantiation of unknowns (with slow_tac).
 COULD MAKE EXISTING PROOFS FAIL; in case of problems with
 old proofs, use unsafe_addss and unsafe_auto_tac
 
+* HOL: patterns in case expressions allow tuple patterns as arguments to
+constructors, for example `case x of [] => ... | (x,y,z)#ps => ...'
+
 * HOL: primrec now also works with type nat;
 
 * HOL: the constant for negation has been renamed from "not" to "Not" to
