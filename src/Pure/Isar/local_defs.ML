@@ -16,11 +16,9 @@ end;
 structure LocalDefs: LOCAL_DEFS =
 struct
 
-
 val refl_tac = Tactic.rtac (Drule.standard (Drule.reflexive_thm RS Drule.triv_goal));
 
-
-fun gen_def fix prep_term match_binds raw_name atts ((x, raw_T), (raw_rhs, raw_pats)) state =
+fun gen_def fix prep_term prep_pats raw_name atts ((x, raw_T), (raw_rhs, raw_pats)) state =
   let
     fun err msg = raise Proof.STATE ("Bad local def: " ^ msg, state);
 
@@ -32,18 +30,17 @@ fun gen_def fix prep_term match_binds raw_name atts ((x, raw_T), (raw_rhs, raw_p
     val T = Term.fastype_of rhs;
     val lhs = ProofContext.cert_term ctxt' (Free (x, T));
     val eq = Logic.mk_equals (lhs, rhs);
+    val pats = prep_pats T (ProofContext.declare_term rhs ctxt') raw_pats;
   in
     if lhs mem Term.add_term_frees (rhs, []) then err "lhs occurs on rhs"
-(* FIXME    else if not (Term.term_tfrees rhs subset Term.typ_tfrees T) then
-      err "extra type variables on rhs"  *)
     else ();
     state'
-    |> match_binds [(raw_pats, raw_rhs)]   (*note: raw_rhs prepared twice!*)
+    |> Proof.match_bind_i [(pats, rhs)]
     |> Proof.assm_i (refl_tac, refl_tac) [(name, atts, [(eq, ([], []))])]
   end;
 
-val def = gen_def Proof.fix ProofContext.read_term Proof.match_bind;
-val def_i = gen_def Proof.fix_i ProofContext.cert_term Proof.match_bind_i;
+val def = gen_def Proof.fix ProofContext.read_term ProofContext.read_term_pats;
+val def_i = gen_def Proof.fix_i ProofContext.cert_term ProofContext.cert_term_pats;
 
 
 end;
