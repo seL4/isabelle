@@ -80,6 +80,8 @@ logics (again);
 
 *** HOL ***
 
+* HOL/Map: new theory of `maps' a la VDM.
+
 * HOL/simplifier: added infix function `addsplits':
   instead of `<simpset> setloop (split_tac <thms>)'
   you can simply write `<simpset> addsplits <thms>'
