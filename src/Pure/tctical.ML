@@ -56,6 +56,7 @@ signature TACTICAL =
   val suppress_tracing  : bool ref
   val THEN              : tactic * tactic -> tactic
   val THEN'             : ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
+  val ALLGOALS_RANGE    : (int -> tactic) -> int -> int -> tactic
   val THEN_ALL_NEW	: (int -> tactic) * (int -> tactic) -> int -> tactic
   val REPEAT_ALL_NEW	: (int -> tactic) -> int -> tactic
   val THEN_ELSE         : tactic * (tactic*tactic) -> tactic
