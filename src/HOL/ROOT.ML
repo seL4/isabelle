@@ -41,7 +41,13 @@ use_thy "RelPow";
 use_thy "Finite";
 use_thy "Sexp";
 use_thy "Option";
+use_thy "WF_Rel";
 use_thy "List";
+
+(*TFL: recursive function definitions*)
+cd "../TFL";
+use "sys.sml";
+cd "../HOL";
 
 init_pps ();
 print_depth 8;

@@ -8,9 +8,9 @@
 
 OUT = $(ISABELLE_OUTPUT)
 
-NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF \
+NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF WF_Rel \
 	mono Lfp Gfp NatDef Nat intr_elim indrule Inductive Finite Arith \
-	Sexp Univ List RelPow Option
+	Psubset Sexp Univ List RelPow Option
 
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML \
 	ind_syntax.ML cladata.ML simpdata.ML \
@@ -26,17 +26,6 @@ $(OUT)/HOL: $(OUT)/Pure $(FILES)
 
 $(OUT)/Pure:
 	@cd ../Pure; $(ISATOOL) make
-
-
-## TFL (requires integration into HOL proper)
-
-TFL_NAMES = mask tfl thms thry usyntax utils
-TFL_FILES = ../TFL/ROOT.ML ../TFL/sys.sml \
-            $(TFL_NAMES:%=../TFL/%.sig) $(TFL_NAMES:%=../TFL/%.sml)
-
-TFL:	$(OUT)/HOL $(TFL_FILES)
-	@$(ISABELLE) -qe 'exit_use_dir"../TFL"; quit();' HOL
-
 
 
 #### Tests and examples
@@ -105,7 +94,7 @@ Auth:	$(OUT)/HOL $(AUTH_FILES)
 
 ## Properties of substitutions
 
-SUBST_NAMES = AList Setplus Subst Unifier UTerm UTLemmas
+SUBST_NAMES = AList Subst Unifier UTerm Unify
 
 SUBST_FILES = Subst/ROOT.ML \
 	      $(SUBST_NAMES:%=Subst/%.thy) $(SUBST_NAMES:%=Subst/%.ML)
@@ -208,7 +197,7 @@ ex:	$(OUT)/HOL $(EX_FILES)
 ## Full test
 
 test:	$(OUT)/HOL \
-		TFL Induct IMP Hoare Lex Integ Auth Subst Lambda  \
+		Subst Induct IMP Hoare Lex Integ Auth Lambda  \
 		W0 MiniML IOA AxClasses Quot ex
 	echo 'Test examples ran successfully' > test
 
