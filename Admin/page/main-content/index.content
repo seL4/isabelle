@@ -53,9 +53,10 @@ Isabelle distribution?  Send it to us!
 We will collect theorems sent to <img border="0" width="162"
 height="16" alt="isabelle-lemmas" src="isabelle-lemmas.gif"
 valign="center"> and consider them for inclusion into the
-distribution.  Lemmas should be general, useful, and not too
-large. For larger developments you might want to consider a submission
-to the <a href="http://afp.sf.net">Archive of Formal Proofs</a>.
+distribution, in which case the author's name will be attached to it. 
+Lemmas should be general, useful, and not too large. For
+larger developments you might want to consider a submission to the <a
+href="http://afp.sf.net">Archive of Formal Proofs</a>.
 
 
 <h2>Course Material, Exercises</h2>
