@@ -353,6 +353,9 @@ subsubsection{*Arith *}
 lemma Suc_eq_add_numeral_1: "Suc n = n + 1"
 by (simp add: numerals)
 
+lemma Suc_eq_add_numeral_1_left: "Suc n = 1 + n"
+by (simp add: numerals)
+
 (* These two can be useful when m = number_of... *)
 
 lemma add_eq_if: "(m::nat) + n = (if m=0 then n else Suc ((m - 1) + n))"
@@ -753,6 +756,7 @@ val odd_0_le_power_imp_0_le = thm "odd_0_le_power_imp_0_le";
 val Suc_pred' = thm"Suc_pred'";
 val expand_Suc = thm"expand_Suc";
 val Suc_eq_add_numeral_1 = thm"Suc_eq_add_numeral_1";
+val Suc_eq_add_numeral_1_left = thm"Suc_eq_add_numeral_1_left";
 val add_eq_if = thm"add_eq_if";
 val mult_eq_if = thm"mult_eq_if";
 val power_eq_if = thm"power_eq_if";
