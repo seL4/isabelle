@@ -14,6 +14,7 @@ val cfun_arg_cong = thm "cfun_arg_cong";
 val Abs_Cfun_inverse2 = thm "Abs_Cfun_inverse2";
 val Cfunapp2 = thm "Cfunapp2";
 val beta_cfun = thm "beta_cfun";
+val eta_cfun = thm "eta_cfun";
 val inst_cfun_po = thm "inst_cfun_po";
 val less_cfun = thm "less_cfun";
 val minimal_cfun = thm "minimal_cfun";
@@ -55,6 +56,7 @@ val cont_cfun = thm "cont_cfun";
 val cont2cont_Rep_CFun = thm "cont2cont_Rep_CFun";
 val cont2mono_LAM = thm "cont2mono_LAM";
 val cont2cont_LAM = thm "cont2cont_LAM";
+val cont2cont_eta = thm "cont2cont_eta";
 val cont_lemmas1 = [cont_const, cont_id, cont_Rep_CFun2,
                     cont2cont_Rep_CFun, cont2cont_LAM];
 val strict_Rep_CFun1 = thm "strict_Rep_CFun1";

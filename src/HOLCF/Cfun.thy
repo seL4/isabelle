@@ -70,6 +70,11 @@ text {* Beta - equality for continuous functions *}
 lemma beta_cfun: "cont(c1) ==> (LAM x .c1 x)$u = c1 u"
 by (rule Cfunapp2)
 
+text {* Eta - equality for continuous functions *}
+
+lemma eta_cfun: "(LAM x. f$x) = f"
+by (rule Rep_CFun_inverse)
+
 subsection {* Type @{typ "'a -> 'b"} is a partial order *}
 
 instance "->"  :: (cpo, cpo) sq_ord ..
@@ -423,6 +428,11 @@ apply (rule ext)
 apply (subst p1 [THEN beta_cfun, THEN ext])
 apply (erule p2 [THEN cont2contlub, THEN contlubE, THEN spec, THEN mp])
 done
+
+text {* cont2cont Lemma for @{term "%x. LAM y. c1 x$y"} *}
+
+lemma cont2cont_eta: "cont c1 ==> cont (%x. LAM y. c1 x$y)"
+by (simp only: eta_cfun)
 
 text {* cont2cont tactic *}
 
