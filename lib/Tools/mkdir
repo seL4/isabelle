@@ -191,6 +191,9 @@ if [ -n "$DOCUMENT" ]; then
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym,pdfsetup}
 
+%\urlstyle{rm}
+%\isabellestyle{it}
+
 \begin{document}
 \input{session}
 \end{document}
