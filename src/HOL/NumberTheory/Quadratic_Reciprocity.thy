@@ -105,7 +105,7 @@ proof -;
   with a have "p * (setsum (%x. ((x * a) div p)) A - int(card E)): zEven";
     by simp
   hence "p \<in> zEven | (setsum (%x. ((x * a) div p)) A - int(card E)): zEven";
-    by (rule even_product)
+    by (rule EvenOdd.even_product)
   with p_odd have "(setsum (%x. ((x * a) div p)) A - int(card E)): zEven";
     by (auto simp add: odd_iff_not_even)
   thus ?thesis;
@@ -271,7 +271,7 @@ lemma (in QRTEMP) Q_set_card: "(q - 1) div 2 = int (card (Q_set))";
 
 lemma (in QRTEMP) S_card: "((p - 1) div 2) * ((q - 1) div 2) = int (card(S))";
   apply (insert P_set_card Q_set_card P_set_finite Q_set_finite)
-  apply (auto simp add: S_def zmult_int)
+  apply (auto simp add: S_def zmult_int setsum_constant_nat) 
 done
 
 lemma (in QRTEMP) S1_Int_S2_prop: "S1 \<inter> S2 = {}";
@@ -378,7 +378,7 @@ proof-;
   then have even2: "(2 * p):zEven & ((q - 1) * p):zEven";
     by (auto simp add: zEven_def)
   then have even3: "(((q - 1) * p) + (2 * p)):zEven";
-    by (auto simp: even_plus_even)
+    by (auto simp: EvenOdd.even_plus_even)
   (* using these prove it *)
   from prems have "q * (p - 1) < ((q - 1) * p) + (2 * p)";
     by (auto simp add: int_distrib)

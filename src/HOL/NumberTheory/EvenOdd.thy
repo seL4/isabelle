@@ -43,17 +43,7 @@ lemma even_odd_conj: "~(x \<in> zOdd & x \<in> zEven)";
   qed;
 
 lemma even_odd_disj: "(x \<in> zOdd | x \<in> zEven)";
-  apply (auto simp add: zOdd_def zEven_def)
-  proof -;
-    assume "\<forall>k. x \<noteq> 2 * k";
-    have "0 \<le> (x mod 2) & (x mod 2) < 2";
-      by (auto intro: pos_mod_sign pos_mod_bound)
-    then have "x mod 2 = 0 | x mod 2 = 1" by arith
-    moreover from prems have "x mod 2 \<noteq> 0" by auto
-    ultimately have "x mod 2 = 1" by auto
-    thus "\<exists>k. x = 2 * k + 1";
-      by (insert zmod_zdiv_equality [of "x" "2"], auto)
-  qed;
+  by (simp add: zOdd_def zEven_def, presburger)
 
 lemma not_odd_impl_even: "~(x \<in> zOdd) ==> x \<in> zEven";
   by (insert even_odd_disj, auto)
