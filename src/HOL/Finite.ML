@@ -412,11 +412,15 @@ Goal "finite A ==> card(insert x A) = (if x:A then card A else Suc(card(A)))";
 by (asm_simp_tac (simpset() addsimps [insert_absorb]) 1);
 qed "card_insert_if";
 
-Goal "[| finite A; x: A |] ==> Suc(card(A-{x})) = card A";
+Goal "[| finite A; x: A |] ==> Suc (card (A-{x})) = card A";
 by (res_inst_tac [("t", "A")] (insert_Diff RS subst) 1);
 by (assume_tac 1);
 by (Asm_simp_tac 1);
 qed "card_Suc_Diff1";
+
+Goal "[| finite A; x: A |] ==> card (A-{x}) = card A - 1";
+by (asm_simp_tac (simpset() addsimps [card_Suc_Diff1 RS sym]) 1);
+qed "card_Diff_singleton";
 
 Goal "finite A ==> card(insert x A) = Suc(card(A-{x}))";
 by (asm_simp_tac (simpset() addsimps [card_insert_if,card_Suc_Diff1]) 1);
@@ -492,7 +496,7 @@ by (case_tac "A=F" 1);
 by (ALLGOALS Asm_simp_tac);
 qed_spec_mp "psubset_card" ;
 
-Goal "!!X. [| A <= B; card B <= card A; finite B |] ==> A = B";
+Goal "[| A <= B; card B <= card A; finite B |] ==> A = B";
 by (case_tac "A < B" 1);
 by (datac psubset_card 1 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [psubset_eq])));
