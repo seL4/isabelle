@@ -40,12 +40,19 @@ locale reflection =
   defines "F0(P,y) == \<mu>b. (\<exists>z. M(z) \<and> P(<y,z>)) --> 
                                (\<exists>z\<in>Mset(b). P(<y,z>))"
       and "FF(P)   == \<lambda>a. \<Union>y\<in>Mset(a). F0(P,y)"
-      and "ClEx(P) == \<lambda>a. Limit(a) \<and> normalize(FF(P),a) = a"
+      and "ClEx(P,a) == Limit(a) \<and> normalize(FF(P),a) = a"
 
 lemma (in reflection) Mset_mono: "i\<le>j ==> Mset(i) <= Mset(j)"
 apply (insert Mset_mono_le) 
 apply (simp add: mono_le_subset_def leI) 
 done
+
+text{*Awkward: we need a version of @{text ClEx_def} as an equality
+      at the level of classes, which do not really exist*}
+lemma (in reflection) ClEx_eq:
+     "ClEx(P) == \<lambda>a. Limit(a) \<and> normalize(FF(P),a) = a"
+by (simp add: ClEx_def [symmetric]) 
+
 
 subsection{*Easy Cases of the Reflection Theorem*}
 
@@ -157,7 +164,7 @@ by (blast intro: dest: ClEx_downward ClEx_upward)
 text{*...and it is closed and unbounded*}
 lemma (in ex_reflection) ZF_Closed_Unbounded_ClEx:
      "Closed_Unbounded(ClEx(P))"
-apply (simp add: ClEx_def)
+apply (simp add: ClEx_eq)
 apply (fast intro: Closed_Unbounded_Int Normal_imp_fp_Closed_Unbounded
                    Closed_Unbounded_Limit Normal_normalize)
 done
@@ -176,13 +183,20 @@ apply (rule ex_reflection.ZF_ClEx_iff
 apply (simp_all add: Mset_mono_le Mset_cont Pair_in_Mset)
 done
 
+(*Alternative proof, less unfolding:
+apply (rule Reflection.ZF_ClEx_iff [of Mset _ _ Cl, folded M_def])
+apply (fold ClEx_def FF_def F0_def)
+apply (rule ex_reflection.intro, assumption)
+apply (simp add: ex_reflection_axioms.intro, assumption+)
+*)
+
 lemma (in reflection) Closed_Unbounded_ClEx:
      "(!!a. [| Cl(a); Ord(a) |] ==> \<forall>x\<in>Mset(a). P(x) <-> Q(a,x))
       ==> Closed_Unbounded(ClEx(P))"
-apply (unfold ClEx_def FF_def F0_def M_def)
-apply (rule ex_reflection.ZF_Closed_Unbounded_ClEx
-  [OF ex_reflection.intro, OF reflection.intro ex_reflection_axioms.intro])
-apply (simp_all add: Mset_mono_le Mset_cont Pair_in_Mset) 
+apply (unfold ClEx_eq FF_def F0_def M_def) 
+apply (rule Reflection.ZF_Closed_Unbounded_ClEx [of Mset _ _ Cl])
+apply (rule ex_reflection.intro, assumption)
+apply (blast intro: ex_reflection_axioms.intro)
 done
 
 subsection{*Packaging the Quantifier Reflection Rules*}

@@ -239,8 +239,9 @@ subsection{*Well-Founded Recursion!*}
                xa \<in> r & MH(x, f_r_sx, y))"
 *)
 
-constdefs is_recfun_fm :: "[[i,i,i]=>i, i, i, i]=>i"
- "is_recfun_fm(p,r,a,f) ==
+text{*The three arguments of @{term p} are always 5, 0, 4.*}
+constdefs is_recfun_fm :: "[i, i, i, i]=>i"
+ "is_recfun_fm(p,r,a,f) == 
    Forall(Iff(Member(0,succ(f)),
     Exists(Exists(Exists(Exists(Exists(Exists(
      And(pair_fm(5,4,6),
@@ -248,54 +249,54 @@ constdefs is_recfun_fm :: "[[i,i,i]=>i, i, i, i]=>i"
        And(upair_fm(5,5,2),
         And(pre_image_fm(r#+7,2,1),
          And(restriction_fm(f#+7,1,0),
-          And(Member(3,r#+7), p(5,0,4)))))))))))))))"
+          And(Member(3,r#+7), p))))))))))))))"
 
-
-lemma is_recfun_type_0:
-     "[| !!x y z. [| x \<in> nat; y \<in> nat; z \<in> nat |] ==> p(x,y,z) \<in> formula;
-         x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> is_recfun_fm(p,x,y,z) \<in> formula"
-apply (unfold is_recfun_fm_def)
-(*FIXME: FIND OUT why simp loops!*)
-apply typecheck
-by simp
 
 lemma is_recfun_type [TC]:
-     "[| p(5,0,4) \<in> formula;
-         x \<in> nat; y \<in> nat; z \<in> nat |]
+     "[| p \<in> formula; x \<in> nat; y \<in> nat; z \<in> nat |] 
       ==> is_recfun_fm(p,x,y,z) \<in> formula"
 by (simp add: is_recfun_fm_def)
 
-lemma arity_is_recfun_fm [simp]:
-     "[| arity(p(5,0,4)) le 8; x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(is_recfun_fm(p,x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
-apply (frule lt_nat_in_nat, simp)
-apply (simp add: is_recfun_fm_def succ_Un_distrib [symmetric] )
-apply (subst subset_Un_iff2 [of "arity(p(5,0,4))", THEN iffD1])
-apply (rule le_imp_subset)
-apply (erule le_trans, simp)
-apply (simp add: succ_Un_distrib [symmetric] Un_ac)
-done
-
 lemma sats_is_recfun_fm:
-  assumes MH_iff_sats:
-      "!!x y z env.
-         [| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-         ==> MH(nth(x,env), nth(y,env), nth(z,env)) <-> sats(A, p(x,y,z), env)"
-  shows
+  assumes MH_iff_sats: 
+      "!!a0 a1 a2 a3 a4 a5 a6. 
+        [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A; a5\<in>A; a6\<in>A|] ==> 
+        MH(a5, a0, a4) <-> 
+       sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,Cons(a4,Cons(a5,Cons(a6,env))))))))"
+  shows 
       "[|x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
        ==> sats(A, is_recfun_fm(p,x,y,z), env) <->
            M_is_recfun(**A, MH, nth(x,env), nth(y,env), nth(z,env))"
 by (simp add: is_recfun_fm_def M_is_recfun_def MH_iff_sats [THEN iff_sym])
+(*
+apply (rule ball_cong bex_cong iff_cong conj_cong refl iff_refl) +
+ sats(A, p,
+   Cons(xf, Cons(xe, Cons(xd, Cons(xc, Cons(xb, Cons(xaa, Cons(xa, env)))))))) 
+\<longleftrightarrow> MH(xaa, xf, xb)
+
+MH(nth(5,env), nth(0,env), nth(4,env)) <-> sats(A, p, env);
+*)
+
+(*      "!!x y z. [|x\<in>A; y\<in>A; z\<in>A|] ==> MH(x,y,z) <-> sats(A, p, env)"
+*)
 
 lemma is_recfun_iff_sats:
-  "[| (!!x y z env. [| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
-                    ==> MH(nth(x,env), nth(y,env), nth(z,env)) <->
-                        sats(A, p(x,y,z), env));
-      nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
+  assumes MH_iff_sats: 
+      "!!a0 a1 a2 a3 a4 a5 a6. 
+        [|a0\<in>A; a1\<in>A; a2\<in>A; a3\<in>A; a4\<in>A; a5\<in>A; a6\<in>A|] ==> 
+        MH(a5, a0, a4) <-> 
+       sats(A, p, Cons(a0,Cons(a1,Cons(a2,Cons(a3,Cons(a4,Cons(a5,Cons(a6,env))))))))"
+  shows
+  "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
    ==> M_is_recfun(**A, MH, x, y, z) <-> sats(A, is_recfun_fm(p,i,j,k), env)"
-by (simp add: sats_is_recfun_fm [of A MH])
+apply (rule iff_sym) 
+apply (rule iff_trans)
+apply (rule sats_is_recfun_fm [of A MH]) 
+apply (rule MH_iff_sats, simp_all) 
+done
+(*FIXME: surely proof can be improved?*)
+
 
 theorem is_recfun_reflection:
   assumes MH_reflection:
@@ -588,6 +589,9 @@ done
 
 
 subsubsection{*The Operator @{term is_nat_case}*}
+text{*I could not get it to work with the more natural assumption that 
+ @{term is_b} takes two arguments.  Instead it must be a formula where 1 and 0
+ stand for @{term m} and @{term b}, respectively.*}
 
 (* is_nat_case :: "[i=>o, i, [i,i]=>o, i, i] => o"
     "is_nat_case(M, a, is_b, k, z) ==
@@ -595,36 +599,24 @@ subsubsection{*The Operator @{term is_nat_case}*}
        (\<forall>m[M]. successor(M,m,k) --> is_b(m,z)) &
        (is_quasinat(M,k) | empty(M,z))" *)
 text{*The formula @{term is_b} has free variables 1 and 0.*}
-constdefs is_nat_case_fm :: "[i, [i,i]=>i, i, i]=>i"
- "is_nat_case_fm(a,is_b,k,z) ==
+constdefs is_nat_case_fm :: "[i, i, i, i]=>i"
+ "is_nat_case_fm(a,is_b,k,z) == 
     And(Implies(empty_fm(k), Equal(z,a)),
-        And(Forall(Implies(succ_fm(0,succ(k)),
-                   Forall(Implies(Equal(0,succ(succ(z))), is_b(1,0))))),
+        And(Forall(Implies(succ_fm(0,succ(k)), 
+                   Forall(Implies(Equal(0,succ(succ(z))), is_b)))),
             Or(quasinat_fm(k), empty_fm(z))))"
 
 lemma is_nat_case_type [TC]:
-     "[| is_b(1,0) \<in> formula;
-         x \<in> nat; y \<in> nat; z \<in> nat |]
+     "[| is_b \<in> formula;  
+         x \<in> nat; y \<in> nat; z \<in> nat |] 
       ==> is_nat_case_fm(x,is_b,y,z) \<in> formula"
 by (simp add: is_nat_case_fm_def)
 
-lemma arity_is_nat_case_fm [simp]:
-     "[| is_b(1,0) \<in> formula; x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(is_nat_case_fm(x,is_b,y,z)) =
-          succ(x) \<union> succ(y) \<union> succ(z) \<union> (arity(is_b(1,0)) #- 2)"
-apply (subgoal_tac "arity(is_b(1,0)) \<in> nat")
-apply typecheck
-(*FIXME: could nat_diff_split work?*)
-apply (auto simp add: diff_def raw_diff_succ is_nat_case_fm_def nat_imp_quasinat
-                 succ_Un_distrib [symmetric] Un_ac
-                 split: split_nat_case)
-done
-
 lemma sats_is_nat_case_fm:
-  assumes is_b_iff_sats:
-      "!!a b. [| a \<in> A; b \<in> A|]
-              ==> is_b(a,b) <-> sats(A, p(1,0), Cons(b, Cons(a,env)))"
-  shows
+  assumes is_b_iff_sats: 
+      "!!a. a \<in> A ==> is_b(a,nth(z, env)) <-> 
+                      sats(A, p, Cons(nth(z,env), Cons(a, env)))"
+  shows 
       "[|x \<in> nat; y \<in> nat; z < length(env); env \<in> list(A)|]
        ==> sats(A, is_nat_case_fm(x,p,y,z), env) <->
            is_nat_case(**A, nth(x,env), is_b, nth(y,env), nth(z,env))"
@@ -633,9 +625,9 @@ apply (simp add: is_nat_case_fm_def is_nat_case_def is_b_iff_sats [THEN iff_sym]
 done
 
 lemma is_nat_case_iff_sats:
-  "[| (!!a b. [| a \<in> A; b \<in> A|]
-              ==> is_b(a,b) <-> sats(A, p(1,0), Cons(b, Cons(a,env))));
-      nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
+  "[| (!!a. a \<in> A ==> is_b(a,z) <->
+                      sats(A, p, Cons(z, Cons(a,env))));
+      nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i \<in> nat; j \<in> nat; k < length(env); env \<in> list(A)|]
    ==> is_nat_case(**A, x, is_b, y, z) <-> sats(A, is_nat_case_fm(i,p,j,k), env)"
 by (simp add: sats_is_nat_case_fm [of A is_b])
@@ -663,59 +655,51 @@ subsection{*The Operator @{term iterates_MH}, Needed for Iteration*}
    "iterates_MH(M,isF,v,n,g,z) ==
         is_nat_case(M, v, \<lambda>m u. \<exists>gm[M]. fun_apply(M,g,m,gm) & isF(gm,u),
                     n, z)" *)
-constdefs iterates_MH_fm :: "[[i,i]=>i, i, i, i, i]=>i"
- "iterates_MH_fm(isF,v,n,g,z) ==
-    is_nat_case_fm(v,
-      \<lambda>m u. Exists(And(fun_apply_fm(succ(succ(succ(g))),succ(m),0),
-                     Forall(Implies(Equal(0,succ(succ(u))), isF(1,0))))),
+constdefs iterates_MH_fm :: "[i, i, i, i, i]=>i"
+ "iterates_MH_fm(isF,v,n,g,z) == 
+    is_nat_case_fm(v, 
+      Exists(And(fun_apply_fm(succ(succ(succ(g))),2,0), 
+                     Forall(Implies(Equal(0,2), isF)))), 
       n, z)"
 
 lemma iterates_MH_type [TC]:
-     "[| p(1,0) \<in> formula;
-         v \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat |]
+     "[| p \<in> formula;  
+         v \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat |] 
       ==> iterates_MH_fm(p,v,x,y,z) \<in> formula"
 by (simp add: iterates_MH_fm_def)
-
-
-lemma arity_iterates_MH_fm [simp]:
-     "[| p(1,0) \<in> formula;
-         v \<in> nat; x \<in> nat; y \<in> nat; z \<in> nat |]
-      ==> arity(iterates_MH_fm(p,v,x,y,z)) =
-          succ(v) \<union> succ(x) \<union> succ(y) \<union> succ(z) \<union> (arity(p(1,0)) #- 4)"
-apply (subgoal_tac "arity(p(1,0)) \<in> nat")
-apply typecheck
-apply (simp add: nat_imp_quasinat iterates_MH_fm_def Un_ac
-            split: split_nat_case, clarify)
-apply (rename_tac i j)
-apply (drule eq_succ_imp_eq_m1, simp)
-apply (drule eq_succ_imp_eq_m1, simp)
-apply (simp add: diff_Un_distrib succ_Un_distrib Un_ac diff_diff_left)
-done
 
 lemma sats_iterates_MH_fm:
   assumes is_F_iff_sats:
       "!!a b c d. [| a \<in> A; b \<in> A; c \<in> A; d \<in> A|]
               ==> is_F(a,b) <->
-                  sats(A, p(1,0), Cons(b, Cons(a, Cons(c, Cons(d,env)))))"
-  shows
+                  sats(A, p, Cons(b, Cons(a, Cons(c, Cons(d,env)))))"
+  shows 
       "[|v \<in> nat; x \<in> nat; y \<in> nat; z < length(env); env \<in> list(A)|]
        ==> sats(A, iterates_MH_fm(p,v,x,y,z), env) <->
            iterates_MH(**A, is_F, nth(v,env), nth(x,env), nth(y,env), nth(z,env))"
-by (simp add: iterates_MH_fm_def iterates_MH_def sats_is_nat_case_fm
+apply (frule lt_length_in_nat, assumption)  
+apply (simp add: iterates_MH_fm_def iterates_MH_def sats_is_nat_case_fm 
               is_F_iff_sats [symmetric])
+apply (rule is_nat_case_cong) 
+apply (simp_all add: setclass_def)
+done
+
 
 lemma iterates_MH_iff_sats:
   "[| (!!a b c d. [| a \<in> A; b \<in> A; c \<in> A; d \<in> A|]
               ==> is_F(a,b) <->
-                  sats(A, p(1,0), Cons(b, Cons(a, Cons(c, Cons(d,env))))));
-      nth(i',env) = v; nth(i,env) = x; nth(j,env) = y; nth(k,env) = z;
+                  sats(A, p, Cons(b, Cons(a, Cons(c, Cons(d,env))))));
+      nth(i',env) = v; nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
       i' \<in> nat; i \<in> nat; j \<in> nat; k < length(env); env \<in> list(A)|]
    ==> iterates_MH(**A, is_F, v, x, y, z) <->
        sats(A, iterates_MH_fm(p,i',i,j,k), env)"
-apply (rule iff_sym)
+apply (rule iff_sym) 
 apply (rule iff_trans)
-apply (rule sats_iterates_MH_fm [of A is_F], blast, simp_all)
+apply (rule sats_iterates_MH_fm [of A is_F], blast)  
+apply simp_all 
 done
+(*FIXME: surely proof can be improved?*)
+
 
 theorem iterates_MH_reflection:
   assumes p_reflection:
@@ -811,11 +795,10 @@ apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,n,B,0,Memrel(succ(n))]" in mem_iff_sats)
 apply (rule sep_rules | simp)+
-txt{*Can't get sat rules to work for higher-order operators, so just expand them!*}
-apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
-apply (rule sep_rules list_functor_iff_sats quasinat_iff_sats | simp)+
+apply (simp add: is_wfrec_def)
+apply (rule sep_rules is_nat_case_iff_sats list_functor_iff_sats
+            is_recfun_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
-
 
 lemma list_replacement2_Reflects:
  "REFLECTS
@@ -855,8 +838,9 @@ apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,B,0,nat]" in mem_iff_sats)
 apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
-apply (rule sep_rules list_functor_iff_sats quasinat_iff_sats | simp)+
+apply (simp add: is_wfrec_def)
+apply (rule sep_rules is_nat_case_iff_sats list_functor_iff_sats
+            is_recfun_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
 
 
@@ -936,10 +920,9 @@ apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,n,B,0,Memrel(succ(n))]" in mem_iff_sats)
 apply (rule sep_rules | simp)+
-txt{*Can't get sat rules to work for higher-order operators, so just expand them!*}
-apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
-apply (rule sep_rules formula_functor_iff_sats quasinat_iff_sats | simp)+
-txt{*SLOW: like 40 seconds!*}
+apply (simp add: is_wfrec_def)
+apply (rule sep_rules is_nat_case_iff_sats formula_functor_iff_sats
+            is_recfun_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
 
 lemma formula_replacement2_Reflects:
@@ -980,8 +963,9 @@ apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,B,0,nat]" in mem_iff_sats)
 apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
-apply (rule sep_rules formula_functor_iff_sats quasinat_iff_sats | simp)+
+apply (simp add: is_wfrec_def)
+apply (rule sep_rules is_nat_case_iff_sats formula_functor_iff_sats
+            is_recfun_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
 
 text{*NB The proofs for type @{term formula} are virtually identical to those
@@ -1206,8 +1190,9 @@ apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,z,w,Memrel(succ(n))]" in mem_iff_sats)
 apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
-apply (rule sep_rules quasinat_iff_sats tl_iff_sats | simp)+
+apply (simp add: is_wfrec_def)
+apply (rule sep_rules is_nat_case_iff_sats tl_iff_sats
+            is_recfun_iff_sats iterates_MH_iff_sats quasinat_iff_sats | simp)+
 done
 
 
@@ -1271,9 +1256,9 @@ apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,n,B,Memrel(succ(n))]" in mem_iff_sats)
 apply (rule sep_rules | simp)+
-txt{*Can't get sat rules to work for higher-order operators, so just expand them!*}
-apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
-apply (rule sep_rules big_union_iff_sats quasinat_iff_sats | simp)+
+apply (simp add: is_wfrec_def)
+apply (rule sep_rules iterates_MH_iff_sats is_nat_case_iff_sats
+             is_recfun_iff_sats big_union_iff_sats quasinat_iff_sats | simp)+
 done
 
 
@@ -1314,8 +1299,9 @@ apply (rename_tac v)
 apply (rule bex_iff_sats conj_iff_sats)+
 apply (rule_tac env = "[u,v,A,B,nat]" in mem_iff_sats)
 apply (rule sep_rules | simp)+
-apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
-apply (rule sep_rules big_union_iff_sats quasinat_iff_sats | simp)+
+apply (simp add: is_wfrec_def)
+apply (rule sep_rules is_nat_case_iff_sats iterates_MH_iff_sats
+              is_recfun_iff_sats big_union_iff_sats quasinat_iff_sats | simp)+
 done
 
 

@@ -248,15 +248,17 @@ apply (simp add: Closed_Unbounded_Int, blast)
 done
 
 
+lemma reflection_Lset: "reflection(Lset)"
+apply (blast intro: reflection.intro Lset_mono_le Lset_cont Pair_in_Lset) +
+done
+
 theorem Ex_reflection:
      "REFLECTS[\<lambda>x. P(fst(x),snd(x)), \<lambda>a x. Q(a,fst(x),snd(x))]
       ==> REFLECTS[\<lambda>x. \<exists>z. L(z) \<and> P(x,z), \<lambda>a x. \<exists>z\<in>Lset(a). Q(a,x,z)]"
 apply (unfold L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def)
 apply (elim meta_exE)
 apply (rule meta_exI)
-apply (rule reflection.Ex_reflection
-  [OF reflection.intro, OF Lset_mono_le Lset_cont Pair_in_Lset],
-  assumption+)
+apply (erule reflection.Ex_reflection [OF reflection_Lset])
 done
 
 theorem All_reflection:
@@ -265,9 +267,7 @@ theorem All_reflection:
 apply (unfold L_Reflects_def L_ClEx_def L_FF_def L_F0_def L_def)
 apply (elim meta_exE)
 apply (rule meta_exI)
-apply (rule reflection.All_reflection
-  [OF reflection.intro, OF Lset_mono_le Lset_cont Pair_in_Lset],
-       assumption+)
+apply (erule reflection.All_reflection [OF reflection_Lset])
 done
 
 theorem Rex_reflection:

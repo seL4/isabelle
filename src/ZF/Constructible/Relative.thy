@@ -746,7 +746,7 @@ done
 (*NOT for the simplifier.  The assumption M(z') is apparently necessary, but 
   causes the error "Failed congruence proof!"  It may be better to replace
   is_nat_case by nat_case before attempting congruence reasoning.*)
-lemma (in M_triv_axioms) is_nat_case_cong:
+lemma is_nat_case_cong:
      "[| a = a'; k = k';  z = z';  M(z');
        !!x y. [| M(x); M(y) |] ==> is_b(x,y) <-> is_b'(x,y) |]
       ==> is_nat_case(M, a, is_b, k, z) <-> is_nat_case(M, a', is_b', k', z')"
