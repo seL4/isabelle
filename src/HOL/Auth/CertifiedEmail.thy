@@ -105,8 +105,7 @@ apply (intro exI bexI)
 apply (rule_tac [2] certified_mail.Nil
                     [THEN certified_mail.CM1, THEN certified_mail.Reception,
                      THEN certified_mail.CM2, 
-                     THEN certified_mail.CM3], possibility, possibility) 
-apply auto 
+                     THEN certified_mail.CM3], possibility, possibility, auto) 
 done
 
 
@@ -176,6 +175,28 @@ lemma Spy_know_private_keys_iff [simp]:
     "evs \<in> certified_mail
      ==> (Key (privateKey b A) \<in> parts (spies evs)) = (A \<in> bad)"
 by (blast intro: Spy_dont_know_private_keys parts.Inj)
+
+lemma Spy_dont_know_TTPDecKey [simp]:
+     "evs \<in> certified_mail ==> Key TTPDecKey \<notin> parts(knows Spy evs)"
+by auto
+
+lemma Spy_dont_know_TTPDecKey_analz [simp]:
+     "evs \<in> certified_mail ==> Key TTPDecKey \<notin> analz(knows Spy evs)" 
+by (force dest!: analz_subset_parts[THEN subsetD])
+
+lemma Spy_dont_know_TTPSigKey [simp]:
+     "evs \<in> certified_mail ==> Key TTPSigKey \<notin> parts(knows Spy evs)"
+by auto
+
+lemma Spy_dont_know_TTPSigKey_analz [simp]:
+     "evs \<in> certified_mail ==> Key TTPSigKey \<notin> analz(knows Spy evs)" 
+by (force dest!: analz_subset_parts[THEN subsetD])
+
+text{*Thus, prove any goal that assumes that @{term Spy} knows a private key
+belonging to @{term TTP}*}
+declare Spy_dont_know_TTPDecKey [THEN [2] rev_notE, elim!]
+declare Spy_dont_know_TTPSigKey [THEN [2] rev_notE, elim!]
+
 
 
 lemma CM3_k_parts_knows_Spy:
@@ -247,20 +268,6 @@ apply (force dest!: parts_insert_subset_Un[THEN [2] rev_subsetD]
 done
 
 
-lemma Spy_dont_know_TTPDecKey [simp]:
-     "evs \<in> certified_mail ==> Key TTPDecKey \<notin> parts(knows Spy evs)"
-by auto
-
-lemma Spy_dont_know_TTPDecKey_analz [simp]:
-     "evs \<in> certified_mail ==> Key TTPDecKey \<notin> analz(knows Spy evs)" 
-by (force dest!: analz_subset_parts[THEN subsetD])
-
-
-lemma Spy_knows_TTPVerKey [simp]:
-     "Key (invKey TTPSigKey) \<in> analz(knows Spy evs)"
-by simp
-
-
 subsection{*Proving Confidentiality Results*}
 
 lemma analz_image_freshK [rule_format]:
@@ -324,7 +331,7 @@ apply blast
 txt{*Message 2*}
 apply (simp add: parts_insert2, clarify) 
 apply (drule parts_cut, assumption, simp) 
-apply (blast dest: parts_knows_Spy_subset_used [THEN subsetD]) 
+apply (blast intro: usedI) 
 txt{*Message 3*} 
 apply (blast dest: Notes_SSL_imp_used used_parts_subset_parts) 
 done 
@@ -402,9 +409,11 @@ lemma Key_unique:
        ==> R' = R & S' = S & AO' = AO & hs' = hs"
 by (rule Key_unique_lemma, assumption+)
 
+
 subsection{*The Guarantees for Sender and Recipient*}
 
-text{*If Spy gets the key then @{term R} is bad and also @{term S} at least
+text{*A Sender's guarantee:
+      If Spy gets the key then @{term R} is bad and @{term S} moreover
       gets his return receipt (and therefore has no grounds for complaint).*}
 theorem Spy_see_encrypted_key_imp:
       "[|Says S R {|Agent S, Agent TTP, Crypt K (Number m), Number AO, 
@@ -413,7 +422,7 @@ theorem Spy_see_encrypted_key_imp:
          S2TTP = Crypt TTPEncKey {|Agent S, Number AO, Key K, Agent R, hs|};
 	 evs \<in> certified_mail;
          S\<noteq>Spy|]
-      ==> R \<in> bad & Says TTP S (Crypt TTPSigKey S2TTP) \<in> set evs"
+      ==> R \<in> bad & Gets S (Crypt TTPSigKey S2TTP) \<in> set evs"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule ssubst)
@@ -454,7 +463,7 @@ theorem S_guarantee:
          hs = Hash {|Number cleartext, Nonce q, response S R q, 
                      Crypt K (Number m)|};
          S\<noteq>Spy;  evs \<in> certified_mail|]
-      ==> Says TTP S (Crypt TTPSigKey S2TTP) \<in> set evs"
+      ==> Gets S (Crypt TTPSigKey S2TTP) \<in> set evs"
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule ssubst)
@@ -468,42 +477,35 @@ apply (blast dest: Notes_SSL_imp_used S2TTP_sender Key_unique
 done
 
 
-lemma Says_TTP_imp_Notes:
-  "[|Says TTP S (Crypt TTPSigKey S2TTP) \<in> set evs;
-     S2TTP = Crypt TTPEncKey {|Agent S, Number AO, Key K, Agent R,
-	         Hash {|Number cleartext, Nonce q, r, em|}|};
-     evs \<in> certified_mail|]
-   ==> Notes TTP
-	   {|Agent R, Agent TTP, S2TTP, Key (RPwd R),
-	     Hash {|Number cleartext, Nonce q, r, em|}|}
-	  \<in> set evs"
-apply (erule rev_mp)
-apply (erule ssubst) 
-apply (erule certified_mail.induct, simp_all)
-done
-
-
-
 text{*Recipient's guarantee: if @{term R} sends message 2, and
-     @{term S} gets a delivery certificate, then @{term R}
+     a delivery certificate exists, then @{term R}
      receives the necessary key.*}
 theorem R_guarantee:
-  "[|Notes TTP {|Agent R, Agent TTP, S2TTP, Key(RPwd R), hr|} \<in> set evs;
-     Says TTP S (Crypt TTPSigKey S2TTP) \<in> set evs;
-     S2TTP = Crypt TTPEncKey {|Agent S, Number AO, Key K, Agent R,
-	         Hash {|Number cleartext, Nonce q, r, em|}|};
+  "[|Crypt TTPSigKey S2TTP \<in> used evs;
+     S2TTP = Crypt TTPEncKey
+               {|Agent S, Number AO, Key K, Agent R, 
+                 Hash {|Number cleartext, Nonce q, r, em|}|};
      hr = Hash {|Number cleartext, Nonce q, r, em|};
      R\<noteq>Spy;  evs \<in> certified_mail|]
   ==> Notes R {|Agent TTP, Agent R, Key K, hr|} \<in> set evs"
 apply (erule rev_mp)
-apply (erule rev_mp)
 apply (erule ssubst)
 apply (erule ssubst)
 apply (erule certified_mail.induct, simp_all)
+txt{*Fake*} 
+apply (blast dest: Fake_parts_sing[THEN subsetD]
+             dest!: analz_subset_parts[THEN subsetD])  
+txt{*Fake SSL*}
+apply (blast dest: Fake_parts_sing[THEN subsetD]
+            dest!: analz_subset_parts[THEN subsetD])  
 txt{*Message 2*}
-apply clarify
-apply (drule Says_TTP_imp_Notes [OF _ refl], assumption)
-apply simp  
+apply (drule CM2_S2TTP_parts_knows_Spy, assumption)
+apply (force dest: parts_cut)
+txt{*Message 3*}
+apply (frule_tac hr_form, assumption)
+apply (elim disjE exE, simp_all) 
+apply (blast dest: Fake_parts_sing[THEN subsetD]
+             dest!: analz_subset_parts[THEN subsetD]) 
 done
 
 end
