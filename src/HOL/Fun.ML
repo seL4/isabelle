@@ -406,7 +406,7 @@ by (blast_tac (claset() addIs [bij_is_surj RS surj_f_inv_f RS sym]) 1);
 qed "bij_image_Collect_eq";
 
 Goal "bij f ==> f -`` A = inv f `` A";
-by Auto_tac;
+by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [bij_is_surj RS surj_f_inv_f]) 2);
 by (blast_tac (claset() addIs [bij_is_inj RS inv_f_f RS sym]) 1);
 qed "bij_vimage_eq_inv_image";
