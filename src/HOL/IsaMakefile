@@ -137,7 +137,7 @@ $(LOG)/HOL-Real.gz: $(OUT)/HOL \
   Real/RealDef.ML Real/RealDef.thy Real/simproc.ML \
   Real/RealAbs.ML Real/RealAbs.thy Real/ROOT.ML \
   Real/Hyperreal/Filter.ML Real/Hyperreal/Filter.thy \
-  Real/Hyperreal/Zorn.ML Real/Hyperreal/Zorn.thy Real/Hyperreal/ROOT.ML
+  Real/Hyperreal/Zorn.ML Real/Hyperreal/Zorn.thy
 	@$(ISATOOL) usedir $(OUT)/HOL Real
 
 
