@@ -74,15 +74,15 @@ translations
   "x ~: y"      == "~ (x : y)"
   "{x, xs}"     == "insert x {xs}"
   "{x}"         == "insert x {}"
-  "{x. P}"      => "Collect (%x. P)"
+  "{x. P}"      == "Collect (%x. P)"
   "UN x y. B"   == "UN x. UN y. B"
   "UN x. B"     == "UNION UNIV (%x. B)"
   "INT x y. B"  == "INT x. INT y. B"
   "INT x. B"    == "INTER UNIV (%x. B)"
-  "UN x:A. B"   => "UNION A (%x. B)"
-  "INT x:A. B"  => "INTER A (%x. B)"
-  "ALL x:A. P"  => "Ball A (%x. P)"
-  "EX x:A. P"   => "Bex A (%x. P)"
+  "UN x:A. B"   == "UNION A (%x. B)"
+  "INT x:A. B"  == "INTER A (%x. B)"
+  "ALL x:A. P"  == "Ball A (%x. P)"
+  "EX x:A. P"   == "Bex A (%x. P)"
 
 syntax (output)
   "_setle"      :: "'a set => 'a set => bool"             ("op <=")
@@ -172,6 +172,7 @@ let
         | check (Const ("op &", _) $ (Const ("op =", _) $ Bound m $ e) $ P, n) =
             n > 0 andalso m = n andalso not (loose_bvar1 (P, n)) andalso
             ((0 upto (n - 1)) subset add_loose_bnos (e, 0, []))
+        | check _ = false
 
         fun tr' (_ $ abs) =
           let val _ $ idts $ (_ $ (_ $ _ $ e) $ Q) = ex_tr' [abs]

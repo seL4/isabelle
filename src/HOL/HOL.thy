@@ -71,7 +71,7 @@ syntax
 
 translations
   "x ~= y"                == "~ (x = y)"
-  "THE x. P"              => "The (%x. P)"
+  "THE x. P"              == "The (%x. P)"
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "Let a (%x. e)"
 

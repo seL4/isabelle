@@ -48,15 +48,8 @@ constdefs Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightar
   "Valid p c q == !s s'. Sem c s s' --> s : p --> s' : q"
 
 
-nonterminals
-  vars
-
 syntax
-  ""		     :: "id => vars"		       ("_")
-  "_vars" 	     :: "[id, vars] => vars"	       ("_ _")
-
-syntax
- "@hoare_vars" :: "[vars, 'a assn,'a com,'a assn] => bool"
+ "@hoare_vars" :: "[idts, 'a assn,'a com,'a assn] => bool"
                  ("VARS _// {_} // _ // {_}" [0,0,55,0] 50)
 syntax ("" output)
  "@hoare"      :: "['a assn,'a com,'a assn] => bool"
@@ -65,18 +58,24 @@ syntax ("" output)
 (** parse translations **)
 
 ML{*
-fun mk_abstuple []     body = absfree ("x", dummyT, body)
-  | mk_abstuple [v]    body = absfree ((fst o dest_Free) v, dummyT, body)
-  | mk_abstuple (v::w) body = Syntax.const "split" $
-                              absfree ((fst o dest_Free) v, dummyT, mk_abstuple w body);
 
-  
-fun mk_fbody v e []      = Syntax.const "Unity"
-  | mk_fbody v e [x]     = if v=x then e else x
-  | mk_fbody v e (x::xs) = Syntax.const "Pair" $ (if v=x then e else x) $
-                           mk_fbody v e xs;
+local
+fun free a = Free(a,dummyT)
+fun abs((a,T),body) =
+  let val a = absfree(a, dummyT, body)
+  in if T = Bound 0 then a else Const(Syntax.constrainAbsC,dummyT) $ a $ T end
+in
 
-fun mk_fexp v e xs = mk_abstuple xs (mk_fbody v e xs);
+fun mk_abstuple [x] body = abs (x, body)
+  | mk_abstuple (x::xs) body =
+      Syntax.const "split" $ abs (x, mk_abstuple xs body);
+
+fun mk_fbody a e [x as (b,_)] = if a=b then e else free b
+  | mk_fbody a e ((b,_)::xs) =
+      Syntax.const "Pair" $ (if a=b then e else free b) $ mk_fbody a e xs;
+
+fun mk_fexp a e xs = mk_abstuple xs (mk_fbody a e xs)
+end
 *}
 
 (* bexp_tr & assn_tr *)
@@ -88,37 +87,38 @@ fun bexp_tr (Const ("TRUE", _)) xs = Syntax.const "TRUE"
   
 fun assn_tr r xs = Syntax.const "Collect" $ mk_abstuple xs r;
 *}
-
 (* com_tr *)
 ML{*
-fun assign_tr [Free (V,_),E] xs = Syntax.const "Basic" $
-                                      mk_fexp (Free(V,dummyT)) E xs
-  | assign_tr ts _ = raise TERM ("assign_tr", ts);
-
-fun com_tr (Const("@assign",_) $ Free (V,_) $ E) xs =
-               assign_tr [Free (V,dummyT),E] xs
+fun com_tr (Const("@assign",_) $ Free (a,_) $ e) xs =
+      Syntax.const "Basic" $ mk_fexp a e xs
   | com_tr (Const ("Basic",_) $ f) xs = Syntax.const "Basic" $ f
-  | com_tr (Const ("Seq",_) $ c1 $ c2) xs = Syntax.const "Seq" $
-                                                 com_tr c1 xs $ com_tr c2 xs
-  | com_tr (Const ("Cond",_) $ b $ c1 $ c2) xs = Syntax.const "Cond" $
-                                  bexp_tr b xs $ com_tr c1 xs $ com_tr c2 xs
-  | com_tr (Const ("While",_) $ b $ I $ c) xs = Syntax.const "While" $
-                                         bexp_tr b xs $ assn_tr I xs $ com_tr c xs
-  | com_tr trm _ = trm;
+  | com_tr (Const ("Seq",_) $ c1 $ c2) xs =
+      Syntax.const "Seq" $ com_tr c1 xs $ com_tr c2 xs
+  | com_tr (Const ("Cond",_) $ b $ c1 $ c2) xs =
+      Syntax.const "Cond" $ bexp_tr b xs $ com_tr c1 xs $ com_tr c2 xs
+  | com_tr (Const ("While",_) $ b $ I $ c) xs =
+      Syntax.const "While" $ bexp_tr b xs $ assn_tr I xs $ com_tr c xs
+  | com_tr t _ = t (* if t is just a Free/Var *)
 *}
 
 (* triple_tr *)
 ML{*
-fun vars_tr (x as Free _) = [x]
-  | vars_tr (Const ("_vars", _) $ (x as Free _) $ vars) = x :: vars_tr vars
-  | vars_tr t = raise TERM ("vars_tr", [t]);
+local
 
+fun var_tr(Free(a,_)) = (a,Bound 0) (* Bound 0 = dummy term *)
+  | var_tr(Const ("_constrain", _) $ (Free (a,_)) $ T) = (a,T);
+
+fun vars_tr (Const ("_idts", _) $ idt $ vars) = var_tr idt :: vars_tr vars
+  | vars_tr t = [var_tr t]
+
+in
 fun hoare_vars_tr [vars, pre, prg, post] =
       let val xs = vars_tr vars
       in Syntax.const "Valid" $
-           assn_tr pre xs $ com_tr prg xs $ assn_tr post xs
+         assn_tr pre xs $ com_tr prg xs $ assn_tr post xs
       end
   | hoare_vars_tr ts = raise TERM ("hoare_vars_tr", ts);
+end
 *}
 
 parse_translation {* [("@hoare_vars", hoare_vars_tr)] *}
