@@ -467,20 +467,6 @@ nodes do not carry any value. This distinction is modeled with the help
 of the predefined datatype \isa{option} (see {\S}\ref{sec:option}).
 \input{Trie/document/Trie.tex}
 
-\begin{exercise}
-  Write an improved version of \isa{update} that does not suffer from the
-  space leak in the version above. Prove the main theorem for your improved
-  \isa{update}.
-\end{exercise}
-
-\begin{exercise}
-  Write a function to \emph{delete} entries from a trie. An easy solution is
-  a clever modification of \isa{update} which allows both insertion and
-  deletion with a single function.  Prove (a modified version of) the main
-  theorem above. Optimize you function such that it shrinks tries after
-  deletion, if possible.
-\end{exercise}
-
 \section{Total Recursive Functions}
 \label{sec:recdef}
 \index{*recdef|(}
