@@ -90,8 +90,15 @@ fun mk_eq th = case concl_of th of
   | _ $ (Const("Not",_)$_)      => th RS iff_reflection_F
   | _                           => th RS iff_reflection_T;
 
-fun mk_meta_cong rl = standard (mk_meta_eq rl); 
-(*FIXME: how about the premises?*)
+(*Replace premises x=y, X<->Y by X==Y*)
+val mk_meta_prems = 
+    rule_by_tactic 
+      (REPEAT_FIRST (resolve_tac [meta_eq_to_obj_eq, def_imp_iff]));
+
+fun mk_meta_cong rl =
+  standard(mk_meta_eq (mk_meta_prems rl))
+  handle THM _ =>
+  error("Premises and conclusion of congruence rules must use =-equality or <->");
 
 val mksimps_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
@@ -209,11 +216,6 @@ int_prove "all_conj_distrib"
     "(ALL x. P(x) & Q(x)) <-> ((ALL x. P(x)) & (ALL x. Q(x)))";
 
 
-(*Used in ZF, perhaps elsewhere?*)
-val meta_eq_to_obj_eq = prove_goal IFOL.thy "x==y ==> x=y"
-  (fn [prem] => [rewtac prem, rtac refl 1]);
-
-
 (** make simplification procedures for quantifier elimination **)
 structure Quantifier1 = Quantifier1Fun(
 struct
@@ -307,11 +309,11 @@ val meta_simps =
     True_implies_equals];  (* prune asms `True' *)
 
 val IFOL_simps =
-   [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
+    [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
     imp_simps @ iff_simps @ quant_simps;
 
 val notFalseI = int_prove_fun "~False";
-val triv_rls = [TrueI,refl,iff_refl,notFalseI];
+val triv_rls = [TrueI,refl,reflexive_thm,iff_refl,notFalseI];
 
 fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls@prems),
 				 atac, etac FalseE];
