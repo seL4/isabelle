@@ -643,7 +643,7 @@ fun setup_goal opt_block prepp autofix kind after_qed names raw_propp state =
       |> map_context_result (fn ctxt => prepp (ctxt, raw_propp));
 
     val props = flat propss;
-    val cprop = Thm.cterm_of (sign_of state') (foldr1 Logic.mk_conjunction props);
+    val cprop = Thm.cterm_of (sign_of state') (Logic.mk_conjunction_list props);
     val goal = Drule.mk_triv_goal cprop;
 
     val tvars = foldr Term.add_term_tvars (props, []);
