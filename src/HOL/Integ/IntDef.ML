@@ -52,7 +52,9 @@ by (Fast_tac 1);
 qed "intrel_iff";
 
 Goal "(x,x): intrel";
-by (stac surjective_pairing 1 THEN rtac (refl RS intrelI) 1);
+by (pair_tac "x" 1);
+by (rtac intrelI 1);
+by (rtac refl 1);
 qed "intrel_refl";
 
 Goalw [equiv_def, refl_def, sym_def, trans_def]
