@@ -9,8 +9,7 @@ theory HOL/Numeral.
 
 signature NUMERAL_SYNTAX =
 sig
-  val dest_bin : term -> int
-  val setup    : (theory -> theory) list
+  val setup: (theory -> theory) list
 end;
 
 structure NumeralSyntax: NUMERAL_SYNTAX =
