@@ -2856,6 +2856,37 @@ each is specified by a list of identifiers.
 \end{itemize}
 
 
+\subsection{*Monotonicity theorems}
+
+Each theory contains a default set of theorems that are used in monotonicity
+proofs. New rules can be added to this set via the \texttt{mono} attribute.
+Theory \texttt{Inductive} shows how this is done. In general, the following
+monotonicity theorems may be added:
+\begin{itemize}
+\item Theorems of the form $A\subseteq B\Imp M(A)\subseteq M(B)$, for proving
+  monotonicity of inductive definitions whose introduction rules have premises
+  involving terms such as $t\in M(R@i)$.
+\item Monotonicity theorems for logical operators, which are of the general form
+  $\List{\cdots \rightarrow \cdots;~\ldots;~\cdots \rightarrow \cdots} \Imp
+    \cdots \rightarrow \cdots$.
+  For example, in the case of the operator $\vee$, the corresponding theorem is
+  \[
+  \infer{P@1 \vee P@2 \rightarrow Q@1 \vee Q@2}
+    {P@1 \rightarrow Q@1 & P@2 \rightarrow Q@2}
+  \]
+\item De Morgan style equations for reasoning about the ``polarity'' of expressions, e.g.
+  \[
+  (\neg \neg P) ~=~ P \qquad\qquad
+  (\neg (P \wedge Q)) ~=~ (\neg P \vee \neg Q)
+  \]
+\item Equations for reducing complex operators to more primitive ones whose
+  monotonicity can easily be proved, e.g.
+  \[
+  (P \rightarrow Q) ~=~ (\neg P \vee Q) \qquad\qquad
+  \mathtt{Ball}~A~P ~\equiv~ \forall x.~x \in A \rightarrow P~x
+  \]
+\end{itemize}
+
 \subsection{Example of an inductive definition}
 Two declarations, included in a theory file, define the finite powerset
 operator.  First we declare the constant~\texttt{Fin}.  Then we declare it
@@ -2873,20 +2904,18 @@ and also individually as \texttt{Fin.emptyI} and \texttt{Fin.consI}.  The induct
 rule is \texttt{Fin.induct}.
 
 For another example, here is a theory file defining the accessible
-part of a relation.  The main thing to note is the use of~\texttt{Pow} in
-the sole introduction rule, and the corresponding mention of the rule
-\verb|Pow_mono| in the \texttt{monos} list.  The paper
+part of a relation.  The paper
 \cite{paulson-CADE} discusses a \ZF\ version of this example in more
 detail.
 \begin{ttbox}
-Acc = WF + 
-consts pred :: "['b, ('a * 'b)set] => 'a set"   (*Set of predecessors*)
-       acc  :: "('a * 'a)set => 'a set"         (*Accessible part*)
-defs   pred_def  "pred x r == {y. (y,x):r}"
+Acc = WF + Inductive +
+
+consts acc :: "('a * 'a)set => 'a set"   (* accessible part *)
+
 inductive "acc r"
   intrs
-     pred "pred a r: Pow(acc r) ==> a: acc r"
-  monos   Pow_mono
+    accI "ALL y. (y, x) : r --> y : acc r ==> x : acc r"
+
 end
 \end{ttbox}
 The Isabelle distribution contains many other inductive definitions.  Simple
