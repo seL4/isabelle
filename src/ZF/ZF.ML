@@ -411,7 +411,6 @@ qed_goal "not_emptyE" ZF.thy "[| A ~= 0;  !!x. x:A ==> R |] ==> R";
     swap_res_tac [minor] 1,
     assume_tac 1 ]);
 
-(*Can replace most uses by eq_cs (which is ZF_cs addSIs [equalityI])*)
 (*A claset that leaves <= formulae unchanged!*)
 val subset0_cs = FOL_cs
   addSIs [ballI, InterI, CollectI, PowI, empty_subsetI]
