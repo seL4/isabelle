@@ -1,9 +1,9 @@
-(*  Title:      HOL/UNITY/Update.thy
+(*  Title:      HOL/Update.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-Function updates: like the standard theory Map, but for ordinary functions
+Function updates: like theory Map, but for ordinary functions
 *)
 
 open Update;
