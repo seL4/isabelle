@@ -61,7 +61,7 @@ qed "mod_add_self1";
 
 Goal "!!n. 0<n ==> (m + k*n) mod n = m mod n";
 by (induct_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps (add_ac @ [mod_add_self1]))));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps add_ac @ [mod_add_self1])));
 qed "mod_mult_self1";
 
 Goal "0<n ==> (m + n*k) mod n = m mod n";
@@ -126,9 +126,8 @@ Goal "0<n ==> (m div n)*n + m mod n = m";
 by (res_inst_tac [("n","m")] less_induct 1);
 by (stac mod_if 1);
 by (ALLGOALS (asm_simp_tac 
-	      (simpset() addsimps ([add_assoc] @
-				   [div_less, div_geq,
-				    add_diff_inverse, diff_less]))));
+	      (simpset() addsimps [add_assoc, div_less, div_geq,
+				   add_diff_inverse, diff_less])));
 qed "mod_div_equality";
 
 (* a simple rearrangement of mod_div_equality: *)
@@ -161,7 +160,7 @@ qed "div_add_self1";
 
 Goal "!!n. 0<n ==> (m + k*n) div n = k + m div n";
 by (induct_tac "k" 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps (add_ac @ [div_add_self1]))));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps add_ac @ [div_add_self1])));
 qed "div_mult_self1";
 
 Goal "0<n ==> (m + n*k) div n = k + m div n";

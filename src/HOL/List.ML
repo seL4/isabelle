@@ -900,7 +900,7 @@ Addsimps [length_upt];
 Goal "i+k < j --> [i..j(] ! k = i+k";
 by(induct_tac "j" 1);
  by(Simp_tac 1);
-by(asm_simp_tac (simpset() addsimps ([nth_append,less_diff_conv]@add_ac)
+by(asm_simp_tac (simpset() addsimps [nth_append,less_diff_conv]@add_ac
                            addSolver cut_trans_tac) 1);
 br conjI 1;
  by(Clarify_tac 1);

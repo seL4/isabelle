@@ -93,7 +93,7 @@ val major::prems = Goal
 by (rtac (major RS finite_induct) 1);
 by (stac Diff_insert 2);
 by (ALLGOALS (asm_simp_tac
-                (simpset() addsimps (prems@[Diff_subset RS finite_subset]))));
+                (simpset() addsimps prems@[Diff_subset RS finite_subset])));
 val lemma = result();
 
 val prems = Goal 

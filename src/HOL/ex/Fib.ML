@@ -65,9 +65,9 @@ by (ALLGOALS  (*using [fib_Suc_Suc] here results in a longer proof!*)
 				       mod_less, mod_Suc])));
 by (ALLGOALS
     (asm_full_simp_tac
-     (simpset() addsimps ([] @ add_ac @ mult_ac @
+     (simpset() addsimps add_ac @ mult_ac @
 			 [fib_Suc_Suc, add_mult_distrib, add_mult_distrib2, 
-			  mod_less, mod_Suc]))));
+			  mod_less, mod_Suc])));
 qed "fib_Cassini";
 
 

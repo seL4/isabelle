@@ -202,8 +202,8 @@ bind_thm ("add_leE", result() RS conjE);
 Goal "!!k:: nat. [| k<l;  m+l = k+n |] ==> m<n";
 by (auto_tac (claset(),
 	      simpset() delsimps [add_Suc_right]
-	                addsimps ([less_iff_Suc_add,
-				   add_Suc_right RS sym] @ add_ac)));
+	                addsimps [less_iff_Suc_add,
+				  add_Suc_right RS sym] @ add_ac));
 qed "less_add_eq_less";
 
 
@@ -378,7 +378,7 @@ Addsimps [diff_Suc_less];
 Goal "i<n ==> n - Suc i < n - i";
 by (exhaust_tac "n" 1);
 by (auto_tac (claset(),
-	      simpset() addsimps ([Suc_diff_le]@le_simps)));
+	      simpset() addsimps [Suc_diff_le]@le_simps));
 qed "diff_Suc_less_diff";
 
 Goal "m - n <= Suc m - n";
@@ -471,7 +471,7 @@ Addsimps [diff_cancel];
 
 Goal "(m+k) - (n+k) = m - (n::nat)";
 val add_commute_k = read_instantiate [("n","k")] add_commute;
-by (asm_simp_tac (simpset() addsimps ([add_commute_k])) 1);
+by (asm_simp_tac (simpset() addsimps [add_commute_k]) 1);
 qed "diff_cancel2";
 Addsimps [diff_cancel2];
 
