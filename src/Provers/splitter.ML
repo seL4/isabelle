@@ -9,7 +9,7 @@ Use:
 
 val split_tac = mk_case_split_tac iffD;
 
-by(case_split_tac splits i);
+by(split_tac splits i);
 
 where splits = [P(elim(...)) == rhs, ...]
       iffD  = [| P <-> Q; Q |] ==> P (* is called iffD2 in HOL *)
@@ -283,10 +283,60 @@ fun split_tac [] i = no_tac
 
 in split_tac end;
 
+
+fun mk_case_split_prem_tac split_tac disjE conjE exE contrapos 
+			   contrapos2 notnotD = 
+let
+
+(*****************************************************************************
+   The split-tactic for premises
+   
+   splits : list of split-theorems to be tried
+   i      : number of subgoal the tactic should be applied to
+*****************************************************************************)
+
+fun split_prem_tac []     = K no_tac
+  | split_prem_tac splits = 
+  let fun const thm =
+            (case concl_of thm of Const ("Trueprop",_)$
+				 (Const ("op =", _)$(Var _$t)$_) =>
+               (case strip_comb t of (Const(a,_),_) => a
+                | _ => error("Wrong format for split rule"))
+             | _ =>    error("Wrong format for split rule"))
+      val cname_list = map const splits;
+      fun is_case (a,_) = a mem cname_list;
+      fun tac (t,i) = 
+	  let val n = find_index (exists_Const is_case) 
+				 (Logic.strip_assums_hyp t);
+	      fun first_prem_is_disj (Const ("==>", _) $ (Const ("Trueprop", _)
+				 $ (Const ("op |", _) $ _ $ _ )) $ _ ) = true
+	      |   first_prem_is_disj _ = false;
+	      fun flat_prems_tac j = SUBGOAL (fn (t,i) => 
+				   (if first_prem_is_disj t
+				    then EVERY[etac disjE i, rotate_tac ~1 i,
+					       rotate_tac ~1  (i+1),
+					       flat_prems_tac (i+1)]
+				    else all_tac) 
+				   THEN REPEAT (eresolve_tac [conjE,exE] i)
+				   THEN REPEAT (dresolve_tac [notnotD]   i)) j;
+	  in if n<0 then no_tac else DETERM (EVERY'
+		[rotate_tac n, etac contrapos2,
+		 split_tac splits, 
+		 rotate_tac ~1, etac contrapos, rotate_tac ~1, 
+		 SELECT_GOAL (flat_prems_tac 1)] i)
+	  end;
+  in SUBGOAL tac
+  end;
+
+in split_prem_tac end;
+
+
 in
 
 fun mk_case_split_tac iffD = mk_case_split_tac_2 iffD (op <=) ;
 
 fun mk_case_split_inside_tac iffD = mk_case_split_tac_2 iffD (op >=) ;
+
+val mk_case_split_prem_tac = mk_case_split_prem_tac;
 
 end;

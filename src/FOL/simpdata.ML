@@ -183,6 +183,8 @@ in
 fun split_inside_tac splits = mktac (map mk_meta_eq splits)
 end;
 
+val split_prem_tac = mk_case_split_prem_tac split_tac disjE conjE exE contrapos
+					    contrapos2 notnotD;
 
 (*** Standard simpsets ***)
 
