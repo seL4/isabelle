@@ -96,26 +96,25 @@ sig
   val corollaryK        : string
   val internalK         : string
   val kind_internal     : 'a attribute
-  val has_internal	: tag list -> bool
+  val has_internal      : tag list -> bool
   val close_derivation  : thm -> thm
   val compose_single    : thm * int * thm -> thm
-  val add_rules		: thm list -> thm list -> thm list
-  val del_rules		: thm list -> thm list -> thm list
-  val merge_rules	: thm list * thm list -> thm list
-  val norm_hhf_eq	: thm
+  val add_rules         : thm list -> thm list -> thm list
+  val del_rules         : thm list -> thm list -> thm list
+  val merge_rules       : thm list * thm list -> thm list
+  val norm_hhf_eq       : thm
   val triv_goal         : thm
   val rev_triv_goal     : thm
+  val implies_intr_goals: cterm list -> thm -> thm
   val freeze_all        : thm -> thm
   val mk_triv_goal      : cterm -> thm
-  val mk_cgoal          : cterm -> cterm
-  val assume_goal       : cterm -> thm
   val tvars_of_terms    : term list -> (indexname * sort) list
   val vars_of_terms     : term list -> (indexname * typ) list
   val tvars_of          : thm -> (indexname * sort) list
   val vars_of           : thm -> (indexname * typ) list
   val unvarifyT         : thm -> thm
   val unvarify          : thm -> thm
-  val tvars_intr_list	: string list -> thm -> thm
+  val tvars_intr_list   : string list -> thm -> thm
 end;
 
 structure Drule: DRULE =
@@ -313,7 +312,7 @@ fun forall_elim_vars_safe th =
 (*Specialization over a list of cterms*)
 fun forall_elim_list cts th = foldr (uncurry forall_elim) (rev cts, th);
 
-(* maps [A1,...,An], B   to   [| A1;...;An |] ==> B  *)
+(* maps A1,...,An |- B   to   [| A1;...;An |] ==> B  *)
 fun implies_intr_list cAs th = foldr (uncurry implies_intr) (cAs,th);
 
 (* maps [| A1;...;An |] ==> B and [A1,...,An]   to   B *)
@@ -392,7 +391,7 @@ val rotate_prems = permute_prems 0;
    Any remaining trailing positions are left unchanged. *)
 val rearrange_prems = let
   fun rearr new []      thm = thm
-  |   rearr new (p::ps) thm = rearr (new+1) 
+  |   rearr new (p::ps) thm = rearr (new+1)
      (map (fn q => if new<=q andalso q<p then q+1 else q) ps)
      (permute_prems (new+1) (new-p) (permute_prems new (p-new) thm))
   in rearr 0 end;
@@ -751,6 +750,10 @@ end;
 
 val mk_cgoal = Thm.capply (Thm.cterm_of proto_sign Logic.goal_const);
 fun assume_goal ct = Thm.assume (mk_cgoal ct) RS rev_triv_goal;
+
+fun implies_intr_goals cprops thm =
+  implies_elim_list (implies_intr_list cprops thm) (map assume_goal cprops)
+  |> implies_intr_list (map mk_cgoal cprops);
 
 
 
