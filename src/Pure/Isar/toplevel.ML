@@ -9,11 +9,14 @@ signature TOPLEVEL =
 sig
   datatype node = Theory of theory | Proof of ProofHistory.T
   type state
-  exception UNDEF
   val toplevel: state
+  val prompt_state_default: state -> string
+  val prompt_state_fn: (state -> string) ref
   val print_state_default: state -> unit
   val print_state_fn: (state -> unit) ref
   val print_state: state -> unit
+  exception UNDEF
+  val node_history_of: state -> node History.T
   val node_of: state -> node
   val node_case: (theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
   val theory_of: state -> theory
@@ -23,24 +26,29 @@ sig
   exception TERMINATE
   exception RESTART
   exception BREAK of state
+  val undo_limit: bool -> int option
   val empty: transition
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
   val interactive: bool -> transition -> transition
   val print: transition -> transition
   val reset: transition -> transition
-  val init: (state -> node) -> (node -> unit) -> transition -> transition
-  val keep: (state -> unit) -> transition -> transition
+  val init: (state -> node) -> (node -> unit) -> (node -> unit) -> transition -> transition
   val exit: transition -> transition
+  val kill: transition -> transition
+  val keep: (state -> unit) -> transition -> transition
+  val history: (node History.T -> node History.T) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
-  val init_theory: (unit -> theory) -> (theory -> unit) -> transition -> transition
+  val init_theory: (unit -> theory) -> (theory -> unit) -> (theory -> unit)
+    -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
+  val theory_to_proof: (bool -> theory -> ProofHistory.T) -> transition -> transition
   val proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
-  val theory_to_proof: (theory -> ProofHistory.T) -> transition -> transition
+  val proof': (bool -> ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val proof_to_theory: (ProofHistory.T -> theory) -> transition -> transition
-  type isar
   val trace: bool ref
   val exn_message: exn -> string
+  type isar
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
   val excursion: transition list -> unit
   val set_state: state -> unit
@@ -50,7 +58,7 @@ sig
   val loop: isar -> unit
 end;
 
-structure Toplevel: TOPLEVEL =
+structure Toplevel(*: TOPLEVEL *)=
 struct
 
 
@@ -62,6 +70,9 @@ datatype node =
   Theory of theory |
   Proof of ProofHistory.T;
 
+fun str_of_node (Theory _) = "in theory mode"
+  | str_of_node (Proof _) = "in proof mode";
+
 fun print_node (Theory thy) = Pretty.writeln (Pretty.block
       [Pretty.str "Theory:", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
         Pretty.str " =", Pretty.brk 1, Display.pretty_theory thy])
@@ -72,24 +83,29 @@ fun print_node (Theory thy) = Pretty.writeln (Pretty.block
 
 (* datatype state *)
 
-datatype state = State of (node * (node -> unit)) list;
-
-exception UNDEF;
+datatype state = State of (node History.T * ((node -> unit) * (node -> unit))) list;
 
 val toplevel = State [];
 fun append_states (State ns) (State ms) = State (ns @ ms);
 
 fun str_of_state (State []) = "at top level"
-  | str_of_state (State ((Theory _, _) :: _)) = "in theory mode"
-  | str_of_state (State ((Proof _, _) :: _)) = "in proof mode";
+  | str_of_state (State ((node, _) :: _)) = str_of_node (History.current node);
+
+
+(* prompt_state hook *)
+
+fun prompt_state_default (State nodes) =
+  let val len = length nodes
+  in (if len < 2 then "" else string_of_int len) ^ Source.default_prompt end;
+
+val prompt_state_fn = ref prompt_state_default;
+fun prompt_state state = ! prompt_state_fn state;
 
 
 (* print_state hook *)
 
 fun print_topnode (State []) = ()
-  | print_topnode (State [(node, _)]) = print_node node
-  | print_topnode (State ((node, _) :: nodes)) =
-      (writeln ("Stack size: " ^ string_of_int (length nodes)); print_node node);
+  | print_topnode (State ((node, _) :: _)) = print_node (History.current node);
 
 fun print_state_default state =
   let val ref (begin_state, end_state, _) = Goals.current_goals_markers in
@@ -104,8 +120,12 @@ fun print_state state = ! print_state_fn state;
 
 (* top node *)
 
-fun node_of (State []) = raise UNDEF
-  | node_of (State ((node, _) :: _)) = node;
+exception UNDEF;
+
+fun node_history_of (State []) = raise UNDEF
+  | node_history_of (State ((node, _) :: _)) = node;
+
+val node_of = History.current o node_history_of;
 
 fun node_case f g state =
   (case node_of state of
@@ -116,13 +136,6 @@ val theory_of = node_case I Proof.theory_of;
 val sign_of = Theory.sign_of o theory_of;
 val proof_of = node_case (fn _ => raise UNDEF) I;
 
-fun is_stale state =
-  Sign.is_stale (node_case Theory.sign_of Proof.sign_of state) handle UNDEF => false;
-
-fun backup (State ((Theory thy, exit) :: nodes)) =
-      State ((Theory (PureThy.backup thy), exit) :: nodes)
-  | backup state = state;
-
 
 
 (** toplevel transitions **)
@@ -131,28 +144,97 @@ exception TERMINATE;
 exception RESTART;
 exception BREAK of state;
 exception FAIL of exn * string;
+exception ROLLBACK of state * exn option;
+exception FAILURE of state * exn;
 
 
-(* datatype trans *)
+(* recovery from stale signatures *)
+
+local
+
+fun is_stale state = Sign.is_stale (sign_of state) handle UNDEF => false;
+
+fun checkpoint_node true (Theory thy) = Theory (PureThy.checkpoint thy)
+  | checkpoint_node _ node = node;
+
+fun copy_node true (Theory thy) = Theory (Theory.copy thy)
+  | copy_node _ node = node;
+
+in
+
+fun node_trans _ _ _ (State []) = raise UNDEF
+  | node_trans int hist f (State ((node, term) :: nodes)) =
+      let
+        fun mk_state nd = State ((nd, term) :: nodes);
+
+        val cont_node = History.map (checkpoint_node int) node;
+        val back_node = History.map (copy_node int) cont_node;
+
+        val trans = if hist then History.apply_copy (copy_node int) else History.map;
+        val (result, opt_exn) = (mk_state (transform_error (trans (f int)) cont_node), None)
+          handle exn => (mk_state cont_node, Some exn);
+      in
+        if is_stale result then raise ROLLBACK (mk_state back_node, opt_exn)
+        else (case opt_exn of None => result | Some exn => raise FAILURE (result, exn))
+      end;
+
+fun check_stale state =
+  if not (is_stale state) then ()
+  else warning "Stale signature encountered!  Should redo current theory from start.";
+
+end;
+
+
+(* primitive transitions *)
+
+(*Important note: recovery from stale signatures is provided only for
+  theory-level operations via MapCurrent and AppCurrent.  Other node
+  or state operations should not touch signatures at all.*)
 
 datatype trans =
-  Reset |
-  Init of (state -> node) * (node -> unit) |
-  Keep of (state -> unit) |
-  Exit |
-  MapCurrent of node -> node;
+  Reset |                                       (*empty toplevel*)
+  Init of (state -> node) * ((node -> unit) * (node -> unit)) |
+    (*push node; provide exit/kill operation*)
+  Exit |                                        (*pop node*)
+  Kill |                                        (*abort node*)
+  Keep of state -> unit |                       (*peek at state*)
+  History of node History.T -> node History.T | (*history operation (undo etc.)*)
+  MapCurrent of bool -> node -> node |          (*change node, bypassing history*)
+  AppCurrent of bool -> node -> node;           (*change node, recording history*)
 
-fun apply_trans Reset _ = State []
-  | apply_trans (Init (f, g)) (state as State nodes) = State ((f state, g) :: nodes)
-  | apply_trans (Keep f) state = (f state; state)
-  | apply_trans Exit (State []) = raise UNDEF
-  | apply_trans Exit (State ((node, g) :: nodes)) = (g node; State nodes)
-  | apply_trans (MapCurrent _) (State []) = raise UNDEF
-  | apply_trans (MapCurrent f) (State ((node, g) :: nodes)) = State ((f node, g) :: nodes);
+fun undo_limit int = if int then None else Some 0;
 
-fun apply_union [] _ = raise UNDEF
-  | apply_union (tr :: trs) state =
-      apply_trans tr state handle UNDEF => apply_union trs state;
+local
+
+fun apply_tr _ Reset _ = toplevel
+  | apply_tr int (Init (f, term)) (state as State nodes) =
+      State ((History.init (undo_limit int) (f state), term) :: nodes)
+  | apply_tr _ Exit (State []) = raise UNDEF
+  | apply_tr _ Exit (State ((node, (exit, _)):: nodes)) =
+      (exit (History.current node); State nodes)
+  | apply_tr _ Kill (State []) = raise UNDEF
+  | apply_tr _ Kill (State ((node, (_, kill)) :: nodes)) =
+      (kill (History.current node); State nodes)
+  | apply_tr _ (Keep f) state = (f state; state)
+  | apply_tr _ (History _) (State []) = raise UNDEF
+  | apply_tr _ (History f) (State ((node, term) :: nodes)) = State ((f node, term) :: nodes)
+  | apply_tr int (MapCurrent f) state = node_trans int false f state
+  | apply_tr int (AppCurrent f) state = node_trans int true f state;
+
+fun apply_union _ [] state = raise FAILURE (state, UNDEF)
+  | apply_union int (tr :: trs) state =
+      transform_error (apply_tr int tr) state
+        handle UNDEF => apply_union int trs state
+          | FAILURE (alt_state, UNDEF) => apply_union int trs alt_state
+          | exn as FAILURE _ => raise exn
+          | exn => raise FAILURE (state, exn);
+
+in
+
+fun apply_trans int trs state = (apply_union int trs state, None)
+  handle FAILURE (alt_state, exn) => (alt_state, Some exn) | exn => (state, Some exn);
+
+end;
 
 
 (* datatype transition *)
@@ -181,7 +263,7 @@ fun command_msg msg tr = msg ^ "command " ^ str_of_transition tr;
 fun at_command tr = command_msg "At " tr ^ ".";
 
 fun type_error tr state =
-  error (command_msg "Illegal application of " tr ^ " " ^ str_of_state state);
+  ERROR_MESSAGE (command_msg "Illegal application of " tr ^ " " ^ str_of_state state);
 
 
 (* modify transitions *)
@@ -205,30 +287,27 @@ fun add_trans tr = map_transition
 (* build transitions *)
 
 val reset = add_trans Reset;
-fun init f g = add_trans (Init (f, g));
-val keep = add_trans o Keep;
+fun init f exit kill = add_trans (Init (f, (exit, kill)));
 val exit = add_trans Exit;
+val kill = add_trans Kill;
+val keep = add_trans o Keep;
+val history = add_trans o History;
 val map_current = add_trans o MapCurrent;
+val app_current = add_trans o AppCurrent;
 
 fun imperative f = keep (fn _ => f ());
 
-fun init_theory f g =
-  init (fn _ => Theory (f ())) (fn Theory thy => g thy | _ => raise UNDEF);
+fun init_theory f exit kill =
+  init (fn _ => Theory (f ()))
+    (fn Theory thy => exit thy | _ => raise UNDEF)
+    (fn Theory thy => kill thy | _ => raise UNDEF);
 
-fun theory f = map_current (fn Theory thy => Theory (f thy) | _ => raise UNDEF);
-fun proof f = map_current (fn Proof prf => Proof (f prf) | _ => raise UNDEF);
-
-fun theory_to_proof f = map_current (fn Theory thy => Proof (f thy) | _ => raise UNDEF);
-fun proof_to_theory f = map_current (fn Proof prf => Theory (f prf) | _ => raise UNDEF);
-
-
-(* the Isar source of transitions *)
-
-type isar =
-  (transition, (transition option,
-    (OuterLex.token, (OuterLex.token,
-      Position.T * (Symbol.symbol, (string, unit) Source.source) Source.source)
-          Source.source) Source.source) Source.source) Source.source;
+fun theory f = app_current (fn _ => (fn Theory thy => Theory (f thy) | _ => raise UNDEF));
+fun theory_to_proof f =
+  app_current (fn int => (fn Theory thy => Proof (f int thy) | _ => raise UNDEF));
+fun proof' f = map_current (fn int => (fn Proof prf => Proof (f int prf) | _ => raise UNDEF));
+val proof = proof' o K;
+fun proof_to_theory f = map_current (fn _ => (fn Proof prf => Theory (f prf) | _ => raise UNDEF));
 
 
 
@@ -269,10 +348,19 @@ fun print_exn None = ()
   | print_exn (Some (exn, s)) = error_msg (cat_lines [exn_message exn, s]);
 
 
+(* the Isar source of transitions *)
+
+type isar =
+  (transition, (transition option,
+    (OuterLex.token, (OuterLex.token,
+      Position.T * (Symbol.symbol, (string, unit) Source.source) Source.source)
+          Source.source) Source.source) Source.source) Source.source;
+
+
 (* transform interrupt (non-polymorphic) *)
 
 fun transform_interrupt_state f x =
-  let val y = ref (None: state option);
+  let val y = ref (None: (state * exn option) option);
   in exhibit_interrupt (fn () => y := Some (f x)) (); the (! y) end;
 
 fun transform_interrupt_isar f x =
@@ -280,51 +368,34 @@ fun transform_interrupt_isar f x =
   in exhibit_interrupt (fn () => y := Some (f x)) (); the (! y) end;
 
 
-(* the dreaded stale signatures *)
-
-fun check_stale state =
-  if not (is_stale state) then ()
-  else warning "Stale signature encountered!  Should redo current theory from start.";
-
-
 (* apply transitions *)
 
 local
 
-fun ap int (tr as Transition {trans, int_only, print, ...}) state =
+fun app int (tr as Transition {trans, int_only, print, ...}) state =
   let
     val _ =
       if int orelse not int_only then ()
       else warning (command_msg "Executing interactive-only " tr);
-    val state' =
-      (if ! trace then (writeln (command_msg "" tr); timeap (apply_union trans) state)
-        else apply_union trans state)
-      handle UNDEF => type_error tr state;
-    val _ = if int andalso print then print_state state' else ();
-  in state' end;
-
-fun app int tr state =
-  let
-    val back_state = backup state;
-    fun rollback st =
-      if not (is_stale st) then st
-      else (warning (command_msg "Rollback after " tr); back_state);
-  in
-    (rollback (transform_interrupt_state (transform_error (ap int tr)) state), None)
-      handle exn => (rollback state, Some exn)
-  end;
+    val (result, opt_exn) =
+      (if ! trace then (writeln (command_msg "" tr); timeap) else I) (apply_trans int trans) state;
+    val _ = if int andalso print then print_state result else ();
+  in (result, apsome (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
 
 in
 
-fun apply int tr state =
-  (case app int tr state of
-    (state', None) => Some (state', None)
-  | (_, Some TERMINATE) => None
+fun apply int tr st =
+  (case transform_interrupt_state (app int tr) st of
+    (_, Some TERMINATE) => None
   | (_, Some RESTART) => Some (toplevel, None)
   | (state', Some (FAIL (exn_info as (BREAK break_state, _)))) =>
       Some (append_states break_state state', Some exn_info)
   | (state', Some (FAIL exn_info)) => Some (state', Some exn_info)
-  | (state', Some exn) => Some (state', Some (exn, at_command tr)));
+  | (_, Some (ROLLBACK (back_state, opt_exn))) =>
+      (warning (command_msg "Rollback after " tr);
+        Some (back_state, apsome (fn exn => (exn, at_command tr)) opt_exn))
+  | (state', Some exn) => Some (state', Some (exn, at_command tr))
+  | (state', None) => Some (state', None));
 
 end;
 
@@ -355,7 +426,7 @@ end;
 
 (* the global state reference *)
 
-val global_state = ref (State [], None: (exn * string) option);
+val global_state = ref (toplevel, None: (exn * string) option);
 
 fun set_state state = global_state := (state, None);
 fun get_state () = fst (! global_state);
@@ -379,7 +450,7 @@ fun get_interruptible src =
     handle Interrupt => None;
 
 fun raw_loop src =
-  (case get_interruptible src of
+  (case get_interruptible (Source.set_prompt (prompt_state (get_state ())) src) of
     None => (writeln "\nInterrupt (read)."; raw_loop src)
   | Some None => ()
   | Some (Some (tr, src')) => if >> tr then raw_loop src' else ());
