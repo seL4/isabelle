@@ -20,6 +20,7 @@ signature DISPLAY =
   val print_goals	: int -> thm -> unit
   val print_syntax	: theory -> unit
   val print_theory	: theory -> unit
+  val print_data	: theory -> string -> unit
   val print_thm		: thm -> unit
   val prth		: thm -> thm
   val prthq		: thm Sequence.seq -> thm Sequence.seq
@@ -98,6 +99,7 @@ val print_cterm = writeln o string_of_cterm;
 val pprint_theory = Sign.pprint_sg o sign_of;
 
 val print_syntax = Syntax.print_syntax o syn_of;
+val print_data = Sign.print_data o sign_of;
 
 fun print_thy thy =
   let
@@ -109,8 +111,7 @@ fun print_thy thy =
       Pretty.quote (Sign.pretty_term sign t)];
   in
     Pretty.writeln (Pretty.big_list "additional axioms:" (map prt_axm axioms));
-    Pretty.writeln (Pretty.strs ("oracles:" :: oras));
-    Sign.print_data sign
+    Pretty.writeln (Pretty.strs ("oracles:" :: oras))
   end;
 
 fun print_theory thy = (Sign.print_sg (sign_of thy); print_thy thy);
