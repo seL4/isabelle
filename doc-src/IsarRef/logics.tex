@@ -228,18 +228,16 @@ HOL feasible:
 \medskip
 
 In Isabelle/HOL record types have to be defined explicitly, fixing their field
-names and types, and their (optional) parent record (see
-{\S}\ref{sec:hol-record-def}).  Afterwards, records may be formed using above
-syntax, while obeying the canonical order of fields as given by their
-declaration.  The record package provides several standard operations like
-selectors and updates (see {\S}\ref{sec:hol-record-ops}).  The common setup
-for various generic proof tools enable succinct reasoning patterns (see
-{\S}\ref{sec:hol-record-thms}).  See also the Isabelle/HOL tutorial
-\cite{isabelle-hol-book} for further instructions on using records in
+names and types, and their (optional) parent record.  Afterwards, records may
+be formed using above syntax, while obeying the canonical order of fields as
+given by their declaration.  The record package provides several standard
+operations like selectors and updates.  The common setup for various generic
+proof tools enable succinct reasoning patterns.  See also the Isabelle/HOL
+tutorial \cite{isabelle-hol-book} for further instructions on using records in
 practice.
 
 
-\subsubsection{Record specifications}\label{sec:hol-record-def}
+\subsubsection{Record specifications}
 
 \indexisarcmdof{HOL}{record}
 \begin{matharray}{rcl}
@@ -275,7 +273,7 @@ practice.
 
 \end{descr}
 
-\subsubsection{Record operations}\label{sec:hol-record-ops}
+\subsubsection{Record operations}
 
 Any record definition of the form presented above produces certain standard
 operations.  Selectors and updates are provided for any field, including the
@@ -343,7 +341,7 @@ $truncate$ restricts a record scheme to a fixed record.
 \noindent Note that $t{\dtt}make$ and $t{\dtt}fields$ actually coincide for root records.
 
 
-\subsubsection{Derived rules and proof tools}\label{sec:hol-record-thms}
+\subsubsection{Derived rules and proof tools}
 
 The record package proves several results internally, declaring these facts to
 appropriate proof tools.  This enables users to reason about record structures
@@ -425,9 +423,8 @@ See \cite{isabelle-HOL} for more details on datatypes, but beware of the
 old-style theory syntax being used there!  Apart from proper proof methods for
 case-analysis and induction, there are also emulations of ML tactics
 \texttt{case_tac} and \texttt{induct_tac} available, see
-\S\ref{sec:hol-induct-tac} or \S\ref{sec:zf-induct-tac}; these admit to refer
-directly to the internal structure of subgoals (including internally bound
-parameters).
+\S\ref{sec:hol-induct-tac}; these admit to refer directly to the internal
+structure of subgoals (including internally bound parameters).
 
 
 \subsection{Recursive functions}\label{sec:recursion}
@@ -858,7 +855,7 @@ HOL, but note that this covers the old-style theory format.
 \end{rail}
 
 
-\subsubsection{Cases and induction: emulating tactic scripts}\label{sec:zf-induct-tac}
+\subsubsection{Cases and induction: emulating tactic scripts}
 
 The following important tactical tools of Isabelle/ZF have been ported to
 Isar.  These should be never used in proper proof texts!

@@ -18,7 +18,7 @@ NEWS of the distribution for more details).
     Isabelle2002 is the official version to go along with that book
     (by Tobias Nipkow, Larry Paulson, Markus Wenzel).
 
-  * Pure: explicit proof terms for all internal inferences:
+  * Pure: explicit proof terms for all internal inferences;
     object-logics, proof tools etc. will benefit automatically
     (by Stefan Berghofer).
 
@@ -27,28 +27,30 @@ NEWS of the distribution for more details).
     operations, and type-inference for structured specifications
     (by Markus Wenzel).
 
-  * Pure/Isar: streamlined induction proof patterns
+  * Pure/Isar: streamlined cases/induction proof patterns
     (by Markus Wenzel).
 
   * Pure/HOL: infrastructure for generating functional and relational
-    code, using the ML run-time environment (by Stefan Berghofer).
+    code, using the ML run-time environment
+    (by Stefan Berghofer).
 
-  * HOL/library: numerals on all number types; several
-    improvements of tuple and record types; new definite description
-    operator; keep Hilbert's epsilon (Axiom of Choice) out of basic theories.
+  * HOL/library: numerals on all number types; several improvements of
+    tuple and record types; new definite description operator; keep
+    Hilbert's epsilon (Axiom of Choice) out of basic theories
+    (by Stefan Berghofer, Larry Paulson, Markus Wenzel).
 
   * HOL/Bali: large application concerning formal treatment of Java.
     (by David von Oheimb and Norbert Schirmer).
 
   * HOL/HoareParallel: large application concerning verification of
     parallel imperative programs (Owicki-Gries method, Rely-Guarantee
-    method, examples of garbage collection, mutual exclusion, etc.)
+    method, examples of garbage collection, mutual exclusion)
     (by Leonor Prensa Nieto).
 
   * HOL/GroupTheory: group theory examples including Sylow's theorem
-    (by Florian Kammüller).
+    (by Florian Kammueller).
 
-  * HOL/IMP: new proofs in Isar format
+  * HOL/IMP: several new proofs in Isar format
     (by Gerwin Klein).
 
   * HOL/MicroJava: exception handling on the bytecode level
@@ -61,10 +63,8 @@ NEWS of the distribution for more details).
     (by Markus Wenzel).
 
   * System: support for Poly/ML 4.1.1 and PolyML/4.1.2, admitting
-    larger heap size of applications.
-
-  * System: support for MacOS X (for Poly/ML and SML/NJ).
-
+    larger heap size of applications; support for MacOS X (Poly/ML and
+    SML/NJ).
 
 You may get Isabelle2002 from any of the following mirror sites:
 

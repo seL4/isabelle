@@ -230,8 +230,8 @@ shall refer to (optional) facts indicated for forward chaining.
   \quad \PROOF{succeed} \\
   \qquad \FIX{thesis} \\
   \qquad \ASSUME{that~[intro?]}{\All{\vec x} \vec\phi \Imp thesis} \\
-  \qquad \SHOW{}{thesis} \\
-  \quad\qquad \APPLY{insert~that} \\
+  \qquad \THUS{}{thesis} \\
+  \quad\qquad \APPLY{-} \\
   \quad\qquad \USING{\vec b}~~\langle proof\rangle \\
   \quad \QED{} \\
   \quad \FIX{\vec x}~\ASSUMENAME^\ast~a\colon~\vec\phi \\
