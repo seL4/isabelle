@@ -46,8 +46,9 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/Arith/abel_cancel.ML \
   Calculation.thy Datatype.thy Divides.ML Divides.thy Finite.ML \
   Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy HOL.ML HOL.thy \
   Inductive.thy Integ/Bin.ML Integ/Bin.thy Integ/Equiv.ML \
-  Integ/Equiv.thy Integ/IntDef.ML Integ/IntDef.thy Integ/Int.ML \
-  Integ/Int.thy Integ/simproc.ML Lfp.ML Lfp.thy List.ML List.thy \
+  Integ/Equiv.thy Integ/IntDef.ML Integ/IntDef.thy \
+  Integ/Int.ML Integ/Int.thy Integ/IntDiv.ML Integ/IntDiv.thy \
+  Integ/simproc.ML Lfp.ML Lfp.thy List.ML List.thy \
   Main.thy Map.ML Map.thy Nat.ML Nat.thy NatDef.ML NatDef.thy \
   Numeral.thy Option.ML Option.thy Ord.ML Ord.thy Power.ML Power.thy \
   Prod.ML Prod.thy ROOT.ML Recdef.thy Record.thy RelPow.ML RelPow.thy \
