@@ -13,8 +13,7 @@ sig
   val merge: T * T -> T
   val prep_ext: T -> T
   val kinds: T -> string list
-  val init: T -> string -> exn -> (exn -> exn) -> (exn * exn -> exn)
-    -> (string -> exn -> unit) -> T
+  val init: T -> string -> exn -> (exn -> exn) -> (exn * exn -> exn) -> (exn -> unit) -> T
   val get: T -> string -> exn
   val put: T -> string -> exn -> T
   val print: T -> string -> unit
@@ -31,7 +30,7 @@ datatype T = Data of
   (exn *				(*value*)
    ((exn -> exn) *			(*prepare extend method*)
     (exn * exn -> exn) *		(*merge and prepare extend method*)
-    (string -> exn -> unit)))		(*print method*)
+    (exn -> unit)))			(*print method*)
   Symtab.table;
 
 val empty = Data Symtab.null;
@@ -41,8 +40,8 @@ fun kinds (Data tab) = map fst (Symtab.dest tab);
 
 (* errors *)
 
-fun err_mergext kind =
-  error ("Error while extend / merge of " ^ quote kind ^ " data");
+fun err_method name kind =
+  error ("Error while invoking " ^ name ^ " method of " ^ quote kind ^ " data");
 
 fun err_dup_init kind =
   error ("Duplicate initialization of " ^ quote kind ^ " data");
@@ -66,9 +65,9 @@ fun merge (Data tab1, Data tab2) =
      | Some x => [(kind, x)]);
 
     fun merge_entries [(kind, (e, mths as (ext, _, _)))] =
-          (kind, (ext e handle exn => err_mergext kind, mths))
+          (kind, (ext e handle exn => err_method "prep_ext" kind, mths))
       | merge_entries [(kind, (e1, mths as (_, mrg, _))), (_, (e2, _))] =
-          (kind, (mrg (e1, e2) handle exn => (err_mergext kind; raise exn), mths))
+          (kind, (mrg (e1, e2) handle exn => (err_method "merge" kind; raise exn), mths))
       | merge_entries _ = sys_error "merge_entries";
 
     val data = map (fn k => merge_entries (entry data1 k @ entry data2 k)) kinds;
@@ -95,7 +94,8 @@ fun put (Data tab) kind e =
   Data (Symtab.update ((kind, (e, snd (lookup tab kind))), tab));
 
 fun print (Data tab) kind =
-  let val (e, (_, _, prt)) = lookup tab kind in prt kind e end;
+  let val (e, (_, _, prt)) = lookup tab kind
+  in prt e handle exn => err_method "print" kind end;
 
 
 end;
