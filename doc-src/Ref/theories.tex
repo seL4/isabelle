@@ -214,7 +214,7 @@ declaration is used.  See {\tt ZF/ex/llist.ML} for an example.
 
 \ttindex{use_thy} keeps track of all loaded theories and stores information
 about their files.  If it finds that the theory to be loaded was already read
-before, the following happens: First the theory's files are searched at the
+before, the following happens: first the theory's files are searched at the
 place they were located the last time they were read. If they are found, their
 time of last modification is compared to the internal data and {\tt use_thy}
 stops if they are equal. In case the files have been moved, {\tt use_thy}
@@ -252,12 +252,14 @@ three we have to create the file {\tt orphan.thy} containing the line
 \begin{ttbox}
 orphan = A
 \end{ttbox}
-and add {\tt "orphan"} to the list of $B$'s parents.  Creating {\tt
-  orphan.thy} is necessary because of two reasons: First it enables automatic
-loading of $orphan$'s parents and second it creates the \ML{}-object {\tt
-  orphan} that is needed by {\tt use_thy} (though it is not added to the base
-of theory $B$).  If {\tt orphan.ML} depended on no theory then {\tt Pure}
-would have been used instead of {\tt A}.
+and add {\tt "orphan"} to the list of $B$'s parents.
+% Creating {\tt orphan.thy} is necessary because of two reasons: First it
+% enables automatic loading of $orphan$'s parents and second it creates the
+% \ML{}-object {\tt orphan} that is needed by {\tt use_thy} (though it is not
+% added to the base of theory $B$).
+Creating {\tt orphan.thy} enables automatic loading of $orphan$'s parents.
+If {\tt orphan.ML} depended on no theory then {\tt Pure} should have been
+used instead of {\tt A}.
 
 For an extensive example of how this technique can be used to link over 30
 files and read them by just two {\tt use_thy} calls have a look at the ZF
@@ -283,15 +285,15 @@ take into consideration the way Poly/\ML{} handles them.  They are only saved
 together with the state if they were declared in the current database.  E.g.
 changes made to a reference variable declared in the $Pure$ database are $not$
 saved if made while using a child database.  Therefore a new {\tt Readthy}
-structure has to be declared by
+structure has to be created by
 \begin{ttbox}
 structure Readthy = ReadthyFUN (structure ThySyn = ThySyn);
 Readthy.loaded_thys := !loaded_thys;
 open Readthy;
 \end{ttbox}
 in every newly created database.  By copying the contents of the old reference
-variable loaded_thys the list of already loaded theories is preserved. Of
-course this is not necessary if no theories have been read yet.
+variable \verb$loaded_thys$ the list of already loaded theories is preserved.
+Of course this is not necessary if no theories have been read yet.
 
 
 \section{Basic operations on theories}
