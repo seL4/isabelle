@@ -121,6 +121,7 @@ sig
   val unvarifyT: thm -> thm
   val unvarify: thm -> thm
   val tvars_intr_list: string list -> thm -> thm
+  val remdups_rl: thm
   val conj_intr: thm -> thm -> thm
   val conj_intr_list: thm list -> thm
   val conj_elim: thm -> thm * thm
@@ -643,9 +644,15 @@ val equal_intr_rule =
   end;
 
 
+(* "[| PROP ?phi; PROP ?phi; PROP ?psi |] ==> PROP ?psi" *)
+
+val remdups_rl =
+  let val P = read_prop "PROP phi" and Q = read_prop "PROP psi";
+  in store_standard_thm_open "remdups_rl" (implies_intr_list [P, P, Q] (Thm.assume Q)) end;
+
+
 (*(PROP ?phi ==> (!!x. PROP ?psi(x))) == (!!x. PROP ?phi ==> PROP ?psi(x))
-  Rewrite rule for HHF normalization.
-*)
+  Rewrite rule for HHF normalization.*)
 
 val norm_hhf_eq =
   let
