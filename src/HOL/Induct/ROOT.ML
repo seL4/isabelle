@@ -1,9 +1,6 @@
-(*  Title:      HOL/Induct/ROOT
-    ID:         $Id$
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1997  University of Cambridge
+(*  Title:      HOL/Induct/ROOT.ML
 
-Examples of Inductive and Coinductive Definitions
+Examples of Inductive and Coinductive Definitions.
 *)
 
 time_use_thy "Perm";

@@ -13,7 +13,6 @@ end;
 signature THM_DEPS =
 sig
   include BASIC_THM_DEPS
-
   val enable : unit -> unit
   val disable : unit -> unit
 end;
@@ -24,19 +23,10 @@ struct
 fun enable () = Thm.keep_derivs := ThmDeriv;
 fun disable () = Thm.keep_derivs := MinDeriv;
 
-fun get_sess thy = if Theory.eq_thy (thy, ProtoPure.thy) then ["Pure"]
-  else
-    (case #session (Present.get_info thy) of
-        [x] => [x, "base"]
-      | xs => xs);
+fun is_internal (name, tags) = name = "" orelse Drule.has_internal tags;
 
-fun put_graph gr path =
-    File.write path (cat_lines (map (fn {name, ID, dir, unfold, path, parents} =>
-      "\"" ^ name ^ "\" \"" ^ ID ^ "\" \"" ^ dir ^ (if unfold then "\" + \"" else "\" \"") ^
-      path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;") gr));
-
-fun is_thm_axm (Theorem _) = true
-  | is_thm_axm (Axiom _) = true
+fun is_thm_axm (Theorem x) = not (is_internal x)
+  | is_thm_axm (Axiom x) = not (is_internal x)
   | is_thm_axm _ = false;
 
 fun get_name (Theorem (s, _)) = s
@@ -51,12 +41,16 @@ fun make_deps_graph ((gra, parents), Join (ta, ders)) =
       if is_none (Symtab.lookup (gra, name)) then
         let
           val (gra', parents') = foldl make_deps_graph ((gra, []), ders);
-          val prefx = rev (tl (rev (NameSpace.unpack name)));
-          val session = (case prefx of
-               (x :: _) => (case ThyInfo.lookup_theory x of
-                     (Some thy) => get_sess thy
-                   | None => [])
-             | _ => ["global"])
+          val prefx = #1 (Library.split_last (NameSpace.unpack name));
+          val session =
+            (case prefx of
+              (x :: _) =>
+                (case ThyInfo.lookup_theory x of
+                  Some thy =>
+                    let val name = #name (Present.get_info thy)
+                    in if name = "" then [] else [name] end 
+                | None => [])
+             | _ => ["global"]);
         in
           (Symtab.update ((name,
             {name = Sign.base_name name, ID = name,
@@ -72,14 +66,13 @@ fun thm_deps thms =
   let
     val _ = writeln "Generating graph ...";
     val gra = map snd (Symtab.dest (fst (foldl make_deps_graph ((Symtab.empty, []),
-      map (#der o rep_thm) thms))));
+      map (#der o Thm.rep_thm) thms))));
     val path = File.tmp_path (Path.unpack "theorems.graph");
-    val _ = put_graph gra path;
+    val _ = Present.write_graph gra path;
     val _ = system ("$ISATOOL browser -d " ^ Path.pack (Path.expand path) ^ " &");
   in () end;
 
 end;
 
 structure BasicThmDeps : BASIC_THM_DEPS = ThmDeps;
-
 open BasicThmDeps;
