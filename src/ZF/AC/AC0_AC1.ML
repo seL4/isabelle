@@ -19,5 +19,8 @@ by (fast_tac (FOL_cs addSEs [lemma1, subset_Pow_Union]) 1);
 qed "AC0_AC1";
 
 goalw thy AC_defs "!!Z. AC1 ==> AC0";
-by (fast_tac (FOL_cs addSIs [notI, singletonI] addSEs [notE, DiffE]) 1);
+by (deepen_tac ZF_cs 0 1);
+(*Large search space.  Faster proof by
+  by (fast_tac (FOL_cs addSIs [notI, singletonI] addSEs [notE, DiffE]) 1);
+*)
 qed "AC1_AC0";

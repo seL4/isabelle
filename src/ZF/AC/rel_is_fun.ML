@@ -29,7 +29,7 @@ by (rtac equalityI 1);
 by (fast_tac (ZF_cs addSIs [domain_mono]) 1);
 by (rtac subsetI 1);
 by (excluded_middle_tac "x = a" 1);
-by (REPEAT (fast_tac (ZF_cs addSIs [domainI] addSEs [domainE]) 1));
+by (REPEAT (fast_tac ZF_cs 1));
 val domain_Diff_eq_domain = result();
 
 goalw Cardinal.thy [function_def]

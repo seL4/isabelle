@@ -72,13 +72,13 @@ qed "AC2_AC1";
 (* ********************************************************************** *)
 
 goal thy "!!R. 0 ~: {R``{x}. x:domain(R)}";
-by (fast_tac (AC_cs addSEs [RepFunE, domainE, sym RS equals0D]) 1);
+by (fast_tac (AC_cs addEs [sym RS equals0D]) 1);
 val lemma = result();
 
 goalw thy AC_defs "!!Z. AC1 ==> AC4";
 by (REPEAT (resolve_tac [allI, impI] 1));
 by (REPEAT (eresolve_tac [allE, lemma RSN (2, impE), exE] 1));
-by (fast_tac (AC_cs addSIs [lam_type, RepFunI] addSEs [apply_type]) 1);
+by (fast_tac (AC_cs addSIs [lam_type] addSEs [apply_type]) 1);
 qed "AC1_AC4";
 
 
@@ -87,18 +87,18 @@ qed "AC1_AC4";
 (* ********************************************************************** *)
 
 goal thy "!!f. f:A->B ==> (UN z:A. {z}*f`z) <= A*Union(B)";
-by (fast_tac (ZF_cs addSDs [apply_type] addSEs [UN_E, singletonE]) 1);
+by (fast_tac (ZF_cs addSDs [apply_type]) 1);
 val lemma1 = result();
 
 goal thy "!!f. domain(UN z:A. {z}*f(z)) = {a:A. f(a)~=0}";
 by (fast_tac (ZF_cs addIs [equalityI]
                 addSEs [not_emptyE]
-                addSIs [singletonI, not_emptyI]
+                addSIs [not_emptyI]
                 addDs [range_type]) 1);
 val lemma2 = result();
 
 goal thy "!!f. x:A ==> (UN z:A. {z}*f(z))``{x} = f(x)";
-by (fast_tac (ZF_cs addIs [equalityI] addSIs [singletonI, UN_I] addSEs [singletonE, UN_E]) 1);
+by (fast_tac (ZF_cs addIs [equalityI]) 1);
 val lemma3 = result();
 
 goalw thy AC_defs "!!Z. AC4 ==> AC3";

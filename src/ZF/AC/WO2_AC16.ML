@@ -126,8 +126,7 @@ by (fast_tac (AC_cs addSEs [Ord_nat RSN (2, ltI) RS leI RS le_imp_subset RS
 val Finite_lesspoll_infinite_Ord = result();
 
 goal thy "!!x. x:X ==> Union(X) = Union(X-{x}) Un x";
-by (fast_tac (AC_cs addIs [equalityI] addSIs [singletonI]
-                addSEs [singletonE]) 1);
+by (fast_tac eq_cs 1);
 val Union_eq_Un_Diff = result();
 
 goal thy "!!n. n:nat ==> ALL X. X eqpoll n --> (ALL x:X. Finite(x))  \
@@ -185,8 +184,7 @@ val Union_lesspoll = result();
 (* ********************************************************************** *)
 
 goal thy "A Un {a} = cons(a, A)";
-by (fast_tac (AC_cs addSIs [singletonI]
-                addSEs [singletonE] addIs [equalityI]) 1);
+by (fast_tac eq_cs 1);
 val Un_sing_eq_cons = result();
 
 goal thy "!!A. A lepoll B ==> A Un {a} lepoll succ(B)";
@@ -236,7 +234,7 @@ by (eresolve_tac [lt_Ord RSN (2, Least_le) RS lt_trans1] 1
 val Least_eq_imp_ex = result();
 
 goal thy "!!A. [| A lepoll 1; a:A; b:A |] ==> a=b";
-by (fast_tac (AC_cs addSDs [lepoll_1_is_sing] addSEs [singletonE]) 1);
+by (fast_tac (AC_cs addSDs [lepoll_1_is_sing]) 1);
 val two_in_lepoll_1 = result();
 
 goal thy "!!a. [| ALL i<a. F(i)-(UN j<i. F(j)) lepoll 1; Limit(a) |]  \
@@ -366,8 +364,7 @@ val Int_empty = result();
 (* ********************************************************************** *)
 
 goal thy "!!A. [| A <= B; a : A; A - {a} = B - {a} |] ==> A = B";
-by (fast_tac (AC_cs addSEs [equalityE, singletonE]
-                addSIs [equalityI, singletonI]) 1);
+by (fast_tac (eq_cs addSEs [equalityE]) 1);
 val Diffs_eq_imp_eq = result();
 
 goal thy "!!A. m:nat ==> ALL A B. A <= B & m lepoll A & B lepoll m --> A=B";
@@ -383,7 +380,7 @@ by (forward_tac [lepoll_Diff_sing] 1);
 by (REPEAT (eresolve_tac [allE, impE] 1));
 by (rtac conjI 1);
 by (fast_tac AC_cs 2);
-by (fast_tac (AC_cs addSEs [singletonE] addSIs [singletonI]) 1);
+by (fast_tac (eq_cs addSEs [singletonE]) 1);
 by (etac Diffs_eq_imp_eq 1
         THEN REPEAT (assume_tac 1));
 val subset_imp_eq_lemma = result();
@@ -459,7 +456,7 @@ by (resolve_tac [right_inverse_bij RS ssubst] 1
 val ex_next_Ord = result();
 
 goal thy "!!Z. [| EX! Y. Y:Z & P(Y); ~P(W) |] ==> EX! Y. Y:Z Un {W} & P(Y)";
-by (fast_tac (AC_cs addSEs [singletonE]) 1);
+by (fast_tac ZF_cs 1);
 val ex1_in_Un_sing = result();
 
 (* ********************************************************************** *)

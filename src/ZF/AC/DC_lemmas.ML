@@ -50,10 +50,6 @@ by (dresolve_tac [minor RS subsetD RS SigmaD2 RS major] 1);
 by (fast_tac AC_cs 1);
 val range_subset_domain = result();
 
-goal thy "domain({<x,y>}) = {x}";
-by (fast_tac (AC_cs addSIs [equalityI, singletonI] addSEs [singletonE]) 1);
-val domain_sing = result();
-
 val prems = goal thy "!!k. k:n ==> k~=n";
 by (fast_tac (AC_cs addSEs [mem_irrefl]) 1);
 val mem_not_eq = result();

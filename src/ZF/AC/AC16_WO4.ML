@@ -440,8 +440,7 @@ val exists_proper_in_s_u = result();
 
 goal thy "{x:Pow(X). x lepoll 0} = {0}";
 by (fast_tac (AC_cs addSDs [lepoll_0_is_0]
-                addSIs [singletonI, lepoll_refl, equalityI]
-                addSEs [singletonE]) 1);
+                    addSIs [lepoll_refl, equalityI]) 1);
 val subsets_lepoll_0_eq_unit = result();
 
 goal thy "!!X. [| well_ord(X, R); ~Finite(X); n:nat |]  \

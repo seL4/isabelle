@@ -54,7 +54,7 @@ by (fast_tac (AC_cs addSIs [nat_0I RS UN_I, empty_fun]) 1);
 by (fast_tac (AC_cs addSIs [nat_1I RS UN_I, singleton_fun RS Pi_type]
         addss (AC_ss addsimps [[lepoll_refl, succI1] MRS lepoll_1_is_sing,
         apply_singleton_eq, image_0])) 1);
-by (asm_full_simp_tac (AC_ss addsimps [domain_0, restrict_0, domain_sing,
+by (asm_full_simp_tac (AC_ss addsimps [domain_0, restrict_0, domain_cons,
                 [lepoll_refl, succI1] MRS lepoll_1_is_sing]) 1);
 val lemma1_2 = result();
 
@@ -192,8 +192,8 @@ by (resolve_tac [lemma3_1 RS lemma3_2 RS ssubst] 1
 by (fast_tac (AC_cs addSEs [nat_succI]) 1);
 by (dresolve_tac [nat_succI RSN (4, lemma2)] 1
         THEN REPEAT (assume_tac 1));
-by (fast_tac (AC_cs addSEs [conjE, image_fun RS sym,
-        nat_into_Ord RSN (2, OrdmemD)]) 1);
+by (fast_tac (AC_cs addSEs [nat_into_Ord RSN (2, OrdmemD) RSN 
+			    (2, image_fun RS sym)]) 1);
 val lemma3 = result();
 
 goal thy "!!f. [| f:A->B; B<=C |] ==> f:A->C";
