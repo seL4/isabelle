@@ -19,10 +19,10 @@ types loc
 arities loc :: term
 
 datatype
-  aexp = N (nat)
-       | X (loc)
-       | Op1 (n2n, aexp)
-       | Op2 (n2n2n, aexp, aexp)
+  aexp = N nat
+       | X loc
+       | Op1 n2n aexp
+       | Op2 n2n2n aexp aexp
 
 (** Evaluation of arithmetic expressions **)
 consts  evala    :: "(aexp*state*nat)set"
@@ -44,10 +44,10 @@ types n2n2b = "[nat,nat] => bool"
 datatype
   bexp = true
        | false
-       | ROp  (n2n2b, aexp, aexp)
-       | noti (bexp)
-       | andi (bexp,bexp)	(infixl 60)
-       | ori  (bexp,bexp)	(infixl 60)
+       | ROp  n2n2b aexp aexp
+       | noti bexp
+       | andi bexp bexp 	(infixl 60)
+       | ori  bexp bexp 	(infixl 60)
 
 (** Evaluation of boolean expressions **)
 consts evalb	:: "(bexp*state*bool)set"	
@@ -72,10 +72,10 @@ inductive "evalb"
 
 datatype
   com = skip
-      | ":="   (loc,aexp)	 (infixl  60)
-      | semic  (com,com)	 ("_; _"  [60, 60] 10)
-      | whileC (bexp,com)	 ("while _ do _"  60)
-      | ifC    (bexp, com, com)	 ("ifc _ then _ else _"  60)
+      | ":="   loc aexp	         (infixl  60)
+      | semic  com com	         ("_; _"  [60, 60] 10)
+      | whileC bexp com	         ("while _ do _"  60)
+      | ifC    bexp com com	 ("ifc _ then _ else _"  60)
 
 (** Execution of commands **)
 consts  evalc    :: "(com*state*state)set"

@@ -8,7 +8,7 @@ Inductive definition of propositional logic.
 
 PropLog = Finite +
 datatype
-    'a pl = false | var ('a) ("#_" [1000]) | "->" ('a pl,'a pl) (infixr 90)
+    'a pl = false | var 'a ("#_" [1000]) | "->" ('a pl) ('a pl) (infixr 90)
 consts
   thms :: "'a pl set => 'a pl set"
   "|-" 	:: "['a pl set, 'a pl] => bool"	(infixl 50)

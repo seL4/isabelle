@@ -9,7 +9,7 @@ Definition of type 'a list as a datatype. This allows primrec to work.
 
 List = Arith +
 
-datatype 'a list = "[]" ("[]") | "#"('a,'a list) (infixr 65)
+datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
 
 consts
 

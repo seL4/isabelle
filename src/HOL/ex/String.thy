@@ -11,7 +11,7 @@ datatype
          | H08 | H09 | H0A | H0B | H0C | H0D | H0E | H0F
 
 datatype
-  char = Char (nibble, nibble)
+  char = Char nibble nibble
 
 types
   string = "char list"
