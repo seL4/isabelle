@@ -31,7 +31,7 @@ conditional equations;
 
 * theory aliases via merge (e.g. M=A+B+C) no longer supported, always
 creates a new theory node; implicit merge of thms' signatures is
-restricted to 'trivial' ones, thus one may have to use
+restricted to 'trivial' ones; COMPATIBILITY: one may have to use
 transfer:theory->thm->thm in (rare) cases;
 
 * improved handling of draft signatures / theories; draft thms (and
