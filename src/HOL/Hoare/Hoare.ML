@@ -216,13 +216,3 @@ and HoareRuleTac Mlem tac pre_cond i st = st |>
 fun hoare_tac tac i thm =
   let val Mlem = Mset(thm)
   in SELECT_GOAL(EVERY[HoareRuleTac Mlem tac true 1]) i thm end;
-
-
-(* proof method setup *)
-
-val hoare_method =
-  Method.METHOD (fn facts => HEADGOAL (Method.insert_tac facts THEN' hoare_tac (K all_tac)));
-
-val hoare_setup =
- [Method.add_methods
-  [("hoare", Method.no_args hoare_method, "verification condition generator for Hoare logic")]];
