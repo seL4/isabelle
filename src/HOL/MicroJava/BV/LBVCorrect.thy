@@ -8,7 +8,7 @@ header {* \isaheader{Correctness of the LBV} *}
 
 theory LBVCorrect = LBVSpec + Typing_Framework:
 
-locale lbvs = lbv +
+locale (open) lbvs = lbv +
   fixes s0  :: 'a
   fixes c   :: "'a list"
   fixes ins :: "'b list"

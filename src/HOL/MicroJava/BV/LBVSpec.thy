@@ -51,7 +51,7 @@ constdefs
   "bottom r B \<equiv> \<forall>x. B <=_r x"
 
 
-locale lbv = semilat +
+locale (open) lbv = semilat +
   fixes T :: "'a" ("\<top>") 
   fixes B :: "'a" ("\<bottom>") 
   fixes step :: "'a step_type" 

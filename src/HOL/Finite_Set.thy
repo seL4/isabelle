@@ -720,7 +720,8 @@ lemma (in ACe) fold_Un_Int:
     fold f e A \<cdot> fold f e B = fold f e (A Un B) \<cdot> fold f e (A Int B)"
   apply (induct set: Finites)
    apply simp
-  apply (simp add: AC LC.fold_insert insert_absorb Int_insert_left)
+  apply (simp add: AC ACe.axioms ACe_axioms_def
+    LC_axioms_def LC.fold_insert insert_absorb Int_insert_left)
   done
 
 lemma (in ACe) fold_Un_disjoint:
@@ -744,13 +745,15 @@ proof -
     have "fold (f \<circ> g) e (insert x F \<union> B) = fold (f \<circ> g) e (insert x (F \<union> B))"
       by simp
     also have "... = (f \<circ> g) x (fold (f \<circ> g) e (F \<union> B))"
-      by (rule LC.fold_insert) (insert b insert, auto simp add: left_commute)  (* FIXME import of fold_insert (!?) *)
+      by (rule LC.fold_insert)
+        (insert b insert, auto simp add: left_commute intro: LC_axioms.intro)
     also from insert have "fold (f \<circ> g) e (F \<union> B) =
       fold (f \<circ> g) e F \<cdot> fold (f \<circ> g) e B" by blast
     also have "(f \<circ> g) x ... = (f \<circ> g) x (fold (f \<circ> g) e F) \<cdot> fold (f \<circ> g) e B"
       by (simp add: AC)
     also have "(f \<circ> g) x (fold (f \<circ> g) e F) = fold (f \<circ> g) e (insert x F)"
-      by (rule LC.fold_insert [symmetric]) (insert b insert, auto simp add: left_commute)
+      by (rule LC.fold_insert [symmetric]) (insert b insert,
+	auto simp add: left_commute intro: LC_axioms.intro)
     finally show ?case .
   qed
 qed
@@ -775,7 +778,8 @@ lemma setsum_empty [simp]: "setsum f {} = 0"
 
 lemma setsum_insert [simp]:
     "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
-  by (simp add: setsum_def LC.fold_insert plus_ac0_left_commute)
+  by (simp add: setsum_def
+    LC_axioms_def LC.fold_insert plus_ac0_left_commute)
 
 lemma setsum_0: "setsum (\<lambda>i. 0) A = 0"
   apply (case_tac "finite A")

@@ -31,7 +31,7 @@ lemma [code]:
   apply force
   done
 
-locale lbvc = lbv + 
+locale (open) lbvc = lbv + 
   fixes phi :: "'a list" ("\<phi>")
   fixes c   :: "'a list" 
   defines cert_def: "c \<equiv> make_cert step \<phi> \<bottom>"

@@ -63,7 +63,7 @@ constdefs
  some_lub :: "('a*'a)set \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
 "some_lub r x y == SOME z. is_lub r x y z";
 
-locale semilat =
+locale (open) semilat =
   fixes A :: "'a set"
     and r :: "'a ord"
     and f :: "'a binop"
