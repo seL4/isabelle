@@ -22,7 +22,7 @@ THYS = Porder.thy Porder0.thy Pcpo.thy \
 ONLYTHYS = 
 
 FILES = ROOT.ML $(THYS) $(ONLYTHYS) $(THYS:.thy=.ML) adm.ML \
-	HOLCFLogic.ML contconsts.ML \
+	holcf_logic.ML cont_consts.ML \
         domain/library.ML  domain/syntax.ML   domain/axioms.ML \
         domain/theorems.ML domain/extender.ML domain/interface.ML
 

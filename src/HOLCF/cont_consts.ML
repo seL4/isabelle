@@ -1,8 +1,8 @@
-(*  Title:      HOLCF/contconsts.ML
+(*  Title:      HOLCF/cont_consts.ML
     ID:         $Id$
     Author:     Tobias Mayr and David von Oheimb
 
-theory extender for consts section
+Theory extender for consts section.
 *)
 
 structure ContConsts =

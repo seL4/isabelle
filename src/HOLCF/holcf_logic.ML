@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/HOLCFLogic.ML
+(*  Title:      HOLCF/holcf_logic.ML
     ID:         $Id$
     Author:     David von Oheimb
 
@@ -7,7 +7,7 @@ Abstract syntax operations for HOLCF.
 
 infixr 6 ->>;
 
-signature HOLCFLOGIC =
+signature HOLCF_LOGIC =
 sig
   val mk_btyp: string -> typ * typ -> typ
   val mk_prodT:          typ * typ -> typ
@@ -28,7 +28,7 @@ sig
 end;
 
 
-structure HOLCFLogic: HOLCFLOGIC =
+structure HOLCFLogic: HOLCF_LOGIC =
 struct
 
 local
