@@ -32,9 +32,10 @@ lemma nat_diff_split_asm:
 ML {*
  val nat_diff_split = thm "nat_diff_split";
  val nat_diff_split_asm = thm "nat_diff_split_asm";
-
+*}
+(* Careful: arith_tac produces counter examples!
 fun add_arith cs = cs addafter ("arith_tac", arith_tac);
-*} (* TODO: use arith_tac for force_tac in Provers/clasip.ML *)
+TODO: use arith_tac for force_tac in Provers/clasip.ML *)
 
 lemmas [arith_split] = nat_diff_split split_min split_max
 

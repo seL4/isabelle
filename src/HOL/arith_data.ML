@@ -256,6 +256,8 @@ fun number_of_Sucs (Const("Suc",_) $ n) = number_of_Sucs n + 1
    their coefficients
 *)
 
+fun demult inj_consts =
+let
 fun demult((mC as Const("op *",_)) $ s $ t,m) = ((case s of
         Const("Numeral.number_of",_)$n
         => demult(t,ratmul(m,rat_of_int(HOLogic.dest_binum n)))
@@ -279,10 +281,13 @@ fun demult((mC as Const("op *",_)) $ s $ t,m) = ((case s of
       ((None,ratmul(m,rat_of_int(HOLogic.dest_binum n)))
        handle TERM _ => (Some t,m))
   | demult(Const("uminus",_)$t, m) = demult(t,ratmul(m,rat_of_int(~1)))
+  | demult(t as Const f $ x, m) =
+      (if f mem inj_consts then Some x else Some t,m)
   | demult(atom,m) = (Some atom,m)
 
 and atomult(mC,atom,t,m) = (case demult(t,m) of (None,m') => (Some atom,m')
                             | (Some t',m') => (Some(mC $ atom $ t'),m'))
+in demult end;
 
 fun decomp2 inj_consts (rel,lhs,rhs) =
 let
@@ -296,11 +301,11 @@ fun poly(Const("op +",_) $ s $ t, m, pi) = poly(s,m,poly(t,m,pi))
   | poly(Const("1",_), m, (p,i)) = (p,ratadd(i,m))
   | poly(Const("Suc",_)$t, m, (p,i)) = poly(t, m, (p,ratadd(i,m)))
   | poly(t as Const("op *",_) $ _ $ _, m, pi as (p,i)) =
-      (case demult(t,m) of
+      (case demult inj_consts (t,m) of
          (None,m') => (p,ratadd(i,m))
        | (Some u,m') => add_atom(u,m',pi))
   | poly(t as Const("HOL.divide",_) $ _ $ _, m, pi as (p,i)) =
-      (case demult(t,m) of
+      (case demult inj_consts (t,m) of
          (None,m') => (p,ratadd(i,m))
        | (Some u,m') => add_atom(u,m',pi))
   | poly(all as (Const("Numeral.number_of",_)$t,m,(p,i))) =
@@ -350,7 +355,8 @@ end;
 structure Fast_Arith =
   Fast_Lin_Arith(structure LA_Logic=LA_Logic and LA_Data=LA_Data_Ref);
 
-val fast_arith_tac = Fast_Arith.lin_arith_tac
+val fast_arith_tac    = Fast_Arith.lin_arith_tac false
+and fast_ex_arith_tac = Fast_Arith.lin_arith_tac
 and trace_arith    = Fast_Arith.trace;
 
 local
@@ -407,13 +413,18 @@ solver all the time rather than add the additional check. *)
 *)
 local
 
-fun raw_arith_tac i st =
-  refute_tac (K true) (REPEAT o split_tac (#splits (ArithTheoryData.get_sg (Thm.sign_of_thm st))))
-             ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_arith_tac) i st;
+fun raw_arith_tac ex i st =
+  refute_tac (K true)
+   (REPEAT o split_tac (#splits (ArithTheoryData.get_sg (Thm.sign_of_thm st))))
+   ((REPEAT_DETERM o etac linorder_neqE) THEN' fast_ex_arith_tac ex)
+   i st;
 
 in
 
-val arith_tac = fast_arith_tac ORELSE' (ObjectLogic.atomize_tac THEN' raw_arith_tac);
+val arith_tac = fast_arith_tac ORELSE'
+                (ObjectLogic.atomize_tac THEN' raw_arith_tac true);
+val silent_arith_tac = fast_arith_tac ORELSE'
+                       (ObjectLogic.atomize_tac THEN' raw_arith_tac false);
 
 fun arith_method prems =
   Method.METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac));
