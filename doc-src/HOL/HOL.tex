@@ -439,7 +439,7 @@ The following simple tactics are occasionally useful:
 \item[\ttindexbold{strip_tac} $i$] applies \texttt{allI} and \texttt{impI}
   repeatedly to remove all outermost universal quantifiers and implications
   from subgoal $i$.
-\item[\ttindexbold{case_tac} {\tt"}$P${\tt"} $i$] performs case distinction
+\item[\ttindexbold{cases_tac} {\tt"}$P${\tt"} $i$] performs case distinction
   on $P$ for subgoal $i$: the latter is replaced by two identical subgoals
   with the added assumptions $P$ and $\lnot P$, respectively.
 \item[\ttindexbold{smp_tac} $j$ $i$] applies $j$ times \texttt{spec} and then
@@ -1515,7 +1515,7 @@ Figure~\ref{hol-list} presents the theory \thydx{List}: the basic list
 operations with their types and syntax.  Type $\alpha \; list$ is
 defined as a \texttt{datatype} with the constructors {\tt[]} and {\tt\#}.
 As a result the generic structural induction and case analysis tactics
-\texttt{induct\_tac} and \texttt{exhaust\_tac} also become available for
+\texttt{induct\_tac} and \texttt{cases\_tac} also become available for
 lists.  A \sdx{case} construct of the form
 \begin{center}\tt
 case $e$ of [] => $a$  |  \(x\)\#\(xs\) => b
@@ -2183,7 +2183,7 @@ argtype  : id | tid | ('(' typevarlist id ')')
 
 Most of the theorems about datatypes become part of the default simpset and
 you never need to see them again because the simplifier applies them
-automatically.  Only induction or exhaustion are usually invoked by hand.
+automatically.  Only induction or case distinction are usually invoked by hand.
 \begin{ttdescription}
 \item[\ttindexbold{induct_tac} {\tt"}$x${\tt"} $i$]
  applies structural induction on variable $x$ to subgoal $i$, provided the
@@ -2198,16 +2198,15 @@ automatically.  Only induction or exhaustion are usually invoked by hand.
 In some cases, induction is overkill and a case distinction over all
 constructors of the datatype suffices.
 \begin{ttdescription}
-\item[\ttindexbold{exhaust_tac} {\tt"}$u${\tt"} $i$]
- performs an exhaustive case analysis for the term $u$ whose type
- must be a datatype.  If the datatype has $k@j$ constructors
- $C^j@1$, \dots $C^j@{k@j}$, subgoal $i$ is replaced by $k@j$ new subgoals which
- contain the additional assumption $u = C^j@{i'}~x@1~\dots~x@{m^j@{i'}}$ for
- $i'=1$, $\dots$,~$k@j$.
+\item[\ttindexbold{cases_tac} {\tt"}$u${\tt"} $i$]
+ performs a case analysis for the term $u$ whose type  must be a datatype.
+ If the datatype has $k@j$ constructors  $C^j@1$, \dots $C^j@{k@j}$, subgoal
+ $i$ is replaced by $k@j$ new subgoals which  contain the additional
+ assumption $u = C^j@{i'}~x@1~\dots~x@{m^j@{i'}}$ for  $i'=1$, $\dots$,~$k@j$.
 \end{ttdescription}
 
 Note that induction is only allowed on free variables that should not occur
-among the premises of the subgoal.  Exhaustion applies to arbitrary terms.
+among the premises of the subgoal. Case distinction applies to arbitrary terms.
 
 \bigskip
 
@@ -2243,7 +2242,7 @@ and \texttt{simps} are contained in a separate structure named $t@1_\ldots_t@n$.
 For foundational reasons, some basic types such as \texttt{nat}, \texttt{*}, {\tt
   +}, \texttt{bool} and \texttt{unit} are not defined in a \texttt{datatype} section,
 but by more primitive means using \texttt{typedef}. To be able to use the
-tactics \texttt{induct_tac} and \texttt{exhaust_tac} and to define functions by
+tactics \texttt{induct_tac} and \texttt{cases_tac} and to define functions by
 primitive recursion on these types, such types may be represented as actual
 datatypes.  This is done by specifying an induction rule, as well as theorems
 stating the distinctness and injectivity of constructors in a {\tt
