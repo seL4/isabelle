@@ -124,7 +124,7 @@ qed_goalw "ex1I" IFOL.thy [ex1_def]
     "[| P(a);  !!x. P(x) ==> x=a |] ==> EX! x. P(x)"
  (fn prems => [ (REPEAT (ares_tac (prems@[exI,conjI,allI,impI]) 1)) ]);
 
-(*Sometimes easier to use: the premises have no shared variables*)
+(*Sometimes easier to use: the premises have no shared variables.  Safe!*)
 qed_goal "ex_ex1I" IFOL.thy
     "[| EX x.P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> EX! x. P(x)"
  (fn [ex,eq] => [ (rtac (ex RS exE) 1),
