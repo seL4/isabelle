@@ -7,7 +7,7 @@ Lambda-terms in de Bruijn notation,
 substitution and beta-reduction.
 *)
 
-Lambda = Datatype +
+Lambda = Main +
 
 datatype dB = Var nat | "$" dB dB (infixl 200) | Abs dB
 
