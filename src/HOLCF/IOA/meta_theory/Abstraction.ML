@@ -385,7 +385,7 @@ by (clarify_tac set_cs 1);
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
 (* UU case *)
-by (asm_full_simp_tac (simpset() addsimps [UU_is_Conc])1);
+by (asm_full_simp_tac (simpset() addsimps [nil_is_Conc])1);
 (* nil case *)
 by (asm_full_simp_tac (simpset() addsimps [nil_is_Conc])1);
 (* cons case *)
