@@ -2,8 +2,10 @@ header {* First-Order Formulas and the Definition of the Class L *}
 
 theory Formula = Main:
 
-(*Internalized formulas of FOL. De Bruijn representation. 
-  Unbound variables get their denotations from an environment.*)
+subsection{*Internalized formulas of FOL*}
+
+text{*De Bruijn representation.
+  Unbound variables get their denotations from an environment.*}
 
 consts   formula :: i
 datatype
@@ -21,6 +23,9 @@ constdefs Or :: "[i,i]=>i"
 constdefs Implies :: "[i,i]=>i"
     "Implies(p,q) == Neg(And(p,Neg(q)))"
 
+constdefs Iff :: "[i,i]=>i"
+    "Iff(p,q) == And(Implies(p,q), Implies(q,p))"
+
 constdefs Exists :: "i=>i"
     "Exists(p) == Neg(Forall(Neg(p)))";
 
@@ -30,6 +35,10 @@ by (simp add: Or_def)
 lemma Implies_type [TC]:
      "[| p \<in> formula; q \<in> formula |] ==> Implies(p,q) \<in> formula"
 by (simp add: Implies_def) 
+
+lemma Iff_type [TC]:
+     "[| p \<in> formula; q \<in> formula |] ==> Iff(p,q) \<in> formula"
+by (simp add: Iff_def) 
 
 lemma Exists_type [TC]: "p \<in> formula ==> Exists(p) \<in> formula"
 by (simp add: Exists_def) 
@@ -86,7 +95,7 @@ by simp
 
 declare satisfies.simps [simp del]; 
 
-(**** DIVIDING LINE BETWEEN PRIMITIVE AND DERIVED CONNECTIVES ****)
+subsubsection{*Dividing line between primitive and derived connectives*}
 
 lemma sats_Or_iff [simp]:
   "env \<in> list(A) 
@@ -96,14 +105,60 @@ by (simp add: Or_def)
 lemma sats_Implies_iff [simp]:
   "env \<in> list(A) 
    ==> (sats(A, Implies(p,q), env)) <-> (sats(A,p,env) --> sats(A,q,env))"
-apply (simp add: Implies_def, blast) 
-done
+by (simp add: Implies_def, blast) 
+
+lemma sats_Iff_iff [simp]:
+  "env \<in> list(A) 
+   ==> (sats(A, Iff(p,q), env)) <-> (sats(A,p,env) <-> sats(A,q,env))"
+by (simp add: Iff_def, blast) 
 
 lemma sats_Exists_iff [simp]:
   "env \<in> list(A) 
    ==> sats(A, Exists(p), env) <-> (\<exists>x\<in>A. sats(A, p, Cons(x,env)))"
 by (simp add: Exists_def)
 
+
+subsubsection{*Derived rules to help build up formulas*}
+
+lemma mem_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; env \<in> list(A)|]
+       ==> (x\<in>y) <-> sats(A, Member(i,j), env)" 
+by (simp add: satisfies.simps)
+
+lemma conj_iff_sats:
+      "[| P <-> sats(A,p,env); Q <-> sats(A,q,env); env \<in> list(A)|]
+       ==> (P & Q) <-> sats(A, And(p,q), env)"
+by (simp add: sats_And_iff)
+
+lemma disj_iff_sats:
+      "[| P <-> sats(A,p,env); Q <-> sats(A,q,env); env \<in> list(A)|]
+       ==> (P | Q) <-> sats(A, Or(p,q), env)"
+by (simp add: sats_Or_iff)
+
+lemma imp_iff_sats:
+      "[| P <-> sats(A,p,env); Q <-> sats(A,q,env); env \<in> list(A)|]
+       ==> (P --> Q) <-> sats(A, Implies(p,q), env)"
+by (simp add: sats_Forall_iff) 
+
+lemma iff_iff_sats:
+      "[| P <-> sats(A,p,env); Q <-> sats(A,q,env); env \<in> list(A)|]
+       ==> (P <-> Q) <-> sats(A, Iff(p,q), env)"
+by (simp add: sats_Forall_iff) 
+
+lemma imp_iff_sats:
+      "[| P <-> sats(A,p,env); Q <-> sats(A,q,env); env \<in> list(A)|]
+       ==> (P --> Q) <-> sats(A, Implies(p,q), env)"
+by (simp add: sats_Forall_iff) 
+
+lemma ball_iff_sats:
+      "[| !!x. x\<in>A ==> P(x) <-> sats(A, p, Cons(x, env)); env \<in> list(A)|]
+       ==> (\<forall>x\<in>A. P(x)) <-> sats(A, Forall(p), env)"
+by (simp add: sats_Forall_iff) 
+
+lemma bex_iff_sats:
+      "[| !!x. x\<in>A ==> P(x) <-> sats(A, p, Cons(x, env)); env \<in> list(A)|]
+       ==> (\<exists>x\<in>A. P(x)) <-> sats(A, Exists(p), env)"
+by (simp add: sats_Exists_iff) 
 
 
 
@@ -219,6 +274,9 @@ by (simp add: Or_def)
 
 lemma arity_Implies [simp]: "arity(Implies(p,q)) = arity(p) \<union> arity(q)"
 by (simp add: Implies_def) 
+
+lemma arity_Iff [simp]: "arity(Iff(p,q)) = arity(p) \<union> arity(q)"
+by (simp add: Iff_def, blast)
 
 lemma arity_Exists [simp]: "arity(Exists(p)) = nat_case(0, %x. x, arity(p))"
 by (simp add: Exists_def) 
@@ -354,9 +412,15 @@ constdefs DPow :: "i => i"
                  X = {x\<in>A. sats(A, p, Cons(x,env))}}"
 
 lemma DPowI:
-  "[|X <= A;  env \<in> list(A);  p \<in> formula; 
-     arity(p) \<le> succ(length(env))|]
+  "[|env \<in> list(A);  p \<in> formula;  arity(p) \<le> succ(length(env))|]
    ==> {x\<in>A. sats(A, p, Cons(x,env))} \<in> DPow(A)"
+by (simp add: DPow_def, blast) 
+
+text{*With this rule we can specify @{term p} later.*}
+lemma DPowI2 [rule_format]:
+  "[|\<forall>x\<in>A. P(x) <-> sats(A, p, Cons(x,env));
+     env \<in> list(A);  p \<in> formula;  arity(p) \<le> succ(length(env))|]
+   ==> {x\<in>A. P(x)} \<in> DPow(A)"
 by (simp add: DPow_def, blast) 
 
 lemma DPowD:
@@ -500,6 +564,11 @@ apply (subst Lset)
 apply (blast intro!: Transset_Union_family Transset_Un Transset_DPow)
 done
 
+lemma mem_Lset_imp_subset_Lset: "a \<in> Lset(i) ==> a \<subseteq> Lset(i)"
+apply (insert Transset_Lset) 
+apply (simp add: Transset_def) 
+done
+
 subsubsection{* Monotonicity *}
 
 text{*Kunen's VI, 1.6 (b)*}
@@ -520,6 +589,10 @@ apply (subst Lset, auto)
 apply (rule rev_bexI, assumption)
 apply (blast intro: elem_subset_in_DPow dest: LsetD DPowD) 
 done
+
+text{*Useful with Reflection to bump up the ordinal*}
+lemma subset_Lset_ltD: "[|A \<subseteq> Lset(i); i < j|] ==> A \<subseteq> Lset(j)"
+by (blast dest: ltD [THEN Lset_mono_mem]) 
 
 subsubsection{* 0, successor and limit equations fof Lset *}
 
@@ -879,6 +952,17 @@ apply (erule nat_induct)
  apply (simp add: Vfrom_0) 
 apply (simp add: Lset_succ Vset_succ Finite_Vset Finite_DPow_eq_Pow) 
 done
+
+text{*Every set of constructible sets is included in some @{term Lset}*} 
+lemma subset_Lset:
+     "(\<forall>x\<in>A. L(x)) ==> \<exists>i. Ord(i) & A \<subseteq> Lset(i)"
+by (rule_tac x = "\<Union>x\<in>A. succ(lrank(x))" in exI, force)
+
+lemma subset_LsetE:
+     "[|\<forall>x\<in>A. L(x);
+        !!i. [|Ord(i); A \<subseteq> Lset(i)|] ==> P|]
+      ==> P"
+by (blast dest: subset_Lset) 
 
 subsection{*For L to satisfy the ZF axioms*}
 
