@@ -1,22 +1,22 @@
 theory Tacticals = Main:
 
 text{*REPEAT*}
-lemma "\<lbrakk>(P\<longrightarrow>Q); (Q\<longrightarrow>R); (R\<longrightarrow>S); P\<rbrakk> \<Longrightarrow> S"
+lemma "\<lbrakk>P\<longrightarrow>Q; Q\<longrightarrow>R; R\<longrightarrow>S; P\<rbrakk> \<Longrightarrow> S"
 apply (drule mp, assumption)
 apply (drule mp, assumption)
 apply (drule mp, assumption)
 apply (assumption)
 done
 
-lemma "\<lbrakk>(P\<longrightarrow>Q); (Q\<longrightarrow>R); (R\<longrightarrow>S); P\<rbrakk> \<Longrightarrow> S"
+lemma "\<lbrakk>P\<longrightarrow>Q; Q\<longrightarrow>R; R\<longrightarrow>S; P\<rbrakk> \<Longrightarrow> S"
 by (drule mp, assumption)+
 
 text{*ORELSE with REPEAT*}
-lemma "\<lbrakk>(Q\<longrightarrow>R); (P\<longrightarrow>Q); x<#5\<longrightarrow>P;  Suc x < #5\<rbrakk> \<Longrightarrow> R" 
+lemma "\<lbrakk>Q\<longrightarrow>R; P\<longrightarrow>Q; x<#5\<longrightarrow>P;  Suc x < #5\<rbrakk> \<Longrightarrow> R" 
 by (drule mp, (assumption|arith))+
 
 text{*exercise: what's going on here?*}
-lemma "\<lbrakk>(P\<and>Q\<longrightarrow>R); (P\<longrightarrow>Q); P\<rbrakk> \<Longrightarrow> R"
+lemma "\<lbrakk>P\<and>Q\<longrightarrow>R; P\<longrightarrow>Q; P\<rbrakk> \<Longrightarrow> R"
 by (drule mp, intro?, assumption+)+
 
 text{*defer and prefer*}
@@ -30,6 +30,12 @@ oops
 lemma "ok1 \<and> ok2 \<and> doubtful"
 apply intro   --{* @{subgoals[display,indent=0,margin=65]} *}
 prefer 3   --{* @{subgoals[display,indent=0,margin=65]} *}
+oops
+
+lemma "thing1 \<and> thing2 \<and> thing3 \<and> thing4 \<and> thing5 \<and> thing6"
+apply intro   --{* @{subgoals[display,indent=0,margin=65]} *}
+pr 2  
+txt{* @{subgoals[display,indent=0,margin=65]} *}
 oops
 
 
