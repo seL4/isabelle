@@ -256,8 +256,8 @@ fun stac th =
 
 (* proof methods *)
 
-val subst_meth = Method.goal_args' Attrib.local_thm stac;
-val hyp_subst_meth = Method.goal_args (Scan.succeed ()) (K hyp_subst_tac);
+val subst_meth = Method.thm_args (Method.SIMPLE_METHOD' HEADGOAL o stac);
+val hyp_subst_meth = Method.no_args (Method.SIMPLE_METHOD' HEADGOAL hyp_subst_tac);
 
 
 (* attributes *)

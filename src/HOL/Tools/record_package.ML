@@ -524,7 +524,7 @@ val record_split_wrapper = (record_split_name, fn tac => record_split_tac ORELSE
 (* method *)
 
 val record_split_method =
-  ("record_split", Method.no_args (Method.METHOD0 (HEADGOAL record_split_tac)),
+  ("record_split", Method.no_args (Method.SIMPLE_METHOD' HEADGOAL record_split_tac),
     "split record fields");
 
 
