@@ -73,7 +73,7 @@ sig
   val locale_expr: token list -> Locale.expr * token list
   val locale_keyword: token list -> string * token list
   val locale_element: token list -> Args.src Locale.element * token list
-  val locale_elem_or_expr: token list -> Args.src Locale.elem_or_expr * token list
+  val locale_elem_or_expr: token list -> Args.src Locale.element Locale.elem_expr * token list
   val method: token list -> Method.text * token list
 end;
 

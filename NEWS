@@ -146,7 +146,8 @@ New in this Isabelle release
 
 * Locales:
   - "includes" disallowed in declaration of named locales (command "locale").
-
+  - Fixed parameter management in theorem generation for goals with "includes".
+    INCOMPATIBILITY: rarely, the generated theorem statement is different.
  
 *** HOL ***
 

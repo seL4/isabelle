@@ -82,7 +82,17 @@ text {*
   normed space @{text "(V, \<parallel>\<cdot>\<parallel>)"} has a function norm.
 *}
 
-lemma (in normed_vectorspace) fn_norm_works:   (* FIXME bug with "(in fn_norm)" !? *)
+(* Alternative statement of the lemma as
+     lemma (in fn_norm)
+       includes normed_vectorspace + continuous
+       shows "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
+   is not possible:
+   fn_norm contrains parameter norm to type "'a::zero => real",
+   normed_vectorspace and continuous contrain this parameter to
+   "'a::{minus, plus, zero} => real, which is less general.
+*)
+
+lemma (in normed_vectorspace) fn_norm_works:
   includes fn_norm + continuous
   shows "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
 proof -
@@ -154,7 +164,7 @@ lemma (in normed_vectorspace) fn_norm_ub [iff?]:
   shows "b \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF _ continuous.intro])
+    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF continuous.intro])
   from this and b show ?thesis ..
 qed
 
@@ -164,7 +174,7 @@ lemma (in normed_vectorspace) fn_norm_leastB:
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> y"
 proof -
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF _ continuous.intro])
+    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF continuous.intro])
   from this and b show ?thesis ..
 qed
 
@@ -178,7 +188,7 @@ proof -
     So it is @{text "\<ge> 0"} if all elements in @{text B} are @{text "\<ge>
     0"}, provided the supremum exists and @{text B} is not empty. *}
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
-    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF _ continuous.intro])
+    by (unfold B_def fn_norm_def) (rule fn_norm_works [OF continuous.intro])
   moreover have "0 \<in> B V f" ..
   ultimately show ?thesis ..
 qed
@@ -201,7 +211,7 @@ proof cases
   also have "\<bar>\<dots>\<bar> = 0" by simp
   also have a: "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
       by (unfold B_def fn_norm_def)
-        (rule fn_norm_ge_zero [OF _ continuous.intro])
+        (rule fn_norm_ge_zero [OF continuous.intro])
     have "0 \<le> norm x" ..
   with a have "0 \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" by (simp add: zero_le_mult_iff)
   finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
@@ -215,7 +225,7 @@ next
     from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
       by (auto simp add: B_def real_divide_def)
     then show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
-      by (unfold B_def fn_norm_def) (rule fn_norm_ub [OF _ continuous.intro])
+      by (unfold B_def fn_norm_def) (rule fn_norm_ub [OF continuous.intro])
   qed
   finally show ?thesis .
 qed

@@ -340,10 +340,10 @@ proof -
   have F: "vectorspace F" ..
   have linearform: "linearform F f" .
   have F_norm: "normed_vectorspace F norm"
-    by (rule subspace_normed_vs [OF _ _ norm.intro])
+    by (rule subspace_normed_vs [OF E_norm])
   have ge_zero: "0 \<le> \<parallel>f\<parallel>\<hyphen>F"
     by (rule normed_vectorspace.fn_norm_ge_zero
-      [OF F_norm _ continuous.intro, folded B_def fn_norm_def])
+      [OF F_norm continuous.intro, folded B_def fn_norm_def])
 
   txt {* We define a function @{text p} on @{text E} as follows:
     @{text "p x = \<parallel>f\<parallel> \<cdot> \<parallel>x\<parallel>"} *}
@@ -393,7 +393,7 @@ proof -
     fix x assume "x \<in> F"
     show "\<bar>f x\<bar> \<le> p x"
       by (unfold p_def) (rule normed_vectorspace.fn_norm_le_cong
-        [OF F_norm _ continuous.intro, folded B_def fn_norm_def])
+        [OF F_norm continuous.intro, folded B_def fn_norm_def])
   qed
 
   txt {* Using the fact that @{text p} is a seminorm and @{text f} is bounded
@@ -442,7 +442,7 @@ proof -
       with b show "\<bar>g x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
         by (simp only: p_def)
     qed
-    from linearformE g_cont this ge_zero
+    from g_cont this ge_zero
     show "\<parallel>g\<parallel>\<hyphen>E \<le> \<parallel>f\<parallel>\<hyphen>F"
       by (rule fn_norm_least [of g, folded B_def fn_norm_def])
 
@@ -455,7 +455,7 @@ proof -
 	fix x assume x: "x \<in> F"
 	from a have "g x = f x" ..
 	hence "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
-	also from linearformE g_cont
+	also from g_cont
 	have "\<dots> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
 	proof (rule fn_norm_le_cong [of g, folded B_def fn_norm_def])
 	  from FE x show "x \<in> E" ..
@@ -463,7 +463,7 @@ proof -
 	finally show "\<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>" .
       qed
       show "0 \<le> \<parallel>g\<parallel>\<hyphen>E"
-	using linearformE g_cont
+	using g_cont
 	by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
     next
       show "continuous F norm f" by (rule continuous.intro)

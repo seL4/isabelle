@@ -215,7 +215,7 @@ val print_locales = Toplevel.unknown_theory o
 
 fun print_locale (import, body) = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let val thy = Toplevel.theory_of state in
-    Locale.print_locale thy import (map (Locale.map_attrib_elem (Attrib.local_attribute thy)) body)
+    Locale.print_locale thy import (map (Locale.map_attrib_element (Attrib.local_attribute thy)) body)
   end);
 
 val print_attributes = Toplevel.unknown_theory o

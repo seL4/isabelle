@@ -92,13 +92,13 @@ sig
   val invoke_case: string * string option list * context attribute list -> state -> state
   val multi_theorem: string
     -> (xstring * (context attribute list * context attribute list list)) option
-    -> bstring * theory attribute list -> context attribute Locale.elem_or_expr list
+    -> bstring * theory attribute list -> context attribute Locale.element Locale.elem_expr list
     -> ((bstring * theory attribute list) * (string * (string list * string list)) list) list
     -> theory -> state
   val multi_theorem_i: string
     -> (string * (context attribute list * context attribute list list)) option
     -> bstring * theory attribute list
-    -> context attribute Locale.elem_or_expr_i list
+    -> context attribute Locale.element_i Locale.elem_expr list
     -> ((bstring * theory attribute list) * (term * (term list * term list)) list) list
     -> theory -> state
   val chain: state -> state
@@ -154,7 +154,8 @@ datatype kind =
   Theorem of {kind: string,
     theory_spec: (bstring * theory attribute list) * theory attribute list list,
     locale_spec: (string * (context attribute list * context attribute list list)) option,
-    view: cterm list} |
+    view: cterm list * cterm list} |
+(* target view and includes view *)
   Show of context attribute list list |
   Have of context attribute list list;
 
@@ -766,6 +767,8 @@ fun global_goal prep kind raw_locale a elems concl thy =
     |> map_context (K locale_ctxt)
     |> open_block
     |> map_context (K elems_ctxt)
+(* CB: elems_ctxt is an extension of locale_ctxt, see prep_context_statement
+   in locale.ML, naming there: ctxt and import_ctxt. *)
     |> setup_goal I ProofContext.bind_propp_schematic_i ProofContext.fix_frees
       (Theorem {kind = kind,
         theory_spec = (a, map (snd o fst) concl),
@@ -871,19 +874,23 @@ fun finish_global state =
     val (goal_ctxt, (((kind, names, tss), (_, raw_thm)), _)) = current_goal state;
     val locale_ctxt = context_of (state |> close_block);
     val theory_ctxt = context_of (state |> close_block |> close_block);
-    val {kind = k, theory_spec = ((name, atts), attss), locale_spec, view} =
+    val {kind = k, theory_spec = ((name, atts), attss), locale_spec, view = (target_view, elems_view)} =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
 
     val ts = flat tss;
-    val locale_results = map (ProofContext.export_standard [] goal_ctxt locale_ctxt)
+val _ = set show_hyps;
+val _ = PolyML.print "finish_global";
+val _ = PolyML.print "ts:";
+val _ = PolyML.print ts;
+val _ = PolyML.print "raw_thm:";
+val _ = PolyML.print raw_thm;
+val _ = PolyML.print "elems_view";
+val _ = PolyML.print elems_view;
+    val locale_results = map (ProofContext.export_standard elems_view goal_ctxt locale_ctxt)
       (prep_result state ts raw_thm);
 
-    val locale_results' = map
-      (Locale.prune_prems (ProofContext.theory_of locale_ctxt))
-      locale_results;
-
     val results = map (Drule.strip_shyps_warning o
-      ProofContext.export_standard view locale_ctxt theory_ctxt) locale_results';
+      ProofContext.export_standard target_view locale_ctxt theory_ctxt) locale_results;
 
     val (theory', results') =
       theory_of state
@@ -891,7 +898,7 @@ fun finish_global state =
         if length names <> length loc_attss then
           raise THEORY ("Bad number of locale attributes", [thy])
         else (thy, locale_ctxt)
-          |> Locale.add_thmss loc ((names ~~ Library.unflat tss locale_results') ~~ loc_attss)
+          |> Locale.add_thmss loc ((names ~~ Library.unflat tss locale_results) ~~ loc_attss)
           |> (fn ((thy', ctxt'), res) =>
             if name = "" andalso null loc_atts then thy'
             else (thy', ctxt')
