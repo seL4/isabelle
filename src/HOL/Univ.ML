@@ -53,7 +53,7 @@ qed "not_less_Least";
 
 goalw Univ.thy [apfst_def] "apfst f (a,b) = (f(a),b)";
 by (rtac split 1);
-qed "apfst";
+qed "apfst_conv";
 
 val [major,minor] = goal Univ.thy
     "[| q = apfst f p;  !!x y. [| p = (x,y);  q = (f(x),y) |] ==> R \
@@ -63,8 +63,8 @@ by (rtac minor 1);
 by (assume_tac 1);
 by (rtac (major RS trans) 1);
 by (etac ssubst 1);
-by (rtac apfst 1);
-qed "apfstE";
+by (rtac apfst_conv 1);
+qed "apfst_convE";
 
 (** Push -- an injection, analogous to Cons on lists **)
 
@@ -115,7 +115,7 @@ qed "Node_K0_I";
 
 goalw Univ.thy [Node_def,Push_def]
     "!!p. p: Node ==> apfst (Push i) p : Node";
-by (fast_tac (set_cs addSIs [apfst, nat_case_Suc RS trans]) 1);
+by (fast_tac (set_cs addSIs [apfst_conv, nat_case_Suc RS trans]) 1);
 qed "Node_Push_I";
 
 
@@ -127,7 +127,7 @@ goalw Univ.thy [Atom_def,Scons_def,Push_Node_def] "(M$N) ~= Atom(a)";
 by (rtac notI 1);
 by (etac (equalityD2 RS subsetD RS UnE) 1);
 by (rtac singletonI 1);
-by (REPEAT (eresolve_tac [imageE, Abs_Node_inject RS apfstE, 
+by (REPEAT (eresolve_tac [imageE, Abs_Node_inject RS apfst_convE, 
 			  Pair_inject, sym RS Push_neq_K0] 1
      ORELSE resolve_tac [Node_K0_I, Rep_Node RS Node_Push_I] 1));
 qed "Scons_not_Atom";
@@ -166,9 +166,9 @@ val Numb_inject = inj_Numb RS injD;
 val [major,minor] = goalw Univ.thy [Push_Node_def]
     "[| Push_Node i m =Push_Node j n;  [| i=j;  m=n |] ==> P \
 \    |] ==> P";
-by (rtac (major RS Abs_Node_inject RS apfstE) 1);
+by (rtac (major RS Abs_Node_inject RS apfst_convE) 1);
 by (REPEAT (resolve_tac [Rep_Node RS Node_Push_I] 1));
-by (etac (sym RS apfstE) 1);
+by (etac (sym RS apfst_convE) 1);
 by (rtac minor 1);
 by (etac Pair_inject 1);
 by (etac (Push_inject1 RS sym) 1);
@@ -252,7 +252,7 @@ val Numb_neq_Leaf = sym RS Leaf_neq_Numb;
 
 (*** ndepth -- the depth of a node ***)
 
-val univ_simps = [apfst,Scons_not_Atom,Atom_not_Scons,Scons_Scons_eq];
+val univ_simps = [apfst_conv,Scons_not_Atom,Atom_not_Scons,Scons_Scons_eq];
 val univ_ss = nat_ss addsimps univ_simps;
 
 
