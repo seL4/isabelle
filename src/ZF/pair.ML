@@ -102,13 +102,45 @@ qed_goal "Sigma_empty1" ZF.thy "Sigma(0,B) = 0"
 qed_goal "Sigma_empty2" ZF.thy "A*0 = 0"
  (fn _ => [ (fast_tac (lemmas_cs addIs [equalityI] addSEs [SigmaE]) 1) ]);
 
+val pair_cs = upair_cs 
+    addSIs [SigmaI]
+    addSEs [SigmaE2, SigmaE, Pair_inject, make_elim succ_inject,
+	    Pair_neq_0, sym RS Pair_neq_0, succ_neq_0, sym RS succ_neq_0];
+
+
+(*** Projections: fst, snd ***)
+
+qed_goalw "fst_conv" ZF.thy [fst_def] "fst(<a,b>) = a"
+ (fn _=> 
+  [ (fast_tac (pair_cs addIs [the_equality]) 1) ]);
+
+qed_goalw "snd_conv" ZF.thy [snd_def] "snd(<a,b>) = b"
+ (fn _=> 
+  [ (fast_tac (pair_cs addIs [the_equality]) 1) ]);
+
+val pair_ss = FOL_ss addsimps [fst_conv,snd_conv];
+
+qed_goal "fst_type" ZF.thy
+    "!!p. p:Sigma(A,B) ==> fst(p) : A"
+ (fn _=> [ (fast_tac (pair_cs addss pair_ss) 1) ]);
+
+qed_goal "snd_type" ZF.thy
+    "!!p. p:Sigma(A,B) ==> snd(p) : B(fst(p))"
+ (fn _=> [ (fast_tac (pair_cs addss pair_ss) 1) ]);
+
+goal ZF.thy "!!a A B. a: Sigma(A,B) ==> <fst(a),snd(a)> = a";
+by (etac SigmaE 1);
+by (asm_simp_tac pair_ss 1);
+qed "Pair_fst_snd_eq";
+
 
 (*** Eliminator - split ***)
 
+(*A META-equality, so that it applies to higher types as well...*)
 qed_goalw "split" ZF.thy [split_def]
-    "split(%x y.c(x,y), <a,b>) = c(a,b)"
- (fn _ =>
-  [ (fast_tac (upair_cs addIs [the_equality] addSEs [Pair_inject]) 1) ]);
+    "split(%x y.c(x,y), <a,b>) == c(a,b)"
+ (fn _ => [ (simp_tac pair_ss 1),
+            (rtac reflexive_thm 1) ]);
 
 qed_goal "split_type" ZF.thy
     "[|  p:Sigma(A,B);   \
@@ -116,63 +148,35 @@ qed_goal "split_type" ZF.thy
 \    |] ==> split(%x y.c(x,y), p) : C(p)"
  (fn major::prems=>
   [ (rtac (major RS SigmaE) 1),
-    (etac ssubst 1),
-    (REPEAT (ares_tac (prems @ [split RS ssubst]) 1)) ]);
+    (asm_simp_tac (pair_ss addsimps (split::prems)) 1) ]);
 
-
-goal ZF.thy
+goalw ZF.thy [split_def]
   "!!u. u: A*B ==>   \
 \       R(split(c,u)) <-> (ALL x:A. ALL y:B. u = <x,y> --> R(c(x,y)))";
 by (etac SigmaE 1);
-by (asm_simp_tac (FOL_ss addsimps [split]) 1);
-by (fast_tac (upair_cs addSEs [Pair_inject]) 1);
+by (asm_simp_tac pair_ss 1);
+by (fast_tac pair_cs 1);
 qed "expand_split";
-
-
-(*** conversions for fst and snd ***)
-
-qed_goalw "fst_conv" ZF.thy [fst_def] "fst(<a,b>) = a"
- (fn _=> [ (rtac split 1) ]);
-
-qed_goalw "snd_conv" ZF.thy [snd_def] "snd(<a,b>) = b"
- (fn _=> [ (rtac split 1) ]);
-
-qed_goalw "fst_type" ZF.thy [fst_def]
-    "!!p. p:Sigma(A,B) ==> fst(p) : A"
- (fn _=> [ (etac split_type 1), (assume_tac 1) ]);
-
-qed_goalw "snd_type" ZF.thy [snd_def]
-    "!!p. p:Sigma(A,B) ==> snd(p) : B(fst(p))"
- (fn _=> [ (etac split_type 1), 
-	   (asm_simp_tac (FOL_ss addsimps [fst_conv]) 1) ]);
-
-
-goal ZF.thy "!!a A B. a: Sigma(A,B) ==> <fst(a),snd(a)> = a";
-by (etac SigmaE 1);
-by (asm_simp_tac (FOL_ss addsimps [fst_conv,snd_conv]) 1);
-qed "Pair_fst_snd_eq";
 
 
 (*** split for predicates: result type o ***)
 
-goalw ZF.thy [fsplit_def] "!!R a b. R(a,b) ==> fsplit(R, <a,b>)";
-by (REPEAT (ares_tac [refl,exI,conjI] 1));
-qed "fsplitI";
+goalw ZF.thy [split_def] "!!R a b. R(a,b) ==> split(R, <a,b>)";
+by (asm_simp_tac pair_ss 1);
+qed "splitI";
 
-val major::prems = goalw ZF.thy [fsplit_def]
-    "[| fsplit(R,z);  !!x y. [| z = <x,y>;  R(x,y) |] ==> P |] ==> P";
+val major::sigma::prems = goalw ZF.thy [split_def]
+    "[| split(R,z);  z:Sigma(A,B);  			\
+\       !!x y. [| z = <x,y>;  R(x,y) |] ==> P 		\
+\    |] ==> P";
+by (rtac (sigma RS SigmaE) 1);
 by (cut_facts_tac [major] 1);
-by (REPEAT (eresolve_tac (prems@[asm_rl,exE,conjE]) 1));
-qed "fsplitE";
+by (asm_full_simp_tac (pair_ss addsimps prems) 1);
+qed "splitE";
 
-goal ZF.thy "!!R a b. fsplit(R,<a,b>) ==> R(a,b)";
-by (REPEAT (eresolve_tac [asm_rl,fsplitE,Pair_inject,ssubst] 1));
-qed "fsplitD";
-
-val pair_cs = upair_cs 
-    addSIs [SigmaI]
-    addSEs [SigmaE2, SigmaE, Pair_inject, make_elim succ_inject,
-	    Pair_neq_0, sym RS Pair_neq_0, succ_neq_0, sym RS succ_neq_0];
+goalw ZF.thy [split_def] "!!R a b. split(R,<a,b>) ==> R(a,b)";
+by (asm_full_simp_tac pair_ss 1);
+qed "splitD";
 
 
 (*** Basic simplification for ZF; see simpdata.ML for full version ***)
