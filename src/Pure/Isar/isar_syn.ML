@@ -540,7 +540,7 @@ val print_typeP =
 (** system commands (for interactive mode only) **)
 
 val cdP =
-  OuterSyntax.improper_command "cd" "change current working directory" K.control
+  OuterSyntax.improper_command "cd" "change current working directory" K.diag
     (P.name >> IsarCmd.cd);
 
 val pwdP =
