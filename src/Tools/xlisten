@@ -3,7 +3,8 @@
 #     environment variable $LISTEN specifies the file name
 
 #create the file!
-date > $LISTEN
+set -e			#fail immediately upon errors
+date > ${LISTEN?'Set this variable to the desired filename'}
 
 xterm -geo 80x10+0+0 -T Listener -n Listener -e tail -f $LISTEN &
 sleep 2
