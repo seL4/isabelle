@@ -158,6 +158,10 @@ val prems = Goalw [guarantees_def, component_def]
 by (blast_tac (claset() addIs prems) 1);
 qed "guaranteesI";
 
+Goal "[| F : A guarantees B;  F Join G : A |] ==> F Join G : B";
+by (asm_full_simp_tac (simpset() addsimps [guarantees_eq]) 1);
+qed "guaranteesD";
+
 
 (*** well-definedness ***)
 
