@@ -56,35 +56,10 @@ structure Standard_Sum =
   end;
 
 
-functor Ind_section_Fun (Inductive: sig include INDUCTIVE_ARG INDUCTIVE_I end) 
-  : sig include INTR_ELIM INDRULE end =
-let
-  structure Intr_elim = 
-      Intr_elim_Fun(structure Inductive=Inductive and Fp=Lfp and 
-                    Pr=Standard_Prod and Su=Standard_Sum);
-
-  structure Indrule = 
-      Indrule_Fun (structure Inductive=Inductive and 
-                   Pr=Standard_Prod and CP=Standard_CP and
-                   Su=Standard_Sum and 
-                   Intr_elim=Intr_elim)
-in 
-   struct 
-   val thy      = Intr_elim.thy
-   val defs     = Intr_elim.defs
-   val bnd_mono = Intr_elim.bnd_mono
-   val dom_subset = Intr_elim.dom_subset
-   val intrs    = Intr_elim.intrs
-   val elim     = Intr_elim.elim
-   val mk_cases = Intr_elim.mk_cases
-   open Indrule 
-   end
-end;
-
-
-structure Ind = Add_inductive_def_Fun
-    (structure Fp=Lfp and Pr=Standard_Prod and CP=Standard_CP
-     and Su=Standard_Sum);
+structure Ind_Package = 
+    Add_inductive_def_Fun
+      (structure Fp=Lfp and Pr=Standard_Prod and CP=Standard_CP
+       and Su=Standard_Sum);
 
 
 structure Gfp =
@@ -128,34 +103,7 @@ structure Quine_Sum =
   end;
 
 
-signature COINDRULE =
-  sig
-  val coinduct : thm
-  end;
-
-
-functor CoInd_section_Fun
- (Inductive: sig include INDUCTIVE_ARG INDUCTIVE_I end) 
-    : sig include INTR_ELIM COINDRULE end =
-let
-  structure Intr_elim = 
-      Intr_elim_Fun(structure Inductive=Inductive and Fp=Gfp and 
-                    Pr=Quine_Prod and CP=Standard_CP and
-                    Su=Quine_Sum);
-in
-   struct
-   val thy      = Intr_elim.thy
-   val defs     = Intr_elim.defs
-   val bnd_mono = Intr_elim.bnd_mono
-   val dom_subset = Intr_elim.dom_subset
-   val intrs    = Intr_elim.intrs
-   val elim     = Intr_elim.elim
-   val mk_cases = Intr_elim.mk_cases
-   val coinduct = Intr_elim.raw_induct
-   end
-end;
-
-structure CoInd = 
+structure CoInd_Package = 
     Add_inductive_def_Fun(structure Fp=Gfp and Pr=Quine_Prod and CP=Quine_CP
                           and Su=Quine_Sum);
 

@@ -71,7 +71,7 @@ val inj_apply_equality = result();
 
 Goal "[| f: A->B;  ALL x:A. d(f`x)=x |] ==> f: inj(A,B)";
 by (asm_simp_tac (simpset() addsimps [inj_def]) 1);
-by (deepen_tac (claset() addEs [subst_context RS box_equals]) 0 1);
+by (blast_tac (claset() addIs [subst_context RS box_equals]) 1);
 bind_thm ("f_imp_injective", ballI RSN (2,result()));
 
 val prems = Goal

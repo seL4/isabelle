@@ -15,13 +15,11 @@ Zorn = OrderArith + AC + Inductive +
 
 consts
   Subset_rel      :: i=>i
-  increasing      :: i=>i
   chain, maxchain :: i=>i
   super           :: [i,i]=>i
 
 defs
   Subset_rel_def "Subset_rel(A) == {z: A*A . EX x y. z=<x,y> & x<=y & x~=y}"
-  increasing_def "increasing(A) == {f: Pow(A)->Pow(A). ALL x. x<=A --> x<=f`x}"
 
   chain_def      "chain(A)      == {F: Pow(A). ALL X:F. ALL Y:F. X<=Y | Y<=X}"
   super_def      "super(A,c)    == {d: chain(A). c<=d & c~=d}"
@@ -44,8 +42,8 @@ inductive
 
     Pow_UnionI  "Y : Pow(TFin(S,next)) ==> Union(Y) : TFin(S,next)"
 
-  monos         "[Pow_mono]"
-  con_defs      "[increasing_def]"
+  monos         Pow_mono
+  con_defs      increasing_def
   type_intrs    "[CollectD1 RS apply_funtype, Union_in_Pow]"
   
 end

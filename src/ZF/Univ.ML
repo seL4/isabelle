@@ -513,6 +513,20 @@ by (rewtac rew);
 by (rtac Vrec 1);
 qed "def_Vrec";
 
+(*NOT SUITABLE FOR REWRITING: recursive!*)
+Goalw [Vrecursor_def]
+     "Vrecursor(H,a) = H(lam x:Vset(rank(a)). Vrecursor(H,x),  a)";
+by (stac transrec 1);
+by (simp_tac (simpset() addsimps [Ord_rank, Ord_succ, VsetD RS ltD RS beta, 
+                              VsetI RS beta, le_refl]) 1);
+qed "Vrecursor";
+
+(*This form avoids giant explosions in proofs.  NOTE USE OF == *)
+Goal "h == Vrecursor(H) ==> h(a) = H(lam x: Vset(rank(a)). h(x),  a)";
+by (Asm_simp_tac 1);
+by (rtac Vrecursor 1);
+qed "def_Vrecursor";
+
 
 (*** univ(A) ***)
 

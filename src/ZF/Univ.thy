@@ -19,6 +19,7 @@ consts
     Vfrom       :: [i,i]=>i
     Vset        :: i=>i
     Vrec        :: [i, [i,i]=>i] =>i
+    Vrecursor   :: [[i,i]=>i, i] =>i
     univ        :: i=>i
 
 translations
@@ -32,6 +33,10 @@ defs
     Vrec_def
         "Vrec(a,H) == transrec(rank(a), %x g. lam z: Vset(succ(x)).      
                              H(z, lam w:Vset(x). g`rank(w)`w)) ` a"
+
+    Vrecursor_def
+        "Vrecursor(H,a) == transrec(rank(a), %x g. lam z: Vset(succ(x)).      
+                                    H(lam w:Vset(x). g`rank(w)`w, z)) ` a"
 
     univ_def    "univ(A) == Vfrom(A,nat)"
 

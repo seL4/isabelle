@@ -15,6 +15,10 @@ struct
 (*Print tracing messages during processing of "inductive" theory sections*)
 val trace = ref false;
 
+fun traceIt msg ct = 
+    if !trace then (writeln (msg ^ string_of_cterm ct); ct)
+    else ct;
+
 (** Abstract syntax definitions for ZF **)
 
 val iT = Type("i",[]);
@@ -28,6 +32,10 @@ fun mk_all_imp (A,P) =
 	           betapply(P, Bound 0));
 
 val Part_const = Const("Part", [iT,iT-->iT]--->iT);
+
+val apply_const = Const("op `", [iT,iT]--->iT);
+
+val Vrecursor_const = Const("Vrecursor", [[iT,iT]--->iT, iT]--->iT);
 
 val Collect_const = Const("Collect", [iT, iT-->FOLogic.oT] ---> iT);
 fun mk_Collect (a,D,t) = Collect_const $ D $ absfree(a, iT, t);
@@ -59,6 +67,11 @@ val equals_CollectD =
 
 
 (** For datatype definitions **)
+
+(*Constructor name, type, mixfix info;
+  internal name from mixfix, datatype sets, full premises*)
+type constructor_spec = 
+    ((string * typ * mixfix) * string * term list * term list);
 
 fun dest_mem (Const("op :",_) $ x $ A) = (x,A)
   | dest_mem _ = error "Constructor specifications must have the form x:A";
@@ -103,8 +116,8 @@ fun union_params rec_tm =
 
 (*Previously these both did    replicate (length rec_tms);  however now
   [q]univ itself constitutes the sum domain for mutual recursion!*)
-fun data_domain rec_tms = univ $ union_params (hd rec_tms);
-fun Codata_domain rec_tms = quniv $ union_params (hd rec_tms);
+fun data_domain false rec_tms = univ $ union_params (hd rec_tms)
+  | data_domain true  rec_tms = quniv $ union_params (hd rec_tms);
 
 (*Could go to FOL, but it's hardly general*)
 val def_swap_iff = prove_goal IFOL.thy "a==b ==> a=c <-> c=b"
@@ -128,5 +141,3 @@ fun mk_free_SEs iffs = map (gen_make_elim [conjE,FalseE]) (iffs RL [iffD1]);
 
 end;
 
-
-val trace_induct = Ind_Syntax.trace;

@@ -38,12 +38,12 @@ $(OUT)/ZF: $(OUT)/FOL $(SRC)/Pure/section_utils.ML AC.ML AC.thy \
   Perm.ML Perm.thy QPair.ML QPair.thy QUniv.ML QUniv.thy ROOT.ML Rel.ML \
   Rel.thy Sum.ML Sum.thy Trancl.ML Trancl.thy \
   Update.ML Update.thy Univ.ML Univ.thy WF.ML WF.thy \
-  ZF.ML ZF.thy Zorn.ML Zorn.thy add_ind_def.ML add_ind_def.thy \
-  cartprod.ML cartprod.thy constructor.ML constructor.thy domrange.ML \
+  ZF.ML ZF.thy Zorn.ML Zorn.thy domrange.ML \
   domrange.thy equalities.ML equalities.thy func.ML func.thy \
-  ind_syntax.ML ind_syntax.thy indrule.ML indrule.thy intr_elim.ML \
-  intr_elim.thy mono.ML mono.thy pair.ML pair.thy simpdata.ML subset.ML \
-  subset.thy thy_syntax.ML typechk.ML upair.ML upair.thy \
+  ind_syntax.ML mono.ML mono.thy pair.ML pair.thy simpdata.ML subset.ML \
+  subset.thy thy_syntax.ML upair.ML upair.thy \
+  Tools/cartprod.ML Tools/datatype_package.ML Tools/inductive_package.ML \
+  Tools/primrec_package.ML Tools/typechk.ML \
   Integ/EquivClass.ML Integ/EquivClass.thy Integ/Int.ML Integ/Int.thy \
   Integ/twos_compl.ML Integ/Bin.ML Integ/Bin.thy 
 	@$(ISATOOL) usedir -b $(OUT)/FOL ZF
@@ -96,7 +96,7 @@ $(LOG)/ZF-Resid.gz: $(OUT)/ZF Resid/Confluence.ML Resid/Confluence.thy \
   Resid/Conversion.ML Resid/Conversion.thy Resid/Cube.ML Resid/Cube.thy \
   Resid/ROOT.ML Resid/Redex.ML Resid/Redex.thy Resid/Reduction.ML \
   Resid/Reduction.thy Resid/Residuals.ML Resid/Residuals.thy \
-  Resid/SubUnion.ML Resid/SubUnion.thy Resid/Substitution.ML \
+  Resid/Substitution.ML \
   Resid/Substitution.thy Resid/Terms.ML Resid/Terms.thy
 	@$(ISATOOL) usedir $(OUT)/ZF Resid
 
@@ -111,6 +111,7 @@ $(LOG)/ZF-ex.gz: $(OUT)/ZF ex/Acc.ML ex/Acc.thy ex/BT.ML ex/BT.thy \
   ex/Enum.thy ex/LList.ML ex/LList.thy \
   ex/Limit.ML ex/Limit.thy ex/ListN.ML ex/ListN.thy ex/Mutil.ML \
   ex/Mutil.thy ex/Ntree.ML ex/Ntree.thy ex/Primes.ML ex/Primes.thy \
+  ex/Primrec_defs.ML ex/Primrec_defs.thy \
   ex/Primrec.ML ex/Primrec.thy ex/PropLog.ML ex/PropLog.thy ex/ROOT.ML \
   ex/Ramsey.ML ex/Ramsey.thy ex/Rmap.ML ex/Rmap.thy ex/TF.ML ex/TF.thy \
   ex/Term.ML ex/Term.thy ex/misc.ML

@@ -97,4 +97,4 @@ val inf_datatype_intrs =
     [InfCard_nat, InfCard_nat_Un_cardinal,
      Pair_in_Vcsucc, Inl_in_Vcsucc, Inr_in_Vcsucc, 
      zero_in_Vcsucc, A_into_Vfrom, nat_into_Vcsucc,
-     Card_fun_in_Vcsucc, fun_in_Vcsucc', UN_I] @ datatype_intrs;
+     Card_fun_in_Vcsucc, fun_in_Vcsucc', UN_I] @ Data_Arg.intrs;

@@ -6,12 +6,7 @@
 Datatype definition of Lists
 *)
 
-open List;
-
 (*** Aspects of the datatype definition ***)
-
-Addsimps list.case_eqns;
-
 
 (*An elimination rule, for type-checking*)
 val ConsE = list.mk_cases list.con_defs "Cons(a,l) : list(A)";
@@ -61,38 +56,11 @@ val major::prems = Goal
 \       !!x y. [| x: A;  y: list(A) |] ==> h(x,y): C(Cons(x,y))  \
 \    |] ==> list_case(c,h,l) : C(l)";
 by (rtac (major RS list.induct) 1);
-by (ALLGOALS (asm_simp_tac (simpset() addsimps list.case_eqns @ prems)));
+by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "list_case_type";
 
 
-(** For recursion **)
-
-Goalw list.con_defs "rank(a) < rank(Cons(a,l))";
-by (simp_tac rank_ss 1);
-qed "rank_Cons1";
-
-Goalw list.con_defs "rank(l) < rank(Cons(a,l))";
-by (simp_tac rank_ss 1);
-qed "rank_Cons2";
-
-
 (*** List functions ***)
-
-(** hd and tl **)
-
-Goalw [hd_def] "hd(Cons(a,l)) = a";
-by (resolve_tac list.case_eqns 1);
-qed "hd_Cons";
-
-Goalw [tl_def] "tl(Nil) = Nil";
-by (resolve_tac list.case_eqns 1);
-qed "tl_Nil";
-
-Goalw [tl_def] "tl(Cons(a,l)) = l";
-by (resolve_tac list.case_eqns 1);
-qed "tl_Cons";
-
-Addsimps [hd_Cons, tl_Nil, tl_Cons];
 
 Goal "l: list(A) ==> tl(l) : list(A)";
 by (etac list.elim 1);
@@ -126,52 +94,21 @@ by (etac nat_induct 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [tl_type])));
 qed "drop_type";
 
-(** list_rec -- by Vset recursion **)
 
-Goal "list_rec(Nil,c,h) = c";
-by (rtac (list_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (simpset() addsimps list.case_eqns) 1);
-qed "list_rec_Nil";
+(** Type checking -- proved by induction, as usual **)
 
-Goal "list_rec(Cons(a,l), c, h) = h(a, l, list_rec(l,c,h))";
-by (rtac (list_rec_def RS def_Vrec RS trans) 1);
-by (simp_tac (rank_ss addsimps rank_Cons2::list.case_eqns) 1);
-qed "list_rec_Cons";
-
-Addsimps [list_rec_Nil, list_rec_Cons];
-
-
-(*Type checking -- proved by induction, as usual*)
 val prems = Goal
     "[| l: list(A);    \
 \       c: C(Nil);       \
 \       !!x y r. [| x:A;  y: list(A);  r: C(y) |] ==> h(x,y,r): C(Cons(x,y))  \
-\    |] ==> list_rec(l,c,h) : C(l)";
+\    |] ==> list_rec(c,h,l) : C(l)";
 by (list_ind_tac "l" prems 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps prems)));
 qed "list_rec_type";
 
-(** Versions for use with definitions **)
-
-val [rew] = Goal "[| !!l. j(l)==list_rec(l, c, h) |] ==> j(Nil) = c";
-by (rewtac rew);
-by (rtac list_rec_Nil 1);
-qed "def_list_rec_Nil";
-
-val [rew] = Goal "[| !!l. j(l)==list_rec(l, c, h) |] ==> j(Cons(a,l)) = h(a,l,j(l))";
-by (rewtac rew);
-by (rtac list_rec_Cons 1);
-qed "def_list_rec_Cons";
-
-fun list_recs def = map standard
-        ([def] RL [def_list_rec_Nil, def_list_rec_Cons]);
-
 (** map **)
 
-val [map_Nil,map_Cons] = list_recs map_def;
-Addsimps [map_Nil, map_Cons];
-
-val prems = Goalw [map_def] 
+val prems = Goalw [get_def thy "map_list"] 
     "[| l: list(A);  !!x. x: A ==> h(x): B |] ==> map(h,l) : list(B)";
 by (REPEAT (ares_tac (prems @ list.intrs @ [list_rec_type]) 1));
 qed "map_type";
@@ -183,30 +120,21 @@ qed "map_type2";
 
 (** length **)
 
-val [length_Nil,length_Cons] = list_recs length_def;
-Addsimps [length_Nil,length_Cons];
-
-Goalw [length_def] 
+Goalw [get_def thy "length_list"] 
     "l: list(A) ==> length(l) : nat";
 by (REPEAT (ares_tac [list_rec_type, nat_0I, nat_succI] 1));
 qed "length_type";
 
 (** app **)
 
-val [app_Nil,app_Cons] = list_recs app_def;
-Addsimps [app_Nil, app_Cons];
-
-Goalw [app_def] 
+Goalw [get_def thy "op @_list"] 
     "[| xs: list(A);  ys: list(A) |] ==> xs@ys : list(A)";
 by (REPEAT (ares_tac [list_rec_type, list.Cons_I] 1));
 qed "app_type";
 
 (** rev **)
 
-val [rev_Nil,rev_Cons] = list_recs rev_def;
-Addsimps [rev_Nil,rev_Cons] ;
-
-Goalw [rev_def] 
+Goalw [get_def thy "rev_list"] 
     "xs: list(A) ==> rev(xs) : list(A)";
 by (REPEAT (ares_tac (list.intrs @ [list_rec_type, app_type]) 1));
 qed "rev_type";
@@ -214,10 +142,7 @@ qed "rev_type";
 
 (** flat **)
 
-val [flat_Nil,flat_Cons] = list_recs flat_def;
-Addsimps [flat_Nil,flat_Cons];
-
-Goalw [flat_def] 
+Goalw [get_def thy "flat_list"] 
     "ls: list(list(A)) ==> flat(ls) : list(A)";
 by (REPEAT (ares_tac (list.intrs @ [list_rec_type, app_type]) 1));
 qed "flat_type";
@@ -225,10 +150,7 @@ qed "flat_type";
 
 (** set_of_list **)
 
-val [set_of_list_Nil,set_of_list_Cons] = list_recs set_of_list_def;
-Addsimps [set_of_list_Nil,set_of_list_Cons];
-
-Goalw [set_of_list_def] 
+Goalw [get_def thy "set_of_list_list"] 
     "l: list(A) ==> set_of_list(l) : Pow(A)";
 by (etac list_rec_type 1);
 by (ALLGOALS (Blast_tac));
@@ -243,10 +165,7 @@ qed "set_of_list_append";
 
 (** list_add **)
 
-val [list_add_Nil,list_add_Cons] = list_recs list_add_def;
-Addsimps [list_add_Nil,list_add_Cons];
-
-Goalw [list_add_def] 
+Goalw [get_def thy "list_add_list"] 
     "xs: list(nat) ==> list_add(xs) : nat";
 by (REPEAT (ares_tac [list_rec_type, nat_0I, add_type] 1));
 qed "list_add_type";
@@ -255,6 +174,8 @@ val list_typechecks =
     list.intrs @
     [list_rec_type, map_type, map_type2, app_type, length_type, 
      rev_type, flat_type, list_add_type];
+
+Addsimps list_typechecks;
 
 simpset_ref() := simpset() setSolver (type_auto_tac list_typechecks);
 
@@ -282,8 +203,8 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps [map_app_distrib])));
 qed "map_flat";
 
 Goal "l: list(A) ==> \
-\    list_rec(map(h,l), c, d) = \
-\    list_rec(l, c, %x xs r. d(h(x), map(h,xs), r))";
+\    list_rec(c, d, map(h,l)) = \
+\    list_rec(c, %x xs r. d(h(x), map(h,xs), r), l)";
 by (list_ind_tac "l" [] 1);
 by (ALLGOALS Asm_simp_tac);
 qed "list_rec_map";

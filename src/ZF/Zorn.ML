@@ -9,8 +9,6 @@ Proofs from the paper
     Classical Theorems of Set Theory. 
 *)
 
-open Zorn;
-
 (*** Section 1.  Mathematical Preamble ***)
 
 Goal "(ALL x:C. x<=A | B<=x) ==> Union(C)<=A | B<=Union(C)";

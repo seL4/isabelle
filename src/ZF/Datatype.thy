@@ -8,7 +8,9 @@ Dummy theory: brings in all ancestors needed for (Co)Datatype Declarations
 	"Datatype" must be capital to avoid conflicts with ML's "datatype"
 *)
 
-Datatype = "constructor" + Inductive + Univ + QUniv +
+Datatype = Inductive + Univ + QUniv +
+
+setup setup_datatypes
 
 end
 

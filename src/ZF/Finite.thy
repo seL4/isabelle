@@ -16,7 +16,7 @@ inductive
   intrs
     emptyI  "0 : Fin(A)"
     consI   "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"
-  type_intrs "[empty_subsetI, cons_subsetI, PowI]"
+  type_intrs empty_subsetI, cons_subsetI, PowI
   type_elims "[make_elim PowD]"
 
 inductive

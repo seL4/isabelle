@@ -30,12 +30,22 @@ fun DO_GOAL tfs = SELECT_GOAL (CHECK_SOLVED (EVERY1 tfs));
 print_depth 1;
 
 (*Add user sections for inductive/datatype definitions*)
-use     "$ISABELLE_HOME/src/Pure/section_utils.ML";
-use     "thy_syntax.ML";
+use     "$ISABELLE_HOME/src/Pure/section_utils";
+use     "thy_syntax";
 
 use_thy "Let";
 use_thy "func";
-use     "typechk.ML";
+use     "Tools/typechk";
+use_thy "mono";
+use     "ind_syntax";
+use     "Tools/cartprod";
+use_thy "Fixedpt";
+use     "Tools/inductive_package";
+use_thy "Inductive";
+use_thy "QUniv";
+use "Tools/datatype_package";
+use "Tools/primrec_package";
+use_thy "Datatype";
 use_thy "InfDatatype";
 use_thy "List";
 

@@ -6,8 +6,6 @@
 Monotonicity of various operations (for lattice properties see subset.ML)
 *)
 
-open mono;
-
 (** Replacement, in its various formulations **)
 
 (*Not easy to express monotonicity in P, since any "bigger" predicate

@@ -29,42 +29,54 @@ translations
   "[]"          == "Nil"
 
 
-constdefs
+consts
+  length :: i=>i
   hd      :: i=>i
-  "hd(l)       == list_case(0, %x xs. x, l)"
-  
   tl      :: i=>i
-  "tl(l)       == list_case(Nil, %x xs. xs, l)"
+  map        :: [i=>i, i] => i
+  set_of_list :: i=>i
+  "@"        :: [i,i]=>i                        (infixr 60)
+  rev :: i=>i
+  flat       :: i=>i
+  list_add   :: i=>i
+
+primrec
+  "length([]) = 0"
+  "length(Cons(a,l)) = succ(length(l))"
   
+primrec
+  "hd(Cons(a,l)) = a"
+
+primrec
+  "tl([]) = []"
+  "tl(Cons(a,l)) = l"
+
+primrec
+  "map(f,[]) = []"
+  "map(f,Cons(a,l)) = Cons(f(a), map(f,l))"
+ 
+primrec
+  "set_of_list([]) = 0"
+  "set_of_list(Cons(a,l)) = cons(a, set_of_list(l))"
+   
+primrec
+  "[] @ ys = ys"
+  "(Cons(a,l)) @ ys = Cons(a, l @ ys)"
+  
+primrec
+  "rev([]) = []"
+  "rev(Cons(a,l)) = rev(l) @ [a]"
+
+primrec
+  "flat([]) = []"
+  "flat(Cons(l,ls)) = l @ flat(ls)"
+   
+primrec
+  "list_add([]) = 0"
+  "list_add(Cons(a,l)) = a #+ list_add(l)"
+       
+constdefs
   drop       :: [i,i]=>i
   "drop(i,l)   == rec(i, l, %j r. tl(r))"
-
-  list_rec   :: [i, i, [i,i,i]=>i] => i
-  "list_rec(l,c,h) == Vrec(l, %l g. list_case(c, %x xs. h(x, xs, g`xs), l))"
-
-  map        :: [i=>i, i] => i
-  "map(f,l)    == list_rec(l,  Nil,  %x xs r. Cons(f(x), r))"
-
-  length :: i=>i
-  "length(l)   == list_rec(l,  0,  %x xs r. succ(r))"
-
-  set_of_list :: i=>i
-  "set_of_list(l)   == list_rec(l,  0,  %x xs r. cons(x,r))"
-
-consts  (*Cannot use constdefs because @ is not an identifier*)
-  "@"        :: [i,i]=>i                        (infixr 60)
-defs
-  app_def       "xs@ys       == list_rec(xs, ys, %x xs r. Cons(x,r))"
-
-
-constdefs
-  rev :: i=>i
-  "rev(l)      == list_rec(l,  Nil,  %x xs r. r @ [x])"
-
-  flat       :: i=>i
-  "flat(ls)    == list_rec(ls, Nil,  %l ls r. l @ r)"
-
-  list_add   :: i=>i
-  "list_add(l) == list_rec(l, 0,  %x xs r. x#+r)"
 
 end
