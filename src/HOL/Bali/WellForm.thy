@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/WellForm.thy
     ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Well-formedness of Java programs *}

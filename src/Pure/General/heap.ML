@@ -1,7 +1,6 @@
 (*  Title:      Pure/General/heap.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Heaps over linearly ordered types.  See also Chris Okasaki: "Purely
 Functional Data Structures" (Chapter 3), Cambridge University Press,

@@ -1,7 +1,6 @@
 (*  Title:      HOL/IOA/example/Spec.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The specification of a memory.
 *)

@@ -1,7 +1,6 @@
 (*  Title:      Pure/Proof/proof_rewrite_rules.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Simplification functions for proof terms involving meta level rules.
 *)

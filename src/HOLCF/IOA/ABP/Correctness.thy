@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/ABP/Correctness.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The main correctness proof: System_fin implements System.
 *)

@@ -2,7 +2,6 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Markus Wenzel, TU Munich
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Basic library: functions, options, pairs, booleans, lists, integers,
 rational numbers, strings, lists as sets, association lists, generic

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/DeclConcepts.thy
     ID:         $Id$
     Author:     Norbert Schirmer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 header {* Advanced concepts on Java declarations like overriding, inheritance,
 dynamic method lookup*}

@@ -1,7 +1,6 @@
 (*  Title:      ZF/Tools/ind_cases.ML
     ID:         $Id$
     Author:     Markus Wenzel, LMU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Generic inductive cases facility for (co)inductive definitions.
 *)

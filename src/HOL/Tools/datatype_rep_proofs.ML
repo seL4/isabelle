@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/datatype_rep_proofs.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Definitional introduction of datatypes
 Proof of characteristic theorems:

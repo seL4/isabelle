@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/outer_lex.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Outer lexical syntax for Isabelle/Isar.
 *)

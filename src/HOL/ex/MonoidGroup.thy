@@ -1,7 +1,6 @@
 (*  Title:      HOL/ex/MonoidGroup.thy
     ID:         $Id$
     Author:     Markus Wenzel
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Monoids and Groups as predicates over record schemes.
 *)

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Matrix/LinProg.thy
     ID:         $Id$
     Author:     Steven Obua
-    License:    2004 Technische Universität München
 *)
 
 theory LinProg = Matrix:

@@ -1,7 +1,6 @@
 (*  Title:      HOL/W0/W0.thy
     ID:         $Id$
     Author:     Dieter Nazareth, Tobias Nipkow, Thomas Stauner, Markus Wenzel
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 theory W0 = Main:

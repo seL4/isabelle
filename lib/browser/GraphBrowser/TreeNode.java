@@ -2,7 +2,6 @@
   Title:      GraphBrowser/TreeNode.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class contains methods for storing and manipulating directory
   trees (e.g. collapsing / uncollapsing directory branches).

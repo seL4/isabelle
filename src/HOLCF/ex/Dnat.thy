@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Dnat.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory for the domain of natural numbers  dnat = one ++ dnat
 *)

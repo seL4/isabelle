@@ -1,7 +1,6 @@
 (*  Title:      HOL/Induct/Term.thy
     ID:         $Id$
     Author:     Stefan Berghofer,  TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Terms over a given alphabet *}

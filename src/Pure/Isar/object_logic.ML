@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/object_logic.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Specifics about common object-logics.
 *)

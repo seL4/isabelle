@@ -1,7 +1,6 @@
 (*  Title:      HOL/Integ/cooper_proof.ML
     ID:         $Id$
     Author:     Amine Chaieb and Tobias Nipkow, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 File containing the implementation of the proof
 generation for Cooper Algorithm

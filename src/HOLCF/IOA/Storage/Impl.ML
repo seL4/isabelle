@@ -1,7 +1,6 @@
 (*  Title:      HOL/IOA/example/Sender.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Impl.
 *)

@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Ssum1.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Partial ordering for the strict sum ++
 *)

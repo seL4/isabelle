@@ -1,7 +1,6 @@
 (*  Title:      HOL/Main.thy
     ID:         $Id$
     Author:     Stefan Berghofer, Tobias Nipkow, Tjark Weber, Markus Wenzel (TU Muenchen)
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Main HOL *}

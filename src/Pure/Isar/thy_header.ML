@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/thy_header.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory headers (old and new-style).
 *)

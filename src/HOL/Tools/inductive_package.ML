@@ -3,7 +3,6 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Stefan Berghofer, TU Muenchen
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 (Co)Inductive Definition module for HOL.
 

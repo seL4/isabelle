@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/Comp/TranslComp.thy
     ID:         $Id$
     Author:     Martin Strecker
-    Copyright   GPL 2002
 *)
 
 (* Compiling MicroJava into MicroJVM -- Translation functions *)

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/datatype_realizer.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Porgram extraction from proofs involving datatypes:
 Realizers for induction and case analysis

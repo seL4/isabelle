@@ -1,7 +1,6 @@
 (*  Title:      Pure/General/symbol.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Generalized characters with and infinite amount of named symbols.
 *)

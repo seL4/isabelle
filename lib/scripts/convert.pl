@@ -1,7 +1,6 @@
 #
 # $Id$
 # Author: David von Oheimb, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # convert.pl - convert legacy tactic scripts to Isabelle/Isar tactic
 #   emulation using heuristics - leaves unrecognized patterns unchanged

@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/Comp/CorrCompTp.thy
     ID:         $Id$
     Author:     Martin Strecker
-    Copyright   GPL 2002
 *)
 
 theory CorrCompTp =  LemmasComp + JVM + TypeInf + Altern:

@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/proof_data.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Type-safe interface for proof context data.
 *)

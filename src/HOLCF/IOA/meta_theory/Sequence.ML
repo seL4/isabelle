@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Sequence.ML
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theorems about Sequences over flat domains with lifted elements.
 *)

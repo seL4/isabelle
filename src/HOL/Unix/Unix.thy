@@ -1,7 +1,6 @@
 (*  Title:      HOL/Unix/Unix.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Unix file-systems \label{sec:unix-file-system} *}

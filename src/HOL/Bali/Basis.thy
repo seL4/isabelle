@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/Basis.thy
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 *)
 header {* Definitions extending HOL as logical basis of Bali *}

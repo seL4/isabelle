@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/rewrite_hol_proof.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Rewrite rules for HOL proofs
 *)

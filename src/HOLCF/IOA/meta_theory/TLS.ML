@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/TLS.ML
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Temporal Logic of Steps -- tailored for I/O automata.
 *)    

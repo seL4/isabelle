@@ -1,7 +1,6 @@
 (*  Title:      Pure/sign.ML
     ID:         $Id$
     Author:     Lawrence C Paulson and Markus Wenzel
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The abstract type "sg" of signatures.
 *)

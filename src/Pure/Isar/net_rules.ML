@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/net_rules.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Efficient storage of rules: preserves order, prefers later entries.
 *)

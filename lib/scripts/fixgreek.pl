@@ -1,7 +1,6 @@
 #
 # $Id$
 # Author: Sebastian Skalberg, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # fixgreek.pl - fix problems with greek and other foreign letters now
 #               being classified as letters instead of symbols.

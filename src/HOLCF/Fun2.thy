@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Fun2.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 Fun2 = Fun1 + 

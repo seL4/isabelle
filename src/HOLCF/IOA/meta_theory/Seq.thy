@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Seq.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Partial, Finite and Infinite Sequences (lazy lists), modeled as domain.
 *)  

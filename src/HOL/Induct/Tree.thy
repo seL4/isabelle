@@ -1,7 +1,6 @@
 (*  Title:      HOL/Induct/Tree.thy
     ID:         $Id$
     Author:     Stefan Berghofer,  TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Infinitely branching trees *}

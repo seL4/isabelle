@@ -1,7 +1,6 @@
 (*  Title:      Pure/codegen.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Generic code generator.
 *)

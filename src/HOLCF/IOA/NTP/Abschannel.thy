@@ -1,7 +1,6 @@
 (*  Title:      HOL/IOA/NTP/Abschannel.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The (faulty) transmission channel (both directions).
 *)

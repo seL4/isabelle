@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Pcpo.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 introduction of the classes cpo and pcpo 
 *)

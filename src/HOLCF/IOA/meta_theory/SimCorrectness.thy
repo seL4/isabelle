@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/SimCorrectness.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Correctness of Simulations in HOLCF/IOA.
 *)

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/TypeSafe.thy
     ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 header {* The type soundness proof for Java *}
 

@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/JVM/JVMDefensive.thy
     ID:         $Id$
     Author:     Gerwin Klein
-    Copyright   GPL
 *)
 
 header {* \isaheader{A Defensive JVM} *}

@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/obtain.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The 'obtain' language element -- generalized existence at the level of
 proof texts.

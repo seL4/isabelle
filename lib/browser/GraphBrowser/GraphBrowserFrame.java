@@ -2,7 +2,6 @@
   Title:      GraphBrowser/GraphBrowserFrame.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class is the frame for the stand-alone application. It contains
   methods for handling menubar events.

@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Ssum0.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Strict sum with typedef
 *)

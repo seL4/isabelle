@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/isar_thy.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Pure/Isar derived theory operations.
 *)

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Induct/ABexp.thy
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Arithmetic and boolean expressions *}

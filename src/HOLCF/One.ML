@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/One.ML
     ID:         $Id$
     Author:     Oscar Slotosch
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The unit domain.
 *)

@@ -1,7 +1,6 @@
 (*  Title:      Pure/pattern.ML
     ID:         $Id$
     Author:     Tobias Nipkow, Christine Heinzelmann, and Stefan Berghofer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Unification of Higher-Order Patterns.
 

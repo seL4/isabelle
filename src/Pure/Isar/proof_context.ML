@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/proof_context.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Proof context information.
 *)

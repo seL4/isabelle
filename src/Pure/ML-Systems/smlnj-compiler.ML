@@ -1,7 +1,6 @@
 (*  Title:      Pure/ML-Systems/smlnj.ML
     ID:         $Id$
     Author:     Markus Wenzel, LMU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Compatibility tweak for later versions of Standard ML of New Jersey 110.
 *)

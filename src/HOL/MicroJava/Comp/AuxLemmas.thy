@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/Comp/AuxLemmas.thy
     ID:         $Id$
     Author:     Martin Strecker
-    Copyright   GPL 2002
 *)
 
 

@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/ShortExecutions.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Some properties about (Cut ex), defined as follows:
 

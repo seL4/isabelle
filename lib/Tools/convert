@@ -2,7 +2,6 @@
 #
 # $Id$
 # Author: David von Oheimb, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: convert legacy tactic scripts to Isabelle/Isar tactic emulation
 

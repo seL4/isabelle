@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/locale.ML
     ID:         $Id$
     Author:     Markus Wenzel, LMU/TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Locales -- Isar proof contexts as meta-level predicates, with local
 syntax and implicit structures.

@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/ROOT.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Conservative (semantic) extension of HOL by the LCF logic.
 *)

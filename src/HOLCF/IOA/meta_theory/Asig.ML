@@ -1,7 +1,6 @@
 (*  Title:      HOL/IOA/meta_theory/Asig.ML
     ID:         $Id$
     Author:     Olaf Müller, Tobias Nipkow & Konrad Slind
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Action signatures.
 *)

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/Trans.thy
     ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Operational transition (small-step) semantics of the 
 execution of Java expressions and statements

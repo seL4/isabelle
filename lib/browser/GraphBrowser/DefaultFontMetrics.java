@@ -2,7 +2,6 @@
   Title:      GraphBrowser/DefaultFontMetrics.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   Default font metrics which is used when no graphics context
   is available (batch mode).

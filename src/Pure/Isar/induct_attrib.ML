@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/induct_attrib.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Declaration of rules for cases and induction.
 *)

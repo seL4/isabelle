@@ -1,7 +1,6 @@
 (*  Title: 	HOLCF/FOCUS/Fstream.thy
     ID:         $Id$
     Author: 	David von Oheimb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 FOCUS streams (with lifted elements)
 *)

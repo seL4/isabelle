@@ -1,7 +1,6 @@
 (*  Title:      HOL/ex/Locales.thy
     ID:         $Id$
     Author:     Markus Wenzel, LMU München
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Using locales in Isabelle/Isar *}

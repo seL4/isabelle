@@ -1,7 +1,6 @@
 (*  Title:      Pure/Thy/thy_syn.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Provide syntax for *old-style* theory files.
 *)

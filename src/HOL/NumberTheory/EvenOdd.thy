@@ -1,6 +1,6 @@
 (*  Title:      HOL/Quadratic_Reciprocity/EvenOdd.thy
+    ID:         $Id$
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {*Parity: Even and Odd Integers*}

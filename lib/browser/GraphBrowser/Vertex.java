@@ -2,7 +2,6 @@
   Title:      GraphBrowser/Vertex.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class contains attributes and methods common to all kinds of
   vertices (e.g. coordinates, successors, predecessors).

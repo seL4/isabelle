@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/ABP/Receiver.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The implementation: receiver.
 *)

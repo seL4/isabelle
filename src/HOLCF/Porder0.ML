@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Porder0.ML
     ID:         $Id$
     Author:     Oscar Slotosch
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 derive the characteristic axioms for the characteristic constants 
 *)

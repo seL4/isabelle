@@ -1,7 +1,6 @@
 (*  Title:      HOL/IOA/NTP/Correctness.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The main correctness proof: Impl implements Spec.
 *)

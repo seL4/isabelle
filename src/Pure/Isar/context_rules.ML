@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/context_rules.ML
     ID:         $Id$
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Declarations of intro/elim/dest rules in Pure; see
 Provers/classical.ML for a more specialized version of the same idea.

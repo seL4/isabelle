@@ -1,7 +1,6 @@
 (*  Title:      HOL/IOA/NTP/Packet.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Packets.
 *)

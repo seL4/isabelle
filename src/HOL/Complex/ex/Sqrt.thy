@@ -1,7 +1,7 @@
 (*  Title:      HOL/Hyperreal/ex/Sqrt.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
+
 *)
 
 header {*  Square roots of primes are irrational *}

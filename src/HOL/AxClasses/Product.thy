@@ -1,7 +1,6 @@
 (*  Title:      HOL/AxClasses/Product.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 theory Product = Main:

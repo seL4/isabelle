@@ -1,7 +1,6 @@
 (*  Title:      FOL/ex/Natural_Numbers.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Munich
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Natural numbers *}

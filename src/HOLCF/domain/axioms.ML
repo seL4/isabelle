@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/domain/axioms.ML
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Syntax generator for domain section.
 *)

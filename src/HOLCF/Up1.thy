@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Up1.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Lifting.
 *)

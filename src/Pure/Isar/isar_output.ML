@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/isar_output.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Isar theory output.
 *)

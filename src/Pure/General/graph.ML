@@ -1,7 +1,6 @@
 (*  Title:      Pure/General/graph.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Directed graphs.
 *)

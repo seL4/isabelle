@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/adm.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Admissibility tactic.
 

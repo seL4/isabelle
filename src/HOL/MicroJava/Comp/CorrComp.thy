@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/Comp/CorrComp.thy
     ID:         $Id$
     Author:     Martin Strecker
-    Copyright   GPL 2002
 *)
 
 (* Compiler correctness statement and proof *)

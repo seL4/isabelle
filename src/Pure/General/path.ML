@@ -1,7 +1,6 @@
 (*  Title:      Pure/General/path.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Abstract algebra of file paths (external encoding Unix-style).
 *)

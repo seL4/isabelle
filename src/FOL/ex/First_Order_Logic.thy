@@ -1,7 +1,6 @@
 (*  Title:      FOL/ex/First_Order_Logic.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Munich
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* A simple formulation of First-Order Logic *}

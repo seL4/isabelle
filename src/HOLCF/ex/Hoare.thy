@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/ex/hoare.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory for an example by C.A.R. Hoare
 

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/Name.thy
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 header {* Java names *}
 

@@ -1,7 +1,6 @@
 (*  Title:      Pure/Syntax/ROOT.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 This file builds the syntax module.
 *)

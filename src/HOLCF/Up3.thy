@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Up3.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Class instance of  ('a)u for class pcpo
 *)

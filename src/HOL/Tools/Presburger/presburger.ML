@@ -1,7 +1,6 @@
 (*  Title:      HOL/Integ/presburger.ML
     ID:         $Id$
     Author:     Amine Chaieb and Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Tactic for solving arithmetical Goals in Presburger Arithmetic
 *)

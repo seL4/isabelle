@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Lift.thy
     ID:         $Id$
     Author:     Olaf Mueller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Lifting types of class type to flat pcpo's *}

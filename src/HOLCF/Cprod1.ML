@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Cprod1.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Partial ordering for cartesian product of HOL theory Product_Type.thy
 *)

@@ -1,7 +1,6 @@
 (*  Title: 	HOLCF/ex//Stream.ML
     ID:         $Id$
     Author: 	Franz Regensburger and David von Oheimb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 General Stream domain.
 *)

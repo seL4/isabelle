@@ -1,6 +1,6 @@
 (*  Title:      HOL/Quadratic_Reciprocity/Residues.thy
+    ID:         $Id$
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Residue Sets *}

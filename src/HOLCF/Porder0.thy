@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Porder0.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Definition of class porder (partial order).
 *)

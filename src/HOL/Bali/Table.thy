@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/Table.thy
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 header {* Abstract tables and their implementation as lists *}
 

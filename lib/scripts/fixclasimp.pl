@@ -1,7 +1,6 @@
 #
 # $Id$
 # Author: Markus Wenzel, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # fixclasimp.pl - fix references to implicit claset and simpset
 #

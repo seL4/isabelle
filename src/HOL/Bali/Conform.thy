@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/Conform.thy
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Conformance notions for the type soundness proof for Java *}

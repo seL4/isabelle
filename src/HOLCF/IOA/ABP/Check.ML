@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/ABP/Check.ML
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The Model Checker.
 *)

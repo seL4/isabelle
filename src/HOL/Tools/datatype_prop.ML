@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/datatype_prop.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Characteristic properties of datatypes.
 *)

@@ -1,7 +1,6 @@
 (*  Title: 	HOLCF/FOCUS/Buffer.ML
     ID:         $Id$
     Author: 	David von Oheimb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 val set_cong = prove_goal Set.thy "!!X. A = B ==> (x:A) = (x:B)" (K [

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/datatype_package.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Datatype package for Isabelle/HOL.
 *)

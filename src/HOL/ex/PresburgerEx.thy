@@ -1,7 +1,6 @@
 (*  Title:      HOL/ex/PresburgerEx.thy
     ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Some examples for Presburger Arithmetic
 *)

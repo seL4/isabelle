@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/ABP/Packet.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Packets.
 *)

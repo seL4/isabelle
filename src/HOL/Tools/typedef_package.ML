@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/typedef_package.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Gordon/HOL-style type definitions.
 *)

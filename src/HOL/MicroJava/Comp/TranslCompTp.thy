@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/Comp/TranslCompTp.thy
     ID:         $Id$
     Author:     Martin Strecker
-    Copyright   GPL 2002
 *)
 
 theory TranslCompTp =  JVMType + Index:

@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/ROOT.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Isar -- Intelligible Semi-Automated Reasoning for Isabelle.
 *)

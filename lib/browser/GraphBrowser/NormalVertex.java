@@ -2,7 +2,6 @@
   Title:      GraphBrowser/NormalVertex.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class represents an ordinary vertex. It contains methods for
   drawing and PostScript output.

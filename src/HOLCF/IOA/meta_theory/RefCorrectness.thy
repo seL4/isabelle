@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/RefCorrectness.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Correctness of Refinement Mappings in HOLCF/IOA.
 *)

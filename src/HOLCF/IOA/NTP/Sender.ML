@@ -1,7 +1,6 @@
 (*  Title:      HOL/IOA/NTP/Sender.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 Goal

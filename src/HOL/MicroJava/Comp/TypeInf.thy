@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/Comp/TypeInf.thy
     ID:         $Id$
     Author:     Martin Strecker
-    Copyright   GPL 2002
 *)
 
 (* Exact position in theory hierarchy still to be determined *)

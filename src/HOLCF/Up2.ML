@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Up2.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Class Instance u::(pcpo)po
 *)

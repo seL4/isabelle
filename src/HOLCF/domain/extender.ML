@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/domain/extender.ML
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory extender for domain section, including new-style theory syntax.
 *)

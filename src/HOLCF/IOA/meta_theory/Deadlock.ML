@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Deadlock.ML
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Deadlock freedom of I/O Automata.
 *)   

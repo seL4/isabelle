@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/domain/library.ML
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Library for domain section.
 *)

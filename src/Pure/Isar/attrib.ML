@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/attrib.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Symbolic theorem attributes.
 *)

@@ -1,7 +1,6 @@
 (*  Title: 	HOLCF/FOCUS/Fstream.ML
     ID:         $Id$
     Author: 	David von Oheimb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 Goal "a = Def d \\<Longrightarrow> a\\<sqsubseteq>b \\<Longrightarrow> b = Def d";

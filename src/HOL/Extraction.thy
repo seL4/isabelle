@@ -1,7 +1,6 @@
 (*  Title:      HOL/Extraction.thy
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Program extraction for HOL *}

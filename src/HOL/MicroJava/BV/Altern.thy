@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/BV/Altern.thy
     ID:         $Id$
     Author:     Martin Strecker
-    Copyright   GPL 2003
 *)
 
 

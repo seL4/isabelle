@@ -1,7 +1,6 @@
 (*  Title:      Pure/General/object.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Generic objects of arbitrary type -- fool the ML type system via
 exception constructors.

@@ -1,7 +1,6 @@
 (*  Title:      Pure/meta_simplifier.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Stefan Berghofer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Meta-level Simplification.
 *)

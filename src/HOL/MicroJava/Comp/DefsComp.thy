@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/Comp/DefsComp.thy
     ID:         $Id$
     Author:     Martin Strecker
-    Copyright   GPL 2002
 *)
 
 (* Definitions for accessing parts of methods, states etc. *)

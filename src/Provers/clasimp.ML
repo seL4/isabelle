@@ -1,7 +1,6 @@
 (*  Title:      Provers/clasimp.ML
     ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Combination of classical reasoner and simplifier (depends on
 simplifier.ML, splitter.ML classical.ML, blast.ML).

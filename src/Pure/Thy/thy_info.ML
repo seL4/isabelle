@@ -1,7 +1,6 @@
 (*  Title:      Pure/Thy/thy_info.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory loader database, including theory and file dependencies.
 *)

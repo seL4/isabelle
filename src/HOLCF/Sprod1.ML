@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Sprod1.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 (* ------------------------------------------------------------------------ *)

@@ -1,7 +1,6 @@
 (*  Title:      HOL/ex/Hilbert_Classical.thy
     ID:         $Id$
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Hilbert's choice and classical logic *}

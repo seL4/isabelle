@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/holcf_logic.ML
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Abstract syntax operations for HOLCF.
 *)

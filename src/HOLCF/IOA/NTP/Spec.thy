@@ -1,7 +1,6 @@
 (*  Title:      HOL/IOA/NTP/Spec.thy
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The specification of reliable transmission.
 *)

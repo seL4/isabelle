@@ -1,7 +1,6 @@
 (*  Title:      HOL/IOA/Storage/ROOT.ML
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Memory storage case study.
 *)

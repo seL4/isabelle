@@ -2,7 +2,6 @@
   Title:      GraphBrowser/Console.java
   ID:         $Id$
   Author:     Gerwin Klein, TU Muenchen
-  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This is the graph browser's main class when run as a console application.
   It duplicates some logic from GraphBrowser and GraphView.

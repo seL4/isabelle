@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Cont.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Results about continuity and monotonicity
 *)

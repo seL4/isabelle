@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/sprod1.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Partial ordering for the strict product.
 *)

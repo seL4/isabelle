@@ -1,7 +1,6 @@
 (*  Title:      Parity.thy
     ID:         $Id$
     Author:     Jeremy Avigad
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Parity: Even and Odd for ints and nats*}

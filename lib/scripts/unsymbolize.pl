@@ -1,7 +1,6 @@
 #
 # $Id$
 # Author: Markus Wenzel, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # unsymbolize.pl - remove unreadable symbol names from sources
 #

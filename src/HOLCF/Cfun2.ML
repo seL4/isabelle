@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Cfun2
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Class Instance ->::(cpo,cpo)po
 *)

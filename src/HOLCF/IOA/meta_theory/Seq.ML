@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Seq.ML
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)  
 
 Addsimps (sfinite.intrs @ seq.rews);

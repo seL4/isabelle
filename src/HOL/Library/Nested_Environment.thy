@@ -1,7 +1,6 @@
 (*  Title:      HOL/Library/Nested_Environment.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Nested environments *}

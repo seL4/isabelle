@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/Comp/LemmasComp.thy
     ID:         $Id$
     Author:     Martin Strecker
-    Copyright   GPL 2002
 *)
 
 (* Lemmas for compiler correctness proof *)

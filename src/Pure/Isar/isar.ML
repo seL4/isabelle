@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/isar.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Isabelle/Isar main interface.
 *)

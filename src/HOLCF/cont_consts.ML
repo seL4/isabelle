@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/cont_consts.ML
     ID:         $Id$
     Author:     Tobias Mayr, David von Oheimb, and Markus Wenzel
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 HOLCF version of consts: handle continuous function types in mixfix
 syntax.

@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/LiveIOA.ML
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Live I/O Automata.
 *)   

@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/BV/BVNoTypeErrors.thy
     ID:         $Id$
     Author:     Gerwin Klein
-    Copyright   GPL
 *)
 
 header {* \isaheader{Welltyped Programs produce no Type Errors} *}

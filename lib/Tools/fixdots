@@ -2,7 +2,6 @@
 #
 # $Id$
 # Author: Markus Wenzel, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: ensure that dots in formulas are followed by non-idents
 

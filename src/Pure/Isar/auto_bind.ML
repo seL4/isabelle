@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/auto_bind.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Logic specific patterns and automatic term bindings.
 *)

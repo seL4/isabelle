@@ -1,7 +1,6 @@
 (*  Title:      Pure/Syntax/printer.ML
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Pretty printing of asts, terms, types and print (ast) translation.
 *)

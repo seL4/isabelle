@@ -1,7 +1,6 @@
 (*  Title:      HOL/Library/Nat_Infinity.thy
     ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Natural numbers with infinity *}

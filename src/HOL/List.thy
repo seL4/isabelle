@@ -1,7 +1,6 @@
 (*  Title:      HOL/List.thy
     ID:         $Id$
     Author:     Tobias Nipkow
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* The datatype of finite lists *}

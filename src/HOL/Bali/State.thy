@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/State.thy
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 header {* State for evaluation of Java expressions and statements *}
 

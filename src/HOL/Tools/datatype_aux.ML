@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/datatype_aux.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Auxiliary functions for defining datatypes.
 *)

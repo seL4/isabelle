@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/Sprod0
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Strict product with typedef.
 *)

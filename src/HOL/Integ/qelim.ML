@@ -1,7 +1,6 @@
 (*  Title:      HOL/Integ/qelim.ML
     ID:         $Id$
     Author:     Amine Chaieb and Tobias Nipkow, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 File containing the implementation of the proof protocoling
 and proof generation for multiple quantified formulae.

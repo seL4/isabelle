@@ -1,7 +1,6 @@
 (*  Title:      HOL/datatype_codegen.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Code generator for inductive datatypes.
 *)

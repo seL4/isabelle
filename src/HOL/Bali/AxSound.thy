@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/AxSound.thy
     ID:         $Id$
     Author:     David von Oheimb and Norbert Schirmer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 header {* Soundness proof for Axiomatic semantics of Java expressions and 
           statements

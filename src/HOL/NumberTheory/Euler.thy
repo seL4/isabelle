@@ -1,6 +1,6 @@
 (*  Title:      HOL/Quadratic_Reciprocity/Euler.thy
+    ID:         $Id$
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Euler's criterion *}

@@ -1,7 +1,6 @@
 (*  Title:      Pure/Proof/extraction.ML
     ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Extraction of programs from proofs.
 *)

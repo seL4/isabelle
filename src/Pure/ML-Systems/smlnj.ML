@@ -1,7 +1,6 @@
 (*  Title:      Pure/ML-Systems/smlnj.ML
     ID:         $Id$
     Author:     Carsten Clasohm and Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Compatibility file for Standard ML of New Jersey 110 or later.
 *)

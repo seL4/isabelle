@@ -2,7 +2,6 @@
 #
 # $Id$
 # Author: Gerwin Klein, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: send email with text attachments.
 # (works for "mail" command of SunOS 5.8)

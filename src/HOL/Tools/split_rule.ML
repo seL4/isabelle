@@ -1,7 +1,6 @@
 (*  Title:      Tools/split_rule.ML
     ID:         $Id$
     Author:     Stefan Berghofer, David von Oheimb, and Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Some tools for managing tupled arguments and abstractions in rules.
 *)

@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/sprod3.thy
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Class instance of  ** for class pcpo
 *)

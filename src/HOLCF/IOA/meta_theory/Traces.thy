@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/Traces.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Executions and Traces of I/O automata in HOLCF.
 *)   

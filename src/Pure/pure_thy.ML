@@ -1,7 +1,6 @@
 (*  Title:      Pure/pure_thy.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theorem database, derived theory operations, and the ProtoPure theory.
 *)

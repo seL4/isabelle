@@ -1,7 +1,6 @@
 (*  Title:      Pure/fact_index.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Facts indexed by consts or (some) frees.
 *)

@@ -1,7 +1,6 @@
 (*  Title: 	HOLCF/ex/Stream.thy
     ID:         $Id$
     Author: 	Franz Regensburger, David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 General Stream domain.
 TODO: should be integrated with HOLCF/Streams

@@ -1,7 +1,6 @@
 (*  Title: 	HOLCF/Streams.thy
     ID:         $Id$
     Author: 	Borislav Gajanovic and David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Stream domains with concatenation.
 TODO: HOLCF/ex/Stream.* should be integrated into this file.

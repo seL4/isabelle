@@ -1,7 +1,6 @@
 (*  Title: 	HOLCF/FOCUS/FOCUS.ML
     ID:         $Id$
     Author: 	David von Oheimb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 val ex_eqI = prove_goal thy "? xx. x = xx" (K [Auto_tac]);

@@ -1,7 +1,6 @@
 (*  Title:      HOL/NatArith.thy
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* More arithmetic on natural numbers *}

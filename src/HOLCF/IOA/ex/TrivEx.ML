@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/TrivEx.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Trivial Abstraction Example.
 *)

@@ -1,7 +1,6 @@
 (*  Title: 	HOLCF/ex/Stream_adm.ML
     ID:         $Id$
     Author: 	David von Oheimb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 (* ----------------------------------------------------------------------- *)

@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoExecs.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Compositionality on Execution level.
 *)  

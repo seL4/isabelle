@@ -1,6 +1,6 @@
 (*  Title:      HOL/Quadratic_Reciprocity/Gauss.thy
+    ID:         $Id$
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {*Integers: Divisibility and Congruences*}

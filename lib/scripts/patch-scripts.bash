@@ -1,7 +1,6 @@
 # -*- shell-script -*-
 # $Id$
 # Author: Markus Wenzel, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # patch-scripts.bash - relocate interpreter paths of executable scripts and
 #   insert AUTO_BASH/AUTO_PERL values

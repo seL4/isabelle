@@ -1,7 +1,6 @@
 (*  Title:      HOL/HOL.thy
     ID:         $Id$
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* The basis of Higher-Order Logic *}

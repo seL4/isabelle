@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/domain/theorems.ML
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Proof generator for domain section.
 *)

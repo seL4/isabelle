@@ -1,7 +1,6 @@
 (* Title:    HOL/Prolog/Func.ML
     ID:       $Id$
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
-    License:  GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 open Func;

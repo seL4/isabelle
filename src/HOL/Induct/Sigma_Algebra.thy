@@ -1,7 +1,6 @@
 (*  Title:      HOL/Induct/Sigma_Algebra.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Sigma algebras *}

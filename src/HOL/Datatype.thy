@@ -1,7 +1,6 @@
 (*  Title:      HOL/Datatype.thy
     ID:         $Id$
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Datatypes *}

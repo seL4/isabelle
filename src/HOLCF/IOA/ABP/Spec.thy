@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/ABP/Spec.thy
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 The specification of reliable transmission.
 *)

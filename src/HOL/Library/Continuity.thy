@@ -1,7 +1,6 @@
 (*  Title:      HOL/Library/Continuity.thy
     ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Continuity and iterations (of set transformers) *}

@@ -2,7 +2,6 @@
 #
 # $Id$
 # Author: Gerwin Klein, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: Build distribution and run isatest-make for lots of platforms.
 

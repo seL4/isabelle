@@ -1,7 +1,6 @@
 (*  Title:      HOL/Library/Quotient.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Quotient types *}

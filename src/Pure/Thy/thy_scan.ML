@@ -1,7 +1,6 @@
 (*  Title:	Pure/Thy/thy_scan.ML
     ID:		$Id$
     Author:	Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Lexer for *old-style* outer syntax.
 *)

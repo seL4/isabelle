@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/CompoTraces.ML
     ID:		$Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
  
 Compositionality on Trace level.
 *) 

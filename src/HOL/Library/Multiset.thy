@@ -1,7 +1,6 @@
 (*  Title:      HOL/Library/Multiset.thy
     ID:         $Id$
     Author:     Tobias Nipkow, Markus Wenzel, and Lawrence C Paulson
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Multisets *}

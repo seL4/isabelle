@@ -1,7 +1,6 @@
 (*  Title:    HOL/Prolog/Type.ML
     ID:       $Id$
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
-    License:  GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 val prog_Type = prog_Func @ [good_typeof,common_typeof];

@@ -2,7 +2,6 @@
 #
 # $Id$
 # Author: Gerwin Klein, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: sends email for failed tests, checks for error.log,
 #              generates development snapshot if test ok

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Bali/WellType.thy
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 header {* Well-typedness of Java programs *}
 

@@ -1,7 +1,6 @@
 (*  Title:      HOL/AxClasses/Semigroups.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 theory Semigroups = Main:

@@ -1,7 +1,6 @@
 (*  Title: 	HOLCF/ex/Stream_adm.thy
     ID:         $Id$
     Author: 	David von Oheimb, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Admissibility for streams
 *)

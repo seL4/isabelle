@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/ex/Loop.ML
     ID:         $Id$
     Author:     Franz Regensburger
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Theory for a loop primitive like while
 *)

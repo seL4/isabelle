@@ -2,7 +2,6 @@
   Title:      GraphBrowser/GraphView.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class defines the window in which the graph is displayed. It
   contains methods for handling events such as collapsing / uncollapsing

@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/IOA/meta_theory/TL.ML
     ID:         $Id$
     Author:     Olaf Müller
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Temporal Logic.
 *)   

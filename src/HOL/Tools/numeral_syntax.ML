@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/numeral_syntax.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Concrete syntax for generic numerals.  Assumes consts and syntax of
 theory HOL/Numeral.

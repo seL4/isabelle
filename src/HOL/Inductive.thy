@@ -1,7 +1,6 @@
 (*  Title:      HOL/Inductive.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Support for inductive sets and types *}

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Set.thy
     ID:         $Id$
     Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Set theory for higher-order logic *}

@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/session.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Session management -- maintain state of logic images.
 *)

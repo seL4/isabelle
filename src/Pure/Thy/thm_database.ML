@@ -1,7 +1,6 @@
 (*  Title:      Pure/Thy/thm_database.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Interface to thm database.
 *)

@@ -1,7 +1,6 @@
 (*  Title:      HOL/MicroJava/Comp/Index.thy
     ID:         $Id$
     Author:     Martin Strecker
-    Copyright   GPL 2002
 *)
 
 (* Index of variable in list of parameter names and local variables *)

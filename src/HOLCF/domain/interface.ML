@@ -1,7 +1,6 @@
 (*  Title:      HOLCF/domain/interface.ML
     ID:         $Id$
     Author:     David von Oheimb
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Parser for domain section.
 *)

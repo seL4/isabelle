@@ -1,7 +1,6 @@
 (*  Title:      Pure/context.ML
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Global theory context.
 *)

@@ -2,7 +2,6 @@
   Title:      GraphBrowser/GraphBrowser.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This is the graph browser's main class. It contains the "main(...)"
   method, which is used for the stand-alone version, as well as

@@ -2,7 +2,6 @@
   Title:      GraphBrowser/TreeBrowser.java
   ID:         $Id$
   Author:     Stefan Berghofer, TU Muenchen
-  License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
   This class defines the browser window which is used to display directory
   trees. It contains methods for handling events.

@@ -2,7 +2,6 @@
 #
 # $Id$
 # Author: Markus Wenzel, TU Muenchen
-# License: GPL (GNU GENERAL PUBLIC LICENSE)
 #
 # DESCRIPTION: replace goal(w) commands by implicit versions Goal(w)
 

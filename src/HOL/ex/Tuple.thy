@@ -1,7 +1,6 @@
 (*  Title:      HOL/ex/Tuple.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Properly nested products (see also theory Prod).
 

@@ -1,7 +1,6 @@
 (*  Title:      HOL/AxClasses/Group.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 theory Group = Main:
