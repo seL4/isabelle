@@ -374,10 +374,12 @@ fun default_codegen thy gr dep brack t =
                      (Graph.add_edge (id, dep)
                         (Graph.new_node (id, (None, "")) gr'), rhs');
                    val (gr2, xs) = codegens false (gr1, args');
+                   val (gr3, ty) = invoke_tycodegen thy id false (gr2, T);
                  in Graph.map_node id (K (None, Pretty.string_of (Pretty.block
-                   (Pretty.str (if null args' then "val " else "fun ") ::
-                    separate (Pretty.brk 1) (Pretty.str id :: xs) @
-                    [Pretty.str " =", Pretty.brk 1, p, Pretty.str ";"])) ^ "\n\n")) gr2
+                   (separate (Pretty.brk 1) (if null args' then
+                       [Pretty.str ("val " ^ id ^ " :"), ty]
+                     else Pretty.str ("fun " ^ id) :: xs) @
+                    [Pretty.str " =", Pretty.brk 1, p, Pretty.str ";"])) ^ "\n\n")) gr3
                  end, mk_app brack (Pretty.str id) ps)
              end))
 
