@@ -6,84 +6,71 @@ The abstract type "sg" of signatures.
 *)
 
 signature SIGN =
-sig
-  structure Symtab: SYMTAB
-  structure Syntax: SYNTAX
-  structure Type: TYPE
-  sharing Symtab = Type.Symtab
-  local open Type Syntax in
-    type sg
-    val rep_sg: sg ->
-      {tsig: type_sig,
-       const_tab: typ Symtab.table,
-       syn: syntax,
-       stamps: string ref list}
-    val subsig: sg * sg -> bool
-    val eq_sg: sg * sg -> bool
-    val same_sg: sg * sg -> bool
-    val is_draft: sg -> bool
-    val const_type: sg -> string -> typ option
-    val classes: sg -> class list
-    val subsort: sg -> sort * sort -> bool
-    val nodup_Vars: term -> unit
-    val norm_sort: sg -> sort -> sort
-    val nonempty_sort: sg -> sort list -> sort -> bool
-    val print_sg: sg -> unit
-    val pretty_sg: sg -> Pretty.T
-    val pprint_sg: sg -> pprint_args -> unit
-    val pretty_term: sg -> term -> Pretty.T
-    val pretty_typ: sg -> typ -> Pretty.T
-    val pretty_sort: sort -> Pretty.T
-    val string_of_term: sg -> term -> string
-    val string_of_typ: sg -> typ -> string
-    val pprint_term: sg -> term -> pprint_args -> unit
-    val pprint_typ: sg -> typ -> pprint_args -> unit
-    val certify_typ: sg -> typ -> typ
-    val certify_term: sg -> term -> term * typ * int
-    val read_typ: sg * (indexname -> sort option) -> string -> typ
-    val exn_type_msg: sg -> string * typ list * term list -> string
-    val infer_types: sg -> (indexname -> typ option) ->
-      (indexname -> sort option) -> string list -> bool
-      -> term list * typ -> int * term * (indexname * typ) list
-    val add_classes: (class * class list) list -> sg -> sg
-    val add_classrel: (class * class) list -> sg -> sg
-    val add_defsort: sort -> sg -> sg
-    val add_types: (string * int * mixfix) list -> sg -> sg
-    val add_tyabbrs: (string * string list * string * mixfix) list -> sg -> sg
-    val add_tyabbrs_i: (string * string list * typ * mixfix) list -> sg -> sg
-    val add_arities: (string * sort list * sort) list -> sg -> sg
-    val add_consts: (string * string * mixfix) list -> sg -> sg
-    val add_consts_i: (string * typ * mixfix) list -> sg -> sg
-    val add_syntax: (string * string * mixfix) list -> sg -> sg
-    val add_syntax_i: (string * typ * mixfix) list -> sg -> sg
-    val add_trfuns:
-      (string * (ast list -> ast)) list *
-      (string * (term list -> term)) list *
-      (string * (term list -> term)) list *
-      (string * (ast list -> ast)) list -> sg -> sg
-    val add_trrules: (string * string) trrule list -> sg -> sg
-    val add_trrules_i: ast trrule list -> sg -> sg
-    val add_name: string -> sg -> sg
-    val make_draft: sg -> sg
-    val merge: sg * sg -> sg
-    val proto_pure: sg
-    val pure: sg
-    val cpure: sg
-    val const_of_class: class -> string
-    val class_of_const: string -> class
-  end
-end;
+  sig
+  type sg
+  val rep_sg: sg -> {tsig: Type.type_sig,
+		     const_tab: typ Symtab.table,
+		     syn: Syntax.syntax,
+		     stamps: string ref list}
+  val subsig: sg * sg -> bool
+  val eq_sg: sg * sg -> bool
+  val same_sg: sg * sg -> bool
+  val is_draft: sg -> bool
+  val const_type: sg -> string -> typ option
+  val classes: sg -> class list
+  val subsort: sg -> sort * sort -> bool
+  val nodup_Vars: term -> unit
+  val norm_sort: sg -> sort -> sort
+  val nonempty_sort: sg -> sort list -> sort -> bool
+  val print_sg: sg -> unit
+  val pretty_sg: sg -> Pretty.T
+  val pprint_sg: sg -> pprint_args -> unit
+  val pretty_term: sg -> term -> Pretty.T
+  val pretty_typ: sg -> typ -> Pretty.T
+  val pretty_sort: sort -> Pretty.T
+  val string_of_term: sg -> term -> string
+  val string_of_typ: sg -> typ -> string
+  val pprint_term: sg -> term -> pprint_args -> unit
+  val pprint_typ: sg -> typ -> pprint_args -> unit
+  val certify_typ: sg -> typ -> typ
+  val certify_term: sg -> term -> term * typ * int
+  val read_typ: sg * (indexname -> sort option) -> string -> typ
+  val exn_type_msg: sg -> string * typ list * term list -> string
+  val infer_types: sg -> (indexname -> typ option) ->
+    (indexname -> sort option) -> string list -> bool
+    -> term list * typ -> int * term * (indexname * typ) list
+  val add_classes: (class * class list) list -> sg -> sg
+  val add_classrel: (class * class) list -> sg -> sg
+  val add_defsort: sort -> sg -> sg
+  val add_types: (string * int * mixfix) list -> sg -> sg
+  val add_tyabbrs: (string * string list * string * mixfix) list -> sg -> sg
+  val add_tyabbrs_i: (string * string list * typ * mixfix) list -> sg -> sg
+  val add_arities: (string * sort list * sort) list -> sg -> sg
+  val add_consts: (string * string * mixfix) list -> sg -> sg
+  val add_consts_i: (string * typ * mixfix) list -> sg -> sg
+  val add_syntax: (string * string * mixfix) list -> sg -> sg
+  val add_syntax_i: (string * typ * mixfix) list -> sg -> sg
+  val add_trfuns:
+    (string * (ast list -> ast)) list *
+    (string * (term list -> term)) list *
+    (string * (term list -> term)) list *
+    (string * (ast list -> ast)) list -> sg -> sg
+  val add_trrules: (string * string) trrule list -> sg -> sg
+  val add_trrules_i: ast trrule list -> sg -> sg
+  val add_name: string -> sg -> sg
+  val make_draft: sg -> sg
+  val merge: sg * sg -> sg
+  val proto_pure: sg
+  val pure: sg
+  val cpure: sg
+  val const_of_class: class -> string
+  val class_of_const: string -> class
+  end;
 
-functor SignFun(structure Syntax: SYNTAX and Type: TYPE): SIGN =
+structure Sign : SIGN =
 struct
 
-structure Symtab = Type.Symtab;
-structure Syntax = Syntax;
-structure BasicSyntax: BASIC_SYNTAX = Syntax;
-structure Pretty = Syntax.Pretty;
-structure Type = Type;
-open BasicSyntax Type;
-
+local open Type Syntax in
 
 (** datatype sg **)
 
@@ -92,7 +79,7 @@ open BasicSyntax Type;
 
 datatype sg =
   Sg of {
-    tsig: type_sig,                 (*order-sorted signature of types*)
+    tsig: Type.type_sig,                 (*order-sorted signature of types*)
     const_tab: typ Symtab.table,    (*types of constants*)
     syn: Syntax.syntax,             (*syntax for parsing and printing*)
     stamps: string ref list};       (*unique theory indentifier*)
@@ -605,4 +592,5 @@ val cpure = proto_pure
   |> add_syntax Syntax.pure_applC_syntax
   |> add_name "CPure";
 
+end
 end;

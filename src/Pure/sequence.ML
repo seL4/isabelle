@@ -35,7 +35,7 @@ signature SEQUENCE =
   end;
 
 
-functor SequenceFun () : SEQUENCE = 
+structure Sequence : SEQUENCE = 
 struct
     
 datatype 'a seq = Seq of unit -> ('a * 'a seq)option;

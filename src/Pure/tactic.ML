@@ -7,24 +7,21 @@ Tactics
 *)
 
 signature TACTIC =
-sig
-  structure Tactical: TACTICAL and Net: NET
-  local open Tactical Tactical.Thm Net
-  in
+  sig
   val ares_tac: thm list -> int -> tactic
   val asm_rewrite_goal_tac:
         bool*bool -> (meta_simpset -> tactic) -> meta_simpset -> int -> tactic
   val assume_tac: int -> tactic
   val atac: int ->tactic
   val bimatch_from_nets_tac: 
-      (int*(bool*thm)) net * (int*(bool*thm)) net -> int -> tactic
+      (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net -> int -> tactic
   val bimatch_tac: (bool*thm)list -> int -> tactic
   val biresolve_from_nets_tac: 
-      (int*(bool*thm)) net * (int*(bool*thm)) net -> int -> tactic
+      (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net -> int -> tactic
   val biresolve_tac: (bool*thm)list -> int -> tactic
-  val build_net: thm list -> (int*thm) net
-  val build_netpair:    (int*(bool*thm)) net * (int*(bool*thm)) net ->
-      (bool*thm)list -> (int*(bool*thm)) net * (int*(bool*thm)) net
+  val build_net: thm list -> (int*thm) Net.net
+  val build_netpair:    (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net ->
+      (bool*thm)list -> (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net
   val compose_inst_tac: (string*string)list -> (bool*thm*int) -> int -> tactic
   val compose_tac: (bool * thm * int) -> int -> tactic 
   val cut_facts_tac: thm list -> int -> tactic
@@ -47,13 +44,13 @@ sig
   val forw_inst_tac: (string*string)list -> thm -> int -> tactic
   val freeze: thm -> thm   
   val insert_tagged_brl:  ('a*(bool*thm)) * 
-                    (('a*(bool*thm))net * ('a*(bool*thm))net) ->
-                    ('a*(bool*thm))net * ('a*(bool*thm))net
+                    (('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net) ->
+                    ('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net
   val is_fact: thm -> bool
   val lessb: (bool * thm) * (bool * thm) -> bool
   val lift_inst_rule: thm * int * (string*string)list * thm -> thm
   val make_elim: thm -> thm
-  val match_from_net_tac: (int*thm) net -> int -> tactic
+  val match_from_net_tac: (int*thm) Net.net -> int -> tactic
   val match_tac: thm list -> int -> tactic
   val metacut_tac: thm -> int -> tactic   
   val net_bimatch_tac: (bool*thm) list -> int -> tactic
@@ -65,7 +62,7 @@ sig
   val prune_params_tac: tactic
   val rename_tac: string -> int -> tactic
   val rename_last_tac: string -> string list -> int -> tactic
-  val resolve_from_net_tac: (int*thm) net -> int -> tactic
+  val resolve_from_net_tac: (int*thm) Net.net -> int -> tactic
   val resolve_tac: thm list -> int -> tactic
   val res_inst_tac: (string*string)list -> thm -> int -> tactic   
   val rewrite_goals_tac: thm list -> tactic
@@ -78,28 +75,18 @@ sig
   val subgoals_tac: string list -> int -> tactic
   val subgoals_of_brl: bool * thm -> int
   val trace_goalno_tac: (int -> tactic) -> int -> tactic
-  end
-end;
+  end;
 
 
-functor TacticFun (structure Logic: LOGIC and Drule: DRULE and 
-		   Tactical: TACTICAL and Net: NET
-	  sharing Drule.Thm = Tactical.Thm) : TACTIC = 
+structure Tactic : TACTIC = 
 struct
-structure Tactical = Tactical;
-structure Thm = Tactical.Thm;
-structure Net = Net;
-structure Sequence = Thm.Sequence;
-structure Sign = Thm.Sign;
-local open Tactical Tactical.Thm Drule
-in
 
-(*Discover what goal is chosen:  SOMEGOAL(trace_goalno_tac tac) *)
-fun trace_goalno_tac tf i = Tactic (fn state => 
-    case Sequence.pull(tapply(tf i, state)) of
+(*Discover which goal is chosen:  SOMEGOAL(trace_goalno_tac tac) *)
+fun trace_goalno_tac tac i st =  
+    case Sequence.pull(tac i st) of
 	None    => Sequence.null
       | seqcell => (prs("Subgoal " ^ string_of_int i ^ " selected\n"); 
-    			 Sequence.seqof(fn()=> seqcell)));
+    			 Sequence.seqof(fn()=> seqcell));
 
 fun string_of (a,0) = a
   | string_of (a,i) = a ^ "_" ^ string_of_int i;
@@ -115,16 +102,15 @@ fun freeze th =
   in  instantiate ([],insts) fth  end;
 
 (*Makes a rule by applying a tactic to an existing rule*)
-fun rule_by_tactic (Tactic tf) rl =
-    case Sequence.pull(tf (freeze (standard rl))) of
+fun rule_by_tactic tac rl =
+    case Sequence.pull(tac (freeze (standard rl))) of
 	None        => raise THM("rule_by_tactic", 0, [rl])
       | Some(rl',_) => standard rl';
  
 (*** Basic tactics ***)
 
 (*Makes a tactic whose effect on a state is given by thmfun: thm->thm seq.*)
-fun PRIMSEQ thmfun = Tactic (fn state => thmfun state
-			                 handle THM _ => Sequence.null);
+fun PRIMSEQ thmfun st =  thmfun st handle THM _ => Sequence.null;
 
 (*Makes a tactic whose effect on a state is given by thmfun: thm->thm.*)
 fun PRIMITIVE thmfun = PRIMSEQ (Sequence.single o thmfun);
@@ -182,9 +168,9 @@ fun dmatch_tac rls   = ematch_tac (map make_elim rls);
 val flexflex_tac = PRIMSEQ flexflex_rule;
 
 (*Lift and instantiate a rule wrt the given state and subgoal number *)
-fun lift_inst_rule (state, i, sinsts, rule) =
-let val {maxidx,sign,...} = rep_thm state
-    val (_, _, Bi, _) = dest_state(state,i)
+fun lift_inst_rule (st, i, sinsts, rule) =
+let val {maxidx,sign,...} = rep_thm st
+    val (_, _, Bi, _) = dest_state(st,i)
     val params = Logic.strip_params Bi	        (*params of subgoal i*)
     val params = rev(rename_wrt_term Bi params) (*as they are printed*)
     val paramTs = map #2 params
@@ -198,14 +184,14 @@ let val {maxidx,sign,...} = rep_thm state
     fun lifttvar((a,i),ctyp) =
 	let val {T,sign} = rep_ctyp ctyp
 	in  ((a,i+inc), ctyp_of sign (incr_tvar inc T)) end
-    val rts = types_sorts rule and (types,sorts) = types_sorts state
+    val rts = types_sorts rule and (types,sorts) = types_sorts st
     fun types'(a,~1) = (case assoc(params,a) of None => types(a,~1) | sm => sm)
       | types'(ixn) = types ixn;
     val used = add_term_tvarnames
-                  (#prop(rep_thm state) $ #prop(rep_thm rule),[])
+                  (#prop(rep_thm st) $ #prop(rep_thm rule),[])
     val (Tinsts,insts) = read_insts sign rts (types',sorts) used sinsts
 in instantiate (map lifttvar Tinsts, map liftpair insts)
-               (lift_rule (state,i) rule)
+               (lift_rule (st,i) rule)
 end;
 
 
@@ -214,8 +200,8 @@ end;
 
 (*compose version: arguments are as for bicompose.*)
 fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i =
-  STATE ( fn state => 
-	   compose_tac (bires_flg, lift_inst_rule (state, i, sinsts, rule),
+  STATE ( fn st => 
+	   compose_tac (bires_flg, lift_inst_rule (st, i, sinsts, rule),
 			nsubgoal) i
 	   handle TERM (msg,_) => (writeln msg;  no_tac)
 		| THM  (msg,_,_) => (writeln msg;  no_tac) );
@@ -232,7 +218,7 @@ fun compose_inst_tac sinsts (bires_flg, rule, nsubgoal) i =
 fun res_inst_tac sinsts rule i =
     compose_inst_tac sinsts (false, rule, nprems_of rule) i;
 
-(*eresolve (elimination) version*)
+(*eresolve elimination version*)
 fun eres_inst_tac sinsts rule i =
     compose_inst_tac sinsts (true, rule, nprems_of rule) i;
 
@@ -400,7 +386,7 @@ fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 (*** Meta-Rewriting Tactics ***)
 
 fun result1 tacf mss thm =
-  case Sequence.pull(tapply(tacf mss,thm)) of
+  case Sequence.pull(tacf mss thm) of
     None => None
   | Some(thm,_) => Some(thm);
 
@@ -417,7 +403,7 @@ fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 fun rewtac def = rewrite_goals_tac [def];
 
 
-(*** Tactic for folding definitions, handling critical pairs ***)
+(*** for folding definitions, handling critical pairs ***)
 
 (*The depth of nesting in a term*)
 fun term_depth (Abs(a,T,t)) = 1 + term_depth t
@@ -458,8 +444,8 @@ fun rename_tac str i =
     | c::_ => error ("Illegal character: " ^ c)
   end;
 
-(*Rename recent parameters using names generated from (a) and the suffixes,
-  provided the string (a), which represents a term, is an identifier. *)
+(*Rename recent parameters using names generated from a and the suffixes,
+  provided the string a, which represents a term, is an identifier. *)
 fun rename_last_tac a sufs i = 
   let val names = map (curry op^ a) sufs
   in  if Syntax.is_identifier a
@@ -470,9 +456,8 @@ fun rename_last_tac a sufs i =
 (*Prunes all redundant parameters from the proof state by rewriting*)
 val prune_params_tac = rewrite_tac [triv_forall_equality];
 
-(* rotate_tac n i: rotate the assumptions of subgoal i by n positions, from
- * right to left if n is positive, and from left to right if n is negative.
- *)
+(*rotate_tac n i: rotate the assumptions of subgoal i by n positions, from
+  right to left if n is positive, and from left to right if n is negative.*)
 fun rotate_tac n =
   let fun rot(n) = EVERY'(replicate n (dtac asm_rl));
   in if n >= 0 then rot n
@@ -480,4 +465,5 @@ fun rotate_tac n =
   end;
 
 end;
-end;
+
+open Tactic;

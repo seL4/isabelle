@@ -13,7 +13,7 @@ TODO: optimize red by special-casing it
 *)
 
 signature PATTERN =
-sig
+  sig
   type type_sig
   type sg
   type env
@@ -25,12 +25,10 @@ sig
   exception Unif
   exception MATCH
   exception Pattern
-end;
+  end;
 
-functor PatternFun(structure Sign:SIGN and Envir:ENVIR): PATTERN =
+structure Pattern : PATTERN =
 struct
-
-structure Type = Sign.Type;
 
 type type_sig = Type.type_sig
 type sg = Sign.sg
