@@ -9,6 +9,7 @@ exported.
   Symtab        (tables indexed by strings)
   GraphFun	(generic directed graphs)
   Graph		(graphs indexed by strings)
+  LeftistHeap	(heaps over linearly ordered types)
   Object        (generic objects of arbitrary type)
   Seq           (unbounded sequences)
   NameSpace     (hierarchically structured name spaces)
@@ -22,6 +23,3 @@ exported.
   Buffer	(simple string buffers)
   History       (histories of values, with undo and redo)
   Pretty        (generic pretty printing module)
-
-Functor LeftistHeap implements heaps, which are used for best-first search.
-It must be instantiated with a linearly ordered type.

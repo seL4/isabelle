@@ -1,12 +1,12 @@
 (*  Title:      Pure/General/ROOT.ML
     ID:         $Id$
 
-General tools.
+Library of general tools --- prefer this over the 'Standard ML Library'.
 *)
 
-use "heap.ML";
 use "table.ML";
 use "graph.ML";
+use "heap.ML";
 use "object.ML";
 use "seq.ML";
 use "name_space.ML";
