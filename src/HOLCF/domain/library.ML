@@ -79,8 +79,10 @@ in index_vnames(map (nonreserved o typid) types,[("O",0),("o",0)]) end;
 fun rep_Type  (Type  x) = x | rep_Type  _ = Imposs "library:rep_Type";
 fun rep_TFree (TFree x) = x | rep_TFree _ = Imposs "library:rep_TFree";
 val tsig_of = #tsig o Sign.rep_sg o sign_of;
-fun pcpo_type thy t = Type.typ_instance(tsig_of thy,t,TVar(("'a",0),["pcpo"]));
-fun string_of_typ thy = Sign.string_of_typ (sign_of thy);
+fun pcpo_type thy t = Type.of_sort (tsig_of thy) 
+			(Sign.certify_typ (sign_of thy) t,["pcpo"]);
+fun string_of_typ thy t = let val sg = sign_of thy in
+			  Sign.string_of_typ sg (Sign.certify_typ sg t) end;
 
 (* ----- constructor list handling ----- *)
 
