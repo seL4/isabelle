@@ -193,7 +193,7 @@ fun incr_depth(Mss{rules,congs,procs,bounds,prems,mk_rews,termless,depth}) =
   let val depth1 = depth+1
   in if depth1 > !simp_depth_limit
      then (warning "simp_depth_limit exceeded - giving up"; None)
-     else (if depth1 mod 5 = 0
+     else (if depth1 mod 10 = 0
            then warning("Simplification depth " ^ string_of_int depth1)
            else ();
            Some(mk_mss(rules,congs,procs,bounds,prems,mk_rews,termless,depth1))
