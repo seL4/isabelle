@@ -168,7 +168,7 @@ fun vars_gen_hyp_subst_tac bnd i = DETERM (STATE(fn state =>
 		etac revcut_rl i,
 		REPEAT_DETERM_N (n-k) (etac rev_mp i),
 		etac (if symopt then ssubst else subst) i,
-		REPEAT_DETERM_N n (rtac imp_intr i)]
+		REPEAT_DETERM_N n (rtac imp_intr i THEN rotate_tac ~1 i)]
       end
       handle THM _ => no_tac | EQ_VAR => no_tac));
 
