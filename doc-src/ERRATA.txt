@@ -91,6 +91,7 @@ Higher-Order Logic
 page 243: Pow is a new constant of type 'a set => 'a set set
 
 page 246: Pow is defined by   Pow(A) == {B. B <= A}
+empty_def should be  {} == {x.False}
 
 page 248: Pow has the rules
 	PowI     A<=B ==> A: Pow(B)
