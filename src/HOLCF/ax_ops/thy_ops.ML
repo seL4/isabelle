@@ -241,7 +241,7 @@ end;
 (* generates for the type t the type of the fapp constant 
    that will be applied to t *)
 fun mk_fapp_typ (typ as Type("->",argl)) = Type("fun",[typ,Type("fun",argl)]) 
-  | mk_fapp_typ t = (print t;
+  | mk_fapp_typ t = (
                     error("Internal error:mk_fapp_typ: wrong argument\n"));
                     
 fun mk_arg_tupel_UU uu_pos [typ] n = 

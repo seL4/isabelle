@@ -66,8 +66,15 @@ local
 
 (* ----- generation of argument string for calling add_domain --------------------- *)
 
+
+     fun string_of_sort_emb [] = ""
+     |   string_of_sort_emb [x] = x
+	|   string_of_sort_emb (x::xs) = x^","^(string_of_sort_emb xs);
+
+	fun string_of_sort l = "["^ (string_of_sort_emb l)^"]";
+
     fun mk_tnv (n,v) = mk_pair(quote n,mk_list(map mk_typ v))
-    and mk_typ (TFree(name,sort)) = "TFree"^mk_pair(quote name,makestring sort)
+    and mk_typ (TFree(name,sort)) = "TFree"^mk_pair(quote name,string_of_sort sort)
     |   mk_typ (Type (name,args)) = "Type" ^mk_tnv(name,args)
     |   mk_typ _                  = Imposs "interface:mk_typ";
     fun mk_conslist cons' = mk_list (map 
@@ -163,3 +170,4 @@ in
 structure ThySyn = ThySynFun(ThySynData); (* overwrites old version of ThySyn!!!!!! *)
 
 end; (* local *)
+

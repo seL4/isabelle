@@ -51,7 +51,7 @@ fun a ==> b = Type("->",[a,b]);
 (* Ops application (f ` x) *)
 fun mkOpApp (f as Const(_,ft as Type("->",[xt,rt]))) x =
      Const("fapp",ft --> xt --> rt) $ f $ x
-  | mkOpApp f x = (print(f);error("Internal error: mkOpApp: wrong args"));
+  | mkOpApp f x = (error("Internal error: mkOpApp: wrong args"));
 
 (* cpair constructor *)
 fun mkCPair x y = let val tx = fastype_of x
