@@ -376,6 +376,19 @@ Goal "r^^B = (UN y: B. r^^{y})";
 by (Blast_tac 1);
 qed "Image_eq_UN";
 
+Goal "[| r'<=r; A'<=A |] ==> (r' ^^ A') <= (r ^^ A)";
+by (Blast_tac 1);
+qed "Image_mono";
+
+Goal "(r ^^ (UNION A B)) = (UN x:A.(r ^^ (B x)))";
+by (Blast_tac 1);
+qed "Image_UN";
+
+(*Converse inclusion fails*)
+Goal "(r ^^ (INTER A B)) <= (INT x:A.(r ^^ (B x)))";
+by (Blast_tac 1);
+qed "Image_INT_subset";
+
 
 section "Univalent";
 
