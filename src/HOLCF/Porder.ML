@@ -92,36 +92,29 @@ qed_goal "chain_mono3"  Porder.thy
 (* The range of a chain is a totaly ordered     <<                           *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goalw "chain_is_tord" Porder.thy [is_tord]
-	"is_chain(F) ==> is_tord(range(F))"
-( fn prems =>
+qed_goalw "chain_is_tord" Porder.thy [is_tord,range_def] 
+"is_chain(F) ==> is_tord(range(F))"
+ (fn prems =>
 	[
 	(cut_facts_tac prems 1),
-	(rewrite_goals_tac [range_def]),
-	(rtac allI 1 ),
-	(rtac allI 1 ),
+	(REPEAT (rtac allI 1 )),
 	(rtac (mem_Collect_eq RS ssubst) 1),
 	(rtac (mem_Collect_eq RS ssubst) 1),
 	(strip_tac 1),
 	(etac conjE 1),
-	(etac exE 1),
-	(etac exE 1),
-	(hyp_subst_tac 1),
-	(hyp_subst_tac 1),
-	(res_inst_tac [("m","xa"),("n","xb")] (nat_less_cases) 1),
+	(REPEAT (etac exE 1)),
+	(REPEAT (hyp_subst_tac 1)),
+	(rtac nat_less_cases 1),
 	(rtac disjI1 1),
-	(rtac (chain_mono RS mp) 1),
-	(atac 1),
+	(etac (chain_mono RS mp) 1),
 	(atac 1),
 	(rtac disjI1 1),
 	(hyp_subst_tac 1),
 	(rtac refl_less 1),
 	(rtac disjI2 1),
-	(rtac (chain_mono RS mp) 1),
-	(atac 1),
+	(etac (chain_mono RS mp) 1),
 	(atac 1)
 	]);
-
 
 (* ------------------------------------------------------------------------ *)
 (* technical lemmas about lub and is_lub                                    *)
@@ -380,8 +373,8 @@ qed_goal "lub_bin_chain" Porder.thy
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "lub_chain_maxelem" Porder.thy
-"[|is_chain(Y);? i.Y(i)=c;!i.Y(i)<<c|] ==> lub(range(Y)) = c"
-(fn prems =>
+"[|? i.Y(i)=c;!i.Y(i)<<c|] ==> lub(range(Y)) = c"
+ (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac thelubI 1),
@@ -389,8 +382,7 @@ qed_goal "lub_chain_maxelem" Porder.thy
 	(rtac conjI 1),
 	(etac ub_rangeI 1),
 	(strip_tac 1),
-	(res_inst_tac [("P","%i.Y(i)=c")] exE 1),
-	(atac 1),
+	(etac exE 1),
 	(hyp_subst_tac 1),
 	(etac (ub_rangeE RS spec) 1)
 	]);

@@ -69,13 +69,11 @@ qed_goalw "monofun_Ilift2" Lift2.thy [monofun] "monofun(Ilift(f))"
 	(asm_simp_tac Lift_ss 1),
 	(res_inst_tac [("p","y")] liftE 1),
 	(hyp_subst_tac 1),
-	(hyp_subst_tac 1),
 	(rtac notE 1),
 	(rtac less_lift2b 1),
 	(atac 1),
 	(asm_simp_tac Lift_ss 1),
 	(rtac monofun_cfun_arg 1),
-	(hyp_subst_tac 1),
 	(hyp_subst_tac 1),
 	(etac (less_lift2c  RS iffD1) 1)
 	]);

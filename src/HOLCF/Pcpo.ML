@@ -176,33 +176,25 @@ qed_goal "not_less2not_eq" Pcpo.thy "~x<<y ==> ~x=y"
 	(rtac refl_less 1)
 	]);
 
-
 qed_goal "chain_UU_I" Pcpo.thy
 	"[|is_chain(Y);lub(range(Y))=UU|] ==> ! i.Y(i)=UU"
-(fn prems =>
+ (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac allI 1),
 	(rtac antisym_less 1),
 	(rtac minimal 2),
-	(res_inst_tac [("t","UU")] subst 1),
-	(atac 1),
+	(etac subst 1),
 	(etac is_ub_thelub 1)
 	]);
 
 
 qed_goal "chain_UU_I_inverse" Pcpo.thy 
 	"!i.Y(i::nat)=UU ==> lub(range(Y::(nat=>'a::pcpo)))=UU"
-(fn prems =>
+ (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(rtac lub_chain_maxelem 1),
-	(rtac is_chainI 1),
-	(rtac allI 1),
-	(res_inst_tac [("s","UU"),("t","Y(i)")] subst 1),
-	(rtac sym 1),
-	(etac spec 1),
-	(rtac minimal 1),
 	(rtac exI 1),
 	(etac spec 1),
 	(rtac allI 1),

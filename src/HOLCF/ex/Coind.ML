@@ -24,7 +24,7 @@ val from_def2 = fix_prover Coind.thy from_def
 (* ------------------------------------------------------------------------- *)
 
 
-qed_goal "from" Coind.thy "from[n] = scons[n][from[dsucc[n]]]"
+val from = prove_goal Coind.thy "from[n] = scons[n][from[dsucc[n]]]"
  (fn prems =>
 	[
 	(rtac trans 1),
@@ -34,7 +34,7 @@ qed_goal "from" Coind.thy "from[n] = scons[n][from[dsucc[n]]]"
 	]);
 
 
-qed_goal "from1" Coind.thy "from[UU] = UU"
+val from1 = prove_goal Coind.thy "from[UU] = UU"
  (fn prems =>
 	[
 	(rtac trans 1),
@@ -53,7 +53,7 @@ val coind_rews =
 (* ------------------------------------------------------------------------- *)
 
 
-qed_goal "coind_lemma1" Coind.thy "iterator[n][smap[dsucc]][nats] =\
+val coind_lemma1 = prove_goal Coind.thy "iterator[n][smap[dsucc]][nats] =\
 \		 scons[n][iterator[dsucc[n]][smap[dsucc]][nats]]"
  (fn prems =>
 	[
@@ -74,7 +74,7 @@ qed_goal "coind_lemma1" Coind.thy "iterator[n][smap[dsucc]][nats] =\
 	]);
 
 
-qed_goal "nats_eq_from" Coind.thy "nats = from[dzero]"
+val nats_eq_from = prove_goal Coind.thy "nats = from[dzero]"
  (fn prems =>
 	[
 	(res_inst_tac [("R",
@@ -90,7 +90,6 @@ qed_goal "nats_eq_from" Coind.thy "nats = from[dzero]"
 	(rtac disjI2 1),
 	(etac conjE 1),
 	(hyp_subst_tac 1),
-	(hyp_subst_tac 1),
 	(res_inst_tac [("x","n")] exI 1),
 	(res_inst_tac [("x","iterator[dsucc[n]][smap[dsucc]][nats]")] exI 1),
 	(res_inst_tac [("x","from[dsucc[n]]")] exI 1),
@@ -105,7 +104,7 @@ qed_goal "nats_eq_from" Coind.thy "nats = from[dzero]"
 
 (* another proof using stream_coind_lemma2 *)
 
-qed_goal "nats_eq_from" Coind.thy "nats = from[dzero]"
+val nats_eq_from = prove_goal Coind.thy "nats = from[dzero]"
  (fn prems =>
 	[
 	(res_inst_tac [("R","% p q.? n. p = \
@@ -118,7 +117,6 @@ qed_goal "nats_eq_from" Coind.thy "nats = from[dzero]"
 	(res_inst_tac [("x","UU::dnat")] exI 1),
 	(simp_tac (HOLCF_ss addsimps coind_rews addsimps stream_rews) 1),
 	(etac conjE 1),
-	(hyp_subst_tac 1),
 	(hyp_subst_tac 1),
 	(rtac conjI 1),
 	(rtac (coind_lemma1 RS ssubst) 1),

@@ -12,14 +12,14 @@ open Loop;
 (* access to definitions                                                       *)
 (* --------------------------------------------------------------------------- *)
 
-qed_goalw "step_def2" Loop.thy [step_def]
+val step_def2 = prove_goalw Loop.thy [step_def]
 "step[b][g][x] = If b[x] then g[x] else x fi"
  (fn prems =>
 	[
 	(simp_tac Cfun_ss 1)
 	]);
 
-qed_goalw "while_def2" Loop.thy [while_def]
+val while_def2 = prove_goalw Loop.thy [while_def]
 "while[b][g] = fix[LAM f x. If b[x] then f[g[x]] else x fi]"
  (fn prems =>
 	[
@@ -31,7 +31,7 @@ qed_goalw "while_def2" Loop.thy [while_def]
 (* rekursive properties of while                                             *)
 (* ------------------------------------------------------------------------- *)
 
-qed_goal "while_unfold" Loop.thy 
+val while_unfold = prove_goal Loop.thy 
 "while[b][g][x] = If b[x] then while[b][g][g[x]] else x fi"
  (fn prems =>
 	[
@@ -39,7 +39,7 @@ qed_goal "while_unfold" Loop.thy
 	(simp_tac Cfun_ss 1)
 	]);
 
-qed_goal "while_unfold2" Loop.thy 
+val while_unfold2 = prove_goal Loop.thy 
 	"!x.while[b][g][x] = while[b][g][iterate(k,step[b][g],x)]"
  (fn prems =>
 	[
@@ -67,7 +67,7 @@ qed_goal "while_unfold2" Loop.thy
 	(asm_simp_tac HOLCF_ss 1)
 	]);
 
-qed_goal "while_unfold3" Loop.thy 
+val while_unfold3 = prove_goal Loop.thy 
 	"while[b][g][x] = while[b][g][step[b][g][x]]"
  (fn prems =>
 	[
@@ -81,7 +81,7 @@ qed_goal "while_unfold3" Loop.thy
 (* properties of while and iterations                                          *)
 (* --------------------------------------------------------------------------- *)
 
-qed_goal "loop_lemma1" Loop.thy
+val loop_lemma1 = prove_goal Loop.thy
 "[|? y.b[y]=FF; iterate(k,step[b][g],x)=UU|]==>iterate(Suc(k),step[b][g],x)=UU"
  (fn prems =>
 	[
@@ -96,7 +96,7 @@ qed_goal "loop_lemma1" Loop.thy
 	(asm_simp_tac HOLCF_ss 1)
 	]);
 
-qed_goal "loop_lemma2" Loop.thy
+val loop_lemma2 = prove_goal Loop.thy
 "[|? y.b[y]=FF;~iterate(Suc(k),step[b][g],x)=UU |]==>\
 \~iterate(k,step[b][g],x)=UU"
  (fn prems =>
@@ -108,7 +108,7 @@ qed_goal "loop_lemma2" Loop.thy
 	(atac 1)
 	]);
 
-qed_goal "loop_lemma3" Loop.thy
+val loop_lemma3 = prove_goal Loop.thy
 "[|!x. INV(x) & b[x]=TT & ~g[x]=UU --> INV(g[x]);\
 \? y.b[y]=FF; INV(x)|] ==>\
 \~iterate(k,step[b][g],x)=UU --> INV(iterate(k,step[b][g],x))"
@@ -134,7 +134,7 @@ qed_goal "loop_lemma3" Loop.thy
 	]);
 
 
-qed_goal "loop_lemma4" Loop.thy
+val loop_lemma4 = prove_goal Loop.thy
 "!x. b[iterate(k,step[b][g],x)]=FF --> while[b][g][x]=iterate(k,step[b][g],x)"
  (fn prems =>
 	[
@@ -151,7 +151,7 @@ qed_goal "loop_lemma4" Loop.thy
 	(asm_simp_tac HOLCF_ss  1)
 	]);
 
-qed_goal "loop_lemma5" Loop.thy
+val loop_lemma5 = prove_goal Loop.thy
 "!k. ~b[iterate(k,step[b][g],x)]=FF ==>\
 \ !m. while[b][g][iterate(m,step[b][g],x)]=UU"
  (fn prems =>
@@ -179,7 +179,7 @@ qed_goal "loop_lemma5" Loop.thy
 	]);
 
 
-qed_goal "loop_lemma6" Loop.thy
+val loop_lemma6 = prove_goal Loop.thy
 "!k. ~b[iterate(k,step[b][g],x)]=FF ==> while[b][g][x]=UU"
  (fn prems =>
 	[
@@ -188,7 +188,7 @@ qed_goal "loop_lemma6" Loop.thy
 	(resolve_tac prems 1)
 	]);
 
-qed_goal "loop_lemma7" Loop.thy
+val loop_lemma7 = prove_goal Loop.thy
 "~while[b][g][x]=UU ==> ? k. b[iterate(k,step[b][g],x)]=FF"
  (fn prems =>
 	[
@@ -198,7 +198,7 @@ qed_goal "loop_lemma7" Loop.thy
 	(fast_tac HOL_cs 1)
 	]);
 
-qed_goal "loop_lemma8" Loop.thy
+val loop_lemma8 = prove_goal Loop.thy
 "~while[b][g][x]=UU ==> ? y. b[y]=FF"
  (fn prems =>
 	[
@@ -212,7 +212,7 @@ qed_goal "loop_lemma8" Loop.thy
 (* an invariant rule for loops                                                 *)
 (* --------------------------------------------------------------------------- *)
 
-qed_goal "loop_inv2" Loop.thy
+val loop_inv2 = prove_goal Loop.thy
 "[| (!y. INV(y) & b[y]=TT & ~g[y]=UU --> INV(g[y]));\
 \   (!y. INV(y) & b[y]=FF --> Q(y));\
 \   INV(x); ~while[b][g][x]=UU |] ==> Q(while[b][g][x])"
@@ -239,7 +239,7 @@ qed_goal "loop_inv2" Loop.thy
 	(rtac refl 1)
 	]);
 
-qed_goal "loop_inv3" Loop.thy
+val loop_inv3 = prove_goal Loop.thy
 "[| !!y.[| INV(y); b[y]=TT; ~g[y]=UU|] ==> INV(g[y]);\
 \   !!y.[| INV(y); b[y]=FF|]==> Q(y);\
 \   INV(x); ~while[b][g][x]=UU |] ==> Q(while[b][g][x])"
@@ -261,7 +261,7 @@ qed_goal "loop_inv3" Loop.thy
 	(resolve_tac prems 1)
 	]);
 
-qed_goal "loop_inv" Loop.thy
+val loop_inv = prove_goal Loop.thy
 "[| P(x);\
 \   !!y.P(y) ==> INV(y);\
 \   !!y.[| INV(y); b[y]=TT; ~g[y]=UU|] ==> INV(g[y]);\

@@ -31,10 +31,6 @@ qed_goal "sprod3_lemma1" Sprod3.thy
 	(asm_simp_tac Sprod_ss 1),
 	(rtac sym 1),
 	(rtac lub_chain_maxelem 1),
-	(rtac (monofun_Issnd RS ch2ch_monofun) 1),
-	(rtac ch2ch_fun 1),
-	(rtac (monofun_Ispair1 RS ch2ch_monofun) 1),
-	(atac 1),
 	(res_inst_tac [("P","%j.~Y(j)=UU")] exE 1),
 	(rtac (notall2ex RS iffD1) 1),
 	(res_inst_tac [("Q","lub(range(Y)) = UU")] contrapos 1),
@@ -52,7 +48,6 @@ qed_goal "sprod3_lemma1" Sprod3.thy
 	(asm_simp_tac Sprod_ss  1),
 	(rtac minimal 1)
 	]);
-
 
 qed_goal "sprod3_lemma2" Sprod3.thy 
 "[| is_chain(Y); ~ x = UU; lub(range(Y)) = UU |] ==>\
@@ -127,15 +122,12 @@ qed_goal "sprod3_lemma4" Sprod3.thy
 \         Ispair(x,lub(range(Y))) =\
 \         Ispair(lub(range(%i. Isfst(Ispair(x,Y(i))))),\
 \                lub(range(%i. Issnd(Ispair(x,Y(i))))))"
-(fn prems =>
+ (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(res_inst_tac [("f1","Ispair")] (arg_cong RS cong) 1),
 	(rtac sym 1),
 	(rtac lub_chain_maxelem 1),
-	(rtac (monofun_Isfst RS ch2ch_monofun) 1),
-	(rtac (monofun_Ispair2 RS ch2ch_monofun) 1),
-	(atac 1),
 	(res_inst_tac [("P","%j.~Y(j)=UU")] exE 1),
 	(rtac (notall2ex RS iffD1) 1),
 	(res_inst_tac [("Q","lub(range(Y)) = UU")] contrapos 1),
