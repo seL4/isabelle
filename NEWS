@@ -58,6 +58,12 @@ X-Symbol;
 bound variables: "ALL x. P x --> Q x" (is "ALL x. _ --> ?C x")
 supersedes more cumbersome ... (is "ALL x. _ x --> ?C x");
 
+* Pure: method 'atomize' presents local goal premises as object-level
+statements (atomic meta-level propositions); setup controlled via
+rewrite rules declarations of 'atomize' attribute; example
+application: 'induct' method with proper rule statements in improper
+proof *scripts*;
+
 * Provers: 'simplified' attribute may refer to explicit rules instead
 of full simplifier context; 'iff' attribute handles conditional rules;
 
