@@ -9,7 +9,6 @@ struct
   val WFREC_COROLLARY = thm "tfl_wfrec";
   val WF_INDUCTION_THM = thm "tfl_wf_induct";
   val CUT_DEF = thm "cut_def";
-  val SELECT_AX = thm "tfl_some";
   val eqT = thm "tfl_eq_True";
   val rev_eq_mp = thm "tfl_rev_eq_mp";
   val simp_thm = thm "tfl_simp_thm";

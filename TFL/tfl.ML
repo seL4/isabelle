@@ -571,8 +571,12 @@ fun lazyR_def thy fid tflCongs eqns =
                 RS meta_eq_to_obj_eq
      val def' = R.MP (R.SPEC (tych R') (R.GEN (tych R1) baz)) def0
      val body_th = R.LIST_CONJ (map R.ASSUME full_rqt_prop)
-     val bar = R.MP (R.ISPECL[tych R'abs, tych R1] Thms.SELECT_AX)
-                    body_th
+     val SELECT_AX = (*in this way we hope to avoid a STATIC dependence upon
+                       theory Hilbert_Choice*)
+         thm "Hilbert_Choice.tfl_some" 
+         handle ERROR => error
+    "defer_recdef requires theory Main or at least Hilbert_Choice as parent"
+     val bar = R.MP (R.ISPECL[tych R'abs, tych R1] SELECT_AX) body_th
  in {theory = theory, R=R1, SV=SV,
      rules = U.rev_itlist (U.C R.MP) (R.CONJUNCTS bar) def',
      full_pats_TCs = merge (map pat_of pats) (ListPair.zip (givens pats, TCl)),
