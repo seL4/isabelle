@@ -177,7 +177,7 @@ fun ultimately print = collect true print;
 (** theory setup **)
 
 val setup = [GlobalCalculation.init, LocalCalculation.init,
-  Attrib.add_attributes [("trans", trans_attr, "declare transitivity rule")]];
+  Attrib.add_attributes [("trans", trans_attr, "declaration of transitivity rule")]];
 
 
 end;

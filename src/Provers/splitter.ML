@@ -430,7 +430,7 @@ fun split_meth (asm, ths) =
 (** theory setup **)
 
 val setup =
- [Attrib.add_attributes [(splitN, split_attr, "declare splitter rule")],
-  Method.add_methods [(splitN, split_meth oo split_args, "apply splitter rule")]];
+ [Attrib.add_attributes [(splitN, split_attr, "declaration of case split rule")],
+  Method.add_methods [(splitN, split_meth oo split_args, "apply case split rule")]];
 
 end;
