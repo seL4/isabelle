@@ -48,17 +48,17 @@ sig
   val proof_to_theory: (ProofHistory.T -> theory) -> transition -> transition
   val trace: bool ref
   val exn_message: exn -> string
-  type isar
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
   val excursion: transition list -> unit
   val set_state: state -> unit
   val get_state: unit -> state
   val exn: unit -> (exn * string) option
   val >> : transition -> bool
+  type isar
   val loop: isar -> unit
 end;
 
-structure Toplevel(*: TOPLEVEL *)=
+structure Toplevel: TOPLEVEL =
 struct
 
 
@@ -160,6 +160,10 @@ fun checkpoint_node true (Theory thy) = Theory (PureThy.checkpoint thy)
 fun copy_node true (Theory thy) = Theory (Theory.copy thy)
   | copy_node _ node = node;
 
+fun interruptible f x =
+  let val y = ref (None: node History.T option);
+  in exhibit_interrupt (fn () => y := Some (f x)) (); the (! y) end;
+
 in
 
 fun node_trans _ _ _ (State []) = raise UNDEF
@@ -171,8 +175,9 @@ fun node_trans _ _ _ (State []) = raise UNDEF
         val back_node = History.map (copy_node int) cont_node;
 
         val trans = if hist then History.apply_copy (copy_node int) else History.map;
-        val (result, opt_exn) = (mk_state (transform_error (trans (f int)) cont_node), None)
-          handle exn => (mk_state cont_node, Some exn);
+        val (result, opt_exn) =
+          (mk_state (transform_error (interruptible (trans (f int))) cont_node), None)
+            handle exn => (mk_state cont_node, Some exn);
       in
         if is_stale result then raise ROLLBACK (mk_state back_node, opt_exn)
         else (case opt_exn of None => result | Some exn => raise FAILURE (result, exn))
@@ -189,7 +194,10 @@ end;
 
 (*Important note: recovery from stale signatures is provided only for
   theory-level operations via MapCurrent and AppCurrent.  Other node
-  or state operations should not touch signatures at all.*)
+  or state operations should not touch signatures at all.
+
+  Also note that interrupts are enabled for Keep, MapCurrent, and
+  AppCurrent only.*)
 
 datatype trans =
   Reset |                                       (*empty toplevel*)
@@ -215,7 +223,7 @@ fun apply_tr _ Reset _ = toplevel
   | apply_tr _ Kill (State []) = raise UNDEF
   | apply_tr _ Kill (State ((node, (_, kill)) :: nodes)) =
       (kill (History.current node); State nodes)
-  | apply_tr _ (Keep f) state = (f state; state)
+  | apply_tr _ (Keep f) state = (exhibit_interrupt f state; state)
   | apply_tr _ (History _) (State []) = raise UNDEF
   | apply_tr _ (History f) (State ((node, term) :: nodes)) = State ((f node, term) :: nodes)
   | apply_tr int (MapCurrent f) state = node_trans int false f state
@@ -348,26 +356,6 @@ fun print_exn None = ()
   | print_exn (Some (exn, s)) = error_msg (cat_lines [exn_message exn, s]);
 
 
-(* the Isar source of transitions *)
-
-type isar =
-  (transition, (transition option,
-    (OuterLex.token, (OuterLex.token,
-      Position.T * (Symbol.symbol, (string, unit) Source.source) Source.source)
-          Source.source) Source.source) Source.source) Source.source;
-
-
-(* transform interrupt (non-polymorphic) *)
-
-fun transform_interrupt_state f x =
-  let val y = ref (None: (state * exn option) option);
-  in exhibit_interrupt (fn () => y := Some (f x)) (); the (! y) end;
-
-fun transform_interrupt_isar f x =
-  let val y = ref (None: (transition * isar) option option);
-  in exhibit_interrupt (fn () => y := Some (f x)) (); the (! y) end;
-
-
 (* apply transitions *)
 
 local
@@ -385,7 +373,7 @@ fun app int (tr as Transition {trans, int_only, print, ...}) state =
 in
 
 fun apply int tr st =
-  (case transform_interrupt_state (app int tr) st of
+  (case app int tr st of
     (_, Some TERMINATE) => None
   | (_, Some RESTART) => Some (toplevel, None)
   | (state', Some (FAIL (exn_info as (BREAK break_state, _)))) =>
@@ -433,6 +421,23 @@ fun get_state () = fst (! global_state);
 fun exn () = snd (! global_state);
 
 
+(* the Isar source of transitions *)
+
+type isar =
+  (transition, (transition option,
+    (OuterLex.token, (OuterLex.token,
+      Position.T * (Symbol.symbol, (string, unit) Source.source) Source.source)
+          Source.source) Source.source) Source.source) Source.source;
+
+fun transform_interrupt_isar f x =
+  let val y = ref (None: (transition * isar) option option);
+  in exhibit_interrupt (fn () => y := Some (f x)) (); the (! y) end;
+
+fun get_interruptible src =
+  Some (transform_interrupt_isar Source.get_single src)
+    handle Interrupt => None;
+
+
 (* apply transformers to global state *)
 
 nonfix >>;
@@ -444,10 +449,6 @@ fun >> tr =
       (global_state := (state', exn_info);
         check_stale state'; print_exn exn_info;
         true));
-
-fun get_interruptible src =
-  Some (transform_interrupt_isar Source.get_single src)
-    handle Interrupt => None;
 
 fun raw_loop src =
   (case get_interruptible (Source.set_prompt (prompt_state (get_state ())) src) of
