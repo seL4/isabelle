@@ -206,8 +206,8 @@ fun simplified_cases ctxt cases thm =
     val tac = simp_case_tac true (Simplifier.get_local_simpset ctxt);
     fun simp ((i, c), (th, cs)) =
       (case try (Tactic.rule_by_tactic (tac i)) th of
-        None => (th, None :: cs)
-      | Some th' => (th', c :: cs));
+        None => (th, c :: cs)
+      | Some th' => (th', None :: cs));
 
     val (thm', opt_cases') = foldr simp (1 upto Thm.nprems_of thm ~~ opt_cases, (thm, []));
   in (thm', mapfilter I opt_cases') end;
