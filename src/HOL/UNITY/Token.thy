@@ -58,7 +58,7 @@ locale Token =
   defines
     nodeOrder_def
       "nodeOrder j == (inv_image less_than (%i. ((j+N)-i) mod N))  Int
-		      (lessThan N Times lessThan N)"
+		      (lessThan N <*> lessThan N)"
 
     next_def
       "next i == (Suc i) mod N"

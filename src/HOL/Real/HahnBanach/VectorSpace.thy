@@ -15,8 +15,8 @@ real scalar multiplication $\mult$, and a zero
 element $\zero$ is defined. *};
 
 consts
-  prod  :: "[real, 'a] => 'a"                       (infixr "<*>" 70)
-  zero  :: 'a                                       ("<0>");
+  prod  :: "[real, 'a] => 'a"                       (infixr "'(*')" 70)
+  zero  :: 'a                                       ("00");
 
 syntax (symbols)
   prod  :: "[real, 'a] => 'a"                       (infixr "\<prod>" 70)
@@ -29,7 +29,7 @@ abbreviations: *};
 (***
 constdefs 
   negate :: "'a => 'a"                           ("- _" [100] 100)
-  "- x == (- 1r) <*> x"
+  "- x == (- 1r) ( * ) x"
   diff :: "'a => 'a => 'a"                       (infixl "-" 68)
   "x - y == x + - y";
 ***)
@@ -51,34 +51,34 @@ constdefs
   "is_vectorspace V == V ~= {} 
    & (ALL x:V. ALL y:V. ALL z:V. ALL a b.
         x + y : V                                 
-      & a <*> x : V                                 
+      & a (*) x : V                                 
       & (x + y) + z = x + (y + z)             
       & x + y = y + x                           
-      & x - x = <0>                               
-      & <0> + x = x                               
-      & a <*> (x + y) = a <*> x + a <*> y       
-      & (a + b) <*> x = a <*> x + b <*> x         
-      & (a * b) <*> x = a <*> b <*> x               
-      & 1r <*> x = x
-      & - x = (- 1r) <*> x
+      & x - x = 00                               
+      & 00 + x = x                               
+      & a (*) (x + y) = a (*) x + a (*) y       
+      & (a + b) (*) x = a (*) x + b (*) x         
+      & (a * b) (*) x = a (*) b (*) x               
+      & 1r (*) x = x
+      & - x = (- 1r) (*) x
       & x - y = x + - y)";                             
 
 text_raw {* \medskip *};
 text {* The corresponding introduction rule is:*};
 
 lemma vsI [intro]:
-  "[| <0>:V; 
+  "[| 00:V; 
   ALL x:V. ALL y:V. x + y : V; 
-  ALL x:V. ALL a. a <*> x : V;  
+  ALL x:V. ALL a. a (*) x : V;  
   ALL x:V. ALL y:V. ALL z:V. (x + y) + z = x + (y + z);
   ALL x:V. ALL y:V. x + y = y + x;
-  ALL x:V. x - x = <0>;
-  ALL x:V. <0> + x = x;
-  ALL x:V. ALL y:V. ALL a. a <*> (x + y) = a <*> x + a <*> y;
-  ALL x:V. ALL a b. (a + b) <*> x = a <*> x + b <*> x;
-  ALL x:V. ALL a b. (a * b) <*> x = a <*> b <*> x; 
-  ALL x:V. 1r <*> x = x; 
-  ALL x:V. - x = (- 1r) <*> x; 
+  ALL x:V. x - x = 00;
+  ALL x:V. 00 + x = x;
+  ALL x:V. ALL y:V. ALL a. a (*) (x + y) = a (*) x + a (*) y;
+  ALL x:V. ALL a b. (a + b) (*) x = a (*) x + b (*) x;
+  ALL x:V. ALL a b. (a * b) (*) x = a (*) b (*) x; 
+  ALL x:V. 1r (*) x = x; 
+  ALL x:V. - x = (- 1r) (*) x; 
   ALL x:V. ALL y:V. x - y = x + - y |] ==> is_vectorspace V";
 proof (unfold is_vectorspace_def, intro conjI ballI allI);
   fix x y z; 
@@ -91,7 +91,7 @@ text_raw {* \medskip *};
 text {* The corresponding destruction rules are: *};
 
 lemma negate_eq1: 
-  "[| is_vectorspace V; x:V |] ==> - x = (- 1r) <*> x";
+  "[| is_vectorspace V; x:V |] ==> - x = (- 1r) (*) x";
   by (unfold is_vectorspace_def) simp;
 
 lemma diff_eq1: 
@@ -99,7 +99,7 @@ lemma diff_eq1:
   by (unfold is_vectorspace_def) simp; 
 
 lemma negate_eq2: 
-  "[| is_vectorspace V; x:V |] ==> (- 1r) <*> x = - x";
+  "[| is_vectorspace V; x:V |] ==> (- 1r) (*) x = - x";
   by (unfold is_vectorspace_def) simp;
 
 lemma diff_eq2: 
@@ -114,7 +114,7 @@ lemma vs_add_closed [simp, intro??]:
   by (unfold is_vectorspace_def) simp;
 
 lemma vs_mult_closed [simp, intro??]: 
-  "[| is_vectorspace V; x:V |] ==> a <*> x : V"; 
+  "[| is_vectorspace V; x:V |] ==> a (*) x : V"; 
   by (unfold is_vectorspace_def) simp;
 
 lemma vs_diff_closed [simp, intro??]: 
@@ -149,13 +149,13 @@ qed;
 theorems vs_add_ac = vs_add_assoc vs_add_commute vs_add_left_commute;
 
 lemma vs_diff_self [simp]: 
-  "[| is_vectorspace V; x:V |] ==>  x - x = <0>"; 
+  "[| is_vectorspace V; x:V |] ==>  x - x = 00"; 
   by (unfold is_vectorspace_def) simp;
 
 text {* The existence of the zero element of a vector space
 follows from the non-emptiness of carrier set. *};
 
-lemma zero_in_vs [simp, intro]: "is_vectorspace V ==> <0>:V";
+lemma zero_in_vs [simp, intro]: "is_vectorspace V ==> 00:V";
 proof -; 
   assume "is_vectorspace V";
   have "V ~= {}"; ..;
@@ -163,64 +163,64 @@ proof -;
   thus ?thesis; 
   proof; 
     fix x; assume "x:V"; 
-    have "<0> = x - x"; by (simp!);
+    have "00 = x - x"; by (simp!);
     also; have "... : V"; by (simp! only: vs_diff_closed);
     finally; show ?thesis; .;
   qed;
 qed;
 
 lemma vs_add_zero_left [simp]: 
-  "[| is_vectorspace V; x:V |] ==>  <0> + x = x";
+  "[| is_vectorspace V; x:V |] ==>  00 + x = x";
   by (unfold is_vectorspace_def) simp;
 
 lemma vs_add_zero_right [simp]: 
-  "[| is_vectorspace V; x:V |] ==>  x + <0> = x";
+  "[| is_vectorspace V; x:V |] ==>  x + 00 = x";
 proof -;
   assume "is_vectorspace V" "x:V";
-  hence "x + <0> = <0> + x"; by simp;
+  hence "x + 00 = 00 + x"; by simp;
   also; have "... = x"; by (simp!);
   finally; show ?thesis; .;
 qed;
 
 lemma vs_add_mult_distrib1: 
   "[| is_vectorspace V; x:V; y:V |] 
-  ==> a <*> (x + y) = a <*> x + a <*> y";
+  ==> a (*) (x + y) = a (*) x + a (*) y";
   by (unfold is_vectorspace_def) simp;
 
 lemma vs_add_mult_distrib2: 
   "[| is_vectorspace V; x:V |] 
-  ==> (a + b) <*> x = a <*> x + b <*> x"; 
+  ==> (a + b) (*) x = a (*) x + b (*) x"; 
   by (unfold is_vectorspace_def) simp;
 
 lemma vs_mult_assoc: 
-  "[| is_vectorspace V; x:V |] ==> (a * b) <*> x = a <*> (b <*> x)";
+  "[| is_vectorspace V; x:V |] ==> (a * b) (*) x = a (*) (b (*) x)";
   by (unfold is_vectorspace_def) simp;
 
 lemma vs_mult_assoc2 [simp]: 
- "[| is_vectorspace V; x:V |] ==> a <*> b <*> x = (a * b) <*> x";
+ "[| is_vectorspace V; x:V |] ==> a (*) b (*) x = (a * b) (*) x";
   by (simp only: vs_mult_assoc);
 
 lemma vs_mult_1 [simp]: 
-  "[| is_vectorspace V; x:V |] ==> 1r <*> x = x"; 
+  "[| is_vectorspace V; x:V |] ==> 1r (*) x = x"; 
   by (unfold is_vectorspace_def) simp;
 
 lemma vs_diff_mult_distrib1: 
   "[| is_vectorspace V; x:V; y:V |] 
-  ==> a <*> (x - y) = a <*> x - a <*> y";
+  ==> a (*) (x - y) = a (*) x - a (*) y";
   by (simp add: diff_eq1 negate_eq1 vs_add_mult_distrib1);
 
 lemma vs_diff_mult_distrib2: 
   "[| is_vectorspace V; x:V |] 
-  ==> (a - b) <*> x = a <*> x - (b <*> x)";
+  ==> (a - b) (*) x = a (*) x - (b (*) x)";
 proof -;
   assume "is_vectorspace V" "x:V";
-  have " (a - b) <*> x = (a + - b ) <*> x"; 
+  have " (a - b) (*) x = (a + - b ) (*) x"; 
     by (unfold real_diff_def, simp);
-  also; have "... = a <*> x + (- b) <*> x"; 
+  also; have "... = a (*) x + (- b) (*) x"; 
     by (rule vs_add_mult_distrib2);
-  also; have "... = a <*> x + - (b <*> x)"; 
+  also; have "... = a (*) x + - (b (*) x)"; 
     by (simp! add: negate_eq1);
-  also; have "... = a <*> x - (b <*> x)"; 
+  also; have "... = a (*) x - (b (*) x)"; 
     by (simp! add: diff_eq1);
   finally; show ?thesis; .;
 qed;
@@ -230,34 +230,34 @@ text_raw {* \medskip *};
 text{* Further derived laws: *};
 
 lemma vs_mult_zero_left [simp]: 
-  "[| is_vectorspace V; x:V |] ==> 0r <*> x = <0>";
+  "[| is_vectorspace V; x:V |] ==> 0r (*) x = 00";
 proof -;
   assume "is_vectorspace V" "x:V";
-  have  "0r <*> x = (1r - 1r) <*> x"; by (simp only: real_diff_self);
-  also; have "... = (1r + - 1r) <*> x"; by simp;
-  also; have "... =  1r <*> x + (- 1r) <*> x"; 
+  have  "0r (*) x = (1r - 1r) (*) x"; by (simp only: real_diff_self);
+  also; have "... = (1r + - 1r) (*) x"; by simp;
+  also; have "... =  1r (*) x + (- 1r) (*) x"; 
     by (rule vs_add_mult_distrib2);
-  also; have "... = x + (- 1r) <*> x"; by (simp!);
+  also; have "... = x + (- 1r) (*) x"; by (simp!);
   also; have "... = x + - x"; by (simp! add: negate_eq2);;
   also; have "... = x - x"; by (simp! add: diff_eq2);
-  also; have "... = <0>"; by (simp!);
+  also; have "... = 00"; by (simp!);
   finally; show ?thesis; .;
 qed;
 
 lemma vs_mult_zero_right [simp]: 
   "[| is_vectorspace (V:: 'a::{plus, minus} set) |] 
-  ==> a <*> <0> = (<0>::'a)";
+  ==> a (*) 00 = (00::'a)";
 proof -;
   assume "is_vectorspace V";
-  have "a <*> <0> = a <*> (<0> - (<0>::'a))"; by (simp!);
-  also; have "... =  a <*> <0> - a <*> <0>";
+  have "a (*) 00 = a (*) (00 - (00::'a))"; by (simp!);
+  also; have "... =  a (*) 00 - a (*) 00";
      by (rule vs_diff_mult_distrib1) (simp!)+;
-  also; have "... = <0>"; by (simp!);
+  also; have "... = 00"; by (simp!);
   finally; show ?thesis; .;
 qed;
 
 lemma vs_minus_mult_cancel [simp]:  
-  "[| is_vectorspace V; x:V |] ==> (- a) <*> - x = a <*> x";
+  "[| is_vectorspace V; x:V |] ==> (- a) (*) - x = a (*) x";
   by (simp add: negate_eq1);
 
 lemma vs_add_minus_left_eq_diff: 
@@ -271,11 +271,11 @@ proof -;
 qed;
 
 lemma vs_add_minus [simp]: 
-  "[| is_vectorspace V; x:V |] ==> x + - x = <0>";
+  "[| is_vectorspace V; x:V |] ==> x + - x = 00";
   by (simp! add: diff_eq2);
 
 lemma vs_add_minus_left [simp]: 
-  "[| is_vectorspace V; x:V |] ==> - x + x = <0>";
+  "[| is_vectorspace V; x:V |] ==> - x + x = 00";
   by (simp! add: diff_eq2);
 
 lemma vs_minus_minus [simp]: 
@@ -283,11 +283,11 @@ lemma vs_minus_minus [simp]:
   by (simp add: negate_eq1);
 
 lemma vs_minus_zero [simp]: 
-  "is_vectorspace (V::'a::{minus, plus} set) ==> - (<0>::'a) = <0>"; 
+  "is_vectorspace (V::'a::{minus, plus} set) ==> - (00::'a) = 00"; 
   by (simp add: negate_eq1);
 
 lemma vs_minus_zero_iff [simp]:
-  "[| is_vectorspace V; x:V |] ==> (- x = <0>) = (x = <0>)" 
+  "[| is_vectorspace V; x:V |] ==> (- x = 00) = (x = 00)" 
   (concl is "?L = ?R");
 proof -;
   assume "is_vectorspace V" "x:V";
@@ -295,7 +295,7 @@ proof -;
   proof;
     have "x = - (- x)"; by (rule vs_minus_minus [RS sym]);
     also; assume ?L;
-    also; have "- ... = <0>"; by (rule vs_minus_zero);
+    also; have "- ... = 00"; by (rule vs_minus_zero);
     finally; show ?R; .;
   qed (simp!);
 qed;
@@ -314,11 +314,11 @@ lemma vs_minus_add_distrib [simp]:
   by (simp add: negate_eq1 vs_add_mult_distrib1);
 
 lemma vs_diff_zero [simp]: 
-  "[| is_vectorspace V; x:V |] ==> x - <0> = x";
+  "[| is_vectorspace V; x:V |] ==> x - 00 = x";
   by (simp add: diff_eq1);  
 
 lemma vs_diff_zero_right [simp]: 
-  "[| is_vectorspace V; x:V |] ==> <0> - x = - x";
+  "[| is_vectorspace V; x:V |] ==> 00 - x = - x";
   by (simp add:diff_eq1);
 
 lemma vs_add_left_cancel:
@@ -327,7 +327,7 @@ lemma vs_add_left_cancel:
   (concl is "?L = ?R");
 proof;
   assume "is_vectorspace V" "x:V" "y:V" "z:V";
-  have "y = <0> + y"; by (simp!);
+  have "y = 00 + y"; by (simp!);
   also; have "... = - x + x + y"; by (simp!);
   also; have "... = - x + (x + y)"; 
     by (simp! only: vs_add_assoc vs_neg_closed);
@@ -350,66 +350,66 @@ lemma vs_add_assoc_cong:
 
 lemma vs_mult_left_commute: 
   "[| is_vectorspace V; x:V; y:V; z:V |] 
-  ==> x <*> y <*> z = y <*> x <*> z";  
+  ==> x (*) y (*) z = y (*) x (*) z";  
   by (simp add: real_mult_commute);
 
 lemma vs_mult_zero_uniq :
-  "[| is_vectorspace V; x:V; a <*> x = <0>; x ~= <0> |] ==> a = 0r";
+  "[| is_vectorspace V; x:V; a (*) x = 00; x ~= 00 |] ==> a = 0r";
 proof (rule classical);
-  assume "is_vectorspace V" "x:V" "a <*> x = <0>" "x ~= <0>";
+  assume "is_vectorspace V" "x:V" "a (*) x = 00" "x ~= 00";
   assume "a ~= 0r";
-  have "x = (rinv a * a) <*> x"; by (simp!);
-  also; have "... = rinv a <*> (a <*> x)"; by (rule vs_mult_assoc);
-  also; have "... = rinv a <*> <0>"; by (simp!);
-  also; have "... = <0>"; by (simp!);
-  finally; have "x = <0>"; .;
+  have "x = (rinv a * a) (*) x"; by (simp!);
+  also; have "... = rinv a (*) (a (*) x)"; by (rule vs_mult_assoc);
+  also; have "... = rinv a (*) 00"; by (simp!);
+  also; have "... = 00"; by (simp!);
+  finally; have "x = 00"; .;
   thus "a = 0r"; by contradiction; 
 qed;
 
 lemma vs_mult_left_cancel: 
   "[| is_vectorspace V; x:V; y:V; a ~= 0r |] ==> 
-  (a <*> x = a <*> y) = (x = y)"
+  (a (*) x = a (*) y) = (x = y)"
   (concl is "?L = ?R");
 proof;
   assume "is_vectorspace V" "x:V" "y:V" "a ~= 0r";
-  have "x = 1r <*> x"; by (simp!);
-  also; have "... = (rinv a * a) <*> x"; by (simp!);
-  also; have "... = rinv a <*> (a <*> x)"; 
+  have "x = 1r (*) x"; by (simp!);
+  also; have "... = (rinv a * a) (*) x"; by (simp!);
+  also; have "... = rinv a (*) (a (*) x)"; 
     by (simp! only: vs_mult_assoc);
   also; assume ?L;
-  also; have "rinv a <*> ... = y"; by (simp!);
+  also; have "rinv a (*) ... = y"; by (simp!);
   finally; show ?R; .;
 qed simp;
 
 lemma vs_mult_right_cancel: (*** forward ***)
-  "[| is_vectorspace V; x:V; x ~= <0> |] 
-  ==> (a <*> x = b <*> x) = (a = b)" (concl is "?L = ?R");
+  "[| is_vectorspace V; x:V; x ~= 00 |] 
+  ==> (a (*) x = b (*) x) = (a = b)" (concl is "?L = ?R");
 proof;
-  assume "is_vectorspace V" "x:V" "x ~= <0>";
-  have "(a - b) <*> x = a <*> x - b <*> x"; 
+  assume "is_vectorspace V" "x:V" "x ~= 00";
+  have "(a - b) (*) x = a (*) x - b (*) x"; 
     by (simp! add: vs_diff_mult_distrib2);
-  also; assume ?L; hence "a <*> x - b <*> x = <0>"; by (simp!);
-  finally; have "(a - b) <*> x = <0>"; .; 
+  also; assume ?L; hence "a (*) x - b (*) x = 00"; by (simp!);
+  finally; have "(a - b) (*) x = 00"; .; 
   hence "a - b = 0r"; by (simp! add: vs_mult_zero_uniq);
   thus "a = b"; by (rule real_add_minus_eq);
 qed simp; (*** 
 
 backward :
 lemma vs_mult_right_cancel: 
-  "[| is_vectorspace V; x:V; x ~= <0> |] ==>  
-  (a <*> x = b <*> x) = (a = b)"
+  "[| is_vectorspace V; x:V; x ~= 00 |] ==>  
+  (a ( * ) x = b ( * ) x) = (a = b)"
   (concl is "?L = ?R");
 proof;
-  assume "is_vectorspace V" "x:V" "x ~= <0>";
+  assume "is_vectorspace V" "x:V" "x ~= 00";
   assume l: ?L; 
   show "a = b"; 
   proof (rule real_add_minus_eq);
     show "a - b = 0r"; 
     proof (rule vs_mult_zero_uniq);
-      have "(a - b) <*> x = a <*> x - b <*> x";
+      have "(a - b) ( * ) x = a ( * ) x - b ( * ) x";
         by (simp! add: vs_diff_mult_distrib2);
-      also; from l; have "a <*> x - b <*> x = <0>"; by (simp!);
-      finally; show "(a - b) <*> x  = <0>"; .; 
+      also; from l; have "a ( * ) x - b ( * ) x = 00"; by (simp!);
+      finally; show "(a - b) ( * ) x  = 00"; .; 
     qed;
   qed;
 next;
@@ -431,7 +431,7 @@ proof -;
     also; have "... = z + - y + y"; by (simp! add: diff_eq1);
     also; have "... = z + (- y + y)"; 
       by (rule vs_add_assoc) (simp!)+;
-    also; from vs; have "... = z + <0>"; 
+    also; from vs; have "... = z + 00"; 
       by (simp only: vs_add_minus_left);
     also; from vs; have "... = z"; by (simp only: vs_add_zero_right);
     finally; show ?R; .;
@@ -448,22 +448,22 @@ proof -;
 qed;
 
 lemma vs_add_minus_eq_minus: 
-  "[| is_vectorspace V; x:V; y:V; x + y = <0> |] ==> x = - y"; 
+  "[| is_vectorspace V; x:V; y:V; x + y = 00 |] ==> x = - y"; 
 proof -;
   assume "is_vectorspace V" "x:V" "y:V"; 
   have "x = (- y + y) + x"; by (simp!);
   also; have "... = - y + (x + y)"; by (simp!);
-  also; assume "x + y = <0>";
-  also; have "- y + <0> = - y"; by (simp!);
+  also; assume "x + y = 00";
+  also; have "- y + 00 = - y"; by (simp!);
   finally; show "x = - y"; .;
 qed;
 
 lemma vs_add_minus_eq: 
-  "[| is_vectorspace V; x:V; y:V; x - y = <0> |] ==> x = y"; 
+  "[| is_vectorspace V; x:V; y:V; x - y = 00 |] ==> x = y"; 
 proof -;
-  assume "is_vectorspace V" "x:V" "y:V" "x - y = <0>";
-  assume "x - y = <0>";
-  hence e: "x + - y = <0>"; by (simp! add: diff_eq1);
+  assume "is_vectorspace V" "x:V" "y:V" "x - y = 00";
+  assume "x - y = 00";
+  hence e: "x + - y = 00"; by (simp! add: diff_eq1);
   with _ _ _; have "x = - (- y)"; 
     by (rule vs_add_minus_eq_minus) (simp!)+;
   thus "x = y"; by (simp!);
@@ -514,12 +514,12 @@ proof -;
   show "?L = ?R";
   proof;
     assume l: ?L;
-    have "x + z = <0>"; 
+    have "x + z = 00"; 
     proof (rule vs_add_left_cancel [RS iffD1]);
       have "y + (x + z) = x + (y + z)"; by (simp!);
       also; note l;
-      also; have "y = y + <0>"; by (simp!);
-      finally; show "y + (x + z) = y + <0>"; .;
+      also; have "y = y + 00"; by (simp!);
+      finally; show "y + (x + z) = y + 00"; .;
     qed (simp!)+;
     thus "x = - z"; by (simp! add: vs_add_minus_eq_minus);
   next;

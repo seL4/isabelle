@@ -150,6 +150,6 @@ qed_spec_mp "list_update_incr";
 
 (* product *)
 
-Goalw [semilat_def,plus_prod] "[| semilat A; semilat B |] ==> semilat (A Times B)";
+Goalw [semilat_def,plus_prod] "[| semilat A; semilat B |] ==> semilat (A <*> B)";
 by (Asm_simp_tac 1);
 qed "semilat_Times";

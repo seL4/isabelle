@@ -63,7 +63,7 @@ Goal "((x,y) : diag A) = (x=y & x : A)";
 by (Blast_tac 1);
 qed "diag_iff";
 
-Goal "diag(A) <= A Times A";
+Goal "diag(A) <= A <*> A";
 by (Blast_tac 1);
 qed "diag_subset_Times";
 
@@ -115,14 +115,14 @@ Goal "[| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
 by (Blast_tac 1);
 qed "comp_mono";
 
-Goal "[| s <= A Times B;  r <= B Times C |] ==> (r O s) <= A Times C";
+Goal "[| s <= A <*> B;  r <= B <*> C |] ==> (r O s) <= A <*> C";
 by (Blast_tac 1);
 qed "comp_subset_Sigma";
 
 (** Natural deduction for refl(r) **)
 
 val prems = Goalw [refl_def]
-    "[| r <= A Times A;  !! x. x:A ==> (x,x):r |] ==> refl A r";
+    "[| r <= A <*> A;  !! x. x:A ==> (x,x):r |] ==> refl A r";
 by (REPEAT (ares_tac (prems@[ballI,conjI]) 1));
 qed "reflI";
 
@@ -371,7 +371,7 @@ Goal "R ^^ (A Un B) = R ^^ A Un R ^^ B";
 by (Blast_tac 1);
 qed "Image_Un";
 
-Goal "r <= A Times B ==> r^^C <= B";
+Goal "r <= A <*> B ==> r^^C <= B";
 by (rtac subsetI 1);
 by (REPEAT (eresolve_tac [asm_rl, ImageE, subsetD RS SigmaD2] 1)) ;
 qed "Image_subset";

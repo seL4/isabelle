@@ -29,7 +29,7 @@ constdefs
     "Range(r) == Domain(r^-1)"
 
   refl   :: "['a set, ('a*'a) set] => bool" (*reflexivity over a set*)
-    "refl A r == r <= A Times A & (ALL x: A. (x,x) : r)"
+    "refl A r == r <= A <*> A & (ALL x: A. (x,x) : r)"
 
   sym    :: "('a*'a) set=>bool"             (*symmetry predicate*)
     "sym(r) == ALL x y. (x,y): r --> (y,x): r"

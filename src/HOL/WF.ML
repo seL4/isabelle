@@ -20,7 +20,7 @@ qed "wfUNIVI";
 
 (*Restriction to domain A.  If r is well-founded over A then wf(r)*)
 val [prem1,prem2] = Goalw [wf_def]
- "[| r <= A Times A;  \
+ "[| r <= A <*> A;  \
 \    !!x P. [| ! x. (! y. (y,x) : r --> P(y)) --> P(x);  x:A |] ==> P(x) |]  \
 \ ==>  wf(r)";
 by (blast_tac (claset() addSEs [prem1 RS subsetD RS SigmaE2] addIs [prem2]) 1);

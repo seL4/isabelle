@@ -145,9 +145,9 @@ txt {* Then show that $h$ can be extended in a norm-preserving way to a function
             qed;
             thus ?thesis; by blast;
           qed;
-          have x0: "x0 ~= <0>";
+          have x0: "x0 ~= 00";
           proof (rule classical);
-            presume "x0 = <0>";
+            presume "x0 = 00";
             with h; have "x0:H"; by simp;
             thus ?thesis; by contradiction;
           qed blast;
@@ -190,7 +190,7 @@ txt {* Define $H_0$ as the direct sum of $H$ and the linear closure of $x_0$.  *
 
 txt {* Define the extension $h_0$ of $h$ to $H_0$ using $\xi$.  *};
 
-            def h0 == "\\<lambda>x. let (y,a) = SOME (y, a). x = y + a <*> x0 
+            def h0 == "\\<lambda>x. let (y,a) = SOME (y, a). x = y + a (*) x0 
                                                   & y:H
                            in (h y) + a * xi";
             show ?thesis;
@@ -205,7 +205,7 @@ txt {* Show that $h_0$ is an extension of $h$  *};
 		  have  "graph H h <= graph H0 h0";
                   proof (rule graph_extI);
 		    fix t; assume "t:H"; 
-		    have "(SOME (y, a). t = y + a <*> x0 & y : H)
+		    have "(SOME (y, a). t = y + a (*) x0 & y : H)
                          = (t,0r)";
 		      by (rule decomp_H0_H [OF _ _ _ _ _ x0]);
 		    thus "h t = h0 t"; by (simp! add: Let_def);
@@ -228,8 +228,8 @@ txt {* Show that $h_0$ is an extension of $h$  *};
 		    assume e: "graph H h = graph H0 h0";
 		    have "x0 : H0"; 
 		    proof (unfold H0_def, rule vs_sumI);
-		      show "x0 = <0> + x0"; by (simp!);
-		      from h; show "<0> : H"; ..;
+		      show "x0 = 00 + x0"; by (simp!);
+		      from h; show "00 : H"; ..;
 		      show "x0 : lin x0"; by (rule x_lin_x);
 		    qed;
 		    hence "(x0, h0 x0) : graph H0 h0"; ..;
@@ -265,10 +265,10 @@ txt {* and $h_0$ is norm-preserving.  *};
 		    also; have "... = (let (y,a) = (x, 0r) in h y + a * xi)";
 		      by (simp add: Let_def);
 		    also; have 
-		      "(x, 0r) = (SOME (y, a). x = y + a <*> x0 & y : H)";
+		      "(x, 0r) = (SOME (y, a). x = y + a (*) x0 & y : H)";
 		      by (rule decomp_H0_H [RS sym, OF _ _ _ _ _ x0]) (simp!)+;
 		    also; have 
-		      "(let (y,a) = (SOME (y,a). x = y + a <*> x0 & y : H)
+		      "(let (y,a) = (SOME (y,a). x = y + a (*) x0 & y : H)
                         in h y + a * xi) 
                       = h0 x"; by (simp!);
 		    finally; show "f x = h0 x"; .;
@@ -427,9 +427,9 @@ txt {* Assume that the domain of the supremum is not $E$, *};
   proof;
     fix x0; assume "x0:E" "x0~:H";
 
-    have x0: "x0 ~= <0>";
+    have x0: "x0 ~= 00";
     proof (rule classical);
-      presume "x0 = <0>";
+      presume "x0 = 00";
       with h; have "x0:H"; by simp;
       thus ?thesis; by contradiction;
     qed blast;
@@ -471,7 +471,7 @@ txt {* Assume that the domain of the supremum is not $E$, *};
       of $h$ on $H_0$:*};  
 
       def h0 ==
-          "\\<lambda>x. let (y,a) = SOME (y, a). x = y + a <*> x0 & y:H
+          "\\<lambda>x. let (y,a) = SOME (y, a). x = y + a ( * ) x0 & y:H
                in (h y) + a * xi";
 
       txt {* We get that the graph of $h_0$ extends that of
@@ -480,7 +480,7 @@ txt {* Assume that the domain of the supremum is not $E$, *};
       have  "graph H h <= graph H0 h0"; 
       proof (rule graph_extI);
         fix t; assume "t:H"; 
-        have "(SOME (y, a). t = y + a <*> x0 & y : H) = (t,0r)";
+        have "(SOME (y, a). t = y + a ( * ) x0 & y : H) = (t,0r)";
           by (rule decomp_H0_H, rule x0); 
         thus "h t = h0 t"; by (simp! add: Let_def);
       next;
@@ -502,8 +502,8 @@ txt {* Assume that the domain of the supremum is not $E$, *};
         assume e: "graph H h = graph H0 h0";
         have "x0 : H0"; 
         proof (unfold H0_def, rule vs_sumI);
-          show "x0 = <0> + x0"; by (simp!);
-          from h; show "<0> : H"; ..;
+          show "x0 = 00 + x0"; by (simp!);
+          from h; show "00 : H"; ..;
           show "x0 : lin x0"; by (rule x_lin_x);
         qed;
         hence "(x0, h0 x0) : graph H0 h0"; ..;
@@ -545,10 +545,10 @@ txt {* Assume that the domain of the supremum is not $E$, *};
           also; have "... = (let (y,a) = (x, 0r) in h y + a * xi)";
             by (simp add: Let_def);
           also; have 
-            "(x, 0r) = (SOME (y, a). x = y + a <*> x0 & y : H)";
+            "(x, 0r) = (SOME (y, a). x = y + a ( * ) x0 & y : H)";
             by (rule decomp_H0_H [RS sym], rule x0) (simp!)+;
           also; have 
-            "(let (y,a) = (SOME (y,a). x = y + a <*> x0 & y : H)
+            "(let (y,a) = (SOME (y,a). x = y + a ( * ) x0 & y : H)
               in h y + a * xi) 
              = h0 x"; by (simp!);
           finally; show "f x = h0 x"; .;
@@ -672,11 +672,11 @@ proof -;
 
     txt{* $p$ is absolutely homogenous: *};
 
-    show "p (a <*> x) = rabs a * p x";
+    show "p (a (*) x) = rabs a * p x";
     proof -; 
-      have "p (a <*> x) = function_norm F norm f * norm (a <*> x)";
+      have "p (a (*) x) = function_norm F norm f * norm (a (*) x)";
         by (simp!);
-      also; have "norm (a <*> x) = rabs a * norm x"; 
+      also; have "norm (a (*) x) = rabs a * norm x"; 
         by (rule normed_vs_norm_rabs_homogenous);
       also; have "function_norm F norm f * (rabs a * norm x) 
         = rabs a * (function_norm F norm f * norm x)";

@@ -73,7 +73,7 @@ by (Blast_tac 1);
 qed "equiv_class_nondisjoint";
 
 val [major] = goalw Equiv.thy [equiv_def,refl_def]
-    "equiv A r ==> r <= A Times A";
+    "equiv A r ==> r <= A <*> A";
 by (rtac (major RS conjunct1 RS conjunct1) 1);
 qed "equiv_type";
 
@@ -241,8 +241,8 @@ qed "congruent2_commuteI";
 
 (*** Cardinality results suggested by Florian Kammueller ***)
 
-(*Recall that  equiv A r  implies  r <= A Times A   (equiv_type) *)
-Goal "[| finite A; r <= A Times A |] ==> finite (A/r)";
+(*Recall that  equiv A r  implies  r <= A <*> A   (equiv_type) *)
+Goal "[| finite A; r <= A <*> A |] ==> finite (A/r)";
 by (rtac finite_subset 1);
 by (etac (finite_Pow_iff RS iffD2) 2);
 by (rewtac quotient_def);
@@ -250,7 +250,7 @@ by (Blast_tac 1);
 qed "finite_quotient";
 
 Goalw [quotient_def]
-    "[| finite A;  r <= A Times A;  X : A/r |] ==> finite X";
+    "[| finite A;  r <= A <*> A;  X : A/r |] ==> finite X";
 by (rtac finite_subset 1);
 by (assume_tac 2);
 by (Blast_tac 1);

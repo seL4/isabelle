@@ -14,24 +14,6 @@ set proof_timing;
 Delsimps [image_Collect];
 
 
-(*** General lemmas ***)
-
-Goal "UNIV Times UNIV = UNIV";
-by Auto_tac;
-qed "UNIV_Times_UNIV"; 
-Addsimps [UNIV_Times_UNIV];
-
-Goal "- (UNIV Times A) = UNIV Times (-A)";
-by Auto_tac;
-qed "Compl_Times_UNIV1"; 
-
-Goal "- (A Times UNIV) = (-A) Times UNIV";
-by Auto_tac;
-qed "Compl_Times_UNIV2"; 
-
-Addsimps [Compl_Times_UNIV1, Compl_Times_UNIV2]; 
-
-
 (*** The abstract type of programs ***)
 
 val rep_ss = simpset() addsimps 

@@ -437,16 +437,16 @@ proof -;
 
     txt{* We have to show that $h$ is multiplicative. *};
 
-    thus "h (a <*> x) = a * h x";
+    thus "h (a (*) x) = a * h x";
     proof (elim exE conjE);
       fix H' h'; assume "x:H'"
         and b: "graph H' h' <= graph H h" 
         and "is_linearform H' h'" "is_subspace H' E";
-      have "h' (a <*> x) = a * h' x"; 
+      have "h' (a (*) x) = a * h' x"; 
         by (rule linearform_mult);
       also; have "h' x = h x"; ..;
-      also; have "a <*> x : H'"; ..;
-      with b; have "h' (a <*> x) = h (a <*> x)"; ..;
+      also; have "a (*) x : H'"; ..;
+      with b; have "h' (a (*) x) = h (a (*) x)"; ..;
       finally; show ?thesis; .;
     qed;
   qed;
@@ -507,7 +507,7 @@ proof -;
 
   show ?thesis; 
   proof;
-    show "<0> : F"; ..;
+    show "00 : F"; ..;
     show "F <= H"; 
     proof (rule graph_extD2);
       show "graph F f <= graph H h";
@@ -518,10 +518,10 @@ proof -;
       fix x y; assume "x:F" "y:F";
       show "x + y : F"; by (simp!);
     qed;
-    show "ALL x:F. ALL a. a <*> x : F";
+    show "ALL x:F. ALL a. a (*) x : F";
     proof (intro ballI allI);
       fix x a; assume "x:F";
-      show "a <*> x : F"; by (simp!);
+      show "a (*) x : F"; by (simp!);
     qed;
   qed;
 qed;
@@ -542,10 +542,10 @@ proof -;
     txt {* The $\zero$ element is in $H$, as $F$ is a subset 
     of $H$: *};
 
-    have "<0> : F"; ..;
+    have "00 : F"; ..;
     also; have "is_subspace F H"; by (rule sup_supF); 
     hence "F <= H"; ..;
-    finally; show "<0> : H"; .;
+    finally; show "00 : H"; .;
 
     txt{* $H$ is a subset of $E$: *};
 
@@ -588,7 +588,7 @@ proof -;
 
     txt{* $H$ is closed under scalar multiplication: *};
 
-    show "ALL x:H. ALL a. a <*> x : H"; 
+    show "ALL x:H. ALL a. a (*) x : H"; 
     proof (intro ballI allI); 
       fix x a; assume "x:H"; 
       have "EX H' h'. x:H' & graph H' h' <= graph H h
@@ -596,11 +596,11 @@ proof -;
               & is_subspace F H' & graph F f <= graph H' h' 
               & (ALL x:H'. h' x <= p x)"; 
 	by (rule some_H'h'); 
-      thus "a <*> x : H"; 
+      thus "a (*) x : H"; 
       proof (elim exE conjE);
 	fix H' h'; 
         assume "x:H'" "is_subspace H' E" "graph H' h' <= graph H h";
-        have "a <*> x : H'"; ..;
+        have "a (*) x : H'"; ..;
         also; have "H' <= H"; ..;
 	finally; show ?thesis; .;
       qed;

@@ -67,11 +67,11 @@ lemma below_0: "below 0 = {}";
   by (simp add: below_def);
 
 lemma Sigma_Suc1:
-    "below (Suc n) Times B = ({n} Times B) Un (below n Times B)";
+    "below (Suc n) <*> B = ({n} <*> B) Un (below n <*> B)";
   by (simp add: below_def less_Suc_eq) blast;
 
 lemma Sigma_Suc2:
-    "A Times below (Suc n) = (A Times {n}) Un (A Times (below n))";
+    "A <*> below (Suc n) = (A <*> {n}) Un (A <*> (below n))";
   by (simp add: below_def less_Suc_eq) blast;
 
 lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2;
@@ -122,13 +122,13 @@ inductive domino
     vertl:  "{(i, j), (i + 1, j)} : domino";
 
 lemma dominoes_tile_row:
-  "{i} Times below (2 * n) : tiling domino"
+  "{i} <*> below (2 * n) : tiling domino"
   (is "?P n" is "?B n : ?T");
 proof (induct n);
   show "?P 0"; by (simp add: below_0 tiling.empty);
 
   fix n; assume hyp: "?P n";
-  let ?a = "{i} Times {2 * n + 1} Un {i} Times {2 * n}";
+  let ?a = "{i} <*> {2 * n + 1} Un {i} <*> {2 * n}";
 
   have "?B (Suc n) = ?a Un ?B n"; by (simp add: Sigma_Suc Un_assoc);
   also; have "... : ?T";
@@ -144,13 +144,13 @@ proof (induct n);
 qed;
 
 lemma dominoes_tile_matrix:
-  "below m Times below (2 * n) : tiling domino"
+  "below m <*> below (2 * n) : tiling domino"
   (is "?P m" is "?B m : ?T");
 proof (induct m);
   show "?P 0"; by (simp add: below_0 tiling.empty);
 
   fix m; assume hyp: "?P m";
-  let ?t = "{m} Times below (2 * n)";
+  let ?t = "{m} <*> below (2 * n)";
 
   have "?B (Suc m) = ?t Un ?B m"; by (simp add: Sigma_Suc);
   also; have "... : ?T";
@@ -249,13 +249,13 @@ subsection {* Main theorem *};
 constdefs
   mutilated_board :: "nat => nat => (nat * nat) set"
   "mutilated_board m n ==
-    below (2 * (m + 1)) Times below (2 * (n + 1))
+    below (2 * (m + 1)) <*> below (2 * (n + 1))
       - {(0, 0)} - {(2 * m + 1, 2 * n + 1)}";
 
 theorem mutil_not_tiling: "mutilated_board m n ~: tiling domino";
 proof (unfold mutilated_board_def);
   let ?T = "tiling domino";
-  let ?t = "below (2 * (m + 1)) Times below (2 * (n + 1))";
+  let ?t = "below (2 * (m + 1)) <*> below (2 * (n + 1))";
   let ?t' = "?t - {(0, 0)}";
   let ?t'' = "?t' - {(2 * m + 1, 2 * n + 1)}";
 

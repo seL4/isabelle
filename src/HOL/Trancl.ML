@@ -342,12 +342,12 @@ by (etac trancl_induct 1);
 by (auto_tac (claset() addIs [r_into_trancl], simpset()));
 qed "irrefl_tranclI";
 
-Goal "[| (a,b) : r^*;  r <= A Times A |] ==> a=b | a:A";
+Goal "[| (a,b) : r^*;  r <= A <*> A |] ==> a=b | a:A";
 by (etac rtrancl_induct 1);
 by Auto_tac;
 val lemma = result();
 
-Goalw [trancl_def] "r <= A Times A ==> r^+ <= A Times A";
+Goalw [trancl_def] "r <= A <*> A ==> r^+ <= A <*> A";
 by (blast_tac (claset() addSDs [lemma]) 1);
 qed "trancl_subset_Sigma";
 

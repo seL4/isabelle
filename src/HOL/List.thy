@@ -176,7 +176,7 @@ consts
  lexn :: "('a * 'a)set => nat => ('a list * 'a list)set"
 primrec
 "lexn r 0       = {}"
-"lexn r (Suc n) = (prod_fun (split op#) (split op#) `` (r ** lexn r n)) Int
+"lexn r (Suc n) = (prod_fun (split op#) (split op#) `` (r <*lex*> lexn r n)) Int
                   {(xs,ys). length xs = Suc n & length ys = Suc n}"
 
 constdefs
@@ -184,7 +184,7 @@ constdefs
 "lex r == UN n. lexn r n"
 
  lexico :: "('a * 'a)set => ('a list * 'a list)set"
-"lexico r == inv_image (less_than ** lex r) (%xs. (length xs, xs))"
+"lexico r == inv_image (less_than <*lex*> lex r) (%xs. (length xs, xs))"
 
 end
 

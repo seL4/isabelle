@@ -401,22 +401,37 @@ Goal "Sigma {} B = {}";
 by (Blast_tac 1) ;
 qed "Sigma_empty1";
 
-Goal "A Times {} = {}";
+Goal "A <*> {} = {}";
 by (Blast_tac 1) ;
 qed "Sigma_empty2";
 
-Addsimps [Sigma_empty1,Sigma_empty2]; 
+Addsimps [Sigma_empty1,Sigma_empty2];
+
+Goal "UNIV <*> UNIV = UNIV";
+by Auto_tac;
+qed "UNIV_Times_UNIV"; 
+Addsimps [UNIV_Times_UNIV];
+
+Goal "- (UNIV <*> A) = UNIV <*> (-A)";
+by Auto_tac;
+qed "Compl_Times_UNIV1"; 
+
+Goal "- (A <*> UNIV) = (-A) <*> UNIV";
+by Auto_tac;
+qed "Compl_Times_UNIV2"; 
+
+Addsimps [Compl_Times_UNIV1, Compl_Times_UNIV2]; 
 
 Goal "((a,b): Sigma A B) = (a:A & b:B(a))";
 by (Blast_tac 1);
 qed "mem_Sigma_iff";
 AddIffs [mem_Sigma_iff]; 
 
-Goal "x:C ==> (A Times C <= B Times C) = (A <= B)";
+Goal "x:C ==> (A <*> C <= B <*> C) = (A <= B)";
 by (Blast_tac 1);
 qed "Times_subset_cancel2";
 
-Goal "x:C ==> (A Times C = B Times C) = (A = B)";
+Goal "x:C ==> (A <*> C = B <*> C) = (A = B)";
 by (blast_tac (claset() addEs [equalityE]) 1);
 qed "Times_eq_cancel2";
 
@@ -426,14 +441,14 @@ qed "SetCompr_Sigma_eq";
 
 (*** Complex rules for Sigma ***)
 
-Goal "{(a,b). P a & Q b} = Collect P Times Collect Q";
+Goal "{(a,b). P a & Q b} = Collect P <*> Collect Q";
 by (Blast_tac 1);
 qed "Collect_split";
 
 Addsimps [Collect_split];
 
 (*Suggested by Pierre Chartier*)
-Goal "(UN (a,b):(A Times B). E a Times F b) = (UNION A E) Times (UNION B F)";
+Goal "(UN (a,b):(A <*> B). E a <*> F b) = (UNION A E) <*> (UNION B F)";
 by (Blast_tac 1);
 qed "UN_Times_distrib";
 
@@ -477,15 +492,15 @@ qed "Sigma_Union";
 
 (*Non-dependent versions are needed to avoid the need for higher-order
   matching, especially when the rules are re-oriented*)
-Goal "(A Un B) Times C = (A Times C) Un (B Times C)";
+Goal "(A Un B) <*> C = (A <*> C) Un (B <*> C)";
 by (Blast_tac 1);
 qed "Times_Un_distrib1"; 
 
-Goal "(A Int B) Times C = (A Times C) Int (B Times C)";
+Goal "(A Int B) <*> C = (A <*> C) Int (B <*> C)";
 by (Blast_tac 1);
 qed "Times_Int_distrib1"; 
 
-Goal "(A - B) Times C = (A Times C) - (B Times C)";
+Goal "(A - B) <*> C = (A <*> C) - (B <*> C)";
 by (Blast_tac 1);
 qed "Times_Diff_distrib1"; 
 

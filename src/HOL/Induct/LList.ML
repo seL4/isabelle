@@ -616,20 +616,20 @@ qed "def_llist_corec";
 (*** Deriving llist_equalityI -- llist equality is a bisimulation ***)
 
 Goalw [LListD_Fun_def]
-    "r <= (llist A) Times (llist A) ==> \
-\           LListD_Fun (diag A) r <= (llist A) Times (llist A)";
+    "r <= (llist A) <*> (llist A) ==> \
+\           LListD_Fun (diag A) r <= (llist A) <*> (llist A)";
 by (stac llist_unfold 1);
 by (simp_tac (simpset() addsimps [NIL_def, CONS_def]) 1);
 by (Fast_tac 1);
 qed "LListD_Fun_subset_Times_llist";
 
 Goal "prod_fun Rep_LList Rep_LList `` r <= \
-\    (llist(range Leaf)) Times (llist(range Leaf))";
+\    (llist(range Leaf)) <*> (llist(range Leaf))";
 by (fast_tac (claset() delrules [image_subsetI]
 		       addIs [Rep_LList RS LListD]) 1);
 qed "subset_Times_llist";
 
-Goal "r <= (llist(range Leaf)) Times (llist(range Leaf)) ==> \
+Goal "r <= (llist(range Leaf)) <*> (llist(range Leaf)) ==> \
 \    prod_fun (Rep_LList o Abs_LList) (Rep_LList o Abs_LList) `` r <= r";
 by Safe_tac;
 by (etac (subsetD RS SigmaE2) 1);

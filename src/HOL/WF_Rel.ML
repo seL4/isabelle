@@ -73,7 +73,7 @@ store_thm("measure_induct",measure_induct);
  *---------------------------------------------------------------------------*)
 
 val [wfa,wfb] = goalw thy [wf_def,lex_prod_def]
- "[| wf(ra); wf(rb) |] ==> wf(ra**rb)";
+ "[| wf(ra); wf(rb) |] ==> wf(ra <*lex*> rb)";
 by (EVERY1 [rtac allI,rtac impI]);
 by (simp_tac (HOL_basic_ss addsimps [split_paired_All]) 1);
 by (rtac (wfa RS spec RS mp) 1);
@@ -87,7 +87,7 @@ AddSIs [wf_lex_prod];
  * Transitivity of WF combinators.
  *---------------------------------------------------------------------------*)
 Goalw [trans_def, lex_prod_def]
-    "!!R1 R2. [| trans R1; trans R2 |] ==> trans (R1 ** R2)";
+    "!!R1 R2. [| trans R1; trans R2 |] ==> trans (R1 <*lex*> R2)";
 by (Simp_tac 1);
 by (Blast_tac 1);
 qed "trans_lex_prod";

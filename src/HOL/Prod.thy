@@ -55,7 +55,7 @@ syntax
   "_patterns"   :: [pttrn, patterns] => patterns ("_,/_")
 
   "@Sigma"      :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"   ("(3SIGMA _:_./ _)" 10)
-  "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    ("_ Times _" [81, 80] 80)
+  "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    (infixr "<*>" 80)
 
 translations
   "(x, y, z)"    == "(x, (y, z))"
@@ -68,7 +68,7 @@ translations
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *)
 
   "SIGMA x:A. B" => "Sigma A (%x. B)"
-  "A Times B"    => "Sigma A (_K B)"
+  "A <*> B"      => "Sigma A (_K B)"
 
 syntax (symbols)
   "@Sigma"      :: "[pttrn, 'a set, 'b set] => ('a * 'b) set"   ("(3\\<Sigma> _\\<in>_./ _)" 10)

@@ -49,7 +49,7 @@ qed "Scons_D";
 
 (** Introduction rules for 'pred_sexp' **)
 
-Goalw [pred_sexp_def] "pred_sexp <= sexp Times sexp";
+Goalw [pred_sexp_def] "pred_sexp <= sexp <*> sexp";
 by (Blast_tac 1);
 qed "pred_sexp_subset_Sigma";
 

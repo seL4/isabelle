@@ -19,7 +19,7 @@ defs
     --either the set of variables decreases
     --or the first argument does (in fact, both do)
   *)
-  unifyRel_def  "unifyRel == inv_image  (finite_psubset ** measure uterm_size)
+  unifyRel_def  "unifyRel == inv_image (finite_psubset <*lex*> measure uterm_size)
                                (%(M,N). (vars_of M Un vars_of N, M))"
 
 recdef unify "unifyRel"

@@ -49,9 +49,9 @@ qed "component_PLam";
 (** Safety & Progress **)
 
 Goal "[| i : I;  ALL j. F j : preserves snd |] ==>  \
-\     (PLam I F : (lift_set i (A Times UNIV)) co \
-\                 (lift_set i (B Times UNIV)))  =  \
-\     (F i : (A Times UNIV) co (B Times UNIV))";
+\     (PLam I F : (lift_set i (A <*> UNIV)) co \
+\                 (lift_set i (B <*> UNIV)))  =  \
+\     (F i : (A <*> UNIV) co (B <*> UNIV))";
 by (asm_simp_tac (simpset() addsimps [PLam_def, JN_constrains,
 				      Join_constrains]) 1);
 by (stac (insert_Diff RS sym) 1 THEN assume_tac 1);
@@ -60,8 +60,8 @@ by (blast_tac (claset() addIs [constrains_imp_lift_constrains]) 1);
 qed "PLam_constrains";
 
 Goal "[| i : I;  ALL j. F j : preserves snd |]  \
-\     ==> (PLam I F : stable (lift_set i (A Times UNIV))) = \
-\         (F i : stable (A Times UNIV))";
+\     ==> (PLam I F : stable (lift_set i (A <*> UNIV))) = \
+\         (F i : stable (A <*> UNIV))";
 by (asm_simp_tac (simpset() addsimps [stable_def, PLam_constrains]) 1);
 qed "PLam_stable";
 
@@ -73,9 +73,9 @@ qed "PLam_transient";
 Addsimps [PLam_constrains, PLam_stable, PLam_transient];
 
 (*This holds because the F j cannot change (lift_set i)*)
-Goal "[| i : I;  F i : (A Times UNIV) ensures (B Times UNIV);  \
+Goal "[| i : I;  F i : (A <*> UNIV) ensures (B <*> UNIV);  \
 \        ALL j. F j : preserves snd |] ==>  \
-\     PLam I F : lift_set i (A Times UNIV) ensures lift_set i (B Times UNIV)";
+\     PLam I F : lift_set i (A <*> UNIV) ensures lift_set i (B <*> UNIV)";
 by (auto_tac (claset(), 
 	      simpset() addsimps [ensures_def, lift_transient_eq_disj,
 				  lift_set_Un_distrib RS sym,
@@ -85,11 +85,11 @@ by (auto_tac (claset(),
 qed "PLam_ensures";
 
 Goal "[| i : I;  \
-\        F i : ((A Times UNIV) - (B Times UNIV)) co \
-\              ((A Times UNIV) Un (B Times UNIV));  \
-\        F i : transient ((A Times UNIV) - (B Times UNIV));  \
+\        F i : ((A <*> UNIV) - (B <*> UNIV)) co \
+\              ((A <*> UNIV) Un (B <*> UNIV));  \
+\        F i : transient ((A <*> UNIV) - (B <*> UNIV));  \
 \        ALL j. F j : preserves snd |] ==>  \
-\     PLam I F : lift_set i (A Times UNIV) leadsTo lift_set i (B Times UNIV)";
+\     PLam I F : lift_set i (A <*> UNIV) leadsTo lift_set i (B <*> UNIV)";
 by (rtac (PLam_ensures RS leadsTo_Basis) 1);
 by (rtac ensuresI 2);
 by (ALLGOALS assume_tac);
@@ -98,9 +98,9 @@ qed "PLam_leadsTo_Basis";
 
 (** invariant **)
 
-Goal "[| F i : invariant (A Times UNIV);  i : I;  \
+Goal "[| F i : invariant (A <*> UNIV);  i : I;  \
 \        ALL j. F j : preserves snd |] \
-\     ==> PLam I F : invariant (lift_set i (A Times UNIV))";
+\     ==> PLam I F : invariant (lift_set i (A <*> UNIV))";
 by (auto_tac (claset(),
 	      simpset() addsimps [invariant_def]));
 qed "invariant_imp_PLam_invariant";

@@ -582,7 +582,7 @@ qed "dsum_mono";
 
 (*** Bounding theorems ***)
 
-Goal "(dprod (A Times B) (C Times D)) <= (uprod A C) Times (uprod B D)";
+Goal "(dprod (A <*> B) (C <*> D)) <= (uprod A C) <*> (uprod B D)";
 by (Blast_tac 1);
 qed "dprod_Sigma";
 
@@ -595,7 +595,7 @@ by (stac Split 1);
 by (Blast_tac 1);
 qed "dprod_subset_Sigma2";
 
-Goal "(dsum (A Times B) (C Times D)) <= (usum A C) Times (usum B D)";
+Goal "(dsum (A <*> B) (C <*> D)) <= (usum A C) <*> (usum B D)";
 by (Blast_tac 1);
 qed "dsum_Sigma";
 

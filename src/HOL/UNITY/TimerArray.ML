@@ -29,7 +29,7 @@ AddIffs [Timer_preserves_snd];
 
 Goal "finite I \
 \     ==> (plam i: I. Timer) : UNIV leadsTo {(s,uu). ALL i:I. s i = 0}";
-by (eres_inst_tac [("A'1", "%i. lift_set i ({0} Times UNIV)")]
+by (eres_inst_tac [("A'1", "%i. lift_set i ({0} <*> UNIV)")]
     (finite_stable_completion RS leadsTo_weaken) 1);
 by Auto_tac;
 (*Safety property, already reduced to the single Timer case*)
@@ -37,7 +37,7 @@ by (constrains_tac 2);
 (*Progress property for the array of Timers*)
 by (res_inst_tac [("f", "sub i o fst")] lessThan_induct 1);
 by (case_tac "m" 1);
-(*Annoying need to massage the conditions to have the form (... Times UNIV)*)
+(*Annoying need to massage the conditions to have the form (... <*> UNIV)*)
 by (auto_tac (claset() addIs [subset_imp_leadsTo], 
 	      simpset() addsimps [insert_absorb, lessThan_Suc RS sym,
 				  lift_set_Un_distrib RS sym,

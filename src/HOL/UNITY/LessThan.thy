@@ -14,7 +14,7 @@ constdefs
 
   (*MOVE TO RELATION.THY??*)
   Restrict :: "[ 'a set, ('a*'b) set] => ('a*'b) set"
-    "Restrict A r == r Int (A Times UNIV)"
+    "Restrict A r == r Int (A <*> UNIV)"
 
   lessThan   :: "nat => nat set"
      "lessThan n == {i. i<n}"

@@ -540,7 +540,7 @@ by (afs [dualr_iff] 1);
 qed "T_thm_1_glb";
 
 (* interval *)
-Goal "refl A r ==> r <= A Times A";
+Goal "refl A r ==> r <= A <*> A";
 by (afs [refl_def] 1);
 qed "reflE1";
 

@@ -32,22 +32,22 @@ qed "below_0";
 Addsimps [below_0];
 
 Goalw [below_def]
-    "below(Suc n) Times B = ({n} Times B) Un ((below n) Times B)";
+    "below(Suc n) <*> B = ({n} <*> B) Un ((below n) <*> B)";
 by Auto_tac;
 qed "Sigma_Suc1";
 
 Goalw [below_def]
-    "A Times below(Suc n) = (A Times {n}) Un (A Times (below n))";
+    "A <*> below(Suc n) = (A <*> {n}) Un (A <*> (below n))";
 by Auto_tac;
 qed "Sigma_Suc2";
 
 Addsimps [Sigma_Suc1, Sigma_Suc2];
 
-Goal "({i} Times {n}) Un ({i} Times {m}) = {(i,m), (i,n)}";
+Goal "({i} <*> {n}) Un ({i} <*> {m}) = {(i,m), (i,n)}";
 by Auto_tac;
 qed "sing_Times_lemma";
 
-Goal "{i} Times below(n+n) : tiling domino";
+Goal "{i} <*> below(n+n) : tiling domino";
 by (induct_tac "n" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Un_assoc RS sym])));
 by (rtac tiling.Un 1);
@@ -56,7 +56,7 @@ qed "dominoes_tile_row";
 
 AddSIs [dominoes_tile_row]; 
 
-Goal "(below m) Times below(n+n) : tiling domino";
+Goal "(below m) <*> below(n+n) : tiling domino";
 by (induct_tac "m" 1);
 by Auto_tac;
 qed "dominoes_tile_matrix";
@@ -121,7 +121,7 @@ by (ALLGOALS (force_tac (claset() addSIs [card_Diff1_less],
 qed "gen_mutil_not_tiling";
 
 (*Apply the general theorem to the well-known case*)
-Goal "[| t = below(Suc m + Suc m) Times below(Suc n + Suc n) |] \
+Goal "[| t = below(Suc m + Suc m) <*> below(Suc n + Suc n) |] \
 \     ==> t - {(0,0)} - {(Suc(m+m), Suc(n+n))} ~: tiling domino";
 by (rtac gen_mutil_not_tiling 1);
 by (blast_tac (claset() addSIs [dominoes_tile_matrix]) 1);

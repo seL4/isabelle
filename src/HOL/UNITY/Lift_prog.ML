@@ -254,20 +254,20 @@ Goal "[| delete_map j g = delete_map j g';  i~=j |] ==> g i = g' i";
 by (Force_tac 1);
 qed "delete_map_neq_apply";
 
-(*A set of the form (A Times UNIV) ignores the second (dummy) state component*)
+(*A set of the form (A <*> UNIV) ignores the second (dummy) state component*)
 
-Goal "(f o fst) -`` A = (f-``A) Times UNIV";
+Goal "(f o fst) -`` A = (f-``A) <*> UNIV";
 by Auto_tac;
 qed "vimage_o_fst_eq";
 
-Goal "(sub i -``A) Times UNIV = lift_set i (A Times UNIV)";
+Goal "(sub i -``A) <*> UNIV = lift_set i (A <*> UNIV)";
 by Auto_tac;
 qed "vimage_sub_eq_lift_set";
 
 Addsimps [vimage_o_fst_eq, vimage_sub_eq_lift_set];
 
 Goal "[| F : preserves snd;  i~=j |] \
-\     ==> lift j F : stable (lift_set i (A Times UNIV))";
+\     ==> lift j F : stable (lift_set i (A <*> UNIV))";
 by (auto_tac (claset(),
 	      simpset() addsimps [lift_def, lift_set_def, 
 				  stable_def, constrains_def, 
@@ -280,9 +280,9 @@ qed "preserves_snd_lift_stable";
 
 (*If i~=j then lift j F  does nothing to lift_set i, and the 
   premise ensures A<=B.*)
-Goal "[| F i : (A Times UNIV) co (B Times UNIV);  \
+Goal "[| F i : (A <*> UNIV) co (B <*> UNIV);  \
 \        F j : preserves snd |]  \
-\  ==> lift j (F j) : (lift_set i (A Times UNIV)) co (lift_set i (B Times UNIV))";
+\  ==> lift j (F j) : (lift_set i (A <*> UNIV)) co (lift_set i (B <*> UNIV))";
 by (case_tac "i=j" 1);
 by (asm_full_simp_tac (simpset() addsimps [lift_def, lift_set_def, 
 					   rename_constrains]) 1);
@@ -323,8 +323,8 @@ by (blast_tac (claset() addDs [insert_map_eq_diff]) 1);
 qed "lift_map_eq_diff";
 
 Goal "F : preserves snd \
-\     ==> (lift i F : transient (lift_set j (A Times UNIV))) = \
-\         (i=j & F : transient (A Times UNIV) | A={})";
+\     ==> (lift i F : transient (lift_set j (A <*> UNIV))) = \
+\         (i=j & F : transient (A <*> UNIV) | A={})";
 by (case_tac "i=j" 1);
 by (auto_tac (claset(), simpset() addsimps [lift_transient]));
 by (auto_tac (claset(),
@@ -349,8 +349,8 @@ by (etac notE 1 THEN etac ssubst 1 THEN Fast_tac 1);
 qed "lift_transient_eq_disj";
 
 (*USELESS??*)
-Goal "lift_map i `` (A Times UNIV) = \
-\     (UN s:A. UN f. {insert_map i s f}) Times UNIV";
+Goal "lift_map i `` (A <*> UNIV) = \
+\     (UN s:A. UN f. {insert_map i s f}) <*> UNIV";
 by (auto_tac (claset() addSIs [bexI, image_eqI],
               simpset() addsimps [lift_map_def]));
 by (rtac (split RS sym) 1);

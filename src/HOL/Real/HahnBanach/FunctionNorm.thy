@@ -66,7 +66,7 @@ Thus we define the set $B$ the supremum is taken from as
 constdefs
   B :: "[ 'a set, 'a => real, 'a => real ] => real set"
   "B V norm f == 
-  {0r} \Un {rabs (f x) * rinv (norm x) | x. x ~= <0> & x:V}";
+  {0r} \Un {rabs (f x) * rinv (norm x) | x. x ~= 00 & x:V}";
 
 text{* $n$ is the function norm of $f$, iff 
 $n$ is the supremum of $B$. 
@@ -141,7 +141,7 @@ proof (unfold function_norm_def is_function_norm_def
 
       next;
 	fix x y;
-        assume "x:V" "x ~= <0>"; (***
+        assume "x:V" "x ~= 00"; (***
 
          have ge: "0r <= rinv (norm x)";
           by (rule real_less_imp_le, rule real_rinv_gt_zero, 
@@ -207,7 +207,7 @@ proof -;
     proof (intro ballI, unfold B_def,
            elim UnE singletonE CollectE exE conjE); 
       fix x r;
-      assume "x : V" "x ~= <0>" 
+      assume "x : V" "x ~= 00" 
         and r: "r = rabs (f x) * rinv (norm x)";
 
       have ge: "0r <= rabs (f x)"; by (simp! only: rabs_ge_zero);
@@ -259,9 +259,9 @@ proof -;
     from the linearity of $f$: for every linear function
     holds $f\ap \zero = 0$. *};
 
-    assume "x = <0>";
-    have "rabs (f x) = rabs (f <0>)"; by (simp!);
-    also; from v continuous_linearform; have "f <0> = 0r"; ..;
+    assume "x = 00";
+    have "rabs (f x) = rabs (f 00)"; by (simp!);
+    also; from v continuous_linearform; have "f 00 = 0r"; ..;
     also; note rabs_zero;
     also; have "0r <= function_norm V norm f * norm x";
     proof (rule real_le_mult_order);
@@ -272,7 +272,7 @@ proof -;
     show "rabs (f x) <= function_norm V norm f * norm x"; .;
 
   next;
-    assume "x ~= <0>";
+    assume "x ~= 00";
     have n: "0r <= norm x"; ..;
     have nz: "norm x ~= 0r";
     proof (rule lt_imp_not_eq [RS not_sym]);
@@ -356,7 +356,7 @@ proof (unfold function_norm_def);
 
       next;
 	fix x; 
-        assume "x : V" "x ~= <0>"; 
+        assume "x : V" "x ~= 00"; 
 
         have lz: "0r < norm x"; 
           by (simp! add: normed_vs_norm_gt_zero);

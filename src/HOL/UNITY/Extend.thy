@@ -17,7 +17,7 @@ constdefs
      (*Using the locale constant "f", this is  f (h (x,y))) = x*)
   
   extend_set :: "['a*'b => 'c, 'a set] => 'c set"
-    "extend_set h A == h `` (A Times UNIV)"
+    "extend_set h A == h `` (A <*> UNIV)"
 
   project_set :: "['a*'b => 'c, 'c set] => 'a set"
     "project_set h C == {x. EX y. h(x,y) : C}"

@@ -14,11 +14,11 @@ constdefs
   is_linearform :: "['a::{minus, plus} set, 'a => real] => bool" 
   "is_linearform V f == 
       (ALL x: V. ALL y: V. f (x + y) = f x + f y) &
-      (ALL x: V. ALL a. f (a <*> x) = a * (f x))"; 
+      (ALL x: V. ALL a. f (a (*) x) = a * (f x))"; 
 
 lemma is_linearformI [intro]: 
   "[| !! x y. [| x : V; y : V |] ==> f (x + y) = f x + f y;
-    !! x c. x : V ==> f (c <*> x) = c * f x |]
+    !! x c. x : V ==> f (c (*) x) = c * f x |]
  ==> is_linearform V f";
  by (unfold is_linearform_def) force;
 
@@ -27,7 +27,7 @@ lemma linearform_add [intro??]:
   by (unfold is_linearform_def) fast;
 
 lemma linearform_mult [intro??]: 
-  "[| is_linearform V f; x:V |] ==>  f (a <*> x) = a * (f x)"; 
+  "[| is_linearform V f; x:V |] ==>  f (a (*) x) = a * (f x)"; 
   by (unfold is_linearform_def) fast;
 
 lemma linearform_neg [intro??]:
@@ -35,7 +35,7 @@ lemma linearform_neg [intro??]:
   ==> f (- x) = - f x";
 proof -; 
   assume "is_linearform V f" "is_vectorspace V" "x:V"; 
-  have "f (- x) = f ((- 1r) <*> x)"; by (simp! add: negate_eq1);
+  have "f (- x) = f ((- 1r) (*) x)"; by (simp! add: negate_eq1);
   also; have "... = (- 1r) * (f x)"; by (rule linearform_mult);
   also; have "... = - (f x)"; by (simp!);
   finally; show ?thesis; .;
@@ -56,14 +56,14 @@ qed;
 text{* Every linear form yields $0$ for the $\zero$ vector.*};
 
 lemma linearform_zero [intro??, simp]: 
-  "[| is_vectorspace V; is_linearform V f |] ==> f <0> = 0r"; 
+  "[| is_vectorspace V; is_linearform V f |] ==> f 00 = 0r"; 
 proof -; 
   assume "is_vectorspace V" "is_linearform V f";
-  have "f <0> = f (<0> - <0>)"; by (simp!);
-  also; have "... = f <0> - f <0>"; 
+  have "f 00 = f (00 - 00)"; by (simp!);
+  also; have "... = f 00 - f 00"; 
     by (rule linearform_diff) (simp!)+;
   also; have "... = 0r"; by simp;
-  finally; show "f <0> = 0r"; .;
+  finally; show "f 00 = 0r"; .;
 qed; 
 
 end;
