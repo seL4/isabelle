@@ -103,7 +103,7 @@ val xterm_trans =
 
 (** emacs output (Isamode) **)
 
-(* tags *)
+local
 
 val end_tag = "\^A0";
 val tclass_tag = "\^A1";
@@ -115,8 +115,7 @@ val var_tag = "\^A6";
 
 fun tagit p x = (p ^ x ^ end_tag, size x);
 
-
-(* print mode "emacs" *)
+in
 
 val emacs_trans =
  trans_mode "emacs"
@@ -126,6 +125,37 @@ val emacs_trans =
    ("free", tagit free_tag),
    ("bound", tagit bound_tag),
    ("var", tagit var_tag)];
+
+end;
+
+
+
+(** ProofGeneral output **)
+
+local
+
+val end_tag = oct_char "350";
+val tclass_tag = oct_char "351";
+val tfree_tag = oct_char "352";
+val tvar_tag = oct_char "353";
+val free_tag = oct_char "354";
+val bound_tag = oct_char "355";
+val var_tag = oct_char "356";
+
+fun tagit p x = (p ^ x ^ end_tag, size x);
+
+in
+
+val proof_general_trans =
+ trans_mode "ProofGeneral"
+  [("class", tagit tclass_tag),
+   ("tfree", tagit tfree_tag),
+   ("tvar", tagit tvar_tag),
+   ("free", tagit free_tag),
+   ("bound", tagit bound_tag),
+   ("var", tagit var_tag)];
+
+end;
 
 
 
@@ -144,6 +174,7 @@ val token_translation =
   map (fn s => ("", s, fn x => (x, size x))) std_token_classes @
   xterm_trans @
   emacs_trans @
+  proof_general_trans @
   latex_trans;
 
 
