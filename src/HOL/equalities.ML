@@ -366,6 +366,15 @@ by (Fast_tac 1);
 qed "INT_insert";
 Addsimps[INT_insert];
 
+goal Set.thy
+    "!!A. A~={} ==> (INT x:A. insert a (B x)) = insert a (INT x:A. B x)";
+by (Fast_tac 1);
+qed "INT_insert_distrib";
+
+goal Set.thy "(INT x. insert a (B x)) = insert a (INT x. B x)";
+by (Fast_tac 1);
+qed "INT1_insert_distrib";
+
 goal Set.thy "Union(range(f)) = (UN x.f(x))";
 by (Fast_tac 1);
 qed "Union_range_eq";
@@ -531,3 +540,33 @@ by (Fast_tac 1);
 qed "Diff_Int";
 
 Addsimps[subset_UNIV, empty_subsetI, subset_refl];
+
+
+(** Miniscoping: pushing in big Unions and Intersections **)
+local
+  fun prover s = prove_goal Set.thy s (fn _ => [Fast_tac 1])
+in
+val UN1_simps = map prover 
+		["(UN x. insert a (B x)) = insert a (UN x. B x)",
+		 "(UN x. A x Int B)  = ((UN x.A x) Int B)",
+		 "(UN x. A Int B x)  = (A Int (UN x.B x))",
+		 "(UN x. A x Un B)   = ((UN x.A x) Un B)",
+		 "(UN x. A Un B x)   = (A Un (UN x.B x))",
+		 "(UN x. A x - B)    = ((UN x.A x) - B)",
+		 "(UN x. A - B x)    = (A - (INT x.B x))"];
+
+val INT1_simps = map prover
+		["(INT x. insert a (B x)) = insert a (INT x. B x)",
+		 "(INT x. A x Int B) = ((INT x.A x) Int B)",
+		 "(INT x. A Int B x) = (A Int (INT x.B x))",
+		 "(INT x. A x Un B)  = ((INT x.A x) Un B)",
+		 "(INT x. A Un B x)  = (A Un (INT x.B x))",
+		 "(INT x. A x - B)   = ((INT x.A x) - B)",
+		 "(INT x. A - B x)   = (A - (UN x.B x))"];
+
+(*Analogous laws for bounded Unions and Intersections are conditional
+  on the index set's being non-empty.  Thus they are probably NOT worth 
+  adding as default rewrites.*)
+end;
+
+Addsimps (UN1_simps @ INT1_simps);
