@@ -28,7 +28,6 @@ rsch_fin_ioa   :: ('m action, bool list)ioa
 reverse        :: 'a list => 'a list
 
 primrec
-  reverse List.list  
   reverse_Nil  "reverse([]) = []"
   reverse_Cons "reverse(x#xs) =  reverse(xs)@[x]"
 

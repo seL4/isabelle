@@ -18,7 +18,7 @@ AddIffs [cont_dlift];
 
 Goalw [dlift_def]
  "(dlift f`l = Def y) = (? x. l = Def x & f`(Discr x) = Def y)";
-by (simp_tac (simpset() addsplits [split_lift_case]) 1);
+by (simp_tac (simpset() addsplits [Lift1.lift.split]) 1);
 qed "dlift_is_Def";
 Addsimps [dlift_is_Def];
 
@@ -29,7 +29,7 @@ by (etac evalc.induct 1);
 qed_spec_mp "eval_implies_D";
 
 Goal "!s t. D c`(Discr s) = (Def t) --> <c,s> -c-> t";
-by (com.induct_tac "c" 1);
+by (induct_tac "c" 1);
     by (fast_tac ((HOL_cs addSIs evalc.intrs) addss simpset()) 1);
    by (fast_tac ((HOL_cs addSIs evalc.intrs) addss simpset()) 1);
   by (fast_tac ((HOL_cs addSIs evalc.intrs) addss simpset()) 1);

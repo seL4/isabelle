@@ -46,10 +46,10 @@ Goal "(reduce(l)=[]) = (l=[])";
  by (rtac iffI 1);
  by (subgoal_tac "(l~=[]) --> (reduce(l)~=[])" 1);
  by (Fast_tac 1); 
- by (List.list.induct_tac "l" 1);
+ by (induct_tac "l" 1);
  by (Simp_tac 1);
  by (Simp_tac 1);
- by (rtac (split_list_case RS iffD2) 1);
+ by (rtac (list.split RS iffD2) 1);
  by (Asm_full_simp_tac 1);
  by (REPEAT (rtac allI 1)); 
  by (rtac impI 1); 
@@ -60,7 +60,7 @@ Goal "(reduce(l)=[]) = (l=[])";
 val l_iff_red_nil = result();
 
 Goal "s~=[] --> hd(s)=hd(reduce(s))";
-by (List.list.induct_tac "s" 1);
+by (induct_tac "s" 1);
 by (Simp_tac 1);
 by (case_tac "list =[]" 1);
 by (Asm_full_simp_tac 1);
@@ -68,7 +68,7 @@ by (Asm_full_simp_tac 1);
 by (rotate 1 1);
 by (asm_full_simp_tac list_ss 1);
 by (Simp_tac 1);
-by (rtac (split_list_case RS iffD2) 1);
+by (rtac (list.split RS iffD2) 1);
 by (asm_full_simp_tac list_ss 1);
 by (REPEAT (rtac allI 1)); 
  by (rtac impI 1); 
@@ -80,7 +80,7 @@ qed"hd_is_reduce_hd";
 
 (* to be used in the following Lemma *)
 Goal "l~=[] --> reverse(reduce(l))~=[]";
-by (List.list.induct_tac "l" 1);
+by (induct_tac "l" 1);
 by (Simp_tac 1);
 by (case_tac "list =[]" 1);
 by (asm_full_simp_tac (simpset() addsimps [reverse_Cons]) 1);
@@ -100,7 +100,7 @@ qed"rev_red_not_nil";
 Goal "!!l.[| l~=[] |] ==>   \
 \   hd(reverse(reduce(a#l))) = hd(reverse(reduce(l)))";
  by (Simp_tac 1);
- by (rtac (split_list_case RS iffD2) 1);
+ by (rtac (list.split RS iffD2) 1);
  by (asm_full_simp_tac list_ss 1);
  by (REPEAT (rtac allI 1)); 
  by (rtac impI 1); 
@@ -119,7 +119,7 @@ Goal
 by (stac split_if 1);
 by (rtac conjI 1);
 (* --> *)
-by (List.list.induct_tac "l" 1);
+by (induct_tac "l" 1);
 by (Simp_tac 1);
 by (case_tac "list=[]" 1);
  by (asm_full_simp_tac (simpset() addsimps [reverse_Nil,reverse_Cons]) 1);
@@ -132,7 +132,7 @@ by (cut_inst_tac [("l","list")] cons_not_nil 1);
 by (asm_full_simp_tac (impl_ss addsimps [last_ind_on_first,l_iff_red_nil]) 1);
 (* <-- *)
 by (simp_tac (simpset() addsimps [and_de_morgan_and_absorbe,l_iff_red_nil]) 1);
-by (List.list.induct_tac "l" 1);
+by (induct_tac "l" 1);
 by (Simp_tac 1);
 by (case_tac "list=[]" 1);
 by (cut_inst_tac [("l","list")] cons_not_nil 2);
@@ -174,7 +174,7 @@ by (simp_tac (simpset() addsimps [is_weak_ref_map_def]) 1);
 (* ---------------- main-part ------------------- *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
-by (abs_action.induct_tac "a" 1);
+by (induct_tac "a" 1);
 (* ----------------- 2 cases ---------------------*)
 by (ALLGOALS (simp_tac (simpset() addsimps [externals_def])));
 (* fst case --------------------------------------*)
@@ -219,7 +219,7 @@ by (TRY(
 (* main-part *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
-by (Action.action.induct_tac "a" 1);
+by (induct_tac "a" 1);
 (* 7 cases *)
 by (ALLGOALS (simp_tac (simpset() addsimps [externals_def] addsplits [split_if])));
 qed"sender_unchanged";
@@ -235,7 +235,7 @@ by (TRY(
 (* main-part *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
-by (Action.action.induct_tac "a" 1);
+by (induct_tac "a" 1);
 (* 7 cases *)
 by (ALLGOALS(simp_tac (simpset() addsimps [externals_def] addsplits [split_if])));
 qed"receiver_unchanged";
@@ -250,7 +250,7 @@ by (TRY(
 (* main-part *)
 by (REPEAT (rtac allI 1));
 by (rtac imp_conj_lemma 1);
-by (Action.action.induct_tac "a" 1);
+by (induct_tac "a" 1);
 (* 7 cases *)
 by (ALLGOALS(simp_tac (simpset() addsimps [externals_def] addsplits [split_if])));
 qed"env_unchanged";
@@ -259,7 +259,7 @@ Addsplits [split_if];
 Goal "compatible srch_ioa rsch_ioa"; 
 by (simp_tac (simpset() addsimps [compatible_def,Int_def,empty_def]) 1);
 by (rtac set_ext 1);
-by (Action.action.induct_tac "x" 1);
+by (induct_tac "x" 1);
 by (ALLGOALS(Simp_tac));
 val compat_single_ch = result();
 
@@ -267,7 +267,7 @@ val compat_single_ch = result();
 Goal "compatible srch_fin_ioa rsch_fin_ioa"; 
 by (simp_tac (simpset() addsimps [compatible_def,Int_def,empty_def]) 1);
 by (rtac set_ext 1);
-by (Action.action.induct_tac "x" 1);
+by (induct_tac "x" 1);
 by (ALLGOALS(Simp_tac));
 val compat_single_fin_ch = result();
 
@@ -284,7 +284,7 @@ by (simp_tac (ss addsimps [empty_def,compatible_def,
                            Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
-by (Action.action.induct_tac "x" 1);
+by (induct_tac "x" 1);
 by (ALLGOALS Simp_tac);
 val compat_rec = result();
 
@@ -293,7 +293,7 @@ Goal "compatible receiver_ioa (srch_fin_ioa || rsch_fin_ioa)";
 by (simp_tac (ss addsimps [empty_def,compatible_def,asig_of_par,asig_comp_def,actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
-by (Action.action.induct_tac "x" 1);
+by (induct_tac "x" 1);
 by (ALLGOALS Simp_tac);
 val compat_rec_fin =result();
 
@@ -302,7 +302,7 @@ Goal "compatible sender_ioa \
 by (simp_tac (ss addsimps [empty_def,compatible_def,asig_of_par,asig_comp_def,actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
-by (Action.action.induct_tac "x" 1);
+by (induct_tac "x" 1);
 by (ALLGOALS(Simp_tac));
 val compat_sen=result();
 
@@ -311,7 +311,7 @@ Goal "compatible sender_ioa\
 by (simp_tac (ss addsimps [empty_def,  compatible_def,asig_of_par,asig_comp_def,actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
-by (Action.action.induct_tac "x" 1);
+by (induct_tac "x" 1);
 by (ALLGOALS(Simp_tac));
 val compat_sen_fin =result();
 
@@ -320,7 +320,7 @@ Goal "compatible env_ioa\
 by (simp_tac (ss addsimps [empty_def,compatible_def,asig_of_par,asig_comp_def,actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
-by (Action.action.induct_tac "x" 1);
+by (induct_tac "x" 1);
 by (ALLGOALS(Simp_tac));
 val compat_env=result();
 
@@ -329,7 +329,7 @@ Goal "compatible env_ioa\
 by (simp_tac (ss addsimps [empty_def,compatible_def,asig_of_par,asig_comp_def,actions_def,Int_def]) 1);
 by (Simp_tac 1);
 by (rtac set_ext 1);
-by (Action.action.induct_tac "x" 1);
+by (induct_tac "x" 1);
 by (ALLGOALS Simp_tac);
 val compat_env_fin=result();
 

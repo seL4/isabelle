@@ -6,9 +6,9 @@
 Discrete CPOs
 *)
 
-Discrete0 = Cont +
+Discrete0 = Cont + Datatype +
 
-datatype 'a discr = Discr 'a
+datatype 'a discr = Discr "'a :: term"
 
 instance discr :: (term)sq_ord
 

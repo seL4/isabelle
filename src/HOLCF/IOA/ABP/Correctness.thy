@@ -17,7 +17,6 @@ system_ioa       :: "('m action, bool * 'm impl_state)ioa"
 system_fin_ioa   :: "('m action, bool * 'm impl_state)ioa"
   
 primrec
-  reduce List.list  
   reduce_Nil  "reduce [] = []"
   reduce_Cons "reduce(x#xs) =   
                  (case xs of   

@@ -12,24 +12,10 @@ open Fix;
 (* derive inductive properties of iterate from primitive recursion          *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "iterate_0" thy "iterate 0 F x = x"
- (fn prems =>
-        [
-        (resolve_tac (nat_recs iterate_def) 1)
-        ]);
-
-qed_goal "iterate_Suc" thy "iterate (Suc n) F x  = F`(iterate n F x)"
- (fn prems =>
-        [
-        (resolve_tac (nat_recs iterate_def) 1)
-        ]);
-
-Addsimps [iterate_0, iterate_Suc];
-
 qed_goal "iterate_Suc2" thy "iterate (Suc n) F x = iterate n F (F`x)"
  (fn prems =>
         [
-        (nat_ind_tac "n" 1),
+        (induct_tac "n" 1),
         (Simp_tac 1),
         (stac iterate_Suc 1),
         (stac iterate_Suc 1),
@@ -49,7 +35,7 @@ qed_goalw "chain_iterate2" thy [chain]
         (cut_facts_tac prems 1),
         (strip_tac 1),
         (Simp_tac 1),
-        (nat_ind_tac "i" 1),
+        (induct_tac "i" 1),
         (Asm_simp_tac 1),
         (Asm_simp_tac 1),
         (etac monofun_cfun_arg 1)
@@ -103,7 +89,7 @@ qed_goalw "Ifix_least" thy [Ifix_def] "F`x=x ==> Ifix(F) << x"
         (rtac chain_iterate 1),
         (rtac ub_rangeI 1),
         (strip_tac 1),
-        (nat_ind_tac "i" 1),
+        (induct_tac "i" 1),
         (Asm_simp_tac 1),
         (Asm_simp_tac 1),
         (res_inst_tac [("t","x")] subst 1),
@@ -120,7 +106,7 @@ qed_goalw "monofun_iterate" thy  [monofun] "monofun(iterate(i))"
  (fn prems =>
         [
         (strip_tac 1),
-        (nat_ind_tac "i" 1),
+        (induct_tac "i" 1),
         (Asm_simp_tac 1),
         (Asm_simp_tac 1),
         (rtac (less_fun RS iffD2) 1),
@@ -141,7 +127,7 @@ qed_goalw "contlub_iterate" thy  [contlub] "contlub(iterate(i))"
  (fn prems =>
         [
         (strip_tac 1),
-        (nat_ind_tac "i" 1),
+        (induct_tac "i" 1),
         (Asm_simp_tac 1),
         (rtac (lub_const RS thelubI RS sym) 1),
         (Asm_simp_tac 1),
@@ -185,7 +171,7 @@ qed_goal "monofun_iterate2" thy "monofun(iterate n F)"
         [
         (rtac monofunI 1),
         (strip_tac 1),
-        (nat_ind_tac "n" 1),
+        (induct_tac "n" 1),
         (Asm_simp_tac 1),
         (Asm_simp_tac 1),
         (etac monofun_cfun_arg 1)
@@ -196,7 +182,7 @@ qed_goal "contlub_iterate2" thy "contlub(iterate n F)"
         [
         (rtac contlubI 1),
         (strip_tac 1),
-        (nat_ind_tac "n" 1),
+        (induct_tac "n" 1),
         (Simp_tac 1),
         (Simp_tac 1),
         (res_inst_tac [("t","iterate n F (lub(range(%u. Y u)))"),
@@ -493,7 +479,7 @@ qed_goal "fix_ind"  thy
         (etac admD 1),
         (rtac chain_iterate 1),
         (rtac allI 1),
-        (nat_ind_tac "i" 1),
+        (induct_tac "i" 1),
         (stac iterate_0 1),
         (atac 1),
         (stac iterate_Suc 1),

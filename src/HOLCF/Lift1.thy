@@ -6,7 +6,7 @@
 Lifting types of class term to flat pcpo's
 *)
 
-Lift1 = Cprod3 + 
+Lift1 = Cprod3 + Datatype +
 
 default term
 

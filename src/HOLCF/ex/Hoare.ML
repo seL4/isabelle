@@ -183,7 +183,7 @@ val hoare_lemma11 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (res_inst_tac [("n","k")] natE 1),
+        (exhaust_tac "k" 1),
         (hyp_subst_tac 1),
         (Simp_tac 1),
         (strip_tac 1),
@@ -199,7 +199,7 @@ val hoare_lemma11 = prove_goal Hoare.thy
         (atac 1),
         (rtac trans 1),
         (rtac p_def3 1),
-        (res_inst_tac [("s","TT"),("t","b1`(iterate xa g x)")] ssubst 1),
+        (res_inst_tac [("s","TT"),("t","b1`(iterate nat g x)")] ssubst 1),
         (rtac (hoare_lemma8 RS spec RS mp) 1),
         (atac 1),
         (atac 1),
@@ -220,7 +220,7 @@ val hoare_lemma12 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (res_inst_tac [("n","k")] natE 1),
+        (exhaust_tac "k" 1),
         (hyp_subst_tac 1),
         (Simp_tac 1),
         (strip_tac 1),
@@ -238,7 +238,7 @@ val hoare_lemma12 = prove_goal Hoare.thy
         (atac 1),
         (rtac trans 1),
         (rtac p_def3 1),
-        (res_inst_tac [("s","TT"),("t","b1`(iterate xa g x)")] ssubst 1),
+        (res_inst_tac [("s","TT"),("t","b1`(iterate nat g x)")] ssubst 1),
         (rtac (hoare_lemma8 RS spec RS mp) 1),
         (atac 1),
         (atac 1),
@@ -381,7 +381,7 @@ val hoare_lemma26 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (res_inst_tac [("n","k")] natE 1),
+        (exhaust_tac "k" 1),
         (hyp_subst_tac 1),
         (strip_tac 1),
         (Simp_tac 1),
@@ -394,7 +394,7 @@ val hoare_lemma26 = prove_goal Hoare.thy
         (atac 1),
         (rtac trans 1),
         (rtac q_def3 1),
-        (res_inst_tac [("s","TT"),("t","b1`(iterate xa g x)")] ssubst 1),
+        (res_inst_tac [("s","TT"),("t","b1`(iterate nat g x)")] ssubst 1),
         (rtac (hoare_lemma8 RS spec RS mp) 1),
         (atac 1),
         (atac 1),
@@ -410,7 +410,7 @@ val hoare_lemma27 = prove_goal Hoare.thy
  (fn prems =>
         [
         (cut_facts_tac prems 1),
-        (res_inst_tac [("n","k")] natE 1),
+        (exhaust_tac "k" 1),
         (hyp_subst_tac 1),
         (Simp_tac 1),
         (strip_tac 1),
@@ -427,7 +427,7 @@ val hoare_lemma27 = prove_goal Hoare.thy
         (atac 1),
         (rtac trans 1),
         (rtac q_def3 1),
-        (res_inst_tac [("s","TT"),("t","b1`(iterate xa g x)")] ssubst 1),
+        (res_inst_tac [("s","TT"),("t","b1`(iterate nat g x)")] ssubst 1),
         (rtac (hoare_lemma8 RS spec RS mp) 1),
         (atac 1),
         (atac 1),

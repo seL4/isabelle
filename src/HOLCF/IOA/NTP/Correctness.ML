@@ -44,7 +44,7 @@ Goal
                             restrict_asig_def, Spec.sig_def]
                             @asig_projections)) 1);
 
-  by (Action.action.induct_tac "a" 1);
+  by (induct_tac "a" 1);
   by (ALLGOALS(simp_tac (simpset() addsimps [actions_def]@asig_projections)));
  (* 2 *)
   by (simp_tac (simpset() addsimps impl_ioas) 1);
@@ -76,7 +76,7 @@ by (rtac conjI 1);
 by (REPEAT(rtac allI 1));
 by (rtac imp_conj_lemma 1);   (* from lemmas.ML *)
 
-by (Action.action.induct_tac "a"  1);
+by (induct_tac "a"  1);
 by (asm_simp_tac (ss' addsplits [split_if]) 1);
 by (forward_tac [inv4] 1);
 by (fast_tac (claset() addss (simpset() addsimps [neq_Nil_conv])) 1);

@@ -23,7 +23,7 @@ by (rtac imp_conj_lemma 1);
 by (simp_tac (simpset() addsimps [trans_of_def,
         C_ioa_def,A_ioa_def,C_trans_def,A_trans_def])1);
 by (simp_tac (simpset() addsimps [h_abs_def]) 1);
-by (action.induct_tac "a" 1);
+by (induct_tac "a" 1);
 by Auto_tac;
 qed"h_abs_is_abstraction";
 
@@ -32,7 +32,7 @@ qed"h_abs_is_abstraction";
 Goalw [xt2_def,plift,option_lift]
   "(xt2 (plift afun)) (s,a,t) = (afun a)";
 (* !!!!!!!!!!!!! Occurs check !!!! *)
-by (option.induct_tac "a" 1);
+by (induct_tac "a" 1);
 
 *)
 

@@ -14,7 +14,7 @@ constdefs
 
 consts D :: "com => state discr -> state lift"
 
-primrec D com
+primrec
   "D(SKIP) = (LAM s. Def(undiscr s))"
   "D(X := a) = (LAM s. Def((undiscr s)[X := a(undiscr s)]))"
   "D(c0 ; c1) = (dlift(D c1) oo (D c0))"

@@ -41,7 +41,7 @@ Goal "a:actions(sender_asig)   \
 \            | a:actions(receiver_asig) \
 \            | a:actions(srch_asig)     \
 \            | a:actions(rsch_asig)";
-  by (Action.action.induct_tac "a" 1);
+  by (induct_tac "a" 1);
   by (ALLGOALS (Simp_tac));
 Addsimps [result()];
 
@@ -160,7 +160,7 @@ Goal "invariant impl_ioa inv2";
       1);
 
   by (asm_simp_tac (simpset() addsimps impl_ioas delsplits [split_if]) 1);
-  by (Action.action.induct_tac "a" 1);
+  by (induct_tac "a" 1);
 
   (* 10 cases. First 4 are simple, since state doesn't change *)
 
@@ -221,7 +221,7 @@ Goal "invariant impl_ioa inv3";
                                        @ sender_projections @ impl_ioas))) 1);
 
   by (asm_simp_tac (simpset() addsimps impl_ioas delsplits [split_if]) 1);
-  by (Action.action.induct_tac "a" 1);
+  by (induct_tac "a" 1);
 
 val tac3 = asm_full_simp_tac (ss addsimps [inv3_def] addsplits [split_if]);
 
@@ -287,7 +287,7 @@ Goal "invariant impl_ioa inv4";
                                        @ sender_projections @ impl_ioas))) 1);
 
   by (asm_simp_tac (simpset() addsimps impl_ioas delsplits [split_if]) 1);
-  by (Action.action.induct_tac "a" 1);
+  by (induct_tac "a" 1);
 
 val tac4 =  asm_full_simp_tac (ss addsimps [inv4_def]
                               setloop (split_tac [split_if]));

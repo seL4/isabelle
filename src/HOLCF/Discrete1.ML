@@ -13,7 +13,7 @@ AddIffs [discr_less_eq];
 
 Goalw [chain]
  "!!S::nat=>('a::term)discr. chain S ==> S i = S 0";
-by (nat_ind_tac "i" 1);
+by (induct_tac "i" 1);
 by (rtac refl 1);
 by (etac subst 1);
 by (rtac sym 1);

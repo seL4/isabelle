@@ -32,7 +32,7 @@ qed_goalw "chain_mono" thy [chain] "chain F ==> x<y --> F x<<F y"
 ( fn prems =>
         [
         (cut_facts_tac prems 1),
-        (nat_ind_tac "y" 1),
+        (induct_tac "y" 1),
         (rtac impI 1),
         (etac less_zeroE 1),
         (stac less_Suc_eq 1),
@@ -224,7 +224,7 @@ qed_goal "bin_chain" thy "x<<y ==> chain (%i. if i=0 then x else y)"
         (cut_facts_tac prems 1),
         (rtac chainI 1),
         (rtac allI 1),
-        (nat_ind_tac "i" 1),
+        (induct_tac "i" 1),
         (Asm_simp_tac 1),
         (Asm_simp_tac 1)
         ]);
@@ -235,7 +235,7 @@ qed_goalw "bin_chainmax" thy [max_in_chain_def,le_def]
         [
         (cut_facts_tac prems 1),
         (rtac allI 1),
-        (nat_ind_tac "j" 1),
+        (induct_tac "j" 1),
         (Asm_simp_tac 1),
         (Asm_simp_tac 1)
         ]);

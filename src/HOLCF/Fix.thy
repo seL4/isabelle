@@ -18,9 +18,12 @@ fix	:: "('a->'a)->'a"
 adm		:: "('a::cpo=>bool)=>bool"
 admw		:: "('a=>bool)=>bool"
 
+primrec
+  iterate_0   "iterate 0 F x = x"
+  iterate_Suc "iterate (Suc n) F x  = F`(iterate n F x)"
+
 defs
 
-iterate_def   "iterate n F c == nat_rec c (%n x. F`x) n"
 Ifix_def      "Ifix F == lub(range(%i. iterate i F UU))"
 fix_def       "fix == (LAM f. Ifix f)"
 
