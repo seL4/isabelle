@@ -96,6 +96,10 @@ apply (rule equiv_intrel, fast)
 apply (simp add: intrel_def)
 done
 
+lemma int_int_eq [iff]: "(int m = int n) = (m = n)"
+by (fast elim!: inj_int [THEN injD])
+
+
 
 subsection{*zminus: unary negation on Integ*}
 
@@ -327,7 +331,27 @@ lemma zmult_1_right [simp]: "z * (1::int) = z"
 by (rule trans [OF zmult_commute zmult_1])
 
 
-(* Theorems about less and less_equal *)
+text{*The Integers Form A Ring*}
+instance int :: ring
+proof
+  fix i j k :: int
+  show "(i + j) + k = i + (j + k)" by (simp add: zadd_assoc)
+  show "i + j = j + i" by (simp add: zadd_commute)
+  show "0 + i = i" by simp
+  show "- i + i = 0" by simp
+  show "i - j = i + (-j)" by (simp add: zdiff_def)
+  show "(i * j) * k = i * (j * k)" by (rule zmult_assoc)
+  show "i * j = j * i" by (rule zmult_commute)
+  show "1 * i = i" by simp
+  show "(i + j) * k = i * k + j * k" by (simp add: int_distrib)
+  show "0 \<noteq> (1::int)" by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
+  assume eq: "k+i = k+j" 
+    hence "(-k + k) + i = (-k + k) + j" by (simp only: eq zadd_assoc)
+    thus "i = j" by simp
+qed
+
+
+subsection{*Theorems about the Ordering*}
 
 (*This lemma allows direct proofs of other <-properties*)
 lemma zless_iff_Suc_zadd: 
@@ -382,9 +406,6 @@ by (cut_tac zless_linear, blast)
 (*** eliminates ~= in premises ***)
 lemmas int_neqE = int_neq_iff [THEN iffD1, THEN disjE, standard]
 
-lemma int_int_eq [iff]: "(int m = int n) = (m = n)"
-by (fast elim!: inj_int [THEN injD])
-
 lemma int_eq_0_conv [simp]: "(int n = 0) = (n = 0)"
 by (simp add: Zero_int_def)
 
@@ -397,8 +418,14 @@ by (simp add: Zero_int_def)
 lemma zero_less_int_conv [simp]: "(0 < int n) = (0 < n)"
 by (simp add: Zero_int_def)
 
+lemma int_0_less_1: "0 < (1::int)"
+by (simp only: Zero_int_def One_int_def One_nat_def zless_int)
 
-(*** Properties of <= ***)
+lemma int_0_neq_1 [simp]: "0 \<noteq> (1::int)"
+by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
+
+
+subsection{*Properties of the @{text "\<le>"} Relation*}
 
 lemma zle_int [simp]: "(int m <= int n) = (m<=n)"
 by (simp add: zle_def le_def)
@@ -456,12 +483,6 @@ apply (simp add: zle_def int_neq_iff)
 apply (blast elim!: zless_asym)
 done
 
-lemma zadd_left_cancel [simp]: "!!w::int. (z + w' = z + w) = (w' = w)"
-apply safe
-apply (drule_tac f = "%x. x + (-z) " in arg_cong)
-apply (simp add: Zero_int_def [symmetric] zadd_ac)
-done
-
 instance int :: order
 proof qed (assumption | rule zle_refl zle_trans zle_anti_sym int_less_le)+
 
@@ -470,6 +491,10 @@ proof qed (rule zadd_commute zadd_assoc zadd_0)+
 
 instance int :: linorder
 proof qed (rule zle_linear)
+
+
+lemma zadd_left_cancel [simp]: "!!w::int. (z + w' = z + w) = (w' = w)"
+  by (rule add_left_cancel) 
 
 
 ML
@@ -564,14 +589,6 @@ val zle_trans = thm "zle_trans";
 val zle_anti_sym = thm "zle_anti_sym";
 val int_less_le = thm "int_less_le";
 val zadd_left_cancel = thm "zadd_left_cancel";
-
-val diff_less_eq = thm"diff_less_eq";
-val less_diff_eq = thm"less_diff_eq";
-val eq_diff_eq = thm"eq_diff_eq";
-val diff_eq_eq = thm"diff_eq_eq";
-val diff_le_eq = thm"diff_le_eq";
-val le_diff_eq = thm"le_diff_eq";
-val compare_rls = thms "compare_rls";
 *}
 
 end

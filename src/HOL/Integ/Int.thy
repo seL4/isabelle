@@ -47,12 +47,6 @@ by (simp add: iszero_def)
 lemma not_iszero_1: "~ iszero 1"
 by (simp only: Zero_int_def One_int_def One_nat_def iszero_def int_int_eq)
 
-lemma int_0_less_1: "0 < (1::int)"
-by (simp only: Zero_int_def One_int_def One_nat_def zless_int)
-
-lemma int_0_neq_1 [simp]: "0 \<noteq> (1::int)"
-by (simp only: Zero_int_def One_int_def One_nat_def int_int_eq)
-
 
 subsection{*nat: magnitide of an integer, as a natural number*}
 
@@ -154,16 +148,6 @@ text{*The Integers Form an Ordered Ring*}
 instance int :: ordered_ring
 proof
   fix i j k :: int
-  show "(i + j) + k = i + (j + k)" by (simp add: zadd_assoc)
-  show "i + j = j + i" by (simp add: zadd_commute)
-  show "0 + i = i" by simp
-  show "- i + i = 0" by simp
-  show "i - j = i + (-j)" by (simp add: zdiff_def)
-  show "(i * j) * k = i * (j * k)" by (rule zmult_assoc)
-  show "i * j = j * i" by (rule zmult_commute)
-  show "1 * i = i" by simp
-  show "(i + j) * k = i * k + j * k" by (simp add: int_distrib)
-  show "0 \<noteq> (1::int)" by simp
   show "i \<le> j ==> k + i \<le> k + j" by simp
   show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: zmult_zless_mono2)
   show "\<bar>i\<bar> = (if i < 0 then -i else i)" by (simp only: zabs_def)

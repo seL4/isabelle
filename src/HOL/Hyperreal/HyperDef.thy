@@ -474,6 +474,9 @@ proof
   show "0 \<noteq> (1::hypreal)" by (rule hypreal_zero_not_eq_one)
   show "x \<noteq> 0 ==> inverse x * x = 1" by (simp add: hypreal_mult_inverse_left)
   show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: hypreal_divide_def)
+  assume eq: "z+x = z+y" 
+    hence "(-z + z) + x = (-z + z) + y" by (simp only: eq hypreal_add_assoc)
+    thus "x = y" by (simp add: hypreal_add_minus_left)
 qed
 
 

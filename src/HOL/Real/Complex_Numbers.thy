@@ -107,6 +107,12 @@ proof
     by (simp add: zero_complex_def one_complex_def) 
   show "(u + v) * w = u * w + v * w"
     by (simp add: add_complex_def mult_complex_def ring_distrib)
+  show "z+u = z+v ==> u=v"
+    proof -
+      assume eq: "z+u = z+v" 
+      hence "(-z + z) + u = (-z + z) + v" by (simp add: eq add_complex_def)
+      thus "u = v" by (simp add: add_complex_def)
+    qed
   assume neq: "w \<noteq> 0"
   thus "z / w = z * inverse w"
     by (simp add: divide_complex_def)

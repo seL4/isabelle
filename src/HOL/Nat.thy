@@ -460,6 +460,14 @@ lemma nat_le_linear: "(m::nat) \<le> n | n \<le> m"
   apply blast
   done
 
+text {* Type {@typ nat} is a wellfounded linear order *}
+
+instance nat :: order by (intro_classes,
+  (assumption | rule le_refl le_trans le_anti_sym nat_less_le)+)
+instance nat :: linorder by (intro_classes, rule nat_le_linear)
+instance nat :: wellorder by (intro_classes, rule wf_less)
+
+
 lemma not_less_less_Suc_eq: "~ n < m ==> (n < Suc m) = (n = m)"
   by (blast elim!: less_SucE)
 
@@ -487,13 +495,6 @@ lemma zero_reorient: "(0 = x) = (x = 0)"
 
 lemma one_reorient: "(1 = x) = (x = 1)"
   by auto
-
-text {* Type {@typ nat} is a wellfounded linear order *}
-
-instance nat :: order by (intro_classes,
-  (assumption | rule le_refl le_trans le_anti_sym nat_less_le)+)
-instance nat :: linorder by (intro_classes, rule nat_le_linear)
-instance nat :: wellorder by (intro_classes, rule wf_less)
 
 subsection {* Arithmetic operators *}
 
@@ -525,7 +526,8 @@ primrec
   mult_0:   "0 * n = 0"
   mult_Suc: "Suc m * n = n + (m * n)"
 
-text {* These 2 rules ease the use of primitive recursion. NOTE USE OF @{text "=="} *}
+text {* These two rules ease the use of primitive recursion. 
+NOTE USE OF @{text "=="} *}
 lemma def_nat_rec_0: "(!!n. f n == nat_rec c h n) ==> f 0 = c"
   by simp
 
@@ -560,7 +562,7 @@ text {* Useful in certain inductive arguments *}
 lemma less_Suc_eq_0_disj: "(m < Suc n) = (m = 0 | (\<exists>j. m = Suc j & j < n))"
   by (case_tac m) simp_all
 
-lemma nat_induct2: "P 0 ==> P (Suc 0) ==> (!!k. P k ==> P (Suc (Suc k))) ==> P n"
+lemma nat_induct2: "[|P 0; P (Suc 0); !!k. P k ==> P (Suc (Suc k))|] ==> P n"
   apply (rule nat_less_induct)
   apply (case_tac n)
   apply (case_tac [2] nat)
@@ -690,25 +692,6 @@ lemma add_eq_self_zero: "!!m::nat. m + n = m ==> n = 0"
   apply (simp add: nat_add_assoc del: add_0_right)
   done
 
-subsection {* Monotonicity of Addition *}
-
-text {* strict, in 1st argument *}
-lemma add_less_mono1: "i < j ==> i + k < j + (k::nat)"
-  by (induct k) simp_all
-
-text {* strict, in both arguments *}
-lemma add_less_mono: "[|i < j; k < l|] ==> i + k < j + (l::nat)"
-  apply (rule add_less_mono1 [THEN less_trans], assumption+)
-  apply (induct_tac j, simp_all)
-  done
-
-text {* Deleted @{text less_natE}; use @{text "less_imp_Suc_add RS exE"} *}
-lemma less_imp_Suc_add: "m < n ==> (\<exists>k. n = Suc (m + k))"
-  apply (induct n)
-  apply (simp_all add: order_le_less)
-  apply (blast elim!: less_SucE intro!: add_0_right [symmetric] add_Suc_right [symmetric])
-  done
-
 
 subsection {* Multiplication *}
 
@@ -735,20 +718,9 @@ text {* Associative law for multiplication *}
 lemma nat_mult_assoc: "(m * n) * k = m * ((n * k)::nat)"
   by (induct m) (simp_all add: add_mult_distrib)
 
-lemma mult_is_0 [simp]: "((m::nat) * n = 0) = (m=0 | n=0)"
-  apply (induct_tac m)
-  apply (induct_tac [2] n, simp_all)
-  done
 
-text {* strict, in 1st argument; proof is by induction on @{text "k > 0"} *}
-lemma mult_less_mono2: "(i::nat) < j ==> 0 < k ==> k * i < k * j"
-  apply (erule_tac m1 = 0 in less_imp_Suc_add [THEN exE], simp)
-  apply (induct_tac x) 
-  apply (simp_all add: add_less_mono)
-  done
-
-text{*The Naturals Form an Ordered Semiring*}
-instance nat :: ordered_semiring
+text{*The Naturals Form A Semiring*}
+instance nat :: semiring
 proof
   fix i j k :: nat
   show "(i + j) + k = i + (j + k)" by (rule nat_add_assoc)
@@ -759,6 +731,46 @@ proof
   show "1 * i = i" by simp
   show "(i + j) * k = i * k + j * k" by (simp add: add_mult_distrib)
   show "0 \<noteq> (1::nat)" by simp
+  assume "k+i = k+j" thus "i=j" by simp
+qed
+
+lemma mult_is_0 [simp]: "((m::nat) * n = 0) = (m=0 | n=0)"
+  apply (induct_tac m)
+  apply (induct_tac [2] n, simp_all)
+  done
+
+subsection {* Monotonicity of Addition *}
+
+text {* strict, in 1st argument *}
+lemma add_less_mono1: "i < j ==> i + k < j + (k::nat)"
+  by (induct k) simp_all
+
+text {* strict, in both arguments *}
+lemma add_less_mono: "[|i < j; k < l|] ==> i + k < j + (l::nat)"
+  apply (rule add_less_mono1 [THEN less_trans], assumption+)
+  apply (induct_tac j, simp_all)
+  done
+
+text {* Deleted @{text less_natE}; use @{text "less_imp_Suc_add RS exE"} *}
+lemma less_imp_Suc_add: "m < n ==> (\<exists>k. n = Suc (m + k))"
+  apply (induct n)
+  apply (simp_all add: order_le_less)
+  apply (blast elim!: less_SucE 
+               intro!: add_0_right [symmetric] add_Suc_right [symmetric])
+  done
+
+text {* strict, in 1st argument; proof is by induction on @{text "k > 0"} *}
+lemma mult_less_mono2: "(i::nat) < j ==> 0 < k ==> k * i < k * j"
+  apply (erule_tac m1 = 0 in less_imp_Suc_add [THEN exE], simp)
+  apply (induct_tac x) 
+  apply (simp_all add: add_less_mono)
+  done
+
+
+text{*The Naturals Form an Ordered Semiring*}
+instance nat :: ordered_semiring
+proof
+  fix i j k :: nat
   show "i \<le> j ==> k + i \<le> k + j" by simp
   show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: mult_less_mono2)
 qed
@@ -790,14 +802,10 @@ lemma add_le_mono: "[| i \<le> j;  k \<le> l |] ==> i + k \<le> j + (l::nat)"
   by (rule add_mono)
 
 lemma le_add2: "n \<le> ((m + n)::nat)"
-  apply (induct m, simp_all)
-  apply (erule le_SucI)
-  done
+  by (insert add_right_mono [of 0 m n], simp) 
 
 lemma le_add1: "n \<le> ((n + m)::nat)"
-  apply (simp add: add_ac)
-  apply (rule le_add2)
-  done
+  by (simp add: add_commute, rule le_add2)
 
 lemma less_add_Suc1: "i < Suc (i + m)"
   by (rule le_less_trans, rule le_add1, rule lessI)
@@ -807,7 +815,6 @@ lemma less_add_Suc2: "i < Suc (m + i)"
 
 lemma less_iff_Suc_add: "(m < n) = (\<exists>k. n = Suc (m + k))"
   by (rules intro!: less_add_Suc1 less_imp_Suc_add)
-
 
 lemma trans_le_add1: "(i::nat) \<le> j ==> i \<le> j + m"
   by (rule le_trans, assumption, rule le_add1)
@@ -822,8 +829,8 @@ lemma trans_less_add2: "(i::nat) < j ==> i < m + j"
   by (rule less_le_trans, assumption, rule le_add2)
 
 lemma add_lessD1: "i + j < (k::nat) ==> i < k"
-  apply (induct j, simp_all)
-  apply (blast dest: Suc_lessD)
+  apply (rule le_less_trans [of _ "i+j"]) 
+  apply (simp_all add: le_add1)
   done
 
 lemma not_add_less1 [iff]: "~ (i + j < (i::nat))"
@@ -835,7 +842,9 @@ lemma not_add_less2 [iff]: "~ (j + i < (i::nat))"
   by (simp add: add_commute not_add_less1)
 
 lemma add_leD1: "m + k \<le> n ==> m \<le> (n::nat)"
-  by (induct k) (simp_all add: le_simps)
+  apply (rule order_trans [of _ "m+k"]) 
+  apply (simp_all add: le_add1)
+  done
 
 lemma add_leD2: "m + k \<le> n ==> k \<le> (n::nat)"
   apply (simp add: add_commute)
@@ -969,21 +978,17 @@ lemmas nat_distrib =
 subsection {* Monotonicity of Multiplication *}
 
 lemma mult_le_mono1: "i \<le> (j::nat) ==> i * k \<le> j * k"
-  by (induct k) (simp_all add: add_le_mono)
+  by (simp add: mult_right_mono) 
 
 lemma mult_le_mono2: "i \<le> (j::nat) ==> k * i \<le> k * j"
-  apply (drule mult_le_mono1)
-  apply (simp add: mult_commute)
-  done
+  by (simp add: mult_left_mono) 
 
 text {* @{text "\<le>"} monotonicity, BOTH arguments *}
 lemma mult_le_mono: "i \<le> (j::nat) ==> k \<le> l ==> i * k \<le> j * l"
-  apply (erule mult_le_mono1 [THEN le_trans])
-  apply (erule mult_le_mono2)
-  done
+  by (simp add: mult_mono) 
 
 lemma mult_less_mono1: "(i::nat) < j ==> 0 < k ==> i * k < j * k"
-  by (drule mult_less_mono2) (simp_all add: mult_commute)
+  by (simp add: mult_strict_right_mono) 
 
 text{*Differs from the standard @{text zero_less_mult_iff} in that
       there are no negative numbers.*}
@@ -1007,7 +1012,7 @@ lemma one_eq_mult_iff [simp]: "(Suc 0 = m * n) = (m = 1 & n = 1)"
   apply (rule_tac [2] mult_eq_1_iff, fastsimp)
   done
 
-lemma mult_less_cancel2: "((m::nat) * k < n * k) = (0 < k & m < n)"
+lemma mult_less_cancel2 [simp]: "((m::nat) * k < n * k) = (0 < k & m < n)"
   apply (safe intro!: mult_less_mono1)
   apply (case_tac k, auto)
   apply (simp del: le_0_eq add: linorder_not_le [symmetric])
@@ -1015,9 +1020,7 @@ lemma mult_less_cancel2: "((m::nat) * k < n * k) = (0 < k & m < n)"
   done
 
 lemma mult_less_cancel1 [simp]: "(k * (m::nat) < k * n) = (0 < k & m < n)"
-  by (simp add: mult_less_cancel2 mult_commute [of k])
-
-declare mult_less_cancel2 [simp]
+  by (simp add: mult_commute [of k])
 
 lemma mult_le_cancel1 [simp]: "(k * (m::nat) \<le> k * n) = (0 < k --> m \<le> n)"
 by (simp add: linorder_not_less [symmetric], auto)
@@ -1025,15 +1028,13 @@ by (simp add: linorder_not_less [symmetric], auto)
 lemma mult_le_cancel2 [simp]: "((m::nat) * k \<le> n * k) = (0 < k --> m \<le> n)"
 by (simp add: linorder_not_less [symmetric], auto)
 
-lemma mult_cancel2: "(m * k = n * k) = (m = n | (k = (0::nat)))"
+lemma mult_cancel2 [simp]: "(m * k = n * k) = (m = n | (k = (0::nat)))"
   apply (cut_tac less_linear, safe, auto)
   apply (drule mult_less_mono1, assumption, simp)+
   done
 
 lemma mult_cancel1 [simp]: "(k * m = k * n) = (m = n | (k = (0::nat)))"
-  by (simp add: mult_cancel2 mult_commute [of k])
-
-declare mult_cancel2 [simp]
+  by (simp add: mult_commute [of k])
 
 lemma Suc_mult_less_cancel1: "(Suc k * m < Suc k * n) = (m < n)"
   by (subst mult_less_cancel1) simp
@@ -1044,7 +1045,6 @@ lemma Suc_mult_le_cancel1: "(Suc k * m \<le> Suc k * n) = (m \<le> n)"
 lemma Suc_mult_cancel1: "(Suc k * m = Suc k * n) = (m = n)"
   by (subst mult_cancel1) simp
 
-
 text {* Lemma for @{text gcd} *}
 lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   apply (drule sym)
@@ -1053,6 +1053,5 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   apply (fastsimp elim!: less_SucE)
   apply (fastsimp dest: mult_less_mono2)
   done
-
 
 end

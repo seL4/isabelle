@@ -475,17 +475,28 @@ theorem abs_rat: "b \<noteq> 0 ==> \<bar>Fract a b\<bar> = Fract \<bar>a\<bar> \
 
 subsubsection {* The ordered field of rational numbers *}
 
+lemma rat_add_assoc: "(q + r) + s = q + (r + (s::rat))"
+  by (induct q, induct r, induct s) 
+     (simp add: add_rat zadd_ac zmult_ac int_distrib)
+
+lemma rat_add_0: "0 + q = (q::rat)"
+  by (induct q) (simp add: zero_rat add_rat)
+
+lemma rat_left_minus: "(-q) + q = (0::rat)"
+  by (induct q) (simp add: zero_rat minus_rat add_rat eq_rat)
+
+
 instance rat :: field
 proof
   fix q r s :: rat
   show "(q + r) + s = q + (r + s)"
-    by (induct q, induct r, induct s) (simp add: add_rat zadd_ac zmult_ac int_distrib)
+    by (rule rat_add_assoc)
   show "q + r = r + q"
     by (induct q, induct r) (simp add: add_rat zadd_ac zmult_ac)
   show "0 + q = q"
     by (induct q) (simp add: zero_rat add_rat)
   show "(-q) + q = 0"
-    by (induct q) (simp add: zero_rat minus_rat add_rat eq_rat)
+    by (rule rat_left_minus)
   show "q - r = q + (-r)"
     by (induct q, induct r) (simp add: add_rat minus_rat diff_rat)
   show "(q * r) * s = q * (r * s)"
@@ -495,14 +506,19 @@ proof
   show "1 * q = q"
     by (induct q) (simp add: one_rat mult_rat)
   show "(q + r) * s = q * s + r * s"
-    by (induct q, induct r, induct s) (simp add: add_rat mult_rat eq_rat int_distrib)
+    by (induct q, induct r, induct s) 
+       (simp add: add_rat mult_rat eq_rat int_distrib)
   show "q \<noteq> 0 ==> inverse q * q = 1"
     by (induct q) (simp add: inverse_rat mult_rat one_rat zero_rat eq_rat)
   show "r \<noteq> 0 ==> q / r = q * inverse r"
-    by (induct q, induct r) (simp add: mult_rat divide_rat inverse_rat zero_rat eq_rat)
+    by (induct q, induct r)
+       (simp add: mult_rat divide_rat inverse_rat zero_rat eq_rat)
   show "0 \<noteq> (1::rat)"
     by (simp add: zero_rat_def one_rat_def rat_of_equality 
                   zero_fraction_def one_fraction_def) 
+  assume eq: "s+q = s+r" 
+    hence "(-s + s) + q = (-s + s) + r" by (simp only: eq rat_add_assoc)
+    thus "q = r" by (simp add: rat_left_minus rat_add_0)
 qed
 
 instance rat :: linorder

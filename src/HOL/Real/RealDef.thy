@@ -330,6 +330,9 @@ apply (frule real_mult_inv_left_ex, safe)
 apply (rule someI2, auto)
 done
 
+
+subsection{*The Real Numbers form a Field*}
+
 instance real :: field
 proof
   fix x y z :: real
@@ -345,10 +348,13 @@ proof
   show "0 \<noteq> (1::real)" by (rule real_zero_not_eq_one)
   show "x \<noteq> 0 ==> inverse x * x = 1" by (rule real_mult_inv_left)
   show "y \<noteq> 0 ==> x / y = x * inverse y" by (simp add: real_divide_def)
+  assume eq: "z+x = z+y" 
+    hence "(-z + z) + x = (-z + z) + y" by (simp only: eq real_add_assoc)
+    thus "x = y" by (simp add: real_add_minus_left)
 qed
 
 
-(** Inverse of zero!  Useful to simplify certain equations **)
+text{*Inverse of zero!  Useful to simplify certain equations*}
 
 lemma INVERSE_ZERO: "inverse 0 = (0::real)"
 apply (unfold real_inverse_def)
@@ -652,33 +658,6 @@ apply (auto simp add: real_of_preal_not_minus_gt_zero real_of_preal_not_less_zer
 done
 declare real_minus_zero_less_iff2 [simp]
 
-ML
-{*
-val real_le_def = thm "real_le_def";
-val real_diff_def = thm "real_diff_def";
-val real_divide_def = thm "real_divide_def";
-val real_of_nat_def = thm "real_of_nat_def";
-
-val preal_trans_lemma = thm"preal_trans_lemma";
-val realrel_iff = thm"realrel_iff";
-val realrel_refl = thm"realrel_refl";
-val equiv_realrel = thm"equiv_realrel";
-val equiv_realrel_iff = thm"equiv_realrel_iff";
-val realrel_in_real = thm"realrel_in_real";
-val inj_on_Abs_REAL = thm"inj_on_Abs_REAL";
-val eq_realrelD = thm"eq_realrelD";
-val inj_Rep_REAL = thm"inj_Rep_REAL";
-val inj_real_of_preal = thm"inj_real_of_preal";
-val eq_Abs_REAL = thm"eq_Abs_REAL";
-val real_minus_congruent = thm"real_minus_congruent";
-val real_minus = thm"real_minus";
-val real_add = thm"real_add";
-val real_add_commute = thm"real_add_commute";
-val real_add_assoc = thm"real_add_assoc";
-val real_add_zero_left = thm"real_add_zero_left";
-val real_add_zero_right = thm"real_add_zero_right";
-
-*}
 
 subsection{*Properties of Less-Than Or Equals*}
 
@@ -1067,6 +1046,30 @@ qed
 ML
 {*
 val real_abs_def = thm "real_abs_def";
+
+val real_le_def = thm "real_le_def";
+val real_diff_def = thm "real_diff_def";
+val real_divide_def = thm "real_divide_def";
+val real_of_nat_def = thm "real_of_nat_def";
+
+val preal_trans_lemma = thm"preal_trans_lemma";
+val realrel_iff = thm"realrel_iff";
+val realrel_refl = thm"realrel_refl";
+val equiv_realrel = thm"equiv_realrel";
+val equiv_realrel_iff = thm"equiv_realrel_iff";
+val realrel_in_real = thm"realrel_in_real";
+val inj_on_Abs_REAL = thm"inj_on_Abs_REAL";
+val eq_realrelD = thm"eq_realrelD";
+val inj_Rep_REAL = thm"inj_Rep_REAL";
+val inj_real_of_preal = thm"inj_real_of_preal";
+val eq_Abs_REAL = thm"eq_Abs_REAL";
+val real_minus_congruent = thm"real_minus_congruent";
+val real_minus = thm"real_minus";
+val real_add = thm"real_add";
+val real_add_commute = thm"real_add_commute";
+val real_add_assoc = thm"real_add_assoc";
+val real_add_zero_left = thm"real_add_zero_left";
+val real_add_zero_right = thm"real_add_zero_right";
 
 val real_less_eq_diff = thm "real_less_eq_diff";
 

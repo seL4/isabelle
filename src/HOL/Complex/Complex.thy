@@ -343,20 +343,18 @@ apply (simp (no_asm))
 done
 declare complex_add_minus_right_zero [simp]
 
-lemma complex_add_minus_left_zero:
+lemma complex_add_minus_left:
       "-z + z = (0::complex)"
 apply (unfold complex_add_def complex_minus_def complex_zero_def)
 apply (simp (no_asm))
 done
-declare complex_add_minus_left_zero [simp]
 
 lemma complex_add_minus_cancel: "z + (- z + w) = (w::complex)"
 apply (simp (no_asm) add: complex_add_assoc [symmetric])
 done
 
 lemma complex_minus_add_cancel: "(-z) + (z + w) = (w::complex)"
-apply (simp (no_asm) add: complex_add_assoc [symmetric])
-done
+by (simp add: complex_add_minus_left complex_add_assoc [symmetric])
 
 declare complex_add_minus_cancel [simp] complex_minus_add_cancel [simp]
 
@@ -373,7 +371,7 @@ declare complex_minus_add_distrib [simp]
 lemma complex_add_left_cancel: "((x::complex) + y = x + z) = (y = z)"
 apply safe
 apply (drule_tac f = "%t.-x + t" in arg_cong)
-apply (simp add: complex_add_assoc [symmetric])
+apply (simp add: complex_add_minus_left complex_add_assoc [symmetric])
 done
 declare complex_add_left_cancel [iff]
 
@@ -413,7 +411,7 @@ apply (simp (no_asm) add: complex_add complex_minus)
 done
 
 lemma complex_diff_eq_eq: "((x::complex) - y = z) = (x = z + y)"
-by (auto simp add: complex_diff_def complex_add_assoc)
+by (auto simp add: complex_add_minus_left complex_diff_def complex_add_assoc)
 
 
 subsection{*Multiplication*}
@@ -552,7 +550,7 @@ proof
   show "0 + z = z"
     by (rule complex_add_zero_left) 
   show "-z + z = 0"
-    by (rule complex_add_minus_left_zero) 
+    by (rule complex_add_minus_left) 
   show "z - w = z + -w"
     by (simp add: complex_diff_def)
   show "(u * v) * w = u * (v * w)"
@@ -561,10 +559,16 @@ proof
     by (rule complex_mult_commute) 
   show "1 * z = z"
     by (rule complex_mult_one_left) 
-  show "0 \<noteq> (1::complex)"  --{*for some reason it has to be early*}
+  show "0 \<noteq> (1::complex)"
     by (rule complex_zero_not_eq_one) 
   show "(u + v) * w = u * w + v * w"
     by (rule complex_add_mult_distrib) 
+  show "z+u = z+v ==> u=v"
+    proof -
+      assume eq: "z+u = z+v" 
+      hence "(-z + z) + u = (-z + z) + v" by (simp only: eq complex_add_assoc)
+      thus "u = v" by (simp add: complex_add_minus_left)
+    qed
   assume neq: "w \<noteq> 0"
   thus "z / w = z * inverse w"
     by (simp add: complex_divide_def)
@@ -1700,7 +1704,6 @@ val complex_add_left_commute = thm"complex_add_left_commute";
 val complex_add_zero_left = thm"complex_add_zero_left";
 val complex_add_zero_right = thm"complex_add_zero_right";
 val complex_add_minus_right_zero = thm"complex_add_minus_right_zero";
-val complex_add_minus_left_zero = thm"complex_add_minus_left_zero";
 val complex_add_minus_cancel = thm"complex_add_minus_cancel";
 val complex_minus_add_cancel = thm"complex_minus_add_cancel";
 val complex_add_minus_eq_minus = thm"complex_add_minus_eq_minus";

@@ -20,6 +20,11 @@ axclass semiring \<subseteq> zero, one, plus, times
   add_assoc: "(a + b) + c = a + (b + c)"
   add_commute: "a + b = b + a"
   add_0 [simp]: "0 + a = a"
+  add_left_imp_eq: "a + b = a + c ==> b=c"
+    --{*This axiom is needed for semirings only: for rings, etc., it is
+        redundant. Including it allows many more of the following results
+        to be proved for semirings too. The drawback is that this redundant
+        axiom must be proved for instances of rings.*}
 
   mult_assoc: "(a * b) * c = a * (b * c)"
   mult_commute: "a * b = b * a"
@@ -82,19 +87,11 @@ next
 qed
 
 lemma add_left_cancel [simp]:
-     "(a + b = a + c) = (b = (c::'a::ring))"
-proof
-  assume eq: "a + b = a + c"
-  hence "(-a + a) + b = (-a + a) + c"
-    by (simp only: eq add_assoc)
-  thus "b = c" by simp
-next
-  assume eq: "b = c"
-  thus "a + b = a + c" by simp
-qed
+     "(a + b = a + c) = (b = (c::'a::semiring))"
+by (blast dest: add_left_imp_eq) 
 
 lemma add_right_cancel [simp]:
-     "(b + a = c + a) = (b = (c::'a::ring))"
+     "(b + a = c + a) = (b = (c::'a::semiring))"
   by (simp add: add_commute)
 
 lemma minus_minus [simp]: "- (- (a::'a::ring)) = a"
@@ -169,14 +166,14 @@ lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::semiring))"
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
-lemma mult_left_zero [simp]: "0 * a = (0::'a::ring)"
+lemma mult_left_zero [simp]: "0 * a = (0::'a::semiring)"
 proof -
   have "0*a + 0*a = 0*a + 0"
     by (simp add: left_distrib [symmetric])
   thus ?thesis by (simp only: add_left_cancel)
 qed
 
-lemma mult_right_zero [simp]: "a * 0 = (0::'a::ring)"
+lemma mult_right_zero [simp]: "a * 0 = (0::'a::semiring)"
   by (simp add: mult_commute)
 
 
@@ -237,55 +234,68 @@ lemma add_mono: "[|a \<le> b;  c \<le> d|] ==> a + c \<le> b + (d::'a::ordered_s
   done
 
 lemma add_strict_left_mono:
-     "a < b ==> c + a < c + (b::'a::ordered_ring)"
+     "a < b ==> c + a < c + (b::'a::ordered_semiring)"
  by (simp add: order_less_le add_left_mono) 
 
 lemma add_strict_right_mono:
-     "a < b ==> a + c < b + (c::'a::ordered_ring)"
+     "a < b ==> a + c < b + (c::'a::ordered_semiring)"
  by (simp add: add_commute [of _ c] add_strict_left_mono)
 
 text{*Strict monotonicity in both arguments*}
-lemma add_strict_mono: "[|a<b; c<d|] ==> a + c < b + (d::'a::ordered_ring)"
+lemma add_strict_mono: "[|a<b; c<d|] ==> a + c < b + (d::'a::ordered_semiring)"
 apply (erule add_strict_right_mono [THEN order_less_trans])
 apply (erule add_strict_left_mono)
 done
 
+lemma add_less_le_mono: "[| a<b; c\<le>d |] ==> a + c < b + (d::'a::ordered_semiring)"
+apply (erule add_strict_right_mono [THEN order_less_le_trans])
+apply (erule add_left_mono) 
+done
+
+lemma add_le_less_mono:
+     "[| a\<le>b; c<d |] ==> a + c < b + (d::'a::ordered_semiring)"
+apply (erule add_right_mono [THEN order_le_less_trans])
+apply (erule add_strict_left_mono) 
+done
+
 lemma add_less_imp_less_left:
-      assumes less: "c + a < c + b"  shows "a < (b::'a::ordered_ring)"
-  proof -
-  have "-c + (c + a) < -c + (c + b)"
-    by (rule add_strict_left_mono [OF less])
-  thus "a < b" by (simp add: add_assoc [symmetric])
+      assumes less: "c + a < c + b"  shows "a < (b::'a::ordered_semiring)"
+  proof (rule ccontr)
+    assume "~ a < b"
+    hence "b \<le> a" by (simp add: linorder_not_less)
+    hence "c+b \<le> c+a" by (rule add_left_mono)
+    with this and less show False 
+      by (simp add: linorder_not_less [symmetric])
   qed
 
 lemma add_less_imp_less_right:
-      "a + c < b + c ==> a < (b::'a::ordered_ring)"
+      "a + c < b + c ==> a < (b::'a::ordered_semiring)"
 apply (rule add_less_imp_less_left [of c])
 apply (simp add: add_commute)  
 done
 
 lemma add_less_cancel_left [simp]:
-    "(c+a < c+b) = (a < (b::'a::ordered_ring))"
+    "(c+a < c+b) = (a < (b::'a::ordered_semiring))"
 by (blast intro: add_less_imp_less_left add_strict_left_mono) 
 
 lemma add_less_cancel_right [simp]:
-    "(a+c < b+c) = (a < (b::'a::ordered_ring))"
+    "(a+c < b+c) = (a < (b::'a::ordered_semiring))"
 by (blast intro: add_less_imp_less_right add_strict_right_mono)
 
 lemma add_le_cancel_left [simp]:
-    "(c+a \<le> c+b) = (a \<le> (b::'a::ordered_ring))"
+    "(c+a \<le> c+b) = (a \<le> (b::'a::ordered_semiring))"
 by (simp add: linorder_not_less [symmetric]) 
 
 lemma add_le_cancel_right [simp]:
-    "(a+c \<le> b+c) = (a \<le> (b::'a::ordered_ring))"
+    "(a+c \<le> b+c) = (a \<le> (b::'a::ordered_semiring))"
 by (simp add: linorder_not_less [symmetric]) 
 
 lemma add_le_imp_le_left:
-      "c + a \<le> c + b ==> a \<le> (b::'a::ordered_ring)"
+      "c + a \<le> c + b ==> a \<le> (b::'a::ordered_semiring)"
 by simp
 
 lemma add_le_imp_le_right:
-      "a + c \<le> b + c ==> a \<le> (b::'a::ordered_ring)"
+      "a + c \<le> b + c ==> a \<le> (b::'a::ordered_semiring)"
 by simp
 
 
@@ -465,13 +475,13 @@ lemma mult_strict_right_mono:
 by (simp add: mult_commute [of _ c] mult_strict_left_mono)
 
 lemma mult_left_mono:
-     "[|a \<le> b; 0 \<le> c|] ==> c * a \<le> c * (b::'a::ordered_ring)"
+     "[|a \<le> b; 0 \<le> c|] ==> c * a \<le> c * (b::'a::ordered_semiring)"
   apply (case_tac "c=0", simp)
   apply (force simp add: mult_strict_left_mono order_le_less) 
   done
 
 lemma mult_right_mono:
-     "[|a \<le> b; 0 \<le> c|] ==> a*c \<le> b * (c::'a::ordered_ring)"
+     "[|a \<le> b; 0 \<le> c|] ==> a*c \<le> b * (c::'a::ordered_semiring)"
   by (simp add: mult_left_mono mult_commute [of _ c]) 
 
 lemma mult_strict_left_mono_neg:
@@ -489,16 +499,17 @@ done
 
 subsection{* Products of Signs *}
 
-lemma mult_pos: "[| (0::'a::ordered_ring) < a; 0 < b |] ==> 0 < a*b"
+lemma mult_pos: "[| (0::'a::ordered_semiring) < a; 0 < b |] ==> 0 < a*b"
 by (drule mult_strict_left_mono [of 0 b], auto)
 
-lemma mult_pos_neg: "[| (0::'a::ordered_ring) < a; b < 0 |] ==> a*b < 0"
+lemma mult_pos_neg: "[| (0::'a::ordered_semiring) < a; b < 0 |] ==> a*b < 0"
 by (drule mult_strict_left_mono [of b 0], auto)
 
 lemma mult_neg: "[| a < (0::'a::ordered_ring); b < 0 |] ==> 0 < a*b"
 by (drule mult_strict_right_mono_neg, auto)
 
-lemma zero_less_mult_pos: "[| 0 < a*b; 0 < a|] ==> 0 < (b::'a::ordered_ring)"
+lemma zero_less_mult_pos:
+     "[| 0 < a*b; 0 < a|] ==> 0 < (b::'a::ordered_semiring)"
 apply (case_tac "b\<le>0") 
  apply (auto simp add: order_le_less linorder_not_less)
 apply (drule_tac mult_pos_neg [of a b]) 
@@ -513,7 +524,7 @@ apply (simp add: mult_commute [of a b])
 apply (blast dest: zero_less_mult_pos) 
 done
 
-text{*A field has no "zero divisors", so this theorem should hold without the
+text{*A field has no "zero divisors", and this theorem holds without the
       assumption of an ordering.  See @{text field_mult_eq_0_iff} below.*}
 lemma mult_eq_0_iff [simp]: "(a*b = (0::'a::ordered_ring)) = (a = 0 | b = 0)"
 apply (case_tac "a < 0")
@@ -564,7 +575,7 @@ lemma mult_right_mono_neg:
 
 text{*Strict monotonicity in both arguments*}
 lemma mult_strict_mono:
-     "[|a<b; c<d; 0<b; 0\<le>c|] ==> a * c < b * (d::'a::ordered_ring)"
+     "[|a<b; c<d; 0<b; 0\<le>c|] ==> a * c < b * (d::'a::ordered_semiring)"
 apply (case_tac "c=0")
  apply (simp add: mult_pos) 
 apply (erule mult_strict_right_mono [THEN order_less_trans])
@@ -574,14 +585,14 @@ done
 
 text{*This weaker variant has more natural premises*}
 lemma mult_strict_mono':
-     "[| a<b; c<d; 0 \<le> a; 0 \<le> c|] ==> a * c < b * (d::'a::ordered_ring)"
+     "[| a<b; c<d; 0 \<le> a; 0 \<le> c|] ==> a * c < b * (d::'a::ordered_semiring)"
 apply (rule mult_strict_mono)
 apply (blast intro: order_le_less_trans)+
 done
 
 lemma mult_mono:
      "[|a \<le> b; c \<le> d; 0 \<le> b; 0 \<le> c|] 
-      ==> a * c  \<le>  b * (d::'a::ordered_ring)"
+      ==> a * c  \<le>  b * (d::'a::ordered_semiring)"
 apply (erule mult_right_mono [THEN order_trans], assumption)
 apply (erule mult_left_mono, assumption)
 done
@@ -618,12 +629,19 @@ lemma mult_le_cancel_left:
 by (simp add: mult_commute [of c] mult_le_cancel_right)
 
 lemma mult_less_imp_less_left:
-    "[|c*a < c*b; 0 < c|] ==> a < (b::'a::ordered_ring)"
-  by (force elim: order_less_asym simp add: mult_less_cancel_left)
+      assumes less: "c*a < c*b" and nonneg: "0 \<le> c"
+      shows "a < (b::'a::ordered_semiring)"
+  proof (rule ccontr)
+    assume "~ a < b"
+    hence "b \<le> a" by (simp add: linorder_not_less)
+    hence "c*b \<le> c*a" by (rule mult_left_mono)
+    with this and less show False 
+      by (simp add: linorder_not_less [symmetric])
+  qed
 
 lemma mult_less_imp_less_right:
-    "[|a*c < b*c; 0 < c|] ==> a < (b::'a::ordered_ring)"
-  by (force elim: order_less_asym simp add: mult_less_cancel_right)
+    "[|a*c < b*c; 0 \<le> c|] ==> a < (b::'a::ordered_semiring)"
+  by (rule mult_less_imp_less_left, simp add: mult_commute)
 
 text{*Cancellation of equalities with a common factor*}
 lemma mult_cancel_right [simp]:
@@ -1433,7 +1451,6 @@ apply (case_tac "a=0", simp)
 apply (simp add: nonzero_abs_inverse) 
 done
 
-
 lemma nonzero_abs_divide:
      "b \<noteq> 0 ==> abs (a / (b::'a::ordered_field)) = abs a / abs b"
 by (simp add: divide_inverse abs_mult nonzero_abs_inverse) 
@@ -1556,6 +1573,8 @@ val add_mono = thm"add_mono";
 val add_strict_left_mono = thm"add_strict_left_mono";
 val add_strict_right_mono = thm"add_strict_right_mono";
 val add_strict_mono = thm"add_strict_mono";
+val add_less_le_mono = thm"add_less_le_mono";
+val add_le_less_mono = thm"add_le_less_mono";
 val add_less_imp_less_left = thm"add_less_imp_less_left";
 val add_less_imp_less_right = thm"add_less_imp_less_right";
 val add_less_cancel_left = thm"add_less_cancel_left";
