@@ -246,6 +246,7 @@ fun cert_axm sg (name, raw_tm) =
       handle TYPE (msg, _, _) => error msg
            | TERM (msg, _) => error msg;
   in
+    Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
     assert (T = propT) "Term not of type prop";
     (name, no_vars t)
   end
