@@ -71,7 +71,7 @@ local open Syntax in
 					 (string_of_int m));
 	fun app s (l,r)   = mk_appl (Constant s) [l,r];
 	fun case1 n (con,mx,args) = mk_appl (Constant "@case1")
-		 [foldl (app "fapp") (c_ast con mx, (mapn (argvar n) 1 args)),
+		 [foldl (app "Rep_CFun") (c_ast con mx, (mapn (argvar n) 1 args)),
 		  expvar n];
 	fun arg1 n (con,_,args) = if args = [] then expvar n 
 				  else mk_appl (Constant "LAM ") 
@@ -81,8 +81,8 @@ local open Syntax in
       (mk_appl (Constant "@case") [Variable "x", foldr'
 				(fn (c,cs) => mk_appl (Constant"@case2") [c,cs])
 				 (mapn case1 1 cons')],
-       mk_appl (Constant "fapp") [foldl 
-				(fn (w,a ) => mk_appl (Constant"fapp" ) [w,a ])
+       mk_appl (Constant "Rep_CFun") [foldl 
+				(fn (w,a ) => mk_appl (Constant"Rep_CFun" ) [w,a ])
 				 (Constant (dnam^"_when"),mapn arg1 1 cons'),
 				 Variable "x"])
   end;

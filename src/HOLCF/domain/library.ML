@@ -145,11 +145,11 @@ infix 1 ~=;  fun S ~=  T = mk_not (S === T);
 infix 1 <<;  fun S <<  T = %%"op <<" $ S $ T;
 infix 1 ~<<; fun S ~<< T = mk_not (S << T);
 
-infix 9 `  ; fun f`  x = %%"fapp" $ f $ x;
+infix 9 `  ; fun f`  x = %%"Rep_CFun" $ f $ x;
 infix 9 `% ; fun f`% s = f` % s;
 infix 9 `%%; fun f`%%s = f` %%s;
-fun mk_cfapp (F,As) = foldl (op `) (F,As);
-fun con_app2 con f args = mk_cfapp(%%con,map f args);
+fun mk_cRep_CFun (F,As) = foldl (op `) (F,As);
+fun con_app2 con f args = mk_cRep_CFun(%%con,map f args);
 fun con_app con = con_app2 con %#;
 fun if_rec  arg f y   = if is_rec arg then f (rec_of arg) else y;
 fun app_rec_arg p arg = if_rec arg (fn n => fn x => (p n)`x) Id (%# arg);
@@ -166,7 +166,7 @@ fun cproj' T eqs = prj
 		       T (map ((fn tp => tp ->> tp) o Type o fix_tp o fst) eqs);
 fun lift tfn = foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
 
-fun /\ v T = %%"fabs" $ mk_lam(v,T);
+fun /\ v T = %%"Abs_CFun" $ mk_lam(v,T);
 fun /\# (arg,T) = /\ (vname arg) T;
 infixr 9 oo; fun S oo T = %%"cfcomp"`S`T;
 val UU = %%"UU";
@@ -176,12 +176,12 @@ fun cpair (S,T) = %%"cpair"`S`T;
 fun lift_defined f = lift (fn x => defined (f x));
 fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);
 
-fun cont_eta_contract (Const("fabs",TT) $ Abs(a,T,body)) = 
+fun cont_eta_contract (Const("Abs_CFun",TT) $ Abs(a,T,body)) = 
       (case cont_eta_contract body  of
-        body' as (Const("fapp",Ta) $ f $ Bound 0) => 
+        body' as (Const("Rep_CFun",Ta) $ f $ Bound 0) => 
 	  if not (0 mem loose_bnos f) then incr_boundvars ~1 f 
-	  else   Const("fabs",TT) $ Abs(a,T,body')
-      | body' => Const("fabs",TT) $ Abs(a,T,body'))
+	  else   Const("Abs_CFun",TT) $ Abs(a,T,body')
+      | body' => Const("Abs_CFun",TT) $ Abs(a,T,body'))
 |   cont_eta_contract(f$t) = cont_eta_contract f $ cont_eta_contract t
 |   cont_eta_contract t    = t;
 
@@ -197,7 +197,7 @@ fun when_body cons funarg = let
 		in cont_eta_contract (foldr'' 
 			(fn (a,t) => %%"ssplit"`(/\# (a,t)))
 			(args,
-			fn a=> /\#(a,(mk_cfapp(funarg(l2,n),mapn idxs 1 args))))
+			fn a=> /\#(a,(mk_cRep_CFun(funarg(l2,n),mapn idxs 1 args))))
 			) end;
 in (if length cons = 1 andalso length(snd(hd cons)) <= 1
     then fn t => %%"strictify"`t else Id)

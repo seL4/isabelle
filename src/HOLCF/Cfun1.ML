@@ -9,22 +9,22 @@ Lemmas for Cfun1.thy
 open Cfun1;
 
 (* ------------------------------------------------------------------------ *)
-(* derive old type definition rules for fabs & fapp                         *)
-(* fapp and fabs should be replaced by Rep_Cfun anf Abs_Cfun in future      *)
+(* derive old type definition rules for Abs_CFun & Rep_CFun                         *)
+(* Rep_CFun and Abs_CFun should be replaced by Rep_Cfun anf Abs_Cfun in future      *)
 (* ------------------------------------------------------------------------ *)
-qed_goalw "Rep_Cfun" thy [fapp_def] "fapp fo : CFun"
+qed_goal "Rep_Cfun" thy "Rep_CFun fo : CFun"
 (fn prems =>
         [
         (rtac Rep_CFun 1)
         ]);
 
-qed_goalw "Rep_Cfun_inverse" thy [fapp_def,fabs_def] "fabs (fapp fo) = fo"
+qed_goal "Rep_Cfun_inverse" thy "Abs_CFun (Rep_CFun fo) = fo"
 (fn prems =>
         [
         (rtac Rep_CFun_inverse 1)
         ]);
 
-qed_goalw "Abs_Cfun_inverse" thy [fapp_def,fabs_def] "f:CFun==>fapp(fabs f)=f"
+qed_goal "Abs_Cfun_inverse" thy "f:CFun==>Rep_CFun(Abs_CFun f)=f"
 (fn prems =>
         [
 	(cut_facts_tac prems 1),
@@ -97,7 +97,7 @@ qed_goal "cfun_arg_cong" thy "x=y ==> f`x = f`y"
 (* additional lemma about the isomorphism between -> and Cfun               *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "Abs_Cfun_inverse2" thy "cont f ==> fapp (fabs f) = f"
+qed_goal "Abs_Cfun_inverse2" thy "cont f ==> Rep_CFun (Abs_CFun f) = f"
 (fn prems =>
         [
         (cut_facts_tac prems 1),
@@ -110,7 +110,7 @@ qed_goal "Abs_Cfun_inverse2" thy "cont f ==> fapp (fabs f) = f"
 (* simplification of application                                            *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "Cfunapp2" thy "cont f ==> (fabs f)`x = f x"
+qed_goal "Cfunapp2" thy "cont f ==> (Abs_CFun f)`x = f x"
 (fn prems =>
         [
         (cut_facts_tac prems 1),

@@ -110,7 +110,7 @@ qed_goal "contlub_Ifup2" thy "contlub(Ifup(f))"
         (stac contlub_cfun_arg 1),
         (etac (monofun_Ifup2 RS ch2ch_monofun) 1),
         (rtac lub_equal2 1),
-        (rtac (monofun_fapp2 RS ch2ch_monofun) 2),
+        (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 2),
         (etac (monofun_Ifup2 RS ch2ch_monofun) 2),
         (etac (monofun_Ifup2 RS ch2ch_monofun) 2),
         (rtac (chain_mono2 RS exE) 1),

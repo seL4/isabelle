@@ -262,7 +262,7 @@ qed_goal "ssum_lemma12" Ssum3.thy
         (atac 1),
         (fast_tac HOL_cs 1),
         (simp_tac (simpset_of Cfun3.thy) 1),
-        (rtac (monofun_fapp2 RS ch2ch_monofun) 1),
+        (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 1),
         (etac (monofun_Iwhen3 RS ch2ch_monofun) 1),
         (etac (monofun_Iwhen3 RS ch2ch_monofun) 1)
         ]);
@@ -326,7 +326,7 @@ qed_goal "ssum_lemma13" Ssum3.thy
         (atac 1),
         (fast_tac HOL_cs 1),
         (simp_tac (simpset_of Cfun3.thy) 1),
-        (rtac (monofun_fapp2 RS ch2ch_monofun) 1),
+        (rtac (monofun_Rep_CFun2 RS ch2ch_monofun) 1),
         (etac (monofun_Iwhen3 RS ch2ch_monofun) 1),
         (etac (monofun_Iwhen3 RS ch2ch_monofun) 1)
         ]);

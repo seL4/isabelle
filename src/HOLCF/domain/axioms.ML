@@ -57,14 +57,14 @@ let
 
   val dis_defs = let
 	fun ddef (con,_) = (dis_name con ^"_def",%%(dis_name con) == 
-		 mk_cfapp(%%(dname^"_when"),map 
+		 mk_cRep_CFun(%%(dname^"_when"),map 
 			(fn (con',args) => (foldr /\#
 			   (args,if con'=con then %%"TT" else %%"FF"))) cons))
 	in map ddef cons end;
 
   val sel_defs = let
 	fun sdef con n arg = (sel_of arg^"_def",%%(sel_of arg) == 
-		 mk_cfapp(%%(dname^"_when"),map 
+		 mk_cRep_CFun(%%(dname^"_when"),map 
 			(fn (con',args) => if con'<>con then %%"UU" else
 			 foldr /\# (args,Bound (length args - n))) cons));
 	in flat(map (fn (con,args) => mapn (sdef con) 1 args) cons) end;
@@ -116,8 +116,8 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 	fun rel_app i ra = proj (Bound(allargs_cnt+2)) eqs (rec_of ra) $ 
 			   Bound (2*recs_cnt-i) $ Bound (recs_cnt-i);
 	val capps = foldr mk_conj (mapn rel_app 1 rec_args, mk_conj(
-	   Bound(allargs_cnt+1)===mk_cfapp(%%con,map (bound_arg allvns) vns1),
-	   Bound(allargs_cnt+0)===mk_cfapp(%%con,map (bound_arg allvns) vns2)));
+	   Bound(allargs_cnt+1)===mk_cRep_CFun(%%con,map (bound_arg allvns) vns1),
+	   Bound(allargs_cnt+0)===mk_cRep_CFun(%%con,map (bound_arg allvns) vns2)));
         in foldr mk_ex (allvns, foldr mk_conj 
 			      (map (defined o Bound) nonlazy_idxs,capps)) end;
       fun one_comp n (_,cons) =mk_all(x_name(n+1),mk_all(x_name(n+1)^"'",mk_imp(

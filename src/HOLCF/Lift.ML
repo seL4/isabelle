@@ -58,7 +58,7 @@ bind_thm("cont2cont_CF1L_rev2",allI RS cont2cont_CF1L_rev);
 
 val cont_lemmas_ext = [cont_flift1_arg,cont_flift2_arg,
                        cont_flift1_arg_and_not_arg,cont2cont_CF1L_rev2, 
-                       cont_fapp_app,cont_fapp_app_app,cont_if];
+                       cont_Rep_CFun_app,cont_Rep_CFun_app_app,cont_if];
 
 val cont_lemmas2 =  cont_lemmas1 @ cont_lemmas_ext;
                  

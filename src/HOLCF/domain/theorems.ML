@@ -41,7 +41,7 @@ fun case_UU_tac rews i v =      case_tac (v^"=UU") i THEN
                                 asm_simp_tac (HOLCF_ss addsimps rews) i;
 
 val chain_tac = REPEAT_DETERM o resolve_tac 
-                [chain_iterate, ch2ch_fappR, ch2ch_fappL];
+                [chain_iterate, ch2ch_Rep_CFunR, ch2ch_Rep_CFunL];
 
 (* ----- general proofs ----------------------------------------------------- *)
 
@@ -175,7 +175,7 @@ val when_strict = pg [] (bind_fun(mk_trp(strict when_app))) [
 val when_apps = let fun one_when n (con,args) = pg axs_con_def 
                 (bind_fun (lift_defined % (nonlazy args, 
                 mk_trp(when_app`(con_app con args) ===
-                       mk_cfapp(bound_fun n 0,map %# args)))))[
+                       mk_cRep_CFun(bound_fun n 0,map %# args)))))[
                 asm_simp_tac (HOLCF_ss addsimps [when_appl,ax_abs_iso]) 1];
         in mapn one_when 1 cons end;
 end;

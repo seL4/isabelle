@@ -35,7 +35,7 @@ fun trans_rules name2 name1 n mx = let
   val vnames = argnames (ord "A") n;
   val extra_parse_rule = Syntax.ParseRule (Constant name2, Constant name1);
   in [Syntax.ParsePrintRule (Ast.mk_appl (Constant name2) (map Variable vnames),
-			  foldl (fn (t,arg) => (Ast.mk_appl (Constant "fapp") 
+			  foldl (fn (t,arg) => (Ast.mk_appl (Constant "Rep_CFun") 
 						[t,Variable arg]))
 			  (Constant name1,vnames))]
      @(case mx of InfixlName _ => [extra_parse_rule] 

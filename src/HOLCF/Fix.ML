@@ -65,13 +65,13 @@ qed_goalw "Ifix_eq" thy  [Ifix_def] "Ifix F =F`(Ifix F)"
         (rtac antisym_less 1),
         (rtac lub_mono 1),
         (rtac chain_iterate 1),
-        (rtac ch2ch_fappR 1),
+        (rtac ch2ch_Rep_CFunR 1),
         (rtac chain_iterate 1),
         (rtac allI 1),
         (rtac (iterate_Suc RS subst) 1),
         (rtac (chain_iterate RS chainE RS spec) 1),
         (rtac is_lub_thelub 1),
-        (rtac ch2ch_fappR 1),
+        (rtac ch2ch_Rep_CFunR 1),
         (rtac chain_iterate 1),
         (rtac ub_rangeI 1),
         (rtac allI 1),
@@ -120,7 +120,7 @@ qed_goalw "monofun_iterate" thy  [monofun] "monofun(iterate(i))"
 (* ------------------------------------------------------------------------ *)
 (* the following lemma uses contlub_cfun which itself is based on a         *)
 (* diagonalisation lemma for continuous functions with two arguments.       *)
-(* In this special case it is the application function fapp                 *)
+(* In this special case it is the application function Rep_CFun                 *)
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "contlub_iterate" thy  [contlub] "contlub(iterate(i))"
@@ -138,9 +138,9 @@ qed_goalw "contlub_iterate" thy  [contlub] "contlub(iterate(i))"
         (rtac (less_fun RS iffD2) 1),
         (rtac allI 1),
         (rtac (chainE RS spec) 1),
-        (rtac (monofun_fapp1 RS ch2ch_MF2LR) 1),
+        (rtac (monofun_Rep_CFun1 RS ch2ch_MF2LR) 1),
         (rtac allI 1),
-        (rtac monofun_fapp2 1),
+        (rtac monofun_Rep_CFun2 1),
         (atac 1),
         (rtac ch2ch_fun 1),
         (rtac (monofun_iterate RS ch2ch_monofun) 1),
@@ -547,7 +547,7 @@ bind_thm ("adm_chfin" ,chfin RS adm_max_in_chain);
 qed_goalw "adm_chfindom" thy [adm_def] "adm (%(u::'a::cpo->'b::chfin). P(u`s))"
     (fn _ => [
 	strip_tac 1,
-	dtac chfin_fappR 1,
+	dtac chfin_Rep_CFunR 1,
 	eres_inst_tac [("x","s")] allE 1,
 	fast_tac (HOL_cs addss (simpset() addsimps [chfin])) 1]);
 

@@ -77,7 +77,7 @@ section "stream_when";
 
 qed_goal "stream_when_strictf" thy "stream_when`UU`s=UU" (fn _ => [
 	stream_case_tac "s" 1,
-	ALLGOALS(asm_simp_tac (HOL_ss addsimps strict_fapp1::stream.when_rews))
+	ALLGOALS(asm_simp_tac (HOL_ss addsimps strict_Rep_CFun1::stream.when_rews))
 	]);
 	
 

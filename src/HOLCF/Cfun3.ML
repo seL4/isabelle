@@ -7,17 +7,17 @@
 open Cfun3;
 
 (* for compatibility with old HOLCF-Version *)
-qed_goal "inst_cfun_pcpo" thy "UU = fabs(%x. UU)"
+qed_goal "inst_cfun_pcpo" thy "UU = Abs_CFun(%x. UU)"
  (fn prems => 
         [
         (simp_tac (HOL_ss addsimps [UU_def,UU_cfun_def]) 1)
         ]);
 
 (* ------------------------------------------------------------------------ *)
-(* the contlub property for fapp its 'first' argument                       *)
+(* the contlub property for Rep_CFun its 'first' argument                       *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "contlub_fapp1" thy "contlub(fapp)"
+qed_goal "contlub_Rep_CFun1" thy "contlub(Rep_CFun)"
 (fn prems =>
         [
         (rtac contlubI 1),
@@ -29,26 +29,26 @@ qed_goal "contlub_fapp1" thy "contlub(fapp)"
         (stac Cfunapp2 1),
         (etac cont_lubcfun 1),
         (stac thelub_fun 1),
-        (etac (monofun_fapp1 RS ch2ch_monofun) 1),
+        (etac (monofun_Rep_CFun1 RS ch2ch_monofun) 1),
         (rtac refl 1)
         ]);
 
 
 (* ------------------------------------------------------------------------ *)
-(* the cont property for fapp in its first argument                        *)
+(* the cont property for Rep_CFun in its first argument                        *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "cont_fapp1" thy "cont(fapp)"
+qed_goal "cont_Rep_CFun1" thy "cont(Rep_CFun)"
 (fn prems =>
         [
         (rtac monocontlub2cont 1),
-        (rtac monofun_fapp1 1),
-        (rtac contlub_fapp1 1)
+        (rtac monofun_Rep_CFun1 1),
+        (rtac contlub_Rep_CFun1 1)
         ]);
 
 
 (* ------------------------------------------------------------------------ *)
-(* contlub, cont properties of fapp in its first argument in mixfix _[_]   *)
+(* contlub, cont properties of Rep_CFun in its first argument in mixfix _[_]   *)
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_cfun_fun" thy 
@@ -58,9 +58,9 @@ qed_goal "contlub_cfun_fun" thy
         [
         (cut_facts_tac prems 1),
         (rtac trans 1),
-        (etac (contlub_fapp1 RS contlubE RS spec RS mp RS fun_cong) 1),
+        (etac (contlub_Rep_CFun1 RS contlubE RS spec RS mp RS fun_cong) 1),
         (stac thelub_fun 1),
-        (etac (monofun_fapp1 RS ch2ch_monofun) 1),
+        (etac (monofun_Rep_CFun1 RS ch2ch_monofun) 1),
         (rtac refl 1)
         ]);
 
@@ -72,13 +72,13 @@ qed_goal "cont_cfun_fun" thy
         [
         (cut_facts_tac prems 1),
         (rtac thelubE 1),
-        (etac ch2ch_fappL 1),
+        (etac ch2ch_Rep_CFunL 1),
         (etac (contlub_cfun_fun RS sym) 1)
         ]);
 
 
 (* ------------------------------------------------------------------------ *)
-(* contlub, cont  properties of fapp in both argument in mixfix _[_]       *)
+(* contlub, cont  properties of Rep_CFun in both argument in mixfix _[_]       *)
 (* ------------------------------------------------------------------------ *)
 
 qed_goal "contlub_cfun" thy 
@@ -88,9 +88,9 @@ qed_goal "contlub_cfun" thy
         [
         (cut_facts_tac prems 1),
         (rtac contlub_CF2 1),
-        (rtac cont_fapp1 1),
+        (rtac cont_Rep_CFun1 1),
         (rtac allI 1),
-        (rtac cont_fapp2 1),
+        (rtac cont_Rep_CFun2 1),
         (atac 1),
         (atac 1)
         ]);
@@ -102,9 +102,9 @@ qed_goal "cont_cfun" thy
         [
         (cut_facts_tac prems 1),
         (rtac thelubE 1),
-        (rtac (monofun_fapp1 RS ch2ch_MF2LR) 1),
+        (rtac (monofun_Rep_CFun1 RS ch2ch_MF2LR) 1),
         (rtac allI 1),
-        (rtac monofun_fapp2 1),
+        (rtac monofun_Rep_CFun2 1),
         (atac 1),
         (atac 1),
         (etac (contlub_cfun RS sym) 1),
@@ -113,10 +113,10 @@ qed_goal "cont_cfun" thy
 
 
 (* ------------------------------------------------------------------------ *)
-(* cont2cont lemma for fapp                                               *)
+(* cont2cont lemma for Rep_CFun                                               *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "cont2cont_fapp" thy 
+qed_goal "cont2cont_Rep_CFun" thy 
         "[|cont(%x. ft x);cont(%x. tt x)|] ==> cont(%x. (ft x)`(tt x))"
  (fn prems =>
         [
@@ -124,9 +124,9 @@ qed_goal "cont2cont_fapp" thy
         (rtac cont2cont_app2 1),
         (rtac cont2cont_app2 1),
         (rtac cont_const 1),
-        (rtac cont_fapp1 1),
+        (rtac cont_Rep_CFun1 1),
         (atac 1),
-        (rtac cont_fapp2 1),
+        (rtac cont_Rep_CFun2 1),
         (atac 1)
         ]);
 
@@ -169,7 +169,7 @@ qed_goal "cont2cont_LAM" thy
         (rtac (p1 RS cont2mono_LAM RS ch2ch_monofun) 1),
         (rtac (p2 RS cont2mono) 1),
         (atac 1),
-        (res_inst_tac [("f","fabs")] arg_cong 1),
+        (res_inst_tac [("f","Abs_CFun")] arg_cong 1),
         (rtac ext 1),
         (stac (p1 RS beta_cfun RS ext) 1),
         (etac (p2 RS cont2contlub RS contlubE RS spec RS mp) 1)
@@ -179,8 +179,8 @@ qed_goal "cont2cont_LAM" thy
 (* cont2cont tactic                                                       *)
 (* ------------------------------------------------------------------------ *)
 
-val cont_lemmas1 = [cont_const, cont_id, cont_fapp2,
-                    cont2cont_fapp,cont2cont_LAM];
+val cont_lemmas1 = [cont_const, cont_id, cont_Rep_CFun2,
+                    cont2cont_Rep_CFun,cont2cont_LAM];
 
 Addsimps cont_lemmas1;
 
@@ -193,7 +193,7 @@ Addsimps cont_lemmas1;
 (* function application _[_]  is strict in its first arguments              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "strict_fapp1" thy "(UU::'a::cpo->'b)`x = (UU::'b)"
+qed_goal "strict_Rep_CFun1" thy "(UU::'a::cpo->'b)`x = (UU::'b)"
  (fn prems =>
         [
         (stac inst_cfun_pcpo 1),
@@ -322,7 +322,7 @@ qed_goal "contlub_Istrictify2" thy "contlub(Istrictify(f::'a -> 'b))"
         (rtac (Istrictify2 RS sym) 1),
         (fast_tac HOL_cs 1),
         (rtac ch2ch_monofun 1),
-        (rtac monofun_fapp2 1),
+        (rtac monofun_Rep_CFun2 1),
         (atac 1),
         (rtac ch2ch_monofun 1),
         (rtac monofun_Istrictify2 1),
@@ -362,7 +362,7 @@ qed_goalw "strictify2" thy [strictify_def]
 (* Instantiate the simplifier                                               *)
 (* ------------------------------------------------------------------------ *)
 
-Addsimps [minimal,refl_less,beta_cfun,strict_fapp1,strictify1, strictify2];
+Addsimps [minimal,refl_less,beta_cfun,strict_Rep_CFun1,strictify1, strictify2];
 
 
 (* ------------------------------------------------------------------------ *)
@@ -376,7 +376,7 @@ Addsimps [minimal,refl_less,beta_cfun,strict_fapp1,strictify1, strictify2];
 (* some lemmata for functions with flat/chfin domain/range types	    *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "chfin_fappR" thy 
+qed_goal "chfin_Rep_CFunR" thy 
     "chain (Y::nat => 'a::cpo->'b::chfin)==> !s. ? n. lub(range(Y))`s = Y n`s" 
 (fn prems => 
 	[
@@ -384,7 +384,7 @@ qed_goal "chfin_fappR" thy
 	rtac allI 1,
 	stac contlub_cfun_fun 1,
 	 atac 1,
-	fast_tac (HOL_cs addSIs [thelubI,chfin,lub_finch2,chfin2finch,ch2ch_fappL])1
+	fast_tac (HOL_cs addSIs [thelubI,chfin,lub_finch2,chfin2finch,ch2ch_Rep_CFunL])1
 	]);
 
 (* ------------------------------------------------------------------------ *)
@@ -451,7 +451,7 @@ qed_goal "chfin2chfin" thy "!!f g.[|! Y::nat=>'a. chain Y --> (? n. max_in_chain
         (rtac exE 1),
         (res_inst_tac [("P","chain(%i. g`(Y i))")] mp 1),
         (etac spec 1),
-        (etac ch2ch_fappR 1),
+        (etac ch2ch_Rep_CFunR 1),
         (rtac exI 1),
         (strip_tac 1),
         (res_inst_tac [("s","f`(g`(Y x))"),("t","Y(x)")] subst 1),

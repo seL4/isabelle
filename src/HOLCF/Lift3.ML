@@ -143,13 +143,13 @@ Goal "[|cont g; cont f|] ==> cont(%x. ((f x)`(g x)) s)";
 by (rtac cont2cont_CF1L 1);
 by (REPEAT (resolve_tac cont_lemmas1 1));
 by Auto_tac;
-qed"cont_fapp_app";
+qed"cont_Rep_CFun_app";
 
 Goal "[|cont g; cont f|] ==> cont(%x. ((f x)`(g x)) s t)";
 by (rtac cont2cont_CF1L 1);
-by (etac cont_fapp_app 1);
+by (etac cont_Rep_CFun_app 1);
 by (assume_tac 1);
-qed"cont_fapp_app_app";
+qed"cont_Rep_CFun_app_app";
 
 
 (* continuity of if then else *)
