@@ -16,6 +16,7 @@ sig
   val lookup: 'a table * string -> 'a option
   val update: (string * 'a) * 'a table -> 'a table
   val update_new: (string * 'a) * 'a table -> 'a table
+  val mapst: ('a -> 'a) -> 'a table -> 'a table
   val alist_of: 'a table -> (string * 'a) list
   val balance: 'a table -> 'a table
   val st_of_alist: (string * 'a) list * 'a table -> 'a table
@@ -54,6 +55,7 @@ fun lookup (symtab: 'a table, key: string) : 'a option =
             else  Some entry
   in look symtab end;
 
+
 (*update, allows overwriting of an entry*)
 fun update ((key: string, entry: 'a), symtab : 'a table)
   : 'a table =
@@ -74,6 +76,15 @@ fun update_new ((key: string, entry: 'a), symtab : 'a table)
             else if key' < key then Branch (key', entry', left, upd right)
             else  raise DUPLICATE(key)
   in  upd symtab  end;
+
+
+(*Similar to map this applies a function f to every entry in symtab*)
+fun mapst f symtab =
+  let fun apply Tip = Tip
+        | apply (Branch (key, entry, left, right)) =
+            Branch (key, f entry, apply left, apply right);
+  in apply symtab end;
+
 
 (*conversion of symbol table to sorted association list*)
 fun alist_of (symtab : 'a table) : (string * 'a) list =
