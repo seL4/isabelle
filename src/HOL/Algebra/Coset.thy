@@ -7,26 +7,26 @@ header{*Theory of Cosets*}
 
 theory Coset = Group + Exponent:
 
-declare (in group) l_inv [simp]  r_inv [simp] 
+declare (in group) l_inv [simp] and r_inv [simp]
 
 constdefs (structure G)
-  r_coset    :: "[_,'a set, 'a] => 'a set"    
-   "r_coset G H a == (% x. x \<otimes> a) ` H"
+  r_coset    :: "[_,'a set, 'a] => 'a set"
+  "r_coset G H a == (% x. x \<otimes> a) ` H"
 
   l_coset    :: "[_, 'a, 'a set] => 'a set"
-   "l_coset G a H == (% x. a \<otimes> x) ` H"
+  "l_coset G a H == (% x. a \<otimes> x) ` H"
 
   rcosets  :: "[_, 'a set] => ('a set)set"
-   "rcosets G H == r_coset G H ` (carrier G)"
+  "rcosets G H == r_coset G H ` (carrier G)"
 
   set_mult  :: "[_, 'a set ,'a set] => 'a set"
-   "set_mult G H K == (%(x,y). x \<otimes> y) ` (H \<times> K)"
+  "set_mult G H K == (%(x,y). x \<otimes> y) ` (H \<times> K)"
 
   set_inv   :: "[_,'a set] => 'a set"
-   "set_inv G H == m_inv G ` H"
+  "set_inv G H == m_inv G ` H"
 
   normal     :: "['a set, _] => bool"       (infixl "<|" 60)
-   "normal H G == subgroup H G & 
+  "normal H G == subgroup H G &
                   (\<forall>x \<in> carrier G. r_coset G H x = l_coset G x H)"
 
 syntax (xsymbols)
@@ -56,13 +56,13 @@ apply (rule card_inj_on_le)
 apply (auto simp add: Pi_def)
 done
 
-lemma card_bij: 
-     "[|f \<in> A\<rightarrow>B; inj_on f A; 
+lemma card_bij:
+     "[|f \<in> A\<rightarrow>B; inj_on f A;
         g \<in> B\<rightarrow>A; inj_on g B; finite A; finite B|] ==> card(A) = card(B)"
-by (blast intro: card_inj order_antisym) 
+by (blast intro: card_inj order_antisym)
 
 
-subsection{*Lemmas Using Locale Constants*}
+subsection {*Lemmas Using *}
 
 lemma (in coset) r_coset_eq: "H #> a = {b . \<exists>h\<in>H. h \<otimes> a = b}"
 by (auto simp add: rcos_def r_coset_def)
@@ -77,7 +77,7 @@ lemma (in coset) set_mult_eq: "H <#> K = {c . \<exists>h\<in>H. \<exists>k\<in>K
 by (simp add: setmult_def set_mult_def image_def)
 
 lemma (in coset) coset_mult_assoc:
-     "[| M <= carrier G; g \<in> carrier G; h \<in> carrier G |]  
+     "[| M <= carrier G; g \<in> carrier G; h \<in> carrier G |]
       ==> (M #> g) #> h = M #> (g \<otimes> h)"
 by (force simp add: r_coset_eq m_assoc)
 
@@ -85,14 +85,14 @@ lemma (in coset) coset_mult_one [simp]: "M <= carrier G ==> M #> \<one> = M"
 by (force simp add: r_coset_eq)
 
 lemma (in coset) coset_mult_inv1:
-     "[| M #> (x \<otimes> (inv y)) = M;  x \<in> carrier G ; y \<in> carrier G; 
+     "[| M #> (x \<otimes> (inv y)) = M;  x \<in> carrier G ; y \<in> carrier G;
          M <= carrier G |] ==> M #> x = M #> y"
 apply (erule subst [of concl: "%z. M #> x = z #> y"])
 apply (simp add: coset_mult_assoc m_assoc)
 done
 
 lemma (in coset) coset_mult_inv2:
-     "[| M #> x = M #> y;  x \<in> carrier G;  y \<in> carrier G;  M <= carrier G |]  
+     "[| M #> x = M #> y;  x \<in> carrier G;  y \<in> carrier G;  M <= carrier G |]
       ==> M #> (x \<otimes> (inv y)) = M "
 apply (simp add: coset_mult_assoc [symmetric])
 apply (simp add: coset_mult_assoc)
@@ -110,7 +110,7 @@ must prove this lemma separately.*}
 lemma (in coset) solve_equation:
     "\<lbrakk>subgroup H G; x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> \<exists>h\<in>H. h \<otimes> x = y"
 apply (rule bexI [of _ "y \<otimes> (inv x)"])
-apply (auto simp add: subgroup.m_closed subgroup.m_inv_closed m_assoc 
+apply (auto simp add: subgroup.m_closed subgroup.m_inv_closed m_assoc
                       subgroup.subset [THEN subsetD])
 done
 
@@ -133,30 +133,30 @@ by (auto simp add: setrcos_eq)
 
 text{*Really needed?*}
 lemma (in coset) transpose_inv:
-     "[| x \<otimes> y = z;  x \<in> carrier G;  y \<in> carrier G;  z \<in> carrier G |]  
+     "[| x \<otimes> y = z;  x \<in> carrier G;  y \<in> carrier G;  z \<in> carrier G |]
       ==> (inv x) \<otimes> z = y"
 by (force simp add: m_assoc [symmetric])
 
 lemma (in coset) repr_independence:
      "[| y \<in> H #> x;  x \<in> carrier G; subgroup H G |] ==> H #> x = H #> y"
-by (auto simp add: r_coset_eq m_assoc [symmetric] 
+by (auto simp add: r_coset_eq m_assoc [symmetric]
                    subgroup.subset [THEN subsetD]
                    subgroup.m_closed solve_equation)
 
 lemma (in coset) rcos_self: "[| x \<in> carrier G; subgroup H G |] ==> x \<in> H #> x"
 apply (simp add: r_coset_eq)
-apply (blast intro: l_one subgroup.subset [THEN subsetD] 
+apply (blast intro: l_one subgroup.subset [THEN subsetD]
                     subgroup.one_closed)
 done
 
 
-subsection{*normal subgroups*}
+subsection {* Normal subgroups *}
 
 (*????????????????
 text "Allows use of theorems proved in the locale coset"
 lemma subgroup_imp_coset: "subgroup H G ==> coset G"
 apply (drule subgroup_imp_group)
-apply (simp add: group_def coset_def)  
+apply (simp add: group_def coset_def)
 done
 *)
 
@@ -180,7 +180,7 @@ by (simp add: lcos_def rcos_def normal_def)
 lemma (in coset) normal_inv_op_closed1:
      "\<lbrakk>H \<lhd> G; x \<in> carrier G; h \<in> H\<rbrakk> \<Longrightarrow> (inv x) \<otimes> h \<otimes> x \<in> H"
 apply (auto simp add: l_coset_eq r_coset_eq normal_iff)
-apply (drule bspec, assumption) 
+apply (drule bspec, assumption)
 apply (drule equalityD1 [THEN subsetD], blast, clarify)
 apply (simp add: m_assoc subgroup.subset [THEN subsetD])
 apply (erule subst)
@@ -189,12 +189,12 @@ done
 
 lemma (in coset) normal_inv_op_closed2:
      "\<lbrakk>H \<lhd> G; x \<in> carrier G; h \<in> H\<rbrakk> \<Longrightarrow> x \<otimes> h \<otimes> (inv x) \<in> H"
-apply (drule normal_inv_op_closed1 [of H "(inv x)"]) 
+apply (drule normal_inv_op_closed1 [of H "(inv x)"])
 apply auto
 done
 
 lemma (in coset) lcos_m_assoc:
-     "[| M <= carrier G; g \<in> carrier G; h \<in> carrier G |]  
+     "[| M <= carrier G; g \<in> carrier G; h \<in> carrier G |]
       ==> g <# (h <# M) = (g \<otimes> h) <# M"
 by (force simp add: l_coset_eq m_assoc)
 
@@ -208,8 +208,8 @@ by (auto simp add: l_coset_eq subsetD)
 lemma (in coset) l_coset_swap:
      "[| y \<in> x <# H;  x \<in> carrier G;  subgroup H G |] ==> x \<in> y <# H"
 proof (simp add: l_coset_eq)
-  assume "\<exists>h\<in>H. x \<otimes> h = y" 
-    and x: "x \<in> carrier G" 
+  assume "\<exists>h\<in>H. x \<otimes> h = y"
+    and x: "x \<in> carrier G"
     and sb: "subgroup H G"
   then obtain h' where h': "h' \<in> H & x \<otimes> h' = y" by blast
   show "\<exists>h\<in>H. y \<otimes> h = x"
@@ -223,28 +223,28 @@ qed
 
 lemma (in coset) l_coset_carrier:
      "[| y \<in> x <# H;  x \<in> carrier G;  subgroup H G |] ==> y \<in> carrier G"
-by (auto simp add: l_coset_eq m_assoc 
+by (auto simp add: l_coset_eq m_assoc
                    subgroup.subset [THEN subsetD] subgroup.m_closed)
 
 lemma (in coset) l_repr_imp_subset:
-  assumes y: "y \<in> x <# H" and x: "x \<in> carrier G" and sb: "subgroup H G" 
+  assumes y: "y \<in> x <# H" and x: "x \<in> carrier G" and sb: "subgroup H G"
   shows "y <# H \<subseteq> x <# H"
 proof -
   from y
   obtain h' where "h' \<in> H" "x \<otimes> h' = y" by (auto simp add: l_coset_eq)
   thus ?thesis using x sb
-    by (auto simp add: l_coset_eq m_assoc 
+    by (auto simp add: l_coset_eq m_assoc
                        subgroup.subset [THEN subsetD] subgroup.m_closed)
 qed
 
 lemma (in coset) l_repr_independence:
-  assumes y: "y \<in> x <# H" and x: "x \<in> carrier G" and sb: "subgroup H G" 
+  assumes y: "y \<in> x <# H" and x: "x \<in> carrier G" and sb: "subgroup H G"
   shows "x <# H = y <# H"
-proof 
+proof
   show "x <# H \<subseteq> y <# H"
-    by (rule l_repr_imp_subset, 
+    by (rule l_repr_imp_subset,
         (blast intro: l_coset_swap l_coset_carrier y x sb)+)
-  show "y <# H \<subseteq> x <# H" by (rule l_repr_imp_subset [OF y x sb]) 
+  show "y <# H \<subseteq> x <# H" by (rule l_repr_imp_subset [OF y x sb])
 qed
 
 lemma (in coset) setmult_subset_G:
@@ -255,29 +255,30 @@ lemma (in coset) subgroup_mult_id: "subgroup H G ==> H <#> H = H"
 apply (auto simp add: subgroup.m_closed set_mult_eq Sigma_def image_def)
 apply (rule_tac x = x in bexI)
 apply (rule bexI [of _ "\<one>"])
-apply (auto simp add: subgroup.m_closed subgroup.one_closed 
+apply (auto simp add: subgroup.m_closed subgroup.one_closed
                       r_one subgroup.subset [THEN subsetD])
 done
 
 
-(* set of inverses of an r_coset *)
+text {* Set of inverses of an @{text r_coset}. *}
+
 lemma (in coset) rcos_inv:
   assumes normalHG: "H <| G"
       and xinG:     "x \<in> carrier G"
   shows "set_inv G (H #> x) = H #> (inv x)"
 proof -
-  have H_subset: "H <= carrier G" 
+  have H_subset: "H <= carrier G"
     by (rule subgroup.subset [OF normal_imp_subgroup, OF normalHG])
   show ?thesis
   proof (auto simp add: r_coset_eq image_def set_inv_def)
     fix h
     assume "h \<in> H"
       hence "((inv x) \<otimes> (inv h) \<otimes> x) \<otimes> inv x = inv (h \<otimes> x)"
-	by (simp add: xinG m_assoc inv_mult_group H_subset [THEN subsetD])
-      thus "\<exists>j\<in>H. j \<otimes> inv x = inv (h \<otimes> x)" 
+        by (simp add: xinG m_assoc inv_mult_group H_subset [THEN subsetD])
+      thus "\<exists>j\<in>H. j \<otimes> inv x = inv (h \<otimes> x)"
        using prems
-	by (blast intro: normal_inv_op_closed1 normal_imp_subgroup 
-			 subgroup.m_inv_closed)
+        by (blast intro: normal_inv_op_closed1 normal_imp_subgroup
+                         subgroup.m_inv_closed)
   next
     fix h
     assume "h \<in> H"
@@ -285,9 +286,9 @@ proof -
         by (simp add: xinG m_assoc H_subset [THEN subsetD])
       hence "(\<exists>j\<in>H. j \<otimes> x = inv  (h \<otimes> (inv x))) \<and> h \<otimes> inv x = inv (inv (h \<otimes> (inv x)))"
        using prems
-	by (simp add: m_assoc inv_mult_group H_subset [THEN subsetD],
-            blast intro: eq normal_inv_op_closed2 normal_imp_subgroup 
-			 subgroup.m_inv_closed)
+        by (simp add: m_assoc inv_mult_group H_subset [THEN subsetD],
+            blast intro: eq normal_inv_op_closed2 normal_imp_subgroup
+                         subgroup.m_inv_closed)
       thus "\<exists>y. (\<exists>h\<in>H. h \<otimes> x = y) \<and> h \<otimes> inv x = inv y" ..
   qed
 qed
@@ -314,7 +315,7 @@ lemma (in coset) rcos_inv2:
 apply (simp add: setrcos_eq, clarify)
 apply (subgoal_tac "x : carrier G")
  prefer 2
- apply (blast dest: r_coset_subset_G subgroup.subset normal_imp_subgroup) 
+ apply (blast dest: r_coset_subset_G subgroup.subset normal_imp_subgroup)
 apply (drule repr_independence)
   apply assumption
  apply (erule normal_imp_subgroup)
@@ -322,56 +323,57 @@ apply (simp add: rcos_inv)
 done
 
 
-(* some rules for <#> with #> or <# *)
+text {* Some rules for @{text "<#>"} with @{text "#>"} or @{text "<#"}. *}
+
 lemma (in coset) setmult_rcos_assoc:
-     "[| H <= carrier G; K <= carrier G; x \<in> carrier G |] 
+     "[| H <= carrier G; K <= carrier G; x \<in> carrier G |]
       ==> H <#> (K #> x) = (H <#> K) #> x"
 apply (auto simp add: rcos_def r_coset_def setmult_def set_mult_def)
 apply (force simp add: m_assoc)+
 done
 
 lemma (in coset) rcos_assoc_lcos:
-     "[| H <= carrier G; K <= carrier G; x \<in> carrier G |] 
+     "[| H <= carrier G; K <= carrier G; x \<in> carrier G |]
       ==> (H #> x) <#> K = H <#> (x <# K)"
-apply (auto simp add: rcos_def r_coset_def lcos_def l_coset_def 
+apply (auto simp add: rcos_def r_coset_def lcos_def l_coset_def
                       setmult_def set_mult_def Sigma_def image_def)
 apply (force intro!: exI bexI simp add: m_assoc)+
 done
 
 lemma (in coset) rcos_mult_step1:
-     "[| H <| G; x \<in> carrier G; y \<in> carrier G |] 
+     "[| H <| G; x \<in> carrier G; y \<in> carrier G |]
       ==> (H #> x) <#> (H #> y) = (H <#> (x <# H)) #> y"
 by (simp add: setmult_rcos_assoc normal_imp_subgroup [THEN subgroup.subset]
               r_coset_subset_G l_coset_subset_G rcos_assoc_lcos)
 
 lemma (in coset) rcos_mult_step2:
-     "[| H <| G; x \<in> carrier G; y \<in> carrier G |] 
+     "[| H <| G; x \<in> carrier G; y \<in> carrier G |]
       ==> (H <#> (x <# H)) #> y = (H <#> (H #> x)) #> y"
 by (simp add: normal_imp_rcos_eq_lcos)
 
 lemma (in coset) rcos_mult_step3:
-     "[| H <| G; x \<in> carrier G; y \<in> carrier G |] 
+     "[| H <| G; x \<in> carrier G; y \<in> carrier G |]
       ==> (H <#> (H #> x)) #> y = H #> (x \<otimes> y)"
 by (simp add: setmult_rcos_assoc r_coset_subset_G coset_mult_assoc
               setmult_subset_G  subgroup_mult_id
               subgroup.subset normal_imp_subgroup)
 
 lemma (in coset) rcos_sum:
-     "[| H <| G; x \<in> carrier G; y \<in> carrier G |] 
+     "[| H <| G; x \<in> carrier G; y \<in> carrier G |]
       ==> (H #> x) <#> (H #> y) = H #> (x \<otimes> y)"
 by (simp add: rcos_mult_step1 rcos_mult_step2 rcos_mult_step3)
 
-(*generalizes subgroup_mult_id*)
 lemma (in coset) setrcos_mult_eq: "[|H <| G; M \<in> rcosets G H|] ==> H <#> M = M"
-by (auto simp add: setrcos_eq normal_imp_subgroup subgroup.subset
-                   setmult_rcos_assoc subgroup_mult_id)
+  -- {* generalizes @{text subgroup_mult_id} *}
+  by (auto simp add: setrcos_eq normal_imp_subgroup subgroup.subset
+    setmult_rcos_assoc subgroup_mult_id)
 
 
-subsection{*Lemmas Leading to Lagrange's Theorem*}
+subsection {*Lemmas Leading to Lagrange's Theorem *}
 
-lemma (in coset) setrcos_part_G: "subgroup H G ==> \<Union> rcosets G H = carrier G"
+lemma (in coset) setrcos_part_G: "subgroup H G ==> \<Union>rcosets G H = carrier G"
 apply (rule equalityI)
-apply (force simp add: subgroup.subset [THEN subsetD] 
+apply (force simp add: subgroup.subset [THEN subsetD]
                        setrcos_eq r_coset_eq)
 apply (auto simp add: setrcos_eq subgroup.subset rcos_self)
 done
@@ -398,13 +400,13 @@ lemma (in coset) inj_on_g:
 by (force simp add: inj_on_def subsetD)
 
 lemma (in coset) card_cosets_equal:
-     "[| c \<in> rcosets G H;  H <= carrier G; finite(carrier G) |] 
+     "[| c \<in> rcosets G H;  H <= carrier G; finite(carrier G) |]
       ==> card c = card H"
 apply (auto simp add: setrcos_eq)
 apply (rule card_bij_eq)
-     apply (rule inj_on_f, assumption+) 
+     apply (rule inj_on_f, assumption+)
     apply (force simp add: m_assoc subsetD r_coset_eq)
-   apply (rule inj_on_g, assumption+) 
+   apply (rule inj_on_g, assumption+)
   apply (force simp add: m_assoc subsetD r_coset_eq)
  txt{*The sets @{term "H #> a"} and @{term "H"} are finite.*}
  apply (simp add: r_coset_subset_G [THEN finite_subset])
@@ -414,8 +416,8 @@ done
 subsection{*Two distinct right cosets are disjoint*}
 
 lemma (in coset) rcos_equation:
-     "[|subgroup H G;  a \<in> carrier G;  b \<in> carrier G;  ha \<otimes> a = h \<otimes> b;   
-        h \<in> H;  ha \<in> H;  hb \<in> H|]  
+     "[|subgroup H G;  a \<in> carrier G;  b \<in> carrier G;  ha \<otimes> a = h \<otimes> b;
+        h \<in> H;  ha \<in> H;  hb \<in> H|]
       ==> \<exists>h\<in>H. h \<otimes> b = hb \<otimes> a"
 apply (rule bexI [of _"hb \<otimes> ((inv ha) \<otimes> h)"])
 apply (simp  add: m_assoc transpose_inv subgroup.subset [THEN subsetD])
@@ -439,16 +441,16 @@ subsection {*Factorization of a Group*}
 constdefs
   FactGroup :: "[('a,'b) monoid_scheme, 'a set] => ('a set) monoid"
      (infixl "Mod" 60)
-   "FactGroup G H ==
-      (| carrier = rcosets G H,
-	 mult = (%X: rcosets G H. %Y: rcosets G H. set_mult G X Y),
-	 one = H (*,
-	 m_inv = (%X: rcosets G H. set_inv G X) *) |)"
+  "FactGroup G H ==
+    (| carrier = rcosets G H,
+       mult = (%X: rcosets G H. %Y: rcosets G H. set_mult G X Y),
+       one = H (*,
+       m_inv = (%X: rcosets G H. set_inv G X) *) |)"
 
 lemma (in coset) setmult_closed:
-     "[| H <| G; K1 \<in> rcosets G H; K2 \<in> rcosets G H |] 
+     "[| H <| G; K1 \<in> rcosets G H; K2 \<in> rcosets G H |]
       ==> K1 <#> K2 \<in> rcosets G H"
-by (auto simp add: normal_imp_subgroup [THEN subgroup.subset] 
+by (auto simp add: normal_imp_subgroup [THEN subgroup.subset]
                    rcos_sum setrcos_eq)
 
 lemma (in group) setinv_closed:
@@ -467,9 +469,9 @@ by (auto simp add:  normal_imp_subgroup
 *)
 
 lemma (in coset) setrcos_assoc:
-     "[|H <| G; M1 \<in> rcosets G H; M2 \<in> rcosets G H; M3 \<in> rcosets G H|]   
+     "[|H <| G; M1 \<in> rcosets G H; M2 \<in> rcosets G H; M3 \<in> rcosets G H|]
       ==> M1 <#> M2 <#> M3 = M1 <#> (M2 <#> M3)"
-by (auto simp add: setrcos_eq rcos_sum normal_imp_subgroup 
+by (auto simp add: setrcos_eq rcos_sum normal_imp_subgroup
                    subgroup.subset m_assoc)
 
 lemma (in group) subgroup_in_rcosets:
@@ -486,10 +488,10 @@ qed
 (*
 lemma subgroup_in_rcosets:
   "subgroup H G ==> H \<in> rcosets G H"
-apply (frule subgroup_imp_coset) 
-apply (frule subgroup_imp_group) 
+apply (frule subgroup_imp_coset)
+apply (frule subgroup_imp_group)
 apply (simp add: coset.setrcos_eq)
-apply (blast del: equalityI 
+apply (blast del: equalityI
              intro!: group.subgroup.one_closed group.one_closed
                      coset.coset_join2 [symmetric])
 done
@@ -497,7 +499,7 @@ done
 
 lemma (in coset) setrcos_inv_mult_group_eq:
      "[|H <| G; M \<in> rcosets G H|] ==> set_inv G M <#> M = H"
-by (auto simp add: setrcos_eq rcos_inv rcos_sum normal_imp_subgroup 
+by (auto simp add: setrcos_eq rcos_inv rcos_sum normal_imp_subgroup
                    subgroup.subset)
 (*
 lemma (in group) factorgroup_is_magma:
@@ -511,8 +513,8 @@ lemma (in group) factorgroup_semigroup_axioms:
 *)
 theorem (in group) factorgroup_is_group:
   "H <| G ==> group (G Mod H)"
-apply (insert is_coset) 
-apply (simp add: FactGroup_def) 
+apply (insert is_coset)
+apply (simp add: FactGroup_def)
 apply (rule groupI)
     apply (simp add: coset.setmult_closed)
    apply (simp add: normal_imp_subgroup subgroup_in_rcosets)

@@ -189,13 +189,13 @@ constdefs
 
 syntax
   "_finsum" :: "index => idt => 'a set => 'b => 'b"
-      ("\<Oplus>__:_. _" [1000, 0, 51, 10] 10)
+      ("(3\<Oplus>__:_. _)" [1000, 0, 51, 10] 10)
 syntax (xsymbols)
   "_finsum" :: "index => idt => 'a set => 'b => 'b"
-      ("\<Oplus>__\<in>_. _" [1000, 0, 51, 10] 10)
+      ("(3\<Oplus>__\<in>_. _)" [1000, 0, 51, 10] 10)
 syntax (HTML output)
   "_finsum" :: "index => idt => 'a set => 'b => 'b"
-      ("\<Oplus>__\<in>_. _" [1000, 0, 51, 10] 10)
+      ("(3\<Oplus>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
   "\<Oplus>\<index>i:A. b" == "finsum \<struct>\<index> (%i. b) A"  -- {* Beware of argument permutation! *}
 

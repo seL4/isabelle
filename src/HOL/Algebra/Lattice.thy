@@ -186,6 +186,7 @@ lemma greatest_Lower_above:
   shows "[| greatest L i (Lower L A); x \<in> A; A \<subseteq> carrier L |] ==> i \<sqsubseteq> x"
   by (unfold greatest_def) blast
 
+
 subsubsection {* Supremum *}
 
 lemma (in lattice) joinI:
@@ -212,7 +213,8 @@ lemma (in partial_order) sup_of_singleton [simp]:
   shows "x \<in> carrier L ==> \<Squnion> {x} = x"
   by (unfold sup_def) (blast intro: least_unique least_UpperI sup_of_singletonI)
 
-text {* Condition on A: supremum exists. *}
+
+text {* Condition on @{text A}: supremum exists. *}
 
 lemma (in lattice) sup_insertI:
   "[| !!s. least L s (Upper L (insert x A)) ==> P s;

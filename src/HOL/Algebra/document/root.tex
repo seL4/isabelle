@@ -2,33 +2,10 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage{graphicx}
 \usepackage{isabelle,isabellesym}
-
-%\usepackage{substr}
-
-%\renewcommand{\isamarkupheader}[1]{%
-%  \IfSubStringInString{Chapter: }{#1}{%
-%    \chapter{\BehindSubString{Chapter: }{#1}}}{%
-%  \section{#1}}}
-
-% further packages required for unusual symbols (see also isabellesym.sty)
-
-%\usepackage{latexsym}                 % for \<leadsto>, \<box>, \<diamond>,
-                                       %   \<sqsupset>, \<mho>, \<Join>
-                                       %   and \<lhd> and others!
-\usepackage{amssymb}                  % for \<lesssim>, \<greatersim>,
-                                       %   \<lessapprox>, \<greaterapprox>,
-                                       %   \<triangleq>, \<yen>, \<lozenge>
-%\usepackage[english]{babel}           % for \<guillemotleft> \<guillemotright>
-\usepackage[latin1]{inputenc}         % for \<onesuperior>, \<onequarter>,
-                                       %   \<twosuperior>, \<onehalf>,
-                                       %   \<threesuperior>, \<threequarters>
-                                       %   \<degree>
-\usepackage[only,bigsqcap]{stmaryrd}  % for \<Sqinter>
-%\usepackage{wasysym}
-%\usepackage{eufrak}                   % for \<AA> ... \<ZZ>, \<aa> ... \<zz>
-%\usepackage{textcomp}                  % for \<zero> ... \<nine>, \<cent>
-                                       %   \<currency>
-%\usepackage{marvosym}                 % for \<euro>
+\usepackage{amssymb}
+\usepackage[latin1]{inputenc}
+\usepackage[only,bigsqcap]{stmaryrd}
+%\usepackage{masmath}
 
 % this should be the last package used
 \usepackage{pdfsetup}
@@ -36,6 +13,13 @@
 % proper setup for best-style documents
 \urlstyle{rm}
 \isabellestyle{it}
+
+%\usepackage{substr}
+
+%\renewcommand{\isamarkupheader}[1]{%
+%  \IfSubStringInString{Chapter: }{#1}{%
+%    \chapter{\BehindSubString{Chapter: }{#1}}}{%
+%  \section{#1}}}
 
 
 \begin{document}
@@ -53,10 +37,6 @@
 
 \parindent 0pt\parskip 0.5ex
 
-% include generated text of all theories
 \input{session}
-
-%\bibliographystyle{abbrv}
-%\bibliography{root}
 
 \end{document}

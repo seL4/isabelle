@@ -290,13 +290,13 @@ constdefs (structure G)
 
 syntax
   "_finprod" :: "index => idt => 'a set => 'b => 'b"
-      ("\<Otimes>__:_. _" [1000, 0, 51, 10] 10)
+      ("(3\<Otimes>__:_. _)" [1000, 0, 51, 10] 10)
 syntax (xsymbols)
   "_finprod" :: "index => idt => 'a set => 'b => 'b"
-      ("\<Otimes>__\<in>_. _" [1000, 0, 51, 10] 10)
+      ("(3\<Otimes>__\<in>_. _)" [1000, 0, 51, 10] 10)
 syntax (HTML output)
   "_finprod" :: "index => idt => 'a set => 'b => 'b"
-      ("\<Otimes>__\<in>_. _" [1000, 0, 51, 10] 10)
+      ("(3\<Otimes>__\<in>_. _)" [1000, 0, 51, 10] 10)
 translations
   "\<Otimes>\<index>i:A. b" == "finprod \<struct>\<index> (%i. b) A"  -- {* Beware of argument permutation! *}
 

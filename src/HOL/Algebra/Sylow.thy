@@ -4,7 +4,7 @@
 
 See Florian Kamm\"uller and L. C. Paulson,
     A Formal Proof of Sylow's theorem:
-	An Experiment in Abstract Algebra with Isabelle HOL
+        An Experiment in Abstract Algebra with Isabelle HOL
     J. Automated Reasoning 23 (1999), 235-264
 *)
 
@@ -15,11 +15,11 @@ theory Sylow = Coset:
 subsection {*Order of a Group and Lagrange's Theorem*}
 
 constdefs
-  order     :: "('a,'b) semigroup_scheme => nat"
+  order :: "('a, 'b) semigroup_scheme => nat"
   "order S == card (carrier S)"
 
 theorem (in coset) lagrange:
-     "[| finite(carrier G); subgroup H G |] 
+     "[| finite(carrier G); subgroup H G |]
       ==> card(rcosets G H) * card(H) = order(G)"
 apply (simp (no_asm_simp) add: order_def setrcos_part_G [symmetric])
 apply (subst mult_commute)
@@ -40,11 +40,11 @@ locale sylow = coset +
       and finite_G [iff]:  "finite (carrier G)"
   defines "calM == {s. s <= carrier(G) & card(s) = p^a}"
       and "RelM == {(N1,N2). N1 \<in> calM & N2 \<in> calM &
-		  	     (\<exists>g \<in> carrier(G). N1 = (N2 #> g) )}"
+                             (\<exists>g \<in> carrier(G). N1 = (N2 #> g) )}"
 
 lemma (in sylow) RelM_refl: "refl calM RelM"
-apply (auto simp add: refl_def RelM_def calM_def) 
-apply (blast intro!: coset_mult_one [symmetric]) 
+apply (auto simp add: refl_def RelM_def calM_def)
+apply (blast intro!: coset_mult_one [symmetric])
 done
 
 lemma (in sylow) RelM_sym: "sym RelM"
@@ -58,7 +58,7 @@ proof (unfold sym_def RelM_def, clarify)
 qed
 
 lemma (in sylow) RelM_trans: "trans RelM"
-by (auto simp add: trans_def RelM_def calM_def coset_mult_assoc) 
+by (auto simp add: trans_def RelM_def calM_def coset_mult_assoc)
 
 lemma (in sylow) RelM_equiv: "equiv calM RelM"
 apply (unfold equiv_def)
@@ -91,9 +91,9 @@ done
 lemma card_nonempty: "0 < card(S) ==> S \<noteq> {}"
 by force
 
-lemma (in sylow_central) exists_x_in_M1: "\<exists>x. x\<in>M1" 
-apply (subgoal_tac "0 < card M1") 
- apply (blast dest: card_nonempty) 
+lemma (in sylow_central) exists_x_in_M1: "\<exists>x. x\<in>M1"
+apply (subgoal_tac "0 < card M1")
+ apply (blast dest: card_nonempty)
 apply (cut_tac prime_p [THEN prime_imp_one_less])
 apply (simp (no_asm_simp) add: card_M1)
 done
@@ -112,18 +112,18 @@ lemma (in sylow_central) M1_inj_H: "\<exists>f \<in> H\<rightarrow>M1. inj_on f 
     show ?thesis
     proof
       show "inj_on (\<lambda>z\<in>H. m1 \<otimes> z) H"
-	by (simp add: inj_on_def l_cancel [of m1 x y, THEN iffD1] H_def m1G)
+        by (simp add: inj_on_def l_cancel [of m1 x y, THEN iffD1] H_def m1G)
       show "restrict (op \<otimes> m1) H \<in> H \<rightarrow> M1"
       proof (rule restrictI)
-	fix z assume zH: "z \<in> H"
-	show "m1 \<otimes> z \<in> M1"
-	proof -
-	  from zH
-	  have zG: "z \<in> carrier G" and M1zeq: "M1 #> z = M1" 
-	    by (auto simp add: H_def)
-	  show ?thesis
-	    by (rule subst [OF M1zeq], simp add: m1M zG rcosI)
-	qed
+        fix z assume zH: "z \<in> H"
+        show "m1 \<otimes> z \<in> M1"
+        proof -
+          from zH
+          have zG: "z \<in> carrier G" and M1zeq: "M1 #> z = M1"
+            by (auto simp add: H_def)
+          show ?thesis
+            by (rule subst [OF M1zeq], simp add: m1M zG rcosI)
+        qed
       qed
     qed
   qed
@@ -135,8 +135,8 @@ lemma (in sylow) EmptyNotInEquivSet: "{} \<notin> calM // RelM"
 by (blast elim!: quotientE dest: RelM_equiv [THEN equiv_class_self])
 
 lemma (in sylow) existsM1inM: "M \<in> calM // RelM ==> \<exists>M1. M1 \<in> M"
-apply (subgoal_tac "M \<noteq> {}") 
- apply blast 
+apply (subgoal_tac "M \<noteq> {}")
+ apply blast
 apply (cut_tac EmptyNotInEquivSet, blast)
 done
 
@@ -245,7 +245,7 @@ subsection{*Equal Cardinalities of @{term M} and @{term "rcosets G H"}*}
 text{*Injections between @{term M} and @{term "rcosets G H"} show that
  their cardinalities are equal.*}
 
-lemma ElemClassEquiv: 
+lemma ElemClassEquiv:
      "[| equiv A r; C\<in>A // r |] ==> \<forall>x \<in> C. \<forall>y \<in> C. (x,y)\<in>r"
 apply (unfold equiv_def quotient_def sym_def trans_def, blast)
 done
@@ -257,11 +257,11 @@ apply (simp add: RelM_def)
 apply (blast dest!: bspec)
 done
 
-lemmas (in sylow_central) M_elem_map_carrier = 
-	M_elem_map [THEN someI_ex, THEN conjunct1]
+lemmas (in sylow_central) M_elem_map_carrier =
+        M_elem_map [THEN someI_ex, THEN conjunct1]
 
 lemmas (in sylow_central) M_elem_map_eq =
-	M_elem_map [THEN someI_ex, THEN conjunct2]
+        M_elem_map [THEN someI_ex, THEN conjunct2]
 
 lemma (in sylow_central) M_funcset_setrcos_H:
      "(%x:M. H #> (SOME g. g \<in> carrier G & M1 #> g = x)) \<in> M \<rightarrow> rcosets G H"
@@ -293,14 +293,14 @@ lemma (in sylow_central) H_elem_map:
      "H1\<in>rcosets G H ==> \<exists>g. g \<in> carrier G & H #> g = H1"
 by (auto simp add: setrcos_eq)
 
-lemmas (in sylow_central) H_elem_map_carrier = 
-	H_elem_map [THEN someI_ex, THEN conjunct1]
+lemmas (in sylow_central) H_elem_map_carrier =
+        H_elem_map [THEN someI_ex, THEN conjunct1]
 
 lemmas (in sylow_central) H_elem_map_eq =
-	H_elem_map [THEN someI_ex, THEN conjunct2]
+        H_elem_map [THEN someI_ex, THEN conjunct2]
 
 
-lemma EquivElemClass: 
+lemma EquivElemClass:
      "[|equiv A r; M\<in>A // r; M1\<in>M; (M1, M2)\<in>r |] ==> M2\<in>M"
 apply (unfold equiv_def quotient_def sym_def trans_def, blast)
 done
@@ -329,7 +329,7 @@ apply (erule_tac [2] H_elem_map_carrier)+
 apply (rule_tac [2] H_is_subgroup [THEN subgroup.subset])
 apply (rule coset_join2)
 apply (blast intro: m_closed inv_closed H_elem_map_carrier)
-apply (rule H_is_subgroup) 
+apply (rule H_is_subgroup)
 apply (simp add: H_I coset_mult_inv2 M1_subset_G H_elem_map_carrier)
 done
 
@@ -344,9 +344,9 @@ apply (rule calM_subset_PowG, blast)
 done
 
 lemma (in sylow_central) cardMeqIndexH: "card(M) = card(rcosets G H)"
-apply (insert inj_M_GmodH inj_GmodH_M) 
-apply (blast intro: card_bij finite_M H_is_subgroup 
-             setrcos_subset_PowG [THEN finite_subset] 
+apply (insert inj_M_GmodH inj_GmodH_M)
+apply (blast intro: card_bij finite_M H_is_subgroup
+             setrcos_subset_PowG [THEN finite_subset]
              finite_Pow_iff [THEN iffD2])
 done
 
@@ -364,7 +364,7 @@ done
 lemma (in sylow_central) lemma_leq2: "card(H) <= p^a"
 apply (subst card_M1 [symmetric])
 apply (cut_tac M1_inj_H)
-apply (blast intro!: M1_subset_G intro: 
+apply (blast intro!: M1_subset_G intro:
              card_inj H_into_carrier_G finite_subset [OF _ finite_G])
 done
 
@@ -372,15 +372,15 @@ lemma (in sylow_central) card_H_eq: "card(H) = p^a"
 by (blast intro: le_anti_sym lemma_leq1 lemma_leq2)
 
 lemma (in sylow) sylow_thm: "\<exists>H. subgroup H G & card(H) = p^a"
-apply (cut_tac lemma_A1, clarify) 
-apply (frule existsM1inM, clarify) 
+apply (cut_tac lemma_A1, clarify)
+apply (frule existsM1inM, clarify)
 apply (subgoal_tac "sylow_central G p a m M1 M")
  apply (blast dest:  sylow_central.H_is_subgroup sylow_central.card_H_eq)
-apply (simp add: sylow_central_def sylow_central_axioms_def prems) 
+apply (simp add: sylow_central_def sylow_central_axioms_def prems)
 done
 
 text{*Needed because the locale's automatic definition refers to
-   @{term "semigroup G"} and @{term "group_axioms G"} rather than 
+   @{term "semigroup G"} and @{term "group_axioms G"} rather than
   simply to @{term "group G"}.*}
 lemma sylow_eq: "sylow G p a m = (group G & sylow_axioms G p a m)"
 by (simp add: sylow_def group_def)
@@ -389,7 +389,7 @@ theorem sylow_thm:
      "[|p \<in> prime;  group(G);  order(G) = (p^a) * m; finite (carrier G)|]
       ==> \<exists>H. subgroup H G & card(H) = p^a"
 apply (rule sylow.sylow_thm [of G p a m])
-apply (simp add: sylow_eq sylow_axioms_def) 
+apply (simp add: sylow_eq sylow_axioms_def)
 done
 
 end

@@ -10,43 +10,32 @@ header {* Univariate Polynomials *}
 theory UnivPoly = Module:
 
 text {*
-  Polynomials are formalised as modules with additional operations for 
-  extracting coefficients from polynomials and for obtaining monomials 
-  from coefficients and exponents (record @{text "up_ring"}).
-  The carrier set is 
-  a set of bounded functions from Nat to the coefficient domain.  
-  Bounded means that these functions return zero above a certain bound 
-  (the degree).  There is a chapter on the formalisation of polynomials 
-  in my PhD thesis (http://www4.in.tum.de/\~{}ballarin/publications/), 
-  which was implemented with axiomatic type classes.  This was later
-  ported to Locales.
+  Polynomials are formalised as modules with additional operations for
+  extracting coefficients from polynomials and for obtaining monomials
+  from coefficients and exponents (record @{text "up_ring"}).  The
+  carrier set is a set of bounded functions from Nat to the
+  coefficient domain.  Bounded means that these functions return zero
+  above a certain bound (the degree).  There is a chapter on the
+  formalisation of polynomials in my PhD thesis
+  (\url{http://www4.in.tum.de/~ballarin/publications/}), which was
+  implemented with axiomatic type classes.  This was later ported to
+  Locales.
 *}
+
 
 subsection {* The Constructor for Univariate Polynomials *}
 
-(* Could alternatively use locale ...
-locale bound = cring + var bound +
-  defines ...
-*)
+locale bound =
+  fixes z :: 'a
+    and n :: nat
+    and f :: "nat => 'a"
+  assumes bound: "!!m. n < m \<Longrightarrow> f m = z"
 
-constdefs
-  bound  :: "['a, nat, nat => 'a] => bool"
-  "bound z n f == (ALL i. n < i --> f i = z)"
-
-lemma boundI [intro!]:
-  "[| !! m. n < m ==> f m = z |] ==> bound z n f"
-  by (unfold bound_def) fast
-
-lemma boundE [elim?]:
-  "[| bound z n f; (!! m. n < m ==> f m = z) ==> P |] ==> P"
-  by (unfold bound_def) fast
-
-lemma boundD [dest]:
-  "[| bound z n f; n < m |] ==> f m = z"
-  by (unfold bound_def) fast
+declare bound.intro [intro!]
+  and bound.bound [dest]
 
 lemma bound_below:
-  assumes bound: "bound z m f" and nonzero: "f n ~= z" shows "n <= m"
+  assumes bound: "bound z m f" and nonzero: "f n \<noteq> z" shows "n \<le> m"
 proof (rule classical)
   assume "~ ?thesis"
   then have "m < n" by arith
@@ -130,44 +119,44 @@ qed auto
 
 lemma (in cring) up_mult_closed:
   "[| p \<in> up R; q \<in> up R |] ==>
-  (%n. finsum R (%i. p i \<otimes> q (n-i)) {..n}) \<in> up R"
+  (%n. \<Oplus>i \<in> {..n}. p i \<otimes> q (n-i)) \<in> up R"
 proof
   fix n
   assume "p \<in> up R" "q \<in> up R"
-  then show "finsum R (%i. p i \<otimes> q (n-i)) {..n} \<in> carrier R"
+  then show "(\<Oplus>i \<in> {..n}. p i \<otimes> q (n-i)) \<in> carrier R"
     by (simp add: mem_upD  funcsetI)
 next
   assume UP: "p \<in> up R" "q \<in> up R"
-  show "EX n. bound \<zero> n (%n. finsum R (%i. p i \<otimes> q (n - i)) {..n})"
+  show "EX n. bound \<zero> n (%n. \<Oplus>i \<in> {..n}. p i \<otimes> q (n-i))"
   proof -
     from UP obtain n where boundn: "bound \<zero> n p" by fast
     from UP obtain m where boundm: "bound \<zero> m q" by fast
-    have "bound \<zero> (n + m) (%n. finsum R (%i. p i \<otimes> q (n - i)) {..n})"
+    have "bound \<zero> (n + m) (%n. \<Oplus>i \<in> {..n}. p i \<otimes> q (n - i))"
     proof
-      fix k
-      assume bound: "n + m < k"
+      fix k assume bound: "n + m < k"
       {
-	fix i
-	have "p i \<otimes> q (k-i) = \<zero>"
-	proof (cases "n < i")
-	  case True
-	  with boundn have "p i = \<zero>" by auto
+        fix i
+        have "p i \<otimes> q (k-i) = \<zero>"
+        proof (cases "n < i")
+          case True
+          with boundn have "p i = \<zero>" by auto
           moreover from UP have "q (k-i) \<in> carrier R" by auto
-	  ultimately show ?thesis by simp
-	next
-	  case False
-	  with bound have "m < k-i" by arith
-	  with boundm have "q (k-i) = \<zero>" by auto
-	  moreover from UP have "p i \<in> carrier R" by auto
-	  ultimately show ?thesis by simp
-	qed
+          ultimately show ?thesis by simp
+        next
+          case False
+          with bound have "m < k-i" by arith
+          with boundm have "q (k-i) = \<zero>" by auto
+          moreover from UP have "p i \<in> carrier R" by auto
+          ultimately show ?thesis by simp
+        qed
       }
-      then show "finsum R (%i. p i \<otimes> q (k-i)) {..k} = \<zero>"
-	by (simp add: Pi_def)
+      then show "(\<Oplus>i \<in> {..k}. p i \<otimes> q (k-i)) = \<zero>"
+        by (simp add: Pi_def)
     qed
     then show ?thesis by fast
   qed
 qed
+
 
 subsection {* Effect of operations on coefficients *}
 
@@ -214,7 +203,7 @@ lemma (in UP_cring) coeff_add [simp]:
 
 lemma (in UP_cring) coeff_mult [simp]:
   "[| p \<in> carrier P; q \<in> carrier P |] ==>
-  coeff P (p \<otimes>\<^sub>2 q) n = finsum R (%i. coeff P p i \<otimes> coeff P q (n-i)) {..n}"
+  coeff P (p \<otimes>\<^sub>2 q) n = (\<Oplus>i \<in> {..n}. coeff P p i \<otimes> coeff P q (n-i))"
   by (simp add: UP_def up_mult_closed)
 
 lemma (in UP) up_eqI:
@@ -225,10 +214,10 @@ proof
   fix x
   from prem and R show "p x = q x" by (simp add: UP_def)
 qed
-  
+
 subsection {* Polynomials form a commutative ring. *}
 
-text {* Operations are closed over @{term "P"}. *}
+text {* Operations are closed over @{term P}. *}
 
 lemma (in UP_cring) UP_mult_closed [simp]:
   "[| p \<in> carrier P; q \<in> carrier P |] ==> p \<otimes>\<^sub>2 q \<in> carrier P"
@@ -307,9 +296,9 @@ proof (rule up_eqI)
     assume R: "a \<in> UNIV -> carrier R" "b \<in> UNIV -> carrier R"
       "c \<in> UNIV -> carrier R"
     then have "k <= n ==>
-      finsum R (%j. finsum R (%i. a i \<otimes> b (j-i)) {..j} \<otimes> c (n-j)) {..k} =
-      finsum R (%j. a j \<otimes> finsum R (%i. b i \<otimes> c (n-j-i)) {..k-j}) {..k}"
-      (is "_ ==> ?eq k")
+      (\<Oplus>j \<in> {..k}. (\<Oplus>i \<in> {..j}. a i \<otimes> b (j-i)) \<otimes> c (n-j)) =
+      (\<Oplus>j \<in> {..k}. a j \<otimes> (\<Oplus>i \<in> {..k-j}. b i \<otimes> c (n-j-i)))"
+      (concl is "?eq k")
     proof (induct k)
       case 0 then show ?case by (simp add: Pi_def m_assoc)
     next
@@ -317,7 +306,7 @@ proof (rule up_eqI)
       then have "k <= n" by arith
       then have "?eq k" by (rule Suc)
       with R show ?case
-	by (simp cong: finsum_cong
+        by (simp cong: finsum_cong
              add: Suc_diff_le Pi_def l_distr r_distr m_assoc)
           (simp cong: finsum_cong add: Pi_def a_ac finsum_ldistr m_assoc)
     qed
@@ -353,19 +342,19 @@ lemma (in UP_cring) UP_m_comm:
   assumes R: "p \<in> carrier P" "q \<in> carrier P"
   shows "p \<otimes>\<^sub>2 q = q \<otimes>\<^sub>2 p"
 proof (rule up_eqI)
-  fix n 
+  fix n
   {
     fix k and a b :: "nat=>'a"
     assume R: "a \<in> UNIV -> carrier R" "b \<in> UNIV -> carrier R"
-    then have "k <= n ==> 
-      finsum R (%i. a i \<otimes> b (n-i)) {..k} =
-      finsum R (%i. a (k-i) \<otimes> b (i+n-k)) {..k}"
-      (is "_ ==> ?eq k")
+    then have "k <= n ==>
+      (\<Oplus>i \<in> {..k}. a i \<otimes> b (n-i)) =
+      (\<Oplus>i \<in> {..k}. a (k-i) \<otimes> b (i+n-k))"
+      (concl is "?eq k")
     proof (induct k)
       case 0 then show ?case by (simp add: Pi_def)
     next
       case (Suc k) then show ?case
-	by (subst finsum_Suc2) (simp add: Pi_def a_comm)+
+        by (subst finsum_Suc2) (simp add: Pi_def a_comm)+
     qed
   }
   note l = this
@@ -557,6 +546,7 @@ lemmas (in UP_cring) UP_finsum_ldistr =
 lemmas (in UP_cring) UP_finsum_rdistr =
   cring.finsum_rdistr [OF UP_cring]
 
+
 subsection {* Polynomials form an Algebra *}
 
 lemma (in UP_cring) UP_smult_l_distr:
@@ -658,64 +648,64 @@ proof (rule up_eqI)
   proof (cases "k = Suc n")
     case True show ?thesis
     proof -
-      from True have less_add_diff: 
-	"!!i. [| n < i; i <= n + m |] ==> n + m - i < m" by arith
+      from True have less_add_diff:
+        "!!i. [| n < i; i <= n + m |] ==> n + m - i < m" by arith
       from True have "coeff P (monom P \<one> (Suc n)) k = \<one>" by simp
       also from True
-      have "... = finsum R (%i. coeff P (monom P \<one> n) i \<otimes>
-	coeff P (monom P \<one> 1) (k - i)) ({..n(} Un {n})"
-	by (simp cong: finsum_cong add: finsum_Un_disjoint Pi_def)
-      also have "... = finsum R (%i. coeff P (monom P \<one> n) i \<otimes>
-	coeff P (monom P \<one> 1) (k - i)) {..n}"
-	by (simp only: ivl_disj_un_singleton)
-      also from True have "... = finsum R (%i. coeff P (monom P \<one> n) i \<otimes>
-	coeff P (monom P \<one> 1) (k - i)) ({..n} Un {)n..k})"
-	by (simp cong: finsum_cong add: finsum_Un_disjoint ivl_disj_int_one
-	  order_less_imp_not_eq Pi_def)
+      have "... = (\<Oplus>i \<in> {..n(} \<union> {n}. coeff P (monom P \<one> n) i \<otimes>
+        coeff P (monom P \<one> 1) (k - i))"
+        by (simp cong: finsum_cong add: finsum_Un_disjoint Pi_def)
+      also have "... = (\<Oplus>i \<in>  {..n}. coeff P (monom P \<one> n) i \<otimes>
+        coeff P (monom P \<one> 1) (k - i))"
+        by (simp only: ivl_disj_un_singleton)
+      also from True have "... = (\<Oplus>i \<in> {..n} \<union> {)n..k}. coeff P (monom P \<one> n) i \<otimes>
+        coeff P (monom P \<one> 1) (k - i))"
+        by (simp cong: finsum_cong add: finsum_Un_disjoint ivl_disj_int_one
+          order_less_imp_not_eq Pi_def)
       also from True have "... = coeff P (monom P \<one> n \<otimes>\<^sub>2 monom P \<one> 1) k"
-	by (simp add: ivl_disj_un_one)
+        by (simp add: ivl_disj_un_one)
       finally show ?thesis .
     qed
   next
     case False
     note neq = False
     let ?s =
-      "(\<lambda>i. (if n = i then \<one> else \<zero>) \<otimes> (if Suc 0 = k - i then \<one> else \<zero>))"
+      "\<lambda>i. (if n = i then \<one> else \<zero>) \<otimes> (if Suc 0 = k - i then \<one> else \<zero>)"
     from neq have "coeff P (monom P \<one> (Suc n)) k = \<zero>" by simp
-    also have "... = finsum R ?s {..k}"
+    also have "... = (\<Oplus>i \<in> {..k}. ?s i)"
     proof -
-      have f1: "finsum R ?s {..n(} = \<zero>" by (simp cong: finsum_cong add: Pi_def)
-      from neq have f2: "finsum R ?s {n} = \<zero>"
-	by (simp cong: finsum_cong add: Pi_def) arith
-      have f3: "n < k ==> finsum R ?s {)n..k} = \<zero>"
-	by (simp cong: finsum_cong add: order_less_imp_not_eq Pi_def)
+      have f1: "(\<Oplus>i \<in> {..n(}. ?s i) = \<zero>" by (simp cong: finsum_cong add: Pi_def)
+      from neq have f2: "(\<Oplus>i \<in> {n}. ?s i) = \<zero>"
+        by (simp cong: finsum_cong add: Pi_def) arith
+      have f3: "n < k ==> (\<Oplus>i \<in> {)n..k}. ?s i) = \<zero>"
+        by (simp cong: finsum_cong add: order_less_imp_not_eq Pi_def)
       show ?thesis
       proof (cases "k < n")
-	case True then show ?thesis by (simp cong: finsum_cong add: Pi_def)
+        case True then show ?thesis by (simp cong: finsum_cong add: Pi_def)
       next
-	case False then have n_le_k: "n <= k" by arith
-	show ?thesis
-	proof (cases "n = k")
-	  case True
-	  then have "\<zero> = finsum R ?s ({..n(} \<union> {n})"
-	    by (simp cong: finsum_cong add: finsum_Un_disjoint
-	      ivl_disj_int_singleton Pi_def)
-	  also from True have "... = finsum R ?s {..k}"
-	    by (simp only: ivl_disj_un_singleton)
-	  finally show ?thesis .
-	next
-	  case False with n_le_k have n_less_k: "n < k" by arith
-	  with neq have "\<zero> = finsum R ?s ({..n(} \<union> {n})"
-	    by (simp add: finsum_Un_disjoint f1 f2
-	      ivl_disj_int_singleton Pi_def del: Un_insert_right)
-	  also have "... = finsum R ?s {..n}"
-	    by (simp only: ivl_disj_un_singleton)
-	  also from n_less_k neq have "... = finsum R ?s ({..n} \<union> {)n..k})"
-	    by (simp add: finsum_Un_disjoint f3 ivl_disj_int_one Pi_def)
-	  also from n_less_k have "... = finsum R ?s {..k}"
-	    by (simp only: ivl_disj_un_one)
-	  finally show ?thesis .
-	qed
+        case False then have n_le_k: "n <= k" by arith
+        show ?thesis
+        proof (cases "n = k")
+          case True
+          then have "\<zero> = (\<Oplus>i \<in> {..n(} \<union> {n}. ?s i)"
+            by (simp cong: finsum_cong add: finsum_Un_disjoint
+              ivl_disj_int_singleton Pi_def)
+          also from True have "... = (\<Oplus>i \<in> {..k}. ?s i)"
+            by (simp only: ivl_disj_un_singleton)
+          finally show ?thesis .
+        next
+          case False with n_le_k have n_less_k: "n < k" by arith
+          with neq have "\<zero> = (\<Oplus>i \<in> {..n(} \<union> {n}. ?s i)"
+            by (simp add: finsum_Un_disjoint f1 f2
+              ivl_disj_int_singleton Pi_def del: Un_insert_right)
+          also have "... = (\<Oplus>i \<in> {..n}. ?s i)"
+            by (simp only: ivl_disj_un_singleton)
+          also from n_less_k neq have "... = (\<Oplus>i \<in> {..n} \<union> {)n..k}. ?s i)"
+            by (simp add: finsum_Un_disjoint f3 ivl_disj_int_one Pi_def)
+          also from n_less_k have "... = (\<Oplus>i \<in> {..k}. ?s i)"
+            by (simp only: ivl_disj_un_one)
+          finally show ?thesis .
+        qed
       qed
     qed
     also have "... = coeff P (monom P \<one> n \<otimes>\<^sub>2 monom P \<one> 1) k" by simp
@@ -789,7 +779,7 @@ constdefs (structure R)
   "deg R p == LEAST n. bound \<zero> n (coeff (UP R) p)"
 
 lemma (in UP_cring) deg_aboveI:
-  "[| (!!m. n < m ==> coeff P p m = \<zero>); p \<in> carrier P |] ==> deg R p <= n" 
+  "[| (!!m. n < m ==> coeff P p m = \<zero>); p \<in> carrier P |] ==> deg R p <= n"
   by (unfold deg_def P_def) (fast intro: Least_le)
 (*
 lemma coeff_bound_ex: "EX n. bound n (coeff p)"
@@ -798,7 +788,7 @@ proof -
   then obtain n where "bound n (coeff p)" by (unfold UP_def) fast
   then show ?thesis ..
 qed
-  
+
 lemma bound_coeff_obtain:
   assumes prem: "(!!n. bound n (coeff p) ==> P)" shows "P"
 proof -
@@ -811,18 +801,18 @@ lemma (in UP_cring) deg_aboveD:
   "[| deg R p < m; p \<in> carrier P |] ==> coeff P p m = \<zero>"
 proof -
   assume R: "p \<in> carrier P" and "deg R p < m"
-  from R obtain n where "bound \<zero> n (coeff P p)" 
+  from R obtain n where "bound \<zero> n (coeff P p)"
     by (auto simp add: UP_def P_def)
   then have "bound \<zero> (deg R p) (coeff P p)"
     by (auto simp: deg_def P_def dest: LeastI)
-  then show ?thesis by (rule boundD)
+  then show ?thesis ..
 qed
 
 lemma (in UP_cring) deg_belowI:
   assumes non_zero: "n ~= 0 ==> coeff P p n ~= \<zero>"
     and R: "p \<in> carrier P"
   shows "n <= deg R p"
--- {* Logically, this is a slightly stronger version of 
+-- {* Logically, this is a slightly stronger version of
   @{thm [source] deg_aboveD} *}
 proof (cases "n=0")
   case True then show ?thesis by simp
@@ -847,7 +837,7 @@ proof -
     then have "EX m. deg R p - 1 < m & coeff P p m ~= \<zero>"
       by (unfold bound_def) fast
     then have "EX m. deg R p <= m & coeff P p m ~= \<zero>" by (simp add: deg minus)
-    then show ?thesis by auto 
+    then show ?thesis by auto
   qed
   with deg_belowI R have "deg R p = m" by fastsimp
   with m_coeff show ?thesis by simp
@@ -890,7 +880,7 @@ lemma (in UP_cring) deg_add [simp]:
   shows "deg R (p \<oplus>\<^sub>2 q) <= max (deg R p) (deg R q)"
 proof (cases "deg R p <= deg R q")
   case True show ?thesis
-    by (rule deg_aboveI) (simp_all add: True R deg_aboveD) 
+    by (rule deg_aboveI) (simp_all add: True R deg_aboveD)
 next
   case False show ?thesis
     by (rule deg_aboveI) (simp_all add: False R deg_aboveD)
@@ -933,7 +923,7 @@ lemma (in UP_cring) deg_uminus [simp]:
 proof (rule le_anti_sym)
   show "deg R (\<ominus>\<^sub>2 p) <= deg R p" by (simp add: deg_aboveI deg_aboveD R)
 next
-  show "deg R p <= deg R (\<ominus>\<^sub>2 p)" 
+  show "deg R p <= deg R (\<ominus>\<^sub>2 p)"
     by (simp add: deg_belowI lcoeff_nonzero_deg
       inj_on_iff [OF a_inv_inj, of _ "\<zero>", simplified] R)
 qed
@@ -999,10 +989,10 @@ next
         deg_aboveD less_add_diff R Pi_def)
     also have "...= finsum R ?s ({deg R p} Un {)deg R p .. deg R p + deg R q})"
       by (simp only: ivl_disj_un_singleton)
-    also have "... = coeff P p (deg R p) \<otimes> coeff P q (deg R q)" 
+    also have "... = coeff P p (deg R p) \<otimes> coeff P q (deg R q)"
       by (simp cong: finsum_cong add: finsum_Un_disjoint
-	ivl_disj_int_singleton deg_aboveD R Pi_def)
-    finally have "finsum R ?s {.. deg R p + deg R q} 
+        ivl_disj_int_singleton deg_aboveD R Pi_def)
+    finally have "finsum R ?s {.. deg R p + deg R q}
       = coeff P p (deg R p) \<otimes> coeff P q (deg R q)" .
     with nz show "finsum R ?s {.. deg R p + deg R q} ~= \<zero>"
       by (simp add: integral_iff lcoeff_nonzero R)
@@ -1021,7 +1011,7 @@ ML_setup {*
 
 lemma (in UP_cring) up_repr:
   assumes R: "p \<in> carrier P"
-  shows "finsum P (%i. monom P (coeff P p i) i) {..deg R p} = p"
+  shows "(\<Oplus>\<^sub>2 i \<in> {..deg R p}. monom P (coeff P p i) i) = p"
 proof (rule up_eqI)
   let ?s = "(%i. monom P (coeff P p i) i)"
   fix k
@@ -1030,23 +1020,23 @@ proof (rule up_eqI)
   show "coeff P (finsum P ?s {..deg R p}) k = coeff P p k"
   proof (cases "k <= deg R p")
     case True
-    hence "coeff P (finsum P ?s {..deg R p}) k = 
+    hence "coeff P (finsum P ?s {..deg R p}) k =
           coeff P (finsum P ?s ({..k} Un {)k..deg R p})) k"
       by (simp only: ivl_disj_un_one)
     also from True
     have "... = coeff P (finsum P ?s {..k}) k"
       by (simp cong: finsum_cong add: finsum_Un_disjoint
-	ivl_disj_int_one order_less_imp_not_eq2 coeff_finsum R RR Pi_def)
+        ivl_disj_int_one order_less_imp_not_eq2 coeff_finsum R RR Pi_def)
     also
     have "... = coeff P (finsum P ?s ({..k(} Un {k})) k"
       by (simp only: ivl_disj_un_singleton)
     also have "... = coeff P p k"
       by (simp cong: finsum_cong add: setsum_Un_disjoint
-	ivl_disj_int_singleton coeff_finsum deg_aboveD R RR Pi_def)
+        ivl_disj_int_singleton coeff_finsum deg_aboveD R RR Pi_def)
     finally show ?thesis .
   next
     case False
-    hence "coeff P (finsum P ?s {..deg R p}) k = 
+    hence "coeff P (finsum P ?s {..deg R p}) k =
           coeff P (finsum P ?s ({..deg R p(} Un {deg R p})) k"
       by (simp only: ivl_disj_un_singleton)
     also from False have "... = coeff P p k"
@@ -1107,11 +1097,11 @@ proof -
     also from pq have "... = 0" by simp
     finally have "deg R p + deg R q = 0" .
     then have f1: "deg R p = 0 & deg R q = 0" by simp
-    from f1 R have "p = finsum P (%i. (monom P (coeff P p i) i)) {..0}"
+    from f1 R have "p = (\<Oplus>\<^sub>2 i \<in> {..0}. monom P (coeff P p i) i)"
       by (simp only: up_repr_le)
     also from R have "... = monom P (coeff P p 0) 0" by simp
     finally have p: "p = monom P (coeff P p 0) 0" .
-    from f1 R have "q = finsum P (%i. (monom P (coeff P q i) i)) {..0}"
+    from f1 R have "q = (\<Oplus>\<^sub>2 i \<in> {..0}. monom P (coeff P q i) i)"
       by (simp only: up_repr_le)
     also from R have "... = monom P (coeff P q 0) 0" by simp
     finally have q: "q = monom P (coeff P q 0) 0" .
@@ -1149,49 +1139,49 @@ lemma (in UP_domain) smult_integral:
   by (simp add: monom_mult_is_smult [THEN sym] UP_integral_iff
     inj_on_iff [OF monom_inj, of _ "\<zero>", simplified])
 
-subsection {* Evaluation Homomorphism and Universal Property*}
 
-ML_setup {*
-  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
-*}
+subsection {* Evaluation Homomorphism and Universal Property*}
 
 (* alternative congruence rule (possibly more efficient)
 lemma (in abelian_monoid) finsum_cong2:
   "[| !!i. i \<in> A ==> f i \<in> carrier G = True; A = B;
   !!i. i \<in> B ==> f i = g i |] ==> finsum G f A = finsum G g B"
-  sorry
-*)
+  sorry*)
+
+ML_setup {*
+  simpset_ref() := simpset() setsubgoaler asm_full_simp_tac;
+*}
 
 theorem (in cring) diagonal_sum:
   "[| f \<in> {..n + m::nat} -> carrier R; g \<in> {..n + m} -> carrier R |] ==>
-  finsum R (%k. finsum R (%i. f i \<otimes> g (k - i)) {..k}) {..n + m} =
-  finsum R (%k. finsum R (%i. f k \<otimes> g i) {..n + m - k}) {..n + m}"
+  (\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..k}. f i \<otimes> g (k - i)) =
+  (\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..n + m - k}. f k \<otimes> g i)"
 proof -
   assume Rf: "f \<in> {..n + m} -> carrier R" and Rg: "g \<in> {..n + m} -> carrier R"
   {
     fix j
     have "j <= n + m ==>
-      finsum R (%k. finsum R (%i. f i \<otimes> g (k - i)) {..k}) {..j} =
-      finsum R (%k. finsum R (%i. f k \<otimes> g i) {..j - k}) {..j}"
+      (\<Oplus>k \<in> {..j}. \<Oplus>i \<in> {..k}. f i \<otimes> g (k - i)) =
+      (\<Oplus>k \<in> {..j}. \<Oplus>i \<in> {..j - k}. f k \<otimes> g i)"
     proof (induct j)
       case 0 from Rf Rg show ?case by (simp add: Pi_def)
     next
-      case (Suc j) 
+      case (Suc j)
       (* The following could be simplified if there was a reasoner for
-	total orders integrated with simip. *)
+        total orders integrated with simip. *)
       have R6: "!!i k. [| k <= j; i <= Suc j - k |] ==> g i \<in> carrier R"
-	using Suc by (auto intro!: funcset_mem [OF Rg]) arith
+        using Suc by (auto intro!: funcset_mem [OF Rg]) arith
       have R8: "!!i k. [| k <= Suc j; i <= k |] ==> g (k - i) \<in> carrier R"
-	using Suc by (auto intro!: funcset_mem [OF Rg]) arith
+        using Suc by (auto intro!: funcset_mem [OF Rg]) arith
       have R9: "!!i k. [| k <= Suc j |] ==> f k \<in> carrier R"
-	using Suc by (auto intro!: funcset_mem [OF Rf])
+        using Suc by (auto intro!: funcset_mem [OF Rf])
       have R10: "!!i k. [| k <= Suc j; i <= Suc j - k |] ==> g i \<in> carrier R"
-	using Suc by (auto intro!: funcset_mem [OF Rg]) arith
+        using Suc by (auto intro!: funcset_mem [OF Rg]) arith
       have R11: "g 0 \<in> carrier R"
-	using Suc by (auto intro!: funcset_mem [OF Rg])
+        using Suc by (auto intro!: funcset_mem [OF Rg])
       from Suc show ?case
-	by (simp cong: finsum_cong add: Suc_diff_le a_ac
-	  Pi_def R6 R8 R9 R10 R11)
+        by (simp cong: finsum_cong add: Suc_diff_le a_ac
+          Pi_def R6 R8 R9 R10 R11)
     qed
   }
   then show ?thesis by fast
@@ -1204,9 +1194,8 @@ lemma (in abelian_monoid) boundD_carrier:
 theorem (in cring) cauchy_product:
   assumes bf: "bound \<zero> n f" and bg: "bound \<zero> m g"
     and Rf: "f \<in> {..n} -> carrier R" and Rg: "g \<in> {..m} -> carrier R"
-  shows "finsum R (%k. finsum R (%i. f i \<otimes> g (k-i)) {..k}) {..n + m} =
-    finsum R f {..n} \<otimes> finsum R g {..m}"
-(* State revese direction? *)
+  shows "(\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..k}. f i \<otimes> g (k - i)) =
+    (\<Oplus>i \<in> {..n}. f i) \<otimes> (\<Oplus>i \<in> {..m}. g i)"        (* State revese direction? *)
 proof -
   have f: "!!x. f x \<in> carrier R"
   proof -
@@ -1220,24 +1209,20 @@ proof -
     show "g x \<in> carrier R"
       using Rg bg boundD_carrier by (cases "x <= m") (auto simp: Pi_def)
   qed
-  from f g have "finsum R (%k. finsum R (%i. f i \<otimes> g (k-i)) {..k}) {..n + m} =
-    finsum R (%k. finsum R (%i. f k \<otimes> g i) {..n + m - k}) {..n + m}"
+  from f g have "(\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..k}. f i \<otimes> g (k - i)) =
+      (\<Oplus>k \<in> {..n + m}. \<Oplus>i \<in> {..n + m - k}. f k \<otimes> g i)"
     by (simp add: diagonal_sum Pi_def)
-  also have "... = finsum R
-      (%k. finsum R (%i. f k \<otimes> g i) {..n + m - k}) ({..n} Un {)n..n + m})"
+  also have "... = (\<Oplus>k \<in> {..n} \<union> {)n..n + m}. \<Oplus>i \<in> {..n + m - k}. f k \<otimes> g i)"
     by (simp only: ivl_disj_un_one)
-  also from f g have "... = finsum R
-      (%k. finsum R (%i. f k \<otimes> g i) {..n + m - k}) {..n}"
+  also from f g have "... = (\<Oplus>k \<in> {..n}. \<Oplus>i \<in> {..n + m - k}. f k \<otimes> g i)"
     by (simp cong: finsum_cong
-      add: boundD [OF bf] finsum_Un_disjoint ivl_disj_int_one Pi_def)
-  also from f g have "... = finsum R
-      (%k. finsum R (%i. f k \<otimes> g i) ({..m} Un {)m..n + m - k})) {..n}"
+      add: bound.bound [OF bf] finsum_Un_disjoint ivl_disj_int_one Pi_def)
+  also from f g have "... = (\<Oplus>k \<in> {..n}. \<Oplus>i \<in> {..m} \<union> {)m..n + m - k}. f k \<otimes> g i)"
     by (simp cong: finsum_cong add: ivl_disj_un_one le_add_diff Pi_def)
-  also from f g have "... = finsum R
-      (%k. finsum R (%i. f k \<otimes> g i) {..m}) {..n}"
+  also from f g have "... = (\<Oplus>k \<in> {..n}. \<Oplus>i \<in> {..m}. f k \<otimes> g i)"
     by (simp cong: finsum_cong
-      add: boundD [OF bg] finsum_Un_disjoint ivl_disj_int_one Pi_def)
-  also from f g have "... = finsum R f {..n} \<otimes> finsum R g {..m}"
+      add: bound.bound [OF bg] finsum_Un_disjoint ivl_disj_int_one Pi_def)
+  also from f g have "... = (\<Oplus>i \<in> {..n}. f i) \<otimes> (\<Oplus>i \<in> {..m}. g i)"
     by (simp add: finsum_ldistr diagonal_sum Pi_def,
       simp cong: finsum_cong add: finsum_rdistr Pi_def)
   finally show ?thesis .
@@ -1256,13 +1241,13 @@ constdefs (structure S)
   then finsum S (%i. mult S (phi (coeff (UP R) p i)) (pow S s i)) {..deg R p}
   else arbitrary"
 *)
-                                                         
+
 locale ring_hom_UP_cring = ring_hom_cring R S + UP_cring R
 
 lemma (in ring_hom_UP_cring) eval_on_carrier:
   "p \<in> carrier P ==>
     eval R S phi s p =
-    finsum S (%i. mult S (phi (coeff P p i)) (pow S s i)) {..deg R p}"
+    (\<Oplus>\<^sub>2 i \<in> {..deg R p}. phi (coeff P p i) \<otimes>\<^sub>2 pow S s i)"
   by (unfold eval_def, fold P_def) simp
 
 lemma (in ring_hom_UP_cring) eval_extensional:
@@ -1282,31 +1267,29 @@ next
   then show "eval R S h s (p \<otimes>\<^sub>3 q) = eval R S h s p \<otimes>\<^sub>2 eval R S h s q"
   proof (simp only: eval_on_carrier UP_mult_closed)
     from RS have
-      "finsum S (%i. h (coeff P (p \<otimes>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R (p \<otimes>\<^sub>3 q)} =
-      finsum S (%i. h (coeff P (p \<otimes>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)
-        ({..deg R (p \<otimes>\<^sub>3 q)} Un {)deg R (p \<otimes>\<^sub>3 q)..deg R p + deg R q})"
+      "(\<Oplus>\<^sub>2 i \<in> {..deg R (p \<otimes>\<^sub>3 q)}. h (coeff P (p \<otimes>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) =
+      (\<Oplus>\<^sub>2 i \<in> {..deg R (p \<otimes>\<^sub>3 q)} \<union> {)deg R (p \<otimes>\<^sub>3 q)..deg R p + deg R q}.
+        h (coeff P (p \<otimes>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
       by (simp cong: finsum_cong
-	add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def
-	del: coeff_mult)
+        add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def
+        del: coeff_mult)
     also from RS have "... =
-      finsum S (%i. h (coeff P (p \<otimes>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R p + deg R q}"
+      (\<Oplus>\<^sub>2 i \<in> {..deg R p + deg R q}. h (coeff P (p \<otimes>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
       by (simp only: ivl_disj_un_one deg_mult_cring)
     also from RS have "... =
-      finsum S (%i.
-        finsum S (%k. 
-        (h (coeff P p k) \<otimes>\<^sub>2 h (coeff P q (i-k))) \<otimes>\<^sub>2 (s (^)\<^sub>2 k \<otimes>\<^sub>2 s (^)\<^sub>2 (i-k)))
-      {..i}) {..deg R p + deg R q}"
+      (\<Oplus>\<^sub>2 i \<in> {..deg R p + deg R q}.
+       \<Oplus>\<^sub>2 k \<in> {..i}. h (coeff P p k) \<otimes>\<^sub>2 h (coeff P q (i - k)) \<otimes>\<^sub>2 (s (^)\<^sub>2 k \<otimes>\<^sub>2 s (^)\<^sub>2 (i - k)))"
       by (simp cong: finsum_cong add: nat_pow_mult Pi_def
-	S.m_ac S.finsum_rdistr)
+        S.m_ac S.finsum_rdistr)
     also from RS have "... =
-      finsum S (%i. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R p} \<otimes>\<^sub>2
-      finsum S (%i. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R q}"
-      by (simp add: S.cauchy_product [THEN sym] boundI deg_aboveD S.m_ac
-	Pi_def)
+      (\<Oplus>\<^sub>2i\<in>{..deg R p}. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) \<otimes>\<^sub>2
+      (\<Oplus>\<^sub>2i\<in>{..deg R q}. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
+      by (simp add: S.cauchy_product [THEN sym] bound.intro deg_aboveD S.m_ac
+        Pi_def)
     finally show
-      "finsum S (%i. h (coeff P (p \<otimes>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R (p \<otimes>\<^sub>3 q)} =
-      finsum S (%i. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R p} \<otimes>\<^sub>2
-      finsum S (%i. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R q}" .
+      "(\<Oplus>\<^sub>2 i \<in> {..deg R (p \<otimes>\<^sub>3 q)}. h (coeff P (p \<otimes>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) =
+      (\<Oplus>\<^sub>2 i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) \<otimes>\<^sub>2
+      (\<Oplus>\<^sub>2 i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)" .
   qed
 next
   fix p q
@@ -1314,36 +1297,35 @@ next
   then show "eval R S h s (p \<oplus>\<^sub>3 q) = eval R S h s p \<oplus>\<^sub>2 eval R S h s q"
   proof (simp only: eval_on_carrier UP_a_closed)
     from RS have
-      "finsum S (%i. h (coeff P (p \<oplus>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R (p \<oplus>\<^sub>3 q)} =
-      finsum S (%i. h (coeff P (p \<oplus>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)
-        ({..deg R (p \<oplus>\<^sub>3 q)} Un {)deg R (p \<oplus>\<^sub>3 q)..max (deg R p) (deg R q)})"
+      "(\<Oplus>\<^sub>2i \<in> {..deg R (p \<oplus>\<^sub>3 q)}. h (coeff P (p \<oplus>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) =
+      (\<Oplus>\<^sub>2i \<in> {..deg R (p \<oplus>\<^sub>3 q)} \<union> {)deg R (p \<oplus>\<^sub>3 q)..max (deg R p) (deg R q)}.
+        h (coeff P (p \<oplus>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
       by (simp cong: finsum_cong
-	add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def
-	del: coeff_add)
+        add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def
+        del: coeff_add)
     also from RS have "... =
-      finsum S (%i. h (coeff P (p \<oplus>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)
-        {..max (deg R p) (deg R q)}"
+        (\<Oplus>\<^sub>2 i \<in> {..max (deg R p) (deg R q)}. h (coeff P (p \<oplus>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
       by (simp add: ivl_disj_un_one)
     also from RS have "... =
-      finsum S (%i. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..max (deg R p) (deg R q)} \<oplus>\<^sub>2
-      finsum S (%i. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..max (deg R p) (deg R q)}"
+      (\<Oplus>\<^sub>2i\<in>{..max (deg R p) (deg R q)}. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) \<oplus>\<^sub>2
+      (\<Oplus>\<^sub>2i\<in>{..max (deg R p) (deg R q)}. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
       by (simp cong: finsum_cong
-	add: l_distr deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def)
+        add: l_distr deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def)
     also have "... =
-      finsum S (%i. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)
-        ({..deg R p} Un {)deg R p..max (deg R p) (deg R q)}) \<oplus>\<^sub>2
-      finsum S (%i. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)
-        ({..deg R q} Un {)deg R q..max (deg R p) (deg R q)})"
+        (\<Oplus>\<^sub>2 i \<in> {..deg R p} \<union> {)deg R p..max (deg R p) (deg R q)}.
+          h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) \<oplus>\<^sub>2
+        (\<Oplus>\<^sub>2 i \<in> {..deg R q} \<union> {)deg R q..max (deg R p) (deg R q)}.
+          h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
       by (simp only: ivl_disj_un_one le_maxI1 le_maxI2)
     also from RS have "... =
-      finsum S (%i. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R p} \<oplus>\<^sub>2
-      finsum S (%i. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R q}"
+      (\<Oplus>\<^sub>2 i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) \<oplus>\<^sub>2
+      (\<Oplus>\<^sub>2 i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
       by (simp cong: finsum_cong
-	add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def)
+        add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def)
     finally show
-      "finsum S (%i. h (coeff P (p \<oplus>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R (p \<oplus>\<^sub>3 q)} =
-      finsum S (%i. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R p} \<oplus>\<^sub>2
-      finsum S (%i. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..deg R q}"
+      "(\<Oplus>\<^sub>2i \<in> {..deg R (p \<oplus>\<^sub>3 q)}. h (coeff P (p \<oplus>\<^sub>3 q) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) =
+      (\<Oplus>\<^sub>2i \<in> {..deg R p}. h (coeff P p i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) \<oplus>\<^sub>2
+      (\<Oplus>\<^sub>2i \<in> {..deg R q}. h (coeff P q i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
       .
   qed
 next
@@ -1414,14 +1396,14 @@ lemma (in ring_hom_UP_cring) eval_monom1:
   "s \<in> carrier S ==> eval R S h s (monom P \<one> 1) = s"
 proof (simp only: eval_on_carrier monom_closed R.one_closed)
   assume S: "s \<in> carrier S"
-  then have "finsum S (\<lambda>i. h (coeff P (monom P \<one> 1) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)
-      {..deg R (monom P \<one> 1)} =
-    finsum S (\<lambda>i. h (coeff P (monom P \<one> 1) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)
-      ({..deg R (monom P \<one> 1)} Un {)deg R (monom P \<one> 1)..1})"
+  then have
+    "(\<Oplus>\<^sub>2 i \<in> {..deg R (monom P \<one> 1)}. h (coeff P (monom P \<one> 1) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) =
+    (\<Oplus>\<^sub>2i\<in>{..deg R (monom P \<one> 1)} \<union> {)deg R (monom P \<one> 1)..1}.
+      h (coeff P (monom P \<one> 1) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
     by (simp cong: finsum_cong del: coeff_monom
       add: deg_aboveD finsum_Un_disjoint ivl_disj_int_one Pi_def)
-  also have "... = 
-    finsum S (\<lambda>i. h (coeff P (monom P \<one> 1) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) {..1}"
+  also have "... =
+    (\<Oplus>\<^sub>2 i \<in> {..1}. h (coeff P (monom P \<one> 1) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)"
     by (simp only: ivl_disj_un_one deg_monom_le R.one_closed)
   also have "... = s"
   proof (cases "s = \<zero>\<^sub>2")
@@ -1429,8 +1411,8 @@ proof (simp only: eval_on_carrier monom_closed R.one_closed)
   next
     case False with S show ?thesis by (simp add: Pi_def)
   qed
-  finally show "finsum S (\<lambda>i. h (coeff P (monom P \<one> 1) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i)
-      {..deg R (monom P \<one> 1)} = s" .
+  finally show "(\<Oplus>\<^sub>2 i \<in> {..deg R (monom P \<one> 1)}.
+    h (coeff P (monom P \<one> 1) i) \<otimes>\<^sub>2 s (^)\<^sub>2 i) = s" .
 qed
 
 lemma (in UP_cring) monom_pow:
@@ -1491,15 +1473,13 @@ proof -
     by (auto intro: ring_hom_cringI UP_cring S.cring Phi)
   have Psi_hom: "ring_hom_cring P S Psi"
     by (auto intro: ring_hom_cringI UP_cring S.cring Psi)
-  have "Phi p = Phi (finsum P
-    (%i. monom P (coeff P p i) 0 \<otimes>\<^sub>3 (monom P \<one> 1) (^)\<^sub>3 i) {..deg R p})"
+  have "Phi p = Phi (\<Oplus>\<^sub>3i \<in> {..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^sub>3 monom P \<one> 1 (^)\<^sub>3 i)"
     by (simp add: up_repr RS monom_mult [THEN sym] monom_pow del: monom_mult)
-  also have "... = Psi (finsum P
-    (%i. monom P (coeff P p i) 0 \<otimes>\<^sub>3 (monom P \<one> 1) (^)\<^sub>3 i) {..deg R p})"
-    by (simp add: ring_hom_cring.hom_finsum [OF Phi_hom] 
+  also have "... = Psi (\<Oplus>\<^sub>3i\<in>{..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^sub>3 monom P \<one> 1 (^)\<^sub>3 i)"
+    by (simp add: ring_hom_cring.hom_finsum [OF Phi_hom]
       ring_hom_cring.hom_mult [OF Phi_hom]
       ring_hom_cring.hom_pow [OF Phi_hom] Phi
-      ring_hom_cring.hom_finsum [OF Psi_hom] 
+      ring_hom_cring.hom_finsum [OF Psi_hom]
       ring_hom_cring.hom_mult [OF Psi_hom]
       ring_hom_cring.hom_pow [OF Psi_hom] Psi RS Pi_def comp_def)
   also have "... = Psi p"
@@ -1511,13 +1491,13 @@ qed
 theorem (in ring_hom_UP_cring) UP_universal_property:
   "s \<in> carrier S ==>
   EX! Phi. Phi \<in> ring_hom P S \<inter> extensional (carrier P) &
-    Phi (monom P \<one> 1) = s & 
+    Phi (monom P \<one> 1) = s &
     (ALL r : carrier R. Phi (monom P r 0) = h r)"
-  using eval_monom1                              
+  using eval_monom1
   apply (auto intro: eval_ring_hom eval_const eval_extensional)
-  apply (rule extensionalityI)                                 
-  apply (auto intro: UP_hom_unique)                            
-  done                                                         
+  apply (rule extensionalityI)
+  apply (auto intro: UP_hom_unique)
+  done
 
 subsection {* Sample application of evaluation homomorphism *}
 
@@ -1545,7 +1525,8 @@ lemma INTEG_id:
 text {*
   An instantiation mechanism would now import all theorems and lemmas
   valid in the context of homomorphisms between @{term INTEG} and @{term
-  "UP INTEG"}.  *}
+  "UP INTEG"}.
+*}
 
 lemma INTEG_closed [intro, simp]:
   "z \<in> carrier INTEG"
@@ -1561,7 +1542,5 @@ lemma INTEG_pow [simp]:
 
 lemma "eval INTEG INTEG id 10 (monom (UP INTEG) 5 2) = 500"
   by (simp add: ring_hom_UP_cring.eval_monom [OF INTEG_id])
-
--- {* Calculates @{term "x = 500"} *}
 
 end
