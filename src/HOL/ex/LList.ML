@@ -1,4 +1,4 @@
-(*  Title:      HOL/llist
+(*  Title:      HOL/ex/LList
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -188,9 +188,14 @@ by (assume_tac 1);
 by (etac (fst_imageI RS (fst_image_LListD RS subsetD)) 1);
 qed "LListD_subset_diag";
 
+
 (** Coinduction, using LListD_Fun
     THE COINDUCTIVE DEFINITION PACKAGE COULD DO THIS!
  **)
+
+goalw thy [LListD_Fun_def] "!!A B. A<=B ==> LListD_Fun r A <= LListD_Fun r B";
+by (REPEAT (ares_tac basic_monos 1));
+qed "LListD_Fun_mono";
 
 goalw LList.thy [LListD_Fun_def]
     "!!M. [| M : X;  X <= LListD_Fun r (X Un LListD(r)) |] ==>  M : LListD(r)";
@@ -639,6 +644,15 @@ by (rtac equalityI 1);
 by (fast_tac (!claset addIs [Rep_llist]) 1);
 by (fast_tac (!claset addSEs [Abs_llist_inverse RS subst]) 1);
 qed "prod_fun_range_eq_diag";
+
+(*Surprisingly hard to prove.  Used with lfilter*)
+goalw thy [llistD_Fun_def, prod_fun_def]
+    "!!A B. A<=B ==> llistD_Fun A <= llistD_Fun B";
+by (Auto_tac());
+br image_eqI 1;
+by (fast_tac (!claset addss (!simpset)) 1);
+by (blast_tac (!claset addIs [impOfSubs LListD_Fun_mono]) 1);
+qed "llistD_Fun_mono";
 
 (** To show two llists are equal, exhibit a bisimulation! 
       [also admits true equality] **)
