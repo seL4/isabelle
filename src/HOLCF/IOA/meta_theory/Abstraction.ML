@@ -321,7 +321,6 @@ goalw thy [temp_strengthening_def]
 \         temp_strengthening P2 Q2 h |] \
 \      ==> temp_strengthening (P1 .--> P2) (Q1 .--> Q2) h";
 by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2])1);
-auto();
 qed"strength_IMPLIES";
 
 
@@ -335,7 +334,6 @@ goal thy
 \         temp_weakening P2 Q2 h |] \
 \      ==> temp_weakening (P1 .& P2) (Q1 .& Q2) h";
 by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2])1);
-auto();
 qed"weak_AND";
 
 goal thy 
@@ -343,7 +341,6 @@ goal thy
 \         temp_weakening P2 Q2 h |] \
 \      ==> temp_weakening (P1 .| P2) (Q1 .| Q2) h";
 by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2])1);
-auto();
 qed"weak_OR";
 
 goalw thy [temp_strengthening_def]
@@ -358,7 +355,6 @@ goalw thy [temp_strengthening_def]
 \         temp_weakening P2 Q2 h |] \
 \      ==> temp_weakening (P1 .--> P2) (Q1 .--> Q2) h";
 by (asm_full_simp_tac (simpset() addsimps [temp_weakening_def2])1);
-auto();
 qed"weak_IMPLIES";
 
 
@@ -386,12 +382,8 @@ by (clarify_tac set_cs 1);
 by (pair_tac "ex" 1);
 by (Seq_case_simp_tac "y" 1);
 (* UU case *)
-by (clarify_tac set_cs 1);
 by (asm_full_simp_tac (simpset() addsimps [UU_is_Conc])1);
-by (hyp_subst_tac 1);
-by (Asm_full_simp_tac 1);
 (* nil case *)
-by (clarify_tac set_cs 1);
 by (asm_full_simp_tac (simpset() addsimps [nil_is_Conc])1);
 (* cons case *)
 by (pair_tac "aa" 1);
