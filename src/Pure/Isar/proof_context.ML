@@ -688,7 +688,7 @@ fun upd_bind (ctxt, ((x, i), t)) =
     val T = Term.fastype_of t;
     val t' =
       if null (Term.term_tvars t \\ Term.typ_tvars T) then t
-      else Var ((x ^ "_has_extra_type_vars_on_rhs_", i), T);
+      else Var ((x ^ "_has_extra_type_vars_on_rhs", i), T);
   in
     ctxt
     |> declare_term t'
