@@ -20,11 +20,12 @@ sig
   val load: string -> Toplevel.transition -> Toplevel.transition
   val print_theory: Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
+  val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
-  val print_thms: xstring -> Toplevel.transition -> Toplevel.transition
+  val print_thms: xstring * Args.src list -> Toplevel.transition -> Toplevel.transition
   val print_prop: string -> Toplevel.transition -> Toplevel.transition
   val print_term: string -> Toplevel.transition -> Toplevel.transition
   val print_type: string -> Toplevel.transition -> Toplevel.transition
@@ -81,6 +82,7 @@ fun load name =
 
 val print_theory = Toplevel.keep (PureThy.print_theory o Toplevel.theory_of);
 val print_syntax = Toplevel.keep (Display.print_syntax o Toplevel.theory_of);
+val print_theorems = Toplevel.keep (PureThy.print_theorems o Toplevel.theory_of);
 val print_attributes = Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
 val print_methods = Toplevel.keep (Method.print_methods o Toplevel.theory_of);
 
@@ -93,16 +95,24 @@ val print_lthms = Toplevel.keep (ProofContext.print_thms o Proof.context_of o To
 
 (* print theorems *)
 
-fun print_thms name = Toplevel.keep (fn state =>
+fun global_attribs thy ths srcs =
+  #2 (Attribute.applys ((Theory.copy thy, ths), map (Attrib.global_attribute thy) srcs));
+
+fun local_attribs st ths srcs =
+  #2 (Attribute.applys ((Proof.context_of st, ths),
+    map (Attrib.local_attribute (Proof.theory_of st)) srcs));
+
+fun print_thms (name, srcs) = Toplevel.keep (fn state =>
   let
     val prt_tthm = Attribute.pretty_tthm;
     fun prt_tthms [th] = prt_tthm th
       | prt_tthms ths = Pretty.block (Pretty.fbreaks (map prt_tthm ths));
 
-    val tthms = map (apfst (Thm.transfer (Toplevel.theory_of state)))
+    val ths = map (apfst (Thm.transfer (Toplevel.theory_of state)))
       (Toplevel.node_cases PureThy.get_tthms (ProofContext.get_tthms o Proof.context_of)
         state name);
-  in Pretty.writeln (prt_tthms tthms) end);
+    val ths' = Toplevel.node_cases global_attribs local_attribs state ths srcs;
+  in Pretty.writeln (prt_tthms ths') end);
 
 
 (* print types, terms and props *)
