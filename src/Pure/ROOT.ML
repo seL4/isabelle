@@ -10,7 +10,7 @@ val banner = "Pure Isabelle";
 val version = "Isabelle repository version";    (*filled in automatically!*)
 
 
-print_depth 1;
+print_depth 8;
 
 (*global flags*)
 val print_mode = ref ([]: string list);
@@ -84,7 +84,6 @@ use "install_pp.ML";
 val use = ThyInfo.use;
 val cd = File.cd o Path.unpack;
 
-print_depth 8;
 ml_prompts "ML> " "ML# ";
 
 proofs := 0;
