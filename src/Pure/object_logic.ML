@@ -11,6 +11,7 @@ TODO:
 signature OBJECT_LOGIC =
 sig
   val dest_statement: string * term -> (string * term) list
+  val dest_main_statement: term -> term
   val setup: (theory -> theory) list
 end;
 
@@ -23,6 +24,11 @@ fun dest_statement (name, prop) =
     [(name ^ "_prop", prop), (name ^ "_concl", concl)] @
       (case concl of Const ("Trueprop", _) $ t => [(name, t)] | _ => [])
   end;
+
+fun dest_main_statement t =
+  (case Logic.strip_imp_concl t of
+    _ $ t => t
+  | _ => raise TERM ("dest_main", [t]));
 
 
 (* FIXME *)
