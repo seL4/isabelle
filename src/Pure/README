@@ -10,6 +10,7 @@ is the basis for all object-logics:
   General/	general tools
   Syntax/     	the syntax module
   Thy/          the theory file parser and loader
+  Isar/		Intelligible Semi-Automated Reasoning subsystem
   ./		the actual meta logic implementation (see ROOT.ML)
 
 Isabelle programmers may want to have a look at the following generic
