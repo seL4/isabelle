@@ -430,40 +430,23 @@ val type_syn = mk_syntax (ref (ExtGG (ref EmptyGG, type_ext)));
 
 (* extend *)  (* FIXME *)
 
-fun old_extend syn read_ty (roots, xconsts, sext) =
-  let
-    val Syntax (ggr0, Tabs {roots = roots0, ...}) = syn;
-
-    val ext1 = ext_of_sext ((distinct roots) \\ roots0) xconsts read_ty sext;
-    val (syn1 as Syntax (ggr1, tabs1)) = mk_syntax (ref (ExtGG (ggr0, ext1)));
-
-    val (parse_rules, print_rules) = read_xrules syn1 (xrules_of sext);
-    val ext2 = ExtRules {parse_rules = parse_rules, print_rules = print_rules};
-  in
-    Syntax (ref (ExtGG (ggr1, ext2)), extend_tables tabs1 (mk_xgram ext2))
-  end;
-
-
-fun new_extend syn read_ty (roots, xconsts, sext) =
+fun extend syn read_ty (roots, xconsts, sext) =
   let
     val Syntax (ggr0, tabs0 as Tabs {roots = roots0, ...}) = syn;
 
     val ext1 = ext_of_sext ((distinct roots) \\ roots0) xconsts read_ty sext;
-    val (syn1 as Syntax (ggr1, tabs1)) =
-      Syntax (ref (ExtGG (ggr0, ext1)), extend_tables tabs0 (mk_xgram ext1));
+
+    val (syn1 as Syntax (ggr1, tabs1)) = 
+      (case mk_xgram ext1 of
+        xg1 as XGram {prods = [], ...} => 
+          Syntax (ref (ExtGG (ggr0, ext1)), extend_tables tabs0 xg1)
+      | _ => mk_syntax (ref (ExtGG (ggr0, ext1))));
 
     val (parse_rules, print_rules) = read_xrules syn1 (xrules_of sext);
     val ext2 = ExtRules {parse_rules = parse_rules, print_rules = print_rules};
   in
     Syntax (ref (ExtGG (ggr1, ext2)), extend_tables tabs1 (mk_xgram ext2))
   end;
-
-
-fun extend syn read_ty (ex as (roots, _, sext)) =
-  (case (roots, sext) of
-    ([], Sext {mixfix = [], ...}) => new_extend
-  | ([], NewSext {mixfix = [], ...}) => new_extend
-  | _ => old_extend) syn read_ty ex;
 
 
 (* merge *)
