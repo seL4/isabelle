@@ -1,7 +1,6 @@
 (*  Title:      Pure/General/output.ML
     ID:         $Id$
     Author:     Makarius, Hagia Maria Sion Abbey (Jerusalem)
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Output channels and diagnostic messages.
 *)

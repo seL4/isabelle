@@ -1,7 +1,6 @@
 (*  Title:      Pure/Isar/constdefs.ML
     ID:         $Id$
     Author:     Makarius, Hagia Maria Sion Abbey (Jerusalem)
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Standard constant definitions, with type-inference and optional
 structure context; specifications need to observe strictly sequential

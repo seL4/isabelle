@@ -1,7 +1,6 @@
 (*  Title:      Pure/General/xml.ML
     ID:         $Id$
     Author:     David Aspinall, Stefan Berghofer and Markus Wenzel
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Basic support for XML.
 *)

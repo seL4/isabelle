@@ -1,7 +1,6 @@
 (*  Title:      Pure/proof_general.ML
     ID:         $Id$
     Author:     David Aspinall and Markus Wenzel
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Isabelle configuration for Proof General (see http://proofgeneral.inf.ed.ac.uk).
 *)

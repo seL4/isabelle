@@ -1,7 +1,6 @@
 (*  Title:   HOL/OrderedGroup.thy
     ID:      $Id$
     Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, and Markus Wenzel
-    License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Ordered Groups *}

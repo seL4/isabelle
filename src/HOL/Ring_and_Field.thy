@@ -1,7 +1,6 @@
 (*  Title:   HOL/Ring_and_Field.thy
     ID:      $Id$
     Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson and Markus Wenzel
-    License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* (Ordered) Rings and Fields *}

@@ -1,7 +1,6 @@
 (*  Title:   HOL/LOrder.thy
     ID:      $Id$
     Author:  Steven Obua, TU Muenchen
-    License: GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Lattice Orders *}

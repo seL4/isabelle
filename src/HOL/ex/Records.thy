@@ -2,7 +2,6 @@
     ID:         $Id$
     Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, 
                 TU Muenchen
-    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
 header {* Using extensible records in HOL -- points and coloured points *}
