@@ -1,5 +1,5 @@
 
-\chapter{Basic Language Elements}\label{ch:pure-syntax}
+\chapter{Basic language elements}\label{ch:pure-syntax}
 
 Subsequently, we introduce the main part of Pure theory and proof commands,
 together with fundamental proof methods and attributes.
@@ -508,8 +508,8 @@ tactic.
 
 Syntax translation functions written in ML admit almost arbitrary
 manipulations of Isabelle's inner syntax.  Any of the above commands have a
-single \railqtoken{text} argument that refers to an ML expression of
-appropriate type.
+single \railqtok{text} argument that refers to an ML expression of appropriate
+type.
 
 \begin{ttbox}
 val parse_ast_translation   : (string * (ast list -> ast)) list
@@ -837,8 +837,7 @@ statement is explicitly marked by separate keywords (see also
 Any goal statement causes some term abbreviations (such as $\Var{thesis}$) to
 be bound automatically, see also \S\ref{sec:term-abbrev}.  Furthermore, the
 local context of a (non-atomic) goal is provided via the
-$rule_context$\indexisarcase{rule-context} case, see also
-\S\ref{sec:rule-cases}.
+$rule_context$\indexisarcase{rule-context} case.
 
 \medskip
 
@@ -1042,7 +1041,7 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   the latter will ignore rules declared with ``$?$'', while ``$!$'' are used
   most aggressively.
   
-  The classical reasoner (see \S\ref{sec:classical-basic}) introduces its own
+  The classical reasoner (see \S\ref{sec:classical}) introduces its own
   variants of these attributes; use qualified names to access the present
   versions of Isabelle/Pure, i.e.\ $Pure{\dtt}intro$ or $CPure{\dtt}intro$.
   

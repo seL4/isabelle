@@ -1,5 +1,5 @@
 
-\chapter{Generic Tools and Packages}\label{ch:gen-tools}
+\chapter{Generic tools and packages}\label{ch:gen-tools}
 
 \section{Theory specification commands}
 
@@ -61,6 +61,7 @@ Isabelle documentation.
 Locales are named local contexts, consisting of a list of declaration elements
 that are modeled after the Isar proof context commands (cf.\
 \S\ref{sec:proof-context}).
+
 
 \subsubsection{Localized commands}
 
@@ -238,10 +239,9 @@ shall refer to (optional) facts indicated for forward chaining.
 \end{matharray}
 
 Typically, the soundness proof is relatively straight-forward, often just by
-canonical automated tools such as ``$\BY{simp}$'' (see \S\ref{sec:simp}) or
-``$\BY{blast}$'' (see \S\ref{sec:classical-auto}).  Accordingly, the
-``$that$'' reduction above is declared as simplification and introduction
-rule.
+canonical automated tools such as ``$\BY{simp}$'' or ``$\BY{blast}$''.
+Accordingly, the ``$that$'' reduction above is declared as simplification and
+introduction rule.
 
 \medskip
 
@@ -466,9 +466,9 @@ The Isar calculation proof commands may be defined as follows:\footnote{We
 \item [$elim_format$] turns a destruction rule into elimination rule format,
   by resolving with the rule $\PROP A \Imp (\PROP A \Imp \PROP B) \Imp \PROP
   B$.
-
-  Note that the Classical Reasoner (\S\ref{sec:classical-att}) provides its
-  own version of this operation.
+  
+  Note that the Classical Reasoner (\S\ref{sec:classical}) provides its own
+  version of this operation.
 
 \item [$standard$] puts a theorem into the standard form of object-rules at
   the outermost theory level.  Note that this operation violates the local
@@ -612,7 +612,7 @@ val thms  : string -> thm list
 
 \subsection{The Simplifier}\label{sec:simplifier}
 
-\subsubsection{Simplification methods}\label{sec:simp}
+\subsubsection{Simplification methods}
 
 \indexisarmeth{simp}\indexisarmeth{simp-all}
 \begin{matharray}{rcl}
@@ -737,13 +737,12 @@ method available for single-step case splitting.
 \end{rail}
 
 \begin{descr}
-
+  
 \item [$simplified~\vec a$] causes a theorem to be simplified, either by
   exactly the specified rules $\vec a$, or the implicit Simplifier context if
   no arguments are given.  The result is fully simplified by default,
   including assumptions and conclusion; the options $no_asm$ etc.\ tune the
-  Simplifier in the same way as the for the $simp$ method (see
-  \S\ref{sec:simp}).
+  Simplifier in the same way as the for the $simp$ method.
 
   Note that forward simplification restricts the simplifier to its most basic
   operation of term rewriting; solver and looper tactics \cite{isabelle-ref}
@@ -753,7 +752,7 @@ method available for single-step case splitting.
 \end{descr}
 
 
-\subsubsection{Low-level equational reasoning}\label{sec:basic-eq}
+\subsubsection{Low-level equational reasoning}
 
 \indexisarmeth{subst}\indexisarmeth{hypsubst}\indexisarmeth{split}
 \begin{matharray}{rcl}
@@ -787,15 +786,15 @@ way for automated normalization (see \S\ref{sec:simplifier}).
 \item [$split~\vec a$] performs single-step case splitting using rules $thms$.
   By default, splitting is performed in the conclusion of a goal; the $asm$
   option indicates to operate on assumptions instead.
-
+  
   Note that the $simp$ method already involves repeated application of split
-  rules as declared in the current context (see \S\ref{sec:simp}).
+  rules as declared in the current context.
 \end{descr}
 
 
 \subsection{The Classical Reasoner}\label{sec:classical}
 
-\subsubsection{Basic methods}\label{sec:classical-basic}
+\subsubsection{Basic methods}
 
 \indexisarmeth{rule}\indexisarmeth{default}\indexisarmeth{contradiction}
 \indexisarmeth{intro}\indexisarmeth{elim}
@@ -835,7 +834,7 @@ way for automated normalization (see \S\ref{sec:simplifier}).
 \end{descr}
 
 
-\subsubsection{Automated methods}\label{sec:classical-auto}
+\subsubsection{Automated methods}
 
 \indexisarmeth{blast}\indexisarmeth{fast}\indexisarmeth{slow}
 \indexisarmeth{best}\indexisarmeth{safe}\indexisarmeth{clarify}
@@ -908,9 +907,9 @@ assumptions to be included as well.
   tactics.  These correspond to \texttt{auto_tac}, \texttt{force_tac},
   \texttt{clarsimp_tac}, and Classical Reasoner tactics with the Simplifier
   added as wrapper, see \cite[\S11]{isabelle-ref} for more information.  The
-  modifier arguments correspond to those given in \S\ref{sec:simp} and
-  \S\ref{sec:classical-auto}.  Just note that the ones related to the
-  Simplifier are prefixed by \railtterm{simp} here.
+  modifier arguments correspond to those given in \S\ref{sec:simplifier} and
+  \S\ref{sec:classical}.  Just note that the ones related to the Simplifier
+  are prefixed by \railtterm{simp} here.
 
   Facts provided by forward chaining are inserted into the goal before doing
   the search.  The ``!''~argument causes the full context of assumptions to be
@@ -918,7 +917,7 @@ assumptions to be included as well.
 \end{descr}
 
 
-\subsubsection{Declaring rules}\label{sec:classical-mod}
+\subsubsection{Declaring rules}
 
 \indexisarcmd{print-claset}
 \indexisaratt{intro}\indexisaratt{elim}\indexisaratt{dest}
@@ -969,7 +968,7 @@ assumptions to be included as well.
 \end{descr}
 
 
-\subsubsection{Classical operations}\label{sec:classical-att}
+\subsubsection{Classical operations}
 
 \indexisaratt{elim-format}\indexisaratt{swapped}
 
@@ -994,7 +993,7 @@ assumptions to be included as well.
 
 \subsection{Proof by cases and induction}\label{sec:cases-induct}
 
-\subsubsection{Rule contexts}\label{sec:rule-cases}
+\subsubsection{Rule contexts}
 
 \indexisarcmd{case}\indexisarcmd{print-cases}
 \indexisaratt{case-names}\indexisaratt{params}\indexisaratt{consumes}
@@ -1106,9 +1105,9 @@ The $cases$ and $induct$ methods provide a uniform interface to case analysis
 and induction over datatypes, inductive sets, and recursive functions.  The
 corresponding rules may be specified and instantiated in a casual manner.
 Furthermore, these methods provide named local contexts that may be invoked
-via the $\CASENAME$ proof command within the subsequent proof text (cf.\
-\S\ref{sec:rule-cases}).  This accommodates compact proof texts even when
-reasoning about large specifications.
+via the $\CASENAME$ proof command within the subsequent proof text.  This
+accommodates compact proof texts even when reasoning about large
+specifications.
 
 \begin{rail}
   'cases' spec
@@ -1175,16 +1174,16 @@ reasoning about large specifications.
 
 \end{descr}
 
-Above methods produce named local contexts (cf.\ \S\ref{sec:rule-cases}), as
-determined by the instantiated rule as specified in the text.  Beyond that,
-the $induct$ method guesses further instantiations from the goal specification
-itself.  Any persisting unresolved schematic variables of the resulting rule
-will render the the corresponding case invalid.  The term binding
-$\Var{case}$\indexisarvar{case} for the conclusion will be provided with each
-case, provided that term is fully specified.
+Above methods produce named local contexts, as determined by the instantiated
+rule as specified in the text.  Beyond that, the $induct$ method guesses
+further instantiations from the goal specification itself.  Any persisting
+unresolved schematic variables of the resulting rule will render the the
+corresponding case invalid.  The term binding $\Var{case}$\indexisarvar{case}
+for the conclusion will be provided with each case, provided that term is
+fully specified.
 
-The $\isarkeyword{print_cases}$ command (\S\ref{sec:rule-cases}) prints all
-named cases present in the current proof state.
+The $\isarkeyword{print_cases}$ command prints all named cases present in the
+current proof state.
 
 \medskip
 
@@ -1242,10 +1241,10 @@ applied (thus facts may be even passed through an induction).
   corresponding methods of the same name.  Certain definitional packages of
   object-logics usually declare emerging cases and induction rules as
   expected, so users rarely need to intervene.
-
+  
   Manual rule declarations usually include the the $case_names$ and $ps$
   attributes to adjust names of cases and parameters of a rule (see
-  \S\ref{sec:rule-cases}); the $consumes$ declaration is taken care of
+  \S\ref{sec:cases-induct}); the $consumes$ declaration is taken care of
   automatically: $consumes~0$ is specified for ``type'' rules and $consumes~1$
   for ``set'' rules.
 

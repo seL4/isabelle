@@ -1,5 +1,5 @@
 
-\chapter{Isabelle/Isar Conversion Guide}\label{ap:conv}
+\chapter{Isabelle/Isar conversion guide}\label{ap:conv}
 
 Subsequently, we give a few practical hints on working in a mixed environment
 of old Isabelle ML proof scripts and new Isabelle/Isar theories.  There are
@@ -39,21 +39,21 @@ this is no longer done in new-style Isabelle/Isar theories.
 \begin{descr}
 \item [$\mathtt{thm}~name$ and $\mathtt{thms}~name$] retrieve theorems stored
   in the current theory context, including any ancestor node.
-  
+
   The convention of old-style theories was to bind any theorem as an ML value
   as well.  New-style theories no longer do this, so ML code may require
   \texttt{thm~"foo"} rather than just \texttt{foo}.
-  
+
 \item [$\mathtt{the_context()}$] refers to the current theory context.
-  
+
   Old-style theories often use the ML binding \texttt{thy}, which is
   dynamically created by the ML code generated from old theory source.  This
   is no longer the recommended way in any case!  Function \texttt{the_context}
   should be used for old scripts as well.
-  
+
 \item [$\mathtt{theory}~name$] retrieves the named theory from the global
   theory-loader database.
-  
+
   The ML code generated from old-style theories would include an ML binding
   $name\mathtt{.thy}$ as part of an ML structure.
 \end{descr}
@@ -72,11 +72,11 @@ the current theory context, in order to enable new-style theories to retrieve
 these later.
 
 \begin{descr}
-  
+
 \item [$\mathtt{qed}~name$] is the canonical way to conclude a proof script in
   ML.  This already manages entry in the theorem database of the current
   theory context.
-  
+
 \item [$\mathtt{bind_thm}~(name, thm)$ and $\mathtt{bind_thms}~(name, thms)$]
   store theorems that have been produced in ML in an ad-hoc manner.
 
@@ -133,13 +133,13 @@ as follows.
 \item Quoted strings may contain arbitrary white space, and span several lines
   without requiring \verb,\,\,\dots\verb,\, escapes.
 \item Names may always be quoted.
-  
+
   The old syntax would occasionally demand plain identifiers vs.\ quoted
   strings to accommodate certain syntactic features.
 \item Types and terms have to be \emph{atomic} as far as the theory syntax is
   concerned; this typically requires quoting of input strings, e.g.\ ``$x +
   y$''.
-  
+
   The old theory syntax used to fake part of the syntax of types in order to
   require less quoting in common cases; this was hard to predict, though.  On
   the other hand, Isar does not require quotes for simple terms, such as plain
@@ -300,12 +300,12 @@ Classic Isabelle provides several variant forms of tactics for single-step
 rule applications (based on higher-order resolution).  The space of resolution
 tactics has the following main dimensions.
 \begin{enumerate}
-\item The ``mode'' of resolution: intro, elim, destruct, or forward (e.g.\ 
+\item The ``mode'' of resolution: intro, elim, destruct, or forward (e.g.\
   \texttt{resolve_tac}, \texttt{eresolve_tac}, \texttt{dresolve_tac},
   \texttt{forward_tac}).
-\item Optional explicit instantiation (e.g.\ \texttt{resolve_tac} vs.\ 
+\item Optional explicit instantiation (e.g.\ \texttt{resolve_tac} vs.\
   \texttt{res_inst_tac}).
-\item Abbreviations for singleton arguments (e.g.\ \texttt{resolve_tac} vs.\ 
+\item Abbreviations for singleton arguments (e.g.\ \texttt{resolve_tac} vs.\
   \texttt{rtac}).
 \end{enumerate}
 
@@ -348,9 +348,9 @@ tactics may be expressed as follows.
 
 The main Simplifier tactics \texttt{Simp_tac}, \texttt{simp_tac} and variants
 (cf.\ \cite{isabelle-ref}) are all covered by the $simp$ and $simp_all$
-methods (see \S\ref{sec:simp}).  Note that there is no individual goal
-addressing available, simplification acts either on the first goal ($simp$)
-or all goals ($simp_all$).
+methods (see \S\ref{sec:simplifier}).  Note that there is no individual goal
+addressing available, simplification acts either on the first goal ($simp$) or
+all goals ($simp_all$).
 
 \begin{matharray}{lll}
   \texttt{Asm_full_simp_tac 1} & & simp \\
@@ -361,8 +361,9 @@ or all goals ($simp_all$).
 \end{matharray}
 
 Isar also provides separate method modifier syntax for augmenting the
-Simplifier context (see \S\ref{sec:simp}), which is known as the ``simpset''
-in ML.  A typical ML expression with simpset changes looks like this:
+Simplifier context (see \S\ref{sec:simplifier}), which is known as the
+``simpset'' in ML.  A typical ML expression with simpset changes looks like
+this:
 \begin{ttbox}
 asm_full_simp_tac (simpset () addsimps [\(a@1\), \(\dots\)] delsimps [\(b@1\), \(\dots\)]) 1
 \end{ttbox}
@@ -380,7 +381,7 @@ The Classical Reasoner provides a rather large number of variations of
 automated tactics, such as \texttt{Blast_tac}, \texttt{Fast_tac},
 \texttt{Clarify_tac} etc.\ (see \cite{isabelle-ref}).  The corresponding Isar
 methods usually share the same base name, such as $blast$, $fast$, $clarify$
-etc.\ (see \S\ref{sec:classical-auto}).
+etc.\ (see \S\ref{sec:classical}).
 
 Similar to the Simplifier, there is separate method modifier syntax for
 augmenting the Classical Reasoner context, which is known as the ``claset'' in
@@ -442,14 +443,13 @@ change in the goal state.  Nevertheless, ``$?$'' (try) may be used to accept
 \medskip \texttt{ALLGOALS}, \texttt{SOMEGOAL} etc.\ (see \cite{isabelle-ref})
 are not available in Isar, since there is no direct goal addressing.
 Nevertheless, some basic methods address all goals internally, notably
-$simp_all$ (see \S\ref{sec:simp}).  Also note that \texttt{ALLGOALS} may be
-often replaced by ``$+$'' (repeat at least once), although this usually has a
-different operational behavior, such as solving goals in a different order.
+$simp_all$ (see \S\ref{sec:simplifier}).  Also note that \texttt{ALLGOALS} may
+be often replaced by ``$+$'' (repeat at least once), although this usually has
+a different operational behavior, such as solving goals in a different order.
 
 \medskip Iterated resolution, such as
 \texttt{REPEAT~(FIRSTGOAL~(resolve_tac~$\dots$))}, is usually better expressed
-using the $intro$ and $elim$ methods of Isar (see
-\S\ref{sec:classical-basic}).
+using the $intro$ and $elim$ methods of Isar (see \S\ref{sec:classical}).
 
 
 \subsection{Declarations and ad-hoc operations}\label{sec:conv-decls}
@@ -559,8 +559,7 @@ On the other hand, one gains a human-readable representation of
 machine-checked formal proof.  Depending on the context of application, this
 might be even indispensable to start with!
 
-
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "isar-ref"
-%%% End: 
+%%% End:

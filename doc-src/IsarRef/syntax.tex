@@ -1,5 +1,5 @@
 
-\chapter{Syntax Primitives}
+\chapter{Syntax primitives}
 
 The rather generic framework of Isabelle/Isar syntax emerges from three main
 syntactic categories: \emph{commands} of the top-level Isar engine (covering
@@ -130,21 +130,21 @@ terms, and theorem specifications, which have been factored out of the actual
 Isar language elements to be described later.
 
 Note that some of the basic syntactic entities introduced below (e.g.\ 
-\railqtoken{name}) act much like tokens rather than plain nonterminals (e.g.\ 
+\railqtok{name}) act much like tokens rather than plain nonterminals (e.g.\ 
 \railnonterm{sort}), especially for the sake of error messages.  E.g.\ syntax
-elements like $\CONSTS$ referring to \railqtoken{name} or \railqtoken{type}
-would really report a missing name or type rather than any of the constituent
-primitive tokens such as \railtoken{ident} or \railtoken{string}.
+elements like $\CONSTS$ referring to \railqtok{name} or \railqtok{type} would
+really report a missing name or type rather than any of the constituent
+primitive tokens such as \railtok{ident} or \railtok{string}.
 
 
 \subsection{Names}
 
-Entity \railqtoken{name} usually refers to any name of types, constants,
+Entity \railqtok{name} usually refers to any name of types, constants,
 theorems etc.\ that are to be \emph{declared} or \emph{defined} (so qualified
 identifiers are excluded here).  Quoted strings provide an escape for
 non-identifier names or those ruled out by outer syntax keywords (e.g.\ 
 \verb|"let"|).  Already existing objects are usually referenced by
-\railqtoken{nameref}.
+\railqtok{nameref}.
 
 \indexoutertoken{name}\indexoutertoken{parname}\indexoutertoken{nameref}
 \indexoutertoken{int}
@@ -162,12 +162,11 @@ non-identifier names or those ruled out by outer syntax keywords (e.g.\
 
 \subsection{Comments}\label{sec:comments}
 
-Large chunks of plain \railqtoken{text} are usually given
-\railtoken{verbatim}, i.e.\ enclosed in \verb|{*|~\dots~\verb|*}|.  For
-convenience, any of the smaller text units conforming to \railqtoken{nameref}
-are admitted as well.  A marginal \railnonterm{comment} is of the form
-\texttt{--} \railqtoken{text}.  Any number of these may occur within
-Isabelle/Isar commands.
+Large chunks of plain \railqtok{text} are usually given \railtok{verbatim},
+i.e.\ enclosed in \verb|{*|~\dots~\verb|*}|.  For convenience, any of the
+smaller text units conforming to \railqtok{nameref} are admitted as well.  A
+marginal \railnonterm{comment} is of the form \texttt{--} \railqtok{text}.
+Any number of these may occur within Isabelle/Isar commands.
 
 \indexoutertoken{text}\indexouternonterm{comment}
 \begin{rail}
@@ -269,7 +268,7 @@ general mixfixes and binders.
   ;
 \end{rail}
 
-Here the \railtoken{string} specifications refer to the actual mixfix template
+Here the \railtok{string} specifications refer to the actual mixfix template
 (see also \cite{isabelle-ref}), which may include literal text, spacing,
 blocks, and arguments (denoted by ``$_$''); the special symbol \verb,\<index>,
 (printed as ``\i'') represents an index argument that specifies an implicit
@@ -287,7 +286,7 @@ Proof methods are either basic ones, or expressions composed of methods via
 ``\texttt{,}'' (sequential composition), ``\texttt{|}'' (alternative choices),
 ``\texttt{?}'' (try), ``\texttt{+}'' (repeat at least once).  In practice,
 proof methods are usually just a comma separated list of
-\railqtoken{nameref}~\railnonterm{args} specifications.  Note that parentheses
+\railqtok{nameref}~\railnonterm{args} specifications.  Note that parentheses
 may be dropped for single method specifications (with no arguments).
 
 \indexouternonterm{method}
@@ -317,8 +316,8 @@ Attributes (and proof methods, see \S\ref{sec:syn-meth}) have their own
 \railnonterm{args} below is parsed by the attribute a second time.  The
 attribute argument specifications may be any sequence of atomic entities
 (identifiers, strings etc.), or properly bracketed argument lists.  Below
-\railqtoken{atom} refers to any atomic entity, including any
-\railtoken{keyword} conforming to \railtoken{symident}.
+\railqtok{atom} refers to any atomic entity, including any \railtok{keyword}
+conforming to \railtok{symident}.
 
 \indexoutertoken{atom}\indexouternonterm{args}\indexouternonterm{attributes}
 \begin{rail}
@@ -366,8 +365,8 @@ or proof context; any given attributes are still applied, though.
 Wherever explicit propositions (or term fragments) occur in a proof text,
 casual binding of schematic term variables may be given specified via patterns
 of the form ``$\ISS{p@1\;\dots}{p@n}$''.  There are separate versions
-available for \railqtoken{term}s and \railqtoken{prop}s.  The latter provides
-a $\CONCLNAME$ part with patterns referring the (atomic) conclusion of a rule.
+available for \railqtok{term}s and \railqtok{prop}s.  The latter provides a
+$\CONCLNAME$ part with patterns referring the (atomic) conclusion of a rule.
 
 \indexouternonterm{termpat}\indexouternonterm{proppat}
 \begin{rail}
