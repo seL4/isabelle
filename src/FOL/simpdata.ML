@@ -83,38 +83,9 @@ fun mk_meta_eq th = case concl_of th of
   | _ $ (Const("Not",_)$_)      => th RS iff_reflection_F
   | _                           => th RS iff_reflection_T;
 
-structure Induction = InductionFun(struct val spec=IFOL.spec end);
 
-open Simplifier Induction;
+(*** Classical laws ***)
 
-(*Add congruence rules for = or <-> (instead of ==) *)
-infix 4 addcongs;
-fun ss addcongs congs =
-    ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
-
-(*Add a simpset to a classical set!*)
-infix 4 addss;
-fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
-
-
-val IFOL_simps =
-   [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
-    imp_simps @ iff_simps @ quant_simps;
-
-val notFalseI = int_prove_fun "~False";
-val triv_rls = [TrueI,refl,iff_refl,notFalseI];
-
-val IFOL_ss = 
-  empty_ss 
-  setmksimps (map mk_meta_eq o atomize o gen_all)
-  setsolver  (fn prems => resolve_tac (triv_rls@prems) 
-                          ORELSE' assume_tac
-                          ORELSE' etac FalseE)
-  setsubgoaler asm_simp_tac
-  addsimps IFOL_simps
-  addcongs [imp_cong];
-
-(*Classical version...*)
 fun prove_fun s = 
  (writeln s;  
   prove_goal FOL.thy s
@@ -124,14 +95,6 @@ fun prove_fun s =
 (*Avoids duplication of subgoals after expand_if, when the true and false 
   cases boil down to the same thing.*) 
 val cases_simp = prove_fun "(P --> Q) & (~P --> Q) <-> Q";
-
-val cla_simps = 
-    cases_simp::
-    map prove_fun
-     ["~(P&Q)  <-> ~P | ~Q",
-      "P | ~P",             "~P | P",
-      "~ ~ P <-> P",        "(~P --> P) <-> P",
-      "(~P <-> ~Q) <-> (P<->Q)"];
 
 (*At present, miniscoping is for classical logic only.  We do NOT include
   distribution of ALL over &, or dually that of EX over |.*)
@@ -157,8 +120,6 @@ val all_simps = map prove_fun
                  "(ALL x. P | Q(x)) <-> P | (ALL x.Q(x))",
                  "(ALL x. P(x) --> Q) <-> (EX x.P(x)) --> Q",
                  "(ALL x. P --> Q(x)) <-> P --> (ALL x.Q(x))"];
-
-val FOL_ss = IFOL_ss addsimps (cla_simps @ ex_simps @ all_simps);
 
 fun int_prove nm thm  = qed_goal nm IFOL.thy thm
     (fn prems => [ (cut_facts_tac prems 1), 
@@ -219,4 +180,46 @@ in
 fun split_inside_tac splits = mktac (map mk_meta_eq splits)
 end;
 
+
+(*** Standard simpsets ***)
+
+structure Induction = InductionFun(struct val spec=IFOL.spec end);
+
+open Simplifier Induction;
+
+(*Add congruence rules for = or <-> (instead of ==) *)
+infix 4 addcongs;
+fun ss addcongs congs =
+    ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
+
+(*Add a simpset to a classical set!*)
+infix 4 addss;
+fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
+
+val IFOL_simps =
+   [refl RS P_iff_T] @ conj_simps @ disj_simps @ not_simps @ 
+    imp_simps @ iff_simps @ quant_simps;
+
+val notFalseI = int_prove_fun "~False";
+val triv_rls = [TrueI,refl,iff_refl,notFalseI];
+
+val IFOL_ss = 
+  empty_ss 
+  setmksimps (map mk_meta_eq o atomize o gen_all)
+  setsolver  (fn prems => resolve_tac (triv_rls@prems) 
+                          ORELSE' assume_tac
+                          ORELSE' etac FalseE)
+  setsubgoaler asm_simp_tac
+  addsimps IFOL_simps
+  addcongs [imp_cong];
+
+val cla_simps = 
+    [de_Morgan_conj, de_Morgan_disj, not_all, not_ex, cases_simp] @
+    map prove_fun
+     ["~(P&Q)  <-> ~P | ~Q",
+      "P | ~P",             "~P | P",
+      "~ ~ P <-> P",        "(~P --> P) <-> P",
+      "(~P <-> ~Q) <-> (P<->Q)"];
+
+val FOL_ss = IFOL_ss addsimps (cla_simps @ ex_simps @ all_simps);
 
