@@ -2,7 +2,7 @@
 theory Documents = Main:
 (*>*)
 
-section {* Concrete syntax \label{sec:concrete-syntax} *}
+section {* Concrete Syntax \label{sec:concrete-syntax} *}
 
 text {*
   Concerning Isabelle's ``inner'' language of simply-typed @{text
@@ -25,7 +25,7 @@ text {*
 *}
 
 
-subsection {* Infix annotations *}
+subsection {* Infix Annotations *}
 
 text {*
   Syntax annotations may be included wherever constants are declared
@@ -84,7 +84,7 @@ text {*
   @{term "A [+] B [+] C"} as @{text "A [+] (B [+] C)"}.  In contrast,
   a \emph{non-oriented} declaration via \isakeyword{infix} would
   always demand explicit parentheses.
-  
+
   Many binary operations observe the associative law, so the exact
   grouping does not matter.  Nevertheless, formal statements need be
   given in a particular format, associativity needs to be treated
@@ -106,7 +106,7 @@ text {*
 *}
 
 
-subsection {* Mathematical symbols \label{sec:thy-present-symbols} *}
+subsection {* Mathematical Symbols \label{sec:thy-present-symbols} *}
 
 text {*
   Concrete syntax based on plain ASCII characters has its inherent
@@ -222,7 +222,7 @@ syntax (xsymbols output)
   xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>\<ignore>" 60)
 
 
-subsection {* Prefix annotations *}
+subsection {* Prefix Annotations *}
 
 text {*
   Prefix syntax annotations\index{prefix annotation} are just a very
@@ -264,7 +264,7 @@ consts
   currency :: "currency \<Rightarrow> nat"    ("\<currency>")
 
 
-subsection {* Syntax translations \label{sec:def-translations} *}
+subsection {* Syntax Translations \label{sec:def-translations} *}
 
 text{*
   FIXME
@@ -291,7 +291,7 @@ for uni-directional translations, which only affect
 parsing or printing.  This tutorial will not cover the details of
 translations.  We have mentioned the concept merely because it
 crops up occasionally; a number of HOL's built-in constructs are defined
-via translations.  Translations are preferable to definitions when the new 
+via translations.  Translations are preferable to definitions when the new
 concept is a trivial variation on an existing one.  For example, we
 don't need to derive new theorems about @{text"\<noteq>"}, since existing theorems
 about @{text"="} still apply.%
@@ -300,7 +300,7 @@ about @{text"="} still apply.%
 *}
 
 
-section {* Document preparation *}
+section {* Document Preparation *}
 
 text {*
   Isabelle/Isar is centered around a certain notion of \bfindex{formal
@@ -330,7 +330,7 @@ text {*
 *}
 
 
-subsection {* Isabelle sessions *}
+subsection {* Isabelle Sessions *}
 
 text {*
   In contrast to the highly interactive mode of the formal parts of
@@ -377,7 +377,7 @@ text {*
   with the generated document appearing in its proper place (within
   \verb,~/isabelle/browser_info,).
 
-  In practive, users may want to have \texttt{isatool mkdir} generate
+  In practice, users may want to have \texttt{isatool mkdir} generate
   an initial working setup without further ado.  For example, an empty
   session \texttt{MySession} derived from \texttt{HOL} may be produced
   as follows:
@@ -399,7 +399,10 @@ text {*
   \texttt{MySession}, and the file \texttt{MySession/ROOT.ML}
   accordingly.  \texttt{MySession/document/root.tex} should be also
   adapted at some point; the generated version is mostly
-  self-explanatory.
+  self-explanatory.  The default versions includes the
+  \texttt{isabelle} (mandatory) and \texttt{isabellesym} (required for
+  mathematical symbols); further packages may required, e.g.\ for
+  unusual Isabelle symbols.
 
   Realistic applications may demand additional files in
   \texttt{MySession/document} for the {\LaTeX} stage, such as
@@ -416,11 +419,13 @@ text {*
 *}
 
 
-subsection {* Structure markup *}
+subsection {* Structure Markup *}
 
 subsubsection {* Sections *}
 
 text {*
+  FIXME \verb,\label, within sections;
+
   The large-scale structure of Isabelle documents closely follows
   {\LaTeX} convention, with chapters, sections, subsubsections etc.
   The formal Isar language includes separate structure \bfindex{markup
@@ -456,7 +461,8 @@ text {*
   above.
 
   \medskip The following source fragment illustrates structure markup
-  of a theory.
+  of a theory.  Note that {\LaTeX} labels may well be included inside
+  of section headings as well.
 
   \begin{ttbox}
   header {\ttlbrace}* Some properties of Foo Bar elements *{\ttrbrace}
@@ -468,25 +474,26 @@ text {*
   consts
     foo :: \dots
     bar :: \dots
+
   defs \dots
-    
+
   subsection {\ttlbrace}* Derived rules *{\ttrbrace}
 
   lemma fooI: \dots
   lemma fooE: \dots
 
-  subsection {\ttlbrace}* Main theorem *{\ttrbrace}
+  subsection {\ttlbrace}* Main theorem {\ttback}label{\ttlbrace}sec:main-theorem{\ttrbrace} *{\ttrbrace}
 
   theorem main: \dots
 
   end
   \end{ttbox}
 
-  \medskip In realistic applications, users may well want to change
-  the meaning of some markup commands, typically via appropriate use
-  of \verb,\renewcommand, in \texttt{root.tex}.  The
-  \verb,\isamarkupheader, is a good candidate for some adaption, e.g.\
-  moving it up in the hierarchy to become \verb,\chapter,.
+  Users may occasionally want to change the meaning of some markup
+  commands, typically via appropriate use of \verb,\renewcommand, in
+  \texttt{root.tex}.  The \verb,\isamarkupheader, is a good candidate
+  for some adaption, e.g.\ moving it up in the hierarchy to become
+  \verb,\chapter,.
 
 \begin{verbatim}
   \renewcommand{\isamarkupheader}[1]{\chapter{#1}}
@@ -495,12 +502,11 @@ text {*
   Certainly, this requires to change the default
   \verb,\documentclass{article}, in \texttt{root.tex} to something
   that supports the notion of chapters in the first place, e.g.\
-  \texttt{report} or \texttt{book}.
+  \verb,\documentclass{report},.
 
-  \medskip For each generated theory output the {\LaTeX} macro
-  \verb,\isabellecontext, holds the name of the formal context.  This
-  is particularly useful for document headings or footings, e.g.\ like
-  this:
+  \medskip The {\LaTeX} macro \verb,\isabellecontext, is maintained to
+  hold the name of the current theory context.  This is particularly
+  useful for document headings or footings, e.g.\ like this:
 
 \begin{verbatim}
   \renewcommand{\isamarkupheader}[1]%
@@ -508,33 +514,81 @@ text {*
 \end{verbatim}
 
   \noindent Make sure to include something like
-  \verb,\pagestyle{headings}, in \texttt{root.tex} as well.  Moreover,
-  the document should have more than 2 pages.
+  \verb,\pagestyle{headings}, in \texttt{root.tex}; the document
+  should have more than 2 pages to show the effect.
 *}
 
 
-subsection {* Formal comments and antiquotations *}
+subsection {* Formal Comments and Antiquotations *}
 
 text {*
-  Comments of the form \verb,(*,~\dots~\verb,*),
+  Comments of the form \verb,(,\verb,*,~\dots~\verb,*,\verb,),
 
 *}
 
 
-subsection {* Symbols and characters *}
+subsection {* Symbols and Characters *}
 
 text {*
   FIXME \verb,\isabellestyle,
 *}
 
 
-subsection {* Suppressing output *}
+subsection {* Suppressing Output *}
 
 text {*
-  FIXME \verb,no_document,
+  By default Isabelle's document system generates a {\LaTeX} source
+  file for each theory that happens to get loaded during the session.
+  The generated \texttt{session.tex} file will include all of these in
+  order of appearance, which in turn gets included by the standard
+  \texttt{root.tex} file.  Certainly one may change the order of
+  appearance or suppress unwanted theories by ignoring
+  \texttt{session.tex} and include individual files in
+  \texttt{root.tex} by hand.  On the other hand, such an arrangement
+  requires additional efforts for maintenance.
 
-  FIXME \verb,(,\verb,*,\verb,<,\verb,*,\verb,),
-  \verb,(,\verb,*,\verb,>,\verb,*,\verb,),
+  Alternatively, one may tune the theory loading process in
+  \texttt{ROOT.ML}: traversal of the theory dependency graph may be
+  fine-tuned by adding further \verb,use_thy, invocations, although
+  topological sorting needs to be preserved.  Moreover, the ML
+  operator \verb,no_document, temporarily disables document generation
+  while executing a theory loader command; the usage is like this:
+
+\begin{verbatim}
+  no_document use_thy "Aux";
+\end{verbatim}
+
+  Theory output may be also suppressed \emph{partially} as well.
+  Typical applications include research papers or slides based on
+  formal developments --- these usually do not show the full formal
+  content.  The special source comments
+  \verb,(,\verb,*,\verb,<,\verb,*,\verb,), and
+  \verb,(,\verb,*,\verb,>,\verb,*,\verb,), are interpreted by the
+  document generator as open and close parenthesis for
+  \bfindex{ignored material}.  Any text inside of (potentially nested)
+  \verb,(,\verb,*,\verb,<,\verb,*,\verb,),~\dots~\verb,(,\verb,*,\verb,>,\verb,*,\verb,),
+  parentheses is just ignored from the output --- after correct formal
+  checking.
+
+  In the following example we suppress the slightly formalistic
+  \isakeyword{theory} and \isakeyword{end} part of a theory text.
+
+  \medskip
+
+  \begin{tabular}{l}
+  \verb,(,\verb,*,\verb,<,\verb,*,\verb,), \\
+  \texttt{theory A = Main:} \\
+  \verb,(,\verb,*,\verb,>,\verb,*,\verb,), \\
+  ~~$\vdots$ \\
+  \verb,(,\verb,*,\verb,<,\verb,*,\verb,), \\
+  \texttt{end} \\
+  \verb,(,\verb,*,\verb,>,\verb,*,\verb,), \\
+  \end{tabular}
+
+  \medskip
+
+  Ignoring portions of printed text like this demands some special
+  care. FIXME
 *}
 
 (*<*)
