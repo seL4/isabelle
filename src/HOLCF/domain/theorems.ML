@@ -1,20 +1,7 @@
- (* theorems.ML
-   Author : David von Oheimb
-   Created: 06-Jun-95
-   Updated: 08-Jun-95 first proof from cterms
-   Updated: 26-Jun-95 proofs for exhaustion thms
-   Updated: 27-Jun-95 proofs for discriminators, constructors and selectors
-   Updated: 06-Jul-95 proofs for distinctness, invertibility and injectivity
-   Updated: 17-Jul-95 proofs for induction rules
-   Updated: 19-Jul-95 proof for co-induction rule
-   Updated: 28-Aug-95 definedness theorems for selectors (completion)
-   Updated: 05-Sep-95 simultaneous domain equations (main part)
-   Updated: 11-Sep-95 simultaneous domain equations (coding finished)
-   Updated: 13-Sep-95 simultaneous domain equations (debugging)
-   Updated: 26-Oct-95 debugging and enhancement of proofs for take_apps, ind
-   Updated: 16-Feb-96 bug concerning  domain Triv = triv  fixed
-   Updated: 01-Mar-96 when functional strictified, copy_def based on when_def
-   Copyright 1995, 1996 TU Muenchen
+(*  Title:      HOLCF/domain/theorems.ML
+    ID:         $ $
+    Author : David von Oheimb
+    Copyright 1995, 1996 TU Muenchen
 *)
 
 structure Domain_Theorems = struct
@@ -141,7 +128,7 @@ fun exh foldr1 cn quant foldr2 var = let
 in
 val cases = let 
             fun common_tac thm = rtac thm 1 THEN contr_tac 1;
-            fun unit_tac true = common_tac liftE1
+            fun unit_tac true = common_tac upE1
             |   unit_tac _    = all_tac;
             fun prod_tac []          = common_tac oneE
             |   prod_tac [arg]       = unit_tac (is_lazy arg)

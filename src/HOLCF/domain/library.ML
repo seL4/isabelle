@@ -1,9 +1,7 @@
-(* library.ML
-   Author : David von Oheimb
-   Created: 18-Jul-95 extracted from syntax.ML, axioms.ML, extender.ML, interface.ML
-   Updated: 30-Aug-95
-   Updated: 20-Oct-95 small improvement for atomize
-   Copyright 1995 TU Muenchen
+(*  Title:      HOLCF/domain/library.ML
+    ID:         $ $
+    Author : David von Oheimb
+    Copyright 1995, 1996 TU Muenchen
 *)
 
 (* ----- general support ---------------------------------------------------- *)
@@ -184,7 +182,7 @@ fun when_body cons funarg = let
 	fun one_fun n (_,[]  ) = /\ "dummy" (funarg(1,n))
 	|   one_fun n (_,args) = let
 		val l2 = length args;
-		fun idxs m arg = (if is_lazy arg then fn x=> %%"lift"`%%"ID"`x
+		fun idxs m arg = (if is_lazy arg then fn x=> %%"fup"`%%"ID"`x
 					         else Id) (Bound(l2-m));
 		in cont_eta_contract (foldr'' 
 			(fn (a,t) => %%"ssplit"`(/\# (a,t)))
