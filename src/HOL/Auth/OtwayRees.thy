@@ -5,6 +5,8 @@
 
 Inductive relation "otway" for the Otway-Rees protocol.
 
+Version that encrypts Nonce NB
+
 From page 244 of
   Burrows, Abadi and Needham.  A Logic of Authentication.
   Proc. Royal Soc. 426 (1989)
@@ -25,10 +27,10 @@ inductive otway
           ==> Says Enemy B X  # evs : otway"
 
          (*Alice initiates a protocol run*)
-    OR1  "[| evs: otway;  A ~= B |]
+    OR1  "[| evs: otway;  A ~= B;  B ~= Server |]
           ==> Says A B {|Nonce (newN evs), Agent A, Agent B, 
-                            Crypt {|Nonce (newN evs), Agent A, Agent B|} 
-                                  (shrK A) |} 
+                         Crypt {|Nonce (newN evs), Agent A, Agent B|} 
+                               (shrK A) |} 
                  # evs : otway"
 
          (*Bob's response to Alice's message.  Bob doesn't know who 
@@ -37,8 +39,9 @@ inductive otway
     OR2  "[| evs: otway;  B ~= Server;
              Says A' B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs |]
           ==> Says B Server 
-                  {|Nonce NA, Agent A, Agent B, X, Nonce (newN evs), 
-                    Crypt {|Nonce NA, Agent A, Agent B|} (shrK B)|}
+                  {|Nonce NA, Agent A, Agent B, X, 
+                    Crypt {|Nonce NA, Nonce (newN evs), 
+                            Agent A, Agent B|} (shrK B)|}
                  # evs : otway"
 
          (*The Server receives Bob's message and checks that the three NAs
@@ -48,8 +51,7 @@ inductive otway
              Says B' Server 
                   {|Nonce NA, Agent A, Agent B, 
                     Crypt {|Nonce NA, Agent A, Agent B|} (shrK A), 
-                    Nonce NB, 
-                    Crypt {|Nonce NA, Agent A, Agent B|} (shrK B)|}
+                    Crypt {|Nonce NA, Nonce NB, Agent A, Agent B|} (shrK B)|}
                : set_of_list evs |]
           ==> Says Server B 
                   {|Nonce NA, 
@@ -59,19 +61,23 @@ inductive otway
 
          (*Bob receives the Server's (?) message and compares the Nonces with
 	   those in the message he previously sent the Server.*)
-    OR4  "[| evs: otway;  A ~= B;  
+    OR4  "[| evs: otway;  A ~= B;  B ~= Server;
              Says S B {|Nonce NA, X, Crypt {|Nonce NB, Key K|} (shrK B)|}
                : set_of_list evs;
-             Says B Server {|Nonce NA, Agent A, Agent B, X', Nonce NB, X''|}
+             Says B Server {|Nonce NA, Agent A, Agent B, X', 
+                             Crypt {|Nonce NA, Nonce NB, Agent A, Agent B|} 
+                                   (shrK B)|}
                : set_of_list evs |]
-          ==> (Says B A {|Nonce NA, X|}) # evs : otway"
+          ==> Says B A {|Nonce NA, X|} # evs : otway"
 
-         (*Alice checks her Nonce, then sends a dummy message to Bob,
-           using the new session key.*)
-    OR5  "[| evs: otway;  
-             Says B' A {|Nonce NA, Crypt {|Nonce NA, Key K|} (shrK A)|}
-               : set_of_list evs;
-             Says A  B {|Nonce NA, Agent A, Agent B, X|} : set_of_list evs |]
-          ==> Says A B (Crypt (Agent A) K)  # evs : otway"
+         (*This message models possible leaks of session keys.  Alice's Nonce
+           identifies the protocol run.*)
+    Reveal "[| evs: otway;  A ~= Enemy;
+               Says B' A {|Nonce NA, Crypt {|Nonce NA, Key K|} (shrK A)|}
+                 : set_of_list evs;
+               Says A  B {|Nonce NA, Agent A, Agent B, 
+                           Crypt {|Nonce NA, Agent A, Agent B|} (shrK A)|}
+                 : set_of_list evs |]
+            ==> Says A Enemy {|Nonce NA, Key K|} # evs : otway"
 
 end
