@@ -656,7 +656,7 @@ must fall back on translation functions.  But a trick can make things
 readable in some cases: {\em calling\/} translation functions by parse
 macros:
 \begin{ttbox}
-ProdSyntax = FinSyntax +
+ProdSyntax = SetSyntax +
 consts
   Pi            :: [i, i => i] => i
 syntax
@@ -813,12 +813,12 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if 0 mem (loose_bnos B) then
         let val (x', B') = Syntax.variant_abs' (x, dummyT, B) in
           list_comb
-            (Const (q,dummyT) $ Syntax.mark_boundT (x', T) $ A $ B', ts)
+            (Const (q,{\thinspace}dummyT) $ Syntax.mark_boundT (x',{\thinspace}T) $ A $ B',{\thinspace}ts)
         end
       else list_comb (Const (r, dummyT) $ A $ B, ts)
   | dependent_tr' _ _ = raise Match;
 \end{ttbox}
-The argument {\tt (q, r)} is supplied to the curried function {\tt
+The argument {\tt (q,{\thinspace}r)} is supplied to the curried function {\tt
   dependent_tr'} by a partial application during its installation.
 For example, we could set up print translations for both {\tt Pi} and
 {\tt Sigma} by including
