@@ -19,7 +19,8 @@ POLYML_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/polyml" \
   "$ISABELLE_HOME/../polyml" \
   "/usr/share/polyml" \
-  "/usr/local/polyml")
+  "/usr/local/polyml" \
+  "/opt/polyml")
 ML_SYSTEM=$("$POLYML_HOME/bin/polyml-version" 2>/dev/null || echo polyml)
 ML_PLATFORM=$("$POLYML_HOME/bin/polyml-platform" 2>/dev/null)
 ML_HOME="$POLYML_HOME/$ML_PLATFORM"
@@ -151,6 +152,7 @@ ISABELLE_INTERFACE=$(choosefrom \
   "$ISABELLE_HOME/../ProofGeneral/isar/interface" \
   "/usr/share/ProofGeneral/isar/interface" \
   "/usr/local/ProofGeneral/isar/interface" \
+  "/opt/ProofGeneral/isar/interface" \
   "/usr/share/emacs/ProofGeneral/isar/interface" \
   "$ISABELLE_INTERFACE")
 PROOFGENERAL_OPTIONS=""
@@ -161,6 +163,7 @@ XSYMBOL_HOME=$(choosefrom \
   "$ISABELLE_HOME/../x-symbol" \
   "/usr/share/x-symbol" \
   "/usr/local/x-symbol" \
+  "/opt/x-symbol" \
   "")
 #required for remote fonts only ...
 #XSYMBOL_INSTALLFONTS="xset fp+ tcp/isafonts.informatik.tu-muenchen.de:7200"
