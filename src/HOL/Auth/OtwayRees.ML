@@ -351,82 +351,6 @@ by (Fast_tac 1);
 qed "analz_insert_Key_newK";
 
 
-(*** Session keys are issued at most once, and identify the principals ***)
-
-(*NOW WE HAVE... 
-          Says S B
-           {|Nonce NA, Crypt {|Nonce NA, Key (newK evta)|} (shrK A),
-            Crypt {|Nonce NB, Key (newK evta)|} (shrK B)|} 
-AND
-          Says Server (Friend j)
-           {|Ni, Crypt {|Ni, Key (newK evta)|} (shrK (Friend i)),
-            Crypt {|Nj, Key (newK evta)|} (shrK (Friend j))|} 
-THUS
-          A = Friend i | A = Friend j
-AND THIS LETS US PROVE IT!!
-*)
-
-goal thy 
- "!!evs. [| X : synth (analz (sees Enemy evs));       \
-\           Crypt X' (shrK C) : parts{X};             \
-\           C ~= Enemy;   evs : otway |]              \
-\        ==> Crypt X' (shrK C) : parts (sees Enemy evs)";
-by (best_tac (!claset addSEs [impOfSubs analz_subset_parts]
-	              addDs [impOfSubs parts_insert_subset_Un]
-                      addss (!simpset)) 1);
-qed "Crypt_Fake_parts";
-
-goal thy 
- "!!evs. [| Crypt X' K : parts (sees A evs);  evs : otway |]  \
-\        ==> EX S S' Y. Says S S' Y : set_of_list evs &       \
-\            Crypt X' K : parts {Y}";
-bd parts_singleton 1;
-by (fast_tac (!claset addSDs [seesD] addss (!simpset)) 1);
-qed "Crypt_parts_singleton";
-
-fun ex_strip_tac i = REPEAT (ares_tac [exI, conjI] i) THEN assume_tac (i+1);
-
-(*The Key K uniquely identifies a pair of senders in the message encrypted by
-  C, but if C=Enemy then he could send all sorts of nonsense.*)
-goal thy 
- "!!evs. evs : otway ==>                        \
-\      EX A B. ALL C S S' X NA.                    \
-\         C ~= Enemy -->                        \
-\         Says S S' X : set_of_list evs -->     \
-\           (Crypt {|NA, Key K|} (shrK C) : parts{X} --> C=A | C=B)";
-be otway.induct 1;
-bd OR2_analz_sees_Enemy 4;
-bd OR4_analz_sees_Enemy 6;
-by (ALLGOALS 
-    (asm_simp_tac (!simpset addsimps [all_conj_distrib, imp_conj_distrib])));
-by (REPEAT_FIRST (etac exE));
-(*OR4*)
-by (ex_strip_tac 4);
-by (fast_tac (!claset addSDs [synth.Inj RS Crypt_Fake_parts, 
-			      Crypt_parts_singleton]) 4);
-(*OR3: Case split propagates some context to other subgoal...*)
-	(** LEVEL 8 **)
-by (excluded_middle_tac "K = newK evsa" 3);
-by (Asm_simp_tac 3);
-by (REPEAT (ares_tac [exI] 3));
-(*...we prove this case by contradiction: the key is too new!*)
-by (fast_tac (!claset addIs [impOfSubs (subset_insertI RS parts_mono)]
-		      addSEs partsEs
-		      addEs [Says_imp_old_keys RS less_irrefl]
-	              addss (!simpset)) 3);
-(*OR2*) (** LEVEL 12 **)
-by (ex_strip_tac 2);
-by (res_inst_tac [("x1","X"), ("y1", "{|?XX,?YY|}")]
-    (insert_commute RS ssubst) 2);
-by (Simp_tac 2);
-by (fast_tac (!claset addSDs [synth.Inj RS Crypt_Fake_parts, 
-			      Crypt_parts_singleton]) 2);
-(*Fake*) (** LEVEL 16 **)
-by (ex_strip_tac 1);
-by (fast_tac (!claset addSDs [Crypt_Fake_parts, Crypt_parts_singleton]) 1);
-qed "unique_session_keys";
-
-
 (*Describes the form *and age* of K when the following message is sent*)
 goal thy 
  "!!evs. [| Says Server B \
@@ -479,3 +403,72 @@ by (res_inst_tac [("x1","X"), ("y1", "{|?XX,?YY|}")]
 by (asm_simp_tac (!simpset setloop split_tac [expand_if]) 1);
 by (enemy_analz_tac 1);
 qed "Enemy_not_see_encrypted_key";
+
+
+
+(*** Session keys are issued at most once, and identify the principals ***)
+
+(** First, two lemmas for the Fake, OR2 and OR4 cases **)
+
+goal thy 
+ "!!evs. [| X : synth (analz (sees Enemy evs));       \
+\           Crypt X' (shrK C) : parts{X};             \
+\           C ~= Enemy;   evs : otway |]              \
+\        ==> Crypt X' (shrK C) : parts (sees Enemy evs)";
+by (best_tac (!claset addSEs [impOfSubs analz_subset_parts]
+	              addDs [impOfSubs parts_insert_subset_Un]
+                      addss (!simpset)) 1);
+qed "Crypt_Fake_parts";
+
+goal thy 
+ "!!evs. [| Crypt X' K : parts (sees A evs);  evs : otway |]  \
+\        ==> EX S S' Y. Says S S' Y : set_of_list evs &       \
+\            Crypt X' K : parts {Y}";
+bd parts_singleton 1;
+by (fast_tac (!claset addSDs [seesD] addss (!simpset)) 1);
+qed "Crypt_parts_singleton";
+
+fun ex_strip_tac i = REPEAT (ares_tac [exI, conjI] i) THEN assume_tac (i+1);
+
+(*The Key K uniquely identifies a pair of senders in the message encrypted by
+  C, but if C=Enemy then he could send all sorts of nonsense.*)
+goal thy 
+ "!!evs. evs : otway ==>                        \
+\      EX A B. ALL C.                    \
+\         C ~= Enemy -->                        \
+\         (ALL S S' X. Says S S' X : set_of_list evs -->     \
+\           (EX NA. Crypt {|NA, Key K|} (shrK C) : parts{X}) --> C=A | C=B)";
+by (Simp_tac 1);
+be otway.induct 1;
+bd OR2_analz_sees_Enemy 4;
+bd OR4_analz_sees_Enemy 6;
+by (ALLGOALS 
+    (asm_simp_tac (!simpset addsimps [all_conj_distrib, imp_conj_distrib])));
+by (REPEAT_FIRST (etac exE));
+(*OR4*)
+by (ex_strip_tac 4);
+by (fast_tac (!claset addSDs [synth.Inj RS Crypt_Fake_parts, 
+			      Crypt_parts_singleton]) 4);
+(*OR3: Case split propagates some context to other subgoal...*)
+	(** LEVEL 8 **)
+by (excluded_middle_tac "K = newK evsa" 3);
+by (Asm_simp_tac 3);
+by (REPEAT (ares_tac [exI] 3));
+(*...we prove this case by contradiction: the key is too new!*)
+by (fast_tac (!claset addIs [impOfSubs (subset_insertI RS parts_mono)]
+		      addSEs partsEs
+		      addEs [Says_imp_old_keys RS less_irrefl]
+	              addss (!simpset)) 3);
+(*OR2*) (** LEVEL 12 **)
+by (ex_strip_tac 2);
+by (res_inst_tac [("x1","X"), ("y1", "{|?XX,?YY|}")]
+    (insert_commute RS ssubst) 2);
+by (Simp_tac 2);
+by (fast_tac (!claset addSDs [synth.Inj RS Crypt_Fake_parts, 
+			      Crypt_parts_singleton]) 2);
+(*Fake*) (** LEVEL 16 **)
+by (ex_strip_tac 1);
+by (fast_tac (!claset addSDs [Crypt_Fake_parts, Crypt_parts_singleton]) 1);
+qed "unique_session_keys";
+
+(*It seems strange but this theorem is NOT needed to prove the main result!*)
