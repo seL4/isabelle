@@ -159,12 +159,11 @@ qed "less_not_sym";
 bind_thm ("less_asym", less_not_sym RS swap);
 
 Goalw [less_def] "~ n<(n::nat)";
-by (rtac notI 1);
-by (etac (wf_pred_nat RS wf_trancl RS wf_irrefl) 1);
+by (rtac (wf_pred_nat RS wf_trancl RS wf_not_refl) 1);
 qed "less_not_refl";
 
 (* n<n ==> R *)
-bind_thm ("less_irrefl", (less_not_refl RS notE));
+bind_thm ("less_irrefl", less_not_refl RS notE);
 AddSEs [less_irrefl];
 
 Goal "n<m ==> m ~= (n::nat)";
@@ -293,7 +292,7 @@ qed "not_less_eq";
 
 (*Complete induction, aka course-of-values induction*)
 val prems = Goalw [less_def]
-    "[| !!n. [| ! m::nat. m<n --> P(m) |] ==> P(n) |]  ==>  P(n)";
+    "[| !!n. [| ALL m::nat. m<n --> P(m) |] ==> P(n) |]  ==>  P(n)";
 by (wf_ind_tac "n" [wf_pred_nat RS wf_trancl] 1);
 by (eresolve_tac prems 1);
 qed "less_induct";
@@ -465,7 +464,7 @@ bind_thms ("not_less_simps", [not_less_less_Suc_eq, leD RS not_less_less_Suc_eq]
 
 (** LEAST -- the least number operator **)
 
-Goal "(! m::nat. P m --> n <= m) = (! m. m < n --> ~ P m)";
+Goal "(ALL m::nat. P m --> n <= m) = (ALL m. m < n --> ~ P m)";
 by (blast_tac (claset() addIs [leI] addEs [leE]) 1);
 val lemma = result();
 
@@ -514,7 +513,7 @@ qed "not_less_Least";
 (* [| m ~= n; m < n ==> P; n < m ==> P |] ==> P *)
 bind_thm("nat_neqE", nat_neq_iff RS iffD1 RS disjE);
 
-Goal "(S::nat set) ~= {} ==> ? x:S. ! y:S. x <= y";
+Goal "(S::nat set) ~= {} ==> EX x:S. ALL y:S. x <= y";
 by (cut_facts_tac [wf_pred_nat RS wf_trancl RS (wf_eq_minimal RS iffD1)] 1);
 by (dres_inst_tac [("x","S")] spec 1);
 by (Asm_full_simp_tac 1);
