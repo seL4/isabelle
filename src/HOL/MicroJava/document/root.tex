@@ -2,23 +2,39 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage{isabelle,isabellesym,pdfsetup}
 
+\pagestyle{myheadings}
+
 \addtolength{\hoffset}{-1,5cm}
 \addtolength{\textwidth}{4cm}
 \addtolength{\voffset}{-2cm}
 \addtolength{\textheight}{4cm}
 
 \renewcommand{\thesection}{\arabic{section}}
-\renewcommand{\isamarkupheader}[1]{\newpage\section{#1}}
-
-\pagestyle{headings}
+\renewcommand{\isamarkupheader}[1]{\newpage\markright{Theory~\isabellecontext}\section{#1}}
 
 
 \begin{document}
 
+\title{$\mu$Java}
+\author{Gerwin Klein \\ Tobias Nipkow \\ David von Oheimb \\ Cornelia Pusch}
+\maketitle
+
+\begin{abstract}
+  This formal development defines Micro Java, a small fragment of the
+  programming language Java (essentially just classes), together with a
+  corresponding virtual machine and a specification of its bytecode verifier.
+  It is shown that Micro Java and the given specification of the bytecode
+  verifier are type safe.
+\end{abstract}
+
 \tableofcontents
 \parindent 0pt \parskip 0.5ex
-\newpage
 
+\newpage
 \input{session}
+
+\nocite{*}
+\bibliographystyle{abbrv}
+\bibliography{root}
 
 \end{document}
