@@ -249,6 +249,11 @@ fun absent ixn =
 fun inst_failure ixn =
   error("Instantiation of " ^ Syntax.string_of_vname ixn ^ " fails");
 
+(* this code is a bit of a mess. add_cterm could be simplified greatly if
+   simultaneous instantiations were read or at least type checked
+   simultaneously rather than one after the other. This would make the tricky
+   composition of implicit type instantiations (parameter tye) superfluous.
+*)
 fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
 let val {tsig,...} = Sign.rep_sg sign
     fun split([],tvs,vs) = (tvs,vs)
@@ -269,11 +274,14 @@ let val {tsig,...} = Sign.rep_sg sign
                       Some T => typ_subst_TVars tye T
                     | None => absent ixn;
             val (ct,tye2) = read_def_cterm(sign,types,sorts) used false (st,T);
-            val cv = cterm_of sign (Var(ixn,typ_subst_TVars tye2 T))
+            val cts' = (ixn,T,ct)::cts
+            fun inst(ixn,T,ct) = (ixn,typ_subst_TVars tye2 T,ct)
             val used' = add_term_tvarnames(term_of ct,used);
-        in ((cv,ct)::cts,tye2 @ tye,used') end
+        in (map inst cts',tye2 @ tye,used') end
     val (cterms,tye',_) = foldl add_cterm (([],tye,used), vs);
-in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye', cterms) end;
+in (map (fn (ixn,T) => (ixn,ctyp_of sign T)) tye',
+    map (fn (ixn,T,ct) => (cterm_of sign (Var(ixn,T)), ct)) cterms)
+end;
 
 
 
@@ -585,7 +593,8 @@ fun tha COMP thb =
 (*Instantiate theorem th, reading instantiations under signature sg*)
 fun read_instantiate_sg sg sinsts th =
     let val ts = types_sorts th;
-    in  instantiate (read_insts sg ts ts [] sinsts) th  end;
+        val used = add_term_tvarnames(#prop(rep_thm th),[]);
+    in  instantiate (read_insts sg ts ts used sinsts) th  end;
 
 (*Instantiate theorem th, reading instantiations under theory of th*)
 fun read_instantiate sinsts th =

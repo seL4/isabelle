@@ -272,50 +272,45 @@ fun infer_types sg types sorts used freeze print_msg (ts, T) =
 
     val ct = const_type sg;
 
-    fun process_terms (t::ts) (idx, infrd_t, tye) msg n =
-         let val (infrd_t', tye', msg') = 
-              let val (T,tye) =
-                    Type.infer_types(tsig,ct,types,sorts,used,freeze,T',t)
-              in (Some T, Some tye, msg) end
-              handle TYPE arg => (None, None, exn_type_msg arg)
+    fun warn() =
+      if length ts > 1 andalso length ts <= !Syntax.ambiguity_level
+      then (*no warning shown yet*)
+           writeln "Warning: Currently parsed input \
+                   \produces more than one parse tree.\n\
+                   \For more information lower Syntax.ambiguity_level."
+      else ();
 
-             val old_show_brackets = !show_brackets;
+    datatype result = One of int * term * (indexname * typ) list
+                    | Errs of (string * typ list * term list)list
+                    | Ambigs of term list;
 
-             val _ = (show_brackets := true);
+    fun process_term(res,(t,i)) =
+       let val (u,tye) = Type.infer_types(tsig,ct,types,sorts,used,freeze,T',t)
+       in case res of
+            One(_,t0,_) => Ambigs([u,t0])
+          | Errs _ => One(i,u,tye)
+          | Ambigs(us) => Ambigs(u::us)
+       end
+       handle TYPE arg => (case res of Errs(errs) => Errs(arg::errs)
+                                     | _ => res);
 
-             val msg'' = 
-               if is_none idx then (if is_none infrd_t' then msg' else "")
-               else if is_none infrd_t' then "" 
-               else (if msg' = "" then 
-                "Error: More than one term is type correct:\n" ^
-                (show_term (the infrd_t)) else msg') ^ "\n" ^ 
-                (show_term (the infrd_t')) ^ "\n";
-
-         in show_brackets := old_show_brackets;
-            if is_none infrd_t' then
-              process_terms ts (idx, infrd_t, tye) msg'' (n+1)
-            else
-              process_terms ts (Some n, infrd_t', tye') msg'' (n+1)
-         end
-      | process_terms [] (idx, infrd_t, tye) msg _ = 
-          if msg = "" then (the idx, the infrd_t, the tye) 
-          else
-            (if length ts > 1 andalso length ts <= !Syntax.ambiguity_level then
-                                                      (*no warning shown yet?*)
-               writeln "Warning: Currently parsed input \
-                       \produces more than one parse tree.\n\
-                       \For more information lower Syntax.ambiguity_level."
-             else ();
-             error msg)
-
-    val (idx, infrd_t, tye) = process_terms ts (None, None, None) "" 0;
-  in if print_msg andalso length ts > !Syntax.ambiguity_level then
-       writeln "Fortunately, only one parse tree is type correct.\n\
-         \It helps (speed!) if you disambiguate your grammar or your input."
-     else ();
-     (idx, infrd_t, tye)
+  in case foldl process_term (Errs[], ts ~~ (0 upto (length ts - 1))) of
+       One(res) =>
+         (if length ts > !Syntax.ambiguity_level
+          then writeln "Fortunately, only one parse tree is type correct.\n\
+            \It helps (speed!) if you disambiguate your grammar or your input."
+          else ();
+          res)
+     | Errs(errs) => (warn(); error(cat_lines(map exn_type_msg errs)))
+     | Ambigs(us) =>
+         (warn();
+          let val old_show_brackets = !show_brackets
+              val _ = show_brackets := true;
+              val errs = cat_lines(map show_term us)
+          in show_brackets := old_show_brackets;
+             error("Error: More than one term is type correct:\n" ^ errs)
+          end)
   end;
-
 
 
 (** extend signature **)    (*exception ERROR*)
