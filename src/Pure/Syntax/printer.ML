@@ -16,7 +16,7 @@ sig
   include PRINTER0
   structure Symtab: SYMTAB
   structure SynExt: SYN_EXT
-  local open SynExt SynExt.Ast SynExt.Ast.Pretty in
+  local open SynExt SynExt.Ast in
     val term_to_ast: (string -> (term list -> term) option) -> term -> ast
     val typ_to_ast: (string -> (term list -> term) option) -> typ -> ast
     type prtab
@@ -57,24 +57,6 @@ fun apply_trans name a f args =
 
 fun ast_of_term trf show_types show_sorts tm =
   let
-    fun aprop t = Const (apropC, dummyT) $ t;
-
-    fun is_prop tys tm =
-      fastype_of1 (tys, tm) = propT handle TERM _ => false;
-
-    fun fix_aprop _ (tm as Const _) = tm
-      | fix_aprop _ (tm as Free (x, ty)) =
-          if ty = propT then aprop (Free (x, dummyT)) else tm
-      | fix_aprop _ (tm as Var (xi, ty)) =
-          if ty = propT then aprop (Var (xi, dummyT)) else tm
-      | fix_aprop tys (tm as Bound _) =
-          if is_prop tys tm then aprop tm else tm
-      | fix_aprop tys (Abs (x, ty, t)) = Abs (x, ty, fix_aprop (ty :: tys) t)
-      | fix_aprop tys (tm as t1 $ t2) =
-          (if is_Const (head_of tm) orelse not (is_prop tys tm)
-            then I else aprop) (fix_aprop tys t1 $ fix_aprop tys t2);
-
-
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
           if ty = dummyT then (t, seen)
@@ -118,8 +100,9 @@ fun ast_of_term trf show_types show_sorts tm =
         ast_of (Const (constrainC, dummyT) $ t $ term_of_typ show_sorts ty)
       else Variable x;
   in
-    if show_types then ast_of (#1 (prune_typs (fix_aprop [] tm, [])))
-    else ast_of (fix_aprop [] tm)
+    if show_types then
+      ast_of (#1 (prune_typs (prop_tr' show_sorts tm, [])))
+    else ast_of (prop_tr' show_sorts tm)
   end;
 
 
@@ -158,7 +141,7 @@ fun xprod_to_fmt (XProd (_, _, "", _)) = None
 
         fun arg (s, p) =
           (if s = "type" then TypArg else Arg)
-          (if is_terminal s then 1000 else p);    (* FIXME 1000 vs. 0 vs. p (?) *)
+          (if is_terminal s then 1000 else p);
 
         fun xsyms_to_syms (Delim s :: xsyms) =
               apfst (cons_str s) (xsyms_to_syms xsyms)
@@ -196,18 +179,18 @@ fun xprods_to_fmts xprods =
 
 (* empty, extend, merge prtabs *)
 
-fun err_dup_fmt c =
-  sys_error ("duplicate fmt in prtab for " ^ quote c);
+fun err_dup_fmts cs =
+  error ("Duplicate formats in printer table for " ^ commas_quote cs);
 
 val empty_prtab = Symtab.null;
 
 fun extend_prtab tab xprods =
   Symtab.extend (op =) (tab, xprods_to_fmts xprods)
-    handle Symtab.DUPLICATE c => err_dup_fmt c;
+    handle Symtab.DUPS cs => err_dup_fmts cs;
 
 fun merge_prtabs tab1 tab2 =
   Symtab.merge (op =) (tab1, tab2)
-    handle Symtab.DUPLICATE c => err_dup_fmt c;
+    handle Symtab.DUPS cs => err_dup_fmts cs;
 
 
 
