@@ -495,12 +495,10 @@ val rls = apply_equality :: (prems RL [apply_Pair,Pi_type]);
 by (fast_tac (claset() addIs rls) 1);
 qed "surj_image";
 
-Goal "[| f: Pi(C,B);  A<=C |] ==> restrict(f,A)``A = f``A";
-by (rtac equalityI 1);
-by (asm_full_simp_tac (simpset() addsimps [restrict_def]) 2); 
-by (blast_tac (claset() addIs [apply_Pair]) 2); 
-by (REPEAT (ares_tac [image_mono,restrict_subset,subset_refl] 1));
+Goal "restrict(f,A) `` B = f `` (A Int B)";
+by (auto_tac (claset(), simpset() addsimps [restrict_def])); 
 qed "restrict_image";
+Addsimps [restrict_image];
 
 Goalw [inj_def]
     "[| f: inj(A,B);  C<=A |] ==> restrict(f,C): inj(C,B)";
@@ -509,9 +507,9 @@ by (REPEAT (eresolve_tac [asm_rl, bspec RS bspec RS mp, subsetD,
                           box_equals, restrict] 1));
 qed "restrict_inj";
 
-Goal "[| f: Pi(A,B);  C<=A |] ==> restrict(f,C): surj(C, f``C)";
-by (rtac (restrict_image RS subst) 1);
-by (rtac (restrict_type2 RS surj_image) 3);
+Goal "[| f: Pi(A,B);  C<=A |] ==> restrict(f,C): surj(C, f``C)"; 
+by (rtac (simplify (simpset() addsimps [restrict_image])
+          (restrict_type2 RS surj_image)) 1);
 by (REPEAT (assume_tac 1));
 qed "restrict_surj";
 
