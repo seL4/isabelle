@@ -513,7 +513,7 @@ Goal "#0 $<= $# n";
 by (simp_tac (simpset() addsimps [not_zless_iff_zle RS iff_sym, 
                                   znegative_iff_zless_0 RS iff_sym]) 1); 
 qed "zero_zle_int_of";
-AddIffs [zero_zle_int_of];
+Addsimps [zero_zle_int_of];
 
 Goal "nat_of(#0) = 0";
 by (simp_tac (ZF_ss addsimps [natify_0, int_of_0 RS sym, nat_of_int_of]) 1);

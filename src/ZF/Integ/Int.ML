@@ -77,7 +77,7 @@ Goalw [int_def,quotient_def,int_of_def]  "$#m : int";
 by Auto_tac;
 qed "int_of_type";
 
-AddIffs [int_of_type];
+Addsimps [int_of_type];
 AddTCs  [int_of_type];
 
 

@@ -6,6 +6,22 @@
 Simprocs for linear arithmetic.
 *)
 
+
+(** To simplify inequalities involving integer negation and literals,
+    such as -x = #3
+**)
+
+Addsimps [inst "y" "integ_of(?w)" zminus_equation,
+          inst "x" "integ_of(?w)" equation_zminus];
+
+AddIffs [inst "y" "integ_of(?w)" zminus_zless,
+         inst "x" "integ_of(?w)" zless_zminus];
+
+AddIffs [inst "y" "integ_of(?w)" zminus_zle,
+         inst "x" "integ_of(?w)" zle_zminus];
+
+Addsimps [inst "s" "integ_of(?w)" Let_def];
+
 (*** Simprocs for numeric literals ***)
 
 (** Combining of literal coefficients in sums of products **)

@@ -77,10 +77,9 @@ constdefs
   
 
 syntax (symbols)
-  "zmult"     :: [i,i] => i          (infixr "$\\<times>" 70)
-  "zle"       :: [i,i] => o          (infixl "$\\<le>" 50)  (*less than or equals*)
+  "zmult"     :: [i,i] => i          (infixl "$\\<times>" 70)
+  "zle"       :: [i,i] => o          (infixl "$\\<le>" 50)  (*less than / equals*)
 
 syntax (HTML output)
-  "zmult"     :: [i,i] => i          (infixr "$\\<times>" 70)
-
+  "zmult"     :: [i,i] => i          (infixl "$\\<times>" 70)
 end
