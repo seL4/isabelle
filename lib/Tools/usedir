@@ -109,12 +109,6 @@ if [ "$INFO" = "true" -a ! -f $ISABELLE_BROWSER_INFO/index.html ]; then
   mkdir -p $ISABELLE_BROWSER_INFO
   cp $ISABELLE_HOME/lib/logo/isabelle.gif $ISABELLE_BROWSER_INFO/isabelle.gif
   cp $ISABELLE_HOME/lib/html/index.html $ISABELLE_BROWSER_INFO/index.html
-
-  mkdir -p $ISABELLE_BROWSER_INFO/graph
-  mkdir $ISABELLE_BROWSER_INFO/graph/GraphBrowser
-  mkdir $ISABELLE_BROWSER_INFO/graph/awtUtilities
-  cp $ISABELLE_HOME/lib/browser/GraphBrowser/*.class $ISABELLE_BROWSER_INFO/graph/GraphBrowser
-  cp $ISABELLE_HOME/lib/browser/awtUtilities/*.class $ISABELLE_BROWSER_INFO/graph/awtUtilities
 fi
 
 
