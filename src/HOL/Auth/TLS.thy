@@ -73,10 +73,6 @@ rules
 
   isSym_sessionK "isSymKey (sessionK x)"
 
-  (*serverK is similar*)
-  inj_serverK   "inj serverK"	
-  isSym_serverK "isSymKey (serverK x)"
-
 
 consts    tls :: event list set
 inductive tls
