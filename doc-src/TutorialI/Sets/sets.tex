@@ -883,13 +883,15 @@ Such A relation expresses the notion of a terminating process.
 Intuitively, the relation~$\prec$ is \textbf{well-founded} if it admits no
 infinite  descending chains
 \[ \cdots \prec a@2 \prec a@1 \prec a@0. \]
-If $\prec$ is well-founded then it can be used with the well-founded 
-induction rule: 
+If $\prec$ is well-founded then it can be used with the \textbf{well-founded
+induction}\indexbold{induction!well-founded}\index{well-founded
+induction|see{induction, well-founded}} rule:
 \[ \infer{P(a)}{\infer*{P(x)}{[\forall y.\, y\prec x \imp P(y)]}} \]
 To show $P(a)$ for a particular term~$a$, it suffices to show $P(x)$ for
 arbitrary~$x$ under the assumption that $P(y)$ holds for $y\prec x$. 
 Intuitively, the well-foundedness of $\prec$ ensures that the chains of
-reasoning are finite.
+reasoning are finite.  For a fuller account of well-founded relations and
+induction see, for example, \cite{Baader-Nipkow}.
 
 In Isabelle, the induction rule is expressed like this:
 \begin{isabelle}
