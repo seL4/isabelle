@@ -238,7 +238,7 @@ val output_symbols = scripts o map (#2 o output_sym);
 end;
 
 
-val _ = Output.add_mode htmlN (output_width, Symbol.default_indent, Symbol.default_raw);
+val _ = Output.add_mode htmlN (output_width, Symbol.default_indent, Symbol.encode_raw);
 
 
 (* token translations *)

@@ -155,7 +155,7 @@ fun latex_output str =
 fun latex_indent "" = ""
   | latex_indent s = enclose "\\isaindent{" "}" s;
 
-val _ = Output.add_mode latexN (latex_output, latex_indent o #1, Symbol.default_raw);
+val _ = Output.add_mode latexN (latex_output, latex_indent o #1, Symbol.encode_raw);
 
 
 end;

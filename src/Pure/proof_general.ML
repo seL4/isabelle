@@ -60,7 +60,7 @@ fun pgml_output (s, len) =
 in
 
 fun setup_xsymbols_output () = Output.add_mode proof_generalN
-  (pgml_output o xsymbols_output, Symbol.default_indent, Symbol.default_raw);
+  (pgml_output o xsymbols_output, Symbol.default_indent, Symbol.encode_raw);
 
 end;
 
