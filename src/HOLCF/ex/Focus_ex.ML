@@ -1,4 +1,3 @@
-
 (* first some logical trading *)
 
 val prems = goal Focus_ex.thy
@@ -128,12 +127,6 @@ val prems = goal Focus_ex.thy
 \ -->\
 \ (? g. def_g(g::'b stream -> 'c stream ))";
 by (simp_tac (HOL_ss addsimps [def_g]) 1);
-by (strip_tac 1);
-by (etac exE 1);
-by (rtac exI 1);
-by (rtac exI 1);
-by (etac conjI 1);
-by (rtac refl 1);
 val L2 = result();
 
 val prems = goal Focus_ex.thy 

@@ -28,10 +28,7 @@ Addsimps [Sim_start_convert];
 
 Goalw [is_ref_map_def,is_simulation_def]
 "!! f. is_ref_map f C A ==> is_simulation {p. (snd p) = f (fst p)} C A";
-(* start states *)
 by (Asm_full_simp_tac 1);
-(* main case *)
-by (Blast_tac 1);
 qed"ref_map_is_simulation";
 
 
