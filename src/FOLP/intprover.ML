@@ -54,7 +54,7 @@ val (safe0_brls, safep_brls) =
 
 (*Attack subgoals using safe inferences*)
 val safe_step_tac = FIRST' [uniq_assume_tac,
-                            IFOLP_Lemmas.uniq_mp_tac,
+                            int_uniq_mp_tac,
                             biresolve_tac safe0_brls,
                             hyp_subst_tac,
                             biresolve_tac safep_brls] ;

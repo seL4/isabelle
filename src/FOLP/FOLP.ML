@@ -6,48 +6,30 @@
 Tactics and lemmas for FOLP (Classical First-Order Logic with Proofs)
 *)
 
-open FOLP;
-
-signature FOLP_LEMMAS = 
-  sig
-  val disjCI : thm
-  val excluded_middle : thm
-  val exCI : thm
-  val ex_classical : thm
-  val iffCE : thm
-  val impCE : thm
-  val notnotD : thm
-  val swap : thm
-  end;
-
-
-structure FOLP_Lemmas : FOLP_LEMMAS = 
-struct
-
 (*** Classical introduction rules for | and EX ***)
 
-val disjCI = prove_goal FOLP.thy 
-   "(!!x. x:~Q ==> f(x):P) ==> ?p : P|Q"
- (fn prems=>
-  [ (rtac classical 1),
-    (REPEAT (ares_tac (prems@[disjI1,notI]) 1)),
-    (REPEAT (ares_tac (prems@[disjI2,notE]) 1)) ]);
+val prems= goal FOLP.thy 
+   "(!!x. x:~Q ==> f(x):P) ==> ?p : P|Q";
+by (rtac classical 1);
+by (REPEAT (ares_tac (prems@[disjI1,notI]) 1));
+by (REPEAT (ares_tac (prems@[disjI2,notE]) 1)) ;
+qed "disjCI";
 
 (*introduction rule involving only EX*)
-val ex_classical = prove_goal FOLP.thy 
-   "( !!u. u:~(EX x. P(x)) ==> f(u):P(a)) ==> ?p : EX x. P(x)"
- (fn prems=>
-  [ (rtac classical 1),
-    (eresolve_tac (prems RL [exI]) 1) ]);
+val prems= goal FOLP.thy 
+   "( !!u. u:~(EX x. P(x)) ==> f(u):P(a)) ==> ?p : EX x. P(x)";
+by (rtac classical 1);
+by (eresolve_tac (prems RL [exI]) 1) ;
+qed "ex_classical";
 
 (*version of above, simplifying ~EX to ALL~ *)
-val exCI = prove_goal FOLP.thy 
-   "(!!u. u:ALL x. ~P(x) ==> f(u):P(a)) ==> ?p : EX x. P(x)"
- (fn [prem]=>
-  [ (rtac ex_classical 1),
-    (resolve_tac [notI RS allI RS prem] 1),
-    (etac notE 1),
-    (etac exI 1) ]);
+val [prem]= goal FOLP.thy 
+   "(!!u. u:ALL x. ~P(x) ==> f(u):P(a)) ==> ?p : EX x. P(x)";
+by (rtac ex_classical 1);
+by (resolve_tac [notI RS allI RS prem] 1);
+by (etac notE 1);
+by (etac exI 1) ;
+qed "exCI";
 
 val excluded_middle = prove_goal FOLP.thy "?p : ~P | P"
  (fn _=> [ rtac disjCI 1, assume_tac 1 ]);
@@ -57,39 +39,38 @@ val excluded_middle = prove_goal FOLP.thy "?p : ~P | P"
 
 
 (*Classical implies (-->) elimination. *)
-val impCE = prove_goal FOLP.thy 
-    "[| p:P-->Q;  !!x. x:~P ==> f(x):R;  !!y. y:Q ==> g(y):R |] ==> ?p : R"
- (fn major::prems=>
-  [ (resolve_tac [excluded_middle RS disjE] 1),
-    (DEPTH_SOLVE (ares_tac (prems@[major RS mp]) 1)) ]);
+val major::prems= goal FOLP.thy 
+    "[| p:P-->Q;  !!x. x:~P ==> f(x):R;  !!y. y:Q ==> g(y):R |] ==> ?p : R";
+by (resolve_tac [excluded_middle RS disjE] 1);
+by (DEPTH_SOLVE (ares_tac (prems@[major RS mp]) 1)) ;
+qed "impCE";
 
 (*Double negation law*)
-val notnotD = prove_goal FOLP.thy "p:~~P ==> ?p : P"
- (fn [major]=>
-  [ (rtac classical 1), (eresolve_tac [major RS notE] 1) ]);
+Goal "p:~~P ==> ?p : P";
+by (rtac classical 1);
+by (etac notE 1);
+by (assume_tac 1);
+qed "notnotD";
 
 
 (*** Tactics for implication and contradiction ***)
 
 (*Classical <-> elimination.  Proof substitutes P=Q in 
     ~P ==> ~Q    and    P ==> Q  *)
-val iffCE = prove_goalw FOLP.thy [iff_def]
+val prems = goalw FOLP.thy [iff_def]
     "[| p:P<->Q; !!x y.[| x:P; y:Q |] ==> f(x,y):R;  \
-\                !!x y.[| x:~P; y:~Q |] ==> g(x,y):R |] ==> ?p : R"
- (fn prems =>
-  [ (rtac conjE 1),
-    (REPEAT (DEPTH_SOLVE_1 
-        (etac impCE 1  ORELSE  mp_tac 1  ORELSE  ares_tac prems 1))) ]);
+\                !!x y.[| x:~P; y:~Q |] ==> g(x,y):R |] ==> ?p : R";
+by (rtac conjE 1);
+by (REPEAT (DEPTH_SOLVE_1 (etac impCE 1
+               ORELSE  mp_tac 1  ORELSE  ares_tac prems 1))) ;
+qed "iffCE";
 
 
 (*Should be used as swap since ~P becomes redundant*)
-val swap = prove_goal FOLP.thy 
-   "p:~P ==> (!!x. x:~Q ==> f(x):P) ==> ?p : Q"
- (fn major::prems=>
-  [ (rtac classical 1),
-    (rtac (major RS notE) 1),
-    (REPEAT (ares_tac prems 1)) ]);
+val major::prems= goal FOLP.thy 
+   "p:~P ==> (!!x. x:~Q ==> f(x):P) ==> ?p : Q";
+by (rtac classical 1);
+by (rtac (major RS notE) 1);
+by (REPEAT (ares_tac prems 1)) ;
+qed "swap";
 
-end;
-
-open FOLP_Lemmas;
