@@ -69,12 +69,19 @@ fun eq_terms (ts as ((t, _)::_)) = forall (fn (t2, _) => t2 aconv t) ts;
      are equal (only their "paths" differ!)
 ***)
 
+val HOLCF_sg = sign_of HOLCF.thy;
+val chfinS = Sign.intern_sort HOLCF_sg ["chfin"];
+val pcpoS  = Sign.intern_sort HOLCF_sg ["pcpo"];
+val cont_name = Sign.intern_const (sign_of HOLCF.thy) "cont";
+val  adm_name = Sign.intern_const (sign_of HOLCF.thy)  "adm";
+
+
 (*** check whether type of terms in list is chain finite ***)
 
 fun is_chfin sign T params ((t, _)::_) =
   let val {tsig, ...} = Sign.rep_sg sign;
       val parTs = map snd (rev params)
-  in Type.of_sort tsig (fastype_of1 (T::parTs, t), ["chfin", "pcpo"]) end;
+  in Type.of_sort tsig (fastype_of1 (T::parTs, t), [hd chfinS, hd pcpoS]) end;
 
 
 (*** try to prove that terms in list are continuous
@@ -85,7 +92,7 @@ fun prove_cont tac sign s T prems params (l, ts as ((t, _)::_)) =
        val contT = (T --> (fastype_of1 (T::parTs, t))) --> HOLogic.boolT;
        fun mk_all [] t = t
          | mk_all ((a,T)::Ts) t = (all T) $ (Abs (a, T, mk_all Ts t));
-       val t = HOLogic.mk_Trueprop ((Const ("cont", contT)) $ (Abs (s, T, t)));
+       val t = HOLogic.mk_Trueprop((Const (cont_name, contT)) $ (Abs(s, T, t)));
        val t' = mk_all params (Logic.list_implies (prems, t));
        val thm = prove_goalw_cterm [] (cterm_of sign t')
                   (fn ps => [cut_facts_tac ps 1, tac 1])
@@ -122,7 +129,6 @@ fun inst_adm_subst_thm state i params s T subt t paths =
 
 fun nth_subgoal i thm = nth_elem (i-1, prems_of thm);
 
-
 in
 
 (*** the admissibility tactic
@@ -138,7 +144,7 @@ fun adm_tac tac i state =
     let val goali = nth_subgoal i state
     in
       case Logic.strip_assums_concl goali of
-         ((Const _) $ ((Const ("adm", _)) $ (Abs (s, T, t)))) =>
+         ((Const _) $ ((Const (name, _)) $ (Abs (s, T, t)))) =>
            let val {sign, ...} = rep_thm state;
                val prems = Logic.strip_assums_hyp goali;
                val params = Logic.strip_params goali;
@@ -146,7 +152,7 @@ fun adm_tac tac i state =
                val ts' = filter eq_terms ts;
                val ts'' = filter (is_chfin sign T params) ts';
                val thms = foldl (prove_cont tac sign s T prems params) ([], ts'')
-           in case thms of
+           in if name = adm_name then case thms of
                  ((ts as ((t', _)::_), cont_thm)::_) =>
                    let val paths = map snd ts;
                        val rule = inst_adm_subst_thm state i params s T t' t paths;
@@ -157,6 +163,7 @@ fun adm_tac tac i state =
                      (rtac adm_chain_finite i)
                    end 
                | [] => no_tac
+	      else no_tac
            end
        | _ => no_tac
     end;
