@@ -85,6 +85,74 @@ fun use_text _ = System.Compile.use_stream o open_string;
 
 
 
+(** interrupts **)
+
+local
+
+datatype 'a result =
+  Result of 'a |
+  Exn of exn;
+
+fun capture f x = Result (f x) handle exn => Exn exn;
+
+fun release (Result x) = x
+  | release (Exn exn) = raise exn;
+
+
+val sig_int = System.Signals.SIGINT;
+
+val interruptible = not o System.Signals.masked;
+fun mask_signals () = System.Signals.maskSignals true;
+fun unmask_signals () = System.Signals.maskSignals false;
+
+fun change_mask ok change unchange f x =
+  if ok () then f x
+  else
+    let
+      val _ = change ();
+      val result = capture f x;
+      val _ = unchange ();
+    in release result end;
+
+in
+
+
+(* mask / unmask interrupt *)
+
+fun mask_interrupt f = change_mask (not o interruptible) mask_signals unmask_signals f;
+fun unmask_interrupt f = change_mask interruptible unmask_signals mask_signals f;
+
+
+(* exhibit interrupt (via exception) *)
+
+exception Interrupt;
+
+fun exhibit_interrupt f x =
+  let
+    val orig_handler = System.Signals.inqHandler sig_int;
+    fun reset_handler () = (System.Signals.setHandler (sig_int, orig_handler); ());
+
+    val interrupted = ref false;
+
+    fun set_handler cont =
+      System.Signals.setHandler (sig_int, SOME (fn _ => (interrupted := true; cont)));
+
+    fun proceed cont =
+      let
+        val _ = set_handler cont;
+        val result = unmask_interrupt (capture f) x;
+        val _ = reset_handler ();
+      in release result end;
+  in
+    callcc proceed;
+    reset_handler ();
+    if ! interrupted then raise Interrupt else ()
+   end;
+
+end;
+
+
+
 (** OS related **)
 
 (* system command execution *)
@@ -125,7 +193,7 @@ struct
 end;
 
 (*redefine to flush its output immediately -- temporary patch suggested
-  by Kim Dam Petersen*)		(* FIXME !? *)
+  by Kim Dam Petersen*)         (* FIXME !? *)
 val output = fn (s, t) => (output (s, t); flush_out s);
 
 
