@@ -79,15 +79,28 @@ val const_trans_table =
 
 
 
-fun ascii_of_c c =
-    let val n = ord c
-    in
-	(if ((n < 48) orelse (n > 57 andalso n < 65) orelse 
-	   (n > 90 andalso n < 97) orelse (n > 122)) then ("_asc" ^ string_of_int n ^ "_")
-							 else c)
-    end;
+(*Escaping of special characters.
+  Alphanumeric characters are left unchanged.
+  The character _ goes to __
+  Characters in the range ASCII space to / go to _A to _P, respectively.
+  Other printing characters go to _NNN where NNN is the decimal ASCII code.*)
+local
 
-fun ascii_of s = implode(map ascii_of_c (explode s));
+val A_minus_space = Char.ord #"A" - Char.ord #" ";
+
+fun ascii_of_c c =
+  if Char.isAlphaNum c then String.str c
+  else if c = #"_" then "__"
+  else if #" " <= c andalso c <= #"/" 
+       then "_" ^ String.str (Char.chr (Char.ord c + A_minus_space))
+  else if Char.isPrint c then ("_" ^ Int.toString (Char.ord c))
+  else ""
+
+in
+
+val ascii_of = String.translate ascii_of_c;
+
+end;
 
 
 (* another version of above functions that remove chars that may not be allowed by Vampire *)
