@@ -19,13 +19,13 @@ fun prover s =  prove_goalw Tr2.thy [andalso_def] s
 	]);
 
 val andalso_thms = map prover [
-			"TT andalso y = y",
-			"FF andalso y = FF",
-			"UU andalso y = UU"
+			"(TT andalso y) = y",
+			"(FF andalso y) = FF",
+			"(UU andalso y) = UU"
 			];
 
 val andalso_thms = andalso_thms @ 
- [prove_goalw Tr2.thy [andalso_def] "x andalso TT =  x"
+ [prove_goalw Tr2.thy [andalso_def] "(x andalso TT) =  x"
  (fn prems =>
 	[
 	(res_inst_tac [("p","x")] trE 1),
@@ -45,13 +45,13 @@ fun prover s =  prove_goalw Tr2.thy [orelse_def] s
 	]);
 
 val orelse_thms = map prover [
-			"TT orelse y  = TT",
-			"FF orelse y =  y",
-			"UU orelse y = UU"
+			"(TT orelse y)  = TT",
+			"(FF orelse y) =  y",
+			"(UU orelse y) = UU"
 			];
 
 val orelse_thms = orelse_thms @ 
- [prove_goalw Tr2.thy [orelse_def] "x orelse FF =  x"
+ [prove_goalw Tr2.thy [orelse_def] "(x orelse FF) =  x"
  (fn prems =>
 	[
 	(res_inst_tac [("p","x")] trE 1),
@@ -60,6 +60,22 @@ val orelse_thms = orelse_thms @
 	(asm_simp_tac (ccc1_ss addsimps tr_when) 1)
 	])];
 
+
+(* ------------------------------------------------------------------------ *) 
+(* lemmas about neg                                                         *) 
+(* ------------------------------------------------------------------------ *)
+
+fun prover s =  prove_goalw Tr2.thy [neg_def] s
+ (fn prems =>
+	[
+	(simp_tac (ccc1_ss addsimps tr_when) 1)
+	]);
+
+val neg_thms = map prover [
+			"neg[TT] = FF",
+			"neg[FF] = TT",
+			"neg[UU] = UU"
+			];
 
 (* ------------------------------------------------------------------------ *) 
 (* lemmas about If_then_else_fi                                             *) 

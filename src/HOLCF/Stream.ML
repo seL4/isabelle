@@ -330,6 +330,17 @@ val stream_take_lemma = prover stream_reach  [stream_take_def]
 	"(!!n.stream_take(n)[s1]=stream_take(n)[s2]) ==> s1=s2";
 
 
+val stream_reach2 = prove_goal Stream.thy  "lub(range(%i.stream_take(i)[s]))=s"
+ (fn prems =>
+	[
+	(res_inst_tac [("t","s")] (stream_reach RS subst) 1),
+	(rtac (fix_def2 RS ssubst) 1),
+	(rewrite_goals_tac [stream_take_def]),
+	(rtac (contlub_cfun_fun RS ssubst) 1),
+	(rtac is_chain_iterate 1),
+	(rtac refl 1)
+	]);
+
 (* ------------------------------------------------------------------------*)
 (* Co -induction for streams                                               *)
 (* ------------------------------------------------------------------------*)
@@ -428,7 +439,6 @@ val stream_ind = prove_goal Stream.thy
 	(REPEAT (resolve_tac prems 1)),
 	(REPEAT (atac 1))
 	]);
-
 
 (* ------------------------------------------------------------------------*)
 (* simplify use of Co-induction                                            *)
@@ -642,6 +652,20 @@ val stream_take_lemma7 = prove_goal Stream.thy
 	(etac (stream_take_lemma5 RS spec RS mp) 1)
 	]);
 
+
+val stream_take_lemma8 = prove_goal Stream.thy
+"[|adm(P); !n. ? m. n < m & P(stream_take(m)[s])|] ==> P(s)"
+ (fn prems =>
+	[
+	(cut_facts_tac prems 1),
+	(rtac (stream_reach2 RS subst) 1),
+	(rtac adm_disj_lemma11 1),
+	(atac 1),
+	(atac 2),
+	(rewrite_goals_tac [stream_take_def]),
+	(rtac ch2ch_fappL 1),
+	(rtac is_chain_iterate 1)
+	]);
 
 (* ----------------------------------------------------------------------- *)
 (* lemmas stream_finite                                                    *)

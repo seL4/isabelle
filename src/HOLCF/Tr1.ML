@@ -123,20 +123,22 @@ val trE = prove_goal Tr1.thy
 (* type tr is flat                                                          *) 
 (* ------------------------------------------------------------------------ *)
 
-val prems = goalw Tr1.thy [flat_def] "flat(TT)";
-by (rtac allI 1);
-by (rtac allI 1);
-by (res_inst_tac [("p","x")] trE 1);
-by (asm_simp_tac ccc1_ss 1);
-by (res_inst_tac [("p","y")] trE 1);
-by (asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1);
-by (asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1);
-by (asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1);
-by (res_inst_tac [("p","y")] trE 1);
-by (asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1);
-by (asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1);
-by (asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1);
-val flat_tr = result();
+val flat_tr = prove_goalw Tr1.thy [flat_def] "flat(TT)"
+ (fn prems =>
+	[
+	(rtac allI 1),
+	(rtac allI 1),
+	(res_inst_tac [("p","x")] trE 1),
+	(asm_simp_tac ccc1_ss 1),
+	(res_inst_tac [("p","y")] trE 1),
+	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1),
+	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1),
+	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1),
+	(res_inst_tac [("p","y")] trE 1),
+	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1),
+	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1),
+	(asm_simp_tac (ccc1_ss addsimps dist_less_tr) 1)
+	]);
 
 
 (* ------------------------------------------------------------------------ *) 

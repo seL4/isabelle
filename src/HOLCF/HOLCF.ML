@@ -15,6 +15,7 @@ val HOLCF_ss = ccc1_ss
 		addsimps tr_when
 		addsimps andalso_thms
 		addsimps orelse_thms
+                addsimps neg_thms
 		addsimps ifte_thms;
 
 

@@ -1072,6 +1072,27 @@ val adm_disj_lemma10 = prove_goal  Fix.thy
 	(atac 1)
 	]);
 
+
+val adm_disj_lemma11 = prove_goal Fix.thy
+"[| adm(P); is_chain(Y); ! i. ? j. i < j & P(Y(j)) |]==>P(lub(range(Y)))"
+ (fn prems =>
+	[
+	(cut_facts_tac prems 1),
+	(etac adm_disj_lemma2 1),
+	(etac adm_disj_lemma10 1),
+	(atac 1)
+	]);
+
+val adm_disj_lemma12 = prove_goal Fix.thy
+"[| adm(P); is_chain(Y);? i. ! j. i < j --> P(Y(j))|]==>P(lub(range(Y)))"
+ (fn prems =>
+	[
+	(cut_facts_tac prems 1),
+	(etac adm_disj_lemma2 1),
+	(etac adm_disj_lemma6 1),
+	(atac 1)
+	]);
+
 val adm_disj = prove_goal  Fix.thy  
 	"[| adm(P); adm(Q) |] ==> adm(%x.P(x)|Q(x))"
  (fn prems =>
@@ -1083,18 +1104,15 @@ val adm_disj = prove_goal  Fix.thy
 	(atac 1),
 	(atac 1),
 	(rtac disjI2 1),
-	(rtac adm_disj_lemma2 1),
-	(atac 1),
-	(rtac adm_disj_lemma6 1),
+	(etac adm_disj_lemma12 1),
 	(atac 1),
 	(atac 1),
 	(rtac disjI1 1),
-	(rtac adm_disj_lemma2 1),
-	(atac 1),
-	(rtac adm_disj_lemma10 1),
+	(etac adm_disj_lemma11 1),
 	(atac 1),
 	(atac 1)
 	]);
+
 
 val adm_impl = prove_goal  Fix.thy  
 	"[| adm(%x.~P(x)); adm(Q) |] ==> adm(%x.P(x)-->Q(x))"

@@ -18,7 +18,7 @@ arities "->" :: (pcpo,pcpo)term		(* No properties for ->'s range *)
 
 consts  
 	Cfun	:: "('a => 'b)set"
-	fapp	:: "('a -> 'b)=>('a => 'b)"	("(_[_])" [11,0] 1000)
+	fapp	:: "('a -> 'b)=>('a => 'b)"	("(_[_])" [1000,0] 1000)
 						(* usually Rep_Cfun *)
 						(* application      *)
 
