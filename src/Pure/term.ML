@@ -104,6 +104,7 @@ sig
   val eq_set_term: term list * term list -> bool
   val ins_term: term * term list -> term list
   val union_term: term list * term list -> term list
+  val inter_term: term list * term list -> term list
   val could_unify: term * term -> bool
   val subst_free: (term * term) list -> term -> term
   val subst_atomic: (term * term) list -> term -> term
@@ -516,6 +517,10 @@ fun ins_term(t,ts) = if mem_term(t,ts) then ts else t :: ts;
 fun union_term (xs, []) = xs
   | union_term ([], ys) = ys
   | union_term ((x :: xs), ys) = union_term (xs, ins_term (x, ys));
+
+fun inter_term ([], ys) = []
+  | inter_term (x::xs, ys) =
+      if mem_term (x,ys) then x :: inter_term(xs,ys) else inter_term(xs,ys);
 
 (** Equality, membership and insertion of sorts (string lists) **)
 
