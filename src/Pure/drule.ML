@@ -190,7 +190,7 @@ fun check_defn sign (axms, (name, tm)) =
       [Pretty.str (c ^ " ::"), Pretty.brk 1, Sign.pretty_typ sign ty]));
 
     fun show_defn c (dfn, ty') = show_const (c, ty') ^ " in " ^ dfn;
-    fun show_defns c = commas o map (show_defn c);
+    fun show_defns c = cat_lines o map (show_defn c);
 
     val (c, ty) = dest_defn tm
       handle TERM (msg, _) => err_in_defn name msg;
@@ -198,7 +198,7 @@ fun check_defn sign (axms, (name, tm)) =
   in
     if not (null defns) then
       err_in_defn name ("Definition of " ^ show_const (c, ty) ^
-        " clashes with " ^ show_defns c defns)
+        "\nclashes with " ^ show_defns c defns)
     else (name, tm) :: axms
   end;
 
@@ -541,8 +541,8 @@ fun standard th =
   let val {maxidx,...} = rep_thm th
   in
     th |> implies_intr_hyps
-       |> Thm.strip_shyps |> implies_intr_shyps
        |> forall_intr_frees |> forall_elim_vars (maxidx + 1)
+       |> Thm.strip_shyps |> Thm.implies_intr_shyps
        |> zero_var_indexes |> Thm.varifyT |> Thm.compress
   end;
 
