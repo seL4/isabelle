@@ -294,7 +294,7 @@ val bad_concl = "Conclusion of introduction rule must have form \"t : S_i\"";
 val all_not_allowed = 
     "Introduction rule must not have a leading \"!!\" quantifier";
 
-fun atomize_term sg = MetaSimplifier.rewrite_term sg inductive_atomize;
+fun atomize_term sg = MetaSimplifier.rewrite_term sg inductive_atomize [];
 
 in
 

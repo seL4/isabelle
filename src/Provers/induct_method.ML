@@ -136,13 +136,13 @@ local
 (* atomize and rulify *)
 
 fun atomize_term sg =
-  ObjectLogic.drop_judgment sg o MetaSimplifier.rewrite_term sg Data.atomize;
+  ObjectLogic.drop_judgment sg o MetaSimplifier.rewrite_term sg Data.atomize [];
 
 fun rulified_term thm =
   let val sg = Thm.sign_of_thm thm in
     Thm.prop_of thm
-    |> MetaSimplifier.rewrite_term sg Data.rulify1
-    |> MetaSimplifier.rewrite_term sg Data.rulify2
+    |> MetaSimplifier.rewrite_term sg Data.rulify1 []
+    |> MetaSimplifier.rewrite_term sg Data.rulify2 []
     |> pair sg
   end;
 

@@ -129,7 +129,7 @@ fun rewrite_prems_tac rews i = PRIMITIVE (MetaSimplifier.fconv_rule
       (MetaSimplifier.goals_conv (K true) (Tactic.rewrite true rews)))));
 
 fun atomize_term sg =
-  drop_judgment sg o MetaSimplifier.rewrite_term sg (get_atomize sg);
+  drop_judgment sg o MetaSimplifier.rewrite_term sg (get_atomize sg) [];
 
 fun atomize_tac i st =
   if Logic.has_meta_prems (Thm.prop_of st) i then
