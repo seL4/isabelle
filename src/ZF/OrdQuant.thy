@@ -58,11 +58,7 @@ apply (simp add: oex_def le_iff)
 apply (blast intro: lt_Ord2) 
 done
 
-(** Now some very basic ZF theorems **)
-
-(*FIXME: move to Rel.thy*)
-lemma trans_imp_trans_on: "trans(r) ==> trans[A](r)"
-by (unfold trans_def trans_on_def, blast)
+(** Union over ordinals **)
 
 lemma Ord_OUN [intro,simp]:
      "[| !!x. x<A ==> Ord(B(x)) |] ==> Ord(\<Union>x<A. B(x))"

@@ -8,7 +8,7 @@ Cardinals in Zermelo-Fraenkel Set Theory
 This theory does NOT assume the Axiom of Choice
 *)
 
-theory Cardinal = OrderType + Fixedpt + Nat + Sum:
+theory Cardinal = OrderType + Finite + Nat + Sum:
 
 (*** The following really belong in upair ***)
 
@@ -498,7 +498,7 @@ done
 
 lemma nat_lepoll_imp_le [rule_format]:
      "m:nat ==> ALL n: nat. m \<lesssim> n --> m le n"
-apply (erule nat_induct) (*induct_tac isn't available yet*)
+apply (induct_tac m)
 apply (blast intro!: nat_0_le)
 apply (rule ballI)
 apply (erule_tac n = "n" in natE)
@@ -756,9 +756,9 @@ apply auto
 done
 
 
-(*** Finite and infinite sets ***)
+subsection {*Finite and infinite sets*}
 
-lemma Finite_0: "Finite(0)"
+lemma Finite_0 [simp]: "Finite(0)"
 apply (unfold Finite_def)
 apply (blast intro!: eqpoll_refl nat_0I)
 done
@@ -805,6 +805,12 @@ apply (unfold succ_def)
 apply (erule Finite_cons)
 done
 
+lemma Finite_cons_iff [iff]:  "Finite(cons(y,x)) <-> Finite(x)"
+by (blast intro: Finite_cons subset_Finite)
+
+lemma Finite_succ_iff [iff]:  "Finite(succ(x)) <-> Finite(x)"
+by (simp add: succ_def)
+
 lemma nat_le_infinite_Ord: 
       "[| Ord(i);  ~ Finite(i) |] ==> nat le i"
 apply (unfold Finite_def)
@@ -818,6 +824,149 @@ lemma Finite_imp_well_ord:
 apply (unfold Finite_def eqpoll_def)
 apply (blast intro: well_ord_rvimage bij_is_inj well_ord_Memrel nat_into_Ord)
 done
+
+lemma succ_lepoll_imp_not_empty: "succ(x) \<lesssim> y ==> y \<noteq> 0"
+by (fast dest!: lepoll_0_is_0)
+
+lemma eqpoll_succ_imp_not_empty: "x \<approx> succ(n) ==> x \<noteq> 0"
+by (fast elim!: eqpoll_sym [THEN eqpoll_0_is_0, THEN succ_neq_0])
+
+lemma Finite_Fin_lemma [rule_format]:
+     "n \<in> nat ==> \<forall>A. (A\<approx>n & A \<subseteq> X) --> A \<in> Fin(X)"
+apply (induct_tac n)
+apply (rule allI)
+apply (fast intro!: Fin.emptyI dest!: eqpoll_imp_lepoll [THEN lepoll_0_is_0])
+apply (rule allI)
+apply (rule impI)
+apply (erule conjE)
+apply (rule eqpoll_succ_imp_not_empty [THEN not_emptyE], assumption)
+apply (frule Diff_sing_eqpoll, assumption)
+apply (erule allE)
+apply (erule impE, fast)
+apply (drule subsetD, assumption)
+apply (drule Fin.consI, assumption)
+apply (simp add: cons_Diff)
+done
+
+lemma Finite_Fin: "[| Finite(A); A \<subseteq> X |] ==> A \<in> Fin(X)"
+by (unfold Finite_def, blast intro: Finite_Fin_lemma) 
+
+lemma eqpoll_imp_Finite_iff: "A \<approx> B ==> Finite(A) <-> Finite(B)"
+apply (unfold Finite_def) 
+apply (blast intro: eqpoll_trans eqpoll_sym) 
+done
+
+lemma Fin_lemma [rule_format]: "n: nat ==> ALL A. A \<approx> n --> A : Fin(A)"
+apply (induct_tac n)
+apply (simp add: eqpoll_0_iff, clarify)
+apply (subgoal_tac "EX u. u:A")
+apply (erule exE)
+apply (rule Diff_sing_eqpoll [THEN revcut_rl])
+prefer 2 apply assumption
+apply assumption
+apply (rule_tac b = "A" in cons_Diff [THEN subst], assumption)
+apply (rule Fin.consI, blast)
+apply (blast intro: subset_consI [THEN Fin_mono, THEN subsetD])
+(*Now for the lemma assumed above*)
+apply (unfold eqpoll_def)
+apply (blast intro: bij_converse_bij [THEN bij_is_fun, THEN apply_type])
+done
+
+lemma Finite_into_Fin: "Finite(A) ==> A : Fin(A)"
+apply (unfold Finite_def)
+apply (blast intro: Fin_lemma)
+done
+
+lemma Fin_into_Finite: "A : Fin(U) ==> Finite(A)"
+by (fast intro!: Finite_0 Finite_cons elim: Fin_induct)
+
+lemma Finite_Fin_iff: "Finite(A) <-> A : Fin(A)"
+by (blast intro: Finite_into_Fin Fin_into_Finite)
+
+lemma Finite_Un: "[| Finite(A); Finite(B) |] ==> Finite(A Un B)"
+by (blast intro!: Fin_into_Finite Fin_UnI 
+          dest!: Finite_into_Fin
+          intro: Un_upper1 [THEN Fin_mono, THEN subsetD] 
+                 Un_upper2 [THEN Fin_mono, THEN subsetD])
+
+lemma Finite_Union: "[| ALL y:X. Finite(y);  Finite(X) |] ==> Finite(Union(X))"
+apply (simp add: Finite_Fin_iff)
+apply (rule Fin_UnionI)
+apply (erule Fin_induct, simp)
+apply (blast intro: Fin.consI Fin_mono [THEN [2] rev_subsetD])
+done
+
+(* Induction principle for Finite(A), by Sidi Ehmety *)
+lemma Finite_induct:
+"[| Finite(A); P(0);
+    !! x B.   [| Finite(B); x ~: B; P(B) |] ==> P(cons(x, B)) |]
+ ==> P(A)"
+apply (erule Finite_into_Fin [THEN Fin_induct]) 
+apply (blast intro: Fin_into_Finite)+
+done
+
+(*Sidi Ehmety.  The contrapositive says ~Finite(A) ==> ~Finite(A-{a}) *)
+lemma Diff_sing_Finite: "Finite(A - {a}) ==> Finite(A)"
+apply (unfold Finite_def)
+apply (case_tac "a:A")
+apply (subgoal_tac [2] "A-{a}=A", auto)
+apply (rule_tac x = "succ (n) " in bexI)
+apply (subgoal_tac "cons (a, A - {a}) = A & cons (n, n) = succ (n) ")
+apply (drule_tac a = "a" and b = "n" in cons_eqpoll_cong)
+apply (auto dest: mem_irrefl)
+done
+
+(*Sidi Ehmety.  And the contrapositive of this says
+   [| ~Finite(A); Finite(B) |] ==> ~Finite(A-B) *)
+lemma Diff_Finite [rule_format]: "Finite(B) ==> Finite(A-B) --> Finite(A)"
+apply (erule Finite_induct, auto)
+apply (case_tac "x:A")
+ apply (subgoal_tac [2] "A-cons (x, B) = A - B")
+apply (subgoal_tac "A - cons (x, B) = (A - B) - {x}")
+apply (rotate_tac -1, simp)
+apply (drule Diff_sing_Finite, auto)
+done
+
+lemma Finite_RepFun: "Finite(A) ==> Finite(RepFun(A,f))"
+by (erule Finite_induct, simp_all)
+
+lemma Finite_RepFun_iff_lemma [rule_format]:
+     "[|Finite(x); !!x y. f(x)=f(y) ==> x=y|] 
+      ==> \<forall>A. x = RepFun(A,f) --> Finite(A)" 
+apply (erule Finite_induct)
+ apply clarify 
+ apply (case_tac "A=0", simp)
+ apply (blast del: allE, clarify) 
+apply (subgoal_tac "\<exists>z\<in>A. x = f(z)") 
+ prefer 2 apply (blast del: allE elim: equalityE, clarify) 
+apply (subgoal_tac "B = {f(u) . u \<in> A - {z}}")
+ apply (blast intro: Diff_sing_Finite) 
+apply (thin_tac "\<forall>A. ?P(A) --> Finite(A)") 
+apply (rule equalityI) 
+ apply (blast intro: elim: equalityE) 
+apply (blast intro: elim: equalityCE) 
+done
+
+text{*I don't know why, but if the premise is expressed using meta-connectives
+then  the simplifier cannot prove it automatically in conditional rewriting.*}
+lemma Finite_RepFun_iff:
+     "(\<forall>x y. f(x)=f(y) --> x=y) ==> Finite(RepFun(A,f)) <-> Finite(A)"
+by (blast intro: Finite_RepFun Finite_RepFun_iff_lemma [of _ f]) 
+
+lemma Finite_Pow: "Finite(A) ==> Finite(Pow(A))"
+apply (erule Finite_induct) 
+apply (simp_all add: Pow_insert Finite_Un Finite_RepFun) 
+done
+
+lemma Finite_Pow_imp_Finite: "Finite(Pow(A)) ==> Finite(A)"
+apply (subgoal_tac "Finite({{x} . x \<in> A})")
+ apply (simp add: Finite_RepFun_iff ) 
+apply (blast intro: subset_Finite) 
+done
+
+lemma Finite_Pow_iff [iff]: "Finite(Pow(A)) <-> Finite(A)"
+by (blast intro: Finite_Pow Finite_Pow_imp_Finite)
+
 
 
 (*Krzysztof Grabczewski's proof that the converse of a finite, well-ordered

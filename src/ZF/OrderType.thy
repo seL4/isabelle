@@ -52,12 +52,6 @@ syntax (HTML output)
   "op **"     :: "[i,i] => i"          (infixl "\<times>\<times>" 70)
 
 
-(*??for Ordinal.ML*)
-(*suitable for rewriting PROVIDED i has been fixed*)
-lemma Ord_in_Ord': "[| j:i; Ord(i) |] ==> Ord(j)"
-by (blast intro: Ord_in_Ord)
-
-
 (**** Proofs needing the combination of Ordinal.thy and Order.thy ****)
 
 lemma le_well_ord_Memrel: "j le i ==> well_ord(j, Memrel(i))"

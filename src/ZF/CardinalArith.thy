@@ -83,43 +83,12 @@ apply (simp add: Card_iff_initial)
 apply (fast intro!: le_imp_lepoll ltI leI)
 done
 
-lemma succ_lepoll_imp_not_empty: "succ(x) \<lesssim> y ==> y \<noteq> 0"
-by (fast dest!: lepoll_0_is_0)
-
-lemma eqpoll_succ_imp_not_empty: "x \<approx> succ(n) ==> x \<noteq> 0"
-by (fast elim!: eqpoll_sym [THEN eqpoll_0_is_0, THEN succ_neq_0])
-
-lemma Finite_Fin_lemma [rule_format]:
-     "n \<in> nat ==> \<forall>A. (A\<approx>n & A \<subseteq> X) --> A \<in> Fin(X)"
-apply (induct_tac "n")
-apply (rule allI)
-apply (fast intro!: Fin.emptyI dest!: eqpoll_imp_lepoll [THEN lepoll_0_is_0])
-apply (rule allI)
-apply (rule impI)
-apply (erule conjE)
-apply (rule eqpoll_succ_imp_not_empty [THEN not_emptyE], assumption)
-apply (frule Diff_sing_eqpoll, assumption)
-apply (erule allE)
-apply (erule impE, fast)
-apply (drule subsetD, assumption)
-apply (drule Fin.consI, assumption)
-apply (simp add: cons_Diff)
-done
-
-lemma Finite_Fin: "[| Finite(A); A \<subseteq> X |] ==> A \<in> Fin(X)"
-by (unfold Finite_def, blast intro: Finite_Fin_lemma) 
-
 lemma lesspoll_lemma: 
         "[| ~ A \<prec> B; C \<prec> B |] ==> A - C \<noteq> 0"
 apply (unfold lesspoll_def)
 apply (fast dest!: Diff_eq_0_iff [THEN iffD1, THEN subset_imp_lepoll]
             intro!: eqpollI elim: notE 
             elim!: eqpollE lepoll_trans)
-done
-
-lemma eqpoll_imp_Finite_iff: "A \<approx> B ==> Finite(A) <-> Finite(B)"
-apply (unfold Finite_def) 
-apply (blast intro: eqpoll_trans eqpoll_sym) 
 done
 
 
@@ -238,7 +207,7 @@ apply (blast intro: well_ord_radd well_ord_Memrel)
 done
 
 lemma nat_cadd_eq_add: "[| m: nat;  n: nat |] ==> m |+| n = m#+n"
-apply (induct_tac "m")
+apply (induct_tac m)
 apply (simp add: nat_into_Card [THEN cadd_0])
 apply (simp add: cadd_succ_lemma nat_into_Card [THEN Card_cardinal_eq])
 done
@@ -408,7 +377,7 @@ apply (blast intro: well_ord_rmult well_ord_Memrel)
 done
 
 lemma nat_cmult_eq_mult: "[| m: nat;  n: nat |] ==> m |*| n = m#*n"
-apply (induct_tac "m")
+apply (induct_tac m)
 apply (simp_all add: cmult_succ_lemma nat_cadd_eq_add)
 done
 
@@ -801,58 +770,6 @@ by (simp add: InfCard_def Card_csucc Card_is_Ord
               lt_csucc [THEN leI, THEN [2] le_trans])
 
 
-(*** Finite sets ***)
-
-lemma Fin_lemma [rule_format]: "n: nat ==> ALL A. A \<approx> n --> A : Fin(A)"
-apply (induct_tac "n")
-apply (simp add: eqpoll_0_iff, clarify)
-apply (subgoal_tac "EX u. u:A")
-apply (erule exE)
-apply (rule Diff_sing_eqpoll [THEN revcut_rl])
-prefer 2 apply assumption
-apply assumption
-apply (rule_tac b = "A" in cons_Diff [THEN subst], assumption)
-apply (rule Fin.consI, blast)
-apply (blast intro: subset_consI [THEN Fin_mono, THEN subsetD])
-(*Now for the lemma assumed above*)
-apply (unfold eqpoll_def)
-apply (blast intro: bij_converse_bij [THEN bij_is_fun, THEN apply_type])
-done
-
-lemma Finite_into_Fin: "Finite(A) ==> A : Fin(A)"
-apply (unfold Finite_def)
-apply (blast intro: Fin_lemma)
-done
-
-lemma Fin_into_Finite: "A : Fin(U) ==> Finite(A)"
-by (fast intro!: Finite_0 Finite_cons elim: Fin_induct)
-
-lemma Finite_Fin_iff: "Finite(A) <-> A : Fin(A)"
-by (blast intro: Finite_into_Fin Fin_into_Finite)
-
-lemma Finite_Un: "[| Finite(A); Finite(B) |] ==> Finite(A Un B)"
-by (blast intro!: Fin_into_Finite Fin_UnI 
-          dest!: Finite_into_Fin
-          intro: Un_upper1 [THEN Fin_mono, THEN subsetD] 
-                 Un_upper2 [THEN Fin_mono, THEN subsetD])
-
-lemma Finite_Union: "[| ALL y:X. Finite(y);  Finite(X) |] ==> Finite(Union(X))"
-apply (simp add: Finite_Fin_iff)
-apply (rule Fin_UnionI)
-apply (erule Fin_induct, simp)
-apply (blast intro: Fin.consI Fin_mono [THEN [2] rev_subsetD])
-done
-
-(* Induction principle for Finite(A), by Sidi Ehmety *)
-lemma Finite_induct:
-"[| Finite(A); P(0);
-    !! x B.   [| Finite(B); x ~: B; P(B) |] ==> P(cons(x, B)) |]
- ==> P(A)"
-apply (erule Finite_into_Fin [THEN Fin_induct]) 
-apply (blast intro: Fin_into_Finite)+
-done
-
-
 (** Removing elements from a finite set decreases its cardinality **)
 
 lemma Fin_imp_not_cons_lepoll: "A: Fin(U) ==> x~:A --> ~ cons(x,A) \<lesssim> A"
@@ -904,31 +821,6 @@ apply (rule eqpoll_trans)
 apply (rule well_ord_radd [THEN well_ord_cardinal_eqpoll, THEN eqpoll_sym])
 apply (erule nat_implies_well_ord)+
 apply (simp add: nat_cadd_eq_add [symmetric] cadd_def eqpoll_refl)
-done
-
-
-(*** Theorems by Sidi Ehmety ***)
-
-(*The contrapositive says ~Finite(A) ==> ~Finite(A-{a}) *)
-lemma Diff_sing_Finite: "Finite(A - {a}) ==> Finite(A)"
-apply (unfold Finite_def)
-apply (case_tac "a:A")
-apply (subgoal_tac [2] "A-{a}=A", auto)
-apply (rule_tac x = "succ (n) " in bexI)
-apply (subgoal_tac "cons (a, A - {a}) = A & cons (n, n) = succ (n) ")
-apply (drule_tac a = "a" and b = "n" in cons_eqpoll_cong)
-apply (auto dest: mem_irrefl)
-done
-
-(*And the contrapositive of this says
-   [| ~Finite(A); Finite(B) |] ==> ~Finite(A-B) *)
-lemma Diff_Finite [rule_format]: "Finite(B) ==> Finite(A-B) --> Finite(A)"
-apply (erule Finite_induct, auto)
-apply (case_tac "x:A")
- apply (subgoal_tac [2] "A-cons (x, B) = A - B")
-apply (subgoal_tac "A - cons (x, B) = (A - B) - {x}")
-apply (rotate_tac -1, simp)
-apply (drule Diff_sing_Finite, auto)
 done
 
 lemma Ord_subset_natD [rule_format]: "Ord(i) ==> i <= nat --> i : nat | i=nat"
