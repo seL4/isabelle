@@ -18,7 +18,7 @@ AddIffs [cont_dlift];
 
 Goalw [dlift_def]
  "(dlift f$l = Def y) = (? x. l = Def x & f$(Discr x) = Def y)";
-by (simp_tac (simpset() addsplits [Lift1.lift.split]) 1);
+by (simp_tac (simpset() addsplits [lift.split]) 1);
 qed "dlift_is_Def";
 Addsimps [dlift_is_Def];
 
@@ -37,7 +37,7 @@ by (induct_tac "c" 1);
  by (Force_tac 1);
 by (Simp_tac 1);
 by (rtac fix_ind 1);
-  by (fast_tac (claset() addSIs adm_lemmas@[adm_chfindom,ax_flat_lift]) 1);
+  by (fast_tac (claset() addSIs adm_lemmas @ [adm_chfindom, ax_flat]) 1);
  by (Simp_tac 1);
 by (Simp_tac 1);
 by Safe_tac;
