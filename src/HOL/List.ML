@@ -288,11 +288,6 @@ AddIffs [length_greater_0_conv];
 
 (** nth **)
 
-val [nth_0,nth_Suc] = nat_recs nth_def; 
-store_thm("nth_0",nth_0);
-store_thm("nth_Suc",nth_Suc);
-Addsimps [nth_0,nth_Suc];
-
 goal List.thy
   "!xs. nth n (xs@ys) = \
 \          (if n < length xs then nth n xs else nth (n - length xs) ys)";
