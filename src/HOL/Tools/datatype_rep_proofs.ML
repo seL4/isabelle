@@ -15,11 +15,10 @@ Proof of characteristic theorems:
 signature DATATYPE_REP_PROOFS =
 sig
   val representation_proofs : bool -> DatatypeAux.datatype_info Symtab.table ->
-    string list -> (int * (string * DatatypeAux.dtyp list *
-      (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-        (string * mixfix) list -> (string * mixfix) list list -> theory attribute
-          -> theory -> theory * thm list list * thm list list * thm list list *
-            DatatypeAux.simproc_dist list * thm
+    string list -> DatatypeAux.descr list -> (string * sort) list ->
+      (string * mixfix) list -> (string * mixfix) list list -> theory attribute
+        -> theory -> theory * thm list list * thm list list * thm list list *
+          DatatypeAux.simproc_dist list * thm
 end;
 
 structure DatatypeRepProofs : DATATYPE_REP_PROOFS =
@@ -54,19 +53,15 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val Leaf_name = "Datatype_Universe.Leaf";
     val Numb_name = "Datatype_Universe.Numb";
     val Lim_name = "Datatype_Universe.Lim";
-    val Funs_name = "Datatype_Universe.Funs";
-    val o_name = "Fun.comp";
-    val sum_case_name = "Datatype.sum.sum_case";
+    val Suml_name = "Datatype.Suml";
+    val Sumr_name = "Datatype.Sumr";
 
-    val [In0_inject, In1_inject, Scons_inject, Leaf_inject, In0_eq, In1_eq,
-         In0_not_In1, In1_not_In0, Funs_mono, FunsI, Lim_inject,
-         Funs_inv, FunsD, Funs_rangeE, Funs_nonempty, sum_case_inject] = map (get_thm Datatype_thy)
-        ["In0_inject", "In1_inject", "Scons_inject", "Leaf_inject", "In0_eq", "In1_eq",
-         "In0_not_In1", "In1_not_In0", "Funs_mono", "FunsI", "Lim_inject",
-         "Funs_inv", "FunsD", "Funs_rangeE", "Funs_nonempty", "sum_case_inject"];
-
-    val Funs_IntE = (Int_lower2 RS Funs_mono RS
-      (Int_lower1 RS Funs_mono RS Int_greatest) RS subsetD) RS IntE;
+    val [In0_inject, In1_inject, Scons_inject, Leaf_inject,
+         In0_eq, In1_eq, In0_not_In1, In1_not_In0,
+         Lim_inject, Suml_inject, Sumr_inject] = map (get_thm Datatype_thy)
+        ["In0_inject", "In1_inject", "Scons_inject", "Leaf_inject",
+         "In0_eq", "In1_eq", "In0_not_In1", "In1_not_In0",
+         "Lim_inject", "Suml_inject", "Sumr_inject"];
 
     val descr' = flat descr;
 
@@ -83,6 +78,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val branchTs = get_branching_types descr' sorts;
     val branchT = if null branchTs then HOLogic.unitT
       else fold_bal (fn (T, U) => Type ("+", [T, U])) branchTs;
+    val arities = get_arities descr' \ 0;
     val unneeded_vars = hd tyvars \\ foldr add_typ_tfree_names (leafTs' @ branchTs, []);
     val leafTs = leafTs' @ (map (fn n => TFree (n, the (assoc (sorts, n)))) unneeded_vars);
     val recTs = get_rec_types descr' sorts;
@@ -131,15 +127,15 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           let
             val n2 = n div 2;
             val Type (_, [T1, T2]) = T;
-            val sum_case = Const (sum_case_name, [T1 --> Univ_elT, T2 --> Univ_elT, T] ---> Univ_elT)
+            fun mkT U = (U --> Univ_elT) --> T --> Univ_elT
           in
-            if i <= n2 then
-              sum_case $ (mk_inj T1 n2 i) $ Const ("arbitrary", T2 --> Univ_elT)
-            else
-              sum_case $ Const ("arbitrary", T1 --> Univ_elT) $ mk_inj T2 (n - n2) (i - n2)
+            if i <= n2 then Const (Suml_name, mkT T1) $ mk_inj T1 n2 i
+            else Const (Sumr_name, mkT T2) $ mk_inj T2 (n - n2) (i - n2)
           end
       in mk_inj branchT (length branchTs) (1 + find_index_eq T' branchTs)
       end;
+
+    val mk_lim = foldr (fn (T, t) => Lim $ mk_fun_inj T (Abs ("x", T, t)));
 
     (************** generate introduction rules for representing set **********)
 
@@ -149,28 +145,26 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     fun make_intr s n (i, (_, cargs)) =
       let
-        fun mk_prem (DtRec k, (j, prems, ts)) =
-              let val free_t = mk_Free "x" Univ_elT j
-              in (j + 1, (HOLogic.mk_mem (free_t,
-                Const (nth_elem (k, rep_set_names), UnivT)))::prems, free_t::ts)
+        fun mk_prem (dt, (j, prems, ts)) = (case strip_dtyp dt of
+            (dts, DtRec k) =>
+              let
+                val Ts = map (typ_of_dtyp descr' sorts) dts;
+                val free_t =
+                  app_bnds (mk_Free "x" (Ts ---> Univ_elT) j) (length Ts)
+              in (j + 1, list_all (map (pair "x") Ts,
+                  HOLogic.mk_Trueprop (HOLogic.mk_mem (free_t,
+                    Const (nth_elem (k, rep_set_names), UnivT)))) :: prems,
+                mk_lim (Ts, free_t) :: ts)
               end
-          | mk_prem (DtType ("fun", [T, DtRec k]), (j, prems, ts)) =
-              let val T' = typ_of_dtyp descr' sorts T;
-                  val free_t = mk_Free "x" (T' --> Univ_elT) j
-              in (j + 1, (HOLogic.mk_mem (free_t,
-                Const (Funs_name, UnivT --> HOLogic.mk_setT (T' --> Univ_elT)) $
-                  Const (nth_elem (k, rep_set_names), UnivT)))::prems,
-                    Lim $ mk_fun_inj T' free_t::ts)
-              end
-          | mk_prem (dt, (j, prems, ts)) =
+          | _ =>
               let val T = typ_of_dtyp descr' sorts dt
               in (j + 1, prems, (Leaf $ mk_inj T (mk_Free "x" T j))::ts)
-              end;
+              end);
 
         val (_, prems, ts) = foldr mk_prem (cargs, (1, [], []));
         val concl = HOLogic.mk_Trueprop (HOLogic.mk_mem
           (mk_univ_inj ts n i, Const (s, UnivT)))
-      in Logic.list_implies (map HOLogic.mk_Trueprop prems, concl)
+      in Logic.list_implies (prems, concl)
       end;
 
     val consts = map (fn s => Const (s, UnivT)) rep_set_names;
@@ -182,7 +176,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val (thy2, {raw_induct = rep_induct, intrs = rep_intrs, ...}) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (InductivePackage.add_inductive_i false true big_rec_name false true false
-           consts (map (fn x => (("", x), [])) intr_ts) [Funs_mono]) thy1;
+           consts (map (fn x => (("", x), [])) intr_ts) []) thy1;
 
     (********************************* typedef ********************************)
 
@@ -191,7 +185,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         (TypedefPackage.add_typedef_i false (Some name') (name, tvs, mx) c None
           (rtac exI 1 THEN
             QUIET_BREADTH_FIRST (has_fewer_prems 1)
-            (resolve_tac (Funs_nonempty::rep_intrs) 1))) thy |> #1)
+            (resolve_tac rep_intrs 1))) thy |> #1)
               (parent_path flat_names thy2, types_syntax ~~ tyvars ~~
                 (take (length newTs, consts)) ~~ new_type_names));
 
@@ -216,16 +210,10 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         fun constr_arg (dt, (j, l_args, r_args)) =
           let val T = typ_of_dtyp descr' sorts dt;
               val free_t = mk_Free "x" T j
-          in (case dt of
-              DtRec m => (j + 1, free_t::l_args, (Const (nth_elem (m, all_rep_names),
-                T --> Univ_elT) $ free_t)::r_args)
-            | DtType ("fun", [T', DtRec m]) =>
-                let val ([T''], T''') = strip_type T
-                in (j + 1, free_t::l_args, (Lim $ mk_fun_inj T''
-                  (Const (o_name, [T''' --> Univ_elT, T, T''] ---> Univ_elT) $
-                    Const (nth_elem (m, all_rep_names), T''' --> Univ_elT) $ free_t))::r_args)
-                end
-
+          in (case (strip_dtyp dt, strip_type T) of
+              ((_, DtRec m), (Us, U)) => (j + 1, free_t :: l_args, mk_lim (Us,
+                Const (nth_elem (m, all_rep_names), U --> Univ_elT) $
+                  app_bnds free_t (length Us)) :: r_args)
             | _ => (j + 1, free_t::l_args, (Leaf $ mk_inj T free_t)::r_args))
           end;
 
@@ -321,11 +309,11 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     (* isomorphisms are defined using primrec-combinators:                 *)
     (* generate appropriate functions for instantiating primrec-combinator *)
     (*                                                                     *)
-    (*   e.g.  dt_Rep_i = list_rec ... (%h t y. In1 ((Leaf h) $ y))        *)
+    (*   e.g.  dt_Rep_i = list_rec ... (%h t y. In1 (Scons (Leaf h) y))    *)
     (*                                                                     *)
     (* also generate characteristic equations for isomorphisms             *)
     (*                                                                     *)
-    (*   e.g.  dt_Rep_i (cons h t) = In1 ((dt_Rep_j h) $ (dt_Rep_i t))     *)
+    (*   e.g.  dt_Rep_i (cons h t) = In1 (Scons (dt_Rep_j h) (dt_Rep_i t)) *)
     (*---------------------------------------------------------------------*)
 
     fun make_iso_def k ks n ((fs, eqns, i), (cname, cargs)) =
@@ -337,24 +325,18 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val constr = Const (cname, argTs ---> T);
 
         fun process_arg ks' ((i2, i2', ts, Ts), dt) =
-          let val T' = typ_of_dtyp descr' sorts dt
-          in (case dt of
-              DtRec j => if j mem ks' then
-                  (i2 + 1, i2' + 1, ts @ [mk_Free "y" Univ_elT i2'], Ts @ [Univ_elT])
+          let
+            val T' = typ_of_dtyp descr' sorts dt;
+            val (Us, U) = strip_type T'
+          in (case strip_dtyp dt of
+              (_, DtRec j) => if j mem ks' then
+                  (i2 + 1, i2' + 1, ts @ [mk_lim (Us, app_bnds
+                     (mk_Free "y" (Us ---> Univ_elT) i2') (length Us))],
+                   Ts @ [Us ---> Univ_elT])
                 else
-                  (i2 + 1, i2', ts @ [Const (nth_elem (j, all_rep_names),
-                    T' --> Univ_elT) $ mk_Free "x" T' i2], Ts)
-            | (DtType ("fun", [_, DtRec j])) =>
-                let val ([T''], T''') = strip_type T'
-                in if j mem ks' then
-                    (i2 + 1, i2' + 1, ts @ [Lim $ mk_fun_inj T''
-                      (mk_Free "y" (T'' --> Univ_elT) i2')], Ts @ [T'' --> Univ_elT])
-                  else
-                    (i2 + 1, i2', ts @ [Lim $ mk_fun_inj T''
-                      (Const (o_name, [T''' --> Univ_elT, T', T''] ---> Univ_elT) $
-                        Const (nth_elem (j, all_rep_names), T''' --> Univ_elT) $
-                          mk_Free "x" T' i2)], Ts)
-                end
+                  (i2 + 1, i2', ts @ [mk_lim (Us,
+                     Const (nth_elem (j, all_rep_names), U --> Univ_elT) $
+                       app_bnds (mk_Free "x" T' i2) (length Us))], Ts)
             | _ => (i2 + 1, i2', ts @ [Leaf $ mk_inj T' (mk_Free "x" T' i2)], Ts))
           end;
 
@@ -406,18 +388,25 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     fun mk_funs_inv thm =
       let
-        val [_, t] = prems_of Funs_inv;
-        val [_ $ (_ $ _ $ R)] = Logic.strip_assums_hyp t;
-        val _ $ (_ $ (r $ (a $ _)) $ _) = Logic.strip_assums_concl t;
-        val [_ $ (_ $ _ $ R')] = prems_of thm;
-        val _ $ (_ $ (r' $ (a' $ _)) $ _) = concl_of thm;
-        val inv' = cterm_instantiate (map 
-          ((pairself (cterm_of (sign_of_thm thm))) o
-           (apsnd (map_term_types (incr_tvar 1))))
-             [(R, R'), (r, r'), (a, a')]) Funs_inv
-      in
-        rule_by_tactic (atac 2) (thm RSN (2, inv'))
-      end;
+        val {sign, prop, ...} = rep_thm thm;
+        val (_ $ (_ $ (Const (_, Type (_, [U, _])) $ _ $ S)) $
+          (_ $ (_ $ (r $ (a $ _)) $ _)), _) = Type.freeze_thaw prop;
+        val used = add_term_tfree_names (a, []);
+
+        fun mk_thm i =
+          let
+            val Ts = map (TFree o rpair HOLogic.typeS)
+              (variantlist (replicate i "'t", used));
+            val f = Free ("f", Ts ---> U)
+          in prove_goalw_cterm [] (cterm_of sign (Logic.mk_implies
+            (HOLogic.mk_Trueprop (HOLogic.list_all
+               (map (pair "x") Ts, HOLogic.mk_mem (app_bnds f i, S))),
+             HOLogic.mk_Trueprop (HOLogic.mk_eq (list_abs (map (pair "x") Ts,
+               r $ (a $ app_bnds f i)), f))))) (fn prems =>
+                 [cut_facts_tac prems 1, REPEAT (rtac ext 1),
+                  REPEAT (etac allE 1), rtac thm 1, atac 1])
+          end
+      in map (fn r => r RS subst) (thm :: map mk_thm arities) end;
 
     (* prove  inj dt_Rep_i  and  dt_Rep_i x : dt_rep_set_i *)
 
@@ -440,8 +429,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val (ind_concl1, ind_concl2) = ListPair.unzip (map mk_ind_concl ds);
 
         val rewrites = map mk_meta_eq iso_char_thms;
-        val inj_thms' = flat (map (fn r => [r RS injD, r RS inj_o])
-          (map snd newT_iso_inj_thms @ inj_thms));
+        val inj_thms' = map (fn r => r RS injD)
+          (map snd newT_iso_inj_thms @ inj_thms);
 
         val inj_thm = prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5)
           (HOLogic.mk_Trueprop (mk_conj ind_concl1))) (fn _ =>
@@ -455,13 +444,15 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                    REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
                    (eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1)
                    ORELSE (EVERY
-                     [REPEAT (eresolve_tac (Scons_inject :: sum_case_inject ::
-                        map make_elim (inj_thms' @
-                          [Leaf_inject, Lim_inject, Inl_inject, Inr_inject])) 1),
-                      REPEAT ((EVERY [etac allE 1, dtac mp 1, atac 1]) ORELSE
-                              (dtac inj_fun_lemma 1 THEN atac 1)),
-                      REPEAT (hyp_subst_tac 1),
-                      rtac refl 1])])])]);
+                     [REPEAT (eresolve_tac (Scons_inject ::
+                        map make_elim [Leaf_inject, Inl_inject, Inr_inject]) 1),
+                      REPEAT (cong_tac 1), rtac refl 1,
+                      REPEAT (atac 1 ORELSE (EVERY
+                        [REPEAT (rtac ext 1),
+                         REPEAT (eresolve_tac (mp :: allE ::
+                           map make_elim (Suml_inject :: Sumr_inject ::
+                             Lim_inject :: fun_cong :: inj_thms')) 1),
+                         atac 1]))])])])]);
 
         val inj_thms'' = map (fn r => r RS datatype_injI)
                              (split_conj_thm inj_thm);
@@ -472,11 +463,9 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 	       (HOLogic.mk_Trueprop (mk_conj ind_concl2)))
 	      (fn _ =>
 	       [(indtac induction THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
-		rewrite_goals_tac (o_def :: rewrites),
-		REPEAT (EVERY
-			[resolve_tac rep_intrs 1,
-			 REPEAT (FIRST [atac 1, etac spec 1,
-				 resolve_tac (FunsI :: elem_thms) 1])])]);
+		rewrite_goals_tac rewrites,
+		REPEAT ((resolve_tac rep_intrs THEN_ALL_NEW
+                  ((REPEAT o etac allE) THEN' ares_tac elem_thms)) 1)]);
 
       in (inj_thms'' @ inj_thms, elem_thms @ (split_conj_thm elem_thm))
       end;
@@ -502,18 +491,20 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     (* all the theorems are proved by one single simultaneous induction *)
 
+    val range_eqs = map (fn r => mk_meta_eq (r RS range_ex1_eq))
+      iso_inj_thms_unfolded;
+
     val iso_thms = if length descr = 1 then [] else
       drop (length newTs, split_conj_thm
         (prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) iso_t) (fn _ =>
-           [indtac rep_induct 1,
+           [(indtac rep_induct THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
             REPEAT (rtac TrueI 1),
+            rewrite_goals_tac (mk_meta_eq choice_eq ::
+              symmetric (mk_meta_eq expand_fun_eq) :: range_eqs),
+            rewrite_goals_tac (map symmetric range_eqs),
             REPEAT (EVERY
-              [rewrite_goals_tac [mk_meta_eq Collect_mem_eq],
-               REPEAT (etac Funs_IntE 1),
-               REPEAT (eresolve_tac (rangeE ::
-                 map (fn r => r RS Funs_rangeE) iso_inj_thms_unfolded) 1),
-               REPEAT (eresolve_tac (map (fn (iso, _, _) => iso RS subst) newT_iso_axms @
-                 map (fn (iso, _, _) => mk_funs_inv iso RS subst) newT_iso_axms) 1),
+              [REPEAT (eresolve_tac ([rangeE, ex1_implies_ex RS exE] @
+                 flat (map (mk_funs_inv o #1) newT_iso_axms)) 1),
                TRY (hyp_subst_tac 1),
                rtac (sym RS range_eqI) 1,
                resolve_tac iso_char_thms 1])])));
@@ -523,8 +514,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       map2 (fn (r_inj, r) => f_myinv_f OF [r_inj, r RS mp])
         (iso_inj_thms_unfolded, iso_thms);
 
-    val Abs_inverse_thms = map (fn r => r RS subst) (Abs_inverse_thms' @
-      map mk_funs_inv Abs_inverse_thms');
+    val Abs_inverse_thms = flat (map mk_funs_inv Abs_inverse_thms');
 
     (******************* freeness theorems for constructors *******************)
 
@@ -541,7 +531,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
          rewrite_goals_tac rewrites,
          rtac refl 1,
          resolve_tac rep_intrs 2,
-         REPEAT (resolve_tac (FunsI :: iso_elem_thms) 1)])
+         REPEAT (resolve_tac iso_elem_thms 1)])
       end;
 
     (*--------------------------------------------------------------*)
@@ -575,17 +565,19 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     (* prove injectivity of constructors *)
 
     fun prove_constr_inj_thm rep_thms t =
-      let val inj_thms = Scons_inject::sum_case_inject::(map make_elim
+      let val inj_thms = Scons_inject :: (map make_elim
         ((map (fn r => r RS injD) iso_inj_thms) @
-          [In0_inject, In1_inject, Leaf_inject, Inl_inject, Inr_inject, Lim_inject]))
+          [In0_inject, In1_inject, Leaf_inject, Inl_inject, Inr_inject,
+           Lim_inject, Suml_inject, Sumr_inject]))
       in prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) t) (fn _ =>
         [rtac iffI 1,
          REPEAT (etac conjE 2), hyp_subst_tac 2, rtac refl 2,
          dresolve_tac rep_congs 1, dtac box_equals 1,
-         REPEAT (resolve_tac rep_thms 1), rewtac o_def,
+         REPEAT (resolve_tac rep_thms 1),
          REPEAT (eresolve_tac inj_thms 1),
-         REPEAT (ares_tac [conjI] 1 ORELSE (EVERY [rtac ext 1, dtac fun_cong 1,
-                  eresolve_tac inj_thms 1, atac 1]))])
+         REPEAT (ares_tac [conjI] 1 ORELSE (EVERY [REPEAT (rtac ext 1),
+           REPEAT (eresolve_tac (make_elim fun_cong :: inj_thms) 1),
+           atac 1]))])
       end;
 
     val constr_inject = map (fn (ts, thms) => map (prove_constr_inj_thm thms) ts)
@@ -641,12 +633,12 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val dt_induct = prove_goalw_cterm [] (cert
       (DatatypeProp.make_ind descr sorts)) (fn prems =>
-        [rtac indrule_lemma' 1, indtac rep_induct 1,
+        [rtac indrule_lemma' 1,
+         (indtac rep_induct THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY
-           [REPEAT (eresolve_tac (Funs_IntE::Abs_inverse_thms) 1),
+           [REPEAT (eresolve_tac Abs_inverse_thms 1),
             simp_tac (HOL_basic_ss addsimps ((symmetric r)::Rep_inverse_thms')) 1,
-            DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE (EVERY [rewtac o_def,
-              dtac FunsD 1, etac CollectD 1]))]))
+            DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]);
 
     val (thy7, [dt_induct']) = thy6 |>

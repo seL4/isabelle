@@ -11,38 +11,27 @@ sig
   val dtK : int ref
   val indexify_names: string list -> string list
   val make_tnames: typ list -> string list
-  val make_injs : (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      term list list
-  val make_ind : (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list -> term
-  val make_casedists : (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list -> term list
-  val make_primrecs : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      theory -> term list
-  val make_cases : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      theory -> term list list
-  val make_distincts : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      theory -> term list list
-  val make_splits : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      theory -> (term * term) list
-  val make_case_trrules : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> ast Syntax.trrule list
-  val make_size : (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      theory -> term list
-  val make_weak_case_congs : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      theory -> term list
-  val make_case_congs : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      theory -> term list
-  val make_nchotomys : (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list -> term list
+  val make_injs : DatatypeAux.descr list -> (string * sort) list -> term list list
+  val make_ind : DatatypeAux.descr list -> (string * sort) list -> term
+  val make_casedists : DatatypeAux.descr list -> (string * sort) list -> term list
+  val make_primrecs : string list -> DatatypeAux.descr list ->
+    (string * sort) list -> theory -> term list
+  val make_cases : string list -> DatatypeAux.descr list ->
+    (string * sort) list -> theory -> term list list
+  val make_distincts : string list -> DatatypeAux.descr list ->
+    (string * sort) list -> theory -> term list list
+  val make_splits : string list -> DatatypeAux.descr list ->
+    (string * sort) list -> theory -> (term * term) list
+  val make_case_trrules : string list -> DatatypeAux.descr list ->
+    ast Syntax.trrule list
+  val make_size : DatatypeAux.descr list -> (string * sort) list ->
+    theory -> term list
+  val make_weak_case_congs : string list -> DatatypeAux.descr list ->
+    (string * sort) list -> theory -> term list
+  val make_case_congs : string list -> DatatypeAux.descr list ->
+    (string * sort) list -> theory -> term list
+  val make_nchotomys : DatatypeAux.descr list ->
+    (string * sort) list -> term list
 end;
 
 structure DatatypeProp : DATATYPE_PROP =
@@ -111,11 +100,11 @@ fun make_ind descr sorts =
 
     fun make_ind_prem k T (cname, cargs) =
       let
-        fun mk_prem ((DtRec k, s), T) = HOLogic.mk_Trueprop
-              (make_pred k T $ Free (s, T))
-          | mk_prem ((DtType ("fun", [_, DtRec k]), s), T' as Type ("fun", [T, U])) =
-              all T $ Abs ("x", T, HOLogic.mk_Trueprop
-                (make_pred k U $ (Free (s, T') $ Bound 0)));
+        fun mk_prem ((dt, s), T) =
+          let val (Us, U) = strip_type T
+          in list_all (map (pair "x") Us, HOLogic.mk_Trueprop
+            (make_pred (body_index dt) U $ app_bnds (Free (s, T)) (length Us)))
+          end;
 
         val recs = filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
@@ -168,8 +157,6 @@ fun make_casedists descr sorts =
 
 fun make_primrecs new_type_names descr sorts thy =
   let
-    val o_name = "Fun.comp";
-
     val sign = Theory.sign_of thy;
 
     val descr' = flat descr;
@@ -185,9 +172,8 @@ fun make_primrecs new_type_names descr sorts thy =
           val Ts = map (typ_of_dtyp descr' sorts) cargs;
           val recs = filter (is_rec_type o fst) (cargs ~~ Ts);
 
-          fun mk_argT (DtRec k, _) = nth_elem (k, rec_result_Ts)
-            | mk_argT (DtType ("fun", [_, DtRec k]), Type ("fun", [T, _])) =
-               T --> nth_elem (k, rec_result_Ts);
+          fun mk_argT (dt, T) =
+            binder_types T ---> nth_elem (body_index dt, rec_result_Ts);
 
           val argTs = Ts @ map mk_argT recs
         in argTs ---> nth_elem (i, rec_result_Ts)
@@ -215,17 +201,17 @@ fun make_primrecs new_type_names descr sorts thy =
         val frees = map Free (tnames ~~ Ts);
         val frees' = map Free (rec_tnames ~~ recTs');
 
-        fun mk_reccomb (DtRec i, _) = nth_elem (i, reccombs)
-          | mk_reccomb (DtType ("fun", [_, DtRec i]), Type ("fun", [T, U])) =
-              let val T' = nth_elem (i, rec_result_Ts)
-              in Const (o_name, [U --> T', T --> U, T] ---> T') $ nth_elem (i, reccombs)
-              end;
+        fun mk_reccomb ((dt, T), t) =
+          let val (Us, U) = strip_type T
+          in list_abs (map (pair "x") Us,
+            nth_elem (body_index dt, reccombs) $ app_bnds t (length Us))
+          end;
 
-        val reccombs' = map mk_reccomb (recs ~~ recTs')
+        val reccombs' = map mk_reccomb (recs ~~ recTs' ~~ frees')
 
       in (ts @ [HOLogic.mk_Trueprop (HOLogic.mk_eq
         (comb_t $ list_comb (Const (cname, Ts ---> T), frees),
-         list_comb (f, frees @ (map (op $) (reccombs' ~~ frees')))))], fs)
+         list_comb (f, frees @ reccombs')))], fs)
       end
 
   in fst (foldl (fn (x, ((dt, T), comb_t)) =>

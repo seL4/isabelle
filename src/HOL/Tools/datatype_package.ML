@@ -450,7 +450,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
     val newTs = take (length (hd descr), recTs);
 
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists
-      (fn (DtType ("fun", [_, DtRec _])) => true | _ => false) cargs) constrs) descr';
+      (fn dt => is_rec_type dt andalso not (null (fst (strip_dtyp dt))))
+        cargs) constrs) descr';
 
     (**** declare new types and constants ****)
 
@@ -470,9 +471,8 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
           val Ts = map (typ_of_dtyp descr' sorts) cargs;
           val recs = filter (is_rec_type o fst) (cargs ~~ Ts);
 
-          fun mk_argT (DtRec k, _) = nth_elem (k, rec_result_Ts)
-            | mk_argT (DtType ("fun", [_, DtRec k]), Type ("fun", [T, _])) =
-               T --> nth_elem (k, rec_result_Ts);
+          fun mk_argT (dt, T) =
+            binder_types T ---> nth_elem (body_index dt, rec_result_Ts);
 
           val argTs = Ts @ map mk_argT recs
         in argTs ---> nth_elem (i, rec_result_Ts)

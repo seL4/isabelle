@@ -18,31 +18,29 @@ injectivity / distinctness of constructors and induction)
 
 signature DATATYPE_ABS_PROOFS =
 sig
-  val prove_casedist_thms : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      thm -> theory attribute list -> theory -> theory * thm list
-  val prove_primrec_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
+  val prove_casedist_thms : string list ->
+    DatatypeAux.descr list -> (string * sort) list -> thm ->
+    theory attribute list -> theory -> theory * thm list
+  val prove_primrec_thms : bool -> string list ->
+    DatatypeAux.descr list -> (string * sort) list ->
       DatatypeAux.datatype_info Symtab.table -> thm list list -> thm list list ->
         simpset -> thm -> theory -> theory * (string list * thm list)
-  val prove_case_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
+  val prove_case_thms : bool -> string list ->
+    DatatypeAux.descr list -> (string * sort) list ->
       string list -> thm list -> theory -> theory * (thm list list * string list)
-  val prove_split_thms : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
+  val prove_split_thms : string list ->
+    DatatypeAux.descr list -> (string * sort) list ->
       thm list list -> thm list list -> thm list -> thm list list -> theory ->
         theory * (thm * thm) list
-  val prove_size_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
+  val prove_size_thms : bool -> string list ->
+    DatatypeAux.descr list -> (string * sort) list ->
       string list -> thm list -> theory -> theory * thm list
-  val prove_nchotomys : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      thm list -> theory -> theory * thm list
-  val prove_weak_case_congs : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
-      theory -> theory * thm list
-  val prove_case_congs : string list -> (int * (string * DatatypeAux.dtyp list *
-    (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
+  val prove_nchotomys : string list -> DatatypeAux.descr list ->
+    (string * sort) list -> thm list -> theory -> theory * thm list
+  val prove_weak_case_congs : string list -> DatatypeAux.descr list ->
+    (string * sort) list -> theory -> theory * thm list
+  val prove_case_congs : string list ->
+    DatatypeAux.descr list -> (string * sort) list ->
       thm list -> thm list list -> theory -> theory * thm list
 end;
 
@@ -50,10 +48,6 @@ structure DatatypeAbsProofs: DATATYPE_ABS_PROOFS =
 struct
 
 open DatatypeAux;
-
-val thin = read_instantiate_sg (Theory.sign_of Set.thy) [("V", "?X : ?Y")] thin_rl;
-
-val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 (************************ case distinction theorems ***************************)
 
@@ -99,8 +93,6 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
   let
     val _ = message "Constructing primrec combinators ...";
 
-    val fun_rel_comp_name = "Relation.fun_rel_comp";
-
     val big_name = space_implode "_" new_type_names;
     val thy0 = add_path flat_names big_name thy;
 
@@ -126,9 +118,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
           val Ts = map (typ_of_dtyp descr' sorts) cargs;
           val recs = filter (is_rec_type o fst) (cargs ~~ Ts);
 
-          fun mk_argT (DtRec k, _) = nth_elem (k, rec_result_Ts)
-            | mk_argT (DtType ("fun", [_, DtRec k]), Type ("fun", [T, _])) =
-               T --> nth_elem (k, rec_result_Ts);
+          fun mk_argT (dt, T) =
+            binder_types T ---> nth_elem (body_index dt, rec_result_Ts);
 
           val argTs = Ts @ map mk_argT recs
         in argTs ---> nth_elem (i, rec_result_Ts)
@@ -148,19 +139,16 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
       let
         fun mk_prem ((dt, U), (j, k, prems, t1s, t2s)) =
           let val free1 = mk_Free "x" U j
-          in (case (dt, U) of
-             (DtRec m, _) =>
-               let val free2 = mk_Free "y" (nth_elem (m, rec_result_Ts)) k
-               in (j + 1, k + 1, (HOLogic.mk_Trueprop (HOLogic.mk_mem
-                 (HOLogic.mk_prod (free1, free2), nth_elem (m, rec_sets))))::prems,
+          in (case (strip_dtyp dt, strip_type U) of
+             ((_, DtRec m), (Us, _)) =>
+               let
+                 val free2 = mk_Free "y" (Us ---> nth_elem (m, rec_result_Ts)) k;
+                 val i = length Us
+               in (j + 1, k + 1, HOLogic.mk_Trueprop (HOLogic.list_all
+                     (map (pair "x") Us, HOLogic.mk_mem (HOLogic.mk_prod
+                       (app_bnds free1 i, app_bnds free2 i),
+                         nth_elem (m, rec_sets)))) :: prems,
                    free1::t1s, free2::t2s)
-               end
-           | (DtType ("fun", [_, DtRec m]), U' as Type ("fun", [T', _])) =>
-               let val free2 = mk_Free "y" (T' --> nth_elem (m, rec_result_Ts)) k
-               in (j + 1, k + 1, (HOLogic.mk_Trueprop (HOLogic.mk_mem (free2,
-                 Const (fun_rel_comp_name, [U', snd (strip_type (nth_elem (m, rec_set_Ts)))] --->
-                   HOLogic.mk_setT (T' --> nth_elem (m, rec_result_Ts))) $
-                     free1 $ nth_elem (m, rec_sets))))::prems, free1::t1s, free2::t2s)
                end
            | _ => (j + 1, k, prems, free1::t1s, t2s))
           end;
@@ -180,7 +168,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val (thy1, {intrs = rec_intrs, elims = rec_elims, ...}) =
       setmp InductivePackage.quiet_mode (!quiet_mode)
         (InductivePackage.add_inductive_i false true big_rec_name' false false true
-           rec_sets (map (fn x => (("", x), [])) rec_intr_ts) [fun_rel_comp_mono]) thy0;
+           rec_sets (map (fn x => (("", x), [])) rec_intr_ts) []) thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 
@@ -202,16 +190,14 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
             val k = length (filter is_rec_type cargs)
 
           in (EVERY [DETERM tac,
-                REPEAT (dtac fun_rel_comp_unique 1),
                 REPEAT (etac ex1E 1), rtac ex1I 1,
                 DEPTH_SOLVE_1 (ares_tac [intr] 1),
-                REPEAT_DETERM_N k (etac thin 1),
+                REPEAT_DETERM_N k (etac thin_rl 1 THEN rotate_tac 1 1),
                 etac elim 1,
                 REPEAT_DETERM_N j distinct_tac,
                 etac Pair_inject 1, TRY (dresolve_tac inject 1),
                 REPEAT (etac conjE 1), hyp_subst_tac 1,
-                REPEAT (etac allE 1),
-                REPEAT (dtac mp 1 THEN atac 1),
+                REPEAT (EVERY [etac allE 1, dtac mp 1, atac 1]),
                 TRY (hyp_subst_tac 1),
                 rtac refl 1,
                 REPEAT_DETERM_N (n - j - 1) distinct_tac],
@@ -236,7 +222,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         val induct' = cterm_instantiate ((map cert induct_Ps) ~~
           (map cert insts)) induct;
         val (tac, _) = foldl mk_unique_tac
-          (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_tac) 1, rec_intrs),
+          (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_tac) 1
+              THEN rewtac (mk_meta_eq choice_eq), rec_intrs),
             descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts);
 
       in split_conj_thm (prove_goalw_cterm []
@@ -277,8 +264,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         [rtac the1_equality 1,
          resolve_tac rec_unique_thms 1,
          resolve_tac rec_intrs 1,
-         rewrite_goals_tac [o_def, fun_rel_comp_def],
-         REPEAT ((rtac CollectI 1 THEN rtac allI 1) ORELSE resolve_tac rec_total_thms 1)]))
+         REPEAT (rtac allI 1 ORELSE resolve_tac rec_total_thms 1)]))
            (DatatypeProp.make_primrecs new_type_names descr sorts thy2)
 
   in
@@ -302,8 +288,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
     val newTs = take (length (hd descr), recTs);
     val T' = TFree (variant used "'t", HOLogic.typeS);
 
-    fun mk_dummyT (DtRec _) = T'
-      | mk_dummyT (DtType ("fun", [T, _])) = typ_of_dtyp descr' sorts T --> T'
+    fun mk_dummyT dt = binder_types (typ_of_dtyp descr' sorts dt) ---> T';
 
     val case_dummy_fns = map (fn (_, (_, _, constrs)) => map (fn (_, cargs) =>
       let
@@ -401,8 +386,9 @@ fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
 (******************************* size functions *******************************)
 
 fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_thms thy =
-  if exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists
-    (fn (DtType ("fun", [_, DtRec _])) => true | _ => false) cargs) constrs) (flat descr)
+  if exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
+    is_rec_type dt andalso not (null (fst (strip_dtyp dt)))) cargs) constrs)
+      (flat descr)
   then
     (thy, [])
   else

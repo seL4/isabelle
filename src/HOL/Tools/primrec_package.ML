@@ -141,16 +141,13 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
               (fnames', fnss', (Const ("arbitrary", dummyT))::fns))
         | Some (ls, cargs', rs, rhs, eq) =>
             let
-              fun rec_index (DtRec k) = k
-                | rec_index (DtType ("fun", [_, DtRec k])) = k;
-
               val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
               val subs = map (rpair dummyT o fst) 
 		             (rev (rename_wrt_term rhs rargs));
               val ((fnames'', fnss''), rhs') = 
 		  (subst (map (fn ((x, y), z) =>
-			       (Free x, (rec_index y, Free z)))
+			       (Free x, (body_index y, Free z)))
 			  (recs ~~ subs))
 		   ((fnames', fnss'), rhs))
                   handle RecError s => primrec_eq_err sign s eq
@@ -257,7 +254,7 @@ fun add_primrec_i alt_name eqns_atts thy =
       (if eq_set (names1, names2) then (PureThy.add_defs_i false o map Thm.no_attributes) defs'
        else primrec_err ("functions " ^ commas_quote names2 ^
          "\nare not mutually recursive"));
-    val rewrites = o_def :: (map mk_meta_eq rec_rewrites) @ defs_thms';
+    val rewrites = (map mk_meta_eq rec_rewrites) @ defs_thms';
     val _ = message ("Proving equations for primrec function(s) " ^ commas_quote names1 ^ " ...");
     val simps = map (fn (_, t) => prove_goalw_cterm rewrites (cterm_of (Theory.sign_of thy') t)
         (fn _ => [rtac refl 1])) eqns;

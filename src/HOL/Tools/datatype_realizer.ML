@@ -88,23 +88,18 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
                 in (HOLogic.mk_Trueprop (make_pred i rT T (list_comb (f, vs'))
                   (list_comb (Const (cname, Ts ---> T), map Free frees))), f')
                 end
-            | mk_prems vs (((DtRec k, s), T) :: ds) = 
+            | mk_prems vs (((dt, s), T) :: ds) = 
                 let
+                  val k = body_index dt;
+                  val (Us, U) = strip_type T;
+                  val i = length Us;
                   val rT = nth_elem (k, rec_result_Ts);
-                  val r = Free ("r" ^ s, rT);
+                  val r = Free ("r" ^ s, Us ---> rT);
                   val (p, f) = mk_prems (vs @ [r]) ds
-                in (mk_all k ("r" ^ s) rT (Logic.mk_implies
-                  (HOLogic.mk_Trueprop (make_pred k rT T r (Free (s, T))), p)), f)
-                end
-            | mk_prems vs (((DtType ("fun", [_, DtRec k]), s),
-                  T' as Type ("fun", [T, U])) :: ds) =
-                let
-                  val rT = nth_elem (k, rec_result_Ts);
-                  val r = Free ("r" ^ s, T --> rT);
-                  val (p, f) = mk_prems (vs @ [r]) ds
-                in (mk_all k ("r" ^ s) (T --> rT) (Logic.mk_implies
-                  (all T $ Abs ("x", T, HOLogic.mk_Trueprop (make_pred k rT U
-                    (r $ Bound 0) (Free (s, T') $ Bound 0))), p)), f)
+                in (mk_all k ("r" ^ s) (Us ---> rT) (Logic.mk_implies
+                  (list_all (map (pair "x") Us, HOLogic.mk_Trueprop
+                    (make_pred k rT U (app_bnds r i)
+                      (app_bnds (Free (s, T)) i))), p)), f)
                 end
 
         in (j + 1,
