@@ -4,18 +4,7 @@
     Copyright   1998  University of Cambridge
 
 Specification of Chandy and Charpentier's Allocator
-
-Goal "(plam x: lessThan Nclients. Client) = x";
-Client :: (clientState * ((nat => clientState) * 'b)) program
 *)
-
-(***USEFUL??*)
-Goal "surj h ==> h `` {s. P (h s)} = {s. P s}";
-by Auto_tac;
-by (force_tac (claset() addSIs [exI, surj_f_inv_f RS sym], 
-	       simpset() addsimps [surj_f_inv_f]) 1);
-qed "surj_image_Collect_lemma";
-
 
 AddIs [impOfSubs subset_preserves_o];
 Addsimps [funPair_o_distrib];
@@ -71,9 +60,16 @@ qed "mono_tokens";
 
 (*** bijectivity of sysOfAlloc [MUST BE AUTOMATED] ***)
 
+val record_auto_tac =
+    auto_tac (claset() addIs [ext] addSWrapper record_split_wrapper, 
+	      simpset() addsimps [sysOfAlloc_def, sysOfClient_def,
+				  client_map_def, non_extra_def, funPair_def,
+				  o_apply, Let_def]);
+
+
 Goalw [sysOfAlloc_def, Let_def] "inj sysOfAlloc";
 by (rtac injI 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, simpset()));
+by record_auto_tac;
 qed "inj_sysOfAlloc";
 AddIffs [inj_sysOfAlloc];
 
@@ -84,15 +80,13 @@ Goal "!!s. inv sysOfAlloc s = \
 \               allocRel = allocRel s,   \
 \               allocState_u.extra = (client s, extra s) |)";
 by (rtac (inj_sysOfAlloc RS inv_f_eq) 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfAlloc_def, Let_def]));
+by record_auto_tac;
 qed "inv_sysOfAlloc_eq";
 Addsimps [inv_sysOfAlloc_eq];
 
 Goal "surj sysOfAlloc";
 by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_apply]) 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfAlloc_def, Let_def]));
+by record_auto_tac;
 qed "surj_sysOfAlloc";
 AddIffs [surj_sysOfAlloc];
 
@@ -106,7 +100,7 @@ AddIffs [bij_sysOfAlloc];
 
 Goalw [sysOfClient_def] "inj sysOfClient";
 by (rtac injI 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, simpset()));
+by record_auto_tac;
 qed "inj_sysOfClient";
 AddIffs [inj_sysOfClient];
 
@@ -117,15 +111,13 @@ Goal "!!s. inv sysOfClient s = \
 \                allocRel = allocRel s, \
 \                allocState_u.extra = systemState.extra s|) )";
 by (rtac (inj_sysOfClient RS inv_f_eq) 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfClient_def]));
+by record_auto_tac;
 qed "inv_sysOfClient_eq";
 Addsimps [inv_sysOfClient_eq];
 
 Goal "surj sysOfClient";
 by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_apply]) 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfClient_def]));
+by record_auto_tac;
 qed "surj_sysOfClient";
 AddIffs [surj_sysOfClient];
 
@@ -137,9 +129,8 @@ AddIffs [bij_sysOfClient];
 
 (*** bijectivity of client_map ***)
 
-Goal "inj client_map";
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [client_map_def, non_extra_def, inj_on_def]));
+Goalw [inj_on_def] "inj client_map";
+by record_auto_tac;
 qed "inj_client_map";
 AddIffs [inj_client_map];
 
@@ -147,15 +138,13 @@ Goal "!!s. inv client_map s = \
 \            (%(x,y).(|giv = giv x, ask = ask x, rel = rel x, \
 \                      clientState_u.extra = y|)) s";
 by (rtac (inj_client_map RS inv_f_eq) 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-      simpset() addsimps [client_map_def, funPair_def, non_extra_def]));
+by record_auto_tac;
 qed "inv_client_map_eq";
 Addsimps [inv_client_map_eq];
 
 Goal "surj client_map";
 by (simp_tac (simpset() addsimps [surj_iff, expand_fun_eq, o_apply]) 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [client_map_def, non_extra_def]));
+by record_auto_tac;
 qed "surj_client_map";
 AddIffs [surj_client_map];
 
@@ -180,60 +169,44 @@ Addsimps (make_o_equivs snd_o_client_map);
 (** o-simprules for sysOfAlloc [MUST BE AUTOMATED] **)
 
 Goal "client o sysOfAlloc = fst o allocState_u.extra ";
-by (rtac ext 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [o_apply, sysOfAlloc_def, Let_def]));
+by record_auto_tac;
 qed "client_o_sysOfAlloc";
 Addsimps (make_o_equivs client_o_sysOfAlloc);
 
 Goal "allocGiv o sysOfAlloc = allocGiv";
-by (rtac ext 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfAlloc_def, Let_def, o_apply]));
+by record_auto_tac;
 qed "allocGiv_o_sysOfAlloc_eq";
 Addsimps (make_o_equivs allocGiv_o_sysOfAlloc_eq);
 
 Goal "allocAsk o sysOfAlloc = allocAsk";
-by (rtac ext 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfAlloc_def, Let_def, o_apply]));
+by record_auto_tac;
 qed "allocAsk_o_sysOfAlloc_eq";
 Addsimps (make_o_equivs allocAsk_o_sysOfAlloc_eq);
 
 Goal "allocRel o sysOfAlloc = allocRel";
-by (rtac ext 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfAlloc_def, Let_def, o_apply]));
+by record_auto_tac;
 qed "allocRel_o_sysOfAlloc_eq";
 Addsimps (make_o_equivs allocRel_o_sysOfAlloc_eq);
 
 (** o-simprules for sysOfClient [MUST BE AUTOMATED] **)
 
 Goal "client o sysOfClient = fst";
-by (rtac ext 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [o_apply, sysOfClient_def]));
+by record_auto_tac;
 qed "client_o_sysOfClient";
 Addsimps (make_o_equivs client_o_sysOfClient);
 
 Goal "allocGiv o sysOfClient = allocGiv o snd ";
-by (rtac ext 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfClient_def, o_apply]));
+by record_auto_tac;
 qed "allocGiv_o_sysOfClient_eq";
 Addsimps (make_o_equivs allocGiv_o_sysOfClient_eq);
 
 Goal "allocAsk o sysOfClient = allocAsk o snd ";
-by (rtac ext 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfClient_def, o_apply]));
+by record_auto_tac;
 qed "allocAsk_o_sysOfClient_eq";
 Addsimps (make_o_equivs allocAsk_o_sysOfClient_eq);
 
 Goal "allocRel o sysOfClient = allocRel o snd ";
-by (rtac ext 1);
-by (auto_tac (claset() addSWrapper record_split_wrapper, 
-	      simpset() addsimps [sysOfClient_def, o_apply]));
+by record_auto_tac;
 qed "allocRel_o_sysOfClient_eq";
 Addsimps (make_o_equivs allocRel_o_sysOfClient_eq);
 
