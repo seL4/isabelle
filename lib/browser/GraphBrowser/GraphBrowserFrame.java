@@ -117,5 +117,10 @@ public class GraphBrowserFrame extends Frame implements ActionListener {
 		mb.add(m1);
 		setMenuBar(mb);
 		add("Center", br);
+    addWindowListener( new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        System.exit(0);
+      }
+    });
 	}
 }
