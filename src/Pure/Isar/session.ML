@@ -24,20 +24,27 @@ val pure = "Pure";
 val session = ref ([pure]: string list);
 val session_path = ref ([]: string list);
 val session_finished = ref false;
-val rpath = ref (None : Url.T option);
+val rpath = ref (None: Url.T option);
+
+
+(* access path *)
 
 fun path () = ! session_path;
-
-fun add_path reset s =
-  (session := ! session @ [s]; session_path := ((if reset then [] else ! session_path) @ [s]));
-
-
-(* diagnostics *)
 
 fun str_of [] = "Pure"
   | str_of elems = space_implode "/" elems;
 
 fun welcome () = "Welcome to Isabelle/" ^ str_of (path ()) ^ " (" ^ version ^ ")";
+
+
+(* add_path *)
+
+fun add_path reset s =
+  let val sess = ! session @ [s] in
+    (case Library.duplicates sess of
+      [] => (session := sess; session_path := ((if reset then [] else ! session_path) @ [s]))
+    | dups => error ("Duplicate session identifiers " ^ commas_quote dups ^ " in " ^ str_of sess))
+  end;
 
 
 (* init *)
