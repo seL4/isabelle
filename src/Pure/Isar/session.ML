@@ -9,7 +9,8 @@ Session management -- maintain state of logic images.
 signature SESSION =
 sig
   val welcome: unit -> string
-  val use_dir: bool -> bool -> string -> string -> string -> string -> string -> unit
+  val use_dir:
+    string list -> bool -> bool -> string -> string -> string -> string -> string -> unit
   val finish: unit -> unit
 end;
 
@@ -75,12 +76,14 @@ fun get_rpath rpath_str =
        rpath := Some (Url.unpack rpath_str);
    (!rpath, rpath_str <> ""));
 
-fun use_dir reset info doc parent name dump rpath_str =
-  (init reset parent name;
-   Present.init info doc (path ()) name
-     (if dump = "" then None else Some (Path.unpack dump)) (get_rpath rpath_str);
-   File.symbol_use root_file;
-   finish ()) handle exn => (writeln (Toplevel.exn_message exn); exit 1);
+fun use_dir modes reset info doc parent name dump rpath_str =
+  Library.setmp print_mode (modes @ ! print_mode) (fn () =>
+    (init reset parent name;
+     Present.init info doc (path ()) name
+       (if dump = "" then None else Some (Path.unpack dump)) (get_rpath rpath_str);
+     File.symbol_use root_file;
+     finish ())) ()
+  handle exn => (writeln (Toplevel.exn_message exn); exit 1);
 
 
 end;
