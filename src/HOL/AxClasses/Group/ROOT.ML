@@ -2,8 +2,7 @@
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-(* FIXME comment *)
-Elementary algebra via axiomatic type classes.
+Some bits of group theory via axiomatic type classes.
 *)
 
 reset HOL_quantifiers;
@@ -13,7 +12,7 @@ set show_sorts;
 (*disable bug compatibility*)
 reset force_strip_shyps;
 
-set force_strip_shyps;(* FIXME tmp hack *)
+set force_strip_shyps; (* FIXME tmp hack *)
 
 
 use_thy "Sigs";
