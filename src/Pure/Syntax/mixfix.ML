@@ -144,6 +144,7 @@ val pure_types =
 
 val pure_syntax =
  [("_lambda",   "[idts, 'a] => logic",            Mixfix ("(3%_./ _)", [], 0)),
+  ("_abs",      "'a",                             NoSyn),
   ("",          "'a => " ^ args,                  Delimfix "_"),
   ("_args",     "['a, " ^ args ^ "] => " ^ args,  Delimfix "_,/ _"),
   ("",          "id => idt",                      Delimfix "_"),
