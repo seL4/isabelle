@@ -26,6 +26,7 @@ sig
   val sync: token list -> string * token list
   val eof: token list -> string * token list
   val not_eof: token list -> token * token list
+  val opt_unit: token list -> unit * token list
   val nat: token list -> int * token list
   val enum: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
   val enum1: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
@@ -135,6 +136,8 @@ fun $$$ x =
 val nat = number >> (fst o Term.read_int o Symbol.explode);
 
 val not_eof = Scan.one OuterLex.not_eof;
+
+val opt_unit = Scan.optional ($$$ "(" -- $$$ ")" >> (K ())) ();
 
 
 (* enumerations *)
