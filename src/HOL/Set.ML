@@ -612,6 +612,13 @@ goal thy "(z : f``A) = (EX x:A. z = f x)";
 by (Blast_tac 1);
 qed "image_iff";
 
+(*This rewrite rule would confuse users if made default.*)
+goal thy "(f``A <= B) = (ALL x:A. f(x): B)";
+by (Blast_tac 1);
+qed "image_subset_iff";
+
+(*Replaces the three steps subsetI, imageE, hyp_subst_tac, but breaks too
+  many existing proofs.*)
 val prems = goal thy "(!!x. x:A ==> f(x) : B) ==> f``A <= B";
 by (blast_tac (claset() addIs prems) 1);
 qed "image_subsetI";
