@@ -71,7 +71,7 @@ if [ -n $(ls $RUNNING) ]; then
     echo "  isatest" >> $TMP
 
     for R in $ADMIN; do
-        $MAIL "isabelle taking to long" $R $TMP
+        $MAIL "isabelle test taking to long" $R $TMP
     done
     
     exit 1
