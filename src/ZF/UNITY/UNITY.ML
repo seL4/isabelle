@@ -117,7 +117,7 @@ by (simp_tac (simpset()
 qed "Init_type";
 
 Goalw [st_set_def] "st_set(Init(F))";
-by (resolve_tac [Init_type] 1);
+by (rtac Init_type 1);
 qed "st_set_Init";
 AddIffs [st_set_Init];
 
@@ -439,7 +439,7 @@ val major::minor::_ = Goalw [constrains_def, st_set_def]
 "[|(!!i. i:I ==> F:A(i) co A'(i)); F:program |]==> F:(UN i:I. A(i)) co (UN i:I. A'(i))";
 by (cut_facts_tac [minor] 1);
 by Safe_tac;
-by (ALLGOALS(forward_tac [major]));
+by (ALLGOALS(ftac major ));
 by (ALLGOALS(Asm_full_simp_tac));
 by (REPEAT(Blast_tac 1));
 qed "constrains_UN";
@@ -486,8 +486,8 @@ by (asm_full_simp_tac (simpset() addsimps [Inter_def]) 1);
 by (etac not_emptyE 1);
 by Safe_tac;
 by (forw_inst_tac [("i", "xd")] major 1);
-by (forward_tac [major] 2);
-by (forward_tac [major] 3);
+by (ftac major 2);
+by (ftac major 3);
 by (REPEAT(Force_tac 1));
 qed "constrains_INT";
 

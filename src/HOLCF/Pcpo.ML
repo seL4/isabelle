@@ -52,18 +52,18 @@ qed "lub_range_mono";
 
 Goal "chain (Y::nat=>'a::cpo) ==> lub(range (%i. Y(i + j))) = lub(range Y)";
 by (rtac antisym_less 1);
-br lub_range_mono 1;
+by (rtac lub_range_mono 1);
 by    (Fast_tac 1);
 by   (atac 1);
-be  chain_shift 1;
-br is_lub_thelub 1;
-ba  1;
-br ub_rangeI 1;
-br trans_less 1;
-br  is_ub_thelub 2;
-be  chain_shift 2;
-be chain_mono3 1;
-br le_add1 1;
+by (etac chain_shift 1);
+by (rtac is_lub_thelub 1);
+by (assume_tac 1);
+by (rtac ub_rangeI 1);
+by (rtac trans_less 1);
+by (rtac is_ub_thelub 2);
+by (etac chain_shift 2);
+by (etac chain_mono3 1);
+by (rtac le_add1 1);
 qed "lub_range_shift";
 
 Goal "chain Y ==> max_in_chain i Y = (lub(range(Y)) = ((Y i)::'a::cpo))";

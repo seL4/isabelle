@@ -38,7 +38,7 @@ qed "chain_mono3";
 (* ------------------------------------------------------------------------ *)
 
 Goalw [tord_def] "chain(F) ==> tord(range(F))";
-by (Safe_tac);
+by Safe_tac;
 by (rtac nat_less_cases 1);
 by (ALLGOALS (fast_tac (claset() addIs [chain_mono])));
 qed "chain_tord";
@@ -92,9 +92,9 @@ by (blast_tac (claset() addIs prems) 1);
 qed "chainI";
 
 Goal "chain Y ==> chain (%i. Y (i + j))";
-br chainI 1;
+by (rtac chainI 1);
 by (Clarsimp_tac 1);
-be chainE 1;
+by (etac chainE 1);
 qed "chain_shift";
 
 (* ------------------------------------------------------------------------ *)

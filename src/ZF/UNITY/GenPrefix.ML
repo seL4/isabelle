@@ -330,7 +330,7 @@ Goal "(<xs,ys>: gen_prefix(A,r)) <-> \
 \ (ALL i:nat. i < length(xs) --> <nth(i,xs), nth(i, ys)>: r))";
 by (rtac iffI 1);
 by (forward_tac [gen_prefix.dom_subset RS subsetD] 1);
-by (forward_tac [gen_prefix_length_le] 1);
+by (ftac gen_prefix_length_le 1);
 by (ALLGOALS(Clarify_tac));
 by (rtac nth_imp_gen_prefix 2);
 by (dtac (rotate_prems 4 gen_prefix_imp_nth) 1);
@@ -485,7 +485,7 @@ by (force_tac (claset(), simpset() addsimps [le_subset_iff]) 1);
 by Safe_tac;
 by (Blast_tac 1);
 by (subgoal_tac "length(xs) #+ (x #- length(xs)) = x" 1);
-by (rtac (nth_drop RS ssubst) 1);
+by (stac nth_drop 1);
 by (ALLGOALS(asm_simp_tac (simpset() addsimps [leI])));
 by (rtac (nat_diff_split RS iffD2) 1);
 by Auto_tac;

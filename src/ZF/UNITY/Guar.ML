@@ -529,7 +529,7 @@ qed "stable_guarantees_Always";
 
 (* To be moved to WFair.ML *)
 Goal "[| F:A co A Un B; F:transient(A); st_set(B) |] ==> F:A leadsTo B";
-by (forward_tac [constrainsD2] 1);
+by (ftac constrainsD2 1);
 by (dres_inst_tac [("B", "A-B")] constrains_weaken_L 1);
 by (dres_inst_tac [("B", "A-B")] transient_strengthen 2);
 by (rtac (ensuresI RS leadsTo_Basis) 3);

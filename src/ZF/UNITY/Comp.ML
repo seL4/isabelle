@@ -96,7 +96,7 @@ by (Blast_tac 1);
 qed "Join_component_iff";
 
 Goal "[| F component G; G:A co B; F:program |] ==> F : A co B";
-by (forward_tac [constrainsD2] 1);
+by (ftac constrainsD2 1);
 by (rotate_tac ~1 1);
 by (auto_tac (claset(), 
               simpset() addsimps [constrains_def, component_eq_subset]));

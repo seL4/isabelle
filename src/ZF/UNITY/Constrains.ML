@@ -18,7 +18,7 @@ by (Blast_tac 1);
 qed "reachable_type";
 
 Goalw [st_set_def] "st_set(reachable(F))";
-by (resolve_tac [reachable_type] 1);
+by (rtac reachable_type 1);
 qed "st_set_reachable";
 AddIffs [st_set_reachable];
 
@@ -168,7 +168,7 @@ by (cut_facts_tac [minor] 1);
 by (asm_simp_tac (simpset() delsimps INT_simps
 	  	 	    addsimps [Constrains_def]@INT_extend_simps) 1);
 by (rtac constrains_INT 1);
-by (dresolve_tac [major] 1);
+by (dtac major 1);
 by (auto_tac (claset(), simpset() addsimps [Constrains_def])); 
 qed "Constrains_INT";
 
@@ -325,7 +325,7 @@ qed "Always_eq_invariant_reachable";
 
 (*the RHS is the traditional definition of the "always" operator*)
 Goal "Always(A) = {F:program. reachable(F) <= A}";
-br equalityI 1;
+by (rtac equalityI 1);
 by (ALLGOALS(Clarify_tac));
 by (auto_tac (claset() addDs [invariant_includes_reachable],
               simpset() addsimps [subset_Int_iff, invariant_reachable,
@@ -337,7 +337,7 @@ by Auto_tac;
 qed "Always_type";
 
 Goal "Always(state) = program";
-br equalityI 1;
+by (rtac equalityI 1);
 by (auto_tac (claset() addDs [Always_type RS subsetD, 
                               reachable_type RS subsetD], 
               simpset() addsimps [Always_eq_includes_reachable]));

@@ -106,7 +106,7 @@ qed "melem_diff_single";
 Goalw [mdiff_def, multiset_def]
  "[| multiset(M); mset_of(M)<=A |] ==> mset_of(M -# N) <= A";
 by (auto_tac (claset(), simpset() addsimps [normalize_def]));
-by (rewrite_goals_tac [mset_of_def]);
+by (rewtac mset_of_def);
 by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [multiset_fun_iff])));
 by (ALLGOALS(Clarify_tac));
 by (ALLGOALS(rotate_simp_tac "M:?u"));
@@ -242,7 +242,7 @@ Goalw [multiset_def] "multiset(M) ==> M +# {#a#} -# {#a#} = M";
 by (rewrite_goals_tac [munion_def, mdiff_def, 
                        msingle_def, normalize_def, mset_of_def]);
 by (auto_tac (claset(), simpset() addsimps [multiset_fun_iff]));
-by (resolve_tac [fun_extension] 1);
+by (rtac fun_extension 1);
 by Auto_tac;
 by (res_inst_tac [("P", "%x. ?u : Pi(x, ?v)")] subst 1);
 by (rtac restrict_type 2);
@@ -546,7 +546,7 @@ val major::prems = Goal
 \ (setsum(%x. $# mcount(M, x), {x:mset_of(M). 0 < M`x}) = $# n) --> P(M))";
 by (rtac (major RS nat_induct) 1);
 by (ALLGOALS(Clarify_tac));
-by (forward_tac [msize_eq_0_iff] 1);
+by (ftac msize_eq_0_iff 1);
 by (auto_tac (claset(), 
               simpset() addsimps [mset_of_def, multiset_def,  
                                   multiset_fun_iff, msize_def]@prems));
@@ -632,7 +632,7 @@ val major::prems = Goal
  \   ==> P(M)";
 by (subgoal_tac "EX n:nat. setsum(\\<lambda>x. $# mcount(M, x), \
               \ {x : mset_of(M) . 0 < M ` x}) = $# n" 1);
-by (resolve_tac [not_zneg_int_of] 2);
+by (rtac not_zneg_int_of 2);
 by (ALLGOALS(asm_simp_tac (simpset() 
         addsimps [znegative_iff_zless_0, not_zless_iff_zle])));
 by (rtac g_zpos_imp_setsum_zpos 2);
@@ -649,7 +649,7 @@ qed "multiset_induct2";
 Goalw [multiset_def, msingle_def] 
  "[| multiset(M); a ~:mset_of(M) |] ==> M +# {#a#} = cons(<a, 1>, M)";
 by (auto_tac (claset(), simpset() addsimps [munion_def]));
-by (rewrite_goals_tac [mset_of_def]);
+by (rewtac mset_of_def);
 by (rotate_simp_tac "M:?u" 1);
 by (rtac fun_extension 1 THEN rtac lam_type 1);
 by (ALLGOALS(Asm_full_simp_tac));
@@ -666,7 +666,7 @@ Goalw [multiset_def]
 "[| multiset(M); a:mset_of(M) |] ==> M +# {#a#} = M(a:=M`a #+ 1)";
 by (auto_tac (claset(),  simpset() 
      addsimps [munion_def, multiset_fun_iff, msingle_def]));
-by (rewrite_goals_tac [mset_of_def]);
+by (rewtac mset_of_def);
 by (rotate_simp_tac "M:?u" 1);
 by (subgoal_tac "A Un {a} = A" 1);
 by (rtac fun_extension 1);
@@ -776,9 +776,9 @@ qed "multiset_on_is_FiniteFun";
 
 Goalw [multiset_on_def, multiset_def, mset_of_def]
  "M:A-||>nat-{0} ==> multiset[A](M)";
-by (forward_tac [FiniteFun_is_fun] 1);
+by (ftac FiniteFun_is_fun 1);
 by (dtac FiniteFun_domain_Fin 1);
-by (forward_tac [FinD] 1);
+by (ftac FinD 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "domain(M)")] exI 1);
 by (blast_tac (claset() addIs [Fin_into_Finite]) 1);
@@ -861,19 +861,19 @@ AddIffs [not_less_0];
 Goal "[| <N, M0 +# {#a#}>:multirel1(A, r); multiset[A](M0) |] ==> \
 \ (EX M. <M, M0>:multirel1(A, r) & N = M +# {#a#}) | \
 \ (EX K. multiset[A](K) & (ALL b:mset_of(K). <b, a>:r) & N = M0 +# K)";
-by (forward_tac [multirel1D] 1);
+by (ftac multirel1D 1);
 by (asm_full_simp_tac (simpset() addsimps [multirel1_iff]) 1);
 by (auto_tac (claset(), simpset() addsimps [munion_eq_conv_exist]));
 by (ALLGOALS(res_inst_tac [("x", "Ka +# K")] exI));
 by Auto_tac;
-by (rewrite_goals_tac [multiset_on_def]);
+by (rewtac multiset_on_def);
 by (asm_simp_tac (simpset() addsimps [munion_left_cancel, munion_assoc]) 1);
 by (auto_tac (claset(), simpset() addsimps [munion_commute]));
 qed "less_munion";
 
 Goal "[| multiset[A](M); a:A |] ==> <M, M +# {#a#}>: multirel1(A, r)";
 by (auto_tac (claset(), simpset() addsimps [multirel1_iff]));
-by (rewrite_goals_tac [multiset_on_def]);
+by (rewtac multiset_on_def);
 by (res_inst_tac [("x", "a")] exI 1);
 by (Clarify_tac 1);
 by (res_inst_tac [("x", "M")] exI 1);
@@ -1112,7 +1112,7 @@ by (dtac msize_eq_succ_imp_elem 1);
 by Auto_tac;
 by (res_inst_tac [("x", "a")] exI 1);
 by (res_inst_tac [("x", "M -# {#a#}")] exI 1);
-by (forward_tac [multiset_on_imp_multiset] 1);
+by (ftac multiset_on_imp_multiset 1);
 by (Asm_simp_tac 1);
 by (auto_tac (claset(), simpset() addsimps [multiset_on_def]));
 qed "msize_eq_succ_imp_eq_union";
@@ -1133,7 +1133,7 @@ by Auto_tac;
 by (subgoal_tac "msize(J)=$# succ(x)" 1);
 by (Asm_simp_tac 2);
 by (forw_inst_tac [("A", "A")]  msize_eq_succ_imp_eq_union 1);
-by (rewrite_goals_tac [multiset_on_def]);
+by (rewtac multiset_on_def);
 by (Clarify_tac 3 THEN rotate_tac ~1 3);
 by (ALLGOALS(Asm_full_simp_tac));
 by (rename_tac  "J'" 1);
@@ -1245,7 +1245,7 @@ qed "part_ord_multirel";
 
 Goal
 "[|<M,N>:multirel1(A, r); multiset[A](K)|] ==> <K +# M, K +# N>: multirel1(A, r)";
-by (forward_tac [multirel1D] 1);
+by (ftac multirel1D 1);
 by (auto_tac (claset(), simpset() addsimps [multirel1_iff, multiset_on_def]));
 by (res_inst_tac [("x", "a")] exI 1); 
 by (Asm_simp_tac 1);
@@ -1258,7 +1258,7 @@ qed "munion_multirel1_mono";
 
 Goal
  "[| <M, N>:multirel(A, r); multiset[A](K) |]==><K +# M, K +# N>:multirel(A, r)";
-by (forward_tac [multirelD] 1);
+by (ftac multirelD 1);
 by (full_simp_tac (simpset() addsimps [multirel_def]) 1);
 by (Clarify_tac 1);
 by (dres_inst_tac [("psi", "<M,N>:multirel1(A, r)^+")] asm_rl 1);
@@ -1278,11 +1278,11 @@ qed "munion_multirel_mono2";
 
 Goal 
 "[|<M, N>:multirel(A, r); multiset[A](K)|] ==> <M +# K, N +# K>:multirel(A, r)";
-by (forward_tac [multirelD] 1);
+by (ftac multirelD 1);
 by (res_inst_tac [("P", "%x. <x,?u>:multirel(A, r)")] (munion_commute RS subst) 1);
 by (stac (munion_commute RS sym) 3);
 by (rtac munion_multirel_mono2 5); 
-by (rewrite_goals_tac [multiset_on_def]);
+by (rewtac multiset_on_def);
 by Auto_tac;
 qed "munion_multirel_mono1";
 
@@ -1468,7 +1468,7 @@ Goal
   "[| M <#= K;  N <#= L |] ==> M +# N <#= K +# L";
 by (forw_inst_tac [("M", "M")] mle_imp_omultiset 1);
 by (forw_inst_tac [("M", "N")] mle_imp_omultiset 1);
-by (rewrite_goals_tac [mle_def]);
+by (rewtac mle_def);
 by (ALLGOALS(Asm_full_simp_tac));
 by (REPEAT(etac disjE 1));
 by (etac disjE 3);

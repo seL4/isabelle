@@ -243,19 +243,19 @@ by (blast_tac (claset() addDs [leadsToD2]
 qed "leadsTo_weaken_R";
 
 Goal "[| F:A leadsTo A'; B<=A |] ==> F : B leadsTo A'";
-by (forward_tac [leadsToD2] 1);
+by (ftac leadsToD2 1);
 by (blast_tac (claset() addIs [leadsTo_Trans,subset_imp_leadsTo, st_set_subset]) 1);
 qed_spec_mp "leadsTo_weaken_L";
 
 Goal "[| F:A leadsTo A'; B<=A; A'<=B'; st_set(B')|]==> F:B leadsTo B'";
-by (forward_tac [leadsToD2] 1);
+by (ftac leadsToD2 1);
 by (blast_tac (claset() addIs [leadsTo_weaken_R, leadsTo_weaken_L, 
                                leadsTo_Trans, leadsTo_refl]) 1);
 qed "leadsTo_weaken";
 
 (* This rule has a nicer conclusion *)
 Goal "[| F:transient(A); state-A<=B; st_set(B)|] ==> F:A leadsTo B";
-by (forward_tac [transientD2] 1);
+by (ftac transientD2 1);
 by (rtac leadsTo_weaken_R 1);
 by (auto_tac (claset(), simpset() addsimps [transient_imp_leadsTo]));
 qed "transient_imp_leadsTo2";
@@ -359,7 +359,7 @@ by (etac leadsTo_induct 1);
 by (auto_tac (claset() addIs [trans_prem,union_prem], simpset()));
 by (rewrite_goal_tac [ensures_def] 1);
 by (Clarify_tac 1);
-by (forward_tac [constrainsD2] 1);
+by (ftac constrainsD2 1);
 by (dres_inst_tac [("B'", "(A-B) Un B")] constrains_weaken_R 1);
 by (Blast_tac 1);
 by (forward_tac [ensuresI2 RS leadsTo_Basis] 1);
@@ -563,7 +563,7 @@ by Auto_tac;
 qed "wlt_type";
 
 Goalw [st_set_def] "st_set(wlt(F, B))";
-by (resolve_tac [wlt_type] 1);
+by (rtac wlt_type 1);
 qed "wlt_st_set";
 AddIffs [wlt_st_set];
 
@@ -575,7 +575,7 @@ qed "wlt_leadsTo_iff";
 bind_thm("wlt_leadsTo", conjI RS (wlt_leadsTo_iff RS iffD2));
 
 Goalw [wlt_def] "F : A leadsTo B ==> A <= wlt(F, B)";
-by (forward_tac [leadsToD2] 1);
+by (ftac leadsToD2 1);
 by (auto_tac (claset(), simpset() addsimps [st_set_def]));
 qed "leadsTo_subset";
 
@@ -608,7 +608,7 @@ qed "lemma1";
 (* slightly different from the HOL one: B here is bounded *)
 Goal "F : A leadsTo A' \
 \     ==> EX B:Pow(state). A<=B & F:B leadsTo A' & F : (B-A') co (B Un A')";
-by (forward_tac [leadsToD2] 1);
+by (ftac leadsToD2 1);
 by (etac leadsTo_induct 1);
 (*Basis*)
 by (blast_tac (claset() addDs [ensuresD, constrainsD2, st_setD]) 1);

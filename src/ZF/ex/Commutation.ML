@@ -28,7 +28,7 @@ qed_spec_mp "square_rtrancl";
 (* A special case of square_rtrancl_on *)
 Goalw [diamond_def, commute_def, strip_def]
  "diamond(r) ==> strip(r)";
-by (resolve_tac [square_rtrancl] 1);
+by (rtac square_rtrancl 1);
 by (ALLGOALS(Asm_simp_tac));
 qed "diamond_strip";
 
@@ -116,7 +116,7 @@ qed "Church_Rosser1";
 Goalw [confluent_def, Church_Rosser_def, square_def,commute_def,diamond_def]  
 "confluent(r) ==> Church_Rosser(r)";
 by Auto_tac;
-by (forward_tac [fieldI1] 1);
+by (ftac fieldI1 1);
 by (full_simp_tac (simpset() addsimps [rtrancl_field]) 1);
 by (etac rtrancl_induct 1);
 by (ALLGOALS(Clarify_tac));

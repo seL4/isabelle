@@ -37,7 +37,7 @@ val f_type  = thm "ftype";
 
 Goal "[| <C-{x},y> : fold_set(A, B, f,e);  x:C; x:A |] \
 \     ==> <C, f(x,y)> : fold_set(A, B, f, e)";
-by (forward_tac [fold_set_rhs] 1);
+by (ftac fold_set_rhs 1);
 by (etac (cons_Diff RS subst) 1 THEN resolve_tac fold_set.intrs 1);
 by (auto_tac (claset() addIs [f_type], simpset()));
 qed "Diff1_fold_set";
@@ -45,7 +45,7 @@ qed "Diff1_fold_set";
 Goal "[| C:Fin(A); e:B |] ==> EX x. <C, x> : fold_set(A, B, f,e)";
 by (etac Fin_induct 1);
 by (ALLGOALS(Clarify_tac));
-by (forward_tac [fold_set_rhs] 2);
+by (ftac fold_set_rhs 2);
 by (cut_inst_tac [("x", "x"), ("y", "xa")] f_type 2);
 by (REPEAT(blast_tac (claset() addIs fold_set.intrs) 1));
 qed_spec_mp "Fin_imp_fold_set";
@@ -104,7 +104,7 @@ qed_spec_mp "lemma";
 Goal "[| <C, x> : fold_set(A, B, f, e); \
 \        <C, y> : fold_set(A, B, f, e); e:B |] ==> y=x";
 by (forward_tac [fold_set_lhs RS Fin_into_Finite] 1);
-by (rewrite_goals_tac [Finite_def]);
+by (rewtac Finite_def);
 by (Clarify_tac 1);
 by (res_inst_tac [("n", "succ(n)")] lemma 1);
 by (auto_tac (claset() addIs 
@@ -171,7 +171,7 @@ by (res_inst_tac [("x", "xa")] exI 1);
 by Auto_tac;
 by (resolve_tac [fold_set_mono RS subsetD] 1);
 by (Blast_tac 2);
-by (dresolve_tac [fold_set_mono2] 3);
+by (dtac fold_set_mono2 3);
 by (auto_tac (claset() addIs [Fin_imp_fold_set],
               simpset() addsimps [symmetric fold_def, fold_equality]));
 qed "fold_cons";
@@ -328,10 +328,10 @@ by (Force_tac 1);
 by (Blast_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [major,subset_cons_iff]@prems) 1);
 by Safe_tac;
-by (forward_tac [subset_Finite] 1);
+by (ftac subset_Finite 1);
 by (assume_tac 1);
 by (Blast_tac 1);
-by (forward_tac [subset_Finite] 1);
+by (ftac subset_Finite 1);
 by (assume_tac 1);
 by (subgoal_tac "C = cons(x, C - {x})" 1);
 by (Blast_tac 2);
@@ -377,7 +377,7 @@ Goal "[| setsum(f, A) = $# succ(n); n:nat |]==> EX a:A. #0 $< f(a)";
 by (case_tac "Finite(A)" 1);
 by (blast_tac (claset() 
      addIs [setsum_succD_lemma RS bspec RS mp]) 1);
-by (rewrite_goals_tac [setsum_def]);
+by (rewtac setsum_def);
 by (auto_tac (claset(), 
        simpset() delsimps [int_of_0, int_of_succ] 
                  addsimps [int_succ_int_1 RS sym, int_of_0 RS sym]));

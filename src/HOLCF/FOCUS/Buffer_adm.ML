@@ -86,7 +86,7 @@ val BufAC_Cmt_d_req = prove_goal thy
  (K [
 	rtac (BufAC_Cmt_unfold RS iffD2) 1,
 	strip_tac 1,
-	forward_tac [Buf_f_d_req] 1,
+	ftac Buf_f_d_req 1,
 	auto_tac (claset() addEs [BufAC_Asm_cong RS subst],simpset())]);
 
 (*adm_BufAC_Asm*)
@@ -118,7 +118,7 @@ by (simp_tac (simpset() addsimps [add_commute]) 1);
 by (strip_tac 1);
 by (stac BufAC_Cmt_F_def3 1);
 by (dres_inst_tac [("P","%x. x")] (BufAC_Cmt_F_def3 RS subst) 1);
-by (Safe_tac);
+by Safe_tac;
 by (   etac Buf_f_empty 1);
 by (  etac Buf_f_d 1);
 by ( dtac Buf_f_d_req 1);
@@ -215,8 +215,8 @@ qed "Buf_Eq_imp_AC";
 (**** new approach for admissibility, reduces itself to absurdity *************)
 
 Goal "adm (\\<lambda>x. x\\<in>BufAC_Asm)";
-by(rtac def_gfp_admI 1);
-by(rtac BufAC_Asm_def 1);
+by (rtac def_gfp_admI 1);
+by (rtac BufAC_Asm_def 1);
 b y Safe_tac;
 b y rewtac BufAC_Asm_F_def;
 b y Safe_tac;
@@ -238,7 +238,7 @@ b y datac fstream_lub_lemma 1 1;
 b y Clarsimp_tac 1;
 b y simp_tac (HOL_basic_ss addsimps (ex_simps@all_simps RL[sym])) 1;
 b y res_inst_tac [("x","Xa")] exI 1;
-br allI 1;
+by (rtac allI 1);
 b y rotate_tac ~1 1;
 b y eres_inst_tac [("x","i")] allE 1;
 b y Clarsimp_tac 1;
@@ -271,8 +271,8 @@ b y Force_tac 1;
 qed "adm_non_BufAC_Asm";
 
 Goal "f \\<in> BufEq \\<Longrightarrow> adm (\\<lambda>u. u \\<in> BufAC_Asm \\<longrightarrow> (u, f\\<cdot>u) \\<in> BufAC_Cmt)";
-by(rtac triv_admI 1);
-by(Clarify_tac 1);
-by(eatac Buf_Eq_imp_AC_lemma 1 1); 
+by (rtac triv_admI 1);
+by (Clarify_tac 1);
+by (eatac Buf_Eq_imp_AC_lemma 1 1); 
       (* this is what we originally aimed to show, using admissibilty :-( *)
 qed "adm_BufAC";

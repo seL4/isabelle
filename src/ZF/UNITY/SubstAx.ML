@@ -70,7 +70,7 @@ qed "LeadsTo_Union";
 (*** Derived rules ***)
 
 Goal "F : A leadsTo B ==> F : A LeadsTo B";
-by (forward_tac [leadsToD2] 1);
+by (ftac leadsToD2 1);
 by (Clarify_tac 1);
 by (asm_simp_tac (simpset() addsimps [LeadsTo_eq]) 1);
 by (blast_tac (claset() addIs [leadsTo_weaken_L]) 1);
@@ -106,7 +106,7 @@ val [major, program] = Goal
 "[|(!!s. s:A ==> F:{s} LeadsTo B); F:program|]==>F:A LeadsTo B";
 by (cut_facts_tac [program] 1);
 by (stac (UN_singleton RS sym) 1 THEN rtac LeadsTo_UN 1);
-by (forward_tac [major] 1);
+by (ftac major 1);
 by Auto_tac;
 qed "single_LeadsTo_I";
 
@@ -209,7 +209,7 @@ val [major, minor] = Goal
 by (cut_facts_tac [minor] 1);
 by (rtac LeadsTo_Union 1);
 by (ALLGOALS(Clarify_tac));
-by (forward_tac [major] 1);
+by (ftac major 1);
 by (blast_tac (claset()  addIs [LeadsTo_weaken_R]) 1);
 qed "LeadsTo_UN_UN";
 
@@ -285,7 +285,7 @@ qed "PSP2";
 
 Goal
 "[| F : A LeadsTo A'; F : B Unless B'|]==> F:(A Int B) LeadsTo ((A' Int B) Un B')";
-by (rewrite_goals_tac [Unless_def]);
+by (rewtac Unless_def);
 by (dtac PSP 1);
 by (assume_tac 1);
 by (blast_tac (claset() addIs [LeadsTo_Diff, LeadsTo_weaken, subset_imp_LeadsTo]) 1);

@@ -289,7 +289,7 @@ by (cut_facts_tac [minor] 1);
 by (asm_simp_tac (simpset() addsimps [JN_constrains]) 1);
 by (Clarify_tac 1);
 by (forw_inst_tac [("i", "x")] major 1);
-by (forward_tac [constrainsD2] 1);
+by (ftac constrainsD2 1);
 by (Asm_full_simp_tac 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "JN_constrains_weaken";
@@ -319,10 +319,10 @@ by (cut_facts_tac [minor] 1);
 by (auto_tac (claset() addSIs [initially_JN_I] addDs [major], 
               simpset() addsimps [invariant_def, JN_stable]));
 by (thin_tac "i:I" 1);
-by (forward_tac [major] 1);
+by (ftac major 1);
 by (dtac major 2);
 by (auto_tac (claset(), simpset() addsimps [invariant_def]));
-by (ALLGOALS(forward_tac [stableD2]));
+by (ALLGOALS(ftac stableD2 ));
 by Auto_tac;
 qed "invariant_JN_I";
 
@@ -355,7 +355,7 @@ by (ALLGOALS(subgoal_tac "st_set({x})"));
 by (rotate_tac ~1 3);
 by (rotate_tac ~1 1);
 by (ALLGOALS(asm_full_simp_tac (simpset() addsimps [JN_stable])));
-by (rewrite_goals_tac [st_set_def]);
+by (rewtac st_set_def);
 by (REPEAT(Blast_tac 1));
 qed "FP_JN";
 
@@ -365,7 +365,7 @@ Goal "i:I==>(JN i:I. F(i)) : transient(A) <-> \
 \  (EX i:I. programify(F(i)) : transient(A))";
 by (auto_tac (claset(),
               simpset() addsimps [transient_def, JOIN_def]));
-by (rewrite_goals_tac [st_set_def]);
+by (rewtac st_set_def);
 by (dres_inst_tac [("x", "xb")] bspec 2);
 by (auto_tac (claset() addDs [Acts_type RS subsetD], simpset()));
 qed "JN_transient";
@@ -566,7 +566,7 @@ Goal "safety_prop(X) ==> \
 by (auto_tac (claset(), 
       simpset() addsimps [Allowed_def, 
               safety_prop_Acts_iff RS iff_sym]));  
-by (rewrite_goals_tac [safety_prop_def]);
+by (rewtac safety_prop_def);
 by Auto_tac;
 qed "safety_prop_AllowedActs_iff_Allowed";
 
@@ -579,7 +579,7 @@ by (REPEAT(force_tac (claset() addDs [Acts_type RS subsetD],
                simpset() addsimps [safety_prop_def]) 2));
 by (asm_full_simp_tac (simpset() delsimps UN_simps
                    addsimps [Allowed_def, safety_prop_Acts_iff]) 1);
-by (rewrite_goals_tac [safety_prop_def]);
+by (rewtac safety_prop_def);
 by Auto_tac;
 qed "Allowed_eq";
 
@@ -628,7 +628,7 @@ by (cut_facts_tac [minor] 1);
 by Safe_tac;
 by (full_simp_tac (simpset() addsimps [Inter_iff]) 1);
 by (Clarify_tac 1);
-by (forward_tac [major] 1);
+by (ftac major 1);
 by (dres_inst_tac [("i", "xa")] major 2);
 by (forw_inst_tac [("i", "xa")] major 4);
 by (ALLGOALS(Asm_full_simp_tac));

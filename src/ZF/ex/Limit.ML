@@ -2317,7 +2317,7 @@ qed "suffix_lemma";
 
 val prems = Goalw [mediating_def]
   "[|emb(E,G,t);  !!n. n \\<in> nat ==> f(n) = t O r(n) |]==>mediating(E,G,r,f,t)";
-by (Safe_tac);
+by Safe_tac;
 by (REPEAT (ares_tac prems 1));
 qed "mediatingI";
 

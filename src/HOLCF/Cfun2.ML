@@ -94,9 +94,9 @@ bind_thm ("monofun_cfun_arg", monofun_Rep_CFun2 RS monofunE RS spec RS spec RS m
 (* ?x2 << ?x1 ==> ?fo5$?x2 << ?fo5$?x1                                      *)
 
 Goal "chain Y ==> chain (%i. f\\<cdot>(Y i))";
-br chainI 1;
-br monofun_cfun_arg 1;
-be chainE 1;
+by (rtac chainI 1);
+by (rtac monofun_cfun_arg 1);
+by (etac chainE 1);
 qed "chain_monofun";
 
 

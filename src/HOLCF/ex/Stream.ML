@@ -28,7 +28,7 @@ by (safe_tac (claset() addSIs stream.con_rews));
 qed "scons_eq_UU";
 
 Goal "[| a && x = UU; a ~= UU |] ==> R";
-by (dresolve_tac [stream_con_rew2] 1);
+by (dtac stream_con_rew2 1);
 by (contr_tac 1);
 qed "scons_not_empty";
 
@@ -534,7 +534,7 @@ Goal "stream_finite t ==> \
 \!s. #(s::'a::flat stream) = #t &  s << t --> s = t";
 by (etac stream_finite_ind 1);
 by  (fast_tac (claset() addDs [eq_UU_iff RS iffD2]) 1);
-by (Safe_tac);
+by Safe_tac;
 by (stream_case_tac "sa" 1);
 by  (dtac sym 1);
 by  (Asm_full_simp_tac 1);

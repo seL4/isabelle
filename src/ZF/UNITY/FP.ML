@@ -67,7 +67,7 @@ Goalw [FP_Orig_def, FP_def] "F:program ==> FP_Orig(F) <= FP(F)";
 by (Clarify_tac 1);
 by (dres_inst_tac [("x", "{x}")] spec 1);
 by (asm_full_simp_tac (simpset() addsimps [Int_cons_right]) 1);
-by (forward_tac [stableD2] 1);
+by (ftac stableD2 1);
 by (auto_tac (claset(), simpset() addsimps [cons_absorb, st_set_def]));
 qed "FP_Orig_subset_FP";
 

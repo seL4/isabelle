@@ -199,7 +199,7 @@ by (Blast_tac 1);
 qed "bex_one_point1";
 
 Goal "(EX x:A. a=x & P(x)) <-> (a:A & P(a))";
-by(Blast_tac 1);
+by (Blast_tac 1);
 qed "bex_one_point2";
 
 Goal "(ALL x:A. x=a --> P(x)) <-> (a:A --> P(a))";
@@ -219,7 +219,7 @@ let
 val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
     ("EX x:A. P(x) & Q(x)",FOLogic.oT)
 
-val prove_bex_tac = rewrite_goals_tac [Bex_def] THEN
+val prove_bex_tac = rewtac Bex_def THEN
                     Quantifier1.prove_one_point_ex_tac;
 
 val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
@@ -227,7 +227,7 @@ val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
 val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
     ("ALL x:A. P(x) --> Q(x)",FOLogic.oT)
 
-val prove_ball_tac = rewrite_goals_tac [Ball_def] THEN 
+val prove_ball_tac = rewtac Ball_def THEN 
                      Quantifier1.prove_one_point_all_tac;
 
 val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
