@@ -32,10 +32,12 @@ that must be punished by instant rejection.
 This document shows you how to make Isabelle and \LaTeX\ cooperate to
 produce ordinary looking mathematics that hides the fact that it was
 typeset by a machine. You merely need to import theory
-\texttt{LaTeXsugar} in the header of your own theory and copy the bits of 
-\texttt{OptionalSugar} that you want to use. You may also
-need additional \LaTeX\ packages. These should be included
-at the beginning of your \LaTeX\ document, typically in \texttt{root.tex}.
+\texttt{LaTeXsugar} in the header of your own theory and copy the bits
+of \texttt{OptionalSugar} that you want to use. You may also need
+additional \LaTeX\ packages. These should be included at the beginning
+of your \LaTeX\ document, typically in \texttt{root.tex}. 
+
+The theories and support files are available from \cite{tar}.
 *}
 
 section{* HOL syntax*}
