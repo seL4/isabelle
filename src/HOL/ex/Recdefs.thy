@@ -36,7 +36,6 @@ recdef variant "measure(%(n::nat, ns). size(filter(%y. n <= y) ns))"
 
 consts gcd :: "nat * nat => nat"
 recdef gcd "measure (%(x,y).x+y)"
-    simpset "simpset() addsimps [less_Suc_eq_le, le_add1, diff_le_self]"
     "gcd (0,y)          = y"
     "gcd (Suc x, 0)     = Suc x"
     "gcd (Suc x, Suc y) = (if (y <= x) then gcd(x - y, Suc y)  
