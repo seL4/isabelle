@@ -264,13 +264,17 @@ fun update_index dir name =
 
 (* init session *)
 
-fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
-
 fun copy_files path1 path2 =
-  (File.mkdir path2;
-   File.system_command  (*FIXME: quote paths!?*)
-     ("cp " ^ File.sysify_path path1 ^ " " ^ File.sysify_path path2));
+ (File.mkdir path2;
+  system ("cp " ^ File.sysify_path path1 ^ " " ^ File.sysify_path path2));  (*FIXME: quote!?*)
 
+fun copy_all path1 path2 =
+ (File.mkdir path2;
+  system ("cp -r " ^ File.quote_sysify_path path1 ^ " " ^
+    File.quote_sysify_path (Path.append path2 Path.parent)));
+
+
+fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
 fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time) verbose =
   if not build andalso not info andalso doc = "" andalso is_none doc_prefix2 then
@@ -354,8 +358,9 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
         Some (isatool_browser graph)
       else None;
 
-    fun doc_common path =
-      (copy_files (Path.unpack "~~/lib/texinputs/*.sty") path;
+    fun prepare_sources path =
+     (copy_all doc_path path;
+      copy_files (Path.unpack "~~/lib/texinputs/*.sty") path;
       (case opt_graphs of None => () | Some (pdf, eps) =>
         (File.write (Path.append path graph_pdf_path) pdf;
           File.write (Path.append path graph_eps_path) eps));
@@ -381,18 +386,15 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       conditional verbose (fn () =>
         std_error ("Browser info at " ^ show_path html_prefix ^ "\n"))));
 
+    (case doc_prefix2 of None => () | Some path =>
+     (prepare_sources path;
+      conditional verbose (fn () => std_error ("Document sources at " ^ show_path path ^ "\n"))));
+
     (case doc_prefix1 of None => () | Some path =>
-     (File.mkdir html_prefix;
-      File.copy_all doc_path html_prefix;
-      doc_common path;
+     (prepare_sources path;
       isatool_document doc_format path;
       conditional verbose (fn () =>
         std_error ("Document at " ^ show_path (Path.ext doc_format path) ^ "\n"))));
-
-    (case doc_prefix2 of None => () | Some path =>
-     (File.mkdir path;
-      doc_common path;
-      conditional verbose (fn () => std_error ("Document sources at " ^ show_path path ^ "\n"))));
 
     browser_info := empty_browser_info;
     session_info := None
