@@ -514,12 +514,12 @@ qed "Union_in_Pow";
 (* update rulify setup -- include bounded All *)
 
 Goal "(!!x. x:A ==> P(x)) == Trueprop (ALL x:A. P(x))";
-by (simp_tac (simpset () addsimps (Ball_def :: thms "atomize")) 1);
-qed "ball_eq";
+by (simp_tac (simpset () addsimps [Ball_def, thm "atomize_all", thm "atomize_imp"]) 1);
+qed "atomize_ball";
 
 local
   val ss = FOL_basic_ss addsimps
-    (Drule.norm_hhf_eq :: map Thm.symmetric (ball_eq :: thms "atomize"));
+    [Drule.norm_hhf_eq, Thm.symmetric atomize_ball, Thm.symmetric (thm "atomize_all"), Thm.symmetric (thm "atomize_imp")];
 in
 
 structure Rulify = RulifyFun
