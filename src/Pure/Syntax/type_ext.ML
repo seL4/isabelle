@@ -10,7 +10,7 @@ signature TYPE_EXT0 =
 sig
   val sort_of_term: term -> sort
   val raw_term_sorts: term -> (indexname * sort) list
-  val typ_of_term: (indexname -> sort) -> term -> typ
+  val typ_of_term: (indexname -> sort) -> (sort -> sort) -> term -> typ
   val term_of_typ: bool -> typ -> term
   val no_brackets: unit -> bool
 end;
@@ -62,16 +62,15 @@ fun raw_term_sorts tm =
 
 (* typ_of_term *)
 
-fun typ_of_term get_sort t =
+fun typ_of_term get_sort map_sort t =
   let
     fun typ_of (Free (x, _)) =
           if Lexicon.is_tid x then TFree (x, get_sort (x, ~1))
           else Type (x, [])
       | typ_of (Var (xi, _)) = TVar (xi, get_sort xi)
-      | typ_of (Const ("_ofsort", _) $ Free (x, _) $ _) =
-          TFree (x, get_sort (x, ~1))
-      | typ_of (Const ("_ofsort", _) $ Var (xi, _) $ _) =
-          TVar (xi, get_sort xi)
+      | typ_of (Const ("_ofsort", _) $ Free (x, _) $ _) = TFree (x, get_sort (x, ~1))
+      | typ_of (Const ("_ofsort", _) $ Var (xi, _) $ _) = TVar (xi, get_sort xi)
+      | typ_of (Const ("_dummy_ofsort", _) $ t) = TFree ("'_dummy_", map_sort (sort_of_term t))
       | typ_of tm =
           let
             val (t, ts) = strip_comb tm;
@@ -80,9 +79,7 @@ fun typ_of_term get_sort t =
                 Const (x, _) => x
               | Free (x, _) => x
               | _ => raise TERM ("typ_of_term: bad encoding of type", [tm]));
-          in
-            Type (a, map typ_of ts)
-          end;
+          in Type (a, map typ_of ts) end;
   in typ_of t end;
 
 
@@ -186,6 +183,7 @@ val type_ext = mk_syn_ext false ["dummy"]
    Mfix ("_",           longidT --> typeT,             "", [], max_pri),
    Mfix ("_::_",        [tidT, sortT] ---> typeT,      "_ofsort", [max_pri, 0], max_pri),
    Mfix ("_::_",        [tvarT, sortT] ---> typeT,     "_ofsort", [max_pri, 0], max_pri),
+   Mfix ("'_::_",       sortT --> typeT,               "_dummy_ofsort", [0], max_pri),
    Mfix ("_",           idT --> sortT,                 "", [], max_pri),
    Mfix ("_",           longidT --> sortT,             "", [], max_pri),
    Mfix ("{}",          sortT,                         "_topsort", [], max_pri),
