@@ -166,10 +166,10 @@ by (Simp_tac 2);
   contradicting new_keys_not_seen*)
 by (ALLGOALS
      (best_tac
-      (!claset addDs [impOfSubs (analz_subset_parts RS keysFor_mono),
+      (!claset addDs [impOfSubs analz_subset_parts,
+		      impOfSubs (analz_subset_parts RS keysFor_mono),
 		      impOfSubs (parts_insert_subset_Un RS keysFor_mono),
 		      Suc_leD]
-	       addDs [impOfSubs analz_subset_parts]
 	       addEs [new_keys_not_seen RSN(2,rev_notE)]
 	       addss (!simpset))));
 val lemma = result();
@@ -214,8 +214,7 @@ by (ALLGOALS (asm_simp_tac (!simpset addsimps pushes)));
 (*Deals with Faked messages*)
 by (EVERY 
     (map (best_tac (!claset addSEs partsEs
-			    addDs [impOfSubs analz_subset_parts,
-				   impOfSubs parts_insert_subset_Un]
+			    addDs [impOfSubs parts_insert_subset_Un]
 			    addss (!simpset)))
      [3,2]));
 (*Base case*)

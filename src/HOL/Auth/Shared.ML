@@ -120,6 +120,12 @@ qed "Enemy_in_bad";
 
 AddIffs [Enemy_in_bad];
 
+goal thy "!!A. A ~: bad ==> A ~= Enemy";
+by (Fast_tac 1);
+qed "not_bad_imp_not_Enemy";
+
+AddIffs [Enemy_in_bad];
+
 (** Specialized rewrite rules for (sees A (Says...#evs)) **)
 
 goal thy "sees A (Says A B X # evs) = insert X (sees A evs)";

@@ -252,6 +252,15 @@ Addsimps [parts_insert_Agent, parts_insert_Nonce,
 	  parts_insert_Key, parts_insert_Crypt, parts_insert_MPair];
 
 
+goal thy "parts (Key``N) = Key``N";
+by (Auto_tac());
+be parts.induct 1;
+by (Auto_tac());
+qed "parts_image_Key";
+
+Addsimps [parts_image_Key];
+
+
 (**** Inductive relation "analz" ****)
 
 val major::prems = 
@@ -418,6 +427,15 @@ br subsetI 1;
 be analz.induct 1;
 by (Auto_tac());
 qed "analz_insert_Crypt_subset";
+
+
+goal thy "analz (Key``N) = Key``N";
+by (Auto_tac());
+be analz.induct 1;
+by (Auto_tac());
+qed "analz_image_Key";
+
+Addsimps [analz_image_Key];
 
 
 (** Idempotence and transitivity **)
