@@ -18,8 +18,10 @@ Goal "!!x.[| Q(x,y,z); z=f(x); x=z |] ==> P(z)";
 Goal "!!y. [| ?x=y; P(?x) |] ==> y = a";
 Goal "!!z. [| ?x=y; P(?x) |] ==> y = a";
 
-by (hyp_subst_tac 1);
+Goal "!!x a. [| x = f(b); g(a) = b |] ==> P(x)";
+
 by (bound_hyp_subst_tac 1);
+by (hyp_subst_tac 1);
 
 Here hyp_subst_tac goes wrong; harder still to prove P(f(f(a))) & P(f(a))
 Goal "P(a) --> (EX y. a=y --> P(f(a)))";
@@ -55,7 +57,7 @@ signature HYPSUBST =
   val vars_gen_hyp_subst_tac : bool -> int -> tactic
   val eq_var                 : bool -> bool -> term -> int * bool
   val inspect_pair           : bool -> bool -> term * term * typ -> bool
-  val mk_eqs                 : thm -> thm list
+  val mk_eqs                 : bool -> thm -> thm list
   val stac		     : thm -> int -> tactic
   val hypsubst_setup         : (theory -> theory) list
   end;
@@ -127,8 +129,8 @@ fun eq_var bnd novars =
 
 (*For the simpset.  Adds ALL suitable equalities, even if not first!
   No vars are allowed here, as simpsets are built from meta-assumptions*)
-fun mk_eqs th =
-    [ if inspect_pair false false (Data.dest_eq
+fun mk_eqs bnd th =
+    [ if inspect_pair bnd false (Data.dest_eq
                                    (Data.dest_Trueprop (#prop (rep_thm th))))
       then th RS Data.eq_reflection
       else symmetric(th RS Data.eq_reflection) (*reorient*) ]
@@ -137,13 +139,12 @@ fun mk_eqs th =
 local open Simplifier
 in
 
-  val hyp_subst_ss = empty_ss setmksimps mk_eqs
-
-  (*Select a suitable equality assumption and substitute throughout the subgoal
-    Replaces only Bound variables if bnd is true*)
+  (*Select a suitable equality assumption; substitute throughout the subgoal
+    If bnd is true, then it replaces Bound variables only. *)
   fun gen_hyp_subst_tac bnd =
     let val tac = SUBGOAL (fn (Bi, i) =>
       let val (k, _) = eq_var bnd true Bi
+          val hyp_subst_ss = empty_ss setmksimps (mk_eqs bnd)
       in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ss i,
         etac thin_rl i, rotate_tac (~k) i]
       end handle THM _ => no_tac | EQ_VAR => no_tac)
