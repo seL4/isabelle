@@ -152,7 +152,6 @@ including theory commands '(co)inductive', '(co)datatype',
 'induct_tac', 'case_tac', and 'typecheck' (with attribute 'TC');
 
 
-
 *** HOL ***
 
 * HOL: moved over to sane numeral syntax; the new policy is as
@@ -228,12 +227,15 @@ necessary to attach explicit type constraints;
 * HOL: syntax translations now work properly with numerals and records
 expressions;
 
-* HOL/GroupTheory: group theory examples including Sylow's theorem, by
-Florian Kammüller;
+* HOL: bounded abstraction now uses syntax "%" / "\<lambda>" instead
+of "lam" -- INCOMPATIBILITY;
 
 * HOL: got rid of some global declarations (potential INCOMPATIBILITY
 for ML tools): const "()" renamed "Product_Type.Unity", type "unit"
 renamed "Product_Type.unit";
+
+* HOL/GroupTheory: group theory examples including Sylow's theorem, by
+Florian Kammüller;
 
 
 *** HOLCF ***
