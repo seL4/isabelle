@@ -15,10 +15,11 @@ function usage()
   echo "Usage: $PRG LOGIC NAME"
   echo
   echo "  Options are:"
+  echo "    -B           build mode with THIS_IS_ISABELLE_BUILD indication"
+  echo "    -P PATH      set path for remote theory browsing information"
   echo "    -b           build mode (output heap image, using current dir)"
   echo "    -i BOOL      generate theory browsing information,"
   echo "                 i.e. HTML / graph data (default false)"
-  echo "    -P PATH      set path for remote theory browsing information"
   echo "    -r           reset session path"
   echo "    -s NAME      override session NAME"
   echo
@@ -42,9 +43,13 @@ RPATH=""
 function getoptions()
 {
   OPTIND=1
-  while getopts "bi:rs:P:" OPT
+  while getopts "BP:bi:rs:" OPT
   do
     case "$OPT" in
+      B)
+        BUILD=true
+        export THIS_IS_ISABELLE_BUILD=true
+        ;;
       b)
         BUILD=true
         ;;
