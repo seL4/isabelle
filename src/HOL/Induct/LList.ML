@@ -651,7 +651,8 @@ goal LList.thy
 \    diag(llist(range Leaf))";
 by (rtac equalityI 1);
 by (fast_tac (claset() addIs [Rep_llist]) 1);
-by (fast_tac (claset() addSEs [Abs_llist_inverse RS subst]) 1);
+by (fast_tac (claset() delSWrapper "split_all_tac"
+		       addSEs [Abs_llist_inverse RS subst]) 1);
 qed "prod_fun_range_eq_diag";
 
 (*Surprisingly hard to prove.  Used with lfilter*)
