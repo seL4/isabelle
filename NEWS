@@ -10,6 +10,10 @@ Isabelle NEWS -- history user-relevant changes
 
 * Isar: 'obtain' no longer declares "that" fact as simp/intro;
 
+* Isar/HOL: method 'induct' now handles non-atomic goals; as a
+consequence, it is no longer monotonic wrt. the local goal context
+(which is now passed through the inductive cases);
+
 
 *** Document preparation ***
 
@@ -41,6 +45,9 @@ instance proofs may be performed by "..";
 
 * Pure: ?thesis / ?this / "..." now work for pure meta-level
 statements as well;
+
+* HOL: improved method 'induct' --- now handles non-atomic goals
+(potential INCOMPATIBILITY); tuned error handling;
 
 
 *** HOL ***
