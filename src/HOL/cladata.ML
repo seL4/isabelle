@@ -18,6 +18,7 @@ structure Hypsubst_Data =
   val dest_Trueprop = HOLogic.dest_Trueprop
   val dest_imp = HOLogic.dest_imp
   val eq_reflection = eq_reflection
+  val rev_eq_reflection = def_imp_eq
   val imp_intr = impI
   val rev_mp = rev_mp
   val subst = subst
