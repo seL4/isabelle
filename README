@@ -54,6 +54,7 @@ Important files include...
   COPYRIGHT 	Copyright notice and Disclaimer of Warranty
   Pure		contains source files for Pure Isabelle (no object-logic)
   Provers	contains generic theorem provers: simplifier, etc.
+  Tools		contains shell scripts and utilities 
 
 The following subdirectories contain object-logics:
   FOL 	  Natural deduction First-Order Logic (intuitionistic and classical)
