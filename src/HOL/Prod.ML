@@ -58,10 +58,10 @@ local
 fun is_pair (_,Type("*",_)) = true
   | is_pair _ = false;
 
-fun find_pair_param t =
-  let val params = Logic.strip_params t
+fun find_pair_param prem =
+  let val params = Logic.strip_params prem
   in if exists is_pair params
-     then let val params = rev(rename_wrt_term t params)
+     then let val params = rev(rename_wrt_term prem params)
                            (*as they are printed*)
           in apsome fst (find_first is_pair params) end
      else None
@@ -69,11 +69,11 @@ fun find_pair_param t =
 
 in
 
-val split_all_tac = REPEAT o SUBGOAL (fn (t,_) =>
-  case find_pair_param t of
+val split_all_tac = REPEAT o SUBGOAL (fn (prem,i) =>
+  case find_pair_param prem of
     None => no_tac
-  | Some x => EVERY[res_inst_tac[("p",x)] PairE 1,
-                    REPEAT(hyp_subst_tac 1), prune_params_tac]);
+  | Some x => EVERY[res_inst_tac[("p",x)] PairE i,
+                    REPEAT(hyp_subst_tac i), prune_params_tac]);
 
 end;
 
