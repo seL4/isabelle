@@ -188,7 +188,8 @@ end;
 
 fun mk_primrec_decl (names, eqns) =
   ";\nval (thy, " ^ (if null names then "_" else brackets (commas names)) ^
-  ") = PrimrecPackage.add_primrec " ^ brackets (commas eqns) ^ " thy;\n\
+  ") = PrimrecPackage.add_primrec None " ^ brackets (commas_quote names) ^ " " ^
+    brackets (commas eqns) ^ " thy;\n\
   \val thy = thy\n";
 
 (* either names and axioms or just axioms *)
