@@ -164,30 +164,51 @@ fun update_thy_only name =
 fun pretty_setmargin n = Toplevel.imperative (fn () => Pretty.setmargin n);
 
 
-(* print theory *)
+(* print parts of theory and proof context *)
 
 val print_context = Toplevel.keep Toplevel.print_state_context;
-val print_theory = Toplevel.keep (PureThy.print_theory o Toplevel.theory_of);
-val print_syntax = Toplevel.keep (Display.print_syntax o Toplevel.theory_of);
-val print_theorems = Toplevel.keep (PureThy.print_theorems o Toplevel.theory_of);
-val print_attributes = Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
-val print_trans_rules = Toplevel.keep (Toplevel.node_case Calculation.print_global_rules
-  (Calculation.print_local_rules o Proof.context_of));
-val print_methods = Toplevel.keep (Method.print_methods o Toplevel.theory_of);
+
+val print_theory = Toplevel.unknown_theory o
+  Toplevel.keep (PureThy.print_theory o Toplevel.theory_of);
+
+val print_syntax = Toplevel.unknown_theory o
+  Toplevel.keep (Display.print_syntax o Toplevel.theory_of);
+
+val print_theorems = Toplevel.unknown_theory o
+  Toplevel.keep (PureThy.print_theorems o Toplevel.theory_of);
+
+val print_attributes = Toplevel.unknown_theory o
+  Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
+
+val print_trans_rules = Toplevel.unknown_context o
+  Toplevel.keep (Toplevel.node_case Calculation.print_global_rules
+    (Calculation.print_local_rules o Proof.context_of));
+
+val print_methods = Toplevel.unknown_theory o
+  Toplevel.keep (Method.print_methods o Toplevel.theory_of);
+
 val print_antiquotations = Toplevel.imperative IsarOutput.print_antiquotations;
 
-fun print_thms_containing cs = Toplevel.keep (fn state =>
-  ThmDatabase.print_thms_containing (Toplevel.theory_of state) cs);
+fun print_thms_containing cs = Toplevel.unknown_theory o
+  Toplevel.keep (fn state => ThmDatabase.print_thms_containing (Toplevel.theory_of state) cs);
 
-fun thm_deps args = Toplevel.keep (fn state =>
+fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   ThmDeps.thm_deps (IsarThy.get_thmss args (Toplevel.enter_forward_proof state)));
 
 
 (* print proof context contents *)
 
-val print_binds = Toplevel.keep (ProofContext.print_binds o Proof.context_of o Toplevel.proof_of);
-val print_lthms = Toplevel.keep (ProofContext.print_thms o Proof.context_of o Toplevel.proof_of);
-val print_cases = Toplevel.keep (ProofContext.print_cases o Proof.context_of o Toplevel.proof_of);
+val print_binds = Toplevel.unknown_proof o Toplevel.keep (fn state =>
+  ProofContext.setmp_verbose
+    ProofContext.print_binds (Proof.context_of (Toplevel.proof_of state)));
+
+val print_lthms = Toplevel.unknown_proof o Toplevel.keep (fn state =>
+  ProofContext.setmp_verbose
+    ProofContext.print_thms (Proof.context_of (Toplevel.proof_of state)));
+
+val print_cases = Toplevel.unknown_proof o Toplevel.keep (fn state =>
+  ProofContext.setmp_verbose
+    ProofContext.print_cases (Proof.context_of (Toplevel.proof_of state)));
 
 
 (* print theorems / types / terms / props *)
