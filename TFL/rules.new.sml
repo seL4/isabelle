@@ -393,7 +393,7 @@ fun SUBS thl =
 local fun rew_conv mss = rewrite_cterm (true,false) mss (K(K None))
 in
 fun simpl_conv ss thl ctm = 
- rew_conv (Thm.mss_of (#simps(rep_ss ss)@thl)) ctm
+ rew_conv (Thm.mss_of (#simps (Thm.dest_mss (#mss (rep_ss ss))) @ thl)) ctm
  RS meta_eq_to_obj_eq
 end;
 
