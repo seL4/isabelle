@@ -361,7 +361,7 @@ by (Step_tac 1);
 by (res_inst_tac [("x","r#q")] exI 1);
 by (res_inst_tac [("x","a*r + h")] exI 1);
 by (case_tac "q" 1);
-by (auto_tac (claset(),simpset() addsimps [real_minus_mult_eq1 RS sym]));
+by (Auto_tac);
 qed "lemma_poly_linear_rem";
 
 Goal "EX q r. h#t = [r] +++ [-a, 1] *** q";
@@ -741,7 +741,7 @@ Goalw [divides_def]
 by Auto_tac;
 by (res_inst_tac [("x","qaa +++ -- qa")] exI 1);
 by (auto_tac (claset(),simpset() addsimps [poly_add,fun_eq,poly_mult,
-    poly_minus,real_add_mult_distrib2,real_minus_mult_eq2 RS sym,
+    poly_minus,real_add_mult_distrib2,
     ARITH_PROVE "(x = y + -z) = (z + x = (y::real))"]));
 qed "poly_divides_diff";
 
@@ -800,8 +800,7 @@ by (rtac swap 1 THEN assume_tac 2);
 by (induct_tac "n" 1);
 by (asm_full_simp_tac (simpset() delsimps [pmult_Cons,pexp_Suc]) 1);
 by (eres_inst_tac [("Pa","poly q a = 0")] swap 1);
-by (asm_full_simp_tac (simpset() addsimps [poly_add,poly_cmult,
-    real_minus_mult_eq1 RS sym]) 1);
+by (asm_full_simp_tac (simpset() addsimps [poly_add,poly_cmult]) 1);
 by (rtac (pexp_Suc RS ssubst) 1);
 by (rtac ccontr 1);
 by (asm_full_simp_tac (simpset() addsimps [poly_mult_left_cancel,
@@ -1014,8 +1013,8 @@ by (rtac ((CLAIM_SIMP
      real_mult_ac) RS ssubst) 1);
 by (rotate_tac 2 1);
 by (dres_inst_tac [("x","xa")] spec 1);
-by (asm_full_simp_tac (simpset() addsimps [real_add_mult_distrib,
-    real_minus_mult_eq1 RS sym] @ real_mult_ac
+by (asm_full_simp_tac (simpset()
+    addsimps [real_add_mult_distrib] @ real_mult_ac
     delsimps [pmult_Cons]) 1);
 qed_spec_mp "lemma_order_pderiv";
 

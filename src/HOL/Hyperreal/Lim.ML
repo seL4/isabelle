@@ -1050,7 +1050,7 @@ Goal "NSDERIV f x :> D \
 by (asm_full_simp_tac 
     (simpset() addsimps [real_times_divide1_eq RS sym, NSDERIV_NSLIM_iff,
                          real_minus_mult_eq2, real_add_mult_distrib2 RS sym] 
-             delsimps [real_times_divide1_eq, real_minus_mult_eq2 RS sym]) 1);
+             delsimps [real_times_divide1_eq, real_mult_minus_eq2]) 1);
 by (etac (NSLIM_const RS NSLIM_mult) 1);
 qed "NSDERIV_cmult";
 
@@ -1063,7 +1063,7 @@ Goalw [deriv_def]
 by (asm_full_simp_tac 
     (simpset() addsimps [real_times_divide1_eq RS sym, NSDERIV_NSLIM_iff,
                          real_minus_mult_eq2, real_add_mult_distrib2 RS sym] 
-             delsimps [real_times_divide1_eq, real_minus_mult_eq2 RS sym]) 1);
+             delsimps [real_times_divide1_eq, real_mult_minus_eq2]) 1);
 by (etac (LIM_const RS LIM_mult2) 1);
 qed "DERIV_cmult";
 
@@ -1074,7 +1074,7 @@ Goal "NSDERIV f x :> D ==> NSDERIV (%x. -(f x)) x :> -D";
 by (asm_full_simp_tac (simpset() addsimps [NSDERIV_NSLIM_iff]) 1);
 by (res_inst_tac [("t","f x")] (real_minus_minus RS subst) 1);
 by (asm_simp_tac (simpset() addsimps [real_minus_add_distrib RS sym,
-                                      real_minus_mult_eq1 RS sym] 
+                                      real_mult_minus_eq1] 
                    delsimps [real_minus_add_distrib, real_minus_minus]) 1);
 by (etac NSLIM_minus 1);
 qed "NSDERIV_minus";
@@ -1354,8 +1354,7 @@ Goal "[| DERIV f x :> d; f(x) \\<noteq> 0 |] \
 \     ==> DERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))";
 by (rtac (real_mult_commute RS subst) 1);
 by (asm_simp_tac (simpset() addsimps [real_minus_mult_eq1,
-    realpow_inverse] delsimps [realpow_Suc, 
-    real_minus_mult_eq1 RS sym]) 1);
+    realpow_inverse] delsimps [realpow_Suc, real_mult_minus_eq1]) 1);
 by (fold_goals_tac [o_def]);
 by (blast_tac (claset() addSIs [DERIV_chain,DERIV_inverse]) 1);
 qed "DERIV_inverse_fun";
@@ -1377,8 +1376,7 @@ by (REPEAT(assume_tac 1));
 by (asm_full_simp_tac
     (simpset() addsimps [real_divide_def, real_add_mult_distrib2,
                          realpow_inverse,real_minus_mult_eq1] @ real_mult_ac 
-       delsimps [realpow_Suc, real_minus_mult_eq1 RS sym,
-                 real_minus_mult_eq2 RS sym]) 1);
+       delsimps [realpow_Suc, real_mult_minus_eq1, real_mult_minus_eq2]) 1);
 qed "DERIV_quotient";
 
 Goal "[| NSDERIV f x :> d; DERIV g x :> e; g(x) \\<noteq> 0 |] \
@@ -2135,8 +2133,7 @@ by (ALLGOALS(dres_inst_tac [("f","f")] MVT));
 by (auto_tac (claset() addDs [DERIV_isCont,DERIV_unique],simpset() addsimps 
     [differentiable_def]));
 by (auto_tac (claset() addDs [DERIV_unique],
-       simpset() addsimps [real_add_mult_distrib, real_diff_def,
-                           real_minus_mult_eq1 RS sym]));
+       simpset() addsimps [real_add_mult_distrib, real_diff_def]));
 qed "DERIV_const_ratio_const";
 
 Goal "[|a \\<noteq> b; \\<forall>x. DERIV f x :> k |] ==> (f(b) - f(a))/(b - a) = k";

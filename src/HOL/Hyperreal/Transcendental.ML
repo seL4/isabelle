@@ -2089,7 +2089,6 @@ Goalw [tan_def,real_divide_def] "[| 0 < x; x < pi/2 |] ==> 0 < tan x";
 by (auto_tac (claset() addSIs [sin_gt_zero2,cos_gt_zero_pi]
     addSIs [real_mult_order,
     real_inverse_gt_0],simpset()));
-by (rtac (CLAIM "-x < y ==> -y < (x::real)") 1 THEN Auto_tac);
 qed "tan_gt_zero";
 
 Goal "[| - pi/2 < x; x < 0 |] ==> tan x < 0";
@@ -2170,7 +2169,6 @@ by (dtac tan_total_pos 2);
 by (Step_tac 1);
 by (res_inst_tac [("x","-x")] exI 2);
 by (auto_tac (claset() addSIs [exI],simpset()));
-by (rtac (CLAIM "-x < y ==> -y < (x::real)") 1 THEN Auto_tac);
 qed "lemma_tan_total1";
 
 Goal "EX! x. -(pi/2) < x & x < (pi/2) & tan x = y";

@@ -74,7 +74,7 @@ proof -
   hence "x * (- z) \<le> y * (- z)"
     by (rule real_mult_le_le_mono2)
   hence  "- (x * z) \<le> - (y * z)"
-    by (simp only: real_minus_mult_eq2)
+    by (simp only: real_mult_minus_eq2)
   thus ?thesis by (simp only: real_mult_commute)
 qed
 
