@@ -18,6 +18,13 @@ structure InductMethod: INDUCT_METHOD =
 struct
 
 
+(** theory context references **)
+
+val inductive_atomize = thms "inductive_atomize";
+val inductive_rulify = thms "inductive_rulify";
+
+
+
 (** misc utils **)
 
 (* align lists *)
@@ -43,9 +50,21 @@ fun type_name t =
   #1 (Term.dest_Type (Term.type_of t))
     handle TYPE _ => raise TERM ("Type of term argument is too general", [t]);
 
-fun prep_inst align cert (tm, ts) =
+fun prep_inst align cert f (tm, ts) =
   let
-    fun prep_var (x, Some t) = Some (cert x, cert t)
+    fun prep_var (x, Some t) =
+          let
+            val cx = cert x;
+            val {T = xT, sign, ...} = Thm.rep_cterm cx;
+            val orig_ct = cert t;
+            val ct = f orig_ct;
+          in
+            if Sign.typ_instance sign (#T (Thm.rep_cterm ct), xT) then Some (cx, ct)
+            else error (Pretty.string_of (Pretty.block
+              [Pretty.str "Ill-typed instantiation:", Pretty.fbrk,
+                Display.pretty_cterm orig_ct, Pretty.str " ::", Pretty.brk 1,
+                Display.pretty_ctyp (#T (Thm.crep_cterm orig_ct))]))
+          end
       | prep_var (_, None) = None;
   in
     align "Rule has fewer variables than instantiations given" (vars_of tm) ts
@@ -58,11 +77,8 @@ fun prep_inst align cert (tm, ts) =
 local
 
 (*delete needless equality assumptions*)
-val refl_thin = prove_goal HOL.thy "!!P. [| a=a;  P |] ==> P"
-     (fn _ => [assume_tac 1]);
-
+val refl_thin = prove_goal HOL.thy "!!P. a = a ==> P ==> P" (fn _ => [assume_tac 1]);
 val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE, Pair_inject];
-
 val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
 
 in
@@ -112,7 +128,7 @@ fun cases_tac (ctxt, ((simplified, open_parms), args)) facts =
 
     fun inst_rule insts thm =
       (align_left "Rule has fewer premises than arguments given" (Thm.prems_of thm) insts
-        |> (flat o map (prep_inst align_left cert))
+        |> (flat o map (prep_inst align_left cert I))
         |> Drule.cterm_instantiate) thm;
 
     fun find_cases th =
@@ -143,7 +159,10 @@ fun cases_tac (ctxt, ((simplified, open_parms), args)) facts =
 
     fun prep_rule (thm, cases) =
       Seq.map (cond_simp cases) (Method.multi_resolves facts [thm]);
-  in Method.resolveq_cases_tac open_parms (Seq.flat (Seq.map prep_rule (Seq.of_list rules))) end;
+  in
+    Method.resolveq_cases_tac (RuleCases.make open_parms)
+      (Seq.flat (Seq.map prep_rule (Seq.of_list rules)))
+  end;
 
 in
 
@@ -157,13 +176,31 @@ end;
 
 (*
   rule selection:
-        induct         - mathematical induction
         induct x       - datatype induction
   <x:A> induct ...     - set induction
   ...   induct ... R   - explicit rule
 *)
 
 local
+
+fun rewrite_cterm rews =
+  #2 o Thm.dest_comb o #prop o Thm.crep_thm o Simplifier.full_rewrite (HOL_basic_ss addsimps rews);
+
+fun drop_Trueprop ct =
+  let
+    fun drop (Abs (x, T, t)) = Abs (x, T, drop t)
+      | drop t = HOLogic.dest_Trueprop t;
+    val {sign, t, ...} = Thm.rep_cterm ct;
+  in Thm.cterm_of sign (drop t) handle TERM _ => ct end;
+
+val atomize_cterm = drop_Trueprop o rewrite_cterm inductive_atomize;
+val atomize_tac = Method.rewrite_goal_tac inductive_atomize;
+val rulify_cterm = rewrite_cterm inductive_rulify;
+val rulify_tac = Method.rewrite_goal_tac inductive_rulify;
+
+fun rulify_cases cert =
+  map (apsnd (apsnd (map (Thm.term_of o rulify_cterm o cert)))) ooo RuleCases.make;
+
 
 infix 1 THEN_ALL_NEW_CASES;
 
@@ -209,7 +246,7 @@ fun induct_tac (ctxt, ((stripped, open_parms), args)) facts =
 
     fun inst_rule insts thm =
       (align_right "Rule has fewer conclusions than arguments given" (concls_of thm) insts
-        |> (flat o map (prep_inst align_right cert))
+        |> (flat o map (prep_inst align_right cert atomize_cterm))
         |> Drule.cterm_instantiate) thm;
 
     fun find_induct th =
@@ -233,11 +270,13 @@ fun induct_tac (ctxt, ((stripped, open_parms), args)) facts =
 
     fun prep_rule (thm, cases) =
       Seq.map (rpair cases) (Method.multi_resolves facts [thm]);
-    val tac = Method.resolveq_cases_tac open_parms
+    val tac = Method.resolveq_cases_tac (rulify_cases cert open_parms)
       (Seq.flat (Seq.map prep_rule (Seq.of_list rules)));
   in
-    if stripped then tac THEN_ALL_NEW_CASES (REPEAT o Tactic.match_tac [impI, allI, ballI])
-    else tac
+    if stripped then
+      (warning "induct method: encountered deprecated 'stripped' option";
+        tac THEN_ALL_NEW_CASES (REPEAT o Tactic.match_tac [impI, allI, ballI]))
+    else (fn i => Seq.THEN (atomize_tac i, tac i)) THEN_ALL_NEW_CASES rulify_tac
   end;
 
 in
