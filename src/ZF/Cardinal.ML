@@ -670,6 +670,11 @@ by (blast_tac (claset() addSIs [InlI, InrI]) 1);
 by (asm_full_simp_tac (simpset() addsimps [Inl_def, Inr_def]) 1);
 qed "Un_lepoll_sum";
 
+Goal "[| well_ord(X,R); well_ord(Y,S) |] ==> EX T. well_ord(X Un Y, T)";
+by (eresolve_tac [well_ord_radd RS (Un_lepoll_sum RS lepoll_well_ord)] 1);
+by (assume_tac 1);
+qed "well_ord_Un";
+
 (*Krzysztof Grabczewski*)
 Goalw [eqpoll_def] "A Int B = 0 ==> A Un B eqpoll A + B";
 by (res_inst_tac [("x","lam a:A Un B. if(a:A,Inl(a),Inr(a))")] exI 1);

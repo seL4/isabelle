@@ -35,15 +35,6 @@ by (resolve_tac [nat_le_infinite_Ord RS le_imp_lepoll
     THEN REPEAT (assume_tac 1));
 qed "Inf_Ord_imp_InfCard_cardinal";
 
-val sum_lepoll_prod = [sum_eq_2_times RS equalityD1 RS subset_imp_lepoll,
-        asm_rl, lepoll_refl] MRS (prod_lepoll_mono RSN (2, lepoll_trans))
-        |> standard;
-
-Goal "[| A lepoll B; 2 lepoll A |] ==> A+B lepoll A*B";
-by (REPEAT (ares_tac [[sum_lepoll_mono, sum_lepoll_prod]
-                MRS lepoll_trans, lepoll_refl] 1));
-qed "lepoll_imp_sum_lepoll_prod";
-
 Goal "[| A eqpoll i; B eqpoll i; ~Finite(i); Ord(i) |]  \
 \               ==> A Un B eqpoll i";
 by (rtac eqpollI 1);
@@ -65,24 +56,12 @@ by (resolve_tac [Inf_Ord_imp_InfCard_cardinal RSN (2, well_ord_Memrel RS
     THEN REPEAT (assume_tac 1));
 qed "Un_eqpoll_Inf_Ord";
 
-val ss = (simpset()) addsimps [inj_is_fun RS apply_type, left_inverse] 
-               setloop (split_tac [split_if] ORELSE' etac UnE);
 
-goal ZF.thy "{x, y} - {y} = {x} - {y}";
-by (Fast_tac 1);
-qed "double_Diff_sing";
-
-goal ZF.thy "if({y,z}-{z}=0, z, THE w. {y,z}-{z}={w}) = y";
-by (asm_full_simp_tac (simpset() addsimps [double_Diff_sing, Diff_eq_0_iff]) 1);
-by (fast_tac (claset() addSIs [the_equality] addEs [equalityE]) 1);
-qed "paired_bij_lemma";
-
-Goal "(lam y:{{y,z}. y:x}. if(y-{z}=0, z, THE w. y-{z}={w}))  \
-\               : bij({{y,z}. y:x}, x)";
-by (res_inst_tac [("d","%a. {a,z}")] lam_bijective 1);
-by (auto_tac (claset(),
-	      simpset() delsplits [split_if]
-		        addsimps [paired_bij_lemma]));
+(*bijection is inferred!*)
+Goal "(lam u:{{y,z} . y: x}. THE y. {y,z} = u) : bij({{y,z}. y:x}, x)";
+by (rtac RepFun_bijective 1);
+by (simp_tac (simpset() addsimps [doubleton_eq_iff]) 1);
+by (Blast_tac 1);
 qed "paired_bij";
 
 Goalw [eqpoll_def] "{{y,z}. y:x} eqpoll x";

@@ -303,6 +303,16 @@ by (asm_simp_tac
 qed "cmult_2";
 
 
+val sum_lepoll_prod = [sum_eq_2_times RS equalityD1 RS subset_imp_lepoll,
+        asm_rl, lepoll_refl] MRS (prod_lepoll_mono RSN (2, lepoll_trans))
+        |> standard;
+
+Goal "[| A lepoll B; 2 lepoll A |] ==> A+B lepoll A*B";
+by (REPEAT (ares_tac [[sum_lepoll_mono, sum_lepoll_prod]
+                MRS lepoll_trans, lepoll_refl] 1));
+qed "lepoll_imp_sum_lepoll_prod";
+
+
 (*** Infinite Cardinals are Limit Ordinals ***)
 
 (*This proof is modelled upon one assuming nat<=A, with injection

@@ -104,6 +104,13 @@ val prems = goalw Perm.thy [bij_def]
 by (REPEAT (ares_tac (prems @ [IntI, lam_injective, lam_surjective]) 1));
 qed "lam_bijective";
 
+Goal "(ALL y : x. EX! y'. f(y') = f(y))  \
+\     ==> (lam z:{f(y). y:x}. THE y. f(y) = z) : bij({f(y). y:x}, x)";
+by (res_inst_tac [("d","f")] lam_bijective 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [the_equality2]));
+qed "RepFun_bijective";
+
 
 (** Identity function **)
 
