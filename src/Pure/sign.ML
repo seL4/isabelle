@@ -44,8 +44,9 @@ sig
   val subsort: sg -> sort * sort -> bool
   val nodup_Vars: term -> unit
   val norm_sort: sg -> sort -> sort
-  val nonempty_sort: sg -> sort list -> sort -> bool
   val of_sort: sg -> typ * sort -> bool
+  val witness_sorts: sg -> sort list -> sort list -> (typ * sort) list
+  val univ_witness: sg -> (typ * sort) option
   val classK: string
   val typeK: string
   val constK: string
@@ -256,15 +257,13 @@ fun is_draft (Sg ({stamps = ref name :: _, ...}, _)) = name = "" orelse ord name
 
 (* classes and sorts *)
 
-val classes = #classes o Type.rep_tsig o tsig_of;
-
+val classes = Type.classes o tsig_of;
 val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
 val norm_sort = Type.norm_sort o tsig_of;
-val nonempty_sort = Type.nonempty_sort o tsig_of;
-
-fun of_sort (Sg (_, {tsig, ...})) =
-  Sorts.of_sort (#classrel (Type.rep_tsig tsig)) (#arities (Type.rep_tsig tsig));
+val of_sort = Type.of_sort o tsig_of;
+val witness_sorts = Type.witness_sorts o tsig_of;
+val univ_witness = Type.univ_witness o tsig_of;
 
 
 
