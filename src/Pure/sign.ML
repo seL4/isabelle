@@ -487,15 +487,15 @@ local
   val spaces_of = #spaces o rep_sg;
 in
   fun intrn_class spaces = intrn spaces classK;
-  fun extrn_class spaces = extrn spaces classK;
+  fun extrn_class spaces = cond_extrn spaces classK;
 
   val intrn_sort = map o intrn_class;
   val intrn_typ = trn_typ o intrn;
   val intrn_term = trn_term o intrn;
 
   val extrn_sort = map o extrn_class;
-  val extrn_typ = trn_typ o extrn;
-  val extrn_term = trn_term o extrn;
+  val extrn_typ = trn_typ o cond_extrn;
+  val extrn_term = trn_term o cond_extrn;
 
   fun intrn_tycons spaces T =
     map_typ I (mapping (intrn spaces typeK) add_typ_tycons T) T;
