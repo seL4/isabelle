@@ -21,6 +21,7 @@ signature PATTERN =
   type env
   val aeconv            : term * term -> bool
   val eta_contract      : term -> term
+  val beta_eta_contract : term -> term
   val eta_contract_atom : term -> term
   val match             : type_sig -> term * term
                           -> (indexname*typ)list * (indexname*term)list
@@ -235,6 +236,8 @@ fun eta_contract (Abs(a,T,body)) =
       | body' => Abs(a,T,body'))
   | eta_contract(f$t) = eta_contract f $ eta_contract t
   | eta_contract t = t;
+
+val beta_eta_contract = eta_contract o Envir.beta_norm;
 
 (*Eta-contract a term from outside: just enough to reduce it to an atom
 DOESN'T QUITE WORK!
