@@ -6,7 +6,7 @@ BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 NAMES = Message Shared
 
-FILES = ROOT.ML $(NAMES:%=%.thy) $(NAMES:%=%.ML)
+FILES = DB-ROOT.ML $(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
 $(BIN)/Auth:   $(BIN)/HOL  $(FILES) 
 	if [ -d $${ISABELLEBIN:?}/Pure ];\
@@ -18,19 +18,19 @@ $(BIN)/Auth:   $(BIN)/HOL  $(FILES)
 	poly*)	echo 'make_database"$(BIN)/Auth"; quit();'  \
 		  | $(COMP) $(BIN)/HOL;\
                 if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";' \
+                then echo 'open PolyML; make_html := true; exit_use"DB-ROOT.ML";' \
                        | $(COMP) $(BIN)/Auth;\
 		elif [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
-                then echo 'open PolyML; make_html := true; exit_use_dir".";                               make_html := false;' | $(COMP) $(BIN)/Auth;\
-                else echo 'open PolyML; exit_use_dir".";' \
+                then echo 'open PolyML; make_html := true; exit_use"DB-ROOT.ML";                               make_html := false;' | $(COMP) $(BIN)/Auth;\
+                else echo 'open PolyML; exit_use"DB-ROOT.ML";' \
                        | $(COMP) $(BIN)/Auth;\
                 fi;;\
 	sml*)	if [ "$${MAKE_HTML}" = "true" ]; \
-                then echo 'make_html := true; exit_use_dir".";                                            xML"$(BIN)/Auth" banner;' | $(BIN)/HOL;\
+                then echo 'make_html := true; exit_use"DB-ROOT.ML";                                            xML"$(BIN)/Auth" banner;' | $(BIN)/HOL;\
                 elif [ "$${MAKE_HTML-undefined}" != "undefined" ];\
-                then echo 'make_html := true; exit_use_dir".";                                            make_html := false; xML"$(BIN)/Auth" banner;' \
+                then echo 'make_html := true; exit_use"DB-ROOT.ML";                                            make_html := false; xML"$(BIN)/Auth" banner;' \
                        | $(BIN)/HOL;\
-                else echo 'exit_use_dir"."; xML"$(BIN)/Auth" banner;' \
+                else echo 'exit_use"DB-ROOT.ML"; xML"$(BIN)/Auth" banner;' \
                        | $(BIN)/HOL;\
                 fi;;\
 	*)	echo Bad value for ISABELLECOMP: \
