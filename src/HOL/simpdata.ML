@@ -85,7 +85,7 @@ in
   fun mk_meta_eq_simp r = case concl_of r of
           Const("==",_)$_$_ => r
       |   _$(Const("op =",_)$lhs$rhs) =>
-             (case fst(Logic.loops (#sign(rep_thm r)) (prems_of r) lhs rhs) of
+             (case fst(Logic.rewrite_rule_ok (#sign(rep_thm r)) (prems_of r) lhs rhs) of
                 None => mk_meta_eq r
               | Some _ => r RS P_imp_P_eq_True)
       |   _$(Const("Not",_)$_) => r RS not_P_imp_P_eq_False
