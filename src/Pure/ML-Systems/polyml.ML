@@ -41,18 +41,27 @@ fun make_pp _ pprint (str, blk, brk, en) obj =
 
 (* ML command execution -- 'eval' *)
 
-fun use_text txt =
+fun use_text verbose txt =
   let
-    val buffer = ref (explode txt);
+    val in_buffer = ref (explode txt);
+    val out_buffer = ref ([]: string list);
+
     fun get () =
-      (case ! buffer of
+      (case ! in_buffer of
         [] => ""
-      | c :: cs => (buffer := cs; c));
+      | c :: cs => (in_buffer := cs; c));
+    fun put s = out_buffer := s :: ! out_buffer;
+
     fun exec () =
-      (case ! buffer of
+      (case ! in_buffer of
         [] => ()
-      | _ => (PolyML.compiler (get, print) (); exec ()));
-  in exec () end;
+      | _ => (PolyML.compiler (get, put) (); exec ()));
+
+    fun show_output () = print (implode (rev (! out_buffer)));
+  in
+    exec () handle exn => (show_output (); raise exn);
+    if verbose then show_output () else ()
+  end;
 
 
 

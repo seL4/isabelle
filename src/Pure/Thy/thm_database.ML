@@ -52,7 +52,7 @@ fun ml_store_thm (name, thm) =
   let val thm' = store_thm (name, thm) in
     if is_ml_identifier name then
       (qed_thm := Some thm';
-        use_text ("val " ^ name ^ " = the (! ThmDatabase.qed_thm);"))
+        use_text true ("val " ^ name ^ " = the (! ThmDatabase.qed_thm);"))
     else warning ("Cannot bind thm " ^ quote name ^ " as ML value")
   end;
 

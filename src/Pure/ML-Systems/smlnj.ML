@@ -82,7 +82,21 @@ fun install_pp (path, pp) = Compiler.PPTable.install_pp path pp;
 
 (* ML command execution *)
 
-val use_text = Compiler.Interact.useStream o TextIO.openString;
+fun use_text verbose txt =
+  let
+    val ref out_orig = Compiler.Control.Print.out;
+
+    val out_buffer = ref ([]: string list);
+    val out = {say = (fn s => out_buffer := s :: ! out_buffer), flush = (fn () => ())};
+
+    fun show_output () = print (implode (rev (! out_buffer)));
+  in
+    Compiler.Control.Print.out := out;
+    Compiler.Interact.useStream (TextIO.openString txt) handle exn =>
+      (Compiler.Control.Print.out := out_orig; show_output (); raise exn);
+    Compiler.Control.Print.out := out_orig;
+    if verbose then show_output () else ()
+  end;
 
 
 
