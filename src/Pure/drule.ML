@@ -461,7 +461,7 @@ fun eq_thm (th1,th2) =
     let val {sign=sg1, shyps=shyps1, hyps=hyps1, prop=prop1, ...} = rep_thm th1
         and {sign=sg2, shyps=shyps2, hyps=hyps2, prop=prop2, ...} = rep_thm th2
     in  Sign.eq_sg (sg1,sg2) andalso
-        eq_set (shyps1, shyps2) andalso
+        eq_set_sort (shyps1, shyps2) andalso
         aconvs(hyps1,hyps2) andalso
         prop1 aconv prop2
     end;
@@ -473,7 +473,7 @@ fun same_thm (th1,th2) =
     let val {sign=sg1, shyps=shyps1, hyps=hyps1, prop=prop1, ...} = rep_thm th1
         and {sign=sg2, shyps=shyps2, hyps=hyps2, prop=prop2, ...} = rep_thm th2
     in  Sign.same_sg (sg1,sg2) andalso
-        eq_set (shyps1, shyps2) andalso
+        eq_set_sort (shyps1, shyps2) andalso
         aconvs(hyps1,hyps2) andalso
         prop1 aconv prop2
     end;

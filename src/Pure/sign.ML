@@ -88,20 +88,30 @@ fun rep_sg (Sg args) = args;
 val tsig_of = #tsig o rep_sg;
 
 
-(* stamps *)
+(*** Stamps ***)
+
+(*Avoiding polymorphic equality: 10* speedup*)
+fun mem_stamp (_:string ref, []) = false
+  | mem_stamp (x, y::xs) = x=y orelse mem_stamp(x,xs);
+
+fun subset_stamp ([], ys) = true
+  | subset_stamp (x :: xs, ys) = mem_stamp(x, ys) andalso subset_stamp(xs, ys);
+
+fun eq_set_stamp (xs, ys) =
+    xs = ys orelse (subset_stamp (xs, ys) andalso subset_stamp (ys, xs));
 
 fun is_draft (Sg {stamps = ref "#" :: _, ...}) = true
   | is_draft _ = false;
 
-fun subsig (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = s1 subset s2;
+fun subsig (Sg{stamps=s1,...}, Sg{stamps=s2,...}) = subset_stamp(s1,s2);
 
-fun eq_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) = eq_set (s1, s2);
+fun eq_sg (Sg{stamps=s1,...}, Sg{stamps=s2,...}) = eq_set_stamp(s1,s2);
 
 (* test if same theory names are contained in signatures' stamps,
    i.e. if signatures belong to same theory but not necessarily to the same
    version of it*)
 fun same_sg (Sg {stamps = s1, ...}, Sg {stamps = s2, ...}) =
-  eq_set (pairself (map (op !)) (s1, s2));
+  eq_set_string (pairself (map (op !)) (s1, s2));
 
 
 (* consts *)

@@ -118,7 +118,7 @@ local
 
   fun ins_entry (x, y) [] = [(x, [y])]
     | ins_entry (x, y) ((pair as (x', ys')) :: pairs) =
-        if x = x' then (x', y ins ys') :: pairs
+        if x = x' then (x', y ins_string ys') :: pairs
         else pair :: ins_entry (x, y) pairs;
 
   fun add_type_env (Free (x, T), env) = ins_entry (T, x) env
