@@ -270,6 +270,10 @@ goal ZF.thy
 by (fast_tac eq_cs 1);
 qed "INT_Int_distrib";
 
+goal ZF.thy "(UN z:I Int J. A(z)) <= (UN z:I. A(z)) Int (UN z:J. A(z))";
+by (fast_tac ZF_cs 1);
+qed "UN_Int_subset";
+
 (** Devlin, page 12, exercise 5: Complements **)
 
 goal ZF.thy "!!A B. i:I ==> B - (UN i:I. A(i)) = (INT i:I. B - A(i))";
