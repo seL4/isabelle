@@ -138,8 +138,7 @@ val cla_simps =
 
 (*Miniscoping: pushing in existential quantifiers*)
 val ex_simps = map prove_fun 
-                ["(EX x. P) <-> P",
-                 "(EX x. P(x) & Q) <-> (EX x.P(x)) & Q",
+                ["(EX x. P(x) & Q) <-> (EX x.P(x)) & Q",
                  "(EX x. P & Q(x)) <-> P & (EX x.Q(x))",
                  "(EX x. P(x) | Q) <-> (EX x.P(x)) | Q",
                  "(EX x. P | Q(x)) <-> P | (EX x.Q(x))",
@@ -148,8 +147,7 @@ val ex_simps = map prove_fun
 
 (*Miniscoping: pushing in universal quantifiers*)
 val all_simps = map prove_fun
-                ["(ALL x. P) <-> P",
-                 "(ALL x. P(x) & Q) <-> (ALL x.P(x)) & Q",
+                ["(ALL x. P(x) & Q) <-> (ALL x.P(x)) & Q",
                  "(ALL x. P & Q(x)) <-> P & (ALL x.Q(x))",
                  "(ALL x. P(x) | Q) <-> (ALL x.P(x)) | Q",
                  "(ALL x. P | Q(x)) <-> P | (ALL x.Q(x))",
