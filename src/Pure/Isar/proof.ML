@@ -479,11 +479,10 @@ fun prep_result state ts raw_th =
     val th = raw_th RS Drule.rev_triv_goal;
     val ths = Drule.conj_elim_precise (length ts) th
       handle THM _ => err "Main goal structure corrupted";
-    val props = map (#prop o Thm.rep_thm) ths;
   in
     conditional (not (null bad_hyps)) (fn () => err ("Additional hypotheses:\n" ^
         cat_lines (map (ProofContext.string_of_term ctxt) bad_hyps)));
-    conditional (exists (not o Pattern.matches tsig) (ts ~~ props)) (fn () =>
+    conditional (exists (not o Pattern.matches tsig) (ts ~~ map Thm.prop_of ths)) (fn () =>
       err ("Proved a different theorem: " ^ Pretty.string_of (ProofContext.pretty_thm ctxt th)));
     ths
   end;
@@ -641,9 +640,10 @@ fun setup_goal opt_block prepp autofix kind after_qed names raw_propp state =
       |> enter_forward
       |> opt_block
       |> map_context_result (fn ctxt => prepp (ctxt, raw_propp));
+    val sign' = sign_of state';
 
     val props = flat propss;
-    val cprop = Thm.cterm_of (sign_of state') (Logic.mk_conjunction_list props);
+    val cprop = Thm.cterm_of sign' (Logic.mk_conjunction_list props);
     val goal = Drule.mk_triv_goal cprop;
 
     val tvars = foldr Term.add_term_tvars (props, []);
@@ -659,7 +659,8 @@ fun setup_goal opt_block prepp autofix kind after_qed names raw_propp state =
     |> map_context (autofix props)
     |> put_goal (Some (((kind, names, propss), ([], goal)), after_qed o map_context gen_binds))
     |> map_context (ProofContext.add_cases
-     (if length props = 1 then RuleCases.make true goal [rule_contextN]
+     (if length props = 1 then
+      RuleCases.make true (Thm.sign_of_thm goal, Thm.prop_of goal) [rule_contextN]
       else [(rule_contextN, RuleCases.empty)]))
     |> auto_bind_goal props
     |> (if is_chain state then use_facts else reset_facts)
