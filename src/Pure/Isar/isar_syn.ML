@@ -283,8 +283,9 @@ val oracleP =
 
 val locale_decl =
   (P.name --| P.$$$ "=") --
-    (Scan.repeat1 (P.xname --| P.$$$ "+") -- Scan.repeat (P.locale_element -- P.marg_comment) ||
-      Scan.repeat1 (P.locale_element -- P.marg_comment) >> pair []) >> P.triple2;
+    (P.locale_expr -- Scan.optional
+      (P.$$$ "+" |-- P.!!! (Scan.repeat1 (P.locale_element -- P.marg_comment))) [] ||
+    Scan.repeat1 (P.locale_element -- P.marg_comment) >> pair Locale.empty) >> P.triple2;
 
 val localeP =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
