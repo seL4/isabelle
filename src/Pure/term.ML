@@ -427,19 +427,20 @@ fun subst_vars(iTs,itms) = if null iTs then subst_Vars itms else
 
 
 (*Computing the maximum index of a typ*)
-fun maxidx_of_typ(Type(_,Ts)) =
-	if Ts=[] then ~1 else max(map maxidx_of_typ Ts)
+fun maxidx_of_typ(Type(_,Ts)) = maxidx_of_typs Ts
   | maxidx_of_typ(TFree _) = ~1
-  | maxidx_of_typ(TVar((_,i),_)) = i;
+  | maxidx_of_typ(TVar((_,i),_)) = i
+and maxidx_of_typs [] = ~1
+  | maxidx_of_typs (T::Ts) = Int.max(maxidx_of_typ T, maxidx_of_typs Ts);
 
 
 (*Computing the maximum index of a term*)
 fun maxidx_of_term (Const(_,T)) = maxidx_of_typ T
   | maxidx_of_term (Bound _) = ~1
   | maxidx_of_term (Free(_,T)) = maxidx_of_typ T
-  | maxidx_of_term (Var ((_,i), T)) = max[i, maxidx_of_typ T]
-  | maxidx_of_term (Abs (_,T,body)) = max[maxidx_of_term body, maxidx_of_typ T]
-  | maxidx_of_term (f$t) = max [maxidx_of_term f,  maxidx_of_term t];
+  | maxidx_of_term (Var ((_,i), T)) = Int.max(i, maxidx_of_typ T)
+  | maxidx_of_term (Abs (_,T,u)) = Int.max(maxidx_of_term u, maxidx_of_typ T)
+  | maxidx_of_term (f$t) = Int.max(maxidx_of_term f,  maxidx_of_term t);
 
 
 (* Increment the index of all Poly's in T by k *)
