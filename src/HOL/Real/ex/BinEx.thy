@@ -57,7 +57,7 @@ lemma "(-345::real) < -242 + -100"
 lemma "(13557456::real) < 18678654"
   by simp
 
-lemma "(999999::real) \<le> (1000001 + Numeral1) - 2"
+lemma "(999999::real) \<le> (1000001 + 1) - 2"
   by simp
 
 lemma "(1234567::real) \<le> 1234567"
@@ -66,16 +66,16 @@ lemma "(1234567::real) \<le> 1234567"
 
 text {* \medskip Tests *}
 
-lemma "(x + y = x) = (y = (Numeral0::real))"
+lemma "(x + y = x) = (y = (0::real))"
   by arith
 
-lemma "(x + y = y) = (x = (Numeral0::real))"
+lemma "(x + y = y) = (x = (0::real))"
   by arith
 
-lemma "(x + y = (Numeral0::real)) = (x = -y)"
+lemma "(x + y = (0::real)) = (x = -y)"
   by arith
 
-lemma "(x + y = (Numeral0::real)) = (y = -x)"
+lemma "(x + y = (0::real)) = (y = -x)"
   by arith
 
 lemma "((x + y) < (x + z)) = (y < (z::real))"
@@ -123,25 +123,25 @@ lemma "\<not>(x < y \<and> y \<le> (x::real))"
 lemma "\<not>(x \<le> y \<and> y < (x::real))"
   by arith
 
-lemma "(-x < (Numeral0::real)) = (Numeral0 < x)"
+lemma "(-x < (0::real)) = (0 < x)"
   by arith
 
-lemma "((Numeral0::real) < -x) = (x < Numeral0)"
+lemma "((0::real) < -x) = (x < 0)"
   by arith
 
-lemma "(-x \<le> (Numeral0::real)) = (Numeral0 \<le> x)"
+lemma "(-x \<le> (0::real)) = (0 \<le> x)"
   by arith
 
-lemma "((Numeral0::real) \<le> -x) = (x \<le> Numeral0)"
+lemma "((0::real) \<le> -x) = (x \<le> 0)"
   by arith
 
 lemma "(x::real) = y \<or> x < y \<or> y < x"
   by arith
 
-lemma "(x::real) = Numeral0 \<or> Numeral0 < x \<or> Numeral0 < -x"
+lemma "(x::real) = 0 \<or> 0 < x \<or> 0 < -x"
   by arith
 
-lemma "(Numeral0::real) \<le> x \<or> Numeral0 \<le> -x"
+lemma "(0::real) \<le> x \<or> 0 \<le> -x"
   by arith
 
 lemma "((x::real) + y \<le> x + z) = (y \<le> z)"
@@ -156,16 +156,16 @@ lemma "(w::real) < x \<and> y < z ==> w + y < x + z"
 lemma "(w::real) \<le> x \<and> y \<le> z ==> w + y \<le> x + z"
   by arith
 
-lemma "(Numeral0::real) \<le> x \<and> Numeral0 \<le> y ==> Numeral0 \<le> x + y"
+lemma "(0::real) \<le> x \<and> 0 \<le> y ==> 0 \<le> x + y"
   by arith
 
-lemma "(Numeral0::real) < x \<and> Numeral0 < y ==> Numeral0 < x + y"
+lemma "(0::real) < x \<and> 0 < y ==> 0 < x + y"
   by arith
 
-lemma "(-x < y) = (Numeral0 < x + (y::real))"
+lemma "(-x < y) = (0 < x + (y::real))"
   by arith
 
-lemma "(x < -y) = (x + y < (Numeral0::real))"
+lemma "(x < -y) = (x + y < (0::real))"
   by arith
 
 lemma "(y < x + -z) = (y + z < (x::real))"
@@ -174,7 +174,7 @@ lemma "(y < x + -z) = (y + z < (x::real))"
 lemma "(x + -y < z) = (x < z + (y::real))"
   by arith
 
-lemma "x \<le> y ==> x < y + (Numeral1::real)"
+lemma "x \<le> y ==> x < y + (1::real)"
   by arith
 
 lemma "(x - y) + y = (x::real)"
@@ -183,31 +183,31 @@ lemma "(x - y) + y = (x::real)"
 lemma "y + (x - y) = (x::real)"
   by arith
 
-lemma "x - x = (Numeral0::real)"
+lemma "x - x = (0::real)"
   by arith
 
-lemma "(x - y = Numeral0) = (x = (y::real))"
+lemma "(x - y = 0) = (x = (y::real))"
   by arith
 
-lemma "((Numeral0::real) \<le> x + x) = (Numeral0 \<le> x)"
+lemma "((0::real) \<le> x + x) = (0 \<le> x)"
   by arith
 
-lemma "(-x \<le> x) = ((Numeral0::real) \<le> x)"
+lemma "(-x \<le> x) = ((0::real) \<le> x)"
   by arith
 
-lemma "(x \<le> -x) = (x \<le> (Numeral0::real))"
+lemma "(x \<le> -x) = (x \<le> (0::real))"
   by arith
 
-lemma "(-x = (Numeral0::real)) = (x = Numeral0)"
+lemma "(-x = (0::real)) = (x = 0)"
   by arith
 
 lemma "-(x - y) = y - (x::real)"
   by arith
 
-lemma "((Numeral0::real) < x - y) = (y < x)"
+lemma "((0::real) < x - y) = (y < x)"
   by arith
 
-lemma "((Numeral0::real) \<le> x - y) = (y \<le> x)"
+lemma "((0::real) \<le> x - y) = (y \<le> x)"
   by arith
 
 lemma "(x + y) - x = (y::real)"
@@ -219,16 +219,16 @@ lemma "(-x = y) = (x = (-y::real))"
 lemma "x < (y::real) ==> \<not>(x = y)"
   by arith
 
-lemma "(x \<le> x + y) = ((Numeral0::real) \<le> y)"
+lemma "(x \<le> x + y) = ((0::real) \<le> y)"
   by arith
 
-lemma "(y \<le> x + y) = ((Numeral0::real) \<le> x)"
+lemma "(y \<le> x + y) = ((0::real) \<le> x)"
   by arith
 
-lemma "(x < x + y) = ((Numeral0::real) < y)"
+lemma "(x < x + y) = ((0::real) < y)"
   by arith
 
-lemma "(y < x + y) = ((Numeral0::real) < x)"
+lemma "(y < x + y) = ((0::real) < x)"
   by arith
 
 lemma "(x - y) - x = (-y::real)"
@@ -258,10 +258,10 @@ lemma "(-x \<le> -y) = (y \<le> (x::real))"
 lemma "(a + b) - (c + d) = (a - c) + (b - (d::real))"
   by arith
 
-lemma "(Numeral0::real) - x = -x"
+lemma "(0::real) - x = -x"
   by arith
 
-lemma "x - (Numeral0::real) = x"
+lemma "x - (0::real) = x"
   by arith
 
 lemma "w \<le> x \<and> y < z ==> w + y < x + (z::real)"
@@ -270,10 +270,10 @@ lemma "w \<le> x \<and> y < z ==> w + y < x + (z::real)"
 lemma "w < x \<and> y \<le> z ==> w + y < x + (z::real)"
   by arith
 
-lemma "(Numeral0::real) \<le> x \<and> Numeral0 < y ==> Numeral0 < x + (y::real)"
+lemma "(0::real) \<le> x \<and> 0 < y ==> 0 < x + (y::real)"
   by arith
 
-lemma "(Numeral0::real) < x \<and> Numeral0 \<le> y ==> Numeral0 < x + y"
+lemma "(0::real) < x \<and> 0 \<le> y ==> 0 < x + y"
   by arith
 
 lemma "-x - y = -(x + (y::real))"
@@ -303,7 +303,7 @@ lemma "x - (x + y) = -(y::real)"
 lemma "x = y ==> x \<le> (y::real)"
   by arith
 
-lemma "(Numeral0::real) < x ==> \<not>(x = Numeral0)"
+lemma "(0::real) < x ==> \<not>(x = 0)"
   by arith
 
 lemma "(x + y) * (x - y) = (x * x) - (y * y)"

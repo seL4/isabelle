@@ -13,13 +13,13 @@ by (simp_tac (simpset() addsimps [real_number_of_def]) 1);
 qed "real_number_of";
 Addsimps [real_number_of];
 
-Goalw [real_number_of_def] "(0::real) = Numeral0";
+Goalw [real_number_of_def] "Numeral0 = (0::real)";
 by (simp_tac (simpset() addsimps [real_of_int_zero RS sym]) 1);
-qed "zero_eq_numeral_0";
+qed "real_numeral_0_eq_0";
 
-Goalw [real_number_of_def] "(1::real) = Numeral1";
+Goalw [real_number_of_def] "Numeral1 = (1::real)";
 by (simp_tac (simpset() addsimps [real_of_int_one RS sym]) 1);
-qed "one_eq_numeral_1";
+qed "real_numeral_1_eq_1";
 
 (** Addition **)
 
@@ -52,21 +52,19 @@ Addsimps [minus_real_number_of, diff_real_number_of];
 
 Goal "(number_of v :: real) * number_of v' = number_of (bin_mult v v')";
 by (simp_tac
-    (HOL_ss addsimps [real_number_of_def, 
-				  real_of_int_mult, number_of_mult]) 1);
+    (HOL_ss addsimps [real_number_of_def, real_of_int_mult, 
+                      number_of_mult]) 1);
 qed "mult_real_number_of";
 
 Addsimps [mult_real_number_of];
 
-Goal "(2::real) = Numeral1 + Numeral1";
-by (Simp_tac 1);
+Goal "(2::real) = 1 + 1";
+by (simp_tac (simpset() addsimps [real_numeral_1_eq_1 RS sym]) 1);
 val lemma = result();
 
 (*For specialist use: NOT as default simprules*)
 Goal "2 * z = (z+z::real)";
-by (simp_tac (simpset ()
-	      addsimps [lemma, real_add_mult_distrib,
-			one_eq_numeral_1 RS sym]) 1);
+by (simp_tac (simpset () addsimps [lemma, real_add_mult_distrib]) 1);
 qed "real_mult_2";
 
 Goal "z * 2 = (z+z::real)";
@@ -111,65 +109,48 @@ Addsimps [le_real_number_of_eq_not_less];
 
 (*** New versions of existing theorems involving 0, 1 ***)
 
-Goal "- Numeral1 = (-1::real)";
-by (Simp_tac 1);
-qed "minus_numeral_one";
+Goal "- 1 = (-1::real)";
+by (simp_tac (simpset() addsimps [real_numeral_1_eq_1 RS sym]) 1);
+qed "real_minus_1_eq_m1";
+
+Goal "-1 * z = -(z::real)";
+by (simp_tac (simpset() addsimps [real_minus_1_eq_m1 RS sym, 
+                                  real_mult_minus_1]) 1);
+qed "real_mult_minus1";
+
+Goal "z * -1 = -(z::real)";
+by (stac real_mult_commute 1 THEN rtac real_mult_minus1 1);
+qed "real_mult_minus1_right";
+
+Addsimps [real_mult_minus1, real_mult_minus1_right];
 
 
 (*Maps 0 to Numeral0 and 1 to Numeral1 and -(Numeral1) to -1*)
 val real_numeral_ss = 
-    HOL_ss addsimps [zero_eq_numeral_0, one_eq_numeral_1, 
-		     minus_numeral_one];
+    HOL_ss addsimps [real_numeral_0_eq_0 RS sym, real_numeral_1_eq_1 RS sym, 
+		     real_minus_1_eq_m1];
 
 fun rename_numerals th = 
     asm_full_simplify real_numeral_ss (Thm.transfer (the_context ()) th);
 
 
-(*Now insert some identities previously stated for 0 and 1*)
-
-(** RealDef & Real **)
-
-Addsimps (map rename_numerals
-	  [real_minus_zero, real_minus_zero_iff,
-	   real_add_zero_left, real_add_zero_right, 
-	   real_diff_0, real_diff_0_right,
-	   real_mult_0_right, real_mult_0, real_mult_1_right, real_mult_1,
-	   real_mult_minus_1_right, real_mult_minus_1, real_inverse_1,
-	   real_minus_zero_less_iff]);
-
-AddIffs 
- (map rename_numerals
-      [real_mult_is_0, real_of_nat_zero_iff, real_le_square]);
-
-bind_thm ("real_0_less_mult_iff", 
-	  rename_numerals real_zero_less_mult_iff);
-bind_thm ("real_0_le_mult_iff", 
-	  rename_numerals real_zero_le_mult_iff);
-bind_thm ("real_mult_less_0_iff", 
-	  rename_numerals real_mult_less_zero_iff);
-bind_thm ("real_mult_le_0_iff", 
-	  rename_numerals real_mult_le_zero_iff);
-
-bind_thm ("real_inverse_less_0", rename_numerals real_inverse_less_zero);
-bind_thm ("real_inverse_gt_0", rename_numerals real_inverse_gt_zero);
-
-Addsimps [zero_eq_numeral_0,one_eq_numeral_1];
-
-
 (** real from type "nat" **)
 
-Goal "(Numeral0 < real (n::nat)) = (0<n)";
+Goal "(0 < real (n::nat)) = (0<n)";
 by (simp_tac (HOL_ss addsimps [real_of_nat_less_iff, 
-                         rename_numerals real_of_nat_zero RS sym]) 1);
+                               real_of_nat_zero RS sym]) 1);
 qed "zero_less_real_of_nat_iff";
 AddIffs [zero_less_real_of_nat_iff];
 
-Goal "(Numeral0 <= real (n::nat)) = (0<=n)";
+Goal "(0 <= real (n::nat)) = (0<=n)";
 by (simp_tac (HOL_ss addsimps [real_of_nat_le_iff, 
-                         rename_numerals real_of_nat_zero RS sym]) 1);
+                               real_of_nat_zero RS sym]) 1);
 qed "zero_le_real_of_nat_iff";
 AddIffs [zero_le_real_of_nat_iff];
 
+
+(*Like the ones above, for "equals"*)
+AddIffs [real_of_nat_zero_iff];
 
 (** Simplification of arithmetic when nested to the right **)
 
@@ -182,12 +163,12 @@ by (simp_tac (simpset() addsimps [real_mult_assoc RS sym]) 1);
 qed "real_mult_number_of_left";
 
 Goalw [real_diff_def]
-    "number_of v + (number_of w - c) = number_of(bin_add v w) - (c::real)";
+     "number_of v + (number_of w - c) = number_of(bin_add v w) - (c::real)";
 by (rtac real_add_number_of_left 1);
 qed "real_add_number_of_diff1";
 
 Goal "number_of v + (c - number_of w) = \
-\    number_of (bin_add v (bin_minus w)) + (c::real)";
+\     number_of (bin_add v (bin_minus w)) + (c::real)";
 by (stac (diff_real_number_of RS sym) 1);
 by Auto_tac;
 qed "real_add_number_of_diff2";
@@ -198,12 +179,12 @@ Addsimps [real_add_number_of_left, real_mult_number_of_left,
 
 (*"neg" is used in rewrite rules for binary comparisons*)
 Goal "real (number_of v :: nat) = \
-\        (if neg (number_of v) then Numeral0 \
-\         else (number_of v :: real))";
+\       (if neg (number_of v) then 0 \
+\        else (number_of v :: real))";
 by (simp_tac
     (HOL_ss addsimps [nat_number_of_def, real_of_nat_real_of_int,
-				  real_of_nat_neg_int, real_number_of,
-				  zero_eq_numeral_0]) 1);
+                      real_of_nat_neg_int, real_number_of,
+                      real_numeral_0_eq_0 RS sym]) 1);
 qed "real_of_nat_number_of";
 Addsimps [real_of_nat_number_of];
 
@@ -212,15 +193,15 @@ Addsimps [real_of_nat_number_of];
 
 (** Combining of literal coefficients in sums of products **)
 
-Goal "(x < y) = (x-y < (Numeral0::real))";
+Goal "(x < y) = (x-y < (0::real))";
 by (simp_tac (simpset() addsimps [real_diff_less_eq]) 1);   
 qed "real_less_iff_diff_less_0";
 
-Goal "(x = y) = (x-y = (Numeral0::real))";
+Goal "(x = y) = (x-y = (0::real))";
 by (simp_tac (simpset() addsimps [real_diff_eq_eq]) 1);   
 qed "real_eq_iff_diff_eq_0";
 
-Goal "(x <= y) = (x-y <= (Numeral0::real))";
+Goal "(x <= y) = (x-y <= (0::real))";
 by (simp_tac (simpset() addsimps [real_diff_le_eq]) 1);   
 qed "real_le_iff_diff_le_0";
 
@@ -272,15 +253,24 @@ by (asm_simp_tac (simpset() addsimps [real_diff_def, real_add_mult_distrib]
 qed "real_le_add_iff2";
 
 
+Addsimps [real_numeral_0_eq_0, real_numeral_1_eq_1];
+
+
 structure Real_Numeral_Simprocs =
 struct
+
+(*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic in simprocs
+  isn't complicated by the abstract 0 and 1.*)
+val numeral_syms = [real_numeral_0_eq_0 RS sym, real_numeral_1_eq_1 RS sym];
 
 (*Utilities*)
 
 fun mk_numeral n = HOLogic.number_of_const HOLogic.realT $ HOLogic.mk_bin n;
 
-(*Decodes a binary real constant*)
-fun dest_numeral (Const("Numeral.number_of", _) $ w) = 
+(*Decodes a binary real constant, or 0, 1*)
+fun dest_numeral (Const("0", _)) = 0
+  | dest_numeral (Const("1", _)) = 1
+  | dest_numeral (Const("Numeral.number_of", _) $ w) = 
      (HOLogic.dest_binum w
       handle TERM _ => raise TERM("Real_Numeral_Simprocs.dest_numeral:1", [w]))
   | dest_numeral t = raise TERM("Real_Numeral_Simprocs.dest_numeral:2", [t]);
@@ -295,7 +285,7 @@ val mk_plus = HOLogic.mk_binop "op +";
 
 val uminus_const = Const ("uminus", HOLogic.realT --> HOLogic.realT);
 
-(*Thus mk_sum[t] yields t+Numeral0; longer sums don't have a trailing zero*)
+(*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
   | mk_sum [t,u]     = mk_plus (t, u)
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
@@ -355,24 +345,21 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 	handle TERM _ => find_first_coeff (t::past) u terms;
 
 
-(*Simplify Numeral1*n and n*Numeral1 to n*)
-val add_0s = map rename_numerals
-                 [real_add_zero_left, real_add_zero_right];
-val mult_plus_1s = map rename_numerals
-                      [real_mult_1, real_mult_1_right];
-val mult_minus_1s = map rename_numerals
-                      [real_mult_minus_1, real_mult_minus_1_right];
-val mult_1s = mult_plus_1s @ mult_minus_1s;
+(*Simplify Numeral0+n, n+Numeral0, Numeral1*n, n*Numeral1*)
+val add_0s  = map rename_numerals [real_add_zero_left, real_add_zero_right];
+val mult_1s = map rename_numerals [real_mult_1, real_mult_1_right] @
+              [real_mult_minus1, real_mult_minus1_right];
 
 (*To perform binary arithmetic*)
 val bin_simps =
-    [add_real_number_of, real_add_number_of_left, minus_real_number_of, 
+    [real_numeral_0_eq_0 RS sym, real_numeral_1_eq_1 RS sym,
+     add_real_number_of, real_add_number_of_left, minus_real_number_of, 
      diff_real_number_of, mult_real_number_of, real_mult_number_of_left] @ 
     bin_arith_simps @ bin_rel_simps;
 
 (*To evaluate binary negations of coefficients*)
 val real_minus_simps = NCons_simps @
-                   [minus_real_number_of, 
+                   [real_minus_1_eq_m1, minus_real_number_of, 
 		    bin_minus_1, bin_minus_0, bin_minus_Pls, bin_minus_Min,
 		    bin_pred_1, bin_pred_0, bin_pred_Pls, bin_pred_Min];
 
@@ -494,16 +481,17 @@ structure CombineNumeralsData =
   val dest_coeff	= dest_coeff 1
   val left_distrib	= left_real_add_mult_distrib RS trans
   val prove_conv	= prove_conv_nohyps "real_combine_numerals"
-  val trans_tac          = trans_tac
+  val trans_tac         = trans_tac
   val norm_tac = 
-     ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
-                                         real_minus_simps@real_add_ac))
+     ALLGOALS (simp_tac (HOL_ss addsimps numeral_syms@add_0s@mult_1s@
+                                   diff_simps@real_minus_simps@real_add_ac))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@real_mult_minus_simps))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps real_minus_from_mult_simps@
                                               real_add_ac@real_mult_ac))
   val numeral_simp_tac	= ALLGOALS 
                     (simp_tac (HOL_ss addsimps add_0s@bin_simps))
-  val simplify_meta_eq  = simplify_meta_eq
+  val simplify_meta_eq  = 
+	Int_Numeral_Simprocs.simplify_meta_eq (add_0s@mult_1s)
   end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
@@ -533,9 +521,48 @@ fun cancel_simplify_meta_eq cancel_th th =
         [real_mult_1, real_mult_1_right] 
         (([th, cancel_th]) MRS trans);
 
+(*** Making constant folding work for 0 and 1 too ***)
+
+structure RealAbstractNumeralsData =
+  struct
+  val dest_eq         = HOLogic.dest_eq o HOLogic.dest_Trueprop o concl_of
+  val is_numeral      = Bin_Simprocs.is_numeral
+  val numeral_0_eq_0  = real_numeral_0_eq_0
+  val numeral_1_eq_1  = real_numeral_1_eq_1
+  val prove_conv      = prove_conv_nohyps "real_abstract_numerals"
+  fun norm_tac simps  = ALLGOALS (simp_tac (HOL_ss addsimps simps))
+  val simplify_meta_eq = Bin_Simprocs.simplify_meta_eq 
+  end
+
+structure RealAbstractNumerals = AbstractNumeralsFun (RealAbstractNumeralsData)
+
+(*For addition, we already have rules for the operand 0.
+  Multiplication is omitted because there are already special rules for 
+  both 0 and 1 as operands.  Unary minus is trivial, just have - 1 = -1.
+  For the others, having three patterns is a compromise between just having
+  one (many spurious calls) and having nine (just too many!) *)
+val eval_numerals = 
+  map prep_simproc
+   [("real_add_eval_numerals",
+     prep_pats ["(m::real) + 1", "(m::real) + number_of v"], 
+     RealAbstractNumerals.proc add_real_number_of),
+    ("real_diff_eval_numerals",
+     prep_pats ["(m::real) - 1", "(m::real) - number_of v"], 
+     RealAbstractNumerals.proc diff_real_number_of),
+    ("real_eq_eval_numerals",
+     prep_pats ["(m::real) = 0", "(m::real) = 1", "(m::real) = number_of v"], 
+     RealAbstractNumerals.proc eq_real_number_of),
+    ("real_less_eval_numerals",
+     prep_pats ["(m::real) < 0", "(m::real) < 1", "(m::real) < number_of v"], 
+     RealAbstractNumerals.proc less_real_number_of),
+    ("real_le_eval_numerals",
+     prep_pats ["(m::real) <= 0", "(m::real) <= 1", "(m::real) <= number_of v"],
+     RealAbstractNumerals.proc le_real_number_of_eq_not_less)]
+
 end;
 
 
+Addsimprocs Real_Numeral_Simprocs.eval_numerals;
 Addsimprocs Real_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Real_Numeral_Simprocs.combine_numerals];
 
@@ -623,3 +650,5 @@ by (assume_tac 1);
 by (etac real_mult_le_mono2 1);
 by (assume_tac 1);
 qed "real_mult_le_mono";
+
+Addsimps [real_minus_1_eq_m1];

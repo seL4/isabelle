@@ -28,16 +28,16 @@ constdefs
 defs
 
   preal_add_def
-        "R + S == Abs_preal({w. ? x: Rep_preal(R). ? y: Rep_preal(S). w = x + y})"
+    "R + S == Abs_preal({w. ? x: Rep_preal(R). ? y: Rep_preal(S). w = x + y})"
 
   preal_mult_def
-        "R * S == Abs_preal({w. ? x: Rep_preal(R). ? y: Rep_preal(S). w = x * y})"
+    "R * S == Abs_preal({w. ? x: Rep_preal(R). ? y: Rep_preal(S). w = x * y})"
 
   preal_less_def
-        "R < (S::preal) == Rep_preal(R) < Rep_preal(S)"
+    "R < (S::preal) == Rep_preal(R) < Rep_preal(S)"
 
   preal_le_def
-        "R <= (S::preal) == Rep_preal(R) <= Rep_preal(S)"
+    "R <= (S::preal) == Rep_preal(R) <= Rep_preal(S)"
  
 end
 

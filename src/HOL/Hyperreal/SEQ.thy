@@ -10,7 +10,7 @@ constdefs
 
   (* Standard definition of convergence of sequence *)           
   LIMSEQ :: [nat=>real,real] => bool    ("((_)/ ----> (_))" [60, 60] 60)
-  "X ----> L == (ALL r. Numeral0 < r --> (EX no. ALL n. no <= n --> abs (X n + -L) < r))"
+  "X ----> L == (ALL r. 0 < r --> (EX no. ALL n. no <= n --> abs (X n + -L) < r))"
   
   (* Nonstandard definition of convergence of sequence *)
   NSLIMSEQ :: [nat=>real,real] => bool    ("((_)/ ----NS> (_))" [60, 60] 60)
@@ -33,7 +33,7 @@ constdefs
 
   (* Standard definition for bounded sequence *)
   Bseq :: (nat => real) => bool
-  "Bseq X == (EX K. (Numeral0 < K & (ALL n. abs(X n) <= K)))"
+  "Bseq X == (EX K. (0 < K & (ALL n. abs(X n) <= K)))"
  
   (* Nonstandard definition for bounded sequence *)
   NSBseq :: (nat=>real) => bool
@@ -52,7 +52,7 @@ constdefs
 
   (* Standard definition *)
   Cauchy :: (nat => real) => bool
-  "Cauchy X == (ALL e. (Numeral0 < e -->
+  "Cauchy X == (ALL e. (0 < e -->
                        (EX M. (ALL m n. M <= m & M <= n 
                              --> abs((X m) + -(X n)) < e))))"
 

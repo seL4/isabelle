@@ -32,56 +32,55 @@ qed "hypreal_hrabs";
    (adapted version of previously proved theorems about abs)
  ------------------------------------------------------------*)
 
-Goal "abs (Numeral0::hypreal) = Numeral0";
+Goal "abs (0::hypreal) = 0";
 by (simp_tac (simpset() addsimps [hrabs_def]) 1); 
 qed "hrabs_zero";
 Addsimps [hrabs_zero];
 
-Goal "(Numeral0::hypreal)<=x ==> abs x = x";
+Goal "abs (1::hypreal) = 1";
+by (simp_tac (simpset() addsimps [hrabs_def]) 1); 
+qed "hrabs_one";
+Addsimps [hrabs_one];
+
+Goal "(0::hypreal)<=x ==> abs x = x";
 by (asm_simp_tac (simpset() addsimps [hrabs_def]) 1); 
 qed "hrabs_eqI1";
 
-Goal "(Numeral0::hypreal)<x ==> abs x = x";
+Goal "(0::hypreal)<x ==> abs x = x";
 by (asm_simp_tac (simpset() addsimps [order_less_imp_le, hrabs_eqI1]) 1);
 qed "hrabs_eqI2";
 
-Goal "x<(Numeral0::hypreal) ==> abs x = -x";
+Goal "x<(0::hypreal) ==> abs x = -x";
 by (asm_simp_tac (simpset() addsimps [hypreal_le_def, hrabs_def]) 1); 
 qed "hrabs_minus_eqI2";
 
-Goal "x<=(Numeral0::hypreal) ==> abs x = -x";
-by (auto_tac (claset() addDs [order_antisym], simpset() addsimps [hrabs_def])); 
-qed "hrabs_minus_eqI1";
+Goal "x<=(0::hypreal) ==> abs x = -x";
+by (auto_tac (claset() addDs [order_antisym], simpset() addsimps [hrabs_def]));qed "hrabs_minus_eqI1";
 
-Goal "(Numeral0::hypreal)<= abs x";
-by (auto_tac (claset() addDs [hypreal_minus_zero_less_iff RS iffD2, 
-                              hypreal_less_asym], 
-              simpset() addsimps [hypreal_le_def, hrabs_def]));
+Goal "(0::hypreal)<= abs x";
+by (simp_tac (simpset() addsimps [hrabs_def]) 1); 
 qed "hrabs_ge_zero";
 
 Goal "abs(abs x) = abs (x::hypreal)";
-by (auto_tac (claset() addDs [hypreal_minus_zero_less_iff RS iffD2, 
-                              hypreal_less_asym], 
-              simpset() addsimps [hypreal_le_def, hrabs_def]));
+by (simp_tac (simpset() addsimps [hrabs_def]) 1); 
 qed "hrabs_idempotent";
 Addsimps [hrabs_idempotent];
 
-Goalw [hrabs_def] "(abs x = (Numeral0::hypreal)) = (x=Numeral0)";
+Goalw [hrabs_def] "(abs x = (0::hypreal)) = (x=0)";
 by (Simp_tac 1);
 qed "hrabs_zero_iff";
 AddIffs [hrabs_zero_iff];
 
 Goalw [hrabs_def] "(x::hypreal) <= abs x";
-by (auto_tac (claset() addDs [not_hypreal_leE, order_less_imp_le],
-              simpset() addsimps [hypreal_le_zero_iff RS sym]));
+by (Simp_tac 1); 
 qed "hrabs_ge_self";
 
 Goalw [hrabs_def] "-(x::hypreal) <= abs x";
-by (simp_tac (simpset() addsimps [hypreal_ge_zero_iff]) 1);
+by (Simp_tac 1);
 qed "hrabs_ge_minus_self";
 
-(* very short proof by "transfer" *)
-Goal "abs(x*(y::hypreal)) = (abs x)*(abs y)";
+(* proof by "transfer" *)
+Goal "abs(x*(y::hypreal)) = (abs x)*(abs y)";  
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset(), 
@@ -90,48 +89,31 @@ qed "hrabs_mult";
 Addsimps [hrabs_mult];
 
 Goal "abs(inverse(x)) = inverse(abs(x::hypreal))";
-by (hypreal_div_undefined_case_tac "x=Numeral0" 1);
-by (simp_tac (simpset() addsimps [HYPREAL_DIVIDE_ZERO]) 1); 
-by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
-by (auto_tac (claset(),
-       simpset() addsimps [hypreal_hrabs,
-                           hypreal_inverse,hypreal_zero_def]));
-by (ultra_tac (claset(), simpset() addsimps [abs_inverse]) 1);
+by (simp_tac (simpset() addsimps [hypreal_minus_inverse, hrabs_def]) 1);  
 qed "hrabs_inverse";
 
-Goal "abs(x+(y::hypreal)) <= abs x + abs y";
-by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
-by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
-by (auto_tac (claset(), 
-      simpset() addsimps [hypreal_hrabs, hypreal_add,hypreal_le,
-                        abs_triangle_ineq]));
+Goalw [hrabs_def] "abs(x+(y::hypreal)) <= abs x + abs y"; 
+by (Simp_tac 1);
 qed "hrabs_triangle_ineq";
 
 Goal "abs((w::hypreal) + x + y) <= abs(w) + abs(x) + abs(y)";
-by (auto_tac (claset() addSIs [hrabs_triangle_ineq RS order_trans,
-                               hypreal_add_left_le_mono1],
-              simpset() addsimps [hypreal_add_assoc]));
+by (simp_tac (simpset() addsimps [hrabs_triangle_ineq RS order_trans]) 1);
 qed "hrabs_triangle_ineq_three";
 
-Goalw [hrabs_def] "abs(-x)=abs((x::hypreal))";
-by (auto_tac (claset() addSDs [not_hypreal_leE, hypreal_less_asym] 
-                       addIs [hypreal_le_anti_sym],
-              simpset() addsimps [hypreal_ge_zero_iff]));
+Goalw [hrabs_def] "abs(-x) = abs((x::hypreal))";
+by (Simp_tac 1);
 qed "hrabs_minus_cancel";
 Addsimps [hrabs_minus_cancel];
 
-val prem1::prem2::rest = goal thy 
-    "[| abs x < r; abs y < s |] ==> abs(x+y) < r + (s::hypreal)";
-by (rtac order_le_less_trans 1);
-by (rtac hrabs_triangle_ineq 1);
-by (rtac ([prem1,prem2] MRS hypreal_add_less_mono) 1);
+Goalw [hrabs_def] "[| abs x < r; abs y < s |] ==> abs(x+y) < r + (s::hypreal)";
+by (asm_full_simp_tac (simpset() addsplits [split_if_asm]) 1); 
 qed "hrabs_add_less";
 
 Goal "[| abs x<r;  abs y<s |] ==> abs x * abs y < r * (s::hypreal)";
-by (subgoal_tac "Numeral0 < r" 1);
+by (subgoal_tac "0 < r" 1);
 by (asm_full_simp_tac (simpset() addsimps [hrabs_def] 
                                  addsplits [split_if_asm]) 2); 
-by (case_tac "y = Numeral0" 1);
+by (case_tac "y = 0" 1);
 by (asm_full_simp_tac (simpset() addsimps [hypreal_0_less_mult_iff]) 1); 
 by (rtac hypreal_mult_less_mono 1); 
 by (auto_tac (claset(), 
@@ -139,40 +121,27 @@ by (auto_tac (claset(),
                         addsplits [split_if_asm])); 
 qed "hrabs_mult_less";
 
-Goal "((Numeral0::hypreal) < abs x) = (x ~= 0)";
+Goal "((0::hypreal) < abs x) = (x ~= 0)";
 by (simp_tac (simpset() addsimps [hrabs_def]) 1);
 by (arith_tac 1);
 qed "hypreal_0_less_abs_iff";
 Addsimps [hypreal_0_less_abs_iff];
 
-Goal "abs x < r ==> (Numeral0::hypreal) < r";
+Goal "abs x < r ==> (0::hypreal) < r";
 by (blast_tac (claset() addSIs [order_le_less_trans, hrabs_ge_zero]) 1);
 qed "hrabs_less_gt_zero";
 
 Goal "abs x = (x::hypreal) | abs x = -x";
-by (cut_inst_tac [("x","Numeral0"),("y","x")] hypreal_linear 1);
-by (fast_tac (claset() addIs [hrabs_eqI2,hrabs_minus_eqI2,
-                            hrabs_zero]) 1);
+by (simp_tac (simpset() addsimps [hrabs_def]) 1); 
 qed "hrabs_disj";
 
 Goal "abs x = (y::hypreal) ==> x = y | -x = y";
-by (dtac sym 1);
-by (hyp_subst_tac 1);
-by (res_inst_tac [("x1","x")] (hrabs_disj RS disjE) 1);
-by (REPEAT(Asm_simp_tac 1));
+by (asm_full_simp_tac (simpset() addsimps [hrabs_def] 
+                                 addsplits [split_if_asm]) 1); 
 qed "hrabs_eq_disj";
 
-Goal "(abs x < (r::hypreal)) = (-r < x & x < r)";
-by (Step_tac 1);
-by (rtac (hypreal_less_swap_iff RS iffD2) 1);
-by (asm_simp_tac (simpset() addsimps [(hrabs_ge_minus_self 
-    RS order_le_less_trans)]) 1);
-by (asm_simp_tac (simpset() addsimps [(hrabs_ge_self 
-    RS order_le_less_trans)]) 1);
-by (EVERY1 [dtac (hypreal_less_swap_iff RS iffD1), rotate_tac 1, 
-            dtac (hypreal_minus_minus RS subst), 
-            cut_inst_tac [("x","x")] hrabs_disj, dtac disjE ]);
-by (assume_tac 3 THEN Auto_tac);
+Goalw [hrabs_def] "(abs x < (r::hypreal)) = (-r < x & x < r)";
+by Auto_tac; 
 qed "hrabs_interval_iff";
 
 Goal "(abs x < (r::hypreal)) = (- x < r & x < r)";
@@ -247,14 +216,19 @@ qed "hypreal_of_nat_Suc";
 
 (*"neg" is used in rewrite rules for binary comparisons*)
 Goal "hypreal_of_nat (number_of v :: nat) = \
-\        (if neg (number_of v) then Numeral0 \
+\        (if neg (number_of v) then 0 \
 \         else (number_of v :: hypreal))";
 by (simp_tac (simpset() addsimps [hypreal_of_nat_def]) 1);
 qed "hypreal_of_nat_number_of";
 Addsimps [hypreal_of_nat_number_of];
 
-Goal "hypreal_of_nat 0 = Numeral0";
+Goal "hypreal_of_nat 0 = 0";
 by (simp_tac (simpset() delsimps [numeral_0_eq_0]
-			addsimps [numeral_0_eq_0 RS sym]) 1);
+                        addsimps [numeral_0_eq_0 RS sym]) 1);
 qed "hypreal_of_nat_zero";
 Addsimps [hypreal_of_nat_zero];
+
+Goal "hypreal_of_nat 1 = 1";
+by (simp_tac (simpset() addsimps [hypreal_of_nat_Suc]) 1); 
+qed "hypreal_of_nat_one";
+Addsimps [hypreal_of_nat_one];

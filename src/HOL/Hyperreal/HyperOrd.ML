@@ -101,16 +101,7 @@ by (stac hypreal_gt_zero_iff 1);
 by (Full_simp_tac 1);
 qed "hypreal_lt_zero_iff";
 
-Goalw [hypreal_le_def] "((0::hypreal) <= x) = (-x <= x)";
-by (auto_tac (claset(), simpset() addsimps [hypreal_lt_zero_iff RS sym]));
-qed "hypreal_ge_zero_iff";
-
-Goalw [hypreal_le_def] "(x <= (0::hypreal)) = (x <= -x)";
-by (auto_tac (claset(), simpset() addsimps [hypreal_gt_zero_iff RS sym]));
-qed "hypreal_le_zero_iff";
-
-Goalw [hypreal_zero_def] 
-      "[| 0 < x; 0 < y |] ==> (0::hypreal) < x + y";
+Goalw [hypreal_zero_def] "[| 0 < x; 0 < y |] ==> (0::hypreal) < x + y";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),
@@ -126,14 +117,12 @@ by (auto_tac (claset() addDs [sym, order_le_imp_less_or_eq]
               simpset()));
 qed "hypreal_add_order_le";            
 
-Goalw [hypreal_zero_def] 
-          "[| 0 < x; 0 < y |] ==> (0::hypreal) < x * y";
+Goalw [hypreal_zero_def] "[| 0 < x; 0 < y |] ==> (0::hypreal) < x * y";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSIs [exI],
               simpset() addsimps [hypreal_less_def,hypreal_mult]));
-by (ultra_tac (claset() addIs [rename_numerals real_mult_order],
-	       simpset()) 1);
+by (ultra_tac (claset() addIs [real_mult_order], simpset()) 1);
 qed "hypreal_mult_order";
 
 Goal "[| x < 0; y < 0 |] ==> (0::hypreal) < x * y";
@@ -150,8 +139,8 @@ by (Asm_full_simp_tac 1);
 qed "hypreal_mult_less_zero";
 
 Goalw [hypreal_one_def,hypreal_zero_def,hypreal_less_def] "0 < (1::hypreal)";
-by (res_inst_tac [("x","%n. Numeral0")] exI 1);
-by (res_inst_tac [("x","%n. Numeral1")] exI 1);
+by (res_inst_tac [("x","%n. 0")] exI 1);
+by (res_inst_tac [("x","%n. 1")] exI 1);
 by (auto_tac (claset(),
         simpset() addsimps [real_zero_less_one, FreeUltrafilterNat_Nat_set]));
 qed "hypreal_zero_less_one";
@@ -332,29 +321,15 @@ by (EVERY1[dtac order_le_imp_less_or_eq, Step_tac]);
 by (dtac hypreal_mult_less_zero1 1 THEN assume_tac 1);
 by (auto_tac (claset() addIs [hypreal_zero_less_one RS hypreal_less_asym],
                  simpset() addsimps [hypreal_minus_zero_less_iff]));
-qed "hypreal_inverse_gt_zero";
+qed "hypreal_inverse_gt_0";
 
 Goal "x < 0 ==> inverse (x::hypreal) < 0";
 by (ftac hypreal_not_refl2 1);
 by (dtac (hypreal_minus_zero_less_iff RS iffD2) 1);
 by (rtac (hypreal_minus_zero_less_iff RS iffD1) 1);
 by (stac (hypreal_minus_inverse RS sym) 1);
-by (auto_tac (claset() addIs [hypreal_inverse_gt_zero],  simpset()));
-qed "hypreal_inverse_less_zero";
-
-Goal "[| 0 <= x; 0 <= y |] ==> (x+y = 0) = (x = 0 & y = (0::hypreal))";
-by (auto_tac (claset() addIs [order_antisym], simpset()));
-qed "hypreal_add_nonneg_eq_0_iff";
-
-Goal "(x*y = 0) = (x = 0 | y = (0::hypreal))";
-by Auto_tac;
-by (blast_tac (claset() addDs [hypreal_mult_zero_disj]) 1);
-qed "hypreal_mult_is_0";
-
-Goal "(x*x + y*y + z*z = 0) = (x = 0 & y = 0 & z = (0::hypreal))";
-by (simp_tac (HOL_ss addsimps [hypreal_le_square, hypreal_le_add_order, 
-                         hypreal_add_nonneg_eq_0_iff, hypreal_mult_is_0]) 1);
-qed "hypreal_three_squares_add_zero_iff";
+by (auto_tac (claset() addIs [hypreal_inverse_gt_0],  simpset()));
+qed "hypreal_inverse_less_0";
 
 Goal "(x::hypreal)*x <= x*x + y*y";
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
@@ -471,17 +446,17 @@ by (auto_tac (claset() addIs [hypreal_inverse_less_swap], simpset()));
 by (res_inst_tac [("t","r")] (hypreal_inverse_inverse RS subst) 1);
 by (res_inst_tac [("t","x")] (hypreal_inverse_inverse RS subst) 1);
 by (rtac hypreal_inverse_less_swap 1);
-by (auto_tac (claset(), simpset() addsimps [hypreal_inverse_gt_zero]));
+by (auto_tac (claset(), simpset() addsimps [hypreal_inverse_gt_0]));
 qed "hypreal_inverse_less_iff";
 
 Goal "[| 0 < z; x < y |] ==> x * inverse z < y * inverse (z::hypreal)";
 by (blast_tac (claset() addSIs [hypreal_mult_less_mono1,
-                                hypreal_inverse_gt_zero]) 1);
+                                hypreal_inverse_gt_0]) 1);
 qed "hypreal_mult_inverse_less_mono1";
 
 Goal "[| 0 < z; x < y |] ==> inverse z * x < inverse (z::hypreal) * y";
 by (blast_tac (claset() addSIs [hypreal_mult_less_mono2,
-                                hypreal_inverse_gt_zero]) 1);
+                                hypreal_inverse_gt_0]) 1);
 qed "hypreal_mult_inverse_less_mono2";
 
 Goal "[| (0::hypreal) < z; x*z < y*z |] ==> x < y";
@@ -526,25 +501,25 @@ by (ALLGOALS (etac rev_mp));
 by (ALLGOALS (dtac hypreal_mult_less_zero THEN' assume_tac));
 by (auto_tac (claset() addDs [order_less_not_sym], 
               simpset() addsimps [hypreal_mult_commute]));  
-qed "hypreal_zero_less_mult_iff";
+qed "hypreal_0_less_mult_iff";
 
 Goal "((0::hypreal) <= x*y) = (0 <= x & 0 <= y | x <= 0 & y <= 0)";
 by (auto_tac (claset() addDs [hypreal_mult_zero_disj],
               simpset() addsimps [order_le_less, linorder_not_less,
-                                  hypreal_zero_less_mult_iff]));
-qed "hypreal_zero_le_mult_iff";
+                                  hypreal_0_less_mult_iff]));
+qed "hypreal_0_le_mult_iff";
 
 Goal "(x*y < (0::hypreal)) = (0 < x & y < 0 | x < 0 & 0 < y)";
 by (auto_tac (claset(), 
-              simpset() addsimps [hypreal_zero_le_mult_iff, 
+              simpset() addsimps [hypreal_0_le_mult_iff, 
                                   linorder_not_le RS sym]));
 by (auto_tac (claset() addDs [order_less_not_sym],  
               simpset() addsimps [linorder_not_le]));
-qed "hypreal_mult_less_zero_iff";
+qed "hypreal_mult_less_0_iff";
 
 Goal "(x*y <= (0::hypreal)) = (0 <= x & y <= 0 | x <= 0 & 0 <= y)";
 by (auto_tac (claset() addDs [order_less_not_sym], 
-              simpset() addsimps [hypreal_zero_less_mult_iff, 
+              simpset() addsimps [hypreal_0_less_mult_iff, 
                                   linorder_not_less RS sym]));
-qed "hypreal_mult_le_zero_iff";
+qed "hypreal_mult_le_0_iff";
 

@@ -9,22 +9,22 @@ Instantiation of the generic linear arithmetic package for type real.
 local
 
 (* reduce contradictory <= to False *)
-val simps = [order_less_irrefl, zero_eq_numeral_0, one_eq_numeral_1,
-             add_real_number_of, minus_real_number_of, diff_real_number_of,
-             mult_real_number_of, eq_real_number_of, less_real_number_of,
-             le_real_number_of_eq_not_less, real_diff_def,
-             real_minus_add_distrib, real_minus_minus, real_mult_assoc];
-
-val add_rules =
-    map rename_numerals
-        [real_add_zero_left, real_add_zero_right,
-         real_add_minus, real_add_minus_left,
-         real_mult_0, real_mult_0_right,
-         real_mult_1, real_mult_1_right,
-         real_mult_minus_1, real_mult_minus_1_right];
+val add_rules = 
+    [order_less_irrefl, real_numeral_0_eq_0, real_numeral_1_eq_1,
+     add_real_number_of, minus_real_number_of, diff_real_number_of,
+     mult_real_number_of, eq_real_number_of, less_real_number_of,
+     le_real_number_of_eq_not_less, real_diff_def,
+     real_minus_add_distrib, real_minus_minus, real_mult_assoc,
+     real_minus_zero,
+     real_add_zero_left, real_add_zero_right,
+     real_add_minus, real_add_minus_left,
+     real_mult_0, real_mult_0_right,
+     real_mult_1, real_mult_1_right,
+     real_mult_minus_1, real_mult_minus_1_right];
 
 val simprocs = [Real_Times_Assoc.conv, Real_Numeral_Simprocs.combine_numerals]@
-               Real_Numeral_Simprocs.cancel_numerals;
+               Real_Numeral_Simprocs.cancel_numerals @
+               Real_Numeral_Simprocs.eval_numerals;
 
 val mono_ss = simpset() addsimps
                 [real_add_le_mono,real_add_less_mono,
@@ -66,14 +66,14 @@ val real_arith_setup =
     mult_mono_thms = mult_mono_thms @ real_mult_mono_thms,
     inj_thms = inj_thms, (*FIXME: add real*)
     lessD = lessD,  (*We don't change LA_Data_Ref.lessD because the real ordering is dense!*)
-    simpset = simpset addsimps (add_rules @ simps)
+    simpset = simpset addsimps add_rules
                       addsimprocs simprocs}),
   arith_discrete ("RealDef.real",false),
   Simplifier.change_simpset_of (op addsimprocs) [fast_real_arith_simproc]];
 
 (* some thms for injection nat => real:
 real_of_nat_zero
-zero_eq_numeral_0
+?zero_eq_numeral_0
 real_of_nat_add
 *)
 

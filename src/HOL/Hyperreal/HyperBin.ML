@@ -13,13 +13,13 @@ by (simp_tac (simpset() addsimps [hypreal_number_of_def]) 1);
 qed "hypreal_number_of";
 Addsimps [hypreal_number_of];
 
-Goalw [hypreal_number_of_def] "(0::hypreal) = Numeral0";
-by (simp_tac (simpset() addsimps [hypreal_of_real_zero RS sym]) 1);
-qed "zero_eq_numeral_0";
+Goalw [hypreal_number_of_def] "Numeral0 = (0::hypreal)"; 
+by (Simp_tac 1);
+qed "hypreal_numeral_0_eq_0";
 
-Goalw [hypreal_number_of_def] "(1::hypreal) = Numeral1";
-by (simp_tac (simpset() addsimps [hypreal_of_real_one RS sym]) 1);
-qed "one_eq_numeral_1";
+Goalw [hypreal_number_of_def] "Numeral1 = (1::hypreal)";
+by (Simp_tac 1);
+qed "hypreal_numeral_1_eq_1";
 
 (** Addition **)
 
@@ -57,15 +57,15 @@ by (simp_tac
 qed "mult_hypreal_number_of";
 Addsimps [mult_hypreal_number_of];
 
-Goal "(2::hypreal) = Numeral1 + Numeral1";
-by (Simp_tac 1);
+Goal "(2::hypreal) = 1 + 1";
+by (simp_tac (simpset() addsimps [hypreal_numeral_1_eq_1 RS sym]) 1);
 val lemma = result();
 
 (*For specialist use: NOT as default simprules*)
 Goal "2 * z = (z+z::hypreal)";
 by (simp_tac (simpset ()
 	      addsimps [lemma, hypreal_add_mult_distrib,
-			one_eq_numeral_1 RS sym]) 1);
+			hypreal_numeral_1_eq_1]) 1);
 qed "hypreal_mult_2";
 
 Goal "z * 2 = (z+z::hypreal)";
@@ -107,44 +107,18 @@ Addsimps [le_hypreal_number_of_eq_not_less];
 
 (*** New versions of existing theorems involving 0, 1 ***)
 
-Goal "- Numeral1 = (-1::hypreal)";
-by (Simp_tac 1);
-qed "minus_numeral_one";
+Goal "- 1 = (-1::hypreal)";
+by (simp_tac (simpset() addsimps [hypreal_numeral_1_eq_1 RS sym]) 1);
+qed "hypreal_minus_1_eq_m1";
 
-(*Maps 0 to Numeral0 and (1::hypreal) to Numeral1 and -(Numeral1) to -1*)
+(*Maps 0 to Numeral0 and 1 to Numeral1 and -(Numeral1) to -1*)
 val hypreal_numeral_ss = 
-    real_numeral_ss addsimps [zero_eq_numeral_0, one_eq_numeral_1, 
-		              minus_numeral_one];
+    real_numeral_ss addsimps [hypreal_numeral_0_eq_0 RS sym, 
+                              hypreal_numeral_1_eq_1 RS sym, 
+		              hypreal_minus_1_eq_m1];
 
 fun rename_numerals th = 
     asm_full_simplify hypreal_numeral_ss (Thm.transfer (the_context ()) th);
-
-
-(*Now insert some identities previously stated for 0 and 1*)
-
-(** HyperDef **)
-
-Addsimps (map rename_numerals
-	  [hypreal_minus_zero, hypreal_minus_zero_iff,
-	   hypreal_add_zero_left, hypreal_add_zero_right, 
-	   hypreal_diff_zero, hypreal_diff_zero_right,
-	   hypreal_mult_0_right, hypreal_mult_0, 
-           hypreal_mult_1_right, hypreal_mult_1,
-	   hypreal_inverse_1, hypreal_minus_zero_less_iff]);
-
-bind_thm ("hypreal_0_less_mult_iff", 
-	  rename_numerals hypreal_zero_less_mult_iff);
-bind_thm ("hypreal_0_le_mult_iff", 
-	  rename_numerals hypreal_zero_le_mult_iff);
-bind_thm ("hypreal_mult_less_0_iff", 
-	  rename_numerals hypreal_mult_less_zero_iff);
-bind_thm ("hypreal_mult_le_0_iff", 
-	  rename_numerals hypreal_mult_le_zero_iff);
-
-bind_thm ("hypreal_inverse_less_0", rename_numerals hypreal_inverse_less_zero);
-bind_thm ("hypreal_inverse_gt_0", rename_numerals hypreal_inverse_gt_zero);
-
-Addsimps [zero_eq_numeral_0,one_eq_numeral_1];
 
 
 (** Simplification of arithmetic when nested to the right **)
@@ -176,15 +150,15 @@ Addsimps [hypreal_add_number_of_left, hypreal_mult_number_of_left,
 
 (** Combining of literal coefficients in sums of products **)
 
-Goal "(x < y) = (x-y < (Numeral0::hypreal))";
+Goal "(x < y) = (x-y < (0::hypreal))";
 by (simp_tac (simpset() addsimps [hypreal_diff_less_eq]) 1);   
 qed "hypreal_less_iff_diff_less_0";
 
-Goal "(x = y) = (x-y = (Numeral0::hypreal))";
+Goal "(x = y) = (x-y = (0::hypreal))";
 by (simp_tac (simpset() addsimps [hypreal_diff_eq_eq]) 1);   
 qed "hypreal_eq_iff_diff_eq_0";
 
-Goal "(x <= y) = (x-y <= (Numeral0::hypreal))";
+Goal "(x <= y) = (x-y <= (0::hypreal))";
 by (simp_tac (simpset() addsimps [hypreal_diff_le_eq]) 1);   
 qed "hypreal_le_iff_diff_le_0";
 
@@ -209,7 +183,7 @@ val rel_iff_rel_0_rls =
 Goal "!!i::hypreal. (i*u + m = j*u + n) = ((i-j)*u + m = n)";
 by (asm_simp_tac
     (simpset() addsimps [hypreal_diff_def, hypreal_add_mult_distrib]@
-	                 hypreal_add_ac@rel_iff_rel_0_rls) 1);
+                         hypreal_add_ac@rel_iff_rel_0_rls) 1);
 qed "hypreal_eq_add_iff1";
 
 Goal "!!i::hypreal. (i*u + m = j*u + n) = (m = (j-i)*u + n)";
@@ -242,25 +216,30 @@ by (asm_simp_tac
                         hypreal_add_ac@rel_iff_rel_0_rls) 1);
 qed "hypreal_le_add_iff2";
 
-Goal "(z::hypreal) * -1 = -z";
-by (stac (minus_numeral_one RS sym) 1);
-by (stac (hypreal_minus_mult_eq2 RS sym) 1); 
-by Auto_tac;  
-qed "hypreal_mult_minus_1_right";
-Addsimps [hypreal_mult_minus_1_right];
-
 Goal "-1 * (z::hypreal) = -z";
-by (simp_tac (simpset() addsimps [hypreal_mult_commute]) 1); 
-qed "hypreal_mult_minus_1";
-Addsimps [hypreal_mult_minus_1];
+by (simp_tac (simpset() addsimps [hypreal_minus_1_eq_m1 RS sym, 
+                                  hypreal_mult_minus_1]) 1);
+qed "hypreal_mult_minus1";
+Addsimps [hypreal_mult_minus1];
 
+Goal "(z::hypreal) * -1 = -z";
+by (stac hypreal_mult_commute 1 THEN rtac hypreal_mult_minus1 1);
+qed "hypreal_mult_minus1_right";
+Addsimps [hypreal_mult_minus1_right];
+
+
+Addsimps [hypreal_numeral_0_eq_0, hypreal_numeral_1_eq_1];
 
 
 structure Hyperreal_Numeral_Simprocs =
 struct
 
-(*Utilities*)
+(*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic in simprocs
+  isn't complicated by the abstract 0 and 1.*)
+val numeral_syms = [hypreal_numeral_0_eq_0 RS sym, 
+                    hypreal_numeral_1_eq_1 RS sym];
 
+(*Utilities*)
 
 val hyprealT = Type("HyperDef.hypreal",[]);
 
@@ -271,11 +250,11 @@ val dest_numeral = Real_Numeral_Simprocs.dest_numeral;
 val find_first_numeral = Real_Numeral_Simprocs.find_first_numeral;
 
 val zero = mk_numeral 0;
-val mk_plus = HOLogic.mk_binop "op +";
+val mk_plus = Real_Numeral_Simprocs.mk_plus;
 
 val uminus_const = Const ("uminus", hyprealT --> hyprealT);
 
-(*Thus mk_sum[t] yields t+Numeral0; longer sums don't have a trailing zero*)
+(*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
   | mk_sum [t,u]     = mk_plus (t, u)
   | mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
@@ -335,24 +314,23 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 	handle TERM _ => find_first_coeff (t::past) u terms;
 
 
-(*Simplify Numeral1*n and n*Numeral1 to n*)
+(*Simplify Numeral0+n, n+Numeral0, Numeral1*n, n*Numeral1*)
 val add_0s = map rename_numerals
                  [hypreal_add_zero_left, hypreal_add_zero_right];
-val mult_plus_1s = map rename_numerals
-                      [hypreal_mult_1, hypreal_mult_1_right];
-val mult_minus_1s = map rename_numerals
-                      [hypreal_mult_minus_1, hypreal_mult_minus_1_right];
-val mult_1s = mult_plus_1s @ mult_minus_1s;
+val mult_1s = map rename_numerals [hypreal_mult_1, hypreal_mult_1_right] @
+              [hypreal_mult_minus1, hypreal_mult_minus1_right];
 
 (*To perform binary arithmetic*)
 val bin_simps =
-    [add_hypreal_number_of, hypreal_add_number_of_left, 
-     minus_hypreal_number_of, diff_hypreal_number_of, mult_hypreal_number_of, 
+    [hypreal_numeral_0_eq_0 RS sym, hypreal_numeral_1_eq_1 RS sym,
+     add_hypreal_number_of, hypreal_add_number_of_left, 
+     minus_hypreal_number_of, 
+     diff_hypreal_number_of, mult_hypreal_number_of, 
      hypreal_mult_number_of_left] @ bin_arith_simps @ bin_rel_simps;
 
 (*To evaluate binary negations of coefficients*)
 val hypreal_minus_simps = NCons_simps @
-                   [minus_hypreal_number_of, 
+                   [hypreal_minus_1_eq_m1, minus_hypreal_number_of, 
 		    bin_minus_1, bin_minus_0, bin_minus_Pls, bin_minus_Min,
 		    bin_pred_1, bin_pred_0, bin_pred_Pls, bin_pred_Min];
 
@@ -374,24 +352,6 @@ val hypreal_minus_from_mult_simps =
 val hypreal_mult_minus_simps =
     [hypreal_mult_assoc, hypreal_minus_mult_eq1, hypreal_minus_mult_eq_1_to_2];
 
-(*Apply the given rewrite (if present) just once*)
-fun trans_tac None      = all_tac
-  | trans_tac (Some th) = ALLGOALS (rtac (th RS trans));
-
-fun prove_conv name tacs sg (hyps: thm list) (t,u) =
-  if t aconv u then None
-  else
-  let val ct = cterm_of sg (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u)))
-  in Some
-     (prove_goalw_cterm [] ct (K tacs)
-      handle ERROR => error 
-	  ("The error(s) above occurred while trying to prove " ^
-	   string_of_cterm ct ^ "\nInternal failure of simproc " ^ name))
-  end;
-
-(*version without the hyps argument*)
-fun prove_conv_nohyps name tacs sg = prove_conv name tacs sg [];
-
 (*Final simplification: cancel + and *  *)
 val simplify_meta_eq = 
     Int_Numeral_Simprocs.simplify_meta_eq
@@ -409,7 +369,7 @@ structure CancelNumeralsCommon =
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
   val find_first_coeff	= find_first_coeff []
-  val trans_tac         = trans_tac
+  val trans_tac         = Real_Numeral_Simprocs.trans_tac
   val norm_tac = 
      ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
                                          hypreal_minus_simps@hypreal_add_ac))
@@ -424,7 +384,7 @@ structure CancelNumeralsCommon =
 
 structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = prove_conv "hyprealeq_cancel_numerals"
+  val prove_conv = Real_Numeral_Simprocs.prove_conv "hyprealeq_cancel_numerals"
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" hyprealT
   val bal_add1 = hypreal_eq_add_iff1 RS trans
@@ -433,7 +393,7 @@ structure EqCancelNumerals = CancelNumeralsFun
 
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = prove_conv "hyprealless_cancel_numerals"
+  val prove_conv = Real_Numeral_Simprocs.prove_conv "hyprealless_cancel_numerals"
   val mk_bal   = HOLogic.mk_binrel "op <"
   val dest_bal = HOLogic.dest_bin "op <" hyprealT
   val bal_add1 = hypreal_less_add_iff1 RS trans
@@ -442,7 +402,7 @@ structure LessCancelNumerals = CancelNumeralsFun
 
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = prove_conv "hyprealle_cancel_numerals"
+  val prove_conv = Real_Numeral_Simprocs.prove_conv "hyprealle_cancel_numerals"
   val mk_bal   = HOLogic.mk_binrel "op <="
   val dest_bal = HOLogic.dest_bin "op <=" hyprealT
   val bal_add1 = hypreal_le_add_iff1 RS trans
@@ -476,8 +436,9 @@ structure CombineNumeralsData =
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
   val left_distrib	= left_hypreal_add_mult_distrib RS trans
-  val prove_conv	= prove_conv_nohyps "hypreal_combine_numerals"
-  val trans_tac          = trans_tac
+  val prove_conv        = Real_Numeral_Simprocs.prove_conv_nohyps
+                                                "hypreal_combine_numerals"
+  val trans_tac         = Real_Numeral_Simprocs.trans_tac
   val norm_tac = 
      ALLGOALS (simp_tac (HOL_ss addsimps add_0s@mult_1s@diff_simps@
                                          hypreal_minus_simps@hypreal_add_ac))
@@ -516,8 +477,52 @@ fun cancel_simplify_meta_eq cancel_th th =
         [hypreal_mult_1, hypreal_mult_1_right] 
         (([th, cancel_th]) MRS trans);
 
+(*** Making constant folding work for 0 and 1 too ***)
+
+structure HyperrealAbstractNumeralsData =
+  struct
+  val dest_eq         = HOLogic.dest_eq o HOLogic.dest_Trueprop o concl_of
+  val is_numeral      = Bin_Simprocs.is_numeral
+  val numeral_0_eq_0  = hypreal_numeral_0_eq_0
+  val numeral_1_eq_1  = hypreal_numeral_1_eq_1
+  val prove_conv      = Real_Numeral_Simprocs.prove_conv_nohyps
+                          "hypreal_abstract_numerals"
+  fun norm_tac simps  = ALLGOALS (simp_tac (HOL_ss addsimps simps))
+  val simplify_meta_eq = Bin_Simprocs.simplify_meta_eq 
+  end
+
+structure HyperrealAbstractNumerals = 
+  AbstractNumeralsFun (HyperrealAbstractNumeralsData)
+
+(*For addition, we already have rules for the operand 0.
+  Multiplication is omitted because there are already special rules for 
+  both 0 and 1 as operands.  Unary minus is trivial, just have - 1 = -1.
+  For the others, having three patterns is a compromise between just having
+  one (many spurious calls) and having nine (just too many!) *)
+val eval_numerals = 
+  map prep_simproc
+   [("hypreal_add_eval_numerals",
+     prep_pats ["(m::hypreal) + 1", "(m::hypreal) + number_of v"], 
+     HyperrealAbstractNumerals.proc add_hypreal_number_of),
+    ("hypreal_diff_eval_numerals",
+     prep_pats ["(m::hypreal) - 1", "(m::hypreal) - number_of v"], 
+     HyperrealAbstractNumerals.proc diff_hypreal_number_of),
+    ("hypreal_eq_eval_numerals",
+     prep_pats ["(m::hypreal) = 0", "(m::hypreal) = 1",
+                "(m::hypreal) = number_of v"], 
+     HyperrealAbstractNumerals.proc eq_hypreal_number_of),
+    ("hypreal_less_eval_numerals",
+     prep_pats ["(m::hypreal) < 0", "(m::hypreal) < 1", 
+                "(m::hypreal) < number_of v"], 
+     HyperrealAbstractNumerals.proc less_hypreal_number_of),
+    ("hypreal_le_eval_numerals",
+     prep_pats ["(m::hypreal) <= 0", "(m::hypreal) <= 1", 
+                "(m::hypreal) <= number_of v"],
+     HyperrealAbstractNumerals.proc le_hypreal_number_of_eq_not_less)]
+
 end;
 
+Addsimprocs Hyperreal_Numeral_Simprocs.eval_numerals;
 Addsimprocs Hyperreal_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Hyperreal_Numeral_Simprocs.combine_numerals];
 
@@ -581,8 +586,6 @@ structure Hyperreal_Times_Assoc = Assoc_Fold (Hyperreal_Times_Assoc_Data);
 
 Addsimprocs [Hyperreal_Times_Assoc.conv];
 
-Addsimps [rename_numerals hypreal_of_real_zero_iff];
-
 (*Simplification of  x-y < 0, etc.*)
 AddIffs [hypreal_less_iff_diff_less_0 RS sym];
 AddIffs [hypreal_eq_iff_diff_eq_0 RS sym];
@@ -603,6 +606,12 @@ by (Simp_tac 1);
 qed "number_of_le_hypreal_of_real_iff";
 Addsimps [number_of_le_hypreal_of_real_iff];
 
+Goal "(hypreal_of_real z = number_of w) = (z = number_of w)";
+by (stac (hypreal_of_real_eq_iff RS sym) 1); 
+by (Simp_tac 1); 
+qed "hypreal_of_real_eq_number_of_iff";
+Addsimps [hypreal_of_real_eq_number_of_iff];
+
 Goal "(hypreal_of_real z < number_of w) = (z < number_of w)";
 by (stac (hypreal_of_real_less_iff RS sym) 1); 
 by (Simp_tac 1); 
@@ -614,6 +623,20 @@ by (stac (hypreal_of_real_le_iff RS sym) 1);
 by (Simp_tac 1); 
 qed "hypreal_of_real_le_number_of_iff";
 Addsimps [hypreal_of_real_le_number_of_iff];
+
+(*As above, for the special case of zero*)
+Addsimps
+  (map (simplify (simpset()) o inst "w" "Pls")
+   [hypreal_of_real_eq_number_of_iff,
+    hypreal_of_real_le_number_of_iff, hypreal_of_real_less_number_of_iff,
+    number_of_le_hypreal_of_real_iff, number_of_less_hypreal_of_real_iff]);
+
+(*As above, for the special case of one*)
+Addsimps
+  (map (simplify (simpset()) o inst "w" "Pls BIT True")
+   [hypreal_of_real_eq_number_of_iff,
+    hypreal_of_real_le_number_of_iff, hypreal_of_real_less_number_of_iff,
+    number_of_le_hypreal_of_real_iff, number_of_less_hypreal_of_real_iff]);
 
 (** <= monotonicity results: needed for arithmetic **)
 
@@ -634,3 +657,4 @@ by (etac hypreal_mult_le_mono2 1);
 by (assume_tac 1);
 qed "hypreal_mult_le_mono";
 
+Addsimps [hypreal_minus_1_eq_m1];

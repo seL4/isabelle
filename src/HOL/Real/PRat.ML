@@ -524,7 +524,7 @@ by (full_simp_tac (simpset() addsimps [qinv_1]) 1);
 qed "prat_qinv_gt_1";
 
 Goalw [pnat_one_def] 
-     "q1 < prat_of_pnat 1p ==> prat_of_pnat 1p < qinv(q1)";
+     "q1 < prat_of_pnat 1 ==> prat_of_pnat 1 < qinv(q1)";
 by (etac prat_qinv_gt_1 1);
 qed "prat_qinv_is_gt_1";
 
@@ -562,7 +562,7 @@ by (rtac (prat_add_commute RS subst) 1);
 by (simp_tac (simpset() addsimps [prat_self_less_add_right]) 1);
 qed "prat_self_less_add_left";
 
-Goalw [prat_less_def] "prat_of_pnat 1p < y ==> (x::prat) < x * y";
+Goalw [prat_less_def] "prat_of_pnat 1 < y ==> (x::prat) < x * y";
 by (auto_tac (claset(),simpset() addsimps [pnat_one_def,
     prat_add_mult_distrib2]));
 qed "prat_self_less_mult_right";

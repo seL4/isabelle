@@ -176,8 +176,7 @@ by Auto_tac;
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by (auto_tac (claset() addSDs [spec],
-              simpset() addsimps [hypreal_minus,hrabs_def,
-                rename_numerals hypreal_zero_def,
+              simpset() addsimps [hypreal_minus,hrabs_def, hypreal_zero_def,
                 hypreal_le_def, hypreal_less_def]));
 by (TRYALL(Ultra_tac));
 by (TRYALL(arith_tac));

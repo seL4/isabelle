@@ -4,6 +4,11 @@
 *)
 
 
+Goal "x - - y = x + (y::int)";
+by (Simp_tac 1); 
+qed "int_diff_minus_eq";
+Addsimps [int_diff_minus_eq];
+
 Goal "abs(abs(x::int)) = abs(x)";
 by(arith_tac 1);
 qed "abs_abs";

@@ -6,19 +6,19 @@
 Exponentials on the hyperreals
 *)
 
-Goal "(Numeral0::hypreal) ^ (Suc n) = 0";
-by (Auto_tac);
+Goal "(0::hypreal) ^ (Suc n) = 0";
+by Auto_tac;
 qed "hrealpow_zero";
 Addsimps [hrealpow_zero];
 
-Goal "r ~= (Numeral0::hypreal) --> r ^ n ~= 0";
+Goal "r ~= (0::hypreal) --> r ^ n ~= 0";
 by (induct_tac "n" 1);
 by Auto_tac;
 qed_spec_mp "hrealpow_not_zero";
 
-Goal "r ~= (Numeral0::hypreal) --> inverse(r ^ n) = (inverse r) ^ n";
+Goal "r ~= (0::hypreal) --> inverse(r ^ n) = (inverse r) ^ n";
 by (induct_tac "n" 1);
-by (Auto_tac);
+by Auto_tac;
 by (forw_inst_tac [("n","n")] hrealpow_not_zero 1);
 by (auto_tac (claset(), simpset() addsimps [hypreal_inverse_distrib]));
 qed_spec_mp "hrealpow_inverse";
@@ -42,40 +42,40 @@ Goal "(r::hypreal) ^ Suc (Suc 0) = r * r";
 by (Simp_tac 1);
 qed "hrealpow_two";
 
-Goal "(Numeral0::hypreal) <= r --> Numeral0 <= r ^ n";
+Goal "(0::hypreal) <= r --> 0 <= r ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps [hypreal_0_le_mult_iff]));
 qed_spec_mp "hrealpow_ge_zero";
 
-Goal "(Numeral0::hypreal) < r --> Numeral0 < r ^ n";
+Goal "(0::hypreal) < r --> 0 < r ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps [hypreal_0_less_mult_iff]));
 qed_spec_mp "hrealpow_gt_zero";
 
-Goal "x <= y & (Numeral0::hypreal) < x --> x ^ n <= y ^ n";
+Goal "x <= y & (0::hypreal) < x --> x ^ n <= y ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addSIs [hypreal_mult_le_mono], simpset()));
 by (asm_simp_tac (simpset() addsimps [hrealpow_ge_zero]) 1);
 qed_spec_mp "hrealpow_le";
 
-Goal "x < y & (Numeral0::hypreal) < x & 0 < n --> x ^ n < y ^ n";
+Goal "x < y & (0::hypreal) < x & 0 < n --> x ^ n < y ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [hypreal_mult_less_mono,gr0I],
               simpset() addsimps [hrealpow_gt_zero]));
 qed "hrealpow_less";
 
-Goal "Numeral1 ^ n = (Numeral1::hypreal)";
+Goal "1 ^ n = (1::hypreal)";
 by (induct_tac "n" 1);
-by (Auto_tac);
+by Auto_tac;
 qed "hrealpow_eq_one";
 Addsimps [hrealpow_eq_one];
 
-Goal "abs(-(Numeral1 ^ n)) = (Numeral1::hypreal)";
+Goal "abs(-(1 ^ n)) = (1::hypreal)";
 by Auto_tac;  
 qed "hrabs_minus_hrealpow_one";
 Addsimps [hrabs_minus_hrealpow_one];
 
-Goal "abs(-1 ^ n) = (Numeral1::hypreal)";
+Goal "abs(-1 ^ n) = (1::hypreal)";
 by (induct_tac "n" 1);
 by Auto_tac;  
 qed "hrabs_hrealpow_minus_one";
@@ -86,32 +86,43 @@ by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps hypreal_mult_ac));
 qed "hrealpow_mult";
 
-Goal "(Numeral0::hypreal) <= r ^Suc (Suc 0)";
+Goal "(0::hypreal) <= r ^ Suc (Suc 0)";
 by (auto_tac (claset(), simpset() addsimps [hypreal_0_le_mult_iff]));
 qed "hrealpow_two_le";
 Addsimps [hrealpow_two_le];
 
-Goal "(Numeral0::hypreal) <= u ^ Suc (Suc 0) + v ^ Suc (Suc 0)";
-by (simp_tac (HOL_ss addsimps [hrealpow_two_le, 
-                    rename_numerals hypreal_le_add_order]) 1); 
+Goal "(0::hypreal) <= u ^ Suc (Suc 0) + v ^ Suc (Suc 0)";
+by (simp_tac (HOL_ss addsimps [hrealpow_two_le, hypreal_le_add_order]) 1); 
 qed "hrealpow_two_le_add_order";
 Addsimps [hrealpow_two_le_add_order];
 
-Goal "(Numeral0::hypreal) <= u ^ Suc (Suc 0) + v ^ Suc (Suc 0) + w ^ Suc (Suc 0)";
-by (simp_tac (HOL_ss addsimps [hrealpow_two_le, 
-                    rename_numerals hypreal_le_add_order]) 1); 
+Goal "(0::hypreal) <= u ^ Suc (Suc 0) + v ^ Suc (Suc 0) + w ^ Suc (Suc 0)";
+by (simp_tac (HOL_ss addsimps [hrealpow_two_le, hypreal_le_add_order]) 1); 
 qed "hrealpow_two_le_add_order2";
 Addsimps [hrealpow_two_le_add_order2];
 
-Goal "(x ^ Suc (Suc 0) + y ^ Suc (Suc 0) + z ^ Suc (Suc 0) = (Numeral0::hypreal)) = (x = Numeral0 & y = Numeral0 & z = Numeral0)";
+Goal "[| 0 <= x; 0 <= y |] ==> (x+y = 0) = (x = 0 & y = (0::hypreal))";
+by (auto_tac (claset() addIs [order_antisym], simpset()));
+qed "hypreal_add_nonneg_eq_0_iff";
+
+Goal "(x*y = 0) = (x = 0 | y = (0::hypreal))";
+by Auto_tac;
+qed "hypreal_mult_is_0";
+
+Goal "(x*x + y*y + z*z = 0) = (x = 0 & y = 0 & z = (0::hypreal))";
+by (simp_tac (HOL_ss addsimps [hypreal_le_square, hypreal_le_add_order, 
+                         hypreal_add_nonneg_eq_0_iff, hypreal_mult_is_0]) 1);
+qed "hypreal_three_squares_add_zero_iff";
+
+Goal "(x ^ Suc (Suc 0) + y ^ Suc (Suc 0) + z ^ Suc (Suc 0) = (0::hypreal)) = (x = 0 & y = 0 & z = 0)";
 by (simp_tac (HOL_ss addsimps
-      [rename_numerals hypreal_three_squares_add_zero_iff, hrealpow_two]) 1);
+               [hypreal_three_squares_add_zero_iff, hrealpow_two]) 1);
 qed "hrealpow_three_squares_add_zero_iff";
 Addsimps [hrealpow_three_squares_add_zero_iff];
 
 Goal "abs(x ^ Suc (Suc 0)) = (x::hypreal) ^ Suc (Suc 0)";
 by (auto_tac (claset(), 
-     simpset() addsimps [hrabs_def, hypreal_0_le_mult_iff])); 
+              simpset() addsimps [hrabs_def, hypreal_0_le_mult_iff])); 
 qed "hrabs_hrealpow_two";
 Addsimps [hrabs_hrealpow_two];
 
@@ -121,21 +132,21 @@ by (simp_tac (simpset() addsimps [hrealpow_hrabs, hrabs_eqI1]
 qed "hrealpow_two_hrabs";
 Addsimps [hrealpow_two_hrabs];
 
-Goal "(Numeral1::hypreal) < r ==> Numeral1 < r ^ Suc (Suc 0)";
+Goal "(1::hypreal) < r ==> 1 < r ^ Suc (Suc 0)";
 by (auto_tac (claset(), simpset() addsimps [hrealpow_two]));
-by (res_inst_tac [("y","Numeral1*Numeral1")] order_le_less_trans 1); 
+by (res_inst_tac [("y","1*1")] order_le_less_trans 1); 
 by (rtac hypreal_mult_less_mono 2); 
 by Auto_tac;  
 qed "hrealpow_two_gt_one";
 
-Goal "(Numeral1::hypreal) <= r ==> Numeral1 <= r ^ Suc (Suc 0)";
+Goal "(1::hypreal) <= r ==> 1 <= r ^ Suc (Suc 0)";
 by (etac (order_le_imp_less_or_eq RS disjE) 1);
 by (etac (hrealpow_two_gt_one RS order_less_imp_le) 1);
 by Auto_tac;  
 qed "hrealpow_two_ge_one";
 
-Goal "(Numeral1::hypreal) <= 2 ^ n";
-by (res_inst_tac [("y","Numeral1 ^ n")] order_trans 1);
+Goal "(1::hypreal) <= 2 ^ n";
+by (res_inst_tac [("y","1 ^ n")] order_trans 1);
 by (rtac hrealpow_le 2);
 by Auto_tac;
 qed "two_hrealpow_ge_one";
@@ -149,9 +160,9 @@ by (arith_tac 1);
 qed "two_hrealpow_gt";
 Addsimps [two_hrealpow_gt,two_hrealpow_ge_one];
 
-Goal "-1 ^ (2*n) = (Numeral1::hypreal)";
+Goal "-1 ^ (2*n) = (1::hypreal)";
 by (induct_tac "n" 1);
-by (Auto_tac);
+by Auto_tac;
 qed "hrealpow_minus_one";
 
 Goal "n+n = (2*n::nat)";
@@ -159,24 +170,24 @@ by Auto_tac;
 qed "double_lemma";
 
 (*ugh: need to get rid fo the n+n*)
-Goal "-1 ^ (n + n) = (Numeral1::hypreal)";
+Goal "-1 ^ (n + n) = (1::hypreal)";
 by (auto_tac (claset(), 
               simpset() addsimps [double_lemma, hrealpow_minus_one]));
 qed "hrealpow_minus_one2";
 Addsimps [hrealpow_minus_one2];
 
 Goal "(-(x::hypreal)) ^ Suc (Suc 0) = x ^ Suc (Suc 0)";
-by (Auto_tac);
+by Auto_tac;
 qed "hrealpow_minus_two";
 Addsimps [hrealpow_minus_two];
 
-Goal "(Numeral0::hypreal) < r & r < Numeral1 --> r ^ Suc n < r ^ n";
+Goal "(0::hypreal) < r & r < 1 --> r ^ Suc n < r ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset(),
               simpset() addsimps [hypreal_mult_less_mono2]));
 qed_spec_mp "hrealpow_Suc_less";
 
-Goal "(Numeral0::hypreal) <= r & r < Numeral1 --> r ^ Suc n <= r ^ n";
+Goal "(0::hypreal) <= r & r < 1 --> r ^ Suc n <= r ^ n";
 by (induct_tac "n" 1);
 by (auto_tac (claset() addIs [order_less_imp_le]
                        addSDs [order_le_imp_less_or_eq,hrealpow_Suc_less],
@@ -186,9 +197,7 @@ qed_spec_mp "hrealpow_Suc_le";
 Goal "Abs_hypreal(hyprel``{%n. X n}) ^ m = Abs_hypreal(hyprel``{%n. (X n) ^ m})";
 by (induct_tac "m" 1);
 by (auto_tac (claset(),
-              simpset() delsimps [one_eq_numeral_1]
-			addsimps [hypreal_one_def, hypreal_mult,
-                                  one_eq_numeral_1 RS sym]));
+              simpset() addsimps [hypreal_one_def, hypreal_mult]));
 qed "hrealpow";
 
 Goal "(x + (y::hypreal)) ^ Suc (Suc 0) = \
@@ -204,8 +213,8 @@ qed "hrealpow_sum_square_expand";
    property for the real rather than prove it directly 
    using induction: proof is much simpler this way!
  ---------------------------------------------------------------*)
-Goal "[|(Numeral0::hypreal) <= x; Numeral0 <= y;x ^ Suc n <= y ^ Suc n |] ==> x <= y";
-by (full_simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
+Goal "[|(0::hypreal) <= x; 0 <= y;x ^ Suc n <= y ^ Suc n |] ==> x <= y";
+by (full_simp_tac (simpset() addsimps [hypreal_zero_def]) 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),
@@ -241,15 +250,15 @@ by (auto_tac (claset() addSIs [lemma_hyprel_refl,bexI],
 by (Fuf_tac 1);
 qed "hyperpow";
 
-Goalw [hypnat_one_def] "(Numeral0::hypreal) pow (n + (1::hypnat)) = Numeral0";
-by (simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
+Goalw [hypnat_one_def] "(0::hypreal) pow (n + (1::hypnat)) = 0";
+by (simp_tac (simpset() addsimps [hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset(), simpset() addsimps [hyperpow,hypnat_add]));
 qed "hyperpow_zero";
 Addsimps [hyperpow_zero];
 
-Goal "r ~= (Numeral0::hypreal) --> r pow n ~= Numeral0";
-by (simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
+Goal "r ~= (0::hypreal) --> r pow n ~= 0";
+by (simp_tac (simpset() addsimps [hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset(), simpset() addsimps [hyperpow]));
@@ -258,8 +267,8 @@ by (fuf_empty_tac (claset() addIs [realpow_not_zero RS notE],
     simpset()) 1);
 qed_spec_mp "hyperpow_not_zero";
 
-Goal "r ~= (Numeral0::hypreal) --> inverse(r pow n) = (inverse r) pow n";
-by (simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
+Goal "r ~= (0::hypreal) --> inverse(r pow n) = (inverse r) pow n";
+by (simp_tac (simpset() addsimps [hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSDs [FreeUltrafilterNat_Compl_mem],
@@ -298,24 +307,24 @@ by (auto_tac (claset(),
               simpset() addsimps [hyperpow,hypnat_add, hypreal_mult]));
 qed "hyperpow_two";
 
-Goal "(Numeral0::hypreal) < r --> Numeral0 < r pow n";
-by (simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
+Goal "(0::hypreal) < r --> 0 < r pow n";
+by (simp_tac (simpset() addsimps [hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSEs [FreeUltrafilterNat_subset, realpow_gt_zero],
               simpset() addsimps [hyperpow,hypreal_less, hypreal_le]));
 qed_spec_mp "hyperpow_gt_zero";
 
-Goal "(Numeral0::hypreal) <= r --> Numeral0 <= r pow n";
-by (simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
+Goal "(0::hypreal) <= r --> 0 <= r pow n";
+by (simp_tac (simpset() addsimps [hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSEs [FreeUltrafilterNat_subset, realpow_ge_zero],
               simpset() addsimps [hyperpow,hypreal_le]));
 qed "hyperpow_ge_zero";
 
-Goal "(Numeral0::hypreal) < x & x <= y --> x pow n <= y pow n";
-by (full_simp_tac (simpset() addsimps [rename_numerals hypreal_zero_def]) 1);
+Goal "(0::hypreal) < x & x <= y --> x pow n <= y pow n";
+by (full_simp_tac (simpset() addsimps [hypreal_zero_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","x")] eq_Abs_hypreal 1);
 by (res_inst_tac [("z","y")] eq_Abs_hypreal 1);
@@ -326,27 +335,26 @@ by (etac (FreeUltrafilterNat_Int RS FreeUltrafilterNat_subset) 1
 by (auto_tac (claset() addIs [realpow_le], simpset()));
 qed_spec_mp "hyperpow_le";
 
-Goal "Numeral1 pow n = (Numeral1::hypreal)";
-by (simp_tac (HOL_ss addsimps [one_eq_numeral_1 RS sym, hypreal_one_def]) 1);
+Goal "1 pow n = (1::hypreal)";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
-by (auto_tac (claset(), simpset() addsimps [hyperpow]));
+by (auto_tac (claset(), simpset() addsimps [hypreal_one_def, hyperpow]));
 qed "hyperpow_eq_one";
 Addsimps [hyperpow_eq_one];
 
-Goal "abs(-(Numeral1 pow n)) = (Numeral1::hypreal)";
-by (simp_tac (HOL_ss addsimps [one_eq_numeral_1 RS sym, hypreal_one_def]) 1);
+Goal "abs(-(1 pow n)) = (1::hypreal)";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
-by (auto_tac (claset(), simpset() addsimps [hyperpow,hypreal_hrabs]));
+by (auto_tac (claset(), 
+              simpset() addsimps [hyperpow, hypreal_hrabs, hypreal_one_def]));
 qed "hrabs_minus_hyperpow_one";
 Addsimps [hrabs_minus_hyperpow_one];
 
-Goal "abs(-1 pow n) = (Numeral1::hypreal)";
+Goal "abs(-1 pow n) = (1::hypreal)";
 by (subgoal_tac "abs((- (1::hypreal)) pow n) = (1::hypreal)" 1);
 by (Asm_full_simp_tac 1); 
-by (simp_tac (HOL_ss addsimps [hypreal_one_def]) 1);
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (auto_tac (claset(),
-       simpset() addsimps [hyperpow,hypreal_minus,hypreal_hrabs]));
+              simpset() addsimps [hypreal_one_def, hyperpow,hypreal_minus,
+                                  hypreal_hrabs]));
 qed "hrabs_hyperpow_minus_one";
 Addsimps [hrabs_hyperpow_minus_one];
 
@@ -358,7 +366,7 @@ by (auto_tac (claset(),
        simpset() addsimps [hyperpow, hypreal_mult,realpow_mult]));
 qed "hyperpow_mult";
 
-Goal "(Numeral0::hypreal) <= r pow ((1::hypnat) + (1::hypnat))";
+Goal "(0::hypreal) <= r pow ((1::hypnat) + (1::hypnat))";
 by (auto_tac (claset(), 
               simpset() addsimps [hyperpow_two, hypreal_0_le_mult_iff]));
 qed "hyperpow_two_le";
@@ -375,21 +383,21 @@ qed "hyperpow_two_hrabs";
 Addsimps [hyperpow_two_hrabs];
 
 (*? very similar to hrealpow_two_gt_one *)
-Goal "(Numeral1::hypreal) < r ==> Numeral1 < r pow ((1::hypnat) + (1::hypnat))";
+Goal "(1::hypreal) < r ==> 1 < r pow ((1::hypnat) + (1::hypnat))";
 by (auto_tac (claset(), simpset() addsimps [hyperpow_two]));
-by (res_inst_tac [("y","Numeral1*Numeral1")] order_le_less_trans 1); 
+by (res_inst_tac [("y","1*1")] order_le_less_trans 1); 
 by (rtac hypreal_mult_less_mono 2); 
 by Auto_tac;  
 qed "hyperpow_two_gt_one";
 
-Goal "(Numeral1::hypreal) <= r ==> Numeral1 <= r pow ((1::hypnat) + (1::hypnat))";
+Goal "(1::hypreal) <= r ==> 1 <= r pow ((1::hypnat) + (1::hypnat))";
 by (auto_tac (claset() addSDs [order_le_imp_less_or_eq] 
                        addIs [hyperpow_two_gt_one,order_less_imp_le],
               simpset()));
 qed "hyperpow_two_ge_one";
 
-Goal "(Numeral1::hypreal) <= 2 pow n";
-by (res_inst_tac [("y","Numeral1 pow n")] order_trans 1);
+Goal "(1::hypreal) <= 2 pow n";
+by (res_inst_tac [("y","1 pow n")] order_trans 1);
 by (rtac hyperpow_le 2);
 by Auto_tac;
 qed "two_hyperpow_ge_one";
@@ -397,7 +405,7 @@ Addsimps [two_hyperpow_ge_one];
 
 Addsimps [simplify (simpset()) realpow_minus_one];
 
-Goal "-1 pow (((1::hypnat) + (1::hypnat))*n) = (Numeral1::hypreal)";
+Goal "-1 pow (((1::hypnat) + (1::hypnat))*n) = (1::hypreal)";
 by (subgoal_tac "(-((1::hypreal))) pow (((1::hypnat) + (1::hypnat))*n) = (1::hypreal)" 1);
 by (Asm_full_simp_tac 1); 
 by (simp_tac (HOL_ss addsimps [hypreal_one_def]) 1);
@@ -409,52 +417,44 @@ qed "hyperpow_minus_one2";
 Addsimps [hyperpow_minus_one2];
 
 Goalw [hypnat_one_def]
-     "(Numeral0::hypreal) < r & r < Numeral1 --> r pow (n + (1::hypnat)) < r pow n";
-by (full_simp_tac
-    (HOL_ss addsimps [zero_eq_numeral_0 RS sym, hypreal_zero_def,
-                      one_eq_numeral_1 RS sym, hypreal_one_def]) 1);
+     "(0::hypreal) < r & r < 1 --> r pow (n + (1::hypnat)) < r pow n";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset() addSDs [conjI RS realpow_Suc_less] 
                   addEs [FreeUltrafilterNat_Int RS FreeUltrafilterNat_subset],
-              simpset() addsimps [hyperpow,hypreal_less,hypnat_add]));
+              simpset() addsimps [hypreal_zero_def, hypreal_one_def, 
+                                  hyperpow, hypreal_less, hypnat_add]));
 qed_spec_mp "hyperpow_Suc_less";
 
 Goalw [hypnat_one_def]
-     "Numeral0 <= r & r < (Numeral1::hypreal) --> r pow (n + (1::hypnat)) <= r pow n";
-by (full_simp_tac
-    (HOL_ss addsimps [zero_eq_numeral_0 RS sym, hypreal_zero_def,
-                      one_eq_numeral_1 RS sym, hypreal_one_def]) 1);
+     "0 <= r & r < (1::hypreal) --> r pow (n + (1::hypnat)) <= r pow n";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
-by (auto_tac (claset() addSDs [conjI RS realpow_Suc_le] addEs
-    [FreeUltrafilterNat_Int RS FreeUltrafilterNat_subset ],
-    simpset() addsimps [hyperpow,hypreal_le,hypnat_add,
-    hypreal_less]));
+by (auto_tac (claset() addSDs [conjI RS realpow_Suc_le] 
+                 addEs [FreeUltrafilterNat_Int RS FreeUltrafilterNat_subset],
+              simpset() addsimps [hypreal_zero_def, hypreal_one_def, hyperpow,
+                                  hypreal_le,hypnat_add, hypreal_less]));
 qed_spec_mp "hyperpow_Suc_le";
 
 Goalw [hypnat_one_def]
-     "(Numeral0::hypreal) <= r & r < Numeral1 & n < N --> r pow N <= r pow n";
-by (full_simp_tac
-    (HOL_ss addsimps [zero_eq_numeral_0 RS sym, hypreal_zero_def,
-                      one_eq_numeral_1 RS sym, hypreal_one_def]) 1);
+     "(0::hypreal) <= r & r < 1 & n < N --> r pow N <= r pow n";
 by (res_inst_tac [("z","n")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","N")] eq_Abs_hypnat 1);
 by (res_inst_tac [("z","r")] eq_Abs_hypreal 1);
 by (auto_tac (claset(),
-        simpset() addsimps [hyperpow, hypreal_le,hypreal_less,hypnat_less]));
+              simpset() addsimps [hyperpow, hypreal_le,hypreal_less,
+                           hypnat_less, hypreal_zero_def, hypreal_one_def]));
 by (etac (FreeUltrafilterNat_Int RS FreeUltrafilterNat_subset) 1);
 by (etac FreeUltrafilterNat_Int 1);
-by (auto_tac (claset() addSDs [conjI RS realpow_less_le],
-    simpset()));
+by (auto_tac (claset() addSDs [conjI RS realpow_less_le], simpset()));
 qed_spec_mp "hyperpow_less_le";
 
-Goal "[| (Numeral0::hypreal) <= r; r < Numeral1 |]  \
+Goal "[| (0::hypreal) <= r;  r < 1 |]  \
 \     ==> ALL N n. n < N --> r pow N <= r pow n";
 by (blast_tac (claset() addSIs [hyperpow_less_le]) 1);
 qed "hyperpow_less_le2";
 
-Goal "[| Numeral0 <= r;  r < (Numeral1::hypreal);  N : HNatInfinite |]  \
+Goal "[| 0 <= r;  r < (1::hypreal);  N : HNatInfinite |]  \
 \     ==> ALL n: Nats. r pow N <= r pow n";
 by (auto_tac (claset() addSIs [hyperpow_less_le],
               simpset() addsimps [HNatInfinite_iff]));
@@ -471,25 +471,25 @@ by (auto_tac (claset(), simpset() addsimps [hyperpow_realpow]));
 qed "hyperpow_SReal";
 Addsimps [hyperpow_SReal];
 
-Goal "N : HNatInfinite ==> (Numeral0::hypreal) pow N = 0";
+Goal "N : HNatInfinite ==> (0::hypreal) pow N = 0";
 by (dtac HNatInfinite_is_Suc 1);
-by (Auto_tac);
+by Auto_tac;
 qed "hyperpow_zero_HNatInfinite";
 Addsimps [hyperpow_zero_HNatInfinite];
 
-Goal "[| (Numeral0::hypreal) <= r; r < Numeral1; n <= N |] ==> r pow N <= r pow n";
+Goal "[| (0::hypreal) <= r; r < 1; n <= N |] ==> r pow N <= r pow n";
 by (dres_inst_tac [("y","N")] hypnat_le_imp_less_or_eq 1);
 by (auto_tac (claset() addIs [hyperpow_less_le], simpset()));
 qed "hyperpow_le_le";
 
-Goal "[| (Numeral0::hypreal) < r; r < Numeral1 |] ==> r pow (n + (1::hypnat)) <= r";
+Goal "[| (0::hypreal) < r; r < 1 |] ==> r pow (n + (1::hypnat)) <= r";
 by (dres_inst_tac [("n","(1::hypnat)")] (order_less_imp_le RS hyperpow_le_le) 1);
-by (Auto_tac);
+by Auto_tac;
 qed "hyperpow_Suc_le_self";
 
-Goal "[| (Numeral0::hypreal) <= r; r < Numeral1 |] ==> r pow (n + (1::hypnat)) <= r";
+Goal "[| (0::hypreal) <= r; r < 1 |] ==> r pow (n + (1::hypnat)) <= r";
 by (dres_inst_tac [("n","(1::hypnat)")] hyperpow_le_le 1);
-by (Auto_tac);
+by Auto_tac;
 qed "hyperpow_Suc_le_self2";
 
 Goalw [Infinitesimal_def]

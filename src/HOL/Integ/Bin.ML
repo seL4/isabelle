@@ -189,6 +189,12 @@ Addsimps (map (inst "x" "number_of ?v")
 Addsimps (map (inst "y" "number_of ?v") 
 	  [zminus_zless, zminus_zle, zminus_equation]);
 
+(*Equations and inequations involving 1*)
+Addsimps (map (simplify (simpset()) o inst "x" "1") 
+	  [zless_zminus, zle_zminus, equation_zminus]);
+Addsimps (map (simplify (simpset()) o inst "y" "1") 
+	  [zminus_zless, zminus_zle, zminus_equation]);
+
 (*Moving negation out of products*)
 Addsimps [zmult_zminus, zmult_zminus_right];
 

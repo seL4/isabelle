@@ -128,14 +128,14 @@ Goal "[| x < 0; y < 0 |] ==> (0::real) < x * y";
 by (REPEAT(dtac (real_minus_zero_less_iff RS iffD2) 1));
 by (dtac real_mult_order 1 THEN assume_tac 1);
 by (Asm_full_simp_tac 1);
-qed "real_mult_less_zero1";
+qed "neg_real_mult_order";
 
 Goal "[| 0 < x; y < 0 |] ==> x*y < (0::real)";
 by (dtac (real_minus_zero_less_iff RS iffD2) 1);
 by (dtac real_mult_order 1 THEN assume_tac 1);
 by (rtac (real_minus_zero_less_iff RS iffD1) 1);
 by (Asm_full_simp_tac 1);
-qed "real_mult_less_zero";
+qed "real_mult_less_0";
 
 Goalw [real_one_def] "0 < (1::real)";
 by (auto_tac (claset() addIs [real_gt_zero_preal_Ex RS iffD2],
@@ -255,7 +255,7 @@ Addsimps [real_le_minus_iff];
 Goal "(0::real) <= x*x";
 by (res_inst_tac [("R2.0","0"),("R1.0","x")] real_linear_less2 1);
 by (auto_tac (claset() addIs [real_mult_order,
-			      real_mult_less_zero1,order_less_imp_le],
+			      neg_real_mult_order,order_less_imp_le],
 	      simpset()));
 qed "real_le_square";
 Addsimps [real_le_square];
@@ -390,18 +390,18 @@ by (forward_tac [real_minus_zero_less_iff2 RS iffD2] 1);
 by (forward_tac [real_not_refl2 RS not_sym] 1);
 by (dtac (real_not_refl2 RS not_sym RS real_inverse_not_zero) 1);
 by (EVERY1[dtac order_le_imp_less_or_eq, Step_tac]); 
-by (dtac real_mult_less_zero1 1 THEN assume_tac 1);
+by (dtac neg_real_mult_order 1 THEN assume_tac 1);
 by (auto_tac (claset() addIs [real_zero_less_one RS real_less_asym],
 	      simpset()));
-qed "real_inverse_gt_zero";
+qed "real_inverse_gt_0";
 
 Goal "x < 0 ==> inverse (x::real) < 0";
 by (ftac real_not_refl2 1);
 by (dtac (real_minus_zero_less_iff RS iffD2) 1);
 by (rtac (real_minus_zero_less_iff RS iffD1) 1);
 by (stac (real_minus_inverse RS sym) 1);
-by (auto_tac (claset() addIs [real_inverse_gt_zero], simpset()));
-qed "real_inverse_less_zero";
+by (auto_tac (claset() addIs [real_inverse_gt_0], simpset()));
+qed "real_inverse_less_0";
 
 Goal "[| (0::real) < z; x < y |] ==> x*z < y*z";       
 by (rotate_tac 1 1);
@@ -419,7 +419,7 @@ qed "real_mult_less_mono2";
 
 Goal "[| (0::real) < z; x * z < y * z |] ==> x < y";
 by (forw_inst_tac [("x","x*z")] 
-    (real_inverse_gt_zero RS real_mult_less_mono1) 1);
+    (real_inverse_gt_0 RS real_mult_less_mono1) 1);
 by (auto_tac (claset(),
 	      simpset() addsimps [real_mult_assoc,real_not_refl2 RS not_sym]));
 qed "real_mult_less_cancel1";
@@ -495,13 +495,13 @@ qed "real_mult_self_le2";
 
 Goal "[| 0 < r; r < x |] ==> inverse x < inverse (r::real)";
 by (ftac order_less_trans 1 THEN assume_tac 1);
-by (ftac real_inverse_gt_zero 1);
-by (forw_inst_tac [("x","x")] real_inverse_gt_zero 1);
+by (ftac real_inverse_gt_0 1);
+by (forw_inst_tac [("x","x")] real_inverse_gt_0 1);
 by (forw_inst_tac [("x","r"),("z","inverse r")] real_mult_less_mono1 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [real_not_refl2 RS 
 					   not_sym RS real_mult_inv_right]) 1);
-by (ftac real_inverse_gt_zero 1);
+by (ftac real_inverse_gt_0 1);
 by (forw_inst_tac [("x","(1::real)"),("z","inverse x")] real_mult_less_mono2 1);
 by (assume_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [real_not_refl2 RS 
@@ -556,32 +556,32 @@ qed "real_sum_squares_cancel2";
 Goal "((0::real) < x*y) = (0 < x & 0 < y | x < 0 & y < 0)";
 by (auto_tac (claset(), 
               simpset() addsimps [order_le_less, linorder_not_less, 
-                                  real_mult_order, real_mult_less_zero1]));
+                                  real_mult_order, neg_real_mult_order]));
 by (ALLGOALS (rtac ccontr)); 
 by (auto_tac (claset(), simpset() addsimps [order_le_less, linorder_not_less]));
 by (ALLGOALS (etac rev_mp)); 
-by (ALLGOALS (dtac real_mult_less_zero THEN' assume_tac));
+by (ALLGOALS (dtac real_mult_less_0 THEN' assume_tac));
 by (auto_tac (claset() addDs [order_less_not_sym], 
               simpset() addsimps [real_mult_commute]));  
-qed "real_zero_less_mult_iff";
+qed "real_0_less_mult_iff";
 
 Goal "((0::real) <= x*y) = (0 <= x & 0 <= y | x <= 0 & y <= 0)";
 by (auto_tac (claset(), 
               simpset() addsimps [order_le_less, linorder_not_less,  
-                                  real_zero_less_mult_iff]));
-qed "real_zero_le_mult_iff";
+                                  real_0_less_mult_iff]));
+qed "real_0_le_mult_iff";
 
 Goal "(x*y < (0::real)) = (0 < x & y < 0 | x < 0 & 0 < y)";
 by (auto_tac (claset(), 
-              simpset() addsimps [real_zero_le_mult_iff, 
+              simpset() addsimps [real_0_le_mult_iff, 
                                   linorder_not_le RS sym]));
 by (auto_tac (claset() addDs [order_less_not_sym],  
               simpset() addsimps [linorder_not_le]));
-qed "real_mult_less_zero_iff";
+qed "real_mult_less_0_iff";
 
 Goal "(x*y <= (0::real)) = (0 <= x & y <= 0 | x <= 0 & 0 <= y)";
 by (auto_tac (claset() addDs [order_less_not_sym], 
-              simpset() addsimps [real_zero_less_mult_iff, 
+              simpset() addsimps [real_0_less_mult_iff, 
                                   linorder_not_less RS sym]));
-qed "real_mult_le_zero_iff";
+qed "real_mult_le_0_iff";
 

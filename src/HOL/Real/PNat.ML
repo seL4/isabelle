@@ -38,7 +38,7 @@ by (blast_tac (claset() addIs prems) 1);
 qed "PNat_induct";
 
 val prems = Goalw [pnat_one_def,pnat_Suc_def]
-    "[| P(1p);   \
+    "[| P(1);   \
 \       !!n. P(n) ==> P(pSuc n) |]  ==> P(n)";
 by (rtac (Rep_pnat_inverse RS subst) 1);   
 by (rtac (Rep_pnat RS PNat_induct) 1);
@@ -51,8 +51,8 @@ fun pnat_ind_tac a i =
   induct_thm_tac pnat_induct a i  THEN  rename_last_tac a [""] (i+1);
 
 val prems = Goal
-    "[| !!x. P x 1p;  \
-\       !!y. P 1p (pSuc y);  \
+    "[| !!x. P x 1;  \
+\       !!y. P 1 (pSuc y);  \
 \       !!x y. [| P x y |] ==> P (pSuc x) (pSuc y)  \
 \    |] ==> P m n";
 by (res_inst_tac [("x","m")] spec 1);
@@ -64,8 +64,8 @@ qed "pnat_diff_induct";
 
 (*Case analysis on the natural numbers*)
 val prems = Goal
-    "[| n=1p ==> P;  !!x. n = pSuc(x) ==> P |] ==> P";
-by (subgoal_tac "n=1p | (EX x. n = pSuc(x))" 1);
+    "[| n=1 ==> P;  !!x. n = pSuc(x) ==> P |] ==> P";
+by (subgoal_tac "n=1 | (EX x. n = pSuc(x))" 1);
 by (fast_tac (claset() addSEs prems) 1);
 by (pnat_ind_tac "n" 1);
 by (rtac (refl RS disjI1) 1);
@@ -131,7 +131,7 @@ qed "Collect_pnat_gt_0";
 
 (*** Distinctness of constructors ***)
 
-Goalw [pnat_one_def,pnat_Suc_def] "pSuc(m) ~= 1p";
+Goalw [pnat_one_def,pnat_Suc_def] "pSuc(m) ~= 1";
 by (rtac (inj_on_Abs_pnat RS inj_on_contraD) 1);
 by (rtac (Rep_pnat_gt_zero RS Suc_mono RS less_not_refl2) 1);
 by (REPEAT (resolve_tac [Rep_pnat RS  pnat_Suc_RepI, one_RepI] 1));
@@ -169,12 +169,12 @@ qed "n_not_pSuc_n";
 
 bind_thm ("pSuc_n_not_n", n_not_pSuc_n RS not_sym);
 
-Goal "n ~= 1p ==> EX m. n = pSuc m";
+Goal "n ~= 1 ==> EX m. n = pSuc m";
 by (rtac pnatE 1);
 by (REPEAT (Blast_tac 1));
-qed "not1p_implies_pSuc";
+qed "not1_implies_pSuc";
 
-Goal "pSuc m = m + 1p";
+Goal "pSuc m = m + 1";
 by (auto_tac (claset(),simpset() addsimps [pnat_Suc_def,
     pnat_one_def,Abs_pnat_inverse,pnat_add_def]));
 qed "pSuc_is_plus_one";
@@ -485,12 +485,12 @@ qed "eq_Abs_pnat";
 (** embedding of naturals in positive naturals **)
 
 (* pnat_one_eq! *)
-Goalw [pnat_of_nat_def,pnat_one_def]"1p = pnat_of_nat 0";
+Goalw [pnat_of_nat_def,pnat_one_def]"1 = pnat_of_nat 0";
 by (Full_simp_tac 1);
 qed "pnat_one_iff";
 
 Goalw [pnat_of_nat_def,pnat_one_def,
-       pnat_add_def] "1p + 1p = pnat_of_nat 1";
+       pnat_add_def] "1 + 1 = pnat_of_nat 1";
 by (res_inst_tac [("f","Abs_pnat")] arg_cong 1);
 by (auto_tac (claset() addIs [(gt_0_mem_pnat RS Abs_pnat_inverse RS ssubst)],
     simpset()));
@@ -514,7 +514,7 @@ qed "nat_add_one_less1";
 (* this worked with one call to auto_tac before! *)
 Goalw [pnat_add_def,pnat_of_nat_def,pnat_one_def] 
       "pnat_of_nat n1 + pnat_of_nat n2 = \
-\      pnat_of_nat (n1 + n2) + 1p";
+\      pnat_of_nat (n1 + n2) + 1";
 by (res_inst_tac [("f","Abs_pnat")] arg_cong 1);
 by (rtac (gt_0_mem_pnat RS Abs_pnat_inverse RS ssubst) 1);
 by (rtac (gt_0_mem_pnat RS Abs_pnat_inverse RS ssubst) 2);

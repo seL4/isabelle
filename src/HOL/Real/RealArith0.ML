@@ -8,85 +8,88 @@ Assorted facts that need binary literals and the arithmetic decision procedure
 Also, common factor cancellation
 *)
 
+Goal "x - - y = x + (y::real)";
+by (Simp_tac 1); 
+qed "real_diff_minus_eq";
+Addsimps [real_diff_minus_eq];
+
 (** Division and inverse **)
 
-Goal "Numeral0/x = (Numeral0::real)";
+Goal "0/x = (0::real)";
 by (simp_tac (simpset() addsimps [real_divide_def]) 1); 
 qed "real_0_divide";
 Addsimps [real_0_divide];
 
-Goal "((Numeral0::real) < inverse x) = (Numeral0 < x)";
-by (case_tac "x=Numeral0" 1);
-by (asm_simp_tac (HOL_ss addsimps [rename_numerals INVERSE_ZERO]) 1); 
-by (auto_tac (claset() addDs [rename_numerals real_inverse_less_zero], 
-              simpset() addsimps [linorder_neq_iff, 
-                                  rename_numerals real_inverse_gt_zero]));  
+Goal "((0::real) < inverse x) = (0 < x)";
+by (case_tac "x=0" 1);
+by (asm_simp_tac (HOL_ss addsimps [INVERSE_ZERO]) 1); 
+by (auto_tac (claset() addDs [real_inverse_less_0], 
+              simpset() addsimps [linorder_neq_iff, real_inverse_gt_0]));  
 qed "real_0_less_inverse_iff";
 Addsimps [real_0_less_inverse_iff];
 
-Goal "(inverse x < (Numeral0::real)) = (x < Numeral0)";
-by (case_tac "x=Numeral0" 1);
-by (asm_simp_tac (HOL_ss addsimps [rename_numerals INVERSE_ZERO]) 1); 
-by (auto_tac (claset() addDs [rename_numerals real_inverse_less_zero], 
-              simpset() addsimps [linorder_neq_iff, 
-                                  rename_numerals real_inverse_gt_zero]));  
+Goal "(inverse x < (0::real)) = (x < 0)";
+by (case_tac "x=0" 1);
+by (asm_simp_tac (HOL_ss addsimps [INVERSE_ZERO]) 1); 
+by (auto_tac (claset() addDs [real_inverse_less_0], 
+              simpset() addsimps [linorder_neq_iff, real_inverse_gt_0]));  
 qed "real_inverse_less_0_iff";
 Addsimps [real_inverse_less_0_iff];
 
-Goal "((Numeral0::real) <= inverse x) = (Numeral0 <= x)";
+Goal "((0::real) <= inverse x) = (0 <= x)";
 by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1); 
 qed "real_0_le_inverse_iff";
 Addsimps [real_0_le_inverse_iff];
 
-Goal "(inverse x <= (Numeral0::real)) = (x <= Numeral0)";
+Goal "(inverse x <= (0::real)) = (x <= 0)";
 by (simp_tac (simpset() addsimps [linorder_not_less RS sym]) 1); 
 qed "real_inverse_le_0_iff";
 Addsimps [real_inverse_le_0_iff];
 
-Goalw [real_divide_def] "x/(Numeral0::real) = Numeral0";
-by (stac (rename_numerals INVERSE_ZERO) 1); 
+Goalw [real_divide_def] "x/(0::real) = 0";
+by (stac INVERSE_ZERO 1); 
 by (Simp_tac 1); 
 qed "REAL_DIVIDE_ZERO";
 
-Goal "inverse (x::real) = Numeral1/x";
+Goal "inverse (x::real) = 1/x";
 by (simp_tac (simpset() addsimps [real_divide_def]) 1); 
 qed "real_inverse_eq_divide";
 
-Goal "((Numeral0::real) < x/y) = (Numeral0 < x & Numeral0 < y | x < Numeral0 & y < Numeral0)";
+Goal "((0::real) < x/y) = (0 < x & 0 < y | x < 0 & y < 0)";
 by (simp_tac (simpset() addsimps [real_divide_def, real_0_less_mult_iff]) 1);
 qed "real_0_less_divide_iff";
 Addsimps [inst "x" "number_of ?w" real_0_less_divide_iff];
 
-Goal "(x/y < (Numeral0::real)) = (Numeral0 < x & y < Numeral0 | x < Numeral0 & Numeral0 < y)";
+Goal "(x/y < (0::real)) = (0 < x & y < 0 | x < 0 & 0 < y)";
 by (simp_tac (simpset() addsimps [real_divide_def, real_mult_less_0_iff]) 1);
 qed "real_divide_less_0_iff";
 Addsimps [inst "x" "number_of ?w" real_divide_less_0_iff];
 
-Goal "((Numeral0::real) <= x/y) = ((x <= Numeral0 | Numeral0 <= y) & (Numeral0 <= x | y <= Numeral0))";
+Goal "((0::real) <= x/y) = ((x <= 0 | 0 <= y) & (0 <= x | y <= 0))";
 by (simp_tac (simpset() addsimps [real_divide_def, real_0_le_mult_iff]) 1);
 by Auto_tac;  
 qed "real_0_le_divide_iff";
 Addsimps [inst "x" "number_of ?w" real_0_le_divide_iff];
 
-Goal "(x/y <= (Numeral0::real)) = ((x <= Numeral0 | y <= Numeral0) & (Numeral0 <= x | Numeral0 <= y))";
+Goal "(x/y <= (0::real)) = ((x <= 0 | y <= 0) & (0 <= x | 0 <= y))";
 by (simp_tac (simpset() addsimps [real_divide_def, real_mult_le_0_iff]) 1);
 by Auto_tac;  
 qed "real_divide_le_0_iff";
 Addsimps [inst "x" "number_of ?w" real_divide_le_0_iff];
 
-Goal "(inverse(x::real) = Numeral0) = (x = Numeral0)";
-by (auto_tac (claset(), simpset() addsimps [rename_numerals INVERSE_ZERO]));  
+Goal "(inverse(x::real) = 0) = (x = 0)";
+by (auto_tac (claset(), simpset() addsimps [INVERSE_ZERO]));  
 by (rtac ccontr 1); 
-by (blast_tac (claset() addDs [rename_numerals real_inverse_not_zero]) 1); 
+by (blast_tac (claset() addDs [real_inverse_not_zero]) 1); 
 qed "real_inverse_zero_iff";
 Addsimps [real_inverse_zero_iff];
 
-Goal "(x/y = Numeral0) = (x=Numeral0 | y=(Numeral0::real))";
+Goal "(x/y = 0) = (x=0 | y=(0::real))";
 by (auto_tac (claset(), simpset() addsimps [real_divide_def]));  
 qed "real_divide_eq_0_iff";
 Addsimps [real_divide_eq_0_iff];
 
-Goal "h ~= (Numeral0::real) ==> h/h = Numeral1";
+Goal "h ~= (0::real) ==> h/h = 1";
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_inv_left]) 1);
 qed "real_divide_self_eq"; 
 Addsimps [real_divide_self_eq];
@@ -128,7 +131,7 @@ by (dtac real_mult_le_mono1_neg 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [real_mult_commute])));
 qed "real_mult_le_mono2_neg";
 
-Goal "(m*k < n*k) = (((Numeral0::real) < k & m<n) | (k < Numeral0 & n<m))";
+Goal "(m*k < n*k) = (((0::real) < k & m<n) | (k < 0 & n<m))";
 by (case_tac "k = (0::real)" 1);
 by (auto_tac (claset(), 
               simpset() addsimps [linorder_neq_iff, 
@@ -143,32 +146,32 @@ by (auto_tac (claset(),
                                             real_mult_le_mono1_neg]));  
 qed "real_mult_less_cancel2";
 
-Goal "(m*k <= n*k) = (((Numeral0::real) < k --> m<=n) & (k < Numeral0 --> n<=m))";
+Goal "(m*k <= n*k) = (((0::real) < k --> m<=n) & (k < 0 --> n<=m))";
 by (simp_tac (simpset() addsimps [linorder_not_less RS sym, 
                                   real_mult_less_cancel2]) 1);
 qed "real_mult_le_cancel2";
 
-Goal "(k*m < k*n) = (((Numeral0::real) < k & m<n) | (k < Numeral0 & n<m))";
+Goal "(k*m < k*n) = (((0::real) < k & m<n) | (k < 0 & n<m))";
 by (simp_tac (simpset() addsimps [inst "z" "k" real_mult_commute, 
                                   real_mult_less_cancel2]) 1);
 qed "real_mult_less_cancel1";
 
-Goal "!!k::real. (k*m <= k*n) = ((Numeral0 < k --> m<=n) & (k < Numeral0 --> n<=m))";
+Goal "!!k::real. (k*m <= k*n) = ((0 < k --> m<=n) & (k < 0 --> n<=m))";
 by (simp_tac (simpset() addsimps [linorder_not_less RS sym, 
                                   real_mult_less_cancel1]) 1);
 qed "real_mult_le_cancel1";
 
-Goal "!!k::real. (k*m = k*n) = (k = Numeral0 | m=n)";
+Goal "!!k::real. (k*m = k*n) = (k = 0 | m=n)";
 by (case_tac "k=0" 1);
 by (auto_tac (claset(), simpset() addsimps [real_mult_left_cancel]));  
 qed "real_mult_eq_cancel1";
 
-Goal "!!k::real. (m*k = n*k) = (k = Numeral0 | m=n)";
+Goal "!!k::real. (m*k = n*k) = (k = 0 | m=n)";
 by (case_tac "k=0" 1);
 by (auto_tac (claset(), simpset() addsimps [real_mult_right_cancel]));  
 qed "real_mult_eq_cancel2";
 
-Goal "!!k::real. k~=Numeral0 ==> (k*m) / (k*n) = (m/n)";
+Goal "!!k::real. k~=0 ==> (k*m) / (k*n) = (m/n)";
 by (asm_simp_tac
     (simpset() addsimps [real_divide_def, real_inverse_distrib]) 1); 
 by (subgoal_tac "k * m * (inverse k * inverse n) = \
@@ -178,7 +181,7 @@ by (asm_full_simp_tac (HOL_ss addsimps real_mult_ac) 1);
 qed "real_mult_div_cancel1";
 
 (*For ExtractCommonTerm*)
-Goal "(k*m) / (k*n) = (if k = (Numeral0::real) then Numeral0 else m/n)";
+Goal "(k*m) / (k*n) = (if k = (0::real) then 0 else m/n)";
 by (simp_tac (simpset() addsimps [real_mult_div_cancel1]) 1); 
 qed "real_mult_div_cancel_disj";
 
@@ -188,20 +191,17 @@ local
 in
 
 val rel_real_number_of = [eq_real_number_of, less_real_number_of, 
-                          le_real_number_of_eq_not_less];
+                          le_real_number_of_eq_not_less]
 
 structure CancelNumeralFactorCommon =
   struct
   val mk_coeff		= mk_coeff
   val dest_coeff	= dest_coeff 1
   val trans_tac         = trans_tac
-  val norm_tac = ALLGOALS (simp_tac (HOL_ss addsimps mult_plus_1s))
+  val norm_tac = 
+     ALLGOALS (simp_tac (HOL_ss addsimps real_minus_from_mult_simps @ mult_1s))
      THEN ALLGOALS (simp_tac (HOL_ss addsimps bin_simps@real_mult_minus_simps))
-     THEN ALLGOALS
-	  (simp_tac 
-	   (HOL_ss addsimps [eq_real_number_of, mult_real_number_of, 
-                             real_mult_number_of_left]@
-           real_minus_from_mult_simps @ real_mult_ac))
+     THEN ALLGOALS (simp_tac (HOL_ss addsimps real_mult_ac))
   val numeral_simp_tac	= 
          ALLGOALS (simp_tac (HOL_ss addsimps rel_real_number_of@bin_simps))
   val simplify_meta_eq  = simplify_meta_eq
@@ -253,17 +253,17 @@ val real_cancel_numeral_factors_relations =
      LessCancelNumeralFactor.proc),
     ("realle_cancel_numeral_factor", 
      prep_pats ["(l::real) * m <= n", "(l::real) <= m * n"], 
-     LeCancelNumeralFactor.proc)];
+     LeCancelNumeralFactor.proc)]
 
 val real_cancel_numeral_factors_divide = prep_simproc
 	("realdiv_cancel_numeral_factor", 
 	 prep_pats ["((l::real) * m) / n", "(l::real) / (m * n)", 
                      "((number_of v)::real) / (number_of w)"], 
-	 DivCancelNumeralFactor.proc);
+	 DivCancelNumeralFactor.proc)
 
 val real_cancel_numeral_factors = 
     real_cancel_numeral_factors_relations @ 
-    [real_cancel_numeral_factors_divide];
+    [real_cancel_numeral_factors_divide]
 
 end;
 
@@ -276,7 +276,7 @@ set timing;
 set trace_simp;
 fun test s = (Goal s; by (Simp_tac 1)); 
 
-test "Numeral0 <= (y::real) * -2";
+test "0 <= (y::real) * -2";
 test "9*x = 12 * (y::real)";
 test "(9*x) / (12 * (y::real)) = z";
 test "9*x < 12 * (y::real)";
@@ -292,6 +292,7 @@ test "(999*x) / (-396 * (y::real)) = z";
 test "999*x < -396 * (y::real)";
 test "999*x <= -396 * (y::real)";
 
+test  "(- ((2::real) * x) <= 2 * y)";
 test "-99*x = -81 * (y::real)";
 test "(-99*x) / (-81 * (y::real)) = z";
 test "-99*x <= -81 * (y::real)";
@@ -379,7 +380,7 @@ test "a*(b*c)/(y*z) = d*(b::real)*(x*a)/z";
 
 (*** Simplification of inequalities involving literal divisors ***)
 
-Goal "Numeral0<z ==> ((x::real) <= y/z) = (x*z <= y)";
+Goal "0<z ==> ((x::real) <= y/z) = (x*z <= y)";
 by (subgoal_tac "(x*z <= y) = (x*z <= (y/z)*z)" 1);
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 2); 
 by (etac ssubst 1);
@@ -388,7 +389,7 @@ by (Asm_simp_tac 1);
 qed "pos_real_le_divide_eq";
 Addsimps [inst "z" "number_of ?w" pos_real_le_divide_eq];
 
-Goal "z<Numeral0 ==> ((x::real) <= y/z) = (y <= x*z)";
+Goal "z<0 ==> ((x::real) <= y/z) = (y <= x*z)";
 by (subgoal_tac "(y <= x*z) = ((y/z)*z <= x*z)" 1);
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 2); 
 by (etac ssubst 1);
@@ -397,7 +398,7 @@ by (Asm_simp_tac 1);
 qed "neg_real_le_divide_eq";
 Addsimps [inst "z" "number_of ?w" neg_real_le_divide_eq];
 
-Goal "Numeral0<z ==> (y/z <= (x::real)) = (y <= x*z)";
+Goal "0<z ==> (y/z <= (x::real)) = (y <= x*z)";
 by (subgoal_tac "(y <= x*z) = ((y/z)*z <= x*z)" 1);
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 2); 
 by (etac ssubst 1);
@@ -406,7 +407,7 @@ by (Asm_simp_tac 1);
 qed "pos_real_divide_le_eq";
 Addsimps [inst "z" "number_of ?w" pos_real_divide_le_eq];
 
-Goal "z<Numeral0 ==> (y/z <= (x::real)) = (x*z <= y)";
+Goal "z<0 ==> (y/z <= (x::real)) = (x*z <= y)";
 by (subgoal_tac "(x*z <= y) = (x*z <= (y/z)*z)" 1);
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 2); 
 by (etac ssubst 1);
@@ -415,7 +416,7 @@ by (Asm_simp_tac 1);
 qed "neg_real_divide_le_eq";
 Addsimps [inst "z" "number_of ?w" neg_real_divide_le_eq];
 
-Goal "Numeral0<z ==> ((x::real) < y/z) = (x*z < y)";
+Goal "0<z ==> ((x::real) < y/z) = (x*z < y)";
 by (subgoal_tac "(x*z < y) = (x*z < (y/z)*z)" 1);
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 2); 
 by (etac ssubst 1);
@@ -424,7 +425,7 @@ by (Asm_simp_tac 1);
 qed "pos_real_less_divide_eq";
 Addsimps [inst "z" "number_of ?w" pos_real_less_divide_eq];
 
-Goal "z<Numeral0 ==> ((x::real) < y/z) = (y < x*z)";
+Goal "z<0 ==> ((x::real) < y/z) = (y < x*z)";
 by (subgoal_tac "(y < x*z) = ((y/z)*z < x*z)" 1);
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 2); 
 by (etac ssubst 1);
@@ -433,7 +434,7 @@ by (Asm_simp_tac 1);
 qed "neg_real_less_divide_eq";
 Addsimps [inst "z" "number_of ?w" neg_real_less_divide_eq];
 
-Goal "Numeral0<z ==> (y/z < (x::real)) = (y < x*z)";
+Goal "0<z ==> (y/z < (x::real)) = (y < x*z)";
 by (subgoal_tac "(y < x*z) = ((y/z)*z < x*z)" 1);
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 2); 
 by (etac ssubst 1);
@@ -442,7 +443,7 @@ by (Asm_simp_tac 1);
 qed "pos_real_divide_less_eq";
 Addsimps [inst "z" "number_of ?w" pos_real_divide_less_eq];
 
-Goal "z<Numeral0 ==> (y/z < (x::real)) = (x*z < y)";
+Goal "z<0 ==> (y/z < (x::real)) = (x*z < y)";
 by (subgoal_tac "(x*z < y) = (x*z < (y/z)*z)" 1);
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 2); 
 by (etac ssubst 1);
@@ -451,7 +452,7 @@ by (Asm_simp_tac 1);
 qed "neg_real_divide_less_eq";
 Addsimps [inst "z" "number_of ?w" neg_real_divide_less_eq];
 
-Goal "z~=Numeral0 ==> ((x::real) = y/z) = (x*z = y)";
+Goal "z~=0 ==> ((x::real) = y/z) = (x*z = y)";
 by (subgoal_tac "(x*z = y) = (x*z = (y/z)*z)" 1);
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 2); 
 by (etac ssubst 1);
@@ -460,7 +461,7 @@ by (Asm_simp_tac 1);
 qed "real_eq_divide_eq";
 Addsimps [inst "z" "number_of ?w" real_eq_divide_eq];
 
-Goal "z~=Numeral0 ==> (y/z = (x::real)) = (y = x*z)";
+Goal "z~=0 ==> (y/z = (x::real)) = (y = x*z)";
 by (subgoal_tac "(y = x*z) = ((y/z)*z = x*z)" 1);
 by (asm_simp_tac (simpset() addsimps [real_divide_def, real_mult_assoc]) 2); 
 by (etac ssubst 1);
@@ -469,38 +470,38 @@ by (Asm_simp_tac 1);
 qed "real_divide_eq_eq";
 Addsimps [inst "z" "number_of ?w" real_divide_eq_eq];
 
-Goal "(m/k = n/k) = (k = Numeral0 | m = (n::real))";
-by (case_tac "k=Numeral0" 1);
+Goal "(m/k = n/k) = (k = 0 | m = (n::real))";
+by (case_tac "k=0" 1);
 by (asm_simp_tac (simpset() addsimps [REAL_DIVIDE_ZERO]) 1); 
 by (asm_simp_tac (simpset() addsimps [real_divide_eq_eq, real_eq_divide_eq, 
                                       real_mult_eq_cancel2]) 1); 
 qed "real_divide_eq_cancel2";
 
-Goal "(k/m = k/n) = (k = Numeral0 | m = (n::real))";
-by (case_tac "m=Numeral0 | n = Numeral0" 1);
+Goal "(k/m = k/n) = (k = 0 | m = (n::real))";
+by (case_tac "m=0 | n = 0" 1);
 by (auto_tac (claset(), 
               simpset() addsimps [REAL_DIVIDE_ZERO, real_divide_eq_eq, 
                                   real_eq_divide_eq, real_mult_eq_cancel1]));  
 qed "real_divide_eq_cancel1";
 
-(*Moved from RealOrd.ML to use Numeral0 *)
-Goal "[| Numeral0 < r; Numeral0 < x|] ==> (inverse x < inverse (r::real)) = (r < x)";
+(*Moved from RealOrd.ML to use 0 *)
+Goal "[| 0 < r; 0 < x|] ==> (inverse x < inverse (r::real)) = (r < x)";
 by (auto_tac (claset() addIs [real_inverse_less_swap], simpset()));
 by (res_inst_tac [("t","r")] (real_inverse_inverse RS subst) 1);
 by (res_inst_tac [("t","x")] (real_inverse_inverse RS subst) 1);
 by (auto_tac (claset() addIs [real_inverse_less_swap],
 	      simpset() delsimps [real_inverse_inverse]
-			addsimps [real_inverse_gt_zero]));
+			addsimps [real_inverse_gt_0]));
 qed "real_inverse_less_iff";
 
-Goal "[| Numeral0 < r; Numeral0 < x|] ==> (inverse x <= inverse r) = (r <= (x::real))";
+Goal "[| 0 < r; 0 < x|] ==> (inverse x <= inverse r) = (r <= (x::real))";
 by (asm_simp_tac (simpset() addsimps [linorder_not_less RS sym, 
                                       real_inverse_less_iff]) 1); 
 qed "real_inverse_le_iff";
 
 (** Division by 1, -1 **)
 
-Goal "(x::real)/Numeral1 = x";
+Goal "(x::real)/1 = x";
 by (simp_tac (simpset() addsimps [real_divide_def]) 1); 
 qed "real_divide_1";
 Addsimps [real_divide_1];
@@ -510,30 +511,30 @@ by (Simp_tac 1);
 qed "real_divide_minus1";
 Addsimps [real_divide_minus1];
 
-Goal "-1/(x::real) = - (Numeral1/x)";
+Goal "-1/(x::real) = - (1/x)";
 by (simp_tac (simpset() addsimps [real_divide_def, real_minus_inverse]) 1); 
 qed "real_minus1_divide";
 Addsimps [real_minus1_divide];
 
-Goal "[| (Numeral0::real) < d1; Numeral0 < d2 |] ==> EX e. Numeral0 < e & e < d1 & e < d2";
+Goal "[| (0::real) < d1; 0 < d2 |] ==> EX e. 0 < e & e < d1 & e < d2";
 by (res_inst_tac [("x","(min d1 d2)/2")] exI 1); 
 by (asm_simp_tac (simpset() addsimps [min_def]) 1); 
 qed "real_lbound_gt_zero";
 
 Goal "(inverse x = inverse y) = (x = (y::real))";
-by (case_tac "x=Numeral0 | y=Numeral0" 1);
+by (case_tac "x=0 | y=0" 1);
 by (auto_tac (claset(), 
               simpset() addsimps [real_inverse_eq_divide, 
-                                  rename_numerals DIVISION_BY_ZERO])); 
+                                  DIVISION_BY_ZERO])); 
 by (dres_inst_tac [("f","%u. x*y*u")] arg_cong 1); 
 by (Asm_full_simp_tac 1); 
 qed "real_inverse_eq_iff";
 Addsimps [real_inverse_eq_iff];
 
-Goal "(z/x = z/y) = (z = Numeral0 | x = (y::real))";
-by (case_tac "x=Numeral0 | y=Numeral0" 1);
+Goal "(z/x = z/y) = (z = 0 | x = (y::real))";
+by (case_tac "x=0 | y=0" 1);
 by (auto_tac (claset(), 
-              simpset() addsimps [rename_numerals DIVISION_BY_ZERO])); 
+              simpset() addsimps [DIVISION_BY_ZERO])); 
 by (dres_inst_tac [("f","%u. x*y*u")] arg_cong 1);
 by Auto_tac;   
 qed "real_divide_eq_iff";
@@ -569,7 +570,7 @@ by Auto_tac;
 qed "real_minus_equation";
 
 
-Goal "(x + - a = (Numeral0::real)) = (x=a)";
+Goal "(x + - a = (0::real)) = (x=a)";
 by (arith_tac 1);
 qed "real_add_minus_iff";
 Addsimps [real_add_minus_iff];
@@ -590,45 +591,50 @@ Addsimps (map (inst "x" "number_of ?v")
 Addsimps (map (inst "y" "number_of ?v") 
 	  [real_minus_less, real_minus_le, real_minus_equation]);
 
+(*Equations and inequations involving 1*)
+Addsimps (map (simplify (simpset()) o inst "x" "1") 
+	  [real_less_minus, real_le_minus, real_equation_minus]);
+Addsimps (map (simplify (simpset()) o inst "y" "1") 
+	  [real_minus_less, real_minus_le, real_minus_equation]);
 
-(*** Simprules combining x+y and Numeral0 ***)
+(*** Simprules combining x+y and 0 ***)
 
-Goal "(x+y = (Numeral0::real)) = (y = -x)";
+Goal "(x+y = (0::real)) = (y = -x)";
 by Auto_tac;  
 qed "real_add_eq_0_iff";
 AddIffs [real_add_eq_0_iff];
 
-Goal "(x+y < (Numeral0::real)) = (y < -x)";
+Goal "(x+y < (0::real)) = (y < -x)";
 by Auto_tac;  
 qed "real_add_less_0_iff";
 AddIffs [real_add_less_0_iff];
 
-Goal "((Numeral0::real) < x+y) = (-x < y)";
+Goal "((0::real) < x+y) = (-x < y)";
 by Auto_tac;  
 qed "real_0_less_add_iff";
 AddIffs [real_0_less_add_iff];
 
-Goal "(x+y <= (Numeral0::real)) = (y <= -x)";
+Goal "(x+y <= (0::real)) = (y <= -x)";
 by Auto_tac;  
 qed "real_add_le_0_iff";
 AddIffs [real_add_le_0_iff];
 
-Goal "((Numeral0::real) <= x+y) = (-x <= y)";
+Goal "((0::real) <= x+y) = (-x <= y)";
 by Auto_tac;  
 qed "real_0_le_add_iff";
 AddIffs [real_0_le_add_iff];
 
 
-(** Simprules combining x-y and Numeral0; see also real_less_iff_diff_less_0, etc.,
+(** Simprules combining x-y and 0; see also real_less_iff_diff_less_0, etc.,
     in RealBin
 **)
 
-Goal "((Numeral0::real) < x-y) = (y < x)";
+Goal "((0::real) < x-y) = (y < x)";
 by Auto_tac;  
 qed "real_0_less_diff_iff";
 AddIffs [real_0_less_diff_iff];
 
-Goal "((Numeral0::real) <= x-y) = (y <= x)";
+Goal "((0::real) <= x-y) = (y <= x)";
 by Auto_tac;  
 qed "real_0_le_diff_iff";
 AddIffs [real_0_le_diff_iff];
@@ -660,7 +666,7 @@ by (blast_tac (claset() addSIs [real_less_half_sum, real_gt_half_sum]) 1);
 qed "real_dense";
 
 
-(*Replaces "inverse #nn" by Numeral1/#nn *)
+(*Replaces "inverse #nn" by 1/#nn *)
 Addsimps [inst "x" "number_of ?w" real_inverse_eq_divide];
 
 

@@ -12,12 +12,11 @@ typedef
   pnat = "lfp(%X. {Suc 0} Un Suc`X)"   (lfp_def)
 
 instance
-   pnat :: {ord, plus, times}
+   pnat :: {ord, one, plus, times}
 
 consts
 
   pSuc       :: pnat => pnat
-  "1p"       :: pnat                ("1p")
 
 constdefs
   
@@ -27,7 +26,7 @@ constdefs
 defs
 
   pnat_one_def      
-       "1p == Abs_pnat(Suc 0)"
+       "1 == Abs_pnat(Suc 0)"
   pnat_Suc_def      
        "pSuc == (%n. Abs_pnat(Suc(Rep_pnat(n))))"
 

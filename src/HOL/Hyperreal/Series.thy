@@ -9,8 +9,8 @@ Series = SEQ + Lim +
 
 consts sumr :: "[nat,nat,(nat=>real)] => real"
 primrec
-   sumr_0   "sumr m 0 f = Numeral0"
-   sumr_Suc "sumr m (Suc n) f = (if n < m then Numeral0 
+   sumr_0   "sumr m 0 f = 0"
+   sumr_Suc "sumr m (Suc n) f = (if n < m then 0 
                                else sumr m n f + f(n))"
 
 constdefs

@@ -201,7 +201,7 @@ proof -
               proof (rule graph_extI)
                 fix t assume "t \<in> H"
                 have "(SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H)
-                     = (t, Numeral0)"
+                     = (t, 0)"
                   by (rule decomp_H'_H) (assumption+, rule x')
                 thus "h t = h' t" by (simp! add: Let_def)
               next
@@ -255,12 +255,12 @@ proof -
               proof (rule graph_extI)
                 fix x assume "x \<in> F"
                 have "f x = h x" ..
-                also have " ... = h x + Numeral0 * xi" by simp
+                also have " ... = h x + 0 * xi" by simp
                 also
-                have "... = (let (y, a) = (x, Numeral0) in h y + a * xi)"
+                have "... = (let (y, a) = (x, 0) in h y + a * xi)"
                   by (simp add: Let_def)
                 also have
-                  "(x, Numeral0) = (SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H)"
+                  "(x, 0) = (SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H)"
                   by (rule decomp_H'_H [symmetric]) (simp! add: x')+
                 also have
                   "(let (y, a) = (SOME (y, a). x = y + a \<cdot> x' \<and> y \<in> H)
@@ -372,10 +372,10 @@ fix x y a assume "x \<in> E"  "y \<in> E"
 
 txt {* @{text p} is positive definite: *}
 
-show "Numeral0 \<le> p x"
+show "0 \<le> p x"
 proof (unfold p_def, rule real_le_mult_order1a)
-  from f_cont f_norm show "Numeral0 \<le> \<parallel>f\<parallel>F,norm" ..
-  show "Numeral0 \<le> norm x" ..
+  from f_cont f_norm show "0 \<le> \<parallel>f\<parallel>F,norm" ..
+  show "0 \<le> norm x" ..
 qed
 
 txt {* @{text p} is absolutely homogenous: *}
@@ -402,7 +402,7 @@ proof -
   also
   have "... \<le> \<parallel>f\<parallel>F,norm * (norm x + norm y)"
   proof (rule real_mult_le_le_mono1a)
-    from f_cont f_norm show "Numeral0 \<le> \<parallel>f\<parallel>F,norm" ..
+    from f_cont f_norm show "0 \<le> \<parallel>f\<parallel>F,norm" ..
     show "norm (x + y) \<le> norm x + norm y" ..
   qed
   also have "... = \<parallel>f\<parallel>F,norm * norm x
@@ -489,7 +489,7 @@ txt {*
 
     with g_cont e_norm show "?L \<le> ?R"
     proof (rule fnorm_le_ub)
-      from f_cont f_norm show "Numeral0 \<le> \<parallel>f\<parallel>F,norm" ..
+      from f_cont f_norm show "0 \<le> \<parallel>f\<parallel>F,norm" ..
     qed
 
     txt{* The other direction is achieved by a similar
@@ -509,7 +509,7 @@ txt {*
     qed
     thus "?R \<le> ?L"
     proof (rule fnorm_le_ub [OF f_cont f_norm])
-      from g_cont show "Numeral0 \<le> \<parallel>g\<parallel>E,norm" ..
+      from g_cont show "0 \<le> \<parallel>g\<parallel>E,norm" ..
     qed
   qed
 qed

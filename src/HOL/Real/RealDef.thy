@@ -33,11 +33,13 @@ consts
 defs
 
   real_zero_def  
-  "0 == Abs_REAL(realrel``{(preal_of_prat(prat_of_pnat 1p),
-                                preal_of_prat(prat_of_pnat 1p))})"
+  "0 == Abs_REAL(realrel``{(preal_of_prat(prat_of_pnat 1),
+			    preal_of_prat(prat_of_pnat 1))})"
+
   real_one_def   
-  "1 == Abs_REAL(realrel``{(preal_of_prat(prat_of_pnat 1p) + 
-            preal_of_prat(prat_of_pnat 1p),preal_of_prat(prat_of_pnat 1p))})"
+  "1 == Abs_REAL(realrel``
+               {(preal_of_prat(prat_of_pnat 1) + preal_of_prat(prat_of_pnat 1),
+		 preal_of_prat(prat_of_pnat 1))})"
 
   real_minus_def
   "- R ==  Abs_REAL(UN (x,y):Rep_REAL(R). realrel``{(y,x)})"
@@ -53,12 +55,12 @@ defs
   
 constdefs
 
-  (** these don't use the overloaded real because users don't see them **)
+  (** these don't use the overloaded "real" function: users don't see them **)
   
   real_of_preal :: preal => real            
   "real_of_preal m     ==
-           Abs_REAL(realrel``{(m+preal_of_prat(prat_of_pnat 1p),
-                               preal_of_prat(prat_of_pnat 1p))})"
+           Abs_REAL(realrel``{(m + preal_of_prat(prat_of_pnat 1),
+                               preal_of_prat(prat_of_pnat 1))})"
 
   real_of_posnat :: nat => real             
   "real_of_posnat n == real_of_preal(preal_of_prat(prat_of_pnat(pnat_of_nat n)))"

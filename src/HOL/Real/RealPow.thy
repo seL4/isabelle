@@ -15,7 +15,7 @@ lemmas [arith_split] = abs_split
 instance real :: power ..
 
 primrec (realpow)
-     realpow_0:   "r ^ 0       = Numeral1"
+     realpow_0:   "r ^ 0       = 1"
      realpow_Suc: "r ^ (Suc n) = (r::real) * (r ^ n)"
 
 end

@@ -7,8 +7,6 @@
                   [Gleason- p. 121] provides some of the definitions.
 *)
 
-claset_ref() := claset() delWrapper "bspec";
-
 Goal "inj_on Abs_preal preal";
 by (rtac inj_on_inverseI 1);
 by (etac Abs_preal_inverse 1);
@@ -627,7 +625,7 @@ qed "lemma2_gleason9_36";
 (******)
 
 (*** FIXME: long! ***)
-Goal "prat_of_pnat 1p < x ==> EX r: Rep_preal(A). r*x ~: Rep_preal(A)";
+Goal "prat_of_pnat 1 < x ==> EX r: Rep_preal(A). r*x ~: Rep_preal(A)";
 by (res_inst_tac [("X1","A")] (mem_Rep_preal_Ex RS exE) 1);
 by (res_inst_tac [("Q","xa*x : Rep_preal(A)")] (excluded_middle RS disjE) 1);
 by (Fast_tac 1);

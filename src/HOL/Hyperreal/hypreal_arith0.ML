@@ -9,24 +9,23 @@ Instantiation of the generic linear arithmetic package for type hypreal.
 local
 
 (* reduce contradictory <= to False *)
-val simps = 
-    [order_less_irrefl, zero_eq_numeral_0, one_eq_numeral_1,
+val add_rules =
+    [order_less_irrefl, hypreal_numeral_0_eq_0, hypreal_numeral_1_eq_1,
      add_hypreal_number_of, minus_hypreal_number_of, diff_hypreal_number_of,
      mult_hypreal_number_of, eq_hypreal_number_of, less_hypreal_number_of,
      le_hypreal_number_of_eq_not_less, hypreal_diff_def,
-     hypreal_minus_add_distrib, hypreal_minus_minus, hypreal_mult_assoc];
-
-val add_rules =
-    map rename_numerals
-        [hypreal_add_zero_left, hypreal_add_zero_right,
-         hypreal_add_minus, hypreal_add_minus_left,
-         hypreal_mult_0, hypreal_mult_0_right,
-         hypreal_mult_1, hypreal_mult_1_right,
-         hypreal_mult_minus_1, hypreal_mult_minus_1_right];
+     hypreal_minus_add_distrib, hypreal_minus_minus, hypreal_mult_assoc,
+     hypreal_minus_zero,
+     hypreal_add_zero_left, hypreal_add_zero_right,
+     hypreal_add_minus, hypreal_add_minus_left,
+     hypreal_mult_0, hypreal_mult_0_right,
+     hypreal_mult_1, hypreal_mult_1_right,
+     hypreal_mult_minus_1, hypreal_mult_minus_1_right];
 
 val simprocs = [Hyperreal_Times_Assoc.conv, 
                 Hyperreal_Numeral_Simprocs.combine_numerals]@
-               Hyperreal_Numeral_Simprocs.cancel_numerals;
+               Hyperreal_Numeral_Simprocs.cancel_numerals @
+               Hyperreal_Numeral_Simprocs.eval_numerals;
 
 val mono_ss = simpset() addsimps
                 [hypreal_add_le_mono,hypreal_add_less_mono,
@@ -69,8 +68,7 @@ val hypreal_arith_setup =
     mult_mono_thms = mult_mono_thms @ hypreal_mult_mono_thms,
     inj_thms = inj_thms, (*FIXME: add hypreal*)
     lessD = lessD,  (*We don't change LA_Data_Ref.lessD because the hypreal ordering is dense!*)
-    simpset = simpset addsimps (add_rules @ simps)
-                      addsimprocs simprocs}),
+    simpset = simpset addsimps add_rules addsimprocs simprocs}),
   arith_discrete ("HyperDef.hypreal",false),
   Simplifier.change_simpset_of (op addsimprocs) [fast_hypreal_arith_simproc]];
 

@@ -1246,17 +1246,13 @@ qed "hypnat_of_nat_eq_cancel";
 Addsimps [hypnat_of_nat_eq_cancel];
 
 Goalw [hypnat_zero_def] 
-     "hypreal_of_hypnat 0 = Numeral0";
-by (simp_tac (HOL_ss addsimps
-             [zero_eq_numeral_0 RS sym, hypreal_zero_def]) 1); 
-by (simp_tac (simpset() addsimps [hypreal_of_hypnat, real_of_nat_zero]) 1);
+     "hypreal_of_hypnat 0 = 0";
+by (simp_tac (simpset() addsimps [hypreal_zero_def, hypreal_of_hypnat]) 1);
 qed "hypreal_of_hypnat_zero";
 
 Goalw [hypnat_one_def] 
-     "hypreal_of_hypnat (1::hypnat) = Numeral1";
-by (simp_tac (HOL_ss addsimps
-             [one_eq_numeral_1 RS sym, hypreal_one_def]) 1); 
-by (simp_tac (simpset() addsimps [hypreal_of_hypnat, real_of_nat_one]) 1);
+     "hypreal_of_hypnat (1::hypnat) = 1";
+by (simp_tac (simpset() addsimps [hypreal_one_def, hypreal_of_hypnat]) 1);
 qed "hypreal_of_hypnat_one";
 
 Goal "hypreal_of_hypnat (m + n) = hypreal_of_hypnat m + hypreal_of_hypnat n";
@@ -1283,7 +1279,7 @@ by (asm_simp_tac (simpset() addsimps
 qed "hypreal_of_hypnat_less_iff";
 Addsimps [hypreal_of_hypnat_less_iff];
 
-Goal "(hypreal_of_hypnat N = Numeral0) = (N = 0)";
+Goal "(hypreal_of_hypnat N = 0) = (N = 0)";
 by (simp_tac (simpset() addsimps [hypreal_of_hypnat_zero RS sym]) 1);
 qed "hypreal_of_hypnat_eq_zero_iff";
 Addsimps [hypreal_of_hypnat_eq_zero_iff];

@@ -407,7 +407,7 @@ local
 val add_rules = 
     simp_thms @ bin_arith_simps @ bin_rel_simps @ 
     [int_numeral_0_eq_0, int_numeral_1_eq_1,
-     zadd_0, zadd_0_right, zdiff_def,
+     zminus_0, zadd_0, zadd_0_right, zdiff_def,
      zadd_zminus_inverse, zadd_zminus_inverse2, 
      zmult_0, zmult_0_right, 
      zmult_1, zmult_1_right, 
