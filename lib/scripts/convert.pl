@@ -21,7 +21,7 @@ sub subst_RS {
   s/ RS ([\w\'\.]+)/ [THEN $1]/g;
   s/ RS \((.+?)\)/ [THEN $1]/g;
   s/\(([\w\'\.]+ \[THEN [\w\'\.]+\])\)/$1/g;
-  s/\] \[THEN /, /g;
+  s/\] \[THEN /, THEN /g;
   s/THEN sym\b/symmetric/g;
 }
 
