@@ -119,6 +119,8 @@ problems in commutative rings, using axiomatic type classes for + and *;
 
 * more default rewrite rules for quantifiers, union/intersection;
 
+* a new constant `arbitrary == @x.False';
+
 * HOLCF/IOA replaces old HOL/IOA;
 
 * HOLCF changes: derived all rules and arities 
