@@ -18,3 +18,4 @@ with_path "../W0"           time_use_thy "W_correct";
 with_path "../NumberTheory" time_use_thy "Fibonacci";
 time_use_thy "Puzzle";
 time_use_thy "NestedDatatype";
+time_use_thy "HoareEx";
