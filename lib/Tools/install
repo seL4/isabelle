@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# $Id$
+#
+# DESCRIPTION: install binaries with absolute references to ISABELLE_HOME/bin
+
+
+PRG=$(basename $0)
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG DIR"
+  echo
+  echo "  Install binaries in directory DIR with absolute references to"
+  echo "  $ISABELLE_HOME/bin (non-movable)."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## args
+
+DIR=""
+[ $# -ge 1 ] && { DIR="$1"; shift; }
+
+[ $# -ne 0 -o -z "$DIR" -o "$DIR" = "-?" ] && usage
+
+
+## main
+
+[ ! -d "$DIR" ] && fail "Bad directory: $DIR"
+
+BASH=$(type -path bash)
+[ -z "$BASH" ] && fail "Cannot find bash!"
+
+for BIN in $ISABELLE_HOME/bin/*
+do
+  if [ -f "$BIN" -a -x "$BIN" ]; then
+    B=$DIR/$(basename $BIN)
+    echo "install $B"
+    echo "#!$BASH" >$B || fail "Cannot write file: $B"
+    echo >>$B
+    echo "$BIN \"\$@\"" >>$B
+    chmod +x $B
+  fi
+done
