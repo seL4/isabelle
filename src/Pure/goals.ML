@@ -193,6 +193,7 @@ fun Export th = export_thy (the_context ()) th;
 *)
 fun prepare_proof atomic rths chorn =
   let val {sign, t=horn,...} = rep_cterm chorn;
+      val _ = Term.no_dummy_patterns horn handle TERM (msg, _) => error msg;
       val (_,As,B) = Logic.strip_horn(horn);
       val atoms = atomic andalso
             forall (fn t => not(Logic.is_implies t orelse Logic.is_all t)) As;
