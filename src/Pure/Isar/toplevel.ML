@@ -45,6 +45,7 @@ sig
   val proof: (ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val proof': (bool -> ProofHistory.T -> ProofHistory.T) -> transition -> transition
   val proof_to_theory: (ProofHistory.T -> theory) -> transition -> transition
+  val quiet: bool ref
   val trace: bool ref
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
@@ -76,9 +77,7 @@ fun str_of_node (Theory _) = "in theory mode"
 fun print_node (Theory thy) = Pretty.writeln (Pretty.block
       [Pretty.str "Theory:", Pretty.brk 1, Pretty.str (PureThy.get_name thy),
         Pretty.str " =", Pretty.brk 1, Display.pretty_theory thy])
-  | print_node (Proof prf) =
-      (writeln ("Proof: step #" ^ string_of_int (ProofHistory.position prf));
-        Proof.print_state (ProofHistory.current prf));
+  | print_node (Proof prf) = Proof.print_state (ProofHistory.position prf) (ProofHistory.current prf);
 
 
 (* datatype state *)
@@ -325,6 +324,7 @@ fun proof_to_theory f = map_current (fn _ => (fn Proof prf => Theory (f prf) | _
 
 (** toplevel transactions **)
 
+val quiet = ref false;
 val trace = ref false;
 
 
@@ -370,7 +370,7 @@ fun app int (tr as Transition {trans, int_only, print, ...}) state =
       else warning (command_msg "Executing interactive-only " tr);
     val (result, opt_exn) =
       (if ! trace then (writeln (command_msg "" tr); timeap) else I) (apply_trans int trans) state;
-    val _ = if int andalso print then print_state result else ();
+    val _ = if int andalso print andalso not (! quiet) then print_state result else ();
   in (result, apsome (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
 
 in
