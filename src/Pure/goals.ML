@@ -96,7 +96,7 @@ val curr_mkresult =
     ref((fn _=> error"No goal has been supplied in subgoal module") 
        : bool*thm->thm);
 
-val dummy = trivial(read_cterm Sign.pure 
+val dummy = trivial(read_cterm (sign_of Pure.thy)
     ("PROP No_goal_has_been_supplied",propT));
 
 (*List of previous goal stacks, for the undo operation.  Set by setstate. 
