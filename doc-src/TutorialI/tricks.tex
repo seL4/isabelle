@@ -1,0 +1,36 @@
+\chapter{The Tricks of the Trade}
+
+\section{Simplification}
+\index{simplification|(}
+
+\subsection{Advanced features}
+
+\subsubsection{Congruence rules}
+
+
+\subsubsection{Permutative rewrite rules}
+
+A rewrite rule is \textbf{permutative} if the left-hand side and right-hand
+side are the same up to renaming of variables.  The most common permutative
+rule is commutativity: $x+y = y+x$.  Another example is $(x-y)-z = (x-z)-y$.
+Such rules are problematic because once they apply, they can be used forever.
+The simplifier is aware of this danger and treats permutative rules
+separately. For details see~\cite{isabelle-ref}.
+
+
+
+\subsection{How it works}
+\label{sec:SimpHow}
+
+\subsubsection{Higher-order patterns}
+
+\subsubsection{Local assumptions}
+
+\subsubsection{The preprocessor}
+
+\index{simplification|)}
+
+
+\section{Advanced induction techniques}
+\label{sec:advanced-ind}
+\input{Misc/document/AdvancedInd.tex}
