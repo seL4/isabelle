@@ -251,6 +251,16 @@ val global_with = gen_with ProofContext.init;
 val local_with = gen_with I;
 
 
+(* unfold / fold definitions *)
+
+fun gen_rewrite rew defs (x, thm) = (x, rew defs thm);
+
+val global_unfold = syntax (global_thmss >> gen_rewrite Tactic.rewrite_rule);
+val local_unfold = syntax (local_thmss >> gen_rewrite Tactic.rewrite_rule);
+val global_fold = syntax (global_thmss >> gen_rewrite Tactic.fold_rule);
+val local_fold = syntax (local_thmss >> gen_rewrite Tactic.fold_rule);
+
+
 (* misc rules *)
 
 fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
@@ -273,6 +283,8 @@ val pure_attributes =
   ("OF", (global_APP, local_APP), "resolve with rule -- apply rule to rules"),
   ("where", (global_where, local_where), "named instantiation of theorem"),
   ("of", (global_with, local_with), "positional instantiation of theorem -- apply rule to terms"),
+  ("unfold", (global_unfold, local_unfold), "unfold definitions"),
+  ("fold", (global_fold, local_fold), "fold definitions"),
   ("standard", (standard, standard), "put theorem into standard form"),
   ("elimify", (elimify, elimify), "turn destruct rule into elimination rule"),
   ("transfer", (global_transfer, local_transfer), "transfer theorem to this theory"),
