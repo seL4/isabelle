@@ -212,7 +212,7 @@ goal Ordinal.thy "!!i j. j<i ==> Ord(i)";
 by (eresolve_tac [ltE] 1 THEN assume_tac 1);
 qed "lt_Ord2";
 
-(* ""ja le j ==> Ord(j)" *)
+(* "ja le j ==> Ord(j)" *)
 bind_thm ("le_Ord2", lt_Ord2 RS Ord_succD);
 
 (* i<0 ==> R *)
