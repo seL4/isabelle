@@ -90,7 +90,7 @@ proof -
 qed
 
 lemma mult_left_commute: "a * (b * c) = b * (a * (c::'a::ring))"
-by(rule mk_left_commute[OF mult_assoc mult_commute])
+  by (rule mk_left_commute [of "op *", OF mult_assoc mult_commute])
 
 theorems ring_mult_ac = mult_assoc mult_commute mult_left_commute
 
