@@ -1,17 +1,18 @@
 (*  Title:      HOL/AxClasses/Tutorial/Product.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-
-Define a 'syntactic' class "product" that is logically equivalent to
-"term".
 *)
 
-Product = HOL +
+theory Product = Main:;
 
 axclass
-  product < term
-
+  product < "term";
 consts
-  "<*>" :: "['a::product, 'a] => 'a"      (infixl 70)
+  product :: "'a::product => 'a => 'a"    (infixl "[*]" 70);
 
-end
+instance bool :: product;
+  by intro_classes;
+defs
+  product_bool_def: "x [*] y == x & y";
+
+end;

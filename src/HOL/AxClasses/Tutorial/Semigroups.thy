@@ -1,32 +1,20 @@
 (*  Title:      HOL/AxClasses/Tutorial/Semigroups.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
-
-Semigroups with different 'signatures'.
 *)
 
-Semigroups = HOL +
+theory Semigroups = Main:;
 
 consts
-  "<+>"         :: "['a, 'a] => 'a"             (infixl 65)
-  "<*>"         :: "['a, 'a] => 'a"             (infixl 70)
-
-constdefs
-  assoc         :: "(['a, 'a] => 'a) => bool"
-  "assoc f == ALL x y z. f (f x y) z = f x (f y z)"
-
-
-(* semigroups with op <+> *)
-
+  times :: "'a => 'a => 'a"    (infixl "[*]" 70);
 axclass
-  plus_sg < term
-  plus_assoc    "assoc (op <+>)"
+  semigroup < "term"
+  assoc: "(x [*] y) [*] z = x [*] (y [*] z)";
 
-
-(* semigroups with op <*> *)
-
+consts
+  plus :: "'a => 'a => 'a"    (infixl "[+]" 70);
 axclass
-  times_sg < term
-  times_assoc   "assoc (op <*>)"
+  plus_semigroup < "term"
+  assoc: "(x [+] y) [+] z = x [+] (y [+] z)";
 
-end
+end;
