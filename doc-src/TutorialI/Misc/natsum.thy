@@ -59,7 +59,7 @@ see~\S\ref{sec:numerals}.
 \end{warn}
 
 Simple arithmetic goals are proved automatically by both @{term auto} and the
-simplification methods introduced in \S\ref{sec:Simplification}.  For
+simplification method introduced in \S\ref{sec:Simplification}.  For
 example,
 *}
 

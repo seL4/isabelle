@@ -135,7 +135,7 @@ Beware that such rotations make proofs quite brittle.
 
 subsection{*Rewriting with Definitions*}
 
-text{*\index{simplification!with definitions}
+text{*\label{sec:Simp-with-Defs}\index{simplification!with definitions}
 Constant definitions (\S\ref{sec:ConstDefinitions}) can
 be used as simplification rules, but by default they are not.  Hence the
 simplifier does not expand them automatically, just as it should be:
@@ -237,7 +237,7 @@ assumption of the subgoal.
 
 subsection{*Automatic Case Splits*}
 
-text{*\indexbold{case splits}\index{*split (method, attr.)|(}
+text{*\label{sec:AutoCaseSplits}\indexbold{case splits}\index{*split (method, attr.)|(}
 Goals containing @{text"if"}-expressions are usually proved by case
 distinction on the condition of the @{text"if"}. For example the goal
 *}

@@ -37,11 +37,10 @@ an @{text if}, it is unfolded again, which leads to an infinite chain of
 simplification steps. Fortunately, this problem can be avoided in many
 different ways.
 
-The most radical solution is to disable the offending
-@{thm[source]split_if} as shown in the section on case splits in
-\S\ref{sec:Simplification}.  However, we do not recommend this because it
-means you will often have to invoke the rule explicitly when @{text if} is
-involved.
+The most radical solution is to disable the offending @{thm[source]split_if}
+as shown in \S\ref{sec:AutoCaseSplits}.  However, we do not recommend this
+because it means you will often have to invoke the rule explicitly when
+@{text if} is involved.
 
 If possible, the definition should be given by pattern matching on the left
 rather than @{text if} on the right. In the case of @{term gcd} the
