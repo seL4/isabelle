@@ -415,12 +415,17 @@ fun cprop_of (Thm {sign, maxidx, prop, ...}) =
 
 (* basic utils *)
 
-(*accumulate sorts suppressing duplicates; these are coded low level
+(*accumulate sorts suppressing duplicates; these are coded low levelly
   to improve efficiency a bit*)
 
+fun mem_sort (_:sort) [] = false
+  | mem_sort S (S' :: Ss) = S = S' orelse mem_sort S Ss;
+
+fun ins_sort S Ss = if mem_sort S Ss then Ss else S :: Ss;
+
 fun add_typ_sorts (Type (_, Ts), Ss) = add_typs_sorts (Ts, Ss)
-  | add_typ_sorts (TFree (_, S), Ss) = S ins Ss
-  | add_typ_sorts (TVar (_, S), Ss) = S ins Ss
+  | add_typ_sorts (TFree (_, S), Ss) = ins_sort S Ss
+  | add_typ_sorts (TVar (_, S), Ss) = ins_sort S Ss
 and add_typs_sorts ([], Ss) = Ss
   | add_typs_sorts (T :: Ts, Ss) = add_typs_sorts (Ts, add_typ_sorts (T, Ss));
 
