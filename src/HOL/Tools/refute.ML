@@ -619,6 +619,7 @@ struct
 			| Const ("op :", T)               => collect_type_axioms (axs, T)
 			(* other optimizations *)
 			| Const ("Finite_Set.card", T)    => collect_type_axioms (axs, T)
+			| Const ("Finite_Set.Finites", T) => collect_type_axioms (axs, T)
 			| Const ("op <", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => collect_type_axioms (axs, T)
 			| Const ("op +", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
 			| Const ("op -", T as Type ("fun", [Type ("nat", []), Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => collect_type_axioms (axs, T)
@@ -2064,6 +2065,25 @@ struct
 
 	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
 
+	(* only an optimization: 'Finites' could in principle be interpreted with *)
+	(* interpreters available already (using its definition), but the code    *)
+	(* below is more efficient                                                *)
+
+	fun Finite_Set_Finites_interpreter thy model args t =
+		case t of
+		  Const ("Finite_Set.Finites", Type ("set", [Type ("set", [T])])) =>
+			let
+				val (i_set, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1, bounds=[], wellformed=True} (Free ("dummy", Type ("set", [T])))
+				val size_set      = size_of_type i_set
+			in
+				(* we only consider finite models anyway, hence EVERY set is in "Finites" *)
+				SOME (Node (replicate size_set TT), model, args)
+			end
+		| _ =>
+			NONE;
+
+	(* theory -> model -> arguments -> Term.term -> (interpretation * model * arguments) option *)
+
 	(* only an optimization: 'op <' could in principle be interpreted with    *)
 	(* interpreters available already (using its definition), but the code    *)
 	(* below is more efficient                                                *)
@@ -2388,18 +2408,19 @@ struct
 
 	val setup =
 		[RefuteData.init,
-		 add_interpreter "stlc"            stlc_interpreter,
-		 add_interpreter "Pure"            Pure_interpreter,
-		 add_interpreter "HOLogic"         HOLogic_interpreter,
-		 add_interpreter "set"             set_interpreter,
+		 add_interpreter "stlc"    stlc_interpreter,
+		 add_interpreter "Pure"    Pure_interpreter,
+		 add_interpreter "HOLogic" HOLogic_interpreter,
+		 add_interpreter "set"     set_interpreter,
 		 add_interpreter "IDT"             IDT_interpreter,
 		 add_interpreter "IDT_constructor" IDT_constructor_interpreter,
 		 add_interpreter "IDT_recursion"   IDT_recursion_interpreter,
-		 add_interpreter "Finite_Set.card" Finite_Set_card_interpreter,
-		 add_interpreter "Nat.op <"        Nat_less_interpreter,
-		 add_interpreter "Nat.op +"        Nat_plus_interpreter,
-		 add_interpreter "Nat.op -"        Nat_minus_interpreter,
-		 add_interpreter "Nat.op *"        Nat_mult_interpreter,
+		 add_interpreter "Finite_Set.card"    Finite_Set_card_interpreter,
+		 add_interpreter "Finite_Set.Finites" Finite_Set_Finites_interpreter,
+		 add_interpreter "Nat.op <" Nat_less_interpreter,
+		 add_interpreter "Nat.op +" Nat_plus_interpreter,
+		 add_interpreter "Nat.op -" Nat_minus_interpreter,
+		 add_interpreter "Nat.op *" Nat_mult_interpreter,
 		 add_printer "stlc" stlc_printer,
 		 add_printer "set"  set_printer,
 		 add_printer "IDT"  IDT_printer];
