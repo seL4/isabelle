@@ -40,7 +40,7 @@ fun induct_rule thy kind name =
 
 (* induct_tac *)
 
-fun induct_tac thy insts opt_kind_name i state =
+fun induct_tac thy insts opt_kind_name facts i state =
   let
     val (kind, name) =
       (case opt_kind_name of Some kind_name => kind_name | None =>
@@ -62,7 +62,7 @@ fun induct_tac thy insts opt_kind_name i state =
       if null insts then rule
       else Drule.cterm_instantiate (prep_insts
         (DatatypeAux.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of rule)), insts)) rule;
-  in Tactic.rtac inst_rule i state end;
+  in Method.rule_tac [inst_rule] facts i state end;
 
 
 (* induct_method *)
@@ -72,7 +72,7 @@ val inst = term -- term >> (apfst Some) || term >> pair None;
 
 fun induct ctxt =
   Args.and_list inst -- Scan.option (Scan.lift (kind -- Args.name))
-  >> (fn (is, k) => Method.METHOD0 (FIRSTGOAL (induct_tac (ProofContext.theory_of ctxt) is k)));
+  >> (fn (is, k) => Method.METHOD (FIRSTGOAL o induct_tac (ProofContext.theory_of ctxt) is k));
 
 fun induct_meth src ctxt = #2 (Method.syntax (induct ctxt) ctxt src);
 val induct_method = ("induct", induct_meth, "induction on types / sets / functions");
