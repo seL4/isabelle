@@ -591,7 +591,7 @@ fun err_in_type s =
 
 fun rd_raw_typ syn tsig spaces def_sort str =
   intrn_tycons spaces
-    (Syntax.read_typ syn (Type.get_sort tsig def_sort (intrn_sort spaces)) str
+    (Syntax.read_typ syn (Type.get_sort tsig def_sort (intrn_sort spaces)) (intrn_sort spaces) str
       handle ERROR => err_in_type str);
 
 fun read_raw_typ' syn (sg as Sg (_, {tsig, spaces, ...}), def_sort) str =
