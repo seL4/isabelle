@@ -117,8 +117,8 @@ sig
          bool*bool -> meta_simpset -> (meta_simpset -> thm -> thm option)
            -> cterm -> thm
   val set_mk_rews: meta_simpset * (thm -> thm list) -> meta_simpset
-  val rep_theory: theory ->
-    {sign: Sign.sg, ext_axtab: term Symtab.table, parents: theory list}
+  val rep_theory: theory -> {sign: Sign.sg, new_axioms: term Sign.Symtab.table, 
+    parents: theory list}
   val subthy: theory * theory -> bool
   val eq_thy: theory * theory -> bool
   val sign_of: theory -> Sign.sg
@@ -130,11 +130,12 @@ sig
   val trace_simp: bool ref
   val transitive: thm -> thm -> thm
   val trivial: cterm -> thm
+  val class_triv: theory -> class -> thm
   val varifyT: thm -> thm
 end;
 
 functor ThmFun (structure Logic: LOGIC and Unify: UNIFY and Pattern: PATTERN
-  and Net:NET sharing type Pattern.type_sig = Unify.Sign.Type.type_sig)(*: THM *) (* FIXME debug *) =
+  and Net:NET sharing type Pattern.type_sig = Unify.Sign.Type.type_sig): THM =
 struct
 
 structure Sequence = Unify.Sequence;
@@ -261,7 +262,10 @@ fun cprop_of (Thm {sign, maxidx, hyps, prop}) =
 (*** Theories ***)
 
 datatype theory =
-  Theory of {sign: Sign.sg, ext_axtab: term Symtab.table, parents: theory list};
+  Theory of {
+    sign: Sign.sg,
+    new_axioms: term Symtab.table,
+    parents: theory list};
 
 fun rep_theory (Theory args) = args;
 
@@ -276,7 +280,7 @@ val syn_of = #syn o Sign.rep_sg o sign_of;
 val stamps_of_thy = #stamps o Sign.rep_sg o sign_of;
 
 (*return additional axioms of this theory node*)
-val axioms_of = Symtab.dest o #ext_axtab o rep_theory;
+val axioms_of = Symtab.dest o #new_axioms o rep_theory;
 
 (*return the immediate ancestors*)
 val parents_of = #parents o rep_theory;
@@ -291,8 +295,8 @@ val eq_thy = Sign.eq_sg o pairself sign_of;
 fun get_axiom theory name =
   let
     fun get_ax [] = raise Match
-      | get_ax (Theory {sign, ext_axtab, parents} :: thys) =
-          (case Symtab.lookup (ext_axtab, name) of
+      | get_ax (Theory {sign, new_axioms, parents} :: thys) =
+          (case Symtab.lookup (new_axioms, name) of
             Some t =>
               Thm {sign = sign, maxidx = maxidx_of_term t, hyps = [], prop = t}
           | None => get_ax parents handle Match => get_ax thys);
@@ -305,7 +309,7 @@ fun get_axiom theory name =
 (* the Pure theory *)
 
 val pure_thy =
-  Theory {sign = Sign.pure, ext_axtab = Symtab.null, parents = []};
+  Theory {sign = Sign.pure, new_axioms = Symtab.null, parents = []};
 
 
 
@@ -314,15 +318,15 @@ val pure_thy =
 fun err_dup_axms names =
   error ("Duplicate axiom name(s) " ^ commas_quote names);
 
-fun ext_thy (thy as Theory {sign, ext_axtab, parents}) sign1 new_axms =
+fun ext_thy (thy as Theory {sign, new_axioms, parents}) sign1 new_axms =
   let
     val draft = Sign.is_draft sign;
-    val ext_axtab1 =
-      Symtab.extend_new (if draft then ext_axtab else Symtab.null, new_axms)
+    val new_axioms1 =
+      Symtab.extend_new (if draft then new_axioms else Symtab.null, new_axms)
         handle Symtab.DUPS names => err_dup_axms names;
     val parents1 = if draft then parents else [thy];
   in
-    Theory {sign = sign1, ext_axtab = ext_axtab1, parents = parents1}
+    Theory {sign = sign1, new_axioms = new_axioms1, parents = parents1}
   end;
 
 
@@ -375,9 +379,9 @@ fun read_axm sg (name, str) =
 fun ext_axms prep_axm axms (thy as Theory {sign, ...}) =
   let
     val sign1 = Sign.make_draft sign;
-    val new_axioms = map (apsnd Logic.varify o prep_axm sign) axms;
+    val axioms = map (apsnd Logic.varify o prep_axm sign) axms;
   in
-    ext_thy thy sign1 new_axioms
+    ext_thy thy sign1 axioms
   end;
 
 val add_axioms = ext_axms read_axm;
@@ -401,10 +405,10 @@ fun extend_theory thy thyname ext axpairs =
     val Theory {sign, ...} = thy;
 
     val sign1 = Sign.extend sign thyname ext;
-    val new_axioms = map (read_ax sign1) axpairs;
+    val axioms = map (read_ax sign1) axpairs;
   in
     writeln "WARNING: called obsolete function \"extend_theory\"";
-    ext_thy thy sign1 new_axioms
+    ext_thy thy sign1 axioms
   end;
 
 
@@ -426,7 +430,7 @@ fun merge_thy_list mk_draft thys =
         sign =
           (if mk_draft then Sign.make_draft else I)
           (foldl add_sign (Sign.pure, thys)),
-        ext_axtab = Symtab.null,
+        new_axioms = Symtab.null,
         parents = thys})
   end;
 
@@ -753,6 +757,20 @@ fun trivial ct : thm =
             raise THM("trivial: the term must have type prop", 0, [])
       else Thm{sign= sign, maxidx= maxidx, hyps= [], prop= implies$A$A}
   end;
+
+(*Axiom-scheme reflecting signature contents: "(| ?'a::c : c_class |)".
+  Is weaker than some definition of c_class, e.g. "c_class == %x.T";
+  may be interpreted as an instance of A==>A.*)
+fun class_triv thy c =
+  let
+    val sign = sign_of thy;
+    val Cterm {t, maxidx, ...} =
+      cterm_of sign (Logic.mk_inclass (TVar (("'a", 0), [c]), c))
+        handle TERM (msg, _) => raise THM ("class_triv: " ^ msg, 0, []);
+  in
+    Thm {sign = sign, maxidx = maxidx, hyps = [], prop = t}
+  end;
+
 
 (* Replace all TFrees not in the hyps by new TVars *)
 fun varifyT(Thm{sign,maxidx,hyps,prop}) =
