@@ -1,0 +1,80 @@
+%==============================================================================
+% Prosper -- (PPRframes.sty) Style file
+% A LaTeX class for creating slides
+% Author: Frederic Goualard (Frederic.Goualard@irin.univ-nantes.fr)
+%         Institut de Recherche en Informatique de Nantes
+%         University of Nantes, France
+%
+% Copyright (c) 2000 Frederic Goualard
+% All rights reserved.
+% 
+% Permission is hereby granted, without written agreement and without
+% license or royalty fees, to use, copy, modify, and distribute this
+% software and its documentation for any purpose, provided that the
+% above copyright notice and the following two paragraphs appear in
+% all copies of this software.
+% 
+% IN NO EVENT SHALL THE AUTHOR BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, 
+% SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OF 
+% THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE AUTHOR HAS BEEN ADVISED 
+% OF THE POSSIBILITY OF SUCH DAMAGE.
+% 
+% 
+% THE AUTHOR SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+% INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+% AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+% ON AN "AS IS" BASIS, AND THE AUTHOR HAS NO OBLIGATION TO
+% PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+%
+% CVSId : $Id$
+%==============================================================================
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{PPRmyframes}[2000/04/18]
+\typeout{`Frames' style for prosper ---}
+\typeout{(c) 2000 Frederic Goualard, IRIN, France}
+\typeout{CVSId: $Id$}
+\typeout{ }
+
+\RequirePackage{semhelv}
+\RequirePackage{amssymb}
+
+% Chargement des fichiers de pstricks (on teste les noms en vigueur pour
+% gérer les différentes versions de pstricks).
+\IfFileExists{pst-grad}{\RequirePackage{pst-grad}}{\RequirePackage{gradient}}
+
+\newgray{gris1}{.40}
+\newgray{gris2}{.85}
+\newgray{gris3}{.30}
+\newgray{gris4}{.25}
+\newgray{gris5}{.90}
+
+\FontTitle{\usefont{T1}{phv}{b}{sl}\fontsize{14.4pt}{12pt}\selectfont}{%
+  \usefont{T1}{phv}{b}{sl}\fontsize{14.4pt}{12pt}\selectfont}
+\FontText{\usefont{T1}{phv}{m}{n}\fontsize{13pt}{12pt}\selectfont}{%
+  \usefont{T1}{phv}{m}{n}\fontsize{13pt}{12pt}\selectfont}
+
+\def\labelitemi{\ensuremath{\blacktriangleright}}
+
+\newcommand{\slidetitle}[1]{%
+  \rput[lb](-.6,3.6){%
+    \parbox{12cm}{\begin{center}\fontTitle{#1}\end{center}}}}
+
+\LogoPosition{-.7,-.1}
+
+\def\TWRFrame#1{%
+  \psframe[linestyle=none,fillstyle=gradient,gradangle=90,
+  gradbegin=black,gradend=gris2,gradmidpoint=0.7]%
+  (-1.2,7)(11.6,7.1)
+  \PutLogo % Mandatory
+  {#1}}
+
+\NewSlideStyle[12cm]{t}{5,2.4}{TWRFrame}
+\PDFCroppingBox{10 40 594 820}
+
+
+\endinput
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
