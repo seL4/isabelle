@@ -185,7 +185,7 @@ fun mutual_ind_tac [] 0 = all_tac
            rewrite_goals_tac all_defs  THEN
            simp_tac (mut_ss addsimps [Part_def]) 1  THEN
            IF_UNSOLVED (*simp_tac may have finished it off!*)
-             ((*simplify assumptions, but don't accept new rewrite rules!*)
+             ((*simplify assumptions*)
               full_simp_tac mut_ss 1  THEN
               (*unpackage and use "prem" in the corresponding place*)
               REPEAT (rtac impI 1)  THEN
