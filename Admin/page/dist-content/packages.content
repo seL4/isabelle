@@ -23,8 +23,8 @@ user interface support, as provided by <a
 href="http://www.dcs.ed.ac.uk/home/proofgen/">Proof General</a>
 together with the (optional) <a
 href="http://www.fmi.uni-passau.de/~wedler/x-symbol/">X-Symbol</a>
-package.  Both of these require a recent version of <a
-href="http://www.xemacs.org">XEmacs</a> (e.g. version 21).
+package.  Both of these should be used with a recent version of <a
+href="http://www.xemacs.org">XEmacs</a> (e.g. version 21.1).
 
 <p>
 
