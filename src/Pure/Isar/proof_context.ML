@@ -33,14 +33,17 @@ sig
   val cert_prop: context -> term -> term
   val declare_term: term -> context -> context
   val declare_terms: term list -> context -> context
+  val warn_extra_tfrees: context -> context -> context
   val add_binds: (indexname * string option) list -> context -> context
   val add_binds_i: (indexname * term option) list -> context -> context
-  val match_binds: (string list * string) list -> context -> context
-  val match_binds_i: (term list * term) list -> context -> context
-  val bind_propp: context * (string * (string list * string list)) -> context * term
-  val bind_propp_i: context * (term * (term list * term list)) -> context * term
   val auto_bind_goal: term -> context -> context
   val auto_bind_facts: string -> term list -> context -> context
+  val match_binds: (string list * string) list -> context -> context
+  val match_binds_i: (term list * term) list -> context -> context
+  val bind_propps: bool -> (string * (string list * string list)) list
+    -> context -> context * term list
+  val bind_propps_i: bool -> (term * (term list * term list)) list
+    -> context -> context * term list
   val get_thm: context -> string -> thm
   val get_thms: context -> string -> thm list
   val get_thmss: context -> string list -> thm list
@@ -519,6 +522,19 @@ fun declare_term t ctxt = declare (ctxt, t);
 fun declare_terms ts ctxt = foldl declare (ctxt, ts);
 
 
+(* warn_extra_tfrees *)
+
+fun warn_extra used1 used2 =
+  if used1 = used2 then ()
+  else
+    (case Library.gen_rems (op =) (used2, used1) of
+      [] => ()
+    | extras => warning ("Introducing free type variables: " ^ commas extras));
+
+fun warn_extra_tfrees (ctxt1 as Context {defs = (_, _, used1), ...})
+    (ctxt2 as Context {defs = (_, _, used2), ...}) = (warn_extra used1 used2; ctxt2);
+
+
 
 (** bindings **)
 
@@ -549,13 +565,22 @@ fun delete_update_binds bs ctxt = foldl del_upd_bind (ctxt, bs);
 
 (* add_binds(_i) -- sequential *)
 
+local
+
 fun gen_bind prep (ctxt, (xi as (x, _), raw_t)) =
   ctxt |> delete_update_binds [(xi, apsome (prep ctxt) raw_t)];
 
-fun gen_binds prep binds ctxt = foldl (gen_bind prep) (ctxt, binds);
+fun gen_binds prep binds ctxt =
+  warn_extra_tfrees ctxt (foldl (gen_bind prep) (ctxt, binds));
+
+in
 
 val add_binds = gen_binds read_term;
 val add_binds_i = gen_binds cert_term;
+val auto_bind_goal = add_binds_i o AutoBind.goal;
+val auto_bind_facts = add_binds_i oo AutoBind.facts;
+
+end;
 
 
 (* match_binds(_i) -- parallel *)
@@ -581,7 +606,7 @@ fun gen_match_binds _ [] ctxt = ctxt
           (case Seq.pull envs of
             None => raise CONTEXT ("Pattern match failed!", ctxt')
           | Some (env, _) => env);
-      in ctxt' |> update_binds_env env end;
+      in ctxt' |> update_binds_env env |> warn_extra_tfrees ctxt end;
 
 val match_binds = gen_match_binds (read_term_pat, read_term);
 val match_binds_i = gen_match_binds (cert_term_pat, cert_term);
@@ -589,20 +614,24 @@ val match_binds_i = gen_match_binds (cert_term_pat, cert_term);
 
 (* bind proposition patterns *)
 
+local
+
 fun gen_bind_propp prepp (ctxt, (raw_prop, (raw_pats1, raw_pats2))) =
   let
     val raw_pats = map (pair I) raw_pats1 @ map (pair Logic.strip_imp_concl) raw_pats2;
     val (ctxt', (pairs, prop)) = prep_declare_match prepp (ctxt, (raw_pats, raw_prop));
   in (ctxt' |> match_binds_i (map (apfst single) pairs), prop) end;
 
-val bind_propp = gen_bind_propp (read_prop_pat, read_prop);
-val bind_propp_i = gen_bind_propp (cert_prop_pat, cert_prop);
+fun gen_bind_propps prepp warn args ctxt =
+  apfst (if warn then warn_extra_tfrees ctxt else I)
+    (foldl_map (gen_bind_propp prepp) (ctxt, args));
 
+in
 
-(* auto binds *)
+val bind_propps = gen_bind_propps (read_prop_pat, read_prop);
+val bind_propps_i = gen_bind_propps (cert_prop_pat, cert_prop);
 
-val auto_bind_goal = add_binds_i o AutoBind.goal;
-val auto_bind_facts = add_binds_i oo AutoBind.facts;
+end;
 
 
 
@@ -670,7 +699,7 @@ local
 
 fun gen_assm prepp tac (ctxt, (name, attrs, raw_prop_pats)) =
   let
-    val (ctxt', props) = foldl_map prepp (ctxt, raw_prop_pats);
+    val (ctxt', props) = prepp true raw_prop_pats ctxt;
 
     val cprops = map (Thm.cterm_of (sign_of ctxt')) props;
     val cprops_tac = map (rpair tac) cprops;
@@ -694,8 +723,8 @@ fun gen_assms prepp tac args ctxt =
 
 in
 
-val assume = gen_assms bind_propp;
-val assume_i = gen_assms bind_propp_i;
+val assume = gen_assms bind_propps;
+val assume_i = gen_assms bind_propps_i;
 
 end;
 
