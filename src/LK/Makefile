@@ -18,7 +18,7 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES =  ROOT.ML lk.thy lk.ML
+FILES =  ROOT.ML LK.thy LK.ML
 EX_FILES = ex/ROOT.ML ex/hardquant.ML ex/prop.ML ex/quant.ML
 
 $(BIN)/LK:   $(BIN)/Pure  $(FILES) 

@@ -16,15 +16,15 @@
 
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
-FILES = ROOT.ML void.thy void.ML porder.thy porder.ML pcpo.thy \
-	pcpo.ML fun1.thy fun1.ML fun2.thy fun2.ML fun3.thy fun3.ML \
-	cfun1.thy cfun1.ML cfun2.thy cfun2.ML cfun3.thy cfun3.ML \
+FILES = ROOT.ML Void.thy Void.ML Porder.thy Porder.ML Pcpo.thy \
+	Pcpo.ML Fun1.thy Fun1.ML Fun2.thy Fun2.ML Fun3.thy Fun3.ML \
+	Cfun1.thy Cfun1.ML Cfun2.thy Cfun2.ML Cfun3.thy Cfun3.ML \
 	cinfix.ML\
-	sprod0.thy sprod0.ML sprod1.thy sprod1.ML sprod2.thy sprod2.ML\
-	sprod3.thy sprod3.ML
+	Sprod0.thy Sprod0.ML Sprod1.thy Sprod1.ML Sprod2.thy Sprod2.ML\
+	Sprod3.thy Sprod3.ML
 
-EX_FILES = ex/coind.thy ex/coind.ML \
-           ex/hoare.thy ex/hoare.ML ex/loop.thy ex/loop.ML
+EX_FILES = ex/Coind.thy ex/Coind.ML \
+           ex/Hoare.thy ex/Hoare.ML ex/Loop.thy ex/Loop.ML
 
 $(BIN)/HOLCF:   $(BIN)/HOL  $(FILES) 
 	case "$(COMP)" in \
