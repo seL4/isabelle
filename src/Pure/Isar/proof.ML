@@ -333,11 +333,16 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
       | levels_up 1 = ", 1 level up"
       | levels_up i = ", " ^ string_of_int i ^ " levels up";
 
+    fun subgoals 0 = ""
+      | subgoals 1 = ", 1 subgoal"
+      | subgoals n = ", " ^ string_of_int n ^ " subgoals";
+      
     fun pretty_goal (_, (i, (((kind, name, _), (goal_facts, thm)), _))) =
       pretty_facts "using "
         (if mode <> Backward orelse null goal_facts then None else Some goal_facts) @
-      [Pretty.str ("goal (" ^ kind_name kind ^ (if name = "" then "" else " " ^ name) ^
-        levels_up (i div 2) ^ "):")] @
+      [Pretty.str ("goal (" ^ kind_name kind ^
+          (if name = "" then "" else " " ^ name) ^
+            levels_up (i div 2) ^ subgoals (Thm.nprems_of thm) ^ "):")] @
       Locale.pretty_goals_marker begin_goal (! goals_limit) thm;
 
     val ctxt_prts =
