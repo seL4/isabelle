@@ -149,7 +149,7 @@ by (resolve_tac prems 1);
 by (resolve_tac prems 1);
 qed "trancl_into_trancl2";
 
-(*More about r^*)
+(** More about r^* **)
 
 goal Trancl.thy "(r^*)^* = r^*";
 br set_ext 1;
@@ -161,6 +161,29 @@ br rtrancl_refl 1;
 by(fast_tac (HOL_cs addEs [rtrancl_trans]) 1);
 be r_into_rtrancl 1;
 qed "rtrancl_idemp";
+
+
+goal Trancl.thy "!!r. (x,y) : (converse r)^* ==> (x,y) : converse(r^*)";
+br converseI 1;
+be rtrancl_induct 1;
+br rtrancl_refl 1;
+by(fast_tac (rel_cs addIs [r_into_rtrancl,rtrancl_trans]) 1);
+qed "rtrancl_converseD";
+
+goal Trancl.thy "!!r. (x,y) : converse(r^*) ==> (x,y) : (converse r)^*";
+bd converseD 1;
+be rtrancl_induct 1;
+br rtrancl_refl 1;
+by(fast_tac (rel_cs addIs [r_into_rtrancl,rtrancl_trans]) 1);
+qed "rtrancl_converseI";
+
+goal Trancl.thy "(converse r)^* = converse(r^*)";
+by(safe_tac (rel_eq_cs addSIs [rtrancl_converseI]));
+by(res_inst_tac [("p","x")] PairE 1);
+by(hyp_subst_tac 1);
+be rtrancl_converseD 1;
+qed "rtrancl_converse";
+
 
 val major::prems = goal Trancl.thy
     "[| (a,b) : r^*;  r <= Sigma A (%x.A) |] ==> a=b | a:A";
@@ -174,3 +197,5 @@ goalw Trancl.thy [trancl_def]
     "!!r. r <= Sigma A (%x.A) ==> trancl(r) <= Sigma A (%x.A)";
 by (fast_tac (rel_cs addSDs [trancl_subset_Sigma_lemma]) 1);
 qed "trancl_subset_Sigma";
+
+val trancl_cs = rel_cs addIs [rtrancl_refl];
