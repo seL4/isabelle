@@ -476,10 +476,25 @@ fun mk_auto_tac (cs, ss) m n =
 	val bdt = Blast.depth_tac cs m;
 	fun blast_depth_tac i thm = bdt i thm handle Blast.TRANS s => 
 		(warning ("Blast_tac: " ^ s); Seq.empty);
+
+	(* a variant of depth_tac that avoids interference of the simplifier 
+	   with dup_step_tac when they are combined by auto_tac *)
+	fun nodup_depth_tac cs m i state = 
+	  SELECT_GOAL 
+	   (getWrapper cs
+	    (fn i => REPEAT_DETERM1 (COND (has_fewer_prems i) no_tac
+				     (safe_step_tac cs i)) THEN_ELSE
+	     (DEPTH_SOLVE (nodup_depth_tac cs m i),
+	      inst0_step_tac cs i  APPEND
+	      COND (K(m=0)) no_tac
+	        ((instp_step_tac cs i APPEND step_tac cs i)
+		 THEN DEPTH_SOLVE (nodup_depth_tac cs (m-1) i)))) 1)
+	  i state;
+
         val maintac = 
           blast_depth_tac	   (*fast but can't use addss*)
           ORELSE'
-          depth_tac cs' n;         (*slower but general*)
+          nodup_depth_tac cs' n;   (*slower but more general*)
     in  EVERY [ALLGOALS (asm_full_simp_tac ss),
 	       TRY (safe_tac cs'),
 	       REPEAT (FIRSTGOAL maintac),

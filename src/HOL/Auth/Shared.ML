@@ -179,7 +179,7 @@ by (cut_inst_tac [("evs","evs")] (Finites.emptyI RS Key_supply_ax) 1);
 by (etac exE 1);
 by (cut_inst_tac [("evs","evs'")] 
     (Finites.emptyI RS Finites.insertI RS Key_supply_ax) 1);
-by Auto_tac;
+by (Asm_full_simp_tac 1 THEN depth_tac (claset()) 2 1); (* replaces Auto_tac *)
 qed "Key_supply2";
 
 goal thy "EX K K' K''. Key K ~: used evs & Key K' ~: used evs' & \
