@@ -27,6 +27,11 @@ by (asm_simp_tac (ZF_ss addsimps [Memrel_iff]) 1);
 by (fast_tac (eq_cs addEs [Ord_trans]) 1);
 qed "lt_eq_pred";
 
+goalw OrderType.thy [pred_def,Memrel_def] 
+      "!!A x. x:A ==> pred(A, x, Memrel(A)) = {b:A. b:x}";
+by (fast_tac eq_cs 1);
+qed "pred_Memrel";
+
 goal OrderType.thy
     "!!i. [| j<i;  f: ord_iso(i,Memrel(i),j,Memrel(j)) |] ==> R";
 by (forward_tac [lt_eq_pred] 1);
@@ -171,8 +176,8 @@ goal OrderType.thy
 by (forward_tac [well_ord_ord_iso] 1 THEN assume_tac 1);
 by (resolve_tac [Ord_iso_implies_eq] 1
     THEN REPEAT (eresolve_tac [Ord_ordertype] 1));
-by (deepen_tac (ZF_cs addIs [ord_iso_trans, ord_iso_sym]
-                    addSEs [ordertype_ord_iso]) 0 1);
+by (deepen_tac (ZF_cs addIs  [ord_iso_trans, ord_iso_sym]
+                      addSEs [ordertype_ord_iso]) 0 1);
 qed "ordertype_eq";
 
 
