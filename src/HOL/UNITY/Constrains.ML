@@ -7,6 +7,40 @@ Safety relations: restricted to the set of reachable states.
 *)
 
 
+(*** traces and reachable ***)
+
+Goal "reachable F = {s. EX evs. (s,evs): traces (Init F) (Acts F)}";
+by Safe_tac;
+by (etac traces.induct 2);
+by (etac reachable.induct 1);
+by (ALLGOALS (blast_tac (claset() addIs reachable.intrs @ traces.intrs)));
+qed "reachable_equiv_traces";
+
+Goal "Init F <= reachable F";
+by (blast_tac (claset() addIs reachable.intrs) 1);
+qed "Init_subset_reachable";
+
+Goal "Acts G <= Acts F ==> G : stable (reachable F)";
+by (blast_tac (claset() addIs [stableI, constrainsI] @ reachable.intrs) 1);
+qed "stable_reachable";
+
+
+(*The set of all reachable states is an invariant...*)
+Goal "F : invariant (reachable F)";
+by (simp_tac (simpset() addsimps [invariant_def]) 1);
+by (blast_tac (claset() addIs (stable_reachable::reachable.intrs)) 1);
+qed "invariant_reachable";
+
+(*...in fact the strongest invariant!*)
+Goal "F : invariant A ==> reachable F <= A";
+by (full_simp_tac 
+    (simpset() addsimps [stable_def, constrains_def, invariant_def]) 1);
+by (rtac subsetI 1);
+by (etac reachable.induct 1);
+by (REPEAT (blast_tac (claset() addIs reachable.intrs) 1));
+qed "invariant_includes_reachable";
+
+
 (*** Constrains ***)
 
 overload_1st_set "Constrains.Constrains";

@@ -6,7 +6,30 @@
 Safety relations: restricted to the set of reachable states.
 *)
 
-Constrains = UNITY + Traces + 
+Constrains = UNITY + 
+
+consts traces :: "['a set, ('a * 'a)set set] => ('a * 'a list) set"
+
+  (*Initial states and program => (final state, reversed trace to it)...
+    Arguments MUST be curried in an inductive definition*)
+
+inductive "traces init acts"  
+  intrs 
+         (*Initial trace is empty*)
+    Init  "s: init ==> (s,[]) : traces init acts"
+
+    Acts  "[| act: acts;  (s,evs) : traces init acts;  (s,s'): act |]
+	   ==> (s', s#evs) : traces init acts"
+
+
+consts reachable :: "'a program => 'a set"
+
+inductive "reachable F"
+  intrs 
+    Init  "s: Init F ==> s : reachable F"
+
+    Acts  "[| act: Acts F;  s : reachable F;  (s,s'): act |]
+	   ==> s' : reachable F"
 
 constdefs
 

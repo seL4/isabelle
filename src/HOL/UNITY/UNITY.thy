@@ -8,9 +8,21 @@ The basic UNITY theory (revised version, based upon the "co" operator)
 From Misra, "A Logic for Concurrent Programming", 1994
 *)
 
-UNITY = Traces + Prefix +
+UNITY = LessThan + Prefix +
+
+
+typedef (Program)
+  'a program = "{(init:: 'a set, acts :: ('a * 'a)set set). Id:acts}"
 
 constdefs
+    mk_program :: "('a set * ('a * 'a)set set) => 'a program"
+    "mk_program == %(init, acts). Abs_Program (init, insert Id acts)"
+
+  Init :: "'a program => 'a set"
+    "Init F == (%(init, acts). init) (Rep_Program F)"
+
+  Acts :: "'a program => ('a * 'a)set set"
+    "Acts F == (%(init, acts). acts) (Rep_Program F)"
 
   constrains :: "['a set, 'a set] => 'a program set"
     "constrains A B == {F. ALL act: Acts F. act^^A <= B}"

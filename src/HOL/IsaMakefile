@@ -176,7 +176,7 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL UNITY/ROOT.ML\
   UNITY/LessThan.ML UNITY/LessThan.thy UNITY/Mutex.ML UNITY/Mutex.thy\
   UNITY/Network.ML UNITY/Network.thy UNITY/Reach.ML UNITY/Reach.thy\
   UNITY/SubstAx.ML UNITY/SubstAx.thy UNITY/Token.ML UNITY/Token.thy\
-  UNITY/Traces.ML UNITY/Traces.thy UNITY/UNITY.ML UNITY/UNITY.thy\
+  UNITY/UNITY.ML UNITY/UNITY.thy\
   UNITY/WFair.ML UNITY/WFair.thy UNITY/Lift.ML UNITY/Lift.thy\
   UNITY/PPROD.ML UNITY/PPROD.thy UNITY/NSP_Bad.ML UNITY/NSP_Bad.thy
 	@$(ISATOOL) usedir $(OUT)/HOL UNITY
