@@ -2,70 +2,77 @@
 # $Id$
 #
 # Isabelle settings -- site defaults.
+#
 
+###
+### ML compiler settings
+###
 
-## user isabelle directory
+## Uncomment / adapt one of the sections below.  Note that ML_HOME
+## specifies the location of the actual compiler binaries.
 
-ISABELLE_HOME_USER=~/isabelle
-
-
-## machines to be selected randomly
-
-#ISABELLE_HOSTS="sunbroy49 sunbroy53"
-ISABELLE_HOSTS=""
-
-
-## logic images
-
-ISABELLE_PATH=$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps
-ISABELLE_OUTPUT=$ISABELLE_HOME_USER/heaps
-
-DEFAULT_LOGIC=HOL
-
-
-## documentation
-
-ISABELLE_DOCS=$ISABELLE_HOME/doc
-
-
-## interfaces
-
-#ISABELLE_INTERFACE=none
-#ISABELLE_INTERFACE_OPTIONS=""
-
-ISABELLE_INTERFACE=xterm
-ISABELLE_INTERFACE_OPTIONS="-geometry 80x52"
-ISABELLE_SYMBOLS=true
-
-#ISABELLE_INTERFACE=emacs
-#ISABELLE_INTERFACE_OPTIONS=""
-#ISABELLE_SYMBOLS=true
-#ISAMODE_HOME=$ISABELLE_HOME/lib/Isamode
-
-
-## ML compilers and options
-
+# Poly/ML 2.x
 #ML_SYSTEM=polyml-2.x
 #ML_HOME=/usr/local/ldist/DIR/polyml/polyml/solaris2
 #ML_OPTIONS="-h 30000"
 
+# Poly/ML 3.1
 ML_SYSTEM=polyml-3.1
 ML_HOME=/usr/local/ldist/DIR/polyml-3.1/polyml/sunos5.4
 ML_OPTIONS="-h 30000"
 LM_LICENSE_FILE=$ML_HOME/license.dat
 
+# Standard ML of New Jersey 0.93
 #ML_SYSTEM=smlnj-0.93
 #ML_HOME=/usr/local/ldist/DIR/sml-0.93/src
 #ML_OPTIONS=""
 
+# Standard ML of New Jersey 1.07
 #ML_SYSTEM=smlnj-1.07
-#ML_HOME=/usr/local/sml107
+#ML_HOME=/usr/local/sml107/bin
 #ML_OPTIONS="@SMLdebug=/dev/null"
 
+# Standard ML of New Jersey 1.09
 #ML_SYSTEM=smlnj-1.09
+#ML_HOME=~wenzelm/tmp/109/bin
+#ML_OPTIONS="@SMLdebug=/dev/null"
 
 
-## misc
+###
+### Misc path settings
+###
+
+# The place for user configuration, heap files, etc.
+ISABELLE_HOME_USER=~/isabelle
+
+# Heap file in/out locations.
+# Note: ML system and platform info is appended automatically!
+ISABELLE_PATH=$ISABELLE_HOME_USER/heaps:$ISABELLE_HOME/heaps
+ISABELLE_OUTPUT=$ISABELLE_HOME_USER/heaps
+
+DEFAULT_LOGIC=HOL
+
+ISABELLE_DOCS=$ISABELLE_HOME/doc
 
 #DVI_VIEWER="xdvi -geometry 498x704 -expert -s 5"
 DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
+
+
+###
+### Interfaces
+###
+
+# The null interface: pass-through to 'isabelle'.
+#ISABELLE_INTERFACE=none
+#ISABELLE_INTERFACE_OPTIONS=""
+
+# Xterm with symbol font.
+ISABELLE_INTERFACE=xterm
+ISABELLE_INTERFACE_OPTIONS="-geometry 80x52"
+ISABELLE_SYMBOLS=true
+
+# GNU Emacs running Isamode.
+#ISABELLE_INTERFACE=emacs
+#ISABELLE_INTERFACE_OPTIONS=""
+#ISABELLE_SYMBOLS=true
+ISAMODE_HOME=$ISABELLE_HOME/lib/Isamode
