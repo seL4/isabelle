@@ -1055,17 +1055,21 @@ object-logic specific tools and packages (see chapters \ref{ch:gen-tools} and
   \cite[\S5]{isabelle-ref}, but note the reversed order.  Positions may be
   effectively skipped by including ``$\_$'' (underscore) as argument.
   
-\item [$of~\vec t$] performs positional instantiation.  The terms $\vec t$ are
-  substituted for any schematic variables occurring in a theorem from left to
-  right; ``\texttt{_}'' (underscore) indicates to skip a position.  Arguments
-  following a ``$concl\colon$'' specification refer to positions of the
-  conclusion of a rule.
+\item [$of~\vec t$] performs positional instantiation of term
+  variables.  The terms $\vec t$ are substituted for any schematic
+  variables occurring in a theorem from left to right; ``\texttt{_}''
+  (underscore) indicates to skip a position.  Arguments following a
+  ``$concl\colon$'' specification refer to positions of the conclusion
+  of a rule.
   
-\item [$where~\vec x = \vec t$] performs named instantiation of schematic
-  variables occurring in a theorem.  Schematic variables
-  have to be specified on the left-hand side (e.g.\ $?x1\!.\!3$).  The
-  question mark may be omitted if the variable name is neither a
-  keyword nor contains a dot.
+\item [$where~\vec x = \vec t$] performs named instantiation of
+  schematic type and term variables occurring in a theorem.  Schematic
+  variables have to be specified on the left-hand side (e.g.\
+  $?x1\!.\!3$).  The question mark may be omitted if the variable name
+  is neither a keyword nor contains a dot.  Types are instantiated
+  before terms, and instantiations have to be written in that order.
+  Because type instantiations are inferred from term instantiations,
+  explicit type instantiations are seldom necessary.
 
 \end{descr}
 
