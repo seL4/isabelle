@@ -14,7 +14,7 @@ end;
 
 signature THY_SYN =
 sig
-  val parse: string -> string
+  val parse: string -> string -> string
 end;
 
 functor ThySynFun(ThySynData: THY_SYN_DATA): THY_SYN =

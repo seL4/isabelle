@@ -49,7 +49,7 @@ sig
   type syntax
   val make_syntax: string list ->
     (string * (token list -> (string * string) * token list)) list -> syntax
-  val parse_thy: syntax -> string -> string
+  val parse_thy: syntax -> string -> string -> string
   val section: string -> string -> (token list -> string * token list)
     -> (string * (token list -> (string * string) * token list))
   val axm_section: string -> string
@@ -388,43 +388,49 @@ fun extension sectab = "+" $$-- !! (repeat (sect sectab) --$$ "end") --
 
 (* theory definition *)
 
-fun mk_structure ((thy_name, old_thys), Some (extxt, postxt, mltxt)) =
-      "structure " ^ thy_name ^ " =\n\
-      \struct\n\
-      \\n\
-      \local\n"
-      ^ trfun_defs ^ "\n\
-      \in\n\
-      \\n"
-      ^ mltxt ^ "\n\
-      \\n\
-      \val thy = (" ^ old_thys ^ " true)\n\n\
-      \|> add_trfuns\n"
-      ^ trfun_args ^ "\n\
-      \\n"
-      ^ extxt ^ "\n\
-      \\n\
-      \|> add_thyname " ^ quote thy_name ^ ";\n\
-      \\n\
-      \\n"
-      ^ postxt ^ "\n\
-      \\n\
-      \end;\n\
-      \end;\n"
-  | mk_structure ((thy_name, old_thys), None) =
-      "structure " ^ thy_name ^ " =\n\
-      \struct\n\
-      \\n\
-      \val thy = (" ^ old_thys ^ " false);\n\
-      \\n\
-      \end;\n";
+fun mk_structure tname ((thy_name, old_thys), Some (extxt, postxt, mltxt)) =
+      if (thy_name = tname) then
+        "structure " ^ thy_name ^ " =\n\
+        \struct\n\
+        \\n\
+        \local\n"
+        ^ trfun_defs ^ "\n\
+        \in\n\
+        \\n"
+        ^ mltxt ^ "\n\
+        \\n\
+        \val thy = (" ^ old_thys ^ " true)\n\n\
+        \|> add_trfuns\n"
+        ^ trfun_args ^ "\n\
+        \\n"
+        ^ extxt ^ "\n\
+        \\n\
+        \|> add_thyname " ^ quote thy_name ^ ";\n\
+        \\n\
+        \\n"
+        ^ postxt ^ "\n\
+        \\n\
+        \end;\n\
+        \end;\n"
+      else error ("use_thy: Filename \"" ^ tname ^ ".thy\" and theory name \""
+                  ^ thy_name ^ "\" are different")
+  | mk_structure tname ((thy_name, old_thys), None) =
+      if (thy_name = tname) then
+        "structure " ^ thy_name ^ " =\n\
+        \struct\n\
+        \\n\
+        \val thy = (" ^ old_thys ^ " false);\n\
+        \\n\
+        \end;\n"
+      else error ("use_thy: Filename \"" ^ tname ^ ".thy\" and theory name \""
+                  ^ thy_name ^ "\" are different");
 
-fun theory_defn sectab =
+fun theory_defn sectab tname =
   header -- optional (extension sectab >> Some) None -- eof
-  >> (mk_structure o #1);
+  >> (mk_structure tname o #1);
 
-fun parse_thy (lex, sectab) str =
-  #1 (!! (theory_defn sectab) (tokenize lex str));
+fun parse_thy (lex, sectab) tname str =
+  #1 (!! (theory_defn sectab tname) (tokenize lex str));
 
 
 (* standard sections *)
