@@ -1,0 +1,33 @@
+<!-- $Id$ -->
+<HTML><HEAD><TITLE>HOL/Coind</TITLE></HEAD><BODY>
+
+<H2>Coind -- A Coinduction Example</H2>
+
+Jacob Frost has mechanized the proofs from the article
+
+<P>
+<PRE>
+@Article{milner-coind,
+  author	= "Robin Milner and Mads Tofte",
+  title		= "Co-induction in Relational Semantics",
+  journal	= TCS,
+  year		= 1991,
+  volume	= 87,
+  pages		= "209--220"}
+</PRE>
+
+<P> It involves proving the consistency of the dynamic and static semantics
+for a small functional language.  A codatatype definition specifies values and
+value environments in mutual recursion: non-well-founded values represent
+recursive functions; value environments are variant functions from variables
+into values.
+
+<P>
+Frost's
+<A
+HREF="http://www.cl.cam.ac.uk:80/ftp/papers/reports/TR359-jf10008-co-induction-in-isabelle.dvi.gz">report</A> describes this development.
+<P>
+
+<HR>
+
+<P>Last modified 5 March 1996
