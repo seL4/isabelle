@@ -6,15 +6,12 @@
 Executes the proofs of the AC-equivalences, due to Krzysztof Grabczewski
 *)
 
-time_use_thy "AC_Equiv";
-
 time_use_thy "WO6_WO1";
 time_use_thy "WO1_WO7";
 
-time_use     "AC7_AC9.ML";
+time_use_thy "AC7_AC9";
 
 time_use_thy "WO1_AC";
-time_use_thy "AC1_WO2";
 
 time_use_thy "AC15_WO6";
 

@@ -102,4 +102,60 @@ lemma Card_OUN [simp,intro,TC]:
      "(!!x. x:A ==> Card(K(x))) ==> Card(UN x<A. K(x))"
 by (simp add: OUnion_def Card_0) 
 
+lemma n_lesspoll_nat: "n \<in> nat ==> n \<prec> nat"
+apply (unfold lesspoll_def)
+apply (rule conjI)
+apply (erule OrdmemD [THEN subset_imp_lepoll], rule Ord_nat)
+apply (rule notI)
+apply (erule eqpollE)
+apply (rule succ_lepoll_natE)
+apply (blast intro: nat_succI [THEN OrdmemD, THEN subset_imp_lepoll] 
+                    lepoll_trans, assumption); 
+done
+
+lemma in_Card_imp_lesspoll: "[| Card(K); b \<in> K |] ==> b \<prec> K"
+apply (unfold lesspoll_def)
+apply (simp add: Card_iff_initial)
+apply (fast intro!: le_imp_lepoll ltI leI)
+done
+
+lemma succ_lepoll_imp_not_empty: "succ(x) \<lesssim> y ==> y \<noteq> 0"
+by (fast dest!: lepoll_0_is_0)
+
+lemma eqpoll_succ_imp_not_empty: "x \<approx> succ(n) ==> x \<noteq> 0"
+by (fast elim!: eqpoll_sym [THEN eqpoll_0_is_0, THEN succ_neq_0])
+
+lemma Finite_Fin_lemma [rule_format]:
+     "n \<in> nat ==> \<forall>A. (A\<approx>n & A \<subseteq> X) --> A \<in> Fin(X)"
+apply (induct_tac "n")
+apply (rule allI)
+apply (fast intro!: Fin.emptyI dest!: eqpoll_imp_lepoll [THEN lepoll_0_is_0])
+apply (rule allI)
+apply (rule impI)
+apply (erule conjE)
+apply (rule eqpoll_succ_imp_not_empty [THEN not_emptyE], (assumption))
+apply (frule Diff_sing_eqpoll, (assumption))
+apply (erule allE)
+apply (erule impE, fast)
+apply (drule subsetD, (assumption))
+apply (drule Fin.consI, (assumption))
+apply (simp add: cons_Diff)
+done
+
+lemma Finite_Fin: "[| Finite(A); A \<subseteq> X |] ==> A \<in> Fin(X)"
+by (unfold Finite_def, blast intro: Finite_Fin_lemma) 
+
+lemma lesspoll_lemma: 
+        "[| ~ A \<prec> B; C \<prec> B |] ==> A - C \<noteq> 0"
+apply (unfold lesspoll_def)
+apply (fast dest!: Diff_eq_0_iff [THEN iffD1, THEN subset_imp_lepoll]
+            intro!: eqpollI elim: notE 
+            elim!: eqpollE lepoll_trans)
+done
+
+lemma eqpoll_imp_Finite_iff: "A \<approx> B ==> Finite(A) <-> Finite(B)"
+apply (unfold Finite_def) 
+apply (blast intro: eqpoll_trans eqpoll_sym) 
+done
+
 end

@@ -57,4 +57,15 @@ lemma def_transrec2:
           (Limit(K) --> f(K) = (UN j<K. f(j)))"
 by (simp add: transrec2_Limit)
 
+(* belongs to theory CardinalArith *)
+
+lemma InfCard_square_eqpoll: "InfCard(K) \<Longrightarrow> K \<times> K \<approx> K"
+apply (rule well_ord_InfCard_square_eq);  
+ apply (erule InfCard_is_Card [THEN Card_is_Ord, THEN well_ord_Memrel]); 
+apply (simp add: InfCard_is_Card [THEN Card_cardinal_eq]); 
+done
+
+lemma Inf_Card_is_InfCard: "[| ~Finite(i); Card(i) |] ==> InfCard(i)"
+by (simp add: InfCard_def Card_is_Ord [THEN nat_le_infinite_Ord])
+
 end
