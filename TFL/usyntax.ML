@@ -167,7 +167,7 @@ fun mk_imp{ant,conseq} =
 
 fun mk_select (r as {Bvar,Body}) =
   let val ty = type_of Bvar
-      val c = Const("Eps",(ty --> HOLogic.boolT) --> ty)
+      val c = Const("Hilbert_Choice.Eps",(ty --> HOLogic.boolT) --> ty)
   in list_comb(c,[mk_abs r])
   end;
 

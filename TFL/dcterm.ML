@@ -136,7 +136,7 @@ val dest_conj   = dest_binop "op &"
 val dest_disj   = dest_binop "op |"
 val dest_cons   = dest_binop "Cons"
 val dest_let    = Library.swap o dest_binop "Let";
-val dest_select = dest_binder "Eps"
+val dest_select = dest_binder "Hilbert_Choice.Eps"
 val dest_exists = dest_binder "Ex"
 val dest_forall = dest_binder "All"
 
