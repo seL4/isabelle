@@ -56,9 +56,9 @@ syntax (symbols)
   "op |"        :: [o, o] => o                  (infixr "\\<or>" 30)
   "op -->"      :: [o, o] => o                  (infixr "\\<midarrow>\\<rightarrow>" 25)
   "op <->"      :: [o, o] => o                  (infixr "\\<leftarrow>\\<rightarrow>" 25)
-  "ALL "        :: [idts, o] => o               ("(3\\<forall>_./ _)" 10)
-  "EX "         :: [idts, o] => o               ("(3\\<exists>_./ _)" 10)
-  "EX! "        :: [idts, o] => o               ("(3\\<exists>!_./ _)" 10)
+  "ALL "        :: [idts, o] => o               ("(3\\<forall>_./ _)" [0, 10] 10)
+  "EX "         :: [idts, o] => o               ("(3\\<exists>_./ _)" [0, 10] 10)
+  "EX! "        :: [idts, o] => o               ("(3\\<exists>!_./ _)" [0, 10] 10)
   "op ~="       :: ['a, 'a] => o                (infixl "\\<noteq>" 50)
 
 
