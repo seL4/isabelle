@@ -109,9 +109,10 @@ fun string_of_vname (x, i) =
   let
     val si = string_of_int i;
   in
-    if is_digit (last_elem (explode x)) then "?" ^ x ^ "." ^ si
-    else if i = 0 then "?" ^ x
-    else "?" ^ x ^ si
+    (if is_digit (last_elem (explode x)) then "?" ^ x ^ "." ^ si
+     else if i = 0 then "?" ^ x
+     else "?" ^ x ^ si)
+    handle LIST _ => "?NULL_VARIABLE." ^ si
   end;
 
 
