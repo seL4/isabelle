@@ -28,39 +28,6 @@ by (etac well_ord_rvimage 1);
 by (assume_tac 1);
 val well_ord_lepoll_imp_le = result();
 
-val case_ss = ZF_ss addsimps [Inl_iff, Inl_Inr_iff, Inr_iff, Inr_Inl_iff,
-			      case_Inl, case_Inr, InlI, InrI];
-
-
-(** Congruence laws for successor, cardinal addition and multiplication **)
-
-val bij_inverse_ss =
-    case_ss addsimps [bij_is_fun RS apply_type,
-		      bij_converse_bij RS bij_is_fun RS apply_type,
-		      left_inverse_bij, right_inverse_bij];
-
-
-(*Congruence law for  cons  under equipollence*)
-goalw CardinalArith.thy [eqpoll_def]
-    "!!A B. [| A eqpoll B;  a ~: A;  b ~: B |] ==> cons(a,A) eqpoll cons(b,B)";
-by (safe_tac ZF_cs);
-by (rtac exI 1);
-by (res_inst_tac [("c", "%z.if(z=a,b,f`z)"), 
-                  ("d", "%z.if(z=b,a,converse(f)`z)")] lam_bijective 1);
-by (ALLGOALS
-    (asm_simp_tac (bij_inverse_ss addsimps [consI2]
- 		                  setloop (etac consE ORELSE' 
-				           split_tac [expand_if]))));
-by (fast_tac (ZF_cs addIs [bij_is_fun RS apply_type]) 1);
-by (fast_tac (ZF_cs addIs [bij_converse_bij RS bij_is_fun RS apply_type]) 1);
-val cons_eqpoll_cong = result();
-
-(*Congruence law for  succ  under equipollence*)
-goalw CardinalArith.thy [succ_def]
-    "!!A B. A eqpoll B ==> succ(A) eqpoll succ(B)";
-by (REPEAT (ares_tac [cons_eqpoll_cong, mem_not_refl] 1));
-val succ_eqpoll_cong = result();
-
 (*Each element of Fin(A) is equivalent to a natural number*)
 goal CardinalArith.thy
     "!!X A. X: Fin(A) ==> EX n:nat. X eqpoll n";
@@ -71,36 +38,10 @@ by (fast_tac (ZF_cs addSIs [cons_eqpoll_cong,
                             addSEs [mem_irrefl]) 1);
 val Fin_eqpoll = result();
 
-(*Congruence law for + under equipollence*)
-goalw CardinalArith.thy [eqpoll_def]
-    "!!A B C D. [| A eqpoll C;  B eqpoll D |] ==> A+B eqpoll C+D";
-by (safe_tac ZF_cs);
-by (rtac exI 1);
-by (res_inst_tac [("c", "case(%x. Inl(f`x), %y. Inr(fa`y))"),
-	 ("d", "case(%x. Inl(converse(f)`x), %y. Inr(converse(fa)`y))")] 
-    lam_bijective 1);
-by (safe_tac (ZF_cs addSEs [sumE]));
-by (ALLGOALS (asm_simp_tac bij_inverse_ss));
-val sum_eqpoll_cong = result();
-
-(*Congruence law for * under equipollence*)
-goalw CardinalArith.thy [eqpoll_def]
-    "!!A B C D. [| A eqpoll C;  B eqpoll D |] ==> A*B eqpoll C*D";
-by (safe_tac ZF_cs);
-by (rtac exI 1);
-by (res_inst_tac [("c", "split(%x y. <f`x, fa`y>)"),
-		  ("d", "split(%x y. <converse(f)`x, converse(fa)`y>)")] 
-    lam_bijective 1);
-by (safe_tac ZF_cs);
-by (ALLGOALS (asm_simp_tac bij_inverse_ss));
-val prod_eqpoll_cong = result();
-
-
 (*** Cardinal addition ***)
 
 (** Cardinal addition is commutative **)
 
-(*Easier to prove the two directions separately*)
 goalw CardinalArith.thy [eqpoll_def] "A+B eqpoll B+A";
 by (rtac exI 1);
 by (res_inst_tac [("c", "case(Inr, Inl)"), ("d", "case(Inr, Inl)")] 
@@ -309,34 +250,38 @@ val nat_cmult_eq_mult = result();
 
 (*** Infinite Cardinals are Limit Ordinals ***)
 
+(*This proof is modelled upon one assuming nat<=A, with injection
+  lam z:cons(u,A). if(z=u, 0, if(z : nat, succ(z), z))  and inverse
+  %y. if(y:nat, nat_case(u,%z.z,y), y).  If f: inj(nat,A) then
+  range(f) behaves like the natural numbers.*)
 goalw CardinalArith.thy [lepoll_def]
-    "!!i. nat <= A ==> succ(A) lepoll A";
+    "!!i. nat lepoll A ==> cons(u,A) lepoll A";
+by (etac exE 1);
 by (res_inst_tac [("x",
-    "lam z:succ(A). if(z=A, 0, if(z:nat, succ(z), z))")] exI 1);
-by (res_inst_tac [("d", "%y. if(y:nat, nat_case(A,%z.z,y), y)")] 
+    "lam z:cons(u,A). if(z=u, f`0, 	\
+\                        if(z: range(f), f`succ(converse(f)`z), z))")] exI 1);
+by (res_inst_tac [("d", "%y. if(y: range(f), 	\
+\                               nat_case(u, %z.f`z, converse(f)`y), y)")] 
     lam_injective 1);
-by (fast_tac (ZF_cs addSIs [if_type, nat_0I, nat_succI]) 1);
+by (fast_tac (ZF_cs addSIs [if_type, nat_0I, nat_succI, apply_type]
+                    addIs  [inj_is_fun, inj_converse_fun]) 1);
 by (asm_simp_tac 
-    (ZF_ss addsimps [nat_case_0, nat_case_succ, nat_0I, nat_succI]
+    (ZF_ss addsimps [inj_is_fun RS apply_rangeI,
+		     inj_converse_fun RS apply_rangeI,
+		     inj_converse_fun RS apply_funtype,
+		     left_inverse, right_inverse, nat_0I, nat_succI, 
+		     nat_case_0, nat_case_succ]
            setloop split_tac [expand_if]) 1);
-val nat_succ_lepoll = result();
+val nat_cons_lepoll = result();
 
-goalw CardinalArith.thy [lepoll_def, inj_def]
-    "!!i. nat <= A ==> succ(A) lepoll A";
-by (res_inst_tac [("x",
-   "lam z:succ(A). if(z=A, 0, if(z:nat, succ(z), z))")] exI 1);
-by (rtac (lam_type RS CollectI) 1);
-by (fast_tac (ZF_cs addSIs [if_type, nat_0I, nat_succI]) 1);
-by (REPEAT (rtac ballI 1));
-by (asm_simp_tac 
-    (ZF_ss addsimps [succ_inject_iff, succ_not_0, succ_not_0 RS not_sym]
-           setloop split_tac [expand_if]) 1);
-by (safe_tac (ZF_cs addSIs [nat_0I, nat_succI]));
-val nat_succ_lepoll = result();
+goal CardinalArith.thy "!!i. nat lepoll A ==> cons(u,A) eqpoll A";
+by (etac (nat_cons_lepoll RS eqpollI) 1);
+by (rtac (subset_consI RS subset_imp_lepoll) 1);
+val nat_cons_eqpoll = result();
 
-goal CardinalArith.thy "!!i. nat <= A ==> succ(A) eqpoll A";
-by (etac (nat_succ_lepoll RS eqpollI) 1);
-by (rtac (subset_succI RS subset_imp_lepoll) 1);
+(*Specialized version required below*)
+goalw CardinalArith.thy [succ_def] "!!i. nat <= A ==> succ(A) eqpoll A";
+by (eresolve_tac [subset_imp_lepoll RS nat_cons_eqpoll] 1);
 val nat_succ_eqpoll = result();
 
 goalw CardinalArith.thy [InfCard_def] "InfCard(nat)";

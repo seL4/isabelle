@@ -397,3 +397,81 @@ by (rtac (Card_nat RS Card_cardinal_eq RS subst) 1);
 by (etac cardinal_mono 1);
 val nat_le_cardinal = result();
 
+
+(*** Towards Cardinal Arithmetic ***)
+(** Congruence laws for successor, cardinal addition and multiplication **)
+
+val case_ss = ZF_ss addsimps [Inl_iff, Inl_Inr_iff, Inr_iff, Inr_Inl_iff,
+			      case_Inl, case_Inr, InlI, InrI];
+
+val bij_inverse_ss =
+    case_ss addsimps [bij_is_fun RS apply_type,
+		      bij_converse_bij RS bij_is_fun RS apply_type,
+		      left_inverse_bij, right_inverse_bij];
+
+
+(*Congruence law for  cons  under equipollence*)
+goalw Cardinal.thy [lepoll_def]
+    "!!A B. [| A lepoll B;  b ~: B |] ==> cons(a,A) lepoll cons(b,B)";
+by (safe_tac ZF_cs);
+by (res_inst_tac [("x", "lam y: cons(a,A).if(y=a, b, f`y)")] exI 1);
+by (res_inst_tac [("d","%z.if(z:B, converse(f)`z, a)")] 
+    lam_injective 1);
+by (asm_simp_tac (ZF_ss addsimps [inj_is_fun RS apply_type, cons_iff]
+                        setloop etac consE') 1);
+by (asm_simp_tac (ZF_ss addsimps [inj_is_fun RS apply_type, left_inverse]
+                        setloop etac consE') 1);
+val cons_lepoll_cong = result();
+
+goal Cardinal.thy
+    "!!A B. [| A eqpoll B;  a ~: A;  b ~: B |] ==> cons(a,A) eqpoll cons(b,B)";
+by (asm_full_simp_tac (ZF_ss addsimps [eqpoll_iff, cons_lepoll_cong]) 1);
+val cons_eqpoll_cong = result();
+
+(*Congruence law for  succ  under equipollence*)
+goalw Cardinal.thy [succ_def]
+    "!!A B. A eqpoll B ==> succ(A) eqpoll succ(B)";
+by (REPEAT (ares_tac [cons_eqpoll_cong, mem_not_refl] 1));
+val succ_eqpoll_cong = result();
+
+(*Congruence law for + under equipollence*)
+goalw Cardinal.thy [eqpoll_def]
+    "!!A B C D. [| A eqpoll C;  B eqpoll D |] ==> A+B eqpoll C+D";
+by (safe_tac ZF_cs);
+by (rtac exI 1);
+by (res_inst_tac [("c", "case(%x. Inl(f`x), %y. Inr(fa`y))"),
+	 ("d", "case(%x. Inl(converse(f)`x), %y. Inr(converse(fa)`y))")] 
+    lam_bijective 1);
+by (safe_tac (ZF_cs addSEs [sumE]));
+by (ALLGOALS (asm_simp_tac bij_inverse_ss));
+val sum_eqpoll_cong = result();
+
+(*Congruence law for * under equipollence*)
+goalw Cardinal.thy [eqpoll_def]
+    "!!A B C D. [| A eqpoll C;  B eqpoll D |] ==> A*B eqpoll C*D";
+by (safe_tac ZF_cs);
+by (rtac exI 1);
+by (res_inst_tac [("c", "split(%x y. <f`x, fa`y>)"),
+		  ("d", "split(%x y. <converse(f)`x, converse(fa)`y>)")] 
+    lam_bijective 1);
+by (safe_tac ZF_cs);
+by (ALLGOALS (asm_simp_tac bij_inverse_ss));
+val prod_eqpoll_cong = result();
+
+goalw Cardinal.thy [eqpoll_def]
+    "!!f. [| f: inj(A,B);  A Int B = 0 |] ==> A Un (B - range(f)) eqpoll B";
+by (rtac exI 1);
+by (res_inst_tac [("c", "%x. if(x:A, f`x, x)"),
+		  ("d", "%y. if(y: range(f), converse(f)`y, y)")] 
+    lam_bijective 1);
+by (fast_tac (ZF_cs addSIs [if_type, apply_type] addIs [inj_is_fun]) 1);
+by (asm_simp_tac 
+    (ZF_ss addsimps [inj_converse_fun RS apply_funtype]
+           setloop split_tac [expand_if]) 1);
+by (asm_simp_tac (ZF_ss addsimps [inj_is_fun RS apply_rangeI, left_inverse]
+                        setloop etac UnE') 1);
+by (asm_simp_tac 
+    (ZF_ss addsimps [inj_converse_fun RS apply_funtype, right_inverse]
+           setloop split_tac [expand_if]) 1);
+by (fast_tac (ZF_cs addEs [equals0D]) 1);
+val inj_disjoint_eqpoll = result();
