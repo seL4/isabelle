@@ -222,7 +222,7 @@ local
     | encl (Some true) = I;
 
   fun file (opt_ref, path, loadit) = href_opt_path opt_ref (encl loadit (file_path path));
-  val files = space_implode " + " o map file;
+  val files = space_implode " " o map file;
   val parents = space_implode " + " o map (uncurry href_opt_path o apsnd name);
 
   fun theory up A =
