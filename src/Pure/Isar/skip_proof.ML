@@ -38,8 +38,8 @@ fun cheat_meth ctxt =
     val thm = Thm.invoke_oracle thy skip_proofN (Theory.sign_of thy, SkipProof);
   in Method.METHOD (fn _ => ALLGOALS (Tactic.rtac thm)) end;
 
-val local_skip_proof = Method.local_terminal_proof (Method.Basic cheat_meth);
-val global_skip_proof = Method.global_terminal_proof (Method.Basic cheat_meth);
+val local_skip_proof = Method.local_terminal_proof (Method.Basic cheat_meth, None);
+val global_skip_proof = Method.global_terminal_proof (Method.Basic cheat_meth, None);
 
 
 (* proof command *)

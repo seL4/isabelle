@@ -195,7 +195,7 @@ fun gen_typedef_proof prep_term ((name, typ, set), comment) int thy =
     val goal = Thm.term_of (goal_nonempty cset);
   in
     thy
-    |> IsarThy.theorem_i (("", [typedef_attribute cset do_typedef], (goal, [])), comment) int
+    |> IsarThy.theorem_i (("", [typedef_attribute cset do_typedef], (goal, ([], []))), comment) int
   end;
 
 val typedef_proof = gen_typedef_proof read_term;

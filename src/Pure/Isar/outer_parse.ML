@@ -49,6 +49,7 @@ sig
   val const: token list -> (bstring * string * Syntax.mixfix) * token list
   val term: token list -> string * token list
   val prop: token list -> string * token list
+  val propp: token list -> (string * (string list * string list)) * token list
   val attribs: token list -> Args.src list * token list
   val opt_attribs: token list -> Args.src list * token list
   val thm_name: string -> token list -> (bstring * Args.src list) * token list
@@ -221,6 +222,15 @@ val trm = short_ident || long_ident || sym_ident || term_var || text_var || stri
 
 val term = group "term" trm;
 val prop = group "proposition" trm;
+
+
+(* prop patters *)
+
+val is_props = Scan.repeat1 ($$$ "is" |-- prop);
+val concl_props = $$$ "concl" |-- !!! is_props;
+val any_props = is_props -- Scan.optional concl_props [] || concl_props >> pair [];
+
+val propp = prop -- Scan.optional ($$$ "(" |-- !!! (any_props --| $$$ ")")) ([], []);
 
 
 (* arguments *)

@@ -408,7 +408,7 @@ fun inst_attribute add_thms (thy, thm) = (add_thms [thm] thy, thm);
 fun inst_proof mk_prop add_thms (sig_prop, comment) int thy =
   thy
   |> IsarThy.theorem_i (("", [inst_attribute add_thms],
-    (mk_prop (Theory.sign_of thy) sig_prop, [])), comment) int;
+    (mk_prop (Theory.sign_of thy) sig_prop, ([], []))), comment) int;
 
 val instance_subclass_proof = inst_proof (mk_classrel oo intrn_classrel) add_classrel_thms;
 val instance_subclass_proof_i = inst_proof (K mk_classrel) add_classrel_thms;
