@@ -439,8 +439,8 @@ Usage: usedir [OPTIONS] LOGIC NAME
     -b           build mode (output heap image, using current dir)
     -c BOOL      tell ML system to compress output image (default true)
     -d FORMAT    build document as FORMAT (default false)
-    -i BOOL      generate theory browsing information,
-                 i.e. HTML / graph data (default false)
+    -i BOOL      generate theory browser information (default false)
+    -m MODE      add print mode for output
     -r           reset session path
     -s NAME      override session NAME
 
@@ -476,10 +476,14 @@ desired examples.
 
 \medskip The \texttt{-i} option controls theory browser data generation. It
 may be explicitly turned on or off --- as usual, the last occurrence of
-\texttt{-i} on the command line wins.  The \texttt{-P} option specifies a path
-(or actual URL) to be prefixed to any \emph{non-local} reference of existing
-theories.  Thus user sessions may easily link to existing Isabelle libraries
-already present on the WWW.
+\texttt{-i} on the command line wins.
+
+The \texttt{-P} option specifies a path (or actual URL) to be prefixed to any
+\emph{non-local} reference of existing theories.  Thus user sessions may
+easily link to existing Isabelle libraries already present on the WWW.
+
+The \texttt{-m} options specifies additional print modes to be activated
+temporarily while the session is processed.
 
 \medskip The \texttt{-d} option controls document preparation.  Valid
 arguments are \texttt{false} (do not prepare any document; this is default),
