@@ -600,7 +600,10 @@ val preferences = ref
        proof_option)),
      ("theorem-dependencies", 
        ("Track theorem dependencies within Proof General",
-	thm_deps_option))])
+	thm_deps_option)),
+     ("skip-proofs", 
+      ("Skip all proof scripts (interactive-only)",
+       bool_option Toplevel.skip_proofs))])
    ];
 end
 
