@@ -149,7 +149,7 @@ proof (unfold stable_def, clarify)
 
   have "s1 \<in> opt A" by (rule wtl_inst_list_pres)
   with pc c_Some cert_ok c_None
-  have "phi!pc \<in> opt A" by (cases "cert!pc") (auto dest: cert_okD)
+  have "phi!pc \<in> opt A" by (cases "cert!pc") (auto dest: cert_okD1)
   with pc pres
   have step_in_A: "\<forall>(pc',s') \<in> set (?step pc). s' \<in> err (opt A)" 
     by (auto dest: pres_typeD)
@@ -158,7 +158,7 @@ proof (unfold stable_def, clarify)
   proof (cases "pc' = pc+1")
     case True
     with pc' cert_ok
-    have cert_in_A: "OK (cert!(pc+1)) \<in> err (opt A)" by (auto dest: cert_okD)
+    have cert_in_A: "OK (cert!(pc+1)) \<in> err (opt A)" by (auto dest: cert_okD1)
     from inst 
     have ok: "OK s2 = merge cert f r pc (?step pc) (OK (cert!(pc+1)))" 
       by (simp add: wtl_inst_def)

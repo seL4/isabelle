@@ -24,19 +24,19 @@ constdefs
 
   make_cert :: "['s steptype, 's option list] \<Rightarrow> 's certificate"
   "make_cert step phi \<equiv> 
-     map (\<lambda>pc. if is_target step phi pc then phi!pc else None) [0..length phi(]"
+     map (\<lambda>pc. if is_target step phi pc then phi!pc else None) [0..length phi(] @ [None]"
 
   
 lemmas [simp del] = split_paired_Ex
 
 lemma make_cert_target:
   "\<lbrakk> pc < length phi; is_target step phi pc \<rbrakk> \<Longrightarrow> make_cert step phi ! pc = phi!pc"
-  by (simp add: make_cert_def)
+  by (simp add: make_cert_def nth_append)
 
 lemma make_cert_approx:
   "\<lbrakk> pc < length phi; make_cert step phi ! pc \<noteq> phi!pc \<rbrakk> \<Longrightarrow> 
    make_cert step phi ! pc = None"
-  by (auto simp add: make_cert_def)
+  by (auto simp add: make_cert_def nth_append)
 
 lemma make_cert_contains_targets:
   "pc < length phi \<Longrightarrow> contains_targets step (make_cert step phi) phi pc"
@@ -56,8 +56,8 @@ theorem fits_make_cert:
   by (auto dest: make_cert_approx simp add: fits_def make_cert_contains_targets)
 
 lemma fitsD: 
-  "\<lbrakk> fits step cert phi; (pc',s') \<in> set (step pc (OK (phi ! pc)));
-      pc' \<noteq> Suc pc; pc < length phi; pc' < length phi \<rbrakk>
+  "\<lbrakk> fits step cert phi; (pc',s') \<in> set (step pc (OK (phi!pc)));
+      pc' \<noteq> pc+1; pc < length phi; pc' < length phi \<rbrakk>
   \<Longrightarrow> cert!pc' = phi!pc'"
   by (auto simp add: fits_def contains_targets_def)
 
@@ -149,400 +149,368 @@ proof-
     by (rule merge_def)
   ultimately show ?thesis by simp
 qed
-  
-  
-lemma stable_wtl:
-  assumes stable: "stable (Err.le (Opt.le r)) step (map OK phi) pc"
-  assumes fits:   "fits step cert phi"  
-  assumes pc:     "pc < length phi"
-  assumes bounded:"bounded step (length phi)"
-  shows "wtl_inst cert f r step pc (phi!pc) \<noteq> Err"
-proof -
-  from pc have [simp]: "map OK phi ! pc = OK (phi!pc)" by simp
-  from stable 
-  have "\<forall>(q,s')\<in>set (step pc (OK (phi!pc))). s' \<le>|r (map OK phi!q)"
-    by (simp add: stable_def)
-  
-  have "merge cert f r pc (step pc (OK (phi ! pc))) (OK (cert ! Suc pc)) \<noteq> Err"
-    sorry
-  thus ?thesis by (simp add: wtl_inst_def)  
-qed
 
 
 lemma wtl_inst_mono:
   assumes wtl:  "wtl_inst cert f r step pc s1 = OK s1'"
-  assumes fits: "fits step cert phi"
-  assumes pc:   "pc < n" 
   assumes less: "OK s2 \<le>|r (OK s1)"
+  assumes pc:   "pc < n" 
+  assumes s1:   "s1 \<in> opt A"
+  assumes s2:   "s2 \<in> opt A"
+  assumes esl:  "err_semilat (A,r,f)"
+  assumes cert: "cert_ok cert n A"
+  assumes mono: "mono (Err.le (Opt.le r)) step n (err (opt A))"
+  assumes pres: "pres_type step n (err (opt A))" 
   shows "\<exists>s2'. wtl_inst cert f r step pc s2 = OK s2' \<and> OK s2' \<le>|r (OK s1')"
-apply (insert wtl)
-apply (simp add: wtl_inst_def)
-
-                           
-lemma wtl_inst_mono:
-  "\<lbrakk> wtl_inst i G rT s1 cert mxs mpc pc = OK s1'; fits ins cert phi; 
-      pc < length ins;  G \<turnstile> s2 <=' s1; i = ins!pc \<rbrakk> \<Longrightarrow>
-  \<exists> s2'. wtl_inst (ins!pc) G rT s2 cert mxs mpc pc = OK s2' \<and> (G \<turnstile> s2' <=' s1')"
 proof -
-  assume pc:   "pc < length ins" "i = ins!pc"
-  assume wtl:  "wtl_inst i G rT s1 cert mxs mpc pc = OK s1'"
-  assume fits: "fits ins cert phi"
-  assume G:    "G \<turnstile> s2 <=' s1"
-  
-  let "?eff s" = "eff i G s"
-
-  from wtl G
-  have app: "app i G mxs rT s2" by (auto simp add: wtl_inst_OK app_mono)
-  
-  from wtl G
-  have eff: "G \<turnstile> ?eff s2 <=' ?eff s1" 
-    by (auto intro: eff_mono simp add: wtl_inst_OK)
-
-  { also
-    fix pc'
-    assume "pc' \<in> set (succs i pc)" "pc' \<noteq> pc+1"
-    with wtl 
-    have "G \<turnstile> ?eff s1 <=' cert!pc'"
-      by (auto simp add: wtl_inst_OK) 
-    finally
-    have "G\<turnstile> ?eff s2 <=' cert!pc'" .
-  } note cert = this
-    
-  have "\<exists>s2'. wtl_inst i G rT s2 cert mxs mpc pc = OK s2' \<and> G \<turnstile> s2' <=' s1'"
-  proof (cases "pc+1 \<in> set (succs i pc)")
-    case True
-    with wtl
-    have s1': "s1' = ?eff s1" by (simp add: wtl_inst_OK)
-
-    have "wtl_inst i G rT s2 cert mxs mpc pc = OK (?eff s2) \<and> G \<turnstile> ?eff s2 <=' s1'" 
-      (is "?wtl \<and> ?G")
-    proof
-      from True s1'
-      show ?G by (auto intro: eff)
-
-      from True app wtl
-      show ?wtl
-        by (clarsimp intro!: cert simp add: wtl_inst_OK)
-    qed
-    thus ?thesis by blast
-  next
-    case False
-    with wtl
-    have "s1' = cert ! Suc pc" by (simp add: wtl_inst_OK)
-
-    with False app wtl
-    have "wtl_inst i G rT s2 cert mxs mpc pc = OK s1' \<and> G \<turnstile> s1' <=' s1'"
-      by (clarsimp intro!: cert simp add: wtl_inst_OK)
-
-    thus ?thesis by blast
-  qed
-  
-  with pc show ?thesis by simp
-qed
-
+  let "?step s1" = "step pc (OK s1)"
+  let ?cert = "OK (cert!Suc pc)"
+  from wtl 
+  have "merge cert f r pc (?step s1) ?cert = OK s1'" by (simp add: wtl_inst_def)
+  moreover
+  have s2: "OK s2 \<in> err (opt A)" by simp
+  with mono have "?step s2 <=|Err.le (Opt.le r)| ?step s1" by - (rule monoD)
+  moreover note esl
+  moreover
+  from pc cert have "?cert \<in> err (opt A)" by (simp add: cert_okD3)
+  moreover
+  have s1: "OK s1 \<in> err (opt A)" by simp
+  with pres pc
+  have "\<forall>(pc', s')\<in>set (?step s1). s' \<in> err (opt A)"
+    by (blast intro: pres_typeD)  
+  moreover
+  from pres s2 pc
+  have "\<forall>(pc', s')\<in>set (?step s2). s' \<in> err (opt A)" 
+    by (blast intro: pres_typeD)  
+  ultimately
+  obtain s2' where "merge cert f r pc (?step s2) ?cert = s2' \<and> s2' \<le>|r (OK s1')"
+    by (blast dest: merge_mono)
+  thus ?thesis by (simp add: wtl_inst_def)
+qed 
 
 lemma wtl_cert_mono:
-  "\<lbrakk> wtl_cert i G rT s1 cert mxs mpc pc = OK s1'; fits ins cert phi; 
-      pc < length ins; G \<turnstile> s2 <=' s1; i = ins!pc \<rbrakk> \<Longrightarrow>
-  \<exists> s2'. wtl_cert (ins!pc) G rT s2 cert mxs mpc pc = OK s2' \<and> (G \<turnstile> s2' <=' s1')"
-proof -
-  assume wtl:  "wtl_cert i G rT s1 cert mxs mpc pc = OK s1'" and
-         fits: "fits ins cert phi" "pc < length ins"
-               "G \<turnstile> s2 <=' s1" "i = ins!pc"
-
-  show ?thesis
-  proof (cases (open) "cert!pc")
-    case None
-    with wtl fits
-    show ?thesis 
-      by - (rule wtl_inst_mono [elim_format], (simp add: wtl_cert_def)+)
-  next
-    case Some
-    with wtl fits
-
-    have G: "G \<turnstile> s2 <=' (Some a)"
-      by - (rule sup_state_opt_trans, auto simp add: wtl_cert_def split: if_splits)
-
-    from Some wtl
-    have "wtl_inst i G rT (Some a) cert mxs mpc pc = OK s1'" 
-      by (simp add: wtl_cert_def split: if_splits)
-
-    with G fits
-    have "\<exists> s2'. wtl_inst (ins!pc) G rT (Some a) cert mxs mpc pc = OK s2' \<and> 
-                 (G \<turnstile> s2' <=' s1')"
-      by - (rule wtl_inst_mono, (simp add: wtl_cert_def)+)
-    
-    with Some G
-    show ?thesis by (simp add: wtl_cert_def)
-  qed
-qed
-
- 
-lemma wt_instr_imp_wtl_inst:
-  "\<lbrakk> wt_instr (ins!pc) G rT phi mxs max_pc pc; fits ins cert phi;
-      pc < length ins; length ins = max_pc \<rbrakk> \<Longrightarrow> 
-  wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc \<noteq> Err"
- proof -
-  assume wt:   "wt_instr (ins!pc) G rT phi mxs max_pc pc" 
-  assume fits: "fits ins cert phi"
-  assume pc:   "pc < length ins" "length ins = max_pc"
-
-  from wt 
-  have app: "app (ins!pc) G mxs rT (phi!pc)" by (simp add: wt_instr_def)
-
-  from wt pc
-  have pc': "\<And>pc'. pc' \<in> set (succs (ins!pc) pc) \<Longrightarrow> pc' < length ins"
-    by (simp add: wt_instr_def)
-
-  let ?s' = "eff (ins!pc) G (phi!pc)"
-
-  from wt fits pc
-  have cert: "\<And>pc'. \<lbrakk>pc' \<in> set (succs (ins!pc) pc); pc' < max_pc; pc' \<noteq> pc+1\<rbrakk> 
-    \<Longrightarrow> G \<turnstile> ?s' <=' cert!pc'"
-    by (auto dest: fitsD simp add: wt_instr_def)     
-
-  from app pc cert pc'
-  show ?thesis
-    by (auto simp add: wtl_inst_OK)
-qed
-
-lemma wt_less_wtl:
-  "\<lbrakk> wt_instr (ins!pc) G rT phi mxs max_pc pc; 
-      wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s;
-      fits ins cert phi; Suc pc < length ins; length ins = max_pc \<rbrakk> \<Longrightarrow> 
-  G \<turnstile> s <=' phi ! Suc pc"
-proof -
-  assume wt:   "wt_instr (ins!pc) G rT phi mxs max_pc pc" 
-  assume wtl:  "wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s"
-  assume fits: "fits ins cert phi"
-  assume pc:   "Suc pc < length ins" "length ins = max_pc"
-
-  { assume suc: "Suc pc \<in> set (succs (ins ! pc) pc)"
-    with wtl have "s = eff (ins!pc) G (phi!pc)"
-      by (simp add: wtl_inst_OK)
-    also from suc wt have "G \<turnstile> \<dots> <=' phi!Suc pc"
-      by (simp add: wt_instr_def)
-    finally have ?thesis .
-  }
-
-  moreover
-  { assume "Suc pc \<notin> set (succs (ins ! pc) pc)"
-    
-    with wtl
-    have "s = cert!Suc pc" 
-      by (simp add: wtl_inst_OK)
-    with fits pc
-    have ?thesis
-      by - (cases "cert!Suc pc", simp, drule fitsD2, assumption+, simp)
-  }
-
-  ultimately
-  show ?thesis by blast
-qed
-  
-
-lemma wt_instr_imp_wtl_cert:
-  "\<lbrakk> wt_instr (ins!pc) G rT phi mxs max_pc pc; fits ins cert phi;
-      pc < length ins; length ins = max_pc \<rbrakk> \<Longrightarrow> 
-  wtl_cert (ins!pc) G rT (phi!pc) cert mxs max_pc pc \<noteq> Err"
-proof -
-  assume "wt_instr (ins!pc) G rT phi mxs max_pc pc" and 
-   fits: "fits ins cert phi" and
-     pc: "pc < length ins" and
-         "length ins = max_pc"
-  
-  hence wtl: "wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc \<noteq> Err"
-    by (rule wt_instr_imp_wtl_inst)
-
-  hence "cert!pc = None \<Longrightarrow> ?thesis"
+  assumes wtl:  "wtl_cert cert f r step pc s1 = OK s1'"
+  assumes less: "OK s2 \<le>|r (OK s1)"
+  assumes pc:   "pc < n" 
+  assumes s1:   "s1 \<in> opt A"
+  assumes s2:   "s2 \<in> opt A"
+  assumes esl:  "err_semilat (A,r,f)"
+  assumes cert: "cert_ok cert n A"
+  assumes mono: "mono (Err.le (Opt.le r)) step n (err (opt A))"
+  assumes pres: "pres_type step n (err (opt A))" 
+  shows "\<exists>s2'. wtl_cert cert f r step pc s2 = OK s2' \<and> OK s2' \<le>|r (OK s1')"
+proof (cases "cert!pc")
+  case None
+  with wtl have "wtl_inst cert f r step pc s1 = OK s1'" 
     by (simp add: wtl_cert_def)
-
-  moreover
-  { fix s
-    assume c: "cert!pc = Some s"
-    with fits pc
-    have "cert!pc = phi!pc"
-      by (rule fitsD2)
-    from this c wtl
-    have ?thesis
-      by (clarsimp simp add: wtl_cert_def)
-  }
-
-  ultimately
-  show ?thesis by blast
-qed
-  
-
-lemma wt_less_wtl_cert:
-  "\<lbrakk> wt_instr (ins!pc) G rT phi mxs max_pc pc; 
-      wtl_cert (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s;
-      fits ins cert phi; Suc pc < length ins; length ins = max_pc \<rbrakk> \<Longrightarrow> 
-  G \<turnstile> s <=' phi ! Suc pc"
-proof -
-  assume wtl: "wtl_cert (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s"
-
-  assume wti: "wt_instr (ins!pc) G rT phi mxs max_pc pc"
-              "fits ins cert phi" 
-              "Suc pc < length ins" "length ins = max_pc"
-  
-  { assume "cert!pc = None"
-    with wtl
-    have "wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s"
-      by (simp add: wtl_cert_def)
-    with wti
-    have ?thesis
-      by - (rule wt_less_wtl)
-  }
-  moreover
-  { fix t
-    assume c: "cert!pc = Some t"
-    with wti
-    have "cert!pc = phi!pc"
-      by - (rule fitsD2, simp+)
-    with c wtl
-    have "wtl_inst (ins!pc) G rT (phi!pc) cert mxs max_pc pc = OK s"
-      by (simp add: wtl_cert_def)
-    with wti
-    have ?thesis
-      by - (rule wt_less_wtl)
-  }   
-    
-  ultimately
-  show ?thesis by blast
-qed
-
-text {*
-  \medskip
-  Main induction over the instruction list.
-*}
-
-theorem wt_imp_wtl_inst_list:
-"\<forall> pc. (\<forall>pc'. pc' < length all_ins \<longrightarrow> 
-        wt_instr (all_ins ! pc') G rT phi mxs (length all_ins) pc') \<longrightarrow>
-       fits all_ins cert phi \<longrightarrow> 
-       (\<exists>l. pc = length l \<and> all_ins = l@ins) \<longrightarrow>  
-       pc < length all_ins \<longrightarrow>      
-       (\<forall> s. (G \<turnstile> s <=' (phi!pc)) \<longrightarrow> 
-             wtl_inst_list ins G rT cert mxs (length all_ins) pc s \<noteq> Err)" 
-(is "\<forall>pc. ?wt \<longrightarrow> ?fits \<longrightarrow> ?l pc ins \<longrightarrow> ?len pc \<longrightarrow> ?wtl pc ins"  
- is "\<forall>pc. ?C pc ins" is "?P ins") 
-proof (induct "?P" "ins")
-  case Nil
-  show "?P []" by simp
+  hence "\<exists>s2'. wtl_inst cert f r step pc s2 = OK s2' \<and> OK s2' \<le>|r (OK s1')"
+    by - (rule wtl_inst_mono)
+  with None show ?thesis by (simp add: wtl_cert_def)
 next
-  fix i ins'
-  assume Cons: "?P ins'"
+  case (Some s')
+  with wtl obtain 
+    wti: "wtl_inst cert f r step pc (Some s') = OK s1'" and
+    s':  "OK s1 \<le>|r OK (Some s')"
+    by (auto simp add: wtl_cert_def split: split_if_asm)
+  from esl have order: "order (Opt.le r)" by simp
+  hence "order (Err.le (Opt.le r))" by simp
+  with less s' have "OK s2 \<le>|r OK (Some s')" by - (drule order_trans)
+  with Some wti order show ?thesis by (simp add: wtl_cert_def)
+qed
 
-  show "?P (i#ins')" 
-  proof (intro allI impI, elim exE conjE)
-    fix pc s l
-    assume wt  : "\<forall>pc'. pc' < length all_ins \<longrightarrow> 
-                        wt_instr (all_ins ! pc') G rT phi mxs (length all_ins) pc'"
-    assume fits: "fits all_ins cert phi"
-    assume l   : "pc < length all_ins"
-    assume G   : "G \<turnstile> s <=' phi ! pc"
-    assume pc  : "all_ins = l@i#ins'" "pc = length l"
-    hence  i   : "all_ins ! pc = i"
-      by (simp add: nth_append)
 
-    from l wt
-    have wti: "wt_instr (all_ins!pc) G rT phi mxs (length all_ins) pc" by blast
+lemma stable_wtl:
+  assumes stable:  "stable (Err.le (Opt.le r)) step (map OK phi) pc"
+  assumes fits:    "fits step cert phi"  
+  assumes pc:      "pc < length phi"
+  assumes bounded: "bounded step (length phi)"
+  assumes esl:     "err_semilat (A, r, f)"
+  assumes cert_ok: "cert_ok cert (length phi) A"
+  assumes phi_ok:  "\<forall>pc < length phi. phi!pc \<in> opt A"
+  assumes pres:    "pres_type step (length phi) (err (opt A))" 
+  shows "wtl_inst cert f r step pc (phi!pc) \<noteq> Err"
+proof -
+  from esl have order: "order (Opt.le r)" by simp
 
-    with fits l 
-    have c: "wtl_cert (all_ins!pc) G rT (phi!pc) cert mxs (length all_ins) pc \<noteq> Err"
-      by - (drule wt_instr_imp_wtl_cert, auto)
-    
-    from Cons
-    have "?C (Suc pc) ins'" by blast
-    with wt fits pc
-    have IH: "?len (Suc pc) \<longrightarrow> ?wtl (Suc pc) ins'" by auto
+  let ?step = "step pc (OK (phi!pc))"
+  from pc have [simp]: "map OK phi ! pc = OK (phi!pc)" by simp
+  from stable 
+  have less: "\<forall>(q,s')\<in>set ?step. s' \<le>|r (map OK phi!q)" 
+    by (simp add: stable_def)
+  
+  from cert_ok pc
+  have cert_suc: "OK (cert!Suc pc) \<in> err (opt A)" by (auto dest: cert_okD3)
+  moreover  
+  from phi_ok pc
+  have "OK (phi!pc) \<in> err (opt A)" by simp
+  with pres pc 
+  have stepA: "\<forall>(pc',s') \<in> set ?step. s' \<in> err (opt A)" 
+    by (blast dest: pres_typeD)
+  ultimately
+  have "merge cert f r pc ?step (OK (cert!Suc pc)) =
+    (if \<forall>(pc',s')\<in>set ?step. pc'\<noteq>pc+1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))
+    then map snd [(p',t')\<in>?step.p'=pc+1] ++|f (OK (cert!Suc pc))
+    else Err)" using esl by - (rule merge_def)
+  moreover {
+    fix pc' s' assume s': "(pc', s') \<in> set ?step" and suc_pc: "pc' \<noteq> pc+1"
+    from bounded pc s' have pc': "pc' < length phi" by (rule boundedD)
+    hence [simp]: "map OK phi ! pc' = OK (phi!pc')" by simp
+    with s' less have "s' \<le>|r OK (phi!pc')" by auto
+    also from fits s' suc_pc pc pc' 
+    have "cert!pc' = phi!pc'" by (rule fitsD)
+    hence "phi!pc' = cert!pc'" ..
+    finally have "s' \<le>|r (OK (cert!pc'))" .
+  } hence "\<forall>(pc',s')\<in>set ?step. pc'\<noteq>pc+1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))" by auto
+  moreover
+  from pc have "Suc pc = length phi \<or> Suc pc < length phi" by auto
+  hence "(map snd [(p',t')\<in>?step.p'=pc+1] ++|f (OK (cert!Suc pc))) \<noteq> Err" 
+         (is "(?map ++|f _) \<noteq> _")
+  proof (rule disjE)
+    assume pc': "Suc pc = length phi"
+    with cert_ok have "cert!Suc pc = None" by (simp add: cert_okD2)
+    moreover 
+    from pc' bounded pc
+    have "\<forall>(p',t')\<in>set ?step. p'\<noteq>pc+1" by clarify (drule boundedD, auto)
+    hence "[(p',t')\<in>?step.p'=pc+1] = []" by (blast intro: filter_False) 
+    hence "?map = []" by simp
+    ultimately show ?thesis by simp
+  next
+    assume pc': "Suc pc < length phi"
+    hence [simp]: "map OK phi ! Suc pc = OK (phi!Suc pc)" by simp
+    from esl
+    have "semilat (err (opt A), Err.le (Opt.le r), lift2 (Opt.sup f))"
+      by (simp add: Err.sl_def)
+    moreover
+    from pc' phi_ok 
+    have "OK (phi!Suc pc) \<in> err (opt A)" by simp
+    moreover note cert_suc
+    moreover from stepA 
+    have "snd`(set ?step) \<subseteq> err (opt A)" by auto
+    hence "set ?map \<subseteq> err (opt A)" by auto
+    moreover
+    have "\<And>s. s \<in> set ?map \<Longrightarrow> \<exists>t. (Suc pc, t) \<in> set ?step" by auto
+    with less have "\<forall>s' \<in> set ?map. s' \<le>|r OK (phi!Suc pc)" by auto
+    moreover
+    from order fits pc' 
+    have "OK (cert!Suc pc) \<le>|r OK (phi!Suc pc)"     
+      by (cases "cert!Suc pc") (simp, blast dest: fitsD2) 
+    ultimately
+    have "?map ++|f OK (cert!Suc pc) \<le>|r OK (phi!Suc pc)" by (rule lub)
+    thus ?thesis by auto
+  qed
+  ultimately
+  have "merge cert f r pc ?step (OK (cert!Suc pc)) \<noteq> Err" by simp
+  thus ?thesis by (simp add: wtl_inst_def)  
+qed
 
-    show "wtl_inst_list (i#ins') G rT cert mxs (length all_ins) pc s \<noteq> Err" 
-    proof (cases "?len (Suc pc)")
-      case False
-      with pc
-      have "ins' = []" by simp
-      with G i c fits l
-      show ?thesis by (auto dest: wtl_cert_mono)
-    next
-      case True
-      with IH
-      have wtl: "?wtl (Suc pc) ins'" by blast
-
-      from c wti fits l True
-      obtain s'' where
-        "wtl_cert (all_ins!pc) G rT (phi!pc) cert mxs (length all_ins) pc = OK s''"
-        "G \<turnstile> s'' <=' phi ! Suc pc"
-        by clarsimp (drule wt_less_wtl_cert, auto)
-      moreover
-      from calculation fits G l
-      obtain s' where
-        c': "wtl_cert (all_ins!pc) G rT s cert mxs (length all_ins) pc = OK s'" and
-        "G \<turnstile> s' <=' s''"
-        by - (drule wtl_cert_mono, auto)
-      ultimately
-      have G': "G \<turnstile> s' <=' phi ! Suc pc" 
-        by - (rule sup_state_opt_trans)
-
-      with wtl
-      have "wtl_inst_list ins' G rT cert mxs (length all_ins) (Suc pc) s' \<noteq> Err"
-        by auto
-
-      with i c'
-      show ?thesis by auto
-    qed
+lemma stable_cert:
+  assumes stable:  "stable (Err.le (Opt.le r)) step (map OK phi) pc"
+  assumes fits:    "fits step cert phi"  
+  assumes pc:      "pc < length phi"
+  assumes bounded: "bounded step (length phi)"
+  assumes esl:     "err_semilat (A, r, f)"
+  assumes cert_ok: "cert_ok cert (length phi) A"
+  assumes phi_ok:  "\<forall>pc < length phi. phi!pc \<in> opt A"
+  assumes pres:    "pres_type step (length phi) (err (opt A))" 
+  shows "wtl_cert cert f r step pc (phi!pc) \<noteq> Err"
+proof -
+  have wtl: "wtl_inst cert f r step pc (phi!pc) \<noteq> Err" by (rule stable_wtl)   
+  show ?thesis
+  proof (cases "cert!pc")
+    case None with wtl show ?thesis by (simp add: wtl_cert_def)
+  next
+    case (Some s)
+    with pc fits have "cert!pc = phi!pc" by - (rule fitsD2)
+    with Some have "phi!pc = Some s" by simp
+    with Some wtl esl show ?thesis by (simp add: wtl_cert_def)
   qed
 qed
   
 
-lemma fits_imp_wtl_method_complete:
-  "\<lbrakk> wt_method G C pTs rT mxs mxl ins phi; fits ins cert phi \<rbrakk> 
-  \<Longrightarrow> wtl_method G C pTs rT mxs mxl ins cert"
-by (simp add: wt_method_def wtl_method_def)
-   (rule wt_imp_wtl_inst_list [rule_format, elim_format], auto simp add: wt_start_def) 
-
-
-lemma wtl_method_complete:
-  "wt_method G C pTs rT mxs mxl ins phi 
-  \<Longrightarrow> wtl_method G C pTs rT mxs mxl ins (make_cert ins phi)"
+lemma wtl_less:
+  assumes stable:  "stable (Err.le (Opt.le r)) step (map OK phi) pc"
+  assumes wtl:     "wtl_inst cert f r step pc (phi!pc) = OK s"
+  assumes fits:    "fits step cert phi"  
+  assumes suc_pc:   "Suc pc < length phi"
+  assumes bounded: "bounded step (length phi)"
+  assumes esl:     "err_semilat (A, r, f)"
+  assumes cert_ok: "cert_ok cert (length phi) A"
+  assumes phi_ok:  "\<forall>pc < length phi. phi!pc \<in> opt A"
+  assumes pres:    "pres_type step (length phi) (err (opt A))" 
+  shows "OK s \<le>|r OK (phi!Suc pc)"
 proof -
-  assume "wt_method G C pTs rT mxs mxl ins phi" 
-  moreover
-  have "fits ins (make_cert ins phi) phi"
-    by (rule fits_make_cert)
+  from esl have order: "order (Opt.le r)" by simp
+
+  let ?step = "step pc (OK (phi!pc))"
+  from suc_pc have [simp]: "map OK phi ! pc = OK (phi!pc)" by simp
+  from suc_pc have [simp]: "map OK phi ! Suc pc = OK (phi!Suc pc)" by simp
+  from suc_pc have pc: "pc < length phi" by simp
+
+  from stable
+  have less: "\<forall>(q,s')\<in>set ?step. s' \<le>|r (map OK phi!q)" 
+    by (simp add: stable_def)
+  
+  from cert_ok pc
+  have cert_suc: "OK (cert!Suc pc) \<in> err (opt A)" by (auto dest: cert_okD3)
+  moreover  
+  from phi_ok pc
+  have "OK (phi!pc) \<in> err (opt A)" by simp
+  with pres pc 
+  have stepA: "\<forall>(pc',s') \<in> set ?step. s' \<in> err (opt A)" 
+    by (blast dest: pres_typeD)
   ultimately
-  show ?thesis 
-    by (rule fits_imp_wtl_method_complete)
+  have "merge cert f r pc ?step (OK (cert!Suc pc)) =
+    (if \<forall>(pc',s')\<in>set ?step. pc'\<noteq>pc+1 \<longrightarrow> s' \<le>|r (OK (cert!pc'))
+    then map snd [(p',t')\<in>?step.p'=pc+1] ++|f (OK (cert!Suc pc))
+    else Err)" using esl by - (rule merge_def)
+  with wtl have
+    "OK s = (map snd [(p',t')\<in>?step.p'=pc+1] ++|f (OK (cert!Suc pc)))" 
+    (is "_ = (?map ++|f _)" is "_ = ?sum")
+    by (simp add: wtl_inst_def split: split_if_asm)
+  also {
+    from esl
+    have "semilat (err (opt A), Err.le (Opt.le r), lift2 (Opt.sup f))"
+      by (simp add: Err.sl_def)
+    moreover
+    from suc_pc phi_ok 
+    have "OK (phi!Suc pc) \<in> err (opt A)" by simp
+    moreover note cert_suc
+    moreover from stepA 
+    have "snd`(set ?step) \<subseteq> err (opt A)" by auto
+    hence "set ?map \<subseteq> err (opt A)" by auto
+    moreover
+    have "\<And>s. s \<in> set ?map \<Longrightarrow> \<exists>t. (Suc pc, t) \<in> set ?step" by auto
+    with less have "\<forall>s' \<in> set ?map. s' \<le>|r OK (phi!Suc pc)" by auto
+    moreover
+    from order fits suc_pc
+    have "OK (cert!Suc pc) \<le>|r OK (phi!Suc pc)"     
+      by (cases "cert!Suc pc") (simp, blast dest: fitsD2) 
+    ultimately
+    have "?sum \<le>|r OK (phi!Suc pc)" by (rule lub)
+  }
+  finally show ?thesis .
+qed
+
+
+lemma cert_less:
+  assumes stable:  "stable (Err.le (Opt.le r)) step (map OK phi) pc"
+  assumes cert:    "wtl_cert cert f r step pc (phi!pc) = OK s"
+  assumes fits:    "fits step cert phi"  
+  assumes suc_pc:   "Suc pc < length phi"
+  assumes bounded: "bounded step (length phi)"
+  assumes esl:     "err_semilat (A, r, f)"
+  assumes cert_ok: "cert_ok cert (length phi) A"
+  assumes phi_ok:  "\<forall>pc < length phi. phi!pc \<in> opt A"
+  assumes pres:    "pres_type step (length phi) (err (opt A))" 
+  shows "OK s \<le>|r OK (phi!Suc pc)"
+proof (cases "cert!pc")
+  case None with cert 
+  have "wtl_inst cert f r step pc (phi!pc) = OK s" by (simp add: wtl_cert_def)
+  thus ?thesis by - (rule wtl_less)
+next
+  case (Some s') with cert 
+  have "wtl_inst cert f r step pc (Some s') = OK s" 
+    by (simp add: wtl_cert_def split: split_if_asm)
+  also
+  from suc_pc have "pc < length phi" by simp
+  with fits Some have "cert!pc = phi!pc" by - (rule fitsD2)
+  with Some have "Some s' = phi!pc" by simp
+  finally
+  have "wtl_inst cert f r step pc (phi!pc) = OK s" .
+  thus ?thesis by - (rule wtl_less)
+qed
+
+
+  
+lemma wt_step_wtl_lemma:
+  assumes wt_step: "wt_step (Err.le (Opt.le r)) Err step (map OK phi)"
+  assumes fits:    "fits step cert phi"  
+  assumes bounded: "bounded step (length phi)"
+  assumes esl:     "err_semilat (A, r, f)"
+  assumes cert_ok: "cert_ok cert (length phi) A"
+  assumes phi_ok:  "\<forall>pc < length phi. phi!pc \<in> opt A"
+  assumes pres:    "pres_type step (length phi) (err (opt A))" 
+  assumes mono:    "mono (Err.le (Opt.le r)) step (length phi) (err (opt A))"
+  shows "\<And>pc s. pc+length ins = length phi \<Longrightarrow> OK s \<le>|r OK (phi!pc) \<Longrightarrow> s \<in> opt A \<Longrightarrow>
+                wtl_inst_list ins cert f r step pc s \<noteq> Err"
+  (is "\<And>pc s. _ \<Longrightarrow> _ \<Longrightarrow> _ \<Longrightarrow> ?wtl ins pc s \<noteq> Err")
+proof (induct ins)
+  fix pc s show "?wtl [] pc s \<noteq> Err" by simp
+next
+  fix pc s i ins
+  assume "\<And>pc s. pc+length ins=length phi \<Longrightarrow> OK s \<le>|r OK (phi!pc) \<Longrightarrow> s \<in> opt A \<Longrightarrow>
+                 ?wtl ins pc s \<noteq> Err"
+  moreover
+  assume pc_l: "pc + length (i#ins) = length phi"
+  hence suc_pc_l: "Suc pc + length ins = length phi" by simp
+  ultimately
+  have IH: 
+    "\<And>s. OK s \<le>|r OK (phi!Suc pc) \<Longrightarrow> s \<in> opt A \<Longrightarrow> ?wtl ins (Suc pc) s \<noteq> Err" .
+
+  from pc_l obtain pc: "pc < length phi" by simp
+  with wt_step 
+  have stable: "stable (Err.le (Opt.le r)) step (map OK phi) pc" 
+    by (simp add: wt_step_def)
+  moreover
+  assume s_phi: "OK s \<le>|r OK (phi!pc)"
+  ultimately 
+  have "wtl_cert cert f r step pc (phi!pc) \<noteq> Err" by - (rule stable_cert)
+  then obtain s'' where s'': "wtl_cert cert f r step pc (phi!pc) = OK s''" by fast
+  moreover 
+  from phi_ok pc 
+  have phi_pc: "phi!pc \<in> opt A" by simp
+  moreover 
+  assume s: "s \<in> opt A"
+  ultimately
+  obtain s' where "wtl_cert cert f r step pc s = OK s'"
+    by - (drule wtl_cert_mono, assumption+, blast)
+  hence "ins = [] \<Longrightarrow> ?wtl (i#ins) pc s \<noteq> Err" by simp
+  moreover {
+    assume "ins \<noteq> []" 
+    with pc_l have suc_pc: "Suc pc < length phi" by (auto simp add: neq_Nil_conv)
+    with stable s'' have "OK s'' \<le>|r OK (phi!Suc pc)" by - (rule cert_less)
+    moreover
+    from s'' s_phi obtain s' where 
+      cert: "wtl_cert cert f r step pc s = OK s'" and
+      "OK s' \<le>|r OK s''"
+      using phi_pc
+      by - (drule wtl_cert_mono, assumption+, blast)
+    moreover from esl have "order (Err.le (Opt.le r))" by simp
+    ultimately have less: "OK s' \<le>|r OK (phi!Suc pc)" by - (rule order_trans)
+
+    from cert_ok suc_pc have "cert!pc \<in> opt A" and "cert!(pc+1) \<in> opt A" 
+      by (auto simp add: cert_ok_def)
+    with s cert pres have "s' \<in> opt A" by - (rule wtl_cert_pres) 
+
+    with less IH have "?wtl ins (Suc pc) s' \<noteq> Err" by blast
+    with cert have "?wtl (i#ins) pc s \<noteq> Err" by simp 
+  }
+  ultimately show "?wtl (i#ins) pc s \<noteq> Err" by (cases ins) auto 
 qed
 
 
 theorem wtl_complete:
-  "wt_jvm_prog G Phi \<Longrightarrow> wtl_jvm_prog G (make_Cert G Phi)"
-proof -
-  assume wt: "wt_jvm_prog G Phi"
-   
-  { fix C S fs mdecls sig rT code
-    assume "(C,S,fs,mdecls) \<in> set G" "(sig,rT,code) \<in> set mdecls"
-    moreover
-    from wt obtain wf_mb where "wf_prog wf_mb G" 
-      by (blast dest: wt_jvm_progD)
-    ultimately
-    have "method (G,C) sig = Some (C,rT,code)"
-      by (simp add: methd)
-  } note this [simp]
- 
-  from wt
-  show ?thesis
-    apply (clarsimp simp add: wt_jvm_prog_def wtl_jvm_prog_def wf_prog_def wf_cdecl_def)
-    apply (drule bspec, assumption)
-    apply (clarsimp simp add: wf_mdecl_def)
-    apply (drule bspec, assumption)
-    apply (clarsimp simp add: make_Cert_def)
-    apply (clarsimp dest!: wtl_method_complete)    
-    done
+  assumes "wt_step (Err.le (Opt.le r)) Err step (map OK phi)"
+  assumes "OK s \<le>|r OK (phi!0)" and "s \<in> opt A"
+  defines cert:  "cert \<equiv> make_cert step phi"
 
-qed   
-      
-lemmas [simp] = split_paired_Ex
+  assumes "bounded step (length phi)" and "err_semilat (A, r, f)"
+  assumes "pres_type step (length phi) (err (opt A))" 
+  assumes "mono (Err.le (Opt.le r)) step (length phi) (err (opt A))"
+  assumes "length ins = length phi"
+  assumes phi_ok:  "\<forall>pc < length phi. phi!pc \<in> opt A"
+
+  shows "wtl_inst_list ins cert f r step 0 s \<noteq> Err"
+proof -
+  have "0+length ins = length phi" by simp
+  moreover
+  have "fits step cert phi" by (unfold cert) (rule fits_make_cert)
+  moreover
+  from phi_ok have "cert_ok cert (length phi) A"
+    by (simp add: cert make_cert_def cert_ok_def nth_append)
+  ultimately
+  show ?thesis by - (rule wt_step_wtl_lemma)
+qed
+
 
 end

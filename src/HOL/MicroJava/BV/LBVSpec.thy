@@ -64,11 +64,19 @@ primrec
 
 constdefs
   cert_ok :: "'s certificate \<Rightarrow> nat \<Rightarrow> 's set \<Rightarrow> bool"
-  "cert_ok cert n A \<equiv> \<forall>i < n. cert!i \<in> opt A"
+  "cert_ok cert n A \<equiv> (\<forall>i < n. cert!i \<in> opt A) \<and> (cert!n = None)"
 
-lemma cert_okD:
+lemma cert_okD1:
   "cert_ok cert n A \<Longrightarrow> pc < n \<Longrightarrow> cert!pc \<in> opt A"
   by (unfold cert_ok_def) fast
+
+lemma cert_okD2:
+  "cert_ok cert n A \<Longrightarrow> cert!n = None"
+  by (simp add: cert_ok_def)
+
+lemma cert_okD3:
+  "cert_ok cert n A \<Longrightarrow> pc < n \<Longrightarrow> cert!Suc pc \<in> opt A"
+  by (drule Suc_leI) (auto simp add: le_eq_less_or_eq dest: cert_okD1 cert_okD2)
 
 
 declare Let_def [simp]
@@ -382,9 +390,9 @@ next
   assume IH: "\<And>s'. n < length is \<Longrightarrow> ?wtl n s' \<Longrightarrow> s' \<in> opt A"
   hence "s1 \<in> opt A" .
   moreover
-  from cert have "cert!n \<in> opt A" by (rule cert_okD)
+  from cert have "cert!n \<in> opt A" by (rule cert_okD1)
   moreover
-  from cert n1 have "cert!(n+1) \<in> opt A" by (rule cert_okD)
+  from cert n1 have "cert!(n+1) \<in> opt A" by (rule cert_okD1)
   ultimately
   have "s2 \<in> opt A" using semi pres by - (rule wtl_cert_pres)
   thus "s' \<in> opt A" by simp
