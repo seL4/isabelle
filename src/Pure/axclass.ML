@@ -320,7 +320,7 @@ fun default_tac rules ctxt facts =
   HEADGOAL (Method.some_rule_tac rules ctxt facts ORELSE' default_intro_classes_tac facts);
 
 val default_method =
-  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac), "apply some rule")
+  ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac), "apply some intro/elim rule");
 
 
 (* axclass_tac *)

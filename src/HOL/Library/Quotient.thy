@@ -30,9 +30,9 @@ consts
 axclass equiv \<subseteq> eqv
   equiv_refl [intro]: "x \<sim> x"
   equiv_trans [trans]: "x \<sim> y ==> y \<sim> z ==> x \<sim> z"
-  equiv_sym [elim?]: "x \<sim> y ==> y \<sim> x"
+  equiv_sym [sym]: "x \<sim> y ==> y \<sim> x"
 
-lemma not_equiv_sym [elim?]: "\<not> (x \<sim> y) ==> \<not> (y \<sim> (x::'a::equiv))"
+lemma equiv_not_sym [sym]: "\<not> (x \<sim> y) ==> \<not> (y \<sim> (x::'a::equiv))"
 proof -
   assume "\<not> (x \<sim> y)" thus "\<not> (y \<sim> x)"
     by (rule contrapos_nn) (rule equiv_sym)
@@ -99,7 +99,7 @@ text {*
  relation.
 *}
 
-theorem quot_equality: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"
+theorem quot_equality [iff?]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"
 proof
   assume eq: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>"
   show "a \<sim> b"
@@ -131,18 +131,6 @@ next
     thus ?thesis by (simp only: class_def)
   qed
 qed
-
-lemma quot_equalI [intro?]: "a \<sim> b ==> \<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>"
-  by (simp only: quot_equality)
-
-lemma quot_equalD [dest?]: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> ==> a \<sim> b"
-  by (simp only: quot_equality)
-
-lemma quot_not_equalI [intro?]: "\<not> (a \<sim> b) ==> \<lfloor>a\<rfloor> \<noteq> \<lfloor>b\<rfloor>"
-  by (simp add: quot_equality)
-
-lemma quot_not_equalD [dest?]: "\<lfloor>a\<rfloor> \<noteq> \<lfloor>b\<rfloor> ==> \<not> (a \<sim> b)"
-  by (simp add: quot_equality)
 
 
 subsection {* Picking representing elements *}

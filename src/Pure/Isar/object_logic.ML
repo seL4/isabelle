@@ -111,11 +111,11 @@ fun fixed_judgment sg x =
 val get_atomize = #1 o #2 o ObjectLogicData.get_sg;
 val get_rulify = #2 o #2 o ObjectLogicData.get_sg;
 
-val add_atomize = ObjectLogicData.map o Library.apsnd o Library.apfst o Drule.add_rules;
-val add_rulify = ObjectLogicData.map o Library.apsnd o Library.apsnd o Drule.add_rules;
+val add_atomize = ObjectLogicData.map o Library.apsnd o Library.apfst o Drule.add_rule;
+val add_rulify = ObjectLogicData.map o Library.apsnd o Library.apsnd o Drule.add_rule;
 
-fun declare_atomize (thy, th) = (add_atomize [th] thy, th);
-fun declare_rulify (thy, th) = (add_rulify [th] thy, th);
+fun declare_atomize (thy, th) = (add_atomize th thy, th);
+fun declare_rulify (thy, th) = (add_rulify th thy, th);
 
 
 (* atomize *)

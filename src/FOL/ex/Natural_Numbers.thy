@@ -1,12 +1,17 @@
 (*  Title:      FOL/ex/Natural_Numbers.thy
     ID:         $Id$
     Author:     Markus Wenzel, TU Munich
-
-Theory of the natural numbers: Peano's axioms, primitive recursion.
-(Modernized version of Larry Paulson's theory "Nat".)
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 *)
 
+header {* Natural numbers *}
+
 theory Natural_Numbers = FOL:
+
+text {*
+  Theory of the natural numbers: Peano's axioms, primitive recursion.
+  (Modernized version of Larry Paulson's theory "Nat".)  \medskip
+*}
 
 typedecl nat
 arities nat :: "term"

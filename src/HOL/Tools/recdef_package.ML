@@ -170,12 +170,12 @@ fun mk_attr (add1, add2) (del1, del2) =
 
 in
 
-val (simp_add_global, simp_add_local) = global_local map_simps (Drule.add_rules o single);
-val (simp_del_global, simp_del_local) = global_local map_simps (Drule.del_rules o single);
+val (simp_add_global, simp_add_local) = global_local map_simps Drule.add_rule;
+val (simp_del_global, simp_del_local) = global_local map_simps Drule.del_rule;
 val (cong_add_global, cong_add_local) = global_local map_congs add_cong;
 val (cong_del_global, cong_del_local) = global_local map_congs del_cong;
-val (wf_add_global, wf_add_local) = global_local map_wfs (Drule.add_rules o single);
-val (wf_del_global, wf_del_local) = global_local map_wfs (Drule.del_rules o single);
+val (wf_add_global, wf_add_local) = global_local map_wfs Drule.add_rule;
+val (wf_del_global, wf_del_local) = global_local map_wfs Drule.del_rule;
 
 val simp_attr = mk_attr (simp_add_global, simp_add_local) (simp_del_global, simp_del_local);
 val cong_attr = mk_attr (cong_add_global, cong_add_local) (cong_del_global, cong_del_local);
