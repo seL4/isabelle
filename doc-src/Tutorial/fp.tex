@@ -382,7 +382,7 @@ where $\alpha@i$ are type variables (the parameters), $C@i$ are distinct
 constructor names and $\tau@{ij}$ are types; it is customary to capitalize
 the first letter in constructor names. There are a number of
 restrictions (such as the type should not be empty) detailed
-elsewhere~\cite{Isa-Logics-Man}. Isabelle notifies you if you violate them.
+elsewhere~\cite{isabelle-HOL}. Isabelle notifies you if you violate them.
 
 Laws about datatypes, such as \verb$[] ~= x#xs$ and \texttt{(x\#xs = y\#ys) =
   (x=y \& xs=ys)}, are used automatically during proofs by simplification.
@@ -1068,7 +1068,7 @@ are the same up to renaming of variables.  The most common permutative rule
 is commutativity: $x+y = y+x$.  Another example is $(x-y)-z = (x-z)-y$.  Such
 rules are problematic because once they apply, they can be used forever.
 The simplifier is aware of this danger and treats permutative rules
-separately. For details see~\cite{Isa-Ref-Man}.
+separately. For details see~\cite{isabelle-ref}.
 
 \subsubsection{Tracing}
 \indexbold{tracing the simplifier}
@@ -1486,13 +1486,13 @@ is unproblematic. However, Isabelle does not support recursion involving
 
 For a theoretical analysis of what kinds of datatypes are feasible in HOL
 see, for example,~\cite{Gunter-HOL92}. There are alternatives to pure HOL:
-LCF~\cite{Paulson-LCF} is a logic where types like
+LCF~\cite{paulson87} is a logic where types like
 \begin{ttbox}
 datatype t = C (t -> t)
 \end{ttbox}
 do indeed make sense (note the intentionally different arrow \texttt{->}!).
 There is even a version of LCF on top of HOL, called
-HOLCF~\cite{MuellerNvOS98}.
+HOLCF~\cite{MuellerNvOS99}.
 
 \index{*primrec|)}
 \index{*datatype|)}
@@ -1737,7 +1737,7 @@ allows arbitrary wellfounded relations. For example, termination of
 Ackermann's function requires the lexicographic product \texttt{**}:
 \begin{ttbox}
 \input{Recdef/ack}\end{ttbox}
-For details see the manual~\cite{Isa-Logics-Man} and the examples in the
+For details see the manual~\cite{isabelle-HOL} and the examples in the
 library.
 
 
