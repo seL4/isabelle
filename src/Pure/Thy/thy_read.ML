@@ -1096,7 +1096,9 @@ fun store_thm (name, thm) =
              Some out =>
                (mk_theorems_title out;
                 output (out, "<EM>" ^ name ^ "</EM>\n<PRE>" ^
-                             escape (explode (string_of_thm (freeze thm))) ^
+                             escape 
+			      (explode 
+			       (string_of_thm (#1 (freeze_thaw thm)))) ^
                              "</PRE><P>\n")
                )
            | None => ()
