@@ -32,7 +32,7 @@ text {*
 *};
 
 theorem group_right_inverse: "x * inv x = (one::'a::group)";
-proof same;
+proof -;
   have "x * inv x = one * (x * inv x)";
     by (simp only: group_left_unit);
   also; have "... = (one * x) * inv x";
@@ -58,7 +58,7 @@ text {*
 *};
 
 theorem group_right_unit: "x * one = (x::'a::group)";
-proof same;
+proof -;
   have "x * one = x * (inv x * x)";
     by (simp only: group_left_inverse);
   also; have "... = x * inv x * x";
@@ -85,7 +85,7 @@ text {*
 *};
 
 theorem "x * one = (x::'a::group)";
-proof same;
+proof -;
   have "x * one = x * (inv x * x)";
     by (simp only: group_left_inverse);
 

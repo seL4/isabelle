@@ -25,7 +25,7 @@ proof;
 
   assume mono: "mono f";
   show "f ??a = ??a";
-  proof same;
+  proof -;
     {{;
       fix x;
       assume mem: "x : ??H";

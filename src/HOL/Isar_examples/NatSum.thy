@@ -34,7 +34,7 @@ text {* Emulate Isabelle proof script: *};
 *)
 
 theorem sum_of_naturals: "2 * sum (%i. i) (Suc n) = n * Suc n";
-proof same;
+proof -;
   apply simp_tac;
   apply (induct n);
   apply simp_tac;

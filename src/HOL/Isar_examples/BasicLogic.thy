@@ -145,7 +145,7 @@ text {* We derive the conjunction elimination rule from the
  context again later. *};
 
 theorem conjE: "A & B ==> (A ==> B ==> C) ==> C";
-proof same;
+proof -;
   assume ab: "A & B";
   assume ab_c: "A ==> B ==> C";
   show C;
