@@ -497,7 +497,6 @@ val raw_mod_def = thm "raw_mod_def";
 val div_def = thm "div_def";
 val mod_def = thm "mod_def";
 
-val zero_lt_lemma = thm "zero_lt_lemma";
 val zero_lt_natE = thm "zero_lt_natE";
 val pred_succ_eq = thm "pred_succ_eq";
 val natify_succ = thm "natify_succ";

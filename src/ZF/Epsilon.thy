@@ -357,8 +357,7 @@ lemma rec_type:
         a: C(0);   
         !!m z. [| m: nat;  z: C(m) |] ==> b(m,z): C(succ(m)) |]
      ==> rec(n,a,b) : C(n)"
-apply (erule nat_induct, auto)
-done
+by (erule nat_induct, auto)
 
 ML
 {*
@@ -371,7 +370,6 @@ val arg_in_eclose_sing = thm "arg_in_eclose_sing";
 val arg_into_eclose_sing = thm "arg_into_eclose_sing";
 val eclose_induct = thm "eclose_induct";
 val eps_induct = thm "eps_induct";
-val eclose_least_lemma = thm "eclose_least_lemma";
 val eclose_least = thm "eclose_least";
 val eclose_induct_down = thm "eclose_induct_down";
 val Transset_eclose_eq_arg = thm "Transset_eclose_eq_arg";
@@ -408,7 +406,6 @@ val eclose_idem = thm "eclose_idem";
 val transrec2_0 = thm "transrec2_0";
 val transrec2_succ = thm "transrec2_succ";
 val transrec2_Limit = thm "transrec2_Limit";
-val recursor_lemma = thm "recursor_lemma";
 val recursor_0 = thm "recursor_0";
 val recursor_succ = thm "recursor_succ";
 val rec_0 = thm "rec_0";
