@@ -424,18 +424,11 @@ fun rewrite_term tsig rules tm =
     fun rew (Abs (_, _, body) $ t) = Some (subst_bound (t, body))
       | rew tm = get_first (match_rew tm) rules;
 
-    fun rew0 (tm as Abs (_, _, tm' $ Bound 0)) =
-          if loose_bvar1 (tm', 0) then rew tm
-          else
-            let val tm'' = incr_boundvars ~1 tm'
-            in Some (if_none (rew tm'') tm'') end
-      | rew0 tm = rew tm;
-
     fun rew1 tm = (case rew2 tm of
-          Some tm1 => (case rew0 tm1 of
+          Some tm1 => (case rew tm1 of
               Some tm2 => Some (if_none (rew1 tm2) tm2)
             | None => Some tm1)
-        | None => (case rew0 tm of
+        | None => (case rew tm of
               Some tm1 => Some (if_none (rew1 tm1) tm1)
             | None => None))
 
