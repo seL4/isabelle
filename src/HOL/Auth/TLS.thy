@@ -45,10 +45,11 @@ consts
   (*Pseudo-random function of Section 5*)
   PRF  :: "nat*nat*nat => nat"
 
-  (*Client, server write keys generated uniformly by function sessionK
-    to avoid duplicating their properties.
-    Theyimplicitly include the MAC secrets.*)
-  sessionK :: "(nat*nat*nat)*bool => key"
+  (*Client, server write keys are generated uniformly by function sessionK
+    to avoid duplicating their properties.  They are indexed by a further
+    natural number, not a bool, to avoid the peculiarities of if-and-only-if.
+    Session keys implicitly include MAC secrets.*)
+  sessionK :: "(nat*nat*nat)*nat => key"
 
   certificate      :: "[agent,key] => msg"
 
@@ -60,8 +61,8 @@ syntax
     clientK, serverK :: "nat*nat*nat => key"
 
 translations
-  "clientK (x)"	== "sessionK(x,True)"
-  "serverK (x)"	== "sessionK(x,False)"
+  "clientK (x)"	== "sessionK(x,0)"
+  "serverK (x)"	== "sessionK(x,1)"
 
 rules
   inj_PRF       "inj PRF"	
