@@ -346,7 +346,9 @@ lemma nat_less_induct:
   apply assumption
   done
 
-subsection {* Properties of "less or equal than" *}
+lemmas less_induct = nat_less_induct [rule_format, case_names less]
+
+subsection {* Properties of "less than or equal" *}
 
 text {* Was @{text le_eq_less_Suc}, but this orientation is more useful *}
 lemma less_Suc_eq_le: "(m < Suc n) = (m <= n)"

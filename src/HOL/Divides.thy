@@ -44,6 +44,8 @@ constdefs
 
 use "Divides_lemmas.ML"
 
+declare dvdI [intro?]  dvdE [elim?]  dvd_trans [trans]
+
 lemma split_div:
  "P(n div k :: nat) =
  ((k = 0 \<longrightarrow> P 0) \<and> (k \<noteq> 0 \<longrightarrow> (!i. !j<k. n = k*i + j \<longrightarrow> P i)))"
