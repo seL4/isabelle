@@ -189,8 +189,7 @@ fun check_level i =
 
 val ignore =
   Scan.depend (fn i => opt_newline |-- P.position (Scan.one T.is_begin_ignore) >> pair (i + 1)) ||
-  Scan.depend (fn i => P.position (Scan.one T.is_end_ignore) --|
-    (opt_newline -- check_level i) >> pair (i - 1));
+  Scan.depend (fn i => P.position (Scan.one T.is_end_ignore) --| check_level i >> pair (i - 1));
 
 val ignore_cmd = Scan.state -- ignore
   >> (fn (i, (x, pos)) => (false, (None, ((Latex.Basic x, ("", pos)), i))));
