@@ -25,7 +25,7 @@ structure Fin = Inductive_Fun
 	   "[| a: A;  b: Fin(A) |] ==> cons(a,b) : Fin(A)"];
   val monos = [];
   val con_defs = [];
-  val type_intrs = [Pow_bottom, cons_subsetI, PowI]
+  val type_intrs = [empty_subsetI, cons_subsetI, PowI]
   val type_elims = [make_elim PowD]);
 
 val [Fin_0I, Fin_consI] = Fin.intrs;

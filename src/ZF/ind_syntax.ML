@@ -91,22 +91,6 @@ val Trueprop = Const("Trueprop",oT-->propT);
 fun mk_tprop P = Trueprop $ P;
 fun dest_tprop (Const("Trueprop",_) $ P) = P;
 
-(*** Tactic for folding constructor definitions ***)
-
-(*The depth of injections in a constructor function*)
-fun inject_depth (Const _ $ t) = 1 + inject_depth t
-  | inject_depth t             = 0;
-
-val rhs_of_thm = #2 o Logic.dest_equals o #prop o rep_thm;
-
-(*There are critical pairs!  E.g. K == Inl(0),  S == Inr(Inl(0))
-  Folds longest definitions first to avoid folding subexpressions of an rhs.*)
-fun fold_con_tac defs =
-  let val keylist = make_keylist (inject_depth o rhs_of_thm) defs;
-      val keys = distinct (sort op> (map #2 keylist));
-      val deflists = map (keyfilter keylist) keys
-  in  EVERY (map fold_tac deflists)  end;
-
 (*Prove a goal stated as a term, with exception handling*)
 fun prove_term sign defs (P,tacsf) = 
     let val ct = Sign.cterm_of sign P

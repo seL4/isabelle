@@ -263,8 +263,8 @@ val dummy = writeln "Proving the elimination rule...";
 
 (*Includes rules for succ and Pair since they are common constructions*)
 val elim_rls = [asm_rl, FalseE, succ_neq_0, sym RS succ_neq_0, 
-		Pair_neq_0, sym RS Pair_neq_0, succ_inject, refl_thin,
-		conjE, exE, disjE];
+		Pair_neq_0, sym RS Pair_neq_0, make_elim succ_inject, 
+		refl_thin, conjE, exE, disjE];
 
 val sumprod_free_SEs = 
     map (gen_make_elim [conjE,FalseE])
@@ -283,7 +283,7 @@ val elim = rule_by_tactic basic_elim_tac (unfold RS equals_CollectD);
   the given defs.  Cannot simply use the local con_defs because con_defs=[] 
   for inference systems. *)
 fun con_elim_tac defs =
-    rewrite_goals_tac defs THEN basic_elim_tac THEN fold_con_tac defs;
+    rewrite_goals_tac defs THEN basic_elim_tac THEN fold_tac defs;
 
 (*String s should have the form t:Si where Si is an inductive set*)
 fun mk_cases defs s = 
