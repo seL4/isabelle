@@ -297,6 +297,8 @@ ISABELLE_HOME/bin;
 
 * support multiple print (ast) translations per constant name;
 
+* theorems involving oracles are now printed with a suffixed [!];
+
 
 *** HOL ***
 
