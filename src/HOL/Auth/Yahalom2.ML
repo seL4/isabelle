@@ -55,7 +55,7 @@ bind_thm ("YM4_parts_spies",
 goal thy "!!evs. Says S A {|NB, Crypt (shrK A) {|B,K,NA|}, X|} : set evs ==> \
 \                K : parts (spies evs)";
 by (blast_tac (claset() addSEs partsEs
-                       addSDs [Says_imp_spies RS parts.Inj]) 1);
+                        addSDs [Says_imp_spies RS parts.Inj]) 1);
 qed "YM4_Key_parts_spies";
 
 (*For proving the easier theorems about X ~: parts (spies evs).*)
@@ -378,7 +378,7 @@ by (parts_induct_tac 1);
 (*Fake*)
 by (Fake_parts_insert_tac 1);
 (*YM3: by new_keys_not_used we note that Crypt K (Nonce NB) could not exist*)
-by (fast_tac (claset() addSDs [Crypt_imp_invKey_keysFor] addss (simpset())) 1); 
+by (fast_tac (claset() addSDs [Crypt_imp_keysFor] addss (simpset())) 1); 
 (*YM4: was Crypt K (Nonce NB) the very last message?  If not, use ind. hyp.*)
 by (asm_simp_tac (simpset() addsimps [ex_disj_distrib]) 1);
 (*yes: apply unicity of session keys*)

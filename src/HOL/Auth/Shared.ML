@@ -28,6 +28,11 @@ by (Auto_tac ());
 qed "keysFor_parts_initState";
 Addsimps [keysFor_parts_initState];
 
+goal thy "!!H. Crypt K X : H ==> K : keysFor H";
+by (dtac Crypt_imp_invKey_keysFor 1);
+by (Asm_full_simp_tac 1);
+qed "Crypt_imp_keysFor";
+
 
 (*** Function "spies" ***)
 

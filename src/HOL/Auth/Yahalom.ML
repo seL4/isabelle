@@ -55,7 +55,7 @@ bind_thm ("YM4_parts_spies",
 goal thy "!!evs. Says S A {|Crypt (shrK A) {|B,K,NA,NB|}, X|} : set evs ==> \
 \                K : parts (spies evs)";
 by (blast_tac (claset() addSEs partsEs
-                      addSDs [Says_imp_spies RS parts.Inj]) 1);
+                        addSDs [Says_imp_spies RS parts.Inj]) 1);
 qed "YM4_Key_parts_spies";
 
 (*For proving the easier theorems about X ~: parts (spies evs).*)
@@ -108,9 +108,9 @@ by (parts_induct_tac 1);
 (*Fake*)
 by (best_tac
       (claset() addSDs [impOfSubs (parts_insert_subset_Un RS keysFor_mono)]
-               addIs  [impOfSubs analz_subset_parts]
-               addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
-               addss  (simpset())) 1);
+                addIs  [impOfSubs analz_subset_parts]
+                addDs  [impOfSubs (analz_subset_parts RS keysFor_mono)]
+                addss  (simpset())) 1);
 (*YM2-4: Because Key K is not fresh, etc.*)
 by (REPEAT (blast_tac (claset() addSEs spies_partsEs) 1));
 qed_spec_mp "new_keys_not_used";
@@ -196,7 +196,7 @@ by (expand_case_tac "K = ?y" 1);
 by (REPEAT (ares_tac [refl,exI,impI,conjI] 2));
 (*...we assume X is a recent message and handle this case by contradiction*)
 by (blast_tac (claset() addSEs spies_partsEs
-                       delrules [conjI]    (*no split-up to 4 subgoals*)) 1);
+                        delrules [conjI]    (*no split-up to 4 subgoals*)) 1);
 val lemma = result();
 
 goal thy 
@@ -225,13 +225,13 @@ by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
      (simpset() addsimps (expand_ifs@pushes)
-	       addsimps [analz_insert_eq, analz_insert_freshK])));
+	        addsimps [analz_insert_eq, analz_insert_freshK])));
 (*Oops*)
 by (blast_tac (claset() addDs [unique_session_keys]) 3);
 (*YM3*)
 by (blast_tac (claset() delrules [impCE]
-                       addSEs spies_partsEs
-                       addIs [impOfSubs analz_subset_parts]) 2);
+                        addSEs spies_partsEs
+                        addIs [impOfSubs analz_subset_parts]) 2);
 (*Fake*) 
 by (spy_analz_tac 1);
 val lemma = result() RS mp RS mp RSN(2,rev_notE);
@@ -308,7 +308,7 @@ by (Fake_parts_insert_tac 1);
 by (not_bad_tac "A" 1);
 (*A's certificate guarantees the existence of the Server message*)
 by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj RS parts.Fst RS
-			      A_trusts_YM3]) 1);
+			       A_trusts_YM3]) 1);
 bind_thm ("B_trusts_YM4_newK", result() RS mp RSN (2, rev_mp));
 
 
@@ -451,8 +451,8 @@ goal thy
 \        ==> NA' = NA & A' = A & B' = B";
 by (not_bad_tac "B'" 1);
 by (blast_tac (claset() addSDs [Says_imp_spies RS parts.Inj]
-                       addSEs [MPair_parts]
-                       addDs  [unique_NB]) 1);
+                        addSEs [MPair_parts]
+                        addDs  [unique_NB]) 1);
 qed "Says_unique_NB";
 
 
@@ -466,8 +466,8 @@ goal thy
 by (parts_induct_tac 1);
 by (Fake_parts_insert_tac 1);
 by (blast_tac (claset() addDs [Says_imp_spies RS analz.Inj]
-                       addSIs [parts_insertI]
-                       addSEs partsEs) 1);
+                        addSIs [parts_insertI]
+                        addSEs partsEs) 1);
 bind_thm ("no_nonce_YM1_YM2", result() RS mp RSN (2,rev_mp) RSN (2,rev_notE));
 
 (*The Server sends YM3 only in response to YM2.*)
@@ -498,19 +498,19 @@ by analz_spies_tac;
 by (ALLGOALS
     (asm_simp_tac 
      (simpset() addsimps (expand_ifs@pushes)
-	       addsimps [analz_insert_eq, analz_insert_freshK])));
+	        addsimps [analz_insert_eq, analz_insert_freshK])));
 (*Prove YM3 by showing that no NB can also be an NA*)
 by (blast_tac (claset() addDs [Says_imp_spies RS parts.Inj]
-	               addSEs [MPair_parts]
-		       addDs  [no_nonce_YM1_YM2, Says_unique_NB]) 4
+	                addSEs [MPair_parts]
+		        addDs  [no_nonce_YM1_YM2, Says_unique_NB]) 4
     THEN flexflex_tac);
 (*YM2: similar freshness reasoning*) 
 by (blast_tac (claset() addSEs partsEs
-		       addDs  [Says_imp_spies RS analz.Inj,
-			       impOfSubs analz_subset_parts]) 3);
+		        addDs  [Says_imp_spies RS analz.Inj,
+				impOfSubs analz_subset_parts]) 3);
 (*YM1: NB=NA is impossible anyway, but NA is secret because it is fresh!*)
 by (blast_tac (claset() addSIs [parts_insertI]
-                       addSEs spies_partsEs) 2);
+                        addSEs spies_partsEs) 2);
 (*Fake*)
 by (spy_analz_tac 1);
 (** LEVEL 7: YM4 and Oops remain **)
@@ -523,7 +523,7 @@ by (forward_tac [Says_Server_imp_YM2] 4);
 by (REPEAT_FIRST (eresolve_tac [asm_rl, bexE, exE, disjE]));
 (*  use Says_unique_NB to identify message components: Aa=A, Ba=B, NAa=NA *)
 by (blast_tac (claset() addDs [Says_unique_NB, Spy_not_see_encrypted_key,
-			      impOfSubs Fake_analz_insert]) 1);
+			       impOfSubs Fake_analz_insert]) 1);
 (** LEVEL 14 **)
 (*Oops case: if the nonce is betrayed now, show that the Oops event is 
   covered by the quantified Oops assumption.*)
@@ -535,8 +535,8 @@ by (blast_tac (claset() addDs [Says_unique_NB]) 1 THEN flexflex_tac);
 (*case NB ~= NBa*)
 by (asm_simp_tac (simpset() addsimps [single_Nonce_secrecy]) 1);
 by (blast_tac (claset() addSEs [MPair_parts]
-		       addDs  [Says_imp_spies RS parts.Inj, 
-			       no_nonce_YM1_YM2 (*to prove NB~=NAa*) ]) 1);
+		        addDs  [Says_imp_spies RS parts.Inj, 
+			        no_nonce_YM1_YM2 (*to prove NB~=NAa*) ]) 1);
 bind_thm ("Spy_not_see_NB", result() RSN(2,rev_mp) RSN(2,rev_mp));
 
 
@@ -597,7 +597,7 @@ by (ALLGOALS Asm_simp_tac);
 by (Blast_tac 2);
 (*YM3*)
 by (best_tac (claset() addSDs [B_Said_YM2, Says_imp_spies RS parts.Inj]
-		      addSEs [MPair_parts]) 1);
+		       addSEs [MPair_parts]) 1);
 val lemma = result() RSN (2, rev_mp) RS mp |> standard;
 
 (*If A receives YM3 then B has used nonce NA (and therefore is alive)*)
@@ -608,7 +608,7 @@ goal thy
 \   ==> Says B Server {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, nb|}|} \
 \         : set evs";
 by (blast_tac (claset() addSDs [A_trusts_YM3, lemma]
-		       addEs spies_partsEs) 1);
+		        addEs spies_partsEs) 1);
 qed "YM3_auth_B_to_A";
 
 
@@ -628,15 +628,15 @@ by (parts_induct_tac 1);
 (*Fake*)
 by (Fake_parts_insert_tac 1);
 (*YM3: by new_keys_not_used we note that Crypt K (Nonce NB) could not exist*)
-by (fast_tac (claset() addSDs [Crypt_imp_invKey_keysFor] addss (simpset())) 1); 
+by (fast_tac (claset() addSDs [Crypt_imp_keysFor] addss (simpset())) 1); 
 (*YM4: was Crypt K (Nonce NB) the very last message?  If not, use ind. hyp.*)
 by (asm_simp_tac (simpset() addsimps [ex_disj_distrib]) 1);
 (*yes: apply unicity of session keys*)
 by (not_bad_tac "Aa" 1);
 by (blast_tac (claset() addSEs [MPair_parts]
-                       addSDs [A_trusts_YM3, B_trusts_YM4_shrK]
-		       addDs  [Says_imp_spies RS parts.Inj,
-			       unique_session_keys]) 1);
+                        addSDs [A_trusts_YM3, B_trusts_YM4_shrK]
+		        addDs  [Says_imp_spies RS parts.Inj,
+				unique_session_keys]) 1);
 val lemma = normalize_thm [RSspec, RSmp] (result()) |> standard;
 
 (*If B receives YM4 then A has used nonce NB (and therefore is alive).
@@ -658,5 +658,5 @@ by (rtac lemma 1);
 by (rtac Spy_not_see_encrypted_key 2);
 by (REPEAT_FIRST assume_tac);
 by (blast_tac (claset() addSEs [MPair_parts]
-	       	       addDs [Says_imp_spies RS parts.Inj]) 1);
+	       	        addDs [Says_imp_spies RS parts.Inj]) 1);
 qed_spec_mp "YM4_imp_A_Said_YM3";
