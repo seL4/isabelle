@@ -315,10 +315,12 @@ fun forall_intr_frees th =
 val forall_elim_var = PureThy.forall_elim_var;
 val forall_elim_vars = PureThy.forall_elim_vars;
 
-fun forall_elim_vars_safe th =
-  forall_elim_vars_safe (forall_elim_var (#maxidx (Thm.rep_thm th) + 1) th)
-    handle THM _ => th;
-
+fun forall_elim_vars_safe thm =
+  let
+    val {sign, prop, maxidx, ...} = Thm.rep_thm thm;
+    fun elim (th, (x, T)) = Thm.forall_elim (Thm.cterm_of sign (Var ((x, maxidx + 1), T))) th;
+    val vs = Term.strip_all_vars prop;
+  in foldl elim (thm, Term.variantlist (map #1 vs, []) ~~ map #2 vs) end;
 
 (*Specialization over a list of cterms*)
 fun forall_elim_list cts th = foldr (uncurry forall_elim) (rev cts, th);
