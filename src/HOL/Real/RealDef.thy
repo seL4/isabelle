@@ -15,7 +15,7 @@ constdefs
   "realrel == {p. EX x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}" 
 
 typedef (REAL)
-  real = "UNIV//realrel"  (Equiv.quotient_def)
+  real = "UNIV//realrel"  (quotient_def)
 
 
 instance

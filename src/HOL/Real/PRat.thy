@@ -11,7 +11,7 @@ constdefs
     ratrel   ::  "((pnat * pnat) * (pnat * pnat)) set"
     "ratrel  ==  {p. ? x1 y1 x2 y2. p=((x1::pnat,y1),(x2,y2)) & x1*y2 = x2*y1}" 
 
-typedef prat = "UNIV//ratrel"          (Equiv.quotient_def)
+typedef prat = "UNIV//ratrel"          (quotient_def)
 
 instance
    prat  :: {ord,plus,times}

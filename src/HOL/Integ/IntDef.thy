@@ -12,7 +12,7 @@ constdefs
   "intrel == {p. EX x1 y1 x2 y2. p=((x1::nat,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
 typedef (Integ)
-  int = "UNIV//intrel"            (Equiv.quotient_def)
+  int = "UNIV//intrel"            (quotient_def)
 
 instance
   int :: {ord, zero, one, plus, times, minus}

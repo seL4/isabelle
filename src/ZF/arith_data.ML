@@ -13,7 +13,7 @@ sig
   (*tools for use in similar applications*)
   val gen_trans_tac: thm -> thm option -> tactic
   val prove_conv: string -> tactic list -> Sign.sg ->
-                  thm list -> term * term -> thm option
+                  thm list -> string list -> term * term -> thm option
   val simplify_meta_eq: thm list -> thm -> thm
   (*debugging*)
   structure EqCancelNumeralsData   : CANCEL_NUMERALS_DATA
@@ -68,13 +68,13 @@ fun is_eq_thm th =
 
 fun add_chyps chyps ct = Drule.list_implies (map cprop_of chyps, ct);
 
-fun prove_conv name tacs sg hyps (t,u) =
+fun prove_conv name tacs sg hyps xs (t,u) =
   if t aconv u then None
   else
   let val hyps' = filter (not o is_eq_thm) hyps
       val goal = Logic.list_implies (map (#prop o Thm.rep_thm) hyps',
         FOLogic.mk_Trueprop (mk_eq_iff (t, u)));
-  in Some (hyps' MRS Tactic.prove sg [] [] goal (K (EVERY tacs)))
+  in Some (hyps' MRS Tactic.prove sg xs [] goal (K (EVERY tacs)))
       handle ERROR_MESSAGE msg =>
         (warning (msg ^ "\nCancellation failed: no typing information? (" ^ name ^ ")"); None)
   end;

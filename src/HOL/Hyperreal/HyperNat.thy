@@ -12,13 +12,13 @@ constdefs
     "hypnatrel == {p. EX X Y. p = ((X::nat=>nat),Y) & 
                        {n::nat. X(n) = Y(n)} : FreeUltrafilterNat}"
 
-typedef hypnat = "UNIV//hypnatrel"              (Equiv.quotient_def)
+typedef hypnat = "UNIV//hypnatrel"              (quotient_def)
 
 instance
    hypnat  :: {ord, zero, one, plus, times, minus}
 
 consts
-  "whn"       :: hypnat               ("whn")  
+  whn       :: hypnat
 
 constdefs
 
