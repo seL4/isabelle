@@ -303,6 +303,13 @@ bind_thm ("trans_less_add1", le_add1 RSN (2,less_le_trans));
 (*"i < j ==> i < m+j"*)
 bind_thm ("trans_less_add2", le_add2 RSN (2,less_le_trans));
 
+goal Arith.thy "!!i. i+j < (k::nat) ==> i<k";
+be rev_mp 1;
+by(nat_ind_tac "j" 1);
+by (ALLGOALS(asm_simp_tac arith_ss));
+by(fast_tac (HOL_cs addDs [Suc_lessD]) 1);
+qed "add_lessD1";
+
 goal Arith.thy "!!k::nat. m <= n ==> m <= n+k";
 by (eresolve_tac [le_trans] 1);
 by (resolve_tac [le_add1] 1);
