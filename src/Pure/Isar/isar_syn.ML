@@ -283,7 +283,7 @@ val oracleP =
 
 (* statements *)
 
-fun statement f = (P.opt_thm_name ":" -- P.propp >> P.triple1) -- P.marg_comment >> f;
+fun statement f = P.opt_thm_name ":" -- P.propp -- P.marg_comment >> f;
 
 val theoremP =
   OuterSyntax.command "theorem" "state theorem" K.thy_goal
@@ -335,17 +335,17 @@ val noteP =
 
 val assumeP =
   OuterSyntax.command "assume" "assume propositions" K.prf_asm
-    (P.and_list1 ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment)
+    (P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment)
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.assume)));
 
 val presumeP =
   OuterSyntax.command "presume" "assume propositions, to be established later" K.prf_asm
-    (P.and_list1 ((P.opt_thm_name ":" -- Scan.repeat1 P.propp >> P.triple1) -- P.marg_comment)
+    (P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp -- P.marg_comment)
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.presume)));
 
 val defP =
   OuterSyntax.command "def" "local definition" K.prf_asm
-    ((P.opt_thm_name ":" -- (P.name -- (P.$$$ "==" |-- P.!!! P.termp)) >> P.triple1)
+    (P.opt_thm_name ":" -- (P.name -- (P.$$$ "==" |-- P.!!! P.termp))
       -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.local_def)));
 
 val fixP =

@@ -63,7 +63,7 @@ fun gen_def fix prep_term prep_pats raw_name atts (x, (raw_rhs, raw_pats)) state
     state
     |> fix [([x], None)]
     |> Proof.match_bind_i [(pats, rhs)]
-    |> Proof.assm_i export_defs [(name, atts, [(Logic.mk_equals (lhs, rhs), ([], []))])]
+    |> Proof.assm_i export_defs [((name, atts), [(Logic.mk_equals (lhs, rhs), ([], []))])]
   end;
 
 val def = gen_def Proof.fix ProofContext.read_term ProofContext.read_term_pats;

@@ -63,22 +63,27 @@ sig
   val apply_theorems_i: (thm * theory attribute list) list -> theory -> theory * thm list
   val declare_theorems: (xstring * Args.src list) list * Comment.text -> theory -> theory
   val declare_theorems_i: (thm * theory attribute list) list * Comment.text -> theory -> theory
-  val have_theorems: (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
+  val have_theorems:
+    (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
     -> theory -> theory
   val have_theorems_i: (((bstring * theory attribute list) * (thm * theory attribute list) list)
     * Comment.text) list -> theory -> theory
-  val have_lemmas: (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
+  val have_lemmas:
+    (((bstring * Args.src list) * (xstring * Args.src list) list) * Comment.text) list
     -> theory -> theory
   val have_lemmas_i: (((bstring * theory attribute list) * (thm * theory attribute list) list)
     * Comment.text) list -> theory -> theory
   val have_facts: (((string * Args.src list) * (string * Args.src list) list) * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
   val have_facts_i: (((string * Proof.context attribute list) *
-    (thm * Proof.context attribute list) list) * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val from_facts: ((string * Args.src list) list * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+    (thm * Proof.context attribute list) list) * Comment.text) list
+    -> ProofHistory.T -> ProofHistory.T
+  val from_facts: ((string * Args.src list) list * Comment.text) list
+    -> ProofHistory.T -> ProofHistory.T
   val from_facts_i: ((thm * Proof.context attribute list) list * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
-  val with_facts: ((string * Args.src list) list * Comment.text) list -> ProofHistory.T -> ProofHistory.T
+  val with_facts: ((string * Args.src list) list * Comment.text) list
+    -> ProofHistory.T -> ProofHistory.T
   val with_facts_i: ((thm * Proof.context attribute list) list * Comment.text) list
     -> ProofHistory.T -> ProofHistory.T
   val chain: Comment.text -> ProofHistory.T -> ProofHistory.T
@@ -89,41 +94,41 @@ sig
   val invoke_case: (string * Args.src list) * Comment.text -> ProofHistory.T -> ProofHistory.T
   val invoke_case_i: (string * Proof.context attribute list) * Comment.text
     -> ProofHistory.T -> ProofHistory.T
-  val theorem: (bstring * Args.src list * (string * (string list * string list)))
+  val theorem: ((bstring * Args.src list) * (string * (string list * string list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
-  val theorem_i: (bstring * theory attribute list * (term * (term list * term list)))
+  val theorem_i: ((bstring * theory attribute list) * (term * (term list * term list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
-  val lemma: (bstring * Args.src list * (string * (string list * string list)))
+  val lemma: ((bstring * Args.src list) * (string * (string list * string list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
-  val lemma_i: (bstring * theory attribute list * (term * (term list * term list)))
+  val lemma_i: ((bstring * theory attribute list) * (term * (term list * term list)))
     * Comment.text -> bool -> theory -> ProofHistory.T
-  val assume: ((string * Args.src list * (string * (string list * string list)) list)
+  val assume: (((string * Args.src list) * (string * (string list * string list)) list)
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val assume_i: ((string * Proof.context attribute list * (term * (term list * term list)) list)
+  val assume_i: (((string * Proof.context attribute list) * (term * (term list * term list)) list)
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val presume: ((string * Args.src list * (string * (string list * string list)) list)
+  val presume: (((string * Args.src list) * (string * (string list * string list)) list)
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val presume_i: ((string * Proof.context attribute list * (term * (term list * term list)) list)
+  val presume_i: (((string * Proof.context attribute list) * (term * (term list * term list)) list)
     * Comment.text) list -> ProofHistory.T -> ProofHistory.T
-  val local_def: (string * Args.src list * (string * (string * string list)))
+  val local_def: ((string * Args.src list) * (string * (string * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val local_def_i: (string * Args.src list * (string * (term * term list)))
+  val local_def_i: ((string * Args.src list) * (string * (term * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val show: (string * Args.src list * (string * (string list * string list)))
+  val show: ((string * Args.src list) * (string * (string list * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val show_i: (string * Proof.context attribute list * (term * (term list * term list)))
+  val show_i: ((string * Proof.context attribute list) * (term * (term list * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val have: (string * Args.src list * (string * (string list * string list)))
+  val have: ((string * Args.src list) * (string * (string list * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val have_i: (string * Proof.context attribute list * (term * (term list * term list)))
+  val have_i: ((string * Proof.context attribute list) * (term * (term list * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val thus: (string * Args.src list * (string * (string list * string list)))
+  val thus: ((string * Args.src list) * (string * (string list * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val thus_i: (string * Proof.context attribute list * (term * (term list * term list)))
+  val thus_i: ((string * Proof.context attribute list) * (term * (term list * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val hence: (string * Args.src list * (string * (string list * string list)))
+  val hence: ((string * Args.src list) * (string * (string list * string list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
-  val hence_i: (string * Proof.context attribute list * (term * (term list * term list)))
+  val hence_i: ((string * Proof.context attribute list) * (term * (term list * term list)))
     * Comment.text -> ProofHistory.T -> ProofHistory.T
   val begin_block: Comment.text -> ProofHistory.T -> ProofHistory.T
   val next_block: Comment.text -> ProofHistory.T -> ProofHistory.T
@@ -358,20 +363,20 @@ val invoke_case_i = ProofHistory.apply o Proof.invoke_case o Comment.ignore;
 
 local
 
-fun global_statement f (name, src, s) int thy =
+fun global_statement f ((name, src), s) int thy =
   ProofHistory.init (Toplevel.undo_limit int)
     (f name (map (Attrib.global_attribute thy) src) s thy);
 
-fun global_statement_i f (name, atts, t) int thy =
+fun global_statement_i f ((name, atts), t) int thy =
   ProofHistory.init (Toplevel.undo_limit int) (f name atts t thy);
 
-fun local_statement f g (name, src, s) = ProofHistory.apply (fn state =>
+fun local_statement f g ((name, src), s) = ProofHistory.apply (fn state =>
   f name (map (Attrib.local_attribute (Proof.theory_of state)) src) s (g state));
 
-fun local_statement_i f g (name, atts, t) = ProofHistory.apply (f name atts t o g);
+fun local_statement_i f g ((name, atts), t) = ProofHistory.apply (f name atts t o g);
 
-fun multi_local_attribute state (name, src, s) =
-  (name, map (Attrib.local_attribute (Proof.theory_of state)) src, s);
+fun multi_local_attribute state ((name, src), s) =
+  ((name, map (Attrib.local_attribute (Proof.theory_of state)) src), s);
 
 fun multi_statement f args = ProofHistory.apply (fn state =>
   f (map (multi_local_attribute state) args) state);

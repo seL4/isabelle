@@ -66,18 +66,20 @@ sig
   val hard_asm_tac: int -> tactic
   val soft_asm_tac: int -> tactic
   val assm: ProofContext.exporter
-    -> (string * context attribute list * (string * (string list * string list)) list) list
+    -> ((string * context attribute list) * (string * (string list * string list)) list) list
     -> state -> state
   val assm_i: ProofContext.exporter
-    -> (string * context attribute list * (term * (term list * term list)) list) list
+    -> ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
-  val assume: (string * context attribute list * (string * (string list * string list)) list) list
+  val assume:
+    ((string * context attribute list) * (string * (string list * string list)) list) list
     -> state -> state
-  val assume_i: (string * context attribute list * (term * (term list * term list)) list) list
+  val assume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
-  val presume: (string * context attribute list * (string * (string list * string list)) list) list
+  val presume:
+    ((string * context attribute list) * (string * (string list * string list)) list) list
     -> state -> state
-  val presume_i: (string * context attribute list * (term * (term list * term list)) list) list
+  val presume_i: ((string * context attribute list) * (term * (term list * term list)) list) list
     -> state -> state
   val invoke_case: string * context attribute list -> state -> state
   val theorem: bstring -> theory attribute list -> string * (string list * string list)
@@ -555,7 +557,7 @@ fun invoke_case (name, atts) state =
   in
     state
     |> fix_i (map (fn (x, T) => ([x], Some T)) vars)
-    |> assume_i [(name, atts, map (fn t => (t, ([], []))) (map bind_skolem props))]
+    |> assume_i [((name, atts), map (fn t => (t, ([], []))) (map bind_skolem props))]
   end;
 
 
@@ -582,12 +584,12 @@ val antN = "antecedent";
 
 fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
   let
-    val (state', (prop, gen_binds)) =
+    val (state', ([[prop]], gen_binds)) =
       state
       |> assert_forward_or_chain
       |> enter_forward
       |> opt_block
-      |> map_context_result (fn ct => prepp (ct, raw_propp));
+      |> map_context_result (fn ct => prepp (ct, [[raw_propp]]));
     val cprop = Thm.cterm_of (sign_of state') prop;
     val goal = Drule.mk_triv_goal cprop;
   in
