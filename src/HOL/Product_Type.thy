@@ -484,7 +484,11 @@ lemma split_part [simp]: "(%(a,b). P & Q a b) = (%ab. P & split Q ab)"
   apply (rule ext, blast)
   done
 
-lemma split_comp_eq [simp]: 
+(* Do NOT make this a simp rule as it
+   a) only helps in special situations
+   b) can lead to nontermination in the presence of split_def
+*)
+lemma split_comp_eq: 
 "(%u. f (g (fst u)) (snd u)) = (split (%x. f (g x)))"
 by (rule ext, auto)
 

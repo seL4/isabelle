@@ -402,6 +402,16 @@ lemma Not_Domain_rtrancl:
 text {* More about converse @{text rtrancl} and @{text trancl}, should
   be merged with main body. *}
 
+lemma single_valued_confluent:
+  "\<lbrakk> single_valued r; (x,y) \<in> r^*; (x,z) \<in> r^* \<rbrakk>
+  \<Longrightarrow> (y,z) \<in> r^* \<or> (z,y) \<in> r^*"
+apply(erule rtrancl_induct)
+ apply simp
+apply(erule disjE)
+ apply(blast elim:converse_rtranclE dest:single_valuedD)
+apply(blast intro:rtrancl_trans)
+done
+
 lemma r_r_into_trancl: "(a, b) \<in> R ==> (b, c) \<in> R ==> (a, c) \<in> R^+"
   by (fast intro: trancl_trans)
 
