@@ -6,10 +6,6 @@
 Towards ordinal arithmetic 
 *)
 
-(*for deleting an unwanted assumption*)
-val thin = prove_goal pure_thy "[| PROP P; PROP Q |] ==> PROP Q"
-     (fn prems => [resolve_tac prems 1]);
-
 open OrderArith;
 
 
@@ -86,7 +82,7 @@ goal OrderArith.thy
 by (rtac wf_onI2 1);
 by (subgoal_tac "ALL x:A. Inl(x): Ba" 1);
 (*Proving the lemma, which is needed twice!*)
-by (eres_inst_tac [("P", "y : A + B")] thin 2);
+by (eres_inst_tac [("V", "y : A + B")] thin_rl 2);
 by (rtac ballI 2);
 by (eres_inst_tac [("r","r"),("a","x")] wf_on_induct 2 THEN assume_tac 2);
 by (etac (bspec RS mp) 2);
