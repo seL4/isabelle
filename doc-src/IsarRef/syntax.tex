@@ -248,7 +248,7 @@ support the full range of general mixfixes and binders.
 
 \indexouternonterm{infix}\indexouternonterm{mixfix}
 \begin{rail}
-  infix: '(' ('infixl' | 'infixr') string? nat ')'
+  infix: '(' ('infix' | 'infixl' | 'infixr') string? nat ')'
   ;
   mixfix: infix | '(' string prios? nat? ')' | '(' 'binder' string prios? nat ')'
   ;

@@ -11,8 +11,10 @@ sig
     NoSyn |
     Mixfix of string * int list * int |
     Delimfix of string |
+    InfixName of string * int |
     InfixlName of string * int |
     InfixrName of string * int |
+    Infix of int |
     Infixl of int |
     Infixr of int |
     Binder of string * int * int
@@ -54,8 +56,10 @@ datatype mixfix =
   NoSyn |
   Mixfix of string * int list * int |
   Delimfix of string |
+  InfixName of string * int |
   InfixlName of string * int |
   InfixrName of string * int |
+  Infix of int |
   Infixl of int |
   Infixr of int |
   Binder of string * int * int;
@@ -72,19 +76,24 @@ fun strip ("'" :: c :: cs) = c :: strip cs
 
 val strip_esc = implode o strip o Symbol.explode;
 
-fun type_name t (InfixlName _) = t
+fun type_name t (InfixName _) = t
+  | type_name t (InfixlName _) = t
   | type_name t (InfixrName _) = t
+  | type_name t (Infix _) = strip_esc t
   | type_name t (Infixl _) = strip_esc t
   | type_name t (Infixr _) = strip_esc t
   | type_name t _ = t;
 
-fun const_name c (InfixlName _) = c
+fun const_name c (InfixName _) = c
+  | const_name c (InfixlName _) = c
   | const_name c (InfixrName _) = c
+  | const_name c (Infix _) = "op " ^ strip_esc c
   | const_name c (Infixl _) = "op " ^ strip_esc c
   | const_name c (Infixr _) = "op " ^ strip_esc c
   | const_name c _ = c;
 
-fun fix_mixfix c (Infixl p) = (InfixlName (c, p))
+fun fix_mixfix c (Infix p) = (InfixName (c, p))
+  | fix_mixfix c (Infixl p) = (InfixlName (c, p))
   | fix_mixfix c (Infixr p) = (InfixrName (c, p))
   | fix_mixfix _ mx = mx;
 
@@ -111,8 +120,10 @@ fun syn_ext_types logtypes type_decls =
       let val t = name_of decl in
         (case decl of
           (_, _, NoSyn) => None
+        | (_, 2, InfixName (sy, p)) => Some (mk_infix sy t (p + 1) (p + 1) p)
         | (_, 2, InfixlName (sy, p)) => Some (mk_infix sy t p (p + 1) p)
         | (_, 2, InfixrName (sy, p)) => Some (mk_infix sy t (p + 1) p p)
+        | (sy, 2, Infix p) => Some (mk_infix sy t (p + 1) (p + 1) p)
         | (sy, 2, Infixl p) => Some (mk_infix sy t p (p + 1) p)
         | (sy, 2, Infixr p) => Some (mk_infix sy t (p + 1) p p)
         | _ => error ("Bad mixfix declaration for type " ^ quote t))
@@ -143,8 +154,10 @@ fun syn_ext_consts logtypes const_decls =
           (_, _, NoSyn) => []
         | (_, ty, Mixfix (sy, ps, p)) => [SynExt.Mfix (sy, ty, c, ps, p)]
         | (_, ty, Delimfix sy) => [SynExt.Mfix (sy, ty, c, [], SynExt.max_pri)]
+        | (_, ty, InfixName (sy, p)) => mk_infix sy ty c (p + 1) (p + 1) p
         | (_, ty, InfixlName (sy, p)) => mk_infix sy ty c p (p + 1) p
         | (_, ty, InfixrName (sy, p)) => mk_infix sy ty c (p + 1) p p
+        | (sy, ty, Infix p) => mk_infix sy ty c (p + 1) (p + 1) p
         | (sy, ty, Infixl p) => mk_infix sy ty c p (p + 1) p
         | (sy, ty, Infixr p) => mk_infix sy ty c (p + 1) p p
         | (_, ty, Binder (sy, p, q)) =>

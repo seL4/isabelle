@@ -676,7 +676,7 @@ val welcomeP =
 val keywords =
  ["!", "!!", "%", "%%", "(", ")", "+", ",", "--", ":", "::", ";", "<",
   "<=", "=", "==", "=>", "?", "[", "]", "and", "binder", "concl",
-  "files", "in", "infixl", "infixr", "is", "output", "overloaded",
+  "files", "in", "infix", "infixl", "infixr", "is", "output", "overloaded",
   "|", "\\<equiv>", "\\<rightharpoonup>", "\\<leftharpoondown>",
   "\\<rightleftharpoons>", "\\<subseteq>"];
 

@@ -38,7 +38,8 @@ fun trans_rules name2 name1 n mx = let
 			  foldl (fn (t,arg) => (Syntax.mk_appl (Constant "Rep_CFun") 
 						[t,Variable arg]))
 			  (Constant name1,vnames))]
-     @(case mx of InfixlName _ => [extra_parse_rule] 
+     @(case mx of InfixName _ => [extra_parse_rule]
+                | InfixlName _ => [extra_parse_rule]
                 | InfixrName _ => [extra_parse_rule] | _ => []) end; 
 
 
@@ -48,7 +49,9 @@ fun trans_rules name2 name1 n mx = let
    declaration with the original name, type ...=>..., and the original mixfix
    is generated and connected to the other declaration via some translation.
 *)
-fun fix_mixfix (syn                     , T, mx as Infixl           p ) = 
+fun fix_mixfix (syn                     , T, mx as Infix           p ) = 
+	       (Syntax.const_name syn mx, T,       InfixName (syn, p))
+  | fix_mixfix (syn                     , T, mx as Infixl           p ) = 
 	       (Syntax.const_name syn mx, T,       InfixlName (syn, p))
   | fix_mixfix (syn                     , T, mx as Infixr           p ) = 
 	       (Syntax.const_name syn mx, T,       InfixrName (syn, p))

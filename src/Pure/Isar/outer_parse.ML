@@ -202,6 +202,7 @@ val type_args =
 
 (* mixfix annotations *)
 
+val infx = $$$ "infix" |-- !!! (nat >> Syntax.Infix || string -- nat >> Syntax.InfixName);
 val infxl = $$$ "infixl" |-- !!! (nat >> Syntax.Infixl || string -- nat >> Syntax.InfixlName);
 val infxr = $$$ "infixr" |-- !!! (nat >> Syntax.Infixr || string -- nat >> Syntax.InfixrName);
 
@@ -220,11 +221,11 @@ val mixfix =
 fun opt_fix guard fix =
   Scan.optional ($$$ "(" |-- guard (fix --| $$$ ")")) Syntax.NoSyn;
 
-val opt_infix = opt_fix !!! (infxl || infxr);
-val opt_mixfix = opt_fix !!! (mixfix || binder || infxl || infxr);
+val opt_infix = opt_fix !!! (infxl || infxr || infx);
+val opt_mixfix = opt_fix !!! (mixfix || binder || infxl || infxr || infx);
 
-val opt_infix' = opt_fix I (infxl || infxr);
-val opt_mixfix' = opt_fix I (mixfix || binder || infxl || infxr);
+val opt_infix' = opt_fix I (infxl || infxr || infx);
+val opt_mixfix' = opt_fix I (mixfix || binder || infxl || infxr || infx);
 
 
 (* consts *)
