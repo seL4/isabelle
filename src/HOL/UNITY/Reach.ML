@@ -21,7 +21,7 @@ qed "ifE";
 AddSEs [ifE];
 
 
-val cmd_defs = [racts_def, asgt_def, update_def];
+val cmd_defs = [racts_def, asgt_def, fun_upd_def];
 
 Goalw [racts_def] "id : racts";
 by (Simp_tac 1);
@@ -117,13 +117,13 @@ by (simp_tac (simpset() addsimps
 	      ([Compl_FP, UN_UN_flatten, FP_fixedpoint RS sym, 
 		racts_def, asgt_def])) 1);
 by Safe_tac;
-by (rtac update_idem 1);
+by (rtac fun_upd_idem 1);
 by (Blast_tac 1);
 by (Full_simp_tac 1);
 by (REPEAT (dtac bspec 1 THEN Simp_tac 1));
 by (dtac subsetD 1);
 by (Simp_tac 1);
-by (asm_full_simp_tac (simpset() addsimps [update_idem_iff]) 1);
+by (asm_full_simp_tac (simpset() addsimps [fun_upd_idem_iff]) 1);
 qed "Compl_fixedpoint";
 
 Goal "A - fixedpoint = (UN (u,v): edges. A Int {s. s u & ~ s v})";
@@ -149,7 +149,7 @@ AddSIs [metric_less];
 Goal "metric (s(y:=s x | s y)) <= metric s";
 by (case_tac "s x --> s y" 1);
 by (auto_tac (claset() addIs [less_imp_le],
-	      simpset() addsimps [update_idem]));
+	      simpset() addsimps [fun_upd_idem]));
 qed "metric_le";
 
 Goal "(u,v): edges ==> \
