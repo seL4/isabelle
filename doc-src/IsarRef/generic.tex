@@ -53,12 +53,13 @@ Isabelle documentation.
 
 \indexisarcmd{also}\indexisarcmd{finally}
 \indexisarcmd{moreover}\indexisarcmd{ultimately}
-\indexisaratt{trans}
+\indexisarcmd{print-trans-rules}\indexisaratt{trans}
 \begin{matharray}{rcl}
   \isarcmd{also} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{finally} & : & \isartrans{proof(state)}{proof(chain)} \\
   \isarcmd{moreover} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{ultimately} & : & \isartrans{proof(state)}{proof(chain)} \\
+  \isarcmd{print_trans_rules} & : & \isarkeep{theory~|~proof} \\
   trans & : & \isaratt \\
 \end{matharray}
 
@@ -92,7 +93,7 @@ follows:\footnote{Internal bookkeeping such as proper handling of
   block-structure has been suppressed.}
 \begin{matharray}{rcl}
   \ALSO@0 & \equiv & \NOTE{calculation}{this} \\
-  \ALSO@{n+1} & \equiv & \NOTE{calculation}{trans~[OF~calculation~this]} \\
+  \ALSO@{n+1} & \equiv & \NOTE{calculation}{trans~[OF~calculation~this]} \\[0.5ex]
   \FINALLY & \equiv & \ALSO~\FROM{calculation} \\
   \MOREOVER & \equiv & \NOTE{calculation}{calculation~this} \\
   \ULTIMATELY & \equiv & \MOREOVER~\FROM{calculation} \\
@@ -130,7 +131,11 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \item [$\MOREOVER$ and $\ULTIMATELY$] are analogous to $\ALSO$ and $\FINALLY$,
   but collect results only, without applying rules.
   
+\item [$\isarkeyword{print_trans_rules}$] prints the list of transitivity
+  rules declared in the current context.
+  
 \item [$trans$] declares theorems as transitivity rules.
+ 
 \end{descr}
 
 
@@ -233,7 +238,7 @@ shall refer to (optional) facts indicated for forward chaining.
   \qquad \ASSUME{that [simp, intro]}{\All{\vec x} \vec\phi \Imp thesis} \\
   \qquad \FROM{\vec b}~\HAVE{}{thesis}~~\langle proof\rangle \\
   \quad \EN \\
-  \quad \FIX{\vec x}~\ASSUMENAME^{obtained}~{a}~{\vec\phi} \\
+  \quad \FIX{\vec x}~\ASSUMENAME^{\ast}~{a}~{\vec\phi} \\
 \end{matharray}
 
 Typically, the soundness proof is relatively straight-forward, often just by
@@ -254,12 +259,13 @@ where the result is treated as an assumption.
 
 \section{Miscellaneous methods and attributes}
 
-\indexisarmeth{unfold}\indexisarmeth{fold}
+\indexisarmeth{unfold}\indexisarmeth{fold}\indexisarmeth{insert}
 \indexisarmeth{erule}\indexisarmeth{drule}\indexisarmeth{frule}
 \indexisarmeth{fail}\indexisarmeth{succeed}
 \begin{matharray}{rcl}
   unfold & : & \isarmeth \\
   fold & : & \isarmeth \\[0.5ex]
+  insert^* & : & \isarmeth \\[0.5ex]
   erule^* & : & \isarmeth \\
   drule^* & : & \isarmeth \\
   frule^* & : & \isarmeth \\[0.5ex]
@@ -268,7 +274,7 @@ where the result is treated as an assumption.
 \end{matharray}
 
 \begin{rail}
-  ('fold' | 'unfold' | 'erule' | 'drule' | 'frule') thmrefs
+  ('fold' | 'unfold' | 'insert' | 'erule' | 'drule' | 'frule') thmrefs
   ;
 \end{rail}
 
@@ -286,6 +292,8 @@ where the result is treated as an assumption.
   the proof language level, rather than via implicit proof state
   manipulations.  For example, a proper single-step elimination would be done
   using the basic $rule$ method, with forward chaining of current facts.
+\item [$insert~\vec a$] inserts theorems as facts into all goals of the proof
+  state.  Note that current facts indicated for forward chaining are ignored.
 \item [$succeed$] yields a single (unchanged) result; it is the identity of
   the ``\texttt{,}'' method combinator (cf.\ \S\ref{sec:syn-meth}).
 \item [$fail$] yields an empty result sequence; it is the identity of the
@@ -340,8 +348,8 @@ where the result is treated as an assumption.
   process that is normally intended (cf.\ \texttt{RS} and \texttt{COMP} in
   \cite[\S5]{isabelle-ref}).
 \item [$where~\vec x = \vec t$] perform named instantiation of schematic
-  variables occurring in a theorem.  Unlike instantiation tactics (such as
-  \texttt{res_inst_tac}, see \cite{isabelle-ref}), actual schematic variables
+  variables occurring in a theorem.  Unlike instantiation tactics such as
+  $rule_tac$ (see \S\ref{sec:tactic-commands}), actual schematic variables
   have to be specified (e.g.\ $\Var{x@3}$).
   
 \item [$unfold~\vec a$ and $fold~\vec a$] expand and fold back again the given
@@ -361,6 +369,111 @@ where the result is treated as an assumption.
   proper incremental export is already done as part of the basic Isar
   machinery.  This attribute is mainly for experimentation.
   
+\end{descr}
+
+
+\section{Tactic emulations}\label{sec:tactics}
+
+The following improper proof methods emulate traditional tactics.  These admit
+direct access to the goal state, which is normally considered harmful!  In
+particular, this may involve both numbered goal addressing (default 1), and
+dynamic instantiation within the scope of some subgoal.
+
+\begin{warn}
+  Dynamic instantiations are read and type-checked according to a subgoal of
+  the current dynamic goal state, rather than the static proof context!  In
+  particular, locally fixed variables and term abbreviations may not be
+  included in the term specifications.  Thus schematic variables are left to
+  be solved by unification with certain parts of the subgoal involved.
+\end{warn}
+
+Note that the tactic emulation proof methods in Isabelle/Isar are consistently
+named $foo_tac$.
+
+\indexisarmeth{rule-tac}\indexisarmeth{erule-tac}
+\indexisarmeth{drule-tac}\indexisarmeth{frule-tac}
+\indexisarmeth{cut-tac}\indexisarmeth{thin-tac}
+\indexisarmeth{subgoal-tac}\indexisarmeth{tactic}
+\begin{matharray}{rcl}
+  rule_tac^* & : & \isarmeth \\
+  erule_tac^* & : & \isarmeth \\
+  drule_tac^* & : & \isarmeth \\
+  frule_tac^* & : & \isarmeth \\
+  cut_tac^* & : & \isarmeth \\
+  thin_tac^* & : & \isarmeth \\
+  subgoal_tac^* & : & \isarmeth \\
+  tactic^* & : & \isarmeth \\
+\end{matharray}
+
+\railalias{ruletac}{rule\_tac}
+\railterm{ruletac}
+
+\railalias{eruletac}{erule\_tac}
+\railterm{eruletac}
+
+\railalias{druletac}{drule\_tac}
+\railterm{druletac}
+
+\railalias{fruletac}{frule\_tac}
+\railterm{fruletac}
+
+\railalias{cuttac}{cut\_tac}
+\railterm{cuttac}
+
+\railalias{thintac}{thin\_tac}
+\railterm{thintac}
+
+\railalias{subgoaltac}{subgoal\_tac}
+\railterm{subgoaltac}
+
+\begin{rail}
+  ( ruletac | eruletac | druletac | fruletac | cuttac | thintac ) goalspec?
+  ( insts thmref | thmrefs )
+  ;
+  subgoaltac goalspec? (prop +)
+  ;
+  'tactic' text
+  ;
+
+  insts: ((name '=' term) + 'and') 'in'
+  ;
+\end{rail}
+
+\begin{descr}
+\item [$rule_tac$ etc.] do resolution of rules with explicit instantiation.
+  This works the same way as the ML tactics \texttt{res_inst_tac} etc. (see
+  \cite[\S3]{isabelle-ref}).
+  
+  Note that multiple rules may be only given there is no instantiation.  Then
+  $rule_tac$ is the same as \texttt{resolve_tac} in ML (see
+  \cite[\S3]{isabelle-ref}).
+\item [$cut_tac$] inserts facts into the proof state as assumption of a
+  subgoal, see also \texttt{cut_facts_tac} in \cite[\S3]{isabelle-ref}.  Note
+  that the scope of schmatic variables is spread over the main goal statement.
+  Instantiations may be given as well, see also ML tactic
+  \texttt{cut_inst_tac} in \cite[\S3]{isabelle-ref}.
+\item [$thin_tac~\phi$] deletes the specified assumption from a subgoal; note
+  that $\phi$ may contain schematic variables.  See also \texttt{thin_tac} in
+  \cite[\S3]{isabelle-ref}.
+\item [$subgoal_tac~\phi$] adds $\phi$ as an assumption to a subgoal.  See
+  also \texttt{subgoal_tac} and \texttt{subgoals_tac} in
+  \cite[\S3]{isabelle-ref}.
+\item [$tactic~text$] produces a proof method from any ML text of type
+  \texttt{tactic}.  Apart from the usual ML environment and the current
+  implicit theory context, the ML code may refer to the following locally
+  bound values:
+
+%%FIXME ttbox produces too much trailing space (why?)
+{\footnotesize\begin{verbatim}
+val ctxt  : Proof.context
+val facts : thm list
+val thm   : string -> thm
+val thms  : string -> thm list
+\end{verbatim}}
+  Here \texttt{ctxt} refers to the current proof context, \texttt{facts}
+  indicates any current facts for forward-chaining, and
+  \texttt{thm}~/~\texttt{thms} retrieve named facts (including global
+  theorems) from the context.
 \end{descr}
 
 
@@ -547,7 +660,10 @@ information.
 \begin{descr}
 \item [$blast$] refers to the classical tableau prover (see \texttt{blast_tac}
   in \cite[\S11]{isabelle-ref}).  The optional argument specifies a
-  user-supplied search bound (default 20).
+  user-supplied search bound (default 20).  Note that $blast$ is the only
+  classical proof procedure in Isabelle that can handle actual object-logic
+  rules as local assumptions ($fast$ etc.\ would just ignore non-atomic
+  facts).
 \item [$fast$, $best$, and $clarify$] refer to the generic classical reasoner.
   See \texttt{fast_tac}, \texttt{best_tac}, and \texttt{clarify_tac} in
   \cite[\S11]{isabelle-ref} for more information.
@@ -565,15 +681,17 @@ This is slightly less hazardous than for the Simplifier (see
 
 \subsection{Combined automated methods}
 
-\indexisarmeth{force}\indexisarmeth{auto}\indexisarmeth{clarsimp}
+\indexisarmeth{auto}\indexisarmeth{force}
+\indexisarmeth{clarsimp}\indexisarmeth{fastsimp}
 \begin{matharray}{rcl}
-  force & : & \isarmeth \\
   auto & : & \isarmeth \\
+  force & : & \isarmeth \\
   clarsimp & : & \isarmeth \\
+  fastsimp & : & \isarmeth \\
 \end{matharray}
 
 \begin{rail}
-  ('force' | 'auto' | 'clarsimp') ('!' ?) (clasimpmod * )
+  ('auto' | 'force' | 'clarsimp' | 'fastsimp') ('!' ?) (clasimpmod * )
   ;
 
   clasimpmod: ('simp' (() | 'add' | 'del' | 'only') | 'other' |
@@ -582,12 +700,14 @@ This is slightly less hazardous than for the Simplifier (see
 \end{rail}
 
 \begin{descr}
-\item [$force$, $auto$, and $clarsimp$] provide access to Isabelle's combined
-  simplification and classical reasoning tactics.  See \texttt{force_tac},
-  \texttt{auto_tac}, and \texttt{clarsimp_tac} in \cite[\S11]{isabelle-ref}
-  for more information.  The modifier arguments correspond to those given in
-  \S\ref{sec:simp} and \S\ref{sec:classical-auto}.  Just note that the ones
-  related to the Simplifier are prefixed by \railtterm{simp} here.
+\item [$auto$, $force$, $clarsimp$, $fastsimp$] provide access to Isabelle's
+  combined simplification and classical reasoning tactics.  These correspond
+  to \texttt{auto_tac}, \texttt{force_tac}, \texttt{clarsimp_tac}, and
+  \texttt{fast_tac} (with the Simplifier added as wrapper), see
+  \cite[\S11]{isabelle-ref} for more information.  The modifier arguments
+  correspond to those given in \S\ref{sec:simp} and
+  \S\ref{sec:classical-auto}.  Just note that the ones related to the
+  Simplifier are prefixed by \railtterm{simp} here.
   
   Facts provided by forward chaining are inserted into the goal before doing
   the search.  The ``!''~argument causes the full context of assumptions to be
