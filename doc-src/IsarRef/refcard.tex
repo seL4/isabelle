@@ -68,6 +68,7 @@
 \subsection{Diagnostic commands}
 
 \begin{matharray}{ll}
+  \isarkeyword{pr} & \text{print current state} \\
   \isarkeyword{thm}~a@1\;\dots\;a@n & \text{print theorems} \\
   \isarkeyword{term}~t & \text{print term} \\
   \isarkeyword{prop}~\phi & \text{print meta-level proposition} \\
@@ -97,7 +98,7 @@
   $unfold~a@1\;\dots\;a@n$ & \text{definitions} \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts, or even prems!)}} \\[0.5ex]
-  $simp$ & Simplifier \\
+  $simp$ & Simplifier (+ Splitter) \\
   $blast$, $fast$ & Classical Reasoner \\
   $force$, $auto$ & Simplifier + Classical Reasoner \\
   $arith$ & Arithmetic procedure \\
@@ -115,8 +116,9 @@
   $rulify$ & put into object-rule form \\
   $elimify$ & put destruction rule into elimination form \\[1ex]
 
-  \multicolumn{2}{l}{\textbf{Modify context}} \\[0.5ex]
+  \multicolumn{2}{l}{\textbf{Declare rules}} \\[0.5ex]
   $simp$ & declare Simplifier rules \\
+  $split$ & declare Splitter rules \\
   $intro$, $elim$, $dest$ & declare Classical Reasoner rules (also ``?'' or ``??'') \\
   $iff$ & declare Simplifier + Classical Reasoner rules \\
   $trans$ & declare calculational rules (general transitivity) \\
