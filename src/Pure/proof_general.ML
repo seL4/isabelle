@@ -90,8 +90,8 @@ fun pgml_sym s =
     (* NB: an alternative here would be to output the default print mode alternative
        in the element content, but unfortunately print modes are not that fine grained. *)
     Symbol.Char s => XML.text s
-  | Symbol.Sym s => XML.element "sym" [("name", s)] [XML.text s]
-  | Symbol.Ctrl s => XML.element "ctrl" [("name", s)] []  (* FIXME: no such PGML! *)
+  | Symbol.Sym sn => XML.element "sym" [("name", sn)] [XML.text s]
+  | Symbol.Ctrl sn => XML.element "ctrl" [("name", sn)] [XML.text s]   (* FIXME: no such PGML! *)
   | Symbol.Raw s => s);
 
 fun pgml_output str =
@@ -1154,10 +1154,8 @@ fun process_pgip_element pgipxml = (case pgipxml of
      | "proverexit" 	=> isarcmd "quit"
      | "startquiet" 	=> isarcmd "disable_pr"
      | "stopquiet"  	=> isarcmd "enable_pr"
-     | "pgmlsymbolson"   => (print_mode := (["xsymbols", "symbols"] @ ! print_mode))
-     | "pgmlsymbolsoff"  => (print_mode := (Library.gen_rems 
-						(op =) 
-						(! print_mode, ["xsymbols", "symbols"])))
+     | "pgmlsymbolson"   => (print_mode := !print_mode @ ["xsymbols"])
+     | "pgmlsymbolsoff"  => (print_mode := (!print_mode \ "xsymbols"))
      (* properproofcmd: proper commands which belong in script *)
      (* FIXME: next ten are by Eclipse interface, can be removed in favour of dostep *)
      | "opengoal"       => isarscript data
