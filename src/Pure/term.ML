@@ -35,6 +35,8 @@ sig
     Bound of int |
     Abs of string * typ * term |
     $ of term * term
+  structure Vartab : TABLE
+  structure Termtab : TABLE
   exception TYPE of string * typ list * term list
   exception TERM of string * term list
   val is_Bound: term -> bool
@@ -90,6 +92,7 @@ sig
   val subst_bounds: term list * term -> term
   val subst_bound: term * term -> term
   val subst_TVars: (indexname * typ) list -> term -> term
+  val subst_TVars_Vartab: typ Vartab.table -> term -> term
   val betapply: term * term -> term
   val eq_ix: indexname * indexname -> bool
   val ins_ix: indexname * indexname list -> indexname list
@@ -114,6 +117,7 @@ sig
   val subst_atomic: (term * term) list -> term -> term
   val subst_vars: (indexname * typ) list * (indexname * term) list -> term -> term
   val typ_subst_TVars: (indexname * typ) list -> typ -> typ
+  val typ_subst_TVars_Vartab : typ Vartab.table -> typ -> typ
   val subst_Vars: (indexname * term) list -> term -> term
   val incr_tvar: int -> typ -> typ
   val xless: (string * int) * indexname -> bool
@@ -967,6 +971,19 @@ and terms_ord (ts, us) = list_ord term_ord (ts, us);
 
 fun termless tu = (term_ord tu = LESS);
 
+structure Vartab = TableFun(type key = indexname val ord = indexname_ord);
+structure Termtab = TableFun(type key = term val ord = term_ord);
+
+(*Substitute for type Vars in a type, version using Vartab*)
+fun typ_subst_TVars_Vartab iTs T = if Vartab.is_empty iTs then T else
+  let fun subst(Type(a, Ts)) = Type(a, map subst Ts)
+	| subst(T as TFree _) = T
+	| subst(T as TVar(ixn, _)) =
+            (case Vartab.lookup (iTs, ixn) of None => T | Some(U) => U)
+  in subst T end;
+
+(*Substitute for type Vars in a term, version using Vartab*)
+val subst_TVars_Vartab = map_term_types o typ_subst_TVars_Vartab;
 
 
 (*** Compression of terms and types by sharing common subtrees.  
@@ -1044,6 +1061,3 @@ end;
 
 structure BasicTerm: BASIC_TERM = Term;
 open BasicTerm;
-
-structure Vartab = TableFun(type key = indexname val ord = Term.indexname_ord);
-structure Termtab = TableFun(type key = term val ord = Term.term_ord);
