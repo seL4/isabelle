@@ -48,7 +48,7 @@ open BasisLibrary;
 
 structure R = Rules;
 structure S = USyntax;
-structure U = S.Utils;
+structure U = Utils;
 
 
 fun TFL_ERR {func, mesg} = U.ERR {module = "Tfl", func = func, mesg = mesg};
