@@ -12,18 +12,20 @@ val version = "Isabelle98: January 1998";
 
 print_depth 1;
 
+
+(*basic utils*)
 use "library.ML";
 use "table.ML";
 use "seq.ML";
 use "name_space.ML";
 use "term.ML";
 
-(*Syntax module*)
+(*inner syntax module*)
 cd "Syntax";
 use "ROOT.ML";
 cd "..";
 
-(*Main system*)
+(*main system*)
 use "sorts.ML";
 use "type_infer.ML";
 use "type.ML";
@@ -46,7 +48,7 @@ use "tactic.ML";
 use "goals.ML";
 use "axclass.ML";
 
-(*Theory parser and loader*)
+(*theory parser and loader*)
 val global_names = ref false;		(* FIXME tmp *)
 cd "Thy";
 use "ROOT.ML";
