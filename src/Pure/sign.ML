@@ -305,36 +305,6 @@ val base_name = NameSpace.base;
 (* intern / extern names *)
 
 local
-
-  fun add_typ_classes (Type (_, Ts), cs) = foldr add_typ_classes (Ts, cs)
-    | add_typ_classes (TFree (_, S), cs) = S union cs
-    | add_typ_classes (TVar (_, S), cs) = S union cs;
-
-  fun add_typ_tycons (Type (c, Ts), cs) = foldr add_typ_tycons (Ts, c ins cs)
-    | add_typ_tycons (_, cs) = cs;
-
-  val add_term_classes = it_term_types add_typ_classes;
-  val add_term_tycons = it_term_types add_typ_tycons;
-
-  fun add_term_consts (Const (c, _), cs) = c ins cs
-    | add_term_consts (t $ u, cs) = add_term_consts (t, add_term_consts (u, cs))
-    | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
-    | add_term_consts (_, cs) = cs;
-
-
-  (*map classes, tycons*)
-  fun map_typ f g (Type (c, Ts)) = Type (g c, map (map_typ f g) Ts)
-    | map_typ f _ (TFree (x, S)) = TFree (x, map f S)
-    | map_typ f _ (TVar (xi, S)) = TVar (xi, map f S);
-
-  (*map classes, tycons, consts*)
-  fun map_term f g h (Const (c, T)) = Const (h c, map_typ f g T)
-    | map_term f g _ (Free (x, T)) = Free (x, map_typ f g T)
-    | map_term f g _ (Var (xi, T)) = Var (xi, map_typ f g T)
-    | map_term _ _ _ (t as Bound _) = t
-    | map_term f g h (Abs (x, T, t)) = Abs (x, map_typ f g T, map_term f g h t)
-    | map_term f g h (t $ u) = map_term f g h t $ map_term f g h u;
-
   (*prepare mapping of names*)
   fun mapping f add_xs t =
     let
@@ -356,11 +326,8 @@ local
       (mapping (trn typeK) add_term_tycons t)
       (mapping (trn constK) add_term_consts t);
 
-
   val spaces_of = #spaces o rep_sg;
-
 in
-
   fun intrn_class spaces = intrn spaces classK;
   fun extrn_class spaces = extrn spaces classK;
 
@@ -390,7 +357,6 @@ in
   val intern_tycons = intrn_tycons o spaces_of;
 
   val full_name = full o #path o rep_sg;
-
 end;
 
 
@@ -869,7 +835,7 @@ fun prep_ext sg      = extend_sign false K "#" () sg;
 
 
 
-(** merge signatures **)    (*exception TERM*)
+(** merge signatures **)    	(*exception TERM*)
 
 (* merge of sg_refs -- trivial only *)
 
