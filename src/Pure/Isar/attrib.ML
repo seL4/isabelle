@@ -20,6 +20,8 @@ sig
   val global_attribute: theory -> Args.src -> theory attribute
   val local_attribute: theory -> Args.src -> Proof.context attribute
   val local_attribute': Proof.context -> Args.src -> Proof.context attribute
+  val undef_global_attribute: theory attribute
+  val undef_local_attribute: Proof.context attribute
   val add_attributes: (bstring * ((Args.src -> theory attribute) *
       (Args.src -> Proof.context attribute)) * string) list -> theory -> theory
   val global_thm: theory * Args.T list -> thm * (theory * Args.T list)
@@ -102,6 +104,12 @@ fun gen_attribute which thy =
 val global_attribute = gen_attribute fst;
 val local_attribute = gen_attribute snd;
 val local_attribute' = local_attribute o ProofContext.theory_of;
+
+val undef_global_attribute: theory attribute =
+  fn _ => error "attribute undefined in theory context";
+
+val undef_local_attribute: Proof.context attribute =
+  fn _ => error "attribute undefined in proof context";
 
 
 (* add_attributes *)
