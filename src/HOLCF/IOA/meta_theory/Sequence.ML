@@ -7,6 +7,10 @@ Theorems about Sequences over flat domains with lifted elements
 
 *)
 
+(* re-add extended adm_tactic, as it has been lost during theory merge *) 
+simpset := !simpset addSolver(fn thms =>
+            (adm_tac (cut_facts_tac thms THEN' cont_tacRs)));
+
 Addsimps [andalso_and,andalso_or];
 
 (* ----------------------------------------------------------------------------------- *)
@@ -824,7 +828,7 @@ goal thy "HD`(Filter P`y) = Def x \
 \             & Finite (Takewhile (%x. ~ P x)`y)  & P x";
 
 (* FIX: pay attention: is only admissible with chain-finite package to be added to 
-        adm test *)
+        adm test and Finite f x admissibility *)
 by (Seq_induct_tac "y" [] 1);
 by (rtac adm_all 1);
 by (Asm_full_simp_tac 1); 
@@ -850,12 +854,11 @@ by (dres_inst_tac [("fo","HD"),("xa","x>>xs")]  monofun_cfun_arg 1);
 by (Asm_full_simp_tac 1); 
 qed"divide_Seq";
 
-
+ 
 goal thy "~Forall P y --> (? x. HD`(Filter (%a. ~P a)`y) = Def x)";
-(* FIX: pay attention: is only admissible with chain-finite package to be added to 
+(* Pay attention: is only admissible with chain-finite package to be added to 
         adm test *)
-by (Seq_induct_tac "y" [] 1);
-by (rtac adm_all 1);
+by (Seq_induct_tac "y" [Forall_def,sforall_def] 1);
 by (case_tac "P a" 1);
 by (Asm_full_simp_tac 1); 
 by (Asm_full_simp_tac 1); 

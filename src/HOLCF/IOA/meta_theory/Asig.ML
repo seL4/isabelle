@@ -10,6 +10,13 @@ open Asig;
 
 val asig_projections = [asig_inputs_def, asig_outputs_def, asig_internals_def];
 
+goal thy
+ "(outputs    (a,b,c) = b)   & \
+\ (inputs     (a,b,c) = a) & \
+\ (internals  (a,b,c) = c)";
+  by (simp_tac (!simpset addsimps asig_projections) 1);
+qed "asig_triple_proj";
+
 goal thy "!!a.[| a~:internals(S) ;a~:externals(S)|] ==> a~:actions(S)";
 by (asm_full_simp_tac (!simpset addsimps [externals_def,actions_def]) 1);
 qed"int_and_ext_is_act";

@@ -100,6 +100,11 @@ by (asm_full_simp_tac (!simpset addsimps [actions_def,asig_of_par,asig_comp_def,
       asig_outputs_def,Un_def,set_diff_def]) 1);
 qed"outputs_of_par";
 
+goal thy "int (A1||A2) =\
+\         (int A1) Un (int A2)";
+by (asm_full_simp_tac (!simpset addsimps [actions_def,asig_of_par,asig_comp_def,
+      asig_inputs_def,asig_outputs_def,asig_internals_def,Un_def,set_diff_def]) 1);
+qed"internals_of_par";
 
 (* ---------------------------------------------------------------------------------- *)
 
@@ -262,7 +267,7 @@ section "restrict";
 
 
 goal thy "starts_of(restrict ioa acts) = starts_of(ioa) &     \
-\             trans_of(restrict ioa acts) = trans_of(ioa)";
+\         trans_of(restrict ioa acts) = trans_of(ioa)";
 by (simp_tac (!simpset addsimps ([restrict_def]@ioa_projections)) 1);
 qed "cancel_restrict_a";
 
@@ -280,10 +285,18 @@ by (etac reachable_n 1);
 by (asm_full_simp_tac (!simpset addsimps [cancel_restrict_a]) 1);
 qed "cancel_restrict_b";
 
+goal thy "act (restrict A acts) = act A";
+by (simp_tac (!simpset addsimps [actions_def,asig_internals_def,
+        asig_outputs_def,asig_inputs_def,externals_def,asig_of_def,restrict_def,
+        restrict_asig_def]) 1);
+auto();
+qed"acts_restrict";
+
 goal thy "starts_of(restrict ioa acts) = starts_of(ioa) &     \
-\             trans_of(restrict ioa acts) = trans_of(ioa) & \
-\             reachable (restrict ioa acts) s = reachable ioa s";
-by (simp_tac (!simpset addsimps [cancel_restrict_a,cancel_restrict_b]) 1);
+\         trans_of(restrict ioa acts) = trans_of(ioa) & \
+\         reachable (restrict ioa acts) s = reachable ioa s & \
+\         act (restrict A acts) = act A";
+by (simp_tac (!simpset addsimps [cancel_restrict_a,cancel_restrict_b,acts_restrict]) 1);
 qed"cancel_restrict";
 
 (* ---------------------------------------------------------------------------------- *)
@@ -394,45 +407,83 @@ goalw thy [is_trans_of_def]
 by (simp_tac (!simpset addsimps [actions_of_par,trans_of_par]) 1);
 qed"is_trans_of_par";
 
-
-(*
-
-goalw thy [is_trans_of_def,restrict_def,restrict_asig_def] 
+goalw thy [is_trans_of_def] 
 "!!A. is_trans_of A ==> is_trans_of (restrict A acts)";
-by (asm_full_simp_tac (!simpset addsimps [actions_def,trans_of_def,
-    asig_internals_def,asig_outputs_def,asig_inputs_def,externals_def,asig_of_def]) 1);
-
-qed"";
-
+by (asm_simp_tac (!simpset addsimps [cancel_restrict,acts_restrict])1);
+qed"is_trans_of_restrict";
 
 goalw thy [is_trans_of_def,restrict_def,restrict_asig_def] 
 "!!A. is_trans_of A ==> is_trans_of (rename A f)";
 by (asm_full_simp_tac (!simpset addsimps [actions_def,trans_of_def,
-    asig_internals_def,asig_outputs_def,asig_inputs_def,externals_def,asig_of_def]) 1);
-
-qed"";
-
-goal thy "!! A. is_asig_of A ==> is_asig_of (rename A f)";
-
-
-goalw thy [is_asig_of_def,is_asig_def,asig_of_def,restrict_def,restrict_asig_def,
-           asig_internals_def,asig_outputs_def,asig_inputs_def,externals_def] 
-"!! A. is_asig_of A ==> is_asig_of (restrict A f)";
-by (Asm_full_simp_tac 1);
-
-
-
+    asig_internals_def,asig_outputs_def,asig_inputs_def,externals_def,
+   asig_of_def,rename_def,rename_set_def]) 1);
+auto();
+qed"is_trans_of_rename";
 
 goal thy "!! A. [| is_asig_of A; is_asig_of B; compatible A B|]  \
 \         ==> is_asig_of (A||B)";
+by (asm_full_simp_tac (!simpset addsimps [is_asig_of_def,asig_of_par,
+       asig_comp_def,compatible_def,asig_internals_def,asig_outputs_def,
+     asig_inputs_def,actions_def,is_asig_def]) 1);
+by (asm_full_simp_tac (!simpset addsimps [asig_of_def]) 1);
+auto();
+by (REPEAT (best_tac (set_cs addEs [equalityCE]) 1));
+qed"is_asig_of_par";
+
+goalw thy [is_asig_of_def,is_asig_def,asig_of_def,restrict_def,restrict_asig_def,
+           asig_internals_def,asig_outputs_def,asig_inputs_def,externals_def,o_def] 
+"!! A. is_asig_of A ==> is_asig_of (restrict A f)";
+by (Asm_full_simp_tac 1);
+auto();
+by (REPEAT (best_tac (set_cs addEs [equalityCE]) 1));
+qed"is_asig_of_restrict";
+
+goal thy "!! A. is_asig_of A ==> is_asig_of (rename A f)";
+by (asm_full_simp_tac (!simpset addsimps [is_asig_of_def,
+     rename_def,rename_set_def,asig_internals_def,asig_outputs_def,
+     asig_inputs_def,actions_def,is_asig_def,asig_of_def]) 1);
+auto(); 
+by (dres_inst_tac [("s","Some xb")] sym 1);
+by (rotate_tac ~1 1);
+by (Asm_full_simp_tac 1);
+by (best_tac (set_cs addEs [equalityCE]) 1);
+by (dres_inst_tac [("s","Some xb")] sym 1);
+by (rotate_tac ~1 1);
+by (Asm_full_simp_tac 1);
+by (best_tac (set_cs addEs [equalityCE]) 1);
+by (dres_inst_tac [("s","Some xb")] sym 1);
+by (rotate_tac ~1 1);
+by (Asm_full_simp_tac 1);
+by (best_tac (set_cs addEs [equalityCE]) 1);
+qed"is_asig_of_rename";
 
 
+Addsimps [is_asig_of_par,is_asig_of_restrict,is_asig_of_rename,
+          is_trans_of_par,is_trans_of_restrict,is_trans_of_rename];
 
 
+goalw thy [compatible_def]
+"!! A. [|compatible A B; compatible A C |]==> compatible A (B||C)";
+by (asm_full_simp_tac (!simpset addsimps [internals_of_par, 
+   outputs_of_par,actions_of_par]) 1);
+auto();
+by (REPEAT (best_tac (set_cs addEs [equalityCE]) 1));
+qed"compatible_par";
 
-*)
+(* FIX: better derive by previous one and compat_commute *)
+goalw thy [compatible_def]
+"!! A. [|compatible A C; compatible B C |]==> compatible (A||B) C";
+by (asm_full_simp_tac (!simpset addsimps [internals_of_par, 
+   outputs_of_par,actions_of_par]) 1);
+auto();
+by (REPEAT (best_tac (set_cs addEs [equalityCE]) 1));
+qed"compatible_par2";
 
-
-
-
-
+goalw thy [compatible_def]
+"!! A. [| compatible A B; (ext B - S) Int ext A = {}|] \
+\     ==> compatible A (restrict B S)";
+by (asm_full_simp_tac (!simpset addsimps [ioa_triple_proj,asig_triple_proj,
+          externals_def,restrict_def,restrict_asig_def,actions_def]) 1);
+by (auto_tac (!claset addEs [equalityCE],!simpset));
+qed"compatible_restrict";
+ 
