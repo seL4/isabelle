@@ -4,6 +4,9 @@
 % 08-Oct-90 L. Rooijakkers	fixed centering bug when \rail@tmpc<0.
 % 07-Feb-91 L. Rooijakkers	added \railoptions command, indexing
 % 08-Feb-91 L. Rooijakkers	minor fixes
+% 28-Jun-94 K. Barthelmann	turned into LaTeX2e package
+% 08-Dec-96 K. Barthelmann	replaced \@writefile
+% 13-Dec-96 K. Barthelmann	cleanup
 %
 % This style file needs to be used in conjunction with the 'rail'
 % program. Running LaTeX as 'latex file' produces file.rai, which should be
@@ -16,154 +19,8 @@
 % write the .rai and .rao files, and those that do the actual formatting
 % of the railroad diagrams.
 
-% railroad read/write macros
-%
-% \begin{rail} TEXT \end{rail} : TEXT is written out to the .rai file,
-%                                as \rail@i{NR}{TEXT}. Then the matching
-%                                \rail@o{NR}{FMT} from the .rao file is
-%                                executed (if defined).
-%
-% \railoptions{OPTIONS} : OPTIONS are written out to the .rai file,
-%                         as \rail@p{OPTIONS}.
-%
-% \railterm{IDENT,IDENT,...} : format IDENT as terminals. writes out
-%                              \rail@t{IDENT} to the .rai file and
-%                              defines \rail@t@IDENT as \rail@termfont IDENT.
-%
-% \railtoken{IDENT}{TEXT} : format IDENT as terminal TEXT. writes out
-%                           \rail@t{IDENT} to the .rai file and defines
-%                           \rail@t@IDENT as TEXT.
-%
-% \rail@nr : railroad diagram counter, starts at 1
-%
-% \ifrail@match : current \rail@i{NR}{TEXT} matches
-%
-% \rail@first :	actions to be done first. read in .rao file,
-%               open .rai file if \@filesw true, undefine \rail@first.
-%               executed from \begin{rail} and \railtoken.
-%
-% \rail@i{NR}{TEXT} : defines \rail@i@NR as TEXT. written to the .rai
-%                     file by \rail, read from the .rao file by
-%                     \rail@first
-%
-% \rail@t{IDENT} : tells Rail that IDENT is to be custom formatted,
-%                  written to the .rai file by \railterm and \railtoken.
-%
-% \rail@o{NR}{TEXT} : defines \rail@o@NR as TEXT, read from the .rao
-%                     file by \rail@first.
-%
-% \rail@p{OPTIONS} : pass options to rail, written to the .rai file by
-%                    \railoptions
-%
-% \rail@warn : warn user for mismatching diagrams
-%
-% \rail@endwarn : either \relax or \rail@warn
-%
-% \rail@enddocument : original \enddocument
-%
-% \enddocument : checks \ifrail@all
-
-\newcount\rail@nr
-\rail@nr=1
-
-\newif\ifrail@all
-\rail@alltrue
-
-\newif\ifrail@match
-
-\def\rail@first{
-\makeatletter
-\@input{\jobname.rao}
-\makeatother
-\if@filesw
-\newwrite\tf@rai
-\immediate\openout\tf@rai\jobname.rai\relax
-\fi
-\global\let\rail@first=\relax
-}
-
-\long\def\rail#1\end#2{
-\end{#2}
-\rail@first
-\begingroup
-\let\\=\relax
-\global\edef\rail@i@{#1}
-\endgroup
-\@ifundefined{tf@rai}{}{
-\begingroup
-\let\\=\relax
-\immediate\write\tf@rai{\noexpand\rail@i{\number\rail@nr}{\rail@i@}}
-\endgroup
-}
-\rail@matchtrue
-\@ifundefined{rail@o@\number\rail@nr}{\rail@matchfalse}{}
-\expandafter\ifx\csname rail@i@\number\rail@nr\endcsname\rail@i@
-\else
-\rail@matchfalse
-\fi
-\ifrail@match
-\expandafter\relax\csname rail@o@\number\rail@nr\endcsname
-\else
-\@warning{Railroad diagram {\number\rail@nr} doesn't match}
-\global\let\rail@endwarn=\rail@warn
-\rail@begin{1}{}
-\rail@setbox{\bf ???}
-\rail@oval
-\rail@end
-\fi
-\global\advance\rail@nr by 1
-}
-
-\def\railoptions#1{
-\rail@first
-\@writefile{rai}{\noexpand\rail@p{#1}}
-}
-
-\def\railterm#1{
-\rail@first
-\@for\rail@i@:=#1\do{
-\@writefile{rai}{\noexpand\rail@t{\rail@i@}}
-}
-}
-
-\def\railtoken#1#2{
-\rail@first
-\@writefile{rai}{\noexpand\rail@t{#1}}
-\expandafter\def\csname rail@t@#1\endcsname{#2}
-}
-
-\long\def\rail@i#1#2{
-\expandafter\gdef\csname rail@i@#1\endcsname{#2}
-}
-
-\def\rail@o#1#2{
-\expandafter\gdef\csname rail@o@#1\endcsname{#2}
-}
-
-\def\rail@t#1{}
-
-\def\rail@p#1{}
-
-\def\rail@warn{
-\@warning{Railroad diagram(s) may have changed. Use 'rail' and rerun}
-}
-
-\let\rail@endwarn=\relax
-
-\let\rail@enddocument=\enddocument
-
-\def\enddocument{
-\rail@endwarn
-\rail@enddocument
-}
-
-% index entry macro
-%
-% \rail@index{IDENT} : add index entry for IDENT
-
-\def\rail@index#1{
-\index{\rail@indexfont#1}
-}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{rail}[1996/12/13]
 
 % railroad diagram formatting parameters (user level)
 % all of these are copied into their internal versions by \railinit
@@ -184,20 +41,55 @@
 %
 % \railnamesep : separator between name and rule body
 
-\newdimen\railunit
-\newdimen\railextra
-\newdimen\railboxheight
-\newdimen\railboxskip
-\newdimen\railboxleft
-\newdimen\railboxright
-\newdimen\railovalspace
-\newdimen\railframespace
-\newdimen\railtextleft
-\newdimen\railtextright
-\newdimen\railtextup
-\newdimen\railjoinsize
-\newdimen\railjoinadjust
-\newdimen\railnamesep
+\newlength\railunit
+\newlength\railextra
+\newlength\railboxheight
+\newlength\railboxskip
+\newlength\railboxleft
+\newlength\railboxright
+\newlength\railovalspace
+\newlength\railframespace
+\newlength\railtextleft
+\newlength\railtextright
+\newlength\railtextup
+\newlength\railjoinsize
+\newlength\railjoinadjust
+\newlength\railnamesep
+
+% initialize the parameters
+
+\setlength\railunit{1sp}
+\setlength\railextra{4ex}
+\setlength\railboxleft{1ex}
+\setlength\railboxright{1ex}
+\setlength\railovalspace{2ex}
+\setlength\railframespace{2ex}
+\setlength\railtextleft{1ex}
+\setlength\railtextright{1ex}
+\setlength\railjoinadjust{0pt}
+\setlength\railnamesep{1ex}
+
+\DeclareOption{10pt}{
+  \setlength\railboxheight{16pt}
+  \setlength\railboxskip{24pt}
+  \setlength\railtextup{5pt}
+  \setlength\railjoinsize{16pt}
+}
+\DeclareOption{11pt}{
+  \setlength\railboxheight{16pt}
+  \setlength\railboxskip{24pt}
+  \setlength\railtextup{5pt}
+  \setlength\railjoinsize{16pt}
+}
+\DeclareOption{12pt}{
+  \setlength\railboxheight{20pt}
+  \setlength\railboxskip{28pt}
+  \setlength\railtextup{6pt}
+  \setlength\railjoinsize{20pt}
+}
+
+\ExecuteOptions{10pt}
+\ProcessOptions
 
 % internal versions of the formatting parameters
 %
@@ -233,7 +125,7 @@
 \newcount\rail@joinhsz
 \newcount\rail@joinadj
 
-\def\railinit{
+\newcommand\railinit{
 \rail@extra=\railextra
 \divide\rail@extra by \railunit
 \rail@boxht=\railboxheight
@@ -266,40 +158,211 @@
 \divide\rail@joinadj by \railunit
 }
 
-% initialize the parameters
+\AtBeginDocument{\railinit}
 
-\railunit=1sp
-\railextra=4ex
-\railboxleft=1ex
-\railboxright=1ex
-\railovalspace=2ex
-\railframespace=2ex
-\railtextleft=1ex
-\railtextright=1ex
-\railjoinadjust=0pt
-\railnamesep=1ex
+% \rail@param : declarations for list environment
+%
+% \railparam{TEXT} : sets \rail@param to TEXT
 
-\ifcase\@ptsize
-% 10 pt
-\railboxheight=16pt
-\railboxskip=24pt
-\railtextup=5pt
-\railjoinsize=16pt
-\or
-% 11 pt
-\railboxheight=16pt
-\railboxskip=24pt
-\railtextup=5pt
-\railjoinsize=16pt
-\or
-% 12 pt
-\railboxheight=20pt
-\railboxskip=28pt
-\railtextup=6pt
-\railjoinsize=20pt
+\def\rail@param{}
+
+\newcommand\railparam[1]{
+\def\rail@param{#1}
+}
+
+% \rail@tokenfont : format setup for \railtoken identifiers
+%
+% \rail@termfont : format setup for terminals
+%
+% \rail@nontfont : format setup for nonterminals
+%
+% \rail@annofont : format setup for annotations
+%
+% \rail@rulefont : format setup for rule names
+%
+% \rail@indexfont : format setup for index entry
+%
+% \railtermfont{TEXT} : set terminal format setup to TEXT
+%
+% \railnontermfont{TEXT} : set nonterminal format setup to TEXT
+%
+% \railannotatefont{TEXT} : set annotation format setup to TEXT
+%
+% \railnamefont{TEXT} : set rule name format setup to TEXT
+%
+% \railindexfont{TEXT} : set index entry format setup to TEXT
+
+\def\rail@termfont{\ttfamily\upshape}
+\def\rail@nontfont{\rmfamily\upshape}
+\def\rail@annofont{\rmfamily\itshape}
+\def\rail@namefont{\rmfamily\itshape}
+\def\rail@indexfont{\rmfamily\itshape}
+
+\newcommand\railtermfont[1]{
+\def\rail@termfont{#1}
+}
+
+\newcommand\railnontermfont[1]{
+\def\rail@nontfont{#1}
+}
+
+\newcommand\railannotatefont[1]{
+\def\rail@annofont{#1}
+}
+
+\newcommand\railnamefont[1]{
+\def\rail@namefont{#1}
+}
+
+\newcommand\railindexfont[1]{
+\def\rail@indexfont{#1}
+}
+
+% railroad read/write macros
+%
+% \begin{rail} TEXT \end{rail} : TEXT is written out to the .rai file,
+%                                as \rail@i{NR}{TEXT}. Then the matching
+%                                \rail@o{NR}{FMT} from the .rao file is
+%                                executed (if defined).
+%
+% \railoptions{OPTIONS} : OPTIONS are written out to the .rai file,
+%                         as \rail@p{OPTIONS}.
+%
+% \railterm{IDENT,IDENT,...} : format IDENT as terminals. writes out
+%                              \rail@t{IDENT} to the .rai file
+%
+% \railalias{IDENT}{TEXT} : format IDENT as TEXT. defines \rail@t@IDENT as
+%                           TEXT.
+%
+% \rail@nr : railroad diagram counter
+%
+% \ifrail@match : current \rail@i{NR}{TEXT} matches
+%
+% \rail@first :	actions to be done first. read in .rao file,
+%               open .rai file if \@filesw true, undefine \rail@first.
+%               executed from \begin{rail} and \railtoken.
+%
+% \rail@i{NR}{TEXT} : defines \rail@i@NR as TEXT. written to the .rai
+%                     file by \rail, read from the .rao file by
+%                     \rail@first
+%
+% \rail@t{IDENT} : tells Rail that IDENT is to be custom formatted,
+%                  written to the .rai file by \railterm.
+%
+% \rail@o{NR}{TEXT} : defines \rail@o@NR as TEXT, read from the .rao
+%                     file by \rail@first.
+%
+% \rail@p{OPTIONS} : pass options to rail, written to the .rai file by
+%                    \railoptions
+%
+% \rail@write{TEXT} : write TEXT to the .rai file
+%
+% \rail@warn : warn user for mismatching diagrams
+%
+% \rail@endwarn : either \relax or \rail@warn
+%
+% \ifrail@all : checked at the end of the document
+
+\newcount\rail@nr
+
+\newif\ifrail@all
+\rail@alltrue
+
+\newif\ifrail@match
+
+\def\rail@first{
+\makeatletter
+\InputIfFileExists{\jobname.rao}{}{\PackageInfo{rail}{No file \jobname.rao}}
+\makeatother
+\if@filesw
+\newwrite\tf@rai
+\immediate\openout\tf@rai=\jobname.rai
 \fi
+\global\let\rail@first=\relax
+}
 
-\railinit
+\long\def\rail@body#1\end{
+\begingroup
+\let\\=\relax
+\xdef\rail@i@{#1}
+\rail@write{\string\rail@i{\number\rail@nr}{\rail@i@}}
+\endgroup
+\end
+}
+
+\newenvironment{rail}{
+\global\advance\rail@nr by 1
+\rail@first
+\rail@body
+}{
+\rail@matchtrue
+\@ifundefined{rail@o@\number\rail@nr}{\rail@matchfalse}{}
+\expandafter\ifx\csname rail@i@\number\rail@nr\endcsname\rail@i@
+\else
+\rail@matchfalse
+\fi
+\ifrail@match
+\csname rail@o@\number\rail@nr\endcsname
+\else
+\PackageWarning{rail}{Railroad diagram {\number\rail@nr} doesn't match}
+\global\let\rail@endwarn=\rail@warn
+\begin{list}{}{\rail@param}
+\rail@begin{1}{}
+\rail@setbox{\bfseries ???}
+\rail@oval
+\rail@end
+\end{list}
+\fi
+}
+
+\newcommand\railoptions[1]{
+\rail@first
+\rail@write{\string\rail@p{#1}}
+}
+
+\newcommand\railterm[1]{
+\rail@first
+\@for\rail@@:=#1\do{
+\rail@write{\string\rail@t{\rail@@}}
+}
+}
+
+\newcommand\railalias[2]{
+\expandafter\def\csname rail@t@#1\endcsname{#2}
+}
+
+\long\def\rail@i#1#2{
+\expandafter\gdef\csname rail@i@#1\endcsname{#2}
+}
+
+\def\rail@o#1#2{
+\expandafter\gdef\csname rail@o@#1\endcsname{
+\begin{list}{}{\rail@param}#2\end{list}
+}
+}
+
+\def\rail@t#1{}
+
+\def\rail@p#1{}
+
+\def\rail@write#1{\@ifundefined{tf@rai}{}{\immediate\write\tf@rai{#1}}}
+
+\def\rail@warn{
+\PackageWarningNoLine{rail}{Railroad diagram(s) may have changed.
+                            Use 'rail' and rerun}
+}
+
+\let\rail@endwarn=\relax
+
+\AtEndDocument{\rail@endwarn}
+
+% index entry macro
+%
+% \rail@index{IDENT} : add index entry for IDENT
+
+\def\rail@index#1{
+\index{\rail@indexfont#1}
+}
 
 % railroad formatting primitives
 %
@@ -343,30 +406,17 @@
 \advance\rail@y by -\rail@boxht
 }
 
-% \rail@list : declarations for list environment
-%
-% \railparam{TEXT} : sets \rail@list to TEXT
-%
 % \rail@begin{HEIGHT}{NAME} : begin a railroad diagram of height HEIGHT
 %
 % \rail@end : end a railroad diagram
-
-\def\rail@list{}
-
-\def\railparam#1{
-\def\rail@list{#1}
-}
-
-\newbox\tempbox
+%
+% \rail@expand{IDENT} : expand IDENT
 
 \def\rail@begin#1#2{
-\medskip
-\begin{list}{}{\rail@list}
 \item[]
-\vbox\bgroup
+\begin{minipage}[t]{\linewidth}
 \ifx\@empty#2\else
-{\rail@namefont #2}
-\\*[\railnamesep]\nopagebreak
+{\rail@namefont \rail@expand{#2}}\\*[\railnamesep]
 \fi
 \unitlength=\railunit
 \rail@tmpa=#1
@@ -383,122 +433,70 @@
 \advance\rail@x by \rail@extra
 \rail@eline
 \end{picture}
-\egroup
-\end{list}
+\end{minipage}
 }
 
-% \rail@tokenfont : format setup for \railtoken identifiers
-%
-% \rail@termfont : format setup for terminals
-%
-% \rail@nontfont : format setup for nonterminals
-%
-% \rail@annofont : format setup for annotations
-%
-% \rail@rulefont : format setup for rule names
-%
-% \rail@indexfont : format setup for index entry
-%
-% \railtokenfont{TEXT} : set \railtoken format setup to TEXT
-%
-% \railtermfont{TEXT} : set terminal format setup to TEXT
-%
-% \railnontermfont{TEXT} : set nonterminal format setup to TEXT
-%
-% \railannotatefont{TEXT} : set annotation format setup to TEXT
-%
-% \railnamefont{TEXT} : set rule name format setup to TEXT
-%
-% \railindexfont{TEXT} : set index entry format setup to TEXT
+\def\rail@expand#1{\@ifundefined{rail@t@#1}{#1}{\csname rail@t@#1\endcsname}}
 
-\let\rail@tokenfont=\tt
-\let\rail@termfont=\tt
-\let\rail@nontfont=\rm
-\let\rail@annofont=\it
-\let\rail@namefont=\it
-\let\rail@indexfont=\it
-
-\def\railtokenfont#1{
-\def\rail@tokenfont{#1}
-}
-
-\def\railtermfont#1{
-\def\rail@termfont{#1}
-}
-
-\def\railnontermfont#1{
-\def\rail@nontfont{#1}
-}
-
-\def\railannotatefont#1{
-\def\rail@annofont{#1}
-}
-
-\def\railnamefont#1{
-\def\rail@namefont{#1}
-}
-
-\def\railindexfont#1{
-\def\rail@indexfont{#1}
-}
-
-% \rail@token{TEXT} : format token TEXT
+% \rail@token{TEXT}[ANNOT] : format token TEXT with annotation
 %
-% \rail@ctoken{TEXT} : format token TEXT centered
+% \rail@ctoken{TEXT}[ANNOT] : format token TEXT centered with annotation
 %
-% \rail@nont{TEXT} : format nonterminal TEXT
+% \rail@nont{TEXT}[ANNOT] : format nonterminal TEXT with annotation
 %
-% \rail@cnont{TEXT} : format nonterminal TEXT centered
+% \rail@cnont{TEXT}[ANNOT] : format nonterminal TEXT centered with annotation
 %
-% \rail@cterm{TEXT} : format terminal TEXT
+% \rail@term{TEXT}[ANNOT] : format terminal TEXT with annotation
 %
-% \rail@cterm{TEXT} : format terminal TEXT centered
+% \rail@cterm{TEXT}[ANNOT] : format terminal TEXT centered with annotation
 %
 % \rail@annote[TEXT] : format TEXT as annotation
-%
-% \rail@annotebox[TEXT] : annotate box with TEXT
 
-\def\rail@token#1{
-\expandafter\@ifundefined{rail@t@#1}{
-\rail@setbox{\rail@termfont #1}
-}{
-\rail@setbox{\rail@tokenfont \csname rail@t@#1\endcsname}
+\def\rail@token#1[#2]{
+\rail@setbox{%
+{\rail@termfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
 }
 \rail@oval
 }
 
-\def\rail@ctoken#1{
-\rail@setbox{\rail@tokenfont \csname rail@t@#1\endcsname}
+\def\rail@ctoken#1[#2]{
+\rail@setbox{%
+{\rail@termfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
 \rail@coval
 }
 
-\def\rail@nont#1{
-\rail@setbox{\rail@nontfont #1}
+\def\rail@nont#1[#2]{
+\rail@setbox{%
+{\rail@nontfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
 \rail@frame
 }
 
-\def\rail@cnont#1{
-\rail@setbox{\rail@nontfont #1}
+\def\rail@cnont#1[#2]{
+\rail@setbox{%
+{\rail@nontfont \rail@expand{#1}}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
 \rail@cframe
 }
 
-\def\rail@term#1{
-\rail@setbox{\rail@termfont #1}
+\def\rail@term#1[#2]{
+\rail@setbox{%
+{\rail@termfont #1}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
 \rail@oval
 }
 
-\def\rail@cterm#1{
-\rail@setbox{\rail@termfont #1}
+\def\rail@cterm#1[#2]{
+\rail@setbox{%
+{\rail@termfont #1}\ifx\@empty#2\else\ {\rail@annofont #2}\fi
+}
 \rail@coval
 }
 
 \def\rail@annote[#1]{
 \rail@setbox{\rail@annofont #1}
 \rail@text
-}
-
-\def\rail@annotebox[#1]{
-\ \rail@annofont #1
 }
 
 % \rail@box : temporary box for \rail@oval and \rail@frame
