@@ -92,6 +92,12 @@ by (ALLGOALS Asm_simp_tac);
 qed "length_rev";
 Addsimps [length_rev];
 
+goal List.thy "!!xs. xs ~= [] ==> length(tl xs) = pred(length xs)";
+by(exhaust_tac "xs" 1);
+by(ALLGOALS Asm_full_simp_tac);
+qed "length_tl";
+Addsimps [length_tl];
+
 goal thy "(length xs = 0) = (xs = [])";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -167,35 +173,22 @@ by(Asm_simp_tac 1);
 qed_spec_mp "append_eq_append_conv";
 Addsimps [append_eq_append_conv];
 
-(* Still needed? Unconditional and hence AddIffs.
-
 goal thy "(xs @ ys = xs @ zs) = (ys=zs)";
-by (induct_tac "xs" 1);
-by (ALLGOALS Asm_simp_tac);
-qed "same_append_eq";
-AddIffs [same_append_eq];
-
-goal thy "!ys. (xs @ [x] = ys @ [y]) = (xs = ys & x = y)"; 
-by (induct_tac "xs" 1);
- by (rtac allI 1);
- by (induct_tac "ys" 1);
-  by (ALLGOALS Asm_simp_tac);
-by (rtac allI 1);
-by (induct_tac "ys" 1);
- by (ALLGOALS Asm_simp_tac);
-qed_spec_mp "append1_eq_conv";
-AddIffs [append1_eq_conv];
-
-goal thy "!ys zs. (ys @ xs = zs @ xs) = (ys=zs)";
-by (induct_tac "xs" 1);
 by (Simp_tac 1);
-by (Clarify_tac 1);
-by (subgoal_tac "((ys @ [a]) @ list = (zs @ [a]) @ list) = (ys=zs)" 1);
-by (Asm_full_simp_tac 1);
-by (Blast_tac 1);
-qed_spec_mp "append_same_eq";
-AddIffs [append_same_eq];
-*)
+qed "same_append_eq";
+
+goal thy "(xs @ [x] = ys @ [y]) = (xs = ys & x = y)"; 
+by (Simp_tac 1);
+qed "append1_eq_conv";
+
+goal thy "(ys @ xs = zs @ xs) = (ys=zs)";
+by (Simp_tac 1);
+qed "append_same_eq";
+
+AddSIs
+ [same_append_eq RS iffD2, append1_eq_conv RS iffD2, append_same_eq RS iffD2];
+AddSDs
+ [same_append_eq RS iffD1, append1_eq_conv RS iffD1, append_same_eq RS iffD1];
 
 goal thy "xs ~= [] --> hd xs # tl xs = xs";
 by (induct_tac "xs" 1);
@@ -415,6 +408,18 @@ by (ALLGOALS Asm_simp_tac);
 qed"concat_append";
 Addsimps [concat_append];
 
+goal thy "(concat xss = []) = (!xs:set xss. xs=[])";
+by(induct_tac "xss" 1);
+by(ALLGOALS Asm_simp_tac);
+qed "concat_eq_Nil_conv";
+AddIffs [concat_eq_Nil_conv];
+
+goal thy "([] = concat xss) = (!xs:set xss. xs=[])";
+by(induct_tac "xss" 1);
+by(ALLGOALS Asm_simp_tac);
+qed "Nil_eq_concat_conv";
+AddIffs [Nil_eq_concat_conv];
+
 goal thy  "set(concat xs) = Union(set `` set xs)";
 by (induct_tac "xs" 1);
 by (ALLGOALS Asm_simp_tac);
@@ -488,7 +493,47 @@ by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 qed_spec_mp "nth_mem";
 Addsimps [nth_mem];
 
+(** last & butlast **)
 
+goal thy "last(xs@[x]) = x";
+by(induct_tac "xs" 1);
+by(ALLGOALS (asm_simp_tac (!simpset setloop (split_tac[expand_if]))));
+qed "last_snoc";
+Addsimps [last_snoc];
+
+goal thy "butlast(xs@[x]) = xs";
+by(induct_tac "xs" 1);
+by(ALLGOALS (asm_simp_tac (!simpset setloop (split_tac[expand_if]))));
+qed "butlast_snoc";
+Addsimps [butlast_snoc];
+
+goal thy
+  "!ys. butlast (xs@ys) = (if ys=[] then butlast xs else xs@butlast ys)";
+by(induct_tac "xs" 1);
+by(ALLGOALS(asm_simp_tac (!simpset setloop (split_tac[expand_if]))));
+qed_spec_mp "butlast_append";
+
+goal thy "x:set(butlast xs) --> x:set xs";
+by(induct_tac "xs" 1);
+by(ALLGOALS (asm_simp_tac (!simpset setloop (split_tac[expand_if]))));
+qed_spec_mp "in_set_butlastD";
+
+goal thy "!!xs. x:set(butlast xs) ==> x:set(butlast(xs@ys))";
+by(asm_simp_tac (!simpset addsimps [butlast_append]
+                          setloop (split_tac[expand_if])) 1);
+by(blast_tac (!claset addDs [in_set_butlastD]) 1);
+qed "in_set_butlast_appendI1";
+
+goal thy "!!xs. x:set(butlast ys) ==> x:set(butlast(xs@ys))";
+by(asm_simp_tac (!simpset addsimps [butlast_append]
+                          setloop (split_tac[expand_if])) 1);
+by(Clarify_tac 1);
+by(Full_simp_tac 1);
+qed "in_set_butlast_appendI2";
+(* FIXME
+Addsimps [in_set_butlast_appendI1,in_set_butlast_appendI2];
+AddIs    [in_set_butlast_appendI1,in_set_butlast_appendI2];
+*)
 (** take  & drop **)
 section "take & drop";
 

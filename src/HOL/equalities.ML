@@ -625,6 +625,11 @@ goalw thy [psubset_def] "((A::'a set) <= B) = ((A < B) | (A=B))";
 by (Blast_tac 1);
 qed "subset_iff_psubset_eq";
 
+goal Set.thy "(!x. x ~: A) = (A={})";
+by(Blast_tac 1);
+qed "all_not_in_conv";
+(* FIXME: AddIffs [all_not_in_conv]; *)
+
 goalw Set.thy [Pow_def] "Pow {} = {{}}";
 by (Auto_tac());
 qed "Pow_empty";

@@ -15,7 +15,7 @@ consts
   filter      :: ['a => bool, 'a list] => 'a list
   concat      :: 'a list list => 'a list
   foldl       :: [['b,'a] => 'b, 'b, 'a list] => 'b
-  hd          :: 'a list => 'a
+  hd, last    :: 'a list => 'a
   set         :: 'a list => 'a set
   list_all    :: ('a => bool) => ('a list => bool)
   map         :: ('a=>'b) => ('a list => 'b list)
@@ -24,7 +24,7 @@ consts
   take, drop  :: [nat, 'a list] => 'a list
   takeWhile,
   dropWhile   :: ('a => bool) => 'a list => 'a list
-  tl,ttl      :: 'a list => 'a list
+  tl, butlast :: 'a list => 'a list
   rev         :: 'a list => 'a list
   replicate   :: nat => 'a => 'a list
 
@@ -62,12 +62,14 @@ primrec hd list
   "hd([]) = arbitrary"
   "hd(x#xs) = x"
 primrec tl list
-  "tl([]) = arbitrary"
+  "tl([]) = []"
   "tl(x#xs) = xs"
-primrec ttl list
-  (* a "total" version of tl: *)
-  "ttl([]) = []"
-  "ttl(x#xs) = xs"
+primrec last list
+  "last [] = arbitrary"
+  "last(x#xs) = (if xs=[] then x else last xs)"
+primrec butlast list
+  "butlast [] = []"
+  "butlast(x#xs) = (if xs=[] then [] else x#butlast xs)"
 primrec "op mem" list
   "x mem [] = False"
   "x mem (y#ys) = (if y=x then True else x mem ys)"

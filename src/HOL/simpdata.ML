@@ -80,9 +80,14 @@ local
 
 in
 
-  fun mk_meta_eq r = case concl_of r of
+  fun mk_meta_eq r = r RS eq_reflection;
+
+  fun mk_meta_eq_simp r = case concl_of r of
           Const("==",_)$_$_ => r
-      |   _$(Const("op =",_)$_$_) => r RS eq_reflection
+      |   _$(Const("op =",_)$lhs$rhs) =>
+             (case fst(Logic.loops (#sign(rep_thm r)) (prems_of r) lhs rhs) of
+                None => mk_meta_eq r
+              | Some _ => r RS P_imp_P_eq_True)
       |   _$(Const("Not",_)$_) => r RS not_P_imp_P_eq_False
       |   _ => r RS P_imp_P_eq_True;
   (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
@@ -114,7 +119,7 @@ fun ss delcongs congs = ss deleqcongs (map standard (congs RL [eq_reflection]));
 fun Addcongs congs = (simpset := !simpset addcongs congs);
 fun Delcongs congs = (simpset := !simpset delcongs congs);
 
-fun mksimps pairs = map mk_meta_eq o atomize pairs o gen_all;
+fun mksimps pairs = map mk_meta_eq_simp o atomize pairs o gen_all;
 
 val imp_cong = impI RSN
     (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"

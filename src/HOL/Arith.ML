@@ -38,6 +38,12 @@ goalw Arith.thy [pred_def] "m<=n --> pred(m) <= pred(n)";
 by(simp_tac (!simpset setloop (split_tac[expand_nat_case])) 1);
 qed_spec_mp "pred_le_mono";
 
+goal Arith.thy "!!n. n ~= 0 ==> pred n < n";
+by(exhaust_tac "n" 1);
+by(ALLGOALS Asm_full_simp_tac);
+qed "pred_less";
+Addsimps [pred_less];
+
 (** Difference **)
 
 qed_goalw "diff_0_eq_0" Arith.thy [pred_def]
