@@ -16,6 +16,10 @@ by Auto_tac;
 qed "lift_set_iff";
 AddIffs [lift_set_iff];
 
+Goalw [lift_set_def] "lift_set i (A Int B) = lift_set i A Int lift_set i B";
+by Auto_tac;
+qed "lift_set_Int";
+
 Goalw [lift_act_def] "lift_act i Id = Id";
 by Auto_tac;
 qed "lift_act_Id";
@@ -29,6 +33,47 @@ Addsimps [Init_lift_prog];
 Goalw [lift_prog_def] "Acts (lift_prog i F) = lift_act i `` Acts F";
 by (auto_tac (claset() addIs [Id_in_Acts RSN (2,image_eqI)], simpset()));
 qed "Acts_lift_prog";
+
+
+(** Injectivity of lift_set, lift_act, lift_prog **)
+
+Goalw [inj_on_def] "inj (lift_set i)";
+by (simp_tac (simpset() addsimps [lift_set_def]) 1);
+by (fast_tac (claset() addEs [equalityE]) 1);
+qed "inj_lift_set";
+
+Goalw [lift_act_def] "lift_act i x <= lift_act i y ==> x <= y";
+by Auto_tac;
+by (dres_inst_tac [("c", "((%s. a), (%s. a)(i:=b))")] subsetD 1);
+by Auto_tac;
+by (dres_inst_tac [("x", "i")] fun_cong 1);
+by Auto_tac;
+val lemma = result();
+
+Goalw [inj_on_def] "inj (lift_act i)";
+by (blast_tac (claset() addEs [equalityE]
+	 	        addDs [lemma]) 1);
+qed "inj_lift_act";
+
+Goal "insert Id (lift_act i `` Acts F) = (lift_act i `` Acts F)";
+by (rtac (image_eqI RS insert_absorb) 1);
+by (rtac Id_in_Acts 2);
+by (rtac (lift_act_Id RS sym) 1);
+qed "insert_Id_lift_act_eq";
+
+Goalw [inj_on_def] "inj (lift_prog i)";
+by (simp_tac (simpset() addsimps [lift_prog_def]) 1);
+by Auto_tac;
+by (etac program_equalityE 1);
+by (full_simp_tac
+    (simpset() addsimps [insert_Id_lift_act_eq, inj_lift_set RS inj_eq,
+			 inj_lift_act RS inj_image_eq_iff]) 1);
+by (blast_tac (claset() addSIs [program_equalityI]) 1);
+qed "inj_lift_prog";
+
+
+
+(** PPROD **)
 
 Goalw [PPROD_def] "Init (PPROD I F) = (INT i:I. lift_set i (Init (F i)))";
 by Auto_tac;
@@ -165,7 +210,44 @@ qed "PFUN_invariant";
 
 (*** Substitution Axiom versions: Co, Stable ***)
 
-(** Reachability **)
+(*** Reachability ***)
+
+(** for lift_prog **)
+
+Goal "s : reachable F ==> f(i:=s) : reachable (lift_prog i F)";
+by (etac reachable.induct 1);
+by (force_tac (claset() addIs [reachable.Acts, ext], 
+	       simpset() addsimps [Acts_lift_prog]) 2);
+by (force_tac (claset() addIs [reachable.Init], simpset()) 1);
+qed "reachable_lift_progI";
+
+Goal "f : reachable (lift_prog i F) ==> f i : reachable F";
+by (etac reachable.induct 1);
+by (auto_tac (claset(), simpset() addsimps [Acts_lift_prog]));
+by (ALLGOALS (blast_tac (claset() addIs reachable.intrs)));
+qed "reachable_lift_progD";
+
+Goal "reachable (lift_prog i F) = lift_set i (reachable F)";
+auto();
+be reachable_lift_progD 1;
+ren "f" 1;
+by (dres_inst_tac [("f","f"),("i","i")] reachable_lift_progI 1);
+auto();
+qed "reachable_lift_prog";
+
+Goal "(lift_prog i F : (lift_set i A) Co (lift_set i B))  =  \
+\     (F : A Co B)";
+by (simp_tac (simpset() addsimps [Constrains_def, reachable_lift_prog,
+				  lift_set_Int RS sym,
+				  lift_prog_constrains_eq]) 1);
+qed "lift_prog_Constrains_eq";
+
+Goal "(lift_prog i F : Stable (lift_set i A)) = (F : Stable A)";
+by (simp_tac (simpset() addsimps [Stable_def, lift_prog_Constrains_eq]) 1);
+qed "lift_prog_Stable_eq";
+
+
+(** Reachability for PPROD **)
 
 Goal "[| f : reachable (PPROD I F);  i : I |] ==> f i : reachable (F i)";
 by (etac reachable.induct 1);
@@ -178,6 +260,7 @@ Goal "reachable (PPROD I F) <= {f. ALL i:I. f i : reachable (F i)}";
 by (force_tac (claset() addSDs [reachable_PPROD], simpset()) 1);
 qed "reachable_PPROD_subset1";
 
+(*simplify using reachable_lift_prog??*)
 Goal "[| i ~: I;  A : reachable (F i) |]     \
 \  ==> ALL f. f : reachable (PPROD I F)      \
 \             --> f(i:=A) : reachable (lift_prog i (F i) Join PPROD I F)";
@@ -185,8 +268,7 @@ by (etac reachable.induct 1);
 by (ALLGOALS Clarify_tac);
 by (etac reachable.induct 1);
 (*Init, Init case*)
-by (force_tac (claset() addIs reachable.intrs,
-	       simpset() addsimps [Acts_lift_prog]) 1);
+by (force_tac (claset() addIs reachable.intrs, simpset()) 1);
 (*Init of F, action of PPROD F case*)
 by (rtac reachable.Acts 1);
 by (force_tac (claset(), simpset() addsimps [Acts_Join]) 1);
@@ -331,13 +413,12 @@ by (fast_tac (claset() addEs [equalityE]) 1);
 (*Now for the Actions*)
 by (dres_inst_tac [("f", "op `` (drop_act i)")] arg_cong 1);
 by (asm_full_simp_tac 
-    (simpset() addsimps [insert_absorb, Acts_Join,
-			 image_Un, image_compose RS sym, o_def]) 1);
+    (simpset() addsimps [Acts_Join, image_Un, image_compose RS sym, o_def]) 1);
 qed "lift_prog_Join_eq_lift_prog_D";
 
 
-Goal "F : X guarantees Y \
-\     ==> lift_prog i F : (lift_prog i `` X) guarantees (lift_prog i `` Y)";
+Goal "F : X guar Y \
+\     ==> lift_prog i F : (lift_prog i `` X) guar (lift_prog i `` Y)";
 by (rtac guaranteesI 1);
 by Auto_tac;
 by (blast_tac (claset() addDs [lift_prog_Join_eq_lift_prog_D, guaranteesD]) 1);
