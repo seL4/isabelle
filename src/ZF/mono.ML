@@ -161,15 +161,15 @@ by (Fast_tac 1);
 qed "in_mono";
 
 goal IFOL.thy "!!P1 P2 Q1 Q2. [| P1-->Q1; P2-->Q2 |] ==> (P1&P2) --> (Q1&Q2)";
-by (Int.fast_tac 1);
+by (IntPr.fast_tac 1);
 qed "conj_mono";
 
 goal IFOL.thy "!!P1 P2 Q1 Q2. [| P1-->Q1; P2-->Q2 |] ==> (P1|P2) --> (Q1|Q2)";
-by (Int.fast_tac 1);
+by (IntPr.fast_tac 1);
 qed "disj_mono";
 
 goal IFOL.thy "!!P1 P2 Q1 Q2.[| Q1-->P1; P2-->Q2 |] ==> (P1-->P2)-->(Q1-->Q2)";
-by (Int.fast_tac 1);
+by (IntPr.fast_tac 1);
 qed "imp_mono";
 
 goal IFOL.thy "P-->P";
