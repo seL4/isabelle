@@ -339,7 +339,7 @@ fun mk_functional thy clauses =
              of [] => ()
           | L => mk_functional_err
  ("The following clauses are redundant (covered by preceding clauses): " ^
-                   commas (map Int.toString L))
+                   commas (map Int.toString L) ^ "\n(counting from zero)")
  in {functional = Abs(Sign.base_name fname, ftype,
 		      abstract_over (atom, 
 				     absfree(aname,atype, case_tm))),
