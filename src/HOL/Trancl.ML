@@ -8,76 +8,6 @@ For trancl.thy.  Theorems about the transitive closure of a relation
 
 open Trancl;
 
-(** Natural deduction for trans(r) **)
-
-val prems = goalw Trancl.thy [trans_def]
-    "(!! x y z. [| (x,y):r;  (y,z):r |] ==> (x,z):r) ==> trans(r)";
-by (REPEAT (ares_tac (prems@[allI,impI]) 1));
-qed "transI";
-
-val major::prems = goalw Trancl.thy [trans_def]
-    "[| trans(r);  (a,b):r;  (b,c):r |] ==> (a,c):r";
-by (cut_facts_tac [major] 1);
-by (fast_tac (HOL_cs addIs prems) 1);
-qed "transD";
-
-(** Identity relation **)
-
-goalw Trancl.thy [id_def] "(a,a) : id";  
-by (rtac CollectI 1);
-by (rtac exI 1);
-by (rtac refl 1);
-qed "idI";
-
-val major::prems = goalw Trancl.thy [id_def]
-    "[| p: id;  !!x.[| p = (x,x) |] ==> P  \
-\    |] ==>  P";  
-by (rtac (major RS CollectE) 1);
-by (etac exE 1);
-by (eresolve_tac prems 1);
-qed "idE";
-
-goalw Trancl.thy [id_def] "(a,b):id = (a=b)";
-by(fast_tac prod_cs 1);
-qed "pair_in_id_conv";
-
-(** Composition of two relations **)
-
-val prems = goalw Trancl.thy [comp_def]
-    "[| (a,b):s; (b,c):r |] ==> (a,c) : r O s";
-by (fast_tac (set_cs addIs prems) 1);
-qed "compI";
-
-(*proof requires higher-level assumptions or a delaying of hyp_subst_tac*)
-val prems = goalw Trancl.thy [comp_def]
-    "[| xz : r O s;  \
-\       !!x y z. [| xz = (x,z);  (x,y):s;  (y,z):r |] ==> P \
-\    |] ==> P";
-by (cut_facts_tac prems 1);
-by (REPEAT (eresolve_tac [CollectE, exE, conjE] 1 ORELSE ares_tac prems 1));
-qed "compE";
-
-val prems = goal Trancl.thy
-    "[| (a,c) : r O s;  \
-\       !!y. [| (a,y):s;  (y,c):r |] ==> P \
-\    |] ==> P";
-by (rtac compE 1);
-by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [Pair_inject,ssubst] 1));
-qed "compEpair";
-
-val comp_cs = prod_cs addIs [compI, idI] addSEs [compE, idE];
-
-goal Trancl.thy "!!r s. [| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
-by (fast_tac comp_cs 1);
-qed "comp_mono";
-
-goal Trancl.thy
-    "!!r s. [| s <= Sigma A (%x.B);  r <= Sigma B (%x.C) |] ==> \
-\           (r O s) <= Sigma A (%x.C)";
-by (fast_tac comp_cs 1);
-qed "comp_subset_Sigma";
-
-
 (** The relation rtrancl **)
 
 goal Trancl.thy "mono(%s. id Un (r O s))";
@@ -90,14 +20,14 @@ val rtrancl_unfold = rtrancl_fun_mono RS (rtrancl_def RS def_lfp_Tarski);
 (*Reflexivity of rtrancl*)
 goal Trancl.thy "(a,a) : r^*";
 by (stac rtrancl_unfold 1);
-by (fast_tac comp_cs 1);
+by (fast_tac rel_cs 1);
 qed "rtrancl_refl";
 
 (*Closure under composition with r*)
 val prems = goal Trancl.thy
     "[| (a,b) : r^*;  (b,c) : r |] ==> (a,c) : r^*";
 by (stac rtrancl_unfold 1);
-by (fast_tac (comp_cs addIs prems) 1);
+by (fast_tac (rel_cs addIs prems) 1);
 qed "rtrancl_into_rtrancl";
 
 (*rtrancl of r contains r*)
@@ -119,7 +49,7 @@ val major::prems = goal Trancl.thy
 \     !!x y z.[| P((x,y)); (x,y): r^*; (y,z): r |]  ==>  P((x,z)) |] \
 \  ==>  P((a,b))";
 by (rtac ([rtrancl_def, rtrancl_fun_mono, major] MRS def_induct) 1);
-by (fast_tac (comp_cs addIs prems) 1);
+by (fast_tac (rel_cs addIs prems) 1);
 qed "rtrancl_full_induct";
 
 (*nice induction rule*)
@@ -134,8 +64,8 @@ by (subgoal_tac "! y. (a::'a,b) = (a,y) --> P(y)" 1);
 by (fast_tac HOL_cs 1);
 (*now do the induction*)
 by (resolve_tac [major RS rtrancl_full_induct] 1);
-by (fast_tac (comp_cs addIs prems) 1);
-by (fast_tac (comp_cs addIs prems) 1);
+by (fast_tac (rel_cs addIs prems) 1);
+by (fast_tac (rel_cs addIs prems) 1);
 qed "rtrancl_induct";
 
 (*transitivity of transitive closure!! -- by induction.*)
@@ -199,8 +129,8 @@ by (subgoal_tac "(a::'a,b) : r | (? y. (a,y) : r^+  &  (y,b) : r)" 1);
 by (REPEAT (eresolve_tac ([asm_rl,disjE,exE,conjE]@prems) 1));
 by (rtac (rewrite_rule [trancl_def] major RS compEpair) 1);
 by (etac rtranclE 1);
-by (fast_tac comp_cs 1);
-by (fast_tac (comp_cs addSIs [rtrancl_into_trancl1]) 1);
+by (fast_tac rel_cs 1);
+by (fast_tac (rel_cs addSIs [rtrancl_into_trancl1]) 1);
 qed "tranclE";
 
 (*Transitivity of r^+.
@@ -237,12 +167,10 @@ val major::prems = goal Trancl.thy
 by (cut_facts_tac prems 1);
 by (rtac (major RS rtrancl_induct) 1);
 by (rtac (refl RS disjI1) 1);
-by (fast_tac (comp_cs addSEs [SigmaE2]) 1);
+by (fast_tac (rel_cs addSEs [SigmaE2]) 1);
 qed "trancl_subset_Sigma_lemma";
 
 goalw Trancl.thy [trancl_def]
     "!!r. r <= Sigma A (%x.A) ==> trancl(r) <= Sigma A (%x.A)";
-by (fast_tac (comp_cs addSDs [trancl_subset_Sigma_lemma]) 1);
+by (fast_tac (rel_cs addSDs [trancl_subset_Sigma_lemma]) 1);
 qed "trancl_subset_Sigma";
-
-val prod_ss = prod_ss addsimps [pair_in_id_conv];
