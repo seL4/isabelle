@@ -252,6 +252,7 @@ fun add_datatype_axm new_type_names descr sorts types_syntax constr_syntax dt_in
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
+    val used = foldr add_typ_tfree_names (recTs, []);
     val newTs = take (length (hd descr), recTs);
 
     val _ = writeln ("Adding axioms for datatype(s) " ^ commas new_type_names);
@@ -265,8 +266,8 @@ fun add_datatype_axm new_type_names descr sorts types_syntax constr_syntax dt_in
         (cname, map (typ_of_dtyp descr' sorts) cargs ---> T, mx))
           (constrs ~~ constr_syntax')) ((hd descr) ~~ newTs ~~ constr_syntax);
 
-    val rec_result_Ts = map (fn (i, _) =>
-      TFree ("'t" ^ (string_of_int (i + 1)), HOLogic.termS)) descr';
+    val rec_result_Ts = map TFree (variantlist (replicate (length descr') "'t", used) ~~
+      replicate (length descr') HOLogic.termS);
 
     val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -287,7 +288,7 @@ fun add_datatype_axm new_type_names descr sorts types_syntax constr_syntax dt_in
       map (fn i => big_size_name ^ "_" ^ string_of_int i)
         (1 upto length (flat (tl descr)));
 
-    val freeT = TFree ("'t", HOLogic.termS);
+    val freeT = TFree (variant used "'t", HOLogic.termS);
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
         let val Ts = map (typ_of_dtyp descr' sorts) cargs
@@ -349,7 +350,6 @@ fun add_datatype_axm new_type_names descr sorts types_syntax constr_syntax dt_in
     (**** introduction of axioms ****)
 
     val (thy3, inject) = thy2 |>
-      Theory.add_path (space_implode "_" new_type_names) |>
       PureThy.add_axioms_i [(("induct", DatatypeProp.make_ind descr sorts), [])] |>
       add_and_get_axiomss "inject" new_type_names
         (DatatypeProp.make_injs descr sorts);

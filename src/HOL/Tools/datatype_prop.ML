@@ -166,9 +166,10 @@ fun make_primrecs new_type_names descr sorts thy =
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
+    val used = foldr add_typ_tfree_names (recTs, []);
 
-    val rec_result_Ts = map (fn (i, _) =>
-      TFree ("'t" ^ (string_of_int (i + 1)), HOLogic.termS)) descr';
+    val rec_result_Ts = map TFree (variantlist (replicate (length descr') "'t", used) ~~
+      replicate (length descr') HOLogic.termS);
 
     val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -218,8 +219,9 @@ fun make_case_combs new_type_names descr sorts thy fname =
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
+    val used = foldr add_typ_tfree_names (recTs, []);
     val newTs = take (length (hd descr), recTs);
-    val T' = TFree ("'t", HOLogic.termS);
+    val T' = TFree (variant used "'t", HOLogic.termS);
 
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -325,8 +327,9 @@ fun make_splits new_type_names descr sorts thy =
   let
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
+    val used' = foldr add_typ_tfree_names (recTs, []);
     val newTs = take (length (hd descr), recTs);
-    val T' = TFree ("'t", HOLogic.termS);
+    val T' = TFree (variant used' "'t", HOLogic.termS);
     val P = Free ("P", T' --> HOLogic.boolT);
 
     fun make_split (((_, (_, _, constrs)), T), comb_t) =

@@ -103,6 +103,7 @@ fun prove_primrec_thms new_type_names descr sorts
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
+    val used = foldr add_typ_tfree_names (recTs, []);
     val newTs = take (length (hd descr), recTs);
 
     val induct_Ps = map head_of (dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
@@ -113,8 +114,8 @@ fun prove_primrec_thms new_type_names descr sorts
         (map ((curry (op ^) (big_rec_name' ^ "_")) o string_of_int)
           (1 upto (length descr'))));
 
-    val rec_result_Ts = map (fn (i, _) =>
-      TFree ("'t" ^ (string_of_int (i + 1)), HOLogic.termS)) descr';
+    val rec_result_Ts = map TFree (variantlist (replicate (length descr') "'t", used) ~~
+      replicate (length descr') HOLogic.termS);
 
     val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -280,14 +281,15 @@ fun prove_case_thms new_type_names descr sorts reccomb_names primrec_thms thy =
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
+    val used = foldr add_typ_tfree_names (recTs, []);
     val newTs = take (length (hd descr), recTs);
+    val T' = TFree (variant used "'t", HOLogic.termS);
 
     val case_dummy_fns = map (fn (_, (_, _, constrs)) => map (fn (_, cargs) =>
       let
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
-        val free = TFree ("'t", HOLogic.termS);
-        val Ts' = replicate (length (filter is_rec_type cargs)) free
-      in Const ("arbitrary", Ts @ Ts' ---> free)
+        val Ts' = replicate (length (filter is_rec_type cargs)) T'
+      in Const ("arbitrary", Ts @ Ts' ---> T')
       end) constrs) descr';
 
     val case_names = map (fn s =>
@@ -298,8 +300,6 @@ fun prove_case_thms new_type_names descr sorts reccomb_names primrec_thms thy =
     val (case_defs, thy2) = foldl (fn ((defs, thy),
       ((((i, (_, _, constrs)), T), name), recname)) =>
         let
-          val T' = TFree ("'t", HOLogic.termS);
-
           val (fns1, fns2) = ListPair.unzip (map (fn ((_, cargs), j) =>
             let
               val Ts = map (typ_of_dtyp descr' sorts) cargs;
