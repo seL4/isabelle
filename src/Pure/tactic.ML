@@ -30,17 +30,20 @@ signature TACTIC =
   val compose_tac	: (bool * thm * int) -> int -> tactic 
   val cut_facts_tac	: thm list -> int -> tactic
   val cut_inst_tac	: (string*string)list -> thm -> int -> tactic   
+  val datac             : thm -> int -> int -> tactic
   val defer_tac 	: int -> tactic
   val distinct_subgoals_tac	: tactic
   val dmatch_tac	: thm list -> int -> tactic
   val dresolve_tac	: thm list -> int -> tactic
   val dres_inst_tac	: (string*string)list -> thm -> int -> tactic   
   val dtac		: thm -> int ->tactic
+  val eatac             : thm -> int -> int -> tactic
   val etac		: thm -> int ->tactic
   val eq_assume_tac	: int -> tactic   
   val ematch_tac	: thm list -> int -> tactic
   val eresolve_tac	: thm list -> int -> tactic
   val eres_inst_tac	: (string*string)list -> thm -> int -> tactic
+  val fatac             : thm -> int -> int -> tactic
   val filter_prems_tac  : (term -> bool) -> int -> tactic  
   val filter_thms	: (term*term->bool) -> int*term*thm list -> thm list
   val filt_resolve_tac	: thm list -> int -> int -> tactic
@@ -49,6 +52,7 @@ signature TACTIC =
   val fold_tac		: thm list -> tactic
   val forward_tac	: thm list -> int -> tactic   
   val forw_inst_tac	: (string*string)list -> thm -> int -> tactic
+  val ftac		: thm -> int ->tactic
   val insert_tagged_brl : ('a*(bool*thm)) * 
                           (('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net) ->
                           ('a*(bool*thm))Net.net * ('a*(bool*thm))Net.net
@@ -156,10 +160,14 @@ fun forward_tac rls = resolve_tac (map make_elim rls) THEN' assume_tac;
 fun dresolve_tac rls = eresolve_tac (map make_elim rls);
 
 (*Shorthand versions: for resolution with a single theorem*)
-fun rtac rl = resolve_tac [rl];
-fun etac rl = eresolve_tac [rl];
+val atac    =   assume_tac;
+fun rtac rl =  resolve_tac [rl];
 fun dtac rl = dresolve_tac [rl];
-val atac = assume_tac;
+fun etac rl = eresolve_tac [rl];
+fun ftac rl =  forward_tac [rl];
+fun datac thm j = EVERY' (dtac thm::replicate j atac);
+fun eatac thm j = EVERY' (etac thm::replicate j atac);
+fun fatac thm j = EVERY' (ftac thm::replicate j atac);
 
 (*Use an assumption or some rules ... A popular combination!*)
 fun ares_tac rules = assume_tac  ORELSE'  resolve_tac rules;

@@ -48,7 +48,7 @@ higher-order resolution may yield multiple resolvents.
   elimination rules.  It resolves with a rule, proves its first premise by
   assumption, and finally \emph{deletes} that assumption from any new
   subgoals.  (To rotate a rule's premises,
-  see \texttt{rotate_prems} in~\S\ref{MiscellaneousForwardRules}.)
+  see \texttt{rotate_prems} in~{\S}\ref{MiscellaneousForwardRules}.)
 
 \item[\ttindexbold{dresolve_tac} {\it thms} {\it i}] 
   \index{forward proof}\index{destruct-resolution}
@@ -170,12 +170,16 @@ result as a new assumption.
 \index{tactics!resolution}\index{tactics!assumption}
 \index{tactics!meta-rewriting}
 \begin{ttbox} 
-rtac     :      thm -> int -> tactic
-etac     :      thm -> int -> tactic
-dtac     :      thm -> int -> tactic
-atac     :             int -> tactic
-ares_tac : thm list -> int -> tactic
-rewtac   :      thm ->        tactic
+rtac     :      thm ->        int -> tactic
+etac     :      thm ->        int -> tactic
+dtac     :      thm ->        int -> tactic
+ftac     :      thm ->        int -> tactic
+atac     :                    int -> tactic
+eatac    :      thm -> int -> int -> tactic
+datac    :      thm -> int -> int -> tactic
+fatac    :      thm -> int -> int -> tactic
+ares_tac :      thm list   -> int -> tactic
+rewtac   :      thm ->               tactic
 \end{ttbox}
 These abbreviate common uses of tactics.
 \begin{ttdescription}
@@ -189,8 +193,24 @@ abbreviates \hbox{\tt eresolve_tac [{\it thm}] {\it i}}, doing elim-resolution.
 abbreviates \hbox{\tt dresolve_tac [{\it thm}] {\it i}}, doing
 destruct-resolution.
 
+\item[\ttindexbold{ftac} {\it thm} {\it i}] 
+abbreviates \hbox{\tt forward_tac [{\it thm}] {\it i}}, doing
+destruct-resolution without deleting the assumption.
+
 \item[\ttindexbold{atac} {\it i}] 
 abbreviates \hbox{\tt assume_tac {\it i}}, doing proof by assumption.
+
+\item[\ttindexbold{eatac} {\it thm} {\it j} {\it i}] 
+performs \hbox{\tt etac {\it thm}} and then {\it j} times \texttt{atac}, 
+solving additionally {\it j}~premises of the rule {\it thm} by assumption.
+
+\item[\ttindexbold{datac} {\it thm} {\it j} {\it i}] 
+performs \hbox{\tt dtac {\it thm}} and then {\it j} times \texttt{atac}, 
+solving additionally {\it j}~premises of the rule {\it thm} by assumption.
+
+\item[\ttindexbold{fatac} {\it thm} {\it j} {\it i}] 
+performs \hbox{\tt ftac {\it thm}} and then {\it j} times \texttt{atac}, 
+solving additionally {\it j}~premises of the rule {\it thm} by assumption.
 
 \item[\ttindexbold{ares_tac} {\it thms} {\it i}] 
 tries proof by assumption and resolution; it abbreviates
@@ -224,7 +244,7 @@ These tactics add assumptions to a subgoal.
 
 \item[\ttindexbold{cut_inst_tac} {\it insts} {\it thm} {\it i}]
   instantiates the {\it thm} with the instantiations {\it insts}, as
-  described in \S\ref{res_inst_tac}.  It adds the resulting theorem as a
+  described in {\S}\ref{res_inst_tac}.  It adds the resulting theorem as a
   new assumption to subgoal~$i$. 
 
 \item[\ttindexbold{subgoal_tac} {\it formula} {\it i}] 
@@ -419,7 +439,7 @@ flexflex_tac          : tactic
 
   Flex-flex constraints arise from difficult cases of higher-order
   unification.  To prevent this, use \ttindex{res_inst_tac} to instantiate
-  some variables in a rule~(\S\ref{res_inst_tac}).  Normally flex-flex
+  some variables in a rule~({\S}\ref{res_inst_tac}).  Normally flex-flex
   constraints can be ignored; they often disappear as unknowns get
   instantiated.
 \end{ttdescription}
@@ -473,7 +493,7 @@ indicated by its flag.  It affects subgoal~$i$ of the proof state.
 
 \item[\ttindexbold{bimatch_tac}] 
 is like {\tt biresolve_tac}, but performs matching: unknowns in the
-proof state are never updated (see~\S\ref{match_tac}).
+proof state are never updated (see~{\S}\ref{match_tac}).
 
 \item[\ttindexbold{subgoals_of_brl}({\it flag},{\it rule})] 
 returns the number of new subgoals that bi-res\-o\-lu\-tion would yield for the

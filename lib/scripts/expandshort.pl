@@ -33,6 +33,7 @@ sub expandshort {
     s/\bauto *\(\)/by Auto_tac/sg;
     s/dresolve_tac *\[(\w+)\] */dtac $1 /sg;
     s/eresolve_tac *\[(\w+)\] */etac $1 /sg;
+    s/forward_tac *\[(\w+)\] */ftac $1 /sg;
     s/resolve_tac *\[(\w+)\] */rtac $1 /sg;
     s/rewrite_goals_tac *\[(\w+)\]( *)/rewtac $1$2/sg;
     s/rtac *\((\w+)\s+RS\s+ssubst\)\s+/stac $1 /sg;
