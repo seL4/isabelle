@@ -55,8 +55,8 @@ sig
   val quiet: bool ref
   val exn_message: exn -> string
   val apply: bool -> transition -> state -> (state * (exn * string) option) option
+  val excursion_result: ((transition * (state -> 'a -> 'a)) list * 'a) -> 'a
   val excursion: transition list -> unit
-  val excursion_error: transition list -> unit
   val set_state: state -> unit
   val get_state: unit -> state
   val exn: unit -> (exn * string) option
@@ -369,6 +369,7 @@ fun exn_message TERMINATE = "Exit."
   | exn_message (ProofHistory.FAIL msg) = msg
   | exn_message (Attrib.ATTRIB_FAIL info) = fail_message "attribute" info
   | exn_message (Method.METHOD_FAIL info) = fail_message "method" info
+  | exn_message (Comment.OUTPUT_FAIL info) = fail_message "antiquotation" info
   | exn_message (Syntax.AST (msg, _)) = raised_msg "AST" msg
   | exn_message (TYPE (msg, _, _)) = raised_msg "TYPE" msg
   | exn_message (TERM (msg, _)) = raised_msg "TERM" msg
@@ -416,21 +417,24 @@ end;
 local
 
 fun excur [] x = x
-  | excur (tr :: trs) x =
-      (case apply false tr x of
-        Some (x', None) => excur trs x'
-      | Some (x', Some exn_info) => raise EXCURSION_FAIL exn_info
+  | excur ((tr, f) :: trs) (st, res) =
+      (case apply false tr st of
+        Some (st', None) =>
+          excur trs (st', f st' res handle exn =>
+            raise EXCURSION_FAIL (exn, "Presentation failed.\n" ^ at_command tr))
+      | Some (st', Some exn_info) => raise EXCURSION_FAIL exn_info
       | None => raise EXCURSION_FAIL (TERMINATE, at_command tr));
 
 in
 
-fun excursion trs =
-  (case excur trs (State None) of
-    State None => ()
-  | _ => raise ERROR_MESSAGE "Unfinished development at end of input");
+fun excursion_result (trs, res) =
+  (case excur trs (State None, res) of
+    (State None, res') => res'
+  | _ => raise ERROR_MESSAGE "Unfinished development at end of input")
+  handle exn => error (exn_message exn);
 
-fun excursion_error trs =
-  excursion trs handle exn => error (exn_message exn);
+fun excursion trs =
+  excursion_result (map (fn tr => (tr, fn _ => fn _ => ())) trs, ());
 
 end;
 
