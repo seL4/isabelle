@@ -26,6 +26,8 @@ FOL: Pure $(OUT)/FOL
 Pure:
 	@cd $(SRC)/Pure; $(ISATOOL) make Pure
 
+$(OUT)/Pure: Pure
+
 $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML	$(SRC)/Provers/make_elim.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/ind.ML $(SRC)/Provers/induct_method.ML \
