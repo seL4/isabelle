@@ -223,39 +223,37 @@ section with an extended example --- which rules are used implicitly where?
 Rule @{thm[source]ccontr} is @{thm ccontr[no_vars]}.
 *}
 
-lemma "\<not>(A \<and> B) \<longrightarrow> \<not>A \<or> \<not>B"
+lemma "\<not> (A \<and> B) \<longrightarrow> \<not> A \<or> \<not> B"
 proof
-  assume n: "\<not>(A \<and> B)"
-  show "\<not>A \<or> \<not>B"
+  assume n: "\<not> (A \<and> B)"
+  show "\<not> A \<or> \<not> B"
   proof (rule ccontr)
-    assume nn: "\<not>(\<not>A \<or> \<not>B)"
-    from n show False
+    assume nn: "\<not> (\<not> A \<or> \<not> B)"
+    have "\<not> A"
     proof
-      show "A \<and> B"
+      assume A
+      have "\<not> B"
       proof
-	show A
-	proof (rule ccontr)
-	  assume "\<not>A"
-	  have "\<not>A \<or> \<not>B" ..
-	  from nn this show False ..
-	qed
-      next
-	show B
-	proof (rule ccontr)
-	  assume "\<not>B"
-	  have "\<not>A \<or> \<not>B" ..
-	  from nn this show False ..
-	qed
+        assume B
+        have "A \<and> B" ..
+        with n show False ..
       qed
+      hence "\<not> A \<or> \<not> B" ..
+      with nn show False ..
     qed
+    hence "\<not> A \<or> \<not> B" ..
+    with nn show False ..
   qed
-qed;
+qed
 text{*\noindent Apart from demonstrating the strangeness of classical
-arguments by contradiction, this example also introduces a new language
-feature to deal with multiple subgoals: \isakeyword{next}.  When showing
+arguments by contradiction, this example also introduces three new constructs:
+\begin{itemize}
+\item \isakeyword{next} deals with multiple subgoals.  When showing
 @{term"A \<and> B"} we need to show both @{term A} and @{term B}.  Each subgoal
 is proved separately, in \emph{any} order. The individual proofs are
-separated by \isakeyword{next}.  *}
+separated by \isakeyword{next}.
+\end{itemize}
+*}
 
 subsection{*Avoiding duplication*}
 
