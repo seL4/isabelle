@@ -8,7 +8,6 @@ TODO:
   extend_tables (requires extend_gram) (roots!)
   replace add_synrules by extend_tables
   extend, merge: make roots handling more robust
-  extend: read_typ (incl check) as arg, remove def_sort
   extend: use extend_tables
 *)
 
@@ -22,14 +21,14 @@ sig
   include PRINTER0
   type syntax
   val type_syn: syntax
-  val extend: syntax * (indexname -> sort) -> string list * string list * sext
-    -> syntax
+  val extend: syntax -> (string -> typ) -> string list * string list * sext -> syntax
   val merge: syntax * syntax -> syntax
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
   val test_read: syntax -> string -> string -> unit
   val read: syntax -> typ -> string -> term
+  val read_typ: syntax -> (indexname -> sort) -> string -> typ
   val pretty_term: syntax -> term -> Pretty.T
   val pretty_typ: syntax -> typ -> Pretty.T
   val string_of_term: syntax -> term -> string
@@ -316,6 +315,12 @@ fun read (syn as Syntax (_, tabs)) ty str =
 
 
 
+(** read_typ **)
+
+fun read_typ syn def_sort str = typ_of_term def_sort (read syn typeT str);
+
+
+
 (** read_rule **)
 
 fun read_rule syn (xrule as ((_, lhs_src), (_, rhs_src))) =
@@ -390,10 +395,9 @@ val type_syn = make_syntax (ref (ExtGG (ref EmptyGG, (type_ext, empty_synrules))
 
 (** extend **)
 
-fun extend (old_syn as Syntax (ggr, _), def_sort) (roots, xconsts, sext) =
+fun extend (old_syn as Syntax (ggr, _)) read_ty (roots, xconsts, sext) =
   let
-    fun read_typ s = typ_of_term def_sort (read old_syn typeT s);
-    val ext = ext_of_sext roots xconsts read_typ sext;
+    val ext = ext_of_sext roots xconsts read_ty sext;
 
     val (tmp_syn as Syntax (_, tmp_tabs)) =
       make_syntax (ref (ExtGG (ggr, (ext, empty_synrules))));
