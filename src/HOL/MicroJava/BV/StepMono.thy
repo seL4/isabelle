@@ -174,7 +174,7 @@ proof -
                   "is_class G cname" and
               oT: "G\<turnstile> oT\<preceq> (Class cname)" and
               vT: "G\<turnstile> vT\<preceq> b"
-        by simp (elim exE conjE, rule that) 
+        by force
       moreover
       from s1 G
       obtain vT' oT' ST' LT'

@@ -427,17 +427,15 @@ proof (unfold wt_jvm_prog_def)
   assume wfprog: 
     "wf_prog (\<lambda>G C (sig,rT,mxs,mxl,b). wt_method G C (snd sig) rT mxs mxl b (Phi C sig)) G"
 
-  thus ?thesis 
+  thus ?thesis (* DvO: braucht ewig :-( *)
   proof (simp add: wtl_jvm_prog_def wf_prog_def wf_cdecl_def wf_mdecl_def, auto)
     fix a aa ab b ac ba ad ae af bb 
-    assume 1 : "\<forall>(C,sc,fs,ms)\<in>set G.
-             Ball (set fs) (wf_fdecl G) \<and>
-             unique fs \<and>
+    assume 1 : "\<forall>(C,D,fs,ms)\<in>set G.
+             Ball (set fs) (wf_fdecl G) \<and> unique fs \<and>
              (\<forall>(sig,rT,mb)\<in>set ms. wf_mhead G sig rT \<and> 
                (\<lambda>(mxs,mxl,b). wt_method G C (snd sig) rT mxs mxl b (Phi C sig)) mb) \<and>
              unique ms \<and>
-             (case sc of None => C = Object
-              | Some D =>
+             (C \<noteq> Object \<longrightarrow>
                   is_class G D \<and>
                   (D, C) \<notin> (subcls1 G)^* \<and>
                   (\<forall>(sig,rT,b)\<in>set ms. 
@@ -456,15 +454,18 @@ proof (unfold wt_jvm_prog_def)
       from m b
       show ?thesis
       proof (rule bspec [elim_format], clarsimp)
-        assume "wt_method G a ba ad ae af bb (Phi a (ac, ba))"         
+        assume "wt_method G a ba ad ae af bb (Phi a (ac, ba))"
         with wfprog uG ub b 1
         show ?thesis
           by - (rule wtl_method_complete [elim_format], assumption+, 
                 simp add: make_Cert_def unique_epsilon unique_epsilon')
       qed 
+oops
+(*
     qed
   qed
 qed
+*)
 
 lemmas [simp] = split_paired_Ex
 

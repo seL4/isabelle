@@ -68,7 +68,7 @@ next
     moreover    
     from R wf ty
     have "R \<noteq> ClassT Object \<Longrightarrow> ?thesis"
-      by (auto simp add: is_ty_def subcls1_def is_class_def class_def 
+      by (auto simp add: is_ty_def subcls1_def 
                elim: converse_rtranclE
                split: ref_ty.splits)    
     ultimately    

@@ -244,7 +244,7 @@ lemma correct_init_obj:
   G,h \<turnstile> (C, map_of (map (\<lambda>(f,fT).(f,default_val fT)) (fields(G,C)))) \<surd>"
 apply (unfold oconf_def lconf_def)
 apply (simp add: map_of_map)
-apply (force intro: defval_conf dest: map_of_SomeD is_type_fields)
+apply (force intro: defval_conf dest: map_of_SomeD fields_is_type)
 done
 
 

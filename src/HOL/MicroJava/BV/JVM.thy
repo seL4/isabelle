@@ -179,7 +179,7 @@ theorem exec_pres_type:
  apply (drule method_wf_mdecl, assumption)
  apply (simp add: wf_mdecl_def wf_mhead_def)
 
- apply (drule is_type_fields)
+ apply (drule fields_is_type)
  apply assumption
  apply (subgoal_tac "((vname, cname), vT) \<in> set (fields (S, cname))")
  apply assumption

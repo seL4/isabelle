@@ -38,17 +38,19 @@ lemma wt_jvm_progD:
 "wt_jvm_prog G phi ==> (\<exists>wt. wf_prog wt G)"
 by (unfold wt_jvm_prog_def, blast)
 
-lemma wt_jvm_prog_impl_wt_instr:
-"[| wt_jvm_prog G phi; method (G,C) sig = Some (C,rT,maxs,maxl,ins); pc < length ins |] 
+lemma wt_jvm_prog_impl_wt_instr: (* DvO: is_class G C eingefügt *)
+"[| wt_jvm_prog G phi; is_class G C;
+    method (G,C) sig = Some (C,rT,maxs,maxl,ins); pc < length ins |] 
  ==> wt_instr (ins!pc) G rT (phi C sig) maxs (length ins) pc";
 by (unfold wt_jvm_prog_def, drule method_wf_mdecl, 
-    simp, simp add: wf_mdecl_def wt_method_def)
+    simp, simp, simp add: wf_mdecl_def wt_method_def)
 
-lemma wt_jvm_prog_impl_wt_start:
-"[| wt_jvm_prog G phi; method (G,C) sig = Some (C,rT,maxs,maxl,ins) |] ==> 
+lemma wt_jvm_prog_impl_wt_start: (* DvO: is_class G C eingefügt *)
+"[| wt_jvm_prog G phi; is_class G C;
+    method (G,C) sig = Some (C,rT,maxs,maxl,ins) |] ==> 
  0 < (length ins) \<and> wt_start G C (snd sig) maxl (phi C sig)"
 by (unfold wt_jvm_prog_def, drule method_wf_mdecl, 
-    simp, simp add: wf_mdecl_def wt_method_def)
+    simp, simp, simp add: wf_mdecl_def wt_method_def)
 
 text {* for most instructions wt\_instr collapses: *}
 lemma  
