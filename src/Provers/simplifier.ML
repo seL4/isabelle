@@ -1,10 +1,18 @@
-infix addsimps addcongs
+(*  Title:      Provers/simplifier
+    ID:         $Id$
+    Author:     Tobias Nipkow
+    Copyright   1993  TU Munich
+
+Generic simplifier, suitable for most logics.
+ 
+*)
+infix addsimps addeqcongs
       setsolver setloop setmksimps setsubgoaler;
 
 signature SIMPLIFIER =
 sig
   type simpset
-  val addcongs: simpset * thm list -> simpset
+  val addeqcongs: simpset * thm list -> simpset
   val addsimps: simpset * thm list -> simpset
   val asm_full_simp_tac: simpset -> int -> tactic
   val asm_simp_tac: simpset -> int -> tactic
@@ -82,7 +90,7 @@ fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) addsimps rews =
      loop_tac=loop_tac}
   end;
 
-fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) addcongs newcongs =
+fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) addeqcongs newcongs =
   SS{mss= Thm.add_congs(mss,newcongs),
      simps= simps,
      congs= newcongs @ congs,
@@ -116,29 +124,26 @@ fun add_asms (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) prems =
         loop_tac=loop_tac}
   end;
 
+fun NEWSUBGOALS tac tacf =
+  STATE(fn state0 =>
+    tac THEN STATE(fn state1 => tacf(nprems_of state1 - nprems_of state0)));
+
 fun asm_full_simp_tac(SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) =
   let fun solve_all_tac mss =
         let val ss = SS{mss=mss,simps=simps,congs=congs,
                         subgoal_tac=subgoal_tac,
                         finish_tac=finish_tac, loop_tac=loop_tac}
-            fun solve1 thm = tapply(
-                  STATE(fn state => let val n = nprems_of state
-                    in if n=0 then all_tac
-                       else subgoal_tac ss 1 THEN
-                            COND (has_fewer_prems n) (Tactic solve1) no_tac
-                    end),
-                  thm)
-        in DEPTH_SOLVE(Tactic solve1) end
+            val solve1_tac =
+              NEWSUBGOALS (subgoal_tac ss 1)
+                          (fn n => if n<0 then all_tac else no_tac)
+        in DEPTH_SOLVE(solve1_tac) end
 
       fun simp_loop i thm =
         tapply(asm_rewrite_goal_tac solve_all_tac mss i THEN
-               (finish_tac (prems_of_mss mss) i  ORELSE  STATE(looper i)),
+               (finish_tac (prems_of_mss mss) i  ORELSE  looper i),
                thm)
-      and allsimp i m state =
-        let val n = nprems_of state
-        in EVERY(map (fn j => simp_loop_tac (i+j)) ((n-m) downto 0)) end
-      and looper i state =
-        TRY(loop_tac i THEN STATE(allsimp i (nprems_of state)))
+      and allsimp i n = EVERY(map (fn j => simp_loop_tac (i+j)) (n downto 0))
+      and looper i = TRY(NEWSUBGOALS (loop_tac i) (allsimp i))
       and simp_loop_tac i = Tactic(simp_loop i)
 
   in simp_loop_tac end;

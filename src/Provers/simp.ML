@@ -1,5 +1,4 @@
 (*  Title:      Provers/simp
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1993  University of Cambridge
 
