@@ -49,7 +49,6 @@ sig
   val SUBS : thm list -> thm -> thm
   val simpl_conv : simpset -> thm list -> cterm -> thm
 
-  val rbeta : thm -> thm
 (* For debugging my isabelle solver in the conditional rewriter *)
   val term_ref : term list ref
   val thm_ref : thm list ref
