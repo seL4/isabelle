@@ -15,6 +15,7 @@ end;
 structure Session: SESSION =
 struct
 
+
 (* session state *)
 
 val pure = "Pure";
@@ -26,7 +27,7 @@ val session_finished = ref false;
 fun path () = ! session_path;
 
 fun add_path reset s =
-  (session := ! session @ [s]; session_path := (if reset then [] else ! session));
+  (session := ! session @ [s]; session_path := ((if reset then [] else ! session_path) @ [s]));
 
 
 (* diagnostics *)
@@ -47,7 +48,10 @@ fun init reset parent name =
 
 (* finish *)
 
-fun finish () = (ThyInfo.finalize_all (); session_finished := true);
+fun finish () =
+  (ThyInfo.finalize_all ();
+    Present.finish ();
+    session_finished := true);
 
 
 (* use_dir *)
@@ -56,7 +60,7 @@ val root_file = ThyLoad.ml_path "ROOT";
 
 fun use_dir reset info parent name =
   (init reset parent name;
-    Present.init info (! session) (path ()) parent name;
+    Present.init info (str_of (! session)) (path ()) parent name;
     Symbol.use root_file;
     finish ())
   handle _ => exit 1;
