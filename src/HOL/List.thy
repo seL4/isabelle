@@ -488,8 +488,8 @@ lemma ex_map_conv:
 by(induct ys, auto)
 
 lemma map_injective:
- "!!xs. map f xs = map f ys ==> (\<forall>x y. f x = f y --> x = y) ==> xs = ys"
-by (induct ys) auto
+ "!!xs. map f xs = map f ys ==> inj f ==> xs = ys"
+by (induct ys) (auto dest!:injD)
 
 lemma inj_mapI: "inj f ==> inj (map f)"
 by (rules dest: map_injective injD intro: inj_onI)
