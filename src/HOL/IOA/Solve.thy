@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/meta_theory/Solve.thy
+(*  Title:      HOL/IOA/Solve.thy
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
     Copyright   1994  TU Muenchen

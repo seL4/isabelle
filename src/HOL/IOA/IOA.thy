@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/meta_theory/IOA.thy
+(*  Title:      HOL/IOA/IOA.thy
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
     Copyright   1994  TU Muenchen

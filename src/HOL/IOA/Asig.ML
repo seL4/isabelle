@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/meta_theory/Asig.ML
+(*  Title:      HOL/IOA/Asig.ML
     ID:         $Id$
     Author:     Tobias Nipkow & Konrad Slind
     Copyright   1994  TU Muenchen
