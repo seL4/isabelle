@@ -209,7 +209,7 @@ fun extend_syntax (mode, inout) (Syntax tabs) syn_ext =
       logtypes = extend_list logtypes1 logtypes2,
       gram = if inout then Parser.extend_gram gram xprods else gram,
       consts = consts2 @ consts1,
-      prmodes = (mode ins prmodes2) union_string prmodes1,
+      prmodes = (mode ins_string prmodes2) union_string prmodes1,
       parse_ast_trtab =
         extend_trtab parse_ast_trtab parse_ast_translation "parse ast translation",
       parse_ruletab = extend_ruletab parse_ruletab parse_rules,

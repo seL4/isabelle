@@ -151,7 +151,7 @@ fun assoc_types xs thy = foldl (fn (thy, (s, syn)) =>
   end) (thy, xs);
 
 fun get_assoc_types thy = #types (CodegenData.get thy);
-         
+
 
 (**** retrieve definition of constant ****)
 
@@ -377,19 +377,17 @@ fun parse_mixfix rd s =
      (p, []) => p
    | _ => error ("Malformed annotation: " ^ quote s));
 
-structure P = OuterParse;
+structure P = OuterParse and K = OuterSyntax.Keyword;
 
 val assoc_typeP =
   OuterSyntax.command "types_code"
-  "associate types with target language types"
-  OuterSyntax.Keyword.thy_decl
+  "associate types with target language types" K.thy_decl
     (Scan.repeat1 (P.xname --| P.$$$ "(" -- P.string --| P.$$$ ")") >>
      (Toplevel.theory o assoc_types));
 
 val assoc_constP =
   OuterSyntax.command "consts_code"
-  "associate constants with target language code"
-  OuterSyntax.Keyword.thy_decl
+  "associate constants with target language code" K.thy_decl
     (Scan.repeat1
        (P.xname -- (Scan.option (P.$$$ "::" |-- P.string)) --|
         P.$$$ "(" -- P.string --| P.$$$ ")") >>
@@ -399,10 +397,9 @@ val assoc_constP =
            xs) thy)));
 
 val generate_codeP =
-  OuterSyntax.command "generate_code" "generates code for terms"
-  OuterSyntax.Keyword.thy_decl
+  OuterSyntax.command "generate_code" "generates code for terms" K.thy_decl
     (Scan.option (P.$$$ "(" |-- P.string --| P.$$$ ")") --
-     Scan.repeat1 (P.short_ident --| P.$$$ "=" -- P.string) >>
+     Scan.repeat1 (P.name --| P.$$$ "=" -- P.string) >>
      (fn (opt_fname, xs) => Toplevel.theory (fn thy =>
         ((case opt_fname of
             None => use_text Context.ml_output false
