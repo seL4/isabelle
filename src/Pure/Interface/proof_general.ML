@@ -136,7 +136,7 @@ val update_thy_only = ThyInfo.update_thy_only;
 fun which_context () =
   (case Context.get_context () of
     Some thy => "  Using current (dynamic!) one: " ^
-      (case try PureThy.get_name thy of Some name => quote name | None => "<unnamed>") ^ "."
+      (case try PureThy.get_name thy of Some name => quote name | None => "<unnamed>")
   | None => "");
 
 fun try_update_thy_only file =
