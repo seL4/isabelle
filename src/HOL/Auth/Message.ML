@@ -414,9 +414,9 @@ qed "analz_insert_Decrypt";
   Effective, but can cause subgoals to blow up!
   Use with expand_if;  apparently split_tac does not cope with patterns
   such as "analz (insert (Crypt X K) H)" *)
-goal thy "analz (insert (Crypt X K) H) = \
-\         (if (Key (invKey K)  : analz H) then    \
-\               insert (Crypt X K) (analz (insert X H)) \
+goal thy "analz (insert (Crypt X K) H) =                \
+\         (if (Key (invKey K) : analz H)                \
+\          then insert (Crypt X K) (analz (insert X H)) \
 \          else insert (Crypt X K) (analz H))";
 by (case_tac "Key (invKey K)  : analz H " 1);
 by (ALLGOALS (asm_simp_tac (!simpset addsimps [analz_insert_Crypt, 
@@ -697,6 +697,11 @@ by (Fast_tac 1);
 qed "MPair_synth_analz";
 
 AddIffs [MPair_synth_analz];
+
+goal thy "!!K. [| Key K : analz H;  Key (invKey K) : analz H |] \
+\              ==> (Crypt X K : synth (analz H)) = (X : synth (analz H))";
+by (Fast_tac 1);
+qed "Crypt_synth_analz";
 
 
 (*We do NOT want Crypt... messages broken up in protocols!!*)
