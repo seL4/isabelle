@@ -42,7 +42,7 @@ of
 write
 \begin{isabelle}%
 \ \ \ \ \ case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isadigit{1}}\isanewline
-\ \ \ \ \ {\isacharbar}\ x\ {\isacharhash}\ ys\ {\isasymRightarrow}\ case\ ys\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ x\ {\isacharbar}\ y\ {\isacharhash}\ zs\ {\isasymRightarrow}\ y%
+\isaindent{\ \ \ \ \ }{\isacharbar}\ x\ {\isacharhash}\ ys\ {\isasymRightarrow}\ case\ ys\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ x\ {\isacharbar}\ y\ {\isacharhash}\ zs\ {\isasymRightarrow}\ y%
 \end{isabelle}
 
 Note that \isa{case}-expressions may need to be enclosed in parentheses to
@@ -71,7 +71,7 @@ results in the proof state
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymLongrightarrow}\ {\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
-\ \ \ \ \ \ \ xs\ {\isacharequal}\ a\ {\isacharhash}\ list\ {\isasymLongrightarrow}\ {\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs%
+\isaindent{\ {\isadigit{2}}{\isachardot}\ \ \ \ }xs\ {\isacharequal}\ a\ {\isacharhash}\ list\ {\isasymLongrightarrow}\ {\isacharparenleft}case\ xs\ of\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymRightarrow}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ xs{\isacharparenright}\ {\isacharequal}\ xs%
 \end{isabelle}
 which is solved automatically:%
 \end{isamarkuptxt}%

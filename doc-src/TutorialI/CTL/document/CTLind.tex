@@ -87,12 +87,12 @@ moment we assume this and proceed with the induction:%
 \noindent
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ {\isasymlbrakk}{\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A{\isacharsemicolon}\ x\ {\isasymin}\ Avoid\ s\ A{\isacharsemicolon}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ {\isasymforall}y{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ y\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A\ {\isasymlongrightarrow}\isanewline
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ y\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isasymrbrakk}\isanewline
-\ \ \ \ \ \ \ \ {\isasymLongrightarrow}\ x\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ \ \ \ }{\isasymforall}y{\isachardot}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ y\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A\ {\isasymlongrightarrow}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ \ \ \ {\isasymforall}y{\isachardot}\ }y\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}{\isasymrbrakk}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}x{\isachardot}\ }{\isasymLongrightarrow}\ x\ {\isasymin}\ lfp\ {\isacharparenleft}af\ A{\isacharparenright}\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymforall}p{\isasymin}Paths\ s{\isachardot}\ {\isasymexists}i{\isachardot}\ p\ i\ {\isasymin}\ A\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ wf\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}{\isachardot}\isanewline
-\ \ \ \ \ \ \ \ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ x\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ y\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A{\isacharbraceright}%
+\isaindent{\ {\isadigit{2}}{\isachardot}\ }wf\ {\isacharbraceleft}{\isacharparenleft}y{\isacharcomma}\ x{\isacharparenright}{\isachardot}\isanewline
+\isaindent{\ {\isadigit{2}}{\isachardot}\ wf\ \ }{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymin}\ M\ {\isasymand}\ x\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ y\ {\isasymin}\ Avoid\ s\ A\ {\isasymand}\ x\ {\isasymnotin}\ A{\isacharbraceright}%
 \end{isabelle}
 \REMARK{I put in this proof state but I wonder if readers will be able to
 follow this proof. You could prove that your relation is WF in a 

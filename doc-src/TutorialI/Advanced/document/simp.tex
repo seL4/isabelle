@@ -39,13 +39,13 @@ Here are some more examples.  The congruence rules for bounded
 quantifiers supply contextual information about the bound variable:
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}A\ {\isacharequal}\ B{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ B\ {\isasymLongrightarrow}\ P\ x\ {\isacharequal}\ Q\ x{\isasymrbrakk}\isanewline
-\ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymforall}x{\isasymin}A{\isachardot}\ P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}x{\isasymin}B{\isachardot}\ Q\ x{\isacharparenright}%
+\isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ {\isacharparenleft}{\isasymforall}x{\isasymin}A{\isachardot}\ P\ x{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}x{\isasymin}B{\isachardot}\ Q\ x{\isacharparenright}%
 \end{isabelle}
 The congruence rule for conditional expressions supply contextual
 information for simplifying the arms:
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}b\ {\isacharequal}\ c{\isacharsemicolon}\ c\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ u{\isacharsemicolon}\ {\isasymnot}\ c\ {\isasymLongrightarrow}\ y\ {\isacharequal}\ v{\isasymrbrakk}\isanewline
-\ \ \ \ \ {\isasymLongrightarrow}\ {\isacharparenleft}if\ b\ then\ x\ else\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ c\ then\ u\ else\ v{\isacharparenright}%
+\isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ {\isacharparenleft}if\ b\ then\ x\ else\ y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ c\ then\ u\ else\ v{\isacharparenright}%
 \end{isabelle}
 A congruence rule can also \emph{prevent} simplification of some arguments.
 Here is an alternative congruence rule for conditional expressions:

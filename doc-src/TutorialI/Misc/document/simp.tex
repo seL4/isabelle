@@ -255,7 +255,7 @@ This splitting idea generalizes from \isa{if} to \isaindex{case}:%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongrightarrow}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ zs{\isacharparenright}\ {\isasymand}\isanewline
-\ \ \ \ {\isacharparenleft}{\isasymforall}a\ list{\isachardot}\ xs\ {\isacharequal}\ a\ {\isacharhash}\ list\ {\isasymlongrightarrow}\ a\ {\isacharhash}\ list\ {\isacharat}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ zs{\isacharparenright}%
+\isaindent{\ {\isadigit{1}}{\isachardot}\ }{\isacharparenleft}{\isasymforall}a\ list{\isachardot}\ xs\ {\isacharequal}\ a\ {\isacharhash}\ list\ {\isasymlongrightarrow}\ a\ {\isacharhash}\ list\ {\isacharat}\ zs\ {\isacharequal}\ xs\ {\isacharat}\ zs{\isacharparenright}%
 \end{isabelle}
 In contrast to \isa{if}-expressions, the simplifier does not split
 \isa{case}-expressions by default because this can lead to nontermination

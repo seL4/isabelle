@@ -288,8 +288,8 @@ we find that this time \isa{auto} solves the base case, but the
 induction step merely simplifies to
 \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ {\isasymAnd}a\ list{\isachardot}\isanewline
-\ \ \ \ \ \ \ rev\ {\isacharparenleft}list\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ rev\ ys\ {\isacharat}\ rev\ list\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ \ \ {\isacharparenleft}rev\ ys\ {\isacharat}\ rev\ list{\isacharparenright}\ {\isacharat}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ ys\ {\isacharat}\ rev\ list\ {\isacharat}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}%
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }rev\ {\isacharparenleft}list\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ rev\ ys\ {\isacharat}\ rev\ list\ {\isasymLongrightarrow}\isanewline
+\isaindent{\ {\isadigit{1}}{\isachardot}\ \ \ \ }{\isacharparenleft}rev\ ys\ {\isacharat}\ rev\ list{\isacharparenright}\ {\isacharat}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ rev\ ys\ {\isacharat}\ rev\ list\ {\isacharat}\ a\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}%
 \end{isabelle}
 Now we need to remember that \isa{{\isacharat}} associates to the right, and that
 \isa{{\isacharhash}} and \isa{{\isacharat}} have the same priority (namely the \isa{{\isadigit{6}}{\isadigit{5}}}

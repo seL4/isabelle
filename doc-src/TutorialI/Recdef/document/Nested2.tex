@@ -24,7 +24,7 @@ induction schema for type \isa{term} and can use the simpler one arising from
 This leaves us with a trivial base case \isa{trev\ {\isacharparenleft}trev\ {\isacharparenleft}Var\ x{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ Var\ x} and the step case
 \begin{isabelle}%
 \ \ \ \ \ {\isasymforall}t{\isachardot}\ t\ {\isasymin}\ set\ ts\ {\isasymlongrightarrow}\ trev\ {\isacharparenleft}trev\ t{\isacharparenright}\ {\isacharequal}\ t\ {\isasymLongrightarrow}\isanewline
-\ \ \ \ \ trev\ {\isacharparenleft}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ App\ f\ ts%
+\isaindent{\ \ \ \ \ }trev\ {\isacharparenleft}trev\ {\isacharparenleft}App\ f\ ts{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ App\ f\ ts%
 \end{isabelle}
 both of which are solved by simplification:%
 \end{isamarkuptxt}%
@@ -62,7 +62,7 @@ like \isa{map}. For a start, if nothing were known about \isa{map},
 \isa{map{\isacharunderscore}cong}:
 \begin{isabelle}%
 \ \ \ \ \ {\isasymlbrakk}xs\ {\isacharequal}\ ys{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ set\ ys\ {\isasymLongrightarrow}\ f\ x\ {\isacharequal}\ g\ x{\isasymrbrakk}\isanewline
-\ \ \ \ \ {\isasymLongrightarrow}\ map\ f\ xs\ {\isacharequal}\ map\ g\ ys%
+\isaindent{\ \ \ \ \ }{\isasymLongrightarrow}\ map\ f\ xs\ {\isacharequal}\ map\ g\ ys%
 \end{isabelle}
 Its second premise expresses (indirectly) that the second argument of
 \isa{map} is only applied to elements of its third argument. Congruence
