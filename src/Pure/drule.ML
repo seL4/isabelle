@@ -381,7 +381,7 @@ val transitive_thm =
 
 (*In [A1,...,An]==>B, rewrite the selected A's only -- for rewrite_goals_tac*)
 fun goals_conv pred cv sign = 
-  let val triv = reflexive o Sign.cterm_of sign
+  let val triv = reflexive o Sign.fake_cterm_of sign
       fun gconv i t =
         let val (A,B) = Logic.dest_implies t
 	    val thA = if (pred i) then (cv sign A) else (triv A)
@@ -398,7 +398,7 @@ fun fconv_rule cv th =
 
 (*rewriting conversion*)
 fun rew_conv prover mss sign t =
-  rewrite_cterm mss prover (Sign.cterm_of sign t);
+  rewrite_cterm mss prover (Sign.fake_cterm_of sign t);
 
 (*Rewrite a theorem*)
 fun rewrite_rule thms = fconv_rule (rew_conv (K(K None)) (Thm.mss_of thms));

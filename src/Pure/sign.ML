@@ -52,6 +52,7 @@ sig
   val term_of: cterm -> term
   val typ_of: ctyp -> typ
   val pretty_term: sg -> term -> Syntax.Pretty.T
+val fake_cterm_of: sg -> term -> cterm
 end;
 
 functor SignFun(structure Type: TYPE and Syntax: SYNTAX) : SIGN =
@@ -293,6 +294,9 @@ fun cterm_of sign t =
   case  term_errors sign (t,[])  of
       [] => Cterm{sign=sign, t=t, T= type_of t, maxidx= maxidx_of_term t}
     | errs => raise TERM(cat_lines("Term not in signature"::errs), [t]);
+
+fun fake_cterm_of sign t =
+  Cterm{sign=sign, t=t, T= fastype_of t, maxidx= maxidx_of_term t}
 
 fun cfun f = fn Cterm{sign,t,...} => cterm_of sign (f t);
 
