@@ -47,7 +47,8 @@ constdefs
 
 consts
   Iter          :: [nat, 'a bexp, 'a com] => 'a com
-primrec Iter nat
+
+primrec
   "Iter 0 b c = (%s s'.~b(s) & (s=s'))"
   "Iter (Suc n) b c = (%s s'. b(s) & Seq c (Iter n b c) s s')"
 

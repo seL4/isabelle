@@ -32,7 +32,7 @@ val hlemma = result();
 Goal
   "!s t u c d. (c,s) -n-> (SKIP,t) --> (d,t) -*-> (SKIP,u) --> \
 \              (c;d, s) -*-> (SKIP, u)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (fast_tac (claset() addIs [rtrancl_into_rtrancl2])1);
 by (fast_tac  (claset() addIs [rtrancl_into_rtrancl2]addSDs [rel_pow_Suc_D2])1);
 qed_spec_mp "lemma1";

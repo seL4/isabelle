@@ -8,7 +8,7 @@ R^n = R O ... O R, the n-fold composition of R
 
 RelPow = Nat +
 
-primrec "op ^" nat
+primrec
   "R^0 = id"
   "R^(Suc n) = R O (R^n)"
 

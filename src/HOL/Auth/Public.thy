@@ -19,7 +19,7 @@ syntax
 translations  (*BEWARE! expressions like  (inj priK)  will NOT work!*)
   "priK x"  == "invKey(pubK x)"
 
-primrec initState agent
+primrec
         (*Agents know their private key and all public keys*)
   initState_Server  "initState Server     =    
  		         insert (Key (priK Server)) (Key `` range pubK)"

@@ -16,8 +16,9 @@ constdefs
   "gcd m n     == @x.(cd x m n) & (!y.(cd y m n) --> y<=x)"
 
 consts fac     :: nat => nat
-primrec fac nat
-"fac 0 = Suc 0"
-"fac(Suc n) = (Suc n)*fac(n)"
+
+primrec
+  "fac 0 = Suc 0"
+  "fac(Suc n) = (Suc n)*fac(n)"
 
 end

@@ -33,14 +33,14 @@ val evalb_simps = map (fn s => prove_goal Expr.thy s
 \   (? x. (b0,sigma) -b-> x & (? y. (b1,sigma) -b-> y & w = (x|y)))"];
 
 Goal "!n. ((a,s) -a-> n) = (A a s = n)";
-by (aexp.induct_tac "a" 1);
+by (induct_tac "a" 1);
 by (ALLGOALS 
     (fast_tac (claset() addSIs evala.intrs
 	                addSEs evala_elim_cases addss (simpset()))));
 qed_spec_mp "aexp_iff";
 
 Goal "!w. ((b,s) -b-> w) = (B b s = w)";
-by (bexp.induct_tac "b" 1);
+by (induct_tac "b" 1);
 by (ALLGOALS 
     (fast_tac (claset() 
 	       addss (simpset() addsimps (aexp_iff::evalb_simps)))));

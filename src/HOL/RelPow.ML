@@ -42,10 +42,9 @@ val [p1,p2,p3] = goal RelPow.thy
     "[| (x,z) : R^n;  [| n=0; x = z |] ==> P;        \
 \       !!y m. [| n = Suc m; (x,y) : R^m; (y,z) : R |] ==> P  \
 \    |] ==> P";
-by (res_inst_tac [("n","n")] natE 1);
 by (cut_facts_tac [p1] 1);
+by (exhaust_tac "n" 1);
 by (asm_full_simp_tac (simpset() addsimps [p2]) 1);
-by (cut_facts_tac [p1] 1);
 by (Asm_full_simp_tac 1);
 by (etac compEpair 1);
 by (REPEAT(ares_tac [p3] 1));
@@ -69,10 +68,9 @@ val [p1,p2,p3] = goal RelPow.thy
     "[| (x,z) : R^n;  [| n=0; x = z |] ==> P;        \
 \       !!y m. [| n = Suc m; (x,y) : R; (y,z) : R^m |] ==> P  \
 \    |] ==> P";
-by (res_inst_tac [("n","n")] natE 1);
 by (cut_facts_tac [p1] 1);
+by (exhaust_tac "n" 1);
 by (asm_full_simp_tac (simpset() addsimps [p2]) 1);
-by (cut_facts_tac [p1] 1);
 by (Asm_full_simp_tac 1);
 by (etac compEpair 1);
 by (dtac (conjI RS rel_pow_Suc_D2') 1);

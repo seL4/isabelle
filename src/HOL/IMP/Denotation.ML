@@ -42,7 +42,7 @@ qed "com1";
 (* Denotational Semantics implies Operational Semantics *)
 
 Goal "!s t. (s,t):C(c) --> <c,s> -c-> t";
-by (com.induct_tac "c" 1);
+by (induct_tac "c" 1);
 
 by (ALLGOALS Full_simp_tac);
 by (ALLGOALS (TRY o Fast_tac));

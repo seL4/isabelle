@@ -140,6 +140,11 @@ by (REPEAT (eresolve_tac [disjE,exE] 1
                     rtac (Rep_Sum_inverse RS sym)]));
 qed "sumE";
 
+val prems = goal thy "[| !!x. P (Inl x); !!x. P (Inr x) |] ==> P x";
+by (res_inst_tac [("s","x")] sumE 1);
+by (ALLGOALS (hyp_subst_tac THEN' (resolve_tac prems)));
+qed "sum_induct";
+
 Goal "sum_case (%x::'a. f(Inl x)) (%y::'b. f(Inr y)) s = f(s)";
 by (EVERY1 [res_inst_tac [("s","s")] sumE, 
             etac ssubst, rtac sum_case_Inl,

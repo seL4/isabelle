@@ -29,7 +29,7 @@ rules
   Spy_in_bad     "Spy: bad"
   Server_not_bad "Server ~: bad"
 
-primrec spies list
+primrec
            (*Spy reads all traffic whether addressed to him or not*)
   spies_Nil   "spies []       = initState Spy"
   spies_Cons  "spies (ev # evs) =
@@ -43,7 +43,7 @@ consts
     complement of the set of fresh items*)
   used :: event list => msg set
 
-primrec used list
+primrec
   used_Nil   "used []         = (UN B. parts (initState B))"
   used_Cons  "used (ev # evs) =
 	         (case ev of

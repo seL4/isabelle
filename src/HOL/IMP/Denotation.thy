@@ -18,7 +18,7 @@ constdefs
 consts
   C     :: com => com_den
 
-primrec C com
+primrec
   C_skip    "C(SKIP) = id"
   C_assign  "C(x := a) = {(s,t). t = s[x:=a(s)]}"
   C_comp    "C(c0 ; c1) = C(c1) O C(c0)"

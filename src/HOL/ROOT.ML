@@ -26,8 +26,6 @@ use "$ISABELLE_HOME/src/Provers/Arith/cancel_sums.ML";
 use "$ISABELLE_HOME/src/Provers/Arith/cancel_factor.ML";
 use "$ISABELLE_HOME/src/Provers/quantifier1.ML";
 
-use "thy_data.ML";
-
 use_thy "HOL";
 use "hologic.ML";
 use "cladata.ML";
@@ -42,12 +40,20 @@ use_thy "Gfp";
 use "Tools/record_package.ML";
 use_thy "Record";
 
-use "datatype.ML";
-use_thy "Arith";
-use "arith_data.ML";
+use_thy "NatDef";
 
 use "Tools/inductive_package.ML";
 use_thy "Inductive";
+
+use "Tools/datatype_aux.ML";
+use "Tools/datatype_prop.ML";
+use "Tools/datatype_rep_proofs.ML";
+use "Tools/datatype_abs_proofs.ML";
+use "Tools/datatype_package.ML";
+use "Tools/primrec_package.ML";
+
+use_thy "Arith";
+use "arith_data.ML";
 
 use_thy "RelPow";
 use_thy "Finite";

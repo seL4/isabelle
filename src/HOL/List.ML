@@ -208,17 +208,17 @@ qed "hd_append";
 
 Goal "xs ~= [] ==> hd(xs @ ys) = hd xs";
 by (asm_simp_tac (simpset() addsimps [hd_append]
-                           addsplits [split_list_case]) 1);
+                           addsplits [list.split]) 1);
 qed "hd_append2";
 Addsimps [hd_append2];
 
 Goal "tl(xs@ys) = (case xs of [] => tl(ys) | z#zs => zs@ys)";
-by (simp_tac (simpset() addsplits [split_list_case]) 1);
+by (simp_tac (simpset() addsplits [list.split]) 1);
 qed "tl_append";
 
 Goal "xs ~= [] ==> tl(xs @ ys) = (tl xs) @ ys";
 by (asm_simp_tac (simpset() addsimps [tl_append]
-                           addsplits [split_list_case]) 1);
+                           addsplits [list.split]) 1);
 qed "tl_append2";
 Addsimps [tl_append2];
 
@@ -482,7 +482,7 @@ section "nth";
 
 Goal
   "!xs. (xs@ys)!n = (if n < length xs then xs!n else ys!(n - length xs))";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (Asm_simp_tac 1);
  by (rtac allI 1);
  by (exhaust_tac "xs" 1);
@@ -495,7 +495,7 @@ by (induct_tac "xs" 1);
 by (Asm_full_simp_tac 1);
 (* case x#xl *)
 by (rtac allI 1);
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (Auto_tac);
 qed_spec_mp "nth_map";
 Addsimps [nth_map];
@@ -506,7 +506,7 @@ by (induct_tac "xs" 1);
 by (Simp_tac 1);
 (* case x#xl *)
 by (rtac allI 1);
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 by (Auto_tac);
 qed_spec_mp "list_all_nth";
 
@@ -516,7 +516,7 @@ by (induct_tac "xs" 1);
 by (Simp_tac 1);
 (* case x#xl *)
 by (rtac allI 1);
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
 (* case 0 *)
 by (Asm_full_simp_tac 1);
 (* case Suc x *)
@@ -531,7 +531,7 @@ section "list update";
 Goal "!i. length(xs[i:=x]) = length xs";
 by (induct_tac "xs" 1);
 by (Simp_tac 1);
-by (asm_full_simp_tac (simpset() addsplits [split_nat_case]) 1);
+by (asm_full_simp_tac (simpset() addsplits [nat.split]) 1);
 qed_spec_mp "length_list_update";
 Addsimps [length_list_update];
 
@@ -603,7 +603,7 @@ Delsimps [take_Cons,drop_Cons];
 Addsimps [take_0,take_Suc_Cons,drop_0,drop_Suc_Cons];
 
 Goal "!xs. length(take n xs) = min (length xs) n";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
@@ -611,7 +611,7 @@ qed_spec_mp "length_take";
 Addsimps [length_take];
 
 Goal "!xs. length(drop n xs) = (length xs - n)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
@@ -619,14 +619,14 @@ qed_spec_mp "length_drop";
 Addsimps [length_drop];
 
 Goal "!xs. length xs <= n --> take n xs = xs";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
 qed_spec_mp "take_all";
 
 Goal "!xs. length xs <= n --> drop n xs = []";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
@@ -634,7 +634,7 @@ qed_spec_mp "drop_all";
 
 Goal 
   "!xs. take n (xs @ ys) = (take n xs @ take (n - length xs) ys)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
@@ -642,7 +642,7 @@ qed_spec_mp "take_append";
 Addsimps [take_append];
 
 Goal "!xs. drop n (xs@ys) = drop n xs @ drop (n - length xs) ys"; 
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
@@ -650,37 +650,37 @@ qed_spec_mp "drop_append";
 Addsimps [drop_append];
 
 Goal "!xs n. take n (take m xs) = take (min n m) xs"; 
-by (nat_ind_tac "m" 1);
+by (induct_tac "m" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
-by (exhaust_tac "n" 1);
+by (exhaust_tac "na" 1);
  by (Auto_tac);
 qed_spec_mp "take_take";
 
 Goal "!xs. drop n (drop m xs) = drop (n + m) xs"; 
-by (nat_ind_tac "m" 1);
+by (induct_tac "m" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
 qed_spec_mp "drop_drop";
 
 Goal "!xs n. take n (drop m xs) = drop m (take (n + m) xs)"; 
-by (nat_ind_tac "m" 1);
+by (induct_tac "m" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
 qed_spec_mp "take_drop";
 
 Goal "!xs. take n (map f xs) = map f (take n xs)"; 
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
 qed_spec_mp "take_map"; 
 
 Goal "!xs. drop n (map f xs) = map f (drop n xs)"; 
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
@@ -697,7 +697,7 @@ qed_spec_mp "nth_take";
 Addsimps [nth_take];
 
 Goal  "!xs i. n + i <= length xs --> (drop n xs)!i = xs!(n+i)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  by (Auto_tac);
 by (exhaust_tac "xs" 1);
  by (Auto_tac);
@@ -792,18 +792,18 @@ local
 val list_eq_pattern =
   read_cterm (sign_of List.thy) ("(xs::'a list) = ys",HOLogic.boolT);
 
-fun last (cons as Const("List.op #",_) $ _ $ xs) =
-      (case xs of Const("List.[]",_) => cons | _ => last xs)
-  | last (Const("List.op @",_) $ _ $ ys) = last ys
+fun last (cons as Const("List.list.op #",_) $ _ $ xs) =
+      (case xs of Const("List.list.[]",_) => cons | _ => last xs)
+  | last (Const("List.list.op @",_) $ _ $ ys) = last ys
   | last t = t;
 
-fun list1 (Const("List.op #",_) $ _ $ Const("List.[]",_)) = true
+fun list1 (Const("List.list.op #",_) $ _ $ Const("List.list.[]",_)) = true
   | list1 _ = false;
 
-fun butlast ((cons as Const("List.op #",_) $ x) $ xs) =
-      (case xs of Const("List.[]",_) => xs | _ => cons $ butlast xs)
-  | butlast ((app as Const("List.op @",_) $ xs) $ ys) = app $ butlast ys
-  | butlast xs = Const("List.[]",fastype_of xs);
+fun butlast ((cons as Const("List.list.op #",_) $ x) $ xs) =
+      (case xs of Const("List.list.[]",_) => xs | _ => cons $ butlast xs)
+  | butlast ((app as Const("List.list.op @",_) $ xs) $ ys) = app $ butlast ys
+  | butlast xs = Const("List.list.[]",fastype_of xs);
 
 val rearr_tac =
   simp_tac (HOL_basic_ss addsimps [append_assoc,append_Nil,append_Cons]);
@@ -815,7 +815,7 @@ fun list_eq sg _ (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
       let val lhs1 = butlast lhs and rhs1 = butlast rhs
           val Type(_,listT::_) = eqT
           val appT = [listT,listT] ---> listT
-          val app = Const("List.op @",appT)
+          val app = Const("List.list.op @",appT)
           val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
           val ct = cterm_of sg (HOLogic.mk_Trueprop(HOLogic.mk_eq(F,F2)))
           val thm = prove_goalw_cterm [] ct (K [rearr_tac 1])

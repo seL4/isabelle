@@ -11,11 +11,11 @@ Power = Divides +
 consts
   binomial :: "[nat,nat] => nat"      ("'(_ choose _')" [50,50])
 
-primrec "op ^" nat
+primrec
   "p ^ 0 = 1"
   "p ^ (Suc n) = (p::nat) * (p ^ n)"
   
-primrec "binomial" nat
+primrec
   binomial_0   "(0     choose k) = (if k = 0 then 1 else 0)"
 
   binomial_Suc "(Suc n choose k) =

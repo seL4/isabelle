@@ -13,7 +13,7 @@ AddIs hoare.intrs;
 val lemma = prove_goal HOL.thy "!s. P s --> P s" (K[Fast_tac 1]);
 
 Goal "!Q. (!s. vc c Q s) --> |- {awp c Q} astrip c {Q}";
-by (acom.induct_tac "c" 1);
+by (induct_tac "c" 1);
     by (ALLGOALS Simp_tac);
     by (Fast_tac 1);
    by (Fast_tac 1);
@@ -30,7 +30,7 @@ by (resolve_tac hoare.intrs 1);
 qed "vc_sound";
 
 Goal "!P Q. (!s. P s --> Q s) --> (!s. awp c P s --> awp c Q s)";
-by (acom.induct_tac "c" 1);
+by (induct_tac "c" 1);
     by (ALLGOALS Asm_simp_tac);
 by (EVERY1[rtac allI, rtac allI, rtac impI]);
 by (EVERY1[etac allE, etac allE, etac mp]);
@@ -38,7 +38,7 @@ by (EVERY1[etac allE, etac allE, etac mp, atac]);
 qed_spec_mp "awp_mono";
 
 Goal "!P Q. (!s. P s --> Q s) --> (!s. vc c P s --> vc c Q s)";
-by (acom.induct_tac "c" 1);
+by (induct_tac "c" 1);
     by (ALLGOALS Asm_simp_tac);
 by (safe_tac HOL_cs);
 by (EVERY[etac allE 1,etac allE 1,etac impE 1,etac allE 2,etac mp 2,atac 2]);
@@ -70,6 +70,6 @@ by (fast_tac (HOL_cs addSEs [awp_mono,vc_mono]) 1);
 qed "vc_complete";
 
 Goal "!Q. vcawp c Q = (vc c Q, awp c Q)";
-by (acom.induct_tac "c" 1);
+by (induct_tac "c" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Let_def])));
 qed "vcawp_vc_awp";

@@ -44,7 +44,7 @@ val lemma = prove_goalw thy [Spec_def,While_def]
   (fn [prem1,prem2] =>
      [REPEAT(rtac allI 1), rtac impI 1, etac exE 1, rtac mp 1, atac 2,
       etac thin_rl 1, res_inst_tac[("x","s")]spec 1,
-      res_inst_tac[("x","s'")]spec 1, nat_ind_tac "n" 1,
+      res_inst_tac[("x","s'")]spec 1, induct_tac "n" 1,
       Simp_tac 1,
       fast_tac (claset() addIs [prem2]) 1,
       simp_tac (simpset() addsimps [Seq_def]) 1,

@@ -7,7 +7,7 @@ Arithmetic expressions and Boolean expressions.
 Not used in the rest of the language, but included for completeness.
 *)
 
-Expr = Arith + Inductive +
+Expr = Datatype +
 
 (** Arithmetic expressions **)
 types loc
@@ -72,13 +72,13 @@ consts
   A     :: aexp => state => nat
   B     :: bexp => state => bool
 
-primrec A aexp
+primrec
   "A(N(n)) = (%s. n)"
   "A(X(x)) = (%s. s(x))"
   "A(Op1 f a) = (%s. f(A a s))"
   "A(Op2 f a0 a1) = (%s. f (A a0 s) (A a1 s))"
 
-primrec B bexp
+primrec
   "B(true) = (%s. True)"
   "B(false) = (%s. False)"
   "B(ROp f a0 a1) = (%s. f (A a0 s) (A a1 s))"

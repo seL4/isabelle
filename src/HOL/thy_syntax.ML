@@ -5,10 +5,6 @@
 Additional theory file sections for HOL.
 *)
 
-(*the kind of distinctiveness axioms depends on number of constructors*)
-val dtK = 7;  (* FIXME rename?, move? *)
-
-
 local
 
 open ThyParse;
@@ -86,159 +82,119 @@ fun inductive_decl coind =
 (** datatype **)
 
 local
-  (* FIXME err -> add_datatype *)
-  fun mk_cons cs =
-    (case duplicates (map (fst o fst) cs) of
-      [] => map (fn ((s, ts), syn) => mk_triple (s, mk_list ts, syn)) cs
-    | dups => error ("Duplicate constructors: " ^ commas_quote dups));
+  (*** generate string for calling add_datatype ***)
+  (*** and bindig theorems to ML identifiers    ***)
 
-  (*generate names of distinctiveness axioms*)
-  fun mk_distinct_rules cs tname =
+  fun mk_bind_thms_string names =
+   (case find_first (not o Syntax.is_identifier) names of
+      Some id => (warning (id ^ " is not a valid identifier"); "")
+    | None =>
+        let
+          fun mk_dt_struct (s, (id, i)) =
+            s ^ "structure " ^ id ^ " =\n\
+            \struct\n\
+            \  val distinct = nth_elem (" ^ i ^ ", distinct);\n\
+            \  val inject = nth_elem (" ^ i ^ ", inject);\n\
+            \  val exhaust = nth_elem (" ^ i ^ ", exhaustion);\n\
+            \  val cases = nth_elem (" ^ i ^ ", case_thms);\n\
+            \  val (split, split_asm) = nth_elem (" ^ i ^ ", split_thms);\n" ^
+              (if length names = 1 then
+                 "  val induct = induction;\n\
+                 \  val recs = rec_thms;\n\
+                 \  val simps = simps;\n\
+                 \  val size = size;\n"
+               else "") ^
+            "end;\n";
+
+          val structs = foldl mk_dt_struct
+            ("", (names ~~ (map string_of_int (0 upto length names - 1))));
+
+        in
+          (if length names > 1 then
+             "structure " ^ (space_implode "_" names) ^ " =\n\
+             \struct\n\
+             \val induct = induction;\n\
+             \val recs = rec_thms;\n\
+             \val simps = simps;\n\
+             \val size = size;\n"
+           else "") ^ structs ^
+          (if length names > 1 then "end;\n" else "")
+        end);
+
+  fun mk_dt_string dts =
     let
-      val uqcs = map (fn ((s, _), _) => strip_quotes s) cs;
-      (*combine all constructor names with all others w/o duplicates*)
-      fun neg_one c = map (fn c2 => quote (c ^ "_not_" ^ c2));
-      fun neg1 [] = []
-        | neg1 (c1 :: cs) = neg_one c1 cs @ neg1 cs;
+      val names = map (fn ((((alt_name, _), name), _), _) =>
+        strip_quotes (if_none alt_name name)) dts;
+
+      val add_datatype_args = brackets (commas (map quote names)) ^ " " ^
+        brackets (commas (map (fn ((((_, vs), name), mx), cs) =>
+          parens (brackets (commas vs) ^ ", " ^ name ^ ", " ^ mx ^ ", " ^
+            brackets (commas cs))) dts));
+
     in
-      if length uqcs < dtK then neg1 uqcs
-      else quote (tname ^ "_ord_distinct") ::
-        map (fn c => quote (tname ^ "_ord_" ^ c)) uqcs
+      ";\nlocal\n\
+      \val (thy, {distinct, inject, exhaustion, rec_thms,\n\
+      \  case_thms, split_thms, induction, size, simps}) =\n\
+      \  DatatypePackage.add_datatype " ^ add_datatype_args ^ " thy;\n\
+      \in\n" ^ mk_bind_thms_string names ^
+      "val thy = thy;\nend;\nval thy = thy\n"
     end;
 
-  fun mk_rules tname cons pre = " map (get_axiom thy) " ^
-    mk_list (map (fn ((s,_), _) => quote (tname ^ pre ^ strip_quotes s)) cons);
+  fun mk_rep_dt_string (((names, distinct), inject), induct) =
+    ";\nlocal\n\
+    \val (thy, {distinct, inject, exhaustion, rec_thms,\n\
+    \  case_thms, split_thms, induction, size, simps}) =\n\
+    \  DatatypePackage.add_rep_datatype " ^
+    (case names of
+        Some names => "(Some [" ^ commas (map quote names) ^ "]) (" ^
+          distinct ^ ") (" ^ inject ^ ") (" ^ induct ^ ") thy;\nin\n" ^
+            mk_bind_thms_string names
+      | None => "None (" ^ distinct ^ ") (" ^ inject ^ ") (" ^ induct ^
+          ") thy;\nin\n") ^
+    "val thy = thy;\nend;\nval thy = thy\n";
 
-  (*generate string for calling add_datatype and build_record*)
-  fun mk_params ((ts, tname), cons) =
-    "val (thy,"^tname^"_add_primrec,size_"^tname^"_eqns,split_"^tname^"_eqns) =\n\
-    \    Datatype.add_datatype\n"
-    ^ mk_triple (mk_list ts, quote tname, mk_list (mk_cons cons)) ^ " thy\n\
-    \val thy = ("^tname^"_add_primrec size_"^tname^"_eqns thy)\n\
-    \val _ = deny (" ^ quote tname ^ " mem (Sign.stamp_names_of (sign_of thy)))\n\
-    \   (\"Datatype \\\""^tname^"\\\" would clash with the theory of the same name!\");\n\
-    \structure " ^ tname ^ " =\n\
-    \struct\n\
-    \ val inject = map (get_axiom thy) " ^
-        mk_list (map (fn ((s, _), _) => quote ("inject_" ^ strip_quotes s))
-          (filter_out (null o snd o fst) cons)) ^ ";\n\
-    \ val distinct = " ^
-        (if length cons < dtK then "let val distinct' = " else "") ^
-        "map (get_axiom thy) " ^ mk_list (mk_distinct_rules cons tname) ^
-        (if length cons < dtK then
-          "  in distinct' @ (map (fn t => sym COMP (t RS contrapos))\
-          \ distinct') end"
-         else "") ^ ";\n\
-    \ val induct = get_axiom thy \"" ^ tname ^ "_induct\";\n\
-    \ val cases =" ^ mk_rules tname cons "_case_" ^ ";\n\
-    \ val recs =" ^ mk_rules tname cons "_rec_" ^ ";\n\
-    \ val simps = inject @ distinct @ cases @ recs;\n\
-    \ fun induct_tac a = res_inst_tac [(" ^ quote tname ^ ", a)] induct;\n\
-    \end;\n\
-    \val thy = thy |> Dtype.add_record " ^
-      mk_triple
-        ("Sign.intern_tycon (sign_of thy) " ^ quote tname,
-          mk_list (map (fst o fst) cons),
-          tname ^ ".induct_tac") ^ ";\n\
-    \val dummy = context thy;\n\
-    \val dummy = Addsimps(" ^ tname ^ ".cases @ " ^ tname ^ ".recs);\n\
-    \val dummy = AddIffs " ^ tname ^ ".inject;\n\
-    \val dummy = " ^
-      (if length cons < dtK then "AddIffs " else "Addsimps ") ^
-      tname ^ ".distinct;\n\
-    \val dummy = Addsimps(map (fn (_,eqn) =>\n\
-    \ prove_goalw thy [get_def thy " ^ quote("size_"^tname) ^
-                     "] eqn (fn _ => [Simp_tac 1])) size_"^tname^"_eqns);\n\
-    \val split_"^tname^"_case = prove_goal thy (#1(split_"^tname^"_eqns))\n\
-    \  (fn _ => [#exhaust_tac (datatype_info thy (Sign.intern_tycon (sign_of thy) "
-      ^ quote tname ^ ")) \""^tname^"0\" 1,\n\
-    \            ALLGOALS Asm_simp_tac]);\n\
-    \val split_"^tname^"_case_asm = prove_goal thy (#2(split_"^tname^"_eqns))\n\
-    \  (fn _ => [#exhaust_tac (datatype_info thy (Sign.intern_tycon (sign_of thy) "
-      ^ quote tname ^ ")) \""^tname^"0\" 1,\n\
-    \            ALLGOALS (asm_simp_tac (simpset() delsimps [split_paired_Ex]))]);\n\
-    \val thy = thy\n";
+  (*** parsers ***)
 
-(*
-The #exhaust_tac(snd(hd(!datatypes))) in the proof of split_"^tname^"_case
-is a hack. Ideally I would just write exhaust_tac, but the latter extracts the
-specific exhaustion tactic from the theory associated with the proof
-state. However, the exhaustion tactic for the current datatype has only just
-been added to !datatypes (a few lines above) but is not yet associated with
-the theory. Hope this can be simplified in the future.
-*)
-
-  (*parsers*)
-  val tvars = type_args >> map (cat "dtVar");
-
-  val simple_typ = ident >> (cat "dtTyp" o curry mk_pair "[]" o quote) ||
-    type_var >> cat "dtVar";
+  val simple_typ = ident || (type_var >> strip_quotes);
 
   fun complex_typ toks =
     let val typ = simple_typ || "(" $$-- complex_typ --$$ ")";
         val typ2 = complex_typ || "(" $$-- complex_typ --$$ ")";
     in
-     (typ -- repeat (ident>>quote) >>
-        (foldl (fn (x,y) => "dtTyp " ^ mk_pair (brackets x, y))) ||
-      "(" $$-- !! (list1 typ2) --$$ ")" -- !! (repeat1 (ident>>quote)) >>
-       (fn (fst, ids) => foldl (fn (x,y) => "dtTyp " ^
-                         mk_pair (brackets x, y)) (commas fst, ids))) toks
+     (typ ^^ (repeat ident >> (cat "" o space_implode " ")) ||
+      "(" $$-- !! (list1 typ2 >> (parens o commas)) --$$ ")" ^^ !!
+        (repeat1 ident >> (cat "" o space_implode " "))) toks
     end;
 
-  val opt_typs = repeat (simple_typ || ("(" $$-- complex_typ --$$ ")"));
-  val constructor = name -- opt_typs -- opt_mixfix;
+  val opt_typs = repeat ((string >> strip_quotes) ||
+    simple_typ || ("(" $$-- complex_typ --$$ ")"));
+  val constructor = name -- opt_typs -- opt_mixfix >> (fn ((n, Ts), mx) =>
+    parens (n ^ ", " ^ mx ^ ", " ^ brackets (commas (map quote Ts))));
+  val opt_name = optional ("(" $$-- name --$$ ")" >> Some) None
+
 in
   val datatype_decl =
-    tvars -- ident --$$ "=" -- enum1 "|" constructor >> mk_params;
+    enum1 "and" (opt_name -- type_args -- name -- opt_infix --$$ "=" --
+      enum1 "|" constructor) >> mk_dt_string;
+  val rep_datatype_decl =
+    ((optional ((repeat1 (name >> strip_quotes)) >> Some) None) --
+      ("distinct" $$-- (name >> strip_quotes)) -- ("inject" $$--
+        (name >> strip_quotes)) -- ("induct" $$-- (name >> strip_quotes))) >>
+          mk_rep_dt_string;
 end;
-
 
 
 (** primrec **)
 
-(*recursion equations have user-supplied names*)
-fun mk_primrec_decl_1 ((fname, tname), axms) =
-  let
-    (*Isolate type name from the structure's identifier it may be stored in*)
-    val tname' = implode (snd (take_suffix (not_equal ".") (explode tname)));
+fun mk_primrec_decl (names, eqns) =
+  ";\nval (thy, " ^ (if null names then "_" else brackets (commas names)) ^
+  ") = PrimrecPackage.add_primrec " ^ brackets (commas eqns) ^ " thy;\n\
+  \val thy = thy\n";
 
-    fun mk_prove (name, eqn) =
-      "val " ^ name ^ " = store_thm (" ^ quote name
-      ^ ", prove_goalw thy [get_def thy "
-      ^ (quote (strip_quotes fname ^ "_" ^ tname')) ^ "] " ^ eqn ^ "\n\
-      \  (fn _ => [Simp_tac 1]));";
-
-    val axs = mk_list (map (fn (n, a) => mk_pair (quote n, a)) axms);
-  in ("|> " ^ tname ^ "_add_primrec " ^ axs
-      , 
-      cat_lines (map mk_prove axms)
-      ^ "\nval dummy = Addsimps " ^ mk_list (map fst axms) ^ ";")
-  end;
-
-(*recursion equations have no names*)
-fun mk_primrec_decl_2 ((fname, tname), axms) =
-  let
-    (*Isolate type name from the structure's identifier it may be stored in*)
-    val tname' = implode (snd (take_suffix (not_equal ".") (explode tname)));
-
-    fun mk_prove eqn =
-      "prove_goalw thy [get_def thy "
-      ^ (quote (strip_quotes fname ^ "_" ^ tname')) ^ "] " ^ eqn ^ " \
-      \(fn _ => [Simp_tac 1])";
-
-    val axs = mk_list (map (fn a => mk_pair ("\"\"", a)) axms);
-  in ("|> " ^ tname ^ "_add_primrec " ^ axs
-      ,
-      "val dummy = Addsimps " ^
-      brackets(space_implode ",\n" (map mk_prove axms)) ^ ";")
-  end;
-
-(*function name, argument type and either (name,axiom) pairs or just axioms*)
+(* either names and axioms or just axioms *)
 val primrec_decl =
-  (name -- long_id -- repeat1 (ident -- string) >> mk_primrec_decl_1) ||
-  (name -- long_id -- repeat1 string >> mk_primrec_decl_2) ;
-
-
+  (repeat1 (ident -- string) >> (mk_primrec_decl o ListPair.unzip)) ||
+  (repeat1 string >> (mk_primrec_decl o (pair [])));
 
 
 (** rec: interface to Slind's TFL **)
@@ -278,13 +234,15 @@ val rec_decl = (name -- string --
 in
 
 val _ = ThySyn.add_syntax
- ["intrs", "monos", "con_defs", "congs", "simpset", "|"]
+ ["intrs", "monos", "con_defs", "congs", "simpset", "|",
+  "and", "distinct", "inject", "induct"]
  [axm_section "typedef" "|> TypedefPackage.add_typedef" typedef_decl,
   section "record" "|> RecordPackage.add_record" record_decl,
   section "inductive" "" (inductive_decl false),
   section "coinductive" "" (inductive_decl true),
   section "datatype" "" datatype_decl,
-  ("primrec", primrec_decl),
+  section "rep_datatype" "" rep_datatype_decl,
+  section "primrec" "" primrec_decl,
   ("recdef", rec_decl)];
 
 end;

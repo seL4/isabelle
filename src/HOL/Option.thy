@@ -6,7 +6,7 @@
 Datatype 'a option
 *)
 
-Option = Arith +
+Option = Datatype +
 
 datatype 'a option = None | Some 'a
 
@@ -22,8 +22,7 @@ consts
 
   o2s	   :: "'a option => 'a set"
 
-primrec o2s option
-
+primrec
  "o2s  None    = {}"
  "o2s (Some x) = {x}"
 

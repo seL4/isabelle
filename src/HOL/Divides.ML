@@ -92,7 +92,7 @@ qed "mod_mult_distrib2";
 Goal "0<n ==> m*n mod n = 0";
 by (induct_tac "m" 1);
 by (asm_simp_tac (simpset() addsimps [mod_less]) 1);
-by (dres_inst_tac [("m","m*n")] mod_add_self2 1);
+by (dres_inst_tac [("m","na*n")] mod_add_self2 1);
 by (asm_full_simp_tac (simpset() addsimps [add_commute]) 1);
 qed "mod_mult_self_is_0";
 Addsimps [mod_mult_self_is_0];

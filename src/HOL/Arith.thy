@@ -14,15 +14,15 @@ instance
 (* size of a datatype value; overloaded *)
 consts size :: 'a => nat
 
-primrec "op +" nat 
+primrec
   add_0    "0 + n = n"
   add_Suc  "Suc m + n = Suc(m + n)"
 
-primrec "op -" nat 
+primrec
   diff_0   "m - 0 = m"
   diff_Suc "m - Suc n = (case m - n of 0 => 0 | Suc k => k)"
 
-primrec "op *"  nat 
+primrec
   mult_0   "0 * n = 0"
   mult_Suc "Suc m * n = n + (m * n)"
 

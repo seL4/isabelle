@@ -17,7 +17,7 @@ rules
   isSym_keys "isSymKey K"	(*All keys are symmetric*)
   inj_shrK   "inj shrK"		(*No two agents have the same long-term key*)
 
-primrec initState agent
+primrec
         (*Server knows all long-term keys; other agents know only their own*)
   initState_Server  "initState Server     = Key `` range shrK"
   initState_Friend  "initState (Friend i) = {Key (shrK (Friend i))}"

@@ -37,8 +37,8 @@ override_def "m1++m2 == %x. case m2 x of None => m1 x | Some y => Some y"
 dom_def "dom(m) == {a. m a ~= None}"
 ran_def "ran(m) == {b. ? a. m a = Some b}"
 
-primrec map_of list
-"map_of [] = empty"
-"map_of (p#ps) = (map_of ps)[fst p |-> snd p]"
+primrec
+  "map_of [] = empty"
+  "map_of (p#ps) = (map_of ps)[fst p |-> snd p]"
 
 end

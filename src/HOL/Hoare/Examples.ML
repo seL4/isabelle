@@ -65,7 +65,7 @@ Goal
 
 by (hoare_tac 1);
 
-by (res_inst_tac [("n","b")] natE 1);
+by (exhaust_tac "b" 1);
 by (hyp_subst_tac 1);
 by (asm_full_simp_tac (simpset() addsimps [mod_less]) 1);
 by (asm_simp_tac (simpset() addsimps [mult_assoc]) 1);
@@ -86,7 +86,7 @@ Goal
 
 by (hoare_tac 1);
 by Safe_tac;
-by (res_inst_tac [("n","a")] natE 1);
+by (exhaust_tac "a" 1);
 by (ALLGOALS
     (asm_simp_tac
      (simpset() addsimps [add_mult_distrib,add_mult_distrib2,mult_assoc])));

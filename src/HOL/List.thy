@@ -6,7 +6,7 @@
 The datatype of finite lists.
 *)
 
-List = WF_Rel +
+List = WF_Rel + Datatype +
 
 datatype 'a list = "[]" ("[]") | "#" 'a ('a list) (infixr 65)
 
@@ -74,76 +74,76 @@ consts
 syntax   length :: 'a list => nat
 translations  "length"  =>  "size:: _ list => nat"
 
-primrec hd list
+primrec
   "hd([]) = arbitrary"
   "hd(x#xs) = x"
-primrec tl list
+primrec
   "tl([]) = []"
   "tl(x#xs) = xs"
-primrec last list
+primrec
   "last [] = arbitrary"
   "last(x#xs) = (if xs=[] then x else last xs)"
-primrec butlast list
+primrec
   "butlast [] = []"
   "butlast(x#xs) = (if xs=[] then [] else x#butlast xs)"
-primrec "op mem" list
+primrec
   "x mem [] = False"
   "x mem (y#ys) = (if y=x then True else x mem ys)"
-primrec set list
+primrec
   "set [] = {}"
   "set (x#xs) = insert x (set xs)"
-primrec list_all list
+primrec
   list_all_Nil  "list_all P [] = True"
   list_all_Cons "list_all P (x#xs) = (P(x) & list_all P xs)"
-primrec map list
+primrec
   "map f [] = []"
   "map f (x#xs) = f(x)#map f xs"
-primrec "op @" list
-append_Nil  "[]    @ys = ys"
-append_Cons "(x#xs)@ys = x#(xs@ys)"
-primrec rev list
+primrec
+  append_Nil  "[]    @ys = ys"
+  append_Cons "(x#xs)@ys = x#(xs@ys)"
+primrec
   "rev([]) = []"
   "rev(x#xs) = rev(xs) @ [x]"
-primrec filter list
+primrec
   "filter P [] = []"
   "filter P (x#xs) = (if P x then x#filter P xs else filter P xs)"
-primrec foldl list
+primrec
   "foldl f a [] = a"
   "foldl f a (x#xs) = foldl f (f a x) xs"
-primrec concat list
+primrec
   "concat([]) = []"
   "concat(x#xs) = x @ concat(xs)"
-primrec drop list
+primrec
   drop_Nil  "drop n [] = []"
   drop_Cons "drop n (x#xs) = (case n of 0 => x#xs | Suc(m) => drop m xs)"
-primrec take list
+primrec
   take_Nil  "take n [] = []"
   take_Cons "take n (x#xs) = (case n of 0 => [] | Suc(m) => x # take m xs)"
-primrec nth nat
+primrec
   "xs!0 = hd xs"
   "xs!(Suc n) = (tl xs)!n"
-primrec list_update list
+primrec
  "    [][i:=v] = []"
  "(x#xs)[i:=v] = (case i of 0     => v # xs 
 			  | Suc j => x # xs[j:=v])"
-primrec takeWhile list
+primrec
   "takeWhile P [] = []"
   "takeWhile P (x#xs) = (if P x then x#takeWhile P xs else [])"
-primrec dropWhile list
+primrec
   "dropWhile P [] = []"
   "dropWhile P (x#xs) = (if P x then dropWhile P xs else x#xs)"
-primrec zip list
+primrec
   "zip xs []     = []"
   "zip xs (y#ys) = (hd xs,y)#zip (tl xs) ys"
-primrec nodups list
+primrec
   "nodups []     = True"
   "nodups (x#xs) = (x ~: set xs & nodups xs)"
-primrec remdups list
+primrec
   "remdups [] = []"
   "remdups (x#xs) = (if x : set xs then remdups xs else x # remdups xs)"
-primrec replicate nat
-replicate_0   "replicate 0 x       = []"
-replicate_Suc "replicate (Suc n) x = x # replicate n x"
+primrec
+  replicate_0   "replicate 0 x       = []"
+  replicate_Suc "replicate (Suc n) x = x # replicate n x"
 
 end
 

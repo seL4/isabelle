@@ -29,7 +29,7 @@ Addsimps [diff_0_eq_0, diff_Suc_Suc];
    However, none of the generalizations are currently in the simpset,
    and I dread to think what happens if I put them in *)
 Goal "0 < n ==> Suc(n-1) = n";
-by (asm_simp_tac (simpset() addsplits [split_nat_case]) 1);
+by (asm_simp_tac (simpset() addsplits [nat.split]) 1);
 qed "Suc_pred";
 Addsimps [Suc_pred];
 
@@ -114,7 +114,7 @@ Addsimps [pred_add_is_0];
 Goal "0<n ==> m + (n-1) = (m+n)-1";
 by (exhaust_tac "m" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [diff_Suc]
-                                      addsplits [split_nat_case])));
+                                      addsplits [nat.split])));
 qed "add_pred";
 Addsimps [add_pred];
 
@@ -373,7 +373,7 @@ qed "Suc_diff_diff";
 Addsimps [Suc_diff_diff];
 
 Goal "0<n ==> n - Suc i < n";
-by (res_inst_tac [("n","n")] natE 1);
+by (exhaust_tac "n" 1);
 by Safe_tac;
 by (asm_simp_tac (simpset() addsimps [le_eq_less_Suc RS sym]) 1);
 qed "diff_Suc_less";
@@ -670,8 +670,8 @@ qed_spec_mp "diff_le_mono";
 Goal "!!n::nat. m<=n ==> (l-n) <= (l-m)";
 by (induct_tac "l" 1);
 by (Simp_tac 1);
-by (case_tac "n <= l" 1);
-by (subgoal_tac "m <= l" 1);
+by (case_tac "n <= na" 1);
+by (subgoal_tac "m <= na" 1);
 by (asm_simp_tac (simpset() addsimps [Suc_diff_le]) 1);
 by (fast_tac (claset() addEs [le_trans]) 1);
 by (dtac not_leE 1);

@@ -7,7 +7,7 @@ Datatypes of agents and messages;
 Inductive relations "parts", "analz" and "synth"
 *)
 
-Message = Arith + Inductive +
+Message = Datatype +
 
 (*Is there a difference between a nonce and arbitrary numerical data?
   Do we need a type of nonces?*)

@@ -91,7 +91,7 @@ Delsimps [C_while];
 AddSIs [hoare.skip, hoare.ass, hoare.semi, hoare.If];
 
 Goal "!Q. |- {wp c Q} c {Q}";
-by (com.induct_tac "c" 1);
+by (induct_tac "c" 1);
 by (ALLGOALS Simp_tac);
 by (REPEAT_FIRST Fast_tac);
 by (blast_tac (claset() addIs [hoare.conseq]) 1);

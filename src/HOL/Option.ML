@@ -8,7 +8,7 @@ Derived rules
 open Option;
 
 qed_goal "not_None_eq" thy "(x ~= None) = (? y. x = Some y)"
-	(K [option.induct_tac "x" 1, Auto_tac]);
+	(K [induct_tac "x" 1, Auto_tac]);
 
 section "case analysis in premises";
 
@@ -55,7 +55,7 @@ Addsimps [option_map_None, option_map_Some];
 
 val option_map_eq_Some = prove_goalw thy [option_map_def]
 	"(option_map f xo = Some y) = (? z. xo = Some z & f z = y)" 
- (K [asm_full_simp_tac (simpset() addsplits [split_option_case]) 1]);
+ (K [asm_full_simp_tac (simpset() addsplits [option.split]) 1]);
 AddIffs[option_map_eq_Some];
 
 section "o2s";

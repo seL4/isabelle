@@ -21,14 +21,14 @@ consts
   vcawp :: "acom => assn => assn * assn"
   astrip :: acom => com
 
-primrec awp acom
+primrec
   "awp Askip Q = Q"
   "awp (Aass x a) Q = (%s. Q(s[x:=a s]))"
   "awp (Asemi c d) Q = awp c (awp d Q)"
   "awp (Aif b c d) Q = (%s. (b s-->awp c Q s) & (~b s-->awp d Q s))" 
   "awp (Awhile b I c) Q = I"
 
-primrec vc acom
+primrec
   "vc Askip Q = (%s. True)"
   "vc (Aass x a) Q = (%s. True)"
   "vc (Asemi c d) Q = (%s. vc c (awp d Q) s & vc d Q s)"
@@ -36,7 +36,7 @@ primrec vc acom
   "vc (Awhile b I c) Q = (%s. (I s & ~b s --> Q s) &
                               (I s & b s --> awp c I s) & vc c I s)"
 
-primrec astrip acom
+primrec
   "astrip Askip = SKIP"
   "astrip (Aass x a) = (x:=a)"
   "astrip (Asemi c d) = (astrip c;astrip d)"
@@ -44,7 +44,7 @@ primrec astrip acom
   "astrip (Awhile b I c) = (WHILE b DO astrip c)"
 
 (* simultaneous computation of vc and awp: *)
-primrec vcawp acom
+primrec
   "vcawp Askip Q = (%s. True, Q)"
   "vcawp (Aass x a) Q = (%s. True, %s. Q(s[x:=a s]))"
   "vcawp (Asemi c d) Q = (let (vcd,wpd) = vcawp d Q;
