@@ -8,59 +8,71 @@ Instantiation of the generic simplifier
 
 open Simplifier;
 
+(*** Integration of simplifier with classical reasoner ***)
+
+(*Add a simpset to a classical set!*)
+infix 4 addss;
+fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
+
+fun Addss ss = (claset := !claset addbefore asm_full_simp_tac ss 1);
+
+(*Maybe swap the safe_tac and simp_tac lines?**)
+fun auto_tac (cs,ss) = 
+    TRY (safe_tac cs) THEN 
+    ALLGOALS (asm_full_simp_tac ss) THEN
+    REPEAT (FIRSTGOAL (best_tac (cs addss ss)));
+
+fun Auto_tac() = auto_tac (!claset, !simpset);
+
+fun auto() = by (Auto_tac());
+
+
 local
 
-fun prover s = prove_goal HOL.thy s (fn _ => [fast_tac HOL_cs 1]);
+  fun prover s = prove_goal HOL.thy s (fn _ => [fast_tac HOL_cs 1]);
 
-val P_imp_P_iff_True = prover "P --> (P = True)" RS mp;
-val P_imp_P_eq_True = P_imp_P_iff_True RS eq_reflection;
+  val P_imp_P_iff_True = prover "P --> (P = True)" RS mp;
+  val P_imp_P_eq_True = P_imp_P_iff_True RS eq_reflection;
 
-val not_P_imp_P_iff_F = prover "~P --> (P = False)" RS mp;
-val not_P_imp_P_eq_False = not_P_imp_P_iff_F RS eq_reflection;
+  val not_P_imp_P_iff_F = prover "~P --> (P = False)" RS mp;
+  val not_P_imp_P_eq_False = not_P_imp_P_iff_F RS eq_reflection;
 
-fun atomize pairs =
-  let fun atoms th =
-        (case concl_of th of
-           Const("Trueprop",_) $ p =>
-             (case head_of p of
-                Const(a,_) =>
-                  (case assoc(pairs,a) of
-                     Some(rls) => flat (map atoms ([th] RL rls))
-                   | None => [th])
-              | _ => [th])
-         | _ => [th])
-  in atoms end;
+  fun atomize pairs =
+    let fun atoms th =
+	  (case concl_of th of
+	     Const("Trueprop",_) $ p =>
+	       (case head_of p of
+		  Const(a,_) =>
+		    (case assoc(pairs,a) of
+		       Some(rls) => flat (map atoms ([th] RL rls))
+		     | None => [th])
+		| _ => [th])
+	   | _ => [th])
+    in atoms end;
 
-fun mk_meta_eq r = case concl_of r of
-        Const("==",_)$_$_ => r
-    |   _$(Const("op =",_)$_$_) => r RS eq_reflection
-    |   _$(Const("not",_)$_) => r RS not_P_imp_P_eq_False
-    |   _ => r RS P_imp_P_eq_True;
-(* last 2 lines requires all formulae to be of the from Trueprop(.) *)
+  fun mk_meta_eq r = case concl_of r of
+	  Const("==",_)$_$_ => r
+      |   _$(Const("op =",_)$_$_) => r RS eq_reflection
+      |   _$(Const("not",_)$_) => r RS not_P_imp_P_eq_False
+      |   _ => r RS P_imp_P_eq_True;
+  (* last 2 lines requires all formulae to be of the from Trueprop(.) *)
 
-fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
+  fun gen_all th = forall_elim_vars (#maxidx(rep_thm th)+1) th;
 
-val imp_cong = impI RSN
-    (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
-        (fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
-
-val o_apply = prove_goalw HOL.thy [o_def] "(f o g)(x) = f(g(x))"
- (fn _ => [rtac refl 1]);
-
-val simp_thms = map prover
- [ "(x=x) = True",
-   "(~True) = False", "(~False) = True", "(~ ~ P) = P",
-   "(~P) ~= P", "P ~= (~P)", "(P ~= Q) = (P = (~Q))",
-   "(True=P) = P", "(P=True) = P",
-   "(True --> P) = P", "(False --> P) = True", 
-   "(P --> True) = True", "(P --> P) = True",
-   "(P --> False) = (~P)", "(P --> ~P) = (~P)",
-   "(P & True) = P", "(True & P) = P", 
-   "(P & False) = False", "(False & P) = False", "(P & P) = P",
-   "(P | True) = True", "(True | P) = True", 
-   "(P | False) = P", "(False | P) = P", "(P | P) = P",
-   "(!x.P) = P", "(? x.P) = P", "? x. x=t", "(? x. x=t & P(x)) = P(t)",
-   "(P|Q --> R) = ((P-->R)&(Q-->R))" ];
+  val simp_thms = map prover
+   [ "(x=x) = True",
+     "(~True) = False", "(~False) = True", "(~ ~ P) = P",
+     "(~P) ~= P", "P ~= (~P)", "(P ~= Q) = (P = (~Q))",
+     "(True=P) = P", "(P=True) = P",
+     "(True --> P) = P", "(False --> P) = True", 
+     "(P --> True) = True", "(P --> P) = True",
+     "(P --> False) = (~P)", "(P --> ~P) = (~P)",
+     "(P & True) = P", "(True & P) = P", 
+     "(P & False) = False", "(False & P) = False", "(P & P) = P",
+     "(P | True) = True", "(True | P) = True", 
+     "(P | False) = P", "(False | P) = P", "(P | P) = P",
+     "(!x.P) = P", "(? x.P) = P", "? x. x=t", 
+     "(? x. x=t & P(x)) = P(t)", "(! x. x=t --> P(x)) = P(t)" ];
 
 in
 
@@ -70,6 +82,11 @@ val meta_eq_to_obj_eq = prove_goal HOL.thy "x==y ==> x=y"
 val eq_sym_conv = prover "(x=y) = (y=x)";
 
 val conj_assoc = prover "((P&Q)&R) = (P&(Q&R))";
+
+val disj_assoc = prover "((P|Q)|R) = (P|(Q|R))";
+
+val imp_disj   = prover "(P|Q --> R) = ((P-->R)&(Q-->R))";
+
 
 val if_True = prove_goalw HOL.thy [if_def] "(if True then x else y) = x"
  (fn _=>[fast_tac (HOL_cs addIs [select_equality]) 1]);
@@ -100,12 +117,6 @@ fun ss addcongs congs = ss addeqcongs (congs RL [eq_reflection]);
 
 fun Addcongs congs = (simpset := !simpset addcongs congs);
 
-(*Add a simpset to a classical set!*)
-infix 4 addss;
-fun cs addss ss = cs addbefore asm_full_simp_tac ss 1;
-
-fun Addss ss = (claset := !claset addbefore asm_full_simp_tac ss 1);
-
 val mksimps_pairs =
   [("op -->", [mp]), ("op &", [conjunct1,conjunct2]),
    ("All", [spec]), ("True", []), ("False", []),
@@ -113,13 +124,29 @@ val mksimps_pairs =
 
 fun mksimps pairs = map mk_meta_eq o atomize pairs o gen_all;
 
+val imp_cong = impI RSN
+    (2, prove_goal HOL.thy "(P=P')--> (P'--> (Q=Q'))--> ((P-->Q) = (P'-->Q'))"
+        (fn _=> [fast_tac HOL_cs 1]) RS mp RS mp);
+
+val o_apply = prove_goalw HOL.thy [o_def] "(f o g)(x) = f(g(x))"
+ (fn _ => [rtac refl 1]);
+
 val HOL_ss = empty_ss
       setmksimps (mksimps mksimps_pairs)
       setsolver (fn prems => resolve_tac (TrueI::refl::prems) ORELSE' atac
                              ORELSE' etac FalseE)
       setsubgoaler asm_simp_tac
-      addsimps ([if_True, if_False, o_apply, conj_assoc] @ simp_thms)
+      addsimps ([if_True, if_False, o_apply, imp_disj, conj_assoc, disj_assoc]
+        @ simp_thms)
       addcongs [imp_cong];
+
+
+(*In general it seems wrong to add distributive laws by default: they
+  might cause exponential blow-up.  This one has been added for a while
+  and cannot be removed without affecting existing proofs.  Moreover, 
+  rewriting by "(P|Q --> R) = ((P-->R)&(Q-->R))" might be justified on the
+  grounds that it allows simplification of R in the two cases.*)
+
 
 local val mktac = mk_case_split_tac (meta_eq_to_obj_eq RS iffD2)
 in
@@ -182,6 +209,10 @@ prove "conj_commute" "(P&Q) = (Q&P)";
 prove "conj_left_commute" "(P&(Q&R)) = (Q&(P&R))";
 val conj_comms = [conj_commute, conj_left_commute];
 
+prove "disj_commute" "(P|Q) = (Q|P)";
+prove "disj_left_commute" "(P|(Q|R)) = (Q|(P|R))";
+val disj_comms = [disj_commute, disj_left_commute];
+
 prove "conj_disj_distribL" "(P&(Q|R)) = (P&Q | P&R)";
 prove "conj_disj_distribR" "((P|Q)&R) = (P&R | Q&R)";
 
@@ -189,18 +220,20 @@ prove "disj_conj_distribL" "(P|(Q&R)) = ((P|Q) & (P|R))";
 prove "disj_conj_distribR" "((P&Q)|R) = ((P|R) & (Q|R))";
 
 prove "imp_conj_distrib" "(P --> (Q&R)) = ((P-->Q) & (P-->R))";
-prove "imp_conj_assoc"   "((P&Q)-->R)   = (P --> (Q --> R))";
+prove "imp_conj"         "((P&Q)-->R)   = (P --> (Q --> R))";
 
 prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
 prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
+prove "not_iff" "(P~=Q) = (P = (~Q))";
 
 prove "not_all" "(~ (! x.P(x))) = (? x.~P(x))";
+prove "imp_all" "((! x. P x) --> Q) = (? x. P x --> Q)";
 prove "not_ex"  "(~ (? x.P(x))) = (! x.~P(x))";
+prove "imp_ex" "((? x. P x) --> Q) = (! x. P x --> Q)";
 
 prove "ex_disj_distrib" "(? x. P(x) | Q(x)) = ((? x. P(x)) | (? x. Q(x)))";
 prove "all_conj_distrib" "(!x. P(x) & Q(x)) = ((! x. P(x)) & (! x. Q(x)))";
 
-prove "ex_imp" "((? x. P x) --> Q) = (!x. P x --> Q)";
 
 qed_goal "if_cancel" HOL.thy "(if c then x else x) = x"
   (fn _ => [simp_tac (HOL_ss setloop (split_tac [expand_if])) 1]);
