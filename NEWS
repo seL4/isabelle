@@ -35,7 +35,7 @@ addSolver.  added safe_asm_full_simp_tac.
 permutes other assumptions.
 
 * classical reasoner: minor changes in semantics of addafter (now called
-addaltern); renamed setwrapper to setWrapper and addwrapper to addWrapper;
+addaltern); renamed setwrapper to setWrapper and compwrapper to compWrapper;
 added safe wrapper (and access functions for it)
 
 * improved combination of classical reasoner and simplifier: new
