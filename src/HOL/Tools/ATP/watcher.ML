@@ -19,11 +19,11 @@ use "SpassCommunication";
 use "modUnix";*)
 (*use "/homes/clq20/Jia_Code/TransStartIsar";*)
 
-use "~~/VampireCommunication";
-use "~~/SpassCommunication";
+use "~~/src/HOL/Tools/ATP/VampireCommunication.ML";
+use "~~/src/HOL/Tools/ATP/SpassCommunication.ML";
 
 
-use "~~/modUnix";
+use "~~/src/HOL/Tools/ATP/modUnix.ML";
 
 
 structure Watcher: WATCHER =
@@ -33,7 +33,6 @@ fun fst (a,b) = a;
 fun snd (a,b) = b;
 
 val goals_being_watched = ref 0;
-
 
 fun remove y [] = []
 |   remove y (x::xs) = (if y = x 
@@ -98,7 +97,7 @@ fun callResProvers (toWatcherStr,  []) = (sendOutput (toWatcherStr, "End of call
                                                      let 
                                                         val dfg_dir = File.tmp_path (Path.basic "dfg");
                                                         (* need to check here if the directory exists and, if not, create it*)
-                                                         val  outfile = TextIO.openAppend(" /thmstring_in_watcher");                                                                                    
+                                                         val  outfile = TextIO.openAppend("thmstring_in_watcher");                                                                                    
                                                          val _ = TextIO.output (outfile, (thmstring^"\n goals_watched"^(string_of_int(!goals_being_watched))^"\n"))
                                                          val _ =  TextIO.closeOut outfile
                                                          val dfg_create =if File.exists dfg_dir 
@@ -386,7 +385,7 @@ fun setupWatcher (the_goal) = let
                                                          (childProc::(checkChildren (otherChildren, toParentStr)))
                                                  end
                                                else
-                                                   let val  outfile = TextIO.openOut("child_incoming");  
+                                                   let val  outfile = TextIO.openAppend("child_incoming");  
                                                 val _ = TextIO.output (outfile,"No child output " )
                                                 val _ =  TextIO.closeOut outfile
                                                  in
