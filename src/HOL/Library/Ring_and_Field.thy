@@ -16,7 +16,7 @@ axclass ring < zero, plus, minus, times, number
   add_assoc: "(a + b) + c = a + (b + c)"
   add_commute: "a + b = b + a"
   left_zero: "0 + a = a"
-  left_minus: "(-a) + a = 0"
+  right_minus: "a + - a = 0"
   diff_minus: "a - b = a + (-b)"
   zero_number: "0 = #0"
 
@@ -37,6 +37,13 @@ axclass field < ring, inverse
 
 axclass ordered_field < ordered_ring, field
 
+subsection {* simplification rules *}
+
+lemma left_minus [simp]: "- (a::'a::field) + a = 0"
+  by (simp only: add_commute right_minus)
+
+lemma diff_self [simp]: "a - (a::'a::field) = 0"
+  by (simp only: diff_minus right_minus)
 
 subsection {* The ordered ring of integers *}
 
@@ -46,7 +53,7 @@ proof
   show "(i + j) + k = i + (j + k)" by simp
   show "i + j = j + i" by simp
   show "0 + i = i" by simp
-  show "(-i) + i = 0" by simp
+  show "i + - i = 0" by simp
   show "i - j = i + (-j)" by simp
   show "(i * j) * k = i * (j * k)" by simp
   show "i * j = j * i" by simp
