@@ -11,6 +11,12 @@ N.~G. de~Bruijn.
   formula manipulation, with application to the {Church-Rosser Theorem}.
 \newblock {\em Indagationes Mathematicae}, 34:381--392, 1972.
 
+\bibitem{nipkow-prehofer}
+Tobias Nipkow and Christian Prehofer.
+\newblock Type checking type classes.
+\newblock In {\em 20th ACM Symp.\ Principles of Programming Languages}, 1993.
+\newblock To appear.
+
 \bibitem{paulson91}
 Lawrence~C. Paulson.
 \newblock {\em {ML} for the Working Programmer}.
