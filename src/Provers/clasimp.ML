@@ -169,8 +169,8 @@ val setup =
  [Method.add_methods
    [("clarsimp", clasimp_method' clarsimp_tac, "clarsimp (improper!)"),
     ("auto", clasimp_method auto_tac, "auto"),
-    ("force", clasimp_method' force_tac, "force"),
-    ("brute_force", clasimp_method (ALLGOALS o force_tac), "force all goals")]];
+    ("force", clasimp_method' force_tac, "force")]];
+    
 
 
 end;

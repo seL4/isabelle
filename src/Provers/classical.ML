@@ -171,7 +171,7 @@ sig
   val xtra_elim_local: Proof.context attribute
   val xtra_intro_local: Proof.context attribute
   val delrule_local: Proof.context attribute
-  val cla_modifiers: (Args.T list -> (Proof.context attribute * Args.T list)) list
+  val cla_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
   val cla_meth: (claset -> tactic) -> Proof.context -> Proof.method
   val cla_meth': (claset -> int -> tactic) -> Proof.context -> Proof.method
   val cla_method: (claset -> tactic) -> Args.src -> Proof.context -> Proof.method
@@ -1177,16 +1177,16 @@ val contradiction = Method.METHOD (fn facts =>
 (* automatic methods *)
 
 val cla_modifiers =
- [Args.$$$ destN -- bbang >> K xtra_dest_local,
-  Args.$$$ destN -- bang >> K haz_dest_local,
-  Args.$$$ destN >> K safe_dest_local,
-  Args.$$$ elimN -- bbang >> K xtra_elim_local,
-  Args.$$$ elimN -- bang >> K haz_elim_local,
-  Args.$$$ elimN >> K safe_elim_local,
-  Args.$$$ introN -- bbang >> K xtra_intro_local,
-  Args.$$$ introN -- bang >> K haz_intro_local,
-  Args.$$$ introN >> K safe_intro_local,
-  Args.$$$ delN >> K delrule_local];
+ [Args.$$$ destN -- bbang >> K ((I, xtra_dest_local):Method.modifier),
+  Args.$$$ destN -- bang >> K (I, haz_dest_local),
+  Args.$$$ destN >> K (I, safe_dest_local),
+  Args.$$$ elimN -- bbang >> K (I, xtra_elim_local),
+  Args.$$$ elimN -- bang >> K (I, haz_elim_local),
+  Args.$$$ elimN >> K (I, safe_elim_local),
+  Args.$$$ introN -- bbang >> K (I, xtra_intro_local),
+  Args.$$$ introN -- bang >> K (I, haz_intro_local),
+  Args.$$$ introN >> K (I, safe_intro_local),
+  Args.$$$ delN >> K (I, delrule_local)];
 
 val cla_args = Method.only_sectioned_args cla_modifiers;
 
