@@ -65,15 +65,13 @@ val parts_induct_tac =
     sends messages containing X! **)
 
 (*Spy never sees another agent's private key! (unless it's bad at start)*)
-Goal "Invariant Nprg {s. (Key (priK A) : parts (spies s)) = (A : bad)}";
-by (rtac InvariantI 1);
-by (Force_tac 1);
-by (constrains_tac 1);
-by Auto_tac;
-qed "Spy_see_priK";
-
-(** HOW TO USE??
-Addsimps [Spy_see_priK];
+(*
+    Goal "Invariant Nprg {s. (Key (priK A) : parts (spies s)) = (A : bad)}";
+    by (rtac InvariantI 1);
+    by (Force_tac 1);
+    by (constrains_tac 1);
+    by Auto_tac;
+    qed "Spy_see_priK";
 *)
 
 Goal "s : reachable Nprg ==> (Key (priK A) : parts (spies s)) = (A : bad)";
