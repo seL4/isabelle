@@ -327,7 +327,8 @@ fun inst_typ_tvars(tsig, tye) =
   in map_type_tvar inst end;
 
 (*Instantiation of type variables in terms *)
-fun inst_term_tvars(tsig, tye) = map_term_types (inst_typ_tvars(tsig, tye));
+fun inst_term_tvars (_,[]) t = t
+  | inst_term_tvars arg    t = map_term_types (inst_typ_tvars arg) t;
 
 
 (* norm_typ *)
