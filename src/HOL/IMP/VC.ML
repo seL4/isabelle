@@ -10,7 +10,7 @@ open VC;
 
 val lemma = prove_goal HOL.thy "!s.P s --> P s" (K[fast_tac HOL_cs 1]);
 
-goal VC.thy "!Q. (!s. vc c Q s) --> ({{wp c Q}} (astrip c) {{Q}})";
+goal VC.thy "!Q. (!s. vc c Q s) --> |- {wp c Q} astrip c {Q}";
 by(acom.induct_tac "c" 1);
     by(ALLGOALS Simp_tac);
     by(fast_tac (HOL_cs addIs hoare.intrs) 1);
@@ -44,7 +44,7 @@ by(acom.induct_tac "c" 1);
 by(EVERY1[rtac allI, rtac allI, rtac impI]);
 by(EVERY1[etac allE, etac allE, etac mp]);
 by(EVERY1[etac allE, etac allE, etac mp, atac]);
-bind_thm("wp_mono", result() RS spec RS spec RS mp RS spec RS mp);
+qed_spec_mp "wp_mono";
 
 goal VC.thy "!P Q. (!s. P s --> Q s) --> (!s. vc c P s --> vc c Q s)";
 by(acom.induct_tac "c" 1);
@@ -52,10 +52,10 @@ by(acom.induct_tac "c" 1);
 by(safe_tac HOL_cs);
 by(EVERY[etac allE 1,etac allE 1,etac impE 1,etac allE 2,etac mp 2,atac 2]);
 by(fast_tac (HOL_cs addEs [wp_mono]) 1);
-bind_thm("vc_mono", result() RS spec RS spec RS mp RS spec RS mp);
+qed_spec_mp "vc_mono";
 
 goal VC.thy
-  "!P c Q. ({{P}}c{{Q}}) --> \
+  "!P c Q. |- {P}c{Q} --> \
 \          (? ac. astrip ac = c & (!s. P s --> wp ac Q s) & (!s. vc ac Q s))";
 by (rtac hoare.mutual_induct 1);
      by(res_inst_tac [("x","Askip")] exI 1);
@@ -76,7 +76,7 @@ by(SELECT_GOAL(safe_tac HOL_cs)1);
 by(res_inst_tac [("x","ac")] exI 1);
 by(Asm_simp_tac 1);
 by(fast_tac (HOL_cs addSEs [wp_mono,vc_mono]) 1);
-qed "vc_complete";
+qed_spec_mp "vc_complete";
 
 goal VC.thy "!Q. vcwp c Q = (vc c Q, wp c Q)";
 by(acom.induct_tac "c" 1);

@@ -35,20 +35,20 @@ by(nat_ind_tac "j" 1);
 by(ALLGOALS(asm_simp_tac(simpset_of "Arith")));
 by(nat_ind_tac "j1" 1);
 by(ALLGOALS(asm_simp_tac(simpset_of "Arith")));
-bind_thm("less_imp_pred_less",result() RS mp);
+qed_spec_mp "less_imp_pred_less";
 
 goal Arith.thy "i<j --> ~ pred j < i";
 by(nat_ind_tac "j" 1);
 by(ALLGOALS(asm_simp_tac(simpset_of "Arith")));
 by(fast_tac (HOL_cs addDs [less_imp_pred_less]) 1);
-bind_thm("less_imp_not_pred_less", result() RS mp);
+qed_spec_mp "less_imp_not_pred_less";
 Addsimps [less_imp_not_pred_less];
 
 goal Nat.thy "i < j --> j < Suc(Suc i) --> j = Suc i";
 by(nat_ind_tac "j" 1);
 by(ALLGOALS(simp_tac(simpset_of "Nat")));
 by(fast_tac (HOL_cs addDs [less_not_sym]) 1);
-bind_thm("less_interval1", result() RS mp RS mp);
+qed_spec_mp "less_interval1";
 
 
 (*** decr and free ***)
@@ -88,7 +88,7 @@ Addsimps [free_subst];
 goal Eta.thy "!!s. s -e> t ==> !i. free t i = free s i";
 by (etac (eta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1);
 by(ALLGOALS(asm_simp_tac (!simpset addsimps [decr_def] addcongs [conj_cong])));
-bind_thm("free_eta",result() RS spec);
+qed_spec_mp "free_eta";
 
 goal Eta.thy "!!s. [| s -e> t; ~free s i |] ==> ~free t i";
 by(asm_simp_tac (!simpset addsimps [free_eta]) 1);
@@ -99,7 +99,7 @@ by(db.induct_tac "s" 1);
 by(ALLGOALS(simp_tac (addsplit (!simpset))));
 by(fast_tac HOL_cs 1);
 by(fast_tac HOL_cs 1);
-bind_thm("subst_not_free", result() RS spec RS spec RS spec RS mp);
+qed_spec_mp "subst_not_free";
 
 goalw Eta.thy [decr_def] "!!s. ~free s i ==> s[t/i] = decr s i";
 by (etac subst_not_free 1);
@@ -109,7 +109,7 @@ goal Eta.thy "!!s. s -e> t ==> !u i. s[u/i] -e> t[u/i]";
 by (etac (eta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1);
 by(ALLGOALS(asm_simp_tac (!simpset addsimps [subst_subst RS sym,decr_def])));
 by(asm_simp_tac (!simpset addsimps [subst_decr]) 1);
-bind_thm("eta_subst",result() RS spec RS spec);
+qed_spec_mp "eta_subst";
 Addsimps [eta_subst];
 
 goalw Eta.thy [decr_def] "!!s. s -e> t ==> decr s i -e> decr t i";
@@ -154,12 +154,12 @@ qed "rtrancl_eta_App";
 goal Eta.thy "!s t. s -> t --> (!i. free t i --> free s i)";
 by (rtac beta.mutual_induct 1);
 by(ALLGOALS(Asm_full_simp_tac));
-bind_thm("free_beta", result() RS spec RS spec RS mp RS spec RS mp);
+qed_spec_mp "free_beta";
 
 goalw Eta.thy [decr_def] "!s t. s -> t --> (!i. decr s i -> decr t i)";
 by (rtac beta.mutual_induct 1);
 by(ALLGOALS(asm_full_simp_tac (!simpset addsimps [subst_subst RS sym])));
-bind_thm("beta_decr", result() RS spec RS spec RS mp RS spec);
+qed_spec_mp "beta_decr";
 
 goalw Eta.thy [decr_def]
   "decr (Var i) k = (if i<=k then Var i else Var(pred i))";
@@ -189,7 +189,7 @@ goal Eta.thy "!s t. s -e> t --> (!i. lift s i -e> lift t i)";
 by (rtac eta.mutual_induct 1);
 by(ALLGOALS(asm_simp_tac (addsplit (!simpset) addsimps [decr_def])));
 by(asm_simp_tac (addsplit (!simpset) addsimps [subst_decr]) 1);
-bind_thm("eta_lift",result() RS spec RS spec RS mp RS spec);
+qed_spec_mp "eta_lift";
 Addsimps [eta_lift];
 
 goal Eta.thy "!s t i. s -e> t --> u[s/i] -e>> u[t/i]";
@@ -198,7 +198,7 @@ by(ALLGOALS(asm_simp_tac (addsplit (!simpset))));
 by(fast_tac (eta_cs addIs [r_into_rtrancl]) 1);
 by(fast_tac (eta_cs addSIs [rtrancl_eta_App]) 1);
 by(fast_tac (eta_cs addSIs [rtrancl_eta_Fun,eta_lift]) 1);
-bind_thm("rtrancl_eta_subst", result() RS spec RS spec RS spec RS mp);
+qed_spec_mp "rtrancl_eta_subst";
 
 goalw Eta.thy [square_def] "square beta eta (eta^*) (beta^=)";
 by (rtac beta.mutual_induct 1);

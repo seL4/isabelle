@@ -63,7 +63,7 @@ by (etac exE 1);
 by (etac conjE 1);
 by (etac impE 1);
 by ((forward_tac [new_tv_subst_tel] 1) THEN (atac 1)); 
-by ((dres_inst_tac [("xc","$ s a")] new_tv_W 1) THEN (atac 1));
+by ((dres_inst_tac [("a","$ s a")] new_tv_W 1) THEN (atac 1));
 by (fast_tac (HOL_cs addDs [sym RS W_var_geD,new_tv_subst_le,new_tv_list_le] 
     addss !simpset) 1);
 by (fast_tac (HOL_cs addss (!simpset addsimps [subst_comp_tel])) 1);
@@ -78,7 +78,7 @@ by (etac exE 1);
 by (etac conjE 1);
 by (etac impE 1);
 by ((forward_tac [new_tv_subst_tel] 1) THEN (atac 1)); 
-by ((dres_inst_tac [("xc","$ s a")] new_tv_W 1) THEN (atac 1));
+by ((dres_inst_tac [("a","$ s a")] new_tv_W 1) THEN (atac 1));
 by (fast_tac (HOL_cs addDs [sym RS W_var_geD,new_tv_subst_le,new_tv_list_le] 
     addss !simpset) 1);
 by (fast_tac (HOL_cs addss (!simpset addsimps [subst_comp_tel,subst_comp_te])) 1);
@@ -90,7 +90,7 @@ by (etac exE 1);
 by (etac conjE 1);
 by (etac impE 1);
 by ((forward_tac [new_tv_subst_tel] 1) THEN (atac 1)); 
-by ((dres_inst_tac [("xc","$ s a")] new_tv_W 1) THEN (atac 1));
+by ((dres_inst_tac [("a","$ s a")] new_tv_W 1) THEN (atac 1));
 by (fast_tac (HOL_cs addDs [sym RS W_var_geD,new_tv_subst_le,new_tv_list_le] 
     addss !simpset) 1);
 
@@ -107,7 +107,7 @@ by (Simp_tac 2);
 by (subgoal_tac "new_tv n2 s & new_tv n2 r & new_tv n2 ra" 1);
 by (asm_full_simp_tac (!simpset addsimps [new_tv_subst]) 1);
 by ((forward_tac [new_tv_subst_tel] 1) THEN (atac 1));
-by ((dres_inst_tac [("xc","$ s a")] new_tv_W 1) THEN (atac 1));
+by ((dres_inst_tac [("a","$ s a")] new_tv_W 1) THEN (atac 1));
 by (safe_tac HOL_cs);
 by (fast_tac (HOL_cs addDs [sym RS W_var_geD,new_tv_subst_le,new_tv_list_le] 
     addss !simpset) 1);
@@ -120,4 +120,4 @@ by ((dtac new_tv_subst_tel 1) THEN (atac 1));
 by (fast_tac (HOL_cs addDs [new_tv_W] addss 
     (!simpset addsimps [subst_comp_tel])) 1);
 
-qed "I_correct_wrt_W";
+qed_spec_mp "I_correct_wrt_W";

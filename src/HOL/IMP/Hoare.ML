@@ -9,7 +9,7 @@ wrt denotational semantics
 
 open Hoare;
 
-goalw Hoare.thy [hoare_valid_def] "!P c Q. ({{P}}c{{Q}}) --> |= {{P}}c{{Q}}";
+goalw Hoare.thy [hoare_valid_def] "!P c Q. |- {P}c{Q} --> |= {P}c{Q}";
 by (rtac hoare.mutual_induct 1);
     by(ALLGOALS Asm_simp_tac);
   by(fast_tac rel_cs 1);
@@ -23,7 +23,7 @@ by (rewtac Gamma_def);
 by(eres_inst_tac [("x","a")] allE 1);
 by (safe_tac comp_cs);
   by(ALLGOALS Asm_full_simp_tac);
-qed "hoare_sound";
+qed_spec_mp "hoare_sound";
 
 goalw Hoare.thy [swp_def] "swp Skip Q = Q";
 by(Simp_tac 1);
@@ -68,11 +68,11 @@ Addsimps [swp_Skip,swp_Ass,swp_Semi,swp_If,swp_While_True,swp_While_False];
 Delsimps [C_while];
 
 goalw Hoare.thy [hoare_valid_def,swp_def]
-  "!!c. |= {{P}}c{{Q}} ==> !s. P s --> swp c Q s";
+  "!!c. |= {P}c{Q} ==> !s. P s --> swp c Q s";
 by(fast_tac HOL_cs 1);
 qed "swp_is_weakest";
 
-goal Hoare.thy "!Q. {{swp c Q}} c {{Q}}";
+goal Hoare.thy "!Q. |- {swp c Q} c {Q}";
 by(com.induct_tac "c" 1);
 by(ALLGOALS Simp_tac);
     by(fast_tac (HOL_cs addIs [hoare.skip]) 1);
@@ -102,9 +102,9 @@ br hoare.conseq 1;
  by(Asm_full_simp_tac 1);
 by(rotate_tac ~1 1);
 by(Asm_full_simp_tac 1);
-bind_thm("swp_is_pre", result() RS spec);
+qed_spec_mp "swp_is_pre";
 
-goal Hoare.thy "!!c. |= {{P}}c{{Q}} ==> {{P}}c{{Q}}";
+goal Hoare.thy "!!c. |= {P}c{Q} ==> |- {P}c{Q}";
 br (swp_is_pre RSN (2,hoare.conseq)) 1;
  by(fast_tac HOL_cs 2);
 be swp_is_weakest 1;

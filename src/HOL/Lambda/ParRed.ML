@@ -51,7 +51,7 @@ qed "par_beta_subset_beta";
 goal ParRed.thy "!t' n. t => t' --> lift t n => lift t' n";
 by(db.induct_tac "t" 1);
 by(ALLGOALS(fast_tac (parred_cs addss (!simpset))));
-bind_thm("par_beta_lift", result() RS spec RS spec RS mp);
+qed_spec_mp "par_beta_lift";
 Addsimps [par_beta_lift];
 
 goal ParRed.thy
@@ -64,8 +64,7 @@ by(db.induct_tac "t" 1);
  by(asm_simp_tac (!simpset addsimps [subst_subst RS sym]) 1);
  by(fast_tac (parred_cs addSIs [par_beta_lift] addss (!simpset)) 1);
 by(fast_tac (parred_cs addss (!simpset)) 1);
-bind_thm("par_beta_subst",
-         result()  RS spec RS spec RS spec RS spec RS mp RS mp);
+qed_spec_mp "par_beta_subst";
 
 (*** Confluence (directly) ***)
 
@@ -83,7 +82,7 @@ by(db.induct_tac "s" 1);
  be rev_mp 1;
  by(db.induct_tac "db1" 1);
  by(ALLGOALS(fast_tac (parred_cs addSIs [par_beta_subst] addss (!simpset))));
-bind_thm("par_beta_cd", result() RS spec RS mp);
+qed_spec_mp "par_beta_cd";
 
 (*** Confluence (via cd) ***)
 

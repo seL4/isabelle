@@ -43,7 +43,7 @@ by (simp_tac (HOL_ss addsimps [subst_comp_tel RS sym]) 1);
 by ( (rtac has_type_cl_sub 1) THEN (rtac has_type_cl_sub 1));
 by (asm_full_simp_tac (!simpset addsimps [eq_sym_conv]) 1);
 by (asm_full_simp_tac (!simpset addsimps [subst_comp_tel RS sym,has_type_cl_sub,eq_sym_conv]) 1);
-qed "W_correct";
+qed_spec_mp "W_correct";
 
 val has_type_casesE = map(has_type.mk_cases expr.simps)
         [" s |- Var n :: t"," s |- Abs e :: t","s |- App e1 e2 ::t"];
@@ -78,7 +78,7 @@ by (etac conjE 1);
 by (res_inst_tac [("j","na")] le_trans 1); 
 by (Asm_simp_tac 1);
 by (asm_simp_tac (!simpset addsimps [Suc_leD]) 1);
-qed "W_var_ge";
+qed_spec_mp "W_var_ge";
 
 Addsimps [W_var_ge];
 
@@ -155,7 +155,7 @@ by (fast_tac (HOL_cs addSIs [lessI RS less_imp_le RS new_tv_le,new_tv_subst_te]
 by (fast_tac (HOL_cs addDs [W_var_geD] addIs
      [new_tv_list_le,new_tv_subst_tel,new_tv_le]
      addss (!simpset)) 1);
-bind_thm ("new_tv_W",result() RS spec RS spec RS spec RS spec RS spec RS mp RS mp);
+qed_spec_mp "new_tv_W";
 
 
 goal thy
@@ -215,11 +215,7 @@ by (fast_tac (HOL_cs addDs [mgu_free, codD,free_tv_subst_var RS subsetD,
     less_le_trans,subsetD]
   addEs [UnE]
   addss !simpset) 1); 
-bind_thm ("free_tv_W",result() RS spec RS spec RS spec RS spec RS spec RS spec RS mp RS mp RS mp); 
-
-goal HOL.thy "(~(P | Q)) = (~P & ~Q)";
-by( fast_tac HOL_cs 1);
-qed "not_disj"; 
+qed_spec_mp "free_tv_W"; 
 
 (* Completeness of W w.r.t. has_type *)
 goal thy
@@ -327,7 +323,7 @@ by( asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 2);
 by (dres_inst_tac [("ts1","$ s a")] (subst_comp_tel RSN (2,trans)) 2);
 by (dtac eq_subst_tel_eq_free 2);
 by (fast_tac (HOL_cs addIs [free_tv_W,free_tv_le_new_tv] addDs [new_tv_W]) 2);
-by (asm_full_simp_tac (!simpset addsimps [free_tv_subst,dom_def,not_disj]) 2);
+by (asm_full_simp_tac (!simpset addsimps [free_tv_subst,dom_def,de_Morgan_disj]) 2);
 
 by (asm_simp_tac (!simpset setloop (split_tac [expand_bind])) 1); 
 by (safe_tac HOL_cs );
@@ -353,7 +349,7 @@ by ((forward_tac [new_tv_W] 2) THEN (atac 2));
 by (etac conjE 2);
 by (dtac new_tv_subst_tel 2);
 by (fast_tac (HOL_cs addIs [new_tv_list_le] addDs [sym RS W_var_geD]) 2);
-by (( forw_inst_tac [("xd","m")] (sym RSN (2,new_tv_W)) 2) THEN (atac 2));
+by (( forw_inst_tac [("n","m")] (sym RSN (2,new_tv_W)) 2) THEN (atac 2));
 by (etac conjE 2);
 by (dtac (free_tv_app_subst_tel RS subsetD) 2);
 by (fast_tac (set_cs addDs [W_var_geD,new_tv_list_le,codD,
@@ -366,14 +362,5 @@ by (asm_full_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (dtac (free_tv_app_subst_tel RS subsetD) 1);
 by (fast_tac (set_cs addDs [codD,subst_comp_tel RSN (2,trans),
     eq_subst_tel_eq_free] addss ((!simpset addsimps 
-    [not_disj,free_tv_subst,dom_def]))) 1);
-qed "W_complete";
-
-
-
-
-
-
-
-
-
+    [de_Morgan_disj,free_tv_subst,dom_def]))) 1);
+qed_spec_mp "W_complete";
