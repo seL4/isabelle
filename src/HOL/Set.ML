@@ -840,23 +840,6 @@ Goalw [psubset_def] "A < B ==> EX b. b : (B - A)";
 by (Blast_tac 1);
 qed "psubset_imp_ex_mem";
 
-
-(* rulify setup *)
-
 Goal "(!!x. x:A ==> P x) == Trueprop (ALL x:A. P x)";
 by (simp_tac (simpset () addsimps [Ball_def, thm "atomize_all", thm "atomize_imp"]) 1);
 qed "atomize_ball";
-
-local
-  val ss = HOL_basic_ss addsimps
-    [Drule.norm_hhf_eq, Thm.symmetric atomize_ball, Thm.symmetric (thm "atomize_all"), Thm.symmetric (thm "atomize_imp")];
-in
-
-structure Rulify = RulifyFun
- (val make_meta = Simplifier.simplify ss
-  val full_make_meta = Simplifier.full_simplify ss);
-
-structure BasicRulify: BASIC_RULIFY = Rulify;
-open BasicRulify;
-
-end;

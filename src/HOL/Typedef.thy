@@ -8,6 +8,9 @@ header {* Set-theory lemmas and HOL type definitions *}
 theory Typedef = Set
 files "subset.ML" "equalities.ML" "mono.ML" ("Tools/typedef_package.ML"):
 
+(*belongs to theory Set*)
+declare atomize_ball [symmetric, rulify]
+
 (* Courtesy of Stephan Merz *)
 lemma Least_mono: 
   "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
@@ -18,10 +21,6 @@ lemma Least_mono:
   apply (rule LeastI2)
   apply (auto elim: monoD intro!: order_antisym)
   done
-
-
-(*belongs to theory Set*)
-setup Rulify.setup
 
 
 subsection {* HOL type definitions *}

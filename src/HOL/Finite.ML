@@ -598,7 +598,7 @@ val lemma = result();
 
 
 Goal "[| (A, x) : foldSet f e;  (A, y) : foldSet f e |] ==> y=x";
-by (blast_tac (claset() addIs [rulify lemma]) 1);
+by (blast_tac (claset() addIs [ObjectLogic.rulify lemma]) 1);
 qed "foldSet_determ";
 
 Goalw [fold_def] "(A,y) : foldSet f e ==> fold f e A = y";

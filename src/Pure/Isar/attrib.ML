@@ -278,6 +278,13 @@ fun case_names x = syntax (Scan.lift (Scan.repeat1 Args.name) >> RuleCases.case_
 fun params x = syntax (Args.and_list1 (Scan.lift (Scan.repeat Args.name)) >> RuleCases.params) x;
 
 
+(* rule_format *)
+
+fun rule_format_att x = syntax
+  (Scan.lift (Args.parens (Args.$$$ "no_asm")
+  >> K ObjectLogic.rule_format_no_asm || Scan.succeed ObjectLogic.rule_format)) x;
+
+
 (* misc rules *)
 
 fun standard x = no_args (Drule.rule_attribute (K Drule.standard)) x;
@@ -286,6 +293,7 @@ fun no_vars x = no_args (Drule.rule_attribute (K (#1 o Drule.freeze_thaw))) x;
 
 fun exported_global x = no_args (Drule.rule_attribute (Proof.export_thm o ProofContext.init)) x;
 fun exported_local x = no_args (Drule.rule_attribute Proof.export_thm) x;
+
 
 
 (** theory setup **)
@@ -309,8 +317,11 @@ val pure_attributes =
   ("case_names", (case_names, case_names), "named rule cases"),
   ("params", (params, params), "named rule parameters"),
   ("exported", (exported_global, exported_local), "theorem exported from context"),
-  ("atomize", (no_args ObjectLogic.atomize, no_args undef_local_attribute),
-    "declaration of atomize rule")];
+  ("atomize", (no_args ObjectLogic.declare_atomize, no_args undef_local_attribute),
+    "declaration of atomize rule"),
+  ("rulify", (no_args ObjectLogic.declare_rulify, no_args undef_local_attribute),
+    "declaration of rulify rule"),
+  ("rule_format", (rule_format_att, rule_format_att), "result put into standard rule format")];
 
 
 (* setup *)

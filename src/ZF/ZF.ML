@@ -510,23 +510,6 @@ Goal "Y : Pow(Pow(A)) ==> Union(Y) : Pow(A)";
 by (Blast_tac 1);
 qed "Union_in_Pow";
 
-
-(* update rulify setup -- include bounded All *)
-
 Goal "(!!x. x:A ==> P(x)) == Trueprop (ALL x:A. P(x))";
 by (simp_tac (simpset () addsimps [Ball_def, thm "atomize_all", thm "atomize_imp"]) 1);
 qed "atomize_ball";
-
-local
-  val ss = FOL_basic_ss addsimps
-    [Drule.norm_hhf_eq, Thm.symmetric atomize_ball, Thm.symmetric (thm "atomize_all"), Thm.symmetric (thm "atomize_imp")];
-in
-
-structure Rulify = RulifyFun
- (val make_meta = Simplifier.simplify ss
-  val full_make_meta = Simplifier.full_simplify ss);
-
-structure BasicRulify: BASIC_RULIFY = Rulify;
-open BasicRulify;
-
-end;

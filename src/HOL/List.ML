@@ -413,7 +413,7 @@ by (rev_induct_tac "xs" 1);
 by Auto_tac;
 qed "rev_exhaust_aux";
 
-bind_thm ("rev_exhaust", Rulify.rulify rev_exhaust_aux);
+bind_thm ("rev_exhaust", ObjectLogic.rulify rev_exhaust_aux);
 
 
 (** set **)

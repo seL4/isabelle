@@ -8,6 +8,6 @@ theory upair = ZF
 files "Tools/typechk":
 
 setup TypeCheck.setup
-setup Rulify.setup
+declare atomize_ball [symmetric, rulify]
 
 end

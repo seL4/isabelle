@@ -38,7 +38,7 @@ by(etac impE 1);
 by(blast_tac (claset() addIs [le_SucI]) 1);
 val lemma = result();
 
-bind_thm("nat0_intermed_int_val", rulify_no_asm lemma);
+bind_thm("nat0_intermed_int_val", ObjectLogic.rulify_no_asm lemma);
 
 Goal "[| !i. m <= i & i < n --> abs(f(i + 1::nat) - f i) <= Numeral1; m < n; \
 \        f m <= k; k <= f n |] ==> ? i. m <= i & i <= n & f i = (k::int)";

@@ -73,9 +73,9 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
   $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/induct_method.ML \
-  $(SRC)/Provers/make_elim.ML $(SRC)/Provers/rulify.ML \
-  $(SRC)/Provers/simplifier.ML $(SRC)/Provers/split_paired_all.ML \
-  $(SRC)/Provers/splitter.ML $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML \
+  $(SRC)/Provers/make_elim.ML $(SRC)/Provers/simplifier.ML \
+  $(SRC)/Provers/split_paired_all.ML $(SRC)/Provers/splitter.ML \
+  $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML \
   $(SRC)/TFL/rules.ML $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML \
   $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML Calculation.thy \
   Datatype.thy Datatype_Universe.ML Datatype_Universe.thy Divides.ML \

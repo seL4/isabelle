@@ -237,6 +237,7 @@ subsubsection {* Classical Reasoner setup *}
 
 use "cladata.ML"
 setup hypsubst_setup
+declare atomize_all [symmetric, rulify]  atomize_imp [symmetric, rulify]
 setup Classical.setup
 setup clasetup
 

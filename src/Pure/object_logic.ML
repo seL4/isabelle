@@ -14,9 +14,14 @@ sig
   val is_judgment: Sign.sg -> term -> bool
   val drop_judgment: Sign.sg -> term -> term
   val fixed_judgment: Sign.sg -> string -> term
-  val atomize: theory attribute
+  val declare_atomize: theory attribute
+  val declare_rulify: theory attribute
   val atomize_tac: int -> tactic
   val atomize_goal: int -> thm -> thm
+  val rulify: thm -> thm
+  val rulify_no_asm: thm -> thm
+  val rule_format: 'a attribute
+  val rule_format_no_asm: 'a attribute
   val setup: (theory -> theory) list
 end;
 
@@ -31,9 +36,9 @@ struct
 structure ObjectLogicDataArgs =
 struct
   val name = "Pure/object-logic";
-  type T = string option * thm list;
+  type T = string option * (thm list * thm list);
 
-  val empty = (None, []);
+  val empty = (None, ([], [Drule.norm_hhf_eq]));
   val copy = I;
   val prep_ext = I;
 
@@ -41,8 +46,9 @@ struct
         if x = y then Some x else error "Attempt to merge different object-logics"
     | merge_judgment (j1, j2) = if is_some j1 then j1 else j2;
 
-  fun merge ((judgment1, atomize1), (judgment2, atomize2)) =
-    (merge_judgment (judgment1, judgment2), Drule.merge_rules (atomize1, atomize2));
+  fun merge ((judgment1, (atomize1, rulify1)), (judgment2, (atomize2, rulify2))) =
+    (merge_judgment (judgment1, judgment2),
+      (Drule.merge_rules (atomize1, atomize2), Drule.merge_rules (rulify1, rulify2)));
 
   fun print _ _ = ();
 end;
@@ -72,7 +78,6 @@ val add_judgment_i = gen_add_judgment Theory.add_consts_i;
 end;
 
 
-
 (* term operations *)
 
 fun judgment_name sg =
@@ -99,30 +104,47 @@ fun fixed_judgment sg x =
 
 
 
-(** atomize meta-level connectives **)
+(** treatment of meta-level connectives **)
 
 (* maintain rules *)
 
-val get_atomize_sg = #2 o ObjectLogicData.get_sg;
+val get_atomize = #1 o #2 o ObjectLogicData.get_sg;
+val get_rulify = #2 o #2 o ObjectLogicData.get_sg;
 
-val add_atomize = ObjectLogicData.map o Library.apsnd o Drule.add_rules;
-fun atomize (thy, th) = (add_atomize [th] thy, th);
+val add_atomize = ObjectLogicData.map o Library.apsnd o Library.apfst o Drule.add_rules;
+val add_rulify = ObjectLogicData.map o Library.apsnd o Library.apsnd o Drule.add_rules;
+
+fun declare_atomize (thy, th) = (add_atomize [th] thy, th);
+fun declare_rulify (thy, th) = (add_rulify [th] thy, th);
 
 
-(* tactics *)
+(* atomize *)
 
 fun rewrite_prems_tac rews i = PRIMITIVE (MetaSimplifier.fconv_rule
   (MetaSimplifier.goals_conv (Library.equal i)
     (MetaSimplifier.forall_conv
-      (MetaSimplifier.goals_conv (K true) (Tactic.full_rewrite rews)))));
+      (MetaSimplifier.goals_conv (K true) (Tactic.rewrite true rews)))));
 
 fun atomize_tac i st =
   if Logic.has_meta_prems (#prop (Thm.rep_thm st)) i then
-    (rewrite_prems_tac (get_atomize_sg (Thm.sign_of_thm st)) i) st
+    (rewrite_prems_tac (get_atomize (Thm.sign_of_thm st)) i) st
   else all_tac st;
 
 fun atomize_goal i st =
   (case Seq.pull (atomize_tac i st) of None => st | Some (st', _) => st');
+
+
+(* rulify *)
+
+fun gen_rulify full thm =
+  Tactic.simplify full (get_rulify (Thm.sign_of_thm thm)) thm
+  |> Drule.forall_elim_vars_safe |> Drule.strip_shyps_warning |> Drule.zero_var_indexes;
+
+val rulify = gen_rulify true;
+val rulify_no_asm = gen_rulify false;
+
+fun rule_format x = Drule.rule_attribute (fn _ => rulify) x;
+fun rule_format_no_asm x = Drule.rule_attribute (fn _ => rulify_no_asm) x;
 
 
 
