@@ -3,7 +3,7 @@
     Author:     Markus Wenzel, TU Muenchen
 
 The 'obtain' language element -- achieves (eliminated) existential
-quantification proof command level.
+quantification at proof command level.
 
 The common case:
 
