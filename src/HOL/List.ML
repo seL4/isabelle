@@ -381,10 +381,10 @@ qed "Nil_is_rev_conv";
 AddIffs [Nil_is_rev_conv];
 
 Goal "!ys. (rev xs = rev ys) = (xs = ys)";
-by(induct_tac "xs" 1);
+by (induct_tac "xs" 1);
  by (Force_tac 1);
-br allI 1;
-by(exhaust_tac "ys" 1);
+by (rtac allI 1);
+by (exhaust_tac "ys" 1);
  by (Asm_simp_tac 1);
 by (Force_tac 1);
 qed_spec_mp "rev_is_rev_conv";
