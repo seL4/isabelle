@@ -340,11 +340,11 @@ fun infer prt prT classrel arities =
          [unif_failed msg,
           "Type error in application:",
           "",
-          str_of (Pretty.block [Pretty.str "operator:     ", Pretty.brk 1, prt t',
+          str_of (Pretty.block [Pretty.str "operator:", Pretty.brk 2, prt t',
             Pretty.str " :: ", prT T']),
-          str_of (Pretty.block [Pretty.str "expected type:", Pretty.brk 1, prT U_to_V']),
+          str_of (Pretty.block [Pretty.str "expected:", Pretty.brk 2, prT U_to_V']),
           "",
-          str_of (Pretty.block [Pretty.str "operand:      ", Pretty.brk 1, prt u',
+          str_of (Pretty.block [Pretty.str "operand:", Pretty.brk 3, prt u',
             Pretty.str " :: ", prT U']), ""];
       in raise_type text [T', U_to_V', U'] [t', u'] end;
 
@@ -355,9 +355,9 @@ fun infer prt prT classrel arities =
          [unif_failed msg,
           "Cannot meet type constraint:",
           "",
-          str_of (Pretty.block [Pretty.str "term:          ", Pretty.brk 1, prt t',
+          str_of (Pretty.block [Pretty.str "term:", Pretty.brk 2, prt t',
             Pretty.str " :: ", prT T']),
-          str_of (Pretty.block [Pretty.str "expected type: ", Pretty.brk 1, prT U']), ""];
+          str_of (Pretty.block [Pretty.str "type:", Pretty.brk 2, prT U']), ""];
       in raise_type text [T', U'] [t'] end;
 
 
