@@ -405,7 +405,6 @@ goalw Finite.thy [psubset_def]
 "!!B. finite B ==> !A. A < B --> card(A) < card(B)";
 by (etac finite_induct 1);
 by (Simp_tac 1);
-by (Blast_tac 1);
 by (Clarify_tac 1);
 by (case_tac "x:A" 1);
 (*1*)
