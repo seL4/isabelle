@@ -1662,7 +1662,7 @@ val NUM180_1 = prove
 \  (! Y. equal(domain_of(flip(cross_product(Y::'a,universal_class))),inverse(Y))) & \
 \  (! Z. equal(domain_of(inverse(Z)),range_of(Z))) &    \
 \  (! Z X Y. equal(first(not_subclass_element(restrict(Z::'a,X,singleton(Y)),null_class)),domain(Z::'a,X,Y))) & \
-\  (! Z X Y. equal(second(not_subclass_element(restrict(Z::'a,singleton(X),Y),null_class)),range(Z::'a,X,Y))) & \
+\  (! Z X Y. equal(second(not_subclass_element(restrict(Z::'a,singleton(X),Y),null_class)),rng(Z::'a,X,Y))) & \
 \  (! Xr X. equal(range_of(restrict(Xr::'a,X,universal_class)),image(Xr::'a,X))) &      \
 \  (! X. equal(union(X::'a,singleton(X)),successor(X))) &   \
 \  (subclass(successor_relation::'a,cross_product(universal_class::'a,universal_class))) &      \
@@ -1746,9 +1746,9 @@ val NUM180_1 = prove
 \  (! R3 S3 T3. equal(R3::'a,S3) --> equal(ordered_pair(R3::'a,T3),ordered_pair(S3::'a,T3))) &      \
 \  (! U3 W3 V3. equal(U3::'a,V3) --> equal(ordered_pair(W3::'a,U3),ordered_pair(W3::'a,V3))) &      \
 \  (! X3 Y3. equal(X3::'a,Y3) --> equal(power_class(X3),power_class(Y3))) & \
-\  (! Z3 A4 B4 C4. equal(Z3::'a,A4) --> equal(range(Z3::'a,B4,C4),range(A4::'a,B4,C4))) &   \
-\  (! D4 F4 E4 G4. equal(D4::'a,E4) --> equal(range(F4::'a,D4,G4),range(F4::'a,E4,G4))) &   \
-\  (! H4 J4 K4 I4. equal(H4::'a,I4) --> equal(range(J4::'a,K4,H4),range(J4::'a,K4,I4))) &   \
+\  (! Z3 A4 B4 C4. equal(Z3::'a,A4) --> equal(rng(Z3::'a,B4,C4),rng(A4::'a,B4,C4))) &   \
+\  (! D4 F4 E4 G4. equal(D4::'a,E4) --> equal(rng(F4::'a,D4,G4),rng(F4::'a,E4,G4))) &   \
+\  (! H4 J4 K4 I4. equal(H4::'a,I4) --> equal(rng(J4::'a,K4,H4),rng(J4::'a,K4,I4))) &   \
 \  (! L4 M4. equal(L4::'a,M4) --> equal(range_of(L4),range_of(M4))) &       \
 \  (! N4 O4. equal(N4::'a,O4) --> equal(regular(N4),regular(O4))) & \
 \  (! P4 Q4 R4 S4. equal(P4::'a,Q4) --> equal(restrict(P4::'a,R4,S4),restrict(Q4::'a,R4,S4))) &     \
@@ -1932,7 +1932,7 @@ val NUM228_1 = prove
 \  (! Y. equal(domain_of(flip(cross_product(Y::'a,universal_class))),inverse(Y))) & \
 \  (! Z. equal(domain_of(inverse(Z)),range_of(Z))) &    \
 \  (! Z X Y. equal(first(not_subclass_element(restrict(Z::'a,X,singleton(Y)),null_class)),domain(Z::'a,X,Y))) & \
-\  (! Z X Y. equal(second(not_subclass_element(restrict(Z::'a,singleton(X),Y),null_class)),range(Z::'a,X,Y))) & \
+\  (! Z X Y. equal(second(not_subclass_element(restrict(Z::'a,singleton(X),Y),null_class)),rng(Z::'a,X,Y))) & \
 \  (! Xr X. equal(range_of(restrict(Xr::'a,X,universal_class)),image(Xr::'a,X))) &      \
 \  (! X. equal(union(X::'a,singleton(X)),successor(X))) &   \
 \  (subclass(successor_relation::'a,cross_product(universal_class::'a,universal_class))) &      \
@@ -2016,9 +2016,9 @@ val NUM228_1 = prove
 \  (! R3 S3 T3. equal(R3::'a,S3) --> equal(ordered_pair(R3::'a,T3),ordered_pair(S3::'a,T3))) &      \
 \  (! U3 W3 V3. equal(U3::'a,V3) --> equal(ordered_pair(W3::'a,U3),ordered_pair(W3::'a,V3))) &      \
 \  (! X3 Y3. equal(X3::'a,Y3) --> equal(power_class(X3),power_class(Y3))) & \
-\  (! Z3 A4 B4 C4. equal(Z3::'a,A4) --> equal(range(Z3::'a,B4,C4),range(A4::'a,B4,C4))) &   \
-\  (! D4 F4 E4 G4. equal(D4::'a,E4) --> equal(range(F4::'a,D4,G4),range(F4::'a,E4,G4))) &   \
-\  (! H4 J4 K4 I4. equal(H4::'a,I4) --> equal(range(J4::'a,K4,H4),range(J4::'a,K4,I4))) &   \
+\  (! Z3 A4 B4 C4. equal(Z3::'a,A4) --> equal(rng(Z3::'a,B4,C4),rng(A4::'a,B4,C4))) &   \
+\  (! D4 F4 E4 G4. equal(D4::'a,E4) --> equal(rng(F4::'a,D4,G4),rng(F4::'a,E4,G4))) &   \
+\  (! H4 J4 K4 I4. equal(H4::'a,I4) --> equal(rng(J4::'a,K4,H4),rng(J4::'a,K4,I4))) &   \
 \  (! L4 M4. equal(L4::'a,M4) --> equal(range_of(L4),range_of(M4))) &       \
 \  (! N4 O4. equal(N4::'a,O4) --> equal(regular(N4),regular(O4))) & \
 \  (! P4 Q4 R4 S4. equal(P4::'a,Q4) --> equal(restrict(P4::'a,R4,S4),restrict(Q4::'a,R4,S4))) &     \
