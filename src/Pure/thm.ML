@@ -1495,7 +1495,7 @@ fun var_perm (t, u) =
 
 (*simple test for looping rewrite*)
 fun loops sign prems (lhs, rhs) =
-   is_Var lhs
+   is_Var (head_of lhs)
   orelse
    (exists (apl (lhs, Logic.occs)) (rhs :: prems))
   orelse
@@ -1712,8 +1712,7 @@ fun mk_procrule (thm as Thm {sign, prop, ...}) =
 
 fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...}) 
              (shypst,hypst,maxt,t,ders) =
-  let val etat = Pattern.eta_contract t;
-      fun rew {thm as Thm{sign,der,maxidx,shyps,hyps,prop,...}, lhs, perm} =
+  let fun rew {thm as Thm{sign,der,maxidx,shyps,hyps,prop,...}, lhs, perm} =
         let val unit = if Sign.subsig(sign,signt) then ()
                   else (trace_thm_warning "rewrite rule from different theory"
                           thm;
@@ -1722,7 +1721,7 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
                         else Logic.incr_indexes([],maxt+1) prop;
             val rlhs = if maxt = ~1 then lhs
                        else fst(Logic.dest_equals(Logic.strip_imp_concl rprop))
-            val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (rlhs,etat)
+            val insts = Pattern.match (#tsig(Sign.rep_sg signt)) (rlhs,t)
             val prop' = ren_inst(insts,rprop,rlhs,t);
             val hyps' = union_term(hyps,hypst);
             val shyps' = add_insts_sorts (insts, union_sort(shyps,shypst));
@@ -1766,7 +1765,7 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
 
       fun proc_rews [] = None
         | proc_rews ((f, _) :: fs) =
-            (case f signt etat of
+            (case f signt t of
               None => proc_rews fs
             | Some raw_thm =>
                 (trace_thm "Proved rewrite rule: " raw_thm;
@@ -1774,12 +1773,12 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
                    None => proc_rews fs
                  | some => some)));
   in
-    (case etat of
+    (case t of
       Abs (_, _, body) $ u =>		(* FIXME bug!? (because of beta/eta overlap) *)
         Some (shypst, hypst, maxt, subst_bound (u, body), ders)
      | _ =>
-      (case rews (sort_rrules (Net.match_term rules etat)) of
-        None => proc_rews (Net.match_term procs etat)
+      (case rews (sort_rrules (Net.match_term rules t)) of
+        None => proc_rews (Net.match_term procs t)
       | some => some))
   end;
 

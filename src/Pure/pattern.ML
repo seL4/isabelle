@@ -226,21 +226,51 @@ fun unify(sg,env,tus) = (tsgr := #tsig(Sign.rep_sg sg);
 
 
 (*Eta-contract a term (fully)*)
+
+(* copying: *)
 fun eta_contract (Abs(a,T,body)) = 
       (case  eta_contract body  of
         body' as (f $ Bound 0) => 
-	  if (0 mem_int loose_bnos f) then Abs(a,T,body')
+	  if loose_bvar1(f,0) then Abs(a,T,body')
 	  else incr_boundvars ~1 f 
       | body' => Abs(a,T,body'))
   | eta_contract(f$t) = eta_contract f $ eta_contract t
   | eta_contract t = t;
 
 
+(* sharing:
+local
+
+fun eta(Abs(x,T,t)) =
+     (case eta t of
+        None => (case t of
+                   f $ Bound 0 => if loose_bvar1(f,0)
+                                  then None
+                                  else Some(incr_boundvars ~1 f)
+                 | _ => None)
+      | Some(t') => (case t' of
+                       f $ Bound 0 => if loose_bvar1(f,0)
+                                      then Some(Abs(x,T,t'))
+                                      else Some(incr_boundvars ~1 f)
+                     | _ => Some(Abs(x,T,t'))))
+  | eta(s$t) = (case (eta s,eta t) of
+                  (None,   None)    => None
+                | (None,   Some t') => Some(s  $ t')
+                | (Some s',None)    => Some(s' $ t)
+                | (Some s',Some t') => Some(s' $ t'))
+  | eta _ = None
+
+in
+
+fun eta_contract t = case eta t of None => t | Some(t') => t';
+
+end; *)
+
 (*Eta-contract a term from outside: just enough to reduce it to an atom*)
 fun eta_contract_atom (t0 as Abs(a, T, body)) = 
       (case  eta_contract2 body  of
         body' as (f $ Bound 0) => 
-	    if (0 mem_int loose_bnos f) then Abs(a,T,body')
+	    if loose_bvar1(f,0) then Abs(a,T,body')
 	    else eta_contract_atom (incr_boundvars ~1 f)
       | _ => t0)
   | eta_contract_atom t = t

@@ -283,6 +283,10 @@ fun loose_bvar(Bound i,k) = i >= k
   | loose_bvar(Abs(_,_,t),k) = loose_bvar(t,k+1)
   | loose_bvar _ = false;
 
+fun loose_bvar1(Bound i,k) = i = k
+  | loose_bvar1(f$t, k) = loose_bvar1(f,k) orelse loose_bvar1(t,k)
+  | loose_bvar1(Abs(_,_,t),k) = loose_bvar1(t,k+1)
+  | loose_bvar1 _ = false;
 
 (*Substitute arguments for loose bound variables.
   Beta-reduction of arg(n-1)...arg0 into t replacing (Bound i) with (argi).
