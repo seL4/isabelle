@@ -39,11 +39,7 @@ signature TFL =
    val defer : theory -> xstring
                   -> thm list 
                   -> string list -> theory * thm
-(*
-   val simplify_defn : simpset * thm list 
-                        -> theory * (string * Prim.pattern list)
-                        -> {rules:thm list, induct:thm, tcs:term list}
-*)
+
   end;
 
 

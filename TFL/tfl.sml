@@ -107,25 +107,19 @@ fun ipartition gv (constructors,rows) =
 
 
 (*---------------------------------------------------------------------------
- * This datatype carries some information about the origin of a
- * clause in a function definition.
+ * Each pattern carries with it a tag (i,b) where
+ * i is the clause it came from and
+ * b=true indicates that clause was given by the user
+ * (or is an instantiation of a user supplied pattern)
+ * b=false --> i = ~1
  *---------------------------------------------------------------------------*)
-(*
-datatype pattern = GIVEN   of term * int
-                 | OMITTED of term * int
-*)
-(* True means the pattern was given by the user
-   (or is an instantiation of a user supplied pattern)
-*)
+
 type pattern = term * (int * bool)
 
 fun pattern_map f (tm,x) = (f tm, x);
 
 fun pattern_subst theta = pattern_map (subst_free theta);
-(*
-fun dest_pattern (GIVEN (tm,i)) = ((GIVEN,i),tm)
-  | dest_pattern (OMITTED (tm,i)) = ((OMITTED,i),tm);
-*)
+
 val pat_of = fst;
 val row_of_pat = fst o snd;
 val given = snd o snd;
@@ -343,7 +337,8 @@ fun mk_functional thy clauses =
      val originals = map (row_of_pat o #2) rows
      val dummy = case (originals\\finals)
              of [] => ()
-          | L => mk_functional_err ("The following rows are inaccessible: " ^
+          | L => mk_functional_err
+ ("The following clauses are redundant (covered by preceding clauses): " ^
                    commas (map Int.toString L))
  in {functional = Abs(Sign.base_name fname, ftype,
 		      abstract_over (atom, 
