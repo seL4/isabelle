@@ -259,10 +259,16 @@ HOL-GroupTheory: HOL $(LOG)/HOL-GroupTheory.gz
 
 $(LOG)/HOL-GroupTheory.gz: $(OUT)/HOL \
   Library/Primes.thy \
-  GroupTheory/Exponent.thy GroupTheory/Exponent.ML\
+  GroupTheory/Bij.thy GroupTheory/Bij.ML\
   GroupTheory/Coset.thy GroupTheory/Coset.ML\
   GroupTheory/DirProd.thy GroupTheory/DirProd.ML\
+  GroupTheory/Exponent.thy GroupTheory/Exponent.ML\
+  GroupTheory/FactGroup.thy GroupTheory/FactGroup.ML\
   GroupTheory/Group.thy GroupTheory/Group.ML\
+  GroupTheory/Homomorphism.thy GroupTheory/Homomorphism.ML\
+  GroupTheory/PiSets.ML GroupTheory/PiSets.thy \
+  GroupTheory/Ring.thy GroupTheory/Ring.ML\
+  GroupTheory/RingConstr.thy GroupTheory/RingConstr.ML\
   GroupTheory/Sylow.thy GroupTheory/Sylow.ML\
   GroupTheory/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL GroupTheory
@@ -518,9 +524,9 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 $(LOG)/HOL-ex.gz: $(OUT)/HOL ex/AVL.ML ex/AVL.thy ex/Antiquote.thy \
   ex/BT.thy ex/BinEx.thy ex/Group.ML ex/Group.thy \
   ex/InSort.ML ex/InSort.thy ex/IntRing.ML ex/IntRing.thy \
-  ex/Lagrange.ML ex/Lagrange.thy ex/LocaleGroup.ML ex/LocaleGroup.thy \
+  ex/Lagrange.ML ex/Lagrange.thy \
   ex/MT.ML ex/MT.thy ex/MonoidGroup.thy ex/Multiquote.thy \
-  ex/NatSum.thy ex/PER.thy ex/PiSets.ML ex/PiSets.thy \
+  ex/NatSum.thy ex/PER.thy \
   ex/Primrec.thy ex/Puzzle.ML ex/Puzzle.thy ex/Qsort.ML ex/Qsort.thy \
   ex/ROOT.ML ex/Recdefs.thy ex/Records.thy ex/Ring.ML \
   ex/Ring.thy ex/StringEx.thy ex/Tarski.ML \
