@@ -193,7 +193,7 @@ in
 
      (*Pretty printers for type lists;
        pp_typlist1: parentheses, pp_typlist2: brackets*)
-      fun pp_typ (dtVar s) = s
+      fun pp_typ (dtVar s) = "(" ^ s ^ "::term)"
         | pp_typ (dtTyp (typvars, id)) =
 	  if null typvars then id else (pp_typlist1 typvars) ^ id
         | pp_typ (dtRek (typvars, id)) = (pp_typlist1 typvars) ^ id
@@ -294,7 +294,7 @@ in
       val case_const =
 	(t_case,
 	 "[" ^ gen_typlist new_tvar_name I cons_list 
-	 ^  pp_typlist1 typevars ^ tname ^ "] =>" ^ new_tvar_name,
+	 ^  pp_typlist1 typevars ^ tname ^ "] =>" ^ new_tvar_name^"::term",
 	 NoSyn);
 
       val rules_case = case_rules 1 cons_list;
@@ -330,7 +330,7 @@ in
       val rec_const =
 	(t_rec,
 	 "[" ^ (gen_typlist new_tvar_name add_reks cons_list) 
-	 ^ (pp_typlist1 typevars) ^ tname ^ "] =>" ^ new_tvar_name,
+	 ^ (pp_typlist1 typevars) ^ tname ^ "] =>" ^ new_tvar_name^"::term",
 	 NoSyn);
 
       val rules_rec = rec_rules 1 cons_list
