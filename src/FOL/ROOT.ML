@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ROOT
+(*  Title:      FOL/ROOT
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Adds First-Order Logic to a database containing pure Isabelle. 
@@ -43,10 +43,10 @@ use "intprover.ML";
 (*** Applying ClassicalFun to create a classical prover ***)
 structure Classical_Data = 
   struct
-  val sizef	= size_of_thm
-  val mp	= mp
-  val not_elim	= notE
-  val classical	= classical
+  val sizef     = size_of_thm
+  val mp        = mp
+  val not_elim  = notE
+  val classical = classical
   val hyp_subst_tacs=[hyp_subst_tac]
   end;
 
@@ -72,4 +72,4 @@ use "simpdata.ML";
 use "../Pure/install_pp.ML";
 print_depth 8;
 
-val FOL_build_completed = ();	(*indicate successful build*)
+val FOL_build_completed = ();   (*indicate successful build*)

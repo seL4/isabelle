@@ -1,6 +1,6 @@
-(*  Title: 	CCL/ex/stream
+(*  Title:      CCL/ex/stream
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For stream.thy.
@@ -19,7 +19,7 @@ by (eq_coinduct3_tac
        "{p. EX x y.p=<x,y> & (EX l:Lists(A).x=map(f o g,l) & y=map(f,map(g,l)))}"  1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac type_cs);
-be (XH_to_E ListsXH) 1;
+by (etac (XH_to_E ListsXH) 1);
 by (EQgen_tac list_ss [] 1);
 by (simp_tac list_ss 1);
 by (fast_tac ccl_cs 1);
@@ -32,7 +32,7 @@ by (eq_coinduct3_tac
        "{p. EX x y.p=<x,y> & (EX l:Lists(A).x=map(%x.x,l) & y=l)}"  1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac type_cs);
-be (XH_to_E ListsXH) 1;
+by (etac (XH_to_E ListsXH) 1);
 by (EQgen_tac list_ss [] 1);
 by (fast_tac ccl_cs 1);
 qed "map_id";
@@ -45,9 +45,9 @@ by (eq_coinduct3_tac "{p. EX x y.p=<x,y> & (EX l:Lists(A).EX m:Lists(A). \
 \                                           x=map(f,l@m) & y=map(f,l) @ map(f,m))}"  1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac type_cs);
-be (XH_to_E ListsXH) 1;
+by (etac (XH_to_E ListsXH) 1);
 by (EQgen_tac list_ss [] 1);
-be (XH_to_E ListsXH) 1;
+by (etac (XH_to_E ListsXH) 1);
 by (EQgen_tac list_ss [] 1);
 by (fast_tac ccl_cs 1);
 qed "map_append";
@@ -61,7 +61,7 @@ by (eq_coinduct3_tac
 \                          x=k @ l @ m & y=(k @ l) @ m)}"  1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac type_cs);
-be (XH_to_E ListsXH) 1;
+by (etac (XH_to_E ListsXH) 1);
 by (EQgen_tac list_ss [] 1);
 by (fast_tac ccl_cs 2);
 by (DEPTH_SOLVE (etac (XH_to_E ListsXH) 1 THEN EQgen_tac list_ss [] 1));
@@ -74,7 +74,7 @@ by (eq_coinduct3_tac
     "{p. EX x y.p=<x,y> & (EX l:ILists(A).EX m.x=l@m & y=l)}" 1);
 by (fast_tac (ccl_cs addSIs prems) 1);
 by (safe_tac set_cs);
-be (XH_to_E IListsXH) 1;
+by (etac (XH_to_E IListsXH) 1);
 by (EQgen_tac list_ss [] 1);
 by (fast_tac ccl_cs 1);
 qed "ilist_append";
@@ -85,13 +85,13 @@ qed "ilist_append";
 (*        fun iter2(f,a) = a$map(f,iter2(f,a))                        *)
 
 goalw Stream.thy [iter1_def] "iter1(f,a) = a$iter1(f,f(a))";
-br (letrecB RS trans) 1;
+by (rtac (letrecB RS trans) 1);
 by (simp_tac term_ss 1);
 qed "iter1B";
 
 goalw Stream.thy [iter2_def] "iter2(f,a) = a $ map(f,iter2(f,a))";
-br (letrecB RS trans) 1;
-br refl 1;
+by (rtac (letrecB RS trans) 1);
+by (rtac refl 1);
 qed "iter2B";
 
 val [prem] =goal Stream.thy
@@ -106,7 +106,7 @@ by (eq_coinduct3_tac
     "{p. EX x y.p=<x,y> & (EX n:Nat.x=iter1(f,f^n`a) & y=map(f)^n`iter2(f,a))}"
     1);
 by (fast_tac (type_cs addSIs [napplyBzero RS sym,
-			      napplyBzero RS sym RS arg_cong]) 1);
+                              napplyBzero RS sym RS arg_cong]) 1);
 by (EQgen_tac list_ss [iter1B,iter2Blemma] 1);
 by (rtac (napply_f RS ssubst) 1 THEN atac 1);
 by (res_inst_tac [("f1","f")] (napplyBsucc RS subst) 1);

@@ -1,6 +1,6 @@
-(*  Title: 	FOL/simpdata
+(*  Title:      FOL/simpdata
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Simplification data for FOL
@@ -12,37 +12,37 @@ fun int_prove_fun s =
  (writeln s;  
   prove_goal IFOL.thy s
    (fn prems => [ (cut_facts_tac prems 1), 
-		  (Int.fast_tac 1) ]));
+                  (Int.fast_tac 1) ]));
 
 val conj_rews = map int_prove_fun
- ["P & True <-> P", 	 "True & P <-> P",
+ ["P & True <-> P",      "True & P <-> P",
   "P & False <-> False", "False & P <-> False",
   "P & P <-> P",
-  "P & ~P <-> False", 	 "~P & P <-> False",
+  "P & ~P <-> False",    "~P & P <-> False",
   "(P & Q) & R <-> P & (Q & R)"];
 
 val disj_rews = map int_prove_fun
- ["P | True <-> True", 	"True | P <-> True",
-  "P | False <-> P", 	"False | P <-> P",
+ ["P | True <-> True",  "True | P <-> True",
+  "P | False <-> P",    "False | P <-> P",
   "P | P <-> P",
   "(P | Q) | R <-> P | (Q | R)"];
 
 val not_rews = map int_prove_fun
  ["~(P|Q)  <-> ~P & ~Q",
-  "~ False <-> True",	"~ True <-> False"];
+  "~ False <-> True",   "~ True <-> False"];
 
 val imp_rews = map int_prove_fun
- ["(P --> False) <-> ~P",	"(P --> True) <-> True",
-  "(False --> P) <-> True",	"(True --> P) <-> P", 
-  "(P --> P) <-> True",		"(P --> ~P) <-> ~P"];
+ ["(P --> False) <-> ~P",       "(P --> True) <-> True",
+  "(False --> P) <-> True",     "(True --> P) <-> P", 
+  "(P --> P) <-> True",         "(P --> ~P) <-> ~P"];
 
 val iff_rews = map int_prove_fun
- ["(True <-> P) <-> P", 	"(P <-> True) <-> P",
+ ["(True <-> P) <-> P",         "(P <-> True) <-> P",
   "(P <-> P) <-> True",
-  "(False <-> P) <-> ~P", 	"(P <-> False) <-> ~P"];
+  "(False <-> P) <-> ~P",       "(P <-> False) <-> ~P"];
 
 val quant_rews = map int_prove_fun
- ["(ALL x.P) <-> P",	"(EX x.P) <-> P"];
+ ["(ALL x.P) <-> P",    "(EX x.P) <-> P"];
 
 (*These are NOT supplied by default!*)
 val distrib_rews  = map int_prove_fun
@@ -62,12 +62,12 @@ fun atomize r =
   case concl_of r of
     Const("Trueprop",_) $ p =>
       (case p of
-	 Const("op -->",_)$_$_ => atomize(r RS mp)
+         Const("op -->",_)$_$_ => atomize(r RS mp)
        | Const("op &",_)$_$_   => atomize(r RS conjunct1) @
-	  		          atomize(r RS conjunct2)
+                                  atomize(r RS conjunct2)
        | Const("All",_)$_      => atomize(r RS spec)
-       | Const("True",_)       => []	(*True is DELETED*)
-       | Const("False",_)      => []	(*should False do something?*)
+       | Const("True",_)       => []    (*True is DELETED*)
+       | Const("False",_)      => []    (*should False do something?*)
        | _                     => [r])
   | _ => [r];
 
@@ -111,8 +111,8 @@ val IFOL_ss =
   empty_ss 
   setmksimps (map mk_meta_eq o atomize o gen_all)
   setsolver  (fn prems => resolve_tac (triv_rls@prems) 
-	                  ORELSE' assume_tac
-	                  ORELSE' etac FalseE)
+                          ORELSE' assume_tac
+                          ORELSE' etac FalseE)
   setsubgoaler asm_simp_tac
   addsimps IFOL_rews
   addcongs [imp_cong];
@@ -122,12 +122,12 @@ fun prove_fun s =
  (writeln s;  
   prove_goal FOL.thy s
    (fn prems => [ (cut_facts_tac prems 1), 
-		  (Cla.fast_tac FOL_cs 1) ]));
+                  (Cla.fast_tac FOL_cs 1) ]));
 
 val cla_rews = map prove_fun
  ["~(P&Q)  <-> ~P | ~Q",
-  "P | ~P", 		"~P | P",
-  "~ ~ P <-> P",	"(~P --> P) <-> P"];
+  "P | ~P",             "~P | P",
+  "~ ~ P <-> P",        "(~P --> P) <-> P"];
 
 val FOL_ss = IFOL_ss addsimps cla_rews;
 

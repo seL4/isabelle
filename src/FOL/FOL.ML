@@ -1,6 +1,6 @@
-(*  Title: 	FOL/FOL.ML
+(*  Title:      FOL/FOL.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Tactics and lemmas for FOL.thy (classical First-Order Logic)
@@ -14,7 +14,7 @@ open FOL;
 qed_goal "disjCI" FOL.thy 
    "(~Q ==> P) ==> P|Q"
  (fn prems=>
-  [ (resolve_tac [classical] 1),
+  [ (rtac classical 1),
     (REPEAT (ares_tac (prems@[disjI1,notI]) 1)),
     (REPEAT (ares_tac (prems@[disjI2,notE]) 1)) ]);
 
@@ -22,17 +22,17 @@ qed_goal "disjCI" FOL.thy
 qed_goal "ex_classical" FOL.thy 
    "( ~(EX x. P(x)) ==> P(a)) ==> EX x.P(x)"
  (fn prems=>
-  [ (resolve_tac [classical] 1),
+  [ (rtac classical 1),
     (eresolve_tac (prems RL [exI]) 1) ]);
 
 (*version of above, simplifying ~EX to ALL~ *)
 qed_goal "exCI" FOL.thy 
    "(ALL x. ~P(x) ==> P(a)) ==> EX x.P(x)"
  (fn [prem]=>
-  [ (resolve_tac [ex_classical] 1),
+  [ (rtac ex_classical 1),
     (resolve_tac [notI RS allI RS prem] 1),
-    (eresolve_tac [notE] 1),
-    (eresolve_tac [exI] 1) ]);
+    (etac notE 1),
+    (etac exI 1) ]);
 
 qed_goal "excluded_middle" FOL.thy "~P | P"
  (fn _=> [ rtac disjCI 1, assume_tac 1 ]);
@@ -54,7 +54,7 @@ qed_goal "impCE" FOL.thy
 (*Double negation law*)
 qed_goal "notnotD" FOL.thy "~~P ==> P"
  (fn [major]=>
-  [ (resolve_tac [classical] 1), (eresolve_tac [major RS notE] 1) ]);
+  [ (rtac classical 1), (eresolve_tac [major RS notE] 1) ]);
 
 
 (*** Tactics for implication and contradiction ***)
@@ -64,6 +64,6 @@ qed_goal "notnotD" FOL.thy "~~P ==> P"
 qed_goalw "iffCE" FOL.thy [iff_def]
     "[| P<->Q;  [| P; Q |] ==> R;  [| ~P; ~Q |] ==> R |] ==> R"
  (fn prems =>
-  [ (resolve_tac [conjE] 1),
+  [ (rtac conjE 1),
     (REPEAT (DEPTH_SOLVE_1 
-	(etac impCE 1  ORELSE  mp_tac 1  ORELSE  ares_tac prems 1))) ]);
+        (etac impCE 1  ORELSE  mp_tac 1  ORELSE  ares_tac prems 1))) ]);

@@ -1,9 +1,9 @@
-(*  Title: 	CCL/mono
+(*  Title:      CCL/mono
     ID:         $Id$
 
 Modified version of
-    Title: 	HOL/mono
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Title:      HOL/mono
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Monotonicity of various operations

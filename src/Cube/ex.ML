@@ -1,6 +1,6 @@
 (* Examples taken from
-	H. Barendregt. Introduction to Generalised Type Systems.
-	J. Functional Programming.
+        H. Barendregt. Introduction to Generalised Type Systems.
+        J. Functional Programming.
 *)
 
 Cube_build_completed;    (*Cause examples to fail if Cube did*)
@@ -11,11 +11,11 @@ fun strip_asms_tac thms  i =
     REPEAT(resolve_tac[strip_b,strip_s]i THEN DEPTH_SOLVE_1(ares_tac thms i));
 
 val imp_elim = prove_goal thy "[| f:A->B; a:A; f^a:B ==> PROP P |] ==> PROP P"
-	(fn asms => [REPEAT(resolve_tac (app::asms) 1)]);
+        (fn asms => [REPEAT(resolve_tac (app::asms) 1)]);
 
 val pi_elim = prove_goal thy
-	"[| F:Prod(A,B); a:A; F^a:B(a) ==> PROP P |] ==> PROP P"
-	(fn asms => [REPEAT(resolve_tac (app::asms) 1)]);
+        "[| F:Prod(A,B); a:A; F^a:B(a) ==> PROP P |] ==> PROP P"
+        (fn asms => [REPEAT(resolve_tac (app::asms) 1)]);
 
 (* SIMPLE TYPES *)
 
@@ -114,7 +114,7 @@ by (DEPTH_SOLVE (ares_tac LP 1));
 uresult();
 
 goal LP_thy "A:* P:A->* Q:* a0:A |- \
-\	Lam x:Pi a:A.P^a->Q. Lam y:Pi a:A.P^a. x^a0^(y^a0): ?T";
+\       Lam x:Pi a:A.P^a->Q. Lam y:Pi a:A.P^a. x^a0^(y^a0): ?T";
 by (DEPTH_SOLVE (ares_tac LP 1));
 uresult();
 
@@ -157,13 +157,13 @@ by (DEPTH_SOLVE (ares_tac LP2 1));
 uresult();
 
 goal LP2_thy "A:* P:A->A->* |- \
-\	(Pi a:A.Pi b:A.P^a^b->P^b^a->Pi P:*.P) -> Pi a:A.P^a^a->Pi P:*.P : ?T";
+\       (Pi a:A.Pi b:A.P^a^b->P^b^a->Pi P:*.P) -> Pi a:A.P^a^a->Pi P:*.P : ?T";
 by (DEPTH_SOLVE (ares_tac LP2 1));
 uresult();
 
 (* Antisymmetry implies irreflexivity: *)
 goal LP2_thy "A:* P:A->A->* |- \
-\	?p: (Pi a:A.Pi b:A.P^a^b->P^b^a->Pi P:*.P) -> Pi a:A.P^a^a->Pi P:*.P";
+\       ?p: (Pi a:A.Pi b:A.P^a^b->P^b^a->Pi P:*.P) -> Pi a:A.P^a^a->Pi P:*.P";
 by (strip_asms_tac LP2 1);
 by (rtac lam_ss 1);
 by (DEPTH_SOLVE_1(ares_tac LP2 1));
@@ -208,12 +208,12 @@ uresult();
 (* Some random examples *)
 
 goal LP2_thy "A:* c:A f:A->A |- \
-\	Lam a:A. Pi P:A->*.P^c -> (Pi x:A. P^x->P^(f^x)) -> P^a : ?T";
+\       Lam a:A. Pi P:A->*.P^c -> (Pi x:A. P^x->P^(f^x)) -> P^a : ?T";
 by (DEPTH_SOLVE(ares_tac LP2 1));
 uresult();
 
 goal CC_thy "Lam A:*.Lam c:A.Lam f:A->A. \
-\	Lam a:A. Pi P:A->*.P^c -> (Pi x:A. P^x->P^(f^x)) -> P^a : ?T";
+\       Lam a:A. Pi P:A->*.P^c -> (Pi x:A. P^x->P^(f^x)) -> P^a : ?T";
 by (DEPTH_SOLVE(ares_tac CC 1));
 uresult();
 

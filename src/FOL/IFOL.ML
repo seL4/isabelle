@@ -1,6 +1,6 @@
-(*  Title: 	FOL/IFOL.ML
+(*  Title:      FOL/IFOL.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Tactics and lemmas for IFOL.thy (intuitionistic first-order logic)
@@ -85,7 +85,7 @@ qed_goalw "iffI" IFOL.thy [iff_def]
 (*Observe use of rewrite_rule to unfold "<->" in meta-assumptions (prems) *)
 qed_goalw "iffE" IFOL.thy [iff_def]
     "[| P <-> Q;  [| P-->Q; Q-->P |] ==> R |] ==> R"
- (fn prems => [ (resolve_tac [conjE] 1), (REPEAT (ares_tac prems 1)) ]);
+ (fn prems => [ (rtac conjE 1), (REPEAT (ares_tac prems 1)) ]);
 
 (* Destruct rules for <-> similar to Modus Ponens *)
 
@@ -125,7 +125,7 @@ qed_goalw "ex1I" IFOL.thy [ex1_def]
 qed_goal "ex_ex1I" IFOL.thy
     "[| EX x.P(x);  !!x y. [| P(x); P(y) |] ==> x=y |] ==> EX! x. P(x)"
  (fn [ex,eq] => [ (rtac (ex RS exE) 1),
-		  (REPEAT (ares_tac [ex1I,eq] 1)) ]);
+                  (REPEAT (ares_tac [ex1I,eq] 1)) ]);
 
 qed_goalw "ex1E" IFOL.thy [ex1_def]
     "[| EX! x.P(x);  !!x. [| P(x);  ALL y. P(y) --> y=x |] ==> R |] ==> R"
@@ -171,14 +171,14 @@ qed_goal "imp_cong" IFOL.thy
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (REPEAT   (ares_tac [iffI,impI] 1
-      ORELSE  eresolve_tac [iffE] 1
+      ORELSE  etac iffE 1
       ORELSE  mp_tac 1 ORELSE iff_tac prems 1)) ]);
 
 qed_goal "iff_cong" IFOL.thy 
     "[| P <-> P';  Q <-> Q' |] ==> (P<->Q) <-> (P'<->Q')"
  (fn prems =>
   [ (cut_facts_tac prems 1),
-    (REPEAT   (eresolve_tac [iffE] 1
+    (REPEAT   (etac iffE 1
       ORELSE  ares_tac [iffI] 1
       ORELSE  mp_tac 1)) ]);
 
@@ -195,12 +195,12 @@ qed_goal "all_cong" IFOL.thy
  (fn prems =>
   [ (REPEAT   (ares_tac [iffI,allI] 1
       ORELSE   mp_tac 1
-      ORELSE   eresolve_tac [allE] 1 ORELSE iff_tac prems 1)) ]);
+      ORELSE   etac allE 1 ORELSE iff_tac prems 1)) ]);
 
 qed_goal "ex_cong" IFOL.thy 
     "(!!x.P(x) <-> Q(x)) ==> (EX x.P(x)) <-> (EX x.Q(x))"
  (fn prems =>
-  [ (REPEAT   (eresolve_tac [exE] 1 ORELSE ares_tac [iffI,exI] 1
+  [ (REPEAT   (etac exE 1 ORELSE ares_tac [iffI,exI] 1
       ORELSE   mp_tac 1
       ORELSE   iff_tac prems 1)) ]);
 
@@ -241,7 +241,7 @@ qed_goal "subst_context" IFOL.thy
    "[| a=b |]  ==>  t(a)=t(b)"
  (fn prems=>
   [ (resolve_tac (prems RL [ssubst]) 1),
-    (resolve_tac [refl] 1) ]);
+    (rtac refl 1) ]);
 
 qed_goal "subst_context2" IFOL.thy 
    "[| a=b;  c=d |]  ==>  t(a,c)=t(b,d)"
@@ -254,23 +254,23 @@ qed_goal "subst_context3" IFOL.thy
   [ (EVERY1 (map rtac ((prems RL [ssubst]) @ [refl]))) ]);
 
 (*Useful with eresolve_tac for proving equalties from known equalities.
-	a = b
-	|   |
-	c = d	*)
+        a = b
+        |   |
+        c = d   *)
 qed_goal "box_equals" IFOL.thy
     "[| a=b;  a=c;  b=d |] ==> c=d"  
  (fn prems=>
-  [ (resolve_tac [trans] 1),
-    (resolve_tac [trans] 1),
-    (resolve_tac [sym] 1),
+  [ (rtac trans 1),
+    (rtac trans 1),
+    (rtac sym 1),
     (REPEAT (resolve_tac prems 1)) ]);
 
 (*Dual of box_equals: for proving equalities backwards*)
 qed_goal "simp_equals" IFOL.thy
     "[| a=c;  b=d;  c=d |] ==> a=b"  
  (fn prems=>
-  [ (resolve_tac [trans] 1),
-    (resolve_tac [trans] 1),
+  [ (rtac trans 1),
+    (rtac trans 1),
     (REPEAT (resolve_tac (prems @ (prems RL [sym])) 1)) ]);
 
 (** Congruence rules for predicate letters **)
@@ -300,9 +300,9 @@ qed_goal "pred3_cong" IFOL.thy
 
 val pred_congs = 
     flat (map (fn c => 
-	       map (fn th => read_instantiate [("P",c)] th)
-		   [pred1_cong,pred2_cong,pred3_cong])
-	       (explode"PQRS"));
+               map (fn th => read_instantiate [("P",c)] th)
+                   [pred1_cong,pred2_cong,pred3_cong])
+               (explode"PQRS"));
 
 (*special case for the equality predicate!*)
 val eq_cong = read_instantiate [("P","op =")] pred2_cong;
@@ -360,6 +360,6 @@ qed_goal "ex_impE" IFOL.thy
 
 (*Courtesy Krzysztof Grabczewski*)
 val major::prems = goal IFOL.thy "[| P|Q;  P==>R;  Q==>S |] ==> R|S";
-br (major RS disjE) 1;
+by (rtac (major RS disjE) 1);
 by (REPEAT (eresolve_tac (prems RL [disjI1, disjI2]) 1));
 qed "disj_imp_disj";

@@ -1,6 +1,6 @@
-(*  Title: 	CTT/ex/typechk
+(*  Title:      CTT/ex/typechk
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
   
 Easy examples: type checking and type deduction

@@ -1,6 +1,6 @@
-(*  Title: 	CCL/ex/list
+(*  Title:      CCL/ex/list
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For list.thy.
@@ -32,12 +32,12 @@ val list_ss = nat_ss addsimps listBs;
 (****)
 
 val [prem] = goal List.thy "n:Nat ==> map(f) ^ n ` [] = []";
-br (prem RS Nat_ind) 1;
+by (rtac (prem RS Nat_ind) 1);
 by (ALLGOALS (asm_simp_tac list_ss));
 qed "nmapBnil";
 
 val [prem] = goal List.thy "n:Nat ==> map(f)^n`(x$xs) = (f^n`x)$(map(f)^n`xs)";
-br (prem RS Nat_ind) 1;
+by (rtac (prem RS Nat_ind) 1);
 by (ALLGOALS (asm_simp_tac list_ss));
 qed "nmapBcons";
 
@@ -85,8 +85,8 @@ val prems = goalw List.thy [partition_def]
   "[| f:A->Bool;  l : List(A) |] ==> partition(f,l) : List(A)*List(A)";
 by (typechk_tac prems 1);
 by clean_ccs_tac;
-br (ListPRI RS wfstI RS (ListPR_wf RS wmap_wf RS wfI)) 2;
-br (ListPRI RS wfstI RS (ListPR_wf RS wmap_wf RS wfI)) 1;
+by (rtac (ListPRI RS wfstI RS (ListPR_wf RS wmap_wf RS wfI)) 2);
+by (rtac (ListPRI RS wfstI RS (ListPR_wf RS wmap_wf RS wfI)) 1);
 by (REPEAT (atac 1));
 qed "partitionT";
 

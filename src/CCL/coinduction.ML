@@ -1,6 +1,6 @@
-(*  Title: 	92/CCL/coinduction
+(*  Title:      92/CCL/coinduction
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Lemmas and tactics for using the rule coinduct3 on [= and =.

@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ex/int
+(*  Title:      FOL/ex/int
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Intuitionistic First-Order Logic
@@ -320,9 +320,9 @@ by (Int.fast_tac 1);
 result();
 
 writeln"Problem 44";
-goal IFOLP.thy "?p : (ALL x. f(x) -->					\
-\             (EX y. g(y) & h(x,y) & (EX y. g(y) & ~ h(x,y))))  &   	\
-\             (EX x. j(x) & (ALL y. g(y) --> h(x,y)))			\
+goal IFOLP.thy "?p : (ALL x. f(x) -->                                   \
+\             (EX y. g(y) & h(x,y) & (EX y. g(y) & ~ h(x,y))))  &       \
+\             (EX x. j(x) & (ALL y. g(y) --> h(x,y)))                   \
 \             --> (EX x. j(x) & ~f(x))";
 by (Int.fast_tac 1);
 result();

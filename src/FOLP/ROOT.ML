@@ -1,6 +1,6 @@
-(*  Title: 	FOLP/ROOT
+(*  Title:      FOLP/ROOT
     ID:         $Id$
-    Author: 	martin Coen, Cambridge University Computer Laboratory
+    Author:     martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Modifed version of Lawrence Paulson's FOL that contains proof terms.
@@ -20,7 +20,7 @@ use_thy "FOLP";
 
 use "hypsubst.ML";
 use "classical.ML";      (* Patched 'cos matching won't instantiate proof *)
-use "simp.ML";	         (* Patched 'cos matching won't instantiate proof *)
+use "simp.ML";           (* Patched 'cos matching won't instantiate proof *)
 
 
 (*** Applying HypsubstFun to generate hyp_subst_tac ***)
@@ -34,7 +34,7 @@ structure Hypsubst_Data =
 
   (*etac rev_cut_eq moves an equality to be the last premise. *)
   val rev_cut_eq = prove_goal IFOLP.thy 
-		"[| p:a=b;  !!x.x:a=b ==> f(x):R |] ==> ?p:R"
+                "[| p:a=b;  !!x.x:a=b ==> f(x):R |] ==> ?p:R"
    (fn prems => [ REPEAT(resolve_tac prems 1) ]);
 
   val rev_mp = rev_mp
@@ -78,4 +78,4 @@ use "simpdata.ML";
 use "../Pure/install_pp.ML";
 print_depth 8;
 
-val FOLP_build_completed = ();	(*indicate successful build*)
+val FOLP_build_completed = ();  (*indicate successful build*)

@@ -6,7 +6,7 @@
 Executes all examples for Classical Computational Logic
 *)
 
-CCL_build_completed;	(*Cause examples to fail if CCL did*)
+CCL_build_completed;    (*Cause examples to fail if CCL did*)
 
 writeln"Root file for CCL examples";
 proof_timing := true;

@@ -1,6 +1,6 @@
-(*  Title: 	FOLP/ex/nat.ML
+(*  Title:      FOLP/ex/nat.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Examples for the manual "Introduction to Isabelle"
@@ -59,7 +59,7 @@ val nat_congs = [Suc_cong,Plus_cong];
 
 
 val add_ss = FOLP_ss  addcongs nat_congs  
-	             addrews  [add_0, add_Suc];
+                     addrews  [add_0, add_Suc];
 
 goal Nat.thy "?p : (k+m)+n = k+(m+n)";
 by (res_inst_tac [("n","k")] induct 1);

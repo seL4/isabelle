@@ -1,6 +1,6 @@
-(*  Title: 	FOLP/IFOLP.ML
+(*  Title:      FOLP/IFOLP.ML
     ID:         $Id$
-    Author: 	Martin D Coen, Cambridge University Computer Laboratory
+    Author:     Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Tactics and lemmas for IFOLP (Intuitionistic First-Order Logic with Proofs)
@@ -140,9 +140,9 @@ val uniq_assume_tac =
       let val hyps = map discard_proof (Logic.strip_assums_hyp prem)
           and concl = discard_proof (Logic.strip_assums_concl prem)
       in  
-	  if exists (fn hyp => hyp aconv concl) hyps
-	  then case distinct (filter (fn hyp=> could_unify(hyp,concl)) hyps) of
-	           [_] => assume_tac i
+          if exists (fn hyp => hyp aconv concl) hyps
+          then case distinct (filter (fn hyp=> could_unify(hyp,concl)) hyps) of
+                   [_] => assume_tac i
                  |  _  => no_tac
           else no_tac
       end);
@@ -168,7 +168,7 @@ val iffI = prove_goalw IFOLP.thy [iff_def]
 (*Observe use of rewrite_rule to unfold "<->" in meta-assumptions (prems) *)
 val iffE = prove_goalw IFOLP.thy [iff_def]
     "[| p:P <-> Q;  !!x y.[| x:P-->Q; y:Q-->P |] ==> q(x,y):R |] ==> ?p:R"
- (fn prems => [ (resolve_tac [conjE] 1), (REPEAT (ares_tac prems 1)) ]);
+ (fn prems => [ (rtac conjE 1), (REPEAT (ares_tac prems 1)) ]);
 
 (* Destruct rules for <-> similar to Modus Ponens *)
 
@@ -241,14 +241,14 @@ val imp_cong = prove_goal IFOLP.thy
  (fn prems =>
   [ (cut_facts_tac prems 1),
     (REPEAT   (ares_tac [iffI,impI] 1
-      ORELSE  eresolve_tac [iffE] 1
+      ORELSE  etac iffE 1
       ORELSE  mp_tac 1 ORELSE iff_tac prems 1)) ]);
 
 val iff_cong = prove_goal IFOLP.thy 
     "[| p:P <-> P';  q:Q <-> Q' |] ==> ?p:(P<->Q) <-> (P'<->Q')"
  (fn prems =>
   [ (cut_facts_tac prems 1),
-    (REPEAT   (eresolve_tac [iffE] 1
+    (REPEAT   (etac iffE 1
       ORELSE  ares_tac [iffI] 1
       ORELSE  mp_tac 1)) ]);
 
@@ -265,12 +265,12 @@ val all_cong = prove_goal IFOLP.thy
  (fn prems =>
   [ (REPEAT   (ares_tac [iffI,allI] 1
       ORELSE   mp_tac 1
-      ORELSE   eresolve_tac [allE] 1 ORELSE iff_tac prems 1)) ]);
+      ORELSE   etac allE 1 ORELSE iff_tac prems 1)) ]);
 
 val ex_cong = prove_goal IFOLP.thy 
     "(!!x.f(x):P(x) <-> Q(x)) ==> ?p:(EX x.P(x)) <-> (EX x.Q(x))"
  (fn prems =>
-  [ (REPEAT   (eresolve_tac [exE] 1 ORELSE ares_tac [iffI,exI] 1
+  [ (REPEAT   (etac exE 1 ORELSE ares_tac [iffI,exI] 1
       ORELSE   mp_tac 1
       ORELSE   iff_tac prems 1)) ]);
 
@@ -320,7 +320,7 @@ val subst_context = prove_goal IFOLP.thy
    "[| p:a=b |]  ==>  ?d:t(a)=t(b)"
  (fn prems=>
   [ (resolve_tac (prems RL [ssubst]) 1),
-    (resolve_tac [refl] 1) ]);
+    (rtac refl 1) ]);
 
 val subst_context2 = prove_goal IFOLP.thy 
    "[| p:a=b;  q:c=d |]  ==>  ?p:t(a,c)=t(b,d)"
@@ -333,23 +333,23 @@ val subst_context3 = prove_goal IFOLP.thy
   [ (EVERY1 (map rtac ((prems RL [ssubst]) @ [refl]))) ]);
 
 (*Useful with eresolve_tac for proving equalties from known equalities.
-	a = b
-	|   |
-	c = d	*)
+        a = b
+        |   |
+        c = d   *)
 val box_equals = prove_goal IFOLP.thy
     "[| p:a=b;  q:a=c;  r:b=d |] ==> ?p:c=d"  
  (fn prems=>
-  [ (resolve_tac [trans] 1),
-    (resolve_tac [trans] 1),
-    (resolve_tac [sym] 1),
+  [ (rtac trans 1),
+    (rtac trans 1),
+    (rtac sym 1),
     (REPEAT (resolve_tac prems 1)) ]);
 
 (*Dual of box_equals: for proving equalities backwards*)
 val simp_equals = prove_goal IFOLP.thy
     "[| p:a=c;  q:b=d;  r:c=d |] ==> ?p:a=b"  
  (fn prems=>
-  [ (resolve_tac [trans] 1),
-    (resolve_tac [trans] 1),
+  [ (rtac trans 1),
+    (rtac trans 1),
     (REPEAT (resolve_tac (prems @ (prems RL [sym])) 1)) ]);
 
 (** Congruence rules for predicate letters **)
@@ -379,9 +379,9 @@ val pred3_cong = prove_goal IFOLP.thy
 
 val pred_congs = 
     flat (map (fn c => 
-	       map (fn th => read_instantiate [("P",c)] th)
-		   [pred1_cong,pred2_cong,pred3_cong])
-	       (explode"PQRS"));
+               map (fn th => read_instantiate [("P",c)] th)
+                   [pred1_cong,pred2_cong,pred3_cong])
+               (explode"PQRS"));
 
 (*special case for the equality predicate!*)
 val eq_cong = read_instantiate [("P","op =")] pred2_cong;

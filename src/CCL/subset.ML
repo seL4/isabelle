@@ -1,9 +1,9 @@
-(*  Title: 	CCL/subset
+(*  Title:      CCL/subset
     ID:         $Id$
 
 Modified version of
-    Title: 	HOL/subset
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Title:      HOL/subset
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Derived rules involving subsets
@@ -99,10 +99,10 @@ qed "mono_Int";
 
 val set_cs = FOL_cs 
     addSIs [ballI, subsetI, InterI, INT_I, CollectI, 
-	    ComplI, IntI, UnCI, singletonI] 
+            ComplI, IntI, UnCI, singletonI] 
     addIs  [bexI, UnionI, UN_I] 
     addSEs [bexE, UnionE, UN_E,
-	    CollectE, ComplE, IntE, UnE, emptyE, singletonE] 
+            CollectE, ComplE, IntE, UnE, emptyE, singletonE] 
     addEs  [ballE, InterD, InterE, INT_D, INT_E, subsetD, subsetCE];
 
 fun cfast_tac prems = cut_facts_tac prems THEN' fast_tac set_cs;

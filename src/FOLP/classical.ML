@@ -1,6 +1,6 @@
-(*  Title: 	FOLP/classical
+(*  Title:      FOLP/classical
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Like Provers/classical but modified because match_tac is unsuitable for
@@ -19,10 +19,10 @@ the conclusion.
 
 signature CLASSICAL_DATA =
   sig
-  val mp: thm    		(* [| P-->Q;  P |] ==> Q *)
-  val not_elim: thm		(* [| ~P;  P |] ==> R *)
-  val swap: thm			(* ~P ==> (~Q ==> P) ==> Q *)
-  val sizef : thm -> int	(* size function for BEST_FIRST *)
+  val mp: thm                   (* [| P-->Q;  P |] ==> Q *)
+  val not_elim: thm             (* [| ~P;  P |] ==> R *)
+  val swap: thm                 (* ~P ==> (~Q ==> P) ==> Q *)
+  val sizef : thm -> int        (* size function for BEST_FIRST *)
   val hyp_subst_tacs: (int -> tactic) list
   end;
 
@@ -71,7 +71,7 @@ local open Data in
 val imp_elim = make_elim mp;
 
 (*Solve goal that assumes both P and ~P. *)
-val contr_tac = eresolve_tac [not_elim]  THEN'  assume_tac;
+val contr_tac = etac not_elim THEN'  assume_tac;
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
 fun mp_tac i = eresolve_tac ([not_elim,imp_elim]) i  THEN  assume_tac i;
@@ -94,13 +94,13 @@ fun swap_res_tac rls =
 
 datatype claset =
  CS of {safeIs: thm list,
-	safeEs: thm list,
-	hazIs: thm list,
-	hazEs: thm list,
-	(*the following are computed from the above*)
-	safe0_brls: (bool*thm)list,
-	safep_brls: (bool*thm)list,
-	haz_brls: (bool*thm)list};
+        safeEs: thm list,
+        hazIs: thm list,
+        hazEs: thm list,
+        (*the following are computed from the above*)
+        safe0_brls: (bool*thm)list,
+        safep_brls: (bool*thm)list,
+        haz_brls: (bool*thm)list};
   
 fun rep_claset (CS x) = x;
 
@@ -115,8 +115,8 @@ fun make_cs {safeIs,safeEs,hazIs,hazEs} =
           partition (apl(0,op=) o subgoals_of_brl) 
              (sort lessb (joinrules(safeIs, safeEs)))
   in CS{safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs,
-	safe0_brls=safe0_brls, safep_brls=safep_brls,
-	haz_brls = sort lessb (joinrules(hazIs, hazEs))}
+        safe0_brls=safe0_brls, safep_brls=safep_brls,
+        haz_brls = sort lessb (joinrules(hazIs, hazEs))}
   end;
 
 (*** Manipulation of clasets ***)
@@ -151,10 +151,10 @@ fun cs addDs ths = cs addEs (map make_elim ths);
 (*Attack subgoals using safe inferences*)
 fun safe_step_tac (CS{safe0_brls,safep_brls,...}) = 
   FIRST' [uniq_assume_tac,
-	  uniq_mp_tac,
-	  biresolve_tac safe0_brls,
-	  FIRST' hyp_subst_tacs,
-	  biresolve_tac safep_brls] ;
+          uniq_mp_tac,
+          biresolve_tac safe0_brls,
+          FIRST' hyp_subst_tacs,
+          biresolve_tac safep_brls] ;
 
 (*Repeatedly attack subgoals using safe inferences*)
 fun safe_tac cs = DETERM (REPEAT_FIRST (safe_step_tac cs));

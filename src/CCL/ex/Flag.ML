@@ -1,6 +1,6 @@
-(*  Title: 	CCL/ex/flag
+(*  Title:      CCL/ex/flag
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For flag.thy.
@@ -35,8 +35,8 @@ val prems = goalw Flag.thy [flag_def]
     "flag : List(Colour)->List(Colour)*List(Colour)*List(Colour)";
 by (typechk_tac [redT,whiteT,blueT,ccaseT] 1);
 by clean_ccs_tac;
-be (ListPRI RS (ListPR_wf RS wfI)) 1;
-ba 1;
+by (etac (ListPRI RS (ListPR_wf RS wfI)) 1);
+by (assume_tac 1);
 result();
 
 

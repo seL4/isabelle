@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ex/NatClass.ML
+(*  Title:      FOL/ex/NatClass.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 This is Nat.ML trivially modified to make it work with NatClass.thy.
@@ -10,17 +10,17 @@ open NatClass;
 
 goal NatClass.thy "Suc(k) ~= (k::'a::nat)";
 by (res_inst_tac [("n","k")] induct 1);
-by (resolve_tac [notI] 1);
-by (eresolve_tac [Suc_neq_0] 1);
-by (resolve_tac [notI] 1);
-by (eresolve_tac [notE] 1);
-by (eresolve_tac [Suc_inject] 1);
+by (rtac notI 1);
+by (etac Suc_neq_0 1);
+by (rtac notI 1);
+by (etac notE 1);
+by (etac Suc_inject 1);
 qed "Suc_n_not_n";
 
 
 goal NatClass.thy "(k+m)+n = k+(m+n)";
 prths ([induct] RL [topthm()]);  (*prints all 14 next states!*)
-by (resolve_tac [induct] 1);
+by (rtac induct 1);
 back();
 back();
 back();
@@ -29,11 +29,11 @@ back();
 back();
 
 goalw NatClass.thy [add_def] "0+n = n";
-by (resolve_tac [rec_0] 1);
+by (rtac rec_0 1);
 qed "add_0";
 
 goalw NatClass.thy [add_def] "Suc(m)+n = Suc(m+n)";
-by (resolve_tac [rec_Suc] 1);
+by (rtac rec_Suc 1);
 qed "add_Suc";
 
 val add_ss = FOL_ss addsimps [add_0, add_Suc];

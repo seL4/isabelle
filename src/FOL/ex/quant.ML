@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ex/quant
+(*  Title:      FOL/ex/quant
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 First-Order Logic: quantifier examples (intuitionistic and classical)

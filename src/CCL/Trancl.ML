@@ -1,11 +1,11 @@
-(*  Title: 	CCL/trancl
+(*  Title:      CCL/trancl
     ID:         $Id$
 
 For trancl.thy.
 
 Modified version of
-    Title: 	HOL/trancl.ML
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Title:      HOL/trancl.ML
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 *)
@@ -66,8 +66,8 @@ by (REPEAT (ares_tac prems 1 ORELSE eresolve_tac [pair_inject,ssubst] 1));
 qed "compEpair";
 
 val comp_cs = set_cs addIs [compI,idI] 
-		       addEs [compE,idE] 
-		       addSEs [pair_inject];
+                       addEs [compE,idE] 
+                       addSEs [pair_inject];
 
 val prems = goal Trancl.thy
     "[| r'<=r; s'<=s |] ==> (r' O s') <= (r O s)";
@@ -120,7 +120,7 @@ qed "rtrancl_full_induct";
 val major::prems = goal Trancl.thy
     "[| <a,b> : r^*;    \
 \       P(a); \
-\	!!y z.[| <a,y> : r^*;  <y,z> : r;  P(y) |] ==> P(z) |]  \
+\       !!y z.[| <a,y> : r^*;  <y,z> : r;  P(y) |] ==> P(z) |]  \
 \     ==> P(b)";
 (*by induction on this formula*)
 by (subgoal_tac "ALL y. <a,b> = <a,y> --> P(y)" 1);
@@ -142,7 +142,7 @@ qed "trans_rtrancl";
 (*elimination of rtrancl -- by induction on a special formula*)
 val major::prems = goal Trancl.thy
     "[| <a,b> : r^*;  (a = b) ==> P; \
-\	!!y.[| <a,y> : r^*; <y,b> : r |] ==> P |] \
+\       !!y.[| <a,y> : r^*; <y,b> : r |] ==> P |] \
 \    ==> P";
 by (subgoal_tac "a = b  | (EX y. <a,y> : r^* & <y,b> : r)" 1);
 by (rtac (major RS rtrancl_induct) 2);
@@ -188,7 +188,7 @@ qed "rtrancl_into_trancl2";
 val major::prems = goal Trancl.thy
     "[| <a,b> : r^+;  \
 \       <a,b> : r ==> P; \
-\	!!y.[| <a,y> : r^+;  <y,b> : r |] ==> P  \
+\       !!y.[| <a,y> : r^+;  <y,b> : r |] ==> P  \
 \    |] ==> P";
 by (subgoal_tac "<a,b> : r | (EX y. <a,y> : r^+  &  <y,b> : r)" 1);
 by (REPEAT (eresolve_tac ([asm_rl,disjE,exE,conjE]@prems) 1));

@@ -1,6 +1,6 @@
-(*  Title: 	CCL/terms
+(*  Title:      CCL/terms
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For terms.thy.
@@ -57,12 +57,12 @@ val rawBs = caseBs @ [applyB,applyBbot];
 
 fun raw_mk_beta_rl defs s = prove_goalw Term.thy defs s
            (fn _ => [rtac (letrecB RS ssubst) 1,
-		     simp_tac (CCL_ss addsimps rawBs) 1]);
+                     simp_tac (CCL_ss addsimps rawBs) 1]);
 fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
 
 fun raw_mk_beta_rl defs s = prove_goalw Term.thy defs s
            (fn _ => [simp_tac (CCL_ss addsimps rawBs 
-			       setloop (rtac (letrecB RS ssubst))) 1]);
+                               setloop (rtac (letrecB RS ssubst))) 1]);
 fun mk_beta_rl s = raw_mk_beta_rl data_defs s;
 
 val ifBtrue    = mk_beta_rl "if true then t else u = t";
@@ -116,7 +116,7 @@ val termBs = [letB,applyB,applyBbot,splitB,splitBbot,
 (*** Constructors are injective ***)
 
 val term_injs = map (mk_inj_rl Term.thy 
-		     [applyB,splitB,whenBinl,whenBinr,ncaseBsucc,lcaseBcons])
+                     [applyB,splitB,whenBinl,whenBinr,ncaseBsucc,lcaseBcons])
                ["(inl(a) = inl(a')) <-> (a=a')",
                 "(inr(a) = inr(a')) <-> (a=a')",
                 "(succ(a) = succ(a')) <-> (a=a')",

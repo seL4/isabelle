@@ -1,6 +1,6 @@
-(*  Title: 	FOL/int-prover
+(*  Title:      FOL/int-prover
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 A naive prover for intuitionistic logic
@@ -56,10 +56,10 @@ val (safe0_brls, safep_brls) =
 
 (*Attack subgoals using safe inferences -- matching, not resolution*)
 val safe_step_tac = FIRST' [eq_assume_tac,
-			    eq_mp_tac,
-			    bimatch_tac safe0_brls,
-			    hyp_subst_tac,
-			    bimatch_tac safep_brls] ;
+                            eq_mp_tac,
+                            bimatch_tac safe0_brls,
+                            hyp_subst_tac,
+                            bimatch_tac safep_brls] ;
 
 (*Repeatedly attack subgoals using safe inferences -- it's deterministic!*)
 val safe_tac = REPEAT_DETERM_FIRST safe_step_tac;

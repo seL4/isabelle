@@ -1,6 +1,6 @@
-(*  Title: 	CCL/types
+(*  Title:      CCL/types
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 For types.thy.

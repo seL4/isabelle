@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ex/prop
+(*  Title:      FOL/ex/prop
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 First-Order Logic: propositional examples (intuitionistic and classical)
@@ -107,13 +107,13 @@ result();
 
 (* stab-to-peirce *)
 goal thy "?p : (((P --> R) --> R) --> P) --> (((Q --> R) --> R) --> Q) \
-\	      --> ((P --> Q) --> P) --> P";
+\             --> ((P --> Q) --> P) --> P";
 by tac;
 result();
 
 (* peirce-imp1 *)
 goal thy "?p : (((Q --> R) --> Q) --> Q) \
-\	       --> (((P --> Q) --> R) --> P --> Q) --> P --> Q";
+\              --> (((P --> Q) --> R) --> P --> Q) --> P --> Q";
 by tac;
 result();
   
@@ -134,10 +134,10 @@ result();
 
 (* tatsuta *)
 goal thy "?p : (((P7 --> P1) --> P10) --> P4 --> P5) \
-\	  --> (((P8 --> P2) --> P9) --> P3 --> P10) \
-\	  --> (P1 --> P8) --> P6 --> P7 \
-\	  --> (((P3 --> P2) --> P9) --> P4) \
-\	  --> (P1 --> P3) --> (((P6 --> P1) --> P2) --> P9) --> P5";
+\         --> (((P8 --> P2) --> P9) --> P3 --> P10) \
+\         --> (P1 --> P8) --> P6 --> P7 \
+\         --> (((P3 --> P2) --> P9) --> P4) \
+\         --> (P1 --> P3) --> (((P6 --> P1) --> P2) --> P9) --> P5";
 by tac;
 result();
 

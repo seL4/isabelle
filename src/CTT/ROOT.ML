@@ -1,6 +1,6 @@
-(*  Title: 	CTT/ROOT
+(*  Title:      CTT/ROOT
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Adds Constructive Type Theory to a database containing pure Isabelle. 
@@ -23,4 +23,4 @@ use_thy "Bool";
 use "../Pure/install_pp.ML";
 print_depth 8;
 
-val CTT_build_completed = ();	(*indicate successful build*)
+val CTT_build_completed = ();   (*indicate successful build*)

@@ -1,6 +1,6 @@
-(*  Title: 	CTT/ex/synth
+(*  Title:      CTT/ex/synth
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 *)
 
@@ -9,8 +9,8 @@ writeln"Synthesis examples, using a crude form of narrowing";
 
 writeln"discovery of predecessor function";
 goal CTT.thy 
- "?a : SUM pred:?A . Eq(N, pred`0, 0)	\
-\		  *  (PROD n:N. Eq(N, pred ` succ(n), n))";
+ "?a : SUM pred:?A . Eq(N, pred`0, 0)   \
+\                 *  (PROD n:N. Eq(N, pred ` succ(n), n))";
 by (intr_tac[]);
 by eqintr_tac;
 by (resolve_tac reduction_rls 3);
@@ -36,7 +36,7 @@ writeln"An interesting use of the eliminator, when";
   See following example.*)
 goal CTT.thy 
     "?a : PROD i:N. Eq(?A, ?b(inl(i)), <0    ,   i>)  \
-\  	          * Eq(?A, ?b(inr(i)), <succ(0), i>)";
+\                 * Eq(?A, ?b(inr(i)), <succ(0), i>)";
 by (intr_tac[]);
 by eqintr_tac;
 by (resolve_tac comp_rls 1);
@@ -49,13 +49,13 @@ uresult();
  Simpler still: make ?A into a constant type N*N.*)
 goal CTT.thy 
     "?a : PROD i:N. Eq(?A(i), ?b(inl(i)), <0   ,   i>)   \
-\ 	         *  Eq(?A(i), ?b(inr(i)), <succ(0),i>)";
+\                *  Eq(?A(i), ?b(inr(i)), <succ(0),i>)";
 
 writeln"A tricky combination of when and split";
 (*Now handled easily, but caused great problems once*)
 goal CTT.thy 
     "?a : PROD i:N. PROD j:N. Eq(?A, ?b(inl(<i,j>)), i)   \
-\  	    	           *  Eq(?A, ?b(inr(<i,j>)), j)";
+\                          *  Eq(?A, ?b(inr(<i,j>)), j)";
 by (intr_tac[]); 
 by eqintr_tac;
 by (resolve_tac [ PlusC_inl RS trans_elem ] 1);
@@ -69,18 +69,18 @@ uresult();
 (*similar but allows the type to depend on i and j*)
 goal CTT.thy 
     "?a : PROD i:N. PROD j:N. Eq(?A(i,j), ?b(inl(<i,j>)), i) \
-\ 	    	          *   Eq(?A(i,j), ?b(inr(<i,j>)), j)";
+\                         *   Eq(?A(i,j), ?b(inr(<i,j>)), j)";
 
 (*similar but specifying the type N simplifies the unification problems*)
 goal CTT.thy
-    "?a : PROD i:N. PROD j:N. Eq(N, ?b(inl(<i,j>)), i)	\
-\ 	    	          *   Eq(N, ?b(inr(<i,j>)), j)";
+    "?a : PROD i:N. PROD j:N. Eq(N, ?b(inl(<i,j>)), i)  \
+\                         *   Eq(N, ?b(inr(<i,j>)), j)";
 
 
 writeln"Deriving the addition operator";
 goal Arith.thy 
    "?c : PROD n:N. Eq(N, ?f(0,n), n)  \
-\  	        *  (PROD m:N. Eq(N, ?f(succ(m), n), succ(?f(m,n))))";
+\               *  (PROD m:N. Eq(N, ?f(succ(m), n), succ(?f(m,n))))";
 by (intr_tac[]);
 by eqintr_tac;
 by (resolve_tac comp_rls 1);
@@ -91,8 +91,8 @@ result();
 writeln"The addition function -- using explicit lambdas";
 goal Arith.thy 
   "?c : SUM plus : ?A .  \
-\  	 PROD x:N. Eq(N, plus`0`x, x)  \
-\  	        *  (PROD y:N. Eq(N, plus`succ(y)`x, succ(plus`y`x)))";
+\        PROD x:N. Eq(N, plus`0`x, x)  \
+\               *  (PROD y:N. Eq(N, plus`succ(y)`x, succ(plus`y`x)))";
 by (intr_tac[]);
 by eqintr_tac;
 by (resolve_tac [TSimp.split_eqn] 3);

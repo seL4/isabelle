@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ex/if
+(*  Title:      FOL/ex/if
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 For ex/if.thy.  First-Order Logic: the 'if' example
@@ -23,11 +23,11 @@ qed "ifE";
 
 goal If.thy
     "if(P, if(Q,A,B), if(Q,C,D)) <-> if(Q, if(P,A,C), if(P,B,D))";
-by (resolve_tac [iffI] 1);
-by (eresolve_tac [ifE] 1);
-by (eresolve_tac [ifE] 1);
-by (resolve_tac [ifI] 1);
-by (resolve_tac [ifI] 1);
+by (rtac iffI 1);
+by (etac ifE 1);
+by (etac ifE 1);
+by (rtac ifI 1);
+by (rtac ifI 1);
 
 choplev 0;
 val if_cs = FOL_cs addSIs [ifI] addSEs[ifE];
@@ -40,7 +40,7 @@ by (fast_tac if_cs 1);
 qed "nested_ifs";
 
 choplev 0;
-by (rewrite_goals_tac [if_def]);
+by (rewtac if_def);
 by (fast_tac FOL_cs 1);
 result();
 
@@ -53,7 +53,7 @@ getgoal 1;
 by (REPEAT (step_tac if_cs 1));
 
 choplev 0;
-by (rewrite_goals_tac [if_def]);
+by (rewtac if_def);
 by (fast_tac FOL_cs 1) handle ERROR => writeln"Failed, as expected";
 (*Check that subgoals remain: proof failed.*)
 getgoal 1; 

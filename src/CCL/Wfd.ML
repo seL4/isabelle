@@ -1,11 +1,11 @@
-(*  Title: 	CCL/wfd.ML
+(*  Title:      CCL/wfd.ML
     ID:         $Id$
 
 For wfd.thy.
 
 Based on
-    Titles: 	ZF/wf.ML and HOL/ex/lex-prod
-    Authors: 	Lawrence C Paulson and Tobias Nipkow
+    Titles:     ZF/wf.ML and HOL/ex/lex-prod
+    Authors:    Lawrence C Paulson and Tobias Nipkow
     Copyright   1992  University of Cambridge
 
 *)

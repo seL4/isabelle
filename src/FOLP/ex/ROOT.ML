@@ -1,6 +1,6 @@
-(*  Title: 	FOLP/ex/ROOT
+(*  Title:      FOLP/ex/ROOT
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Executes all examples for First-Order Logic. 
@@ -8,7 +8,7 @@ Executes all examples for First-Order Logic.
 
 writeln"Root file for FOLP examples";
 
-FOLP_build_completed;	(*Cause examples to fail if FOLP did*)
+FOLP_build_completed;   (*Cause examples to fail if FOLP did*)
 
 proof_timing := true;
 

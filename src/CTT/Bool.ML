@@ -1,6 +1,6 @@
-(*  Title: 	CTT/bool
+(*  Title:      CTT/bool
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Theorems for bool.thy (booleans and conditionals)
@@ -40,7 +40,7 @@ qed_goalw "boolEL" Bool.thy bool_defs
     "!!C. [| p = q : Bool;  a = c : C(true);  b = d : C(false) |] ==> \
 \         cond(p,a,b) = cond(q,c,d) : C(p)"
  (fn _ =>
-  [ (resolve_tac [PlusEL] 1),
+  [ (rtac PlusEL 1),
     (REPEAT (eresolve_tac [asm_rl, refl_elem RS TEL] 1)) ]);
 
 (*computation rules for true, false*)

@@ -1,6 +1,6 @@
-(*  Title: 	FOL/simpdata
+(*  Title:      FOL/simpdata
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Simplification data for FOL
@@ -15,33 +15,33 @@ fun int_prove_fun_raw s =
 fun int_prove_fun s = int_prove_fun_raw ("?p : "^s);
 
 val conj_rews = map int_prove_fun
- ["P & True <-> P", 	"True & P <-> P",
+ ["P & True <-> P",     "True & P <-> P",
   "P & False <-> False", "False & P <-> False",
   "P & P <-> P",
-  "P & ~P <-> False", 	"~P & P <-> False",
+  "P & ~P <-> False",   "~P & P <-> False",
   "(P & Q) & R <-> P & (Q & R)"];
 
 val disj_rews = map int_prove_fun
- ["P | True <-> True", 	"True | P <-> True",
-  "P | False <-> P", 	"False | P <-> P",
+ ["P | True <-> True",  "True | P <-> True",
+  "P | False <-> P",    "False | P <-> P",
   "P | P <-> P",
   "(P | Q) | R <-> P | (Q | R)"];
 
 val not_rews = map int_prove_fun
- ["~ False <-> True",	"~ True <-> False"];
+ ["~ False <-> True",   "~ True <-> False"];
 
 val imp_rews = map int_prove_fun
- ["(P --> False) <-> ~P",	"(P --> True) <-> True",
-  "(False --> P) <-> True",	"(True --> P) <-> P", 
-  "(P --> P) <-> True",		"(P --> ~P) <-> ~P"];
+ ["(P --> False) <-> ~P",       "(P --> True) <-> True",
+  "(False --> P) <-> True",     "(True --> P) <-> P", 
+  "(P --> P) <-> True",         "(P --> ~P) <-> ~P"];
 
 val iff_rews = map int_prove_fun
- ["(True <-> P) <-> P", 	"(P <-> True) <-> P",
+ ["(True <-> P) <-> P",         "(P <-> True) <-> P",
   "(P <-> P) <-> True",
-  "(False <-> P) <-> ~P", 	"(P <-> False) <-> ~P"];
+  "(False <-> P) <-> ~P",       "(P <-> False) <-> ~P"];
 
 val quant_rews = map int_prove_fun
- ["(ALL x.P) <-> P",	"(EX x.P) <-> P"];
+ ["(ALL x.P) <-> P",    "(EX x.P) <-> P"];
 
 (*These are NOT supplied by default!*)
 val distrib_rews  = map int_prove_fun
@@ -60,7 +60,7 @@ fun make_iff_T th = th RS P_Imp_P_iff_T;
 val refl_iff_T = make_iff_T refl;
 
 val norm_thms = [(norm_eq RS sym, norm_eq),
-		 (NORM_iff RS iff_sym, NORM_iff)];
+                 (NORM_iff RS iff_sym, NORM_iff)];
 
 
 (* Conversion into rewrite rules *)
@@ -76,7 +76,7 @@ fun mk_eq th = case concl_of th of
 fun atomize th = case concl_of th of (*The operator below is "Proof $ P $ p"*)
       _ $ (Const("op -->",_) $ _ $ _) $ _ => atomize(th RS mp)
     | _ $ (Const("op &",_) $ _ $ _) $ _ => atomize(th RS conjunct1) @
-				       atomize(th RS conjunct2)
+                                       atomize(th RS conjunct2)
     | _ $ (Const("All",_) $ _) $ _ => atomize(th RS spec)
     | _ $ (Const("True",_)) $ _ => []
     | _ $ (Const("False",_)) $ _ => []
@@ -90,15 +90,15 @@ fun dest_red(_ $ (red $ lhs $ rhs) $ _) = (red,lhs,rhs)
 
 structure FOLP_SimpData : SIMP_DATA =
   struct
-  val refl_thms		= [refl, iff_refl]
-  val trans_thms	= [trans, iff_trans]
-  val red1		= iffD1
-  val red2		= iffD2
-  val mk_rew_rules	= mk_rew_rules
-  val case_splits	= []         (*NO IF'S!*)
-  val norm_thms		= norm_thms
-  val subst_thms	= [subst];
-  val dest_red		= dest_red
+  val refl_thms         = [refl, iff_refl]
+  val trans_thms        = [trans, iff_trans]
+  val red1              = iffD1
+  val red2              = iffD2
+  val mk_rew_rules      = mk_rew_rules
+  val case_splits       = []         (*NO IF'S!*)
+  val norm_thms         = norm_thms
+  val subst_thms        = [subst];
+  val dest_red          = dest_red
   end;
 
 structure FOLP_Simp = SimpFun(FOLP_SimpData);
@@ -124,8 +124,8 @@ fun prove_fun s =
        (fn prems => [ (cut_facts_tac prems 1), (Cla.fast_tac FOLP_cs 1) ]));
 
 val cla_rews = map prove_fun
- ["?p:P | ~P", 		"?p:~P | P",
-  "?p:~ ~ P <-> P",	"?p:(~P --> P) <-> P"];
+ ["?p:P | ~P",          "?p:~P | P",
+  "?p:~ ~ P <-> P",     "?p:(~P --> P) <-> P"];
 
 val FOLP_rews = IFOLP_rews@cla_rews;
 

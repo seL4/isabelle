@@ -1,9 +1,9 @@
-(*  Title: 	CCL/lfp
+(*  Title:      CCL/lfp
     ID:         $Id$
 
 Modified version of
-    Title: 	HOL/lfp.ML
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Title:      HOL/lfp.ML
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 For lfp.thy.  The Knaster-Tarski Theorem
@@ -28,12 +28,12 @@ qed "lfp_greatest";
 
 val [mono] = goal Lfp.thy "mono(f) ==> f(lfp(f)) <= lfp(f)";
 by (EVERY1 [rtac lfp_greatest, rtac subset_trans,
-	    rtac (mono RS monoD), rtac lfp_lowerbound, atac, atac]);
+            rtac (mono RS monoD), rtac lfp_lowerbound, atac, atac]);
 qed "lfp_lemma2";
 
 val [mono] = goal Lfp.thy "mono(f) ==> lfp(f) <= f(lfp(f))";
 by (EVERY1 [rtac lfp_lowerbound, rtac (mono RS monoD), 
-	    rtac lfp_lemma2, rtac mono]);
+            rtac lfp_lemma2, rtac mono]);
 qed "lfp_lemma3";
 
 val [mono] = goal Lfp.thy "mono(f) ==> lfp(f) = f(lfp(f))";
@@ -44,15 +44,15 @@ qed "lfp_Tarski";
 (*** General induction rule for least fixed points ***)
 
 val [lfp,mono,indhyp] = goal Lfp.thy
-    "[| a: lfp(f);  mono(f);  				\
-\       !!x. [| x: f(lfp(f) Int {x.P(x)}) |] ==> P(x) 	\
+    "[| a: lfp(f);  mono(f);                            \
+\       !!x. [| x: f(lfp(f) Int {x.P(x)}) |] ==> P(x)   \
 \    |] ==> P(a)";
 by (res_inst_tac [("a","a")] (Int_lower2 RS subsetD RS CollectD) 1);
 by (rtac (lfp RSN (2, lfp_lowerbound RS subsetD)) 1);
 by (EVERY1 [rtac Int_greatest, rtac subset_trans, 
-	    rtac (Int_lower1 RS (mono RS monoD)),
-	    rtac (mono RS lfp_lemma2),
-	    rtac (CollectI RS subsetI), rtac indhyp, atac]);
+            rtac (Int_lower1 RS (mono RS monoD)),
+            rtac (mono RS lfp_lemma2),
+            rtac (CollectI RS subsetI), rtac indhyp, atac]);
 qed "induct";
 
 (** Definition forms of lfp_Tarski and induct, to control unfolding **)
@@ -63,11 +63,11 @@ by (rtac (mono RS lfp_Tarski) 1);
 qed "def_lfp_Tarski";
 
 val rew::prems = goal Lfp.thy
-    "[| A == lfp(f);  a:A;  mono(f);   			\
-\       !!x. [| x: f(A Int {x.P(x)}) |] ==> P(x) 	\
+    "[| A == lfp(f);  a:A;  mono(f);                    \
+\       !!x. [| x: f(A Int {x.P(x)}) |] ==> P(x)        \
 \    |] ==> P(a)";
-by (EVERY1 [rtac induct,	(*backtracking to force correct induction*)
-	    REPEAT1 o (ares_tac (map (rewrite_rule [rew]) prems))]);
+by (EVERY1 [rtac induct,        (*backtracking to force correct induction*)
+            REPEAT1 o (ares_tac (map (rewrite_rule [rew]) prems))]);
 qed "def_induct";
 
 (*Monotonicity of lfp!*)

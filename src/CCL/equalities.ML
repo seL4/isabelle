@@ -1,9 +1,9 @@
-(*  Title: 	CCL/equalities
+(*  Title:      CCL/equalities
     ID:         $Id$
 
 Modified version of
-    Title: 	HOL/equalities
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Title:      HOL/equalities
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Equalities involving union, intersection, inclusion, etc.

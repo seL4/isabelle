@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ex/list
+(*  Title:      FOL/ex/list
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 
 For ex/list.thy.  Examples of simplification and induction on lists
@@ -14,8 +14,8 @@ by (REPEAT (resolve_tac (prems@[allI,impI]) 1));
 qed "list_exh";
 
 val list_rew_thms = [list_distinct1,list_distinct2,app_nil,app_cons,
-		     hd_eq,tl_eq,forall_nil,forall_cons,list_free,
-		     len_nil,len_cons,at_0,at_succ];
+                     hd_eq,tl_eq,forall_nil,forall_cons,list_free,
+                     len_nil,len_cons,at_0,at_succ];
 
 val list_ss = nat_ss addsimps list_rew_thms;
 

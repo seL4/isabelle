@@ -1,6 +1,6 @@
-(*  Title: 	CTT/arith
+(*  Title:      CTT/arith
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Theorems for arith.thy (Arithmetic operators)
@@ -120,14 +120,14 @@ val arithC_rls =
 
 structure Arith_simp_data: TSIMP_DATA =
   struct
-  val refl		= refl_elem
-  val sym		= sym_elem
-  val trans		= trans_elem
-  val refl_red		= refl_red
-  val trans_red		= trans_red
-  val red_if_equal	= red_if_equal
-  val default_rls 	= arithC_rls @ comp_rls
-  val routine_tac 	= routine_tac (arith_typing_rls @ routine_rls)
+  val refl              = refl_elem
+  val sym               = sym_elem
+  val trans             = trans_elem
+  val refl_red          = refl_red
+  val trans_red         = trans_red
+  val red_if_equal      = red_if_equal
+  val default_rls       = arithC_rls @ comp_rls
+  val routine_tac       = routine_tac (arith_typing_rls @ routine_rls)
   end;
 
 structure Arith_simp = TSimpFun (Arith_simp_data);
@@ -159,7 +159,7 @@ qed_goal "add_commute" Arith.thy
   [ (NE_tac "a" 1),
     (hyp_arith_rew_tac prems),
     (NE_tac "b" 2),
-    (resolve_tac [sym_elem] 1),
+    (rtac sym_elem 1),
     (NE_tac "b" 1),
     (hyp_arith_rew_tac prems) ]);
 
@@ -175,7 +175,7 @@ qed_goal "mult_commute" Arith.thy
   [ (NE_tac "a" 1),
     (hyp_arith_rew_tac prems),
     (NE_tac "b" 2),
-    (resolve_tac [sym_elem] 1),
+    (rtac sym_elem 1),
     (NE_tac "b" 1),
     (hyp_arith_rew_tac prems) ]);   NEEDS COMMUTATIVE MATCHING
 ***************)
@@ -198,7 +198,7 @@ qed_goal "mult_succ_right" Arith.thy
     (REPEAT (assume_tac 1  ORELSE  
             resolve_tac
              (prems@[add_commute,mult_typingL,add_typingL]@
-	       intrL_rls@[refl_elem])   1)) ]);
+               intrL_rls@[refl_elem])   1)) ]);
 
 (*Commutative law for multiplication*)
 qed_goal "mult_commute" Arith.thy 
@@ -254,8 +254,8 @@ by (resolve_tac intr_rls 3);
     (succ(u) <= x) --> (succ(u)#+(x-succ(u)) = x) *)
 by (NE_tac "x" 4 THEN assume_tac 4); 
 (*Prepare for simplification of types -- the antecedent succ(u)<=x *)
-by (resolve_tac [replace_type] 5);
-by (resolve_tac [replace_type] 4);
+by (rtac replace_type 5);
+by (rtac replace_type 4);
 by (arith_rew_tac prems); 
 (*Solves first 0 goal, simplifies others.  Two sugbgoals remain.
   Both follow by rewriting, (2) using quantified induction hyp*)
@@ -271,7 +271,7 @@ qed "add_diff_inverse_lemma";
     the use of RS below instantiates Vars in ProdE automatically. *)
 val prems =
 goal Arith.thy "[| a:N;  b:N;  b-a = 0 : N |] ==> b #+ (a-b) = a : N";
-by (resolve_tac [EqE] 1);
+by (rtac EqE 1);
 by (resolve_tac [ add_diff_inverse_lemma RS ProdE RS ProdE ] 1);
 by (REPEAT (resolve_tac (prems@[EqI]) 1));
 qed "add_diff_inverse";
@@ -310,7 +310,7 @@ qed_goalw "absdiff_succ_succ" Arith.thy [absdiff_def]
 (*Note how easy using commutative laws can be?  ...not always... *)
 val prems = goalw Arith.thy [absdiff_def]
     "[| a:N;  b:N |] ==> a |-| b = b |-| a : N";
-by (resolve_tac [add_commute] 1);
+by (rtac add_commute 1);
 by (typechk_tac ([diff_typing]@prems));
 qed "absdiff_commute";
 
@@ -318,7 +318,7 @@ qed "absdiff_commute";
 val prems =
 goal Arith.thy "[| a:N;  b:N |] ==> ?c : PROD u: Eq(N,a#+b,0) .  Eq(N,a,0)";
 by (NE_tac "a" 1);
-by (resolve_tac [replace_type] 3);
+by (rtac replace_type 3);
 by (arith_rew_tac prems);
 by (intr_tac[]);  (*strips remaining PRODs*)
 by (resolve_tac [ zero_ne_succ RS FE ] 2);
@@ -330,9 +330,9 @@ qed "add_eq0_lemma";
   Again, resolution instantiates variables in ProdE *)
 val prems =
 goal Arith.thy "[| a:N;  b:N;  a #+ b = 0 : N |] ==> a = 0 : N";
-by (resolve_tac [EqE] 1);
+by (rtac EqE 1);
 by (resolve_tac [add_eq0_lemma RS ProdE] 1);
-by (resolve_tac [EqI] 3);
+by (rtac EqI 3);
 by (ALLGOALS (resolve_tac prems));
 qed "add_eq0";
 
@@ -342,8 +342,8 @@ val prems = goalw Arith.thy [absdiff_def]
 \    ?a : SUM v: Eq(N, a-b, 0) . Eq(N, b-a, 0)";
 by (intr_tac[]);
 by eqintr_tac;
-by (resolve_tac [add_eq0] 2);
-by (resolve_tac [add_eq0] 1);
+by (rtac add_eq0 2);
+by (rtac add_eq0 1);
 by (resolve_tac [add_commute RS trans_elem] 6);
 by (typechk_tac (diff_typing::prems));
 qed "absdiff_eq0_lem";
@@ -352,12 +352,12 @@ qed "absdiff_eq0_lem";
   proof: a-b=0 and b-a=0, so b = a+(b-a) = a+0 = a*)
 val prems =
 goal Arith.thy "[| a |-| b = 0 : N;  a:N;  b:N |] ==> a = b : N";
-by (resolve_tac [EqE] 1);
+by (rtac EqE 1);
 by (resolve_tac [absdiff_eq0_lem RS SumE] 1);
 by (TRYALL (resolve_tac prems));
 by eqintr_tac;
 by (resolve_tac [add_diff_inverse RS sym_elem RS trans_elem] 1);
-by (resolve_tac [EqE] 3  THEN  assume_tac 3);
+by (rtac EqE 3  THEN  assume_tac 3);
 by (hyp_arith_rew_tac (prems@[add_0_right]));
 qed "absdiff_eq0";
 
@@ -430,11 +430,11 @@ qed_goal "divC_succ2" Arith.thy
 (*for case analysis on whether a number is 0 or a successor*)
 qed_goal "iszero_decidable" Arith.thy
     "a:N ==> rec(a, inl(eq), %ka kb.inr(<ka, eq>)) : \
-\		      Eq(N,a,0) + (SUM x:N. Eq(N,a, succ(x)))"
+\                     Eq(N,a,0) + (SUM x:N. Eq(N,a, succ(x)))"
  (fn prems=>
   [ (NE_tac "a" 1),
-    (resolve_tac [PlusI_inr] 3),
-    (resolve_tac [PlusI_inl] 2),
+    (rtac PlusI_inr 3),
+    (rtac PlusI_inl 2),
     eqintr_tac,
     (equal_tac prems) ]);
 
@@ -443,17 +443,17 @@ val prems =
 goal Arith.thy "[| a:N;  b:N |] ==> a mod b  #+  (a div b) #* b = a : N";
 by (NE_tac "a" 1);
 by (arith_rew_tac (div_typing_rls@prems@[modC0,modC_succ,divC0,divC_succ2])); 
-by (resolve_tac [EqE] 1);
+by (rtac EqE 1);
 (*case analysis on   succ(u mod b)|-|b  *)
 by (res_inst_tac [("a1", "succ(u mod b) |-| b")] 
                  (iszero_decidable RS PlusE) 1);
 by (etac SumE 3);
 by (hyp_arith_rew_tac (prems @ div_typing_rls @
-	[modC0,modC_succ, divC0, divC_succ2])); 
+        [modC0,modC_succ, divC0, divC_succ2])); 
 (*Replace one occurence of  b  by succ(u mod b).  Clumsy!*)
 by (resolve_tac [ add_typingL RS trans_elem ] 1);
 by (eresolve_tac [EqE RS absdiff_eq0 RS sym_elem] 1);
-by (resolve_tac [refl_elem] 3);
+by (rtac refl_elem 3);
 by (hyp_arith_rew_tac (prems @ div_typing_rls)); 
 qed "mod_div_equality";
 

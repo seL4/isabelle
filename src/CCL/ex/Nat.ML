@@ -1,6 +1,6 @@
-(*  Title: 	CCL/ex/nat
+(*  Title:      CCL/ex/nat
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For nat.thy.
@@ -25,7 +25,7 @@ val nat_ss = term_ss addsimps natBs;
 (*** Lemma for napply ***)
 
 val [prem] = goal Nat.thy "n:Nat ==> f^n`f(a) = f^succ(n)`a";
-br (prem RS Nat_ind) 1;
+by (rtac (prem RS Nat_ind) 1);
 by (ALLGOALS (asm_simp_tac nat_ss));
 qed "napply_f";
 
@@ -43,13 +43,13 @@ qed "multT";
 val prems = goalw Nat.thy [sub_def] "[| a:Nat;  b:Nat |] ==> a #- b : Nat";
 by (typechk_tac (prems) 1);
 by clean_ccs_tac;
-be (NatPRI RS wfstI RS (NatPR_wf RS wmap_wf RS wfI)) 1;
+by (etac (NatPRI RS wfstI RS (NatPR_wf RS wmap_wf RS wfI)) 1);
 qed "subT";
 
 val prems = goalw Nat.thy [le_def] "[| a:Nat;  b:Nat |] ==> a #<= b : Bool";
 by (typechk_tac (prems) 1);
 by clean_ccs_tac;
-be (NatPRI RS wfstI RS (NatPR_wf RS wmap_wf RS wfI)) 1;
+by (etac (NatPRI RS wfstI RS (NatPR_wf RS wmap_wf RS wfI)) 1);
 qed "leT";
 
 val prems = goalw Nat.thy [not_def,lt_def] "[| a:Nat;  b:Nat |] ==> a #< b : Bool";

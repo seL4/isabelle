@@ -1,11 +1,11 @@
-(*  Title: 	set/set
+(*  Title:      set/set
     ID:         $Id$
 
 For set.thy.
 
 Modified version of
-    Title: 	HOL/set
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Title:      HOL/set
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 For set.thy.  Set theory for higher-order logic.  A set is simply a predicate.
@@ -282,7 +282,7 @@ val prems = goal Set.thy
 \    (UN x:A. C(x)) = (UN x:B. D(x))";
 by (REPEAT (etac UN_E 1
      ORELSE ares_tac ([UN_I,equalityI,subsetI] @ 
-		      (prems RL [equalityD1,equalityD2] RL [subsetD])) 1));
+                      (prems RL [equalityD1,equalityD2] RL [subsetD])) 1));
 qed "UN_cong";
 
 (*** Intersections of families -- INTER x:A. B(x) is Inter(B)``A ) *)

@@ -1,6 +1,6 @@
-(*  Title: 	FOLP/ex/cla
+(*  Title:      FOLP/ex/cla
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 Classical First-Order Logic
@@ -207,8 +207,8 @@ by (best_tac FOLP_cs 1);
 result();
 
 writeln"Problem 26";
-goal FOLP.thy "?u : ((EX x. p(x)) <-> (EX x. q(x))) &	\
-\     (ALL x. ALL y. p(x) & q(y) --> (r(x) <-> s(y)))	\
+goal FOLP.thy "?u : ((EX x. p(x)) <-> (EX x. q(x))) &   \
+\     (ALL x. ALL y. p(x) & q(y) --> (r(x) <-> s(y)))   \
 \ --> ((ALL x. p(x)-->r(x)) <-> (ALL x. q(x)-->s(x)))";
 by (fast_tac FOLP_cs 1);
 result();
@@ -301,15 +301,15 @@ by (fast_tac FOLP_cs 1);
 result();
 
 writeln"Problem 41";
-goal FOLP.thy "?p : (ALL z. EX y. ALL x. f(x,y) <-> f(x,z) & ~ f(x,x))	\
+goal FOLP.thy "?p : (ALL z. EX y. ALL x. f(x,y) <-> f(x,z) & ~ f(x,x))  \
 \         --> ~ (EX z. ALL x. f(x,z))";
 by (best_tac FOLP_cs 1);
 result();
 
 writeln"Problem 44";
-goal FOLP.thy "?p : (ALL x. f(x) -->					\
-\             (EX y. g(y) & h(x,y) & (EX y. g(y) & ~ h(x,y))))  &   	\
-\             (EX x. j(x) & (ALL y. g(y) --> h(x,y)))			\
+goal FOLP.thy "?p : (ALL x. f(x) -->                                    \
+\             (EX y. g(y) & h(x,y) & (EX y. g(y) & ~ h(x,y))))  &       \
+\             (EX x. j(x) & (ALL y. g(y) --> h(x,y)))                   \
 \             --> (EX x. j(x) & ~f(x))";
 by (fast_tac FOLP_cs 1);
 result();

@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ex/intro
+(*  Title:      FOL/ex/intro
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 Examples for the manual "Introduction to Isabelle"
@@ -15,29 +15,29 @@ To generate similar output to manual, execute these commands:
 (**** Some simple backward proofs ****)
 
 goal FOL.thy "P|P --> P";
-by (resolve_tac [impI] 1);
-by (resolve_tac [disjE] 1);
+by (rtac impI 1);
+by (rtac disjE 1);
 by (assume_tac 3);
 by (assume_tac 2);
 by (assume_tac 1);
 qed "mythm";
 
 goal FOL.thy "(P & Q) | R  --> (P | R)";
-by (resolve_tac [impI] 1);
-by (eresolve_tac [disjE] 1);
-by (dresolve_tac [conjunct1] 1);
-by (resolve_tac [disjI1] 1);
-by (resolve_tac [disjI2] 2);
+by (rtac impI 1);
+by (etac disjE 1);
+by (dtac conjunct1 1);
+by (rtac disjI1 1);
+by (rtac disjI2 2);
 by (REPEAT (assume_tac 1));
 result();
 
 (*Correct version, delaying use of "spec" until last*)
 goal FOL.thy "(ALL x y.P(x,y))  -->  (ALL z w.P(w,z))";
-by (resolve_tac [impI] 1);
-by (resolve_tac [allI] 1);
-by (resolve_tac [allI] 1);
-by (dresolve_tac [spec] 1);
-by (dresolve_tac [spec] 1);
+by (rtac impI 1);
+by (rtac allI 1);
+by (rtac allI 1);
+by (dtac spec 1);
+by (dtac spec 1);
 by (assume_tac 1);
 result();
 
@@ -58,7 +58,7 @@ result();
 (**** Derivation of conjunction elimination rule ****)
 
 val [major,minor] = goal FOL.thy "[| P&Q;  [| P; Q |] ==> R |] ==> R";
-by (resolve_tac [minor] 1);
+by (rtac minor 1);
 by (resolve_tac [major RS conjunct1] 1);
 by (resolve_tac [major RS conjunct2] 1);
 prth (topthm());
@@ -70,17 +70,17 @@ result();
 (** Derivation of negation introduction **)
 
 val prems = goal FOL.thy "(P ==> False) ==> ~P";
-by (rewrite_goals_tac [not_def]);
-by (resolve_tac [impI] 1);
+by (rewtac not_def);
+by (rtac impI 1);
 by (resolve_tac prems 1);
 by (assume_tac 1);
 result();
 
 val [major,minor] = goal FOL.thy "[| ~P;  P |] ==> R";
-by (resolve_tac [FalseE] 1);
-by (resolve_tac [mp] 1);
+by (rtac FalseE 1);
+by (rtac mp 1);
 by (resolve_tac [rewrite_rule [not_def] major] 1);
-by (resolve_tac [minor] 1);
+by (rtac minor 1);
 result();
 
 (*Alternative proof of above result*)

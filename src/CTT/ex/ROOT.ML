@@ -1,6 +1,6 @@
-(*  Title: 	CTT/ex/ROOT
+(*  Title:      CTT/ex/ROOT
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Executes all examples for Constructive Type Theory. 

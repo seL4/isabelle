@@ -1,6 +1,6 @@
-(*  Title: 	92/CCL/eval
+(*  Title:      92/CCL/eval
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
 *)

@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ex/cla
+(*  Title:      FOL/ex/cla
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
 Classical First-Order Logic
@@ -222,8 +222,8 @@ by (best_tac FOL_cs 1);
 result();
 
 writeln"Problem 26";
-goal FOL.thy "((EX x. p(x)) <-> (EX x. q(x))) &	\
-\     (ALL x. ALL y. p(x) & q(y) --> (r(x) <-> s(y)))	\
+goal FOL.thy "((EX x. p(x)) <-> (EX x. q(x))) & \
+\     (ALL x. ALL y. p(x) & q(y) --> (r(x) <-> s(y)))   \
 \ --> ((ALL x. p(x)-->r(x)) <-> (ALL x. q(x)-->s(x)))";
 by (fast_tac FOL_cs 1);
 result();
@@ -283,9 +283,9 @@ result();
 
 writeln"Problem 34  AMENDED (TWICE!!)";
 (*Andrews's challenge*)
-goal FOL.thy "((EX x. ALL y. p(x) <-> p(y))  <->		\
-\              ((EX x. q(x)) <-> (ALL y. p(y))))     <->	\
-\             ((EX x. ALL y. q(x) <-> q(y))  <->		\
+goal FOL.thy "((EX x. ALL y. p(x) <-> p(y))  <->                \
+\              ((EX x. q(x)) <-> (ALL y. p(y))))     <->        \
+\             ((EX x. ALL y. q(x) <-> q(y))  <->                \
 \              ((EX x. p(x)) <-> (ALL y. q(y))))";
 by (deepen_tac FOL_cs 0 1);
 result();
@@ -318,10 +318,10 @@ result();
 
 writeln"Problem 38";
 goal FOL.thy
-    "(ALL x. p(a) & (p(x) --> (EX y. p(y) & r(x,y))) -->	\
-\            (EX z. EX w. p(z) & r(x,w) & r(w,z)))  <->		\
-\    (ALL x. (~p(a) | p(x) | (EX z. EX w. p(z) & r(x,w) & r(w,z))) &	\
-\            (~p(a) | ~(EX y. p(y) & r(x,y)) |				\
+    "(ALL x. p(a) & (p(x) --> (EX y. p(y) & r(x,y))) -->        \
+\            (EX z. EX w. p(z) & r(x,w) & r(w,z)))  <->         \
+\    (ALL x. (~p(a) | p(x) | (EX z. EX w. p(z) & r(x,w) & r(w,z))) &    \
+\            (~p(a) | ~(EX y. p(y) & r(x,y)) |                          \
 \             (EX z. EX w. p(z) & r(x,w) & r(w,z))))";
 by (fast_tac FOL_cs 1);
 result();
@@ -338,7 +338,7 @@ by (fast_tac FOL_cs 1);
 result();
 
 writeln"Problem 41";
-goal FOL.thy "(ALL z. EX y. ALL x. f(x,y) <-> f(x,z) & ~ f(x,x))	\
+goal FOL.thy "(ALL z. EX y. ALL x. f(x,y) <-> f(x,z) & ~ f(x,x))        \
 \         --> ~ (EX z. ALL x. f(x,z))";
 by (fast_tac FOL_cs 1);
 result();
@@ -349,29 +349,29 @@ by (deepen_tac FOL_cs 0 1);
 result();
 
 writeln"Problem 43";
-goal FOL.thy "(ALL x. ALL y. q(x,y) <-> (ALL z. p(z,x) <-> p(z,y)))	\
+goal FOL.thy "(ALL x. ALL y. q(x,y) <-> (ALL z. p(z,x) <-> p(z,y)))     \
 \         --> (ALL x. ALL y. q(x,y) <-> q(y,x))";
 by (mini_tac 1);
 by (deepen_tac FOL_cs 5 1);
 (*Faster alternative proof!
-	by (asm_simp_tac FOL_ss 1); by (fast_tac FOL_cs 1);	
+        by (asm_simp_tac FOL_ss 1); by (fast_tac FOL_cs 1);     
 *)
 result();
 
 writeln"Problem 44";
-goal FOL.thy "(ALL x. f(x) -->						\
-\             (EX y. g(y) & h(x,y) & (EX y. g(y) & ~ h(x,y))))  &   	\
-\             (EX x. j(x) & (ALL y. g(y) --> h(x,y)))			\
+goal FOL.thy "(ALL x. f(x) -->                                          \
+\             (EX y. g(y) & h(x,y) & (EX y. g(y) & ~ h(x,y))))  &       \
+\             (EX x. j(x) & (ALL y. g(y) --> h(x,y)))                   \
 \             --> (EX x. j(x) & ~f(x))";
 by (fast_tac FOL_cs 1);
 result();
 
 writeln"Problem 45";
-goal FOL.thy "(ALL x. f(x) & (ALL y. g(y) & h(x,y) --> j(x,y))	\
-\                     --> (ALL y. g(y) & h(x,y) --> k(y))) &	\
-\     ~ (EX y. l(y) & k(y)) &					\
-\     (EX x. f(x) & (ALL y. h(x,y) --> l(y))			\
-\                 & (ALL y. g(y) & h(x,y) --> j(x,y)))		\
+goal FOL.thy "(ALL x. f(x) & (ALL y. g(y) & h(x,y) --> j(x,y))  \
+\                     --> (ALL y. g(y) & h(x,y) --> k(y))) &    \
+\     ~ (EX y. l(y) & k(y)) &                                   \
+\     (EX x. f(x) & (ALL y. h(x,y) --> l(y))                    \
+\                 & (ALL y. g(y) & h(x,y) --> j(x,y)))          \
 \     --> (EX x. f(x) & ~ (EX y. g(y) & h(x,y)))";
 by (best_tac FOL_cs 1); 
 result();
@@ -388,12 +388,12 @@ writeln"Problem 49  NOT PROVED AUTOMATICALLY";
 (*Hard because it involves substitution for Vars;
   the type constraint ensures that x,y,z have the same type as a,b,u. *)
 goal FOL.thy "(EX x y::'a. ALL z. z=x | z=y) & P(a) & P(b) & a~=b \
-\		--> (ALL u::'a.P(u))";
+\               --> (ALL u::'a.P(u))";
 by (safe_tac FOL_cs);
 by (res_inst_tac [("x","a")] allE 1);
-ba 1;
+by (assume_tac 1);
 by (res_inst_tac [("x","b")] allE 1);
-ba 1;
+by (assume_tac 1);
 by (fast_tac FOL_cs 1);
 result();
 
@@ -437,8 +437,8 @@ goal FOL.thy
 \  killed(?who,agatha)";
 by (safe_tac FOL_cs);
 by (dres_inst_tac [("x1","x")] (spec RS mp) 1);
-ba 1;
-be (spec RS exE) 1;
+by (assume_tac 1);
+by (etac (spec RS exE) 1);
 by (REPEAT (etac allE 1));
 by (fast_tac FOL_cs 1);
 result();
@@ -490,8 +490,8 @@ result();
 
 writeln"Problem 62 as corrected in AAR newletter #31";
 goal FOL.thy
-    "(ALL x. p(a) & (p(x) --> p(f(x))) --> p(f(f(x))))  <->	\
-\    (ALL x. (~p(a) | p(x) | p(f(f(x)))) &			\
+    "(ALL x. p(a) & (p(x) --> p(f(x))) --> p(f(f(x))))  <->     \
+\    (ALL x. (~p(a) | p(x) | p(f(f(x)))) &                      \
 \            (~p(a) | ~p(f(x)) | p(f(f(x)))))";
 by (fast_tac FOL_cs 1);
 result();

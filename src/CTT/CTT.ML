@@ -1,6 +1,6 @@
-(*  Title: 	CTT/ctt.ML
+(*  Title:      CTT/ctt.ML
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Tactics and lemmas for ctt.thy (Constructive Type Theory)
@@ -38,9 +38,9 @@ val basic_defs = [fst_def,snd_def];
 qed_goal "SumIL2" CTT.thy
     "[| c=a : A;  d=b : B(a) |] ==> <c,d> = <a,b> : Sum(A,B)"
  (fn prems=>
-  [ (resolve_tac [sym_elem] 1),
-    (resolve_tac [SumIL] 1),
-    (ALLGOALS (resolve_tac [sym_elem])),
+  [ (rtac sym_elem 1),
+    (rtac SumIL 1),
+    (ALLGOALS (rtac sym_elem )),
     (ALLGOALS (resolve_tac prems)) ]);
 
 val intrL2_rls = [NI_succL, ProdIL, SumIL2, PlusI_inlL, PlusI_inrL];
@@ -103,16 +103,16 @@ fun equal_tac thms =
 qed_goal "replace_type" CTT.thy
     "[| B = A;  a : A |] ==> a : B"
  (fn prems=>
-  [ (resolve_tac [equal_types] 1),
-    (resolve_tac [sym_type] 2),
+  [ (rtac equal_types 1),
+    (rtac sym_type 2),
     (ALLGOALS (resolve_tac prems)) ]);
 
 (*Simplify the parameter of a unary type operator.*)
 qed_goal "subst_eqtyparg" CTT.thy
     "a=c : A ==> (!!z.z:A ==> B(z) type) ==> B(a)=B(c)"
  (fn prems=>
-  [ (resolve_tac [subst_typeL] 1),
-    (resolve_tac [refl_type] 2),
+  [ (rtac subst_typeL 1),
+    (rtac refl_type 2),
     (ALLGOALS (resolve_tac prems)),
     (assume_tac 1) ]);
 
@@ -129,25 +129,25 @@ val eqintr_tac = REPEAT_FIRST (ASSUME (filt_resolve_tac(EqI::intr_rls) 1));
 
 (** Tactics that instantiate CTT-rules.
     Vars in the given terms will be incremented! 
-    The (resolve_tac [EqE] i) lets them apply to equality judgements. **)
+    The (rtac EqE i) lets them apply to equality judgements. **)
 
 fun NE_tac (sp: string) i = 
-  TRY (resolve_tac [EqE] i) THEN res_inst_tac [ ("p",sp) ] NE i;
+  TRY (rtac EqE i) THEN res_inst_tac [ ("p",sp) ] NE i;
 
 fun SumE_tac (sp: string) i = 
-  TRY (resolve_tac [EqE] i) THEN res_inst_tac [ ("p",sp) ] SumE i;
+  TRY (rtac EqE i) THEN res_inst_tac [ ("p",sp) ] SumE i;
 
 fun PlusE_tac (sp: string) i = 
-  TRY (resolve_tac [EqE] i) THEN res_inst_tac [ ("p",sp) ] PlusE i;
+  TRY (rtac EqE i) THEN res_inst_tac [ ("p",sp) ] PlusE i;
 
 (** Predicate logic reasoning, WITH THINNING!!  Procedures adapted from NJ. **)
 
 (*Finds f:Prod(A,B) and a:A in the assumptions, concludes there is z:B(a) *)
 fun add_mp_tac i = 
-    resolve_tac [subst_prodE] i  THEN  assume_tac i  THEN  assume_tac i;
+    rtac subst_prodE i  THEN  assume_tac i  THEN  assume_tac i;
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q *)
-fun mp_tac i = eresolve_tac [subst_prodE] i  THEN  assume_tac i;
+fun mp_tac i = etac subst_prodE i  THEN  assume_tac i;
 
 (*"safe" when regarded as predicate calculus rules*)
 val safe_brls = sort lessb 

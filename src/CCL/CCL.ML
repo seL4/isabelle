@@ -1,6 +1,6 @@
-(*  Title: 	CCL/ccl
+(*  Title:      CCL/ccl
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For ccl.thy.
@@ -89,7 +89,7 @@ local
          | arg_str n a s = arg_str (n-1) a ("," ^ a ^ (chr((ord "a")+n-1)) ^ s);
            val sg = sign_of thy;
            val T = case Sign.const_type sg sy of
-  		            None => error(sy^" not declared") | Some(T) => T;
+                            None => error(sy^" not declared") | Some(T) => T;
            val arity = length (fst (strip_type T));
        in sy ^ (arg_str arity name "") end;
 

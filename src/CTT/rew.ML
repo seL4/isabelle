@@ -1,6 +1,6 @@
-(*  Title: 	CTT/rew
+(*  Title:      CTT/rew
     ID:         $Id$
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
 Simplifier for CTT, using Typedsimp
@@ -17,14 +17,14 @@ val prove_cond_tac = eresolve_tac (peEs 5);
 
 structure TSimp_data: TSIMP_DATA =
   struct
-  val refl		= refl_elem
-  val sym		= sym_elem
-  val trans		= trans_elem
-  val refl_red		= refl_red
-  val trans_red		= trans_red
-  val red_if_equal	= red_if_equal
-  val default_rls 	= comp_rls
-  val routine_tac 	= routine_tac routine_rls
+  val refl              = refl_elem
+  val sym               = sym_elem
+  val trans             = trans_elem
+  val refl_red          = refl_red
+  val trans_red         = trans_red
+  val red_if_equal      = red_if_equal
+  val default_rls       = comp_rls
+  val routine_tac       = routine_tac routine_rls
   end;
 
 structure TSimp = TSimpFun (TSimp_data);

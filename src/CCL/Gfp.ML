@@ -1,9 +1,9 @@
-(*  Title: 	CCL/gfp
+(*  Title:      CCL/gfp
     ID:         $Id$
 
 Modified version of
-    Title: 	HOL/gfp
-    Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
+    Title:      HOL/gfp
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For gfp.thy.  The Knaster-Tarski Theorem for greatest fixed points.
@@ -28,12 +28,12 @@ qed "gfp_least";
 
 val [mono] = goal Gfp.thy "mono(f) ==> gfp(f) <= f(gfp(f))";
 by (EVERY1 [rtac gfp_least, rtac subset_trans, atac,
-	    rtac (mono RS monoD), rtac gfp_upperbound, atac]);
+            rtac (mono RS monoD), rtac gfp_upperbound, atac]);
 qed "gfp_lemma2";
 
 val [mono] = goal Gfp.thy "mono(f) ==> f(gfp(f)) <= gfp(f)";
 by (EVERY1 [rtac gfp_upperbound, rtac (mono RS monoD), 
-	    rtac gfp_lemma2, rtac mono]);
+            rtac gfp_lemma2, rtac mono]);
 qed "gfp_lemma3";
 
 val [mono] = goal Gfp.thy "mono(f) ==> gfp(f) = f(gfp(f))";

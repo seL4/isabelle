@@ -1,6 +1,6 @@
-(*  Title: 	CCL/hered
+(*  Title:      CCL/hered
     ID:         $Id$
-    Author: 	Martin Coen, Cambridge University Computer Laboratory
+    Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
 For hered.thy.

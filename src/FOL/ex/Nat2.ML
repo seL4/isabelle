@@ -1,6 +1,6 @@
-(*  Title: 	FOL/ex/nat2.ML
+(*  Title:      FOL/ex/nat2.ML
     ID:         $Id$
-    Author: 	Tobias Nipkow
+    Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 
 For ex/nat.thy.  
@@ -10,9 +10,9 @@ Examples of simplification and induction on the natural numbers
 open Nat2;
 
 val nat_rews = [pred_0, pred_succ, plus_0, plus_succ, 
-		    nat_distinct1, nat_distinct2, succ_inject,
-		    leq_0,leq_succ_succ,leq_succ_0, 
-		    lt_0_succ,lt_succ_succ,lt_0];
+                    nat_distinct1, nat_distinct2, succ_inject,
+                    leq_0,leq_succ_succ,leq_succ_0, 
+                    lt_0_succ,lt_succ_succ,lt_0];
 
 val nat_ss = FOL_ss addsimps nat_rews;
 
