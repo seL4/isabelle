@@ -1189,13 +1189,13 @@ does not apply here, the theory or proof configuration is not changed.
 \begin{rail}
   'pr' modes? nat? (',' nat)?
   ;
-  'thm' modes? thmrefs
+  'thm' modes? thmrefs comment?
   ;
-  'term' modes? term
+  'term' modes? term comment?
   ;
-  'prop' modes? prop
+  'prop' modes? prop comment?
   ;
-  'typ' modes? type
+  'typ' modes? type comment?
   ;
 
   modes: '(' (name + ) ')'
