@@ -19,9 +19,9 @@ goal thy "is_inf x y inf --> x && y = inf";
 qed "inf_uniq";
 
 goalw thy [Ex1_def] "ALL x y. EX! inf::'a::lattice. is_inf x y inf";
-  by (safe_tac HOL_cs);
-  by (step_tac HOL_cs 1);
-  by (step_tac HOL_cs 1);
+  by (safe_tac (!claset));
+  by (Step_tac 1);
+  by (Step_tac 1);
   br inf_is_inf 1;
   br (inf_uniq RS mp RS sym) 1;
   ba 1;
@@ -41,9 +41,9 @@ goal thy "is_sup x y sup --> x || y = sup";
 qed "sup_uniq";
 
 goalw thy [Ex1_def] "ALL x y. EX! sup::'a::lattice. is_sup x y sup";
-  by (safe_tac HOL_cs);
-  by (step_tac HOL_cs 1);
-  by (step_tac HOL_cs 1);
+  by (safe_tac (!claset));
+  by (Step_tac 1);
+  by (Step_tac 1);
   br sup_is_sup 1;
   br (sup_uniq RS mp RS sym) 1;
   ba 1;
@@ -55,7 +55,7 @@ qed "ex1_sup";
 val tac =
   cut_facts_tac [inf_is_inf] 1 THEN
   rewrite_goals_tac [inf_def, is_inf_def] THEN
-  fast_tac HOL_cs 1;
+  Fast_tac 1;
 
 goal thy "x && y [= x";
   by tac;
@@ -74,7 +74,7 @@ qed "inf_ub_lbs";
 val tac =
   cut_facts_tac [sup_is_sup] 1 THEN
   rewrite_goals_tac [sup_def, is_sup_def] THEN
-  fast_tac HOL_cs 1;
+  Fast_tac 1;
 
 goal thy "x [= x || y";
   by tac;
@@ -106,7 +106,7 @@ goal thy "(x && y = x) = (x [= y)";
     by (REPEAT_FIRST (rtac conjI));
     br le_refl 1;
     ba 1;
-    by (fast_tac HOL_cs 1);
+    by (Fast_tac 1);
 qed "inf_connect";
 
 goal thy "(x || y = y) = (x [= y)";
@@ -120,7 +120,7 @@ goal thy "(x || y = y) = (x [= y)";
     by (REPEAT_FIRST (rtac conjI));
     ba 1;
     br le_refl 1;
-    by (fast_tac HOL_cs 1);
+    by (Fast_tac 1);
 qed "sup_connect";
 
 

@@ -7,23 +7,23 @@ open GroupDefs;
 (*this is really overkill - should be rather proven 'inline'*)
 
 goalw thy [times_bool_def] "(x * y) * z = x * (y * (z::bool))";
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "bool_assoc";
 
 goalw thy [times_bool_def, one_bool_def] "1 * x = (x::bool)";
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "bool_left_unit";
 
 goalw thy [times_bool_def, one_bool_def] "x * 1 = (x::bool)";
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "bool_right_unit";
 
 goalw thy [times_bool_def, inv_bool_def, one_bool_def] "inv(x) * x = (1::bool)";
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "bool_left_inv";
 
 goalw thy [times_bool_def] "x * y = (y * (x::bool))";
-by (fast_tac HOL_cs 1);
+by (Fast_tac 1);
 qed "bool_commut";
 
 
