@@ -86,7 +86,7 @@ in (dnam,
     [take_def, finite_def])
 end; (* let *)
 
-val add_axioms_i = PureThy.add_axioms_i o map Thm.no_attributes;
+fun add_axioms_i x = #1 o PureThy.add_axioms_i (map Thm.no_attributes x);
 
 in (* local *)
 

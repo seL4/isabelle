@@ -245,10 +245,10 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
       if need_recursor then
 	   thy |> Theory.add_consts_i 
 	            [(recursor_base_name, recursor_typ, NoSyn)]
-	       |> PureThy.add_defs_i [Thm.no_attributes recursor_def]
+	       |> (#1 o PureThy.add_defs_i [Thm.no_attributes recursor_def])
       else thy;
 
-  val thy0 = thy_path
+  val (thy0, con_defs) = thy_path
 	     |> Theory.add_consts_i 
 		 ((case_base_name, case_typ, NoSyn) ::
 		  map #1 (flat con_ty_lists))
@@ -257,11 +257,8 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
 		  (case_def :: 
 		   flat (ListPair.map mk_con_defs
 			 (1 upto npart, con_ty_lists))))
-	     |> add_recursor
-	     |> Theory.parent_path
-
-  val con_defs = get_def thy0 case_name :: 
-		 map (get_def thy0 o #2) (flat con_ty_lists);
+	     |>> add_recursor
+	     |>> Theory.parent_path
 
   val (thy1, ind_result) = 
          thy0  |> Ind_Package.add_inductive_i
@@ -390,12 +387,12 @@ fun add_datatype_i (dom_sum, rec_tms, con_ty_lists,
  in
   (*Updating theory components: simprules and datatype info*)
   (thy1 |> Theory.add_path big_rec_base_name
-        |> PureThy.add_thmss [(("simps", simps), 
-			       [Simplifier.simp_add_global])]
-        |> PureThy.add_thmss [(("", intrs),   
+        |> (#1 o PureThy.add_thmss [(("simps", simps), 
+			       [Simplifier.simp_add_global])])
+        |> (#1 o PureThy.add_thmss [(("", intrs),   
                                 (*not "intrs" to avoid the warning that they
 				  are already stored by the inductive package*)
-			       [Classical.safe_intro_global])]
+			       [Classical.safe_intro_global])])
         |> DatatypesData.put 
 	    (Symtab.update
 	     ((big_rec_name, dt_info), DatatypesData.get thy1)) 

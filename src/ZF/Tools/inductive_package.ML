@@ -182,7 +182,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
 
   (*add definitions of the inductive sets*)
   val thy1 = thy |> Theory.add_path big_rec_base_name
-                 |> PureThy.add_defs_i (map Thm.no_attributes axpairs)  
+                 |> (#1 o PureThy.add_defs_i (map Thm.no_attributes axpairs))
 
 
   (*fetch fp definitions from the theory*)
@@ -531,12 +531,10 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
      val induct = CP.split_rule_var(pred_var, elem_type-->FOLogic.oT, induct0) 
 		  |> standard
      and mutual_induct = CP.remove_split mutual_induct_fsplit
-    in
-      (thy
-	|> PureThy.add_thms 
-	    [(("induct", induct), []),
-	     (("mutual_induct", mutual_induct), [])],
-       induct, mutual_induct)
+
+     val (thy', [induct', mutual_induct']) =
+	thy |> PureThy.add_thms [(("induct", induct), []), (("mutual_induct", mutual_induct), [])];
+    in (thy', induct', mutual_induct')
     end;  (*of induction_rules*)
 
   val raw_induct = standard ([big_rec_def, bnd_mono] MRS Fp.induct)
@@ -546,26 +544,28 @@ fun add_inductive_i verbose (rec_tms, dom_sum, intr_tms,
       else (thy1, raw_induct, TrueI)
   and defs = big_rec_def :: part_rec_defs
 
- in
-   (thy2
-	 |> (PureThy.add_thms o map Thm.no_attributes)
-	      [("bnd_mono", bnd_mono),
-	       ("dom_subset", dom_subset),
-	       ("elim", elim)]
-	 |> (PureThy.add_thmss o map Thm.no_attributes)
-	       [("defs", defs),
-		("intrs", intrs)]
-         |> Theory.parent_path,
-    {defs = defs,
-     bnd_mono = bnd_mono,
-     dom_subset = dom_subset,
-     intrs = intrs,
-     elim = elim,
-     mk_cases = mk_cases,
-     induct = induct,
-     mutual_induct = mutual_induct})
 
- end;
+  val (thy3, ([bnd_mono', dom_subset', elim'], [defs', intrs'])) =
+    thy2
+    |> (PureThy.add_thms o map Thm.no_attributes)
+        [("bnd_mono", bnd_mono),
+         ("dom_subset", dom_subset),
+         ("elim", elim)]
+    |>>> (PureThy.add_thmss o map Thm.no_attributes)
+        [("defs", defs),
+         ("intrs", intrs)]
+    |>> Theory.parent_path;
+  in
+    (thy3,
+      {defs = defs',
+       bnd_mono = bnd_mono',
+       dom_subset = dom_subset',
+       intrs = intrs',
+       elim = elim',
+       mk_cases = mk_cases,
+       induct = induct,
+       mutual_induct = mutual_induct})
+  end;
 
 
 (*external version, accepting strings*)

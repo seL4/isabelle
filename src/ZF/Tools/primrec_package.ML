@@ -167,10 +167,9 @@ fun add_primrec_i recursion_eqns thy =
     val Some (fname, ftype, ls, rs, con_info, eqns) = 
 	foldr (process_eqn thy) (map snd recursion_eqns, None);
     val def = process_fun thy (fname, ftype, ls, rs, con_info, eqns) 
-    val thy' = thy |> Theory.add_path (Sign.base_name (#1 def))
+    val (thy', [def_thm]) = thy |> Theory.add_path (Sign.base_name (#1 def))
                    |> (PureThy.add_defs_i o map Thm.no_attributes) [def]
-    val rewrites = get_thm thy' (#1 def) ::
-	           map mk_meta_eq (#rec_rewrites con_info)
+    val rewrites = def_thm :: map mk_meta_eq (#rec_rewrites con_info)
     val char_thms = 
 	(if !Ind_Syntax.trace then	(* FIXME message / quiet_mode (!?) *)
 	     writeln ("Proving equations for primrec function " ^ fname)
@@ -183,9 +182,9 @@ fun add_primrec_i recursion_eqns thy =
 	 recursion_eqns);
     val simps = char_thms;
     val thy'' = thy' 
-      |> PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])]
-      |> PureThy.add_thms (map (rpair [])
-         (filter_out (equal "_" o fst) (map fst recursion_eqns ~~ simps)))
+      |> (#1 o PureThy.add_thmss [(("simps", simps), [Simplifier.simp_add_global])])
+      |> (#1 o PureThy.add_thms (map (rpair [])
+         (filter_out (equal "_" o fst) (map fst recursion_eqns ~~ simps))))
       |> Theory.parent_path;
   in
     (thy'', char_thms)
