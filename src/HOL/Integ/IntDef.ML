@@ -139,9 +139,9 @@ qed "inj_zminus";
 
 Goalw [int_def] "- (int 0) = int 0";
 by (simp_tac (simpset() addsimps [zminus]) 1);
-qed "zminus_nat0";
+qed "zminus_int0";
 
-Addsimps [zminus_nat0];
+Addsimps [zminus_int0];
 
 
 (**** neg: the test for negative integers ****)
@@ -225,12 +225,12 @@ qed "int_Suc_int_1";
 Goalw [int_def] "int 0 + z = z";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zadd]) 1);
-qed "zadd_nat0";
+qed "zadd_int0";
 
 Goal "z + int 0 = z";
 by (rtac (zadd_commute RS trans) 1);
-by (rtac zadd_nat0 1);
-qed "zadd_nat0_right";
+by (rtac zadd_int0 1);
+qed "zadd_int0_right";
 
 Goalw [int_def] "z + (- z) = int 0";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
@@ -242,7 +242,7 @@ by (rtac (zadd_commute RS trans) 1);
 by (rtac zadd_zminus_inverse 1);
 qed "zadd_zminus_inverse2";
 
-Addsimps [zadd_nat0, zadd_nat0_right,
+Addsimps [zadd_int0, zadd_int0_right,
 	  zadd_zminus_inverse, zadd_zminus_inverse2];
 
 Goal "z + (- z + w) = (w::int)";
@@ -257,17 +257,17 @@ Addsimps [zadd_zminus_cancel, zminus_zadd_cancel];
 
 Goal "int 0 - x = -x";
 by (simp_tac (simpset() addsimps [zdiff_def]) 1);
-qed "zdiff_nat0";
+qed "zdiff_int0";
 
 Goal "x - int 0 = x";
 by (simp_tac (simpset() addsimps [zdiff_def]) 1);
-qed "zdiff_nat0_right";
+qed "zdiff_int0_right";
 
 Goal "x - x = int 0";
 by (simp_tac (simpset() addsimps [zdiff_def]) 1);
 qed "zdiff_self";
 
-Addsimps [zdiff_nat0, zdiff_nat0_right, zdiff_self];
+Addsimps [zdiff_int0, zdiff_int0_right, zdiff_self];
 
 
 (** Lemmas **)
@@ -326,13 +326,6 @@ by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zminus, zmult] @ add_ac) 1);
 qed "zmult_zminus";
 
-
-Goal "(- z) * (- w) = (z * (w::int))";
-by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
-by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
-by (asm_simp_tac (simpset() addsimps [zminus, zmult] @ add_ac) 1);
-qed "zmult_zminus_zminus";
-
 Goal "(z::int) * w = w * z";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
@@ -388,29 +381,22 @@ qed "zdiff_zmult_distrib2";
 Goalw [int_def] "int 0 * z = int 0";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zmult]) 1);
-qed "zmult_nat0";
+qed "zmult_int0";
 
 Goalw [int_def] "int 1 * z = z";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zmult]) 1);
-qed "zmult_nat1";
+qed "zmult_int1";
 
 Goal "z * int 0 = int 0";
-by (rtac ([zmult_commute, zmult_nat0] MRS trans) 1);
-qed "zmult_nat0_right";
+by (rtac ([zmult_commute, zmult_int0] MRS trans) 1);
+qed "zmult_int0_right";
 
 Goal "z * int 1 = z";
-by (rtac ([zmult_commute, zmult_nat1] MRS trans) 1);
-qed "zmult_nat1_right";
+by (rtac ([zmult_commute, zmult_int1] MRS trans) 1);
+qed "zmult_int1_right";
 
-Addsimps [zmult_nat0, zmult_nat0_right, zmult_nat1, zmult_nat1_right];
-
-
-Goal "(- z = w) = (z = - (w::int))";
-by Safe_tac;
-by (rtac (zminus_zminus RS sym) 1);
-by (rtac zminus_zminus 1);
-qed "zminus_exchange";
+Addsimps [zmult_int0, zmult_int0_right, zmult_int1, zmult_int1_right];
 
 
 (* Theorems about less and less_equal *)

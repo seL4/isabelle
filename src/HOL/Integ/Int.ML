@@ -125,6 +125,14 @@ Goal "(- x <= y) = (- y <= (x::int))";
 by (simp_tac (simpset() addsimps [zle_def, zless_zminus]) 1);
 qed "zminus_zle"; 
 
+Goal "(x = - y) = (y = - (x::int))";
+by Auto_tac;
+qed "equation_zminus";
+
+Goal "(- x = y) = (- (y::int) = x)";
+by Auto_tac;
+qed "zminus_equation";
+
 Goal "- (int (Suc n)) < int 0";
 by (simp_tac (simpset() addsimps [zless_def]) 1);
 qed "negative_zless_0"; 
@@ -180,11 +188,11 @@ qed "zle_iff_zadd";
 
 Goalw [zdiff_def,zless_def] "neg x = (x < int 0)";
 by Auto_tac; 
-qed "neg_eq_less_nat0"; 
+qed "neg_eq_less_int0"; 
 
 Goalw [zle_def] "(~neg x) = (int 0 <= x)";
-by (simp_tac (simpset() addsimps [neg_eq_less_nat0]) 1); 
-qed "not_neg_eq_ge_nat0"; 
+by (simp_tac (simpset() addsimps [neg_eq_less_int0]) 1); 
+qed "not_neg_eq_ge_int0"; 
 
 
 (**** nat: magnitide of an integer, as a natural number ****)
@@ -195,20 +203,20 @@ qed "nat_nat";
 
 Goalw [nat_def] "nat(- int n) = 0";
 by (auto_tac (claset(),
-	      simpset() addsimps [neg_eq_less_nat0, zminus_zless])); 
+	      simpset() addsimps [neg_eq_less_int0, zminus_zless])); 
 qed "nat_zminus_nat";
 
 Addsimps [nat_nat, nat_zminus_nat];
 
 Goal "~ neg z ==> int (nat z) = z"; 
-by (dtac (not_neg_eq_ge_nat0 RS iffD1) 1); 
+by (dtac (not_neg_eq_ge_int0 RS iffD1) 1); 
 by (dtac zle_imp_zless_or_eq 1); 
 by (auto_tac (claset(), simpset() addsimps [zless_iff_Suc_zadd])); 
 qed "not_neg_nat"; 
 
 Goal "neg x ==> ? n. x = - (int (Suc n))"; 
 by (auto_tac (claset(), 
-	      simpset() addsimps [neg_eq_less_nat0, zless_iff_Suc_zadd,
+	      simpset() addsimps [neg_eq_less_int0, zless_iff_Suc_zadd,
 				  zdiff_eq_eq RS sym, zdiff_def])); 
 qed "negD"; 
 
@@ -219,13 +227,26 @@ qed "neg_nat";
 (*An alternative condition is  int 0 <= w  *)
 Goal "int 0 < z ==> (nat w < nat z) = (w < z)";
 by (stac (zless_int RS sym) 1);
-by (asm_simp_tac (simpset() addsimps [not_neg_nat, not_neg_eq_ge_nat0, 
+by (asm_simp_tac (simpset() addsimps [not_neg_nat, not_neg_eq_ge_int0, 
 				      order_le_less]) 1);
 by (case_tac "neg w" 1);
 by (asm_simp_tac (simpset() addsimps [not_neg_nat]) 2);
-by (asm_full_simp_tac (simpset() addsimps [neg_eq_less_nat0, neg_nat]) 1);
+by (asm_full_simp_tac (simpset() addsimps [neg_eq_less_int0, neg_nat]) 1);
 by (blast_tac (claset() addIs [order_less_trans]) 1);
-qed "zless_nat";
+val lemma = result();
+
+Goal "z <= int 0 ==> nat z = 0"; 
+by (auto_tac (claset(), 
+	      simpset() addsimps [order_le_less, neg_eq_less_int0, 
+				  zle_def, neg_nat])); 
+qed "nat_le_0"; 
+
+Goal "(nat w < nat z) = (int 0 < z & w < z)";
+by (case_tac "int 0 < z" 1);
+by (auto_tac (claset(), 
+	      simpset() addsimps [lemma, nat_le_0, linorder_not_less])); 
+qed "zless_nat_conj";
+
 
 (* a case theorem distinguishing non-negative and negative int *)  
 
@@ -251,7 +272,7 @@ val lemma = result();
 Goal "[| i <= j;  int 0 <= k |] ==> i*k <= j*k";
 by (res_inst_tac [("t", "k")] (not_neg_nat RS subst) 1);
 by (etac lemma 2);
-by (full_simp_tac (simpset() addsimps [not_neg_eq_ge_nat0]) 1);
+by (full_simp_tac (simpset() addsimps [not_neg_eq_ge_int0]) 1);
 qed "zmult_zle_mono1";
 
 Goal "[| i <= j;  k <= int 0 |] ==> j*k <= i*k";
@@ -286,9 +307,9 @@ val lemma = result() RS mp;
 Goal "[| i<j;  int 0 < k |] ==> k*i < k*j";
 by (res_inst_tac [("t", "k")] (not_neg_nat RS subst) 1);
 by (etac lemma 2);
-by (asm_simp_tac (simpset() addsimps [not_neg_eq_ge_nat0, 
+by (asm_simp_tac (simpset() addsimps [not_neg_eq_ge_int0, 
 				      order_le_less]) 1);
-by (forward_tac [zless_nat RS iffD2] 1);
+by (forward_tac [conjI RS (zless_nat_conj RS iffD2)] 1);
 by Auto_tac;
 qed "zmult_zless_mono2";
 
@@ -309,28 +330,6 @@ by (asm_simp_tac (simpset() addsimps [zmult_zminus RS sym,
 				      zmult_zless_mono2, zless_zminus]) 1);
 qed "zmult_zless_mono2_neg";
 
-
-(** Products of signs.  Useful?  **)
-
-Goal "[| m < int 0;  n < int 0 |] ==> int 0 < m*n";
-by (dtac zmult_zless_mono1_neg 1);
-by Auto_tac;
-qed "neg_times_neg_is_pos";
-
-Goal "[| m < int 0;  int 0 < n |] ==> m*n < int 0";
-by (dtac zmult_zless_mono1 1);
-by Auto_tac;
-qed "neg_times_pos_is_neg";
-
-Goal "[| int 0 < m;  n < int 0 |] ==> m*n < int 0";
-by (dtac zmult_zless_mono1_neg 1);
-by Auto_tac;
-qed "pos_times_neg_is_neg";
-
-Goal "[| int 0 < m;  int 0 < n |] ==> int 0 < m*n";
-by (dtac zmult_zless_mono1 1);
-by Auto_tac;
-qed "pos_times_pos_is_pos";
 
 Goal "(m*n = int 0) = (m = int 0 | n = int 0)";
 by (case_tac "m < int 0" 1);

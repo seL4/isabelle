@@ -200,11 +200,21 @@ qed "zdiff_self";
 
 Addsimps [zdiff0, zdiff0_right, zdiff_self];
 
-(** Distributive laws for constants only **)
 
-Addsimps (map (read_instantiate_sg (sign_of thy) [("w", "number_of ?v")])
+(** Special simplification, for constants only **)
+
+fun inst x t = read_instantiate_sg (sign_of Bin.thy) [(x,t)];
+
+(*Distributive laws*)
+Addsimps (map (inst "w" "number_of ?v")
 	  [zadd_zmult_distrib, zadd_zmult_distrib2,
 	   zdiff_zmult_distrib, zdiff_zmult_distrib2]);
+
+Addsimps (map (inst "x" "number_of ?v") 
+	  [zless_zminus, zle_zminus, equation_zminus]);
+Addsimps (map (inst "y" "number_of ?v") 
+	  [zminus_zless, zminus_zle, zminus_equation]);
+
 
 (** Special-case simplification for small constants **)
 
@@ -224,7 +234,19 @@ Goal "z * #1 = (z::int)";
 by (Simp_tac 1);
 qed "zmult_1_right";
 
-(*For specialist use*)
+Goal "#-1 * z = -(z::int)";
+by (simp_tac (simpset() addsimps zcompare_rls@[zmult_zminus]) 1);
+qed "zmult_minus1";
+
+Goal "z * #-1 = -(z::int)";
+by (simp_tac (simpset() addsimps zcompare_rls@[zmult_zminus_right]) 1);
+qed "zmult_minus1_right";
+
+Addsimps [zmult_0, zmult_0_right, 
+	  zmult_1, zmult_1_right,
+	  zmult_minus1, zmult_minus1_right];
+
+(*For specialist use: NOT as default simprules*)
 Goal "#2 * z = (z+z::int)";
 by (simp_tac (simpset() addsimps [zadd_zmult_distrib]) 1);
 qed "zmult_2";
@@ -233,8 +255,8 @@ Goal "z * #2 = (z+z::int)";
 by (simp_tac (simpset() addsimps [zadd_zmult_distrib2]) 1);
 qed "zmult_2_right";
 
-Addsimps [zmult_0, zmult_0_right, 
-	  zmult_1, zmult_1_right];
+
+(** Inequality reasoning **)
 
 Goal "(w < z + (#1::int)) = (w<z | w=z)";
 by (simp_tac (simpset() addsimps [zless_add_int_Suc_eq]) 1);
@@ -246,17 +268,40 @@ qed "add1_zle_eq";
 Addsimps [add1_zle_eq];
 
 Goal "neg x = (x < #0)";
-by (simp_tac (simpset() addsimps [neg_eq_less_nat0]) 1); 
+by (simp_tac (simpset() addsimps [neg_eq_less_int0]) 1); 
 qed "neg_eq_less_0"; 
 
 Goal "(~neg x) = (int 0 <= x)";
-by (simp_tac (simpset() addsimps [not_neg_eq_ge_nat0]) 1); 
+by (simp_tac (simpset() addsimps [not_neg_eq_ge_int0]) 1); 
 qed "not_neg_eq_ge_0"; 
 
 Goal "#0 <= int m";
 by (Simp_tac 1);
 qed "zero_zle_int";
 AddIffs [zero_zle_int];
+
+
+(** Products of signs  **)
+
+Goal "[| (m::int) < #0;  n < #0 |] ==> #0 < m*n";
+by (dtac zmult_zless_mono1_neg 1);
+by Auto_tac;
+qed "neg_times_neg_is_pos";
+
+Goal "[| (m::int) < #0;  #0 < n |] ==> m*n < #0";
+by (dtac zmult_zless_mono1 1);
+by Auto_tac;
+qed "neg_times_pos_is_neg";
+
+Goal "[| #0 < (m::int);  n < #0 |] ==> m*n < #0";
+by (dtac zmult_zless_mono1_neg 1);
+by Auto_tac;
+qed "pos_times_neg_is_neg";
+
+Goal "[| #0 < (m::int);  #0 < n |] ==> #0 < m*n";
+by (dtac zmult_zless_mono1 1);
+by Auto_tac;
+qed "pos_times_pos_is_pos";
 
 
 (** Needed because (int 0) rewrites to #0.
@@ -339,7 +384,7 @@ Goal "neg (number_of (w BIT x)) = neg (number_of w)";
 by (Asm_simp_tac 1); 
 by (int_case_tac "number_of w" 1); 
 by (ALLGOALS (asm_simp_tac 
-	      (simpset() addsimps [zadd_int, neg_eq_less_nat0, 
+	      (simpset() addsimps [zadd_int, neg_eq_less_int0, 
 				   symmetric zdiff_def] @ zcompare_rls))); 
 qed "neg_number_of_BIT"; 
 
@@ -671,5 +716,7 @@ by (auto_tac (claset() addIs [zless_trans],
 qed "nat_less_eq_zless";
 
 
+(*Towards canonical simplification*)
 Addsimps zadd_ac;
 Addsimps zmult_ac;
+Addsimps [zmult_zminus, zmult_zminus_right];

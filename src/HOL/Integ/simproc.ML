@@ -20,7 +20,7 @@ val zadd_cancel_21 = prove_goal IntDef.thy
 val zadd_cancel_end = prove_goal IntDef.thy
     "((x::int) + (y + z) = y) = (x = -z)"
   (fn _ => [stac zadd_left_commute 1,
-	    res_inst_tac [("t", "y")] (zadd_nat0_right RS subst) 1,
+	    res_inst_tac [("t", "y")] (zadd_int0_right RS subst) 1,
 	    stac zadd_left_cancel 1,
 	    simp_tac (simpset() addsimps [eq_zdiff_eq RS sym]) 1]);
 
@@ -39,8 +39,8 @@ struct
   val add_assoc		= zadd_assoc
   val add_commute	= zadd_commute
   val add_left_commute	= zadd_left_commute
-  val add_0		= zadd_nat0
-  val add_0_right	= zadd_nat0_right
+  val add_0		= zadd_int0
+  val add_0_right	= zadd_int0_right
 
   val eq_diff_eq	= eq_zdiff_eq
   val eqI_rules		= [zless_eqI, zeq_eqI, zle_eqI]
@@ -51,7 +51,7 @@ struct
   val diff_def		= zdiff_def
   val minus_add_distrib	= zminus_zadd_distrib
   val minus_minus	= zminus_zminus
-  val minus_0		= zminus_nat0
+  val minus_0		= zminus_int0
   val add_inverses	= [zadd_zminus_inverse, zadd_zminus_inverse2];
   val cancel_simps	= [zadd_zminus_cancel, zminus_zadd_cancel]
 end;
