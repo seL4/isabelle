@@ -131,8 +131,7 @@ fun type_tr (*"_TYPE"*) [ty] =
 
 (* dddot *)
 
-fun dddot_tr (*"_DDDOT"*) [] = Lexicon.var SynExt.dddot_indexname
-  | dddot_tr (*"_DDDOT"*) ts = raise TERM ("dddot_tr", ts);
+fun dddot_tr (*"_DDDOT"*) ts = Term.list_comb (Lexicon.var SynExt.dddot_indexname, ts);
 
 
 (* quote / antiquote *)
