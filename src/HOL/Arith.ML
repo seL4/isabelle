@@ -544,7 +544,7 @@ Addsimps [mult_eq_1_iff];
 goal Arith.thy "!!k. 0<k ==> (m*k < n*k) = (m<n)";
 by (safe_tac (claset() addSIs [mult_less_mono1]));
 by (cut_facts_tac [less_linear] 1);
-by (blast_tac (claset() addDs [mult_less_mono1] addEs [less_asym]) 1);
+by (blast_tac (claset() addIs [mult_less_mono1] addEs [less_asym]) 1);
 qed "mult_less_cancel2";
 
 goal Arith.thy "!!k. 0<k ==> (k*m < k*n) = (m<n)";
