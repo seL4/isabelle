@@ -49,6 +49,11 @@ Lawrence~C. Paulson.
 \newblock {\em {ML} for the Working Programmer}.
 \newblock Cambridge University Press, 1991.
 
+\bibitem{paulson-ml2}
+Lawrence~C. Paulson.
+\newblock {\em {ML} for the Working Programmer}.
+\newblock Cambridge University Press, 2nd edition, 1996.
+
 \bibitem{pelletier86}
 F.~J. Pelletier.
 \newblock Seventy-five problems for testing automatic theorem provers.
