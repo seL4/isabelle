@@ -3,28 +3,21 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
-Compatibility file for MLWorks (??)
+Compatibility file for MLWorks
 
-NB: There is still no easy way of building Isabelle under MLWorks.  This file
-    is just a start towards compatibility.  One problem is the peculiar
-    behaviour of "use" in MLWorks.  Strange errors occur when loading theories,
-    and ROOT.ML files on subdirectories are loaded incorrectly.
+Build Pure by typing to MLWorks (in directory Pure)
+        use "ML-Systems/MLWorks.ML";
+        use "ROOT.ML";
+	collect_as_much_as_possible ();
+	Shell.saveImage ("/anfs/bigdisc/lcp/heaps/mlworks/Pure", false);
+
+Execute saved image by typing to the shell
+	mlimage -load /anfs/bigdisc/lcp/heaps/mlworks/Pure
 *)
 
 (*** Poly/ML emulation ***)
 
-(**
-Shell.File.loadSource "system.__os";
-Shell.File.loadSource "basis.__timer";
-Shell.File.loadSource "system.__time";
-Shell.File.loadSource "unix.__os_file_sys";
-Shell.File.loadSource "basis.__list";
-Shell.File.loadSource "basis.__char";
-Shell.File.loadSource "basis.__string";
-Shell.File.loadSource "basis.__text_io";
-**)
-
-
+(*Just for versions of MLWorks that don't provide the Option structure*)
 structure Option = General;
 
 (*To exit the system with an exit code -- an alternative to ^D *)
