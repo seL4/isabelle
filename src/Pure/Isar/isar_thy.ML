@@ -14,8 +14,6 @@ sig
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory
   val add_defs: bool * ((bstring * string) * Args.src list) list -> theory -> theory
   val add_defs_i: bool * ((bstring * term) * theory attribute list) list -> theory -> theory
-  val add_constdefs: ((bstring * string * mixfix) * string) list -> theory -> theory
-  val add_constdefs_i: ((bstring * typ * mixfix) * term) list -> theory -> theory
   val theorems: string -> ((bstring * Args.src list) * (xstring * Args.src list) list) list
     -> theory -> theory * (string * thm list) list
   val theorems_i: string ->
@@ -140,11 +138,11 @@ sig
   val finally_i: thm list option -> Toplevel.transition -> Toplevel.transition
   val moreover: Toplevel.transition -> Toplevel.transition
   val ultimately: Toplevel.transition -> Toplevel.transition
-  val parse_ast_translation: string -> theory -> theory
-  val parse_translation: string -> theory -> theory
-  val print_translation: string -> theory -> theory
-  val typed_print_translation: string -> theory -> theory
-  val print_ast_translation: string -> theory -> theory
+  val parse_ast_translation: bool * string -> theory -> theory
+  val parse_translation: bool * string -> theory -> theory
+  val print_translation: bool * string -> theory -> theory
+  val typed_print_translation: bool * string -> theory -> theory
+  val print_ast_translation: bool * string -> theory -> theory
   val token_translation: string -> theory -> theory
   val method_setup: bstring * string * string -> theory -> theory
   val add_oracle: bstring * string -> theory -> theory
@@ -204,18 +202,6 @@ val add_axioms = add_axms (#1 oo PureThy.add_axioms);
 val add_axioms_i = #1 oo PureThy.add_axioms_i;
 fun add_defs (x, args) = add_axms (#1 oo PureThy.add_defs x) args;
 fun add_defs_i (x, args) = (#1 oo PureThy.add_defs_i x) args;
-
-
-(* constdefs *)
-
-fun gen_add_constdefs consts defs args thy =
-  thy
-  |> consts (map fst args)
-  |> defs (false, map (fn ((c, _, mx), s) =>
-    ((Thm.def_name (Syntax.const_name c mx), s), [])) args);
-
-val add_constdefs = gen_add_constdefs Theory.add_consts add_defs;
-val add_constdefs_i = gen_add_constdefs Theory.add_consts_i add_defs_i;
 
 
 (* attributes *)
@@ -292,14 +278,14 @@ val using_facts_i = ProofHistory.apply o Proof.using_thmss_i o map (map (apfst s
 
 val chain = ProofHistory.apply Proof.chain;
 
+
 (* locale instantiation *)
 
-fun instantiate_locale ((name, attribs), loc) =
+fun instantiate_locale ((name, atts), loc) =
   ProofHistory.apply (fn state =>
-    let val thy = Proof.theory_of state
-    in Proof.instantiate_locale (loc, 
-        (name, map (Attrib.local_attribute thy) attribs)) state
-    end);
+    Proof.instantiate_locale (loc,
+        (name, map (Attrib.local_attribute (Proof.theory_of state)) atts)) state);
+
 
 (* context *)
 
@@ -309,7 +295,9 @@ val let_bind = ProofHistory.apply o Proof.let_bind;
 val let_bind_i = ProofHistory.apply o Proof.let_bind_i;
 
 fun invoke_case (name, xs, src) = ProofHistory.apply (fn state =>
-  Proof.invoke_case (name, xs, map (Attrib.local_attribute (Proof.theory_of state)) src) state);
+  Proof.invoke_case (name, xs,
+    map (Attrib.local_attribute (Proof.theory_of state)) src) state);
+
 val invoke_case_i = ProofHistory.apply o Proof.invoke_case;
 
 
@@ -532,25 +520,36 @@ end;
 
 (* translation functions *)
 
-val parse_ast_translation =
-  Context.use_let "val parse_ast_translation: (string * (Syntax.ast list -> Syntax.ast)) list"
-    "Theory.add_trfuns (parse_ast_translation, [], [], [])";
+fun advancedT false = ""
+  | advancedT true = "Sign.sg -> ";
 
-val parse_translation =
-  Context.use_let "val parse_translation: (string * (term list -> term)) list"
-    "Theory.add_trfuns ([], parse_translation, [], [])";
+fun advancedN false = ""
+  | advancedN true = "advanced_";
 
-val print_translation =
-  Context.use_let "val print_translation: (string * (term list -> term)) list"
-    "Theory.add_trfuns ([], [], print_translation, [])";
+fun parse_ast_translation (a, txt) =
+  txt |> Context.use_let ("val parse_ast_translation: (string * (" ^ advancedT a ^
+      "Syntax.ast list -> Syntax.ast)) list")
+    ("Theory.add_" ^ advancedN a ^ "trfuns (parse_ast_translation, [], [], [])");
 
-val print_ast_translation =
-  Context.use_let "val print_ast_translation: (string * (Syntax.ast list -> Syntax.ast)) list"
-    "Theory.add_trfuns ([], [], [], print_ast_translation)";
+fun parse_translation (a, txt) =
+  txt |> Context.use_let ("val parse_translation: (string * (" ^ advancedT a ^
+      "term list -> term)) list")
+    ("Theory.add_" ^ advancedN a ^ "trfuns ([], parse_translation, [], [])");
 
-val typed_print_translation =
-  Context.use_let "val typed_print_translation: (string * (bool -> typ -> term list -> term)) list"
-    "Theory.add_trfunsT typed_print_translation";
+fun print_translation (a, txt) =
+  txt |> Context.use_let ("val print_translation: (string * (" ^ advancedT a ^
+      "term list -> term)) list")
+    ("Theory.add_" ^ advancedN a ^ "trfuns ([], [], print_translation, [])");
+
+fun print_ast_translation (a, txt) =
+  txt |> Context.use_let ("val print_ast_translation: (string * (" ^ advancedT a ^
+      "Syntax.ast list -> Syntax.ast)) list")
+    ("Theory.add_" ^ advancedN a ^ "trfuns ([], [], [], print_ast_translation)");
+
+fun typed_print_translation (a, txt) =
+  txt |> Context.use_let ("val typed_print_translation: (string * (" ^ advancedT a ^
+      "bool -> typ -> term list -> term)) list")
+    ("Theory.add_" ^ advancedN a ^ "trfunsT typed_print_translation");
 
 val token_translation =
   Context.use_let "val token_translation: (string * string * (string -> string * real)) list"
