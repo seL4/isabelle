@@ -110,11 +110,13 @@ find . -name CVS -exec rm -rf {} \;
 # make docs
 
 cd $DISTBASE/$DISTNAME/Doc
+PDFLATEX=$(type -path pdflatex)
 
 for DOC in $(cat Contents)
 do
   cd $DOC
-  make dist
+  make dvi
+  [ -n "$PDFLATEX" ] && make clean pdf
   cd ..
 done
 
@@ -123,8 +125,9 @@ done
 
 cd $DISTBASE/$DISTNAME
 
-find Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps \) \) \
-  -exec mv -f {} Distribution/doc \;
+MOVE=$(find Doc \( -type f -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) \) \
+  | grep -v 'gfx/.*pdf')
+mv -f $MOVE Distribution/doc
 rm Distribution/doc/Isa-logics.eps
 cp Admin/index.html $DISTBASE
 rm -rf Admin Doc
