@@ -87,7 +87,7 @@ qed "free_subst";
 Addsimps [free_subst];
 
 goal Eta.thy "!!s. s -e> t ==> !i. free t i = free s i";
-by (etac (eta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1);
+by (etac eta.induct 1);
 by(ALLGOALS(asm_simp_tac (!simpset addsimps [decr_def] addcongs [conj_cong])));
 qed_spec_mp "free_eta";
 
@@ -107,7 +107,7 @@ by (etac subst_not_free 1);
 qed "subst_decr";
 
 goal Eta.thy "!!s. s -e> t ==> !u i. s[u/i] -e> t[u/i]";
-by (etac (eta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1);
+by (etac eta.induct 1);
 by(ALLGOALS(asm_simp_tac (!simpset addsimps [subst_subst RS sym,decr_def])));
 by(asm_simp_tac (!simpset addsimps [subst_decr]) 1);
 qed_spec_mp "eta_subst";
@@ -120,7 +120,8 @@ qed "eta_decr";
 (*** Confluence of eta ***)
 
 goalw Eta.thy [square_def,id_def]  "square eta eta (eta^=) (eta^=)";
-by (rtac eta.mutual_induct 1);
+by (rtac (impI RS allI RS allI) 1);
+by (etac eta.induct 1);
 by(ALLGOALS(fast_tac (eta_cs addSEs [eta_decr,not_free_eta] addss !simpset)));
 val lemma = result();
 
@@ -152,13 +153,13 @@ qed "rtrancl_eta_App";
 
 (*** Commutation of beta and eta ***)
 
-goal Eta.thy "!s t. s -> t --> (!i. free t i --> free s i)";
-by (rtac beta.mutual_induct 1);
+goal Eta.thy "!!s t. s -> t ==> (!i. free t i --> free s i)";
+by (etac beta.induct 1);
 by(ALLGOALS(Asm_full_simp_tac));
 qed_spec_mp "free_beta";
 
-goalw Eta.thy [decr_def] "!s t. s -> t --> (!i. decr s i -> decr t i)";
-by (rtac beta.mutual_induct 1);
+goalw Eta.thy [decr_def] "!!s t. s -> t ==> (!i. decr s i -> decr t i)";
+by (etac beta.induct 1);
 by(ALLGOALS(asm_full_simp_tac (!simpset addsimps [subst_subst RS sym])));
 qed_spec_mp "beta_decr";
 
@@ -185,8 +186,8 @@ by(fast_tac HOL_cs 1);
 qed "decr_not_free";
 Addsimps [decr_not_free];
 
-goal Eta.thy "!s t. s -e> t --> (!i. lift s i -e> lift t i)";
-by (rtac eta.mutual_induct 1);
+goal Eta.thy "!!s t. s -e> t ==> (!i. lift s i -e> lift t i)";
+by (etac eta.induct 1);
 by(ALLGOALS(asm_simp_tac (addsplit (!simpset) addsimps [decr_def])));
 by(asm_simp_tac (addsplit (!simpset) addsimps [subst_decr]) 1);
 qed_spec_mp "eta_lift";
@@ -201,7 +202,8 @@ by(fast_tac (eta_cs addSIs [rtrancl_eta_Fun,eta_lift]) 1);
 qed_spec_mp "rtrancl_eta_subst";
 
 goalw Eta.thy [square_def] "square beta eta (eta^*) (beta^=)";
-by (rtac beta.mutual_induct 1);
+by (rtac (impI RS allI RS allI) 1);
+by (etac beta.induct 1);
 by(strip_tac 1);
 by (eresolve_tac eta_cases 1);
 by (eresolve_tac eta_cases 1);

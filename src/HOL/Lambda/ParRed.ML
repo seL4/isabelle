@@ -33,17 +33,19 @@ Addsimps [par_beta_refl];
 goal ParRed.thy "beta <= par_beta";
 by (rtac subsetI 1);
 by (split_all_tac 1);
-by (etac (beta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1);
+by (etac beta.induct 1);
 by (ALLGOALS(fast_tac (parred_cs addSIs [par_beta_refl])));
 qed "beta_subset_par_beta";
 
 goal ParRed.thy "par_beta <= beta^*";
 by (rtac subsetI 1);
 by (split_all_tac 1);
-by (etac (par_beta.mutual_induct RS spec RS spec RSN (2,rev_mp)) 1);
-by (ALLGOALS(fast_tac (parred_cs addIs
-       [rtrancl_beta_Fun,rtrancl_beta_App,rtrancl_refl,
-        rtrancl_into_rtrancl] addEs [rtrancl_trans])));
+by (etac par_beta.induct 1);
+by (ALLGOALS
+    (fast_tac (parred_cs addIs
+	                  [rtrancl_beta_Fun,rtrancl_beta_App,rtrancl_refl,
+			   rtrancl_into_rtrancl] 
+                         addEs [rtrancl_trans])));
 qed "par_beta_subset_beta";
 
 (*** => ***)
@@ -69,7 +71,8 @@ qed_spec_mp "par_beta_subst";
 (*** Confluence (directly) ***)
 
 goalw ParRed.thy [diamond_def,commute_def,square_def] "diamond(par_beta)";
-by (rtac par_beta.mutual_induct 1);
+by (rtac (impI RS allI RS allI) 1);
+by (etac par_beta.induct 1);
 by(ALLGOALS(fast_tac (parred_cs addSIs [par_beta_subst])));
 qed "diamond_par_beta";
 

@@ -103,9 +103,6 @@ qed "not_diamond_contract";
 
 (*** Results about Parallel Contraction ***)
 
-bind_thm ("parcontract_induct",
-    (parcontract.mutual_induct RS spec RS spec RSN (2,rev_mp)));
-
 (*Derive a case for each combinator constructor*)
 val K_parcontractE = parcontract.mk_cases comb.simps "K =1=> z";
 val S_parcontractE = parcontract.mk_cases comb.simps "S =1=> z";
@@ -136,7 +133,7 @@ qed "S2_parcontractD";
 (*Church-Rosser property for parallel contraction*)
 goalw Comb.thy [diamond_def] "diamond(parcontract)";
 by (rtac (impI RS allI RS allI) 1);
-by (etac parcontract_induct 1);
+by (etac parcontract.induct 1);
 by (ALLGOALS 
     (fast_tac (parcontract_cs addSDs [K1_parcontractD,S2_parcontractD])));
 qed "diamond_parcontract";
@@ -146,6 +143,7 @@ qed "diamond_parcontract";
 
 goal Comb.thy "contract <= parcontract";
 by (rtac subsetI 1);
+by (split_all_tac 1);
 by (etac contract.induct 1);
 by (ALLGOALS (fast_tac (parcontract_cs)));
 qed "contract_subset_parcontract";
@@ -164,6 +162,7 @@ qed "reduce_I";
 
 goal Comb.thy "parcontract <= contract^*";
 by (rtac subsetI 1);
+by (split_all_tac 1);
 by (etac parcontract.induct 1);
 by (ALLGOALS (deepen_tac reduce_cs 0));
 qed "parcontract_subset_reduce";

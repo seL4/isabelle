@@ -42,8 +42,8 @@ by(fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "lemma1";
 
 
-goal Transition.thy "!c s s1. <c,s> -c-> s1 --> (c,s) -*-> (SKIP,s1)";
-br evalc.mutual_induct 1;
+goal Transition.thy "!!c s s1. <c,s> -c-> s1 ==> (c,s) -*-> (SKIP,s1)";
+be evalc.induct 1;
 
 (* SKIP *)
 br rtrancl_refl 1;
@@ -63,7 +63,7 @@ by (fast_tac (evalc1_cs addSIs [r_into_rtrancl]) 1);
 by (fast_tac (evalc1_cs addDs [rtrancl_imp_UN_rel_pow]
                         addIs [rtrancl_into_rtrancl2,lemma1]) 1);
 
-qed_spec_mp "evalc_impl_evalc1";
+qed "evalc_impl_evalc1";
 
 
 goal Transition.thy
@@ -136,8 +136,8 @@ by(fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
 qed_spec_mp "my_lemma1";
 
 
-goal Transition.thy "!c s s1. <c,s> -c-> s1 --> (c,s) -*-> (SKIP,s1)";
-br evalc.mutual_induct 1;
+goal Transition.thy "!!c s s1. <c,s> -c-> s1 ==> (c,s) -*-> (SKIP,s1)";
+be evalc.induct 1;
 
 (* SKIP *)
 br rtrancl_refl 1;
@@ -156,7 +156,7 @@ by (fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2]) 1);
 by (fast_tac (evalc1_cs addSIs [r_into_rtrancl]) 1);
 by (fast_tac (evalc1_cs addIs [rtrancl_into_rtrancl2,my_lemma1]) 1);
 
-qed_spec_mp "evalc_impl_evalc1";
+qed "evalc_impl_evalc1";
 
 (* The opposite direction is based on a Coq proof done by Ranan Fraer and
    Yves Bertot. The following sketch is from an email by Ranan Fraer.
@@ -193,18 +193,12 @@ of Lemma 1.
 *)
 
 
-goal Transition.thy "!cs c' s'. (cs -1-> (c',s')) --> (!c s. cs = (c,s) \
-\                     --> (!t. <c',s'> -c-> t --> <c,s> -c-> t))";
-br evalc1.mutual_induct 1;
+goal Transition.thy 
+  "!!c s. ((c,s) -1-> (c',s')) ==> (!t. <c',s'> -c-> t --> <c,s> -c-> t)";
+be evalc1.induct 1;
 by(ALLGOALS(fast_tac (evalc1_cs addEs (evalc_elim_cases@evalc1_elim_cases)
                                 addss !simpset)));
-val lemma = result();
-
-val prems = goal Transition.thy
- "[| ((c,s) -1-> (c',s')); <c',s'> -c-> t |] ==> <c,s> -c-> t";
-by(cut_facts_tac (lemma::prems) 1);
-by(fast_tac HOL_cs 1);
-qed "FB_lemma3";
+qed_spec_mp "FB_lemma3";
 
 val [major] = goal Transition.thy
   "(c,s) -*-> (c',s') ==> <c',s'> -c-> t --> <c,s> -c-> t";

@@ -9,8 +9,8 @@ wrt denotational semantics
 
 open Hoare;
 
-goalw Hoare.thy [hoare_valid_def] "!P c Q. |- {P}c{Q} --> |= {P}c{Q}";
-by (rtac hoare.mutual_induct 1);
+goalw Hoare.thy [hoare_valid_def] "!!P c Q. |- {P}c{Q} ==> |= {P}c{Q}";
+by (etac hoare.induct 1);
     by(ALLGOALS Asm_simp_tac);
   by(fast_tac rel_cs 1);
  by(fast_tac HOL_cs 1);
@@ -23,7 +23,7 @@ by (rewtac Gamma_def);
 by(eres_inst_tac [("x","a")] allE 1);
 by (safe_tac comp_cs);
   by(ALLGOALS Asm_full_simp_tac);
-qed_spec_mp "hoare_sound";
+qed "hoare_sound";
 
 goalw Hoare.thy [swp_def] "swp SKIP Q = Q";
 by(Simp_tac 1);
