@@ -155,7 +155,7 @@ fun prepare_proof rths chorn =
                  cat_lines (map (Sign.string_of_term sign) hyps))
 	    else if not (null xshyps) then !result_error_fn state
                 ("Extra sort hypotheses: " ^
-                 commas (map Sorts.str_of_sort xshyps))
+                 commas (map (Sign.str_of_sort sign) xshyps))
 	    else if Pattern.matches (#tsig(Sign.rep_sg sign)) 
 			            (term_of chorn, prop)
 		 then  standard th 
