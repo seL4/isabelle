@@ -38,7 +38,7 @@ fun prove_nonempty cset thms usr_tac =
     prove_goalw_cterm [] goal (K [tac])
   end
   handle ERROR =>
-    error ("Failed to prove non-emptyness of " ^ quote (string_of_cterm cset));
+    error ("Failed to prove nonemptiness of " ^ quote (string_of_cterm cset));
 
 
 (* ext_typedef *)
