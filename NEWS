@@ -8,6 +8,8 @@ Isabelle NEWS -- history user-relevant changes
 
 * HOL: contrapos, contrapos2 renamed to contrapos_nn, contrapos_pp;
 
+* Isar: 'obtain' no longer declares "that" fact as simp/intro;
+
 
 *** Document preparation ***
 
@@ -24,10 +26,21 @@ human-readable proof documents.  Please do not include goal states
 into document output unless you really know what you are doing!
 
 
-
 *** Isar ***
 
-* HOL: default proof step now includes 'intro_classes';
+* Pure: assumption method (an implicit finishing) now handles actual
+rules as well;
+
+* Pure: improved 'obtain' --- moved to Pure, insert "that" into
+initial goal, declare "that" only as Pure intro (only for single
+steps); the "that" rule assumption may now be involved in implicit
+finishing, thus ".." becomes a feasible for trivial obtains;
+
+* Pure: default proof step now includes 'intro_classes'; thus trivial
+instance proofs may be performed by "..";
+
+* Pure: ?thesis / ?this / "..." now work for pure meta-level
+statements as well;
 
 
 *** HOL ***
@@ -37,6 +50,16 @@ with main HOL; the theory loader path already includes this directory
 by default; the following existing theories have been moved here:
 HOL/Induct/Multiset, HOL/Induct/Acc (as Accessible_Part), HOL/While
 (as While_Combinator), HOL/Lex/Prefix (as List_Prefix);
+
+* HOL/typedef: simplified package, provide more useful rules (see also
+HOL/subset.thy);
+
+
+*** General ***
+
+* Provers: fast_tac (and friends) now handle actual object-logic rules
+as assumptions as well;
+
 
 
 New in Isabelle99-1 (October 2000)
