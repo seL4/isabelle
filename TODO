@@ -9,4 +9,8 @@ For Isabelle2005:
 - a global "disprove" menu item both as an action and (if it can be done)
   as a setting (Stefan & Tjark)
 
+- check/establish conformity of HTML files to (some version of) the HTML
+  language specification (cf. http://validator.w3.org/) (Tjark, or anyone
+  who is interested)
+
 - remove this file (Tobias)
