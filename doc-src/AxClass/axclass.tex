@@ -509,7 +509,7 @@ meaning to sort constraints occurring in constant \E{declarations}
 (see \cite[page 79]{Wenzel94} for more details).
 
 On the other hand there are syntactic differences, of course.
-Constants $\TIMES^\tau$ are rejected by the type checker, unless $\tau
+Constants $\TIMES^\tau$ are rejected by the type-checker, unless $\tau
 :: \TT{product}$ is part of the type signature.  In our example, this
 arity may be always added when required by means of a trivial
 \TT{instance}.
@@ -549,7 +549,7 @@ which is in contrast to programming languages like \Haskell.
 \medskip
 
 While \Isa\ type classes and those of \Haskell\ are almost the same as
-far as type checking and type inference are concerned, there are major
+far as type-checking and type inference are concerned, there are major
 semantic differences. \Haskell\ classes require their instances to
 \E{provide operations} of certain \E{names}. Therefore, its
 \TT{instance} has a \TT{where} part that tells the system what these

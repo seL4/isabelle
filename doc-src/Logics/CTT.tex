@@ -541,7 +541,7 @@ the form $A\;\rm type$.
 uses $thms$ with the long introduction and elimination rules to solve goals
 of the form $a=b\in A$, where $a$ is rigid.  It is intended for deriving
 the long rules for defined constants such as the arithmetic operators.  The
-tactic can also perform type checking.
+tactic can also perform type-checking.
 
 \item[\ttindexbold{intr_tac} $thms$]
 uses $thms$ with the introduction rules to break down a type.  It is
@@ -607,7 +607,7 @@ pc_tac       : thm list -> int -> tactic
 \end{ttbox}
 These are loosely based on the intuitionistic proof procedures
 of~\thydx{FOL}.  For the reasons discussed above, a rule that is safe for
-propositional reasoning may be unsafe for type checking; thus, some of the
+propositional reasoning may be unsafe for type-checking; thus, some of the
 `safe' tactics are misnamed.
 \begin{ttdescription}
 \item[\ttindexbold{mp_tac} $i$] 
@@ -729,7 +729,7 @@ such that $0\leq x \leq a$ and $x\bmod b = 0$.
 This directory contains examples and experimental proofs in {\CTT}.
 \begin{ttdescription}
 \item[CTT/ex/typechk.ML]
-contains simple examples of type checking and type deduction.
+contains simple examples of type-checking and type deduction.
 
 \item[CTT/ex/elim.ML]
 contains some examples from Martin-L\"of~\cite{martinlof84}, proved using 
@@ -1071,7 +1071,7 @@ Theory.  The following definitions work:
 But a completely formal proof is hard to find.  The rules can be applied in
 countless ways, yielding many higher-order unifiers.  The proof can get
 bogged down in the details.  But with a careful selection of derived rules
-(recall Fig.\ts\ref{ctt-derived}) and the type checking tactics, we can
+(recall Fig.\ts\ref{ctt-derived}) and the type-checking tactics, we can
 prove the theorem in nine steps.
 \begin{ttbox}
 val prems = Goal
@@ -1092,7 +1092,7 @@ val prems = Goal
 {\out             : thm list}
 \end{ttbox}
 First, \ttindex{intr_tac} applies introduction rules and performs routine
-type checking.  This instantiates~$\Var{a}$ to a construction involving
+type-checking.  This instantiates~$\Var{a}$ to a construction involving
 a $\lambda$-abstraction and an ordered pair.  The pair's components are
 themselves $\lambda$-abstractions and there is a subgoal for each.
 \begin{ttbox}
@@ -1209,7 +1209,7 @@ by (resolve_tac [ProdC] 1);
 {\out        [| h : PROD x:A. SUM y:B(x). C(x,y); x : A |] ==>}
 {\out        ?b8(h,x) : C(x,fst(h ` x))}
 \end{ttbox}
-Routine type checking goals proliferate in Constructive Type Theory, but
+Routine type-checking goals proliferate in Constructive Type Theory, but
 \ttindex{typechk_tac} quickly solves them.  Note the inclusion of
 \tdx{SumE_fst} along with the premises.
 \begin{ttbox}
@@ -1237,7 +1237,7 @@ by (eresolve_tac [ProdE RS SumE_snd] 1);
 {\out  3. !!h x xa. [| x : A; xa : B(x) |] ==> C(x,xa) type}
 \end{ttbox}
 The proof object has reached its final form.  We call \ttindex{typechk_tac}
-to finish the type checking.
+to finish the type-checking.
 \begin{ttbox}
 by (typechk_tac prems);
 {\out Level 9}
