@@ -55,6 +55,9 @@ but fails if divisibility plays a role like in
 * simp's arithmetic capabilities have been enhanced a bit: it now
 takes ~= in premises into account (by performing a case split);
 
+* simp reduces "m*(n div m) + n mod m" to n, even if the two summands are
+  distributed over a sum of terms.
+
 
 *** ML ***
 
