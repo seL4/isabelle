@@ -326,7 +326,7 @@ fun init false _ _ _ _ = (browser_info := empty_browser_info; session_info := No
 
 fun isatool_document doc_format doc_prefix =
   let val cmd = "$ISATOOL document -o '" ^ doc_format ^ "' '" ^ File.sysify_path doc_prefix ^ "'"
-  in writeln cmd; writeln (execute cmd) end;
+  in writeln cmd; if system cmd <> 0 then error "Failed to build document" else () end;
 
 fun finish () = with_session ()
     (fn {name, html_prefix, doc_format, doc_prefix, graph_path, all_graph_path, path, ...} =>
