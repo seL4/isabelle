@@ -124,7 +124,10 @@ val allowed_consts =
    ("True", bT)];
 
 (*returns true if the formula is relevant for presburger arithmetic tactic*)
-fun relevant t = (term_typed_consts t) subset allowed_consts;
+fun relevant ps t = (term_typed_consts t) subset allowed_consts andalso
+  map (fn i => snd (nth_elem (i, ps))) (loose_bnos t) @
+  map (snd o dest_Free) (term_frees t) @ map (snd o dest_Var) (term_vars t)
+  subset [iT, nT];
 
 (* Preparation of the formula to be sent to the Integer quantifier *)
 (* elimination procedure                                           *)
@@ -136,13 +139,13 @@ fun prepare_for_presburger q fm =
     val ps = Logic.strip_params fm
     val hs = map HOLogic.dest_Trueprop (Logic.strip_assums_hyp fm)
     val c = HOLogic.dest_Trueprop (Logic.strip_assums_concl fm)
-    val _ = if relevant c then () else raise CooperDec.COOPER
+    val _ = if relevant (rev ps) c then () else raise CooperDec.COOPER
     fun mk_all ((s, T), (P,n)) =
       if 0 mem loose_bnos P then
         (HOLogic.all_const T $ Abs (s, T, P), n)
       else (incr_boundvars ~1 P, n-1)
     fun mk_all2 (v, t) = HOLogic.all_const (fastype_of v) $ lambda v t;
-    val (rhs,irhs) = partition relevant hs
+    val (rhs,irhs) = partition (relevant (rev ps)) hs
     val np = length ps
     val (fm',np) =  foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
       (ps,(foldr HOLogic.mk_imp (rhs, c), np))
@@ -158,7 +161,7 @@ fun spec_step n th = if (n=0) then th else (spec_step (n-1) th) RS spec ;
 fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 (* the presburger tactic*)
-fun presburger_tac q i st =
+fun presburger_tac q i = ObjectLogic.atomize_tac i THEN (fn st =>
   let
     val g = BasisLibrary.List.nth (prems_of st, i - 1);
     val sg = sign_of_thm st;
@@ -203,7 +206,7 @@ fun presburger_tac q i st =
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
       | _ => (pre_thm, assm_tac i)
   in (rtac (((mp_step nh) o (spec_step np)) th) i THEN tac) st
-  end handle Subscript => no_tac st | CooperDec.COOPER => no_tac st;
+  end handle Subscript => no_tac st | CooperDec.COOPER => no_tac st);
 
 fun presburger_args meth =
   Method.simple_args (Scan.optional (Args.$$$ "no_quantify" >> K false) true)
