@@ -699,7 +699,7 @@ val bex_simps = map prover
      "(EX x:Union(A). P x) = (EX y:A. EX x:y.  P x)",
      "(EX x:Collect Q. P x) = (EX x. Q x & P x)"];
 
-val bex_conj_distrib = 
+val bex_disj_distrib = 
     prover "(EX x:A. P x | Q x) = ((EX x:A. P x) | (EX x:A. Q x))";
 
 end;
