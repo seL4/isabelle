@@ -202,7 +202,7 @@ val enc_vector =
   "\\<Leftarrow>",
   "\\<Midarrow>",
   "\\<Rightarrow>",
-  "\\<bow>",
+  "\\<frown>",
   "\\<mapsto>",
   "\\<leadsto>",
   "\\<up>",

@@ -84,7 +84,7 @@
   "\xe9", "\\<Leftarrow>",
   "\xea", "\\<Midarrow>",
   "\xeb", "\\<Rightarrow>",
-  "\xec", "\\<bow>",
+  "\xec", "\\<frown>",
   "\xed", "\\<mapsto>",
   "\xee", "\\<leadsto>",
   "\xef", "\\<up>",
