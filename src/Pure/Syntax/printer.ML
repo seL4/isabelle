@@ -46,8 +46,8 @@ val show_brackets = ref false;
 val show_no_free_types = ref false;
 val show_all_types = ref false;
 
-fun pp_show_brackets pp = Pretty.pp (setmp show_brackets true (Pretty.term pp))
-  (Pretty.typ pp) (Pretty.sort pp) (Pretty.classrel pp) (Pretty.arity pp);
+fun pp_show_brackets pp = Pretty.pp (setmp show_brackets true (Pretty.term pp),
+  Pretty.typ pp, Pretty.sort pp, Pretty.classrel pp, Pretty.arity pp);
 
 
 
