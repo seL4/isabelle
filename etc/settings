@@ -12,7 +12,7 @@
 ## specifies the location of the actual compiler binaries.
 
 # Poly/ML 2.x
-#ML_SYSTEM=polyml-2.x
+#ML_SYSTEM=polyml-2.07
 #ML_HOME=/usr/local/ldist/DIR/polyml/polyml/solaris2
 #ML_OPTIONS="-h 30000"
 
@@ -36,6 +36,14 @@ LM_LICENSE_FILE=$ML_HOME/license.dat
 #ML_SYSTEM=smlnj-1.09
 #ML_HOME=~wenzelm/tmp/109/bin
 #ML_OPTIONS="@SMLdebug=/dev/null"
+
+
+###
+### Compilation options
+###
+
+# Should be 'true' or 'false':
+ISABELLE_HTML=true
 
 
 ###
