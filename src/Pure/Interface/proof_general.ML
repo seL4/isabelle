@@ -1,0 +1,93 @@
+(*  Title:      Pure/Interface/proof_general.ML
+    ID:         $Id$
+    Author:     Markus Wenzel, TU Muenchen
+
+Configuration for ProofGeneral of LFCS Edinburgh.
+*)
+
+signature PROOF_GENERAL =
+sig
+  val setup: (theory -> theory) list
+  val init: bool -> unit
+end;
+
+structure ProofGeneral: PROOF_GENERAL =
+struct
+
+
+(** compile-time theory setup **)
+
+(* token translations *)
+
+val proof_generalN = "ProofGeneral";
+
+local
+
+val end_tag = oct_char "350";
+val tclass_tag = oct_char "351";
+val tfree_tag = oct_char "352";
+val tvar_tag = oct_char "353";
+val free_tag = oct_char "354";
+val bound_tag = oct_char "355";
+val var_tag = oct_char "356";
+
+fun tagit p x = (p ^ x ^ end_tag, real (size x));
+
+in
+
+val proof_general_trans =
+ Syntax.tokentrans_mode proof_generalN
+  [("class", tagit tclass_tag),
+   ("tfree", tagit tfree_tag),
+   ("tvar", tagit tvar_tag),
+   ("free", tagit free_tag),
+   ("bound", tagit bound_tag),
+   ("var", tagit var_tag)];
+
+end;
+
+
+(* setup *)
+
+val setup = [Theory.add_tokentrfuns proof_general_trans];
+
+
+
+(** run-time initialization **)
+
+(* messages *)
+
+fun decorate_lines bg en "" = std_output o suffix "\n" o enclose bg en
+  | decorate_lines bg en prfx = std_output o suffix "\n" o enclose bg en o prefix_lines prfx;
+
+fun setup_messages () =
+ (writeln_fn := (decorate_lines (oct_char "360") (oct_char "361") "");
+  warning_fn := (decorate_lines (oct_char "362") (oct_char "363") "### ");
+  error_fn := (decorate_lines (oct_char "364") (oct_char "365") "*** "));
+
+
+(* theory / proof state *)
+
+fun setup_state () =
+  (current_goals_markers :=
+    let
+      val begin_state = oct_char "366";
+      val end_state= oct_char "367";
+      val begin_goal = oct_char "370";
+    in (begin_state, end_state, begin_goal) end;
+  Toplevel.print_state_fn :=
+    (Library.setmp writeln_fn (std_output o suffix "\n") Toplevel.print_state_default);
+  Toplevel.prompt_state_fn := (suffix (oct_char "372") o Toplevel.prompt_state_default));
+
+
+(* init *)
+
+fun init isar =
+ (setup_messages ();
+  setup_state ();
+  print_mode := [proof_generalN];
+  set quick_and_dirty;
+  if isar then Isar.main () else ());
+
+
+end;
