@@ -149,8 +149,8 @@ fun repeat1 parse = parse -- repeat parse >> op ::;
 fun enum1 sep parse = parse -- repeat (sep $$-- parse) >> op ::;
 fun enum sep parse = enum1 sep parse || empty;
 
-val list = enum ",";
-val list1 = enum1 ",";
+fun list  parse = enum  "," parse;
+fun list1 parse = enum1 "," parse;
 
 
 (** theory parsers **)
@@ -170,7 +170,7 @@ fun mk_triple (x, y, z) = parens (commas [x, y, z]);
 fun mk_triple1 ((x, y), z) = mk_triple (x, y, z);
 fun mk_triple2 (x, (y, z)) = mk_triple (x, y, z);
 
-val split_decls = flat o map (fn (xs, y) => map (rpair y) xs);
+fun split_decls l = flat (map (fn (xs, y) => map (rpair y) xs) l);
 
 fun strip_quotes str =
   implode (tl (take (size str - 1, explode str)));
