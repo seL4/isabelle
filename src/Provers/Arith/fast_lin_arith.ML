@@ -272,13 +272,13 @@ fun mkthm sg asms just =
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
       fun mk(Asm i) = ((*writeln"Asm";prth*)(nth_elem(i,asms)))
-        | mk(Nat(i)) = ((*writeln"N";LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
+        | mk(Nat(i)) = ((*writeln"N";*)LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
         | mk(LessD(j)) = ((*writeln"L";prth*)(hd([mk j] RL !LA_Data.lessD)))
         | mk(NotLeD(j)) = ((*writeln"NLe";prth*)(mk j RS LA_Logic.not_leD))
         | mk(NotLeDD(j)) = ((*writeln"NLeD";prth*)(hd([mk j RS LA_Logic.not_leD] RL !LA_Data.lessD)))
         | mk(NotLessD(j)) = ((*writeln"NL";prth*)(mk j RS LA_Logic.not_lessD))
         | mk(Added(j1,j2)) = ((*writeln"+";prth*)(simp(prth(addthms (mk j1) (mk j2)))))
-        | mk(Multiplied(n,j)) = ((*writeln"*";multn(n,mk j))
+        | mk(Multiplied(n,j)) = ((*writeln"*";*)multn(n,mk j))
 
   in (*writeln"mkthm";*)!LA_Data.simp(mk just) handle FalseE thm => thm end
 end;
