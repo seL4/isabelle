@@ -3,7 +3,7 @@
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 
-Inductive relation "tls" for the baby TLS (Transport Layer Security) protocol.
+Inductive relation "tls" for the TLS (Transport Layer Security) protocol.
 This protocol is essentially the same as SSL 3.0.
 
 Abstracted from "The TLS Protocol, Version 1.0" by Tim Dierks and Christopher
@@ -217,25 +217,11 @@ inductive tls
           ==> 
              Notes B {|Number SID, Agent A, Agent B, Nonce M|} # evsSA  :  tls"
 
-    ServerResume
-         (*Resumption (7.3):  If B finds the SESSION_ID then he can send
-           a FINISHED message using the recovered MASTER SECRET*)
-         "[| evsSR: tls;  A ~= B;  Nonce NB ~: used evsSR;  NB ~: range PRF;
-             Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evsSR;
-	     Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}
-	       : set evsSR |]
-          ==> Says B A (Crypt (serverK(NA,NB,M))
-			(Hash{|Number SID, Nonce M,
-			       Nonce NA, Number PA, Agent A, 
-			       Nonce NB, Number PB, Agent B|})) # evsSR
-	        :  tls"
-
     ClientResume
          (*If A recalls the SESSION_ID, then she sends a FINISHED message
            using the new nonces and stored MASTER SECRET.*)
          "[| evsCR: tls;  
-	     Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}
-	       : set evsCR;
+	     Says A  B {|Agent A, Nonce NA, Number SID, Number PA|}: set evsCR;
              Says B' A {|Nonce NB, Number SID, Number PB|} : set evsCR;
              Notes A {|Number SID, Agent A, Agent B, Nonce M|} : set evsCR |]
           ==> Says A B (Crypt (clientK(NA,NB,M))
@@ -243,6 +229,19 @@ inductive tls
 			       Nonce NA, Number PA, Agent A, 
 			       Nonce NB, Number PB, Agent B|}))
               # evsCR  :  tls"
+
+    ServerResume
+         (*Resumption (7.3):  If B finds the SESSION_ID then he can send
+           a FINISHED message using the recovered MASTER SECRET*)
+         "[| evsSR: tls;
+	     Says A' B {|Agent A, Nonce NA, Number SID, Number PA|}: set evsSR;
+	     Says B  A {|Nonce NB, Number SID, Number PB|} : set evsSR;  
+             Notes B {|Number SID, Agent A, Agent B, Nonce M|} : set evsSR |]
+          ==> Says B A (Crypt (serverK(NA,NB,M))
+			(Hash{|Number SID, Nonce M,
+			       Nonce NA, Number PA, Agent A, 
+			       Nonce NB, Number PB, Agent B|})) # evsSR
+	        :  tls"
 
     Oops 
          (*The most plausible compromise is of an old session key.  Losing
