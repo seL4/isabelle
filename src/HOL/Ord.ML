@@ -48,6 +48,10 @@ by (simp_tac (simpset() addsimps [order_less_le]) 1);
 by (blast_tac (claset() addSIs [order_refl]) 1);
 qed "order_le_less";
 
+Goal "!!x::'a::order. x < y ==> x <= y";
+by (asm_full_simp_tac (simpset() addsimps [order_less_le]) 1);
+qed "order_less_imp_le";
+
 (** Asymmetry **)
 
 Goal "(x::'a::order) < y ==> ~ (y<x)";
