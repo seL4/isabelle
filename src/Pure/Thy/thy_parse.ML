@@ -413,9 +413,17 @@ val instance_decl =
   >> (fn ((x, y), z) => (cat_lines [x, y, z]));
 
 
-(* global *)
+(* local, global path *)
 
-fun global_decl x = (empty >> K "\"/\"") x;
+val empty_decl = empty >> K "";
+
+val global_path =
+  "|> (fn thy => if ! global_names then thy else Theory.add_path \"/\" thy)";
+
+val local_path =
+  global_path ^ "\n\
+  \|> (fn thy => if ! global_names then thy\
+  \ else Theory.add_path thy_name thy)";
 
 
 
@@ -477,15 +485,16 @@ fun mk_structure tname ((thy_name, old_thys), (extxt, postxt, mltxt)) =
     \structure " ^ thy_name ^ " =\n\
     \struct\n\
     \\n\
-    \local\n"
+    \local\n\
+    \ val thy_name = \"" ^ tname ^ "\";\n"
     ^ trfun_defs ^ "\n\
     \in\n\
     \\n"
     ^ mltxt ^ "\n\
     \\n\
     \val thy = thy\n\
-    \\n" ^
-    (if ! global_names then "" else "|> Theory.add_path " ^ quote tname ^ "\n") ^
+    \\n"
+    ^ local_path ^
     "\n\
     \|> Theory.add_trfuns\n"
     ^ trfun_args ^ "\n\
@@ -531,8 +540,8 @@ fun section name pretxt parse =
 
 val pure_keywords =
  ["end", "ML", "mixfix", "infixr", "infixl", "binder", "global",
-  "output", "=", "+", ",", "<", "{", "}", "(", ")", "[", "]", "::",
-  "==", "=>", "<="];
+  "local", "output", "=", "+", ",", "<", "{", "}", "(", ")", "[", "]",
+  "::", "==", "=>", "<="];
 
 val pure_sections =
  [section "classes" "|> Theory.add_classes" class_decls,
@@ -549,7 +558,8 @@ val pure_sections =
   axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
   section "instance" "" instance_decl,
   section "path" "|> Theory.add_path" name,
-  section "global" "|> Theory.add_path" global_decl];
+  section "global" global_path empty_decl,
+  section "local" local_path empty_decl];
 
 
 end;
