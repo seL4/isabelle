@@ -133,7 +133,7 @@ by (rtac refl 1);
 qed "beta_cfun_cprod";
 
 Goalw [cpair_def]
-        " <a,b>=<aa,ba>  ==> a=aa & b=ba";
+        " <a,b> = <aa,ba>  ==> a=aa & b=ba";
 by (dtac (beta_cfun_cprod RS subst) 1);
 by (dtac (beta_cfun_cprod RS subst) 1);
 by (etac Pair_inject 1);
@@ -169,7 +169,7 @@ by (etac (beta_cfun_cprod RS ssubst) 1);
 qed "cprodE";
 
 Goalw [cfst_def,cpair_def] 
-        "cfst$<x,y>=x";
+        "cfst$<x,y> = x";
 by (stac beta_cfun_cprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_fst 1);
@@ -177,7 +177,7 @@ by (Simp_tac  1);
 qed "cfst2";
 
 Goalw [csnd_def,cpair_def] 
-        "csnd$<x,y>=y";
+        "csnd$<x,y> = y";
 by (stac beta_cfun_cprod 1);
 by (stac beta_cfun 1);
 by (rtac cont_snd 1);
