@@ -36,6 +36,7 @@ sig
   val mk_Suc: term -> term
   val dest_Suc: term -> term
   val mk_nat: int -> term
+  val dest_nat: term -> int
 end;
 
 
@@ -112,16 +113,25 @@ fun dest_bin c T (tm as Const (c', Type ("fun", [T', _])) $ t $ u) =
 
 val natT = Type ("nat", []);
 
+
 val zero = Const ("0", natT);
-fun is_zero t = t = zero;
+
+fun is_zero (Const ("0", _)) = true
+  | is_zero _ = false;
+
 
 fun mk_Suc t = Const ("Suc", natT --> natT) $ t;
 
 fun dest_Suc (Const ("Suc", _) $ t) = t
   | dest_Suc t = raise TERM ("dest_Suc", [t]);
 
+
 fun mk_nat 0 = zero
   | mk_nat n = mk_Suc (mk_nat (n - 1));
+
+fun dest_nat (Const ("0", _)) = 0
+  | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
+  | dest_nat t = raise TERM ("dest_nat", [t]);
 
 
 end;
