@@ -9,12 +9,18 @@ header {* Basic use of locales in Isabelle/Isar *}
 theory Locales = Main:
 
 text {*
-  Locales provide a mechanism for encapsulating local contexts.  While
-  the original version by Florian Kamm\"uller refers to the raw
-  meta-logic, the present one of Isabelle/Isar builds on top of the
-  rich infrastructure of Isar proof contexts.  Subsequently, we
-  demonstrate basic use of locales to model mathematical structures
-  (by the inevitable group theory example).
+  Locales provide a mechanism for encapsulating local contexts.  The
+  original version due to Florian Kamm\"uller \cite{Kamm-et-al:1999}
+  refers directly to the raw meta-logic of Isabelle.  The present
+  version for Isabelle/Isar
+  \cite{Wenzel:1999,Wenzel:2001:isar-ref,Wenzel:2001:Thesis} builds on
+  top of the rich infrastructure of proof contexts instead; this also
+  covers essential extra-logical concepts like term abbreviations or
+  local theorem attributes (e.g.\ declarations of simplification
+  rules).
+
+  Subsequently, we demonstrate basic use of locales to model
+  mathematical structures (by the inevitable group theory example).
 *}
 
 text_raw {*
@@ -28,7 +34,7 @@ subsection {* Local contexts as mathematical structures *}
 
 text {*
   The following definitions of @{text group} and @{text abelian_group}
-  simply encapsulate local parameters (with private syntax) and
+  merely encapsulate local parameters (with private syntax) and
   assumptions; local definitions may be given as well, but are not
   shown here.
 *}
@@ -76,9 +82,9 @@ proof -
 qed
 
 text {*
-  \medskip Apart from the named locale context we may also refer to
-  further ad-hoc elements (parameters, assumptions, etc.); these are
-  discharged when the proof is finished.
+  \medskip Apart from the named context we may also refer to further
+  context elements (parameters, assumptions, etc.) in a casual manner;
+  these are discharged when the proof is finished.
 *}
 
 theorem (in group)
@@ -119,10 +125,10 @@ proof (rule inv_equality)
 qed
 
 text {*
-  \medskip Results are automatically propagated through the hierarchy
-  of locales.  Below we establish a trivial fact of commutative
-  groups, while referring both to theorems of @{text group} and the
-  characteristic assumption of @{text abelian_group}.
+  \medskip Established results are automatically propagated through
+  the hierarchy of locales.  Below we establish a trivial fact in
+  commutative groups, while referring both to theorems of @{text
+  group} and the additional assumption of @{text abelian_group}.
 *}
 
 theorem (in abelian_group)
@@ -134,7 +140,8 @@ proof -
 qed
 
 text {*
-  \medskip Some further facts of general group theory follow.
+  \medskip Some further properties of inversion in general group
+  theory follow.
 *}
 
 theorem (in group)
@@ -175,12 +182,14 @@ text {*
 *}
 
 
-subsection {* Referencing explicit structures implicitly *}
+subsection {* Explicit structures referenced implicitly *}
 
 text {*
   The issue of multiple parameters raised above may be easily
   addressed by stating properties over a record of group operations,
-  instead of the individual constituents.
+  instead of the individual constituents.  See
+  \cite{Naraschewski-Wenzel:1998,Nipkow-et-al:2001:HOL} on
+  (extensible) record types in Isabelle/HOL.
 *}
 
 record 'a group =
@@ -197,8 +206,8 @@ text {*
   further by using \emph{implicit} references to the underlying
   abstract entity.  To this end we define global syntax, which is
   translated to refer to the ``current'' structure at hand, denoted by
-  the dummy item ``@{text \<struct>}'' according to the builtin syntax
-  mechanism for locales.
+  the dummy item ``@{text \<struct>}'' (according to the builtin syntax
+  mechanism for locales).
 *}
 
 syntax
@@ -212,7 +221,9 @@ translations
 
 text {*
   The following locale definition introduces a single parameter, which
-  is declared as ``\isakeyword{structure}''.
+  is declared as a ``\isakeyword{structure}''. In its context the
+  dummy ``@{text \<struct>}'' refers to this very parameter, independently of
+  the present naming.
 *}
 
 locale group_struct =
@@ -222,12 +233,10 @@ locale group_struct =
     and left_one: "\<one> \<cdot> x = x"
 
 text {*
-  In its context the dummy ``@{text \<struct>}'' refers to this very
-  parameter, independently of the present naming.  We may now proceed
-  to prove results within @{text group_struct} just as before for
-  @{text group}.  Proper treatment of ``@{text \<struct>}'' is hidden in
-  concrete syntax, so the proof text is exactly the same as for @{text
-  group} given before.
+  We may now proceed to prove results within @{text group_struct} just
+  as before for @{text group}.  Proper treatment of ``@{text \<struct>}'' is
+  hidden in concrete syntax, so the proof text is exactly the same as
+  before.
 *}
 
 theorem (in group_struct)
@@ -278,7 +287,7 @@ translations
 text {*
   \medskip The following synthetic example demonstrates how to refer
   to several structures of type @{text group} succinctly; one might
-  also think of working with renamed versions of the @{text
+  also think of working with several renamed versions of the @{text
   group_struct} locale above.
 *}
 
