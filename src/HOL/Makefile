@@ -74,7 +74,7 @@ LOGIC:sh=case $ISABELLECOMP in \
 	esac
 
 ##IMP-semantics example
-IMP_NAMES = Com Denotation Equiv Properties
+IMP_NAMES = Com Natural Transition Denotation Hoare VC
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
 
 IMP:    $(BIN)/HOL  $(IMP_FILES)
