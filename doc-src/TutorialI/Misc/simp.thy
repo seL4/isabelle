@@ -2,7 +2,7 @@
 theory simp = Main:
 (*>*)
 
-subsubsection{*Simplification Rules*}
+subsection{*Simplification Rules*}
 
 text{*\indexbold{simplification rule}
 To facilitate simplification, theorems can be declared to be simplification
@@ -39,7 +39,7 @@ indicate a badly designed theory.
 \end{warn}
 *}
 
-subsubsection{*The Simplification Method*}
+subsection{*The Simplification Method*}
 
 text{*\index{*simp (method)|bold}
 The general format of the simplification method is
@@ -54,7 +54,7 @@ only the first subgoal and may thus need to be repeated --- use
 Note that @{text simp} fails if nothing changes.
 *}
 
-subsubsection{*Adding and Deleting Simplification Rules*}
+subsection{*Adding and Deleting Simplification Rules*}
 
 text{*
 If a certain theorem is merely needed in a few proofs by simplification,
@@ -72,7 +72,7 @@ others:
 \end{quote}
 *}
 
-subsubsection{*Assumptions*}
+subsection{*Assumptions*}
 
 text{*\index{simplification!with/of assumptions}
 By default, assumptions are part of the simplification process: they are used
@@ -133,7 +133,7 @@ Beware that such rotations make proofs quite brittle.
 \end{warn}
 *}
 
-subsubsection{*Rewriting with Definitions*}
+subsection{*Rewriting with Definitions*}
 
 text{*\index{simplification!with definitions}
 Constant definitions (\S\ref{sec:ConstDefinitions}) can
@@ -182,7 +182,7 @@ rule because this defeats the whole purpose.
 \end{warn}
 *}
 
-subsubsection{*Simplifying {\tt\slshape let}-Expressions*}
+subsection{*Simplifying {\tt\slshape let}-Expressions*}
 
 text{*\index{simplification!of let-expressions}
 Proving a goal containing \isaindex{let}-expressions almost invariably
@@ -203,7 +203,7 @@ default:
 *}
 declare Let_def [simp]
 
-subsubsection{*Conditional Equations*}
+subsection{*Conditional Equations*}
 
 text{*
 So far all examples of rewrite rules were equations. The simplifier also
@@ -235,7 +235,7 @@ assumption of the subgoal.
 *}
 
 
-subsubsection{*Automatic Case Splits*}
+subsection{*Automatic Case Splits*}
 
 text{*\indexbold{case splits}\index{*split (method, attr.)|(}
 Goals containing @{text"if"}-expressions are usually proved by case
@@ -338,7 +338,7 @@ $t$@{text".split_asm"}. Analogously, there is @{thm[source]if_splits}.
 by(simp_all)
 (*>*)
 
-subsubsection{*Arithmetic*}
+subsection{*Arithmetic*}
 
 text{*\index{arithmetic}
 The simplifier routinely solves a small class of linear arithmetic formulae
@@ -362,7 +362,7 @@ is not proved by simplification and requires @{text arith}.
 *}
 
 
-subsubsection{*Tracing*}
+subsection{*Tracing*}
 text{*\indexbold{tracing the simplifier}
 Using the simplifier effectively may take a bit of experimentation.  Set the
 \isaindexbold{trace_simp} \rmindex{flag} to get a better idea of what is going
