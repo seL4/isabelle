@@ -9,6 +9,19 @@ theory UnivPoly = Module:
 
 section {* Univariate Polynomials *}
 
+text {*
+  Polynomials are formalised as modules with additional operations for 
+  extracting coefficients from polynomials and for obtaining monomials 
+  from coefficients and exponents (record @{text "up_ring"}).
+  The carrier set is 
+  a set of bounded functions from Nat to the coefficient domain.  
+  Bounded means that these functions return zero above a certain bound 
+  (the degree).  There is a chapter on the formalisation of polynomials 
+  in my PhD thesis (http://www4.in.tum.de/\~{}ballarin/publications/), 
+  which was implemented with axiomatic type classes.  This was later
+  ported to Locales.
+*}
+
 subsection {* The Constructor for Univariate Polynomials *}
 
 (* Could alternatively use locale ...
