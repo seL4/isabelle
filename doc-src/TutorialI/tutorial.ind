@@ -450,8 +450,8 @@
 		\hyperpage{98}, \hyperpage{160--168}
     \subitem and numeric literals, \hyperpage{132}
   \item \isa {recdef_cong} (attribute), \hyperpage{164}
-  \item \isa {recdef_simp}, \bold{47}
-  \item \isa {recdef_wf}, \bold{162}
+  \item \isa {recdef_simp} (attribute), \hyperpage{47}
+  \item \isa {recdef_wf} (attribute), \hyperpage{162}
   \item \isacommand {record} (command), \hyperpage{140}
   \item \isa {record_split} (method), \hyperpage{143}
   \item records, \hyperpage{140--144}

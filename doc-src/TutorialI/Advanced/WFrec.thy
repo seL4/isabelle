@@ -105,8 +105,8 @@ by arith;
 
 text{*\noindent
 
-Armed with this lemma, we can append a crucial hint to our definition:
-\indexbold{*recdef_wf}
+Armed with this lemma, we use the \attrdx{recdef_wf} attribute to attach a
+crucial hint to our definition:
 *}
 (*<*)
 consts g :: "nat \<Rightarrow> nat"

@@ -38,8 +38,9 @@ on \isa{nat}. This requires more arithmetic than is tried by default:%
 \begin{isamarkuptext}%
 \noindent
 Because \isacommand{recdef}'s termination prover involves simplification,
-we include with our second attempt the hint to use \isa{termi{\isacharunderscore}lem} as
-a simplification rule:\indexbold{*recdef_simp}%
+we include in our second attempt a hint: the \attrdx{recdef_simp} attribute 
+says to use \isa{termi{\isacharunderscore}lem} as
+a simplification rule.%
 \end{isamarkuptext}%
 \isacommand{consts}\ g\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequote}nat{\isasymtimes}nat\ {\isasymRightarrow}\ nat{\isachardoublequote}\isanewline
 \isacommand{recdef}\ g\ {\isachardoublequote}measure{\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}y{\isacharparenright}{\isachardot}\ x{\isacharminus}y{\isacharparenright}{\isachardoublequote}\isanewline
