@@ -146,6 +146,18 @@ definitions; here is an explanation of the constituent parts:
 \item[$oracle$] links the theory to a trusted external reasoner.  It is
   allowed to create theorems, but each theorem carries a proof object
   describing the oracle invocation.  See \S\ref{sec:oracles} for details.
+  
+\item[$local, global$] changes the current name declaration mode.
+  Initially, theories start in $local$ mode, causing all names of
+  types, constants, axioms etc.\ to be automatically qualified by the
+  theory name.  Changing this to $global$ causes all names to be
+  declared as short base names only.
+  
+  The $local$ and $global$ declarations act like switches, affecting
+  all following theory sections until changed again explicitly.  Also
+  note that the final state at the end of the theory will persist.  In
+  particular, this determines how the names of theorems stored later
+  on are handled.
 
 \item[$ml$] \index{*ML section}
   consists of \ML\ code, typically for parse and print translation functions.
@@ -238,7 +250,7 @@ suppresses the deletion of temporary files.
 Each theory definition must reside in a separate file.  Let the file
 {\it T}{\tt.thy} contain the definition of a theory called~$T$, whose
 parent theories are $TB@1$ \dots $TB@n$.  Calling
-\ttindex{use_thy}~{\tt"{\it T\/}"} reads the file {\it T}{\tt.thy},
+\texttt{use_thy}~{\tt"{\it T\/}"} reads the file {\it T}{\tt.thy},
 writes a temporary \ML{} file {\tt.{\it T}.thy.ML}, and reads the
 latter file.  Recursive {\tt use_thy} calls load those parent theories
 that have not been loaded previously; the recursive calls may continue
@@ -262,13 +274,6 @@ component {\tt thy} containing the new theory object.
 Section~\ref{sec:pseudo-theories} below describes a way of linking such
 theories to their parents.
 
-\begin{warn}
-  Temporary files are written to the current directory, so this must be
-  writable.  Isabelle inherits the current directory from the operating
-  system; you can change it within Isabelle by typing {\tt
-  cd"$dir$"}\index{*cd}.
-\end{warn}
-
 
 \section{Reloading modified theories}\label{sec:reloading-theories}
 \indexbold{theories!reloading}
@@ -282,13 +287,13 @@ some of the parent theories are out of date.  In this case you should call
 {\tt update()}.
 
 Isabelle keeps track of all loaded theories and their files.  If
-\ttindex{use_thy} finds that the theory to be loaded has been read before,
-it determines whether to reload the theory as follows.  First it looks for
-the theory's files in their previous location.  If it finds them, it
-compares their modification times to the internal data and stops if they
-are equal.  If the files have been moved, {\tt use_thy} searches for them
-as it would for a new theory.  After {\tt use_thy} reloads a theory, it
-marks the children as out-of-date.
+\texttt{use_thy} finds that the theory to be loaded has been read
+before, it determines whether to reload the theory as follows.  First
+it looks for the theory's files in their previous location.  If it
+finds them, it compares their modification times to the internal data
+and stops if they are equal.  If the files have been moved, {\tt
+  use_thy} searches for them as it would for a new theory.  After {\tt
+  use_thy} reloads a theory, it marks the children as out-of-date.
 
 \begin{ttdescription}
 \item[\ttindexbold{update}()]
@@ -702,36 +707,43 @@ displays $t$ as a string, using the syntax of~$sign$.
 
 \subsection{Making and inspecting certified terms}
 \begin{ttbox}
-cterm_of   : Sign.sg -> term -> cterm
-read_cterm : Sign.sg -> string * typ -> cterm
-cert_axm   : Sign.sg -> string * term -> string * term
-read_axm   : Sign.sg -> string * string -> string * term
-rep_cterm  : cterm -> {\ttlbrace}T:typ, t:term, sign:Sign.sg, maxidx:int\ttrbrace
+cterm_of          : Sign.sg -> term -> cterm
+read_cterm        : Sign.sg -> string * typ -> cterm
+cert_axm          : Sign.sg -> string * term -> string * term
+read_axm          : Sign.sg -> string * string -> string * term
+rep_cterm         : cterm -> {\ttlbrace}T:typ, t:term, sign:Sign.sg, maxidx:int\ttrbrace
+Sign.certify_term : Sign.sg -> term -> term * typ * int
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{cterm_of} $sign$ $t$] \index{signatures}
-certifies $t$ with respect to signature~$sign$.
-
-\item[\ttindexbold{read_cterm} $sign$ ($s$, $T$)]
-reads the string~$s$ using the syntax of~$sign$, creating a certified term.
-The term is checked to have type~$T$; this type also tells the parser what
-kind of phrase to parse.
-
-\item[\ttindexbold{cert_axm} $sign$ ($name$, $t$)]
-certifies $t$ with respect to $sign$ as a meta-proposition and converts all
-exceptions to an error, including the final message
+  
+\item[\ttindexbold{cterm_of} $sign$ $t$] \index{signatures} certifies
+  $t$ with respect to signature~$sign$.
+  
+\item[\ttindexbold{read_cterm} $sign$ ($s$, $T$)] reads the string~$s$
+  using the syntax of~$sign$, creating a certified term.  The term is
+  checked to have type~$T$; this type also tells the parser what kind
+  of phrase to parse.
+  
+\item[\ttindexbold{cert_axm} $sign$ ($name$, $t$)] certifies $t$ with
+  respect to $sign$ as a meta-proposition and converts all exceptions
+  to an error, including the final message
 \begin{ttbox}
 The error(s) above occurred in axiom "\(name\)"
 \end{ttbox}
 
-\item[\ttindexbold{read_axm} $sign$ ($name$, $s$)]
-similar to {\tt cert_axm}, but first reads the string $s$ using the syntax of
-$sign$.
+\item[\ttindexbold{read_axm} $sign$ ($name$, $s$)] similar to {\tt
+    cert_axm}, but first reads the string $s$ using the syntax of
+  $sign$.
+  
+\item[\ttindexbold{rep_cterm} $ct$] decomposes $ct$ as a record
+  containing its type, the term itself, its signature, and the maximum
+  subscript of its unknowns.  The type and maximum subscript are
+  computed during certification.
+  
+\item[\ttindexbold{Sign.certify_term}] is a more primitive version of
+  \texttt{cterm_of}, returning the internal representation instead of
+  an abstract \texttt{cterm}.
 
-\item[\ttindexbold{rep_cterm} $ct$]
-decomposes $ct$ as a record containing its type, the term itself, its
-signature, and the maximum subscript of its unknowns.  The type and maximum
-subscript are computed during certification.
 \end{ttdescription}
 
 
@@ -793,15 +805,22 @@ displays $T$ as a string, using the syntax of~$sign$.
 
 \subsection{Making and inspecting certified types}
 \begin{ttbox}
-ctyp_of  : Sign.sg -> typ -> ctyp
-rep_ctyp : ctyp -> {\ttlbrace}T: typ, sign: Sign.sg\ttrbrace
+ctyp_of          : Sign.sg -> typ -> ctyp
+rep_ctyp         : ctyp -> {\ttlbrace}T: typ, sign: Sign.sg\ttrbrace
+Sign.certify_typ : Sign.sg -> typ -> typ
 \end{ttbox}
 \begin{ttdescription}
-\item[\ttindexbold{ctyp_of} $sign$ $T$] \index{signatures}
-certifies $T$ with respect to signature~$sign$.
+  
+\item[\ttindexbold{ctyp_of} $sign$ $T$] \index{signatures} certifies
+  $T$ with respect to signature~$sign$.
+  
+\item[\ttindexbold{rep_ctyp} $cT$] decomposes $cT$ as a record
+  containing the type itself and its signature.
+  
+\item[\ttindexbold{Sign.certify_typ}] is a more primitive version of
+  \texttt{ctyp_of}, returning the internal representation instead of
+  an abstract \texttt{ctyp}.
 
-\item[\ttindexbold{rep_ctyp} $cT$]
-decomposes $cT$ as a record containing the type itself and its signature.
 \end{ttdescription}
 
 

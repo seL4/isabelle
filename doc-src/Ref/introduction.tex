@@ -192,6 +192,7 @@ show_brackets : bool ref \hfill{\bf initially false}
 show_types    : bool ref \hfill{\bf initially false}
 show_sorts    : bool ref \hfill{\bf initially false}
 show_consts   : bool ref \hfill{\bf initially false}
+long_names    : bool ref \hfill{\bf initially false}
 \end{ttbox}
 These flags allow you to control how much information is displayed for
 types, terms and theorems.  The hypotheses of theorems \emph{are}
@@ -203,6 +204,7 @@ inference rule fails to resolve with some goal, or why a rewrite rule
 does not apply as expected.
 
 \begin{ttdescription}
+
 \item[reset \ttindexbold{show_hyps};] makes Isabelle show each
   meta-level hypothesis as a dot.
   
@@ -216,12 +218,16 @@ does not apply as expected.
 \item[set \ttindexbold{show_sorts};] makes Isabelle show both types
   and the sorts of type variables, independently of the value of
   \texttt{show_types}.
-  
+
 \item[set \ttindexbold{show_consts};] makes Isabelle show types of
   constants, provided that showing of types is enabled at all.  This
   is supported for printing of proof states only.  Note that the
   output can be enormous as polymorphic constants often occur at
   several different type instances.
+
+\item[set \ttindexbold{long_names};] forces names of all objects
+  (types, constants, theorems, etc.) to be printed in their fully
+  qualified internal form.
 
 \end{ttdescription}
 

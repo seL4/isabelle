@@ -51,6 +51,8 @@ section : classes
         | axclass
         | instance
         | oracle
+        | local
+        | global
         ;
 
 classes : 'classes' ( classDecl + )
@@ -118,7 +120,7 @@ rules : 'rules' (( id string ) + )
 defs : 'defs' (( id string ) + )
      ;
 
-constdefs : 'constdefs' (id '::' (string | type) string +)
+constdefs : 'constdefs' (name '::' (string | type) string +)
           ;
 
 axclass : 'axclass' classDecl (() | ( id string ) +)
@@ -131,6 +133,12 @@ witness : (() | '(' ((string | longident) + ',') ')') (() | verbatim)
         ;
 
 oracle : 'oracle' name '=' name
+       ;
+
+local : 'local'
+       ;
+
+global : 'global'
        ;
 
 ml : 'ML' text

@@ -98,11 +98,11 @@ $prop$ &=& {\tt(} $prop$ {\tt)} \\
      &$|$& {\tt[|} $prop$ {\tt;} \dots {\tt;} $prop$ {\tt|]} {\tt==>} $prop^{(1)}$ & (1) \\
      &$|$& {\tt!!} $idts$ {\tt.} $prop$ & (0) \\
      &$|$& {\tt OFCLASS} {\tt(} $type$ {\tt,} $logic$ {\tt)} \\\\
-$aprop$ &=& $id$ ~~$|$~~ $var$
+$aprop$ &=& $id$ ~~$|$~~ $longid$ ~~$|$~~ $var$
     ~~$|$~~ $logic^{(\infty)}$ {\tt(} $any$ {\tt,} \dots {\tt,} $any$ {\tt)} \\\\
 $logic$ &=& {\tt(} $logic$ {\tt)} \\
       &$|$& $logic^{(4)}$ {\tt::} $type$ & (3) \\
-      &$|$& $id$ ~~$|$~~ $var$
+      &$|$& $id$ ~~$|$~~ $longid$ ~~$|$~~ $var$
     ~~$|$~~ $logic^{(\infty)}$ {\tt(} $any$ {\tt,} \dots {\tt,} $any$ {\tt)} \\
       &$|$& {\tt \%} $pttrns$ {\tt.} $any^{(3)}$ & (3) \\\\
 $idts$ &=& $idt$ ~~$|$~~ $idt^{(1)}$ $idts$ \\\\
@@ -115,10 +115,12 @@ $type$ &=& {\tt(} $type$ {\tt)} \\
        ~~$|$~~ $tvar$ {\tt::} $sort$ \\
      &$|$& $id$ ~~$|$~~ $type^{(\infty)}$ $id$
                 ~~$|$~~ {\tt(} $type$ {\tt,} \dots {\tt,} $type$ {\tt)} $id$ \\
+     &$|$& $longid$ ~~$|$~~ $type^{(\infty)}$ $longid$
+                ~~$|$~~ {\tt(} $type$ {\tt,} \dots {\tt,} $type$ {\tt)} $longid$ \\
      &$|$& $type^{(1)}$ {\tt =>} $type$ & (0) \\
      &$|$& {\tt[}  $type$ {\tt,} \dots {\tt,} $type$ {\tt]} {\tt=>} $type$&(0) \\\\
-$sort$ &=& $id$ ~~$|$~~ {\tt\ttlbrace\ttrbrace}
-                ~~$|$~~ {\tt\ttlbrace} $id$ {\tt,} \dots {\tt,} $id$ {\tt\ttrbrace}
+$sort$ &=& $id$ ~~$|$~~ $longid$ ~~$|$~~ {\tt\ttlbrace\ttrbrace} ~~$|$~~
+  {\tt\ttlbrace} $id$ ~$|$~ $longid$ {\tt,} \dots {\tt,} $id$ ~$|$~ $longid$ {\tt\ttrbrace}
 \end{tabular}
 \index{*PROP symbol}
 \index{*== symbol}\index{*=?= symbol}\index{*==> symbol}
@@ -229,6 +231,7 @@ respectively.  Typical examples are {\tt x}, {\tt ?x7}, {\tt 'a}, {\tt ?'a3},
 {\tt \#42}, {\tt ''foo bar''}.  Here is the precise syntax:
 \begin{eqnarray*}
 id        & =   & letter~quasiletter^* \\
+longid    & =   & id\mbox{\tt .}id~\dots~id \\
 var       & =   & \mbox{\tt ?}id ~~|~~ \mbox{\tt ?}id\mbox{\tt .}nat \\
 tid       & =   & \mbox{\tt '}id \\
 tvar      & =   & \mbox{\tt ?}tid ~~|~~
@@ -240,10 +243,11 @@ digit     & =   & \mbox{one of {\tt 0}\dots {\tt 9}} \\
 quasiletter & =  & letter ~~|~~ digit ~~|~~ \mbox{\tt _} ~~|~~ \mbox{\tt '} \\
 nat       & =   & digit^+
 \end{eqnarray*}
-The lexer repeatedly takes the maximal prefix of the input string that forms
-a valid token.  A maximal prefix that is both a delimiter and a name is
-treated as a delimiter.  Spaces, tabs, newlines and formfeeds are separators;
-they never occur within tokens, except those of class $xstr$.
+The lexer repeatedly takes the longest prefix of the input string that
+forms a valid token.  A maximal prefix that is both a delimiter and a
+name is treated as a delimiter.  Spaces, tabs, newlines and formfeeds
+are separators; they never occur within tokens, except those of class
+$xstr$.
 
 \medskip
 Delimiters need not be separated by white space.  For example, if {\tt -}
@@ -434,10 +438,11 @@ This constant declaration and mixfix annotation are interpreted as follows:
       [$p@1$, $\ldots$, $p@m$]}, where $p@i$ is the minimal
     priority\indexbold{priorities} required of any phrase that may appear
     as the $i$-th argument.  Missing priorities default to~0.
+    
+  \item The integer $p$ is the priority of this production.  If
+    omitted, it defaults to the maximal priority.  Priorities range
+    between 0 and \ttindexbold{max_pri} (= 1000).
 
-  \item The integer $p$ is the priority of this production.  If omitted, it
-    defaults to the maximal priority.
-    Priorities range between 0 and \ttindexbold{max_pri} (= 1000).
 \end{itemize}
 %
 The resulting production is \[ A^{(p)}= w@0\, A@1^{(p@1)}\, w@1\,
