@@ -27,6 +27,7 @@ end;
 signature DISPLAY =
 sig
   include BASIC_DISPLAY
+  val pretty_thm_aux: (sort -> Pretty.T) -> (term -> Pretty.T) -> bool -> thm -> Pretty.T
   val pretty_thm_no_quote: thm -> Pretty.T
   val pretty_thm: thm -> Pretty.T
   val pretty_thms: thm list -> Pretty.T
@@ -60,25 +61,23 @@ struct
 val show_hyps = ref true;       (*false: print meta-hypotheses as dots*)
 val show_tags = ref false;      (*false: suppress tags*)
 
-local
-
 fun pretty_tag (name, args) = Pretty.strs (name :: map quote args);
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
-fun pretty_thm_aux quote th =
+fun pretty_thm_aux pretty_sort pretty_term quote th =
   let
-    val {sign, hyps, prop, der = (ora, _), ...} = rep_thm th;
+    val {hyps, prop, der = (ora, _), ...} = rep_thm th;
     val xshyps = Thm.extra_shyps th;
     val (_, tags) = Thm.get_name_tags th;
 
-    val prt_term = (if quote then Pretty.quote else I) o Sign.pretty_term sign;
+    val prt_term = (if quote then Pretty.quote else I) o pretty_term;
 
     val hlen = length xshyps + length hyps;
     val hsymbs =
       if hlen = 0 andalso not ora then []
       else if ! show_hyps then
         [Pretty.brk 2, Pretty.list "[" "]"
-          (map prt_term hyps @ map (Sign.pretty_sort sign) xshyps @
+          (map prt_term hyps @ map pretty_sort xshyps @
             (if ora then [Pretty.str "!"] else []))]
       else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^
         (if ora then "!" else "") ^ "]")];
@@ -87,12 +86,12 @@ fun pretty_thm_aux quote th =
       else [Pretty.brk 1, pretty_tags tags];
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
-in
+fun gen_pretty_thm quote th =
+  let val sg = Thm.sign_of_thm th
+  in pretty_thm_aux (Sign.pretty_sort sg) (Sign.pretty_term sg) quote th end;
 
-val pretty_thm = pretty_thm_aux true;
-val pretty_thm_no_quote = pretty_thm_aux false;
-
-end;
+val pretty_thm = gen_pretty_thm true;
+val pretty_thm_no_quote = gen_pretty_thm false;
 
 
 val string_of_thm = Pretty.string_of o pretty_thm;
