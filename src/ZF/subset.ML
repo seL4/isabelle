@@ -157,8 +157,7 @@ qed_goal "Int_lower1" ZF.thy "A Int B <= A"
 qed_goal "Int_lower2" ZF.thy "A Int B <= B"
  (fn _ => [ (REPEAT (ares_tac [subsetI] 1 ORELSE etac IntE 1)) ]);
 
-qed_goal "Int_greatest" ZF.thy
-                             "!!A B C. [| C<=A;  C<=B |] ==> C <= A Int B"
+qed_goal "Int_greatest" ZF.thy "!!A B C. [| C<=A;  C<=B |] ==> C <= A Int B"
  (fn prems=>
   [ (rtac (Int_subset_iff RS iffD2) 1),
     (REPEAT (ares_tac [conjI] 1)) ]);
