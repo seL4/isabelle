@@ -17,6 +17,6 @@ instance
 (* groups are monoids *)
 
 instance
-  group < monoid                (assoc, left_unit, right_unit)
+  group < monoid                ("Group.assoc", "Group.left_unit", "Group.right_unit")
 
 end
