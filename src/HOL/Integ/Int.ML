@@ -292,15 +292,12 @@ by (dtac zmult_zle_mono1_neg 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zmult_commute])));
 qed "zmult_zle_mono2_neg";
 
-(*<=monotonicity, BOTH arguments*)
+(* <= monotonicity, BOTH arguments*)
 Goal "[| i <= j;  k <= l;  int 0 <= j;  int 0 <= k |] ==> i*k <= j*l";
 by (etac (zmult_zle_mono1 RS order_trans) 1);
 by (assume_tac 1);
-by (rtac order_trans 1);
-by (stac zmult_commute 2);
-by (etac zmult_zle_mono1 2);
-by (assume_tac 2);
-by (simp_tac (simpset() addsimps [zmult_commute]) 1);
+by (etac zmult_zle_mono2 1);
+by (assume_tac 1);
 qed "zmult_zle_mono";
 
 
@@ -329,6 +326,14 @@ by (dtac zmult_zless_mono2 1);
 by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [zmult_commute])));
 qed "zmult_zless_mono1";
 
+(* < monotonicity, BOTH arguments*)
+Goal "[| i < j;  k < l;  int 0 < j;  int 0 < k |] ==> i*k < j*l";
+by (etac (zmult_zless_mono1 RS order_less_trans) 1);
+by (assume_tac 1);
+by (etac zmult_zless_mono2 1);
+by (assume_tac 1);
+qed "zmult_zless_mono";
+
 Goal "[| i<j;  k < int 0 |] ==> j*k < i*k";
 by (rtac (zminus_zless_zminus RS iffD1) 1);
 by (asm_simp_tac (simpset() addsimps [zmult_zminus_right RS sym,
@@ -350,7 +355,7 @@ by (auto_tac (claset(),
 by (REPEAT 
     (force_tac (claset() addDs [zmult_zless_mono1_neg, zmult_zless_mono1], 
 		simpset()) 1));
-qed "zmult_eq_iff";
+qed "zmult_eq_int0_iff";
 
 
 Goal "int 0 < k ==> (m*k < n*k) = (m<n)";
