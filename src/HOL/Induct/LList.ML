@@ -19,7 +19,7 @@ by (REPEAT (ares_tac basic_monos 1));
 qed "llist_mono";
 
 
-Goal "llist(A) = {Numb(0)} <+> (A <*> llist(A))";
+Goal "llist(A) = usum {Numb(0)} (uprod A (llist A))";
 let val rew = rewrite_rule [NIL_def, CONS_def] in  
 by (fast_tac (claset() addSIs (map rew llist.intrs)
                        addEs [rew llist.elim]) 1)
@@ -120,7 +120,7 @@ qed "LList_corec_type";
 (**** llist equality as a gfp; the bisimulation principle ****)
 
 (*This theorem is actually used, unlike the many similar ones in ZF*)
-Goal "LListD(r) = diag({Numb(0)}) <++> (r <**> LListD(r))";
+Goal "LListD r = dsum (diag {Numb 0}) (dprod r (LListD r))";
 let val rew = rewrite_rule [NIL_def, CONS_def] in  
 by (fast_tac (claset() addSIs (map rew LListD.intrs)
                       addEs [rew LListD.elim]) 1)

@@ -17,7 +17,7 @@ qed "ListD";
 
 val list_con_defs = [NIL_def, CONS_def];
 
-Goal "list(A) = {Numb(0)} <+> (A <*> list(A))";
+Goal "list(A) = usum {Numb(0)} (uprod A (list A))";
 let val rew = rewrite_rule list_con_defs in  
 by (fast_tac (claset() addSIs (equalityI :: map rew list.intrs)
                       addEs [rew list.elim]) 1)
