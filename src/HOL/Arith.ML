@@ -369,6 +369,12 @@ by (asm_simp_tac (simpset() addsimps [le_eq_less_Suc RS sym]) 1);
 qed "diff_Suc_less";
 Addsimps [diff_Suc_less];
 
+Goal "i<n ==> n - Suc i < n - i";
+by (exhaust_tac "n" 1);
+by Safe_tac;
+by (asm_simp_tac (simpset() addsimps [Suc_diff_n]) 1);
+qed "diff_Suc_less_diff";
+
 Goal "!!n::nat. m - n <= Suc m - n";
 by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by (ALLGOALS Asm_simp_tac);
