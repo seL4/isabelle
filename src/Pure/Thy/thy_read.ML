@@ -1067,7 +1067,7 @@ fun make_chart () = if not (!make_html) then () else
       val subdir = relative_path base_path (!index_path);
   in output (out,
        "<HTML><HEAD><TITLE>Isabelle/" ^ subdir ^ "</TITLE></HEAD>\n\
-       \<H2>Isabelle/" ^ subdir ^ "</H2>\n\
+       \<BODY><H2>Isabelle/" ^ subdir ^ "</H2>\n\
        \The name of every theory is linked to its theory file<BR>\n\
        \<IMG SRC = \"" ^ tack_on gif_path "red_arrow.gif\
        \\" ALT = \\/></A> stands for subtheories (child theories)<BR>\n\
@@ -1075,8 +1075,13 @@ fun make_chart () = if not (!make_html) then () else
        \\" ALT = /\\></A> stands for supertheories (parent theories)\n\
        \<P><A HREF = \"" ^
        tack_on (relative_path (!index_path) base_path) "index.html\">\
-       \Back</A> to the index of Isabelle logics.\n<HR>" ^
-       main_entries theories (space_explode "/" base_path) ^
+       \Back</A> to the index of Isabelle logics.\n" ^
+       (if file_exists "README.html" then
+          "<BR>View the <A HREF = \"README.html\">ReadMe</A> file.\n"
+        else if file_exists "README" then
+          "<BR>View the <A HREF = \"README\">ReadMe</A> file.\n"
+        else "") ^
+       "<HR>" ^ main_entries theories (space_explode "/" base_path) ^
        "</BODY></HTML>\n");
      close_out out
   end;
