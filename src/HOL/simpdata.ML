@@ -170,14 +170,14 @@ fun prove_eq(ceqt) =
                  rtac exI, REPEAT o (ares_tac [conjI] ORELSE' etac sym)])
   in rule_by_tactic tac (trivial ceqt) end;
 
-fun rearrange sg (F as ex $ Abs(x,T,P)) =
+fun rearrange sg _ (F as ex $ Abs(x,T,P)) =
      (case extract P of
         None => None
       | Some(eq,Q) =>
           let val ceqt = cterm_of sg
                        (Logic.mk_equals(F,ex $ Abs(x,T,HOLogic.conj$eq$Q)))
           in Some(prove_eq ceqt) end)
-  | rearrange _ _ = None;
+  | rearrange _ _ _ = None;
 
 val pattern = read_cterm (sign_of HOL.thy) ("? x.P(x) & Q(x)",HOLogic.boolT)
 

@@ -152,9 +152,11 @@ signature THM =
   val add_congs         : meta_simpset * thm list -> meta_simpset
   val del_congs         : meta_simpset * thm list -> meta_simpset
   val add_simprocs	: meta_simpset *
-    (string * cterm list * (Sign.sg -> term -> thm option) * stamp) list -> meta_simpset
+    (string * cterm list * (Sign.sg -> thm list -> term -> thm option) * stamp) list
+      -> meta_simpset
   val del_simprocs	: meta_simpset *
-    (string * cterm list * (Sign.sg -> term -> thm option) * stamp) list -> meta_simpset
+    (string * cterm list * (Sign.sg -> thm list -> term -> thm option) * stamp) list
+      -> meta_simpset
   val add_prems         : meta_simpset * thm list -> meta_simpset
   val prems_of_mss      : meta_simpset -> thm list
   val set_mk_rews       : meta_simpset * (thm -> thm list) -> meta_simpset
@@ -1449,7 +1451,8 @@ fun trace_thm_warning a (Thm {sign, prop, ...}) = trace_term_warning a sign prop
 
 type rrule = {thm: thm, lhs: term, perm: bool};
 type cong = {thm: thm, lhs: term};
-type simproc = {name: string, proc: Sign.sg -> term -> thm option, lhs: cterm, id: stamp};
+type simproc =
+ {name: string, proc: Sign.sg -> thm list -> term -> thm option, lhs: cterm, id: stamp};
 
 fun eq_rrule ({thm = Thm {prop = p1, ...}, ...}: rrule,
   {thm = Thm {prop = p2, ...}, ...}: rrule) = p1 aconv p2;
@@ -1761,7 +1764,7 @@ fun mk_procrule (thm as Thm {sign, prop, ...}) =
     (4) simplification procedures
 *)
 
-fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...}) 
+fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, prems, ...}) 
              (shypst,hypst,maxt,t,ders) =
   let
       val tsigt = #tsig(Sign.rep_sg signt);
@@ -1821,7 +1824,7 @@ fun rewritec (prover,signt) (mss as Mss{rules, procs, mk_rews, termless, ...})
         | proc_rews eta_t ({name, proc, lhs = Cterm {t = plhs, ...}, ...} :: ps) =
             if Pattern.matches tsigt (plhs, t) then
              (trace_term ("Trying procedure " ^ name ^ " on:") signt eta_t;
-              case proc signt eta_t of
+              case proc signt prems eta_t of
                 None => (trace "FAILED"; proc_rews eta_t ps)
               | Some raw_thm =>
                  (trace_thm ("Procedure " ^ name ^ " proved rewrite rule:") raw_thm;

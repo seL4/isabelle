@@ -2,7 +2,8 @@
     ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
-Generic simplifier, suitable for most logics.
+Generic simplifier, suitable for most logics.  See also Pure/thm.ML
+for the actual meta level rewriting engine.
 *)
 
 infix 4
@@ -14,7 +15,8 @@ infix 4
 signature SIMPLIFIER =
 sig
   type simproc
-  val mk_simproc: string -> cterm list -> (Sign.sg -> term -> thm option) -> simproc
+  val mk_simproc: string -> cterm list
+    -> (Sign.sg -> thm list -> term -> thm option) -> simproc
   val conv_prover: (term * term -> term) -> thm -> (thm -> thm)
     -> tactic -> (int -> tactic) -> Sign.sg -> term -> term -> thm
   type simpset
@@ -33,17 +35,17 @@ sig
   val addSSolver:   simpset * (thm list -> int -> tactic) -> simpset
   val setSolver:    simpset * (thm list -> int -> tactic) -> simpset
   val addSolver:    simpset * (thm list -> int -> tactic) -> simpset
-  val setmksimps:  simpset * (thm -> thm list) -> simpset
-  val settermless: simpset * (term * term -> bool) -> simpset
-  val addsimps:    simpset * thm list -> simpset
-  val delsimps:    simpset * thm list -> simpset
-  val addeqcongs:  simpset * thm list -> simpset
-  val deleqcongs:  simpset * thm list -> simpset
-  val addsimprocs: simpset * simproc list -> simpset
-  val delsimprocs: simpset * simproc list -> simpset
-  val merge_ss:    simpset * simpset -> simpset
-  val prems_of_ss: simpset -> thm list
-  val simpset:     simpset ref
+  val setmksimps:   simpset * (thm -> thm list) -> simpset
+  val settermless:  simpset * (term * term -> bool) -> simpset
+  val addsimps:     simpset * thm list -> simpset
+  val delsimps:     simpset * thm list -> simpset
+  val addeqcongs:   simpset * thm list -> simpset
+  val deleqcongs:   simpset * thm list -> simpset
+  val addsimprocs:  simpset * simproc list -> simpset
+  val delsimprocs:  simpset * simproc list -> simpset
+  val merge_ss:     simpset * simpset -> simpset
+  val prems_of_ss:  simpset -> thm list
+  val simpset:      simpset ref
   val Addsimps: thm list -> unit
   val Delsimps: thm list -> unit
   val Addsimprocs: simproc list -> unit
@@ -73,7 +75,7 @@ struct
 (* datatype simproc *)
 
 datatype simproc =
-  Simproc of string * cterm list * (Sign.sg -> term -> thm option) * stamp;
+  Simproc of string * cterm list * (Sign.sg -> thm list -> term -> thm option) * stamp;
 
 fun mk_simproc name lhss proc =
   Simproc (name, map (Thm.cterm_fun Logic.varify) lhss, proc, stamp ());
