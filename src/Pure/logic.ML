@@ -24,13 +24,7 @@ sig
   val count_prems       : term * int -> int
   val mk_conjunction    : term * term -> term
   val mk_conjunction_list: term list -> term
-  val mk_flexpair       : term * term -> term
-  val dest_flexpair     : term -> term * term
-  val list_flexpairs    : (term*term)list * term -> term
-  val rule_of           : (term*term)list * term list * term -> term
-  val strip_flexpairs   : term -> (term*term)list * term
-  val skip_flexpairs    : term -> term
-  val strip_horn        : term -> (term*term)list * term list * term
+  val strip_horn        : term -> term list * term
   val mk_cond_defpair   : term list -> term * term -> string * term
   val mk_defpair        : term * term -> string * term
   val mk_type           : typ -> term
@@ -118,6 +112,10 @@ fun strip_prems (0, As, B) = (As, B)
 fun count_prems (Const("==>", _) $ A $ B, n) = count_prems (B,n+1)
   | count_prems (_,n) = n;
 
+(*strip a proof state (Horn clause):
+  B1 ==> ... Bn ==> C   goes to   ([B1, ..., Bn], C)    *)
+fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
+
 
 (** conjunction **)
 
@@ -126,45 +124,6 @@ fun mk_conjunction (t, u) =
 
 fun mk_conjunction_list [] = Term.all propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound 0))
   | mk_conjunction_list ts = foldr1 mk_conjunction ts;
-
-
-(** flex-flex constraints **)
-
-(*Make a constraint.*)
-fun mk_flexpair(t,u) = flexpair(fastype_of t) $ t $ u;
-
-fun dest_flexpair (Const("=?=",_) $ t $ u)  =  (t,u)
-  | dest_flexpair t = raise TERM("dest_flexpair", [t]);
-
-(*make flexflex antecedents: ( [(a1,b1),...,(an,bn)] , C )
-    goes to (a1=?=b1) ==>...(an=?=bn)==>C *)
-fun list_flexpairs ([], A) = A
-  | list_flexpairs ((t,u)::pairs, A) =
-        implies $ (mk_flexpair(t,u)) $ list_flexpairs(pairs,A);
-
-(*Make the object-rule tpairs==>As==>B   *)
-fun rule_of (tpairs, As, B) = list_flexpairs(tpairs, list_implies(As, B));
-
-(*Remove and return flexflex pairs:
-    (a1=?=b1)==>...(an=?=bn)==>C  to  ( [(a1,b1),...,(an,bn)] , C )
-  [Tail recursive in order to return a pair of results] *)
-fun strip_flex_aux (pairs, Const("==>", _) $ (Const("=?=",_)$t$u) $ C) =
-        strip_flex_aux ((t,u)::pairs, C)
-  | strip_flex_aux (pairs,C) = (rev pairs, C);
-
-fun strip_flexpairs A = strip_flex_aux([], A);
-
-(*Discard flexflex pairs*)
-fun skip_flexpairs (Const("==>", _) $ (Const("=?=",_)$_$_) $ C) =
-        skip_flexpairs C
-  | skip_flexpairs C = C;
-
-(*strip a proof state (Horn clause):
-   (a1==b1)==>...(am==bm)==>B1==>...Bn==>C
-    goes to   ( [(a1,b1),...,(am,bm)] , [B1,...,Bn] , C)    *)
-fun strip_horn A =
-  let val (tpairs,horn) = strip_flexpairs A
-  in  (tpairs, strip_imp_prems horn, strip_imp_concl horn)   end;
 
 
 (** definitions **)
@@ -270,9 +229,8 @@ fun has_meta_prems prop i =
       | is_meta (Const ("==", _) $ _ $ _) = true
       | is_meta (Const ("all", _) $ _) = true
       | is_meta _ = false;
-    val horn = skip_flexpairs prop;
   in
-    (case strip_prems (i, [], horn) of
+    (case strip_prems (i, [], prop) of
       (B :: _, _) => exists is_meta (strip_assums_hyp B)
     | _ => false) handle TERM _ => false
   end;

@@ -14,7 +14,6 @@ sig
   val list_implies      : cterm list * cterm -> cterm
   val dest_implies      : cterm -> cterm * cterm
   val dest_equals       : cterm -> cterm * cterm
-  val skip_flexpairs    : cterm -> cterm
   val strip_imp_prems   : cterm -> cterm list
   val strip_imp_concl   : cterm -> cterm
   val cprems_of         : thm -> cterm list
@@ -69,7 +68,6 @@ sig
   val swap_prems_eq     : thm
   val equal_abs_elim    : cterm  -> thm -> thm
   val equal_abs_elim_list: cterm list -> thm -> thm
-  val flexpair_abs_elim_list: cterm list -> thm -> thm
   val asm_rl            : thm
   val cut_rl            : thm
   val revcut_rl         : thm
@@ -159,13 +157,6 @@ fun dest_equals ct =
       | _ => raise TERM ("dest_equals", [term_of ct]) ;
 
 
-(*Discard flexflex pairs; return a cterm*)
-fun skip_flexpairs ct =
-    case term_of ct of
-        (Const("==>", _) $ (Const("=?=",_)$_$_) $ _) =>
-            skip_flexpairs (#2 (dest_implies ct))
-      | _ => ct;
-
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
 fun strip_imp_prems ct =
     let val (cA,cB) = dest_implies ct
@@ -179,7 +170,7 @@ fun strip_imp_concl ct =
   | _ => ct;
 
 (*The premises of a theorem, as a cterm list*)
-val cprems_of = strip_imp_prems o skip_flexpairs o cprop_of;
+val cprems_of = strip_imp_prems o cprop_of;
 
 val proto_sign = Theory.sign_of ProtoPure.thy;
 
@@ -403,16 +394,16 @@ fun local_standard th =
   Similar code in type/freeze_thaw*)
 fun freeze_thaw th =
  let val fth = freezeT th
-     val {prop,sign,...} = rep_thm fth
+     val {prop, tpairs, sign, ...} = rep_thm fth
  in
-   case term_vars prop of
+   case foldr add_term_vars (prop :: Thm.terms_of_tpairs tpairs, []) of
        [] => (fth, fn x => x)
      | vars =>
          let fun newName (Var(ix,_), (pairs,used)) =
                    let val v = variant used (string_of_indexname ix)
                    in  ((ix,v)::pairs, v::used)  end;
-             val (alist, _) = foldr newName
-                                (vars, ([], add_term_names (prop, [])))
+             val (alist, _) = foldr newName (vars, ([], foldr add_term_names
+               (prop :: Thm.terms_of_tpairs tpairs, [])))
              fun mk_inst (Var(v,T)) =
                  (cterm_of sign (Var(v,T)),
                   cterm_of sign (Free(the (assoc(alist,v)), T)))
@@ -790,27 +781,6 @@ fun equal_abs_elim ca eqth =
 
 (*Calling equal_abs_elim with multiple terms*)
 fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) (rev cts, th);
-
-local
-  val alpha = TVar(("'a",0), [])     (*  type ?'a::{}  *)
-  fun err th = raise THM("flexpair_inst: ", 0, [th])
-  fun flexpair_inst def th =
-    let val {prop = Const _ $ t $ u,  sign,...} = rep_thm th
-        val cterm = cterm_of sign
-        fun cvar a = cterm(Var((a,0),alpha))
-        val def' = cterm_instantiate [(cvar"t", cterm t), (cvar"u", cterm u)]
-                   def
-    in  equal_elim def' th
-    end
-    handle THM _ => err th | Bind => err th
-in
-val flexpair_intr = flexpair_inst (symmetric ProtoPure.flexpair_def)
-and flexpair_elim = flexpair_inst ProtoPure.flexpair_def
-end;
-
-(*Version for flexflex pairs -- this supports lifting.*)
-fun flexpair_abs_elim_list cts =
-    flexpair_intr o equal_abs_elim_list cts o flexpair_elim;
 
 
 (*** Goal (PROP A) <==> PROP A ***)
