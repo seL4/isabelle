@@ -17,15 +17,17 @@ New in this Isabelle release
   symbols.  Call 'isatool fixgreek' to try to fix parsing errors in
   existing theory and ML files.
 
+* Pure: Macintosh and Windows line-breaks are now allowed in theory files.
+
 * Pure: single letter sub/superscripts (\<^isub> and \<^isup>) are now 
   allowed in identifiers. Similar to greek letters \<^isub> is now considered 
   a normal (but invisible) letter. For multiple letter subscripts repeat 
   \<^isub> like this: x\<^isub>1\<^isub>2. 
 
-* Pure: Using the functions Theory.add_finals or Theory.add_finals_i
-  or the new Isar command "finalconsts", it is now possible to
-  make constants "final", thereby ensuring that they are not defined
-  later.  Useful for constants whose behaviour is fixed axiomatically
+* Pure: Using new Isar command "finalconsts" (or the ML functions
+  Theory.add_finals or Theory.add_finals_i) it is now possible to
+  declare constants "final", which prevents their being given a definition
+  later.  It is useful for constants whose behaviour is fixed axiomatically
   rather than definitionally, such as the meta-logic connectives.
 
 *** Isar ***
