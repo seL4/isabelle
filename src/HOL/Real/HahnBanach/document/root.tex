@@ -1,12 +1,16 @@
+
 \documentclass[10pt,a4paper,twoside]{article}
-%\documentclass[11pt,a4paper,twoside]{article}
 
 \usepackage{latexsym,theorem}
-\usepackage{isabelle,isabellesym,bbb}
+\usepackage{isabelle,isabellesym}
 \usepackage{pdfsetup} %last one!
+
+\isabellestyle{it}
 \urlstyle{rm}
 
-\input{notation}
+\newcommand{\isasymsup}{\isamath{\sup\,}}
+\newcommand{\skp}{\smallskip}
+
 
 \begin{document}
 
@@ -50,27 +54,27 @@ is conducted in the third part.
 \clearpage
 \part {Basic Notions}
 
-\input{Bounds.tex}
-\input{Aux.tex}
-\input{VectorSpace.tex}
-\input{Subspace.tex}
-\input{NormedSpace.tex}
-\input{Linearform.tex}
-\input{FunctionOrder.tex}
-\input{FunctionNorm.tex}
-\input{ZornLemma.tex}
+\input{Bounds}
+\input{Aux}
+\input{VectorSpace}
+\input{Subspace}
+\input{NormedSpace}
+\input{Linearform}
+\input{FunctionOrder}
+\input{FunctionNorm}
+\input{ZornLemma}
 
 \clearpage
 \part {Lemmas for the Proof}
 
-\input{HahnBanachSupLemmas.tex}
-\input{HahnBanachExtLemmas.tex}
-\input{HahnBanachLemmas.tex}
+\input{HahnBanachSupLemmas}
+\input{HahnBanachExtLemmas}
+\input{HahnBanachLemmas}
 
 \clearpage
 \part {The Main Proof}
 
-\input{HahnBanach.tex}
+\input{HahnBanach}
 \bibliographystyle{abbrv}
 \bibliography{root}
 

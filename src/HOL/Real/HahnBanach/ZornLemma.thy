@@ -7,45 +7,48 @@ header {* Zorn's Lemma *}
 
 theory ZornLemma = Aux + Zorn:
 
-text {* Zorn's Lemmas states: if every linear ordered subset of an
-ordered set $S$ has an upper bound in $S$, then there exists a maximal
-element in $S$.  In our application, $S$ is a set of sets ordered by
-set inclusion. Since the union of a chain of sets is an upper bound
-for all elements of the chain, the conditions of Zorn's lemma can be
-modified: if $S$ is non-empty, it suffices to show that for every
-non-empty chain $c$ in $S$ the union of $c$ also lies in $S$. *}
+text {*
+  Zorn's Lemmas states: if every linear ordered subset of an ordered
+  set @{text S} has an upper bound in @{text S}, then there exists a
+  maximal element in @{text S}.  In our application, @{text S} is a
+  set of sets ordered by set inclusion. Since the union of a chain of
+  sets is an upper bound for all elements of the chain, the conditions
+  of Zorn's lemma can be modified: if @{text S} is non-empty, it
+  suffices to show that for every non-empty chain @{text c} in @{text
+  S} the union of @{text c} also lies in @{text S}.
+*}
 
-theorem Zorn's_Lemma: 
-  "(!!c. c: chain S ==> EX x. x:c ==> Union c : S) ==> a:S
-  ==>  EX y: S. ALL z: S. y <= z --> y = z"
+theorem Zorn's_Lemma:
+  "(\<And>c. c \<in> chain S \<Longrightarrow> \<exists>x. x \<in> c \<Longrightarrow> \<Union>c \<in> S) \<Longrightarrow> a \<in> S
+  \<Longrightarrow> \<exists>y \<in> S. \<forall>z \<in> S. y \<subseteq> z \<longrightarrow> y = z"
 proof (rule Zorn_Lemma2)
   txt_raw {* \footnote{See
   \url{http://isabelle.in.tum.de/library/HOL/HOL-Real/Zorn.html}} \isanewline *}
-  assume r: "!!c. c: chain S ==> EX x. x:c ==> Union c : S"
-  assume aS: "a:S"
-  show "ALL c:chain S. EX y:S. ALL z:c. z <= y"
+  assume r: "\<And>c. c \<in> chain S \<Longrightarrow> \<exists>x. x \<in> c \<Longrightarrow> \<Union>c \<in> S"
+  assume aS: "a \<in> S"
+  show "\<forall>c \<in> chain S. \<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
   proof
-    fix c assume "c:chain S" 
-    show "EX y:S. ALL z:c. z <= y"
+    fix c assume "c \<in> chain S"
+    show "\<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
     proof cases
  
-      txt{* If $c$ is an empty chain, then every element
-      in $S$ is an upper bound of $c$. *}
+      txt {* If @{text c} is an empty chain, then every element in
+      @{text S} is an upper bound of @{text c}. *}
 
-      assume "c={}" 
+      assume "c = {}" 
       with aS show ?thesis by fast
 
-      txt{* If $c$ is non-empty, then $\Union c$ 
-      is an upper bound of $c$, lying in $S$. *}
+      txt {* If @{text c} is non-empty, then @{text "\<Union>c"} is an upper
+      bound of @{text c}, lying in @{text S}. *}
 
     next
-      assume c: "c~={}"
+      assume c: "c \<noteq> {}"
       show ?thesis 
       proof 
-        show "ALL z:c. z <= Union c" by fast
-        show "Union c : S" 
+        show "\<forall>z \<in> c. z \<subseteq> \<Union>c" by fast
+        show "\<Union>c \<in> S" 
         proof (rule r)
-          from c show "EX x. x:c" by fast  
+          from c show "\<exists>x. x \<in> c" by fast  
         qed
       qed
     qed
