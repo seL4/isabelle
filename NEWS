@@ -19,15 +19,18 @@ on the old view without predicates;
 parameters (as in CASL, for example); just specify something like
 ``var x + var y + struct M'' as import;
 
-* improved induct method: assumptions introduced by case "foo" are
-split into "foo.hyps" (from the rule) and "foo.prems" (from the goal
-statement); "foo" still refers to all facts collectively;
+* Pure: improved thms_containing: proper indexing of facts instead of
+raw theorems; check validity of results wrt. current name space;
+include local facts of proof configuration (also covers active
+locales); an optional limit for the number of printed facts may be
+given (the default is 40);
 
-* improved thms_containing: proper indexing of facts instead of raw
-theorems; check validity of results wrt. current name space; include
-local facts of proof configuration (also covers active locales); an
-optional limit for the number of printed facts may be given (the
-default is 40);
+* Provers: improved induct method: assumptions introduced by case
+"foo" are split into "foo.hyps" (from the rule) and "foo.prems" (from
+the goal statement); "foo" still refers to all facts collectively;
+
+* Provers: Simplifier.simproc(_i) now provide sane interface for
+setting up simprocs;
 
 
 *** HOL ***
