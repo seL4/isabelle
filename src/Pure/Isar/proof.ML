@@ -15,6 +15,7 @@ sig
   val context_of: state -> context
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
+  val warn_extra_tfrees: state -> state -> state
   val reset_thms: string -> state -> state
   val the_facts: state -> thm list
   val get_goal: state -> term * (thm list * thm)
@@ -35,8 +36,6 @@ sig
   val refine: (context -> method) -> state -> state Seq.seq
   val find_free: term -> string -> term option
   val export_thm: context -> thm -> thm
-  val bind: (indexname * string) list -> state -> state
-  val bind_i: (indexname * term) list -> state -> state
   val match_bind: (string list * string) list -> state -> state
   val match_bind_i: (term list * term) list -> state -> state
   val have_thmss: thm list -> string -> context attribute list ->
@@ -179,8 +178,7 @@ fun map_context_result f (state as State (Node {context, facts, mode, goal}, nod
 
 
 fun put_data kind f = map_context o ProofContext.put_data kind f;
-val declare_term = map_context o ProofContext.declare_term;
-val add_binds = map_context o ProofContext.add_binds_i;
+val warn_extra_tfrees = map_context o ProofContext.warn_extra_tfrees o context_of;
 val auto_bind_goal = map_context o ProofContext.auto_bind_goal;
 val auto_bind_facts = map_context oo ProofContext.auto_bind_facts;
 val put_thms = map_context o ProofContext.put_thms;
@@ -493,9 +491,6 @@ fun gen_bind f x state =
   |> map_context (f x)
   |> reset_facts;
 
-val bind = gen_bind (ProofContext.add_binds o map (apsnd Some))
-val bind_i = gen_bind (ProofContext.add_binds_i o map (apsnd Some))
-
 val match_bind = gen_bind ProofContext.match_binds;
 val match_bind_i = gen_bind ProofContext.match_binds_i;
 
@@ -578,11 +573,11 @@ fun from_facts facts state =
 
 fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
   let
-    val (state', prop) =
+    val (state', [prop]) =
       state
       |> assert_forward_or_chain
       |> enter_forward
-      |> map_context_result (fn c => prepp (c, raw_propp));
+      |> map_context_result (prepp [raw_propp]);
     val cprop = Thm.cterm_of (sign_of state') prop;
     val goal = Drule.mk_triv_goal cprop;
   in
@@ -598,22 +593,22 @@ fun setup_goal opt_block prepp kind after_qed name atts raw_propp state =
 
 (*global goals*)
 fun global_goal prep kind name atts x thy =
-  setup_goal I prep kind Seq.single name atts x (init_state thy);
+  setup_goal I (prep false) kind Seq.single name atts x (init_state thy);
 
-val theorem = global_goal ProofContext.bind_propp Theorem;
-val theorem_i = global_goal ProofContext.bind_propp_i Theorem;
-val lemma = global_goal ProofContext.bind_propp Lemma;
-val lemma_i = global_goal ProofContext.bind_propp_i Lemma;
+val theorem = global_goal ProofContext.bind_propps Theorem;
+val theorem_i = global_goal ProofContext.bind_propps_i Theorem;
+val lemma = global_goal ProofContext.bind_propps Lemma;
+val lemma_i = global_goal ProofContext.bind_propps_i Lemma;
 
 
 (*local goals*)
 fun local_goal prep kind f name atts x =
-  setup_goal open_block prep kind f name atts x;
+  setup_goal open_block (prep true) kind f name atts x;
 
-val show   = local_goal ProofContext.bind_propp Goal;
-val show_i = local_goal ProofContext.bind_propp_i Goal;
-val have   = local_goal ProofContext.bind_propp Aux;
-val have_i = local_goal ProofContext.bind_propp_i Aux;
+val show   = local_goal ProofContext.bind_propps Goal;
+val show_i = local_goal ProofContext.bind_propps_i Goal;
+val have   = local_goal ProofContext.bind_propps Aux;
+val have_i = local_goal ProofContext.bind_propps_i Aux;
 
 
 
