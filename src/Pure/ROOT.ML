@@ -39,17 +39,15 @@ use "net.ML";
 use "logic.ML";
 use "theory.ML";
 use "thm.ML";
-use "deriv.ML";
 use "display.ML";
+use "pure_thy.ML";
+use "deriv.ML";
 use "drule.ML";
 use "tctical.ML";
 use "search.ML";
 use "tactic.ML";
 use "goals.ML";
 use "axclass.ML";
-
-structure Pure  = struct val thy = Theory.pure end;
-structure CPure = struct val thy = Theory.cpure end;
 
 (*Theory parser and loader*)
 cd "Thy";
