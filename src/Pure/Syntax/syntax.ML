@@ -106,6 +106,8 @@ fun merge_tokentrtabs tabs1 tabs2 =
   let
     fun eq_tr ((c1, (_, s1)), (c2, (_, s2))) = c1 = c2 andalso s1 = s2;
 
+    fun name (s, _) = implode (tl (explode s));
+
     fun merge mode =
       let
         val trs1 = assocs tabs1 mode;
@@ -115,7 +117,7 @@ fun merge_tokentrtabs tabs1 tabs2 =
         (case gen_duplicates eq_fst trs of
           [] => (mode, trs)
         | dups => error ("More than one token translation function in mode " ^
-            quote mode ^ " for " ^ commas_quote (map fst dups)))
+            quote mode ^ " for " ^ commas_quote (map name dups)))
       end;
   in
     map merge (distinct (map fst (tabs1 @ tabs2)))
