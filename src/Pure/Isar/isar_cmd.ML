@@ -104,11 +104,11 @@ fun use name = Toplevel.keep (fn state =>
   Context.setmp (try Toplevel.theory_of state) ThyInfo.use name);
 
 (*passes changes of theory context*)
-val use_mltext_theory = Toplevel.theory' o IsarThy.use_mltext_theory;
+val use_mltext_theory = Toplevel.theory' o Context.use_mltext_theory;
 
 (*ignore result theory context*)
 fun use_mltext v txt = Toplevel.keep' (fn verb => fn state =>
-  (IsarThy.use_mltext txt (v andalso verb) (try Toplevel.theory_of state)));
+  (Context.use_mltext txt (v andalso verb) (try Toplevel.theory_of state)));
 
 (*Note: commit is dynamically bound*)
 val use_commit = use_mltext false "commit();";
