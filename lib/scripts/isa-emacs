@@ -20,6 +20,9 @@ function usage()
   echo "    -u BOOL      use .emacs file (default false)"
   echo
   echo "Starts Emacs and Isamode."
+  echo
+  echo "  ISAMODE_OPTIONS=$ISAMODE_OPTIONS"
+  echo
   exit 1
 }
 

@@ -25,6 +25,8 @@ function usage()
   echo "  Starts Isabelle within an xterm window. CMDLINE is passed"
   echo "  directly to the isabelle session."
   echo
+  echo "  ISABELLE_XTERM_OPTIONS=$ISABELLE_XTERM_OPTIONS"
+  echo
   exit 1
 }
 
