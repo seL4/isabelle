@@ -6,6 +6,8 @@
 Datatype of events;
 inductive relation "traces" for Needham-Schroeder (shared keys)
 
+INTERLEAVING?  See defn of "traces"
+
 WHAT ABOUT ASYMMETRIC KEYS?  NOBODY'S PRIVATE KEY CAN EQUAL SOMEBODY ELSE'S
   PUBLIC KEY...
 *)
@@ -14,16 +16,16 @@ Event = Message + List +
 
 consts
   publicKey    :: agent => key
-  serverKey    :: agent => key	(*symmetric keys*)
+  serverKey    :: agent => key  (*symmetric keys*)
 
 rules
   isSym_serverKey "isSymKey (serverKey A)"
 
-consts	(*Initial states of agents -- parameter of the construction*)
+consts  (*Initial states of agents -- parameter of the construction*)
   initState :: agent => msg set
 
 primrec initState agent
-	(*Server knows all keys; other agents know only their own*)
+        (*Server knows all keys; other agents know only their own*)
   initState_Server  "initState Server     = range (Key o serverKey)"
   initState_Friend  "initState (Friend i) = {Key (serverKey (Friend i))}"
   initState_Enemy   "initState Enemy  = {Key (serverKey Enemy)}"
@@ -51,7 +53,7 @@ consts
   sees :: [agent, event list] => msg set
 
 primrec sees list
-	(*Initial knowledge includes all public keys and own private key*)
+        (*Initial knowledge includes all public keys and own private key*)
   sees_Nil  "sees A []       = initState A"
   sees_Cons "sees A (ev#evs) = sees1 A ev Un sees A evs"
 
@@ -61,25 +63,29 @@ constdefs
   "knownBy evs X == {A. X: analyze (sees A evs)}"
 
 
-(*Agents generate "random" nonces.  Different agents always generate
-  different nonces.  Different traces also yield different nonces.  Same
-  applies for keys.*)
-(*newK NEEDS AN ARGUMENT TO ALLOW ASYMMETRIC KEYS.  REMOVE AGENT ARGUMENT?
+(*Agents generate "random" nonces.  Different traces always yield
+  different nonces.  Same applies for keys.*)
+(*newK NEEDS AN ARGUMENT TO ALLOW ASYMMETRIC KEYS.
   NEED AXIOM SAYING THAT NEW KEYS CANNOT EQUAL THE INVERSE OF A PREVIOUS KEY*)
 consts
-  newN :: "agent * event list => nat"
-  newK :: "agent * event list => key"
+  newN :: "event list => nat"
+  newK :: "event list => key"
 
 rules
   inj_serverKey "inj serverKey"
 
   inj_newN   "inj(newN)"
-  fresh_newN "Nonce (newN(A,evs)) ~: parts (initState B)" 
+  fresh_newN "Nonce (newN evs) ~: parts (initState B)" 
 
   inj_newK   "inj(newK)"
-  fresh_newK "Key (newK(A,evs)) ~: parts (initState B)" 
-  isSym_newK "isSymKey (newK(A,evs))"
+  fresh_newK "Key (newK evs) ~: parts (initState B)" 
+  isSym_newK "isSymKey (newK evs)"
 
+
+(*NS1 AND NS2 DON'T ALLOW INTERLEAVING -- that is, they only respond to the
+  MOST RECENT message.  Does this mean we can't model middleperson attacks?
+  We don't need the most recent restriction in order to handle interception
+  by the Enemy, as agents are not forced to respond anyway.*)
 
 consts  traces   :: "event list set"
 inductive traces
@@ -88,17 +94,39 @@ inductive traces
 
     (*The enemy MAY say anything he CAN say.  We do not expect him to
       invent new nonces here, but he can also use NS1.*)
-    Fake "[| evs: traces;  X: synthesize(analyze(sees Enemy evs))
+    Fake "[| evs: traces;  B ~= Enemy;  
+             X: synthesize(analyze(sees Enemy evs))
           |] ==> (Says Enemy B X) # evs : traces"
 
     NS1  "[| evs: traces;  A ~= Server
-          |] ==> (Says A Server {|Agent A, Agent B, Nonce (newN(A,evs))|}) 
+          |] ==> (Says A Server {|Agent A, Agent B, Nonce (newN evs)|}) 
                  # evs : traces"
 
-    NS2  "[| evs: traces;  
+          (*We can't trust the sender field: change that A to A'?  *)
+    NS2  "[| evs: traces;  A ~= B;
              evs = (Says A Server {|Agent A, Agent B, Nonce NA|}) # evs'
           |] ==> (Says Server A 
-                       (Crypt {|Agent A, Agent B, 
-                                Key (newK(Server,evs)), Nonce NA|}
-                              (serverKey A))) # evs : traces"
+                  (Crypt {|Nonce NA, Agent B, Key (newK evs),   
+                           (Crypt {|Key (newK evs), Agent A|} (serverKey B))|}
+                   (serverKey A))) # evs : traces"
+
+           (*We can't assume S=Server.  Agent A "remembers" her nonce.
+             May assume WLOG that she is NOT the Enemy, as the Fake rule.
+             covers this case.  Can inductively show A ~= Server*)
+    NS3  "[| evs: traces;  A ~= B;
+             evs = (Says S A (Crypt {|Nonce NA, Agent B, Key K, X|}
+                              (serverKey A))) 
+                   # evs';
+             A = Friend i;
+             (Says A Server {|Agent A, Agent B, Nonce NA|}) : setOfList evs'
+          |] ==> (Says A B X) # evs : traces"
+
+(*Initial version of NS2 had 
+
+        {|Agent A, Agent B, Key (newK evs), Nonce NA|}
+
+  for the encrypted part; the version above is LESS transparent, hence
+  maybe HARDER to prove.  Also it is precisely as in the BAN paper.
+*)
+
 end

@@ -22,7 +22,7 @@ fun Auto_tac() = auto_tac (!claset, !simpset);
 
 fun auto() = by (Auto_tac());
 
-fun imp_of_subset th = th RSN (2, rev_subsetD);
+fun impOfSubs th = th RSN (2, rev_subsetD);
 
 (**************** INSTALL CENTRALLY SOMEWHERE? ****************)
 
@@ -141,6 +141,13 @@ goal thy "parts(G Un H) = parts(G) Un parts(H)";
 by (REPEAT (ares_tac [equalityI, parts_Un_subset1, parts_Un_subset2] 1));
 qed "parts_Un";
 
+(*TWO inserts to avoid looping.  This rewrite is better than nothing...*)
+goal thy "parts (insert X (insert Y H)) = parts {X} Un parts {Y} Un parts H";
+by (stac (read_instantiate [("A","H")] insert_is_Un) 1);
+by (stac (read_instantiate [("A","{Y} Un H")] insert_is_Un) 1);
+by (simp_tac (HOL_ss addsimps [parts_Un, Un_assoc]) 1);
+qed "parts_insert2";
+
 goal thy "(UN x:A. parts(H x)) <= parts(UN x:A. H x)";
 by (REPEAT (ares_tac [UN_least, parts_mono, UN_upper] 1));
 val parts_UN_subset1 = result();
@@ -163,7 +170,7 @@ qed "parts_UN1";
 Addsimps [parts_Un, parts_UN, parts_UN1];
 
 goal thy "insert X (parts H) <= parts(insert X H)";
-by (fast_tac (!claset addEs [imp_of_subset parts_mono]) 1);
+by (fast_tac (!claset addEs [impOfSubs parts_mono]) 1);
 qed "parts_insert_subset";
 
 (*Especially for reasoning about the Fake rule in traces*)
@@ -304,7 +311,7 @@ by (REPEAT (ares_tac [Un_least, analyze_mono, Un_upper1, Un_upper2] 1));
 qed "analyze_Un";
 
 goal thy "insert X (analyze H) <= analyze(insert X H)";
-by (fast_tac (!claset addEs [imp_of_subset analyze_mono]) 1);
+by (fast_tac (!claset addEs [impOfSubs analyze_mono]) 1);
 qed "analyze_insert";
 
 (** Rewrite rules for pulling out atomic messages **)
@@ -400,7 +407,7 @@ goal thy "analyze (insert {|Agent agt,Y|} H) = \
 \         insert {|Agent agt,Y|} (insert (Agent agt) (analyze (insert Y H)))";
 by (rtac equalityI 1);
 by (best_tac (!claset addIs [analyze.Fst,
-			     imp_of_subset analyze_insert_subset_MPair2]) 2); 
+			     impOfSubs analyze_insert_subset_MPair2]) 2); 
 br subsetI 1;
 be analyze.induct 1;
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
@@ -410,7 +417,7 @@ goal thy "analyze (insert {|Nonce N,Y|} H) = \
 \         insert {|Nonce N,Y|} (insert (Nonce N) (analyze (insert Y H)))";
 by (rtac equalityI 1);
 by (best_tac (!claset addIs [analyze.Fst,
-			     imp_of_subset analyze_insert_subset_MPair2]) 2); 
+			     impOfSubs analyze_insert_subset_MPair2]) 2); 
 br subsetI 1;
 be analyze.induct 1;
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
@@ -423,7 +430,7 @@ goalw thy [keysFor_def]
 \         insert {|Key K, Y|} (insert (Key K) (analyze (insert Y H)))";
 by (rtac equalityI 1);
 by (best_tac (!claset addIs [analyze.Fst,
-			     imp_of_subset analyze_insert_subset_MPair2]) 2); 
+			     impOfSubs analyze_insert_subset_MPair2]) 2); 
 br subsetI 1;
 be analyze.induct 1;
 by (ALLGOALS (fast_tac (!claset addss (!simpset))));
@@ -471,12 +478,12 @@ qed "analyze_trivial";
 (*Helps to prove Fake cases*)
 goal thy "!!X. X: analyze (UN i. analyze (H i)) ==> X: analyze (UN i. H i)";
 be analyze.induct 1;
-by (ALLGOALS (fast_tac (!claset addEs [imp_of_subset analyze_mono])));
+by (ALLGOALS (fast_tac (!claset addEs [impOfSubs analyze_mono])));
 val lemma = result();
 
 goal thy "analyze (UN i. analyze (H i)) = analyze (UN i. H i)";
 by (fast_tac (!claset addIs [lemma]
-		      addEs [imp_of_subset analyze_mono]) 1);
+		      addEs [impOfSubs analyze_mono]) 1);
 qed "analyze_UN_analyze";
 Addsimps [analyze_UN_analyze];
 
@@ -595,8 +602,8 @@ br equalityI 1;
 br subsetI 1;
 be analyze.induct 1;
 by (best_tac
-    (!claset addEs [imp_of_subset synthesize_increasing,
-		    imp_of_subset analyze_mono]) 5);
+    (!claset addEs [impOfSubs synthesize_increasing,
+		    impOfSubs analyze_mono]) 5);
 by (Best_tac 1);
 by (deepen_tac (!claset addIs [analyze.Fst]) 0 1);
 by (deepen_tac (!claset addIs [analyze.Snd]) 0 1);
