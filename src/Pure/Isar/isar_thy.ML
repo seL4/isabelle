@@ -339,7 +339,7 @@ fun pretty_result {kind, name, thm} =
   Pretty.block [Pretty.str (kind ^ " " ^ name ^ ":"), Pretty.fbrk, Proof.pretty_thm thm];
 
 fun pretty_rule thm =
-  Pretty.block [Pretty.str "solving goal by rule:", Pretty.fbrk, Proof.pretty_thm thm];
+  Pretty.block [Pretty.str "trying to solve goal by rule:", Pretty.fbrk, Proof.pretty_thm thm];
 
 val print_result = Pretty.writeln o pretty_result;
 
