@@ -80,9 +80,6 @@
   \isarkeyword{term}~t & \text{print term} \\
   \isarkeyword{prop}~\phi & \text{print meta-level proposition} \\
   \isarkeyword{typ}~\tau & \text{print meta-level type} \\
-  \isarkeyword{print_facts} & \text{print named facts} \\
-  \isarkeyword{print_binds} & \text{print term abbreviations} \\
-  \isarkeyword{print_cases} & \text{print named cases} \\
 \end{matharray}
 
 
@@ -106,9 +103,9 @@
   $unfold~\vec a$ & \text{definitions} \\[2ex]
 
   \multicolumn{2}{l}{\textbf{Automated proof tools (inserting facts, or even prems!)}} \\[0.5ex]
-  $simp$ & Simplifier (+ Splitter) \\
+  $simp$, $simp_all$ & Simplifier (+ Splitter) \\
   $blast$, $fast$ & Classical Reasoner \\
-  $force$, $auto$ & Simplifier + Classical Reasoner \\
+  $auto$, $force$ & Simplifier + Classical Reasoner \\
   $arith$ & Arithmetic procedure \\
 \end{tabular}
 
@@ -148,15 +145,14 @@
 \subsection{Methods}
 
 \begin{tabular}{ll}
-  $tactic~text$ & method from ML tactic \\
-  $insert~\vec a$ & insert theorems (ignoring current facts) \\
-  $res_inst_tac~insts$ & resolution with instantiation \\
-  $eres_inst_tac~insts$ & elim-resolution with instantiation \\
-  $dres_inst_tac~insts$ & destruct-resolution with instantiation \\
-  $forw_inst_tac~insts$ & forward-resolution with instantiation \\
-  $subgoal_tac~\phi$ & insert new claim \\
+  $rule_tac~insts$ & resolution with instantiation \\
+  $erule_tac~insts$ & elim-resolution with instantiation \\
+  $drule_tac~insts$ & destruct-resolution with instantiation \\
+  $frule_tac~insts$ & forward-resolution with instantiation \\
+  $subgoal_tac~\phi$ & insert new claims \\
   $case_tac~t$ & exhaustion (datatypes) \\
   $induct_tac~\vec x$ & induction (datatypes) \\
+  $tactic~text$ & method from ML tactic \\
 \end{tabular}
 
 
