@@ -243,6 +243,12 @@ by (force intro: exI [of _ "0::nat"]
 lemma abs_int_eq [simp]: "abs (int m) = int m"
 by (simp add: zabs_def)
 
+text{*This version is proved for all ordered rings, not just integers!
+      But is it really better than just rewriting with @{text abs_if}?*}
+lemma abs_split [arith_split]:
+     "P(abs(a::'a::ordered_ring)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
+by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
+
 
 subsection{*Misc Results*}
 

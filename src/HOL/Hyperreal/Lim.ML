@@ -132,7 +132,7 @@ by (REPEAT(dres_inst_tac [("x","xa")] spec 2)
 by (REPEAT(dres_inst_tac [("x","xa")] spec 3) 
     THEN step_tac (claset() addSEs [order_less_trans]) 3);
 by (ALLGOALS(res_inst_tac [("t","r")] (real_mult_1 RS subst)));
-by (ALLGOALS(rtac abs_mult_less2));
+by (ALLGOALS(rtac abs_mult_less));
 by Auto_tac;
 qed "LIM_mult_zero";
 
@@ -1665,7 +1665,7 @@ by (Clarify_tac 1);
 by (cut_inst_tac [("x","f x"),("y","y")] linorder_less_linear 1);
 by Safe_tac;
 by (dres_inst_tac [("x","ba - x")] spec 1);
-by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [abs_iff])));
+by (ALLGOALS (asm_full_simp_tac (simpset() addsimps [thm"abs_if"])));
 by (dres_inst_tac [("x","aa - x")] spec 1);
 by (case_tac "x \\<le> aa" 1);
 by (ALLGOALS Asm_full_simp_tac);

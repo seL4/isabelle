@@ -1360,26 +1360,94 @@ by (blast intro!: less_half_sum gt_half_sum)
 
 subsection {* Absolute Value *}
 
-text{*But is it really better than just rewriting with @{text abs_if}?*}
-lemma abs_split:
-     "P(abs(a::'a::ordered_ring)) = ((0 \<le> a --> P a) & (a < 0 --> P(-a)))"
-by (force dest: order_less_le_trans simp add: abs_if linorder_not_less)
-
 lemma abs_zero [simp]: "abs 0 = (0::'a::ordered_ring)"
 by (simp add: abs_if)
 
-lemma abs_mult: "abs (x * y) = abs x * abs (y::'a::ordered_ring)" 
-apply (case_tac "x=0 | y=0", force) 
+lemma abs_one [simp]: "abs 1 = (1::'a::ordered_ring)"
+  by (simp add: abs_if zero_less_one [THEN order_less_not_sym]) 
+
+lemma abs_mult: "abs (a * b) = abs a * abs (b::'a::ordered_ring)" 
+apply (case_tac "a=0 | b=0", force) 
 apply (auto elim: order_less_asym
             simp add: abs_if mult_less_0_iff linorder_neq_iff
                   minus_mult_left [symmetric] minus_mult_right [symmetric])  
 done
 
-lemma abs_eq_0 [simp]: "(abs x = 0) = (x = (0::'a::ordered_ring))"
+lemma abs_eq_0 [simp]: "(abs a = 0) = (a = (0::'a::ordered_ring))"
 by (simp add: abs_if)
 
-lemma zero_less_abs_iff [simp]: "(0 < abs x) = (x ~= (0::'a::ordered_ring))"
+lemma zero_less_abs_iff [simp]: "(0 < abs a) = (a \<noteq> (0::'a::ordered_ring))"
 by (simp add: abs_if linorder_neq_iff)
+
+lemma abs_not_less_zero [simp]: "~ abs a < (0::'a::ordered_ring)"
+by (simp add: abs_if  order_less_not_sym [of a 0])
+
+lemma abs_le_zero_iff [simp]: "(abs a \<le> (0::'a::ordered_ring)) = (a = 0)" 
+by (simp add: order_le_less) 
+
+lemma abs_minus_cancel [simp]: "abs (-a) = abs(a::'a::ordered_ring)"
+apply (auto simp add: abs_if linorder_not_less order_less_not_sym [of 0 a])  
+apply (drule order_antisym, assumption, simp) 
+done
+
+lemma abs_ge_zero [simp]: "(0::'a::ordered_ring) \<le> abs a"
+apply (simp add: abs_if order_less_imp_le)
+apply (simp add: linorder_not_less) 
+done
+
+lemma abs_idempotent [simp]: "abs (abs a) = abs (a::'a::ordered_ring)"
+  by (force elim: order_less_asym simp add: abs_if)
+
+lemma abs_zero_iff [iff]: "(abs a = 0) = (a = (0::'a::ordered_ring))"
+by (simp add: abs_if)
+
+lemma abs_ge_self: "a \<le> abs (a::'a::ordered_ring)"
+apply (simp add: abs_if)
+apply (simp add: order_less_imp_le order_trans [of _ 0])
+done
+
+lemma abs_ge_minus_self: "-a \<le> abs (a::'a::ordered_ring)"
+by (insert abs_ge_self [of "-a"], simp)
+
+lemma nonzero_abs_inverse:
+     "a \<noteq> 0 ==> abs (inverse (a::'a::ordered_field)) = inverse (abs a)"
+apply (auto simp add: linorder_neq_iff abs_if nonzero_inverse_minus_eq 
+                      negative_imp_inverse_negative)
+apply (blast intro: positive_imp_inverse_positive elim: order_less_asym) 
+done
+
+lemma abs_inverse [simp]:
+     "abs (inverse (a::'a::{ordered_field,division_by_zero})) = 
+      inverse (abs a)"
+apply (case_tac "a=0", simp) 
+apply (simp add: nonzero_abs_inverse) 
+done
+
+
+lemma nonzero_abs_divide:
+     "b \<noteq> 0 ==> abs (a / (b::'a::ordered_field)) = abs a / abs b"
+by (simp add: divide_inverse abs_mult nonzero_abs_inverse) 
+
+lemma abs_divide:
+     "abs (a / (b::'a::{ordered_field,division_by_zero})) = abs a / abs b"
+apply (case_tac "b=0", simp) 
+apply (simp add: nonzero_abs_divide) 
+done
+
+(*TOO DIFFICULT: 6 CASES
+lemma abs_triangle_ineq: "abs (a+b) \<le> abs a + abs (b::'a::ordered_ring)"
+apply (simp add: abs_if)
+apply (auto ); 
+*)
+
+lemma abs_mult_less:
+     "[| abs a < c; abs b < d |] ==> abs a * abs b < c*(d::'a::ordered_ring)"
+proof -
+  assume ac: "abs a < c"
+  hence cpos: "0<c" by (blast intro: order_le_less_trans abs_ge_zero)
+  assume "abs b < d"
+  thus ?thesis by (simp add: ac cpos mult_strict_mono) 
+qed
 
 
 end

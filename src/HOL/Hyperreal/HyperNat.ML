@@ -1317,8 +1317,6 @@ by (rtac bexI 1 THEN rtac lemma_hyprel_refl 2);
 by Auto_tac;
 by (dres_inst_tac [("x","m + 1")] spec 1);
 by (Ultra_tac 1);
-by (subgoal_tac "abs(inverse (real (Y x))) = inverse(real (Y x))" 1);
-by (auto_tac (claset() addSIs [abs_eqI2],simpset()));
 qed "HNatInfinite_inverse_Infinitesimal";
 Addsimps [HNatInfinite_inverse_Infinitesimal];
 

@@ -461,7 +461,7 @@ by (auto_tac (claset(),
     simpset() addsimps [real_mult_assoc,realpow_abs]));
 by (dres_inst_tac [("x","0")] spec 2 THEN Force_tac 2); 
 by (auto_tac (claset(),simpset() addsimps [abs_mult,realpow_abs] @ real_mult_ac));
-by (res_inst_tac [("x2","z ^ n")] (abs_ge_zero RS real_le_imp_less_or_eq
+by (res_inst_tac [("a2","z ^ n")] (abs_ge_zero RS real_le_imp_less_or_eq
     RS disjE) 1 THEN dtac sym 2);
 by (auto_tac (claset() addSIs [real_mult_le_le_mono2],
     simpset() addsimps [real_mult_assoc RS sym,
@@ -473,10 +473,12 @@ by (subgoal_tac
 by (auto_tac (claset(),simpset() addsimps [realpow_abs RS sym]));
 by (subgoal_tac "x ~= 0" 1);
 by (subgoal_tac "x ~= 0" 3);
-by (auto_tac (claset(),simpset() addsimps 
-    [abs_inverse RS sym,realpow_not_zero,abs_mult 
-     RS sym,realpow_inverse,realpow_mult RS sym]));
-by (auto_tac (claset() addSIs [geometric_sums],simpset() addsimps
+by (auto_tac (claset(),
+     simpset() delsimps [abs_inverse]
+      addsimps [abs_inverse RS sym, realpow_not_zero, abs_mult RS sym,
+    realpow_inverse, realpow_mult RS sym]));
+by (auto_tac (claset() addSIs [geometric_sums],
+   simpset() addsimps
     [realpow_abs,real_divide_eq_inverse RS sym]));
 by (res_inst_tac [("z","abs(x)")] (CLAIM_SIMP 
     "[|(0::real)<z; x*z<y*z |] ==> x<y" [real_mult_less_cancel1]) 1);

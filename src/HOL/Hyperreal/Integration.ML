@@ -398,7 +398,7 @@ by (auto_tac (claset() addDs [[real_le_refl,Integral_zero] MRS Integral_unique],
     simpset()));
 by (auto_tac (claset(),simpset() addsimps [rsum_def,Integral_def,
     sumr_mult RS sym,real_mult_assoc]));
-by (res_inst_tac [("x2","c")] ((abs_ge_zero RS real_le_imp_less_or_eq)
+by (res_inst_tac [("a2","c")] ((abs_ge_zero RS real_le_imp_less_or_eq)
     RS disjE) 1);
 by (dtac sym 2);
 by (Asm_full_simp_tac 2 THEN Blast_tac 2);
@@ -470,8 +470,9 @@ by (dres_inst_tac [("x","z")] spec 2);
 by (res_inst_tac [("z1","abs(inverse(z - x))")] 
          (real_mult_le_cancel_iff2 RS iffD1) 2);
 by (Asm_full_simp_tac 2);
-by (asm_full_simp_tac (simpset() addsimps [abs_mult RS sym,
-    real_mult_assoc RS sym]) 2);
+by (asm_full_simp_tac (simpset() 
+     delsimps [abs_inverse]
+     addsimps [abs_mult RS sym, real_mult_assoc RS sym]) 2);
 by (subgoal_tac "inverse (z - x) * (f z - f x - f' x * (z - x)) = \
 \                (f z - f x)/(z - x) - f' x" 2);
 by (asm_full_simp_tac (simpset() addsimps [abs_mult RS sym] @ real_mult_ac) 2);
