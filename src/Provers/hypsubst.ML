@@ -47,6 +47,8 @@ signature HYPSUBST =
   val thin_leading_eqs_tac   : bool -> int -> int -> tactic
   end;
 
+
+
 functor HypsubstFun(Data: HYPSUBST_DATA): HYPSUBST = 
 struct
 
@@ -62,7 +64,7 @@ in
   change it back (any Bound variable will do)
 *)
 fun contract t =
-    case Pattern.eta_contract t of
+    case Pattern.eta_contract_atom t of
 	Free(a,T) => if (ord a = odot) then Bound 0 else Free(a,T)
       | t'        => t'
 end;
@@ -121,8 +123,7 @@ fun thin_leading_eqs_tac bnd m i = STATE(fn state =>
                              handle Match => 0)
 	val (_,_,Bi,_) = dest_state(state,i)
         val j = Int.min(m, count (Logic.strip_assums_hyp Bi))
-    in  REPEAT_DETERM_N j     (etac thin_rl i)   THEN
-        REPEAT_DETERM_N (m-j) (etac revcut_rl i)
+    in  REPEAT_DETERM_N j (etac thin_rl i)  THEN  rotate_tac (m-j) i
     end);
 
 (*For the simpset.  Adds ALL suitable equalities, even if not first!
@@ -145,7 +146,7 @@ in
 	    val n = length(Logic.strip_assums_hyp Bi) - 1
 	    val (k,_) = eq_var bnd true Bi
 	in 
-	   EVERY [REPEAT_DETERM_N k (etac revcut_rl i),
+	   EVERY [rotate_tac k i,
 		  asm_full_simp_tac hyp_subst_ss i,
 		  etac thin_rl i,
 		  thin_leading_eqs_tac bnd (n-k) i]
