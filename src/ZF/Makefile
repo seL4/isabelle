@@ -31,6 +31,12 @@ FILES = ROOT.ML ZF.thy ZF.ML upair.ML subset.ML pair.ML domrange.ML \
 	QUniv.thy QUniv.ML constructor.ML Datatype.ML  \
 	Fin.ML List.ML ListFn.thy ListFn.ML
 
+IMP_FILES = IMP/ROOT.ML IMP/Aexp.ML IMP/Aexp.thy IMP/Assign.ML IMP/Assign.thy\
+            IMP/Bexp.ML IMP/Bexp.thy IMP/Com.ML IMP/Com.thy IMP/Denotation.ML\
+            IMP/Denotation.thy IMP/Equiv.ML IMP/Equiv.thy IMP/Evala0.thy\
+            IMP/Evala.ML IMP/Evala.thy IMP/Evalb0.thy IMP/Evalb.ML\
+            IMP/Evalb.thy IMP/Evalc0.thy IMP/Evalc.ML IMP/Evalc.thy
+
 EX_FILES = ex/ROOT.ML ex/Acc.ML ex/Bin.ML ex/BinFn.ML ex/BinFn.thy\
 	   ex/BT.ML ex/BT_Fn.ML ex/BT_Fn.thy ex/Comb.ML\
 	   ex/Contract0.ML ex/Contract0.thy ex/CoUnit.ML ex/Data.ML\
@@ -54,10 +60,11 @@ $(BIN)/ZF:   $(BIN)/FOL  $(FILES)
 $(BIN)/FOL:
 	cd ../FOL;  $(MAKE)
 
-test:   ex/ROOT.ML  $(BIN)/ZF  $(EX_FILES)
+test:   ex/ROOT.ML  $(BIN)/ZF  $(IMP_FILES) $(EX_FILES)
 	case "$(COMP)" in \
-	poly*)	echo 'use"ex/ROOT.ML"; quit();' | $(COMP) $(BIN)/ZF ;;\
-	sml*)	echo 'use"ex/ROOT.ML";' | $(BIN)/ZF;;\
+	poly*)	echo 'use"IMP/ROOT.ML"; use"ex/ROOT.ML"; quit();' | \
+			$(COMP) $(BIN)/ZF ;;\
+	sml*)	echo 'use"IMP/ROOT.ML"; use"ex/ROOT.ML";' | $(BIN)/ZF;;\
 	*)	echo Bad value for ISABELLECOMP: \
                 	$(COMP) is not poly or sml;;\
 	esac
