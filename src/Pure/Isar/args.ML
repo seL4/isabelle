@@ -151,7 +151,8 @@ val bang_facts = Scan.depend (fn ctxt =>
 val from_to =
   nat -- ($$$$ "-" |-- nat) >> (fn (i, j) => fn tac => Seq.INTERVAL tac i j) ||
   nat --| $$$$ "-" >> (fn i => fn tac => fn st => Seq.INTERVAL tac i (Thm.nprems_of st) st) ||
-  nat >> (fn i => fn tac => tac i);
+  nat >> (fn i => fn tac => tac i) ||
+  $$$$ "!" >> K ALLGOALS;
 
 val goal = $$$$ "[" |-- !!! (from_to --| $$$$ "]");
 fun goal_spec def = Scan.lift (Scan.optional goal def);
