@@ -1,7 +1,7 @@
-(*  Title: 	CCL/wf
+(*  Title: 	CCL/wfd.ML
     ID:         $Id$
 
-For wf.thy.
+For wfd.thy.
 
 Based on
     Titles: 	ZF/wf.ML and HOL/ex/lex-prod
