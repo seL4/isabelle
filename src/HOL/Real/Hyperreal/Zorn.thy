@@ -5,7 +5,7 @@
     Description : Zorn's Lemma -- See lcp's Zorn.thy in ZF
 *) 
 
-Zorn = Finite +  
+Zorn = Main +  
 
 constdefs
   chain     ::  'a set => 'a set set
