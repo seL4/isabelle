@@ -81,7 +81,7 @@ esac
 function pre_latex ()
 {
   local FMT="$1"
-  rm -f *.aux
+  rm -f *.aux *.out
   if [ -f root.bib ]
   then
     $ISATOOL latex -o "$FMT" && \
