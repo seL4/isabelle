@@ -40,14 +40,14 @@ rules
   Iup_def       "Iup(x)  == Abs_Lift(Inr(x))"
 
   Ilift_def     "Ilift(f)(x)==\
-\                case  (Rep_Lift(x)) (%y.UU) (%z.f[z])"
+\                sum_case  (Rep_Lift(x)) (%y.UU) (%z.f[z])"
  
   less_lift_def "less_lift(x1)(x2) == \
-\          (case (Rep_Lift(x1))\
-\                (% y1.True)\
-\                (% y2.case (Rep_Lift(x2))\
-\                           (% z1.False)\
-\                           (% z2.y2<<z2)))"
+\          (sum_case (Rep_Lift(x1))\
+\                    (% y1.True)\
+\                    (% y2.sum_case (Rep_Lift(x2))\
+\                                   (% z1.False)\
+\                                   (% z2.y2<<z2)))"
 
 end
 

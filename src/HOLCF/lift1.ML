@@ -71,7 +71,7 @@ val Ilift1 = prove_goalw  Lift1.thy [Ilift_def,UU_lift_def]
  (fn prems =>
 	[
 	(rtac (Abs_Lift_inverse RS ssubst) 1),
-	(rtac (case_Inl RS ssubst) 1),
+	(rtac (sum_case_Inl RS ssubst) 1),
 	(rtac refl 1)
 	]);
 
@@ -80,7 +80,7 @@ val Ilift2 = prove_goalw  Lift1.thy [Ilift_def,Iup_def]
  (fn prems =>
 	[
 	(rtac (Abs_Lift_inverse RS ssubst) 1),
-	(rtac (case_Inr RS ssubst) 1),
+	(rtac (sum_case_Inr RS ssubst) 1),
 	(rtac refl 1)
 	]);
 
@@ -91,7 +91,7 @@ val less_lift1a = prove_goalw  Lift1.thy [less_lift_def,UU_lift_def]
  (fn prems =>
 	[
 	(rtac (Abs_Lift_inverse RS ssubst) 1),
-	(rtac (case_Inl RS ssubst) 1),
+	(rtac (sum_case_Inl RS ssubst) 1),
 	(rtac TrueI 1)
 	]);
 
@@ -104,8 +104,8 @@ val less_lift1b = prove_goalw  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
 	(atac 2),
 	(rtac (Abs_Lift_inverse RS ssubst) 1),
 	(rtac (Abs_Lift_inverse RS ssubst) 1),
-	(rtac (case_Inr RS ssubst) 1),
-	(rtac (case_Inl RS ssubst) 1),
+	(rtac (sum_case_Inr RS ssubst) 1),
+	(rtac (sum_case_Inl RS ssubst) 1),
 	(rtac refl 1)
 	]);
 
@@ -115,8 +115,8 @@ val less_lift1c = prove_goalw  Lift1.thy [Iup_def,less_lift_def,UU_lift_def]
 	[
 	(rtac (Abs_Lift_inverse RS ssubst) 1),
 	(rtac (Abs_Lift_inverse RS ssubst) 1),
-	(rtac (case_Inr RS ssubst) 1),
-	(rtac (case_Inr RS ssubst) 1),
+	(rtac (sum_case_Inr RS ssubst) 1),
+	(rtac (sum_case_Inr RS ssubst) 1),
 	(rtac refl 1)
 	]);
 
