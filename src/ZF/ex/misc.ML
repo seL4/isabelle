@@ -9,6 +9,18 @@ Composition of homomorphisms, Pastre's examples, ...
 
 writeln"ZF/ex/misc";
 
+(*These two are cited in Benzmueller and Kohlhash's system description of LEO,
+  CADE-15, 1998 (page 139-143) as theorems LEO could not prove.*)
+
+Goal "(X = Y Un Z) <-> (Y<=X & Z<=X & (ALL V. Y<=V & Z<=V --> X<=V))";
+by (blast_tac (claset() addSIs [equalityI]) 1);
+result();
+
+(*the dual of the previous one*)
+Goal "(X = Y Int Z) <-> (X<=Y & X<=Z & (ALL V. V<=Y & V<=Z --> V<=X))";
+by (blast_tac (claset() addSIs [equalityI]) 1);
+result();
+
 (*trivial example of term synthesis: apparently hard for some provers!*)
 Goal "a ~= b ==> a:?X & b ~: ?X";
 by (Blast_tac 1);
