@@ -213,7 +213,7 @@ fun cases_tac (ctxt, (simplified, args)) facts =
 
     val rules =
       (case (args, facts) of
-        ((None, None), []) => [RuleCases.none case_split_thm]
+        ((None, None), []) => [RuleCases.none case_split_thm]		(* FIXME add cases!? *)
       | ((Some t, None), []) =>
           let val name = type_name t in
             (case lookup_casesT ctxt name of

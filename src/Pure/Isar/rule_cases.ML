@@ -3,9 +3,6 @@
     Author:     Markus Wenzel, TU Muenchen
 
 Manage local contexts of rules.
-
-TODO:
-  - instantiation of cases (including type vars!);
 *)
 
 signature RULE_CASES =
