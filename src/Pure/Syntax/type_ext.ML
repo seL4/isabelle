@@ -129,7 +129,16 @@ val bracketsN = "brackets";
 val no_bracketsN = "no_brackets";
 
 fun no_brackets () =
-  Library.find_first (equal bracketsN orf equal no_bracketsN) (! print_mode) = Some no_bracketsN;
+  Library.find_first (equal bracketsN orf equal no_bracketsN) (! print_mode)
+  = Some no_bracketsN;
+
+val type_bracketsN = "type_brackets";
+val no_type_bracketsN = "no_type_brackets";
+
+fun no_type_brackets () =
+  Library.find_first (equal type_bracketsN orf equal no_type_bracketsN)
+                     (! print_mode)
+  = Some no_type_bracketsN;
 
 
 (* parse ast translations *)
@@ -154,7 +163,7 @@ fun tappl_ast_tr' (f, []) = raise Ast.AST ("tappl_ast_tr'", [f])
       Ast.Appl [Ast.Constant "_tappl", ty, Ast.fold_ast "_types" tys, f];
 
 fun fun_ast_tr' (*"fun"*) asts =
-  if no_brackets () then raise Match
+  if no_brackets() orelse no_type_brackets() then raise Match
   else
     (case Ast.unfold_ast_p "fun" (Ast.Appl (Ast.Constant "fun" :: asts)) of
       (dom as _ :: _ :: _, cod)
