@@ -1570,6 +1570,20 @@ fun trace_thm warn a (thm as Thm{sign_ref, prop, ...}) =
 (* basic components *)
 
 type rrule = {thm: thm, lhs: term, elhs: term, fo: bool, perm: bool};
+(* thm: the rewrite rule
+   lhs: the left-hand side
+   elhs: the etac-contracted lhs.
+   fo:  use first-order matching
+   perm: the rewrite rule is permutative
+Reamrks:
+  - elhs is used for matching,
+    lhs only for preservation of bound variable names.
+  - fo is set iff
+    either elhs is first-order (no Var is applied),
+           in which case fo-matching is complete,
+    or elhs is not a pattern,
+       in which case there is nothing better to do.
+*)
 type cong = {thm: thm, lhs: term};
 type simproc =
  {name: string, proc: Sign.sg -> thm list -> term -> thm option, lhs: cterm, id: stamp};
@@ -1673,13 +1687,12 @@ fun merge_mss
 
 (* add_simps *)
 
-fun mk_rrule2{thm,lhs,perm} =
-  let val elhs = Pattern.eta_contract lhs
-      val fo = Pattern.first_order elhs orelse not(Pattern.pattern elhs)
+fun mk_rrule2{thm,lhs,elhs,perm} =
+  let val fo = Pattern.first_order elhs orelse not(Pattern.pattern elhs)
   in {thm=thm,lhs=lhs,elhs=elhs,fo=fo,perm=perm} end
 
 fun insert_rrule(mss as Mss {rules,...},
-                 rrule as {thm,lhs,perm}) =
+                 rrule as {thm,lhs,elhs,perm}) =
   (trace_thm false "Adding rewrite rule:" thm;
    let val rrule2 as {elhs,...} = mk_rrule2 rrule
        val rules' = Net.insert_term ((elhs, rrule2), rules, eq_rrule)
@@ -1728,21 +1741,22 @@ fun decomp_simp(thm as Thm {sign_ref, prop, ...}) =
       val (lhs, rhs) = Logic.dest_equals concl handle TERM _ =>
         raise SIMPLIFIER ("Rewrite rule not a meta-equality", thm)
       val elhs = Pattern.eta_contract lhs;
+      val elhs = if elhs=lhs then lhs else elhs (* try to share *)
       val erhs = Pattern.eta_contract rhs;
       val perm = var_perm (elhs, erhs) andalso not (elhs aconv erhs)
                  andalso not (is_Var elhs)
-  in (sign,prems,lhs,rhs,perm) end;
+  in (sign,prems,lhs,elhs,rhs,perm) end;
 
 fun mk_eq_True (Mss{mk_rews={mk_eq_True,...},...}) thm =
   case mk_eq_True thm of
     None => []
-  | Some eq_True => let val (_,_,lhs,_,_) = decomp_simp eq_True
-                    in [{thm=eq_True, lhs=lhs, perm=false}] end;
+  | Some eq_True => let val (_,_,lhs,elhs,_,_) = decomp_simp eq_True
+                    in [{thm=eq_True, lhs=lhs, elhs=elhs, perm=false}] end;
 
 (* create the rewrite rule and possibly also the ==True variant,
    in case there are extra vars on the rhs *)
-fun rrule_eq_True(thm,lhs,rhs,mss,thm2) =
-  let val rrule = {thm=thm, lhs=lhs, perm=false}
+fun rrule_eq_True(thm,lhs,elhs,rhs,mss,thm2) =
+  let val rrule = {thm=thm, lhs=lhs, elhs=elhs, perm=false}
   in if (term_varnames rhs)  subset (term_varnames lhs) andalso
         (term_tvars rhs) subset (term_tvars lhs)
      then [rrule]
@@ -1750,18 +1764,18 @@ fun rrule_eq_True(thm,lhs,rhs,mss,thm2) =
   end;
 
 fun mk_rrule mss thm =
-  let val (_,prems,lhs,rhs,perm) = decomp_simp thm
-  in if perm then [{thm=thm, lhs=lhs, perm=true}] else
+  let val (_,prems,lhs,elhs,rhs,perm) = decomp_simp thm
+  in if perm then [{thm=thm, lhs=lhs, elhs=elhs, perm=true}] else
      (* weak test for loops: *)
      if rewrite_rule_extra_vars prems lhs rhs orelse
-        is_Var (head_of lhs) (* mk_cases may do this! *)
+        is_Var elhs
      then mk_eq_True mss thm
-     else rrule_eq_True(thm,lhs,rhs,mss,thm)
+     else rrule_eq_True(thm,lhs,elhs,rhs,mss,thm)
   end;
 
 fun orient_rrule mss thm =
-  let val (sign,prems,lhs,rhs,perm) = decomp_simp thm
-  in if perm then [{thm=thm,lhs=lhs,perm=true}]
+  let val (sign,prems,lhs,elhs,rhs,perm) = decomp_simp thm
+  in if perm then [{thm=thm,lhs=lhs,elhs=elhs,perm=true}]
      else if reorient sign prems lhs rhs
           then if reorient sign prems rhs lhs
                then mk_eq_True mss thm
@@ -1769,10 +1783,10 @@ fun orient_rrule mss thm =
                     in case mk_sym thm of
                          None => []
                        | Some thm' =>
-                           let val (_,_,lhs',rhs',_) = decomp_simp thm'
-                           in rrule_eq_True(thm',lhs',rhs',mss,thm) end
+                           let val (_,_,lhs',elhs',rhs',_) = decomp_simp thm'
+                           in rrule_eq_True(thm',lhs',elhs',rhs',mss,thm) end
                     end
-          else rrule_eq_True(thm,lhs,rhs,mss,thm)
+          else rrule_eq_True(thm,lhs,elhs,rhs,mss,thm)
   end;
 
 fun extract_rews(Mss{mk_rews = {mk,...},...},thms) = flat(map mk thms);
@@ -1990,10 +2004,10 @@ fun add_insts_sorts ((iTs, is), Ss) =
 (* mk_procrule *)
 
 fun mk_procrule thm =
-  let val (_,prems,lhs,rhs,_) = decomp_simp thm
+  let val (_,prems,lhs,elhs,rhs,_) = decomp_simp thm
   in if rewrite_rule_extra_vars prems lhs rhs
      then (prthm true "Extra vars on rhs:" thm; [])
-     else [mk_rrule2{thm = thm, lhs = lhs, perm = false}]
+     else [mk_rrule2{thm=thm, lhs=lhs, elhs=elhs, perm=false}]
   end;
 
 
@@ -2240,7 +2254,7 @@ fun bottomc ((simprem,useprem,mutsimp),prover,sign_ref,maxidx) =
 
     and mut_impc1(prems, prem1, conc, mss, etc1 as (_,hyps1,_)) =
       let
-        fun uncond({thm,lhs,perm}) =
+        fun uncond({thm,lhs,elhs,perm}) =
           if nprems_of thm = 0 then Some lhs else None
 
         val (lhss1,mss1) =
