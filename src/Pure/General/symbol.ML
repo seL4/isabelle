@@ -84,7 +84,7 @@ val is_letdig = is_quasi_letter orf is_digit;
 
 fun is_printable s =
   size s = 1 andalso ord space <= ord s andalso ord s <= ord "~" orelse
-  size s > 2 andalso nth_elem (2, explode s) <> "^";
+  size s > 2 andalso nth_elem_string (2, s) <> "^";
 
 fun sym_length ss = foldl (fn (n, s) => if is_printable s then n + 1 else n) (0, ss);
 
@@ -302,10 +302,8 @@ val use =
 fun string_size s = (s, real (size s));
 
 fun default_output s =
-  let val cs = explode s in	(*sic!*)
-    if not (exists (equal "\\") cs) then string_size s
-    else string_size (implode (map (fn "\\" => "\\\\" | c => c) cs))
-  end;
+  if not (exists_string (equal "\\") s) then string_size s
+  else string_size (implode (map (fn "\\" => "\\\\" | c => c) (explode s)));	(*sic!*)
 
 
 (* isabelle_font_output *)
@@ -323,7 +321,7 @@ fun lookup_mode name = Symtab.lookup (! modes, name);
 
 fun add_mode name f =
  (if is_none (lookup_mode name) then ()
-  else warning ("Duplicate declaration of symbol print mode " ^ quote name);
+  else warning ("Redeclaration of symbol print mode " ^ quote name);
   modes := Symtab.update ((name, f), ! modes));
 
 
