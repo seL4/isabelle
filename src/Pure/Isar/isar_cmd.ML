@@ -16,7 +16,7 @@ sig
   val touch_thy: string -> Toplevel.transition -> Toplevel.transition
   val remove_thy: string -> Toplevel.transition -> Toplevel.transition
   val kill_thy: string -> Toplevel.transition -> Toplevel.transition
-  val pr: int option -> Toplevel.transition -> Toplevel.transition
+  val pr: string list * int option -> Toplevel.transition -> Toplevel.transition
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
   val cannot_undo: string -> Toplevel.transition -> Toplevel.transition
@@ -48,10 +48,11 @@ sig
   val print_binds: Toplevel.transition -> Toplevel.transition
   val print_lthms: Toplevel.transition -> Toplevel.transition
   val print_cases: Toplevel.transition -> Toplevel.transition
-  val print_thms: (string * Args.src list) list -> Toplevel.transition -> Toplevel.transition
-  val print_prop: string -> Toplevel.transition -> Toplevel.transition
-  val print_term: string -> Toplevel.transition -> Toplevel.transition
-  val print_type: string -> Toplevel.transition -> Toplevel.transition
+  val print_thms: string list * (string * Args.src list) list
+    -> Toplevel.transition -> Toplevel.transition
+  val print_prop: string list * string -> Toplevel.transition -> Toplevel.transition
+  val print_term: string list * string -> Toplevel.transition -> Toplevel.transition
+  val print_type: string list * string -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure IsarCmd: ISAR_CMD =
@@ -82,8 +83,12 @@ fun kill_thy name = Toplevel.imperative (fn () => IsarThy.kill_theory name);
 
 (* print state *)
 
-fun pr limit = Toplevel.imperative (fn () =>
-  ((case limit of Some n => goals_limit := n | None => ()); Toplevel.quiet := false));
+fun with_modes modes e =
+  Library.setmp print_mode (modes @ ! print_mode) e ();
+
+fun pr (ms, limit) = Toplevel.keep (fn state =>
+  ((case limit of Some n => goals_limit := n | None => ()); Toplevel.quiet := false;
+    with_modes ms (fn () => Toplevel.print_state state)));
 
 val disable_pr = Toplevel.imperative (fn () => Toplevel.quiet := true);
 val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
@@ -169,31 +174,32 @@ val print_cases = Toplevel.keep (ProofContext.print_cases o Proof.context_of o T
 
 (* print theorems / types / terms / props *)
 
-fun print_thms args = Toplevel.keep (fn state =>
+fun print_thms (ms, args) = Toplevel.keep (fn state =>
   let val st = Toplevel.node_case Proof.init_state Proof.enter_forward state
-  in Pretty.writeln (Proof.pretty_thms (IsarThy.get_thmss args st)) end);
+  in with_modes ms (fn () => Pretty.writeln (Proof.pretty_thms (IsarThy.get_thmss args st))) end);
 
-fun print_type s = Toplevel.keep (fn state =>
+fun print_type (ms, s) = Toplevel.keep (fn state =>
   let
     val sign = Toplevel.sign_of state;
     val T = ProofContext.read_typ (Toplevel.context_of state) s;
-  in Pretty.writeln (Pretty.quote (Sign.pretty_typ sign T)) end);
+  in with_modes ms (fn () => Pretty.writeln (Pretty.quote (Sign.pretty_typ sign T))) end);
 
-fun print_term s = Toplevel.keep (fn state =>
+fun print_term (ms, s) = Toplevel.keep (fn state =>
   let
     val sign = Toplevel.sign_of state;
     val t = ProofContext.read_term (Toplevel.context_of state) s;
     val T = Term.type_of t;
   in
-    Pretty.writeln (Pretty.block [Pretty.quote (Sign.pretty_term sign t), Pretty.fbrk,
-      Pretty.str "::", Pretty.brk 1, Pretty.quote (Sign.pretty_typ sign T)])
+    with_modes ms (fn () => Pretty.writeln
+      (Pretty.block [Pretty.quote (Sign.pretty_term sign t), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Sign.pretty_typ sign T)]))
   end);
 
-fun print_prop s = Toplevel.keep (fn state =>
+fun print_prop (ms, s) = Toplevel.keep (fn state =>
   let
     val sign = Toplevel.sign_of state;
     val prop = ProofContext.read_prop (Toplevel.context_of state) s;
-  in Pretty.writeln (Pretty.quote (Sign.pretty_term sign prop)) end);
+  in with_modes ms (fn () => Pretty.writeln (Pretty.quote (Sign.pretty_term sign prop))) end);
 
 
 end;
