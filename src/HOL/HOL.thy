@@ -3,22 +3,16 @@
     Author:     Tobias Nipkow
     Copyright   1993  University of Cambridge
 
-Higher-Order Logic
+Higher-Order Logic.
 *)
 
 HOL = CPure +
 
+
+(** Core syntax **)
+
 classes
   term < logic
-
-axclass
-  plus < term
-
-axclass
-  minus < term
-
-axclass
-  times < term
 
 default
   term
@@ -57,12 +51,26 @@ consts
   "|"           :: [bool, bool] => bool             (infixr 30)
   "-->"         :: [bool, bool] => bool             (infixr 25)
 
-  (* Overloaded Constants *)
 
+(* Overloaded Constants *)
+
+axclass
+  plus < term
+
+axclass
+  minus < term
+
+axclass
+  times < term
+
+consts
   "+"           :: ['a::plus, 'a] => 'a             (infixl 65)
   "-"           :: ['a::minus, 'a] => 'a            (infixl 65)
   "*"           :: ['a::times, 'a] => 'a            (infixl 70)
 
+
+
+(** Additional concrete syntax **)
 
 types
   letbinds  letbind
@@ -72,7 +80,7 @@ syntax
 
   "~="          :: ['a, 'a] => bool                 (infixl 50)
 
-  "@Eps"        :: [pttrn,bool] => 'a               ("(3@ _./ _)" 10)
+  "@Eps"        :: [pttrn, bool] => 'a              ("(3@ _./ _)" 10)
 
   (* Alternative Quantifiers *)
 
@@ -96,12 +104,33 @@ syntax
 
 translations
   "x ~= y"      == "~ (x = y)"
-  "@ x.b"       == "Eps(%x.b)"
+  "@ x.b"       == "Eps (%x. b)"
   "ALL xs. P"   => "! xs. P"
   "EX xs. P"    => "? xs. P"
   "EX! xs. P"   => "?! xs. P"
   "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
   "let x = a in e"        == "Let a (%x. e)"
+
+
+syntax (symbols)
+  not           :: bool => bool                     ("\\<not> _" [40] 40)
+  "op &"        :: [bool, bool] => bool             (infixr "\\<and>" 35)
+  "op |"        :: [bool, bool] => bool             (infixr "\\<or>" 30)
+  "op -->"      :: [bool, bool] => bool             (infixr "\\<midarrow>\\<rightarrow>" 25)
+  "op o"        :: ['b => 'c, 'a => 'b, 'a] => 'c   (infixl "\\<circ>" 55)
+  "op ~="       :: ['a, 'a] => bool                 (infixl "\\<noteq>" 50)
+  "@Eps"        :: [pttrn, bool] => 'a              ("(3\\<epsilon>_./ _)" 10)
+  "! "          :: [idts, bool] => bool             ("(3\\<forall>_./ _)" 10)
+  "? "          :: [idts, bool] => bool             ("(3\\<exists>_./ _)" 10)
+  "?! "         :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" 10)
+  "*All"        :: [idts, bool] => bool             ("(3\\<forall>_./ _)" 10)
+  "*Ex"         :: [idts, bool] => bool             ("(3\\<exists>_./ _)" 10)
+  "*Ex1"        :: [idts, bool] => bool             ("(3\\<exists>!_./ _)" 10)
+  "@case1"      :: ['a, 'b] => case_syn             ("(2_ \\<mapsto>/ _)" 10)
+
+
+
+(** Rules and definitions **)
 
 rules
 
@@ -147,6 +176,7 @@ defs
 
 end
 
+
 ML
 
 (** Choice between the HOL and Isabelle style of quantifiers **)
@@ -168,6 +198,3 @@ val print_ast_translation =
 
 (* start 8bit 2 *)
 (* end 8bit 2 *)
-
-
-

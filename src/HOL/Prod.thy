@@ -9,7 +9,8 @@ The unit type.
 
 Prod = Fun + equalities +
 
-(** Products **)
+
+(** products **)
 
 (* type definition *)
 
@@ -20,6 +21,9 @@ constdefs
 typedef (Prod)
   ('a, 'b) "*"          (infixr 20)
     = "{f. ? a b. f = Pair_Rep (a::'a) (b::'b)}"
+
+syntax (symbols)
+  "*"           :: [type, type] => type         ("(_ \\<times>/ _)" [21, 20] 20)
 
 
 (* abstract constants and syntax *)
@@ -32,30 +36,37 @@ consts
   Pair          :: "['a, 'b] => 'a * 'b"
   Sigma         :: "['a set, 'a => 'b set] => ('a * 'b) set"
 
-(** Patterns -- extends pre-defined type "pttrn" used in abstractions **)
+
+(* patterns -- extends pre-defined type "pttrn" used in abstractions *)
+
 types pttrns
 
 syntax
-  "@Tuple"      :: "['a, args] => 'a * 'b"            ("(1'(_,/ _'))")
+  "@Tuple"      :: "['a, args] => 'a * 'b"      ("(1'(_,/ _'))")
 
-  "@pttrn"  :: [pttrn,pttrns] => pttrn              ("'(_,/_')")
-  ""        ::  pttrn         => pttrns             ("_")
-  "@pttrns" :: [pttrn,pttrns] => pttrns             ("_,/_")
+  "@pttrn"      :: [pttrn, pttrns] => pttrn     ("'(_,/_')")
+  ""            :: pttrn => pttrns              ("_")
+  "@pttrns"     :: [pttrn, pttrns] => pttrns    ("_,/_")
 
-  "@Sigma"  :: "[idt,'a set,'b set] => ('a * 'b)set"
-               ("(3SIGMA _:_./ _)" 10)
-  "@Times"  :: "['a set, 'a => 'b set] => ('a * 'b) set"
-               ("_ Times _" [81,80] 80)
+  "@Sigma"      :: "[idt, 'a set, 'b set] => ('a * 'b) set"     ("(3SIGMA _:_./ _)" 10)
+  "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    ("_ Times _" [81, 80] 80)
 
 translations
   "(x, y, z)"   == "(x, (y, z))"
   "(x, y)"      == "Pair x y"
 
-  "%(x,y,zs).b"   == "split(%x (y,zs).b)"
-  "%(x,y).b"      == "split(%x y.b)"
+  "%(x,y,zs).b" == "split(%x (y,zs).b)"
+  "%(x,y).b"    == "split(%x y.b)"
 
-  "SIGMA x:A. B"  =>  "Sigma A (%x.B)"
-  "A Times B"     =>  "Sigma A (_K B)"
+  "SIGMA x:A.B" => "Sigma A (%x.B)"
+  "A Times B"   => "Sigma A (_K B)"
+
+syntax (symbols)
+  "@Sigma"      :: "[idt, 'a set, 'b set] => ('a * 'b) set"     ("(3\\<Sigma> _\\<in>_./ _)" 10)
+  "@Times"      :: "['a set, 'a => 'b set] => ('a * 'b) set"    ("_ \\<times> _" [81, 80] 80)
+
+
+(* definitions *)
 
 defs
   Pair_def      "Pair a b == Abs_Prod(Pair_Rep a b)"
@@ -65,7 +76,9 @@ defs
   prod_fun_def  "prod_fun f g == split(%x y.(f(x), g(y)))"
   Sigma_def     "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
 
-(** Unit **)
+
+
+(** unit **)
 
 typedef (Unit)
   unit = "{p. p = True}"
