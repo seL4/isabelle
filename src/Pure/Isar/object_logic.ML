@@ -89,7 +89,8 @@ fun is_judgment sg (Const (c, _) $ _) = c = judgment_name sg
   | is_judgment _ _ = false;
 
 fun drop_judgment sg (Abs (x, T, t)) = Abs (x, T, drop_judgment sg t)
-  | drop_judgment sg (tm as (Const (c, _) $ t)) = if c = judgment_name sg then t else tm
+  | drop_judgment sg (tm as (Const (c, _) $ t)) =
+      if (c = judgment_name sg handle TERM _ => false) then t else tm
   | drop_judgment _ tm = tm;
 
 fun fixed_judgment sg x =
