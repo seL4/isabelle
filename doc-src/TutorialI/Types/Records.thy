@@ -213,7 +213,8 @@ text {*
   than three consecutive periods, ``@{text "..."}''.  Mixing the ASCII
   and symbolic versions causes a syntax error.  (The two versions are
   more distinct on screen than they are on paper.)
-  \end{warn}%\index{records!extensible|)}
+  \end{warn}%
+  \index{records!extensible|)}
 *}
 
 
