@@ -81,16 +81,13 @@ In consequence, @{text auto} and @{text simp} cannot prove this slightly more co
 lemma "m \<noteq> (n::nat) \<Longrightarrow> m < n \<or> n < m"
 (*<*)by(arith)(*>*)
 
-text{*\noindent
-The method \methdx{arith} is more general.  It attempts to prove
-the first subgoal provided it is a quantifier-free \textbf{linear arithmetic}
-formula.  Such formulas may involve the
-usual logical connectives (@{text"\<not>"}, @{text"\<and>"}, @{text"\<or>"},
-@{text"\<longrightarrow>"}), the relations @{text"="}, @{text"\<le>"} and @{text"<"},
-and the operations
-@{text"+"}, @{text"-"}, @{term min} and @{term max}. 
-For example,
-*}
+text{*\noindent The method \methdx{arith} is more general.  It attempts to
+prove the first subgoal provided it is a \textbf{linear arithmetic} formula.
+Such formulas may involve the usual logical connectives (@{text"\<not>"},
+@{text"\<and>"}, @{text"\<or>"}, @{text"\<longrightarrow>"}, @{text"="},
+@{text"\<forall>"}, @{text"\<exists>"}), the relations @{text"="},
+@{text"\<le>"} and @{text"<"}, and the operations @{text"+"}, @{text"-"},
+@{term min} and @{term max}.  For example, *}
 
 lemma "min i (max j (k*k)) = max (min (k*k) i) (min i (j::nat))";
 apply(arith)
@@ -105,16 +102,19 @@ lemma "n*n = n \<Longrightarrow> n=0 \<or> n=1"
 
 text{*\noindent
 is not proved even by @{text arith} because the proof relies 
-on properties of multiplication.
+on properties of multiplication. Only multiplication by numerals (which is
+the same as iterated addition) is allowed.
 
-\begin{warn}
-  The running time of @{text arith} is exponential in the number of occurrences
-  of \ttindexboldpos{-}{$HOL2arithfun}, \cdx{min} and
+\begin{warn} The running time of @{text arith} is exponential in the number
+  of occurrences of \ttindexboldpos{-}{$HOL2arithfun}, \cdx{min} and
   \cdx{max} because they are first eliminated by case distinctions.
 
-  Even for linear arithmetic formulae, \isa{arith} is incomplete. If divisibility plays a
-  role, it may fail to prove a valid formula, for example
-  @{text"m+m \<noteq> n+n+(1::nat)"}. Fortunately, such examples are rare.
+If @{text k} is a numeral, \sdx{div}~@{text k}, \sdx{mod}~@{text k} and
+@{text k}~\sdx{dvd} are also supported, where the former two are eliminated
+by case distinctions, again blowing up the running time.
+
+If the formula involves explicit quantifiers, @{text arith} may take
+super-exponential time and space.
 \end{warn}
 *}
 

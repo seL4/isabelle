@@ -28,7 +28,9 @@ Isabelle's arithmetic decision procedure, the method
 and multiplication by constant factors; subterms involving other operators
 are regarded as variables.  The procedure can be slow, especially if the
 subgoal to be proved involves subtraction over type \isa{nat}, which 
-causes case splits.  
+causes case splits.  On types \isa{nat} and \isa{int}, \methdx{arith}
+can deal with quantifiers (this is known as ``Presburger Arithmetic''),
+whereas on type \isa{real} it cannot.
 
 The simplifier reduces arithmetic expressions in other
 ways, such as dividing through by common factors.  For problems that lie
