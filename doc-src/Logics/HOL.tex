@@ -1249,7 +1249,8 @@ the library.  The theory \texttt{NatDef} contains theorems about {\tt<} and
   \cdx{null}    & $\alpha\,list \To bool$ & & emptiness test\\
   \cdx{hd}      & $\alpha\,list \To \alpha$ & & head \\
   \cdx{tl}      & $\alpha\,list \To \alpha\,list$ & & tail \\
-  \cdx{ttl}     & $\alpha\,list \To \alpha\,list$ & & total tail \\
+  \cdx{last}    & $\alpha\,list \To \alpha$ & & last element \\
+  \cdx{butlast} & $\alpha\,list \To \alpha\,list$ & & drop last element \\
   \tt\at  & $[\alpha\,list,\alpha\,list]\To \alpha\,list$ & Left 65 & append \\
   \cdx{map}     & $(\alpha\To\beta) \To (\alpha\,list \To \beta\,list)$
         & & apply to all\\
@@ -1293,6 +1294,7 @@ null (x#xs) = False
 
 hd (x#xs) = x
 tl (x#xs) = xs
+tl [] = []
 
 [] @ ys = ys
 (x#xs) @ ys = x # xs @ ys
