@@ -329,7 +329,7 @@ goal ZF.thy "!!f. [| f: A->B;  g: C->D;  A Int C = 0  |]  \
 (*Prove the product and domain subgoals using distributive laws*)
 by (asm_full_simp_tac (simpset() addsimps [Pi_iff,extension]@Un_rls) 1);
 by (rewtac function_def);
-by (Blast.depth_tac (claset()) 12 1);	(*9 secs*)
+by (Blast_tac 1);
 qed "fun_disjoint_Un";
 
 goal ZF.thy
