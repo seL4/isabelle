@@ -42,7 +42,7 @@ fun loose (i,t) = 0 mem add_loose_bnos(t,i,[]);
   It's not safe to substitute for a variable free in the premises,
     but how could we check for this?*)
 fun inspect_pair bnd (t,u) =
-  case (Pattern.eta_contract t, Pattern.eta_contract u) of
+  case (Pattern.eta_contract_atom t, Pattern.eta_contract_atom u) of
        (Bound i, _) => if loose(i,u) then raise Match 
                        else sym         (*eliminates t*)
      | (_, Bound i) => if loose(i,t) then raise Match 
