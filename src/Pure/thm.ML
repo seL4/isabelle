@@ -906,8 +906,7 @@ fun check_conv(thm as Thm{hyps,prop,...}, prop0) =
 
 (*Conversion to apply the meta simpset to a term*)
 fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
-  let val t = Pattern.eta_contract t
-      fun rew {thm as Thm{sign,hyps,maxidx,prop,...}, lhs} =
+  let fun rew (t, {thm as Thm{sign,hyps,maxidx,prop,...}, lhs}) =
 	let val unit = if Sign.subsig(sign,signt) then ()
                   else (writeln"Warning: rewrite rule from different theory";
                         raise Pattern.MATCH)
@@ -924,14 +923,19 @@ fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
                  | Some(thm2) => check_conv(thm2,prop'))
         end
 
-      fun rewl [] = None
-	| rewl (rrule::rrules) =
-            let val opt = rew rrule handle Pattern.MATCH => None
-            in case opt of None => rewl rrules | some => some end;
+      fun rews t =
+        let fun rews1 [] = None
+              | rews1 (rrule::rrules) =
+                  let val opt = rew(t,rrule) handle Pattern.MATCH => None
+                  in case opt of None => rews1 rrules | some => some end;
+        in rews1 end
+
+      fun eta_rews([]) = None
+        | eta_rews(rrules) = rews (Pattern.eta_contract t) rrules
 
   in case t of
        Abs(_,_,body) $ u => Some(hypst,subst_bounds([u], body))
-     | _                 => rewl (Net.match_term net t)
+     | _                 => eta_rews(Net.match_term net t)
   end;
 
 (*Conversion to apply a congruence rule to a term*)
