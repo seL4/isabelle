@@ -12,6 +12,10 @@ A rule is unsafe unless it can be applied blindly without harmful results.
 For a rule to be safe, its premises and conclusion should be logically
 equivalent.  There should be no variables in the premises that are not in
 the conclusion.
+
+TODO:
+  - only BASIC_CLASSICAL made pervasive;
+  - fix global claset data;
 *)
 
 (*higher precedence than := facilitates use of references*)
@@ -44,7 +48,7 @@ sig
   val hyp_subst_tacs: (int -> tactic) list
 end;
 
-signature CLASSICAL =
+signature BASIC_CLASSICAL =
 sig
   type claset
   val empty_cs: claset
@@ -138,6 +142,31 @@ sig
   val Slow_tac 		: int -> tactic
   val Slow_best_tac     : int -> tactic
   val Deepen_tac	: int -> int -> tactic
+end;
+
+signature CLASSICAL =
+sig
+  include BASIC_CLASSICAL
+  val print_local_claset: Proof.context -> unit
+  val get_local_claset: Proof.context -> claset
+  val put_local_claset: claset -> Proof.context -> Proof.context
+  val dest_global: theory attribute
+  val elim_global: theory attribute
+  val intro_global: theory attribute
+  val safe_dest_global: theory attribute
+  val safe_elim_global: theory attribute
+  val safe_intro_global: theory attribute
+  val delrules_global: theory attribute
+  val dest_local: Proof.context attribute
+  val elim_local: Proof.context attribute
+  val intro_local: Proof.context attribute
+  val safe_dest_local: Proof.context attribute
+  val safe_elim_local: Proof.context attribute
+  val safe_intro_local: Proof.context attribute
+  val delrules_local: Proof.context attribute
+  val trace_rules: bool ref
+  val single_tac: claset -> tthm list -> int -> tactic
+  val setup: (theory -> theory) list
 end;
 
 
@@ -800,6 +829,22 @@ val AddSIs = change_claset (op addSIs);
 val Delrules = change_claset (op delrules);
 
 
+(* proof data kind 'Provers/claset' *)
+
+structure LocalClasetArgs =
+struct
+  val name = "Provers/claset";
+  type T = claset;
+  val init = claset_of;
+  fun print _ cs = print_cs cs;
+end;
+
+structure LocalClaset = ProofDataFun(LocalClasetArgs);
+val print_local_claset = LocalClaset.print;
+val get_local_claset = LocalClaset.get;
+val put_local_claset = LocalClaset.put;
+
+
 (* tactics referring to the implicit claset *)
 
 (*the abstraction over the proof state delays the dereferencing*)
@@ -816,4 +861,157 @@ fun Deepen_tac m	  = deepen_tac (claset()) m;
 
 
 end; 
+
+
+
+(** attributes **)
+
+(* add / del rules *)
+
+val introN = "intro";
+val elimN = "elim";
+val destN = "dest";
+val delN = "del";
+
+val addDs' = Attribute.lift_modifier (op addDs);
+val addEs' = Attribute.lift_modifier (op addEs);
+val addIs' = Attribute.lift_modifier (op addIs);
+val addSDs' = Attribute.lift_modifier (op addSDs);
+val addSEs' = Attribute.lift_modifier (op addSEs);
+val addSIs' = Attribute.lift_modifier (op addSIs);
+val delrules' = Attribute.lift_modifier (op delrules);
+
+local
+  fun change_global_cs f (thy, tth) =
+    let val r = claset_ref_of thy
+    in r := f (! r, [tth]); (thy, tth) end;
+
+  fun change_local_cs f (ctxt, tth) =
+    let val cs = f (get_local_claset ctxt, [tth])
+    in (put_local_claset cs ctxt, tth) end;
+
+  fun cla_att change f g = Attrib.syntax (Args.$$$ "!" >> K f || Scan.succeed g) change;
+in
+  val dest_global = change_global_cs addDs';
+  val elim_global = change_global_cs addEs';
+  val intro_global = change_global_cs addIs';
+  val safe_dest_global = change_global_cs addDs';
+  val safe_elim_global = change_global_cs addEs';
+  val safe_intro_global = change_global_cs addIs';
+  val delrules_global = change_global_cs delrules';
+
+  val dest_local = change_local_cs addDs';
+  val elim_local = change_local_cs addEs';
+  val intro_local = change_local_cs addIs';
+  val safe_dest_local = change_local_cs addDs';
+  val safe_elim_local = change_local_cs addEs';
+  val safe_intro_local = change_local_cs addIs';
+  val delrules_local = change_local_cs delrules';
+
+  fun cla_attr f g = (cla_att change_global_cs f g, cla_att change_local_cs f g);
+  val del_attr = (Attrib.no_args delrules_global, Attrib.no_args delrules_local);
+end;
+
+
+(* setup_attrs *)
+
+val setup_attrs = Attrib.add_attributes
+ [("dest", cla_attr addDs' addSDs', "destruction rule"),
+  ("elim", cla_attr addEs' addSEs', "elimination rule"),
+  ("intro", cla_attr addIs' addSIs', "introduction rule"),
+  ("del", del_attr, "delete rule")];
+
+
+
+(** standard rule proof method **)
+
+(* utils *)
+
+fun resolve_from_seq_tac rq i st = Seq.flat (Seq.map (fn r => rtac r i st) rq);
+fun order_rules xs = map snd (Tactic.orderlist xs);
+
+fun find_rules concl nets =
+  let fun rules_of (inet, _) = order_rules (Net.unify_term inet concl)
+  in flat (map rules_of nets) end;
+
+fun find_erules [] _ = []
+  | find_erules facts nets =
+      let
+        fun may_unify net = Net.unify_term net o #prop o Thm.rep_thm;
+        fun erules_of (_, enet) = order_rules (flat (map (may_unify enet) facts));
+      in flat (map erules_of nets) end;
+
+
+(* trace rules *)
+
+val trace_rules = ref false;
+
+fun print_rules rules i =
+  if not (! trace_rules) then ()
+  else
+    Pretty.writeln (Pretty.big_list ("trying standard rule(s) on goal #" ^ string_of_int i ^ ":")
+      (map Display.pretty_thm rules));
+
+
+(* single_tac *)
+
+fun single_tac cs tfacts =
+  let
+    val CS {safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...} = cs;
+    val facts = map Attribute.thm_of tfacts;
+    val nets = [safe0_netpair, safep_netpair, haz_netpair, dup_netpair];
+    val erules = find_erules facts nets;
+
+    val tac = SUBGOAL (fn (goal, i) =>
+      let
+        val irules = find_rules (Logic.strip_assums_concl goal) nets;
+        val rules = erules @ irules;
+        val ruleq = Method.forward_chain facts rules;
+      in
+        print_rules rules i;
+        fn st => Seq.flat (Seq.map (fn rule => Tactic.rtac rule i st) ruleq) end);
+  in tac end;
+
+val single = Method.METHOD (FIRSTGOAL o (fn facts => CLASET' (fn cs => single_tac cs facts)));
+
+
+
+(** automatic methods **)
+
+(* FIXME handle "!" *)
+
+fun cla_args meth =
+  Method.sectioned_args get_local_claset addIs'
+    [(destN, addSDs'), ("unsafe_dest", addDs'),
+      (elimN, addSEs'), ("unsafe_elim", addEs'),
+      (introN, addSIs'), ("unsafe_intro", addIs'),
+      (delN, delrules')] meth;
+
+(* FIXME facts!? (e.g. apply trivial first) *)
+fun gen_cla tac = cla_args (fn cs => Method.METHOD0 (tac cs));
+fun gen_cla' tac = cla_args (fn cs => Method.METHOD0 (FIRSTGOAL (tac cs)));
+
+
+
+(** setup_methods **)
+
+val setup_methods = Method.add_methods
+ [("single", Method.no_args single, "apply standard rule (single step)"),
+  ("default", Method.no_args single, "apply standard rule (single step)"),
+  ("safe_tac", gen_cla safe_tac, "safe_tac"),
+  ("safe_step", gen_cla' safe_step_tac, "step_tac"),
+  ("fast", gen_cla' fast_tac, "fast_tac"),
+  ("best", gen_cla' best_tac, "best_tac"),
+  ("slow", gen_cla' slow_tac, "slow_tac"),
+  ("slow_best", gen_cla' slow_best_tac, "slow_best_tac")];
+
+
+
+(** theory setup **)
+
+(* FIXME claset theory data *)
+
+val setup = [LocalClaset.init, setup_attrs, setup_methods];
+
+
 end;
