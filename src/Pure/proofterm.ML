@@ -755,12 +755,14 @@ fun add_npvars q p Ts (vs, Const ("==>", _) $ t $ u) =
       add_npvars q p Ts (add_npvars q (not p) Ts (vs, t), u)
   | add_npvars q p Ts (vs, Const ("all", Type (_, [Type (_, [T, _]), _])) $ t) =
       add_npvars q p Ts (vs, if p andalso q then betapply (t, Var (("",0), T)) else t)
-  | add_npvars q p Ts (vs, t) = (case strip_comb t of
+  | add_npvars q p Ts (vs, Abs (_, T, t)) = add_npvars q p (T::Ts) (vs, t)
+  | add_npvars _ _ Ts (vs, t) = add_npvars' Ts (vs, t)
+and add_npvars' Ts (vs, t) = (case strip_comb t of
     (Var (ixn, _), ts) => if test_args [] ts then vs
-      else foldl (add_npvars q p Ts) (overwrite (vs,
+      else foldl (add_npvars' Ts) (overwrite (vs,
         (ixn, foldl (add_funvars Ts) (if_none (assoc (vs, ixn)) [], ts))), ts)
-  | (Abs (_, T, u), ts) => foldl (add_npvars q p (T::Ts)) (vs, u :: ts)
-  | (_, ts) => foldl (add_npvars q p Ts) (vs, ts));
+  | (Abs (_, T, u), ts) => foldl (add_npvars' (T::Ts)) (vs, u :: ts)
+  | (_, ts) => foldl (add_npvars' Ts) (vs, ts));
 
 fun prop_vars (Const ("==>", _) $ P $ Q) = prop_vars P union prop_vars Q
   | prop_vars (Const ("all", _) $ Abs (_, _, t)) = prop_vars t
