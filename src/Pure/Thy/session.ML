@@ -48,9 +48,14 @@ fun init reset name =
 fun finish () = (ThyInfo.finish_all (); session_finished := true);
 
 
-(* use_dir *)	(* FIXME info *)
+(* use_dir *)
 
-fun use_dir reset info name = (init reset name; Use.exit_use "ROOT.ML"; finish ());
+val root_file = ThyLoad.ml_path "ROOT";
+
+fun use_dir reset info name =
+  (init reset name;
+    Symbol.use root_file handle _ => exit 1;
+    finish ());
 
 
 end;
