@@ -1,0 +1,4 @@
+
+theory simp = Main:
+
+end
