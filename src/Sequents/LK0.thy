@@ -24,9 +24,6 @@ consts
  Trueprop	:: "two_seqi"
  "@Trueprop"	:: "two_seqe" ("((_)/ |- (_))" [6,6] 5)
 
-  (*Constant to allow definitions of SEQUENCES of formulas*)
-  "@Side"        :: "seq=>(seq'=>seq')"     ("<<(_)>>")
-
   True,False   :: o
   "="          :: ['a,'a] => o       (infixl 50)
   Not          :: o => o             ("~ _" [40] 40)
@@ -138,9 +135,7 @@ end
 
 ML
 
-fun side_tr [s1] = Sequents.seq_tr s1;
 
-val parse_translation = [("@Trueprop",Sequents.two_seq_tr "Trueprop"),
-			 ("@Side", side_tr)];
+val parse_translation = [("@Trueprop",Sequents.two_seq_tr "Trueprop")];
 val print_translation = [("Trueprop",Sequents.two_seq_tr' "@Trueprop")];
 

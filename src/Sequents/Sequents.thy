@@ -3,7 +3,8 @@
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
-Classical First-Order Sequent Calculus
+Basis theory for parsing and pretty-printing of sequences to be used in
+Sequent Calculi. 
 *)
 
 Sequents = Pure +
@@ -23,8 +24,8 @@ types
  seq'
 
 consts
- SeqO'         :: "[o,seq']=>seq'"
- Seq1'         :: "o=>seq'"
+ SeqO'         :: [o,seq']=>seq'
+ Seq1'         :: o=>seq'
     
 
 (* concrete syntax *)
@@ -34,25 +35,33 @@ types
 
 
 syntax
- SeqEmp         :: "seq"                                ("")
- SeqApp         :: "[seqobj,seqcont] => seq"            ("__")
+ SeqEmp         :: seq                                ("")
+ SeqApp         :: [seqobj,seqcont] => seq            ("__")
 
- SeqContEmp     :: "seqcont"                            ("")
- SeqContApp     :: "[seqobj,seqcont] => seqcont"        (",/ __")
+ SeqContEmp     :: seqcont                            ("")
+ SeqContApp     :: [seqobj,seqcont] => seqcont        (",/ __")
   
- SeqO           :: "o => seqobj"                        ("_")
- SeqId          :: "'a => seqobj"                       ("$_")
+ SeqO           :: o => seqobj                        ("_")
+ SeqId          :: 'a => seqobj                       ("$_")
 
 types
     
- single_seqe = "[seq,seqobj] => prop"
- single_seqi = "[seq'=>seq',seq'=>seq'] => prop"
- two_seqi = "[seq'=>seq', seq'=>seq'] => prop"
- two_seqe = "[seq, seq] => prop"
- three_seqi = "[seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
- three_seqe = "[seq, seq, seq] => prop"
- four_seqi = "[seq'=>seq', seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
- four_seqe = "[seq, seq, seq, seq] => prop"
+ single_seqe = [seq,seqobj] => prop
+ single_seqi = [seq'=>seq',seq'=>seq'] => prop
+ two_seqi    = [seq'=>seq', seq'=>seq'] => prop
+ two_seqe    = [seq, seq] => prop
+ three_seqi  = [seq'=>seq', seq'=>seq', seq'=>seq'] => prop
+ three_seqe  = [seq, seq, seq] => prop
+ four_seqi   = [seq'=>seq', seq'=>seq', seq'=>seq', seq'=>seq'] => prop
+ four_seqe   = [seq, seq, seq, seq] => prop
+
+
+ sequence_name = seq'=>seq'
+
+
+consts
+  (*Constant to allow definitions of SEQUENCES of formulas*)
+  "@Side"        :: seq=>(seq'=>seq')     ("<<(_)>>")
 
 end
 
@@ -146,3 +155,8 @@ fun four_seq_tr' c [s1, s2, s3, s4] =
 
 
 			 
+(** for the <<...>> notation **)
+  
+fun side_tr [s1] = seq_tr s1;
+
+val parse_translation = [("@Side", side_tr)];
