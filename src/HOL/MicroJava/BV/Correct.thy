@@ -12,13 +12,13 @@ theory Correct = BVSpec:
 
 constdefs
   approx_val :: "[jvm_prog,aheap,val,ty err] => bool"
-  "approx_val G h v any == case any of Err => True | Ok T => G,h\<turnstile>v::\<preceq>T"
+  "approx_val G h v any == case any of Err => True | OK T => G,h\<turnstile>v::\<preceq>T"
 
   approx_loc :: "[jvm_prog,aheap,val list,locvars_type] => bool"
   "approx_loc G hp loc LT == list_all2 (approx_val G hp) loc LT"
 
   approx_stk :: "[jvm_prog,aheap,opstack,opstack_type] => bool"
-  "approx_stk G hp stk ST == approx_loc G hp stk (map Ok ST)"
+  "approx_stk G hp stk ST == approx_loc G hp stk (map OK ST)"
 
   correct_frame  :: "[jvm_prog,aheap,state_type,nat,bytecode] => frame => bool"
   "correct_frame G hp == \<lambda>(ST,LT) maxl ins (stk,loc,C,sig,pc).
@@ -96,12 +96,12 @@ lemma approx_val_Err:
 by (simp add: approx_val_def)
 
 lemma approx_val_Null:
-  "approx_val G hp Null (Ok (RefT x))"
+  "approx_val G hp Null (OK (RefT x))"
 by (auto intro: null simp add: approx_val_def)
 
 lemma approx_val_imp_approx_val_assConvertible [rule_format]: 
-  "wf_prog wt G ==> approx_val G hp v (Ok T) --> G\<turnstile> T\<preceq>T' 
-  --> approx_val G hp v (Ok T')"
+  "wf_prog wt G ==> approx_val G hp v (OK T) --> G\<turnstile> T\<preceq>T' 
+  --> approx_val G hp v (OK T')"
 by (cases T) (auto intro: conf_widen simp add: approx_val_def)
 
 lemma approx_val_imp_approx_val_sup_heap [rule_format]:
@@ -143,7 +143,7 @@ by (simp add: approx_loc_def)
 lemma assConv_approx_stk_imp_approx_loc [rule_format]:
   "wf_prog wt G ==> (\<forall>tt'\<in>set (zip tys_n ts). tt' \<in> widen G) 
   --> length tys_n = length ts --> approx_stk G hp s tys_n --> 
-  approx_loc G hp s (map Ok ts)"
+  approx_loc G hp s (map OK ts)"
 apply (unfold approx_stk_def approx_loc_def list_all2_def)
 apply (clarsimp simp add: all_set_conv_all_nth)
 apply (rule approx_val_imp_approx_val_assConvertible)
@@ -212,7 +212,7 @@ lemma approx_stk_imp_approx_stk_sup_heap [rule_format]:
 by (auto intro: approx_loc_imp_approx_loc_sup_heap simp add: approx_stk_def)
 
 lemma approx_stk_imp_approx_stk_sup [rule_format]:
-  "wf_prog wt G ==> approx_stk G hp lvars st --> (G \<turnstile> map Ok st <=l (map Ok st')) 
+  "wf_prog wt G ==> approx_stk G hp lvars st --> (G \<turnstile> map OK st <=l (map OK st')) 
   --> approx_stk G hp lvars st'" 
 by (auto intro: approx_loc_imp_approx_loc_sup simp add: approx_stk_def)
 
@@ -222,12 +222,12 @@ by (simp add: approx_stk_def approx_loc_def)
 
 lemma approx_stk_Cons [iff]:
   "approx_stk G hp (x # stk) (S#ST) = 
-   (approx_val G hp x (Ok S) \<and> approx_stk G hp stk ST)"
+   (approx_val G hp x (OK S) \<and> approx_stk G hp stk ST)"
 by (simp add: approx_stk_def approx_loc_def)
 
 lemma approx_stk_Cons_lemma [iff]:
   "approx_stk G hp stk (S#ST') = 
-  (\<exists>s stk'. stk = s#stk' \<and> approx_val G hp s (Ok S) \<and> approx_stk G hp stk' ST')"
+  (\<exists>s stk'. stk = s#stk' \<and> approx_val G hp s (OK S) \<and> approx_stk G hp stk' ST')"
 by (simp add: list_all2_Cons2 approx_stk_def approx_loc_def)
 
 lemma approx_stk_append_lemma:

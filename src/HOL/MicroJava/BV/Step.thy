@@ -15,8 +15,8 @@ consts
 step' :: "instr \<times> jvm_prog \<times> state_type => state_type"
 
 recdef step' "{}"
-"step' (Load idx,  G, (ST, LT))          = (val (LT ! idx) # ST, LT)"
-"step' (Store idx, G, (ts#ST, LT))       = (ST, LT[idx:= Ok ts])"
+"step' (Load idx,  G, (ST, LT))          = (ok_val (LT ! idx) # ST, LT)"
+"step' (Store idx, G, (ts#ST, LT))       = (ST, LT[idx:= OK ts])"
 "step' (Bipush i, G, (ST, LT))           = (PrimT Integer # ST, LT)"
 "step' (Aconst_null, G, (ST, LT))        = (NT#ST,LT)"
 "step' (Getfield F C, G, (oT#ST, LT))    = (snd (the (field (G,C) F)) # ST, LT)"
@@ -32,12 +32,11 @@ recdef step' "{}"
                                          = (PrimT Integer#ST,LT)"
 "step' (Ifcmpeq b, G, (ts1#ts2#ST,LT))   = (ST,LT)"
 "step' (Goto b, G, s)                    = s"
-  (* Return has no successor instruction in the same method: *)
-(* "step' (Return, G, (T#ST,LT))            = None" *)
+  (* Return has no successor instruction in the same method *)
+"step' (Return, G, s)                    = s" 
 "step' (Invoke C mn fpTs, G, (ST,LT))    = (let ST' = drop (length fpTs) ST 
   in  (fst (snd (the (method (G,C) (mn,fpTs))))#(tl ST'),LT))" 
 
-(* "step' (i,G,s)                           = None" *)
 
 constdefs
   step :: "instr => jvm_prog => state_type option => state_type option"
@@ -113,7 +112,7 @@ primrec
 "succs IAdd pc               = [pc+1]"
 "succs (Ifcmpeq b) pc        = [pc+1, nat (int pc + b)]"
 "succs (Goto b) pc           = [nat (int pc + b)]"
-"succs Return pc             = []"  
+"succs Return pc             = [pc]"  
 "succs (Invoke C mn fpTs) pc = [pc+1]"
 
 

@@ -14,7 +14,7 @@ constdefs
 fits :: "[method_type,instr list,jvm_prog,ty,state_type option,certificate] => bool"
 "fits phi is G rT s0 cert == 
   (\<forall>pc s1. pc < length is -->
-    (wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = Ok s1 -->
+    (wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = OK s1 -->
     (case cert!pc of None   => phi!pc = s1
                    | Some t => phi!pc = Some t)))"
 
@@ -22,19 +22,19 @@ constdefs
 make_phi :: "[instr list,jvm_prog,ty,state_type option,certificate] => method_type"
 "make_phi is G rT s0 cert == 
    map (\<lambda>pc. case cert!pc of 
-               None   => val (wtl_inst_list (take pc is) G rT cert (length is) 0 s0) 
+               None   => ok_val (wtl_inst_list (take pc is) G rT cert (length is) 0 s0) 
              | Some t => Some t) [0..length is(]"
 
 
 lemma fitsD_None:
   "[|fits phi is G rT s0 cert; pc < length is;
-    wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = Ok s1; 
+    wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = OK s1; 
     cert ! pc = None|] ==> phi!pc = s1"
   by (auto simp add: fits_def)
 
 lemma fitsD_Some:
   "[|fits phi is G rT s0 cert; pc < length is;
-    wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = Ok s1; 
+    wtl_inst_list (take pc is) G rT cert (length is) 0 s0 = OK s1; 
     cert ! pc = Some t|] ==> phi!pc = Some t"
   by (auto simp add: fits_def)
 
@@ -46,7 +46,7 @@ lemma make_phi_Some:
 lemma make_phi_None:
   "[| pc < length is; cert!pc = None |] ==> 
   make_phi is G rT s0 cert ! pc = 
-  val (wtl_inst_list (take pc is) G rT cert (length is) 0 s0)"
+  ok_val (wtl_inst_list (take pc is) G rT cert (length is) 0 s0)"
   by (simp add: make_phi_def)
 
 lemma exists_phi:
@@ -61,14 +61,14 @@ proof -
 qed
   
 lemma fits_lemma1:
-  "[| wtl_inst_list is G rT cert (length is) 0 s = Ok s'; fits phi is G rT s cert |]
+  "[| wtl_inst_list is G rT cert (length is) 0 s = OK s'; fits phi is G rT s cert |]
   ==> \<forall>pc t. pc < length is --> cert!pc = Some t --> phi!pc = Some t"
 proof (intro strip)
   fix pc t 
-  assume "wtl_inst_list is G rT cert (length is) 0 s = Ok s'"
+  assume "wtl_inst_list is G rT cert (length is) 0 s = OK s'"
   then 
   obtain s'' where
-    "wtl_inst_list (take pc is) G rT cert (length is) 0 s = Ok s''"
+    "wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s''"
     by (blast dest: wtl_take)
   moreover
   assume "fits phi is G rT s cert" 
@@ -81,8 +81,8 @@ qed
 
 lemma wtl_suc_pc:
  "[| wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err;
-     wtl_inst_list (take pc is) G rT cert (length is) 0 s = Ok s';
-     wtl_cert (is!pc) G rT s' cert (length is) pc = Ok s'';
+     wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s';
+     wtl_cert (is!pc) G rT s' cert (length is) pc = OK s'';
      fits phi is G rT s cert; Suc pc < length is |] ==>
   G \<turnstile> s'' <=' phi ! Suc pc"
 proof -
@@ -90,11 +90,11 @@ proof -
   assume all:  "wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err"
   assume fits: "fits phi is G rT s cert"
 
-  assume wtl:  "wtl_inst_list (take pc is) G rT cert (length is) 0 s = Ok s'" and
-         wtc:  "wtl_cert (is!pc) G rT s' cert (length is) pc = Ok s''" and
+  assume wtl:  "wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s'" and
+         wtc:  "wtl_cert (is!pc) G rT s' cert (length is) pc = OK s''" and
          pc:   "Suc pc < length is"
 
-  hence wts: "wtl_inst_list (take (Suc pc) is) G rT cert (length is) 0 s = Ok s''"
+  hence wts: "wtl_inst_list (take (Suc pc) is) G rT cert (length is) 0 s = OK s''"
     by (rule wtl_Suc)
 
   from all
@@ -111,7 +111,7 @@ proof -
     by (auto simp add: neq_Nil_conv simp del: length_drop)
   with app wts pc
   obtain x where 
-    "wtl_cert l G rT s'' cert (length is) (Suc pc) = Ok x"
+    "wtl_cert l G rT s'' cert (length is) (Suc pc) = OK x"
     by (auto simp add: wtl_append min_def simp del: append_take_drop_id)
 
   hence c1: "!!t. cert!Suc pc = Some t ==> G \<turnstile> s'' <=' cert!Suc pc"
@@ -144,8 +144,8 @@ proof -
         
   then
   obtain s' s'' where
-    w: "wtl_inst_list (take pc is) G rT cert (length is) 0 s = Ok s'" and
-    c: "wtl_cert (is!pc) G rT s' cert (length is) pc = Ok s''"
+    w: "wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s'" and
+    c: "wtl_cert (is!pc) G rT s' cert (length is) pc = OK s''"
     by - (drule wtl_all, auto)
 
   from fits wtl pc
@@ -158,7 +158,7 @@ proof -
     by - (drule fitsD_None)
   
   from pc c cert_None cert_Some
-  have wti: "wtl_inst (is ! pc) G rT (phi!pc) cert (length is) pc = Ok s''"
+  have wti: "wtl_inst (is ! pc) G rT (phi!pc) cert (length is) pc = OK s''"
     by (auto simp add: wtl_cert_def split: if_splits option.splits)
 
   { fix pc'
@@ -166,14 +166,14 @@ proof -
 
     with wti
     have less: "pc' < length is"  
-      by (simp add: wtl_inst_Ok)
+      by (simp add: wtl_inst_OK)
 
     have "G \<turnstile> step (is!pc) G (phi!pc) <=' phi ! pc'" 
     proof (cases "pc' = Suc pc")
       case False          
       with wti pc'
       have G: "G \<turnstile> step (is ! pc) G (phi ! pc) <=' cert ! pc'" 
-        by (simp add: wtl_inst_Ok)
+        by (simp add: wtl_inst_OK)
 
       hence "cert!pc' = None ==> step (is ! pc) G (phi ! pc) = None"
         by simp
@@ -197,7 +197,7 @@ proof -
       case True
       with pc' wti
       have "step (is ! pc) G (phi ! pc) = s''"  
-        by (simp add: wtl_inst_Ok)
+        by (simp add: wtl_inst_OK)
       also
       from w c fits pc wtl 
       have "Suc pc < length is ==> G \<turnstile> s'' <=' phi ! Suc pc"
@@ -213,7 +213,7 @@ proof -
   
   with wti
   show ?thesis
-    by (auto simp add: wtl_inst_Ok wt_instr_def)
+    by (auto simp add: wtl_inst_OK wt_instr_def)
 qed
 
 
@@ -228,7 +228,7 @@ proof -
   assume pc:   "0 < length is"
 
   from wtl
-  have wt0: "wtl_inst_list (take 0 is) G rT cert (length is) 0 s = Ok s"
+  have wt0: "wtl_inst_list (take 0 is) G rT cert (length is) 0 s = OK s"
     by simp
   
   with fits pc
@@ -244,7 +244,7 @@ proof -
     by (simp add: neq_Nil_conv) (elim, rule that)
   with wtl
   obtain s' where
-    "wtl_cert x G rT s cert (length is) 0 = Ok s'"
+    "wtl_cert x G rT s cert (length is) 0 = OK s'"
     by simp (elim, rule that, simp)
   hence 
     "!!t. cert!0 = Some t ==> G \<turnstile> s <=' cert!0"
@@ -259,7 +259,7 @@ qed
 lemma wtl_method_correct:
 "wtl_method G C pTs rT mxl ins cert ==> \<exists> phi. wt_method G C pTs rT mxl ins phi"
 proof (unfold wtl_method_def, simp only: Let_def, elim conjE)
-  let "?s0" = "Some ([], Ok (Class C) # map Ok pTs @ replicate mxl Err)"
+  let "?s0" = "Some ([], OK (Class C) # map OK pTs @ replicate mxl Err)"
   assume pc:  "0 < length ins"
   assume wtl: "wtl_inst_list ins G rT cert (length ins) 0 ?s0 \<noteq> Err"
 

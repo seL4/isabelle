@@ -274,7 +274,7 @@ proof -
   from a_stk
   obtain opTs stk' oX where
     opTs:   "approx_stk G hp opTs (rev apTs)" and
-    oX:     "approx_val G hp oX (Ok X)" and
+    oX:     "approx_val G hp oX (OK X)" and
     a_stk': "approx_stk G hp stk' ST" and
     stk':   "stk = opTs @ oX # stk'" and
     l_o:    "length opTs = length apTs" 
@@ -377,7 +377,7 @@ proof -
     proof -
       from start LT0
       have sup_loc: 
-        "G \<turnstile> (Ok (Class D'') # map Ok pTs @ replicate mxl' Err) <=l LT0"
+        "G \<turnstile> (OK (Class D'') # map OK pTs @ replicate mxl' Err) <=l LT0"
         (is "G \<turnstile> ?LT <=l LT0")
         by (simp add: wt_start_def sup_state_def)
 
@@ -389,14 +389,14 @@ proof -
       have "G \<turnstile> Class D \<preceq> Class D''"
         by (auto dest: method_wf_mdecl)
       with obj_ty loc
-      have a: "approx_val G hp (Addr ref) (Ok (Class D''))"
+      have a: "approx_val G hp (Addr ref) (OK (Class D''))"
         by (simp add: approx_val_def conf_def)
 
       from w l
       have "\<forall>x\<in>set (zip (rev apTs) (rev pTs)). x \<in> widen G"
         by (auto simp add: zip_rev)
       with wfprog l l_o opTs
-      have "approx_loc G hp opTs (map Ok (rev pTs))"
+      have "approx_loc G hp opTs (map OK (rev pTs))"
         by (auto intro: assConv_approx_stk_imp_approx_loc)
       hence "approx_stk G hp opTs (rev pTs)"
         by (simp add: approx_stk_def)
@@ -427,7 +427,7 @@ proof -
         by (rule approx_loc_imp_approx_loc_sup)
       moreover
       from s s' mC' step l
-      have  "G \<turnstile> map Ok ST <=l map Ok (tl ST')"
+      have  "G \<turnstile> map OK ST <=l map OK (tl ST')"
         by (auto simp add: step_def sup_state_def map_eq_Cons)
       with wfprog a_stk'
       have "approx_stk G hp stk' (tl ST')"

@@ -14,8 +14,8 @@ lemma PrimT_PrimT: "(G \<turnstile> xb \<preceq> PrimT p) = (xb = PrimT p)"
 
 
 lemma sup_loc_some [rule_format]:
-"\<forall> y n. (G \<turnstile> b <=l y) --> n < length y --> y!n = Ok t --> 
-  (\<exists>t. b!n = Ok t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
+"\<forall> y n. (G \<turnstile> b <=l y) --> n < length y --> y!n = OK t --> 
+  (\<exists>t. b!n = OK t \<and> (G \<turnstile> (b!n) <=o (y!n)))" (is "?P b")
 proof (induct (open) ?P b)
   show "?P []" by simp
 
@@ -25,12 +25,12 @@ proof (induct (open) ?P b)
     fix z zs n
     assume * : 
       "G \<turnstile> a <=o z" "list_all2 (sup_ty_opt G) list zs" 
-      "n < Suc (length zs)" "(z # zs) ! n = Ok t"
+      "n < Suc (length zs)" "(z # zs) ! n = OK t"
 
-    show "(\<exists>t. (a # list) ! n = Ok t) \<and> G \<turnstile>(a # list) ! n <=o Ok t" 
+    show "(\<exists>t. (a # list) ! n = OK t) \<and> G \<turnstile>(a # list) ! n <=o OK t" 
     proof (cases n) 
       case 0
-      with * show ?thesis by (simp add: sup_ty_opt_Ok)
+      with * show ?thesis by (simp add: sup_ty_opt_OK)
     next
       case Suc
       with Cons *
@@ -42,7 +42,7 @@ qed
 
 lemma all_widen_is_sup_loc:
 "\<forall>b. length a = length b --> 
-     (\<forall>x\<in>set (zip a b). x \<in> widen G) = (G \<turnstile> (map Ok a) <=l (map Ok b))" 
+     (\<forall>x\<in>set (zip a b). x \<in> widen G) = (G \<turnstile> (map OK a) <=l (map OK b))" 
  (is "\<forall>b. length a = length b --> ?Q a b" is "?P a")
 proof (induct "a")
   show "?P []" by simp
@@ -273,14 +273,14 @@ proof -
         by - (rule widen_trans, auto)
     
       from G'
-      have "G \<turnstile> map Ok apTs' <=l map Ok apTs"
+      have "G \<turnstile> map OK apTs' <=l map OK apTs"
         by (simp add: sup_state_def)
       also
       from l w
-      have "G \<turnstile> map Ok apTs <=l map Ok list" 
+      have "G \<turnstile> map OK apTs <=l map OK list" 
         by (simp add: all_widen_is_sup_loc)
       finally
-      have "G \<turnstile> map Ok apTs' <=l map Ok list" .
+      have "G \<turnstile> map OK apTs' <=l map OK list" .
 
       with l'
       have w': "\<forall>x \<in> set (zip apTs' list). x \<in> widen G"
@@ -302,12 +302,11 @@ lemmas [simp del] = split_paired_Ex
 lemmas [simp] = step_def
 
 lemma step_mono_Some:
-"[| succs i pc \<noteq> []; app i G rT (Some s2); G \<turnstile> s1 <=s s2 |] ==>
+"[| app i G rT (Some s2); G \<turnstile> s1 <=s s2 |] ==>
   G \<turnstile> the (step i G (Some s1)) <=s the (step i G (Some s2))"
 proof (cases s1, cases s2) 
   fix a1 b1 a2 b2
   assume s: "s1 = (a1,b1)" "s2 = (a2,b2)"
-  assume succs: "succs i pc \<noteq> []"
   assume app2: "app i G rT (Some s2)"
   assume G: "G \<turnstile> s1 <=s s2"
 
@@ -330,11 +329,11 @@ proof (cases s1, cases s2)
 
     with s app1
     obtain y where
-       y:  "nat < length b1" "b1 ! nat = Ok y" by clarsimp
+       y:  "nat < length b1" "b1 ! nat = OK y" by clarsimp
 
     from Load s app2
     obtain y' where
-       y': "nat < length b2" "b2 ! nat = Ok y'" by clarsimp
+       y': "nat < length b2" "b2 ! nat = OK y'" by clarsimp
 
     from G s 
     have "G \<turnstile> b1 <=l b2" by (simp add: sup_state_def)
@@ -415,9 +414,10 @@ proof (cases s1, cases s2)
     show ?thesis 
       by (clarsimp simp add: sup_state_def)
   next
-    case Return
-    with succs have "False" by simp
-    thus ?thesis by blast
+    case Return 
+    with G step
+    show ?thesis
+      by simp
   next
     case Pop
     with G s step app1 app2
@@ -464,7 +464,7 @@ proof (cases s1, cases s2)
 qed
 
 lemma step_mono:
-  "[| succs i pc \<noteq> []; app i G rT s2; G \<turnstile> s1 <=' s2 |] ==>
+  "[| app i G rT s2; G \<turnstile> s1 <=' s2 |] ==>
   G \<turnstile> step i G s1 <=' step i G s2"
   by (cases s1, cases s2, auto dest: step_mono_Some)
 

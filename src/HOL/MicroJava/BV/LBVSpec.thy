@@ -25,7 +25,7 @@ constdefs
                => state_type option err" 
   "wtl_inst i G rT s cert max_pc pc == 
      if app i G rT s \<and> check_cert i G s cert pc max_pc then 
-       if pc+1 mem (succs i pc) then Ok (step i G s) else Ok (cert!(pc+1))
+       if pc+1 mem (succs i pc) then OK (step i G s) else OK (cert!(pc+1))
      else Err";
 
 constdefs
@@ -42,7 +42,7 @@ consts
   wtl_inst_list :: "[instr list,jvm_prog,ty,certificate,p_count,p_count, 
                      state_type option] => state_type option err"
 primrec
-  "wtl_inst_list []     G rT cert max_pc pc s = Ok s"
+  "wtl_inst_list []     G rT cert max_pc pc s = OK s"
   "wtl_inst_list (i#is) G rT cert max_pc pc s = 
     (let s' = wtl_cert i G rT s cert max_pc pc in
      strict (wtl_inst_list is G rT cert max_pc (pc+1)) s')";
@@ -55,7 +55,7 @@ constdefs
   in 
   0 < max_pc \<and>   
   wtl_inst_list ins G rT cert max_pc 0 
-                (Some ([],(Ok (Class C))#((map Ok pTs))@(replicate mxl Err))) \<noteq> Err"
+                (Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err))) \<noteq> Err"
 
  wtl_jvm_prog :: "[jvm_prog,prog_certificate] => bool" 
  "wtl_jvm_prog G cert ==  
@@ -63,27 +63,27 @@ constdefs
 
 
 
-lemma wtl_inst_Ok:
-"(wtl_inst i G rT s cert max_pc pc = Ok s') =
+lemma wtl_inst_OK:
+"(wtl_inst i G rT s cert max_pc pc = OK s') =
  (app i G rT s \<and> (\<forall>pc' \<in> set (succs i pc). 
                    pc' < max_pc \<and> (pc' \<noteq> pc+1 --> G \<turnstile> step i G s <=' cert!pc')) \<and> 
  (if pc+1 \<in> set (succs i pc) then s' = step i G s else s' = cert!(pc+1)))"
   by (auto simp add: wtl_inst_def check_cert_def set_mem_eq);
 
 lemma strict_Some [simp]: 
-"(strict f x = Ok y) = (\<exists> z. x = Ok z \<and> f z = Ok y)"
+"(strict f x = OK y) = (\<exists> z. x = OK z \<and> f z = OK y)"
   by (cases x, auto)
 
 lemma wtl_Cons:
   "wtl_inst_list (i#is) G rT cert max_pc pc s \<noteq> Err = 
-  (\<exists>s'. wtl_cert i G rT s cert max_pc pc = Ok s' \<and> 
+  (\<exists>s'. wtl_cert i G rT s cert max_pc pc = OK s' \<and> 
         wtl_inst_list is G rT cert max_pc (pc+1) s' \<noteq> Err)"
 by (auto simp del: split_paired_Ex)
 
 lemma wtl_append:
-"\<forall> s pc. (wtl_inst_list (a@b) G rT cert mpc pc s = Ok s') =
-   (\<exists>s''. wtl_inst_list a G rT cert mpc pc s = Ok s'' \<and> 
-          wtl_inst_list b G rT cert mpc (pc+length a) s'' = Ok s')" 
+"\<forall> s pc. (wtl_inst_list (a@b) G rT cert mpc pc s = OK s') =
+   (\<exists>s''. wtl_inst_list a G rT cert mpc pc s = OK s'' \<and> 
+          wtl_inst_list b G rT cert mpc (pc+length a) s'' = OK s')" 
   (is "\<forall> s pc. ?C s pc a" is "?P a")
 proof (induct ?P a)
 
@@ -101,24 +101,24 @@ proof (induct ?P a)
       case Err thus ?thesis by simp
     next
       fix s0
-      assume Ok: "wtl_cert x G rT s cert mpc pc = Ok s0"
+      assume OK: "wtl_cert x G rT s cert mpc pc = OK s0"
 
       with IH
       have "?C s0 (Suc pc) xs" by blast
       
-      with Ok
+      with OK
       show ?thesis by simp
     qed
   qed
 qed
 
 lemma wtl_take:
-  "wtl_inst_list is G rT cert mpc pc s = Ok s'' ==>
-   \<exists>s'. wtl_inst_list (take pc' is) G rT cert mpc pc s = Ok s'"
+  "wtl_inst_list is G rT cert mpc pc s = OK s'' ==>
+   \<exists>s'. wtl_inst_list (take pc' is) G rT cert mpc pc s = OK s'"
 proof -
-  assume "wtl_inst_list is G rT cert mpc pc s = Ok s''"
+  assume "wtl_inst_list is G rT cert mpc pc s = OK s''"
 
-  hence "wtl_inst_list (take pc' is @ drop pc' is) G rT cert mpc pc s = Ok s''"
+  hence "wtl_inst_list (take pc' is @ drop pc' is) G rT cert mpc pc s = OK s''"
     by simp
 
   thus ?thesis 
@@ -144,13 +144,13 @@ proof (induct l)
 qed
 
 lemma wtl_Suc:
- "[| wtl_inst_list (take pc is) G rT cert (length is) 0 s = Ok s'; 
-     wtl_cert (is!pc) G rT s' cert (length is) pc = Ok s'';
+ "[| wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s'; 
+     wtl_cert (is!pc) G rT s' cert (length is) pc = OK s'';
      Suc pc < length is |] ==>
-  wtl_inst_list (take (Suc pc) is)  G rT cert (length is) 0 s = Ok s''" 
+  wtl_inst_list (take (Suc pc) is)  G rT cert (length is) 0 s = OK s''" 
 proof -
-  assume wtt: "wtl_inst_list (take pc is) G rT cert (length is) 0 s = Ok s'"
-  assume wtc: "wtl_cert (is!pc) G rT s' cert (length is) pc = Ok s''"
+  assume wtt: "wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s'"
+  assume wtc: "wtl_cert (is!pc) G rT s' cert (length is) pc = OK s''"
   assume pc: "Suc pc < length is"
 
   hence "take (Suc pc) is = (take pc is)@[is!pc]" 
@@ -164,8 +164,8 @@ qed
 lemma wtl_all:
   "[| wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err;
       pc < length is |] ==> 
-   \<exists>s' s''. wtl_inst_list (take pc is) G rT cert (length is) 0 s = Ok s' \<and> 
-            wtl_cert (is!pc) G rT s' cert (length is) pc = Ok s''"
+   \<exists>s' s''. wtl_inst_list (take pc is) G rT cert (length is) 0 s = OK s' \<and> 
+            wtl_cert (is!pc) G rT s' cert (length is) pc = OK s''"
 proof -
   assume all: "wtl_inst_list is G rT cert (length is) 0 s \<noteq> Err"
 

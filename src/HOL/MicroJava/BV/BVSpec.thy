@@ -9,11 +9,6 @@ header "The Bytecode Verifier"
 
 theory BVSpec = Step:
 
-types
- method_type = "state_type option list"
- class_type	 = "sig => method_type"
- prog_type	 = "cname => class_type"
-
 constdefs
 wt_instr :: "[instr,jvm_prog,ty,method_type,p_count,p_count] => bool"
 "wt_instr i G rT phi max_pc pc == 
@@ -22,7 +17,7 @@ wt_instr :: "[instr,jvm_prog,ty,method_type,p_count,p_count] => bool"
 
 wt_start :: "[jvm_prog,cname,ty list,nat,method_type] => bool"
 "wt_start G C pTs mxl phi == 
-    G \<turnstile> Some ([],(Ok (Class C))#((map Ok pTs))@(replicate mxl Err)) <=' phi!0"
+    G \<turnstile> Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err)) <=' phi!0"
 
 
 wt_method :: "[jvm_prog,cname,ty list,ty,nat,instr list,method_type] => bool"

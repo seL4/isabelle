@@ -6,29 +6,23 @@
 
 header "Lifted Type Relations"
 
-theory Convert = JVMExec:
+theory Convert = Err + JVMExec:
 
 text "The supertype relation lifted to type err, type lists and state types."
-
-datatype 'a err = Err | Ok 'a
 
 types
  locvars_type = "ty err list"
  opstack_type = "ty list"
  state_type   = "opstack_type \<times> locvars_type"
-
+ method_type  = "state_type option list"
+ class_type	  = "sig => method_type"
+ prog_type	  = "cname => class_type"
 
 consts
   strict  :: "('a => 'b err) => ('a err => 'b err)"
 primrec
   "strict f Err    = Err"
-  "strict f (Ok x) = f x"
-
-
-consts
-  val :: "'a err => 'a"
-primrec
-  "val (Ok s) = s"
+  "strict f (OK x) = f x"
 
   
 constdefs
@@ -36,7 +30,7 @@ constdefs
   lift_top :: "('a => 'b => bool) => ('a err => 'b err => bool)"
   "lift_top P a' a == case a of 
                        Err  => True
-                     | Ok t => (case a' of Err => False | Ok t' => P t' t)"
+                     | OK t => (case a' of Err => False | OK t' => P t' t)"
 
   (* lifts a relation to option with None as bottom element *)
   lift_bottom :: "('a => 'b => bool) => ('a option => 'b option => bool)"
@@ -56,7 +50,7 @@ constdefs
   sup_state :: "['code prog,state_type,state_type] => bool"	  
                ("_ \<turnstile> _ <=s _"  [71,71] 70)
   "G \<turnstile> s <=s s' == 
-   (G \<turnstile> map Ok (fst s) <=l map Ok (fst s')) \<and> G \<turnstile> snd s <=l snd s'"
+   (G \<turnstile> map OK (fst s) <=l map OK (fst s')) \<and> G \<turnstile> snd s <=l snd s'"
 
   sup_state_opt :: "['code prog,state_type option,state_type option] => bool" 
                    ("_ \<turnstile> _ <=' _"  [71,71] 70)
@@ -73,14 +67,7 @@ syntax (HTML)
                    ("_ |- _ <=' _"  [71,71] 70)
                    
 
-lemma not_Err_eq [iff]:
-  "(x \<noteq> Err) = (\<exists>a. x = Ok a)" 
-  by (cases x) auto
-
-lemma not_Some_eq [iff]:
-  "(\<forall>y. x \<noteq> Ok y) = (x = Err)"
-  by (cases x) auto  
-
+lemmas [iff] = not_Err_eq not_OK_eq
 
 lemma lift_top_refl [simp]:
   "[| !!x. P x x |] ==> lift_top P x x"
@@ -105,9 +92,9 @@ proof -
   } note x_none = this
   
   { fix r t
-    assume x: "x = Ok r" and z: "z = Ok t"    
+    assume x: "x = OK r" and z: "z = OK t"    
     with a b
-    obtain s where y: "y = Ok s" 
+    obtain s where y: "y = OK s" 
       by (simp add: lift_top_def split: err.splits)
     
     from a x y
@@ -130,16 +117,16 @@ lemma lift_top_Err_any [simp]:
   "lift_top P Err any = (any = Err)"
   by (simp add: lift_top_def split: err.splits)
 
-lemma lift_top_Ok_Ok [simp]:
-  "lift_top P (Ok a) (Ok b) = P a b"
+lemma lift_top_OK_OK [simp]:
+  "lift_top P (OK a) (OK b) = P a b"
   by (simp add: lift_top_def split: err.splits)
 
-lemma lift_top_any_Ok [simp]:
-  "lift_top P any (Ok b) = (\<exists>a. any = Ok a \<and> P a b)"
+lemma lift_top_any_OK [simp]:
+  "lift_top P any (OK b) = (\<exists>a. any = OK a \<and> P a b)"
   by (simp add: lift_top_def split: err.splits)
 
-lemma lift_top_Ok_any:
-  "lift_top P (Ok a) any = (any = Err \<or> (\<exists>b. any = Ok b \<and> P a b))"
+lemma lift_top_OK_any:
+  "lift_top P (OK a) any = (any = Err \<or> (\<exists>b. any = OK b \<and> P a b))"
   by (simp add: lift_top_def split: err.splits)
 
 
@@ -227,12 +214,12 @@ theorem anyConvErr [simp]:
   "(G \<turnstile> Err <=o any) = (any = Err)"
   by (simp add: sup_ty_opt_def)
 
-theorem OkanyConvOk [simp]:
-  "(G \<turnstile> (Ok ty') <=o (Ok ty)) = (G \<turnstile> ty' \<preceq> ty)"
+theorem OKanyConvOK [simp]:
+  "(G \<turnstile> (OK ty') <=o (OK ty)) = (G \<turnstile> ty' \<preceq> ty)"
   by (simp add: sup_ty_opt_def)
 
-theorem sup_ty_opt_Ok:
-  "G \<turnstile> a <=o (Ok b) ==> \<exists> x. a = Ok x"
+theorem sup_ty_opt_OK:
+  "G \<turnstile> a <=o (OK b) ==> \<exists> x. a = OK x"
   by (clarsimp simp add: sup_ty_opt_def)
 
 lemma widen_PrimT_conv1 [simp]:
@@ -240,8 +227,8 @@ lemma widen_PrimT_conv1 [simp]:
   by (auto elim: widen.elims)
 
 theorem sup_PTS_eq:
-  "(G \<turnstile> Ok (PrimT p) <=o X) = (X=Err \<or> X = Ok (PrimT p))"
-  by (auto simp add: sup_ty_opt_def lift_top_Ok_any)
+  "(G \<turnstile> OK (PrimT p) <=o X) = (X=Err \<or> X = OK (PrimT p))"
+  by (auto simp add: sup_ty_opt_def lift_top_OK_any)
 
 
 
