@@ -6,7 +6,7 @@
 Generic simplifier, suitable for most logics.
  
 *)
-infix addsimps addeqcongs
+infix addsimps addeqcongs delsimps
       setsolver setloop setmksimps setsubgoaler;
 
 signature SIMPLIFIER =
@@ -14,6 +14,7 @@ sig
   type simpset
   val addeqcongs: simpset * thm list -> simpset
   val addsimps: simpset * thm list -> simpset
+  val delsimps: simpset * thm list -> simpset
   val asm_full_simp_tac: simpset -> int -> tactic
   val asm_simp_tac: simpset -> int -> tactic
   val empty_ss: simpset
@@ -80,10 +81,19 @@ fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) setmksimps mk_simps =
      loop_tac=loop_tac};
 
 fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) addsimps rews =
-  let val rews' = flat(map (Thm.mk_rews_of_mss mss) rews)
-  in
+  let val rews' = flat(map (Thm.mk_rews_of_mss mss) rews) in
   SS{mss= Thm.add_simps(mss,rews'),
      simps= rews' @ simps,
+     congs= congs,
+     subgoal_tac= subgoal_tac,
+     finish_tac=finish_tac,
+     loop_tac=loop_tac}
+  end;
+
+fun (SS{mss,simps,congs,subgoal_tac,finish_tac,loop_tac}) delsimps rews =
+  let val rews' = flat(map (Thm.mk_rews_of_mss mss) rews) in
+  SS{mss= Thm.del_simps(mss,rews'),
+     simps= foldl (gen_rem eq_thm) (simps,rews'),
      congs= congs,
      subgoal_tac= subgoal_tac,
      finish_tac=finish_tac,
