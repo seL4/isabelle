@@ -90,7 +90,7 @@ fun prove_nonempty thy cset goal (witn1_tac, witn_names, witn_thms, witn2_tac) =
       if_none witn2_tac (TRY (ALLGOALS (CLASET' blast_tac)));
   in
     message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
-    prove_goalw_cterm [] (cterm_of (sign_of thy) goal) (K [tac])
+    Tactic.prove (Theory.sign_of thy) [] [] goal (K tac)
   end handle ERROR => error ("Failed to prove non-emptiness of " ^ quote (string_of_cterm cset));
 
 
