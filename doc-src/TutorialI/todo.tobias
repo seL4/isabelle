@@ -78,11 +78,6 @@ Minor additions to the tutorial, unclear where
 Tacticals: , ? +
 Note: + is used in typedef section!
 
-Mention that simp etc (big step tactics) insist on change?
-
-Rules: Introduce "by" (as a kind of shorthand for apply+done, except that it
-does more.)
-
 A list of further useful commands (rules? tricks?)
 prefer, defer, print_simpset (-> print_simps?)
 
@@ -90,11 +85,9 @@ Advanced Ind expects rule_format incl (no_asm) (which it currently explains!)
 Where explained? Should go into a separate section as Inductive needs it as
 well.
 
-Where is "simplified" explained? Needed by Inductive/AB.thy
-
 demonstrate x : set xs in Sets. Or Tricks chapter?
 
-Appendix with HOL keywords. Say something about other keywords.
+Appendix with HOL and Isar keywords.
 
 
 Possible exercises

@@ -15,7 +15,7 @@ all: default
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
-
+USEDIR = @$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL
 
 ## HOL
 
@@ -39,7 +39,7 @@ styles:
 HOL-Ifexpr: HOL $(LOG)/HOL-Ifexpr.gz
 
 $(LOG)/HOL-Ifexpr.gz: $(OUT)/HOL Ifexpr/Ifexpr.thy Ifexpr/ROOT.ML
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Ifexpr
+	$(USEDIR) Ifexpr
 	@rm -f tutorial.dvi
 
 ## HOL-ToyList
@@ -50,19 +50,19 @@ ToyList2/ToyList.thy: ToyList2/ToyList1 ToyList2/ToyList2
 	cat ToyList2/ToyList1 ToyList2/ToyList2 > ToyList2/ToyList.thy
 
 $(LOG)/HOL-ToyList2.gz: $(OUT)/HOL ToyList2/ToyList.thy ToyList2/ROOT.ML
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL ToyList2
+	$(USEDIR) ToyList2
 	@rm -f tutorial.dvi
 
 $(LOG)/HOL-ToyList.gz: $(OUT)/HOL ToyList/ToyList.thy ToyList/ROOT.ML
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL ToyList
+	$(USEDIR) ToyList
 	@rm -f tutorial.dvi
 
 ## HOL-CodeGen
 
 HOL-CodeGen: HOL $(LOG)/HOL-CodeGen.gz
 
-$(LOG)/HOL-CodeGen.gz: $(OUT)/HOL CodeGen/CodeGen.thy
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL CodeGen
+$(LOG)/HOL-CodeGen.gz: $(OUT)/HOL CodeGen/ROOT.ML CodeGen/CodeGen.thy
+	$(USEDIR) CodeGen
 	@rm -f tutorial.dvi
 
 
@@ -73,7 +73,7 @@ HOL-Datatype: HOL $(LOG)/HOL-Datatype.gz
 $(LOG)/HOL-Datatype.gz: $(OUT)/HOL Datatype/ROOT.ML Datatype/ABexpr.thy \
   Datatype/Nested.thy Datatype/unfoldnested.thy \
   Datatype/Fundata.thy
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Datatype
+	$(USEDIR) Datatype
 	@rm -f tutorial.dvi
 
 
@@ -82,7 +82,7 @@ $(LOG)/HOL-Datatype.gz: $(OUT)/HOL Datatype/ROOT.ML Datatype/ABexpr.thy \
 HOL-Trie: HOL $(LOG)/HOL-Trie.gz
 
 $(LOG)/HOL-Trie.gz: $(OUT)/HOL Trie/ROOT.ML Trie/Trie.thy
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Trie
+	$(USEDIR) Trie
 	@rm -f tutorial.dvi
 
 
@@ -93,7 +93,7 @@ HOL-Recdef: HOL $(LOG)/HOL-Recdef.gz
 $(LOG)/HOL-Recdef.gz: $(OUT)/HOL Recdef/ROOT.ML Recdef/examples.thy Recdef/termination.thy \
   Recdef/simplification.thy Recdef/Induction.thy \
   Recdef/Nested0.thy Recdef/Nested1.thy Recdef/Nested2.thy
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Recdef
+	$(USEDIR) Recdef
 	@rm -f tutorial.dvi
 
 
@@ -103,7 +103,7 @@ HOL-Advanced: HOL $(LOG)/HOL-Advanced.gz
 
 $(LOG)/HOL-Advanced.gz: $(OUT)/HOL Advanced/simp.thy Advanced/ROOT.ML Advanced/WFrec.thy \
 	Advanced/Partial.thy
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Advanced
+	$(USEDIR) Advanced
 	@rm -f tutorial.dvi
 
 ## HOL-Rules
@@ -130,7 +130,7 @@ $(LOG)/HOL-Sets.gz: $(OUT)/HOL Sets/Examples.thy Sets/Functions.thy \
 HOL-CTL: HOL $(LOG)/HOL-CTL.gz
 
 $(LOG)/HOL-CTL.gz: $(OUT)/HOL CTL/Base.thy CTL/PDL.thy CTL/CTL.thy CTL/CTLind.thy CTL/ROOT.ML
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL CTL
+	$(USEDIR) CTL
 	@rm -f tutorial.dvi
 
 ## HOL-Inductive
@@ -139,7 +139,7 @@ HOL-Inductive: HOL $(LOG)/HOL-Inductive.gz
 
 $(LOG)/HOL-Inductive.gz: $(OUT)/HOL Inductive/ROOT.ML \
   Inductive/Even.thy Inductive/Star.thy Inductive/AB.thy Inductive/Advanced.thy
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Inductive
+	$(USEDIR) Inductive
 	@rm -f tutorial.dvi
 
 ## HOL-Types
@@ -150,7 +150,7 @@ $(LOG)/HOL-Types.gz: $(OUT)/HOL Types/ROOT.ML \
   Types/Numbers.thy Types/Pairs.thy Types/Typedef.thy \
   Types/Overloading0.thy Types/Overloading1.thy Types/Overloading2.thy \
   Types/Overloading.thy Types/Axioms.thy
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Types
+	$(USEDIR) Types
 	@rm -f tutorial.dvi
 
 ## HOL-Misc
@@ -161,7 +161,7 @@ $(LOG)/HOL-Misc.gz: $(OUT)/HOL Misc/ROOT.ML Misc/Tree.thy Misc/Tree2.thy \
   Misc/fakenat.thy Misc/natsum.thy Misc/pairs.thy Misc/Option2.thy \
   Misc/types.thy Misc/prime_def.thy Misc/case_exprs.thy \
   Misc/simp.thy Misc/Itrev.thy Misc/AdvancedInd.thy
-	@$(ISATOOL) usedir -i true -d dvi -D document $(OUT)/HOL Misc
+	$(USEDIR) Misc
 	@rm -f tutorial.dvi
 
 
