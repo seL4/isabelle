@@ -10,15 +10,14 @@ Sprod3 = Sprod2 +
 
 arities "**" :: (pcpo,pcpo)pcpo			(* Witness sprod2.ML *)
 
-consts  
-	"@spair"     :: "'a => 'b => ('a**'b)" ("_##_" [101,100] 100)
-	"cop @spair" :: "'a -> 'b -> ('a**'b)" ("spair")
-					(* continuous strict pairing *)
+consts
+	spair        :: "'a -> 'b -> ('a**'b)" (* continuous strict pairing *)
 	sfst         :: "('a**'b)->'a"
 	ssnd         :: "('a**'b)->'b"
 	ssplit       :: "('a->'b->'c)->('a**'b)->'c"
 
-translations "x##y" => "spair[x][y]"
+syntax	"@spair"     :: "'a => 'b => ('a**'b)" ("_##_" [101,100] 100)
+translations "x##y" == "spair[x][y]"
 
 rules 
 
