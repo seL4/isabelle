@@ -4,7 +4,8 @@
 \usepackage{latexsym}
 \usepackage{graphicx}
 \usepackage{pdfsetup}
-\usepackage[english,french]{babel}
+\usepackage[french,english]{babel}
+\usepackage{ifthen}
 
 \urlstyle{rm}
 \isabellestyle{it}
@@ -26,6 +27,8 @@
 {\begin{isabellebody}}
 {\end{isabellebody}}
 
+\renewcommand{\isacommand}[1]{\ifthenelse{\equal{#1}{lemma}}
+{\par\isakeyword{#1}}{\isakeyword{#1}}}
 
 \begin{document}
 
