@@ -5,11 +5,11 @@
 # (Cf. your local man page of 'xfs' or 'fs'!)
 #
 #
-# Edit a copy of this file and run your server as follows:
+# Edit a copy of this file and run your server like this:
 #
 #   xfs -config /foo/bar/fontserver/config
 #
-# Then use something like this to test it:
+# Then test it as follows:
 #
 #   fsinfo -server localhost:7200
 #   fslsfonts -server localhost:7200
