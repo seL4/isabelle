@@ -62,14 +62,12 @@ subsubsection {* Some lemmas about records *}
 
 text {* Basic simplifications. *}
 
-lemma "point.make a b = (| Xcoord = a, Ycoord = b |)"
-by (simp add: point.make_def) -- "needed?? forget it"
-
 lemma "Xcoord (| Xcoord = a, Ycoord = b |) = a"
 by simp -- "selection"
 
 lemma "(| Xcoord = a, Ycoord = b |) (| Xcoord:= 0 |) = (| Xcoord = 0, Ycoord = b |)"
 by simp -- "update"
+
 
 subsection {* Coloured points: record extension *}
 
@@ -119,9 +117,7 @@ constdefs
    "getX r == Xcoord r"
   setX :: "['a point_scheme, int] \<Rightarrow> 'a point_scheme"
    "setX r a == r (| Xcoord := a |)"
-  extendpt :: "'a \<Rightarrow> 'a point_scheme"
-   "extendpt ext == (| Xcoord = 15, Ycoord = 0, ... = ext |)"
-     text{*not sure what this is for!*}  (* FIXME use new point.make/extend/truncate *)
+
 
 
 text {*
@@ -246,5 +242,27 @@ So we replace the ugly manual proof by splitting.  These must be quantified:
 lemma "!!r. r \<lparr>Xcoord := a\<rparr> = r \<lparr>Xcoord := a'\<rparr> \<Longrightarrow> a = a'"
 apply record_split --{* @{subgoals[display,indent=0,margin=65]} *}
 by simp
+
+constdefs
+  cpt2 :: cpoint
+   "cpt2 \<equiv> point.extend pt1 (cpoint.fields Green)"
+
+text {*
+@{thm[display] point.defs}
+*};
+
+text {*
+@{thm[display] cpoint.defs}
+*};
+
+text{*cpt2 is the same as cpt1, but defined by extending point pt1*}
+lemma "cpt1 = cpt2"
+apply (simp add: cpt1_def cpt2_def point.defs cpoint.defs)
+	--{* @{subgoals[display,indent=0,margin=65]} *}
+by (simp add: pt1_def)
+
+
+lemma "point.truncate cpt2 = pt1"
+by (simp add: pt1_def cpt2_def point.defs)
 
 end

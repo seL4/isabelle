@@ -40,7 +40,7 @@ both of type~\isa{int}.  We now declare a constant of type
 \end{isabelle}
 We see above the ASCII notation for record brackets.  You can also use
 the symbolic brackets \isa{\isasymlparr} and  \isa{\isasymrparr}.
-Record types can be written directly, rather than referring to
+Record types can be written directly, without referring to
 previously declared names: 
 \begin{isabelle}
 \isacommand{constdefs}\ \ \ pt2\ ::\ "(|\ Xcoord\ ::\ int,\ Ycoord\ ::\ int\
@@ -98,14 +98,9 @@ order:
 =\ Green\ |)"
 \end{isabelle}
 
-Unfortunately, there are no built-in conversions between types
-\isa{point} and \isa{cpoint}: to add a colour to
-a point,  or to convert a \isa{cpoint} to a \isa{point} by forgetting
-its colour, we must define operations that copy across the other
-fields.  However,  we can define generic operations
-that work on type
-\isa{point} and all extensions of it.
 
+We can define generic operations that work on type \isa{point} and all
+extensions of it. 
 Every record structure has an implicit field, \cdx{more}, to allow
 extension.  Its type is completely polymorphic:~\isa{'a}.  When a
 record value is expressed using just its standard fields, the value of
@@ -117,7 +112,7 @@ type \isa{unit}.  Within the record brackets, you can refer to the
 \end{isabelle}
 This lemma (trivially proved using \isa{simp}) applies to any
 record whose first two fields are \isa{Xcoord} and~\isa{Ycoord}.  Field
-\isa{more} can be selected in the usual way, but as all records share
+\isa{more} can be selected in the usual way, but as all records have
 this field, the identifier must be qualified:
 \begin{isabelle}
 \isacommand{lemma}\ "point.more\ cpt1\ =\ \isasymlparr col\ =\ Green\isasymrparr "\isanewline
@@ -263,8 +258,88 @@ Again, \isa{simp} finishes the proof.  Because the records have
 been split, the updates can be applied and the record equality can be
 replaced by equality of the corresponding fields.
 
+
+\subsection{Extending and Truncating Records}
+
+Each record declaration introduces functions to refer collectively to a
+record's fields and to convert between related record types.  They can, for
+instance, convert between types \isa{point} and \isa{cpoint}.  We can add a
+colour to a point or to convert a \isa{cpoint} to a \isa{point} by forgetting
+its colour.
+
+\begin{itemize}
+\item Function \isa{make} takes as arguments all of the record's fields.
+  It returns the corresponding record. 
+\item If the record type is an extension of another, 
+      function \isa{fields} takes the record's new fields
+      and returns a record consisting of just those fields.  
+\item Function \isa{extend} takes two arguments: a record to be extended and a
+  record containing the new fields.
+\item Function \isa{truncate} takes a record (possibly an extension of the
+  original record type) and returns a record of the original type, deleting
+  any additional fields.
+\end{itemize}
+
+For example, here are the versions of those functions generated for record
+\isa{point}.  We omit \isa{point.fields}, which is the same as 
+\isa{point.make}.
+\begin{isabelle}
+point.make\ ?Xcoord\ ?Ycoord\ \isasymequiv \isanewline\smallskip
+\ \ \isasymlparr Xcoord\ =\ ?Xcoord,\ Ycoord\ =\ ?Ycoord\isasymrparr \isanewline
+point.extend\ ?r\ ?more\ \isasymequiv \isanewline\smallskip
+\ \ \isasymlparr Xcoord\ =\ Xcoord\ ?r,\ Ycoord\ =\ Ycoord\ ?r,\ \isasymdots \ =\ ?more\isasymrparr \isanewline\smallskip
+point.truncate\ ?r\ \isasymequiv \ \isasymlparr Xcoord\ =\ Xcoord\ ?r,\ Ycoord\ =\ Ycoord\ ?r\isasymrparr 
+\end{isabelle}
+
+Contrast those with the corresponding functions for record \isa{cpoint}.
+Observe \isa{cpoint.fields} in particular.
+\begin{isabelle}
+cpoint.make\ ?Xcoord\ ?Ycoord\ ?col\ \isasymequiv \isanewline
+\ \ \isasymlparr Xcoord\ =\ ?Xcoord,\ Ycoord\ =\ ?Ycoord,\ col\ =\ ?col\isasymrparr \par\smallskip
+cpoint.fields\ ?col\ \isasymequiv \ \isasymlparr col\ =\ ?col\isasymrparr \par\smallskip
+cpoint.extend\ ?r\ ?more\ \isasymequiv \par
+\ \ \isasymlparr Xcoord\ =\ Xcoord\ ?r,\ Ycoord\ =\ Ycoord\ ?r,\ col\ =\ col\ ?r,\isanewline
+\isaindent{\ \ \ }\isasymdots \ =\ ?more\isasymrparr \par\smallskip
+cpoint.truncate\ ?r\ \isasymequiv \par
+\ \ \isasymlparr Xcoord\ =\ Xcoord\ ?r,\ Ycoord\ =\ Ycoord\ ?r,\ col\ =\ col\ ?r\isasymrparr 
+\end{isabelle}
+
+To demonstrate these functions, we declare a new coloured point by extending
+an ordinary point.  Function \isa{point.extend} augments \isa{pt1} with a
+colour, which is converted into a record by \isa{cpoint.fields}.
+\begin{isabelle}
+\isacommand{constdefs}\isanewline
+\ \ cpt2\ ::\ cpoint\isanewline
+\ \ \ "cpt2\ \isasymequiv\ point.extend\ pt1\ (cpoint.fields\ Green)"\isamarkupfalse%
+\end{isabelle}
+
+The coloured points \isa{cpt1} and \isa{cpt2} are equal.  The proof is
+trivial, by unfolding all the definitions.  We deliberately omit the
+definition of~\isa{pt1} in order to reveal the underlying comparison on type
+\isa{point}. 
+\begin{isabelle}
+\isacommand{lemma}\ "cpt1\ =\ cpt2"\isanewline
+\isacommand{apply}\ (simp\ add:\ cpt1_def\ cpt2_def\ point.defs\ cpoint.defs)\isanewline
+\ 1.\ Xcoord\ pt1\ =\ 999\ \isasymand \ Ycoord\ pt1\ =\ 23
+\par\smallskip
+\isacommand{by}\ (simp\ add:\ pt1_def)
+\end{isabelle}
+
+In the example below, a coloured point is truncated to leave a point.  
+We must use the \isa{truncate} function of the shorter record.
+\begin{isabelle}
+\isacommand{lemma}\ "point.truncate\ cpt2\ =\ pt1"\isanewline
+\isacommand{by}\ (simp\ add:\ pt1_def\ cpt2_def\ point.defs)
+\end{isabelle}
+
 \begin{exercise}
-\REMARK{There should be some, but I can't think of any.} 
+Extend record \isa{cpoint} to have a further field, \isa{intensity}, of
+type~\isa{nat}.  Experiment with coercions among the three record types.
+\end{exercise}
+
+\begin{exercise}
+(For Java programmers.)  
+Model a small class hierarchy using records.
 \end{exercise}
 \index{records|)}
 
