@@ -188,6 +188,11 @@ val name_list = names >> mk_list;
 val name_list1 = names1 >> mk_list;
 
 
+(* empty *)
+
+fun empty_decl toks = (empty >> K "") toks;
+
+
 (* classes *)
 
 val subclass = name -- optional ("<" $$-- !! name_list1) "[]";
@@ -413,19 +418,6 @@ val instance_decl =
   >> (fn ((x, y), z) => (cat_lines [x, y, z]));
 
 
-(* local, global path *)
-
-fun empty_decl toks = (empty >> K "") toks;
-
-val global_path =
-  "|> (fn thy => if ! global_names then thy else Theory.root_path thy)";
-
-val local_path =
-  global_path ^ "\n\
-  \|> (fn thy => if ! global_names then thy\
-  \ else Theory.add_path thy_name thy)";
-
-
 
 (** theory syntax **)
 
@@ -491,17 +483,15 @@ fun mk_structure tname ((thy_name, old_thys), (extxt, postxt, mltxt)) =
     \structure " ^ thy_name ^ " =\n\
     \struct\n\
     \\n\
-    \local\n\
-    \ val thy_name = \"" ^ tname ^ "\";\n"
+    \local\n"
     ^ local_defs ^ "\n\
     \in\n\
     \\n"
     ^ mltxt ^ "\n\
     \\n\
     \val thy = thy\n\
-    \\n"
-    ^ local_path ^
-    "\n\
+    \|> PureThy.put_name " ^ quote thy_name ^ "\n\
+    \|> PureThy.local_path\n\
     \|> Theory.add_trfuns\n"
     ^ trfun_args ^ "\n\
     \|> Theory.add_trfunsT typed_print_translation\n\
@@ -509,9 +499,9 @@ fun mk_structure tname ((thy_name, old_thys), (extxt, postxt, mltxt)) =
     \\n"
     ^ extxt ^ "\n\
     \\n\
-    \|> Theory.add_name " ^ quote thy_name ^ ";\n\
+    \|> PureThy.end_theory\n\
     \\n\
-    \val _ = store_theory (thy, " ^ quote thy_name ^ ");\n\
+    \val _ = store_theory thy;\n\
     \val _ = context thy;\n\
     \\n\
     \\n"
@@ -566,8 +556,8 @@ val pure_sections =
   axm_section "axclass" "|> AxClass.add_axclass" axclass_decl,
   section "instance" "" instance_decl,
   section "path" "|> Theory.add_path" name,
-  section "global" global_path empty_decl,
-  section "local" local_path empty_decl,
+  section "global" "|> PureThy.global_path" empty_decl,
+  section "local" "|> PureThy.local_path" empty_decl,
   section "setup" "|> Theory.apply" long_id,
   section "MLtext" "" verbatim];
 
