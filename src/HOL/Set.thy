@@ -163,13 +163,13 @@ local
 
 (* Set inclusion *)
 
-fun le_tr' (*op <=*) (Type ("fun", (Type ("set", _) :: _))) ts =
+fun le_tr' _ (*op <=*) (Type ("fun", (Type ("set", _) :: _))) ts =
       list_comb (Syntax.const "_setle", ts)
-  | le_tr' (*op <=*) _ _ = raise Match;
+  | le_tr' _ (*op <=*) _ _ = raise Match;
 
-fun less_tr' (*op <*) (Type ("fun", (Type ("set", _) :: _))) ts =
+fun less_tr' _ (*op <*) (Type ("fun", (Type ("set", _) :: _))) ts =
       list_comb (Syntax.const "_setless", ts)
-  | less_tr' (*op <*) _ _ = raise Match;
+  | less_tr' _ (*op <*) _ _ = raise Match;
 
 
 (* Translates between { e | x1..xn. P} and {u. ? x1..xn. u=e & P}      *)

@@ -132,9 +132,9 @@ local
 
 (* translating size::list -> length *)
 
-fun size_tr' (Type ("fun", (Type ("list", _) :: _))) [t] =
+fun size_tr' _ (Type ("fun", (Type ("list", _) :: _))) [t] =
       Syntax.const "length" $ t
-  | size_tr'   _ _ = raise Match;
+  | size_tr' _ _ _ = raise Match;
 
 in
 
