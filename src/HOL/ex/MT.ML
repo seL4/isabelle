@@ -19,6 +19,11 @@ NEEDS TO USE INDUCTIVE DEFS PACKAGE
 (* Inference systems                                            *)
 (* ############################################################ *)
 
+val lfp_lemma2 = thm "lfp_lemma2";
+val lfp_lemma3 = thm "lfp_lemma3";
+val gfp_lemma2 = thm "gfp_lemma2";
+val gfp_lemma3 = thm "gfp_lemma3";
+
 val infsys_mono_tac = (REPEAT (ares_tac (basic_monos@[allI,impI]) 1));
 
 val prems = goal MT.thy "P a b ==> P (fst (a,b)) (snd (a,b))";

@@ -15,11 +15,11 @@ For Isabelle2005:
 
 - eliminate the last remaining old-style theories (Larry):  
   Datatype_Universe.ML
-  Gfp.ML
   HOL_lemmas.ML
-  Lfp.ML
   NatArith.ML
   Relation_Power.ML
   Sum_Type.ML
+  
+- update or remove ex/MT (Larry? Tobias?)  
 
 - remove this file (Tobias)

@@ -4,7 +4,7 @@
 
 *)
 
-header {*Greatest Fixed Points*}
+header{*Greatest Fixed Points and the Knaster-Tarski Theorem*}
 
 theory Gfp
 imports Lfp
@@ -16,10 +16,10 @@ constdefs
 
 
 
-subsection{*Proof of Knaster-Tarski Theorem using gfp*}
+subsection{*Proof of Knaster-Tarski Theorem using @{term gfp}*}
 
 
-text{*@{term "gfp f"} is the least upper bound of 
+text{*@{term "gfp f"} is the greatest lower bound of 
       the set @{term "{u. u \<subseteq> f(u)}"} *}
 
 lemma gfp_upperbound: "[| X \<subseteq> f(X) |] ==> X \<subseteq> gfp(f)"
@@ -118,16 +118,11 @@ ML
 val gfp_def = thm "gfp_def";
 val gfp_upperbound = thm "gfp_upperbound";
 val gfp_least = thm "gfp_least";
-val gfp_lemma2 = thm "gfp_lemma2";
-val gfp_lemma3 = thm "gfp_lemma3";
 val gfp_unfold = thm "gfp_unfold";
 val weak_coinduct = thm "weak_coinduct";
 val weak_coinduct_image = thm "weak_coinduct_image";
-val coinduct_lemma = thm "coinduct_lemma";
 val coinduct = thm "coinduct";
 val gfp_fun_UnI2 = thm "gfp_fun_UnI2";
-val coinduct3_mono_lemma = thm "coinduct3_mono_lemma";
-val coinduct3_lemma = thm "coinduct3_lemma";
 val coinduct3 = thm "coinduct3";
 val def_gfp_unfold = thm "def_gfp_unfold";
 val def_coinduct = thm "def_coinduct";
