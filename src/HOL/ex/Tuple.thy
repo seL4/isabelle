@@ -24,7 +24,7 @@ consts
   fst :: "('a, 'b) prod => 'a"
   snd :: "('a, 'b) prod => 'b"
   split :: "('a => 'b => 'c) => ('a, 'b) prod => 'c"
-  "()" :: unit  ("'(')")
+  Unity :: unit    ("'(')")
 
 
 subsection {* Concrete syntax *}

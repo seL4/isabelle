@@ -74,7 +74,7 @@ fun mk_abstuple []     body = absfree ("x", dummyT, body)
                               absfree ((fst o dest_Free) v, dummyT, mk_abstuple w body);
 
   
-fun mk_fbody v e []      = Syntax.const "()"
+fun mk_fbody v e []      = Syntax.const "Unity"
   | mk_fbody v e [x]     = if v=x then e else x
   | mk_fbody v e (x::xs) = Syntax.const "Pair" $ (if v=x then e else x) $
                            mk_fbody v e xs;
