@@ -482,8 +482,8 @@ fun result1 tacf mss thm =
 val simple_prover =
   result1 (fn mss => ALLGOALS (resolve_tac (prems_of_mss mss)));
 
-val rewrite_rule = Drule.rewrite_rule_aux simple_prover;
-val rewrite_goals_rule = Drule.rewrite_goals_rule_aux simple_prover;
+val rewrite_rule = MetaSimplifier.rewrite_rule_aux simple_prover;
+val rewrite_goals_rule = MetaSimplifier.rewrite_goals_rule_aux simple_prover;
 
 
 (*Rewrite subgoal i only.  SELECT_GOAL avoids inefficiencies in goals_conv.*)
