@@ -276,7 +276,13 @@ fun try' f msg sign t = (case (try f t) of
 
 (** elimination rules **)
 
-fun mk_elims cs cTs params intr_ts =
+fun tune_names raw_names =
+  let
+    fun tune ("", i) = Library.string_of_int i
+      | tune (s, _) = s;
+  in map2 tune (raw_names, 0 upto (length raw_names - 1)) end;
+
+fun mk_elims cs cTs params intr_ts intr_names =
   let
     val used = foldr add_term_names (intr_ts, []);
     val [aname, pname] = variantlist (["a", "P"], used);
@@ -287,7 +293,7 @@ fun mk_elims cs cTs params intr_ts =
         HOLogic.dest_Trueprop (Logic.strip_imp_concl r)
       in (u, t, Logic.strip_imp_prems r) end;
 
-    val intrs = map dest_intr intr_ts;
+    val intrs = map dest_intr intr_ts ~~ tune_names intr_names;
 
     fun mk_elim (c, T) =
       let
@@ -296,9 +302,10 @@ fun mk_elims cs cTs params intr_ts =
         fun mk_elim_prem (_, t, ts) =
           list_all_free (map dest_Free ((foldr add_term_frees (t::ts, [])) \\ params),
             Logic.list_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (a, t)) :: ts, P));
+        val c_intrs = (filter (equal c o #1 o #1) intrs);
       in
-        Logic.list_implies (HOLogic.mk_Trueprop (HOLogic.mk_mem (a, c)) ::
-          map mk_elim_prem (filter (equal c o #1) intrs), P)
+        (Logic.list_implies (HOLogic.mk_Trueprop (HOLogic.mk_mem (a, c)) ::
+          map mk_elim_prem (map #1 c_intrs), P), map #2 c_intrs)
       end
   in
     map mk_elim (cs ~~ cTs)
@@ -394,17 +401,17 @@ fun project_rules [name] rule = [(name, rule)]
             RS mp |> Thm.permute_prems 0 ~1 |> Drule.standard;
       in names ~~ map proj (1 upto n) end;
 
-fun add_cases_induct no_elim no_ind names elims induct =
+fun add_cases_induct no_elim no_ind names elims induct induct_cases =
   let
-    val cases_specs =
-      if no_elim then []
-      else map2 (fn (name, elim) => (("", elim), [InductMethod.cases_set_global name]))
-        (names, elims);
+    fun cases_spec (name, elim) = (("", elim), [InductMethod.cases_set_global name]);
+    val cases_specs = if no_elim then [] else map2 cases_spec (names, elims);
 
+    fun induct_spec (name, th) =
+      (("", th), [RuleCases.case_names (tune_names induct_cases),
+        InductMethod.induct_set_global name]);
     val induct_specs =
       if no_ind then []
-      else map (fn (name, th) => (("", th), [InductMethod.induct_set_global name]))
-        (project_rules names induct);
+      else map induct_spec (project_rules names induct);
   in PureThy.add_thms (cases_specs @ induct_specs) end;
 
 
@@ -459,25 +466,25 @@ fun prove_intrs coind mono fp_def intr_ts con_defs rec_sets_defs thy =
 
 (** prove elimination rules **)
 
-fun prove_elims cs cTs params intr_ts unfold rec_sets_defs thy =
+fun prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy =
   let
     val _ = message "  Proving the elimination rules ...";
 
     val rules1 = [CollectE, disjE, make_elim vimageD, exE];
     val rules2 = [conjE, Inl_neq_Inr, Inr_neq_Inl] @
       map make_elim [Inl_inject, Inr_inject];
-
-    val elims = map (fn t => prove_goalw_cterm rec_sets_defs
+  in
+    map (fn (t, cases) => prove_goalw_cterm rec_sets_defs
       (cterm_of (Theory.sign_of thy) t) (fn prems =>
         [cut_facts_tac [hd prems] 1,
          dtac (unfold RS subst) 1,
          REPEAT (FIRSTGOAL (eresolve_tac rules1)),
          REPEAT (FIRSTGOAL (eresolve_tac rules2)),
          EVERY (map (fn prem =>
-           DEPTH_SOLVE_1 (ares_tac [prem, conjI] 1)) (tl prems))]))
-      (mk_elims cs cTs params intr_ts)
-
-  in elims end;
+           DEPTH_SOLVE_1 (ares_tac [prem, conjI] 1)) (tl prems))])
+      |> RuleCases.name cases)
+      (mk_elims cs cTs params intr_ts intr_names)
+  end;
 
 
 (** derivation of simplified elimination rules **)
@@ -680,7 +687,7 @@ fun add_ind_def verbose declare_consts alt_name coind no_elim no_ind cs
     val (intrs, unfold) = prove_intrs coind mono fp_def intr_ts con_defs
       rec_sets_defs thy';
     val elims = if no_elim then [] else
-      prove_elims cs cTs params intr_ts unfold rec_sets_defs thy';
+      prove_elims cs cTs params intr_ts intr_names unfold rec_sets_defs thy';
     val raw_induct = if no_ind then Drule.asm_rl else
       if coind then standard (rule_by_tactic
         (rewrite_tac [mk_meta_eq vimage_Un] THEN
@@ -722,7 +729,7 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
     val rec_name = if alt_name = "" then space_implode "_" cnames else alt_name;
 
     val ((intr_names, intr_ts), intr_atts) = apfst split_list (split_list intros);
-    val elim_ts = mk_elims cs cTs params intr_ts;
+    val (elim_ts, elim_cases) = Library.split_list (mk_elims cs cTs params intr_ts intr_names);
 
     val (_, ind_prems, mutual_ind_concl) = mk_indrule cs cTs params intr_ts;
     val ind_t = Logic.list_implies (ind_prems, mutual_ind_concl);
@@ -733,18 +740,20 @@ fun add_ind_axm verbose declare_consts alt_name coind no_elim no_ind cs
               (map (fn (c, n) => (n, paramTs ---> fastype_of c, NoSyn)) (cs ~~ cnames))
          else I)
       |> Theory.add_path rec_name
-      |> PureThy.add_axiomss_i [(("intrs", intr_ts), atts), (("elims", elim_ts), [])]
+      |> PureThy.add_axiomss_i [(("intrs", intr_ts), atts), (("raw_elims", elim_ts), [])]
       |> (if coind then I else
             PureThy.add_axioms_i [(("raw_induct", ind_t), [apsnd (standard o split_rule)])]);
 
     val intrs = PureThy.get_thms thy' "intrs";
-    val elims = PureThy.get_thms thy' "elims";
+    val elims = map2 (fn (th, cases) => RuleCases.name cases th)
+      (PureThy.get_thms thy' "raw_elims", elim_cases);
     val raw_induct = if coind then Drule.asm_rl else PureThy.get_thm thy' "raw_induct";
     val induct = if coind orelse length cs > 1 then raw_induct
       else standard (raw_induct RSN (2, rev_mp));
 
     val thy'' =
       thy'
+      |> PureThy.add_thmss [(("elims", elims), [])]
       |> (if coind then I else PureThy.add_thms [(("induct", induct), [])])
       |> PureThy.add_thms ((intr_names ~~ intrs) ~~ intr_atts)
       |> Theory.parent_path;
@@ -790,7 +799,8 @@ fun add_inductive_i verbose declare_consts alt_name coind no_elim no_ind cs
         con_defs thy params paramTs cTs cnames;
     val thy2 = thy1
       |> put_inductives full_cnames ({names = full_cnames, coind = coind}, result)
-      |> add_cases_induct no_elim no_ind full_cnames (#elims result) (#induct result);
+      |> add_cases_induct no_elim no_ind full_cnames
+        (#elims result) (#induct result) (map (#1 o #1) intros);
   in (thy2, result) end;
 
 
