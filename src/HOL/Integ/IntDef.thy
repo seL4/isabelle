@@ -836,6 +836,13 @@ theorem int_induct [induct type: int, case_names nonneg neg]:
      "[|!! n. P (int n);  !!n. P (- (int (Suc n))) |] ==> P z"
   by (cases z) auto
 
+text{*Contributed by Brian Huffman*}
+theorem int_diff_cases [case_names diff]:
+assumes prem: "!!m n. z = int m - int n ==> P" shows "P"
+ apply (rule_tac z=z in int_cases)
+  apply (rule_tac m=n and n=0 in prem, simp)
+ apply (rule_tac m=0 and n="Suc n" in prem, simp)
+done
 
 lemma of_nat_nat: "0 \<le> z ==> of_nat (nat z) = of_int z"
 apply (cases z)
