@@ -123,7 +123,7 @@ setup hypsubst_setup
 use "intprover.ML"
 
 
-subsubsection {* Intuitionistic Reasoning *}
+subsection {* Intuitionistic Reasoning *}
 
 lemma impE':
   (assumes 1: "P --> Q" and 2: "Q ==> R" and 3: "P --> Q ==> P") R
@@ -192,7 +192,8 @@ next
   thus "x == y" by (rule eq_reflection)
 qed
 
-lemma atomize_conj [atomize]: "(!!C. (A ==> B ==> PROP C) ==> PROP C) == Trueprop (A & B)"
+lemma atomize_conj [atomize]:
+  "(!!C. (A ==> B ==> PROP C) ==> PROP C) == Trueprop (A & B)"
 proof
   assume "!!C. (A ==> B ==> PROP C) ==> PROP C"
   show "A & B" by (rule conjI)
