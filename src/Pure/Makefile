@@ -30,7 +30,7 @@ FILES =	POLY.ML NJ.ML ROOT.ML library.ML term.ML symtab.ML type.ML sign.ML\
 SYNTAX_FILES =	Syntax/ROOT.ML	Syntax/ast.ML		Syntax/lexicon.ML\
 	Syntax/parser.ML	Syntax/type_ext.ML	Syntax/syn_trans.ML\
 	Syntax/pretty.ML	Syntax/printer.ML	Syntax/syntax.ML\
-	Syntax/syn_ext.ML	Syntax/mixfix.ML
+	Syntax/syn_ext.ML	Syntax/mixfix.ML	Syntax/symbol_font.ML
 
 THY_FILES = Thy/ROOT.ML		Thy/thy_scan.ML		Thy/thy_parse.ML\
 	Thy/thy_syn.ML		Thy/thy_read.ML		Thy/thm_database.ML
