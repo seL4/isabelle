@@ -10,6 +10,7 @@ sig
   type context
   type state
   exception STATE of string * state
+  val check_result: string -> state -> 'a Seq.seq -> 'a Seq.seq
   val context_of: state -> context
   val theory_of: state -> theory
   val sign_of: state -> Sign.sg
@@ -55,7 +56,7 @@ sig
   val local_qed: (state -> state Seq.seq) -> ({kind: string, name: string, thm: thm} -> unit)
     -> state -> state Seq.seq
   val global_qed: (state -> state Seq.seq) -> bstring option
-    -> theory attribute list option -> state -> theory * {kind: string, name: string, thm: thm}
+    -> theory attribute list option -> state -> (theory * {kind: string, name: string, thm: thm}) Seq.seq
 end;
 
 signature PROOF_PRIVATE =
@@ -126,6 +127,11 @@ exception STATE of string * state;
 
 fun err_malformed name state =
   raise STATE (name ^ ": internal error -- malformed proof state", state);
+
+fun check_result msg state sq =
+  (case Seq.pull sq of
+    None => raise STATE (msg, state)
+  | Some s_sq => Seq.cons s_sq);
 
 
 fun map_current f (State ({context, facts, mode, goal}, nodes)) =
@@ -256,8 +262,8 @@ fun close_block (State (_, node :: nodes)) = State (node, nodes)
 val verbose = ProofContext.verbose;
 
 fun print_facts _ None = ()
-  | print_facts s (Some ths) =
-      Pretty.writeln (Pretty.big_list (s ^ " facts:") (map Display.pretty_thm ths));
+  | print_facts s (Some ths) = Pretty.writeln (Pretty.big_list (s ^ " facts:")
+      (map (setmp Display.show_hyps false Display.pretty_thm) ths));
 
 fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
   let
@@ -370,7 +376,7 @@ fun prep_result state asms t raw_thm =
       err ("Additional hypotheses:\n" ^ cat_lines (map (Sign.string_of_term sign) hyps))
 (* FIXME    else if not (Pattern.matches tsig (t, Logic.skip_flexpairs prop)) then
       err ("Proved a different theorem: " ^ Sign.string_of_term sign prop) *)
-    else (thm, prop)
+    else thm
   end;
 
 
@@ -578,19 +584,12 @@ val at_bottom = can (assert_bottom true o close_block);
 
 (* finish proof *)
 
-fun check_finished state states =
-  (case Seq.pull states of
-    None => raise STATE ("Failed to finish proof", state)
-  | Some s_sq => Seq.cons s_sq);
-
-fun finish_proof bot finalize state =
+fun finish_proof bot state =
   state
   |> assert_forward
   |> close_block
   |> assert_bottom bot
-  |> assert_current_goal true
-  |> finalize
-  |> check_finished state;
+  |> assert_current_goal true;
 
 
 (* end_block *)
@@ -609,7 +608,7 @@ fun end_block state =
 fun finish_local print_result state =
   let
     val ((kind, name, asms, tacs, t), (_, raw_thm)) = current_goal state;
-    val (result, result_prop) = prep_result state asms t raw_thm;
+    val result = prep_result state asms t raw_thm;
     val (atts, opt_solve) =
       (case kind of
         Goal atts => (atts, solve_goal result tacs)
@@ -619,14 +618,15 @@ fun finish_local print_result state =
     print_result {kind = kind_name kind, name = name, thm = result};
     state
     |> close_block
-    |> auto_bind_facts name [result_prop]
+    |> auto_bind_facts name [t]
     |> have_thmss name atts [Thm.no_attributes [result]]
     |> opt_solve
   end;
 
 fun local_qed finalize print_result state =
   state
-  |> finish_proof false finalize
+  |> finish_proof false
+  |> finalize
   |> (Seq.flat o Seq.map (finish_local print_result));
 
 
@@ -635,7 +635,7 @@ fun local_qed finalize print_result state =
 fun finish_global alt_name alt_atts state =
   let
     val ((kind, def_name, asms, _, t), (_, raw_thm)) = current_goal state;
-    val result = final_result state (#1 (prep_result state asms t raw_thm));
+    val result = final_result state (prep_result state asms t raw_thm);
 
     val name = if_none alt_name def_name;
     val atts =
@@ -647,11 +647,12 @@ fun finish_global alt_name alt_atts state =
     val (thy', result') = PureThy.store_thm ((name, result), atts) (theory_of state);
   in (thy', {kind = kind_name kind, name = name, thm = result'}) end;
 
+(*Note: should inspect first result only, backtracking may destroy theory*)
 fun global_qed finalize alt_name alt_atts state =
   state
-  |> finish_proof true finalize
-  |> Seq.hd
-  |> finish_global alt_name alt_atts;
+  |> finish_proof true
+  |> finalize
+  |> Seq.map (finish_global alt_name alt_atts);
 
 
 end;
