@@ -6,7 +6,7 @@
 
 header {* Effect of Instructions on the State Type *}
 
-theory Effect = JVMType + JVMExec:
+theory Effect = JVMType + JVMExceptions:
 
 types
   succ_type = "(p_count \<times> state_type option) list"
@@ -97,6 +97,23 @@ constdefs
   eff :: "instr => jvm_prog => p_count => exception_table => state_type option => succ_type"
   "eff i G pc et s == (map (\<lambda>pc'. (pc',norm_eff i G s)) (succs i pc)) @ (xcpt_eff i G pc s et)"
 
+constdefs
+  isPrimT :: "ty \<Rightarrow> bool"
+  "isPrimT T == case T of PrimT T' \<Rightarrow> True | RefT T' \<Rightarrow> False"
+
+  isRefT :: "ty \<Rightarrow> bool"
+  "isRefT T == case T of PrimT T' \<Rightarrow> False | RefT T' \<Rightarrow> True"
+
+lemma isPrimT [simp]:
+  "isPrimT T = (\<exists>T'. T = PrimT T')" by (simp add: isPrimT_def split: ty.splits)
+
+lemma isRefT [simp]:
+  "isRefT T = (\<exists>T'. T = RefT T')" by (simp add: isRefT_def split: ty.splits)
+
+
+lemma "list_all2 P a b \<Longrightarrow> \<forall>(x,y) \<in> set (zip a b). P x y"
+  by (simp add: list_all2_def) 
+
 
 text "Conditions under which eff is applicable:"
 consts
@@ -126,22 +143,21 @@ recdef app' "{}"
 "app' (Swap, G, maxs, rT, (ts1#ts2#ST,LT))        = True"
 "app' (IAdd, G, maxs, rT, (PrimT Integer#PrimT Integer#ST,LT)) 
                                                  = True"
-"app' (Ifcmpeq b, G, maxs, rT, (ts#ts'#ST,LT))    = ((\<exists>p. ts = PrimT p \<and> ts' = PrimT p) \<or> 
-                                              (\<exists>r r'. ts = RefT r \<and> ts' = RefT r'))"
+"app' (Ifcmpeq b, G, maxs, rT, (ts#ts'#ST,LT))    = (isPrimT ts \<and> ts' = ts \<or> 
+                                                     isRefT ts \<and> isRefT ts')"
 "app' (Goto b, G, maxs, rT, s)                    = True"
 "app' (Return, G, maxs, rT, (T#ST,LT))            = (G \<turnstile> T \<preceq> rT)"
-"app' (Throw, G, maxs, rT, (T#ST,LT))             = (\<exists>r. T = RefT r)"
+"app' (Throw, G, maxs, rT, (T#ST,LT))             = isRefT T"
+
 "app' (Invoke C mn fpTs, G, maxs, rT, s)          = 
    (length fpTs < length (fst s) \<and> 
    (let apTs = rev (take (length fpTs) (fst s));
         X    = hd (drop (length fpTs) (fst s)) 
     in  
-        G \<turnstile> X \<preceq> Class C \<and> is_class G C \<and> method (G,C) (mn,fpTs) \<noteq> None \<and> 
-        (\<forall>(aT,fT)\<in>set(zip apTs fpTs). G \<turnstile> aT \<preceq> fT)))"
-
+        G \<turnstile> X \<preceq> Class C \<and> is_class G C \<and> method (G,C) (mn,fpTs) \<noteq> None \<and>
+        list_all2 (\<lambda>x y. G \<turnstile> x \<preceq> y) apTs fpTs))"
+  
 "app' (i,G,maxs,rT,s)                             = False"
-
-
 
 constdefs
   xcpt_app :: "instr \<Rightarrow> jvm_prog \<Rightarrow> nat \<Rightarrow> exception_table \<Rightarrow> bool"
@@ -276,8 +292,7 @@ qed
 lemma appIfcmpeq[simp]:
 "app (Ifcmpeq b) G maxs rT pc et (Some s) = (\<exists>ts1 ts2 ST LT. s = (ts1#ts2#ST,LT) \<and> 
  ((\<exists> p. ts1 = PrimT p \<and> ts2 = PrimT p) \<or> (\<exists>r r'. ts1 = RefT r \<and> ts2 = RefT r')))" 
-  by (cases s, cases "2 <length (fst s)", auto dest: 1 2)
-
+  by (cases s, cases "2 <length (fst s)", auto dest!: 1 2)
 
 lemma appReturn[simp]:
 "app Return G maxs rT pc et (Some s) = (\<exists>T ST LT. s = (T#ST,LT) \<and> (G \<turnstile> T \<preceq> rT))" 
@@ -299,6 +314,7 @@ lemma appInvoke[simp]:
   method (G,C) (mn,fpTs) = Some (mD', rT', b') \<and> 
   (\<forall>C \<in> set (match_any G pc et). is_class G C))" (is "?app s = ?P s")
 proof (cases (open) s)
+  note list_all2_def [simp]
   case Pair
   have "?app (a,b) ==> ?P (a,b)"
   proof -
@@ -323,16 +339,25 @@ proof (cases (open) s)
     show ?thesis by (unfold app_def, clarsimp) blast
   qed
   with Pair 
-  have "?app s ==> ?P s" by simp
+  have "?app s \<Longrightarrow> ?P s" by (simp only:)
   moreover
-  have "?P s \<Longrightarrow> ?app s" by (unfold app_def) clarsimp
+  have "?P s \<Longrightarrow> ?app s" by (unfold app_def) (clarsimp simp add: min_def)
   ultimately
-  show ?thesis by blast
+  show ?thesis by (rule iffI) 
 qed 
 
 lemma effNone: 
   "(pc', s') \<in> set (eff i G pc et None) \<Longrightarrow> s' = None"
   by (auto simp add: eff_def xcpt_eff_def norm_eff_def)
+
+
+text {* some helpers to make the specification directly executable: *}
+declare list_all2_Nil [code]
+declare list_all2_Cons [code]
+
+lemma xcpt_app_lemma [code]:
+  "xcpt_app i G pc et = list_all (is_class G) (xcpt_names (i, G, pc, et))"
+  by (simp add: list_all_conv)
 
 lemmas [simp del] = app_def xcpt_app_def
 
