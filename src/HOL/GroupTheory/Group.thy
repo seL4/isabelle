@@ -1,60 +1,85 @@
 (*  Title:      HOL/GroupTheory/Group
     ID:         $Id$
     Author:     Florian Kammueller, with new proofs by L C Paulson
-    Copyright   2001  University of Cambridge
+    Copyright   1998-2001  University of Cambridge
+
+Group theory using locales
 *)
 
-(* Theory of Groups, for Sylow's theorem. F. Kammueller, 11.10.96
-Step 1: Use two separate .thy files for groups  and Sylow's thm, respectively:
+Group = Main +
 
-Besides the formalization of groups as polymorphic sets of quadruples this
-theory file contains a bunch of declarations and axioms of number theory
-because it is meant to be the basis for a proof experiment of the theorem of
-Sylow. This theorem uses various kinds of theoretical domains.  To improve the
-syntactical form I have deleted here in contrast to the first almost complete
-version of the proof (8exp/Group.* or presently results/AllgGroup/Group.* )
-all definitions which are specific for Sylow's theorem. They are now contained
-in the file Sylow.thy.
-*)
+  (*Giving funcset the nice arrow syntax \\<rightarrow> *)
+syntax (symbols)
+  "op funcset" :: "['a set, 'b set] => ('a => 'b) set"  (infixr "\\<rightarrow>" 60) 
 
-Group = Exponent +
+
+record 'a semigrouptype = 
+  carrier  :: "'a set"    
+  bin_op   :: "['a, 'a] => 'a"
+
+
+record 'a grouptype = 'a semigrouptype +
+  inverse  :: "'a => 'a"
+  unit     :: "'a"
+(* This should be obsolete, if records will allow the promised syntax *)
+syntax 
+  "@carrier" :: "'a semigrouptype => 'a set"            ("_ .<cr>"  [10] 10)
+  "@bin_op"  :: "'a semigrouptype => (['a, 'a] => 'a)"  ("_ .<f>"   [10] 10)
+  "@inverse" :: "'a grouptype => ('a => 'a)"        ("_ .<inv>" [10] 10)
+  "@unit"    :: "'a grouptype => 'a"                ("_ .<e>"   [10] 10) 
+
+translations
+  "G.<cr>"  => "carrier G"
+  "G.<f>"   => "bin_op G"
+  "G.<inv>" => "inverse G"
+  "G.<e>"   => "unit G"
+
+constdefs
+  Semigroup :: "('a semigrouptype)set"
+  "Semigroup == {G. (bin_op G): carrier G \\<rightarrow> carrier G \\<rightarrow> carrier G  &
+             (! x: carrier G. ! y: carrier G. !z: carrier G.
+                    (bin_op G (bin_op G x y) z = bin_op G (x) (bin_op G y z)))}"
 
 
 constdefs
+  Group :: "('a grouptype)set"
+  "Group == {G. (bin_op G): carrier G \\<rightarrow> carrier G \\<rightarrow> carrier G & inverse G : carrier G \\<rightarrow> carrier G 
+             & unit G : carrier G &
+             (! x: carrier G. ! y: carrier G. !z: carrier G.
+                       (bin_op G (inverse G x) x = unit G) 
+                     & (bin_op G (unit G) x = x) 
+                     & (bin_op G (bin_op G x y) z = bin_op G (x) (bin_op G y z)))}"
 
-  carrier :: "('a set * (['a, 'a] => 'a) * ('a => 'a) * 'a) => 'a set"
-   "carrier(G) == fst(G)"
+  order     :: "'a grouptype => nat"            "order(G) == card(carrier G)"
   
-  bin_op  :: "('a set * (['a, 'a] => 'a) * ('a => 'a) * 'a) => (['a, 'a] => 'a)"
-   "bin_op(G)  == fst(snd(G))"
-  
-  invers :: "('a set * (['a, 'a] => 'a) * ('a => 'a) * 'a) => ('a => 'a)"
-"invers(G) == fst(snd(snd(G)))"
-  
-  unity     :: "('a set * (['a, 'a] => 'a) * ('a => 'a) * 'a) => 'a"
- "unity(G)     == snd(snd(snd(G)))"
-  
-  order     :: "('a set * (['a, 'a] => 'a) * ('a => 'a) * 'a) => nat"
-   "order(G) == card(fst(G))"
+  AbelianGroup :: "('a grouptype) set"
+  "AbelianGroup == {G. G : Group &
+                       (! x:(G.<cr>). ! y:(G.<cr>). ((G.<f>) x y = (G.<f>) y x))}"
+consts
+  subgroup :: "('a grouptype * 'a set)set"
 
-  r_coset    :: "[('a set * (['a, 'a] => 'a) * ('a => 'a) * 'a), 'a set, 'a] => 'a set"    
-   "r_coset G  H  a == {b . ? h : H. bin_op G h a = b}"
+defs
+  subgroup_def  "subgroup == SIGMA G: Group. {H. H <= carrier G & 
+        ((| carrier = H, bin_op = lam x: H. lam y: H. (bin_op G) x y, 
+            inverse = lam x: H. (inverse G) x, unit = unit G |) : Group)}"
 
-  set_r_cos  :: "[('a set * (['a, 'a] => 'a) * ('a => 'a) * 'a), 'a set] => 'a set set"
+syntax
+  "@SG"  :: "['a set, 'a grouptype] => bool" ("_ <<= _" [51,50]50)
 
-   "set_r_cos G H == {C . ? a : carrier G. C = r_coset G H a}"
+translations
+  "H <<= G" == "(G,H) : subgroup"
 
-  subgroup :: "['a set,('a set * (['a, 'a] => 'a) * ('a => 'a) * 'a)] => bool"
-               ("_ <<= _" [51,50]50)
-
-   "H <<= G == H <= carrier(G) & (H,bin_op(G),invers(G),unity(G)) : Group"
-
-  Group :: "'a  set"
-
-   "Group == {(G,f,inv,e). f : G -> G -> G & inv : G -> G & e : G &\
-\                     (! x: G. ! y: G. !z: G.\
-\                     (f (inv x) x = e) & (f e x = x) &
-		      (f (f x y) z = f (x) (f y z)))}"
-
+locale group = 
+  fixes 
+    G        ::"'a grouptype"
+    e        :: "'a"
+    binop    :: "'a => 'a => 'a" 	(infixr "##" 80)
+    INV      :: "'a => 'a"              ("i (_)"      [90]91)
+  assumes
+    Group_G   "G: Group"
+  defines
+    e_def     "e == unit G"
+    binop_def "op ## == bin_op G"
+    inv_def   "INV == inverse G"
 end
 

@@ -259,8 +259,11 @@ HOL-GroupTheory: HOL $(LOG)/HOL-GroupTheory.gz
 
 $(LOG)/HOL-GroupTheory.gz: $(OUT)/HOL \
   Library/Primes.thy \
-  GroupTheory/Exponent.thy GroupTheory/Exponent.ML GroupTheory/Group.thy\
-  GroupTheory/Group.ML GroupTheory/Sylow.thy GroupTheory/Sylow.ML\
+  GroupTheory/Exponent.thy GroupTheory/Exponent.ML\
+  GroupTheory/Coset.thy GroupTheory/Coset.ML\
+  GroupTheory/DirProd.thy GroupTheory/DirProd.ML\
+  GroupTheory/Group.thy GroupTheory/Group.ML\
+  GroupTheory/Sylow.thy GroupTheory/Sylow.ML\
   GroupTheory/ROOT.ML
 	@$(ISATOOL) usedir $(OUT)/HOL GroupTheory
 

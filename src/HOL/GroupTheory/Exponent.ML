@@ -4,20 +4,6 @@
     Copyright   2001  University of Cambridge
 *)
 
-(*??Two more for Divides.ML *)
-Goal "0<m ==> (m*n dvd m) = (n=1)";
-by Auto_tac;  
-by (subgoal_tac "m*n dvd m*1" 1);
-by (dtac dvd_mult_cancel 1); 
-by Auto_tac;  
-qed "dvd_mult_cancel1";
-
-Goal "0<m ==> (n*m dvd m) = (n=1)";
-by (stac mult_commute 1); 
-by (etac dvd_mult_cancel1 1); 
-qed "dvd_mult_cancel2";
-
-
 (*** prime theorems ***)
 
 val prime_def = thm "prime_def";
@@ -126,23 +112,9 @@ by (assume_tac 1);
 qed "le_extend_mult";
 
 
-(* card_inj lemma: F. Kammueller, 4.9. 96
-
-The sequel contains a proof of the lemma "card_inj" used in the
-plus preparations.  The provable form here differs from the
-one used in Group in that it contains the additional neccessary assumptions
-"finite A" and "finite B" *) 
-
 Goal "0 < card(S) ==> S \\<noteq> {}";
 by (force_tac (claset(), simpset() addsimps [card_empty]) 1); 
 qed "card_nonempty";
-
-Goal "[| finite(A); finite(B); f \\<in> A -> B; inj_on f A |] ==> card A <= card B";
-bw funcset_def;
-by (rtac card_inj_on_le 1);
-by (assume_tac 4);
-by Auto_tac;  
-qed "card_inj";
 
 Goal "[| x \\<notin> F; \
 \        \\<forall>c1\\<in>insert x F. \\<forall>c2 \\<in> insert x F. c1 \\<noteq> c2 --> c1 \\<inter> c2 = {}|]\
