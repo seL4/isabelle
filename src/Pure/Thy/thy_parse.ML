@@ -230,7 +230,7 @@ val binder = "binder" $$--
 
 val opt_pris = optional ("[" $$-- !! (list nat --$$ "]")) [] >> mk_list;
 
-val mixfix = string -- !! (opt_pris -- optional nat "max_pri")
+val mixfix = string -- !! (opt_pris -- optional nat "Syntax.max_pri")
   >> (cat "Mixfix" o mk_triple2);
 
 fun opt_syn fx = optional ("(" $$-- fx --$$ ")") "NoSyn";
