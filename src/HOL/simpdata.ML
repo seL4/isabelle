@@ -177,6 +177,7 @@ prove "imp_disjL" "((P|Q) --> R) = ((P-->R)&(Q-->R))";
 
 prove "de_Morgan_disj" "(~(P | Q)) = (~P & ~Q)";
 prove "de_Morgan_conj" "(~(P & Q)) = (~P | ~Q)";
+prove "not_imp" "(~(P --> Q)) = (P & ~Q)";
 prove "not_iff" "(P~=Q) = (P = (~Q))";
 
 (*Avoids duplication of subgoals after expand_if, when the true and false 
@@ -301,13 +302,15 @@ val HOL_basic_ss = empty_ss setsubgoaler asm_simp_tac
 			    setSolver  unsafe_solver
 			    setmksimps (mksimps mksimps_pairs);
 
-val HOL_ss = HOL_basic_ss addsimps ([triv_forall_equality, (* prunes params *)
-				     if_True, if_False, if_cancel,
-				     o_apply, imp_disjL, conj_assoc, disj_assoc,
-				     de_Morgan_conj, de_Morgan_disj, 
-				     not_all, not_ex, cases_simp]
-				    @ ex_simps @ all_simps @ simp_thms)
-			  addcongs [imp_cong];
+val HOL_ss = 
+    HOL_basic_ss addsimps 
+     ([triv_forall_equality, (* prunes params *)
+       if_True, if_False, if_cancel,
+       o_apply, imp_disjL, conj_assoc, disj_assoc,
+       de_Morgan_conj, de_Morgan_disj, not_imp,
+       not_all, not_ex, cases_simp]
+     @ ex_simps @ all_simps @ simp_thms)
+     addcongs [imp_cong];
 
 qed_goal "if_distrib" HOL.thy
   "f(if c then x else y) = (if c then f x else f y)" 
