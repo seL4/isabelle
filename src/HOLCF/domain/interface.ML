@@ -68,8 +68,8 @@ local
 
 
      fun string_of_sort_emb [] = ""
-     |   string_of_sort_emb [x] = x
-	|   string_of_sort_emb (x::xs) = x^","^(string_of_sort_emb xs);
+     |   string_of_sort_emb [x] = "\"" ^x^ "\"" 
+	|   string_of_sort_emb (x::xs) = "\"" ^x^ "\"" ^ ", "^(string_of_sort_emb xs);
 
 	fun string_of_sort l = "["^ (string_of_sort_emb l)^"]";
 
