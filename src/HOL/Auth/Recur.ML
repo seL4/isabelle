@@ -53,6 +53,7 @@ result();
 
 
 (*Case three: Alice, Bob, Charlie and the server
+  TOO SLOW to run every time!
 goal thy
  "!!A B. [| A ~= B; B ~= C; A ~= Server; B ~= Server; C ~= Server |]   \
 \ ==> EX K. EX NA. EX evs: recur lost.          \
@@ -446,20 +447,17 @@ qed "unique_session_keys";
     the premises, e.g. by having A=Spy **)
 
 goal thy 
- "!!evs. [| (PB,RB,KAB) : respond evs;  evs : recur lost |]       \
-\        ==> ALL A A' N. A ~: lost & A' ~: lost -->  \
+ "!!evs. [| (PB,RB,KAB) : respond evs;  evs : recur lost |]         \
+\        ==> ALL A A' N. A ~: lost & A' ~: lost -->                 \
 \            Crypt (shrK A) {|Key K, Agent A', N|} : parts{RB} -->  \
 \            Key K ~: analz (insert RB (sees lost Spy evs))";
 by (etac respond.induct 1);
 by (forward_tac [respond_imp_responses] 2);
 by (forward_tac [respond_imp_not_used] 2);
-by (ALLGOALS (*43 seconds*)
+by (ALLGOALS (*23 seconds*)
     (asm_simp_tac 
      (analz_image_freshK_ss addsimps 
-          [analz_image_freshK, not_parts_not_analz,
-           shrK_in_analz_respond,
-           read_instantiate [("H", "?ff``?xx")] parts_insert,
-           resp_analz_image_freshK, analz_insert_freshK])));
+       [shrK_in_analz_respond, resp_analz_image_freshK, parts_insert2])));
 by (ALLGOALS Simp_tac);
 by (fast_tac (!claset addIs [impOfSubs analz_subset_parts]) 1);
 by (step_tac (!claset addSEs [MPair_parts]) 1);
@@ -474,50 +472,54 @@ by (dtac unique_session_keys 1);
 by (etac respond_certificate 1);
 by (assume_tac 1);
 by (Fast_tac 1);
-qed_spec_mp "respond_Spy_not_see_encrypted_key";
+qed_spec_mp "respond_Spy_not_see_session_key";
 
 
 goal thy
- "!!evs. [| A ~: lost;  A' ~: lost;  evs : recur lost |]            \
-\        ==> Says Server B RB : set_of_list evs -->                 \
-\            Crypt (shrK A) {|Key K, Agent A', N|} : parts{RB} -->  \
+ "!!evs. [| A ~: lost;  A' ~: lost;  evs : recur lost |]   \
+\        ==> Crypt (shrK A) {|Key K, Agent A', N|}         \
+\              : parts (sees lost Spy evs) -->             \
 \            Key K ~: analz (sees lost Spy evs)";
 by (etac recur.induct 1);
 by analz_Fake_tac;
 by (ALLGOALS
     (asm_simp_tac
-     (!simpset addsimps [not_parts_not_analz, analz_insert_freshK] 
+     (!simpset addsimps [parts_insert_sees, analz_insert_freshK] 
                setloop split_tac [expand_if])));
 (*RA4*)
-by (spy_analz_tac 4);
-(*Fake*)
-by (spy_analz_tac 1);
-by (step_tac (!claset delrules [impCE]) 1);
+by (spy_analz_tac 5);
 (*RA2*)
-by (spy_analz_tac 1);
+by (spy_analz_tac 3);
+(*Fake*)
+by (spy_analz_tac 2);
+(*Base*)
+by (fast_tac (!claset addss (!simpset)) 1);
+(*RA3 remains*)
+by (step_tac (!claset delrules [impCE]) 1);
 (*RA3, case 2: K is an old key*)
 by (best_tac (!claset addSDs [resp_analz_insert]
                       addSEs partsEs
-                      addDs [Key_in_parts_respond, 
-                             Says_imp_sees_Spy RS parts.Inj RSN (2, parts_cut)]
+                      addDs [Key_in_parts_respond]
                       addss (!simpset)) 2);
 (*RA3, case 1: use lemma previously proved by induction*)
-by (fast_tac (!claset addSEs [respond_Spy_not_see_encrypted_key RSN
+by (fast_tac (!claset addSEs [respond_Spy_not_see_session_key RSN
                               (2,rev_notE)]) 1);
-bind_thm ("Spy_not_see_encrypted_key", result() RS mp RSN (2, rev_mp));
+bind_thm ("Spy_not_see_session_key", result() RSN (2, rev_mp));
 
 
 goal thy 
- "!!evs. [| Says Server B RB : set_of_list evs;                 \
-\           Crypt (shrK A) {|Key K, Agent A', N|} : parts{RB};  \
-\           C ~: {A,A',Server};                                 \
-\           A ~: lost;  A' ~: lost;  evs : recur lost |]        \
+ "!!evs. [| Crypt (shrK A) {|Key K, Agent A', N|}         \
+\              : parts(sees lost Spy evs);                \
+\           C ~: {A,A',Server};                           \
+\           A ~: lost;  A' ~: lost;  evs : recur lost |]  \
 \        ==> Key K ~: analz (sees lost C evs)";
 by (rtac (subset_insertI RS sees_mono RS analz_mono RS contra_subsetD) 1);
 by (rtac (sees_lost_agent_subset_sees_Spy RS analz_mono RS contra_subsetD) 1);
-by (FIRSTGOAL (rtac Spy_not_see_encrypted_key));
-by (REPEAT_FIRST (fast_tac (!claset addIs [recur_mono RS subsetD])));
-qed "Agent_not_see_encrypted_key";
+by (FIRSTGOAL (rtac Spy_not_see_session_key));
+by (REPEAT_FIRST
+    (deepen_tac
+     (!claset addIs (map impOfSubs [recur_mono, parts_mono, sees_mono])) 0));
+qed "Agent_not_see_session_key";
 
 
 (**** Authenticity properties for Agents ****)
@@ -531,7 +533,10 @@ by (etac (respond_imp_responses RS responses.induct) 1);
 by (Auto_tac());
 bind_thm ("Hash_in_parts_respond", result() RSN (2, rev_mp));
 
-(*Only RA1 or RA2 can have caused such a part of a message to appear.*)
+(*Only RA1 or RA2 can have caused such a part of a message to appear.
+  This result is of no use to B, who cannot verify the Hash.  Moreover,
+  it can say nothing about how recent A's message is.  It might later be
+  used to prove B's presence to A at the run's conclusion.*)
 goalw thy [HPair_def]
  "!!evs. [| Hash {|Key(shrK A), Agent A, Agent B, NA, P|}         \
 \             : parts (sees lost Spy evs);                        \
@@ -544,13 +549,12 @@ by (parts_induct_tac 1);
 by (fast_tac (!claset addSDs [Hash_in_parts_respond]) 1);
 qed_spec_mp "Hash_auth_sender";
 
-
 (** These two results subsume (for all agents) the guarantees proved
     separately for A and B in the Otway-Rees protocol.
 **)
 
 
-(*Encrypted messages can only originate with the Server.*)
+(*Certificates can only originate with the Server.*)
 goal thy 
  "!!evs. [| A ~: lost;  A ~= Spy;  evs : recur lost |]       \
 \    ==> Crypt (shrK A) Y : parts (sees lost Spy evs)        \
@@ -568,33 +572,6 @@ by (Fast_tac 1);
 by (deepen_tac (!claset delrules [impCE]
                       addSIs [disjI2]
                       addSEs [MPair_parts]
-                      addDs  [parts_cut, parts.Body]
+                      addDs  [parts.Body]
                       addss  (!simpset)) 0 1);
-qed_spec_mp "Crypt_imp_Server_msg";
-
-
-(*Corollary: if A receives B's message then the key came from the Server*)
-goal thy 
- "!!evs. [| Says B' A RA : set_of_list evs;                        \
-\           Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RA};   \
-\           A ~: lost;  A ~= Spy;  evs : recur lost |]             \
-\        ==> EX C RC. Says Server C RC : set_of_list evs &         \
-\                       Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RC}";
-by (best_tac (!claset addSIs [Crypt_imp_Server_msg]
-                      addDs  [Says_imp_sees_Spy RS parts.Inj RSN (2,parts_cut)]
-                      addss  (!simpset)) 1);
-qed "Agent_trust";
-
-
-(*Overall guarantee: if A receives a certificant mentioning A'
-  then the only other agent who knows the key is A'.*)
-goal thy 
- "!!evs. [| Says B' A RA : set_of_list evs;                           \
-\           Crypt (shrK A) {|Key K, Agent A', NA|} : parts {RA};      \
-\           C ~: {A,A',Server};                                       \
-\           A ~: lost;  A' ~: lost;  A ~= Spy;  evs : recur lost |]   \
-\        ==> Key K ~: analz (sees lost C evs)";
-by (dtac Agent_trust 1 THEN REPEAT_FIRST assume_tac);
-by (fast_tac (!claset addSEs [Agent_not_see_encrypted_key RSN(2,rev_notE)]) 1);
-qed "Agent_secrecy";
-
+bind_thm ("Cert_imp_Server_msg", result() RSN (2, rev_mp));
