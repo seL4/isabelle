@@ -577,11 +577,11 @@ fun thyfile2html tpath tname =
 
 (*Invoke every put method stored in a theory's methods table to initialize
   the state of user defined variables*)
-fun set_current_thy tname =
+fun put_thydata first tname =
   let val (methods, data) = 
         case get_thyinfo tname of
             Some (ThyInfo {methods, data, ...}) => 
-              (methods, Symtab.dest (fst data))
+              (methods, Symtab.dest ((if first then fst else snd) data))
           | None => error ("Theory " ^ tname ^ " not stored by loader");
 
       fun put_data (id, date) =
@@ -590,6 +590,8 @@ fun set_current_thy tname =
               | None => error ("No method defined for theory data \"" ^
                                id ^ "\"");
   in seq put_data data end;
+
+val set_current_thy = put_thydata false;
 
 (*Read .thy and .ML files that haven't been read yet or have changed since
   they were last read;
@@ -723,7 +725,7 @@ fun use_thy name =
   in if thy_uptodate andalso ml_uptodate then ()
      else
       (if thy_file = "" then ()
-       else if thy_uptodate then set_current_thy tname
+       else if thy_uptodate then put_thydata true tname
        else
          (writeln ("Reading \"" ^ name ^ ".thy\"");
 
