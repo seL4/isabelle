@@ -94,11 +94,11 @@ fun typ_of_term get_sort t =
 
 (** output utils **)
 
-(* term_of_sort *)		(* FIXME mark whole sort vs. ind. classes !? *)
+(* term_of_sort *)
 
 fun term_of_sort S =
   let
-    fun class c = free c;       (* FIXME mark *)
+    fun class c = const "_class" $ free c;
 
     fun classes [] = sys_error "term_of_sort"
       | classes [c] = class c
@@ -119,9 +119,9 @@ fun term_of_typ show_sorts ty =
       if show_sorts then const "_ofsort" $ t $ term_of_sort S
       else t;
 
-    fun term_of (Type (a, tys)) = list_comb (const a, map term_of tys)
-      | term_of (TFree (x, S)) = of_sort (free x) S	(* FIXME mark? *)
-      | term_of (TVar (xi, S)) = of_sort (var xi) S;	(* FIXME mark? *)
+    fun term_of (Type (a, Ts)) = list_comb (const a, map term_of Ts)
+      | term_of (TFree (x, S)) = of_sort (const "_tfree" $ free x) S
+      | term_of (TVar (xi, S)) = of_sort (const "_tvar" $ var xi) S;
   in
     term_of ty
   end;
@@ -188,6 +188,7 @@ val type_ext = mk_syn_ext false []
    [],
    [],
    [("fun", fun_ast_tr')])
+  TokenTrans.token_translation
   ([], []);
 
 end;
