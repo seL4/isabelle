@@ -9,25 +9,19 @@ The Lift-Control Example
 Lift = SubstAx +
 
 record state =
-  floor :: nat		(*current position of the lift*)
+  floor :: int		(*current position of the lift*)
   open  :: bool		(*whether the door is open at floor*)
   stop  :: bool		(*whether the lift is stopped at floor*)
-  req   :: nat set	(*for each floor, whether the lift is requested*)
+  req   :: int set	(*for each floor, whether the lift is requested*)
   up    :: bool		(*current direction of movement*)
   move  :: bool		(*whether moving takes precedence over opening*)
 
 consts
-  Min, Max :: nat       (*least and greatest floors*)
+  Min, Max :: int       (*least and greatest floors*)
 
 rules
   Min_le_Max  "Min <= Max"
   
-  (** Linear arithmetic: justified by a separate call to arith_oracle_tac **)
-  arith1      "m < fl ==> n - Suc fl < fl - m + (n - m)"
-  arith2      "[| m<n;  m <= fl |] ==> n - Suc fl < fl - m + (n - m)"
-  arith3      "[| Suc ix < m |] ==> ix - n < m - Suc ix + (m - n)"
-  arith4      "[| ix < m;  n < ix |] ==> ix - n < m - Suc (ix) + (m - n)"
-
 constdefs
   
   (** Abbreviations: the "always" part **)
@@ -65,10 +59,10 @@ constdefs
   closed :: state set  (*but this is the same as ready!!*)
     "closed ==  {s. stop s  & ~ open s &  move s}"
 
-  atFloor :: nat => state set
+  atFloor :: int => state set
     "atFloor n ==  {s. floor s = n}"
 
-  Req :: nat => state set
+  Req :: int => state set
     "Req n ==  {s. n : req s}"
 
 
@@ -93,25 +87,25 @@ constdefs
   req_up :: "(state*state) set"
     "req_up ==
          {(s,s'). s' = s (|stop  :=False,
-			   floor := Suc (floor s),
+			   floor := floor s + #1,
 			   up    := True|)
 		       & s : (ready Int goingup)}"
 
   req_down :: "(state*state) set"
     "req_down ==
          {(s,s'). s' = s (|stop  :=False,
-			   floor := floor s - 1,
+			   floor := floor s - #1,
 			   up    := False|)
 		       & s : (ready Int goingdown)}"
 
   move_up :: "(state*state) set"
     "move_up ==
-         {(s,s'). s' = s (|floor := Suc (floor s)|)
+         {(s,s'). s' = s (|floor := floor s + #1|)
 		       & ~ stop s & up s & floor s ~: req s}"
 
   move_down :: "(state*state) set"
     "move_down ==
-         {(s,s'). s' = s (|floor := floor s - 1|)
+         {(s,s'). s' = s (|floor := floor s - #1|)
 		       & ~ stop s & ~ up s & floor s ~: req s}"
 
   button_press  :: "(state*state) set"
@@ -150,17 +144,18 @@ constdefs
     "moving_down == {s. ~ stop s & ~ up s -->
                      (EX f. Min <= f & f <= floor s & f : req s)}"
   
-  metric :: [nat,state] => nat
+  metric :: [int,state] => int
     "metric ==
-       %n s. if up s & floor s < n then n - floor s
-	     else if ~ up s & n < floor s then floor s - n
-	     else if up s & n < floor s then (Max - floor s) + (Max-n)
-	     else if ~ up s & floor s < n then (floor s - Min) + (n-Min)
-	     else 0"
+       %n s. if floor s < n then (if up s then n - floor s
+			          else (floor s - Min) + (n-Min))
+             else
+             if n < floor s then (if up s then (Max - floor s) + (Max-n)
+		                  else floor s - n)
+             else #0"
 
 locale floor =
   fixes 
-    n	:: nat
+    n	:: int
   assumes
     Min_le_n    "Min <= n"
     n_le_Max    "n <= Max"
