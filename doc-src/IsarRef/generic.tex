@@ -531,23 +531,18 @@ information.
 
 \subsection{Automated methods}\label{sec:classical-auto}
 
-\indexisarmeth{blast}
-\indexisarmeth{fast}\indexisarmeth{best}\indexisarmeth{slow}\indexisarmeth{slow-best}
+\indexisarmeth{blast}\indexisarmeth{fast}\indexisarmeth{best}\indexisarmeth{clarify}
 \begin{matharray}{rcl}
  blast & : & \isarmeth \\
  fast & : & \isarmeth \\
  best & : & \isarmeth \\
- slow & : & \isarmeth \\
- slow_best & : & \isarmeth \\
+ clarify & : & \isarmeth \\
 \end{matharray}
-
-\railalias{slowbest}{slow\_best}
-\railterm{slowbest}
 
 \begin{rail}
   'blast' ('!' ?) nat? (clamod * )
   ;
-  ('fast' | 'best' | 'slow' | slowbest) ('!' ?) (clamod * )
+  ('fast' | 'best' | 'clarify') ('!' ?) (clamod * )
   ;
 
   clamod: (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' thmrefs
@@ -558,8 +553,9 @@ information.
 \item [$blast$] refers to the classical tableau prover (see \texttt{blast_tac}
   in \cite[\S11]{isabelle-ref}).  The optional argument specifies a
   user-supplied search bound (default 20).
-\item [$fast$, $best$, $slow$, $slow_best$] refer to the generic classical
-  reasoner (see \cite[\S11]{isabelle-ref}, tactic \texttt{fast_tac} etc).
+\item [$fast$, $best$, and $clarify$] refer to the generic classical reasoner.
+  See \texttt{fast_tac}, \texttt{best_tac}, and \texttt{clarify_tac} in
+  \cite[\S11]{isabelle-ref} for more information.
 \end{descr}
 
 Any of above methods support additional modifiers of the context of classical
@@ -574,14 +570,15 @@ This is slightly less hazardous than for the Simplifier (see
 
 \subsection{Combined automated methods}
 
-\indexisarmeth{auto}\indexisarmeth{force}
+\indexisarmeth{force}\indexisarmeth{auto}\indexisarmeth{clarsimp}
 \begin{matharray}{rcl}
   force & : & \isarmeth \\
   auto & : & \isarmeth \\
+  clarsimp & : & \isarmeth \\
 \end{matharray}
 
 \begin{rail}
-  ('force' | 'auto') ('!' ?) (clasimpmod * )
+  ('force' | 'auto' | 'clarsimp') ('!' ?) (clasimpmod * )
   ;
 
   clasimpmod: ('simp' (() | 'add' | 'del' | 'only') | 'other' |
@@ -590,12 +587,12 @@ This is slightly less hazardous than for the Simplifier (see
 \end{rail}
 
 \begin{descr}
-\item [$force$ and $auto$] provide access to Isabelle's combined
-  simplification and classical reasoning tactics.  See \texttt{force_tac} and
-  \texttt{auto_tac} in \cite[\S11]{isabelle-ref} for more information.  The
-  modifier arguments correspond to those given in \S\ref{sec:simp} and
-  \S\ref{sec:classical-auto}.  Just note that the ones related to the
-  Simplifier are prefixed by \railtterm{simp} here.
+\item [$force$, $auto$, and $clarsimp$] provide access to Isabelle's combined
+  simplification and classical reasoning tactics.  See \texttt{force_tac},
+  \texttt{auto_tac}, and \texttt{clarsimp_tac} in \cite[\S11]{isabelle-ref}
+  for more information.  The modifier arguments correspond to those given in
+  \S\ref{sec:simp} and \S\ref{sec:classical-auto}.  Just note that the ones
+  related to the Simplifier are prefixed by \railtterm{simp} here.
   
   Facts provided by forward chaining are inserted into the goal before doing
   the search.  The ``!''~argument causes the full context of assumptions to be
