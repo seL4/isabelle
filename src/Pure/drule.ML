@@ -46,10 +46,12 @@ signature DRULE =
   val reflexive_thm	: thm
   val refl_implies      : thm
   val revcut_rl		: thm
-  val rewrite_goal_rule	: bool*bool -> (meta_simpset -> thm -> thm option)
+  val rewrite_goal_rule	: bool * bool -> (meta_simpset -> thm -> thm option)
         -> meta_simpset -> int -> thm -> thm
   val rewrite_goals_rule: thm list -> thm -> thm
   val rewrite_rule	: thm list -> thm -> thm
+  val rewrite_thm	: bool * bool -> (meta_simpset -> thm -> thm option)
+	-> meta_simpset -> thm -> thm
   val RS		: thm * thm -> thm
   val RSN		: thm * (int * thm) -> thm
   val RL		: thm list * thm list -> thm list
@@ -509,7 +511,6 @@ fun weak_eq_thm (tha,thb) =
 
 (*** Meta-Rewriting Rules ***)
 
-
 val reflexive_thm =
   let val cx = cterm_of Sign.proto_pure (Var(("x",0),TVar(("'a",0),logicS)))
   in Thm.reflexive cx end;
@@ -550,6 +551,8 @@ fun rew_conv mode prover mss = rewrite_cterm mode mss prover;
 fun rewrite_rule []   th = th
   | rewrite_rule thms th =
 	fconv_rule (rew_conv (true,false) (K(K None)) (Thm.mss_of thms)) th;
+
+fun rewrite_thm mode prover mss = fconv_rule (rew_conv mode prover mss);
 
 (*Rewrite the subgoals of a proof state (represented by a theorem) *)
 fun rewrite_goals_rule []   th = th
