@@ -21,13 +21,13 @@ by (rtac refl 1);
 qed "ssubset_iff";
 
 goal Setplus.thy "((A::'a set) <= B) = ((A < B) | (A=B))";
-by (simp_tac (set_ss addsimps [ssubset_iff]) 1);
+by (simp_tac (simpset_of "Fun" addsimps [ssubset_iff]) 1);
 by (fast_tac set_cs 1);
 qed "subseteq_iff_subset_eq";
 
 (*Rule in Modus Ponens style*)
 goal Setplus.thy "A < B --> c:A --> c:B";
-by (simp_tac (set_ss addsimps [ssubset_iff]) 1);
+by (simp_tac (simpset_of "Fun" addsimps [ssubset_iff]) 1);
 by (fast_tac set_cs 1);
 qed "ssubsetD";
 

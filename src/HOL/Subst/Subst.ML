@@ -1,4 +1,5 @@
-(*  Title: 	Substitutions/subst.ML
+(*  Title: 	HOL/Subst/subst.ML
+    ID:         $Id$
     Author: 	Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -11,7 +12,7 @@ open Subst;
 
 val subst_defs = [subst_def,comp_def,sdom_def];
 
-val raw_subst_ss = utlemmas_ss addsimps al_rews;
+val raw_subst_ss = simpset_of "UTLemmas" addsimps al_rews;
 
 local fun mk_thm s = prove_goalw Subst.thy subst_defs s 
                                  (fn _ => [simp_tac raw_subst_ss 1])

@@ -1,4 +1,5 @@
-(*  Title: 	HOL/Subst
+(*  Title: 	HOL/Subst/ROOT.ML
+    ID:         $Id$
     Author: 	Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -26,12 +27,7 @@ HOL_build_completed;    (*Cause examples to fail if HOL did*)
 
 writeln"Root file for Substitutions and Unification";
 loadpath := ["Subst"];
-use_thy "Subst/Setplus";
 
-use_thy "Subst/AList";
-use_thy "Subst/UTerm";
-use_thy "Subst/UTLemmas";
+use_thy "Unifier";
 
-use_thy "Subst/Subst";
-use_thy "Subst/Unifier";
 writeln"END: Root file for Substitutions and Unification";

@@ -105,16 +105,16 @@ defs
   hd_def        "hd(xs)              == list_rec xs (@x.True) (%x xs r.x)"
   tl_def        "tl(xs)              == list_rec xs (@xs.True) (%x xs r.xs)"
   (* a total version of tl: *)
-  ttl_def	"ttl(xs)             == list_rec xs [] (%x xs r.xs)"
+  ttl_def 	"ttl(xs)             == list_rec xs [] (%x xs r.xs)"
 
-  mem_def	"x mem xs            == 
+  mem_def 	"x mem xs            == 
 		   list_rec xs False (%y ys r. if y=x then True else r)"
   list_all_def  "list_all P xs       == list_rec xs True (%x l r. P(x) & r)"
   map_def       "map f xs            == list_rec xs [] (%x l r. f(x)#r)"
-  append_def	"xs@ys               == list_rec xs ys (%x l r. x#r)"
-  filter_def	"filter P xs         == 
+  append_def 	"xs@ys               == list_rec xs ys (%x l r. x#r)"
+  filter_def 	"filter P xs         == 
                   list_rec xs [] (%x xs r. if P(x) then x#r else r)"
 
-  list_case_def "list_case a f xs == list_rec xs a (%x xs r.f x xs)"
+  list_case_def  "list_case a f xs == list_rec xs a (%x xs r.f x xs)"
 
 end

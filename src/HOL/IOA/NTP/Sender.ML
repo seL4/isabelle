@@ -15,7 +15,7 @@ goal Sender.thy
 \ C_m_r ~: actions(sender_asig)         &   \
 \ C_r_s : actions(sender_asig)          &   \
 \ C_r_r(m) ~: actions(sender_asig)";
-by(simp_tac (action_ss addsimps 
+by(simp_tac (!simpset addsimps 
              (Sender.sender_asig_def :: actions_def :: 
               asig_projections @ set_lemmas)) 1);
 qed "in_sender_asig";

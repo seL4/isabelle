@@ -62,29 +62,25 @@ bind_thm ("thms_notE", (thms.MP RS thms_falseE));
 
 (** The function eval **)
 
-val pl_ss = set_ss addsimps
-  (PropLog.pl.simps @ [eval2_false, eval2_var, eval2_imp]
-               @ [hyps_false, hyps_var, hyps_imp]);
-
 goalw PropLog.thy [eval_def] "tt[false] = False";
-by (simp_tac pl_ss 1);
+by (Simp_tac 1);
 qed "eval_false";
 
 goalw PropLog.thy [eval_def] "tt[#v] = (v:tt)";
-by (simp_tac pl_ss 1);
+by (Simp_tac 1);
 qed "eval_var";
 
 goalw PropLog.thy [eval_def] "tt[p->q] = (tt[p]-->tt[q])";
-by (simp_tac pl_ss 1);
+by (Simp_tac 1);
 qed "eval_imp";
 
-val pl_ss = pl_ss addsimps [eval_false, eval_var, eval_imp];
+Addsimps [eval_false, eval_var, eval_imp];
 
 (*Soundness of the rules wrt truth-table semantics*)
 goalw PropLog.thy [sat_def] "!!H. H |- p ==> H |= p";
 by (etac thms.induct 1);
 by (fast_tac (set_cs addSDs [eval_imp RS iffD1 RS mp]) 5);
-by (ALLGOALS (asm_simp_tac pl_ss));
+by (ALLGOALS Asm_simp_tac);
 qed "soundness";
 
 (*** Towards the completeness proof ***)
@@ -109,7 +105,7 @@ qed "imp_false";
 goal PropLog.thy "hyps p tt |- (if tt[p] then p else p->false)";
 by (rtac (expand_if RS iffD2) 1);
 by(PropLog.pl.induct_tac "p" 1);
-by (ALLGOALS (simp_tac (pl_ss addsimps [thms_I, thms.H])));
+by (ALLGOALS (simp_tac (!simpset addsimps [thms_I, thms.H])));
 by (fast_tac (set_cs addIs [weaken_left_Un1, weaken_left_Un2, 
 			   weaken_right, imp_false]
                     addSEs [false_imp]) 1);
@@ -146,9 +142,9 @@ qed "thms_excluded_middle_rule";
   we also have hyps(p,t)-{#v} <= hyps(p, t-{v}) *)
 goal PropLog.thy "hyps p (t-{v}) <= insert (#v->false) ((hyps p t)-{#v})";
 by (PropLog.pl.induct_tac "p" 1);
-by (simp_tac pl_ss 1);
-by (simp_tac (pl_ss setloop (split_tac [expand_if])) 1);
-by (simp_tac pl_ss 1);
+by (Simp_tac 1);
+by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (Simp_tac 1);
 by (fast_tac set_cs 1);
 qed "hyps_Diff";
 
@@ -156,9 +152,9 @@ qed "hyps_Diff";
   we also have hyps(p,t)-{#v->false} <= hyps(p, insert(v,t)) *)
 goal PropLog.thy "hyps p (insert v t) <= insert (#v) (hyps p t-{#v->false})";
 by (PropLog.pl.induct_tac "p" 1);
-by (simp_tac pl_ss 1);
-by (simp_tac (pl_ss setloop (split_tac [expand_if])) 1);
-by (simp_tac pl_ss 1);
+by (Simp_tac 1);
+by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
+by (Simp_tac 1);
 by (fast_tac set_cs 1);
 qed "hyps_insert";
 
@@ -176,8 +172,8 @@ qed "insert_Diff_subset2";
  could probably prove the stronger hyps(p,t) : Fin(hyps(p,{}) Un hyps(p,nat))*)
 goal PropLog.thy "hyps p t : Fin(UN v:{x.True}. {#v, #v->false})";
 by (PropLog.pl.induct_tac "p" 1);
-by (ALLGOALS (simp_tac (pl_ss setloop (split_tac [expand_if])) THEN'
-              fast_tac (set_cs addSIs Fin.intrs@[Fin_UnI])));
+by (ALLGOALS (simp_tac (!simpset setloop (split_tac [expand_if]))));
+by (ALLGOALS (fast_tac (set_cs addSIs Fin.intrs@[Fin_UnI])));
 qed "hyps_finite";
 
 val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
@@ -187,7 +183,7 @@ val Diff_weaken_left = subset_refl RSN (2, Diff_mono) RS weaken_left;
 val [sat] = goal PropLog.thy
     "{} |= p ==> !t. hyps p t - hyps p t0 |- p";
 by (rtac (hyps_finite RS Fin_induct) 1);
-by (simp_tac (pl_ss addsimps [sat RS sat_thms_p]) 1);
+by (simp_tac (!simpset addsimps [sat RS sat_thms_p]) 1);
 by (safe_tac set_cs);
 (*Case hyps(p,t)-insert(#v,Y) |- p *)
 by (rtac thms_excluded_middle_rule 1);
@@ -213,7 +209,7 @@ qed "completeness_0";
 
 (*A semantic analogue of the Deduction Theorem*)
 val [sat] = goalw PropLog.thy [sat_def] "insert p H |= q ==> H |= p->q";
-by (simp_tac pl_ss 1);
+by (Simp_tac 1);
 by (cfast_tac [sat] 1);
 qed "sat_imp";
 

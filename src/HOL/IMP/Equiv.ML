@@ -6,19 +6,19 @@
 
 goal Equiv.thy "!n. (<a,s> -a-> n) = (n = A a s)";
 by (aexp.induct_tac "a" 1);                		  (* struct. ind. *)
-by (ALLGOALS(simp_tac (HOL_ss addsimps A_simps)));	  (* rewr. Den.   *)
+by (ALLGOALS Simp_tac); 	                          (* rewr. Den.   *)
 by (TRYALL (fast_tac (set_cs addSIs (evala.intrs@prems)
                              addSEs evala_elim_cases)));
 bind_thm("aexp_iff", result() RS spec);
 
 goal Equiv.thy "!w. (<b,s> -b-> w) = (w = B b s)";
 by (bexp.induct_tac "b" 1);
-by (ALLGOALS(asm_simp_tac (HOL_ss addcongs [conj_cong]
-              addsimps (aexp_iff::B_simps@evalb_simps))));
+by (ALLGOALS(asm_simp_tac (!simpset addcongs [conj_cong]
+                                    addsimps (aexp_iff::evalb_simps))));
 bind_thm("bexp_iff", result() RS spec);
 
-val equiv_cs = comp_cs addss
-                 (prod_ss addsimps (aexp_iff::bexp_iff::evalc.intrs));
+val equiv_cs =
+ comp_cs addss (simpset_of "Prod" addsimps (aexp_iff::bexp_iff::evalc.intrs));
 
 goal Equiv.thy "!!c. <c,s> -c-> t ==> (s,t) : C(c)";
 

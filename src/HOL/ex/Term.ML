@@ -60,8 +60,6 @@ qed "Term_induct2";
 
 (*** Structural Induction on the abstract type 'a term ***)
 
-val list_all_ss = map_ss addsimps [list_all_Nil, list_all_Cons];
-
 val Rep_term_in_sexp =
     Rep_term RS (range_Leaf_subset_sexp RS term_subset_sexp RS subsetD);
 
@@ -89,7 +87,7 @@ by (etac conjunct1 2);
 by (etac rev_subsetD 2);
 by (rtac list_subset_sexp 2);
 by (fast_tac set_cs 2);
-by (ALLGOALS (asm_simp_tac list_all_ss));
+by (ALLGOALS Asm_simp_tac);
 qed "term_induct";
 
 (*Induction for the abstract type 'a term*)
@@ -99,8 +97,8 @@ val prems = goal Term.thy
 \    |] ==> R(t)";
 by (rtac term_induct 1);  (*types force good instantiation*)
 by (etac rev_mp 1);
-by (rtac list_induct 1);  (*types force good instantiation*)
-by (ALLGOALS (asm_simp_tac (list_all_ss addsimps prems)));
+by (rtac list_induct2 1);  (*types force good instantiation*)
+by (ALLGOALS (asm_simp_tac (!simpset addsimps prems)));
 qed "term_induct2";
 
 (*Perform induction on xs. *)
@@ -123,10 +121,10 @@ val [prem] = goal Term.thy
 \        Abs_map (cut h (pred_sexp^+) M) N = \
 \        Abs_map h N";
 by (rtac (prem RS list.induct) 1);
-by (simp_tac list_all_ss 1);
+by (Simp_tac 1);
 by (strip_tac 1);
 by (etac (pred_sexp_CONS_D RS conjE) 1);
-by (asm_simp_tac (list_all_ss addsimps [trancl_pred_sexpD1, cut_apply]) 1);
+by (asm_simp_tac (!simpset addsimps [trancl_pred_sexpD1]) 1);
 qed "Abs_map_lemma";
 
 val [prem1,prem2,A_subset_sexp] = goal Term.thy
@@ -137,7 +135,7 @@ by (simp_tac (HOL_ss addsimps
       [Split,
        prem2 RS Abs_map_lemma RS spec RS mp, pred_sexpI2 RS r_into_trancl,
        prem1, prem2 RS rev_subsetD, list_subset_sexp,
-       term_subset_sexp, A_subset_sexp])1);
+       term_subset_sexp, A_subset_sexp]) 1);
 qed "Term_rec";
 
 (*** term_rec -- by Term_rec ***)
@@ -150,11 +148,10 @@ local
 
   (*Now avoids conditional rewriting with the premise N: list(term(A)),
     since A will be uninstantiated and will cause rewriting to fail. *)
-  val term_rec_ss = HOL_ss 
+  val term_rec_ss = HOL_ss
       addsimps [Rep_Tlist RS (rangeI RS term.APP_I RS Abs_term_inverse),  
-	       Rep_term_in_sexp, Rep_Term_rec, Rep_term_inverse,
-	       inj_Leaf, Inv_f_f,
-	       Abs_Rep_map, map_ident, sexp.LeafI]
+                Rep_term_in_sexp, Rep_Term_rec, Rep_term_inverse, inj_Leaf,
+                Inv_f_f, Abs_Rep_map, map_ident2, sexp.LeafI]
 in
 
 val term_rec = prove_goalw Term.thy

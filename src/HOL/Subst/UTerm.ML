@@ -1,4 +1,5 @@
-(*  Title: 	Substitutions/uterm.ML
+(*  Title: 	HOL/Subst/UTerm.ML
+    ID:         $Id$
     Author: 	Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -180,27 +181,26 @@ by (ALLGOALS (fast_tac uterm_cs));
 qed "COMB_D";
 
 (*Basic ss with constructors and their freeness*)
-val uterm_free_simps = uterm.intrs @
-                       [Const_not_Comb,Comb_not_Var,Var_not_Const,
-			Comb_not_Const,Var_not_Comb,Const_not_Var,
-			Var_Var_eq,Const_Const_eq,Comb_Comb_eq,
-			CONST_not_COMB,COMB_not_VAR,VAR_not_CONST,
-			COMB_not_CONST,VAR_not_COMB,CONST_not_VAR,
-			VAR_VAR_eq,CONST_CONST_eq,COMB_COMB_eq];
-val uterm_free_ss = HOL_ss addsimps uterm_free_simps;
+Addsimps (uterm.intrs @
+          [Const_not_Comb,Comb_not_Var,Var_not_Const,
+           Comb_not_Const,Var_not_Comb,Const_not_Var,
+           Var_Var_eq,Const_Const_eq,Comb_Comb_eq,
+           CONST_not_COMB,COMB_not_VAR,VAR_not_CONST,
+           COMB_not_CONST,VAR_not_COMB,CONST_not_VAR,
+           VAR_VAR_eq,CONST_CONST_eq,COMB_COMB_eq]);
 
 goal UTerm.thy "!u. t~=Comb t u";
 by (uterm_ind_tac "t" 1);
 by (rtac (Var_not_Comb RS allI) 1);
 by (rtac (Const_not_Comb RS allI) 1);
-by (asm_simp_tac uterm_free_ss 1);
+by (Asm_simp_tac 1);
 qed "t_not_Comb_t";
 
 goal UTerm.thy "!t. u~=Comb t u";
 by (uterm_ind_tac "u" 1);
 by (rtac (Var_not_Comb RS allI) 1);
 by (rtac (Const_not_Comb RS allI) 1);
-by (asm_simp_tac uterm_free_ss 1);
+by (Asm_simp_tac 1);
 qed "u_not_Comb_u";
 
 
@@ -213,12 +213,12 @@ val UTerm_rec_unfold =
 
 goalw UTerm.thy [VAR_def] "UTerm_rec (VAR x) b c d = b(x)";
 by (rtac (UTerm_rec_unfold RS trans) 1);
-by (simp_tac (HOL_ss addsimps [Case_In0]) 1);
+by (simp_tac (!simpset addsimps [Case_In0]) 1);
 qed "UTerm_rec_VAR";
 
 goalw UTerm.thy [CONST_def] "UTerm_rec (CONST x) b c d = c(x)";
 by (rtac (UTerm_rec_unfold RS trans) 1);
-by (simp_tac (HOL_ss addsimps [Case_In0,Case_In1]) 1);
+by (simp_tac (!simpset addsimps [Case_In0,Case_In1]) 1);
 qed "UTerm_rec_CONST";
 
 goalw UTerm.thy [COMB_def]
@@ -226,8 +226,8 @@ goalw UTerm.thy [COMB_def]
 \           UTerm_rec (COMB M N) b c d = \
 \           d M N (UTerm_rec M b c d) (UTerm_rec N b c d)";
 by (rtac (UTerm_rec_unfold RS trans) 1);
-by (simp_tac (HOL_ss addsimps [Split,Case_In1]) 1);
-by (asm_simp_tac (pred_sexp_ss addsimps [In1_def]) 1);
+by (simp_tac (!simpset addsimps [Split,Case_In1]) 1);
+by (asm_simp_tac (!simpset addsimps [In1_def]) 1);
 qed "UTerm_rec_COMB";
 
 (*** uterm_rec -- by UTerm_rec ***)
@@ -235,36 +235,26 @@ qed "UTerm_rec_COMB";
 val Rep_uterm_in_sexp =
     Rep_uterm RS (range_Leaf_subset_sexp RS uterm_subset_sexp RS subsetD);
 
-val uterm_rec_simps = 
-    uterm.intrs @
-    [UTerm_rec_VAR, UTerm_rec_CONST, UTerm_rec_COMB, 
-     Abs_uterm_inverse, Rep_uterm_inverse, 
-     Rep_uterm, rangeI, inj_Leaf, Inv_f_f, Rep_uterm_in_sexp];
-val uterm_rec_ss = HOL_ss addsimps uterm_rec_simps;
+Addsimps [UTerm_rec_VAR, UTerm_rec_CONST, UTerm_rec_COMB, 
+          Abs_uterm_inverse, Rep_uterm_inverse, 
+          Rep_uterm, rangeI, inj_Leaf, Inv_f_f, Rep_uterm_in_sexp];
 
 goalw UTerm.thy [uterm_rec_def, Var_def] "uterm_rec (Var x) b c d = b(x)";
-by (simp_tac uterm_rec_ss 1);
+by (Simp_tac 1);
 qed "uterm_rec_Var";
 
 goalw UTerm.thy [uterm_rec_def, Const_def] "uterm_rec (Const x) b c d = c(x)";
-by (simp_tac uterm_rec_ss 1);
+by (Simp_tac 1);
 qed "uterm_rec_Const";
 
 goalw UTerm.thy [uterm_rec_def, Comb_def]
-   "uterm_rec (Comb u v) b c d = d u v (uterm_rec u b c d) (uterm_rec v b c d)";
-by (simp_tac uterm_rec_ss 1);
+  "uterm_rec (Comb u v) b c d = d u v (uterm_rec u b c d) (uterm_rec v b c d)";
+by (Simp_tac 1);
 qed "uterm_rec_Comb";
 
-val uterm_simps = [UTerm_rec_VAR, UTerm_rec_CONST, UTerm_rec_COMB,
-		 uterm_rec_Var, uterm_rec_Const, uterm_rec_Comb];
-val uterm_ss = uterm_free_ss addsimps uterm_simps;
+Addsimps [uterm_rec_Var, uterm_rec_Const, uterm_rec_Comb];
 
 
 (**********)
 
-val uterm_rews = [uterm_rec_Var,uterm_rec_Const,uterm_rec_Comb,
-		  t_not_Comb_t,u_not_Comb_u,
-                  Const_not_Comb,Comb_not_Var,Var_not_Const,
-                  Comb_not_Const,Var_not_Comb,Const_not_Var,
-                  Var_Var_eq,Const_Const_eq,Comb_Comb_eq];
-
+val uterm_rews = [t_not_Comb_t,u_not_Comb_u];

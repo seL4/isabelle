@@ -6,9 +6,6 @@
 Correctness proof of insertion sort.
 *)
 
-val insort_ss = sorting_ss addsimps
- [InSort.ins_Nil,InSort.ins_Cons,InSort.insort_Nil,InSort.insort_Cons];
-
 goalw InSort.thy [Sorting.total_def]
   "!!f. [| total(f); ~f x y |] ==> f y x";
 by(fast_tac HOL_cs 1);
@@ -21,26 +18,26 @@ qed "transfD";
 
 goal InSort.thy "list_all p (ins f x xs) = (list_all p xs & p(x))";
 by(list.induct_tac "xs" 1);
-by(asm_simp_tac insort_ss 1);
-by(asm_simp_tac (insort_ss setloop (split_tac [expand_if])) 1);
+by(Asm_simp_tac 1);
+by(asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by(fast_tac HOL_cs 1);
-val insort_ss = insort_ss addsimps [result()];
+Addsimps [result()];
 
 goal InSort.thy "(!x. p(x) --> q(x)) --> list_all p xs --> list_all q xs";
 by(list.induct_tac "xs" 1);
-by(ALLGOALS(asm_simp_tac (insort_ss setloop (split_tac [expand_if]))));
+by(ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 qed "list_all_imp";
 
 val prems = goal InSort.thy
   "[| total(f); transf(f) |] ==>  sorted f (ins f x xs) = sorted f xs";
 by(list.induct_tac "xs" 1);
-by(ALLGOALS(asm_simp_tac (insort_ss setloop (split_tac [expand_if]))));
+by(ALLGOALS(asm_simp_tac (!simpset setloop (split_tac [expand_if]))));
 by(cut_facts_tac prems 1);
 by(cut_inst_tac [("p","f(a)"),("q","f(x)")] list_all_imp 1);
 by(fast_tac (HOL_cs addDs [totalD,transfD]) 1);
-val insort_ss = insort_ss addsimps [result()];
+Addsimps [result()];
 
 goal InSort.thy "!!f. [| total(f); transf(f) |] ==>  sorted f (insort f xs)";
 by(list.induct_tac "xs" 1);
-by(ALLGOALS(asm_simp_tac insort_ss));
+by(ALLGOALS Asm_simp_tac);
 result();

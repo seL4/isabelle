@@ -8,9 +8,6 @@ open Denotation;
 
 (**** Rewrite Rules for A,B,C ****)
 
-val A_simps =
-     [A_nat,A_loc,A_op1,A_op2];
-
 val B_simps = map (fn t => t RS eq_reflection)
      [B_true,B_false,B_op,B_not,B_and,B_or]
 

@@ -1,4 +1,5 @@
-(*  Title: 	Substitutions/unifier.ML
+(*  Title: 	HOL/Subst/unifier.ML
+    ID:         $Id$
     Author: 	Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -136,7 +137,7 @@ val MGIU_sdom  = store_thm("MGIU_sdom", result() RS mp);
 (*** The range of a MGIU is a subset of the variables in the terms ***)
 
 val prems = goal HOL.thy  "P = Q ==> (~P) = (~Q)";
-by (simp_tac (set_ss addsimps prems) 1);
+by (simp_tac (subst_ss addsimps prems) 1);
 qed "not_cong";
 
 val prems = goal Unifier.thy 
@@ -289,11 +290,12 @@ val [prem] = goalw Unifier.thy [UWFD_def]
 by (cut_facts_tac 
     [prem RS UWFD2_lemma1 RS (subseteq_iff_subset_eq RS iffD1)] 1);
 by (imp_excluded_middle_tac "u <| s = u" 1);
-by (simp_tac (set_ss addsimps [occs_Comb2] ) 1);
+by (simp_tac (subst_ss delsimps (ssubset_iff :: utlemmas_rews)
+                       addsimps [occs_Comb2]) 1);
 by (rtac impI 1 THEN etac subst 1 THEN assume_tac 1);
 by (rtac impI 1);
 by (rtac (conjI RS (ssubset_iff RS iffD2) RS disjI1) 1);
-by (asm_simp_tac (set_ss addsimps [subseteq_iff_subset_eq]) 1);
+by (asm_simp_tac (subst_ss delsimps (ssubset_iff :: utlemmas_rews) addsimps [subseteq_iff_subset_eq]) 1);
 by (asm_simp_tac subst_ss 1);
 by (fast_tac (set_cs addDs [prem RS UWFD2_lemma2]) 1);
 qed "UnifyWFD2";

@@ -23,7 +23,7 @@ qed"hoare_skip";
 
 goalw Hoare.thy (spec_def::C_simps)
   "!!P. [| !s. P s --> Q(s[A a s/x]) |] ==> {{P}} x := a {{Q}}";
-by(asm_full_simp_tac prod_ss 1);
+by(Asm_full_simp_tac 1);
 qed"hoare_assign";
 
 goalw Hoare.thy (spec_def::C_simps)
@@ -34,7 +34,7 @@ qed"hoare_seq";
 goalw Hoare.thy (spec_def::C_simps)
   "!!P. [| {{%s. P s & B b s}} c {{Q}}; {{%s. P s & ~B b s}} d {{Q}} |] ==> \
 \  {{P}} ifc b then c else d {{Q}}";
-by(simp_tac prod_ss 1);
+by(Simp_tac 1);
 by(fast_tac comp_cs 1);
 qed"hoare_if";
 
@@ -49,7 +49,7 @@ br Gamma_mono 1;
 by (rewrite_goals_tac [Gamma_def]);  
 by(eres_inst_tac [("x","a")] allE 1);
 by (safe_tac comp_cs);
-by(ALLGOALS(asm_full_simp_tac prod_ss));
+by(ALLGOALS Asm_full_simp_tac);
 qed"hoare_while";
 
 fun while_tac inv ss i =
@@ -70,7 +70,7 @@ val prems = goal Hoare.thy
 \  while noti(ROp op = (X u) (X y)) \
 \             do (u := Op1 Suc (X u); z := Op1 Suc (X z))) \
 \  {{%s. s(z)=i+j}}";
-val ss = arith_ss addsimps (eq_sym_conv::assign_def::prems@A_simps@B_simps);
+val ss = !simpset addsimps (eq_sym_conv::assign_def::prems);
 by(hoare_tac ss);
 by(while_tac "%s.s z = i + s u & s y = j" ss 3);
 by(hoare_tac ss);

@@ -9,8 +9,7 @@ confluence of beta.
 
 open ParRed;
 
-val parred_ss = lambda_ss addsimps
-  par_beta.intrs @ [cd_Var,cd_Fun];
+Addsimps par_beta.intrs;
 
 val par_beta_cases = map (par_beta.mk_cases db.simps)
     ["Var n => t", "Fun s => Fun t",
@@ -23,13 +22,13 @@ val parred_cs = lambda_cs addSIs par_beta.intrs addSEs par_beta_cases;
 goal ParRed.thy "(Var n => t) = (t = Var n)";
 by(fast_tac parred_cs 1);
 qed "par_beta_varL";
-val parred_ss = parred_ss addsimps [par_beta_varL];
+Addsimps [par_beta_varL];
 
 goal ParRed.thy "t => t";
 by(db.induct_tac "t" 1);
-by(ALLGOALS(asm_simp_tac parred_ss));
+by(ALLGOALS Asm_simp_tac);
 qed"par_beta_refl";
-val parred_ss = parred_ss addsimps [par_beta_refl];
+Addsimps [par_beta_refl];
 
 goal ParRed.thy "beta <= par_beta";
 br subsetI 1;
@@ -53,21 +52,21 @@ qed "par_beta_subset_beta";
 
 goal ParRed.thy "!t' n. t => t' --> lift t n => lift t' n";
 by(db.induct_tac "t" 1);
-by(ALLGOALS(fast_tac (parred_cs addss parred_ss)));
+by(ALLGOALS(fast_tac (parred_cs addss (!simpset))));
 bind_thm("par_beta_lift", result() RS spec RS spec RS mp);
-val parred_ss = parred_ss addsimps [par_beta_lift];
+Addsimps [par_beta_lift];
 
 goal ParRed.thy
   "!s s' t' n. s => s' --> t => t' --> t[s/n] => t'[s'/n]";
 by(db.induct_tac "t" 1);
-  by(asm_simp_tac (addsplit parred_ss) 1);
+  by(asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
  by(strip_tac 1);
  bes par_beta_cases 1;
-  by(asm_simp_tac parred_ss 1);
- by(asm_simp_tac parred_ss 1);
+  by(Asm_simp_tac 1);
+ by(Asm_simp_tac 1);
  br (zero_less_Suc RS subst_subst RS subst) 1;
- by(fast_tac (parred_cs addSIs [par_beta_lift] addss parred_ss) 1);
-by(fast_tac (parred_cs addss parred_ss) 1);
+ by(fast_tac (parred_cs addSIs [par_beta_lift] addss (!simpset)) 1);
+by(fast_tac (parred_cs addss (!simpset)) 1);
 bind_thm("par_beta_subst",
          result()  RS spec RS spec RS spec RS spec RS mp RS mp);
 
@@ -84,34 +83,34 @@ qed "diamond_par_beta";
 (*** cd ***)
 
 goal ParRed.thy "cd(Var n @ t) = Var n @ cd t";
-by(simp_tac (parred_ss addsimps [cd_App]) 1);
+by(Simp_tac 1);
 qed"cd_App_Var";
 
 goal ParRed.thy "cd((r @ s) @ t) = cd(r @ s) @ cd t";
-by(simp_tac (parred_ss addsimps [cd_App]) 1);
+by(Simp_tac 1);
 qed"cd_App_App";
 
 goal ParRed.thy "cd((Fun s) @ t) = (cd s)[cd t/0]";
-by(simp_tac (parred_ss addsimps [cd_App,deFun_Fun]) 1);
+by(Simp_tac 1);
 qed"cd_App_Fun";
 
-val parred_ss = parred_ss addsimps [cd_App_Var,cd_App_App,cd_App_Fun];
+Addsimps [cd_App_Var,cd_App_App,cd_App_Fun];
 
 goal ParRed.thy "!t. s => t --> t => cd s";
 by(db.induct_tac "s" 1);
-  by(simp_tac parred_ss 1);
+  by(Simp_tac 1);
  be rev_mp 1;
  by(db.induct_tac "db1" 1);
- by(ALLGOALS(fast_tac (parred_cs addSIs [par_beta_subst] addss parred_ss)));
+ by(ALLGOALS(fast_tac (parred_cs addSIs [par_beta_subst] addss (!simpset))));
 bind_thm("par_beta_cd", result() RS spec RS mp);
 
 (*** Confluence (via cd) ***)
 
 goalw ParRed.thy [diamond_def] "diamond(par_beta)";
 by(fast_tac (HOL_cs addIs [par_beta_cd]) 1);
-qed "diamond_par_beta";
+qed "diamond_par_beta2";
 
 goal ParRed.thy "confluent(beta)";
-by(fast_tac (HOL_cs addIs [diamond_par_beta,diamond_to_confluence,
+by(fast_tac (HOL_cs addIs [diamond_par_beta2,diamond_to_confluence,
                            par_beta_subset_beta,beta_subset_par_beta]) 1);
 qed"beta_confluent";

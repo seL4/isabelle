@@ -214,8 +214,8 @@ by (cut_facts_tac (equivA::prems) 1);
 by (safe_tac rel_cs);
 by (rtac (equivA RS equiv_type RS subsetD RS SigmaE2) 1);
 by (assume_tac 1);
-by (asm_simp_tac (prod_ss addsimps [equivA RS UN_equiv_class,
-				 congruent2_implies_congruent]) 1);
+by (asm_simp_tac (!simpset addsimps [equivA RS UN_equiv_class,
+				     congruent2_implies_congruent]) 1);
 by (rewrite_goals_tac [congruent2_def,equiv_def,refl_def]);
 by (fast_tac rel_cs 1);
 qed "congruent2_implies_congruent_UN";
@@ -224,9 +224,9 @@ val prems as equivA::_ = goal Equiv.thy
     "[| equiv A r;  congruent2 r b;  a1: A;  a2: A |]  \
 \    ==> (UN x1:r^^{a1}. UN x2:r^^{a2}. b x1 x2) = b a1 a2";
 by (cut_facts_tac prems 1);
-by (asm_simp_tac (prod_ss addsimps [equivA RS UN_equiv_class,
-				    congruent2_implies_congruent,
-				    congruent2_implies_congruent_UN]) 1);
+by (asm_simp_tac (!simpset addsimps [equivA RS UN_equiv_class,
+				     congruent2_implies_congruent,
+				     congruent2_implies_congruent_UN]) 1);
 qed "UN_equiv_class2";
 
 (*type checking*)

@@ -15,9 +15,8 @@ goal Receiver.thy
 \ C_m_r : actions(receiver_asig)          &   \
 \ C_r_s ~: actions(receiver_asig)         &   \
 \ C_r_r(m) : actions(receiver_asig)";
-  by(simp_tac (action_ss addsimps 
-               (Receiver.receiver_asig_def :: actions_def :: 
-                asig_projections @ set_lemmas)) 1);
+  by(simp_tac (!simpset addsimps (Receiver.receiver_asig_def :: actions_def :: 
+                                  asig_projections @ set_lemmas)) 1);
 qed "in_receiver_asig";
 
 val receiver_projections = 

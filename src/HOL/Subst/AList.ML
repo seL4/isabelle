@@ -9,7 +9,7 @@ open AList;
 
 val al_rews = 
   let fun mk_thm s = prove_goalw AList.thy [alist_rec_def,assoc_def] s 
-                            (fn _ => [simp_tac list_ss 1])
+                            (fn _ => [Simp_tac 1])
   in map mk_thm 
      ["alist_rec [] c d = c",
       "alist_rec ((a,b)#al) c d = d a b al (alist_rec al c d)",

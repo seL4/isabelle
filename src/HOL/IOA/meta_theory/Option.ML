@@ -6,8 +6,7 @@
 Derived rules
 *)
 
-val option_rws = Let_def :: Option.option.simps;
-val SS = arith_ss addsimps option_rws;
+Addsimps [Let_def];
 
 val [prem] = goal Option.thy "P(opt) ==> P(None) | (? x. P(Some(x)))";
  br (prem RS rev_mp) 1;
@@ -17,8 +16,8 @@ val optE = store_thm("optE", standard(result() RS disjE));
 
 goal Option.thy "x=None | (? y.x=Some(y))"; 
 by (Option.option.induct_tac "x" 1);
-by (asm_full_simp_tac list_ss 1);
+by (Asm_full_simp_tac 1);
 by (rtac disjI2 1);
 by (rtac exI 1);
-by (asm_full_simp_tac list_ss 1);
+by (Asm_full_simp_tac 1);
 qed"opt_cases";

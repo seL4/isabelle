@@ -236,8 +236,8 @@ goalw Simult.thy [TCONS_def]
     "!!M N. [| M: sexp;  N: sexp |] ==> 	\
 \           TF_rec (TCONS M N) b c d = b M N (TF_rec N b c d)";
 by (rtac (TF_rec_unfold RS trans) 1);
-by (simp_tac (HOL_ss addsimps [Case_In0, Split]) 1);
-by (asm_simp_tac (pred_sexp_ss addsimps [In0_def]) 1);
+by (simp_tac (!simpset addsimps [Case_In0, Split]) 1);
+by (asm_simp_tac (!simpset addsimps [In0_def]) 1);
 qed "TF_rec_TCONS";
 
 goalw Simult.thy [FNIL_def] "TF_rec FNIL b c d = c";
@@ -250,7 +250,7 @@ goalw Simult.thy [FCONS_def]
 \        TF_rec (FCONS M N) b c d = d M N (TF_rec M b c d) (TF_rec N b c d)";
 by (rtac (TF_rec_unfold RS trans) 1);
 by (simp_tac (HOL_ss addsimps [Case_In1, List_case_CONS]) 1);
-by (asm_simp_tac (pred_sexp_ss addsimps [CONS_def,In1_def]) 1);
+by (asm_simp_tac (!simpset addsimps [CONS_def,In1_def]) 1);
 qed "TF_rec_FCONS";
 
 
@@ -263,13 +263,13 @@ val Rep_Forest_in_sexp =
     [range_Leaf_subset_sexp RS TF_subset_sexp RS (Part_subset RS subset_trans),
      Rep_Forest] MRS subsetD;
 
-val tf_rec_simps = [TF_rec_TCONS, TF_rec_FNIL, TF_rec_FCONS,
-		    TCONS_I, FNIL_I, FCONS_I, Rep_Tree, Rep_Forest,
-		    Rep_Tree_inverse, Rep_Forest_inverse,
-		    Abs_Tree_inverse, Abs_Forest_inverse,
-		    inj_Leaf, Inv_f_f, sexp.LeafI, range_eqI,
-		    Rep_Tree_in_sexp, Rep_Forest_in_sexp];
-val tf_rec_ss = HOL_ss addsimps tf_rec_simps;
+val tf_rec_ss = HOL_ss addsimps
+  [TF_rec_TCONS, TF_rec_FNIL, TF_rec_FCONS,
+   TCONS_I, FNIL_I, FCONS_I, Rep_Tree, Rep_Forest,
+   Rep_Tree_inverse, Rep_Forest_inverse,
+   Abs_Tree_inverse, Abs_Forest_inverse,
+   inj_Leaf, Inv_f_f, sexp.LeafI, range_eqI,
+   Rep_Tree_in_sexp, Rep_Forest_in_sexp];
 
 goalw Simult.thy [tree_rec_def, forest_rec_def, Tcons_def]
     "tree_rec (Tcons a tf) b c d = b a tf (forest_rec tf b c d)";

@@ -8,6 +8,6 @@ Derived rules for actions
 
 goal Action.thy "!!x. x = y ==> action_case a b c d e f g x =     \
 \                               action_case a b c d e f g y";
-by (asm_simp_tac HOL_ss 1);
+by (Asm_simp_tac 1);
 
-val action_ss = arith_ss addcongs [result()] addsimps Action.action.simps;
+Addcongs [result()];

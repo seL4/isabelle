@@ -31,7 +31,7 @@ bd rtrancl_mono 1;
 bd rtrancl_mono 1;
 by(fast_tac (HOL_cs addIs [diamond_diamond_rtrancl]
                     addDs [subset_antisym]
-                    addss (HOL_ss addsimps [rtrancl_idemp])) 1);
+                    addss (!simpset addsimps [rtrancl_idemp])) 1);
 qed "diamond_to_confluence";
 
 goalw Confluence.thy [confluent_def,diamond_def,Church_Rosser_def]

@@ -42,6 +42,8 @@ val de_morgan = result();
 
 (* Lists *)
 
+val list_ss = simpset_of "List";
+
 goal List.thy "hd(l@m) = (if l~=[] then hd(l) else hd(m))";
 by (List.list.induct_tac "l" 1);
 by (simp_tac list_ss 1);

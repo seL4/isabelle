@@ -16,7 +16,7 @@ consts
   acc  :: "('a * 'a)set => 'a set"		(*Accessible part*)
 
 defs
-  pred_def     "pred x r == {y. (y,x):r}"
+  pred_def  "pred x r == {y. (y,x):r}"
 
 inductive "acc(r)"
   intrs

@@ -1,4 +1,5 @@
-(*  Title: 	Substitutions/UTLemmas.ML
+(*  Title: 	HOL/Subst/UTLemmas.ML
+    ID:         $Id$
     Author: 	Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 
@@ -9,10 +10,10 @@ open UTLemmas;
 
 (***********)
 
-val utlemmas_defs = [vars_of_def,occs_def];
+val utlemmas_defs = [vars_of_def, occs_def];
 
 local fun mk_thm s = prove_goalw UTLemmas.thy utlemmas_defs s 
-                                 (fn _ => [simp_tac uterm_ss 1])
+                                 (fn _ => [Simp_tac 1])
 in val utlemmas_rews = map mk_thm 
       ["vars_of(Const(c)) = {}",
        "vars_of(Var(x)) = {x}",
@@ -22,13 +23,13 @@ in val utlemmas_rews = map mk_thm
        "t <: Comb u v = (t=u | t=v | t <: u | t <: v)"];
 end;
 
-val utlemmas_ss = prod_ss addsimps (setplus_rews @ uterm_rews @ utlemmas_rews);
+Addsimps (setplus_rews @ uterm_rews @ utlemmas_rews);
 
 (****  occs irrefl ****)
 
 goal UTLemmas.thy  "t <: u & u <: v --> t <: v";
 by (uterm_ind_tac "v" 1);
-by (ALLGOALS (simp_tac utlemmas_ss));
+by (ALLGOALS Simp_tac);
 by (fast_tac HOL_cs 1);
 val occs_trans  = store_thm("occs_trans", conjI RS (result() RS mp));
 
@@ -37,11 +38,11 @@ by (fast_tac (HOL_cs addIs [occs_trans]) 1);
 val contr_occs_trans  = store_thm("contr_occs_trans", result() RS mp);
 
 goal UTLemmas.thy   "t <: Comb t u";
-by (simp_tac utlemmas_ss 1);
+by (Simp_tac 1);
 qed "occs_Comb1";
 
 goal UTLemmas.thy  "u <: Comb t u";
-by (simp_tac utlemmas_ss 1);
+by (Simp_tac 1);
 qed "occs_Comb2";
 
 goal HOL.thy  "(~(P|Q)) = (~P & ~Q)";
@@ -50,7 +51,7 @@ qed "demorgan_disj";
 
 goal UTLemmas.thy  "~ t <: t";
 by (uterm_ind_tac "t" 1);
-by (ALLGOALS (simp_tac (utlemmas_ss addsimps [demorgan_disj])));
+by (ALLGOALS (simp_tac (!simpset addsimps [demorgan_disj])));
 by (REPEAT (resolve_tac [impI,conjI] 1 ORELSE
             (etac contrapos 1 THEN etac subst 1 THEN 
              resolve_tac [occs_Comb1,occs_Comb2] 1) ORELSE
@@ -66,12 +67,12 @@ val occs_irrefl2  = store_thm("occs_irrefl2", result() RS mp);
 (**** vars_of lemmas  ****)
 
 goal UTLemmas.thy "(v : vars_of(Var(w))) = (w=v)";
-by (simp_tac utlemmas_ss 1);
+by (Simp_tac 1);
 by (fast_tac HOL_cs 1);
 qed "vars_var_iff";
 
 goal UTLemmas.thy  "(x : vars_of(t)) = (Var(x) <: t | Var(x) = t)";
 by (uterm_ind_tac "t" 1);
-by (ALLGOALS (simp_tac utlemmas_ss));
+by (ALLGOALS Simp_tac);
 by (fast_tac HOL_cs 1);
 qed "vars_iff_occseq";
