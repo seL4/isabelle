@@ -150,7 +150,7 @@ Close_locale "Distrib";
 
 
 Goal "!!f::nat=>nat. (INT i: lessThan n. {s. f i <= g i s})  \
-\     <= {s. (\\<Sum>i: lessThan n. f i) <= (\\<Sum>i: lessThan n. g i s)}";
+\     <= {s. (\\<Sum>x: lessThan n. f x) <= (\\<Sum>x: lessThan n. g x s)}";
 by (induct_tac "n" 1);
 by (auto_tac (claset(), simpset() addsimps [lessThan_Suc]));
 qed "alloc_refinement_lemma";
