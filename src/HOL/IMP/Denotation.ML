@@ -33,10 +33,10 @@ qed "C_While_If";
 
 (* Operational Semantics implies Denotational Semantics *)
 
-goal Denotation.thy "!c s t. <c,s> -c-> t --> (s,t) : C(c)";
+goal Denotation.thy "!!c s t. <c,s> -c-> t ==> (s,t) : C(c)";
 
 (* start with rule induction *)
-by (rtac evalc.mutual_induct 1);
+by (etac evalc.induct 1);
 by (rewrite_tac (Gamma_def::C_simps));
   (* simplification with HOL_ss too agressive *)
 (* skip *)
@@ -54,7 +54,7 @@ by (fast_tac denotation_cs 1);
 by (rtac (rewrite_rule [Gamma_def] (Gamma_mono RS lfp_Tarski RS ssubst)) 1);
 by (fast_tac denotation_cs 1);
 
-qed_spec_mp "com1";
+qed "com1";
 
 
 (* Denotational Semantics implies Operational Semantics *)
