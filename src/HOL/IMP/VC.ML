@@ -77,3 +77,8 @@ by(res_inst_tac [("x","ac")] exI 1);
 by(Asm_simp_tac 1);
 by(fast_tac (HOL_cs addSEs [wp_mono,vc_mono]) 1);
 qed "vc_complete";
+
+goal VC.thy "!Q. vcwp c Q = (vc c Q, wp c Q)";
+by(acom.induct_tac "c" 1);
+by(ALLGOALS (asm_simp_tac (!simpset addsimps [Let_def])));
+qed "vcwp_vc_wp";
