@@ -1,0 +1,1 @@
+intr_elim = Pure

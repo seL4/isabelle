@@ -1,0 +1,1 @@
+indrule = "intr_elim"
