@@ -1,6 +1,6 @@
 (*  Title:      HOL/Infnite_Set.thy
     ID:         $Id$
-    Author:     Stefan Merz 
+    Author:     Stephan Merz 
 *)
 
 header {* Infnite Sets and Related Concepts*}
