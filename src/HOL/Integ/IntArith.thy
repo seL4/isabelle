@@ -429,6 +429,7 @@ val zle_diff1_eq = thm "zle_diff1_eq";
 val zle_add1_eq_le = thm "zle_add1_eq_le";
 val nonneg_eq_int = thm "nonneg_eq_int";
 val abs_minus_one = thm "abs_minus_one";
+val of_int_number_of_eq = thm"of_int_number_of_eq";
 val nat_eq_iff = thm "nat_eq_iff";
 val nat_eq_iff2 = thm "nat_eq_iff2";
 val nat_less_iff = thm "nat_less_iff";

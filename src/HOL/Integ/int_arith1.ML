@@ -476,7 +476,7 @@ local
 (* reduce contradictory <= to False *)
 val add_rules =
     simp_thms @ bin_arith_simps @ bin_rel_simps @ arith_special @
-    [numeral_0_eq_0, numeral_1_eq_1,
+    [neg_le_iff_le, numeral_0_eq_0, numeral_1_eq_1,
      minus_zero, diff_minus, left_minus, right_minus,
      mult_zero_left, mult_zero_right, mult_1, mult_1_right,
      minus_mult_left RS sym, minus_mult_right RS sym,

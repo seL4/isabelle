@@ -4,8 +4,6 @@
     Description: Floor and ceiling operations over reals
 *)
 
-val real_number_of = thm"real_number_of";
-
 Goal "((number_of n) < real (m::int)) = (number_of n < m)";
 by Auto_tac;
 by (rtac (real_of_int_less_iff RS iffD1) 1);

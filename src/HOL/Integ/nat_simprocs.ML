@@ -512,7 +512,7 @@ val add_rules =
    Suc_eq_number_of,eq_number_of_Suc,
    mult_Suc, mult_Suc_right,
    eq_number_of_0, eq_0_number_of, less_0_number_of,
-   nat_number_of, if_True, if_False];
+   of_int_number_of_eq, of_nat_number_of_eq, nat_number_of, if_True, if_False];
 
 val simprocs = [Nat_Numeral_Simprocs.combine_numerals]@
                 Nat_Numeral_Simprocs.cancel_numerals;
