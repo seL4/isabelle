@@ -280,6 +280,15 @@ end;
 Addsimprocs Nat_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Nat_Numeral_Simprocs.combine_numerals];
 
+
+(*If the result is just #1 + ..., replace it by Suc so that primrecs, etc.
+  will work.*)
+Goal "#1 + n = Suc n";
+by Auto_tac;
+qed "one_plus_eq_Suc";
+Addsimps [one_plus_eq_Suc];
+
+
 (*examples:
 print_depth 22;
 set proof_timing;
