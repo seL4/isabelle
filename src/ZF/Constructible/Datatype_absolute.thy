@@ -321,9 +321,9 @@ lemma (in M_triv_axioms) list_rec_eq:
   "l \<in> list(A) ==>
    list_rec(a,g,l) = 
    transrec (succ(length(l)),
-      \<lambda>x h. Lambda (list_N(A,x),
-             list_case' (a, 
-                \<lambda>a l. g(a, l, h ` succ(length(l)) ` l)))) ` l"
+      \<lambda>x h. Lambda (list(A),
+                    list_case' (a, 
+                           \<lambda>a l. g(a, l, h ` succ(length(l)) ` l)))) ` l"
 apply (induct_tac l) 
 apply (subst transrec, simp) 
 apply (subst transrec) 
@@ -629,10 +629,6 @@ apply (induct_tac n, simp)
 apply (simp add: tl'_Cons tl'_closed) 
 done
 
-locale (open) M_nth = M_datatypes +
- assumes nth_replacement1: 
-   "M(xs) ==> iterates_replacement(M, %l t. is_tl(M,l,t), xs)"
-
 text{*Immediate by type-checking*}
 lemma (in M_datatypes) nth_closed [intro,simp]:
      "[|xs \<in> list(A); n \<in> nat; M(A)|] ==> M(nth(n,xs))" 
@@ -649,18 +645,16 @@ constdefs
        is_wfrec(M, iterates_MH(M, is_tl(M), l), msn, n, X) &
        is_hd(M,X,Z)"
  
-lemma (in M_nth) nth_abs [simp]:
-     "[|M(A); n \<in> nat; l \<in> list(A); M(Z)|] 
+lemma (in M_datatypes) nth_abs [simp]:
+     "[|iterates_replacement(M, %l t. is_tl(M,l,t), l);
+        M(A); n \<in> nat; l \<in> list(A); M(Z)|] 
       ==> is_nth(M,n,l,Z) <-> Z = nth(n,l)"
 apply (subgoal_tac "M(l)") 
  prefer 2 apply (blast intro: transM)
-apply (insert nth_replacement1)
 apply (simp add: is_nth_def nth_eq_hd_iterates_tl nat_into_M
                  tl'_closed iterates_tl'_closed 
                  iterates_abs [OF _ relativize1_tl])
 done
-
-
 
 
 subsection{*Relativization and Absoluteness for the @{term formula} Constructors*}
@@ -912,35 +906,29 @@ apply (simp_all add: subset_Un_iff [THEN iffD1] subset_Un_iff2 [THEN iffD1]
                      le_imp_subset formula_N_mono)
 done
 
-lemma Nand_in_formula_N:
-    "[|p \<in> formula; q \<in> formula|]
-     ==> Nand(p,q) \<in> formula_N(succ(succ(depth(p))) \<union> succ(succ(depth(q))))"
-by (simp add: succ_Un_distrib [symmetric] formula_imp_formula_N le_Un_iff) 
-
-
 text{*Express @{term formula_rec} without using @{term rank} or @{term Vset},
 neither of which is absolute.*}
 lemma (in M_triv_axioms) formula_rec_eq:
   "p \<in> formula ==>
    formula_rec(a,b,c,d,p) = 
    transrec (succ(depth(p)),
-      \<lambda>x h. Lambda (formula_N(x),
+      \<lambda>x h. Lambda (formula,
              formula_case' (a, b,
                 \<lambda>u v. c(u, v, h ` succ(depth(u)) ` u, 
                               h ` succ(depth(v)) ` v),
                 \<lambda>u. d(u, h ` succ(depth(u)) ` u)))) 
    ` p"
 apply (induct_tac p)
-txt{*Base case for @{term Member}*}
-apply (subst transrec, simp) 
-txt{*Base case for @{term Equal}*}
-apply (subst transrec, simp)
-txt{*Inductive step for @{term Nand}*}
-apply (subst transrec)
-apply (simp add: succ_Un_distrib Nand_in_formula_N)
+   txt{*Base case for @{term Member}*}
+   apply (subst transrec, simp add: formula.intros) 
+  txt{*Base case for @{term Equal}*}
+  apply (subst transrec, simp add: formula.intros)
+ txt{*Inductive step for @{term Nand}*}
+ apply (subst transrec) 
+ apply (simp add: succ_Un_distrib formula.intros)
 txt{*Inductive step for @{term Forall}*}
 apply (subst transrec) 
-apply (simp add: formula_imp_formula_N) 
+apply (simp add: formula_imp_formula_N formula.intros) 
 done
 
 

@@ -1124,6 +1124,239 @@ declare eclose_closed [intro,simp]
 declare eclose_abs [intro,simp]
 
 
+subsection{*Internalized Forms of Data Structuring Operators*}
 
+subsubsection{*The Formula @{term is_Inl}, Internalized*}
+
+(*  is_Inl(M,a,z) == \<exists>zero[M]. empty(M,zero) & pair(M,zero,a,z) *)
+constdefs Inl_fm :: "[i,i]=>i"
+    "Inl_fm(a,z) == Exists(And(empty_fm(0), pair_fm(0,succ(a),succ(z))))"
+
+lemma Inl_type [TC]:
+     "[| x \<in> nat; z \<in> nat |] ==> Inl_fm(x,z) \<in> formula"
+by (simp add: Inl_fm_def) 
+
+lemma sats_Inl_fm [simp]:
+   "[| x \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, Inl_fm(x,z), env) <-> is_Inl(**A, nth(x,env), nth(z,env))"
+by (simp add: Inl_fm_def is_Inl_def)
+
+lemma Inl_iff_sats:
+      "[| nth(i,env) = x; nth(k,env) = z; 
+          i \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> is_Inl(**A, x, z) <-> sats(A, Inl_fm(i,k), env)"
+by simp
+
+theorem Inl_reflection:
+     "REFLECTS[\<lambda>x. is_Inl(L,f(x),h(x)), 
+               \<lambda>i x. is_Inl(**Lset(i),f(x),h(x))]"
+apply (simp only: is_Inl_def setclass_simps)
+apply (intro FOL_reflections function_reflections)  
+done
+
+
+subsubsection{*The Formula @{term is_Inr}, Internalized*}
+
+(*  is_Inr(M,a,z) == \<exists>n1[M]. number1(M,n1) & pair(M,n1,a,z) *)
+constdefs Inr_fm :: "[i,i]=>i"
+    "Inr_fm(a,z) == Exists(And(number1_fm(0), pair_fm(0,succ(a),succ(z))))"
+
+lemma Inr_type [TC]:
+     "[| x \<in> nat; z \<in> nat |] ==> Inr_fm(x,z) \<in> formula"
+by (simp add: Inr_fm_def) 
+
+lemma sats_Inr_fm [simp]:
+   "[| x \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, Inr_fm(x,z), env) <-> is_Inr(**A, nth(x,env), nth(z,env))"
+by (simp add: Inr_fm_def is_Inr_def)
+
+lemma Inr_iff_sats:
+      "[| nth(i,env) = x; nth(k,env) = z; 
+          i \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> is_Inr(**A, x, z) <-> sats(A, Inr_fm(i,k), env)"
+by simp
+
+theorem Inr_reflection:
+     "REFLECTS[\<lambda>x. is_Inr(L,f(x),h(x)), 
+               \<lambda>i x. is_Inr(**Lset(i),f(x),h(x))]"
+apply (simp only: is_Inr_def setclass_simps)
+apply (intro FOL_reflections function_reflections)  
+done
+
+
+subsubsection{*The Formula @{term is_Nil}, Internalized*}
+
+(* is_Nil(M,xs) == \<exists>zero[M]. empty(M,zero) & is_Inl(M,zero,xs) *)
+
+constdefs Nil_fm :: "i=>i"
+    "Nil_fm(x) == Exists(And(empty_fm(0), Inl_fm(0,succ(x))))"
+ 
+lemma Nil_type [TC]: "x \<in> nat ==> Nil_fm(x) \<in> formula"
+by (simp add: Nil_fm_def) 
+
+lemma sats_Nil_fm [simp]:
+   "[| x \<in> nat; env \<in> list(A)|]
+    ==> sats(A, Nil_fm(x), env) <-> is_Nil(**A, nth(x,env))"
+by (simp add: Nil_fm_def is_Nil_def)
+
+lemma Nil_iff_sats:
+      "[| nth(i,env) = x; i \<in> nat; env \<in> list(A)|]
+       ==> is_Nil(**A, x) <-> sats(A, Nil_fm(i), env)"
+by simp
+
+theorem Nil_reflection:
+     "REFLECTS[\<lambda>x. is_Nil(L,f(x)), 
+               \<lambda>i x. is_Nil(**Lset(i),f(x))]"
+apply (simp only: is_Nil_def setclass_simps)
+apply (intro FOL_reflections function_reflections Inl_reflection)  
+done
+
+
+subsubsection{*The Formula @{term is_Nil}, Internalized*}
+
+
+(*  "is_Cons(M,a,l,Z) == \<exists>p[M]. pair(M,a,l,p) & is_Inr(M,p,Z)" *)
+constdefs Cons_fm :: "[i,i,i]=>i"
+    "Cons_fm(a,l,Z) == 
+       Exists(And(pair_fm(succ(a),succ(l),0), Inr_fm(0,succ(Z))))"
+
+lemma Cons_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> Cons_fm(x,y,z) \<in> formula"
+by (simp add: Cons_fm_def) 
+
+lemma sats_Cons_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, Cons_fm(x,y,z), env) <-> 
+       is_Cons(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: Cons_fm_def is_Cons_def)
+
+lemma Cons_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==>is_Cons(**A, x, y, z) <-> sats(A, Cons_fm(i,j,k), env)"
+by simp
+
+theorem Cons_reflection:
+     "REFLECTS[\<lambda>x. is_Cons(L,f(x),g(x),h(x)), 
+               \<lambda>i x. is_Cons(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: is_Cons_def setclass_simps)
+apply (intro FOL_reflections pair_reflection Inr_reflection)  
+done
+
+subsubsection{*The Formula @{term is_quasilist}, Internalized*}
+
+(* is_quasilist(M,xs) == is_Nil(M,z) | (\<exists>x[M]. \<exists>l[M]. is_Cons(M,x,l,z))" *)
+
+constdefs quasilist_fm :: "i=>i"
+    "quasilist_fm(x) == 
+       Or(Nil_fm(x), Exists(Exists(Cons_fm(1,0,succ(succ(x))))))"
+ 
+lemma quasilist_type [TC]: "x \<in> nat ==> quasilist_fm(x) \<in> formula"
+by (simp add: quasilist_fm_def) 
+
+lemma sats_quasilist_fm [simp]:
+   "[| x \<in> nat; env \<in> list(A)|]
+    ==> sats(A, quasilist_fm(x), env) <-> is_quasilist(**A, nth(x,env))"
+by (simp add: quasilist_fm_def is_quasilist_def)
+
+lemma quasilist_iff_sats:
+      "[| nth(i,env) = x; i \<in> nat; env \<in> list(A)|]
+       ==> is_quasilist(**A, x) <-> sats(A, quasilist_fm(i), env)"
+by simp
+
+theorem quasilist_reflection:
+     "REFLECTS[\<lambda>x. is_quasilist(L,f(x)), 
+               \<lambda>i x. is_quasilist(**Lset(i),f(x))]"
+apply (simp only: is_quasilist_def setclass_simps)
+apply (intro FOL_reflections Nil_reflection Cons_reflection)  
+done
+
+
+subsection{*Absoluteness for the Function @{term nth}*}
+
+
+subsubsection{*The Formula @{term is_tl}, Internalized*}
+
+(*     "is_tl(M,xs,T) == 
+       (is_Nil(M,xs) --> T=xs) &
+       (\<forall>x[M]. \<forall>l[M]. ~ is_Cons(M,x,l,xs) | T=l) &
+       (is_quasilist(M,xs) | empty(M,T))" *)
+constdefs tl_fm :: "[i,i]=>i"
+    "tl_fm(xs,T) == 
+       And(Implies(Nil_fm(xs), Equal(T,xs)),
+           And(Forall(Forall(Or(Neg(Cons_fm(1,0,xs#+2)), Equal(T#+2,0)))),
+               Or(quasilist_fm(xs), empty_fm(T))))"
+
+lemma tl_type [TC]:
+     "[| x \<in> nat; y \<in> nat |] ==> tl_fm(x,y) \<in> formula"
+by (simp add: tl_fm_def) 
+
+lemma sats_tl_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, tl_fm(x,y), env) <-> is_tl(**A, nth(x,env), nth(y,env))"
+by (simp add: tl_fm_def is_tl_def)
+
+lemma tl_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y;
+          i \<in> nat; j \<in> nat; env \<in> list(A)|]
+       ==> is_tl(**A, x, y) <-> sats(A, tl_fm(i,j), env)"
+by simp
+
+theorem tl_reflection:
+     "REFLECTS[\<lambda>x. is_tl(L,f(x),g(x)), 
+               \<lambda>i x. is_tl(**Lset(i),f(x),g(x))]"
+apply (simp only: is_tl_def setclass_simps)
+apply (intro FOL_reflections Nil_reflection Cons_reflection
+             quasilist_reflection empty_reflection)  
+done
+
+
+subsubsection{*An Instance of Replacement for @{term nth}*}
+
+lemma nth_replacement_Reflects:
+ "REFLECTS
+   [\<lambda>x. \<exists>u[L]. u \<in> B \<and> (\<exists>y[L]. pair(L,u,y,x) \<and>
+         is_wfrec(L, iterates_MH(L, is_tl(L), z), memsn, u, y)),
+    \<lambda>i x. \<exists>u \<in> Lset(i). u \<in> B \<and> (\<exists>y \<in> Lset(i). pair(**Lset(i), u, y, x) \<and>
+         is_wfrec(**Lset(i), 
+                  iterates_MH(**Lset(i), 
+                          is_tl(**Lset(i)), z), memsn, u, y))]"
+by (intro FOL_reflections function_reflections is_wfrec_reflection 
+          iterates_MH_reflection list_functor_reflection tl_reflection) 
+
+lemma nth_replacement: 
+   "L(w) ==> iterates_replacement(L, %l t. is_tl(L,l,t), w)"
+apply (unfold iterates_replacement_def wfrec_replacement_def, clarify)
+apply (rule strong_replacementI) 
+apply (rule rallI)   
+apply (rule separation_CollectI) 
+apply (subgoal_tac "L(Memrel(succ(n)))") 
+apply (rule_tac A="{A,n,w,z,Memrel(succ(n))}" in subset_LsetE, blast ) 
+apply (rule ReflectsE [OF nth_replacement_Reflects], assumption)
+apply (drule subset_Lset_ltD, assumption) 
+apply (erule reflection_imp_L_separation)
+  apply (simp_all add: lt_Ord2 Memrel_closed)
+apply (elim conjE) 
+apply (rule DPow_LsetI)
+apply (rename_tac v) 
+apply (rule bex_iff_sats conj_iff_sats)+
+apply (rule_tac env = "[u,v,A,z,w,Memrel(succ(n))]" in mem_iff_sats)
+apply (rule sep_rules | simp)+
+apply (simp add: is_wfrec_def M_is_recfun_def iterates_MH_def is_nat_case_def)
+apply (rule sep_rules quasinat_iff_sats tl_iff_sats | simp)+
+done
+
+ML
+{*
+bind_thm ("nth_abs_lemma", datatypes_L (thm "M_datatypes.nth_abs"));
+*}
+
+text{*Instantiating theorem @{text nth_abs} for @{term L}*}
+lemma nth_abs [simp]:
+     "[|L(A); n \<in> nat; l \<in> list(A); L(Z)|] 
+      ==> is_nth(L,n,l,Z) <-> Z = nth(n,l)"
+apply (rule nth_abs_lemma)
+apply (blast intro: nth_replacement transL list_closed, assumption+)
+done
 
 end
