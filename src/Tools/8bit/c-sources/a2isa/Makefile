@@ -7,20 +7,28 @@
 # Makefile for Isabelle ASCII to 8bit converter
 ################################################
 
-OBJECTS = main.o lex.o
+AOBJECTS  = main.o  lex.o
+AXOBJECTS = main.o xlex.o
 
 CC = gcc
 
-# Application name
-APPNAME = a2isa
+.SUFFIXES: $(SUFFIXES) .x
+
+.x.o:
+	flex $<; $(CC) -c -o $@ lex.yy.c
 
 # ----------------------------------------------------
 
-$(APPNAME):  $(OBJECTS)
-	$(CC) -o $(APPNAME) $(OBJECTS);	strip $(APPNAME)
+all: a2isa ax2isa
 
-lex.o: lex.x
-	flex lex.x; $(CC) -c -o lex.o lex.yy.c
+a2isa:  $(AOBJECTS)
+	$(CC) -o a2isa $(AOBJECTS); strip a2isa
+
+ax2isa: $(AXOBJECTS)
+	$(CC) -o ax2isa $(AXOBJECTS); strip ax2isa
+
+#lex.o: lex.x
+#	flex lex.x; $(CC) -c -o lex.o lex.yy.c
 
 # ----------------------------------------------------
 

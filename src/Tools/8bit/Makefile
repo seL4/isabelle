@@ -108,7 +108,7 @@ XEMACS_INIT=.emacs_xemacs_isa
 all:  $(CONFIGFILES)\
 	bin/gen-isa2latex bin/gen-isaterm bin/gen-isavim bin/gen-isaaxe\
 	bin/gen-isa_gnu_emacs bin/gen-isa_xemacs bin/gen-isadoc\
-	configuration a2isa bin/isa2latex bin/a2isa\
+	configuration a2isa bin/isa2latex bin/a2isa bin/ax2isa\
 	bin/isa_gnu_emacs bin/isa_xemacs bin/isavim bin/isaaxe\
 	bin/isaterm bin/isa_xmosaic bin/isapal bin/codetable bin/patcher\
 	fonts/install keyboard/install\
@@ -121,7 +121,7 @@ all:  $(CONFIGFILES)\
 # ----------------------------------------------------
 
 clean:
-	cd bin; rm -f a2isa codetable gen-* isa* patcher
+	cd bin; rm -f *2isa codetable gen-* isa* patcher
 	cd c-sources/a2isa; $(GMAKE) clean
 	cd c-sources/isa2latex; $(GMAKE) clean
 	cd doc; $(GMAKE) clean
@@ -249,6 +249,11 @@ bin/a2isa: c-sources/a2isa/a2isa
 	@echo "installing a2isa"
 	@rm -f bin/a2isa;\
 	ln -s ../c-sources/a2isa/a2isa bin/a2isa
+
+bin/ax2isa: c-sources/a2isa/ax2isa
+	@echo "installing ax2isa"
+	@rm -f bin/ax2isa;\
+	ln -s ../c-sources/a2isa/ax2isa bin/ax2isa
 
 #######      Editors        
 

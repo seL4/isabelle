@@ -1,4 +1,4 @@
-/*  Title:      Tools/8bit/c-sources/a2isa/lex.x
+/*  Title:      Tools/8bit/c-sources/a2isa/xlex.x
     ID:         $Id$
     Author:     David von Oheimb
     Copyright   1996 TU Muenchen
@@ -32,13 +32,13 @@ void put(char *s)
   yyin  = finput;
   yyout = foutput;
 
-\"			{ ECHO; BEGIN(STRING); }
-[^\"]*			{ ECHO; }
-<STRING>\"		{ ECHO; BEGIN(INITIAL); }
+\\I@			{ ECHO; BEGIN(STRING); }
+.			{ ECHO; }
+<STRING>\\I@		{ ECHO; BEGIN(INITIAL); }
 <STRING>\\[ \t]*\n[ \t]*\\	{ ECHO; }
-<STRING>\n		{ ECHO; fprintf(stderr, 
+<STRING>\n		{ ECHO; /* fprintf(stderr, 
 			  	"WARNING: line %d ends inside string\n", 
-				yylineno-1); }
+				yylineno-1); */}
 <STRING><<EOF>>		{ 	fprintf(stderr, 
 			  	"WARNING: EOF inside string\n"); 
 				yyterminate(); }
@@ -103,7 +103,7 @@ lub\ 		put("×");
 UU		put("Ø");
 
   /* misc */
-\|-put("É");
+\|-		put("É");
 \|=		put("Ê");
 
   /*
