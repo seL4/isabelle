@@ -30,8 +30,6 @@
 
 # Simple xterm based interface.
 #ISABELLE_INTERFACE=xterm
-#ISABELLE_INTERFACE_OPTIONS="-g 80x50 -s false"
 
-# GNU Emacs running Isamode.
+# Emacs running Isamode.
 #ISABELLE_INTERFACE=emacs
-#ISABELLE_INTERFACE_OPTIONS=""
