@@ -1,4 +1,4 @@
-(*  Title:      LCF/ex.ML
+(*  Title:      LCF/ex/ex.ML
     ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
@@ -6,10 +6,6 @@
 Some examples from Lawrence Paulson's book Logic and Computation.
 *)
 
-
-LCF_build_completed;    (*Cause examples to fail if LCF did*)
-
-proof_timing := true;
 
 (***  Section 10.4  ***)
 
@@ -127,5 +123,3 @@ by (etac less_ap_term 1);
 by (resolve_tac asms 1);
 by (rtac (FIX_eq RS eq_imp_less1) 1);
 result();
-
-maketest"END: file for LCF examples";

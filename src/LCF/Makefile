@@ -51,10 +51,10 @@ $(BIN)/LCF:   $(BIN)/FOL  $(FILES)
 (BIN)/FOL:
 	cd ../FOL;  $(MAKE)
 
-test:	ex.ML  $(BIN)/LCF
+test:	ex/ROOT.ML ex/ex.ML  $(BIN)/LCF
 	@case `basename "$(COMP)"` in \
-	poly*)	echo 'exit_use"ex.ML"; quit();' | $(COMP) $(BIN)/LCF ;;\
-	sml*)	echo 'exit_use"ex.ML";' | $(BIN)/LCF;;\
+	poly*)	echo 'exit_use_dir"ex"; quit();' | $(COMP) $(BIN)/LCF ;;\
+	sml*)	echo 'exit_use_dir"ex";' | $(BIN)/LCF;;\
 	*)	echo Bad value for ISABELLECOMP: \
 			\"$(COMP)\" is not poly or sml;;\
 	esac
