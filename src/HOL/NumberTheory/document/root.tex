@@ -9,10 +9,38 @@
 \begin{document}
 
 \title{Some results of number theory}
-\author{Lawrence C Paulson \\
-  Thomas M Rasmussen \\
-  Christophe Tabacznyj}
+\author{Jeremy Avigad\\
+    David Gray\\
+    Adam Kramer\\
+    Thomas M Rasmussen}
+
 \maketitle
+
+\begin{abstract}
+This directory contains formalized proofs of many results of number theory.
+The proofs of the Chinese Remainder Theorem and Wilson's Theorem are due to
+Rasmussen.  The proof of Gauss's law of quadratic reciprocity is due to
+Avigad, Gray and Kramer.  Proofs can be found in most introductory number
+theory textbooks; Goldman's \emph{The Queen of Mathematics: a Historically
+Motivated Guide to Number Theory} provides some historical context.
+
+Avigad, Gray and Kramer have also provided library theories dealing with
+finite sets and finite sums, divisibility and congruences, parity and
+residues.  The authors are engaged in redesigning and polishing these theories
+for more serious use.  For the latest information in this respect, please see
+the web page \url{http://www.andrew.cmu.edu/~avigad/isabelle}.  Other theories
+contain proofs of Euler's criteria, Gauss' lemma, and the law of quadratic
+reciprocity.  The formalization follows Eisenstein's proof, which is the one
+most commonly found in introductory textbooks; in particular, it follows the
+presentation in Niven and Zuckerman, \emph{The Theory of Numbers}.
+
+To avoid having to count roots of polynomials, however, we relied on a trick
+previously used by David Russinoff in formalizing quadratic reciprocity for
+the Boyer-Moore theorem prover; see Russinoff, David, ``A mechanical proof
+of quadratic reciprocity,'' \emph{Journal of Automated Reasoning} 8:3-21,
+1992.  We are grateful to Larry Paulson for calling our attention to this
+reference.
+\end{abstract}
 
 \tableofcontents
 
