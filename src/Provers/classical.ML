@@ -41,7 +41,6 @@ signature CLASSICAL =
   val rep_claset: claset -> 
       {safeIs: thm list, safeEs: thm list, hazIs: thm list, hazEs: thm list}
   val best_tac : claset -> int -> tactic
-  val chain_tac : int -> tactic
   val contr_tac : int -> tactic
   val eq_mp_tac: int -> tactic
   val fast_tac : claset -> int -> tactic
@@ -89,10 +88,6 @@ fun swap_res_tac rls =
         biresolve_tac (foldr addrl (rls,[]))
     end;
 
-(*Given assumption P-->Q, reduces subgoal Q to P [deletes the implication!] *)
-fun chain_tac i =
-    eresolve_tac [imp_elim] i  THEN
-    (assume_tac (i+1)  ORELSE  contr_tac (i+1));
 
 (*** Classical rule sets ***)
 
