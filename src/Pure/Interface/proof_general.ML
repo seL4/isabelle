@@ -247,7 +247,7 @@ end;
 (* init *)
 
 fun init isar =
- (if isar then init_outer_syntax () else ();
+ (if isar then setmp warning_fn (K ()) init_outer_syntax () else ();
   setup_xsymbols_output ();
   setup_messages ();
   setup_state ();
