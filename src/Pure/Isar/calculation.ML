@@ -13,8 +13,8 @@ sig
   val trans_del_global: theory attribute
   val trans_add_local: Proof.context attribute
   val trans_del_local: Proof.context attribute
-  val also: (thm -> unit) -> Proof.state -> Proof.state Seq.seq
-  val finally: (thm -> unit) -> Proof.state -> Proof.state Seq.seq
+  val also: thm list option -> (thm -> unit) -> Proof.state -> Proof.state Seq.seq
+  val finally: thm list option -> (thm -> unit) -> Proof.state -> Proof.state Seq.seq
   val setup: (theory -> theory) list
 end;
 
@@ -26,7 +26,6 @@ struct
 
 fun print_rules ths =
   Pretty.writeln (Pretty.big_list "calculation rules:" (map Display.pretty_thm ths));
-
 
 (* theory data kind 'Isar/calculation' *)
 
@@ -117,14 +116,12 @@ val trans_attr =
 
 (** proof commands **)
 
-fun have_thms name thms = Proof.have_thmss name [] [(thms, [])];
-
 val calculationN = "calculation";
 
-fun calculate final print state =
+fun calculate final opt_rules print state =
   let
     val fact = Proof.the_fact state;
-    val rules = Seq.of_list (get_local_rules state);
+    val rules = Seq.of_list (case opt_rules of None => get_local_rules state | Some thms => thms);
     val calculations =
       (case get_calculation state of
         None => Seq.single fact
@@ -135,13 +132,13 @@ fun calculate final print state =
         (if final then
           state
           |> reset_calculation
-          |> have_thms calculationN []
-          |> have_thms "" [calc]
+          |> Proof.simple_have_thms calculationN []
+          |> Proof.simple_have_thms "" [calc]
           |> Proof.chain
         else
           state
           |> put_calculation calc
-          |> have_thms calculationN [calc]
+          |> Proof.simple_have_thms calculationN [calc]
           |> Proof.reset_facts)))
   end;
 
