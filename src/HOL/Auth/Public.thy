@@ -16,7 +16,7 @@ consts
 syntax
   priK    :: agent => key
 
-translations
+translations  (*BEWARE! expressions like  (inj priK)  will NOT work!*)
   "priK x"  == "invKey(pubK x)"
 
 consts  (*Initial states of agents -- parameter of the construction*)
@@ -57,16 +57,9 @@ constdefs
     "used evs == parts (UN lost B. sees lost B evs)"
 
 
-(*Agents generate "random" nonces, uniquely determined by their argument.*)
-consts
-  newN  :: nat => nat
-
 rules
-
   (*Public keys are disjoint, and never clash with private keys*)
   inj_pubK        "inj pubK"
   priK_neq_pubK   "priK A ~= pubK B"
-
-  inj_newN        "inj newN"
 
 end
