@@ -247,7 +247,7 @@ fun symbol' c =
 
 
 
-(** scanning though symbols **)
+(** scanning through symbols **)
 
 fun scanner msg scan chs =
   let
