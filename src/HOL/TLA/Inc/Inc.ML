@@ -170,7 +170,7 @@ qed_goal "N2_live" Inc.thy
 \  .-> <>($pc2 .= #a)"
   (fn _ => [auto_tac (Inc_css addSIs2 [(temp_mp N2_leadsto_a) RSN(2,leadsto_init)]),
 	    rewrite_goals_tac (Init_def::action_rews),
-	    pcount.induct_tac "pc2 (fst_st sigma)" 1,
+	    exhaust_tac "pc2 (fst_st sigma)" 1,
 	    Auto_tac
 	   ]);
 
@@ -216,7 +216,7 @@ qed_goal "N1_live" Inc.thy
 \  .-> <>($pc1 .= #b)"
   (fn _ => [auto_tac (Inc_css addSIs2 [(temp_mp N1_leadsto_b) RSN(2,leadsto_init)]),
 	    rewrite_goals_tac (Init_def::action_rews),
-	    pcount.induct_tac "pc1 (fst_st sigma)" 1,
+	    exhaust_tac "pc1 (fst_st sigma)" 1,
 	    Auto_tac
 	   ]);
 
