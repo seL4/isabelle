@@ -26,16 +26,18 @@ val thisN = "this";
 
 (** bindings **)
 
+fun list_abs parms tm = foldr (fn ((x, T), t) => Abs (x, T, t)) (parms, tm);
+
+
 (* goal *)
 
 fun statement_binds (name, prop) =
   let
     val concl = Logic.strip_assums_concl prop;
     val parms = Logic.strip_params prop;
-    fun list_abs tm = foldr (fn ((x, T), t) => Abs (x, T, t)) (parms, tm);
 
-    val env = [(name ^ "_prop", Some prop), (name ^ "_concl", Some (list_abs concl)),
-      (name, case concl of Const ("Trueprop", _) $ t => Some (list_abs t) | _ => None)];
+    val env = [(name ^ "_prop", Some prop), (name ^ "_concl", Some (list_abs parms concl)),
+      (name, case concl of Const ("Trueprop", _) $ t => Some (list_abs parms t) | _ => None)];
   in map (fn (s, t) => ((s, 0), t)) env end;
 
 fun goal prop = statement_binds (thesisN, prop);
@@ -43,14 +45,15 @@ fun goal prop = statement_binds (thesisN, prop);
 
 (* facts *)
 
-fun dddot_bind prop =
-  [(Syntax.dddot_indexname,
-      case Logic.strip_imp_concl prop of Const ("Trueprop", _) $ (_ $ t) => Some t | _ => None)];
+fun get_subject prop =
+  (case (Logic.strip_assums_concl prop) of
+    Const ("Trueprop", _) $ (_ $ t) => Some (list_abs (Logic.strip_params prop) t)
+  | _ => None);
 
 fun facts _ [] = []
   | facts name props =
       let val prop = Library.last_elem props
-      in dddot_bind prop @ statement_binds (thisN, prop) end;
+      in [(Syntax.dddot_indexname, get_subject prop)] @ statement_binds (thisN, prop) end;
 
 
 (* atomic_thesis *)
