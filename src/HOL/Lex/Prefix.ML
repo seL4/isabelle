@@ -4,14 +4,6 @@
     Copyright   1995 TUM
 *)
 
-(* Junk: *)
-val [maj,min] = goal Prefix.thy "[| Q([]); !! y ys. Q(y#ys) |] ==> ! l. Q(l)";
-by (rtac allI 1);
-by (induct_tac "l" 1);
-by (rtac maj 1);
-by (rtac min 1);
-val list_cases = result();
-
 (** <= is a partial order: **)
 
 Goalw [prefix_def] "xs <= (xs::'a list)";

@@ -7,11 +7,17 @@ Main result: auto_chopper satisfies the is_auto_chopper specification.
 *)
 
 Delsimps (ex_simps @ all_simps);
-
-infix repeat_RS;
-fun th1 repeat_RS th2 = ((th1 RS th2) repeat_RS th2) handle _ => th1;
+Delsimps [split_paired_All];
 
 Addsimps [Let_def];
+
+(* Junk: *)
+val [maj,min] = goal Prefix.thy "[| Q([]); !! y ys. Q(y#ys) |] ==> ! l. Q(l)";
+by (rtac allI 1);
+by (induct_tac "l" 1);
+by (rtac maj 1);
+by (rtac min 1);
+val list_cases = result();
 
 Goalw [acc_prefix_def] "~acc_prefix A [] s";
 by (Simp_tac 1);
@@ -38,7 +44,7 @@ Goal "!st us p y ys. acc A st p (ys@[y]) xs us ~= ([],zs)";
 by (induct_tac "xs" 1);
 by (Simp_tac 1);
 by (Asm_simp_tac 1);
-val accept_not_Nil = result() repeat_RS spec;
+qed_spec_mp "accept_not_Nil";
 Addsimps [accept_not_Nil];
 
 Goal
@@ -83,7 +89,7 @@ by (res_inst_tac[("xs","vss")] list_eq_cases 1);
  by (fast_tac (claset() addSDs [no_acc]) 1);
 by (hyp_subst_tac 1);
 by (Asm_simp_tac 1);
-val step2_a = (result() repeat_RS spec) RS mp;
+qed_spec_mp "step2_a";
 
 
 Goal
@@ -106,7 +112,7 @@ by (case_tac "acc_prefix A list (next A a st)" 1);
 by (subgoal_tac "r @ [a] ~= []" 1);
  by (Fast_tac 1);
 by (Simp_tac 1);
-val step2_b = (result() repeat_RS spec) RS mp;
+qed_spec_mp "step2_b";
 
 
 Goal  
@@ -145,7 +151,7 @@ by (Simp_tac 1);
 by (res_inst_tac [("t","%k. ys=r@a#k"),("s","%k. ys=(r@[a])@k")] subst 1);
  by (Simp_tac 1);
 by (Fast_tac 1);
-val step2_c = (result() repeat_RS spec) RS mp;
+qed_spec_mp "step2_c";
 
 
 Goal
@@ -184,9 +190,8 @@ by (Simp_tac 1);
 by (rtac trans 1);
  by (etac step2_a 1);
 by (Simp_tac 1);
-val step2_d = (result() repeat_RS spec) RS mp;
+qed_spec_mp "step2_d";
 
-Delsimps [split_paired_All];
 Goal 
 "! st erk r p ys yss zs. \
 \  acc A st p erk xs r = (ys#yss, zs) --> \
@@ -235,7 +240,8 @@ by (rtac list_cases 1);
 by (asm_full_simp_tac (simpset() addsimps [acc_prefix_def] addcongs[conj_cong]) 1);
 by (etac thin_rl 1); (* speed up *)
 by (Fast_tac 1);
-val step2_e = (result() repeat_RS spec) RS mp;
+qed_spec_mp "step2_e";
+
 Addsimps[split_paired_All];
 
 Goalw [accepts_def, is_auto_chopper_def, auto_chopper_def,
