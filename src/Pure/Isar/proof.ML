@@ -304,9 +304,9 @@ fun pretty_thms [th] = pretty_thm th
 
 val verbose = ProofContext.verbose;
 
-fun print_facts _ None = ()
-  | print_facts s (Some ths) =
-     (Pretty.writeln (Pretty.big_list (s ^ "this:") (map pretty_thm ths)); writeln "");
+fun pretty_facts _ None = []
+  | pretty_facts s (Some ths) =
+      [Pretty.big_list (s ^ "this:") (map pretty_thm ths), Pretty.str ""];
 
 fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes)) =
   let
@@ -316,27 +316,27 @@ fun print_state nr (state as State (Node {context, facts, mode, goal = _}, nodes
       | levels_up 1 = ", 1 level up"
       | levels_up i = ", " ^ string_of_int i ^ " levels up";
 
-    fun print_goal (_, (i, (((kind, name, _), (goal_facts, thm)), _))) =
-      (print_facts "using "
-          (if mode <> Backward orelse null goal_facts then None else Some goal_facts);
-        writeln ("goal (" ^ kind_name kind ^ (if name = "" then "" else " " ^ name) ^
-          levels_up (i div 2) ^ "):");
-        Locale.print_goals_marker begin_goal (! goals_limit) thm);
+    fun pretty_goal (_, (i, (((kind, name, _), (goal_facts, thm)), _))) =
+      pretty_facts "using "
+        (if mode <> Backward orelse null goal_facts then None else Some goal_facts) @
+      [Pretty.str ("goal (" ^ kind_name kind ^ (if name = "" then "" else " " ^ name) ^
+        levels_up (i div 2) ^ "):")] @
+      Locale.pretty_goals_marker begin_goal (! goals_limit) thm;
 
-    val ctxt_strings =
-      if ! verbose orelse mode = Forward then ProofContext.strings_of_context context
-      else if mode = Backward then ProofContext.strings_of_prems context
+    val ctxt_prts =
+      if ! verbose orelse mode = Forward then ProofContext.pretty_context context
+      else if mode = Backward then ProofContext.pretty_prems context
       else [];
-  in
-    writeln ("Proof(" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
-      ", depth " ^ string_of_int (length nodes div 2));
-    writeln "";
-    if null ctxt_strings then () else (seq writeln ctxt_strings; writeln "");
-    if ! verbose orelse mode = Forward then
-      (print_facts "" facts; print_goal (find_goal 0 state))
-    else if mode = ForwardChain then print_facts "picking " facts
-    else print_goal (find_goal 0 state)
-  end;
+
+    val prts =
+     [Pretty.str ("Proof(" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
+        ", depth " ^ string_of_int (length nodes div 2)), Pretty.str ""] @
+     (if null ctxt_prts then [] else ctxt_prts @ [Pretty.str ""]) @
+     (if ! verbose orelse mode = Forward then
+       (pretty_facts "" facts @ pretty_goal (find_goal 0 state))
+      else if mode = ForwardChain then pretty_facts "picking " facts
+      else pretty_goal (find_goal 0 state))
+  in Pretty.writeln (Pretty.chunks prts) end;
 
 
 
