@@ -9,7 +9,7 @@
 ### Compilation options
 ###
 
-#ISABELLE_USEDIR_OPTIONS="-i true"
+#ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
 
 
 ###
