@@ -274,7 +274,7 @@ fun adjustcoeffeq_wp  x l fm =
        val m = l div (dest_numeral c) 
        val n = abs (m)
        val xtm = (HOLogic.mk_binop "op *" ((mk_numeral ((m div n)*l) ), x)) 
-       val rs = (HOLogic.mk_binrel "op <" (zero,linear_sub [] one (HOLogic.mk_binop "op +" ( xtm ,( linear_cmul n z) )))) 
+       val rs = (HOLogic.mk_binrel "op <" (zero,linear_sub [] (mk_numeral n) (HOLogic.mk_binop "op +" ( xtm ,( linear_cmul n z) )))) 
        in (ACPI(n,fm),rs)
        end
   else  let val rs = (HOLogic.mk_binrel "op <" (zero,linear_sub [] one rt )) 
@@ -765,21 +765,21 @@ fun proof_of_adjustcoeffeq sg (prt,rs) = case prt of
      val cx = cterm_of sg x
      val ca = cterm_of sg a
    in case p of
-     "op <" => let val pre = prove_elementar sg "ss" 
+     "op <" => let val pre = prove_elementar sg "lf" 
 	                  (HOLogic.mk_binrel "op <" (Const("0",HOLogic.intT),(mk_numeral k)))
 	           val th1 = (pre RS (instantiate' [] [Some ck,Some ca,Some cc, Some cx, Some ct] (ac_lt_eq)))
-		      in [th1,(prove_elementar sg "ss" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans
+		      in [th1,(prove_elementar sg "lf" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans
                    end
-    |"op =" =>let val pre = prove_elementar sg "ss" 
+    |"op =" =>let val pre = prove_elementar sg "lf" 
 	    (HOLogic.Not $ (HOLogic.mk_binrel "op =" (Const("0",HOLogic.intT),(mk_numeral k))))
 	          in let val th1 = (pre RS(instantiate' [] [Some ck,Some ca,Some cc, Some cx, Some ct] (ac_eq_eq)))
-	             in [th1,(prove_elementar sg "ss" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans
+	             in [th1,(prove_elementar sg "lf" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans
                       end
                   end
-    |"Divides.op dvd" =>let val pre = prove_elementar sg "ss" 
+    |"Divides.op dvd" =>let val pre = prove_elementar sg "lf" 
 	   (HOLogic.Not $ (HOLogic.mk_binrel "op =" (Const("0",HOLogic.intT),(mk_numeral k))))
 	                 val th1 = (pre RS (instantiate' [] [Some ck,Some ca,Some cc, Some cx, Some ct]) (ac_dvd_eq))
-                         in [th1,(prove_elementar sg "ss" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans
+                         in [th1,(prove_elementar sg "lf" (HOLogic.mk_eq (snd (qe_get_terms th1) ,rs)))] MRS trans
                         
                           end
   end
@@ -789,7 +789,7 @@ fun proof_of_adjustcoeffeq sg (prt,rs) = case prt of
      val cc = cterm_of sg c
      val ct = cterm_of sg t
      val cx = cterm_of sg x
-     val pre = prove_elementar sg "ss" 
+     val pre = prove_elementar sg "lf" 
        (HOLogic.mk_binrel "op <" (Const("0",HOLogic.intT),(mk_numeral k)))
        val th1 = (pre RS (instantiate' [] [Some ck,Some cc, Some cx, Some ct] (ac_pi_eq)))
 
