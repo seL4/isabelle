@@ -18,25 +18,25 @@ consts
 rules
   TF_rec_def
     "TF_rec(z,b,c,d) == Vrec(z,  			\
-\      %z r. tree_forest_case(%x tf. b(x, tf, r`tf), 	\
+\      %z r. tree_forest_case(%x f. b(x, f, r`f), 	\
 \                             c, 			\
-\		              %t tf. d(t, tf, r`t, r`tf), z))"
+\		              %t f. d(t, f, r`t, r`f), z))"
 
   list_of_TF_def
-    "list_of_TF(z) == TF_rec(z, %x tf r. [Tcons(x,tf)], [], \
-\		             %t tf r1 r2. Cons(t, r2))"
+    "list_of_TF(z) == TF_rec(z, %x f r. [Tcons(x,f)], [], \
+\		             %t f r1 r2. Cons(t, r2))"
 
   TF_of_list_def
-    "TF_of_list(tf) == list_rec(tf, Fnil,  %t tf r. Fcons(t,r))"
+    "TF_of_list(f) == list_rec(f, Fnil,  %t f r. Fcons(t,r))"
 
   TF_map_def
-    "TF_map(h,z) == TF_rec(z, %x tf r.Tcons(h(x),r), Fnil, \
-\                           %t tf r1 r2. Fcons(r1,r2))"
+    "TF_map(h,z) == TF_rec(z, %x f r.Tcons(h(x),r), Fnil, \
+\                           %t f r1 r2. Fcons(r1,r2))"
 
   TF_size_def
-    "TF_size(z) == TF_rec(z, %x tf r.succ(r), 0, %t tf r1 r2. r1#+r2)"
+    "TF_size(z) == TF_rec(z, %x f r.succ(r), 0, %t f r1 r2. r1#+r2)"
 
   TF_preorder_def
-    "TF_preorder(z) == TF_rec(z, %x tf r.Cons(x,r), Nil, %t tf r1 r2. r1@r2)"
+    "TF_preorder(z) == TF_rec(z, %x f r.Cons(x,r), Nil, %t f r1 r2. r1@r2)"
 
 end

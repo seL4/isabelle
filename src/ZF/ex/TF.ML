@@ -17,9 +17,9 @@ structure TF = Datatype_Fun
   val rec_styp = "i=>i";
   val ext = None
   val sintrs = 
-	  ["[| a:A;  tf: forest(A) |] ==> Tcons(a,tf) : tree(A)",
+	  ["[| a:A;  f: forest(A) |] ==> Tcons(a,f) : tree(A)",
 	   "Fnil : forest(A)",
-	   "[| t: tree(A);  tf: forest(A) |] ==> Fcons(t,tf) : forest(A)"];
+	   "[| t: tree(A);  f: forest(A) |] ==> Fcons(t,f) : forest(A)"];
   val monos = [];
   val type_intrs = datatype_intrs
   val type_elims = datatype_elims);

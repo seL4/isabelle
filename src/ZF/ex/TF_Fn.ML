@@ -18,7 +18,7 @@ open TF_Fn;
 
 (** conversion rules **)
 
-goal TF_Fn.thy "TF_rec(Tcons(a,tf), b, c, d) = b(a, tf, TF_rec(tf,b,c,d))";
+goal TF_Fn.thy "TF_rec(Tcons(a,f), b, c, d) = b(a, f, TF_rec(f,b,c,d))";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac TF.con_defs);
 by (simp_tac rank_ss 1);
@@ -30,8 +30,8 @@ by (rewrite_goals_tac TF.con_defs);
 by (simp_tac rank_ss 1);
 val TF_rec_Fnil = result();
 
-goal TF_Fn.thy "TF_rec(Fcons(t,tf), b, c, d) = \
-\      d(t, tf, TF_rec(t, b, c, d), TF_rec(tf, b, c, d))";
+goal TF_Fn.thy "TF_rec(Fcons(t,f), b, c, d) = \
+\      d(t, f, TF_rec(t, b, c, d), TF_rec(f, b, c, d))";
 by (rtac (TF_rec_def RS def_Vrec RS trans) 1);
 by (rewrite_goals_tac TF.con_defs);
 by (simp_tac rank_ss 1);
@@ -45,11 +45,11 @@ val TF_rec_ss = list_ss addsimps
 
 val major::prems = goal TF_Fn.thy
     "[| z: tree_forest(A);  \
-\       !!x tf r. [| x: A;  tf: forest(A);  r: C(tf) 		\
-\                 |] ==> b(x,tf,r): C(Tcons(x,tf));     	\
+\       !!x f r. [| x: A;  f: forest(A);  r: C(f) 		\
+\                 |] ==> b(x,f,r): C(Tcons(x,f));     	\
 \	c : C(Fnil);        					\
-\       !!t tf r1 r2. [| t: tree(A);  tf: forest(A);  r1: C(t); r2: C(tf) \
-\                     |] ==> d(t,tf,r1,r2): C(Fcons(t,tf))    	\
+\       !!t f r1 r2. [| t: tree(A);  f: forest(A);  r1: C(t); r2: C(f) \
+\                     |] ==> d(t,f,r1,r2): C(Fcons(t,f))    	\
 \    |] ==> TF_rec(z,b,c,d) : C(z)";
 by (rtac (major RS TF.induct) 1);
 by (ALLGOALS (asm_simp_tac (TF_rec_ss addsimps prems)));
@@ -57,13 +57,13 @@ val TF_rec_type = result();
 
 (*Mutually recursive version*)
 val prems = goal TF_Fn.thy
-    "[| !!x tf r. [| x: A;  tf: forest(A);  r: D(tf) 		\
-\                 |] ==> b(x,tf,r): C(Tcons(x,tf));     	\
+    "[| !!x f r. [| x: A;  f: forest(A);  r: D(f) 		\
+\                 |] ==> b(x,f,r): C(Tcons(x,f));    	 	\
 \	c : D(Fnil);        					\
-\       !!t tf r1 r2. [| t: tree(A);  tf: forest(A);  r1: C(t); r2: D(tf) \
-\                     |] ==> d(t,tf,r1,r2): D(Fcons(t,tf))    	\
+\       !!t f r1 r2. [| t: tree(A);  f: forest(A);  r1: C(t); r2: D(f) \
+\                     |] ==> d(t,f,r1,r2): D(Fcons(t,f))    	\
 \    |] ==> (ALL t:tree(A).    TF_rec(t,b,c,d)  : C(t)) &  	\
-\           (ALL tf: forest(A). TF_rec(tf,b,c,d) : D(tf))";
+\           (ALL f: forest(A). TF_rec(f,b,c,d) : D(f))";
 by (rewtac Ball_def);
 by (rtac TF.mutual_induct 1);
 by (ALLGOALS (asm_simp_tac (TF_rec_ss addsimps prems)));
@@ -73,7 +73,7 @@ val tree_forest_rec_type = result();
 (** Versions for use with definitions **)
 
 val [rew] = goal TF_Fn.thy
-    "[| !!z. j(z)==TF_rec(z,b,c,d) |] ==> j(Tcons(a,tf)) = b(a,tf,j(tf))";
+    "[| !!z. j(z)==TF_rec(z,b,c,d) |] ==> j(Tcons(a,f)) = b(a,f,j(f))";
 by (rewtac rew);
 by (rtac TF_rec_Tcons 1);
 val def_TF_rec_Tcons = result();
@@ -85,7 +85,7 @@ by (rtac TF_rec_Fnil 1);
 val def_TF_rec_Fnil = result();
 
 val [rew] = goal TF_Fn.thy
-    "[| !!z. j(z)==TF_rec(z,b,c,d) |] ==> j(Fcons(t,tf)) = d(t,tf,j(t),j(tf))";
+    "[| !!z. j(z)==TF_rec(z,b,c,d) |] ==> j(Fcons(t,f)) = d(t,f,j(t),j(f))";
 by (rewtac rew);
 by (rtac TF_rec_Fcons 1);
 val def_TF_rec_Fcons = result();
@@ -119,7 +119,7 @@ val [TF_map_Tcons, TF_map_Fnil, TF_map_Fcons] = TF_recs TF_map_def;
 val prems = goalw TF_Fn.thy [TF_map_def]
     "[| !!x. x: A ==> h(x): B |] ==> \
 \      (ALL t:tree(A). TF_map(h,t) : tree(B)) &  \
-\      (ALL tf: forest(A). TF_map(h,tf) : forest(B))";
+\      (ALL f: forest(A). TF_map(h,f) : forest(B))";
 by (REPEAT
     (ares_tac ([tree_forest_rec_type, TconsI, FnilI, FconsI] @ prems) 1));
 val TF_map_type = result();
@@ -170,15 +170,15 @@ val TF_ss = list_ss addsimps TF_rewrites
 
 (*essentially the same as list induction*)
 val major::prems = goal TF_Fn.thy 
-    "[| tf: forest(A);  \
+    "[| f: forest(A);  	\
 \       R(Fnil);        \
-\       !!t tf. [| t: tree(A);  tf: forest(A);  R(tf) |] ==> R(Fcons(t,tf))  \
-\    |] ==> R(tf)";
+\       !!t f. [| t: tree(A);  f: forest(A);  R(f) |] ==> R(Fcons(t,f))  \
+\    |] ==> R(f)";
 by (rtac (major RS (TF.mutual_induct RS conjunct2 RS spec RSN (2,rev_mp))) 1);
 by (REPEAT (ares_tac (TrueI::prems) 1));
 val forest_induct = result();
 
-goal TF_Fn.thy "!!tf A. tf: forest(A) ==> TF_of_list(list_of_TF(tf)) = tf";
+goal TF_Fn.thy "!!f A. f: forest(A) ==> TF_of_list(list_of_TF(f)) = f";
 by (etac forest_induct 1);
 by (ALLGOALS (asm_simp_tac TF_ss));
 val forest_iso = result();
