@@ -189,7 +189,7 @@ val mutual_induct_fsplit =
 val fsplit_tac =
     REPEAT (SOMEGOAL (FIRST' [rtac Pr.fsplitI, 
 			      dtac Pr.fsplitD,
-			      etac Pr.fsplitE,
+			      etac Pr.fsplitE,	(*apparently never used!*)
 			      bound_hyp_subst_tac]))
     THEN prune_params_tac;
 
