@@ -254,6 +254,7 @@ fun exn_message TERMINATE = "Exit."
   | exn_message (BREAK _) = "Break."
   | exn_message (FAIL (exn, msg)) = cat_lines [exn_message exn, msg]
   | exn_message Interrupt = "Interrupt (exec)."
+  | exn_message ERROR = "ERROR."
   | exn_message (ERROR_MESSAGE msg) = msg
   | exn_message (THEORY (msg, _)) = msg
   | exn_message (ProofContext.CONTEXT (msg, _)) = msg
@@ -341,7 +342,7 @@ fun excur [] x = x
 fun excursion trs =
   (case excur trs (State []) of
     State [] => ()
-  | _ => error "Pending blocks at end of excursion");
+  | _ => raise ERROR_MESSAGE "Pending blocks at end of excursion");
 
 
 
