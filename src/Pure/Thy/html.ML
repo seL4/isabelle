@@ -27,8 +27,8 @@ sig
   val theory_entry: Path.T * string -> text
   val session_entries: (Path.T * string) list -> text
   val source: (string, 'a) Source.source -> text
-  val begin_theory: Path.T * string -> string -> string list -> ((Path.T * Path.T) * bool) list
-    -> text -> text
+  val begin_theory: Path.T * string -> string -> string list ->
+    (Path.T option * Path.T * bool) list -> text -> text
   val end_theory: text
   val ml_file: Path.T -> string -> text
   val theorem: string -> thm -> text
@@ -82,8 +82,8 @@ val _ = Symbol.add_mode htmlN output_width;
 
 (* token translations *)
 
-fun tagit bg en = apfst (enclose bg en) o output_width;
-fun color col = tagit ("<font color=" ^ quote col ^ ">") "</font>";
+fun color col =
+  apfst (enclose ("<font color=" ^ quote col ^ ">") "</font>") o output_width;
 
 val html_trans =
  [("class", color "red"),
@@ -145,7 +145,7 @@ fun back_link (back_path, back_name) =
 
 fun begin_index back (index_path, session) opt_readme =
   begin_document ("Index of " ^ session) ^ back_link back ^
-  (case opt_readme of None => "" | Some p => para (href_path p "README" ^ " file")) ^
+  (case opt_readme of None => "" | Some p => href_path p "README" ^ " file") ^
   "\n<hr>\n\n<h2>Theories</h2>\n";
 
 val end_index = end_document;
@@ -164,8 +164,9 @@ fun source src = "\n<hr>\n<pre>" ^ output_source src ^ "</pre>\n<hr>\n";
 
 
 local
-  fun file ((p, p'), loadit) =
-    href_path p' ((if not loadit then enclose "(" ")" else I) (file_path p));
+  fun file (opt_ref, path, loadit) =
+    (case opt_ref of None => I | Some p => href_path p)
+      ((if not loadit then enclose "(" ")" else I) (file_path path));
 
   fun suffix_last _ [] = []
     | suffix_last s lst = let val (xs, x) = split_last lst in xs @ [x ^ s] end;
