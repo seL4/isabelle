@@ -1025,14 +1025,17 @@ lemma setsum_nonpos: "[| finite A;
 
 lemma setsum_mult: 
   fixes f :: "'a => ('b::semiring_0_cancel)"
-  assumes fin: "finite A" 
   shows "r * setsum f A = setsum (%n. r * f n) A"
-using fin 
-proof (induct) 
-  case empty thus ?case by simp
+proof (cases "finite A")
+  case True
+  thus ?thesis
+  proof (induct)
+    case empty thus ?case by simp
+  next
+    case (insert A x) thus ?case by (simp add: right_distrib)
+  qed
 next
-  case (insert A x)
-  thus ?case by (simp add: right_distrib) 
+  case False thus ?thesis by (simp add: setsum_def)
 qed
 
 lemma setsum_abs: 
