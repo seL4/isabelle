@@ -188,7 +188,7 @@ by (rtac (Least_le RSN (2,lt_trans2) RS lt_irrefl) 1);
 by (REPEAT (eresolve_tac [asm_rl, ltE] 1));
 qed "less_LeastE";
 
-(*Easier to apply than LeastI2: conclusion has only one occurrence of P*)
+(*Easier to apply than LeastI: conclusion has only one occurrence of P*)
 qed_goal "LeastI2" Cardinal.thy
     "[| P(i);  Ord(i);  !!j. P(j) ==> Q(j) |] ==> Q(LEAST j. P(j))"
  (fn prems => [ resolve_tac prems 1, 
@@ -439,6 +439,11 @@ goalw Cardinal.thy [lesspoll_def, lepoll_def, eqpoll_def, bij_def]
 by (step_tac ZF_cs 1);
 by (fast_tac (ZF_cs addSIs [inj_not_surj_succ]) 1);
 qed "lesspoll_succ_imp_lepoll";
+
+goal Cardinal.thy "!!m. m:nat ==> A lesspoll succ(m) <-> A lepoll m";
+by (fast_tac (ZF_cs addSIs [lepoll_imp_lesspoll_succ, 
+			    lesspoll_succ_imp_lepoll]) 1);
+qed "lesspoll_succ_iff";
 
 goal Cardinal.thy "!!A m. [| A lepoll succ(m);  m:nat |] ==>  \
 \                         A lepoll m | A eqpoll succ(m)";
