@@ -7,6 +7,15 @@ New in Isabelle2001 (?? 2001)
 
 *** Document preparation ***
 
+* greatly simplified document preparation setup, including more
+graceful interpretation of isatool usedir -i/-d/-D options, and more
+instructive isatool mkdir; users should basically be able to get
+started with "isatool mkdir Test && isatool make";
+
+* theory dependency graph may now be incorporated into documents;
+isatool usedir -g true will produce session_graph.eps/.pdf for use
+with \includegraphics of LaTeX;
+
 * support bold style (for single symbols only), input syntax is like
 this: "\<^bold>\<alpha>" or "\<^bold>A";
 
