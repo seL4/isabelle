@@ -151,6 +151,7 @@ signature BASIC_THM =
   val dest_mss		: meta_simpset ->
     {simps: thm list, congs: thm list, procs: (string * cterm list) list}
   val empty_mss         : meta_simpset
+  val clear_mss		: meta_simpset -> meta_simpset
   val merge_mss		: meta_simpset * meta_simpset -> meta_simpset
   val add_simps         : meta_simpset * thm list -> meta_simpset
   val del_simps         : meta_simpset * thm list -> meta_simpset
@@ -1582,8 +1583,10 @@ fun upd_rules(Mss{rules,congs,procs,bounds,prems,mk_rews,termless}, rules') =
 
 val empty_mss =
   let val mk_rews = {mk = K [], mk_sym = K None, mk_eq_True = K None}
-  in mk_mss (Net.empty, ([],[]), Net.empty, [], [], mk_rews, Term.termless)
-  end;
+  in mk_mss (Net.empty, ([], []), Net.empty, [], [], mk_rews, Term.termless) end;
+
+fun clear_mss (Mss {mk_rews, termless, ...}) =
+  mk_mss (Net.empty, ([], []), Net.empty, [], [], mk_rews, termless);
 
 
 
