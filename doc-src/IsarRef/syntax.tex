@@ -102,7 +102,7 @@ escapes.
 Comments take the form \texttt{(*~\dots~*)} and may in principle be nested,
 just as in ML.  Note that these are \emph{source} comments only, which are
 stripped after lexical analysis of the input.  The Isar document syntax also
-provides \emph{formal comments} that are actually part of the text (see
+provides \emph{formal comments} that are considered as part of the text (see
 \S\ref{sec:comments}).
 
 \begin{warn}
@@ -165,26 +165,15 @@ non-identifier names or those ruled out by outer syntax keywords (e.g.\
 Large chunks of plain \railqtoken{text} are usually given
 \railtoken{verbatim}, i.e.\ enclosed in \verb|{*|~\dots~\verb|*}|.  For
 convenience, any of the smaller text units conforming to \railqtoken{nameref}
-are admitted as well.  Almost any of the Isar commands may be annotated by a
-marginal \railnonterm{comment} of the form \texttt{--} \railqtoken{text}.
-Note that the latter kind of comment is actually part of the language, while
-source level comments \verb|(*|~\dots~\verb|*)| are stripped at the lexical
-level.
+are admitted as well.  A marginal \railnonterm{comment} is of the form
+\texttt{--} \railqtoken{text}.  Any number of these may occur within
+Isabelle/Isar commands.
 
-A few commands such as $\PROOFNAME$ admit additional markup with a ``level of
-interest'': \texttt{\%} followed by an optional number $n$ (default $n = 1$)
-indicates that the respective part of the document becomes $n$ levels more
-obscure; \texttt{\%\%} means that interest drops by $\infty$ --- abandon every
-hope, who enter here.  So far the Isabelle tool-chain (for document output
-etc.) does not yet treat interest levels specifically.
-
-\indexoutertoken{text}\indexouternonterm{comment}\indexouternonterm{interest}
+\indexoutertoken{text}\indexouternonterm{comment}
 \begin{rail}
   text: verbatim | nameref
   ;
-  comment: ('--' text +)
-  ;
-  interest: percent nat? | ppercent
+  comment: '--' text
   ;
 \end{rail}
 

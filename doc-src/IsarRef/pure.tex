@@ -5,7 +5,7 @@ Subsequently, we introduce the main part of Pure Isar theory and proof
 commands, together with fundamental proof methods and attributes.
 Chapter~\ref{ch:gen-tools} describes further Isar elements provided by generic
 tools and packages (such as the Simplifier) that are either part of Pure
-Isabelle or pre-installed by most object logics.  Chapter~\ref{ch:logics}
+Isabelle or pre-installed in most object logics.  Chapter~\ref{ch:logics}
 refers to object-logic specific elements (mainly for HOL and ZF).
 
 \medskip
@@ -162,11 +162,11 @@ preceding the actual theory definition.
 \end{matharray}
 
 \begin{rail}
-  'classes' (classdecl comment? +)
+  'classes' (classdecl +)
   ;
-  'classrel' nameref ('<' | subseteq) nameref comment?
+  'classrel' nameref ('<' | subseteq) nameref
   ;
-  'defaultsort' sort comment?
+  'defaultsort' sort
   ;
 \end{rail}
 
@@ -195,13 +195,13 @@ preceding the actual theory definition.
 \end{matharray}
 
 \begin{rail}
-  'types' (typespec '=' type infix? comment? +)
+  'types' (typespec '=' type infix? +)
   ;
-  'typedecl' typespec infix? comment?
+  'typedecl' typespec infix?
   ;
-  'nonterminals' (name +) comment?
+  'nonterminals' (name +)
   ;
-  'arities' (nameref '::' arity comment? +)
+  'arities' (nameref '::' arity +)
   ;
 \end{rail}
 
@@ -236,12 +236,12 @@ preceding the actual theory definition.
 \begin{rail}
   'consts' (constdecl +)
   ;
-  'defs' ('(overloaded)')? (axmdecl prop comment? +)
+  'defs' ('(overloaded)')? (axmdecl prop +)
   ;
-  'constdefs' (constdecl prop comment? +)
+  'constdefs' (constdecl prop +)
   ;
 
-  constdecl: name '::' type mixfix? comment?
+  constdecl: name '::' type mixfix?
   ;
 \end{rail}
 
@@ -284,7 +284,7 @@ preceding the actual theory definition.
 \begin{rail}
   'syntax' ('(' ( name | 'output' | name 'output' ) ')')? (constdecl +)
   ;
-  'translations' (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat comment? +)
+  'translations' (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat +)
   ;
   transpat: ('(' nameref ')')? string
   ;
@@ -317,9 +317,9 @@ preceding the actual theory definition.
 \end{matharray}
 
 \begin{rail}
-  'axioms' (axmdecl prop comment? +)
+  'axioms' (axmdecl prop +)
   ;
-  ('lemmas' | 'theorems') (thmdef? thmrefs comment? + 'and')
+  ('lemmas' | 'theorems') (thmdef? thmrefs + 'and')
   ;
 \end{rail}
 
@@ -349,11 +349,7 @@ preceding the actual theory definition.
 \end{matharray}
 
 \begin{rail}
-  'global' comment?
-  ;
-  'local' comment?
-  ;
-  'hide' name (nameref + ) comment?
+  'hide' name (nameref + )
   ;
 \end{rail}
 
@@ -404,11 +400,11 @@ following commands provide some way to do so.
 \railterm{MLcommand}
 
 \begin{rail}
-  'use' name comment?
+  'use' name
   ;
-  ('ML' | MLcommand | MLsetup | 'setup') text comment?
+  ('ML' | MLcommand | MLsetup | 'setup') text
   ;
-  methodsetup name '=' text text comment?
+  methodsetup name '=' text text
   ;
 \end{rail}
 
@@ -494,7 +490,7 @@ applying the main tactic.
 
 \begin{rail}
   ( parseasttranslation | parsetranslation | printtranslation | typedprinttranslation |
-  printasttranslation | tokentranslation ) text comment?
+  printasttranslation | tokentranslation ) text
 \end{rail}
 
 Syntax translation functions written in ML admit almost arbitrary
@@ -527,7 +523,7 @@ control completely --- each theorem carries a derivation object recording any
 oracle invocation.  See \cite[\S6]{isabelle-ref} for more information.
 
 \begin{rail}
-  'oracle' name '=' text comment?
+  'oracle' name '=' text
   ;
 \end{rail}
 
@@ -629,11 +625,11 @@ Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
 \railterm{equiv}
 
 \begin{rail}
-  'fix' (vars comment? + 'and')
+  'fix' (vars + 'and')
   ;
-  ('assume' | 'presume') (props comment? + 'and')
+  ('assume' | 'presume') (props + 'and')
   ;
-  'def' thmdecl? \\ name ('==' | equiv) term termpat? comment?
+  'def' thmdecl? \\ name ('==' | equiv) term termpat?
   ;
 \end{rail}
 
@@ -677,11 +673,9 @@ arguments of proof methods, or when forward chaining towards the next goal via
 $\THEN$ (and variants).  Note that the special theorem name
 $this$\indexisarthm{this} refers to the most recently established facts.
 \begin{rail}
-  'note' (thmdef? thmrefs comment? + 'and')
+  'note' (thmdef? thmrefs + 'and')
   ;
-  'then' comment?
-  ;
-  ('from' | 'with') (thmrefs comment? + 'and')
+  ('from' | 'with') (thmrefs + 'and')
   ;
 \end{rail}
 
@@ -751,7 +745,7 @@ $\PROOFNAME$ (\S\ref{sec:proof-steps}) or $\APPLYNAME$
   ('have' | 'show' | 'hence' | 'thus') goal
   ;
 
-  goal: (props comment? + 'and')
+  goal: (props + 'and')
   ;
 
   goalprefix: thmdecl? locale? context?
@@ -871,16 +865,13 @@ the topmost symbol involved.  There is no separate default terminal method.
 Any remaining goals are always solved by assumption in the very last step.
 
 \begin{rail}
-  'proof' interest? meth? comment?
+  'proof' method?
   ;
-  'qed' meth? comment?
+  'qed' method?
   ;
-  'by' meth meth? comment?
+  'by' method method?
   ;
-  ('.' | '..' | 'sorry') comment?
-  ;
-
-  meth: method interest?
+  ('.' | '..' | 'sorry')
   ;
 \end{rail}
 
@@ -1030,7 +1021,7 @@ during the input process just after type checking.  Also note that $\DEFNAME$
 does not support polymorphism.
 
 \begin{rail}
-  'let' ((term + 'and') '=' term comment? + 'and')
+  'let' ((term + 'and') '=' term + 'and')
   ;  
 \end{rail}
 
@@ -1065,21 +1056,6 @@ application of the latter are calculational proofs (see
   \BG & : & \isartrans{proof(state)}{proof(state)} \\
   \EN & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
-
-\railalias{lbrace}{\ttlbrace}
-\railterm{lbrace}
-
-\railalias{rbrace}{\ttrbrace}
-\railterm{rbrace}
-
-\begin{rail}
-  'next' comment?
-  ;
-  lbrace comment?
-  ;
-  rbrace comment?
-  ;
-\end{rail}
 
 While Isar is inherently block-structured, opening and closing blocks is
 mostly handled rather casually, with little explicit user-intervention.  Any
@@ -1133,17 +1109,13 @@ used in scripts, too.
 \railterm{applyend}
 
 \begin{rail}
-  ( 'apply' | applyend ) method comment?
+  ( 'apply' | applyend ) method
   ;
-  'done' comment?
+  'defer' nat?
   ;
-  'defer' nat? comment?
+  'prefer' nat
   ;
-  'prefer' nat comment?
-  ;
-  'back' comment?
-  ;
-  'declare' thmrefs comment?
+  'declare' thmrefs
   ;
 \end{rail}
 
@@ -1237,13 +1209,13 @@ does not apply here, the theory or proof configuration is not changed.
 \begin{rail}
   'pr' modes? nat? (',' nat)?
   ;
-  'thm' modes? thmrefs comment?
+  'thm' modes? thmrefs
   ;
-  'term' modes? term comment?
+  'term' modes? term
   ;
-  'prop' modes? prop comment?
+  'prop' modes? prop
   ;
-  'typ' modes? type comment?
+  'typ' modes? type
   ;
 
   modes: '(' (name + ) ')'

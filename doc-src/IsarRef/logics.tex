@@ -90,9 +90,9 @@ Reasoner \S\ref{sec:classical}).
 \end{matharray}
 
 \begin{rail}
-  'typedecl' typespec infix? comment?
+  'typedecl' typespec infix?
   ;
-  'typedef' parname? typespec infix? \\ '=' term comment?
+  'typedef' parname? typespec infix? '=' term
   ;
 \end{rail}
 
@@ -186,7 +186,7 @@ FIXME mixfix syntax;
 
   dtspec: parname? typespec infix? '=' (cons + '|')
   ;
-  cons: name (type * ) mixfix? comment?
+  cons: name (type * ) mixfix?
   ;
   dtrules: 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
 \end{rail}
@@ -236,14 +236,12 @@ for case-analysis and induction, there are also emulations of ML tactics
 \begin{rail}
   'primrec' parname? (equation + )
   ;
-  'recdef' ('(' 'permissive' ')')? \\ name term (eqn + ) hints?
+  'recdef' ('(' 'permissive' ')')? \\ name term (prop + ) hints?
   ;
-  recdeftc thmdecl? tc comment?
+  recdeftc thmdecl? tc
   ;
 
-  equation: thmdecl? eqn
-  ;
-  eqn: prop comment?
+  equation: thmdecl? prop
   ;
   hints: '(' 'hints' (recdefmod * ) ')'
   ;
@@ -329,11 +327,11 @@ the following attributes.
   'mono' (() | 'add' | 'del')
   ;
 
-  sets: (term comment? +)
+  sets: (term +)
   ;
-  intros: 'intros' (thmdecl? prop comment? +)
+  intros: 'intros' (thmdecl? prop +)
   ;
-  monos: 'monos' thmrefs comment?
+  monos: 'monos' thmrefs
   ;
 \end{rail}
 
@@ -404,7 +402,7 @@ Isar.  These should be never used in proper proof texts!
   ;
   indcases (prop +)
   ;
-  inductivecases thmdecl? (prop +) comment?
+  inductivecases thmdecl? (prop +)
   ;
 
   rule: ('rule' ':' thmref)
@@ -468,7 +466,7 @@ continuous and meta-level application is \emph{not} supported.
 
   dmspec: typespec '=' (cons + '|')
   ;
-  cons: name (type * ) mixfix? comment?
+  cons: name (type * ) mixfix?
   ;
   dtrules: 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
 \end{rail}

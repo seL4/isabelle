@@ -25,9 +25,9 @@ classes in isabelle \cite{isabelle-axclass} that is part of the standard
 Isabelle documentation.
 
 \begin{rail}
-  'axclass' classdecl (axmdecl prop comment? +)
+  'axclass' classdecl (axmdecl prop +)
   ;
-  'instance' (nameref ('<' | subseteq) nameref | nameref '::' simplearity) comment?
+  'instance' (nameref ('<' | subseteq) nameref | nameref '::' simplearity)
   ;
 \end{rail}
 
@@ -79,7 +79,7 @@ eliminated from any result exported from the context later, provided that the
 corresponding parameters do \emph{not} occur in the conclusion.
 
 \begin{rail}
-  'obtain' (vars + 'and') comment? \\ 'where' (props comment? + 'and')
+  'obtain' (vars + 'and') 'where' (props + 'and')
   ;
 \end{rail}
 
@@ -163,14 +163,12 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 \end{matharray}
 
 \begin{rail}
-  ('also' | 'finally') transrules? comment?
-  ;
-  ('moreover' | 'ultimately') comment?
+  ('also' | 'finally') transrules?
   ;
   'trans' (() | 'add' | 'del')
   ;
 
-  transrules: '(' thmrefs ')' interest?
+  transrules: '(' thmrefs ')'
   ;
 \end{rail}
 
@@ -193,9 +191,9 @@ follows:\footnote{Internal bookkeeping such as proper handling of
 
 \item [$\MOREOVER$ and $\ULTIMATELY$] are analogous to $\ALSO$ and $\FINALLY$,
   but collect results only, without applying rules.
-
-\item [$\isarkeyword{print_trans_rules}$] prints the list of transitivity
-  rules declared in the current context.
+  
+\item [$\isarkeyword{print_trans_rules}$] prints the list of transitivity (and
+  symmetry) rules declared in the current context.
 
 \item [$trans$] declares theorems as transitivity rules.
 
