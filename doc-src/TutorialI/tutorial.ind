@@ -199,7 +199,7 @@
   \item \isa {extend} (constant), 161
   \item extensionality
     \subitem for functions, \bold{107, 108}
-    \subitem for records, 159
+    \subitem for records, 160
     \subitem for sets, \bold{104}
   \item \ttEXU, \bold{207}
 
