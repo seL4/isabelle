@@ -108,7 +108,7 @@ $index = 0;
 $found = 0;
 $end_key_map = 0;
 $pattern = 
-'^\s*MOD\s*(None|Mod1|Mod2|Mod4|Shift|Ctrl)\s*KEY\s*([a-zA-Z]|F\d{1,2})\s*CODE\s*([0-9a-fA-F][0-9a-fA-F](\s*,\s*[0-9a-fA-F][0-9a-fA-F])*)\s*$';
+'^\s*MOD\s*(None|Mod1|Mod2|Mod4|Shift|Ctrl)\s*KEY\s*([a-zA-Z]+|F\d{1,2})\s*CODE\s*([0-9a-fA-F][0-9a-fA-F](\s*,\s*[0-9a-fA-F][0-9a-fA-F])*)\s*$';
 
 while (<INFILE> ){
     if (/^\s*END_KEY_MAP/){
