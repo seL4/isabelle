@@ -10,6 +10,8 @@ Taken from FOL/cla.ML; beware of precedence of = vs <->
 
 writeln"File HOL/ex/cla.";
 
+set_current_thy "HOL";  (*Boosts efficiency by omitting redundant rules*)
+
 goal HOL.thy "(P --> Q | R) --> (P-->Q) | (P-->R)";
 by (Fast_tac 1);
 result();
