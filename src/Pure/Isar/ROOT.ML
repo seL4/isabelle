@@ -27,6 +27,8 @@ use "isar_thy.ML";
 use "isar_cmd.ML";
 use "isar_syn.ML";
 
+(*main interface*)
+use "isar.ML";
 
 structure PureIsar =
 struct
@@ -43,4 +45,5 @@ struct
   structure IsarThy = IsarThy;
   structure IsarCmd = IsarCmd;
   structure IsarSyn = IsarSyn;
+  structure Isar = Isar;
 end;
