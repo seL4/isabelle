@@ -252,10 +252,10 @@ fun intro_tacsf disjIn prems =
    rewrite_goals_tac con_defs,
    (*Now can solve the trivial equation*)
    REPEAT (rtac refl 2),
-   REPEAT (FIRSTGOAL (eresolve_tac (asm_rl::PartE::type_elims)
+   REPEAT (FIRSTGOAL (eresolve_tac (asm_rl::PartE::SigmaE2::type_elims)
 		      ORELSE' hyp_subst_tac
 		      ORELSE' dresolve_tac rec_typechecks)),
-   DEPTH_SOLVE (swap_res_tac type_intrs 1)];
+   DEPTH_SOLVE (swap_res_tac (SigmaI::type_intrs) 1)];
 
 (*combines disjI1 and disjI2 to access the corresponding nested disjunct...*)
 val mk_disj_rls = 
