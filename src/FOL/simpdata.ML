@@ -131,9 +131,13 @@ val cla_rews = map prove_fun
 
 val FOL_ss = IFOL_ss addsimps cla_rews;
 
+(*Used in ZF, perhaps elsewhere?*)
+val meta_eq_to_obj_eq = prove_goal IFOL.thy "x==y ==> x=y"
+  (fn [prem] => [rewtac prem, rtac refl 1]);
+
 (*** case splitting ***)
 
-qed_goal "meta_iffD" FOL.thy "[| P==Q; Q |] ==> P"
+qed_goal "meta_iffD" IFOL.thy "[| P==Q; Q |] ==> P"
         (fn [prem1,prem2] => [rewtac prem1, rtac prem2 1]);
 
 local val mktac = mk_case_split_tac meta_iffD
