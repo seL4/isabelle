@@ -8,12 +8,6 @@ Composition
 From Chandy and Sanders, "Reasoning About Program Composition"
 *)
 
-(*split_all_tac causes a big blow-up*)
-claset_ref() := claset() delSWrapper record_split_name;
-
-Delsimps [split_paired_All];
-
-
 (*** component ***)
 
 Goalw [component_def] "SKIP component F";
@@ -54,7 +48,7 @@ qed "component_Init";
 Goal "[| F component G; G component F |] ==> F=G";
 by (blast_tac (claset() addSIs [program_equalityI, 
 				component_Init, component_Acts]) 1);
-qed "component_anti_sym";
+qed "component_antisym";
 
 Goalw [component_def]
       "F component H = (EX G. F Join G = H & Disjoint F G)";
