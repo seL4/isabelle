@@ -8,9 +8,10 @@ Loads Pure Isabelle into an empty ML database (see also README).
 *)
 
 val banner = "Pure Isabelle";
-val version = "Isabelle98: January 1998";
+val version = "Internal working version of Isabelle";
 
 print_depth 1;
+ml_prompts "> " "# ";
 
 
 (*basic utils*)
