@@ -770,6 +770,7 @@ by (induct_tac "n" 1);
 by (exhaust_tac "xs" 1);
  by Auto_tac;
 qed_spec_mp "take_all";
+Addsimps [take_all];
 
 Goal "!xs. length xs <= n --> drop n xs = []";
 by (induct_tac "n" 1);
@@ -777,6 +778,7 @@ by (induct_tac "n" 1);
 by (exhaust_tac "xs" 1);
  by Auto_tac;
 qed_spec_mp "drop_all";
+Addsimps [drop_all];
 
 Goal "!xs. take n (xs @ ys) = (take n xs @ take (n - length xs) ys)";
 by (induct_tac "n" 1);
