@@ -1,6 +1,8 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+* Classical reasoner: renamed addaltern to addafter, addSaltern to addSafter
+
 * HOL: added safe wrapper "split_conv_tac" to claset. EXISTING PROOFS MAY FAIL
 
 * HOL: made split_all_tac safe. EXISTING PROOFS MAY FAIL OR LOOP, so in this

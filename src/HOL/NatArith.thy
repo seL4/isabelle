@@ -18,7 +18,7 @@ ML {*
  val nat_diff_split = thm "nat_diff_split";
 
 (* TODO: use this for force_tac in Provers/clasip.ML *)
-fun add_arith cs = cs addaltern ("arith_tac", arith_tac);
+fun add_arith cs = cs addafter ("arith_tac", arith_tac);
 *}
 
 lemmas [arith_split] = nat_diff_split split_min split_max

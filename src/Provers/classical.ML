@@ -17,7 +17,7 @@ the conclusion.
 (*higher precedence than := facilitates use of references*)
 infix 4 addSIs addSEs addSDs addIs addEs addDs addXIs addXEs addXDs delrules
   addSWrapper delSWrapper addWrapper delWrapper
-  addSbefore addSaltern addbefore addaltern
+  addSbefore addSafter addbefore addafter
   addD2 addE2 addSD2 addSE2;
 
 
@@ -66,9 +66,9 @@ sig
   val addWrapper        : claset * (string * wrapper) -> claset
   val delWrapper        : claset *  string            -> claset
   val addSbefore        : claset * (string * (int -> tactic)) -> claset
-  val addSaltern        : claset * (string * (int -> tactic)) -> claset
+  val addSafter         : claset * (string * (int -> tactic)) -> claset
   val addbefore         : claset * (string * (int -> tactic)) -> claset
-  val addaltern         : claset * (string * (int -> tactic)) -> claset
+  val addafter          : claset * (string * (int -> tactic)) -> claset
   val addD2             : claset * (string * thm) -> claset
   val addE2             : claset * (string * thm) -> claset
   val addSD2            : claset * (string * thm) -> claset
@@ -715,23 +715,23 @@ fun cs delWrapper name = update_uwrappers cs (fn uwrappers =>
 (* compose a safe tactic alternatively before/after safe_step_tac *)
 fun cs addSbefore  (name,    tac1) =
     cs addSWrapper (name, fn tac2 => tac1 ORELSE' tac2);
-fun cs addSaltern  (name,    tac2) =
+fun cs addSafter   (name,    tac2) =
     cs addSWrapper (name, fn tac1 => tac1 ORELSE' tac2);
 
 (*compose a tactic alternatively before/after the step tactic *)
 fun cs addbefore   (name,    tac1) =
     cs addWrapper  (name, fn tac2 => tac1 APPEND' tac2);
-fun cs addaltern   (name,    tac2) =
+fun cs addafter    (name,    tac2) =
     cs addWrapper  (name, fn tac1 => tac1 APPEND' tac2);
 
 fun cs addD2     (name, thm) =
-    cs addaltern (name, dtac thm THEN' atac);
+    cs addafter  (name, datac thm 1);
 fun cs addE2     (name, thm) =
-    cs addaltern (name, etac thm THEN' atac);
-fun cs addSD2     (name, thm) =
-    cs addSaltern (name, dmatch_tac [thm] THEN' eq_assume_tac);
-fun cs addSE2     (name, thm) =
-    cs addSaltern (name, ematch_tac [thm] THEN' eq_assume_tac);
+    cs addafter  (name, eatac thm 1);
+fun cs addSD2    (name, thm) =
+    cs addSafter (name, dmatch_tac [thm] THEN' eq_assume_tac);
+fun cs addSE2    (name, thm) =
+    cs addSafter (name, ematch_tac [thm] THEN' eq_assume_tac);
 
 (*Merge works by adding all new rules of the 2nd claset into the 1st claset.
   Merging the term nets may look more efficient, but the rather delicate

@@ -108,7 +108,7 @@ val safe_asm_full_simp_tac = Simplifier.generic_simp_tac true (true,true,true);
 
 (*Add a simpset to a classical set!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
-fun cs addSss ss = Classical.addSaltern (cs, ("safe_asm_full_simp_tac",
+fun cs addSss ss = Classical.addSafter (cs, ("safe_asm_full_simp_tac",
                             CHANGED o safe_asm_full_simp_tac ss));
 fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
                             CHANGED o Simplifier.asm_full_simp_tac ss));

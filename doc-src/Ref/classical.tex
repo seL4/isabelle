@@ -126,7 +126,7 @@ Elim-resolution plays a key role in simulating sequent proofs.
 
 We can easily handle reasoning on the left.
 As discussed in
-\iflabelundefined{destruct}{{\it Introduction to Isabelle}}{\S\ref{destruct}}, 
+\iflabelundefined{destruct}{{\it Introduction to Isabelle}}{{\S}\ref{destruct}}, 
 elim-resolution with the rules $(\disj E)$, $(\bot E)$ and $(\exists E)$
 achieves a similar effect as the corresponding sequent rules.  For the
 other connectives, we use sequent-style elimination rules instead of
@@ -311,7 +311,7 @@ The classical set automatically generates their swapped forms, which will
 be applied using elim-resolution.  Elimination rules are applied using
 elim-resolution.  In a classical set, rules are sorted by the number of new
 subgoals they will yield; rules that generate the fewest subgoals will be
-tried first (see \S\ref{biresolve_tac}).
+tried first (see {\S}\ref{biresolve_tac}).
 
 For elimination and destruction rules there are variants of the add operations
 adding a rule in a way such that it is applied only if also its second premise
@@ -337,7 +337,7 @@ For a given classical set, the proof strategy is simple.  Perform as many safe
 inferences as possible; or else, apply certain safe rules, allowing
 instantiation of unknowns; or else, apply an unsafe rule.  The tactics also
 eliminate assumptions of the form $x=t$ by substitution if they have been set
-up to do so (see \texttt{hyp_subst_tacs} in~\S\ref{sec:classical-setup} below).
+up to do so (see \texttt{hyp_subst_tacs} in~{\S}\ref{sec:classical-setup} below).
 They may perform a form of Modus Ponens: if there are assumptions $P\imp Q$
 and~$P$, then replace $P\imp Q$ by~$Q$.
 
@@ -362,12 +362,12 @@ type wrapper = (int -> tactic) -> (int -> tactic);
 
 addSWrapper  : claset * (string *  wrapper       ) -> claset \hfill{\bf infix 4}
 addSbefore   : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
-addSaltern   : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
+addSafter    : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
 delSWrapper  : claset *  string                    -> claset \hfill{\bf infix 4}
 
 addWrapper   : claset * (string *  wrapper       ) -> claset \hfill{\bf infix 4}
 addbefore    : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
-addaltern    : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
+addafter     : claset * (string * (int -> tactic)) -> claset \hfill{\bf infix 4}
 delWrapper   : claset *  string                    -> claset \hfill{\bf infix 4}
 
 addSss       : claset * simpset -> claset                 \hfill{\bf infix 4}
@@ -384,7 +384,7 @@ to modify the existing safe step tactic.
 adds the given tactic as a safe wrapper, such that it is tried 
 {\em before} each safe step of the search.
 
-\item[$cs$ addSaltern $(name,tac)$] \indexbold{*addSaltern}
+\item[$cs$ addSafter $(name,tac)$] \indexbold{*addSafter}
 adds the given tactic as a safe wrapper, such that it is tried 
 when a safe step of the search would fail.
 
@@ -398,7 +398,7 @@ adds a new wrapper to modify the existing (unsafe) step tactic.
 adds the given tactic as an unsafe wrapper, such that it its result is 
 concatenated {\em before} the result of each unsafe step.
 
-\item[$cs$ addaltern $(name,tac)$] \indexbold{*addaltern}
+\item[$cs$ addafter $(name,tac)$] \indexbold{*addafter}
 adds the given tactic as an unsafe wrapper, such that it its result is 
 concatenated {\em after} the result of each unsafe step.
 
@@ -419,7 +419,7 @@ simplified, before the each unsafe step of the search.
 Strictly speaking, the operators \texttt{addss} and \texttt{addSss}
 are not part of the classical reasoner.
 , which are used as primitives 
-for the automatic tactics described in \S\ref{sec:automatic-tactics}, are
+for the automatic tactics described in {\S}\ref{sec:automatic-tactics}, are
 implemented as wrapper tacticals.
 they  
 \begin{warn}
@@ -433,7 +433,7 @@ When a simpset combined with a claset is to be augmented, this should done
 \section{The classical tactics}
 \index{classical reasoner!tactics} If installed, the classical module provides
 powerful theorem-proving tactics.  Most of them have capitalized analogues
-that use the default claset; see \S\ref{sec:current-claset}.
+that use the default claset; see {\S}\ref{sec:current-claset}.
 
 
 \subsection{The tableau prover}
@@ -504,7 +504,7 @@ performing a rather exhaustive search.
 \end{ttdescription}
 They must be supplied both a simpset and a claset; therefore 
 they are most easily called as \texttt{Auto_tac} and \texttt{Force_tac}, which 
-use the default claset and simpset (see \S\ref{sec:current-claset} below). 
+use the default claset and simpset (see {\S}\ref{sec:current-claset} below). 
 For interactive use, 
 the shorthand \texttt{auto();} abbreviates \texttt{by Auto_tac;} 
 while \texttt{force 1;} abbreviates \texttt{by (Force_tac 1);}
@@ -629,7 +629,7 @@ but allows unknowns to be instantiated.
 Each theory is equipped with an implicit \emph{current claset}
 \index{claset!current}.  This is a default set of classical
 rules.  The underlying idea is quite similar to that of a current
-simpset described in \S\ref{sec:simp-for-dummies}; please read that
+simpset described in {\S}\ref{sec:simp-for-dummies}; please read that
 section, including its warnings.  
 
 The tactics

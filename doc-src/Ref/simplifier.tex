@@ -117,7 +117,7 @@ very subtle cases of nontermination.
 \end{ttbox}
 \verb$Asm_full_simp_tac$ will not simplify the \texttt{f a} on the left.
 This problem can be overcome by reordering assumptions (see
-\S\ref{sec:reordering-asms}). Future versions of \verb$Asm_full_simp_tac$
+{\S}\ref{sec:reordering-asms}). Future versions of \verb$Asm_full_simp_tac$
 will not suffer from this deficiency.
 \end{warn}
 
@@ -150,7 +150,7 @@ from object-level equations that are supplied by the user.  Another
 source of rewrite rules are \emph{simplification procedures}, that is
 \ML\ functions that produce suitable theorems on demand, depending on
 the current redex.  Congruences are a more advanced feature; see
-\S\ref{sec:simp-congs}.
+{\S}\ref{sec:simp-congs}.
 
 \begin{ttdescription}
 
@@ -340,10 +340,10 @@ Conditional rewrites such as $\Var{m}<\Var{n} \Imp \Var{m}/\Var{n} =
 Internally, all rewrite rules are translated into meta-equalities,
 theorems with conclusion $lhs \equiv rhs$.  Each simpset contains a
 function for extracting equalities from arbitrary theorems.  For
-example, $\lnot(\Var{x}\in \{\})$ could be turned into $\Var{x}\in \{\}
+example, $\neg(\Var{x}\in \{\})$ could be turned into $\Var{x}\in \{\}
 \equiv False$.  This function can be installed using
 \ttindex{setmksimps} but only the definer of a logic should need to do
-this; see \S\ref{sec:setmksimps}.  The function processes theorems
+this; see {\S}\ref{sec:setmksimps}.  The function processes theorems
 added by \texttt{addsimps} as well as local assumptions.
 
 \begin{ttdescription}
@@ -450,7 +450,7 @@ Given this rule, the simplifier assumes $Q@1$ and extracts rewrite
 rules from it when simplifying~$P@2$.  Such local assumptions are
 effective for rewriting formulae such as $x=0\imp y+x=y$.  The local
 assumptions are also provided as theorems to the solver; see
-\S~\ref{sec:simp-solver} below.
+{\S}~\ref{sec:simp-solver} below.
 
 \begin{ttdescription}
   
@@ -485,7 +485,7 @@ bound variable:
 The congruence rule for conditional expressions can supply contextual
 information for simplifying the arms:
 \[ \List{\Var{p}=\Var{q};~ \Var{q} \Imp \Var{a}=\Var{c};~
-         \lnot\Var{q} \Imp \Var{b}=\Var{d}} \Imp
+         \neg\Var{q} \Imp \Var{b}=\Var{d}} \Imp
    if(\Var{p},\Var{a},\Var{b}) \equiv if(\Var{q},\Var{c},\Var{d})
 \]
 A congruence rule can also {\em prevent\/} simplification of some arguments.
@@ -605,7 +605,7 @@ passed.
 
 \medskip
 
-As explained in \S\ref{sec:simp-subgoaler}, the subgoaler is also used
+As explained in {\S}\ref{sec:simp-subgoaler}, the subgoaler is also used
 to solve the premises of congruence rules.  These are usually of the
 form $s = \Var{x}$, where $s$ needs to be simplified and $\Var{x}$
 needs to be instantiated with the result.  Typically, the subgoaler
@@ -617,8 +617,8 @@ tactics like \texttt{blast_tac}.
 
 It may even happen that due to simplification the subgoal is no longer
 an equality.  For example $False \bimp \Var{Q}$ could be rewritten to
-$\lnot\Var{Q}$.  To cover this case, the solver could try resolving
-with the theorem $\lnot False$.
+$\neg\Var{Q}$.  To cover this case, the solver could try resolving
+with the theorem $\neg False$.
 
 \medskip
 
@@ -674,7 +674,7 @@ The splitter replaces applications of a given function; the right-hand side
 of the replacement can be anything.  For example, here is a splitting rule
 for conditional expressions:
 \[ \Var{P}(if(\Var{Q},\Var{x},\Var{y})) \bimp (\Var{Q} \imp \Var{P}(\Var{x}))
-\conj (\lnot\Var{Q} \imp \Var{P}(\Var{y})) 
+\conj (\neg\Var{Q} \imp \Var{P}(\Var{y})) 
 \] 
 Another example is the elimination operator for Cartesian products (which
 happens to be called~$split$):  
@@ -733,7 +733,7 @@ rewrite rules are solved recursively before the rewrite rule is applied.
   gives direct access to the various simplification modes: 
   \begin{itemize}
   \item if $safe$ is {\tt true}, the safe solver is used as explained in
-  \S\ref{sec:simp-solver},  
+  {\S}\ref{sec:simp-solver},  
   \item $simp\_asm$ determines whether the local assumptions are simplified,
   \item $use\_asm$ determines whether the assumptions are used as local rewrite 
    rules, and
@@ -747,7 +747,7 @@ rewrite rules are solved recursively before the rewrite rule is applied.
 \item[\ttindexbold{simp_tac}, \ttindexbold{asm_simp_tac},
   \ttindexbold{full_simp_tac}, \ttindexbold{asm_full_simp_tac}] are
   the basic simplification tactics that work exactly like their
-  namesakes in \S\ref{sec:simp-for-dummies}, except that they are
+  namesakes in {\S}\ref{sec:simp-for-dummies}, except that they are
   explicitly supplied with a simpset.
   
 \end{ttdescription}
@@ -771,7 +771,7 @@ by (simp_tac (simpset() addsimps \(thms\)) \(i\));
 
 Also note that functions depending implicitly on the current theory
 context (like capital \texttt{Simp_tac} and the other commands of
-\S\ref{sec:simp-for-dummies}) should be considered harmful outside of
+{\S}\ref{sec:simp-for-dummies}) should be considered harmful outside of
 actual proof scripts.  In particular, ML programs like theory
 definition packages or special tactics should refer to simpsets only
 explicitly, via the above tactics used in conjunction with
@@ -793,10 +793,10 @@ Simplifier.asm_full_rewrite  : simpset -> cterm -> thm
 
 The first four of these functions provide \emph{forward} rules for
 simplification.  Their effect is analogous to the corresponding
-tactics described in \S\ref{simp-tactics}, but affect the whole
+tactics described in {\S}\ref{simp-tactics}, but affect the whole
 theorem instead of just a certain subgoal.  Also note that the
-looper~/ solver process as described in \S\ref{sec:simp-looper} and
-\S\ref{sec:simp-solver} is omitted in forward simplification.
+looper~/ solver process as described in {\S}\ref{sec:simp-looper} and
+{\S}\ref{sec:simp-solver} is omitted in forward simplification.
 
 The latter four are \emph{conversions}, establishing proven equations
 of the form $t \equiv u$ where the l.h.s.\ $t$ has been given as
@@ -979,7 +979,7 @@ by (asm_simp_tac (simpset() addsimps [prem]) 1);
 \label{sec:reordering-asms}
 \index{assumptions!reordering}
 
-As mentioned in \S\ref{sec:simp-for-dummies-tacs},
+As mentioned in {\S}\ref{sec:simp-for-dummies-tacs},
 \ttindex{asm_full_simp_tac} may require the assumptions to be permuted
 to be more effective.  Given the subgoal
 \begin{ttbox}
@@ -1169,7 +1169,7 @@ because $f(a)$ is lexicographically greater than $b$ and~$c$.  These
 re-oriented equations, as rewrite rules, replace $b$ and~$c$ in the
 conclusion by~$f(a)$. 
 
-Another example is the goal $\lnot(t=u) \imp \lnot(u=t)$.
+Another example is the goal $\neg(t=u) \imp \neg(u=t)$.
 The differing orientations make this appear difficult to prove.  Ordered
 rewriting with \texttt{symmetry} makes the equalities agree.  (Without
 knowing more about~$t$ and~$u$ we cannot say whether they both go to $t=u$
@@ -1378,7 +1378,7 @@ and returns a suitable \texttt{atomize} function.
 The simplified rewrites must now be converted into meta-equalities.  The
 rule \texttt{eq_reflection} converts equality rewrites, while {\tt
   iff_reflection} converts if-and-only-if rewrites.  The latter possibility
-can arise in two other ways: the negative theorem~$\lnot P$ is converted to
+can arise in two other ways: the negative theorem~$\neg P$ is converted to
 $P\equiv\texttt{False}$, and any other theorem~$P$ is converted to
 $P\equiv\texttt{True}$.  The rules \texttt{iff_reflection_F} and {\tt
   iff_reflection_T} accomplish this conversion.
@@ -1436,7 +1436,7 @@ of conditional rewrites.
 Other simpsets built from \texttt{FOL_basic_ss} will inherit these items.
 In particular, \ttindexbold{IFOL_ss}, which introduces {\tt
   IFOL_simps} as rewrite rules.  \ttindexbold{FOL_ss} will later
-extend \texttt{IFOL_ss} with classical rewrite rules such as $\lnot\lnot
+extend \texttt{IFOL_ss} with classical rewrite rules such as $\neg\neg
 P\bimp P$.
 \index{*setmksimps}\index{*setSSolver}\index{*setSolver}\index{*setsubgoaler}
 \index{*addsimps}\index{*addcongs}

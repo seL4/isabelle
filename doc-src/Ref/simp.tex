@@ -410,7 +410,7 @@ sophisticated versions may do things like
 \[
 \begin{array}{l@{}r@{\quad\mapsto\quad}l}
 \mbox{create formula rewrites:}& P & [P \bimp True] \\[.5ex]
-\mbox{remove negations:}& \lnot P & [P \bimp False] \\[.5ex]
+\mbox{remove negations:}& \neg P & [P \bimp False] \\[.5ex]
 \mbox{create conditional rewrites:}& P\imp s\gg t & [P\Imp s\gg t] \\[.5ex]
 \mbox{break up conjunctions:}& 
         (s@1 \gg@1 t@1) \conj (s@2 \gg@2 t@2) & [s@1 \gg@1 t@1, s@2 \gg@2 t@2]
@@ -431,7 +431,7 @@ simplification with assumptions (as in \ttindex{ASM_SIMP_TAC}) uses
 supplies expansion rules for case splits.  The simplifier is designed
 for rules roughly of the kind
 \[ \Var{P}(if(\Var{Q},\Var{x},\Var{y})) \bimp (\Var{Q} \imp \Var{P}(\Var{x}))
-\conj (\lnot\Var{Q} \imp \Var{P}(\Var{y})) 
+\conj (\neg\Var{Q} \imp \Var{P}(\Var{y})) 
 \] 
 but is insensitive to the form of the right-hand side.  Other examples
 include product types, where $split ::
@@ -501,7 +501,7 @@ structure FOL_SimpData : SIMP_DATA =
   val red2           = \(\List{\Var{P}\bimp\Var{Q}; \Var{Q}} \Imp \Var{P}\)
   val mk_rew_rules   = ...
   val case_splits    = [ \(\Var{P}(if(\Var{Q},\Var{x},\Var{y})) \bimp\)
-                           \((\Var{Q} \imp \Var{P}(\Var{x})) \conj (\lnot\Var{Q} \imp \Var{P}(\Var{y}))\) ]
+                           \((\Var{Q} \imp \Var{P}(\Var{x})) \conj (\neg\Var{Q} \imp \Var{P}(\Var{y}))\) ]
   val norm_thms      = [ (\(\Var{x}=norm(\Var{x})\),\(norm(\Var{x})=\Var{x}\)),
                         (\(\Var{P}\bimp{}NORM(\Var{P}\)), \(NORM(\Var{P})\bimp\Var{P}\)) ]
   val subst_thms     = [ \(\List{\Var{x}=\Var{y}; \Var{P}(\Var{x})}\Imp\Var{P}(\Var{y})\) ]
