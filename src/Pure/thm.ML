@@ -36,8 +36,6 @@ signature THM =
     Sign.sg * (indexname -> typ option) * (indexname -> sort option) ->
     string list -> bool -> string * typ -> cterm * (indexname * typ) list
 
-  (*theories*)
-
   (*proof terms [must DUPLICATE declaration as a specification]*)
   datatype deriv_kind = MinDeriv | ThmDeriv | FullDeriv;
   val keep_derivs       : deriv_kind ref
@@ -89,6 +87,7 @@ signature THM =
                                   shyps: sort list, hyps: cterm list, 
                                   prop: cterm}
   val stamps_of_thm     : thm -> string ref list
+  val transfer		: theory -> thm -> thm
   val tpairs_of         : thm -> (term * term) list
   val prems_of          : thm -> term list
   val nprems_of         : thm -> int
@@ -413,6 +412,17 @@ fun merge_thm_sgs (th1, th2) =
   Sign.merge (pairself (#sign o rep_thm) (th1, th2))
     handle TERM (msg, _) => raise THM (msg, 0, [th1, th2]);
 
+(*transfer thm to super theory*)
+fun transfer thy thm =
+  let
+    val Thm {sign, der, maxidx, shyps, hyps, prop} = thm;
+    val sign' = #sign (rep_theory thy);
+  in
+    if Sign.subsig (sign, sign') then
+      Thm {sign = sign', der = der, maxidx = maxidx,
+        shyps = shyps, hyps = hyps, prop = prop}
+    else raise THM ("transfer: not a super theory", 0, [thm])
+  end;
 
 (*maps object-rule to tpairs*)
 fun tpairs_of (Thm {prop, ...}) = #1 (Logic.strip_flexpairs prop);
