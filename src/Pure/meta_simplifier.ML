@@ -402,7 +402,7 @@ prems are nonempty: does solving the prems really guarantee instantiation of
 all its Vars? Better: a dynamic check each time a rule is applied.
 *)
 fun rewrite_rule_extra_vars prems elhs erhs =
-  not (term_varnames erhs subset foldl add_term_varnames (term_varnames elhs, prems))
+  not (term_varnames erhs subset Library.foldl add_term_varnames (term_varnames elhs, prems))
   orelse
   not (term_tvars erhs subset (term_tvars elhs union List.concat (map term_tvars prems)));
 
@@ -487,16 +487,16 @@ fun orient_rrule ss (thm, name) =
   end;
 
 fun extract_rews (Simpset (_, {mk_rews = {mk, ...}, ...}), thms) =
-  flat (map (fn thm => map (rpair (Thm.name_of_thm thm)) (mk thm)) thms);
+  List.concat (map (fn thm => map (rpair (Thm.name_of_thm thm)) (mk thm)) thms);
 
 fun orient_comb_simps comb mk_rrule (ss, thms) =
   let
     val rews = extract_rews (ss, thms);
-    val rrules = flat (map mk_rrule rews);
-  in foldl comb (ss, rrules) end;
+    val rrules = List.concat (map mk_rrule rews);
+  in Library.foldl comb (ss, rrules) end;
 
 fun extract_safe_rrules (ss, thm) =
-  flat (map (orient_rrule ss) (extract_rews (ss, [thm])));
+  List.concat (map (orient_rrule ss) (extract_rews (ss, [thm])));
 
 (*add rewrite rules explicitly; do not reorient!*)
 fun ss addsimps thms =
@@ -551,7 +551,7 @@ fun add_cong (ss, thm) = ss |>
       val (lhs, _) = Drule.dest_equals (Drule.strip_imp_concl (Thm.cprop_of thm))
         handle TERM _ => raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Pattern.eta_contract lhs;*)
-      val a = the (cong_name (head_of (term_of lhs))) handle Option =>
+      val a = valOf (cong_name (head_of (term_of lhs))) handle Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm);
       val (alist, weak) = congs;
       val alist2 = overwrite_warn (alist, (a, {lhs = lhs, thm = thm}))
@@ -565,11 +565,11 @@ fun del_cong (ss, thm) = ss |>
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm) handle TERM _ =>
         raise SIMPLIFIER ("Congruence not a meta-equality", thm);
     (*val lhs = Pattern.eta_contract lhs;*)
-      val a = the (cong_name (head_of lhs)) handle Option =>
+      val a = valOf (cong_name (head_of lhs)) handle Option =>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
       val (alist, _) = congs;
-      val alist2 = filter (fn (x, _) => x <> a) alist;
-      val weak2 = alist2 |> mapfilter (fn (a, {thm, ...}) =>
+      val alist2 = List.filter (fn (x, _) => x <> a) alist;
+      val weak2 = alist2 |> List.mapPartial (fn (a, {thm, ...}) =>
         if is_full_cong thm then NONE else SOME a);
     in ((alist2, weak2), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
@@ -577,8 +577,8 @@ fun mk_cong (Simpset (_, {mk_rews = {mk_cong = f, ...}, ...})) = f;
 
 in
 
-val (op addeqcongs) = foldl add_cong;
-val (op deleqcongs) = foldl del_cong;
+val (op addeqcongs) = Library.foldl add_cong;
+val (op deleqcongs) = Library.foldl del_cong;
 
 fun ss addcongs congs = ss addeqcongs map (mk_cong ss) congs;
 fun ss delcongs congs = ss deleqcongs map (mk_cong ss) congs;
@@ -607,8 +607,8 @@ fun del_proc (ss, proc as Proc {name, lhs, ...}) =
 
 in
 
-val (op addsimprocs) = foldl (fn (ss, Simproc procs) => foldl add_proc (ss, procs));
-val (op delsimprocs) = foldl (fn (ss, Simproc procs) => foldl del_proc (ss, procs));
+val (op addsimprocs) = Library.foldl (fn (ss, Simproc procs) => Library.foldl add_proc (ss, procs));
+val (op delsimprocs) = Library.foldl (fn (ss, Simproc procs) => Library.foldl del_proc (ss, procs));
 
 end;
 
@@ -966,7 +966,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
     may be a redex. Example: map (%x. x) = (%xs. xs) wrt map_cong*)
                           (let
                              val thm = congc (prover ss, sign, maxidx) cong t0;
-                             val t = if_none (apsome rhs_of thm) t0;
+                             val t = getOpt (Option.map rhs_of thm, t0);
                              val (cl, cr) = Thm.dest_comb t
                              val dVar = Var(("", 0), dummyT)
                              val skel =
@@ -993,7 +993,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
         in (extract_safe_rrules (ss, asm), SOME asm) end
 
     and add_rrules (rrss, asms) ss =
-      foldl (insert_rrule true) (ss, flat rrss) |> add_prems (mapfilter I asms)
+      Library.foldl (insert_rrule true) (ss, List.concat rrss) |> add_prems (List.mapPartial I asms)
 
     and disch r (prem, eq) =
       let
@@ -1018,12 +1018,12 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
           let
             val ss' = add_rrules (rev rrss, rev asms) ss;
             val concl' =
-              Drule.mk_implies (prem, if_none (apsome rhs_of eq) concl);
-            val dprem = apsome (curry (disch false) prem)
+              Drule.mk_implies (prem, getOpt (Option.map rhs_of eq, concl));
+            val dprem = Option.map (curry (disch false) prem)
           in case rewritec (prover, sign, maxidx) ss' concl' of
               NONE => rebuild prems concl' rrss asms ss (dprem eq)
-            | SOME (eq', _) => transitive2 (foldl (disch false o swap)
-                  (the (transitive3 (dprem eq) eq'), prems))
+            | SOME (eq', _) => transitive2 (Library.foldl (disch false o swap)
+                  (valOf (transitive3 (dprem eq) eq'), prems))
                 (mut_impc0 (rev prems) (rhs_of eq') (rev rrss) (rev asms) ss)
           end
 
@@ -1036,8 +1036,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
       end
 
     and mut_impc [] concl [] [] prems' rrss' asms' eqns ss changed k =
-        transitive1 (foldl (fn (eq2, (eq1, prem)) => transitive1 eq1
-            (apsome (curry (disch false) prem) eq2)) (NONE, eqns ~~ prems'))
+        transitive1 (Library.foldl (fn (eq2, (eq1, prem)) => transitive1 eq1
+            (Option.map (curry (disch false) prem) eq2)) (NONE, eqns ~~ prems'))
           (if changed > 0 then
              mut_impc (rev prems') concl (rev rrss') (rev asms')
                [] [] [] [] ss ~1 changed
@@ -1055,20 +1055,20 @@ fun bottomc ((simprem, useprem, mutsimp), prover, sign, maxidx) =
             let
               val prem' = rhs_of eqn;
               val tprems = map term_of prems;
-              val i = 1 + foldl Int.max (~1, map (fn p =>
+              val i = 1 + Library.foldl Int.max (~1, map (fn p =>
                 find_index_eq p tprems) (#hyps (rep_thm eqn)));
               val (rrs', asm') = rules_of_prem ss prem'
             in mut_impc prems concl rrss asms (prem' :: prems')
-              (rrs' :: rrss') (asm' :: asms') (SOME (foldr (disch true)
-                (take (i, prems), Drule.imp_cong' eqn (reflexive (Drule.list_implies
-                  (drop (i, prems), concl))))) :: eqns) ss (length prems') ~1
+              (rrs' :: rrss') (asm' :: asms') (SOME (Library.foldr (disch true)
+                (Library.take (i, prems), Drule.imp_cong' eqn (reflexive (Drule.list_implies
+                  (Library.drop (i, prems), concl))))) :: eqns) ss (length prems') ~1
             end
 
      (*legacy code - only for backwards compatibility*)
      and nonmut_impc ct ss =
        let val (prem, conc) = dest_implies ct;
            val thm1 = if simprem then botc skel0 ss prem else NONE;
-           val prem1 = if_none (apsome rhs_of thm1) prem;
+           val prem1 = getOpt (Option.map rhs_of thm1, prem);
            val ss1 = if not useprem then ss else add_rrules
              (apsnd single (apfst single (rules_of_prem ss prem1))) ss
        in (case botc skel0 ss1 conc of
@@ -1169,7 +1169,7 @@ fun simp rew mode ss thm =
   let
     val Simpset (_, {solvers = (unsafe_solvers, _), ...}) = ss;
     val tacf = solve_all_tac unsafe_solvers;
-    fun prover s th = apsome #1 (Seq.pull (tacf s th));
+    fun prover s th = Option.map #1 (Seq.pull (tacf s th));
   in rew mode prover ss thm end;
 
 val simp_thm = simp rewrite_thm;

@@ -816,7 +816,7 @@ fun let_codegen thy gr dep brack (t as Const ("Let", _) $ _ $ _) =
             val (gr1, qs) = foldl_map mk_code (gr, ps);
             val (gr2, pu) = Codegen.invoke_codegen thy dep false (gr1, u)
           in
-            SOME (gr2, Pretty.blk (0, [Pretty.str "let ", Pretty.blk (0, flat
+            SOME (gr2, Pretty.blk (0, [Pretty.str "let ", Pretty.blk (0, List.concat
                 (separate [Pretty.str ";", Pretty.brk 1] (map (fn (pl, pr) =>
                   [Pretty.block [Pretty.str "val ", pl, Pretty.str " =",
                      Pretty.brk 1, pr]]) qs))),

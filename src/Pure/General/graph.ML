@@ -67,7 +67,7 @@ type keys = unit Table.table;
 val empty_keys = Table.empty: keys;
 
 infix mem_keys;
-fun x mem_keys tab = is_some (Table.lookup (tab: keys, x));
+fun x mem_keys tab = isSome (Table.lookup (tab: keys, x));
 
 infix ins_keys;
 fun x ins_keys tab = if x mem_keys tab then tab else Table.update ((x, ()), tab);
@@ -114,7 +114,7 @@ fun reachable next xs =
     fun reach ((R, rs), x) =
       if x mem_keys R then (R, rs)
       else apsnd (cons x) (reachs ((x ins_keys R, rs), next x))
-    and reachs R_xs = foldl reach R_xs;
+    and reachs R_xs = Library.foldl reach R_xs;
   in foldl_map (reach o apfst (rpair [])) (empty_keys, xs) end;
 
 (*immediate*)
@@ -122,13 +122,13 @@ fun imm_preds G = #1 o #2 o get_entry G;
 fun imm_succs G = #2 o #2 o get_entry G;
 
 (*transitive*)
-fun all_preds G = flat o snd o reachable (imm_preds G);
-fun all_succs G = flat o snd o reachable (imm_succs G);
+fun all_preds G = List.concat o snd o reachable (imm_preds G);
+fun all_succs G = List.concat o snd o reachable (imm_succs G);
 
 (*strongly connected components; see: David King and John Launchbury,
   "Structuring Depth First Search Algorithms in Haskell"*)
 fun strong_conn G = filter_out null (snd (reachable (imm_preds G)
-  (flat (rev (snd (reachable (imm_succs G) (keys G)))))));
+  (List.concat (rev (snd (reachable (imm_succs G) (keys G)))))));
 
 
 (* paths *)
@@ -139,7 +139,7 @@ fun find_paths G (x, y) =
     fun paths ps p =
       if not (null ps) andalso eq_key (p, x) then [p :: ps]
       else if p mem_keys X andalso not (p mem_key ps)
-      then flat (map (paths (p :: ps)) (imm_preds G p))
+      then List.concat (map (paths (p :: ps)) (imm_preds G p))
       else [];
   in paths [] y end;
 
@@ -155,8 +155,8 @@ fun del_nodes xs (Graph tab) =
   let
     fun del (x, (i, (preds, succs))) =
       if x mem_key xs then NONE
-      else SOME (x, (i, (foldl op del_key (preds, xs), foldl op del_key (succs, xs))));
-  in Graph (Table.make (mapfilter del (Table.dest tab))) end;
+      else SOME (x, (i, (Library.foldl op del_key (preds, xs), Library.foldl op del_key (succs, xs))));
+  in Graph (Table.make (List.mapPartial del (Table.dest tab))) end;
 
 
 (* edges *)
@@ -176,7 +176,7 @@ fun del_edge (x, y) G =
   else G;
 
 fun diff_edges G1 G2 =
-  flat (dest G1 |> map (fn (x, ys) => ys |> mapfilter (fn y =>
+  List.concat (dest G1 |> map (fn (x, ys) => ys |> List.mapPartial (fn y =>
     if is_edge G2 (x, y) then NONE else SOME (x, y))));
 
 fun edges G = diff_edges G empty;
@@ -205,7 +205,7 @@ fun add_edge_acyclic (x, y) G =
     | cycles => raise CYCLES (map (cons x) cycles));
 
 fun add_deps_acyclic (y, xs) G =
-  foldl (fn (H, x) => add_edge_acyclic (x, y) H) (G, xs);
+  Library.foldl (fn (H, x) => add_edge_acyclic (x, y) H) (G, xs);
 
 fun merge_acyclic eq GG = gen_merge add_edge_acyclic eq GG;
 

@@ -25,7 +25,7 @@ fun replay_proof int_thms thyname thmname prf thy =
 	    end
 	  | rp (PSubst(prfs,ctxt,prf)) thy =
 	    let
-		val (thy',ths) = foldr (fn (p,(thy,ths)) =>
+		val (thy',ths) = Library.foldr (fn (p,(thy,ths)) =>
 					   let
 					       val (thy',th) = rp' p thy
 					   in
@@ -319,7 +319,7 @@ fun import_thms thyname int_thms thmnames thy =
 	    in
 		fst (replay_proof int_thms thyname thmname prf thy)
 	    end
-	val res_thy = foldl replay_fact (thy,thmnames)
+	val res_thy = Library.foldl replay_fact (thy,thmnames)
     in
 	res_thy
     end

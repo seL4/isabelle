@@ -42,17 +42,17 @@ fun print_sign_exn_unit sign e =
   case e of
      THM (msg,i,thms) =>
 	 (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
-	  seq print_thm thms)
+	  List.app print_thm thms)
    | THEORY (msg,thys) =>
 	 (writeln ("Exception THEORY raised:\n" ^ msg);
-	  seq (Pretty.writeln o Display.pretty_theory) thys)
+	  List.app (Pretty.writeln o Display.pretty_theory) thys)
    | TERM (msg,ts) =>
 	 (writeln ("Exception TERM raised:\n" ^ msg);
-	  seq (writeln o Sign.string_of_term sign) ts)
+	  List.app (writeln o Sign.string_of_term sign) ts)
    | TYPE (msg,Ts,ts) =>
 	 (writeln ("Exception TYPE raised:\n" ^ msg);
-	  seq (writeln o Sign.string_of_typ sign) Ts;
-	  seq (writeln o Sign.string_of_term sign) ts)
+	  List.app (writeln o Sign.string_of_typ sign) Ts;
+	  List.app (writeln o Sign.string_of_term sign) ts)
    | e => raise e
 
 (*Prints an exception, then fails*)
@@ -251,7 +251,7 @@ fun freeze_thaw_term t =
 	val tvars = term_tvars t
 	val tfree_names = add_term_tfree_names(t,[])
 	val (type_inst,_) =
-	    foldl (fn ((inst,used),(w as (v,_),S)) =>
+	    Library.foldl (fn ((inst,used),(w as (v,_),S)) =>
 		      let
 			  val v' = variant used v
 		      in
@@ -553,13 +553,13 @@ fun match_consts ignore t (* th *) =
     end
     
 val collect_ignored =
-    foldr (fn (thm,cs) =>
+    Library.foldr (fn (thm,cs) =>
 	      let
 		  val (lhs,rhs) = Logic.dest_equals (prop_of thm)
 		  val ignore_lhs = term_consts lhs \\ term_consts rhs
 		  val ignore_rhs = term_consts rhs \\ term_consts lhs
 	      in
-		  foldr (op ins_string) (ignore_lhs @ ignore_rhs,cs)
+		  Library.foldr (op ins_string) (ignore_lhs @ ignore_rhs,cs)
 	      end)
 
 (* set_prop t thms tries to make a theorem with the proposition t from
@@ -570,7 +570,7 @@ fun set_prop thy t =
     let
 	val sg = sign_of thy
 	val vars = add_term_frees (t,add_term_vars (t,[]))
-	val closed_t = foldr (fn (v,body) => let val vT = type_of v
+	val closed_t = Library.foldr (fn (v,body) => let val vT = type_of v
 					     in all vT $ (Abs("x",vT,abstract_over(v,body))) end) (vars,t)
 	val rew_th = norm_term thy closed_t
 	val rhs = snd (dest_equals (cprop_of rew_th))
@@ -614,13 +614,13 @@ fun find_potential thy t =
 	val rel_consts = term_consts t \\ ignored
 	val pot_thms = PureThy.thms_containing_consts thy rel_consts
     in
-	filter (match_consts ignored t) pot_thms
+	List.filter (match_consts ignored t) pot_thms
     end
 
 fun gen_shuffle_tac thy search thms i st =
     let
 	val _ = message ("Shuffling " ^ (string_of_thm st))
-	val t = nth_elem(i-1,prems_of st)
+	val t = List.nth(prems_of st,i-1)
 	val set = set_prop thy t
 	fun process_tac thms st =
 	    case set thms of

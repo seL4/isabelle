@@ -60,7 +60,7 @@ val haz_dup_brls =
 
 (*0 subgoals vs 1 or more: the p in safep is for positive*)
 val (safe0_brls, safep_brls) =
-    partition (apl(0,op=) o subgoals_of_brl) safe_brls;
+    List.partition (apl(0,op=) o subgoals_of_brl) safe_brls;
 
 (*Attack subgoals using safe inferences -- matching, not resolution*)
 val safe_step_tac = FIRST' [eq_assume_tac,

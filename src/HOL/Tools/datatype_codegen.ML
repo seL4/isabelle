@@ -17,7 +17,7 @@ open Codegen;
 
 fun mk_tuple [p] = p
   | mk_tuple ps = Pretty.block (Pretty.str "(" ::
-      flat (separate [Pretty.str ",", Pretty.brk 1] (map single ps)) @
+      List.concat (separate [Pretty.str ",", Pretty.brk 1] (map single ps)) @
         [Pretty.str ")"]);
 
 (**** datatype definition ****)
@@ -26,16 +26,16 @@ fun mk_tuple [p] = p
 
 fun find_nonempty (descr: DatatypeAux.descr) is i =
   let
-    val (_, _, constrs) = the (assoc (descr, i));
+    val (_, _, constrs) = valOf (assoc (descr, i));
     fun arg_nonempty (_, DatatypeAux.DtRec i) = if i mem is then NONE
-          else apsome (curry op + 1 o snd) (find_nonempty descr (i::is) i)
+          else Option.map (curry op + 1 o snd) (find_nonempty descr (i::is) i)
       | arg_nonempty _ = SOME 0;
-    fun max xs = foldl
+    fun max xs = Library.foldl
       (fn (NONE, _) => NONE
         | (SOME i, SOME j) => SOME (Int.max (i, j))
         | (_, NONE) => NONE) (SOME 0, xs);
     val xs = sort (int_ord o pairself snd)
-      (mapfilter (fn (s, dts) => apsome (pair s)
+      (List.mapPartial (fn (s, dts) => Option.map (pair s)
         (max (map (arg_nonempty o DatatypeAux.strip_dtyp) dts))) constrs)
   in case xs of [] => NONE | x :: _ => SOME x end;
 
@@ -44,8 +44,8 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
     val sg = sign_of thy;
     val tab = DatatypePackage.get_datatypes thy;
 
-    val descr' = filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
-    val rtnames = map (#1 o snd) (filter (fn (_, (_, _, cs)) =>
+    val descr' = List.filter (can (map DatatypeAux.dest_DtTFree o #2 o snd)) descr;
+    val rtnames = map (#1 o snd) (List.filter (fn (_, (_, _, cs)) =>
       exists (exists DatatypeAux.is_rec_type o snd) cs) descr');
 
     val (_, (_, _, (cname, _) :: _)) :: _ = descr';
@@ -67,11 +67,11 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
                (if null tvs then [] else
                   [mk_tuple (map Pretty.str tvs), Pretty.str " "]) @
                [Pretty.str (mk_type_id sg tname ^ " ="), Pretty.brk 1] @
-               flat (separate [Pretty.brk 1, Pretty.str "| "]
+               List.concat (separate [Pretty.brk 1, Pretty.str "| "]
                  (map (fn (cname, ps') => [Pretty.block
                    (Pretty.str (mk_const_id sg cname) ::
                     (if null ps' then [] else
-                     flat ([Pretty.str " of", Pretty.brk 1] ::
+                     List.concat ([Pretty.str " of", Pretty.brk 1] ::
                        separate [Pretty.str " *", Pretty.brk 1]
                          (map single ps'))))]) ps))) :: rest)
           end;
@@ -94,7 +94,7 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
                  else parens (Pretty.block [Pretty.str (mk_const_id sg cname),
                     Pretty.brk 1, mk_tuple args]),
                  Pretty.str " =", Pretty.brk 1] @
-                 flat (separate [Pretty.str " $", Pretty.brk 1]
+                 List.concat (separate [Pretty.str " $", Pretty.brk 1]
                    ([Pretty.str ("Const (\"" ^ cname ^ "\","), Pretty.brk 1,
                      mk_type false (Ts ---> T), Pretty.str ")"] ::
                     map (fn (x, U) => [Pretty.block [mk_term_of sg false U,
@@ -108,7 +108,7 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
             val tvs = map DatatypeAux.dest_DtTFree dts;
             val sorts = map (rpair []) tvs;
             val (cs1, cs2) =
-              partition (exists DatatypeAux.is_rec_type o snd) cs;
+              List.partition (exists DatatypeAux.is_rec_type o snd) cs;
             val SOME (cname, _) = find_nonempty descr [i] i;
 
             fun mk_delay p = Pretty.block
@@ -130,7 +130,7 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
             fun mk_choice [c] = mk_constr "(i-1)" false c
               | mk_choice cs = Pretty.block [Pretty.str "one_of",
                   Pretty.brk 1, Pretty.blk (1, Pretty.str "[" ::
-                  flat (separate [Pretty.str ",", Pretty.fbrk]
+                  List.concat (separate [Pretty.str ",", Pretty.fbrk]
                     (map (single o mk_delay o mk_constr "(i-1)" false) cs)) @
                   [Pretty.str "]"]), Pretty.brk 1, Pretty.str "()"];
 
@@ -155,7 +155,7 @@ fun add_dt_defs thy dep gr (descr: DatatypeAux.descr) =
                  [Pretty.block [Pretty.str "(case", Pretty.brk 1,
                    Pretty.str "i", Pretty.brk 1, Pretty.str "of",
                    Pretty.brk 1, Pretty.str "0 =>", Pretty.brk 1,
-                   mk_constr "0" true (cname, the (assoc (cs, cname))),
+                   mk_constr "0" true (cname, valOf (assoc (cs, cname))),
                    Pretty.brk 1, Pretty.str "| _ =>", Pretty.brk 1,
                    mk_choice cs1, Pretty.str ")"]]
                else [mk_choice cs2])) ::
@@ -199,18 +199,18 @@ fun pretty_case thy gr dep brack constrs (c as Const (_, T)) ts =
        invoke_codegen thy dep brack (gr, eta_expand c ts (i+1))
     else
       let
-        val ts1 = take (i, ts);
-        val t :: ts2 = drop (i, ts);
-        val names = foldr add_term_names (ts1,
-          map (fst o fst o dest_Var) (foldr add_term_vars (ts1, [])));
-        val (Ts, dT) = split_last (take (i+1, fst (strip_type T)));
+        val ts1 = Library.take (i, ts);
+        val t :: ts2 = Library.drop (i, ts);
+        val names = Library.foldr add_term_names (ts1,
+          map (fst o fst o dest_Var) (Library.foldr add_term_vars (ts1, [])));
+        val (Ts, dT) = split_last (Library.take (i+1, fst (strip_type T)));
 
         fun pcase gr [] [] [] = ([], gr)
           | pcase gr ((cname, cargs)::cs) (t::ts) (U::Us) =
               let
                 val j = length cargs;
                 val xs = variantlist (replicate j "x", names);
-                val Us' = take (j, fst (strip_type U));
+                val Us' = Library.take (j, fst (strip_type U));
                 val frees = map Free (xs ~~ Us');
                 val (gr0, cp) = invoke_codegen thy dep false
                   (gr, list_comb (Const (cname, Us' ---> dT), frees));
@@ -222,7 +222,7 @@ fun pretty_case thy gr dep brack constrs (c as Const (_, T)) ts =
               end;
 
         val (ps1, gr1) = pcase gr constrs ts1 Ts;
-        val ps = flat (separate [Pretty.brk 1, Pretty.str "| "] ps1);
+        val ps = List.concat (separate [Pretty.brk 1, Pretty.str "| "] ps1);
         val (gr2, p) = invoke_codegen thy dep false (gr1, t);
         val (gr3, ps2) = foldl_map (invoke_codegen thy dep true) (gr2, ts2)
       in (gr3, (if not (null ts2) andalso brack then parens else I)
@@ -257,15 +257,15 @@ fun datatype_codegen thy gr dep brack t = (case strip_comb t of
    (c as Const (s, T), ts) =>
        (case find_first (fn (_, {index, descr, case_name, ...}) =>
          s = case_name orelse
-           is_some (assoc (#3 (the (assoc (descr, index))), s)))
+           isSome (assoc (#3 (valOf (assoc (descr, index))), s)))
              (Symtab.dest (DatatypePackage.get_datatypes thy)) of
           NONE => NONE
         | SOME (tname, {index, descr, ...}) =>
-           if is_some (get_assoc_code thy s T) then NONE else
+           if isSome (get_assoc_code thy s T) then NONE else
            let val SOME (_, _, constrs) = assoc (descr, index)
            in (case (assoc (constrs, s), strip_type T) of
                (NONE, _) => SOME (pretty_case thy gr dep brack
-                 (#3 (the (assoc (descr, index)))) c ts)
+                 (#3 (valOf (assoc (descr, index)))) c ts)
              | (SOME args, (_, Type _)) => SOME (pretty_constr thy
                  (fst (invoke_tycodegen thy dep false (gr, snd (strip_type T))))
                  dep brack args c ts)
@@ -277,7 +277,7 @@ fun datatype_tycodegen thy gr dep brack (Type (s, Ts)) =
       (case Symtab.lookup (DatatypePackage.get_datatypes thy, s) of
          NONE => NONE
        | SOME {descr, ...} =>
-           if is_some (get_assoc_type thy s) then NONE else
+           if isSome (get_assoc_type thy s) then NONE else
            let val (gr', ps) = foldl_map
              (invoke_tycodegen thy dep false) (gr, Ts)
            in SOME (add_dt_defs thy dep gr' descr,

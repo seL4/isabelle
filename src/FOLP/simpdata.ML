@@ -85,7 +85,7 @@ fun mk_atomize pairs =
              (case head_of p of
                 Const(a,_) =>
                   (case assoc(pairs,a) of
-                     SOME(rls) => flat (map atoms ([th] RL rls))
+                     SOME(rls) => List.concat (map atoms ([th] RL rls))
                    | NONE => [th])
               | _ => [th])
          | _ => [th])

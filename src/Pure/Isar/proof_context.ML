@@ -221,11 +221,11 @@ fun fixes_of (Context {asms = (_, fixes), ...}) = fixes;
 val fixed_names_of = map #2 o fixes_of;
 fun is_fixed ctxt x = exists (equal x o #2) (fixes_of ctxt);
 fun is_known (ctxt as Context {defs = (types, _, _, _), ...}) x =
-  is_some (Vartab.lookup (types, (x, ~1))) orelse is_fixed ctxt x;
+  isSome (Vartab.lookup (types, (x, ~1))) orelse is_fixed ctxt x;
 fun type_occs (Context {defs = (_, _, _, tab), ...}) = tab;
 
 fun assumptions_of (Context {asms = ((asms, _), _), ...}) = asms;
-fun prems_of (Context {asms = ((_, prems), _), ...}) = flat (map #2 prems);
+fun prems_of (Context {asms = ((_, prems), _), ...}) = List.concat (map #2 prems);
 
 
 
@@ -398,9 +398,9 @@ fun add_syntax decls =
   map_context (fn (thy, (syn, structs, mixfixed), data, asms, binds, thms, cases, defs, delta, delta_count) =>
     let
       val is_logtype = Sign.is_logtype (Theory.sign_of thy);
-      val structs' = structs @ mapfilter prep_struct decls;
-      val mxs = mapfilter prep_mixfix decls;
-      val (fixed, mxs_output) = Library.split_list (mapfilter prep_mixfix' decls);
+      val structs' = structs @ List.mapPartial prep_struct decls;
+      val mxs = List.mapPartial prep_mixfix decls;
+      val (fixed, mxs_output) = Library.split_list (List.mapPartial prep_mixfix' decls);
       val trs = map fixed_tr fixed;
       val syn' = syn
         |> Syntax.extend_const_gram is_logtype ("", false) mxs_output
@@ -489,7 +489,7 @@ end;
 (* internalize Skolem constants *)
 
 fun lookup_skolem ctxt x = assoc (fixes_of ctxt, x);
-fun get_skolem ctxt x = if_none (lookup_skolem ctxt x) x;
+fun get_skolem ctxt x = getOpt (lookup_skolem ctxt x, x);
 
 fun no_skolem internal ctxt x =
   if can Syntax.dest_skolem x then
@@ -697,7 +697,7 @@ val ins_used = foldl_term_types (fn t => foldl_atyps
 val ins_occs = foldl_term_types (fn t => foldl_atyps
   (fn (tab, TFree (x, _)) => Symtab.update_multi ((x, t), tab) | (tab, _) => tab));
 
-fun ins_skolem def_ty = foldr
+fun ins_skolem def_ty = Library.foldr
   (fn ((x, x'), types) =>
     (case def_ty x' of
       SOME T => Vartab.update (((x, ~1), T), types)
@@ -721,8 +721,8 @@ fun declare_occ (ctxt as Context {asms = (_, fixes), ...}, t) =
 in
 
 fun declare_term t ctxt = declare_occ (ctxt, t);
-fun declare_terms ts ctxt = foldl declare_occ (ctxt, ts);
-fun declare_terms_syntax ts ctxt = foldl declare_syn (ctxt, ts);
+fun declare_terms ts ctxt = Library.foldl declare_occ (ctxt, ts);
+fun declare_terms_syntax ts ctxt = Library.foldl declare_syn (ctxt, ts);
 
 end;
 
@@ -742,8 +742,8 @@ fun warn_extra_tfrees
 
     val extras =
       Library.gen_rems Library.eq_fst (Symtab.dest occ2, Symtab.dest occ1)
-      |> map (fn (a, ts) => map (pair a) (mapfilter (try (#1 o Term.dest_Free)) ts)) |> flat
-      |> mapfilter (fn (a, x) =>
+      |> map (fn (a, ts) => map (pair a) (List.mapPartial (try (#1 o Term.dest_Free)) ts)) |> List.concat
+      |> List.mapPartial (fn (a, x) =>
           (case def_type ctxt1 false (x, ~1) of NONE => SOME (a, x)
           | SOME T => if known_tfree a T then NONE else SOME (a, x)));
     val tfrees = map #1 extras |> Library.sort_strings |> Library.unique_strings;
@@ -766,14 +766,14 @@ fun generalize_tfrees inner outer =
     val occs_inner = type_occs inner;
     val occs_outer = type_occs outer;
     fun add (gen, a) =
-      if is_some (Symtab.lookup (occs_outer, a)) orelse
+      if isSome (Symtab.lookup (occs_outer, a)) orelse
         exists still_fixed (Symtab.lookup_multi (occs_inner, a))
       then gen else a :: gen;
-  in fn tfrees => foldl add ([], tfrees) end;
+  in fn tfrees => Library.foldl add ([], tfrees) end;
 
 fun generalize inner outer ts =
   let
-    val tfrees = generalize_tfrees inner outer (foldr Term.add_term_tfree_names (ts, []));
+    val tfrees = generalize_tfrees inner outer (Library.foldr Term.add_term_tfree_names (ts, []));
     fun gen (x, S) = if x mem_string tfrees then TVar ((x, 0), S) else TFree (x, S);
   in map (Term.map_term_types (Term.map_type_tfree gen)) ts end;
 
@@ -799,7 +799,7 @@ fun export_view view is_goal inner outer =
     |> Seq.map (fn rule =>
       let
         val {sign, prop, ...} = Thm.rep_thm rule;
-        val frees = map (Thm.cterm_of sign) (mapfilter (find_free prop) fixes);
+        val frees = map (Thm.cterm_of sign) (List.mapPartial (find_free prop) fixes);
         val tfrees = gen (Term.add_term_tfree_names (prop, []));
       in
         rule
@@ -846,8 +846,8 @@ fun upd_bind (ctxt, ((x, i), t)) =
 fun del_upd_bind (ctxt, (xi, NONE)) = del_bind (ctxt, xi)
   | del_upd_bind (ctxt, (xi, SOME t)) = upd_bind (ctxt, (xi, t));
 
-fun update_binds bs ctxt = foldl upd_bind (ctxt, bs);
-fun delete_update_binds bs ctxt = foldl del_upd_bind (ctxt, bs);
+fun update_binds bs ctxt = Library.foldl upd_bind (ctxt, bs);
+fun delete_update_binds bs ctxt = Library.foldl del_upd_bind (ctxt, bs);
 
 
 (* simult_matches *)
@@ -857,7 +857,7 @@ fun simult_matches ctxt [] = []
       let
         fun fail () = raise CONTEXT ("Pattern match failed!", ctxt);
 
-        val maxidx = foldl (fn (i, (t1, t2)) =>
+        val maxidx = Library.foldl (fn (i, (t1, t2)) =>
           Int.max (i, Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2))) (~1, pairs);
         val envs = Unify.smash_unifiers (sign_of ctxt, Envir.empty maxidx,
           map swap pairs);    (*prefer assignment of variables from patterns*)
@@ -871,7 +871,7 @@ fun simult_matches ctxt [] = []
           if null (map #1 (Envir.alist_of env) inter (map #1 (Drule.vars_of_terms (map #2 pairs))))
           then () else fail ();
         fun norm_bind (xi, t) = if xi mem domain then SOME (xi, Envir.norm_term env t) else NONE;
-      in mapfilter norm_bind (Envir.alist_of env) end;
+      in List.mapPartial norm_bind (Envir.alist_of env) end;
 
 
 (* add_binds(_i) *)
@@ -879,9 +879,9 @@ fun simult_matches ctxt [] = []
 local
 
 fun gen_bind prep (ctxt, (xi as (x, _), raw_t)) =
-  ctxt |> delete_update_binds [(xi, apsome (prep ctxt) raw_t)];
+  ctxt |> delete_update_binds [(xi, Option.map (prep ctxt) raw_t)];
 
-fun gen_binds prep binds ctxt = foldl (gen_bind prep) (ctxt, binds);
+fun gen_binds prep binds ctxt = Library.foldl (gen_bind prep) (ctxt, binds);
 
 in
 
@@ -913,7 +913,7 @@ fun gen_binds prep_terms prep_pats gen raw_binds ctxt =
   let
     val ts = prep_terms ctxt (map snd raw_binds);
     val (ctxt', binds) =
-      apsnd flat (foldl_map (prep_bind prep_pats) (ctxt, map fst raw_binds ~~ ts));
+      apsnd List.concat (foldl_map (prep_bind prep_pats) (ctxt, map fst raw_binds ~~ ts));
     val binds' =
       if gen then map #1 binds ~~ generalize ctxt' ctxt (map #2 binds)
       else binds;
@@ -945,7 +945,7 @@ fun prep_propp schematic prep_props prep_pats (context, args) =
           in ((ctxt', props), (prop, splitAt(length raw_pats1, pats))) end
       | prep _ = sys_error "prep_propp";
     val ((context', _), propp) = foldl_map (foldl_map prep)
-        ((context, prep_props schematic context (flat (map (map fst) args))), args);
+        ((context, prep_props schematic context (List.concat (map (map fst) args))), args);
   in (context', propp) end;
 
 fun matches ctxt (prop, (pats1, pats2)) =
@@ -954,7 +954,7 @@ fun matches ctxt (prop, (pats1, pats2)) =
 fun gen_bind_propp prepp (ctxt, raw_args) =
   let
     val (ctxt', args) = prepp (ctxt, raw_args);
-    val binds = flat (flat (map (map (matches ctxt')) args));
+    val binds = List.concat (List.concat (map (map (matches ctxt')) args));
     val propss = map (map #1) args;
 
     (*generalize result: context evaluated now, binds added later*)
@@ -1051,8 +1051,8 @@ fun gen_note_thss get (ctxt, ((name, more_attrs), ths_attrs)) =
     fun app ((ct, ths), (th, attrs)) =
       let val (ct', th') = Thm.applys_attributes ((ct, get ctxt th), attrs @ more_attrs)
       in (ct', th' :: ths) end;
-    val (ctxt', rev_thms) = foldl app ((ctxt, []), ths_attrs);
-    val thms = flat (rev rev_thms);
+    val (ctxt', rev_thms) = Library.foldl app ((ctxt, []), ths_attrs);
+    val thms = List.concat (rev rev_thms);
   in (ctxt' |> put_thms (name, thms), (name, thms)) end;
 
 fun gen_note_thmss get args ctxt = foldl_map (gen_note_thss get) (ctxt, args);
@@ -1090,7 +1090,7 @@ fun cert_def ctxt eq =
 
     fun is_free (Free (x, _)) = not (is_fixed ctxt x)
       | is_free _ = false;
-    val extra_frees = filter is_free (term_frees rhs) \\ xs;
+    val extra_frees = List.filter is_free (term_frees rhs) \\ xs;
   in
     conditional (not (forall (is_Bound orf is_free) xs andalso null (duplicates xs))) (fn () =>
       err "Arguments of lhs must be distinct free/bound variables");
@@ -1098,7 +1098,7 @@ fun cert_def ctxt eq =
       err "Element to be defined occurs on rhs");
     conditional (not (null extra_frees)) (fn () =>
       err ("Extra free variables on rhs: " ^ commas_quote (map (#1 o dest_Free) extra_frees)));
-    (c, Term.list_all_free (mapfilter (try Term.dest_Free) xs, eq))
+    (c, Term.list_all_free (List.mapPartial (try Term.dest_Free) xs, eq))
   end;
 
 fun head_of_def cprop =
@@ -1134,7 +1134,7 @@ fun gen_assms prepp exp args ctxt =
     val (ctxt1, propss) = prepp (ctxt, map snd args);
     val (ctxt2, results) = foldl_map add_assm (ctxt1, map fst args ~~ propss);
 
-    val cprops = flat (map #1 results);
+    val cprops = List.concat (map #1 results);
     val asmss = map #2 results;
     val thmss = map #3 results;
     val ctxt3 = ctxt2 |> map_context
@@ -1163,11 +1163,11 @@ fun prep_vars prep_typ internal liberal (ctxt, (xs, raw_T)) =
       else Type.no_tvars T handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
 
     val _ = if liberal then () else
-      (case filter (not o Syntax.is_identifier) (map (no_skolem internal ctxt) xs) of
+      (case List.filter (not o Syntax.is_identifier) (map (no_skolem internal ctxt) xs) of
       [] => () | bads => raise CONTEXT ("Bad variable name(s): " ^ commas_quote bads, ctxt));
 
-    val opt_T = apsome (cond_tvars o prep_typ ctxt) raw_T;
-    val T = if_none opt_T TypeInfer.logicT;
+    val opt_T = Option.map (cond_tvars o prep_typ ctxt) raw_T;
+    val T = getOpt (opt_T, TypeInfer.logicT);
     val ctxt' = ctxt |> declare_terms_syntax (map (fn x => Free (x, T)) xs);
   in (ctxt', (xs, opt_T)) end;
 
@@ -1192,7 +1192,7 @@ fun map_fixes f =
 fun err_dups ctxt xs = raise CONTEXT ("Duplicate variable(s): " ^ commas_quote xs, ctxt);
 
 val declare =
-  declare_terms_syntax o mapfilter (fn (_, NONE) => NONE | (x, SOME T) => SOME (Free (x, T)));
+  declare_terms_syntax o List.mapPartial (fn (_, NONE) => NONE | (x, SOME T) => SOME (Free (x, T)));
 
 fun add_vars xs Ts ctxt =
   let val xs' = Term.variantlist (map Syntax.skolem xs, map #2 (fixes_of ctxt)) in
@@ -1213,7 +1213,7 @@ fun add_vars_direct xs Ts ctxt =
 fun gen_fix prep add raw_vars ctxt =
   let
     val (ctxt', varss) = foldl_map prep (ctxt, raw_vars);
-    val vars = rev (flat (map (fn (xs, T) => map (rpair T) xs) varss));
+    val vars = rev (List.concat (map (fn (xs, T) => map (rpair T) xs) varss));
     val xs = map #1 vars;
     val Ts = map #2 vars;
   in
@@ -1239,9 +1239,9 @@ end;
 
 fun fix_frees ts ctxt =
   let
-    val frees = foldl Term.add_frees ([], ts);
+    val frees = Library.foldl Term.add_frees ([], ts);
     fun new (x, T) = if is_fixed ctxt x then NONE else SOME ([x], SOME T);
-  in fix_direct false (rev (mapfilter new frees)) ctxt end;
+  in fix_direct false (rev (List.mapPartial new frees)) ctxt end;
 
 
 (*Note: improper use may result in variable capture / dynamic scoping!*)
@@ -1263,12 +1263,12 @@ fun bind_skolem ctxt xs =
 
 fun prep_case ctxt name xs {fixes, assumes, binds} =
   let
-    fun replace (opt_x :: xs) ((y, T) :: ys) = (if_none opt_x y, T) :: replace xs ys
+    fun replace (opt_x :: xs) ((y, T) :: ys) = (getOpt (opt_x,y), T) :: replace xs ys
       | replace [] ys = ys
       | replace (_ :: _) [] = raise CONTEXT ("Too many parameters for case " ^ quote name, ctxt);
   in
-    if null (foldr Term.add_typ_tvars (map snd fixes, [])) andalso
-      null (foldr Term.add_term_vars (flat (map snd assumes), [])) then
+    if null (Library.foldr Term.add_typ_tvars (map snd fixes, [])) andalso
+      null (Library.foldr Term.add_term_vars (List.concat (map snd assumes), [])) then
         {fixes = replace xs fixes, assumes = assumes, binds = map drop_schematic binds}
     else raise CONTEXT ("Illegal schematic variable(s) in case " ^ quote name, ctxt)
   end;
@@ -1314,7 +1314,7 @@ val smash_option = fn (_, NONE) => NONE | (xi, SOME b) => SOME (xi, b);
 fun pretty_binds (ctxt as Context {binds, ...}) =
   let
     fun prt_bind (xi, (t, T)) = pretty_term ctxt (Logic.mk_equals (Var (xi, T), t));
-    val bs = mapfilter smash_option (Vartab.dest binds);
+    val bs = List.mapPartial smash_option (Vartab.dest binds);
   in
     if null bs andalso not (! verbose) then []
     else [Pretty.big_list "term bindings:" (map prt_bind bs)]
@@ -1327,7 +1327,7 @@ val print_binds = Pretty.writeln o Pretty.chunks o pretty_binds;
 
 fun pretty_lthms (ctxt as Context {thms = (_, space, tab, _), ...}) =
   pretty_items (pretty_thm ctxt) "facts:"
-    (mapfilter smash_option (NameSpace.cond_extern_table space tab));
+    (List.mapPartial smash_option (NameSpace.cond_extern_table space tab));
 
 val print_lthms = Pretty.writeln o Pretty.chunks o pretty_lthms;
 
@@ -1338,8 +1338,8 @@ fun apply_case ({fixes, assumes, binds}: RuleCases.T) ctxt =
   let
     fun bind (c, (x, T)) = (c |> fix_i [([x], SOME T)], bind_skolem c [x] (Free (x, T)));
     val (ctxt', xs) = foldl_map bind (ctxt, fixes);
-    fun app t = foldl Term.betapply (t, xs);
-  in (ctxt', (map (apsnd (apsome app)) binds, map (apsnd (map app)) assumes)) end;
+    fun app t = Library.foldl Term.betapply (t, xs);
+  in (ctxt', (map (apsnd (Option.map app)) binds, map (apsnd (map app)) assumes)) end;
 
 fun pretty_cases (ctxt as Context {cases, ...}) =
   let
@@ -1354,13 +1354,13 @@ fun pretty_cases (ctxt as Context {cases, ...}) =
 
     fun prt_sect _ _ _ [] = []
       | prt_sect s sep prt xs = [Pretty.block (Pretty.breaks (Pretty.str s ::
-            flat (Library.separate sep (map (Library.single o prt) xs))))];
+            List.concat (Library.separate sep (map (Library.single o prt) xs))))];
 
     fun prt_case (name, (fixes, (lets, asms))) = Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
         prt_sect "fix" [] (Pretty.str o fst) fixes @
         prt_sect "let" [Pretty.str "and"] prt_let
-          (mapfilter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
+          (List.mapPartial (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []
           else prt_sect "assume" [Pretty.str "and"] prt_asm asms)));
 
@@ -1453,7 +1453,7 @@ fun lthms_containing (ctxt as Context {thms = (_, _, _, index), ...}) idx =
       (case try (transform_error (fn () => get_thms ctxt (name, NONE))) () of
         NONE => false
       | SOME ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
-  in gen_distinct eq_fst (filter valid (FactIndex.find idx index)) end;
+  in gen_distinct eq_fst (List.filter valid (FactIndex.find idx index)) end;
 
 
 val thms_containing_limit = ref 40;
@@ -1469,7 +1469,7 @@ fun print_thms_containing ctxt opt_limit ss =
       | prt_frees xs = [Pretty.block (Pretty.breaks (Pretty.str "variables" ::
           map (Pretty.quote o prt_term o Syntax.free) xs))];
 
-    val (cs, xs) = foldl (FactIndex.index_term (is_known ctxt))
+    val (cs, xs) = Library.foldl (FactIndex.index_term (is_known ctxt))
       (([], []), map (read_term_dummies ctxt) ss);
     val empty_idx = null cs andalso null xs;
 
@@ -1482,7 +1482,7 @@ fun print_thms_containing ctxt opt_limit ss =
       PureThy.thms_containing (theory_of ctxt) (cs, xs) @ lthms_containing ctxt (cs, xs)
       |> sort_wrt #1;
     val len = length facts;
-    val limit = if_none opt_limit (! thms_containing_limit);
+    val limit = getOpt (opt_limit, ! thms_containing_limit);
   in
     if empty_idx andalso not (null ss) then
       warning "thms_containing: no consts/frees in specification"

@@ -66,7 +66,7 @@ fun add_item kind (tab, (name, x)) =
   else warning ("Redefined antiquotation output " ^ kind ^ ": " ^ quote name);
   Symtab.update ((name, x), tab));
 
-fun add_items kind xs tab = foldl (add_item kind) (tab, xs);
+fun add_items kind xs tab = Library.foldl (add_item kind) (tab, xs);
 
 in
 
@@ -200,7 +200,7 @@ fun is_hidden (Latex.Basic tk, _) =
       T.is_kind T.Command tk andalso T.val_of tk mem !hidden_commands
   | is_hidden _ = false;
 
-fun filter_newlines toks = (case mapfilter
+fun filter_newlines toks = (case List.mapPartial
     (fn (tk, i) => if is_newline tk then SOME tk else NONE) toks of
   [] => [] | [tk] => [tk] | _ :: toks' => toks');
 
@@ -209,7 +209,7 @@ fun present_tokens lex (flag, toks) state state' =
    ((if !hide_commands andalso exists (is_hidden o fst) toks then []
      else if !hide_commands andalso is_proof state then
        if is_proof state' then [] else filter_newlines toks
-     else mapfilter (fn (tk, i) =>
+     else List.mapPartial (fn (tk, i) =>
        if i > ! interest_level then NONE else SOME tk) toks)
     |> map (apsnd (eval_antiquote lex state'))
     |> Latex.output_tokens

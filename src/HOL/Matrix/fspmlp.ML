@@ -145,7 +145,7 @@ fun propagate_sure_bounds safe names g =
 				     NONE => NONE
 				   | SOME src_sure_bound => SOME (FloatArith.add x (mult_btype src_sure_bound coeff)))
 		    in
-			case foldl add_src_bound (SOME row_bound, sources) of
+			case Library.foldl add_src_bound (SOME row_bound, sources) of
 			    NONE => sure_bound
 			  | new_sure_bound as (SOME new_bound) => 
 			    (case sure_bound of 
@@ -234,7 +234,7 @@ fun calcr safe_propagation xlen names prec A b =
 						add_edge g (src_index, LOWER) dest_key row_index coeff
 					end
 			    in	    
-				foldl fold_src_nodes ((add_row_bound g dest_key row_index row_bound), approx_a)
+				Library.foldl fold_src_nodes ((add_row_bound g dest_key row_index row_bound), approx_a)
 			    end
 		    end
 	    in
@@ -251,7 +251,7 @@ fun calcr safe_propagation xlen names prec A b =
 			else
 			    g
 		    end
-		  | _ => foldl fold_dest_nodes (g, approx_a)
+		  | _ => Library.foldl fold_dest_nodes (g, approx_a)
 	    end
 	
 	val g = FloatSparseMatrixBuilder.m_fold calcr VarGraph.empty A

@@ -44,11 +44,11 @@ struct
 
  fun toString t =
      let fun ue (Buildin(s, l)) = 
-	     "(" ^ s ^ (foldl (fn (a, b) => a ^ " " ^ (ue b)) ("", l)) ^ ") "
+	     "(" ^ s ^ (Library.foldl (fn (a, b) => a ^ " " ^ (ue b)) ("", l)) ^ ") "
 	   | ue (Interp(s, l)) = 
-	     "{" ^ s ^ (foldl (fn (a, b) => a ^ " " ^ (ue b)) ("", l)) ^ "} "
+	     "{" ^ s ^ (Library.foldl (fn (a, b) => a ^ " " ^ (ue b)) ("", l)) ^ "} "
 	   | ue (UnInterp(s, l)) = 
-	     "(" ^ s ^ (foldl (fn (a, b) => a ^ " " ^ (ue b)) ("", l)) ^ ") "
+	     "(" ^ s ^ (Library.foldl (fn (a, b) => a ^ " " ^ (ue b)) ("", l)) ^ ") "
 	   | ue (FalseExpr) = "FALSE "
 	   | ue (TrueExpr)  = "TRUE "
 	   | ue (Int i)     = (signedInt i) ^ " "
@@ -243,7 +243,7 @@ struct
 
       val body_e = mt pos body  (*evaluate now to assign into !nat_vars*)
   in 
-     foldr add_nat_var (!nat_vars, body_e) 
+     Library.foldr add_nat_var (!nat_vars, body_e) 
   end;
 
 

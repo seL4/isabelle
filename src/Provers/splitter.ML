@@ -102,8 +102,8 @@ fun mk_cntxt Ts t pos T maxi =
       fun down [] t i = Bound 0
         | down (p::ps) t i =
             let val (h,ts) = strip_comb t
-                val v1 = ListPair.map var (take(p,ts), i upto (i+p-1))
-                val u::us = drop(p,ts)
+                val v1 = ListPair.map var (Library.take(p,ts), i upto (i+p-1))
+                val u::us = Library.drop(p,ts)
                 val v2 = ListPair.map var (us, (i+p) upto (i+length(ts)-2))
       in list_comb(h,v1@[down ps u (i+length ts)]@v2) end;
   in Abs("", T, down (rev pos) t maxi) end;
@@ -137,7 +137,7 @@ fun add_lbnos(is,t) = add_loose_bnos(t,0,is);
    has a body of type T; otherwise the expansion thm will fail later on
 *)
 fun type_test(T,lbnos,apsns) =
-  let val (_,U,_) = nth_elem(foldl Int.min (hd lbnos, tl lbnos), apsns)
+  let val (_,U,_) = List.nth(apsns, Library.foldl Int.min (hd lbnos, tl lbnos))
   in T=U end;
 
 (*************************************************************************
@@ -171,8 +171,8 @@ fun type_test(T,lbnos,apsns) =
 fun mk_split_pack(thm, T, T', n, ts, apsns, pos, TB, t) =
   if n > length ts then []
   else let val lev = length apsns
-           val lbnos = foldl add_lbnos ([],take(n,ts))
-           val flbnos = filter (fn i => i < lev) lbnos
+           val lbnos = Library.foldl add_lbnos ([],Library.take(n,ts))
+           val flbnos = List.filter (fn i => i < lev) lbnos
            val tt = incr_boundvars (~lev) t
        in if null flbnos then
             if T = T' then [(thm,[],pos,TB,tt)] else []
@@ -234,7 +234,7 @@ fun split_posns cmap sg Ts t =
               Const(c, cT) =>
                 let fun find [] = []
                       | find ((gcT, pat, thm, T, n)::tups) =
-                          let val t2 = list_comb (h, take (n, ts))
+                          let val t2 = list_comb (h, Library.take (n, ts))
                           in if Sign.typ_instance sg (cT, gcT)
                                 andalso fomatch (Sign.tsig_of sg) (Ts,pat,t2)
                              then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
@@ -242,11 +242,11 @@ fun split_posns cmap sg Ts t =
                           end
                 in find (assocs cmap c) end
             | _ => []
-          in snd(foldl iter ((0, a), ts)) end
+          in snd(Library.foldl iter ((0, a), ts)) end
   in posns Ts [] [] t end;
 
 
-fun nth_subgoal i thm = nth_elem(i-1,prems_of thm);
+fun nth_subgoal i thm = List.nth(prems_of thm,i-1);
 
 fun shorter((_,ps,pos,_,_),(_,qs,qos,_,_)) =
   prod_ord (int_ord o pairself length) (order o pairself length)
@@ -312,7 +312,7 @@ fun inst_split Ts t tt thm TB state i =
       (Logic.strip_assums_concl (#prop (rep_thm thm')))));
     val cert = cterm_of (sign_of_thm state);
     val cntxt = mk_cntxt_splitthm t tt TB;
-    val abss = foldl (fn (t, T) => Abs ("", T, t));
+    val abss = Library.foldl (fn (t, T) => Abs ("", T, t));
   in cterm_instantiate [(cert P, cert (abss (cntxt, Ts)))] thm'
   end;
 
@@ -337,7 +337,7 @@ fun split_tac [] i = no_tac
                   end
                 | _ => split_format_err())
              | _ => split_format_err())
-      val cmap = foldl add_thm ([],splits);
+      val cmap = Library.foldl add_thm ([],splits);
       fun lift_tac Ts t p st = rtac (inst_lift Ts t p st i) i st
       fun lift_split_tac state =
             let val (Ts, t, splits) = select cmap state i
@@ -421,13 +421,13 @@ fun ss addsplits splits =
         let val (name,asm) = split_thm_info split
         in Simplifier.addloop (ss, (split_name name asm,
 		       (if asm then split_asm_tac else split_tac) [split])) end
-  in foldl addsplit (ss,splits) end;
+  in Library.foldl addsplit (ss,splits) end;
 
 fun ss delsplits splits =
   let fun delsplit(ss,split) =
         let val (name,asm) = split_thm_info split
         in Simplifier.delloop (ss, split_name name asm)
-  end in foldl delsplit (ss,splits) end;
+  end in Library.foldl delsplit (ss,splits) end;
 
 fun Addsplits splits = (Simplifier.simpset_ref() := 
 			Simplifier.simpset() addsplits splits);

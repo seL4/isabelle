@@ -200,7 +200,7 @@ fun copy_node true (Theory thy) = Theory (Theory.copy thy)
 
 fun interruptible f x =
   let val y = ref (NONE: node History.T option);
-  in raise_interrupt (fn () => y := SOME (f x)) (); the (! y) end;
+  in raise_interrupt (fn () => y := SOME (f x)) (); valOf (! y) end;
 
 val rollback = ERROR_MESSAGE "Stale signature encountered after succesful execution!";
 
@@ -221,7 +221,7 @@ fun node_trans _ _ _ (State NONE) = raise UNDEF
           (mk_state (transform_error (interruptible (trans f')) node), NONE)
             handle exn => (mk_state node, SOME exn);
       in
-        if is_stale result then return (mk_state node, SOME (if_none opt_exn rollback))
+        if is_stale result then return (mk_state node, SOME (getOpt (opt_exn, rollback)))
         else return (result, opt_exn)
       end;
 
@@ -480,7 +480,7 @@ fun exn_message TERMINATE = "Exit."
   | exn_message (TERM (msg, ts)) = msg_on_debug (TERM (msg, ts))
   | exn_message (THM (msg, i, thms)) = msg_on_debug (THM (msg, i, thms))
   | exn_message Option = raised "Option"
-  | exn_message (Library.LIST msg) = raised_msg "Library.LIST" msg
+  | exn_message UnequalLengths = raised "UnequalLengths"
   | exn_message exn = General.exnMessage exn
 and fail_message kind ((name, pos), exn) =
   "Error in " ^ kind ^ " " ^ quote name ^ Position.str_of pos ^ ":\n" ^ exn_message exn;
@@ -502,7 +502,7 @@ fun app int (tr as Transition {trans, int_only, print, no_timing, ...}) state =
       (if ! Output.timing andalso not no_timing then (warning (command_msg "" tr); timeap) else I)
         (apply_trans int trans) state;
     val _ = if int andalso print andalso not (! quiet) then print_state false result else ();
-  in (result, apsome (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
+  in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_exn) end;
 
 in
 

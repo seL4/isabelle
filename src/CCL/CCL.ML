@@ -59,7 +59,7 @@ qed "eq_lemma";
 
 fun mk_inj_rl thy rews s = 
       let fun mk_inj_lemmas r = ([arg_cong] RL [(r RS (r RS eq_lemma))]);
-          val inj_lemmas = flat (map mk_inj_lemmas rews);
+          val inj_lemmas = List.concat (map mk_inj_lemmas rews);
           val tac = REPEAT (ares_tac [iffI,allI,conjI] 1 ORELSE
                             eresolve_tac inj_lemmas 1 ORELSE
                             asm_simp_tac (CCL_ss addsimps rews) 1)
@@ -99,7 +99,7 @@ local
   fun mk_lemma (ra,rb) = [lemma] RL [ra RS (rb RS eq_lemma)] RL 
                            [distinctness RS notE,sym RS (distinctness RS notE)];
 in
-  fun mk_lemmas rls = flat (map mk_lemma (mk_combs pair rls));
+  fun mk_lemmas rls = List.concat (map mk_lemma (mk_combs pair rls));
   fun mk_dstnct_rls thy xs = mk_combs (mk_thm_str thy) xs;
 end;
 
@@ -117,7 +117,7 @@ fun mk_dstnct_thms thy defs inj_rls xs =
                                (fn _ => [simp_tac (CCL_ss addsimps (rls@inj_rls)) 1])
           in map (mk_dstnct_thm ccl_dstncts) (mk_dstnct_rls thy xs) end;
 
-fun mkall_dstnct_thms thy defs i_rls xss = flat (map (mk_dstnct_thms thy defs i_rls) xss);
+fun mkall_dstnct_thms thy defs i_rls xss = List.concat (map (mk_dstnct_thms thy defs i_rls) xss);
 
 (*** Rewriting and Proving ***)
 

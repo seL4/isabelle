@@ -66,10 +66,10 @@ in
 
 val vars_of = rev o rev_vars_of;
 
-fun first_var thm = mk_var (hd (vars_of (hd (Thm.prems_of thm)))) handle LIST _ =>
+fun first_var thm = mk_var (hd (vars_of (hd (Thm.prems_of thm)))) handle Empty =>
   raise THM ("No variables in first premise of rule", 0, [thm]);
 
-fun last_var thm = mk_var (hd (rev_vars_of (Thm.concl_of thm))) handle LIST _ =>
+fun last_var thm = mk_var (hd (rev_vars_of (Thm.concl_of thm))) handle Empty =>
   raise THM ("No variables in conclusion of rule", 0, [thm]);
 
 end;

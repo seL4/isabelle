@@ -88,7 +88,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
       val (added_starts, lambdas') =
         if is_none new_chain then ([], lambdas) else
         let (*lookahead of chain's source*)
-            val ((from_nts, from_tks), _) = Array.sub (prods, the new_chain);
+            val ((from_nts, from_tks), _) = Array.sub (prods, valOf new_chain);
 
             (*copy from's lookahead to chain's destinations*)
             fun copy_lookahead [] added = added
@@ -152,8 +152,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       let
                         val new_lambda = is_none tk andalso nts subset lambdas;
 
-                        val new_tks = (if is_some tk then [the tk] else []) @
-                          foldl token_union ([], map starts_for_nt nts) \\
+                        val new_tks = (if isSome tk then [valOf tk] else []) @
+                          Library.foldl token_union ([], map starts_for_nt nts) \\
                           l_starts;
   
                         val added_tks' = token_union (new_tks, added_tks);
@@ -193,7 +193,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       (*existing productions whose lookahead may depend on l*)
                       val tk_prods =
                         assocs nt_prods
-                               (SOME (hd l_starts  handle LIST _ => UnknownStart));
+                               (SOME (hd l_starts  handle Empty => UnknownStart));
 
                       (*add_lambda is true if an existing production of the nt
                         produces lambda due to the new lambda NT l*)
@@ -231,15 +231,15 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
       (*insert production into grammar*)
       val (added_starts', prod_count') =
-        if is_some new_chain then (added_starts', prod_count)
+        if isSome new_chain then (added_starts', prod_count)
                                                (*don't store chain production*)
         else let
           (*lookahead tokens of new production and on which
             NTs lookahead depends*)
           val (start_tk, start_nts) = lookahead_dependency lambdas' rhs [];
 
-          val start_tks = foldl token_union
-                          (if is_some start_tk then [the start_tk] else [],
+          val start_tks = Library.foldl token_union
+                          (if isSome start_tk then [valOf start_tk] else [],
                            map starts_for_nt start_nts);
 
           val opt_starts = (if new_lambda then [NONE]
@@ -265,8 +265,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                 (*store new production*)
                 fun store [] prods is_new =
-                      (prods, if is_some prod_count andalso is_new then
-                                apsome (fn x => x+1) prod_count
+                      (prods, if isSome prod_count andalso is_new then
+                                Option.map (fn x => x+1) prod_count
                               else prod_count, is_new)
                   | store (tk :: tks) prods is_new =
                     let val tk_prods = assocs prods tk;
@@ -274,7 +274,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                         (*if prod_count = NONE then we can assume that
                           grammar does not contain new production already*)
                         val (tk_prods', is_new') =
-                          if is_some prod_count then
+                          if isSome prod_count then
                             if new_prod mem tk_prods then (tk_prods, false)
                             else (new_prod :: tk_prods, true)
                           else (new_prod :: tk_prods, true);
@@ -328,8 +328,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       (*test if production could already be associated with
                         a member of new_tks*)
                       val lambda = length depends > 1 orelse
-                                   not (null depends) andalso is_some tk
-                                   andalso the tk mem new_tks;
+                                   not (null depends) andalso isSome tk
+                                   andalso valOf tk mem new_tks;
 
                       (*associate production with new starting tokens*)
                       fun copy [] nt_prods = nt_prods
@@ -399,7 +399,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
     fun pretty_symb (Terminal (Token s)) = Pretty.quote (Pretty.str s)
       | pretty_symb (Terminal tok) = Pretty.str (str_of_token tok)
       | pretty_symb (Nonterminal (tag, p)) =
-        let val name = fst (the (find_first (fn (n, t) => t = tag) taglist));
+        let val name = fst (valOf (find_first (fn (n, t) => t = tag) taglist));
         in Pretty.str (name ^ "[" ^ string_of_int p ^ "]") end;
 
     fun pretty_const "" = []
@@ -416,11 +416,11 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
         fun prod_of_chain from = ([Nonterminal (from, ~1)], "", ~1);
 
         val nt_prods =
-          foldl (op union) ([], map snd (snd (Array.sub (prods, tag)))) @
+          Library.foldl (op union) ([], map snd (snd (Array.sub (prods, tag)))) @
           map prod_of_chain (assocs chains tag);
       in map (pretty_prod name) nt_prods end;
         
-  in flat (map pretty_nt taglist) end;
+  in List.concat (map pretty_nt taglist) end;
 
 
 (** Operations on gramars **)
@@ -537,7 +537,7 @@ fun merge_grams gram_a gram_b =
             | store_tag nt_count tags tag =
               let val (nt_count', tags', tag') =
                    get_tag nt_count tags
-                     (fst (the (find_first (fn (n, t) => t = tag) tag_list)));
+                     (fst (valOf (find_first (fn (n, t) => t = tag) tag_list)));
               in Array.update (table, tag, tag');
                  store_tag nt_count' tags' (tag-1)
               end;
@@ -563,7 +563,7 @@ fun merge_grams gram_a gram_b =
     fun process_nt ~1 result = result
       | process_nt nt result =
         let
-          val nt_prods = foldl (op union)
+          val nt_prods = Library.foldl (op union)
                              ([], map snd (snd (Array.sub (prods2, nt))));
           val lhs_tag = convert_tag nt;
 
@@ -616,11 +616,11 @@ type state =
 
 
 (*Get all rhss with precedence >= minPrec*)
-fun getRHS minPrec = filter (fn (_, _, prec:int) => prec >= minPrec);
+fun getRHS minPrec = List.filter (fn (_, _, prec:int) => prec >= minPrec);
 
 (*Get all rhss with precedence >= minPrec and < maxPrec*)
 fun getRHS' minPrec maxPrec =
-  filter (fn (_, _, prec:int) => prec >= minPrec andalso prec < maxPrec);
+  List.filter (fn (_, _, prec:int) => prec >= minPrec andalso prec < maxPrec);
 
 (*Make states using a list of rhss*)
 fun mkStates i minPrec lhsID rhss =
@@ -656,19 +656,19 @@ fun update_prec (A, prec) used =
   in update (used, []) end;
 
 fun getS A maxPrec Si =
-  filter
+  List.filter
     (fn (_, _, _, Nonterminal (B, prec) :: _, _, _)
           => A = B andalso prec <= maxPrec
       | _ => false) Si;
 
 fun getS' A maxPrec minPrec Si =
-  filter
+  List.filter
     (fn (_, _, _, Nonterminal (B, prec) :: _, _, _)
           => A = B andalso prec > minPrec andalso prec <= maxPrec
       | _ => false) Si;
 
 fun getStates Estate i ii A maxPrec =
-  filter
+  List.filter
     (fn (_, _, _, Nonterminal (B, prec) :: _, _, _)
           => A = B andalso prec <= maxPrec
       | _ => false)
@@ -701,7 +701,7 @@ let (*similar to token_assoc but does not automatically include 'NONE' key*)
     fun token_assoc2 (list, key) =
       let fun assoc [] result = result
             | assoc ((keyi, pi) :: pairs) result =
-                if is_some keyi andalso matching_tokens (the keyi, key)
+                if isSome keyi andalso matching_tokens (valOf keyi, key)
                    orelse include_none andalso is_none keyi then 
                   assoc pairs (pi @ result)
                 else assoc pairs result;
@@ -841,12 +841,12 @@ fun produce prods chains stateset i indata prev_token =
                   end;
 
               val nts =
-                mapfilter (fn (_, _, _, Nonterminal (a, prec) :: _, _, _) => 
+                List.mapPartial (fn (_, _, _, Nonterminal (a, prec) :: _, _, _) => 
                            SOME (a, prec) | _ => NONE)
                           (Array.sub (stateset, i-1));
               val allowed =
                 distinct (get_starts nts [] @
-                  (mapfilter (fn (_, _, _, Terminal a :: _, _, _) => SOME a
+                  (List.mapPartial (fn (_, _, _, Terminal a :: _, _, _) => SOME a
                                | _ => NONE)
                              (Array.sub (stateset, i-1))));
           in syntax_error (if prev_token = EndToken then indata
@@ -863,7 +863,7 @@ fun produce prods chains stateset i indata prev_token =
        end));
 
 
-fun get_trees l = mapfilter (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE) 
+fun get_trees l = List.mapPartial (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE) 
                             l;
 
 fun earley prods tags chains startsymbol indata =

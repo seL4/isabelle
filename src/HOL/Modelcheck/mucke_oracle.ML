@@ -96,7 +96,7 @@ in
 
 fun if_full_simp_tac sset i state =
 let val sign = #sign (rep_thm state);
-        val (subgoal::_) = drop(i-1,prems_of state);
+        val (subgoal::_) = Library.drop(i-1,prems_of state);
         val prems = Logic.strip_imp_prems subgoal;
 	val concl = Logic.strip_imp_concl subgoal;
 	val prems = prems @ [concl];
@@ -253,10 +253,10 @@ fun freeze_thaw t =
       fun newName (Var(ix,_), (pairs,used)) = 
           let val v = variant used (string_of_indexname ix)
           in  ((ix,v)::pairs, v::used)  end;
-      val (alist, _) = foldr newName (vars, ([], used));
+      val (alist, _) = Library.foldr newName (vars, ([], used));
       fun mk_inst (Var(v,T)) = 
           (Var(v,T),
-           Free(the (assoc(alist,v)), T));
+           Free(valOf (assoc(alist,v)), T));
       val insts = map mk_inst vars;
   in subst_atomic insts t end;
 

@@ -72,12 +72,12 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
 
     (*obtain vars*)
     val (vars_ctxt, vars) = foldl_map prep_vars (Proof.context_of state, raw_vars);
-    val xs = flat (map fst vars);
+    val xs = List.concat (map fst vars);
     val fix_ctxt = vars_ctxt |> ProofContext.fix_i vars;
 
     (*obtain asms*)
     val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
-    val asm_props = flat (map (map fst) proppss);
+    val asm_props = List.concat (map (map fst) proppss);
     val asms = map fst raw_asms ~~ proppss;
 
     val _ = ProofContext.warn_extra_tfrees fix_ctxt asms_ctxt;
@@ -95,9 +95,9 @@ fun gen_obtain prep_vars prep_propp raw_vars raw_asms print state =
     fun occs_var x = Library.get_first (fn t =>
       ProofContext.find_free t (ProofContext.get_skolem fix_ctxt x)) asm_props;
     val raw_parms = map occs_var xs;
-    val parms = mapfilter I raw_parms;
+    val parms = List.mapPartial I raw_parms;
     val parm_names =
-      mapfilter (fn (SOME (Free a), x) => SOME (a, x) | _ => NONE) (raw_parms ~~ xs);
+      List.mapPartial (fn (SOME (Free a), x) => SOME (a, x) | _ => NONE) (raw_parms ~~ xs);
 
     val that_prop =
       Term.list_all_free (map #1 parm_names, Logic.list_implies (asm_props, bound_thesis))

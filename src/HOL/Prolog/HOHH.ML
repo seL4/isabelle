@@ -63,7 +63,7 @@ val atomize_ss = empty_ss setmksimps (mksimps mksimps_pairs) addsimps [
 	imp_all];	  (* "((!x. D) :- G) = (!x. D :- G)" *)
 
 (*val hyp_resolve_tac = METAHYPS (fn prems => 
-				  resolve_tac (flat (map atomizeD prems)) 1);
+				  resolve_tac (List.concat (map atomizeD prems)) 1);
   -- is nice, but cannot instantiate unknowns in the assumptions *)
 fun hyp_resolve_tac i st = let
 	fun ap (Const("All",_)$Abs(_,_,t))=(case ap t of (k,a,t) => (k+1,a  ,t))
@@ -98,10 +98,10 @@ fun hyp_resolve_tac i st = let
 		else no_tac);
 	val ptacs = mapn (fn n => fn t => 
 			  pres_tac (ap (HOLogic.dest_Trueprop t)) n i) 0 prems;
-	in foldl (op APPEND) (no_tac, ptacs) st end;
+	in Library.foldl (op APPEND) (no_tac, ptacs) st end;
 
 fun ptac prog = let
-  val proga = flat (map atomizeD prog)			(* atomize the prog *)
+  val proga = List.concat (map atomizeD prog)			(* atomize the prog *)
   in	(REPEAT_DETERM1 o FIRST' [
 		rtac TrueI,			(* "True" *)
 		rtac conjI,			(* "[| P; Q |] ==> P & Q" *)

@@ -112,8 +112,8 @@ fun del_rule th (rs as Rules {next, rules, netpairs, wrappers}) =
 fun print_rules prt x (Rules {rules, ...}) =
   let
     fun prt_kind (i, b) =
-      Pretty.big_list (the (assoc (kind_names, (i, b))) ^ ":")
-        (mapfilter (fn (_, (k, th)) => if k = (i, b) then SOME (prt x th) else NONE)
+      Pretty.big_list (valOf (assoc (kind_names, (i, b))) ^ ":")
+        (List.mapPartial (fn (_, (k, th)) => if k = (i, b) then SOME (prt x th) else NONE)
           (sort (Int.compare o pairself fst) rules));
   in Pretty.writeln (Pretty.chunks (map prt_kind rule_kinds)) end;
 
@@ -136,7 +136,7 @@ struct
       val rules = gen_merge_lists' (fn ((_, (k1, th1)), (_, (k2, th2))) =>
           k1 = k2 andalso Drule.eq_thm_prop (th1, th2)) rules1 rules2;
       val next = ~ (length rules);
-      val netpairs = foldl (fn (nps, (n, (w, ((i, b), th)))) =>
+      val netpairs = Library.foldl (fn (nps, (n, (w, ((i, b), th)))) =>
           map_nth_elem i (curry insert_tagged_brl ((w, n), (b, th))) nps)
         (empty_netpairs, next upto ~1 ~~ rules);
     in make_rules (next - 1) rules netpairs wrappers end;
@@ -203,7 +203,7 @@ val addWrapper = gen_add_wrapper Library.apsnd;
 
 fun gen_wrap which ctxt =
   let val Rules {wrappers, ...} = LocalRules.get ctxt
-  in fn tac => foldr (fn ((w, _), t) => w t) (which wrappers, tac) end;
+  in fn tac => Library.foldr (fn ((w, _), t) => w t) (which wrappers, tac) end;
 
 val Swrap = gen_wrap #1;
 val wrap = gen_wrap #2;

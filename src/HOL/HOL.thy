@@ -771,7 +771,7 @@ local
   fun wrong_prem (Const ("All", _) $ (Abs (_, _, t))) = wrong_prem t
   |   wrong_prem (Bound _) = true
   |   wrong_prem _ = false
-  val filter_right = filter (fn t => not (wrong_prem (HOLogic.dest_Trueprop (hd (Thm.prems_of t)))))
+  val filter_right = List.filter (fn t => not (wrong_prem (HOLogic.dest_Trueprop (hd (Thm.prems_of t)))))
 in
   fun smp i = funpow i (fn m => filter_right ([spec] RL m)) ([mp])
   fun smp_tac j = EVERY'[dresolve_tac (smp j), atac]

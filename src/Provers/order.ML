@@ -91,7 +91,7 @@ exception Contr of proof;
   (* Internal exception, raised if contradiction ( x < x ) was derived *)
 
 fun prove asms = 
-  let fun pr (Asm i) = nth_elem (i, asms)
+  let fun pr (Asm i) = List.nth (asms, i)
   |       pr (Thm (prfs, thm)) = (map pr prfs) MRS thm
   in pr end;
 
@@ -437,7 +437,7 @@ fun transpose eq_comp g =
 
    (* Compute, for each adjacency list, the list with reversed edges,
       and concatenate these lists. *)
-   val flipped = foldr (op @) ((map flip g),nil)
+   val flipped = Library.foldr (op @) ((map flip g),nil)
  
  in assemble g flipped end    
       
@@ -475,7 +475,7 @@ fun scc_term G =
       let
    val _ = visited := u :: !visited
    val descendents =
-       foldr (fn ((v,l),ds) => if been_visited v then ds
+       Library.foldr (fn ((v,l),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
         ((adjacent (op aconv) g u) ,nil)
       in
@@ -499,7 +499,7 @@ fun scc_term G =
      dfs_visit along with u form a connected component. We
      collect all the connected components together in a
      list, which is what is returned. *)
-  foldl (fn (comps,u) =>  
+  Library.foldl (fn (comps,u) =>  
       if been_visited u then comps
       else ((u :: dfs_visit (transpose (op aconv) G) u) :: comps))  (nil,(!finish))
 end;
@@ -525,7 +525,7 @@ fun dfs_int_reachable g u =
       let
    val _ = visited := u :: !visited
    val descendents =
-       foldr (fn ((v,l),ds) => if been_visited v then ds
+       Library.foldr (fn ((v,l),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
         ( ((adjacent (op =) g u)) ,nil)
    in  descendents end
@@ -537,7 +537,7 @@ fun indexComps components =
     ListPair.map (fn (a,b) => (a,b)) (0 upto (length components -1), components);
 
 fun indexNodes IndexComp = 
-    flat (map (fn (index, comp) => (map (fn v => (v,index)) comp)) IndexComp);
+    List.concat (map (fn (index, comp) => (map (fn v => (v,index)) comp)) IndexComp);
     
 fun getIndex v [] = ~1
 |   getIndex v ((v',k)::vs) = if v aconv v' then k else getIndex v vs; 
@@ -651,15 +651,15 @@ let
 	       val v = upper edge
 	   in
              if (getIndex u ntc) = xi then 
-	       (completeTermPath x u (nth_elem(xi, sccSubgraphs)) )@[edge]
-	       @(completeTermPath v y' (nth_elem((getIndex y' ntc),sccSubgraphs)) )
+	       (completeTermPath x u (List.nth(sccSubgraphs, xi)) )@[edge]
+	       @(completeTermPath v y' (List.nth(sccSubgraphs, getIndex y' ntc)) )
 	     else (rev_completeComponentPath u)@[edge]
-	          @(completeTermPath v y' (nth_elem((getIndex y' ntc),sccSubgraphs)) )
+	          @(completeTermPath v y' (List.nth(sccSubgraphs, getIndex y' ntc)) )
            end
    in  
       if x aconv y then 
         [(Le (x, y, (Thm ([], Less.le_refl))))]
-      else ( if xi = yi then completeTermPath x y (nth_elem(xi, sccSubgraphs))
+      else ( if xi = yi then completeTermPath x y (List.nth(sccSubgraphs, xi))
              else rev_completeComponentPath y )  
    end;
 
@@ -820,15 +820,15 @@ in
                 (* if SCC_x is linked to SCC_y via edge e *)
 		 else if ui = xi andalso vi = yi then (
                    case e of (Less (_, _,_)) => (
-		        let val xypath = (completeTermPath x u (nth_elem(ui, sccSubgraphs)) ) @ [e] @ (completeTermPath v y (nth_elem(vi, sccSubgraphs)) )
+		        let val xypath = (completeTermPath x u (List.nth(sccSubgraphs, ui)) ) @ [e] @ (completeTermPath v y (List.nth(sccSubgraphs, vi)) )
 			    val xyLesss = transPath (tl xypath, hd xypath)
 			in  (Thm ([getprf xyLesss], Less.less_imp_neq)) end)
 		   | _ => (   
 		        let 
-			    val xupath = completeTermPath x u  (nth_elem(ui, sccSubgraphs))
-			    val uxpath = completeTermPath u x  (nth_elem(ui, sccSubgraphs))
-			    val vypath = completeTermPath v y  (nth_elem(vi, sccSubgraphs))
-			    val yvpath = completeTermPath y v  (nth_elem(vi, sccSubgraphs))
+			    val xupath = completeTermPath x u  (List.nth(sccSubgraphs, ui))
+			    val uxpath = completeTermPath u x  (List.nth(sccSubgraphs, ui))
+			    val vypath = completeTermPath v y  (List.nth(sccSubgraphs, vi))
+			    val yvpath = completeTermPath y v  (List.nth(sccSubgraphs, vi))
 			    val xuLesss = transPath (tl xupath, hd xupath)     
 			    val uxLesss = transPath (tl uxpath, hd uxpath)			    
 			    val vyLesss = transPath (tl vypath, hd vypath)			
@@ -841,15 +841,15 @@ in
 			)       
 		  ) else if ui = yi andalso vi = xi then (
 		     case e of (Less (_, _,_)) => (
-		        let val xypath = (completeTermPath y u (nth_elem(ui, sccSubgraphs)) ) @ [e] @ (completeTermPath v x (nth_elem(vi, sccSubgraphs)) )
+		        let val xypath = (completeTermPath y u (List.nth(sccSubgraphs, ui)) ) @ [e] @ (completeTermPath v x (List.nth(sccSubgraphs, vi)) )
 			    val xyLesss = transPath (tl xypath, hd xypath)
 			in (Thm ([(Thm ([getprf xyLesss], Less.less_imp_neq))] , thm "not_sym")) end ) 
 		     | _ => (
 		        
-			let val yupath = completeTermPath y u (nth_elem(ui, sccSubgraphs))
-			    val uypath = completeTermPath u y (nth_elem(ui, sccSubgraphs))
-			    val vxpath = completeTermPath v x (nth_elem(vi, sccSubgraphs))
-			    val xvpath = completeTermPath x v (nth_elem(vi, sccSubgraphs))
+			let val yupath = completeTermPath y u (List.nth(sccSubgraphs, ui))
+			    val uypath = completeTermPath u y (List.nth(sccSubgraphs, ui))
+			    val vxpath = completeTermPath v x (List.nth(sccSubgraphs, vi))
+			    val xvpath = completeTermPath x v (List.nth(sccSubgraphs, vi))
 			    val yuLesss = transPath (tl yupath, hd yupath)     
 			    val uyLesss = transPath (tl uypath, hd uypath)			    
 			    val vxLesss = transPath (tl vxpath, hd vxpath)			
@@ -944,9 +944,9 @@ fun mk_sccGraphs _ [] _ _ = ([],[])
     fun processComponent (k, comp) = 
      let    
         (* all edges with weight <= of the actual component *)  
-        val leqEdges = flat (map (adjacent (op aconv) leqG) comp);
+        val leqEdges = List.concat (map (adjacent (op aconv) leqG) comp);
         (* all edges with weight ~= of the actual component *)  
-        val neqEdges = map snd (flat (map (adjacent (op aconv) neqG) comp));
+        val neqEdges = map snd (List.concat (map (adjacent (op aconv) neqG) comp));
 
        (* find an edge leading to a contradiction *)   
        fun findContr [] = NONE
@@ -1064,7 +1064,7 @@ val partial_tac = SUBGOAL (fn (A, n, sign) =>
   val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
-  val lesss = flat (ListPair.map (mkasm_partial sign) (Hs, 0 upto (length Hs - 1)))
+  val lesss = List.concat (ListPair.map (mkasm_partial sign) (Hs, 0 upto (length Hs - 1)))
   val prfs = solvePartialOrder sign (lesss, C);
   val (subgoals, prf) = mkconcl_partial sign C;
  in
@@ -1082,7 +1082,7 @@ val linear_tac = SUBGOAL (fn (A, n, sign) =>
   val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
-  val lesss = flat (ListPair.map (mkasm_linear sign) (Hs, 0 upto (length Hs - 1)))
+  val lesss = List.concat (ListPair.map (mkasm_linear sign) (Hs, 0 upto (length Hs - 1)))
   val prfs = solveTotalOrder sign (lesss, C);
   val (subgoals, prf) = mkconcl_linear sign C;
  in

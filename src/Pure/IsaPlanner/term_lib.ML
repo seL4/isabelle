@@ -163,20 +163,20 @@ fun clean_unify sgn ix (a as (pat, tgt)) =
       case typs_unify of
         SOME (typinsttab, ix2) =>
         let 
-      (* is it right to throw away teh flexes? 
+      (* is it right to throw away the flexes? 
          or should I be using them somehow? *)
           fun mk_insts (env,flexflexes) = 
               (Vartab.dest (Envir.type_env env),  Envir.alist_of env);
           val initenv = Envir.Envir {asol = Vartab.empty, 
                                      iTs = typinsttab, maxidx = ix2};
           val useq = (Unify.unifiers (sgn,initenv,[a]))
-              handle Library.LIST _ => Seq.empty
-                   | Term.TERM _ => Seq.empty;
+	      handle UnequalLengths => Seq.empty
+		   | Term.TERM _ => Seq.empty;
           fun clean_unify' useq () = 
               (case (Seq.pull useq) of 
                  NONE => NONE
                | SOME (h,t) => SOME (mk_insts h, Seq.make (clean_unify' t)))
-              handle Library.LIST _ => NONE
+	      handle UnequalLengths => NONE
                    | Term.TERM _ => NONE;
         in
           (Seq.make (clean_unify' useq))
@@ -325,7 +325,7 @@ fun triv_thm_from_string s =
 
 (* cunning version *)
 
-(* This version avoids name conflicts that might be intorduced by
+(* This version avoids name conflicts that might be introduced by
 unskolemisation, and returns a list of (string * Term.typ) * string,
 where the outer string is the original name, and the inner string is
 the new name, and the type is the type of the free variable that was
@@ -340,7 +340,7 @@ local
                         renamedn :: names)) end
         | (SOME ((renamedn, _), _)) => (renamedn, L)
       end
-      handle LIST _ => (n, L);
+      handle Fail _ => (n, L);
 
   fun unsk (L,f) (t1 $ t2) = 
       let val (L', t1') = unsk (L, I) t1 
@@ -365,7 +365,7 @@ end
               let (n,ty) = (Term.dest_Free fv) in 
                 SOME (fv, Free (Syntax.dest_skolem n, ty)) handle LIST _ => NONE
               end
-          val substfrees = mapfilter fmap (Term.term_frees t)
+          val substfrees = List.mapPartial fmap (Term.term_frees t)
         in
           Term.subst_free substfrees t
         end; *)
@@ -379,7 +379,7 @@ val is_atomic_typ = not o is_fun_typ;
 
 (* get the frees in a term that are of atomic type, ie non-functions *)
 val atomic_frees_of_term =
-     filter (is_atomic_typ o snd) 
+     List.filter (is_atomic_typ o snd) 
      o map Term.dest_Free 
      o Term.term_frees;
 
@@ -408,8 +408,8 @@ fun readwty tstr tystr =
     let 
       val lopt = (term_name_eq ah bh l)
     in
-      if is_some lopt then 
-	term_name_eq at bt (the lopt)
+      if isSome lopt then 
+	term_name_eq at bt (valOf lopt)
       else
         NONE
     end
@@ -438,12 +438,12 @@ fun readwty tstr tystr =
  (* checks to see if the term in a name-equivalent member of the list of terms. *)
   fun get_name_eq_member a [] = NONE
     | get_name_eq_member a (h :: t) = 
-        if is_some (term_name_eq a h []) then SOME h 
+        if isSome (term_name_eq a h []) then SOME h 
 				else get_name_eq_member a t;
 
   fun name_eq_member a [] = false
     | name_eq_member a (h :: t) = 
-        if is_some (term_name_eq a h []) then true 
+        if isSome (term_name_eq a h []) then true 
 				else name_eq_member a t;
 
   (* true if term is a variable *)
@@ -485,7 +485,7 @@ is a valid wave rule... *)
   | term_contains1 T (ah $ at) (bh $ bt) =
     (term_contains1 T ah (bh $ bt)) @ 
     (term_contains1 T at (bh $ bt)) @
-    (flat (map (fn inT => (term_contains1 inT at bt)) 
+    (List.concat (map (fn inT => (term_contains1 inT at bt)) 
                (term_contains1 T ah bh)))
 
   | term_contains1 T a (bh $ bt) = []
@@ -662,7 +662,7 @@ fun bounds_to_frees_aux T (ntab,(Abs(s,ty,t))) =
     | SOME _ => nt)
   | bounds_to_frees_aux T (nt as (ntab, Bound i)) = 
     let 
-      val (s,ty) = Library.nth_elem (i,T) 
+      val (s,ty) = List.nth (T,i) 
     in
       (ntab, Free (s,ty))
     end;
@@ -683,7 +683,7 @@ fun loose_bnds_to_frees_aux (bnds,vars) (Abs(s,ty,t)) =
     (loose_bnds_to_frees_aux (bnds,vars) a) 
       $ (loose_bnds_to_frees_aux (bnds,vars) b)
   | loose_bnds_to_frees_aux (bnds,vars) (t as (Bound i)) = 
-    if (bnds <= i) then Free (Library.nth_elem (i - bnds,vars))
+    if (bnds <= i) then Free (List.nth (vars,i - bnds))
     else t
   | loose_bnds_to_frees_aux (bnds,vars) t = t;
 
@@ -705,7 +705,7 @@ fun loose_bnds_to_frees vars t =
 
 fun thms_of_prems_in_goal i tm= 
     let 
-      val goal = (nth_elem (i-1,Thm.prems_of tm))
+      val goal = (List.nth (Thm.prems_of tm,i-1))
       val vars = rev (strip_all_vars goal)
       val prems = Logic.strip_assums_hyp (strip_all_body goal)
       val simp_prem_thms = 

@@ -71,7 +71,7 @@ val quiet_mode = ref false;
 fun message s = if !quiet_mode then () else writeln s;
 
 (* FIXME: move to library ? *)
-fun foldl1 f (x::xs) = foldl f (x, xs);
+fun foldl1 f (x::xs) = Library.foldl f (x, xs);
 
 fun add_path flat_names s = if flat_names then I else Theory.add_path s;
 fun parent_path flat_names = if flat_names then I else Theory.parent_path;
@@ -108,7 +108,7 @@ fun app_bnds t i = list_comb (t, map Bound (i - 1 downto 0));
 
 
 fun cong_tac i st = (case Logic.strip_assums_concl
-  (nth_elem (i - 1, prems_of st)) of
+  (List.nth (prems_of st, i - 1)) of
     _ $ (_ $ (f $ x) $ (g $ y)) =>
       let
         val cong' = lift_rule (st, i) cong;
@@ -128,7 +128,7 @@ fun indtac indrule i st =
   let
     val ts = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule));
     val ts' = HOLogic.dest_conj (HOLogic.dest_Trueprop
-      (Logic.strip_imp_concl (nth_elem (i - 1, prems_of st))));
+      (Logic.strip_imp_concl (List.nth (prems_of st, i - 1))));
     val getP = if can HOLogic.dest_imp (hd ts) then
       (apfst SOME) o HOLogic.dest_imp else pair NONE;
     fun abstr (t1, t2) = (case t1 of
@@ -148,14 +148,14 @@ fun indtac indrule i st =
 fun exh_tac exh_thm_of i state =
   let
     val sg = Thm.sign_of_thm state;
-    val prem = nth_elem (i - 1, prems_of state);
+    val prem = List.nth (prems_of state, i - 1);
     val params = Logic.strip_params prem;
     val (_, Type (tname, _)) = hd (rev params);
     val exhaustion = lift_rule (state, i) (exh_thm_of tname);
     val prem' = hd (prems_of exhaustion);
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
     val exhaustion' = cterm_instantiate [(cterm_of sg (head_of lhs),
-      cterm_of sg (foldr (fn ((_, T), t) => Abs ("z", T, t))
+      cterm_of sg (Library.foldr (fn ((_, T), t) => Abs ("z", T, t))
         (params, Bound 0)))] exhaustion
   in compose_tac (false, exhaustion', nprems_of exhaustion) i state
   end;
@@ -228,7 +228,7 @@ fun dest_TFree (TFree (n, _)) = n;
 
 fun name_of_typ (Type (s, Ts)) =
       let val s' = Sign.base_name s
-      in space_implode "_" (filter (not o equal "") (map name_of_typ Ts) @
+      in space_implode "_" (List.filter (not o equal "") (map name_of_typ Ts) @
         [if Syntax.is_identifier s' then s' else "x"])
       end
   | name_of_typ _ = "";
@@ -242,9 +242,9 @@ fun dtyp_of_typ _ (TFree (n, _)) = DtTFree n
              DtRec (find_index (curry op = tname o fst) new_dts)
            else error ("Illegal occurence of recursive type " ^ tname));
 
-fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, the (assoc (sorts, a)))
+fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, valOf (assoc (sorts, a)))
   | typ_of_dtyp descr sorts (DtRec i) =
-      let val (s, ds, _) = the (assoc (descr, i))
+      let val (s, ds, _) = valOf (assoc (descr, i))
       in Type (s, map (typ_of_dtyp descr sorts) ds) end
   | typ_of_dtyp descr sorts (DtType (s, ds)) =
       Type (s, map (typ_of_dtyp descr sorts) ds);
@@ -252,8 +252,8 @@ fun typ_of_dtyp descr sorts (DtTFree a) = TFree (a, the (assoc (sorts, a)))
 (* find all non-recursive types in datatype description *)
 
 fun get_nonrec_types descr sorts =
-  map (typ_of_dtyp descr sorts) (foldl (fn (Ts, (_, (_, _, constrs))) =>
-    foldl (fn (Ts', (_, cargs)) =>
+  map (typ_of_dtyp descr sorts) (Library.foldl (fn (Ts, (_, (_, _, constrs))) =>
+    Library.foldl (fn (Ts', (_, cargs)) =>
       filter_out is_rec_type cargs union Ts') (Ts, constrs)) ([], descr));
 
 (* get all recursive types in datatype description *)
@@ -264,22 +264,22 @@ fun get_rec_types descr sorts = map (fn (_ , (s, ds, _)) =>
 (* get all branching types *)
 
 fun get_branching_types descr sorts =
-  map (typ_of_dtyp descr sorts) (foldl (fn (Ts, (_, (_, _, constrs))) =>
-    foldl (fn (Ts', (_, cargs)) => foldr op union (map (fst o strip_dtyp)
+  map (typ_of_dtyp descr sorts) (Library.foldl (fn (Ts, (_, (_, _, constrs))) =>
+    Library.foldl (fn (Ts', (_, cargs)) => Library.foldr op union (map (fst o strip_dtyp)
       cargs, Ts')) (Ts, constrs)) ([], descr));
 
-fun get_arities descr = foldl (fn (is, (_, (_, _, constrs))) =>
-  foldl (fn (is', (_, cargs)) => map (length o fst o strip_dtyp)
-    (filter is_rec_type cargs) union is') (is, constrs)) ([], descr);
+fun get_arities descr = Library.foldl (fn (is, (_, (_, _, constrs))) =>
+  Library.foldl (fn (is', (_, cargs)) => map (length o fst o strip_dtyp)
+    (List.filter is_rec_type cargs) union is') (is, constrs)) ([], descr);
 
 (* nonemptiness check for datatypes *)
 
 fun check_nonempty descr =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     fun is_nonempty_dt is i =
       let
-        val (_, _, constrs) = the (assoc (descr', i));
+        val (_, _, constrs) = valOf (assoc (descr', i));
         fun arg_nonempty (_, DtRec i) = if i mem is then false
               else is_nonempty_dt (i::is) i
           | arg_nonempty _ = true;
@@ -303,8 +303,8 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : datatype_info Symtab.table
          NONE => typ_error T (tname ^ " is not a datatype - can't use it in\
            \ nested recursion")
        | (SOME {index, descr, ...}) =>
-           let val (_, vars, _) = the (assoc (descr, index));
-               val subst = ((map dest_DtTFree vars) ~~ dts) handle LIST _ =>
+           let val (_, vars, _) = valOf (assoc (descr, index));
+               val subst = ((map dest_DtTFree vars) ~~ dts) handle UnequalLengths =>
                  typ_error T ("Type constructor " ^ tname ^ " used with wrong\
                   \ number of arguments")
            in (i + index, map (fn (j, (tn, args, cs)) => (i + j,
@@ -333,18 +333,18 @@ fun unfold_datatypes sign orig_descr sorts (dt_info : datatype_info Symtab.table
     (* unfold a constructor *)
 
     fun unfold_constr ((i, constrs, descrs), (cname, cargs)) =
-      let val (i', cargs', descrs') = foldl unfold_arg ((i, [], descrs), cargs)
+      let val (i', cargs', descrs') = Library.foldl unfold_arg ((i, [], descrs), cargs)
       in (i', constrs @ [(cname, cargs')], descrs') end;
 
     (* unfold a single datatype *)
 
     fun unfold_datatype ((i, dtypes, descrs), (j, (tname, tvars, constrs))) =
       let val (i', constrs', descrs') =
-        foldl unfold_constr ((i, [], descrs), constrs)
+        Library.foldl unfold_constr ((i, [], descrs), constrs)
       in (i', dtypes @ [(j, (tname, tvars, constrs'))], descrs')
       end;
 
-    val (i', descr', descrs) = foldl unfold_datatype ((i, [],[]), descr);
+    val (i', descr', descrs) = Library.foldl unfold_datatype ((i, [],[]), descr);
 
   in (descr' :: descrs, i') end;
 

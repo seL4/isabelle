@@ -175,7 +175,7 @@ fun mk_triple (x, y, z) = parens (commas [x, y, z]);
 fun mk_triple1 ((x, y), z) = mk_triple (x, y, z);
 fun mk_triple2 (x, (y, z)) = mk_triple (x, y, z);
 
-fun split_decls l = flat (map (fn (xs, y) => map (rpair y) xs) l);
+fun split_decls l = List.concat (map (fn (xs, y) => map (rpair y) xs) l);
 
 
 (* names *)
@@ -299,7 +299,7 @@ val type_decl = type_args -- name --
   optional ("=" $$-- typ >> SOME) NONE -- opt_infix >> mk_type_decl;
 
 val type_decls =
-  repeat1 (old_type_decl || type_decl) >> (mk_type_decls o flat);
+  repeat1 (old_type_decl || type_decl) >> (mk_type_decls o List.concat);
 
 
 (* consts *)

@@ -89,7 +89,7 @@ fun mk_abstractedrule Ts rule =
       val prop = Thm.prop_of rule;
       val names = Term.add_term_names (prop, []);
       val (fromnames,tonames,names2,Ts') = 
-          foldl (fn ((rnf,rnt,names, Ts'),(n,ty)) => 
+          Library.foldl (fn ((rnf,rnt,names, Ts'),(n,ty)) => 
                     let val n2 = Term.variant names n in
                       (ctermify (Free(RWTools.mk_fake_bound_name n,
                                       ty)) :: rnf,
@@ -108,7 +108,7 @@ fun mk_abstractedrule Ts rule =
 
       (* using these names create lambda-abstracted version of the rule *)
       val abstractions = rev (Ts' ~~ tonames);
-      val abstract_rule = foldl (fn (th,((n,ty),ct)) => 
+      val abstract_rule = Library.foldl (fn (th,((n,ty),ct)) => 
                                     Thm.abstract_rule n ct th)
                                 (uncond_rule, abstractions);
     in (cprems, abstract_rule) end;
@@ -124,9 +124,9 @@ variables *)
 fun mk_renamings tgt rule_inst = 
     let
       val rule_conds = Thm.prems_of rule_inst
-      val names = foldr Term.add_term_names (tgt :: rule_conds, []);
+      val names = Library.foldr Term.add_term_names (tgt :: rule_conds, []);
       val (conds_tyvs,cond_vs) = 
-          foldl (fn ((tyvs, vs), t) => 
+          Library.foldl (fn ((tyvs, vs), t) => 
                     (Library.union
                        (Term.term_tvars t, tyvs),
                      Library.union 
@@ -135,7 +135,7 @@ fun mk_renamings tgt rule_inst =
       val termvars = map Term.dest_Var (Term.term_vars tgt); 
       val vars_to_fix = Library.union (termvars, cond_vs);
       val (renamings, names2) = 
-          foldr (fn (((n,i),ty), (vs, names')) => 
+          Library.foldr (fn (((n,i),ty), (vs, names')) => 
                     let val n' = Term.variant names' n in
                       ((((n,i),ty), Free (n', ty)) :: vs, n'::names')
                     end)
@@ -152,12 +152,12 @@ fun new_tfree (tv as (ix,sort), (pairs,used)) =
    already instantiated (in ignore_ixs) from the list of terms. *)
 fun mk_fixtvar_tyinsts ignore_ixs ts = 
     let val (tvars, tfreenames) = 
-            foldr (fn (t, (varixs, tfreenames)) => 
+            Library.foldr (fn (t, (varixs, tfreenames)) => 
                       (Term.add_term_tvars (t,varixs),
                        Term.add_term_tfree_names (t,tfreenames)))
                   (ts, ([],[]));
-        val unfixed_tvars = filter (fn (ix,s) => not (ix mem ignore_ixs)) tvars;
-        val (fixtyinsts, _) = foldr new_tfree (unfixed_tvars, ([], tfreenames))
+        val unfixed_tvars = List.filter (fn (ix,s) => not (ix mem ignore_ixs)) tvars;
+        val (fixtyinsts, _) = Library.foldr new_tfree (unfixed_tvars, ([], tfreenames))
     in (fixtyinsts, tfreenames) end;
 
 
@@ -222,7 +222,7 @@ fun rw ((nonfixed_typinsts, unprepinsts), Ts, outerterm) rule target_thm =
           Term.subst_vars (typinsts,[]) outerterm;
 
       (* type-instantiate the var instantiations *)
-      val insts_tyinst = foldr (fn ((ix,t),insts_tyinst) => 
+      val insts_tyinst = Library.foldr (fn ((ix,t),insts_tyinst) => 
                             (ix, Term.subst_vars (typinsts,[]) t)
                             :: insts_tyinst)
                         (unprepinsts,[]);

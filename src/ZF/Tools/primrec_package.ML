@@ -56,7 +56,7 @@ fun process_eqn thy (eq, rec_fn_opt) =
       else strip_comb (hd middle);
     val (cname, _) = dest_Const constr
       handle TERM _ => raise RecError "ill-formed constructor";
-    val con_info = the (Symtab.lookup (ConstructorsData.get thy, cname))
+    val con_info = valOf (Symtab.lookup (ConstructorsData.get thy, cname))
       handle Option =>
       raise RecError "cannot determine datatype associated with function"
 
@@ -80,7 +80,7 @@ fun process_eqn thy (eq, rec_fn_opt) =
     else case rec_fn_opt of
         NONE => SOME (fname, ftype, ls, rs, con_info, [new_eqn])
       | SOME (fname', _, ls', rs', con_info': constructor_info, eqns) =>
-          if is_some (assoc (eqns, cname)) then
+          if isSome (assoc (eqns, cname)) then
             raise RecError "constructor already occurred as pattern"
           else if (ls <> ls') orelse (rs <> rs') then
             raise RecError "non-recursive arguments are inconsistent"
@@ -128,7 +128,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
               | SOME (rhs, cargs', eq) =>
                     (rhs, inst_recursor (recursor_pair, cargs'), eq)
           val allowed_terms = map use_fabs (#2 (strip_comb recursor_rhs))
-          val abs = foldr absterm (allowed_terms, rhs)
+          val abs = Library.foldr absterm (allowed_terms, rhs)
       in
           if !Ind_Syntax.trace then
               writeln ("recursor_rhs = " ^
@@ -153,7 +153,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
     val def_tm = Logic.mk_equals
                     (subst_bound (rec_arg, fabs),
                      list_comb (recursor,
-                                foldr add_case (cnames ~~ recursor_pairs, []))
+                                Library.foldr add_case (cnames ~~ recursor_pairs, []))
                      $ rec_arg)
 
   in
@@ -172,7 +172,7 @@ fun add_primrec_i args thy =
   let
     val ((eqn_names, eqn_terms), eqn_atts) = apfst split_list (split_list args);
     val SOME (fname, ftype, ls, rs, con_info, eqns) =
-      foldr (process_eqn thy) (eqn_terms, NONE);
+      Library.foldr (process_eqn thy) (eqn_terms, NONE);
     val def = process_fun thy (fname, ftype, ls, rs, con_info, eqns);
 
     val (thy1, [def_thm]) = thy

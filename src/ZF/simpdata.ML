@@ -16,7 +16,7 @@ fun atomize (conn_pairs, mem_pairs) th =
           case head_of t of
               Const(a,_) =>
                 (case assoc(pairs,a) of
-                     SOME rls => flat (map (atomize (conn_pairs, mem_pairs))
+                     SOME rls => List.concat (map (atomize (conn_pairs, mem_pairs))
                                        ([th] RL rls))
                    | NONE     => [th])
             | _ => [th]

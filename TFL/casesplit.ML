@@ -207,7 +207,7 @@ fun casesplit_name vstr i th =
           let val (n,ty) = Term.dest_Free x in 
             (if vstr = n orelse vstr = Syntax.dest_skolem n 
              then SOME (n,ty) else NONE )
-            handle LIST _ => NONE
+            handle Fail _ => NONE (* dest_skolem *)
           end;
       val (n,ty) = case Library.get_first getter freets 
                 of SOME (n, ty) => (n, ty)
@@ -311,7 +311,7 @@ fun splitto splitths genth =
               raise ERROR_MESSAGE "splitto: cannot find variable to split on")
             | SOME v => 
              let 
-               val gt = Data.dest_Trueprop (nth_elem(0, Thm.prems_of th));
+               val gt = Data.dest_Trueprop (List.nth(Thm.prems_of th, 0));
                val split_thm = mk_casesplit_goal_thm sgn v gt;
                val (subthms, expf) = IsaND.fixed_subgoal_thms split_thm;
              in 
@@ -340,7 +340,7 @@ prefer leaving more fine grain control to the user. *)
    the well-foundness conditions have been solved. *)
 local
   fun get_related_thms i = 
-      mapfilter ((fn (r,x) => if x = i then SOME r else NONE));
+      List.mapPartial ((fn (r,x) => if x = i then SOME r else NONE));
       
   fun solve_eq (th, [], i) = 
       raise ERROR_MESSAGE "derive_init_eqs: missing rules"

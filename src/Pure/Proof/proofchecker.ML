@@ -19,8 +19,8 @@ open Proofterm;
 (***** construct a theorem out of a proof term *****)
 
 fun lookup_thm thy =
-  let val tab = foldr Symtab.update
-    (flat (map thms_of (thy :: Theory.ancestors_of thy)), Symtab.empty)
+  let val tab = Library.foldr Symtab.update
+    (List.concat (map thms_of (thy :: Theory.ancestors_of thy)), Symtab.empty)
   in
     (fn s => case Symtab.lookup (tab, s) of
        NONE => error ("Unknown theorem " ^ quote s)
@@ -58,7 +58,7 @@ fun thm_of_proof thy prf =
       | thm_of _ _ (PAxm (name, _, SOME Ts)) =
           thm_of_atom (get_axiom thy name) Ts
 
-      | thm_of _ Hs (PBound i) = nth_elem (i, Hs)
+      | thm_of _ Hs (PBound i) = List.nth (Hs, i)
 
       | thm_of vs Hs (Abst (s, SOME T, prf)) =
           let

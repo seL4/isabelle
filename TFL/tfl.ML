@@ -201,8 +201,8 @@ end;
 fun mk_pat (c,l) =
   let val L = length (binder_types (type_of c))
       fun build (prfx,tag,plist) =
-          let val args   = take (L,plist)
-              and plist' = drop(L,plist)
+          let val args   = Library.take (L,plist)
+              and plist' = Library.drop(L,plist)
           in (prfx,tag,list_comb(c,args)::plist') end
   in map build l end;
 
@@ -336,7 +336,7 @@ fun mk_functional thy clauses =
      val dummy = map (no_repeat_vars thy) pats
      val rows = ListPair.zip (map (fn x => ([]:term list,[x])) pats,
                               map (fn (t,i) => (t,(i,true))) (enumerate R))
-     val names = foldr add_term_names (R,[])
+     val names = Library.foldr add_term_names (R,[])
      val atype = type_of(hd pats)
      and aname = variant names "a"
      val a = Free(aname,atype)
@@ -433,13 +433,13 @@ in
 end;
 
 
-fun givens pats = map pat_of (filter given pats);
+fun givens pats = map pat_of (List.filter given pats);
 
 fun post_definition meta_tflCongs (theory, (def, pats)) =
  let val tych = Thry.typecheck theory
      val f = #lhs(S.dest_eq(concl def))
      val corollary = R.MATCH_MP Thms.WFREC_COROLLARY def
-     val pats' = filter given pats
+     val pats' = List.filter given pats
      val given_pats = map pat_of pats'
      val rows = map row_of_pat pats'
      val WFR = #ant(S.dest_imp(concl corollary))
@@ -499,7 +499,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val tych = Thry.typecheck thy
      val WFREC_THM0 = R.ISPEC (tych functional) Thms.WFREC_COROLLARY
      val Const("All",_) $ Abs(Rname,Rtype,_) = concl WFREC_THM0
-     val R = Free (variant (foldr add_term_names (eqns,[])) Rname,
+     val R = Free (variant (Library.foldr add_term_names (eqns,[])) Rname,
                    Rtype)
      val WFREC_THM = R.ISPECL [tych R, tych g] WFREC_THM0
      val ([proto_def, WFR],_) = S.strip_imp(concl WFREC_THM)
@@ -540,7 +540,7 @@ fun lazyR_def thy fid tflCongs eqns =
                        prths extractants;
                        ())
                  else ()
-     val TCs = foldr (gen_union (op aconv)) (TCl, [])
+     val TCs = Library.foldr (gen_union (op aconv)) (TCl, [])
      val full_rqt = WFR::TCs
      val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
      val R'abs = S.rand R'
@@ -622,7 +622,7 @@ fun alpha_ex_unroll (xlist, tm) =
   let val (qvars,body) = S.strip_exists tm
       val vlist = #2(S.strip_comb (S.rhs body))
       val plist = ListPair.zip (vlist, xlist)
-      val args = map (fn qv => the (gen_assoc (op aconv) (plist, qv))) qvars
+      val args = map (fn qv => valOf (gen_assoc (op aconv) (plist, qv))) qvars
                    handle Option => sys_error
                        "TFL fault [alpha_ex_unroll]: no correspondence"
       fun build ex      []   = []
@@ -682,7 +682,7 @@ fun mk_case ty_info usednames thy =
                                                rows = map (expnd c) rows})
                            (U.zip3 new_formals groups constraints)
             val recursive_thms = map mk news
-            val build_exists = foldr
+            val build_exists = Library.foldr
                                 (fn((x,t), th) =>
                                  R.CHOOSE (tych x, R.ASSUME (tych t)) th)
             val thms' = ListPair.map build_exists (vexl, recursive_thms)
@@ -698,7 +698,7 @@ fun complete_cases thy =
  let val tych = Thry.typecheck thy
      val ty_info = Thry.induct_info thy
  in fn pats =>
- let val names = foldr add_term_names (pats,[])
+ let val names = Library.foldr add_term_names (pats,[])
      val T = type_of (hd pats)
      val aname = Term.variant names "a"
      val vname = Term.variant (aname::names) "v"
@@ -733,7 +733,7 @@ local infix 5 ==>
 in
 fun build_ih f P (pat,TCs) =
  let val globals = S.free_vars_lr pat
-     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
+     fun nested tm = isSome (S.find_term (curry (op aconv) f) tm)
      fun dest_TC tm =
          let val (cntxt,R_y_pat) = S.strip_imp(#2(S.strip_forall tm))
              val (R,y,_) = S.dest_relation R_y_pat
@@ -762,7 +762,7 @@ in
 fun build_ih f (P,SV) (pat,TCs) =
  let val pat_vars = S.free_vars_lr pat
      val globals = pat_vars@SV
-     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
+     fun nested tm = isSome (S.find_term (curry (op aconv) f) tm)
      fun dest_TC tm =
          let val (cntxt,R_y_pat) = S.strip_imp(#2(S.strip_forall tm))
              val (R,y,_) = S.dest_relation R_y_pat
@@ -795,7 +795,7 @@ fun prove_case f thy (tm,TCs_locals,thm) =
  let val tych = Thry.typecheck thy
      val antc = tych(#ant(S.dest_imp tm))
      val thm' = R.SPEC_ALL thm
-     fun nested tm = is_some (S.find_term (curry (op aconv) f) tm)
+     fun nested tm = isSome (S.find_term (curry (op aconv) f) tm)
      fun get_cntxt TC = tych(#ant(S.dest_imp(#2(S.strip_forall(concl TC)))))
      fun mk_ih ((TC,locals),th2,nested) =
          R.GENL (map tych locals)
@@ -832,7 +832,7 @@ fun LEFT_ABS_VSTRUCT tych thm =
         let val ex_tm = S.mk_exists{Bvar=v,Body=tm}
         in (ex_tm, R.CHOOSE(tych v, R.ASSUME (tych ex_tm)) thm)
         end
-      val [veq] = filter (can S.dest_eq) (#1 (R.dest_thm thm))
+      val [veq] = List.filter (can S.dest_eq) (#1 (R.dest_thm thm))
       val {lhs,rhs} = S.dest_eq veq
       val L = S.free_vars_lr rhs
   in  #2 (U.itlist CHOOSER L (veq,thm))  end;
@@ -851,7 +851,7 @@ let val tych = Thry.typecheck thy
     val (pats,TCsl) = ListPair.unzip pat_TCs_list
     val case_thm = complete_cases thy pats
     val domain = (type_of o hd) pats
-    val Pname = Term.variant (foldr (foldr add_term_names)
+    val Pname = Term.variant (Library.foldr (Library.foldr add_term_names)
                               (pats::TCsl, [])) "P"
     val P = Free(Pname, domain --> HOLogic.boolT)
     val Sinduct = R.SPEC (tych P) Sinduction
@@ -862,7 +862,7 @@ let val tych = Thry.typecheck thy
     val cases = map (fn pat => betapply (Sinduct_assumf, pat)) pats
     val tasks = U.zip3 cases TCl' (R.CONJUNCTS Rinduct_assum)
     val proved_cases = map (prove_case fconst thy) tasks
-    val v = Free (variant (foldr add_term_names (map concl proved_cases, []))
+    val v = Free (variant (Library.foldr add_term_names (map concl proved_cases, []))
                     "v",
                   domain)
     val vtyped = tych v

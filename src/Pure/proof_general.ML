@@ -179,8 +179,8 @@ local
 	     ([("class",  pgip_class),
 	       ("origin", pgip_origin),
 	       ("id",     pgip_id)] @
-	      (if_none (apsome (single o (pair "refseq")) (!pgip_refseq)) []) @
-	      (if_none (apsome (single o (pair "refid")) (!pgip_refid)) []) @
+	      getOpt (Option.map (single o (pair "refseq")) (!pgip_refseq), []) @
+	      getOpt (Option.map (single o (pair "refid")) (!pgip_refid), []) @
 	      [("seq",  string_of_int (Library.inc myseq_no))])
 	     pgips
 in
@@ -395,14 +395,14 @@ fun add_master_files name files =
 
 fun trace_action action name =
   if action = ThyInfo.Update then
-    seq tell_file_loaded (ThyInfo.loaded_files name)
+    List.app tell_file_loaded (ThyInfo.loaded_files name)
   else if action = ThyInfo.Outdate orelse action = ThyInfo.Remove then
-    seq tell_file_retracted (add_master_files name (ThyInfo.loaded_files name))
+    List.app tell_file_retracted (add_master_files name (ThyInfo.loaded_files name))
   else ();
 
 in
   fun setup_thy_loader () = ThyInfo.add_hook trace_action;
-  fun sync_thy_loader () = seq (trace_action ThyInfo.Update) (ThyInfo.names ());
+  fun sync_thy_loader () = List.app (trace_action ThyInfo.Update) (ThyInfo.names ());
 end;
 
 
@@ -421,7 +421,7 @@ fun which_context () =
 fun try_update_thy_only file =
   ThyLoad.cond_add_path (Path.dir (Path.unpack file)) (fn () =>
     let val name = thy_name file in
-      if is_some (ThyLoad.check_file NONE (ThyLoad.thy_path name)) 
+      if isSome (ThyLoad.check_file NONE (ThyLoad.thy_path name)) 
       then update_thy_only name
       else warning ("Unkown theory context of ML file." ^ which_context ())
     end) ();
@@ -492,7 +492,7 @@ fun tell_thm_deps ths =
   conditional (thm_depsN mem_string ! print_mode) (fn () =>
     let
       val names = map Thm.name_of_thm ths \ "";
-      val deps = Symtab.keys (foldl (uncurry Proofterm.thms_of_proof)
+      val deps = Symtab.keys (Library.foldl (uncurry Proofterm.thms_of_proof)
 				    (Symtab.empty, map Thm.proof_of ths)) \ "";
     in
       if null names orelse null deps then ()
@@ -502,7 +502,7 @@ fun tell_thm_deps ths =
 in
 
 fun setup_present_hook () =
-  Present.add_hook (fn _ => fn res => tell_thm_deps (flat (map #2 res)));
+  Present.add_hook (fn _ => fn res => tell_thm_deps (List.concat (map #2 res)));
 
 end;
 
@@ -785,7 +785,7 @@ local
 	case (!keywords_classification_table) of
 	    SOME t => t
 	  | NONE => (let
-			 val tab = foldl (fn (tab,(c,_,k,_))=>Symtab.update((c,k),tab)) 
+			 val tab = Library.foldl (fn (tab,(c,_,k,_))=>Symtab.update((c,k),tab)) 
 					 (Symtab.empty,OuterSyntax.dest_parsers())
 		     in (keywords_classification_table := SOME tab; tab) end)
 
@@ -969,10 +969,10 @@ fun xmls_pre_cmd [] = ([],[])
 	((markup_comment_whs prewhs) @
 	 (if (length rest2 = length rest1)  then []
 	  else markup_text (implode 
-				(map OuterLex.unparse (take (length rest1 - length rest2, rest1))))
+				(map OuterLex.unparse (Library.take (length rest1 - length rest2, rest1))))
 	       "litcomment") @
 	 (markup_comment_whs postwhs),
-	 take (length rest3 - 1,rest3))
+	 Library.take (length rest3 - 1,rest3))
     end
 
 fun xmls_of_impropers toks = 
@@ -1051,7 +1051,7 @@ fun usespgml () =
     issue_pgipe "usespgml" [("version", isabelle_pgml_version_supported)];
 
 fun hasprefs () = 
-    seq (fn (prefcat, prefs) =>
+    List.app (fn (prefcat, prefs) =>
 	    issue_pgips [XML.element "hasprefs" [("prefcategory",prefcat)]
 		 (map (fn (name, (descr, (ty, (default,_),_))) => 
 		       XML.element "haspref" [("name", name), 
@@ -1059,7 +1059,7 @@ fun hasprefs () =
 					      ("default", default)]
 		       [ty]) prefs)]) (!preferences);
 
-fun allprefs () = foldl (op @) ([], map snd (!preferences))
+fun allprefs () = Library.foldl (op @) ([], map snd (!preferences))
 	
 fun setpref name value = 
     (case assoc (allprefs(), name) of
@@ -1225,7 +1225,7 @@ fun process_pgip_tree xml =
 			pgip_refid :=  xmlattro "id" attrs)
 	   in  
 	       if (class = "pa") then
-		   seq process_pgip_element pgips
+		   List.app process_pgip_element pgips
 	       else 
 		   raise PGIP "PGIP packet for me should have class=\"pa\""
 	   end)
@@ -1387,7 +1387,7 @@ fun defconst name strs =
   "\n  '(" ^ space_implode "\n    " (map (quote o regexp_quote) strs) ^ "))\n";
 
 fun make_elisp_commands commands kind =
-  defconst kind (mapfilter 
+  defconst kind (List.mapPartial 
 		     (fn (c, _, k, _) => if k = kind then SOME c else NONE) 
 		     commands);
 
@@ -1399,7 +1399,7 @@ fun make_elisp_syntax (keywords, commands) =
   \;; $" ^ "Id$\n\
   \;;\n" ^
   defconst "major" (map #1 commands) ^
-  defconst "minor" (filter Syntax.is_identifier keywords) ^
+  defconst "minor" (List.filter Syntax.is_identifier keywords) ^
   implode (map (make_elisp_commands commands) OuterSyntax.Keyword.kinds) ^
   "\n(provide 'isar-keywords)\n";
 

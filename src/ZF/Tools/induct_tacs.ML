@@ -89,7 +89,7 @@ fun find_tname var Bi =
   let fun mk_pair (Const("op :",_) $ Free (v,_) $ A) =
              (v, #1 (dest_Const (head_of A)))
         | mk_pair _ = raise Match
-      val pairs = mapfilter (try (mk_pair o FOLogic.dest_Trueprop))
+      val pairs = List.mapPartial (try (mk_pair o FOLogic.dest_Trueprop))
           (#2 (strip_context Bi))
   in case assoc (pairs, var) of
        NONE => raise Find_tname ("Cannot determine datatype of " ^ quote var)
@@ -178,7 +178,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
               (Symtab.update
                ((big_rec_name, dt_info), DatatypesData.get thy))
           |> ConstructorsData.put
-               (foldr Symtab.update (con_pairs, ConstructorsData.get thy))
+               (Library.foldr Symtab.update (con_pairs, ConstructorsData.get thy))
           |> Theory.parent_path
   end;
 

@@ -40,7 +40,7 @@ fun find_subterms (Bound i) lev path =
       if i = lev then [[(Bound 0, path)]]
       else []
   | find_subterms (t as (Abs (_, _, t2))) lev path =
-      if filter (fn x => x<=lev)
+      if List.filter (fn x => x<=lev)
            (add_loose_bnos (t, 0, [])) = [lev] then
         [(incr_bv (~lev, 0, t), path)]::
         (find_subterms t2 (lev+1) (0::path))
@@ -52,7 +52,7 @@ fun find_subterms (Bound i) lev path =
             | combine (x::xs) ys =
                 (map (fn z => x @ z) ys) @ (combine xs ys)
       in
-        (if filter (fn x => x<=lev)
+        (if List.filter (fn x => x<=lev)
               (add_loose_bnos (t, 0, [])) = [lev] then
            [[(incr_bv (~lev, 0, t), path)]]
          else []) @
@@ -116,7 +116,7 @@ fun inst_adm_subst_thm state i params s T subt t paths =
       val tsig = Sign.tsig_of sign;
       val parTs = map snd (rev params);
       val rule = lift_rule (state, i) adm_subst;
-      val types = the o (fst (types_sorts rule));
+      val types = valOf o (fst (types_sorts rule));
       val tT = types ("t", j);
       val PT = types ("P", j);
       fun mk_abs [] t = t
@@ -135,7 +135,7 @@ fun inst_adm_subst_thm state i params s T subt t paths =
 
 (*** extract subgoal i from proof state ***)
 
-fun nth_subgoal i thm = nth_elem (i-1, prems_of thm);
+fun nth_subgoal i thm = List.nth (prems_of thm, i-1);
 
 
 (*** the admissibility tactic ***)
@@ -155,9 +155,9 @@ fun adm_tac tac i state =
           val prems = Logic.strip_assums_hyp goali;
           val params = Logic.strip_params goali;
           val ts = find_subterms t 0 [];
-          val ts' = filter eq_terms ts;
-          val ts'' = filter (is_chfin sign T params) ts';
-          val thms = foldl (prove_cont tac sign s T prems params) ([], ts'');
+          val ts' = List.filter eq_terms ts;
+          val ts'' = List.filter (is_chfin sign T params) ts';
+          val thms = Library.foldl (prove_cont tac sign s T prems params) ([], ts'');
         in
           (case thms of
             ((ts as ((t', _)::_), cont_thm)::_) =>

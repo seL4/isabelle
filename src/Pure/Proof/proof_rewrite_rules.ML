@@ -197,7 +197,7 @@ fun rewrite_terms r =
         fun strip [] t = t
           | strip (_ :: xs) (Abs (_, _, t)) = strip xs t;
       in
-        strip Ts (foldl (uncurry lambda o Library.swap) (t', frees))
+        strip Ts (Library.foldl (uncurry lambda o Library.swap) (t', frees))
       end;
 
     fun rew Ts (prf1 %% prf2) = rew Ts prf1 %% rew Ts prf2
@@ -227,9 +227,9 @@ fun insert_refl defs Ts (prf1 %% prf2) =
               val vs = vars_of prop;
               val tvars = term_tvars prop;
               val (_, rhs) = Logic.dest_equals prop;
-              val rhs' = foldl betapply (subst_TVars (map fst tvars ~~ Ts)
-                (foldr (fn p => Abs ("", dummyT, abstract_over p)) (vs, rhs)),
-                map the ts);
+              val rhs' = Library.foldl betapply (subst_TVars (map fst tvars ~~ Ts)
+                (Library.foldr (fn p => Abs ("", dummyT, abstract_over p)) (vs, rhs)),
+                map valOf ts);
             in
               change_type (SOME [fastype_of1 (Ts, rhs')]) reflexive_axm %> rhs'
             end
@@ -245,7 +245,7 @@ fun elim_defs sign r defs prf =
     val f = if not r then I else
       let
         val cnames = map (fst o dest_Const o fst) defs';
-        val thms = flat (map (fn (s, ps) =>
+        val thms = List.concat (map (fn (s, ps) =>
             if s mem defnames then []
             else map (pair s o SOME o fst) (filter_out (fn (p, _) =>
               null (term_consts p inter cnames)) ps))

@@ -188,11 +188,11 @@ type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 
 (*find tab for mode*)
 fun get_tab prtabs mode =
-  if_none (assoc (prtabs, mode)) Symtab.empty;
+  getOpt (assoc (prtabs, mode), Symtab.empty);
 
 (*collect tabs for mode hierarchy (default "")*)
 fun tabs_of prtabs modes =
-  mapfilter (fn mode => assoc (prtabs, mode)) (modes @ [""]);
+  List.mapPartial (fn mode => assoc (prtabs, mode)) (modes @ [""]);
 
 
 (* xprod_to_fmt *)
@@ -244,9 +244,9 @@ val empty_prtabs = [];
 
 fun extend_prtabs prtabs mode xprods =
   let
-    val fmts = mapfilter xprod_to_fmt xprods;
+    val fmts = List.mapPartial xprod_to_fmt xprods;
     val tab = get_tab prtabs mode;
-    val new_tab = foldr Symtab.update_multi (rev fmts, tab);
+    val new_tab = Library.foldr Symtab.update_multi (rev fmts, tab);
   in overwrite (prtabs, (mode, new_tab)) end;
 
 fun merge_prtabs prtabs1 prtabs2 =

@@ -152,7 +152,7 @@ val succeed = METHOD (K all_tac);
 (* shuffle *)
 
 fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1)));
-fun defer opt_i = METHOD (K (Tactic.defer_tac (if_none opt_i 1)));
+fun defer opt_i = METHOD (K (Tactic.defer_tac (getOpt (opt_i,1))));
 
 
 (* insert *)
@@ -261,7 +261,7 @@ fun intpr_tac ctxt gs d lim = SUBGOAL (fn (g, i) => if d > lim then no_tac else
 in
 
 fun rules_tac ctxt opt_lim =
-  SELECT_GOAL (DEEPEN (2, if_none opt_lim 20) (intpr_tac ctxt [] 0) 4 1);
+  SELECT_GOAL (DEEPEN (2, getOpt (opt_lim,20)) (intpr_tac ctxt [] 0) 4 1);
 
 end;
 
@@ -281,7 +281,7 @@ fun gen_some_rule_tac tac arg_rules ctxt facts = SUBGOAL (fn (goal, i) =>
   let
     val rules =
       if not (null arg_rules) then arg_rules
-      else flat (ContextRules.find_rules false facts goal ctxt)
+      else List.concat (ContextRules.find_rules false facts goal ctxt)
   in trace ctxt rules; tac rules facts i end);
 
 fun meth tac x = METHOD (HEADGOAL o tac x);
@@ -309,7 +309,7 @@ val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
 (* assumption *)
 
 fun asm_tac ths =
-  foldr (op APPEND') (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths, K no_tac);
+  Library.foldr (op APPEND') (map (fn th => Tactic.rtac th THEN_ALL_NEW assume_tac) ths, K no_tac);
 
 fun assm_tac ctxt =
   assume_tac APPEND'
@@ -334,7 +334,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
     (* Separate type and term insts *)
     fun has_type_var ((x, _), _) = (case Symbol.explode x of
           "'"::cs => true | cs => false);
-    val Tinsts = filter has_type_var insts;
+    val Tinsts = List.filter has_type_var insts;
     val tinsts = filter_out has_type_var insts;
     (* Tactic *)
     fun tac i st =
@@ -373,7 +373,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
                 NONE => types (a, ~1)
               | some => some)
           | types' xi = types xi;
-        fun internal x = is_some (types' (x, ~1));
+        fun internal x = isSome (types' (x, ~1));
         val used = Term.add_term_tvarnames (Thm.prop_of st $ Thm.prop_of thm, []);
         val (ts, envT) =
           ProofContext.read_termTs_schematic ctxt internal types' sorts used (ss ~~ Ts);
@@ -596,7 +596,7 @@ local
 
 fun sect ss = Scan.first (map Scan.lift ss);
 fun thms ss = Scan.unless (sect ss) Attrib.local_thms;
-fun thmss ss = Scan.repeat (thms ss) >> flat;
+fun thmss ss = Scan.repeat (thms ss) >> List.concat;
 
 fun apply (f, att) (ctxt, ths) = Thm.applys_attributes ((f ctxt, ths), [att]);
 
@@ -732,7 +732,7 @@ fun finish_text asm NONE = close_text asm
 fun proof opt_text state =
   state
   |> Proof.assert_backward
-  |> refine (if_none opt_text default_text)
+  |> refine (getOpt (opt_text,default_text))
   |> Seq.map (Proof.goal_facts (K []))
   |> Seq.map Proof.enter_forward;
 

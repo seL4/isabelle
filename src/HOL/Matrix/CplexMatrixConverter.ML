@@ -73,7 +73,7 @@ fun convert_prog (cplexProg (s, goal, constrs, bounds)) =
 	    set_elem vec (s2i v) (if positive then num else "-"^num)
 	  | setprod _ _ _ = raise (Converter "term is not a normed product")	
 
-	fun sum2vec (cplexSum ts) = foldl (fn (vec, t) => setprod vec true t) (empty_vector, ts)
+	fun sum2vec (cplexSum ts) = Library.foldl (fn (vec, t) => setprod vec true t) (empty_vector, ts)
 	  | sum2vec t = setprod empty_vector true t						
 
 	fun constrs2Ab j A b [] = (A, b)
@@ -100,7 +100,7 @@ fun convert_results (cplex.Optimal (opt, entries)) name2index =
     let
 	fun setv (v, (name, value)) = (matrix_builder.set_elem v (name2index name) value) 
     in
-	(opt, foldl setv (matrix_builder.empty_vector, entries))
+	(opt, Library.foldl setv (matrix_builder.empty_vector, entries))
     end
   | convert_results _ _ = raise (Converter "No optimal result")
     

@@ -31,7 +31,7 @@ let
  val rep_iso_ax = ("rep_iso" ,mk_trp(dc_abs`(dc_rep`%x_name')=== %:x_name'));
 
   val when_def = ("when_def",%%:(dname^"_when") == 
-     foldr (uncurry /\ ) (when_funs cons, /\x_name'((when_body cons (fn (x,y) =>
+     Library.foldr (uncurry /\ ) (when_funs cons, /\x_name'((when_body cons (fn (x,y) =>
 				Bound(1+length cons+x-y)))`(dc_rep`Bound 0))));
 
   fun con_def outer recu m n (_,args) = let
@@ -43,10 +43,10 @@ let
      fun inj y 1 _ = y
      |   inj y _ 0 = %%:"sinl"`y
      |   inj y i j = %%:"sinr"`(inj y (i-1) (j-1));
-  in foldr /\# (args, outer (inj (parms args) m n)) end;
+  in Library.foldr /\# (args, outer (inj (parms args) m n)) end;
 
   val copy_def = ("copy_def", %%:(dname^"_copy") == /\"f" (dc_abs oo 
-	foldl (op `) (%%:(dname^"_when") , 
+	Library.foldl (op `) (%%:(dname^"_when") , 
 	              mapn (con_def Id true (length cons)) 0 cons)));
 
 (* -- definitions concerning the constructors, discriminators and selectors - *)
@@ -57,7 +57,7 @@ let
   val dis_defs = let
 	fun ddef (con,_) = (dis_name con ^"_def",%%:(dis_name con) == 
 		 mk_cRep_CFun(%%:(dname^"_when"),map 
-			(fn (con',args) => (foldr /\#
+			(fn (con',args) => (Library.foldr /\#
 			   (args,if con'=con then %%:"TT" else %%:"FF"))) cons))
 	in map ddef cons end;
 
@@ -65,8 +65,8 @@ let
 	fun sdef con n arg = (sel_of arg^"_def",%%:(sel_of arg) == 
 		 mk_cRep_CFun(%%:(dname^"_when"),map 
 			(fn (con',args) => if con'<>con then %%:"UU" else
-			 foldr /\# (args,Bound (length args - n))) cons));
-	in flat(map (fn (con,args) => mapn (sdef con) 1 args) cons) end;
+			 Library.foldr /\# (args,Bound (length args - n))) cons));
+	in List.concat(map (fn (con,args) => mapn (sdef con) 1 args) cons) end;
 
 
 (* ----- axiom and definitions concerning induction ------------------------- *)
@@ -100,7 +100,7 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
     let
       fun one_con (con,args) = let
 	val nonrec_args = filter_out is_rec args;
-	val    rec_args = filter     is_rec args;
+	val    rec_args = List.filter     is_rec args;
 	val    recs_cnt = length rec_args;
 	val allargs     = nonrec_args @ rec_args
 				      @ map (upd_vname (fn s=> s^"'")) rec_args;
@@ -114,10 +114,10 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 					 (allargs~~((allargs_cnt-1) downto 0)));
 	fun rel_app i ra = proj (Bound(allargs_cnt+2)) eqs (rec_of ra) $ 
 			   Bound (2*recs_cnt-i) $ Bound (recs_cnt-i);
-	val capps = foldr mk_conj (mapn rel_app 1 rec_args, mk_conj(
+	val capps = Library.foldr mk_conj (mapn rel_app 1 rec_args, mk_conj(
 	   Bound(allargs_cnt+1)===mk_cRep_CFun(%%:con,map (bound_arg allvns) vns1),
 	   Bound(allargs_cnt+0)===mk_cRep_CFun(%%:con,map (bound_arg allvns) vns2)));
-        in foldr mk_ex (allvns, foldr mk_conj 
+        in Library.foldr mk_ex (allvns, Library.foldr mk_conj 
 			      (map (defined o Bound) nonlazy_idxs,capps)) end;
       fun one_comp n (_,cons) =mk_all(x_name(n+1),mk_all(x_name(n+1)^"'",mk_imp(
 	 		proj (Bound 2) eqs n $ Bound 1 $ Bound 0,
@@ -129,7 +129,7 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 	|> add_axioms_i (infer_types thy' dfs)(*add_defs_i*)
 	|> add_axioms_i (infer_types thy' axs)
 	|> Theory.parent_path;
-  val thy = foldl add_one (thy', mapn (calc_axioms comp_dname eqs) 0 eqs);
+  val thy = Library.foldl add_one (thy', mapn (calc_axioms comp_dname eqs) 0 eqs);
 in thy |> Theory.add_path comp_dnam  
        |> add_axioms_i (infer_types thy' 
 		(bisim_def::(if length eqs>1 then [copy_def] else [])))

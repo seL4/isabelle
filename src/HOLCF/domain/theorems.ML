@@ -71,7 +71,7 @@ val ax_rep_iso    = ga "rep_iso"  dname;
 val ax_when_def   = ga "when_def" dname;
 val axs_con_def   = map (fn (con,_) => ga (extern_name con^"_def") dname) cons;
 val axs_dis_def   = map (fn (con,_) => ga (   dis_name con^"_def") dname) cons;
-val axs_sel_def   = flat(map (fn (_,args) => 
+val axs_sel_def   = List.concat(map (fn (_,args) => 
                     map (fn     arg => ga (sel_of arg     ^"_def") dname) args)
 									  cons);
 val ax_copy_def   = ga "copy_def" dname;
@@ -101,7 +101,7 @@ val iso_swap = pg [] (dc_rep`%"x" === %:"y" ==> %:"x" === dc_abs`%"y") [
                             etac (ax_rep_iso RS subst) 1];
 fun exh foldr1 cn quant foldr2 var = let
   fun one_con (con,args) = let val vns = map vname args in
-    foldr quant (vns, foldr2 ((%:x_name === con_app2 con (var vns) vns)::
+    Library.foldr quant (vns, foldr2 ((%:x_name === con_app2 con (var vns) vns)::
                               map (defined o (var vns)) (nonlazy args))) end
   in foldr1 ((cn(%:x_name===UU))::map one_con cons) end;
 in
@@ -130,9 +130,9 @@ val casedist = let
                                 prod_tac args THEN sum_rest_tac p) THEN
                                 sum_tac cons' prems
             |   sum_tac _ _ = Imposs "theorems:sum_tac";
-          in pg'' thy [] (exh (fn l => foldr (op ===>) (l,mk_trp(%:"P")))
+          in pg'' thy [] (exh (fn l => Library.foldr (op ===>) (l,mk_trp(%:"P")))
                               (fn T => T ==> %:"P") mk_All
-                              (fn l => foldr (op ===>) (map mk_trp l,
+                              (fn l => Library.foldr (op ===>) (map mk_trp l,
                                                             mk_trp(%:"P")))
                               bound_arg)
                              (fn prems => [
@@ -153,9 +153,9 @@ val exhaust= pg[](mk_trp(exh (foldr' mk_disj) Id mk_ex (foldr' mk_conj) (K %:)))
 end;
 
 local 
-  fun bind_fun t = foldr mk_All (when_funs cons,t);
+  fun bind_fun t = Library.foldr mk_All (when_funs cons,t);
   fun bound_fun i _ = Bound (length cons - i);
-  val when_app  = foldl (op `) (%%:(dname^"_when"), mapn bound_fun 1 cons);
+  val when_app  = Library.foldl (op `) (%%:(dname^"_when"), mapn bound_fun 1 cons);
   val when_appl = pg [ax_when_def] (bind_fun(mk_trp(when_app`%x_name ===
              when_body cons (fn (m,n)=> bound_fun (n-m) 0)`(dc_rep`%x_name))))[
                                 simp_tac HOLCF_ss 1];
@@ -182,7 +182,7 @@ val dis_rews = let
                         (mk_trp((%%:(dis_name c))`(con_app con args) ===
                               %%:(if con=c then "TT" else "FF"))))) [
                                 asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
-        in flat(map (fn (c,_) => map (one_dis c) cons) cons) end;
+        in List.concat(map (fn (c,_) => map (one_dis c) cons) cons) end;
   val dis_defins = map (fn (con,args) => pg [] (defined(%:x_name) ==> 
                       defined(%%:(dis_name con)`%x_name)) [
                                 rtac casedist 1,
@@ -191,7 +191,7 @@ val dis_rews = let
                                         (HOLCF_ss addsimps dis_apps) 1))]) cons;
 in dis_stricts @ dis_defins @ dis_apps end;
 
-val con_stricts = flat(map (fn (con,args) => map (fn vn =>
+val con_stricts = List.concat(map (fn (con,args) => map (fn vn =>
                         pg (axs_con_def) 
                            (mk_trp(con_app2 con (fn arg => if vname arg = vn 
                                         then UU else %# arg) args === UU))[
@@ -207,22 +207,22 @@ val con_rews = con_stricts @ con_defins;
 
 val sel_stricts = let fun one_sel sel = pg axs_sel_def (mk_trp(strict(%%:sel))) [
                                 simp_tac (HOLCF_ss addsimps when_rews) 1];
-in flat(map (fn (_,args) =>map (fn arg => one_sel (sel_of arg)) args) cons) end;
+in List.concat(map (fn (_,args) =>map (fn arg => one_sel (sel_of arg)) args) cons) end;
 val sel_apps = let fun one_sel c n sel = map (fn (con,args) => 
                 let val nlas = nonlazy args;
                     val vns  = map vname args;
                 in pg axs_sel_def (lift_defined %:
-                   (filter (fn v => con=c andalso (v<>nth_elem(n,vns))) nlas,
+                   (List.filter (fn v => con=c andalso (v<>List.nth(vns,n))) nlas,
                                 mk_trp((%%:sel)`(con_app con args) === 
-                                (if con=c then %:(nth_elem(n,vns)) else UU))))
+                                (if con=c then %:(List.nth(vns,n)) else UU))))
                             ( (if con=c then [] 
                        else map(case_UU_tac(when_rews@con_stricts)1) nlas)
-                     @(if con=c andalso ((nth_elem(n,vns)) mem nlas)
+                     @(if con=c andalso ((List.nth(vns,n)) mem nlas)
                                  then[case_UU_tac (when_rews @ con_stricts) 1 
-                                                  (nth_elem(n,vns))] else [])
+                                                  (List.nth(vns,n))] else [])
                      @ [asm_simp_tac(HOLCF_ss addsimps when_rews)1])end) cons;
-in flat(map  (fn (c,args) => 
-     flat(mapn (fn n => fn arg => one_sel c n (sel_of arg)) 0 args)) cons) end;
+in List.concat(map  (fn (c,args) => 
+     List.concat(mapn (fn n => fn arg => one_sel c n (sel_of arg)) 0 args)) cons) end;
 val sel_defins = if length cons=1 then map (fn arg => pg [](defined(%:x_name)==> 
                         defined(%%:(sel_of arg)`%x_name)) [
                                 rtac casedist 1,
@@ -249,7 +249,7 @@ val distincts_le = let
     fun distincts []      = []
     |   distincts (c::cs) = (map (distinct c) cs) :: distincts cs;
 in distincts cons end;
-val dist_les = flat (flat distincts_le);
+val dist_les = List.concat (List.concat distincts_le);
 val dist_eqs = let
     fun distinct (_,args1) ((_,args2),leqs) = let
         val (le1,le2) = (hd leqs, hd(tl leqs));
@@ -273,10 +273,10 @@ local
                             mk_trp (foldr' mk_conj 
                                 (ListPair.map rel
 				 (map %# largs, map %# rargs)))))) end;
-  val cons' = filter (fn (_,args) => args<>[]) cons;
+  val cons' = List.filter (fn (_,args) => args<>[]) cons;
 in
 val inverts = map (fn (con,args) => 
-                pgterm (op <<) con args (flat(map (fn arg => [
+                pgterm (op <<) con args (List.concat(map (fn arg => [
                                 TRY(rtac conjI 1),
                                 dres_inst_tac [("fo",sel_of arg)] monofun_cfun_arg 1,
                                 asm_full_simp_tac (HOLCF_ss addsimps sel_apps) 1]
@@ -302,7 +302,7 @@ val copy_apps = map (fn (con,args) => pg [ax_copy_def]
                 (con_app2 con (app_rec_arg (cproj (%:"f") eqs)) args))))
                         (map (case_UU_tac (abs_strict::when_strict::con_stricts)
                                  1 o vname)
-                         (filter (fn a => not (is_rec a orelse is_lazy a)) args)
+                         (List.filter (fn a => not (is_rec a orelse is_lazy a)) args)
                         @[asm_simp_tac (HOLCF_ss addsimps when_apps) 1,
                           simp_tac (HOLCF_ss addsimps axs_con_def) 1]))cons;
 val copy_stricts = map (fn (con,args) => pg [] (mk_trp(dc_copy`UU`
@@ -310,7 +310,7 @@ val copy_stricts = map (fn (con,args) => pg [] (mk_trp(dc_copy`UU`
      (let val rews = cfst_strict::csnd_strict::copy_strict::copy_apps@con_rews
                          in map (case_UU_tac rews 1) (nonlazy args) @ [
                              asm_simp_tac (HOLCF_ss addsimps rews) 1] end))
-                        (filter (fn (_,args)=>exists is_nonlazy_rec args) cons);
+                        (List.filter (fn (_,args)=>exists is_nonlazy_rec args) cons);
 val copy_rews = copy_strict::copy_apps @ copy_stricts;
 in thy |> Theory.add_path (Sign.base_name dname)
        |> (#1 o (PureThy.add_thmss (map Thm.no_attributes [
@@ -352,8 +352,8 @@ end; (* local *)
 local fun gt  s dn = get_thm  thy (dn ^ "." ^ s, NONE);
       fun gts s dn = get_thms thy (dn ^ "." ^ s, NONE) in
 val cases     =       map (gt  "casedist" ) dnames;
-val con_rews  = flat (map (gts "con_rews" ) dnames);
-val copy_rews = flat (map (gts "copy_rews") dnames);
+val con_rews  = List.concat (map (gts "con_rews" ) dnames);
+val copy_rews = List.concat (map (gts "copy_rews") dnames);
 end; (* local *)
 
 fun dc_take dn = %%:(dn^"_take");
@@ -379,17 +379,17 @@ local
                                 simp_tac iterate_Cprod_ss 1]) 1 dnames;
   val c_UU_tac = case_UU_tac (take_stricts'::copy_con_rews) 1;
   val take_apps = pg copy_take_defs (mk_trp(foldr' mk_conj 
-            (flat(map (fn ((dn,_),cons) => map (fn (con,args) => foldr mk_all 
+            (List.concat(map (fn ((dn,_),cons) => map (fn (con,args) => Library.foldr mk_all 
         (map vname args,(dc_take dn $ (%%:"Suc" $ %:"n"))`(con_app con args) ===
-         con_app2 con (app_rec_arg (fn n=>dc_take (nth_elem(n,dnames))$ %:"n"))
+         con_app2 con (app_rec_arg (fn n=>dc_take (List.nth(dnames,n))$ %:"n"))
                               args)) cons) eqs)))) ([
                                 simp_tac iterate_Cprod_ss 1,
                                 induct_tac "n" 1,
                             simp_tac(iterate_Cprod_ss addsimps copy_con_rews) 1,
                                 asm_full_simp_tac (HOLCF_ss addsimps 
-                                      (filter (has_fewer_prems 1) copy_rews)) 1,
+                                      (List.filter (has_fewer_prems 1) copy_rews)) 1,
                                 TRY(safe_tac HOL_cs)] @
-                        (flat(map (fn ((dn,_),cons) => map (fn (con,args) => 
+                        (List.concat(map (fn ((dn,_),cons) => map (fn (con,args) => 
                                 if nonlazy_rec args = [] then all_tac else
                                 EVERY(map c_UU_tac (nonlazy_rec args)) THEN
                                 asm_full_simp_tac (HOLCF_ss addsimps copy_rews)1
@@ -399,23 +399,23 @@ val take_rews = map standard (atomize take_stricts @ take_0s @ atomize take_apps
 end; (* local *)
 
 local
-  fun one_con p (con,args) = foldr mk_All (map vname args,
+  fun one_con p (con,args) = Library.foldr mk_All (map vname args,
         lift_defined (bound_arg (map vname args)) (nonlazy args,
         lift (fn arg => %:(P_name (1+rec_of arg)) $ bound_arg args arg)
-         (filter is_rec args,mk_trp(%:p $ con_app2 con (bound_arg args) args))));
+         (List.filter is_rec args,mk_trp(%:p $ con_app2 con (bound_arg args) args))));
   fun one_eq ((p,cons),concl) = (mk_trp(%:p $ UU) ===> 
-                           foldr (op ===>) (map (one_con p) cons,concl));
-  fun ind_term concf = foldr one_eq (mapn (fn n => fn x => (P_name n, x))1conss,
+                           Library.foldr (op ===>) (map (one_con p) cons,concl));
+  fun ind_term concf = Library.foldr one_eq (mapn (fn n => fn x => (P_name n, x))1conss,
                         mk_trp(foldr' mk_conj (mapn concf 1 dnames)));
   val take_ss = HOL_ss addsimps take_rews;
   fun quant_tac i = EVERY(mapn(fn n=> fn _=> res_inst_tac[("x",x_name n)]spec i)
                                1 dnames);
-  fun ind_prems_tac prems = EVERY(flat (map (fn cons => (
+  fun ind_prems_tac prems = EVERY(List.concat (map (fn cons => (
                                      resolve_tac prems 1 ::
-                                     flat (map (fn (_,args) => 
+                                     List.concat (map (fn (_,args) => 
                                        resolve_tac prems 1 ::
                                        map (K(atac 1)) (nonlazy args) @
-                                       map (K(atac 1)) (filter is_rec args))
+                                       map (K(atac 1)) (List.filter is_rec args))
                                      cons))) conss));
   local 
     (* check whether every/exists constructor of the n-th part of the equation:
@@ -425,11 +425,11 @@ local
           is_rec arg andalso not(rec_of arg mem ns) andalso
           ((rec_of arg =  n andalso nfn(lazy_rec orelse is_lazy arg)) orelse 
             rec_of arg <> n andalso rec_to quant nfn rfn (rec_of arg::ns) 
-              (lazy_rec orelse is_lazy arg) (n, (nth_elem(rec_of arg,conss))))
+              (lazy_rec orelse is_lazy arg) (n, (List.nth(conss,rec_of arg))))
           ) o snd) cons;
     fun all_rec_to ns  = rec_to forall not all_rec_to  ns;
     fun warn (n,cons)  = if all_rec_to [] false (n,cons) then (warning
-        ("domain "^nth_elem(n,dnames)^" is empty!"); true) else false;
+        ("domain "^List.nth(dnames,n)^" is empty!"); true) else false;
     fun lazy_rec_to ns = rec_to exists Id  lazy_rec_to ns;
 
   in val n__eqs     = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs;
@@ -444,18 +444,18 @@ val finite_ind = pg'' thy [] (ind_term (fn n => fn dn => %:(P_name n)$
                                 induct_tac "n" 1,
                                 simp_tac (take_ss addsimps prems) 1,
                                 TRY(safe_tac HOL_cs)]
-                                @ flat(map (fn (cons,cases) => [
+                                @ List.concat(map (fn (cons,cases) => [
                                  res_inst_tac [("x","x")] cases 1,
                                  asm_simp_tac (take_ss addsimps prems) 1]
-                                 @ flat(map (fn (con,args) => 
+                                 @ List.concat(map (fn (con,args) => 
                                   asm_simp_tac take_ss 1 ::
                                   map (fn arg =>
                                    case_UU_tac (prems@con_rews) 1 (
-                           nth_elem(rec_of arg,dnames)^"_take n$"^vname arg))
-                                  (filter is_nonlazy_rec args) @ [
+                           List.nth(dnames,rec_of arg)^"_take n$"^vname arg))
+                                  (List.filter is_nonlazy_rec args) @ [
                                   resolve_tac prems 1] @
                                   map (K (atac 1))      (nonlazy args) @
-                                  map (K (etac spec 1)) (filter is_rec args)) 
+                                  map (K (etac spec 1)) (List.filter is_rec args)) 
                                  cons))
                                 (conss~~cases)));
 
@@ -496,14 +496,14 @@ val (finites,ind) = if is_finite then
                                 induct_tac "n" 1,
                                 simp_tac take_ss 1,
                         TRY(safe_tac(empty_cs addSEs[conjE] addSIs[conjI]))] @
-                                flat(mapn (fn n => fn (cons,cases) => [
+                                List.concat(mapn (fn n => fn (cons,cases) => [
                                   simp_tac take_ss 1,
                                   rtac allI 1,
                                   res_inst_tac [("x",x_name n)] cases 1,
                                   asm_simp_tac take_ss 1] @ 
-                                  flat(map (fn (con,args) => 
+                                  List.concat(map (fn (con,args) => 
                                     asm_simp_tac take_ss 1 ::
-                                    flat(map (fn vn => [
+                                    List.concat(map (fn vn => [
                                       eres_inst_tac [("x",vn)] all_dupE 1,
                                       etac disjE 1,
                                       asm_simp_tac (HOL_ss addsimps con_rews) 1,
@@ -523,7 +523,7 @@ val (finites,ind) = if is_finite then
   (finites,
    pg'' thy[](ind_term (fn n => fn dn => %:(P_name n) $ %:(x_name n)))(fn prems =>
                                 TRY(safe_tac HOL_cs) ::
-                         flat (map (fn (finite,fin_ind) => [
+                         List.concat (map (fn (finite,fin_ind) => [
                                rtac(rewrite_rule axs_finite_def finite RS exE)1,
                                 etac subst 1,
                                 rtac fin_ind 1,
@@ -532,7 +532,7 @@ val (finites,ind) = if is_finite then
 ) end (* let *) else
   (mapn (fn n => fn dn => read_instantiate_sg (sign_of thy) 
                     [("P",dn^"_finite "^x_name n)] excluded_middle) 1 dnames,
-   pg'' thy [] (foldr (op ===>) (mapn (fn n => K(mk_trp(%%:"adm" $ %:(P_name n))))
+   pg'' thy [] (Library.foldr (op ===>) (mapn (fn n => K(mk_trp(%%:"adm" $ %:(P_name n))))
                1 dnames, ind_term (fn n => fn dn => %:(P_name n) $ %:(x_name n))))
                    (fn prems => map (fn ax_reach => rtac (ax_reach RS subst) 1) 
                                     axs_reach @ [
@@ -556,8 +556,8 @@ local
   val take_ss = HOL_ss addsimps take_rews;
   val sproj   = prj (fn s => K("fst("^s^")")) (fn s => K("snd("^s^")"));
   val coind_lemma=pg[ax_bisim_def](mk_trp(mk_imp(%%:(comp_dname^"_bisim") $ %:"R",
-                foldr (fn (x,t)=> mk_all(x,mk_all(x^"'",t))) (xs,
-                  foldr mk_imp (mapn (fn n => K(proj (%:"R") eqs n $ 
+                Library.foldr (fn (x,t)=> mk_all(x,mk_all(x^"'",t))) (xs,
+                  Library.foldr mk_imp (mapn (fn n => K(proj (%:"R") eqs n $ 
                                       bnd_arg n 0 $ bnd_arg n 1)) 0 dnames,
                     foldr' mk_conj (mapn (fn n => fn dn => 
                                 (dc_take dn $ %:"n" `bnd_arg n 0 === 
@@ -566,7 +566,7 @@ local
                                 induct_tac "n" 1,
                                 simp_tac take_ss 1,
                                 safe_tac HOL_cs] @
-                                flat(mapn (fn n => fn x => [
+                                List.concat(mapn (fn n => fn x => [
                                   rotate_tac (n+1) 1,
                                   etac all2E 1,
                                   eres_inst_tac [("P1", sproj "R" eqs n^
@@ -576,11 +576,11 @@ local
                                 0 xs));
 in
 val coind = pg [] (mk_trp(%%:(comp_dname^"_bisim") $ %:"R") ===>
-                foldr (op ===>) (mapn (fn n => fn x => 
+                Library.foldr (op ===>) (mapn (fn n => fn x => 
                   mk_trp(proj (%:"R") eqs n $ %:x $ %:(x^"'"))) 0 xs,
                   mk_trp(foldr' mk_conj (map (fn x => %:x === %:(x^"'")) xs)))) ([
                                 TRY(safe_tac HOL_cs)] @
-                                flat(map (fn take_lemma => [
+                                List.concat(map (fn take_lemma => [
                                   rtac take_lemma 1,
                                   cut_facts_tac [coind_lemma] 1,
                                   fast_tac HOL_cs 1])

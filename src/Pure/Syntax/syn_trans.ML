@@ -202,7 +202,7 @@ fun index_tr (*"_index"*) [t] = t
 (* implicit structures *)
 
 fun the_struct structs i =
-  if 1 <= i andalso i <= length structs then Library.nth_elem (i - 1, structs)
+  if 1 <= i andalso i <= length structs then List.nth (structs, i - 1)
   else raise ERROR_MESSAGE ("Illegal reference to implicit structure #" ^ string_of_int i);
 
 fun struct_tr structs (*"_struct"*) [Const ("_indexdefault", _)] =
@@ -272,7 +272,7 @@ fun eta_contr tm =
 
 
 fun abs_tr' tm =
-  foldr (fn (x, t) => Lexicon.const "_abs" $ x $ t)
+  Library.foldr (fn (x, t) => Lexicon.const "_abs" $ x $ t)
     (strip_abss strip_abs_vars strip_abs_body (eta_contr tm));
 
 fun atomic_abs_tr' (x, T, t) =
@@ -481,8 +481,8 @@ fun pts_to_asts trf pts =
       | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
 
     val exn_results = map (capture ast_of) pts;
-    val exns = mapfilter get_exn exn_results;
-    val results = mapfilter get_result exn_results
+    val exns = List.mapPartial get_exn exn_results;
+    val results = List.mapPartial get_result exn_results
   in
     (case (results, exns) of
       ([], TRANSLATION (a, exn) :: _) =>
@@ -510,8 +510,8 @@ fun asts_to_terms trf asts =
       | term_of (ast as Ast.Appl _) = raise Ast.AST ("ast_to_term: malformed ast", [ast]);
 
     val exn_results = map (capture term_of) asts;
-    val exns = mapfilter get_exn exn_results;
-    val results = mapfilter get_result exn_results
+    val exns = List.mapPartial get_exn exn_results;
+    val results = List.mapPartial get_result exn_results
   in
     (case (results, exns) of
       ([], TRANSLATION (a, exn) :: _) =>

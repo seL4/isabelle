@@ -53,23 +53,23 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
 
     fun make_pred i T U r x =
       if i mem is then
-        Free (nth_elem (i, pnames), T --> U --> HOLogic.boolT) $ r $ x
-      else Free (nth_elem (i, pnames), U --> HOLogic.boolT) $ x;
+        Free (List.nth (pnames, i), T --> U --> HOLogic.boolT) $ r $ x
+      else Free (List.nth (pnames, i), U --> HOLogic.boolT) $ x;
 
     fun mk_all i s T t =
       if i mem is then list_all_free ([(s, T)], t) else t;
 
-    val (prems, rec_fns) = split_list (flat (snd (foldl_map
+    val (prems, rec_fns) = split_list (List.concat (snd (foldl_map
       (fn (j, ((i, (_, _, constrs)), T)) => foldl_map (fn (j, (cname, cargs)) =>
         let
           val Ts = map (typ_of_dtyp descr sorts) cargs;
           val tnames = variantlist (DatatypeProp.make_tnames Ts, pnames);
-          val recs = filter (is_rec_type o fst o fst) (cargs ~~ tnames ~~ Ts);
+          val recs = List.filter (is_rec_type o fst o fst) (cargs ~~ tnames ~~ Ts);
           val frees = tnames ~~ Ts;
 
           fun mk_prems vs [] = 
                 let
-                  val rT = nth_elem (i, rec_result_Ts);
+                  val rT = List.nth (rec_result_Ts, i);
                   val vs' = filter_out is_unit vs;
                   val f = mk_Free "f" (map fastype_of vs' ---> rT) j;
                   val f' = Pattern.eta_contract (list_abs_free
@@ -83,7 +83,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
                   val k = body_index dt;
                   val (Us, U) = strip_type T;
                   val i = length Us;
-                  val rT = nth_elem (k, rec_result_Ts);
+                  val rT = List.nth (rec_result_Ts, k);
                   val r = Free ("r" ^ s, Us ---> rT);
                   val (p, f) = mk_prems (vs @ [r]) ds
                 in (mk_all k ("r" ^ s) (Us ---> rT) (Logic.mk_implies
@@ -107,7 +107,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
       (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Bound 0) (Bound 0)))
         (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names);
     val r = if null is then Extraction.nullt else
-      foldr1 HOLogic.mk_prod (mapfilter (fn (((((i, _), T), U), s), tname) =>
+      foldr1 HOLogic.mk_prod (List.mapPartial (fn (((((i, _), T), U), s), tname) =>
         if i mem is then SOME
           (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Free (tname, T))
         else NONE) (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names ~~ tnames));
@@ -130,22 +130,22 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
 
     val {path, ...} = Sign.rep_sg sg;
     val ind_name = Thm.name_of_thm induction;
-    val vs = map (fn i => nth_elem (i, pnames)) is;
+    val vs = map (fn i => List.nth (pnames, i)) is;
     val (thy', thm') = thy
       |> Theory.absolute_path
       |> PureThy.store_thm
         ((space_implode "_" (ind_name :: vs @ ["correctness"]), thm), [])
-      |>> Theory.add_path (NameSpace.pack (if_none path []));
+      |>> Theory.add_path (NameSpace.pack (getOpt (path,[])));
 
     val ivs = Drule.vars_of_terms
       [Logic.varify (DatatypeProp.make_ind [descr] sorts)];
     val rvs = Drule.vars_of_terms [prop_of thm'];
     val ivs1 = map Var (filter_out (fn (_, T) =>
       tname_of (body_type T) mem ["set", "bool"]) ivs);
-    val ivs2 = map (fn (ixn, _) => Var (ixn, the (assoc (rvs, ixn)))) ivs;
+    val ivs2 = map (fn (ixn, _) => Var (ixn, valOf (assoc (rvs, ixn)))) ivs;
 
-    val prf = foldr forall_intr_prf (ivs2,
-      foldr (fn ((f, p), prf) =>
+    val prf = Library.foldr forall_intr_prf (ivs2,
+      Library.foldr (fn ((f, p), prf) =>
         (case head_of (strip_abs_body f) of
            Free (s, T) =>
              let val T' = Type.varifyT T
@@ -156,7 +156,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
            (rec_fns ~~ prems_of thm, Proofterm.proof_combP
              (prf_of thm', map PBound (length prems - 1 downto 0))));
 
-    val r' = if null is then r else Logic.varify (foldr (uncurry lambda)
+    val r' = if null is then r else Logic.varify (Library.foldr (uncurry lambda)
       (map Logic.unvarify ivs1 @ filter_out is_unit
         (map (head_of o strip_abs_body) rec_fns), r));
 
@@ -184,7 +184,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
       end;
 
     val SOME (_, _, constrs) = assoc (descr, index);
-    val T = nth_elem (index, get_rec_types descr sorts);
+    val T = List.nth (get_rec_types descr sorts, index);
     val (rs, prems) = split_list (map (make_casedist_prem T) constrs);
     val r = Const (case_name, map fastype_of rs ---> T --> rT);
 
@@ -205,11 +205,11 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
     val (thy', thm') = thy
       |> Theory.absolute_path
       |> PureThy.store_thm ((exh_name ^ "_P_correctness", thm), [])
-      |>> Theory.add_path (NameSpace.pack (if_none path []));
+      |>> Theory.add_path (NameSpace.pack (getOpt (path,[])));
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
     val prf = forall_intr_prf (y, forall_intr_prf (P,
-      foldr (fn ((p, r), prf) =>
+      Library.foldr (fn ((p, r), prf) =>
         forall_intr_prf (Logic.varify r, AbsP ("H", SOME (Logic.varify p),
           prf))) (prems ~~ rs, Proofterm.proof_combP (prf_of thm',
             map PBound (length prems - 1 downto 0)))));
@@ -225,8 +225,8 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
 
 fun add_dt_realizers sorts infos thy = if !proofs < 2 then thy else
   (message "Adding realizers for induction and case analysis ..."; thy
-   |> curry (foldr (make_ind sorts (hd infos)))
+   |> curry (Library.foldr (make_ind sorts (hd infos)))
      (subsets 0 (length (#descr (hd infos)) - 1))
-   |> curry (foldr (make_casedists sorts)) infos);
+   |> curry (Library.foldr (make_casedists sorts)) infos);
 
 end;

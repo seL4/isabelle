@@ -68,8 +68,8 @@ fun delTC (cs as TC{rules, net}, th) =
   else (warning ("No such type-checking rule\n" ^ (string_of_thm th));
         cs);
 
-val op addTCs = foldl addTC;
-val op delTCs = foldl delTC;
+val op addTCs = Library.foldl addTC;
+val op delTCs = Library.foldl delTC;
 
 
 (*resolution using a net rather than rules*)

@@ -77,6 +77,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/make_elim.ML $(SRC)/Provers/order.ML $(SRC)/Provers/quasi.ML\
   $(SRC)/Provers/simplifier.ML $(SRC)/Provers/splitter.ML \
   $(SRC)/Provers/trancl.ML \
+  $(SRC)/TFL/casesplit.ML \
   $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML $(SRC)/TFL/rules.ML \
   $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML \
   $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML \

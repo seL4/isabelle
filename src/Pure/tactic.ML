@@ -368,7 +368,7 @@ fun cut_rules_tac ths i = EVERY (map (fn th => metacut_tac th i) ths);
 
 (*As above, but inserts only facts (unconditional theorems);
   generates no additional subgoals. *)
-fun cut_facts_tac ths = cut_rules_tac  (filter is_fact ths);
+fun cut_facts_tac ths = cut_rules_tac  (List.filter is_fact ths);
 
 (*Introduce the given proposition as a lemma and subgoal*)
 fun subgoal_tac sprop =
@@ -426,7 +426,7 @@ fun insert_tagged_brl (kbrl as (k, (eres, th)), (inet, enet)) =
 
 (*build a pair of nets for biresolution*)
 fun build_netpair netpair brls =
-    foldr insert_tagged_brl (taglist 1 brls, netpair);
+    Library.foldr insert_tagged_brl (taglist 1 brls, netpair);
 
 (*delete one kbrl from the pair of nets*)
 local
@@ -473,7 +473,7 @@ fun insert_krl (krl as (k,th), net) =
 
 (*build a net of rules for resolution*)
 fun build_net rls =
-    foldr insert_krl (taglist 1 rls, Net.empty);
+    Library.foldr insert_krl (taglist 1 rls, Net.empty);
 
 (*resolution using a net rather than rules; pred supports filt_resolve_tac*)
 fun filt_resolution_from_net_tac match pred net =
@@ -562,7 +562,7 @@ fun sort_lhs_depths defs =
 
 val rev_defs = sort_lhs_depths o map symmetric;
 
-fun fold_rule defs thm = foldl (fn (th, ds) => rewrite_rule ds th) (thm, rev_defs defs);
+fun fold_rule defs thm = Library.foldl (fn (th, ds) => rewrite_rule ds th) (thm, rev_defs defs);
 fun fold_tac defs = EVERY (map rewrite_tac (rev_defs defs));
 fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
 
@@ -620,7 +620,7 @@ fun filter_prems_tac p =
         else (Then tac (rotate_tac n THEN' etac thin_rl),0);
   in SUBGOAL(fn (subg,n) =>
        let val Hs = Logic.strip_assums_hyp subg
-       in case fst(foldl thins ((NONE,0),Hs)) of
+       in case fst(Library.foldl thins ((NONE,0),Hs)) of
             NONE => no_tac | SOME tac => tac n
        end)
   end;
@@ -644,8 +644,8 @@ fun prove sign xs asms prop tac =
     val statement = Logic.list_implies (asms, prop);
     val frees = map Term.dest_Free (Term.term_frees statement);
     val fixed_frees = filter_out (fn (x, _) => x mem_string xs) frees;
-    val fixed_tfrees = foldr Term.add_typ_tfree_names (map #2 fixed_frees, []);
-    val params = mapfilter (fn x => apsome (pair x) (assoc_string (frees, x))) xs;
+    val fixed_tfrees = Library.foldr Term.add_typ_tfree_names (map #2 fixed_frees, []);
+    val params = List.mapPartial (fn x => Option.map (pair x) (assoc_string (frees, x))) xs;
 
     fun err msg = raise ERROR_MESSAGE
       (msg ^ "\nThe error(s) above occurred for the goal statement:\n" ^

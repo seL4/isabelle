@@ -143,7 +143,7 @@ fun single_thm _ [thm] = thm
 
 fun select_thm (s, NONE) xs = xs
   | select_thm (s, SOME is) xs = map
-      (fn i => (if i < 1 then raise LIST "" else nth_elem (i-1, xs)) handle LIST _ =>
+      (fn i => (if i < 1 then raise Subscript else List.nth (xs, i-1)) handle Subscript =>
          error ("Bad subscript " ^ string_of_int i ^ " for " ^ quote s)) is;
 
 
@@ -157,7 +157,7 @@ fun lookup_thms thy =
     val ref {space, thms_tab, ...} = get_theorems thy;
   in
     fn name =>
-      apsome (map (Thm.transfer_sg (Sign.deref sg_ref)))        (*semi-dynamic identity*)
+      Option.map (map (Thm.transfer_sg (Sign.deref sg_ref)))        (*semi-dynamic identity*)
       (Symtab.lookup (thms_tab, NameSpace.intern space name))   (*static content*)
   end;
 
@@ -178,7 +178,7 @@ fun get_thms theory (namei as (name, _)) =
   get_first (fn thy => lookup_thms thy name) (theory :: Theory.ancestors_of theory)
   |> the_thms name |> select_thm namei |> map (Thm.transfer theory);
 
-fun get_thmss thy names = flat (map (get_thms thy) names);
+fun get_thmss thy names = List.concat (map (get_thms thy) names);
 fun get_thm thy (namei as (name, _)) = single_thm name (get_thms thy namei);
 
 
@@ -186,7 +186,7 @@ fun get_thm thy (namei as (name, _)) = single_thm name (get_thms thy namei);
 
 fun thms_of thy =
   let val ref {thms_tab, ...} = get_theorems thy in
-    map (fn th => (Thm.name_of_thm th, th)) (flat (map snd (Symtab.dest thms_tab)))
+    map (fn th => (Thm.name_of_thm th, th)) (List.concat (map snd (Symtab.dest thms_tab)))
   end;
 
 
@@ -200,12 +200,12 @@ fun thms_containing thy idx =
       | SOME ths' => Library.equal_lists Thm.eq_thm (ths, ths'));
   in
     (thy :: Theory.ancestors_of thy)
-    |> map (gen_distinct eq_fst o filter valid o FactIndex.find idx o #index o ! o get_theorems)
-    |> flat
+    |> map (gen_distinct eq_fst o List.filter valid o FactIndex.find idx o #index o ! o get_theorems)
+    |> List.concat
   end;
 
 fun thms_containing_consts thy consts =
-  thms_containing thy (consts, []) |> map #2 |> flat
+  thms_containing thy (consts, []) |> map #2 |> List.concat
   |> map (fn th => (Thm.name_of_thm th, th))
 
 (* intro/elim theorems *)
@@ -235,7 +235,7 @@ fun select_match(c,obj, signobj, named_thms, (extract_thms,extract_term)) =
       fun substsize prop =
             let val pat = extract_term prop
                 val (_,subst) = Pattern.match tsig (pat,obj)
-            in foldl op+ (0, map (size_of_term o snd) subst) end
+            in Library.foldl op+ (0, map (size_of_term o snd) subst) end
 
       fun thm_ord ((p0,s0,_),(p1,s1,_)) =
             prod_ord (int_ord o pairself (fn 0 => 0 | x => 1)) int_ord ((p0,s0),(p1,s1));
@@ -355,7 +355,7 @@ fun gen_note_thss get kind_att (thy, ((bname, more_atts), ths_atts)) =
   let
     fun app (x, (ths, atts)) = Thm.applys_attributes ((x, ths), atts);
     val (thy', thms) = enter_thms (Theory.sign_of thy)
-      name_thmss (name_thms false) (apsnd flat o foldl_map app) thy
+      name_thmss (name_thms false) (apsnd List.concat o foldl_map app) thy
       (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind_att])) ths_atts);
   in (thy', (bname, thms)) end;
 
@@ -387,7 +387,7 @@ fun gen_smart_store_thms _ (name, []) =
   | gen_smart_store_thms name_thm (name, thms) =
       let
         val merge_sg = Sign.merge_refs o apsnd (Sign.self_ref o Thm.sign_of_thm);
-        val sg_ref = foldl merge_sg (Sign.self_ref (Thm.sign_of_thm (hd thms)), tl thms);
+        val sg_ref = Library.foldl merge_sg (Sign.self_ref (Thm.sign_of_thm (hd thms)), tl thms);
       in snd (enter_thms (Sign.deref sg_ref) (name_thm true) (name_thm false)
         I () (name, thms))
       end;
@@ -404,7 +404,7 @@ fun forall_elim_var i th =
     in case prop of
         Const ("all", _) $ Abs (a, T, _) =>
           let val used = map (fst o fst)
-            (filter (equal i o snd o fst) (Term.add_vars ([], prop)))
+            (List.filter (equal i o snd o fst) (Term.add_vars ([], prop)))
           in forall_elim (cterm_of sign (Var ((variant used a, i), T))) th end
       | _ => raise THM ("forall_elim_var", i, [th])
     end;

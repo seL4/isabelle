@@ -91,7 +91,7 @@ fun del_cong raw_thm congs =
     val (del, rest) = Library.partition (Library.equal c o fst) congs;
   in if null del then (warning ("No recdef congruence rule for " ^ quote c); congs) else rest end;
 
-val add_congs = curry (foldr (uncurry add_cong));
+val add_congs = curry (Library.foldr (uncurry add_cong));
 
 end;
 
@@ -255,7 +255,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints strict raw_name R eq_srcs hints th
     val (thy, (simps' :: rules', [induct'])) =
       thy
       |> Theory.add_path bname
-      |> PureThy.add_thmss ((("simps", flat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
+      |> PureThy.add_thmss ((("simps", List.concat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
       |>>> PureThy.add_thms [(("induct", induct), [])];
     val result = {simps = simps', rules = rules', induct = induct', tcs = tcs};
     val thy =
@@ -312,8 +312,8 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int thy =
       (case get_recdef thy name of
         NONE => error ("No recdef definition of constant: " ^ quote name)
       | SOME {tcs, ...} => tcs);
-    val i = if_none opt_i 1;
-    val tc = Library.nth_elem (i - 1, tcs) handle Library.LIST _ =>
+    val i = getOpt (opt_i, 1);
+    val tc = List.nth (tcs, i - 1) handle Subscript =>
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
   in

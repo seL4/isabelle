@@ -580,7 +580,7 @@ fun get_proof_dir (thyname:string) thy =
 		 else find ps
 	     end) handle OS.SysErr _ => find ps
     in
-	apsome (fn p => OS.Path.joinDirFile {dir = p, file = thyname}) (find path)
+	Option.map (fn p => OS.Path.joinDirFile {dir = p, file = thyname}) (find path)
     end
 			   
 fun proof_file_name thyname thmname thy =
@@ -675,7 +675,7 @@ fun xml_to_proof thyname types terms prf thy =
 		val (c,asl) = case terms of
 				  [] => raise ERR "x2p" "Bad oracle description"
 				| (hd::tl) => (hd,tl)
-		val tg = foldr (fn (oracle,tg) => Tag.merge (Tag.read oracle) tg) (ors,Tag.empty_tag)
+		val tg = Library.foldr (fn (oracle,tg) => Tag.merge (Tag.read oracle) tg) (ors,Tag.empty_tag)
 	    in
 		mk_proof (POracle(tg,map xml_to_term asl,xml_to_term c))
 	    end
@@ -916,7 +916,7 @@ fun beta_eta_thm th =
     end
 
 fun implies_elim_all th =
-    foldl (fn (th,p) => implies_elim th (assume p)) (th,cprems_of th)
+    Library.foldl (fn (th,p) => implies_elim th (assume p)) (th,cprems_of th)
 
 fun norm_hyps th =
     th |> beta_eta_thm
@@ -1064,7 +1064,7 @@ fun disamb_helper {vars,rens} tm =
 	  | process _ = raise ERR "disamb_helper" "Internal error"
 
 	val (vars',rens',inst) =
-	    foldr process (varstm,(vars,rens,[]))
+	    Library.foldr process (varstm,(vars,rens,[]))
     in
 	({vars=vars',rens=rens'},inst)
     end
@@ -1100,7 +1100,7 @@ fun disamb_thm_from info (hth as HOLThm(rens,thm)) =
     end
 
 fun disamb_terms_from info tms =
-    foldr (fn (tm,(info,tms)) =>
+    Library.foldr (fn (tm,(info,tms)) =>
 	      let
 		  val (info',tm') = disamb_term_from info tm
 	      in
@@ -1109,7 +1109,7 @@ fun disamb_terms_from info tms =
 	  (tms,(info,[]))
 
 fun disamb_thms_from info hthms =
-    foldr (fn (hthm,(info,thms)) =>
+    Library.foldr (fn (hthm,(info,thms)) =>
 	      let
 		  val (info',tm') = disamb_thm_from info hthm
 	      in
@@ -1127,7 +1127,7 @@ fun norm_hthm sg (hth as HOLThm([],_)) = hth
     let
 	val vars = collect_vars (prop_of th)
 	val (rens',inst,_) =
-	    foldr (fn((ren as (vold as Free(vname,_),vnew)),
+	    Library.foldr (fn((ren as (vold as Free(vname,_),vnew)),
 		      (rens,inst,vars)) =>
 		     (case Library.find_first (fn Free(v,_) => v = vname | _ => false) vars of
 			  SOME v' => if v' = vold
@@ -1139,7 +1139,7 @@ fun norm_hthm sg (hth as HOLThm([],_)) = hth
 	val (dom,rng) = ListPair.unzip inst
 	val th' = mk_INST (map (cterm_of sg) dom) (map (cterm_of sg) rng) th
 	val nvars = collect_vars (prop_of th')
-	val rens' = filter (fn(_,v) => v mem nvars) rens
+	val rens' = List.filter (fn(_,v) => v mem nvars) rens
 	val res = HOLThm(rens',th')
     in
 	res
@@ -1167,7 +1167,7 @@ fun get_hol4_thm thyname thmname thy =
 	end
 
 fun non_trivial_term_consts tm =
-    filter (fn c => not (c = "Trueprop" orelse
+    List.filter (fn c => not (c = "Trueprop" orelse
 			 c = "All" orelse
 			 c = "op -->" orelse
 			 c = "op &" orelse
@@ -1239,7 +1239,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
 		val th1 = (SOME (transform_error (PureThy.get_thm thy) (thmname, NONE))
 			   handle ERROR_MESSAGE _ =>
 				  (case split_name thmname of
-				       SOME (listname,idx) => (SOME (nth_elem(idx-1,PureThy.get_thms thy (listname, NONE)))
+				       SOME (listname,idx) => (SOME (List.nth(PureThy.get_thms thy (listname, NONE),idx-1))
 							       handle _ => NONE)
 				     | NONE => NONE))
 	    in
@@ -1794,7 +1794,7 @@ fun GEN_ABS copt vlist hth thy =
 		      | inst_type ty1 ty2 (ty as Type(name,tys)) =
 			Type(name,map (inst_type ty1 ty2) tys)
 		in
-		    foldr (fn (v,th) =>
+		    Library.foldr (fn (v,th) =>
 			      let
 				  val cdom = fst (dom_rng (fst (dom_rng cty)))
 				  val vty  = type_of v
@@ -1806,7 +1806,7 @@ fun GEN_ABS copt vlist hth thy =
 		end
 	      | SOME _ => raise ERR "GEN_ABS" "Bad constant"
 	      | NONE => 
-		foldr (fn (v,th) => mk_ABS v th sg) (vlist',th)
+		Library.foldr (fn (v,th) => mk_ABS v th sg) (vlist',th)
 	val res = HOLThm(rens_of info',th1)
 	val _ = message "RESULT:"
 	val _ = if_debug pth res
@@ -1876,7 +1876,7 @@ fun new_definition thyname constname rhs thy =
     let
 	val constname = rename_const thyname thy constname
         val sg = sign_of thy
-        val redeclared = is_some (Sign.const_type sg (Sign.intern_const sg constname));
+        val redeclared = isSome (Sign.const_type sg (Sign.intern_const sg constname));
 	val _ = warning ("Introducing constant " ^ constname)
 	val (thmname,thy) = get_defname thyname constname thy
 	val (info,rhs') = disamb_term rhs
@@ -1956,21 +1956,21 @@ fun new_specification thyname thmname names hth thy =
 				 | dest_exists tm =
 				   raise ERR "new_specification" "Bad existential formula"
 					 
-			       val (consts,_) = foldl (fn ((cs,ex),cname) =>
+			       val (consts,_) = Library.foldl (fn ((cs,ex),cname) =>
 							  let
 							      val (_,cT,p) = dest_exists ex
 							  in
 							      ((cname,cT,mk_syn thy cname)::cs,p)
 							  end) (([],HOLogic.dest_Trueprop (concl_of th)),names)
 			       val sg = sign_of thy
-			       val str = foldl (fn (acc,(c,T,csyn)) =>
+			       val str = Library.foldl (fn (acc,(c,T,csyn)) =>
 						   acc ^ "\n  " ^ (quotename c) ^ " :: \"" ^ string_of_ctyp (ctyp_of sg T) ^ "\" " ^ (Syntax.string_of_mixfix csyn)) ("consts",consts)
 			       val thy' = add_dump str thy
 			   in
 			       Theory.add_consts_i consts thy'
 			   end
 
-	    val thy1 = foldr (fn(name,thy)=>
+	    val thy1 = Library.foldr (fn(name,thy)=>
 				snd (get_defname thyname name thy)) (names,thy1)
 	    fun new_name name = fst (get_defname thyname name thy1)
 	    val (thy',res) = SpecificationPackage.add_specification_i NONE
@@ -1989,7 +1989,7 @@ fun new_specification thyname thmname names hth thy =
 		     then quotename name
 		     else (quotename newname) ^ ": " ^ (quotename name),thy')
 		end
-	    val (new_names,thy') = foldr (fn(name,(names,thy)) =>
+	    val (new_names,thy') = Library.foldr (fn(name,(names,thy)) =>
 					    let
 						val (name',thy') = handle_const (name,thy)
 					    in

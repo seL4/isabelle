@@ -108,13 +108,13 @@ fun allify_conditions ctermify Ts th =
       fun allify_prem_var (vt as (n,ty),t)  = 
           (Term.all ty) $ (Abs(n,ty,Term.abstract_over (Free vt, t)))
 
-      fun allify_prem Ts p = foldr allify_prem_var (Ts, p)
+      fun allify_prem Ts p = Library.foldr allify_prem_var (Ts, p)
 
       val cTs = map (ctermify o Free) Ts
       val cterm_asms = map (ctermify o allify_prem Ts) premts
       val allifyied_asm_thms = map (Drule.forall_elim_list cTs o Thm.assume) cterm_asms
     in 
-      (foldl (fn (x,y) => y COMP x) (th, allifyied_asm_thms), cterm_asms)
+      (Library.foldl (fn (x,y) => y COMP x) (th, allifyied_asm_thms), cterm_asms)
     end;
 
 fun allify_conditions' Ts th = 
@@ -132,7 +132,7 @@ fun fix_vars_to_frees th =
       val names = Term.add_term_names (prop, [])
 
       val (insts,names2) = 
-          foldl (fn ((insts,names),v as ((n,i),ty)) => 
+          Library.foldl (fn ((insts,names),v as ((n,i),ty)) => 
                     let val n2 = Term.variant names n in
                       ((ctermify (Var v), ctermify (Free(n2,ty))) :: insts, 
                        n2 :: names)
@@ -167,7 +167,7 @@ fun allify_term (v, t) =
     in (Term.all ty) $ (Abs(n,ty,Term.abstract_over (vt, t))) end;
 
 fun allify_for_sg_term ctermify vs t =
-    let val t_alls = foldr allify_term (vs,t);
+    let val t_alls = Library.foldr allify_term (vs,t);
         val ct_alls = ctermify t_alls; 
     in 
       (ct_alls, Drule.forall_elim_list vs (Thm.assume ct_alls))
@@ -189,7 +189,7 @@ fun export_back (export {fixes = vs, assumes = hprems,
       val (sgallcts, sgthms) = 
           Library.split_list (map (allify_for_sg_term ctermify vs) sgs);
       val minimal_newth = 
-          (foldl (fn ( newth', sgthm) => 
+          (Library.foldl (fn ( newth', sgthm) => 
                           Drule.compose_single (sgthm, 1, newth'))
                       (newth, sgthms));
       val allified_newth = 
@@ -229,7 +229,7 @@ fun prepare_goal_export (vs, cterms) th =
           Library.split_list (map (allify_for_sg_term ctermify cfrees) sgs);
 
       val minimal_th = 
-          (foldl (fn ( th', sgthm) => 
+          (Library.foldl (fn ( th', sgthm) => 
                           Drule.compose_single (sgthm, 1, th'))
                       (th, sgthms)) RS Drule.rev_triv_goal;
 
@@ -256,7 +256,7 @@ fun export_solution (export {fixes = cfvs, assumes = hcprems,
                 |> Drule.forall_intr_list cfvs
     in Drule.compose_single (solth', i, gth) end;
 
-val export_solutions = foldr (uncurry export_solution);
+val export_solutions = Library.foldr (uncurry export_solution);
 
 
 (* fix parameters of a subgoal "i", as free variables, and create an

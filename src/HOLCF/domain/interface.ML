@@ -33,7 +33,7 @@ local
       cat_lines (map (gen_vals dname) axioms1)^"\n"^
       gen_vall "con_defs"       (map (fn (con,_,_) => 
 		get dname (strip_esc con^"_def")) cons')^"\n"^
-      gen_vall "sel_defs" (flat (map (fn (_,_,args) => map (fn (_,sel,_) => 
+      gen_vall "sel_defs" (List.concat (map (fn (_,_,args) => map (fn (_,sel,_) => 
 		get dname (sel^"_def")) args)    cons'))^"\n"^
       gen_vall "dis_defs"       (map (fn (con,_,_) => 
 		get dname (dis_name_ con^"_def")) cons')^"\n"^

@@ -78,7 +78,7 @@ val uniq_assume_tac =
           and concl = discard_proof (Logic.strip_assums_concl prem)
       in  
           if exists (fn hyp => hyp aconv concl) hyps
-          then case distinct (filter (fn hyp=> could_unify(hyp,concl)) hyps) of
+          then case distinct (List.filter (fn hyp=> could_unify(hyp,concl)) hyps) of
                    [_] => assume_tac i
                  |  _  => no_tac
           else no_tac
@@ -310,7 +310,7 @@ qed "pred3_cong";
 (*special cases for free variables P, Q, R, S -- up to 3 arguments*)
 
 val pred_congs = 
-    flat (map (fn c => 
+    List.concat (map (fn c => 
                map (fn th => read_instantiate [("P",c)] th)
                    [pred1_cong,pred2_cong,pred3_cong])
                (explode"PQRS"));

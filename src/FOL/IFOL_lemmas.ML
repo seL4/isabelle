@@ -384,7 +384,7 @@ qed "pred3_cong";
 (*special cases for free variables P, Q, R, S -- up to 3 arguments*)
 
 val pred_congs = 
-    flat (map (fn c => 
+    List.concat (map (fn c => 
                map (fn th => read_instantiate [("P",c)] th)
                    [pred1_cong,pred2_cong,pred3_cong])
                (explode"PQRS"));

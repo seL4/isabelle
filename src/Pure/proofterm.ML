@@ -140,7 +140,7 @@ fun oracles_of_proof prfs prf =
            | SOME ps => if prop mem ps then tabs else
                oras_of ((Symtab.update ((name, prop::ps), thms), oras), prf))
       | oras_of ((thms, oras), prf as Oracle _) = (thms, prf ins oras)
-      | oras_of (tabs, MinProof prfs) = foldl oras_of (tabs, prfs)
+      | oras_of (tabs, MinProof prfs) = Library.foldl oras_of (tabs, prfs)
       | oras_of (tabs, _) = tabs
   in
     snd (oras_of ((Symtab.empty, prfs), prf))
@@ -155,7 +155,7 @@ fun thms_of_proof tab (Abst (_, _, prf)) = thms_of_proof tab prf
          NONE => thms_of_proof (Symtab.update ((s, [(prop, prf')]), tab)) prf
        | SOME ps => if exists (equal prop o fst) ps then tab else
            thms_of_proof (Symtab.update ((s, (prop, prf')::ps), tab)) prf)
-  | thms_of_proof tab (MinProof prfs) = foldl (uncurry thms_of_proof) (tab, prfs)
+  | thms_of_proof tab (MinProof prfs) = Library.foldl (uncurry thms_of_proof) (tab, prfs)
   | thms_of_proof tab _ = tab;
 
 fun axms_of_proof tab (Abst (_, _, prf)) = axms_of_proof tab prf
@@ -163,7 +163,7 @@ fun axms_of_proof tab (Abst (_, _, prf)) = axms_of_proof tab prf
   | axms_of_proof tab (prf1 %% prf2) = axms_of_proof (axms_of_proof tab prf1) prf2
   | axms_of_proof tab (prf % _) = axms_of_proof tab prf
   | axms_of_proof tab (prf as PAxm (s, _, _)) = Symtab.update ((s, prf), tab)
-  | axms_of_proof tab (MinProof prfs) = foldl (uncurry axms_of_proof) (tab, prfs)
+  | axms_of_proof tab (MinProof prfs) = Library.foldl (uncurry axms_of_proof) (tab, prfs)
   | axms_of_proof tab _ = tab;
 
 (** collect all theorems, axioms and oracles **)
@@ -199,9 +199,9 @@ fun infer_derivs' f = infer_derivs (K f) (false, MinProof []);
 
 fun (prf %> t) = prf % SOME t;
 
-val proof_combt = foldl (op %>);
-val proof_combt' = foldl (op %);
-val proof_combP = foldl (op %%);
+val proof_combt = Library.foldl (op %>);
+val proof_combt' = Library.foldl (op %);
+val proof_combP = Library.foldl (op %%);
 
 fun strip_combt prf = 
     let fun stripc (prf % t, ts) = stripc (prf, t::ts)
@@ -217,7 +217,7 @@ fun strip_thm prf = (case strip_combt (fst (strip_combP prf)) of
       (PThm (_, prf', _, _), _) => prf'
     | _ => prf);
 
-val mk_Abst = foldr (fn ((s, T:typ), prf) => Abst (s, NONE, prf));
+val mk_Abst = Library.foldr (fn ((s, T:typ), prf) => Abst (s, NONE, prf));
 fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", NONE, prf)) prf;
 
 fun apsome' f NONE = raise SAME
@@ -233,7 +233,7 @@ fun map_proof_terms f g =
           handle SAME => Abst (s, T, mapp prf))
       | mapp (AbsP (s, t, prf)) = (AbsP (s, apsome' (same f) t, mapph prf)
           handle SAME => AbsP (s, t, mapp prf))
-      | mapp (prf % t) = (mapp prf % apsome f t
+      | mapp (prf % t) = (mapp prf % Option.map f t
           handle SAME => prf % apsome' (same f) t)
       | mapp (prf1 %% prf2) = (mapp prf1 %% mapph prf2
           handle SAME => prf1 %% mapp prf2)
@@ -254,8 +254,8 @@ fun fold_proof_terms f g (a, Abst (_, SOME T, prf)) = fold_proof_terms f g (g (T
   | fold_proof_terms f g (a, prf % NONE) = fold_proof_terms f g (a, prf)
   | fold_proof_terms f g (a, prf1 %% prf2) = fold_proof_terms f g
       (fold_proof_terms f g (a, prf1), prf2)
-  | fold_proof_terms _ g (a, PThm (_, _, _, SOME Ts)) = foldr g (Ts, a)
-  | fold_proof_terms _ g (a, PAxm (_, prop, SOME Ts)) = foldr g (Ts, a)
+  | fold_proof_terms _ g (a, PThm (_, _, _, SOME Ts)) = Library.foldr g (Ts, a)
+  | fold_proof_terms _ g (a, PAxm (_, prop, SOME Ts)) = Library.foldr g (Ts, a)
   | fold_proof_terms _ _ (a, _) = a;
 
 val add_prf_names = fold_proof_terms add_term_names ((uncurry K) o swap);
@@ -282,7 +282,7 @@ fun change_type opTs (PThm (name, prf, prop, _)) = PThm (name, prf, prop, opTs)
 fun strip_abs (_::Ts) (Abs (_, _, t)) = strip_abs Ts t
   | strip_abs _ t = t;
 
-fun mk_abs Ts t = foldl (fn (t', T) => Abs ("", T, t')) (t, Ts);
+fun mk_abs Ts t = Library.foldl (fn (t', T) => Abs ("", T, t')) (t, Ts);
 
 
 (*Abstraction of a proof term over its occurrences of v, 
@@ -304,7 +304,7 @@ fun prf_abstract_over v =
       | abst lev (Abst (a, T, prf)) = Abst (a, T, abst (lev + 1) prf)
       | abst lev (prf1 %% prf2) = (abst lev prf1 %% absth lev prf2
           handle SAME => prf1 %% abst lev prf2)
-      | abst lev (prf % t) = (abst lev prf % apsome (absth' lev) t
+      | abst lev (prf % t) = (abst lev prf % Option.map (absth' lev) t
           handle SAME => prf % apsome' (abst' lev) t)
       | abst _ _ = raise SAME
     and absth lev prf = (abst lev prf handle SAME => prf)
@@ -331,7 +331,7 @@ fun prf_incr_bv' incP inct Plev tlev (PBound i) =
       (prf_incr_bv' incP inct Plev tlev prf %% prf_incr_bv incP inct Plev tlev prf'
        handle SAME => prf %% prf_incr_bv' incP inct Plev tlev prf')
   | prf_incr_bv' incP inct Plev tlev (prf % t) = 
-      (prf_incr_bv' incP inct Plev tlev prf % apsome (incr_bv' inct tlev) t
+      (prf_incr_bv' incP inct Plev tlev prf % Option.map (incr_bv' inct tlev) t
        handle SAME => prf % apsome' (same (incr_bv' inct tlev)) t)
   | prf_incr_bv' _ _ _ _ _ = raise SAME
 and prf_incr_bv incP inct Plev tlev prf =
@@ -383,7 +383,7 @@ fun norm_proof env =
           handle SAME => Abst (s, T, norm prf))
       | norm (AbsP (s, t, prf)) = (AbsP (s, apsome' (norm_term_same env) t, normh prf)
           handle SAME => AbsP (s, t, norm prf))
-      | norm (prf % t) = (norm prf % apsome (norm_term env) t
+      | norm (prf % t) = (norm prf % Option.map (norm_term env) t
           handle SAME => prf % apsome' (norm_term_same env) t)
       | norm (prf1 %% prf2) = (norm prf1 %% normh prf2
           handle SAME => prf1 %% norm prf2)
@@ -425,7 +425,7 @@ fun prf_subst_bounds args prf =
       | subst lev (Abst (a, T, body)) = Abst (a, T, subst (lev+1) body)
       | subst lev (prf %% prf') = (subst lev prf %% substh lev prf'
           handle SAME => prf %% subst lev prf')
-      | subst lev (prf % t) = (subst lev prf % apsome (substh' lev) t
+      | subst lev (prf % t) = (subst lev prf % Option.map (substh' lev) t
           handle SAME => prf % apsome' (subst' lev) t)
       | subst _ _ = raise SAME
     and substh lev prf = (subst lev prf handle SAME => prf)
@@ -451,7 +451,7 @@ fun prf_subst_pbounds args prf =
 (**** Freezing and thawing of variables in proof terms ****)
 
 fun frzT names =
-  map_type_tvar (fn (ixn, xs) => TFree (the (assoc (names, ixn)), xs));
+  map_type_tvar (fn (ixn, xs) => TFree (valOf (assoc (names, ixn)), xs));
 
 fun thawT names =
   map_type_tfree (fn (s, xs) => case assoc (names, s) of
@@ -465,7 +465,7 @@ fun freeze names names' (t $ u) =
   | freeze names names' (Const (s, T)) = Const (s, frzT names' T)
   | freeze names names' (Free (s, T)) = Free (s, frzT names' T)
   | freeze names names' (Var (ixn, T)) =
-      Free (the (assoc (names, ixn)), frzT names' T)
+      Free (valOf (assoc (names, ixn)), frzT names' T)
   | freeze names names' t = t;
 
 fun thaw names names' (t $ u) =
@@ -557,7 +557,7 @@ fun freezeT t prf =
   let
     val used = it_term_types add_typ_tfree_names (t, [])
     and tvars = map #1 (it_term_types add_typ_tvars (t, []));
-    val (alist, _) = foldr new_name (tvars, ([], used));
+    val (alist, _) = Library.foldr new_name (tvars, ([], used));
   in
     (case alist of
       [] => prf (*nothing to do!*)
@@ -615,7 +615,7 @@ fun lift_proof Bi inc prop prf =
       | lift' Us Ts (AbsP (s, t, prf)) =
           (AbsP (s, apsome' (same (lift'' Us Ts)) t, lifth' Us Ts prf)
            handle SAME => AbsP (s, t, lift' Us Ts prf))
-      | lift' Us Ts (prf % t) = (lift' Us Ts prf % apsome (lift'' Us Ts) t
+      | lift' Us Ts (prf % t) = (lift' Us Ts prf % Option.map (lift'' Us Ts) t
           handle SAME => prf % apsome' (same (lift'' Us Ts)) t)
       | lift' Us Ts (prf1 %% prf2) = (lift' Us Ts prf1 %% lifth' Us Ts prf2
           handle SAME => prf1 %% lift' Us Ts prf2)
@@ -637,7 +637,7 @@ fun lift_proof Bi inc prop prf =
       | lift Us bs i j (Const ("all", _) $ Abs (a, T, t)) = 
 	    Abst (a, NONE (*T*), lift (T::Us) (false::bs) i (j+1) t)
       | lift Us bs i j _ = proof_combP (lifth' (rev Us) [] prf,
-            map (fn k => (#3 (foldr mk_app (bs, (i-1, j-1, PBound k)))))
+            map (fn k => (#3 (Library.foldr mk_app (bs, (i-1, j-1, PBound k)))))
               (i + k - 1 downto i));
   in
     mk_AbsP (k, lift [] [] 0 0 Bi)
@@ -671,7 +671,7 @@ fun bicompose_proof Bs oldAs newAs A n rprf sprf =
   in
     mk_AbsP (lb+la, proof_combP (sprf,
       map PBound (lb + la - 1 downto la)) %%
-        proof_combP (rprf, (if n>0 then [mk_asm_prf (the A) (~n)] else []) @
+        proof_combP (rprf, (if n>0 then [mk_asm_prf (valOf A) (~n)] else []) @
           map (flatten_params_proof 0 0 n) (oldAs ~~ (la - 1 downto 0))))
   end;
 
@@ -726,7 +726,7 @@ fun abstract_rule x a prf =
   abstract_rule_axm % NONE % NONE %% forall_intr_proof x a prf;
 
 fun check_comb (PAxm ("ProtoPure.combination", _, _) % f % g % _ % _ %% prf %% _) =
-      is_some f orelse check_comb prf
+      isSome f orelse check_comb prf
   | check_comb (PAxm ("ProtoPure.transitive", _, _) % _ % _ % _ %% prf1 %% prf2) =
       check_comb prf1 andalso check_comb prf2
   | check_comb (PAxm ("ProtoPure.symmetric", _, _) % _ % _ %% prf) = check_comb prf
@@ -779,7 +779,7 @@ fun is_fun (Type ("fun", _)) = true
 
 fun add_funvars Ts (vs, t) =
   if is_fun (fastype_of1 (Ts, t)) then
-    vs union mapfilter (fn Var (ixn, T) =>
+    vs union List.mapPartial (fn Var (ixn, T) =>
       if is_fun T then SOME ixn else NONE | _ => NONE) (vars_of t)
   else vs;
 
@@ -791,10 +791,10 @@ fun add_npvars q p Ts (vs, Const ("==>", _) $ t $ u) =
   | add_npvars _ _ Ts (vs, t) = add_npvars' Ts (vs, t)
 and add_npvars' Ts (vs, t) = (case strip_comb t of
     (Var (ixn, _), ts) => if test_args [] ts then vs
-      else foldl (add_npvars' Ts) (overwrite (vs,
-        (ixn, foldl (add_funvars Ts) (if_none (assoc (vs, ixn)) [], ts))), ts)
-  | (Abs (_, T, u), ts) => foldl (add_npvars' (T::Ts)) (vs, u :: ts)
-  | (_, ts) => foldl (add_npvars' Ts) (vs, ts));
+      else Library.foldl (add_npvars' Ts) (overwrite (vs,
+        (ixn, Library.foldl (add_funvars Ts) (getOpt (assoc (vs, ixn), []), ts))), ts)
+  | (Abs (_, T, u), ts) => Library.foldl (add_npvars' (T::Ts)) (vs, u :: ts)
+  | (_, ts) => Library.foldl (add_npvars' Ts) (vs, ts));
 
 fun prop_vars (Const ("==>", _) $ P $ Q) = prop_vars P union prop_vars Q
   | prop_vars (Const ("all", _) $ Abs (_, _, t)) = prop_vars t
@@ -814,7 +814,7 @@ fun is_proj t =
   end;
 
 fun needed_vars prop = 
-  foldl op union ([], map op ins (add_npvars true true [] ([], prop))) union
+  Library.foldl op union ([], map op ins (add_npvars true true [] ([], prop))) union
   prop_vars prop;
 
 fun gen_axm_proof c name prop =
@@ -835,7 +835,7 @@ fun shrink ls lev (prf as Abst (a, T, body)) =
       in (b, is, ch, if ch then Abst (a, T, body') else prf) end
   | shrink ls lev (prf as AbsP (a, t, body)) =
       let val (b, is, ch, body') = shrink (lev::ls) lev body
-      in (b orelse 0 mem is, mapfilter (fn 0 => NONE | i => SOME (i-1)) is,
+      in (b orelse 0 mem is, List.mapPartial (fn 0 => NONE | i => SOME (i-1)) is,
         ch, if ch then AbsP (a, t, body') else prf)
       end
   | shrink ls lev prf =
@@ -852,9 +852,9 @@ and shrink' ls lev ts prfs (prf as prf1 %% prf2) =
       let val (is, ch, (ch', t')::ts', prf') = shrink' ls lev (t::ts) prfs prf1
       in (is, ch orelse ch', ts', if ch orelse ch' then prf' % t' else prf) end
   | shrink' ls lev ts prfs (prf as PBound i) =
-      (if exists (fn SOME (Bound j) => lev-j <= nth_elem (i, ls) | _ => true) ts
+      (if exists (fn SOME (Bound j) => lev-j <= List.nth (ls, i) | _ => true) ts
          orelse not (null (duplicates
-           (foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))))
+           (Library.foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))))
          orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
   | shrink' ls lev ts prfs (prf as Hyp _) = ([], false, map (pair false) ts, prf)
   | shrink' ls lev ts prfs (prf as MinProof _) =
@@ -865,8 +865,8 @@ and shrink' ls lev ts prfs (prf as prf1 %% prf2) =
           | Oracle (_, prop, _) => prop | _ => error "shrink: proof not in normal form");
         val vs = vars_of prop;
         val (ts', ts'') = splitAt (length vs, ts)
-        val insts = take (length ts', map (fst o dest_Var) vs) ~~ ts';
-        val nvs = foldl (fn (ixns', (ixn, ixns)) =>
+        val insts = Library.take (length ts', map (fst o dest_Var) vs) ~~ ts';
+        val nvs = Library.foldl (fn (ixns', (ixn, ixns)) =>
           ixn ins (case assoc (insts, ixn) of
               SOME (SOME t) => if is_proj t then ixns union ixns' else ixns'
             | _ => ixns union ixns'))
@@ -887,7 +887,7 @@ exception PMatch;
 
 (** see pattern.ML **)
 
-fun flt (i: int) = filter (fn n => n < i);
+fun flt (i: int) = List.filter (fn n => n < i);
 
 fun fomatch Ts tymatch j =
   let
@@ -916,7 +916,7 @@ fun match_proof Ts tymatch =
       (pinst, fomatch Ts tymatch j tinst (t, Envir.beta_norm u));
     fun matchT (pinst, (tyinsts, insts)) p =
       (pinst, (tymatch (tyinsts, K p), insts));
-    fun matchTs inst (Ts, Us) = foldl (uncurry matchT) (inst, Ts ~~ Us);
+    fun matchTs inst (Ts, Us) = Library.foldl (uncurry matchT) (inst, Ts ~~ Us);
 
     fun mtch Ts i j (pinst, tinst) (Hyp (Var (ixn, _)), prf) =
           if i = 0 andalso j = 0 then ((ixn, prf) :: pinst, tinst)
@@ -932,10 +932,10 @@ fun match_proof Ts tymatch =
       | mtch Ts i j inst (prf1 %% prf2, prf1' %% prf2') =
           mtch Ts i j (mtch Ts i j inst (prf1, prf1')) (prf2, prf2')
       | mtch Ts i j inst (Abst (_, opT, prf1), Abst (_, opU, prf2)) =
-          mtch (if_none opU dummyT :: Ts) i (j+1)
+          mtch (getOpt (opU,dummyT) :: Ts) i (j+1)
             (optmatch matchT inst (opT, opU)) (prf1, prf2)
       | mtch Ts i j inst (prf1, Abst (_, opU, prf2)) =
-          mtch (if_none opU dummyT :: Ts) i (j+1) inst
+          mtch (getOpt (opU,dummyT) :: Ts) i (j+1) inst
             (incr_pboundvars 0 1 prf1 %> Bound 0, prf2)
       | mtch Ts i j inst (AbsP (_, opt, prf1), AbsP (_, opu, prf2)) =
           mtch Ts (i+1) j (optmatch (matcht Ts j) inst (opt, opu)) (prf1, prf2)
@@ -967,18 +967,18 @@ fun prf_subst (pinst, (tyinsts, insts)) =
       | subst' _ t = t;
 
     fun subst plev tlev (AbsP (a, t, body)) =
-          AbsP (a, apsome (subst' tlev) t, subst (plev+1) tlev body)
+          AbsP (a, Option.map (subst' tlev) t, subst (plev+1) tlev body)
       | subst plev tlev (Abst (a, T, body)) =
-          Abst (a, apsome substT T, subst plev (tlev+1) body)
+          Abst (a, Option.map substT T, subst plev (tlev+1) body)
       | subst plev tlev (prf %% prf') = subst plev tlev prf %% subst plev tlev prf'
-      | subst plev tlev (prf % t) = subst plev tlev prf % apsome (subst' tlev) t
+      | subst plev tlev (prf % t) = subst plev tlev prf % Option.map (subst' tlev) t
       | subst plev tlev (prf as Hyp (Var (ixn, _))) = (case assoc (pinst, ixn) of
           NONE => prf
         | SOME prf' => incr_pboundvars plev tlev prf')
       | subst _ _ (PThm (id, prf, prop, Ts)) =
-          PThm (id, prf, prop, apsome (map substT) Ts)
+          PThm (id, prf, prop, Option.map (map substT) Ts)
       | subst _ _ (PAxm (id, prop, Ts)) =
-          PAxm (id, prop, apsome (map substT) Ts)
+          PAxm (id, prop, Option.map (map substT) Ts)
       | subst _ _ t = t
   in subst 0 0 end;
 
@@ -1023,42 +1023,42 @@ fun rewrite_prf tymatch (rules, procs) prf =
           SOME prf' => SOME (prf', skel0)
         | NONE => get_first (fn (prf1, prf2) => SOME (prf_subst
             (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2, prf2)
-               handle PMatch => NONE) (filter (could_unify prf o fst) rules));
+               handle PMatch => NONE) (List.filter (could_unify prf o fst) rules));
 
     fun rew0 Ts (prf as AbsP (_, _, prf' %% PBound 0)) =
           if prf_loose_Pbvar1 prf' 0 then rew Ts prf
           else
             let val prf'' = incr_pboundvars (~1) 0 prf'
-            in SOME (if_none (rew Ts prf'') (prf'', skel0)) end
+            in SOME (getOpt (rew Ts prf'', (prf'', skel0))) end
       | rew0 Ts (prf as Abst (_, _, prf' % SOME (Bound 0))) =
           if prf_loose_bvar1 prf' 0 then rew Ts prf
           else
             let val prf'' = incr_pboundvars 0 (~1) prf'
-            in SOME (if_none (rew Ts prf'') (prf'', skel0)) end
+            in SOME (getOpt (rew Ts prf'', (prf'', skel0))) end
       | rew0 Ts prf = rew Ts prf;
 
     fun rew1 _ (Hyp (Var _)) _ = NONE
       | rew1 Ts skel prf = (case rew2 Ts skel prf of
           SOME prf1 => (case rew0 Ts prf1 of
-              SOME (prf2, skel') => SOME (if_none (rew1 Ts skel' prf2) prf2)
+              SOME (prf2, skel') => SOME (getOpt (rew1 Ts skel' prf2, prf2))
             | NONE => SOME prf1)
         | NONE => (case rew0 Ts prf of
-              SOME (prf1, skel') => SOME (if_none (rew1 Ts skel' prf1) prf1)
+              SOME (prf1, skel') => SOME (getOpt (rew1 Ts skel' prf1, prf1))
             | NONE => NONE))
 
     and rew2 Ts skel (prf % SOME t) = (case prf of
             Abst (_, _, body) =>
               let val prf' = prf_subst_bounds [t] body
-              in SOME (if_none (rew2 Ts skel0 prf') prf') end
+              in SOME (getOpt (rew2 Ts skel0 prf', prf')) end
           | _ => (case rew1 Ts (case skel of skel' % _ => skel' | _ => skel0) prf of
               SOME prf' => SOME (prf' % SOME t)
             | NONE => NONE))
-      | rew2 Ts skel (prf % NONE) = apsome (fn prf' => prf' % NONE)
+      | rew2 Ts skel (prf % NONE) = Option.map (fn prf' => prf' % NONE)
           (rew1 Ts (case skel of skel' % _ => skel' | _ => skel0) prf)
       | rew2 Ts skel (prf1 %% prf2) = (case prf1 of
             AbsP (_, _, body) =>
               let val prf' = prf_subst_pbounds [prf2] body
-              in SOME (if_none (rew2 Ts skel0 prf') prf') end
+              in SOME (getOpt (rew2 Ts skel0 prf', prf')) end
           | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 %% skel2 => (skel1, skel2)
@@ -1071,7 +1071,7 @@ fun rewrite_prf tymatch (rules, procs) prf =
                     SOME prf2' => SOME (prf1 %% prf2')
                   | NONE => NONE)
             end)
-      | rew2 Ts skel (Abst (s, T, prf)) = (case rew1 (if_none T dummyT :: Ts)
+      | rew2 Ts skel (Abst (s, T, prf)) = (case rew1 (getOpt (T,dummyT) :: Ts)
               (case skel of Abst (_, _, skel') => skel' | _ => skel0) prf of
             SOME prf' => SOME (Abst (s, T, prf'))
           | NONE => NONE)
@@ -1081,7 +1081,7 @@ fun rewrite_prf tymatch (rules, procs) prf =
           | NONE => NONE)
       | rew2 _ _ _ = NONE
 
-  in if_none (rew1 [] skel0 prf) prf end;
+  in getOpt (rew1 [] skel0 prf, prf) end;
 
 fun rewrite_proof tsig = rewrite_prf (fn (tab, f) =>
   Type.typ_match tsig (tab, f ()) handle Type.TYPE_MATCH => raise PMatch);
@@ -1127,7 +1127,7 @@ fun thm_proof sign (name, tags) hyps prop prf =
       map SOME (sort (make_ord atless) (term_frees prop));
     val opt_prf = if ! proofs = 2 then
         #4 (shrink [] 0 (rewrite_prf fst (ProofData.get_sg sign)
-          (foldr (uncurry implies_intr_proof) (hyps, prf))))
+          (Library.foldr (uncurry implies_intr_proof) (hyps, prf))))
       else MinProof (mk_min_proof ([], prf));
     val head = (case strip_combt (fst (strip_combP prf)) of
         (PThm ((old_name, _), prf', prop', NONE), args') =>

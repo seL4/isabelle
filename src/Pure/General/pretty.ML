@@ -204,7 +204,7 @@ fun quote prt =
   blk (1, [str "\"", prt, str "\""]);
 
 fun commas prts =
-  flat (separate [str ",", brk 1] (map (fn x => [x]) prts));
+  List.concat (separate [str ",", brk 1] (map (fn x => [x]) prts));
 
 fun breaks prts = separate (brk 1) prts;
 fun fbreaks prts = separate fbrk prts;

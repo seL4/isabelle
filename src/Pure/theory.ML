@@ -333,7 +333,7 @@ fun clash_defn c_ty (name, tm) =
   end handle TERM _ => NONE;
 
 fun clash_defns c_ty axms =
-  distinct (mapfilter (clash_defn c_ty) axms);
+  distinct (List.mapPartial (clash_defn c_ty) axms);
 
 
 (* overloading *)
@@ -396,7 +396,7 @@ fun cycle_msg namess = "Cyclic dependency of constants:\n" ^
 
 fun add_deps (c, cs) deps =
   let fun declare (G, x) = Graph.new_node (x, ()) G handle Graph.DUP _ => G
-  in foldl declare (deps, c :: cs) |> Graph.add_deps_acyclic (c, cs) end;
+  in Library.foldl declare (deps, c :: cs) |> Graph.add_deps_acyclic (c, cs) end;
 
 fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
   let
@@ -455,10 +455,10 @@ fun check_defn sg overloaded final_consts ((deps, axms), def as (name, tm)) =
 fun ext_defns prep_axm overloaded raw_axms thy =
   let
     val Theory {sign, const_deps, final_consts, axioms, oracles, parents, ancestors} = thy;
-    val all_axioms = flat (map (Symtab.dest o #axioms o rep_theory) (thy :: ancestors));
+    val all_axioms = List.concat (map (Symtab.dest o #axioms o rep_theory) (thy :: ancestors));
 
     val axms = map (prep_axm sign) raw_axms;
-    val (const_deps', _) = foldl (check_defn sign overloaded final_consts) ((const_deps, all_axioms), axms);
+    val (const_deps', _) = Library.foldl (check_defn sign overloaded final_consts) ((const_deps, all_axioms), axms);
   in
     make_theory sign const_deps' final_consts axioms oracles parents ancestors
     |> add_axioms_i axms
@@ -502,7 +502,7 @@ fun ext_finals prep_term overloaded raw_terms thy =
 	  | NONE => Symtab.update((c,[ty]),finals))
       end;
     val consts = map (prep_term sign) raw_terms;
-    val final_consts' = foldl mk_final (final_consts,consts);
+    val final_consts' = Library.foldl mk_final (final_consts,consts);
   in
     make_theory sign const_deps final_consts' axioms oracles parents ancestors
   end;
@@ -523,7 +523,7 @@ fun merge_final sg =
       else (ty::gen_rem (Sign.typ_instance sg) (tys,ty));
     fun merge ([],_) = []
       | merge (_,[]) = []
-      | merge input = foldl merge_single input;
+      | merge input = Library.foldl merge_single input;
   in
     SOME o merge
   end;
@@ -552,28 +552,28 @@ fun prep_ext_merge thys =
   else
     let
       val sign' =
-        foldl merge_sign (sign_of (hd thys), tl thys)
+        Library.foldl merge_sign (sign_of (hd thys), tl thys)
         |> Sign.prep_ext
         |> Sign.add_path "/";
 
       val depss = map (#const_deps o rep_theory) thys;
-      val deps' = foldl (Graph.merge_acyclic (K true)) (hd depss, tl depss)
+      val deps' = Library.foldl (Graph.merge_acyclic (K true)) (hd depss, tl depss)
         handle Graph.CYCLES namess => error (cycle_msg namess);
 
       val final_constss = map (#final_consts o rep_theory) thys;
-      val final_consts' = foldl (Symtab.join (merge_final sign')) (hd final_constss,
+      val final_consts' = Library.foldl (Symtab.join (merge_final sign')) (hd final_constss,
 								   tl final_constss);
       val axioms' = Symtab.empty;
 
       fun eq_ora ((_, (_, s1: stamp)), (_, (_, s2))) = s1 = s2;
       val oracles' =
         Symtab.make (gen_distinct eq_ora
-          (flat (map (Symtab.dest o #oracles o rep_theory) thys)))
+          (List.concat (map (Symtab.dest o #oracles o rep_theory) thys)))
         handle Symtab.DUPS names => err_dup_oras names;
 
       val parents' = gen_distinct eq_thy thys;
       val ancestors' =
-        gen_distinct eq_thy (parents' @ flat (map ancestors_of thys));
+        gen_distinct eq_thy (parents' @ List.concat (map ancestors_of thys));
     in
       make_theory sign' deps' final_consts' axioms' oracles' parents' ancestors'
     end;

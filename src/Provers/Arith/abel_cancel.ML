@@ -160,7 +160,7 @@ open Data;
        val _ = if null common then raise Cancel  (*nothing to do*)
                                    else ()
 
-       fun cancelled tms = mk_sum ty (foldl cancel1 (tms, common))
+       fun cancelled tms = mk_sum ty (Library.foldl cancel1 (tms, common))
 
        val lt' = cancelled ltms
        and rt' = cancelled rtms

@@ -86,7 +86,7 @@ fun add_rule (r as (_, (lhs, _)), {next, rs, net} : rules) =
 
 fun merge_rules
   ({next, rs = rs1, net} : rules) ({next = next2, rs = rs2, ...} : rules) =
-  foldr add_rule (rs2 \\ rs1, {next = next, rs = rs1, net = net});
+  Library.foldr add_rule (rs2 \\ rs1, {next = next, rs = rs1, net = net});
 
 fun condrew sign rules procs =
   let
@@ -105,15 +105,15 @@ fun condrew sign rules procs =
       in
         get_first (fn (_, (prems, (tm1, tm2))) =>
         let
-          fun ren t = if_none (Term.rename_abs tm1 tm t) t;
+          fun ren t = getOpt (Term.rename_abs tm1 tm t, t);
           val inc = Logic.incr_indexes ([], maxidx_of_term tm + 1);
           val env as (Tenv, tenv) = Pattern.match tsig (inc tm1, tm);
           val prems' = map (pairself (subst_vars env o inc o ren)) prems;
           val env' = Envir.Envir
-            {maxidx = foldl Int.max
+            {maxidx = Library.foldl Int.max
               (~1, map (Int.max o pairself maxidx_of_term) prems'),
              iTs = Vartab.make Tenv, asol = Vartab.make tenv};
-          val env'' = foldl (fn (env, p) =>
+          val env'' = Library.foldl (fn (env, p) =>
             Pattern.unify (sign, env, [pairself (lookup rew) p])) (env', prems')
         in SOME (Envir.norm_term env'' (inc (ren tm2)))
         end handle Pattern.MATCH => NONE | Pattern.Unif => NONE)
@@ -147,7 +147,7 @@ fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in Abst (a, SOME T, prf_abstract_over t prf) end;
 
-val mkabs = foldr (fn (v, t) => Abs ("x", fastype_of v, abstract_over (v, t)));
+val mkabs = Library.foldr (fn (v, t) => Abs ("x", fastype_of v, abstract_over (v, t)));
 
 fun strip_abs 0 t = t
   | strip_abs n (Abs (_, _, t)) = strip_abs (n-1) t
@@ -156,7 +156,7 @@ fun strip_abs 0 t = t
 fun prf_subst_TVars tye =
   map_proof_terms (subst_TVars tye) (typ_subst_TVars tye);
 
-fun relevant_vars types prop = foldr (fn
+fun relevant_vars types prop = Library.foldr (fn
       (Var ((a, i), T), vs) => (case strip_type T of
         (_, Type (s, _)) => if s mem types then a :: vs else vs
       | _ => vs)
@@ -254,7 +254,7 @@ fun gen_add_realizes_eqns prep_eq eqns thy =
     defs, expand, prep} = ExtractionData.get thy;
   in
     ExtractionData.put
-      {realizes_eqns = foldr add_rule (map (prep_eq thy) eqns, realizes_eqns),
+      {realizes_eqns = Library.foldr add_rule (map (prep_eq thy) eqns, realizes_eqns),
        typeof_eqns = typeof_eqns, types = types, realizers = realizers,
        defs = defs, expand = expand, prep = prep} thy
   end
@@ -272,7 +272,7 @@ fun gen_add_typeof_eqns prep_eq eqns thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, realizers = realizers,
-       typeof_eqns = foldr add_rule (eqns', typeof_eqns),
+       typeof_eqns = Library.foldr add_rule (eqns', typeof_eqns),
        types = types, defs = defs, expand = expand, prep = prep} thy
   end
 
@@ -311,7 +311,7 @@ fun gen_add_realizers prep_rlz rs thy =
   in
     ExtractionData.put
       {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
-       realizers = foldr Symtab.update_multi
+       realizers = Library.foldr Symtab.update_multi
          (map (prep_rlz thy) (rev rs), realizers),
        defs = defs, expand = expand, prep = prep} thy
   end
@@ -320,7 +320,7 @@ fun prep_realizer thy =
   let
     val {realizes_eqns, typeof_eqns, defs, types, ...} =
       ExtractionData.get thy;
-    val procs = flat (map (fst o snd) types);
+    val procs = List.concat (map (fst o snd) types);
     val rtypes = map fst types;
     val eqns = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
     val thy' = add_syntax thy;
@@ -344,7 +344,7 @@ fun prep_realizer thy =
         (procs @ [typeof_proc (Sign.defaultS sign) vs, rlz_proc]))
           (Const ("realizes", T --> propT --> propT) $
             (if T = nullT then t else list_comb (t, vars')) $ prop);
-      val r = foldr forall_intr (map (get_var_type r') vars, r');
+      val r = Library.foldr forall_intr (map (get_var_type r') vars, r');
       val prf = Reconstruct.reconstruct_proof sign r (rd s2);
     in (name, (vs, (t, prf))) end
   end;
@@ -359,7 +359,7 @@ fun realizes_of thy vs t prop =
     val sign = sign_of thy';
     val {realizes_eqns, typeof_eqns, defs, types, ...} =
       ExtractionData.get thy';
-    val procs = flat (map (fst o snd) types);
+    val procs = List.concat (map (fst o snd) types);
     val eqns = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
     val prop' = Pattern.rewrite_term (Sign.tsig_of sign)
       (map (Logic.dest_equals o prop_of) defs) [] prop;
@@ -382,7 +382,7 @@ fun add_expand_thm (thy, thm) =
       (case strip_comb (fst (Logic.dest_equals (prop_of thm))) of
          (Const _, ts) => forall is_Var ts andalso null (duplicates ts)
            andalso exists (fn thy =>
-               is_some (Symtab.lookup (#axioms (rep_theory thy), name)))
+               isSome (Symtab.lookup (#axioms (rep_theory thy), name)))
              (thy :: ancestors_of thy)
        | _ => false) handle TERM _ => false;
 
@@ -402,7 +402,7 @@ fun add_expand_thm (thy, thm) =
          expand = (name, prop_of thm) ins expand, prep = prep}) thy, thm)
   end;
 
-fun add_expand_thms thms thy = foldl (fst o add_expand_thm) (thy, thms);
+fun add_expand_thms thms thy = Library.foldl (fst o add_expand_thm) (thy, thms);
 
 (** types with computational content **)
 
@@ -427,10 +427,10 @@ fun extract thms thy =
     val tsg = Sign.tsig_of sg;
     val {realizes_eqns, typeof_eqns, types, realizers, defs, expand, prep} =
       ExtractionData.get thy;
-    val procs = flat (map (fst o snd) types);
+    val procs = List.concat (map (fst o snd) types);
     val rtypes = map fst types;
     val typroc = typeof_proc (Sign.defaultS sg);
-    val prep = if_none prep (K I) sg o ProofRewriteRules.elim_defs sg false defs o
+    val prep = getOpt (prep, K I) sg o ProofRewriteRules.elim_defs sg false defs o
       Reconstruct.expand_proof sg (("", NONE) :: map (apsnd SOME) expand);
     val rrews = Net.merge (#net realizes_eqns, #net typeof_eqns, K false);
 
@@ -448,10 +448,10 @@ fun extract thms thy =
             end
           else (vs', tye)
 
-      in foldr add_args (take (n, vars) ~~ take (n, ts), ([], [])) end;
+      in Library.foldr add_args (Library.take (n, vars) ~~ Library.take (n, ts), ([], [])) end;
 
-    fun find vs = apsome snd o find_first (curry eq_set vs o fst);
-    fun find' s = map snd o filter (equal s o fst)
+    fun find vs = Option.map snd o find_first (curry eq_set vs o fst);
+    fun find' s = map snd o List.filter (equal s o fst)
 
     fun app_rlz_rews Ts vs t = strip_abs (length Ts) (freeze_thaw
       (condrew sg rrews (procs @ [typroc vs, rlz_proc])) (list_abs
@@ -543,7 +543,7 @@ fun extract thms thy =
                     val (defs'', corr_prf) =
                       corr (d + 1) defs' vs' [] [] [] prf' prf' NONE;
                     val corr_prop = Reconstruct.prop_of corr_prf;
-                    val corr_prf' = foldr forall_intr_prf
+                    val corr_prf' = Library.foldr forall_intr_prf
                       (map (get_var_type corr_prop) (vfs_of prop), proof_combt
                          (PThm ((corr_name name vs', []), corr_prf, corr_prop,
                              SOME (map TVar (term_tvars corr_prop))), vfs_of corr_prop))
@@ -629,7 +629,7 @@ fun extract thms thy =
                     val nt = Envir.beta_norm t;
                     val args = filter_out (fn v => tname_of (body_type
                       (fastype_of v)) mem rtypes) (vfs_of prop);
-                    val args' = filter (fn v => Logic.occs (v, nt)) args;
+                    val args' = List.filter (fn v => Logic.occs (v, nt)) args;
                     val t' = mkabs (args', nt);
                     val T = fastype_of t';
                     val cname = extr_name s vs';
@@ -651,7 +651,7 @@ fun extract thms thy =
                            PAxm (cname ^ "_def", eqn,
                              SOME (map TVar (term_tvars eqn))))) %% corr_prf;
                     val corr_prop = Reconstruct.prop_of corr_prf';
-                    val corr_prf'' = foldr forall_intr_prf
+                    val corr_prf'' = Library.foldr forall_intr_prf
                       (map (get_var_type corr_prop) (vfs_of prop), proof_combt
                         (PThm ((corr_name s vs', []), corr_prf', corr_prop,
                           SOME (map TVar (term_tvars corr_prop))), vfs_of corr_prop));
@@ -690,7 +690,7 @@ fun extract thms thy =
           quote name ^ " has no computational content")
       in (Reconstruct.reconstruct_proof sign prop prf, vs) end;
 
-    val defs = foldl (fn (defs, (prf, vs)) =>
+    val defs = Library.foldl (fn (defs, (prf, vs)) =>
       fst (extr 0 defs vs [] [] [] prf)) ([], map prep_thm thms);
     val {path, ...} = Sign.rep_sg sg;
 
@@ -716,8 +716,8 @@ fun extract thms thy =
 
   in thy |>
     Theory.absolute_path |>
-    curry (foldr add_def) defs |>
-    Theory.add_path (NameSpace.pack (if_none path []))
+    curry (Library.foldr add_def) defs |>
+    Theory.add_path (NameSpace.pack (getOpt (path,[])))
   end;
 
 

@@ -221,7 +221,7 @@ fun read_insts sign (rtypes,rsorts) (types,sorts) used insts =
 let
     fun is_tv ((a, _), _) =
       (case Symbol.explode a of "'" :: _ => true | _ => false);
-    val (tvs, vs) = partition is_tv insts;
+    val (tvs, vs) = List.partition is_tv insts;
     fun readT (ixn, st) =
         let val S = case rsorts ixn of SOME S => S | NONE => absent ixn;
             val T = Sign.read_typ (sign,sorts) st;
@@ -340,16 +340,16 @@ fun gen_all thm =
     val {sign, prop, maxidx, ...} = Thm.rep_thm thm;
     fun elim (th, (x, T)) = Thm.forall_elim (Thm.cterm_of sign (Var ((x, maxidx + 1), T))) th;
     val vs = Term.strip_all_vars prop;
-  in foldl elim (thm, Term.variantlist (map #1 vs, []) ~~ map #2 vs) end;
+  in Library.foldl elim (thm, Term.variantlist (map #1 vs, []) ~~ map #2 vs) end;
 
 (*Specialization over a list of cterms*)
-fun forall_elim_list cts th = foldr (uncurry forall_elim) (rev cts, th);
+fun forall_elim_list cts th = Library.foldr (uncurry forall_elim) (rev cts, th);
 
 (* maps A1,...,An |- B   to   [| A1;...;An |] ==> B  *)
-fun implies_intr_list cAs th = foldr (uncurry implies_intr) (cAs,th);
+fun implies_intr_list cAs th = Library.foldr (uncurry implies_intr) (cAs,th);
 
 (* maps [| A1;...;An |] ==> B and [A1,...,An]   to   B *)
-fun implies_elim_list impth ths = foldl (uncurry implies_elim) (impth,ths);
+fun implies_elim_list impth ths = Library.foldl (uncurry implies_elim) (impth,ths);
 
 (* maps |- B to A1,...,An |- B *)
 fun impose_hyps chyps th =
@@ -364,13 +364,13 @@ fun satisfy_hyps ths th =
 fun zero_var_indexes th =
     let val {prop,sign,tpairs,...} = rep_thm th;
         val (tpair_l, tpair_r) = Library.split_list tpairs;
-        val vars = foldr add_term_vars 
-                         (tpair_r, foldr add_term_vars (tpair_l, (term_vars prop)));
-        val bs = foldl add_new_id ([], map (fn Var((a,_),_)=>a) vars)
+        val vars = Library.foldr add_term_vars 
+                         (tpair_r, Library.foldr add_term_vars (tpair_l, (term_vars prop)));
+        val bs = Library.foldl add_new_id ([], map (fn Var((a,_),_)=>a) vars)
         val inrs = 
-            foldr add_term_tvars 
-                  (tpair_r, foldr add_term_tvars (tpair_l, (term_tvars prop)));
-        val nms' = rev(foldl add_new_id ([], map (#1 o #1) inrs));
+            Library.foldr add_term_tvars 
+                  (tpair_r, Library.foldr add_term_tvars (tpair_l, (term_tvars prop)));
+        val nms' = rev(Library.foldl add_new_id ([], map (#1 o #1) inrs));
         val tye = ListPair.map (fn ((v,rs),a) => (v, TVar((a,0),rs)))
                      (inrs, nms')
         val ctye = map (fn (v,T) => (v,ctyp_of sign T)) tye;
@@ -423,16 +423,16 @@ fun freeze_thaw_robust th =
  let val fth = freezeT th
      val {prop, tpairs, sign, ...} = rep_thm fth
  in
-   case foldr add_term_vars (prop :: Thm.terms_of_tpairs tpairs, []) of
+   case Library.foldr add_term_vars (prop :: Thm.terms_of_tpairs tpairs, []) of
        [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
      | vars =>
          let fun newName (Var(ix,_), pairs) =
                    let val v = gensym (string_of_indexname ix)
                    in  ((ix,v)::pairs)  end;
-             val alist = foldr newName (vars,[])
+             val alist = Library.foldr newName (vars,[])
              fun mk_inst (Var(v,T)) =
                  (cterm_of sign (Var(v,T)),
-                  cterm_of sign (Free(the (assoc(alist,v)), T)))
+                  cterm_of sign (Free(valOf (assoc(alist,v)), T)))
              val insts = map mk_inst vars
              fun thaw i th' = (*i is non-negative increment for Var indexes*)
                  th' |> forall_intr_list (map #2 insts)
@@ -446,17 +446,17 @@ fun freeze_thaw th =
  let val fth = freezeT th
      val {prop, tpairs, sign, ...} = rep_thm fth
  in
-   case foldr add_term_vars (prop :: Thm.terms_of_tpairs tpairs, []) of
+   case Library.foldr add_term_vars (prop :: Thm.terms_of_tpairs tpairs, []) of
        [] => (fth, fn x => x)
      | vars =>
          let fun newName (Var(ix,_), (pairs,used)) =
                    let val v = variant used (string_of_indexname ix)
                    in  ((ix,v)::pairs, v::used)  end;
-             val (alist, _) = foldr newName (vars, ([], foldr add_term_names
+             val (alist, _) = Library.foldr newName (vars, ([], Library.foldr add_term_names
                (prop :: Thm.terms_of_tpairs tpairs, [])))
              fun mk_inst (Var(v,T)) =
                  (cterm_of sign (Var(v,T)),
-                  cterm_of sign (Free(the (assoc(alist,v)), T)))
+                  cterm_of sign (Free(valOf (assoc(alist,v)), T)))
              val insts = map mk_inst vars
              fun thaw th' =
                  th' |> forall_intr_list (map #2 insts)
@@ -641,7 +641,7 @@ val imp_cong' = combination o combination (reflexive implies)
 fun abs_def thm =
   let
     val (_, cvs) = strip_comb (fst (dest_equals (cprop_of thm)));
-    val thm' = foldr (fn (ct, thm) => Thm.abstract_rule
+    val thm' = Library.foldr (fn (ct, thm) => Thm.abstract_rule
       (case term_of ct of Var ((a, _), _) => a | Free (a, _) => a | _ => "x")
         ct thm) (cvs, thm)
   in transitive
@@ -835,7 +835,7 @@ local
     in  (sign', tye', maxi')  end;
 in
 fun cterm_instantiate ctpairs0 th =
-  let val (sign,tye,_) = foldr add_types (ctpairs0, (Thm.sign_of_thm th, Vartab.empty, 0))
+  let val (sign,tye,_) = Library.foldr add_types (ctpairs0, (Thm.sign_of_thm th, Vartab.empty, 0))
       fun instT(ct,cu) = 
         let val inst = cterm_of sign o subst_TVars_Vartab tye o term_of
         in (inst ct, inst cu) end
@@ -862,7 +862,7 @@ fun equal_abs_elim ca eqth =
   handle THM _ => raise THM("equal_abs_elim", 0, [eqth]);
 
 (*Calling equal_abs_elim with multiple terms*)
-fun equal_abs_elim_list cts th = foldr (uncurry equal_abs_elim) (rev cts, th);
+fun equal_abs_elim_list cts th = Library.foldr (uncurry equal_abs_elim) (rev cts, th);
 
 
 (*** Goal (PROP A) <==> PROP A ***)
@@ -896,8 +896,8 @@ fun inst x t = read_instantiate_sg (sign_of (the_context())) [(x,t)];
 
 (* collect vars in left-to-right order *)
 
-fun tvars_of_terms ts = rev (foldl Term.add_tvars ([], ts));
-fun vars_of_terms ts = rev (foldl Term.add_vars ([], ts));
+fun tvars_of_terms ts = rev (Library.foldl Term.add_tvars ([], ts));
+fun vars_of_terms ts = rev (Library.foldl Term.add_vars ([], ts));
 
 fun tvars_of thm = tvars_of_terms [prop_of thm];
 fun vars_of thm = vars_of_terms [prop_of thm];
@@ -909,8 +909,8 @@ fun instantiate' cTs cts thm =
   let
     fun err msg =
       raise TYPE ("instantiate': " ^ msg,
-        mapfilter (apsome Thm.typ_of) cTs,
-        mapfilter (apsome Thm.term_of) cts);
+        List.mapPartial (Option.map Thm.typ_of) cTs,
+        List.mapPartial (Option.map Thm.term_of) cts);
 
     fun inst_of (v, ct) =
       (Thm.cterm_of (#sign (Thm.rep_cterm ct)) (Var v), ct)
@@ -941,7 +941,7 @@ fun rename_bvars [] thm = thm
   | rename_bvars vs thm =
     let
       val {sign, prop, ...} = rep_thm thm;
-      fun ren (Abs (x, T, t)) = Abs (if_none (assoc (vs, x)) x, T, ren t)
+      fun ren (Abs (x, T, t)) = Abs (getOpt (assoc (vs, x), x), T, ren t)
         | ren (t $ u) = ren t $ ren u
         | ren t = t;
     in equal_elim (reflexive (cterm_of sign (ren prop))) thm end;
@@ -955,7 +955,7 @@ fun rename_bvars' xs thm =
     fun rename [] t = ([], t)
       | rename (x' :: xs) (Abs (x, T, t)) =
           let val (xs', t') = rename xs t
-          in (xs', Abs (if_none x' x, T, t')) end
+          in (xs', Abs (getOpt (x',x), T, t')) end
       | rename xs (t $ u) =
           let
             val (xs', t') = rename xs t;
@@ -991,7 +991,7 @@ fun unvarify raw_thm =
 
 fun tfrees_of thm =
   let val {hyps, prop, ...} = Thm.rep_thm thm
-  in foldr Term.add_term_tfree_names (prop :: hyps, []) end;
+  in Library.foldr Term.add_term_tfree_names (prop :: hyps, []) end;
 
 fun tvars_intr_list tfrees thm =
   Thm.varifyT' (tfrees_of thm \\ tfrees) thm;
@@ -1002,7 +1002,7 @@ fun tvars_intr_list tfrees thm =
 fun incr_indexes_wrt is cTs cts thms =
   let
     val maxidx =
-      foldl Int.max (~1, is @
+      Library.foldl Int.max (~1, is @
         map (maxidx_of_typ o #T o Thm.rep_ctyp) cTs @
         map (#maxidx o Thm.rep_cterm) cts @
         map (#maxidx o Thm.rep_thm) thms);

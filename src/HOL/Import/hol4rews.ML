@@ -614,7 +614,7 @@ fun dump_import_thy thyname thy =
 	    then
 		let
 		    val paths = NameSpace.unpack isa
-		    val i = drop(length paths - 2,paths)
+		    val i = Library.drop(length paths - 2,paths)
 		in
 		    case i of
 			[seg,con] => output_thy ^ "." ^ seg ^ "." ^ con

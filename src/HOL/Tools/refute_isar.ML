@@ -48,7 +48,7 @@ struct
 					val thy              = (Toplevel.theory_of state)
 					val thm              = ((snd o snd) (Proof.get_goal (Toplevel.proof_of state)))
 				in
-					Refute.refute_subgoal thy (if_none parms []) thm ((if_none subgoal 1)-1)
+					Refute.refute_subgoal thy (getOpt (parms, [])) thm ((getOpt (subgoal, 1))-1)
 				end)
 			);
 
@@ -79,7 +79,7 @@ struct
 		in
 			Toplevel.theory (fn thy =>
 				let
-					val thy'               = add_params (thy, (if_none args []))
+					val thy'               = add_params (thy, (getOpt (args, [])))
 					val new_default_params = Refute.get_default_params thy'
 					val output             = if new_default_params=[] then "none" else (space_implode "\n" (map (fn (name,value) => name ^ "=" ^ value) new_default_params))
 				in

@@ -66,12 +66,12 @@ fun induct_info thy tname = case get_info thy tname of
         NONE => NONE
       | SOME {nchotomy, ...} =>
           SOME {nchotomy = nchotomy,
-                constructors = the (DatatypePackage.constrs_of thy tname)};
+                constructors = valOf (DatatypePackage.constrs_of thy tname)};
 
 fun extract_info thy =
  let val infos = map snd (Symtab.dest (DatatypePackage.get_datatypes thy))
  in {case_congs = map (mk_meta_eq o #case_cong) infos,
-     case_rewrites = flat (map (map mk_meta_eq o #case_rewrites) infos)}
+     case_rewrites = List.concat (map (map mk_meta_eq o #case_rewrites) infos)}
  end;
 
 

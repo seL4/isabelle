@@ -104,9 +104,9 @@ fun prove_nonempty thy cset goal (witn1_tac, witn_names, witn_thms, witn2_tac) =
     val thms = PureThy.get_thmss thy (map (rpair NONE) witn_names) @ witn_thms;
     val tac =
       witn1_tac THEN
-      TRY (rewrite_goals_tac (filter is_def thms)) THEN
+      TRY (rewrite_goals_tac (List.filter is_def thms)) THEN
       TRY (REPEAT_FIRST (resolve_tac (filter_out is_def thms))) THEN
-      if_none witn2_tac (TRY (ALLGOALS (CLASET' blast_tac)));
+      getOpt (witn2_tac, TRY (ALLGOALS (CLASET' blast_tac)));
   in
     message ("Proving non-emptiness of set " ^ quote (string_of_cterm cset) ^ " ...");
     Tactic.prove (Theory.sign_of thy) [] [] goal (K tac)
@@ -144,12 +144,12 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val goal_pat = mk_nonempty (Var (vname, setT));
 
     (*lhs*)
-    val lhs_tfrees = map (fn v => (v, if_none (assoc (rhs_tfrees, v)) HOLogic.typeS)) vs;
+    val lhs_tfrees = map (fn v => (v, getOpt (assoc (rhs_tfrees, v), HOLogic.typeS))) vs;
     val tname = Syntax.type_name t mx;
     val full_tname = full tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
 
-    val (Rep_name, Abs_name) = if_none opt_morphs ("Rep_" ^ name, "Abs_" ^ name);
+    val (Rep_name, Abs_name) = getOpt (opt_morphs, ("Rep_" ^ name, "Abs_" ^ name));
     val setC = Const (full_name, setT);
     val RepC = Const (full Rep_name, newT --> oldT);
     val AbsC = Const (full Abs_name, oldT --> newT);
@@ -251,7 +251,7 @@ fun gen_typedef prep_term def name typ set opt_morphs tac1 names thms tac2 thy =
 
 fun sane_typedef prep_term def opt_name typ set opt_morphs tac =
   gen_typedef prep_term def
-    (if_none opt_name (#1 typ)) typ set opt_morphs all_tac [] [] (SOME tac);
+    (getOpt (opt_name, #1 typ)) typ set opt_morphs all_tac [] [] (SOME tac);
 
 fun add_typedef_x name typ set names thms tac =
   #1 o gen_typedef read_term true name typ set NONE (Tactic.rtac exI 1) names thms tac;
@@ -287,8 +287,8 @@ fun typedef_codegen thy gr dep brack t =
       in SOME (gr'', Codegen.mk_app brack (Pretty.str id) ps) end;
     fun get_name (Type (tname, _)) = tname
       | get_name _ = "";
-    fun lookup f T = if_none (apsome f (Symtab.lookup
-      (TypedefData.get thy, get_name T))) ""
+    fun lookup f T = getOpt (Option.map f (Symtab.lookup
+      (TypedefData.get thy, get_name T)), "")
   in
     (case strip_comb t of
        (Const (s, Type ("fun", [T, U])), ts) =>
@@ -310,7 +310,7 @@ fun typedef_tycodegen thy gr dep brack (Type (s, Ts)) =
       (case Symtab.lookup (TypedefData.get thy, s) of
          NONE => NONE
        | SOME (newT as Type (tname, Us), oldT, Abs_name, Rep_name) =>
-           if is_some (Codegen.get_assoc_type thy tname) then NONE else
+           if isSome (Codegen.get_assoc_type thy tname) then NONE else
            let
              val sg = sign_of thy;
              val Abs_id = Codegen.mk_const_id sg Abs_name;
@@ -382,7 +382,7 @@ val typedef_proof_decl =
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.name -- P.name));
 
 fun mk_typedef_proof ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
-  typedef_proof ((def, if_none opt_name (Syntax.type_name t mx)), (t, vs, mx), A, morphs);
+  typedef_proof ((def, getOpt (opt_name, Syntax.type_name t mx)), (t, vs, mx), A, morphs);
 
 val typedefP =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)" K.thy_goal

@@ -49,12 +49,12 @@ fun add (p as (thy, thm)) =
   in (case concl_of thm of
       _ $ (Const ("op :", _) $ _ $ t) => (case head_of t of
         Const (s, _) =>
-          let val cs = foldr add_term_consts (prems_of thm, [])
+          let val cs = Library.foldr add_term_consts (prems_of thm, [])
           in (CodegenData.put
             {intros = Symtab.update ((s,
-               if_none (Symtab.lookup (intros, s)) [] @ [thm]), intros),
-             graph = foldr (uncurry (Graph.add_edge o pair s))
-               (cs, foldl add_node (graph, s :: cs)),
+               getOpt (Symtab.lookup (intros, s), []) @ [thm]), intros),
+             graph = Library.foldr (uncurry (Graph.add_edge o pair s))
+               (cs, Library.foldl add_node (graph, s :: cs)),
              eqns = eqns} thy, thm)
           end
       | _ => (warn thm; p))
@@ -62,7 +62,7 @@ fun add (p as (thy, thm)) =
         Const (s, _) =>
           (CodegenData.put {intros = intros, graph = graph,
              eqns = Symtab.update ((s,
-               if_none (Symtab.lookup (eqns, s)) [] @ [thm]), eqns)} thy, thm)
+               getOpt (Symtab.lookup (eqns, s), []) @ [thm]), eqns)} thy, thm)
       | _ => (warn thm; p))
     | _ => (warn thm; p))
   end;
@@ -77,7 +77,7 @@ fun get_clauses thy s =
         let val SOME names = find_first
           (fn xs => s mem xs) (Graph.strong_conn graph)
         in SOME (names, preprocess thy
-          (flat (map (fn s => the (Symtab.lookup (intros, s))) names)))
+          (List.concat (map (fn s => valOf (Symtab.lookup (intros, s))) names)))
         end
   end;
 
@@ -117,14 +117,14 @@ fun infer_factors sg extra_fs (fs, (optf, t)) =
   in (case (optf, strip_comb t) of
       (SOME f, (Const (name, _), args)) =>
         (case assoc (extra_fs, name) of
-           NONE => overwrite (fs, (name, if_none
-             (apsome (mg_factor f) (assoc (fs, name))) f))
+           NONE => overwrite (fs, (name, getOpt
+             (Option.map (mg_factor f) (assoc (fs, name)), f)))
          | SOME (fs', f') => (mg_factor f (FFix f');
-             foldl (infer_factors sg extra_fs)
-               (fs, map (apsome FFix) fs' ~~ args)))
+             Library.foldl (infer_factors sg extra_fs)
+               (fs, map (Option.map FFix) fs' ~~ args)))
     | (SOME f, (Var ((name, _), _), [])) =>
-        overwrite (fs, (name, if_none
-          (apsome (mg_factor f) (assoc (fs, name))) f))
+        overwrite (fs, (name, getOpt
+          (Option.map (mg_factor f) (assoc (fs, name)), f)))
     | (NONE, _) => fs
     | _ => err "Illegal term")
       handle Factors => err "Product factor mismatch in"
@@ -139,7 +139,7 @@ fun string_of_factors p ps = if p mem ps then
 
 fun is_constrt thy =
   let
-    val cnstrs = flat (flat (map
+    val cnstrs = List.concat (List.concat (map
       (map (fn (_, (_, _, cs)) => map (apsnd length) cs) o #descr o snd)
       (Symtab.dest (DatatypePackage.get_datatypes thy))));
     fun check t = (case strip_comb t of
@@ -167,11 +167,11 @@ fun print_modes modes = message ("Inferred modes:\n" ^
     string_of_mode ms)) modes));
 
 val term_vs = map (fst o fst o dest_Var) o term_vars;
-val terms_vs = distinct o flat o (map term_vs);
+val terms_vs = distinct o List.concat o (map term_vs);
 
 (** collect all Vars in a term (with duplicates!) **)
 fun term_vTs t = map (apfst fst o dest_Var)
-  (filter is_Var (foldl_aterms (op :: o Library.swap) ([], t)));
+  (List.filter is_Var (foldl_aterms (op :: o Library.swap) ([], t)));
 
 fun get_args _ _ [] = ([], [])
   | get_args is i (x::xs) = (if i mem is then apfst else apsnd) (cons x)
@@ -190,18 +190,18 @@ fun subsets i j = if i <= j then
 fun cprod ([], ys) = []
   | cprod (x :: xs, ys) = map (pair x) ys @ cprod (xs, ys);
 
-fun cprods xss = foldr (map op :: o cprod) (xss, [[]]);
+fun cprods xss = Library.foldr (map op :: o cprod) (xss, [[]]);
 
 datatype mode = Mode of (int list option list * int list) * mode option list;
 
 fun modes_of modes t =
   let
-    fun mk_modes name args = flat
+    fun mk_modes name args = List.concat
       (map (fn (m as (iss, is)) => map (Mode o pair m) (cprods (map
         (fn (NONE, _) => [NONE]
           | (SOME js, arg) => map SOME
-              (filter (fn Mode ((_, js'), _) => js=js') (modes_of modes arg)))
-                (iss ~~ args)))) (the (assoc (modes, name))))
+              (List.filter (fn Mode ((_, js'), _) => js=js') (modes_of modes arg)))
+                (iss ~~ args)))) (valOf (assoc (modes, name))))
 
   in (case strip_comb t of
       (Const ("op =", Type (_, [T, _])), _) =>
@@ -215,14 +215,14 @@ fun modes_of modes t =
 datatype indprem = Prem of term list * term | Sidecond of term;
 
 fun select_mode_prem thy modes vs ps =
-  find_first (is_some o snd) (ps ~~ map
+  find_first (isSome o snd) (ps ~~ map
     (fn Prem (us, t) => find_first (fn Mode ((_, is), _) =>
           let
             val (in_ts, out_ts) = get_args is 1 us;
-            val (out_ts', in_ts') = partition (is_constrt thy) out_ts;
-            val vTs = flat (map term_vTs out_ts');
+            val (out_ts', in_ts') = List.partition (is_constrt thy) out_ts;
+            val vTs = List.concat (map term_vTs out_ts');
             val dupTs = map snd (duplicates vTs) @
-              mapfilter (curry assoc vTs) vs;
+              List.mapPartial (curry assoc vTs) vs;
           in
             terms_vs (in_ts @ in_ts') subset vs andalso
             forall (is_eqT o fastype_of) in_ts' andalso
@@ -235,7 +235,7 @@ fun select_mode_prem thy modes vs ps =
 
 fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
   let
-    val modes' = modes @ mapfilter
+    val modes' = modes @ List.mapPartial
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (arg_vs ~~ iss);
     fun check_mode_prems vs [] = SOME vs
@@ -244,11 +244,11 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
         | SOME (x, _) => check_mode_prems
             (case x of Prem (us, _) => vs union terms_vs us | _ => vs)
             (filter_out (equal x) ps));
-    val (in_ts, in_ts') = partition (is_constrt thy) (fst (get_args is 1 ts));
+    val (in_ts, in_ts') = List.partition (is_constrt thy) (fst (get_args is 1 ts));
     val in_vs = terms_vs in_ts;
     val concl_vs = terms_vs ts
   in
-    forall is_eqT (map snd (duplicates (flat (map term_vTs in_ts)))) andalso
+    forall is_eqT (map snd (duplicates (List.concat (map term_vTs in_ts)))) andalso
     forall (is_eqT o fastype_of) in_ts' andalso
     (case check_mode_prems (arg_vs union in_vs) ps of
        NONE => false
@@ -257,7 +257,7 @@ fun check_mode_clause thy arg_vs modes (iss, is) (ts, ps) =
 
 fun check_modes_pred thy arg_vs preds modes (p, ms) =
   let val SOME rs = assoc (preds, p)
-  in (p, filter (fn m => case find_index
+  in (p, List.filter (fn m => case find_index
     (not o check_mode_clause thy arg_vs modes m) rs of
       ~1 => true
     | i => (message ("Clause " ^ string_of_int (i+1) ^ " of " ^
@@ -283,7 +283,7 @@ fun mk_eq (x::xs) =
   in mk_eqs x xs end;
 
 fun mk_tuple xs = Pretty.block (Pretty.str "(" ::
-  flat (separate [Pretty.str ",", Pretty.brk 1] (map single xs)) @
+  List.concat (separate [Pretty.str ",", Pretty.brk 1] (map single xs)) @
   [Pretty.str ")"]);
 
 (* convert nested pairs to n-tuple *)
@@ -351,8 +351,8 @@ fun is_exhaustive (Var _) = true
   | is_exhaustive _ = false;
 
 fun compile_match nvs eq_ps out_ps success_p can_fail =
-  let val eqs = flat (separate [Pretty.str " andalso", Pretty.brk 1]
-    (map single (flat (map (mk_eq o snd) nvs) @ eq_ps)));
+  let val eqs = List.concat (separate [Pretty.str " andalso", Pretty.brk 1]
+    (map single (List.concat (map (mk_eq o snd) nvs) @ eq_ps)));
   in
     Pretty.block
      ([Pretty.str "(fn ", mk_tuple out_ps, Pretty.str " =>", Pretty.brk 1] @
@@ -367,7 +367,7 @@ fun compile_match nvs eq_ps out_ps success_p can_fail =
 
 fun modename thy s (iss, is) = space_implode "__"
   (mk_const_id (sign_of thy) s ::
-    map (space_implode "_" o map string_of_int) (mapfilter I iss @ [is]));
+    map (space_implode "_" o map string_of_int) (List.mapPartial I iss @ [is]));
 
 fun compile_expr thy dep brack (gr, (NONE, t)) =
       apsnd single (invoke_codegen thy dep brack (gr, t))
@@ -380,13 +380,13 @@ fun compile_expr thy dep brack (gr, (NONE, t)) =
           (compile_expr thy dep true) (gr, ms ~~ args);
       in (gr', (if brack andalso not (null ps) then
         single o parens o Pretty.block else I)
-          (flat (separate [Pretty.brk 1]
+          (List.concat (separate [Pretty.brk 1]
             ([Pretty.str (modename thy name mode)] :: ps))))
       end;
 
 fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
   let
-    val modes' = modes @ mapfilter
+    val modes' = modes @ List.mapPartial
       (fn (_, NONE) => NONE | (v, SOME js) => SOME (v, [([], js)]))
         (arg_vs ~~ iss);
 
@@ -404,7 +404,7 @@ fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
       foldl_map check_constrt ((all_vs, []), in_ts);
 
     fun is_ind t = (case head_of t of
-          Const (s, _) => s = "op =" orelse is_some (assoc (modes, s))
+          Const (s, _) => s = "op =" orelse isSome (assoc (modes, s))
         | Var ((s, _), _) => s mem arg_vs);
 
     fun compile_prems out_ts' vs names gr [] =
@@ -426,7 +426,7 @@ fun compile_clause thy gr dep all_vs arg_vs modes (iss, is) (ts, ps) =
           end
       | compile_prems out_ts vs names gr ps =
           let
-            val vs' = distinct (flat (vs :: map term_vs out_ts));
+            val vs' = distinct (List.concat (vs :: map term_vs out_ts));
             val SOME (p, mode as SOME (Mode ((_, js), _))) =
               select_mode_prem thy modes' vs' ps;
             val ps' = filter_out (equal p) ps;
@@ -484,16 +484,16 @@ fun compile_pred thy gr dep prfx all_vs arg_vs modes s cls mode =
          (Pretty.str (prfx ^ modename thy s mode) :: map Pretty.str arg_vs) @
          [Pretty.str " inp ="]),
         Pretty.brk 1] @
-       flat (separate [Pretty.str " ++", Pretty.brk 1] (map single cl_ps))))
+       List.concat (separate [Pretty.str " ++", Pretty.brk 1] (map single cl_ps))))
   end;
 
 fun compile_preds thy gr dep all_vs arg_vs modes preds =
   let val ((gr', _), prs) = foldl_map (fn ((gr, prfx), (s, cls)) =>
     foldl_map (fn ((gr', prfx'), mode) =>
       compile_pred thy gr' dep prfx' all_vs arg_vs modes s cls mode)
-        ((gr, prfx), the (assoc (modes, s)))) ((gr, "fun "), preds)
+        ((gr, prfx), valOf (assoc (modes, s)))) ((gr, "fun "), preds)
   in
-    (gr', space_implode "\n\n" (map Pretty.string_of (flat prs)) ^ ";\n\n")
+    (gr', space_implode "\n\n" (map Pretty.string_of (List.concat prs)) ^ ";\n\n")
   end;
 
 (**** processing of introduction rules ****)
@@ -502,7 +502,7 @@ exception Modes of
   (string * (int list option list * int list) list) list *
   (string * (int list list option list * int list list)) list;
 
-fun lookup_modes gr dep = apfst flat (apsnd flat (ListPair.unzip
+fun lookup_modes gr dep = apfst List.concat (apsnd List.concat (ListPair.unzip
   (map ((fn (SOME (Modes x), _) => x | _ => ([], [])) o Graph.get_node gr)
     (Graph.all_preds gr [dep]))));
 
@@ -520,13 +520,13 @@ fun constrain cs [] = []
     | SOME xs' => xs inter xs') :: constrain cs ys;
 
 fun mk_extra_defs thy gr dep names ts =
-  foldl (fn (gr, name) =>
+  Library.foldl (fn (gr, name) =>
     if name mem names then gr
     else (case get_clauses thy name of
         NONE => gr
       | SOME (names, intrs) =>
           mk_ind_def thy gr dep names [] [] (prep_intrs intrs)))
-            (gr, foldr add_term_consts (ts, []))
+            (gr, Library.foldr add_term_consts (ts, []))
 
 and mk_ind_def thy gr dep names modecs factorcs intrs =
   let val ids = map (mk_const_id (sign_of thy)) names
@@ -534,7 +534,7 @@ and mk_ind_def thy gr dep names modecs factorcs intrs =
     let
       val _ $ (_ $ _ $ u) = Logic.strip_imp_concl (hd intrs);
       val (_, args) = strip_comb u;
-      val arg_vs = flat (map term_vs args);
+      val arg_vs = List.concat (map term_vs args);
 
       fun dest_prem factors (_ $ (p as (Const ("op :", _) $ t $ u))) =
             (case assoc (factors, case head_of u of
@@ -551,11 +551,11 @@ and mk_ind_def thy gr dep names modecs factorcs intrs =
           val Const (name, _) = head_of u;
           val prems = map (dest_prem factors) (Logic.strip_imp_prems intr);
         in
-          (overwrite (clauses, (name, if_none (assoc (clauses, name)) [] @
-             [(split_prod [] (the (assoc (factors, name))) t, prems)])))
+          (overwrite (clauses, (name, getOpt (assoc (clauses, name), []) @
+             [(split_prod [] (valOf (assoc (factors, name))) t, prems)])))
         end;
 
-      fun check_set (Const (s, _)) = s mem names orelse is_some (get_clauses thy s)
+      fun check_set (Const (s, _)) = s mem names orelse isSome (get_clauses thy s)
         | check_set (Var ((s, _), _)) = s mem arg_vs
         | check_set _ = false;
 
@@ -571,13 +571,13 @@ and mk_ind_def thy gr dep names modecs factorcs intrs =
           (Graph.new_node (hd ids, (NONE, "")) gr)) (hd ids) names intrs;
       val (extra_modes, extra_factors) = lookup_modes gr' (hd ids);
       val fs = constrain factorcs (map (apsnd dest_factors)
-        (foldl (add_prod_factors extra_factors) ([], flat (map (fn t =>
+        (Library.foldl (add_prod_factors extra_factors) ([], List.concat (map (fn t =>
           Logic.strip_imp_concl t :: Logic.strip_imp_prems t) intrs))));
-      val factors = mapfilter (fn (name, f) =>
+      val factors = List.mapPartial (fn (name, f) =>
         if name mem arg_vs then NONE
         else SOME (name, (map (curry assoc fs) arg_vs, f))) fs;
       val clauses =
-        foldl (add_clause (fs @ map (apsnd snd) extra_factors)) ([], intrs);
+        Library.foldl (add_clause (fs @ map (apsnd snd) extra_factors)) ([], intrs);
       val modes = constrain modecs
         (infer_modes thy extra_modes factors arg_vs clauses);
       val _ = print_factors factors;
@@ -606,9 +606,9 @@ fun mk_ind_call thy gr dep t u is_query = (case head_of u of
            val gr1 = mk_extra_defs thy
              (mk_ind_def thy gr dep names [] [] (prep_intrs intrs)) dep names [u];
            val (modes, factors) = lookup_modes gr1 dep;
-           val ts = split_prod [] (snd (the (assoc (factors, s)))) t;
+           val ts = split_prod [] (snd (valOf (assoc (factors, s)))) t;
            val (ts', is) = if is_query then
-               fst (foldl mk_mode ((([], []), 1), ts))
+               fst (Library.foldl mk_mode ((([], []), 1), ts))
              else (ts, 1 upto length ts);
            val mode = find_mode s u modes is;
            val (gr2, in_ps) = foldl_map
@@ -635,7 +635,7 @@ fun list_of_indset thy gr dep brack u = (case head_of u of
            SOME (gr2, (if brack then parens else I)
              (Pretty.block ([Pretty.str "Seq.list_of", Pretty.brk 1,
                Pretty.str "("] @
-               conv_ntuple' (snd (the (assoc (factors, s))))
+               conv_ntuple' (snd (valOf (assoc (factors, s))))
                  (HOLogic.dest_setT (fastype_of u))
                  (ps @ [Pretty.brk 1, Pretty.str "()"]) @
                [Pretty.str ")"])))
@@ -718,7 +718,7 @@ fun s1 ++ s2 = Seq.append (s1, s2);
 
 fun ?? b = if b then Seq.single () else Seq.empty;
 
-fun ?! s = is_some (Seq.pull s);    
+fun ?! s = isSome (Seq.pull s);    
 
 fun op_61__1 x = Seq.single x;
 

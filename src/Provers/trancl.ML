@@ -88,7 +88,7 @@ struct
  exception Cannot; (* internal exception: raised if no proof can be found *)
 
  fun prove asms = 
-  let fun pr (Asm i) = nth_elem (i, asms)
+  let fun pr (Asm i) = List.nth (asms, i)
   |       pr (Thm (prfs, thm)) = (map pr prfs) MRS thm
   in pr end;
 
@@ -327,7 +327,7 @@ fun transpose eq_comp g =
 
    (* Compute, for each adjacency list, the list with reversed edges,
       and concatenate these lists. *)
-   val flipped = foldr (op @) ((map flip g),nil)
+   val flipped = Library.foldr (op @) ((map flip g),nil)
  
  in assemble g flipped end    
  
@@ -351,7 +351,7 @@ fun dfs_reachable eq_comp g u =
       let
    val _ = visited := u :: !visited
    val descendents =
-       foldr (fn ((v,l),ds) => if been_visited v then ds
+       Library.foldr (fn ((v,l),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
         ( ((adjacent eq_comp g u)) ,nil)
    in  descendents end
@@ -530,7 +530,7 @@ val trancl_tac =   SUBGOAL (fn (A, n) =>
   val Hs = Logic.strip_assums_hyp A;
   val C = Logic.strip_assums_concl A;
   val (rel,subgoals, prf) = mkconcl_trancl C;
-  val prems = flat (ListPair.map (mkasm_trancl rel) (Hs, 0 upto (length Hs - 1)))
+  val prems = List.concat (ListPair.map (mkasm_trancl rel) (Hs, 0 upto (length Hs - 1)))
   val prfs = solveTrancl (prems, C);
 
  in
@@ -548,7 +548,7 @@ val rtrancl_tac =   SUBGOAL (fn (A, n) =>
   val C = Logic.strip_assums_concl A;
   val (rel,subgoals, prf) = mkconcl_rtrancl C;
 
-  val prems = flat (ListPair.map (mkasm_rtrancl rel) (Hs, 0 upto (length Hs - 1)))
+  val prems = List.concat (ListPair.map (mkasm_rtrancl rel) (Hs, 0 upto (length Hs - 1)))
   val prfs = solveRtrancl (prems, C);
  in
   METAHYPS (fn asms =>

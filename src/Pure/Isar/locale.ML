@@ -194,7 +194,7 @@ fun err_in_locale ctxt msg ids =
     val sign = ProofContext.sign_of ctxt;
     fun prt_id (name, parms) =
       [Pretty.block (Pretty.breaks (map Pretty.str (cond_extern sign name :: parms)))];
-    val prt_ids = flat (separate [Pretty.str " +", Pretty.brk 1] (map prt_id ids));
+    val prt_ids = List.concat (separate [Pretty.str " +", Pretty.brk 1] (map prt_id ids));
     val err_msg =
       if forall (equal "" o #1) ids then msg
       else msg ^ "\n" ^ Pretty.string_of (Pretty.block
@@ -210,7 +210,7 @@ fun err_in_locale' ctxt msg ids' = err_in_locale ctxt msg (map fst ids');
 
 (* renaming *)
 
-fun rename ren x = if_none (assoc_string (ren, x)) x;
+fun rename ren x = getOpt (assoc_string (ren, x), x);
 
 fun rename_term ren (Free (x, T)) = Free (rename ren x, T)
   | rename_term ren (t $ u) = rename_term ren t $ rename_term ren u
@@ -221,7 +221,7 @@ fun rename_thm ren th =
   let
     val {sign, hyps, prop, maxidx, ...} = Thm.rep_thm th;
     val cert = Thm.cterm_of sign;
-    val (xs, Ts) = Library.split_list (foldl Term.add_frees ([], prop :: hyps));
+    val (xs, Ts) = Library.split_list (Library.foldl Term.add_frees ([], prop :: hyps));
     val xs' = map (rename ren) xs;
     fun cert_frees names = map (cert o Free) (names ~~ Ts);
     fun cert_vars names = map (cert o Var o apfst (rpair (maxidx + 1))) (names ~~ Ts);
@@ -264,7 +264,7 @@ fun rename_facts prfx elem =
 (* type instantiation *)
 
 fun inst_type [] T = T
-  | inst_type env T = Term.map_type_tfree (fn v => if_none (assoc (env, v)) (TFree v)) T;
+  | inst_type env T = Term.map_type_tfree (fn v => getOpt (assoc (env, v), TFree v)) T;
 
 fun inst_term [] t = t
   | inst_term env t = Term.map_term_types (inst_type env) t;
@@ -276,8 +276,8 @@ fun inst_thm _ [] th = th
         val cert = Thm.cterm_of sign;
         val certT = Thm.ctyp_of sign;
         val {hyps, prop, maxidx, ...} = Thm.rep_thm th;
-        val tfrees = foldr Term.add_term_tfree_names (prop :: hyps, []);
-        val env' = filter (fn ((a, _), _) => a mem_string tfrees) env;
+        val tfrees = Library.foldr Term.add_term_tfree_names (prop :: hyps, []);
+        val env' = List.filter (fn ((a, _), _) => a mem_string tfrees) env;
       in
         if null env' then th
         else
@@ -285,13 +285,13 @@ fun inst_thm _ [] th = th
           |> Drule.implies_intr_list (map cert hyps)
           |> Drule.tvars_intr_list (map (#1 o #1) env')
           |> (fn (th', al) => th' |>
-            Thm.instantiate ((map (fn ((a, _), T) => (the (assoc (al, a)), certT T)) env'), []))
+            Thm.instantiate ((map (fn ((a, _), T) => (valOf (assoc (al, a)), certT T)) env'), []))
           |> (fn th'' => Drule.implies_elim_list th''
               (map (Thm.assume o cert o inst_term env') hyps))
       end;
 
 fun inst_elem _ env (Fixes fixes) =
-      Fixes (map (fn (x, T, mx) => (x, apsome (inst_type env) T, mx)) fixes)
+      Fixes (map (fn (x, T, mx) => (x, Option.map (inst_type env) T, mx)) fixes)
   | inst_elem _ env (Assumes asms) = Assumes (map (apsnd (map (fn (t, (ps, qs)) =>
       (inst_term env t, (map (inst_term env) ps, map (inst_term env) qs))))) asms)
   | inst_elem _ env (Defines defs) = Defines (map (apsnd (fn (t, ps) =>
@@ -310,7 +310,7 @@ fun inst_elem _ env (Fixes fixes) =
 
 fun frozen_tvars ctxt Ts =
   let
-    val tvars = rev (foldl Term.add_tvarsT ([], Ts));
+    val tvars = rev (Library.foldl Term.add_tvarsT ([], Ts));
     val tfrees = map TFree
       (Term.invent_names (ProofContext.used_types ctxt) "'a" (length tvars) ~~ map #2 tvars);
   in map #1 tvars ~~ tfrees end;
@@ -328,17 +328,17 @@ fun unify_frozen ctxt maxidx Ts Us =
           handle Type.TUNIFY =>
             raise TYPE ("unify_frozen: failed to unify types", [U, T], []))
       | unify (env, _) = env;
-    val (unifier, _) = foldl unify ((Vartab.empty, maxidx''), Ts' ~~ Us');
-    val Vs = map (apsome (Envir.norm_type unifier)) Us';
-    val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (mapfilter I Vs));
-  in map (apsome (Envir.norm_type unifier')) Vs end;
+    val (unifier, _) = Library.foldl unify ((Vartab.empty, maxidx''), Ts' ~~ Us');
+    val Vs = map (Option.map (Envir.norm_type unifier)) Us';
+    val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (List.mapPartial I Vs));
+  in map (Option.map (Envir.norm_type unifier')) Vs end;
 
-fun params_of elemss = gen_distinct eq_fst (flat (map (snd o fst) elemss));
-fun params_of' elemss = gen_distinct eq_fst (flat (map (snd o fst o fst) elemss));
+fun params_of elemss = gen_distinct eq_fst (List.concat (map (snd o fst) elemss));
+fun params_of' elemss = gen_distinct eq_fst (List.concat (map (snd o fst o fst) elemss));
 
 (* CB: param_types has the following type:
   ('a * 'b option) list -> ('a * 'b) list *)
-fun param_types ps = mapfilter (fn (_, NONE) => NONE | (x, SOME T) => SOME (x, T)) ps;
+fun param_types ps = List.mapPartial (fn (_, NONE) => NONE | (x, SOME T) => SOME (x, T)) ps;
 
 
 (* flatten expressions *)
@@ -353,7 +353,7 @@ local
 fun unique_parms ctxt elemss =
   let
     val param_decls =
-      flat (map (fn (((name, (ps, qs)), _), _) => map (rpair (name, ps)) qs) elemss)
+      List.concat (map (fn (((name, (ps, qs)), _), _) => map (rpair (name, ps)) qs) elemss)
       |> Symtab.make_multi |> Symtab.dest;
   in
     (case find_first (fn (_, ids) => length ids > 1) param_decls of
@@ -377,7 +377,7 @@ fun unify_parms ctxt fixed_parms raw_parmss =
 
     fun varify i = Term.map_type_tfree (fn (a, S) => TVar ((a, i), S));
     fun varify_parms (i, ps) = map (apsnd (varify i)) (param_types ps);
-    val parms = fixed_parms @ flat (map varify_parms idx_parmss);
+    val parms = fixed_parms @ List.concat (map varify_parms idx_parmss);
 
     fun unify T ((env, maxidx), U) =
       Type.unify tsig (env, maxidx) (U, T)
@@ -386,17 +386,17 @@ fun unify_parms ctxt fixed_parms raw_parmss =
         in raise TYPE ("unify_parms: failed to unify types " ^
           prt U ^ " and " ^ prt T, [U, T], [])
         end
-    fun unify_list (envir, T :: Us) = foldl (unify T) (envir, Us)
+    fun unify_list (envir, T :: Us) = Library.foldl (unify T) (envir, Us)
       | unify_list (envir, []) = envir;
-    val (unifier, _) = foldl unify_list
+    val (unifier, _) = Library.foldl unify_list
       ((Vartab.empty, maxidx), map #2 (Symtab.dest (Symtab.make_multi parms)));
 
     val parms' = map (apsnd (Envir.norm_type unifier)) (gen_distinct eq_fst parms);
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map #2 parms'));
 
     fun inst_parms (i, ps) =
-      foldr Term.add_typ_tfrees (mapfilter snd ps, [])
-      |> mapfilter (fn (a, S) =>
+      Library.foldr Term.add_typ_tfrees (List.mapPartial snd ps, [])
+      |> List.mapPartial (fn (a, S) =>
           let val T = Envir.norm_type unifier' (TVar ((a, i), S))
           in if T = TFree (a, S) then NONE else SOME ((a, S), T) end)
   in map inst_parms idx_parmss end;
@@ -411,7 +411,7 @@ fun unify_elemss' _ _ [] = []
       let
         val envs = unify_parms ctxt fixed_parms (map (#2 o #1 o #1) elemss);
         fun inst ((((name, ps), axs), elems), env) =
-          (((name, map (apsnd (apsome (inst_type env))) ps),  axs),
+          (((name, map (apsnd (Option.map (inst_type env))) ps),  axs),
            map (inst_elem ctxt env) elems);
       in map inst (elemss ~~ envs) end;
 
@@ -421,7 +421,7 @@ fun unify_elemss _ _ [] = []
       let
         val envs = unify_parms ctxt fixed_parms (map (#2 o #1 o #1) elemss);
         fun inst ((((name, ps), axs), elems), env) =
-          (((name, map (apsnd (apsome (inst_type env))) ps), 
+          (((name, map (apsnd (Option.map (inst_type env))) ps), 
             map (inst_thm ctxt env) axs), map (inst_elem ctxt env) elems);
       in map inst (elemss ~~ envs) end;
 
@@ -459,8 +459,8 @@ fun flatten_expr ctxt (prev_idents, expr) =
             val ids_ax = if top then snd
                  (foldl_map (fn (axs, ((name, parms), _)) => let
                    val {elems, ...} = the_locale thy name;
-                   val ts = flat (mapfilter (fn (Assumes asms, _) =>
-                     SOME (flat (map (map #1 o #2) asms)) | _ => NONE) elems);
+                   val ts = List.concat (List.mapPartial (fn (Assumes asms, _) =>
+                     SOME (List.concat (map (map #1 o #2) asms)) | _ => NONE) elems);
                    val (axs1, axs2) = splitAt (length ts, axs);
                  in (axs2, ((name, parms), (ps, axs1))) end) (axioms, ids''))
                else ids'';
@@ -471,10 +471,10 @@ fun flatten_expr ctxt (prev_idents, expr) =
             val ren = renaming xs parms'
               handle ERROR_MESSAGE msg => err_in_locale' ctxt msg ids';
             val ids'' = gen_distinct eq_fst (map (rename_parms top ren) ids');
-            val parms'' = distinct (flat (map (#2 o #1) ids''));
+            val parms'' = distinct (List.concat (map (#2 o #1) ids''));
           in (ids'', parms'') end
       | identify top (Merge es) =
-          foldl (fn ((ids, parms), e) => let
+          Library.foldl (fn ((ids, parms), e) => let
                      val (ids', parms') = identify top e
                    in (gen_merge_lists eq_fst ids ids',
                        merge_lists parms parms') end)
@@ -508,7 +508,7 @@ fun flatten_expr ctxt (prev_idents, expr) =
          elemss;
     fun inst_ax th = let
          val {hyps, prop, ...} = Thm.rep_thm th;
-         val ps = map (apsnd SOME) (foldl Term.add_frees ([], prop :: hyps));
+         val ps = map (apsnd SOME) (Library.foldl Term.add_frees ([], prop :: hyps));
          val [env] = unify_parms ctxt all_params [ps];
          val th' = inst_thm ctxt env th;
        in th' end;
@@ -534,7 +534,7 @@ fun activate_elem _ ((ctxt, axs), Fixes fixes) =
       ((ctxt |> ProofContext.add_fixes fixes, axs), [])
   | activate_elem _ ((ctxt, axs), Assumes asms) =
       let
-        val ts = flat (map (map #1 o #2) asms);
+        val ts = List.concat (map (map #1 o #2) asms);
         val (ps,qs) = splitAt (length ts, axs);
         val (ctxt', _) =
           ctxt |> ProofContext.fix_frees ts
@@ -560,7 +560,7 @@ fun activate_elems (((name, ps), axs), elems) ctxt =
 fun activate_elemss prep_facts = foldl_map (fn (ctxt, (((name, ps), axs), raw_elems)) =>
   let
     val elems = map (prep_facts ctxt) raw_elems;
-    val (ctxt', res) = apsnd flat (activate_elems (((name, ps), axs), elems) ctxt);
+    val (ctxt', res) = apsnd List.concat (activate_elems (((name, ps), axs), elems) ctxt);
   in (ctxt', (((name, ps), elems), res)) end);
 
 in
@@ -577,7 +577,7 @@ in
    the internal/external markers from elemss. *)
 
 fun activate_facts prep_facts arg =
-  apsnd (apsnd flat o Library.split_list) (activate_elemss prep_facts arg);
+  apsnd (apsnd List.concat o Library.split_list) (activate_elemss prep_facts arg);
 
 end;
 
@@ -670,7 +670,7 @@ local
 
 fun declare_int_elem (ctxt, Fixes fixes) =
       (ctxt |> ProofContext.add_fixes (map (fn (x, T, mx) =>
-        (x, apsome (Term.map_type_tfree (TypeInfer.param 0)) T, mx)) fixes), [])
+        (x, Option.map (Term.map_type_tfree (TypeInfer.param 0)) T, mx)) fixes), [])
   | declare_int_elem (ctxt, _) = (ctxt, []);
 
 fun declare_ext_elem prep_fixes (ctxt, Fixes fixes) =
@@ -700,7 +700,7 @@ fun declare_elemss prep_fixes fixed_params raw_elemss ctxt =
       ProofContext.declare_terms (map Free fixed_params) ctxt;
     val int_elemss =
       raw_elemss
-      |> mapfilter (fn (id, Int es) => SOME (id, es) | _ => NONE)
+      |> List.mapPartial (fn (id, Int es) => SOME (id, es) | _ => NONE)
       |> unify_elemss ctxt_with_fixed fixed_params;
     val (_, raw_elemss') =
       foldl_map (fn ((_, es) :: elemss, (id, Int _)) => (elemss, (id, Int es)) | x => x)
@@ -747,14 +747,14 @@ fun bind_def ctxt (name, ps) ((xs, env, ths), eq) =
 fun eval_text _ _ _ (text, Fixes _) = text
   | eval_text _ _ is_ext ((((exts, exts'), (ints, ints')), (xs, env, defs)), Assumes asms) =
       let
-        val ts = flat (map (map #1 o #2) asms);
+        val ts = List.concat (map (map #1 o #2) asms);
         val ts' = map (norm_term env) ts;
         val spec' =
           if is_ext then ((exts @ ts, exts' @ ts'), (ints, ints'))
           else ((exts, exts'), (ints @ ts, ints' @ ts'));
-      in (spec', (foldl Term.add_frees (xs, ts'), env, defs)) end
+      in (spec', (Library.foldl Term.add_frees (xs, ts'), env, defs)) end
   | eval_text ctxt (id, _) _ ((spec, binds), Defines defs) =
-      (spec, foldl (bind_def ctxt id) (binds, map (#1 o #2) defs))
+      (spec, Library.foldl (bind_def ctxt id) (binds, map (#1 o #2) defs))
   | eval_text _ _ _ (text, Notes _) = text;
 
 (* CB: for finish_elems (Ext) *)
@@ -798,7 +798,7 @@ fun finish_parms parms (((name, ps), axs), elems) =
 fun finish_elems ctxt parms _ (text, ((id, Int e), _)) =
       let
         val [(id', es)] = unify_elemss ctxt parms [(id, e)];
-        val text' = foldl (eval_text ctxt id' false) (text, es);
+        val text' = Library.foldl (eval_text ctxt id' false) (text, es);
       in (text', (id', map Int es)) end
   | finish_elems ctxt parms do_close (text, ((id, Ext e), [propp])) =
       let
@@ -830,8 +830,8 @@ fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_co
        the fixes elements in raw_elemss,
        raw_proppss contains assumptions and definitions from the
        external elements in raw_elemss. *)
-    val raw_propps = map flat raw_proppss;
-    val raw_propp = flat raw_propps;
+    val raw_propps = map List.concat raw_proppss;
+    val raw_propp = List.concat raw_propps;
 
     (* CB: add type information from fixed_params to context (declare_terms) *)
     (* CB: process patterns (conclusion and external elements only) *)
@@ -840,7 +840,7 @@ fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_co
     
     (* CB: add type information from conclusion and external elements
        to context *)
-    val ctxt = ProofContext.declare_terms (flat (map (map fst) all_propp)) ctxt;
+    val ctxt = ProofContext.declare_terms (List.concat (map (map fst) all_propp)) ctxt;
 
     (* CB: resolve schematic variables (patterns) in conclusion and external
        elements. *)
@@ -929,7 +929,7 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
 
     val (import_ids, raw_import_elemss) = flatten (context, prep_expr sign) ([], Expr import);
     (* CB: normalise "includes" among elements *)
-    val raw_elemss = flat (#2 ((foldl_map (flatten (context, prep_expr sign))
+    val raw_elemss = List.concat (#2 ((foldl_map (flatten (context, prep_expr sign))
       (import_ids, elements))));
     (* CB: raw_import_elemss @ raw_elemss is the normalised list of
        context elements obtained from import and elements. *)
@@ -943,8 +943,8 @@ fun prep_context_statement prep_expr prep_elemss prep_facts
     val (ctxt, (elemss, _)) =
       activate_facts prep_facts (import_ctxt, qs);
     val stmt = gen_distinct Term.aconv
-       (flat (map (fn ((_, axs), _) =>
-         flat (map (#hyps o Thm.rep_thm) axs)) qs));
+       (List.concat (map (fn ((_, axs), _) =>
+         List.concat (map (#hyps o Thm.rep_thm) axs)) qs));
     val cstmt = map (cterm_of sign) stmt;
   in
     ((((import_ctxt, import_elemss), (ctxt, elemss)), (parms, spec, defs)), (cstmt, concl))
@@ -956,7 +956,7 @@ val gen_context_i = prep_context_statement (K I) cert_elemss get_facts_i;
 fun gen_statement prep_locale prep_ctxt raw_locale elems concl ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
-    val locale = apsome (prep_locale (Theory.sign_of thy)) raw_locale;
+    val locale = Option.map (prep_locale (Theory.sign_of thy)) raw_locale;
     val (target_stmt, fixed_params, import) =
       (case locale of NONE => ([], [], empty)
       | SOME name =>
@@ -1036,7 +1036,7 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
     (* process parameters: match their types with those of arguments *)
 
     val def_names = map (fn (Free (s, _), _) => s) env;
-    val (defined, assumed) = partition
+    val (defined, assumed) = List.partition
           (fn (s, _) => s mem def_names) fixed_params;
     val cassumed = map (cert o Free) assumed;
     val cdefined = map (cert o Free) defined;
@@ -1044,21 +1044,21 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
     val param_types = map snd assumed;
     val v_param_types = map Type.varifyT param_types;
     val arg_types = map Term.fastype_of args;
-    val Tenv = foldl (Type.typ_match tsig)
+    val Tenv = Library.foldl (Type.typ_match tsig)
           (Vartab.empty, v_param_types ~~ arg_types)
-          handle Library.LIST "~~" => error "Number of parameters does not \
+          handle UnequalLengths => error "Number of parameters does not \
             \match number of arguments of chained fact";
     (* get their sorts *)
-    val tfrees = foldr Term.add_typ_tfrees (param_types, []);
+    val tfrees = Library.foldr Term.add_typ_tfrees (param_types, []);
     val Tenv' = map
-          (fn ((a, i), T) => ((a, the (assoc_string (tfrees, a))), T))
+          (fn ((a, i), T) => ((a, valOf (assoc_string (tfrees, a))), T))
           (Vartab.dest Tenv);
 
     (* process (internal) elements *)
 
     fun inst_type [] T = T
       | inst_type env T =
-          Term.map_type_tfree (fn v => if_none (assoc (env, v)) (TFree v)) T;
+          Term.map_type_tfree (fn v => getOpt (assoc (env, v), TFree v)) T;
 
     fun inst_term [] t = t
       | inst_term env t = Term.map_term_types (inst_type env) t;
@@ -1076,8 +1076,8 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
 	    val cert = Thm.cterm_of sign;
 	    val certT = Thm.ctyp_of sign;
 	    val {hyps, prop, maxidx, ...} = Thm.rep_thm th;
-	    val tfrees = foldr Term.add_term_tfree_names (prop :: hyps, []);
-	    val Tenv' = filter (fn ((a, _), _) => a mem_string tfrees) Tenv;
+	    val tfrees = Library.foldr Term.add_term_tfree_names (prop :: hyps, []);
+	    val Tenv' = List.filter (fn ((a, _), _) => a mem_string tfrees) Tenv;
 	  in
 	    if null Tenv' then th
 	    else
@@ -1086,7 +1086,7 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
 	      |> Drule.tvars_intr_list (map (#1 o #1) Tenv')
 	      |> (fn (th', al) => th' |>
 		Thm.instantiate ((map (fn ((a, _), T) =>
-                  (the (assoc (al, a)), certT T)) Tenv'), []))
+                  (valOf (assoc (al, a)), certT T)) Tenv'), []))
 	      |> (fn th'' => Drule.implies_elim_list th''
 		  (map (Thm.assume o cert o inst_term Tenv') hyps))
 	  end;
@@ -1096,7 +1096,7 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
         (* not all axs are normally applicable *)
         val hyps = #hyps (rep_thm thm);
         val ass = map (fn ax => (prop_of ax, ax)) axioms;
-        val axs' = foldl (fn (axs, hyp) => 
+        val axs' = Library.foldl (fn (axs, hyp) => 
               (case gen_assoc (op aconv) (ass, hyp) of NONE => axs
                  | SOME ax => axs @ [ax])) ([], hyps);
         val thm' = Drule.satisfy_hyps axs' thm;
@@ -1142,9 +1142,9 @@ fun instantiate loc_name (prfx, attribs) raw_inst ctxt =
           end
       | inst_elem (ctxt, (Int _)) = ctxt;
 
-    fun inst_elems (ctxt, (id, elems)) = foldl inst_elem (ctxt, elems);
+    fun inst_elems (ctxt, (id, elems)) = Library.foldl inst_elem (ctxt, elems);
 
-    fun inst_elemss ctxt elemss = foldl inst_elems (ctxt, elemss);
+    fun inst_elemss ctxt elemss = Library.foldl inst_elems (ctxt, elemss);
 
     (* main part *)
 
@@ -1161,7 +1161,7 @@ fun print_locale thy import body =
   let
     val thy_ctxt = ProofContext.init thy;
     val (((_, import_elemss), (ctxt, elemss)), _) = read_context import body thy_ctxt;
-    val all_elems = flat (map #2 (import_elemss @ elemss));
+    val all_elems = List.concat (map #2 (import_elemss @ elemss));
 
     val prt_typ = Pretty.quote o ProofContext.pretty_typ ctxt;
     val prt_term = Pretty.quote o ProofContext.pretty_term ctxt;
@@ -1179,7 +1179,7 @@ fun print_locale thy import body =
     fun prt_asm ((a, _), ts) = Pretty.block (prt_name a @ Pretty.breaks (map (prt_term o fst) ts));
     fun prt_def ((a, _), (t, _)) = Pretty.block (prt_name a @ [prt_term t]);
     fun prt_fact ((a, _), ths) = Pretty.block
-      (prt_name a @ Pretty.breaks (map prt_thm (flat (map fst ths))));
+      (prt_name a @ Pretty.breaks (map prt_thm (List.concat (map fst ths))));
 
     fun items _ [] = []
       | items prfx (x :: xs) = Pretty.block [Pretty.str prfx, Pretty.brk 1, x] :: items "  and" xs;
@@ -1306,9 +1306,9 @@ fun def_pred bname parms defs ts norm_ts thy =
 
     val (body, bodyT, body_eq) = atomize_spec sign norm_ts;
     val env = Term.add_term_free_names (body, []);
-    val xs = filter (fn (x, _) => x mem_string env) parms;
+    val xs = List.filter (fn (x, _) => x mem_string env) parms;
     val Ts = map #2 xs;
-    val extraTs = (Term.term_tfrees body \\ foldr Term.add_typ_tfrees (Ts, []))
+    val extraTs = (Term.term_tfrees body \\ Library.foldr Term.add_typ_tfrees (Ts, []))
       |> Library.sort_wrt #1 |> map TFree;
     val predT = map Term.itselfT extraTs ---> Ts ---> bodyT;
 
@@ -1408,7 +1408,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
   let
     val sign = Theory.sign_of thy;
     val name = Sign.full_name sign bname;
-    val _ = conditional (is_some (get_locale thy name)) (fn () =>
+    val _ = conditional (isSome (get_locale thy name)) (fn () =>
       error ("Duplicate definition of locale " ^ quote name));
 
     val thy_ctxt = ProofContext.init thy;
@@ -1423,8 +1423,8 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
 
     fun axiomify axioms elemss = 
       (axioms, elemss) |> foldl_map (fn (axs, (id, elems)) => let
-                   val ts = flat (mapfilter (fn (Assumes asms) =>
-                     SOME (flat (map (map #1 o #2) asms)) | _ => NONE) elems);
+                   val ts = List.concat (List.mapPartial (fn (Assumes asms) =>
+                     SOME (List.concat (map (map #1 o #2) asms)) | _ => NONE) elems);
                    val (axs1, axs2) = splitAt (length ts, axs);
                  in (axs2, ((id, axs1), elems)) end)
         |> snd;
@@ -1437,7 +1437,7 @@ fun gen_add_locale prep_ctxt prep_expr do_pred bname raw_import raw_body thy =
     |> note_thmss_qualified "" name facts' |> #1
     |> declare_locale name
     |> put_locale name {predicate = predicate, import = prep_expr sign raw_import,
-        elems = map (fn e => (e, stamp ())) (flat (map #2 (filter (equal "" o #1 o #1) elemss'))),
+        elems = map (fn e => (e, stamp ())) (List.concat (map #2 (List.filter (equal "" o #1 o #1) elemss'))),
         params = (params_of elemss', map #1 (params_of body_elemss))}
   end;
 

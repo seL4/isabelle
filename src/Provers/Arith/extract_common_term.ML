@@ -42,10 +42,10 @@ fun update_by_coeff (tab, t) = Termtab.update ((t, ()), tab);
 
 (*a left-to-right scan of terms1, seeking a term u that is also in terms2*)
 fun find_common (terms1,terms2) =
-  let val tab2 = foldl update_by_coeff (Termtab.empty, terms2)
+  let val tab2 = Library.foldl update_by_coeff (Termtab.empty, terms2)
       fun seek [] = raise TERM("find_common", []) 
 	| seek (u::terms) =
-	      if is_some (Termtab.lookup (tab2, u)) then u
+	      if isSome (Termtab.lookup (tab2, u)) then u
 	      else seek terms
   in  seek terms1 end;
 
@@ -68,7 +68,7 @@ fun proc sg ss t =
 		 Data.mk_bal (Data.mk_sum T (u::terms1'), 
 		              Data.mk_sum T (u::terms2')))
   in
-      apsome Data.simplify_meta_eq reshape
+      Option.map Data.simplify_meta_eq reshape
   end
   handle TERM _ => NONE
        | TYPE _ => NONE;   (*Typically (if thy doesn't include Numeral)

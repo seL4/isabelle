@@ -141,7 +141,7 @@ fun process_spec axiomatic cos alt_props int thy =
 		val tsig = Sign.tsig_of (sign_of thy)
 		val _ = assert (forall (fn v => Type.of_sort tsig (type_of v,HOLogic.typeS)) frees)
 			       "Specificaton: Only free variables of sort 'type' allowed"
-		val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop)
+		val prop_closed = Library.foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) (map dest_Free frees,prop)
 	    in
 		(prop_closed,frees)
 	    end
@@ -164,7 +164,7 @@ fun process_spec axiomatic cos alt_props int thy =
 		val c' = fst (Type.varify (c,[]))
 		val (cname,ctyp) = dest_Const c'
 	    in
-		case filter (fn t => let val (name,typ) = dest_Const t
+		case List.filter (fn t => let val (name,typ) = dest_Const t
 				     in name = cname andalso typ_equiv typ ctyp
 				     end) thawed_prop_consts of
 		    [] => error ("Specification: No suitable instances of constant \"" ^ (Sign.string_of_term sg c) ^ "\" found")
@@ -182,7 +182,7 @@ fun process_spec axiomatic cos alt_props int thy =
 	    in
 		HOLogic.exists_const T $ Abs(vname,T,Term.abstract_over (c,prop))
 	    end
-	val ex_prop = foldr mk_exist (proc_consts,prop)
+	val ex_prop = Library.foldr mk_exist (proc_consts,prop)
 	val cnames = map (fst o dest_Const) proc_consts
 	fun post_process (arg as (thy,thm)) =
 	    let
@@ -194,7 +194,7 @@ fun process_spec axiomatic cos alt_props int thy =
 		    in
 			thm RS spec'
 		    end
-		fun remove_alls frees thm = foldl (inst_all (sign_of_thm thm)) (thm,frees)
+		fun remove_alls frees thm = Library.foldl (inst_all (sign_of_thm thm)) (thm,frees)
 		fun process_single ((name,atts),rew_imp,frees) args =
 		    let
 			fun undo_imps thm =

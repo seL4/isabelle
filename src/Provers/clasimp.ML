@@ -151,30 +151,30 @@ fun store_clasimp (cs, ss) =
 in
 
 val op addIffs =
-  foldl (addIff (Classical.addSDs, Classical.addSEs, Classical.addSIs)
+  Library.foldl (addIff (Classical.addSDs, Classical.addSEs, Classical.addSIs)
     (Classical.addDs, Classical.addEs, Classical.addIs) Simplifier.addsimps);
-val op delIffs = foldl (delIff Classical.delrules Simplifier.delsimps);
+val op delIffs = Library.foldl (delIff Classical.delrules Simplifier.delsimps);
 
 fun AddIffs thms = store_clasimp (clasimpset () addIffs thms);
 fun DelIffs thms = store_clasimp (clasimpset () delIffs thms);
 
 fun addIffs_global (thy, ths) =
-  foldl (addIff
+  Library.foldl (addIff
     (ContextRules.addXDs_global, ContextRules.addXEs_global, ContextRules.addXIs_global)
     (ContextRules.addXDs_global, ContextRules.addXEs_global, ContextRules.addXIs_global) #1)
   ((thy, ()), ths) |> #1;
 
 fun addIffs_local (ctxt, ths) =
-  foldl (addIff
+  Library.foldl (addIff
     (ContextRules.addXDs_local, ContextRules.addXEs_local, ContextRules.addXIs_local)
     (ContextRules.addXDs_local, ContextRules.addXEs_local, ContextRules.addXIs_local) #1)
   ((ctxt, ()), ths) |> #1;
 
 fun delIffs_global (thy, ths) =
-  foldl (delIff ContextRules.delrules_global #1) ((thy, ()), ths) |> #1;
+  Library.foldl (delIff ContextRules.delrules_global #1) ((thy, ()), ths) |> #1;
 
 fun delIffs_local (ctxt, ths) =
-  foldl (delIff ContextRules.delrules_local #1) ((ctxt, ()), ths) |> #1;
+  Library.foldl (delIff ContextRules.delrules_local #1) ((ctxt, ()), ths) |> #1;
 
 end;
 

@@ -51,14 +51,14 @@ local
 		     REPEAT (resolve_tac prems 1)]);
 
   val sig_move_thm = #sign (rep_thm move_thm);
-  val bCterm = cterm_of sig_move_thm (the (search_var "b" (concl_of move_thm)));
-  val aCterm = cterm_of sig_move_thm (the (search_var "a" (hd(prems_of move_thm)))); 
+  val bCterm = cterm_of sig_move_thm (valOf (search_var "b" (concl_of move_thm)));
+  val aCterm = cterm_of sig_move_thm (valOf (search_var "a" (hd(prems_of move_thm)))); 
 
 in
 
 fun move_mus i state =
 let val sign = #sign (rep_thm state);
-    val (subgoal::_) = drop(i-1,prems_of state);
+    val (subgoal::_) = Library.drop(i-1,prems_of state);
     val concl = Logic.strip_imp_concl subgoal; (* recursive mu's in prems? *)
     val redex = search_mu concl;
     val idx = let val t = #maxidx (rep_thm state) in 
@@ -84,7 +84,7 @@ end; (* local *)
 (* Normally t can be user-instantiated by the value thy of the Isabelle context     *)
 fun call_mucke_tac i state =
 let val sign = #sign (rep_thm state);
-    val (subgoal::_) = drop(i-1,prems_of state);
+    val (subgoal::_) = Library.drop(i-1,prems_of state);
     val OraAss = invoke_oracle MuckeSyn.thy "Mucke" (sign,MuckeOracleExn (subgoal));
 in 
 (cut_facts_tac [OraAss] i) state
@@ -166,7 +166,7 @@ val Mucke_ss = simpset() addsimprocs [pair_eta_expand_proc] addsimps [Let_def];
 (* the interface *)
 
 fun mc_mucke_tac defs i state =
-  (case drop (i - 1, Thm.prems_of state) of
+  (case Library.drop (i - 1, Thm.prems_of state) of
     [] => PureGeneral.Seq.empty
   | subgoal :: _ =>
       EVERY [

@@ -75,7 +75,7 @@ fun proc sg ss t =
 	    Data.prove_conv [Data.norm_tac] sg hyps xs
 	      (t',   Data.mk_bal (newshape(n1,t1'), newshape(n2,t2')))
   in
-      apsome Data.simplify_meta_eq
+      Option.map Data.simplify_meta_eq
        (Data.prove_conv 
 	       [Data.trans_tac reshape, rtac Data.cancel 1,
 		Data.numeral_simp_tac] sg hyps xs (t', rhs))

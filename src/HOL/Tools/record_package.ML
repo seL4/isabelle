@@ -160,7 +160,7 @@ fun mk_upd sfx c v s =
 fun dest_recT (typ as Type (c_ext_type, Ts as (T::_))) =
       (case try (unsuffix ext_typeN) c_ext_type of
         NONE => raise TYPE ("RecordPackage.dest_recT", [typ], [])
-      | SOME c => ((c, Ts), last_elem Ts))
+      | SOME c => ((c, Ts), List.last Ts))
   | dest_recT typ = raise TYPE ("RecordPackage.dest_recT", [typ], []);
 
 fun is_recT T =
@@ -180,8 +180,8 @@ fun last_extT T =
 
 fun rec_id i T = 
   let val rTs = dest_recTs T
-      val rTs' = if i < 0 then rTs else take (i,rTs)
-  in foldl (fn (s,(c,T)) => s ^ c) ("",rTs') end;
+      val rTs' = if i < 0 then rTs else Library.take (i,rTs)
+  in Library.foldl (fn (s,(c,T)) => s ^ c) ("",rTs') end;
 
 (*** extend theory by record definition ***)
 
@@ -426,11 +426,11 @@ fun get_extT_fields sg T =
     val varifyT = map_type_tfree varify;
     val {records,extfields,...} = RecordsData.get_sg sg;
     val (flds,(more,_)) = split_last (Symtab.lookup_multi (extfields,name));
-    val args = map varifyT (snd (#extension (the (Symtab.lookup (records,recname)))));
+    val args = map varifyT (snd (#extension (valOf (Symtab.lookup (records,recname)))));
 
     val tsig = Sign.tsig_of sg;
     fun unify (t,env) = Type.unify tsig env t;
-    val (subst,_) = foldr unify (but_last args ~~ but_last Ts,(Vartab.empty,0));
+    val (subst,_) = Library.foldr unify (but_last args ~~ but_last Ts,(Vartab.empty,0));
     val flds' = map (apsnd ((Envir.norm_type subst) o varifyT)) flds;
   in (flds',(more,moreT)) end;
 
@@ -449,7 +449,7 @@ fun add_fieldext extname_types fields thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} = 
            RecordsData.get thy;
-    val fieldext' = foldl (fn (table,field) => Symtab.update_new ((field,extname_types),table))  
+    val fieldext' = Library.foldl (fn (table,field) => Symtab.update_new ((field,extname_types),table))  
                           (fieldext,fields);
     val data=make_record_data records sel_upd equalities extinjects extsplit 
               splits extfields fieldext';
@@ -473,11 +473,11 @@ fun add_parents thy NONE parents = parents
 
         fun bad_inst ((x, S), T) =
           if Sign.of_sort sign (T, S) then NONE else SOME x
-        val bads = mapfilter bad_inst (args ~~ types);
+        val bads = List.mapPartial bad_inst (args ~~ types);
 
         val inst = map fst args ~~ types;
-        val subst = Term.map_type_tfree (fn (x, _) => the (assoc (inst, x)));
-        val parent' = apsome (apfst (map subst)) parent;
+        val subst = Term.map_type_tfree (fn (x, _) => valOf (assoc (inst, x)));
+        val parent' = Option.map (apfst (map subst)) parent;
         val fields' = map (apsnd subst) fields;
         val extension' = apsnd (map subst) extension;
       in
@@ -504,7 +504,7 @@ fun gen_fields_tr sep mark sfx (tm as Const (c, _) $ t $ u) =
 
 
 fun record_update_tr [t, u] =
-      foldr (op $) (rev (gen_fields_tr "_updates" "_update" updateN u), t)
+      Library.foldr (op $) (rev (gen_fields_tr "_updates" "_update" updateN u), t)
   | record_update_tr ts = raise TERM ("record_update_tr", ts);
 
 fun update_name_tr (Free (x, T) :: ts) = Free (suffix updateN x, T) $$ ts
@@ -584,7 +584,7 @@ fun gen_ext_type_tr sep mark sfx more sg t =
                        val (args,rest) = splitargs (map fst flds') fargs;
                        val vartypes = map Type.varifyT types;
                        val argtypes = map to_type args;
-                       val (subst,_) = foldr unify (vartypes ~~ argtypes,(Vartab.empty,0));
+                       val (subst,_) = Library.foldr unify (vartypes ~~ argtypes,(Vartab.empty,0));
                        val alphas' = map ((Syntax.term_of_typ (! Syntax.show_sorts)) o 
                                           (Envir.norm_type subst) o Type.varifyT) 
                                          (but_last alphas);
@@ -671,7 +671,7 @@ fun record_tr' sep mark record record_scheme unit sg t =
                           val flds' = Sign.extern sg Sign.constK f::map NameSpace.base fs; 
                           val (args',more) = split_last args; 
                          in (flds'~~args')@field_lst more end
-                         handle LIST _ => [("",t)]) 
+                         handle UnequalLengths => [("",t)])
                    | NONE => [("",t)])
              | NONE => [("",t)])
        | _ => [("",t)])
@@ -777,12 +777,12 @@ fun record_type_tr' sep mark record record_scheme sg t =
                                             ::map (apfst NameSpace.base) fs; 
                                 val (args',more) = split_last args; 
                                 val alphavars = map Type.varifyT (but_last alphas); 
-                                val (subst,_)= foldr unify (alphavars~~args',(Vartab.empty,0));
+                                val (subst,_)= Library.foldr unify (alphavars~~args',(Vartab.empty,0));
                                 val flds'' =map (apsnd ((Envir.norm_type subst)o(Type.varifyT)))
                                                 flds';
                               in flds''@field_lst more end
-                              handle TUNIFY => [("",T)] 
-                                   | LIST _=> [("",T)])
+                              handle TUNIFY         => [("",T)] 
+                                   | UnequalLengths => [("",T)])
                          | NONE => [("",T)])
                    | NONE => [("",T)])
              | NONE => [("",T)]) 
@@ -840,7 +840,7 @@ fun prove_split_simp sg T prop =
   let 
     val {sel_upd={simpset,...},extsplit,...} = RecordsData.get_sg sg;
     val extsplits = 
-            foldl (fn (thms,(n,_)) => (list (Symtab.lookup (extsplit,n)))@thms) 
+            Library.foldl (fn (thms,(n,_)) => (list (Symtab.lookup (extsplit,n)))@thms) 
                     ([],dest_recTs T);
     val thms = (case get_splits sg (rec_id (~1) T) of
                    SOME (all_thm,_,_,_) => 
@@ -854,7 +854,7 @@ fun prove_split_simp sg T prop =
 local
 
 fun get_fields extfields T = 
-     foldl (fn (xs,(eN,_))=>xs@(Symtab.lookup_multi (extfields,eN)))
+     Library.foldl (fn (xs,(eN,_))=>xs@(Symtab.lookup_multi (extfields,eN)))
              ([],(dest_recTs T));
 in
 (* record_simproc *)
@@ -974,10 +974,10 @@ val record_upd_simproc =
               * updates again, the optimised term is constructed.
               *)
              fun mk_updterm upds already (t as ((upd as Const (u,uT)) $ k $ r)) =
-		 if is_some (Symtab.lookup (upds,u))
+		 if isSome (Symtab.lookup (upds,u))
 		 then let 
 			 fun rest already = mk_updterm upds already
-		      in if is_some (Symtab.lookup (already,u)) 
+		      in if isSome (Symtab.lookup (already,u)) 
 			 then (case (rest already r) of
 				 Init ((sprout,skel),vars) => 
                                  let
@@ -1146,8 +1146,8 @@ fun record_split_simp_tac thms P i st =
           (s = "all" orelse s = "All" orelse s = "Ex") andalso is_recT T 
         | _ => false);
 
-    val goal = Library.nth_elem (i - 1, Thm.prems_of st);
-    val frees = filter (is_recT o type_of) (term_frees goal);
+    val goal = List.nth (Thm.prems_of st, i - 1);
+    val frees = List.filter (is_recT o type_of) (term_frees goal);
 
     fun mk_split_free_tac free induct_thm i = 
 	let val cfree = cterm_of sg free;
@@ -1172,13 +1172,13 @@ fun record_split_simp_tac thms P i st =
                    end)
      | split_free_tac _ _ _ = NONE;
 
-    val split_frees_tacs = mapfilter (split_free_tac P i) frees;
+    val split_frees_tacs = List.mapPartial (split_free_tac P i) frees;
    
     val simprocs = if has_rec goal then [record_split_simproc P] else [];
    
   in st |> (EVERY split_frees_tacs) 
            THEN (Simplifier.full_simp_tac (simpset addsimps thms addsimprocs simprocs) i)
-  end handle Library.LIST _ => Seq.empty;
+  end handle Empty => Seq.empty;
 end;
 
 
@@ -1193,7 +1193,7 @@ fun record_split_tac i st =
           (s = "all" orelse s = "All") andalso is_recT T 
         | _ => false);
  
-    val goal = Library.nth_elem (i - 1, Thm.prems_of st);   
+    val goal = List.nth (Thm.prems_of st, i - 1);   
 
     fun is_all t =
       (case t of (Const (quantifier, _)$_) =>
@@ -1204,7 +1204,7 @@ fun record_split_tac i st =
      then Simplifier.full_simp_tac 
            (HOL_basic_ss addsimprocs [record_split_simproc is_all]) i st 
      else Seq.empty
-  end handle Library.LIST _ => Seq.empty;
+  end handle Subscript => Seq.empty;
 
 (* wrapper *)
 
@@ -1251,14 +1251,14 @@ fun simp_all_tac ss simps = ALLGOALS (Simplifier.asm_full_simp_tac (ss addsimps 
 fun try_param_tac s rule i st =
   let
     val cert = cterm_of (Thm.sign_of_thm st);
-    val g = nth_elem (i - 1, prems_of st);
+    val g = List.nth (prems_of st, i - 1);
     val params = Logic.strip_params g;
     val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl g);
     val rule' = Thm.lift_rule (st, i) rule;
     val (P, ys) = strip_comb (HOLogic.dest_Trueprop
       (Logic.strip_assums_concl (prop_of rule')));
     (* ca indicates if rule is a case analysis or induction rule *)
-    val (x, ca) = (case rev (drop (length params, ys)) of
+    val (x, ca) = (case rev (Library.drop (length params, ys)) of
         [] => (head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop
           (hd (rev (Logic.strip_assums_hyp (hd (prems_of rule')))))))), true)
       | [x] => (head_of x, false));
@@ -1278,13 +1278,13 @@ fun try_param_tac s rule i st =
 fun ex_inst_tac i st =
   let
     val sg = sign_of_thm st;
-    val g = nth_elem (i - 1, prems_of st);
+    val g = List.nth (prems_of st, i - 1);
     val params = Logic.strip_params g;
     val exI' = Thm.lift_rule (st, i) exI;
     val (_$(_$x)) = Logic.strip_assums_concl (hd (prems_of exI'));
     val cx = cterm_of sg (fst (strip_comb x));
 
-  in Seq.single (foldl (fn (st,v) => 
+  in Seq.single (Library.foldl (fn (st,v) => 
         Seq.hd 
         (compose_tac (false, cterm_instantiate 
                                 [(cx,cterm_of sg (list_abs (params,Bound v)))] exI',1) 
@@ -1307,7 +1307,7 @@ fun extension_typedef name repT alphas thy =
 
 fun mixit convs refls = 
   let fun f ((res,lhs,rhs),refl) = ((refl,List.revAppend (lhs,refl::tl rhs))::res,hd rhs::lhs,tl rhs);
-  in #1 (foldl f (([],[],convs),refls)) end;
+  in #1 (Library.foldl f (([],[],convs),refls)) end;
 
 fun extension_definition full name fields names alphas zeta moreT more vars thy = 
   let  
@@ -1332,7 +1332,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     val ext_decl = (mk_extC (name,extT) fields_moreTs);
     (*     
     val ext_spec = Const ext_decl :== 
-         (foldr (uncurry lambda) 
+         (Library.foldr (uncurry lambda) 
             (vars@[more],(mk_Abs name repT extT $ (foldr1 HOLogic.mk_prod (vars@[more]))))) 
     *) 
     val ext_spec = list_comb (Const ext_decl,vars@[more]) :== 
@@ -1484,7 +1484,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
          (* freezeT just for performance, to adjust the maxidx, so that nodup_vars will not 
                 be called during combination *)
         fun mkthm (udef,(fld_refl,thms)) =
-          let val bdyeq = foldl (uncurry Thm.combination) (constr_refl,thms);
+          let val bdyeq = Library.foldl (uncurry Thm.combination) (constr_refl,thms);
                (* (|N=N (|N=N,M=M,K=K,more=more|)
                     M=M (|N=N,M=M,K=K,more=more|)
                     K=K'
@@ -1537,7 +1537,7 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
    
 fun chunks []      []   = []
   | chunks []      xs   = [xs]
-  | chunks (l::ls) xs  = take (l,xs)::chunks ls (drop (l,xs));
+  | chunks (l::ls) xs  = Library.take (l,xs)::chunks ls (Library.drop (l,xs));
  
 fun chop_last [] = error "last: list should not be empty"
   | chop_last [x] = ([],x)
@@ -1551,7 +1551,7 @@ fun subst_last s []      = error "subst_last: list should not be empty"
  * of parent extensions, starting with the root of the record hierarchy 
 *) 
 fun mk_recordT extT parent_exts = 
-    foldr (fn ((parent,Ts),T) => Type (parent, subst_last T Ts)) (parent_exts,extT);
+    Library.foldr (fn ((parent,Ts),T) => Type (parent, subst_last T Ts)) (parent_exts,extT);
 
 
 
@@ -1591,7 +1591,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     val (bfields, field_syntax) = split_list (map (fn (x, T, mx) => ((x, T), mx)) raw_fields);
 
-    val parent_fields = flat (map #fields parents);
+    val parent_fields = List.concat (map #fields parents);
     val parent_chunks = map (length o #fields) parents;
     val parent_names = map fst parent_fields;
     val parent_types = map snd parent_fields;
@@ -1605,7 +1605,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val names = map fst fields;
     val extN = full bname;
     val types = map snd fields;
-    val alphas_fields = foldr add_typ_tfree_names (types,[]);
+    val alphas_fields = Library.foldr add_typ_tfree_names (types,[]);
     val alphas_ext = alphas inter alphas_fields; 
     val len = length fields;
     val variants = variantlist (map fst bfields, moreN::rN::rN ^ "'"::wN::parent_variants);
@@ -1647,7 +1647,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val extension = let val (n,Ts) = extension_scheme in (n,subst_last HOLogic.unitT Ts) end; 
     val extension_names = 
          (map ((unsuffix ext_typeN) o fst o #extension) parents) @ [extN];
-    val extension_id = foldl (op ^) ("",extension_names);
+    val extension_id = Library.foldl (op ^) ("",extension_names);
 
  
     fun rec_schemeT n = mk_recordT extT (map #extension (prune n parents));
@@ -1663,7 +1663,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       let val (args',more) = chop_last args;
 	  fun mk_ext' (((name,T),args),more) = mk_ext (name,T) (args@[more]);
           fun build Ts = 
-           foldr mk_ext' (prune n (extension_names ~~ Ts ~~ (chunks parent_chunks args')),more) 
+           Library.foldr mk_ext' (prune n (extension_names ~~ Ts ~~ (chunks parent_chunks args')),more) 
       in 
         if more = HOLogic.unit 
         then build (map recT (0 upto parent_len)) 
@@ -1681,7 +1681,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (* prepare print translation functions *)
     val field_tr's =
-      print_translation (distinct (flat (map NameSpace.accesses' (full_moreN :: names))));
+      print_translation (distinct (List.concat (map NameSpace.accesses' (full_moreN :: names))));
 
     val adv_ext_tr's =
     let
@@ -1822,13 +1822,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       end; 
 
     val split_object_prop =
-      let fun ALL vs t = foldr (fn ((v,T),t) => HOLogic.mk_all (v,T,t)) (vs,t)
+      let fun ALL vs t = Library.foldr (fn ((v,T),t) => HOLogic.mk_all (v,T,t)) (vs,t)
       in (ALL [dest_Free r0] (P $ r0)) === (ALL (map dest_Free all_vars_more) (P $ r_rec0))
       end;
 
 
     val split_ex_prop =
-      let fun EX vs t = foldr (fn ((v,T),t) => HOLogic.mk_exists (v,T,t)) (vs,t)
+      let fun EX vs t = Library.foldr (fn ((v,T),t) => HOLogic.mk_exists (v,T,t)) (vs,t)
       in (EX [dest_Free r0] (P $ r0)) === (EX (map dest_Free all_vars_more) (P $ r_rec0))
       end;
 
@@ -2041,14 +2041,14 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
 
     fun prep_inst T = snd (cert_typ sign ([], T));
 
-    val parent = apsome (apfst (map prep_inst) o prep_raw_parent sign) raw_parent
+    val parent = Option.map (apfst (map prep_inst) o prep_raw_parent sign) raw_parent
       handle ERROR => error ("The error(s) above in parent record specification");
     val parents = add_parents thy parent [];
 
     val init_env =
       (case parent of
         NONE => []
-      | SOME (types, _) => foldr Term.add_typ_tfrees (types, []));
+      | SOME (types, _) => Library.foldr Term.add_typ_tfrees (types, []));
 
 
     (* fields *)
@@ -2065,7 +2065,7 @@ fun gen_add_record prep_typ prep_raw_parent (params, bname) raw_parent raw_field
     (* args *)
 
     val defaultS = Sign.defaultS sign;
-    val args = map (fn x => (x, if_none (assoc (envir, x)) defaultS)) params;
+    val args = map (fn x => (x, getOpt (assoc (envir, x), defaultS))) params;
 
 
     (* errors *)

@@ -71,7 +71,7 @@ fun add_chyps chyps ct = Drule.list_implies (map cprop_of chyps, ct);
 fun prove_conv name tacs sg hyps xs (t,u) =
   if t aconv u then NONE
   else
-  let val hyps' = filter (not o is_eq_thm) hyps
+  let val hyps' = List.filter (not o is_eq_thm) hyps
       val goal = Logic.list_implies (map (#prop o Thm.rep_thm) hyps',
         FOLogic.mk_Trueprop (mk_eq_iff (t, u)));
   in SOME (hyps' MRS Tactic.prove sg xs [] goal (K (EVERY tacs)))

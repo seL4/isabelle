@@ -90,7 +90,7 @@ fun datatype_decl coind =
           val big_rec_name = space_implode "_" rec_names
           and srec_tms = mk_list (map fst rec_pairs)
           and scons    = mk_scons rec_pairs
-          val con_names = flat (map (map (unenclose o #1 o #1) o snd)
+          val con_names = List.concat (map (map (unenclose o #1 o #1) o snd)
                                 rec_pairs)
           val inames = mk_list (map (mk_bind "_I") con_names)
       in

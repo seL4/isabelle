@@ -149,7 +149,7 @@ val nat = kind Syntax.read_nat;
 val int = Scan.optional ($$$ "-" >> K ~1) 1 -- nat >> op *;
 
 (*read variable name; leading '?' may be omitted if name contains no dot*)
-val var = kind (apsome #1 o (fn s =>
+val var = kind (Option.map #1 o (fn s =>
   SOME (Term.dest_Var (Syntax.read_var s))
     handle _ => SOME (Term.dest_Var (Syntax.read_var ("?" ^ s)))
     handle _ => NONE));
@@ -214,7 +214,7 @@ and args1 blk x =
   ((Scan.repeat1
     (Scan.repeat1 (atom_arg blk) ||
       paren_args "(" ")" args ||
-      paren_args "[" "]" args)) >> flat) x;
+      paren_args "[" "]" args)) >> List.concat) x;
 
 
 

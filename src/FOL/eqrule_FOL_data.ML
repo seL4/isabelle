@@ -37,14 +37,14 @@ fun mk_atomize pairs =
              (case Term.head_of p of
                 Const(a,_) =>
                   (case Library.assoc(pairs,a) of
-                     SOME(rls) => flat (map atoms ([th] RL rls))
+                     SOME(rls) => List.concat (map atoms ([th] RL rls))
                    | NONE => [th])
               | _ => [th])
          | _ => [th])
   in atoms end;
 
 val prep_meta_eq = 
-    (mapfilter  
+    (List.mapPartial  
        mk_eq
        o (mk_atomize tranformation_pairs)
        o Drule.gen_all 

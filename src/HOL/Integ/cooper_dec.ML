@@ -442,7 +442,7 @@ fun dvd_op (d, t) =
    val ts = coeffs_of t
    in case ts of
      [] => raise DVD_UNKNOWN
-    |_  => foldr (fn(k,r) => r andalso (k mod dn = 0)) (ts,true)
+    |_  => Library.foldr (fn(k,r) => r andalso (k mod dn = 0)) (ts,true)
    end;
 
 
@@ -736,7 +736,7 @@ fun set_w d b st vars x p = let
              in (rw,HOLogic.mk_disj(F',rf)) 
 	     end)
     val f = if b then linear_add else linear_sub
-    val p_elements = foldr (fn (i,l) => l union (map (fn e => f [] e (mk_numeral i)) st)) (1 upto d,[])
+    val p_elements = Library.foldr (fn (i,l) => l union (map (fn e => f [] e (mk_numeral i)) st)) (1 upto d,[])
     in h p_elements
     end;
 
@@ -873,7 +873,7 @@ end;
 fun lift_qelim afn nfn qfn isat = 
  let   fun qelim x vars p = 
   let val cjs = conjuncts p 
-      val (ycjs,ncjs) = partition (has_bound) cjs in 
+      val (ycjs,ncjs) = List.partition (has_bound) cjs in 
       (if ycjs = [] then p else 
                           let val q = (qfn vars ((HOLogic.exists_const HOLogic.intT 
 			  ) $ Abs(x,HOLogic.intT,(list_conj ycjs)))) in 

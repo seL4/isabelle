@@ -188,7 +188,7 @@ section "quantifiers"
 (*###to be phased out *)
 ML {* 
 fun noAll_simpset () = simpset() setmksimps 
-	mksimps (filter (fn (x,_) => x<>"All") mksimps_pairs)
+	mksimps (List.filter (fn (x,_) => x<>"All") mksimps_pairs)
 *}
 
 lemma All_Ex_refl_eq2 [simp]: 

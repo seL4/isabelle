@@ -566,7 +566,7 @@ and term_of_dB' Ts (dB_Var n) = Bound (int_of_nat n)
   | term_of_dB' _ _ = error "term_of_dB: term not in normal form";
 
 fun typing_of_term Ts e (Bound i) =
-      rtypingT_Var (e, nat_of_int i, dBtype_of_typ (nth_elem (i, Ts)))
+      rtypingT_Var (e, nat_of_int i, dBtype_of_typ (List.nth (Ts, i)))
   | typing_of_term Ts e (t $ u) = (case fastype_of1 (Ts, t) of
         Type ("fun", [T, U]) => rtypingT_App (e, dB_of_term t,
           dBtype_of_typ T, dBtype_of_typ U, dB_of_term u,

@@ -40,12 +40,12 @@ fun gen_constdef prep_typ prep_term prep_att
 
     val ctxt =
       ProofContext.init thy |> ProofContext.add_fixes
-        (flat (map (fn (As, T) => map (fn A => (A, T, NONE)) As) structs));
+        (List.concat (map (fn (As, T) => map (fn A => (A, T, NONE)) As) structs));
     val (ctxt', d, mx) =
       (case decl of NONE => (ctxt, NONE, Syntax.NoSyn) | SOME (x, raw_T, mx) =>
         let
           val x' = Syntax.const_name x mx and mx' = Syntax.fix_mixfix x mx;
-          val T = apsome (prep_typ ctxt) raw_T;
+          val T = Option.map (prep_typ ctxt) raw_T;
         in (ProofContext.add_fixes_liberal [(x', T, SOME mx')] ctxt, SOME x', mx') end);
 
     val prop = prep_term ctxt' raw_prop;

@@ -92,12 +92,12 @@ fun add_proof_syntax sg =
 fun disambiguate_names thy prf =
   let
     val thms = thms_of_proof Symtab.empty prf;
-    val thms' = map (apsnd (#prop o rep_thm)) (flat
+    val thms' = map (apsnd (#prop o rep_thm)) (List.concat
       (map PureThy.thms_of (thy :: Theory.ancestors_of thy)));
 
     val tab = Symtab.foldl (fn (tab, (key, ps)) =>
-      let val prop = if_none (assoc (thms', key)) (Bound 0)
-      in fst (foldr (fn ((prop', prf), x as (tab, i)) =>
+      let val prop = getOpt (assoc (thms', key), Bound 0)
+      in fst (Library.foldr (fn ((prop', prf), x as (tab, i)) =>
         if prop <> prop' then
           (Symtab.update ((key ^ "_" ^ string_of_int i, prf), tab), i+1)
         else x) (ps, (tab, 1)))
@@ -109,8 +109,8 @@ fun disambiguate_names thy prf =
       | rename (prf % t) = rename prf % t
       | rename (prf' as PThm ((s, tags), prf, prop, Ts)) =
           let
-            val prop' = if_none (assoc (thms', s)) (Bound 0);
-            val ps = map fst (the (Symtab.lookup (thms, s))) \ prop'
+            val prop' = getOpt (assoc (thms', s), Bound 0);
+            val ps = map fst (valOf (Symtab.lookup (thms, s))) \ prop'
           in if prop = prop' then prf' else
             PThm ((s ^ "_" ^ string_of_int (length ps - find_index_eq prop ps), tags),
               prf, prop, Ts)
@@ -125,8 +125,8 @@ fun disambiguate_names thy prf =
 fun proof_of_term thy tab ty =
   let
     val thys = thy :: Theory.ancestors_of thy;
-    val thms = flat (map thms_of thys);
-    val axms = flat (map (Symtab.dest o #axioms o rep_theory) thys);
+    val thms = List.concat (map thms_of thys);
+    val axms = List.concat (map (Symtab.dest o #axioms o rep_theory) thys);
 
     fun mk_term t = (if ty then I else map_term_types (K dummyT))
       (Term.no_dummy_patterns t);
@@ -180,7 +180,7 @@ val Hypt = Const ("Hyp", propT --> proofT);
 val Oraclet = Const ("Oracle", propT --> proofT);
 val MinProoft = Const ("MinProof", proofT);
 
-val mk_tyapp = foldl (fn (prf, T) => Const ("Appt",
+val mk_tyapp = Library.foldl (fn (prf, T) => Const ("Appt",
   [proofT, itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
 
 fun term_of _ (PThm ((name, _), _, _, NONE)) =
@@ -192,17 +192,17 @@ fun term_of _ (PThm ((name, _), _, _, NONE)) =
       mk_tyapp (Const (add_prefix "axm" name, proofT), Ts)
   | term_of _ (PBound i) = Bound i
   | term_of Ts (Abst (s, opT, prf)) = 
-      let val T = if_none opT dummyT
+      let val T = getOpt (opT,dummyT)
       in Const ("Abst", (T --> proofT) --> proofT) $
         Abs (s, T, term_of (T::Ts) (incr_pboundvars 1 0 prf))
       end
   | term_of Ts (AbsP (s, t, prf)) =
-      AbsPt $ if_none t (Const ("dummy_pattern", propT)) $
+      AbsPt $ getOpt (t, Const ("dummy_pattern", propT)) $
         Abs (s, proofT, term_of (proofT::Ts) (incr_pboundvars 0 1 prf))
   | term_of Ts (prf1 %% prf2) =
       AppPt $ term_of Ts prf1 $ term_of Ts prf2
   | term_of Ts (prf % opt) = 
-      let val t = if_none opt (Const ("dummy_pattern", dummyT))
+      let val t = getOpt (opt, Const ("dummy_pattern", dummyT))
       in Const ("Appt",
         [proofT, fastype_of1 (Ts, t) handle TERM _ => dummyT] ---> proofT) $
           term_of Ts prf $ t
@@ -217,9 +217,9 @@ fun cterm_of_proof thy prf =
   let
     val (prf', tab) = disambiguate_names thy prf;
     val thys = thy :: Theory.ancestors_of thy;
-    val thm_names = filter_out (equal "") (map fst (flat (map thms_of thys))) @
+    val thm_names = filter_out (equal "") (map fst (List.concat (map thms_of thys))) @
       map fst (Symtab.dest tab);
-    val axm_names = map fst (flat (map (Symtab.dest o #axioms o rep_theory) thys));
+    val axm_names = map fst (List.concat (map (Symtab.dest o #axioms o rep_theory) thys));
     val sg = sign_of thy |>
       add_proof_syntax |>
       add_proof_atom_consts
@@ -232,8 +232,8 @@ fun cterm_of_proof thy prf =
 fun read_term thy =
   let
     val thys = thy :: Theory.ancestors_of thy;
-    val thm_names = filter_out (equal "") (map fst (flat (map thms_of thys)));
-    val axm_names = map fst (flat (map (Symtab.dest o #axioms o rep_theory) thys));
+    val thm_names = filter_out (equal "") (map fst (List.concat (map thms_of thys)));
+    val axm_names = map fst (List.concat (map (Symtab.dest o #axioms o rep_theory) thys));
     val sg = sign_of thy |>
       add_proof_syntax |>
       add_proof_atom_consts

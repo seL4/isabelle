@@ -45,7 +45,7 @@ fun lex_err NONE msg = "Outer lexical error: " ^ msg
 
 (* line numbering *)
 
-val incr = apsome (fn n:int => n + 1);
+val incr = Option.map (fn n:int => n + 1);
 
 fun incr_line scan = Scan.depend (fn n => scan >> pair (incr n));
 val keep_line = Scan.lift;

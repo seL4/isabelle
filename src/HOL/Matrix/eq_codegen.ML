@@ -24,7 +24,7 @@ val simp_thms = ref ([] : thm list);
 fun parens b = if b then Pretty.enclose "(" ")" else Pretty.block;
 
 fun gen_mk_val f xs ps = Pretty.block ([Pretty.str "val ",
-  f (length xs > 1) (flat
+  f (length xs > 1) (List.concat
     (separate [Pretty.str ",", Pretty.brk 1] (map (single o Pretty.str) xs))),
   Pretty.str " =", Pretty.brk 1] @ ps @ [Pretty.str ";"]);
 
@@ -79,7 +79,7 @@ fun decomp_type_code ((vs, bs, ps), (v, TVar (ixn, _))) =
       let
         val vs' = variantlist (map mk_decomp_tname Ts, vs);
         val (vs'', bs', ps') =
-          foldl decomp_type_code ((vs @ vs', bs, ps @
+          Library.foldl decomp_type_code ((vs @ vs', bs, ps @
             [mk_vall vs' [Pretty.str "Thm.dest_ctyp", Pretty.brk 1,
               Pretty.str v]]), vs' ~~ Ts)
       in
@@ -106,7 +106,7 @@ val mk_type_bindings = gen_mk_bindings "cT"
 fun pretty_pattern b (Const (s, _)) = Pretty.block [Pretty.str "Const",
       Pretty.brk 1, Pretty.str ("(\"" ^ s ^ "\", _)")]
   | pretty_pattern b (t as _ $ _) = parens b
-      (flat (separate [Pretty.str " $", Pretty.brk 1]
+      (List.concat (separate [Pretty.str " $", Pretty.brk 1]
         (map (single o pretty_pattern true) (op :: (strip_comb t)))))
   | pretty_pattern b _ = Pretty.str "_";
 
@@ -129,7 +129,7 @@ fun inst_ty b ty_bs t s = (case term_tvars t of
     [] => Pretty.str s
   | Ts => parens b [Pretty.str "tyinst_cterm", Pretty.brk 1,
       Pretty.list "[" "]" (map (fn (ixn, _) => mk_tyinst
-        (ixn, the (assoc (ty_bs, ixn)))) Ts),
+        (ixn, valOf (assoc (ty_bs, ixn)))) Ts),
       Pretty.brk 1, Pretty.str s]);
 
 fun mk_cterm_code b ty_bs ts xs (vals, t $ u) =
@@ -151,7 +151,7 @@ fun mk_cterm_code b ty_bs ts xs (vals, t $ u) =
       in (vals',
         parens b [Pretty.str "Thm.cabs", Pretty.brk 1, p, Pretty.brk 1, p'])
       end
-  | mk_cterm_code b ty_bs ts xs (vals, Bound i) = (vals, nth_elem (i, xs))
+  | mk_cterm_code b ty_bs ts xs (vals, Bound i) = (vals, List.nth (xs, i))
   | mk_cterm_code b ty_bs ts xs (vals, t) = (case assoc (vals, t) of
         NONE =>
           let val SOME s = assoc (ts, t)
@@ -182,7 +182,7 @@ fun rename vs t =
       in if s = s' then (vs, subs)
         else (s' :: vs, ((s, i), Var ((s', i), T)) :: subs)
       end;
-    val (vs', subs) = foldl mk_subst ((vs, []), term_vars t)
+    val (vs', subs) = Library.foldl mk_subst ((vs, []), term_vars t)
   in (vs', subst_Vars subs t) end;
 
 fun is_instance sg t u = t = subst_TVars_Vartab
@@ -190,7 +190,7 @@ fun is_instance sg t u = t = subst_TVars_Vartab
     (fastype_of u, fastype_of t))) u handle Type.TYPE_MATCH => false;
 
 (*
-fun lookup sg fs t = apsome snd (Library.find_first
+fun lookup sg fs t = Option.map snd (Library.find_first
   (is_instance sg t o fst) fs);
 *)
 
@@ -269,18 +269,18 @@ fun mk_simpl_code sg case_tab mkeq fs ts ty_bs thm_bs ((vs, vals), t) =
                     val cvs' = map Var (map (rpair 0) ys ~~ Ts);
                     val rs = cvs' ~~ cvs;
                     val lhs = list_comb (Const (cname, Ts ---> uT), cvs');
-                    val rhs = foldl betapply (f, cvs');
+                    val rhs = Library.foldl betapply (f, cvs');
                     val (vs', tm_bs, tm_vals) = decomp_term_code false
                       ((vs @ ys, [], []), (ct, lhs));
                     val ((vs'', all_vals), (eq', ct')) = mk_simpl_code sg case_tab
                       false fs (tm_bs @ ts) ty_bs thm_bs ((vs', vals), rhs);
                     val (old_vals, eq_vals) = splitAt (i, all_vals);
-                    val vs''' = vs @ filter (fn v => exists
+                    val vs''' = vs @ List.filter (fn v => exists
                       (fn (_, ((v', _), _)) => v = v') old_vals) (vs'' \\ vs');
                     val insts2 = map (fn (t, s) => Pretty.block [Pretty.str "(",
-                      inst_ty false ty_bs' t (the (assoc (thm_bs, t))), Pretty.str ",",
+                      inst_ty false ty_bs' t (valOf (assoc (thm_bs, t))), Pretty.str ",",
                       Pretty.brk 1, Pretty.str (s ^ ")")]) ((fvs ~~ xs) @
-                        (map (fn (v, s) => (the (assoc (rs, v)), s)) tm_bs));
+                        (map (fn (v, s) => (valOf (assoc (rs, v)), s)) tm_bs));
                     val eq'' = if null insts1 andalso null insts2 then Pretty.str name
                       else parens (eq' <> "") [Pretty.str
                           (if null cvs then "Thm.instantiate" else "Drule.instantiate"),
@@ -293,7 +293,7 @@ fun mk_simpl_code sg case_tab mkeq fs ts ty_bs thm_bs ((vs, vals), t) =
                   in
                     ((vs''', old_vals), Pretty.block [pretty_pattern false lhs,
                       Pretty.str " =>",
-                      Pretty.brk 1, mk_let "let" 2 (tm_vals @ flat (map (snd o snd) eq_vals))
+                      Pretty.brk 1, mk_let "let" 2 (tm_vals @ List.concat (map (snd o snd) eq_vals))
                         [Pretty.str ("(" ^ ct' ^ ","), Pretty.brk 1, eq''', Pretty.str ")"]])
                   end;
 
@@ -308,7 +308,7 @@ fun mk_simpl_code sg case_tab mkeq fs ts ty_bs thm_bs ((vs, vals), t) =
                   fvals @ ty_vals @
                   [mk_val [ct', eq'] ([Pretty.str "(case", Pretty.brk 1,
                     Pretty.str ("term_of " ^ ct ^ " of"), Pretty.brk 1] @
-                    flat (separate [Pretty.brk 1, Pretty.str "| "]
+                    List.concat (separate [Pretty.brk 1, Pretty.str "| "]
                       (map single case_ps)) @ [Pretty.str ")"])]
               in
                 if b then
@@ -334,7 +334,7 @@ fun mk_simpl_code sg case_tab mkeq fs ts ty_bs thm_bs ((vs, vals), t) =
               val b = forall (unint sg fs) us;
               val (q, eqs) = foldl_map
                 (mk_simpl_code sg case_tab (not b) fs ts ty_bs thm_bs) ((vs, vals), us);
-              val ((vs', vals'), (eqf, ctf)) = if is_some (lookup sg fs f) andalso b
+              val ((vs', vals'), (eqf, ctf)) = if isSome (lookup sg fs f) andalso b
                 then (q, ("", ""))
                 else mk_simpl_code sg case_tab (not b) fs ts ty_bs thm_bs (q, f);
               val ct = variant vs' "ct";
@@ -372,38 +372,38 @@ fun rhs_of thm = snd (Logic.dest_equals (prop_of thm));
 
 fun mk_funs_code sg case_tab fs fs' =
   let
-    val case_thms = mapfilter (fn s => (case Symtab.lookup (case_tab, s) of
+    val case_thms = List.mapPartial (fn s => (case Symtab.lookup (case_tab, s) of
         NONE => NONE
       | SOME thms => SOME (unsuffix "_case" (Sign.base_name s) ^ ".cases",
           map (fn i => Sign.base_name s ^ "_" ^ string_of_int i)
             (1 upto length thms) ~~ thms)))
-      (foldr add_term_consts (map (prop_of o snd)
-        (flat (map (#3 o snd) fs')), []));
+      (Library.foldr add_term_consts (map (prop_of o snd)
+        (List.concat (map (#3 o snd) fs')), []));
     val case_vals = map (fn (s, cs) => mk_vall (map fst cs)
       [Pretty.str "map my_mk_meta_eq", Pretty.brk 1,
        Pretty.str ("(thms \"" ^ s ^ "\")")]) case_thms;
-    val (vs, thm_bs, thm_vals) = foldl mk_term_bindings (([], [], []),
-      flat (map (map (apsnd prop_of) o #3 o snd) fs') @
-      map (apsnd prop_of) (flat (map snd case_thms)));
+    val (vs, thm_bs, thm_vals) = Library.foldl mk_term_bindings (([], [], []),
+      List.concat (map (map (apsnd prop_of) o #3 o snd) fs') @
+      map (apsnd prop_of) (List.concat (map snd case_thms)));
 
     fun mk_fun_code (prfx, (fname, d, eqns)) =
       let
         val (f, ts) = strip_comb (lhs_of (snd (hd eqns)));
         val args = variantlist (replicate (length ts) "ct", vs);
-        val (vs', ty_bs, ty_vals) = foldl mk_type_bindings
+        val (vs', ty_bs, ty_vals) = Library.foldl mk_type_bindings
           ((vs @ args, [], []), args ~~ map fastype_of ts);
         val insts1 = map mk_tyinst ty_bs;
 
         fun mk_eqn_code (name, eqn) =
           let
             val (_, argts) = strip_comb (lhs_of eqn);
-            val (vs'', tm_bs, tm_vals) = foldl (decomp_term_code false)
+            val (vs'', tm_bs, tm_vals) = Library.foldl (decomp_term_code false)
               ((vs', [], []), args ~~ argts);
             val ((vs''', eq_vals), (eq, ct)) = mk_simpl_code sg case_tab false fs
               (tm_bs @ filter_out (is_Var o fst) thm_bs) ty_bs thm_bs
               ((vs'', []), rhs_of eqn);
             val insts2 = map (fn (t, s) => Pretty.block [Pretty.str "(",
-              inst_ty false ty_bs t (the (assoc (thm_bs, t))), Pretty.str ",", Pretty.brk 1,
+              inst_ty false ty_bs t (valOf (assoc (thm_bs, t))), Pretty.str ",", Pretty.brk 1,
               Pretty.str (s ^ ")")]) tm_bs
             val eq' = if null insts1 andalso null insts2 then Pretty.str name
               else parens (eq <> "") [Pretty.str "Thm.instantiate",
@@ -417,7 +417,7 @@ fun mk_funs_code sg case_tab fs fs' =
             Pretty.block [parens (length argts > 1)
                 (Pretty.commas (map (pretty_pattern false) argts)),
               Pretty.str " =>",
-              Pretty.brk 1, mk_let "let" 2 (ty_vals @ tm_vals @ flat (map (snd o snd) eq_vals))
+              Pretty.brk 1, mk_let "let" 2 (ty_vals @ tm_vals @ List.concat (map (snd o snd) eq_vals))
                 [Pretty.str ("(" ^ ct ^ ","), Pretty.brk 1, eq'', Pretty.str ")"]]
           end;
 
@@ -441,7 +441,7 @@ fun mk_funs_code sg case_tab fs fs' =
           [Pretty.str " =", Pretty.brk 1, Pretty.str "(case", Pretty.brk 1,
            Pretty.list "(" ")" (map (fn s => Pretty.str ("term_of " ^ s)) args),
            Pretty.str " of", Pretty.brk 1] @
-          flat (separate [Pretty.brk 1, Pretty.str "| "]
+          List.concat (separate [Pretty.brk 1, Pretty.str "| "]
             (map (single o mk_eqn_code) eqns)) @ [Pretty.str ")"] @ default))
       end;
 
@@ -458,19 +458,19 @@ fun mk_simprocs_code sg eqns =
     val eqns' = map attach_term eqns;
     fun mk_node (s, _, (_, th) :: _) = (s, get_head th);
     fun mk_edges (s, _, ths) = map (pair s) (distinct
-      (mapfilter (fn t => apsome #1 (lookup sg eqns' t))
-        (flat (map (term_consts' o prop_of o snd) ths))));
-    val gr = foldr (uncurry Graph.add_edge)
-      (map (pair "" o #1) eqns @ flat (map mk_edges eqns),
-       foldr (uncurry Graph.new_node)
+      (List.mapPartial (fn t => Option.map #1 (lookup sg eqns' t))
+        (List.concat (map (term_consts' o prop_of o snd) ths))));
+    val gr = Library.foldr (uncurry Graph.add_edge)
+      (map (pair "" o #1) eqns @ List.concat (map mk_edges eqns),
+       Library.foldr (uncurry Graph.new_node)
          (("", Bound 0) :: map mk_node eqns, Graph.empty));
     val keys = rev (Graph.all_succs gr [""] \ "");
     fun gr_ord (x :: _, y :: _) =
       int_ord (find_index (equal x) keys, find_index (equal y) keys);
-    val scc = map (fn xs => filter (fn (_, (s, _, _)) => s mem xs) eqns')
+    val scc = map (fn xs => List.filter (fn (_, (s, _, _)) => s mem xs) eqns')
       (sort gr_ord (Graph.strong_conn gr \ [""]));
   in
-    flat (separate [Pretty.str ";", Pretty.fbrk, Pretty.str " ", Pretty.fbrk]
+    List.concat (separate [Pretty.str ";", Pretty.fbrk, Pretty.str " ", Pretty.fbrk]
       (map (fn eqns'' => [mk_funs_code sg case_tab eqns' eqns'']) scc)) @
     [Pretty.str ";", Pretty.fbrk]
   end;
@@ -482,7 +482,7 @@ fun use_simprocs_code sg eqns =
       let val (i', eqs') = foldl_map attach_name (i, eqs)
       in (i', (s, b, eqs')) end;
     val (_, eqns') = foldl_map attach_names (1, eqns);
-    val (names, thms) = split_list (flat (map #3 eqns'));
+    val (names, thms) = split_list (List.concat (map #3 eqns'));
     val s = setmp print_mode [] Pretty.string_of
       (mk_let "local" 2 [mk_vall names [Pretty.str "!SimprocsCodegen.simp_thms"]]
         (mk_simprocs_code sg eqns'))

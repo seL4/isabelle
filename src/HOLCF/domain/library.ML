@@ -13,12 +13,12 @@ fun Id x = x;
 fun mapn f n []      = []
 |   mapn f n (x::xs) = (f n x) :: mapn f (n+1) xs;
 
-fun foldr'' f (l,f2) = let fun itr []  = raise LIST "foldr''"
+fun foldr'' f (l,f2) = let fun itr []  = raise Fail "foldr''"
 			     | itr [a] = f2 a
 			     | itr (a::l) = f(a, itr l)
 in  itr l  end;
 fun foldr' f l = foldr'' f (l,Id);
-fun map_cumulr f start xs = foldr (fn (x,(ys,res))=>case f(x,res) of (y,res2) =>
+fun map_cumulr f start xs = Library.foldr (fn (x,(ys,res))=>case f(x,res) of (y,res2) =>
 						  (y::ys,res2)) (xs,([],start));
 
 
@@ -98,7 +98,7 @@ val upd_vname =   upd_third;
 fun is_rec         arg = rec_of arg >=0;
 fun is_nonlazy_rec arg = is_rec arg andalso not (is_lazy arg);
 fun nonlazy     args   = map vname (filter_out is_lazy    args);
-fun nonlazy_rec args   = map vname (filter is_nonlazy_rec args);
+fun nonlazy_rec args   = map vname (List.filter is_nonlazy_rec args);
 
 (* ----- support for type and mixfix expressions ----- *)
 
@@ -123,7 +123,7 @@ local
 	 	    |   sg _       = Imposs "library:sg";
 		    fun sf [] = %%:"_emptysort"
 		    |   sf s  = %%:"_sort" $ sg s
-		    fun tf (Type (s,args)) = foldl (op $) (%:s,map tf args)
+		    fun tf (Type (s,args)) = Library.foldl (op $) (%:s,map tf args)
 		    |   tf (TFree(s,sort)) = %%:"_ofsort" $ %:s $ sf sort
 		    |   tf _               = Imposs "library:tf";
 in
@@ -146,7 +146,7 @@ infix 1 ~<<; fun S ~<< T = mk_not (S << T);
 infix 9 `  ; fun f`  x = %%:"Rep_CFun" $ f $ x;
 infix 9 `% ; fun f`% s = f` %: s;
 infix 9 `%%; fun f`%%s = f` %%:s;
-fun mk_cRep_CFun (F,As) = foldl (op `) (F,As);
+fun mk_cRep_CFun (F,As) = Library.foldl (op `) (F,As);
 fun con_app2 con f args = mk_cRep_CFun(%%:con,map f args);
 fun con_app con = con_app2 con %#;
 fun if_rec  arg f y   = if is_rec arg then f (rec_of arg) else y;
@@ -162,7 +162,7 @@ fun cproj' T eqs = prj
 	(fn S => fn t => Const("cfst",mk_prodT(dummyT,t)->>dummyT)`S) 
 	(fn S => fn t => Const("csnd",mk_prodT(t,dummyT)->>dummyT)`S) 
 		       T (map ((fn tp => tp ->> tp) o Type o fix_tp o fst) eqs);
-fun lift tfn = foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
+fun lift tfn = Library.foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
 
 fun /\ v T = %%:"Abs_CFun" $ mk_lam(v,T);
 fun /\# (arg,T) = /\ (vname arg) T;

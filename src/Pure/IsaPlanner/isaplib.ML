@@ -159,7 +159,7 @@ fun all_but_last_of_seq s =
   (* for use with tactics... gives no_tac if element isn't there *)
   fun NTH n f st = 
       let val r = nth_of_seq n (f st) in 
-        if (is_none r) then Seq.empty else (Seq.single (the r))
+        if (is_none r) then Seq.empty else (Seq.single (valOf r))
       end;
  
   (* First result of a tactic... uses NTH, so if there is no elements,
@@ -214,7 +214,7 @@ fun get_ends_of gr (e as (u,l)) [] = e
     else if gr(l,h) then get_ends_of gr (u,h) t
     else get_ends_of gr (u,l) t;
 
-fun flatmap f = flat o map f;
+fun flatmap f = List.concat o map f;
 
   (* quick removal of "rs" elements from "ls" when (eqf (r,l)) is true 
 		 Ignores ordering. *)

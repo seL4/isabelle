@@ -195,7 +195,7 @@ fun token_assoc (list, key) =
   let
     fun assoc [] = []
       | assoc ((keyi, xi) :: pairs) =
-          if is_none keyi orelse matching_tokens (the keyi, key) then
+          if is_none keyi orelse matching_tokens (valOf keyi, key) then
             assoc pairs @ xi
           else assoc pairs;
   in assoc list end;
@@ -292,7 +292,7 @@ fun tokenize lex xids chs =
       Scan.one Symbol.is_blank >> K NONE;
   in
     (case Scan.error (Scan.finite Symbol.stopper (Scan.repeat scan_token)) chs of
-      (toks, []) => mapfilter I toks @ [EndToken]
+      (toks, []) => List.mapPartial I toks @ [EndToken]
     | (_, cs) => error ("Inner lexical error at: " ^ quote (implode cs)))
   end;
 
@@ -345,7 +345,7 @@ fun read_var str =
     val scan =
       $$ "?" |-- scan_indexname >> var ||
       Scan.any Symbol.not_eof >> (free o implode);
-  in the (Scan.read Symbol.stopper scan (Symbol.explode str)) end;
+  in valOf (Scan.read Symbol.stopper scan (Symbol.explode str)) end;
 
 
 (* variable kinds *)
@@ -360,7 +360,7 @@ val dest_skolem = unsuffix "__";
 (* read_nat *)
 
 fun read_nat str =
-  apsome (#1 o Library.read_int) (Scan.read Symbol.stopper scan_digits1 (Symbol.explode str));
+  Option.map (#1 o Library.read_int) (Scan.read Symbol.stopper scan_digits1 (Symbol.explode str));
 
 
 (* read_xnum *)

@@ -254,7 +254,7 @@ exception TERM of string * term list;
 fun S --> T = Type("fun",[S,T]);
 
 (*handy for multiple args: [T1,...,Tn]--->T  gives  T1-->(T2--> ... -->T)*)
-val op ---> = foldr (op -->);
+val op ---> = Library.foldr (op -->);
 
 fun dest_Type (Type x) = x
   | dest_Type T = raise TYPE ("dest_Type", [T], []);
@@ -309,8 +309,8 @@ fun strip_type T : typ list * typ =
   Ts = [T0,T1,...] holds types of bound variables 0, 1, ...*)
 fun type_of1 (Ts, Const (_,T)) = T
   | type_of1 (Ts, Free  (_,T)) = T
-  | type_of1 (Ts, Bound i) = (nth_elem (i,Ts)
-        handle LIST _ => raise TYPE("type_of: bound variable", [], [Bound i]))
+  | type_of1 (Ts, Bound i) = (List.nth (Ts,i)
+        handle Subscript => raise TYPE("type_of: bound variable", [], [Bound i]))
   | type_of1 (Ts, Var (_,T)) = T
   | type_of1 (Ts, Abs (_,T,body)) = T --> type_of1(T::Ts, body)
   | type_of1 (Ts, f$u) =
@@ -334,15 +334,15 @@ fun fastype_of1 (Ts, f$u) =
         | _ => raise TERM("fastype_of: expected function type", [f$u]))
   | fastype_of1 (_, Const (_,T)) = T
   | fastype_of1 (_, Free (_,T)) = T
-  | fastype_of1 (Ts, Bound i) = (nth_elem(i,Ts)
-         handle LIST _ => raise TERM("fastype_of: Bound", [Bound i]))
+  | fastype_of1 (Ts, Bound i) = (List.nth(Ts,i)
+         handle Subscript => raise TERM("fastype_of: Bound", [Bound i]))
   | fastype_of1 (_, Var (_,T)) = T
   | fastype_of1 (Ts, Abs (_,T,u)) = T --> fastype_of1 (T::Ts, u);
 
 fun fastype_of t : typ = fastype_of1 ([],t);
 
 
-val list_abs = foldr (fn ((x, T), t) => Abs (x, T, t));
+val list_abs = Library.foldr (fn ((x, T), t) => Abs (x, T, t));
 
 (* maps  (x1,...,xn)t   to   t  *)
 fun strip_abs_body (Abs(_,_,t))  =  strip_abs_body t
@@ -365,7 +365,7 @@ in strip end;
 
 
 (* maps   (f, [t1,...,tn])  to  f(t1,...,tn) *)
-val list_comb : term * term list -> term = foldl (op $);
+val list_comb : term * term list -> term = Library.foldl (op $);
 
 
 (* maps   f(t1,...,tn)  to  (f, [t1,...,tn]) ; naturally tail-recursive*)
@@ -465,7 +465,7 @@ fun rename_abs pat obj t =
   let
     val ren = match_bvs (pat, obj, []);
     fun ren_abs (Abs (x, T, b)) =
-          Abs (if_none (assoc_string (ren, x)) x, T, ren_abs b)
+          Abs (getOpt (assoc_string (ren, x), x), T, ren_abs b)
       | ren_abs (f $ t) = ren_abs f $ ren_abs t
       | ren_abs t = t
   in if null ren then NONE else SOME (ren_abs t) end;
@@ -645,14 +645,14 @@ fun subst_atomic [] t = t : term
   | subst_atomic (instl: (term*term) list) t =
       let fun subst (Abs(a,T,body)) = Abs(a, T, subst body)
             | subst (f$t') = subst f $ subst t'
-            | subst t = if_none (assoc(instl,t)) t
+            | subst t = getOpt (assoc(instl,t),t)
       in  subst t  end;
 
 (*Substitute for type Vars in a type*)
 fun typ_subst_TVars iTs T = if null iTs then T else
   let fun subst(Type(a,Ts)) = Type(a, map subst Ts)
         | subst(T as TFree _) = T
-        | subst(T as TVar(ixn,_)) = if_none (assoc(iTs,ixn)) T
+        | subst(T as TVar(ixn,_)) = getOpt (assoc(iTs,ixn),T)
   in subst T end;
 
 (*Substitute for type Vars in a term*)
@@ -660,7 +660,7 @@ val subst_TVars = map_term_types o typ_subst_TVars;
 
 (*Substitute for Vars in a term; see also envir/norm_term*)
 fun subst_Vars itms t = if null itms then t else
-  let fun subst(v as Var(ixn,_)) = if_none (assoc(itms,ixn)) v
+  let fun subst(v as Var(ixn,_)) = getOpt (assoc(itms,ixn),v)
         | subst(Abs(a,T,t)) = Abs(a,T,subst t)
         | subst(f$t) = subst f $ subst t
         | subst(t) = t
@@ -695,7 +695,7 @@ fun maxidx_of_term (Const(_,T)) = maxidx_of_typ T
   | maxidx_of_term (Abs (_,T,u)) = Int.max(maxidx_of_term u, maxidx_of_typ T)
   | maxidx_of_term (f$t) = Int.max(maxidx_of_term f,  maxidx_of_term t);
 
-fun maxidx_of_terms ts = foldl Int.max (~1, map maxidx_of_term ts);
+fun maxidx_of_terms ts = Library.foldl Int.max (~1, map maxidx_of_term ts);
 
 
 (* Increment the index of all Poly's in T by k *)
@@ -712,7 +712,7 @@ fun no_dummyT typ =
   let
     fun check (T as Type ("dummy", _)) =
           raise TYPE ("Illegal occurrence of '_' dummy type", [T], [])
-      | check (Type (_, Ts)) = seq check Ts
+      | check (Type (_, Ts)) = List.app check Ts
       | check _ = ();
   in check typ; typ end;
 
@@ -747,11 +747,11 @@ fun invent_names _ _ 0 = []
 
 (** Consts etc. **)
 
-fun add_typ_classes (Type (_, Ts), cs) = foldr add_typ_classes (Ts, cs)
+fun add_typ_classes (Type (_, Ts), cs) = Library.foldr add_typ_classes (Ts, cs)
   | add_typ_classes (TFree (_, S), cs) = S union cs
   | add_typ_classes (TVar (_, S), cs) = S union cs;
 
-fun add_typ_tycons (Type (c, Ts), cs) = foldr add_typ_tycons (Ts, c ins cs)
+fun add_typ_tycons (Type (c, Ts), cs) = Library.foldr add_typ_tycons (Ts, c ins cs)
   | add_typ_tycons (_, cs) = cs;
 
 val add_term_classes = it_term_types add_typ_classes;
@@ -814,20 +814,20 @@ fun add_term_names (Const(a,_), bs) = NameSpace.base a ins_string bs
   | add_term_names (_, bs) = bs;
 
 (*Accumulates the TVars in a type, suppressing duplicates. *)
-fun add_typ_tvars(Type(_,Ts),vs) = foldr add_typ_tvars (Ts,vs)
+fun add_typ_tvars(Type(_,Ts),vs) = Library.foldr add_typ_tvars (Ts,vs)
   | add_typ_tvars(TFree(_),vs) = vs
   | add_typ_tvars(TVar(v),vs) = v ins vs;
 
 (*Accumulates the TFrees in a type, suppressing duplicates. *)
-fun add_typ_tfree_names(Type(_,Ts),fs) = foldr add_typ_tfree_names (Ts,fs)
+fun add_typ_tfree_names(Type(_,Ts),fs) = Library.foldr add_typ_tfree_names (Ts,fs)
   | add_typ_tfree_names(TFree(f,_),fs) = f ins_string fs
   | add_typ_tfree_names(TVar(_),fs) = fs;
 
-fun add_typ_tfrees(Type(_,Ts),fs) = foldr add_typ_tfrees (Ts,fs)
+fun add_typ_tfrees(Type(_,Ts),fs) = Library.foldr add_typ_tfrees (Ts,fs)
   | add_typ_tfrees(TFree(f),fs) = f ins fs
   | add_typ_tfrees(TVar(_),fs) = fs;
 
-fun add_typ_varnames(Type(_,Ts),nms) = foldr add_typ_varnames (Ts,nms)
+fun add_typ_varnames(Type(_,Ts),nms) = Library.foldr add_typ_varnames (Ts,nms)
   | add_typ_varnames(TFree(nm,_),nms) = nm ins_string nms
   | add_typ_varnames(TVar((nm,_),_),nms) = nm ins_string nms;
 
@@ -848,7 +848,7 @@ fun term_tvars t = add_term_tvars(t,[]);
 
 (*special code to enforce left-to-right collection of TVar-indexnames*)
 
-fun add_typ_ixns(ixns,Type(_,Ts)) = foldl add_typ_ixns (ixns,Ts)
+fun add_typ_ixns(ixns,Type(_,Ts)) = Library.foldl add_typ_ixns (ixns,Ts)
   | add_typ_ixns(ixns,TVar(ixn,_)) = if mem_ix (ixn, ixns) then ixns
                                      else ixns@[ixn]
   | add_typ_ixns(ixns,TFree(_)) = ixns;
@@ -908,7 +908,7 @@ fun variant_abs (a,T,P) =
 fun rename_aTs names vars : (string*typ)list =
   let fun rename_aT (vars,(a,T)) =
                 (variant (map #1 vars @ names) a, T) :: vars
-  in foldl rename_aT ([],vars) end;
+  in Library.foldl rename_aT ([],vars) end;
 
 fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
 
@@ -916,7 +916,7 @@ fun rename_wrt_term t = rename_aTs (add_term_names(t,[]));
 (* left-ro-right traversal *)
 
 (*foldl atoms of type*)
-fun foldl_atyps f (x, Type (_, Ts)) = foldl (foldl_atyps f) (x, Ts)
+fun foldl_atyps f (x, Type (_, Ts)) = Library.foldl (foldl_atyps f) (x, Ts)
   | foldl_atyps f x_atom = f x_atom;
 
 (*foldl atoms of term*)
@@ -1094,7 +1094,7 @@ val show_var_qmarks = ref true;
 fun string_of_vname (x, i) =
   let
     val si = string_of_int i;
-    val dot = if_none (try (Symbol.is_digit o last_elem o Symbol.explode) x) true;
+    val dot = getOpt (try (Symbol.is_digit o List.last o Symbol.explode) x, true);
     val qmark = if !show_var_qmarks then "?" else "";
   in
     if dot then qmark ^ x ^ "." ^ si

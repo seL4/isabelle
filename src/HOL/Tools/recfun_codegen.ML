@@ -44,7 +44,7 @@ fun add (p as (thy, thm)) =
   in
     if Pattern.pattern (lhs_of thm) then
       (CodegenData.put (Symtab.update ((s,
-        thm :: if_none (Symtab.lookup (tab, s)) []), tab)) thy, thm)
+        thm :: getOpt (Symtab.lookup (tab, s), [])), tab)) thy, thm)
     else (warn thm; p)
   end handle TERM _ => (warn thm; p);
 
@@ -70,7 +70,7 @@ fun get_equations thy (s, T) =
   (case Symtab.lookup (CodegenData.get thy, s) of
      NONE => []
    | SOME thms => preprocess thy (del_redundant thy []
-       (filter (fn thm => is_instance thy T
+       (List.filter (fn thm => is_instance thy T
          (snd (const_of (prop_of thm)))) thms)));
 
 fun mk_poly_id thy (s, T) = mk_const_id (sign_of thy) s ^
@@ -82,7 +82,7 @@ exception EQN of string * typ * string;
 
 fun cycle g (xs, x) =
   if x mem xs then xs
-  else foldl (cycle g) (x :: xs, flat (Graph.find_paths g (x, x)));
+  else Library.foldl (cycle g) (x :: xs, List.concat (Graph.find_paths g (x, x)));
 
 fun add_rec_funs thy gr dep eqs =
   let
@@ -125,10 +125,10 @@ fun add_rec_funs thy gr dep eqs =
              if not (dep mem xs) then
                let
                  val eqs'' = map (dest_eq o prop_of)
-                   (flat (map (get_equations thy) cs));
+                   (List.concat (map (get_equations thy) cs));
                  val (gr3, fundef') = mk_fundef "" "fun "
                    (Graph.add_edge (dname, dep)
-                     (foldr (uncurry Graph.new_node) (map (fn k =>
+                     (Library.foldr (uncurry Graph.new_node) (map (fn k =>
                        (k, (SOME (EQN ("", dummyT, dname)), ""))) xs,
                          Graph.del_nodes xs gr2))) eqs''
                in put_code fundef' gr3 end

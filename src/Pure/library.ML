@@ -36,11 +36,7 @@ sig
   val stamp: unit -> stamp
 
   (*options*)
-  val the: 'a option -> 'a
-  val if_none: 'a option -> 'a -> 'a
-  val is_some: 'a option -> bool
   val is_none: 'a option -> bool
-  val apsome: ('a -> 'b) -> 'a option -> 'b option
   exception ERROR
   val try: ('a -> 'b) -> 'a -> 'b option
   val can: ('a -> 'b) -> 'a -> bool
@@ -77,45 +73,31 @@ sig
   val conditional: bool -> (unit -> unit) -> unit
 
   (*lists*)
-  exception LIST of string
-  val hd: 'a list -> 'a
-  val tl: 'a list -> 'a list
+  exception UnequalLengths
   val cons: 'a -> 'a list -> 'a list
   val single: 'a -> 'a list
   val append: 'a list -> 'a list -> 'a list
-  val rev_append: 'a list -> 'a list -> 'a list
   val apply: ('a -> 'a) list -> 'a -> 'a
-  val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
-  val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
   val fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val fold_rev: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val foldln: ('a * int -> 'b -> 'b) -> 'a list -> 'b -> 'b
-  val length: 'a list -> int
-  val take: int * 'a list -> 'a list
-  val drop: int * 'a list -> 'a list
+  val unflat: 'a list list -> 'b list -> 'b list list
   val splitAt: int * 'a list -> 'a list * 'a list
   val dropwhile: ('a -> bool) -> 'a list -> 'a list
-  val nth_elem: int * 'a list -> 'a
   val map_nth_elem: int -> ('a -> 'a) -> 'a list -> 'a list
-  val last_elem: 'a list -> 'a
   val split_last: 'a list -> 'a list * 'a
   val nth_update: 'a -> int * 'a list -> 'a list
   val find_index: ('a -> bool) -> 'a list -> int
   val find_index_eq: ''a -> ''a list -> int
   val find_first: ('a -> bool) -> 'a list -> 'a option
   val get_first: ('a -> 'b option) -> 'a list -> 'b option
-  val flat: 'a list list -> 'a list
-  val unflat: 'a list list -> 'b list -> 'b list list
-  val seq: ('a -> unit) -> 'a list -> unit
   val separate: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
   val multiply: 'a list * 'a list list -> 'a list list
   val product: 'a list -> 'b list -> ('a * 'b) list
-  val filter: ('a -> bool) -> 'a list -> 'a list
   val filter_out: ('a -> bool) -> 'a list -> 'a list
-  val mapfilter: ('a -> 'b option) -> 'a list -> 'b list
   val map2: ('a * 'b -> 'c) -> 'a list * 'b list -> 'c list
   val exists2: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val forall2: ('a * 'b -> bool) -> 'a list * 'b list -> bool
@@ -262,14 +244,36 @@ sig
   (*misc*)
   val make_keylist: ('a -> 'b) -> 'a list -> ('a * 'b) list
   val keyfilter: ('a * ''b) list -> ''b -> 'a list
-  val partition: ('a -> bool) -> 'a list -> 'a list * 'a list
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
   val gensym: string -> string
   val scanwords: (string -> bool) -> string list -> string list
 end;
 
-structure Library: LIBRARY =
+signature LIBRARY_CLOSED =
+sig
+  include LIBRARY
+
+  val the: 'a option -> 'a
+  val if_none: 'a option -> 'a -> 'a
+  val is_some: 'a option -> bool
+  val apsome: ('a -> 'b) -> 'a option -> 'b option
+
+  val rev_append: 'a list -> 'a list -> 'a list
+  val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
+  val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
+  val take: int * 'a list -> 'a list
+  val drop: int * 'a list -> 'a list
+  val nth_elem: int * 'a list -> 'a
+  val last_elem: 'a list -> 'a
+  val flat: 'a list list -> 'a list
+  val seq: ('a -> unit) -> 'a list -> unit
+  val partition: ('a -> bool) -> 'a list -> 'a list * 'a list
+  val filter: ('a -> bool) -> 'a list -> 'a list
+  val mapfilter: ('a -> 'b option) -> 'a list -> 'b list
+end;
+
+structure Library: LIBRARY_CLOSED =
 struct
 
 
@@ -312,18 +316,16 @@ val stamp: unit -> stamp = ref;
 
 (** options **)
 
-fun the opt = valOf opt;
+val the = valOf;
 
 (*strict!*)
 fun if_none opt a = getOpt(opt,a);
 
-fun is_some opt = isSome opt;
+val is_some = isSome;
 
-fun is_none (SOME _) = false
-  | is_none NONE = true;
+fun is_none opt = not (isSome opt);
 
-fun apsome f (SOME x) = SOME (f x)
-  | apsome _ NONE = NONE;
+val apsome = Option.map;
 
 
 (* exception handling *)
@@ -429,13 +431,7 @@ fun conditional b f = if b then f () else ();
 
 (** lists **)
 
-exception LIST of string;
-
-fun hd [] = raise LIST "hd"
-  | hd (x :: _) = x;
-
-fun tl [] = raise LIST "tl"
-  | tl (_ :: xs) = xs;
+exception UnequalLengths;
 
 fun cons x xs = x :: xs;
 fun single x = [x];
@@ -488,11 +484,6 @@ fun foldln f xs e = fst (foldl (fn ((e,i), x) => (f (x,i) e, i+1)) ((e,1),xs));
 
 (* basic list functions *)
 
-(*length of a list, should unquestionably be a standard function*)
-local fun length1 (n, [])  = n   (*TAIL RECURSIVE*)
-        | length1 (n, x :: xs) = length1 (n + 1, xs)
-in  fun length l = length1 (0, l) end;
-
 (*take the first n elements from a list*)
 fun take (n, []) = []
   | take (n, x :: xs) =
@@ -513,29 +504,24 @@ fun dropwhile P [] = []
 
 (*return nth element of a list, where 0 designates the first element;
   raise EXCEPTION if list too short*)
-fun nth_elem NL =
-  (case drop NL of
-    [] => raise LIST "nth_elem"
-  | x :: _ => x);
+fun nth_elem (i,xs) = List.nth(xs,i);
 
 fun map_nth_elem 0 f (x :: xs) = f x :: xs
   | map_nth_elem n f (x :: xs) = x :: map_nth_elem (n - 1) f xs
-  | map_nth_elem _ _ [] = raise LIST "map_nth_elem";
+  | map_nth_elem _ _ [] = raise Subscript;
 
 (*last element of a list*)
-fun last_elem [] = raise LIST "last_elem"
-  | last_elem [x] = x
-  | last_elem (_ :: xs) = last_elem xs;
+val last_elem = List.last;
 
 (*rear decomposition*)
-fun split_last [] = raise LIST "split_last"
+fun split_last [] = raise Empty
   | split_last [x] = ([], x)
   | split_last (x :: xs) = apfst (cons x) (split_last xs);
 
 (*update nth element*)
 fun nth_update x n_xs =
     (case splitAt n_xs of
-      (_,[]) => raise LIST "nth_update"
+      (_,[]) => raise Subscript
     | (prfx, _ :: sffx') => prfx @ (x :: sffx'))
 
 (*find the position of an element in a list*)
@@ -565,14 +551,11 @@ fun unflat (xs :: xss) ys =
       let val (ps,qs) = splitAt(length xs,ys)
       in ps :: unflat xss qs end
   | unflat [] [] = []
-  | unflat _ _ = raise LIST "unflat";
+  | unflat _ _ = raise UnequalLengths;
 
 (*like Lisp's MAPC -- seq proc [x1, ..., xn] evaluates
   (proc x1; ...; proc xn) for side effects*)
-fun seq (proc: 'a -> unit) : 'a list -> unit =
-  let fun seqf [] = ()
-        | seqf (x :: xs) = (proc x; seqf xs)
-  in seqf end;
+val seq = List.app;
 
 (*separate s [x1, x2, ..., xn]  ===>  [x1, s, x2, s, ..., s, xn]*)
 fun separate s (x :: (xs as _ :: _)) = x :: s :: separate s xs
@@ -583,7 +566,7 @@ fun replicate n (x: 'a) : 'a list =
   let fun rep (0, xs) = xs
         | rep (n, xs) = rep (n - 1, x :: xs)
   in
-    if n < 0 then raise LIST "replicate"
+    if n < 0 then raise Subscript
     else rep (n, [])
   end;
 
@@ -606,40 +589,38 @@ val filter = List.filter;
 
 fun filter_out f = filter (not o f);
 
-fun mapfilter (f: 'a -> 'b option) ([]: 'a list) = [] : 'b list
-  | mapfilter f (x :: xs) =
-      (case f x of
-        NONE => mapfilter f xs
-      | SOME y => y :: mapfilter f xs);
+val mapfilter = List.mapPartial;
 
 
 (* lists of pairs *)
 
+exception UnequalLengths;
+
 fun map2 _ ([], []) = []
   | map2 f (x :: xs, y :: ys) = (f (x, y) :: map2 f (xs, ys))
-  | map2 _ _ = raise LIST "map2";
+  | map2 _ _ = raise UnequalLengths;
 
 fun exists2 _ ([], []) = false
   | exists2 pred (x :: xs, y :: ys) = pred (x, y) orelse exists2 pred (xs, ys)
-  | exists2 _ _ = raise LIST "exists2";
+  | exists2 _ _ = raise UnequalLengths;
 
 fun forall2 _ ([], []) = true
   | forall2 pred (x :: xs, y :: ys) = pred (x, y) andalso forall2 pred (xs, ys)
-  | forall2 _ _ = raise LIST "forall2";
+  | forall2 _ _ = raise UnequalLengths;
 
 fun seq2 _ ([], []) = ()
   | seq2 f (x :: xs, y :: ys) = (f (x, y); seq2 f (xs, ys))
-  | seq2 _ _ = raise LIST "seq2";
+  | seq2 _ _ = raise UnequalLengths;
 
 (*combine two lists forming a list of pairs:
   [x1, ..., xn] ~~ [y1, ..., yn]  ===>  [(x1, y1), ..., (xn, yn)]*)
 fun [] ~~ [] = []
   | (x :: xs) ~~ (y :: ys) = (x, y) :: (xs ~~ ys)
-  | _ ~~ _ = raise LIST "~~";
+  | _ ~~ _ = raise UnequalLengths;
 
 (*inverse of ~~; the old 'split':
   [(x1, y1), ..., (xn, yn)]  ===>  ([x1, ..., xn], [y1, ..., yn])*)
-fun split_list (l: ('a * 'b) list) = (map #1 l, map #2 l);
+val split_list = ListPair.unzip;
 
 fun equal_lists eq (xs, ys) = length xs = length ys andalso forall2 eq (xs, ys);
 
@@ -751,7 +732,7 @@ fun oct_char s = chr (#1 (read_radixint (8, explode s)));
 fun nth_elem_string (i, str) =
   (case try String.substring (str, i, 1) of
     SOME s => s
-  | NONE => raise LIST "nth_elem_string");
+  | NONE => raise Subscript);
 
 fun foldl_string f (x0, str) =
   let
@@ -822,7 +803,7 @@ fun unsuffix sfx s =
   in
     if prfx_len >= 0 andalso implode (drop (prfx_len, cs)) = sfx then
       implode (take (prfx_len, cs))
-    else raise LIST "unsuffix"
+    else raise Fail "unsuffix"
   end;
 
 (*remove prefix*)
@@ -830,7 +811,7 @@ fun unprefix prfx s =
   let val (prfx', sfx) = splitAt (size prfx, explode s)
   in
     if implode prfx' = prfx then implode sfx
-    else raise LIST "unprefix"
+    else raise Fail "unprefix"
   end;
 
 fun replicate_string 0 _ = ""
@@ -1242,12 +1223,7 @@ fun keyfilter [] searchkey = []
 
 (*Partition list into elements that satisfy predicate and those that don't.
   Preserves order of elements in both lists.*)
-fun partition (pred: 'a->bool) (ys: 'a list) : ('a list * 'a list) =
-    let fun part ([], answer) = answer
-          | part (x::xs, (ys, ns)) = if pred(x)
-            then  part (xs, (x::ys, ns))
-            else  part (xs, (ys, x::ns))
-    in  part (rev ys, ([], []))  end;
+val partition = List.partition;
 
 
 fun partition_eq (eq:'a * 'a -> bool) =
@@ -1263,7 +1239,7 @@ fun partition_list p i j =
   let fun part k xs =
             if k>j then
               (case xs of [] => []
-                         | _ => raise LIST "partition_list")
+                         | _ => raise Fail "partition_list")
             else
             let val (ns, rest) = partition (p k) xs;
             in  ns :: part(k+1)rest  end
@@ -1310,4 +1286,5 @@ fun scanwords is_let cs =
 
 end;
 
-open Library;
+structure OpenLibrary: LIBRARY = Library;
+open OpenLibrary;

@@ -96,7 +96,7 @@ fun info path =
     | s => SOME (Info s))
   end;
 
-val exists = is_some o info;
+val exists = isSome o info;
 
 
 (* directories *)

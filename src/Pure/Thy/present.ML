@@ -115,8 +115,8 @@ fun init_graph remote_path curr_sess = map (fn name =>
    {name = name, ID = ID_of session name, dir = sess_name,
     path =
       if null session then "" else
-      if is_some remote_path andalso not is_local then
-        Url.pack (Url.append (the remote_path) (Url.File
+      if isSome remote_path andalso not is_local then
+        Url.pack (Url.append (valOf remote_path) (Url.File
           (Path.append (Path.make session) (html_path name))))
       else Path.pack (Path.append (mk_rel_path curr_sess session) (html_path name)),
     unfold = false,
@@ -296,7 +296,7 @@ fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time
 
       val parent_index_path = Path.append Path.parent index_path;
       val index_up_lnk = if first_time then
-          Url.append (the remote_path) (Url.File (Path.append sess_prefix parent_index_path))
+          Url.append (valOf remote_path) (Url.File (Path.append sess_prefix parent_index_path))
         else Url.File parent_index_path;
       val readme =
         if File.exists readme_html_path then SOME readme_html_path
@@ -304,8 +304,8 @@ fun init build info doc doc_graph path name doc_prefix2 (remote_path, first_time
         else NONE;
 
       val index_text = HTML.begin_index (index_up_lnk, parent_name)
-        (Url.File index_path, session_name) (apsome Url.File readme)
-          (apsome Url.File document_path) (Url.unpack "medium.html");
+        (Url.File index_path, session_name) (Option.map Url.File readme)
+          (Option.map Url.File document_path) (Url.unpack "medium.html");
     in
       session_info := SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
       info, doc, doc_graph, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
@@ -363,7 +363,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       Buffer.write (Path.append html_prefix (html_path a)) (Buffer.add HTML.end_theory html);
 
     val opt_graphs =
-      if doc_graph andalso (is_some doc_prefix1 orelse is_some doc_prefix2) then
+      if doc_graph andalso (isSome doc_prefix1 orelse isSome doc_prefix2) then
         SOME (isatool_browser graph)
       else NONE;
 
@@ -374,7 +374,7 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
         (File.write (Path.append path graph_pdf_path) pdf;
           File.write (Path.append path graph_eps_path) eps));
       write_tex_index tex_index path;
-      seq (finish_tex path) thys);
+      List.app (finish_tex path) thys);
   in
     conditional info (fn () =>
      (File.mkdir (Path.append html_prefix session_path);
@@ -385,11 +385,11 @@ fun finish () = with_session () (fn {name, info, html_prefix, doc_format, doc_gr
       (case readme of NONE => () | SOME path => File.copy path (Path.append html_prefix path));
       write_graph graph (Path.append html_prefix graph_path);
       copy_files (Path.unpack "~~/lib/browser/GraphBrowser.jar") html_prefix;
-      seq (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
+      List.app (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
         (HTML.applet_pages name (Url.File index_path, name));
       copy_files (Path.unpack "~~/lib/html/isabelle.css") html_prefix;
-      seq finish_html thys;
-      seq (uncurry File.write) files;
+      List.app finish_html thys;
+      List.app (uncurry File.write) files;
       conditional verbose (fn () =>
         std_error ("Browser info at " ^ show_path html_prefix ^ "\n"))));
 
@@ -426,8 +426,8 @@ fun theory_output name s =
 fun parent_link remote_path curr_session name =
   let val {name = _, session, is_local} = get_info (ThyInfo.theory name)
   in (if null session then NONE else
-     SOME (if is_some remote_path andalso not is_local then
-       Url.append (the remote_path) (Url.File
+     SOME (if isSome remote_path andalso not is_local then
+       Url.append (valOf remote_path) (Url.File
          (Path.append (Path.make session) (html_path name)))
      else Url.File (Path.append (mk_rel_path curr_session session)
        (html_path name))), name)
@@ -439,7 +439,7 @@ fun begin_theory optpath name raw_parents orig_files thy =
     val parents = map (parent_link remote_path path) raw_parents;
     val ml_path = ThyLoad.ml_path name;
     val files = map (apsnd SOME) orig_files @
-      (if is_some (ThyLoad.check_file optpath ml_path) then [(ml_path, NONE)] else []);
+      (if isSome (ThyLoad.check_file optpath ml_path) then [(ml_path, NONE)] else []);
 
     fun prep_file (raw_path, loadit) =
       (case ThyLoad.check_file optpath raw_path of
@@ -473,7 +473,7 @@ fun begin_theory optpath name raw_parents orig_files thy =
     add_graph_entry entry;
     add_html_index (HTML.theory_entry (Url.File (html_path name), name));
     add_tex_index (Latex.theory_entry name);
-    BrowserInfoData.put {name = sess_name, session = path, is_local = is_some remote_path} thy
+    BrowserInfoData.put {name = sess_name, session = path, is_local = isSome remote_path} thy
   end);
 
 
@@ -481,7 +481,7 @@ val hooks = ref ([]: (string -> (string * thm list) list -> unit) list);
 fun add_hook f = hooks := (f :: ! hooks);
 
 fun results k xs =
- (seq (fn f => (try (fn () => f k xs) (); ())) (! hooks);
+ (List.app (fn f => (try (fn () => f k xs) (); ())) (! hooks);
   with_session () (fn _ => with_context add_html (HTML.results k xs)));
 
 fun theorem a th = results "theorem" [(a, [th])];
@@ -524,7 +524,7 @@ fun drafts doc_format src_paths =
     val known_syms = known "syms.lst";
     val known_ctrls = known "ctrls.lst";
 
-    val _ = srcs |> seq (fn (name, base, txt) =>
+    val _ = srcs |> List.app (fn (name, base, txt) =>
       Symbol.explode txt
       |> Latex.symbol_source (known_syms, known_ctrls) (Path.pack base)
       |> File.write (Path.append doc_path (tex_path name)));

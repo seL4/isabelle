@@ -214,8 +214,8 @@ fun THEN_BEST_FIRST tac0 (satp, sizef) tac1 =
   let val tac = tracify trace_BEST_FIRST tac1
       fun pairsize th = (sizef th, th);
       fun bfs (news,nprf_heap) =
-	   (case  partition satp news  of
-		([],nonsats) => next(foldr ThmHeap.insert
+	   (case  List.partition satp news  of
+		([],nonsats) => next(Library.foldr ThmHeap.insert
 					(map pairsize nonsats, nprf_heap)) 
 	      | (sats,_)  => some_of_list sats)
       and next nprf_heap =
@@ -239,7 +239,7 @@ val BEST_FIRST = THEN_BEST_FIRST all_tac;
 fun gen_BREADTH_FIRST message satpred (tac:tactic) = 
   let val tacf = Seq.list_of o tac;
       fun bfs prfs =
-	 (case  partition satpred prfs  of
+	 (case  List.partition satpred prfs  of
 	      ([],[]) => []
 	    | ([],nonsats) => 
 		  (message("breadth=" ^ string_of_int(length nonsats));
@@ -275,9 +275,9 @@ fun THEN_ASTAR tac0 (satp, costf) tac1 =
   let val tf = tracify trace_ASTAR tac1;   
       fun bfs (news,nprfs,level) =
       let fun cost thm = (level, costf level thm, thm)
-      in (case  partition satp news  of
+      in (case  List.partition satp news  of
             ([],nonsats) 
-		 => next (foldr insert_with_level (map cost nonsats, nprfs))
+		 => next (Library.foldr insert_with_level (map cost nonsats, nprfs))
           | (sats,_)  => some_of_list sats)
       end and    
       next []  = NONE

@@ -148,21 +148,21 @@ fun getfuncs fm = case strip_comb fm of
       if body_type T mem [iT, nT] 
          andalso not (ts = []) andalso forall (null o loose_bnos) ts 
       then [fm]
-      else foldl op union ([], map getfuncs ts)
+      else Library.foldl op union ([], map getfuncs ts)
   | (Var (_, T), ts as _ :: _) =>
       if body_type T mem [iT, nT] 
          andalso not (ts = []) andalso forall (null o loose_bnos) ts then [fm]
-      else foldl op union ([], map getfuncs ts)
+      else Library.foldl op union ([], map getfuncs ts)
   | (Const (s, T), ts) =>
       if (s, T) mem allowed_consts orelse not (body_type T mem [iT, nT])
-      then foldl op union ([], map getfuncs ts)
+      then Library.foldl op union ([], map getfuncs ts)
       else [fm]
   | (Abs (s, T, t), _) => getfuncs t
   | _ => [];
 
 
 fun abstract_pres sg fm = 
-  foldr (fn (t, u) =>
+  Library.foldr (fn (t, u) =>
       let val T = fastype_of t
       in all T $ Abs ("x", T, abstract_over (t, u)) end)
          (getfuncs fm, fm);
@@ -198,7 +198,7 @@ The constants occuring in term t should be a subset of the allowed_consts
  abstracted over.*)
  
 fun relevant ps t = (term_typed_consts t) subset allowed_consts andalso 
-  map (fn i => snd (nth_elem (i, ps))) (loose_bnos t) @
+  map (fn i => snd (List.nth (ps, i))) (loose_bnos t) @
   map (snd o dest_Free) (term_frees t) @ map (snd o dest_Var) (term_vars t)
   subset [iT, nT]
   andalso not (has_free_funcs t);
@@ -217,13 +217,13 @@ fun prepare_for_presburger sg q fm =
         (HOLogic.all_const T $ Abs (s, T, P), n)
       else (incr_boundvars ~1 P, n-1)
     fun mk_all2 (v, t) = HOLogic.all_const (fastype_of v) $ lambda v t;
-    val (rhs,irhs) = partition (relevant (rev ps)) hs
+    val (rhs,irhs) = List.partition (relevant (rev ps)) hs
     val np = length ps
-    val (fm',np) =  foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
-      (ps,(foldr HOLogic.mk_imp (rhs, c), np))
-    val (vs, _) = partition (fn t => q orelse (type_of t) = nT)
+    val (fm',np) =  Library.foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
+      (ps,(Library.foldr HOLogic.mk_imp (rhs, c), np))
+    val (vs, _) = List.partition (fn t => q orelse (type_of t) = nT)
       (term_frees fm' @ term_vars fm');
-    val fm2 = foldr mk_all2 (vs, fm')
+    val fm2 = Library.foldr mk_all2 (vs, fm')
   in (fm2, np + length vs, length rhs) end;
 
 (*Object quantifier to meta --*)
@@ -300,7 +300,7 @@ fun presburger_args meth =
  in
    Method.simple_args 
   (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
-    curry (foldl op |>) (true, false))
+    curry (Library.foldl op |>) (true, false))
     (fn (q,a) => fn _ => meth q a 1)
   end;
 

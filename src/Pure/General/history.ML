@@ -35,7 +35,7 @@ fun is_initial (History (_, (_, len, _, _))) = len = 0;
 fun current (History (x, _)) = x;
 
 fun clear n (History (x, (lim, len, undo_list, redo_list))) =
-  History (x, (lim, Int.max (0, len - n), drop (n, undo_list), redo_list));
+  History (x, (lim, Int.max (0, len - n), Library.drop (n, undo_list), redo_list));
 
 fun undo (History (_, (_, _, [], _))) = error "No further undo information"
   | undo (History (x, (lim, len, u :: undo_list, redo_list))) =
@@ -47,7 +47,7 @@ fun redo (History (_, (_, _, _, []))) = error "No further redo information"
 
 fun push NONE _ x xs = x :: xs
   | push (SOME 0) _ _ _ = []
-  | push (SOME n) len x xs = if len < n then x :: xs else take (n, x :: xs);
+  | push (SOME n) len x xs = if len < n then x :: xs else Library.take (n, x :: xs);
 
 fun apply_copy cp f (History (x, (lim, len, undo_list, _))) =
   let val x' = cp x

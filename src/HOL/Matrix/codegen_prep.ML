@@ -80,7 +80,7 @@ fun group f [] = []
     
 fun prepare_thms ths = 
     let
-	val ths = (filter is_meta_eq ths) @ (map (standard o mk_meta_eq) (filter (not o is_meta_eq) ths))		      
+	val ths = (List.filter is_meta_eq ths) @ (map (standard o mk_meta_eq) (filter_out is_meta_eq ths))		      
 	val _ = if forall Thm.no_prems ths then () else raise (Prepare_thms "premisse found")
 	val thmgroups = group head_name ths
 	val test_clashgroups = group (fn (a,b) => mangle_id a) thmgroups

@@ -84,7 +84,7 @@ fun eq_trfuns ((_, s1:stamp), (_, s2)) = s1 = s2;
 
 (* parse (ast) translations *)
 
-fun lookup_tr tab c = apsome fst (Symtab.lookup (tab, c));
+fun lookup_tr tab c = Option.map fst (Symtab.lookup (tab, c));
 
 fun err_dup_trfuns name cs =
   error ("More than one " ^ name ^ " for " ^ commas_quote cs);
@@ -101,7 +101,7 @@ fun merge_trtabs tab1 tab2 name =
 (* print (ast) translations *)
 
 fun lookup_tr' tab c = map fst (Symtab.lookup_multi (tab, c));
-fun extend_tr'tab tab trfuns = foldr Symtab.update_multi (map mk_trfun trfuns, tab);
+fun extend_tr'tab tab trfuns = Library.foldr Symtab.update_multi (map mk_trfun trfuns, tab);
 fun merge_tr'tabs tab1 tab2 = Symtab.merge_multi' eq_trfuns (tab1, tab2);
 
 
@@ -109,8 +109,8 @@ fun merge_tr'tabs tab1 tab2 = Symtab.merge_multi' eq_trfuns (tab1, tab2);
 (** tables of token translation functions **)
 
 fun lookup_tokentr tabs modes =
-  let val trs = gen_distinct eq_fst (flat (map (assocs tabs) (modes @ [""])))
-  in fn c => apsome fst (assoc (trs, c)) end;
+  let val trs = gen_distinct eq_fst (List.concat (map (assocs tabs) (modes @ [""])))
+  in fn c => Option.map fst (assoc (trs, c)) end;
 
 fun merge_tokentrtabs tabs1 tabs2 =
   let
@@ -138,7 +138,7 @@ fun extend_tokentrtab tabs tokentrs =
     fun ins_tokentr (ts, (m, c, f)) =
       overwrite (ts, (m, ("_" ^ c, (f, stamp ())) :: assocs ts m));
   in
-    merge_tokentrtabs tabs (foldl ins_tokentr ([], tokentrs))
+    merge_tokentrtabs tabs (Library.foldl ins_tokentr ([], tokentrs))
   end;
 
 
@@ -147,14 +147,14 @@ fun extend_tokentrtab tabs tokentrs =
 
 type ruletab = (Ast.ast * Ast.ast) list Symtab.table;
 
-fun dest_ruletab tab = flat (map snd (Symtab.dest tab));
+fun dest_ruletab tab = List.concat (map snd (Symtab.dest tab));
 fun lookup_ruletab tab a = Symtab.lookup_multi (tab, a);
 
 
 (* empty, extend, merge ruletabs *)
 
 fun extend_ruletab tab rules =
-  foldr Symtab.update_multi (map (fn r => (Ast.head_of_rule r, r)) rules, tab);
+  Library.foldr Symtab.update_multi (map (fn r => (Ast.head_of_rule r, r)) rules, tab);
 
 fun merge_ruletabs tab1 tab2 = Symtab.merge_multi' (op =) (tab1, tab2);
 
@@ -343,7 +343,7 @@ fun read_asts is_logtype (Syntax tabs) xids root str =
         else
             (warning ("Ambiguous input " ^ quote str);
              warning "produces the following parse trees:";
-             seq show_pt pts)
+             List.app show_pt pts)
     else ();
     SynTrans.pts_to_asts (lookup_tr parse_ast_trtab) pts
   end;
@@ -426,8 +426,8 @@ fun read_pattern is_logtype syn (root, str) =
 
 fun prep_rules rd_pat raw_rules =
   let val rules = map (map_trrule rd_pat) raw_rules in
-    (map check_rule (mapfilter parse_rule rules),
-      map check_rule (mapfilter print_rule rules))
+    (map check_rule (List.mapPartial parse_rule rules),
+      map check_rule (List.mapPartial print_rule rules))
   end
 
 

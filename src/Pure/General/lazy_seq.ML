@@ -83,7 +83,7 @@ exception Empty
 fun getItem (Seq s) = force s
 fun make f = Seq (delay f)
 
-fun null s = is_some (getItem s)
+fun null s = isSome (getItem s)
 
 local
     fun F n NONE = n
@@ -397,8 +397,8 @@ fun op APPEND (f, g) x =
 	make (fn () => copy (f x))
     end
 
-fun EVERY fs = foldr THEN (fs, succeed)
-fun FIRST fs = foldr ORELSE (fs, fail)
+fun EVERY fs = Library.foldr THEN (fs, succeed)
+fun FIRST fs = Library.foldr ORELSE (fs, fail)
 
 fun TRY f x =
     make (fn () =>

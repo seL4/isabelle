@@ -2,7 +2,7 @@
 (* call_sim_tac invokes oracle "Sim" *)
 fun call_sim_tac thm_list i state = 
 let val sign = #sign (rep_thm state);
-        val (subgoal::_) = drop(i-1,prems_of state);
+        val (subgoal::_) = Library.drop(i-1,prems_of state);
         val OraAss = invoke_oracle MuIOAOracle.thy "Sim" (sign,SimOracleExn (subgoal,thm_list));
 in
 (cut_facts_tac [OraAss] i) state
@@ -13,7 +13,7 @@ end;
 fun is_sim_tac thm_list i state =
 let val sign = #sign (rep_thm state);
 in
-case drop(i-1,prems_of state) of
+case Library.drop(i-1,prems_of state) of
         [] => PureGeneral.Seq.empty |
         subgoal::_ => EVERY[REPEAT(etac thin_rl i),
                         simp_tac (simpset() addsimps [ioa_implements_def]) i,

@@ -7,7 +7,7 @@
 fun mc_eindhoven_tac i state =
 let val sign = #sign (rep_thm state)
 in 
-case drop(i-1,prems_of state) of
+case Library.drop(i-1,prems_of state) of
    [] => Seq.empty |
    subgoal::_ => 
 	let val concl = Logic.strip_imp_concl subgoal;

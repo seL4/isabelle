@@ -34,7 +34,7 @@ fun make_deps_graph (p, AbsP (_, _, prf)) = make_deps_graph (p, prf)
   | make_deps_graph (p, prf1 %% prf2) =
       make_deps_graph (make_deps_graph (p, prf1), prf2)
   | make_deps_graph (p, prf % _) = make_deps_graph (p, prf)
-  | make_deps_graph (p, MinProof prfs) = foldl make_deps_graph (p, prfs)
+  | make_deps_graph (p, MinProof prfs) = Library.foldl make_deps_graph (p, prfs)
   | make_deps_graph (p as (gra, parents), prf) =
       let val ((name, tags), prf') = dest_thm_axm prf
       in
@@ -68,7 +68,7 @@ fun make_deps_graph (p, AbsP (_, _, prf)) = make_deps_graph (p, prf)
 fun thm_deps thms =
   let
     val _ = writeln "Generating graph ...";
-    val gra = map snd (Symtab.dest (fst (foldl make_deps_graph ((Symtab.empty, []),
+    val gra = map snd (Symtab.dest (fst (Library.foldl make_deps_graph ((Symtab.empty, []),
       map Thm.proof_of thms))));
     val path = File.tmp_path (Path.unpack "theorems.graph");
     val _ = Present.write_graph gra path;

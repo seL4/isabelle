@@ -231,7 +231,7 @@ val pprint_sg = Pretty.pprint o pretty_sg;
 
 val tsig_of = #tsig o rep_sg;
 fun is_logtype sg c = c mem_string Type.logical_types (tsig_of sg);
-fun const_type (Sg (_, {consts, ...})) c = apsome #1 (Symtab.lookup (consts, c));
+fun const_type (Sg (_, {consts, ...})) c = Option.map #1 (Symtab.lookup (consts, c));
 
 
 (* id and self *)
@@ -478,7 +478,7 @@ val constK = "const";
 (* declare and retrieve names *)
 
 fun space_of spaces kind =
-  if_none (assoc (spaces, kind)) NameSpace.empty;
+  getOpt (assoc (spaces, kind), NameSpace.empty);
 
 (*input and output of qualified names*)
 fun intrn spaces kind = NameSpace.intern (space_of spaces kind);
@@ -514,8 +514,8 @@ local
   fun mapping f add_xs t =
     let
       fun f' x = let val y = f x in if x = y then NONE else SOME (x, y) end;
-      val table = mapfilter f' (add_xs (t, []));
-      fun lookup x = if_none (assoc (table, x)) x;
+      val table = List.mapPartial f' (add_xs (t, []));
+      fun lookup x = getOpt (assoc (table, x), x);
     in lookup end;
 
   (*intern / extern typ*)
@@ -568,7 +568,7 @@ in
   val full_name = full o #path o rep_sg;
 
   fun full_name_path sg elems =
-    full (SOME (if_none (#path (rep_sg sg)) [] @ NameSpace.unpack elems));
+    full (SOME (getOpt (#path (rep_sg sg), []) @ NameSpace.unpack elems));
 
 end;
 
@@ -607,7 +607,7 @@ fun pretty_sort (sg as Sg (_, {spaces, ...})) S =
   Syntax.pretty_sort (syn_of sg)
     (if ! NameSpace.long_names then S else extrn_sort spaces S);
 
-fun pretty_classrel sg cs = Pretty.block (flat
+fun pretty_classrel sg cs = Pretty.block (List.concat
   (separate [Pretty.str " <", Pretty.brk 1] (map (single o pretty_sort sg o single) cs)));
 
 fun pretty_arity sg (t, Ss, S) =
@@ -690,11 +690,11 @@ val certify_typ = Type.cert_typ o tsig_of;
 val certify_typ_raw = Type.cert_typ_raw o tsig_of;
 
 fun certify_tyname sg c =
-  if is_some (Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c)) then c
+  if isSome (Symtab.lookup (#types (Type.rep_tsig (tsig_of sg)), c)) then c
   else raise TYPE ("Undeclared type constructor: " ^ quote c, [], []);
 
 fun certify_const sg c =
-  if is_some (const_type sg c) then c
+  if isSome (const_type sg c) then c
   else raise TYPE ("Undeclared constant: " ^ quote c, [], []);
 
 
@@ -717,7 +717,7 @@ fun type_check pp sg tm =
     fun typ_of (_, Const (_, T)) = T
       | typ_of (_, Free  (_, T)) = T
       | typ_of (_, Var (_, T)) = T
-      | typ_of (bs, Bound i) = snd (nth_elem (i, bs) handle LIST _ =>
+      | typ_of (bs, Bound i) = snd (List.nth (bs, i) handle Subscript =>
           raise TYPE ("Loose bound variable: B." ^ string_of_int i, [], [Bound i]))
       | typ_of (bs, Abs (x, T, body)) = T --> typ_of ((x, T) :: bs, body)
       | typ_of (bs, t $ u) =
@@ -832,7 +832,7 @@ fun infer_types_simult pp sg def_type def_sort used freeze args =
   let
     val tsig = tsig_of sg;
 
-    val termss = foldr multiply (map fst args, [[]]);
+    val termss = Library.foldr multiply (map fst args, [[]]);
     val typs =
       map (fn (_, T) => certify_typ sg T handle TYPE (msg, _, _) => error msg) args;
 
@@ -842,8 +842,8 @@ fun infer_types_simult pp sg def_type def_sort used freeze args =
       handle TYPE (msg, _, _) => Error msg;
 
     val err_results = map infer termss;
-    val errs = mapfilter get_error err_results;
-    val results = mapfilter get_ok err_results;
+    val errs = List.mapPartial get_error err_results;
+    val results = List.mapPartial get_ok err_results;
 
     val ambiguity = length termss;
 
@@ -861,7 +861,7 @@ fun infer_types_simult pp sg def_type def_sort used freeze args =
           \You may still want to disambiguate your grammar or your input."
       else (); hd results)
     else (ambig_msg (); error ("More than one term is type correct:\n" ^
-      cat_lines (map (Pretty.string_of_term pp) (flat (map fst results)))))
+      cat_lines (map (Pretty.string_of_term pp) (List.concat (map fst results)))))
   end;
 
 
@@ -1014,7 +1014,7 @@ fun const_of_class c = c ^ "_class";
 
 fun class_of_const c_class =
   let
-    val c = implode (take (size c_class - size "_class", explode c_class));
+    val c = implode (Library.take (size c_class - size "_class", explode c_class));
   in
     if const_of_class c = c_class then c
     else raise TERM ("class_of_const: bad name " ^ quote c_class, [])
@@ -1088,9 +1088,9 @@ fun ext_path _ (syn, tsig, ctab, (path, spaces), data) elems =
     val path' =
       if elems = "//" then NONE
       else if elems = "/" then SOME []
-      else if elems = ".." andalso is_some path andalso path <> SOME [] then
-        SOME (fst (split_last (the path)))
-      else SOME (if_none path [] @ NameSpace.unpack elems);
+      else if elems = ".." andalso isSome path andalso path <> SOME [] then
+        SOME (fst (split_last (valOf path)))
+      else SOME (getOpt (path,[]) @ NameSpace.unpack elems);
   in
     (syn, tsig, ctab, (path', spaces), data)
   end;

@@ -85,12 +85,12 @@ fun could_IH x = could_unify(x,hd (prems_of rcallT)) orelse
 
 fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
   let val bvs = bvars Bi [];
-      val ihs = filter could_IH (Logic.strip_assums_hyp Bi);
+      val ihs = List.filter could_IH (Logic.strip_assums_hyp Bi);
       val rnames = map (fn x=>
                     let val (a,b) = get_bno [] 0 x
-                    in (nth_elem(a,bvs),b) end) ihs;
+                    in (List.nth(bvs,a),b) end) ihs;
       fun try_IHs [] = no_tac
-        | try_IHs ((x,y)::xs) = tac [("g",x)] (nth_elem(y-1,rls)) i ORELSE (try_IHs xs);
+        | try_IHs ((x,y)::xs) = tac [("g",x)] (List.nth(rls,y-1)) i ORELSE (try_IHs xs);
   in try_IHs rnames end);
 
 (*****)

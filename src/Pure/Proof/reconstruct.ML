@@ -30,14 +30,14 @@ fun forall_intr (t, prop) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in all T $ Abs (a, T, abstract_over (t, prop)) end;
 
-fun forall_intr_vfs prop = foldr forall_intr
+fun forall_intr_vfs prop = Library.foldr forall_intr
   (vars_of prop @ sort (make_ord atless) (term_frees prop), prop);
 
 fun forall_intr_prf (t, prf) =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in Abst (a, SOME T, prf_abstract_over t prf) end;
 
-fun forall_intr_vfs_prf prop prf = foldr forall_intr_prf
+fun forall_intr_vfs_prf prop prf = Library.foldr forall_intr_prf
   (vars_of prop @ sort (make_ord atless) (term_frees prop), prf);
 
 fun merge_envs (Envir.Envir {asol=asol1, iTs=iTs1, maxidx=maxidx1})
@@ -57,7 +57,7 @@ fun mk_tvar (Envir.Envir {iTs, asol, maxidx}, s) =
   (Envir.Envir {iTs = iTs, asol = asol, maxidx = maxidx+1},
    TVar (("'t", maxidx+1), s));
 
-fun mk_abs Ts t = foldl (fn (u, T) => Abs ("", T, u)) (t, Ts);
+fun mk_abs Ts t = Library.foldl (fn (u, T) => Abs ("", T, u)) (t, Ts);
 
 fun unifyT sg env T U =
   let
@@ -103,14 +103,14 @@ fun infer_type sg (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
           let val (env3, V) = mk_tvar (env2, [])
           in (t' $ u', V, vTs2, unifyT sg env3 T (U --> V)) end)
       end
-  | infer_type sg env Ts vTs (t as Bound i) = (t, nth_elem (i, Ts), vTs, env);
+  | infer_type sg env Ts vTs (t as Bound i) = (t, List.nth (Ts, i), vTs, env);
 
 fun cantunify sg (t, u) = error ("Non-unifiable terms:\n" ^
   Sign.string_of_term sg t ^ "\n\n" ^ Sign.string_of_term sg u);
 
 fun decompose sg Ts (env, p as (t, u)) =
   let fun rigrig (a, T) (b, U) uT ts us = if a <> b then cantunify sg p
-    else apsnd flat (foldl_map (decompose sg Ts) (uT env T U, ts ~~ us))
+    else apsnd List.concat (foldl_map (decompose sg Ts) (uT env T U, ts ~~ us))
   in case pairself (strip_comb o Envir.head_norm env) p of
       ((Const c, ts), (Const d, us)) => rigrig c d (unifyT sg) ts us
     | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT sg) ts us
@@ -149,7 +149,7 @@ fun make_constraints_cprf sg env cprf =
                 NONE => foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
               | SOME Ts => (env, Ts));
             val prop'' = subst_TVars (map fst tvars @ map snd fmap ~~ Ts)
-              (forall_intr_vfs prop') handle LIST _ =>
+              (forall_intr_vfs prop') handle UnequalLengths =>
                 error ("Wrong number of type arguments for " ^
                   quote (fst (get_name_tags [] prop prf)))
           in (prop'', change_type (SOME Ts) prf, [], env', vTs) end;
@@ -157,7 +157,7 @@ fun make_constraints_cprf sg env cprf =
     fun head_norm (prop, prf, cnstrts, env, vTs) =
       (Envir.head_norm env prop, prf, cnstrts, env, vTs);
  
-    fun mk_cnstrts env _ Hs vTs (PBound i) = (nth_elem (i, Hs), PBound i, [], env, vTs)
+    fun mk_cnstrts env _ Hs vTs (PBound i) = (List.nth (Hs, i), PBound i, [], env, vTs)
       | mk_cnstrts env Ts Hs vTs (Abst (s, opT, cprf)) =
           let
             val (env', T) = (case opT of
@@ -314,7 +314,7 @@ fun prop_of_atom prop Ts =
 
 val head_norm = Envir.head_norm (Envir.empty 0);
 
-fun prop_of0 Hs (PBound i) = nth_elem (i, Hs)
+fun prop_of0 Hs (PBound i) = List.nth (Hs, i)
   | prop_of0 Hs (Abst (s, SOME T, prf)) =
       all T $ (Abs (s, T, prop_of0 Hs prf))
   | prop_of0 Hs (AbsP (s, SOME t, prf)) =

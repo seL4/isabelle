@@ -71,8 +71,8 @@ fun cons x_xq = make (fn () => SOME x_xq);
 fun single x = cons (x, empty);
 
 (*head and tail -- beware of calling the sequence function twice!!*)
-fun hd xq = #1 (the (pull xq))
-and tl xq = #2 (the (pull xq));
+fun hd xq = #1 (valOf (pull xq))
+and tl xq = #2 (valOf (pull xq));
 
 (*partial function as procedure*)
 fun try f x =
@@ -97,7 +97,7 @@ fun list_of xq =
   | SOME (x, xq') => x :: list_of xq');
 
 (*conversion from list to sequence*)
-fun of_list xs = foldr cons (xs, empty);
+fun of_list xs = Library.foldr cons (xs, empty);
 
 
 (*map the function f over the sequence, making a new sequence*)
@@ -203,8 +203,8 @@ fun op ORELSE (f, g) x =
 fun op APPEND (f, g) x =
   append (f x, make (fn () => pull (g x)));
 
-fun EVERY fs = foldr THEN (fs, succeed);
-fun FIRST fs = foldr ORELSE (fs, fail);
+fun EVERY fs = Library.foldr THEN (fs, succeed);
+fun FIRST fs = Library.foldr ORELSE (fs, fail);
 
 fun TRY f = ORELSE (f, succeed);
 

@@ -135,7 +135,7 @@ fun tag x = Scan.lift (Args.name -- Scan.repeat Args.name) x;
 
 val thm_sel = Args.parens (Scan.pass () (Args.enum1 "," (Scan.lift
   (   Args.nat --| Args.$$$ "-" -- Args.nat >> op upto
-   || Args.nat >> single)) >> flat));
+   || Args.nat >> single)) >> List.concat));
 
 fun gen_thm get attrib app =
   Scan.depend (fn st => Args.name -- Scan.option thm_sel -- Args.opt_attribs >>
@@ -143,11 +143,11 @@ fun gen_thm get attrib app =
 
 val global_thm = gen_thm PureThy.get_thm global_attribute Thm.apply_attributes;
 val global_thms = gen_thm PureThy.get_thms global_attribute Thm.applys_attributes;
-val global_thmss = Scan.repeat global_thms >> flat;
+val global_thmss = Scan.repeat global_thms >> List.concat;
 
 val local_thm = gen_thm ProofContext.get_thm local_attribute' Thm.apply_attributes;
 val local_thms = gen_thm ProofContext.get_thms local_attribute' Thm.applys_attributes;
-val local_thmss = Scan.repeat local_thms >> flat;
+val local_thmss = Scan.repeat local_thms >> List.concat;
 
 
 
@@ -218,7 +218,7 @@ fun read_instantiate _ [] _ thm = thm
                 "Type instantiations must occur before term instantiations."
               else ();
 
-        val Tinsts = filter has_type_var insts;
+        val Tinsts = List.filter has_type_var insts;
         val tinsts = filter_out has_type_var insts;
 
         (* Type instantiations first *)

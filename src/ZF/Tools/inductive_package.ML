@@ -102,7 +102,7 @@ let
                Sign.string_of_term sign t);
 
   (*** Construct the fixedpoint definition ***)
-  val mk_variant = variant (foldr add_term_names (intr_tms, []));
+  val mk_variant = variant (Library.foldr add_term_names (intr_tms, []));
 
   val z' = mk_variant"z" and X' = mk_variant"X" and w' = mk_variant"w";
 
@@ -113,10 +113,10 @@ let
   (*Makes a disjunct from an introduction rule*)
   fun fp_part intr = (*quantify over rule's free vars except parameters*)
     let val prems = map dest_tprop (strip_imp_prems intr)
-        val dummy = seq (fn rec_hd => seq (chk_prem rec_hd) prems) rec_hds
+        val dummy = List.app (fn rec_hd => List.app (chk_prem rec_hd) prems) rec_hds
         val exfrees = term_frees intr \\ rec_params
         val zeq = FOLogic.mk_eq (Free(z',iT), #1 (rule_concl intr))
-    in foldr FOLogic.mk_exists
+    in Library.foldr FOLogic.mk_exists
              (exfrees, fold_bal FOLogic.mk_conj (zeq::prems))
     end;
 
@@ -138,7 +138,7 @@ let
 
   val fp_rhs = Fp.oper $ dom_sum $ fp_abs
 
-  val dummy = seq (fn rec_hd => deny (rec_hd occs fp_rhs)
+  val dummy = List.app (fn rec_hd => deny (rec_hd occs fp_rhs)
                              "Illegal occurrence of recursion operator")
            rec_hds;
 
@@ -173,7 +173,7 @@ let
 
   (*tracing: print the fixedpoint definition*)
   val dummy = if !Ind_Syntax.trace then
-              seq (writeln o Sign.string_of_term sign o #2) axpairs
+              List.app (writeln o Sign.string_of_term sign o #2) axpairs
           else ()
 
   (*add definitions of the inductive sets*)
@@ -311,7 +311,7 @@ let
      (*Make a premise of the induction rule.*)
      fun induct_prem ind_alist intr =
        let val quantfrees = map dest_Free (term_frees intr \\ rec_params)
-           val iprems = foldr (add_induct_prem ind_alist)
+           val iprems = Library.foldr (add_induct_prem ind_alist)
                               (Logic.strip_imp_prems intr,[])
            val (t,X) = Ind_Syntax.rule_concl intr
            val (SOME pred) = gen_assoc (op aconv) (ind_alist, X)
@@ -332,7 +332,7 @@ let
 
      val dummy = if !Ind_Syntax.trace then
                  (writeln "ind_prems = ";
-                  seq (writeln o Sign.string_of_term sign1) ind_prems;
+                  List.app (writeln o Sign.string_of_term sign1) ind_prems;
                   writeln "raw_induct = "; print_thm raw_induct)
              else ();
 
@@ -390,7 +390,7 @@ let
            val pfree = Free(pred_name ^ "_" ^ Sign.base_name rec_name,
                             elem_factors ---> FOLogic.oT)
            val qconcl =
-             foldr FOLogic.mk_all
+             Library.foldr FOLogic.mk_all
                (elem_frees,
                 FOLogic.imp $
                 (Ind_Syntax.mem_const $ elem_tuple $ rec_tm)

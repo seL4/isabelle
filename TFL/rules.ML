@@ -133,7 +133,7 @@ fun DISCH_ALL thm = U.itlist DISCH (#hyps (Thm.crep_thm thm)) thm;
 
 fun FILTER_DISCH_ALL P thm =
  let fun check tm = P (#t (Thm.rep_cterm tm))
- in  foldr (fn (tm,th) => if check tm then DISCH tm th else th)
+ in  Library.foldr (fn (tm,th) => if check tm then DISCH tm th else th)
               (chyps thm, thm)
  end;
 
@@ -658,7 +658,7 @@ fun dest_impl tm =
   in (ants,get_lhs eq)
   end;
 
-fun restricted t = is_some (S.find_term
+fun restricted t = isSome (S.find_term
                             (fn (Const("Wellfounded_Recursion.cut",_)) =>true | _ => false)
                             t)
 
@@ -785,7 +785,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val dummy = print_cterms "TC:"
                               [cterm_of sign (HOLogic.mk_Trueprop TC)]
               val dummy = tc_list := (TC :: !tc_list)
-              val nestedp = is_some (S.find_term is_func TC)
+              val nestedp = isSome (S.find_term is_func TC)
               val dummy = if nestedp then say "nested" else say "not_nested"
               val dummy = term_ref := ([func,TC]@(!term_ref))
               val th' = if nestedp then raise RULES_ERR "solver" "nested function"
@@ -808,7 +808,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
       (prover names) (empty_ss addsimps [cut_lemma'] addeqcongs congs) ctm
     val th2 = equal_elim th1 th
  in
- (th2, filter (not o restricted) (!tc_list))
+ (th2, List.filter (not o restricted) (!tc_list))
  end;
 
 

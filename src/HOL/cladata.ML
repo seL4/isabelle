@@ -33,7 +33,7 @@ open Hypsubst;
 (*prevent substitution on bool*)
 fun hyp_subst_tac' i thm = if i <= Thm.nprems_of thm andalso
   Term.exists_Const (fn ("op =", Type (_, [T, _])) => T <> Type ("bool", []) | _ => false)
-    (Library.nth_elem (i - 1, Thm.prems_of thm)) then hyp_subst_tac i thm else no_tac thm;
+    (List.nth (Thm.prems_of thm, i - 1)) then hyp_subst_tac i thm else no_tac thm;
 
 
 

@@ -111,7 +111,7 @@ and quniv       = Const("QUniv.quniv", iT-->iT);
 fun union_params (rec_tm, cs) =
   let val (_,args) = strip_comb rec_tm
       fun is_ind arg = (type_of arg = iT)
-  in  case filter is_ind (args @ cs) of
+  in  case List.filter is_ind (args @ cs) of
          []     => empty
        | u_args => fold_bal mk_Un u_args
   end;
@@ -134,8 +134,8 @@ fun data_domain co (rec_tms, con_ty_lists) =
 	    foldl_aterms (fn (cs, Const c) => Const c ins cs | (cs, _) => cs);
 	fun fourth (_, name, args, prems) = prems
 	fun add_consts_in_cts cts = 
-	    foldl (foldl add_term_consts_2) ([], map fourth (flat cts));
-	val cs = filter is_OK (add_consts_in_cts con_ty_lists)
+	    Library.foldl (Library.foldl add_term_consts_2) ([], map fourth (List.concat cts));
+	val cs = List.filter is_OK (add_consts_in_cts con_ty_lists)
     in  u $ union_params (hd rec_tms, cs)  end;
 
 

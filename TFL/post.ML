@@ -46,7 +46,7 @@ val read_term = Thm.term_of oo (HOLogic.read_cterm o Theory.sign_of);
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
     map (#1 o Type.freeze_thaw o HOLogic.dest_Trueprop)
-      (foldr (fn (th,A) => union_term (prems_of th, A)) (rules, []));
+      (Library.foldr (fn (th,A) => union_term (prems_of th, A)) (rules, []));
 
 (*---------------------------------------------------------------------------
  * Finds the termination conditions in (highly massaged) definition and
@@ -105,7 +105,7 @@ fun mk_meta_eq r = case concl_of r of
   |   _ => r RS P_imp_P_eq_True
 
 (*Is this the best way to invoke the simplifier??*)
-fun rewrite L = rewrite_rule (map mk_meta_eq (filter(not o id_thm) L))
+fun rewrite L = rewrite_rule (map mk_meta_eq (List.filter(not o id_thm) L))
 
 fun join_assums th =
   let val {sign,...} = rep_thm th
@@ -207,7 +207,7 @@ prefer leaving more fine-grain control to the user.
 -- Lucas Dixon, Aug 2004 *)
 local
   fun get_related_thms i = 
-      mapfilter ((fn (r,x) => if x = i then SOME r else NONE));
+      List.mapPartial ((fn (r,x) => if x = i then SOME r else NONE));
 
   fun solve_eq (th, [], i) = 
       raise ERROR_MESSAGE "derive_init_eqs: missing rules"
@@ -226,9 +226,9 @@ fun derive_init_eqs sgn rules eqs =
       val eqths = map (Thm.trivial o (Thm.cterm_of sgn) o HOLogic.mk_Trueprop) 
                       eqs
       fun countlist l = 
-          (rev o snd o (foldl (fn ((i,L), e) => (i + 1,(e,i) :: L)))) ((0,[]), l)
+          (rev o snd o (Library.foldl (fn ((i,L), e) => (i + 1,(e,i) :: L)))) ((0,[]), l)
     in
-      flat (map (fn (e,i) => solve_eq (e, (get_related_thms i rules), i))
+      List.concat (map (fn (e,i) => solve_eq (e, (get_related_thms i rules), i))
                 (countlist eqths))
     end;
 end;

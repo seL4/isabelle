@@ -92,7 +92,7 @@ exception Contr of proof;
   (* Internal exception, raised if contradiction ( x < x ) was derived *)
 
 fun prove asms = 
-  let fun pr (Asm i) = nth_elem (i, asms)
+  let fun pr (Asm i) = List.nth (asms, i)
   |       pr (Thm (prfs, thm)) = (map pr prfs) MRS thm
   in pr end;
 
@@ -560,7 +560,7 @@ val trans_tac  =  SUBGOAL (fn (A, n, sign) =>
   val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
-  val lesss = flat (ListPair.map (mkasm_trans  sign) (Hs, 0 upto (length Hs - 1)))
+  val lesss = List.concat (ListPair.map (mkasm_trans  sign) (Hs, 0 upto (length Hs - 1)))
   val prfs = solveLeTrans  sign (lesss, C);
   
   val (subgoal, prf) = mkconcl_trans  sign C;
@@ -581,7 +581,7 @@ val quasi_tac = SUBGOAL (fn (A, n, sign) =>
   val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
-  val lesss = flat (ListPair.map (mkasm_quasi sign) (Hs, 0 upto (length Hs - 1)))
+  val lesss = List.concat (ListPair.map (mkasm_quasi sign) (Hs, 0 upto (length Hs - 1)))
   val prfs = solveQuasiOrder sign (lesss, C);
   val (subgoals, prf) = mkconcl_quasi sign C;
  in

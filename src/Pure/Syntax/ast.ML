@@ -119,7 +119,7 @@ fun rule_error (rule as (lhs, rhs)) =
   let
     fun vars_of (Constant _) = []
       | vars_of (Variable x) = [x]
-      | vars_of (Appl asts) = flat (map vars_of asts);
+      | vars_of (Appl asts) = List.concat (map vars_of asts);
 
     fun unique (x :: xs) = not (x mem xs) andalso unique xs
       | unique [] = true;
@@ -142,7 +142,7 @@ fun fold_ast _ [] = raise Match
   | fold_ast _ [y] = y
   | fold_ast c (x :: xs) = Appl [Constant c, x, fold_ast c xs];
 
-fun fold_ast_p c = foldr (fn (x, xs) => Appl [Constant c, x, xs]);
+fun fold_ast_p c = Library.foldr (fn (x, xs) => Appl [Constant c, x, xs]);
 
 fun fold_ast2 _ _ [] = raise Match
   | fold_ast2 _ c1 [y] = Appl [Constant c1, y]
@@ -190,7 +190,7 @@ fun match ast pat =
       (case (ast, pat) of
         (Appl asts, Appl pats) =>
           let val a = length asts and p = length pats in
-            if a > p then (Appl (take (p, asts)), drop (p, asts))
+            if a > p then (Appl (Library.take (p, asts)), Library.drop (p, asts))
             else (ast, [])
           end
       | _ => (ast, []));
@@ -210,7 +210,7 @@ fun normalize trace stat get_rules pre_ast =
     val changes = ref 0;
 
     fun subst _ (ast as Constant _) = ast
-      | subst env (Variable x) = the (Symtab.lookup (env, x))
+      | subst env (Variable x) = valOf (Symtab.lookup (env, x))
       | subst env (Appl asts) = Appl (map (subst env) asts);
 
     fun try_rules ((lhs, rhs) :: pats) ast =

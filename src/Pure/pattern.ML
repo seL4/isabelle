@@ -48,7 +48,7 @@ val trace_unify_fail = ref false;
 fun string_of_term sg env binders t = Sign.string_of_term sg
   (Envir.norm_term env (subst_bounds(map Free binders,t)));
 
-fun bname binders i = fst(nth_elem(i,binders));
+fun bname binders i = fst(List.nth(binders,i));
 fun bnames binders is = space_implode " " (map (bname binders) is);
 
 fun typ_clash sg (tye,T,U) =
@@ -113,10 +113,10 @@ fun mapbnd f =
 fun idx [] j     = raise Unif
   | idx(i::is) j = if i=j then length is else idx is j;
 
-fun at xs i = nth_elem (i,xs);
+fun at xs i = List.nth (xs,i);
 
 fun mkabs (binders,is,t)  =
-    let fun mk(i::is) = let val (x,T) = nth_elem(i,binders)
+    let fun mk(i::is) = let val (x,T) = List.nth(binders,i)
                         in Abs(x,T,mk is) end
           | mk []     = t
     in mk is end;
@@ -158,7 +158,7 @@ fun mknewhnf(env,binders,is,F as (a,_),T,js) =
 
 (* mk_proj_list(is) = [ |is| - k | 1 <= k <= |is| and is[k] >= 0 ] *)
 fun mk_proj_list is =
-    let fun mk(i::is,j) = if is_some i then j :: mk(is,j-1) else mk(is,j-1)
+    let fun mk(i::is,j) = if isSome i then j :: mk(is,j-1) else mk(is,j-1)
           | mk([],_)    = []
     in mk(is,length is - 1) end;
 
@@ -182,7 +182,7 @@ fun proj(s,env,binders,is) =
                       let val js = ints_of' env ts;
                           val js' = map (try (trans d)) js;
                           val ks = mk_proj_list js';
-                          val ls = mapfilter I js'
+                          val ls = List.mapPartial I js'
                           val Hty = type_of_G env (Fty,length js,ks)
                           val (env',H) = Envir.genvar a (env,Hty)
                           val env'' =
@@ -260,11 +260,11 @@ and cases sg (binders,env,(s,t)) = case (strip_comb s,strip_comb t) of
 
 and rigidrigid sg (env,binders,(a,Ta),(b,Tb),ss,ts) =
       if a<>b then (clash a b; raise Unif)
-      else foldl (unif sg binders) (unify_types sg (Ta,Tb,env), ss~~ts)
+      else Library.foldl (unif sg binders) (unify_types sg (Ta,Tb,env), ss~~ts)
 
 and rigidrigidB sg (env,binders,i,j,ss,ts) =
      if i <> j then (clashBB binders i j; raise Unif)
-     else foldl (unif sg binders) (env ,ss~~ts)
+     else Library.foldl (unif sg binders) (env ,ss~~ts)
 
 and flexrigid sg (params as (env,binders,F,is,t)) =
       if occurs(F,t,env) then (ocheck_fail sg (F,t,binders,env); raise Unif)
@@ -272,7 +272,7 @@ and flexrigid sg (params as (env,binders,F,is,t)) =
             in Envir.update((F,mkabs(binders,is,u)),env') end
             handle Unif => (proj_fail sg params; raise Unif));
 
-fun unify(sg,env,tus) = foldl (unif sg []) (env,tus);
+fun unify(sg,env,tus) = Library.foldl (unif sg []) (env,tus);
 
 
 (*Eta-contract a term (fully)*)
@@ -407,7 +407,7 @@ let
   and cases(binders,env as (iTs,itms),pat,obj) =
     let val (ph,pargs) = strip_comb pat
         fun rigrig1(iTs,oargs) =
-              foldl (mtch binders) ((iTs,itms), pargs~~oargs)
+              Library.foldl (mtch binders) ((iTs,itms), pargs~~oargs)
         fun rigrig2((a,Ta),(b,Tb),oargs) =
               if a<> b then raise MATCH
               else rigrig1(typ_match tsg (iTs,(Ta,Tb)), oargs)
@@ -476,7 +476,7 @@ fun rewrite_term tsig rules procs tm =
     val skel0 = Bound 0;
 
     val rhs_names =
-      foldr (fn ((_, rhs), names) => add_term_free_names (rhs, names)) (rules, []);
+      Library.foldr (fn ((_, rhs), names) => add_term_free_names (rhs, names)) (rules, []);
 
     fun variant_absfree (x, T, t) =
       let
@@ -485,29 +485,29 @@ fun rewrite_term tsig rules procs tm =
       in (fn u => Abs (x, T, abstract_over (Free (x', T), u)), t') end;
 
     fun match_rew tm (tm1, tm2) =
-      let val rtm = if_none (Term.rename_abs tm1 tm tm2) tm2
+      let val rtm = getOpt (Term.rename_abs tm1 tm tm2, tm2)
       in SOME (subst_vars (match tsig (tm1, tm)) rtm, rtm)
         handle MATCH => NONE
       end;
 
     fun rew (Abs (_, _, body) $ t) = SOME (subst_bound (t, body), skel0)
       | rew tm = (case get_first (match_rew tm) rules of
-          NONE => apsome (rpair skel0) (get_first (fn p => p tm) procs)
+          NONE => Option.map (rpair skel0) (get_first (fn p => p tm) procs)
         | x => x);
 
     fun rew1 (Var _) _ = NONE
       | rew1 skel tm = (case rew2 skel tm of
           SOME tm1 => (case rew tm1 of
-              SOME (tm2, skel') => SOME (if_none (rew1 skel' tm2) tm2)
+              SOME (tm2, skel') => SOME (getOpt (rew1 skel' tm2, tm2))
             | NONE => SOME tm1)
         | NONE => (case rew tm of
-              SOME (tm1, skel') => SOME (if_none (rew1 skel' tm1) tm1)
+              SOME (tm1, skel') => SOME (getOpt (rew1 skel' tm1, tm1))
             | NONE => NONE))
 
     and rew2 skel (tm1 $ tm2) = (case tm1 of
             Abs (_, _, body) =>
               let val tm' = subst_bound (tm2, body)
-              in SOME (if_none (rew2 skel0 tm') tm') end
+              in SOME (getOpt (rew2 skel0 tm', tm')) end
           | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 $ skel2 => (skel1, skel2)
@@ -530,7 +530,7 @@ fun rewrite_term tsig rules procs tm =
           end
       | rew2 _ _ = NONE
 
-  in if_none (rew1 skel0 tm) tm end;
+  in getOpt (rew1 skel0 tm, tm) end;
 
 end;
 

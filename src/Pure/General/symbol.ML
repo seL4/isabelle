@@ -342,7 +342,7 @@ in
     else if is_ascii_quasi s then Quasi
     else if is_ascii_blank s then Blank
     else if is_char s then Other
-    else if_none (Symtab.lookup (symbol_kinds, s)) Other;
+    else getOpt (Symtab.lookup (symbol_kinds, s), Other);
 end;
 
 fun is_letter s = kind s = Letter;
@@ -417,7 +417,7 @@ fun no_explode [] = true
 fun sym_explode str =
   let val chs = explode str in
     if no_explode chs then chs
-    else the (Scan.read stopper (Scan.repeat scan) chs)
+    else valOf (Scan.read stopper (Scan.repeat scan) chs)
   end;
 
 val chars_only = not o exists_string (equal "\\");
@@ -486,7 +486,7 @@ fun sym_len s =
   else if s = "\\<spacespace>" then 2
   else 1;
 
-fun sym_length ss = foldl (fn (n, s) => sym_len s + n) (0, ss);
+fun sym_length ss = Library.foldl (fn (n, s) => sym_len s + n) (0, ss);
 
 fun symbol_output str =
   if chars_only str then default_output str

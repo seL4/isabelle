@@ -193,7 +193,7 @@ struct
 			NONE
 		(* string -> int list *)
 		fun int_list_from_string s =
-			mapfilter (option o Int.fromString) (space_explode " " s)
+			List.mapPartial (option o Int.fromString) (space_explode " " s)
 		(* int list -> assignment *)
 		fun assignment_from_list [] i =
 			NONE  (* the SAT solver didn't provide a value for this variable *)
@@ -232,7 +232,7 @@ struct
 			else
 				parse_lines lines
 	in
-		(parse_lines o (filter (fn l => l <> "")) o split_lines o File.read) path
+		(parse_lines o (List.filter (fn l => l <> "")) o split_lines o File.read) path
 	end;
 
 (* ------------------------------------------------------------------------- *)
@@ -310,10 +310,10 @@ struct
 		o (map (map literal_from_int))
 		o clauses
 		o (map int_from_string)
-		o flat
+		o List.concat
 		o (map (String.fields (fn c => c mem [#" ", #"\t", #"\n"])))
 		o filter_preamble
-		o (filter (fn l => l <> ""))
+		o (List.filter (fn l => l <> ""))
 		o split_lines
 		o File.read)
 			path
@@ -343,7 +343,7 @@ struct
 	(* string -> solver *)
 
 	fun invoke_solver name =
-		(the o assoc) (!solvers, name);
+		(valOf o assoc) (!solvers, name);
 
 end;  (* SatSolver *)
 
@@ -458,7 +458,7 @@ let
 				| False => NONE
 				| _     =>
 					let
-						val x = the (fresh_var xs')  (* a fresh variable must exist since 'fm' did not evaluate to 'True'/'False' *)
+						val x = valOf (fresh_var xs')  (* a fresh variable must exist since 'fm' did not evaluate to 'True'/'False' *)
 					in
 						case dpll (x::xs') fm' of  (* passing fm' rather than fm should save some simplification work *)
 						  SOME xs'' => SOME xs''

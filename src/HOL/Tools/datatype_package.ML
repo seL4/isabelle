@@ -125,15 +125,15 @@ fun datatype_info_err thy name = (case datatype_info thy name of
 
 fun constrs_of_sg sg tname = (case datatype_info_sg sg tname of
    SOME {index, descr, ...} =>
-     let val (_, _, constrs) = the (assoc (descr, index))
-     in SOME (map (fn (cname, _) => Const (cname, the (Sign.const_type sg cname))) constrs)
+     let val (_, _, constrs) = valOf (assoc (descr, index))
+     in SOME (map (fn (cname, _) => Const (cname, valOf (Sign.const_type sg cname))) constrs)
      end
  | _ => NONE);
 
 val constrs_of = constrs_of_sg o Theory.sign_of;
 
 fun case_const_of thy tname = (case datatype_info thy tname of
-   SOME {case_name, ...} => SOME (Const (case_name, the (Sign.const_type
+   SOME {case_name, ...} => SOME (Const (case_name, valOf (Sign.const_type
      (Theory.sign_of thy) case_name)))
  | _ => NONE);
 
@@ -169,7 +169,7 @@ fun infer_tname state i aterm =
 fun occs_in_prems tacf vars =
   SUBGOAL (fn (Bi, i) =>
            (if  exists (fn Free (a, _) => a mem vars)
-                      (foldr add_term_frees (#2 (strip_context Bi), []))
+                      (Library.foldr add_term_frees (#2 (strip_context Bi), []))
              then warning "Induction variable occurs also among premises!"
              else ();
             tacf i));
@@ -182,9 +182,9 @@ local
 fun prep_var (Var (ixn, _), SOME x) = SOME (ixn, x)
   | prep_var _ = NONE;
 
-fun prep_inst (concl, xs) =	(*exception LIST*)
+fun prep_inst (concl, xs) =	(*exception UnequalLengths *)
   let val vs = InductAttrib.vars_of concl
-  in mapfilter prep_var (Library.drop (length vs - length xs, vs) ~~ xs) end;
+  in List.mapPartial prep_var (Library.drop (length vs - length xs, vs) ~~ xs) end;
 
 in
 
@@ -196,11 +196,11 @@ fun gen_induct_tac inst_tac (varss, opt_rule) i state =
       (case opt_rule of
         SOME r => (r, "Induction rule")
       | NONE =>
-          let val tn = find_tname (hd (mapfilter I (flat varss))) Bi
+          let val tn = find_tname (hd (List.mapPartial I (List.concat varss))) Bi
           in (#induction (datatype_info_sg_err sign tn), "Induction rule for type " ^ tn) end);
 
     val concls = HOLogic.dest_concls (Thm.concl_of rule);
-    val insts = flat (map prep_inst (concls ~~ varss)) handle LIST _ =>
+    val insts = List.concat (map prep_inst (concls ~~ varss)) handle UnequalLengths =>
       error (rule_name ^ " has different numbers of variables");
   in occs_in_prems (inst_tac insts rule) (map #2 insts) i state end;
 
@@ -272,20 +272,20 @@ end;
 local
 
 fun dt_recs (DtTFree _) = []
-  | dt_recs (DtType (_, dts)) = flat (map dt_recs dts)
+  | dt_recs (DtType (_, dts)) = List.concat (map dt_recs dts)
   | dt_recs (DtRec i) = [i];
 
 fun dt_cases (descr: descr) (_, args, constrs) =
   let
-    fun the_bname i = Sign.base_name (#1 (the (assoc (descr, i))));
-    val bnames = map the_bname (distinct (flat (map dt_recs args)));
+    fun the_bname i = Sign.base_name (#1 (valOf (assoc (descr, i))));
+    val bnames = map the_bname (distinct (List.concat (map dt_recs args)));
   in map (fn (c, _) => space_implode "_" (Sign.base_name c :: bnames)) constrs end;
 
 
 fun induct_cases descr =
-  DatatypeProp.indexify_names (flat (map (dt_cases descr) (map #2 descr)));
+  DatatypeProp.indexify_names (List.concat (map (dt_cases descr) (map #2 descr)));
 
-fun exhaust_cases descr i = dt_cases descr (the (assoc (descr, i)));
+fun exhaust_cases descr i = dt_cases descr (valOf (assoc (descr, i)));
 
 in
 
@@ -293,18 +293,18 @@ fun mk_case_names_induct descr = RuleCases.case_names (induct_cases descr);
 
 fun mk_case_names_exhausts descr new =
   map (RuleCases.case_names o exhaust_cases descr o #1)
-    (filter (fn ((_, (name, _, _))) => name mem_string new) descr);
+    (List.filter (fn ((_, (name, _, _))) => name mem_string new) descr);
 
 end;
 
 fun add_rules simps case_thms size_thms rec_thms inject distinct
                   weak_case_congs cong_att =
   (#1 o PureThy.add_thmss [(("simps", simps), []),
-    (("", flat case_thms @ size_thms @ 
-          flat distinct  @ rec_thms), [Simplifier.simp_add_global]),
+    (("", List.concat case_thms @ size_thms @ 
+          List.concat distinct  @ rec_thms), [Simplifier.simp_add_global]),
     (("", size_thms @ rec_thms), [RecfunCodegen.add]),
-    (("", flat inject),               [iff_add_global]),
-    (("", flat distinct RL [notE]),   [Classical.safe_elim_global]),
+    (("", List.concat inject),               [iff_add_global]),
+    (("", List.concat distinct RL [notE]),   [Classical.safe_elim_global]),
     (("", weak_case_congs),           [cong_att])]);
 
 
@@ -325,7 +325,7 @@ fun add_cases_induct infos induction =
        (("", exhaustion), [InductAttrib.cases_type_global name])];
     fun unnamed_rule i =
       (("", proj i induction), [InductAttrib.induct_type_global ""]);
-    val rules = flat (map named_rules infos) @ map unnamed_rule (length infos upto n - 1);
+    val rules = List.concat (map named_rules infos) @ map unnamed_rule (length infos upto n - 1);
   in #1 o PureThy.add_thms rules end;
 
 
@@ -393,7 +393,7 @@ val simproc_setup =
 fun case_tr sg [t, u] =
     let
       fun case_error s name ts = raise TERM ("Error in case expression" ^
-        if_none (apsome (curry op ^ " for datatype ") name) "" ^ ":\n" ^ s, ts);
+        getOpt (Option.map (curry op ^ " for datatype ") name, "") ^ ":\n" ^ s, ts);
       fun dest_case1 (Const ("_case1", _) $ t $ u) = (case strip_comb t of
             (Const (s, _), ts) => (Sign.intern_const sg s, ts)
           | (Free (s, _), ts) => (Sign.intern_const sg s, ts)
@@ -413,13 +413,13 @@ fun case_tr sg [t, u] =
             Syntax.const "split" $ abstr (x, abstr (y, body))
         | abstr (t, _) = case_error "Illegal pattern" NONE [t];
     in case find_first (fn (_, {descr, index, ...}) =>
-      exists (equal cname o fst) (#3 (snd (nth_elem (index, descr))))) tab of
+      exists (equal cname o fst) (#3 (snd (List.nth (descr, index))))) tab of
         NONE => case_error ("Not a datatype constructor: " ^ cname) NONE [u]
       | SOME (tname, {descr, case_name, index, ...}) =>
         let
           val _ = if exists (equal "dummy_pattern" o fst o fst) cases' then
             case_error "Illegal occurrence of '_' dummy pattern" (SOME tname) [u] else ();
-          val (_, (_, dts, constrs)) = nth_elem (index, descr);
+          val (_, (_, dts, constrs)) = List.nth (descr, index);
           val sorts = map (rpair [] o dest_DtTFree) dts;
           fun find_case (cases, (s, dt)) =
             (case find_first (equal s o fst o fst) cases' of
@@ -431,7 +431,7 @@ fun case_tr sg [t, u] =
                  if length dt <> length vs then
                     case_error ("Wrong number of arguments for constructor " ^ s)
                       (SOME tname) vs
-                 else (cases \ c, foldr abstr (vs, t)))
+                 else (cases \ c, Library.foldr abstr (vs, t)))
           val (cases'', fs) = foldl_map find_case (cases', constrs)
         in case (cases'', length constrs = length cases', default) of
             ([], true, SOME _) =>
@@ -473,7 +473,7 @@ fun case_tr' constrs sg ts =
           NONE => (body, [cname]) :: cs
         | SOME cnames => overwrite (cs, (body, cnames @ [cname])));
     val cases' = sort (int_ord o Library.swap o pairself (length o snd))
-      (foldl count_cases ([], cases));
+      (Library.foldl count_cases ([], cases));
     fun mk_case1 (cname, (vs, body), _) = Syntax.const "_case1" $
       list_comb (Syntax.const cname, vs) $ body;
   in
@@ -490,7 +490,7 @@ fun case_tr' constrs sg ts =
              [("dummy_pattern", ([], default), false)]))
   end;
 
-fun make_case_tr' case_names descr = flat (map
+fun make_case_tr' case_names descr = List.concat (map
   (fn ((_, (_, _, constrs)), case_name) => map (rpair (case_tr' constrs))
     (NameSpace.accesses' case_name)) (descr ~~ case_names));
 
@@ -542,7 +542,7 @@ fun make_dt_info descr induct reccomb_names rec_thms
 (********************* axiomatic introduction of datatypes ********************)
 
 fun add_and_get_axioms_atts label tnames attss ts thy =
-  foldr (fn (((tname, atts), t), (thy', axs)) =>
+  Library.foldr (fn (((tname, atts), t), (thy', axs)) =>
     let
       val (thy'', [ax]) = thy' |>
         Theory.add_path tname |>
@@ -554,7 +554,7 @@ fun add_and_get_axioms label tnames =
   add_and_get_axioms_atts label tnames (replicate (length tnames) []);
 
 fun add_and_get_axiomss label tnames tss thy =
-  foldr (fn ((tname, ts), (thy', axss)) =>
+  Library.foldr (fn ((tname, ts), (thy', axss)) =>
     let
       val (thy'', [axs]) = thy' |>
         Theory.add_path tname |>
@@ -565,10 +565,10 @@ fun add_and_get_axiomss label tnames tss thy =
 fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_syntax dt_info
     case_names_induct case_names_exhausts thy =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = foldr add_typ_tfree_names (recTs, []);
-    val newTs = take (length (hd descr), recTs);
+    val used = Library.foldr add_typ_tfree_names (recTs, []);
+    val newTs = Library.take (length (hd descr), recTs);
 
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists
       (fn dt => is_rec_type dt andalso not (null (fst (strip_dtyp dt))))
@@ -591,7 +591,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
         (1 upto (length descr')));
 
     val size_names = DatatypeProp.indexify_names
-      (map (fn T => name_of_typ T ^ "_size") (drop (length (hd descr), recTs)));
+      (map (fn T => name_of_typ T ^ "_size") (Library.drop (length (hd descr), recTs)));
 
     val freeT = TFree (variant used "'t", HOLogic.typeS);
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
@@ -605,7 +605,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
       (** new types **)
 
-      curry (foldr (fn (((name, mx), tvs), thy') => thy' |>
+      curry (Library.foldr (fn (((name, mx), tvs), thy') => thy' |>
           TypedefPackage.add_typedecls [(name, tvs, mx)]))
         (types_syntax ~~ tyvars) |>
       add_path flat_names (space_implode "_" new_type_names) |>
@@ -631,12 +631,12 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
 
       (if no_size then I else Theory.add_consts_i (map (fn (s, T) =>
         (Sign.base_name s, T --> HOLogic.natT, NoSyn))
-          (size_names ~~ drop (length (hd descr), recTs)))) |>
+          (size_names ~~ Library.drop (length (hd descr), recTs)))) |>
 
       (** constructors **)
 
       parent_path flat_names |>
-      curry (foldr (fn (((((_, (_, _, constrs)), T), tname),
+      curry (Library.foldr (fn (((((_, (_, _, constrs)), T), tname),
         constr_syntax'), thy') => thy' |>
           add_path flat_names tname |>
             Theory.add_consts_i (map (fn ((_, cargs), (cname, mx)) =>
@@ -686,7 +686,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
         exhaustion ~~ replicate (length (hd descr)) QuickAndDirty ~~ inject ~~
           nchotomys ~~ case_congs ~~ weak_case_congs);
 
-    val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
+    val simps = List.concat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
     val split_thms = split ~~ split_asm;
 
     val thy12 = thy11 |>
@@ -694,7 +694,7 @@ fun add_datatype_axm flat_names new_type_names descr sorts types_syntax constr_s
       Theory.add_path (space_implode "_" new_type_names) |>
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs Simplifier.cong_add_global |> 
-      put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
+      put_datatypes (Library.foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos induct |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
@@ -741,18 +741,18 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
     val (thy11, size_thms) = DatatypeAbsProofs.prove_size_thms flat_names new_type_names
       descr sorts reccomb_names rec_thms thy10;
 
-    val dt_infos = map (make_dt_info (flat descr) induct reccomb_names rec_thms)
+    val dt_infos = map (make_dt_info (List.concat descr) induct reccomb_names rec_thms)
       ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names ~~ case_thms ~~
         casedist_thms ~~ simproc_dists ~~ inject ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
 
-    val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
+    val simps = List.concat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
     val thy12 = thy11 |>
       Theory.add_advanced_trfuns ([], [], make_case_tr' case_names (hd descr), []) |>
       Theory.add_path (space_implode "_" new_type_names) |>
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
-      put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
+      put_datatypes (Library.foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos induct |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
@@ -778,7 +778,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
     val _ = Theory.requires thy0 "Inductive" "datatype representations";
 
     fun app_thmss srcs thy = foldl_map (fn (thy, x) => apply_theorems x thy) (thy, srcs);
-    fun app_thm src thy = apsnd Library.hd (apply_theorems [src] thy);
+    fun app_thm src thy = apsnd hd (apply_theorems [src] thy);
 
     val (((thy1, induction), inject), distinct) = thy0
       |> app_thmss raw_distinct
@@ -796,7 +796,7 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       | get_typ t = err t;
 
     val dtnames = map get_typ (HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of induction')));
-    val new_type_names = if_none alt_names (map fst dtnames);
+    val new_type_names = getOpt (alt_names, map fst dtnames);
 
     fun get_constr t = (case Logic.strip_assums_concl t of
         _ $ (_ $ t') => (case head_of t' of
@@ -854,13 +854,13 @@ fun gen_rep_datatype apply_theorems alt_names raw_distinct raw_inject raw_induct
       ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~ casedist_thms ~~
         map FewConstrs distinct ~~ inject ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
 
-    val simps = flat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
+    val simps = List.concat (distinct @ inject @ case_thms) @ size_thms @ rec_thms;
 
     val thy11 = thy10 |>
       Theory.add_advanced_trfuns ([], [], make_case_tr' case_names descr, []) |>
       add_rules simps case_thms size_thms rec_thms inject distinct
                 weak_case_congs (Simplifier.change_global_ss (op addcongs)) |> 
-      put_datatypes (foldr Symtab.update (dt_infos, dt_info)) |>
+      put_datatypes (Library.foldr Symtab.update (dt_infos, dt_info)) |>
       add_cases_induct dt_infos induction' |>
       Theory.parent_path |>
       (#1 o store_thmss "splits" new_type_names (map (fn (x, y) => [x, y]) split_thms)) |>
@@ -915,8 +915,8 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
       let
         fun prep_constr ((constrs, constr_syntax', sorts'), (cname, cargs, mx')) =
           let
-            val (cargs', sorts'') = foldl (prep_typ sign) (([], sorts'), cargs);
-            val _ = (case foldr add_typ_tfree_names (cargs', []) \\ tvs of
+            val (cargs', sorts'') = Library.foldl (prep_typ sign) (([], sorts'), cargs);
+            val _ = (case Library.foldr add_typ_tfree_names (cargs', []) \\ tvs of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs))
           in (constrs @ [((if flat_names then Sign.full_name sign else
@@ -928,7 +928,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
               " of datatype " ^ tname);
 
         val (constrs', constr_syntax', sorts') =
-          foldl prep_constr (([], [], sorts), constrs)
+          Library.foldl prep_constr (([], [], sorts), constrs)
 
       in
         case duplicates (map fst constrs') of
@@ -940,7 +940,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
              " in datatype " ^ tname)
       end;
 
-    val (dts', constr_syntax, sorts', i) = foldl prep_dt_spec (([], [], [], 0), dts);
+    val (dts', constr_syntax, sorts', i) = Library.foldl prep_dt_spec (([], [], [], 0), dts);
     val sorts = sorts' @ (map (rpair (Sign.defaultS sign)) (tyvars \\ map fst sorts'));
     val dt_info = get_datatypes thy;
     val (descr, _) = unfold_datatypes sign dts' sorts dt_info dts' i;
@@ -948,7 +948,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
       if err then error ("NONEmptiness check failed for datatype " ^ s)
       else raise exn;
 
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     val case_names_induct = mk_case_names_induct descr';
     val case_names_exhausts = mk_case_names_exhausts descr' (map #1 new_dts);
   in

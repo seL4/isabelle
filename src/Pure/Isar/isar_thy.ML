@@ -247,8 +247,8 @@ fun smart_theorems k opt_loc args thy = thy
 
 fun declare_theorems opt_loc args = #1 o smart_theorems "" opt_loc [(("", []), args)];
 
-fun apply_theorems args = apsnd (flat o map snd) o theorems "" [(("", []), args)];
-fun apply_theorems_i args = apsnd (flat o map snd) o theorems_i "" [(("", []), args)];
+fun apply_theorems args = apsnd (List.concat o map snd) o theorems "" [(("", []), args)];
+fun apply_theorems_i args = apsnd (List.concat o map snd) o theorems_i "" [(("", []), args)];
 
 end;
 
@@ -304,7 +304,7 @@ val invoke_case_i = ProofHistory.apply o Proof.invoke_case;
 local
 
 fun prt_facts ctxt =
-  flat o (separate [Pretty.fbrk, Pretty.str "and "]) o
+  List.concat o (separate [Pretty.fbrk, Pretty.str "and "]) o
     map (single o ProofContext.pretty_fact ctxt);
 
 fun pretty_results ctxt ((kind, ""), facts) =
@@ -503,7 +503,7 @@ fun cond_print_calc int ctxt thms =
 fun proof''' f = Toplevel.proof' (f o cond_print_calc);
 
 fun gen_calc get f args prt state =
-  f (apsome (fn srcs => get srcs state) args) prt state;
+  f (Option.map (fn srcs => get srcs state) args) prt state;
 
 in
 

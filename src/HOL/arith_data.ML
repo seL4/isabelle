@@ -25,7 +25,7 @@ fun mk_sum [] = HOLogic.zero
 
 (*normal form of sums: Suc (... (Suc (a + (b + ...))))*)
 fun mk_norm_sum ts =
-  let val (ones, sums) = partition (equal one) ts in
+  let val (ones, sums) = List.partition (equal one) ts in
     funpow (length ones) HOLogic.mk_Suc (mk_sum sums)
   end;
 

@@ -59,11 +59,11 @@ fun update_by_coeff (tab, t) =
 (*a left-to-right scan of terms1, seeking a term of the form #n*u, where
   #m*u is in terms2 for some m*)
 fun find_common (terms1,terms2) =
-  let val tab2 = foldl update_by_coeff (Termtab.empty, terms2)
+  let val tab2 = Library.foldl update_by_coeff (Termtab.empty, terms2)
       fun seek [] = raise TERM("find_common", []) 
 	| seek (t::terms) =
 	      let val (_,u) = Data.dest_coeff t 
-	      in  if is_some (Termtab.lookup (tab2, u)) then u
+	      in  if isSome (Termtab.lookup (tab2, u)) then u
 		  else seek terms
 	      end
   in  seek terms1 end;
@@ -91,7 +91,7 @@ fun proc sg ss t =
 			 Data.mk_bal (newshape(n1,terms1'), 
 				      newshape(n2,terms2')))
   in
-      apsome Data.simplify_meta_eq
+      Option.map Data.simplify_meta_eq
        (if n2<=n1 then 
 	    Data.prove_conv 
 	       [Data.trans_tac reshape, rtac Data.bal_add1 1,

@@ -130,7 +130,7 @@ appropriactely, ie with unfake_vars *)
 fun fake_concl_of_goal gt i = 
     let 
       val prems = Logic.strip_imp_prems gt
-      val sgt = nth_elem (i - 1, prems)
+      val sgt = List.nth (prems, i - 1)
 
       val tbody = Logic.strip_imp_concl (Term.strip_all_body sgt)
       val tparams = Term.strip_all_vars sgt
@@ -148,7 +148,7 @@ appropriactely, ie with unfake_vars *)
 fun fake_goal gt i = 
     let 
       val prems = Logic.strip_imp_prems gt
-      val sgt = nth_elem (i - 1, prems)
+      val sgt = List.nth (prems, i - 1)
 
       val tbody = Term.strip_all_body sgt
       val tparams = Term.strip_all_vars sgt

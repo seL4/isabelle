@@ -275,7 +275,7 @@ struct
 
 	(* prop_formula list -> prop_formula *)
 
-	fun exists xs = foldl SOr (False, xs);
+	fun exists xs = Library.foldl SOr (False, xs);
 
 (* ------------------------------------------------------------------------- *)
 (* all: computes the conjunction over a list 'xs' of propositional formulas  *)
@@ -283,7 +283,7 @@ struct
 
 	(* prop_formula list -> prop_formula *)
 
-	fun all xs = foldl SAnd (True, xs);
+	fun all xs = Library.foldl SAnd (True, xs);
 
 (* ------------------------------------------------------------------------- *)
 (* dot_product: ([x1,...,xn], [y1,...,yn]) -> x1*y1+...+xn*yn                *)

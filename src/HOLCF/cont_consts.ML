@@ -43,7 +43,7 @@ fun trans_rules name2 name1 n mx = let
   val vnames = argnames (ord "A") n;
   val extra_parse_rule = Syntax.ParseRule (Constant name2, Constant name1);
   in [Syntax.ParsePrintRule (Syntax.mk_appl (Constant name2) (map Variable vnames),
-                          foldl (fn (t,arg) => (Syntax.mk_appl (Constant "Rep_CFun")
+                          Library.foldl (fn (t,arg) => (Syntax.mk_appl (Constant "Rep_CFun")
                                                 [t,Variable arg]))
                           (Constant name1,vnames))]
      @(case mx of InfixName _ => [extra_parse_rule]
@@ -94,7 +94,7 @@ fun gen_add_consts prep_typ raw_decls thy =
     |> Theory.add_consts_i normal_decls
     |> Theory.add_consts_i (map first transformed_decls)
     |> Theory.add_syntax_i (map second transformed_decls)
-    |> Theory.add_trrules_i (flat (map third transformed_decls))
+    |> Theory.add_trrules_i (List.concat (map third transformed_decls))
   end;
 
 val add_consts = gen_add_consts Thm.read_ctyp;

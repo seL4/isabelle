@@ -1012,7 +1012,7 @@ in
 fun all_frees_tac x i thm =
   let
     val tsig = Sign.tsig_of (Thm.sign_of_thm thm);
-    val frees = add_frees tsig (nth_elem (i - 1, prems_of thm), [x]);
+    val frees = add_frees tsig (List.nth (prems_of thm, i - 1), [x]);
     val frees' = sort (op >) (frees \ x) @ [x];
   in
     foldl (qnt_tac i) (all_tac, frees') thm

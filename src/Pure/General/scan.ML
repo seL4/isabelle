@@ -204,7 +204,7 @@ fun first [] = fail
 
 fun trace scan toks =
   let val (x, toks') = scan toks
-  in ((x, take (length toks - length toks', toks)), toks') end;
+  in ((x, Library.take (length toks - length toks', toks)), toks') end;
 
 
 (* state based scanners *)
@@ -247,7 +247,7 @@ fun finite' (stopper, is_stopper) scan (state, input) =
   in
     if exists is_stopper input then
       raise ABORT "Stopper may not occur in input of finite scan!"
-    else (force scan --| lift stop) (state, rev_append (rev input) [stopper])
+    else (force scan --| lift stop) (state, List.revAppend (rev input,[stopper]))
   end;
 
 fun finite stopper scan xs =
@@ -264,7 +264,7 @@ fun read stopper scan xs =
 
 fun drain def_prmpt get stopper scan ((state, xs), src) =
   (scan (state, xs), src) handle MORE prmpt =>
-    (case get (if_none prmpt def_prmpt) src of
+    (case get (getOpt (prmpt,def_prmpt)) src of
       ([], _) => (finite' stopper scan (state, xs), src)
     | (xs', src') => drain def_prmpt get stopper scan ((state, xs @ xs'), src'));
 
@@ -274,7 +274,7 @@ fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
 
     fun drain_loop recover inp =
       drain_with (catch scanner) inp handle FAIL msg =>
-        (error_msg (if_none msg "Syntax error."); drain_with recover inp);
+        (error_msg (getOpt (msg,"Syntax error.")); drain_with recover inp);
 
     val ((ys, (state', xs')), src') =
       (case (get def_prmpt src, opt_recover) of
@@ -285,7 +285,7 @@ fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
 
 fun source def_prmpt get unget stopper scan opt_recover src =
   let val (ys, ((), src')) =
-    source' def_prmpt get unget stopper (lift scan) (apsome lift opt_recover) ((), src)
+    source' def_prmpt get unget stopper (lift scan) (Option.map lift opt_recover) ((), src)
   in (ys, src') end;
 
 fun single scan = scan >> (fn x => [x]);
@@ -333,7 +333,7 @@ fun extend_lexicon lexicon [] = lexicon
                   Branch (c, no_literal, Empty, add Empty cs, Empty)
               | add lex [] = lex;
           in add lex chrs end;
-      in foldl ext (lexicon, chrss \\ dest_lex lexicon) end;
+      in Library.foldl ext (lexicon, chrss \\ dest_lex lexicon) end;
 
 val make_lexicon = extend_lexicon empty_lexicon;
 

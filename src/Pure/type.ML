@@ -147,7 +147,7 @@ fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 local
 
 fun inst_typ env (Type (c, Ts)) = Type (c, map (inst_typ env) Ts)
-  | inst_typ env (T as TFree (x, _)) = if_none (Library.assoc_string (env, x)) T
+  | inst_typ env (T as TFree (x, _)) = getOpt (Library.assoc_string (env, x),T)
   | inst_typ _ T = T;
 
 fun certify_typ normalize syntax tsig ty =
@@ -238,11 +238,11 @@ fun new_name (ix, (pairs,used)) =
       in  ((ix,v)::pairs, v::used)  end;
 
 fun freeze_one alist (ix,sort) =
-  TFree (the (assoc (alist, ix)), sort)
+  TFree (valOf (assoc (alist, ix)), sort)
     handle Option =>
       raise TYPE ("Failure during freezing of ?" ^ string_of_indexname ix, [], []);
 
-fun thaw_one alist (a,sort) = TVar (the (assoc (alist,a)), sort)
+fun thaw_one alist (a,sort) = TVar (valOf (assoc (alist,a)), sort)
   handle Option => TFree(a, sort);
 
 in
@@ -252,14 +252,14 @@ fun freeze_thaw_type T =
   let
     val used = add_typ_tfree_names (T, [])
     and tvars = map #1 (add_typ_tvars (T, []));
-    val (alist, _) = foldr new_name (tvars, ([], used));
+    val (alist, _) = Library.foldr new_name (tvars, ([], used));
   in (map_type_tvar (freeze_one alist) T, map_type_tfree (thaw_one (map swap alist))) end;
 
 fun freeze_thaw t =
   let
     val used = it_term_types add_typ_tfree_names (t, [])
     and tvars = map #1 (it_term_types add_typ_tvars (t, []));
-    val (alist, _) = foldr new_name (tvars, ([], used));
+    val (alist, _) = Library.foldr new_name (tvars, ([], used));
   in
     (case alist of
       [] => (t, fn x => x) (*nothing to do!*)
@@ -303,7 +303,7 @@ fun typ_match tsig =
           | SOME U => if U = T then subs else raise TYPE_MATCH)
       | match (subs, (Type (a, Ts), Type (b, Us))) =
           if a <> b then raise TYPE_MATCH
-          else foldl match (subs, Ts ~~ Us)
+          else Library.foldl match (subs, Ts ~~ Us)
       | match (subs, (TFree x, TFree y)) =
           if x = y then subs else raise TYPE_MATCH
       | match _ = raise TYPE_MATCH;
@@ -378,7 +378,7 @@ fun unify (tsig as TSig {classes, arities, ...}) (tyenv, maxidx) TU =
           else meet ((T, S), Vartab.update_new ((v, T), tye))
       | (Type (a, Ts), Type (b, Us)) =>
           if a <> b then raise TUNIFY
-          else foldr unif (Ts ~~ Us, tye)
+          else Library.foldr unif (Ts ~~ Us, tye)
       | (T, U) => if T = U then tye else raise TUNIFY);
   in (unif (TU, tyenv), ! tyvar_count) end;
 
@@ -434,7 +434,7 @@ fun complete C (c, Ss) = map (rpair Ss) (Graph.all_succs C [c]);
 fun insert_arities pp classes (arities, (t, ars)) =
   let val ars' =
     Symtab.lookup_multi (arities, t)
-    |> curry (foldr (insert pp classes t)) (flat (map (complete classes) ars))
+    |> curry (Library.foldr (insert pp classes t)) (List.concat (map (complete classes) ars))
   in Symtab.update ((t, ars'), arities) end;
 
 fun insert_table pp classes = Symtab.foldl (fn (arities, (t, ars)) =>
@@ -455,7 +455,7 @@ fun add_arities pp decls tsig = tsig |> change_tsig (fn (classes, default, types
       | NONE => error (undecl_type t));
 
     val ars = decls |> map ((fn (t, Ss, S) => (t, map (fn c => (c, Ss)) S)) o prep);
-    val arities' = foldl (insert_arities pp classes) (arities, ars);
+    val arities' = Library.foldl (insert_arities pp classes) (arities, ars);
   in (classes, default, types, arities') end);
 
 fun rebuild_arities pp classes arities =
@@ -533,7 +533,7 @@ fun new_decl (c, decl) types =
     SOME (decl', _) => err_in_decls c decl decl'
   | NONE => Symtab.update ((c, (decl, stamp ())), types));
 
-fun the_decl types c = fst (the (Symtab.lookup (types, c)));
+fun the_decl types c = fst (valOf (Symtab.lookup (types, c)));
 
 fun change_types f = change_tsig (fn (classes, default, types, arities) =>
   (classes, default, f types, arities));

@@ -214,7 +214,7 @@ fun swap_res_tac rls =
     let fun addrl (rl,brls) = (false, rl) :: (true, rl RSN (2,swap)) :: brls
     in  assume_tac      ORELSE'
         contr_tac       ORELSE'
-        biresolve_tac (foldr addrl (rls,[]))
+        biresolve_tac (Library.foldr addrl (rls,[]))
     end;
 
 (*Duplication of hazardous rules, for complete provers*)
@@ -286,7 +286,7 @@ fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, ...}) =
 fun rep_cs (CS args) = args;
 
 local
-  fun wrap l tac = foldr (fn ((name,tacf),w) => tacf w) (l, tac);
+  fun wrap l tac = Library.foldr (fn ((name,tacf),w) => tacf w) (l, tac);
 in
   fun appSWrappers (CS{swrappers,...}) = wrap swrappers;
   fun appWrappers  (CS{uwrappers,...}) = wrap uwrappers;
@@ -316,7 +316,7 @@ fun tag_brls k [] = []
 fun tag_brls' _ _ [] = []
   | tag_brls' w k (brl::brls) = ((w, k), brl) :: tag_brls' w (k + 1) brls;
 
-fun insert_tagged_list kbrls netpr = foldr Tactic.insert_tagged_brl (kbrls, netpr);
+fun insert_tagged_list kbrls netpr = Library.foldr Tactic.insert_tagged_brl (kbrls, netpr);
 
 (*Insert into netpair that already has nI intr rules and nE elim rules.
   Count the intr rules double (to account for swapify).  Negate to give the
@@ -324,7 +324,7 @@ fun insert_tagged_list kbrls netpr = foldr Tactic.insert_tagged_brl (kbrls, netp
 fun insert (nI, nE) = insert_tagged_list o (tag_brls (~(2*nI+nE))) o joinrules;
 fun insert' w (nI, nE) = insert_tagged_list o tag_brls' w (~(nI + nE)) o joinrules';
 
-fun delete_tagged_list brls netpr = foldr Tactic.delete_tagged_brl (brls, netpr);
+fun delete_tagged_list brls netpr = Library.foldr Tactic.delete_tagged_brl (brls, netpr);
 fun delete x = delete_tagged_list (joinrules x);
 fun delete' x = delete_tagged_list (joinrules' x);
 
@@ -355,7 +355,7 @@ fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
           cs)
   else
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-          partition Thm.no_prems [th]
+          List.partition Thm.no_prems [th]
       val nI = length safeIs + 1
       and nE = length safeEs
   in warn_dup th cs;
@@ -380,7 +380,7 @@ fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
           cs)
   else
   let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-          partition (fn rl => nprems_of rl=1) [th]
+          List.partition (fn rl => nprems_of rl=1) [th]
       val nI = length safeIs
       and nE = length safeEs + 1
   in warn_dup th cs;
@@ -397,7 +397,7 @@ fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
         xtra_netpair = insert' 0 (nI,nE) ([], [th]) xtra_netpair}
   end;
 
-fun rev_foldl f (e, l) = foldl f (e, rev l);
+fun rev_foldl f (e, l) = Library.foldl f (e, rev l);
 
 val op addSIs = rev_foldl addSI;
 val op addSEs = rev_foldl addSE;
@@ -470,7 +470,7 @@ fun delSI th
           (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
                     safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
  if mem_thm (th, safeIs) then
-   let val (safe0_rls, safep_rls) = partition Thm.no_prems [th]
+   let val (safe0_rls, safep_rls) = List.partition Thm.no_prems [th]
    in CS{safe0_netpair = delete (safe0_rls, []) safe0_netpair,
          safep_netpair = delete (safep_rls, []) safep_netpair,
          safeIs = rem_thm (safeIs,th),
@@ -489,7 +489,7 @@ fun delSE th
           (cs as CS{safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
                     safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
  if mem_thm (th, safeEs) then
-   let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=1) [th]
+   let val (safe0_rls, safep_rls) = List.partition (fn rl => nprems_of rl=1) [th]
    in CS{safe0_netpair = delete ([], safe0_rls) safe0_netpair,
          safep_netpair = delete ([], safep_rls) safep_netpair,
          safeIs = safeIs,
@@ -550,7 +550,7 @@ fun delrule (cs as CS{safeIs, safeEs, hazIs, hazEs, ...}, th) =
     else (warning ("Undeclared classical rule\n" ^ (string_of_thm th)); cs)
   end;
 
-val op delrules = foldl delrule;
+val op delrules = Library.foldl delrule;
 
 
 (*** Modifying the wrapper tacticals ***)
@@ -661,7 +661,7 @@ fun nsubgoalsP n (k,brl) = (subgoals_of_brl brl = n);
 (*version of bimatch_from_nets_tac that only applies rules that
   create precisely n subgoals.*)
 fun n_bimatch_from_nets_tac n =
-    biresolution_from_nets_tac (Tactic.orderlist o filter (nsubgoalsP n)) true;
+    biresolution_from_nets_tac (Tactic.orderlist o List.filter (nsubgoalsP n)) true;
 
 fun eq_contr_tac i = ematch_tac [not_elim] i  THEN  eq_assume_tac i;
 val eq_assume_contr_tac = eq_assume_tac ORELSE' eq_contr_tac;

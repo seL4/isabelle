@@ -64,7 +64,7 @@ fun make_tnames Ts =
 
 fun make_injs descr sorts =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
 
     fun make_inj T ((cname, cargs), injs) =
       if null cargs then injs else
@@ -80,22 +80,22 @@ fun make_injs descr sorts =
              (map HOLogic.mk_eq (frees ~~ frees')))))::injs
         end;
 
-  in map (fn (d, T) => foldr (make_inj T) (#3 (snd d), []))
-    ((hd descr) ~~ take (length (hd descr), get_rec_types descr' sorts))
+  in map (fn (d, T) => Library.foldr (make_inj T) (#3 (snd d), []))
+    ((hd descr) ~~ Library.take (length (hd descr), get_rec_types descr' sorts))
   end;
 
 (********************************* induction **********************************)
 
 fun make_ind descr sorts =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
     val pnames = if length descr' = 1 then ["P"]
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr');
 
     fun make_pred i T =
       let val T' = T --> HOLogic.boolT
-      in Free (nth_elem (i, pnames), T') end;
+      in Free (List.nth (pnames, i), T') end;
 
     fun make_ind_prem k T (cname, cargs) =
       let
@@ -105,11 +105,11 @@ fun make_ind descr sorts =
             (make_pred (body_index dt) U $ app_bnds (Free (s, T)) (length Us)))
           end;
 
-        val recs = filter is_rec_type cargs;
+        val recs = List.filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val recTs' = map (typ_of_dtyp descr' sorts) recs;
         val tnames = variantlist (make_tnames Ts, pnames);
-        val rec_tnames = map fst (filter (is_rec_type o snd) (tnames ~~ cargs));
+        val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = tnames ~~ Ts;
         val prems = map mk_prem (recs ~~ rec_tnames ~~ recTs');
 
@@ -118,7 +118,7 @@ fun make_ind descr sorts =
           list_comb (Const (cname, Ts ---> T), map Free frees))))
       end;
 
-    val prems = flat (map (fn ((i, (_, _, constrs)), T) =>
+    val prems = List.concat (map (fn ((i, (_, _, constrs)), T) =>
       map (make_ind_prem i T) constrs) (descr' ~~ recTs));
     val tnames = make_tnames recTs;
     val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
@@ -131,7 +131,7 @@ fun make_ind descr sorts =
 
 fun make_casedists descr sorts =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
 
     fun make_casedist_prem T (cname, cargs) =
       let
@@ -149,29 +149,29 @@ fun make_casedists descr sorts =
       end
 
   in map make_casedist
-    ((hd descr) ~~ take (length (hd descr), get_rec_types descr' sorts))
+    ((hd descr) ~~ Library.take (length (hd descr), get_rec_types descr' sorts))
   end;
 
 (*************** characteristic equations for primrec combinator **************)
 
 fun make_primrec_Ts descr sorts used =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
 
     val rec_result_Ts = map TFree (variantlist (replicate (length descr') "'t", used) ~~
       replicate (length descr') HOLogic.typeS);
 
-    val reccomb_fn_Ts = flat (map (fn (i, (_, _, constrs)) =>
+    val reccomb_fn_Ts = List.concat (map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
         let
           val Ts = map (typ_of_dtyp descr' sorts) cargs;
-          val recs = filter (is_rec_type o fst) (cargs ~~ Ts);
+          val recs = List.filter (is_rec_type o fst) (cargs ~~ Ts);
 
           fun mk_argT (dt, T) =
-            binder_types T ---> nth_elem (body_index dt, rec_result_Ts);
+            binder_types T ---> List.nth (rec_result_Ts, body_index dt);
 
           val argTs = Ts @ map mk_argT recs
-        in argTs ---> nth_elem (i, rec_result_Ts)
+        in argTs ---> List.nth (rec_result_Ts, i)
         end) constrs) descr');
 
   in (rec_result_Ts, reccomb_fn_Ts) end;
@@ -180,9 +180,9 @@ fun make_primrecs new_type_names descr sorts thy =
   let
     val sign = Theory.sign_of thy;
 
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = foldr add_typ_tfree_names (recTs, []);
+    val used = Library.foldr add_typ_tfree_names (recTs, []);
 
     val (rec_result_Ts, reccomb_fn_Ts) = make_primrec_Ts descr sorts used;
 
@@ -200,18 +200,18 @@ fun make_primrecs new_type_names descr sorts thy =
 
     fun make_primrec T comb_t ((ts, f::fs), (cname, cargs)) =
       let
-        val recs = filter is_rec_type cargs;
+        val recs = List.filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val recTs' = map (typ_of_dtyp descr' sorts) recs;
         val tnames = make_tnames Ts;
-        val rec_tnames = map fst (filter (is_rec_type o snd) (tnames ~~ cargs));
+        val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = map Free (tnames ~~ Ts);
         val frees' = map Free (rec_tnames ~~ recTs');
 
         fun mk_reccomb ((dt, T), t) =
           let val (Us, U) = strip_type T
           in list_abs (map (pair "x") Us,
-            nth_elem (body_index dt, reccombs) $ app_bnds t (length Us))
+            List.nth (reccombs, body_index dt) $ app_bnds t (length Us))
           end;
 
         val reccombs' = map mk_reccomb (recs ~~ recTs' ~~ frees')
@@ -221,8 +221,8 @@ fun make_primrecs new_type_names descr sorts thy =
          list_comb (f, frees @ reccombs')))], fs)
       end
 
-  in fst (foldl (fn (x, ((dt, T), comb_t)) =>
-    foldl (make_primrec T comb_t) (x, #3 (snd dt)))
+  in fst (Library.foldl (fn (x, ((dt, T), comb_t)) =>
+    Library.foldl (make_primrec T comb_t) (x, #3 (snd dt)))
       (([], rec_fns), descr' ~~ recTs ~~ reccombs))
   end;
 
@@ -230,10 +230,10 @@ fun make_primrecs new_type_names descr sorts thy =
 
 fun make_case_combs new_type_names descr sorts thy fname =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = foldr add_typ_tfree_names (recTs, []);
-    val newTs = take (length (hd descr), recTs);
+    val used = Library.foldr add_typ_tfree_names (recTs, []);
+    val newTs = Library.take (length (hd descr), recTs);
     val T' = TFree (variant used "'t", HOLogic.typeS);
 
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
@@ -254,9 +254,9 @@ fun make_case_combs new_type_names descr sorts thy fname =
 
 fun make_cases new_type_names descr sorts thy =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = take (length (hd descr), recTs);
+    val newTs = Library.take (length (hd descr), recTs);
 
     fun make_case T comb_t ((cname, cargs), f) =
       let
@@ -276,9 +276,9 @@ fun make_cases new_type_names descr sorts thy =
 
 fun make_distincts new_type_names descr sorts thy =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = take (length (hd descr), recTs);
+    val newTs = Library.take (length (hd descr), recTs);
 
     (**** number of constructors < dtK : C_i ... ~= C_j ... ****)
 
@@ -315,10 +315,10 @@ fun make_distincts new_type_names descr sorts thy =
 
 fun make_splits new_type_names descr sorts thy =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used' = foldr add_typ_tfree_names (recTs, []);
-    val newTs = take (length (hd descr), recTs);
+    val used' = Library.foldr add_typ_tfree_names (recTs, []);
+    val newTs = Library.take (length (hd descr), recTs);
     val T' = TFree (variant used' "'t", HOLogic.typeS);
     val P = Free ("P", T' --> HOLogic.boolT);
 
@@ -334,13 +334,13 @@ fun make_splits new_type_names descr sorts thy =
             val eqn = HOLogic.mk_eq (Free ("x", T),
               list_comb (Const (cname, Ts ---> T), frees));
             val P' = P $ list_comb (f, frees)
-          in ((foldr (fn (Free (s, T), t) => HOLogic.mk_all (s, T, t))
+          in ((Library.foldr (fn (Free (s, T), t) => HOLogic.mk_all (s, T, t))
                 (frees, HOLogic.imp $ eqn $ P'))::t1s,
-              (foldr (fn (Free (s, T), t) => HOLogic.mk_exists (s, T, t))
+              (Library.foldr (fn (Free (s, T), t) => HOLogic.mk_exists (s, T, t))
                 (frees, HOLogic.conj $ eqn $ (HOLogic.Not $ P')))::t2s)
           end;
 
-        val (t1s, t2s) = foldr process_constr (constrs ~~ fs, ([], []));
+        val (t1s, t2s) = Library.foldr process_constr (constrs ~~ fs, ([], []));
         val lhs = P $ (comb_t $ Free ("x", T))
       in
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, mk_conj t1s)),
@@ -356,13 +356,13 @@ fun make_splits new_type_names descr sorts thy =
 
 fun make_size descr sorts thy =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
 
     val size_name = "Nat.size";
     val size_names = replicate (length (hd descr)) size_name @
       map (Sign.intern_const (Theory.sign_of thy)) (indexify_names
-        (map (fn T => name_of_typ T ^ "_size") (drop (length (hd descr), recTs))));
+        (map (fn T => name_of_typ T ^ "_size") (Library.drop (length (hd descr), recTs))));
     val size_consts = map (fn (s, T) =>
       Const (s, T --> HOLogic.natT)) (size_names ~~ recTs);
 
@@ -370,12 +370,12 @@ fun make_size descr sorts thy =
 
     fun make_size_eqn size_const T (cname, cargs) =
       let
-        val recs = filter is_rec_type cargs;
+        val recs = List.filter is_rec_type cargs;
         val Ts = map (typ_of_dtyp descr' sorts) cargs;
         val recTs = map (typ_of_dtyp descr' sorts) recs;
         val tnames = make_tnames Ts;
-        val rec_tnames = map fst (filter (is_rec_type o snd) (tnames ~~ cargs));
-        val ts = map (fn ((r, s), T) => nth_elem (dest_DtRec r, size_consts) $
+        val rec_tnames = map fst (List.filter (is_rec_type o snd) (tnames ~~ cargs));
+        val ts = map (fn ((r, s), T) => List.nth (size_consts, dest_DtRec r) $
           Free (s, T)) (recs ~~ rec_tnames ~~ recTs);
         val t = if ts = [] then HOLogic.zero else
           foldl1 plus (ts @ [HOLogic.mk_nat 1])
@@ -385,7 +385,7 @@ fun make_size descr sorts thy =
       end
 
   in
-    flat (map (fn (((_, (_, _, constrs)), size_const), T) =>
+    List.concat (map (fn (((_, (_, _, constrs)), size_const), T) =>
       map (make_size_eqn size_const T) constrs) (descr' ~~ size_consts ~~ recTs))
   end;
 
@@ -465,9 +465,9 @@ fun make_case_congs new_type_names descr sorts thy =
 
 fun make_nchotomys descr sorts =
   let
-    val descr' = flat descr;
+    val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val newTs = take (length (hd descr), recTs);
+    val newTs = Library.take (length (hd descr), recTs);
 
     fun mk_eqn T (cname, cargs) =
       let
@@ -475,7 +475,7 @@ fun make_nchotomys descr sorts =
         val tnames = variantlist (make_tnames Ts, ["v"]);
         val frees = tnames ~~ Ts
       in
-        foldr (fn ((s, T'), t) => HOLogic.mk_exists (s, T', t))
+        Library.foldr (fn ((s, T'), t) => HOLogic.mk_exists (s, T', t))
           (frees, HOLogic.mk_eq (Free ("v", T),
             list_comb (Const (cname, Ts ---> T), map Free frees)))
       end

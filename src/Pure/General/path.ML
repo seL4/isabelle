@@ -90,7 +90,7 @@ fun rev_app xs [] = rev xs
   | rev_app xs (y :: ys) = rev_app (y :: xs) ys;
 
 fun append (Path xs) (Path ys) = Path (rev_app (rev xs) ys);
-fun appends paths = foldl (uncurry append) (current, paths);
+fun appends paths = Library.foldl (uncurry append) (current, paths);
 val make = appends o map basic;
 fun norm path = rev_app [] path;
 
@@ -142,7 +142,7 @@ fun ext "" path = path
 val split_ext = split_path (fn (prfx, s) => apfst (append (Path prfx))
   (case take_suffix (not_equal ".") (explode s) of
     ([], _) => (Path [Basic s], "")
-  | (cs, e) => (Path [Basic (implode (take (length cs - 1, cs)))], implode e)));
+  | (cs, e) => (Path [Basic (implode (Library.take (length cs - 1, cs)))], implode e)));
 
 
 (* evaluate variables *)
@@ -151,7 +151,7 @@ fun eval env (Variable s) = rep (env s)
   | eval _ x = [x];
 
 fun evaluate env (Path xs) =
-  Path (norm (flat (map (eval env) xs)));
+  Path (norm (List.concat (map (eval env) xs)));
 
 val expand = evaluate (unpack o getenv);
 

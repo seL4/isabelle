@@ -144,9 +144,9 @@ fun delims_of xprods =
       | del_of _ = NONE;
 
     fun dels_of (XProd (_, xsymbs, _, _)) =
-      mapfilter del_of xsymbs;
+      List.mapPartial del_of xsymbs;
   in
-    map Symbol.explode (distinct (flat (map dels_of xprods)))
+    map Symbol.explode (distinct (List.concat (map dels_of xprods)))
   end;
 
 
@@ -206,14 +206,14 @@ local
     $$ "'" -- Scan.one Symbol.is_blank >> K NONE;
 
   val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (Scan.one (not_equal "'"));
-  val read_symbs = mapfilter I o the o Scan.read Symbol.stopper scan_symbs;
+  val read_symbs = List.mapPartial I o valOf o Scan.read Symbol.stopper scan_symbs;
 
   fun unique_index xsymbs =
-    if length (filter is_index xsymbs) <= 1 then xsymbs
+    if length (List.filter is_index xsymbs) <= 1 then xsymbs
     else error "Duplicate index arguments (\\<index>)";
 in
   val read_mixfix = unique_index o read_symbs o Symbol.explode;
-  val mfix_args = length o filter is_argument o read_mixfix;
+  val mfix_args = length o List.filter is_argument o read_mixfix;
   val escape_mfix = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
 end;
 
@@ -261,7 +261,7 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
 
 
     val raw_symbs = read_mixfix sy handle ERROR => err_in_mfix "" mfix;
-    val args = filter (fn Argument _ => true | _ => false) raw_symbs;
+    val args = List.filter (fn Argument _ => true | _ => false) raw_symbs;
     val (const', typ', parse_rules) =
       if not (exists is_index args) then (const, typ, [])
       else
@@ -293,11 +293,11 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
     val symbs' = map (logify_types copy_prod) symbs;
     val xprod = XProd (lhs', symbs', const', pri);
 
-    val _ = (seq check_pri pris; check_pri pri; check_blocks symbs');
+    val _ = (List.app check_pri pris; check_pri pri; check_blocks symbs');
     val xprod' =
       if Lexicon.is_terminal lhs' then err_in_mfix ("Illegal lhs: " ^ lhs') mfix
       else if const <> "" then xprod
-      else if length (filter is_argument symbs') <> 1 then
+      else if length (List.filter is_argument symbs') <> 1 then
         err_in_mfix "Copy production must have exactly one argument" mfix
       else if exists is_terminal symbs' then xprod
       else XProd (lhs', map rem_pri symbs', "", chain_pri);
@@ -330,7 +330,7 @@ fun syn_ext' convert is_logtype mfixes consts trfuns tokentrfuns (parse_rules, p
       print_ast_translation) = trfuns;
 
     val (xprods, parse_rules') = map (mfix_to_xprod convert is_logtype) mfixes
-      |> split_list |> apsnd (rev o flat);
+      |> split_list |> apsnd (rev o List.concat);
     val mfix_consts = distinct (map (fn Mfix x => #3 x) mfixes @ map (fn XProd x => #3 x) xprods);
   in
     SynExt {

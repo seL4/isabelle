@@ -59,7 +59,7 @@ fun prep_inst align cert tune (tm, ts) =
     val xs = InductAttrib.vars_of tm;
   in
     align "Rule has fewer variables than instantiations given" xs ts
-    |> mapfilter prep_var
+    |> List.mapPartial prep_var
   end;
 
 
@@ -96,7 +96,7 @@ fun cases_tac (ctxt, (is_open, (insts, opt_rule))) facts =
     fun inst_rule r =
       if null insts then RuleCases.add r
       else (align_left "Rule has fewer premises than arguments given" (Thm.prems_of r) insts
-        |> (flat o map (prep_inst align_left cert I))
+        |> (List.concat o map (prep_inst align_left cert I))
         |> Drule.cterm_instantiate) r |> rpair (RuleCases.get r);
 
     val ruleq =
@@ -108,8 +108,8 @@ fun cases_tac (ctxt, (is_open, (insts, opt_rule))) facts =
           end
       | SOME r => Seq.single (inst_rule r));
 
-    fun prep_rule (th, (cases, n)) = Seq.map (apsnd (rpair (drop (n, facts))) o rpair cases)
-      (Method.multi_resolves (take (n, facts)) [th]);
+    fun prep_rule (th, (cases, n)) = Seq.map (apsnd (rpair (Library.drop (n, facts))) o rpair cases)
+      (Method.multi_resolves (Library.take (n, facts)) [th]);
   in resolveq_cases_tac (RuleCases.make is_open NONE) (Seq.flat (Seq.map prep_rule ruleq)) end;
 
 in
@@ -161,7 +161,7 @@ fun imp_intr i raw_th =
   let
     val th = Thm.permute_prems (i - 1) 1 raw_th;
     val cprems = Drule.cprems_of th;
-    val As = take (length cprems - 1, cprems);
+    val As = Library.take (length cprems - 1, cprems);
     val C = Thm.cterm_of (Thm.sign_of_thm th) (Var (("C", #maxidx (Thm.rep_thm th) + 1), propT));
     val dummy_st = Drule.mk_triv_goal (Drule.list_implies (As, C));
   in th COMP Thm.lift_rule (dummy_st, 1) Data.local_impI end;
@@ -256,7 +256,7 @@ fun rename [[SOME(Free(x,Type(T,_)))]] thm =
       | rename_params ((y,_)::ys) = y::rename_params ys;
     fun rename_asm (A:term):term = 
       let val xs = rename_params (Logic.strip_params A)
-          val xs' = case filter (equal x) xs of
+          val xs' = case List.filter (equal x) xs of
                       [] => xs | [_] => xs | _ => index 1 xs
       in Logic.list_rename_params (xs',A) end;
     fun rename_prop (p:term) =
@@ -268,9 +268,9 @@ fun rename [[SOME(Free(x,Type(T,_)))]] thm =
   | rename _ thm = thm;
 
 fun find_inductT ctxt insts =
-  foldr multiply (insts |> mapfilter (fn [] => NONE | ts => last_elem ts)
+  Library.foldr multiply (insts |> List.mapPartial (fn [] => NONE | ts => List.last ts)
     |> map (InductAttrib.find_inductT ctxt o fastype_of), [[]])
-  |> map join_rules |> flat |> map (rename insts);
+  |> map join_rules |> List.concat |> map (rename insts);
 
 fun find_inductS ctxt (fact :: _) = InductAttrib.find_inductS ctxt fact
   | find_inductS _ _ = [];
@@ -291,7 +291,7 @@ fun induct_tac (ctxt, (is_open, (insts, opt_rule))) facts =
       if null insts then r
       else (align_right "Rule has fewer conclusions than arguments given"
           (Data.dest_concls (Thm.concl_of r)) insts
-        |> (flat o map (prep_inst align_right cert (atomize_term sg)))
+        |> (List.concat o map (prep_inst align_right cert (atomize_term sg)))
         |> Drule.cterm_instantiate) r);
 
     val ruleq =
@@ -305,8 +305,8 @@ fun induct_tac (ctxt, (is_open, (insts, opt_rule))) facts =
       | SOME r => r |> Seq.THEN (rule_versions, Seq.single o inst_rule));
 
     fun prep_rule (th, (cases, n)) =
-      Seq.map (rpair (cases, n - length facts, drop (n, facts)))
-        (Method.multi_resolves (take (n, facts)) [th]);
+      Seq.map (rpair (cases, n - length facts, Library.drop (n, facts)))
+        (Method.multi_resolves (Library.take (n, facts)) [th]);
     val tac = resolveq_cases_tac' RuleCases.make is_open (Seq.flat (Seq.map prep_rule ruleq));
   in tac THEN_ALL_NEW_CASES rulify_tac end;
 

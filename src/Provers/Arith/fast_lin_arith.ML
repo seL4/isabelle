@@ -171,7 +171,7 @@ val rat0 = rat_of_int 0;
 (* PRE: ex[v] must be 0! *)
 fun eval (ex:rat list) v (a:int,le,cs:int list) =
   let val rs = map rat_of_int cs
-      val rsum = foldl ratadd (rat0,map ratmul (rs ~~ ex))
+      val rsum = Library.foldl ratadd (rat0,map ratmul (rs ~~ ex))
   in (ratmul(ratadd(rat_of_int a,ratneg rsum), ratinv(el v rs)), le) end;
 (* If el v rs < 0, le should be negated.
    Instead this swap is taken into account in ratrelmin2.
@@ -217,14 +217,14 @@ fun choose2 d ((lb,exactl),(ub,exactu)) =
                     in if ratle(lb,ub') then ub' else raise NoEx end;
 
 fun findex1 discr (ex,(v,lineqs)) =
-  let val nz = filter (fn (Lineq(_,_,cs,_)) => el v cs <> 0) lineqs;
-      val ineqs = foldl elim_eqns ([],nz)
-      val (ge,le) = partition (fn (_,_,cs) => el v cs > 0) ineqs
+  let val nz = List.filter (fn (Lineq(_,_,cs,_)) => el v cs <> 0) lineqs;
+      val ineqs = Library.foldl elim_eqns ([],nz)
+      val (ge,le) = List.partition (fn (_,_,cs) => el v cs > 0) ineqs
       val lb = ratrelmax(map (eval ex v) ge)
       val ub = ratrelmin(map (eval ex v) le)
-  in nth_update (choose2 (nth_elem(v,discr)) (lb,ub)) (v,ex) end;
+  in nth_update (choose2 (List.nth(discr,v)) (lb,ub)) (v,ex) end;
 
-fun findex discr = foldl (findex1 discr);
+fun findex discr = Library.foldl (findex1 discr);
 
 fun elim1 v x =
   map (fn (a,le,bs) => (ratadd(a,ratneg(ratmul(el v bs,x))), le,
@@ -239,9 +239,9 @@ fun pick_vars discr (ineqs,ex) =
   in case nz of [] => ex
      | (_,_,cs) :: _ =>
        let val v = find_index (not o equal rat0) cs
-           val d = nth_elem(v,discr)
+           val d = List.nth(discr,v)
            val pos = ratge0(el v cs)
-           val sv = filter (single_var v) nz
+           val sv = List.filter (single_var v) nz
            val minmax =
              if pos then if d then ratroundup o fst o ratrelmax
                          else ratexact true o ratrelmax
@@ -255,7 +255,7 @@ fun pick_vars discr (ineqs,ex) =
   end;
 
 fun findex0 discr n lineqs =
-  let val ineqs = foldl elim_eqns ([],lineqs)
+  let val ineqs = Library.foldl elim_eqns ([],lineqs)
       val rineqs = map (fn (a,le,cs) => (rat_of_int a, le, map rat_of_int cs))
                        ineqs
   in pick_vars discr (rineqs,replicate n rat0) end;
@@ -321,7 +321,7 @@ fun is_answer (ans as Lineq(k,ty,l,_)) =
   case ty  of Eq => k <> 0 | Le => k > 0 | Lt => k >= 0;
 
 fun calc_blowup l =
-  let val (p,n) = partition (apl(0,op<)) (filter (apl(0,op<>)) l)
+  let val (p,n) = List.partition (apl(0,op<)) (List.filter (apl(0,op<>)) l)
   in (length p) * (length n) end;
 
 (* ------------------------------------------------------------------------- *)
@@ -337,7 +337,7 @@ fun calc_blowup l =
 (* ------------------------------------------------------------------------- *)
 
 fun allpairs f xs ys =
-  flat(map (fn x => map (fn y => f x y) ys) xs);
+  List.concat(map (fn x => map (fn y => f x y) ys) xs);
 
 fun extract_first p =
   let fun extract xs (y::ys) = if p y then (SOME y,xs@ys)
@@ -358,7 +358,7 @@ datatype result = Success of injust | Failure of history;
 
 fun elim(ineqs,hist) =
   let val dummy = print_ineqs ineqs;
-      val (triv,nontriv) = partition is_trivial ineqs in
+      val (triv,nontriv) = List.partition is_trivial ineqs in
   if not(null triv)
   then case Library.find_first is_answer triv of
          NONE => elim(nontriv,hist)
@@ -366,16 +366,16 @@ fun elim(ineqs,hist) =
   else
   if null nontriv then Failure(hist)
   else
-  let val (eqs,noneqs) = partition (fn (Lineq(_,ty,_,_)) => ty=Eq) nontriv in
+  let val (eqs,noneqs) = List.partition (fn (Lineq(_,ty,_,_)) => ty=Eq) nontriv in
   if not(null eqs) then
-     let val clist = foldl (fn (cs,Lineq(_,_,l,_)) => l union cs) ([],eqs)
+     let val clist = Library.foldl (fn (cs,Lineq(_,_,l,_)) => l union cs) ([],eqs)
          val sclist = sort (fn (x,y) => int_ord(abs(x),abs(y)))
-                           (filter (fn i => i<>0) clist)
+                           (List.filter (fn i => i<>0) clist)
          val c = hd sclist
          val (SOME(eq as Lineq(_,_,ceq,_)),othereqs) =
                extract_first (fn Lineq(_,_,l,_) => c mem l) eqs
          val v = find_index_eq c ceq
-         val (ioth,roth) = partition (fn (Lineq(_,_,l,_)) => el v l = 0)
+         val (ioth,roth) = List.partition (fn (Lineq(_,_,l,_)) => el v l = 0)
                                      (othereqs @ noneqs)
          val others = map (elim_var v eq) roth @ ioth
      in elim(others,(v,nontriv)::hist) end
@@ -385,12 +385,12 @@ fun elim(ineqs,hist) =
       val coeffs = map (fn i => map (el i) lists) numlist
       val blows = map calc_blowup coeffs
       val iblows = blows ~~ numlist
-      val nziblows = filter (fn (i,_) => i<>0) iblows
+      val nziblows = List.filter (fn (i,_) => i<>0) iblows
   in if null nziblows then Failure((~1,nontriv)::hist)
      else
      let val (c,v) = hd(sort (fn (x,y) => int_ord(fst(x),fst(y))) nziblows)
-         val (no,yes) = partition (fn (Lineq(_,_,l,_)) => el v l = 0) ineqs
-         val (pos,neg) = partition(fn (Lineq(_,_,l,_)) => el v l > 0) yes
+         val (no,yes) = List.partition (fn (Lineq(_,_,l,_)) => el v l = 0) ineqs
+         val (pos,neg) = List.partition(fn (Lineq(_,_,l,_)) => el v l > 0) yes
      in elim(no @ allpairs (elim_var v) pos neg, (v,nontriv)::hist) end
   end
   end
@@ -420,9 +420,9 @@ local
 in
 fun mkthm sg asms just =
   let val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset} = Data.get_sg sg;
-      val atoms = foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
+      val atoms = Library.foldl (fn (ats,(lhs,_,_,rhs,_,_)) =>
                             map fst lhs  union  (map fst rhs  union  ats))
-                        ([], mapfilter (fn thm => if Thm.no_prems thm
+                        ([], List.mapPartial (fn thm => if Thm.no_prems thm
                                         then LA_Data.decomp sg (concl_of thm)
                                         else NONE) asms)
 
@@ -438,7 +438,7 @@ fun mkthm sg asms just =
       fun addthms thm1 thm2 =
         case add2 thm1 thm2 of
           NONE => (case try_add ([thm1] RL inj_thms) thm2 of
-                     NONE => ( the(try_add ([thm2] RL inj_thms) thm1)
+                     NONE => ( valOf(try_add ([thm2] RL inj_thms) thm1)
                                handle OPTION =>
                                (trace_thm "" thm1; trace_thm "" thm2;
                                 sys_error "Lin.arith. failed to add thms")
@@ -468,8 +468,8 @@ fun mkthm sg asms just =
         let val thm' = trace_thm "Simplified:" (full_simplify simpset thm)
         in if LA_Logic.is_False thm' then raise FalseE thm' else thm' end
 
-      fun mk(Asm i) = trace_thm "Asm" (nth_elem(i,asms))
-        | mk(Nat i) = (trace_msg "Nat"; LA_Logic.mk_nat_thm sg (nth_elem(i,atoms)))
+      fun mk(Asm i) = trace_thm "Asm" (List.nth(asms,i))
+        | mk(Nat i) = (trace_msg "Nat"; LA_Logic.mk_nat_thm sg (List.nth(atoms,i)))
         | mk(LessD(j)) = trace_thm "L" (hd([mk j] RL lessD))
         | mk(NotLeD(j)) = trace_thm "NLe" (mk j RS LA_Logic.not_leD)
         | mk(NotLeDD(j)) = trace_thm "NLeD" (hd([mk j RS LA_Logic.not_leD] RL lessD))
@@ -484,7 +484,7 @@ fun mkthm sg asms just =
         in trace_thm "After simplification:" fls;
            if LA_Logic.is_False fls then fls
            else
-            (tracing "Assumptions:"; seq print_thm asms;
+            (tracing "Assumptions:"; List.app print_thm asms;
              tracing "Proved:"; print_thm fls;
              warning "Linear arithmetic should have refuted the assumptions.\n\
                      \Please inform Tobias Nipkow (nipkow@in.tum.de).";
@@ -496,7 +496,7 @@ end;
 
 fun coeff poly atom = case assoc(poly,atom) of NONE => 0 | SOME i => i;
 
-fun lcms is = foldl lcm (1,is);
+fun lcms is = Library.foldl lcm (1,is);
 
 fun integ(rlhs,r,rel,rrhs,s,d) =
 let val (rn,rd) = rep_rat r and (sn,sd) = rep_rat s
@@ -593,17 +593,17 @@ fun add_atoms(ats,((lhs,_,_,rhs,_,_),_)) =
 fun add_datoms(dats,((lhs,_,_,rhs,_,d),_)) =
     (map (pair d o fst) lhs) union ((map (pair d o fst) rhs) union dats)
 
-fun discr initems = map fst (foldl add_datoms ([],initems));
+fun discr initems = map fst (Library.foldl add_datoms ([],initems));
 
 fun refutes sg (pTs,params) ex =
 let
   fun refute (initems::initemss) js =
-    let val atoms = foldl add_atoms ([],initems)
+    let val atoms = Library.foldl add_atoms ([],initems)
         val n = length atoms
         val mkleq = mklineq n atoms
         val ixs = 0 upto (n-1)
         val iatoms = atoms ~~ ixs
-        val natlineqs = mapfilter (mknat pTs ixs) iatoms
+        val natlineqs = List.mapPartial (mknat pTs ixs) iatoms
         val ineqs = map mkleq initems @ natlineqs
     in case elim(ineqs,[]) of
          Success(j) =>
@@ -628,7 +628,7 @@ fun refute_tac(i,justs) =
     end
     state;
 
-fun count P xs = length(filter P xs);
+fun count P xs = length(List.filter P xs);
 
 (* The limit on the number of ~= allowed.
    Because each ~= is split into two cases, this can lead to an explosion.

@@ -14,7 +14,7 @@ open ThyParse;
 
 fun mk_typedef_decl (((((opt_name, vs), t), mx), rhs), wt) =
   let
-    val name' = if_none opt_name t;
+    val name' = getOpt (opt_name,t);
     val name = unenclose name';
   in
     (cat_lines [name', mk_triple (t, mk_list vs, mx), rhs, wt],
@@ -101,11 +101,11 @@ local
           fun mk_dt_struct (s, (id, i)) =
             s ^ "structure " ^ id ^ " =\n\
             \struct\n\
-            \  val distinct = nth_elem (" ^ i ^ ", distinct);\n\
-            \  val inject = nth_elem (" ^ i ^ ", inject);\n\
-            \  val exhaust = nth_elem (" ^ i ^ ", exhaustion);\n\
-            \  val cases = nth_elem (" ^ i ^ ", case_thms);\n\
-            \  val (split, split_asm) = nth_elem (" ^ i ^ ", split_thms);\n" ^
+            \  val distinct = List.nth (distinct, " ^ i ^ ");\n\
+            \  val inject = List.nth (inject, " ^ i ^ ");\n\
+            \  val exhaust = List.nth (exhaustion, " ^ i ^ ");\n\
+            \  val cases = List.nth (case_thms, " ^ i ^ ");\n\
+            \  val (split, split_asm) = List.nth (split_thms, " ^ i ^ ");\n" ^
               (if length names = 1 then
                  "  val induct = induction;\n\
                  \  val recs = rec_thms;\n\
@@ -114,7 +114,7 @@ local
                else "") ^
             "end;\n";
 
-          val structs = foldl mk_dt_struct
+          val structs = Library.foldl mk_dt_struct
             ("", (names ~~ (map string_of_int (0 upto length names - 1))));
 
         in
@@ -131,7 +131,7 @@ local
   fun mk_dt_string dts =
     let
       val names = map (fn ((((alt_name, _), name), _), _) =>
-        unenclose (if_none alt_name name)) dts;
+        unenclose (getOpt (alt_name,name))) dts;
 
       val add_datatype_args = brackets (commas (map Library.quote names)) ^ " " ^
         brackets (commas (map (fn ((((_, vs), name), mx), cs) =>

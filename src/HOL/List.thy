@@ -2127,7 +2127,7 @@ fun char_codegen thy gr dep b (Const ("List.char.Char", _) $ c1 $ c2) =
     (let val c = chr (dest_nibble c1 * 16 + dest_nibble c2)
      in if Symbol.is_printable c then SOME (gr, Pretty.quote (Pretty.str c))
        else NONE
-     end handle LIST _ => NONE | Match => NONE)
+     end handle Fail _ => NONE | Match => NONE)
   | char_codegen thy gr dep b _ = NONE;
 
 in

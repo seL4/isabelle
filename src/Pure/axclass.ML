@@ -64,7 +64,7 @@ fun dest_varT (TFree (x, S)) = ((x, ~1), S)
 val is_def = Logic.is_equals o #prop o rep_thm;
 
 fun witnesses thy names thms =
-  PureThy.get_thmss thy (map (rpair NONE) names) @ thms @ filter is_def (map snd (axioms_of thy));
+  PureThy.get_thmss thy (map (rpair NONE) names) @ thms @ List.filter is_def (map snd (axioms_of thy));
 
 
 
@@ -248,7 +248,7 @@ fun ext_axclass prep_class prep_axm prep_att (bclass, raw_super_classes) raw_axi
         [] => []
       | [(_, S)] => if Sign.subsort class_sign ([class], S) then S else err_bad_axsort name class
       | _ => err_bad_tfrees name);
-    val axS = Sign.certify_sort class_sign (flat (map axm_sort axms));
+    val axS = Sign.certify_sort class_sign (List.concat (map axm_sort axms));
 
     val int_axm = Logic.close_form o map_term_tfrees (K (aT axS));
     fun inclass c = Logic.mk_inclass (aT axS, c);
@@ -288,7 +288,7 @@ val add_axclass_i = ext_axclass (K I) Theory.cert_axm (K I);
 fun class_axms sign =
   let val classes = Sign.classes sign in
     map (Thm.class_triv sign) classes @
-    mapfilter (apsome #intro o lookup_axclass_info_sg sign) classes
+    List.mapPartial (Option.map #intro o lookup_axclass_info_sg sign) classes
   end;
 
 
@@ -326,7 +326,7 @@ val default_method =
 
 fun axclass_tac thms =
   let
-    val defs = filter is_def thms;
+    val defs = List.filter is_def thms;
     val non_defs = filter_out is_def thms;
   in
     intro_classes_tac [] THEN
@@ -338,7 +338,7 @@ fun axclass_tac thms =
 (* old-style provers *)
 
 fun prove mk_prop str_of sign prop thms usr_tac =
-  (Tactic.prove sign [] [] (mk_prop prop) (K (axclass_tac thms THEN (if_none usr_tac all_tac)))
+  (Tactic.prove sign [] [] (mk_prop prop) (K (axclass_tac thms THEN (getOpt (usr_tac,all_tac))))
     handle ERROR => error ("The error(s) above occurred while trying to prove " ^
      quote (str_of sign prop))) |> Drule.standard;
 

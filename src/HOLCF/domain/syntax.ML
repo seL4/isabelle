@@ -22,14 +22,14 @@ local
 			    else foldr' mk_sprodT (map opt_lazy args);
   fun freetvar s = let val tvar = mk_TFree s in
 		   if tvar mem typevars then freetvar ("t"^s) else tvar end;
-  fun when_type (_   ,_,args) = foldr (op ->>) (map third args,freetvar "t");
+  fun when_type (_   ,_,args) = Library.foldr (op ->>) (map third args,freetvar "t");
 in
   val dtype  = Type(dname,typevars);
   val dtype2 = foldr' mk_ssumT (map prod cons');
   val dnam = Sign.base_name dname;
   val const_rep  = (dnam^"_rep" ,              dtype  ->> dtype2, NoSyn);
   val const_abs  = (dnam^"_abs" ,              dtype2 ->> dtype , NoSyn);
-  val const_when = (dnam^"_when",foldr (op ->>) ((map when_type cons'),
+  val const_when = (dnam^"_when",Library.foldr (op ->>) ((map when_type cons'),
 					        dtype ->> freetvar "t"), NoSyn);
   val const_copy = (dnam^"_copy", dtypeprod ->> dtype  ->> dtype , NoSyn);
 end;
@@ -42,7 +42,7 @@ local
 							 else      c::esc cs
 	|   esc []      = []
 	in implode o esc o Symbol.explode end;
-  fun con (name,s,args) = (name,foldr (op ->>) (map third args,dtype),s);
+  fun con (name,s,args) = (name,Library.foldr (op ->>) (map third args,dtype),s);
   fun dis (con ,s,_   ) = (dis_name_ con, dtype->>trT,
 			   Mixfix(escape ("is_" ^ con), [], Syntax.max_pri));
 			(* stricly speaking, these constants have one argument,
@@ -52,7 +52,7 @@ local
 in
   val consts_con = map con cons';
   val consts_dis = map dis cons';
-  val consts_sel = flat(map sel cons');
+  val consts_sel = List.concat(map sel cons');
 end;
 
 (* ----- constants concerning induction ------------------------------------- *)
@@ -70,7 +70,7 @@ local open Syntax in
 					 (string_of_int m));
 	fun app s (l,r)   = mk_appl (Constant s) [l,r];
 	fun case1 n (con,mx,args) = mk_appl (Constant "_case1")
-		 [foldl (app "Rep_CFun") (c_ast con mx, (mapn (argvar n) 1 args)),
+		 [Library.foldl (app "Rep_CFun") (c_ast con mx, (mapn (argvar n) 1 args)),
 		  expvar n];
 	fun arg1 n (con,_,args) = if args = [] then expvar n 
 				  else mk_appl (Constant "LAM ") 
@@ -80,7 +80,7 @@ local open Syntax in
       (mk_appl (Constant "_case_syntax") [Variable "x", foldr'
 				(fn (c,cs) => mk_appl (Constant"_case2") [c,cs])
 				 (mapn case1 1 cons')],
-       mk_appl (Constant "Rep_CFun") [foldl 
+       mk_appl (Constant "Rep_CFun") [Library.foldl 
 				(fn (w,a ) => mk_appl (Constant"Rep_CFun" ) [w,a ])
 				 (Constant (dnam^"_when"),mapn arg1 1 cons'),
 				 Variable "x"])
@@ -107,10 +107,10 @@ let
   val const_copy   = (comp_dnam^"_copy"  ,funprod ->> funprod, NoSyn);
   val const_bisim  = (comp_dnam^"_bisim" ,relprod --> boolT  , NoSyn);
   val ctt           = map (calc_syntax funprod) eqs';
-in thy'' |> ContConsts.add_consts_i (flat (map fst ctt) @ 
+in thy'' |> ContConsts.add_consts_i (List.concat (map fst ctt) @ 
 				    (if length eqs'>1 then [const_copy] else[])@
 				    [const_bisim])
-	 |> Theory.add_trrules_i (flat(map snd ctt))
+	 |> Theory.add_trrules_i (List.concat(map snd ctt))
 end; (* let *)
 
 end; (* local *)

@@ -50,7 +50,7 @@ fun append name1 name2 = name1 ^ separator ^ name2;
 val unpack = space_explode separator;
 val pack = space_implode separator;
 
-val base = last_elem o unpack;
+val base = List.last o unpack;
 
 fun map_base f name =
   let val uname = unpack name
@@ -75,7 +75,7 @@ val accesses' = map pack o Library.suffixes1 o unpack;
 (* basic operations *)
 
 fun map_space f xname tab =
-  Symtab.update ((xname, f (if_none (Symtab.lookup (tab, xname)) ([], []))), tab);
+  Symtab.update ((xname, f (getOpt (Symtab.lookup (tab, xname), ([], [])))), tab);
 
 fun change f xname (name, tab) =
   map_space (fn (names, names') => (f names name, names')) xname tab;
@@ -100,9 +100,9 @@ val empty = NameSpace Symtab.empty;
 fun extend_aux (name, tab) =
   if is_hidden name then
     error ("Attempt to declare hidden name " ^ quote name)
-  else foldl (fn (tb, xname) => change add xname (name, tb)) (tab, accesses name);
+  else Library.foldl (fn (tb, xname) => change add xname (name, tb)) (tab, accesses name);
 
-fun extend (NameSpace tab, names) = NameSpace (foldr extend_aux (names, tab));
+fun extend (NameSpace tab, names) = NameSpace (Library.foldr extend_aux (names, tab));
 
 
 (* merge *)             (*1st preferred over 2nd*)
@@ -123,10 +123,10 @@ fun hide_aux fully (name, tab) =
   else if is_hidden name then
     error ("Attempt to hide hidden name " ^ quote name)
   else (change' add name (name,
-    foldl (fn (tb, xname) => change del xname (name, tb))
+    Library.foldl (fn (tb, xname) => change del xname (name, tb))
       (tab, if fully then accesses name else [base name])));
 
-fun hide fully (NameSpace tab, names) = NameSpace (foldr (hide_aux fully) (names, tab));
+fun hide fully (NameSpace tab, names) = NameSpace (Library.foldr (hide_aux fully) (names, tab));
 
 
 (* intern / extern names *)
@@ -175,7 +175,7 @@ fun dest_entry (xname, ([], _)) = NONE
 
 fun dest (NameSpace tab) =
   map (apsnd (sort (int_ord o pairself size)))
-    (Symtab.dest (Symtab.make_multi (mapfilter dest_entry (Symtab.dest tab))));
+    (Symtab.dest (Symtab.make_multi (List.mapPartial dest_entry (Symtab.dest tab))));
 
 
 end;

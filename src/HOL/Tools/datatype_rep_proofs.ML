@@ -35,7 +35,7 @@ val myinv_f_f = thm "myinv_f_f";
 
 
 fun exh_thm_of (dt_info : datatype_info Symtab.table) tname =
-  #exhaustion (the (Symtab.lookup (dt_info, tname)));
+  #exhaustion (valOf (Symtab.lookup (dt_info, tname)));
 
 (******************************************************************************)
 
@@ -62,7 +62,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
          "In0_eq", "In1_eq", "In0_not_In1", "In1_not_In0",
          "Lim_inject", "Suml_inject", "Sumr_inject"];
 
-    val descr' = flat descr;
+    val descr' = List.concat descr;
 
     val big_name = space_implode "_" new_type_names;
     val thy1 = add_path flat_names big_name thy;
@@ -78,11 +78,11 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val branchT = if null branchTs then HOLogic.unitT
       else fold_bal (fn (T, U) => Type ("+", [T, U])) branchTs;
     val arities = get_arities descr' \ 0;
-    val unneeded_vars = hd tyvars \\ foldr add_typ_tfree_names (leafTs' @ branchTs, []);
-    val leafTs = leafTs' @ (map (fn n => TFree (n, the (assoc (sorts, n)))) unneeded_vars);
+    val unneeded_vars = hd tyvars \\ Library.foldr add_typ_tfree_names (leafTs' @ branchTs, []);
+    val leafTs = leafTs' @ (map (fn n => TFree (n, valOf (assoc (sorts, n)))) unneeded_vars);
     val recTs = get_rec_types descr' sorts;
-    val newTs = take (length (hd descr), recTs);
-    val oldTs = drop (length (hd descr), recTs);
+    val newTs = Library.take (length (hd descr), recTs);
+    val oldTs = Library.drop (length (hd descr), recTs);
     val sumT = if null leafTs then HOLogic.unitT
       else fold_bal (fn (T, U) => Type ("+", [T, U])) leafTs;
     val Univ_elT = HOLogic.mk_setT (Type (node_name, [sumT, branchT]));
@@ -134,7 +134,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       in mk_inj branchT (length branchTs) (1 + find_index_eq T' branchTs)
       end;
 
-    val mk_lim = foldr (fn (T, t) => Lim $ mk_fun_inj T (Abs ("x", T, t)));
+    val mk_lim = Library.foldr (fn (T, t) => Lim $ mk_fun_inj T (Abs ("x", T, t)));
 
     (************** generate introduction rules for representing set **********)
 
@@ -152,7 +152,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                   app_bnds (mk_Free "x" (Ts ---> Univ_elT) j) (length Ts)
               in (j + 1, list_all (map (pair "x") Ts,
                   HOLogic.mk_Trueprop (HOLogic.mk_mem (free_t,
-                    Const (nth_elem (k, rep_set_names), UnivT)))) :: prems,
+                    Const (List.nth (rep_set_names, k), UnivT)))) :: prems,
                 mk_lim (Ts, free_t) :: ts)
               end
           | _ =>
@@ -160,7 +160,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
               in (j + 1, prems, (Leaf $ mk_inj T (mk_Free "x" T j))::ts)
               end);
 
-        val (_, prems, ts) = foldr mk_prem (cargs, (1, [], []));
+        val (_, prems, ts) = Library.foldr mk_prem (cargs, (1, [], []));
         val concl = HOLogic.mk_Trueprop (HOLogic.mk_mem
           (mk_univ_inj ts n i, Const (s, UnivT)))
       in Logic.list_implies (prems, concl)
@@ -168,7 +168,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val consts = map (fn s => Const (s, UnivT)) rep_set_names;
 
-    val intr_ts = flat (map (fn ((_, (_, _, constrs)), rep_set_name) =>
+    val intr_ts = List.concat (map (fn ((_, (_, _, constrs)), rep_set_name) =>
       map (make_intr rep_set_name (length constrs))
         ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names));
 
@@ -179,21 +179,21 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     (********************************* typedef ********************************)
 
-    val thy3 = add_path flat_names big_name (foldl (fn (thy, ((((name, mx), tvs), c), name')) =>
+    val thy3 = add_path flat_names big_name (Library.foldl (fn (thy, ((((name, mx), tvs), c), name')) =>
       setmp TypedefPackage.quiet_mode true
         (TypedefPackage.add_typedef_i false (SOME name') (name, tvs, mx) c NONE
           (rtac exI 1 THEN
             QUIET_BREADTH_FIRST (has_fewer_prems 1)
             (resolve_tac rep_intrs 1))) thy |> #1)
               (parent_path flat_names thy2, types_syntax ~~ tyvars ~~
-                (take (length newTs, consts)) ~~ new_type_names));
+                (Library.take (length newTs, consts)) ~~ new_type_names));
 
     (*********************** definition of constructors ***********************)
 
     val big_rep_name = (space_implode "_" new_type_names) ^ "_Rep_";
     val rep_names = map (curry op ^ "Rep_") new_type_names;
     val rep_names' = map (fn i => big_rep_name ^ (string_of_int i))
-      (1 upto (length (flat (tl descr))));
+      (1 upto (length (List.concat (tl descr))));
     val all_rep_names = map (Sign.intern_const (Theory.sign_of thy3)) rep_names @
       map (Sign.full_name (Theory.sign_of thy3)) rep_names';
 
@@ -211,12 +211,12 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
               val free_t = mk_Free "x" T j
           in (case (strip_dtyp dt, strip_type T) of
               ((_, DtRec m), (Us, U)) => (j + 1, free_t :: l_args, mk_lim (Us,
-                Const (nth_elem (m, all_rep_names), U --> Univ_elT) $
+                Const (List.nth (all_rep_names, m), U --> Univ_elT) $
                   app_bnds free_t (length Us)) :: r_args)
             | _ => (j + 1, free_t::l_args, (Leaf $ mk_inj T free_t)::r_args))
           end;
 
-        val (_, l_args, r_args) = foldr constr_arg (cargs, (1, [], []));
+        val (_, l_args, r_args) = Library.foldr constr_arg (cargs, (1, [], []));
         val constrT = (map (typ_of_dtyp descr' sorts) cargs) ---> T;
         val abs_name = Sign.intern_const (Theory.sign_of thy) ("Abs_" ^ tname);
         val rep_name = Sign.intern_const (Theory.sign_of thy) ("Rep_" ^ tname);
@@ -243,14 +243,14 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           (Const (Sign.intern_const sg ("Rep_" ^ tname), T --> Univ_elT));
         val cong' = standard (cterm_instantiate [(cterm_of sg cong_f, rep_const)] arg_cong);
         val dist = standard (cterm_instantiate [(cterm_of sg distinct_f, rep_const)] distinct_lemma);
-        val (thy', defs', eqns', _) = foldl ((make_constr_def tname T) (length constrs))
+        val (thy', defs', eqns', _) = Library.foldl ((make_constr_def tname T) (length constrs))
           ((add_path flat_names tname thy, defs, [], 1), constrs ~~ constr_syntax)
       in
         (parent_path flat_names thy', defs', eqns @ [eqns'],
           rep_congs @ [cong'], dist_lemmas @ [dist])
       end;
 
-    val (thy4, constr_defs, constr_rep_eqns, rep_congs, dist_lemmas) = foldl dt_constr_defs
+    val (thy4, constr_defs, constr_rep_eqns, rep_congs, dist_lemmas) = Library.foldl dt_constr_defs
       ((thy3 |> Theory.add_consts_i iso_decls |> parent_path flat_names, [], [], [], []),
         hd descr ~~ new_type_names ~~ newTs ~~ constr_syntax);
 
@@ -300,7 +300,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     val newT_iso_inj_thms = map prove_newT_iso_inj_thm
       (new_type_names ~~ newT_iso_axms ~~ newTs ~~
-        take (length newTs, rep_set_names));
+        Library.take (length newTs, rep_set_names));
 
     (********* isomorphisms between existing types and "unfolded" types *******)
 
@@ -318,8 +318,8 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     fun make_iso_def k ks n ((fs, eqns, i), (cname, cargs)) =
       let
         val argTs = map (typ_of_dtyp descr' sorts) cargs;
-        val T = nth_elem (k, recTs);
-        val rep_name = nth_elem (k, all_rep_names);
+        val T = List.nth (recTs, k);
+        val rep_name = List.nth (all_rep_names, k);
         val rep_const = Const (rep_name, T --> Univ_elT);
         val constr = Const (cname, argTs ---> T);
 
@@ -334,17 +334,17 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
                    Ts @ [Us ---> Univ_elT])
                 else
                   (i2 + 1, i2', ts @ [mk_lim (Us,
-                     Const (nth_elem (j, all_rep_names), U --> Univ_elT) $
+                     Const (List.nth (all_rep_names, j), U --> Univ_elT) $
                        app_bnds (mk_Free "x" T' i2) (length Us))], Ts)
             | _ => (i2 + 1, i2', ts @ [Leaf $ mk_inj T' (mk_Free "x" T' i2)], Ts))
           end;
 
-        val (i2, i2', ts, Ts) = foldl (process_arg ks) ((1, 1, [], []), cargs);
+        val (i2, i2', ts, Ts) = Library.foldl (process_arg ks) ((1, 1, [], []), cargs);
         val xs = map (uncurry (mk_Free "x")) (argTs ~~ (1 upto (i2 - 1)));
         val ys = map (uncurry (mk_Free "y")) (Ts ~~ (1 upto (i2' - 1)));
         val f = list_abs_free (map dest_Free (xs @ ys), mk_univ_inj ts n i);
 
-        val (_, _, ts', _) = foldl (process_arg []) ((1, 1, [], []), cargs);
+        val (_, _, ts', _) = Library.foldl (process_arg []) ((1, 1, [], []), cargs);
         val eqn = HOLogic.mk_Trueprop (HOLogic.mk_eq
           (rep_const $ list_comb (constr, xs), mk_univ_inj ts' n i))
 
@@ -356,16 +356,16 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       let
         val ks = map fst ds;
         val (_, (tname, _, _)) = hd ds;
-        val {rec_rewrites, rec_names, ...} = the (Symtab.lookup (dt_info, tname));
+        val {rec_rewrites, rec_names, ...} = valOf (Symtab.lookup (dt_info, tname));
 
         fun process_dt ((fs, eqns, isos), (k, (tname, _, constrs))) =
           let
-            val (fs', eqns', _) = foldl (make_iso_def k ks (length constrs))
+            val (fs', eqns', _) = Library.foldl (make_iso_def k ks (length constrs))
               ((fs, eqns, 1), constrs);
-            val iso = (nth_elem (k, recTs), nth_elem (k, all_rep_names))
+            val iso = (List.nth (recTs, k), List.nth (all_rep_names, k))
           in (fs', eqns', isos @ [iso]) end;
         
-        val (fs, eqns, isos) = foldl process_dt (([], [], []), ds);
+        val (fs, eqns, isos) = Library.foldl process_dt (([], [], []), ds);
         val fTs = map fastype_of fs;
         val defs = map (fn (rec_name, (T, iso_name)) => ((Sign.base_name iso_name) ^ "_def",
           equals (T --> Univ_elT) $ Const (iso_name, T --> Univ_elT) $
@@ -380,7 +380,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
       in (thy', char_thms' @ char_thms) end;
 
-    val (thy5, iso_char_thms) = foldr make_iso_defs
+    val (thy5, iso_char_thms) = Library.foldr make_iso_defs
       (tl descr, (add_path flat_names big_name thy4, []));
 
     (* prove isomorphism properties *)
@@ -412,13 +412,13 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     fun prove_iso_thms (ds, (inj_thms, elem_thms)) =
       let
         val (_, (tname, _, _)) = hd ds;
-        val {induction, ...} = the (Symtab.lookup (dt_info, tname));
+        val {induction, ...} = valOf (Symtab.lookup (dt_info, tname));
 
         fun mk_ind_concl (i, _) =
           let
-            val T = nth_elem (i, recTs);
-            val Rep_t = Const (nth_elem (i, all_rep_names), T --> Univ_elT);
-            val rep_set_name = nth_elem (i, rep_set_names)
+            val T = List.nth (recTs, i);
+            val Rep_t = Const (List.nth (all_rep_names, i), T --> Univ_elT);
+            val rep_set_name = List.nth (rep_set_names, i)
           in (HOLogic.all_const T $ Abs ("y", T, HOLogic.imp $
                 HOLogic.mk_eq (Rep_t $ mk_Free "x" T i, Rep_t $ Bound 0) $
                   HOLogic.mk_eq (mk_Free "x" T i, Bound 0)),
@@ -469,7 +469,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       in (inj_thms'' @ inj_thms, elem_thms @ (split_conj_thm elem_thm))
       end;
 
-    val (iso_inj_thms_unfolded, iso_elem_thms) = foldr prove_iso_thms
+    val (iso_inj_thms_unfolded, iso_elem_thms) = Library.foldr prove_iso_thms
       (tl descr, ([], map #3 newT_iso_axms));
     val iso_inj_thms = map snd newT_iso_inj_thms @ iso_inj_thms_unfolded;
 
@@ -494,7 +494,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       iso_inj_thms_unfolded;
 
     val iso_thms = if length descr = 1 then [] else
-      drop (length newTs, split_conj_thm
+      Library.drop (length newTs, split_conj_thm
         (prove_goalw_cterm [] (cterm_of (Theory.sign_of thy5) iso_t) (fn _ =>
            [(indtac rep_induct THEN_ALL_NEW ObjectLogic.atomize_tac) 1,
             REPEAT (rtac TrueI 1),
@@ -503,7 +503,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
             rewrite_goals_tac (map symmetric range_eqs),
             REPEAT (EVERY
               [REPEAT (eresolve_tac ([rangeE, ex1_implies_ex RS exE] @
-                 flat (map (mk_funs_inv o #1) newT_iso_axms)) 1),
+                 List.concat (map (mk_funs_inv o #1) newT_iso_axms)) 1),
                TRY (hyp_subst_tac 1),
                rtac (sym RS range_eqI) 1,
                resolve_tac iso_char_thms 1])])));
@@ -513,7 +513,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       map2 (fn (r_inj, r) => f_myinv_f OF [r_inj, r RS mp])
         (iso_inj_thms_unfolded, iso_thms);
 
-    val Abs_inverse_thms = flat (map mk_funs_inv Abs_inverse_thms');
+    val Abs_inverse_thms = List.concat (map mk_funs_inv Abs_inverse_thms');
 
     (******************* freeness theorems for constructors *******************)
 
@@ -596,23 +596,23 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     fun mk_indrule_lemma ((prems, concls), ((i, _), T)) =
       let
-        val Rep_t = Const (nth_elem (i, all_rep_names), T --> Univ_elT) $
+        val Rep_t = Const (List.nth (all_rep_names, i), T --> Univ_elT) $
           mk_Free "x" T i;
 
         val Abs_t = if i < length newTs then
             Const (Sign.intern_const (Theory.sign_of thy6)
-              ("Abs_" ^ (nth_elem (i, new_type_names))), Univ_elT --> T)
+              ("Abs_" ^ (List.nth (new_type_names, i))), Univ_elT --> T)
           else Const ("Inductive.myinv", [T --> Univ_elT, Univ_elT] ---> T) $
-            Const (nth_elem (i, all_rep_names), T --> Univ_elT)
+            Const (List.nth (all_rep_names, i), T --> Univ_elT)
 
       in (prems @ [HOLogic.imp $ HOLogic.mk_mem (Rep_t,
-            Const (nth_elem (i, rep_set_names), UnivT)) $
+            Const (List.nth (rep_set_names, i), UnivT)) $
               (mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ (Abs_t $ Rep_t))],
           concls @ [mk_Free "P" (T --> HOLogic.boolT) (i + 1) $ mk_Free "x" T i])
       end;
 
     val (indrule_lemma_prems, indrule_lemma_concls) =
-      foldl mk_indrule_lemma (([], []), (descr' ~~ recTs));
+      Library.foldl mk_indrule_lemma (([], []), (descr' ~~ recTs));
 
     val cert = cterm_of (Theory.sign_of thy6);
 

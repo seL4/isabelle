@@ -44,11 +44,11 @@ open Domain_Library;
     val defaultS = Sign.defaultS sg;
     val test_dupl_typs = (case duplicates (map fst dtnvs) of 
 	[] => false | dups => error ("Duplicate types: " ^ commas_quote dups));
-    val test_dupl_cons = (case duplicates (map first (flat cons'')) of 
+    val test_dupl_cons = (case duplicates (map first (List.concat cons'')) of 
 	[] => false | dups => error ("Duplicate constructors: " 
 							 ^ commas_quote dups));
     val test_dupl_sels = (case duplicates 
-			       (map second (flat (map third (flat cons'')))) of
+			       (map second (List.concat (map third (List.concat cons'')))) of
         [] => false | dups => error("Duplicate selectors: "^commas_quote dups));
     val test_dupl_tvars = exists(fn s=>case duplicates(map(fst o rep_TFree)s)of
 	[] => false | dups => error("Duplicate type arguments: " 
@@ -110,7 +110,7 @@ open Domain_Library;
     val eqs' = check_and_sort_domain (dtnvs,cons'') sg'';
     val thy' = thy'' |> Domain_Syntax.add_syntax (comp_dnam,eqs');
     val dts  = map (Type o fst) eqs';
-    fun strip ss = drop (find_index_eq "'" ss +1, ss);
+    fun strip ss = Library.drop (find_index_eq "'" ss +1, ss);
     fun typid (Type  (id,_)) =
           let val c = hd (Symbol.explode (Sign.base_name id))
           in if Symbol.is_letter c then c else "t" end
@@ -131,7 +131,7 @@ open Domain_Library;
 in
   theorems_thy
   |> Theory.add_path (Sign.base_name comp_dnam)
-  |> (#1 o (PureThy.add_thmss [(("rews", flat rewss @ take_rews), [])]))
+  |> (#1 o (PureThy.add_thmss [(("rews", List.concat rewss @ take_rews), [])]))
   |> Theory.parent_path
 end;
 

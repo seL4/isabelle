@@ -126,20 +126,20 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Treatment of a list of constructors, for one part
     Result adds a list of terms, each a function variable with arguments*)
   fun add_case_list (con_ty_list, (opno, case_lists)) =
-    let val (opno', case_list) = foldr add_case (con_ty_list, (opno, []))
+    let val (opno', case_list) = Library.foldr add_case (con_ty_list, (opno, []))
     in (opno', case_list :: case_lists) end;
 
   (*Treatment of all parts*)
-  val (_, case_lists) = foldr add_case_list (con_ty_lists, (1,[]));
+  val (_, case_lists) = Library.foldr add_case_list (con_ty_lists, (1,[]));
 
   (*extract the types of all the variables*)
-  val case_typ = flat (map (map (#2 o #1)) con_ty_lists) ---> (iT-->iT);
+  val case_typ = List.concat (map (map (#2 o #1)) con_ty_lists) ---> (iT-->iT);
 
   val case_base_name = big_rec_base_name ^ "_case";
   val case_name = full_name case_base_name;
 
   (*The list of all the function variables*)
-  val case_args = flat (map (map #1) case_lists);
+  val case_args = List.concat (map (map #1) case_lists);
 
   val case_const = Const (case_name, case_typ);
   val case_tm = list_comb (case_const, case_args);
@@ -170,7 +170,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           val rec_args = map (make_rec_call (rev case_args,0))
                          (List.drop(recursor_args, ncase_args))
       in
-          foldr add_abs
+          Library.foldr add_abs
             (case_args, list_comb (recursor_var,
                                    bound_args @ rec_args))
       end
@@ -202,23 +202,23 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val rec_ty_lists = (map (map rec_ty_elem) con_ty_lists);
 
   (*Treatment of all parts*)
-  val (_, recursor_lists) = foldr add_case_list (rec_ty_lists, (1,[]));
+  val (_, recursor_lists) = Library.foldr add_case_list (rec_ty_lists, (1,[]));
 
   (*extract the types of all the variables*)
-  val recursor_typ = flat (map (map (#2 o #1)) rec_ty_lists)
+  val recursor_typ = List.concat (map (map (#2 o #1)) rec_ty_lists)
                          ---> (iT-->iT);
 
   val recursor_base_name = big_rec_base_name ^ "_rec";
   val recursor_name = full_name recursor_base_name;
 
   (*The list of all the function variables*)
-  val recursor_args = flat (map (map #1) recursor_lists);
+  val recursor_args = List.concat (map (map #1) recursor_lists);
 
   val recursor_tm =
     list_comb (Const (recursor_name, recursor_typ), recursor_args);
 
   val recursor_cases = map call_recursor
-                         (flat case_lists ~~ flat recursor_lists)
+                         (List.concat case_lists ~~ List.concat recursor_lists)
 
   val recursor_def =
       Logic.mk_defpair
@@ -240,16 +240,16 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val (thy0, con_defs) = thy_path
              |> Theory.add_consts_i
                  ((case_base_name, case_typ, NoSyn) ::
-                  map #1 (flat con_ty_lists))
+                  map #1 (List.concat con_ty_lists))
              |> PureThy.add_defs_i false
                  (map Thm.no_attributes
                   (case_def ::
-                   flat (ListPair.map mk_con_defs
+                   List.concat (ListPair.map mk_con_defs
                          (1 upto npart, con_ty_lists))))
              |>> add_recursor
              |>> Theory.parent_path
 
-  val intr_names = map #2 (flat con_ty_lists);
+  val intr_names = map #2 (List.concat con_ty_lists);
   val (thy1, ind_result) =
     thy0 |> Ind_Package.add_inductive_i
       false (rec_tms, dom_sum) (map Thm.no_attributes (intr_names ~~ intr_tms))
@@ -291,7 +291,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   val case_eqns =
       map prove_case_eqn
-         (flat con_ty_lists ~~ case_args ~~ tl con_defs);
+         (List.concat con_ty_lists ~~ case_args ~~ tl con_defs);
 
   (*** Prove the recursor theorems ***)
 
@@ -316,7 +316,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
             (recursor_tm $
              (list_comb (Const (Sign.intern_const (sign_of thy1) name,T),
                          args)),
-             subst_rec (foldl betapply (recursor_case, args))));
+             subst_rec (Library.foldl betapply (recursor_case, args))));
 
         val recursor_trans = recursor_def RS def_Vrecursor RS trans;
 
@@ -332,7 +332,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                 (cterm_of (sign_of thy1) (mk_recursor_eqn arg)))
               recursor_tacsf
       in
-         map prove_recursor_eqn (flat con_ty_lists ~~ recursor_cases)
+         map prove_recursor_eqn (List.concat con_ty_lists ~~ recursor_cases)
       end
 
   val constructors =
@@ -384,7 +384,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           (("free_iffs", free_iffs), []),
           (("free_elims", free_SEs), [])])
         |> DatatypesData.map (fn tab => Symtab.update ((big_rec_name, dt_info), tab))
-        |> ConstructorsData.map (fn tab => foldr Symtab.update (con_pairs, tab))
+        |> ConstructorsData.map (fn tab => Library.foldr Symtab.update (con_pairs, tab))
         |> Theory.parent_path,
    ind_result,
    {con_defs = con_defs,

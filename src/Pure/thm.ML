@@ -204,7 +204,7 @@ fun dest_comb (Cterm {sign_ref, T, maxidx, t = A $ B}) =
 
 (*Destruct abstraction in cterms*)
 fun dest_abs a (Cterm {sign_ref, T as Type("fun",[_,S]), maxidx, t=Abs(x,ty,M)}) = 
-      let val (y,N) = variant_abs (if_none a x,ty,M)
+      let val (y,N) = variant_abs (getOpt (a,x),ty,M)
       in (Cterm {sign_ref = sign_ref, T = ty, maxidx = 0, t = Free(y,ty)},
           Cterm {sign_ref = sign_ref, T = S, maxidx = maxidx, t = N})
       end
@@ -244,7 +244,7 @@ fun gen_cterm_match mtch
     val vars = map dest_Var (term_vars t1);
     fun mk_cTinsts (ixn, T) = (ixn, Ctyp {sign_ref = sign_ref, T = T});
     fun mk_ctinsts (ixn, t) =
-      let val T = typ_subst_TVars Tinsts (the (assoc (vars, ixn)))
+      let val T = typ_subst_TVars Tinsts (valOf (assoc (vars, ixn)))
       in
         (Cterm {sign_ref = sign_ref, maxidx = maxidx, T = T, t = Var (ixn, T)},
          Cterm {sign_ref = sign_ref, maxidx = maxidx, T = T, t = t})
@@ -299,7 +299,7 @@ datatype thm = Thm of
   tpairs: (term * term) list,  (*flex-flex pairs*)
   prop: term};                 (*conclusion*)
 
-fun terms_of_tpairs tpairs = flat (map (op @ o pairself single) tpairs);
+fun terms_of_tpairs tpairs = List.concat (map (op @ o pairself single) tpairs);
 
 fun attach_tpairs tpairs prop =
   Logic.list_implies (map Logic.mk_equals tpairs, prop);
@@ -439,7 +439,7 @@ fun extra_shyps (th as Thm {shyps, ...}) =
 
 (* fix_shyps *)
 
-fun all_sorts_nonempty sign_ref = is_some (Sign.universal_witness (Sign.deref sign_ref));
+fun all_sorts_nonempty sign_ref = isSome (Sign.universal_witness (Sign.deref sign_ref));
 
 (*preserve sort contexts of rule premises and substituted types*)
 fun fix_shyps thms Ts (thm as Thm {sign_ref, der, maxidx, hyps, tpairs, prop, ...}) =
@@ -922,7 +922,7 @@ fun flexflex_rule (th as Thm{sign_ref, der, maxidx, hyps, tpairs, prop, ...}) =
           let val ntpairs = map (pairself (Envir.norm_term env)) tpairs;
               val newprop = Envir.norm_term env prop;
                 (*Remove trivial tpairs, of the form t=t*)
-              val distpairs = filter (not o op aconv) ntpairs
+              val distpairs = List.filter (not o op aconv) ntpairs
           in  fix_shyps [th] (env_codT env)
                 (Thm{sign_ref = sign_ref, 
                      der = Pt.infer_derivs' (Pt.norm_proof' env) der,
@@ -977,8 +977,8 @@ in
   No longer normalizes the new theorem! *)
 fun instantiate ([], []) th = th
   | instantiate (vcTs,ctpairs) (th as Thm{sign_ref,der,maxidx,hyps,shyps,tpairs=dpairs,prop}) =
-  let val (newsign_ref,tpairs) = foldr add_ctpair (ctpairs, (sign_ref,[]));
-      val (newsign_ref,vTs) = foldr add_ctyp (vcTs, (newsign_ref,[]));
+  let val (newsign_ref,tpairs) = Library.foldr add_ctpair (ctpairs, (sign_ref,[]));
+      val (newsign_ref,vTs) = Library.foldr add_ctyp (vcTs, (newsign_ref,[]));
       fun subst t =
         subst_atomic tpairs (Sign.inst_term_tvars (Sign.deref newsign_ref) vTs t);
       val newprop = subst prop;
@@ -1041,7 +1041,7 @@ fun class_triv sign c =
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
 fun varifyT' fixed (Thm{sign_ref,der,maxidx,shyps,hyps,tpairs,prop}) =
   let
-    val tfrees = foldr add_term_tfree_names (hyps, fixed);
+    val tfrees = Library.foldr add_term_tfree_names (hyps, fixed);
     val prop1 = attach_tpairs tpairs prop;
     val (prop2, al) = Type.varify (prop1, tfrees);
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2)
@@ -1232,7 +1232,7 @@ fun rename_params_rule (cs, i) state =
       val short = length iparams - length cs
       val newnames =
             if short<0 then error"More names than abstractions!"
-            else variantlist(take (short,iparams), cs) @ cs
+            else variantlist(Library.take (short,iparams), cs) @ cs
       val freenames = map (#1 o dest_Free) (term_frees Bi)
       val newBi = Logic.list_rename_params (newnames, Bi)
   in
@@ -1282,7 +1282,7 @@ fun strip_apply f =
   Preserves unknowns in tpairs and on lhs of dpairs. *)
 fun rename_bvs([],_,_,_) = I
   | rename_bvs(al,dpairs,tpairs,B) =
-    let val vars = foldr add_term_vars
+    let val vars = Library.foldr add_term_vars
                         (map fst dpairs @ map fst tpairs @ map snd tpairs, [])
         (*unknowns appearing elsewhere be preserved!*)
         val vids = map (#1 o #1 o dest_Var) vars;
@@ -1292,7 +1292,7 @@ fun rename_bvs([],_,_,_) = I
                               else Var((y,i),T)
                  | NONE=> t)
           | rename(Abs(x,T,t)) =
-              Abs(if_none(assoc_string(al,x)) x, T, rename t)
+              Abs(getOpt(assoc_string(al,x),x), T, rename t)
           | rename(f$t) = rename f $ rename t
           | rename(t) = t;
         fun strip_ren Ai = strip_apply rename (Ai,B)
@@ -1300,7 +1300,7 @@ fun rename_bvs([],_,_,_) = I
 
 (*Function to rename bounds/unknowns in the argument, lifted over B*)
 fun rename_bvars(dpairs, tpairs, B) =
-        rename_bvs(foldr Term.match_bvars (dpairs,[]), dpairs, tpairs, B);
+        rename_bvs(Library.foldr Term.match_bvars (dpairs,[]), dpairs, tpairs, B);
 
 
 (*** RESOLUTION ***)

@@ -269,7 +269,7 @@ fun put_facts facts state =
 val reset_facts = put_facts NONE;
 
 fun these_factss (state, named_factss) =
-  state |> put_facts (SOME (flat (map snd named_factss)));
+  state |> put_facts (SOME (List.concat (map snd named_factss)));
 
 
 (* goal *)
@@ -414,7 +414,7 @@ fun pretty_state nr (state as State (Node {context = ctxt, facts, mode, goal = _
 
     fun prt_names names =
       (case filter_out (equal "") names of [] => ""
-      | nms => " " ^ enclose "(" ")" (space_implode " and " (take (7, nms) @
+      | nms => " " ^ enclose "(" ")" (space_implode " and " (Library.take (7, nms) @
           (if length nms > 7 then ["..."] else []))));
 
     fun prt_goal (_, (i, (((kind, names, _), (goal_facts, thm)), _))) =
@@ -546,7 +546,7 @@ fun prep_result state ts raw_th =
 
     val {hyps, sign, ...} = Thm.rep_thm raw_th;
     val tsig = Sign.tsig_of sign;
-    val casms = flat (map #1 (ProofContext.assumptions_of (context_of state)));
+    val casms = List.concat (map #1 (ProofContext.assumptions_of (context_of state)));
     val bad_hyps = Library.gen_rems Term.aconv (hyps, map Thm.term_of casms);
 
     val th = raw_th RS Drule.rev_triv_goal;
@@ -626,7 +626,7 @@ fun gen_using_thmss f args state =
   |> map_context_result (f (map (pair ("", [])) args))
   |> (fn (st, named_facts) =>
     let val (_, (_, ((result, (facts, thm)), x))) = find_goal st;
-    in st |> map_goal I (K ((result, (facts @ flat (map snd named_facts), thm)), x)) end);
+    in st |> map_goal I (K ((result, (facts @ List.concat (map snd named_facts), thm)), x)) end);
 
 in
 
@@ -754,12 +754,12 @@ fun setup_goal opt_block prepp autofix kind after_qed pr names raw_propp state =
       |> map_context_result (fn ctxt => prepp (ctxt, raw_propp));
     val sign' = sign_of state';
 
-    val props = flat propss;
+    val props = List.concat propss;
     val cprop = Thm.cterm_of sign' (Logic.mk_conjunction_list props);
     val goal = Drule.mk_triv_goal cprop;
 
-    val tvars = foldr Term.add_term_tvars (props, []);
-    val vars = foldr Term.add_term_vars (props, []);
+    val tvars = Library.foldr Term.add_term_tvars (props, []);
+    val vars = Library.foldr Term.add_term_vars (props, []);
   in
     if null tvars then ()
     else raise STATE ("Goal statement contains illegal schematic type variable(s): " ^
@@ -786,7 +786,7 @@ fun global_goal prep kind raw_locale a elems concl thy =
   let
     val init = init_state thy;
     val (opt_name, view, locale_ctxt, elems_ctxt, propp) =
-      prep (apsome fst raw_locale) elems (map snd concl) (context_of init);
+      prep (Option.map fst raw_locale) elems (map snd concl) (context_of init);
   in
     init
     |> open_block
@@ -798,7 +798,7 @@ fun global_goal prep kind raw_locale a elems concl thy =
     |> setup_goal I ProofContext.bind_propp_schematic_i ProofContext.fix_frees
       (Theorem {kind = kind,
         theory_spec = (a, map (snd o fst) concl),
-        locale_spec = (case raw_locale of NONE => NONE | SOME (_, x) => SOME (the opt_name, x)),
+        locale_spec = (case raw_locale of NONE => NONE | SOME (_, x) => SOME (valOf opt_name, x)),
         view = view})
       Seq.single true (map (fst o fst) concl) propp
   end;
@@ -863,7 +863,7 @@ fun finish_local (print_result, print_rule) state =
     val outer_state = state |> close_block;
     val outer_ctxt = context_of outer_state;
 
-    val ts = flat tss;
+    val ts = List.concat tss;
     val results = prep_result state ts raw_thm;
     val resultq =
       results |> map (ProofContext.export false goal_ctxt outer_ctxt)
@@ -903,7 +903,7 @@ fun finish_global state =
     val {kind = k, theory_spec = ((name, atts), attss), locale_spec, view = (target_view, elems_view)} =
       (case kind of Theorem x => x | _ => err_malformed "finish_global" state);
 
-    val ts = flat tss;
+    val ts = List.concat tss;
     val locale_results = map (ProofContext.export_standard elems_view goal_ctxt locale_ctxt)
       (prep_result state ts raw_thm);
 
@@ -920,12 +920,12 @@ fun finish_global state =
           |> (fn ((thy', ctxt'), res) =>
             if name = "" andalso null loc_atts then thy'
             else (thy', ctxt')
-              |> (#1 o #1 o Locale.add_thmss loc [((name, flat (map #2 res)), loc_atts)])))
+              |> (#1 o #1 o Locale.add_thmss loc [((name, List.concat (map #2 res)), loc_atts)])))
       |> Locale.smart_note_thmss k locale_spec
         ((names ~~ attss) ~~ map (single o Thm.no_attributes) (Library.unflat tss results))
       |> (fn (thy, res) => (thy, res)
           |>> (#1 o Locale.smart_note_thmss k locale_spec
-            [((name, atts), [(flat (map #2 res), [])])]));
+            [((name, atts), [(List.concat (map #2 res), [])])]));
   in (theory', ((k, name), results')) end;
 
 

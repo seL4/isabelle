@@ -311,15 +311,15 @@ fun make_sym Ts ((x, y), prf) =
 fun mk_AbsP P t = AbsP ("H", P, t);
 
 fun elim_cong Ts (PThm (("HOL.iffD1", _), _, _, _) % _ % _ %% prf1 %% prf2) =
-      apsome (make_subst Ts prf2 []) (strip_cong [] prf1)
+      Option.map (make_subst Ts prf2 []) (strip_cong [] prf1)
   | elim_cong Ts (PThm (("HOL.iffD1", _), _, _, _) % P % _ %% prf) =
-      apsome (mk_AbsP P o make_subst Ts (PBound 0) [])
+      Option.map (mk_AbsP P o make_subst Ts (PBound 0) [])
         (strip_cong [] (incr_pboundvars 1 0 prf))
   | elim_cong Ts (PThm (("HOL.iffD2", _), _, _, _) % _ % _ %% prf1 %% prf2) =
-      apsome (make_subst Ts prf2 [] o
+      Option.map (make_subst Ts prf2 [] o
         apsnd (map (make_sym Ts))) (strip_cong [] prf1)
   | elim_cong Ts (PThm (("HOL.iffD2", _), _, _, _) % _ % P %% prf) =
-      apsome (mk_AbsP P o make_subst Ts (PBound 0) [] o
+      Option.map (mk_AbsP P o make_subst Ts (PBound 0) [] o
         apsnd (map (make_sym Ts))) (strip_cong [] (incr_pboundvars 1 0 prf))
   | elim_cong _ _ = NONE;
 

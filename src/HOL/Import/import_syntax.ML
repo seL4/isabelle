@@ -49,7 +49,7 @@ fun end_import toks =
 		val thyname = get_generating_thy thy
 		val segname = get_import_segment thy
 		val (int_thms,facts) = Replay.setup_int_thms thyname thy
-		val thmnames = filter (not o should_ignore thyname thy) facts
+		val thmnames = List.filter (not o should_ignore thyname thy) facts
 	    in
 		thy |> clear_import_thy
 		    |> set_segment thyname segname
@@ -68,7 +68,7 @@ val ignore_thms = Scan.repeat1 P.name
 				      let
 					  val thyname = get_import_thy thy
 				      in
-					  foldl (fn (thy,thmname) => ignore_hol4 thyname thmname thy) (thy,ignored)
+					  Library.foldl (fn (thy,thmname) => ignore_hol4 thyname thmname thy) (thy,ignored)
 				      end)
 
 val thm_maps = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname)
@@ -77,7 +77,7 @@ val thm_maps = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname)
 				   let
 				       val thyname = get_import_thy thy
 				   in
-				       foldl (fn (thy,(hol,isa)) => add_hol4_mapping thyname hol isa thy) (thy,thmmaps)
+				       Library.foldl (fn (thy,(hol,isa)) => add_hol4_mapping thyname hol isa thy) (thy,thmmaps)
 				   end)
 
 val type_maps = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname)
@@ -86,7 +86,7 @@ val type_maps = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname)
 				    let
 					val thyname = get_import_thy thy
 				    in
-					foldl (fn (thy,(hol,isa)) => add_hol4_type_mapping thyname hol false isa thy) (thy,typmaps)
+					Library.foldl (fn (thy,(hol,isa)) => add_hol4_type_mapping thyname hol false isa thy) (thy,typmaps)
 				    end)
 
 val def_maps = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname)
@@ -95,7 +95,7 @@ val def_maps = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname)
 				   let
 				       val thyname = get_import_thy thy
 				   in
-				       foldl (fn (thy,(hol,isa)) => add_defmap thyname hol isa thy) (thy,defmaps)
+				       Library.foldl (fn (thy,(hol,isa)) => add_defmap thyname hol isa thy) (thy,defmaps)
 				   end)
 
 val const_renames = Scan.repeat1 (P.name --| P.$$$ ">" -- P.name)
@@ -104,7 +104,7 @@ val const_renames = Scan.repeat1 (P.name --| P.$$$ ">" -- P.name)
 					let
 					    val thyname = get_import_thy thy
 					in
-					    foldl (fn (thy,(hol,isa)) => add_hol4_const_renaming thyname hol isa thy) (thy,renames)
+					    Library.foldl (fn (thy,(hol,isa)) => add_hol4_const_renaming thyname hol isa thy) (thy,renames)
 					end)
 																      
 val const_maps = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname -- Scan.option (P.$$$ "::" |-- P.typ))
@@ -113,7 +113,7 @@ val const_maps = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname -- Scan.option (P
 				     let
 					 val thyname = get_import_thy thy
 				     in
-					 foldl (fn (thy,((hol,isa),NONE)) => add_hol4_const_mapping thyname hol false isa thy
+					 Library.foldl (fn (thy,((hol,isa),NONE)) => add_hol4_const_mapping thyname hol false isa thy
 						 | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol false isa (typ_of (read_ctyp (sign_of thy) ty)) thy) (thy,constmaps)
 				     end)
 
@@ -123,7 +123,7 @@ val const_moves = Scan.repeat1 (P.name --| P.$$$ ">" -- P.xname -- Scan.option (
 				      let
 					  val thyname = get_import_thy thy
 				      in
-					  foldl (fn (thy,((hol,isa),NONE)) => add_hol4_const_mapping thyname hol true isa thy
+					  Library.foldl (fn (thy,((hol,isa),NONE)) => add_hol4_const_mapping thyname hol true isa thy
 						  | (thy,((hol,isa),SOME ty)) => add_hol4_const_wt_mapping thyname hol true isa (typ_of (read_ctyp (sign_of thy) ty)) thy) (thy,constmaps)
 				      end)
 
@@ -138,7 +138,7 @@ fun import_thy s =
 			 Scan.empty_lexicon)
 	val get_lexes = fn () => !lexes
 	val token_source = OuterLex.source false get_lexes (Position.line 1) symb_source
-	val token_list = filter (not o (OuterLex.is_kind OuterLex.Space)) (Source.exhaust token_source)
+	val token_list = filter_out (OuterLex.is_kind OuterLex.Space) (Source.exhaust token_source)
 	val import_segmentP = OuterParse.$$$ "import_segment" |-- import_segment
 	val type_mapsP = OuterParse.$$$ "type_maps" |-- type_maps
 	val def_mapsP = OuterParse.$$$ "def_maps" |-- def_maps

@@ -78,7 +78,7 @@ fun proc sg _ t =
 			 Data.mk_sum T ([Data.mk_coeff(m,u),
 				         Data.mk_coeff(n,u)] @ terms))
   in
-      apsome Data.simplify_meta_eq
+      Option.map Data.simplify_meta_eq
 	 (Data.prove_conv 
 	    [Data.trans_tac reshape, rtac Data.left_distrib 1,
 	     Data.numeral_simp_tac] sg xs

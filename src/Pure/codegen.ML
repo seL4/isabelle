@@ -90,7 +90,7 @@ fun args_of [] xs = ([], xs)
   | args_of (Ignore :: ms) (_ :: xs) = args_of ms xs
   | args_of (_ :: ms) xs = args_of ms xs;
 
-fun num_args x = length (filter is_arg x);
+fun num_args x = length (List.filter is_arg x);
 
 
 (**** theory data ****)
@@ -225,7 +225,7 @@ fun add_attribute name att thy =
 fun mk_parser (a, p) = (if a = "" then Scan.succeed "" else Args.$$$ a) |-- p;
 
 val code_attr =
-  Attrib.syntax (Scan.depend (fn thy => foldr op || (map mk_parser
+  Attrib.syntax (Scan.depend (fn thy => Library.foldr op || (map mk_parser
     (#attrs (CodegenData.get thy)), Scan.fail) >> pair thy));
 
 
@@ -242,7 +242,7 @@ fun add_preprocessor p thy =
 
 fun preprocess thy ths =
   let val {preprocs, ...} = CodegenData.get thy
-  in foldl (fn (ths, (_, f)) => f thy ths) (ths, preprocs) end;
+  in Library.foldl (fn (ths, (_, f)) => f thy ths) (ths, preprocs) end;
 
 fun unfold_attr (thy, eqn) =
   let
@@ -257,7 +257,7 @@ fun unfold_attr (thy, eqn) =
 
 (**** associate constants with target language code ****)
 
-fun gen_assoc_consts prep_type xs thy = foldl (fn (thy, (s, tyopt, syn)) =>
+fun gen_assoc_consts prep_type xs thy = Library.foldl (fn (thy, (s, tyopt, syn)) =>
   let
     val sg = sign_of thy;
     val {codegens, tycodegens, consts, types, attrs, preprocs, test_params} =
@@ -289,7 +289,7 @@ val assoc_consts = gen_assoc_consts (fn sg => typ_of o read_ctyp sg);
 
 (**** associate types with target language types ****)
 
-fun assoc_types xs thy = foldl (fn (thy, (s, syn)) =>
+fun assoc_types xs thy = Library.foldl (fn (thy, (s, syn)) =>
   let
     val {codegens, tycodegens, consts, types, attrs, preprocs, test_params} =
       CodegenData.get thy;
@@ -329,7 +329,7 @@ fun mk_id s = if s = "" then "" else
             | (ctrl, s') => (if ctrl then "ctrl_" ^ s' else s') :: check_str zs)
         | (ys, zs) => implode ys :: check_str zs);
     val s' = space_implode "_"
-      (flat (map (check_str o Symbol.explode) (NameSpace.unpack s)))
+      (List.concat (map (check_str o Symbol.explode) (NameSpace.unpack s)))
   in
     if Symbol.is_ascii_letter (hd (explode s')) then s' else "id_" ^ s'
   end;
@@ -344,15 +344,15 @@ fun mk_type_id sg s =
 
 fun rename_terms ts =
   let
-    val names = foldr add_term_names
+    val names = Library.foldr add_term_names
       (ts, map (fst o fst) (Drule.vars_of_terms ts));
     val reserved = names inter ThmDatabase.ml_reserved;
-    val (illegal, alt_names) = split_list (mapfilter (fn s =>
+    val (illegal, alt_names) = split_list (List.mapPartial (fn s =>
       let val s' = mk_id s in if s = s' then NONE else SOME (s, s') end) names)
     val ps = (reserved @ illegal) ~~
       variantlist (map (suffix "'") reserved @ alt_names, names);
 
-    fun rename_id s = if_none (assoc (ps, s)) s;
+    fun rename_id s = getOpt (assoc (ps, s), s);
 
     fun rename (Var ((a, i), T)) = Var ((rename_id a, i), T)
       | rename (Free (a, T)) = Free (rename_id a, T)
@@ -371,12 +371,12 @@ val rename_term = hd o rename_terms o single;
 fun is_instance thy T1 T2 =
   Sign.typ_instance (sign_of thy) (T1, Type.varifyT T2);
 
-fun get_assoc_code thy s T = apsome snd (find_first (fn ((s', T'), _) =>
+fun get_assoc_code thy s T = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance thy T T') (#consts (CodegenData.get thy)));
 
 fun get_defn thy s T =
   let
-    val axms = flat (map (Symtab.dest o #axioms o Theory.rep_theory)
+    val axms = List.concat (map (Symtab.dest o #axioms o Theory.rep_theory)
       (thy :: Theory.ancestors_of thy));
     fun prep_def def = (case preprocess thy [def] of
       [def'] => prop_of def' | _ => error "get_defn: bad preprocessor");
@@ -387,11 +387,11 @@ fun get_defn thy s T =
         val (s', T') = dest_Const c
       in if s = s' then SOME (T', (args, rhs)) else NONE
       end handle TERM _ => NONE;
-    val defs = mapfilter (fn (name, t) => apsome (pair name) (dest t)) axms;
+    val defs = List.mapPartial (fn (name, t) => Option.map (pair name) (dest t)) axms;
     val i = find_index (is_instance thy T o fst o snd) defs
   in
     if i >= 0 then
-      let val (name, (T', (args, _))) = nth_elem (i, defs)
+      let val (name, (T', (args, _))) = List.nth (defs, i)
       in case dest (prep_def (Thm.get_axiom thy name)) of
           NONE => NONE
         | SOME (T'', p as (args', rhs)) =>
@@ -443,8 +443,8 @@ fun eta_expand t ts i =
     val (Ts, _) = strip_type (fastype_of t);
     val j = i - length ts
   in
-    foldr (fn (T, t) => Abs ("x", T, t))
-      (take (j, Ts), list_comb (t, ts @ map Bound (j-1 downto 0)))
+    Library.foldr (fn (T, t) => Abs ("x", T, t))
+      (Library.take (j, Ts), list_comb (t, ts @ map Bound (j-1 downto 0)))
   end;
 
 fun mk_app _ p [] = p
@@ -583,7 +583,7 @@ val generate_code = gen_generate_code
 val strip_tname = implode o tl o explode;
 
 fun pretty_list xs = Pretty.block (Pretty.str "[" ::
-  flat (separate [Pretty.str ",", Pretty.brk 1] (map single xs)) @
+  List.concat (separate [Pretty.str ",", Pretty.brk 1] (map single xs)) @
   [Pretty.str "]"]);
 
 fun mk_type p (TVar ((s, i), _)) = Pretty.str
@@ -598,7 +598,7 @@ fun mk_term_of sg p (TVar ((s, i), _)) = Pretty.str
   | mk_term_of sg p (TFree (s, _)) = Pretty.str (strip_tname s ^ "F")
   | mk_term_of sg p (Type (s, Ts)) = (if p then parens else I) (Pretty.block
       (separate (Pretty.brk 1) (Pretty.str ("term_of_" ^ mk_type_id sg s) ::
-        flat (map (fn T => [mk_term_of sg true T, mk_type true T]) Ts))));
+        List.concat (map (fn T => [mk_term_of sg true T, mk_type true T]) Ts))));
 
 
 (**** Test data generators ****)
@@ -639,7 +639,7 @@ fun test_term thy sz i = setmp print_mode [] (fn t =>
               Pretty.brk 1, Pretty.str "then NONE",
               Pretty.brk 1, Pretty.str "else ",
               Pretty.block [Pretty.str "SOME ", Pretty.block (Pretty.str "[" ::
-                flat (separate [Pretty.str ",", Pretty.brk 1]
+                List.concat (separate [Pretty.str ",", Pretty.brk 1]
                   (map (fn (s, T) => [Pretty.block
                     [Pretty.str ("(" ^ Library.quote (Symbol.escape s) ^ ","), Pretty.brk 1,
                      mk_app false (mk_term_of sg false T)
@@ -666,8 +666,8 @@ fun test_goal ({size, iterations, default_type}, tvinsts) i st =
     val (gi, frees) = Logic.goal_params
       (prop_of (snd (snd (Proof.get_goal (Toplevel.proof_of st))))) i;
     val gi' = ObjectLogic.atomize_term sg (map_term_types
-      (map_type_tfree (fn p as (s, _) => if_none (assoc (tvinsts, s))
-        (if_none default_type (TFree p)))) (subst_bounds (frees, strip gi)));
+      (map_type_tfree (fn p as (s, _) => getOpt (assoc (tvinsts, s),
+        getOpt (default_type,TFree p)))) (subst_bounds (frees, strip gi)));
   in case test_term (Toplevel.theory_of st) size iterations gi' of
       NONE => writeln "No counterexamples found."
     | SOME cex => writeln ("Counterexample found:\n" ^
@@ -736,7 +736,7 @@ val params =
    ("default_type", P.typ >> set_default_type)];
 
 val parse_test_params = P.short_ident :-- (fn s =>
-  P.$$$ "=" |-- if_none (assoc (params, s)) Scan.fail) >> snd;
+  P.$$$ "=" |-- getOpt (assoc (params, s), Scan.fail)) >> snd;
 
 fun parse_tyinst xs =
   (P.type_ident --| P.$$$ "=" -- P.typ >> (fn (v, s) => fn sg =>
@@ -757,8 +757,8 @@ val testP =
     (   parse_test_params >> (fn f => fn sg => apfst (f sg))
      || parse_tyinst) --| P.$$$ "]") -- Scan.optional P.nat 1 >>
     (fn (ps, g) => Toplevel.keep (fn st =>
-      test_goal (app (if_none (apsome
-          (map (fn f => f (Toplevel.sign_of st))) ps) [])
+      test_goal (app (getOpt (Option.map
+          (map (fn f => f (Toplevel.sign_of st))) ps, []))
         (get_test_params (Toplevel.theory_of st), [])) g st)));
 
 val parsers = [assoc_typeP, assoc_constP, generate_codeP, test_paramsP, testP];

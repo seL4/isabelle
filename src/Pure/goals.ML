@@ -236,7 +236,7 @@ fun lookup_locale thy xname =
   let
     val {space, locales, ...} = LocalesData.get thy;
     val name = NameSpace.intern space xname;
-  in apsome (pair name) (get_locale thy name) end;
+  in Option.map (pair name) (get_locale thy name) end;
 
 
 (* access scope *)
@@ -307,8 +307,8 @@ fun in_locale hyps sg =
     let val cur_sc = get_scope_sg sg;
         val rule_lists = map (#rules o snd) cur_sc;
         val def_lists = map (#defs o snd) cur_sc;
-        val rules = map snd (foldr (op union) (rule_lists, []));
-        val defs = map snd (foldr (op union) (def_lists, []));
+        val rules = map snd (Library.foldr (op union) (rule_lists, []));
+        val defs = map snd (Library.foldr (op union) (def_lists, []));
         val defnrules = rules @ defs;
     in
         hyps subset defnrules
@@ -394,9 +394,9 @@ fun cert_axm sg ((envS, envT, used), (name, raw_t)) =
 fun read_cterm sign =
     let val cur_sc = get_scope_sg sign;
         val defaults = map (#defaults o snd) cur_sc;
-        val envS = flat (map #1 defaults);
-        val envT = flat (map #2 defaults);
-        val used = flat (map #3 defaults);
+        val envS = List.concat (map #1 defaults);
+        val envT = List.concat (map #2 defaults);
+        val used = List.concat (map #3 defaults);
         fun def_sort (x, ~1) = assoc (envS, x)
           | def_sort _ = NONE;
         fun def_type (x, ~1) = assoc (envT, x)
@@ -411,7 +411,7 @@ fun read_cterm sign =
 fun collect_consts sg =
     let val cur_sc = get_scope_sg sg;
         val locale_list = map snd cur_sc;
-        val const_list = flat (map #consts locale_list)
+        val const_list = List.concat (map #consts locale_list)
     in map fst const_list end;
 
 (* filter out the Free's in a term *)
@@ -447,8 +447,8 @@ fun abs_over_free clist ((defaults: (string * sort) list * (string * typ) list *
         fun abs_o (t, (x as Free(v,T))) = all(T) $ Abs(v, T, abstract_over (x,t))
           | abs_o (_ , _) = error ("Can't be: abs_over_free");
         val diffl' = map (fn (Free (s, T)) => s) diffl;
-        val defaults' = (#1 defaults, filter (fn x => not((fst x) mem diffl')) (#2 defaults), #3 defaults)
-    in (defaults', (s, foldl abs_o (term, diffl))) end;
+        val defaults' = (#1 defaults, List.filter (fn x => not((fst x) mem diffl')) (#2 defaults), #3 defaults)
+    in (defaults', (s, Library.foldl abs_o (term, diffl))) end;
 
 (* assume a definition, i.e assume the cterm of a definiton term and then eliminate
    the binding !!, so that the def can be applied as rewrite. The meta hyp will still contain !! *)
@@ -499,8 +499,8 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
     val loc_consts = map #1 loc_consts_syn;
     val loc_consts = old_loc_consts @ loc_consts;
     val loc_syn = map #2 loc_consts_syn;
-    val nosyn = old_nosyn @ (map (#1 o #1) (filter (fn x => (#3(#2 x)) = NoSyn) loc_consts_syn));
-    val loc_trfuns = mapfilter #3 loc_consts_syn;
+    val nosyn = old_nosyn @ (map (#1 o #1) (List.filter (fn x => (#3(#2 x)) = NoSyn) loc_consts_syn));
+    val loc_trfuns = List.mapPartial #3 loc_consts_syn;
 
 
     (* 1st stage: syntax_thy *)
@@ -574,7 +574,7 @@ fun gen_add_locale prep_typ prep_term bname bancestor raw_consts raw_rules raw_d
 		end
             | compare_var_sides (_,_) = 
 		locale_error ("Definitions must use the == relation")
-          val check = foldl compare_var_sides (true, loc_defs)
+          val check = Library.foldl compare_var_sides (true, loc_defs)
       in if check then []
          else ["nonfixed variable on right hand side of a locale definition in locale " ^ quote name]
       end;
@@ -620,7 +620,7 @@ fun const_ssubst_list [] t = t
 fun pretty_term sign =
     if (is_open_loc_sg sign) then
         let val locale_list = map snd(get_scope_sg sign);
-            val nosyn = flat (map #nosyn locale_list);
+            val nosyn = List.concat (map #nosyn locale_list);
             val str_list = (collect_consts sign) \\ nosyn
         in Sign.pretty_term sign o (const_ssubst_list str_list)
         end
@@ -715,7 +715,7 @@ fun implies_intr_some_hyps thy A_set th =
        val sign = Theory.sign_of thy;
        val used_As = A_set inter #hyps(rep_thm(th));
        val ctl = map (cterm_of sign) used_As
-   in foldl (fn (x, y) => Thm.implies_intr y x) (th, ctl)
+   in Library.foldl (fn (x, y) => Thm.implies_intr y x) (th, ctl)
    end; 
 
 fun standard_some thy A_set th =
@@ -776,7 +776,7 @@ fun prepare_proof atomic rths chorn =
                   ("Additional hypotheses:\n" ^ 
 		   cat_lines 
 		    (map (Sign.string_of_term sign) 
-		     (filter (fn x => (not (in_locale [x] sign))) 
+		     (List.filter (fn x => (not (in_locale [x] sign))) 
 		      hyps)))
 	    else if Pattern.matches (Sign.tsig_of sign)
 			            (Envir.beta_norm (term_of chorn), Envir.beta_norm prop)
@@ -796,17 +796,17 @@ fun print_sign_exn_unit sign e =
   case e of
      THM (msg,i,thms) =>
 	 (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
-	  seq print_thm thms)
+	  List.app print_thm thms)
    | THEORY (msg,thys) =>
 	 (writeln ("Exception THEORY raised:\n" ^ msg);
-	  seq (Pretty.writeln o Display.pretty_theory) thys)
+	  List.app (Pretty.writeln o Display.pretty_theory) thys)
    | TERM (msg,ts) =>
 	 (writeln ("Exception TERM raised:\n" ^ msg);
-	  seq (writeln o Sign.string_of_term sign) ts)
+	  List.app (writeln o Sign.string_of_term sign) ts)
    | TYPE (msg,Ts,ts) =>
 	 (writeln ("Exception TYPE raised:\n" ^ msg);
-	  seq (writeln o Sign.string_of_typ sign) Ts;
-	  seq (writeln o Sign.string_of_term sign) ts)
+	  List.app (writeln o Sign.string_of_typ sign) Ts;
+	  List.app (writeln o Sign.string_of_term sign) ts)
    | e => raise e;
 
 (*Prints an exception, then fails*)
@@ -1146,7 +1146,7 @@ fun thms_containing raw_consts =
     val thy = theory_of_goal ();
     val consts = map (Sign.intern_const (Theory.sign_of thy)) raw_consts;
   in
-    (case filter (is_none o Sign.const_type (Theory.sign_of thy)) consts of
+    (case List.filter (is_none o Sign.const_type (Theory.sign_of thy)) consts of
       [] => ()
     | cs => error ("thms_containing: undeclared consts " ^ commas_quote cs));
     PureThy.thms_containing_consts thy consts
@@ -1159,12 +1159,12 @@ fun findEs i =
       val prems = Logic.prems_of_goal (prop_of (topthm())) i
       val thy = theory_of_goal();
       val thmss = map (PureThy.find_elims thy) prems
-  in foldl (gen_union eq_nth) ([],thmss) end;
+  in Library.foldl (gen_union eq_nth) ([],thmss) end;
 
 fun findE i j =
   let val prems = Logic.prems_of_goal (prop_of (topthm())) i
       val thy = theory_of_goal();
-  in PureThy.find_elims thy (nth_elem(j-1, prems)) end;
+  in PureThy.find_elims thy (List.nth(prems, j-1)) end;
 
 end;
 

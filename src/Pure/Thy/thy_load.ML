@@ -75,7 +75,7 @@ fun check_file current src_path =
 
     fun find_ext rel_path ext =
       let val ext_path = Path.expand (Path.ext ext rel_path)
-      in apsome (fn info => (File.full_path ext_path, info)) (File.info ext_path) end;
+      in Option.map (fn info => (File.full_path ext_path, info)) (File.info ext_path) end;
 
     fun find_dir dir =
       get_first (find_ext (Path.append dir path)) ml_exts;

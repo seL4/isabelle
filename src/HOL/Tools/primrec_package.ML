@@ -76,7 +76,7 @@ fun process_eqn sign (eq, rec_fns) =
         NONE =>
           (fname, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns
       | SOME (_, rpos', eqns) =>
-          if is_some (assoc (eqns, cname)) then
+          if isSome (assoc (eqns, cname)) then
             raise RecError "constructor already occurred as pattern"
           else if rpos <> rpos' then
             raise RecError "position of recursive argument inconsistent"
@@ -90,7 +90,7 @@ fun process_eqn sign (eq, rec_fns) =
 
 fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
   let
-    val (_, (tname, _, constrs)) = nth_elem (i, descr);
+    val (_, (tname, _, constrs)) = List.nth (descr, i);
 
     (* substitute "fname ls x rs" by "y ls rs" for (x, (_, y)) in subs *)
 
@@ -104,11 +104,11 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
             if is_Const f andalso (fst (dest_Const f)) mem (map fst rec_eqns) then
               let
                 val (fname', _) = dest_Const f;
-                val (_, rpos, _) = the (assoc (rec_eqns, fname'));
-                val ls = take (rpos, ts);
-                val rest = drop (rpos, ts);
+                val (_, rpos, _) = valOf (assoc (rec_eqns, fname'));
+                val ls = Library.take (rpos, ts);
+                val rest = Library.drop (rpos, ts);
                 val (x', rs) = (hd rest, tl rest)
-                  handle LIST _ => raise RecError ("not enough arguments\
+                  handle Empty => raise RecError ("not enough arguments\
                    \ in recursive application\nof function " ^ quote fname' ^ " on rhs");
                 val (x, xs) = strip_comb x'
               in 
@@ -140,7 +140,7 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
               (fnames', fnss', (Const ("arbitrary", dummyT))::fns))
         | SOME (ls, cargs', rs, rhs, eq) =>
             let
-              val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
+              val recs = List.filter (is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
               val subs = map (rpair dummyT o fst) 
 		             (rev (rename_wrt_term rhs rargs));
@@ -160,8 +160,8 @@ fun process_fun sign descr rec_eqns ((i, fname), (fnames, fnss)) =
           raise RecError ("inconsistent functions for datatype " ^ quote tname)
         else
           let
-            val (_, _, eqns) = the (assoc (rec_eqns, fname));
-            val (fnames', fnss', fns) = foldr (trans eqns)
+            val (_, _, eqns) = valOf (assoc (rec_eqns, fname));
+            val (fnames', fnss', fns) = Library.foldr (trans eqns)
               (constrs, ((i, fname)::fnames, fnss, []))
           in
             (fnames', (i, (fname, #1 (snd (hd eqns)), fns))::fnss')
@@ -179,7 +179,7 @@ fun get_fns fns (((i, (tname, _, constrs)), rec_name), (fs, defs)) =
      NONE =>
        let
          val dummy_fns = map (fn (_, cargs) => Const ("arbitrary",
-           replicate ((length cargs) + (length (filter is_rec_type cargs)))
+           replicate ((length cargs) + (length (List.filter is_rec_type cargs)))
              dummyT ---> HOLogic.unitT)) constrs;
          val _ = warning ("No function definition for datatype " ^ quote tname)
        in
@@ -192,7 +192,7 @@ fun get_fns fns (((i, (tname, _, constrs)), rec_name), (fs, defs)) =
 
 fun make_def sign fs (fname, ls, rec_name, tname) =
   let
-    val rhs = foldr (fn (T, t) => Abs ("", T, t)) 
+    val rhs = Library.foldr (fn (T, t) => Abs ("", T, t)) 
 	            ((map snd ls) @ [dummyT],
 		     list_comb (Const (rec_name, dummyT),
 				fs @ map Bound (0 ::(length ls downto 1))));
@@ -216,10 +216,10 @@ fun prepare_induct ({descr, induction, ...}: datatype_info) rec_eqns =
   let
     fun constrs_of (_, (_, _, cs)) =
       map (fn (cname:string, (_, cargs, _, _, _)) => (cname, map fst cargs)) cs;
-    val params_of = Library.assocs (flat (map constrs_of rec_eqns));
+    val params_of = Library.assocs (List.concat (map constrs_of rec_eqns));
   in
     induction
-    |> RuleCases.rename_params (map params_of (flat (map (map #1 o #3 o #2) descr)))
+    |> RuleCases.rename_params (map params_of (List.concat (map (map #1 o #3 o #2) descr)))
     |> RuleCases.save induction
   end;
 
@@ -228,22 +228,22 @@ fun add_primrec_i alt_name eqns_atts thy =
     val (eqns, atts) = split_list eqns_atts;
     val sg = Theory.sign_of thy;
     val dt_info = DatatypePackage.get_datatypes thy;
-    val rec_eqns = foldr (process_eqn sg) (map snd eqns, []);
+    val rec_eqns = Library.foldr (process_eqn sg) (map snd eqns, []);
     val tnames = distinct (map (#1 o snd) rec_eqns);
     val dts = find_dts dt_info tnames tnames;
     val main_fns = 
 	map (fn (tname, {index, ...}) =>
 	     (index, 
-	      fst (the (find_first (fn f => #1 (snd f) = tname) rec_eqns))))
+	      fst (valOf (find_first (fn f => #1 (snd f) = tname) rec_eqns))))
 	dts;
     val {descr, rec_names, rec_rewrites, ...} = 
 	if null dts then
 	    primrec_err ("datatypes " ^ commas_quote tnames ^ 
 			 "\nare not mutually recursive")
 	else snd (hd dts);
-    val (fnames, fnss) = foldr (process_fun sg descr rec_eqns)
+    val (fnames, fnss) = Library.foldr (process_fun sg descr rec_eqns)
 	                       (main_fns, ([], []));
-    val (fs, defs) = foldr (get_fns fnss) (descr ~~ rec_names, ([], []));
+    val (fs, defs) = Library.foldr (get_fns fnss) (descr ~~ rec_names, ([], []));
     val defs' = map (make_def sg fs) defs;
     val names1 = map snd fnames;
     val names2 = map fst rec_eqns;

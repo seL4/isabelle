@@ -133,7 +133,7 @@ in
 fun norm_sort _ [] = []
   | norm_sort _ (S as [_]) = S
   | norm_sort classes S =
-      sort_strings (distinct_class (filter (minimal_class classes S) S));
+      sort_strings (distinct_class (List.filter (minimal_class classes S) S));
 
 end;
 
@@ -161,7 +161,7 @@ fun inter_class classes (c, S) =
   in intr S end;
 
 (*instersect sorts (preserves minimality)*)
-fun inter_sort classes = sort_strings o foldr (inter_class classes);
+fun inter_sort classes = sort_strings o Library.foldr (inter_class classes);
 
 
 
@@ -179,7 +179,7 @@ fun mg_domain _ _ [] = sys_error "mg_domain"  (*don't know number of args!*)
             NONE => raise DOMAIN (a, c)
           | SOME Ss => Ss);
         val doms = map mg_dom S;
-      in foldl (ListPair.map (inter_sort classes)) (hd doms, tl doms) end;
+      in Library.foldl (ListPair.map (inter_sort classes)) (hd doms, tl doms) end;
 
 
 (* of_sort *)
@@ -231,8 +231,8 @@ fun witness_aux (classes, arities) log_types hyps sorts =
                 witn_types path ts (solved_failed, S)
               else
                 let val ((solved', failed'), ws) = witn_sorts (S :: path) (solved_failed, SS) in
-                  if forall is_some ws then
-                    let val w = (Type (t, map (#1 o the) ws), S)
+                  if forall isSome ws then
+                    let val w = (Type (t, map (#1 o valOf) ws), S)
                     in ((w :: solved', failed'), SOME w) end
                   else witn_types path ts ((solved', failed'), S)
                 end
@@ -252,7 +252,7 @@ fun witness_sorts (classes, arities) log_types hyps sorts =
       | check_result (SOME (T, S)) =
           if of_sort (classes, arities) (T, S) then SOME (T, S)
           else sys_error ("Sorts.witness_sorts: bad witness for sort " ^ str_of_sort S);
-  in mapfilter check_result (#2 (witness_aux (classes, arities) log_types hyps sorts)) end;
+  in List.mapPartial check_result (#2 (witness_aux (classes, arities) log_types hyps sorts)) end;
 
 end;
 

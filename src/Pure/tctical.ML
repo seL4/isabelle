@@ -179,10 +179,10 @@ fun EVERY' tacs i = EVERY (map (fn f => f i) tacs);
 fun EVERY1 tacs = EVERY' tacs 1;
 
 (* FIRST [tac1,...,tacn]   equals    tac1 ORELSE ... ORELSE tacn   *)
-fun FIRST tacs = foldr (op ORELSE) (tacs, no_tac);
+fun FIRST tacs = Library.foldr (op ORELSE) (tacs, no_tac);
 
 (* FIRST' [tac1,...,tacn] i  equals    tac1 i ORELSE ... ORELSE tacn i   *)
-fun FIRST' tacs = foldr (op ORELSE') (tacs, K no_tac);
+fun FIRST' tacs = Library.foldr (op ORELSE') (tacs, K no_tac);
 
 (*Apply first tactic to 1*)
 fun FIRST1 tacs = FIRST' tacs 1;
@@ -439,7 +439,7 @@ fun metahyps_aux_tac tacf (prem,i) state =
   let val {sign,maxidx,...} = rep_thm state
       val cterm = cterm_of sign
       (*find all vars in the hyps -- should find tvars also!*)
-      val hyps_vars = foldr add_term_vars (Logic.strip_assums_hyp prem, [])
+      val hyps_vars = Library.foldr add_term_vars (Logic.strip_assums_hyp prem, [])
       val insts = map mk_inst hyps_vars
       (*replace the hyps_vars by Frees*)
       val prem' = subst_atomic insts prem
@@ -472,7 +472,7 @@ fun metahyps_aux_tac tacf (prem,i) state =
       fun relift st =
         let val prop = #prop(rep_thm st)
             val subgoal_vars = (*Vars introduced in the subgoals*)
-                  foldr add_term_vars (Logic.strip_imp_prems prop, [])
+                  Library.foldr add_term_vars (Logic.strip_imp_prems prop, [])
             and concl_vars = add_term_vars (Logic.strip_imp_concl prop, [])
             val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
             val st' = Thm.instantiate ([], map mk_ctpair subgoal_insts) st
@@ -503,7 +503,7 @@ fun PRIMSEQ thmfun st =  thmfun st handle THM _ => Seq.empty;
 fun PRIMITIVE thmfun = PRIMSEQ (Seq.single o thmfun);
 
 (* Inverse (more or less) of PRIMITIVE *)
-fun SINGLE tacf = apsome fst o Seq.pull o tacf
+fun SINGLE tacf = Option.map fst o Seq.pull o tacf
 		  
 end;
 

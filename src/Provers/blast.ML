@@ -134,7 +134,7 @@ fun dest_Var (Var x) =  x;
 fun rand (f$x) = x;
 
 (* maps   (f, [t1,...,tn])  to  f(t1,...,tn) *)
-val list_comb : term * term list -> term = foldl (op $);
+val list_comb : term * term list -> term = Library.foldl (op $);
 
 
 (* maps   f(t1,...,tn)  to  (f, [t1,...,tn]) ; naturally tail-recursive*)
@@ -412,7 +412,7 @@ fun instVars t =
 	| inst (Abs(a,t))    = inst t
 	| inst (f $ u)       = (inst f; inst u)
 	| inst _             = ()
-      fun revert() = seq (fn v => v:=NONE) (!updated)
+      fun revert() = List.app (fn v => v:=NONE) (!updated)
   in  inst t; revert  end;
 
 
@@ -635,7 +635,7 @@ fun tracing sign brs =
 	| printPairs _                 = ()
       fun printBrs (brs0 as {pairs, lits, lim, ...} :: brs) =
 	    (fullTrace := brs0 :: !fullTrace;
-	     seq (fn _ => immediate_output "+") brs;
+	     List.app (fn _ => immediate_output "+") brs;
 	     immediate_output (" [" ^ Int.toString lim ^ "] ");
 	     printPairs pairs;
 	     writeln"")
@@ -652,7 +652,7 @@ fun traceVars sign ntrl =
 	  | 1 => immediate_output"\t1 variable UPDATED:"
 	  | n => immediate_output("\t" ^ Int.toString n ^ " variables UPDATED:");
        (*display the instantiations themselves, though no variable names*)
-       seq (fn v => immediate_output("   " ^ string_of sign 4 (the (!v))))
+       List.app (fn v => immediate_output("   " ^ string_of sign 4 (valOf (!v))))
            (List.take(!trail, !ntrail-ntrl));
        writeln"")
     else ();
@@ -751,8 +751,8 @@ fun equalSubst sign (G, {pairs, lits, vars, lim}) =
             end
       (*substitute throughout "stack frame"; extract affected formulae*)
       fun subFrame ((Gs,Hs), (changed, frames)) =
-	    let val (changed', Gs') = foldr subForm (Gs, (changed, []))
-                val (changed'', Hs') = foldr subForm (Hs, (changed', []))
+	    let val (changed', Gs') = Library.foldr subForm (Gs, (changed, []))
+                val (changed'', Hs') = Library.foldr subForm (Hs, (changed', []))
             in  (changed'', (Gs',Hs')::frames)  end
       (*substitute throughout literals; extract affected ones*)
       fun subLit (lit, (changed, nlits)) =
@@ -760,8 +760,8 @@ fun equalSubst sign (G, {pairs, lits, vars, lim}) =
 	    in  if nlit aconv lit then (changed, nlit::nlits)
 		                  else ((nlit,true)::changed, nlits)
             end
-      val (changed, lits') = foldr subLit (lits, ([], []))
-      val (changed', pairs') = foldr subFrame (pairs, (changed, []))
+      val (changed, lits') = Library.foldr subLit (lits, ([], []))
+      val (changed', pairs') = Library.foldr subFrame (pairs, (changed, []))
   in  if !trace then writeln ("Substituting " ^ traceTerm sign u ^
 			      " for " ^ traceTerm sign t ^ " in branch" )
       else ();
@@ -974,7 +974,7 @@ fun prove (sign, start, cs, brs, cont) =
 				    then lim - (1+log(length rules))
 				    else lim   (*discourage branching updates*)
 			 val vars  = vars_in_vars vars
-			 val vars' = foldr add_terms_vars (prems, vars)
+			 val vars' = Library.foldr add_terms_vars (prems, vars)
 			 val choices' = (ntrl, nbrs, PRV) :: choices
 			 val tacs' = (tac(updated,false,true)) 
                                      :: tacs  (*no duplication; rotate*)
@@ -1101,7 +1101,7 @@ fun prove (sign, start, cs, brs, cont) =
 		    then
 		     let val updated = ntrl < !ntrail (*branch updated*)
 			 val vars  = vars_in_vars vars
-			 val vars' = foldr add_terms_vars (prems, vars)
+			 val vars' = Library.foldr add_terms_vars (prems, vars)
 			    (*duplicate H if md permits*)
 			 val dup = md (*earlier had "andalso vars' <> vars":
                                   duplicate only if the subgoal has new vars*)

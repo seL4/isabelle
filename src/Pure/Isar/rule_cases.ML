@@ -73,7 +73,7 @@ fun save thm = save_case_names thm o save_consumes thm;
 
 fun get thm =
   let
-    val n = if_none (lookup_consumes thm) 0;
+    val n = getOpt (lookup_consumes thm, 0);
     val ss =
       (case lookup_case_names thm of
         NONE => map Library.string_of_int (1 upto (Thm.nprems_of thm - n))
@@ -120,7 +120,7 @@ fun prep_case is_open split sg prop name i =
 
 fun make is_open split (sg, prop) names =
   let val nprems = Logic.count_prems (prop, 0) in
-    foldr (fn (name, (cases, i)) => (prep_case is_open split sg prop name i :: cases, i - 1))
+    Library.foldr (fn (name, (cases, i)) => (prep_case is_open split sg prop name i :: cases, i - 1))
       (Library.drop (length names - nprems, names), ([], length names)) |> #1
   end;
 

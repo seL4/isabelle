@@ -114,7 +114,7 @@ fun pretyp_of is_param (params, typ) =
           if is_param xi andalso is_none (assoc (ps, xi))
           then (xi, mk_param S) :: ps else ps
       | add_parms (ps, TFree _) = ps
-      | add_parms (ps, Type (_, Ts)) = foldl add_parms (ps, Ts);
+      | add_parms (ps, Type (_, Ts)) = Library.foldl add_parms (ps, Ts);
 
     val params' = add_parms (params, typ);
 
@@ -149,7 +149,7 @@ fun preterm_of const_type is_param ((vparams, params), tm) =
       | add_vparms (ps, _) = ps;
 
     val vparams' = add_vparms (vparams, tm);
-    fun var_param xi = the (assoc (vparams', xi));
+    fun var_param xi = valOf (assoc (vparams', xi));
 
 
     val preT_of = pretyp_of is_param;
@@ -192,7 +192,7 @@ fun preterms_of const_type is_param = foldl_map (preterm_of const_type is_param)
 
 (* add_parms *)
 
-fun add_parmsT (rs, PType (_, Ts)) = foldl add_parmsT (rs, Ts)
+fun add_parmsT (rs, PType (_, Ts)) = Library.foldl add_parmsT (rs, Ts)
   | add_parmsT (rs, Link (r as ref (Param _))) = r ins rs
   | add_parmsT (rs, Link (ref T)) = add_parmsT (rs, T)
   | add_parmsT (rs, _) = rs;
@@ -202,7 +202,7 @@ val add_parms = foldl_pretyps add_parmsT;
 
 (* add_names *)
 
-fun add_namesT (xs, PType (_, Ts)) = foldl add_namesT (xs, Ts)
+fun add_namesT (xs, PType (_, Ts)) = Library.foldl add_namesT (xs, Ts)
   | add_namesT (xs, PTFree (x, _)) = x ins xs
   | add_namesT (xs, PTVar ((x, _), _)) = x ins xs
   | add_namesT (xs, Link (ref T)) = add_namesT (xs, T)
@@ -237,8 +237,8 @@ fun typs_terms_of used mk_var prfx (Ts, ts) =
     fun elim (r as ref (Param S), x) = r := mk_var (x, S)
       | elim _ = ();
 
-    val used' = foldl add_names (foldl add_namesT (used, Ts), ts);
-    val parms = rev (foldl add_parms (foldl add_parmsT ([], Ts), ts));
+    val used' = Library.foldl add_names (Library.foldl add_namesT (used, Ts), ts);
+    val parms = rev (Library.foldl add_parms (Library.foldl add_parmsT ([], Ts), ts));
     val names = Term.invent_names used' (prfx ^ "'a") (length parms);
   in
     seq2 elim (parms, names);
@@ -285,7 +285,7 @@ fun unify pp classes arities =
     fun occurs_check r (Link (r' as ref T)) =
           if r = r' then raise NO_UNIFIER "Occurs check!"
           else occurs_check r T
-      | occurs_check r (PType (_, Ts)) = seq (occurs_check r) Ts
+      | occurs_check r (PType (_, Ts)) = List.app (occurs_check r) Ts
       | occurs_check _ _ = ();
 
     fun assign r T S =
@@ -376,7 +376,7 @@ fun infer pp classes arities =
     fun inf _ (PConst (_, T)) = T
       | inf _ (PFree (_, T)) = T
       | inf _ (PVar (_, T)) = T
-      | inf bs (PBound i) = snd (nth_elem (i, bs) handle LIST _ => err_loose i)
+      | inf bs (PBound i) = snd (List.nth (bs, i) handle Subscript => err_loose i)
       | inf bs (PAbs (x, T, t)) = PType ("fun", [T, inf ((x, T) :: bs) t])
       | inf bs (PAppl (t, u)) =
           let
@@ -405,12 +405,12 @@ fun basic_infer_types pp const_type classes arities used freeze is_param ts Ts =
 
     (*run type inference*)
     val tTs' = ListPair.map Constraint (ts', Ts');
-    val _ = seq (fn t => (infer pp classes arities t; ())) tTs';
+    val _ = List.app (fn t => (infer pp classes arities t; ())) tTs';
 
     (*collect result unifier*)
     fun ch_var (xi, Link (r as ref (Param S))) = (r := PTVar (xi, S); NONE)
       | ch_var xi_T = SOME xi_T;
-    val env = mapfilter ch_var Tps;
+    val env = List.mapPartial ch_var Tps;
 
     (*convert back to terms/typs*)
     val mk_var =
@@ -472,8 +472,8 @@ fun get_sort tsig def_sort map_sort raw_env =
 
 fun decode_types tsig is_const def_type def_sort map_const map_type map_sort tm =
   let
-    fun get_type xi = if_none (def_type xi) dummyT;
-    fun is_free x = is_some (def_type (x, ~1));
+    fun get_type xi = getOpt (def_type xi, dummyT);
+    fun is_free x = isSome (def_type (x, ~1));
     val raw_env = Syntax.raw_term_sorts tm;
     val sort_of = get_sort tsig def_sort map_sort raw_env;
 
@@ -519,7 +519,7 @@ fun infer_types pp tsig const_type def_type def_sort
   let
     val {classes, arities, ...} = Type.rep_tsig tsig;
     val pat_Ts' = map (Type.cert_typ tsig) pat_Ts;
-    val is_const = is_some o const_type;
+    val is_const = isSome o const_type;
     val raw_ts' =
       map (decode_types tsig is_const def_type def_sort map_const map_type map_sort) raw_ts;
     val (ts, Ts, unifier) = basic_infer_types pp const_type

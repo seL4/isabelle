@@ -165,9 +165,9 @@ fun lookup (Leaf(xs), []) = xs
 (*Skipping a term in a net.  Recursively skip 2 levels if a combination*)
 fun net_skip (Leaf _, nets) = nets
   | net_skip (Net{comb,var,alist}, nets) =
-    foldr net_skip
+    Library.foldr net_skip
           (net_skip (comb,[]),
-           foldr (fn ((_,net), nets) => net::nets) (alist, var::nets));
+           Library.foldr (fn ((_,net), nets) => net::nets) (alist, var::nets));
 
 (** Matching and Unification**)
 
@@ -185,7 +185,7 @@ fun matching unif t (net,nets) =
   let fun rands _ (Leaf _, nets) = nets
         | rands t (Net{comb,alist,...}, nets) =
             case t of
-                f$t => foldr (matching unif t) (rands f (comb,[]), nets)
+                f$t => Library.foldr (matching unif t) (rands f (comb,[]), nets)
               | Const(c,_) => look1 (alist, c) nets
               | Free(c,_)  => look1 (alist, c) nets
               | Bound i    => look1 (alist, string_of_bound i) nets
@@ -223,7 +223,7 @@ fun dest (Leaf xs) = map (pair []) xs
   | dest (Net {comb, var, alist}) =
       map (cons_fst CombK) (dest comb) @
       map (cons_fst VarK) (dest var) @
-      flat (map (fn (a, net) => map (cons_fst (AtomK a)) (dest net)) alist);
+      List.concat (map (fn (a, net) => map (cons_fst (AtomK a)) (dest net)) alist);
 
 
 (** merge **)
@@ -232,7 +232,7 @@ fun add eq (net, keys_x) =
   insert (keys_x, net, eq) handle INSERT => net;
 
 fun merge (net1, net2, eq) =
-  foldl (add eq) (net1, dest net2);
+  Library.foldl (add eq) (net1, dest net2);
 
 
 end;

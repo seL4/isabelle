@@ -90,12 +90,12 @@ fun keys tab = rev (foldl_table (fn (rev_ks, (k, _)) => k :: rev_ks) ([], tab));
 fun exists P tab = foldl_table (fn (false, e) => P e | (b, _) => b) (false, tab);
 
 fun min_key Empty = NONE
-  | min_key (Branch2 (left, (k, _), _)) = SOME (if_none (min_key left) k)
-  | min_key (Branch3 (left, (k, _), _, _, _)) = SOME (if_none (min_key left) k);
+  | min_key (Branch2 (left, (k, _), _)) = SOME (getOpt (min_key left,k))
+  | min_key (Branch3 (left, (k, _), _, _, _)) = SOME (getOpt (min_key left,k));
 
 fun max_key Empty = NONE
-  | max_key (Branch2 (_, (k, _), right)) = SOME (if_none (max_key right) k)
-  | max_key (Branch3 (_, _, _, (k,_), right)) = SOME (if_none (max_key right) k);
+  | max_key (Branch2 (_, (k, _), right)) = SOME (getOpt (max_key right,k))
+  | max_key (Branch3 (_, _, _, (k,_), right)) = SOME (getOpt (max_key right,k));
 
 (* lookup *)
 
@@ -178,7 +178,7 @@ fun extend (table, pairs) =
         NONE => (update ((key, x), tab), dups)
       | _ => (tab, key :: dups));
   in
-    (case foldl add ((table, []), pairs) of
+    (case Library.foldl add ((table, []), pairs) of
       (table', []) => table'
     | (_, dups) => raise DUPS (rev dups))
   end;
@@ -201,12 +201,12 @@ fun del (SOME k) Empty = raise UNDEF k
   | del NONE (Branch3 (Empty, p, Empty, q, Empty)) =
       (p, (false, Branch2 (Empty, q, Empty)))
   | del k (Branch2 (Empty, p, Empty)) = (case compare' k p of
-      EQUAL => (p, (true, Empty)) | _ => raise UNDEF (the k))
+      EQUAL => (p, (true, Empty)) | _ => raise UNDEF (valOf k))
   | del k (Branch3 (Empty, p, Empty, q, Empty)) = (case compare' k p of
       EQUAL => (p, (false, Branch2 (Empty, q, Empty)))
     | _ => (case compare' k q of
         EQUAL => (q, (false, Branch2 (Empty, p, Empty)))
-      | _ => raise UNDEF (the k)))
+      | _ => raise UNDEF (valOf k)))
   | del k (Branch2 (l, p, r)) = (case compare' k p of
       LESS => (case del k l of
         (p', (false, l')) => (p', (false, Branch2 (l', p, r)))
@@ -284,11 +284,11 @@ fun merge eq tabs = join (fn (y, x) => if eq (y, x) then SOME y else NONE) tabs;
 
 (* tables with multiple entries per key (preserving order) *)
 
-fun lookup_multi tab_key = if_none (lookup tab_key) [];
+fun lookup_multi tab_key = getOpt (lookup tab_key,[]);
 fun update_multi ((key, x), tab) = update ((key, x :: lookup_multi (tab, key)), tab);
 
-fun make_multi pairs = foldr update_multi (pairs, empty);
-fun dest_multi tab = flat (map (fn (key, xs) => map (Library.pair key) xs) (dest tab));
+fun make_multi pairs = Library.foldr update_multi (pairs, empty);
+fun dest_multi tab = List.concat (map (fn (key, xs) => map (Library.pair key) xs) (dest tab));
 fun merge_multi eq tabs = join (fn (xs, xs') => SOME (gen_merge_lists eq xs xs')) tabs;
 fun merge_multi' eq tabs = join (fn (xs, xs') => SOME (gen_merge_lists' eq xs xs')) tabs;
 

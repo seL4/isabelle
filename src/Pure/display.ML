@@ -122,7 +122,7 @@ fun prthq thseq =
   (Seq.print (fn _ => print_thm) 100000 thseq; thseq);
 
 (*Print and return a list of theorems, separated by blank lines. *)
-fun prths ths = (seq (fn th => (print_thm th; writeln "")) ths; ths);
+fun prths ths = (List.app (fn th => (print_thm th; writeln "")) ths; ths);
 
 
 (* other printing commands *)
@@ -210,7 +210,7 @@ fun pretty_full_theory thy =
           if not syn then NONE
           else SOME (prt_typ (Type (t, [])));
 
-    val pretty_arities = flat o map (fn (t, ars) => map (prt_arity t) ars);
+    val pretty_arities = List.concat o map (fn (t, ars) => map (prt_arity t) ars);
 
     fun pretty_const (c, (ty, _)) = Pretty.block
       [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
@@ -238,13 +238,13 @@ fun pretty_full_theory thy =
   in
     [Pretty.strs ("stamps:" :: Sign.stamp_names_of sg),
       Pretty.strs ("data:" :: Sign.data_kinds data),
-      Pretty.strs ["name prefix:", NameSpace.pack (if_none path ["-"])],
+      Pretty.strs ["name prefix:", NameSpace.pack (getOpt (path,["-"]))],
       Pretty.big_list "name spaces:" (map pretty_name_space spcs),
       Pretty.big_list "classes:" (map pretty_classrel (Graph.dest classes)),
       pretty_default default,
       pretty_witness witness,
-      Pretty.big_list "syntactic types:" (mapfilter (pretty_type true) tdecls),
-      Pretty.big_list "logical types:" (mapfilter (pretty_type false) tdecls),
+      Pretty.big_list "syntactic types:" (List.mapPartial (pretty_type true) tdecls),
+      Pretty.big_list "logical types:" (List.mapPartial (pretty_type false) tdecls),
       Pretty.big_list "type arities:" (pretty_arities (Symtab.dest arities)),
       Pretty.big_list "consts:" (map pretty_const cnsts),
       Pretty.big_list "finals consts:" (map pretty_final finals),
@@ -282,7 +282,7 @@ fun add_vars (Free (x, T), env) = ins_entry (T, (x, ~1)) env
   | add_vars (t $ u, env) = add_vars (u, add_vars (t, env))
   | add_vars (_, env) = env;
 
-fun add_varsT (Type (_, Ts), env) = foldr add_varsT (Ts, env)
+fun add_varsT (Type (_, Ts), env) = Library.foldr add_varsT (Ts, env)
   | add_varsT (TFree (x, S), env) = ins_entry (S, (x, ~1)) env
   | add_varsT (TVar (xi, S), env) = ins_entry (S, xi) env;
 
@@ -334,7 +334,7 @@ fun pretty_goals_aux pp begin_goal (msg, main) maxgoals state =
       (if main then [Pretty.term pp B] else []) @
        (if ngoals = 0 then [Pretty.str "No subgoals!"]
         else if ngoals > maxgoals then
-          pretty_subgoals (take (maxgoals, As)) @
+          pretty_subgoals (Library.take (maxgoals, As)) @
           (if msg then [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
            else [])
         else pretty_subgoals As) @

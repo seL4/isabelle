@@ -183,7 +183,7 @@ in
 
 fun get_lexicons () = ! global_lexicons;
 fun get_parsers () = ! global_parsers;
-fun get_parser () = apsome (#2 o #1) o curry Symtab.lookup (! global_parsers);
+fun get_parser () = Option.map (#2 o #1) o curry Symtab.lookup (! global_parsers);
 
 fun is_markup kind name =
   (case assoc (! global_markups, name) of SOME k => k = kind | NONE => false);
@@ -201,7 +201,7 @@ fun add_parser (tab, Parser (name, (comment, kind, markup), int_only, parse)) =
   Symtab.update ((name, (((comment, kind), (int_only, parse)), markup)), tab));
 
 fun add_parsers parsers =
-  (change_parsers (fn tab => foldl add_parser (tab, parsers));
+  (change_parsers (fn tab => Library.foldl add_parser (tab, parsers));
     change_lexicons (apsnd (fn lex => Scan.extend_lexicon lex
       (map (fn Parser (name, _, _, _) => Symbol.explode name) parsers))));
 
@@ -221,7 +221,7 @@ fun print_outer_syntax () =
   let
     fun pretty_cmd (name, comment, _, _) =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
-    val (int_cmds, cmds) = partition #4 (dest_parsers ());
+    val (int_cmds, cmds) = List.partition #4 (dest_parsers ());
   in
     [Pretty.strs ("syntax keywords:" :: map quote (dest_keywords ())),
       Pretty.big_list "proper commands:" (map pretty_cmd cmds),
@@ -277,7 +277,7 @@ fun read toks =
   Source.of_list toks
   |> toplevel_source false true true get_parser
   |> Source.exhaust
-  |> map (fn tr => (Toplevel.name_of tr, the (Toplevel.source_of tr), tr));
+  |> map (fn tr => (Toplevel.name_of tr, valOf (Toplevel.source_of tr), tr));
 
 
 (** read theory **)
@@ -296,7 +296,7 @@ fun deps_thy name ml path =
     val pos = Path.position path;
     val (name', parents, files) = ThyHeader.scan (src, pos);
     val ml_path = ThyLoad.ml_path name;
-    val ml_file = if ml andalso is_some (ThyLoad.check_file NONE ml_path) then [ml_path] else [];
+    val ml_file = if ml andalso isSome (ThyLoad.check_file NONE ml_path) then [ml_path] else [];
   in
     if name <> name' then
       error ("Filename " ^ quote (Path.pack path) ^

@@ -278,7 +278,7 @@ and args1 is_symid blk x =
   ((Scan.repeat1
     (Scan.repeat1 (atom_arg is_symid blk) ||
       paren_args "(" ")" (args is_symid) ||
-      paren_args "[" "]" (args is_symid))) >> flat) x;
+      paren_args "[" "]" (args is_symid))) >> List.concat) x;
 
 val arguments = args T.is_sid false;
 
@@ -298,7 +298,7 @@ val spec_opt_name = opt_thm_name ":" -- prop >> (fn ((x, y), z) => ((x, z), y));
 
 val thm_sel = $$$ "(" |-- list1
   (   nat --| minus -- nat >> op upto
-   || nat >> single) --| $$$ ")" >> flat;
+   || nat >> single) --| $$$ ")" >> List.concat;
 
 val xthm = xname -- Scan.option thm_sel -- opt_attribs;
 val xthms1 = Scan.repeat1 xthm;

@@ -32,7 +32,7 @@ fun index_term pred ((cs, xs), t) =
 
 fun index_thm pred (idx, th) =
   let val {hyps, prop, ...} = Thm.rep_thm th
-  in foldl (index_term pred) (index_term pred (idx, prop), hyps) end;
+  in Library.foldl (index_term pred) (index_term pred (idx, prop), hyps) end;
 
 
 (* build index *)
@@ -47,10 +47,10 @@ val empty =
 fun add pred (Index {next, facts, consts, frees}, (name, ths)) =
   let
     fun upd (tab, a) = Symtab.update_multi ((a, (next, (name, ths))), tab);
-    val (cs, xs) = foldl (index_thm pred) (([], []), ths);
+    val (cs, xs) = Library.foldl (index_thm pred) (([], []), ths);
   in
     Index {next = next + 1, facts = (name, ths) :: facts,
-      consts = foldl upd (consts, cs), frees = foldl upd (frees, xs)}
+      consts = Library.foldl upd (consts, cs), frees = Library.foldl upd (frees, xs)}
   end;
 
 
@@ -64,7 +64,7 @@ fun intersect ([], _) = []
       else intersect (xxs, ys);
 
 fun intersects [xs] = xs
-  | intersects xss = if exists null xss then [] else foldl intersect (hd xss, tl xss);
+  | intersects xss = if exists null xss then [] else Library.foldl intersect (hd xss, tl xss);
 
 fun find ([], []) (Index {facts, ...}) = facts
   | find (cs, xs) (Index {consts, frees, ...}) =
