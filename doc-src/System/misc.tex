@@ -218,9 +218,12 @@ example sessions based on existing logics. Its usage is:
 Usage: usedir LOGIC NAME
 
   Options are:
-    -b           build mode (output heap image, use dir ".")
+    -B           build mode with THIS_IS_ISABELLE_BUILD indication
+    -P PATH      set path for remote theory browsing information
+    -b           build mode (output heap image, using current dir)
     -i BOOL      generate theory browsing information,
                  i.e. HTML / graph data (default false)
+    -r           reset session path
     -s NAME      override session NAME
 
   Build object-logic or run examples. Also creates browsing
@@ -242,23 +245,28 @@ Basically, there are two different modes of operation: \emph{build
   mode} (enabled through the \texttt{-b} option) and \emph{example
   mode} (default).
 
-Calling \texttt{usedir} with \texttt{-b} runs \texttt{isabelle} with
-input image \texttt{LOGIC} and output to \texttt{NAME}, as provided on
-the command line. This will be a batch session, running
-\texttt{ROOT.ML} from the current directory and then quitting.  It is
-assumed that \texttt{ROOT.ML} contains all {\ML} commands required to
-build the logic.
+Calling \texttt{usedir} with \texttt{-b} runs \texttt{isabelle} with input
+image \texttt{LOGIC} and output to \texttt{NAME}, as provided on the command
+line. This will be a batch session, running \texttt{ROOT.ML} from the current
+directory and then quitting.  It is assumed that \texttt{ROOT.ML} contains all
+{\ML} commands required to build the logic.  The \texttt{-B} option is like
+\texttt{-b}, but also indicates \texttt{THIS_IS_ISABELLE_BUILD=true} via the
+process environment.  This usually causes the \texttt{ISABELLE\_OUTPUT} and
+\texttt{ISABELLE_BROWSER_INFO} settings to refer to some location within the
+Isabelle distribution directory, rather than the user's home directory.
 
-In example mode on the other hand, \texttt{usedir} runs a read-only
-session of \texttt{LOGIC} (typically just built before) and
-automatically runs \texttt{ROOT.ML} from within directory
-\texttt{NAME}.  It assumes that file \texttt{ROOT.ML} in directory
-\texttt{NAME} contains appropriate {\ML} commands to run the desired
+In example mode, \texttt{usedir} runs a read-only session of \texttt{LOGIC}
+(typically just built before) and automatically runs \texttt{ROOT.ML} from
+within directory \texttt{NAME}.  It assumes that file \texttt{ROOT.ML} in
+directory \texttt{NAME} contains appropriate {\ML} commands to run the desired
 examples.
 
-\medskip The \texttt{-i} option controls theory browsing data
-generation. It may be explicitely turned on or off --- the last
-occurrence of \texttt{-i} on the command line wins.
+\medskip The \texttt{-i} option controls theory browsing data generation. It
+may be explicitly turned on or off --- the last occurrence of \texttt{-i} on
+the command line wins.  The \texttt{-P} option specifies a path (or actual
+URL) to be prefixed to any \emph{non-local} reference of existing theories.
+Thus user sessions may easily link to existing Isabelle libraries already
+present on the WWW.
 
 \medskip Any \texttt{usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend
