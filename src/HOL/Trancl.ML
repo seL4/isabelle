@@ -102,14 +102,11 @@ bind_thm ("rtrancl_into_rtrancl2", r_into_rtrancl RS rtrancl_trans);
 (*** More r^* equations and inclusions ***)
 
 Goal "(r^*)^* = r^*";
-by (rtac set_ext 1);
-by (res_inst_tac [("p","x")] PairE 1);
-by (hyp_subst_tac 1);
-by (rtac iffI 1);
+by Auto_tac;
+by (etac r_into_rtrancl 2);
 by (etac rtrancl_induct 1);
 by (rtac rtrancl_refl 1);
 by (blast_tac (claset() addIs [rtrancl_trans]) 1);
-by (etac r_into_rtrancl 1);
 qed "rtrancl_idemp";
 Addsimps [rtrancl_idemp];
 
@@ -143,14 +140,14 @@ qed "rtrancl_reflcl";
 Addsimps [rtrancl_reflcl];
 
 Goal "(r - Id)^* = r^*";
-br sym 1;
-br rtrancl_subset 1;
+by (rtac sym 1);
+by (rtac rtrancl_subset 1);
  by (Blast_tac 1);
 by (Clarify_tac 1);
-by(rename_tac "a b" 1);
-by(case_tac "a=b" 1);
+by (rename_tac "a b" 1);
+by (case_tac "a=b" 1);
  by (Blast_tac 1);
-by(blast_tac (claset() addSIs [r_into_rtrancl]) 1);
+by (blast_tac (claset() addSIs [r_into_rtrancl]) 1);
 qed "rtrancl_r_diff_Id";
 
 Goal "(x,y) : (r^-1)^* ==> (x,y) : (r^*)^-1";

@@ -178,9 +178,9 @@ by  Auto_tac;
 qed "finite_Prod_UNIV";
 
 Goal "finite (UNIV :: ('a::finite * 'b::finite) set)";
-br (finite_Prod_UNIV) 1;
-br finite 1;
-br finite 1;
+by (rtac (finite_Prod_UNIV) 1);
+by (rtac finite 1);
+by (rtac finite 1);
 qed "finite_Prod";
 
 (** The powerset of a finite set **)
@@ -833,7 +833,7 @@ Goal "[| finite M; x ~: M |]  \
 by (res_inst_tac [("f", "%s. s - {x}"), ("g","insert x")] card_bij_eq 1);
 by (res_inst_tac [("B","Pow(insert x M)")] finite_subset 1);
 by (res_inst_tac [("B","Pow(M)")] finite_subset 3);
-by(REPEAT(Fast_tac 1));
+by (REPEAT(Fast_tac 1));
 (* arity *)
 by (auto_tac (claset() addSEs [equalityE], simpset() addsimps [inj_on_def]));
 by (stac Diff_insert0 1);

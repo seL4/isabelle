@@ -142,7 +142,7 @@ by (rtac (prem RS arg_cong) 1);
 qed "split_weak_cong";
 
 Goal "(%u. ? x y. u = (x, y) & P (x, y)) = P"; 
-br ext 1;
+by (rtac ext 1);
 by (Fast_tac 1);
 qed "split_eta_SetCompr";
 Addsimps [split_eta_SetCompr];
