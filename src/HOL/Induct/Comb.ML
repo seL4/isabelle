@@ -30,7 +30,7 @@ goalw Comb.thy [diamond_def]
 by (etac rtrancl_induct 1);
 by (Blast_tac 1);
 by (slow_best_tac (set_cs addIs [r_into_rtrancl RSN (2, rtrancl_trans)]
-                           addSDs [spec_mp]) 1);
+                          addSDs [spec_mp]) 1);
 val diamond_strip_lemmaE = result() RS spec RS mp RS exE;
 
 val [major] = goal Comb.thy "diamond(r) ==> diamond(r^*)";
@@ -102,7 +102,8 @@ val K_parcontractE = parcontract.mk_cases comb.simps "K =1=> z";
 val S_parcontractE = parcontract.mk_cases comb.simps "S =1=> z";
 val Ap_parcontractE = parcontract.mk_cases comb.simps "x#y =1=> z";
 
-AddIs  parcontract.intrs;
+AddSIs [parcontract.refl, parcontract.K, parcontract.S];
+AddIs  [parcontract.Ap];
 AddSEs [K_parcontractE, S_parcontractE,Ap_parcontractE];
 
 (*** Basic properties of parallel contraction ***)
