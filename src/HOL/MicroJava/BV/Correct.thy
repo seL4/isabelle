@@ -334,8 +334,7 @@ lemma correct_frames_newref [rule_format]:
   "\<forall>rT C sig. 
   hp x = None \<longrightarrow> 
   correct_frames G hp phi rT sig frs \<longrightarrow>
-  G,hp \<turnstile> obj \<surd>
-  \<longrightarrow> correct_frames G (hp(x \<mapsto> obj)) phi rT sig frs"
+  correct_frames G (hp(x \<mapsto> obj)) phi rT sig frs"
 apply (induct frs)
  apply simp
 apply clarify
