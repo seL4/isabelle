@@ -55,7 +55,6 @@ sig
   val end_theory: theory -> theory
   val checkpoint: theory -> theory
   val add_typedecls: (bstring * string list * mixfix) list -> theory -> theory
-  val dummy_patternN: string
 end;
 
 structure PureThy: PURE_THY =
@@ -418,8 +417,6 @@ fun add_typedecls decls thy =
 
 (*** the ProtoPure theory ***)
 
-val dummy_patternN = "dummy_pattern";
-
 val proto_pure =
   Theory.pre_pure
   |> Library.apply [TheoremsData.init, TheoryManagementData.init]
@@ -444,7 +441,7 @@ val proto_pure =
   |> Theory.add_trfunsT Syntax.pure_trfunsT
   |> Theory.add_syntax
    [("==>", "[prop, prop] => prop", Delimfix "op ==>"),
-    (dummy_patternN, "aprop", Delimfix "'_")]
+    (Term.dummy_patternN, "aprop", Delimfix "'_")]
   |> Theory.add_consts
    [("==", "['a::{}, 'a] => prop", InfixrName ("==", 2)),
     ("=?=", "['a::{}, 'a] => prop", InfixrName ("=?=", 2)),
@@ -452,7 +449,7 @@ val proto_pure =
     ("all", "('a => prop) => prop", Binder ("!!", 0, 0)),
     ("Goal", "prop => prop", Mixfix ("GOAL _", [1000], 999)),
     ("TYPE", "'a itself", NoSyn),
-    (dummy_patternN, "'a", Delimfix "'_")]
+    (Term.dummy_patternN, "'a", Delimfix "'_")]
   |> Theory.add_modesyntax ("", false)
     [("Goal", "prop => prop", Mixfix ("_", [0], 0))]
   |> local_path
