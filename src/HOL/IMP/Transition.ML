@@ -65,7 +65,7 @@ qed "evalc_impl_evalc1";
 goal Transition.thy
   "!c d s u. (c;d,s) -n-> (SKIP,u) --> \
 \            (? t m. (c,s) -*-> (SKIP,t) & (d,t) -m-> (SKIP,u) & m <= n)";
-by (nat_ind_tac "n" 1);
+by (induct_tac "n" 1);
  (* case n = 0 *)
  by (fast_tac (claset() addss simpset()) 1);
 (* induction step *)
@@ -75,15 +75,14 @@ by (fast_tac (claset() addSIs [le_SucI,le_refl]
 qed_spec_mp "lemma2";
 
 goal Transition.thy "!s t. (c,s) -*-> (SKIP,t) --> <c,s> -c-> t";
-by (com.induct_tac "c" 1);
+by (induct_tac "c" 1);
 by (safe_tac (claset() addSDs [rtrancl_imp_UN_rel_pow]));
 
 (* SKIP *)
 by (fast_tac (claset() addSEs [rel_pow_E2]) 1);
 
 (* ASSIGN *)
-by (fast_tac (claset() addSDs [hlemma]  addSEs [rel_pow_E2]
-                       addss simpset()) 1);
+by (fast_tac (claset() addSDs [hlemma]  addSEs [rel_pow_E2]) 1);
 
 (* SEMI *)
 by (fast_tac (claset() addSDs [lemma2,rel_pow_imp_rtrancl]) 1);
@@ -185,17 +184,18 @@ while_true. In particular in the case (sequence1) we make use again
 of Lemma 1.
 *)
 
-
+(*Delsimps [update_apply];*)
 goal Transition.thy 
   "!!c s. ((c,s) -1-> (c',s')) ==> (!t. <c',s'> -c-> t --> <c,s> -c-> t)";
 by (etac evalc1.induct 1);
 by Auto_tac;
 qed_spec_mp "FB_lemma3";
+(*Addsimps [update_apply];*)
 
 val [major] = goal Transition.thy
   "(c,s) -*-> (c',s') ==> <c',s'> -c-> t --> <c,s> -c-> t";
 by (rtac (major RS rtrancl_induct2) 1);
-by (Fast_tac 1);
+ by (Fast_tac 1);
 by (fast_tac (claset() addIs [FB_lemma3]) 1);
 qed_spec_mp "FB_lemma2";
 

@@ -20,7 +20,7 @@ translations "|- {P}c{Q}" == "(P,c,Q) : hoare"
 inductive hoare
 intrs
   skip "|- {P}SKIP{P}"
-  ass  "|- {%s. P(s[a s/x])} x:=a {P}"
+  ass  "|- {%s. P(s[x:=a s])} x:=a {P}"
   semi "[| |- {P}c{Q}; |- {Q}d{R} |] ==> |- {P} c;d {R}"
   If "[| |- {%s. P s & b s}c{Q}; |- {%s. P s & ~b s}d{Q} |] ==>
       |- {P} IF b THEN c ELSE d {Q}"

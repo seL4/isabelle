@@ -27,7 +27,7 @@ goalw Hoare.thy [wp_def] "wp SKIP Q = Q";
 by (Simp_tac 1);
 qed "wp_SKIP";
 
-goalw Hoare.thy [wp_def] "wp (x:=a) Q = (%s. Q(s[a s/x]))";
+goalw Hoare.thy [wp_def] "wp (x:=a) Q = (%s. Q(s[x:=a s]))";
 by (Simp_tac 1);
 qed "wp_Ass";
 

@@ -14,15 +14,19 @@ consts  evalc    :: "(com*state*state)set"
 
 translations  "<ce,sig> -c-> s" == "(ce,sig,s) : evalc"
 
-constdefs assign :: [state,val,loc] => state    ("_[_'/_]" [95,0,0] 95)
-  "s[m/x] ==  (%y. if y=x then m else s y)"
-
+consts
+  update  :: "('a => 'b) => 'a => 'b => ('a => 'b)"
+           ("_/[_/:=/_]" [900,0,0] 900)
+(* update is NOT defined, only declared!
+   Thus the whole theory is independent of its meaning!
+   If theory Update is included, proofs break.
+*)
 
 inductive evalc
   intrs
     Skip    "<SKIP,s> -c-> s"
 
-    Assign  "<x := a,s> -c-> s[a(s)/x]"
+    Assign  "<x := a,s> -c-> s[x:=a(s)]"
 
     Semi    "[| <c0,s> -c-> s2; <c1,s2> -c-> s1 |] 
             ==> <c0 ; c1, s> -c-> s1"
