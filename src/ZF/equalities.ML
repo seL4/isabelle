@@ -194,6 +194,10 @@ goal ZF.thy "Union(C) Int A = 0 <-> (ALL B:C. B Int A = 0)";
 by (fast_tac (eq_cs addSEs [equalityE]) 1);
 qed "Union_disjoint";
 
+goalw ZF.thy [Inter_def] "Inter(0) = 0";
+by (fast_tac eq_cs 1);
+qed "Inter_0";
+
 goal ZF.thy "!!A B. [| z:A; z:B |] ==> Inter(A) Un Inter(B) <= Inter(A Int B)";
 by (fast_tac ZF_cs 1);
 qed "Inter_Un_subset";
@@ -480,10 +484,14 @@ goal ZF.thy "converse(A) - converse(B) = converse(A - B)";
 by (fast_tac eq_cs 1);
 qed "converse_Diff";
 
-(*Does the analogue hold for INT?*)
 goal ZF.thy "converse(UN x:A. B(x)) = (UN x:A. converse(B(x)))";
 by (fast_tac eq_cs 1);
 qed "converse_UN";
+
+(*Unfolding Inter avoids using excluded middle on A=0*)
+goalw ZF.thy [Inter_def] "converse(INT x:A. B(x)) = (INT x:A. converse(B(x)))";
+by (fast_tac eq_cs 1);
+qed "converse_INT";
 
 (** Pow **)
 
