@@ -116,4 +116,7 @@ consts_code
   "Nil"     ("[]")
   "Cons"    ("(_ ::/ _)")
 
+lemma [code]: "((n::nat) < 0) = False" by simp
+declare less_Suc_eq [code]
+
 end
