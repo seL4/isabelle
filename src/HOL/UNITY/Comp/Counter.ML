@@ -12,7 +12,6 @@ Examples of Program Composition Illustrating the Use of Universal Properties
 *)
 
 Addsimps [Component_def RS def_prg_Init];
-program_defs_ref := [Component_def];
 Addsimps (map simp_of_act  [a_def]);
 
 (* Theorems about sum and sumj *)
@@ -67,11 +66,12 @@ qed_spec_mp "sum_sumj";
 (* Correctness proofs for Components *)
 (* p2 and p3 proofs *)
 Goal "Component i : stable {s. s C = s (c i) + k}";
+by (asm_full_simp_tac (simpset() addsimps [Component_def]) 1);
 by (constrains_tac 1);
 qed "p2";
 
-Goal 
-"Component i: stable {s. ALL v. v~=c i & v~=C --> s v = k v}";
+Goal "Component i: stable {s. ALL v. v~=c i & v~=C --> s v = k v}";
+by (asm_full_simp_tac (simpset() addsimps [Component_def]) 1);
 by (constrains_tac 1);
 qed "p3";
 

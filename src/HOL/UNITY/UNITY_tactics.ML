@@ -6,6 +6,215 @@
 Specialized UNITY tactics, and ML bindings of theorems
 *)
 
+(*UNITY*)
+val constrains_def = thm "constrains_def";
+val stable_def = thm "stable_def";
+val invariant_def = thm "invariant_def";
+val increasing_def = thm "increasing_def";
+val Allowed_def = thm "Allowed_def";
+val Id_in_Acts = thm "Id_in_Acts";
+val insert_Id_Acts = thm "insert_Id_Acts";
+val Id_in_AllowedActs = thm "Id_in_AllowedActs";
+val insert_Id_AllowedActs = thm "insert_Id_AllowedActs";
+val Init_eq = thm "Init_eq";
+val Acts_eq = thm "Acts_eq";
+val AllowedActs_eq = thm "AllowedActs_eq";
+val surjective_mk_program = thm "surjective_mk_program";
+val program_equalityI = thm "program_equalityI";
+val program_equalityE = thm "program_equalityE";
+val program_equality_iff = thm "program_equality_iff";
+val def_prg_Init = thm "def_prg_Init";
+val def_prg_Acts = thm "def_prg_Acts";
+val def_prg_AllowedActs = thm "def_prg_AllowedActs";
+val def_prg_simps = thm "def_prg_simps";
+val def_act_simp = thm "def_act_simp";
+val def_set_simp = thm "def_set_simp";
+val constrainsI = thm "constrainsI";
+val constrainsD = thm "constrainsD";
+val constrains_empty = thm "constrains_empty";
+val constrains_empty2 = thm "constrains_empty2";
+val constrains_UNIV = thm "constrains_UNIV";
+val constrains_UNIV2 = thm "constrains_UNIV2";
+val constrains_weaken_R = thm "constrains_weaken_R";
+val constrains_weaken_L = thm "constrains_weaken_L";
+val constrains_weaken = thm "constrains_weaken";
+val constrains_Un = thm "constrains_Un";
+val constrains_UN = thm "constrains_UN";
+val constrains_Un_distrib = thm "constrains_Un_distrib";
+val constrains_UN_distrib = thm "constrains_UN_distrib";
+val constrains_Int_distrib = thm "constrains_Int_distrib";
+val constrains_INT_distrib = thm "constrains_INT_distrib";
+val constrains_Int = thm "constrains_Int";
+val constrains_INT = thm "constrains_INT";
+val constrains_imp_subset = thm "constrains_imp_subset";
+val constrains_trans = thm "constrains_trans";
+val constrains_cancel = thm "constrains_cancel";
+val unlessI = thm "unlessI";
+val unlessD = thm "unlessD";
+val stableI = thm "stableI";
+val stableD = thm "stableD";
+val stable_UNIV = thm "stable_UNIV";
+val stable_Un = thm "stable_Un";
+val stable_UN = thm "stable_UN";
+val stable_Int = thm "stable_Int";
+val stable_INT = thm "stable_INT";
+val stable_constrains_Un = thm "stable_constrains_Un";
+val stable_constrains_Int = thm "stable_constrains_Int";
+val stable_constrains_stable = thm "stable_constrains_stable";
+val invariantI = thm "invariantI";
+val invariant_Int = thm "invariant_Int";
+val increasingD = thm "increasingD";
+val increasing_constant = thm "increasing_constant";
+val mono_increasing_o = thm "mono_increasing_o";
+val strict_increasingD = thm "strict_increasingD";
+val elimination = thm "elimination";
+val elimination_sing = thm "elimination_sing";
+val constrains_strongest_rhs = thm "constrains_strongest_rhs";
+val strongest_rhs_is_strongest = thm "strongest_rhs_is_strongest";
+val Un_Diff_Diff = thm "Un_Diff_Diff";
+val Int_Union_Union = thm "Int_Union_Union";
+val Image_less_than = thm "Image_less_than";
+val Image_inverse_less_than = thm "Image_inverse_less_than";
+
+(*WFair*)
+val stable_transient_empty = thm "stable_transient_empty";
+val transient_strengthen = thm "transient_strengthen";
+val transientI = thm "transientI";
+val transientE = thm "transientE";
+val transient_UNIV = thm "transient_UNIV";
+val transient_empty = thm "transient_empty";
+val ensuresI = thm "ensuresI";
+val ensuresD = thm "ensuresD";
+val ensures_weaken_R = thm "ensures_weaken_R";
+val stable_ensures_Int = thm "stable_ensures_Int";
+val stable_transient_ensures = thm "stable_transient_ensures";
+val ensures_eq = thm "ensures_eq";
+val leadsTo_Basis = thm "leadsTo_Basis";
+val leadsTo_Trans = thm "leadsTo_Trans";
+val transient_imp_leadsTo = thm "transient_imp_leadsTo";
+val leadsTo_Un_duplicate = thm "leadsTo_Un_duplicate";
+val leadsTo_Un_duplicate2 = thm "leadsTo_Un_duplicate2";
+val leadsTo_Union = thm "leadsTo_Union";
+val leadsTo_Union_Int = thm "leadsTo_Union_Int";
+val leadsTo_UN = thm "leadsTo_UN";
+val leadsTo_Un = thm "leadsTo_Un";
+val single_leadsTo_I = thm "single_leadsTo_I";
+val leadsTo_induct = thm "leadsTo_induct";
+val subset_imp_ensures = thm "subset_imp_ensures";
+val subset_imp_leadsTo = thm "subset_imp_leadsTo";
+val leadsTo_refl = thm "leadsTo_refl";
+val empty_leadsTo = thm "empty_leadsTo";
+val leadsTo_UNIV = thm "leadsTo_UNIV";
+val leadsTo_induct_pre_lemma = thm "leadsTo_induct_pre_lemma";
+val leadsTo_induct_pre = thm "leadsTo_induct_pre";
+val leadsTo_weaken_R = thm "leadsTo_weaken_R";
+val leadsTo_weaken_L = thm "leadsTo_weaken_L";
+val leadsTo_Un_distrib = thm "leadsTo_Un_distrib";
+val leadsTo_UN_distrib = thm "leadsTo_UN_distrib";
+val leadsTo_Union_distrib = thm "leadsTo_Union_distrib";
+val leadsTo_weaken = thm "leadsTo_weaken";
+val leadsTo_Diff = thm "leadsTo_Diff";
+val leadsTo_UN_UN = thm "leadsTo_UN_UN";
+val leadsTo_Un_Un = thm "leadsTo_Un_Un";
+val leadsTo_cancel2 = thm "leadsTo_cancel2";
+val leadsTo_cancel_Diff2 = thm "leadsTo_cancel_Diff2";
+val leadsTo_cancel1 = thm "leadsTo_cancel1";
+val leadsTo_cancel_Diff1 = thm "leadsTo_cancel_Diff1";
+val leadsTo_empty = thm "leadsTo_empty";
+val psp_stable = thm "psp_stable";
+val psp_stable2 = thm "psp_stable2";
+val psp_ensures = thm "psp_ensures";
+val psp = thm "psp";
+val psp2 = thm "psp2";
+val psp_unless = thm "psp_unless";
+val leadsTo_wf_induct_lemma = thm "leadsTo_wf_induct_lemma";
+val leadsTo_wf_induct = thm "leadsTo_wf_induct";
+val bounded_induct = thm "bounded_induct";
+val lessThan_induct = thm "lessThan_induct";
+val lessThan_bounded_induct = thm "lessThan_bounded_induct";
+val greaterThan_bounded_induct = thm "greaterThan_bounded_induct";
+val wlt_leadsTo = thm "wlt_leadsTo";
+val leadsTo_subset = thm "leadsTo_subset";
+val leadsTo_eq_subset_wlt = thm "leadsTo_eq_subset_wlt";
+val wlt_increasing = thm "wlt_increasing";
+val lemma1 = thm "lemma1";
+val leadsTo_123 = thm "leadsTo_123";
+val wlt_constrains_wlt = thm "wlt_constrains_wlt";
+val completion_lemma = thm "completion_lemma";
+val completion = thm "completion";
+val finite_completion_lemma = thm "finite_completion_lemma";
+val finite_completion = thm "finite_completion";
+val stable_completion = thm "stable_completion";
+val finite_stable_completion = thm "finite_stable_completion";
+
+(*Constrains*)
+val Increasing_def = thm "Increasing_def";
+val reachable_Init = thm "reachable.Init";
+val reachable_Acts = thm "reachable.Acts";
+val reachable_equiv_traces = thm "reachable_equiv_traces";
+val Init_subset_reachable = thm "Init_subset_reachable";
+val stable_reachable = thm "stable_reachable";
+val invariant_reachable = thm "invariant_reachable";
+val invariant_includes_reachable = thm "invariant_includes_reachable";
+val constrains_reachable_Int = thm "constrains_reachable_Int";
+val Constrains_eq_constrains = thm "Constrains_eq_constrains";
+val constrains_imp_Constrains = thm "constrains_imp_Constrains";
+val stable_imp_Stable = thm "stable_imp_Stable";
+val ConstrainsI = thm "ConstrainsI";
+val Constrains_empty = thm "Constrains_empty";
+val Constrains_UNIV = thm "Constrains_UNIV";
+val Constrains_weaken_R = thm "Constrains_weaken_R";
+val Constrains_weaken_L = thm "Constrains_weaken_L";
+val Constrains_weaken = thm "Constrains_weaken";
+val Constrains_Un = thm "Constrains_Un";
+val Constrains_UN = thm "Constrains_UN";
+val Constrains_Int = thm "Constrains_Int";
+val Constrains_INT = thm "Constrains_INT";
+val Constrains_imp_subset = thm "Constrains_imp_subset";
+val Constrains_trans = thm "Constrains_trans";
+val Constrains_cancel = thm "Constrains_cancel";
+val Stable_eq = thm "Stable_eq";
+val Stable_eq_stable = thm "Stable_eq_stable";
+val StableI = thm "StableI";
+val StableD = thm "StableD";
+val Stable_Un = thm "Stable_Un";
+val Stable_Int = thm "Stable_Int";
+val Stable_Constrains_Un = thm "Stable_Constrains_Un";
+val Stable_Constrains_Int = thm "Stable_Constrains_Int";
+val Stable_UN = thm "Stable_UN";
+val Stable_INT = thm "Stable_INT";
+val Stable_reachable = thm "Stable_reachable";
+val IncreasingD = thm "IncreasingD";
+val mono_Increasing_o = thm "mono_Increasing_o";
+val strict_IncreasingD = thm "strict_IncreasingD";
+val increasing_imp_Increasing = thm "increasing_imp_Increasing";
+val Increasing_constant = thm "Increasing_constant";
+val Elimination = thm "Elimination";
+val Elimination_sing = thm "Elimination_sing";
+val AlwaysI = thm "AlwaysI";
+val AlwaysD = thm "AlwaysD";
+val AlwaysE = thm "AlwaysE";
+val Always_imp_Stable = thm "Always_imp_Stable";
+val Always_includes_reachable = thm "Always_includes_reachable";
+val invariant_imp_Always = thm "invariant_imp_Always";
+val Always_reachable = thm "Always_reachable";
+val Always_eq_invariant_reachable = thm "Always_eq_invariant_reachable";
+val Always_eq_includes_reachable = thm "Always_eq_includes_reachable";
+val Always_UNIV_eq = thm "Always_UNIV_eq";
+val UNIV_AlwaysI = thm "UNIV_AlwaysI";
+val Always_eq_UN_invariant = thm "Always_eq_UN_invariant";
+val Always_weaken = thm "Always_weaken";
+val Always_Constrains_pre = thm "Always_Constrains_pre";
+val Always_Constrains_post = thm "Always_Constrains_post";
+val Always_ConstrainsI = thm "Always_ConstrainsI";
+val Always_ConstrainsD = thm "Always_ConstrainsD";
+val Always_Constrains_weaken = thm "Always_Constrains_weaken";
+val Always_Int_distrib = thm "Always_Int_distrib";
+val Always_INT_distrib = thm "Always_INT_distrib";
+val Always_Int_I = thm "Always_Int_I";
+val Always_Compl_Un_eq = thm "Always_Compl_Un_eq";
+val Always_thin = thm "Always_thin";
+
 (*FP*)
 val stable_FP_Orig_Int = thm "stable_FP_Orig_Int";
 val FP_Orig_weakest = thm "FP_Orig_weakest";
@@ -473,6 +682,18 @@ val Increasing_imp_Stable_pfixGe = thm "Increasing_imp_Stable_pfixGe";
 val LeadsTo_le_imp_pfixGe = thm "LeadsTo_le_imp_pfixGe";
 
 
+(*Lazy unfolding of actions or of sets*)
+fun simp_of_act def = def RS def_act_simp;
+
+fun simp_of_set def = def RS def_set_simp;
+
+
+(*Combines two invariance ASSUMPTIONS into one.  USEFUL??*)
+val Always_Int_tac = dtac Always_Int_I THEN' assume_tac THEN' etac Always_thin
+
+(*Combines a list of invariance THEOREMS into one.*)
+val Always_Int_rule = foldr1 (fn (th1,th2) => [th1,th2] MRS Always_Int_I)
+
 (*proves "co" properties when the program is specified*)
 fun gen_constrains_tac(cs,ss) i = 
    SELECT_GOAL
@@ -503,6 +724,8 @@ fun gen_ensures_tac(cs,ss) sact =
 	      gen_constrains_tac (cs,ss) 1,
 	      ALLGOALS (clarify_tac cs),
 	      ALLGOALS (asm_lr_simp_tac ss)]);
+
+fun constrains_tac st = gen_constrains_tac (claset(), simpset()) st;
 
 fun ensures_tac sact = gen_ensures_tac (claset(), simpset()) sact;
 

@@ -31,10 +31,10 @@ Addsimps [Nprg_def RS def_prg_simps];
 Goal "A ~= B ==> EX NB. EX s: reachable Nprg.                \
 \                  Says A B (Crypt (pubK B) (Nonce NB)) : set s";
 by (REPEAT (resolve_tac [exI,bexI] 1));
-by (res_inst_tac [("act", "NS3")] reachable.Acts 2);
-by (res_inst_tac [("act", "NS2")] reachable.Acts 3);
-by (res_inst_tac [("act", "NS1")] reachable.Acts 4);
-by (rtac reachable.Init 5);
+by (res_inst_tac [("act", "NS3")] reachable_Acts 2);
+by (res_inst_tac [("act", "NS2")] reachable_Acts 3);
+by (res_inst_tac [("act", "NS1")] reachable_Acts 4);
+by (rtac reachable_Init 5);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps [Nprg_def])));
 by (REPEAT_FIRST (rtac exI ));
 by possibility_tac;

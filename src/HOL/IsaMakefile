@@ -382,13 +382,12 @@ HOL-UNITY: HOL $(LOG)/HOL-UNITY.gz
 
 $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML \
   UNITY/UNITY_Main.thy UNITY/UNITY_tactics.ML \
-  UNITY/Comp.thy UNITY/Detects.thy  UNITY/ELT.thy \
+  UNITY/Comp.thy UNITY/Constrains.thy UNITY/Detects.thy UNITY/ELT.thy \
   UNITY/Extend.thy UNITY/FP.thy \
   UNITY/Follows.thy UNITY/GenPrefix.ML UNITY/GenPrefix.thy \
   UNITY/Guar.thy UNITY/Lift_prog.thy  UNITY/ListOrder.thy  \
   UNITY/PPROD.thy  UNITY/Project.thy UNITY/Rename.thy \
-  UNITY/SubstAx.thy UNITY/UNITY.ML \
-  UNITY/UNITY.thy UNITY/Union.thy UNITY/WFair.ML  UNITY/WFair.thy \
+  UNITY/SubstAx.thy UNITY/UNITY.thy UNITY/Union.thy UNITY/WFair.thy \
   UNITY/Simple/Channel.thy UNITY/Simple/Common.thy  \
   UNITY/Simple/Deadlock.thy UNITY/Simple/Lift.thy UNITY/Simple/Mutex.thy  \
   UNITY/Simple/NSP_Bad.ML UNITY/Simple/NSP_Bad.thy  \

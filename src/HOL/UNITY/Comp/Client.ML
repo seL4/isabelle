@@ -8,8 +8,6 @@ Distributed Resource Management System: the Client
 
 Addsimps [Client_def RS def_prg_Init, 
           Client_def RS def_prg_AllowedActs];
-program_defs_ref := [Client_def];
-
 Addsimps (map simp_of_act [rel_act_def, tok_act_def, ask_act_def]);
 
 Goal "(Client ok G) = \
@@ -26,7 +24,7 @@ Goal "Client: UNIV guarantees Increasing ask Int Increasing rel";
 by (auto_tac
     (claset() addSIs [increasing_imp_Increasing],
      simpset() addsimps [guar_def, impOfSubs preserves_subset_increasing]));
-by (auto_tac (claset(), simpset() addsimps [increasing_def]));
+by (auto_tac (claset(), simpset() addsimps [Client_def, increasing_def]));
 by (ALLGOALS constrains_tac);
 by Auto_tac;
 qed "increasing_ask_rel";
@@ -46,6 +44,7 @@ by Auto_tac;
 by (rtac (invariantI RS stable_Join_Always2) 1);
 by (fast_tac (claset() addSEs [impOfSubs preserves_subset_stable]
 		       addSIs [stable_Int]) 3);
+by (asm_full_simp_tac (simpset() addsimps [Client_def]) 2);
 by (constrains_tac 2);
 by (cut_inst_tac [("m", "tok s")] (NbT_pos RS mod_less_divisor) 2);
 by Auto_tac;
@@ -63,6 +62,7 @@ qed "ask_bounded";
 (*** Towards proving the liveness property ***)
 
 Goal "Client: stable {s. rel s <= giv s}";
+by (asm_full_simp_tac (simpset() addsimps [Client_def]) 1); 
 by (constrains_tac 1);
 by Auto_tac;
 qed "stable_rel_le_giv";
@@ -150,8 +150,8 @@ qed "client_progress";
 (*This shows that the Client won't alter other variables in any state
   that it is combined with*)
 Goal "Client : preserves dummy";
-by (rewtac preserves_def);
-by Auto_tac;
+by (asm_full_simp_tac (simpset() addsimps [Client_def, preserves_def]) 1);
+by (Clarify_tac 1); 
 by (constrains_tac 1);
 by Auto_tac;
 qed "client_preserves_dummy";
@@ -160,6 +160,7 @@ qed "client_preserves_dummy";
 (** Obsolete lemmas from first version of the Client **)
 
 Goal "Client: stable {s. size (rel s) <= size (giv s)}";
+by (asm_full_simp_tac (simpset() addsimps [Client_def]) 1);
 by (constrains_tac 1);
 by Auto_tac;
 qed "stable_size_rel_le_giv";

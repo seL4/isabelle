@@ -10,7 +10,7 @@ Security protocols in UNITY: Needham-Schroeder, public keys (flawed version).
 Original file is ../Auth/NS_Public_Bad
 *)
 
-NSP_Bad = Public + Constrains + 
+NSP_Bad = Public + UNITY_Main + 
 
 types state = event list
 
