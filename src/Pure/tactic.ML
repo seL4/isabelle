@@ -376,20 +376,41 @@ fun result1 tacf mss thm =
 fun asm_rewrite_goal_tac prover_tac mss i =
       PRIMITIVE(rewrite_goal_rule (result1 prover_tac) mss i);
 
-(*Rewrite or fold throughout proof state. *)
-fun rewrite_tac thms = PRIMITIVE(rewrite_rule thms);
-fun fold_tac rths = rewrite_tac (map symmetric rths);
+(*Rewrite throughout proof state. *)
+fun rewrite_tac defs = PRIMITIVE(rewrite_rule defs);
 
 (*Rewrite subgoals only, not main goal. *)
-fun rewrite_goals_tac thms = PRIMITIVE (rewrite_goals_rule thms);
-fun fold_goals_tac rths = rewrite_goals_tac (map symmetric rths);
+fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 
-fun rewtac rth = rewrite_goals_tac [rth];
+fun rewtac def = rewrite_goals_tac [def];
 
 
-(** Renaming of parameters in a subgoal
-    Names may contain letters, digits or primes and must be
-    separated by blanks **)
+(*** Tactic for folding definitions, handling critical pairs ***)
+
+(*The depth of nesting in a term*)
+fun term_depth (Abs(a,T,t)) = 1 + term_depth t
+  | term_depth (f$t) = 1 + max [term_depth f, term_depth t]
+  | term_depth _ = 0;
+
+val lhs_of_thm = #1 o Logic.dest_equals o #prop o rep_thm;
+
+(*folding should handle critical pairs!  E.g. K == Inl(0),  S == Inr(Inl(0))
+  Returns longest lhs first to avoid folding its subexpressions.*)
+fun sort_lhs_depths defs =
+  let val keylist = make_keylist (term_depth o lhs_of_thm) defs
+      val keys = distinct (sort op> (map #2 keylist))
+  in  map (keyfilter keylist) keys  end;
+
+fun fold_tac defs = EVERY 
+    (map rewrite_tac (sort_lhs_depths (map symmetric defs)));
+
+fun fold_goals_tac defs = EVERY 
+    (map rewrite_goals_tac (sort_lhs_depths (map symmetric defs)));
+
+
+(*** Renaming of parameters in a subgoal
+     Names may contain letters, digits or primes and must be
+     separated by blanks ***)
 
 (*Calling this will generate the warning "Same as previous level" since
   it affects nothing but the names of bound variables!*)
