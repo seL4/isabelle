@@ -402,7 +402,8 @@ by (parts_induct_tac 1);
 by (REPEAT_FIRST (fast_tac (!claset 
                               addSEs partsEs
                               addSDs  [Says_imp_sees_Spy RS parts.Inj]
-                              addDs  [impOfSubs analz_subset_parts,
+                              addEs  [leD RS notE]
+			      addDs  [impOfSubs analz_subset_parts,
                                       impOfSubs parts_insert_subset_Un,
                                       Suc_leD]
                               addss (!simpset))));
