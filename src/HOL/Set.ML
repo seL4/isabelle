@@ -110,6 +110,12 @@ qed "subsetD";
 qed_goal "rev_subsetD" Set.thy "[| c:A;  A <= B |] ==> c:B"
  (fn prems=>  [ (REPEAT (resolve_tac (prems@[subsetD]) 1)) ]);
 
+qed_goal "contra_subsetD" Set.thy "!!c. [| A <= B; c ~: B |] ==> c ~: A"
+ (fn prems=>  [ (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ]);
+
+qed_goal "rev_contra_subsetD" Set.thy "!!c. [| c ~: B;  A <= B |] ==> c ~: A"
+ (fn prems=>  [ (REPEAT (eresolve_tac [asm_rl, contrapos, subsetD] 1)) ]);
+
 (*Classical elimination rule*)
 val major::prems = goalw Set.thy [subset_def] 
     "[| A <= B;  c~:A ==> P;  c:B ==> P |] ==> P";
