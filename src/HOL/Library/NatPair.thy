@@ -1,7 +1,7 @@
 (*  Title:      HOL/Library/NatPair.thy
     ID:         $Id$
-    Author:     Christophe Tabacznyj and Lawrence C Paulson
-    Copyright   1996  University of Cambridge
+    Author:     Stefan Richter
+    Copyright   2003 Technische Universitaet Muenchen
 *)
 
 header {*
