@@ -1,7 +1,6 @@
 (*  Title:      HOL/Matrix/MatrixGeneral.thy
     ID:         $Id$
     Author:     Steven Obua
-    License:    2004 Technische Universitaet Muenchen
 *)
 
 theory MatrixGeneral = Main:
@@ -99,6 +98,22 @@ proof -
   ultimately show "finite ?A"by (rule finite_imageD[of ?swap ?A])
 qed
 
+lemma infmatrixforward: "(x::'a infmatrix) = y \<Longrightarrow> \<forall> a b. x a b = y a b" by auto
+
+lemma transpose_infmatrix_inject: "(transpose_infmatrix A = transpose_infmatrix B) = (A = B)"
+apply (auto)
+apply (rule ext)+
+apply (simp add: transpose_infmatrix)
+apply (drule infmatrixforward)
+apply (simp)
+done
+
+lemma transpose_matrix_inject: "(transpose_matrix A = transpose_matrix B) = (A = B)"
+apply (simp add: transpose_matrix_def)
+apply (subst Rep_matrix_inject[THEN sym])+
+apply (simp only: transpose_infmatrix_closed transpose_infmatrix_inject)
+done
+
 lemma transpose_matrix[simp]: "Rep_matrix(transpose_matrix A) j i = Rep_matrix A i j"
 by (simp add: transpose_matrix_def)
 
@@ -174,6 +189,16 @@ apply (simp)
 apply (simp add: nrows_le)
 apply (drule_tac x="nrows A" in spec)
 by (simp add: nrows)
+
+lemma nrows_notzero: "Rep_matrix A m n \<noteq> 0 \<Longrightarrow> m < nrows A"
+apply (case_tac "nrows A <= m")
+apply (simp_all add: nrows)
+done
+
+lemma ncols_notzero: "Rep_matrix A m n \<noteq> 0 \<Longrightarrow> n < ncols A"
+apply (case_tac "ncols A <= n")
+apply (simp_all add: ncols)
+done
 
 lemma finite_natarray1: "finite {x. x < (n::nat)}"
 apply (induct n)
@@ -768,6 +793,10 @@ proof -
   show "ncols 0 = 0" by (rule a, subst ncols_le, simp)
 qed
 
+lemma combine_matrix_zero_l_neutral: "zero_l_neutral f \<Longrightarrow> zero_l_neutral (combine_matrix f)"
+  by (simp add: zero_l_neutral_def combine_matrix_def combine_infmatrix_def)
+
+
 lemma combine_matrix_zero_r_neutral: "zero_r_neutral f \<Longrightarrow> zero_r_neutral (combine_matrix f)"
   by (simp add: zero_r_neutral_def combine_matrix_def combine_infmatrix_def)
 
@@ -800,6 +829,12 @@ lemma combine_matrix_zero: "f 0 0 = 0 \<Longrightarrow> combine_matrix f 0 0 = 0
   apply (simp add: combine_matrix_def combine_infmatrix_def)
   by (simp add: zero_matrix_def)
 
+lemma transpose_matrix_zero[simp]: "transpose_matrix 0 = 0"
+apply (simp add: transpose_matrix_def transpose_infmatrix_def zero_matrix_def RepAbs_matrix)
+apply (subst Rep_matrix_inject[symmetric], (rule ext)+)
+apply (simp add: RepAbs_matrix)
+done
+
 lemma apply_zero_matrix_def[simp]: "apply_matrix (% x. 0) A = 0"
   apply (simp add: apply_matrix_def apply_infmatrix_def)
   by (simp add: zero_matrix_def)
@@ -827,6 +862,12 @@ apply (subst RepAbs_matrix)
 apply (rule exI[of _ "Suc m"], simp)
 apply (rule exI[of _ "Suc n"], simp+)
 by (subst RepAbs_matrix, rule exI[of _ "Suc j"], simp, rule exI[of _ "Suc i"], simp+)+
+
+lemma apply_singleton_matrix[simp]: "f 0 = 0 \<Longrightarrow> apply_matrix f (singleton_matrix j i x) = (singleton_matrix j i (f x))"
+apply (subst Rep_matrix_inject[symmetric])
+apply (rule ext)+
+apply (simp)
+done
 
 lemma singleton_matrix_zero[simp]: "singleton_matrix j i 0 = 0"
   by (simp add: singleton_matrix_def zero_matrix_def)
@@ -870,6 +911,11 @@ apply (rule exI[of _ "Suc j"], simp)
 apply (rule exI[of _ "Suc i"], simp)
 by simp
 
+lemma transpose_singleton[simp]: "transpose_matrix (singleton_matrix j i a) = singleton_matrix i j a"
+apply (subst Rep_matrix_inject[symmetric], (rule ext)+)
+apply (simp)
+done
+
 lemma Rep_move_matrix[simp]:
   "Rep_matrix (move_matrix A y x) j i =
   (if (neg ((int j)-y)) | (neg ((int i)-x)) then 0 else Rep_matrix A (nat((int j)-y)) (nat((int i)-x)))"
@@ -878,6 +924,33 @@ apply (auto)
 by (subst RepAbs_matrix,
   rule exI[of _ "(nrows A)+(nat (abs y))"], auto, rule nrows, arith,
   rule exI[of _ "(ncols A)+(nat (abs x))"], auto, rule ncols, arith)+
+
+lemma move_matrix_0_0[simp]: "move_matrix A 0 0 = A"
+by (simp add: move_matrix_def)
+
+lemma move_matrix_ortho: "move_matrix A j i = move_matrix (move_matrix A j 0) 0 i"
+apply (subst Rep_matrix_inject[symmetric])
+apply (rule ext)+
+apply (simp)
+done
+
+lemma transpose_move_matrix[simp]:
+  "transpose_matrix (move_matrix A x y) = move_matrix (transpose_matrix A) y x"
+apply (subst Rep_matrix_inject[symmetric], (rule ext)+)
+apply (simp)
+done
+
+lemma move_matrix_singleton[simp]: "move_matrix (singleton_matrix u v x) j i = 
+  (if (j + int u < 0) | (i + int v < 0) then 0 else (singleton_matrix (nat (j + int u)) (nat (i + int v)) x))"
+  apply (subst Rep_matrix_inject[symmetric])
+  apply (rule ext)+
+  apply (case_tac "j + int u < 0")
+  apply (simp, arith)
+  apply (case_tac "i + int v < 0")
+  apply (simp add: neg_def, arith)
+  apply (simp add: neg_def)
+  apply arith
+  done
 
 lemma Rep_take_columns[simp]:
   "Rep_matrix (take_columns A c) j i =
@@ -904,6 +977,16 @@ lemma Rep_column_of_matrix[simp]:
 lemma Rep_row_of_matrix[simp]:
   "Rep_matrix (row_of_matrix A r) j i = (if j = 0 then (Rep_matrix A r i) else 0)"
   by (simp add: row_of_matrix_def)
+
+lemma column_of_matrix: "ncols A <= n \<Longrightarrow> column_of_matrix A n = 0"
+apply (subst Rep_matrix_inject[THEN sym])
+apply (rule ext)+
+by (simp add: ncols)
+
+lemma row_of_matrix: "nrows A <= n \<Longrightarrow> row_of_matrix A n = 0"
+apply (subst Rep_matrix_inject[THEN sym])
+apply (rule ext)+
+by (simp add: nrows)
 
 lemma mult_matrix_singleton_right[simp]:
   assumes prems:
@@ -1052,6 +1135,18 @@ assumes
 shows "ncols (mult_matrix fmul fadd A B) \<le> ncols B"
 by (simp add: mult_matrix_def mult_n_ncols prems)
 
+lemma nrows_move_matrix_le: "nrows (move_matrix A j i) <= nat((int (nrows A)) + j)"
+  apply (auto simp add: nrows_le)
+  apply (rule nrows)
+  apply (arith)
+  done
+
+lemma ncols_move_matrix_le: "ncols (move_matrix A j i) <= nat((int (ncols A)) + i)"
+  apply (auto simp add: ncols_le)
+  apply (rule ncols)
+  apply (arith)
+  done
+
 lemma mult_matrix_assoc:
   assumes prems:
   "! a. fmul1 0 a = 0"
@@ -1183,6 +1278,16 @@ lemma transpose_mult_matrix:
   apply (rule ext)+
   by (simp! add: Rep_mult_matrix max_ac)
 
+lemma column_transpose_matrix: "column_of_matrix (transpose_matrix A) n = transpose_matrix (row_of_matrix A n)"
+apply (simp add:  Rep_matrix_inject[THEN sym])
+apply (rule ext)+
+by simp
+
+lemma take_columns_transpose_matrix: "take_columns (transpose_matrix A) n = transpose_matrix (take_rows A n)"
+apply (simp add: Rep_matrix_inject[THEN sym])
+apply (rule ext)+
+by simp
+
 instance matrix :: ("{ord, zero}") ord ..
 
 defs (overloaded)
@@ -1224,8 +1329,7 @@ by (simp! add: le_matrix_def)
 lemma le_left_combine_matrix:
   assumes
   "f 0 0 = 0"
-  "! a b c. 0 <= c & a <= b \<longrightarrow> f c a <= f c b"
-  "0 <= C"
+  "! a b c. a <= b \<longrightarrow> f c a <= f c b"
   "A <= B"
   shows
   "combine_matrix f C A <= combine_matrix f C B"
@@ -1234,8 +1338,7 @@ lemma le_left_combine_matrix:
 lemma le_right_combine_matrix:
   assumes
   "f 0 0 = 0"
-  "! a b c. 0 <= c & a <= b \<longrightarrow> f a c <= f b c"
-  "0 <= C"
+  "! a b c. a <= b \<longrightarrow> f a c <= f b c"
   "A <= B"
   shows
   "combine_matrix f A C <= combine_matrix f B C"
@@ -1258,7 +1361,7 @@ qed
 lemma le_left_mult:
   assumes
   "! a b c d. a <= b & c <= d \<longrightarrow> fadd a c <= fadd b d"
-  "! c a b. 0 <= c & a <= b \<longrightarrow> fmul c a <= fmul c b"
+  "! c a b.   0 <= c & a <= b \<longrightarrow> fmul c a <= fmul c b"
   "! a. fmul 0 a = 0"
   "! a. fmul a 0 = 0"
   "fadd 0 0 = 0"
@@ -1288,5 +1391,8 @@ lemma le_right_mult:
   apply (subst foldseq_zerotail[of _ _ _ "max (nrows C) (max (ncols A) (ncols B))"], simp_all add: nrows ncols max1 max2)+
   apply (rule le_foldseq)
   by (auto)
+
+lemma singleton_matrix_le[simp]: "(singleton_matrix j i a <= singleton_matrix j i b) = (a <= (b::_::order))"
+  by (auto simp add: le_matrix_def)
 
 end

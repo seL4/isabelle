@@ -48,7 +48,7 @@ qed
 
 lemma linprog_by_duality_approx:
   assumes
-  "(A + dA) * x <= (b::('a::pordered_matrix_element) matrix)"
+  "(A + dA) * x <= (b::('a::lordered_ring) matrix)"
   "y * A = c"
   "0 <= y"
   shows
@@ -56,17 +56,17 @@ lemma linprog_by_duality_approx:
 apply (simp add: times_matrix_def plus_matrix_def)
 apply (rule linprog_by_duality_approx_general)
 apply (simp_all)
-apply (simp_all add: associative_def matrix_add_assoc matrix_mult_assoc)
-apply (simp_all add: commutative_def matrix_add_commute)
-apply (simp_all add: distributive_def l_distributive_def r_distributive_def matrix_left_distrib matrix_right_distrib)
+apply (simp_all add: associative_def add_assoc mult_assoc)
+apply (simp_all add: commutative_def add_commute)
+apply (simp_all add: distributive_def l_distributive_def r_distributive_def left_distrib right_distrib)
 apply (simp_all! add: plus_matrix_def times_matrix_def)
-apply (simp add: pordered_add)
-apply (simp add: pordered_mult_left)
+apply (simp add: add_mono)
+apply (simp add: mult_left_mono)
 done
 
 lemma linprog_by_duality:
   assumes
-  "A * x <= (b::('a::pordered_g_semiring) matrix)"
+  "A * x <= (b::('a::lordered_ring) matrix)"
   "y * A = c"
   "0 <= y"
   shows

@@ -27,6 +27,8 @@ axclass semiring \<subseteq> ab_semigroup_add, semigroup_mult
 
 axclass semiring_0 \<subseteq> semiring, comm_monoid_add
 
+axclass semiring_0_cancel \<subseteq> semiring_0, cancel_ab_semigroup_add
+
 axclass comm_semiring \<subseteq> ab_semigroup_add, ab_semigroup_mult  
   mult_commute: "a * b = b * a"
   distrib: "(a + b) * c = a * c + b * c"
@@ -45,6 +47,10 @@ axclass comm_semiring_0 \<subseteq> comm_semiring, comm_monoid_add
 
 instance comm_semiring_0 \<subseteq> semiring_0 ..
 
+axclass comm_semiring_0_cancel \<subseteq> comm_semiring_0, cancel_ab_semigroup_add
+
+instance comm_semiring_0_cancel \<subseteq> semiring_0_cancel ..
+
 axclass axclass_0_neq_1 \<subseteq> zero, one
   zero_neq_one [simp]: "0 \<noteq> 1"
 
@@ -57,19 +63,29 @@ instance comm_semiring_1 \<subseteq> semiring_1 ..
 axclass axclass_no_zero_divisors \<subseteq> zero, times
   no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
 
+axclass semiring_1_cancel \<subseteq> semiring_1, cancel_ab_semigroup_add
+
+instance semiring_1_cancel \<subseteq> semiring_0_cancel ..
+
 axclass comm_semiring_1_cancel \<subseteq> comm_semiring_1, cancel_ab_semigroup_add (* previously semiring *)
+
+instance comm_semiring_1_cancel \<subseteq> semiring_1_cancel ..
+
+instance comm_semiring_1_cancel \<subseteq> comm_semiring_0_cancel ..
 
 axclass ring \<subseteq> semiring, ab_group_add
 
-instance ring \<subseteq> semiring_0 ..
+instance ring \<subseteq> semiring_0_cancel ..
 
 axclass comm_ring \<subseteq> comm_semiring_0, ab_group_add
 
 instance comm_ring \<subseteq> ring ..
 
-instance comm_ring \<subseteq> comm_semiring_0 ..
+instance comm_ring \<subseteq> comm_semiring_0_cancel ..
 
 axclass ring_1 \<subseteq> ring, semiring_1
+
+instance ring_1 \<subseteq> semiring_1_cancel ..
 
 axclass comm_ring_1 \<subseteq> comm_ring, comm_semiring_1 (* previously ring *)
 
@@ -83,7 +99,7 @@ axclass field \<subseteq> comm_ring_1, inverse
   left_inverse [simp]: "a \<noteq> 0 ==> inverse a * a = 1"
   divide_inverse:      "a / b = a * inverse b"
 
-lemma mult_zero_left [simp]: "0 * a = (0::'a::{semiring_0, cancel_semigroup_add})"
+lemma mult_zero_left [simp]: "0 * a = (0::'a::semiring_0_cancel)"
 proof -
   have "0*a + 0*a = 0*a + 0"
     by (simp add: left_distrib [symmetric])
@@ -91,7 +107,7 @@ proof -
     by (simp only: add_left_cancel)
 qed
 
-lemma mult_zero_right [simp]: "a * 0 = (0::'a::{semiring_0, cancel_semigroup_add})"
+lemma mult_zero_right [simp]: "a * 0 = (0::'a::semiring_0_cancel)"
 proof -
   have "a*0 + a*0 = a*0 + 0"
     by (simp add: right_distrib [symmetric])
@@ -155,9 +171,13 @@ axclass pordered_semiring \<subseteq> semiring_0, pordered_ab_semigroup_add
 
 axclass pordered_cancel_semiring \<subseteq> pordered_semiring, cancel_ab_semigroup_add
 
+instance pordered_cancel_semiring \<subseteq> semiring_0_cancel ..
+
 axclass ordered_semiring_strict \<subseteq> semiring_0, ordered_cancel_ab_semigroup_add
   mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
   mult_strict_right_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> a * c < b * c"
+
+instance ordered_semiring_strict \<subseteq> semiring_0_cancel ..
 
 instance ordered_semiring_strict \<subseteq> pordered_cancel_semiring
 apply intro_classes
@@ -199,6 +219,10 @@ instance pordered_ring \<subseteq> pordered_ab_group_add ..
 instance pordered_ring \<subseteq> pordered_cancel_semiring ..
 
 axclass lordered_ring \<subseteq> pordered_ring, lordered_ab_group_abs
+
+instance lordered_ring \<subseteq> lordered_ab_group_meet ..
+
+instance lordered_ring \<subseteq> lordered_ab_group_join ..
 
 axclass axclass_abs_if \<subseteq> minus, ord, zero
   abs_if: "abs a = (if (a < 0) then (-a) else a)"
