@@ -4,8 +4,8 @@
 
 theory Main = Map + String:
 
-(*actually belongs to theory List*)
-lemmas [mono] = lists_mono
-lemmas [recdef_cong] = map_cong
+(*belongs to theory List*)
+declare lists_mono [mono]
+declare map_cong [recdef_cong]
 
 end

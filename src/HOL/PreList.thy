@@ -9,8 +9,12 @@ basis for theory ToyList in the documentation.
 
 theory PreList =
   Option + Wellfounded_Relations + NatSimprocs + Recdef + Record +
-  Relation_Power + Calculation + SVC_Oracle + While:
+  Relation_Power + Calculation + SVC_Oracle:
 
-theorems [cases type: bool] = case_split
+(*belongs to theory HOL*)
+declare case_split [cases type: bool]
+
+(*belongs to theory Wellfounded_Recursion*)
+declare wf_induct [induct set: wf]
 
 end
