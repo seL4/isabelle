@@ -116,7 +116,7 @@ fun bigimpl_ast_tr (*"_bigimpl"*) [asms, concl] =
   | bigimpl_ast_tr (*"_bigimpl"*) asts = raise_ast "bigimpl_ast_tr" asts;
 
 
-(* explode atoms *)
+(* explode strings *)
 
 fun explode_tr (*"_explode"*) (ts as [consC, nilC, bit0, bit1, txt]) =
       let
@@ -127,8 +127,10 @@ fun explode_tr (*"_explode"*) (ts as [consC, nilC, bit0, bit1, txt]) =
           | encode_bit 1 = bit1
           | encode_bit _ = sys_error "encode_bit";
 
-        fun encode_char c =   (* FIXME leading 0s (?) *)
-          mk_list (map encode_bit (radixpand (2, (ord c))));
+        fun encode_char c =
+          let val bits = radixpand (2, ord c) in
+            mk_list (map encode_bit (replicate (8 - length bits) 0 @ bits))
+          end;
 
         val str =
           (case txt of
@@ -274,7 +276,7 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
   | dependent_tr' _ _ = raise Match;
 
 
-(* implode atoms *)
+(* implode strings *)
 
 fun implode_ast_tr' (*"_implode"*) (asts as [Constant cons_name, nilC,
     bit0, bit1, bitss]) =
@@ -294,7 +296,7 @@ fun implode_ast_tr' (*"_implode"*) (asts as [Constant cons_name, nilC,
         fun decode_char bits =
           chr (#1 (scan_radixint (2, map decode_bit (strip_list bits))));
       in
-        Variable (implode (map decode_char (strip_list bitss)))
+        Variable ("''" ^ implode (map decode_char (strip_list bitss)) ^ "''")
       end
   | implode_ast_tr' (*"_implode"*) asts = raise_ast "implode_ast_tr'" asts;
 
