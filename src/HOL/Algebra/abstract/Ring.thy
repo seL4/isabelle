@@ -9,16 +9,15 @@ Ring = Main +
 (* Syntactic class ring *)
 
 axclass
-  ringS < plus, minus, times, power, inverse
+  ringS < zero, plus, minus, times, power, inverse
 
 consts
   (* Basic rings *)
-  "<0>"		:: 'a::ringS				("<0>")
   "<1>"		:: 'a::ringS				("<1>")
   "--"		:: ['a, 'a] => 'a::ringS		(infixl 65)
 
   (* Divisibility *)
-  assoc		:: ['a::times, 'a] => bool		(infixl 70)
+  assoc		:: ['a::times, 'a] => bool		(infixl 50)
   irred		:: 'a::ringS => bool
   prime		:: 'a::ringS => bool
 
@@ -31,8 +30,8 @@ axclass
   ring < ringS
 
   a_assoc	"(a + b) + c = a + (b + c)"
-  l_zero	"<0> + a = a"
-  l_neg		"(-a) + a = <0>"
+  l_zero	"0 + a = a"
+  l_neg		"(-a) + a = 0"
   a_comm	"a + b = b + a"
 
   m_assoc	"(a * b) * c = a * (b * c)"
@@ -42,18 +41,17 @@ axclass
 
   m_comm	"a * b = b * a"
 
-  one_not_zero	"<1> ~= <0>"
-  		(* if <1> = <0>, then the ring has only one element! *)
+  (* Definition of derived operations *)
 
-  inverse_ax    "inverse a = (if a dvd <1> then @x. a*x = <1> else <0>)"
+  inverse_ax    "inverse a = (if a dvd <1> then @x. a*x = <1> else 0)"
   divide_ax     "a / b = a * inverse b"
   power_ax	"a ^ n = nat_rec <1> (%u b. b * a) n"
 
 defs
   assoc_def	"a assoc b == a dvd b & b dvd a"
-  irred_def	"irred a == a ~= <0> & ~ a dvd <1>
+  irred_def	"irred a == a ~= 0 & ~ a dvd <1>
                           & (ALL d. d dvd a --> d dvd <1> | a dvd d)"
-  prime_def	"prime p == p ~= <0> & ~ p dvd <1>
+  prime_def	"prime p == p ~= 0 & ~ p dvd <1>
                           & (ALL a b. p dvd (a*b) --> p dvd a | p dvd b)"
 
 (* Integral domains *)
@@ -61,7 +59,8 @@ defs
 axclass
   domain < ring
 
-  integral	"a * b = <0> ==> a = <0> | b = <0>"
+  one_not_zero	"<1> ~= 0"
+  integral	"a * b = 0 ==> a = 0 | b = 0"
 
 (* Factorial domains *)
 
@@ -81,7 +80,7 @@ axclass
 axclass
   euclidean < domain
 
-  euclidean_ax	"b ~= <0> ==> Ex (% (q, r, e_size::('a::ringS)=>nat).
+  euclidean_ax	"b ~= 0 ==> Ex (% (q, r, e_size::('a::ringS)=>nat).
                    a = b * q + r & e_size r < e_size b)"
 
   Nothing has been proved about euclidean domains, yet.
@@ -101,6 +100,9 @@ axclass
 axclass
   field < ring
 
-  field_ax	"a ~= <0> ==> a dvd <1>"
+  field_one_not_zero	"<1> ~= 0"
+		(* Avoid a common superclass as the first thing we will
+		   prove about fields is that they are domains. *)
+  field_ax	"a ~= 0 ==> a dvd <1>"
 
 end

@@ -55,10 +55,11 @@ by (asm_simp_tac (simpset() addsimps [boundI, deg_aboveD]) 2);
 by (asm_simp_tac (simpset() addsimps [boundI, deg_aboveD]) 2);
 (* getting a^i and a^(k-i) together is difficult, so we do is manually *)
 by (res_inst_tac [("s", 
-"        SUM (deg aa + deg b) \
-\           (%k. SUM k \
+"        setsum  \
+\           (%k. setsum \
 \                 (%i. phi (coeff i aa) * (phi (coeff (k - i) b) * \
-\                      (a ^ i * a ^ (k - i)))))")] trans 1);
+\                      (a ^ i * a ^ (k - i)))) {..k}) \
+\           {..deg aa + deg b}")] trans 1);
 by (asm_simp_tac (simpset()
     addsimps [power_mult, leD RS add_diff_inverse, SUM_ldistr]) 1);
 by (simp_tac (simpset() addsimps m_ac) 1);
@@ -72,14 +73,14 @@ Goalw [EVAL2_def]
 by (Simp_tac 1);
 qed "EVAL2_const";
 
-(* This is probably redundant *)
 Goalw [EVAL2_def]
-  "!! phi::'a::ring=>'b::ring. homo phi ==> EVAL2 phi a (monom 1) = a";
+  "!! phi::'a::domain=>'b::ring. homo phi ==> EVAL2 phi a (monom 1) = a";
+(* Must be able to distinguish 0 from <1>, hence 'a::domain *)
 by (Asm_simp_tac 1);
 qed "EVAL2_monom1";
 
 Goalw [EVAL2_def]
-  "!! phi::'a::ring=>'b::ring. homo phi ==> EVAL2 phi a (monom n) = a ^ n";
+  "!! phi::'a::domain=>'b::ring. homo phi ==> EVAL2 phi a (monom n) = a ^ n";
 by (Simp_tac 1);
 by (case_tac "n" 1); 
 by Auto_tac;
@@ -100,7 +101,7 @@ Goalw [EVAL_def] "!! a::'a::ring. EVAL a (const b) = b";
 by (asm_simp_tac (simpset() addsimps [EVAL2_const]) 1);
 qed "EVAL_const";
 
-Goalw [EVAL_def] "!! a::'a::ring. EVAL a (monom n) = a ^ n";
+Goalw [EVAL_def] "!! a::'a::domain. EVAL a (monom n) = a ^ n";
 by (asm_simp_tac (simpset() addsimps [EVAL2_monom]) 1);
 qed "EVAL_monom";
 
@@ -111,13 +112,13 @@ qed "EVAL_smult";
 (* Examples *)
 
 Goal
-  "EVAL (x::'a::ring) (a*X^2 + b*X^1 + c*X^0) = a * x ^ 2 + b * x ^ 1 + c";
+  "EVAL (x::'a::domain) (a*X^2 + b*X^1 + c*X^0) = a * x ^ 2 + b * x ^ 1 + c";
 by (asm_simp_tac (simpset() delsimps [power_Suc]
     addsimps [EVAL_homo, EVAL_monom, EVAL_smult]) 1);
 result();
 
 Goal
-  "EVAL (y::'a::ring) \
+  "EVAL (y::'a::domain) \
 \    (EVAL (const x) (monom 1 + const (a*X^2 + b*X^1 + c*X^0))) = \
 \  x ^ 1 + (a * y ^ 2 + b * y ^ 1 + c)";
 by (asm_simp_tac (simpset() delsimps [power_Suc]

@@ -24,8 +24,8 @@ Goalw [homo_def] "!! f. homo f ==> f <1> = <1>";
 by (Fast_tac 1);
 qed "homo_one";
 
-Goal "!! f::('a::ring=>'b::ring). homo f ==> f <0> = <0>";
-by (res_inst_tac [("a", "f <0>")] a_lcancel 1);
+Goal "!! f::('a::ring=>'b::ring). homo f ==> f 0 = 0";
+by (res_inst_tac [("a", "f 0")] a_lcancel 1);
 by (asm_simp_tac (simpset() addsimps [homo_add RS sym]) 1);
 qed "homo_zero";
 
@@ -45,11 +45,12 @@ by (Asm_simp_tac 1);
 qed "homo_power";
 
 Goal
-  "!! f::('a::ring=>'b::ring). homo f ==> f (SUM n g) = SUM n (f o g)";
+  "!! f::('a::ring=>'b::ring). \
+\  homo f ==> f (setsum g {..n::nat}) = setsum (f o g) {..n}";
 by (induct_tac "n" 1);
 by (Asm_simp_tac 1);
 by (Simp_tac 1);
-by (dres_inst_tac [("a", "g (Suc n)"), ("b", "SUM n g")] homo_add 1);
+by (dres_inst_tac [("a", "g (Suc n)"), ("b", "setsum g {..n}")] homo_add 1);
 by (Asm_simp_tac 1);
 qed "homo_SUM";
 

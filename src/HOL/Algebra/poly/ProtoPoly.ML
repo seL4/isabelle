@@ -7,12 +7,12 @@
 (* Rules for bound *)
 
 val prem = goalw ProtoPoly.thy [bound_def]
-  "[| !! m. n < m ==> f m = <0> |] ==> bound n f";
+  "[| !! m. n < m ==> f m = 0 |] ==> bound n f";
 by (fast_tac (claset() addIs prem) 1);
 qed "boundI";
 
 Goalw [bound_def]
-  "!! f. [| bound n f; n < m |] ==> f m = <0>";
+  "!! f. [| bound n f; n < m |] ==> f m = 0";
 by (Fast_tac 1);
 qed "boundD";
 
@@ -25,6 +25,6 @@ qed "le_bound";
 AddSIs [boundI];
 AddDs [boundD];
 
-Goal "(%x. <0>) : {f. EX n. bound n f}";
+Goal "(%x. 0) : {f. EX n. bound n f}";
 by (Blast_tac 1);
 qed "UP_witness";

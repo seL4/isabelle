@@ -10,6 +10,6 @@ consts
   bound :: [nat, nat => 'a::ringS] => bool
 
 defs
-  bound_def  "bound n f == ALL i. n<i --> f i = <0>"
+  bound_def  "bound n f == ALL i. n<i --> f i = 0"
 
 end

@@ -37,13 +37,13 @@ qed "smult_assoc2";
 (* the following can be derived from the above ones,
    for generality reasons, it is therefore done *)
 
-Goal "(<0>::'a::ring) *s p = <0>";
+Goal "(0::'a::ring) *s p = 0";
 by (rtac a_lcancel 1);
 by (rtac (smult_l_distr RS sym RS trans) 1);
 by (Simp_tac 1);
 qed "smult_l_null";
 
-Goal "!!a::'a::ring. a *s <0> = <0>";
+Goal "!!a::'a::ring. a *s 0 = 0";
 by (rtac a_lcancel 1);
 by (rtac (smult_r_distr RS sym RS trans) 1);
 by (Simp_tac 1);

@@ -6,10 +6,7 @@
 
 NatSum = Ring +
 
-consts
-  SUM		:: [nat, nat => 'a] => 'a::ringS
-
-defs
-  SUM_def	"SUM n f == nat_rec <0> (%m sum. f m + sum) (Suc n)"
+instance
+  ring < plus_ac0 (a_assoc, a_comm, l_zero)
 
 end

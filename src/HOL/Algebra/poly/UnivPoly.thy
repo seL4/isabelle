@@ -28,15 +28,15 @@ defs
   coeff_def	"coeff n p == Rep_UP p n"
   up_add_def	"p + q == Abs_UP (%n. Rep_UP p n + Rep_UP q n)"
   up_smult_def	"a *s p == Abs_UP (%n. a * Rep_UP p n)"
-  monom_def	"monom m == Abs_UP (%n. if m=n then <1> else <0>)"
-  const_def	"const a == Abs_UP (%n. if n=0 then a else <0>)"
-  up_mult_def	"p * q == Abs_UP (%n. SUM n
-		     (%i. Rep_UP p i * Rep_UP q (n-i)))"
+  monom_def	"monom m == Abs_UP (%n. if m=n then <1> else 0)"
+  const_def	"const a == Abs_UP (%n. if n=0 then a else 0)"
+  up_mult_def	"p * q == Abs_UP (%n::nat. setsum
+		     (%i. Rep_UP p i * Rep_UP q (n-i)) {..n})"
 
-  up_zero_def	"<0> == Abs_UP (%x. <0>)"
+  up_zero_def	"0 == Abs_UP (%x. 0)"
   up_one_def	"<1> == monom 0"
   up_uminus_def	"- p == (-<1>) *s p"
-  up_inverse_def "inverse (a::'a::ringS up) == (if a dvd <1> then @x. a*x = <1> else <0>)"
+  up_inverse_def "inverse (a::'a::ringS up) == (if a dvd <1> then @x. a*x = <1> else 0)"
   up_divide_def "(a::'a::ringS up) / b == a * inverse b"
   up_power_def	"a ^ n == nat_rec (<1>::('a::ringS) up) (%u b. b * a) n"
 end

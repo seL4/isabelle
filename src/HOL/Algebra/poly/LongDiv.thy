@@ -12,7 +12,7 @@ consts
 
 defs
   lcoeff_def	"lcoeff p == coeff (deg p) p"
-  eucl_size_def "eucl_size p == if p = <0> then 0 else deg p+1"
+  eucl_size_def "eucl_size p == if p = 0 then 0 else deg p+1"
 
 end
 

@@ -29,17 +29,17 @@ by (Force_tac 1);
 qed "UP_closed_smult";
 
 Goalw [UP_def]
-  "(%n. if m = n then <1> else <0>) : UP";
+  "(%n. if m = n then <1> else 0) : UP";
 by Auto_tac;
 qed "UP_closed_monom";
 
-Goalw [UP_def] "(%n. if n = 0 then a else <0>) : UP";
+Goalw [UP_def] "(%n. if n = 0 then a else 0) : UP";
 by Auto_tac;
 qed "UP_closed_const";
 
 Goal
   "!! f::nat=>'a::ring. \
-\    [| bound n f; bound m g; n + m < k |] ==> f i * g (k - i) = <0>";
+\    [| bound n f; bound m g; n + m < k |] ==> f i * g (k - i) = 0";
 (* Case split: either f i or g (k - i) is zero *)
 by (case_tac "n<i" 1);
 (* First case, f i is zero *)
@@ -52,7 +52,7 @@ qed "bound_mult_zero";
 
 Goalw [UP_def]
   "[| f : UP; g : UP |] ==> \
-\      (%n. (SUM n (%i. f i * g (n-i))::'a::ring)) : UP";
+\      (%n. (setsum (%i. f i * g (n-i)) {..n}::'a::ring)) : UP";
 by (Step_tac 1);
 (* Instantiate bound for the product, and remove bound in goal *)
 by (res_inst_tac [("x", "n + na")] exI 1);
@@ -61,9 +61,9 @@ by (Step_tac 1);
 by (asm_simp_tac (simpset() addsimps [bound_mult_zero]) 1);
 qed "UP_closed_mult";
 
-(* %x. <0> represents a polynomial *)
+(* %x. 0 represents a polynomial *)
 
-Goalw [UP_def] "(%x. <0>) : UP";
+Goalw [UP_def] "(%x. 0) : UP";
 by (Fast_tac 1);
 qed "UP_zero";
 
@@ -80,21 +80,21 @@ by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_smult, Rep_UP]) 
 qed "coeff_smult";
 
 Goalw [coeff_def, monom_def]
-  "coeff n (monom m) = (if m=n then <1> else <0>)";
+  "coeff n (monom m) = (if m=n then <1> else 0)";
 by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_monom, Rep_UP]) 1);
 qed "coeff_monom";
 
 Goalw [coeff_def, const_def]
-  "coeff n (const a) = (if n=0 then a else <0>)";
+  "coeff n (const a) = (if n=0 then a else 0)";
 by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_const, Rep_UP]) 1);
 qed "coeff_const";
 
 Goalw [coeff_def, up_mult_def]
-  "coeff n (p * q) = (SUM n (%i. coeff i p * coeff (n-i) q)::'a::ring)";
+  "coeff n (p * q) = (setsum (%i. coeff i p * coeff (n-i) q) {..n}::'a::ring)";
 by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_closed_mult, Rep_UP]) 1);
 qed "coeff_mult";
 
-Goalw [coeff_def, up_zero_def] "coeff n <0> = <0>";
+Goalw [coeff_def, up_zero_def] "coeff n 0 = 0";
 by (asm_simp_tac (simpset() addsimps [Abs_UP_inverse, UP_zero, Rep_UP]) 1);
 qed "coeff_zero";
 
@@ -102,7 +102,7 @@ Addsimps [coeff_add, coeff_smult, coeff_monom, coeff_const,
 	  coeff_mult, coeff_zero];
 
 Goalw [up_one_def]
-  "coeff n <1> = (if n=0 then <1> else <0>)";
+  "coeff n <1> = (if n=0 then <1> else 0)";
 by (Simp_tac 1);
 qed "coeff_one";
 
@@ -132,12 +132,12 @@ by (Simp_tac 1);
 by (rtac a_assoc 1);
 qed "up_a_assoc";
 
-Goal "!! a::('a::ring) up. <0> + a = a";
+Goal "!! a::('a::ring) up. 0 + a = a";
 by (rtac up_eqI 1);
 by (Simp_tac 1);
 qed "up_l_zero";
 
-Goal "!! a::('a::ring) up. (-a) + a = <0>";
+Goal "!! a::('a::ring) up. (-a) + a = 0";
 by (rtac up_eqI 1);
 by (Simp_tac 1);
 qed "up_l_neg";
@@ -176,11 +176,6 @@ by (cut_inst_tac [("a", "%i. coeff i a"), ("b", "%i. coeff i b")]
 by (asm_full_simp_tac (simpset() addsimps [m_comm]) 1);
 qed "up_m_comm";
 
-Goal "<1> ~= (<0>::('a::ring) up)";
-by (res_inst_tac [("n", "0")] up_neqI 1);
-by (Simp_tac 1);
-qed "up_one_not_zero";
-
 (* Further algebraic rules *)
 
 Goal "!! a::'a::ring. const a * p = a *s p";
@@ -206,7 +201,7 @@ by (rtac up_eqI 1);
 by (Simp_tac 1);
 qed "const_one";
 
-Goal "const (<0>::'a::ring) = <0>";
+Goal "const (0::'a::ring) = 0";
 by (rtac up_eqI 1);
 by (Simp_tac 1);
 qed "const_zero";
@@ -226,7 +221,8 @@ qed "const_inj";
 (*Lemma used in PolyHomo*)
 Goal
   "!! f::nat=>'a::ring. [| bound n f; bound m g|] ==> \
-\    SUM (n + m) (%k. SUM k (%i. f i * g (k-i))) = SUM n f * SUM m g";
+\    setsum (%k. setsum (%i. f i * g (k-i)) {..k}) {..n + m} = \
+\    setsum f {..n} * setsum g {..m}";
 by (simp_tac (simpset() addsimps [SUM_ldistr, DiagSum]) 1);
 (* SUM_rdistr must be applied after SUM_ldistr ! *)
 by (simp_tac (simpset() addsimps [SUM_rdistr]) 1);
@@ -239,3 +235,8 @@ by (res_inst_tac [("m", "m"), ("n", "n+m-i")] SUM_shrink 1);
 by (asm_simp_tac (simpset() addsimps [le_add_diff]) 1);
 by Auto_tac;
 qed "CauchySum";
+
+Goal "<1> ~= (0::('a::domain) up)";
+by (res_inst_tac [("n", "0")] up_neqI 1);
+by (Simp_tac 1);
+qed "up_one_not_zero";
