@@ -42,22 +42,21 @@ sig
   val cert_context_statement: string option -> context attribute element_i list ->
     (term * (term list * term list)) list list -> context ->
     string option * context * context * (term * (term list * term list)) list list
-
   val add_locale: bstring -> expr -> context attribute element list -> theory -> theory
   val add_locale_i: bstring -> expr -> context attribute element_i list -> theory -> theory
   val print_locales: theory -> unit
   val print_locale: theory -> expr -> unit
+  val have_thmss: string -> xstring ->
+    ((bstring * context attribute list) * (xstring * context attribute list) list) list ->
+    theory -> theory * (bstring * thm list) list
+  val have_thmss_i: string -> string ->
+    ((bstring * context attribute list) * (thm list * context attribute list) list) list ->
+    theory -> theory * (bstring * thm list) list
   val add_thmss_hybrid: string ->
     ((bstring * theory attribute list) * (thm list * theory attribute list) list) list ->
-    (string * context attribute list list) option -> thm list list ->
-    theory -> theory * (string * thm list) list
+    (string * context attribute list list) option -> thm list list -> theory ->
+    theory * (string * thm list) list
   val setup: (theory -> theory) list
-  val have_thmss: string -> string ->
-    ((string * context attribute list) * (string * context attribute list) list) list ->
-    theory -> theory * (string * thm list) list
-  val have_thmss_i: string -> string ->
-    ((string * context attribute list) * (thm list * context attribute list) list) list ->
-    theory -> theory * (string * thm list) list
 end;
 
 structure Locale: LOCALE =
@@ -401,7 +400,7 @@ fun activate_elem (Fixes fixes) = ProofContext.add_fixes fixes
       (map (fn ((name, atts), (t, ps)) =>
         let val (c, t') = ProofContext.cert_def ctxt t
         in ((if name = "" then Thm.def_name c else name, atts), [(t', (ps, []))]) end) defs) ctxt))
-  | activate_elem (Notes facts) = #1 o ProofContext.have_thmss facts;
+  | activate_elem (Notes facts) = #1 o ProofContext.have_thmss_i facts;
 
 fun activate_elems ((name, ps), elems) = ProofContext.qualified (fn ctxt =>
   foldl (fn (c, e) => activate_elem e c) (ctxt, elems) handle ProofContext.CONTEXT (msg, ctxt) =>
@@ -728,7 +727,7 @@ fun hide_bound_names names thy =
 fun have_thmss_qualified kind loc args thy =
   thy
   |> Theory.add_path (Sign.base_name loc)
-  |> PureThy.have_thmss [Drule.kind kind] args
+  |> PureThy.have_thmss_i (Drule.kind kind) args
   |>> hide_bound_names (map (#1 o #1) args)
   |>> Theory.parent_path;
 
@@ -739,7 +738,7 @@ fun gen_have_thmss prep_locale get_thms kind raw_loc raw_args thy =
     val loc_ctxt = #1 (#1 (cert_context (Locale loc) [] thy_ctxt));
     val args = map (apsnd (map (apfst (get_thms loc_ctxt)))) raw_args;
     val export = Drule.local_standard o ProofContext.export_single loc_ctxt thy_ctxt;
-    val results = map (map export o #2) (#2 (ProofContext.have_thmss args loc_ctxt));
+    val results = map (map export o #2) (#2 (ProofContext.have_thmss_i args loc_ctxt));
     val args' = map (rpair [] o #1 o #1) args ~~ map (single o Thm.no_attributes) results;
   in
     thy
@@ -749,16 +748,16 @@ fun gen_have_thmss prep_locale get_thms kind raw_loc raw_args thy =
 
 in
 
-fun add_thmss_hybrid kind args None _ thy = PureThy.have_thmss [Drule.kind kind] args thy
+val have_thmss = gen_have_thmss intern ProofContext.get_thms;
+val have_thmss_i = gen_have_thmss (K I) (K I);
+
+fun add_thmss_hybrid kind args None _ thy = PureThy.have_thmss_i (Drule.kind kind) args thy
   | add_thmss_hybrid kind args (Some (loc, loc_atts)) loc_ths thy =
      if length args = length loc_atts then
       thy
       |> add_thmss loc ((map (#1 o #1) args ~~ loc_ths) ~~ loc_atts)
       |> have_thmss_qualified kind loc args
      else raise THEORY ("Bad number of locale attributes", [thy]);
-
-val have_thmss = gen_have_thmss intern ProofContext.get_thms;
-val have_thmss_i = gen_have_thmss (K I) (K I);
 
 end;
 

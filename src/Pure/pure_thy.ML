@@ -37,13 +37,18 @@ sig
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
   val add_thms: ((bstring * thm) * theory attribute list) list -> theory -> theory * thm list
-  val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory -> theory * thm list list
-  val have_thmss: theory attribute list -> ((bstring * theory attribute list) *
-    (thm list * theory attribute list) list) list -> theory -> theory * (string * thm list) list
+  val add_thmss: ((bstring * thm list) * theory attribute list) list -> theory
+    -> theory * thm list list
+  val have_thmss: theory attribute -> ((bstring * theory attribute list) *
+    (xstring * theory attribute list) list) list -> theory -> theory * (bstring * thm list) list
+  val have_thmss_i: theory attribute -> ((bstring * theory attribute list) *
+    (thm list * theory attribute list) list) list -> theory -> theory * (bstring * thm list) list
   val add_axioms: ((bstring * string) * theory attribute list) list -> theory -> theory * thm list
   val add_axioms_i: ((bstring * term) * theory attribute list) list -> theory -> theory * thm list
-  val add_axiomss: ((bstring * string list) * theory attribute list) list -> theory -> theory * thm list list
-  val add_axiomss_i: ((bstring * term list) * theory attribute list) list -> theory -> theory * thm list list
+  val add_axiomss: ((bstring * string list) * theory attribute list) list -> theory
+    -> theory * thm list list
+  val add_axiomss_i: ((bstring * term list) * theory attribute list) list -> theory
+    -> theory * thm list list
   val add_defs: bool -> ((bstring * string) * theory attribute list) list
     -> theory -> theory * thm list
   val add_defs_i: bool -> ((bstring * term) * theory attribute list) list
@@ -294,19 +299,26 @@ val add_thmss = gen_add_thmss name_thms;
 val add_thms = gen_add_thms name_thms;
 
 
-(* have_thmss *)
+(* have_thmss(_i) *)
 
 local
-  fun have_thss kind_atts (thy, ((bname, more_atts), ths_atts)) =
-    let
-      fun app (x, (ths, atts)) = Thm.applys_attributes ((x, ths), atts);
-      val (thy', thms) = enter_thms (Theory.sign_of thy)
-        name_thmss name_thms (apsnd flat o foldl_map app) thy
-        (bname, map (fn (ths, atts) =>
-          (ths, atts @ more_atts @ kind_atts)) ths_atts);
-    in (thy', (bname, thms)) end;
+
+fun gen_have_thss get kind_att (thy, ((bname, more_atts), ths_atts)) =
+  let
+    fun app (x, (ths, atts)) = Thm.applys_attributes ((x, ths), atts);
+    val (thy', thms) = enter_thms (Theory.sign_of thy)
+      name_thmss name_thms (apsnd flat o foldl_map app) thy
+      (bname, map (fn (ths, atts) => (get thy ths, atts @ more_atts @ [kind_att])) ths_atts);
+  in (thy', (bname, thms)) end;
+
+fun gen_have_thmss get kind_att args thy =
+  foldl_map (gen_have_thss get kind_att) (thy, args);
+
 in
-  fun have_thmss kind_atts args thy = foldl_map (have_thss kind_atts) (thy, args);
+
+val have_thmss = gen_have_thmss get_thms;
+val have_thmss_i = gen_have_thmss (K I);
+
 end;
 
 
