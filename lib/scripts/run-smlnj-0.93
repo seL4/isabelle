@@ -1,0 +1,60 @@
+#!/bin/bash -norc
+#
+# $Id$
+#
+# SML/NJ startup script (for 0.93).
+#
+# Global vars: INFILE OUTFILE COPYDB MLTEXT TERMINATE,
+# and from settings
+
+
+## diagnostics
+
+function fail_out()
+{
+  echo "Unable to create output heap file: \"$OUTFILE\"" >&2
+  exit 2
+}
+
+
+## prepare databases
+
+EXIT="val exit = System.Unsafe.CInterface.exit;"
+
+[ -z "$INFILE" ] && INFILE="$ML_HOME/sml"
+MOVE=""
+
+if [ -z "$OUTFILE" ]; then
+  COMMIT='fun commit () = (output (std_err, "Error - Database is not opened for writing.\n"); false);'
+else
+  if [ "$INFILE" -ef "$OUTFILE" ]; then
+    OUTDIR=$(dirname "$OUTFILE")/tmp
+    OUTFILE=$OUTDIR/$(basename "$OUTFILE")
+    mkdir -p "$OUTDIR" || fail_out
+    MOVE=true
+  fi
+  [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out }
+  COMMIT="fun commit () = not (exportML\"$OUTFILE\");"
+fi
+
+MLTEXT="$EXIT $COMMIT $MLTEXT"
+MLEXIT="commit();"
+
+
+## run it!
+
+START_SML="$INFILE $ML_OPTIONS"
+
+if [ -n "$TERMINATE" ]; then
+  { echo "$MLTEXT"; echo "$MLEXIT" } | $START_SML
+  RC=$?
+else
+  { echo "$MLTEXT"; $ISABELLE_HOME/lib/scripts/ucat; echo "$MLEXIT" } | $START_SML
+  RC=$?
+fi
+
+if [ -n "$MOVE" -a -f "$OUTFILE" ]; then
+  mv -f "$OUTFILE" "$INFILE" || fail_out
+fi
+
+exit $RC
