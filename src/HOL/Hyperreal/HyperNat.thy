@@ -1,6 +1,8 @@
 (*  Title       : HyperNat.thy
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
+
+Converted to Isar and polished by lcp    
 *)
 
 header{*Construction of Hypernaturals using Ultrafilters*}
@@ -48,9 +50,8 @@ defs (overloaded)
                 hypnatrel``{%n::nat. X n - Y n})"
 
   hypnat_le_def:
-  "P \<le> (Q::hypnat) == \<exists>X Y. X \<in> Rep_hypnat(P) &
-                               Y \<in> Rep_hypnat(Q) &
-                               {n::nat. X n \<le> Y n} \<in> FreeUltrafilterNat"
+  "P \<le> (Q::hypnat) == \<exists>X Y. X \<in> Rep_hypnat(P) & Y \<in> Rep_hypnat(Q) &
+                            {n::nat. X n \<le> Y n} \<in> FreeUltrafilterNat"
 
   hypnat_less_def: "(x < (y::hypnat)) == (x \<le> y & x \<noteq> y)"
 
@@ -720,7 +721,8 @@ proof -
               dest: Nats_add [of "x-y", OF _ y]) 
 qed
 
-lemma HNatInfinite_add_one: "x \<in> HNatInfinite ==> x + (1::hypnat) \<in> HNatInfinite"
+lemma HNatInfinite_add_one:
+     "x \<in> HNatInfinite ==> x + (1::hypnat) \<in> HNatInfinite"
 by (auto intro: HNatInfinite_SHNat_add)
 
 lemma HNatInfinite_is_Suc: "x \<in> HNatInfinite ==> \<exists>y. x = y + (1::hypnat)"
@@ -883,6 +885,8 @@ val hypnat_of_nat_minus = thm "hypnat_of_nat_minus";
 val hypnat_of_nat_mult = thm "hypnat_of_nat_mult";
 val hypnat_of_nat_less_iff = thm "hypnat_of_nat_less_iff";
 val hypnat_of_nat_le_iff = thm "hypnat_of_nat_le_iff";
+val hypnat_of_nat_eq = thm"hypnat_of_nat_eq"
+val SHNat_eq = thm"SHNat_eq"
 val hypnat_of_nat_one = thm "hypnat_of_nat_one";
 val hypnat_of_nat_zero = thm "hypnat_of_nat_zero";
 val hypnat_of_nat_zero_iff = thm "hypnat_of_nat_zero_iff";
