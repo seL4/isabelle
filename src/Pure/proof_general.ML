@@ -46,6 +46,7 @@ sig
   val init: bool -> unit
   val init_pgip: bool -> unit
   val write_keywords: string -> unit
+  val xmls_of_str : string -> string list (* temp for testing parser *)
 end;
 
 structure ProofGeneral : PROOF_GENERAL =
@@ -678,24 +679,57 @@ end
 	 
 (** Parsing proof scripts without execution **)
 
+(* Notes.
+   This is quite tricky, because 1) we need to put back whitespace which
+   was removed during parsing so we can provide markup around commands;
+   2) parsing is intertwined with execution in Isar so we have to repeat
+   the parsing to extract interesting parts of commands.  The trace of
+   tokens parsed which is now recorded in each transition helps do this.
+   
+   If we had proper parse trees it would be easy, or if we could go
+   beyond ML's type system to allow existential types to be part of
+   parsers (the quantified type representing the result of the parse
+   which is used to make the transition function) it might be possible.
+
+   Probably the best solution is to produce the meta-information at
+   the same time as the parse, for each command, e.g. by recording a 
+   list of (name,objtype) pairs which record the bindings created by 
+   a command.  This would require changing the interfaces in 
+   outer_syntax.ML (or providing new ones), 
+
+    datatype metainfo = Binding of string * string  (* name, objtype *)
+
+    val command_withmetainfo: string -> string -> string ->
+      (token list -> 
+       ((Toplevel.transition -> Toplevel.transition) * metainfo list) * 
+       token list) -> parser
+*)
+
 local
     fun markup_text str elt = [XML.element elt [] [XML.text str]]
     fun markup_text_attrs str elt attrs = [XML.element elt attrs [XML.text str]]
     fun empty elt = [XML.element elt [] []]
 
-    fun named_item_elt toks str elt nameP objtyp = 
+    (* an extra token is needed to terminate the command *)
+    val sync = OuterSyntax.scan "\\<^sync>";
+
+    fun named_item_elt_with nameattr toks str elt nameP objtyp = 
 	let 
-	    val name = (fst (nameP toks))
-			handle _ => (error ("Error occurred in name parser for " ^ elt);
+	    val name = (fst (nameP (toks@sync)))
+			handle _ => (error ("Error occurred in name parser for " ^ elt ^ 
+					    "(objtype: " ^ objtyp ^ ")");
 				     "")
 				     
 	in 
 	    [XML.element elt 
-			 ((if name="" then [] else [("name", name)])@
+			 ((if name="" then [] else [(nameattr, name)])@
 			  (if objtyp="" then [] else [("objtype", objtyp)]))
 			 ([XML.text str])]
 	end
 
+    val named_item_elt = named_item_elt_with "name"
+    val thmnamed_item_elt = named_item_elt_with "thmname"
+ 
     fun parse_warning msg = warning ("script->PGIP markup parser: " ^ msg)
 
     (* FIXME: allow dynamic extensions to language here: we need a hook in
@@ -715,7 +749,7 @@ local
 		    
     fun xmls_of_thy_begin (name,toks,str) = (* see isar_syn.ML/theoryP *)
 	let 
-	    val ((thyname,imports,files),_) = ThyHeader.args toks
+	    val ((thyname,imports,files),_) = ThyHeader.args (toks@sync)
 	in 
 	    markup_text_attrs str "opentheory" [("thyname",thyname)]
 	end 
@@ -774,12 +808,23 @@ local
 
     fun xmls_of_thy_goal (name,toks,str) = 
 	let 
-	    val nameP = P.locale_target |-- ((P.opt_thm_name ":") >> #1)
+	    (* see isar_syn.ML/gen_theorem *)
+         val statement = P.and_list1 (P.opt_thm_name ":" -- Scan.repeat1 P.propp);
+	 val general_statement =
+	    statement >> pair [] || Scan.repeat P.locale_elem_or_expr -- (P.$$$ "shows" |-- statement);
+	    
+	    val gen_theoremP =
+		P.locale_target -- Scan.optional (P.opt_thm_name ":" --|
+                 Scan.ahead (P.locale_keyword || P.$$$ "shows")) ("", []) --
+				 general_statement >> (fn ((locale, a), (elems, concl)) => 
+							 fst a) (* a : (bstring * Args.src list) *)
+
+	    val nameP = P.locale_target |-- (Scan.optional ((P.opt_thm_name ":") >> #1) "")
 	    (* TODO: add preference values for attributes 
 	       val prefval = XML.element "prefval" [("name","thm-kind"),("value",name)]
 	    *)
 	in 
-	    named_item_elt toks str "opengoal" nameP ""
+	    thmnamed_item_elt toks str "opengoal" nameP ""
 	end
 
     fun xmls_of_qed (name,markup) = case name of
@@ -803,6 +848,7 @@ local
     | "theory-decl"    => xmls_of_thy_decl (name,toks,str)
     | "theory-heading" => markup "litcomment"
     | "theory-script"  => markup "theorystep"
+    | "theory-end"     => markup "closetheory"
     (* proof control *)
     | "theory-goal"    => xmls_of_thy_goal (name,toks,str)
     | "proof-heading"  => markup "litcomment"
