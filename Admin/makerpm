@@ -64,7 +64,7 @@ tar -xpzf "$ARCHIVE_FULL"
 # build
 
 cd "$TMP/BUILD$ROOT/$ISABELLE_NAME"
-./configure
+( PATH=/bin:$PATH; ./configure )
 ./build -b $LOGICS
 ./bin/isatool install -d "$ISABELLE_HOME" -p "$TMP/BUILD$BIN"
 COMPILER=$(./bin/isatool getenv -b ML_IDENTIFIER)
