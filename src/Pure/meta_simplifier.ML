@@ -10,6 +10,7 @@ signature BASIC_META_SIMPLIFIER =
 sig
   val trace_simp: bool ref
   val debug_simp: bool ref
+  val simp_depth_limit: int ref
 end;
 
 signature META_SIMPLIFIER =
@@ -67,6 +68,7 @@ exception SIMPLIFIER of string * thm;
 exception SIMPROC_FAIL of string * exn;
 
 val simp_depth = ref 0;
+val simp_depth_limit = ref 1000;
 
 local
 
@@ -188,8 +190,15 @@ fun clear_mss (Mss {mk_rews, termless, ...}) =
   mk_mss (Net.empty, ([], []), Net.empty, [], [], mk_rews, termless,0);
 
 fun incr_depth(Mss{rules,congs,procs,bounds,prems,mk_rews,termless,depth}) =
-  mk_mss (rules, congs, procs, bounds, prems, mk_rews, termless, depth+1)
-
+  let val depth1 = depth+1
+  in if depth1 > !simp_depth_limit
+     then (warning "simp_depth_limit exceeded - giving up"; None)
+     else (if depth1 mod 5 = 0
+           then warning("Simplification depth " ^ string_of_int depth1)
+           else ();
+           Some(mk_mss(rules,congs,procs,bounds,prems,mk_rews,termless,depth1))
+          )
+  end;
 
 
 (** simpset operations **)
@@ -622,7 +631,10 @@ fun rewritec (prover, signt, maxt)
               in Some (thm'', uncond_skel (congs, lr)) end)
            else
              (trace_thm "Trying to rewrite:" thm';
-              case prover (incr_depth mss) thm' of
+              case incr_depth mss of
+                None => (trace_thm "FAILED - reached depth limit" thm'; None)
+              | Some mss =>
+              (case prover mss thm' of
                 None       => (trace_thm "FAILED" thm'; None)
               | Some thm2 =>
                   (case check_conv true eta_thm thm2 of
@@ -630,7 +642,7 @@ fun rewritec (prover, signt, maxt)
                      Some thm2' =>
                        let val concl = Logic.strip_imp_concl prop
                            val lr = Logic.dest_equals concl
-                       in Some (thm2', cond_skel (congs, lr)) end)))
+                       in Some (thm2', cond_skel (congs, lr)) end))))
       end
 
     fun rews [] = None
