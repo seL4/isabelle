@@ -305,16 +305,13 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
 
 (* quote / antiquote *)
 
-fun no_loose_bvar i t =
-  if Term.loose_bvar1 (t, i) then raise Match else t;
-
 fun quote_antiquote_tr' quoteN antiquoteN name =
   let
     fun antiquote_tr' i (t $ u) =
-          if u = Bound i then Lexicon.const antiquoteN $ no_loose_bvar i t
+          if u = Bound i then Lexicon.const antiquoteN $ antiquote_tr' i t
           else antiquote_tr' i t $ antiquote_tr' i u
       | antiquote_tr' i (Abs (x, T, t)) = Abs (x, T, antiquote_tr' (i + 1) t)
-      | antiquote_tr' i a = no_loose_bvar i a;
+      | antiquote_tr' i a = if a = Bound i then raise Match else a;
 
     fun quote_tr' (Abs (x, T, t) :: ts) =
           Term.list_comb (Lexicon.const quoteN $ Term.incr_boundvars ~1 (antiquote_tr' 0 t), ts)
