@@ -702,8 +702,6 @@ local
         safe_tac (HOL_cs addSIs [lub_equal2,adm_disj_lemma3]),
         atac 2,
         res_inst_tac [("x","i")] exI 1,
-        Simp_tac 1,
-	strip_tac 1,
         Asm_simp_tac 1
         ]);
 
@@ -884,7 +882,6 @@ qed_goal "adm_not_conj"  thy
         atac 1]);
 
 val adm_lemmas = [adm_imp,adm_disj,adm_eq,adm_not_UU,adm_UU_not_less,
-        adm_all2,adm_not_less,adm_not_free,adm_not_conj,adm_conj,adm_less,
-        adm_iff];
+        adm_all2,adm_not_less,adm_not_conj,adm_iff];
 
 Addsimps adm_lemmas;
