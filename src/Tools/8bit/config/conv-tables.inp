@@ -270,7 +270,7 @@ BEGIN_HI_TABLE
 >  "\\omega"		"\omega"	"\mbox{$\omega$}" 
 
 # logical symbols, HOL
->  "~\ "		"~ "		"\mbox{$\neg$}" 
+>  "~\ "		"~ "		"\mbox{$\hspace{-.33ex}\neg$}" 
 >  "&\ "		"& "		"\mbox{$\hspace{-.185ex}\wedge\hspace{-.185ex}$}\ " 
 >  "\|\ "		"| "		"\mbox{$\hspace{-.185ex}\vee\hspace{-.185ex}$}\ " 
 >  "!\ "		"!"		"\mbox{$\hspace{-.07ex}\forall$}" 
@@ -290,7 +290,7 @@ BEGIN_HI_TABLE
 >  "\\cdot"		"."		"\mbox{$\hspace{.28ex}\cdot\hspace{.28ex}$}"
 
 # set theory, HOL
->  "\ :\ "		":"		"\hspace{.1ex}\mbox{$\in$}\hspace{.1ex}"#"\mbox{$\in$}"
+>  "\ :\ "		":"		"\mbox{$\hspace{.445ex}\in\hspace{.445ex}$}"
 >  "\ \subseteq\ "	" <= "		"\mbox{$\subseteq$}" 
 >  "\ Int\ "		" Int "		"\mbox{$\cap$}" 
 >  "\ Un\ "		" Un "		"\mbox{$\cup$}" 
@@ -302,12 +302,12 @@ BEGIN_HI_TABLE
 >  "\\sqcup"		"\sqcup"	"\mbox{$\hspace{.29ex}\sqcup\hspace{.29ex}$}" 
 >  "glb\ "		"glb "		"\mbox{$\overline{|\,\,|}$}"#\bigsqcap
 >  "LUB\ "		"LUB "		"\mbox{$\bigsqcup$}" 
->  "UU"			"UU"		"\mbox{$\bot$}" 
+>  "UU"			"UU"		"\mbox{$\hspace{-.29ex}\bot\hspace{-.29ex}$}" 
 
 # relational symbols, Pure, HOLCF
 >  "==="		".="		"\mbox{$\doteq$}" 
 >  "=="			"=="		"\mbox{$\hspace{.29ex}\equiv\hspace{.29ex}$}" 
->  "~="			"~="		"\mbox{$\not=$}" 
+>  "~="			"~="		"\mbox{$\hspace{-.34ex}\not\hspace{-.3ex}\mbox{=}$}" 
 >  "\\sqsubset"		"\sqsubset"	"\mbox{$\hspace{.29ex}\sqsubset\hspace{.29ex}$}" 
 >  "<<"			"<<"		"\mbox{$\hspace{.29ex}\sqsubseteq\hspace{.29ex}$}" 
 >  "<:"			"<:"		"\mbox{$\hspace{.29ex}\prec\hspace{.29ex}$}\ " 
@@ -331,13 +331,13 @@ BEGIN_HI_TABLE
 >  "\\leadsto"		"~>"		"\mbox{$\hspace{.05ex}\leadsto$}" 
 >  "\\uparrow"		"\uparrow"	"\mbox{$\uparrow$}" 
 >  "\\downarrow"	"\downarrow"	"\mbox{$\downarrow$}" 
->  "~:"			"~:"		"\mbox{$\notin$}" 
+>  "~:"			"~:"		"\mbox{$\hspace{.445ex}\notin\hspace{.445ex}$}" 
 
 # arithmetic, HOLCF
 >  "\\times"		"*"		"\mbox{$\hspace{-.29ex}\times\hspace{-.29ex}$}" 
->  "\\oplus"		"++"		"\mbox{$\hspace{.29ex}\oplus\hspace{.29ex}$}"	#\varoplus
+>  "\+\+"		"++"		"\mbox{$\hspace{.29ex}\oplus\hspace{.29ex}$}"	#\varoplus
 >  "\\ominus"		"--"		"\mbox{$\hspace{.29ex}\ominus\hspace{.29ex}$}"	#\varominus
->  "\\otimes"		"**"		"\mbox{$\hspace{.29ex}\otimes\hspace{.29ex}$}"	#\varotimes
+>  "\*\*"		"**"		"\mbox{$\hspace{.29ex}\otimes\hspace{.29ex}$}"	#\varotimes
 >  "\\oslash"		"//"		"\mbox{$\hspace{.29ex}\oslash\hspace{.29ex}$}" 	#\varoslash
 >  "\\subset"		"\subset"	"\mbox{$\subset$}" 
 >  "\\infty"		"\infty"	"\mbox{$\infty$}" 
