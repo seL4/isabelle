@@ -56,18 +56,15 @@ by (etac beta.induct 1);
 by (Asm_full_simp_tac 1);
 val lemma = result();
 
-Goal "[| r$$rs -> s; \
-\        !r'. r -> r' --> s = r'$$rs --> R; \
-\        !rs'. rs => rs' --> s = r$$rs' --> R; \
-\        !t u us. r = Abs t --> rs = u#us --> s = t[u/0]$$us --> R \
-\     |] ==> R";
-by (dtac lemma 1);
-by (blast_tac HOL_cs 1);
-val lemma = result();
-bind_thm("apps_betasE",
-          impI RSN (4,impI RSN (4,impI RSN (4,allI RSN (4,allI RSN (4,allI RSN (4,
-          impI RSN (3,impI RSN (3,allI RSN (3,
-          impI RSN (2,impI RSN (2,allI RSN (2,lemma)))))))))))));
+val major::prems =
+Goal "[| r $$ rs -> s; !!r'. [| r -> r'; s = r' $$ rs |] ==> R;   \
+\        !!rs'. [| rs => rs'; s = r $$ rs' |] ==> R;              \
+\        !!t u us. [| r = Abs t; rs = u # us; s = t[u/0] $$ us |] ==> R |]   \
+\     ==> R";
+by (cut_facts_tac [major RS lemma RS spec RS spec] 1);
+by (REPEAT_FIRST (ares_tac [refl] ORELSE'
+		  eresolve_tac (prems @ [exE, conjE, impE, disjE])));
+qed "apps_betasE";
 AddSEs [apps_betasE];
 
 Goal "r -> s ==> r$$ss -> s$$ss";
