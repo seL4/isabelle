@@ -85,8 +85,10 @@ if (! (-d $conv_source_dir)){
     die "\nCONV_SOURCE_DIR is not a directory\n";}
 
 if (! (-r $conv_source_dir)){
-    die "\nno read permission for directory CONV_SOURCE_DIR \n";}
+    die "\nno read permission for directory CONV_SOURCE_DIR\n";}
 
+if (!(-w $conv_source_dir)){
+    die "no write permission for directory CONV_SOURCE_DIR\n";}
 #if ($install_source && !(-w $conv_source_dir)){
 #    die "\noption -s used but no write permission for directory CONV_SOURCE_DIR\n";}
 
@@ -353,8 +355,8 @@ print "\nconfiguring $filename\n" if $do_debug;
 
 open(INFILE ,$filename) || die "can't open $filename in CONV_SOURCE_DIR: $!\n";
 print "opened $filename for reading\n" if $do_ddebug;
-open(OUTFILE,">tmp.txt") || die "can't open temporary file tmp.txt: $!\n";
-print "opened tmp.txt for writing\n" if $do_ddebug;
+open(OUTFILE,">/tmp/tmp.txt") || die "can't open temporary file /tmp/tmp.txt: $!\n";
+print "opened /tmp/tmp.txt for writing\n" if $do_ddebug;
 
 $found = &replicate_until('^\s*\/\*\s*BEGIN\s*gen-isa2late(x)','BEGIN gen-isa2latex');
 if ($found eq "") {
@@ -378,10 +380,10 @@ while (<INFILE> ){printf(OUTFILE "%s",$_);}
 
 close(INFILE);
 close(OUTFILE);
-print "closed $filename and tmp.txt\n" if $do_ddebug;
+print "closed $filename and /tmp/tmp.txt\n" if $do_ddebug;
 
-$status = system("cp tmp.txt $filename") ;
-if ($status) { die "can't copy tmp.txt to $filename: $!\n";}
+$status = system("cp /tmp/tmp.txt $filename") ;
+if ($status) { die "can't copy /tmp/tmp.txt to $filename: $!\n";}
 
 ########################
 # configure conv-tables.h
@@ -393,8 +395,8 @@ print "\nconfiguring $filename\n" if $do_debug;
 
 open(INFILE ,$filename) || die "can't open $filename in CONV_SOURCE_DIR: $!\n";
 print "opened $filename for reading\n" if $do_ddebug;
-open(OUTFILE,">tmp.txt") || die "can't open temporary file tmp.txt: $!\n";
-print "opened tmp.txt for writing\n" if $do_ddebug;
+open(OUTFILE,">/tmp/tmp.txt") || die "can't open temporary file /tmp/tmp.txt: $!\n";
+print "opened /tmp/tmp.txt for writing\n" if $do_ddebug;
 
 ### LOW TABLE
 $found = &replicate_until('^\s*\/\*\s*BEGIN_OF_LOW_TABL(E)','BEGIN_OF_LOW_TABLE');
@@ -475,10 +477,10 @@ while (<INFILE> ){printf(OUTFILE "%s",$_);}
 
 close(INFILE);
 close(OUTFILE);
-print "closed $filename and tmp.txt\n" if $do_ddebug;
+print "closed $filename and /tmp/tmp.txt\n" if $do_ddebug;
 
-$status = system("cp tmp.txt $filename") ;
-if ($status) { die "can't copy tmp.txt to $filename: $!\n";}
+$status = system("cp /tmp/tmp.txt $filename") ;
+if ($status) { die "can't copy /tmp/tmp.txt to $filename: $!\n";}
 
 ########################
 # configure conv-lex.x
@@ -490,8 +492,8 @@ print "\nconfiguring $filename\n" if $do_debug;
 
 open(INFILE ,$filename) || die "can't open $filename in CONV_SOURCE_DIR: $!\n";
 print "opened $filename for reading\n" if $do_ddebug;
-open(OUTFILE,">tmp.txt") || die "can't open temporary file tmp.txt: $!\n";
-print "opened tmp.txt for writing\n" if $do_ddebug;
+open(OUTFILE,">/tmp/tmp.txt") || die "can't open temporary file /tmp/tmp.txt: $!\n";
+print "opened /tmp/tmp.txt for writing\n" if $do_ddebug;
 
 
 ### HI TABLE
@@ -539,10 +541,10 @@ while (<INFILE> ){printf(OUTFILE "%s",$_);}
 
 close(INFILE);
 close(OUTFILE);
-print "closed $filename and tmp.txt\n" if $do_ddebug;
+print "closed $filename and /tmp/tmp.txt\n" if $do_ddebug;
 
-$status = system("cp tmp.txt $filename") ;
-if ($status) { die "can't copy tmp.txt to $filename: $!\n";}
+$status = system("cp /tmp/tmp.txt $filename") ;
+if ($status) { die "can't copy /tmp/tmp.txt to $filename: $!\n";}
 
 ########################
 # execute  Makefile
