@@ -249,6 +249,7 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL UNITY/ROOT.ML\
   UNITY/Lift_prog.ML UNITY/Lift_prog.thy UNITY/ListOrder.thy\
   UNITY/Mutex.ML UNITY/Mutex.thy\
   UNITY/Network.ML UNITY/Network.thy UNITY/Reach.ML UNITY/Reach.thy\
+  UNITY/Rename.ML UNITY/Rename.thy\
   UNITY/SubstAx.ML UNITY/SubstAx.thy UNITY/Token.ML UNITY/Token.thy\
   UNITY/UNITY.ML UNITY/UNITY.thy\
   UNITY/WFair.ML UNITY/WFair.thy UNITY/Lift.ML UNITY/Lift.thy\
