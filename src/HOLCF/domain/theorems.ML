@@ -268,7 +268,7 @@ val distincts_le = let
 	      (lift_defined % ((nonlazy args1),
 			(mk_trp (con_app con1 args1 ~<< con_app con2 args2))))([
 			rtac swap3 1,
-			eres_inst_tac[("fo5",dis_name con1)] monofun_cfun_arg 1]
+			eres_inst_tac[("fo",dis_name con1)] monofun_cfun_arg 1]
 		      @map(case_UU_tac (con_stricts @ dis_rews)1)(nonlazy args2)
 		      @[asm_simp_tac (HOLCF_ss addsimps dis_rews) 1]);
     fun distinct (con1,args1) (con2,args2) =
@@ -305,7 +305,7 @@ in
 val inverts = map (fn (con,args) => 
 		pgterm (op <<) con args (flat(map (fn arg => [
 				TRY(rtac conjI 1),
-				dres_inst_tac [("fo5",sel_of arg)] monofun_cfun_arg 1,
+				dres_inst_tac [("fo",sel_of arg)] monofun_cfun_arg 1,
 				asm_full_simp_tac (HOLCF_ss addsimps sel_apps) 1]
 			     			      ) args))) cons';
 val injects = map (fn ((con,args),inv_thm) => 
