@@ -679,18 +679,22 @@ by (asm_simp_tac (simpset() addsimps [export fold_insert,
 qed "setsum_insert";
 Addsimps [setsum_insert];
 
-Goal "finite A ==> setsum (%i. 0) A = 0";
+Goal "setsum (%i. 0) A = 0";
+by (case_tac "finite A" 1);
+ by (asm_simp_tac (simpset() addsimps [setsum_def]) 2); 
 by (etac finite_induct 1);
 by Auto_tac;
 qed "setsum_0";
 
-Goal "finite F ==> (setsum f F = 0) = (! a:F. f a = (0::nat))";
+Goal "finite F ==> (setsum f F = 0) = (ALL a:F. f a = (0::nat))";
 by (etac finite_induct 1);
 by Auto_tac;
 qed "setsum_eq_0_iff";
 Addsimps [setsum_eq_0_iff];
 
-Goal "[| setsum f F = Suc n; finite F |] ==> EX a:F. 0 < f a";
+Goal "setsum f A = Suc n ==> EX a:A. 0 < f a";
+by (case_tac "finite A" 1);
+ by (asm_full_simp_tac (simpset() addsimps [setsum_def]) 2); 
 by (etac rev_mp 1);
 by (etac finite_induct 1);
 by Auto_tac;
@@ -717,7 +721,7 @@ by (stac (setsum_Un_Int RS sym) 1);
 by Auto_tac;
 qed "setsum_Un_disjoint";
 
-Goal "[| finite I |] \
+Goal "finite I \
 \     ==> (ALL i:I. finite (A i)) --> (ALL i:I. ALL j:I. A i Int A j = {}) \
 \         --> setsum f (UNION I A) = setsum (%i. setsum f (A i)) I"; 
 by (etac finite_induct 1);
@@ -725,7 +729,9 @@ by (Simp_tac 1);
 by (asm_simp_tac (simpset() addsimps [setsum_Un_disjoint]) 1);
 qed_spec_mp "setsum_UN_disjoint";
 
-Goal "finite A ==> setsum (%x. f x + g x) A = setsum f A + setsum g A";
+Goal "setsum (%x. f x + g x) A = setsum f A + setsum g A";
+by (case_tac "finite A" 1);
+ by (asm_full_simp_tac (simpset() addsimps [setsum_def]) 2); 
 by (etac finite_induct 1);
 by Auto_tac;
 by (simp_tac (simpset() addsimps (thms "plus_ac0")) 1);
@@ -740,14 +746,37 @@ by (stac (setsum_Un_Int RS sym) 1);
 by Auto_tac;
 qed "setsum_Un";
 
-Goal "finite F \
-\     ==> (setsum f (F-{a}) :: nat) = \
-\         (if a:F then setsum f F - f a else setsum f F)";
+Goal "(setsum f (A-{a}) :: nat) = \
+\     (if a:A then setsum f A - f a else setsum f A)";
+by (case_tac "finite A" 1);
+ by (asm_full_simp_tac (simpset() addsimps [setsum_def]) 2); 
 by (etac finite_induct 1);
 by (auto_tac (claset(), simpset() addsimps [insert_Diff_if]));
 by (dres_inst_tac [("a","a")] mk_disjoint_insert 1);
 by Auto_tac;
 qed_spec_mp "setsum_diff1";
+
+val prems = Goal
+    "[| A = B; !!x. x:B ==> f x = g x|] ==> setsum f A = setsum g B";
+by (case_tac "finite B" 1);
+ by (asm_simp_tac (simpset() addsimps [setsum_def]@prems) 2); 
+by (simp_tac (simpset() addsimps prems) 1);
+by (subgoal_tac 
+    "ALL C. C <= B --> (ALL x:C. f x = g x) --> setsum f C = setsum g C" 1);
+by (asm_simp_tac (simpset() addsimps prems) 1); 
+by (etac finite_induct 1);
+ by (simp_tac (simpset() addsimps [subset_empty]) 1);
+ by (asm_simp_tac (simpset() addsimps subset_insert_iff::prems) 1); 
+by (Clarify_tac 1); 
+by (subgoal_tac "finite C" 1);
+ by (blast_tac (claset() addDs [rotate_prems 1 finite_subset]) 2); 
+by (subgoal_tac "C = insert x (C-{x})" 1); 
+ by (Blast_tac 2); 
+by (etac ssubst 1); 
+by (dtac spec 1); 
+by (mp_tac 1);
+ by (asm_full_simp_tac (simpset() addsimps Ball_def::prems) 1); 
+qed "setsum_cong";
 
 
 (*** Basic theorem about "choose".  By Florian Kammueller, tidied by LCP ***)
