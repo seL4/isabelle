@@ -24,6 +24,8 @@ sig
   val explode: string -> symbol list
   val input: string -> string
   val output: string -> string
+  val source: bool -> (string, 'a) Source.source ->
+    (symbol, (string, 'a) Source.source) Source.source
 end;
 
 structure Symbol: SYMBOL =
@@ -208,6 +210,14 @@ val scan =
     !! (fn (cs, _) => "Malformed symbolic character specification: \\" ^ "<" ^ beginning cs)
       (Scan.optional ($$ "^") "" ^^ scan_id ^^ $$ ">") ||
   Scan.one not_eof;
+
+
+(* source *)
+
+val recover = Scan.any1 ((not o is_blank) andf not_eof);
+
+fun source do_recover src =
+  Source.source stopper (Scan.bulk scan) (if do_recover then Some recover else None) src;
 
 
 (* explode *)
