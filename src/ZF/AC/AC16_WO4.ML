@@ -603,7 +603,7 @@ by (REPEAT (ares_tac [conjI, lam_funtype RS domain_of_fun,
 		      all_in_lepoll_m, OUN_eq_x] 1));
 qed "conclusion";
 
-Close_locale ();
+Close_locale "AC16";
 
 
 

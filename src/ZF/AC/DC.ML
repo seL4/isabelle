@@ -144,7 +144,7 @@ by (fast_tac (claset() addSDs [lemma2]
                             (2, image_fun RS sym)]) 1);
 qed "lemma3";
 
-Close_locale();
+Close_locale "DC0_imp";
 
 Goalw [DC_def, DC0_def] "DC0 ==> DC(nat)";
 by (Clarify_tac 1);
@@ -411,7 +411,7 @@ by (asm_full_simp_tac (simpset()
         addsimps [[nat_succI, Ord_nat] MRS OrdmemD RSN (2, image_fun)]) 1);
 qed "lemma3";
 
-Close_locale();
+Close_locale "imp_DC0";
 
 
 Goalw [DC_def, DC0_def] "DC(nat) ==> DC0";
