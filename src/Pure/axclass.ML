@@ -174,6 +174,7 @@ struct
   type T = axclass_info Symtab.table;
 
   val empty = Symtab.empty;
+  val copy = I;
   val prep_ext = I;
   fun merge (tab1, tab2) = Symtab.merge (K true) (tab1, tab2);
 

@@ -112,6 +112,7 @@ struct
   type T = locale_data;
 
   val empty = make_locale_data NameSpace.empty Symtab.empty (ref []);
+  fun copy {space, locales, scope = ref locs} = make_locale_data space locales (ref locs);
   fun prep_ext {space, locales, scope = _} = make_locale_data space locales (ref []);
   fun merge ({space = space1, locales = locales1, scope = _},
     {space = space2, locales = locales2, scope = _}) =

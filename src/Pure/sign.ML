@@ -124,6 +124,7 @@ sig
   val merge_refs: sg_ref * sg_ref -> sg_ref
   val merge: sg * sg -> sg
   val prep_ext: sg -> sg
+  val copy: sg -> sg
   val nontriv_merge: sg * sg -> sg
   val pre_pure: sg
   val const_of_class: class -> string
@@ -133,7 +134,7 @@ end;
 signature PRIVATE_SIGN =
 sig
   include SIGN
-  val init_data: Object.kind * (Object.T * (Object.T -> Object.T) *
+  val init_data: Object.kind * (Object.T * (Object.T -> Object.T) * (Object.T -> Object.T) *
     (Object.T * Object.T -> Object.T) * (sg -> Object.T -> unit)) -> sg -> sg
   val get_data: Object.kind -> (Object.T -> 'a) -> sg -> 'a
   val put_data: Object.kind -> ('a -> Object.T) -> 'a -> sg -> sg
@@ -164,6 +165,7 @@ and data =
     (Object.kind *				(*kind (for authorization)*)
       (Object.T *				(*value*)
         ((Object.T -> Object.T) *               (*prepare extend method*)
+          (Object.T -> Object.T) *              (*copy method*)
           (Object.T * Object.T -> Object.T) *   (*merge and prepare extend method*)
           (sg -> Object.T -> unit))))           (*print method*)
     Symtab.table
@@ -306,9 +308,9 @@ fun merge_data (Data tab1, Data tab2) =
        None => []
      | Some x => [(kind, x)]);
 
-    fun merge_entries [(kind, (e, mths as (ext, _, _)))] =
+    fun merge_entries [(kind, (e, mths as (_, ext, _, _)))] =
           (kind, (ext e handle _ => err_method "prep_ext" (Object.name_of_kind kind), mths))
-      | merge_entries [(kind, (e1, mths as (_, mrg, _))), (_, (e2, _))] =
+      | merge_entries [(kind, (e1, mths as (_, _, mrg, _))), (_, (e2, _))] =
           (kind, (mrg (e1, e2) handle _ => err_method "merge" (Object.name_of_kind kind), mths))
       | merge_entries _ = sys_error "merge_entries";
 
@@ -321,9 +323,9 @@ fun merge_data (Data tab1, Data tab2) =
 
 fun prep_ext_data data = merge_data (data, empty_data);
 
-fun init_data_sg sg (Data tab) kind e ext mrg prt =
+fun init_data_sg sg (Data tab) kind e cp ext mrg prt =
   let val name = Object.name_of_kind kind in
-    Data (Symtab.update_new ((name, (kind, (e, (ext, mrg, prt)))), tab))
+    Data (Symtab.update_new ((name, (kind, (e, (cp, ext, mrg, prt)))), tab))
       handle Symtab.DUP _ => err_dup_init sg name
   end;
 
@@ -346,7 +348,7 @@ fun get_data kind f (sg as Sg (_, {data = Data tab, ...})) =
   in f x handle Match => Object.kind_error kind end;
 
 fun print_data kind (sg as Sg (_, {data = Data tab, ...})) =
-  let val (e, (_, _, prt)) = lookup_data sg tab kind
+  let val (e, (_, _, _, prt)) = lookup_data sg tab kind
   in prt sg e handle _ => err_method ("print" ^ of_theory sg) (Object.name_of_kind kind) end;
 
 fun put_data_sg sg (Data tab) kind f x =
@@ -903,11 +905,23 @@ fun ext_space (syn, tsig, ctab, (path, spaces), data) (kind, names) =
 
 (* signature data *)
 
-fun ext_init_data sg (syn, tsig, ctab, names, data) (kind, (e, ext, mrg, prt)) =
-  (syn, tsig, ctab, names, init_data_sg sg data kind e ext mrg prt);
+fun ext_init_data sg (syn, tsig, ctab, names, data) (kind, (e, cp, ext, mrg, prt)) =
+  (syn, tsig, ctab, names, init_data_sg sg data kind e cp ext mrg prt);
 
 fun ext_put_data sg (syn, tsig, ctab, names, data) (kind, f, x) =
   (syn, tsig, ctab, names, put_data_sg sg data kind f x);
+
+
+fun copy_data (k, (e, mths as (cp, _, _, _))) =
+  (k, (cp e handle _ => err_method "copy" (Object.name_of_kind k), mths));
+
+fun copy (sg as Sg ({id = _, stamps}, {self, tsig, const_tab, syn, path, spaces, data})) =
+  let
+    val _ = check_stale sg;
+    val self' = SgRef (Some (ref sg));
+    val Data tab = data;
+    val data' = Data (Symtab.map copy_data tab);
+  in create_sign self' stamps "#" (syn, tsig, const_tab, (path, spaces), data') end;
 
 
 (* the external interfaces *)

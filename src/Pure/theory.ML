@@ -91,7 +91,7 @@ end;
 signature PRIVATE_THEORY =
 sig
   include THEORY
-  val init_data: Object.kind -> (Object.T * (Object.T -> Object.T) *
+  val init_data: Object.kind -> (Object.T * (Object.T -> Object.T) * (Object.T -> Object.T) *
     (Object.T * Object.T -> Object.T) * (Sign.sg -> Object.T -> unit)) -> theory -> theory
   val print_data: Object.kind -> theory -> unit
   val get_data: Object.kind -> (Object.T -> 'a) -> theory -> 'a
@@ -212,7 +212,7 @@ val root_path        = add_path "/";
 val add_space        = ext_sign Sign.add_space;
 val add_name         = ext_sign Sign.add_name;
 val prep_ext         = ext_sign (K Sign.prep_ext) ();
-val copy             = prep_ext;	(*an approximation ...*)
+val copy             = ext_sign (K Sign.copy) ();
 
 
 

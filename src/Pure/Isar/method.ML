@@ -146,6 +146,7 @@ struct
      meths: (((Args.src -> Proof.context -> Proof.method) * string) * stamp) Symtab.table};
 
   val empty = {space = NameSpace.empty, meths = Symtab.empty};
+  val copy = I;
   val prep_ext = I;
   fun merge ({space = space1, meths = meths1}, {space = space2, meths = meths2}) =
     {space = NameSpace.merge (space1, space2),
