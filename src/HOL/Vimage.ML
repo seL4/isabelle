@@ -24,11 +24,19 @@ qed_goalw "vimageI" thy [vimage_def]
     "!!A B f. [| f a = b;  b:B |] ==> a : f-``B"
  (fn _ => [ (Blast_tac 1) ]);
 
+Goalw [vimage_def] "f a : A ==> a : f -`` A";
+by (Fast_tac 1);
+qed "vimageI2";
+
 qed_goalw "vimageE" thy [vimage_def]
     "[| a: f-``B;  !!x.[| f a = x;  x:B |] ==> P |] ==> P"
  (fn major::prems=>
   [ (rtac (major RS CollectE) 1),
     (blast_tac (claset() addIs prems) 1) ]);
+
+Goalw [vimage_def] "a : f -`` A ==> f a : A";
+by (Fast_tac 1);
+qed "vimageD";
 
 AddIs  [vimageI];
 AddSEs [vimageE];
@@ -53,11 +61,19 @@ Goal "f-``(A Un B) = (f-``A) Un (f-``B)";
 by (Blast_tac 1);
 qed "vimage_Un";
 
+Goal "f -`` (A Int B) = (f -`` A) Int (f -`` B)";
+by (Fast_tac 1);
+qed "vimage_Int";
+
 Goal "f-``(UN x:A. B x) = (UN x:A. f -`` B x)";
 by (Blast_tac 1);
 qed "vimage_UN";
 
-Addsimps [vimage_empty, vimage_Un];
+bind_thm ("vimage_Collect", allI RS prove_goalw thy [vimage_def]
+  "! x. P (f x) = Q x ==> f -`` (Collect P) = Collect Q"
+    (fn prems => [cut_facts_tac prems 1, Fast_tac 1]));
+
+Addsimps [vimage_empty, vimage_Un, vimage_Int];
 
 (*NOT suitable for rewriting because of the recurrence of {a}*)
 Goal "f-``(insert a B) = (f-``{a}) Un (f-``B)";
