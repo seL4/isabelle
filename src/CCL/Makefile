@@ -19,15 +19,15 @@
 BIN = $(ISABELLEBIN)
 COMP = $(ISABELLECOMP)
 
-SET_FILES = ROOT.ML set.thy set.ML subset.ML equalities.ML mono.ML \
-	    gfp.thy gfp.ML lfp.thy lfp.ML
+SET_FILES = ROOT.ML Set.thy Set.ML subset.ML equalities.ML mono.ML \
+	    Gfp.thy Gfp.ML Lfp.thy Lfp.ML
 
-CCL_FILES = ccl.thy ccl.ML term.thy term.ML type.thy type.ML \
-            coinduction.ML hered.thy hered.ML trancl.thy trancl.ML\
-            wfd.thy wfd.ML genrec.ML typecheck.ML eval.ML fix.thy fix.ML
+CCL_FILES = CCL.thy CCL.ML Term.thy Term.ML Type.thy Type.ML \
+            coinduction.ML Hered.thy Hered.ML Trancl.thy Trancl.ML\
+            Wfd.thy Wfd.ML genrec.ML typecheck.ML eval.ML Fix.thy Fix.ML
 
-EX_FILES = ex/ROOT.ML ex/flag.ML ex/flag.thy ex/list.ML ex/list.thy\
-	   ex/nat.ML ex/nat.thy ex/stream.ML ex/stream.thy
+EX_FILES = ex/ROOT.ML ex/Flag.ML ex/Flag.thy ex/List.ML ex/List.thy\
+	   ex/Nat.ML ex/Nat.thy ex/Stream.ML ex/Stream.thy
 
 #Uses cp rather than make_database because Poly/ML allows only 3 levels
 $(BIN)/CCL:   $(BIN)/FOL  $(SET_FILES)  $(CCL_FILES) 
