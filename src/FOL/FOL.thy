@@ -25,7 +25,7 @@ subsection {* Setup of several proof tools *}
 
 use "FOL_lemmas1.ML"
 
-lemma all_eq: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
+lemma atomize_all: "(!!x. P(x)) == Trueprop (ALL x. P(x))"
 proof (rule equal_intr_rule)
   assume "!!x. P(x)"
   show "ALL x. P(x)" by (rule allI)
@@ -34,7 +34,7 @@ next
   thus "!!x. P(x)" by (rule allE)
 qed
 
-lemma imp_eq: "(A ==> B) == Trueprop (A --> B)"
+lemma atomize_imp: "(A ==> B) == Trueprop (A --> B)"
 proof (rule equal_intr_rule)
   assume r: "A ==> B"
   show "A --> B" by (rule impI) (rule r)
@@ -43,7 +43,17 @@ next
   thus B by (rule mp)
 qed
 
-lemmas atomize = all_eq imp_eq
+lemma atomize_eq: "(x == y) == Trueprop (x = y)"
+proof (rule equal_intr_rule)
+  assume "x == y"
+  show "x = y" by (unfold prems) (rule refl)
+next
+  assume "x = y"
+  thus "x == y" by (rule eq_reflection)
+qed
+
+lemmas atomize = atomize_all atomize_imp
+lemmas atomize' = atomize atomize_eq
 
 use "cladata.ML"
 setup Cla.setup
