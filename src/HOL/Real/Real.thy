@@ -1,2 +1,2 @@
 
-Real = Main + RComplete + RealPow
+Real = RComplete + RealPow
