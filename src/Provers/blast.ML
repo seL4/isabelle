@@ -323,20 +323,22 @@ and wkNorm t = case head_of t of
   | _              => wkNormAux t;
 
 
-(*Does variable v occur in u?  For unification.*)
+(*Does variable v occur in u?  For unification.  
+  Dangling bound vars are also forbidden.*)
 fun varOccur v = 
-  let fun occL [] = false	(*same as (exists occ), but faster*)
-	| occL (u::us) = occ u orelse occL us
-      and occ (Var w) = 
+  let fun occL lev [] = false	(*same as (exists occ), but faster*)
+	| occL lev (u::us) = occ lev u orelse occL lev us
+      and occ lev (Var w) = 
 	      v=w orelse
               (case !w of None   => false
-	                | Some u => occ u)
-        | occ (Skolem(_,args)) = occL (map Var args)
-        | occ (TConst(_,u)) = occ u
-        | occ (Abs(_,u)) = occ u
-        | occ (f$u)      = occ u  orelse  occ f
-        | occ (_)        = false;
-  in  occ  end;
+	                | Some u => occ lev u)
+        | occ lev (Skolem(_,args)) = occL lev (map Var args)
+            (*ignore TConst, since term variables can't occur in types (?) *)
+        | occ lev (Bound i)  = lev <= i
+        | occ lev (Abs(_,u)) = occ (lev+1) u
+        | occ lev (f$u)      = occ lev u  orelse  occ lev f
+        | occ lev _          = false;
+  in  occ 0  end;
 
 exception UNIFY;
 
