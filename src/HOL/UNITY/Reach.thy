@@ -25,7 +25,7 @@ constdefs
 
   Rprg :: state program
     "Rprg == (|Init = {%v. v=init},
-	       Acts = insert id (UN (u,v): edges. {asgt u v})|)"
+	       Acts0 = (UN (u,v): edges. {asgt u v})|)"
 
   reach_invariant :: state set
     "reach_invariant == {s. (ALL v. s v --> (init, v) : edges^*) & s init}"

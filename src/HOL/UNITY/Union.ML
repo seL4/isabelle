@@ -14,18 +14,26 @@ by (simp_tac (simpset() addsimps [Join_def]) 1);
 qed "Init_Join";
 
 Goal "Acts (Join prgF prgG) = Acts prgF Un Acts prgG";
-by (simp_tac (simpset() addsimps [Join_def]) 1);
+by (auto_tac (claset(),
+	      simpset() addsimps [Acts_def, Join_def]));
 qed "Acts_Join";
 
 Goal "Init (JN i:I. prg i) = (INT i:I. Init (prg i))";
 by (simp_tac (simpset() addsimps [JOIN_def]) 1);
 qed "Init_JN";
 
-Goal "Acts (JN i:I. prg i) = (UN i:I. Acts (prg i))";
-by (simp_tac (simpset() addsimps [JOIN_def]) 1);
+Goal "Acts (JN i:I. prg i) = insert id (UN i:I. Acts (prg i))";
+by (auto_tac (claset(),
+	      simpset() addsimps [Acts_def, JOIN_def]));
 qed "Acts_JN";
 
 Addsimps [Init_Join, Init_JN];
+
+Goal "(JN x:insert a A. B x) = Join (B a) (JN x:A. B x)";
+by (simp_tac (simpset() addsimps [Acts_def, JOIN_def, Join_def]) 1);
+qed "JN_insert";
+Addsimps[JN_insert];
+
 
 (** Theoretical issues **)
 
@@ -34,7 +42,7 @@ by (simp_tac (simpset() addsimps [Join_def, Un_commute, Int_commute]) 1);
 qed "Join_commute";
 
 Goal "Join (Join prgF prgG) prgH = Join prgF (Join prgG prgH)";
-by (simp_tac (simpset() addsimps [Join_def, Un_assoc, Int_assoc]) 1);
+by (simp_tac (simpset() addsimps Un_ac@[Join_def, Acts_def, Int_assoc]) 1);
 qed "Join_assoc";
 
 
@@ -50,13 +58,20 @@ val simps = thms"program.simps";
 *)
 
 
-(**NOT PROVABLE because no "surjective pairing" for records
-Goalw [Join_def, Null_def] "id: Acts prgF ==> Join prgF Null = prgF";
-by (asm_simp_tac (simpset() addsimps [insert_absorb]) 1);
-qed "Join_Null";
-*)
+
+
 
 (**NOT PROVABLE because no "surjective pairing" for records
+Goalw [Join_def, SKIP_def] "Join prgF SKIP = prgF";
+by (asm_simp_tac (simpset() addsimps [insert_absorb]) 1);
+qed "Join_SKIP";
+
+    In order to prove Join_SKIP, we possibly need
+    "Acts0 = ... - {id}" in JOIN_def and Join_def.  But then Join_absorb only
+    holds if id ~: Acts0(prg).  Or else we need to change 'a program to 
+    an abstract type!  Then equality could be made to ignore Acts0.
+
+NOT PROVABLE because no "surjective pairing" for records
 Goalw [Join_def] "Join prgF prgF = prgF";
 by Auto_tac;
 qed "Join_absorb";
@@ -64,10 +79,19 @@ qed "Join_absorb";
 
 
 
+Goal "(JN G:{}. G) = SKIP";
+by (simp_tac (simpset() addsimps [JOIN_def, SKIP_def]) 1);
+qed "JN_empty";
+Addsimps [JN_empty];
+
+
+
+
 (*** Safety: constrains, stable, FP ***)
 
 Goalw [constrains_def, JOIN_def]
-    "constrains (Acts (JN i:I. prg i)) A B = \
+    "I ~= {} ==> \
+\    constrains (Acts (JN i:I. prg i)) A B = \
 \    (ALL i:I. constrains (Acts (prg i)) A B)";
 by Auto_tac;
 qed "constrains_JN";
@@ -80,10 +104,11 @@ by (Blast_tac 1);
 qed "Constrains_JN";
 **)
 
-Goalw [constrains_def, Join_def]
-    "constrains (Acts (Join prgF prgG)) A B =  \
-\    (constrains (Acts prgF) A B & constrains (Acts prgG) A B)";
-by (simp_tac (simpset() addsimps [ball_Un]) 1);
+Goal "constrains (Acts (Join prgF prgG)) A B =  \
+\     (constrains (Acts prgF) A B & constrains (Acts prgG) A B)";
+by (auto_tac
+    (claset(),
+     simpset() addsimps [constrains_def, Join_def, Acts_def, ball_Un]));
 qed "constrains_Join";
 
 Goal "[| constrains (Acts prgF) A A';  constrains (Acts prgG) B B' |] \
@@ -92,9 +117,9 @@ by (simp_tac (simpset() addsimps [constrains_Join]) 1);
 by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "constrains_Join_weaken";
 
-Goalw [stable_def] 
-    "stable (Acts (JN i:I. prg i)) A = (ALL i:I. stable (Acts (prg i)) A)";
-by (simp_tac (simpset() addsimps [constrains_JN]) 1);
+Goal "I ~= {} ==> \
+\     stable (Acts (JN i:I. prg i)) A = (ALL i:I. stable (Acts (prg i)) A)";
+by (asm_simp_tac (simpset() addsimps [stable_def, constrains_JN]) 1);
 qed "stable_JN";
 
 Goal "stable (Acts (Join prgF prgG)) A = \
@@ -102,30 +127,32 @@ Goal "stable (Acts (Join prgF prgG)) A = \
 by (simp_tac (simpset() addsimps [stable_def, constrains_Join]) 1);
 qed "stable_Join";
 
-Goalw [FP_def] "FP (Acts (JN i:I. prg i)) = (INT i:I. FP (Acts (prg i)))";
-by (simp_tac (simpset() addsimps [stable_JN, INTER_def]) 1);
+Goal "I ~= {} ==> FP (Acts (JN i:I. prg i)) = (INT i:I. FP (Acts (prg i)))";
+by (asm_simp_tac (simpset() addsimps [FP_def, stable_JN, INTER_def]) 1);
 qed "FP_JN";
 
 
 (*** Progress: transient, ensures ***)
 
-Goalw [transient_def, JOIN_def]
-   "transient (Acts (JN i:I. prg i)) A = (EX i:I. transient (Acts (prg i)) A)";
-by (Simp_tac 1);
+Goal "I ~= {} ==> \
+\   transient (Acts (JN i:I. prg i)) A = (EX i:I. transient (Acts (prg i)) A)";
+by (auto_tac (claset(),
+	      simpset() addsimps [transient_def, JOIN_def]));
 qed "transient_JN";
 
-Goalw [transient_def, Join_def]
-   "transient (Acts (Join prgF prgG)) A = \
-\   (transient (Acts prgF) A | transient (Acts prgG) A)";
-by (simp_tac (simpset() addsimps [bex_Un]) 1);
+Goal "transient (Acts (Join prgF prgG)) A = \
+\     (transient (Acts prgF) A | transient (Acts prgG) A)";
+by (auto_tac (claset(),
+	      simpset() addsimps [bex_Un, Acts_def, transient_def,
+				  Join_def]));
 qed "transient_Join";
 
-Goalw [ensures_def]
-    "ensures (Acts (JN i:I. prg i)) A B = \
-\    ((ALL i:I. constrains (Acts (prg i)) (A-B) (A Un B)) & \
-\     (EX i:I. ensures (Acts (prg i)) A B))";
+Goal "I ~= {} ==> \
+\     ensures (Acts (JN i:I. prg i)) A B = \
+\     ((ALL i:I. constrains (Acts (prg i)) (A-B) (A Un B)) & \
+\      (EX i:I. ensures (Acts (prg i)) A B))";
 by (auto_tac (claset(),
-	      simpset() addsimps [constrains_JN, transient_JN]));
+	      simpset() addsimps [ensures_def, constrains_JN, transient_JN]));
 qed "ensures_JN";
 
 Goalw [ensures_def]
@@ -146,7 +173,7 @@ qed "stable_constrains_Join";
 
 (*Premises cannot use Invariant because  Stable prgF A  is weaker than
   stable (Acts prgG) A *)
-Goal  "[| stable (Acts prgF) A;  Init prgG <= A;  stable (Acts prgG) A |] \
+Goal "[| stable (Acts prgF) A;  Init prgG <= A;  stable (Acts prgG) A |] \
 \      ==> Invariant (Join prgF prgG) A";
 by (simp_tac (simpset() addsimps [Invariant_def, Stable_eq_stable,
 				  stable_Join]) 1);

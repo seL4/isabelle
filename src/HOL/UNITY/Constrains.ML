@@ -89,14 +89,14 @@ by (blast_tac (claset() addIs [constrains_weaken]) 1);
 qed "ball_Constrains_INT";
 
 Goalw [Constrains_def]
-     "[| Constrains prg A A'; id: Acts prg |] ==> reachable prg Int A <= A'";
+     "Constrains prg A A' ==> reachable prg Int A <= A'";
 by (dtac constrains_imp_subset 1);
-by (assume_tac 1);
-by (full_simp_tac (simpset() addsimps [Int_subset_iff, Int_lower1]) 1);
+by (ALLGOALS
+    (full_simp_tac (simpset() addsimps [Int_subset_iff, Int_lower1])));
 qed "Constrains_imp_subset";
 
 Goalw [Constrains_def]
-    "[| id: Acts prg; Constrains prg A B; Constrains prg B C |]   \
+    "[| Constrains prg A B; Constrains prg B C |]   \
 \    ==> Constrains prg A C";
 by (blast_tac (claset() addIs [constrains_trans, constrains_weaken]) 1);
 qed "Constrains_trans";
@@ -167,7 +167,7 @@ by (Blast_tac 1);
 qed "Elimination_sing";
 
 Goalw [Constrains_def, constrains_def]
-   "[| Constrains prg A (A' Un B); Constrains prg B B'; id: Acts prg |] \
+   "[| Constrains prg A (A' Un B); Constrains prg B B' |] \
 \   ==> Constrains prg A (A' Un B')";
 by (Blast_tac 1);
 qed "Constrains_cancel";

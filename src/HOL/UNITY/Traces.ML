@@ -9,6 +9,13 @@ Definitions of
 
 *)
 
+Goal "id: Acts prg";
+by (simp_tac (simpset() addsimps [Acts_def]) 1);
+qed "id_in_Acts";
+AddIffs [id_in_Acts];
+
+
+
 Goal "reachable prg = {s. EX evs. (s,evs): traces (Init prg) (Acts prg)}";
 by Safe_tac;
 by (etac traces.induct 2);
@@ -20,11 +27,12 @@ Goal "acts <= Acts prg ==> stable acts (reachable prg)";
 by (blast_tac (claset() addIs ([stableI, constrainsI] @ reachable.intrs)) 1);
 qed "stable_reachable";
 
-Goal "(act : Acts(|Init=init, Acts=acts|)) = (act:acts)";
+Goalw [Acts_def]
+     "(act : Acts(|Init=init, Acts0=acts|)) = (act=id | act : acts)";
 by Auto_tac;
 qed "Acts_eq";
 
-Goal "(s : Init(|Init=init, Acts=acts|)) = (s:init)";
+Goal "(s : Init(|Init=init, Acts0=acts|)) = (s:init)";
 by Auto_tac;
 qed "Init_eq";
 
@@ -34,8 +42,8 @@ AddIffs [Acts_eq, Init_eq];
 (*** These three rules allow "lazy" definition expansion ***)
 
 val [rew] = goal thy
-    "[| prg == (|Init=init, Acts=acts|) |] \
-\    ==> Init prg = init & Acts prg = acts";
+    "[| prg == (|Init=init, Acts0=acts|) |] \
+\    ==> Init prg = init & Acts prg = insert id acts";
 by (rewtac rew);
 by Auto_tac;
 qed "def_prg_simps";

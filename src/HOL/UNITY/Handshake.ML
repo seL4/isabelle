@@ -20,11 +20,6 @@ Addsimps (thms"state.update_defs");
 Addsimps [simp_of_set invFG_def];
 
 
-Goalw [Join_def] "id : Acts (Join prgF prgG) ";
-by (Simp_tac 1);
-qed "id_in_Acts";
-AddIffs [id_in_Acts];
-
 Goal "Invariant (Join prgF prgG) invFG";
 by (rtac InvariantI 1);
 by (Force_tac 1);
@@ -59,6 +54,5 @@ by (rtac LeadsTo_Diff 1);
 by (rtac lemma2_2 2);
 by (rtac LeadsTo_Trans 1);
 by (rtac lemma2_2 2);
-by (rtac (lemma2_1) 1);
-by Auto_tac;
+by (rtac lemma2_1 1);
 qed "progress";

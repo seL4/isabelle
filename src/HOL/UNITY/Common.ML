@@ -69,7 +69,7 @@ Addsimps [atMost_Int_atLeast];
 
 Goal "[| ALL m. Constrains prg {m} (maxfg m); \
 \               ALL m: lessThan n. LeadsTo prg {m} (greaterThan m); \
-\               n: common;  id: Acts prg |]  \
+\               n: common |]  \
 \            ==> LeadsTo prg (atMost n) common";
 by (rtac LeadsTo_weaken_R 1);
 by (res_inst_tac [("f","%x. x"), ("l", "n")] GreaterThan_bounded_induct 1);
@@ -82,7 +82,7 @@ val lemma = result();
 (*The "ALL m: -common" form echoes CMT6.*)
 Goal "[| ALL m. Constrains prg {m} (maxfg m); \
 \               ALL m: -common. LeadsTo prg {m} (greaterThan m); \
-\               n: common;  id: Acts prg |]  \
+\               n: common |]  \
 \            ==> LeadsTo prg (atMost (LEAST n. n: common)) common";
 by (rtac lemma 1);
 by (ALLGOALS Asm_simp_tac);

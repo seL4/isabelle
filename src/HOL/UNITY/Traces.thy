@@ -25,8 +25,13 @@ inductive "traces Init Acts"
 
 
 record 'a program =
-  Init :: 'a set
-  Acts :: "('a * 'a)set set"
+  Init  :: 'a set
+  Acts0 :: "('a * 'a)set set"
+
+
+constdefs
+    Acts :: "'a program => ('a * 'a)set set"
+    "Acts prg == insert id (Acts0 prg)"
 
 
 consts reachable :: "'a program => 'a set"

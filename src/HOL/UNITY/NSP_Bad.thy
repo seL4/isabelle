@@ -55,6 +55,6 @@ constdefs
   Nprg :: state program
     (*Initial trace is empty*)
     "Nprg == (|Init = {[]},   
-	       Acts = {id, Fake, NS1, NS2, NS3}|)"
+	       Acts0 = {Fake, NS1, NS2, NS3}|)"
 
 end

@@ -22,7 +22,7 @@ constdefs
 
   prgF :: "state program"
     "prgF == (|Init = {s. NF s = 0 & BB s},
-	       Acts = {id, cmdF}|)"
+	       Acts0 = {cmdF}|)"
 
   (*G's program*)
   cmdG :: "(state*state) set"
@@ -30,7 +30,7 @@ constdefs
 
   prgG :: "state program"
     "prgG == (|Init = {s. NG s = 0 & BB s},
-	       Acts = {id, cmdG}|)"
+	       Acts0 = {cmdG}|)"
 
   (*the joint invariant*)
   invFG :: "state set"

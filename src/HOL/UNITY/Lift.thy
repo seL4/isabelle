@@ -118,8 +118,8 @@ constdefs
     (*for the moment, we OMIT button_press*)
     "Lprg == (|Init = {s. floor s = Min & ~ up s & move s & stop s &
 		          ~ open s & req s = {}},
-	       Acts = {id, request_act, open_act, close_act,
-		       req_up, req_down, move_up, move_down}|)"
+	       Acts0 = {request_act, open_act, close_act,
+		        req_up, req_down, move_up, move_down}|)"
 
 
   (** Invariants **)
