@@ -37,7 +37,7 @@ text {*
   nested copies of the primitive product type.  A \commdx{record}
   declaration introduces a new record type scheme by specifying its
   fields, which are packaged internally to hold up the perception of
-  the record as a distinguished entity.  Here is a simply example.
+  the record as a distinguished entity.  Here is a very simply example:
 *}
 
 record point =
@@ -120,16 +120,16 @@ constdefs
   "cpt1 \<equiv> \<lparr>Xcoord = 999, Ycoord = 23, col = Green\<rparr>"
 
 text {*
-  We can define generic operations that work on arbitrary instances of
-  a record scheme, e.g.\ covering @{typ point}, @{typ cpoint}, and any
-  further extensions.  Every record structure has an implicit
-  pseudo-field, \cdx{more}, that keeps the extension as an explicit
-  value.  Its type is declared as completely polymorphic:~@{typ 'a}.
-  When a fixed record value is expressed using just its standard
-  fields, the value of @{text more} is implicitly set to @{text "()"},
-  the empty tuple, which has type @{typ unit}.  Within the record
-  brackets, you can refer to the @{text more} field by writing
-  ``@{text "\<dots>"}'' (three dots):
+  \medskip We can define generic operations that work on arbitrary
+  instances of a record scheme, e.g.\ covering @{typ point}, @{typ
+  cpoint}, and any further extensions.  Every record structure has an
+  implicit pseudo-field, \cdx{more}, that keeps the extension as an
+  explicit value.  Its type is declared as completely
+  polymorphic:~@{typ 'a}.  When a fixed record value is expressed
+  using just its standard fields, the value of @{text more} is
+  implicitly set to @{text "()"}, the empty tuple, which has type
+  @{typ unit}.  Within the record brackets, you can refer to the
+  @{text more} field by writing ``@{text "\<dots>"}'' (three dots):
 *}
 
 lemma "Xcoord \<lparr>Xcoord = a, Ycoord = b, \<dots> = p\<rparr> = a"
@@ -311,8 +311,8 @@ text {*
   The generic cases method does not admit references to locally bound
   parameters of a goal.  In longer proof scripts one might have to
   fall back on the primitive @{text rule_tac} used together with the
-  internal field representation rules of records.  E.g.\ the above use
-  of @{text "(cases r)"} would become @{text "(rule_tac r = r in
+  internal field representation rules of records.  The above use of
+  @{text "(cases r)"} would become @{text "(rule_tac r = r in
   point.cases_scheme)"}.
 *}
 
