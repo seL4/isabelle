@@ -77,7 +77,7 @@ by (asm_simp_tac (simpset() addsimps [zdiff_def, zadd_zmult_distrib]
 qed "le_add_iff2";
 
 (*To tidy up the result of a simproc.  Only the RHS will be simplified.*)
-Goal "u = u' ==> (t=u) = (t=u')";
+Goal "u = u' ==> (t==u) == (t==u')";
 by Auto_tac;
 qed "eq_cong2";
 
@@ -200,7 +200,7 @@ fun prove_conv name tacs sg (t, u) =
 
 fun simplify_meta_eq rules =
     mk_meta_eq o
-    simplify (HOL_basic_ss addcongs[eq_cong2] addsimps rules)
+    simplify (HOL_basic_ss addeqcongs[eq_cong2] addsimps rules)
 
 fun prep_simproc (name, pats, proc) = Simplifier.mk_simproc name pats proc;
 fun prep_pat s = Thm.read_cterm (Theory.sign_of Int.thy) (s, HOLogic.termT);
