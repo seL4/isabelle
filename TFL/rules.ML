@@ -51,7 +51,7 @@ sig
 (* For debugging my isabelle solver in the conditional rewriter *)
   val term_ref : term list ref
   val thm_ref : thm list ref
-  val mss_ref : meta_simpset list ref
+  val mss_ref : MetaSimplifier.meta_simpset list ref
   val tracing : bool ref
   val CONTEXT_REWRITE_RULE : term * term list * thm * thm list
                              -> thm -> thm * term list
@@ -546,7 +546,7 @@ fun list_beta_conv tm =
  * Trace information for the rewriter
  *---------------------------------------------------------------------------*)
 val term_ref = ref[] : term list ref
-val mss_ref = ref [] : meta_simpset list ref;
+val mss_ref = ref [] : MetaSimplifier.meta_simpset list ref;
 val thm_ref = ref [] : thm list ref;
 val tracing = ref false;
 
@@ -674,7 +674,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
      fun prover used mss thm =
      let fun cong_prover mss thm =
          let val dummy = say "cong_prover:"
-             val cntxt = prems_of_mss mss
+             val cntxt = MetaSimplifier.prems_of_mss mss
              val dummy = print_thms "cntxt:" cntxt
              val dummy = say "cong rule:"
              val dummy = say (string_of_thm thm)
@@ -687,7 +687,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                      val ants = map tych (Logic.strip_imp_prems imp)
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
-                     val mss' = add_prems(mss, map ASSUME ants)
+                     val mss' = MetaSimplifier.add_prems(mss, map ASSUME ants)
                      val lhs_eq_lhs1 = MetaSimplifier.rewrite_cterm (false,true,false) (prover used) mss' lhs
                        handle U.ERR _ => Thm.reflexive lhs
                      val dummy = print_thms "proven:" [lhs_eq_lhs1]
@@ -709,7 +709,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val Q = get_lhs eq1
                   val QeqQ1 = pbeta_reduce (tych Q)
                   val Q1 = #2(D.dest_eq(cconcl QeqQ1))
-                  val mss' = add_prems(mss, map ASSUME ants1)
+                  val mss' = MetaSimplifier.add_prems(mss, map ASSUME ants1)
                   val Q1eeqQ2 = MetaSimplifier.rewrite_cterm (false,true,false) (prover used') mss' Q1
                                 handle U.ERR _ => Thm.reflexive Q1
                   val Q2 = #2 (Logic.dest_equals (#prop(rep_thm Q1eeqQ2)))
@@ -734,7 +734,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                  else
                  let val tych = cterm_of sign
                      val ants1 = map tych ants
-                     val mss' = add_prems(mss, map ASSUME ants1)
+                     val mss' = MetaSimplifier.add_prems(mss, map ASSUME ants1)
                      val Q_eeq_Q1 = MetaSimplifier.rewrite_cterm
                         (false,true,false) (prover used') mss' (tych Q)
                       handle U.ERR _ => Thm.reflexive (tych Q)
@@ -759,7 +759,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
 
         fun restrict_prover mss thm =
           let val dummy = say "restrict_prover:"
-              val cntxt = rev(prems_of_mss mss)
+              val cntxt = rev(MetaSimplifier.prems_of_mss mss)
               val dummy = print_thms "cntxt:" cntxt
               val {prop = Const("==>",_) $ (Const("Trueprop",_) $ A) $ _,
                    sign,...} = rep_thm thm
@@ -806,7 +806,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     val ctm = cprop_of th
     val names = add_term_names (term_of ctm, [])
     val th1 = MetaSimplifier.rewrite_cterm(false,true,false)
-      (prover names) (add_congs(mss_of [cut_lemma'], congs)) ctm
+      (prover names) (MetaSimplifier.add_congs(MetaSimplifier.mss_of [cut_lemma'], congs)) ctm
     val th2 = equal_elim th1 th
  in
  (th2, filter (not o restricted) (!tc_list))

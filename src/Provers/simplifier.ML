@@ -21,7 +21,7 @@ sig
   type simpset
   val empty_ss: simpset
   val rep_ss: simpset ->
-   {mss: meta_simpset,
+   {mss: MetaSimplifier.meta_simpset,
     mk_cong: thm -> thm,
     subgoal_tac: simpset -> int -> tactic,
     loop_tacs: (string * (int -> tactic)) list,
@@ -152,7 +152,7 @@ fun app_sols [] _ _ = no_tac
 
 datatype simpset =
   Simpset of {
-    mss: meta_simpset,
+    mss: MetaSimplifier.meta_simpset,
     mk_cong: thm -> thm,
     subgoal_tac: simpset -> int -> tactic,
     loop_tacs: (string * (int -> tactic)) list,
@@ -411,7 +411,7 @@ fun generic_simp_tac safe mode =
         asm_rewrite_goal_tac mode
           (solve_all_tac (mk_cong, subgoal_tac, loop_tacs, unsafe_solvers))
           mss i
-        THEN (solvs (prems_of_mss mss) i ORELSE
+        THEN (solvs (MetaSimplifier.prems_of_mss mss) i ORELSE
               TRY ((loop_tac loop_tacs THEN_ALL_NEW simp_loop_tac) i))
     in simp_loop_tac end;
 
