@@ -25,6 +25,8 @@ and ZF);
 * new toplevel commands 'thm' and 'thms' for retrieving theorems from
 the current theory context;
 
+* new theory section 'nonterminals';
+
 
 *** HOL ***
 
