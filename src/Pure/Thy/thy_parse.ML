@@ -523,7 +523,7 @@ val pure_keywords =
   "{", "}", "(", ")", "[", "]", "::", "==", "=>", "<="];
 
 val pure_sections =
- [section "oracle" "|> set_oracle" ident,
+ [section "oracle" "|> set_oracle" (name >> strip_quotes),
   section "classes" "|> add_classes" class_decls,
   section "default" "|> add_defsort" sort,
   section "types" "" type_decls,
