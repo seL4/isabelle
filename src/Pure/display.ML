@@ -103,16 +103,17 @@ val print_data = Sign.print_data o sign_of;
 
 fun print_thy thy =
   let
-    val {sign, new_axioms, oracles, ...} = rep_theory thy;
-    val axioms = Symtab.dest new_axioms;
+    val {sign, axioms, oracles, ...} = rep_theory thy;
+    val axioms = Symtab.dest axioms;
     val oras = map fst (Symtab.dest oracles);
 
     fun prt_axm (a, t) = Pretty.block
-      [Pretty.str (Sign.cond_extern sign Theory.thmK a ^ ":"), Pretty.brk 1,
+      [Pretty.str (Sign.cond_extern sign Theory.axiomK a ^ ":"), Pretty.brk 1,
         Pretty.quote (Sign.pretty_term sign t)];
   in
-    Pretty.writeln (Pretty.big_list "additional axioms:" (map prt_axm axioms));
-    Pretty.writeln (Pretty.strs ("oracles:" :: oras))
+    Pretty.writeln (Pretty.big_list "axioms:" (map prt_axm axioms));
+    Pretty.writeln (Pretty.strs ("oracles:" :: oras));
+    print_data thy "theorems"
   end;
 
 fun print_theory thy = (Sign.print_sg (sign_of thy); print_thy thy);
@@ -134,7 +135,7 @@ local
         if x = x' then (x', y ins ys') :: pairs
         else pair :: ins_entry (x, y) pairs;
 
-  fun add_consts (Const (c, T), env) = ins_entry (T, c) env
+  fun add_consts (Const (c, T), env) = ins_entry (T, (c, T)) env
     | add_consts (t $ u, env) = add_consts (u, add_consts (t, env))
     | add_consts (Abs (_, _, t), env) = add_consts (t, env)
     | add_consts (_, env) = env;
@@ -152,12 +153,12 @@ local
   fun less_idx ((x, i):indexname, (y, j):indexname) =
     x < y orelse x = y andalso i < j;
   fun sort_idxs l = map (apsnd (sort less_idx)) l;
-  fun sort_strs l = map (apsnd sort_strings) l;
+  fun sort_cnsts l = map (apsnd (sort_wrt fst)) l;
 
 
   (* prepare atoms *)
 
-  fun consts_of t = sort_strs (add_consts (t, []));
+  fun consts_of t = sort_cnsts (add_consts (t, []));
   fun vars_of t = sort_idxs (add_vars (t, []));
   fun varsT_of t = rev (sort_idxs (it_term_types add_varsT (t, [])));
 
@@ -183,7 +184,7 @@ in
       fun prt_varT (x, ~1) = prt_typ (TFree (x, []))
         | prt_varT xi = prt_typ (TVar (xi, []));
 
-      val prt_consts = prt_atoms (prt_term o Syntax.const) prt_typ;
+      val prt_consts = prt_atoms (prt_term o Const) prt_typ;
       val prt_vars = prt_atoms prt_var prt_typ;
       val prt_varsT = prt_atoms prt_varT prt_sort;
 
