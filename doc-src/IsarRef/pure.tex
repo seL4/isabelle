@@ -137,7 +137,9 @@ macro with the name prefixed by \verb,\isamarkup, (e.g.\
 argument is passed to that macro unchanged, i.e.\ further {\LaTeX} commands
 may be included here as well.
 
-\medskip Additional markup commands are available for proofs (see
+\medskip
+
+Additional markup commands are available for proofs (see
 \S\ref{sec:markup-prf}).  Also note that the $\isarkeyword{header}$
 declaration (see \S\ref{sec:begin-thy}) admits to insert document markup
 elements just preceding the actual theory definition.
@@ -481,13 +483,11 @@ special in the same way as $\isarkeyword{text_raw}$.
 \subsection{Proof context}\label{sec:proof-context}
 
 \indexisarcmd{fix}\indexisarcmd{assume}\indexisarcmd{presume}\indexisarcmd{def}
-\indexisarcmd{case}
 \begin{matharray}{rcl}
   \isarcmd{fix} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{assume} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{presume} & : & \isartrans{proof(state)}{proof(state)} \\
   \isarcmd{def} & : & \isartrans{proof(state)}{proof(state)} \\
-  \isarcmd{case} & : & \isartrans{proof(state)}{proof(state)} \\
 \end{matharray}
 
 The logical proof context consists of fixed variables and assumptions.  The
@@ -515,30 +515,12 @@ combining $\FIX x$ with another version of assumption that causes any
 hypothetical equation $x \equiv t$ to be eliminated by the reflexivity rule.
 Thus, exporting some result $x \equiv t \drv \phi[x]$ yields $\edrv \phi[t]$.
 
-\medskip Basically, Isar proof contexts have to be built up explicitly using
-any of the above commands.  In typical verification tasks this can become hard
-to manage, though, with a large number of local contexts emerging from case
-analysis or induction, for example.  The $\CASENAME$ command provides a
-shorthand to refer to certain parts of logical context symbolically.  Proof
-methods may provide an environment of named ``cases'' of the form $c\colon
-\vec x, \vec \chi$.  Then the effect of $\CASE{c}$ is exactly the same as
-$\FIX{\vec x}~\ASSUME{c}{\vec\chi}$.
-
-It is important to note that $\CASENAME$ does \emph{not} provide means to peek
-at the current goal state, which is considered strictly non-observable in
-Isar.  Instead, the cases considered here typically emerge in a canonical way
-from certain pieces of specification that appears in the theory somewhere,
-such as an inductive definition, or recursive function.  See
-\S\ref{sec:induct-method} for more details of how this works in HOL.
-
 \begin{rail}
   'fix' (vars + 'and') comment?
   ;
   ('assume' | 'presume') (assm comment? + 'and')
   ;
   'def' thmdecl? \\ var '==' term termpat? comment?
-  ;
-  'case' name attributes?
   ;
 
   var: name ('::' type)?
@@ -566,9 +548,6 @@ such as an inductive definition, or recursive function.  See
   resulting hypothetical equation solved by reflexivity.
   
   The default name for the definitional equation is $x_def$.
-\item [$\CASE{c}$] invokes local context $c\colon \vec x, \vec \chi$, as
-  provided by an appropriate proof method.  This abbreviates $\FIX{\vec
-    x}~\ASSUME{c}{\vec\chi}$.
 \end{descr}
 
 The special name $prems$\indexisarthm{prems} refers to all assumptions of the
@@ -857,16 +836,16 @@ as well.  These typically achieve a stronger forward style of reasoning.
 
 \subsection{Diagnostics}\label{sec:diag}
 
-\indexisarcmd{thm}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{typ}
-\indexisarcmd{print-facts}\indexisarcmd{print-binds}\indexisarcmd{print-cases}
+\indexisarcmd{pr}\indexisarcmd{thm}\indexisarcmd{term}\indexisarcmd{prop}\indexisarcmd{typ}
+\indexisarcmd{print-facts}\indexisarcmd{print-binds}
 \begin{matharray}{rcl}
+  \isarcmd{pr} & : & \isarkeep{\cdot} \\
   \isarcmd{thm} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{term} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{prop} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{typ} & : & \isarkeep{theory~|~proof} \\
   \isarcmd{print_facts} & : & \isarkeep{proof} \\
   \isarcmd{print_binds} & : & \isarkeep{proof} \\
-  \isarcmd{print_cases} & : & \isarkeep{proof} \\
 \end{matharray}
 
 These commands are not part of the actual Isabelle/Isar syntax, but assist
@@ -874,17 +853,27 @@ interactive development.  Also note that $undo$ does not apply here, since the
 theory or proof configuration is not changed.
 
 \begin{rail}
-  'thm' thmrefs
+  'pr' modes? nat?
   ;
-  'term' term
+  'thm' modes? thmrefs
   ;
-  'prop' prop
+  'term' modes? term
   ;
-  'typ' type
+  'prop' modes? prop
+  ;
+  'typ' modes? type
+  ;
+
+  modes: '(' (name + ) ')'
   ;
 \end{rail}
 
 \begin{descr}
+\item [$\isarkeyword{pr}~n$] prints the current top-level state, i.e.\ the
+  theory identifier or proof state.  The latter includes the proof context,
+  current facts and goals.  The optional argument $n$ affects the implicit
+  limit of goals to be displayed, which is initially 10.  Omitting the limit
+  leaves the value unchanged.
 \item [$\isarkeyword{thm}~thms$] retrieves lists of theorems from the current
   theory or proof context.  Note that any attributes included in the theorem
   specifications are applied to a temporary context derived from the current
@@ -901,8 +890,56 @@ theory or proof configuration is not changed.
   context, including assumptions and local results.
 \item [$\isarkeyword{print_binds}$] prints all term abbreviations present in
   the context.
-\item [$\isarkeyword{print_cases}$] prints all local contexts (also known as
-  ``cases'') of the current goal context.
+\end{descr}
+
+The basic diagnostic commands above admit a list of $modes$ to be specified,
+which is appended to the current print mode (see also \cite{isabelle-ref}).
+Thus the output behavior may be modified according particular print mode
+features.
+
+\medskip
+
+For example, $\isarkeyword{pr}~(latex~xsymbols~symbols)$ would print the
+current proof state with mathematical symbols and special characters
+represented in {\LaTeX} source, according to the Isabelle style
+\cite{isabelle-sys}.  The resulting text can be directly pasted into and
+\verb,\begin{isabelle},\dots\verb,\end{isabelle}, environment.
+
+Note that $\isarkeyword{pr}~(latex)$ is sufficient to achieve the same output,
+if the current Isabelle session has the other modes already activated, say due
+to some particular user interface configuration such as Proof~General
+\cite{proofgeneral} with X-Symbol mode \cite{FIXME}.
+
+
+\subsection{History commands}\label{sec:history}
+
+\indexisarcmd{undo}\indexisarcmd{redo}\indexisarcmd{kill}
+\begin{matharray}{rcl}
+  \isarcmd{undo}^{{*}{*}} & : & \isarkeep{\cdot} \\
+  \isarcmd{redo}^{{*}{*}} & : & \isarkeep{\cdot} \\
+  \isarcmd{kill}^{{*}{*}} & : & \isarkeep{\cdot} \\
+\end{matharray}
+
+The Isabelle/Isar top-level maintains a two-stage history, for theory and
+proof state transformation.  Basically, any command can be undone using
+$\isarkeyword{undo}$, excluding mere diagnostic elements.  Its effect may be
+revoked via $\isarkeyword{redo}$, unless the corresponding the
+$\isarkeyword{undo}$ step has crossed the beginning of a proof or theory.  The
+$\isarkeyword{kill}$ command aborts the current history node altogether,
+discontinuing a proof or even the whole theory.  This operation is \emph{not}
+undoable.
+
+\begin{warn}
+  History commands may not be used with user interfaces such as Proof~General
+  \cite{proofgeneral}, which takes care of stepping forth and back itself.
+  Interfering with manual $\isarkeyword{undo}$, $\isarkeyword{redo}$, or even
+  $\isarkeyword{kill}$ commands would quickly result in utter confusion.
+\end{warn}
+
+\begin{descr}
+\item [$\isarkeyword{undo}$] revokes the latest state-transforming command.
+\item [$\isarkeyword{redo}$] undos the latest $\isarkeyword{undo}$.
+\item [$\isarkeyword{kill}$] aborts the current history level.
 \end{descr}
 
 
@@ -927,6 +964,15 @@ described in \cite{isabelle-sys}.  Thus partial or even wrong proof attempts
 can be discussed in a logically sound manner.  Note that the Isabelle {\LaTeX}
 macros can be easily adapted to print something like ``$\dots$'' instead of an
 ``$\OOPS$'' keyword.
+
+\medskip The $\OOPS$ command is undoable, in contrast to $\isarkeyword{kill}$
+(see \S\ref{sec:history}).  The effect is to get back to the theory
+\emph{before} the opening of the proof.
+
+\begin{descr}
+\item [$\isarkeyword{oops}$] dismisses the current proof, leaving the text in
+  as properly processed.
+\end{descr}
 
 
 \subsection{System operations}
@@ -968,9 +1014,9 @@ come in handy for interactive exploration and debugging.
 \indexisarcmd{apply}\indexisarcmd{apply-end}\indexisarcmd{back}\indexisarmeth{tactic}
 \begin{matharray}{rcl}
   \isarcmd{apply} & : & \isartrans{proof(prove)}{proof(prove)} \\
-  \isarcmd{apply_end}^* & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{apply_end} & : & \isartrans{proof(state)}{proof(state)} \\
+  \isarcmd{back} & : & \isartrans{proof}{proof} \\
   tactic & : & \isarmeth \\
-  \isarcmd{back}^* & : & \isartrans{proof}{proof} \\
 \end{matharray}
 
 \railalias{applyend}{apply\_end}
@@ -982,8 +1028,6 @@ come in handy for interactive exploration and debugging.
   applyend method
   ;
   'tactic' text
-  ;
-  'back'
   ;
 \end{rail}
 
@@ -1004,24 +1048,25 @@ come in handy for interactive exploration and debugging.
   No facts are passed to $m$.  Furthermore, the static context is that of the
   enclosing goal (as for actual $\QEDNAME$).  Thus the proof method may not
   refer to any assumptions introduced in the current body, for example.
-\item [$tactic~text$] produces a proof method from any ML text of type
-  \texttt{tactic}.  Apart from the usual ML environment, and the current
-  implicit theory context, the ML code may refer to the following locally
-  bound values:
-  \begin{ttbox}
-val ctxt  : Proof.context
-val facts : thm list
-val thm   : string -> thm
-val thms  : string -> thm list
-  \end{ttbox}
-  Here \texttt{ctxt} refers to the current proof context, \texttt{facts}
-  indicates any current facts for forward-chaining, and
-  \texttt{thm}~/~\texttt{thms} retrieve named facts (including global
-  theorems) from the context.
 \item [$\isarkeyword{back}$] does back-tracking over the result sequence of
   the latest proof command.\footnote{Unlike the ML function \texttt{back}
     \cite{isabelle-ref}, the Isar command does not search upwards for further
     branch points.} Basically, any proof command may return multiple results.
+\item [$tactic~text$] produces a proof method from any ML text of type
+  \texttt{tactic}.  Apart from the usual ML environment, and the current
+  implicit theory context, the ML code may refer to the following locally
+  bound values:
+%%FIXME ttbox produces too much trailing space
+{\footnotesize\begin{verbatim}
+val ctxt  : Proof.context
+val facts : thm list
+val thm   : string -> thm
+val thms  : string -> thm list
+\end{verbatim}}
+  Here \texttt{ctxt} refers to the current proof context, \texttt{facts}
+  indicates any current facts for forward-chaining, and
+  \texttt{thm}~/~\texttt{thms} retrieve named facts (including global
+  theorems) from the context.
 \end{descr}
 
 
