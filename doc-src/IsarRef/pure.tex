@@ -1136,11 +1136,10 @@ theory or proof configuration is not changed.
 \begin{descr}
 \item [$\isarkeyword{help}$] prints a list of available language elements.
   Note that methods and attributes depend on the current theory context.
-\item [$\isarkeyword{pr}~n$] prints the current top-level state, i.e.\ the
-  theory identifier or proof state.  The latter includes the proof context,
-  current facts and goals.  The optional argument $n$ affects the implicit
-  limit of goals to be displayed, which is initially 10.  Omitting the limit
-  leaves the value unchanged.
+\item [$\isarkeyword{pr}~n$] prints the current proof state (if present),
+  including the proof context, current facts and goals.  The optional argument
+  $n$ affects the implicit limit of goals to be displayed, which is initially
+  10.  Omitting the limit leaves the current value unchanged.
 \item [$\isarkeyword{thm}~\vec a$] retrieves theorems from the current theory
   or proof context.  Note that any attributes included in the theorem
   specifications are applied to a temporary context derived from the current
