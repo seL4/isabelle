@@ -1,10 +1,10 @@
 \begin{theindex}
 
-  \item browser, \bold{14}
+  \item browser, \bold{13}
 
   \indexspace
 
-  \item {\tt finish_html}, \bold{11}
+  \item {\tt finish_html}, \bold{10}
 
   \indexspace
 
@@ -12,11 +12,11 @@
 
   \indexspace
 
-  \item HTML, \bold{10}
+  \item HTML, \bold{9}
 
   \indexspace
 
-  \item {\tt init_html}, \bold{11}
+  \item {\tt init_html}, \bold{10}
   \item {\tt INSTALL}, 1
   \item {\tt ISABELLE}, 3
   \item {\tt Isabelle}, 1
@@ -29,7 +29,7 @@
 
   \indexspace
 
-  \item {\tt make_html}, \bold{11}
+  \item {\tt make_html}, \bold{10}
 
   \indexspace
 
@@ -37,6 +37,6 @@
 
   \indexspace
 
-  \item {\tt use_dir}, 12
+  \item {\tt use_dir}, 11
 
 \end{theindex}
