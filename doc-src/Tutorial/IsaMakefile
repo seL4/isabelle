@@ -5,6 +5,9 @@
 ## targets
 
 default: HOL-ToyList HOL-Ifexpr HOL-CodeGen HOL-Datatype HOL-Recdef HOL-Misc
+images:
+test:
+all: default
 
 
 ## global settings
