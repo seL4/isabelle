@@ -10,8 +10,9 @@ We begin by looking at a simplified grammar for Isar proofs:
                  &$\mid$& \isacommand{by} \emph{method}\\[1ex]
 \emph{statement} &::= & \isacommand{fix} \emph{variables} \\
              &$\mid$& \isacommand{assume} proposition* \\
-             &$\mid$& \isacommand{then}$^?$
-                      (\isacommand{show} | \isacommand{have})
+             &$\mid$& (\isacommand{from} \emph{label}$^*$ $\mid$
+                       \isacommand{then})$^?$ \\
+                   && (\isacommand{show} $\mid$ \isacommand{have})
                       \emph{proposition} \emph{proof} \\[1ex]
 \emph{proposition} &::=& (\emph{label}{\bf:})$^?$ \emph{string}
 \end{tabular}
@@ -23,19 +24,22 @@ This is a typical proof skeleton:
 \begin{center}
 \begin{tabular}{@ {}ll}
 \isacommand{proof}\\
-\hspace*{3ex}\isacommand{assume} "\dots"\\
+\hspace*{3ex}\isacommand{assume} "\emph{the-assm}"\\
 \hspace*{3ex}\isacommand{have} "\dots"  & -- "intermediate result"\\
 \hspace*{3ex}\vdots\\
 \hspace*{3ex}\isacommand{have} "\dots"  & -- "intermediate result"\\
-\hspace*{3ex}\isacommand{show} "\dots" & --"the conclusion"\\
+\hspace*{3ex}\isacommand{show} "\emph{the-concl}"\\
 \isacommand{qed}
 \end{tabular}
 \end{center}
+It proves \emph{the-assm}~@{text"\<Longrightarrow>"}~\emph{the-concl}.
 *}
 
 section{*Logic*}
 
 subsection{*Propositional logic*}
+
+subsubsection{*Introduction rules*}
 
 lemma "A \<longrightarrow> A"
 proof (rule impI)
@@ -49,8 +53,8 @@ which rule @{thm[source]impI} turns into the desired @{prop"A \<longrightarrow> 
 However, this text is much too detailled for comfort. Therefore Isar
 implements the following principle:
 \begin{quote}\em
-Command \isacommand{proof} can automatically select an introduction rule based
-on the goal and a predefined list of rules.
+Command \isacommand{proof} automatically tries select an introduction rule
+based on the goal and a predefined list of rules.
 \end{quote}
 Here @{thm[source]impI} is applied automatically:
 *}
@@ -61,8 +65,9 @@ proof
   show "A" by(rule A)
 qed
 
-(* Proof by assumption should be trivial. Method "." does just that (and a
-bit more - see later). Thus naming of assumptions is often superfluous. *)
+text{* Trivial proofs, in particular those by assumption, should be trivial
+to perform. Method "." does just that (and a bit more --- see later). Thus
+naming of assumptions is often superfluous: *}
 
 lemma "A \<longrightarrow> A"
 proof
@@ -70,8 +75,9 @@ proof
   have "A" .
 qed
 
-(* To hide proofs by assumption, by(method) first applies method and then
-tries to solve all remaining subgoals by assumption. *)
+text{* To hide proofs by assumption further, \isacommand{by}@{text"(method)"}
+first applies @{text method} and then tries to solve all remaining subgoals
+by assumption: *}
 
 lemma "A \<longrightarrow> A & A"
 proof
@@ -79,103 +85,155 @@ proof
   show "A & A" by(rule conjI)
 qed
 
-(* Proofs of the form by(rule <rule>) can be abbreviated to ".." if <rule> is
-one of the predefined introduction rules (for user supplied rules see below).
-Thus
-*)
+text{*\noindent A drawback of these implicit proofs by assumption is that it
+is no longer obvious where an assumption is used.
 
-lemma "A \<longrightarrow> A & A"
+Proofs of the form \isacommand{by}@{text"(rule <name>)"} can be abbreviated
+to ".." if @{text"<name>"} is one of the predefined introduction rules.  Thus
+*}
+
+lemma "A \<longrightarrow> A \<and> A"
 proof
   assume A
-  show "A & A" ..
+  show "A \<and> A" ..
 qed
 
-(* What happens: applies "conj" (first "."), then solves the two subgoals by
-assumptions (second ".") *)
+text{*\noindent
+What happens: first the matching introduction rule @{thm[source]conjI}
+is applied (first "."), then the two subgoals are solved by assumption
+(second "."). *}
 
-(* Now: elimination *)
+subsubsection{*Elimination rules*}
 
-lemma "A & B \<longrightarrow> B & A"
+text{*A typical elimination rule is @{thm[source]conjE}, $\land$-elimination:
+@{thm[display,indent=5]conjE[no_vars]}  In the following proof it is applied
+by hand, after its first (``\emph{major}'') premise has been eliminated via
+@{text"[OF AB]"}: *}
+
+lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume AB: "A & B"
-  show "B & A"
+  assume AB: "A \<and> B"
+  show "B \<and> A"
   proof (rule conjE[OF AB])
     assume A and B
-    show ?thesis .. --"thesis = statement in previous show"
+    show ?thesis ..
   qed
 qed
 
-(* Again: too much text.
+text{*\noindent Note that the term @{text"?thesis"} always stands for the
+``current goal'', i.e.\ the enclosing \isacommand{show} (or
+\isacommand{have}).
 
-Elimination rules are used to conclude new stuff from old. In Isar they are
-triggered by propositions being fed INTO a proof block. Syntax:
-from <previously proved propositions> show \<dots>
-applies an elimination rule whose first premise matches one of the <previously proved propositions>. Thus:
-*)
+This is too much proof text. Elimination rules should be selected
+automatically based on their major premise, the formula or rather connective
+to be eliminated. In Isar they are triggered by propositions being fed
+\emph{into} a proof block. Syntax:
+\begin{center}
+\isacommand{from} \emph{fact} \isacommand{show} \emph{proposition}
+\end{center}
+where \emph{fact} stands for the name of a previously proved proved
+proposition, e.g.\ an assumption, an intermediate result or some global
+theorem. The fact may also be modified with @{text of}, @{text OF} etc.
+This command applies a elimination rule (from a predefined list)
+whose first premise is solved by the fact. Thus: *}
 
-lemma "A & B \<longrightarrow> B & A"
+lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume AB: "A & B"
-  from AB show "B & A"
+  assume AB: "A \<and> B"
+  from AB show "B \<and> A"
   proof
     assume A and B
     show ?thesis ..
   qed
 qed
 
-(* 
-2nd principle: try to arrange sequence of propositions in a UNIX like
-pipe, such that the proof of the next proposition uses the previous
-one. The previous proposition can be referred to via "this".
-This greatly reduces the need for explicit naming of propositions.
-*)
-lemma "A & B \<longrightarrow> B & A"
+text{* Now we come a second important principle:
+\begin{quote}\em
+Try to arrange the sequence of propositions in a UNIX-like pipe,
+such that the proof of each proposition builds on the previous proposition.
+\end{quote}
+The previous proposition can be referred to via the fact @{text this}.
+This greatly reduces the need for explicit naming of propositions:
+*}
+
+lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume "A & B"
-  from this show "B & A"
+  assume "A \<and> B"
+  from this show "B \<and> A"
   proof
     assume A and B
     show ?thesis ..
   qed
 qed
 
-(* Final simplification: "from this" = "thus".
+text{*\noindent
+A final simplification: \isacommand{from}~@{text this} can be
+abbreviated to \isacommand{thus}.
+\bigskip
 
-Alternative: pure forward reasoning: *)
+Here is an alternative proof that operates purely by forward reasoning: *}
 
-lemma "A & B --> B & A"
+lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume ab: "A & B"
+  assume ab: "A \<and> B"
   from ab have a: A ..
   from ab have b: B ..
-  from b a show "B & A" ..
+  from b a show "B \<and> A" ..
 qed
 
-(* New: itermediate haves *)
+text{*\noindent
+It is worth examining this text in detail because it exhibits a number of new features.
 
-(* The predefined introduction and elimination rules include all the usual
-natural deduction rules for propositional logic. Here is a longer example: *)
+For a start, this is the first time we have proved intermediate propositions
+(\isacommand{have}) on the way to the final \isacommand{show}. This is the
+norm in any nontrival proof where one cannot bridge the gap between the
+assumptions and the conclusion in one step. Both \isacommand{have}s above are
+proved automatically via @{thm[source]conjE} triggered by
+\isacommand{from}~@{text ab}.
 
-lemma "~(A & B) \<longrightarrow> ~A | ~B"
+The \isacommand{show} command illustrates two things:
+\begin{itemize}
+\item \isacommand{from} can be followed by any number of facts.
+Given \isacommand{from}~@{text f}$_1$~\dots~@{text f}$_n$, \isacommand{show}
+tries to find an elimination rule whose first $n$ premises can be proved
+by the given facts in the given order.
+\item If there is no matching elimination rule, introduction rules are tried,
+again using the facts to prove the premises.
+\end{itemize}
+In this case, the proof succeeds with @{thm[source]conjI}. Note that the proof would fail if we had written \isacommand{from}~@{text"a b"}
+instead of \isacommand{from}~@{text"b a"}.
+
+This treatment of facts fed into a proof is not restricted to implicit
+application of introduction and elimination rules but applies to explicit
+application of rules as well. Thus you could replace the final ``..'' above
+with \isacommand{by}@{text"(rule conjI)"}. 
+
+Note Isar's predefined introduction and elimination rules include all the
+usual natural deduction rules for propositional logic. We conclude this
+section with an extended example --- which rules are used implicitly where?
+Rule @{thm[source]ccontr} is @{thm ccontr[no_vars]}.
+*}
+
+lemma "\<not>(A \<and> B) \<longrightarrow> \<not>A \<or> \<not>B"
 proof
-  assume n: "~(A & B)"
-  show "~A | ~B"
+  assume n: "\<not>(A \<and> B)"
+  show "\<not>A \<or> \<not>B"
   proof (rule ccontr)
-    assume nn: "~(~ A | ~B)"
+    assume nn: "\<not>(\<not> A \<or> \<not>B)"
     from n show False
     proof
-      show "A & B"
+      show "A \<and> B"
       proof
 	show A
 	proof (rule ccontr)
-	  assume "~A"
+	  assume "\<not>A"
 	  have "\<not> A \<or> \<not> B" ..
 	  from nn this show False ..
 	qed
       next
 	show B
 	proof (rule ccontr)
-	  assume "~B"
+	  assume "\<not>B"
 	  have "\<not> A \<or> \<not> B" ..
 	  from nn this show False ..
 	qed
@@ -184,166 +242,233 @@ proof
   qed
 qed;
 
-(* New:
-
-1. Multiple subgoals. When showing "A & B" we need to show both A and B.
-Each subgoal is proved separately, in ANY order. The individual proofs are
-separated by "next".
-
-2.  "have" for proving an intermediate fact
-*)
+text{*\noindent Apart from demonstrating the strangeness of classical
+arguments by contradiction, this example also introduces a new language
+feature to deal with multiple subgoals: \isacommand{next}.  When showing
+@{term"A \<and> B"} we need to show both @{term A} and @{term B}.  Each subgoal
+is proved separately, in \emph{any} order. The individual proofs are
+separated by \isacommand{next}.  *}
 
 subsection{*Becoming more concise*}
 
-(* Normally want to prove rules expressed with \<Longrightarrow>, not \<longrightarrow> *)
+text{* So far our examples have been a bit unnatural: normally we want to
+prove rules expressed with @{text"\<Longrightarrow>"}, not @{text"\<longrightarrow>"}. Here is an example:
+*}
 
 lemma "\<lbrakk> A \<Longrightarrow> False \<rbrakk> \<Longrightarrow> \<not> A"
 proof
-  assume "A \<Longrightarrow> False" A
+  assume "A \<Longrightarrow> False" "A"
   thus False .
 qed
 
-(* In this case the "proof" works on the "~A", thus selecting notI
+text{*\noindent The \isacommand{proof} always works on the conclusion,
+@{prop"\<not>A"} in our case, thus selecting $\neg$-introduction. Hence we can
+additionally assume @{prop"A"}.
 
-Now: avoid repeating formulae (which may be large). *)
+This is all very well as long as formulae are small. Let us now look at some
+devices to avoid repeating (possibly large) formulae. A very general method
+is pattern matching: *}
 
-lemma "(large_formula \<Longrightarrow> False) \<Longrightarrow> ~ large_formula"
+lemma "(large_formula \<Longrightarrow> False) \<Longrightarrow> \<not> large_formula"
       (is "(?P \<Longrightarrow> _) \<Longrightarrow> _")
 proof
   assume "?P \<Longrightarrow> False" ?P
   thus False .
 qed
 
-(* Even better: can state assumptions directly *)
+text{*\noindent Any formula may be followed by
+@{text"("}\isacommand{is}~\emph{pattern}@{text")"} which causes the pattern
+to be matched against the formula, instantiating the ?-variables in the
+pattern. Subsequent uses of these variables in other terms simply causes them
+to be replaced by the terms they stand for.
+
+We can simplify things even more by stating the theorem by means of the
+\isacommand{assumes} and \isacommand{shows} primitives which allow direct
+naming of assumptions: *}
 
 lemma assumes A: "large_formula \<Longrightarrow> False"
-      shows "~ large_formula" (is "~ ?P")
+      shows "\<not> large_formula" (is "\<not> ?P")
 proof
   assume ?P
-  from A show False .
-qed;
-
-
-(* Predicate calculus. Keyword fix introduces new local variables into a
-proof. Corresponds to !! just like assume-show corresponds to \<Longrightarrow> *)
-
-lemma assumes P: "!x. P x" shows "!x. P(f x)"
-proof --"allI"
-  fix x
-  from P show "P(f x)" .. --"allE"
+  with A show False .
 qed
 
-lemma assumes Pf: "EX x. P (f x)" shows "EX y. P y"
+text{*\noindent Here we have used the abbreviation
+\begin{center}
+\isacommand{with}~\emph{facts} \quad = \quad
+\isacommand{from}~\emph{facts} \isacommand{and} @{text this}
+\end{center}
+
+Sometimes it is necessary to supress the implicit application of rules in a
+\isacommand{proof}. For example \isacommand{show}~@{prop"A \<or> B"} would
+trigger $\lor$-introduction, requiring us to prove @{prop A}. A simple
+``@{text"-"}'' prevents this \emph{faut pas}: *}
+
+lemma assumes AB: "A \<or> B" shows "B \<or> A"
 proof -
-  from Pf show ?thesis
-  proof  --"exE"
-    fix a
-    assume "P(f a)"
-    show ?thesis ..  --"exI"
+  from AB show ?thesis
+  proof
+    assume A show ?thesis ..
+  next
+    assume B show ?thesis ..
   qed
 qed
 
-text {*
- Explicit $\exists$-elimination as seen above can become quite
- cumbersome in practice.  The derived Isar language element
- ``\isakeyword{obtain}'' provides a more handsome way to do
- generalized existence reasoning.
+subsection{*Predicate calculus*}
+
+text{* Command \isacommand{fix} introduces new local variables into a
+proof. It corresponds to @{text"\<And>"} (the universal quantifier at the
+meta-level) just like \isacommand{assume}-\isacommand{show} corresponds to
+@{text"\<Longrightarrow>"}. Here is a sample proof, annotated with the rules that are
+applied implictly: *}
+
+lemma assumes P: "\<forall>x. P x" shows "\<forall>x. P(f x)"
+proof  -- "@{thm[source]allI}: @{thm allI[no_vars]}"
+  fix a
+  from P show "P(f a)" ..  --"@{thm[source]allE}: @{thm allE[no_vars]}"
+qed
+
+text{*\noindent Note that in the proof we have chosen to call the bound
+variable @{term a} instead of @{term x} merely to show that the choice of
+names is irrelevant.
+
+Next we look at @{text"\<exists>"} which is a bit more tricky.
 *}
 
-lemma assumes Pf: "EX x. P (f x)" shows "EX y. P y"
+lemma assumes Pf: "\<exists>x. P(f x)" shows "\<exists>y. P y"
 proof -
-  from Pf obtain a where "P (f a)" ..  --"exE"
-  thus "EX y. P y" ..  --"exI"
+  from Pf show ?thesis
+  proof  -- "@{thm[source]exE}: @{thm exE[no_vars]}"
+    fix a
+    assume "P(f a)"
+    show ?thesis ..  --"@{thm[source]exI}: @{thm exI[no_vars]}"
+  qed
 qed
 
-text {*
- Technically, \isakeyword{obtain} is similar to \isakeyword{fix} and
- \isakeyword{assume} together with a soundness proof of the
- elimination involved.  Thus it behaves similar to any other forward
- proof element.  Also note that due to the nature of general existence
- reasoning involved here, any result exported from the context of an
- \isakeyword{obtain} statement may \emph{not} refer to the parameters
- introduced there.
+text {*\noindent
+Explicit $\exists$-elimination as seen above can become
+cumbersome in practice.  The derived Isar language element
+ ``\isakeyword{obtain}'' provides a more handsome way to perform
+generalized existence reasoning:
 *}
 
-lemma assumes ex: "EX x. ALL y. P x y" shows "ALL y. EX x. P x y"
-proof  --"allI"
-  fix y
-  from ex obtain x where "ALL y. P x y" ..  --"exE"
-  from this have "P x y" ..  --"allE"
-  thus "EX x. P x y" ..  --"exI"
+lemma assumes Pf: "\<exists>x. P(f x)" shows "\<exists>y. P y"
+proof -
+  from Pf obtain x where "P(f x)" ..
+  thus "\<exists>y. P y" ..
 qed
 
-(* some example with blast, if . and .. fail *)
+text {*\noindent Note how the proof text follows the usual mathematical style
+of concluding $P x$ from $\exists x. P(x)$, while carefully introducing $x$
+as a new local variable.
+Technically, \isakeyword{obtain} is similar to \isakeyword{fix} and
+\isakeyword{assume} together with a soundness proof of the
+elimination involved.  Thus it behaves similar to any other forward
+proof element.
 
-theorem "EX S. S ~: range (f :: 'a => 'a set)"
+Here is a proof of a well known tautology which employs another useful
+abbreviation: \isakeyword{hence} abbreviates \isakeyword{from}~@{text
+this}~\isakeyword{have}.  Figure out which rule is used where!  *}
+
+lemma assumes ex: "\<exists>x. \<forall>y. P x y" shows "\<forall>y. \<exists>x. P x y"
 proof
-  let ?S = "{x. x ~: f x}"
-  show "?S ~: range f"
+  fix y
+  from ex obtain x where "\<forall>y. P x y" ..
+  hence "P x y" ..
+  thus "\<exists>x. P x y" ..
+qed
+
+text{* So far we have confined ourselves to single step proofs. Of course
+powerful automatic methods can be used just as well. Here is an example,
+Cantor's theorem that there is no surjective function from a set to its
+powerset: *}
+
+theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
+proof
+  let ?S = "{x. x \<notin> f x}"
+  show "?S \<notin> range f"
   proof
-    assume "?S : range f"
+    assume "?S \<in> range f"
     then obtain y where fy: "?S = f y" ..
     show False
     proof (cases)
-      assume "y : ?S"
+      assume "y \<in> ?S"
       with fy show False by blast
     next
-      assume "y ~: ?S"
+      assume "y \<notin> ?S"
       with fy show False by blast
     qed
   qed
 qed
 
-theorem "EX S. S ~: range (f :: 'a => 'a set)"
+text{*\noindent
+For a start, the example demonstrates two new language elements:
+\begin{itemize}
+\item \isakeyword{let} introduces an abbreviation for a term, in our case
+the witness for the claim, because the term occurs multiple times in the proof.
+\item Proof by @{text"(cases)"} starts a proof by cases. Note that it remains
+implicit what the two cases are: it is merely expected that the two subproofs
+prove @{prop"P \<Longrightarrow> Q"} and @{prop"\<not>P \<Longrightarrow> Q"} for suitable @{term P} and
+@{term Q}.
+\end{itemize}
+If you wonder how to \isakeyword{obtain} @{term y}:
+via the predefined elimination rule @{thm rangeE[no_vars]}.
+
+Method @{text blast} is used because the contradiction does not follow easily
+by just a single rule. If you find the proof too cryptic for human
+consumption, here is a more detailed version; the beginning up to
+\isakeyword{obtain} stays unchanged. *}
+
+theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
 proof
-  let ?S = "{x. x ~: f x}"
-  show "?S ~: range f"
+  let ?S = "{x. x \<notin> f x}"
+  show "?S \<notin> range f"
   proof
-    assume "?S : range f"
-    then obtain y where eq: "?S = f y" ..
+    assume "?S \<in> range f"
+    then obtain y where fy: "?S = f y" ..
     show False
     proof (cases)
-      assume A: "y : ?S"
-      hence isin: "y : f y"   by(simp add:eq)
-      from A have "y ~: f y"  by simp
+      assume A: "y \<in> ?S"
+      hence isin: "y \<in> f y"   by(simp add:fy)
+      from A have "y \<notin> f y"   by simp
       with isin show False    by contradiction
     next
-      assume A: "y ~: ?S"
-      hence notin: "y ~: f y"  by(simp add:eq)
-      from A have "y : f y"    by simp
+      assume A: "y \<notin> ?S"
+      hence notin: "y \<notin> f y"   by(simp add:fy)
+      from A have "y \<in> f y"    by simp
       with notin show False    by contradiction
     qed
   qed
 qed
 
-text {*
-  How much creativity is required?  As it happens, Isabelle can prove
-  this theorem automatically using best-first search.  Depth-first
-  search would diverge, but best-first search successfully navigates
-  through the large search space.  The context of Isabelle's classical
-  prover contains rules for the relevant constructs of HOL's set
-  theory.
+text {*\noindent Method @{text contradiction} succeeds if both $P$ and
+$\neg P$ are among the assumptions and the facts fed into that step.
+
+As it happens, Cantor's theorem can be proved automatically by best-first
+search. Depth-first search would diverge, but best-first search successfully
+navigates through the large search space:
 *}
 
-theorem "EX S. S ~: range (f :: 'a => 'a set)"
-  by best
+theorem "\<exists>S. S \<notin> range (f :: 'a \<Rightarrow> 'a set)"
+by best
 
-(* Finally, whole scripts may appear in the leaves of the proof tree,
-although this is best avoided. Here is a contrived example. *)
+text{*\noindent Of course this only works in the context of HOL's carefully
+constructed introduction and elimination rules for set theory.
+
+Finally, whole scripts may appear in the leaves of the proof tree, although
+this is best avoided.  Here is a contrived example: *}
 
 lemma "A \<longrightarrow> (A \<longrightarrow>B) \<longrightarrow> B"
 proof
-  assume A: A
+  assume a: A
   show "(A \<longrightarrow>B) \<longrightarrow> B"
     apply(rule impI)
     apply(erule impE)
-    apply(rule A)
+    apply(rule a)
     apply assumption
     done
 qed
 
-
-(* You may need to resort to this technique if an automatic step fails to
-prove the desired proposition. *)
-
-end
+text{*\noindent You may need to resort to this technique if an automatic step
+fails to prove the desired proposition. *}
+(*<*)end(*>*)
