@@ -17,8 +17,7 @@ defs
 
 theleast_def    "theleast P == (@z.(P z & (!n.P n --> z<=n)))"
 
-(* start 
-   8bit 1 *)
+(* start 8bit 1 *)
 
 syntax
   "Gmu"        :: "[pttrn, bool] => nat"               ("(3´_./ _)" 10)
@@ -26,8 +25,7 @@ syntax
 translations
   "´x.P"	== "theleast(%x.P)"
 
-(* end
-   8bit 1 *)
+(* end 8bit 1 *)
 
 end
 *)
