@@ -147,7 +147,7 @@ qed "lesspoll_imp_lepoll";
 
 goalw Cardinal.thy [lepoll_def]
         "!!A. [| A lepoll B; well_ord(B,r) |] ==> EX s. well_ord(A,s)";
-by (fast_tac (!claset addSEs [well_ord_rvimage]) 1);
+by (fast_tac (!claset addIs [well_ord_rvimage]) 1);
 qed "lepoll_well_ord";
 
 goalw Cardinal.thy [lesspoll_def] "A lepoll B <-> A lesspoll B | A eqpoll B";
@@ -282,7 +282,7 @@ qed "well_ord_cardinal_eqE";
 
 goal Cardinal.thy
     "!!X Y. [| well_ord(X,r);  well_ord(Y,s) |] ==> |X| = |Y| <-> X eqpoll Y";
-by (fast_tac (!claset addSEs [cardinal_cong, well_ord_cardinal_eqE]) 1);
+by (fast_tac (!claset addIs [cardinal_cong, well_ord_cardinal_eqE]) 1);
 qed "well_ord_cardinal_eqpoll_iff";
 
 
@@ -393,7 +393,7 @@ by (asm_simp_tac (!simpset addsimps
 qed "Card_lt_imp_lt";
 
 goal Cardinal.thy "!!i j. [| Ord(i);  Card(K) |] ==> (|i| < K) <-> (i < K)";
-by (fast_tac (!claset addEs [Card_lt_imp_lt, Ord_cardinal_le RS lt_trans1]) 1);
+by (fast_tac (!claset addIs [Card_lt_imp_lt, Ord_cardinal_le RS lt_trans1]) 1);
 qed "Card_lt_iff";
 
 goal Cardinal.thy "!!i j. [| Ord(i);  Card(K) |] ==> (K le |i|) <-> (K le i)";
