@@ -69,6 +69,7 @@ sig
   val get_state: unit -> state
   val exn: unit -> (exn * string) option
   val >> : transition -> bool
+  val >>> : transition list -> unit
   type 'a isar
   val loop: 'a isar -> unit
 end;
@@ -489,7 +490,7 @@ type 'a isar =
 
 (* apply transformers to global state *)
 
-nonfix >>;
+nonfix >> >>>;
 
 fun >> tr =
   (case apply true tr (get_state ()) of
@@ -498,6 +499,9 @@ fun >> tr =
       (global_state := (state', exn_info);
         check_stale state'; print_exn exn_info;
         true));
+
+fun >>> [] = ()
+  | >>> (tr :: trs) = if >> tr then >>> trs else ();
 
 (*Note: this is for Poly/ML only, we really do not intend to exhibit
   interrupts here*)
