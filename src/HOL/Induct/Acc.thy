@@ -9,19 +9,15 @@ See Ch. Paulin-Mohring, Inductive Definitions in the System Coq.
 Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
-Acc = WF + Inductive +
-
-constdefs
-  pred :: "['b, ('a * 'b)set] => 'a set"        (*Set of predecessors*)
-  "pred x r == {y. (y,x):r}"
+theory Acc = WF + Inductive:
 
 consts
   acc  :: "('a * 'a)set => 'a set"              (*Accessible part*)
 
-inductive "acc(r)"
+inductive "acc r"
   intrs
-    pred    "pred a r: Pow(acc(r)) ==> a: acc(r)"
-  monos     Pow_mono
+    accI [rulify_prems]: "ALL y. (y, x) : r --> y : acc r ==> x : acc r"
+
 
 syntax        termi :: "('a * 'a)set => 'a set"
 translations "termi r" == "acc(r^-1)"
