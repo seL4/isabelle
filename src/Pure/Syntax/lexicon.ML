@@ -25,9 +25,9 @@ sig
   val free: string -> term
   val var: indexname -> term
   val binding: string -> string
-  val is_binding: string -> bool
+  val dest_binding: string -> string
   val skolem: string -> string
-  val is_skolem: string -> bool
+  val dest_skolem: string -> string
 end;
 
 signature LEXICON =
@@ -327,11 +327,11 @@ fun read_var str =
 
 (* variable kinds *)
 
-fun binding x = x ^ "_";
-fun is_binding x = size x >= 1 andalso last_elem (explode x) = "_";
+val binding = suffix "_BIND_";
+val dest_binding = unsuffix "_BIND_";
 
-fun skolem x = x ^ "__";
-fun is_skolem x = size x >= 2 andalso drop (size x - 2, explode x) = ["_", "_"];
+val skolem = suffix "__";
+val dest_skolem = unsuffix "__";
 
 
 end;
