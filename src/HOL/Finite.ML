@@ -236,131 +236,10 @@ qed "bounded_nat_set_is_finite";
 
 section "Finite cardinality -- 'card'";
 
-(* Ugly proofs for the traditional definition 
-
-Goal "{f i |i. (P i | i=n)} = insert (f n) {f i|i. P i}";
-by (Blast_tac 1);
-val Collect_conv_insert = result();
-
-Goalw [card_def] "card {} = 0";
-by (rtac Least_equality 1);
-by (ALLGOALS Asm_full_simp_tac);
-qed "card_empty";
-Addsimps [card_empty];
-
-Goal "finite A ==> ? (n::nat) f. A = {f i |i. i<n}";
-by (etac finite_induct 1);
- by (res_inst_tac [("x","0")] exI 1);
- by (Simp_tac 1);
-by (etac exE 1);
-by (etac exE 1);
-by (hyp_subst_tac 1);
-by (res_inst_tac [("x","Suc n")] exI 1);
-by (res_inst_tac [("x","%i. if i<n then f i else x")] exI 1);
-by (asm_simp_tac (simpset() addsimps [Collect_conv_insert, less_Suc_eq]
-                          addcongs [rev_conj_cong]) 1);
-qed "finite_has_card";
-
-Goal "[| x ~: A; insert x A = {f i|i. i<n} |]  \
-\     ==> ? m::nat. m<n & (? g. A = {g i|i. i<m})";
-by (case_tac "n" 1);
- by (hyp_subst_tac 1);
- by (Asm_full_simp_tac 1);
-by (rename_tac "m" 1);
-by (hyp_subst_tac 1);
-by (case_tac "? a. a:A" 1);
- by (res_inst_tac [("x","0")] exI 2);
- by (Simp_tac 2);
- by (Blast_tac 2);
-by (etac exE 1);
-by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
-by (rtac exI 1);
-by (rtac (refl RS disjI2 RS conjI) 1);
-by (etac equalityE 1);
-by (asm_full_simp_tac
-     (simpset() addsimps [subset_insert,Collect_conv_insert, less_Suc_eq]) 1);
-by Safe_tac;
-  by (Asm_full_simp_tac 1);
-  by (res_inst_tac [("x","%i. if f i = f m then a else f i")] exI 1);
-  by (SELECT_GOAL Safe_tac 1);
-   by (subgoal_tac "x ~= f m" 1);
-    by (Blast_tac 2);
-   by (subgoal_tac "? k. f k = x & k<m" 1);
-    by (Blast_tac 2);
-   by (SELECT_GOAL Safe_tac 1);
-   by (res_inst_tac [("x","k")] exI 1);
-   by (Asm_simp_tac 1);
-  by (Simp_tac 1);
-  by (Blast_tac 1);
- by (dtac sym 1);
- by (rotate_tac ~1 1);
- by (Asm_full_simp_tac 1);
- by (res_inst_tac [("x","%i. if f i = f m then a else f i")] exI 1);
- by (SELECT_GOAL Safe_tac 1);
-  by (subgoal_tac "x ~= f m" 1);
-   by (Blast_tac 2);
-  by (subgoal_tac "? k. f k = x & k<m" 1);
-   by (Blast_tac 2);
-  by (SELECT_GOAL Safe_tac 1);
-  by (res_inst_tac [("x","k")] exI 1);
-  by (Asm_simp_tac 1);
- by (Simp_tac 1);
- by (Blast_tac 1);
-by (res_inst_tac [("x","%j. if f j = f i then f m else f j")] exI 1);
-by (SELECT_GOAL Safe_tac 1);
- by (subgoal_tac "x ~= f i" 1);
-  by (Blast_tac 2);
- by (case_tac "x = f m" 1);
-  by (res_inst_tac [("x","i")] exI 1);
-  by (Asm_simp_tac 1);
- by (subgoal_tac "? k. f k = x & k<m" 1);
-  by (Blast_tac 2);
- by (SELECT_GOAL Safe_tac 1);
- by (res_inst_tac [("x","k")] exI 1);
- by (Asm_simp_tac 1);
-by (Simp_tac 1);
-by (Blast_tac 1);
-val lemma = result();
-
-Goal "[| finite A; x ~: A |] ==> \
-\ (LEAST n. ? f. insert x A = {f i|i. i<n}) = Suc(LEAST n. ? f. A={f i|i. i<n})";
-by (rtac Least_equality 1);
- by (dtac finite_has_card 1);
- by (etac exE 1);
- by (dres_inst_tac [("P","%n.? f. A={f i|i. i<n}")] LeastI 1);
- by (etac exE 1);
- by (res_inst_tac
-   [("x","%i. if i<(LEAST n. ? f. A={f i |i. i < n}) then f i else x")] exI 1);
- by (simp_tac
-    (simpset() addsimps [Collect_conv_insert, less_Suc_eq] 
-              addcongs [rev_conj_cong]) 1);
- by (etac subst 1);
- by (rtac refl 1);
-by (rtac notI 1);
-by (etac exE 1);
-by (dtac lemma 1);
- by (assume_tac 1);
-by (etac exE 1);
-by (etac conjE 1);
-by (dres_inst_tac [("P","%x. ? g. A = {g i |i. i < x}")] Least_le 1);
-by (dtac le_less_trans 1 THEN atac 1);
-by (asm_full_simp_tac (simpset() addsimps [less_Suc_eq]) 1);
-by (etac disjE 1);
-by (etac less_asym 1 THEN atac 1);
-by (hyp_subst_tac 1);
-by (Asm_full_simp_tac 1);
-val lemma = result();
-
-Goalw [card_def] "[| finite A; x ~: A |] ==> card(insert x A) = Suc(card A)";
-by (etac lemma 1);
-by (assume_tac 1);
-qed "card_insert_disjoint";
-Addsimps [card_insert_disjoint];
-*)
-
 val cardR_emptyE = cardR.mk_cases "({},n) : cardR";
-AddSEs [cardR_emptyE];
 val cardR_insertE = cardR.mk_cases "(insert a A,n) : cardR";
+
+AddSEs [cardR_emptyE];
 AddSIs cardR.intrs;
 
 Goal "[| (A,n) : cardR |] ==> a : A --> (? m. n = Suc m)";
@@ -795,7 +674,7 @@ qed "fold_Un_disjoint2";
 Close_locale "ACe";
 
 
-(*** setsum ***)
+(*** setsum: generalized summation over a set ***)
 
 Goalw [setsum_def] "setsum f {} = 0";
 by (Simp_tac 1);
@@ -823,6 +702,28 @@ by (asm_full_simp_tac (simpset() addsimps (thms "plus_ac0") @
                                           [Int_insert_left, insert_absorb]) 1);
 qed "setsum_Un_Int";
 
+Goal "[| finite A; finite B; A Int B = {} |] \
+\     ==> setsum g (A Un B) = setsum g A + setsum g B";  
+by (stac (setsum_Un_Int RS sym) 1);
+by Auto_tac;
+qed "setsum_Un_disjoint";
+
+Goal "[| finite I |] \
+\     ==> (ALL i:I. finite (A i)) --> (ALL i:I. ALL j:I. A i Int A j = {}) \
+\         --> setsum f (UNION I A) = setsum (%i. setsum f (A i)) I"; 
+by (etac finite_induct 1);
+by (Simp_tac 1);
+by (asm_simp_tac (simpset() addsimps [setsum_Un_disjoint]) 1);
+qed_spec_mp "setsum_UN_disjoint";
+
+Goal "finite A ==> setsum (%x. f x + g x) A = setsum f A + setsum g A";
+by (etac finite_induct 1);
+by Auto_tac;
+by (simp_tac (simpset() addsimps (thms "plus_ac0")) 1);
+qed "setsum_addf";
+
+(** For the natural numbers, we have subtraction **)
+
 Goal "[| finite A; finite B |] \
 \     ==> (setsum f (A Un B) :: nat) = \
 \         setsum f A + setsum f B - setsum f (A Int B)";
@@ -838,12 +739,6 @@ by (auto_tac (claset(), simpset() addsimps [insert_Diff_if]));
 by (dres_inst_tac [("a","a")] mk_disjoint_insert 1);
 by Auto_tac;
 qed_spec_mp "setsum_diff1";
-
-Goal "finite A ==> setsum (%x. f x + g x) A = setsum f A + setsum g A";
-by (etac finite_induct 1);
-by Auto_tac;
-by (simp_tac (simpset() addsimps (thms "plus_ac0")) 1);
-qed "setsum_addf";
 
 
 (*** Basic theorem about "choose".  By Florian Kammueller, tidied by LCP ***)
