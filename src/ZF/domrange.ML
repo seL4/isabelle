@@ -57,21 +57,8 @@ val domainE = prove_goal ZF.thy
   [ (rtac (domain_iff RS iffD1 RS exE) 1),
     (REPEAT (ares_tac prems 1)) ]);
 
-val domain_of_prod = prove_goal ZF.thy "!!A B. b:B ==> domain(A*B) = A"
- (fn _ =>
-  [ (REPEAT (eresolve_tac [domainE,SigmaE2] 1
-     ORELSE ares_tac [domainI,equalityI,subsetI,SigmaI] 1)) ]);
-
-val domain_empty = prove_goal ZF.thy "domain(0) = 0"
- (fn _ =>
-  [ (REPEAT (eresolve_tac [domainE,emptyE] 1
-     ORELSE ares_tac [equalityI,subsetI] 1)) ]);
-
 val domain_subset = prove_goal ZF.thy "domain(Sigma(A,B)) <= A"
- (fn _ =>
-  [ (rtac subsetI 1),
-    (etac domainE 1),
-    (etac SigmaD1 1) ]);
+ (fn _ => [ (rtac subsetI 1), (etac domainE 1), (etac SigmaD1 1) ]);
 
 
 (*** range ***)
@@ -85,17 +72,6 @@ val rangeE = prove_goalw ZF.thy [range_def]
   [ (rtac (major RS domainE) 1),
     (resolve_tac prems 1),
     (etac converseD 1) ]);
-
-val range_of_prod = prove_goalw ZF.thy [range_def]
-    "!!a A B. a:A ==> range(A*B) = B"
- (fn _ =>
-  [ (rtac (converse_of_prod RS ssubst) 1),
-    (etac domain_of_prod 1) ]);
-
-val range_empty = prove_goalw ZF.thy [range_def] "range(0) = 0"
- (fn _ =>
-  [ (rtac (converse_empty RS ssubst) 1),
-    (rtac domain_empty 1) ]);
 
 val range_subset = prove_goalw ZF.thy [range_def] "range(A*B) <= B"
  (fn _ =>
@@ -127,10 +103,6 @@ val fieldE = prove_goalw ZF.thy [field_def]
  (fn major::prems=>
   [ (rtac (major RS UnE) 1),
     (REPEAT (eresolve_tac (prems@[domainE,rangeE]) 1)) ]);
-
-val field_of_prod = prove_goal ZF.thy "field(A*A) = A"
- (fn _ =>
-  [ (fast_tac (pair_cs addIs  [fieldCI,equalityI] addSEs [fieldE]) 1) ]);
 
 val field_subset = prove_goal ZF.thy "field(A*B) <= A Un B"
  (fn _ => [ (fast_tac (pair_cs addIs  [fieldCI] addSEs [fieldE]) 1) ]);

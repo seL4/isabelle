@@ -296,7 +296,17 @@ goal ZF.thy "(SUM i:I. A(i)) = (UN i:I. {i} * A(i))";
 by (fast_tac eq_cs 1);
 val SUM_eq_UN = result();
 
-(** Domain, Range and Field **)
+(** Domain **)
+
+val domain_of_prod = prove_goal ZF.thy "!!A B. b:B ==> domain(A*B) = A"
+ (fn _ => [ fast_tac eq_cs 1 ]);
+
+val domain_0 = prove_goal ZF.thy "domain(0) = 0"
+ (fn _ => [ fast_tac eq_cs 1 ]);
+
+val domain_cons = prove_goal ZF.thy
+    "domain(cons(<a,b>,r)) = cons(a, domain(r))"
+ (fn _ => [ fast_tac eq_cs 1 ]);
 
 goal ZF.thy "domain(A Un B) = domain(A) Un domain(B)";
 by (fast_tac eq_cs 1);
@@ -310,6 +320,19 @@ goal ZF.thy "domain(A) - domain(B) <= domain(A - B)";
 by (fast_tac eq_cs 1);
 val domain_diff_subset = result();
 
+(** Range **)
+
+val range_of_prod = prove_goal ZF.thy
+    "!!a A B. a:A ==> range(A*B) = B"
+ (fn _ => [ fast_tac eq_cs 1 ]);
+
+val range_0 = prove_goal ZF.thy "range(0) = 0"
+ (fn _ => [ fast_tac eq_cs 1 ]); 
+
+val range_cons = prove_goal ZF.thy
+    "range(cons(<a,b>,r)) = cons(b, range(r))"
+ (fn _ => [ fast_tac eq_cs 1 ]);
+
 goal ZF.thy "range(A Un B) = range(A) Un range(B)";
 by (fast_tac eq_cs 1);
 val range_Un_eq = result();
@@ -321,6 +344,18 @@ val range_Int_subset = result();
 goal ZF.thy "range(A) - range(B) <= range(A - B)";
 by (fast_tac eq_cs 1);
 val range_diff_subset = result();
+
+(** Field **)
+
+val field_of_prod = prove_goal ZF.thy "field(A*A) = A"
+ (fn _ => [ fast_tac eq_cs 1 ]); 
+
+val field_0 = prove_goal ZF.thy "field(0) = 0"
+ (fn _ => [ fast_tac eq_cs 1 ]); 
+
+val field_cons = prove_goal ZF.thy
+    "field(cons(<a,b>,r)) = cons(a, cons(b, field(r)))"
+ (fn _ => [ rtac equalityI 1, ALLGOALS (fast_tac ZF_cs) ]);
 
 goal ZF.thy "field(A Un B) = field(A) Un field(B)";
 by (fast_tac eq_cs 1);
@@ -339,7 +374,7 @@ val field_diff_subset = result();
 
 goal ZF.thy "r``0 = 0";
 by (fast_tac eq_cs 1);
-val image_empty = result();
+val image_0 = result();
 
 goal ZF.thy "r``(A Un B) = (r``A) Un (r``B)";
 by (fast_tac eq_cs 1);
@@ -362,7 +397,7 @@ val image_Int_square = result();
 
 goal ZF.thy "r-``0 = 0";
 by (fast_tac eq_cs 1);
-val vimage_empty = result();
+val vimage_0 = result();
 
 goal ZF.thy "r-``(A Un B) = (r-``A) Un (r-``B)";
 by (fast_tac eq_cs 1);
