@@ -29,10 +29,8 @@ files
   "../TFL/post.sml"
 
   (*theory extender wrapper module*)
-  "Tools/recdef_package.ML"
-  "Tools/induct_method.ML":
+  "Tools/recdef_package.ML":
 
 setup RecdefPackage.setup
-setup InductMethod.setup
 
 end

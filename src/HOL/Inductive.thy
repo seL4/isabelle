@@ -4,6 +4,7 @@
 
 theory Inductive = Gfp + Prod + Sum
 files
+  "Tools/induct_method.ML"
   "Tools/inductive_package.ML"
   "Tools/datatype_aux.ML"
   "Tools/datatype_prop.ML"
@@ -12,6 +13,7 @@ files
   "Tools/datatype_package.ML"
   "Tools/primrec_package.ML":
 
+setup InductMethod.setup
 setup InductivePackage.setup
 setup DatatypePackage.setup
 
