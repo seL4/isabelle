@@ -13,6 +13,7 @@ sig
   val unget: 'a list * ('a, 'b) source -> ('a, 'b) source
   val get_single: ('a, 'b) source -> 'a option * ('a, 'b) source
   val exhaust: ('a, 'b) source -> 'a list
+  val mapfilter: ('a -> 'b option) -> ('a, 'c) source -> ('b, ('a, 'c) source) source
   val filter: ('a -> bool) -> ('a, 'b) source -> ('a, ('a, 'b) source) source
   val of_list: 'a list -> ('a, 'a list) source
   val of_string: string -> (string, string list) source
@@ -78,19 +79,19 @@ fun exhaust src =
   | (xs, src') => xs @ exhaust src');
 
 
-(* filter *)
+(* (map)filter *)
 
-fun drain_filter pred prompt src =
+fun drain_mapfilter f prompt src =
   let
-    val (xs, src') = get src;
-    val xs' = Library.filter pred xs;
+    val (xs, src') = get_prompt prompt src;
+    val xs' = Library.mapfilter f xs;
   in
-    if null xs then (xs, src')
-    else if null xs' then drain_filter pred prompt src'
-    else (xs', src')
+    if null xs orelse not (null xs') then (xs', src')
+    else drain_mapfilter f prompt src'
   end;
 
-fun filter pred src = make_source [] src default_prompt (drain_filter pred);
+fun mapfilter f src = make_source [] src default_prompt (drain_mapfilter f);
+fun filter pred = mapfilter (fn x => if pred x then Some x else None);
 
 
 
