@@ -1,34 +1,10 @@
-(*  Title:      HOLCF/Porder0.ML
-    ID:         $Id$
-    Author:     Oscar Slotosch
 
-derive the characteristic axioms for the characteristic constants 
-*)
+(* legacy ML bindings *)
 
-AddIffs [refl_less];
-
-(* ------------------------------------------------------------------------ *)
-(* minimal fixes least element                                              *)
-(* ------------------------------------------------------------------------ *)
-Goal "!x::'a::po. uu<<x ==> uu=(@u.!y. u<<y)";
-by (blast_tac (claset() addIs [someI2,antisym_less]) 1);
-bind_thm ("minimal2UU", allI RS result());
-
-(* ------------------------------------------------------------------------ *)
-(* the reverse law of anti--symmetrie of <<                                 *)
-(* ------------------------------------------------------------------------ *)
-
-Goal "(x::'a::po)=y ==> x << y & y << x";
-by (Blast_tac 1);
-qed "antisym_less_inverse";
-
-
-Goal "[| (a::'a::po) << b; c << a; b << d|] ==> c << d";
-by (etac trans_less 1);
-by (etac trans_less 1);
-by (atac 1);
-qed "box_less";
-
-Goal "((x::'a::po)=y) = (x << y & y << x)";
-by (fast_tac (HOL_cs addSEs [antisym_less_inverse] addSIs [antisym_less]) 1);
-qed "po_eq_conv";
+val refl_less = thm "refl_less";
+val antisym_less = thm "antisym_less";
+val trans_less = thm "trans_less";
+val minimal2UU = thm "minimal2UU";
+val antisym_less_inverse = thm "antisym_less_inverse";
+val box_less = thm "box_less";
+val po_eq_conv = thm "po_eq_conv";

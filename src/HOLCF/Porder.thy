@@ -1,11 +1,12 @@
 (*  Title:      HOLCF/porder.thy
     ID:         $Id$
     Author:     Franz Regensburger
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
 Conservative extension of theory Porder0 by constant definitions 
 *)
 
-Porder = Porder0 +
+theory Porder = Porder0:
 
 consts  
         "<|"    ::      "['a set,'a::po] => bool"       (infixl 55)
@@ -25,25 +26,217 @@ translations
 
 syntax (xsymbols)
 
-  "LUB "	:: "[idts, 'a] => 'a"		("(3\\<Squnion>_./ _)"[0,10] 10)
+  "LUB "	:: "[idts, 'a] => 'a"		("(3\<Squnion>_./ _)"[0,10] 10)
 
 defs
 
 (* class definitions *)
-is_ub_def       "S  <| x == ! y. y:S --> y<<x"
-is_lub_def      "S <<| x == S <| x & (!u. S <| u  --> x << u)"
+is_ub_def:       "S  <| x == ! y. y:S --> y<<x"
+is_lub_def:      "S <<| x == S <| x & (!u. S <| u  --> x << u)"
 
 (* Arbitrary chains are total orders    *)                  
-tord_def     "tord S == !x y. x:S & y:S --> (x<<y | y<<x)"
+tord_def:     "tord S == !x y. x:S & y:S --> (x<<y | y<<x)"
 
 (* Here we use countable chains and I prefer to code them as functions! *)
-chain_def        "chain F == !i. F i << F (Suc i)"
+chain_def:        "chain F == !i. F i << F (Suc i)"
 
 (* finite chains, needed for monotony of continouous functions *)
-max_in_chain_def "max_in_chain i C == ! j. i <= j --> C(i) = C(j)" 
-finite_chain_def "finite_chain C == chain(C) & (? i. max_in_chain i C)"
+max_in_chain_def: "max_in_chain i C == ! j. i <= j --> C(i) = C(j)" 
+finite_chain_def: "finite_chain C == chain(C) & (? i. max_in_chain i C)"
 
-lub_def          "lub S == (@x. S <<| x)"
+lub_def:          "lub S == (@x. S <<| x)"
+
+(*  Title:      HOLCF/Porder
+    ID:         $Id$
+    Author:     Franz Regensburger
+    License:    GPL (GNU GENERAL PUBLIC LICENSE)
+
+Conservative extension of theory Porder0 by constant definitions 
+*)
+
+(* ------------------------------------------------------------------------ *)
+(* lubs are unique                                                          *)
+(* ------------------------------------------------------------------------ *)
+
+
+lemma unique_lub: 
+        "[| S <<| x ; S <<| y |] ==> x=y"
+apply (unfold is_lub_def is_ub_def)
+apply (blast intro: antisym_less)
+done
+
+(* ------------------------------------------------------------------------ *)
+(* chains are monotone functions                                            *)
+(* ------------------------------------------------------------------------ *)
+
+lemma chain_mono [rule_format]: "chain F ==> x<y --> F x<<F y"
+apply (unfold chain_def)
+apply (induct_tac "y")
+apply auto
+prefer 2 apply (blast intro: trans_less)
+apply (blast elim!: less_SucE)
+done
+
+lemma chain_mono3: "[| chain F; x <= y |] ==> F x << F y"
+apply (drule le_imp_less_or_eq)
+apply (blast intro: chain_mono)
+done
+
+
+(* ------------------------------------------------------------------------ *)
+(* The range of a chain is a totally ordered     <<                         *)
+(* ------------------------------------------------------------------------ *)
+
+lemma chain_tord: "chain(F) ==> tord(range(F))"
+apply (unfold tord_def)
+apply safe
+apply (rule nat_less_cases)
+apply (fast intro: chain_mono)+
+done
+
+
+(* ------------------------------------------------------------------------ *)
+(* technical lemmas about lub and is_lub                                    *)
+(* ------------------------------------------------------------------------ *)
+lemmas lub = lub_def [THEN meta_eq_to_obj_eq, standard]
+
+lemma lubI[OF exI]: "EX x. M <<| x ==> M <<| lub(M)"
+apply (simp add: lub some_eq_ex)
+done
+
+lemma thelubI: "M <<| l ==> lub(M) = l"
+apply (rule unique_lub)
+apply (subst lub)
+apply (erule someI)
+apply assumption
+done
+
+
+lemma lub_singleton: "lub{x} = x"
+apply (simp (no_asm) add: thelubI is_lub_def is_ub_def)
+done
+declare lub_singleton [simp]
+
+(* ------------------------------------------------------------------------ *)
+(* access to some definition as inference rule                              *)
+(* ------------------------------------------------------------------------ *)
+
+lemma is_lubD1: "S <<| x ==> S <| x"
+apply (unfold is_lub_def)
+apply auto
+done
+
+lemma is_lub_lub: "[| S <<| x; S <| u |] ==> x << u"
+apply (unfold is_lub_def)
+apply auto
+done
+
+lemma is_lubI:
+        "[| S <| x; !!u. S <| u ==> x << u |] ==> S <<| x"
+apply (unfold is_lub_def)
+apply blast
+done
+
+lemma chainE: "chain F ==> F(i) << F(Suc(i))"
+apply (unfold chain_def)
+apply auto
+done
+
+lemma chainI: "(!!i. F i << F(Suc i)) ==> chain F"
+apply (unfold chain_def)
+apply blast
+done
+
+lemma chain_shift: "chain Y ==> chain (%i. Y (i + j))"
+apply (rule chainI)
+apply clarsimp
+apply (erule chainE)
+done
+
+(* ------------------------------------------------------------------------ *)
+(* technical lemmas about (least) upper bounds of chains                    *)
+(* ------------------------------------------------------------------------ *)
+
+lemma ub_rangeD: "range S <| x  ==> S(i) << x"
+apply (unfold is_ub_def)
+apply blast
+done
+
+lemma ub_rangeI: "(!!i. S i << x) ==> range S <| x"
+apply (unfold is_ub_def)
+apply blast
+done
+
+lemmas is_ub_lub = is_lubD1 [THEN ub_rangeD, standard]
+(* range(?S1) <<| ?x1 ==> ?S1(?x) << ?x1                                    *)
+
+
+(* ------------------------------------------------------------------------ *)
+(* results about finite chains                                              *)
+(* ------------------------------------------------------------------------ *)
+
+lemma lub_finch1: 
+        "[| chain C; max_in_chain i C|] ==> range C <<| C i"
+apply (unfold max_in_chain_def)
+apply (rule is_lubI)
+apply (rule ub_rangeI)
+apply (rule_tac m = "i" in nat_less_cases)
+apply (rule antisym_less_inverse [THEN conjunct2])
+apply (erule disjI1 [THEN less_or_eq_imp_le, THEN rev_mp])
+apply (erule spec)
+apply (rule antisym_less_inverse [THEN conjunct2])
+apply (erule disjI2 [THEN less_or_eq_imp_le, THEN rev_mp])
+apply (erule spec)
+apply (erule chain_mono)
+apply assumption
+apply (erule ub_rangeD)
+done
+
+lemma lub_finch2: 
+        "finite_chain(C) ==> range(C) <<| C(@ i. max_in_chain i C)"
+apply (unfold finite_chain_def)
+apply (rule lub_finch1)
+prefer 2 apply (best intro: someI)
+apply blast
+done
+
+
+lemma bin_chain: "x<<y ==> chain (%i. if i=0 then x else y)"
+apply (rule chainI)
+apply (induct_tac "i")
+apply auto
+done
+
+lemma bin_chainmax: 
+        "x<<y ==> max_in_chain (Suc 0) (%i. if (i=0) then x else y)"
+apply (unfold max_in_chain_def le_def)
+apply (rule allI)
+apply (induct_tac "j")
+apply auto
+done
+
+lemma lub_bin_chain: "x << y ==> range(%i::nat. if (i=0) then x else y) <<| y"
+apply (rule_tac s = "if (Suc 0) = 0 then x else y" in subst , rule_tac [2] lub_finch1)
+apply (erule_tac [2] bin_chain)
+apply (erule_tac [2] bin_chainmax)
+apply (simp (no_asm))
+done
+
+(* ------------------------------------------------------------------------ *)
+(* the maximal element in a chain is its lub                                *)
+(* ------------------------------------------------------------------------ *)
+
+lemma lub_chain_maxelem: "[| Y i = c;  ALL i. Y i<<c |] ==> lub(range Y) = c"
+apply (blast dest: ub_rangeD intro: thelubI is_lubI ub_rangeI)
+done
+
+(* ------------------------------------------------------------------------ *)
+(* the lub of a constant chain is the constant                              *)
+(* ------------------------------------------------------------------------ *)
+
+lemma lub_const: "range(%x. c) <<| c"
+apply (blast dest: ub_rangeD intro: is_lubI ub_rangeI)
+done
 
 end 
 
