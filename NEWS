@@ -58,6 +58,9 @@ X-Symbol;
 bound variables: "ALL x. P x --> Q x" (is "ALL x. _ --> ?C x")
 supersedes more cumbersome ... (is "ALL x. _ x --> ?C x");
 
+* Provers: 'simplified' attribute may refer to explicit rules instead
+of full simplifier context; 'iff' attribute handles conditional rules;
+
 * HOL: 'typedef' now allows alternative names for Rep/Abs morphisms;
 
 * HOL: 'recdef' now fails on unfinished automated proofs, use
@@ -98,8 +101,11 @@ hints on converting existing sources:
 
 * HOL/record:
   - provides cases/induct rules for use with corresponding Isar methods;
-  - "record" operation truncates to particular fixed record (type cast);
-  - make_defs no longer part of default simps (INCOMPATIBILITY);
+  - old "make" and "make_scheme" operation removed -- INCOMPATIBILITY;
+  - new derived operations "make" (for adding fields of current
+    record), "extend" to promote fixed record to record scheme, and
+    "truncate" for the reverse; cf. theorems "derived_defs", which are
+    *not* declared as simp by default;
   - internal definitions directly based on a light-weight abstract
     theory of product types over typedef rather than datatype;
 
