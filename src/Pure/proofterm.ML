@@ -1012,64 +1012,75 @@ fun could_unify prf1 prf2 =
 
 (**** rewriting on proof terms ****)
 
+val skel0 = PBound 0;
+
 fun rewrite_prf tymatch (rules, procs) prf =
   let
-    fun rew _ (Abst (_, _, body) % Some t) = Some (prf_subst_bounds [t] body)
-      | rew _ (AbsP (_, _, body) %% prf) = Some (prf_subst_pbounds [prf] body)
+    fun rew _ (Abst (_, _, body) % Some t) = Some (prf_subst_bounds [t] body, skel0)
+      | rew _ (AbsP (_, _, body) %% prf) = Some (prf_subst_pbounds [prf] body, skel0)
       | rew Ts prf = (case get_first (fn (_, r) => r Ts prf) procs of
-          Some prf' => Some prf'
+          Some prf' => Some (prf', skel0)
         | None => get_first (fn (prf1, prf2) => Some (prf_subst
-            (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2)
+            (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2, prf2)
                handle PMatch => None) (filter (could_unify prf o fst) rules));
 
     fun rew0 Ts (prf as AbsP (_, _, prf' %% PBound 0)) =
           if prf_loose_Pbvar1 prf' 0 then rew Ts prf
           else
             let val prf'' = incr_pboundvars (~1) 0 prf'
-            in Some (if_none (rew Ts prf'') prf'') end
+            in Some (if_none (rew Ts prf'') (prf'', skel0)) end
       | rew0 Ts (prf as Abst (_, _, prf' % Some (Bound 0))) =
           if prf_loose_bvar1 prf' 0 then rew Ts prf
           else
             let val prf'' = incr_pboundvars 0 (~1) prf'
-            in Some (if_none (rew Ts prf'') prf'') end
+            in Some (if_none (rew Ts prf'') (prf'', skel0)) end
       | rew0 Ts prf = rew Ts prf;
 
-    fun rew1 Ts prf = (case rew2 Ts prf of
+    fun rew1 _ (Hyp (Var _)) _ = None
+      | rew1 Ts skel prf = (case rew2 Ts skel prf of
           Some prf1 => (case rew0 Ts prf1 of
-              Some prf2 => Some (if_none (rew1 Ts prf2) prf2)
+              Some (prf2, skel') => Some (if_none (rew1 Ts skel' prf2) prf2)
             | None => Some prf1)
         | None => (case rew0 Ts prf of
-              Some prf1 => Some (if_none (rew1 Ts prf1) prf1)
+              Some (prf1, skel') => Some (if_none (rew1 Ts skel' prf1) prf1)
             | None => None))
 
-    and rew2 Ts (prf % Some t) = (case prf of
+    and rew2 Ts skel (prf % Some t) = (case prf of
             Abst (_, _, body) =>
               let val prf' = prf_subst_bounds [t] body
-              in Some (if_none (rew2 Ts prf') prf') end
-          | _ => (case rew1 Ts prf of
+              in Some (if_none (rew2 Ts skel0 prf') prf') end
+          | _ => (case rew1 Ts (case skel of skel' % _ => skel' | _ => skel0) prf of
               Some prf' => Some (prf' % Some t)
             | None => None))
-      | rew2 Ts (prf % None) = apsome (fn prf' => prf' % None) (rew1 Ts prf)
-      | rew2 Ts (prf1 %% prf2) = (case prf1 of
+      | rew2 Ts skel (prf % None) = apsome (fn prf' => prf' % None)
+          (rew1 Ts (case skel of skel' % _ => skel' | _ => skel0) prf)
+      | rew2 Ts skel (prf1 %% prf2) = (case prf1 of
             AbsP (_, _, body) =>
               let val prf' = prf_subst_pbounds [prf2] body
-              in Some (if_none (rew2 Ts prf') prf') end
-          | _ => (case rew1 Ts prf1 of
-              Some prf1' => (case rew1 Ts prf2 of
-                  Some prf2' => Some (prf1' %% prf2')
-                | None => Some (prf1' %% prf2))
-            | None => (case rew1 Ts prf2 of
-                  Some prf2' => Some (prf1 %% prf2')
-                | None => None)))
-      | rew2 Ts (Abst (s, T, prf)) = (case rew1 (if_none T dummyT :: Ts) prf of
+              in Some (if_none (rew2 Ts skel0 prf') prf') end
+          | _ =>
+            let val (skel1, skel2) = (case skel of
+                skel1 %% skel2 => (skel1, skel2)
+              | _ => (skel0, skel0))
+            in case rew1 Ts skel1 prf1 of
+                Some prf1' => (case rew1 Ts skel2 prf2 of
+                    Some prf2' => Some (prf1' %% prf2')
+                  | None => Some (prf1' %% prf2))
+              | None => (case rew1 Ts skel2 prf2 of
+                    Some prf2' => Some (prf1 %% prf2')
+                  | None => None)
+            end)
+      | rew2 Ts skel (Abst (s, T, prf)) = (case rew1 (if_none T dummyT :: Ts)
+              (case skel of Abst (_, _, skel') => skel' | _ => skel0) prf of
             Some prf' => Some (Abst (s, T, prf'))
           | None => None)
-      | rew2 Ts (AbsP (s, t, prf)) = (case rew1 Ts prf of
+      | rew2 Ts skel (AbsP (s, t, prf)) = (case rew1 Ts
+              (case skel of AbsP (_, _, skel') => skel' | _ => skel0) prf of
             Some prf' => Some (AbsP (s, t, prf'))
           | None => None)
-      | rew2 _ _ = None
+      | rew2 _ _ _ = None
 
-  in if_none (rew1 [] prf) prf end;
+  in if_none (rew1 [] skel0 prf) prf end;
 
 fun rewrite_proof tsig = rewrite_prf (fn (tab, f) =>
   Type.typ_match tsig (tab, f ()) handle Type.TYPE_MATCH => raise PMatch);
