@@ -546,9 +546,9 @@ fun section name pretxt parse =
 
 
 val pure_keywords =
- ["end", "ML", "MLtext", "mixfix", "infixr", "infixl", "binder", "global",
-  "local", "output", "=", "+", ",", "<", "{", "}", "(", ")", "[", "]",
-  "::", "==", "=>", "<="];
+ ["end", "ML", "mixfix", "infixr", "infixl", "binder", "output", "=",
+  "+", ",", "<", "{", "}", "(", ")", "[", "]", "::", "==", "=>",
+  "<="];
 
 val pure_sections =
  [section "classes" "|> Theory.add_classes" class_decls,
