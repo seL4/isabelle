@@ -330,7 +330,7 @@ fun read_def_termT freeze sg defs sT = apfst hd (read_def_termTs freeze sg defs 
 
 
 fun read_term_sg freeze sg (defs as (_, _, used)) s =
-  #1 (read_def_termT freeze sg defs (s, TVar ((variant used "'z", 0), logicS)));
+  #1 (read_def_termT freeze sg defs (s, dummyT));
 
 fun read_prop_sg freeze sg defs s =
   #1 (read_def_termT freeze sg defs (s, propT));
