@@ -1,11 +1,13 @@
 (*  Title:      ZF/AC/OrdQuant.thy
     ID:         $Id$
     Authors:    Krzysztof Grabczewski and L C Paulson
-
-Quantifiers and union operator for ordinals. 
 *)
 
+header {*Special quantifiers*}
+
 theory OrdQuant = Ordinal:
+
+subsection {*Quantifiers and union operator for ordinals*}
 
 constdefs
   
@@ -185,6 +187,142 @@ apply (erule conjE)
 apply (erule Ord_induct, assumption, blast) 
 done
 
+
+subsection {*Quantification over a class*}
+
+constdefs
+  "rall"     :: "[i=>o, i=>o] => o"
+    "rall(M, P) == ALL x. M(x) --> P(x)"
+
+  "rex"      :: "[i=>o, i=>o] => o"
+    "rex(M, P) == EX x. M(x) & P(x)"
+
+syntax
+  "@rall"     :: "[pttrn, i=>o, o] => o"        ("(3ALL _[_]./ _)" 10)
+  "@rex"      :: "[pttrn, i=>o, o] => o"        ("(3EX _[_]./ _)" 10)
+
+syntax (xsymbols)
+  "@rall"     :: "[pttrn, i=>o, o] => o"        ("(3\<forall>_[_]./ _)" 10)
+  "@rex"      :: "[pttrn, i=>o, o] => o"        ("(3\<exists>_[_]./ _)" 10)
+
+translations
+  "ALL x[M]. P"  == "rall(M, %x. P)"
+  "EX x[M]. P"   == "rex(M, %x. P)"
+
+(*** Relativized universal quantifier ***)
+
+lemma rallI [intro!]: "[| !!x. M(x) ==> P(x) |] ==> ALL x[M]. P(x)"
+by (simp add: rall_def)
+
+lemma rspec: "[| ALL x[M]. P(x); M(x) |] ==> P(x)"
+by (simp add: rall_def)
+
+(*Instantiates x first: better for automatic theorem proving?*)
+lemma rev_rallE [elim]: 
+    "[| ALL x[M]. P(x);  ~ M(x) ==> Q;  P(x) ==> Q |] ==> Q"
+by (simp add: rall_def, blast) 
+
+lemma rallE: "[| ALL x[M]. P(x);  P(x) ==> Q;  ~ M(x) ==> Q |] ==> Q"
+by blast
+
+(*Trival rewrite rule;   (ALL x[M].P)<->P holds only if A is nonempty!*)
+lemma rall_triv [simp]: "(ALL x[M]. P) <-> ((EX x. M(x)) --> P)"
+by (simp add: rall_def)
+
+(*Congruence rule for rewriting*)
+lemma rall_cong [cong]:
+    "(!!x. M(x) ==> P(x) <-> P'(x)) ==> rall(M,P) <-> rall(M,P')"
+by (simp add: rall_def)
+
+(*** Relativized existential quantifier ***)
+
+lemma rexI [intro]: "[| P(x); M(x) |] ==> EX x[M]. P(x)"
+by (simp add: rex_def, blast)
+
+(*The best argument order when there is only one M(x)*)
+lemma rev_rexI: "[| M(x);  P(x) |] ==> EX x[M]. P(x)"
+by blast
+
+(*Not of the general form for such rules; ~EX has become ALL~ *)
+lemma rexCI: "[| ALL x[M]. ~P(x) ==> P(a); M(a) |] ==> EX x[M]. P(x)"
+by blast
+
+lemma rexE [elim!]: "[| EX x[M]. P(x);  !!x. [| M(x); P(x) |] ==> Q |] ==> Q"
+by (simp add: rex_def, blast)
+
+(*We do not even have (EX x[M]. True) <-> True unless A is nonempty!!*)
+lemma rex_triv [simp]: "(EX x[M]. P) <-> ((EX x. M(x)) & P)"
+by (simp add: rex_def)
+
+lemma rex_cong [cong]:
+    "(!!x. M(x) ==> P(x) <-> P'(x)) ==> rex(M,P) <-> rex(M,P')"
+by (simp add: rex_def cong: conj_cong)
+
+lemma atomize_rall: "(!!x. M(x) ==> P(x)) == Trueprop (ALL x[M]. P(x))";
+by (simp add: rall_def atomize_all atomize_imp)
+
+declare atomize_rall [symmetric, rulify]
+
+lemma rall_simps1:
+     "(ALL x[M]. P(x) & Q)   <-> (ALL x[M]. P(x)) & ((ALL x[M]. False) | Q)"
+     "(ALL x[M]. P(x) | Q)   <-> ((ALL x[M]. P(x)) | Q)"
+     "(ALL x[M]. P(x) --> Q) <-> ((EX x[M]. P(x)) --> Q)"
+     "(~(ALL x[M]. P(x))) <-> (EX x[M]. ~P(x))" 
+by blast+
+
+lemma rall_simps2:
+     "(ALL x[M]. P & Q(x))   <-> ((ALL x[M]. False) | P) & (ALL x[M]. Q(x))"
+     "(ALL x[M]. P | Q(x))   <-> (P | (ALL x[M]. Q(x)))"
+     "(ALL x[M]. P --> Q(x)) <-> (P --> (ALL x[M]. Q(x)))"
+by blast+
+
+lemmas rall_simps = rall_simps1 rall_simps2
+
+lemma rall_conj_distrib:
+    "(ALL x[M]. P(x) & Q(x)) <-> ((ALL x[M]. P(x)) & (ALL x[M]. Q(x)))"
+by blast
+
+lemma rex_simps1:
+     "(EX x[M]. P(x) & Q) <-> ((EX x[M]. P(x)) & Q)"
+     "(EX x[M]. P(x) | Q) <-> (EX x[M]. P(x)) | ((EX x[M]. True) & Q)"
+     "(EX x[M]. P(x) --> Q) <-> ((ALL x[M]. P(x)) --> ((EX x[M]. True) & Q))"
+     "(~(EX x[M]. P(x))) <-> (ALL x[M]. ~P(x))"
+by blast+
+
+lemma rex_simps2:
+     "(EX x[M]. P & Q(x)) <-> (P & (EX x[M]. Q(x)))"
+     "(EX x[M]. P | Q(x)) <-> ((EX x[M]. True) & P) | (EX x[M]. Q(x))"
+     "(EX x[M]. P --> Q(x)) <-> (((ALL x[M]. False) | P) --> (EX x[M]. Q(x)))"
+by blast+
+
+lemmas rex_simps = rex_simps1 rex_simps2
+
+lemma rex_disj_distrib:
+    "(EX x[M]. P(x) | Q(x)) <-> ((EX x[M]. P(x)) | (EX x[M]. Q(x)))"
+by blast
+
+
+(** One-point rule for bounded quantifiers: see HOL/Set.ML **)
+
+lemma rex_triv_one_point1 [simp]: "(EX x[M]. x=a) <-> ( M(a))"
+by blast
+
+lemma rex_triv_one_point2 [simp]: "(EX x[M]. a=x) <-> ( M(a))"
+by blast
+
+lemma rex_one_point1 [simp]: "(EX x[M]. x=a & P(x)) <-> ( M(a) & P(a))"
+by blast
+
+lemma rex_one_point2 [simp]: "(EX x[M]. a=x & P(x)) <-> ( M(a) & P(a))"
+by blast
+
+lemma rall_one_point1 [simp]: "(ALL x[M]. x=a --> P(x)) <-> ( M(a) --> P(a))"
+by blast
+
+lemma rall_one_point2 [simp]: "(ALL x[M]. a=x --> P(x)) <-> ( M(a) --> P(a))"
+by blast
+
+
 ML
 {*
 val oall_def = thm "oall_def"
@@ -207,9 +345,54 @@ val OUN_iff = thm "OUN_iff";
 val OUN_cong = thm "OUN_cong";
 val lt_induct = thm "lt_induct";
 
+val rall_def = thm "rall_def"
+val rex_def = thm "rex_def"
+
+val rallI = thm "rallI";
+val rspec = thm "rspec";
+val rallE = thm "rallE";
+val rev_oallE = thm "rev_oallE";
+val rall_cong = thm "rall_cong";
+val rexI = thm "rexI";
+val rexCI = thm "rexCI";
+val rexE = thm "rexE";
+val rex_cong = thm "rex_cong";
+
 val Ord_atomize =
-    atomize (("OrdQuant.oall", [ospec])::ZF_conn_pairs, ZF_mem_pairs);
+    atomize ([("OrdQuant.oall", [ospec]),("OrdQuant.rall", [rspec])]@
+                 ZF_conn_pairs, 
+             ZF_mem_pairs);
 simpset_ref() := simpset() setmksimps (map mk_eq o Ord_atomize o gen_all);
+*}
+
+text{*Setting up the one-point-rule simproc*}
+ML
+{*
+
+let
+val ex_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
+                                ("EX x[M]. P(x) & Q(x)", FOLogic.oT)
+
+val prove_rex_tac = rewtac rex_def THEN
+                    Quantifier1.prove_one_point_ex_tac;
+
+val rearrange_bex = Quantifier1.rearrange_bex prove_rex_tac;
+
+val all_pattern = Thm.read_cterm (Theory.sign_of (the_context ()))
+                                 ("ALL x[M]. P(x) --> Q(x)", FOLogic.oT)
+
+val prove_rall_tac = rewtac rall_def THEN 
+                     Quantifier1.prove_one_point_all_tac;
+
+val rearrange_ball = Quantifier1.rearrange_ball prove_rall_tac;
+
+val defREX_regroup = mk_simproc "defined REX" [ex_pattern] rearrange_bex;
+val defRALL_regroup = mk_simproc "defined RALL" [all_pattern] rearrange_ball;
+in
+
+Addsimprocs [defRALL_regroup,defREX_regroup]
+
+end;
 *}
 
 end
