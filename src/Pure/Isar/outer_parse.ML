@@ -162,7 +162,9 @@ val text = group "text" (short_ident || long_ident || sym_ident || string || ver
 
 val comment = text >> Comment.plain;
 val marg_comment = Scan.optional ($$$ "--" |-- comment) Comment.none;
-val interest = Scan.optional ($$$ "%" >> K Comment.no_interest) Comment.default_interest;
+
+val interest = Scan.optional ($$$ "%%" >> K Comment.no_interest ||
+  $$$ "%" |-- Scan.optional nat 1 >> Comment.interest) Comment.default_interest;
 
 
 (* sorts and arities *)

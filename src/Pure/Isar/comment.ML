@@ -12,6 +12,7 @@ sig
   val none: text
   val ignore: 'a * text -> 'a
   type interest
+  val interest: int -> interest
   val no_interest: interest
   val default_interest: interest
   val ignore_interest: 'a * interest -> 'a
@@ -33,9 +34,10 @@ fun ignore (x, _) = x;
 
 (** interest **)
 
-datatype interest = Interest of bool;
-val no_interest = Interest false;
-val default_interest = Interest true;
+datatype interest = Interest of int;
+val interest = Interest;
+val no_interest = interest ~1;
+val default_interest = interest 0;
 
 fun ignore_interest (x, _) = x;
 fun ignore_interest' (_, x) = x;
