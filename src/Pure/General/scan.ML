@@ -40,6 +40,7 @@ sig
   val ahead: ('a -> 'b * 'c) -> 'a -> 'b * 'a
   val unless: ('a -> 'b * 'a) -> ('a -> 'c * 'd) -> 'a -> 'c * 'd
   val first: ('a -> 'b) list -> 'a -> 'b
+  val state: 'a * 'b -> 'a * ('a * 'b) 
   val depend: ('a -> 'b -> ('c * 'd) * 'e) -> 'a * 'b -> 'd * ('c * 'e)
   val lift: ('a -> 'b * 'c) -> 'd * 'a -> 'b * ('d * 'c)
   val pass: 'a -> ('a * 'b -> 'c * ('d * 'e)) -> 'b -> 'c * 'e
@@ -144,6 +145,8 @@ fun first [] = fail
 
 
 (* state based scanners *)
+
+fun state (st, xs) = (st, (st, xs));
 
 fun depend scan (st, xs) =
   let val ((st', y), xs') = scan st xs
