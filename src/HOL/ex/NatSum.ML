@@ -93,8 +93,4 @@ qed "sum_of_3_powers";
 Goal "0<k ==> (k-1) * setsum (%i. k^i) (lessThan n) = k^n - 1";
 by (induct_tac "n" 1);
 by Auto_tac;
-by (subgoal_tac "1*k^n <= k * k^n" 1);
-by (Asm_full_simp_tac 1);
-by (rtac mult_le_mono1 1);
-by Auto_tac;
 qed "sum_of_powers";
