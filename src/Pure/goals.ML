@@ -1,4 +1,4 @@
-(*  Title: 	goals
+(*  Title: 	Pure/goals.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
@@ -202,9 +202,9 @@ fun prove_goalw thy rths agoal tacsf =
       val chorn = Sign.read_cterm sign (agoal,propT)
   in  prove_goalw_cterm rths chorn tacsf  
       handle ERROR => error (*from type_assign, etc via prepare_proof*)
-		("The error above occurred for " ^ agoal)
+		("The error above occurred for " ^ quote agoal)
        | e => (print_sign_exn sign e;	(*other exceptions*)
-	       error ("The exception above was raised for " ^ agoal))
+	       error ("The exception above was raised for " ^ quote agoal))
   end;
 
 (*String version with no meta-rewrite-rules*)
@@ -300,7 +300,7 @@ fun goalw_cterm rths chorn =
 fun goalw thy rths agoal = 
   goalw_cterm rths (Sign.read_cterm(sign_of thy)(agoal,propT))
   handle ERROR => error (*from type_assign, etc via prepare_proof*)
-	    ("The error above occurred for " ^ agoal);
+	    ("The error above occurred for " ^ quote agoal);
 
 (*String version with no meta-rewrite-rules*)
 fun goal thy = goalw thy [];
