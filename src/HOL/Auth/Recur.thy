@@ -131,7 +131,7 @@ done
 lemma "\<exists>K. \<exists>NA. \<exists>evs \<in> recur.
         Says B A {|Crypt (shrK A) {|Key K, Agent B, Nonce NA|},
                    END|}  \<in> set evs"
-apply (tactic "cut_facts_tac [Nonce_supply2, Key_supply2] 1")
+apply (cut_tac Nonce_supply2 Key_supply2)
 apply clarify
 apply (intro exI bexI)
 apply (rule_tac [2] 
@@ -253,7 +253,7 @@ lemma raw_analz_image_freshK:
           (K \<in> KK | Key K \<in> analz (spies evs))"
 apply (erule recur.induct)
 apply (drule_tac [4] RA2_analz_spies,
-       frule_tac [5] respond_imp_responses,
+       drule_tac [5] respond_imp_responses,
        drule_tac [6] RA4_analz_spies)
 apply analz_freshK
 apply spy_analz
@@ -285,9 +285,9 @@ lemma Hash_imp_body:
          evs \<in> recur;  A \<notin> bad |] ==> X \<in> parts (spies evs)"
 apply (erule rev_mp)
 apply (erule recur.induct,
-       frule_tac [6] RA4_parts_spies,
-       frule_tac [5] respond_imp_responses,
-       frule_tac [4] RA2_parts_spies)
+       drule_tac [6] RA4_parts_spies,
+       drule_tac [5] respond_imp_responses,
+       drule_tac [4] RA2_parts_spies)
 (*RA3 requires a further induction*)
 apply (erule_tac [5] responses.induct)
 apply simp_all
@@ -311,7 +311,7 @@ lemma unique_NA:
     ==> B=B' & P=P'"
 apply (erule rev_mp, erule rev_mp)
 apply (erule recur.induct,
-       frule_tac [5] respond_imp_responses)
+       drule_tac [5] respond_imp_responses)
 apply (force, simp_all)
 (*Fake*)
 apply blast
@@ -464,13 +464,13 @@ lemma Hash_auth_sender [rule_format]:
 apply (unfold HPair_def)
 apply (erule rev_mp)
 apply (erule recur.induct,
-       frule_tac [6] RA4_parts_spies,
-       frule_tac [4] RA2_parts_spies,
+       drule_tac [6] RA4_parts_spies,
+       drule_tac [4] RA2_parts_spies,
        simp_all)
 (*Nil*)
 apply force
 (*Fake, RA3*)
-apply (blast dest: Hash_in_parts_respond)+;
+apply (blast dest: Hash_in_parts_respond)+
 done
 
 (** These two results subsume (for all agents) the guarantees proved
