@@ -655,10 +655,21 @@ Goal "[| KK <= -(range shrK); Key K : analz (spies evs); evs: kerberos |]   \
 by (blast_tac (claset() addDs [impOfSubs analz_mono]) 1);
 qed "analz_mono_KK";
 
+(*For the Oops2 case of the next theorem*)
+Goal "[| evs : kerberos;  \
+\        Says Tgs A (Crypt AuthKey \
+\                    {|Key ServKey, Agent B, Number Tt, ServTicket|}) \
+\          : set evs |] \
+\     ==> ~ KeyCryptKey ServKey SK evs";
+by (blast_tac (claset() addDs [KeyCryptKeyI, KeyCryptKey_not_KeyCryptKey]) 1);
+qed "Oops2_not_KeyCryptKey";
+
+
 (* Big simplification law for keys SK that are not crypted by keys in KK   *)
 (* It helps prove three, otherwise hard, facts about keys. These facts are *)
 (* exploited as simplification laws for analz, and also "limit the damage" *)
 (* in case of loss of a key to the spy. See ESORICS98.                     *)
+(* [simplified by LCP]                                                     *)
 Goal "evs : kerberos ==>                                         \
 \     (ALL SK KK. KK <= -(range shrK) -->                   \
 \     (ALL K: KK. ~ KeyCryptKey K SK evs)   -->           \
@@ -668,10 +679,13 @@ by (etac kerberos.induct 1);
 by analz_sees_tac;
 by (REPEAT_FIRST (rtac allI));
 by (REPEAT_FIRST (rtac (Key_analz_image_Key_lemma RS impI)));
+(*Case-splits for Oops1 & 5: the negated case simplifies using the ind hyp*)
+by (case_tac "KeyCryptKey AuthKey SK evsO1" 11); 
+by (case_tac "KeyCryptKey ServKey SK evs5" 8);
 by (ALLGOALS  
     (asm_simp_tac 
      (analz_image_freshK_ss addsimps
-        [KeyCryptKey_Says, shrK_not_KeyCryptKey, 
+        [KeyCryptKey_Says, shrK_not_KeyCryptKey, Oops2_not_KeyCryptKey,
 	 Auth_fresh_not_KeyCryptKey, Serv_fresh_not_KeyCryptKey, 
 	 Says_Tgs_KeyCryptKey, Spy_analz_shrK])));
 (*Fake*) 
@@ -683,46 +697,18 @@ by (Blast_tac 1);
 by (blast_tac (claset() addEs spies_partsEs 
                         addSDs [AuthKey_not_KeyCryptKey]) 1);
 (*K5*)
-by (rtac impI 1);
 by (case_tac "Key ServKey : analz (spies evs5)" 1);
 (*If ServKey is compromised then the result follows directly...*)
 by (asm_simp_tac 
      (simpset() addsimps [analz_insert_eq, 
 			 impOfSubs (Un_upper2 RS analz_mono)]) 1);
 (*...therefore ServKey is uncompromised.*)
-by (case_tac "KeyCryptKey ServKey SK evs5" 1);
-by (asm_simp_tac analz_image_freshK_ss 2);
 (*The KeyCryptKey ServKey SK evs5 case leads to a contradiction.*)
 by (blast_tac (claset() addSEs [ServKey_not_KeyCryptKey RSN(2, rev_notE)]
 		        addEs spies_partsEs delrules [allE, ballE]) 1);
-(** Level 14: Oops1 and Oops2 **)
-by (ALLGOALS Clarify_tac);
-(*Oops 2*)
-by (case_tac "Key ServKey : analz (spies evsO2)" 2);
-by (ALLGOALS Asm_full_simp_tac);
-by (ftac analz_mono_KK 2
-    THEN assume_tac 2
-    THEN assume_tac 2);
-by (ftac analz_cut 2 THEN assume_tac 2);
-by (blast_tac (claset() addDs [analz_cut, impOfSubs analz_mono]) 2);
-by (dres_inst_tac [("x","SK")] spec 2);
-by (dres_inst_tac [("x","insert ServKey KK")] spec 2);
-by (ftac Says_Tgs_message_form 2 THEN assume_tac 2);
-by (Clarify_tac 2);
-by (forward_tac [Says_imp_spies RS parts.Inj RS parts.Body 
-                 RS parts.Snd RS parts.Snd RS parts.Snd] 2);
-by (Asm_full_simp_tac 2);
-by (blast_tac (claset() addSDs [ServKey_not_KeyCryptKey] 
-			delrules [le_maxI1, le_maxI2]
-                        addDs [impOfSubs analz_mono]) 2);
-(*Level 27: Oops 1*)
-by (dres_inst_tac [("x","SK")] spec 1);
-by (dres_inst_tac [("x","insert AuthKey KK")] spec 1);
-by (case_tac "KeyCryptKey AuthKey SK evsO1" 1);
-by (ALLGOALS Asm_full_simp_tac);
+(** Level 13: Oops1 **)
+by (Asm_full_simp_tac 1);
 by (blast_tac (claset() addSDs [KeyCryptKey_analz_insert]) 1);
-by (blast_tac (claset() delrules [le_maxI1, le_maxI2] 
-			addDs [impOfSubs analz_mono]) 1);
 qed_spec_mp "Key_analz_image_Key";
 
 
