@@ -58,7 +58,7 @@ signature BLAST_DATA =
   val ccontr		: thm		
   val contr_tac 	: int -> tactic
   val dup_intr		: thm -> thm
-  val vars_gen_hyp_subst_tac : bool -> int -> tactic
+  val hyp_subst_tac     : bool ref -> int -> tactic
   val claset		: unit -> claset
   val rep_claset	: 
       claset -> {safeIs: thm list, safeEs: thm list, 
@@ -731,26 +731,31 @@ fun equalSubst sign (G, pairs, lits, vars, lim) =
   let val (t,u) = orientGoal(dest_eq G)
       val subst = subst_atomic (t,u)
       fun subst2(G,md) = (subst G, md)
-      (*substitute throughout Haz list; move affected ones to Safe part*)
-      fun subHazs ([], Gs, nHs)         = (Gs,nHs)
-	| subHazs ((H,md)::Hs, Gs, nHs) =
-	    let val nH = subst H
-	    in  if nH aconv H then subHazs (Hs, Gs, (H,md)::nHs)
-		              else subHazs (Hs, (nH,md)::Gs, nHs)
+      (*substitute throughout list; extract affected formulae*)
+      fun subForm ((G,md), (changed, pairs)) =
+	    let val nG = subst G
+	    in  if nG aconv G then (changed, (G,md)::pairs)
+		              else ((nG,md)::changed, pairs)
             end
-      val pairs' = map (fn(Gs,Hs) => subHazs(rev Hs, map subst2 Gs, [])) pairs
-      (*substitute throughout literals; move affected ones to Safe part*)
-      fun subLits ([], [], nlits) =          (pairs', nlits, vars, lim)
-	| subLits ([], Gs, nlits) = ((Gs,[])::pairs', nlits, vars, lim)
-	| subLits (lit::lits, Gs, nlits) =
+      (*substitute throughout "stack frame"; extract affected formulae*)
+      fun subFrame ((Gs,Hs), (changed, frames)) =
+	    let val (changed', Gs') = foldr subForm (Gs, (changed, []))
+                val (changed'', Hs') = foldr subForm (Hs, (changed', []))
+            in  (changed'', (Gs',Hs')::frames)  end
+      (*substitute throughout literals; extract affected ones*)
+      fun subLit (lit, (changed, nlits)) =
 	    let val nlit = subst lit
-	    in  if nlit aconv lit then subLits (lits, Gs, nlit::nlits)
-		                  else subLits (lits, (nlit,true)::Gs, nlits)
+	    in  if nlit aconv lit then (changed, nlit::nlits)
+		                  else ((nlit,true)::changed, nlits)
             end
+      val (changed, lits') = foldr subLit (lits, ([], []))
+      val (changed', pairs') = foldr subFrame (pairs, (changed, []))
   in  if !trace then writeln ("Substituting " ^ traceTerm sign u ^
 			      " for " ^ traceTerm sign t ^ " in branch" )
       else ();
-      subLits (rev lits, [], [])  
+      ((changed',[])::pairs',	(*affected formulas, and others*)
+       lits',			(*unaffected literals*)
+       vars, lim)
   end;
 
 
@@ -1007,7 +1012,7 @@ fun prove (sign, start, cs, brs, cont) =
 	  in tracing sign brs0; 
 	     if lim<0 then (traceMsg "Limit reached.  "; backtrack choices)
 	     else
-	     prv (Data.vars_gen_hyp_subst_tac false  ::  tacs, 
+	     prv (Data.hyp_subst_tac trace :: tacs, 
 		  brs0::trs,  choices,
 		  equalSubst sign (G, (br,haz)::pairs, lits, vars, lim) :: brs)
 	     handle DEST_EQ =>   closeF lits
@@ -1015,16 +1020,18 @@ fun prove (sign, start, cs, brs, cont) =
 	        handle CLOSEF => deeper rules
 		  handle NEWBRANCHES => 
 		   (case netMkRules G vars hazList of
-		       [] => (*no plausible haz rules: move G to literals*)
-			   prv (tacs, brs0::trs, choices,
-				((br,haz)::pairs, addLit(G,lits), vars, lim)
-				::brs)
+		       [] => (*there are no plausible haz rules*)
+			   (traceMsg "moving goal to literals";
+			    prv (tacs, brs0::trs, choices,
+				 ((br,haz)::pairs, addLit(G,lits), vars, lim)
+				 ::brs))
 		    | _ => (*G admits some haz rules: try later*)
-			   prv (if isGoal G then negOfGoal_tac :: tacs
-				else tacs, 
-				brs0::trs,  choices,
-				((br, haz@[(negOfGoal G, md)])::pairs,
-				 lits, vars, lim)  ::  brs))
+			   (traceMsg "moving goal to haz list";
+			    prv (if isGoal G then negOfGoal_tac :: tacs
+				 else tacs, 
+				     brs0::trs,  choices,
+				     ((br, haz@[(negOfGoal G, md)])::pairs,
+				      lits, vars, lim)  ::  brs)))
 	  end
        | prv (tacs, trs, choices, 
 	      (([],haz)::(Gs,haz')::pairs, lits, vars, lim) :: brs) =

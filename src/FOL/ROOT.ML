@@ -28,9 +28,10 @@ use "fologic.ML";
 structure Hypsubst_Data =
   struct
   structure Simplifier = Simplifier
-    (*Take apart an equality judgement; otherwise raise Match!*)
-  fun dest_eq (Const("Trueprop",_) $ (Const("op =",T)  $ t $ u)) = 
-	(t, u, domain_type T)
+    (*These destructors  Match!*)
+  fun dest_eq (Const("op =",T)  $ t $ u) = (t, u, domain_type T)
+  val dest_Trueprop = FOLogic.dest_Trueprop
+  val dest_imp = FOLogic.dest_imp
   val eq_reflection = eq_reflection
   val imp_intr = impI
   val rev_mp = rev_mp

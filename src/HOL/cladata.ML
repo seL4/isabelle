@@ -14,8 +14,9 @@ structure Hypsubst_Data =
   struct
   structure Simplifier = Simplifier
   (*Take apart an equality judgement; otherwise raise Match!*)
-  fun dest_eq (Const("Trueprop",_) $ (Const("op =",T)  $ t $ u)) = 
-	(t, u, domain_type T)
+  fun dest_eq (Const("op =",T)  $ t $ u) = (t, u, domain_type T)
+  val dest_Trueprop = HOLogic.dest_Trueprop
+  val dest_imp = HOLogic.dest_imp
   val eq_reflection = eq_reflection
   val imp_intr = impI
   val rev_mp = rev_mp
@@ -72,7 +73,7 @@ structure Blast_Data =
   val ccontr	= ccontr
   val contr_tac = Classical.contr_tac
   val dup_intr	= Classical.dup_intr
-  val vars_gen_hyp_subst_tac = Hypsubst.vars_gen_hyp_subst_tac
+  val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
   val claset	= Classical.claset
   val rep_claset = Classical.rep_claset
   end;

@@ -18,6 +18,7 @@ sig
   val conj: term
   val disj: term
   val imp: term
+  val dest_imp	       : term -> term*term
   val eq_const: typ -> term
   val all_const: typ -> term
   val exists_const: typ -> term
@@ -72,6 +73,9 @@ fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
 val conj = Const ("op &", [boolT, boolT] ---> boolT)
 and disj = Const ("op |", [boolT, boolT] ---> boolT)
 and imp = Const ("op -->", [boolT, boolT] ---> boolT);
+
+fun dest_imp (Const("op -->",_) $ A $ B) = (A, B)
+  | dest_imp  t = raise TERM ("dest_imp", [t]);
 
 fun eq_const T = Const ("op =", [T, T] ---> boolT);
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;

@@ -10,6 +10,7 @@ sig
   val oT: typ
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
+  val dest_imp	       : term -> term*term
   val conj: term
   val disj: term
   val imp: term
@@ -39,6 +40,9 @@ fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
 val conj = Const("op &", [oT,oT]--->oT)
 and disj = Const("op |", [oT,oT]--->oT)
 and imp = Const("op -->", [oT,oT]--->oT);
+
+fun dest_imp (Const("op -->",_) $ A $ B) = (A, B)
+  | dest_imp  t = raise TERM ("dest_imp", [t]);
 
 fun eq_const T = Const ("op =", [T, T] ---> oT);
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;

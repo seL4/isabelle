@@ -54,7 +54,7 @@ structure Blast_Data =
   val ccontr	= ccontr
   val contr_tac = Cla.contr_tac
   val dup_intr	= Cla.dup_intr
-  val vars_gen_hyp_subst_tac = Hypsubst.vars_gen_hyp_subst_tac
+  val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
   val claset	= Cla.claset
   val rep_claset = Cla.rep_claset
   end;
