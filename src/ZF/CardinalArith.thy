@@ -27,7 +27,7 @@ defs
   csquare_rel_def
   "csquare_rel(K) ==   \
 \        rvimage(K*K,   \
-\                lam z:K*K. split(%x y. <x Un y, <x,y>>, z), \
+\                lam <x,y>:K*K. <x Un y, x, y>, \
 \                rmult(K,Memrel(K), K*K, rmult(K,Memrel(K), K,Memrel(K))))"
 
   (*This def is more complex than Kunen's but it more easily proved to
