@@ -1,0 +1,21 @@
+Type inference for MiniML (without "let" for the time being).
+
+Algorithms W and I are based on
+
+@article{Milner-Poly,author="Robin Milner",
+title="A Theory of Type Polymorphism in Programming",
+journal="J. Comp.\ Sys.\ Sci.",year=1978,volume=17,pages="348--375"}
+
+which also proves their correctness.  The first completeness proof was given
+in
+
+@phdthesis{Damas-PhD,author={Luis Manuel Martins Damas},
+title={Type Assignment in Programming Languages},
+school={Department of Computer Science, University of Edinburgh},year=1985}
+
+The Isabelle proofs are based on
+
+@phdthesis{Nazareth-PhD,author={Dieter Nazareth},
+title={A Polymorphic Sort System for Axiomatic Specification Languages},
+school={Institut f\"ur Informatik, Technische Universit{\"a}t M{\"u}nchen},
+year=1995,note={Technical Report {TUM-I9515}}}
