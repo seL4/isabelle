@@ -657,12 +657,15 @@ val thms  : string -> thm list
 \railalias{noasmuse}{no\_asm\_use}
 \railterm{noasmuse}
 
+\railalias{asmlr}{asm\_lr}
+\railterm{asmlr}
+
 \indexouternonterm{simpmod}
 \begin{rail}
   ('simp' | simpall) ('!' ?) opt? (simpmod *)
   ;
 
-  opt: '(' (noasm | noasmsimp | noasmuse) ')'
+  opt: '(' (noasm | noasmsimp | noasmuse | asmlr) ')'
   ;
   simpmod: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
     'split' (() | 'add' | 'del')) ':' thmrefs
@@ -706,6 +709,9 @@ simplification of the conclusion but are not themselves simplified (cf.\
 \texttt{asm_simp_tac}), and ``$(no_asm_use)$'' means assumptions are
 simplified but are not used in the simplification of each other or the
 conclusion (cf.\ \texttt{full_simp_tac}).
+For compatibility reasons, there is also an option ``$(asm_lr)$'',
+which means that an assumption is only used for simplifying assumptions
+which are to the right of it (cf.\ \texttt{asm_lr_simp_tac}).
 
 \medskip
 
