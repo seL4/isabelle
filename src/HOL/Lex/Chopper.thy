@@ -19,16 +19,14 @@ Chopper = Prefix +
 
 types   'a chopper = "'a list => 'a list list * 'a list"
 
-consts
+constdefs
   is_longest_prefix_chopper :: ['a list => bool, 'a chopper] => bool
+  "is_longest_prefix_chopper L chopper == !xs.
+       (!zs. chopper(xs) = ([],zs) -->
+             zs=xs & (!ys. ys ~= [] & ys <= xs --> ~L(ys))) &
+       (!ys yss zs. chopper(xs) = (ys#yss,zs) -->
+          ys ~= [] & L(ys) & xs=ys@flat(yss)@zs &
+          chopper(flat(yss)@zs) = (yss,zs) &
+          (!as. as <= xs & ys <= as & ys ~= as --> ~L(as)))"
 
-defs
-  is_longest_prefix_chopper_def
-    "is_longest_prefix_chopper L chopper == !xs.   \
-\        (!zs. chopper(xs) = ([],zs) --> \
-\              zs=xs & (!ys. ys ~= [] & ys <= xs --> ~L(ys))) &  \
-\        (!ys yss zs. chopper(xs) = (ys#yss,zs) -->                \
-\           ys ~= [] & L(ys) & xs=ys@flat(yss)@zs &   \
-\           chopper(flat(yss)@zs) = (yss,zs) &     \
-\           (!as. as <= xs & ys <= as & ys ~= as --> ~L(as)))"
 end

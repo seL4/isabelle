@@ -9,12 +9,9 @@ The integers as equivalence classes over nat*nat.
 *)
 
 Integ = Equiv + Arith +
-consts
+constdefs
   intrel      :: "((nat * nat) * (nat * nat)) set"
-
-defs
-  intrel_def
-   "intrel == {p. ? x1 y1 x2 y2. p=((x1::nat,y1),(x2,y2)) & x1+y2 = x2+y1}"
+  "intrel == {p. ? x1 y1 x2 y2. p=((x1::nat,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
 typedef (Integ)
   int = "{x::(nat*nat).True}/intrel"            (Equiv.quotient_def)
@@ -22,29 +19,43 @@ typedef (Integ)
 instance
   int :: {ord, plus, times, minus}
 
-consts
+constdefs
+
   zNat        :: nat set
-  znat        :: nat => int        ("$# _" [80] 80)
-  zminus      :: int => int        ("$~ _" [80] 80)
+  "zNat == {x::nat. True}"
+
+  znat        :: nat => int                                  ("$# _" [80] 80)
+  "$# m == Abs_Integ(intrel ^^ {(m,0)})"
+
+  zminus      :: int => int                                  ("$~ _" [80] 80)
+  "$~ Z == Abs_Integ(UN p:Rep_Integ(Z). split (%x y. intrel^^{(y,x)}) p)"
+
   znegative   :: int => bool
+  "znegative(Z) == EX x y. x<y & (x,y::nat):Rep_Integ(Z)"
+
   zmagnitude  :: int => int
-  zdiv,zmod   :: [int,int]=>int  (infixl 70)
-  zpred,zsuc  :: int=>int
+  "zmagnitude(Z) == Abs_Integ(UN p:Rep_Integ(Z).
+                              split (%x y. intrel^^{((y-x) + (x-y),0)}) p)"
+
+  zdiv        :: [int,int]=>int                              (infixl 70)
+  "Z1 zdiv Z2 ==   
+      Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2). split (%x1 y1.   
+          split (%x2 y2. intrel^^{((x1-y1)div(x2-y2)+(y1-x1)div(y2-x2),   
+          (x1-y1)div(y2-x2)+(y1-x1)div(x2-y2))}) p2) p1)"
+
+  zmod        :: [int,int]=>int                              (infixl 70)
+  "Z1 zmod Z2 ==   
+      Abs_Integ(UN p1:Rep_Integ(Z1).UN p2:Rep_Integ(Z2).split (%x1 y1.   
+          split (%x2 y2. intrel^^{((x1-y1)mod((x2-y2)+(y2-x2)),   
+          (x1-y1)mod((x2-y2)+(x2-y2)))}) p2) p1)"
+
+  zpred       :: int=>int
+  "zpred(Z) == Z - $# Suc(0)"
+
+  zsuc        :: int=>int
+  "zsuc(Z) == Z + $# Suc(0)"
 
 defs
-  zNat_def    "zNat == {x::nat. True}"
-
-  znat_def    "$# m == Abs_Integ(intrel ^^ {(m,0)})"
-
-  zminus_def
-        "$~ Z == Abs_Integ(UN p:Rep_Integ(Z). split (%x y. intrel^^{(y,x)}) p)"
-
-  znegative_def
-      "znegative(Z) == EX x y. x<y & (x,y::nat):Rep_Integ(Z)"
-
-  zmagnitude_def
-      "zmagnitude(Z) == Abs_Integ(UN p:Rep_Integ(Z).split (%x y. intrel^^{((y-x) + (x-y),0)}) p)"
-
   zadd_def
    "Z1 + Z2 == 
        Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2).   
@@ -61,19 +72,4 @@ defs
        Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2). split (%x1 y1.   
            split (%x2 y2. intrel^^{(x1*x2 + y1*y2, x1*y2 + y1*x2)}) p2) p1)"
 
-  zdiv_def
-   "Z1 zdiv Z2 ==   
-       Abs_Integ(UN p1:Rep_Integ(Z1). UN p2:Rep_Integ(Z2). split (%x1 y1.   
-           split (%x2 y2. intrel^^{((x1-y1)div(x2-y2)+(y1-x1)div(y2-x2),   
-           (x1-y1)div(y2-x2)+(y1-x1)div(x2-y2))}) p2) p1)"
-
-  zmod_def
-   "Z1 zmod Z2 ==   
-       Abs_Integ(UN p1:Rep_Integ(Z1).UN p2:Rep_Integ(Z2).split (%x1 y1.   
-           split (%x2 y2. intrel^^{((x1-y1)mod((x2-y2)+(y2-x2)),   
-           (x1-y1)mod((x2-y2)+(x2-y2)))}) p2) p1)"
-
-  zsuc_def     "zsuc(Z) == Z + $# Suc(0)"
-
-  zpred_def    "zpred(Z) == Z - $# Suc(0)"
 end

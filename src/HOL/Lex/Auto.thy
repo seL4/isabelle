@@ -16,23 +16,24 @@ Auto = Prefix +
 
 types ('a,'b)auto = "'b * ('b => 'a => 'b) * ('b => bool)"
 
-consts
+constdefs
+
   start :: ('a, 'b)auto => 'b
+  "start(A) == fst(A)"
+
   next  :: ('a, 'b)auto => ('b => 'a => 'b)
+  "next(A) == fst(snd(A))"
+
   fin   :: ('a, 'b)auto => ('b => bool)
+  "fin(A) == snd(snd(A))"
+
   nexts :: ('a, 'b)auto => 'b => 'a list => 'b
-  accepts :: ('a,'b) auto => 'a list => bool  
+  "nexts(A) == foldl(next(A))"
+
+  accepts :: ('a,'b) auto => 'a list => bool
+  "accepts A xs == fin A (nexts A (start A) xs)"
+
   acc_prefix :: ('a, 'b)auto => 'b => 'a list => bool
-
-defs
-  start_def "start(A) == fst(A)"
-  next_def  "next(A) == fst(snd(A))"
-  fin_def   "fin(A) == snd(snd(A))"
-  nexts_def "nexts(A) == foldl(next(A))"
-
-  accepts_def "accepts A xs == fin A (nexts A (start A) xs)"
-
-  acc_prefix_def
-    "acc_prefix A st xs == ? us. us <= xs & us~=[] & fin A (nexts A st us)"
+  "acc_prefix A st xs == ? us. us <= xs & us~=[] & fin A (nexts A st us)"
 
 end
