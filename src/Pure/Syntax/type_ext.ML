@@ -12,6 +12,7 @@ sig
   val raw_term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> term -> typ
   val term_of_typ: bool -> typ -> term
+  val no_brackets: unit -> bool
 end;
 
 signature TYPE_EXT =
@@ -122,6 +123,15 @@ fun term_of_typ show_sorts ty =
 
 (** the type syntax **)
 
+(* print mode *)
+
+val bracketsN = "brackets";
+val no_bracketsN = "no_brackets";
+
+fun no_brackets () =
+  Library.find_first (equal bracketsN orf equal no_bracketsN) (! print_mode) = Some no_bracketsN;
+
+
 (* parse ast translations *)
 
 fun tapp_ast_tr (*"_tapp"*) [ty, f] = Ast.Appl [f, ty]
@@ -144,10 +154,12 @@ fun tappl_ast_tr' (f, []) = raise Ast.AST ("tappl_ast_tr'", [f])
       Ast.Appl [Ast.Constant "_tappl", ty, Ast.fold_ast "_types" tys, f];
 
 fun fun_ast_tr' (*"fun"*) asts =
-  (case Ast.unfold_ast_p "fun" (Ast.Appl (Ast.Constant "fun" :: asts)) of
-    (dom as _ :: _ :: _, cod)
-      => Ast.Appl [Ast.Constant "_bracket", Ast.fold_ast "_types" dom, cod]
-  | _ => raise Match);
+  if no_brackets () then raise Match
+  else
+    (case Ast.unfold_ast_p "fun" (Ast.Appl (Ast.Constant "fun" :: asts)) of
+      (dom as _ :: _ :: _, cod)
+        => Ast.Appl [Ast.Constant "_bracket", Ast.fold_ast "_types" dom, cod]
+    | _ => raise Match);
 
 
 (* type_ext *)

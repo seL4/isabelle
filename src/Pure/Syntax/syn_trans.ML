@@ -282,10 +282,12 @@ fun mk_ofclass_tr' show_sorts (*"_mk_ofclass"*) T [t] =
 (* meta implication *)
 
 fun impl_ast_tr' (*"==>"*) asts =
-  (case Ast.unfold_ast_p "==>" (Ast.Appl (Ast.Constant "==>" :: asts)) of
-    (asms as _ :: _ :: _, concl)
-      => Ast.Appl [Ast.Constant "_bigimpl", Ast.fold_ast "_asms" asms, concl]
-  | _ => raise Match);
+  if TypeExt.no_brackets () then raise Match
+  else
+    (case Ast.unfold_ast_p "==>" (Ast.Appl (Ast.Constant "==>" :: asts)) of
+      (asms as _ :: _ :: _, concl)
+        => Ast.Appl [Ast.Constant "_bigimpl", Ast.fold_ast "_asms" asms, concl]
+    | _ => raise Match);
 
 
 (* type reflection *)
