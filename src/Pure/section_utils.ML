@@ -40,21 +40,3 @@ fun scan_to_id s =
     |> #1;
 
 fun is_backslash c = c = "\\";
-
-(*Apply string escapes to a quoted string; see Def of Standard ML, page 3
-  Does not handle the \ddd form;  no error checking*)
-fun escape [] = []
-  | escape cs = (case take_prefix (not o is_backslash) cs of
-	 (front, []) => front
-       | (front, _::"n"::rest) => front @ ("\n" :: escape rest)
-       | (front, _::"t"::rest) => front @ ("\t" :: escape rest)
-       | (front, _::"^"::c::rest) => front @ (chr(ord(c)-64) :: escape rest)
-       | (front, _::"\""::rest) => front @ ("\"" :: escape rest)
-       | (front, _::"\\"::rest) => front @ ("\\" :: escape rest)
-       | (front, b::c::rest) => 
-	   if Symbol.is_blank c   (*remove any further blanks and the following \ *)
-	   then front @ escape (tl (snd (take_prefix Symbol.is_blank rest)))
-	   else error ("Unrecognized string escape: " ^ implode(b::c::rest)));
-
-(*Remove the first and last charaters -- presumed to be quotes*)
-val trim = implode o escape o rev o tl o rev o tl o Symbol.explode;
