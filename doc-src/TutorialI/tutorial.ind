@@ -70,9 +70,9 @@
     \subitem renaming, 72--73
     \subitem reusing, 73
   \item \isa {auto} (method), 38, 82
-  \item \isa {axclass}, 153--159
+  \item \isa {axclass}, 154--160
   \item axiom of choice, 76
-  \item axiomatic type classes, 153--159
+  \item axiomatic type classes, 154--160
 
   \indexspace
 
@@ -105,7 +105,7 @@
   \item case distinctions, 19
   \item case splits, \bold{31}
   \item \isa {case_tac} (method), 19, 91, 147
-  \item \isa {cases} (method), 151
+  \item \isa {cases} (method), 152
   \item \isa {clarify} (method), 81, 82
   \item \isa {clarsimp} (method), 81, 82
   \item \isa {classical} (theorem), \bold{63}
@@ -196,6 +196,7 @@
   \item \isa {exE} (theorem), \bold{72}
   \item \isa {exI} (theorem), \bold{72}
   \item \isa {ext} (theorem), \bold{99}
+  \item \isa {extend} (constant), 153
   \item extensionality
     \subitem for functions, \bold{99, 100}
     \subitem for records, 151
@@ -207,6 +208,7 @@
   \item \isa {False} (constant), 5
   \item \isa {fast} (method), 82, 114
   \item Fibonacci function, 47
+  \item \isa {fields} (constant), 153
   \item \isa {finite} (symbol), 99
   \item \isa {Finites} (constant), 99
   \item fixed points, 106
@@ -286,7 +288,7 @@
   \item injections, 100
   \item \isa {insert} (constant), 97
   \item \isa {insert} (method), 87--88
-  \item instance, \bold{154}
+  \item instance, \bold{155}
   \item \texttt {INT}, \bold{199}
   \item \texttt {Int}, \bold{199}
   \item \isa {int} (type), 143--144
@@ -302,7 +304,7 @@
   \item \isa {IntI} (theorem), \bold{95}
   \item \isa {intro} (method), 64
   \item \isa {intro!} (attribute), 118
-  \item \isa {intro_classes} (method), 154
+  \item \isa {intro_classes} (method), 155
   \item introduction rules, 58--59
   \item \isa {inv} (constant), 76
   \item \isa {inv_image_def} (theorem), \bold{105}
@@ -348,6 +350,7 @@
 
   \item \isa {Main} (theory), 4
   \item major premise, \bold{65}
+  \item \isa {make} (constant), 153
   \item \isa {max} (constant), 23, 24
   \item measure functions, 47, 104
   \item \isa {measure_def} (theorem), \bold{105}
@@ -365,7 +368,7 @@
   \item \isa {more} (constant), 148--150
   \item \isa {mp} (theorem), \bold{62}
   \item \isa {mult_ac} (theorems), 142
-  \item multiple inheritance, \bold{158}
+  \item multiple inheritance, \bold{159}
   \item multiset ordering, \bold{105}
 
   \indexspace
@@ -400,7 +403,7 @@
   \item \isacommand {oops} (command), 13
   \item \isa {option} (type), \bold{24}
   \item ordered rewriting, \bold{166}
-  \item overloading, 23, 153--156
+  \item overloading, 23, 154--157
     \subitem and arithmetic, 140
 
   \indexspace
@@ -451,9 +454,9 @@
   \item \isa {recdef_cong} (attribute), 172
   \item \isa {recdef_simp} (attribute), 49
   \item \isa {recdef_wf} (attribute), 170
-  \item \isacommand {record} (command), 148
-  \item records, 148--153
-    \subitem extensible, 149--150
+  \item \isacommand {record} (command), 149
+  \item records, 148--154
+    \subitem extensible, 150
   \item recursion
     \subitem guarded, 173
     \subitem primitive, 18
@@ -525,7 +528,7 @@
   \item \isa {split_if_asm} (theorem), 32
   \item \isa {ssubst} (theorem), \bold{67}
   \item structural induction, \see{induction, structural}{1}
-  \item subclasses, 153, 157
+  \item subclasses, 154, 158
   \item subgoal numbering, 46
   \item \isa {subgoal_tac} (method), 88
   \item subgoals, 12
@@ -567,6 +570,7 @@
   \item \isacommand {translations} (command), 26
   \item tries, 44--46
   \item \isa {True} (constant), 5
+  \item \isa {truncate} (constant), 153
   \item tuples, \see{pairs and tuples}{1}
   \item \isacommand {typ} (command), 16
   \item type constraints, \bold{6}
@@ -574,11 +578,11 @@
   \item type inference, \bold{5}
   \item type synonyms, 25
   \item type variables, 5
-  \item \isacommand {typedecl} (command), 107, 159
-  \item \isacommand {typedef} (command), 160--163
+  \item \isacommand {typedecl} (command), 107, 161
+  \item \isacommand {typedef} (command), 161--164
   \item types, 4--5
-    \subitem declaring, 159--160
-    \subitem defining, 160--163
+    \subitem declaring, 161
+    \subitem defining, 161--164
   \item \isacommand {types} (command), 25
 
   \indexspace
