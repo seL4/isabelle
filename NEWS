@@ -190,6 +190,8 @@ in typings (of consts etc.); internally the class is called
     "extend" to promote a fixed record to a record scheme, and
     "truncate" for the reverse; cf. theorems "xxx.defs", which are *not*
     declared as simp by default;
+  - shared operations ("more", "fields", etc.) now need to be always
+    qualified) --- potential INCOMPATIBILITY;
   - removed "make_scheme" operations (use "make" with "extend") --
     INCOMPATIBILITY;
   - removed "more" class (simply use "term") -- INCOMPATIBILITY;
