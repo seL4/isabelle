@@ -440,6 +440,18 @@ struct
 							typ))
 					t
 		end
+		(* applies a type substitution 'typeSubs' for all type variables in a  *)
+		(* term 't'                                                            *)
+		(* Term.typ Term.Vartab.table -> Term.term -> Term.term *)
+		fun monomorphic_term typeSubs t =
+			map_term_types (map_type_tvar
+				(fn (v,_) =>
+					case Vartab.lookup (typeSubs, v) of
+					  None =>
+						(* schematic type variable not instantiated *)
+						raise ERROR
+					| Some typ =>
+						typ)) t
 		(* Term.term list * Term.typ -> Term.term list *)
 		fun collect_type_axioms (axs, T) =
 			case T of
@@ -472,18 +484,8 @@ struct
 								let
 									val T''      = (domain_type o domain_type) T'
 									val typeSubs = Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T'', T))
-									val unvar_ax = map_term_types
-										(map_type_tvar
-											(fn (v,_) =>
-												case Vartab.lookup (typeSubs, v) of
-												  None =>
-													(* schematic type variable not instantiated *)
-													raise ERROR
-												| Some typ =>
-													typ))
-										ax
 								in
-									Some (axname, unvar_ax)
+									Some (axname, monomorphic_term typeSubs ax)
 								end
 							| None =>
 								get_typedefn axms
@@ -572,18 +574,8 @@ struct
 							if s=s' then
 								let
 									val typeSubs = Type.typ_match (Sign.tsig_of (sign_of thy)) (Vartab.empty, (T', T))
-									val unvar_ax = map_term_types
-										(map_type_tvar
-											(fn (v,_) =>
-												case Vartab.lookup (typeSubs, v) of
-												  None =>
-													(* schematic type variable not instantiated *)
-													raise ERROR
-												| Some typ =>
-													typ))
-										ax
 								in
-									Some (axname, unvar_ax)
+									Some (axname, monomorphic_term typeSubs ax)
 								end
 							else
 								get_defn axms
