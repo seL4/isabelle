@@ -9,12 +9,11 @@ Trees & forests, a mutually recursive type definition.
 structure TF = Datatype_Fun
  (val thy        = Univ.thy
   val rec_specs  = [("tree", "univ(A)",
-                       [(["Tcons"],  "[i,i]=>i")]),
+                       [(["Tcons"],  "[i,i]=>i",NoSyn)]),
                     ("forest", "univ(A)",
-                       [(["Fnil"],   "i"),
-                        (["Fcons"],  "[i,i]=>i")])]
+                       [(["Fnil"],   "i",NoSyn),
+                        (["Fcons"],  "[i,i]=>i",NoSyn)])]
   val rec_styp   = "i=>i"
-  val ext        = None
   val sintrs     = 
           ["[| a:A;  f: forest(A) |] ==> Tcons(a,f) : tree(A)",
            "Fnil : forest(A)",

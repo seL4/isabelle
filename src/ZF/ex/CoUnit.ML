@@ -16,9 +16,8 @@ structure CoUnit = CoDatatype_Fun
  (val thy = QUniv.thy;
   val rec_specs = 
       [("counit", "quniv(0)",
-	  [(["Con"],	"i=>i")])];
+	  [(["Con"],	"i=>i", NoSyn)])];
   val rec_styp = "i";
-  val ext = None
   val sintrs = ["x: counit ==> Con(x) : counit"];
   val monos = [];
   val type_intrs = codatatype_intrs
@@ -53,9 +52,8 @@ structure CoUnit2 = CoDatatype_Fun
  (val thy = QUniv.thy;
   val rec_specs = 
       [("counit2", "quniv(0)",
-	  [(["Con2"],	"[i,i]=>i")])];
+	  [(["Con2"],	"[i,i]=>i", NoSyn)])];
   val rec_styp = "i";
-  val ext = None
   val sintrs = ["[| x: counit2;  y: counit2 |] ==> Con2(x,y) : counit2"];
   val monos = [];
   val type_intrs = codatatype_intrs

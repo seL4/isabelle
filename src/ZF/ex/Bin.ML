@@ -11,11 +11,9 @@ structure Bin = Datatype_Fun
  (val thy = Univ.thy;
   val rec_specs = 
       [("bin", "univ(0)",
-	  [(["Plus", "Minus"],	"i"),
-	   (["op $$"],		"[i,i]=>i")])];
+	  [(["Plus", "Minus"],	"i", NoSyn),
+	   (["$$"],		"[i,i]=>i", Infixl 60)])];
   val rec_styp = "i";
-  val ext = Some (Syntax.simple_sext
-		  [OldMixfix.Infixl("$$", "[i,i] => i", 60)]);
   val sintrs = 
 	  ["Plus : bin",
 	   "Minus : bin",

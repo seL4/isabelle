@@ -10,7 +10,7 @@ Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
 structure Acc = Inductive_Fun
- (val thy        = WF.thy addconsts [(["acc"],"i=>i")]
+ (val thy        = WF.thy |> add_consts [("acc","i=>i",NoSyn)]
   val rec_doms   = [("acc", "field(r)")]
   val sintrs     = ["[| r-``{a}: Pow(acc(r)); a: field(r) |] ==> a: acc(r)"]
   val monos      = [Pow_mono]

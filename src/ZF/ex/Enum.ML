@@ -19,9 +19,8 @@ structure Enum = Datatype_Fun
  (val thy = Univ.thy;
   val rec_specs = 
       [("enum", "univ(0)",
-	  [(consts, "i")])];
+	  [(consts, "i", NoSyn)])];
   val rec_styp = "i";
-  val ext = None
   val sintrs = map (fn const => const ^ " : enum") consts;
   val monos = [];
   val type_intrs = datatype_intrs

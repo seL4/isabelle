@@ -12,13 +12,10 @@ structure Prop = Datatype_Fun
  (val thy = Univ.thy;
   val rec_specs = 
       [("prop", "univ(0)",
-	  [(["Fls"],	"i"),
-	   (["Var"],	"i=>i"),
-	   (["op =>"],	"[i,i]=>i")])];
+	  [(["Fls"],	"i",NoSyn),
+	   (["Var"],	"i=>i", Mixfix ("#_", [100], 100)),
+	   (["=>"],	"[i,i]=>i", Infixr 90)])];
   val rec_styp = "i";
-  val ext = Some (Syntax.simple_sext
-		    [OldMixfix.Mixfix("#_", "i => i", "Var", [100], 100),
-		     OldMixfix.Infixr("=>", "[i,i] => i", 90)]);
   val sintrs = 
 	  ["Fls : prop",
 	   "n: nat ==> #n : prop",

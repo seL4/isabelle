@@ -11,9 +11,8 @@ structure Term = Datatype_Fun
  (val thy = List.thy;
   val rec_specs = 
       [("term", "univ(A)",
-	  [(["Apply"], "[i,i]=>i")])];
+	  [(["Apply"], "[i,i]=>i", NoSyn)])];
   val rec_styp = "i=>i";
-  val ext = None
   val sintrs = ["[| a: A;  l: list(term(A)) |] ==> Apply(a,l) : term(A)"];
   val monos = [list_mono];
   val type_intrs = datatype_intrs;

@@ -10,9 +10,9 @@ structure BT = Datatype_Fun
  (val thy = Univ.thy;
   val rec_specs = 
       [("bt", "univ(A)",
-	  [(["Lf"],"i"), (["Br"],"[i,i,i]=>i")])];
+	  [(["Lf"],"i",NoSyn), 
+           (["Br"],"[i,i,i]=>i", NoSyn)])];
   val rec_styp = "i=>i";
-  val ext = None
   val sintrs = 
 	  ["Lf : bt(A)",
 	   "[| a: A;  t1: bt(A);  t2: bt(A) |] ==> Br(a,t1,t2) : bt(A)"];

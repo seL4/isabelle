@@ -10,7 +10,7 @@ Research Report 92-49, LIP, ENS Lyon.  Dec 1992.
 *)
 
 structure ListN = Inductive_Fun
- (val thy        = ListFn.thy addconsts [(["listn"],"i=>i")]
+ (val thy        = ListFn.thy |> add_consts [("listn","i=>i",NoSyn)]
   val rec_doms   = [("listn", "nat*list(A)")]
   val sintrs     = 
           ["<0,Nil> : listn(A)",
