@@ -51,7 +51,7 @@ val ex_special = result();
 goal AutoChopper.thy
 "! r erk l rst st ys yss zs::'a list. \
 \    acc xs st erk r (l,rst) A = (ys#yss, zs) --> \
-\    ys@flat(yss)@zs = (if acc_prefix A st xs then r@xs else erk@flat(l)@rst)";
+\    ys@concat(yss)@zs = (if acc_prefix A st xs then r@xs else erk@concat(l)@rst)";
 by (list.induct_tac "xs" 1);
  by (simp_tac (!simpset addcongs [conj_cong] setloop (split_tac [expand_if])) 1);
 by (asm_simp_tac (!simpset setloop (split_tac [expand_if])) 1);
@@ -133,7 +133,7 @@ goal AutoChopper.thy
  "! st erk r l rest ys yss zs. \
 \   acc xs st erk r (l,rest) A = (ys#yss, zs) --> \
 \     (if acc_prefix A st xs       \
-\      then acc(flat(yss)@zs)(start A) [] [] ([],flat(yss)@zs) A = (yss,zs) \
+\      then acc(concat(yss)@zs)(start A) [] [] ([],concat(yss)@zs) A = (yss,zs) \
 \      else (erk~=[] & (l,rest)=(yss,zs)) | (erk=[] & (l, rest)=(ys#yss,zs)))";
 by (simp_tac (!simpset setloop (split_tac [expand_if])) 1);
 by (list.induct_tac "xs" 1);
@@ -151,7 +151,7 @@ by (subgoal_tac "acc list (start A) [] [] ([],list) A = (yss,zs)" 1);
  by (subgoal_tac "r@[a] ~= []" 2);
   by (Fast_tac 2);
  by (Simp_tac 2);
-by (subgoal_tac "flat(yss) @ zs = list" 1);
+by (subgoal_tac "concat(yss) @ zs = list" 1);
  by (hyp_subst_tac 1);
  by (atac 1);
 by (case_tac "yss = []" 1);

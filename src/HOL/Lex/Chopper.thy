@@ -25,8 +25,8 @@ constdefs
        (!zs. chopper(xs) = ([],zs) -->
              zs=xs & (!ys. ys ~= [] & ys <= xs --> ~L(ys))) &
        (!ys yss zs. chopper(xs) = (ys#yss,zs) -->
-          ys ~= [] & L(ys) & xs=ys@flat(yss)@zs &
-          chopper(flat(yss)@zs) = (yss,zs) &
+          ys ~= [] & L(ys) & xs=ys@concat(yss)@zs &
+          chopper(concat(yss)@zs) = (yss,zs) &
           (!as. as <= xs & ys <= as & ys ~= as --> ~L(as)))"
 
 end
