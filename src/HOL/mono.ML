@@ -115,3 +115,11 @@ by (rtac select_equality 1);
 by (Force_tac 1);
 by (force_tac (claset() addSIs [order_antisym], simpset()) 1);
 qed "Least_mono";
+
+Goal "[| a = b; c = d; b --> d |] ==> a --> c";
+by (Fast_tac 1);
+qed "eq_to_mono";
+
+Goal "[| a = b; c = d; ~ b --> ~ d |] ==> ~ a --> ~ c";
+by (Fast_tac 1);
+qed "eq_to_mono2";

@@ -215,6 +215,9 @@ Goal "(C <= A Int B) = (C <= A & C <= B)";
 by (Blast_tac 1);
 qed "Int_subset_iff";
 
+Goal "(x : A Int {x. P x}) = (x : A & P x)";
+by (Blast_tac 1);
+qed "Int_Collect";
 
 section "Un";
 
