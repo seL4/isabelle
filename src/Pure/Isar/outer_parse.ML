@@ -278,7 +278,7 @@ and meth2 x =
 and meth1 x = (enum1 "," meth2 >> (fn [m] => m | ms => Method.Then ms)) x
 and meth0 x = (enum1 "|" meth1 >> (fn [m] => m | ms => Method.Orelse ms)) x;
 
-val method = meth4;
+val method = meth3;
 
 
 end;
