@@ -124,7 +124,7 @@ nat/int formulae where the two parts interact, such as `m < n ==>
 int(m) < int(n)'.
 
 * HOL/Numeral provides a generic theory of numerals (encoded
-efficiently as bit strings); setup for types nat and int is in place;
+efficiently as bit strings); setup for types nat/int/real is in place;
 INCOMPATIBILITY: since numeral syntax is now polymorphic, rather than
 int, existing theories and proof scripts may require a few additional
 type constraints;
