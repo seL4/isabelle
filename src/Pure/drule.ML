@@ -6,7 +6,7 @@
 Derived rules and other operations on theorems and theories
 *)
 
-infix 0 RS RSN RL RLN COMP;
+infix 0 RS RSN RL RLN MRS MRL COMP;
 
 signature DRULE =
   sig
@@ -31,6 +31,8 @@ signature DRULE =
   val forall_elim_vars: int -> thm -> thm
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: Sign.cterm list -> thm -> thm
+  val MRL: thm list list * thm list -> thm list
+  val MRS: thm list * thm -> thm
   val print_cterm: Sign.cterm -> unit
   val print_ctyp: Sign.ctyp -> unit
   val print_goals: int -> thm -> unit
@@ -190,6 +192,19 @@ fun thas RLN (i,thbs) =
   in  flat (map resb thbs)  end;
 
 fun thas RL thbs = thas RLN (1,thbs);
+
+(*Resolve a list of rules against bottom_rl from right to left;
+  makes proof trees*)
+fun rls MRS bottom_rl = 
+  let fun rs_aux i [] = bottom_rl
+	| rs_aux i (rl::rls) = rl RSN (i, rs_aux (i+1) rls)
+  in  rs_aux 1 rls  end;
+
+(*As above, but for rule lists*)
+fun rlss MRL bottom_rls = 
+  let fun rs_aux i [] = bottom_rls
+	| rs_aux i (rls::rlss) = rls RLN (i, rs_aux (i+1) rlss)
+  in  rs_aux 1 rlss  end;
 
 (*compose Q and [...,Qi,Q(i+1),...]==>R to [...,Q(i+1),...]==>R 
   with no lifting or renaming!  Q may contain ==> or meta-quants
