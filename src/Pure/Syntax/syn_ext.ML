@@ -9,7 +9,6 @@ signature SYN_EXT0 =
 sig
   val typeT: typ
   val constrainC: string
-  val mixfix_args: string -> int
 end;
 
 signature SYN_EXT =
@@ -44,6 +43,7 @@ sig
       print_rules: (Ast.ast * Ast.ast) list,
       print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
       token_translation: (string * string * (string -> string * int)) list}
+  val mfix_args: string -> int
   val mk_syn_ext: bool -> string list -> mfix list ->
     string list -> (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
@@ -195,8 +195,8 @@ in
   val scan_mixfix = scan_symbs o SymbolFont.read_charnames o explode;
 end;
 
-fun mixfix_args mx =
-  foldl (fn (i, Argument _) => i + 1 | (i, _) => i) (0, scan_mixfix mx);
+fun mfix_args sy =
+  foldl (fn (i, Argument _) => i + 1 | (i, _) => i) (0, scan_mixfix sy);
 
 
 (* mfix_to_xprod *)
@@ -249,11 +249,9 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
     fun is_delim (Delim _) = true
       | is_delim _ = false;
 
-    (*replace logical types on rhs by "logic"*)
-    fun unify_logtypes copy_prod (a as (Argument (s, p))) =
-          if s mem logtypes then Argument (logic, p)
-          else a
-      | unify_logtypes _ a = a;
+    fun logify_types copy_prod (a as (Argument (s, p))) =
+          if s mem logtypes then Argument (logic, p) else a
+      | logify_types _ a = a;
 
 
     val raw_symbs = scan_mixfix sy handle ERROR => err "";
@@ -268,7 +266,7 @@ fun mfix_to_xprod convert logtypes (Mfix (sy, typ, const, pris, pri)) =
        (if lhs mem logtypes then logic
         else if lhs = "prop" then sprop else lhs)
       else lhs;
-    val symbs' = map (unify_logtypes copy_prod) symbs;
+    val symbs' = map (logify_types copy_prod) symbs;
     val xprod = XProd (lhs', symbs', const, pri);
   in
     seq check_pri pris;
