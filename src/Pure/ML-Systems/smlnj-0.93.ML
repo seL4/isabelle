@@ -125,6 +125,8 @@ fun change_mask ok change unchange f x =
       val _ = unchange ();
     in release result end;
 
+fun enable_interrupt f = change_mask interruptible unmask_signals mask_signals f;
+
 in
 
 fun ignore_interrupt f = change_mask (not o interruptible) mask_signals unmask_signals f;
@@ -142,7 +144,7 @@ fun raise_interrupt f x =
     fun proceed cont =
       let
         val _ = set_handler cont;
-        val result = unmask_interrupt (capture f) x;
+        val result = enable_interrupt (capture f) x;
         val _ = reset_handler ();
       in release result end;
   in
