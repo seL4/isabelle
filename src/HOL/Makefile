@@ -183,8 +183,23 @@ Lambda:	 $(BIN)/HOL $(LAMBDA_FILES)
 	else echo 'exit_use_dir"Lambda";quit();' | $(LOGIC); \
 	fi
 
-##Type inference for MiniML
-MINIML_NAMES = I Maybe MiniML Type W
+## Type inference without let
+
+W0_NAMES = I Maybe MiniML Type W
+
+W0_FILES = W0/ROOT.ML \
+	      $(W0_NAMES:%=W0/%.thy) $(W0_NAMES:%=W0/%.ML)
+
+W0:	$(BIN)/HOL  $(W0_FILES)
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	then echo 'make_html := true; exit_use_dir"W0";quit();' \
+	       | $(LOGIC);\
+	else echo 'exit_use_dir"W0";quit();' | $(LOGIC); \
+	fi
+
+## Type inference with let
+
+MINIML_NAMES = Generalize Instance Maybe MiniML Type W
 
 MINIML_FILES = MiniML/ROOT.ML \
 	      $(MINIML_NAMES:%=MiniML/%.thy) $(MINIML_NAMES:%=MiniML/%.ML)
