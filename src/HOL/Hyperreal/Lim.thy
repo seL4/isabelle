@@ -8,7 +8,7 @@
 header{*Limits, Continuity and Differentiation*}
 
 theory Lim
-imports SEQ RealDef
+imports SEQ
 begin
 
 text{*Standard and Nonstandard Definitions*}
@@ -17,9 +17,8 @@ constdefs
   LIM :: "[real=>real,real,real] => bool"
 				("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60)
   "f -- a --> L ==
-     \<forall>r. 0 < r -->
-	     (\<exists>s. 0 < s & (\<forall>x. (x \<noteq> a & (\<bar>x + -a\<bar> < s)
-			  --> \<bar>f x + -L\<bar> < r)))"
+     \<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & \<bar>x + -a\<bar> < s
+			  --> \<bar>f x + -L\<bar> < r"
 
   NSLIM :: "[real=>real,real,real] => bool"
 			      ("((_)/ -- (_)/ --NS> (_))" [60, 0, 60] 60)
@@ -58,9 +57,7 @@ constdefs
 		       inc = ( *f* f)(hypreal_of_real x + h) + -hypreal_of_real (f x))"
 
   isUCont :: "(real=>real) => bool"
-  "isUCont f ==  (\<forall>r. 0 < r -->
-		      (\<exists>s. 0 < s & (\<forall>x y. \<bar>x + -y\<bar> < s
-			    --> \<bar>f x + -f y\<bar> < r)))"
+  "isUCont f ==  \<forall>r > 0. \<exists>s > 0. \<forall>x y. \<bar>x + -y\<bar> < s --> \<bar>f x + -f y\<bar> < r"
 
   isNSUCont :: "(real=>real) => bool"
   "isNSUCont f == (\<forall>x y. x @= y --> ( *f* f) x @= ( *f* f) y)"
@@ -84,12 +81,12 @@ section{*Some Purely Standard Proofs*}
 
 lemma LIM_eq:
      "f -- a --> L =
-     (\<forall>r. 0<r --> (\<exists>s. 0 < s & (\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> \<bar>f x - L\<bar> < r)))"
+     (\<forall>r>0.\<exists>s>0.\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> \<bar>f x - L\<bar> < r)"
 by (simp add: LIM_def diff_minus)
 
 lemma LIM_D:
      "[| f -- a --> L; 0<r |]
-      ==> \<exists>s. 0 < s & (\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> \<bar>f x - L\<bar> < r)"
+      ==> \<exists>s>0.\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> \<bar>f x - L\<bar> < r"
 by (simp add: LIM_eq)
 
 lemma LIM_const [simp]: "(%x. k) -- x --> k"
@@ -111,8 +108,7 @@ proof (simp add: LIM_eq, clarify)
     where gs:    "0 < gs"
       and gs_lt: "\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < gs --> \<bar>g x - M\<bar> < r/2"
   by blast
-  show "\<exists>s. 0 < s \<and>
-            (\<forall>x. x \<noteq> a \<and> \<bar>x-a\<bar> < s \<longrightarrow> \<bar>f x + g x - (L + M)\<bar> < r)"
+  show "\<exists>s>0.\<forall>x. x \<noteq> a \<and> \<bar>x-a\<bar> < s \<longrightarrow> \<bar>f x + g x - (L + M)\<bar> < r"
   proof (intro exI conjI strip)
     show "0 < min fs gs"  by (simp add: fs gs)
     fix x :: real
@@ -143,8 +139,7 @@ by (simp add: diff_minus LIM_add_minus)
 lemma LIM_const_not_eq: "k \<noteq> L ==> ~ ((%x. k) -- a --> L)"
 proof (simp add: linorder_neq_iff LIM_eq, elim disjE)
   assume k: "k < L"
-  show "\<exists>r. 0 < r \<and>
-        (\<forall>s. 0 < s \<longrightarrow> (\<exists>x. (x < a \<or> a < x) \<and> \<bar>x-a\<bar> < s) \<and> \<not> \<bar>k-L\<bar> < r)"
+  show "\<exists>r>0. \<forall>s>0. (\<exists>x. (x < a \<or> a < x) \<and> \<bar>x-a\<bar> < s) \<and> \<not> \<bar>k-L\<bar> < r"
   proof (intro exI conjI strip)
     show "0 < L-k" by (simp add: k compare_rls)
     fix s :: real
@@ -157,8 +152,7 @@ proof (simp add: linorder_neq_iff LIM_eq, elim disjE)
   qed
 next
   assume k: "L < k"
-  show "\<exists>r. 0 < r \<and>
-        (\<forall>s. 0 < s \<longrightarrow> (\<exists>x. (x < a \<or> a < x) \<and> \<bar>x-a\<bar> < s) \<and> \<not> \<bar>k-L\<bar> < r)"
+  show "\<exists>r>0.\<forall>s>0. (\<exists>x. (x < a \<or> a < x) \<and> \<bar>x-a\<bar> < s) \<and> \<not> \<bar>k-L\<bar> < r"
   proof (intro exI conjI strip)
     show "0 < k-L" by (simp add: k compare_rls)
     fix s :: real
@@ -245,8 +239,8 @@ done
 
 subsubsection{*Limit: The NS definition implies the standard definition.*}
 
-lemma lemma_LIM: "\<forall>s. 0 < s --> (\<exists>xa.  xa \<noteq> x &
-         \<bar>xa + - x\<bar> < s  & r \<le> \<bar>f xa + -L\<bar>)
+lemma lemma_LIM: "\<forall>s>0.\<exists>xa.  xa \<noteq> x &
+         \<bar>xa + - x\<bar> < s  & r \<le> \<bar>f xa + -L\<bar>
       ==> \<forall>n::nat. \<exists>xa.  xa \<noteq> x &
               \<bar>xa + -x\<bar> < inverse(real(Suc n)) & r \<le> \<bar>f xa + -L\<bar>"
 apply clarify
@@ -254,8 +248,7 @@ apply (cut_tac n1 = n in real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_posi
 done
 
 lemma lemma_skolemize_LIM2:
-     "\<forall>s. 0 < s --> (\<exists>xa.  xa \<noteq> x &
-         \<bar>xa + - x\<bar> < s  & r \<le> \<bar>f xa + -L\<bar>)
+     "\<forall>s>0.\<exists>xa.  xa \<noteq> x & \<bar>xa + - x\<bar> < s  & r \<le> \<bar>f xa + -L\<bar>
       ==> \<exists>X. \<forall>n::nat. X n \<noteq> x &
                 \<bar>X n + -x\<bar> < inverse(real(Suc n)) & r \<le> abs(f (X n) + -L)"
 apply (drule lemma_LIM)
@@ -598,17 +591,15 @@ apply (erule_tac V = "\<forall>x y. \<bar>x + - y\<bar> < s --> \<bar>f x + - f 
 apply (drule FreeUltrafilterNat_all, ultra)
 done
 
-lemma lemma_LIMu: "\<forall>s. 0 < s --> (\<exists>z y. \<bar>z + - y\<bar> < s & r \<le> \<bar>f z + -f y\<bar>)
-      ==> \<forall>n::nat. \<exists>z y.
-               \<bar>z + -y\<bar> < inverse(real(Suc n)) &
-               r \<le> \<bar>f z + -f y\<bar>"
+lemma lemma_LIMu: "\<forall>s>0.\<exists>z y. \<bar>z + - y\<bar> < s & r \<le> \<bar>f z + -f y\<bar>
+      ==> \<forall>n::nat. \<exists>z y. \<bar>z + -y\<bar> < inverse(real(Suc n)) & r \<le> \<bar>f z + -f y\<bar>"
 apply clarify
 apply (cut_tac n1 = n 
        in real_of_nat_Suc_gt_zero [THEN positive_imp_inverse_positive], auto)
 done
 
 lemma lemma_skolemize_LIM2u:
-     "\<forall>s. 0 < s --> (\<exists>z y. \<bar>z + - y\<bar> < s  & r \<le> \<bar>f z + -f y\<bar>)
+     "\<forall>s>0.\<exists>z y. \<bar>z + - y\<bar> < s  & r \<le> \<bar>f z + -f y\<bar>
       ==> \<exists>X Y. \<forall>n::nat.
                abs(X n + -(Y n)) < inverse(real(Suc n)) &
                r \<le> abs(f (X n) + -f (Y n))"
@@ -687,7 +678,7 @@ by (force simp add: NSdifferentiable_def)
 subsubsection{*Alternative definition for differentiability*}
 
 lemma LIM_I:
-     "(!!r. 0<r ==> (\<exists>s. 0 < s & (\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> \<bar>f x - L\<bar> < r)))
+     "(!!r. 0<r ==> \<exists>s>0.\<forall>x. x \<noteq> a & \<bar>x-a\<bar> < s --> \<bar>f x - L\<bar> < r)
       ==> f -- a --> L"
 by (simp add: LIM_eq)
 
@@ -1438,7 +1429,7 @@ apply (subgoal_tac "a \<le> x & x \<le> b")
  apply (drule_tac P = "%d. 0<d --> ?P d" and x = 1 in spec, arith)
 apply (drule_tac x = x in spec)+
 apply simp
-apply (drule_tac P = "%r. ?P r --> (\<exists>s. 0<s & ?Q r s) " and x = "\<bar>y - f x\<bar>" in spec)
+apply (drule_tac P = "%r. ?P r --> (\<exists>s>0. ?Q r s) " and x = "\<bar>y - f x\<bar>" in spec)
 apply safe
 apply simp
 apply (drule_tac x = s in spec, clarify)
@@ -1594,11 +1585,10 @@ subsection{*If @{term "0 < f'(x)"} then @{term x} is Locally Strictly Increasing
 lemma DERIV_left_inc:
   assumes der: "DERIV f x :> l"
       and l:   "0 < l"
-  shows "\<exists>d. 0 < d & (\<forall>h. 0 < h & h < d --> f(x) < f(x + h))"
+  shows "\<exists>d > 0. \<forall>h > 0. h < d --> f(x) < f(x + h)"
 proof -
   from l der [THEN DERIV_D, THEN LIM_D [where r = "l"]]
-  have "\<exists>s. 0 < s \<and>
-              (\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < l)"
+  have "\<exists>s > 0. (\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < l)"
     by (simp add: diff_minus)
   then obtain s
         where s:   "0 < s"
@@ -1608,7 +1598,7 @@ proof -
   proof (intro exI conjI strip)
     show "0<s" .
     fix h::real
-    assume "0 < h \<and> h < s"
+    assume "0 < h" "h < s"
     with all [of h] show "f x < f (x+h)"
     proof (simp add: abs_if pos_less_divide_eq diff_minus [symmetric]
 		split add: split_if_asm)
@@ -1624,11 +1614,10 @@ qed
 lemma DERIV_left_dec:
   assumes der: "DERIV f x :> l"
       and l:   "l < 0"
-  shows "\<exists>d. 0 < d & (\<forall>h. 0 < h & h < d --> f(x) < f(x-h))"
+  shows "\<exists>d > 0. \<forall>h > 0. h < d --> f(x) < f(x-h)"
 proof -
   from l der [THEN DERIV_D, THEN LIM_D [where r = "-l"]]
-  have "\<exists>s. 0 < s \<and>
-              (\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < -l)"
+  have "\<exists>s > 0. (\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>(f(x+z) - f x) / z - l\<bar> < -l)"
     by (simp add: diff_minus)
   then obtain s
         where s:   "0 < s"
@@ -1638,7 +1627,7 @@ proof -
   proof (intro exI conjI strip)
     show "0<s" .
     fix h::real
-    assume "0 < h \<and> h < s"
+    assume "0 < h" "h < s"
     with all [of "-h"] show "f x < f (x-h)"
     proof (simp add: abs_if pos_less_divide_eq diff_minus [symmetric]
 		split add: split_if_asm)
@@ -1662,7 +1651,7 @@ next
   case less
   from DERIV_left_dec [OF der less]
   obtain d' where d': "0 < d'"
-             and lt: "\<forall>h. 0 < h \<and> h < d' \<longrightarrow> f x < f (x-h)" by blast
+             and lt: "\<forall>h > 0. h < d' \<longrightarrow> f x < f (x-h)" by blast
   from real_lbound_gt_zero [OF d d']
   obtain e where "0 < e \<and> e < d \<and> e < d'" ..
   with lt le [THEN spec [where x="x-e"]]
@@ -1671,7 +1660,7 @@ next
   case greater
   from DERIV_left_inc [OF der greater]
   obtain d' where d': "0 < d'"
-             and lt: "\<forall>h. 0 < h \<and> h < d' \<longrightarrow> f x < f (x + h)" by blast
+             and lt: "\<forall>h > 0. h < d' \<longrightarrow> f x < f (x + h)" by blast
   from real_lbound_gt_zero [OF d d']
   obtain e where "0 < e \<and> e < d \<and> e < d'" ..
   with lt le [THEN spec [where x="x+e"]]
@@ -1857,7 +1846,7 @@ text{*A function is constant if its derivative is 0 over an interval.*}
 lemma DERIV_isconst_end: "[| a < b;
          \<forall>x. a \<le> x & x \<le> b --> isCont f x;
          \<forall>x. a < x & x < b --> DERIV f x :> 0 |]
-        ==> (f b = f a)"
+        ==> f b = f a"
 apply (drule MVT, assumption)
 apply (blast intro: differentiableI)
 apply (auto dest!: DERIV_unique simp add: diff_eq_eq)
@@ -1992,7 +1981,7 @@ lemma isCont_inj_range:
   assumes d: "0 < d"
       and inj: "\<forall>z. \<bar>z-x\<bar> \<le> d --> g(f z) = z"
       and cont: "\<forall>z. \<bar>z-x\<bar> \<le> d --> isCont f z"
-  shows "\<exists>e. 0<e & (\<forall>y. \<bar>y - f x\<bar> \<le> e --> (\<exists>z. \<bar>z-x\<bar> \<le> d & f z = y))"
+  shows "\<exists>e>0. \<forall>y. \<bar>y - f x\<bar> \<le> e --> (\<exists>z. \<bar>z-x\<bar> \<le> d & f z = y)"
 proof -
   have "x-d \<le> x+d" "\<forall>z. x-d \<le> z \<and> z \<le> x+d \<longrightarrow> isCont f z" using cont d
     by (auto simp add: abs_le_interval_iff)
@@ -2045,7 +2034,7 @@ lemma isCont_inverse_function:
   shows "isCont g (f x)"
 proof (simp add: isCont_iff LIM_eq)
   show "\<forall>r. 0 < r \<longrightarrow>
-         (\<exists>s. 0<s \<and> (\<forall>z. z\<noteq>0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>g(f x + z) - g(f x)\<bar> < r))"
+         (\<exists>s>0. \<forall>z. z\<noteq>0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>g(f x + z) - g(f x)\<bar> < r)"
   proof (intro strip)
     fix r::real
     assume r: "0<r"
@@ -2058,7 +2047,7 @@ proof (simp add: isCont_iff LIM_eq)
     obtain e' where e': "0 < e'"
         and all: "\<forall>y. \<bar>y - f x\<bar> \<le> e' \<longrightarrow> (\<exists>z. \<bar>z - x\<bar> \<le> e \<and> f z = y)"
           by blast
-    show "\<exists>s. 0<s \<and> (\<forall>z. z\<noteq>0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>g(f x + z) - g(f x)\<bar> < r)"
+    show "\<exists>s>0. \<forall>z. z\<noteq>0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>g(f x + z) - g(f x)\<bar> < r"
     proof (intro exI conjI)
       show "0<e'" .
       show "\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < e' \<longrightarrow> \<bar>g (f x + z) - g (f x)\<bar> < r"
@@ -2269,4 +2258,3 @@ val isCont_inverse_function = thm "isCont_inverse_function";
 
 
 end
-

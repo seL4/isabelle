@@ -84,7 +84,7 @@ apply (simp add: left_distrib real_of_nat_Suc split: nat_diff_split)
 done
 
 lemma sumr_interval_const2:
-     "[|\<forall>n. m \<le> n --> f n = r; m \<le> k|]
+     "[|\<forall>n\<ge>m. f n = r; m \<le> k|]
       ==> sumr m k f = (real (k - m) * r)"
 apply (induct "k", auto) 
 apply (drule_tac x = k in spec)
@@ -94,7 +94,7 @@ done
 
 
 lemma sumr_le:
-     "[|\<forall>n. m \<le> n --> 0 \<le> f n; m < k|] ==> sumr 0 m f \<le> sumr 0 k f"
+     "[|\<forall>n\<ge>m. 0 \<le> f n; m < k|] ==> sumr 0 m f \<le> sumr 0 k f"
 apply (induct "k")
 apply (auto simp add: less_Suc_eq_le)
 apply (drule_tac x = k in spec, safe)
@@ -109,7 +109,7 @@ apply (induct "n")
 apply (auto intro: add_mono simp add: le_def)
 done
 
-lemma sumr_ge_zero: "(\<forall>n. m \<le> n --> 0 \<le> f n) --> 0 \<le> sumr m n f"
+lemma sumr_ge_zero: "(\<forall>n\<ge>m. 0 \<le> f n) --> 0 \<le> sumr m n f"
 apply (induct "n", auto)
 apply (drule_tac x = n in spec, arith)
 done
@@ -119,11 +119,11 @@ lemma rabs_sumr_rabs_cancel [simp]:
 by (induct "n", simp_all add: add_increasing)
 
 lemma sumr_zero [rule_format]:
-     "\<forall>n. N \<le> n --> f n = 0 ==> N \<le> m --> sumr m n f = 0"
+     "\<forall>n \<ge> N. f n = 0 ==> N \<le> m --> sumr m n f = 0"
 by (induct "n", auto)
 
 lemma Suc_le_imp_diff_ge2:
-     "[|\<forall>n. N \<le> n --> f (Suc n) = 0; Suc N \<le> m|] ==> sumr m n f = 0"
+     "[|\<forall>n \<ge> N. f (Suc n) = 0; Suc N \<le> m|] ==> sumr m n f = 0"
 apply (rule sumr_zero) 
 apply (case_tac "n", auto)
 done
@@ -289,7 +289,7 @@ text{*A summable series of positive terms has limit that is at least as
 great as any partial sum.*}
 
 lemma series_pos_le: 
-     "[| summable f; \<forall>m. n \<le> m --> 0 \<le> f(m) |] ==> sumr 0 n f \<le> suminf f"
+     "[| summable f; \<forall>m \<ge> n. 0 \<le> f(m) |] ==> sumr 0 n f \<le> suminf f"
 apply (drule summable_sums)
 apply (simp add: sums_def)
 apply (cut_tac k = "sumr 0 n f" in LIMSEQ_const)
@@ -300,7 +300,7 @@ apply (auto intro: sumr_le)
 done
 
 lemma series_pos_less:
-     "[| summable f; \<forall>m. n \<le> m --> 0 < f(m) |] ==> sumr 0 n f < suminf f"
+     "[| summable f; \<forall>m \<ge> n. 0 < f(m) |] ==> sumr 0 n f < suminf f"
 apply (rule_tac y = "sumr 0 (Suc n) f" in order_less_le_trans)
 apply (rule_tac [2] series_pos_le, auto)
 apply (drule_tac x = m in spec, auto)
@@ -332,14 +332,14 @@ by (simp add: summable_def sums_def convergent_def)
 
 lemma summable_Cauchy:
      "summable f =  
-      (\<forall>e. 0 < e --> (\<exists>N. \<forall>m n. N \<le> m --> abs(sumr m n f) < e))"
+      (\<forall>e > 0. \<exists>N. \<forall>m \<ge> N. \<forall>n. abs(sumr m n f) < e)"
 apply (auto simp add: summable_convergent_sumr_iff Cauchy_convergent_iff [symmetric] Cauchy_def)
 apply (drule_tac [!] spec, auto) 
 apply (rule_tac x = M in exI)
 apply (rule_tac [2] x = N in exI, auto)
 apply (cut_tac [!] m = m and n = n in less_linear, auto)
 apply (frule le_less_trans [THEN less_imp_le], assumption)
-apply (drule_tac x = n in spec)
+apply (drule_tac x = n in spec, simp)
 apply (drule_tac x = m in spec)
 apply (auto intro: abs_minus_add_cancel [THEN subst]
             simp add: sumr_split_add_minus abs_minus_add_cancel)
@@ -348,7 +348,7 @@ done
 text{*Comparison test*}
 
 lemma summable_comparison_test:
-     "[| \<exists>N. \<forall>n. N \<le> n --> abs(f n) \<le> g n; summable g |] ==> summable f"
+     "[| \<exists>N. \<forall>n \<ge> N. abs(f n) \<le> g n; summable g |] ==> summable f"
 apply (auto simp add: summable_Cauchy)
 apply (drule spec, auto)
 apply (rule_tac x = "N + Na" in exI, auto)
@@ -362,7 +362,7 @@ apply (auto intro: sumr_le2 simp add: abs_interval_iff)
 done
 
 lemma summable_rabs_comparison_test:
-     "[| \<exists>N. \<forall>n. N \<le> n --> abs(f n) \<le> g n; summable g |] 
+     "[| \<exists>N. \<forall>n \<ge> N. abs(f n) \<le> g n; summable g |] 
       ==> summable (%k. abs (f k))"
 apply (rule summable_comparison_test)
 apply (auto simp add: abs_idempotent)
@@ -419,7 +419,7 @@ by (auto simp add: le_Suc_ex)
 
 (*All this trouble just to get 0<c *)
 lemma ratio_test_lemma2:
-     "[| \<forall>n. N \<le> n --> abs(f(Suc n)) \<le> c*abs(f n) |]  
+     "[| \<forall>n \<ge> N. abs(f(Suc n)) \<le> c*abs(f n) |]  
       ==> 0 < c | summable f"
 apply (simp (no_asm) add: linorder_not_le [symmetric])
 apply (simp add: summable_Cauchy)
@@ -430,7 +430,7 @@ apply (drule_tac n=n in Suc_le_imp_diff_ge2, auto)
 done
 
 lemma ratio_test:
-     "[| c < 1; \<forall>n. N \<le> n --> abs(f(Suc n)) \<le> c*abs(f n) |]  
+     "[| c < 1; \<forall>n \<ge> N. abs(f(Suc n)) \<le> c*abs(f n) |]  
       ==> summable f"
 apply (frule ratio_test_lemma2, auto)
 apply (rule_tac g = "%n. (abs (f N) / (c ^ N))*c ^ n" 

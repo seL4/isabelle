@@ -17,13 +17,13 @@ constdefs
   --{*Partitions and tagged partitions etc.*}
 
   partition :: "[(real*real),nat => real] => bool"
-  "partition == %(a,b) D. ((D 0 = a) &
-                         (\<exists>N. ((\<forall>n. n < N --> D(n) < D(Suc n)) &
-                            (\<forall>n. N \<le> n --> (D(n) = b)))))"
+  "partition == %(a,b) D. D 0 = a &
+                         (\<exists>N. (\<forall>n < N. D(n) < D(Suc n)) &
+                              (\<forall>n \<ge> N. D(n) = b))"
 
   psize :: "(nat => real) => nat"
-  "psize D == @N. (\<forall>n. n < N --> D(n) < D(Suc n)) &
-                  (\<forall>n. N \<le> n --> (D(n) = D(N)))"
+  "psize D == SOME N. (\<forall>n < N. D(n) < D(Suc n)) &
+                      (\<forall>n \<ge> N. D(n) = D(N))"
 
   tpart :: "[(real*real),((nat => real)*(nat =>real))] => bool"
   "tpart == %(a,b) (D,p). partition(a,b) D &
@@ -45,7 +45,7 @@ constdefs
   --{*Gauge integrability (definite)*}
 
    Integral :: "[(real*real),real=>real,real] => bool"
-   "Integral == %(a,b) f k. \<forall>e. 0 < e -->
+   "Integral == %(a,b) f k. \<forall>e > 0.
                                (\<exists>g. gauge(%x. a \<le> x & x \<le> b) g &
                                (\<forall>D p. tpart(a,b) (D,p) & fine(g)(D,p) -->
                                          \<bar>rsum(D,p) f - k\<bar> < e))"
@@ -70,8 +70,8 @@ by (simp add: partition_def)
 lemma partition:
        "(partition(a,b) D) =
         ((D 0 = a) &
-         (\<forall>n. n < (psize D) --> D n < D(Suc n)) &
-         (\<forall>n. (psize D) \<le> n --> (D n = b)))"
+         (\<forall>n < psize D. D n < D(Suc n)) &
+         (\<forall>n \<ge> psize D. D n = b))"
 apply (simp add: partition_def, auto)
 apply (subgoal_tac [!] "psize D = N", auto)
 apply (simp_all (no_asm) add: psize_def)
@@ -181,13 +181,11 @@ by (blast intro: partition_rhs [THEN subst] partition_gt)
 
 lemma lemma_partition_append1:
      "[| partition (a, b) D1; partition (b, c) D2 |]
-       ==> (\<forall>n.
-             n < psize D1 + psize D2 -->
+       ==> (\<forall>n < psize D1 + psize D2.
              (if n < psize D1 then D1 n else D2 (n - psize D1))
              < (if Suc n < psize D1 then D1 (Suc n)
                 else D2 (Suc n - psize D1))) &
-         (\<forall>n.
-             psize D1 + psize D2 \<le> n -->
+         (\<forall>n \<ge> psize D1 + psize D2.
              (if n < psize D1 then D1 n else D2 (n - psize D1)) =
              (if psize D1 + psize D2 < psize D1 then D1 (psize D1 + psize D2)
               else D2 (psize D1 + psize D2 - psize D1)))"
@@ -412,9 +410,8 @@ lemma lemma_straddle:
                   --> \<bar>(f(v) - f(u)) - (f'(x) * (v - u))\<bar> \<le> e * (v - u))"
 apply (simp add: gauge_def)
 apply (subgoal_tac "\<forall>x. a \<le> x & x \<le> b --> 
-        (\<exists>d. 0 < d & 
-             (\<forall>u v. u \<le> x & x \<le> v & (v - u) < d --> 
-                \<bar>(f (v) - f (u)) - (f' (x) * (v - u))\<bar> \<le> e * (v - u)))")
+        (\<exists>d > 0. \<forall>u v. u \<le> x & x \<le> v & (v - u) < d --> 
+                       \<bar>(f (v) - f (u)) - (f' (x) * (v - u))\<bar> \<le> e * (v - u))")
 apply (drule choiceP, auto)
 apply (drule spec, auto)
 apply (auto simp add: DERIV_iff2 LIM_def)
@@ -445,7 +442,7 @@ lemma FTC1: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(
 apply (drule order_le_imp_less_or_eq, auto) 
 apply (auto simp add: Integral_def)
 apply (rule ccontr)
-apply (subgoal_tac "\<forall>e. 0 < e --> (\<exists>g. gauge (%x. a \<le> x & x \<le> b) g & (\<forall>D p. tpart (a, b) (D, p) & fine g (D, p) --> \<bar>rsum (D, p) f' - (f b - f a)\<bar> \<le> e))")
+apply (subgoal_tac "\<forall>e > 0. \<exists>g. gauge (%x. a \<le> x & x \<le> b) g & (\<forall>D p. tpart (a, b) (D, p) & fine g (D, p) --> \<bar>rsum (D, p) f' - (f b - f a)\<bar> \<le> e)")
 apply (rotate_tac 3)
 apply (drule_tac x = "e/2" in spec, auto)
 apply (drule spec, auto)
@@ -796,7 +793,7 @@ by (auto simp add: partition)
 lemma lemma_Integral_le:
      "[| \<forall>x. a \<le> x & x \<le> b --> f x \<le> g x;
          tpart(a,b) (D,p)
-      |] ==> \<forall>n. n \<le> psize D --> f (p n) \<le> g (p n)"
+      |] ==> \<forall>n \<le> psize D. f (p n) \<le> g (p n)"
 apply (simp add: tpart_def)
 apply (auto, frule partition [THEN iffD1], auto)
 apply (drule_tac x = "p n" in spec, auto)
@@ -842,12 +839,11 @@ done
 
 lemma Integral_imp_Cauchy:
      "(\<exists>k. Integral(a,b) f k) ==>
-      (\<forall>e. 0 < e -->
-               (\<exists>g. gauge (%x. a \<le> x & x \<le> b) g &
+      (\<forall>e > 0. \<exists>g. gauge (%x. a \<le> x & x \<le> b) g &
                        (\<forall>D1 D2 p1 p2.
                             tpart(a,b) (D1, p1) & fine g (D1,p1) &
                             tpart(a,b) (D2, p2) & fine g (D2,p2) -->
-                            \<bar>rsum(D1,p1) f - rsum(D2,p2) f\<bar> < e)))"
+                            \<bar>rsum(D1,p1) f - rsum(D2,p2) f\<bar> < e))"
 apply (simp add: Integral_def, auto)
 apply (drule_tac x = "e/2" in spec, auto)
 apply (rule exI, auto)
@@ -862,13 +858,12 @@ done
 
 lemma Cauchy_iff2:
      "Cauchy X =
-      (\<forall>j. (\<exists>M. \<forall>m n. M \<le> m & M \<le> n -->
-               \<bar>X m + - X n\<bar> < inverse(real (Suc j))))"
+      (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m + - X n\<bar> < inverse(real (Suc j))))"
 apply (simp add: Cauchy_def, auto)
 apply (drule reals_Archimedean, safe)
 apply (drule_tac x = n in spec, auto)
 apply (rule_tac x = M in exI, auto)
-apply (drule_tac x = m in spec)
+apply (drule_tac x = m in spec, simp)
 apply (drule_tac x = na in spec, auto)
 done
 
