@@ -249,7 +249,7 @@ fun is_draft (Sg ({stamps = ref "#" :: _, ...}, _)) = true
 
 (* errors *)
 
-fun of_theory sg = " of theory " ^ str_of_sg sg;
+fun of_theory sg = "\nof theory " ^ str_of_sg sg;
 
 fun err_method name kind =
   error ("Error while invoking " ^ quote kind ^ " method " ^ name);
