@@ -533,8 +533,10 @@ val arith_setup =
   [Simplifier.change_simpset_of (op addSolver)
    (mk_solver "lin. arith." Fast_Arith.cut_lin_arith_tac),
   Simplifier.change_simpset_of (op addsimprocs) [fast_nat_arith_simproc],
-  Method.add_methods [("arith", (arith_method o #2) oo Method.syntax Args.bang_facts,
-    "decide linear arithmethic")],
+  Method.add_methods
+      [("arith", (arith_method o #2) oo Method.syntax Args.bang_facts,
+	"decide linear arithmethic")],
   Attrib.add_attributes [("arith_split",
-    (Attrib.no_args arith_split_add, Attrib.no_args Attrib.undef_local_attribute),
+    (Attrib.no_args arith_split_add, 
+     Attrib.no_args Attrib.undef_local_attribute),
     "declaration of split rules for arithmetic procedure")]];

@@ -638,8 +638,8 @@ lemma Bseq_iff2: "Bseq X = (\<exists>k x. 0 < k & (\<forall>n. \<bar>X(n) + -x\<
 apply (unfold Bseq_def, safe)
 apply (rule_tac [2] x = "k + \<bar>x\<bar> " in exI)
 apply (rule_tac x = K in exI)
-apply (rule_tac x = 0 in exI, auto)
-apply (drule_tac [!] x=n in spec, arith+)
+apply (rule exI [where x = 0], auto)
+apply (drule_tac x=n in spec, arith)+
 done
 
 text{*alternative formulation for boundedness*}
@@ -656,8 +656,7 @@ done
 
 lemma BseqI2: "(\<forall>n. k \<le> f n & f n \<le> K) ==> Bseq f"
 apply (simp add: Bseq_def)
-apply (rule_tac x = " (\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI)
-apply auto
+apply (rule_tac x = " (\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI, auto)
 apply (drule_tac [2] x = n in spec, arith+)
 done
 

@@ -173,8 +173,7 @@ apply (rule order_trans)
  prefer 2 apply assumption
 apply (subgoal_tac "psize D - n = Suc (psize D - Suc n)")
  prefer 2 apply arith
-apply (drule_tac x = "psize D - Suc n" in spec)
-apply (erule_tac V = "\<forall>n. psize D \<le> n --> D n = b" in thin_rl, simp)
+apply (drule_tac x = "psize D - Suc n" in spec, simp) 
 done
 
 lemma partition_ub_lt: "[| partition(a,b) D; n < psize D |] ==> D(n) < b"
@@ -266,9 +265,9 @@ defer 1
  apply (drule partition_lhs, auto)
 apply (simp split: nat_diff_split)
 apply (subst partition)
-apply (subst lemma_partition_append2)
-apply (rule_tac [3] conjI)
-apply (drule_tac [4] lemma_partition_append1)
+apply (subst lemma_partition_append2, assumption+)
+apply (rule conjI)
+apply (drule_tac [2] lemma_partition_append1)
 apply (auto simp add: partition_lhs partition_rhs)
 done
 
@@ -350,7 +349,8 @@ done
 
 lemma Integral_mult:
      "[| a \<le> b; Integral(a,b) f k |] ==> Integral(a,b) (%x. c * f x) (c * k)"
-apply (auto simp add: order_le_less dest: Integral_unique [OF real_le_refl Integral_zero])
+apply (auto simp add: order_le_less 
+            dest: Integral_unique [OF order_refl Integral_zero])
 apply (auto simp add: rsum_def Integral_def sumr_mult [symmetric] mult_assoc)
 apply (rule_tac a2 = c in abs_ge_zero [THEN real_le_imp_less_or_eq, THEN disjE])
  prefer 2 apply force
@@ -744,10 +744,7 @@ lemma tpart_right1:
       ==> tpart(D n, b) (%x. D(x + n),%x. p(x + n))"
 apply (simp add: tpart_def partition_def, safe)
 apply (rule_tac x = "N - n" in exI, auto)
-apply (rotate_tac 2)
-apply (drule_tac x = "na + n" in spec)
-apply (rotate_tac [2] 3)
-apply (drule_tac [2] x = "na + n" in spec, arith+)
+apply (drule_tac x = "na + n" in spec, arith)+
 done
 
 lemma fine_right1:
@@ -828,8 +825,7 @@ lemma Integral_le:
 apply (simp add: Integral_def)
 apply (rotate_tac 2)
 apply (drule_tac x = "\<bar>k1 - k2\<bar> /2" in spec)
-apply (drule_tac x = "\<bar>k1 - k2\<bar> /2" in spec)
-apply auto
+apply (drule_tac x = "\<bar>k1 - k2\<bar> /2" in spec, auto)
 apply (drule gauge_min, assumption)
 apply (drule_tac g = "%x. if ga x < gaa x then ga x else gaa x" 
        in partition_exists, assumption, auto)
