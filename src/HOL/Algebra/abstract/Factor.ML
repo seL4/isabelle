@@ -4,8 +4,6 @@
     Author: Clemens Ballarin, started 25 November 1997
 *)
 
-open Factor;
-
 goalw Ring.thy [assoc_def] "!! c::'a::factorial. \
 \  [| irred c; irred a; irred b; c dvd (a*b) |] ==> c assoc a | c assoc b";
 by (ftac factorial_prime 1);

@@ -118,8 +118,8 @@ Goal
 \    Ex (% (q, r). f = q * g + r & (r = <0> | deg r < deg g))";
 by (forw_inst_tac [("f", "f")] long_div_ring 1);
 by (etac exE 1);
-by (res_inst_tac [("x", "((%(q,r,k). (Ring.inverse(lcoeff g ^k) *s q)) x, \
-\  (%(q,r,k). Ring.inverse(lcoeff g ^k) *s r) x)")] exI 1);
+by (res_inst_tac [("x", "((%(q,r,k). (inverse(lcoeff g ^k) *s q)) x, \
+\  (%(q,r,k). inverse(lcoeff g ^k) *s r) x)")] exI 1);
 by (Clarify_tac 1);
 by (Simp_tac 1);
 by (rtac conjI 1);

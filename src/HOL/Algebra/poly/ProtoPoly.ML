@@ -4,8 +4,6 @@
     Author: Clemens Ballarin, started 9 December 1996
 *)
 
-open ProtoPoly;
-
 (* Rules for bound *)
 
 val prem = goalw ProtoPoly.thy [bound_def]

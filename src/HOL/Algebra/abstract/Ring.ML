@@ -280,9 +280,8 @@ by (simp_tac (simpset() addsimps m_ac) 1);
 by Auto_tac;
 qed "inverse_unique";
 
-Goalw [inverse_def, dvd_def]
-  "!! a::'a::ring. a dvd <1> ==> a * inverse a = <1>";
-by (Asm_simp_tac 1);
+Goal "!! a::'a::ring. a dvd <1> ==> a * inverse a = <1>";
+by (asm_full_simp_tac (simpset () addsimps [inverse_ax, dvd_def]) 1);
 by (Clarify_tac 1);
 by (rtac someI 1);
 by (rtac sym 1);

@@ -4,8 +4,6 @@
     Author: Clemens Ballarin, started 22 January 1997
 *)
 
-open PolyRing;
-
 (* Properties of *s:
    Polynomials form a module *)
 

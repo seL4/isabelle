@@ -4,8 +4,6 @@
     Author: Clemens Ballarin, started 15 April 1997
 *)
 
-open RingHomo;
-
 (* Ring homomorphism *)
 
 Goalw [homo_def]

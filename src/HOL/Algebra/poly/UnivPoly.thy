@@ -36,6 +36,8 @@ defs
   up_zero_def	"<0> == Abs_UP (%x. <0>)"
   up_one_def	"<1> == monom 0"
   up_uminus_def	"- p == (-<1>) *s p"
+  up_inverse_def "inverse (a::'a::ringS up) == (if a dvd <1> then @x. a*x = <1> else <0>)"
+  up_divide_def "(a::'a::ringS up) / b == a * inverse b"
   up_power_def	"a ^ n == nat_rec (<1>::('a::ringS) up) (%u b. b * a) n"
 end
 
