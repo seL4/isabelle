@@ -1,11 +1,10 @@
 (*  Title:      Pure/Isar/locale.ML
     ID:         $Id$
-    Author:     Florian Kammueller, University of Cambridge
     Author:     Markus Wenzel, TU Muenchen
     License:    GPL (GNU GENERAL PUBLIC LICENSE)
 
-Locales. The theory section 'locale' declarings constants, assumptions
-and definitions that have local scope.
+Locales -- Isar proof contexts as meta-level predicates, with local
+syntax and implicit structures.
 
 TODO:
   - reset scope context on qed of legacy goal (!??);
@@ -13,7 +12,7 @@ TODO:
   - avoid dynamic scoping of facts/atts
     (use thms_closure for globals, even within att expressions);
   - scope of implicit fixed in elementents vs. locales (!??);
-  - Fixes: optional type (!?);
+  - remove scope stuff;
 *)
 
 signature BASIC_LOCALE =
@@ -27,7 +26,7 @@ sig
   type context
   type expression
   datatype ('typ, 'term, 'fact, 'att) elem =
-    Fixes of (string * 'typ * mixfix option) list |
+    Fixes of (string * 'typ option * mixfix option) list |
     Assumes of ((string * 'att list) * ('term * ('term list * 'term list)) list) list |
     Defines of ((string * 'att list) * ('term * 'term list)) list |
     Notes of ((string * 'att list) * ('fact * 'att list) list) list |
@@ -66,7 +65,7 @@ type context = ProofContext.context;
 type expression = unit;  (* FIXME *)
 
 datatype ('typ, 'term, 'fact, 'att) elem =
-  Fixes of (string * 'typ * mixfix option) list |
+  Fixes of (string * 'typ option * mixfix option) list |
   Assumes of ((string * 'att list) * ('term * ('term list * 'term list)) list) list |
   Defines of ((string * 'att list) * ('term * 'term list)) list |
   Notes of ((string * 'att list) * ('fact * 'att list) list) list |
@@ -156,7 +155,7 @@ fun print_scope thy =
     rev (map (cond_extern (Theory.sign_of thy) o #1) (#1 (get_scope thy)))));
 
 
-(* print locales *)
+(* print locales *)    (* FIXME activate local syntax *)
 
 fun pretty_locale thy xname =
   let
@@ -170,8 +169,9 @@ fun pretty_locale thy xname =
     fun prt_syn syn =
       let val s = (case syn of None => "(structure)" | Some mx => Syntax.string_of_mixfix mx)
       in if s = "" then [] else [Pretty.brk 4, Pretty.str s] end;
-    fun prt_fix (x, T, syn) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
-      prt_typ T :: Pretty.brk 1 :: prt_syn syn);
+    fun prt_fix (x, Some T, syn) = Pretty.block (Pretty.str (x ^ " ::") :: Pretty.brk 1 ::
+          prt_typ T :: Pretty.brk 1 :: prt_syn syn)
+      | prt_fix (x, None, syn) = Pretty.block (Pretty.str x :: Pretty.brk 1 :: prt_syn syn);
 
     fun prt_asm ((a, _), ts) = Pretty.block
       (Pretty.breaks (Pretty.str (a ^ ":") :: map (prt_term o fst) ts));
@@ -214,31 +214,15 @@ fun intern_att _ (Fixes fixes) = Fixes fixes
 
 (** activate locales **)
 
-(* FIXME old
-fun pack_def eq =
-  let
-    val (lhs, rhs) = Logic.dest_equals eq;
-    val (f, xs) = Term.strip_comb lhs;
-  in (xs, Logic.mk_equals (f, foldr (uncurry lambda) (xs, rhs))) end;
+fun close_frees ctxt t =
+  let val frees = rev (filter_out (ProofContext.is_fixed ctxt o #1) (Drule.add_frees ([], t)))
+  in Term.list_all_free (frees, t) end;
 
-fun unpack_def xs thm =
-  let
-    val cxs = map (Thm.cterm_of (Thm.sign_of_thm thm)) xs;
-    fun unpack (th, cx) =
-      Thm.combination th (Thm.reflexive cx)
-      |> MetaSimplifier.fconv_rule (Thm.beta_conversion true);
-  in foldl unpack (thm, cxs) end;
-
-fun prep_def ((name, atts), eq) =
-  let val (xs, eq') = pack_def eq
-  in ((name, Drule.rule_attribute (K (unpack_def xs)) :: atts), [(eq', ([], []))]) end;
-*)
-
-fun read_elem closure ctxt =
+fun read_elem ctxt =
  fn (Fixes fixes) =>
       let val vars =
-        #2 (foldl_map ProofContext.read_vars (ctxt, map (fn (x, T, _) => ([x], Some T)) fixes))
-      in Fixes (map2 (fn (([x'], Some T'), (_, _, mx)) => (x', T', mx)) (vars, fixes)) end
+        #2 (foldl_map ProofContext.read_vars (ctxt, map (fn (x, T, _) => ([x], T)) fixes))
+      in Fixes (map2 (fn (([x'], T'), (_, _, mx)) => (x', T', mx)) (vars, fixes)) end
   | (Assumes asms) =>
       Assumes (map #1 asms ~~ #2 (ProofContext.read_propp (ctxt, map #2 asms)))
   | (Defines defs) =>
@@ -251,16 +235,17 @@ fun read_elem closure ctxt =
 
 
 fun activate (ctxt, Fixes fixes) =
-      ProofContext.fix_direct (map (fn (x, T, FIXME) => ([x], Some T)) fixes) ctxt
-  | activate (ctxt, Assumes asms) = #1 (ProofContext.assume_i ProofContext.export_assume asms ctxt)
+      ProofContext.fix_direct (map (fn (x, T, FIXME) => ([x], T)) fixes) ctxt
+  | activate (ctxt, Assumes asms) =
+      ctxt |> ProofContext.fix_frees (flat (map (map #1 o #2) asms))
+      |> ProofContext.assume_i ProofContext.export_assume asms |> #1
   | activate (ctxt, Defines defs) = #1 (ProofContext.assume_i ProofContext.export_def
-      (map (fn (a, (t, ps)) => (a, [(t, (ps, []))])) defs) ctxt)
+      (map (fn (a, (t, ps)) => (a, [(ProofContext.cert_def ctxt t, (ps, []))])) defs) ctxt)
   | activate (ctxt, Notes facts) = #1 (ProofContext.have_thmss facts ctxt)
   | activate (ctxt, Uses FIXME) = ctxt;
 
-(* FIXME closure? *)
 fun read_activate (ctxt, elem) =
-  let val elem' = read_elem (PureThy.get_thms (ProofContext.theory_of ctxt)) ctxt elem
+  let val elem' = read_elem ctxt elem
   in (activate (ctxt, elem'), elem') end;
 
 fun activate_elements_i elems ctxt = foldl activate (ctxt, elems);
@@ -292,38 +277,6 @@ fun activate_locale xname ctxt =
 
 (* FIXME
 (** define locales **)
-
-(* prepare types *)
-
-fun read_typ sg (envT, s) =
-  let
-    fun def_sort (x, ~1) = assoc (envT, x)
-      | def_sort _ = None;
-    val T = Type.no_tvars (Sign.read_typ (sg, def_sort) s) handle TYPE (msg, _, _) => error msg;
-  in (Term.add_typ_tfrees (T, envT), T) end;
-
-fun cert_typ sg (envT, raw_T) =
-  let val T = Type.no_tvars (Sign.certify_typ sg raw_T) handle TYPE (msg, _, _) => error msg
-  in (Term.add_typ_tfrees (T, envT), T) end;
-
-
-(* prepare props *)
-
-(* Bind a term with !! over a list of "free" Free's.
-   To enable definitions like x + y == .... (without quantifier).
-   Complications, because x and y have to be removed from defaults *)
-fun abs_over_free clist ((defaults: (string * sort) list * (string * typ) list * string list), (s, term)) =
-    let val diffl = rev(difflist term clist);
-        fun abs_o (t, (x as Free(v,T))) = all(T) $ Abs(v, T, abstract_over (x,t))
-          | abs_o (_ , _) = error ("Can't be: abs_over_free");
-        val diffl' = map (fn (Free (s, T)) => s) diffl;
-        val defaults' = (#1 defaults, filter (fn x => not((fst x) mem diffl')) (#2 defaults), #3 defaults)
-    in (defaults', (s, foldl abs_o (term, diffl))) end;
-
-(* assume a definition, i.e assume the cterm of a definiton term and then eliminate
-   the binding !!, so that the def can be applied as rewrite. The meta hyp will still contain !! *)
-fun prep_hyps clist sg = forall_elim_vars(0) o Thm.assume o (Thm.cterm_of sg);
-
 
 (* concrete syntax *)
 
