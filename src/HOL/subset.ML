@@ -13,7 +13,7 @@ qed_goal "subset_insertI" Set.thy "B <= insert a B"
  (fn _=> [ (rtac subsetI 1), (etac insertI2 1) ]);
 
 goal Set.thy "!!x. x ~: A ==> (A <= insert x B) = (A <= B)";
-by (Fast_tac 1);
+by (Blast_tac 1);
 qed "subset_insert";
 
 (*** Big Union -- least upper bound of a set  ***)
@@ -54,9 +54,8 @@ qed "UN1_least";
 
 (*** Big Intersection -- greatest lower bound of a set ***)
 
-val prems = goal Set.thy "B:A ==> Inter(A) <= B";
-by (rtac subsetI 1);
-by (REPEAT (resolve_tac prems 1 ORELSE etac InterD 1));
+goal Set.thy "!!B. B:A ==> Inter(A) <= B";
+by (Blast_tac 1);
 qed "Inter_lower";
 
 val [prem] = goal Set.thy
@@ -77,8 +76,7 @@ by (REPEAT (eresolve_tac [asm_rl, prem RS subsetD] 1));
 qed "INT_greatest";
 
 goal Set.thy "(INT x. B(x)) <= B(a)";
-by (rtac subsetI 1);
-by (REPEAT (resolve_tac prems 1 ORELSE etac INT1_D 1));
+by (Blast_tac 1);
 qed "INT1_lower";
 
 val [prem] = goal Set.thy
@@ -90,39 +88,35 @@ qed "INT1_greatest";
 (*** Finite Union -- the least upper bound of 2 sets ***)
 
 goal Set.thy "A <= A Un B";
-by (REPEAT (ares_tac [subsetI,UnI1] 1));
+by (Blast_tac 1);
 qed "Un_upper1";
 
 goal Set.thy "B <= A Un B";
-by (REPEAT (ares_tac [subsetI,UnI2] 1));
+by (Blast_tac 1);
 qed "Un_upper2";
 
-val prems = goal Set.thy "[| A<=C;  B<=C |] ==> A Un B <= C";
-by (cut_facts_tac prems 1);
-by (DEPTH_SOLVE (ares_tac [subsetI] 1 
-          ORELSE eresolve_tac [UnE,subsetD] 1));
+goal Set.thy "!!C. [| A<=C;  B<=C |] ==> A Un B <= C";
+by (Blast_tac 1);
 qed "Un_least";
 
 (*** Finite Intersection -- the greatest lower bound of 2 sets *)
 
 goal Set.thy "A Int B <= A";
-by (REPEAT (ares_tac [subsetI] 1 ORELSE etac IntE 1));
+by (Blast_tac 1);
 qed "Int_lower1";
 
 goal Set.thy "A Int B <= B";
-by (REPEAT (ares_tac [subsetI] 1 ORELSE etac IntE 1));
+by (Blast_tac 1);
 qed "Int_lower2";
 
-val prems = goal Set.thy "[| C<=A;  C<=B |] ==> C <= A Int B";
-by (cut_facts_tac prems 1);
-by (REPEAT (ares_tac [subsetI,IntI] 1
-     ORELSE etac subsetD 1));
+goal Set.thy "!!C. [| C<=A;  C<=B |] ==> C <= A Int B";
+by (Blast_tac 1);
 qed "Int_greatest";
 
 (*** Set difference ***)
 
 qed_goal "Diff_subset" Set.thy "A-B <= (A::'a set)"
- (fn _ => [ (REPEAT (ares_tac [subsetI] 1 ORELSE etac DiffE 1)) ]);
+ (fn _ => [ (Blast_tac 1) ]);
 
 (*** Monotonicity ***)
 
