@@ -167,7 +167,7 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
       |> PureThy.add_axioms_i [((typedef_name, typedef_prop), [])]
       |> (fn (theory', typedef_ax) =>
         let fun make th = standard (th OF typedef_ax) in
-          theory'
+          rpair (hd typedef_ax) (theory'
           |> (#1 oo PureThy.add_thms)
             ([((Rep_name, make Rep), []),
               ((Rep_name ^ "_inverse", make Rep_inverse), []),
@@ -181,7 +181,7 @@ fun prepare_typedef prep_term no_def name (t, vs, mx) raw_set thy =
               ((Rep_name ^ "_induct", make Rep_induct),
                 [RuleCases.case_names [Rep_name], InductAttrib.induct_set_global full_name]),
               ((Abs_name ^ "_induct", make Abs_induct),
-                [RuleCases.case_names [Abs_name], InductAttrib.induct_type_global full_tname])])
+                [RuleCases.case_names [Abs_name], InductAttrib.induct_type_global full_tname])]))
         end)
       handle ERROR => err_in_typedef name;
 
@@ -219,7 +219,7 @@ fun gen_add_typedef prep_term no_def name typ set names thms tac thy =
   let
     val (cset, _, do_typedef) = prepare_typedef prep_term no_def name typ set thy;
     val result = prove_nonempty thy cset (names, thms, tac);
-  in check_nonempty cset result; thy |> do_typedef end;
+  in check_nonempty cset result; thy |> do_typedef |> #1 end;
 
 val add_typedef = gen_add_typedef read_term false;
 val add_typedef_i = gen_add_typedef cert_term false;
@@ -229,7 +229,7 @@ val add_typedef_i_no_def = gen_add_typedef cert_term true;
 (* typedef_proof interface *)
 
 fun typedef_attribute cset do_typedef (thy, thm) =
-  (check_nonempty cset (thm RS (some_eq_ex RS iffD2)); (thy |> do_typedef, thm));
+  (check_nonempty cset (thm RS (some_eq_ex RS iffD2)); (thy |> do_typedef));
 
 fun gen_typedef_proof prep_term ((name, typ, set), comment) int thy =
   let
