@@ -1,5 +1,5 @@
 %% $Id$
-\chapter{First-order sequent calculus}
+\chapter{First-Order Sequent Calculus}
 The directory~\ttindexbold{LK} implements classical first-order logic through
 Gentzen's sequent calculus (see Gallier~\cite{gallier86} or
 Takeuti~\cite{takeuti87}).  Resembling the method of semantic tableaux, the
@@ -244,7 +244,7 @@ contraction rule, which in backward proof duplicates a formula.  The tactic
 \ttindex{res_inst_tac} can instantiate the variable~{\tt?P} in these rules,
 specifying the formula to duplicate.
 
-See the files \ttindexbold{LK/lk.thy} and \ttindexbold{LK/lk.ML}
+See the files {\tt LK/lk.thy} and {\tt LK/lk.ML}
 for complete listings of the rules and derived rules.
 
 
@@ -279,7 +279,7 @@ that formula by~$P$.
 
 \item[\ttindexbold{cutL_tac} {\it P\/} {\it i}] 
 reads an \LK{} formula~$P$, and applies the cut rule to subgoal~$i$.  It
-then deletes some formula from the let side of the new subgoal $i+1$,
+then deletes some formula from the left side of the new subgoal $i+1$,
 replacing that formula by~$P$.
 \end{description}
 All the structural rules --- cut, contraction, and thinning --- can be
@@ -309,10 +309,11 @@ Assuming that each formula in $u$ is surrounded by sequence variables, it
 checks that each conclusion formula is unifiable (using {\tt could_unify})
 with some subgoal formula.
 
-\item[\ttindexbold{could_resolve} $(t,u)$] 
-tests whether two sequents could be resolved.  Sequent $t$ is a premise
-(subgoal), while $u$ is the conclusion of an object-rule.  It uses {\tt
-could_res} to check the left and right sides of the two sequents.
+\item[\ttindexbold{could_resolve_seq} $(t,u)$] 
+  tests whether two sequents could be resolved.  Sequent $t$ is a premise
+  (subgoal), while $u$ is the conclusion of an object-rule.  It simply
+  calls {\tt could_res} twice to check that both the left and the right
+  sides of the sequents are compatible.
 
 \item[\ttindexbold{filseq_resolve_tac} {\it thms} {\it maxr} {\it i}] 
 uses {\tt filter_thms could_resolve} to extract the {\it thms} that are
@@ -324,10 +325,10 @@ Thus, it is the sequent calculus analogue of \ttindex{filt_resolve_tac}.
 
 
 \section{Packaging sequent rules}
-For theorem proving, rules can be classified as {\bf safe} or {\bf
-unsafe}.  An unsafe rule (typically a weakened quantifier rule) may reduce
-a provable goal to an unprovable set of subgoals, and should only be used
-as a last resort.  
+For theorem proving, rules can be classified as {\bf safe} or {\bf unsafe}.
+An unsafe rule may reduce a provable goal to an unprovable set of subgoals,
+and should only be used as a last resort.  Typical examples are the
+weakened quantifier rules {\tt allL_thin} and {\tt exR_thin}.
 
 A {\bf pack} is a pair whose first component is a list of safe
 rules, and whose second is a list of unsafe rules.  Packs can be extended
@@ -541,7 +542,7 @@ not members of themselves:
 \[  \turn \neg (\exists x. \forall y. y\in x \bimp y\not\in y) \]
 This does not require special properties of membership; we may
 generalize $x\in y$ to an arbitrary predicate~$F(x,y)$.  The theorem has a
-short manual proof.  See the directory \ttindexbold{LK/ex} for many more
+short manual proof.  See the directory {\tt LK/ex} for many more
 examples.
 
 We set the main goal and move the negated formula to the left.
