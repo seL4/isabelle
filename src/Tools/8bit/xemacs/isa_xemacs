@@ -26,10 +26,6 @@
 # emacs command name. Name of your emacs executable 
 ENAME=xemacs
 
-#users init file ($HOME is added). This file is loaded after
-#the init file $PREFIX.emacs 
-INIT=.emacs_xemacs_isa
-
 ###############################################
 # do not edit below
 ###############################################
@@ -43,14 +39,6 @@ EDIR=xemacs
 #  emacs init file for Isabelle
 INITFILE=$ISABELLE8BIT/$EDIR/$PREFIX.emacs
 
-# set font as XResource
-# needed for versions later than LEmacs 19.9 
-echo "$PREFIX.default.attributeFont: isabelle14" | xrdb -merge - >/dev/null
-
 # pop up isabelle emacs
-$ENAME \
-    -title "$PREFIX" \
-    -name "$PREFIX" \
-    -l $INITFILE -l "$HOME/$INIT"\
-    $* 2>/dev/null
+$ENAME -T "$PREFIX" -fn isabelle14 -l $INITFILE $*
 
