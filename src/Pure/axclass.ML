@@ -379,7 +379,7 @@ fun prep_arity prep_tycon prep_sort prep_x sg (t, Ss, x) =
 val read_arity = prep_arity Sign.intern_tycon Sign.read_sort Sign.read_sort;
 val cert_arity = prep_arity (K I) Sign.certify_sort Sign.certify_sort;
 val read_simple_arity = prep_arity Sign.intern_tycon Sign.read_sort Sign.intern_class;
-val cert_simple_arity = prep_arity (K I) Sign.certify_sort (K I);
+fun cert_simple_arity arg = prep_arity (K I) Sign.certify_sort (K I) arg;
 
 
 (* old-style instance declarations *)

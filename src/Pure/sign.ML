@@ -781,8 +781,8 @@ fun no_read _ _ _ decl = decl;
 fun ext_defS prep_sort (syn, tsig, ctab, (path, spaces), data) S =
   (syn, Type.ext_tsig_defsort tsig (prep_sort syn tsig spaces S), ctab, (path, spaces), data);
 
-val ext_defsort = ext_defS rd_sort;
-val ext_defsort_i = ext_defS cert_sort;
+fun ext_defsort arg   = ext_defS rd_sort arg;
+fun ext_defsort_i arg = ext_defS cert_sort arg;
 
 
 (* add type constructors *)
@@ -835,8 +835,8 @@ fun ext_ars int prep_sort (syn, tsig, ctab, (path, spaces), data) arities =
     (Syntax.extend_log_types syn log_types, tsig', ctab, (path, spaces), data)
   end;
 
-val ext_arities = ext_ars true rd_sort;
-val ext_arities_i = ext_ars false cert_sort;
+fun ext_arities arg   = ext_ars true rd_sort arg;
+fun ext_arities_i arg = ext_ars false cert_sort arg;
 
 
 (* add term constants and syntax *)
