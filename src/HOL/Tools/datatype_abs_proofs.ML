@@ -22,21 +22,21 @@ sig
   val prove_casedist_thms : string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       thm -> theory -> theory * thm list
-  val prove_primrec_thms : string list -> (int * (string * DatatypeAux.dtyp list *
+  val prove_primrec_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       DatatypeAux.datatype_info Symtab.table -> thm list list -> thm list list ->
         thm -> theory -> theory * string list * thm list
-  val prove_case_thms : string list -> (int * (string * DatatypeAux.dtyp list *
+  val prove_case_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       string list -> thm list -> theory -> theory * string list * thm list list
-  val prove_distinctness_thms : string list -> (int * (string * DatatypeAux.dtyp list *
+  val prove_distinctness_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       thm list list -> thm list list -> theory -> theory * thm list list
   val prove_split_thms : string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       thm list list -> thm list list -> thm list -> thm list list -> theory ->
         theory * (thm * thm) list
-  val prove_size_thms : string list -> (int * (string * DatatypeAux.dtyp list *
+  val prove_size_thms : bool -> string list -> (int * (string * DatatypeAux.dtyp list *
     (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
       string list -> thm list -> theory -> theory * thm list
   val prove_nchotomys : string list -> (int * (string * DatatypeAux.dtyp list *
@@ -60,7 +60,7 @@ val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 fun prove_casedist_thms new_type_names descr sorts induct thy =
   let
-    val _ = writeln "Proving case distinction theorems...";
+    val _ = message "Proving case distinction theorems...";
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
@@ -96,10 +96,13 @@ fun prove_casedist_thms new_type_names descr sorts induct thy =
 
 (*************************** primrec combinators ******************************)
 
-fun prove_primrec_thms new_type_names descr sorts
+fun prove_primrec_thms flat_names new_type_names descr sorts
     (dt_info : datatype_info Symtab.table) constr_inject dist_rewrites induct thy =
   let
-    val _ = writeln "Constructing primrec combinators...";
+    val _ = message "Constructing primrec combinators...";
+
+    val big_name = space_implode "_" new_type_names;
+    val thy0 = add_path flat_names big_name thy;
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
@@ -108,8 +111,8 @@ fun prove_primrec_thms new_type_names descr sorts
 
     val induct_Ps = map head_of (dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
 
-    val big_rec_name' = (space_implode "_" new_type_names) ^ "_rec_set";
-    val rec_set_names = map (Sign.full_name (sign_of thy))
+    val big_rec_name' = big_name ^ "_rec_set";
+    val rec_set_names = map (Sign.full_name (sign_of thy0))
       (if length descr' = 1 then [big_rec_name'] else
         (map ((curry (op ^) (big_rec_name' ^ "_")) o string_of_int)
           (1 upto (length descr'))));
@@ -165,12 +168,13 @@ fun prove_primrec_thms new_type_names descr sorts
         (([], 0), descr' ~~ recTs ~~ rec_sets);
 
     val (thy1, {intrs = rec_intrs, elims = rec_elims, ...}) =
-      InductivePackage.add_inductive_i false true big_rec_name' false false true
-        rec_sets rec_intr_ts [] [] thy;
+      setmp InductivePackage.quiet_mode (!quiet_mode)
+        (InductivePackage.add_inductive_i false true big_rec_name' false false true
+           rec_sets rec_intr_ts [] []) thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 
-    val _ = writeln "Proving termination and uniqueness of primrec functions...";
+    val _ = message "Proving termination and uniqueness of primrec functions...";
 
     fun mk_unique_tac ((tac, intrs), ((((i, (tname, _, constrs)), elim), T), T')) =
       let
@@ -252,13 +256,14 @@ fun prove_primrec_thms new_type_names descr sorts
           (comb $ Free ("x", T),
            Const ("Eps", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              HOLogic.mk_mem (HOLogic.mk_prod (Free ("x", T), Free ("y", T')), set)))))
-               (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts));
+               (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts)) |>
+      parent_path flat_names;
 
     val reccomb_defs = map ((get_def thy2) o Sign.base_name) reccomb_names;
 
     (* prove characteristic equations for primrec combinators *)
 
-    val _ = writeln "Proving characteristic theorems for primrec combinators..."
+    val _ = message "Proving characteristic theorems for primrec combinators..."
 
     val rec_thms = map (fn t => prove_goalw_cterm reccomb_defs
       (cterm_of (sign_of thy2) t) (fn _ =>
@@ -269,15 +274,19 @@ fun prove_primrec_thms new_type_names descr sorts
            (DatatypeProp.make_primrecs new_type_names descr sorts thy2)
 
   in
-    (PureThy.add_tthmss [(("recs", map Attribute.tthm_of rec_thms), [])] thy2,
+    (thy2 |> Theory.add_path (space_implode "_" new_type_names) |>
+             PureThy.add_tthmss [(("recs", map Attribute.tthm_of rec_thms), [])] |>
+             Theory.parent_path,
      reccomb_names, rec_thms)
   end;
 
 (***************************** case combinators *******************************)
 
-fun prove_case_thms new_type_names descr sorts reccomb_names primrec_thms thy =
+fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_thms thy =
   let
-    val _ = writeln "Proving characteristic theorems for case combinators...";
+    val _ = message "Proving characteristic theorems for case combinators...";
+
+    val thy1 = add_path flat_names (space_implode "_" new_type_names) thy;
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
@@ -293,7 +302,7 @@ fun prove_case_thms new_type_names descr sorts reccomb_names primrec_thms thy =
       end) constrs) descr';
 
     val case_names = map (fn s =>
-      Sign.full_name (sign_of thy) (s ^ "_case")) new_type_names;
+      Sign.full_name (sign_of thy1) (s ^ "_case")) new_type_names;
 
     (* define case combinators via primrec combinators *)
 
@@ -325,7 +334,7 @@ fun prove_case_thms new_type_names descr sorts reccomb_names primrec_thms thy =
             Theory.add_consts_i [decl] |> Theory.add_defs_i [def];
 
         in (defs @ [get_def thy' (Sign.base_name name)], thy')
-        end) (([], thy), (hd descr) ~~ newTs ~~ case_names ~~
+        end) (([], thy1), (hd descr) ~~ newTs ~~ case_names ~~
           (take (length newTs, reccomb_names)));
 
     val case_thms = map (map (fn t => prove_goalw_cterm (case_defs @
@@ -333,16 +342,20 @@ fun prove_case_thms new_type_names descr sorts reccomb_names primrec_thms thy =
         (fn _ => [rtac refl 1])))
           (DatatypeProp.make_cases new_type_names descr sorts thy2);
 
-    val thy3 = Theory.add_trrules_i
-      (DatatypeProp.make_case_trrules new_type_names descr) thy2
+    val thy3 = thy2 |> Theory.add_trrules_i
+      (DatatypeProp.make_case_trrules new_type_names descr) |>
+      parent_path flat_names;
 
-  in (store_thmss "cases" new_type_names case_thms thy3, case_names, case_thms)
+  in
+    (store_thmss "cases" new_type_names case_thms thy3, case_names, case_thms)
   end;
 
 (************************ distinctness of constructors ************************)
 
-fun prove_distinctness_thms new_type_names descr sorts dist_rewrites case_thms thy =
+fun prove_distinctness_thms flat_names new_type_names descr sorts dist_rewrites case_thms thy =
   let
+    val thy1 = add_path flat_names (space_implode "_" new_type_names) thy;
+
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
     val newTs = take (length (hd descr), recTs);
@@ -375,7 +388,7 @@ fun prove_distinctness_thms new_type_names descr sorts dist_rewrites case_thms t
         in (thy', ord_defs @ [def]) end;
 
     val (thy2, ord_defs) =
-      foldl define_ord ((thy, []), (hd descr) ~~ newTs ~~ new_type_names);
+      foldl define_ord ((thy1, []), (hd descr) ~~ newTs ~~ new_type_names);
 
     (**** number of constructors < dtK ****)
 
@@ -406,7 +419,10 @@ fun prove_distinctness_thms new_type_names descr sorts dist_rewrites case_thms t
           end) ((hd descr) ~~ (DatatypeProp.make_distincts new_type_names
             descr sorts thy2) ~~ dist_rewrites ~~ case_thms)
 
-  in (store_thmss "distinct" new_type_names distinct_thms thy2, distinct_thms)
+  in
+    (thy2 |> parent_path flat_names |>
+             store_thmss "distinct" new_type_names distinct_thms,
+     distinct_thms)
   end;
 
 (******************************* case splitting *******************************)
@@ -414,7 +430,7 @@ fun prove_distinctness_thms new_type_names descr sorts dist_rewrites case_thms t
 fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
     casedist_thms case_thms thy =
   let
-    val _ = writeln "Proving equations for case splitting...";
+    val _ = message "Proving equations for case splitting...";
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
@@ -448,17 +464,20 @@ fun prove_split_thms new_type_names descr sorts constr_inject dist_rewrites
 
 (******************************* size functions *******************************)
 
-fun prove_size_thms new_type_names descr sorts reccomb_names primrec_thms thy =
+fun prove_size_thms flat_names new_type_names descr sorts reccomb_names primrec_thms thy =
   let
-    val _ = writeln "Proving equations for size function...";
+    val _ = message "Proving equations for size function...";
+
+    val big_name = space_implode "_" new_type_names;
+    val thy1 = add_path flat_names big_name thy;
 
     val descr' = flat descr;
     val recTs = get_rec_types descr' sorts;
 
     val big_size_name = space_implode "_" new_type_names ^ "_size";
-    val size_name = Sign.intern_const (sign_of (the (get_thy "Arith" thy))) "size";
+    val size_name = Sign.intern_const (sign_of (the (get_thy "Arith" thy1))) "size";
     val size_names = replicate (length (hd descr)) size_name @
-      map (Sign.full_name (sign_of thy))
+      map (Sign.full_name (sign_of thy1))
         (if length (flat (tl descr)) = 1 then [big_size_name] else
           map (fn i => big_size_name ^ "_" ^ string_of_int i)
             (1 upto length (flat (tl descr))));
@@ -480,14 +499,15 @@ fun prove_size_thms new_type_names descr sorts reccomb_names primrec_thms thy =
     val fs = flat (map (fn (_, (_, _, constrs)) => map make_sizefun constrs) descr');
     val fTs = map fastype_of fs;
 
-    val thy' = thy |>
+    val thy' = thy1 |>
       Theory.add_consts_i (map (fn (s, T) =>
         (Sign.base_name s, T --> HOLogic.natT, NoSyn))
           (drop (length (hd descr), size_names ~~ recTs))) |>
       Theory.add_defs_i (map (fn (((s, T), def_name), rec_name) =>
         (def_name, Logic.mk_equals (Const (s, T --> HOLogic.natT),
           list_comb (Const (rec_name, fTs @ [T] ---> HOLogic.natT), fs))))
-            (size_names ~~ recTs ~~ def_names ~~ reccomb_names));
+            (size_names ~~ recTs ~~ def_names ~~ reccomb_names)) |>
+      parent_path flat_names;
 
     val size_def_thms = map (get_axiom thy') def_names;
     val rewrites = size_def_thms @ map mk_meta_eq primrec_thms;
@@ -497,7 +517,9 @@ fun prove_size_thms new_type_names descr sorts reccomb_names primrec_thms thy =
         (DatatypeProp.make_size new_type_names descr sorts thy')
 
   in
-    (PureThy.add_tthmss [(("size", map Attribute.tthm_of size_thms), [])] thy',
+    (thy' |> Theory.add_path big_name |>
+             PureThy.add_tthmss [(("size", map Attribute.tthm_of size_thms), [])] |>
+             Theory.parent_path,
      size_thms)
   end;
 
@@ -505,7 +527,7 @@ fun prove_size_thms new_type_names descr sorts reccomb_names primrec_thms thy =
 
 fun prove_nchotomys new_type_names descr sorts casedist_thms thy =
   let
-    val _ = writeln "Proving additional theorems for TFL...";
+    val _ = message "Proving additional theorems for TFL...";
 
     fun prove_nchotomy (t, exhaustion) =
       let

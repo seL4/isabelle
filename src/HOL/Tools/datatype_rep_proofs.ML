@@ -14,7 +14,7 @@ Proof of characteristic theorems:
 
 signature DATATYPE_REP_PROOFS =
 sig
-  val representation_proofs : DatatypeAux.datatype_info Symtab.table ->
+  val representation_proofs : bool -> DatatypeAux.datatype_info Symtab.table ->
     string list -> (int * (string * DatatypeAux.dtyp list *
       (string * DatatypeAux.dtyp list) list)) list list -> (string * sort) list ->
         (string * mixfix) list -> (string * mixfix) list list -> theory ->
@@ -41,7 +41,7 @@ fun exh_thm_of (dt_info : datatype_info Symtab.table) tname =
 
 (******************************************************************************)
 
-fun representation_proofs (dt_info : datatype_info Symtab.table)
+fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       new_type_names descr sorts types_syntax constr_syntax thy =
   let
     val Univ_thy = the (get_thy "Univ" thy);
@@ -56,13 +56,18 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
 
     val descr' = flat descr;
 
-    val big_rec_name = (space_implode "_" new_type_names) ^ "_rep_set";
-    val rep_set_names = map (Sign.full_name (sign_of thy))
+    val big_name = space_implode "_" new_type_names;
+    val thy1 = add_path flat_names big_name thy;
+    val big_rec_name = big_name ^ "_rep_set";
+    val rep_set_names = map (Sign.full_name (sign_of thy1))
       (if length descr' = 1 then [big_rec_name] else
         (map ((curry (op ^) (big_rec_name ^ "_")) o string_of_int)
           (1 upto (length descr'))));
 
-    val leafTs = get_nonrec_types descr' sorts;
+    val tyvars = map (fn (_, (_, Ts, _)) => map dest_DtTFree Ts) (hd descr);
+    val leafTs' = get_nonrec_types descr' sorts;
+    val unneeded_vars = hd tyvars \\ foldr add_typ_tfree_names (leafTs', []);
+    val leafTs = leafTs' @ (map (fn n => TFree (n, the (assoc (sorts, n)))) unneeded_vars);
     val recTs = get_rec_types descr' sorts;
     val newTs = take (length (hd descr), recTs);
     val oldTs = drop (length (hd descr), recTs);
@@ -101,7 +106,7 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
 
     (************** generate introduction rules for representing set **********)
 
-    val _ = writeln "Constructing representing sets...";
+    val _ = message "Constructing representing sets...";
 
     (* make introduction rule for a single constructor *)
 
@@ -130,18 +135,19 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
         ((1 upto (length constrs)) ~~ constrs)) (descr' ~~ rep_set_names));
 
     val (thy2, {raw_induct = rep_induct, intrs = rep_intrs, ...}) =
-      InductivePackage.add_inductive_i false true big_rec_name false true false
-        consts intr_ts [] [] thy;
+      setmp InductivePackage.quiet_mode (!quiet_mode)
+        (InductivePackage.add_inductive_i false true big_rec_name false true false
+           consts intr_ts [] []) thy1;
 
     (********************************* typedef ********************************)
 
-    val tyvars = map (fn (_, (_, Ts, _)) => map dest_DtTFree Ts) (hd descr);
+    (* FIXME: quiet_mode flag for TypedefPackage and BREADTH_FIRST *)
 
-    val thy3 = foldl (fn (thy, ((((name, mx), tvs), c), name')) =>
+    val thy3 = add_path flat_names big_name (foldl (fn (thy, ((((name, mx), tvs), c), name')) =>
       TypedefPackage.add_typedef_i_no_def name' (name, tvs, mx) c [] []
         (Some (BREADTH_FIRST (has_fewer_prems 1) (resolve_tac rep_intrs 1))) thy)
-          (thy2, types_syntax ~~ tyvars ~~ (take (length newTs, consts)) ~~
-            new_type_names);
+          (parent_path flat_names thy2, types_syntax ~~ tyvars ~~ (take (length newTs, consts)) ~~
+            new_type_names));
 
     (*********************** definition of constructors ***********************)
 
@@ -149,7 +155,8 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
     val rep_names = map (curry op ^ "Rep_") new_type_names;
     val rep_names' = map (fn i => big_rep_name ^ (string_of_int i))
       (1 upto (length (flat (tl descr))));
-    val all_rep_names = map (Sign.full_name (sign_of thy3)) (rep_names @ rep_names');
+    val all_rep_names = map (Sign.intern_const (sign_of thy3)) rep_names @
+      map (Sign.full_name (sign_of thy3)) rep_names';
 
     (* isomorphism declarations *)
 
@@ -198,20 +205,19 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
         val cong' = cterm_instantiate [(cterm_of sg cong_f, rep_const)] arg_cong;
         val dist = cterm_instantiate [(cterm_of sg distinct_f, rep_const)] distinct_lemma;
         val (thy', defs', eqns', _) = foldl ((make_constr_def tname T) (length constrs))
-          ((if length newTs = 1 then thy else Theory.add_path tname thy, defs, [], 1),
-            constrs ~~ constr_syntax)
+          ((add_path flat_names tname thy, defs, [], 1), constrs ~~ constr_syntax)
       in
-        (if length newTs = 1 then thy' else Theory.parent_path thy', defs', eqns @ [eqns'],
+        (parent_path flat_names thy', defs', eqns @ [eqns'],
           rep_congs @ [cong'], dist_lemmas @ [dist])
       end;
 
     val (thy4, constr_defs, constr_rep_eqns, rep_congs, dist_lemmas) = foldl dt_constr_defs
-      ((Theory.add_consts_i iso_decls thy3, [], [], [], []),
+      ((thy3 |> Theory.add_consts_i iso_decls |> parent_path flat_names, [], [], [], []),
         hd descr ~~ new_type_names ~~ newTs ~~ constr_syntax);
 
     (*********** isomorphisms for new types (introduced by typedef) ***********)
 
-    val _ = writeln "Proving isomorphism properties...";
+    val _ = message "Proving isomorphism properties...";
 
     (* get axioms from theory *)
 
@@ -323,7 +329,8 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
 
       in (thy', char_thms' @ char_thms) end;
 
-    val (thy5, iso_char_thms) = foldr make_iso_defs (tl descr, (thy4, []));
+    val (thy5, iso_char_thms) = foldr make_iso_defs
+      (tl descr, (add_path flat_names big_name thy4, []));
 
     (* prove isomorphism properties *)
 
@@ -423,7 +430,7 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
 
     (******************* freeness theorems for constructors *******************)
 
-    val _ = writeln "Proving freeness of constructors...";
+    val _ = message "Proving freeness of constructors...";
 
     (* prove theorem  Rep_i (Constr_j ...) = Inj_j ...  *)
     
@@ -470,11 +477,12 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
     val constr_inject = map (fn (ts, thms) => map (prove_constr_inj_thm thms) ts)
       ((DatatypeProp.make_injs descr sorts) ~~ constr_rep_thms);
 
-    val thy6 = store_thmss "inject" new_type_names constr_inject thy5;
+    val thy6 = store_thmss "inject" new_type_names
+      constr_inject (parent_path flat_names thy5);
 
     (*************************** induction theorem ****************************)
 
-    val _ = writeln "Proving induction rule for datatypes...";
+    val _ = message "Proving induction rule for datatypes...";
 
     val Rep_inverse_thms = (map (fn (_, iso, _) => iso RS subst) newT_iso_axms) @
       (map (fn r => r RS inv_f_f RS subst) (drop (length newTs, iso_inj_thms)));
@@ -526,7 +534,10 @@ fun representation_proofs (dt_info : datatype_info Symtab.table)
             DEPTH_SOLVE_1 (ares_tac [prem] 1)]))
               (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]);
 
-    val thy7 = PureThy.add_tthms [(("induct", Attribute.tthm_of dt_induct), [])] thy6;
+    val thy7 = thy6 |>
+      Theory.add_path big_name |>
+      PureThy.add_tthms [(("induct", Attribute.tthm_of dt_induct), [])] |>
+      Theory.parent_path;
 
   in (thy7, constr_inject, dist_rewrites, dt_induct)
   end;

@@ -8,9 +8,15 @@ Auxiliary functions for defining datatypes
 
 signature DATATYPE_AUX =
 sig
+  val quiet_mode : bool ref
+  val message : string -> unit
+  
   val foldl1 : ('a * 'a -> 'a) -> 'a list -> 'a
 
   val get_thy : string -> theory -> theory option
+
+  val add_path : bool -> string -> theory -> theory
+  val parent_path : bool -> theory -> theory
 
   val store_thmss : string -> string list -> thm list list -> theory -> theory
   val store_thms : string -> string list -> thm list -> theory -> theory
@@ -55,27 +61,33 @@ end;
 structure DatatypeAux : DATATYPE_AUX =
 struct
 
+val quiet_mode = ref false;
+fun message s = if !quiet_mode then () else writeln s;
+
 (* FIXME: move to library ? *)
 fun foldl1 f (x::xs) = foldl f (x, xs);
 
 fun get_thy name thy = find_first
   (equal name o Sign.name_of o sign_of) (ancestors_of thy);
 
+fun add_path flat_names s = if flat_names then I else Theory.add_path s;
+fun parent_path flat_names = if flat_names then I else Theory.parent_path;
+
 (* store theorems in theory *)
 
 fun store_thmss label tnames thmss thy =
   foldr (fn ((tname, thms), thy') => thy' |>
-    (if length tnames = 1 then I else Theory.add_path tname) |>
+    Theory.add_path tname |>
     PureThy.add_tthmss [((label, map Attribute.tthm_of thms), [])] |>
-    (if length tnames = 1 then I else Theory.parent_path))
-    (tnames ~~ thmss, thy);
+    Theory.parent_path)
+      (tnames ~~ thmss, thy);
 
 fun store_thms label tnames thms thy =
   foldr (fn ((tname, thm), thy') => thy' |>
-    (if length tnames = 1 then I else Theory.add_path tname) |>
+    Theory.add_path tname |>
     PureThy.add_tthms [((label, Attribute.tthm_of thm), [])] |>
-    (if length tnames = 1 then I else Theory.parent_path))
-    (tnames ~~ thms, thy);
+    Theory.parent_path)
+      (tnames ~~ thms, thy);
 
 (* split theorem thm_1 & ... & thm_n into n theorems *)
 
