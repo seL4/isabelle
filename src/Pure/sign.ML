@@ -59,6 +59,9 @@ sig
   val string_of_term: sg -> term -> string
   val string_of_typ: sg -> typ -> string
   val string_of_sort: sg -> sort -> string
+  val str_of_sort: sg -> sort -> string
+  val str_of_classrel: sg -> class * class -> string
+  val str_of_arity: sg -> string * sort list * sort -> string
   val pprint_term: sg -> term -> pprint_args -> unit
   val pprint_typ: sg -> typ -> pprint_args -> unit
   val certify_typ: sg -> typ -> typ
@@ -287,7 +290,7 @@ in
     map_typ I (mapping (intrn spaces typeK) add_typ_tycons T) T;
 
   val intern = intrn o spaces_of;
-  val extern = intrn o spaces_of;
+  val extern = extrn o spaces_of;
   val intern_class = intrn_class o spaces_of;
   val extern_class = extrn_class o spaces_of;
   val intern_sort = intrn_sort o spaces_of;
@@ -388,10 +391,23 @@ fun pretty_sort (Sg {syn, spaces, ...}) S =
   Syntax.pretty_sort syn
     (if ! long_names then S else extrn_sort spaces S);
 
+fun pretty_classrel sg (c1, c2) = Pretty.block
+  [pretty_sort sg [c1], Pretty.str " <", Pretty.brk 1, pretty_sort sg [c2]];
+
+fun pretty_arity sg (t, [], S) = Pretty.block
+      [Pretty.str (t ^ " ::"), Pretty.brk 1, pretty_sort sg S]
+  | pretty_arity sg (t, Ss, S) = Pretty.block
+      [Pretty.str (t ^ " ::"), Pretty.brk 1,
+        Pretty.list "(" ")" (map (pretty_sort sg) Ss),
+        Pretty.brk 1, pretty_sort sg S];
 
 fun string_of_term sg t = Pretty.string_of (pretty_term sg t);
 fun string_of_typ sg T = Pretty.string_of (pretty_typ sg T);
 fun string_of_sort sg S = Pretty.string_of (pretty_sort sg S);
+
+fun str_of_sort sg S = Pretty.str_of (pretty_sort sg S);
+fun str_of_classrel sg c1_c2 = Pretty.str_of (pretty_classrel sg c1_c2);
+fun str_of_arity sg ar = Pretty.str_of (pretty_arity sg ar);
 
 fun pprint_term sg = Pretty.pprint o Pretty.quote o (pretty_term sg);
 fun pprint_typ sg = Pretty.pprint o Pretty.quote o (pretty_typ sg);
