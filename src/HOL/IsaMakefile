@@ -72,11 +72,11 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
   $(SRC)/Provers/Arith/fast_lin_arith.ML $(SRC)/Provers/blast.ML \
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML \
-  $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/make_elim.ML \
-  $(SRC)/Provers/rulify.ML $(SRC)/Provers/simplifier.ML \
-  $(SRC)/Provers/split_paired_all.ML $(SRC)/Provers/splitter.ML \
-  $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML $(SRC)/TFL/rules.ML \
-  $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML \
+  $(SRC)/Provers/hypsubst.ML $(SRC)/Provers/induct_method.ML \
+  $(SRC)/Provers/make_elim.ML $(SRC)/Provers/rulify.ML \
+  $(SRC)/Provers/simplifier.ML $(SRC)/Provers/split_paired_all.ML \
+  $(SRC)/Provers/splitter.ML $(SRC)/TFL/dcterm.ML $(SRC)/TFL/post.ML \
+  $(SRC)/TFL/rules.ML $(SRC)/TFL/tfl.ML $(SRC)/TFL/thms.ML $(SRC)/TFL/thry.ML \
   $(SRC)/TFL/usyntax.ML $(SRC)/TFL/utils.ML Calculation.thy \
   Datatype.thy Datatype_Universe.ML Datatype_Universe.thy Divides.ML \
   Divides.thy Finite.ML Finite.thy Fun.ML Fun.thy Gfp.ML Gfp.thy \
@@ -98,7 +98,7 @@ $(OUT)/HOL: $(OUT)/Pure $(SRC)/Provers/quantifier1.ML \
   SetInterval.thy String.thy Sum_Type.ML Sum_Type.thy \
   Tools/basic_codegen.ML Tools/datatype_abs_proofs.ML Tools/datatype_aux.ML \
   Tools/datatype_package.ML Tools/datatype_prop.ML \
-  Tools/datatype_rep_proofs.ML Tools/induct_method.ML \
+  Tools/datatype_rep_proofs.ML \
   Tools/inductive_package.ML Tools/inductive_codegen.ML Tools/meson.ML Tools/numeral_syntax.ML \
   Tools/primrec_package.ML Tools/recdef_package.ML \
   Tools/record_package.ML Tools/split_rule.ML \
