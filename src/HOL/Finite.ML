@@ -386,6 +386,9 @@ by (rtac Suc_less_SucD 1);
 by (asm_simp_tac (!simpset addsimps [card_Suc_Diff]) 1);
 qed "card_Diff";
 
+
+(*** Cardinality of the Powerset ***)
+
 val [major] = goal Finite.thy
   "finite A ==> card(insert x A) = Suc(card(A-{x}))";
 by (case_tac "x:A" 1);
@@ -401,7 +404,6 @@ by (asm_simp_tac (!simpset addsimps [major RS card_insert_disjoint]) 1);
 qed "card_insert";
 Addsimps [card_insert];
 
-
 goal Finite.thy "!!A. finite(A) ==> inj_onto f A --> card (f `` A) = card A";
 by (etac finite_induct 1);
 by (ALLGOALS Asm_simp_tac);
@@ -414,7 +416,20 @@ by (Blast_tac 1);
 by (Blast_tac 1);
 qed_spec_mp "card_image";
 
+goal thy "!!A. finite A ==> card (Pow A) = 2 ^ card A";
+by (etac finite_induct 1);
+by (ALLGOALS (asm_simp_tac (!simpset addsimps [Pow_insert])));
+by (stac card_Un_disjoint 1);
+by (EVERY (map (blast_tac (!claset addIs [finite_imageI])) [3,2,1]));
+by (subgoal_tac "inj_onto (insert x) (Pow F)" 1);
+by (asm_simp_tac (!simpset addsimps [card_image, Pow_insert]) 1);
+bw inj_onto_def;
+by (blast_tac (!claset addSEs [equalityE]) 1);
+qed "card_Pow";
+Addsimps [card_Pow];
 
+
+(*Proper subsets*)
 goalw Finite.thy [psubset_def]
 "!!B. finite B ==> !A. A < B --> card(A) < card(B)";
 by (etac finite_induct 1);

@@ -6,7 +6,7 @@
 Finite sets and their cardinality
 *)
 
-Finite = Divides +
+Finite = Divides + Power + 
 
 consts Fin :: 'a set => 'a set set
 
