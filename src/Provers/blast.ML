@@ -76,7 +76,7 @@ signature BLAST =
   type claset 
   datatype term = 
       Const of string
-    | OConst of string * int
+    | TConst of string * term
     | Skolem of string * term option ref list
     | Free  of string
     | Var   of term option ref
@@ -87,12 +87,14 @@ signature BLAST =
   val depth_tac 	: claset -> int -> int -> tactic
   val blast_tac 	: claset -> int -> tactic
   val Blast_tac 	: int -> tactic
-  val declConsts 	: string list * thm list -> unit
+  val overload 	: string * (Term.typ -> Term.typ) -> unit
   (*debugging tools*)
   val trace	        : bool ref
   val fullTrace	        : branch list list ref
-  val fromTerm	        : Type.type_sig -> Term.term -> term
-  val fromSubgoal       : Type.type_sig -> Term.term -> term
+  val fromType	        : (indexname * term) list ref -> Term.typ -> term
+  val fromTerm	        : Term.term -> term
+  val fromSubgoal       : Term.term -> term
+  val instVars          : term -> (unit -> unit)
   val toTerm	        : int -> term -> Term.term
   val readGoal          : Sign.sg -> string -> term
   val tryInThy		: theory -> int -> string ->
@@ -114,7 +116,7 @@ val trace = ref false;
 
 datatype term = 
     Const of string
-  | OConst of string * int
+  | TConst of string * term    (*type of overloaded constant--as a term!*)
   | Skolem of string * term option ref list
   | Free  of string
   | Var   of term option ref
@@ -165,64 +167,47 @@ fun isTrueprop (Term.Const("Trueprop",_)) = true
   | isTrueprop _                          = false;
 
 
-(** Dealing with overloaded constants **)
+(*** Dealing with overloaded constants ***)
 
-(*Result is a symbol table, indexed by names of overloaded constants.
-  Each constant maps to a list of (pattern,Blast.Const) pairs.
-  Any Term.Const that matches a pattern gets replaced by the Blast.Const.
-*)
-fun addConsts (t as Term.Const(a,_), tab) =
-     (case Symtab.lookup (tab,a) of
-	  None    => tab  (*ignore: not a constant that we are looking for*)
-	| Some patList => 
-	      (case gen_assoc (op aconv) (patList, t) of
-		  None => Symtab.update
-		           ((a, (t, OConst (a, length patList)) :: patList), 
-			    tab)
-		 | _    => tab))
-  | addConsts (Term.Abs(_,_,body), tab) = addConsts (body, tab)
-  | addConsts (Term.$ (t,u), tab) = addConsts (t, addConsts (u, tab))
-  | addConsts (_,            tab) = tab (*ignore others*);
+(*alist is a map from TVar names to Vars.  We need to unify the TVars
+  faithfully in order to track overloading*)
+fun fromType alist (Term.Type(a,Ts)) = list_comb (Const a, 
+						  map (fromType alist) Ts)
+  | fromType alist (Term.TFree(a,_)) = Free a
+  | fromType alist (Term.TVar (ixn,_)) =
+	      (case (assoc_string_int(!alist,ixn)) of
+		   None => let val t' = Var(ref None)
+		           in  alist := (ixn, t') :: !alist;  t'
+			   end
+		 | Some v => v)
 
-
-fun addRules (rls,tab) = foldr addConsts (map (#prop o rep_thm) rls, tab);
-
-fun declConst (a,tab) = 
-    case Symtab.lookup (tab,a) of
-	None   => Symtab.update((a,[]), tab)	(*create a brand new entry*)
-      | Some _ => tab				(*preserve old entry*);
-
-(*maps the name of each overloaded constant to a list of archetypal constants,
-  which may be polymorphic.*)
 local
-val overLoadTab = ref (Symtab.null : (Term.term * term) list Symtab.table)
-    (*The alists in this table should only be increased*)
+val overloads = ref ([]: (string * (Term.typ -> Term.typ)) list)
 in
 
-fun declConsts (names, rls) =
-    overLoadTab := addRules (rls, foldr declConst (names, !overLoadTab));
+fun overload arg = (overloads := arg :: (!overloads));
 
+(*Convert a possibly overloaded Term.Const to a Blast.Const or Blast.TConst,
+  converting its type to a Blast.term in the latter case.*)
+fun fromConst alist (a,T) =
+  case assoc_string (!overloads, a) of
+      None   => Const a		(*not overloaded*)
+    | Some f => 
+	let val T' = f T
+		     handle Match =>
+		       error ("Blast_tac: unexpected type for overloaded constant " ^ a)
+        in  TConst(a, fromType alist T')  end;
 
-(*Convert a possibly overloaded Term.Const to a Blast.Const*)
-fun fromConst tsig (t as Term.Const (a,_)) =
-  let fun find []                  = Const a
-	| find ((pat,t')::patList) =
-		if Pattern.matches tsig (pat,t) then t' 
-		else find patList
-  in  case Symtab.lookup(!overLoadTab, a) of
-	   None         => Const a
-	 | Some patList => find patList
-  end;
 end;
 
 
 (*Tests whether 2 terms are alpha-convertible; chases instantiations*)
 fun (Const a)      aconv (Const b)      = a=b
-  | (OConst ai)    aconv (OConst bj)    = ai=bj
+  | (TConst (a,ta)) aconv (TConst (b,tb)) = a=b andalso ta aconv tb
   | (Skolem (a,_)) aconv (Skolem (b,_)) = a=b  (*arglists must then be equal*)
   | (Free a)       aconv (Free b)       = a=b
   | (Var(ref(Some t))) aconv u          = t aconv u
-  | t aconv (Var(ref(Some u)))          = t aconv u
+  | t          aconv (Var(ref(Some u))) = t aconv u
   | (Var v)        aconv (Var w)        = v=w	(*both Vars are un-assigned*)
   | (Bound i)      aconv (Bound j)      = i=j
   | (Abs(_,t))     aconv (Abs(_,u))     = t aconv u
@@ -247,6 +232,7 @@ fun ins_var(v,vs) = if mem_var(v,vs) then vs else v :: vs;
 fun add_term_vars (Skolem(a,args),	vars) = add_vars_vars(args,vars)
   | add_term_vars (Var (v as ref None),	vars) = ins_var (v, vars)
   | add_term_vars (Var (ref (Some u)), vars)  = add_term_vars(u,vars)
+  | add_term_vars (TConst (_,t),	vars) = add_term_vars(t,vars)
   | add_term_vars (Abs (_,body),	vars) = add_term_vars(body,vars)
   | add_term_vars (f$t,	vars) =  add_term_vars (f, add_term_vars(t, vars))
   | add_term_vars (_,	vars) = vars
@@ -303,6 +289,7 @@ fun subst_bound (arg, t) : term =
 (*Normalize...but not the bodies of ABSTRACTIONS*)
 fun norm t = case t of
     Skolem (a,args)      => Skolem(a, vars_in_vars args)
+  | TConst(a,aT)         => TConst(a, norm aT)
   | (Var (ref None))     => t
   | (Var (ref (Some u))) => norm u
   | (f $ u) => (case norm f of
@@ -329,7 +316,7 @@ fun wkNormAux t = case t of
   | _ => t
 and wkNorm t = case head_of t of
     Const _        => t
-  | OConst _       => t
+  | TConst _       => t
   | Skolem(a,args) => t
   | Free _         => t
   | _              => wkNormAux t;
@@ -344,6 +331,7 @@ fun varOccur v =
               (case !w of None   => false
 	                | Some u => occ u)
         | occ (Skolem(_,args)) = occL (map Var args)
+        | occ (TConst(_,u)) = occ u
         | occ (Abs(_,u)) = occ u
         | occ (f$u)      = occ u  orelse  occ f
         | occ (_)        = false;
@@ -364,12 +352,10 @@ fun clearTo n =
 
 
 (*First-order unification with bound variables.  
-  "allowClash", if true, treats OConst and Const as the same;
-	we do so when closing a branch but not when applying rules!
   "vars" is a list of variables local to the rule and NOT to be put
 	on the trail (no point in doing so)
 *)
-fun unify(allowClash,vars,t,u) =
+fun unify(vars,t,u) =
     let val n = !ntrail 
 	fun update (t as Var v, u) =
 	    if t aconv u then ()
@@ -384,10 +370,8 @@ fun unify(allowClash,vars,t,u) =
 	    case (wkNorm t,  wkNorm u) of
 		(nt as Var v,  nu) => update(nt,nu)
 	      | (nu,  nt as Var v) => update(nt,nu)
-	      | (Const a, OConst(b,_))  => if allowClash andalso a=b then ()
-		                           else raise UNIFY
-	      | (OConst(a,_), Const b)  => if allowClash andalso a=b then ()
-		                           else raise UNIFY
+	      | (TConst(a,at), TConst(b,bt)) => if a=b then unifyAux(at,bt)
+		                                else raise UNIFY
 	      | (Abs(_,t'),  Abs(_,u')) => unifyAux(t',u')
 		    (*NB: can yield unifiers having dangling Bound vars!*)
 	      | (f$t',  g$u') => (unifyAux(f,g); unifyAux(t',u'))
@@ -396,18 +380,20 @@ fun unify(allowClash,vars,t,u) =
     end;
 
 
-(*Convert from "real" terms to prototerms; eta-contract*)
-fun fromTerm tsig t =
-  let val alist = ref []
-      fun from (t as Term.Const _) = fromConst tsig t
+(*Convert from "real" terms to prototerms; eta-contract
+  Code is duplicated with fromSubgoal.  Correct this?*)
+fun fromTerm t =
+  let val alistVar = ref []
+      and alistTVar = ref []
+      fun from (Term.Const aT) = fromConst alistTVar aT
 	| from (Term.Free  (a,_)) = Free a
 	| from (Term.Bound i)     = Bound i
 	| from (Term.Var (ixn,T)) = 
-	      (case (assoc_string_int(!alist,ixn)) of
+	      (case (assoc_string_int(!alistVar,ixn)) of
 		   None => let val t' = Var(ref None)
-		           in  alist := (ixn, (t', T)) :: !alist;  t'
+		           in  alistVar := (ixn, t') :: !alistVar;  t'
 			   end
-		 | Some (v,_) => v)
+		 | Some v => v)
 	| from (Term.Abs (a,_,u)) = 
 	      (case  from u  of
 		u' as (f $ Bound 0) => 
@@ -416,6 +402,22 @@ fun fromTerm tsig t =
 	      | u' => Abs(a,u'))
 	| from (Term.$ (f,u)) = from f $ from u
   in  from t  end;
+
+(*A debugging function: replaces all Vars by dummy Frees for visual inspection
+  of whether they are distinct.  Function revert undoes the assignments.*)
+fun instVars t =
+  let val name = ref "A"
+      val updated = ref []
+      fun inst (TConst(a,t)) = inst t
+	| inst (Var(v as ref None)) = (updated := v :: (!updated);
+				       v       := Some (Free ("?" ^ !name)); 
+				       name    := bump_string (!name))
+	| inst (Abs(a,t))    = inst t
+	| inst (f $ u)       = (inst f; inst u)
+	| inst _             = ()
+      fun revert() = seq (fn v => v:=None) (!updated)
+  in  inst t; revert  end;
+
 
 (* A1==>...An==>B  goes to  [A1,...,An], where B is not an implication *)
 fun strip_imp_prems (Const"==>" $ (Const"Trueprop" $ A) $ B) = 
@@ -474,8 +476,7 @@ fun TRACE rl tac st i = if !trace then (prth rl; tac st i) else tac st i;
 (*Tableau rule from elimination rule.  Flag "dup" requests duplication of the
   affected formula.*)
 fun fromRule vars rl = 
-  let val {tsig,...} = Sign.rep_sg (#sign (rep_thm rl))
-      val trl = rl |> rep_thm |> #prop |> fromTerm tsig |> convertRule vars
+  let val trl = rl |> rep_thm |> #prop |> fromTerm |> convertRule vars
       fun tac dup i = 
 	  TRACE rl (etac (if dup then rev_dup_elim rl else rl)) i
 	  THEN rot_subgoals_tac (map nNewHyps (#2 trl)) i
@@ -501,8 +502,7 @@ fun convertIntrRule vars t =
 (*Tableau rule from introduction rule.  Since haz rules are now delayed, 
   "dup" is always FALSE for introduction rules.*)
 fun fromIntrRule vars rl = 
-  let val {tsig,...} = Sign.rep_sg (#sign (rep_thm rl))
-      val trl = rl |> rep_thm |> #prop |> fromTerm tsig |> convertIntrRule vars
+  let val trl = rl |> rep_thm |> #prop |> fromTerm |> convertIntrRule vars
       fun tac dup i = 
 	  TRACE rl (DETERM o (rtac (if dup then Data.dup_intr rl else rl))) i
 	  THEN rot_subgoals_tac (map nNewHyps (#2 trl)) i
@@ -515,7 +515,7 @@ val dummyVar = Term.Var (("etc",0), dummyT);
   Ignore abstractions; identify all Vars; STOP at given depth*)
 fun toTerm 0 _             = dummyVar
   | toTerm d (Const a)     = Term.Const (a,dummyT)
-  | toTerm d (OConst(a,_)) = Term.Const (a,dummyT)
+  | toTerm d (TConst(a,_)) = Term.Const (a,dummyT)  (*no need to convert type*)
   | toTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
   | toTerm d (Free a)      = Term.Free  (a,dummyT)
   | toTerm d (Bound i)     = Term.Bound i
@@ -562,11 +562,29 @@ fun normBr (br, lits, vars, lim) =
      (map normLev br, map norm lits, vars, lim);
 
 
+val dummyTVar = Term.TVar(("a",0), []);
 val dummyVar2 = Term.Var(("var",0), dummyT);
+
+(*convert Blast_tac's type representation to real types for tracing*)
+fun showType (Free a)  = Term.TFree (a,[])
+  | showType (Var _)   = dummyTVar
+  | showType t         =
+      (case strip_comb t of
+	   (Const a, us) => Term.Type(a, map showType us)
+	 | _ => dummyT);
+
+(*Display top-level overloading if any*)
+fun topType (TConst(a,t)) = Some (showType t)
+  | topType (Abs(a,t))    = topType t
+  | topType (f $ u)       = (case topType f of
+				 None => topType u
+			       | some => some)
+  | topType _             = None;
+
 
 (*Convert from prototerms to ordinary terms with dummy types for tracing*)
 fun showTerm d (Const a)     = Term.Const (a,dummyT)
-  | showTerm d (OConst(a,_)) = Term.Const (a,dummyT)
+  | showTerm d (TConst(a,_)) = Term.Const (a,dummyT)
   | showTerm d (Skolem(a,_)) = Term.Const (a,dummyT)
   | showTerm d (Free a)      = Term.Free  (a,dummyT)
   | showTerm d (Bound i)     = Term.Bound i
@@ -577,8 +595,16 @@ fun showTerm d (Const a)     = Term.Const (a,dummyT)
   | showTerm d (f $ u)       = if d=0 then dummyVar
 			       else Term.$ (showTerm d f, showTerm (d-1) u);
 
+fun string_of sign d t = Sign.string_of_term sign (showTerm d t);
 
-fun traceTerm sign t = Sign.string_of_term sign (showTerm 8 (norm t));
+fun traceTerm sign t = 
+  let val t' = norm t
+      val stm = string_of sign 8 t'
+  in  
+      case topType t' of
+	  None   => stm   (*no type to attach*)
+	| Some T => stm ^ "\t:: " ^ Sign.string_of_typ sign T
+  end;
 
 
 (*Print tracing information at each iteration of prover*)
@@ -595,13 +621,19 @@ fun tracing sign brs =
   in if !trace then printBrs (map normBr brs) else ()
   end;
 
+fun traceMsg s = if !trace then prs s else ();
+
 (*Tracing: variables updated in the last branch operation?*)
-fun traceVars ntrl =
-    if !trace then 
-       (case !ntrail-ntrl of
-	    0 => writeln""
-	  | 1 => writeln"\t1 variable updated"
-	  | n => writeln("\t" ^ Int.toString n ^ " variables updated"))
+fun traceVars sign ntrl =
+  if !trace then 
+      (case !ntrail-ntrl of
+	    0 => ()
+	  | 1 => prs"\t1 variable UPDATED:"
+	  | n => prs("\t" ^ Int.toString n ^ " variables UPDATED:");
+       (*display the instantiations themselves, though no variable names*)
+       seq (fn v => prs("   " ^ string_of sign 4 (the (!v))))
+           (List.take(!trail, !ntrail-ntrl));
+       writeln"")
     else ();
 
 (*Tracing: how many new branches are created?*)
@@ -660,7 +692,7 @@ exception DEST_EQ;
 (*Take apart an equality (plain or overloaded).  NO constant Trueprop*)
 fun dest_eq (Const  "op ="     $ t $ u) = 
 		(eta_contract_atom t, eta_contract_atom u)
-  | dest_eq (OConst("op =",_)  $ t $ u) = 
+  | dest_eq (TConst("op =",_)  $ t $ u) = 
 		(eta_contract_atom t, eta_contract_atom u)
   | dest_eq _                           = raise DEST_EQ;
 
@@ -716,13 +748,13 @@ val eAssume_tac = TRACE asm_rl   (eq_assume_tac ORELSE' assume_tac);
 
 (*Try to unify complementary literals and return the corresponding tactic. *) 
 fun tryClose (Const"*Goal*" $ G,  L) = 
-	if unify(true,[],G,L) then Some eAssume_tac else None
+	if unify([],G,L) then Some eAssume_tac else None
   | tryClose (G,  Const"*Goal*" $ L) = 
-	if unify(true,[],G,L) then Some eAssume_tac else None
+	if unify([],G,L) then Some eAssume_tac else None
   | tryClose (Const"Not" $ G,  L)    = 
-	if unify(true,[],G,L) then Some eContr_tac else None
+	if unify([],G,L) then Some eContr_tac else None
   | tryClose (G,  Const"Not" $ L)    = 
-	if unify(true,[],G,L) then Some eContr_tac else None
+	if unify([],G,L) then Some eContr_tac else None
   | tryClose _                       = None;
 
 
@@ -829,15 +861,15 @@ fun log n = if n<4 then 0 else 1 + log(n div 4);
 (*match(t,u) says whether the term u might be an instance of the pattern t
   Used to detect "recursive" rules such as transitivity*)
 fun match (Var _) u   = true
-  | match (Const"*Goal*") (Const"Not") = true
-  | match (Const"Not") (Const"*Goal*") = true
-  | match (Const a) (Const b) = (a=b)
-  | match (OConst ai) (OConst bj) = (ai=bj)
-  | match (Free a) (Free b) = (a=b)
-  | match (Bound i) (Bound j) = (i=j)
-  | match (Abs(_,t)) (Abs(_,u)) = match t u
-  | match (f$t) (g$u) = match f g andalso match t u
-  | match t u   = false;
+  | match (Const"*Goal*") (Const"Not")    = true
+  | match (Const"Not")    (Const"*Goal*") = true
+  | match (Const a)       (Const b)       = (a=b)
+  | match (TConst (a,ta)) (TConst (b,tb)) = a=b andalso match ta tb
+  | match (Free a)        (Free b)        = (a=b)
+  | match (Bound i)       (Bound j)       = (i=j)
+  | match (Abs(_,t))      (Abs(_,u))      = match t u
+  | match (f$t)           (g$u)           = match f g andalso match t u
+  | match t               u   = false;
 
 
 (*Tableau prover based on leanTaP.  Argument is a list of branches.  Each 
@@ -847,7 +879,8 @@ fun prove (sign, cs, brs, cont) =
  let val {safe0_netpair, safep_netpair, haz_netpair, ...} = Data.rep_claset cs
      val safeList = [safe0_netpair, safep_netpair]
      and hazList  = [haz_netpair]
-     fun prv (tacs, trs, choices, []) = cont (tacs, trs, choices)
+     fun prv (tacs, trs, choices, []) = 
+	         cont (tacs, trs, choices)   (*all branches closed!*)
        | prv (tacs, trs, choices, 
 	      brs0 as (((G,md)::br, haz)::pairs, lits, vars, lim) :: brs) =
    	     (*apply a safe rule only (possibly allowing instantiation);
@@ -874,7 +907,7 @@ fun prove (sign, cs, brs, cont) =
                 to branch.*)
 	      fun deeper [] = raise NEWBRANCHES
 		| deeper (((P,prems),tac)::grls) =
-		    if unify(false, add_term_vars(P,[]), P, G) 
+		    if unify(add_term_vars(P,[]), P, G) 
 		    then  (*P comes from the rule; G comes from the branch.*)
 		     let val ntrl' = !ntrail
 			 val lim' = if ntrl < !ntrail 
@@ -886,20 +919,21 @@ fun prove (sign, cs, brs, cont) =
 			 val tacs' = (DETERM o (tac false)) :: tacs 
 					 (*no duplication*)
 		     in
-			 traceNew prems;  traceVars ntrl;
+			 traceNew prems;  traceVars sign ntrl;
 			 (if null prems then (*closed the branch: prune!*)
 			    prv(tacs',  brs0::trs, 
 				prune (nbrs, nxtVars, choices'),
 				brs)
 			  else
 			  if lim'<0 (*faster to kill ALL the alternatives*)
-			  then raise NEWBRANCHES
+			  then (traceMsg"Excessive branching: KILLED\n";
+			        clearTo ntrl;  raise NEWBRANCHES)
 			  else
 			    prv(tacs',  brs0::trs, choices',
 				newBr (vars',lim') prems))
                          handle PRV => 
 			   if ntrl < ntrl' (*Vars have been updated*)
-			      then
+			   then
 				(*Backtrack at this level.
 				  Reset Vars and try another rule*)
 				(clearTo ntrl;  deeper grls)
@@ -915,7 +949,7 @@ fun prove (sign, cs, brs, cont) =
 		      | Some tac => 
 			    let val choices' = 
 				    (if !trace then (prs"branch closed";
-						     traceVars ntrl)
+						     traceVars sign ntrl)
 				               else ();
 				     prune (nbrs, nxtVars, 
 					    (ntrl, nbrs, PRV) :: choices))
@@ -931,7 +965,7 @@ fun prove (sign, cs, brs, cont) =
 		      handle CLOSEF => closeF (map fst haz)
 			handle CLOSEF => closeFl pairs
 	  in tracing sign brs0; 
-	     if lim<0 then backtrack choices
+	     if lim<0 then (traceMsg "Limit reached.  "; backtrack choices)
 	     else
 	     prv ((TRY  o  Data.vars_gen_hyp_subst_tac false)  ::  tacs, 
 		  (*The TRY above allows the substitution to fail, e.g. if
@@ -939,10 +973,9 @@ fun prove (sign, cs, brs, cont) =
 		    still succeed!*)
 		  brs0::trs,  choices,
 		  equalSubst sign (G, (br,haz)::pairs, lits, vars, lim) :: brs)
-	     handle DEST_EQ => closeF lits
-	      handle CLOSEF => closeFl ((br,haz)::pairs)
-	        handle CLOSEF => 
-		 deeper rules
+	     handle DEST_EQ =>   closeF lits
+	      handle CLOSEF =>   closeFl ((br,haz)::pairs)
+	        handle CLOSEF => deeper rules
 		  handle NEWBRANCHES => 
 		   (case netMkRules G vars hazList of
 		       [] => (*no plausible haz rules: move G to literals*)
@@ -980,7 +1013,7 @@ fun prove (sign, cs, brs, cont) =
                 to branch.*)
 	      fun deeper [] = raise NEWBRANCHES
 		| deeper (((P,prems),tac)::grls) =
-		    if unify(false, add_term_vars(P,[]), P, H)
+		    if unify(add_term_vars(P,[]), P, H)
 		    then
 		     let val ntrl' = !ntrail
 			 val vars  = vars_in_vars vars
@@ -1013,9 +1046,10 @@ fun prove (sign, cs, brs, cont) =
 		     in
 		       if lim'<0 andalso not (null prems)
 		       then (*it's faster to kill ALL the alternatives*)
-			   raise NEWBRANCHES
+			   (traceMsg"Excessive branching: KILLED\n";
+			    clearTo ntrl;  raise NEWBRANCHES)
 		       else 
-			 traceNew prems;  traceVars ntrl;
+			 traceNew prems;  traceVars sign ntrl;
 			 prv(tac dup :: tacs, 
 			       (*FIXME: if recur then the tactic should not
 				 call rotate_tac: new formulae should be last*)
@@ -1031,7 +1065,7 @@ fun prove (sign, cs, brs, cont) =
 		     end
 		    else deeper grls
 	  in tracing sign brs0; 
-	     if lim<1 then backtrack choices
+	     if lim<1 then (traceMsg "Limit reached.  "; backtrack choices)
 	     else deeper rules
 	     handle NEWBRANCHES => 
 		 (*cannot close branch: move H to literals*)
@@ -1039,7 +1073,9 @@ fun prove (sign, cs, brs, cont) =
 		      ([([], Hs)], H::lits, vars, lim)::brs)
 	  end
        | prv (tacs, trs, choices, _ :: brs) = backtrack choices
- in prv ([], [], [(!ntrail, length brs, PROVE)], brs) end;
+ in init_gensym();
+    prv ([], [], [(!ntrail, length brs, PROVE)], brs) 
+ end;
 
 
 (*Construct an initial branch.*)
@@ -1066,8 +1102,9 @@ fun getVars []                  i = []
 
 
 (*Conversion of a subgoal: Skolemize all parameters*)
-fun fromSubgoal tsig t =
-  let val alist = ref []
+fun fromSubgoal t =
+  let val alistVar = ref []
+      and alistTVar = ref []
       fun hdvar ((ix,(v,is))::_) = v
       fun from lev t =
 	let val (ht,ts) = Term.strip_comb t
@@ -1079,14 +1116,14 @@ fun fromSubgoal tsig t =
 	      | bounds ts = error"Function Var's argument not a bound variable"
         in
 	  case ht of 
-	      t as Term.Const _ => apply (fromConst tsig t)	    
+	      Term.Const aT    => apply (fromConst alistTVar aT)
 	    | Term.Free  (a,_) => apply (Free a)
 	    | Term.Bound i     => apply (Bound i)
 	    | Term.Var (ix,_) => 
-		  (case (assoc_string_int(!alist,ix)) of
-		       None => (alist := (ix, (ref None, bounds ts))
-					  :: !alist;
-				Var (hdvar(!alist)))
+		  (case (assoc_string_int(!alistVar,ix)) of
+		       None => (alistVar := (ix, (ref None, bounds ts))
+					  :: !alistVar;
+				Var (hdvar(!alistVar)))
 		     | Some(v,is) => if is=bounds ts then Var v
 			    else error("Discrepancy among occurrences of ?"
 				       ^ Syntax.string_of_vname ix))
@@ -1101,7 +1138,7 @@ fun fromSubgoal tsig t =
       fun skoSubgoal i t =
 	  if i<npars then 
 	      skoSubgoal (i+1)
-		(subst_bound (Skolem (gensym "T_", getVars (!alist) i), 
+		(subst_bound (Skolem (gensym "T_", getVars (!alistVar) i), 
 			      t))
 	  else t
 
@@ -1113,8 +1150,7 @@ fun fromSubgoal tsig t =
 fun depth_tac cs lim i st = 
     (fullTrace:=[];  trail := [];  ntrail := 0;
      let val {sign,...} = rep_thm st
-	 val {tsig,...} = Sign.rep_sg sign
-	 val skoprem = fromSubgoal tsig (List.nth(prems_of st, i-1))
+	 val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
          val hyps  = strip_imp_prems skoprem
          and concl = strip_imp_concl skoprem
          fun cont (tacs,_,choices) = 
@@ -1140,8 +1176,7 @@ fun trygl cs lim i =
     (fullTrace:=[];  trail := [];  ntrail := 0;
      let val st = topthm()
          val {sign,...} = rep_thm st
-	 val {tsig,...} = Sign.rep_sg sign
-	 val skoprem = fromSubgoal tsig (List.nth(prems_of st, i-1))
+	 val skoprem = fromSubgoal (List.nth(prems_of st, i-1))
          val hyps  = strip_imp_prems skoprem
          and concl = strip_imp_concl skoprem
      in timeap prove
@@ -1153,8 +1188,7 @@ fun Trygl lim i = trygl (!Data.claset) lim i;
 
 (*Read a string to make an initial, singleton branch*)
 fun readGoal sign s = read_cterm sign (s,propT) |>
-                      term_of |> fromTerm (#tsig(Sign.rep_sg sign)) |> 
-		      rand |> mkGoal;
+                      term_of |> fromTerm |> rand |> mkGoal;
 
 fun tryInThy thy lim s = 
     (fullTrace:=[];  trail := [];  ntrail := 0;
