@@ -273,7 +273,8 @@ fun add_primrec alt_name eqns thy =
     val sign = Theory.sign_of thy;
     val ((names, strings), srcss) = apfst split_list (split_list eqns);
     val atts = map (map (Attrib.global_attribute thy)) srcss;
-    val eqn_ts = map (term_of o Thm.read_cterm sign o rpair propT) strings;
+    val eqn_ts = map (fn s => term_of (Thm.read_cterm sign (s, propT))
+      handle ERROR => error ("The error(s) above occurred for " ^ s)) strings;
     val rec_ts = map (fn eq => head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop eq)))
       handle TERM _ => primrec_eq_err sign "not a proper equation" eq) eqn_ts;
     val (_, eqn_ts') = InductivePackage.unify_consts (sign_of thy) rec_ts eqn_ts
