@@ -52,5 +52,7 @@ theorem [trans]: "[| x = y; y < z |] ==> x < z";	    (*  =  <  <  *)
 
 theorems [trans] = trans                                    (*  =  =  =  *)
 
+theorems [elim??] = sym
+
 
 end;
