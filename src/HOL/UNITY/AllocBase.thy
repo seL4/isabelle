@@ -5,10 +5,11 @@
 
 Common declarations for Chandy and Charpentier's Allocator
 
-with_path "../Induct" time_use_thy "AllocBase";
+add_path "../Induct";
+time_use_thy "AllocBase";
 *)
 
-AllocBase = Rename + Follows + MultisetOrder +
+AllocBase = Rename + Follows + 
 
 consts
   NbT      :: nat       (*Number of tokens in system*)
@@ -31,5 +32,13 @@ primrec
 
 constdefs sublist :: "['a list, nat set] => 'a list"
     "sublist l A == map fst (filter (%p. snd p : A) (zip l [0..size l(]))"
+
+
+consts
+  bag_of :: 'a list => 'a multiset
+
+primrec
+  "bag_of []     = {#}"
+  "bag_of (x#xs) = {#x#} + bag_of xs"
 
 end
