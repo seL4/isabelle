@@ -27,6 +27,19 @@ sig
   val method: theory -> Args.src -> Proof.context -> Proof.method
   val add_methods: (bstring * (Args.src -> Proof.context -> Proof.method) * string) list
     -> theory -> theory
+  val syntax: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
+    Proof.context -> Args.src -> Proof.context * 'a
+  val no_args: Proof.method -> Args.src -> Proof.context -> Proof.method
+  val sectioned_args: ((Args.T list -> Proof.context attribute * Args.T list) list ->
+      Proof.context * Args.T list -> 'a * (Proof.context * Args.T list)) ->
+    (Args.T list -> Proof.context attribute * Args.T list) list ->
+    ('a -> Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+  val default_sectioned_args: Proof.context attribute ->
+    (Args.T list -> Proof.context attribute * Args.T list) list ->
+    (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+  val only_sectioned_args: (Args.T list -> Proof.context attribute * Args.T list) list ->
+    (Proof.context -> Proof.method) -> Args.src -> Proof.context -> Proof.method
+  val thms_args: (tthm list -> Proof.method) -> Args.src -> Proof.context -> Proof.method
   datatype text =
     Basic of (Proof.context -> Proof.method) |
     Source of Args.src |
@@ -38,7 +51,7 @@ sig
   val dynamic_method: string -> (Proof.context -> Proof.method)
   val refine: text -> Proof.state -> Proof.state Seq.seq
   val tac: text -> Proof.state -> Proof.state Seq.seq
-  val etac: text -> Proof.state -> Proof.state Seq.seq
+  val then_tac: text -> Proof.state -> Proof.state Seq.seq
   val proof: text option -> Proof.state -> Proof.state Seq.seq
   val end_block: Proof.state -> Proof.state Seq.seq
   val terminal_proof: text -> Proof.state -> Proof.state Seq.seq
@@ -46,11 +59,6 @@ sig
   val default_proof: Proof.state -> Proof.state Seq.seq
   val qed: bstring option -> theory attribute list option -> Proof.state
     -> theory * (string * string * tthm)
-  val syntax: (Args.T list -> 'a * Args.T list) -> ('a -> 'b) -> Args.src -> 'b
-  val no_args: 'a -> Args.src -> Proof.context -> 'a
-  val thm_args: (tthm list -> 'a) -> Args.src -> Proof.context -> 'a
-  val sectioned_args: (Proof.context -> 'a) -> ('a * tthm list -> 'b) ->
-    (string * ('b * tthm list -> 'b)) list -> ('b -> 'c) -> Args.src -> Proof.context -> 'c
   val setup: (theory -> theory) list
 end;
 
@@ -78,7 +86,7 @@ val succeed = METHOD (K all_tac);
 fun trivial_tac [] = K all_tac
   | trivial_tac facts =
       let
-        val thms = map Attribute.thm_of facts;
+        val thms = Attribute.thms_of facts;
         val r = ~ (length facts);
       in metacuts_tac thms THEN' rotate_tac r end;
 
@@ -100,10 +108,10 @@ fun multi_resolve facts rule =
 
 fun forward_chain facts rules = Seq.flat (Seq.map (multi_resolve facts) (Seq.of_list rules));
 
-fun rule_tac rules [] = resolve_tac (map Attribute.thm_of rules)
+fun rule_tac rules [] = resolve_tac (Attribute.thms_of rules)
   | rule_tac erules facts =
       let
-        val rules = forward_chain (map Attribute.thm_of facts) (map Attribute.thm_of erules);
+        val rules = forward_chain (Attribute.thms_of facts) (Attribute.thms_of erules);
         fun tac i state = Seq.flat (Seq.map (fn rule => Tactic.rtac rule i state) rules);
       in tac end;
 
@@ -149,11 +157,14 @@ fun method thy =
   let
     val {space, meths} = MethodsData.get thy;
 
-    fun meth ((raw_name, args), pos) =
-      let val name = NameSpace.intern space raw_name in
+    fun meth src =
+      let
+        val ((raw_name, _), pos) = Args.dest_src src;
+        val name = NameSpace.intern space raw_name;
+      in
         (case Symtab.lookup (meths, name) of
           None => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
-        | Some ((mth, _), _) => mth ((name, args), pos))
+        | Some ((mth, _), _) => mth src)
       end;
   in meth end;
 
@@ -178,30 +189,43 @@ fun add_methods raw_meths thy =
 fun Method name meth cmt = Context.>> (add_methods [(name, meth, cmt)]);
 
 
-(* argument syntax *)
 
-val methodN = "method";
-fun syntax scan = Args.syntax methodN scan;
+(** method syntax **)
 
-fun no_args x = syntax (Scan.succeed (fn (_: Proof.context) => x)) I;
+(* basic *)
 
-(* FIXME move? *)
-fun thm_args f = syntax (Scan.repeat Args.name)
-  (fn names => fn ctxt => f (ProofContext.get_tthmss ctxt names));
+fun syntax (scan: (Proof.context * Args.T list -> 'a * (Proof.context * Args.T list))) =
+  Args.syntax "method" scan;
 
-fun sectioned_args get_data def_sect sects f =
-  syntax (Args.sectioned (map fst sects))
-    (fn (names, sect_names) => fn ctxt =>
-      let
-        val get_thms = ProofContext.get_tthmss ctxt;
-        val thms = get_thms names;
-        val sect_thms = map (apsnd get_thms) sect_names;
+fun no_args (x: Proof.method) src ctxt = #2 (syntax (Scan.succeed x) ctxt src);
 
-        fun apply_sect (data, (s, ths)) =
-          (case assoc (sects, s) of
-            Some add => add (data, ths)
-          | None => error ("Unknown argument section " ^ quote s));
-       in f (foldl apply_sect (def_sect (get_data ctxt, thms), sect_thms)) end);
+
+(* sections *)
+
+fun sect ss = Scan.first (map (fn s => Scan.lift (s --| Args.$$$ ":")) ss);
+fun thms ss = Scan.unless (sect ss) Attrib.local_thms;
+fun thmss ss = Scan.repeat (thms ss) >> flat;
+
+fun apply att (ctxt, ths) = Attribute.applys ((ctxt, ths), [att]);
+
+fun section ss = (sect ss -- thmss ss) :-- (fn (att, ths) => Scan.depend (fn ctxt =>
+  Scan.succeed (apply att (ctxt, ths)))) >> #2;
+
+fun sectioned args ss = args ss -- Scan.repeat (section ss);
+
+
+fun sectioned_args args ss f src ctxt =
+  let val (ctxt', (x, thss)) = syntax (sectioned args ss) ctxt src
+  in
+    warning "TRACE thms:"; seq Attribute.print_tthm (flat thss);             (* FIXME *)
+    f x ctxt'
+  end;
+
+fun default_sectioned_args att ss f src ctxt =
+  sectioned_args thmss ss (fn ths => fn ctxt' => f (#1 (apply att (ctxt', ths)))) src ctxt;
+
+fun only_sectioned_args ss f = sectioned_args (K (Scan.succeed ())) ss (fn () => f);
+fun thms_args f = sectioned_args thmss [] (fn ths => fn _ => f ths);
 
 
 
@@ -222,7 +246,7 @@ datatype text =
 (* dynamic methods *)
 
 fun dynamic_method name = (fn ctxt =>
-  method (ProofContext.theory_of ctxt) ((name, []), Position.none) ctxt);
+  method (ProofContext.theory_of ctxt) (Args.src ((name, []), Position.none)) ctxt);
 
 
 (* refine *)
@@ -248,7 +272,7 @@ fun tac text state =
   |> Proof.goal_facts (K [])
   |> refine text;
 
-fun etac text state =
+fun then_tac text state =
   state
   |> Proof.goal_facts Proof.the_facts
   |> refine text;
@@ -256,7 +280,7 @@ fun etac text state =
 
 (* proof steps *)
 
-val default_txt = Source (("default", []), Position.none);
+val default_txt = Source (Args.src (("default", []), Position.none));
 val finishN = "finish";
 
 fun proof opt_text state =
@@ -288,7 +312,7 @@ val pure_methods =
   ("trivial", no_args trivial, "proof all goals trivially"),
   ("assumption", no_args assumption, "proof by assumption"),
   ("finish", no_args asm_finish, "finish proof by assumption"),
-  ("rule", thm_args rule, "apply primitive rule")];
+  ("rule", thms_args rule, "apply primitive rule")];
 
 
 (* setup *)
