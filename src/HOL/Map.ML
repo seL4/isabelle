@@ -3,7 +3,7 @@
     Author:     Tobias Nipkow
     Copyright   1997 TU Muenchen
 
-Map lemmas
+Map lemmas.
 *)
 
 section "empty";
@@ -12,6 +12,12 @@ Goalw [empty_def] "empty k = None";
 by (Simp_tac 1);
 qed "empty_def2";
 Addsimps [empty_def2];
+
+Goal "empty(x := None) = empty";
+by (rtac ext 1);
+by (Simp_tac 1);
+qed "empty_upd_none";
+Addsimps [empty_upd_none];
 
 Goal "sum_case empty empty = empty";
 by (rtac ext 1);
@@ -202,8 +208,8 @@ Addsimps [dom_map_upd];
 
 Goalw [dom_def] "finite (dom (map_of l))";
 by (induct_tac "l" 1);
-by (auto_tac (claset(), 
-	      simpset() addsimps [insert_Collect RS sym]));
+by (auto_tac (claset(),
+              simpset() addsimps [insert_Collect RS sym]));
 qed "finite_dom_map_of";
 
 Goalw [dom_def] "dom(m++n) = dom n Un dom m";
