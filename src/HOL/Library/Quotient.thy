@@ -206,4 +206,10 @@ proof -
   show ?thesis by (rule quot_cond_function)
 qed
 
+theorem quot_function':
+  "(!!X Y. f X Y == g (pick X) (pick Y)) ==>
+    (!!x x' y y'. x \<sim> x' ==> y \<sim> y' ==> g x y = g x' y') ==>
+    f \<lfloor>a\<rfloor> \<lfloor>b\<rfloor> = g a b"
+  by  (rule quot_function) (simp only: quot_equality)+
+
 end
