@@ -317,12 +317,12 @@ val options = ref
 
 fun issue_pgip pgips = notify (XML.element "pgip" [] pgips);
 
-fun usespgml () = 
+fun usespgml () =
   issue_pgip [XML.element "usespgml" [("version", pgml_version_supported)] []];
 
 (*NB: the default returned here is actually the current value, so
   repeated uses of <askprefs> will not work correctly*)
-fun show_options () = issue_pgip (map 
+fun show_options () = issue_pgip (map
   (fn (name, (descr, (ty, get, _))) => (XML.element "oldhaspref"
     [("type", ty), ("descr", descr), ("default", get ())] [name])) (!options));
 
@@ -332,8 +332,8 @@ fun set_option name value = (case assoc (!options, name) of
 
 fun get_option name = (case assoc (!options, name) of
       None => warning ("Unknown option: " ^ quote name)
-    | Some (_, (_, get, _)) => 
-	issue_pgip [XML.element "prefval" [("name", name)] [get ()]]);
+    | Some (_, (_, get, _)) =>
+        issue_pgip [XML.element "prefval" [("name", name)] [get ()]]);
 
 
 (* processing PGIP commands from the interface *)
@@ -428,9 +428,14 @@ val inform_file_retractedP =
     (P.name >> (Toplevel.no_timing oo
       (fn name => Toplevel.imperative (fn () => inform_file_retracted name))));
 
+val process_pgipP =
+  OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" K.control
+    (P.text >> (Toplevel.no_timing oo
+      (fn txt => Toplevel.imperative (fn () => process_pgip txt))));
+
 fun init_outer_syntax () = OuterSyntax.add_parsers
  [undoP, restartP, kill_proofP, context_thy_onlyP, try_context_thy_onlyP,
-  inform_file_processedP, inform_file_retractedP];
+  inform_file_processedP, inform_file_retractedP, process_pgipP];
 
 end;
 
@@ -493,8 +498,4 @@ fun write_keywords s =
 
 end;
 
-
 end;
-
-(*a hack for Proof General 3.2 to avoid problems with escapes in ML commands*)
-infix \\\\ val op \\\\ = op \\;
