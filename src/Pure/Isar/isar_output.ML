@@ -17,6 +17,7 @@ sig
     (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Toplevel.state -> string
   datatype markup = Markup | MarkupEnv | Verbatim
   val interest_level: int ref
+  val modes: string list ref
   val parse_thy: (markup -> OuterLex.token list -> OuterLex.token * OuterLex.token list) ->
     Scan.lexicon -> Toplevel.transition list -> (OuterLex.token, 'a) Source.source ->
       (Toplevel.transition * (Toplevel.state -> Buffer.T -> Buffer.T)) list * Buffer.T
@@ -136,13 +137,15 @@ end;
 
 (* eval_antiquote *)
 
+val modes = ref ([]: string list);
+
 fun eval_antiquote lex state (str, pos) =
   let
     fun expand (Antiquote.Text s) = s
       | expand (Antiquote.Antiq x) =
           let val (opts, src) = antiq_args lex x in
             options opts (fn () => command src state) ();  (*preview errors!*)
-            Library.setmp print_mode (Latex.modes @ ! print_mode)
+            Library.setmp print_mode (! modes @ Latex.modes @ ! print_mode)
               (options opts (fn () => command src state)) ()
           end;
     val ants = Antiquote.antiquotes_of (str, pos);
