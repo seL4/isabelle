@@ -57,6 +57,7 @@ goalw Perm.thy [inj_def] "!!f A B. f: inj(A,B) ==> f: A->B";
 by (etac CollectD1 1);
 qed "inj_is_fun";
 
+(*Good for dealing with sets of pairs, but a bit ugly in use [used in AC]*)
 goalw Perm.thy [inj_def]
     "!!f A B. [| <a,b>:f;  <c,b>:f;  f: inj(A,B) |] ==> a=c";
 by (REPEAT (eresolve_tac [asm_rl, Pair_mem_PiE, CollectE] 1));
@@ -69,13 +70,10 @@ val inj_apply_equality = result();
 
 (** A function with a left inverse is an injection **)
 
-val prems = goal Perm.thy
-    "[| f: A->B;  !!x. x:A ==> d(f`x)=x |] ==> f: inj(A,B)";
-by (asm_simp_tac (ZF_ss addsimps ([inj_def] @ prems)) 1);
-by (safe_tac ZF_cs);
-by (eresolve_tac [subst_context RS box_equals] 1);
-by (REPEAT (ares_tac prems 1));
-qed "f_imp_injective";
+goal Perm.thy "!!f. [| f: A->B;  ALL x:A. d(f`x)=x |] ==> f: inj(A,B)";
+by (asm_simp_tac (ZF_ss addsimps [inj_def]) 1);
+by (deepen_tac (ZF_cs addEs [subst_context RS box_equals]) 0 1);
+bind_thm ("f_imp_injective", ballI RSN (2,result()));
 
 val prems = goal Perm.thy
     "[| !!x. x:A ==> c(x): B;           \
@@ -151,23 +149,19 @@ by (fast_tac (ZF_cs addIs [id_inj,id_surj]) 1);
 qed "id_bij";
 
 goalw Perm.thy [id_def] "A <= B <-> id(A) : A->B";
-by (safe_tac ZF_cs);
-by (fast_tac (ZF_cs addSIs [lam_type]) 1);
-by (dtac apply_type 1);
-by (assume_tac 1);
-by (asm_full_simp_tac ZF_ss 1);
+by (fast_tac (ZF_cs addSIs [lam_type] addDs [apply_type] addss ZF_ss) 1);
 qed "subset_iff_id";
 
 
 (*** Converse of a function ***)
 
-val [prem] = goal Perm.thy "f: inj(A,B) ==> converse(f) : range(f)->A";
-by (cut_facts_tac [prem] 1);
-by (asm_full_simp_tac (ZF_ss addsimps [inj_def, Pi_iff, domain_converse]) 1);
-by (rtac conjI 1);
-by (deepen_tac ZF_cs 0 2);
-by (simp_tac (ZF_ss addsimps [function_def, converse_iff]) 1);
-by (fast_tac (ZF_cs addEs [prem RSN (3,inj_equality)]) 1);
+goalw Perm.thy [inj_def] "!!f. f: inj(A,B) ==> converse(f) : range(f)->A";
+by (asm_simp_tac 
+    (ZF_ss addsimps [Pi_iff, function_def, 
+		     domain_converse, converse_iff]) 1);
+by (eresolve_tac [CollectE] 1);
+by (asm_simp_tac (ZF_ss addsimps [apply_iff]) 1);
+by (fast_tac (ZF_cs addDs [fun_is_rel]) 1);
 qed "inj_converse_fun";
 
 (** Equations for converse(f) **)
@@ -198,11 +192,9 @@ by (rtac right_inverse_lemma 1);
 by (REPEAT (ares_tac [inj_converse_fun,inj_is_fun] 1));
 qed "right_inverse";
 
-goalw Perm.thy [bij_def]
-    "!!f. [| f: bij(A,B);  b: B |] ==> f`(converse(f)`b) = b";
-by (EVERY1 [etac IntE, etac right_inverse, 
-            etac (surj_range RS ssubst),
-            assume_tac]);
+goal Perm.thy "!!f. [| f: bij(A,B);  b: B |] ==> f`(converse(f)`b) = b";
+by (fast_tac (ZF_cs addss
+	      (ZF_ss addsimps [bij_def, right_inverse, surj_range])) 1);
 qed "right_inverse_bij";
 
 (** Converses of injections, surjections, bijections **)
@@ -215,17 +207,14 @@ by (REPEAT (assume_tac 1));
 qed "inj_converse_inj";
 
 goal Perm.thy "!!f A B. f: inj(A,B) ==> converse(f): surj(range(f), A)";
-by (REPEAT (ares_tac [f_imp_surjective, inj_converse_fun] 1));
-by (REPEAT (ares_tac [left_inverse] 2));
-by (REPEAT (ares_tac [inj_is_fun, range_of_fun RS apply_type] 1));
+by (ITER_DEEPEN (has_fewer_prems 1)
+    (ares_tac [f_imp_surjective, inj_converse_fun, left_inverse,
+	       inj_is_fun, range_of_fun RS apply_type]));
 qed "inj_converse_surj";
 
 goalw Perm.thy [bij_def] "!!f A B. f: bij(A,B) ==> converse(f): bij(B,A)";
-by (etac IntE 1);
-by (eresolve_tac [(surj_range RS subst)] 1);
-by (rtac IntI 1);
-by (etac inj_converse_inj 1);
-by (etac inj_converse_surj 1);
+by (fast_tac (ZF_cs addEs [surj_range RS subst, inj_converse_inj,
+			   inj_converse_surj]) 1);
 qed "bij_converse_bij";
 
 
@@ -316,13 +305,12 @@ goalw Perm.thy [function_def]
 by (fast_tac (ZF_cs addIs [compI] addSEs [compE, Pair_inject]) 1);
 qed "comp_function";
 
-goalw Perm.thy [Pi_def]
-    "!!f g. [| g: A->B;  f: B->C |] ==> (f O g) : A->C";
-by (safe_tac subset_cs);
-by (asm_simp_tac (ZF_ss addsimps [comp_function]) 3);
-by (rtac (range_rel_subset RS domain_comp_eq RS ssubst) 2 THEN assume_tac 3);
-by (fast_tac ZF_cs 2);
-by (asm_simp_tac (ZF_ss addsimps [comp_rel]) 1);
+goal Perm.thy "!!f g. [| g: A->B;  f: B->C |] ==> (f O g) : A->C";
+by (asm_full_simp_tac
+    (ZF_ss addsimps [Pi_def, comp_function, Pow_iff, comp_rel]
+           setloop etac conjE) 1);
+by (rtac (range_rel_subset RS domain_comp_eq RS ssubst) 1 THEN assume_tac 2);
+by (fast_tac ZF_cs 1);
 qed "comp_fun";
 
 goal Perm.thy "!!f g. [| g: A->B;  f: B->C;  a:A |] ==> (f O g)`a = f`(g`a)";
@@ -407,12 +395,10 @@ qed "comp_mem_surjD2";
 
 (*left inverse of composition; one inclusion is
         f: A->B ==> id(A) <= converse(f) O f *)
-val [prem] = goal Perm.thy
-    "f: inj(A,B) ==> converse(f) O f = id(A)";
-val injfD = prem RSN (3,inj_equality);
-by (cut_facts_tac [prem RS inj_is_fun] 1);
-by (fast_tac (comp_cs addIs [equalityI,apply_Pair] 
-                      addEs [domain_type, make_elim injfD]) 1);
+goalw Perm.thy [inj_def] "!!f. f: inj(A,B) ==> converse(f) O f = id(A)";
+by (fast_tac (comp_cs addIs [equalityI, apply_Pair] 
+                      addEs [domain_type]
+               addss (ZF_ss addsimps [apply_iff])) 1);
 qed "left_comp_inverse";
 
 (*right inverse of composition; one inclusion is
@@ -548,15 +534,8 @@ qed "inj_succ_restrict";
 goalw Perm.thy [inj_def]
     "!!f. [| f: inj(A,B);  a~:A;  b~:B |]  ==> \
 \         cons(<a,b>,f) : inj(cons(a,A), cons(b,B))";
-(*cannot use safe_tac: must preserve the implication*)
-by (etac CollectE 1);
-by (rtac CollectI 1);
-by (etac fun_extend 1);
-by (REPEAT (ares_tac [ballI] 1));
-by (REPEAT_FIRST (eresolve_tac [consE,ssubst]));
-(*Assumption ALL w:A. ALL x:A. f`w = f`x --> w=x would make asm_simp_tac loop
-  using ZF_ss!  But FOL_ss ignores the assumption...*)
-by (ALLGOALS (asm_simp_tac 
-              (FOL_ss addsimps [fun_extend_apply2,fun_extend_apply1])));
-by (ALLGOALS (fast_tac (ZF_cs addIs [apply_type])));
+by (fast_tac (ZF_cs  addIs [apply_type]
+	             addss (ZF_ss addsimps [fun_extend, fun_extend_apply2,
+					    fun_extend_apply1]) ) 1);
 qed "inj_extend";
+
