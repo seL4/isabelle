@@ -42,7 +42,7 @@ val bound_tag = oct_char "355";
 val var_tag = oct_char "356";
 val skolem_tag = oct_char "357";
 
-fun tagit p x = (p ^ x ^ end_tag, real (size x));
+fun tagit p x = (p ^ x ^ end_tag, real (Symbol.length (Symbol.explode x)));
 
 fun unless_skolem tag x =
   (case try Syntax.dest_skolem x of
