@@ -584,7 +584,9 @@ fun rewritec (prover, signt, maxt)
         val unconditional = (Logic.count_prems (prop',0) = 0);
         val (lhs', rhs') = Logic.dest_equals (Logic.strip_imp_concl prop')
       in
-        if perm andalso not (termless (rhs', lhs')) then None
+        if perm andalso not (termless (rhs', lhs'))
+        then (trace_thm false "Cannot apply permutative rewrite rule:" thm;
+              trace_thm false "Term does not become smaller:" thm'; None)
         else
           (trace_thm false "Applying instance of rewrite rule:" thm;
            if unconditional
