@@ -1761,13 +1761,13 @@ apply (auto simp add: hcomplex_minus)
 done
 declare hcomplex_of_complex_minus [simp]
 
-lemma hcomplex_of_complex_one:
+lemma hcomplex_of_complex_one [simp]:
       "hcomplex_of_complex 1 = 1"
 apply (unfold hcomplex_of_complex_def hcomplex_one_def)
 apply auto
 done
 
-lemma hcomplex_of_complex_zero:
+lemma hcomplex_of_complex_zero [simp]:
       "hcomplex_of_complex 0 = 0"
 apply (unfold hcomplex_of_complex_def hcomplex_zero_def)
 apply (simp (no_asm))

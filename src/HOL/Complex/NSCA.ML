@@ -1252,7 +1252,7 @@ Goal "y: CFinite ==> stc(-y) = -stc(y)";
 by (forward_tac [CFinite_minus_iff RS iffD2] 1);
 by (rtac hcomplex_add_minus_eq_minus 1);
 by (dtac (stc_add RS sym) 1 THEN assume_tac 1);
-by Auto_tac;  
+by (asm_simp_tac (simpset() addsimps [add_commute]) 1); 
 qed "stc_minus";
 
 Goalw [hcomplex_diff_def]

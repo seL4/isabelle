@@ -24,11 +24,11 @@ by (rtac (hcomplex_of_hypreal_eq_hcomplex_of_complex RS sym) 1);
 qed "hcomplex_hypreal_number_of";
 
 Goalw [hcomplex_number_of_def] "Numeral0 = (0::hcomplex)";
-by (simp_tac (simpset() addsimps [hcomplex_of_complex_zero RS sym]) 1);
+by(Simp_tac 1);
 qed "hcomplex_numeral_0_eq_0";
 
 Goalw [hcomplex_number_of_def] "Numeral1 = (1::hcomplex)";
-by (simp_tac (simpset() addsimps [hcomplex_of_complex_one RS sym]) 1);
+by(Simp_tac 1);
 qed "hcomplex_numeral_1_eq_1";
 
 (*

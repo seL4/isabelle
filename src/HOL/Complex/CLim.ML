@@ -468,12 +468,12 @@ Goalw [NSCLIM_def]
 by Auto_tac;
 by (dres_inst_tac [("x","hcomplex_of_complex a + x")] spec 1);
 by (dres_inst_tac [("x","- hcomplex_of_complex a + x")] spec 2);
-by (Step_tac 1);
+by Safe_tac;
 by (Asm_full_simp_tac 1);
 by (rtac ((mem_cinfmal_iff RS iffD2) RS 
     (CInfinitesimal_add_capprox_self RS capprox_sym)) 1);
 by (rtac (capprox_minus_iff2 RS iffD1) 4);
-by (asm_full_simp_tac (simpset() addsimps [hcomplex_add_commute]) 3);
+by (asm_full_simp_tac (simpset() addsimps compare_rls@[hcomplex_add_commute]) 3);
 by (res_inst_tac [("z","x")] eq_Abs_hcomplex 2);
 by (res_inst_tac [("z","x")] eq_Abs_hcomplex 4);
 by (auto_tac (claset(),
@@ -747,7 +747,8 @@ Goalw [nscderiv_def]
 by (auto_tac (claset(),simpset() addsimps [isNSContc_NSCLIM_iff,
     NSCLIM_def,hcomplex_diff_def]));
 by (dtac (capprox_minus_iff RS iffD1) 1);
-by (dtac (CLAIM "x ~= a ==> x + - a ~= (0::hcomplex)") 1);
+by (subgoal_tac "xa + - (hcomplex_of_complex x) ~= 0" 1);
+ by (asm_full_simp_tac (simpset() addsimps compare_rls) 2);
 by (dres_inst_tac [("x","- hcomplex_of_complex x + xa")] bspec 1);
 by (asm_full_simp_tac (simpset() addsimps [hcomplex_add_assoc RS sym]) 2);
 by (auto_tac (claset(),simpset() addsimps 
@@ -1041,12 +1042,14 @@ Goal "NSCDERIV (%x. x ^ n) x :> complex_of_real (real n) * (x ^ (n - 1))";
 by (simp_tac (simpset() addsimps [NSCDERIV_CDERIV_iff]) 1);
 qed "NSCDERIV_pow";
 
-Goal "\\<lbrakk> CDERIV f x :> D; D = E \\<rbrakk> \\<Longrightarrow> CDERIV f x :> E";
+Goal "[|CDERIV f x :> D; D = E|] ==> CDERIV f x :> E";
 by Auto_tac;
 qed "lemma_CDERIV_subst";
 
 (*used once, in NSCDERIV_inverse*)
 Goal "[| h: CInfinitesimal; x ~= 0 |] ==> hcomplex_of_complex x + h ~= 0";
+by (Clarify_tac 1);
+by (dtac (thm"equals_zero_I") 1);
 by Auto_tac;  
 qed "CInfinitesimal_add_not_zero";
 
@@ -1062,7 +1065,7 @@ by (auto_tac (claset(),
                delsimps [hcomplex_minus_mult_eq1 RS sym,
                          hcomplex_minus_mult_eq2 RS sym]));
 by (asm_simp_tac
-     (simpset() addsimps [hcomplex_inverse_add,
+     (simpset() addsimps [inverse_add,
           inverse_mult_distrib RS sym, hcomplex_minus_inverse RS sym] 
           @ hcomplex_add_ac @ hcomplex_mult_ac 
        delsimps [thm"Ring_and_Field.inverse_minus_eq",

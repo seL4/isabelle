@@ -174,7 +174,7 @@ $(OUT)/HOL-Complex: $(OUT)/HOL Complex/ROOT.ML\
   Complex/ComplexBin.ML Complex/ComplexBin.thy\
   Complex/NSCA.ML Complex/NSCA.thy\
   Complex/NSComplex.thy\
-  Complex/NSComplexArith0.ML Complex/NSComplexArith0.thy\
+  Complex/hcomplex_arith.ML Complex/NSComplexArith.thy\
   Complex/NSComplexBin.ML Complex/NSComplexBin.thy
 	@cd Complex; $(ISATOOL) usedir -b $(OUT)/HOL HOL-Complex
 
