@@ -744,7 +744,7 @@ Addsimps[subset_UNIV, subset_refl];
 Goalw [psubset_def] "!!A::'a set. [| A <= B; A ~= B |] ==> A<B";
 by (Blast_tac 1);
 qed "psubsetI";
-AddXIs [psubsetI];
+AddSIs [psubsetI];
 
 Goalw [psubset_def] "A < insert x B ==> (x ~: A) & A<=B | x:A & A-{x}<B";
 by Auto_tac;
