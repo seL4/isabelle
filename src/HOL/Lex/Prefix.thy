@@ -6,7 +6,7 @@
 
 Prefix = Main +
 
-arities list :: (term)ord
+instance list :: (term)ord
 
 defs
         prefix_def        "xs <= zs  ==  ? ys. zs = xs@ys"
