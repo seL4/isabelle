@@ -21,6 +21,8 @@ sig
   val strings_of_context: context -> string list
   val print_proof_data: theory -> unit
   val init: theory -> context
+  val def_sort: context -> indexname -> sort option
+  val def_type: context -> bool -> indexname -> typ option
   val read_typ: context -> string -> typ
   val cert_typ: context -> typ -> typ
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
@@ -59,7 +61,7 @@ sig
     -> (string * context attribute list * (term * (term list * term list)) list) list
     -> context -> context * ((string * thm list) list * thm list)
   val fix: (string list * string option) list -> context -> context
-  val fix_i: (string list * typ) list -> context -> context
+  val fix_i: (string list * typ option) list -> context -> context
   val setup: (theory -> theory) list
 end;
 
@@ -84,7 +86,7 @@ datatype context =
    {thy: theory,                                                        (*current theory*)
     data: Object.T Symtab.table,                                        (*user data*)
     asms:
-      ((cterm * ((int -> tactic) * (int -> tactic))) list *		(*assumes: A ==> _*)
+      ((cterm * ((int -> tactic) * (int -> tactic))) list *             (*assumes: A ==> _*)
         (string * thm list) list) *
       ((string * string) list * string list),                           (*fixes: !!x. _*)
     binds: (term * typ) option Vartab.table,                            (*term bindings*)
@@ -301,18 +303,29 @@ fun put_data kind f x ctxt =
 fun init thy =
   let val data = Symtab.map (fn (_, (f, _)) => f thy) (ProofDataData.get thy) in
     make_context (thy, data, (([], []), ([], [])), Vartab.empty, Symtab.empty,
-      (Vartab.empty, Vartab.empty, ~1, []))
+      (Vartab.empty, Vartab.empty, 0, []))
+        (*Note: maxidx = 0 is workaround for obscure bug in Unify.smash_unifiers*)
   end;
+
+
+(** default sorts and types **)
+
+fun def_sort (Context {defs = (_, sorts, _, _), ...}) xi = Vartab.lookup (sorts, xi);
+
+fun def_type (Context {binds, defs = (types, _, _, _), ...}) is_pat xi =
+  (case Vartab.lookup (types, xi) of
+    None =>
+      if is_pat then None
+      else (case Vartab.lookup (binds, xi) of Some (Some (_, T)) => Some T | _ => None)
+  | some => some);
 
 
 
 (** prepare types **)
 
-fun read_typ (ctxt as Context {defs = (_, sorts, _, _), ...}) s =
-  let fun def_sort xi = Vartab.lookup (sorts, xi) in
-    transform_error (Sign.read_typ (sign_of ctxt, def_sort)) s
-      handle ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt)
-  end;
+fun read_typ ctxt s =
+  transform_error (Sign.read_typ (sign_of ctxt, def_sort ctxt)) s
+    handle ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt);
 
 fun cert_typ ctxt raw_T =
   Sign.certify_typ (sign_of ctxt) raw_T
@@ -431,24 +444,13 @@ end;
 
 (* read terms *)
 
-fun gen_read read app is_pat (ctxt as Context {binds, defs = (types, sorts, _, used), ...}) s =
-  let
-    fun def_type xi =
-      (case Vartab.lookup (types, xi) of
-        None =>
-          if is_pat then None
-          else (case Vartab.lookup (binds, xi) of Some (Some (_, T)) => Some T | _ => None)
-      | some => some);
-
-    fun def_sort xi = Vartab.lookup (sorts, xi);
-  in
-    (transform_error (read (sign_of ctxt) (def_type, def_sort, used)) s
-      handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
-      | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
-    |> app (intern_skolem ctxt true)
-    |> app (if is_pat then I else norm_term ctxt)
-    |> app (if is_pat then prepare_dummies else (reject_dummies ctxt))
-  end;
+fun gen_read read app is_pat (ctxt as Context {defs = (_, _, _, used), ...}) s =
+  (transform_error (read (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
+    handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
+    | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
+  |> app (intern_skolem ctxt true)
+  |> app (if is_pat then I else norm_term ctxt)
+  |> app (if is_pat then prepare_dummies else (reject_dummies ctxt));
 
 val read_termTs = gen_read (read_def_termTs false) (apfst o map) false;
 val read_term = gen_read (read_term_sg true) I false;
@@ -487,9 +489,9 @@ val ins_used = foldl_types (foldl_atyps
     | (used, TVar ((x, _), _)) => x ins used
     | (used, _) => used));
 
-fun ins_skolem def_type = foldr
+fun ins_skolem def_ty = foldr
   (fn ((x, x'), types) =>
-    (case def_type x' of
+    (case def_ty x' of
       Some T => Vartab.update (((x, ~1), T), types)
     | None => types));
 
@@ -537,7 +539,7 @@ fun del_upd_bind (ctxt, (xi, None)) = del_bind (ctxt, xi)
   | del_upd_bind (ctxt, (xi, Some t)) = upd_bind (ctxt, (xi, t));
 
 fun update_binds bs ctxt = foldl upd_bind (ctxt, bs);
-fun update_binds_env env = (*Envir.norm_term ensures proper type instantiation*)
+fun update_binds_env env =      (*Note: Envir.norm_term ensures proper type instantiation*)
   update_binds (map (apsnd (Envir.norm_term env)) (Envir.alist_of env));
 
 fun delete_update_binds bs ctxt = foldl del_upd_bind (ctxt, bs);
@@ -700,7 +702,7 @@ end;
 fun gen_fix prep check (ctxt, (x, raw_T)) =
   (check_skolem ctxt check x;
     ctxt
-    |> (case prep ctxt raw_T of None => I | Some T => declare_term (Free (x, T)))
+    |> (case (apsome o prep) ctxt raw_T of None => I | Some T => declare_term (Free (x, T)))
     |> map_context (fn (thy, data, (assumes, (fixes, names)), binds, thms, defs) =>
       let val x' = variant names x in
         (thy, data, (assumes, ((x, Syntax.skolem x') :: fixes, x' :: names)), binds, thms, defs)
@@ -709,8 +711,8 @@ fun gen_fix prep check (ctxt, (x, raw_T)) =
 fun gen_fixs prep check vars ctxt =
   foldl (gen_fix prep check) (ctxt, flat (map (fn (xs, T) => map (rpair T) xs) vars));
 
-val fix = gen_fixs (apsome o read_typ) true;
-val fix_i = gen_fixs (Some oo cert_typ) false;
+val fix = gen_fixs read_typ true;
+val fix_i = gen_fixs cert_typ false;
 
 
 
