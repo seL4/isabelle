@@ -9,7 +9,7 @@ header{*Exponentiation and Binomial Coefficients*}
 
 theory Power = Divides:
 
-subsection{*Powers for Arbitrary (Semi)Rings*}
+subsection{*Powers for Arbitrary Semirings*}
 
 axclass recpower \<subseteq> comm_semiring_1_cancel, power
   power_0 [simp]: "a ^ 0       = 1"
@@ -269,6 +269,14 @@ apply (rule mult_strict_mono)
 apply (auto simp add: order_less_trans [OF zero_less_one] zero_le_power
                  order_less_imp_le)
 done
+
+lemma power_increasing_iff [simp]: 
+     "1 < (b::'a::{ordered_semidom,recpower}) ==> (b ^ x \<le> b ^ y) = (x \<le> y)"
+  by (blast intro: power_le_imp_le_exp power_increasing order_less_imp_le) 
+
+lemma power_strict_increasing_iff [simp]:
+     "1 < (b::'a::{ordered_semidom,recpower}) ==> (b ^ x < b ^ y) = (x < y)"
+  by (blast intro: power_less_imp_less_exp power_strict_increasing) 
 
 lemma power_le_imp_le_base:
   assumes le: "a ^ Suc n \<le> b ^ Suc n"
