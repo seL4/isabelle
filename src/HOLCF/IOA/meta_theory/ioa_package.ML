@@ -1,5 +1,6 @@
-(*  Title:      ioa_package.ML
+(*  Title:      HOLCF/IOA/meta_theory/ioa_package.ML
     ID:         $Id$
+    Author:	Tobias Hamberger, TU Muenchen
 *)
 
 signature IOA_PACKAGE =
@@ -24,15 +25,12 @@ sig
  val add_rename_i : string -> string -> string -> theory -> theory
 end;
 
-structure IoaPackage(* FIXME : IOA_PACKAGE *) =
+structure IoaPackage: IOA_PACKAGE =
 struct
 
 local
 
 exception malformed;
-
-(* for usage of hidden function no_attributes of structure Thm : *)
-fun no_attributes x = (x, []);
 
 (* stripping quotes *)
 fun strip [] = [] |
@@ -339,7 +337,7 @@ clist (a::r) = a ^ " || " ^ (clist r);
 (* gen_add_ioa *)
 
 fun gen_add_ioa prep_term automaton_name action_type inp out int statetupel ini trans thy =
-(writeln("Constructing automaton " ^ automaton_name ^ "...");
+(writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val state_type_string = type_product_of_varlist(statetupel);
 val styp = #T(rep_ctyp (read_ctyp (sign_of thy) state_type_string)) ;
@@ -362,7 +360,7 @@ val thy2 = (thy
 (automaton_name ^ "_trans",
  "(" ^ action_type ^ "," ^ state_type_string ^ ")transition set" ,NoSyn),
 (automaton_name, "(" ^ action_type ^ "," ^ state_type_string ^ ")ioa" ,NoSyn)]
-|> (PureThy.add_defs o map no_attributes) (* old: Attributes.none *)
+|> (PureThy.add_defs o map Thm.no_attributes) (* old: Attributes.none *)
 [(automaton_name ^ "_initial_def",
 automaton_name ^ "_initial == {" ^ state_vars_tupel ^ "." ^ ini ^ "}"),
 (automaton_name ^ "_asig_def",
@@ -388,7 +386,7 @@ error("Precondition or assignment terms in postconditions contain following prim
 end)
 
 fun gen_add_composition prep_term automaton_name aut_list thy =
-(writeln("Constructing automaton " ^ automaton_name ^ "...");
+(writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val acttyp = check_ac thy aut_list; 
 val st_typ = comp_st_type_of thy aut_list; 
@@ -403,13 +401,13 @@ Type("*",
   Type("*",[Type("set",[Type("*",[st_typ,Type("*",[acttyp,st_typ])])]),
    Type("*",[Type("set",[Type("set",[acttyp])]),Type("set",[Type("set",[acttyp])])])])])])
 ,NoSyn)]
-|> (PureThy.add_defs o map no_attributes)
+|> (PureThy.add_defs o map Thm.no_attributes)
 [(automaton_name ^ "_def",
 automaton_name ^ " == " ^ comp_list)]
 end)
 
 fun gen_add_restriction prep_term automaton_name aut_source actlist thy =
-(writeln("Constructing automaton " ^ automaton_name ^ "...");
+(writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val auttyp = aut_type_of thy aut_source;
 val acttyp = act_type_of thy auttyp; 
@@ -418,12 +416,12 @@ in
 thy
 |> ContConsts.add_consts_i
 [(automaton_name, auttyp,NoSyn)]
-|> (PureThy.add_defs o map no_attributes)
+|> (PureThy.add_defs o map Thm.no_attributes)
 [(automaton_name ^ "_def",
 automaton_name ^ " == restrict " ^ aut_source ^ " " ^ rest_set)] 
 end)
 fun gen_add_hiding prep_term automaton_name aut_source actlist thy =
-(writeln("Constructing automaton " ^ automaton_name ^ "...");
+(writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val auttyp = aut_type_of thy aut_source;
 val acttyp = act_type_of thy auttyp; 
@@ -432,7 +430,7 @@ in
 thy
 |> ContConsts.add_consts_i
 [(automaton_name, auttyp,NoSyn)]
-|> (PureThy.add_defs o map no_attributes)
+|> (PureThy.add_defs o map Thm.no_attributes)
 [(automaton_name ^ "_def",
 automaton_name ^ " == hide " ^ aut_source ^ " " ^ hid_set)] 
 end)
@@ -449,7 +447,7 @@ handle malformed => error ("could not extract argument type of renaming function
 end;
  
 fun gen_add_rename prep_term automaton_name aut_source fun_name thy =
-(writeln("Constructing automaton " ^ automaton_name ^ "...");
+(writeln("Constructing automaton " ^ automaton_name ^ " ...");
 let
 val auttyp = aut_type_of thy aut_source;
 val st_typ = st_type_of thy auttyp;
@@ -464,7 +462,7 @@ Type("*",
   Type("*",[Type("set",[Type("*",[st_typ,Type("*",[acttyp,st_typ])])]),
    Type("*",[Type("set",[Type("set",[acttyp])]),Type("set",[Type("set",[acttyp])])])])])])
 ,NoSyn)]
-|> (PureThy.add_defs o map no_attributes)
+|> (PureThy.add_defs o map Thm.no_attributes)
 [(automaton_name ^ "_def",
 automaton_name ^ " == rename " ^ aut_source ^ " (" ^ fun_name ^ ")")]
 end)
@@ -491,5 +489,88 @@ val add_rename = gen_add_rename read_term;
 val add_rename_i = gen_add_rename cert_term;
 
 end
+
+
+
+(** outer syntax **)
+
+(* prepare results *)
+
+(*encoding transition specifications with a element of ParseTrans*)
+datatype ParseTrans = Rel of string | PP of string*(string*string)list;
+fun mk_trans_of_rel s = Rel(s);
+fun mk_trans_of_prepost (s,l) = PP(s,l); 
+
+fun trans_of (a, Rel b) = (a, b, [("", "")])
+  | trans_of (a, PP (b, l)) = (a, b, l);
+
+
+fun mk_ioa_decl (aut, ((((((action_type, inp), out), int), states), initial), trans)) =
+  add_ioa aut action_type inp out int states initial (map trans_of trans);
+
+fun mk_composition_decl (aut, autlist) =
+  add_composition aut autlist;
+
+fun mk_hiding_decl (aut, (actlist, source_aut)) =
+  add_hiding aut source_aut actlist;
+
+fun mk_restriction_decl (aut, (source_aut, actlist)) =
+  add_restriction aut source_aut actlist;
+
+fun mk_rename_decl (aut, (source_aut, rename_f)) =
+  add_rename aut source_aut rename_f;
+
+
+(* parsers *)
+
+local open OuterParse in
+
+val actionlist = list1 term;
+val inputslist = $$$ "inputs" |-- actionlist;
+val outputslist = $$$ "outputs" |-- actionlist;
+val internalslist = $$$ "internals" |-- actionlist;
+val stateslist = $$$ "states" |-- Scan.repeat1 (name --| $$$ "::" -- typ);
+val initial = $$$ "initially" |-- term;
+val assign_list = list1 (name --| $$$ ":=" -- term);
+val pre = $$$ "pre" |-- term;
+val post = $$$ "post" |-- assign_list;
+val pre1 = (pre -- (Scan.optional post [])) >> mk_trans_of_prepost;
+val post1 = ((Scan.optional pre "True") -- post) >> mk_trans_of_prepost;
+val transrel =  ($$$ "transrel" |-- term) >> mk_trans_of_rel;
+val transition = term -- (transrel || pre1 || post1);
+val translist = $$$ "transitions" |-- Scan.repeat1 transition;
+
+val ioa_decl =
+  (name -- ($$$ "=" |--
+    ($$$ "signature" |--
+      ($$$ "actions" |--
+        (typ --
+          (Scan.optional inputslist []) --
+          (Scan.optional outputslist []) --
+          (Scan.optional internalslist []) --
+          stateslist --
+          (Scan.optional initial "True") --
+        translist))))) >> mk_ioa_decl ||
+  (name -- ($$$ "=" |-- ($$$ "compose" |-- list1 name))) >> mk_composition_decl ||
+  (name -- ($$$ "=" |--	($$$ "hide" |-- list1 term -- ($$$ "in" |-- name)))) >> mk_hiding_decl ||
+  (name -- ($$$ "=" |-- ($$$ "restrict" |-- name -- ($$$ "to" |-- list1 term))))
+    >> mk_restriction_decl ||
+  (name -- ($$$ "=" |-- ($$$ "rename" |-- name -- ($$$ "with" |-- term)))) >> mk_rename_decl;
+
+val automatonP = OuterSyntax.command "automaton" "define Lynch/Vaandrager-style I/O automaton"
+  (ioa_decl >> Toplevel.theory);
+
+end;
+
+
+(* setup outer syntax *)
+
+val _ = OuterSyntax.add_keywords ["signature", "actions", "inputs",
+  "outputs", "internals", "states", "initially", "transitions", "pre",
+  "post", "transrel", ":=", "compose", "hide", "in", "restrict", "to",
+  "rename", "with"];
+
+val _ = OuterSyntax.add_parsers [automatonP];
+
 
 end;
