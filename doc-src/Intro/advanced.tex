@@ -9,9 +9,8 @@ or~{\tt LK}).  Try working some of the examples provided, and others from
 the literature.  Set theory~({\tt ZF}) and Constructive Type Theory~({\tt
   CTT}) form a richer world for mathematical reasoning and, again, many
 examples are in the literature.  Higher-order logic~({\tt HOL}) is
-Isabelle's most sophisticated logic, because its types and functions are
-identified with those of the meta-logic; this may cause difficulties for
-beginners.
+Isabelle's most sophisticated logic because its types and functions are
+identified with those of the meta-logic.
 
 Choose a logic that you already understand.  Isabelle is a proof
 tool, not a teaching tool; if you do not know how to do a particular proof
@@ -113,10 +112,10 @@ and the if-and-only-if connective:
   \Var{P}\bimp \Var{Q}  & \equiv & 
                 (\Var{P}\imp \Var{Q}) \conj (\Var{Q}\imp \Var{P})
 \end{eqnarray*}
-\index{meta-rewriting}
+\index{meta-rewriting}%
 Isabelle permits {\bf meta-level rewriting} using definitions such as
 these.  {\bf Unfolding} replaces every instance
-of $\neg \Var{P}$ by the corresponding instance of $\Var{P}\imp\bot$.  For
+of $\neg \Var{P}$ by the corresponding instance of ${\Var{P}\imp\bot}$.  For
 example, $\forall x.\neg (P(x)\conj \neg R(x,0))$ unfolds to
 \[ \forall x.(P(x)\conj R(x,0)\imp\bot)\imp\bot.  \]
 {\bf Folding} a definition replaces occurrences of the right-hand side by
@@ -124,7 +123,7 @@ the left.  The occurrences need not be free in the entire formula.
 
 When you define new concepts, you should derive rules asserting their
 abstract properties, and then forget their definitions.  This supports
-modularity: if you later change the definitions, without affecting their
+modularity: if you later change the definitions without affecting their
 abstract properties, then most of your proofs will carry through without
 change.  Indiscriminate unfolding makes a subgoal grow exponentially,
 becoming unreadable.
@@ -336,7 +335,7 @@ an entire logic.  A theory definition has the form
 \(T\) = \(S@1\) + \(\cdots\) + \(S@n\) +
 classes      {\it class declarations}
 default      {\it sort}
-types        {\it type declarations}
+types        {\it type declarations and synonyms}
 arities      {\it arity declarations}
 consts       {\it constant declarations}
 rules        {\it rule declarations}
@@ -361,30 +360,30 @@ just the union of $S@1$,~\ldots,~$S@n$.  New theories always extend one
 or more other theories, inheriting their types, constants, syntax, etc.
 The theory \thydx{Pure} contains nothing but Isabelle's meta-logic.
 
-Each theory definition must reside in a separate file, whose name is
-determined as follows: the theory name, say {\tt ListFn}, is converted to
-lower case and {\tt.thy} is appended, yielding the filename {\tt
-  listfn.thy}.  Isabelle uses this convention to locate the file containing
-a given theory; \ttindexbold{use_thy} automatically loads a theory's
-parents before loading the theory itself.
+Each theory definition must reside in a separate file, whose name is the
+theory's with {\tt.thy} appended.  For example, theory {\tt ListFn} resides
+on a file named {\tt ListFn.thy}.  Isabelle uses this convention to locate the
+file containing a given theory; \ttindexbold{use_thy} automatically loads a
+theory's parents before loading the theory itself.
 
-Calling \ttindexbold{use_thy}~{\tt"}{\it T\/}{\tt"} reads a theory from the
-file {\it t}{\tt.thy}, writes the corresponding {\ML} code to the file
-{\tt.}{\it t}{\tt.thy.ML}, reads the latter file, and deletes it if no errors
-occured.  This declares the {\ML} structure~$T$, which contains a component
+Calling \ttindexbold{use_thy}~{\tt"{\it T\/}"} reads a theory from the
+file {\it T}{\tt.thy}, writes the corresponding {\ML} code to the file
+{\tt.{\it T}.thy.ML}, reads the latter file, and deletes it if no errors
+occurred.  This declares the {\ML} structure~$T$, which contains a component
 {\tt thy} denoting the new theory, a component for each rule, and everything
 declared in {\it ML code}.
 
 Errors may arise during the translation to {\ML} (say, a misspelled keyword)
 or during creation of the new theory (say, a type error in a rule).  But if
-all goes well, {\tt use_thy} will finally read the file {\it t}{\tt.ML}, if
+all goes well, {\tt use_thy} will finally read the file {\it T}{\tt.ML}, if
 it exists.  This file typically begins with the {\ML} declaration {\tt
 open}~$T$ and contains proofs that refer to the components of~$T$.
 
 When a theory file is modified, many theories may have to be reloaded.
 Isabelle records the modification times and dependencies of theory files.
-See the {\em Reference Manual\/}
-\iflabelundefined{sec:reloading-theories}{}{(\S\ref{sec:reloading-theories})}
+See 
+\iflabelundefined{sec:reloading-theories}{the {\em Reference Manual\/}}%
+                 {\S\ref{sec:reloading-theories}}
 for more details.
 
 
@@ -491,7 +490,7 @@ $(term)term$ is short for $(\{term\})term$.  Recall the discussion in
 
 A type constructor may be overloaded (subject to certain conditions) by
 appearing in several arity declarations.  For instance, the function type
-constructor~$\To$ has the arity $(logic,logic)logic$; in higher-order
+constructor~$fun$ has the arity $(logic,logic)logic$; in higher-order
 logic, it is declared also to have arity $(term,term)term$.
 
 Theory {\tt List} declares the 1-place type constructor $list$, gives
@@ -521,7 +520,7 @@ quotation marks!  Types and rules must be quoted because the theory
 translator passes them verbatim to the {\ML} output file.
 \end{warn}
 
-\subsection{Type synonyms}\indexbold{types!synonyms}
+\subsection{Type synonyms}\indexbold{type synonyms}
 Isabelle supports {\bf type synonyms} ({\bf abbreviations}) which are similar
 to those found in \ML.  Such synonyms are defined in the type declaration part
 and are fairly self explanatory:
@@ -791,7 +790,7 @@ open Nat;
 \end{ttbox}
 
 \subsection{Proving some recursion equations}
-File {\tt FOL/ex/nat.ML} contains proofs involving this theory of the
+File {\tt FOL/ex/Nat.ML} contains proofs involving this theory of the
 natural numbers.  As a trivial example, let us derive recursion equations
 for \verb$+$.  Here is the zero case:
 \begin{ttbox}
@@ -969,7 +968,7 @@ The main goal admits fourteen different applications of induction.  The
 number is exponential in the size of the formula.
 
 \subsection{Proving that addition is associative}
-Let us invoke the induction rule properly properly, using~{\tt
+Let us invoke the induction rule properly, using~{\tt
   res_inst_tac}.  At the same time, we shall have a glimpse at Isabelle's
 simplification tactics, which are described in 
 \iflabelundefined{simp-chap}%
@@ -981,7 +980,7 @@ Isabelle's simplification tactics repeatedly apply equations to a subgoal,
 perhaps proving it.  For efficiency, the rewrite rules must be
 packaged into a {\bf simplification set},\index{simplification sets} 
 or {\bf simpset}.  We take the standard simpset for first-order logic and
-insert the equations for~{\tt add} proved in the previous section, namely
+insert the equations proved in the previous section, namely
 $0+n=n$ and ${\tt Suc}(m)+n={\tt Suc}(m+n)$:
 \begin{ttbox}
 val add_ss = FOL_ss addrews [add_0, add_Suc];
@@ -1003,7 +1002,7 @@ by (res_inst_tac [("n","k")] induct 1);
 \end{ttbox}
 The base case holds easily; both sides reduce to $m+n$.  The
 tactic~\ttindex{simp_tac} rewrites with respect to the given simplification
-set, applying the rewrite rules for~{\tt +}:
+set, applying the rewrite rules for addition:
 \begin{ttbox}
 by (simp_tac add_ss 1);
 {\out Level 2}
@@ -1011,7 +1010,7 @@ by (simp_tac add_ss 1);
 {\out  1. !!x. x + m + n = x + (m + n) ==>}
 {\out          Suc(x) + m + n = Suc(x) + (m + n)}
 \end{ttbox}
-The inductive step requires rewriting by the equations for~{\tt add}
+The inductive step requires rewriting by the equations for addition
 together the induction hypothesis, which is also an equation.  The
 tactic~\ttindex{asm_simp_tac} rewrites using a simplification set and any
 useful assumptions:
@@ -1028,7 +1027,7 @@ by (asm_simp_tac add_ss 1);
 \index{Prolog interpreter|bold}
 To demonstrate the power of tacticals, let us construct a Prolog
 interpreter and execute programs involving lists.\footnote{To run these
-examples, see the file {\tt FOL/ex/prolog.ML}.} The Prolog program
+examples, see the file {\tt FOL/ex/Prolog.ML}.} The Prolog program
 consists of a theory.  We declare a type constructor for lists, with an
 arity declaration to say that $(\tau)list$ is of class~$term$
 provided~$\tau$ is:
@@ -1199,7 +1198,7 @@ by (REPEAT (resolve_tac rules 1));
 {\out  1. app(Nil, ?x1 : Nil, a : b : c : Nil)}
 \end{ttbox}
 The tactic has failed to find a solution!  It reached a dead end at
-subgoal~1: there is no~$\Var{x1}$ such that [] appended with~$[\Var{x1}]$
+subgoal~1: there is no~$\Var{x@1}$ such that [] appended with~$[\Var{x@1}]$
 equals~$[a,b,c]$.  Backtracking explores other outcomes.
 \begin{ttbox}
 back();

@@ -38,12 +38,15 @@ taking the longest possible symbol that has been declared.  Thus the string
 symbols.
 
 Identifiers that are not reserved words may serve as free variables or
-constants.  A type identifier consists of an identifier prefixed by a
-prime, for example {\tt'a} and \hbox{\tt'hello}.  An unknown (or type
-unknown) consists of a question mark, an identifier (or type identifier),
-and a subscript.  The subscript, a non-negative integer, allows the
-renaming of unknowns prior to unification.%
-%
+constants.  A {\bf type identifier} consists of an identifier prefixed by a
+prime, for example {\tt'a} and \hbox{\tt'hello}.  Type identifiers stand
+for (free) type variables, which remain fixed during a proof.
+\index{type identifiers}
+
+An {\bf unknown}\index{unknowns} (or type unknown) consists of a question
+mark, an identifier (or type identifier), and a subscript.  The subscript,
+a non-negative integer,
+allows the renaming of unknowns prior to unification.%
 \footnote{The subscript may appear after the identifier, separated by a
   dot; this prevents ambiguity when the identifier ends with a digit.  Thus
   {\tt?z6.0} has identifier {\tt"z6"} and subscript~0, while {\tt?a0.5}
@@ -62,7 +65,7 @@ Classes are denoted by identifiers; the built-in class \cldx{logic}
 contains the `logical' types.  Sorts are lists of classes enclosed in
 braces~\} and \{; singleton sorts may be abbreviated by dropping the braces.
 
-\index{types!syntax of|bold}
+\index{types!syntax of|bold}\index{sort constraints}
 Types are written with a syntax like \ML's.  The built-in type \tydx{prop}
 is the type of propositions.  Type variables can be constrained to particular
 classes or sorts, for example {\tt 'a::term} and {\tt ?'b::\{ord,arith\}}.
@@ -72,10 +75,10 @@ classes or sorts, for example {\tt 'a::term} and {\tt ?'b::\{ord,arith\}}.
 \index{*[ symbol}\index{*] symbol}
 \begin{array}{lll}
     \multicolumn{3}{c}{\hbox{ASCII Notation for Types}} \\ \hline
-  t "::" C              & t :: C        & \hbox{class constraint} \\
-  t "::" "\{"   C@1 "," \ldots "," C@n "\}" &
-     t :: \{C@1,\dots,C@n\}             & \hbox{sort constraint} \\
-  \sigma"=>"\tau        & \sigma\To\tau & \hbox{function type} \\
+  \alpha "::" C              & \alpha :: C        & \hbox{class constraint} \\
+  \alpha "::" "\{" C@1 "," \ldots "," C@n "\}" &
+     \alpha :: \{C@1,\dots,C@n\}             & \hbox{sort constraint} \\
+  \sigma " => " \tau        & \sigma\To\tau & \hbox{function type} \\
   "[" \sigma@1 "," \ldots "," \sigma@n "] => " \tau &
      [\sigma@1,\ldots,\sigma@n] \To\tau & \hbox{curried function type} \\
   "(" \tau@1"," \ldots "," \tau@n ")" tycon & 
@@ -83,7 +86,7 @@ classes or sorts, for example {\tt 'a::term} and {\tt ?'b::\{ord,arith\}}.
 \end{array} 
 \]
 Terms are those of the typed $\lambda$-calculus.
-\index{terms!syntax of|bold}
+\index{terms!syntax of|bold}\index{type constraints}
 \[\dquotes
 \index{%@{\tt\%} symbol}\index{lambda abs@$\lambda$-abstractions}
 \index{*:: symbol}
@@ -180,11 +183,11 @@ For a final example, the rule $(\exists E)$ is rendered in {\sc ascii} as
 \subsection{Basic operations on theorems}
 \index{theorems!basic operations on|bold}
 \index{LCF system}
-Meta-level theorems have type \mltydx{thm} and represent the theorems and
-inference rules of object-logics.  Isabelle's meta-logic is implemented
-using the {\sc lcf} approach: each meta-level inference rule is represented by
-a function from theorems to theorems.  Object-level rules are taken as
-axioms.
+Meta-level theorems have the \ML{} type \mltydx{thm}.  They represent the
+theorems and inference rules of object-logics.  Isabelle's meta-logic is
+implemented using the {\sc lcf} approach: each meta-level inference rule is
+represented by a function from theorems to theorems.  Object-level rules
+are taken as axioms.
 
 The main theorem printing commands are {\tt prth}, {\tt prths} and~{\tt
   prthq}.  Of the other operations on theorems, most useful are {\tt RS}
@@ -214,9 +217,14 @@ and {\tt RSN}, which perform resolution.
   growth.
 \end{ttdescription}
 The rules of a theory are normally bound to \ML\ identifiers.  Suppose we
-are running an Isabelle session containing natural deduction first-order
-logic.  Let us try an example given in~\S\ref{joining}.  We first print
-\tdx{mp}, which is the rule~$({\imp}E)$, then resolve it with itself.
+are running an Isabelle session containing theory~\FOL, natural deduction
+first-order logic.\footnote{For a listing of the \FOL{} rules and their
+  \ML{} names, turn to
+\iflabelundefined{fol-rules}{{\em Isabelle's Object-Logics}}%
+           {page~\pageref{fol-rules}}.}
+Let us try an example given in~\S\ref{joining}.  We
+first print \tdx{mp}, which is the rule~$({\imp}E)$, then resolve it with
+itself.
 \begin{ttbox} 
 prth mp; 
 {\out [| ?P --> ?Q; ?P |] ==> ?Q}
@@ -225,14 +233,14 @@ prth (mp RS mp);
 {\out [| ?P1 --> ?P --> ?Q; ?P1; ?P |] ==> ?Q}
 {\out val it = "[| ?P1 --> ?P --> ?Q; ?P1; ?P |] ==> ?Q" : thm}
 \end{ttbox}
-User input appears in {\tt typewriter characters}, and output appears in
-{\sltt slanted typewriter characters}.  \ML's response {\out val }~\ldots{}
-is compiler-dependent and will sometimes be suppressed.  This session
-illustrates two formats for the display of theorems.  Isabelle's top-level
-displays theorems as ML values, enclosed in quotes.\footnote{This works
-  under both Poly/ML and Standard ML of New Jersey.}  Printing commands
-like {\tt prth} omit the quotes and the surrounding {\tt val \ldots :\ 
-  thm}.  Ignoring their side-effects, the commands are identity functions.
+User input appears in {\footnotesize\tt typewriter characters}, and output
+appears in {\sltt slanted typewriter characters}.  \ML's response {\out val
+  }~\ldots{} is compiler-dependent and will sometimes be suppressed.  This
+session illustrates two formats for the display of theorems.  Isabelle's
+top-level displays theorems as \ML{} values, enclosed in quotes.  Printing
+commands like {\tt prth} omit the quotes and the surrounding {\tt val
+  \ldots :\ thm}.  Ignoring their side-effects, the commands are identity
+functions.
 
 To contrast {\tt RS} with {\tt RSN}, we resolve
 \tdx{conjunct1}, which stands for~$(\conj E1)$, with~\tdx{mp}.
@@ -568,11 +576,15 @@ by (REPEAT (assume_tac 1));
 
 
 \section{Quantifier reasoning}
-\index{quantifiers}\index{parameters}\index{unknowns}
+\index{quantifiers}\index{parameters}\index{unknowns}\index{unknowns!function}
 This section illustrates how Isabelle enforces quantifier provisos.
-Quantifier rules create terms such as~$\Var{f}(x,z)$, where~$\Var{f}$ is a
-function unknown and $x$ and~$z$ are parameters.  This may be replaced by
-any term, possibly containing free occurrences of $x$ and~$z$.
+Suppose that $x$, $y$ and~$z$ are parameters of a subgoal.  Quantifier
+rules create terms such as~$\Var{f}(x,z)$, where~$\Var{f}$ is a function
+unknown.  Instantiating $\Var{f}$ to $\lambda x\,z.t$ has the effect of
+replacing~$\Var{f}(x,z)$ by~$t$, where the term~$t$ may contain free
+occurrences of~$x$ and~$z$.  On the other hand, no instantiation
+of~$\Var{f}$ can replace~$\Var{f}(x,z)$ by a term containing free
+occurrences of~$y$, since parameters are bound variables.
 
 \subsection{Two quantifier proofs: a success and a failure}
 \index{examples!with quantifiers}
@@ -721,7 +733,7 @@ by (assume_tac 1);
 
 \paragraph{The right approach.}
 To do this proof, the rules must be applied in the correct order.
-Eigenvariables should be created before unknowns.  The
+Parameters should be created before unknowns.  The
 \ttindex{choplev} command returns to an earlier stage of the proof;
 let us return to the result of applying~$({\imp}I)$:
 \begin{ttbox}
@@ -768,8 +780,8 @@ by (assume_tac 1);
 \index{tacticals} \index{examples!of tacticals} 
 
 Repeated application of rules can be effective, but the rules should be
-attempted in an order that delays the creation of unknowns.  Let us return
-to the original goal using \ttindex{choplev}:
+attempted in the correct order.  Let us return to the original goal using
+\ttindex{choplev}:
 \begin{ttbox}
 choplev 0;
 {\out Level 0}
@@ -853,12 +865,13 @@ by (assume_tac 1);
 \index{classical reasoner}
 Although Isabelle cannot compete with fully automatic theorem provers, it
 provides enough automation to tackle substantial examples.  The classical
-reasoner can be set up for any classical natural deduction logic
---- see the {\em Reference Manual}.
+reasoner can be set up for any classical natural deduction logic;
+see \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
+        {Chap.\ts\ref{chap:classical}}. 
 
-Rules are packaged into bundles called {\bf classical sets}.  The package
-provides several tactics, which apply rules using naive algorithms, using
-unification to handle quantifiers.  The most useful tactic
+Rules are packaged into {\bf classical sets}.  The classical reasoner
+provides several tactics, which apply rules using naive algorithms.
+Unification handles quantifiers as shown above.  The most useful tactic
 is~\ttindex{fast_tac}.  
 
 Let us solve problems~40 and~60 of Pelletier~\cite{pelletier86}.  (The
@@ -900,8 +913,9 @@ by (fast_tac FOL_cs 1);
 {\out ALL x. P(x,f(x)) <-> (EX y. (ALL z. P(z,y) --> P(z,f(x))) & P(x,y))}
 {\out No subgoals!}
 \end{ttbox}
-The classical reasoner is not restricted to the usual logical
-connectives.  The natural deduction rules for unions and intersections in
-set theory resemble those for disjunction and conjunction, and in the
-infinitary case, for quantifiers.  The package is valuable for reasoning in
-set theory.
+The classical reasoner is not restricted to the usual logical connectives.
+The natural deduction rules for unions and intersections resemble those for
+disjunction and conjunction.  The rules for infinite unions and
+intersections resemble those for quantifiers.  Given such rules, the classical
+reasoner is effective for reasoning in set theory.
+  

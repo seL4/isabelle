@@ -50,21 +50,24 @@ $\exists E$: provided $x$ is not free in $Q$ or any assumption except $P$
 \end{figure}
 
 \section{Formalizing logical syntax in Isabelle}\label{sec:logical-syntax}
+\index{first-order logic}
+
 Figure~\ref{fol-fig} presents intuitionistic first-order logic,
 including equality.  Let us see how to formalize
 this logic in Isabelle, illustrating the main features of Isabelle's
 polymorphic meta-logic.
 
+\index{lambda calc@$\lambda$-calculus} 
 Isabelle represents syntax using the simply typed $\lambda$-calculus.  We
 declare a type for each syntactic category of the logic.  We declare a
 constant for each symbol of the logic, giving each $n$-place operation an
 $n$-argument curried function type.  Most importantly,
 $\lambda$-abstraction represents variable binding in quantifiers.
-\index{lambda calc@$\lambda$-calculus} \index{lambda
-  abs@$\lambda$-abstractions}
 
-\index{types!syntax of}\index{types!function}\index{*fun type}
-Isabelle has \ML-style type constructors such as~$(\alpha)list$, where
+\index{types!syntax of}\index{types!function}\index{*fun type} 
+\index{type constructors}
+Isabelle has \ML-style polymorphic types such as~$(\alpha)list$, where
+$list$ is a type constructor and $\alpha$ is a type variable; for example,
 $(bool)list$ is the type of lists of booleans.  Function types have the
 form $(\sigma,\tau)fun$ or $\sigma\To\tau$, where $\sigma$ and $\tau$ are
 types.  Curried function types may be abbreviated:
@@ -116,8 +119,9 @@ The binary connectives can be declared as infixes, with appropriate
 precedences, so that we write $P\conj Q\disj R$ instead of
 $\disj(\conj(P,Q), R)$.
 
-\S\ref{sec:defining-theories} below describes the syntax of Isabelle theory
-files and illustrates it by extending our logic with mathematical induction.
+Section~\ref{sec:defining-theories} below describes the syntax of Isabelle
+theory files and illustrates it by extending our logic with mathematical
+induction.
 
 
 \subsection{Polymorphic types and constants} \label{polymorphic}
@@ -164,7 +168,7 @@ variables.
 We give~$o$ and function types the class $logic$ rather than~$term$, since
 they are not legal types for terms.  We may introduce new types of class
 $term$ --- for instance, type $string$ or $real$ --- at any time.  We can
-even declare type constructors such as $(\alpha)list$, and state that type
+even declare type constructors such as~$list$, and state that type
 $(\tau)list$ belongs to class~$term$ provided $\tau$ does; equality
 applies to lists of natural numbers but not to lists of formulae.  We may
 summarize this paragraph by a set of {\bf arity declarations} for type
@@ -176,7 +180,7 @@ constructors:\index{arities!declaring}
   list          & :: & (term)term
 \end{eqnarray*}
 (Recall that $fun$ is the type constructor for function types.)
-In higher-order logic, equality does apply to truth values and
+In \rmindex{higher-order logic}, equality does apply to truth values and
 functions;  this requires the arity declarations ${o::term}$
 and ${fun::(term,term)term}$.  The class system can also handle
 overloading.\index{overloading|bold} We could declare $arith$ to be the
@@ -186,7 +190,7 @@ Then we could declare the operators
   {+},{-},{\times},{/}  & :: & [\alpha{::}arith,\alpha]\To \alpha
 \end{eqnarray*}
 If we declare new types $real$ and $complex$ of class $arith$, then we
-effectively have three sets of operators:
+in effect have three sets of operators:
 \begin{eqnarray*}
   {+},{-},{\times},{/}  & :: & [nat,nat]\To nat \\
   {+},{-},{\times},{/}  & :: & [real,real]\To real \\
@@ -216,7 +220,10 @@ intersection of classes, $\{\}$, contains all types and is thus the {\bf
 
 Even with overloading, each term has a unique, most general type.  For this
 to be possible, the class and type declarations must satisfy certain
-technical constraints~\cite{nipkow-prehofer}.
+technical constraints; see 
+\iflabelundefined{sec:ref-defining-theories}%
+           {Sect.\ Defining Theories in the {\em Reference Manual}}%
+           {\S\ref{sec:ref-defining-theories}}.
 
 
 \subsection{Higher types and quantifiers}
@@ -338,10 +345,10 @@ $$ P\conj Q \Imp P  \qquad  P\conj Q \Imp Q  \eqno(\conj E1,2) $$
 \noindent
 Next, consider the disjunction rules.  The discharge of assumption in
 $(\disj E)$ is expressed  using $\Imp$:
+\index{assumptions!discharge of}%
 $$ P \Imp P\disj Q  \qquad  Q \Imp P\disj Q  \eqno(\disj I1,2) $$
 $$ \List{P\disj Q; P\Imp R; Q\Imp R} \Imp R  \eqno(\disj E) $$
-
-\noindent\index{assumptions!discharge of}
+%
 To understand this treatment of assumptions in natural
 deduction, look at implication.  The rule $({\imp}I)$ is the classic
 example of natural deduction: to prove that $P\imp Q$ is true, assume $P$
@@ -421,9 +428,8 @@ $$ \List{t=u; P(t)} \Imp P(u).  \eqno(subst)$$
 
 A {\bf signature} contains the information necessary for type checking,
 parsing and pretty printing a term.  It specifies classes and their
-relationships; types, with their arities, and constants, with
-their types.  It also contains syntax rules, specified using mixfix
-declarations.
+relationships, types and their arities, constants and their types, etc.  It
+also contains syntax rules, specified using mixfix declarations.
 
 Two signatures can be merged provided their specifications are compatible ---
 they must not, for example, assign different types to the same constant.
@@ -457,13 +463,13 @@ could be extended into a theory defining the length of a list:
      {}   &     {}   &\hbox{Pure}&     {}  &     {}
 \end{array}
 \]
-\end{tt}
+\end{tt}%
 Each Isabelle proof typically works within a single theory, which is
 associated with the proof state.  However, many different theories may
 coexist at the same time, and you may work in each of these during a single
 session.  
 
-\begin{warn}\index{constants!clashes with variables}
+\begin{warn}\index{constants!clashes with variables}%
   Confusing problems arise if you work in the wrong theory.  Each theory
   defines its own syntax.  An identifier may be regarded in one theory as a
   constant and in another as a variable.
@@ -481,7 +487,7 @@ have meta-level counterparts.  The meta-level formalization is {\bf
 properties must be demonstrated separately for each object-logic.
 
 The meta-logic is defined by a collection of inference rules, including
-equational rules for the $\lambda$-calculus, and logical rules.  The rules
+equational rules for the $\lambda$-calculus and logical rules.  The rules
 for~$\Imp$ and~$\Forall$ resemble those for~$\imp$ and~$\forall$ in
 Fig.\ts\ref{fol-fig}.  Proofs performed using the primitive meta-rules
 would be lengthy; Isabelle proofs normally use certain derived rules.
@@ -562,7 +568,7 @@ other occurrences of~$\Var{f}$, equation~(\ref{hou-eqn}) simplifies to the
 equation 
 \[ t(\Var{h@1}(t),\ldots,\Var{h@m}(t)) \qeq g(u@1,\ldots,u@k). $$ 
 
-\begin{warn}\index{unification!incompleteness of}
+\begin{warn}\index{unification!incompleteness of}%
 Huet's unification procedure is complete.  Isabelle's polymorphic version,
 which solves for type unknowns as well as for term unknowns, is incomplete.
 The problem is that projection requires type information.  In
@@ -637,7 +643,7 @@ becomes
 \]
 When resolving two rules, the unknowns in the first rule are renamed, by
 subscripting, to make them distinct from the unknowns in the second rule.  To
-resolve $({\imp}E)$ with itself, the first copy of the rule would become
+resolve $({\imp}E)$ with itself, the first copy of the rule becomes
 \[ \List{\Var{P@1}\imp \Var{Q@1}; \Var{P@1}}  \Imp \Var{Q@1}. \]
 Resolving this with $({\imp}E)$ in the first premise, unifying $\Var{Q@1}$ with
 $\Var{P}\imp \Var{Q}$, is the meta-level inference
@@ -647,9 +653,8 @@ $\Var{P}\imp \Var{Q}$, is the meta-level inference
           \List{\Var{P}\imp \Var{Q}; \Var{P}}  \Imp \Var{Q}}
 \]
 Renaming the unknowns in the resolvent, we have derived the
-object-level rule
+object-level rule\index{rules!derived}
 \[ \infer{Q.}{R\imp (P\imp Q)  &  R  &  P}  \]
-\index{rules!derived}
 Joining rules in this fashion is a simple way of proving theorems.  The
 derived rules are conservative extensions of the object-logic, and may permit
 simpler proofs.  Let us consider another example.  Suppose we have the axiom
@@ -797,9 +802,10 @@ instantiated during the proof; a proof state may be $\List{\phi@1; \ldots;
 To refine subgoal~$i$ of a proof state by a rule, perform the following
 resolution: 
 \[ \infer{\hbox{new proof state}}{\hbox{rule} & & \hbox{proof state}} \]
-If the rule is $\List{\psi'@1; \ldots; \psi'@m} \Imp \psi'$ after lifting
-over subgoal~$i$, and the proof state is $\List{\phi@1; \ldots; \phi@n}
-\Imp \phi$, then the new proof state is (for~$1\leq i\leq n$)
+Suppose the rule is $\List{\psi'@1; \ldots; \psi'@m} \Imp \psi'$ after
+lifting over subgoal~$i$'s assumptions and parameters.  If the proof state
+is $\List{\phi@1; \ldots; \phi@n} \Imp \phi$, then the new proof state is
+(for~$1\leq i\leq n$)
 \[ (\List{\phi@1; \ldots; \phi@{i-1}; \psi'@1;
           \ldots; \psi'@m; \phi@{i+1}; \ldots; \phi@n} \Imp \phi)s.  \]
 Substitution~$s$ unifies $\psi'$ with~$\phi@i$.  In the proof state,
@@ -974,9 +980,8 @@ $tac1$ followed by~$tac2$.
 tries~$tac1$ and returns the result if non-empty; otherwise, it uses~$tac2$.
 
 \item[REPEAT $tac$] is a repetition tactic.  Applied to a state, it
-returns all states reachable by applying~$tac$ as long as possible (until
-it would fail).  $REPEAT$ can be expressed in a few lines of \ML{} using
-{\tt THEN} and~{\tt ORELSE}.
+returns all states reachable by applying~$tac$ as long as possible --- until
+it would fail.  
 \end{ttdescription}
 For instance, this tactic repeatedly applies $tac1$ and~$tac2$, giving
 $tac1$ priority:
@@ -999,7 +1004,7 @@ can also serve to derive rules.
 \index{elim-resolution|bold}\index{assumptions!deleting}
 
 Consider proving the theorem $((R\disj R)\disj R)\disj R\imp R$.  By
-$({\imp}I)$, we prove $R$ from the assumption $((R\disj R)\disj R)\disj R$.
+$({\imp}I)$, we prove~$R$ from the assumption $((R\disj R)\disj R)\disj R$.
 Applying $(\disj E)$ to this assumption yields two subgoals, one that
 assumes~$R$ (and is therefore trivial) and one that assumes $(R\disj
 R)\disj R$.  This subgoal admits another application of $(\disj E)$.  Since
@@ -1008,9 +1013,8 @@ subgoal containing much that is redundant:
 \[ \List{((R\disj R)\disj R)\disj R; (R\disj R)\disj R; R\disj R; R} \Imp R. \]
 In general, using $(\disj E)$ on the assumption $P\disj Q$ creates two new
 subgoals with the additional assumption $P$ or~$Q$.  In these subgoals,
-$P\disj Q$ is redundant.  It wastes space; worse, it could make a theorem
-prover repeatedly apply~$(\disj E)$, looping.  Other elimination rules pose
-similar problems.  In first-order logic, only universally quantified
+$P\disj Q$ is redundant.  Other elimination rules behave
+similarly.  In first-order logic, only universally quantified
 assumptions are sometimes needed more than once --- say, to prove
 $P(f(f(a)))$ from the assumptions $\forall x.P(x)\imp P(f(x))$ and~$P(a)$.
 
@@ -1053,7 +1057,7 @@ is~$(\disj E)$,
 \[ \List{\Var{P}\disj \Var{Q};\; \Var{P}\Imp \Var{R};\; \Var{Q}\Imp \Var{R}}
       \Imp \Var{R}  \]
 and the proof state is $(P\disj P\Imp P)\Imp (P\disj P\imp P)$.  The
-lifted rule would be
+lifted rule is
 \[ \begin{array}{l@{}l}
   \lbrakk\;& P\disj P \Imp \Var{P@1}\disj\Var{Q@1}; \\
            & \List{P\disj P ;\; \Var{P@1}} \Imp \Var{R@1};    \\
@@ -1061,10 +1065,10 @@ lifted rule would be
   \rbrakk\;& \Imp \Var{R@1}
   \end{array} 
 \]
-Unification would take the simultaneous equations
+Unification takes the simultaneous equations
 $P\disj P \qeq \Var{P@1}\disj\Var{Q@1}$ and $\Var{R@1} \qeq P$, yielding
 $\Var{P@1}\equiv\Var{Q@1}\equiv\Var{R@1} \equiv P$.  The new proof state
-would be simply
+is simply
 \[ \List{P \Imp P;\; P \Imp P} \Imp (P\disj P\imp P). 
 \]
 Elim-resolution's simultaneous unification gives better control
@@ -1110,14 +1114,13 @@ proof, Isabelle provides a means of transforming a destruction rule such as
 \[ \infer[\quad\hbox{to the elimination rule}\quad]{Q}{P@1 & \ldots & P@m} 
    \infer{R.}{P@1 & \ldots & P@m & \infer*{R}{[Q]}} 
 \]
-\index{destruct-resolution}
-{\bf Destruct-resolution} combines this transformation with
-elim-resolution.  It applies a destruction rule to some assumption of a
-subgoal.  Given the rule above, it replaces the assumption~$P@1$ by~$Q$,
-with new subgoals of showing instances of $P@2$, \ldots,~$P@m$.
-Destruct-resolution works forward from a subgoal's assumptions.  Ordinary
-resolution performs forward reasoning from theorems, as illustrated
-in~\S\ref{joining}. 
+{\bf Destruct-resolution}\index{destruct-resolution} combines this
+transformation with elim-resolution.  It applies a destruction rule to some
+assumption of a subgoal.  Given the rule above, it replaces the
+assumption~$P@1$ by~$Q$, with new subgoals of showing instances of $P@2$,
+\ldots,~$P@m$.  Destruct-resolution works forward from a subgoal's
+assumptions.  Ordinary resolution performs forward reasoning from theorems,
+as illustrated in~\S\ref{joining}.
 
 
 \subsection{Deriving rules by resolution}  \label{deriving}
@@ -1149,10 +1152,14 @@ the state $R\Imp R$.  Resolving this with the second assumption yields the
 state 
 \[ \phantom{\List{P\conj Q;\; P\conj Q}}
    \llap{$\List{P;Q}$}\Imp R \quad [\,\List{P;Q}\Imp R\,]. \]
-Resolving subgoals~1 and~2 with $({\conj}E1)$ and $({\conj}E2)$,
+Resolving subgoals~1 and~2 with~$({\conj}E1)$ and~$({\conj}E2)$,
 respectively, yields the state
-\[ \List{P\conj Q;\; P\conj Q}\Imp R \quad [\,\List{P;Q}\Imp R\,]. \]
-Resolving both subgoals with the assumption $P\conj Q$ yields
+\[ \List{P\conj \Var{Q@1};\; \Var{P@2}\conj Q}\Imp R 
+   \quad [\,\List{P;Q}\Imp R\,]. 
+\]
+The unknowns $\Var{Q@1}$ and~$\Var{P@2}$ arise from unconstrained
+subformulae in the premises of~$({\conj}E1)$ and~$({\conj}E2)$.  Resolving
+both subgoals with the assumption $P\conj Q$ instantiates the unknowns to yield
 \[ R \quad [\, \List{P;Q}\Imp R, P\conj Q \,]. \]
 The proof may use the meta-assumptions in any order, and as often as
 necessary; when finished, we discharge them in the correct order to
@@ -1163,7 +1170,7 @@ premature instantiation during the proof; we may now replace them by
 schematic variables.
 
 \begin{warn}
-Schematic variables are not allowed in meta-assumptions because they would
-complicate lifting.  Meta-assumptions remain fixed throughout a proof.
+  Schematic variables are not allowed in meta-assumptions, for a variety of
+  reasons.  Meta-assumptions remain fixed throughout a proof.
 \end{warn}
 
