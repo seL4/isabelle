@@ -1,4 +1,4 @@
-(*  Title:      library
+(*  Title:      Pure/library.ML
     ID:         $Id$
     Author: 	Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
@@ -49,6 +49,13 @@ fun hd   []   = raise LIST "hd"
 
 fun tl   []   = raise LIST "tl"
   | tl (_::l) = l;
+
+
+(*curried cons and reverse cons*)
+
+fun cons x xs = x :: xs;
+
+fun rcons xs x = x :: xs;
 
 
 (*curried functions for pairing and reversed pairing*)
@@ -130,6 +137,12 @@ fun drop (_, [])    = []
 fun nth_elem NL = case (drop NL) of
     []   => raise LIST "nth_elem" 
   | x::l => x;
+
+
+(*Last element of a list*)
+fun last_elem [] = raise LIST "last_elem"
+  | last_elem [x] = x
+  | last_elem (_ :: xs) = last_elem xs;
 
 
 (*make the list [from, from+1, ..., to]*)
@@ -470,6 +483,10 @@ fun sort (less: 'a*'a -> bool) =
         | sort1 (x::xs) = insert (x, sort1 xs)
   in  sort1  end;
 
+(*sort strings*)
+val sort_strings = sort (op <= : string * string -> bool);
+
+
 (*Transitive Closure. Not Warshall's algorithm*)
 fun transitive_closure [] = []
   | transitive_closure ((x,ys)::ps) =
@@ -558,6 +575,15 @@ fun take_prefix (pred : 'a -> bool)  (xs: 'a list) : 'a list * 'a list =
 	    if  pred x  then  take(x::rxs, xs)  else  (rev rxs, x::xs)
   in  take([],xs)  end;
 
+(* [x1,...,xi,...,xn]  --->  ([x1,...,xi], [x(i+1),..., xn])
+   where xi is the last element that does not satisfy the predicate*)
+fun take_suffix _ [] = ([], [])
+  | take_suffix pred (x :: xs) =
+      (case take_suffix pred xs of
+        ([], sffx) => if pred x then ([], x :: sffx) else ([x], sffx)
+      | (prfx, sffx) => (x :: prfx, sffx));
+
+
 infix prefix;
 fun [] prefix _ = true
   | (x::xs) prefix (y::ys) = (x=y) andalso (xs prefix ys)
@@ -570,6 +596,7 @@ fun separate s (x :: (xs as _ :: _)) = x :: s :: separate s xs
 (*space_implode "..." (explode "hello");  gives  "h...e...l...l...o" *)
 fun space_implode a bs = implode (separate a bs); 
 
+(*simple quoting (does not escape special chars) *)
 fun quote s = "\"" ^ s ^ "\"";
 
 (*Concatenate messages, one per line, into a string*)
@@ -597,8 +624,8 @@ fun split_filename name =
   if path does not end with one a slash is appended *)
 fun tack_on "" name = name
   | tack_on path name =
-      if (hd (rev (explode path))) = "/" then path ^ name
-                                         else path ^ "/" ^ name;
+      if last_elem (explode path) = "/" then path ^ name
+      else path ^ "/" ^ name;
 
 (*Remove the extension of a filename, i.e. the part after the last '.' *)
 fun remove_ext name =
