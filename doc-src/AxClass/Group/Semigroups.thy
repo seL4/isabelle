@@ -5,12 +5,12 @@ theory Semigroups = Main:;
 
 text {*
  \medskip\noindent An axiomatic type class is simply a class of types
- that all meet certain \emph{axioms}. Thus, type classes may be also
- understood as type predicates --- i.e.\ abstractions over a single
- type argument $\alpha$.  Class axioms typically contain polymorphic
- constants that depend on this type $\alpha$.  These
- \emph{characteristic constants} behave like operations associated
- with the ``carrier'' type $\alpha$.
+ that all meet certain properties, which are also called \emph{class
+ axioms}. Thus, type classes may be also understood as type predicates
+ --- i.e.\ abstractions over a single type argument $\alpha$.  Class
+ axioms typically contain polymorphic constants that depend on this
+ type $\alpha$.  These \emph{characteristic constants} behave like
+ operations associated with the ``carrier'' type $\alpha$.
 
  We illustrate these basic concepts by the following formulation of
  semigroups.
@@ -35,8 +35,8 @@ text {*
  \medskip In general, type classes may be used to describe
  \emph{structures} with exactly one carrier $\alpha$ and a fixed
  \emph{signature}.  Different signatures require different classes.
- Subsequently, class $plus_semigroup$ represents semigroups of the
- form $(\tau, \PLUS^\tau)$, while $semigroup$ above would correspond
+ Below, class $plus_semigroup$ represents semigroups of the form
+ $(\tau, \PLUS^\tau)$, while the original $semigroup$ would correspond
  to semigroups $(\tau, \TIMES^\tau)$.
 *};
 
@@ -47,8 +47,9 @@ axclass
   assoc: "(x \<Oplus> y) \<Oplus> z = x \<Oplus> (y \<Oplus> z)";
 
 text {*
- \noindent Even if classes $plus_semigroup$ and $times_semigroup$ both
- represent semigroups in a sense, they are certainly not the same!
+ \noindent Even if classes $plus_semigroup$ and $semigroup$ both
+ represent semigroups in a sense, they are certainly not quite the
+ same.
 *};
 
 end;

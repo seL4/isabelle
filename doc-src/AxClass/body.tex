@@ -2,25 +2,25 @@
 \chapter{Introduction}
 
 A Haskell-style type-system \cite{haskell-report} with ordered type-classes
-has been present in Isabelle since 1991 \cite{nipkow-sorts93}.  Initially,
-classes have mainly served as a \emph{purely syntactic} tool to formulate
-polymorphic object-logics in a clean way, such as the standard Isabelle
-formulation of many-sorted FOL \cite{paulson-isa-book}.
+has been present in Isabelle since 1991 already \cite{nipkow-sorts93}.
+Initially, classes have mainly served as a \emph{purely syntactic} tool to
+formulate polymorphic object-logics in a clean way, such as the standard
+Isabelle formulation of many-sorted FOL \cite{paulson-isa-book}.
 
 Applying classes at the \emph{logical level} to provide a simple notion of
 abstract theories and instantiations to concrete ones, has been long proposed
-as well \cite{nipkow-types93,nipkow-sorts93}).  At that time, Isabelle still
+as well \cite{nipkow-types93,nipkow-sorts93}.  At that time, Isabelle still
 lacked built-in support for these \emph{axiomatic type classes}. More
 importantly, their semantics was not yet fully fleshed out (and unnecessarily
 complicated, too).
 
-Since the Isabelle94 releases, actual axiomatic type classes have been an
-integral part of Isabelle's meta-logic.  This very simple implementation is
-based on a straight-forward extension of traditional simple-typed Higher-Order
-Logic, including types qualified by logical predicates and overloaded constant
-definitions; see \cite{Wenzel:1997:TPHOL} for further details.
+Since Isabelle94, actual axiomatic type classes have been an integral part of
+Isabelle's meta-logic.  This very simple implementation is based on a
+straight-forward extension of traditional simply-typed Higher-Order Logic, by
+including types qualified by logical predicates and overloaded constant
+definitions (see \cite{Wenzel:1997:TPHOL} for further details).
 
-Yet until Isabelle99, there used to be still a fundamental methodological
+Yet even until Isabelle99, there used to be still a fundamental methodological
 problem in using axiomatic type classes conveniently, due to the traditional
 distinction of Isabelle theory files vs.\ ML proof scripts.  This has been
 finally overcome with the advent of Isabelle/Isar theories
@@ -32,9 +32,9 @@ proving concrete properties for instantiation of classes etc.
 \medskip
 
 So to cut a long story short, the present version of axiomatic type classes
-(Isabelle99 or later) now provides an even more useful and convenient
-mechanism for light-weight abstract theories, without any special provisions
-to be observed by the user.
+now provides an even more useful and convenient mechanism for light-weight
+abstract theories, without any special technical provisions to be observed by
+the user.
 
 
 \chapter{Examples}\label{sec:ex}

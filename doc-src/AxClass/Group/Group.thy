@@ -4,13 +4,13 @@ header {* Basic group theory *};
 theory Group = Main:;
 
 text {*
- \medskip\noindent The meta type system of Isabelle supports
+ \medskip\noindent The meta-type system of Isabelle supports
  \emph{intersections} and \emph{inclusions} of type classes. These
  directly correspond to intersections and inclusions of type
  predicates in a purely set theoretic sense. This is sufficient as a
  means to describe simple hierarchies of structures.  As an
  illustration, we use the well-known example of semigroups, monoids,
- general groups and abelian groups.
+ general groups and Abelian groups.
 *};
 
 subsection {* Monoids and Groups *};
@@ -47,9 +47,9 @@ text {*
 
 text {*
  \medskip Independently of $monoid$, we now define a linear hierarchy
- of semigroups, general groups and abelian groups.  Note that the
- names of class axioms are automatically qualified with the class
- name; thus we may re-use common names such as $assoc$.
+ of semigroups, general groups and Abelian groups.  Note that the
+ names of class axioms are automatically qualified with each class
+ name, so we may re-use common names such as $assoc$.
 *};
 
 axclass
@@ -59,7 +59,7 @@ axclass
 axclass
   group < semigroup
   left_unit:    "\<unit> \<Otimes> x = x"
-  left_inverse: "inverse x \<Otimes> x = \<unit>";
+  left_inverse: "x\<inv> \<Otimes> x = \<unit>";
 
 axclass
   agroup < group
@@ -67,7 +67,7 @@ axclass
 
 text {*
  \noindent Class $group$ inherits associativity of $\TIMES$ from
- $semigroup$ and adds the other two group axioms. Similarly, $agroup$
+ $semigroup$ and adds two further group axioms. Similarly, $agroup$
  is defined as the subset of $group$ such that for all of its elements
  $\tau$, the operation $\TIMES :: \tau \To \tau \To \tau$ is even
  commutative.
@@ -79,8 +79,8 @@ subsection {* Abstract reasoning *};
 text {*
  In a sense, axiomatic type classes may be viewed as \emph{abstract
  theories}.  Above class definitions gives rise to abstract axioms
- $assoc$, $left_unit$, $left_inverse$, $commute$, where all of these
- contain type a variable $\alpha :: c$ that is restricted to types of
+ $assoc$, $left_unit$, $left_inverse$, $commute$, where any of these
+ contain a type variable $\alpha :: c$ that is restricted to types of
  the corresponding class $c$.  \emph{Sort constraints} like this
  express a logical precondition for the whole formula.  For example,
  $assoc$ states that for all $\tau$, provided that $\tau ::
@@ -91,14 +91,14 @@ text {*
  ordinary Isabelle theorems, which may be used in proofs without
  special treatment.  Such ``abstract proofs'' usually yield new
  ``abstract theorems''.  For example, we may now derive the following
- laws of general groups.
+ well-known laws of general groups.
 *};
 
-theorem group_right_inverse: "x \<Otimes> x\<inv> = (\<unit>\<Colon>'a\<Colon>group)";
+theorem group_right_inverse: "x \<Otimes> x\<inv> = (\<unit>\\<Colon>'a\\<Colon>group)";
 proof -;
   have "x \<Otimes> x\<inv> = \<unit> \<Otimes> (x \<Otimes> x\<inv>)";
     by (simp only: group.left_unit);
-  also; have "... = (\<unit> \<Otimes> x) \<Otimes> x\<inv>";
+  also; have "... = \<unit> \<Otimes> x \<Otimes> x\<inv>";
     by (simp only: semigroup.assoc);
   also; have "... = (x\<inv>)\<inv> \<Otimes> x\<inv> \<Otimes> x \<Otimes> x\<inv>";
     by (simp only: group.left_inverse);
@@ -121,7 +121,7 @@ text {*
  much easier.
 *};
 
-theorem group_right_unit: "x \<Otimes> \<unit> = (x\<Colon>'a\<Colon>group)";
+theorem group_right_unit: "x \<Otimes> \<unit> = (x\\<Colon>'a\\<Colon>group)";
 proof -;
   have "x \<Otimes> \<unit> = x \<Otimes> (x\<inv> \<Otimes> x)";
     by (simp only: group.left_inverse);
@@ -151,7 +151,8 @@ text {*
  as an axiom, but for groups both $right_unit$ and $right_inverse$ are
  derivable from the other axioms.  With $group_right_unit$ derived as
  a theorem of group theory (see page~\pageref{thm:group-right-unit}),
- we may now instantiate $group \subseteq monoid$ properly as follows
+ we may now instantiate $monoid \subseteq semigroup$ and $group
+ \subseteq monoid$ properly as follows
  (cf.\ \figref{fig:monoid-group}).
 
  \begin{figure}[htbp]
@@ -180,24 +181,18 @@ text {*
      \label{fig:monoid-group}
    \end{center}
  \end{figure}
-
- We know by definition that $\TIMES$ is associative for monoids, i.e.\
- $monoid \subseteq semigroup$. Furthermore we have $assoc$,
- $left_unit$ and $right_unit$ for groups (where $right_unit$ is
- derivable from the group axioms), that is $group \subseteq monoid$.
- Thus we may establish the following class instantiations.
 *};
 
 instance monoid < semigroup;
 proof intro_classes;
-  fix x y z :: "'a\<Colon>monoid";
+  fix x y z :: "'a\\<Colon>monoid";
   show "x \<Otimes> y \<Otimes> z = x \<Otimes> (y \<Otimes> z)";
     by (rule monoid.assoc);
 qed;
 
 instance group < monoid;
 proof intro_classes;
-  fix x y z :: "'a\<Colon>group";
+  fix x y z :: "'a\\<Colon>group";
   show "x \<Otimes> y \<Otimes> z = x \<Otimes> (y \<Otimes> z)";
     by (rule semigroup.assoc);
   show "\<unit> \<Otimes> x = x";
@@ -208,15 +203,18 @@ qed;
 
 text {*
  \medskip The $\isakeyword{instance}$ command sets up an appropriate
- goal that represents the class inclusion (or type arity) to be proven
+ goal that represents the class inclusion (or type arity, see
+ \secref{sec:inst-arity}) to be proven
  (see also \cite{isabelle-isar-ref}).  The $intro_classes$ proof
  method does back-chaining of class membership statements wrt.\ the
  hierarchy of any classes defined in the current theory; the effect is
- to reduce to any logical class axioms as subgoals.
+ to reduce to the initial statement to a number of goals that directly
+ correspond to any class axioms encountered on the path upwards
+ through the class hierarchy.
 *};
 
 
-subsection {* Concrete instantiation *};
+subsection {* Concrete instantiation \label{sec:inst-arity} *};
 
 text {*
  So far we have covered the case of the form
@@ -228,11 +226,9 @@ text {*
  class membership may be established at the logical level and then
  transferred to Isabelle's type signature level.
 
- \medskip
-
- As an typical example, we show that type $bool$ with exclusive-or as
- operation $\TIMES$, identity as $\isasyminv$, and $False$ as $1$
- forms an Abelian group.
+ \medskip As a typical example, we show that type $bool$ with
+ exclusive-or as operation $\TIMES$, identity as $\isasyminv$, and
+ $False$ as $1$ forms an Abelian group.
 *};
 
 defs
@@ -242,12 +238,12 @@ defs
 
 text {*
  \medskip It is important to note that above $\DEFS$ are just
- overloaded meta-level constant definitions.  In particular, type
- classes are not yet involved at all!  This form of constant
- definition with overloading (and optional recursion over the
- syntactic structure of simple types) are admissible of proper
- definitional extensions in any version of HOL
- \cite{Wenzel:1997:TPHOL}.  Nevertheless, overloaded definitions are
+ overloaded meta-level constant definitions, where type classes are
+ not yet involved at all.  This form of constant definition with
+ overloading (and optional recursion over the syntactic structure of
+ simple types) are admissible as definitional extensions of plain HOL
+ \cite{Wenzel:1997:TPHOL}.  The Haskell-style type system is not
+ required for overloading.  Nevertheless, overloaded definitions are
  best applied in the context of type classes.
 
  \medskip Since we have chosen above $\DEFS$ of the generic group
@@ -258,7 +254,7 @@ text {*
 instance bool :: agroup;
 proof (intro_classes,
     unfold times_bool_def inverse_bool_def unit_bool_def);
-  fix x y z :: bool;
+  fix x y z;
   show "((x \\<noteq> y) \\<noteq> z) = (x \\<noteq> (y \\<noteq> z))"; by blast;
   show "(False \\<noteq> x) = x"; by blast;
   show "(x \\<noteq> x) = False"; by blast;
@@ -266,18 +262,18 @@ proof (intro_classes,
 qed;
 
 text {*
- The result of $\isakeyword{instance}$ is both expressed as a theorem
- of Isabelle's meta-logic, and a type arity statement of the type
- signature.  The latter enables the type-inference system to take care
- of this new instance automatically.
+ The result of an $\isakeyword{instance}$ statement is both expressed
+ as a theorem of Isabelle's meta-logic, and as a type arity of the
+ type signature.  The latter enables type-inference system to take
+ care of this new instance automatically.
 
- \medskip In a similarly fashion, we could also instantiate our group
- theory classes to many other concrete types.  For example, $int ::
- agroup$ (e.g.\ by defining $\TIMES$ as addition, $\isasyminv$ as
- negation and $1$ as zero) or $list :: (term)semigroup$ (e.g.\ if
- $\TIMES$ is defined as list append).  Thus, the characteristic
- constants $\TIMES$, $\isasyminv$, $1$ really become overloaded, i.e.\
- have different meanings on different types.
+ \medskip We could now also instantiate our group theory classes to
+ many other concrete types.  For example, $int :: agroup$ (e.g.\ by
+ defining $\TIMES$ as addition, $\isasyminv$ as negation and $1$ as
+ zero) or $list :: (term)semigroup$ (e.g.\ if $\TIMES$ is defined as
+ list append).  Thus, the characteristic constants $\TIMES$,
+ $\isasyminv$, $1$ really become overloaded, i.e.\ have different
+ meanings on different types.
 *};
 
 
@@ -292,23 +288,22 @@ text {*
 
  This feature enables us to \emph{lift operations}, say to Cartesian
  products, direct sums or function spaces.  Subsequently we lift
- $\TIMES$ component-wise to binary Cartesian products $\alpha \times
- \beta$.
+ $\TIMES$ component-wise to binary products $\alpha \times \beta$.
 *};
 
 defs
-  prod_prod_def: "p \<Otimes> q \\<equiv> (fst p \<Otimes> fst q, snd p \<Otimes> snd q)";
+  times_prod_def: "p \<Otimes> q \\<equiv> (fst p \<Otimes> fst q, snd p \<Otimes> snd q)";
 
 text {*
- It is very easy to see that associativity of $\TIMES^\alpha$,
+ It is very easy to see that associativity of $\TIMES^\alpha$ and
  $\TIMES^\beta$ transfers to ${\TIMES}^{\alpha \times \beta}$.  Hence
  the binary type constructor $\times$ maps semigroups to semigroups.
  This may be established formally as follows.
 *};
 
 instance * :: (semigroup, semigroup) semigroup;
-proof (intro_classes, unfold prod_prod_def);
-  fix p q r :: "'a\<Colon>semigroup * 'b\<Colon>semigroup";
+proof (intro_classes, unfold times_prod_def);
+  fix p q r :: "'a\\<Colon>semigroup \\<times> 'b\\<Colon>semigroup";
   show
     "(fst (fst p \<Otimes> fst q, snd p \<Otimes> snd q) \<Otimes> fst r,
       snd (fst p \<Otimes> fst q, snd p \<Otimes> snd q) \<Otimes> snd r) =
@@ -319,8 +314,8 @@ qed;
 
 text {*
  Thus, if we view class instances as ``structures'', then overloaded
- constant definitions with primitive recursion over types indirectly
- provide some kind of ``functors'' --- i.e.\ mappings between abstract
+ constant definitions with recursion over types indirectly provide
+ some kind of ``functors'' --- i.e.\ mappings between abstract
  theories.
 *};
 

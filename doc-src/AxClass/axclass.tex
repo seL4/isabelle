@@ -3,12 +3,12 @@
 \usepackage{graphicx,../iman,../extra,../isar,../pdfsetup}
 \usepackage{generated/isabelle,generated/isabellesym}
 
-\newcommand{\isasymOtimes}{\emph{$\odot$}}
+\newcommand{\TIMES}{\cdot}
+\newcommand{\PLUS}{\oplus}
+\newcommand{\isasymOtimes}{\emph{$\cdot$}}
 \newcommand{\isasymOplus}{\emph{$\oplus$}}
 \newcommand{\isasyminv}{\emph{${}^{-1}$}}
 \newcommand{\isasymunit}{\emph{$1$}}
-\newcommand{\TIMES}{\odot}
-\newcommand{\PLUS}{\oplus}
 
 
 \newcommand{\secref}[1]{\S\ref{#1}}
@@ -46,12 +46,12 @@
   abstract theories. Subsequently, we demonstrate typical uses of Isabelle's
   axiomatic type classes to model basic algebraic structures.
   
-  Note that this document describes axiomatic type classes using Isabelle/Isar
-  theories, with proofs expressed via Isar proof language elements.  The new
-  theory format greatly simplifies the arrangement of the overall development,
-  since definitions and proofs may be freely intermixed.  Users who prefer
-  tactic scripts over structured proofs do not need to fall back on separate
-  ML scripts, but may refer to Isar's tactic emulation commands.
+  This document describes axiomatic type classes using Isabelle/Isar theories,
+  with proofs expressed via Isar proof language elements.  The new theory
+  format greatly simplifies the arrangement of the overall development, since
+  definitions and proofs may be freely intermixed.  Users who prefer tactic
+  scripts over structured proofs do not need to fall back on separate ML
+  scripts, though, but may refer to Isar's tactic emulation commands.
 \end{abstract}
 
 

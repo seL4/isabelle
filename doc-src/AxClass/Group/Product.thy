@@ -5,14 +5,14 @@ theory Product = Main:;
 
 text {*
  \medskip\noindent There is still a feature of Isabelle's type system
- left that we have not yet used: when declaring polymorphic constants
- $c :: \sigma$, the type variables occurring in $\sigma$ may be
- constrained by type classes (or even general sorts) in an arbitrary
- way.  Note that by default, in Isabelle/HOL the declaration $\TIMES
- :: \alpha \To \alpha \To \alpha$ is actually an abbreviation for
- $\TIMES :: (\alpha::term) \To \alpha \To \alpha$.  Since class $term$
- is the universal class of HOL, this is not really a restriction at
- all.
+ left that we have not yet discussed.  When declaring polymorphic
+ constants $c :: \sigma$, the type variables occurring in $\sigma$ may
+ be constrained by type classes (or even general sorts) in an
+ arbitrary way.  Note that by default, in Isabelle/HOL the declaration
+ $\TIMES :: \alpha \To \alpha \To \alpha$ is actually an abbreviation
+ for $\TIMES :: (\alpha::term) \To \alpha \To \alpha$.  Since class
+ $term$ is the universal class of HOL, this is not really a constraint
+ at all.
 
  The $product$ class below provides a less degenerate example of
  syntactic type classes.
@@ -21,7 +21,7 @@ text {*
 axclass
   product < "term";
 consts
-  product :: "'a::product \\<Rightarrow> 'a \\<Rightarrow> 'a"    (infixl "\\<otimes>" 70);
+  product :: "'a::product \\<Rightarrow> 'a \\<Rightarrow> 'a"    (infixl "\\<Otimes>" 70);
 
 text {*
  Here class $product$ is defined as subclass of $term$ without any
@@ -55,7 +55,7 @@ text {*
 instance bool :: product;
   by intro_classes;
 defs
-  product_bool_def: "x \\<otimes> y \\<equiv> x \\<and> y";
+  product_bool_def: "x \\<Otimes> y \\<equiv> x \\<and> y";
 
 text {*
  The definition $prod_bool_def$ becomes syntactically well-formed only
@@ -70,14 +70,14 @@ text {*
 
  \medskip While Isabelle type classes and those of Haskell are almost
  the same as far as type-checking and type inference are concerned,
- there are major semantic differences.  Haskell classes require their
- instances to \emph{provide operations} of certain \emph{names}.
+ there are important semantic differences.  Haskell classes require
+ their instances to \emph{provide operations} of certain \emph{names}.
  Therefore, its \texttt{instance} has a \texttt{where} part that tells
  the system what these ``member functions'' should be.
 
- This style of \texttt{instance} won't make much sense in Isabelle,
- because its meta-logic has no corresponding notion of ``providing
- operations'' or ``names''.
+ This style of \texttt{instance} won't make much sense in Isabelle's
+ meta-logic, because there is no internal notion of ``providing
+ operations'' or even ``names of functions''.
 *};
 
 end;

@@ -4,14 +4,14 @@
 \isacommand{theory}~Product~=~Main:%
 \begin{isamarkuptext}%
 \medskip\noindent There is still a feature of Isabelle's type system
- left that we have not yet used: when declaring polymorphic constants
- $c :: \sigma$, the type variables occurring in $\sigma$ may be
- constrained by type classes (or even general sorts) in an arbitrary
- way.  Note that by default, in Isabelle/HOL the declaration $\TIMES
- :: \alpha \To \alpha \To \alpha$ is actually an abbreviation for
- $\TIMES :: (\alpha::term) \To \alpha \To \alpha$.  Since class $term$
- is the universal class of HOL, this is not really a restriction at
- all.
+ left that we have not yet discussed.  When declaring polymorphic
+ constants $c :: \sigma$, the type variables occurring in $\sigma$ may
+ be constrained by type classes (or even general sorts) in an
+ arbitrary way.  Note that by default, in Isabelle/HOL the declaration
+ $\TIMES :: \alpha \To \alpha \To \alpha$ is actually an abbreviation
+ for $\TIMES :: (\alpha::term) \To \alpha \To \alpha$.  Since class
+ $term$ is the universal class of HOL, this is not really a constraint
+ at all.
 
  The $product$ class below provides a less degenerate example of
  syntactic type classes.%
@@ -19,7 +19,7 @@
 \isacommand{axclass}\isanewline
 ~~product~<~{"}term{"}\isanewline
 \isacommand{consts}\isanewline
-~~product~::~{"}'a::product~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymotimes}{"}~70)%
+~~product~::~{"}'a::product~{\isasymRightarrow}~'a~{\isasymRightarrow}~'a{"}~~~~(\isakeyword{infixl}~{"}{\isasymOtimes}{"}~70)%
 \begin{isamarkuptext}%
 Here class $product$ is defined as subclass of $term$ without any
  additional axioms.  This effects in logical equivalence of $product$
@@ -51,7 +51,7 @@ Here class $product$ is defined as subclass of $term$ without any
 \isacommand{instance}~bool~::~product\isanewline
 ~~\isacommand{by}~intro\_classes\isanewline
 \isacommand{defs}\isanewline
-~~product\_bool\_def:~{"}x~{\isasymotimes}~y~{\isasymequiv}~x~{\isasymand}~y{"}%
+~~product\_bool\_def:~{"}x~{\isasymOtimes}~y~{\isasymequiv}~x~{\isasymand}~y{"}%
 \begin{isamarkuptext}%
 The definition $prod_bool_def$ becomes syntactically well-formed only
  after the arity $bool :: product$ is made known to the type checker.
@@ -65,13 +65,13 @@ The definition $prod_bool_def$ becomes syntactically well-formed only
 
  \medskip While Isabelle type classes and those of Haskell are almost
  the same as far as type-checking and type inference are concerned,
- there are major semantic differences.  Haskell classes require their
- instances to \emph{provide operations} of certain \emph{names}.
+ there are important semantic differences.  Haskell classes require
+ their instances to \emph{provide operations} of certain \emph{names}.
  Therefore, its \texttt{instance} has a \texttt{where} part that tells
  the system what these ``member functions'' should be.
 
- This style of \texttt{instance} won't make much sense in Isabelle,
- because its meta-logic has no corresponding notion of ``providing
- operations'' or ``names''.%
+ This style of \texttt{instance} won't make much sense in Isabelle's
+ meta-logic, because there is no internal notion of ``providing
+ operations'' or even ``names of functions''.%
 \end{isamarkuptext}%
 \isacommand{end}\end{isabelle}%
