@@ -31,6 +31,31 @@ axclass equiv < eqv
   equiv_trans [trans]: "x \<sim> y ==> y \<sim> z ==> x \<sim> z"
   equiv_sym [elim?]: "x \<sim> y ==> y \<sim> x"
 
+lemma not_equiv_sym [elim?]: "\<not> (x \<sim> y) ==> \<not> (y \<sim> (x::'a::equiv))"
+proof -
+  assume "\<not> (x \<sim> y)" thus "\<not> (y \<sim> x)"
+    by (rule contrapos_nn) (rule equiv_sym)
+qed
+
+lemma not_equiv_trans1 [trans]: "\<not> (x \<sim> y) ==> y \<sim> z ==> \<not> (x \<sim> (z::'a::equiv))"
+proof -
+  assume "\<not> (x \<sim> y)" and yz: "y \<sim> z"
+  show "\<not> (x \<sim> z)"
+  proof
+    assume "x \<sim> z"
+    also from yz have "z \<sim> y" ..
+    finally have "x \<sim> y" .
+    thus False by contradiction
+  qed
+qed
+
+lemma not_equiv_trans2 [trans]: "x \<sim> y ==> \<not> (y \<sim> z) ==> \<not> (x \<sim> (z::'a::equiv))"
+proof -
+  assume "\<not> (y \<sim> z)" hence "\<not> (z \<sim> y)" ..
+  also assume "x \<sim> y" hence "y \<sim> x" ..
+  finally have "\<not> (z \<sim> x)" . thus "(\<not> x \<sim> z)" ..
+qed
+
 text {*
  \medskip The quotient type @{text "'a quot"} consists of all
  \emph{equivalence classes} over elements of the base type @{typ 'a}.
@@ -73,7 +98,7 @@ text {*
  relation.
 *}
 
-theorem equivalence_class_iff [iff?]: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"
+theorem quot_equality: "(\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>) = (a \<sim> b)"
 proof
   assume eq: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>"
   show "a \<sim> b"
@@ -105,6 +130,18 @@ next
     thus ?thesis by (simp only: equivalence_class_def)
   qed
 qed
+
+lemma quot_equalI [intro?]: "a \<sim> b ==> \<lfloor>a\<rfloor> = \<lfloor>b\<rfloor>"
+  by (simp only: quot_equality)
+
+lemma quot_equalD [dest?]: "\<lfloor>a\<rfloor> = \<lfloor>b\<rfloor> ==> a \<sim> b"
+  by (simp only: quot_equality)
+
+lemma quot_not_equalI [intro?]: "\<not> (a \<sim> b) ==> \<lfloor>a\<rfloor> \<noteq> \<lfloor>b\<rfloor>"
+  by (simp add: quot_equality)
+
+lemma quot_not_equalD [dest?]: "\<lfloor>a\<rfloor> \<noteq> \<lfloor>b\<rfloor> ==> \<not> (a \<sim> b)"
+  by (simp add: quot_equality)
 
 
 subsection {* Picking representing elements *}
