@@ -23,10 +23,10 @@ sig
   val of_stream: TextIO.instream -> TextIO.outstream -> (string, unit) source
   val tty: (string, unit) source
   val source': 'a -> 'b * ('b -> bool) -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
-    ('a * 'b list -> 'd * ('a * 'b list)) option ->
+    ('a * 'b list -> 'c list * ('a * 'b list)) option ->
     ('b, 'e) source -> ('c, 'a * ('b, 'e) source) source
   val source: 'a * ('a -> bool) -> ('a list -> 'b list * 'a list) ->
-    ('a list -> 'c * 'a list) option ->
+    ('a list -> 'b list * 'a list) option ->
     ('a, 'd) source -> ('b, ('a, 'd) source) source
 end;
 

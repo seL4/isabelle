@@ -55,10 +55,10 @@ sig
   val error: ('a -> 'b) -> 'a -> 'b
   val source': string -> (string -> 'a -> 'b list * 'a) -> ('b list * 'a -> 'c) ->
     'b * ('b -> bool) -> ('d * 'b list -> 'e list * ('d * 'b list)) ->
-    ('d * 'b list -> 'f * ('d * 'b list)) option -> 'd * 'a -> 'e list * ('d * 'c)
+    ('d * 'b list -> 'e list * ('d * 'b list)) option -> 'd * 'a -> 'e list * ('d * 'c)
   val source: string -> (string -> 'a -> 'b list * 'a) -> ('b list * 'a -> 'c) ->
     'b * ('b -> bool) -> ('b list -> 'd list * 'b list) ->
-    ('b list -> 'e * 'b list) option -> 'a -> 'd list * 'c
+    ('b list -> 'd list * 'b list) option -> 'a -> 'd list * 'c
   val single: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   val bulk: ('a -> 'b * 'a) -> 'a -> 'b list * 'a
   type lexicon
@@ -207,12 +207,11 @@ fun drain def_prmpt get stopper scan ((state, xs), src) =
 
 fun source' def_prmpt get unget stopper scanner opt_recover (state, src) =
   let
-    fun drain_with scan = drain def_prmpt get stopper scan;
+    val drain_with = drain def_prmpt get stopper;
 
     fun drain_loop recover inp =
       drain_with (catch scanner) inp handle FAIL msg =>
-        (error_msg (if_none msg "Syntax error.");
-          drain_loop recover (apfst snd (drain_with recover inp)));
+        (error_msg (if_none msg "Syntax error."); drain_with recover inp);
 
     val ((ys, (state', xs')), src') =
       (case (get def_prmpt src, opt_recover) of
