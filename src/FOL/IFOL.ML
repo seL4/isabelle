@@ -46,6 +46,9 @@ qed_goalw "notE" IFOL.thy [not_def] "[| ~P;  P |] ==> R"
   [ (resolve_tac [mp RS FalseE] 1),
     (REPEAT (resolve_tac prems 1)) ]);
 
+qed_goal "rev_notE" IFOL.thy "!!P R. [| P; ~P |] ==> R"
+ (fn _ => [REPEAT (ares_tac [notE] 1)]);
+
 (*This is useful with the special implication rules for each kind of P. *)
 qed_goal "not_to_imp" IFOL.thy 
     "[| ~P;  (P-->False) ==> Q |] ==> Q"
