@@ -122,7 +122,6 @@ pwd             : unit -> string
 use             : string -> unit
 time_use        : string -> unit
 \end{ttbox}
-Section~\ref{LoadingTheories} describes commands for loading theory files.
 \begin{ttdescription}
 \item[\ttindexbold{cd} "{\it dir}";]
   changes the current directory to {\it dir}.  This is the default directory
@@ -137,6 +136,12 @@ of Isabelle commands is the usual way of replaying a proof.
 \item[\ttindexbold{time_use} "$file$";]  
 performs {\tt use~"$file$"} and prints the total execution time.
 \end{ttdescription}
+
+The $dir$ and $file$ specifications of the \texttt{cd} and
+\texttt{use} commands may contain path variables that are expanded
+accordingly --- e.g.\ \texttt{\$ISABELLE_HOME}, or \texttt{\~\relax}
+(abbreviating \texttt{\$HOME}).  Section~\ref{LoadingTheories}
+describes commands for loading theory files.
 
 
 \section{Setting flags}
