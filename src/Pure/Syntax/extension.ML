@@ -5,9 +5,8 @@
 External grammar definition (internal interface).
 
 TODO:
-  Ext of {roots, mfix, extra_consts} * {.._translation} * {.._rules}
-  remove synrules
-  extend_xgram: move '.. \\ roots1' to Syntax.extend_tables
+  ext = {roots, mfix, extra_consts} | {.._translation} | {.._rules} (?)
+  extend_xgram: move '.. \\ roots1' to Syntax.extend_tables (no?)
 *)
 
 signature EXTENSION0 =
@@ -30,11 +29,11 @@ sig
         parse_ast_translation: (string * (ast list -> ast)) list,
         parse_translation: (string * (term list -> term)) list,
         print_translation: (string * (term list -> term)) list,
-        print_ast_translation: (string * (ast list -> ast)) list}
-    datatype synrules =
-      SynRules of {
+        print_ast_translation: (string * (ast list -> ast)) list} |
+      ExtRules of {
         parse_rules: (ast * ast) list,
-        print_rules: (ast * ast) list}
+        print_rules: (ast * ast) list} |
+      ExtRoots of string list
     val logic: string
     val args: string
     val idT: typ
@@ -43,10 +42,9 @@ sig
     val tvarT: typ
     val typ_to_nonterm: typ -> string
     val applC: string
-    val empty_synrules: synrules
     val empty_xgram: xgram
-    val extend_xgram: xgram -> (ext * synrules) -> xgram
-    val mk_xgram: (ext * synrules) -> xgram
+    val extend_xgram: xgram -> ext -> xgram
+    val mk_xgram: ext -> xgram
   end
 end;
 
@@ -76,17 +74,30 @@ datatype ext =
     parse_ast_translation: (string * (ast list -> ast)) list,
     parse_translation: (string * (term list -> term)) list,
     print_translation: (string * (term list -> term)) list,
-    print_ast_translation: (string * (ast list -> ast)) list};
-
-datatype synrules =
-  SynRules of {
+    print_ast_translation: (string * (ast list -> ast)) list} |
+  ExtRules of {
     parse_rules: (ast * ast) list,
-    print_rules: (ast * ast) list};
+    print_rules: (ast * ast) list} |
+  ExtRoots of string list;
 
 
-(* empty_synrules *)
+(* ext_components *)
 
-val empty_synrules = SynRules {parse_rules = [], print_rules = []};
+fun ext_components (Ext ext) =
+      {roots = #roots ext, mfix = #mfix ext, extra_consts = #extra_consts ext,
+      parse_ast_translation = #parse_ast_translation ext,
+      parse_translation = #parse_translation ext,
+      print_translation = #print_translation ext,
+      print_ast_translation = #print_ast_translation ext,
+      parse_rules = [], print_rules = []}
+  | ext_components (ExtRules {parse_rules, print_rules}) =
+      {parse_rules = parse_rules, print_rules = print_rules, roots = [], mfix = [],
+      extra_consts = [], parse_ast_translation = [], parse_translation = [],
+      print_translation = [], print_ast_translation = []}
+  | ext_components (ExtRoots roots) =
+      {roots = roots, mfix = [], extra_consts = [], parse_ast_translation = [],
+      parse_rules = [], parse_translation = [], print_translation = [],
+      print_rules = [], print_ast_translation = []};
 
 
 (* empty_xgram *)
@@ -216,9 +227,9 @@ fun mfix_to_prod (Mfix (sy, typ, const, pris, pri)) =
     seq check_pri pris;
     check_pri pri;
     check_blocks symbs;
-    if is_terminal lhs then err ("illegal lhs: " ^ lhs) else ();
 
-    if const <> "" then prod
+    if is_terminal lhs then err ("illegal lhs: " ^ lhs)
+    else if const <> "" then prod
     else if length (filter is_arg symbs) <> 1 then
       err "copy production must have exactly one argument"
     else if exists is_term symbs then prod
@@ -229,7 +240,7 @@ fun mfix_to_prod (Mfix (sy, typ, const, pris, pri)) =
 
 (** extend_xgram **)
 
-fun extend_xgram (XGram xgram) (Ext ext, SynRules rules) =
+fun extend_xgram (XGram xgram) ext =
   let
     fun descend (from, to) = Mfix ("_", to --> from, "", [0], 0);
 
@@ -256,11 +267,11 @@ fun extend_xgram (XGram xgram) (Ext ext, SynRules rules) =
 
     val {roots = roots2, mfix, extra_consts,
       parse_ast_translation = parse_ast_translation2,
+      parse_rules = parse_rules2,
       parse_translation = parse_translation2,
       print_translation = print_translation2,
-      print_ast_translation = print_ast_translation2} = ext;
-
-    val {parse_rules = parse_rules2, print_rules = print_rules2} = rules;
+      print_rules = print_rules2,
+      print_ast_translation = print_ast_translation2} = ext_components ext;
 
     val Troots = map (apr (Type, [])) (roots2 \\ roots1);
     val Troots' = Troots \\ [typeT, propT, logicT];
