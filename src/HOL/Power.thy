@@ -19,7 +19,7 @@ primrec "binomial" nat
   binomial_0   "(0     choose k) = (if k = 0 then 1 else 0)"
 
   binomial_Suc "(Suc n choose k) =
-                (if k = 0 then 1 else (n choose pred k) + (n choose k))"
+                (if k = 0 then 1 else (n choose (k - 1)) + (n choose k))"
 
 end
 

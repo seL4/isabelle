@@ -84,7 +84,7 @@ by (ALLGOALS Asm_simp_tac);
 qed "length_rev";
 Addsimps [length_rev];
 
-goal List.thy "!!xs. xs ~= [] ==> length(tl xs) = pred(length xs)";
+goal List.thy "!!xs. xs ~= [] ==> length(tl xs) = (length xs) - 1";
 by (exhaust_tac "xs" 1);
 by (ALLGOALS Asm_full_simp_tac);
 qed "length_tl";
