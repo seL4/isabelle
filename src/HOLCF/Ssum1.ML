@@ -41,7 +41,7 @@ fun UU_right s1 =
 in
 
 val less_ssum1a = prove_goalw Ssum1.thy [less_ssum_def]
-"[|s1=Isinl(x); s2=Isinl(y)|] ==> less_ssum(s1,s2) = (x << y)"
+"[|s1=Isinl(x::'a); s2=Isinl(y::'a)|] ==> less_ssum(s1,s2) = (x << y)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -70,7 +70,7 @@ val less_ssum1a = prove_goalw Ssum1.thy [less_ssum_def]
 	(UU_left "y"),
 	(rtac iffI 1),
 	(etac UU_I 1),
-	(res_inst_tac [("s","x"),("t","UU")] subst 1),
+	(res_inst_tac [("s","x"),("t","UU::'a")] subst 1),
 	(atac 1),
 	(rtac refl_less 1),
 	(strip_tac 1),
@@ -82,7 +82,7 @@ val less_ssum1a = prove_goalw Ssum1.thy [less_ssum_def]
 
 
 val less_ssum1b = prove_goalw Ssum1.thy [less_ssum_def]
-"[|s1=Isinr(x); s2=Isinr(y)|] ==> less_ssum(s1,s2) = (x << y)"
+"[|s1=Isinr(x::'b); s2=Isinr(y::'b)|] ==> less_ssum(s1,s2) = (x << y)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -117,14 +117,14 @@ val less_ssum1b = prove_goalw Ssum1.thy [less_ssum_def]
 	(UU_right "y"),
 	(rtac iffI 1),
 	(etac UU_I 1),
-	(res_inst_tac [("s","UU"),("t","x")] subst 1),
+	(res_inst_tac [("s","UU::'b"),("t","x")] subst 1),
 	(etac sym 1),
 	(rtac refl_less 1)
 	]);
 
 
 val less_ssum1c = prove_goalw Ssum1.thy [less_ssum_def]
-"[|s1=Isinl(x); s2=Isinr(y)|] ==> less_ssum(s1,s2) = (x = UU)"
+"[|s1=Isinl(x::'a); s2=Isinr(y::'b)|] ==> less_ssum(s1,s2) = ((x::'a) = UU)"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -135,7 +135,7 @@ val less_ssum1c = prove_goalw Ssum1.thy [less_ssum_def]
 	(eq_left  "x" "u"),
 	(UU_left "xa"),
 	(rtac iffI 1),
-	(res_inst_tac [("s","x"),("t","UU")] subst 1),
+	(res_inst_tac [("s","x"),("t","UU::'a")] subst 1),
 	(atac 1),
 	(rtac refl_less 1),
 	(etac UU_I 1),

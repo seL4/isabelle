@@ -197,8 +197,8 @@ fun prover contr thm = prove_goal Dlist.thy thm
 
 
 val dlist_constrdef = [
-prover "is_dnil[UU] ~= UU" "dnil~=UU",
-prover "is_dcons[UU] ~= UU" "[|x~=UU;xl~=UU|] ==> dcons[x][xl]~=UU"
+prover "is_dnil[UU::'a dlist] ~= UU" "dnil~=(UU::'a dlist)",
+prover "is_dcons[UU::'a dlist] ~= UU" "[|x~=UU;xl~=UU|]==>dcons[x::'a][xl]~=UU"
  ];
 
 
@@ -220,7 +220,7 @@ val dlist_rews = dlist_constrdef @ dlist_rews;
 (* Distinctness wrt. << and =                                              *)
 (* ------------------------------------------------------------------------*)
 
-val temp = prove_goal Dlist.thy  "~dnil << dcons[x][xl]"
+val temp = prove_goal Dlist.thy  "~dnil << dcons[x::'a][xl]"
  (fn prems =>
 	[
 	(res_inst_tac [("P1","TT << FF")] classical3 1),
@@ -228,9 +228,9 @@ val temp = prove_goal Dlist.thy  "~dnil << dcons[x][xl]"
 	(dres_inst_tac [("fo5","is_dnil")] monofun_cfun_arg 1),
 	(etac box_less 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(res_inst_tac [("Q","x=UU")] classical2 1),
+	(res_inst_tac [("Q","(x::'a)=UU")] classical2 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
-	(res_inst_tac [("Q","xl=UU")] classical2 1),
+	(res_inst_tac [("Q","(xl ::'a dlist)=UU")] classical2 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1),
 	(asm_simp_tac (HOLCF_ss addsimps dlist_rews) 1)
 	]);

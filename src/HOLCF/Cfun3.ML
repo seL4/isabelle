@@ -205,7 +205,7 @@ val contX_tacR = (fn i => (REPEAT (contX_tac i)));
 (* function application _[_]  is strict in its first arguments              *)
 (* ------------------------------------------------------------------------ *)
 
-qed_goal "strict_fapp1" Cfun3.thy "UU[x] = UU"
+qed_goal "strict_fapp1" Cfun3.thy "(UU::'a->'b)[x] = (UU::'b)"
  (fn prems =>
 	[
 	(rtac (inst_cfun_pcpo RS ssubst) 1),
@@ -221,7 +221,7 @@ qed_goal "strict_fapp1" Cfun3.thy "UU[x] = UU"
 (* ------------------------------------------------------------------------ *)
 
 qed_goalw "Istrictify1" Cfun3.thy [Istrictify_def]
-	"Istrictify(f)(UU)=UU"
+	"Istrictify(f)(UU)= (UU)"
  (fn prems =>
 	[
 	(rtac select_equality 1),
@@ -305,12 +305,12 @@ qed_goal "contlub_Istrictify1" Cfun3.thy "contlub(Istrictify)"
 	(rtac (refl RS allI) 1)
 	]);
 
-qed_goal "contlub_Istrictify2" Cfun3.thy "contlub(Istrictify(f))"
+qed_goal "contlub_Istrictify2" Cfun3.thy "contlub(Istrictify(f::'a -> 'b))"
  (fn prems =>
 	[
 	(rtac contlubI 1),
 	(strip_tac 1),
-	(res_inst_tac [("Q","lub(range(Y))=UU")] classical2 1),
+	(res_inst_tac [("Q","lub(range(Y))=(UU::'a)")] classical2 1),
 	(res_inst_tac [("t","lub(range(Y))")] subst 1),
 	(rtac sym 1),
 	(atac 1),
@@ -318,7 +318,7 @@ qed_goal "contlub_Istrictify2" Cfun3.thy "contlub(Istrictify(f))"
 	(rtac sym 1),
 	(rtac chain_UU_I_inverse 1),
 	(strip_tac 1),
-	(res_inst_tac [("t","Y(i)"),("s","UU")] subst 1),
+	(res_inst_tac [("t","Y(i)"),("s","UU::'a")] subst 1),
 	(rtac sym 1),
 	(rtac (chain_UU_I RS spec) 1),
 	(atac 1),
@@ -347,7 +347,7 @@ qed_goal "contlub_Istrictify2" Cfun3.thy "contlub(Istrictify(f))"
 	]);
 
 
-val contX_Istrictify1 =	(contlub_Istrictify1 RS 
+val contX_Istrictify1 = (contlub_Istrictify1 RS 
 	(monofun_Istrictify1 RS monocontlub2contX)); 
 
 val contX_Istrictify2 = (contlub_Istrictify2 RS 

@@ -190,7 +190,8 @@ qed_goal "ssum_lemma2" Ssum2.thy
 
 
 qed_goal "ssum_lemma3" Ssum2.thy 
-"[|is_chain(Y);(? i x. Y(i)=Isinr(x) & ~x=UU)|] ==> (!i.? y.Y(i)=Isinr(y))"
+"[|is_chain(Y);(? i x. Y(i)=Isinr(x::'b) & (x::'b)~=UU)|] ==>\
+\ (!i.? y.Y(i)=Isinr(y))"
  (fn prems =>
 	[
 	(cut_facts_tac prems 1),
@@ -207,22 +208,16 @@ qed_goal "ssum_lemma3" Ssum2.thy
 	(res_inst_tac [("m","i"),("n","ia")] nat_less_cases 1),
 	(hyp_subst_tac 2),
 	(etac exI 2),
-	(res_inst_tac [("P","x=UU")] notE 1),
-	(atac 1),
+	(eres_inst_tac [("P","x=UU")] notE 1),
 	(rtac (less_ssum3d RS iffD1) 1),
-	(res_inst_tac [("s","Y(i)"),("t","Isinr(x)")] subst 1),
-	(atac 1),
-	(res_inst_tac [("s","Y(ia)"),("t","Isinl(xa)")] subst 1),
-	(atac 1),
+	(eres_inst_tac [("s","Y(i)"),("t","Isinr(x)::'a++'b")] subst 1),
+	(eres_inst_tac [("s","Y(ia)"),("t","Isinl(xa)::'a++'b")] subst 1),
 	(etac (chain_mono RS mp) 1),
 	(atac 1),
-	(res_inst_tac [("P","xa=UU")] notE 1),
-	(atac 1),
+	(eres_inst_tac [("P","xa=UU")] notE 1),
 	(rtac (less_ssum3c RS iffD1) 1),
-	(res_inst_tac [("s","Y(i)"),("t","Isinr(x)")] subst 1),
-	(atac 1),
-	(res_inst_tac [("s","Y(ia)"),("t","Isinl(xa)")] subst 1),
-	(atac 1),
+	(eres_inst_tac [("s","Y(i)"),("t","Isinr(x)::'a++'b")] subst 1),
+	(eres_inst_tac [("s","Y(ia)"),("t","Isinl(xa)::'a++'b")] subst 1),
 	(etac (chain_mono RS mp) 1),
 	(atac 1)
 	]);

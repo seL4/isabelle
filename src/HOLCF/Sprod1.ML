@@ -146,8 +146,8 @@ qed_goal "antisym_less_sprod" Sprod1.thy
 	]);
 
 qed_goal "trans_less_sprod" Sprod1.thy 
- "[|less_sprod(p1,p2);less_sprod(p2,p3)|] ==> less_sprod(p1,p3)"
-(fn prems =>
+ "[|less_sprod(p1::'a**'b,p2);less_sprod(p2,p3)|] ==> less_sprod(p1,p3)"
+ (fn prems =>
 	[
 	(cut_facts_tac prems 1),
 	(res_inst_tac [("p","p1")] IsprodE 1),
@@ -155,40 +155,34 @@ qed_goal "trans_less_sprod" Sprod1.thy
 	(hyp_subst_tac 1),
 	(res_inst_tac [("p","p3")] IsprodE 1),
 	(hyp_subst_tac 1),
-	(res_inst_tac [("s","p2"),("t","Ispair(UU,UU)")] subst 1),
+	(res_inst_tac [("s","p2"),("t","Ispair(UU::'a,UU::'b)")] subst 1),
 	(etac less_sprod2b 1),
 	(atac 1),
 	(hyp_subst_tac 1),
-	(res_inst_tac [("Q","p2=Ispair(UU,UU)")]  
-		(excluded_middle RS disjE) 1),
+	(res_inst_tac [("Q","p2=Ispair(UU::'a,UU::'b)")]
+		 (excluded_middle RS disjE) 1),
 	(rtac (defined_Ispair RS less_sprod1b RS ssubst) 1),
-	(atac 1),
-	(atac 1),
+	(REPEAT (atac 1)),
 	(rtac conjI 1),
 	(res_inst_tac [("y","Isfst(p2)")] trans_less 1),
 	(rtac conjunct1 1),
 	(rtac (less_sprod1b RS subst) 1),
 	(rtac defined_Ispair 1),
-	(atac 1),
-	(atac 1),
-	(atac 1),
+	(REPEAT (atac 1)),
 	(rtac conjunct1 1),
 	(rtac (less_sprod1b RS subst) 1),
-	(atac 1),
-	(atac 1),
+	(REPEAT (atac 1)),
 	(res_inst_tac [("y","Issnd(p2)")] trans_less 1),
 	(rtac conjunct2 1),
 	(rtac (less_sprod1b RS subst) 1),
 	(rtac defined_Ispair 1),
-	(atac 1),
-	(atac 1),
-	(atac 1),
+	(REPEAT (atac 1)),
 	(rtac conjunct2 1),
 	(rtac (less_sprod1b RS subst) 1),
-	(atac 1),
-	(atac 1),
+	(REPEAT (atac 1)),
 	(hyp_subst_tac 1),
-	(res_inst_tac [("s","Ispair(UU,UU)"),("t","Ispair(x,y)")] subst 1),
+	(res_inst_tac [("s","Ispair(UU::'a,UU::'b)"),("t","Ispair(x,y)")] 
+		subst 1),
 	(etac (less_sprod2b RS sym) 1),
 	(atac 1)
 	]);
