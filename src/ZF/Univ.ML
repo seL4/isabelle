@@ -303,14 +303,28 @@ val Transset_Pair_subset_Vfrom_limit = result();
      and i is a limit ordinal
 ***)
 
-(*There are three nearly identical proofs below -- needs a general theorem
-  for proving  ...a...b : Vfrom(A,i) where i is a limit ordinal*)
+(*General theorem for membership in Vfrom(A,i) when i is a limit ordinal*)
+val [aprem,bprem,limiti,step] = goal Univ.thy
+  "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);			\
+\     !!x y j. [| j<i; 1:j; x: Vfrom(A,j); y: Vfrom(A,j) \
+\              |] ==> EX k. h(x,y): Vfrom(A,k) & k<i |] ==> 	\
+\  h(a,b) : Vfrom(A,i)";
+(*Infer that a, b occur at ordinals x,xa < i.*)
+by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
+by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
+by (res_inst_tac [("j1", "x Un xa Un succ(1)")] (step RS exE) 1);
+by (DO_GOAL [etac conjE, etac Limit_VfromI, rtac limiti, atac] 5);
+by (etac (Vfrom_UnI2 RS Vfrom_UnI1) 4);
+by (etac (Vfrom_UnI1 RS Vfrom_UnI1) 3);
+by (rtac (succI1 RS UnI2) 2);
+by (REPEAT (ares_tac [limiti, Limit_has_0, Limit_has_succ, Un_least_lt] 1));
+val in_Vfrom_limit = result();
 
 (** products **)
 
 goal Univ.thy
-    "!!A. [| a: Vfrom(A,i);  b: Vfrom(A,i);  Transset(A) |] ==> \
-\         a*b : Vfrom(A, succ(succ(succ(i))))";
+    "!!A. [| a: Vfrom(A,j);  b: Vfrom(A,j);  Transset(A) |] ==> \
+\         a*b : Vfrom(A, succ(succ(succ(j))))";
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
 by (rewtac Transset_def);
@@ -320,21 +334,16 @@ val prod_in_Vfrom = result();
 val [aprem,bprem,limiti,transset] = goal Univ.thy
   "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> \
 \  a*b : Vfrom(A,i)";
-(*Infer that a, b occur at ordinals x,xa < i.*)
-by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
-by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
-by (rtac ([prod_in_Vfrom, limiti] MRS Limit_VfromI) 1);
-by (etac (Vfrom_UnI1 RS Vfrom_UnI2) 1);
-by (etac (Vfrom_UnI2 RS Vfrom_UnI2) 1);
-(*Infer that succ(succ(succ(x Un xa))) < i *)
-by (REPEAT (ares_tac [limiti, Limit_has_succ, Un_least_lt, transset] 1));
+by (rtac ([aprem,bprem,limiti] MRS in_Vfrom_limit) 1);
+by (REPEAT (ares_tac [exI, conjI, prod_in_Vfrom, transset,
+		      limiti RS Limit_has_succ] 1));
 val prod_in_Vfrom_limit = result();
 
 (** Disjoint sums, aka Quine ordered pairs **)
 
 goalw Univ.thy [sum_def]
-    "!!A. [| a: Vfrom(A,i);  b: Vfrom(A,i);  Transset(A);  1:i |] ==> \
-\         a+b : Vfrom(A, succ(succ(succ(i))))";
+    "!!A. [| a: Vfrom(A,j);  b: Vfrom(A,j);  Transset(A);  1:j |] ==> \
+\         a+b : Vfrom(A, succ(succ(succ(j))))";
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
 by (rewtac Transset_def);
@@ -345,23 +354,16 @@ val sum_in_Vfrom = result();
 val [aprem,bprem,limiti,transset] = goal Univ.thy
   "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> \
 \  a+b : Vfrom(A,i)";
-(*Infer that a, b occur at ordinals x,xa < i.*)
-by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
-by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
-by (rtac ([sum_in_Vfrom, limiti] MRS Limit_VfromI) 1);
-by (rtac (succI1 RS UnI1) 4);
-(*Infer that  succ(succ(succ(succ(1) Un (x Un xa)))) < i *)
-by (etac (Vfrom_UnI1 RS Vfrom_UnI2) 1);
-by (etac (Vfrom_UnI2 RS Vfrom_UnI2) 1);
-by (REPEAT (ares_tac [limiti, Limit_has_0, Limit_has_succ, Un_least_lt, 
-		      transset] 1));
+by (rtac ([aprem,bprem,limiti] MRS in_Vfrom_limit) 1);
+by (REPEAT (ares_tac [exI, conjI, sum_in_Vfrom, transset,
+		      limiti RS Limit_has_succ] 1));
 val sum_in_Vfrom_limit = result();
 
 (** function space! **)
 
 goalw Univ.thy [Pi_def]
-    "!!A. [| a: Vfrom(A,i);  b: Vfrom(A,i);  Transset(A) |] ==> \
-\         a->b : Vfrom(A, succ(succ(succ(succ(i)))))";
+    "!!A. [| a: Vfrom(A,j);  b: Vfrom(A,j);  Transset(A) |] ==> \
+\         a->b : Vfrom(A, succ(succ(succ(succ(j)))))";
 by (dtac Transset_Vfrom 1);
 by (rtac subset_mem_Vfrom 1);
 by (rtac (Collect_subset RS subset_trans) 1);
@@ -377,14 +379,9 @@ val fun_in_Vfrom = result();
 val [aprem,bprem,limiti,transset] = goal Univ.thy
   "[| a: Vfrom(A,i);  b: Vfrom(A,i);  Limit(i);  Transset(A) |] ==> \
 \  a->b : Vfrom(A,i)";
-(*Infer that a, b occur at ordinals x,xa < i.*)
-by (rtac ([aprem,limiti] MRS Limit_VfromE) 1);
-by (rtac ([bprem,limiti] MRS Limit_VfromE) 1);
-by (rtac ([fun_in_Vfrom, limiti] MRS Limit_VfromI) 1);
-(*Infer that succ(succ(succ(x Un xa))) < i *)
-by (etac (Vfrom_UnI1 RS Vfrom_UnI2) 1);
-by (etac (Vfrom_UnI2 RS Vfrom_UnI2) 1);
-by (REPEAT (ares_tac [limiti, Limit_has_succ, Un_least_lt, transset] 1));
+by (rtac ([aprem,bprem,limiti] MRS in_Vfrom_limit) 1);
+by (REPEAT (ares_tac [exI, conjI, fun_in_Vfrom, transset,
+		      limiti RS Limit_has_succ] 1));
 val fun_in_Vfrom_limit = result();
 
 
