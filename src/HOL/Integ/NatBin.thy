@@ -841,4 +841,19 @@ consts_code
   "op <=" :: "int => int => bool" ("(_ <=/ _)")
   "neg"                         ("(_ < 0)")
 
+ML {*
+fun number_of_codegen thy gr s b (Const ("Numeral.number_of",
+      Type ("fun", [_, Type ("IntDef.int", [])])) $ bin) =
+        (Some (gr, Pretty.str (string_of_int (HOLogic.dest_binum bin)))
+        handle TERM _ => None)
+  | number_of_codegen thy gr s b (Const ("Numeral.number_of",
+      Type ("fun", [_, Type ("nat", [])])) $ bin) =
+        Some (Codegen.invoke_codegen thy s b (gr,
+          Const ("IntDef.nat", HOLogic.intT --> HOLogic.natT) $
+            (Const ("Numeral.number_of", HOLogic.binT --> HOLogic.intT) $ bin)))
+  | number_of_codegen _ _ _ _ _ = None;
+*}
+
+setup {* [Codegen.add_codegen "number_of_codegen" number_of_codegen] *}
+
 end
