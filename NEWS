@@ -21,20 +21,22 @@ setting goals_limit);
 
 *** Syntax ***
 
+* supports alternative (named) syntax tables (parser and pretty
+printer); internal interface is provided by add_modesyntax(_i);
+
 * Pure, FOL, ZF, HOL, HOLCF now support symbolic input and output; to
 be used in conjunction with the Isabelle symbol font; uses the
 "symbols" syntax table;
 
 * added token_translation interface (may translate name tokens in
 arbitrary ways, dependent on their type (free, bound, tfree, ...) and
-the current print_mode);
+the current print_mode); IMPORTANT: user print translation functions
+are responsible for marking newly introduced bounds
+(Syntax.mark_boundT);
 
 * token translations for modes "xterm" and "xterm_color" that display
 names in bold, underline etc. or colors (which requires a color
 version of xterm);
-
-* supports alternative (named) syntax tables (parser and pretty
-printer); internal interface is provided by add_modesyntax(_i);
 
 * infixes may now be declared with names independent of their syntax;
 
