@@ -54,8 +54,8 @@ Addsimps[empty_not_insert];
 Goal "a:A ==> insert a A = A";
 by (Blast_tac 1);
 qed "insert_absorb";
-(* Addsimps [insert_absorb] causes recursive (ie quadtratic) calls
-   in case of nested inserts!
+(* Addsimps [insert_absorb] causes recursive calls
+   when there are nested inserts, with QUADRATIC running time
 *)
 
 Goal "insert x (insert x A) = insert x A";
@@ -100,11 +100,6 @@ Goal "f``insert a B = insert (f a) (f``B)";
 by (Blast_tac 1);
 qed "image_insert";
 Addsimps[image_insert];
-
-(*image_INTER fails, perhaps even if f is injective*)
-Goal  "(f `` (UNION A B)) = (UN x:A.(f `` (B x)))";
-by (Blast_tac 1);
-qed "image_UNION";
 
 Goal "(%x. x) `` Y = Y";
 by (Blast_tac 1);
