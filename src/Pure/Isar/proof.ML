@@ -260,19 +260,20 @@ fun close_block (State (_, node :: nodes)) = State (node, nodes)
 
 val verbose = ProofContext.verbose;
 
+fun print_facts _ None = ()
+  | print_facts s (Some ths) =
+      Pretty.writeln (Pretty.big_list (s ^ " facts:") (map Display.pretty_thm ths));
+
 fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
   let
     val ref (_, _, begin_goal) = Goals.current_goals_markers;
 
-    fun print_facts None = ()
-      | print_facts (Some ths) =
-          Pretty.writeln (Pretty.big_list "Current facts:" (map Display.pretty_thm ths));
-
     fun levels_up 0 = ""
       | levels_up i = " (" ^ string_of_int i ^ " levels up)";
 
-    fun print_goal (i, ((kind, name, _, _), (_, thm))) =
-      (writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 2) ^ ":");
+    fun print_goal (i, ((kind, name, _, _), (goal_facts, thm))) =
+      (print_facts "Using" (if null goal_facts then None else Some goal_facts);
+        writeln (kind_name kind ^ " " ^ quote name ^ levels_up (i div 2) ^ ":");
         Locale.print_goals_marker begin_goal (! goals_limit) thm);
   in
     writeln ("Nesting level: " ^ string_of_int (length nodes div 2));
@@ -282,9 +283,9 @@ fun print_state (state as State ({context, facts, mode, goal = _}, nodes)) =
     if ! verbose orelse mode = Forward then
       (ProofContext.print_context context;
         writeln "";
-        print_facts facts;
+        print_facts "Current" facts;
         print_goal (find_goal 0 state))
-    else if mode = ForwardChain then print_facts facts
+    else if mode = ForwardChain then print_facts "Picking" facts
     else print_goal (find_goal 0 state)
   end;
 
