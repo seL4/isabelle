@@ -1845,12 +1845,14 @@ by (ALLGOALS Asm\_simp\_tac);
 \index{*inductive|(}
 \index{*coinductive|(}
 
-An {\bf inductive definition} specifies the least set closed under given
-rules.  For example, a structural operational semantics is an inductive
-definition of an evaluation relation.  Dually, a {\bf coinductive
-  definition} specifies the greatest set closed under given rules.  An
-important example is using bisimulation relations to formalize equivalence
-of processes and infinite data structures.
+An {\bf inductive definition} specifies the least set~$R$ closed under given
+rules.  (Applying a rule to elements of~$R$ yields a result within~$R$.)  For
+example, a structural operational semantics is an inductive definition of an
+evaluation relation.  Dually, a {\bf coinductive definition} specifies the
+greatest set~$R$ consistent with given rules.  (Every element of~$R$ can be
+seen as arising by applying a rule to elements of~$R$.)  An important example
+is using bisimulation relations to formalize equivalence of processes and
+infinite data structures.
 
 A theory file may contain any number of inductive and coinductive
 definitions.  They may be intermixed with other declarations; in
