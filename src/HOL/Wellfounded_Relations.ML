@@ -7,9 +7,7 @@ Derived WF relations: inverse image, lexicographic product, measure, ...
 *)
 
 
-(*----------------------------------------------------------------------------
- * "Less than" on the natural numbers
- *---------------------------------------------------------------------------*)
+section "`Less than' on the natural numbers";
 
 Goalw [less_than_def] "wf less_than"; 
 by (rtac (wf_pred_nat RS wf_trancl) 1);
@@ -46,12 +44,6 @@ by (mp_tac 1);
 by (Blast_tac 1);
 qed "wf_inv_image";
 AddSIs [wf_inv_image];
-
-Goalw [trans_def,inv_image_def]
-    "!!r. trans r ==> trans (inv_image r f)";
-by (Simp_tac 1);
-by (Blast_tac 1);
-qed "trans_inv_image";
 
 
 (*----------------------------------------------------------------------------
@@ -224,3 +216,37 @@ by(case_tac "wf(R a)" 1);
  by(Blast_tac 1);
 by(blast_tac (claset() addIs prems) 1);
 qed "wf_same_fst";
+
+
+
+(* ### see also LEAST and wellorderings in Wellfounded_Recursion.ML *)
+
+Goal "wf r ==> !x y. ((x,y):r^+) = ((y,x)~:r^*) ==> \
+\ P k ==> ? x. P x & (!y. P y --> (m x,m y):r^*)";
+by (dtac (wf_trancl RS (wf_eq_minimal RS iffD1)) 1);
+by (dres_inst_tac [("x","m`Collect P")] spec 1);
+by (Force_tac 1);
+qed "wf_linord_ex_has_least";
+
+(* successor of obsolete nonempty_has_least *)
+Goal "P k ==> ? x. P x & (!y. P y --> m x <= (m y::nat))";
+by (simp_tac (HOL_basic_ss addsimps [le_eq RS sym]) 1);
+by (rtac (wf_pred_nat RS wf_linord_ex_has_least) 1);
+by (simp_tac (simpset() addsimps [less_eq,not_le_iff_less,le_eq]) 1);
+by (atac 1);
+qed "ex_has_least_nat";
+
+Goalw [thm "LeastM_def"] 
+  "P k ==> P (LeastM m P) & (!y. P y --> m (LeastM m P) <= (m y::nat))";
+by (rtac someI_ex 1);
+by (etac ex_has_least_nat 1);
+qed "LeastM_nat_lemma";
+
+bind_thm ("LeastM_natI", LeastM_nat_lemma RS conjunct1);
+
+Goal "P x ==> m (LeastM m P) <= (m x::nat)";
+by (rtac (LeastM_nat_lemma RS conjunct2 RS spec RS mp) 1);
+by (atac 1);
+by (atac 1);
+qed "LeastM_nat_le";
+
