@@ -719,7 +719,8 @@ fun local_qed finalize print state =
 (* global_qed *)
 
 fun locale_prefix None f thy = f thy
-  | locale_prefix (Some (loc, _)) f thy = thy |> Theory.add_path loc |> f |>> Theory.parent_path;
+  | locale_prefix (Some (loc, _)) f thy =
+      thy |> Theory.add_path (Sign.base_name loc) |> f |>> Theory.parent_path;
 
 fun locale_store_thm _ None _ = I
   | locale_store_thm name (Some (loc, atts)) th = Locale.store_thm loc ((name, th), atts);
