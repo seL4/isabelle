@@ -53,6 +53,3 @@ by (safe_tac set_cs);
  (* Liveness *)
 by Auto_tac;
 qed"live_implements";
-
-
-(*
