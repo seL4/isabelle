@@ -25,6 +25,13 @@ by (Asm_simp_tac 1);
 qed "split_bind";
 
 Goal
+  "P(res bind f) = (~ (res = Fail & ~ P Fail | (? s. res = Ok s & ~ P(f s))))";
+ by (simp_tac (simpset() addsplits [split_bind]) 1);
+qed "split_bind_asm";
+
+bind_thms ("bind_splits", [split_bind, split_bind_asm]);
+
+Goal
   "((m bind f) = Fail) = ((m=Fail) | (? p. m = Ok p & f p = Fail))";
 by (simp_tac (simpset() addsplits [split_bind]) 1);
 qed "bind_eq_Fail";
