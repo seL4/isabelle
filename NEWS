@@ -33,6 +33,10 @@ instantiated for other types and logics as well.
 
 *** General ***
 
+* theory loader rewritten from scratch (may not be fully
+bug-compatible); old loadpath variable has been replaced by show_path,
+add_path, del_path, reset_path functions;
+
 * in locales, the "assumes" and "defines" parts may be omitted if
 empty;
 
