@@ -62,7 +62,34 @@ text {*
 also provable by simp (re-orients)
 *};
 
-lemma "\<lbrakk> x = f x; P (f x) (f x) x \<rbrakk> \<Longrightarrow> P x x x"
+text {*
+the subst method
+
+@{thm[display] mult_commute}
+\rulename{mult_commute}
+
+this would fail:
+apply (simp add: mult_commute) 
+*};
+
+
+lemma "\<lbrakk>P x y z; Suc x < y\<rbrakk> \<Longrightarrow> f z = x*y"
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
+apply (subst mult_commute) 
+txt{*
+@{subgoals[display,indent=0,margin=65]}
+*};
+oops
+
+(*exercise involving THEN*)
+lemma "\<lbrakk>P x y z; Suc x < y\<rbrakk> \<Longrightarrow> f z = x*y"
+apply (rule mult_commute [THEN ssubst]) 
+oops
+
+
+lemma "\<lbrakk>x = f x; triple (f x) (f x) x\<rbrakk> \<Longrightarrow> triple x x x"
 apply (erule ssubst) 
   --{* @{subgoals[display,indent=0,margin=65]} *}
 back --{* @{subgoals[display,indent=0,margin=65]} *}
@@ -72,7 +99,7 @@ back --{* @{subgoals[display,indent=0,margin=65]} *}
 apply assumption
 done
 
-lemma "\<lbrakk> x = f x; P (f x) (f x) x \<rbrakk> \<Longrightarrow> P x x x"
+lemma "\<lbrakk> x = f x; triple (f x) (f x) x \<rbrakk> \<Longrightarrow> triple x x x"
 apply (erule ssubst, assumption)
 done
 
@@ -80,18 +107,18 @@ text{*
 or better still 
 *}
 
-lemma "\<lbrakk> x = f x; P (f x) (f x) x \<rbrakk> \<Longrightarrow> P x x x"
+lemma "\<lbrakk> x = f x; triple (f x) (f x) x \<rbrakk> \<Longrightarrow> triple x x x"
 by (erule ssubst)
 
 
-lemma "\<lbrakk> x = f x; P (f x) (f x) x \<rbrakk> \<Longrightarrow> P x x x"
-apply (erule_tac P="\<lambda>u. P u u x" in ssubst)
+lemma "\<lbrakk> x = f x; triple (f x) (f x) x \<rbrakk> \<Longrightarrow> triple x x x"
+apply (erule_tac P="\<lambda>u. triple u u x" in ssubst)
 apply (assumption)
 done
 
 
-lemma "\<lbrakk> x = f x; P (f x) (f x) x \<rbrakk> \<Longrightarrow> P x x x"
-by (erule_tac P="\<lambda>u. P u u x" in ssubst)
+lemma "\<lbrakk> x = f x; triple (f x) (f x) x \<rbrakk> \<Longrightarrow> triple x x x"
+by (erule_tac P="\<lambda>u. triple u u x" in ssubst)
 
 
 text {*
@@ -146,6 +173,14 @@ goal\ {\isacharparenleft}lemma{\isacharparenright}{\isacharcolon}\isanewline
 \ {\isadigit{1}}{\isachardot}\ {\isasymlbrakk}R{\isacharsemicolon}\ Q{\isacharsemicolon}\ {\isasymnot}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ Q\isanewline
 \ {\isadigit{2}}{\isachardot}\ {\isasymlbrakk}R{\isacharsemicolon}\ Q{\isacharsemicolon}\ {\isasymnot}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ R
 *}
+
+
+text{*rule_tac, etc.*}
+
+
+lemma "P&Q"
+apply (rule_tac P=P and Q=Q in conjI)
+oops
 
 
 text{*Quantifiers*}
