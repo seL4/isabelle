@@ -136,8 +136,14 @@ by (induct_tac "w" 1);
 by (ALLGOALS (asm_simp_tac (simpset() addsimps bin_add_simps @ zadd_ac)));
 qed_spec_mp "integ_of_add";
 
-val bin_mult_simps = [zmult_zminus, integ_of_minus, integ_of_add];
 
+(*Subtraction*)
+Goalw [zdiff_def]
+     "integ_of v - integ_of w = integ_of(bin_add v (bin_minus w))";
+by (simp_tac (simpset() addsimps [integ_of_add, integ_of_minus]) 1);
+qed "diff_integ_of_eq";
+
+val bin_mult_simps = [zmult_zminus, integ_of_minus, integ_of_add];
 
 Goal "integ_of(bin_mult v w) = integ_of v * integ_of w";
 by (induct_tac "v" 1);
@@ -271,8 +277,7 @@ Addsimps [int_less_0_conv, int_le_0_conv, int_eq_0_conv, int_eq_0_conv'];
 (** Equals (=) **)
 
 Goalw [iszero_def]
-      "(integ_of x = integ_of y) \ 
-\      = iszero(integ_of (bin_add x (bin_minus y)))"; 
+  "(integ_of x = integ_of y) = iszero(integ_of (bin_add x (bin_minus y)))"; 
 by (simp_tac (simpset() addsimps
               (zcompare_rls @ [integ_of_add, integ_of_minus])) 1); 
 qed "eq_integ_of_eq"; 
@@ -294,6 +299,15 @@ by (ALLGOALS (asm_simp_tac
 				  [zminus_zadd_distrib RS sym, 
 				   zadd_int]))); 
 qed "iszero_integ_of_BIT"; 
+
+Goal "iszero (integ_of (w BIT False)) = iszero (integ_of w)"; 
+by (simp_tac (HOL_ss addsimps [iszero_integ_of_BIT]) 1); 
+qed "iszero_integ_of_0"; 
+
+Goal "~ iszero (integ_of (w BIT True))"; 
+by (simp_tac (HOL_ss addsimps [iszero_integ_of_BIT]) 1); 
+qed "iszero_integ_of_1"; 
+
 
 
 (** Less-than (<) **)
@@ -334,34 +348,40 @@ Delsimps [bin_succ_BIT, bin_pred_BIT, bin_minus_BIT,
 (*Hide the binary representation of integer constants*)
 Delsimps [integ_of_Pls, integ_of_Min, integ_of_BIT];
 
-(*Add simplification of arithmetic operations on integer constants*)
-Addsimps [integ_of_add RS sym,
-          integ_of_minus RS sym,
-          integ_of_mult RS sym,
-          bin_succ_1, bin_succ_0, 
-          bin_pred_1, bin_pred_0, 
-          bin_minus_1, bin_minus_0,  
-          bin_add_Pls_right, bin_add_BIT_Min,
-          bin_add_BIT_0, bin_add_BIT_10, bin_add_BIT_11,
-          bin_mult_1, bin_mult_0, 
-          NCons_Pls_0, NCons_Pls_1, 
-          NCons_Min_0, NCons_Min_1, 
-          NCons_BIT];
+(*simplification of arithmetic operations on integer constants*)
+val bin_arith_extra_simps =
+    [integ_of_add RS sym,
+     integ_of_minus RS sym,
+     integ_of_mult RS sym,
+     bin_succ_1, bin_succ_0, 
+     bin_pred_1, bin_pred_0, 
+     bin_minus_1, bin_minus_0,  
+     bin_add_Pls_right, bin_add_BIT_Min,
+     bin_add_BIT_0, bin_add_BIT_10, bin_add_BIT_11,
+     diff_integ_of_eq, 
+     bin_mult_1, bin_mult_0, 
+     NCons_Pls_0, NCons_Pls_1, 
+     NCons_Min_0, NCons_Min_1, NCons_BIT];
 
-(*... and simplification of relational operations*)
-Addsimps [eq_integ_of_eq, iszero_integ_of_Pls, nonzero_integ_of_Min,
-	  iszero_integ_of_BIT,
-	  less_integ_of_eq_neg,
-	  not_neg_integ_of_Pls, neg_integ_of_Min, neg_integ_of_BIT,
-	  le_integ_of_eq_not_less];
+(*For making a minimal simpset, one must include these default simprules
+  of Bin.thy.  Also include simp_thms, or at least (~False)=True*)
+val bin_arith_simps =
+    [bin_pred_Pls, bin_pred_Min,
+     bin_succ_Pls, bin_succ_Min,
+     bin_add_Pls, bin_add_Min,
+     bin_minus_Pls, bin_minus_Min,
+     bin_mult_Pls, bin_mult_Min] @ bin_arith_extra_simps;
 
-Goalw [zdiff_def]
-     "integ_of v - integ_of w = integ_of(bin_add v (bin_minus w))";
-by (Simp_tac 1);
-qed "diff_integ_of_eq";
+(*Simplification of relational operations*)
+val bin_rel_simps =
+    [eq_integ_of_eq, iszero_integ_of_Pls, nonzero_integ_of_Min,
+     iszero_integ_of_0, iszero_integ_of_1,
+     less_integ_of_eq_neg,
+     not_neg_integ_of_Pls, neg_integ_of_Min, neg_integ_of_BIT,
+     le_integ_of_eq_not_less];
 
-(*... and finally subtraction*)
-Addsimps [diff_integ_of_eq];
+Addsimps bin_arith_extra_simps;
+Addsimps bin_rel_simps;
 
 
 (** Simplification of arithmetic when nested to the right **)
@@ -468,8 +488,8 @@ by (Simp_tac 1);
 qed "nat_less_iff";
 
 
-(*Otherwise (int 0) sometimes turns up...*)
-Addsimps [int_0];
+(*Users don't want to see (int 0) or w + - z*)
+Addsimps [int_0, symmetric zdiff_def];
 
 Goal "#0 <= w ==> (nat w < nat z) = (w<z)";
 by (case_tac "neg z" 1);
