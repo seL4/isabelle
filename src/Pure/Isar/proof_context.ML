@@ -33,8 +33,8 @@ sig
   val add_binds_i: (indexname * term) list -> context -> context
   val match_binds: (string list * string) list -> context -> context
   val match_binds_i: (term list * term) list -> context -> context
-  val bind_propp: context * (string * string list) -> context * term
-  val bind_propp_i: context * (term * term list) -> context * term
+  val bind_propp: context * (string * (string list * string list)) -> context * term
+  val bind_propp_i: context * (term * (term list * term list)) -> context * term
   val auto_bind_goal: term -> context -> context
   val auto_bind_facts: string -> term list -> context -> context
   val thms_closure: context -> xstring -> thm list option
@@ -46,11 +46,13 @@ sig
   val put_thmss: (string * thm list) list -> context -> context
   val have_thmss: thm list -> string -> context attribute list
     -> (thm list * context attribute list) list -> context -> context * (string * thm list)
-  val assumptions: context -> (cterm * (int -> tactic)) list
+  val assumptions: context -> (cterm * ((int -> tactic) * (int -> tactic))) list
   val fixed_names: context -> string list
-  val assume: (int -> tactic) -> string -> context attribute list -> (string * string list) list
+  val assume: ((int -> tactic) * (int -> tactic)) -> string -> context attribute list
+    -> (string * (string list * string list)) list
     -> context -> context * ((string * thm list) * thm list)
-  val assume_i: (int -> tactic) -> string -> context attribute list -> (term * term list) list
+  val assume_i: ((int -> tactic) * (int -> tactic)) -> string -> context attribute list
+    -> (term * (term list * term list)) list
     -> context -> context * ((string * thm list) * thm list)
   val fix: (string * string option) list -> context -> context
   val fix_i: (string * typ) list -> context -> context
@@ -79,7 +81,8 @@ datatype context =
    {thy: theory,                                                        (*current theory*)
     data: Object.T Symtab.table,                                        (*user data*)
     asms:
-      ((cterm * (int -> tactic)) list * (string * thm list) list) *     (*assumes: A ==> _*)
+      ((cterm * ((int -> tactic) * (int -> tactic))) list *		(*assumes: A ==> _*)
+        (string * thm list) list) *
       ((string * string) list * string list),                           (*fixes: !!x. _*)
     binds: (term * typ) Vartab.table,                                   (*term bindings*)
     thms: thm list Symtab.table,                                        (*local thms*)
@@ -142,8 +145,7 @@ val print_binds = seq writeln o strings_of_binds;
 (* local theorems *)
 
 fun strings_of_thms (Context {thms, ...}) =
-  strings_of_items (setmp Display.show_hyps false Display.pretty_thm)
-    "Local theorems:" (Symtab.dest thms);
+  strings_of_items Display.pretty_thm_no_hyps "Local theorems:" (Symtab.dest thms);
 
 val print_thms = seq writeln o strings_of_thms;
 
@@ -537,12 +539,14 @@ fun prep_declare_match (prep_pat, prep) (ctxt, (raw_pats, raw_t)) =
   let
     val t = prep ctxt raw_t;
     val ctxt' = ctxt |> declare_term t;
-    val pats = map (prep_pat ctxt') raw_pats;           (* FIXME seq / par / simult (??) *)
-  in (ctxt', (map (rpair t) pats, t)) end;
+    val matches = map (fn (f, raw_pat) => (prep_pat ctxt' raw_pat, f t)) raw_pats;
+           (* FIXME seq / par / simult (??) *)
+  in (ctxt', (matches, t)) end;
 
 fun gen_match_binds _ [] ctxt = ctxt
-  | gen_match_binds prepp raw_pairs ctxt =
+  | gen_match_binds prepp args ctxt =
       let
+        val raw_pairs = map (apfst (map (pair I))) args;
         val (ctxt', matches) = foldl_map (prep_declare_match prepp) (ctxt, raw_pairs);
         val pairs = flat (map #1 matches);
         val Context {defs = (_, _, maxidx, _), ...} = ctxt';
@@ -559,8 +563,10 @@ val match_binds_i = gen_match_binds (cert_term_pat, cert_term);
 
 (* bind proposition patterns *)
 
-fun gen_bind_propp prepp (ctxt, (raw_prop, raw_pats)) =
-  let val (ctxt', (pairs, prop)) = prep_declare_match prepp (ctxt, (raw_pats, raw_prop))
+fun gen_bind_propp prepp (ctxt, (raw_prop, (raw_pats1, raw_pats2))) =
+  let
+    val raw_pats = map (pair I) raw_pats1 @ map (pair Logic.strip_imp_concl) raw_pats2;
+    val (ctxt', (pairs, prop)) = prep_declare_match prepp (ctxt, (raw_pats, raw_prop));
   in (ctxt' |> match_binds_i (map (apfst single) pairs), prop) end;
 
 val bind_propp = gen_bind_propp (read_prop_pat, read_prop);
@@ -661,7 +667,7 @@ fun gen_assume prepp tac name attrs raw_prop_pats ctxt =
       ctxt''
       |> map_context (fn (thy, data, ((asms_ct, asms_th), fixes), binds, thms, defs) =>
         (thy, data, ((asms_ct @ cprops_tac, asms_th @ [(name, asms)]), fixes), binds, thms, defs));
-  in (ctxt''', ((name, thms), prems ctxt')) end;
+  in (ctxt''', ((name, thms), prems ctxt''')) end;
 
 val assume = gen_assume bind_propp;
 val assume_i = gen_assume bind_propp_i;
@@ -687,7 +693,7 @@ val fix = gen_fixs read_skolemT true;
 val fix_i = gen_fixs cert_typ false;
 
 
-(* transfer_used_names *)
+(* used names *)
 
 fun transfer_used_names (Context {asms = (_, (_, names)), defs = (_, _, _, used), ...}) =
   map_context (fn (thy, data, (asms, (fixes, _)), binds, thms, (types, sorts, maxidx, _)) =>
