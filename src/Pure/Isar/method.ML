@@ -120,8 +120,6 @@ fun prt_rules kind ths =
 fun print_rules (intro, elim) =
   (prt_rules "introduction" intro; prt_rules "elimination" elim);
 
-fun merge_rules (ths1, ths2) = Library.generic_merge Thm.eq_thm I I ths1 ths2;
-
 
 (* theory data kind 'Isar/rules' *)
 
@@ -134,7 +132,7 @@ struct
   val copy = I;
   val prep_ext = I;
   fun merge ((intro1, elim1), (intro2, elim2)) =
-    (merge_rules (intro1, intro2), merge_rules (elim1, elim2));
+    (Drule.merge_rules (intro1, intro2), Drule.merge_rules (elim1, elim2));
   fun print _ = print_rules;
 end;
 

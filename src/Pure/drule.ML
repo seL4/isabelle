@@ -87,6 +87,7 @@ signature DRULE =
 sig
   include BASIC_DRULE
   val compose_single    : thm * int * thm -> thm
+  val merge_rules	: thm list * thm list -> thm list
   val triv_goal         : thm
   val rev_triv_goal     : thm
   val freeze_all        : thm -> thm
@@ -374,6 +375,7 @@ fun tha COMP thb =
 
 (*Do the two theorems have the same signature?*)
 fun eq_thm_sg (th1,th2) = Sign.eq_sg(#sign(rep_thm th1), #sign(rep_thm th2));
+fun merge_rules (ths1, ths2) = Library.generic_merge Thm.eq_thm I I ths1 ths2;
 
 (*Useful "distance" function for BEST_FIRST*)
 val size_of_thm = size_of_term o #prop o rep_thm;
