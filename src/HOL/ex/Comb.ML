@@ -133,7 +133,7 @@ qed "S2_parcontractD";
 (*Church-Rosser property for parallel contraction*)
 goalw Comb.thy [diamond_def] "diamond(parcontract)";
 by (rtac (impI RS allI RS allI) 1);
-by (etac parcontract.induct 1);
+by (etac parcontract.induct 1 THEN prune_params_tac);
 by (ALLGOALS 
     (fast_tac (parcontract_cs addSDs [K1_parcontractD,S2_parcontractD])));
 qed "diamond_parcontract";
@@ -163,7 +163,7 @@ qed "reduce_I";
 goal Comb.thy "parcontract <= contract^*";
 by (rtac subsetI 1);
 by (split_all_tac 1);
-by (etac parcontract.induct 1);
+by (etac parcontract.induct 1 THEN prune_params_tac);
 by (ALLGOALS (deepen_tac reduce_cs 0));
 qed "parcontract_subset_reduce";
 
