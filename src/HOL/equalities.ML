@@ -277,12 +277,9 @@ by (fast_tac eq_cs 1);
 qed "Inter_insert";
 Addsimps[Inter_insert];
 
-(* Why does fast_tac fail???
-goal Set.thy "Inter(A Int B) = Inter(A) Int Inter(B)";
-by (fast_tac eq_cs 1);
-qed "Inter_Int_distrib";
-Addsimps[Inter_Int_distrib];
-*)
+goal Set.thy "Inter(A) Un Inter(B) <= Inter(A Int B)";
+by (fast_tac set_cs 1);
+qed "Inter_Un_subset";
 
 goal Set.thy "Inter(A Un B) = Inter(A) Int Inter(B)";
 by (best_tac eq_cs 1);
