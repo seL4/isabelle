@@ -253,6 +253,12 @@ by (auto_tac (claset(),
 	      simpset() addsimps [lemma, nat_le_int0, linorder_not_less])); 
 qed "zless_nat_conj";
 
+Goal "(0 < nat z) = (int 0 < z)";
+by (stac (order_refl RS nat_le_int0 RS sym) 1);
+by (stac (zless_nat_conj) 1);
+by (Simp_tac 1);
+qed "zless_zero_nat";
+
 
 (* a case theorem distinguishing non-negative and negative int *)  
 
