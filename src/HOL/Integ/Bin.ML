@@ -278,7 +278,11 @@ qed "zless_add1_eq";
 Goal "(w + (#1::int) <= z) = (w<z)";
 by (simp_tac (simpset() addsimps [add_int_Suc_zle_eq]) 1);
 qed "add1_zle_eq";
-Addsimps [add1_zle_eq];
+
+Goal "((#1::int) + w <= z) = (w<z)";
+by (stac zadd_commute 1);
+by (rtac add1_zle_eq 1);
+qed "add1_left_zle_eq";
 
 Goal "neg x = (x < #0)";
 by (simp_tac (simpset() addsimps [neg_eq_less_int0]) 1); 
@@ -321,7 +325,8 @@ Addsimps [int_less_0_conv, int_le_0_conv, int_eq_0_conv, int_eq_0_conv'];
 (** Equals (=) **)
 
 Goalw [iszero_def]
-  "((number_of x::int) = number_of y) = iszero(number_of (bin_add x (bin_minus y)))"; 
+  "((number_of x::int) = number_of y) = \
+\  iszero (number_of (bin_add x (bin_minus y)))"; 
 by (simp_tac (simpset() addsimps
               (zcompare_rls @ [number_of_add, number_of_minus])) 1); 
 qed "eq_number_of_eq"; 
@@ -426,6 +431,36 @@ val bin_rel_simps =
 
 Addsimps bin_arith_extra_simps;
 Addsimps bin_rel_simps;
+
+
+(** Constant folding inside parentheses **)
+
+Goal "number_of v + (number_of w + c) = number_of(bin_add v w) + (c::int)";
+by (stac (zadd_assoc RS sym) 1);
+by (stac number_of_add 1);
+by Auto_tac;
+qed "nested_number_of_add";
+
+Goalw [zdiff_def]
+    "number_of v + (number_of w - c) = number_of(bin_add v w) - (c::int)";
+by (rtac nested_number_of_add 1);
+qed "nested_diff1_number_of_add";
+
+Goal "number_of v + (c - number_of w) = \
+\    number_of (bin_add v (bin_minus w)) + (c::int)";
+by (stac (diff_number_of_eq RS sym) 1);
+by Auto_tac;
+qed "nested_diff2_number_of_add";
+
+Goal "number_of v * (number_of w * c) = number_of(bin_mult v w) * (c::int)";
+by (stac (zmult_assoc RS sym) 1);
+by (stac number_of_mult 1);
+by Auto_tac;
+qed "nested_number_of_mult";
+Addsimps [nested_number_of_add, nested_diff1_number_of_add,
+	  nested_diff2_number_of_add, nested_number_of_mult]; 
+
+
 
 (*---------------------------------------------------------------------------*)
 (* Linear arithmetic                                                         *)
