@@ -30,8 +30,6 @@ by (Simp_tac 1);
 by (asm_full_simp_tac
     (simpset_of Int.thy addsimps [diff_nat_number_of, less_0_number_of RS sym,
                                   neg_number_of_bin_pred_iff_0]) 1);
-by (Clarify_tac 1);
-by (asm_full_simp_tac (simpset_of Int.thy) 1);
 qed "Suc_diff_number_of";
 
 (* now redundant because of the inverse_fold simproc

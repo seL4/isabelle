@@ -571,10 +571,13 @@ local
 val add_rules =
   [add_nat_number_of, diff_nat_number_of, mult_nat_number_of,
    eq_nat_number_of, less_nat_number_of, le_nat_number_of_eq_not_less,
-   (*le_Suc_number_of,le_number_of_Suc,
+   le_Suc_number_of,le_number_of_Suc,
    less_Suc_number_of,less_number_of_Suc,
-   Suc_eq_number_of,eq_number_of_Suc*)
-   Suc_eq_add_numeral_1,
+   Suc_eq_number_of,eq_number_of_Suc,
+   read_instantiate_sg (sign_of(the_context()))
+      [("m","number_of ?v")] mult_Suc,
+   read_instantiate_sg (sign_of(the_context()))
+      [("m","number_of ?v")] mult_Suc_right,
    eq_number_of_0, eq_0_number_of, less_0_number_of,
    nat_number_of, Let_number_of, if_True, if_False];
 
