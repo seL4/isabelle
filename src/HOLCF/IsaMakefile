@@ -56,7 +56,7 @@ $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/Denotational.ML \
 HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Dagstuhl.ML ex/Dagstuhl.thy \
-  ex/Dnat.ML ex/Dnat.thy ex/Fix2.ML ex/Fix2.thy ex/Focus_ex.ML \
+  ex/Dnat.thy ex/Fix2.ML ex/Fix2.thy ex/Focus_ex.ML \
   ex/Focus_ex.thy ex/Hoare.ML ex/Hoare.thy ex/Loop.ML ex/Loop.thy \
   ex/ROOT.ML ex/Stream.ML ex/Stream.thy ex/loeckx.ML \
   ../HOL/Library/Nat_Infinity.thy 
