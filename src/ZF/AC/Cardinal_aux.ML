@@ -12,7 +12,19 @@ open Cardinal_aux;
 (* concerning AC16 and DC                                                 *)
 (* ********************************************************************** *)
 
-val nat_0_in_2 =  Ord_0 RS le_refl RS leI RS ltD;
+(* j=|A| *)
+goal Cardinal.thy
+    "!!A. [| A lepoll i; Ord(i) |] ==> EX j. j le i & A eqpoll j";
+by (fast_tac (ZF_cs addIs [lepoll_cardinal_le, well_ord_Memrel,
+			    well_ord_cardinal_eqpoll RS eqpoll_sym]
+		    addDs [lepoll_well_ord]) 1);
+qed "lepoll_imp_ex_le_eqpoll";
+
+(* j=|A| *)
+goalw Cardinal.thy [lesspoll_def]
+    "!!A a. [| A lesspoll i; Ord(i) |] ==> EX j. j<i & A eqpoll j";
+by (fast_tac (ZF_cs addSDs [lepoll_imp_ex_le_eqpoll] addSEs [leE]) 1);
+qed "lesspoll_imp_ex_lt_eqpoll";
 
 goalw thy [InfCard_def] "!!i. [| ~Finite(i); Ord(i) |] ==> InfCard(|i|)";
 by (rtac conjI 1);
@@ -22,21 +34,6 @@ by (resolve_tac [nat_le_infinite_Ord RS le_imp_lepoll
         RSN (2, well_ord_Memrel RS well_ord_lepoll_imp_Card_le)] 1 
     THEN REPEAT (assume_tac 1));
 val Inf_Ord_imp_InfCard_cardinal = result();
-
-goalw thy [lepoll_def] "A Un B lepoll A+B";
-by (res_inst_tac [("x","lam x: A Un B. if (x:A,Inl(x),Inr(x))")] exI 1);
-by (res_inst_tac [("d","%z. snd(z)")] lam_injective 1);
-by (split_tac [expand_if] 1);
-by (fast_tac (AC_cs addSIs [InlI, InrI]) 1);
-by (split_tac [expand_if] 1);
-by (asm_full_simp_tac (AC_ss addsimps [Inl_def, Inr_def]) 1);
-val Un_lepoll_sum = result();
-
-goalw thy [sum_def] "A+A = 2*A";
-by (fast_tac (AC_cs addIs [equalityI]
-        addSIs [singletonI, nat_0_in_2, succI1]
-        addSEs [succE, singletonE]) 1);
-val sum_eq_2_times = result();
 
 val sum_lepoll_prod = [sum_eq_2_times RS equalityD1 RS subset_imp_lepoll,
         asm_rl, lepoll_refl] MRS (prod_lepoll_mono RSN (2, lepoll_trans))
@@ -229,103 +226,6 @@ by (forward_tac [subset_refl RSN (2, restrict_bij)] 1);
 by (res_inst_tac [("x","f``a")] exI 1);
 by (fast_tac (AC_cs addSEs [inj_is_fun RS fun_is_rel RS image_subset]) 1);
 val lepoll_imp_eqpoll_subset = result();
-
-(* ********************************************************************** *)
-(* Some other lemmas                                                      *)
-(* ********************************************************************** *)
-
-goal thy "!!m n. [| m:nat; n:nat |] ==> m + n eqpoll m #+ n";
-by (rtac eqpoll_trans 1);
-by (eresolve_tac [nat_implies_well_ord RS (
-                  nat_implies_well_ord RSN (2,
-                  well_ord_radd RS well_ord_cardinal_eqpoll)) RS eqpoll_sym] 1 
-    THEN (assume_tac 1));
-by (eresolve_tac [nat_cadd_eq_add RS subst] 1 THEN (assume_tac 1));
-by (asm_full_simp_tac (AC_ss addsimps [cadd_def, eqpoll_refl]) 1);
-val nat_sum_eqpoll_sum = result();
-
-val eqpoll_ordertype =
-        ordermap_bij RS (exI RS (eqpoll_def RS (def_imp_iff RS iffD2)));
-
-goalw thy [lesspoll_def]
-        "!!a. [| b lesspoll a; well_ord(a,r); well_ord(b,s) |]  \
-\               ==> ordertype(b,s) < ordertype(a,r)";
-by (forw_inst_tac [("A2","b")]
-        ([Ord_ordertype, Ord_ordertype] MRS Ord_linear) 1
-        THEN REPEAT (assume_tac 1));
-by (etac disjE 1);
-by (etac ltI 1);
-by (etac Ord_ordertype 1);
-by (etac disjE 1);
-by (REPEAT (eresolve_tac [conjE,notE] 1));
-by (resolve_tac [exI RS (eqpoll_def RS (def_imp_iff RS iffD2))] 1);
-by (eresolve_tac [ordermap_bij RS comp_bij] 1);
-by (etac ssubst 1);
-by (eresolve_tac [ordermap_bij RS bij_converse_bij] 1);
-by (REPEAT (eresolve_tac [conjE,notE] 1));
-by (etac eqpollI 1);
-by (resolve_tac [Ord_ordertype RSN (2, OrdmemD RS subset_imp_lepoll) RSN (2, 
-                 eqpoll_ordertype RS eqpoll_imp_lepoll RS (
-                 eqpoll_ordertype RS eqpoll_sym RS eqpoll_imp_lepoll RSN (3, 
-                 lepoll_trans RS lepoll_trans)))] 1 
-    THEN (REPEAT (assume_tac 1)));
-val lesspoll_ordertype_lt = result();
-
-goalw thy [lesspoll_def] "!!A. A lesspoll B ==> A lepoll B";
-by (fast_tac AC_cs 1);
-val lesspoll_imp_lepoll = result();
-
-goalw thy [lepoll_def]
-        "!!A. [| A lepoll B; well_ord(B,r) |] ==> EX s. well_ord(A,s)";
-by (fast_tac (AC_cs addSEs [well_ord_rvimage]) 1);
-val lepoll_well_ord = result();
-
-goal thy "!!A a. [| A lesspoll a; Ord(a) |] ==> EX b. b<a & A eqpoll b";
-by (resolve_tac [well_ord_Memrel RSN (2,
-        lesspoll_imp_lepoll RS lepoll_well_ord) RS exE] 1
-        THEN (REPEAT (assume_tac 1)));
-by (dresolve_tac [well_ord_Memrel RSN (2, lesspoll_ordertype_lt)] 1
-        THEN (REPEAT (assume_tac 1)));
-by (fast_tac (AC_cs addSEs [eqpoll_ordertype]
-                addEs [ordertype_Memrel RS subst]) 1);
-val lesspoll_imp_ex_lt_eqpoll = result();
-
-goalw thy [lesspoll_def] "A lepoll B <-> A lesspoll B | A eqpoll B";
-by (fast_tac (AC_cs addSIs [eqpollI] addSEs [eqpollE]) 1);
-val lepoll_iff_leqpoll = result();
-
-goal thy "!!A. [| A lepoll a; Ord(a) |] ==> EX b. b le a & A eqpoll b";
-by (eresolve_tac [lepoll_iff_leqpoll RS iffD1 RS disjE] 1);
-by (fast_tac (AC_cs addSDs [lesspoll_imp_ex_lt_eqpoll] addSIs [leI]) 1);
-by (fast_tac (AC_cs addSIs [le_refl]) 1);
-val lepoll_imp_ex_le_eqpoll = result();
-
-goal thy "!!m. [| m le n; n:nat |] ==> m:nat";
-by (fast_tac (AC_cs addSDs [nat_succI RS (Ord_nat RSN (2, OrdmemD))]
-        addSEs [ltE]) 1);
-val le_in_nat = result();
-
-goalw thy [Finite_def] "!!A. [| Finite(A); Finite(B) |] ==> Finite(A Un B)";
-by (REPEAT (etac bexE 1));
-by (REPEAT (dtac eqpoll_imp_lepoll 1));
-by (dtac sum_lepoll_mono 1 THEN (assume_tac 1));
-by (dresolve_tac [nat_sum_eqpoll_sum RS eqpoll_imp_lepoll RSN (2, 
-                  Un_lepoll_sum RS lepoll_trans RS lepoll_trans)] 1 
-        THEN (REPEAT (assume_tac 1)));
-by (forw_inst_tac [("n2","na")]
-        (add_type RS nat_into_Ord RSN (2, lepoll_imp_ex_le_eqpoll)) 1 
-        THEN (REPEAT (assume_tac 1)));
-by (fast_tac (AC_cs addSEs [add_type RSN (2, le_in_nat)]) 1);
-val Finite_Un = result();
-
-goal thy "A <= B Un (A - B)";
-by (fast_tac AC_cs 1);
-val subset_Un_Diff = result();
-
-goalw thy [lesspoll_def] "!!a. [| Card(a); i<a |] ==> i lesspoll a";
-by (dresolve_tac [Card_iff_initial RS iffD1] 1);
-by (fast_tac (AC_cs addSEs [leI RS le_imp_lepoll]) 1);
-val lt_Card_imp_lesspoll = result();
 
 (* ********************************************************************** *)
 (* Diff_lesspoll_eqpoll_Card                                              *)
