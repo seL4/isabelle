@@ -414,7 +414,7 @@ type variables explicitly by calling \texttt{res_inst_tac}.
 %\tdx{if_False}        (if False then x else y) = y
 \tdx{if_P}            P ==> (if P then x else y) = x
 \tdx{if_not_P}        ~ P ==> (if P then x else y) = y
-\tdx{expand_if}       P(if Q then x else y) = ((Q --> P x) & (~Q --> P y))
+\tdx{split_if}        P(if Q then x else y) = ((Q --> P x) & (~Q --> P y))
 \subcaption{Conditionals}
 \end{ttbox}
 \caption{More derived rules} \label{hol-lemmas2}
@@ -756,8 +756,8 @@ quantifiers, unions, intersections, complements and the subset relation.
 They also include straightforward constructions on functions: image~({\tt``})
 and \texttt{range}.
 
-%The predicate \cdx{inj_onto} is used for simulating type definitions.
-%The statement ${\tt inj_onto}~f~A$ asserts that $f$ is injective on the
+%The predicate \cdx{inj_on} is used for simulating type definitions.
+%The statement ${\tt inj_on}~f~A$ asserts that $f$ is injective on the
 %set~$A$, which specifies a subset of its domain type.  In a type
 %definition, $f$ is the abstraction function and $A$ is the set of valid
 %representations; we should not expect $f$ to be injective outside of~$A$.
@@ -778,13 +778,13 @@ and \texttt{range}.
 %\tdx{inj_inverseI}              (!!x. g(f x) = x) ==> inj f
 %\tdx{injD}       [| inj f; f x = f y |] ==> x=y
 %
-%\tdx{inj_ontoI}  (!!x y. [| f x=f y; x:A; y:A |] ==> x=y) ==> inj_onto f A
-%\tdx{inj_ontoD}  [| inj_onto f A;  f x=f y;  x:A;  y:A |] ==> x=y
+%\tdx{inj_onI}  (!!x y. [| f x=f y; x:A; y:A |] ==> x=y) ==> inj_on f A
+%\tdx{inj_onD}  [| inj_on f A;  f x=f y;  x:A;  y:A |] ==> x=y
 %
-%\tdx{inj_onto_inverseI}
-%    (!!x. x:A ==> g(f x) = x) ==> inj_onto f A
-%\tdx{inj_onto_contraD}
-%    [| inj_onto f A;  x~=y;  x:A;  y:A |] ==> ~ f x=f y
+%\tdx{inj_on_inverseI}
+%    (!!x. x:A ==> g(f x) = x) ==> inj_on f A
+%\tdx{inj_on_contraD}
+%    [| inj_on f A;  x~=y;  x:A;  y:A |] ==> ~ f x=f y
 %\end{ttbox}
 %\caption{Derived rules involving functions} \label{hol-fun}
 %\end{figure}
@@ -871,7 +871,7 @@ Hence you seldom need to refer to the theorems above.
   \it name      &\it meta-type  & \it description \\ 
   \cdx{inj}~~\cdx{surj}& $(\alpha\To\beta )\To bool$
         & injective/surjective \\
-  \cdx{inj_onto}        & $[\alpha\To\beta ,\alpha\,set]\To bool$
+  \cdx{inj_on}        & $[\alpha\To\beta ,\alpha\,set]\To bool$
         & injective over subset\\
   \cdx{inv} & $(\alpha\To\beta)\To(\beta\To\alpha)$ & inverse function
 \end{tabular}
@@ -879,10 +879,10 @@ Hence you seldom need to refer to the theorems above.
 
 \underscoreon
 \begin{ttbox}
-\tdx{inj_def}           inj f        == ! x y. f x=f y --> x=y
-\tdx{surj_def}          surj f       == ! y. ? x. y=f x
-\tdx{inj_onto_def}      inj_onto f A == !x:A. !y:A. f x=f y --> x=y
-\tdx{inv_def}           inv f        == (\%y. @x. f(x)=y)
+\tdx{inj_def}         inj f      == ! x y. f x=f y --> x=y
+\tdx{surj_def}        surj f     == ! y. ? x. y=f x
+\tdx{inj_on_def}      inj_on f A == !x:A. !y:A. f x=f y --> x=y
+\tdx{inv_def}         inv f      == (\%y. @x. f(x)=y)
 \end{ttbox}
 \caption{Theory \thydx{Fun}} \label{fig:HOL:Fun}
 \end{figure}
@@ -946,9 +946,9 @@ additional (first) subgoal.
 \label{subsec:HOL:case:splitting}
 
 \HOL{} also provides convenient means for case splitting during
-  rewriting. Goals containing a subterm of the form {\tt if}~$b$~{\tt
+rewriting. Goals containing a subterm of the form {\tt if}~$b$~{\tt
 then\dots else\dots} often require a case distinction on $b$. This is
-expressed by the theorem \tdx{expand_if}:
+expressed by the theorem \tdx{split_if}:
 $$
 \Var{P}(\mbox{\tt if}~\Var{b}~{\tt then}~\Var{x}~\mbox{\tt else}~\Var{y})~=~
 ((\Var{b} \to \Var{P}(\Var{x})) \land (\neg \Var{b} \to \Var{P}(\Var{y})))
@@ -963,15 +963,23 @@ Because $(*)$ is too general as a rewrite rule for the simplifier (the
 left-hand side is not a higher-order pattern in the sense of
 \iflabelundefined{chap:simplification}{the {\em Reference Manual\/}}%
 {Chap.\ts\ref{chap:simplification}}), there is a special infix function 
-\ttindexbold{addsplits} (analogous to \texttt{addsimps}) of type
-\texttt{simpset * thm list -> simpset} that adds rules such as $(*)$ to a
+\ttindexbold{addsplits} of type \texttt{simpset * thm list -> simpset}
+(analogous to \texttt{addsimps}) that adds rules such as $(*)$ to a
 simpset, as in
 \begin{ttbox}
-by(simp_tac (!simpset addsplits [expand_if]) 1);
+by(simp_tac (!simpset addsplits [split_if]) 1);
 \end{ttbox}
 The effect is that after each round of simplification, one occurrence of
-\texttt{if} is split acording to \texttt{expand_if}, until all occurences of
+\texttt{if} is split acording to \texttt{split_if}, until all occurences of
 \texttt{if} have been eliminated.
+
+It turns out that using \texttt{split_if} is almost always the right thing to
+do. Hence \texttt{split_if} is already included in the default simpset. If
+you want to delete it from a simpset, use \ttindexbold{delsplits}, which is
+the inverse of \texttt{addsplits}:
+\begin{ttbox}
+by(simp_tac (!simpset delsplits [split_if]) 1);
+\end{ttbox}
 
 In general, \texttt{addsplits} accepts rules of the form
 \[
@@ -982,6 +990,14 @@ right form because internally the left-hand side is
 $\Var{P}(\mathtt{If}~\Var{b}~\Var{x}~~\Var{y})$. Important further examples
 are splitting rules for \texttt{case} expressions (see~\S\ref{subsec:list}
 and~\S\ref{subsec:datatype:basics}).
+
+Analogous to \texttt{Addsimps} and \texttt{Delsimps}, there are also
+imperative versions of \texttt{addsplits} and \texttt{delsplits}
+\begin{ttbox}
+\ttindexbold{Addsplits}: thm list -> unit
+\ttindexbold{Delsplits}: thm list -> unit
+\end{ttbox}
+for adding splitting rules to, and deleting them from the current simpset.
 
 \subsection{Classical reasoning}
 
@@ -1037,7 +1053,7 @@ construction, the \texttt{datatype}, is treated separately in
 \tdx{surjective_pairing}  p = (fst p,snd p)
 
 \tdx{split}        split c (a,b) = c a b
-\tdx{expand_split} R(split c p) = (! x y. p = (x,y) --> R(c x y))
+\tdx{split_split}  R(split c p) = (! x y. p = (x,y) --> R(c x y))
 
 \tdx{SigmaI}    [| a:A;  b:B a |] ==> (a,b) : Sigma A B
 \tdx{SigmaE}    [| c:Sigma A B; !!x y.[| x:A; y:B x; c=(x,y) |] ==> P |] ==> P
@@ -1136,7 +1152,7 @@ respective theory files.
 \tdx{sum_case_Inr}   sum_case f g (Inr x) = g x
 
 \tdx{surjective_sum} sum_case (\%x. f(Inl x)) (\%y. f(Inr y)) s = f s
-\tdx{expand_sum_case} R(sum_case f g s) = ((! x. s = Inl(x) --> R(f(x))) &
+\tdx{split_sum_case} R(sum_case f g s) = ((! x. s = Inl(x) --> R(f(x))) &
                                      (! y. s = Inr(y) --> R(g(y))))
 \end{ttbox}
 \caption{Type $\alpha+\beta$}\label{hol-sum}
@@ -1409,7 +1425,7 @@ P(\mathtt{case}~e~\mathtt{of}~\texttt{[] =>}~a ~\texttt{|}~
 \end{array}
 \]
 which can be fed to \ttindex{addsplits} just like
-\texttt{expand_if} (see~\S\ref{subsec:HOL:case:splitting}).
+\texttt{split_if} (see~\S\ref{subsec:HOL:case:splitting}).
 
 {\tt List} provides a basic library of list processing functions defined by
 primitive recursion (see~\S\ref{sec:HOL:primrec}).  The recursion equations
