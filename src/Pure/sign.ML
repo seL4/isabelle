@@ -102,7 +102,7 @@ sig
     (bstring * (term list -> term)) list *
     (bstring * (ast list -> ast)) list -> sg -> sg
   val add_trfunsT:
-    (bstring * (typ -> term list -> term)) list -> sg -> sg
+    (bstring * (bool -> typ -> term list -> term)) list -> sg -> sg
   val add_tokentrfuns:
     (string * string * (string -> string * int)) list -> sg -> sg
   val add_trrules: (string * string) Syntax.trrule list -> sg -> sg
