@@ -677,7 +677,7 @@ and eta_contract2 (f$t) = f $ eta_contract_atom t
 
 (*Does t occur in u?  For substitution.  
   Does NOT check args of Skolem terms: substitution does not affect them.
-  NOT reflexive since hyp_subst_tac fails on x=x.*)
+  REFLEXIVE because hyp_subst_tac fails on x=x.*)
 fun substOccur t = 
   let fun occEq u = (t aconv u) orelse occ u
       and occ (Var(ref None))    = false
@@ -696,6 +696,7 @@ fun dest_eq (Const  "op ="     $ t $ u) =
 		(eta_contract_atom t, eta_contract_atom u)
   | dest_eq _                           = raise DEST_EQ;
 
+(*Reject the equality if u occurs in (or equals!) t*)
 fun check (t,u,v) = if substOccur t u then raise DEST_EQ else v;
 
 (*IF the goal is an equality with a substitutable variable 
@@ -1005,8 +1006,14 @@ fun prove (sign, cs, brs, cont) =
 	      fun newPrem (vars,recur,dup,lim') prem = 
 		  let val Gs' = map (fn P => (P,false)) prem
 		      and Hs' = if dup then Hs @ [(negOfGoal H, md)] else Hs
-                  in  (if recur then [(Gs',Hs')] else [(Gs',[]), ([],Hs')], 
-		       lits, vars, lim')
+		      and lits' = if (exists isGoal prem) 
+			          then map negOfGoal lits
+				  else lits
+                  in  (if recur (*send new haz premises to the BACK of the
+				  queue to prevent exclusion of others*)
+		       then [(Gs',Hs')] 
+		       else [(Gs',[]), ([],Hs')], 
+		       lits', vars, lim')
 		  end
 	      fun newBr x prems = map (newPrem x) prems  @  brs
 	      (*Seek a matching rule.  If unifiable then add new premises
