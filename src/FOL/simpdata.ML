@@ -57,6 +57,7 @@ bind_thms ("quant_simps", map int_prove_fun
   "(ALL x. x=t --> P(x)) <-> P(t)",
   "(ALL x. t=x --> P(x)) <-> P(t)",
   "(EX x. P) <-> P",
+  "EX x. x=t", "EX x. t=x",
   "(EX x. x=t & P(x)) <-> P(t)",
   "(EX x. t=x & P(x)) <-> P(t)"]);
 

@@ -314,7 +314,6 @@ qed "transrec2_0";
 Goal "transrec2(succ(i),a,b) = b(i, transrec2(i,a,b))";
 by (rtac (transrec2_def RS def_transrec RS trans) 1);
 by (simp_tac (simpset() addsimps [the_equality, if_P]) 1);
-by (Blast_tac 1);
 qed "transrec2_succ";
 
 Goal "Limit(i) ==> transrec2(i,a,b) = (UN j<i. transrec2(j,a,b))";

@@ -84,7 +84,7 @@ lemma function_lam: "function (lam x:A. b(x))"
 by (simp add: function_def lam_def) 
 
 lemma relation_lam: "relation (lam x:A. b(x))"  
-by (simp add: relation_def lam_def, blast) 
+by (simp add: relation_def lam_def) 
 
 lemma restrict_iff: "z \<in> restrict(r,A) \<longleftrightarrow> z \<in> r & (\<exists>x\<in>A. \<exists>y. z = \<langle>x, y\<rangle>)"
 by (simp add: restrict_def) 

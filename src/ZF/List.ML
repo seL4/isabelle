@@ -238,7 +238,6 @@ Goal "xs: list(A) ==> \
 \          ALL x.  EX z zs. drop(length(xs), Cons(x,xs)) = Cons(z,zs)";
 by (etac list.induct 1);
 by (ALLGOALS Asm_simp_tac);
-by (Blast_tac 1);
 qed_spec_mp "drop_length_Cons";
 
 Goal "l: list(A) ==> ALL i:length(l). (EX z zs. drop(i,l) = Cons(z,zs))";

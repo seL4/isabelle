@@ -15,7 +15,7 @@ axioms AC: "[| a: A;  !!x. x:A ==> (EX y. y:B(x)) |] ==> EX z. z : Pi(A,B)"
 (*The same as AC, but no premise a \<in> A*)
 lemma AC_Pi: "[| !!x. x \<in> A ==> (\<exists>y. y \<in> B(x)) |] ==> \<exists>z. z \<in> Pi(A,B)"
 apply (case_tac "A=0")
-apply (simp add: Pi_empty1, blast)
+apply (simp add: Pi_empty1)
 (*The non-trivial case*)
 apply (blast intro: AC)
 done
