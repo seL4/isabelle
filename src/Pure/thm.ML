@@ -876,9 +876,10 @@ fun merge_theories (thy1, thy2) =
 
 (*** Meta simp sets ***)
 
-type rrule = {thm:thm, lhs:term};
+type rrule = {thm:thm, lhs:term, perm:bool};
+type cong = {thm:thm, lhs:term};
 datatype meta_simpset =
-  Mss of {net:rrule Net.net, congs:(string * rrule)list, primes:string,
+  Mss of {net:rrule Net.net, congs:(string * cong)list, primes:string,
           prems: thm list, mk_rews: thm -> thm list};
 
 (*A "mss" contains data needed during conversion:
@@ -902,6 +903,12 @@ fun trace_term a sign t = if !trace_simp then prtm a sign t else ();
 
 fun trace_thm a (Thm{sign,prop,...}) = trace_term a sign prop;
 
+fun var_perm(Var _, Var _) = true
+  | var_perm(Abs(_,_,s), Abs(_,_,t)) = var_perm(s,t)
+  | var_perm(t1$t2, u1$u2) = var_perm(t1,u1) andalso var_perm(t2,u2)
+  | var_perm(t,u) = (t=u);
+
+
 (*simple test for looping rewrite*)
 fun loops sign prems (lhs,rhs) =
   null(prems) andalso
@@ -912,9 +919,10 @@ fun mk_rrule (thm as Thm{hyps,sign,prop,maxidx,...}) =
       val concl = Pattern.eta_contract (Logic.strip_imp_concl prop)
       val (lhs,rhs) = Logic.dest_equals concl handle TERM _ =>
                       raise SIMPLIFIER("Rewrite rule not a meta-equality",thm)
-  in if loops sign prems (lhs,rhs)
+      val perm = var_perm(lhs,rhs) andalso not(lhs=rhs)
+  in if not perm andalso loops sign prems (lhs,rhs)
      then (prtm "Warning: ignoring looping rewrite rule" sign prop; None)
-     else Some{thm=thm,lhs=lhs}
+     else Some{thm=thm,lhs=lhs,perm=perm}
   end;
 
 local
@@ -983,6 +991,52 @@ type prover = meta_simpset -> thm -> thm option;
 type termrec = (Sign.sg * term list) * term;
 type conv = meta_simpset -> termrec -> termrec;
 
+datatype comparison = LESS | EQUAL | GREATER;
+
+fun stringcomp(a,b:string) = if a<b then LESS  else
+                             if a=b then EQUAL else GREATER;
+
+fun intcomp(i,j:int) = if i<j then LESS  else
+                       if i=j then EQUAL else GREATER;
+
+fun xcomp((a,i),(b,j)) =
+  (case stringcomp(a,b) of EQUAL => intcomp(i,j) | c => c);
+
+(*a strict (not reflexive) linear ordering for terms*)
+(* FIXME: should really take types into account as well.
+   Otherwise not linear *)
+fun termcomp (t,u) =
+  (case t of
+     Const(a,_) => (case u of
+                      Const(b,_) => stringcomp(a,b)
+                    | _          => GREATER)
+   | Free(a,_) => (case u of
+                     Const _   => LESS
+                   | Free(b,_) => stringcomp(a,b)
+                   | _         => GREATER)
+   | Var(v,_) => (case u of
+                    Const _  => LESS
+                  | Free _   => LESS
+                  | Var(w,_) => xcomp(v,w)
+                  | _        => GREATER)
+  | Bound i => (case u of
+                  Const _  => LESS
+                | Free _   => LESS
+                | Var _    => LESS
+                | Bound j  => intcomp(i,j)
+                | _        => GREATER)
+  | Abs(_,_,r) => (case u of
+                     _ $ _  => GREATER
+                   | Abs(_,_,s) => termcomp(r,s)
+                   | _          => LESS)
+  | t1$t2 => (case u of
+                u1$u2 => (case termcomp(t1,u1) of
+                            EQUAL => termcomp(t2,u2)
+                          | c => c)
+              |  _    => LESS));
+
+fun termless tu = (termcomp tu = LESS);
+
 fun check_conv(thm as Thm{hyps,prop,...}, prop0) =
   let fun err() = (trace_thm "Proved wrong thm (Check subgoaler?)" thm; None)
       val (lhs0,_) = Logic.dest_equals(Logic.strip_imp_concl prop0)
@@ -998,7 +1052,7 @@ fun check_conv(thm as Thm{hyps,prop,...}, prop0) =
 (*Conversion to apply the meta simpset to a term*)
 fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
   let val t = Pattern.eta_contract t;
-      fun rew {thm as Thm{sign,hyps,maxidx,prop,...}, lhs} =
+      fun rew {thm as Thm{sign,hyps,maxidx,prop,...}, lhs, perm} =
         let val unit = if Sign.subsig(sign,signt) then ()
                   else (writeln"Warning: rewrite rule from different theory";
                         raise Pattern.MATCH)
@@ -1008,7 +1062,8 @@ fun rewritec (prover,signt) (mss as Mss{net,...}) (hypst,t) =
             val thm' = Thm{sign=signt, hyps=hyps', prop=prop', maxidx=maxidx}
         in if nprems_of thm' = 0
            then let val (_,rhs) = Logic.dest_equals prop'
-                in trace_thm "Rewriting:" thm'; Some(hyps',rhs) end
+                in if perm andalso not(termless(rhs,t)) then None
+                   else (trace_thm "Rewriting:" thm'; Some(hyps',rhs)) end
            else (trace_thm "Trying to rewrite:" thm';
                  case prover mss thm' of
                    None       => (trace_thm "FAILED" thm'; None)
