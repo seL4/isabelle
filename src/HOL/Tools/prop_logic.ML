@@ -109,14 +109,6 @@ struct
 	  | maxidx (And (fm1,fm2)) = Int.max (maxidx fm1, maxidx fm2);
 
 (* ------------------------------------------------------------------------- *)
-(* exception SAME: raised to indicate that the return value of a function is *)
-(*                 identical to its argument (optimization to allow sharing, *)
-(*                 rather than copying)                                      *)
-(* ------------------------------------------------------------------------- *)
-
-	exception SAME;
-
-(* ------------------------------------------------------------------------- *)
 (* nnf: computes the negation normal form of a formula 'fm' of propositional *)
 (*      logic (i.e. only variables may be negated, but not subformulas)      *)
 (* ------------------------------------------------------------------------- *)
