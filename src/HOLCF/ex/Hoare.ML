@@ -130,10 +130,10 @@ val hoare_lemma9 = prove_goal Hoare.thy
         (Simp_tac 1),
         (Simp_tac 1),
         (strip_tac 1),
-        (res_inst_tac [("s","p`(iterate k1 g x)")] trans 1),
+        (res_inst_tac [("s","p`(iterate k g x)")] trans 1),
         (rtac trans 1),
         (rtac (p_def3 RS sym) 2),
-        (res_inst_tac [("s","TT"),("t","b1`(iterate k1 g x)")] ssubst 1),
+        (res_inst_tac [("s","TT"),("t","b1`(iterate k g x)")] ssubst 1),
         (rtac mp 1),
         (etac spec 1),
         (simp_tac (!simpset addsimps [less_Suc_eq]) 1),
@@ -145,7 +145,7 @@ val hoare_lemma9 = prove_goal Hoare.thy
         (etac less_trans 1),
         (Simp_tac 1)
         ]);
-trace_simp := false;
+
 val hoare_lemma24 = prove_goal Hoare.thy 
 "(! m. m< Suc k --> b1`(iterate m g x)=TT) --> \
 \ q`(iterate k g x)=q`x"
@@ -155,10 +155,10 @@ val hoare_lemma24 = prove_goal Hoare.thy
         (Simp_tac 1),
 (simp_tac (!simpset addsimps [less_Suc_eq]) 1),
         (strip_tac 1),
-        (res_inst_tac [("s","q`(iterate k1 g x)")] trans 1),
+        (res_inst_tac [("s","q`(iterate k g x)")] trans 1),
         (rtac trans 1),
         (rtac (q_def3 RS sym) 2),
-        (res_inst_tac [("s","TT"),("t","b1`(iterate k1 g x)")] ssubst 1),
+        (res_inst_tac [("s","TT"),("t","b1`(iterate k g x)")] ssubst 1),
         (fast_tac HOL_cs 1),
         (simp_tac HOLCF_ss 1),
         (etac mp 1),

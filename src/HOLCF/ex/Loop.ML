@@ -120,7 +120,7 @@ val loop_lemma3 = prove_goal Loop.thy
         (Asm_simp_tac 1),
         (strip_tac 1),
         (simp_tac (!simpset addsimps [step_def2]) 1),
-        (res_inst_tac [("p","b`(iterate k1 (step`b`g) x)")] trE 1),
+        (res_inst_tac [("p","b`(iterate k (step`b`g) x)")] trE 1),
         (etac notE 1),
         (asm_simp_tac (HOLCF_ss addsimps [step_def2] ) 1),
         (asm_simp_tac HOLCF_ss 1),
@@ -128,8 +128,8 @@ val loop_lemma3 = prove_goal Loop.thy
         (etac spec 1),
         (asm_simp_tac (HOLCF_ss delsimps [iterate_Suc]
                                 addsimps [loop_lemma2] ) 1),
-        (res_inst_tac [("s","iterate (Suc k1) (step`b`g) x"),
-                ("t","g`(iterate k1 (step`b`g) x)")] ssubst 1),
+        (res_inst_tac [("s","iterate (Suc k) (step`b`g) x"),
+                ("t","g`(iterate k (step`b`g) x)")] ssubst 1),
         (atac 2),
         (asm_simp_tac (HOLCF_ss addsimps [step_def2] ) 1),
         (asm_simp_tac (HOLCF_ss delsimps [iterate_Suc]

@@ -199,8 +199,8 @@ qed_goal "contlub_iterate2" thy "contlub(iterate n F)"
         (nat_ind_tac "n" 1),
         (Simp_tac 1),
         (Simp_tac 1),
-        (res_inst_tac [("t","iterate n1 F (lub(range(%u. Y u)))"),
-        ("s","lub(range(%i. iterate n1 F (Y i)))")] ssubst 1),
+        (res_inst_tac [("t","iterate n F (lub(range(%u. Y u)))"),
+        ("s","lub(range(%i. iterate n F (Y i)))")] ssubst 1),
         (atac 1),
         (rtac contlub_cfun_arg 1),
         (etac (monofun_iterate2 RS ch2ch_monofun) 1)
