@@ -17,13 +17,14 @@ by (cut_facts_tac [xsko] 1 THEN REPEAT (etac exE 1));
 val [_,sko] = gethyps 1;
 val clauses = make_clauses [sko];       
 val horns = make_horns clauses;
-val goes = neg_clauses clauses;
+val goes = gocls clauses;
 
 goal HOL.thy "False";
-by (resolve_tac (map make_goal goes) 1);
+by (resolve_tac goes 1);
 full_deriv:=true;
 
 by (prolog_step_tac horns 1);
+by (iter_deepen_prolog_tac horns);
 by (depth_prolog_tac horns);
 by (best_prolog_tac size_of_subgoals horns);
 *)
@@ -56,10 +57,10 @@ by (cut_facts_tac [xsko25] 1 THEN REPEAT (etac exE 1));
 val [_,sko25] = gethyps 1;
 val clauses25 = make_clauses [sko25];   (*7 clauses*)
 val horns25 = make_horns clauses25;     (*16 Horn clauses*)
-val go25::_ = neg_clauses clauses25;
+val go25::_ = gocls clauses25;
 
 goal HOL.thy "False";
-by (rtac (make_goal go25) 1);
+by (rtac go25 1);
 by (depth_prolog_tac horns25);
 
 
@@ -75,10 +76,10 @@ by (cut_facts_tac [xsko26] 1 THEN REPEAT (etac exE 1));
 val [_,sko26] = gethyps 1;
 val clauses26 = make_clauses [sko26];                   (*9 clauses*)
 val horns26 = make_horns clauses26;                     (*24 Horn clauses*)
-val go26::_ = neg_clauses clauses26;
+val go26::_ = gocls clauses26;
 
 goal HOL.thy "False";
-by (rtac (make_goal go26) 1);
+by (rtac go26 1);
 by (depth_prolog_tac horns26);  (*1.4 secs*)
 (*Proof is of length 107!!*)
 
@@ -94,10 +95,10 @@ by (cut_facts_tac [xsko43] 1 THEN REPEAT (etac exE 1));
 val [_,sko43] = gethyps 1;
 val clauses43 = make_clauses [sko43];   (*6*)
 val horns43 = make_horns clauses43;     (*16*)
-val go43::_ = neg_clauses clauses43;
+val go43::_ = gocls clauses43;
 
 goal HOL.thy "False";
-by (rtac (make_goal go43) 1);
+by (rtac go43 1);
 by (best_prolog_tac size_of_subgoals horns43);   (*1.6 secs*)
 
 (* 
