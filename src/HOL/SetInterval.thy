@@ -87,7 +87,7 @@ subsection {* Various equivalences *}
 lemma lessThan_iff [iff]: "(i: lessThan k) = (i<k)"
 by (simp add: lessThan_def)
 
-lemma Compl_lessThan [simp]: 
+lemma Compl_lessThan [simp]:
     "!!k:: 'a::linorder. -lessThan k = atLeast k"
 apply (auto simp add: lessThan_def atLeast_def)
 done
@@ -98,20 +98,20 @@ by auto
 lemma greaterThan_iff [iff]: "(i: greaterThan k) = (k<i)"
 by (simp add: greaterThan_def)
 
-lemma Compl_greaterThan [simp]: 
+lemma Compl_greaterThan [simp]:
     "!!k:: 'a::linorder. -greaterThan k = atMost k"
 apply (simp add: greaterThan_def atMost_def le_def, auto)
 done
 
 lemma Compl_atMost [simp]: "!!k:: 'a::linorder. -atMost k = greaterThan k"
 apply (subst Compl_greaterThan [symmetric])
-apply (rule double_complement) 
+apply (rule double_complement)
 done
 
 lemma atLeast_iff [iff]: "(i: atLeast k) = (k<=i)"
 by (simp add: atLeast_def)
 
-lemma Compl_atLeast [simp]: 
+lemma Compl_atLeast [simp]:
     "!!k:: 'a::linorder. -atLeast k = lessThan k"
 apply (simp add: lessThan_def atLeast_def le_def, auto)
 done
@@ -126,43 +126,43 @@ by (blast intro: order_antisym)
 subsection {* Logical Equivalences for Set Inclusion and Equality *}
 
 lemma atLeast_subset_iff [iff]:
-     "(atLeast x \<subseteq> atLeast y) = (y \<le> (x::'a::order))" 
-by (blast intro: order_trans) 
+     "(atLeast x \<subseteq> atLeast y) = (y \<le> (x::'a::order))"
+by (blast intro: order_trans)
 
 lemma atLeast_eq_iff [iff]:
-     "(atLeast x = atLeast y) = (x = (y::'a::linorder))" 
+     "(atLeast x = atLeast y) = (x = (y::'a::linorder))"
 by (blast intro: order_antisym order_trans)
 
 lemma greaterThan_subset_iff [iff]:
-     "(greaterThan x \<subseteq> greaterThan y) = (y \<le> (x::'a::linorder))" 
-apply (auto simp add: greaterThan_def) 
- apply (subst linorder_not_less [symmetric], blast) 
+     "(greaterThan x \<subseteq> greaterThan y) = (y \<le> (x::'a::linorder))"
+apply (auto simp add: greaterThan_def)
+ apply (subst linorder_not_less [symmetric], blast)
 done
 
 lemma greaterThan_eq_iff [iff]:
-     "(greaterThan x = greaterThan y) = (x = (y::'a::linorder))" 
-apply (rule iffI) 
- apply (erule equalityE) 
- apply (simp add: greaterThan_subset_iff order_antisym, simp) 
+     "(greaterThan x = greaterThan y) = (x = (y::'a::linorder))"
+apply (rule iffI)
+ apply (erule equalityE)
+ apply (simp_all add: greaterThan_subset_iff)
 done
 
-lemma atMost_subset_iff [iff]: "(atMost x \<subseteq> atMost y) = (x \<le> (y::'a::order))" 
+lemma atMost_subset_iff [iff]: "(atMost x \<subseteq> atMost y) = (x \<le> (y::'a::order))"
 by (blast intro: order_trans)
 
-lemma atMost_eq_iff [iff]: "(atMost x = atMost y) = (x = (y::'a::linorder))" 
+lemma atMost_eq_iff [iff]: "(atMost x = atMost y) = (x = (y::'a::linorder))"
 by (blast intro: order_antisym order_trans)
 
 lemma lessThan_subset_iff [iff]:
-     "(lessThan x \<subseteq> lessThan y) = (x \<le> (y::'a::linorder))" 
-apply (auto simp add: lessThan_def) 
- apply (subst linorder_not_less [symmetric], blast) 
+     "(lessThan x \<subseteq> lessThan y) = (x \<le> (y::'a::linorder))"
+apply (auto simp add: lessThan_def)
+ apply (subst linorder_not_less [symmetric], blast)
 done
 
 lemma lessThan_eq_iff [iff]:
-     "(lessThan x = lessThan y) = (x = (y::'a::linorder))" 
-apply (rule iffI) 
- apply (erule equalityE) 
- apply (simp add: lessThan_subset_iff order_antisym, simp) 
+     "(lessThan x = lessThan y) = (x = (y::'a::linorder))"
+apply (rule iffI)
+ apply (erule equalityE)
+ apply (simp_all add: lessThan_subset_iff)
 done
 
 
@@ -279,9 +279,9 @@ subsubsection {* Intervals of nats with @{term Suc} *}
 text{*Not a simprule because the RHS is too messy.*}
 lemma atLeastLessThanSuc:
     "{m..<Suc n} = (if m \<le> n then insert n {m..<n} else {})"
-by (auto simp add: atLeastLessThan_def) 
+by (auto simp add: atLeastLessThan_def)
 
-lemma atLeastLessThan_singleton [simp]: "{m..<Suc m} = {m}" 
+lemma atLeastLessThan_singleton [simp]: "{m..<Suc m} = {m}"
 by (auto simp add: atLeastLessThan_def)
 
 lemma atLeast_sum_LessThan [simp]: "{m + k..<k::nat} = {}"
@@ -293,12 +293,12 @@ by (auto simp add: atLeastLessThan_def)
 lemma atLeastLessThanSuc_atLeastAtMost: "{l..<Suc u} = {l..u}"
   by (simp add: lessThan_Suc_atMost atLeastAtMost_def atLeastLessThan_def)
 
-lemma atLeastSucAtMost_greaterThanAtMost: "{Suc l..u} = {l<..u}"  
-  by (simp add: atLeast_Suc_greaterThan atLeastAtMost_def 
+lemma atLeastSucAtMost_greaterThanAtMost: "{Suc l..u} = {l<..u}"
+  by (simp add: atLeast_Suc_greaterThan atLeastAtMost_def
     greaterThanAtMost_def)
 
-lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..<u} = {l<..<u}"  
-  by (simp add: atLeast_Suc_greaterThan atLeastLessThan_def 
+lemma atLeastSucLessThan_greaterThanLessThan: "{Suc l..<u} = {l<..<u}"
+  by (simp add: atLeast_Suc_greaterThan atLeastLessThan_def
     greaterThanLessThan_def)
 
 subsubsection {* Finiteness *}
@@ -353,10 +353,10 @@ lemma card_atLeastLessThan [simp]: "card {l..<u} = u - l"
   apply arith
   done
 
-lemma card_atLeastAtMost [simp]: "card {l..u} = Suc u - l"  
+lemma card_atLeastAtMost [simp]: "card {l..u} = Suc u - l"
   by (subst atLeastLessThanSuc_atLeastAtMost [THEN sym], simp)
 
-lemma card_greaterThanAtMost [simp]: "card {l<..u} = u - l" 
+lemma card_greaterThanAtMost [simp]: "card {l<..u} = u - l"
   by (subst atLeastSucAtMost_greaterThanAtMost [THEN sym], simp)
 
 lemma card_greaterThanLessThan [simp]: "card {l<..<u} = u - Suc l"
@@ -367,16 +367,16 @@ subsection {* Intervals of integers *}
 lemma atLeastLessThanPlusOne_atLeastAtMost_int: "{l..<u+1} = {l..(u::int)}"
   by (auto simp add: atLeastAtMost_def atLeastLessThan_def)
 
-lemma atLeastPlusOneAtMost_greaterThanAtMost_int: "{l+1..u} = {l<..(u::int)}"  
+lemma atLeastPlusOneAtMost_greaterThanAtMost_int: "{l+1..u} = {l<..(u::int)}"
   by (auto simp add: atLeastAtMost_def greaterThanAtMost_def)
 
-lemma atLeastPlusOneLessThan_greaterThanLessThan_int: 
-    "{l+1..<u} = {l<..<u::int}"  
+lemma atLeastPlusOneLessThan_greaterThanLessThan_int:
+    "{l+1..<u} = {l<..<u::int}"
   by (auto simp add: atLeastLessThan_def greaterThanLessThan_def)
 
 subsubsection {* Finiteness *}
 
-lemma image_atLeastZeroLessThan_int: "0 \<le> u ==> 
+lemma image_atLeastZeroLessThan_int: "0 \<le> u ==>
     {(0::int)..<u} = int ` {..<nat u}"
   apply (unfold image_def lessThan_def)
   apply auto
@@ -393,7 +393,7 @@ lemma finite_atLeastZeroLessThan_int: "finite {(0::int)..<u}"
   apply auto
   done
 
-lemma image_atLeastLessThan_int_shift: 
+lemma image_atLeastLessThan_int_shift:
     "(%x. x + (l::int)) ` {0..<u-l} = {l..<u}"
   apply (auto simp add: image_def atLeastLessThan_iff)
   apply (rule_tac x = "x - l" in bexI)
@@ -408,13 +408,13 @@ lemma finite_atLeastLessThan_int [iff]: "finite {l..<u::int}"
   apply (rule image_atLeastLessThan_int_shift)
   done
 
-lemma finite_atLeastAtMost_int [iff]: "finite {l..(u::int)}" 
+lemma finite_atLeastAtMost_int [iff]: "finite {l..(u::int)}"
   by (subst atLeastLessThanPlusOne_atLeastAtMost_int [THEN sym], simp)
 
-lemma finite_greaterThanAtMost_int [iff]: "finite {l<..(u::int)}" 
+lemma finite_greaterThanAtMost_int [iff]: "finite {l<..(u::int)}"
   by (subst atLeastPlusOneAtMost_greaterThanAtMost_int [THEN sym], simp)
 
-lemma finite_greaterThanLessThan_int [iff]: "finite {l<..<u::int}" 
+lemma finite_greaterThanLessThan_int [iff]: "finite {l<..<u::int}"
   by (subst atLeastPlusOneLessThan_greaterThanLessThan_int [THEN sym], simp)
 
 subsubsection {* Cardinality *}
@@ -441,7 +441,7 @@ lemma card_atLeastAtMost_int [simp]: "card {l..u} = nat (u - l + 1)"
   apply (auto simp add: compare_rls)
   done
 
-lemma card_greaterThanAtMost_int [simp]: "card {l<..u} = nat (u - l)" 
+lemma card_greaterThanAtMost_int [simp]: "card {l<..u} = nat (u - l)"
   by (subst atLeastPlusOneAtMost_greaterThanAtMost_int [THEN sym], simp)
 
 lemma card_greaterThanLessThan_int [simp]: "card {l<..<u} = nat (u - (l + 1))"
@@ -588,5 +588,57 @@ special form for @{term"{..<n}"}. *}
 
 lemma Summation_Suc[simp]: "(\<Sum>i < Suc n. b i) = b n + (\<Sum>i < n. b i)"
 by (simp add:lessThan_Suc)
+
+
+ML
+{*
+val Compl_atLeast = thm "Compl_atLeast";
+val Compl_atMost = thm "Compl_atMost";
+val Compl_greaterThan = thm "Compl_greaterThan";
+val Compl_lessThan = thm "Compl_lessThan";
+val INT_greaterThan_UNIV = thm "INT_greaterThan_UNIV";
+val UN_atLeast_UNIV = thm "UN_atLeast_UNIV";
+val UN_atMost_UNIV = thm "UN_atMost_UNIV";
+val UN_lessThan_UNIV = thm "UN_lessThan_UNIV";
+val atLeastAtMost_def = thm "atLeastAtMost_def";
+val atLeastAtMost_iff = thm "atLeastAtMost_iff";
+val atLeastLessThan_def  = thm "atLeastLessThan_def";
+val atLeastLessThan_iff = thm "atLeastLessThan_iff";
+val atLeast_0 = thm "atLeast_0";
+val atLeast_Suc = thm "atLeast_Suc";
+val atLeast_def      = thm "atLeast_def";
+val atLeast_iff = thm "atLeast_iff";
+val atMost_0 = thm "atMost_0";
+val atMost_Int_atLeast = thm "atMost_Int_atLeast";
+val atMost_Suc = thm "atMost_Suc";
+val atMost_def       = thm "atMost_def";
+val atMost_iff = thm "atMost_iff";
+val greaterThanAtMost_def  = thm "greaterThanAtMost_def";
+val greaterThanAtMost_iff = thm "greaterThanAtMost_iff";
+val greaterThanLessThan_def  = thm "greaterThanLessThan_def";
+val greaterThanLessThan_iff = thm "greaterThanLessThan_iff";
+val greaterThan_0 = thm "greaterThan_0";
+val greaterThan_Suc = thm "greaterThan_Suc";
+val greaterThan_def  = thm "greaterThan_def";
+val greaterThan_iff = thm "greaterThan_iff";
+val ivl_disj_int = thms "ivl_disj_int";
+val ivl_disj_int_one = thms "ivl_disj_int_one";
+val ivl_disj_int_singleton = thms "ivl_disj_int_singleton";
+val ivl_disj_int_two = thms "ivl_disj_int_two";
+val ivl_disj_un = thms "ivl_disj_un";
+val ivl_disj_un_one = thms "ivl_disj_un_one";
+val ivl_disj_un_singleton = thms "ivl_disj_un_singleton";
+val ivl_disj_un_two = thms "ivl_disj_un_two";
+val lessThan_0 = thm "lessThan_0";
+val lessThan_Suc = thm "lessThan_Suc";
+val lessThan_Suc_atMost = thm "lessThan_Suc_atMost";
+val lessThan_def     = thm "lessThan_def";
+val lessThan_iff = thm "lessThan_iff";
+val single_Diff_lessThan = thm "single_Diff_lessThan";
+
+val bounded_nat_set_is_finite = thm "bounded_nat_set_is_finite";
+val finite_atMost = thm "finite_atMost";
+val finite_lessThan = thm "finite_lessThan";
+*}
 
 end
