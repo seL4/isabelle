@@ -37,13 +37,13 @@ use "toplevel.ML";
 use "session.ML";
 use "isar_output.ML";
 
-(*theory and proof operations*)
-use "isar_thy.ML";
-use "isar_cmd.ML";
-
 (*theory syntax*)
 use "thy_header.ML";
 use "outer_syntax.ML";
+
+(*theory and proof operations*)
+use "isar_thy.ML";
+use "isar_cmd.ML";
 use "isar_syn.ML";
 
 (*main ML interfaces*)
@@ -69,11 +69,11 @@ struct
   structure OuterParse = OuterParse;
   structure Toplevel = Toplevel;
   structure Session = Session;
-  structure IsarThy = IsarThy;
   structure IsarOutput = IsarOutput;
-  structure IsarCmd = IsarCmd;
   structure ThyHeader = ThyHeader;
   structure OuterSyntax = OuterSyntax;
+  structure IsarThy = IsarThy;
+  structure IsarCmd = IsarCmd;
   structure IsarSyn = IsarSyn;
   structure Isar = Isar;
 end;
