@@ -111,11 +111,10 @@ val proofstack = ref([]: proof list);
 
 (*Generates the list of new theories when the proof state's signature changes*)
 fun sign_error (sign,sign') =
-  let val stamps = #stamps(Sign.rep_sg sign') \\ 
-                   #stamps(Sign.rep_sg sign)
-  in  case stamps of
-        [stamp] => "\nNew theory: " ^ !stamp
-      | _       => "\nNew theories: " ^ space_implode ", " (map ! stamps)
+  let val names = Sign.stamp_names_of sign' \\ Sign.stamp_names_of sign
+  in  case names of
+        [name] => "\nNew theory: " ^ name
+      | _       => "\nNew theories: " ^ space_implode ", " names
   end;
 
 (*Default action is to print an error message; could be suppressed for
