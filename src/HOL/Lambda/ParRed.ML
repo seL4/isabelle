@@ -51,8 +51,8 @@ qed "par_beta_subset_beta";
 
 (*** => ***)
 
-goal ParRed.thy "!s' n. s => s' --> lift s n => lift s' n";
-by(db.induct_tac "s" 1);
+goal ParRed.thy "!t' n. t => t' --> lift t n => lift t' n";
+by(db.induct_tac "t" 1);
 by(ALLGOALS(fast_tac (parred_cs addss parred_ss)));
 bind_thm("par_beta_lift", result() RS spec RS spec RS mp);
 val parred_ss = parred_ss addsimps [par_beta_lift];

@@ -102,8 +102,8 @@ qed "subst_lt";
 val lambda_ss = lambda_ss addsimps [subst_eq,subst_gt,subst_lt];
 
 goal Lambda.thy
-  "!i k. i < Suc k --> lift (lift s i) (Suc k) = lift (lift s k) i";
-by(db.induct_tac "s" 1);
+  "!i k. i < Suc k --> lift (lift t i) (Suc k) = lift (lift t k) i";
+by(db.induct_tac "t" 1);
 by(ALLGOALS(asm_simp_tac lambda_ss));
 by(strip_tac 1);
 by (excluded_middle_tac "nat < i" 1);
@@ -130,9 +130,9 @@ qed "lift_subst";
 val lambda_ss = lambda_ss addsimps [lift_subst];
 
 goal Lambda.thy
-  "!i j u. i < Suc j -->\
-\         lift (v[u/j]) i = (lift v i) [lift u i / Suc j]";
-by(db.induct_tac "v" 1);
+  "!i j s. i < Suc j -->\
+\         lift (t[s/j]) i = (lift t i) [lift s i / Suc j]";
+by(db.induct_tac "t" 1);
 by(ALLGOALS(asm_simp_tac (lambda_ss addsimps [lift_lift])));
 by(strip_tac 1);
 by (excluded_middle_tac "nat < j" 1);
@@ -147,8 +147,8 @@ by(split_tac [expand_if] 1);
 by (asm_full_simp_tac (lambda_ss addsimps [less_SucI]) 1);
 qed "lift_subst_lt";
 
-goal Lambda.thy "!k v. (lift u k)[v/k] = u";
-by(db.induct_tac "u" 1);
+goal Lambda.thy "!k s. (lift t k)[s/k] = t";
+by(db.induct_tac "t" 1);
 by(ALLGOALS(asm_simp_tac lambda_ss));
 by(split_tac [expand_if] 1);
 by(ALLGOALS(asm_full_simp_tac lambda_ss));
@@ -156,9 +156,9 @@ qed "subst_lift";
 val lambda_ss = lambda_ss addsimps [subst_lift];
 
 
-goal Lambda.thy "!i j u w. i < Suc j --> \
-\ (v[lift w i / Suc j]) [u[w/j]/i] = (v[u/i])[w/j]";
-by(db.induct_tac "v" 1);
+goal Lambda.thy "!i j u v. i < Suc j --> \
+\ t[lift v i / Suc j][u[v/j]/i] = t[u/i][v/j]";
+by(db.induct_tac "t" 1);
 by (ALLGOALS(asm_simp_tac (lambda_ss addsimps
                    [lift_lift RS spec RS spec RS mp RS sym,lift_subst_lt])));
 by(strip_tac 1);
