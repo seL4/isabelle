@@ -342,8 +342,7 @@ by (rtac (zmult_congruent_lemma RS trans) 1);
 by (rtac (zmult_congruent_lemma RS trans RS sym) 1);
 by (rtac (zmult_congruent_lemma RS trans RS sym) 1);
 by (rtac (zmult_congruent_lemma RS trans RS sym) 1);
-by (asm_simp_tac (!simpset delsimps [add_mult_distrib]
-                           addsimps [add_mult_distrib RS sym]) 1);
+by (asm_simp_tac (!simpset addsimps [add_mult_distrib RS sym]) 1);
 by (asm_simp_tac (!simpset addsimps add_ac@mult_ac) 1);
 qed "zmult_congruent2";
 
@@ -397,7 +396,8 @@ goal Integ.thy "((z1::int) * z2) * z3 = z1 * (z2 * z3)";
 by (res_inst_tac [("z","z1")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","z2")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","z3")] eq_Abs_Integ 1);
-by (asm_simp_tac (!simpset addsimps ([zmult] @ add_ac @ mult_ac)) 1);
+by (asm_simp_tac (!simpset addsimps ([add_mult_distrib2,zmult] @ 
+				     add_ac @ mult_ac)) 1);
 qed "zmult_assoc";
 
 (*For AC rewriting*)
@@ -414,7 +414,8 @@ by (res_inst_tac [("z","z1")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","z2")] eq_Abs_Integ 1);
 by (res_inst_tac [("z","w")] eq_Abs_Integ 1);
 by (asm_simp_tac 
-    (!simpset addsimps ([zadd, zmult] @ add_ac @ mult_ac)) 1);
+    (!simpset addsimps ([add_mult_distrib2, zadd, zmult] @ 
+			add_ac @ mult_ac)) 1);
 qed "zadd_zmult_distrib";
 
 val zmult_commute'= read_instantiate [("z","w")] zmult_commute;

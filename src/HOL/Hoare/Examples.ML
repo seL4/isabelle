@@ -110,11 +110,11 @@ goal thy
 \ {b = fac A}";
 
 by (hoare_tac 1);
-
 by (safe_tac HOL_cs);
-
 by (res_inst_tac [("n","a")] natE 1);
-by (ALLGOALS (asm_simp_tac (!simpset addsimps [mult_assoc])));
+by (ALLGOALS
+    (asm_simp_tac
+     (!simpset addsimps [add_mult_distrib,add_mult_distrib2,mult_assoc])));
 by (fast_tac HOL_cs 1);
 
 qed"factorial";
