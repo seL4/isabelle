@@ -121,20 +121,31 @@ syntax (HOL)
 subsubsection {* Axioms and basic definitions *}
 
 axioms
-  eq_reflection: "(x=y) ==> (x==y)"
+  eq_reflection:  "(x=y) ==> (x==y)"
 
-  refl:         "t = (t::'a)"
-  subst:        "[| s = t; P(s) |] ==> P(t::'a)"
+  refl:           "t = (t::'a)"
 
-  ext:          "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
-    -- {* Extensionality is built into the meta-logic, and this rule expresses *}
-    -- {* a related property.  It is an eta-expanded version of the traditional *}
-    -- {* rule, and similar to the ABS rule of HOL *}
+  ext:            "(!!x::'a. (f x ::'b) = g x) ==> (%x. f x) = (%x. g x)"
+    -- {*Extensionality is built into the meta-logic, and this rule expresses
+         a related property.  It is an eta-expanded version of the traditional
+         rule, and similar to the ABS rule of HOL*}
 
   the_eq_trivial: "(THE x. x = a) = (a::'a)"
 
-  impI:         "(P ==> Q) ==> P-->Q"
-  mp:           "[| P-->Q;  P |] ==> Q"
+  impI:           "(P ==> Q) ==> P-->Q"
+  mp:             "[| P-->Q;  P |] ==> Q"
+
+
+text{*Thanks to Stephan Merz*}
+theorem subst:
+  assumes eq: "s = t" and p: "P(s)"
+  shows "P(t::'a)"
+proof -
+  from eq have meta: "s \<equiv> t"
+    by (rule eq_reflection)
+  from p show ?thesis
+    by (unfold meta)
+qed
 
 defs
   True_def:     "True      == ((%x::bool. x) = (%x. x))"
