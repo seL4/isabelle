@@ -134,8 +134,9 @@ $(LOG)/HOL-Induct.gz: $(OUT)/HOL Induct/Acc.ML Induct/Acc.thy \
   Induct/Com.ML Induct/Com.thy Induct/Comb.ML Induct/Comb.thy \
   Induct/Exp.ML Induct/Exp.thy Induct/LFilter.ML Induct/LFilter.thy \
   Induct/LList.ML Induct/LList.thy Induct/Mutil.ML Induct/Mutil.thy \
-  Induct/Multiset0.ML Induct/Multiset0.thy Induct/Multiset.ML \
-  Induct/Multiset.thy Induct/Perm.ML Induct/Perm.thy Induct/PropLog.ML \
+  Induct/Multiset0.ML Induct/Multiset0.thy \
+  Induct/Multiset.ML Induct/Multiset.thy Induct/MultisetOrder.thy \
+  Induct/Perm.ML Induct/Perm.thy Induct/PropLog.ML \
   Induct/PropLog.thy Induct/ROOT.ML Induct/Sexp.ML Induct/Sexp.thy \
   Induct/SList.ML Induct/SList.thy Induct/ABexp.ML Induct/ABexp.thy \
   Induct/Term.ML Induct/Term.thy
