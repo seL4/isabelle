@@ -228,12 +228,13 @@ fun inst_type [] T = T
 fun inst_term [] t = t
   | inst_term env t = Term.map_term_types (inst_type env) t;
 
-fun inst_thm [] th = th
-  | inst_thm env th =
+fun inst_thm _ [] th = th
+  | inst_thm ctxt env th =
       let
-        val {sign, hyps, prop, maxidx, ...} = Thm.rep_thm th;
+        val sign = ProofContext.sign_of ctxt;
         val cert = Thm.cterm_of sign;
         val certT = Thm.ctyp_of sign;
+        val {hyps, prop, maxidx, ...} = Thm.rep_thm th;
         val tfrees = foldr Term.add_term_tfree_names (prop :: hyps, []);
         val env' = filter (fn ((a, _), _) => a mem_string tfrees) env;
       in
@@ -248,13 +249,14 @@ fun inst_thm [] th = th
               (map (Thm.assume o cert o inst_term env') hyps))
       end;
 
-fun inst_elem env (Fixes fixes) =
+fun inst_elem _ env (Fixes fixes) =
       Fixes (map (fn (x, T, mx) => (x, apsome (inst_type env) T, mx)) fixes)
-  | inst_elem env (Assumes asms) = Assumes (map (apsnd (map (fn (t, (ps, qs)) =>
+  | inst_elem _ env (Assumes asms) = Assumes (map (apsnd (map (fn (t, (ps, qs)) =>
       (inst_term env t, (map (inst_term env) ps, map (inst_term env) qs))))) asms)
-  | inst_elem env (Defines defs) = Defines (map (apsnd (fn (t, ps) =>
+  | inst_elem _ env (Defines defs) = Defines (map (apsnd (fn (t, ps) =>
       (inst_term env t, map (inst_term env) ps))) defs)
-  | inst_elem env (Notes facts) = Notes (map (apsnd (map (apfst (map (inst_thm env))))) facts);
+  | inst_elem ctxt env (Notes facts) =
+      Notes (map (apsnd (map (apfst (map (inst_thm ctxt env))))) facts);
 
 fun inst_text env ((xs, body), (ys, defs)) =
  ((map (apsnd (inst_type env)) xs, map (inst_term env) body),
@@ -345,7 +347,7 @@ fun unify_elemss _ _ [] = []
         val envs = unify_parms ctxt fixed_parms (map (#2 o #1) elemss);
         fun inst (((name, ps), (elems, text)), env) =
           ((name, map (apsnd (apsome (inst_type env))) ps),
-            (map (inst_elem env) elems, inst_text env text));
+            (map (inst_elem ctxt env) elems, inst_text env text));
       in map inst (elemss ~~ envs) end;
 
 fun flatten_expr ctxt (prev_idents, expr) =
@@ -897,3 +899,4 @@ val setup =
  [LocalesData.init];
 
 end;
+
