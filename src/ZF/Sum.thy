@@ -18,7 +18,7 @@ defs
     sum_def     "A+B == {0}*A Un {1}*B"
     Inl_def     "Inl(a) == <0,a>"
     Inr_def     "Inr(b) == <1,b>"
-    case_def    "case(c,d) == split(%y z. cond(y, d(z), c(z)))"
+    case_def    "case(c,d) == (%<y,z>. cond(y, d(z), c(z)))"
 
   (*operator for selecting out the various summands*)
     Part_def	"Part(A,h) == {x: A. EX z. x = h(z)}"
