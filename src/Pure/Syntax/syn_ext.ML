@@ -39,7 +39,7 @@ sig
       parse_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
       parse_rules: (Ast.ast * Ast.ast) list,
       parse_translation: (string * (term list -> term)) list,
-      print_translation: (string * (typ -> term list -> term)) list,
+      print_translation: (string * (bool -> typ -> term list -> term)) list,
       print_rules: (Ast.ast * Ast.ast) list,
       print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
       token_translation: (string * string * (string -> string * int)) list}
@@ -47,23 +47,24 @@ sig
   val mk_syn_ext: bool -> string list -> mfix list ->
     string list -> (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
-    (string * (typ -> term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
+    (string * (bool -> typ -> term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
     -> (string * string * (string -> string * int)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext: string list -> mfix list -> string list ->
     (string * (Ast.ast list -> Ast.ast)) list * (string * (term list -> term)) list *
-    (string * (typ -> term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
+    (string * (bool -> typ -> term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
     -> (string * string * (string -> string * int)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_logtypes: string list -> syn_ext
   val syn_ext_const_names: string list -> string list -> syn_ext
   val syn_ext_rules: string list -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
-  val fix_tr': (term list -> term) -> typ -> term list -> term
+  val fix_tr': (term list -> term) -> bool -> typ -> term list -> term
   val syn_ext_trfuns: string list ->
     (string * (Ast.ast list -> Ast.ast)) list * (string * (term list -> term)) list *
     (string * (term list -> term)) list * (string * (Ast.ast list -> Ast.ast)) list
     -> syn_ext
-  val syn_ext_trfunsT: string list -> (string * (typ -> term list -> term)) list -> syn_ext
+  val syn_ext_trfunsT: string list ->
+    (string * (bool -> typ -> term list -> term)) list -> syn_ext
   val syn_ext_tokentrfuns: string list
     -> (string * string * (string -> string * int)) list -> syn_ext
   val pure_ext: syn_ext
@@ -293,7 +294,7 @@ datatype syn_ext =
     parse_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
     parse_rules: (Ast.ast * Ast.ast) list,
     parse_translation: (string * (term list -> term)) list,
-    print_translation: (string * (typ -> term list -> term)) list,
+    print_translation: (string * (bool -> typ -> term list -> term)) list,
     print_rules: (Ast.ast * Ast.ast) list,
     print_ast_translation: (string * (Ast.ast list -> Ast.ast)) list,
     token_translation: (string * string * (string -> string * int)) list}
@@ -337,7 +338,7 @@ fun syn_ext_const_names logtypes cs =
 fun syn_ext_rules logtypes rules =
   syn_ext logtypes [] [] ([], [], [], []) [] rules;
 
-fun fix_tr' f _ args = f args;
+fun fix_tr' f _ _ ts = f ts;
 
 fun syn_ext_trfuns logtypes (atrs, trs, tr's, atr's) =
   syn_ext logtypes [] [] (atrs, trs, map (apsnd fix_tr') tr's, atr's) [] ([], []);
