@@ -358,7 +358,7 @@ by (not_lost_tac "A" 1);
 (*A's certificate guarantees the existence of the Server message*)
 by (blast_tac (!claset addDs [Says_imp_sees_Spy' RS parts.Inj RS parts.Fst RS
 			      A_trusts_YM3]) 1);
-val B_trusts_YM4_newK = result() RS mp RSN (2, rev_mp);
+bind_thm ("B_trusts_YM4_newK", result() RS mp RSN (2, rev_mp));
 
 
 (**** Towards proving secrecy of Nonce NB ****)
@@ -382,6 +382,8 @@ by (Blast_tac 1);
 qed "KeyWithNonce_Says";
 Addsimps [KeyWithNonce_Says];
 
+(*A fresh key cannot be associated with any nonce 
+  (with respect to a given trace). *)
 goalw thy [KeyWithNonce_def]
  "!!evs. Key K ~: used evs ==> ~ KeyWithNonce K NB evs";
 by (blast_tac (!claset addSEs sees_Spy_partsEs) 1);
@@ -510,18 +512,20 @@ val Says_unique_NB' = read_instantiate [("lost","lost")] Says_unique_NB;
 (** A nonce value is never used both as NA and as NB **)
 
 goal thy 
- "!!evs. [| B ~: lost;  evs : yahalom lost  |]               \
-\ ==> Nonce NB ~: analz (sees lost Spy evs) -->              \
-\     Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}: parts(sees lost Spy evs)\
-\ --> Crypt (shrK B') {|Agent A', Nonce NB, NB'|} ~: parts(sees lost Spy evs)";
+ "!!evs. [| B ~: lost;  evs : yahalom lost  |]       \
+\ ==> Nonce NB ~: analz (sees lost Spy evs) -->      \
+\     Crypt (shrK B') {|Agent A', Nonce NB, NB'|}    \
+\       : parts(sees lost Spy evs)                   \
+\ --> Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|} \
+\       ~: parts(sees lost Spy evs)";
 by analz_mono_parts_induct_tac;
 by (Fake_parts_insert_tac 1);
 by (blast_tac (!claset addDs [Says_imp_sees_Spy' RS analz.Inj]
                        addSIs [parts_insertI]
                        addSEs partsEs) 1);
-bind_thm ("no_nonce_YM1_YM2", result() RS mp RSN (2, rev_mp) RS notE);
+bind_thm ("no_nonce_YM1_YM2", result() RS mp RSN (2,rev_mp) RSN (2,rev_notE));
 
-(*YM3 can only be triggered by YM2*)
+(*The Server sends YM3 only in response to YM2.*)
 goal thy 
  "!!evs. [| Says Server A                                           \
 \            {|Crypt (shrK A) {|Agent B, k, na, nb|}, X|} : set_of_list evs; \
@@ -536,7 +540,7 @@ by (ALLGOALS Blast_tac);
 qed "Says_Server_imp_YM2";
 
 
-(*Basic theorem for B: Nonce NB remains secure from the Spy.
+(*A vital theorem for B, that nonce NB remains secure from the Spy.
   Unusually, the Fake case requires Spy:lost.*)
 goal thy 
  "!!evs. [| A ~: lost;  B ~: lost;  Spy: lost;  evs : yahalom lost |]  \
@@ -594,11 +598,11 @@ by (blast_tac (!claset addSEs [MPair_parts]
 bind_thm ("Spy_not_see_NB", result() RSN(2,rev_mp) RSN(2,rev_mp));
 
 
-(*What can B deduce from receipt of YM4?  Note how the two components of
-  the message contribute to a single conclusion about the Server's message.
-  Note that the "Says A Spy" assumption must quantify over 
-  ALL POSSIBLE keys instead of our particular K.  If this run is broken and
-  the spy has a certificate for an old key, B has no means of telling.*)
+(*B's session key guarantee from YM4.  The two certificates contribute to a
+  single conclusion about the Server's message.  Note that the "Says A Spy"
+  assumption must quantify over ALL POSSIBLE keys instead of our particular K.
+  If this run is broken and the spy substitutes a certificate containing an
+  old key, B has no means of telling.*)
 goal thy 
  "!!evs. [| Says B Server                                                   \
 \             {|Agent B, Crypt (shrK B) {|Agent A, Nonce NA, Nonce NB|}|}   \
