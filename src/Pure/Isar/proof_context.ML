@@ -38,7 +38,6 @@ sig
   val read_term: context -> string -> term
   val read_prop: context -> string -> term
   val read_terms: context -> string list -> term list
-  val read_props: context -> string list -> term list
   val read_termT_pats: context -> (string * typ) list -> term list
   val read_term_pats: typ -> context -> string list -> term list
   val read_prop_pats: context -> string list -> term list
@@ -62,9 +61,17 @@ sig
     -> context * (term * (term list * term list)) list list
   val cert_propp: context * (term * (term list * term list)) list list
     -> context * (term * (term list * term list)) list list
+  val read_propp_schematic: context * (string * (string list * string list)) list list
+    -> context * (term * (term list * term list)) list list
+  val cert_propp_schematic: context * (term * (term list * term list)) list list
+    -> context * (term * (term list * term list)) list list
   val bind_propp: context * (string * (string list * string list)) list list
     -> context * (term list list * (context -> context))
   val bind_propp_i: context * (term * (term list * term list)) list list
+    -> context * (term list list * (context -> context))
+  val bind_propp_schematic: context * (string * (string list * string list)) list list
+    -> context * (term list list * (context -> context))
+  val bind_propp_schematic_i: context * (term * (term list * term list)) list list
     -> context * (term list list * (context -> context))
   val get_thm: context -> string -> thm
   val get_thm_closure: context -> string -> thm
@@ -404,8 +411,9 @@ fun read_typ_aux read ctxt s =
   transform_error (read (sign_of ctxt, def_sort ctxt)) s
     handle ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt);
 
-fun cert_typ_aux cert ctxt raw_T = cert (sign_of ctxt) raw_T
-  handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
+fun cert_typ_aux cert ctxt raw_T =
+  cert (sign_of ctxt) raw_T
+    handle TYPE (msg, _, _) => raise CONTEXT (msg, ctxt);
 
 in
 
@@ -415,7 +423,6 @@ val cert_typ         = cert_typ_aux Sign.certify_typ;
 val cert_typ_no_norm = cert_typ_aux Sign.certify_typ_no_norm;
 
 end;
-
 
 
 (* internalize Skolem constants *)
@@ -499,7 +506,7 @@ fun unifyT ctxt (T, U) =
   let val maxidx = Int.max (Term.maxidx_of_typ T, Term.maxidx_of_typ U)
   in #1 (Type.unify (Sign.tsig_of (sign_of ctxt)) maxidx Vartab.empty (T, U)) end;
 
-fun norm_term (ctxt as Context {binds, ...}) =
+fun norm_term (ctxt as Context {binds, ...}) schematic =
   let
     (*raised when norm has no effect on a term, to do sharing instead of copying*)
     exception SAME;
@@ -512,7 +519,9 @@ fun norm_term (ctxt as Context {binds, ...}) =
                   raise TYPE ("norm_term: ill-typed variable assigment", [T, U], [t, u]);
                 val u' = Term.subst_TVars_Vartab env u;
               in norm u' handle SAME => u' end
-          | _ => raise CONTEXT ("Unbound schematic variable: " ^ Syntax.string_of_vname xi, ctxt))
+          | _ =>
+            if schematic then raise SAME
+            else raise CONTEXT ("Unbound schematic variable: " ^ Syntax.string_of_vname xi, ctxt))
       | norm (Abs (a, T, body)) =  Abs (a, T, norm body)
       | norm (Abs (_, _, body) $ t) = normh (subst_bound (t, body))
       | norm (f $ t) =
@@ -534,37 +543,50 @@ fun reject_dummies ctxt t = Term.no_dummy_patterns t
 
 (* read terms *)
 
-fun gen_read read app is_pat (ctxt as Context {defs = (_, _, (used, _)), ...}) s =
+local
+
+fun gen_read read app is_pat schematic (ctxt as Context {defs = (_, _, (used, _)), ...}) s =
   (transform_error (read (sign_of ctxt) (def_type ctxt is_pat, def_sort ctxt, used)) s
     handle TERM (msg, _) => raise CONTEXT (msg, ctxt)
     | ERROR_MESSAGE msg => raise CONTEXT (msg, ctxt))
   |> app (intern_skolem ctxt)
-  |> app (if is_pat then I else norm_term ctxt)
+  |> app (if is_pat then I else norm_term ctxt schematic)
   |> app (if is_pat then prepare_dummies else (reject_dummies ctxt));
 
-val read_termTs = gen_read (read_def_termTs false) (apfst o map) false;
-val read_termT_pats = #1 oo gen_read (read_def_termTs false) (apfst o map) true;
+in
+
+val read_termTs = gen_read (read_def_termTs false) (apfst o map) false false;
+val read_termT_pats = #1 oo gen_read (read_def_termTs false) (apfst o map) true false;
 
 fun read_term_pats T ctxt pats = read_termT_pats ctxt (map (rpair T) pats);
 val read_prop_pats = read_term_pats propT;
 
-val read_term = gen_read (read_term_sg true) I false;
-val read_prop = gen_read (read_prop_sg true) I false;
-val read_terms = gen_read (read_terms_sg true) map false;
+val read_term = gen_read (read_term_sg true) I false false;
+val read_prop = gen_read (read_prop_sg true) I false false;
+val read_terms = gen_read (read_terms_sg true) map false false;
 val read_props = gen_read (read_props_sg true) map false;
+
+end;
 
 
 (* certify terms *)
 
-fun gen_cert cert is_pat ctxt t = t
-  |> (if is_pat then I else norm_term ctxt)
+local
+
+fun gen_cert cert is_pat schematic ctxt t = t
+  |> (if is_pat then I else norm_term ctxt schematic)
   |> (fn t' => cert (sign_of ctxt) t' handle TERM (msg, _) => raise CONTEXT (msg, ctxt));
 
-val cert_term = gen_cert cert_term_sg false;
-val cert_prop = gen_cert cert_prop_sg false;
+in
 
-fun cert_term_pats _ = map o gen_cert cert_term_sg true;
-val cert_prop_pats = map o gen_cert cert_prop_sg true;
+val cert_term = gen_cert cert_term_sg false false;
+val cert_prop = gen_cert cert_prop_sg false false;
+val cert_props = map oo gen_cert cert_prop_sg false;
+
+fun cert_term_pats _ = map o gen_cert cert_term_sg true false;
+val cert_prop_pats = map o gen_cert cert_prop_sg true false;
+
+end;
 
 
 (* declare terms *)
@@ -757,20 +779,34 @@ fun delete_update_binds bs ctxt = foldl del_upd_bind (ctxt, bs);
 
 (* simult_matches *)
 
+local
+
+val add_vars = Term.foldl_aterms (fn (vs, Var (xi, _)) => xi ins vs | (vs, _) => vs);
+fun vars_of ts = foldl add_vars ([], ts);
+
+in
+
 fun simult_matches ctxt [] = []
   | simult_matches ctxt pairs =
       let
+        fun fail () = raise CONTEXT ("Pattern match failed!", ctxt);
+
         val maxidx = foldl (fn (i, (t1, t2)) =>
           Int.max (i, Int.max (Term.maxidx_of_term t1, Term.maxidx_of_term t2))) (~1, pairs);
-        val envs = Unify.smash_unifiers (sign_of ctxt, Envir.empty maxidx, pairs);
-        val env = (*pick first result*)
+        val envs = Unify.smash_unifiers (sign_of ctxt, Envir.empty maxidx,
+          map swap pairs);    (*prefer assignment of variables from patterns*)
+        val env =
           (case Seq.pull envs of
-            None => raise CONTEXT ("Pattern match failed!", ctxt)
-          | Some (env, _) => env);
-        val add_dom = Term.foldl_aterms (fn (dom, Var (xi, _)) => xi ins dom | (dom, _) => dom);
-        val domain = foldl add_dom ([], map #1 pairs);
+            None => fail ()
+          | Some (env, _) => env);    (*ignore further results*)
+        val domain = filter_out Term.is_replaced_dummy_pattern (vars_of (map #1 pairs));
+        val _ =    (*may not assign variables from text*)
+          if null (map #1 (Envir.alist_of env) inter vars_of (map #2 pairs)) then ()
+          else fail ();
         fun norm_bind (xi, t) = if xi mem domain then Some (xi, Envir.norm_term env t) else None;
       in mapfilter norm_bind (Envir.alist_of env) end;
+
+end;
 
 
 (* add_binds(_i) *)
@@ -782,13 +818,16 @@ fun gen_bind prep (ctxt, (xi as (x, _), raw_t)) =
 
 fun gen_binds prep binds ctxt = foldl (gen_bind prep) (ctxt, binds);
 
+fun drop_schematic (b as (xi, Some t)) = if null (Term.term_vars t) then b else (xi, None)
+  | drop_schematic b = b;
+
 in
 
 val add_binds = gen_binds read_term;
 val add_binds_i = gen_binds cert_term;
 
-val auto_bind_goal = add_binds_i o AutoBind.goal;
-val auto_bind_facts = add_binds_i oo AutoBind.facts;
+val auto_bind_goal = add_binds_i o map drop_schematic o AutoBind.goal;
+val auto_bind_facts = (add_binds_i o map drop_schematic) oo AutoBind.facts;
 
 end;
 
@@ -831,7 +870,7 @@ end;
 
 local
 
-fun prep_propp prep_props prep_pats (context, args) =
+fun prep_propp schematic prep_props prep_pats (context, args) =
   let
     fun prep ((ctxt, prop :: props), (_, (raw_pats1, raw_pats2))) =
           let
@@ -841,7 +880,7 @@ fun prep_propp prep_props prep_pats (context, args) =
           in ((ctxt', props), (prop, (take (len1, pats), drop (len1, pats)))) end
       | prep _ = sys_error "prep_propp";
     val ((context', _), propp) = foldl_map (foldl_map prep)
-        ((context, prep_props context (flat (map (map fst) args))), args);
+        ((context, prep_props schematic context (flat (map (map fst) args))), args);
   in (context', propp) end;
 
 fun matches ctxt (prop, (pats1, pats2)) =
@@ -853,17 +892,22 @@ fun gen_bind_propp prepp (ctxt, raw_args) =
     val binds = flat (flat (map (map (matches ctxt')) args));
     val propss = map (map #1) args;
 
-    (*generalize result: context evaluated now, binds to be added later*)
+    (*generalize result: context evaluated now, binds added later*)
     val gen = generalize ctxt' ctxt;
     fun gen_binds c = c |> add_binds_i (map (apsnd (Some o gen)) binds);
   in (ctxt' |> add_binds_i (map (apsnd Some) binds), (propss, gen_binds)) end;
 
 in
 
-val read_propp = prep_propp read_props read_prop_pats;
-val cert_propp = prep_propp (map o cert_prop) cert_prop_pats;
-val bind_propp = gen_bind_propp read_propp;
-val bind_propp_i = gen_bind_propp cert_propp;
+val read_propp           = prep_propp false read_props read_prop_pats;
+val cert_propp           = prep_propp false cert_props cert_prop_pats;
+val read_propp_schematic = prep_propp true read_props read_prop_pats;
+val cert_propp_schematic = prep_propp true cert_props cert_prop_pats;
+
+val bind_propp             = gen_bind_propp read_propp;
+val bind_propp_i           = gen_bind_propp cert_propp;
+val bind_propp_schematic   = gen_bind_propp read_propp_schematic;
+val bind_propp_schematic_i = gen_bind_propp cert_propp_schematic;
 
 end;
 
