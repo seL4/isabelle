@@ -230,10 +230,10 @@ Goal "state_not_singleton ==> \
 \ !pn:dom body. G|-{=}.BODY pn.{->} ==> WT c --> G|-{=}.c.{->}";
 by (induct_tac "c" 1);
 by        (ALLGOALS Clarsimp_tac);
-by        (fast_tac (claset() addIs [domI]) 7);
+by        (fast_tac (claset() addIs [(thm"domI")]) 7);
 by (etac MGT_alternD 6);
 by       (rewtac MGT_def);
-by       (EVERY'[dtac bspec, etac domI] 7);
+by       (EVERY'[dtac bspec, etac (thm"domI")] 7);
 by       (EVERY'[rtac escape, Clarsimp_tac, res_inst_tac 
 	     [("P1","%Z' s. s=(setlocs Z newlocs)[Loc Arg ::= fun Z]")]
 	     (hoare_derivs.Call RS conseq1), etac conseq12] 7);
@@ -335,7 +335,7 @@ by (etac MGF_lemma1 1);
 by  (fast_tac (claset() addDs [WT_bodiesD]) 2);
 by (Clarsimp_tac 1);
 by (rtac hoare_derivs.asm 1);
-by (fast_tac (claset() addIs [domI]) 1);
+by (fast_tac (claset() addIs [(thm"domI")]) 1);
 qed_spec_mp "MGF_lemma2_simult";
 
 (* requires Body, empty, insert, com_det *)
@@ -346,7 +346,7 @@ by (assume_tac 2);
 by (Clarsimp_tac 1);
 by (subgoal_tac "{}||-(%pn. {=}. BODY pn .{->})`dom body" 1);
 by (etac hoare_derivs.weaken 1);
-by  (fast_tac (claset() addIs [domI]) 1);
+by  (fast_tac (claset() addIs [(thm"domI")]) 1);
 by (rtac (finite_dom_body RSN (2,MGT_Body)) 1);
 by (Simp_tac 1);
 by (eatac MGF_lemma2_simult 1 1);
