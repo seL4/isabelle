@@ -13,12 +13,9 @@ print_depth 1;
 ml_prompts "> " "# ";
 
 
-(*basic utils*)
+(*basic tools*)
 use "library.ML";
-use "table.ML";
-use "object.ML";
-use "seq.ML";
-use "name_space.ML";
+cd "General"; use "ROOT.ML"; cd "..";
 use "term.ML";
 
 (*inner syntax module*)
