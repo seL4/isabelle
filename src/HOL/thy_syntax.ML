@@ -55,7 +55,7 @@ fun inductive_decl coind =
         \local\n\
         \val (thy, {defs, mono, unfold, intrs, elims, mk_cases, induct, ...}) =\n\
         \  InductivePackage.add_inductive true " ^
-        (if coind then "true " else "false ") ^ srec_tms ^ " " ^
+        (if coind then "true " else "false ") ^ srec_tms ^ " [] " ^
          sintrs ^ " " ^ mk_list (no_atts monos) ^ " " ^ mk_list (no_atts con_defs) ^ " thy;\n\
         \in\n\
         \structure " ^ big_rec_name ^ " =\n\
@@ -280,7 +280,7 @@ val _ = ThySyn.add_syntax
  ["intrs", "monos", "con_defs", "congs", "simpset", "|",
   "and", "distinct", "inject", "induct", "??"]
  [axm_section "typedef" "|> TypedefPackage.add_typedef" typedef_decl,
-  section "record" "|> RecordPackage.add_record" record_decl,
+  section "record" "|> (#1 oooo RecordPackage.add_record)" record_decl,
   section "inductive" 	"" (inductive_decl false),
   section "coinductive"	"" (inductive_decl true),
   section "datatype" 	"" datatype_decl,
