@@ -2,18 +2,17 @@
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
-
-Ordered Pairs and the Cartesian product type.
-The unit type.
 *)
+
+header {* Finite products (including unit) *}
 
 theory Product_Type = Fun
 files ("Product_Type_lemmas.ML") ("Tools/split_rule.ML"):
 
 
-(** products **)
+subsection {* Products *}
 
-(* type definition *)
+subsubsection {* Type definition *}
 
 constdefs
   Pair_Rep :: "['a, 'b] => ['a, 'b] => bool"
@@ -34,8 +33,12 @@ syntax (symbols)
 syntax (HTML output)
   "*"      :: "[type, type] => type"         ("(_ \<times>/ _)" [21, 20] 20)
 
+local
 
-(* abstract constants and syntax *)
+
+subsubsection {* Abstract constants and syntax *}
+
+global
 
 consts
   fst      :: "'a * 'b => 'a"
@@ -45,8 +48,12 @@ consts
   Pair     :: "['a, 'b] => 'a * 'b"
   Sigma    :: "['a set, 'a => 'b set] => ('a * 'b) set"
 
+local
 
-(* patterns -- extends pre-defined type "pttrn" used in abstractions *)
+text {*
+  Patterns -- extends pre-defined type @{typ pttrn} used in
+  abstractions.
+*}
 
 nonterminals
   tuple_args patterns
@@ -80,9 +87,7 @@ syntax (symbols)
 print_translation {* [("Sigma", dependent_tr' ("@Sigma", "@Times"))] *}
 
 
-(* definitions *)
-
-local
+subsubsection {* Definitions *}
 
 defs
   Pair_def:     "Pair a b == Abs_Prod(Pair_Rep a b)"
@@ -93,8 +98,7 @@ defs
   Sigma_def:    "Sigma A B == UN x:A. UN y:B(x). {(x, y)}"
 
 
-
-(** unit **)
+subsection {* Unit *}
 
 typedef unit = "{True}"
 proof
@@ -107,15 +111,15 @@ constdefs
   "() == Abs_unit True"
 
 
-
-(** lemmas and tool setup **)
+subsection {* Lemmas and tool setup *}
 
 use "Product_Type_lemmas.ML"
 
 lemma pair_imageI [intro]: "(a, b) : A ==> f a b : (%(a, b). f a b) ` A"
-apply (rule_tac x = "(a,b)" in image_eqI)
-apply  auto
-done
+  apply (rule_tac x = "(a, b)" in image_eqI)
+   apply auto
+  done
+
 
 constdefs
   internal_split :: "('a => 'b => 'c) => 'a * 'b => 'c"
