@@ -143,7 +143,7 @@ val weak_case_congs_of = weak_case_congs_of_sg o Theory.sign_of;
 
 fun find_tname var Bi =
   let val frees = map dest_Free (term_frees Bi)
-      val params = Logic.strip_params Bi;
+      val params = rename_wrt_term Bi (Logic.strip_params Bi);
   in case assoc (frees @ params, var) of
        None => error ("No such variable in subgoal: " ^ quote var)
      | Some(Type (tn, _)) => tn
