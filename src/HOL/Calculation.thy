@@ -6,7 +6,7 @@ Setup transitivity rules for calculational proofs.  Note that in the
 list below later rules have priority.
 *)
 
-theory Calculation = Int:;
+theory Calculation = IntArith:;
 
 theorems [trans] = rev_mp mp;
 
