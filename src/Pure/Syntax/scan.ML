@@ -48,6 +48,7 @@ sig
   val finite': 'a * ('a -> bool) -> ('b * 'a list -> 'c * ('d * 'a list))
     -> 'b * 'a list -> 'c * ('d * 'a list)
   val finite: 'a * ('a -> bool) -> ('a list -> 'b * 'a list) -> 'a list -> 'b * 'a list
+  val read: 'a * ('a -> bool) -> ('a list -> 'b * 'a list) -> 'a list -> 'b option
   val catch: ('a -> 'b) -> 'a -> 'b
   val error: ('a -> 'b) -> 'a -> 'b
   val source': string -> (string -> 'a -> 'b list * 'a) -> ('b list * 'a -> 'c) ->
@@ -185,6 +186,12 @@ fun finite' (stopper, is_stopper) scan (state, input) =
 fun finite stopper scan xs =
   let val (y, ((), xs')) = finite' stopper (lift scan) ((), xs)
   in (y, xs') end;
+
+fun read stopper scan xs =
+  (case error (finite stopper (option scan)) xs of
+    (y as Some _, []) => y
+  | _ => None);
+
 
 
 (* infinite scans -- draining state-based source *)
