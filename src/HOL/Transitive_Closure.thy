@@ -27,7 +27,7 @@ syntax
 translations
   "r^=" == "r Un Id"
 
-syntax (latex)
+syntax (xsymbols)
   rtrancl :: "('a * 'a) set => ('a * 'a) set"    ("(_\\<^sup>*)" [1000] 999)
   trancl :: "('a * 'a) set => ('a * 'a) set"    ("(_\\<^sup>+)" [1000] 999)
   "_reflcl" :: "('a * 'a) set => ('a * 'a) set"    ("(_\\<^sup>=)" [1000] 999)
