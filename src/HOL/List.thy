@@ -607,6 +607,9 @@ by auto
 lemma set_empty [iff]: "(set xs = {}) = (xs = [])"
 by (induct xs) auto
 
+lemma set_empty2[iff]: "({} = set xs) = (xs = [])"
+by(induct xs) auto
+
 lemma set_rev [simp]: "set (rev xs) = set xs"
 by (induct xs) auto
 
@@ -1494,6 +1497,18 @@ lemma remdups_eq_nil_iff [simp]: "(remdups x = []) = (x = [])"
 
 lemma remdups_eq_nil_right_iff [simp]: "([] = remdups x) = (x = [])"
   by (induct_tac x, auto)
+
+lemma length_remdups_leq[iff]: "length(remdups xs) <= length xs"
+by (induct xs) auto
+
+lemma length_remdups_eq[iff]:
+  "(length (remdups xs) = length xs) = (remdups xs = xs)"
+apply(induct xs)
+ apply auto
+apply(subgoal_tac "length (remdups xs) <= length xs")
+ apply arith
+apply(rule length_remdups_leq)
+done
 
 lemma distinct_filter [simp]: "distinct xs ==> distinct (filter P xs)"
 by (induct xs) auto
