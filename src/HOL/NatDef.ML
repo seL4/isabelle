@@ -489,6 +489,10 @@ goalw thy [le_def] "!!m. ~ m <= n ==> n<(m::nat)";
 by (Blast_tac 1);
 qed "not_leE";
 
+goalw thy [le_def] "(~n<=m) = (m<(n::nat))";
+by (Simp_tac 1);
+qed "not_le_iff_less";
+
 goalw thy [le_def] "!!m. m < n ==> Suc(m) <= n";
 by (simp_tac (simpset() addsimps [less_Suc_eq]) 1);
 by (blast_tac (claset() addSEs [less_irrefl,less_asym]) 1);
@@ -576,6 +580,32 @@ by (rtac iffI 1);
  by (etac (less_not_refl2 RS not_sym) 1);
 by (blast_tac (claset() addSDs [le_imp_less_or_eq]) 1);
 qed "nat_less_le";
+
+(** max **)
+
+goalw thy [max_def] "!!z::nat. (z <= max x y) = (z <= x | z <= y)";
+by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits [expand_if]) 1);
+by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
+qed "le_max_iff_disj";
+
+goalw thy [max_def] "!!z::nat. (max x y <= z) = (x <= z & y <= z)";
+by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits [expand_if]) 1);
+by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
+qed "max_le_iff_conj";
+
+
+(** min **)
+
+goalw thy [min_def] "!!z::nat. (z <= min x y) = (z <= x & z <= y)";
+by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits [expand_if]) 1);
+by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
+qed "le_min_iff_conj";
+
+goalw thy [min_def] "!!z::nat. (min x y <= z) = (x <= z | y <= z)";
+by (simp_tac (simpset() addsimps [not_le_iff_less] addsplits [expand_if]) 1);
+by (blast_tac (claset() addIs [less_imp_le, le_trans]) 1);
+qed "min_le_iff_disj";
+
 
 (** LEAST -- the least number operator **)
 
