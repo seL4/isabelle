@@ -254,8 +254,8 @@ qed "well_ord_rmult";
 
 goal OrderArith.thy
  "!!f g. [| f: bij(A,C);  g: bij(B,D) |] ==> \
-\        (lam z:A*B. split(%x y. <f`x, g`y>, z)) : bij(A*B, C*D)";
-by (res_inst_tac [("d", "split(%x y. <converse(f)`x, converse(g)`y>)")] 
+\        (lam <x,y>:A*B. <f`x, g`y>) : bij(A*B, C*D)";
+by (res_inst_tac [("d", "%<x,y>. <converse(f)`x, converse(g)`y>")] 
     lam_bijective 1);
 by (safe_tac ZF_cs);
 by (ALLGOALS (asm_simp_tac bij_inverse_ss));
@@ -263,7 +263,7 @@ qed "prod_bij";
 
 goalw OrderArith.thy [ord_iso_def]
     "!!r s. [| f: ord_iso(A,r,A',r');  g: ord_iso(B,s,B',s') |] ==> 	\
-\           (lam z:A*B. split(%x y. <f`x, g`y>, z))			\
+\           (lam <x,y>:A*B. <f`x, g`y>)					\
 \           : ord_iso(A*B, rmult(A,r,B,s), A'*B', rmult(A',r',B',s'))";
 by (safe_tac (ZF_cs addSIs [prod_bij]));
 by (ALLGOALS
@@ -323,17 +323,16 @@ qed "prod_sum_singleton_ord_iso";
 (** Distributive law **)
 
 goal OrderArith.thy
- "(lam z:(A+B)*C. split(%x z. case(%y.Inl(<y,z>), %y.Inr(<y,z>), x), z)) \
+ "(lam <x,z>:(A+B)*C. case(%y.Inl(<y,z>), %y.Inr(<y,z>), x)) \
 \ : bij((A+B)*C, (A*C)+(B*C))";
 by (res_inst_tac
-    [("d", "case(split(%x y.<Inl(x),y>), split(%x y.<Inr(x),y>))")] 
-    lam_bijective 1);
+    [("d", "case(%<x,y>.<Inl(x),y>, %<x,y>.<Inr(x),y>)")] lam_bijective 1);
 by (safe_tac (ZF_cs addSEs [sumE]));
 by (ALLGOALS (asm_simp_tac case_ss));
 qed "sum_prod_distrib_bij";
 
 goal OrderArith.thy
- "(lam z:(A+B)*C. split(%x z. case(%y.Inl(<y,z>), %y.Inr(<y,z>), x), z)) \
+ "(lam <x,z>:(A+B)*C. case(%y.Inl(<y,z>), %y.Inr(<y,z>), x)) \
 \ : ord_iso((A+B)*C, rmult(A+B, radd(A,r,B,s), C, t), \
 \           (A*C)+(B*C), radd(A*C, rmult(A,r,C,t), B*C, rmult(B,s,C,t)))";
 by (resolve_tac [sum_prod_distrib_bij RS ord_isoI] 1);
@@ -344,15 +343,13 @@ qed "sum_prod_distrib_ord_iso";
 (** Associativity **)
 
 goal OrderArith.thy
- "(lam z:(A*B)*C. split(%w z. split(%x y. <x,<y,z>>, w), z)) \
-\ : bij((A*B)*C, A*(B*C))";
-by (res_inst_tac [("d", "split(%x.   split(%y z. <<x,y>, z>))")] 
-    lam_bijective 1);
+ "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>) : bij((A*B)*C, A*(B*C))";
+by (res_inst_tac [("d", "%<x, <y,z>>. <<x,y>, z>")] lam_bijective 1);
 by (ALLGOALS (asm_simp_tac (case_ss setloop etac SigmaE)));
 qed "prod_assoc_bij";
 
 goal OrderArith.thy
- "(lam z:(A*B)*C. split(%w z. split(%x y. <x,<y,z>>, w), z)) \
+ "(lam <<x,y>, z>:(A*B)*C. <x,<y,z>>)			\
 \ : ord_iso((A*B)*C, rmult(A*B, rmult(A,r,B,s), C, t),	\
 \           A*(B*C), rmult(A, r, B*C, rmult(B,s,C,t)))";
 by (resolve_tac [prod_assoc_bij RS ord_isoI] 1);
