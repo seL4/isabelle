@@ -73,6 +73,7 @@ if [ -z "$INFILE" ]; then
   check_file "$ML_DBASE_PREFIX$ML_DBASE"
   INFILE="$ML_DBASE"
   MLTEXT="val use = PolyML.use; $EXIT $MLTEXT"
+  [ "$ML_SYSTEM" = polyml-4.1.1 ] && DISCGARB_OPTIONS="$DISCGARB_OPTIONS -S 120"
 else
   COPYDB=true
 fi
