@@ -159,7 +159,7 @@ other numeric types and also as the identity of groups, rings, etc.;
 * HOL: new axclass plus_ac0 for addition with the AC-laws and 0 as identity.
 Types nat and int belong to this axclass;
 
-* greatly improved simplification involving numerals of type nat & int, e.g.
+* greatly improved simplification involving numerals of type nat, int, real:
    (i + #8 + j) = Suc k simplifies to  #7 + (i + j) = k
    i*j + k + j*#3*i     simplifies to  #4*(i*j) + k
   two terms #m*u and #n*u are replaced by #(m+n)*u
