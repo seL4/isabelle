@@ -232,7 +232,8 @@ next
   thus "x == y" by (rule eq_reflection)
 qed
 
-lemma atomize_conj [atomize]: "(!!C. (A ==> B ==> PROP C) ==> PROP C) == Trueprop (A & B)"
+lemma atomize_conj [atomize]:
+  "(!!C. (A ==> B ==> PROP C) ==> PROP C) == Trueprop (A & B)"
 proof
   assume "!!C. (A ==> B ==> PROP C) ==> PROP C"
   show "A & B" by (rule conjI)

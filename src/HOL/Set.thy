@@ -515,7 +515,7 @@ lemma UNIV_not_empty [iff]: "UNIV ~= {}"
   by (blast elim: equalityE)
 
 
-section {* The Powerset operator -- Pow *}
+subsubsection {* The Powerset operator -- Pow *}
 
 lemma Pow_iff [iff]: "(A : Pow B) = (A <= B)"
   by (simp add: Pow_def)
@@ -575,7 +575,7 @@ lemma UnE [elim!]: "c : A Un B ==> (c:A ==> P) ==> (c:B ==> P) ==> P"
   by (unfold Un_def) blast
 
 
-subsection {* Binary intersection -- Int *}
+subsubsection {* Binary intersection -- Int *}
 
 lemma Int_iff [simp]: "(c : A Int B) = (c:A & c:B)"
   by (unfold Int_def) blast
@@ -593,7 +593,7 @@ lemma IntE [elim!]: "c : A Int B ==> (c:A ==> c:B ==> P) ==> P"
   by simp
 
 
-subsection {* Set difference *}
+subsubsection {* Set difference *}
 
 lemma Diff_iff [simp]: "(c : A - B) = (c:A & c~:B)"
   by (unfold set_diff_def) blast
@@ -905,7 +905,7 @@ lemma Least_mono:
   done
 
 
-section {* Transitivity rules for calculational reasoning *}
+subsection {* Transitivity rules for calculational reasoning *}
 
 lemma forw_subst: "a = b ==> P b ==> P a"
   by (rule ssubst)

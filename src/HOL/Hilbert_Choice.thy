@@ -2,9 +2,9 @@
     ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   2001  University of Cambridge
-
-Hilbert's epsilon-operator and everything to do with the Axiom of Choice
 *)
+
+header {* Hilbert's epsilon-operator and everything to do with the Axiom of Choice *}
 
 theory Hilbert_Choice = NatArith
 files ("Hilbert_Choice_lemmas.ML") ("meson_lemmas.ML") ("Tools/meson.ML"):

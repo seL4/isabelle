@@ -8,8 +8,6 @@ header {* HOL type definitions *}
 theory Typedef = Set
 files ("Tools/typedef_package.ML"):
 
-subsection {* HOL type definitions *}
-
 constdefs
   type_definition :: "('a => 'b) => ('b => 'a) => 'b set => bool"
   "type_definition Rep Abs A ==

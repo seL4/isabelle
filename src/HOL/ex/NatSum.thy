@@ -22,7 +22,7 @@ declare add_mult_distrib [simp] add_mult_distrib2 [simp]
 declare diff_mult_distrib [simp] diff_mult_distrib2 [simp]
 
 text {*
-  \medskip The sum of the first @{term n} odd numbers equals @{term n}
+  \medskip The sum of the first @{text n} odd numbers equals @{text n}
   squared.
 *}
 
@@ -46,7 +46,7 @@ lemma sum_of_odd_squares:
 
 
 text {*
-  \medskip The sum of the first @{term n} odd cubes
+  \medskip The sum of the first @{text n} odd cubes
 *}
 
 lemma sum_of_odd_cubes:
@@ -58,7 +58,7 @@ lemma sum_of_odd_cubes:
   done
 
 text {*
-  \medskip The sum of the first @{term n} positive integers equals
+  \medskip The sum of the first @{text n} positive integers equals
   @{text "n (n + 1) / 2"}.*}
 
 lemma sum_of_naturals:
@@ -114,7 +114,7 @@ lemma int_sum_of_fourth_powers:
 
 
 text {*
-  \medskip Sums of geometric series: @{term 2}, @{term 3} and the
+  \medskip Sums of geometric series: @{text 2}, @{text 3} and the
   general case.
 *}
 

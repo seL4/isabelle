@@ -1,9 +1,9 @@
 (*  Title:      HOL/Recdef.thy
     ID:         $Id$
     Author:     Konrad Slind and Markus Wenzel, TU Muenchen
-
-TFL: recursive function definitions.
 *)
+
+header {* TFL: recursive function definitions *}
 
 theory Recdef = Wellfounded_Relations + Datatype
 files
@@ -34,13 +34,13 @@ lemma tfl_P_imp_P_iff_True: "P ==> P = True"
 lemma tfl_imp_trans: "(A --> B) ==> (B --> C) ==> (A --> C)"
   by blast
 
-lemma tfl_disj_assoc: "(a \\<or> b) \\<or> c == a \\<or> (b \\<or> c)"
+lemma tfl_disj_assoc: "(a \<or> b) \<or> c == a \<or> (b \<or> c)"
   by simp
 
-lemma tfl_disjE: "P \\<or> Q ==> P --> R ==> Q --> R ==> R"
+lemma tfl_disjE: "P \<or> Q ==> P --> R ==> Q --> R ==> R"
   by blast
 
-lemma tfl_exE: "\\<exists>x. P x ==> \\<forall>x. P x --> Q ==> Q"
+lemma tfl_exE: "\<exists>x. P x ==> \<forall>x. P x --> Q ==> Q"
   by blast
 
 use "../TFL/utils.ML"

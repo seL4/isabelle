@@ -65,7 +65,7 @@ theorems basic_monos [mono] =
   induct_rulify2
 
 
-subsubsection {* Inductive datatypes and primitive recursion *}
+subsection {* Inductive datatypes and primitive recursion *}
 
 text {* Package setup. *}
 

@@ -76,7 +76,7 @@ recdef Div  "measure fst"
 text {*
   \medskip Not handled automatically.  Should be the predecessor
   function, but there is an unnecessary "looping" recursive call in
-  @{term "k 1"}.
+  @{text "k 1"}.
 *}
 
 consts k :: "nat => nat"
