@@ -138,13 +138,14 @@ local
     | exists_paired_all (t $ u) = exists_paired_all t orelse exists_paired_all u
     | exists_paired_all (Abs (_, _, t)) = exists_paired_all t
     | exists_paired_all _ = false;
-  val split_tac = full_simp_tac
-    (HOL_basic_ss
-      addsimps [split_paired_all, unit_all_eq2, unit_abs_eta_conv]
-      addsimprocs [unit_eq_proc]);
+  val ss = HOL_basic_ss
+    addsimps [split_paired_all, unit_all_eq2, unit_abs_eta_conv]
+    addsimprocs [unit_eq_proc];
 in
   val split_all_tac = SUBGOAL (fn (t, i) =>
-    if exists_paired_all t then split_tac i else no_tac);
+    if exists_paired_all t then full_simp_tac ss i else no_tac);
+  fun split_all th =
+    if exists_paired_all (#prop (Thm.rep_thm th)) then full_simplify ss th else th;
 end;
 
 claset_ref() := claset()
@@ -568,8 +569,7 @@ qed "Times_Diff_distrib1";
 
 
 (*Attempts to remove occurrences of split, and pair-valued parameters*)
-val remove_split = rewrite_rule [split RS eq_reflection] o
-                   rule_by_tactic (TRYALL split_all_tac);
+val remove_split = rewrite_rule [split RS eq_reflection] o split_all;
 
 local
 
@@ -599,7 +599,6 @@ in
 val split_rule_var = standard o remove_split o split_rule_var';
 
 (*Curries ALL function variables occurring in a rule's conclusion*)
-fun split_rule rl = remove_split (foldr split_rule_var' (term_vars (concl_of rl), rl))
-                    |> standard;
+fun split_rule rl = standard (remove_split (foldr split_rule_var' (term_vars (concl_of rl), rl)));
 
 end;
