@@ -14,8 +14,12 @@ signature AX_CLASS =
     -> theory -> theory
   val add_axclass_i: class * class list -> (string * term) list
     -> theory -> theory
+  val add_inst_subclass_i: class * class -> string list -> thm list
+    -> tactic option -> theory -> theory
   val add_inst_subclass: class * class -> string list -> thm list
     -> tactic option -> theory -> theory
+  val add_inst_arity_i: string * sort list * class list -> string list
+    -> thm list -> tactic option -> theory -> theory
   val add_inst_arity: string * sort list * class list -> string list
     -> thm list -> tactic option -> theory -> theory
   val axclass_tac: theory -> thm list -> tactic
@@ -44,7 +48,7 @@ fun aT S = TFree ("'a", S);
 
 fun dest_varT (TFree (x, S)) = ((x, ~1), S)
   | dest_varT (TVar xi_S) = xi_S
-  | dest_varT T = raise_type "dest_varT" [T] [];
+  | dest_varT T = raise TYPE ("dest_varT", [T], []);
 
 
 (* get axioms and theorems *)
@@ -69,7 +73,7 @@ fun mk_classrel (c1, c2) = Logic.mk_inclass (aT [c1], c2);
 
 fun dest_classrel tm =
   let
-    fun err () = raise_term "dest_classrel" [tm];
+    fun err () = raise TERM ("dest_classrel", [tm]);
 
     val (ty, c2) = Logic.dest_inclass tm handle TERM _ => err ();
     val c1 = (case dest_varT ty of (_, [c]) => c | _ => err ())
@@ -91,7 +95,7 @@ fun mk_arity (t, ss, c) =
 
 fun dest_arity tm =
   let
-    fun err () = raise_term "dest_arity" [tm];
+    fun err () = raise TERM ("dest_arity", [tm]);
 
     val (ty, c) = Logic.dest_inclass tm handle TERM _ => err ();
     val (t, tvars) =
@@ -170,11 +174,15 @@ fun err_bad_tfrees ax =
 
 (* ext_axclass *)
 
-fun ext_axclass prep_axm (class, super_classes) raw_axioms old_thy =
+fun ext_axclass int prep_axm (raw_class, raw_super_classes) raw_axioms old_thy =
   let
     val axioms = map (prep_axm (sign_of old_thy)) raw_axioms;
-    val thy = Theory.add_classes [(class, super_classes)] old_thy;
+    val thy =
+      (if int then Theory.add_classes else Theory.add_classes_i)
+        [(raw_class, raw_super_classes)] old_thy;
     val sign = sign_of thy;
+    val class = Sign.intern_class sign raw_class;
+    val super_classes = map (Sign.intern_class sign) raw_super_classes;
 
 
     (* prepare abstract axioms *)
@@ -182,8 +190,7 @@ fun ext_axclass prep_axm (class, super_classes) raw_axioms old_thy =
     fun abs_axm ax =
       if null (term_tfrees ax) then
         Logic.mk_implies (Logic.mk_inclass (aT logicS, class), ax)
-      else
-        map_term_tfrees (K (aT [class])) ax;
+      else map_term_tfrees (K (aT [class])) ax;
 
     val abs_axioms = map (apsnd abs_axm) axioms;
 
@@ -202,7 +209,7 @@ fun ext_axclass prep_axm (class, super_classes) raw_axioms old_thy =
           else err_bad_axsort name class
       | _ => err_bad_tfrees name);
 
-    val axS = Sign.norm_sort sign (logicC :: List.concat(map axm_sort axioms))
+    val axS = Sign.norm_sort sign (logicC :: flat (map axm_sort axioms))
 
     val int_axm = Logic.close_form o map_term_tfrees (K (aT axS));
     fun inclass c = Logic.mk_inclass (aT axS, c);
@@ -216,8 +223,8 @@ fun ext_axclass prep_axm (class, super_classes) raw_axioms old_thy =
 
 (* external interfaces *)
 
-val add_axclass = ext_axclass read_axm;
-val add_axclass_i = ext_axclass cert_axm;
+val add_axclass = ext_axclass true read_axm;
+val add_axclass_i = ext_axclass false cert_axm;
 
 
 
@@ -285,20 +292,38 @@ val goal_arity = mk_goal mk_arity;
 
 (** add proved subclass relations and arities **)
 
-fun add_inst_subclass c1_c2 axms thms usr_tac thy =
- (writeln ("Proving class inclusion " ^ quote (Sorts.str_of_classrel c1_c2) ^ " ...");
-  add_classrel_thms
-    [prove_subclass thy c1_c2 (witnesses thy axms thms) usr_tac] thy);
-
-fun add_inst_arity (t, ss, cs) axms thms usr_tac thy =
+fun ext_inst_subclass int raw_c1_c2 axms thms usr_tac thy =
   let
+    val intrn = if int then pairself (Sign.intern_class (sign_of thy)) else I;
+    val c1_c2 = intrn raw_c1_c2;
+  in
+    writeln ("Proving class inclusion " ^ quote (Sorts.str_of_classrel c1_c2) ^ " ...");
+    add_classrel_thms
+      [prove_subclass thy c1_c2 (witnesses thy axms thms) usr_tac] thy
+  end;
+
+
+fun ext_inst_arity int (raw_t, raw_Ss, raw_cs) axms thms usr_tac thy =
+  let
+    val sign = sign_of thy;
+    val (t, Ss, cs) =
+      if int then
+        (Sign.intern_tycon sign raw_t,
+          map (Sign.intern_sort sign) raw_Ss,
+          map (Sign.intern_class sign) raw_cs)
+      else (raw_t, raw_Ss, raw_cs);
     val wthms = witnesses thy axms thms;
     fun prove c =
-     (writeln ("Proving type arity " ^ quote (Sorts.str_of_arity (t, ss, [c])) ^ " ...");
-      prove_arity thy (t, ss, c) wthms usr_tac);
+     (writeln ("Proving type arity " ^ quote (Sorts.str_of_arity (t, Ss, [c])) ^ " ...");
+      prove_arity thy (t, Ss, c) wthms usr_tac);
   in
     add_arity_thms (map prove cs) thy
   end;
+
+val add_inst_subclass = ext_inst_subclass true;
+val add_inst_subclass_i = ext_inst_subclass false;
+val add_inst_arity = ext_inst_arity true;
+val add_inst_arity_i = ext_inst_arity false;
 
 
 end;
