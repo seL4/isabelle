@@ -4,7 +4,7 @@
 #
 # Poly/ML startup script.
 #
-# Global vars: INFILE OUTFILE COPYDB MLTEXT TERMINATE,
+# Global vars: INFILE OUTFILE MLTEXT TERMINATE,
 # and from settings
 
 
@@ -31,11 +31,12 @@ esac
 
 ## prepare databases
 
-MLINIT=""
+COPYDB=true
 
 if [ -z "$INFILE" ]; then
   INFILE="$ML_HOME/ML_dbase"
-  MLINIT="val use = PolyML.use; val exit = PolyML.exit; fun init_database () = ();"
+  MLTEXT="val use = PolyML.use; val exit = PolyML.exit; $MLTEXT"
+  COPYDB=""
 fi
 
 if [ -z "$OUTFILE" ]; then
@@ -53,7 +54,6 @@ else
   echo "PolyML.make_database \"$OUTFILE\"; PolyML.quit();" | $POLY -r "$INFILE"
   [ -f "$OUTFILE" ] || fail_out
   DB="$OUTFILE"
-  MLINIT="$MLINIT init_database ();"
 fi
 
 
@@ -61,8 +61,6 @@ fi
 
 START_POLY="$POLY $ML_OPTIONS $DB"
 DB_INFO=$(ls -l "$DB")
-
-[ -n "$MLINIT" ] && MLTEXT="$MLINIT $MLTEXT"
 
 if [ -n "$TERMINATE" ]; then
   echo "$MLTEXT" | $START_POLY

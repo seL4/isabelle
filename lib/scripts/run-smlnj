@@ -4,7 +4,7 @@
 #
 # SML/NJ startup script (for 1.06 or later).
 #
-# Global vars: INFILE OUTFILE COPYDB MLTEXT TERMINATE,
+# Global vars: INFILE OUTFILE MLTEXT TERMINATE,
 # and from settings
 
 
