@@ -16,7 +16,7 @@ consts
 datatype \<subseteq> "Vfrom(0, csucc(nat))"
     "brouwer" = Zero | Suc ("b \<in> brouwer") | Lim ("h \<in> nat -> brouwer")
   monos Pi_mono
-  type_intros inf_datatype_intrs
+  type_intros inf_datatype_intros
 
 lemma brouwer_unfold: "brouwer = {0} + brouwer + (nat -> brouwer)"
   by (fast intro!: brouwer.intros [unfolded brouwer.con_defs]
@@ -51,7 +51,7 @@ datatype \<subseteq> "Vfrom(A \<union> (\<Union>x \<in> A. B(x)), csucc(nat \<un
     -- {* The union with @{text nat} ensures that the cardinal is infinite. *}
   "Well(A, B)" = Sup ("a \<in> A", "f \<in> B(a) -> Well(A, B)")
   monos Pi_mono
-  type_intros le_trans [OF UN_upper_cardinal le_nat_Un_cardinal] inf_datatype_intrs
+  type_intros le_trans [OF UN_upper_cardinal le_nat_Un_cardinal] inf_datatype_intros
 
 lemma Well_unfold: "Well(A, B) = (\<Sigma>x \<in> A. B(x) -> Well(A, B))"
   by (fast intro!: Well.intros [unfolded Well.con_defs]
