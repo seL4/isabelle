@@ -25,7 +25,7 @@ else
 fi
 
 exec emacs -name "isabelle" \
-  --no-init-file $ISABELLE_INTERFACE_OPTIONS \
+  --no-init-file "$@" \
   --load "$ISAMODE_HOME/elisp/isa-site.el" \
   $USER_SETTINGS \
   --load $HOME/.emacs \
