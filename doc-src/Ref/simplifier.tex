@@ -360,7 +360,7 @@ added by \texttt{addsimps} as well as local assumptions.
 \index{rewrite rules|)}
 
 
-\subsection{Simplification procedures}
+\subsection{*Simplification procedures}
 \begin{ttbox}
 addsimprocs : simpset * simproc list -> simpset
 delsimprocs : simpset * simproc list -> simpset
@@ -926,9 +926,6 @@ which is more directed and leads to
 
 \section{Permutative rewrite rules}
 \index{rewrite rules!permutative|(}
-\begin{ttbox}
-settermless : simpset * (term * term -> bool) -> simpset \hfill{\bf infix 4}
-\end{ttbox}
 
 A rewrite rule is {\bf permutative} if the left-hand side and right-hand
 side are the same up to renaming of variables.  The most common permutative
@@ -942,6 +939,9 @@ employs a special strategy, called {\bf ordered
 lexicographic ordering on terms.  This should be perfectly OK in most
 cases, but can be changed for special applications.
 
+\begin{ttbox}
+settermless : simpset * (term * term -> bool) -> simpset \hfill{\bf infix 4}
+\end{ttbox}
 \begin{ttdescription}
   
 \item[$ss$ \ttindexbold{settermless} $rel$] installs relation $rel$ as
