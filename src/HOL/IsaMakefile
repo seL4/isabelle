@@ -12,13 +12,18 @@ NAMES = HOL Ord Set Fun subset equalities Prod Relation Trancl Sum WF WF_Rel \
 	mono Lfp Gfp NatDef Nat intr_elim indrule Inductive Finite Arith \
 	Sexp Univ List RelPow Option
 
+PROVERS = hypsubst.ML classical.ML blast.ML \
+	simplifier.ML splitter.ML nat_transitive.ML 
+
+TFL   = dcterm.sml mask.sig mask.sml post.sml rules.new.sml rules.sig \
+	sys.sml tfl.sig tfl.sml thms.sig thms.sml thry.sig thry.sml   \
+	usyntax.sig usyntax.sml utils.sig utils.sml
+
 FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML \
 	ind_syntax.ML cladata.ML simpdata.ML \
 	typedef.ML thy_syntax.ML thy_data.ML ../Pure/section_utils.ML \
-	../Provers/hypsubst.ML ../Provers/classical.ML ../Provers/blast.ML \
-	../Provers/simplifier.ML ../Provers/splitter.ML \
-	../Provers/nat_transitive.ML \
-	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
+	$(NAMES:%=%.thy) $(NAMES:%=%.ML) $(TFL:%=../TFL/%) \
+	$(PROVERS:%=../Provers/%)
 
 $(OUT)/HOL: $(OUT)/Pure $(FILES)
 	@$(ISATOOL) usedir -b $(OUT)/Pure HOL
@@ -195,7 +200,7 @@ Quot:	$(OUT)/HOL $(QUOT_FILES)
 
 ## Miscellaneous examples
 
-EX_NAMES = String BT InSort Qsort LexProd Puzzle Primes NatSum MT
+EX_NAMES = String BT InSort Qsort Puzzle Primes NatSum MT
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
 	   ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
