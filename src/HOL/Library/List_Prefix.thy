@@ -215,7 +215,7 @@ qed
 
 
 subsection {* Postfix order on lists *}
-
+(*
 constdefs
   postfix :: "'a list => 'a list => bool"  ("(_/ >= _)" [51, 50] 50)
   "xs >= ys == \<exists>zs. xs = zs @ ys"
@@ -258,5 +258,5 @@ lemma postfix2prefix: "(xs >= ys) = (rev ys <= rev xs)"
   apply (rule_tac x = "rev zs" in exI)
   apply (rule rev_is_rev_conv [THEN iffD1], simp)
   done
-
+*)
 end
