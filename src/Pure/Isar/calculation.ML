@@ -130,11 +130,11 @@ fun calculate final opt_rules print state =
     fun combine thms =
       let
         val ths = thms @ facts;
-        val rs = NetRules.inserts (if_none opt_rules []) (get_local_rules state);
+        val rs = get_local_rules state;
         val rules =
           (case ths of [] => NetRules.rules rs
           | th :: _ => NetRules.may_unify rs (Logic.strip_assums_concl (#prop (Thm.rep_thm th))));
-        val ruleq = Seq.of_list rules;
+        val ruleq = Seq.of_list (if_none opt_rules [] @ rules);
       in Seq.map Library.single (Seq.flat (Seq.map (Method.multi_resolve ths) ruleq)) end;
 
     val (initial, calculations) =
