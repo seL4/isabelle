@@ -16,7 +16,7 @@ features. The envelope provides a degree of
 origin), as do departmental stamps and letterheads. 
 
 Networks are vulnerable: messages pass through many computers, any of which
-might be controlled an adversary, who thus can capture or redirect
+might be controlled by an adversary, who thus can capture or redirect
 messages.  People who wish to communicate securely over such a network can
 use cryptography, but if they are to understand each other, they need to
 follow a
@@ -146,7 +146,7 @@ $\isa{MPair}\,X\sb 1\,\ldots\allowbreak(\isa{MPair}\,X\sb{n-1}\,X\sb n)$.
 
 Since datatype constructors are injective, we have the theorem
 \begin{isabelle}
-Crypt K X = Crypt K' X' \isasymLongrightarrow\ K=K' \isasymand X=X'.
+Crypt K X = Crypt K' X' \isasymLongrightarrow\ K=K' \isasymand\ X=X'.
 \end{isabelle}
 A ciphertext can be decrypted using only one key and
 can yield only one plaintext.  This assumption is realistic if encryption
@@ -277,7 +277,7 @@ X\isacharbraceright \ \isasymunion\ (used\ evs)
 \end{isabelle}
 
 The function \isa{knows} formalizes an agent's knowledge.  Mostly we only
-case about the spy's knowledge, and \isa{knows Spy evs} is the set of items
+care about the spy's knowledge, and \isa{knows Spy evs} is the set of items
 available to the spy in the trace~\isa{evs}.  Already in the empty trace,
 the spy starts with some secrets at his disposal, such as the private keys
 of compromised users.  After each \isa{Says} event, the spy learns the
@@ -297,7 +297,7 @@ The function
 \begin{isabelle}
 \isacommand{consts}\ \,pubK\ \ \ \ ::\ "agent\ =>\ key"\isanewline
 \isacommand{syntax}\ priK\ \ \ \ ::\ "agent\ =>\ key"\isanewline
-\isacommand{translations}\ \ \ \ "priK\ x"\ \ ==\ "invKey(pubK\ x)"
+\isacommand{translations}\ \ \ \ "priK\ x"\ \ \isasymrightleftharpoons\ \ "invKey(pubK\ x)"
 \end{isabelle}
 The set \isa{bad} consists of those agents whose private keys are known to
 the spy.
