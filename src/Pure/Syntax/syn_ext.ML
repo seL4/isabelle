@@ -311,7 +311,7 @@ fun syn_ext all_roots new_roots mfixes consts trfuns rules =
 
     fun constrain T =
       Mfix ("_::_", [T, typeT] ---> change_name T "_A", constrainC, 
-            [max_pri, 0], max_pri - 1)
+            [4, 0], 3)
 
     fun unhide T =
       if T <> logicT then
