@@ -560,7 +560,7 @@ by (Blast_tac 1);
 qed "Pow_0";
 
 Goal "Pow (cons(a,A)) = Pow(A) Un {cons(a,X) . X: Pow(A)}";
-br equalityI 1;
+by (rtac equalityI 1);
 by Safe_tac;
 by (etac swap 1);
 by (res_inst_tac [("a", "x-{a}")] RepFun_eqI 1);
