@@ -309,7 +309,7 @@ Addsimps (map (rename_numerals thy)
 	  [diff_0_eq_0, add_0, add_0_right, add_pred, 
 	   diff_is_0_eq, zero_is_diff_eq, zero_less_diff,
 	   mult_0, mult_0_right, mult_1, mult_1_right, 
-	   mult_is_0, zero_less_mult_iff,
+	   mult_is_0, zero_is_mult, zero_less_mult_iff,
 	   mult_eq_1_iff]);
 
 AddIffs (map (rename_numerals thy) [add_is_0, zero_is_add, add_gr_0]);
