@@ -46,6 +46,8 @@ sig
   val print_theory: Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
+  val print_locales: Toplevel.transition -> Toplevel.transition
+  val print_locale: xstring -> Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
   val print_induct_rules: Toplevel.transition -> Toplevel.transition
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
@@ -185,6 +187,12 @@ val print_syntax = Toplevel.unknown_theory o
 
 val print_theorems = Toplevel.unknown_theory o
   Toplevel.keep (PureThy.print_theorems o Toplevel.theory_of);
+
+val print_locales = Toplevel.unknown_theory o
+  Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
+
+fun print_locale name = Toplevel.unknown_theory o
+  Toplevel.keep (fn state => Locale.print_locale (Toplevel.theory_of state) name);
 
 val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
