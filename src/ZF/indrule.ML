@@ -72,6 +72,20 @@ val pred = Free(pred_name, Ind_Syntax.iT --> Ind_Syntax.oT);
 val ind_prems = map (induct_prem (map (rpair pred) Inductive.rec_tms)) 
                     Inductive.intr_tms;
 
+(*Debugging code...
+val _ = writeln "ind_prems = ";
+val _ = seq (writeln o Sign.string_of_term sign) ind_prems;
+*)
+
+(*We use a MINIMAL simpset because others (such as FOL_ss) contain too many
+  simplifications.  If the premises get simplified, then the proofs will 
+  fail.  *)
+val min_ss = empty_ss
+      setmksimps (map mk_meta_eq o ZF_atomize o gen_all)
+      setsolver  (fn prems => resolve_tac (triv_rls@prems) 
+			      ORELSE' assume_tac
+			      ORELSE' etac FalseE);
+
 val quant_induct = 
     prove_goalw_cterm part_rec_defs 
       (cterm_of sign 
@@ -81,7 +95,7 @@ val quant_induct =
        [rtac (impI RS allI) 1,
         DETERM (etac Intr_elim.raw_induct 1),
         (*Push Part inside Collect*)
-        asm_full_simp_tac (FOL_ss addsimps [Part_Collect]) 1,
+        full_simp_tac (min_ss addsimps [Part_Collect]) 1,
         REPEAT (FIRSTGOAL (eresolve_tac [CollectE, exE, conjE, disjE] ORELSE'
                            hyp_subst_tac)),
         ind_tac (rev prems) (length prems) ]);
@@ -150,7 +164,7 @@ val lemma = (*makes the link between the two induction rules*)
 (*Simplification largely reduces the mutual induction rule to the 
   standard rule*)
 val mut_ss = 
-    FOL_ss addsimps   [Su.distinct, Su.distinct', Su.inl_iff, Su.inr_iff];
+    min_ss addsimps [Su.distinct, Su.distinct', Su.inl_iff, Su.inr_iff];
 
 val all_defs = Inductive.con_defs @ part_rec_defs;
 
@@ -174,8 +188,11 @@ fun mutual_ind_tac [] 0 = all_tac
            rewrite_goals_tac all_defs  THEN
            simp_tac (mut_ss addsimps [Part_iff]) 1  THEN
            IF_UNSOLVED (*simp_tac may have finished it off!*)
-             ((*simplify assumptions, but don't accept new rewrite rules!*)
-              asm_full_simp_tac (mut_ss setmksimps (fn _=>[])) 1  THEN
+             ((*simplify assumptions*)
+              (*some risk of excessive simplification here -- might have
+	        to identify the bare minimum set of rewrites*)
+              full_simp_tac 
+	         (mut_ss addsimps (conj_rews @ imp_rews @ quant_rews)) 1  THEN
               (*unpackage and use "prem" in the corresponding place*)
               REPEAT (rtac impI 1)  THEN
               rtac (rewrite_rule all_defs prem) 1  THEN
