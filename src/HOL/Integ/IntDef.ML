@@ -376,6 +376,15 @@ Goal "(w::int) * (z1 + z2) = (w * z1) + (w * z2)";
 by (simp_tac (simpset() addsimps [zmult_commute',zadd_zmult_distrib]) 1);
 qed "zadd_zmult_distrib2";
 
+Goalw [zdiff_def] "((z1::int) - z2) * w = (z1 * w) - (z2 * w)";
+by (stac zadd_zmult_distrib 1);
+by (simp_tac (simpset() addsimps [zmult_zminus]) 1);
+qed "zdiff_zmult_distrib";
+
+Goal "(w::int) * (z1 - z2) = (w * z1) - (w * z2)";
+by (simp_tac (simpset() addsimps [zmult_commute',zdiff_zmult_distrib]) 1);
+qed "zdiff_zmult_distrib2";
+
 Goalw [int_def] "int 0 * z = int 0";
 by (res_inst_tac [("z","z")] eq_Abs_Integ 1);
 by (asm_simp_tac (simpset() addsimps [zmult]) 1);
