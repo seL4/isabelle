@@ -80,7 +80,12 @@ fun check_file src_path =
 
     fun find_dir dir =
       get_first (find_ext (Path.append dir path)) ml_exts;
-  in get_first find_dir (if Path.is_basic path then ! load_path else [Path.current]) end;
+
+    val paths =
+      if Path.is_current path then error "Bad file specification"
+      else if Path.is_basic path then ! load_path
+      else [Path.current];
+  in get_first find_dir paths end;
 
 
 (* load_file *)
