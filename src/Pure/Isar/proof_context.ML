@@ -21,11 +21,9 @@ sig
   val strings_of_context: context -> string list
   val print_proof_data: theory -> unit
   val init: theory -> context
-  val def_sort: context -> indexname -> sort option
-  val def_type: context -> bool -> indexname -> typ option
-  val cert_skolem: context -> string -> string * typ option
   val read_typ: context -> string -> typ
   val cert_typ: context -> typ -> typ
+  val cert_skolem: context -> string -> string
   val read_termTs: context -> (string * typ) list -> term list * (indexname * typ) list
   val read_term: context -> string -> term
   val read_prop: context -> string -> term
@@ -330,6 +328,43 @@ fun cert_typ ctxt raw_T =
 
 
 
+(** prepare variables **)
+
+fun prep_var prep_typ ctxt (x, T) =
+  if not (Syntax.is_identifier x) then
+    raise CONTEXT ("Bad variable name: " ^ quote x, ctxt)
+  else (x, apsome (prep_typ ctxt) T);
+
+val read_var = prep_var read_typ;
+val cert_var = prep_var cert_typ;
+
+
+(* internalize Skolem constants *)
+
+fun get_skolem (Context {asms = (_, (fixes, _)), ...}) x = assoc (fixes, x);
+
+fun check_skolem ctxt check x =
+  if check andalso can Syntax.dest_skolem x then
+    raise CONTEXT ("Illegal reference to internal Skolem constant: " ^ quote x, ctxt)
+  else x;
+
+fun intern_skolem ctxt check =
+  let
+    fun intern (t as Free (x, T)) =
+          (case get_skolem ctxt (check_skolem ctxt check x) of
+            Some x' => Free (x', T)
+          | None => t)
+      | intern (t $ u) = intern t $ intern u
+      | intern (Abs (x, T, t)) = Abs (x, T, intern t)
+      | intern a = a;
+  in intern end;
+
+fun cert_skolem ctxt x =
+  (case get_skolem ctxt x of
+    None => raise CONTEXT ("Undeclared variable: " ^ quote x, ctxt)
+  | Some x' => x');
+
+
 (** prepare terms and propositions **)
 
 (*
@@ -365,35 +400,6 @@ fun cert_prop_sg sg tm =
     if T = propT then t
     else raise TERM ("Term not of type prop", [t])
   end;
-
-
-(* internalize Skolem constants *)
-
-fun get_skolem (Context {asms = (_, (fixes, _)), ...}) x = assoc (fixes, x);
-
-fun check_skolem ctxt check x =
-  if not check then x
-  else if not (Syntax.is_identifier x) then
-    raise CONTEXT ("Bad variable name: " ^ quote x, ctxt)
-  else if can Syntax.dest_skolem x then
-    raise CONTEXT ("Illegal reference to internal Skolem constant: " ^ quote x, ctxt)
-  else x;
-
-fun intern_skolem ctxt check =
-  let
-    fun intern (t as Free (x, T)) =
-          (case get_skolem ctxt (check_skolem ctxt check x) of
-            Some x' => Free (x', T)
-          | None => t)
-      | intern (t $ u) = intern t $ intern u
-      | intern (Abs (x, T, t)) = Abs (x, T, intern t)
-      | intern a = a;
-  in intern end;
-
-fun cert_skolem ctxt x =
-  (case get_skolem ctxt x of
-    None => raise CONTEXT ("Undeclared variable: " ^ quote x, ctxt)
-  | Some x' => (x', def_type ctxt false (x', ~1)));
 
 
 (* norm_term *)
@@ -696,20 +702,25 @@ end;
 
 (* fix *)
 
-fun gen_fix prep check (ctxt, (x, raw_T)) =
+fun gen_fix prep_var check (ctxt, (x, raw_T)) =
   (check_skolem ctxt check x;
     ctxt
-    |> (case (apsome o prep) ctxt raw_T of None => I | Some T => declare_term (Free (x, T)))
+    |> (case snd (prep_var ctxt (x, raw_T)) of None => I | Some T => declare_term (Free (x, T)))
     |> map_context (fn (thy, data, (assumes, (fixes, names)), binds, thms, defs) =>
       let val x' = variant names x in
         (thy, data, (assumes, ((x, Syntax.skolem x') :: fixes, x' :: names)), binds, thms, defs)
       end));
 
-fun gen_fixs prep check vars ctxt =
-  foldl (gen_fix prep check) (ctxt, flat (map (fn (xs, T) => map (rpair T) xs) vars));
+fun dist_vars ctxt (xs, T) =
+  (case Library.duplicates xs of
+    [] => map (rpair T) xs
+  | dups => raise CONTEXT ("Duplicate variable names in declaration: " ^ commas_quote dups, ctxt));
 
-val fix = gen_fixs read_typ true;
-val fix_i = gen_fixs cert_typ false;
+fun gen_fixs prep check vars ctxt =
+  foldl (gen_fix prep check) (ctxt, flat (map (dist_vars ctxt) vars));
+
+val fix = gen_fixs read_var true;
+val fix_i = gen_fixs cert_var false;
 
 
 
