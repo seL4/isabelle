@@ -26,6 +26,10 @@ struct
 
 (** theory context references **)
 
+val split_conv = thm "split_conv";
+val fst_conv = thm "fst_conv";
+val snd_conv = thm "snd_conv";
+
 fun internal_split_const (Ta, Tb, Tc) =
   Const ("Product_Type.internal_split", [[Ta, Tb] ---> Tc, HOLogic.mk_prodT (Ta, Tb)] ---> Tc);
 
