@@ -41,6 +41,17 @@ TFL:	$(OUT)/HOL $(TFL_FILES)
 
 #### Tests and examples
 
+## Inductive definitions: simple examples
+
+INDUCT_FILES =  Perm Comb Mutil SList LList LFilter Acc PropLog Term Simult
+
+INDUCT_FILES = Induct/ROOT.ML \
+	    $(INDUCT_NAMES:%=Induct/%.thy) $(INDUCT_NAMES:%=Induct/%.ML)
+
+Induct:	$(OUT)/HOL $(INDUCT_FILES)
+	@$(ISATOOL) usedir $(OUT)/HOL Induct
+
+
 ## IMP-semantics example
 
 IMP_NAMES = Expr Com Natural Transition Denotation Hoare VC
@@ -185,8 +196,7 @@ Quot:	$(OUT)/HOL $(QUOT_FILES)
 
 ## Miscellaneous examples
 
-EX_NAMES = String BT Perm Comb InSort Qsort LexProd Puzzle Mutil \
-	   Primes NatSum SList LList LFilter Acc PropLog Term Simult MT
+EX_NAMES = String BT InSort Qsort LexProd Puzzle Primes NatSum MT
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
 	   ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
@@ -198,7 +208,8 @@ ex:	$(OUT)/HOL $(EX_FILES)
 ## Full test
 
 test:	$(OUT)/HOL \
-	TFL IMP Hoare Lex Integ Auth Subst Lambda W0 MiniML IOA AxClasses Quot ex
+		TFL Induct IMP Hoare Lex Integ Auth Subst Lambda  \
+		W0 MiniML IOA AxClasses Quot ex
 	echo 'Test examples ran successfully' > test
 
 

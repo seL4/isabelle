@@ -88,6 +88,21 @@ TFL:	$(BIN)/HOL  $(TFL_FILES)
 	else echo 'exit_use_dir"../TFL";quit();' | $(LOGIC); \
 	fi
 
+
+## Inductive definitions: simple examples
+
+INDUCT_FILES =  Perm Comb Mutil SList LList LFilter Acc PropLog Term Simult
+
+INDUCT_FILES = Induct/ROOT.ML \
+	    $(INDUCT_NAMES:%=Induct/%.thy) $(INDUCT_NAMES:%=Induct/%.ML)
+
+Induct:	$(BIN)/HOL $(INDUCT_FILES)
+	@if [ "$${MAKE_HTML-undefined}" != "undefined" ]; \
+	then echo 'make_html := true; exit_use_dir"Induct";quit();' | $(LOGIC); \
+	else echo 'exit_use_dir"Induct";quit();' | $(LOGIC); \
+	fi
+
+
 ##IMP-semantics example
 IMP_NAMES = Expr Com Natural Transition Denotation Hoare VC
 IMP_FILES = IMP/ROOT.ML $(IMP_NAMES:%=IMP/%.thy) $(IMP_NAMES:%=IMP/%.ML)
@@ -201,8 +216,7 @@ Lex:	$(BIN)/HOL  $(LEX_FILES)
 	fi
 
 ##Miscellaneous examples
-EX_NAMES = String BT Perm Comb InSort Qsort LexProd Puzzle Mutil \
-	   Primes NatSum SList LList LFilter Acc PropLog Term Simult MT
+EX_NAMES = String BT InSort Qsort LexProd Puzzle Primes NatSum MT
 
 EX_FILES = ex/ROOT.ML ex/cla.ML ex/meson.ML ex/mesontest.ML ex/rel.ML \
 	   ex/set.ML $(EX_NAMES:%=ex/%.thy) $(EX_NAMES:%=ex/%.ML)
@@ -214,7 +228,9 @@ ex:	$(BIN)/HOL  $(EX_FILES)
 	fi
 
 #Full test.
-test:	$(BIN)/HOL TFL IMP Hoare Lex Integ Auth Subst Lambda MiniML ex
+test:	$(BIN)/HOL \
+		TFL Induct IMP Hoare Lex Integ Auth Subst Lambda  \
+		W0 MiniML IOA AxClasses Quot ex
 	echo 'Test examples ran successfully' > test
 
 .PRECIOUS:  $(BIN)/Pure $(BIN)/HOL 
