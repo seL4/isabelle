@@ -62,7 +62,6 @@ end;
 structure Locale: LOCALE =
 struct
 
-
 (** locale elements and expressions **)
 
 type context = ProofContext.context;
@@ -270,7 +269,7 @@ fun unify_frozen ctxt maxidx Ts Us =
       | paramify (i, Some T) = apsnd Some (Type.paramify_dummies (i, T));
 
     val (maxidx', Ts') = foldl_map paramify (maxidx, Ts);
-    val (maxidx'', Us') = foldl_map paramify (maxidx, Us);
+    val (maxidx'', Us') = foldl_map paramify (maxidx', Us);
     val (unifier, _) = foldl unify ((Vartab.empty, maxidx''), Ts' ~~ Us');
     val Vs = map (apsome (Envir.norm_type unifier)) Us';
     val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (mapfilter I Vs));
@@ -332,7 +331,7 @@ fun unify_elemss _ _ [] = []
         val envs = unify_parms ctxt fixed_parms (map (#2 o #1) elemss);
         fun inst (((name, ps), elems), env) =
           ((name, map (apsnd (apsome (inst_type env))) ps), map (inst_elem env) elems);
-      in map inst (elemss ~~ envs) end;
+      in map2 inst (elemss, envs) end;
 
 fun flatten_expr ctxt (prev_idents, expr) =
   let
@@ -463,10 +462,10 @@ datatype ('a, 'b) int_ext = Int of 'a | Ext of 'b;
 
 local
 
-fun declare_int_elem i (ctxt, Fixes fixes) =
+fun declare_int_elem (ctxt, Fixes fixes) =
       (ctxt |> ProofContext.add_fixes (map (fn (x, T, mx) =>
-        (x, apsome (Term.map_type_tfree (Type.param i)) T, mx)) fixes), [])
-  | declare_int_elem _ (ctxt, _) = (ctxt, []);
+        (x, apsome (Term.map_type_tfree (Type.param 0)) T, mx)) fixes), [])
+  | declare_int_elem (ctxt, _) = (ctxt, []);
 
 fun declare_ext_elem prep_fixes (ctxt, Fixes fixes) =
       (ctxt |> ProofContext.add_fixes (prep_fixes ctxt fixes), [])
@@ -474,13 +473,24 @@ fun declare_ext_elem prep_fixes (ctxt, Fixes fixes) =
   | declare_ext_elem _ (ctxt, Defines defs) = (ctxt, map (fn (_, (t, ps)) => [(t, (ps, []))]) defs)
   | declare_ext_elem _ (ctxt, Notes facts) = (ctxt, []);
 
-fun declare_elems prep_fixes ((ctxt, i), ((name, ps), elems)) =
+fun declare_elems prep_fixes (ctxt, ((name, ps), elems)) =
   let val (ctxt', propps) =
     (case elems of
-      Int es => foldl_map (declare_int_elem i) (ctxt, es)
+      Int es => foldl_map declare_int_elem (ctxt, es)
     | Ext e => foldl_map (declare_ext_elem prep_fixes) (ctxt, [e]))
     handle ProofContext.CONTEXT (msg, ctxt) => err_in_locale ctxt msg [(name, map fst ps)]
-  in ((ctxt', i + 1), propps) end;
+  in (ctxt', propps) end;
+
+fun declare_elemss prep_fixes fixed_params raw_elemss ctxt =
+  let
+    val int_elemss =
+      raw_elemss
+      |> mapfilter (fn (id, Int es) => Some (id, es) | _ => None)
+      |> unify_elemss ctxt fixed_params;
+    val (_, raw_elemss') =
+      foldl_map (fn ((_, es) :: elemss, (id, Int _)) => (elemss, (id, Int es)) | x => x)
+        (int_elemss, raw_elemss);
+  in foldl_map (declare_elems prep_fixes) (ctxt, raw_elemss') end;
 
 
 fun close_frees ctxt t =
@@ -488,7 +498,8 @@ fun close_frees ctxt t =
   in Term.list_all_free (frees, t) end;
 
 fun no_binds _ [] = []
-  | no_binds ctxt _ = raise ProofContext.CONTEXT ("Illegal term bindings in locale element", ctxt);
+  | no_binds ctxt (_ :: _) =
+      raise ProofContext.CONTEXT ("Illegal term bindings in locale element", ctxt);
 
 fun closeup ctxt (Assumes asms) = Assumes (asms |> map (fn (a, propps) =>
       (a, map (fn (t, (ps, qs)) => (close_frees ctxt t,
@@ -497,27 +508,26 @@ fun closeup ctxt (Assumes asms) = Assumes (asms |> map (fn (a, propps) =>
       (a, (close_frees ctxt (#2 (ProofContext.cert_def ctxt t)), no_binds ctxt ps))))
   | closeup ctxt elem = elem;
 
-fun finish_elem parms _ (Fixes fixes, _) = Ext (Fixes (map (fn (x, _, mx) =>
-      (x, assoc_string (parms, x), mx)) fixes))
-  | finish_elem _ close (Assumes asms, propp) = Ext (close (Assumes (map #1 asms ~~ propp)))
+fun finish_elem parms _ (Fixes fixes, _) = Fixes (map (fn (x, _, mx) =>
+      (x, assoc_string (parms, x), mx)) fixes)
+  | finish_elem _ close (Assumes asms, propp) = close (Assumes (map #1 asms ~~ propp))
   | finish_elem _ close (Defines defs, propp) =
-      Ext (close (Defines (map #1 defs ~~ map (fn [(t, (ps, []))] => (t, ps)) propp)))
-  | finish_elem _ _ (Notes facts, _) = Ext (Notes facts);
+      close (Defines (map #1 defs ~~ map (fn [(t, (ps, []))] => (t, ps)) propp))
+  | finish_elem _ _ (Notes facts, _) = Notes facts;
 
 fun finish_elems ctxt parms close (((name, ps), elems), propps) =
   let
     val elems' =
       (case elems of
         Int es => map Int (#2 (hd (unify_elemss ctxt parms [((name, ps), es)])))
-      | Ext e => [finish_elem parms close (e, hd propps)]);
+      | Ext e => [Ext (finish_elem parms close (e, hd propps))]);
     val ps' = map (fn (x, _) => (x, assoc (parms, x))) ps;
   in ((name, ps'), elems') end;
 
 
 fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_concl =
   let
-    val ((raw_ctxt, maxidx), raw_proppss) =
-      foldl_map (declare_elems prep_fixes) ((context, 0), raw_elemss);
+    val (raw_ctxt, raw_proppss) = declare_elemss prep_fixes fixed_params raw_elemss context;
     val raw_propps = map flat raw_proppss;
     val raw_propp = flat raw_propps;
     val (ctxt, all_propp) =
@@ -533,7 +543,7 @@ fun prep_elemss prep_fixes prepp do_close context fixed_params raw_elemss raw_co
     val proppss = map2 (uncurry unflat) (raw_proppss, propps);
 
     val xs = map #1 (params_of raw_elemss);
-    val typing = unify_frozen ctxt maxidx
+    val typing = unify_frozen ctxt 0
       (map (ProofContext.default_type raw_ctxt) xs)
       (map (ProofContext.default_type ctxt) xs);
     val parms = param_types (xs ~~ typing);
