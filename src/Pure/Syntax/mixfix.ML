@@ -172,6 +172,7 @@ val pure_syntax =
   ("",             "pttrn => pttrns",               Delimfix "_"),
   ("_pttrns",      "[pttrn, pttrns] => pttrns",     Mixfix ("_/ _", [1, 0], 0)),
   ("",             "id => aprop",                   Delimfix "_"),
+  ("",             "longid => aprop",               Delimfix "_"),
   ("",             "var => aprop",                  Delimfix "_"),
   ("_aprop",       "aprop => prop",                 Delimfix "PROP _"),
   ("",             "prop => asms",                  Delimfix "_"),
@@ -182,6 +183,7 @@ val pure_syntax =
   ("_mk_ofclassS", "_",                             NoSyn),
   ("_K",           "_",                             NoSyn),
   ("",             "id => logic",                   Delimfix "_"),
+  ("",             "longid => logic",               Delimfix "_"),
   ("",             "var => logic",                  Delimfix "_")];
 
 val pure_appl_syntax =
@@ -205,5 +207,6 @@ val pure_sym_syntax =
   ("_bigimpl", "[asms, prop] => prop",  Mixfix ("((3\\<lbrakk>_\\<rbrakk>)/ \\<Midarrow>\\<Rightarrow> _)", [0, 1], 1)),
   ("==",       "['a::{}, 'a] => prop",  InfixrName ("\\<equiv>", 2)),
   ("!!",       "[idts, prop] => prop",  Mixfix ("(3\\<And>_./ _)", [0, 0], 0))];
+
 
 end;
