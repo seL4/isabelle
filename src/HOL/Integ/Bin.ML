@@ -1,4 +1,5 @@
 (*  Title:      HOL/Integ/Bin.ML
+    ID:         $Id$
     Authors:    Lawrence C Paulson, Cambridge University Computer Laboratory
                 David Spelt, University of Twente 
                 Tobias Nipkow, Technical University Munich
@@ -214,7 +215,7 @@ Addsimps [zdiff0, zdiff0_right, zdiff_self];
 
 fun inst x t = read_instantiate_sg (sign_of Bin.thy) [(x,t)];
 
-(*Distributive laws*)
+(*Distributive laws for literals*)
 Addsimps (map (inst "w" "number_of ?v")
 	  [zadd_zmult_distrib, zadd_zmult_distrib2,
 	   zdiff_zmult_distrib, zdiff_zmult_distrib2]);
@@ -224,6 +225,8 @@ Addsimps (map (inst "x" "number_of ?v")
 Addsimps (map (inst "y" "number_of ?v") 
 	  [zminus_zless, zminus_zle, zminus_equation]);
 
+(*Moving negation out of products*)
+Addsimps [zmult_zminus, zmult_zminus_right];
 
 (** Special-case simplification for small constants **)
 
@@ -726,12 +729,6 @@ by (res_inst_tac [("m","m"),("n","n")] diff_induct 1);
 by Auto_tac;
 qed_spec_mp "zdiff_int";
 
-(*Towards canonical simplification*)
-Addsimps zadd_ac;
-Addsimps zmult_ac;
-Addsimps [zmult_zminus, zmult_zminus_right];
-
-
 
 (** Products of signs **)
 
@@ -740,8 +737,8 @@ by Auto_tac;
 by (force_tac (claset() addDs [zmult_zless_mono1_neg], simpset()) 2);
 by (eres_inst_tac [("P", "#0 < m * n")] rev_mp 1);
 by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
-by (force_tac (claset() addDs [zmult_zless_mono1_neg], 
-	       simpset() addsimps [order_le_less]) 1);
+by (force_tac (claset() addDs [inst "k" "m" zmult_zless_mono1_neg], 
+	       simpset()addsimps [order_le_less, zmult_commute]) 1);
 qed "neg_imp_zmult_pos_iff";
 
 Goal "(m::int) < #0 ==> (m*n < #0) = (#0 < n)";
@@ -767,8 +764,8 @@ by Auto_tac;
 by (force_tac (claset() addDs [zmult_zless_mono1], simpset()) 2);
 by (eres_inst_tac [("P", "#0 < m * n")] rev_mp 1);
 by (simp_tac (simpset() addsimps [linorder_not_le RS sym]) 1);
-by (force_tac (claset() addDs [zmult_zless_mono1], 
-	       simpset() addsimps [order_le_less]) 1);
+by (force_tac (claset() addDs [inst "k" "m" zmult_zless_mono1], 
+	       simpset() addsimps [order_le_less, zmult_commute]) 1);
 qed "pos_imp_zmult_pos_iff";
 
 (** <= versions of the theorems above **)
