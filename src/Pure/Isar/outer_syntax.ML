@@ -310,7 +310,8 @@ val new_header =
     || theory_keyword |-- P.!!! theory_header;
 
 val old_header =
-  P.name -- (P.$$$ "=" |-- P.name -- Scan.repeat (P.$$$ "+" |-- P.name))
+  P.!!! (P.group "theory header"
+    (P.name -- (P.$$$ "=" |-- P.name -- Scan.repeat (P.$$$ "+" |-- P.name))))
   >> (fn (A, (B, Bs)) => (A, B :: Bs, []: (string * bool) list));
 
 fun deps_thy name path =
