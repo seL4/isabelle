@@ -1,6 +1,9 @@
 #!/usr/bin/perl
 
 # mkcontents.pl
+#
+#   $ID$
+#
 #   simple script to create a html version of the Contents file in the
 #   Isabelle documentation directory.
 #
