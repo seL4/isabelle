@@ -30,6 +30,7 @@ FILES = ROOT.ML add_ind_def.ML datatype.ML hologic.ML\
 	typedef.ML thy_syntax.ML thy_data.ML ../Pure/section_utils.ML\
 	../Provers/hypsubst.ML ../Provers/classical.ML ../Provers/blast.ML \
 	../Provers/simplifier.ML ../Provers/splitter.ML\
+	../Provers/nat_transitive.ML \
 	$(NAMES:%=%.thy) $(NAMES:%=%.ML)
 
 $(BIN)/HOL:   $(BIN)/Pure  $(FILES) 
