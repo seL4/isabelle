@@ -35,6 +35,16 @@ check_mlhome_file "$POLY"
 check_mlhome_file "$DISCGARB"
 
 
+case "$ML_SYSTEM" in
+  polyml-4.*)
+    EXIT="fun exit 0 = (OS.Process.exit OS.Process.success): unit | exit _ = OS.Process.exit OS.Process.failure;"
+    ;;
+  *)
+    EXIT="val exit = PolyML.exit;"
+    ;;
+esac
+
+
 ## prepare databases
 
 COPYDB=true
@@ -42,8 +52,8 @@ COPYDB=true
 if [ -z "$INFILE" ]; then
   INFILE="$ML_HOME/ML_dbase"
   check_mlhome_file "$INFILE"
-  MLTEXT="val use = PolyML.use; val exit = PolyML.exit; $MLTEXT"
   COPYDB=""
+  MLTEXT="val use = PolyML.use; $EXIT $MLTEXT"
 fi
 
 if [ -z "$OUTFILE" ]; then
