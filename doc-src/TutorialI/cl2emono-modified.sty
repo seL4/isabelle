@@ -1142,117 +1142,35 @@ in physics style as boldface italics.}}
 \let\leftlegendglue\relax
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%             This is bibbook.xxx
+% Definition of environment  thebibliography
 %
-% It redefines the "bibliography" environment.
+% Borrowed from book.cls
 %
-% Usage: \begin{thebibliography}[label]{title}
-%
-%        where "title" is the text of the title which will be
-%        typeset, e.g. "References" or "Bibliography". It must
-%        be given.
-%
-%        together with "bibay" style option (e.g.
-%          \documentstyle[bibay]{article}):
-%
-%        \bibitem{label}{key}{referenced text}
-%             for author-year-citation
-%
-%        without style option (as described by Lamport):
-%
-%        \bibitem[label]{key}
-%        \bibitem{key}
-%
-%        \cite{key}  (as described by Lamport)
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% by lcp
 
-% definition of \begin{thebibliography}
-
-\def\thebibliography{\@ifnextchar[{\@lThebibliography}%
-                                  {\@Thebibliography}}
-
-\def\@lThebibliography[#1]#2{\chapter*{#2\@mkboth{#2}{#2}}\small\rm
-   \list{\arabic{enumiv}.}{\settowidth\labelwidth{#1}%
-      \leftmargin\labelwidth
-      \advance\leftmargin\labelsep
-      \usecounter{enumiv}%
-      \let\p@enumiv\@empty
-      \def\theenumiv{\arabic{enumiv}}}%
-   \def\newblock{\hskip .11em plus .33em minus .07em}%
-   \sloppy\clubpenalty4000\widowpenalty4000
-   \sfcode`\.=1000\relax}
-
-\def\@Thebibliography#1{\chapter*{#1\@mkboth{#1}{#1}}\small\rm
-   \list{\arabic{enumiv}.}%
-   {\if@bibay
-        \settowidth\labelwidth{\hspace{10\p@}\hskip-\labelsep}%
-      \else
-        \settowidth\labelwidth{\hspace\parindent\hskip-\labelsep}%
-      \fi
-      \usecounter{enumiv}%
-      \let\p@enumiv\@empty
-      \def\theenumiv{\arabic{enumiv}}%
-      \leftmargin\labelwidth
-      \advance\leftmargin\labelsep}
-   \def\newblock{\hskip .11em plus .33em minus .07em}
-   \sloppy\clubpenalty4000\widowpenalty4000
-   \sfcode`\.=1000\relax}
-
-\let\endthebibliography=\endlist
-
-% definition of \bibitem and \cite
-
-\def\ds@bibay{\@bibaytrue
-    \def\bibitem{\@bibitem}%
-    \def\@bibitem##1##2##3{\ifx!##1!\item[]\hskip-\labelwidth
-        \hskip-\labelsep\else\item[\@biblabel{##1}]\fi
-        \if@filesw
-           {\def\protect####1{\string ####1\space}\immediate
-           \write\@auxout{\string\bibcite{##2}{##3}}}%
-        \fi\ignorespaces}%
-%
-    \def\cite{\@ifnextchar[{\@tempswatrue\@citex}%
-                           {\@tempswafalse\@citex[]}}%
-%
-    \def\@citex[##1]##2{%
-        \if@filesw
-           \immediate\write\@auxout{\string\citation{##2}}%
-        \fi
-        \def\@citea{}%
-        \@cite{\@for\@citeb:=##2\do
-           {\@citea\def\@citea{,\penalty\@m\ }\@ifundefined
-           {b@\@citeb}{{\bf ?}\@warning
-           {Citation `\@citeb' on page \thepage \space undefined}}%
-           \hbox{\csname b@\@citeb\endcsname}}}%
-        {##1}}%
-%
-    \def\@cite##1##2{{##1\if@tempswa , ##2\fi}}%
-    \def\@biblabel##1{##1\hfill}}
-
-\def\bibitem{\@ifnextchar[{\@lbibitem}{\@bibitem}}
-\def\@lbibitem[#1]#2{\item[\@biblabel{#1}]\if@filesw
-    {\def\protect##1{\string ##1\space}\immediate
-    \write\@auxout{\string\bibcite{#2}{#1}}}\fi\ignorespaces}
-%
-\def\@bibitem#1{\item\if@filesw \immediate\write\@auxout
-       {\string\bibcite{#1}{\the\c@enumiv}}\fi\ignorespaces}
-%
-\def\cite{\@ifnextchar[{\@tempswatrue\@citex}{\@tempswafalse\@citex[]}}
-%
-\def\@citex[#1]#2{\if@filesw\immediate\write\@auxout{\string\citation{#2}}\fi
-    \def\@citea{}%
-    \@cite{\@for\@citeb:=#2\do
-       {\@citea\def\@citea{,\penalty\@m\ }\@ifundefined
-       {b@\@citeb}{{\bf ?}\@warning
-       {Citation `\@citeb' on page \thepage \space undefined}}%
-       \hbox{\csname b@\@citeb\endcsname}}}%
-    {#1}}
-\def\@cite#1#2{[{#1\if@tempswa , #2\fi}]}
-\def\@biblabel#1{[#1]\hfill}
-
+\newcommand\bibname{Bibliography}
+\setlength\bibindent{1.5em}
+\renewenvironment{thebibliography}[1]
+     {\chapter*{\bibname
+        \@mkboth{\MakeUppercase\bibname}{\MakeUppercase\bibname}}%
+      \list{\@biblabel{\@arabic\c@enumiv}}%
+           {\settowidth\labelwidth{\@biblabel{#1}}%
+            \leftmargin\labelwidth
+            \advance\leftmargin\labelsep
+            \@openbib@code
+            \usecounter{enumiv}%
+            \let\p@enumiv\@empty
+            \renewcommand\theenumiv{\@arabic\c@enumiv}}%
+      \sloppy
+      \clubpenalty4000
+      \@clubpenalty \clubpenalty
+      \widowpenalty4000%
+      \sfcode`\.\@m}
+     {\def\@noitemerr
+       {\@latex@warning{Empty `thebibliography' environment}}%
+      \endlist}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
