@@ -204,7 +204,7 @@ proof (unfold function_norm_def);
     proof (intro isUbI setleI ballI);
       fix y; assume "y: B V norm f";
       thus le: "y <= c";
-      proof (-, unfold B_def, elim CollectE disjE bexE);
+      proof (unfold B_def, elim CollectE disjE bexE);
 	fix x; assume Px: "x ~= <0> & y = rabs (f x) * rinv (norm x)";
 	assume x: "x : V";
         have lt: "0r < norm x";  by (simp! add: normed_vs_norm_gt_zero);
