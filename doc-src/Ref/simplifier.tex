@@ -1308,14 +1308,11 @@ be composed together and supplied below to \texttt{setmksimps}.
 
 \subsection{Making the initial simpset}
 
-It is time to assemble these items.  We open module \texttt{Simplifier}
-to gain direct access to its components.  We define the infix operator
+It is time to assemble these items.  We define the infix operator
 \ttindex{addcongs} to insert congruence rules; given a list of
 theorems, it converts their conclusions into meta-equalities and
 passes them to \ttindex{addeqcongs}.
 \begin{ttbox}
-open Simplifier;
-\ttbreak
 infix 4 addcongs;
 fun ss addcongs congs =
     ss addeqcongs (congs RL [eq_reflection,iff_reflection]);
