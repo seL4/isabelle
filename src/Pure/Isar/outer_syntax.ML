@@ -339,16 +339,23 @@ end;
 
 local
 
+val indent_prop = Scan.one T.is_indent -- Scan.one T.is_proper;
+val improp = Scan.unless indent_prop (Scan.one (not o T.is_proper));
+val improper_keep_indent = Scan.repeat improp;
+
 val improper = Scan.any (not o T.is_proper);
+
+val improper_end =
+  (improper -- semicolon) |-- improper_keep_indent ||
+  improper_keep_indent;
+
 val markup = Scan.one (T.is_kind T.Command andf is_markup o T.val_of) >> T.val_of;
 val verbatim = Scan.one (T.is_kind T.Command andf is_verbatim o T.val_of);
 
 val present_token =
-  improper |-- markup -- (improper |-- P.text --| (improper -- Scan.option semicolon -- improper))
-    >> Present.markup_token ||
+  improper |-- markup -- (improper |-- P.text --| improper_end) >> Present.markup_token ||
   (P.$$$ "--" >> K "cmt") -- (improper |-- P.text) >> Present.markup_token ||
-  (improper -- verbatim -- improper) |-- P.text --| (improper -- Scan.option semicolon -- improper)
-    >> Present.verbatim_token ||
+  (improper -- verbatim -- improper) |-- P.text --| improper_end >> Present.verbatim_token ||
   Scan.one T.not_eof >> Present.basic_token;
 
 in
