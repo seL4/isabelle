@@ -261,7 +261,7 @@ bind_thm ("Rep_pnat_less_oneE",Rep_pnat_not_less_one RS notE);
 Goalw [pnat_less_def] 
      "x < (y::pnat) ==> Rep_pnat y ~= Suc 0";
 by (auto_tac (claset(),simpset() 
-    addsimps [Rep_pnat_not_less_one] delsimps [less_one]));
+    addsimps [Rep_pnat_not_less_one] delsimps [less_Suc0]));
 qed "Rep_pnat_gt_implies_not0";
 
 Goalw [pnat_less_def] 
