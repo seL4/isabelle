@@ -104,8 +104,9 @@ constdefs
   composition :: "[i=>o,i,i,i] => o"
     "composition(M,r,s,t) == 
         \<forall>p[M]. p \<in> t <-> 
-               (\<exists>x[M]. \<exists>y[M]. \<exists>z[M]. pair(M,x,z,p) & \<langle>x,y\<rangle> \<in> s & \<langle>y,z\<rangle> \<in> r)"
-
+               (\<exists>x[M]. \<exists>y[M]. \<exists>z[M]. \<exists>xy[M]. \<exists>yz[M]. 
+                pair(M,x,z,p) & pair(M,x,y,xy) & pair(M,y,z,yz) & 
+                xy \<in> s & yz \<in> r)"
 
   injection :: "[i=>o,i,i,i] => o"
     "injection(M,A,B,f) == 

@@ -292,7 +292,7 @@ apply (unfold rall_def)
 apply (intro Imp_reflection All_reflection, assumption)
 done
 
-lemmas FOL_reflection = 
+lemmas FOL_reflections = 
         Triv_reflection Not_reflection And_reflection Or_reflection
         Imp_reflection Iff_reflection Ex_reflection All_reflection
         Rex_reflection Rall_reflection
@@ -340,6 +340,39 @@ translations
    "8"  == "succ(7)"
    "9"  == "succ(8)"
 
+
+subsubsection{*The Empty Set*}
+
+constdefs empty_fm :: "i=>i"
+    "empty_fm(x) == Forall(Neg(Member(0,succ(x))))"
+
+lemma empty_type [TC]:
+     "x \<in> nat ==> empty_fm(x) \<in> formula"
+by (simp add: empty_fm_def) 
+
+lemma arity_empty_fm [simp]:
+     "x \<in> nat ==> arity(empty_fm(x)) = succ(x)"
+by (simp add: empty_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_empty_fm [simp]:
+   "[| x \<in> nat; env \<in> list(A)|]
+    ==> sats(A, empty_fm(x), env) <-> empty(**A, nth(x,env))"
+by (simp add: empty_fm_def empty_def)
+
+lemma empty_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; env \<in> list(A)|]
+       ==> empty(**A, x) <-> sats(A, empty_fm(i), env)"
+by simp
+
+theorem empty_reflection:
+     "REFLECTS[\<lambda>x. empty(L,f(x)), 
+               \<lambda>i x. empty(**Lset(i),f(x))]"
+apply (simp only: empty_def setclass_simps)
+apply (intro FOL_reflections)  
+done
+
+
 subsubsection{*Unordered pairs*}
 
 constdefs upair_fm :: "[i,i,i]=>i"
@@ -384,7 +417,7 @@ theorem upair_reflection:
      "REFLECTS[\<lambda>x. upair(L,f(x),g(x),h(x)), 
                \<lambda>i x. upair(**Lset(i),f(x),g(x),h(x))]" 
 apply (simp add: upair_def)
-apply (intro FOL_reflection)  
+apply (intro FOL_reflections)  
 done
 
 subsubsection{*Ordered pairs*}
@@ -420,7 +453,7 @@ theorem pair_reflection:
      "REFLECTS[\<lambda>x. pair(L,f(x),g(x),h(x)), 
                \<lambda>i x. pair(**Lset(i),f(x),g(x),h(x))]"
 apply (simp only: pair_def setclass_simps)
-apply (intro FOL_reflection upair_reflection)  
+apply (intro FOL_reflections upair_reflection)  
 done
 
 
@@ -456,7 +489,7 @@ theorem union_reflection:
      "REFLECTS[\<lambda>x. union(L,f(x),g(x),h(x)), 
                \<lambda>i x. union(**Lset(i),f(x),g(x),h(x))]"
 apply (simp only: union_def setclass_simps)
-apply (intro FOL_reflection)  
+apply (intro FOL_reflections)  
 done
 
 
@@ -493,7 +526,41 @@ theorem cons_reflection:
      "REFLECTS[\<lambda>x. is_cons(L,f(x),g(x),h(x)), 
                \<lambda>i x. is_cons(**Lset(i),f(x),g(x),h(x))]"
 apply (simp only: is_cons_def setclass_simps)
-apply (intro FOL_reflection upair_reflection union_reflection)  
+apply (intro FOL_reflections upair_reflection union_reflection)  
+done
+
+
+subsubsection{*Successor Function*}
+
+constdefs succ_fm :: "[i,i]=>i"
+    "succ_fm(x,y) == cons_fm(x,x,y)"
+
+lemma succ_type [TC]:
+     "[| x \<in> nat; y \<in> nat |] ==> succ_fm(x,y) \<in> formula"
+by (simp add: succ_fm_def) 
+
+lemma arity_succ_fm [simp]:
+     "[| x \<in> nat; y \<in> nat |] 
+      ==> arity(succ_fm(x,y)) = succ(x) \<union> succ(y)"
+by (simp add: succ_fm_def)
+
+lemma sats_succ_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, succ_fm(x,y), env) <-> 
+        successor(**A, nth(x,env), nth(y,env))"
+by (simp add: succ_fm_def successor_def)
+
+lemma successor_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; j \<in> nat; env \<in> list(A)|]
+       ==> successor(**A, x, y) <-> sats(A, succ_fm(i,j), env)"
+by simp
+
+theorem successor_reflection:
+     "REFLECTS[\<lambda>x. successor(L,f(x),g(x)), 
+               \<lambda>i x. successor(**Lset(i),f(x),g(x))]"
+apply (simp only: successor_def setclass_simps)
+apply (intro cons_reflection)  
 done
 
 
@@ -530,7 +597,7 @@ theorem fun_apply_reflection:
      "REFLECTS[\<lambda>x. fun_apply(L,f(x),g(x),h(x)), 
                \<lambda>i x. fun_apply(**Lset(i),f(x),g(x),h(x))]" 
 apply (simp only: fun_apply_def setclass_simps)
-apply (intro FOL_reflection pair_reflection)  
+apply (intro FOL_reflections pair_reflection)  
 done
 
 
@@ -542,13 +609,13 @@ text{*Differs from the one in Formula by using "ordinal" rather than "Ord"*}
 lemma sats_subset_fm':
    "[|x \<in> nat; y \<in> nat; env \<in> list(A)|]
     ==> sats(A, subset_fm(x,y), env) <-> subset(**A, nth(x,env), nth(y,env))" 
-by (simp add: subset_fm_def subset_def) 
+by (simp add: subset_fm_def Relative.subset_def) 
 
 theorem subset_reflection:
      "REFLECTS[\<lambda>x. subset(L,f(x),g(x)), 
                \<lambda>i x. subset(**Lset(i),f(x),g(x))]" 
-apply (simp only: subset_def setclass_simps)
-apply (intro FOL_reflection)  
+apply (simp only: Relative.subset_def setclass_simps)
+apply (intro FOL_reflections)  
 done
 
 lemma sats_transset_fm':
@@ -560,7 +627,7 @@ theorem transitive_set_reflection:
      "REFLECTS[\<lambda>x. transitive_set(L,f(x)),
                \<lambda>i x. transitive_set(**Lset(i),f(x))]"
 apply (simp only: transitive_set_def setclass_simps)
-apply (intro FOL_reflection subset_reflection)  
+apply (intro FOL_reflections subset_reflection)  
 done
 
 lemma sats_ordinal_fm':
@@ -576,7 +643,7 @@ by (simp add: sats_ordinal_fm')
 theorem ordinal_reflection:
      "REFLECTS[\<lambda>x. ordinal(L,f(x)), \<lambda>i x. ordinal(**Lset(i),f(x))]"
 apply (simp only: ordinal_def setclass_simps)
-apply (intro FOL_reflection transitive_set_reflection)  
+apply (intro FOL_reflections transitive_set_reflection)  
 done
 
 
@@ -615,7 +682,7 @@ theorem membership_reflection:
      "REFLECTS[\<lambda>x. membership(L,f(x),g(x)), 
                \<lambda>i x. membership(**Lset(i),f(x),g(x))]"
 apply (simp only: membership_def setclass_simps)
-apply (intro FOL_reflection pair_reflection)  
+apply (intro FOL_reflections pair_reflection)  
 done
 
 subsubsection{*Predecessor Set*}
@@ -654,7 +721,7 @@ theorem pred_set_reflection:
      "REFLECTS[\<lambda>x. pred_set(L,f(x),g(x),h(x),b(x)), 
                \<lambda>i x. pred_set(**Lset(i),f(x),g(x),h(x),b(x))]" 
 apply (simp only: pred_set_def setclass_simps)
-apply (intro FOL_reflection pair_reflection)  
+apply (intro FOL_reflections pair_reflection)  
 done
 
 
@@ -694,7 +761,7 @@ theorem domain_reflection:
      "REFLECTS[\<lambda>x. is_domain(L,f(x),g(x)), 
                \<lambda>i x. is_domain(**Lset(i),f(x),g(x))]"
 apply (simp only: is_domain_def setclass_simps)
-apply (intro FOL_reflection pair_reflection)  
+apply (intro FOL_reflections pair_reflection)  
 done
 
 
@@ -733,10 +800,51 @@ theorem range_reflection:
      "REFLECTS[\<lambda>x. is_range(L,f(x),g(x)), 
                \<lambda>i x. is_range(**Lset(i),f(x),g(x))]"
 apply (simp only: is_range_def setclass_simps)
-apply (intro FOL_reflection pair_reflection)  
+apply (intro FOL_reflections pair_reflection)  
 done
 
  
+subsubsection{*Field*}
+
+(* "is_field(M,r,z) == 
+	\<exists>dr[M]. is_domain(M,r,dr) & 
+            (\<exists>rr[M]. is_range(M,r,rr) & union(M,dr,rr,z))" *)
+constdefs field_fm :: "[i,i]=>i"
+    "field_fm(r,z) == 
+       Exists(And(domain_fm(succ(r),0), 
+              Exists(And(range_fm(succ(succ(r)),0), 
+                         union_fm(1,0,succ(succ(z)))))))"
+
+lemma field_type [TC]:
+     "[| x \<in> nat; y \<in> nat |] ==> field_fm(x,y) \<in> formula"
+by (simp add: field_fm_def) 
+
+lemma arity_field_fm [simp]:
+     "[| x \<in> nat; y \<in> nat |] 
+      ==> arity(field_fm(x,y)) = succ(x) \<union> succ(y)"
+by (simp add: field_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_field_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; env \<in> list(A)|]
+    ==> sats(A, field_fm(x,y), env) <-> 
+        is_field(**A, nth(x,env), nth(y,env))"
+by (simp add: field_fm_def is_field_def)
+
+lemma field_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; j \<in> nat; env \<in> list(A)|]
+       ==> is_field(**A, x, y) <-> sats(A, field_fm(i,j), env)"
+by simp
+
+theorem field_reflection:
+     "REFLECTS[\<lambda>x. is_field(L,f(x),g(x)), 
+               \<lambda>i x. is_field(**Lset(i),f(x),g(x))]"
+apply (simp only: is_field_def setclass_simps)
+apply (intro FOL_reflections domain_reflection range_reflection
+             union_reflection)
+done
+
+
 subsubsection{*Image*}
 
 (* "image(M,r,A,z) == 
@@ -761,7 +869,7 @@ lemma sats_image_fm [simp]:
    "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
     ==> sats(A, image_fm(x,y,z), env) <-> 
         image(**A, nth(x,env), nth(y,env), nth(z,env))"
-by (simp add: image_fm_def image_def)
+by (simp add: image_fm_def Relative.image_def)
 
 lemma image_iff_sats:
       "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
@@ -772,8 +880,8 @@ by (simp add: sats_image_fm)
 theorem image_reflection:
      "REFLECTS[\<lambda>x. image(L,f(x),g(x),h(x)), 
                \<lambda>i x. image(**Lset(i),f(x),g(x),h(x))]"
-apply (simp only: image_def setclass_simps)
-apply (intro FOL_reflection pair_reflection)  
+apply (simp only: Relative.image_def setclass_simps)
+apply (intro FOL_reflections pair_reflection)  
 done
 
 
@@ -808,7 +916,7 @@ theorem is_relation_reflection:
      "REFLECTS[\<lambda>x. is_relation(L,f(x)), 
                \<lambda>i x. is_relation(**Lset(i),f(x))]"
 apply (simp only: is_relation_def setclass_simps)
-apply (intro FOL_reflection pair_reflection)  
+apply (intro FOL_reflections pair_reflection)  
 done
 
 
@@ -848,7 +956,7 @@ theorem is_function_reflection:
      "REFLECTS[\<lambda>x. is_function(L,f(x)), 
                \<lambda>i x. is_function(**Lset(i),f(x))]"
 apply (simp only: is_function_def setclass_simps)
-apply (intro FOL_reflection pair_reflection)  
+apply (intro FOL_reflections pair_reflection)  
 done
 
 
@@ -887,19 +995,74 @@ lemma typed_function_iff_sats:
    ==> typed_function(**A, x, y, z) <-> sats(A, typed_function_fm(i,j,k), env)"
 by simp
 
-lemmas function_reflection = 
-        upair_reflection pair_reflection union_reflection
-	cons_reflection fun_apply_reflection subset_reflection
-	transitive_set_reflection ordinal_reflection membership_reflection
-	pred_set_reflection domain_reflection range_reflection image_reflection
+lemmas function_reflections = 
+        empty_reflection upair_reflection pair_reflection union_reflection
+	cons_reflection successor_reflection 
+        fun_apply_reflection subset_reflection
+	transitive_set_reflection membership_reflection
+	pred_set_reflection domain_reflection range_reflection field_reflection
+        image_reflection
 	is_relation_reflection is_function_reflection
+
+lemmas function_iff_sats = 
+        empty_iff_sats upair_iff_sats pair_iff_sats union_iff_sats
+	cons_iff_sats successor_iff_sats
+        fun_apply_iff_sats  Memrel_iff_sats
+	pred_set_iff_sats domain_iff_sats range_iff_sats field_iff_sats
+        image_iff_sats
+	relation_iff_sats function_iff_sats
 
 
 theorem typed_function_reflection:
      "REFLECTS[\<lambda>x. typed_function(L,f(x),g(x),h(x)), 
                \<lambda>i x. typed_function(**Lset(i),f(x),g(x),h(x))]"
 apply (simp only: typed_function_def setclass_simps)
-apply (intro FOL_reflection function_reflection)  
+apply (intro FOL_reflections function_reflections)  
+done
+
+
+subsubsection{*Composition of Relations*}
+
+(* "composition(M,r,s,t) == 
+        \<forall>p[M]. p \<in> t <-> 
+               (\<exists>x[M]. \<exists>y[M]. \<exists>z[M]. \<exists>xy[M]. \<exists>yz[M]. 
+                pair(M,x,z,p) & pair(M,x,y,xy) & pair(M,y,z,yz) & 
+                xy \<in> s & yz \<in> r)" *)
+constdefs composition_fm :: "[i,i,i]=>i"
+  "composition_fm(r,s,t) == 
+     Forall(Iff(Member(0,succ(t)),
+             Exists(Exists(Exists(Exists(Exists( 
+              And(pair_fm(4,2,5),
+               And(pair_fm(4,3,1),
+                And(pair_fm(3,2,0),
+                 And(Member(1,s#+6), Member(0,r#+6))))))))))))"
+
+lemma composition_type [TC]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] ==> composition_fm(x,y,z) \<in> formula"
+by (simp add: composition_fm_def) 
+
+lemma arity_composition_fm [simp]:
+     "[| x \<in> nat; y \<in> nat; z \<in> nat |] 
+      ==> arity(composition_fm(x,y,z)) = succ(x) \<union> succ(y) \<union> succ(z)"
+by (simp add: composition_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_composition_fm [simp]:
+   "[| x \<in> nat; y \<in> nat; z \<in> nat; env \<in> list(A)|]
+    ==> sats(A, composition_fm(x,y,z), env) <-> 
+        composition(**A, nth(x,env), nth(y,env), nth(z,env))"
+by (simp add: composition_fm_def composition_def)
+
+lemma composition_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; nth(k,env) = z; 
+          i \<in> nat; j \<in> nat; k \<in> nat; env \<in> list(A)|]
+       ==> composition(**A, x, y, z) <-> sats(A, composition_fm(i,j,k), env)"
+by simp
+
+theorem composition_reflection:
+     "REFLECTS[\<lambda>x. composition(L,f(x),g(x),h(x)), 
+               \<lambda>i x. composition(**Lset(i),f(x),g(x),h(x))]"
+apply (simp only: composition_def setclass_simps)
+apply (intro FOL_reflections pair_reflection)  
 done
 
 
@@ -944,7 +1107,7 @@ theorem injection_reflection:
      "REFLECTS[\<lambda>x. injection(L,f(x),g(x),h(x)), 
                \<lambda>i x. injection(**Lset(i),f(x),g(x),h(x))]"
 apply (simp only: injection_def setclass_simps)
-apply (intro FOL_reflection function_reflection typed_function_reflection)  
+apply (intro FOL_reflections function_reflections typed_function_reflection)  
 done
 
 
@@ -986,7 +1149,7 @@ theorem surjection_reflection:
      "REFLECTS[\<lambda>x. surjection(L,f(x),g(x),h(x)), 
                \<lambda>i x. surjection(**Lset(i),f(x),g(x),h(x))]"
 apply (simp only: surjection_def setclass_simps)
-apply (intro FOL_reflection function_reflection typed_function_reflection)  
+apply (intro FOL_reflections function_reflections typed_function_reflection)  
 done
 
 
@@ -1080,18 +1243,98 @@ theorem order_isomorphism_reflection:
      "REFLECTS[\<lambda>x. order_isomorphism(L,f(x),g(x),h(x),g'(x),h'(x)), 
                \<lambda>i x. order_isomorphism(**Lset(i),f(x),g(x),h(x),g'(x),h'(x))]"
 apply (simp only: order_isomorphism_def setclass_simps)
-apply (intro FOL_reflection function_reflection bijection_reflection)  
+apply (intro FOL_reflections function_reflections bijection_reflection)  
 done
 
-lemmas fun_plus_reflection =
-        typed_function_reflection injection_reflection surjection_reflection
-        bijection_reflection order_isomorphism_reflection
+subsubsection{*Limit Ordinals*}
 
-lemmas fun_plus_iff_sats = upair_iff_sats pair_iff_sats union_iff_sats
-	cons_iff_sats fun_apply_iff_sats ordinal_iff_sats Memrel_iff_sats
-	pred_set_iff_sats domain_iff_sats range_iff_sats image_iff_sats
-	relation_iff_sats function_iff_sats typed_function_iff_sats 
+text{*A limit ordinal is a non-empty, successor-closed ordinal*}
+
+(* "limit_ordinal(M,a) == 
+	ordinal(M,a) & ~ empty(M,a) & 
+        (\<forall>x[M]. x\<in>a --> (\<exists>y[M]. y\<in>a & successor(M,x,y)))" *)
+
+constdefs limit_ordinal_fm :: "i=>i"
+    "limit_ordinal_fm(x) == 
+        And(ordinal_fm(x),
+            And(Neg(empty_fm(x)),
+	        Forall(Implies(Member(0,succ(x)),
+                               Exists(And(Member(0,succ(succ(x))),
+                                          succ_fm(1,0)))))))"
+
+lemma limit_ordinal_type [TC]:
+     "x \<in> nat ==> limit_ordinal_fm(x) \<in> formula"
+by (simp add: limit_ordinal_fm_def) 
+
+lemma arity_limit_ordinal_fm [simp]:
+     "x \<in> nat ==> arity(limit_ordinal_fm(x)) = succ(x)"
+by (simp add: limit_ordinal_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_limit_ordinal_fm [simp]:
+   "[| x \<in> nat; env \<in> list(A)|]
+    ==> sats(A, limit_ordinal_fm(x), env) <-> limit_ordinal(**A, nth(x,env))"
+by (simp add: limit_ordinal_fm_def limit_ordinal_def sats_ordinal_fm')
+
+lemma limit_ordinal_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; env \<in> list(A)|]
+       ==> limit_ordinal(**A, x) <-> sats(A, limit_ordinal_fm(i), env)"
+by simp
+
+theorem limit_ordinal_reflection:
+     "REFLECTS[\<lambda>x. limit_ordinal(L,f(x)), 
+               \<lambda>i x. limit_ordinal(**Lset(i),f(x))]"
+apply (simp only: limit_ordinal_def setclass_simps)
+apply (intro FOL_reflections ordinal_reflection 
+             empty_reflection successor_reflection)  
+done
+
+subsubsection{*Omega: The Set of Natural Numbers*}
+
+(* omega(M,a) == limit_ordinal(M,a) & (\<forall>x[M]. x\<in>a --> ~ limit_ordinal(M,x)) *)
+constdefs omega_fm :: "i=>i"
+    "omega_fm(x) == 
+       And(limit_ordinal_fm(x),
+           Forall(Implies(Member(0,succ(x)),
+                          Neg(limit_ordinal_fm(0)))))"
+
+lemma omega_type [TC]:
+     "x \<in> nat ==> omega_fm(x) \<in> formula"
+by (simp add: omega_fm_def) 
+
+lemma arity_omega_fm [simp]:
+     "x \<in> nat ==> arity(omega_fm(x)) = succ(x)"
+by (simp add: omega_fm_def succ_Un_distrib [symmetric] Un_ac) 
+
+lemma sats_omega_fm [simp]:
+   "[| x \<in> nat; env \<in> list(A)|]
+    ==> sats(A, omega_fm(x), env) <-> omega(**A, nth(x,env))"
+by (simp add: omega_fm_def omega_def)
+
+lemma omega_iff_sats:
+      "[| nth(i,env) = x; nth(j,env) = y; 
+          i \<in> nat; env \<in> list(A)|]
+       ==> omega(**A, x) <-> sats(A, omega_fm(i), env)"
+by simp
+
+theorem omega_reflection:
+     "REFLECTS[\<lambda>x. omega(L,f(x)), 
+               \<lambda>i x. omega(**Lset(i),f(x))]"
+apply (simp only: omega_def setclass_simps)
+apply (intro FOL_reflections limit_ordinal_reflection)  
+done
+
+
+lemmas fun_plus_reflections =
+        typed_function_reflection composition_reflection
+        injection_reflection surjection_reflection
+        bijection_reflection order_isomorphism_reflection
+        ordinal_reflection limit_ordinal_reflection omega_reflection
+
+lemmas fun_plus_iff_sats = 
+	typed_function_iff_sats composition_iff_sats
         injection_iff_sats surjection_iff_sats bijection_iff_sats 
         order_isomorphism_iff_sats
+        ordinal_iff_sats limit_ordinal_iff_sats omega_iff_sats
 
 end

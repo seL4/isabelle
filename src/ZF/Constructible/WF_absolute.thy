@@ -133,18 +133,24 @@ constdefs
 
 
 locale M_trancl = M_axioms +
-(*THEY NEED RELATIVIZATION*)
   assumes rtrancl_separation:
-     "[| M(r); M(A) |] ==>
-	separation
-	   (M, \<lambda>p. \<exists>n[M]. n\<in>nat & 
-                    (\<exists>f[M]. 
-                     f \<in> succ(n) -> A &
-                     (\<exists>x[M]. \<exists>y[M]. pair(M,x,y,p) &  
-                           f`0 = x & f`n = y) &
-                           (\<forall>i\<in>n. <f`i, f`succ(i)> \<in> r)))"
+	 "[| M(r); M(A) |] ==>
+	  separation (M, \<lambda>p. 
+	      \<exists>nnat[M]. \<exists>n[M]. \<exists>n'[M]. 
+               omega(M,nnat) & n\<in>nnat & successor(M,n,n') &
+	       (\<exists>f[M]. 
+		typed_function(M,n',A,f) &
+		(\<exists>x[M]. \<exists>y[M]. \<exists>zero[M]. pair(M,x,y,p) & empty(M,zero) &
+		  fun_apply(M,f,zero,x) & fun_apply(M,f,n,y)) &
+		  (\<forall>j[M]. j\<in>n --> 
+		    (\<exists>fj[M]. \<exists>sj[M]. \<exists>fsj[M]. \<exists>ffp[M]. 
+		      fun_apply(M,f,j,fj) & successor(M,j,sj) &
+		      fun_apply(M,f,sj,fsj) & pair(M,fj,fsj,ffp) & ffp \<in> r))))"
       and wellfounded_trancl_separation:
-     "[| M(r); M(Z) |] ==> separation (M, \<lambda>x. \<exists>w[M]. w \<in> Z & \<langle>w,x\<rangle> \<in> r^+)"
+	 "[| M(r); M(Z) |] ==> 
+	  separation (M, \<lambda>x. 
+	      \<exists>w[M]. \<exists>wx[M]. \<exists>rp[M]. 
+	       w \<in> Z & pair(M,w,x,wx) & tran_closure(M,r,rp) & wx \<in> rp)"
 
 
 lemma (in M_trancl) rtran_closure_rtrancl:
@@ -203,6 +209,9 @@ lemma (in M_trancl) trancl_abs [simp]:
      "[| M(r); M(z) |] ==> tran_closure(M,r,z) <-> z = trancl(r)"
 by (simp add: tran_closure_def trancl_def)
 
+lemma (in M_trancl) wellfounded_trancl_separation':
+     "[| M(r); M(Z) |] ==> separation (M, \<lambda>x. \<exists>w[M]. w \<in> Z & <w,x> \<in> r^+)"
+by (insert wellfounded_trancl_separation [of r Z], simp) 
 
 text{*Alternative proof of @{text wf_on_trancl}; inspiration for the
       relativized version.  Original version is on theory WF.*}
@@ -213,7 +222,6 @@ apply (drule_tac x = "{x\<in>A. \<exists>w. \<langle>w,x\<rangle> \<in> r^+ & w 
 apply (blast elim: tranclE)
 done
 
-
 lemma (in M_trancl) wellfounded_on_trancl:
      "[| wellfounded_on(M,A,r);  r-``A <= A; M(r); M(A) |]
       ==> wellfounded_on(M,A,r^+)"
@@ -222,7 +230,7 @@ apply (safe intro!: equalityI)
 apply (rename_tac Z x)
 apply (subgoal_tac "M({x\<in>A. \<exists>w[M]. w \<in> Z & \<langle>w,x\<rangle> \<in> r^+})")
  prefer 2
- apply (blast intro: wellfounded_trancl_separation) 
+ apply (blast intro: wellfounded_trancl_separation') 
 apply (drule_tac x = "{x\<in>A. \<exists>w[M]. w \<in> Z & \<langle>w,x\<rangle> \<in> r^+}" in rspec, safe)
 apply (blast dest: transM, simp)
 apply (rename_tac y w)

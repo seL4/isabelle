@@ -4,6 +4,8 @@
     Copyright   2002  University of Cambridge
 
 Inner Models and Absoluteness
+
+Build using	isatool usedir  -d pdf ZF Constructible
 *)
 
 use_thy "Reflection";
