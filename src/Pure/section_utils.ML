@@ -24,9 +24,10 @@ fun get_def thy s = get_axiom thy (s^"_def");
 (*Read an assumption in the given theory*)
 fun assume_read thy a = assume (read_cterm (sign_of thy) (a,propT));
 
-fun readtm sign T a = 
-    read_cterm sign (a,T) |> term_of
-    handle ERROR => error ("The error above occurred for " ^ a);
+(*Read a term from string "b", with expected type T*)
+fun readtm sign T b = 
+    read_cterm sign (b,T) |> term_of
+    handle ERROR => error ("The error above occurred for " ^ b);
 
 (*From HOL/ex/meson.ML: raises exception if no rules apply -- unlike RL*)
 fun tryres (th, rl::rls) = (th RS rl handle THM _ => tryres(th,rls))
