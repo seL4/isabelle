@@ -1,0 +1,184 @@
+#!/bin/bash -norc
+#
+# $Id$
+#
+# DESCRIPTION: make all Isabelle systems afresh
+#
+# FIXME TODO:
+#  - clean
+#  - usage
+#  - getopts (i.e. *short* options) (?)
+
+
+# Creates gzipped log files called makeNNNN.log.gz on each subdirectory and
+# displays the last few lines of these files -- this indicates whether
+# the make failed (whether it terminated due to an error)
+
+# switches are
+#     -noforce	don't delete old databases/images first
+#     -clean	delete databases/images after use (leaving Pure)
+#     -notest	make databases/images w/o running the examples
+#     -noexec	don't execute, just check settings and IsaMakefiles
+
+
+set -e			#fail immediately upon errors
+
+# process command line switches
+CLEAN="off";
+FORCE="on";
+TEST="test";
+EXEC="on";
+NO="";
+for A in $*
+do
+	case $A in
+	-clean) CLEAN="on" ;;
+	-noforce) FORCE="off" ;;
+	-notest) TEST="" ;;
+	-noexec) EXEC="off"
+                 NO="-n" ;;
+	*)	echo "Bad flag for makeall: $A"
+		echo "Usage: makeall [-noforce] [-clean] [-notest] [-noexec]"
+		exit ;;
+	esac
+done
+
+
+. $ISABELLE_HOME/lib/scripts/getplatform
+export ISABELLE_OUTPUT_DIR="$ISABELLE_OUTPUT/$ML_SYSTEM-$PLATFORM"
+
+
+echo Started at `date`
+echo Source=`pwd`
+echo Destination=$ISABELLE_OUTPUT_DIR
+echo force=$FORCE '    ' clean=$CLEAN '    '
+echo Compiler=$ML_SYSTEM
+echo Running on `hostname`
+echo Log files will be called make$$.log.gz
+case $TEST in
+  test) echo; echo '		**** Full test: WILL TAKE MANY HOURS ****'
+        echo '		**** Consider the -notest switch ****'
+esac
+
+
+case $FORCE.$EXEC in
+  on.on) (cd $ISABELLE_OUTPUT_DIR;
+          for f in Pure FOL ZF CCL LCF CTT Sequents HOL HOLCF Cube FOLP
+	  do 
+	   rm -f $f
+	  done)
+esac
+
+set +e			#no longer fail upon errors -- e.g. if a make fails
+
+echo
+echo
+echo '*****Pure Isabelle*****'
+( cd Pure; $ISATOOL make $NO > make$$.log )
+tail Pure/make$$.log
+gzip Pure/make$$.log
+
+echo
+echo
+echo '*****First-Order Logic (FOL)*****'
+(cd FOL; $ISATOOL make $NO $TEST > make$$.log)
+tail FOL/make$$.log
+gzip FOL/make$$.log
+#cannot delete FOL yet... it is needed for ZF, CCL and LCF!
+
+echo
+echo
+echo '*****Set theory (ZF)*****'
+(cd ZF; $ISATOOL make $NO $TEST > make$$.log)
+tail ZF/make$$.log
+gzip ZF/make$$.log
+case $CLEAN.$EXEC in
+    on.on)	rm -f $ISABELLE_OUTPUT_DIR/ZF
+esac
+
+echo
+echo
+echo '*****Classical Computational Logic (CCL)*****'
+(cd CCL; $ISATOOL make $NO $TEST > make$$.log)
+tail CCL/make$$.log
+gzip CCL/make$$.log
+case $CLEAN.$EXEC in
+    on.on)	rm -f $ISABELLE_OUTPUT_DIR/CCL
+esac
+
+echo
+echo
+echo '*****Domain Theory (LCF)*****'
+(cd LCF; $ISATOOL make $NO $TEST > make$$.log)
+tail LCF/make$$.log
+gzip LCF/make$$.log
+case $CLEAN.$EXEC in
+  on.on)	rm -f $ISABELLE_OUTPUT_DIR/FOL $ISABELLE_OUTPUT_DIR/LCF
+esac
+
+echo
+echo
+echo '*****Constructive Type Theory (CTT)*****'
+(cd CTT; $ISATOOL make $NO $TEST > make$$.log)
+tail CTT/make$$.log
+gzip CTT/make$$.log
+case $CLEAN.$EXEC in
+    on.on)	rm -f $ISABELLE_OUTPUT_DIR/CTT
+esac
+
+echo
+echo
+echo '*****Sequent Calculi (Sequents)*****'
+(cd Sequents; $ISATOOL make $NO $TEST > make$$.log)
+tail Sequents/make$$.log
+gzip Sequents/make$$.log
+case $CLEAN.$EXEC in
+    on.on)	rm -f $ISABELLE_OUTPUT_DIR/Sequents
+esac
+
+echo
+echo
+echo '*****Higher-Order Logic (HOL)*****'
+(cd HOL; $ISATOOL make $NO $TEST > make$$.log)
+tail HOL/make$$.log
+gzip HOL/make$$.log
+#cannot delete HOL yet... it is needed for HOLCF!
+
+echo
+echo
+echo '*****LCF in HOL (HOLCF)*****'
+(cd HOLCF; $ISATOOL make $NO $TEST > make$$.log)
+tail HOLCF/make$$.log
+gzip HOLCF/make$$.log
+case $CLEAN.$EXEC in
+  on.on)	rm -f $ISABELLE_OUTPUT_DIR/HOL $ISABELLE_OUTPUT_DIR/HOLCF
+esac
+
+echo
+echo
+echo '*****The Lambda-Cube (Cube)*****'
+(cd Cube; $ISATOOL make $NO $TEST > make$$.log)
+case $CLEAN.$EXEC in
+    on.on)	rm -f $ISABELLE_OUTPUT_DIR/Cube
+esac
+tail Cube/make$$.log 
+gzip Cube/make$$.log 
+
+echo
+echo
+echo '*****First-Order Logic with Proof Terms (FOLP)*****'
+(cd FOLP; $ISATOOL make $NO $TEST > make$$.log)
+case $CLEAN.$EXEC in
+    on.on)	rm -f $ISABELLE_OUTPUT_DIR/FOLP
+esac
+tail FOLP/make$$.log 
+gzip FOLP/make$$.log 
+
+case $TEST.$EXEC in
+    test.on)	echo
+	        echo '***** Now check the dates on the "test" files *****'
+        	ls -lrt FOL/test ZF/test CCL/test LCF/test CTT/test\
+              	        Sequents/test HOL/test HOLCF/test\
+                        Cube/test FOLP/test
+esac
+echo Finished at `date`
