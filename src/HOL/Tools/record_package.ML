@@ -67,7 +67,7 @@ fun prove_simp sign ss tacs simps =
 
     fun prove goal =
       Goals.prove_goalw_cterm [] (Thm.cterm_of sign goal)
-        (K (tacs @ [ALLGOALS (Simplifier.simp_tac ss')]))
+        (K (tacs @ [ALLGOALS (Simplifier.asm_full_simp_tac ss')]))
       handle ERROR => error ("The error(s) above occurred while trying to prove "
         ^ quote (Sign.string_of_term sign goal));
   in prove end;
@@ -768,6 +768,17 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
         let val more' = Free (variant all_xs (moreN ^ "'"), moreT)
         in [more_part_update rec_scheme more' === mk_record (all_named_vars, more')] end;
 
+    (*equality*)
+    fun mk_sel_eq (t, T) =
+      let val t' = Term.abstract_over (r, t)
+      in HOLogic.mk_Trueprop (HOLogic.eq_const T $ Term.incr_boundvars 1 t' $ t') end;
+    val sel_eqs = map2 mk_sel_eq (map (mk_sel r) all_names @ [more_part r], all_types @ [moreT]);
+    val equality_prop =
+      Term.all rec_schemeT $ (Abs ("r", rec_schemeT,
+        Term.all rec_schemeT $ (Abs ("r'", rec_schemeT,
+          Logic.list_implies (sel_eqs,
+            HOLogic.mk_Trueprop (HOLogic.eq_const rec_schemeT $ Bound 1 $ Bound 0))))));
+
 
     (* 1st stage: fields_thy *)
 
@@ -783,6 +794,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     val (defs_thy, ((sel_defs, update_defs), make_defs)) =
       fields_thy
+      |> add_record_splits named_splits
       |> Theory.parent_path
       |> Theory.add_tyabbrs_i recordT_specs     (*not made part of record name space!*)
       |> Theory.add_path bname
@@ -798,11 +810,14 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
 
     val parent_simps = flat (map #simps parents);
     val prove = prove_simp (Theory.sign_of defs_thy) HOL_basic_ss [];
+    val prove' = prove_simp (Theory.sign_of defs_thy) HOL_ss;
 
     val sel_convs = map (prove (parent_simps @ sel_defs @ field_simps)) sel_props;
     val update_convs = map (prove (parent_simps @ update_defs @ sel_convs)) update_props;
+    val equality =
+      prove' [ALLGOALS record_split_tac] (parent_simps @ sel_convs @ field_injects) equality_prop;
 
-    val simps = field_simps @ sel_convs @ update_convs @ make_defs;
+    val simps = field_simps @ sel_convs @ update_convs @ make_defs @ [equality];
     val iffs = field_injects;
 
     val thms_thy =
@@ -813,6 +828,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
           ("make_defs", make_defs),
           ("select_convs", sel_convs),
           ("update_convs", update_convs)]
+      |> (#1 oo (PureThy.add_thms o map Thm.no_attributes))
+	  [("equality", equality)]
       |> (#1 oo PureThy.add_thmss)
         [(("simps", simps), [Simplifier.simp_add_global]),
          (("iffs", iffs), [iff_add_global])];
@@ -823,8 +840,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) bfields t
     val final_thy =
       thms_thy
       |> put_record name {args = args, parent = parent, fields = fields, simps = simps}
-      |> put_sel_upd names (field_simps @ sel_defs @ update_defs)
-      |> add_record_splits named_splits
+      |> put_sel_upd (names @ [full_moreN]) (field_simps @ sel_defs @ update_defs)
       |> Theory.parent_path;
 
   in (final_thy, {simps = simps, iffs = iffs}) end;
