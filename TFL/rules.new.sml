@@ -401,7 +401,7 @@ val simplify = rewrite_rule;
 local fun rew_conv mss = rewrite_cterm (true,false) mss (K(K None))
 in
 fun simpl_conv thl ctm = 
- rew_conv (Thm.mss_of (#simps(rep_ss HOL_ss)@thl)) ctm
+ rew_conv (Thm.mss_of (#simps(rep_ss (!simpset))@thl)) ctm
  RS meta_eq_to_obj_eq
 end;
 
@@ -531,7 +531,7 @@ val mss_ref = ref [] : meta_simpset list ref;
 val thm_ref = ref [] : thm list ref;
 val tracing = ref false;
 
-fun say s = if !tracing then (output(std_out,s); flush_out std_out) else ();
+fun say s = if !tracing then TextIO.output (TextIO.stdOut, s) else ();
 
 fun print_thms s L = 
    (say s; 
