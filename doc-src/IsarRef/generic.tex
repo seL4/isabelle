@@ -66,7 +66,7 @@ Isabelle documentation.
 \end{matharray}
 
 Calculational proof is forward reasoning with implicit application of
-transitivity rules (such those of $=$, $\le$, $<$).  Isabelle/Isar maintains
+transitivity rules (such those of $=$, $\leq$, $<$).  Isabelle/Isar maintains
 an auxiliary register $calculation$\indexisarthm{calculation} for accumulating
 results obtained by transitivity composed with the current result.  Command
 $\ALSO$ updates $calculation$ involving $this$, while $\FINALLY$ exhibits the
@@ -830,17 +830,21 @@ This is slightly less hazardous than for the Simplifier (see
   Classical Reasoner, which is also known as ``simpset'' internally
   \cite{isabelle-ref}.  This is a diagnostic command; $undo$ does not apply.
 \item [$intro$, $elim$, and $dest$] declare introduction, elimination, and
-  destruct rules, respectively.  By default, rules are considered as
+  destruction rules, respectively.  By default, rules are considered as
   \emph{unsafe} (i.e.\ not applied blindly without backtracking), while a
   single ``!'' classifies as \emph{safe}, and ``?'' as \emph{extra} (i.e.\ not
   applied in the search-oriented automated methods, but only in single-step
   methods such as $rule$).
-\item [$rule~del$] deletes introduction, elimination, or destruct rules from
+\item [$rule~del$] deletes introduction, elimination, or destruction rules from
   the context.
-\item [$iff$] declares equivalence rules to the context.  The default behavior
-  is to declare a rewrite rule to the Simplifier, and the two corresponding
-  implications to the Classical Reasoner (as ``safe'' rules that are used
-  aggressively, which would normally be indicated by ``!'').
+\item [$iff$] declares a ``safe'' rule to the context in several ways. 
+  The rule is declared as a rewrite rule to the Simplifier. Furthermore, it is 
+  declared in several ways (depending on its structure) to the Classical 
+  Reasoner for aggressive use, which would normally be indicated by ``!'').
+  If the rule is an equivalence, the two corresponding implications are 
+  declared as introduction and destruction rules. If it is an inequality, the
+  corresponding elimination rule is declared. Otherwise, a warning is issued
+  and the rule is delcared as an intruction.
   
   The ``?'' version of $iff$ declares ``extra'' Classical Reasoner rules only,
   and omits the Simplifier declaration.  Thus the declaration does not have
