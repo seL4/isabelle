@@ -51,4 +51,4 @@ Internal environment variables
   $ISABELLE_HOME_USER is the directory "~/isabelle".
 
 
-$Id $
+$Id$
