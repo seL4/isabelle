@@ -8,8 +8,6 @@ Finite powerset operator
 
 Finite = Inductive + Nat +
 
-setup setup_datatypes
-
 (*The natural numbers as a datatype*)
 rep_datatype 
   elim		natE

@@ -43,8 +43,8 @@ $(OUT)/ZF: $(OUT)/FOL AC.ML AC.thy Arith.ML Arith.thy Bool.ML           \
   OrderArith.thy OrderType.ML OrderType.thy Ordinal.ML Ordinal.thy	\
   Perm.ML Perm.thy QPair.ML QPair.thy QUniv.ML QUniv.thy ROOT.ML	\
   Rel.ML Rel.thy Sum.ML Sum.thy \
-  Tools/numeral_syntax.ML Tools/cartprod.ML			\
-  Tools/datatype_package.ML Tools/induct_tacs.ML			\
+  Tools/numeral_syntax.ML Tools/cartprod.ML				\
+  Tools/datatype_package.ML Tools/ind_cases.ML Tools/induct_tacs.ML	\
   Tools/inductive_package.ML Tools/primrec_package.ML Tools/typechk.ML	\
   Trancl.ML Trancl.thy Univ.ML Univ.thy Update.ML Update.thy WF.ML	\
   WF.thy ZF.ML ZF.thy Zorn.ML Zorn.thy domrange.ML domrange.thy		\
@@ -126,12 +126,13 @@ ZF-Induct: ZF $(LOG)/ZF-Induct.gz
 
 $(LOG)/ZF-Induct.gz: $(OUT)/ZF  Induct/ROOT.ML Induct/Acc.ML Induct/Acc.thy \
   Induct/Comb.ML Induct/Comb.thy  Induct/FoldSet.ML Induct/FoldSet.thy \
-  Induct/ListN.ML Induct/ListN.thy\
-  Induct/Multiset.ML Induct/Multiset.thy  Induct/Mutil.ML Induct/Mutil.thy\
-  Induct/Primrec_defs.ML Induct/Primrec_defs.thy\
-  Induct/Primrec.ML Induct/Primrec.thy\
+  Induct/ListN.ML Induct/ListN.thy \
+  Induct/Multiset.ML Induct/Multiset.thy Induct/Mutil.thy \
+  Induct/Primrec_defs.ML Induct/Primrec_defs.thy \
+  Induct/Primrec.ML Induct/Primrec.thy \
   Induct/PropLog.ML Induct/PropLog.thy  Induct/Rmap.ML Induct/Rmap.thy
 	@$(ISATOOL) usedir $(OUT)/ZF Induct
+
 
 ## ZF-ex
 

@@ -56,9 +56,6 @@ open Logic Ind_Syntax;
 fun mk_frees a [] = []
   | mk_frees a (T::Ts) = Free(a,T) :: mk_frees (bump_string a) Ts;
 
-(*read an assumption in the given theory*)
-fun assume_read thy a = Thm.assume (read_cterm (Theory.sign_of thy) (a,propT));
-
 
 (* add_inductive(_i) *)
 
@@ -277,16 +274,14 @@ let
   (*Applies freeness of the given constructors, which *must* be unfolded by
       the given defs.  Cannot simply use the local con_defs because
       con_defs=[] for inference systems.
-    String s should have the form t:Si where Si is an inductive set*)
-  fun mk_cases s =
-      rule_by_tactic (basic_elim_tac THEN
-                      ALLGOALS Asm_full_simp_tac THEN
-                      basic_elim_tac)
-         (assume_read (theory_of_thm elim) s
-                      (*Don't use thy1: it will be stale*)
-          RS  elim)
-      |> standard;
-
+    Proposition A should have the form t:Si where Si is an inductive set*)
+  fun make_cases ss A =
+    rule_by_tactic
+      (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac ss) THEN basic_elim_tac)
+      (Thm.assume A RS elim)
+      |> Drule.standard';
+  fun mk_cases a = make_cases (*delayed evaluation of body!*)
+    (simpset ()) (read_cterm (Thm.sign_of_thm elim) (a, propT));
 
   fun induction_rules raw_induct thy =
    let
@@ -527,8 +522,10 @@ let
                   |> standard
      and mutual_induct = CP.remove_split mutual_induct_fsplit
 
+     val induct_att =
+       (case rec_names of [name] => [InductAttrib.induct_set_global name] | _ => []);
      val (thy', [induct', mutual_induct']) =
-        thy |> PureThy.add_thms [(("induct", induct), [InductAttrib.induct_set_global ""]),
+        thy |> PureThy.add_thms [(("induct", induct), induct_att),
           (("mutual_induct", mutual_induct), [])];
     in (thy', induct', mutual_induct')
     end;  (*of induction_rules*)
@@ -549,11 +546,11 @@ let
        (("cases", elim), [InductAttrib.cases_set_global ""])]
     |>>> (PureThy.add_thmss o map Thm.no_attributes)
         [("defs", defs),
-         ("intros", intrs)]
-    |>> Theory.parent_path;
+         ("intros", intrs)];
   val (thy4, intrs'') =
     thy3 |> PureThy.add_thms
-      (map2 (fn (((bname, _), atts), th) => ((bname, th), atts)) (intr_specs, intrs'));
+      (map2 (fn (((bname, _), atts), th) => ((bname, th), atts)) (intr_specs, intrs'))
+    |>> Theory.parent_path;
   in
     (thy4,
       {defs = defs',

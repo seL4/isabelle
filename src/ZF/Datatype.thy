@@ -1,11 +1,13 @@
-(*  Title:      ZF/Datatype
+(*  Title:      ZF/Datatype.thy
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 
-Dummy theory: brings in all ancestors needed for (Co)Datatype Declarations
-
-	"Datatype" must be capital to avoid conflicts with ML's "datatype"
+(Co)Datatype Definitions for Zermelo-Fraenkel Set Theory.
 *)
 
-Datatype = Inductive + Univ + QUniv
+theory Datatype = Inductive + Univ + QUniv
+  files "Tools/datatype_package.ML":
+
+end
+
