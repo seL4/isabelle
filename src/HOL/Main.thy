@@ -83,7 +83,8 @@ text {*
   explanation of these parameters, see 'HOL/Refute.thy'.
 *}
 
-refute_params [minsize=1,
+refute_params ["itself"=1,
+               minsize=1,
                maxsize=8,
                maxvars=10000,
                maxtime=60,
