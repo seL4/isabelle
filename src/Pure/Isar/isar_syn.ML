@@ -280,7 +280,7 @@ val fromP =
   OuterSyntax.command "from" "forward chaining from given facts" K.prf_chain
     (P.xthms1 -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.from_facts)));
 
-val factsP =
+val noteP =
   OuterSyntax.command "note" "define facts" K.prf_decl
     (facts -- P.marg_comment >> (Toplevel.print oo (Toplevel.proof o IsarThy.have_facts)));
 
@@ -357,6 +357,17 @@ val proofP =
   OuterSyntax.command "proof" "backward proof" K.prf_block
     (P.interest -- Scan.option (P.method -- P.interest)
       >> (Toplevel.print oo (Toplevel.proof o IsarThy.proof)));
+
+
+(* calculational proof commands *)
+
+val alsoP =
+  OuterSyntax.command "also" "intermediate calculational proof step" K.prf_decl
+    (P.marg_comment >> IsarThy.also);
+
+val finallyP =
+  OuterSyntax.command "finally" "terminal calculational proof step" K.prf_chain
+    (P.marg_comment >> IsarThy.finally);
 
 
 (* proof navigation *)
@@ -531,10 +542,10 @@ val parsers = [
   print_ast_translationP, token_translationP, oracleP,
   (*proof commands*)
   theoremP, lemmaP, showP, haveP, thusP, henceP, assumeP, fixP, letP,
-  thenP, fromP, factsP, beginP, endP, nextP, qed_withP, qedP,
+  thenP, fromP, noteP, beginP, endP, nextP, qed_withP, qedP,
   terminal_proofP, immediate_proofP, default_proofP, refineP,
-  then_refineP, proofP, backP, prevP, upP, topP, cannot_undoP,
-  clear_undoP, redoP, undos_proofP, kill_proofP, undoP,
+  then_refineP, proofP, alsoP, finallyP, backP, prevP, upP, topP,
+  cannot_undoP, clear_undoP, redoP, undos_proofP, kill_proofP, undoP,
   (*diagnostic commands*)
   print_commandsP, print_theoryP, print_syntaxP, print_attributesP,
   print_methodsP, print_theoremsP, print_bindsP, print_lthmsP,
