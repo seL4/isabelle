@@ -234,14 +234,13 @@ val inst =
 (*strip quantifier and the implication*)
 val induct0 = inst (quant_induct RS spec RSN (2,rev_mp));
 
+val Const ("Trueprop", _) $ (pred_var $ _) = concl_of induct0
 
 in
   struct
   (*strip quantifier*)
-  val induct = standard 
-                  (CP.split_rule_var
-                    (Var((pred_name,2), elem_type --> Ind_Syntax.oT),
-                     induct0));
+  val induct = CP.split_rule_var(pred_var, elem_type-->Ind_Syntax.oT, induct0) 
+               |> standard;
 
   (*Just "True" unless there's true mutual recursion.  This saves storage.*)
   val mutual_induct = CP.remove_split mutual_induct_fsplit
