@@ -10,6 +10,7 @@ sig
   val main: unit -> unit
   val loop: unit -> unit
   val help: unit -> unit
+  val load: string -> unit
 end;
 
 signature OUTER_SYNTAX =
@@ -168,6 +169,8 @@ val isar =
 
 (** the read-eval-print loop **)
 
+(* main loop *)
+
 fun loop () = (Context.reset_context (); Toplevel.loop isar);
 
 fun main () =
@@ -175,6 +178,12 @@ fun main () =
   ml_prompts "ML> " "ML# ";
   writeln ("\n\n" ^ Context.welcome ());
   loop ());
+
+
+(* load *)
+
+fun load name = Toplevel.excursion (read_file (name ^ ".thy"))
+  handle exn => error (Toplevel.exn_message exn);
 
 
 (* help *)
