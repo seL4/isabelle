@@ -33,6 +33,7 @@ infix 4 addSIs addSEs addSDs addIs addEs addDs
 signature CLASSICAL =
   sig
   type claset
+  type netpair
   val empty_cs		: claset
   val addDs 		: claset * thm list -> claset
   val addEs 		: claset * thm list -> claset
@@ -46,9 +47,12 @@ signature CLASSICAL =
   val addafter 		: claset * tactic -> claset
 
   val print_cs		: claset -> unit
-  val rep_claset	: claset -> {safeIs: thm list, safeEs: thm list, 
-				     hazIs: thm list, hazEs: thm list,
-				     wrapper: tactic -> tactic}
+  val rep_claset	: 
+      claset -> {safeIs: thm list, safeEs: thm list, 
+		 hazIs: thm list, hazEs: thm list,
+		 wrapper: tactic -> tactic,
+		 safe0_netpair: netpair, safep_netpair: netpair,
+		 haz_netpair: netpair, dup_netpair: netpair}
   val getwrapper	: claset -> tactic -> tactic
   val THEN_MAYBE	: tactic * tactic -> tactic
 
@@ -118,6 +122,7 @@ fun dup_intr th = standard (th RS classical);
 fun dup_elim th = th RSN (2, revcut_rl) |> assumption 2 |> Sequence.hd |> 
                   rule_by_tactic (TRYALL (etac revcut_rl));
 
+
 (*** Classical rule sets ***)
 
 type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
@@ -133,79 +138,164 @@ datatype claset =
 	 haz_netpair  	: netpair,		(*nets for unsafe rules*)
 	 dup_netpair	: netpair};		(*nets for duplication*)
 
-fun rep_claset (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) = 
-    {safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs, wrapper=wrapper};
-
-fun getwrapper (CS{wrapper,...}) = wrapper;
-
-(*For use with biresolve_tac.  Combines intr rules with swap to handle negated
-  assumptions.  Pairs elim rules with true.  Sorts the list of pairs by 
-  the number of new subgoals generated. *)
-fun joinrules (intrs,elims) =  
-  sort lessb 
-    (map (pair true) (elims @ swapify intrs)  @
-     map (pair false) intrs);
-
-val build = build_netpair(Net.empty,Net.empty);
-
-(*Make a claset from the four kinds of rules*)
-fun make_cs {safeIs,safeEs,hazIs,hazEs,wrapper} =
-  let val (safe0_brls, safep_brls) = (*0 subgoals vs 1 or more*)
-          take_prefix (fn brl => subgoals_of_brl brl=0)
-             (joinrules(safeIs, safeEs))
-  in CS{safeIs = safeIs, 
-        safeEs = safeEs,
-	hazIs = hazIs,
-	hazEs = hazEs,
-	wrapper = wrapper,
+(*Desired invariants are
 	safe0_netpair = build safe0_brls,
 	safep_netpair = build safep_brls,
 	haz_netpair = build (joinrules(hazIs, hazEs)),
 	dup_netpair = build (joinrules(map dup_intr hazIs, 
 				       map dup_elim hazEs))}
-  end;
 
-(*** Manipulation of clasets ***)
+where build = build_netpair(Net.empty,Net.empty), 
+      safe0_brls contains all brules that solve the subgoal, and
+      safep_brls contains all brules that generate 1 or more new subgoals.
+Nets must be built incrementally, to save space and time.
+*)
 
-val empty_cs = make_cs{safeIs=[], safeEs=[], hazIs=[], hazEs=[], wrapper=I};
+val empty_cs = 
+  CS{safeIs	= [],
+     safeEs	= [],
+     hazIs	= [],
+     hazEs	= [],
+     wrapper 	= I,
+     safe0_netpair = (Net.empty,Net.empty),
+     safep_netpair = (Net.empty,Net.empty),
+     haz_netpair   = (Net.empty,Net.empty),
+     dup_netpair   = (Net.empty,Net.empty)};
 
 fun print_cs (CS{safeIs,safeEs,hazIs,hazEs,...}) =
- (writeln"Introduction rules";  prths hazIs;
-  writeln"Safe introduction rules";  prths safeIs;
-  writeln"Elimination rules";  prths hazEs;
-  writeln"Safe elimination rules";  prths safeEs;
+ (writeln"Introduction rules";  	prths hazIs;
+  writeln"Safe introduction rules";  	prths safeIs;
+  writeln"Elimination rules";  		prths hazEs;
+  writeln"Safe elimination rules";  	prths safeEs;
   ());
 
-(** Adding new (un)safe introduction or elimination rules 
-    In case of overlap, new rules are tried BEFORE old ones
+fun rep_claset (CS args) = args;
+
+fun getwrapper (CS{wrapper,...}) = wrapper;
+
+
+(** Adding (un)safe introduction or elimination rules.
+
+    In case of overlap, new rules are tried BEFORE old ones!!
 **)
 
-fun (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) addSIs ths =
-  make_cs {safeIs=ths@safeIs, 
-	   safeEs=safeEs, hazIs=hazIs, hazEs=hazEs, wrapper=wrapper};
+(*For use with biresolve_tac.  Combines intr rules with swap to handle negated
+  assumptions.  Pairs elim rules with true. *)
+fun joinrules (intrs,elims) =  
+    (map (pair true) (elims @ swapify intrs)  @
+     map (pair false) intrs);
 
-fun (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) addSEs ths =
-  make_cs {safeEs=ths@safeEs, 
-	   safeIs=safeIs, hazIs=hazIs, hazEs=hazEs, wrapper=wrapper};
+(*Priority: prefer rules with fewest subgoals, 
+              then rules added most recently.*)
+fun tag_brls k [] = []
+  | tag_brls k (brl::brls) =
+      (1000000*subgoals_of_brl brl + k, brl) :: 
+      tag_brls (k+1) brls;
+
+fun insert_tagged_list kbrls np = foldr insert_tagged_brl (kbrls, np);
+
+(*Insert into netpair that already has nI intr rules and nE elim rules.
+  Count the intr rules double (to account for swapify).  Negate to give the
+  new insertions the lowest priority.*)
+fun insert (nI,nE) = insert_tagged_list o (tag_brls (~(2*nI+nE))) o joinrules;
+
+
+(** Safe rules **)
+
+fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
+    addSIs  ths  =
+  let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
+          take_prefix (fn rl => nprems_of rl=0) ths
+      val nI = length safeIs + length ths
+      and nE = length safeEs
+  in CS{safeIs	= ths@safeIs,
+        safe0_netpair = insert (nI,nE) (safe0_rls, []) safe0_netpair,
+	safep_netpair = insert (nI,nE) (safep_rls, []) safep_netpair,
+	safeEs	= safeEs,
+	hazIs	= hazIs,
+	hazEs	= hazEs,
+	wrapper = wrapper,
+	haz_netpair = haz_netpair,
+	dup_netpair = dup_netpair}
+  end;
+
+fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
+    addSEs  ths  =
+  let val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
+          take_prefix (fn rl => nprems_of rl=1) ths
+      val nI = length safeIs
+      and nE = length safeEs + length ths
+  in 
+     CS{safeEs	= ths@safeEs,
+        safe0_netpair = insert (nI,nE) ([], safe0_rls) safe0_netpair,
+	safep_netpair = insert (nI,nE) ([], safep_rls) safep_netpair,
+	safeIs	= safeIs,
+	hazIs	= hazIs,
+	hazEs	= hazEs,
+	wrapper = wrapper,
+	haz_netpair = haz_netpair,
+	dup_netpair = dup_netpair}
+  end;
 
 fun cs addSDs ths = cs addSEs (map make_elim ths);
 
-fun (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) addIs ths =
-  make_cs {hazIs=ths@hazIs, 
-	   safeIs=safeIs, safeEs=safeEs, hazEs=hazEs, wrapper=wrapper};
 
-fun (CS{safeIs,safeEs,hazIs,hazEs,wrapper,...}) addEs ths =
-  make_cs {hazEs=ths@hazEs,
-	   safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, wrapper=wrapper};
+(** Hazardous (unsafe) rules **)
+
+fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
+    addIs  ths  =
+  let val nI = length hazIs + length ths
+      and nE = length hazEs
+  in 
+     CS{hazIs	= ths@hazIs,
+	haz_netpair = insert (nI,nE) (ths, []) haz_netpair,
+	dup_netpair = insert (nI,nE) (map dup_intr ths, []) dup_netpair,
+	safeIs 	= safeIs, 
+	safeEs	= safeEs,
+	hazEs	= hazEs,
+	wrapper 	= wrapper,
+	safe0_netpair = safe0_netpair,
+	safep_netpair = safep_netpair}
+  end;
+
+fun (CS{safeIs, safeEs, hazIs, hazEs, wrapper, 
+	safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) 
+    addEs  ths  =
+  let val nI = length hazIs 
+      and nE = length hazEs + length ths
+  in 
+     CS{hazEs	= ths@hazEs,
+	haz_netpair = insert (nI,nE) ([], ths) haz_netpair,
+	dup_netpair = insert (nI,nE) ([], map dup_elim ths) dup_netpair,
+	safeIs	= safeIs, 
+	safeEs	= safeEs,
+	hazIs	= hazIs,
+	wrapper	= wrapper,
+	safe0_netpair = safe0_netpair,
+	safep_netpair = safep_netpair}
+  end;
 
 fun cs addDs ths = cs addEs (map make_elim ths);
+
 
 (** Setting or modifying the wrapper tactical **)
 
 (*Set a new wrapper*)
-fun (CS{safeIs,safeEs,hazIs,hazEs,...}) setwrapper wrapper =
-  make_cs {wrapper=wrapper,
-	   safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs};
+fun (CS{safeIs, safeEs, hazIs, hazEs, 
+	safe0_netpair, safep_netpair, haz_netpair, dup_netpair, ...}) 
+    setwrapper new_wrapper  =
+  CS{wrapper 	= new_wrapper,
+     safeIs	= safeIs,
+     safeEs	= safeEs,
+     hazIs	= hazIs,
+     hazEs	= hazEs,
+     safe0_netpair = safe0_netpair,
+     safep_netpair = safep_netpair,
+     haz_netpair = haz_netpair,
+     dup_netpair = dup_netpair};
 
 (*Compose a tactical with the existing wrapper*)
 fun cs compwrapper wrapper' = cs setwrapper (wrapper' o getwrapper cs);
