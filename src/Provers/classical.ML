@@ -240,16 +240,19 @@ fun delete_tagged_list brls netpr = foldr delete_tagged_brl (brls, netpr);
 
 val delete = delete_tagged_list o joinrules;
 
+val mem_thm = gen_mem eq_thm
+and rem_thm = gen_rem eq_thm;
+
 (*Warn if the rule is already present ELSEWHERE in the claset.  The addition
   is still allowed.*)
 fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, ...}) = 
-       if gen_mem eq_thm (th, safeIs) then 
+       if mem_thm (th, safeIs) then 
 	 warning ("rule already in claset as Safe Intr\n" ^ string_of_thm th)
-  else if gen_mem eq_thm (th, safeEs) then
+  else if mem_thm (th, safeEs) then
          warning ("rule already in claset as Safe Elim\n" ^ string_of_thm th)
-  else if gen_mem eq_thm (th, hazIs) then 
+  else if mem_thm (th, hazIs) then 
          warning ("rule already in claset as unsafe Intr\n" ^ string_of_thm th)
-  else if gen_mem eq_thm (th, hazEs) then 
+  else if mem_thm (th, hazEs) then 
          warning ("rule already in claset as unsafe Elim\n" ^ string_of_thm th)
   else ();
 
@@ -258,7 +261,7 @@ fun warn_dup th (CS{safeIs, safeEs, hazIs, hazEs, ...}) =
 fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
 	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	   th)  =
-  if gen_mem eq_thm (th, safeIs) then 
+  if mem_thm (th, safeIs) then 
 	 (warning ("ignoring duplicate Safe Intr\n" ^ string_of_thm th);
 	  cs)
   else
@@ -282,7 +285,7 @@ fun addSI (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
 fun addSE (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
 		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	   th)  =
-  if gen_mem eq_thm (th, safeEs) then 
+  if mem_thm (th, safeEs) then 
 	 (warning ("ignoring duplicate Safe Elim\n" ^ string_of_thm th);
 	  cs)
   else
@@ -316,7 +319,7 @@ fun cs addSDs ths = cs addSEs (map make_elim ths);
 fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	  th)=
-  if gen_mem eq_thm (th, hazIs) then 
+  if mem_thm (th, hazIs) then 
 	 (warning ("ignoring duplicate unsafe Intr\n" ^ string_of_thm th);
 	  cs)
   else
@@ -338,7 +341,7 @@ fun addI (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper,
 fun addE (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
 		   safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
 	  th) =
-  if gen_mem eq_thm (th, hazEs) then 
+  if mem_thm (th, hazEs) then 
 	 (warning ("ignoring duplicate unsafe Elim\n" ^ string_of_thm th);
 	  cs)
   else
@@ -367,77 +370,85 @@ fun cs addDs ths = cs addEs (map make_elim ths);
      Working out what to delete, requires repeating much of the code used
 	to insert.
      Separate functions delSI, etc., are not exported; instead delrules
-        searches in all the lists and chooses the relevant delXX function.
+        searches in all the lists and chooses the relevant delXX functions.
 ***)
 
-fun delSI (CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
-               safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
-            th) =
-  let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=0) [th]
-  in CS{safeIs	= gen_rem eq_thm (safeIs,th),
-        safe0_netpair = delete (safe0_rls, []) safe0_netpair,
-	safep_netpair = delete (safep_rls, []) safep_netpair,
-	safeEs	= safeEs,
-	hazIs	= hazIs,
-	hazEs	= hazEs,
-	uwrapper     = uwrapper,
-	swrapper     = swrapper,
-	haz_netpair  = haz_netpair,
-	dup_netpair  = dup_netpair}
-  end;
+fun delSI th 
+          (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+		    safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
+ if mem_thm (th, safeIs) then
+   let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=0) [th]
+   in CS{safe0_netpair = delete (safe0_rls, []) safe0_netpair,
+	 safep_netpair = delete (safep_rls, []) safep_netpair,
+	 safeIs	= rem_thm (safeIs,th),
+	 safeEs	= safeEs,
+	 hazIs	= hazIs,
+	 hazEs	= hazEs,
+	 uwrapper     = uwrapper,
+	 swrapper     = swrapper,
+	 haz_netpair  = haz_netpair,
+	 dup_netpair  = dup_netpair}
+   end
+ else cs;
 
-fun delSE (CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
-	       safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
-            th) =
-  let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=1) [th]
-  in CS{safeEs	= gen_rem eq_thm (safeEs,th),
-        safe0_netpair = delete ([], safe0_rls) safe0_netpair,
-	safep_netpair = delete ([], safep_rls) safep_netpair,
-	safeIs	= safeIs,
-	hazIs	= hazIs,
-	hazEs	= hazEs,
-	uwrapper     = uwrapper,
-	swrapper     = swrapper,
-	haz_netpair  = haz_netpair,
-	dup_netpair  = dup_netpair}
-  end;
+fun delSE th
+          (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+	            safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
+ if mem_thm (th, safeEs) then
+   let val (safe0_rls, safep_rls) = partition (fn rl => nprems_of rl=1) [th]
+   in CS{safe0_netpair = delete ([], safe0_rls) safe0_netpair,
+	 safep_netpair = delete ([], safep_rls) safep_netpair,
+	 safeIs	= safeIs,
+	 safeEs	= rem_thm (safeEs,th),
+	 hazIs	= hazIs,
+	 hazEs	= hazEs,
+	 uwrapper     = uwrapper,
+	 swrapper     = swrapper,
+	 haz_netpair  = haz_netpair,
+	 dup_netpair  = dup_netpair}
+   end
+ else cs;
 
 
-fun delI (CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
-	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
-	   th) =
-     CS{hazIs	= gen_rem eq_thm (hazIs,th),
-	haz_netpair = delete ([th], []) haz_netpair,
+fun delI th
+         (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+	           safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
+ if mem_thm (th, hazIs) then
+     CS{haz_netpair = delete ([th], []) haz_netpair,
 	dup_netpair = delete ([dup_intr th], []) dup_netpair,
 	safeIs 	= safeIs, 
 	safeEs	= safeEs,
+	hazIs	= rem_thm (hazIs,th),
 	hazEs	= hazEs,
 	uwrapper      = uwrapper,
 	swrapper      = swrapper,
 	safe0_netpair = safe0_netpair,
-	safep_netpair = safep_netpair};
+	safep_netpair = safep_netpair}
+ else cs;
 
-fun delE (CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
-	      safe0_netpair, safep_netpair, haz_netpair, dup_netpair},
-	   th) =
-     CS{hazEs	= gen_rem eq_thm (hazEs,th),
-	haz_netpair = delete ([], [th]) haz_netpair,
+fun delE th
+	 (cs as CS{safeIs, safeEs, hazIs, hazEs, uwrapper, swrapper, 
+	           safe0_netpair, safep_netpair, haz_netpair, dup_netpair}) =
+ if mem_thm (th, hazEs) then
+     CS{haz_netpair = delete ([], [th]) haz_netpair,
 	dup_netpair = delete ([], [dup_elim th]) dup_netpair,
 	safeIs	= safeIs, 
 	safeEs	= safeEs,
 	hazIs	= hazIs,
+	hazEs	= rem_thm (hazEs,th),
 	uwrapper      = uwrapper,
 	swrapper      = swrapper,
 	safe0_netpair = safe0_netpair,
-	safep_netpair = safep_netpair};
+	safep_netpair = safep_netpair}
+ else cs;
 
+(*Delete ALL occurrences of "th" in the claset (perhaps from several lists)*)
 fun delrule (cs as CS{safeIs, safeEs, hazIs, hazEs, ...}, th) =
-       if gen_mem eq_thm (th, safeIs) then delSI(cs,th)
-  else if gen_mem eq_thm (th, safeEs) then delSE(cs,th)
-  else if gen_mem eq_thm (th, hazIs) then delI(cs,th)
-  else if gen_mem eq_thm (th, hazEs) then delE(cs,th)
-  else (warning ("rule not in claset\n" ^ (string_of_thm th)); 
-	cs);
+       if mem_thm (th, safeIs) orelse mem_thm (th, safeEs) orelse
+	  mem_thm (th, hazIs)  orelse mem_thm (th, hazEs) 
+       then delSI th (delSE th (delI th (delE th cs)))
+       else (warning ("rule not in claset\n" ^ (string_of_thm th)); 
+	     cs);
 
 val op delrules = foldl delrule;
 
