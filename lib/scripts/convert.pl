@@ -28,6 +28,13 @@ sub subst_RS {
   s/([\w\'\.]+) RS ([\w\'\.]+)/$1 \[THEN $2\]/g;
 }
 
+sub subst_RS_fun {
+  my $s = shift;
+  $_ = $s;
+  subst_RS();
+  $_;
+}
+
 sub decl {
   my $s = shift;
   my $a = shift;
@@ -229,10 +236,12 @@ while (<>) { # main loop
   s/^Goalw *(\[[\w\'\.\s,]*\]|[\w\'\. \[,\]]+) *(.+)/
     "lemma ".thmname().": $2$head"."apply (unfold ".thmlist($1).")"/se;
   s/^Goal *(.+)/"lemma ".thmname().": $1"/se;
-  s/ goal/"(*".thmname()."*) goal"/se; # ugly old-style goals
+  s/( |^)goal/"(*".thmname()."*)$1goal"/se; # ugly old-style goals
   s/^qed_spec_mp *\"(.*?)\"/done($1," [rule_format (no_asm)]")/se;
   s/^qed *\"(.*?)\"/done($1,"")/se;
   s/^bind_thm *\( *\"(.*?)\" *, *(.*?result *\( *\).*?) *\) *$/done($1,"[?? $2 ??] ")/se;
+  s/^bind_thm *\( *\"(.*?)\" *, *(.*?) *\) *$/"lemmas $1 = ".subst_RS_fun($2)/se;
+  s/^val *\( *\"(.*?)\" *= *(.*?) *\) *$/"lemmas $1 = ".subst_RS_fun($2)/se;
   s/^by(\s*\(?\s*)(.*?)\s*(\)?)\s*$/"apply$1".process_tac($1,$2).$3/se;
   s/^(apply +)\( *([\w\'\.]+)\s*\)\s*$/$1$2/;
                              # remove outermost parentheses if around atoms
