@@ -79,8 +79,10 @@ by (unfold trans_def, blast)
 
 lemma trans_onD: 
     "[| trans[A](r);  <a,b>:r;  <b,c>:r;  a:A;  b:A;  c:A |] ==> <a,c>:r"
-apply (unfold trans_on_def, blast)
-done
+by (unfold trans_on_def, blast)
+
+lemma trans_imp_trans_on: "trans(r) ==> trans[A](r)"
+by (unfold trans_def trans_on_def, blast)
 
 subsection{*Transitive closure of a relation*}
 
@@ -187,6 +189,8 @@ apply (blast intro: rtrancl_into_rtrancl
                     trans_rtrancl [THEN transD, THEN compI])
 done
 
+lemmas trans_on_trancl = trans_trancl [THEN trans_imp_trans_on]
+
 lemmas trancl_trans = trans_trancl [THEN transD, standard]
 
 (** Conversions between trancl and rtrancl **)
@@ -252,6 +256,9 @@ lemma trancl_type: "r^+ <= field(r)*field(r)"
 apply (unfold trancl_def)
 apply (blast elim: rtrancl_type [THEN subsetD, THEN SigmaE2])
 done
+
+lemma trancl_subset_times: "r \<subseteq> A * A ==> r^+ \<subseteq> A * A"
+by (insert trancl_type [of r], blast)
 
 lemma trancl_mono: "r<=s ==> r^+ <= s^+"
 by (unfold trancl_def, intro comp_mono rtrancl_mono)

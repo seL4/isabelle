@@ -127,6 +127,10 @@ by (unfold Ord_def, blast)
 lemma Ord_in_Ord: "[| Ord(i);  j:i |] ==> Ord(j)"
 by (unfold Ord_def Transset_def, blast)
 
+(*suitable for rewriting PROVIDED i has been fixed*)
+lemma Ord_in_Ord': "[| j:i; Ord(i) |] ==> Ord(j)"
+by (blast intro: Ord_in_Ord)
+
 (* Ord(succ(j)) ==> Ord(j) *)
 lemmas Ord_succD = Ord_in_Ord [OF _ succI1]
 
@@ -456,7 +460,7 @@ done
 lemma lt_imp_0_lt: "j<i ==> 0<i"
 by (blast intro: lt_trans1 Ord_0_le [OF lt_Ord]) 
 
-lemma succ_lt_iff: "succ(i) < j \<longleftrightarrow> i<j & succ(i) \<noteq> j"
+lemma succ_lt_iff: "succ(i) < j <-> i<j & succ(i) \<noteq> j"
 apply auto 
 apply (blast intro: lt_trans le_refl dest: lt_Ord) 
 apply (frule lt_Ord) 
@@ -465,6 +469,11 @@ apply (rule not_le_iff_lt [THEN iffD1])
  apply blast  
 apply (simp add: lt_Ord lt_Ord2 le_iff) 
 apply (blast dest: lt_asym) 
+done
+
+lemma Ord_succ_mem_iff: "Ord(j) ==> succ(i) \<in> succ(j) <-> i\<in>j"
+apply (insert succ_le_iff [of i j]) 
+apply (simp add: lt_def) 
 done
 
 (** Union and Intersection **)
