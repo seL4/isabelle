@@ -39,6 +39,12 @@ by (ALLGOALS (asm_simp_tac (simpset() addsimps fib.rules)));
 qed "fib_Suc_neq_0";
 Addsimps [fib_Suc_neq_0];
 
+goal thy "0 < fib (Suc n)";
+by (res_inst_tac [("u","n")] fib.induct 1);
+by (ALLGOALS (asm_simp_tac (simpset() addsimps fib.rules)));
+qed "fib_Suc_gr_0";
+Addsimps [fib_Suc_gr_0];
+
 
 
 (*Concrete Mathematics, page 278: Cassini's identity*)
