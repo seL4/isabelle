@@ -170,13 +170,12 @@ fun print_exn e =
 
 (* Compatibility. *)
 
-(* FIXME lookup inner syntax!? *)
-fun mk_syn c = if Syntax.is_identifier c then NoSyn else Syntax.literal c
+fun mk_syn thy c =
+  if Syntax.is_identifier c andalso not (Syntax.is_keyword (Theory.syn_of thy) c) then NoSyn
+  else Syntax.literal c
 
-(* FIXME lookup outer syntax!? *)
-val keywords = ["open"]
 fun quotename c =
-  if Syntax.is_identifier c andalso not (c mem_string keywords) then c else quote c
+  if Syntax.is_identifier c andalso not (OuterSyntax.is_keyword c) then c else quote c
 
 fun smart_string_of_cterm ct =
     let
@@ -1876,11 +1875,13 @@ val spaces = String.concat o separate " "
 fun new_definition thyname constname rhs thy =
     let
 	val constname = rename_const thyname thy constname
+        val sg = sign_of thy
+        val redeclared = is_some (Sign.const_type sg (Sign.intern_const sg constname));
 	val _ = warning ("Introducing constant " ^ constname)
 	val (thmname,thy) = get_defname thyname constname thy
 	val (info,rhs') = disamb_term rhs
 	val ctype = type_of rhs'
-	val csyn = mk_syn constname
+	val csyn = mk_syn thy constname
 	val thy1 = case HOL4DefThy.get thy of
 		       Replaying _ => thy
 		     | _ => Theory.add_consts_i [(constname,ctype,csyn)] thy
@@ -1895,7 +1896,7 @@ fun new_definition thyname constname rhs thy =
 	val sg = sign_of thy''
 	val rew = rewrite_hol4_term eq thy''
 	val crhs = cterm_of sg (#2 (Logic.dest_equals (prop_of rew)))
-	val thy22 = if (def_name constname) = thmname
+	val thy22 = if (def_name constname) = thmname andalso not redeclared andalso csyn = NoSyn
 		    then
 			add_dump ("constdefs\n  " ^ (quotename constname) ^ " :: \"" ^ (string_of_ctyp (ctyp_of sg ctype)) ^ "\" " ^ (Syntax.string_of_mixfix csyn) ^ "\n  " ^ (smart_string_of_cterm crhs)) thy''
 		    else
@@ -1959,7 +1960,7 @@ fun new_specification thyname thmname names hth thy =
 							  let
 							      val (_,cT,p) = dest_exists ex
 							  in
-							      ((cname,cT,mk_syn cname)::cs,p)
+							      ((cname,cT,mk_syn thy cname)::cs,p)
 							  end) (([],HOLogic.dest_Trueprop (concl_of th)),names)
 			       val sg = sign_of thy
 			       val str = foldl (fn (acc,(c,T,csyn)) =>
@@ -2038,7 +2039,7 @@ fun new_type_definition thyname thmname tycname hth thy =
 		      | _ => raise ERR "new_type_definition" "Bad type definition theorem"
 	    val tfrees = term_tfrees c
 	    val tnames = map fst tfrees
-	    val tsyn = mk_syn tycname
+	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
 	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (Some thmname) typ c None (rtac th2 1) thy
 				      
@@ -2101,7 +2102,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
 		      | _ => raise ERR "type_introduction" "Bad type definition theorem"
 	    val tfrees = term_tfrees c
 	    val tnames = map fst tfrees
-	    val tsyn = mk_syn tycname
+	    val tsyn = mk_syn thy tycname
 	    val typ = (tycname,tnames,tsyn)
 	    val (thy',typedef_info) = TypedefPackage.add_typedef_i false (Some thmname) typ c (Some(rep_name,abs_name)) (rtac th2 1) thy
 				      
