@@ -16,22 +16,23 @@ struct
 
 (* type induct_kind *)
 
-datatype induct_kind = Type | Set | Function;
+datatype induct_kind = Type | Set | Function | Rule;
 
-val typeN = "type";
-val setN = "set";
-val functionN = "function";
+val kind_name =
+  Args.$$$ "type" >> K Type ||
+  Args.$$$ "set" >> K Set ||
+  Args.$$$ "function" >> K Function ||
+  Args.$$$ "rule" >> K Rule;
 
-val kind =
-  (Args.$$$ typeN >> K Type || Args.$$$ setN >> K Set || Args.$$$ functionN >> K Function)
-    --| Args.$$$ ":";
+val kind = kind_name --| Args.$$$ ":";
 
 
 (* induct_rule *)
 
 fun kind_rule Type = (#induction oo DatatypePackage.datatype_info_err, Sign.intern_tycon)
   | kind_rule Set = ((#induct o #2) oo InductivePackage.get_inductive, Sign.intern_const)
-  | kind_rule Function = (#induct oo RecdefPackage.get_recdef, Sign.intern_const);
+  | kind_rule Function = (#induct oo RecdefPackage.get_recdef, Sign.intern_const)
+  | kind_rule Rule = (PureThy.get_thm, K I);
 
 fun induct_rule thy kind name =
   let val (ind_rule, intern) = kind_rule kind
@@ -48,7 +49,6 @@ fun induct_tac thy insts opt_kind_name facts i state =
           Some name => (Type, name)
         | None => error "Unable to figure out induction rule"));
     val rule = Drule.incr_indexes_wrt [] [] [] [state] (induct_rule thy kind name);
-
 
     val cert = Thm.cterm_of (Sign.merge (pairself Thm.sign_of_thm (state, rule)));
 
@@ -75,7 +75,7 @@ fun induct ctxt =
   >> (fn (is, k) => Method.METHOD (FIRSTGOAL o induct_tac (ProofContext.theory_of ctxt) is k));
 
 fun induct_meth src ctxt = #2 (Method.syntax (induct ctxt) ctxt src);
-val induct_method = ("induct", induct_meth, "induction on types / sets / functions");
+val induct_method = ("induct", induct_meth, "induction on types, sets, functions etc.");
 
 
 (* theory setup *)
